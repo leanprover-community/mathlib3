@@ -13,29 +13,6 @@ open tactic
 
 namespace nat
 
--- TODO(gabriel): can we drop addl?
-/- a variant of add, defined by recursion on the first argument -/
-def addl : ℕ → ℕ → ℕ
-| (succ x) y := succ (addl x y)
-| 0        y := y
-local infix ` ⊕ `:65 := addl
-
-@[simp] theorem addl_zero_left (n : ℕ) : 0 ⊕ n = n := rfl
-@[simp] theorem addl_succ_left (m n : ℕ) : succ m ⊕ n = succ (m ⊕ n) := rfl
-
-@[simp] theorem zero_has_zero : nat.zero = 0 := rfl
-
-local attribute [simp] nat.add_zero nat.add_succ nat.zero_add nat.succ_add
-
-@[simp] theorem addl_zero_right (n : ℕ) : n ⊕ 0 = n :=
-begin induction n, simp, simp [ih_1] end
-
-@[simp] theorem addl_succ_right (n m : ℕ) : n ⊕ succ m = succ (n ⊕ m) :=
-begin induction n, simp, simp [ih_1] end
-
-@[simp] theorem add_eq_addl (x y : ℕ) : x ⊕ y = x + y :=
-begin induction x, simp, simp [ih_1] end
-
 /- successor and predecessor -/
 
 theorem add_one_ne_zero (n : ℕ) : n + 1 ≠ 0 := succ_ne_zero _

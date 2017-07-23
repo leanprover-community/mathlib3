@@ -22,7 +22,7 @@ section topological_space
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {a a₁ a₂ : α} {s s₁ s₂ : set α}
 
-lemma topological_space_eq {f g : topological_space α} (h' : f^.open' = g^.open') : f = g :=
+lemma topological_space_eq {f g : topological_space α} (h' : f.open' = g.open') : f = g :=
 begin
   cases f with a, cases g with b,
   have h : a = b, assumption,
@@ -49,7 +49,7 @@ end
 variables [topological_space α]
 
 lemma open_Union {f : ι → set α} (h : ∀i, open' (f i)) : open' (⋃i, f i) :=
-open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq^.symm ▸ h i
+open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 
 @[simp]
 lemma open_empty : open' (∅ : set α) :=
@@ -72,7 +72,7 @@ lemma closed_sInter {s : set (set α)} : (∀t ∈ s, closed t) → closed (⋂�
 by simp [closed, compl_sInter]; exact assume h, open_Union $ assume t, open_Union $ assume ht, h t ht
 
 lemma closed_Inter {f : ι → set α} (h : ∀i, closed (f i)) : closed (⋂i, f i ) :=
-closed_sInter $ assume t ⟨i, (heq : t = f i)⟩, heq^.symm ▸ h i
+closed_sInter $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 
 @[simp]
 lemma closed_compl_iff_open {s : set α} : open' (-s) ↔ closed s :=
@@ -83,7 +83,7 @@ lemma open_compl_iff_closed {s : set α} : closed (-s) ↔ open' s :=
 by rw [←closed_compl_iff_open, compl_compl]
 
 lemma open_diff {s t : set α} (h₁ : open' s) (h₂ : closed t) : open' (s - t) :=
-open_inter h₁ $ closed_compl_iff_open^.mpr h₂
+open_inter h₁ $ closed_compl_iff_open.mpr h₂
 
 /- interior -/
 def interior (s : set α) : set α := ⋃₀ {t | open' t ∧ t ⊆ s}
@@ -210,8 +210,8 @@ by simp [closure_eq_compl_interior_compl]
 /- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ open' s}, principal s)
 
-lemma nhds_sets {a : α} : (nhds a)^.sets = {s | ∃t⊆s, open' t ∧ a ∈ t} :=
-calc (nhds a)^.sets = (⋃s∈{s : set α| a ∈ s ∧ open' s}, (principal s)^.sets) : infi_sets_eq'
+lemma nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, open' t ∧ a ∈ t} :=
+calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ open' s}, (principal s).sets) : infi_sets_eq'
   begin
     simp,
     exact assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩, ⟨_, ⟨open_inter hx₁ hy₁, ⟨hx₂, hy₂⟩⟩,
@@ -236,15 +236,15 @@ calc map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ open' s}, map f (prin
   ... = _ : by simp
 
 lemma mem_nhds_sets_iff {a : α} {s : set α} :
- s ∈ (nhds a)^.sets ↔ ∃t⊆s, open' t ∧ a ∈ t :=
+ s ∈ (nhds a).sets ↔ ∃t⊆s, open' t ∧ a ∈ t :=
 by simp [nhds_sets]
 
 lemma mem_nhds_sets {a : α} {s : set α} (hs : open' s) (ha : a ∈ s) :
- s ∈ (nhds a)^.sets :=
+ s ∈ (nhds a).sets :=
 by simp [nhds_sets]; exact ⟨s, hs, subset.refl _, ha⟩
 
 lemma return_le_nhds : return ≤ (nhds : α → filter α) :=
-assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono^.mpr $ by simp [h₁]
+assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $ by simp [h₁]
 
 @[simp]
 lemma nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
@@ -267,7 +267,7 @@ calc closure s = - interior (- s) : closure_eq_compl_interior_compl
   ... = {a | nhds a ⊓ principal s ≠ ⊥} : set.ext $ assume a, not_congr
     (inf_eq_bot_iff_le_compl
       (show principal s ⊔ principal (-s) = ⊤, by simp [principal_univ])
-      (by simp))^.symm
+      (by simp)).symm
 
 lemma closed_iff_nhds {s : set α} : closed s ↔ (∀a, nhds a ⊓ principal s ≠ ⊥ → a ∈ s) :=
 calc closed s ↔ closure s = s : by rw [closure_eq_iff_closed]
@@ -278,7 +278,7 @@ calc closed s ↔ closure s = s : by rw [closure_eq_iff_closed]
 section locally_finite
 
 def locally_finite (f : β → set α) :=
-∀x:α, ∃t∈(nhds x)^.sets, finite {i | f i ∩ t ≠ ∅ }
+∀x:α, ∃t∈(nhds x).sets, finite {i | f i ∩ t ≠ ∅ }
 
 theorem not_eq_empty_iff_exists {s : set α} : ¬ (s = ∅) ↔ ∃ x, x ∈ s :=
 ⟨exists_mem_of_ne_empty,
@@ -286,7 +286,7 @@ theorem not_eq_empty_iff_exists {s : set α} : ¬ (s = ∅) ↔ ∃ x, x ∈ s :
 
 lemma closed_Union_of_locally_finite {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, closed (f i)) : closed (⋃i, f i) :=
-open_iff_nhds^.mpr $ assume a, assume h : a ∉ (⋃i, f i),
+open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   have ∀i, a ∈ -f i,
     from assume i hi, by simp at h; exact h ⟨i, hi⟩,
   have ∀i, - f i ∈ (nhds a).sets,
@@ -447,17 +447,17 @@ variables {α : Type u} {β : Type v}
 
 instance : weak_order (topological_space α) :=
 { weak_order .
-  le            := λt s, t^.open' ≤ s^.open',
+  le            := λt s, t.open' ≤ s.open',
   le_antisymm   := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₁ h₂,
-  le_refl       := assume t, le_refl t^.open',
-  le_trans      := assume a b c h₁ h₂, @le_trans _ _ a^.open' b^.open' c^.open' h₁ h₂ }
+  le_refl       := assume t, le_refl t.open',
+  le_trans      := assume a b c h₁ h₂, @le_trans _ _ a.open' b.open' c.open' h₁ h₂ }
 
 instance : has_Inf (topological_space α) :=
 ⟨assume (tt : set (topological_space α)), { topological_space .
   open' := λs, ∀t∈tt, topological_space.open' t s,
-  open_univ   := assume t h, t^.open_univ,
-  open_inter  := assume s₁ s₂ h₁ h₂ t ht, t^.open_inter s₁ s₂ (h₁ t ht) (h₂ t ht),
-  open_sUnion := assume s h t ht, t^.open_sUnion _ $ assume s' hss', h _ hss' _ ht }⟩
+  open_univ   := assume t h, t.open_univ,
+  open_inter  := assume s₁ s₂ h₁ h₂ t ht, t.open_inter s₁ s₂ (h₁ t ht) (h₂ t ht),
+  open_sUnion := assume s h t ht, t.open_sUnion _ $ assume s' hss', h _ hss' _ ht }⟩
 
 private lemma Inf_le {tt : set (topological_space α)} {t : topological_space α} (h : t ∈ tt) :
   Inf tt ≤ t :=
@@ -470,26 +470,26 @@ assume s hs t' ht', h t' ht' s hs
 def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : topological_space β) :
   topological_space α :=
 { topological_space .
-  open'       := λs, ∃s', t^.open' s' ∧ s = vimage f s',
-  open_univ   := ⟨univ, by simp; exact t^.open_univ⟩,
+  open'       := λs, ∃s', t.open' s' ∧ s = vimage f s',
+  open_univ   := ⟨univ, by simp; exact t.open_univ⟩,
   open_inter  := assume s₁ s₂ ⟨s'₁, hs₁, eq₁⟩ ⟨s'₂, hs₂, eq₂⟩,
-    ⟨s'₁ ∩ s'₂, by simp [eq₁, eq₂]; exact t^.open_inter _ _ hs₁ hs₂⟩,
+    ⟨s'₁ ∩ s'₂, by simp [eq₁, eq₂]; exact t.open_inter _ _ hs₁ hs₂⟩,
   open_sUnion := assume s h,
   begin
     simp [classical.skolem] at h,
     cases h with f hf,
     apply exists.intro (⋃(x : set α) (h : x ∈ s), f x h),
-    simp [sUnion_eq_Union, (λx h, (hf x h)^.right^.symm)],
+    simp [sUnion_eq_Union, (λx h, (hf x h).right.symm)],
     exact (@open_Union β _ t _ $ assume i,
-      show open' (⋃h, f i h), from @open_Union β _ t _ $ assume h, (hf i h)^.left)
+      show open' (⋃h, f i h), from @open_Union β _ t _ $ assume h, (hf i h).left)
   end }
 
 def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t : topological_space α) :
   topological_space β :=
 { topological_space .
-  open'       := λs, t^.open' (vimage f s),
-  open_univ   := by simp; exact t^.open_univ,
-  open_inter  := assume s₁ s₂ h₁ h₂, by simp; exact t^.open_inter _ _ h₁ h₂,
+  open'       := λs, t.open' (vimage f s),
+  open_univ   := by simp; exact t.open_univ,
+  open_inter  := assume s₁ s₂ h₁ h₂, by simp; exact t.open_inter _ _ h₁ h₂,
   open_sUnion := assume s h, by rw [vimage_sUnion]; exact (@open_Union _ _ t _ $ assume i,
     show open' (⋃ (H : i ∈ s), vimage f i), from
       @open_Union _ _ t _ $ assume hi, h i hi) }
@@ -497,7 +497,7 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
 instance : has_inf (topological_space α) :=
 ⟨assume t₁ t₂ : topological_space α, { topological_space .
   open'       := λs, t₁.open' s ∧ t₂.open' s,
-  open_univ   := ⟨t₁^.open_univ, t₂^.open_univ⟩,
+  open_univ   := ⟨t₁.open_univ, t₂.open_univ⟩,
   open_inter  := assume s₁ s₂ ⟨h₁₁, h₁₂⟩ ⟨h₂₁, h₂₂⟩, ⟨t₁.open_inter s₁ s₂ h₁₁ h₂₁, t₂.open_inter s₁ s₂ h₁₂ h₂₂⟩,
   open_sUnion := assume s h, ⟨t₁.open_sUnion _ $ assume t ht, (h t ht).left, t₂.open_sUnion _ $ assume t ht, (h t ht).right⟩ }⟩
 
@@ -511,8 +511,8 @@ instance : has_top (topological_space α) :=
 instance {α : Type u} : complete_lattice (topological_space α) :=
 { topological_space.weak_order with
   sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
-  le_sup_left   := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h^.left,
-  le_sup_right  := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h^.right,
+  le_sup_left   := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.left,
+  le_sup_right  := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.right,
   sup_le        := assume a b c h₁ h₂, Inf_le $ show c ∈ {x | a ≤ x ∧ b ≤ x}, from ⟨h₁, h₂⟩,
   inf           := (⊓),
   le_inf        := assume a b h h₁ h₂ s hs, ⟨h₁ s hs, h₂ s hs⟩,

@@ -185,7 +185,7 @@ lemma le_supr_of_le (i : ι) (h : a ≤ s i) : a ≤ supr s :=
 le_trans h (le_supr _ i)
 
 lemma supr_le (h : ∀i, s i ≤ a) : supr s ≤ a :=
-Sup_le $ assume b ⟨i, eq⟩, eq^.symm ▸ h i
+Sup_le $ assume b ⟨i, eq⟩, eq.symm ▸ h i
 
 lemma supr_le_supr (h : ∀i, s i ≤ t i) : supr s ≤ supr t :=
 supr_le $ assume i, le_supr_of_le i (h i)
@@ -203,10 +203,10 @@ lemma supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
 -- TODO: finish doesn't do well here.
 @[congr]
 lemma supr_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α}
-  (pq : p ↔ q) (f : ∀x, f₁ (pq^.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
+  (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 le_antisymm
-  (supr_le_supr2 $ assume j, ⟨pq^.mp j, le_of_eq $ f _⟩)
-  (supr_le_supr2 $ assume j, ⟨pq^.mpr j, le_of_eq $ (f j)^.symm⟩)
+  (supr_le_supr2 $ assume j, ⟨pq.mp j, le_of_eq $ f _⟩)
+  (supr_le_supr2 $ assume j, ⟨pq.mpr j, le_of_eq $ (f j).symm⟩)
 
 lemma infi_le (s : ι → α) (i : ι) : infi s ≤ s i :=
 Inf_le ⟨i, rfl⟩
@@ -234,7 +234,7 @@ lemma infi_le_of_le (i : ι) (h : s i ≤ a) : infi s ≤ a :=
 le_trans (infi_le _ i) h
 
 lemma le_infi (h : ∀i, a ≤ s i) : a ≤ infi s :=
-le_Inf $ assume b ⟨i, eq⟩, eq^.symm ▸ h i
+le_Inf $ assume b ⟨i, eq⟩, eq.symm ▸ h i
 
 lemma infi_le_infi (h : ∀i, s i ≤ t i) : infi s ≤ infi t :=
 le_infi $ assume i, infi_le_of_le i (h i)
@@ -251,20 +251,20 @@ lemma le_infi_iff : a ≤ infi s ↔ (∀i, a ≤ s i) :=
 
 @[congr]
 lemma infi_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α}
-  (pq : p ↔ q) (f : ∀x, f₁ (pq^.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
+  (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
 le_antisymm
-  (infi_le_infi2 $ assume j, ⟨pq^.mpr j, le_of_eq $ f j⟩)
-  (infi_le_infi2 $ assume j, ⟨pq^.mp j, le_of_eq $ (f _)^.symm⟩)
+  (infi_le_infi2 $ assume j, ⟨pq.mpr j, le_of_eq $ f j⟩)
+  (infi_le_infi2 $ assume j, ⟨pq.mp j, le_of_eq $ (f _).symm⟩)
 
 -- TODO: why isn't this a valid simp lemma?
 -- @[simp]
 lemma infi_const {a : α} (b : ι) : (⨅ b:ι, a) = a :=
 le_antisymm (Inf_le ⟨b, rfl⟩) (by finish)
--- le_antisymm (Inf_le ⟨b, rfl⟩) (le_Inf $ assume a' ⟨b', h⟩, h^.symm ▸ le_refl _)
+-- le_antisymm (Inf_le ⟨b, rfl⟩) (le_Inf $ assume a' ⟨b', h⟩, h.symm ▸ le_refl _)
 
 lemma supr_const {a : α} (b : ι) : (⨆ b:ι, a) = a :=
 le_antisymm (by finish) (le_Sup ⟨b, rfl⟩)
---le_antisymm (Sup_le $ assume a' ⟨b', h⟩, h^.symm ▸ le_refl _) (le_Sup ⟨b, rfl⟩)
+--le_antisymm (Sup_le $ assume a' ⟨b', h⟩, h.symm ▸ le_refl _) (le_Sup ⟨b, rfl⟩)
 
 -- TODO: should this be @[simp]?
 lemma infi_comm {f : ι → ι₂ → α} : (⨅i, ⨅j, f i j) = (⨅j, ⨅i, f i j) :=

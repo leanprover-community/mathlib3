@@ -128,7 +128,7 @@ list.rec_on l
       assume : ¬a ∈ b::l,
       have ¬a = b ∧ ¬a ∈ l, begin rw [mem_cons_iff, not_or_iff] at this, exact this end,
       show index_of a (b::l) = length (b::l),
-        begin rw [index_of_cons, if_neg this^.left, ih this^.right], reflexivity end)
+        begin rw [index_of_cons, if_neg this.left, ih this.right], reflexivity end)
 
 lemma index_of_le_length {a : α} {l : list α} : index_of a l ≤ length l :=
 list.rec_on l

@@ -253,7 +253,7 @@ end
 
 lemma upto_step : ∀ (n : nat), upto (succ n) = (map succ (upto n)) ++ [0]
 | 0        := rfl
-| (succ n) := by simp [(upto_step n)^.symm]
+| (succ n) := by simp [(upto_step n).symm]
 
 /- union -/
 section union
@@ -389,7 +389,7 @@ theorem mem_inter_of_mem_of_mem : ∀ {l₁ l₂ : list α} {a : α}, a ∈ l₁
 theorem mem_inter_iff (a : α) (l₁ l₂ : list α) : a ∈ l₁ ∩ l₂ ↔ a ∈ l₁ ∧ a ∈ l₂ :=
 iff.intro
   (λ h, and.intro (mem_of_mem_inter_left h) (mem_of_mem_inter_right h))
-  (λ h, mem_inter_of_mem_of_mem h^.left h^.right)
+  (λ h, mem_inter_of_mem_of_mem h.left h.right)
 
 theorem inter_eq_nil_of_disjoint : ∀ {l₁ l₂ : list α}, disjoint l₁ l₂ → l₁ ∩ l₂ = []
 | []      l₂ d := rfl

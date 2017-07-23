@@ -112,7 +112,7 @@ begin [smt] eblast_using [neg_neg, neg_inf] end
 
 lemma neg_le_neg (h : y ≤ x) : - x ≤ - y :=
 le_of_inf_eq $ 
-  calc -x ⊓ -y = - (x ⊔ y) : neg_sup^.symm
+  calc -x ⊓ -y = - (x ⊔ y) : neg_sup.symm
            ... = -x        : congr_arg has_neg.neg $ sup_of_le_left h
 
 lemma neg_le_neg_iff_le : - y ≤ - x ↔ x ≤ y :=
@@ -136,7 +136,7 @@ by simp [sub_eq, sup_inf_left]
 lemma sub_eq_left (h : x ⊓ y = ⊥) : x - y = x :=
 calc x - y = (x ⊓ -y) ⊔ (x ⊓ y) : by simp [h, sub_eq]
   ... = (-y ⊓ x) ⊔ (y ⊓ x) : by simp [inf_comm]
-  ... = (-y ⊔ y) ⊓ x : inf_sup_right^.symm
+  ... = (-y ⊔ y) ⊓ x : inf_sup_right.symm
   ... = x : by simp
 
 end boolean_algebra

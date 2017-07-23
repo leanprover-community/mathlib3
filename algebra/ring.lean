@@ -17,7 +17,7 @@ section
   calc
     a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp
       ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin simp [h] end) (λ h,
-                                                    begin simp [h^.symm] end)
+                                                    begin simp [h.symm] end)
       ... ↔ (a - b) * e + c = d   : begin simp [@sub_eq_add_neg A, @right_distrib A] end
 
   theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
@@ -50,13 +50,13 @@ section
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : A} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
   have b * a - c * a = 0, by simp [h],
   have (b - c) * a = 0, by rewrite [mul_sub_right_distrib, this],
-  have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this)^.resolve_right ha,
+  have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right ha,
   eq_of_sub_eq_zero this
 
   theorem eq_of_mul_eq_mul_left_of_ne_zero {a b c : A} (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
   have a * b - a * c = 0, by simp [h],
   have a * (b - c) = 0, by rewrite [mul_sub_left_distrib, this],
-  have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this)^.resolve_left ha,
+  have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_left ha,
   eq_of_sub_eq_zero this
 
   -- TODO: do we want the iff versions?

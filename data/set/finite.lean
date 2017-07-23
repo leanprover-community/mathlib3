@@ -42,7 +42,7 @@ finite.drec_on ht (by simp [hs]) $ assume a t _ _, by simp; exact finite_insert
 lemma finite_subset {s : set α} (hs : finite s) : ∀{t}, t ⊆ s → finite t :=
 begin
   induction hs with a t' ha ht' ih,
-  { intros t ht, simp [(subset_empty_iff t)^.mp ht, finite.empty] },
+  { intros t ht, simp [(subset_empty_iff t).mp ht, finite.empty] },
   { intros t ht,
     have tm : finite (t \ {a}) :=
       (ih $ show t \ {a} ⊆ t',

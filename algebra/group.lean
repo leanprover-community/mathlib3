@@ -23,7 +23,7 @@ section group
 
   theorem inv_eq_one_iff_eq_one (a : A) : a⁻¹ = 1 ↔ a = 1 :=
   have a⁻¹ = 1⁻¹ ↔ a = 1, from inv_eq_inv_iff_eq a 1,
-  begin rewrite this^.symm, simp end
+  begin rewrite this.symm, simp end
 
   theorem eq_one_of_inv_eq_one (a : A) : a⁻¹ = 1 → a = 1 :=
   iff.mp (inv_eq_one_iff_eq_one a)

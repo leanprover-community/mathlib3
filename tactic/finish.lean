@@ -377,7 +377,7 @@ local_context >>= case_some_hyp_aux s cont
 meta def safe_core (s : simp_lemmas × list name) (cfg : auto_config) : case_option → tactic unit :=
 λ co, focus1 $
 do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
-   if cfg^.use_simp then do
+   if cfg.use_simp then do
      when_tracing `auto.finish (trace "simplifying hypotheses"),
      simp_all s.1 s.2 { fail_if_unchanged := ff },
      when_tracing `auto.finish (trace "result:" >> trace_state)

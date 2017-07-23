@@ -218,10 +218,10 @@ theorem any_of_mem {p : α → bool} {a : α} : ∀ {l : list α}, a ∈ l → p
 | []     i h := absurd i (not_mem_nil a)
 | (b::l) i h :=
   or.elim (eq_or_mem_of_mem_cons i)
-    (assume : a = b, begin simp [this^.symm, bool.bor_eq_tt], exact (or.inl h) end)
+    (assume : a = b, begin simp [this.symm, bool.bor_eq_tt], exact (or.inl h) end)
     (assume : a ∈ l, begin
                       cases (eq_or_mem_of_mem_cons i) with h' h',
-                      { simp [h'^.symm, h] },
+                      { simp [h'.symm, h] },
                       simp [bool.bor_eq_tt, any_of_mem h', h]
                     end)
 
@@ -231,11 +231,11 @@ theorem exists_of_any_eq_tt {p : α → bool} : ∀ {l : list α}, any l p = tt 
                 simp [bool.bor_eq_tt] at h, cases h with h h,
                 { existsi b, simp [h]},
                 cases (exists_of_any_eq_tt h) with a ha,
-                existsi a, apply (and.intro (or.inr ha^.left) ha^.right)
+                existsi a, apply (and.intro (or.inr ha.left) ha.right)
               end
 
 theorem any_eq_tt_iff {p : α → bool} {l : list α} : any l p = tt ↔ ∃ a : α, a ∈ l ∧ p a = tt :=
-iff.intro exists_of_any_eq_tt (begin intro h, cases h with a ha, apply any_of_mem ha^.left ha^.right end)
+iff.intro exists_of_any_eq_tt (begin intro h, cases h with a ha, apply any_of_mem ha.left ha.right end)
 
 /- bounded quantifiers over lists -/
 
@@ -261,7 +261,7 @@ theorem forall_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
   (∀ x ∈ a :: l, p x) ↔ p a ∧ ∀ x ∈ l, p x :=
 iff.intro
   (λ h, ⟨of_forall_mem_cons h, forall_mem_of_forall_mem_cons h⟩)
-  (λ h, forall_mem_cons h^.left h^.right)
+  (λ h, forall_mem_cons h.left h.right)
 
 theorem not_exists_mem_nil (p : α → Prop) : ¬ ∃ x ∈ @nil α, p x :=
 assume h, bexists.elim h (λ a anil, absurd anil (not_mem_nil a))
@@ -293,7 +293,7 @@ def decidable_forall_mem {p : α → Prop} [h : decidable_pred p] :
 | []       := is_true (forall_mem_nil p)
 | (a :: l) := decidable_of_decidable_of_iff
                 (@and.decidable _ _ _ (decidable_forall_mem l))
-                (forall_mem_cons_iff p a l)^.symm
+                (forall_mem_cons_iff p a l).symm
 
 @[instance]
 def decidable_exists_mem {p : α → Prop} [h : decidable_pred p] :
@@ -301,7 +301,7 @@ def decidable_exists_mem {p : α → Prop} [h : decidable_pred p] :
 | []       := is_false (not_exists_mem_nil p)
 | (a :: l) := decidable_of_decidable_of_iff
                 (@or.decidable _ _ _ (decidable_exists_mem l))
-                (exists_mem_cons_iff p a l)^.symm
+                (exists_mem_cons_iff p a l).symm
 
 /- zip & unzip -/
 

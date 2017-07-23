@@ -16,7 +16,7 @@ variables {α : Type u} [decidable_linear_order α] {β : Sort v}
 
 def linear_order_cases_on (a b : α) (h_eq : a = b → β) (h_lt : a < b → β) (h_gt : a > b → β) : β :=
 if h₁ : a = b then h_eq h₁ else
-  if h₂ : a < b then h_lt h₂ else h_gt ((lt_or_gt_of_ne h₁)^.resolve_left h₂)
+  if h₂ : a < b then h_lt h₂ else h_gt ((lt_or_gt_of_ne h₁).resolve_left h₂)
 
 variables {a b : α} {h_eq : a = b → β} {h_lt : a < b → β} {h_gt : a > b → β}
 
@@ -27,7 +27,7 @@ lemma linear_order_cases_on_lt (h : a < b) : linear_order_cases_on a b h_eq h_lt
 eq.trans (dif_neg $ ne_of_lt h) $ dif_pos h
 
 lemma linear_order_cases_on_gt (h : a > b) : linear_order_cases_on a b h_eq h_lt h_gt = h_gt h :=
-eq.trans (dif_neg $ (ne_of_lt h)^.symm) (dif_neg $ not_lt_of_ge $ le_of_lt h)
+eq.trans (dif_neg $ (ne_of_lt h).symm) (dif_neg $ not_lt_of_ge $ le_of_lt h)
 
 end linear_order_cases_on
 
@@ -61,12 +61,12 @@ private lemma rel_trans : Π{p q r}, rat.rel p q → rat.rel q r → rat.rel p r
   assume (h₁ : n₁ * d₂ = n₂ * d₁),
   assume (h₂ : n₂ * d₃ = n₃ * d₂),
   show n₁ * d₃ = n₃ * d₁,
-    from eq_of_mul_eq_mul_right (ne_of_lt ‹d₂ > 0›)^.symm (by cc)
+    from eq_of_mul_eq_mul_right (ne_of_lt ‹d₂ > 0›).symm (by cc)
 
 instance setoid_rat.rel : setoid rat.num_denum :=
 {r := rat.rel, iseqv :=
   ⟨assume ⟨_, ⟨_, _⟩⟩, rfl,
-    assume  ⟨n₁, ⟨d₁, _⟩⟩ ⟨n₂, ⟨d₂, _⟩⟩ h, h^.symm,
+    assume  ⟨n₁, ⟨d₁, _⟩⟩ ⟨n₂, ⟨d₂, _⟩⟩ h, h.symm,
     assume a b c, rel_trans⟩}
 
 @[simp]
@@ -151,7 +151,7 @@ quotient.lift inv' $ λ⟨n₁, ⟨d₁, h₁⟩⟩ ⟨n₂, ⟨d₂, h₂⟩⟩
       have n₂ * d₁ = 0,
         by simp [this] at h_eq; simp [h_eq],
       have n₂ = 0,
-        from (eq_zero_or_eq_zero_of_mul_eq_zero this)^.resolve_right $ (ne_of_lt h₁)^.symm,
+        from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right $ (ne_of_lt h₁).symm,
       by simp [this, ‹n₁ = 0›, inv'_zero])
     (assume : n₁ < 0,
       have n₂ * d₁ < 0,
@@ -234,7 +234,7 @@ private lemma rat_eq_zero_iff {a : rat.num_denum} : ⟦a⟧ = (0:ℚ) ↔ a.1 = 
 ⟨rat_eq_zero, eq_zero_of_rat_eq_zero⟩
 
 protected lemma zero_ne_one : 0 ≠ (1:ℚ) :=
-assume h, zero_ne_one (rat_eq_zero h^.symm)^.symm
+assume h, zero_ne_one (rat_eq_zero h.symm).symm
 
 protected lemma mul_inv_cancel : a ≠ 0 → a * a⁻¹ = 1 :=
 quotient.induction_on a $ λ⟨n, ⟨d, h⟩⟩ neq0,
@@ -288,7 +288,7 @@ private def nonneg' : rat.num_denum → Prop
 
 protected def nonneg : ℚ → Prop :=
 quotient.lift nonneg' $ λ⟨n₁, ⟨d₁, h₁⟩⟩ ⟨n₂, ⟨d₂, h₂⟩⟩ (h : n₁ * d₂ = n₂ * d₁),
-  propext $ calc (0 ≤ n₁) ↔ (0 ≤ n₁ * d₂) : (mul_nonneg_iff_right_nonneg_of_pos h₂)^.symm
+  propext $ calc (0 ≤ n₁) ↔ (0 ≤ n₁ * d₂) : (mul_nonneg_iff_right_nonneg_of_pos h₂).symm
                       ... ↔ (0 ≤ n₂ * d₁) : by rw h
                       ... ↔ (0 ≤ n₂) : mul_nonneg_iff_right_nonneg_of_pos h₁
 
@@ -375,7 +375,7 @@ instance : discrete_linear_ordered_field ℚ :=
   mul_pos         := assume a b ⟨nn_a, a_ne_zero⟩ ⟨nn_b, b_ne_zero⟩,
     ⟨rat.zero_le_of_nonneg _ $ rat.nonneg_mul _ _
       (rat.nonneg_of_zero_le a nn_a) (rat.nonneg_of_zero_le b nn_b),
-      (mul_ne_zero a_ne_zero^.symm b_ne_zero^.symm)^.symm⟩,
+      (mul_ne_zero a_ne_zero.symm b_ne_zero.symm).symm⟩,
   decidable_eq    := by apply_instance,
   decidable_le    := assume a b, rat.decidable_nonneg (b - a),
   decidable_lt    := assume a b, show decidable (rat.nonneg (b - a) ∧ a ≠ b), by apply_instance }

@@ -84,7 +84,7 @@ propext
 theorem mem_Inter_eq (x : β) (s : ι → set β) : (x ∈ ⋂ i, s i) = (∀ i, x ∈ s i) :=
 propext
   ⟨assume (h : ∀a ∈ {a : set β | ∃i, a = s i}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
-  assume h t ⟨a, (eq : t = s a)⟩, eq^.symm ▸ h a⟩
+  assume h t ⟨a, (eq : t = s a)⟩, eq.symm ▸ h a⟩
 
 
 theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (⋃ i, s i) ⊆ t :=
@@ -95,7 +95,7 @@ theorem Union_subset_iff {α : Sort u} {s : α → set β} {t : set β} : (⋃ i
 ⟨assume h i, subset.trans (le_supr s _) h, Union_subset⟩
 
 theorem mem_Inter {α : Sort u} {x : β} {s : α → set β} : (∀ i, x ∈ s i) → (x ∈ ⋂ i, s i) :=
-assume h t ⟨a, (eq : t = s a)⟩, eq^.symm ▸ h a
+assume h t ⟨a, (eq : t = s a)⟩, eq.symm ▸ h a
 
 theorem subset_Inter {t : set β} {s : α → set β} (h : ∀ i, t ⊆ s i) : t ⊆ ⋂ i, s i :=
 -- TODO: should be simpler when sets' order is based on lattices

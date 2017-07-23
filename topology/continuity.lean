@@ -42,13 +42,13 @@ assume s h, hf _ (hg s h)
 lemma continuous_iff_towards {f : α → β} :
   continuous f ↔ (∀x, towards f (nhds x) (nhds (f x))) :=
 ⟨assume hf : continuous f, assume x s,
-  show s ∈ (nhds (f x))^.sets → s ∈ (map f (nhds x))^.sets,
+  show s ∈ (nhds (f x)).sets → s ∈ (map f (nhds x)).sets,
     by simp [nhds_sets];
       exact assume ⟨t, t_open, t_subset, fx_in_t⟩,
         ⟨vimage f t, hf t t_open, fx_in_t, vimage_mono t_subset⟩,
   assume hf : ∀x, towards f (nhds x) (nhds (f x)),
   assume s, assume hs : open' s,
-  have ∀a, f a ∈ s → s ∈ (nhds (f a))^.sets,
+  have ∀a, f a ∈ s → s ∈ (nhds (f a)).sets,
     by simp [nhds_sets]; exact assume a ha, ⟨s, hs, subset.refl s, ha⟩,
   show open' (vimage f s),
     by simp [open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
@@ -64,7 +64,7 @@ variable {f : α → β}
 
 lemma continuous_iff_induced_le {t₁ : tspace α} {t₂ : tspace β} :
   cont t₁ t₂ f ↔ (induced f t₂ ≤ t₁) :=
-⟨assume hc s ⟨t, ht, s_eq⟩, s_eq^.symm ▸ hc t ht,
+⟨assume hc s ⟨t, ht, s_eq⟩, s_eq.symm ▸ hc t ht,
   assume hle s h, hle _ ⟨_, h, rfl⟩⟩
 
 lemma continuous_eq_le_coinduced {t₁ : tspace α} {t₂ : tspace β} :
@@ -83,7 +83,7 @@ assume s h, ⟨_, h, rfl⟩
 
 lemma continuous_induced_rng {g : γ → α} {t₂ : tspace β} {t₁ : tspace γ}
   (h : cont t₁ t₂ (f ∘ g)) : cont t₁ (induced f t₂) g :=
-assume s ⟨t, ht, s_eq⟩, s_eq^.symm ▸ h t ht
+assume s ⟨t, ht, s_eq⟩, s_eq.symm ▸ h t ht
 
 lemma continuous_coinduced_rng {t : tspace α} : cont t (coinduced f t) f :=
 assume s h, h
@@ -98,11 +98,11 @@ assume s h, ⟨h₁ s h, h₂ s h⟩
 
 lemma continuous_inf_rng_left {t₁ : tspace α} {t₃ t₂ : tspace β}
   (h : cont t₁ t₂ f) : cont t₁ (t₂ ⊓ t₃) f :=
-assume s hs, h s hs^.left
+assume s hs, h s hs.left
 
 lemma continuous_inf_rng_right {t₁ : tspace α} {t₃ t₂ : tspace β}
   (h : cont t₁ t₃ f) : cont t₁ (t₂ ⊓ t₃) f :=
-assume s hs, h s hs^.right
+assume s hs, h s hs.right
 
 lemma continuous_Inf_dom {t₁ : set (tspace α)} {t₂ : tspace β}
   (h : ∀t∈t₁, cont t t₂ f) : cont (Inf t₁) t₂ f :=
@@ -114,7 +114,7 @@ assume s hs, hf s $ hs t h₁
 
 lemma continuous_infi_dom {t₁ : ι → tspace α} {t₂ : tspace β}
   (h : ∀i, cont (t₁ i) t₂ f) : cont (infi t₁) t₂ f :=
-continuous_Inf_dom $ assume t ⟨i, (t_eq : t = t₁ i)⟩, t_eq^.symm ▸ h i
+continuous_Inf_dom $ assume t ⟨i, (t_eq : t = t₁ i)⟩, t_eq.symm ▸ h i
 
 lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β}
   {i : ι} (h : cont t₁ (t₂ i) f) : cont t₁ (infi t₂) f :=
@@ -185,14 +185,14 @@ le_antisymm
       exact ⟨s', subset.refl _, s', open_s', subset.refl _, by rw [s_eq] at as; assumption⟩
     end)
 
-lemma map_nhds_induced_eq {a : α} (h : image f univ ∈ (nhds (f a))^.sets) :
+lemma map_nhds_induced_eq {a : α} (h : image f univ ∈ (nhds (f a)).sets) :
   map f (@nhds α (induced f t) a) = nhds (f a) :=
 le_antisymm
-  ((@continuous_iff_towards α β (induced f t) _ _)^.mp continuous_induced_dom a)
-  (assume s, assume hs : vimage f s ∈ (@nhds α (induced f t) a)^.sets,
-    let ⟨t', t_subset, open_t, a_in_t⟩ := mem_nhds_sets_iff^.mp h in
-    let ⟨s', s'_subset, ⟨s'', open_s'', s'_eq⟩, a_in_s'⟩ := (@mem_nhds_sets_iff _ (induced f t) _ _)^.mp hs in
-    by subst s'_eq; exact (mem_nhds_sets_iff^.mpr $
+  ((@continuous_iff_towards α β (induced f t) _ _).mp continuous_induced_dom a)
+  (assume s, assume hs : vimage f s ∈ (@nhds α (induced f t) a).sets,
+    let ⟨t', t_subset, open_t, a_in_t⟩ := mem_nhds_sets_iff.mp h in
+    let ⟨s', s'_subset, ⟨s'', open_s'', s'_eq⟩, a_in_s'⟩ := (@mem_nhds_sets_iff _ (induced f t) _ _).mp hs in
+    by subst s'_eq; exact (mem_nhds_sets_iff.mpr $
       ⟨t' ∩ s'',
         assume x ⟨h₁, h₂⟩, match x, h₂, t_subset h₁ with
         | x, h₂, ⟨y, _, y_eq⟩ := begin subst y_eq, exact s'_subset h₂ end
@@ -289,20 +289,20 @@ lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
-lemma map_nhds_subtype_val_eq {a : α} {ha : p a} (h : {a | p a} ∈ (nhds a)^.sets) :
+lemma map_nhds_subtype_val_eq {a : α} {ha : p a} (h : {a | p a} ∈ (nhds a).sets) :
   map (@subtype.val α p) (nhds ⟨a, ha⟩) = nhds a :=
 map_nhds_induced_eq (by simp [subtype.val_image, h])
 
 lemma continuous_subtype_nhds_cover {f : α → β} {c : ι → α → Prop}
-  (c_cover : ∀x, ∃i, c i x ∧ {x | c i x} ∈ (nhds x)^.sets)
+  (c_cover : ∀x, ∃i, c i x ∧ {x | c i x} ∈ (nhds x).sets)
   (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x.val)) :
   continuous f :=
-continuous_iff_towards^.mpr $ assume x,
-  let ⟨i, (hi : c i x), (c_sets : {x | c i x} ∈ (nhds x)^.sets)⟩ := c_cover x in
+continuous_iff_towards.mpr $ assume x,
+  let ⟨i, (hi : c i x), (c_sets : {x | c i x} ∈ (nhds x).sets)⟩ := c_cover x in
   calc map f (nhds x) = map f (map (@subtype.val α (c i)) (nhds ⟨x, hi⟩)) :
-      congr_arg (map f) (map_nhds_subtype_val_eq $ c_sets)^.symm
+      congr_arg (map f) (map_nhds_subtype_val_eq $ c_sets).symm
     ... = map (λ(x : subtype (c i)), f x.val) (nhds ⟨x, hi⟩) : rfl
-    ... ≤ (nhds (f x)) : continuous_iff_towards^.mp (f_cont i) ⟨x, hi⟩
+    ... ≤ (nhds (f x)) : continuous_iff_towards.mp (f_cont i) ⟨x, hi⟩
 
 end subtype
 

@@ -185,10 +185,10 @@ theorem mem_inter {x : α} {a b : set α} (ha : x ∈ a) (hb : x ∈ b) : x ∈ 
 ⟨ha, hb⟩
 
 theorem mem_of_mem_inter_left {x : α} {a b : set α} (h : x ∈ a ∩ b) : x ∈ a :=
-h^.left
+h.left
 
 theorem mem_of_mem_inter_right {x : α} {a b : set α} (h : x ∈ a ∩ b) : x ∈ b :=
-h^.right
+h.right
 
 @[simp] theorem inter_self (a : set α) : a ∩ a = a :=
 ext (assume x, and_self _)
@@ -426,10 +426,10 @@ theorem mem_diff {s t : set α} {x : α} (h1 : x ∈ s) (h2 : x ∉ t) : x ∈ s
 ⟨h1, h2⟩
 
 theorem mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∈ s :=
-h^.left
+h.left
 
 theorem not_mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∉ t :=
-h^.right
+h.right
 
 theorem mem_diff_iff (s t : set α) (x : α) : x ∈ s \ t ↔ x ∈ s ∧ x ∉ t := iff.rfl
 

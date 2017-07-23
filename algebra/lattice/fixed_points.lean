@@ -105,7 +105,7 @@ le_antisymm
   (lfp_le $ ge_of_eq $
     calc f = lfp (h f)       : f_eq
        ... = h f (lfp (h f)) : lfp_eq $ assume a b h, m (le_refl _) h
-       ... = h f f           : congr_arg (h f) f_eq^.symm)
+       ... = h f f           : congr_arg (h f) f_eq.symm)
 
 lemma gfp_gfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
   gfp (gfp ∘ h) = gfp (λx, h x x) := 
@@ -116,7 +116,7 @@ le_antisymm
   (le_gfp $ le_of_eq $
     calc f = gfp (h f)       : f_eq
        ... = h f (gfp (h f)) : gfp_eq $ assume a b h, m (le_refl _) h
-       ... = h f f           : congr_arg (h f) f_eq^.symm)
+       ... = h f f           : congr_arg (h f) f_eq.symm)
   (le_gfp $ le_gfp $ le_of_eq $ gfp_eq $ assume a b h, m h h)
 
 end fixedpoint_eqn

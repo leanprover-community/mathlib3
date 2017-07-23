@@ -55,7 +55,7 @@ le_antisymm le_top h
 
 -- TODO: delete in favor of the next?
 lemma eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
-⟨assume eq, eq^.symm ▸ le_refl ⊤, top_unique⟩
+⟨assume eq, eq.symm ▸ le_refl ⊤, top_unique⟩
 
 @[simp] lemma top_le_iff : ⊤ ≤ a ↔ a = ⊤ :=
 ⟨top_unique, λ h, h.symm ▸ le_refl ⊤⟩
@@ -75,7 +75,7 @@ le_antisymm h bot_le
 
 -- TODO: delete?
 lemma eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
-⟨assume eq, eq^.symm ▸ le_refl ⊥, bot_unique⟩
+⟨assume eq, eq.symm ▸ le_refl ⊥, bot_unique⟩
 
 @[simp] lemma le_bot_iff : a ≤ ⊥ ↔ a = ⊥ :=
 ⟨bot_unique, assume h, h.symm ▸ le_refl ⊥⟩

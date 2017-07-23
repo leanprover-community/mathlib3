@@ -60,11 +60,11 @@ theorem sorted_singleton (a : α) : sorted r [a] :=
 ⟨sorted_nil r, λ b h, absurd h (not_mem_nil b)⟩
 
 theorem sorted_of_sorted_cons {a : α} {l : list α} (h : sorted r (a :: l)) : sorted r l :=
-h^.left
+h.left
 
 theorem forall_mem_rel_of_sorted_cons {a : α} {l : list α} (h : sorted r (a :: l)) :
   ∀ b ∈ l, r a b :=
-h^.right
+h.right
 
 theorem sorted_cons {a : α} {l : list α} (h₁ : sorted r l) (h₂ : ∀ b ∈ l, r a b) :
   sorted r (a :: l) :=

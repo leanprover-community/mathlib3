@@ -112,7 +112,7 @@ theorem and_imp_iff (a b c : Prop) : (a ∧ b → c) ↔ (a → b → c) :=
 iff.intro (λ h a b, h ⟨a, b⟩) and.rec
 
 theorem and_not_self_iff (a : Prop) : a ∧ ¬ a ↔ false :=
-iff.intro (assume h, (h^.right) (h^.left)) (assume h, h^.elim)
+iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
 
 theorem not_and_self_iff (a : Prop) : ¬ a ∧ a ↔ false :=
 iff.intro (assume ⟨hna, ha⟩, hna ha) false.elim
@@ -135,7 +135,7 @@ theorem or_resolve_right (h₁ : a ∨ b) (h₂ : ¬a) : b :=
 or.elim h₁ (not_elim h₂) implies_self
 
 theorem or_resolve_left (h₁ : a ∨ b) (h₂ : ¬b) : a :=
-or_resolve_right h₁^.symm h₂
+or_resolve_right h₁.symm h₂
 
 theorem or_implies_distrib (a b c : Prop) : ((a ∨ b) → c) ↔ ((a → c) ∧ (b → c)) :=
 iff.intro
@@ -304,8 +304,8 @@ iff.intro (Exists.rec (λ x (hpx : p), hpx)) (λ hp, ⟨default α, hp⟩)
 
 theorem forall_and_distrib (p q : α → Prop) : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
 iff.intro
-  (assume h, ⟨(assume x, (h x)^.left), (assume x, (h x)^.right)⟩)
-  (assume h x, ⟨h^.left x, h^.right x⟩)
+  (assume h, ⟨(assume x, (h x).left), (assume x, (h x).right)⟩)
+  (assume h x, ⟨h.left x, h.right x⟩)
 
 theorem exists_or_distrib (p q : α → Prop) : (∃ x, p x ∨ q x) ↔ (∃ x, p x) ∨ (∃ x, q x) :=
 iff.intro
@@ -322,7 +322,7 @@ iff.intro
 ⟨assume ⟨x, hq, hp⟩, ⟨hq, x, hp⟩, assume ⟨hq, x, hp⟩, ⟨x, hq, hp⟩⟩
 
 lemma forall_eq {α : Type u} {p : α → Prop} {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
-⟨assume h, h a' rfl, assume h a eq, eq^.symm ▸ h⟩
+⟨assume h, h a' rfl, assume h a eq, eq.symm ▸ h⟩
 
 theorem forall_or_distrib_left {q : Prop} {p : α → Prop} [decidable q] :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
@@ -449,8 +449,8 @@ iff_true_intro (λ h hrx, trivial)
 
 theorem bforall_and_distrib : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
 iff.intro
-  (assume h, ⟨(assume x, (h x)^.left), (assume x, (h x)^.right)⟩)
-  (assume h x, ⟨h^.left x, h^.right x⟩)
+  (assume h, ⟨(assume x, (h x).left), (assume x, (h x).right)⟩)
+  (assume h x, ⟨h.left x, h.right x⟩)
 
 theorem bexists_or_distrib (r p q : α → Prop) :
   (∃ x (hrx : r x), p x ∨ q x) ↔ (∃ x (hrx : r x), p x) ∨ (∃ x (hrx : r x), q x) :=

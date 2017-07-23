@@ -148,11 +148,9 @@ sorry -- by simp
 theorem one_add_bit0 [add_comm_semigroup A] [has_one A] (a : A) : one + bit0 a = bit1 a :=
 sorry -- by simp
 
-theorem bit0_add_one [has_add A] [has_one A] (a : A) : bit0 a + one = bit1 a :=
-rfl
+theorem bit0_add_one [has_add A] [has_one A] (a : A) : bit0 a + one = bit1 a := rfl
 
-theorem bit1_add_one [has_add A] [has_one A] (a : A) : bit1 a + one = add1 (bit1 a) :=
-rfl
+theorem bit1_add_one [has_add A] [has_one A] (a : A) : bit1 a + one = add1 (bit1 a) := rfl
 
 theorem bit1_add_one_helper [has_add A] [has_one A] (a t : A) (H : add1 (bit1 a) = t) :
         bit1 a + one = t :=
@@ -165,8 +163,7 @@ theorem one_add_bit1_helper [add_comm_semigroup A] [has_one A] (a t : A)
         (H : add1 (bit1 a) = t) : one + bit1 a = t :=
 sorry -- by inst_simp
 
-theorem add1_bit0 [has_add A] [has_one A] (a : A) : add1 (bit0 a) = bit1 a :=
-rfl
+theorem add1_bit0 [has_add A] [has_one A] (a : A) : add1 (bit0 a) = bit1 a := rfl
 
 theorem add1_bit1 [add_comm_semigroup A] [has_one A] (a : A) :
         add1 (bit1 a) = bit0 (add1 a) :=
@@ -176,14 +173,12 @@ theorem add1_bit1_helper [add_comm_semigroup A] [has_one A] (a t : A) (H : add1 
         add1 (bit1 a) = bit0 t :=
 sorry -- by inst_simp
 
-theorem add1_one [has_add A] [has_one A] : add1 (one : A) = bit0 one :=
-rfl
+theorem add1_one [has_add A] [has_one A] : add1 (one : A) = bit0 one := rfl
 
 theorem add1_zero [add_monoid A] [has_one A] : add1 (zero : A) = one :=
 sorry -- by simp
 
-theorem one_add_one [has_add A] [has_one A] : (one : A) + one = bit0 one :=
-rfl
+theorem one_add_one [has_add A] [has_one A] : (one : A) + one = bit0 one := rfl
 
 theorem subst_into_sum [has_add A] (l r tl tr t : A) (prl : l = tl) (prr : r = tr)
         (prt : tl + tr = t) : l + r = t :=

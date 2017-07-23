@@ -67,8 +67,7 @@ theorem continuous_iff_induced_le {t₁ : tspace α} {t₂ : tspace β} :
   assume hle s h, hle _ ⟨_, h, rfl⟩⟩
 
 theorem continuous_eq_le_coinduced {t₁ : tspace α} {t₂ : tspace β} :
-  cont t₁ t₂ f = (t₂ ≤ coinduced f t₁) :=
-rfl
+  cont t₁ t₂ f = (t₂ ≤ coinduced f t₁) := rfl
 
 theorem continuous_generated_from {t : tspace α} {b : set (set β)}
   (h : ∀s∈b, open' (vimage f s)) : cont t (generate_from b) f :=

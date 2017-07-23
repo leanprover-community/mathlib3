@@ -45,11 +45,9 @@ by cases a; cases b; simp
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
 by cases b; simp
 
-@[simp] theorem cond_ff {A : Type} (t e : A) : cond ff t e = e :=
-rfl
+@[simp] theorem cond_ff {A : Type} (t e : A) : cond ff t e = e := rfl
 
-@[simp] theorem cond_tt {A : Type} (t e : A) : cond tt t e = t :=
-rfl
+@[simp] theorem cond_tt {A : Type} (t e : A) : cond tt t e = t := rfl
 
 theorem eq_tt_of_ne_ff {a : bool} : a ≠ ff → a = tt :=
 by cases a; simp
@@ -99,11 +97,9 @@ begin cases a, simp [H₁, H₂], simp [H₂] end
 theorem band_elim_right {a b : bool} (H : a && b = tt) : b = tt :=
 begin cases a, contradiction, simp at H, exact H end
 
-@[simp] theorem bnot_false : bnot ff = tt :=
-rfl
+@[simp] theorem bnot_false : bnot ff = tt := rfl
 
-@[simp] theorem bnot_true : bnot tt = ff :=
-rfl
+@[simp] theorem bnot_true : bnot tt = ff := rfl
 
 @[simp] theorem bnot_bnot (a : bool) : bnot (bnot a) = a :=
 by cases a; simp

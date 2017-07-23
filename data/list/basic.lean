@@ -63,12 +63,10 @@ by induction l₂ with b l₂ ih; simp
 
 /- last -/
 
-@[simp] theorem last_singleton (a : α) (h : [a] ≠ []) : last [a] h = a :=
-rfl
+@[simp] theorem last_singleton (a : α) (h : [a] ≠ []) : last [a] h = a := rfl
 
 @[simp] theorem last_cons_cons (a₁ a₂ : α) (l : list α) (h : a₁::a₂::l ≠ []) :
-  last (a₁::a₂::l) h = last (a₂::l) (cons_ne_nil a₂ l) :=
-rfl
+  last (a₁::a₂::l) h = last (a₂::l) (cons_ne_nil a₂ l) := rfl
 
 theorem last_congr {l₁ l₂ : list α} (h₁ : l₁ ≠ []) (h₂ : l₂ ≠ []) (h₃ : l₁ = l₂) :
   last l₁ h₁ = last l₂ h₂ :=
@@ -76,14 +74,11 @@ by subst l₁
 
 /- head and tail -/
 
-@[simp] theorem head_cons [h : inhabited α] (a : α) (l : list α) : head (a::l) = a :=
-rfl
+@[simp] theorem head_cons [h : inhabited α] (a : α) (l : list α) : head (a::l) = a := rfl
 
-@[simp] theorem tail_nil : tail (@nil α) = [] :=
-rfl
+@[simp] theorem tail_nil : tail (@nil α) = [] := rfl
 
-@[simp] theorem tail_cons (a : α) (l : list α) : tail (a::l) = l :=
-rfl
+@[simp] theorem tail_cons (a : α) (l : list α) : tail (a::l) = l := rfl
 
 /- list membership -/
 
@@ -95,11 +90,9 @@ attribute [simp] mem_nil_iff mem_cons_self mem_cons_iff
 section index_of
 variable [decidable_eq α]
 
-@[simp] theorem index_of_nil (a : α) : index_of a [] = 0 :=
-rfl
+@[simp] theorem index_of_nil (a : α) : index_of a [] = 0 := rfl
 
-theorem index_of_cons (a b : α) (l : list α) : index_of a (b::l) = if a = b then 0 else succ (index_of a l) :=
-rfl
+theorem index_of_cons (a b : α) (l : list α) : index_of a (b::l) = if a = b then 0 else succ (index_of a l) := rfl
 
 @[simp] theorem index_of_cons_of_eq {a b : α} (l : list α) : a = b → index_of a (b::l) = 0 :=
 assume e, if_pos e
@@ -178,11 +171,9 @@ match (nth l n) with
 | none     := arbitrary α
 end
 
-theorem inth_zero [inhabited α] (a : α) (l : list α) : inth (a :: l) 0 = a :=
-rfl
+theorem inth_zero [inhabited α] (a : α) (l : list α) : inth (a :: l) 0 = a := rfl
 
-theorem inth_succ [inhabited α] (a : α) (l : list α) (n : nat) : inth (a::l) (n+1) = inth l n :=
-rfl
+theorem inth_succ [inhabited α] (a : α) (l : list α) (n : nat) : inth (a::l) (n+1) = inth l n := rfl
 
 end nth
 
@@ -193,12 +184,10 @@ def ith : Π (l : list α) (i : nat), i < length l → α
 | (a::ains) 0        h := a
 | (a::ains) (succ i) h := ith ains i (lt_of_succ_lt_succ h)
 
-@[simp] theorem ith_zero (a : α) (l : list α) (h : 0 < length (a::l)) : ith (a::l) 0 h = a :=
-rfl
+@[simp] theorem ith_zero (a : α) (l : list α) (h : 0 < length (a::l)) : ith (a::l) 0 h = a := rfl
 
 @[simp] theorem ith_succ (a : α) (l : list α) (i : nat) (h : succ i < length (a::l))
-                      : ith (a::l) (succ i) h = ith l i (lt_of_succ_lt_succ h) :=
-rfl
+                      : ith (a::l) (succ i) h = ith l i (lt_of_succ_lt_succ h) := rfl
 end ith
 
 section take
@@ -279,12 +268,10 @@ def count (a : α) : list α → nat
 | []      := 0
 | (x::xs) := if a = x then succ (count xs) else count xs
 
-@[simp] theorem count_nil (a : α) : count a [] = 0 :=
-rfl
+@[simp] theorem count_nil (a : α) : count a [] = 0 := rfl
 
 theorem count_cons (a b : α) (l : list α) :
-  count a (b :: l) = if a = b then succ (count a l) else count a l :=
-rfl
+  count a (b :: l) = if a = b then succ (count a l) else count a l := rfl
 
 theorem count_cons' (a b : α) (l : list α) :
   count a (b :: l) = count a l + (if a = b then 1 else 0) :=

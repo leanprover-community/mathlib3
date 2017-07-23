@@ -96,8 +96,7 @@ variables {α β : Type u}
 theorem ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s :=
 ⟨exists_mem_of_ne_empty, assume ⟨x, (hx : x ∈ s)⟩ h, by rw [h] at hx; assumption⟩
 
-theorem fmap_eq_image {f : α → β} {s : set α} : f <$> s = f '' s :=
-rfl
+theorem fmap_eq_image {f : α → β} {s : set α} : f <$> s = f '' s := rfl
 
 theorem mem_seq_iff {f : set (α → β)} {s : set α} {b : β} :
   b ∈ (f <*> s) ↔ (∃(f' : α → β), ∃a ∈ s, f' ∈ f ∧ b = f' a) :=
@@ -117,12 +116,10 @@ protected def prod (s : set α) (t : set β) : set (α × β) :=
 {p | p.1 ∈ s ∧ p.2 ∈ t}
 
 theorem mem_prod_eq {s : set α} {t : set β} {p : α × β} :
-  p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈ t) :=
-rfl
+  p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈ t) := rfl
 
 theorem prod_vimage_eq {s : set α} {t : set β} {f : γ → α} {g : δ → β} :
-  set.prod (vimage f s) (vimage g t) = vimage (λp, (f p.1, g p.2)) (set.prod s t) :=
-rfl
+  set.prod (vimage f s) (vimage g t) = vimage (λp, (f p.1, g p.2)) (set.prod s t) := rfl
 
 theorem prod_mono {s₁ s₂ : set α} {t₁ t₂ : set β} (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
   set.prod s₁ t₁ ⊆ set.prod s₂ t₂ :=
@@ -170,19 +167,16 @@ begin
 end
 
 @[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
-  (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) :=
-rfl
+  (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
 
 theorem monotone_inter [weak_order β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λx, (f x) ∩ (g x)) :=
 assume a b h x ⟨h₁, h₂⟩, ⟨hf h h₁, hg h h₂⟩
 
 @[simp] theorem vimage_set_of_eq {p : α → Prop} {f : β → α} :
-  vimage f {a | p a} = {a | p (f a)} :=
-rfl
+  vimage f {a | p a} = {a | p (f a)} := rfl
 
-@[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s :=
-rfl
+@[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
 theorem mem_image_iff_of_inverse (f : α → β) (g : β → α) {b : β} {s : set α}
   (h₁ : ∀a, g (f a) = a ) (h₂ : ∀b, f (g b) = b ) : b ∈ f '' s ↔ g b ∈ s :=
@@ -445,11 +439,9 @@ assume f_in_s t' h, h f_in_s
 protected theorem Sup_le {s : set (filter α)} {f : filter α} : (∀g∈s, g ≤ f) → Sup s ≤ f :=
 assume h a ha g hg, h g hg ha
 
-@[simp] theorem mem_join_sets {s : set α} {f : filter (filter α)} : s ∈ (join f).sets = ({t | s ∈ filter.sets t} ∈ f.sets) :=
-rfl
+@[simp] theorem mem_join_sets {s : set α} {f : filter (filter α)} : s ∈ (join f).sets = ({t | s ∈ filter.sets t} ∈ f.sets) := rfl
 
-@[simp] theorem mem_principal_sets {s t : set α} : s ∈ (principal t).sets = (t ⊆ s) :=
-rfl
+@[simp] theorem mem_principal_sets {s t : set α} : s ∈ (principal t).sets = (t ⊆ s) := rfl
 
 @[simp] theorem le_principal_iff {s : set α} {f : filter α} : f ≤ principal s ↔ s ∈ f.sets :=
 show (∀{t}, s ⊆ t → t ∈ f.sets) ↔ s ∈ f.sets,
@@ -490,8 +482,7 @@ instance complete_lattice_filter : complete_lattice (filter α) :=
   map f (principal s) = principal (set.image f s) :=
 filter_eq $ set.ext $ assume a, image_subset_iff_subset_vimage.symm
 
-@[simp] theorem join_principal_eq_Sup {s : set (filter α)} : join (principal s) = Sup s :=
-rfl
+@[simp] theorem join_principal_eq_Sup {s : set (filter α)} : join (principal s) = Sup s := rfl
 
 instance monad_filter : monad filter :=
 { monad .
@@ -672,11 +663,9 @@ filter_eq $ set.ext $ by simp [union_subset_iff]
 @[simp] theorem supr_principal {ι : Sort w} {s : ι → set α} : (⨆x, principal (s x)) = principal (⋃i, s i) :=
 filter_eq $ set.ext $ assume x, by simp [supr_sets_eq]; exact (@supr_le_iff (set α) _ _ _ _).symm
 
-theorem principal_univ : principal (univ : set α) = ⊤ :=
-rfl
+theorem principal_univ : principal (univ : set α) = ⊤ := rfl
 
-theorem principal_empty : principal (∅ : set α) = ⊥ :=
-rfl
+theorem principal_empty : principal (∅ : set α) = ⊥ := rfl
 
 @[simp] theorem principal_eq_bot_iff {s : set α} : principal s = ⊥ ↔ s = ∅ :=
 ⟨assume h, principal_eq_iff_eq.mp $ by simp [principal_empty, h], assume h, by simp [*, principal_empty]⟩
@@ -687,8 +676,7 @@ by simp; exact id
 /- map equations -/
 
 @[simp] theorem mem_map {f : filter α} {s : set β} {m : α → β} :
-  (s ∈ (map m f).sets) = ({x | m x ∈ s} ∈ f.sets) :=
-rfl
+  (s ∈ (map m f).sets) = ({x | m x ∈ s} ∈ f.sets) := rfl
 
 theorem image_mem_map {f : filter α} {m : α → β} {s : set α} (hs : s ∈ f.sets):
   m '' s ∈ (map m f).sets :=

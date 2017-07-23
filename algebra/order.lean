@@ -63,8 +63,7 @@ def weak_order_dual (wo : weak_order α) : weak_order α :=
 
 theorem le_dual_eq_le {α : Type} (wo : weak_order α) (a b : α) :
   @has_le.le _ (@weak_order.to_has_le _ (weak_order_dual wo)) a b =
-  @has_le.le _ (@weak_order.to_has_le _ wo) b a :=
-rfl
+  @has_le.le _ (@weak_order.to_has_le _ wo) b a := rfl
 
 theorem comp_le_comp_left_of_monotone [weak_order α] [weak_order β] [weak_order γ]
   {f : β → α} {g h : γ → β} (m_f : monotone f) (le_gh : g ≤ h) : has_le.le.{max w u} (f ∘ g) (f ∘ h) :=

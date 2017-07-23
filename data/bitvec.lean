@@ -155,7 +155,7 @@ section conversion
   protected def to_nat {n : nat} (v : bitvec n) : nat :=
   bits_to_nat (to_list v)
 
-  lemma bits_to_nat_to_list {n : ℕ} (x : bitvec n)
+  theorem bits_to_nat_to_list {n : ℕ} (x : bitvec n)
   : bitvec.to_nat x = bits_to_nat (vector.to_list x)  := rfl
 
   theorem to_nat_append {m : ℕ} (xs : bitvec m) (b : bool)
@@ -180,7 +180,7 @@ section conversion
     simp [cond_to_bool_mod_two],
   end
 
-  lemma of_nat_succ {k n : ℕ}
+  theorem of_nat_succ {k n : ℕ}
   :  bitvec.of_nat (succ k) n = bitvec.of_nat k (n / 2) ++ₜ[to_bool (n % 2 = 1)] :=
   rfl
 

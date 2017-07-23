@@ -475,17 +475,17 @@ by { simp [think, join], unfold has_map.map, simp [join, seq1.ret] }
   join (cons s S) = think (append s (join S)) :=
 by { simp [think, join], unfold has_map.map, simp [join, cons, append] }
 
-@[simp] lemma nil_append (s : wseq α) : append nil s = s := seq.nil_append _
+@[simp] theorem nil_append (s : wseq α) : append nil s = s := seq.nil_append _
 
-@[simp] lemma cons_append (a : α) (s t) :
+@[simp] theorem cons_append (a : α) (s t) :
   append (cons a s) t = cons a (append s t) := seq.cons_append _ _ _
 
-@[simp] lemma think_append (s t : wseq α) :
+@[simp] theorem think_append (s t : wseq α) :
   append (think s) t = think (append s t) := seq.cons_append _ _ _
 
-@[simp] lemma append_nil (s : wseq α) : append s nil = s := seq.append_nil _
+@[simp] theorem append_nil (s : wseq α) : append s nil = s := seq.append_nil _
 
-@[simp] lemma append_assoc (s t u : wseq α) :
+@[simp] theorem append_assoc (s t u : wseq α) :
   append (append s t) u = append s (append t u) := seq.append_assoc _ _ _
 
 def tail.aux : option (α × wseq α) → computation (option (α × wseq α))
@@ -710,7 +710,7 @@ seq.of_mem_append
 def mem_append_left {s₁ s₂ : wseq α} {a : α} : a ∈ s₁ → a ∈ append s₁ s₂ :=
 seq.mem_append_left
 
-lemma exists_of_mem_map {f} {b : β} : ∀ {s : wseq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
+theorem exists_of_mem_map {f} {b : β} : ∀ {s : wseq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := seq.exists_of_mem_map h in
   by cases o; injection oe; exact ⟨a, om, h⟩
 
@@ -922,12 +922,12 @@ end
 
 def ret (a : α) : wseq α := of_list [a]
 
-@[simp] lemma map_nil (f : α → β) : map f nil = nil := rfl
+@[simp] theorem map_nil (f : α → β) : map f nil = nil := rfl
 
-@[simp] lemma map_cons (f : α → β) (a s) :
+@[simp] theorem map_cons (f : α → β) (a s) :
   map f (cons a s) = cons (f a) (map f s) := seq.map_cons _ _ _
 
-@[simp] lemma map_think (f : α → β) (s) :
+@[simp] theorem map_think (f : α → β) (s) :
   map f (think s) = think (map f s) := seq.map_cons _ _ _
 
 @[simp] theorem map_id (s : wseq α) : map id s = s := by simp [map]
@@ -937,7 +937,7 @@ def ret (a : α) : wseq α := of_list [a]
 @[simp] theorem map_append (f : α → β) (s t) : map f (append s t) = append (map f s) (map f t) :=
 seq.map_append _ _ _
 
-lemma map_comp (f : α → β) (g : β → γ) (s : wseq α) :
+theorem map_comp (f : α → β) (g : β → γ) (s : wseq α) :
   map (g ∘ f) s = map g (map f s) :=
 begin
   dsimp [map], rw ←seq.map_comp,
@@ -982,7 +982,7 @@ theorem exists_of_mem_bind {s : wseq α} {f : α → wseq β} {b}
 let ⟨t, tm, bt⟩ := exists_of_mem_join h,
     ⟨a, as, e⟩ := exists_of_mem_map tm in ⟨a, as, by rwa e⟩
 
-lemma destruct_map (f : α → β) (s : wseq α) :
+theorem destruct_map (f : α → β) (s : wseq α) :
   destruct (map f s) = computation.map (option_map (prod.map f (map f))) (destruct s) :=
 begin
   apply eq_of_bisim (λ c1 c2, ∃ s, c1 = destruct (map f s) ∧
@@ -1019,7 +1019,7 @@ def destruct_append.aux (t : wseq α) :
 | (some (a, s)) := return (some (a, append s t))
 attribute [simp] destruct_append.aux
 
-lemma destruct_append (s t : wseq α) :
+theorem destruct_append (s t : wseq α) :
   destruct (append s t) = (destruct s).bind (destruct_append.aux t) :=
 begin
   apply eq_of_bisim (λ c1 c2, ∃ s t, c1 = destruct (append s t) ∧
@@ -1036,7 +1036,7 @@ def destruct_join.aux : option (wseq α × wseq (wseq α)) → computation (opti
 | (some (s, S)) := (destruct (append s (join S))).think
 attribute [simp] destruct_join.aux
 
-lemma destruct_join (S : wseq (wseq α)) :
+theorem destruct_join (S : wseq (wseq α)) :
   destruct (join S) = (destruct S).bind destruct_join.aux :=
 begin
   apply eq_of_bisim (λ c1 c2, c1 = c2 ∨ ∃ S, c1 = destruct (join S) ∧
@@ -1175,7 +1175,7 @@ begin
   { exact ⟨s, rfl, rfl⟩ }
 end
 
-@[simp] lemma join_append (S T : wseq (wseq α)) :
+@[simp] theorem join_append (S T : wseq (wseq α)) :
   join (append S T) ~ append (join S) (join T) :=
 begin
   refine ⟨λ s1 s2, ∃ s S T,

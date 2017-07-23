@@ -23,7 +23,7 @@ local infix ` ≺ `:50  := r
 
 def chain (c : set α) := pairwise_on c (λx y, x ≺ y ∨ y ≺ x)
 
-lemma chain_insert {c : set α} {a : α} (hc : chain c) (ha : ∀b∈c, b ≠ a → a ≺ b ∨ b ≺ a) :
+theorem chain_insert {c : set α} {a : α} (hc : chain c) (ha : ∀b∈c, b ≠ a → a ≺ b ∨ b ≺ a) :
   chain (insert a c) :=
 forall_insert_of_forall
   (assume x hx, forall_insert_of_forall (hc x hx) (assume hneq, (ha x hx hneq).symm))
@@ -36,20 +36,20 @@ def is_max_chain (c : set α) := chain c ∧ ¬ (∃c', super_chain c c')
 def succ_chain (c : set α) :=
 if h : ∃c', chain c ∧ super_chain c c' then some h else c
 
-lemma succ_spec {c : set α} (h : ∃c', chain c ∧ super_chain c c') :
+theorem succ_spec {c : set α} (h : ∃c', chain c ∧ super_chain c c') :
   super_chain c (succ_chain c) :=
 let ⟨c', hc'⟩ := h in
 have chain c ∧ super_chain c (some h),
   from @some_spec _ (λc', chain c ∧ super_chain c c') _,
 by simp [succ_chain, dif_pos, h, this.right]
 
-lemma chain_succ {c : set α} (hc : chain c) : chain (succ_chain c) :=
+theorem chain_succ {c : set α} (hc : chain c) : chain (succ_chain c) :=
 if h : ∃c', chain c ∧ super_chain c c' then
   (succ_spec h).left
 else
   by simp [succ_chain, dif_neg, h]; exact hc
 
-lemma super_of_not_max {c : set α} (hc₁ : chain c) (hc₂ : ¬ is_max_chain c) :
+theorem super_of_not_max {c : set α} (hc₁ : chain c) (hc₂ : ¬ is_max_chain c) :
   super_chain c (succ_chain c) :=
 begin
   simp [is_max_chain, not_and_iff, not_not_iff] at hc₂,
@@ -59,7 +59,7 @@ begin
     from succ_spec ⟨c', hc₁, hc'⟩
 end
 
-lemma succ_increasing {c : set α} : c ⊆ succ_chain c :=
+theorem succ_increasing {c : set α} : c ⊆ succ_chain c :=
 if h : ∃c', chain c ∧ super_chain c c' then
   have super_chain c (succ_chain c), from succ_spec h,
   this.right.left
@@ -69,12 +69,12 @@ inductive chain_closure : set α → Prop
 | succ : ∀{s}, chain_closure s → chain_closure (succ_chain s)
 | union : ∀{s}, (∀a∈s, chain_closure a) → chain_closure (⋃₀ s)
 
-lemma chain_closure_empty : chain_closure ∅ :=
+theorem chain_closure_empty : chain_closure ∅ :=
 have chain_closure (⋃₀ ∅),
   from chain_closure.union $ assume a h, h.rec _,
 by simp at this; assumption
 
-lemma chain_closure_closure : chain_closure (⋃₀ chain_closure) :=
+theorem chain_closure_closure : chain_closure (⋃₀ chain_closure) :=
 chain_closure.union $ assume s hs, hs
 
 variables {c c₁ c₂ c₃ : set α}
@@ -125,12 +125,12 @@ begin
     { exact (h₂ $ subset.trans succ_increasing h) } }
 end
 
-lemma chain_closure_total (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂) : c₁ ⊆ c₂ ∨ c₂ ⊆ c₁ :=
+theorem chain_closure_total (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂) : c₁ ⊆ c₂ ∨ c₂ ⊆ c₁ :=
 have c₁ ⊆ c₂ ∨ succ_chain c₂ ⊆ c₁,
   from chain_closure_succ_total_aux hc₁ hc₂ $ assume c₃ hc₃, chain_closure_succ_total hc₃ hc₂,
 or.imp_right (assume : succ_chain c₂ ⊆ c₁, subset.trans succ_increasing this) this
 
-lemma chain_closure_succ_fixpoint (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂)
+theorem chain_closure_succ_fixpoint (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂)
   (h_eq : succ_chain c₂ = c₂) : c₁ ⊆ c₂ :=
 begin
   induction hc₁,
@@ -141,7 +141,7 @@ begin
     exact (sUnion_subset $ assume c₁ hc₁, ih c₁ hc₁) }
 end
 
-lemma chain_closure_succ_fixpoint_iff (hc : chain_closure c) :
+theorem chain_closure_succ_fixpoint_iff (hc : chain_closure c) :
   succ_chain c = c ↔ c = ⋃₀ chain_closure :=
 ⟨assume h, subset.antisymm
     (subset_sUnion_of_mem hc)
@@ -153,7 +153,7 @@ lemma chain_closure_succ_fixpoint_iff (hc : chain_closure c) :
       ... = c : this.symm)
     succ_increasing⟩
 
-lemma chain_chain_closure (hc : chain_closure c) : chain c :=
+theorem chain_chain_closure (hc : chain_closure c) : chain c :=
 begin
   induction hc,
   case _root_.zorn.chain_closure.succ c hc h {
@@ -173,7 +173,7 @@ def max_chain := ⋃₀ chain_closure
 
 There exists a maximal totally ordered subset of `α`.
 Note that we do not require `α` to be partially ordered by `r`. -/
-lemma max_chain_spec : is_max_chain max_chain :=
+theorem max_chain_spec : is_max_chain max_chain :=
 classical.by_contradiction $
 assume : ¬ is_max_chain (⋃₀ chain_closure),
 have super_chain (⋃₀ chain_closure) (succ_chain (⋃₀ chain_closure)),
@@ -186,7 +186,7 @@ h₃ this.symm
 /-- Zorn's lemma
 
 If every chain has an upper bound, then there is a maximal element -/
-lemma zorn (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+theorem zorn (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃m, ∀a, m ≺ a → a ≺ m :=
 have ∃ub, ∀a∈max_chain, a ≺ ub,
   from h _ $ max_chain_spec.left,
@@ -201,7 +201,7 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
 
 end chain
 
-lemma zorn_weak_order {α : Type u} [weak_order α]
+theorem zorn_weak_order {α : Type u} [weak_order α]
   (h : ∀c:set α, @chain α (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩

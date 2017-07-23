@@ -137,15 +137,15 @@ meta def binder_eq_elim.old_conv (b : binder_eq_elim) : old_conv unit := do
   b.check x (bd.instantiate_var x),
   b.adapt_rel b.push
 
-lemma {u v} exists_comm {α : Sort u} {β : Sort v} (p : α → β → Prop) :
+theorem {u v} exists_comm {α : Sort u} {β : Sort v} (p : α → β → Prop) :
   (∃a b, p a b) ↔ (∃b a, p a b) :=
 ⟨λ⟨a, ⟨b, h⟩⟩, ⟨b, ⟨a, h⟩⟩, λ⟨a, ⟨b, h⟩⟩, ⟨b, ⟨a, h⟩⟩⟩
 
-lemma {u v} exists_elim_eq_left {α : Sort u} (a : α) (p : Π(a':α), a' = a → Prop) :
+theorem {u v} exists_elim_eq_left {α : Sort u} (a : α) (p : Π(a':α), a' = a → Prop) :
   (∃(a':α)(h : a' = a), p a' h) ↔ p a rfl :=
 ⟨λ⟨a', ⟨h, p_h⟩⟩, match a', h, p_h with ._, rfl, h := h end, λh, ⟨a, rfl, h⟩⟩
 
-lemma {u v} exists_elim_eq_right {α : Sort u} (a : α) (p : Π(a':α), a = a' → Prop) :
+theorem {u v} exists_elim_eq_right {α : Sort u} (a : α) (p : Π(a':α), a = a' → Prop) :
   (∃(a':α)(h : a = a'), p a' h) ↔ p a rfl :=
 ⟨λ⟨a', ⟨h, p_h⟩⟩, match a', h, p_h with ._, rfl, h := h end, λh, ⟨a, rfl, h⟩⟩
 
@@ -156,15 +156,15 @@ meta def exists_eq_elim : binder_eq_elim :=
   apply_congr   := congr_binder ``exists_congr,
   apply_elim_eq := apply' ``exists_elim_eq_left <|> apply' ``exists_elim_eq_right }
 
-lemma {u v} forall_comm {α : Sort u} {β : Sort v} (p : α → β → Prop) :
+theorem {u v} forall_comm {α : Sort u} {β : Sort v} (p : α → β → Prop) :
   (∀a b, p a b) ↔ (∀b a, p a b) :=
 ⟨assume h b a, h a b, assume h b a, h a b⟩
 
-lemma {u v} forall_elim_eq_left {α : Sort u} (a : α) (p : Π(a':α), a' = a → Prop) :
+theorem {u v} forall_elim_eq_left {α : Sort u} (a : α) (p : Π(a':α), a' = a → Prop) :
   (∀(a':α)(h : a' = a), p a' h) ↔ p a rfl :=
 ⟨λh, h a rfl, λh a' h_eq, match a', h_eq with ._, rfl := h end⟩
 
-lemma {u v} forall_elim_eq_right {α : Sort u} (a : α) (p : Π(a':α), a = a' → Prop) :
+theorem {u v} forall_elim_eq_right {α : Sort u} (a : α) (p : Π(a':α), a = a' → Prop) :
   (∀(a':α)(h : a = a'), p a' h) ↔ p a rfl :=
 ⟨λh, h a rfl, λh a' h_eq, match a', h_eq with ._, rfl := h end⟩
 
@@ -194,20 +194,20 @@ universes u v w w₂
 variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂} {s t : set α} {a : α}
 
 @[simp]
-lemma mem_image {f : α → β} {b : β} : b ∈ set.image f s = ∃a, a ∈ s ∧ f a = b :=
+theorem mem_image {f : α → β} {b : β} : b ∈ set.image f s = ∃a, a ∈ s ∧ f a = b :=
 rfl
 
 section
 open lattice
 variables [complete_lattice α]
 
-lemma Inf_image {s : set β} {f : β → α} : Inf (set.image f s) = (⨅ a ∈ s, f a) :=
+theorem Inf_image {s : set β} {f : β → α} : Inf (set.image f s) = (⨅ a ∈ s, f a) :=
 begin
   simp [Inf_eq_infi, infi_and],
   conversion infi_eq_elim.old_conv,
 end
 
-lemma Sup_image {s : set β} {f : β → α} : Sup (set.image f s) = (⨆ a ∈ s, f a) :=
+theorem Sup_image {s : set β} {f : β → α} : Sup (set.image f s) = (⨆ a ∈ s, f a) :=
 begin
   simp [Sup_eq_supr, supr_and],
   conversion supr_eq_elim.old_conv,

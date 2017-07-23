@@ -54,7 +54,7 @@ end
 def foldl {δ : Type w} (d : δ) (f : δ → Π a, β a → δ) : δ :=
 data.foldl d (λ b d, b.foldl (λ r a, f r a.1 a.2) d)
 
-lemma foldl_eq_lem {γ : Type u} {δ : Type w} (d : δ) (f : δ → γ → δ) : Π l : list (list γ),
+theorem foldl_eq_lem {γ : Type u} {δ : Type w} (d : δ) (f : δ → γ → δ) : Π l : list (list γ),
   l.foldr (λ (b:list γ) d, b.foldl f d) d = (l.foldr (λ(bkt r : list γ), r ++ bkt) []).foldl f d
 | []      := rfl
 | (l::ls) := show l.foldl f (ls.foldr (λ (b:list γ) d, b.foldl f d) d) =
@@ -142,7 +142,7 @@ theorem valid_aux.eq {idx : α → nat} : Π {l : list (list Σ a, β a)} {sz : 
   have idx a = list.length l - 1 - i, from valid_aux.eq v el,
   by rwa [nat.sub_sub, nat.add_comm] at this
 
-theorem valid_aux.insert_lemma1 {idx : α → nat} : Π {l : list (list Σ a, β a)} {sz : nat}, valid_aux idx l sz →
+private lemma valid_aux.insert_lemma1 {idx : α → nat} : Π {l : list (list Σ a, β a)} {sz : nat}, valid_aux idx l sz →
   ∀ {i h a b}, sigma.mk a b ∈ l.nth_le i h → idx a = l.length - 1 - i
 | ._ ._ valid_aux.nil                            i     h _ _ _  := absurd h (nat.not_lt_zero _)
 | ._ ._ (@valid_aux.cons ._ ._ ._ c l sz v nd e) 0     h a b el := e ⟨a, b⟩ el
@@ -238,7 +238,7 @@ section
   local notation `L` := array.read bkts bidx
   private def bkts' : bucket_array α β n := array.write bkts bidx (f L)
 
-  theorem valid.modify_aux1 {δ fn} {b : δ} : Π (i) (h : i ≤ n.1) (hb : i ≤ bidx.1),
+  private lemma valid.modify_aux1 {δ fn} {b : δ} : Π (i) (h : i ≤ n.1) (hb : i ≤ bidx.1),
     array.iterate_aux bkts fn i h b = array.iterate_aux bkts' fn i h b
   | 0     h hb := by simp[array.iterate_aux]
   | (i+1) h (hb : i < bidx.1) := by simp[array.iterate_aux]; exact
@@ -250,7 +250,7 @@ section
             (hfl : f L = u ++ v2 ++ w)
   include hl hfl
 
-  theorem append_of_modify_aux : Π (i) (h : i ≤ n.1) (hb : i > bidx.1),
+  private lemma append_of_modify_aux : Π (i) (h : i ≤ n.1) (hb : i > bidx.1),
     ∃ u' w', array.iterate_aux bkts (λ_ bkt r, r ++ bkt) i h [] = u' ++ v1 ++ w' ∧
              array.iterate_aux bkts' (λ_ bkt r, r ++ bkt) i h [] = u' ++ v2 ++ w'
   | 0     _ hb := absurd hb (nat.not_lt_zero _)
@@ -287,7 +287,7 @@ section
             (djwv : (w.map sigma.fst).disjoint (v2.map sigma.fst))
   include hvnd hal djuv djwv
 
-  theorem valid.modify_aux2 : Π (i) (h : i ≤ n.1) (hb : i > bidx.1) {sz : ℕ},
+  private lemma valid.modify_aux2 : Π (i) (h : i ≤ n.1) (hb : i > bidx.1) {sz : ℕ},
     valid_aux (λa, (mk_idx n (hash_fn a)).1) (array.iterate_aux bkts (λ_ v l, v :: l) i h []) sz → sz + v2.length ≥ v1.length ∧
     valid_aux (λa, (mk_idx n (hash_fn a)).1) (array.iterate_aux bkts' (λ_ v l, v :: l) i h []) (sz + v2.length - v1.length)
   | 0     _ hb sz := absurd hb (nat.not_lt_zero _)
@@ -495,7 +495,7 @@ theorem not_contains_empty (hash_fn : α → nat) (n a) :
   ¬ (@mk_hash_map α _ β hash_fn n).contains a :=
 by apply bool_iff_false.2; dsimp [contains]; rw [find_empty]; refl
 
-lemma insert_lemma (hash_fn : α → nat) {n n'}
+theorem insert_theorem (hash_fn : α → nat) {n n'}
   {bkts : bucket_array α β n} {sz} (v : valid hash_fn bkts sz) :
   valid hash_fn (bkts.foldl (mk_array _ [] : bucket_array α β n') (reinsert_aux hash_fn)) sz :=
 suffices ∀ (l : list Σ a, β a),
@@ -568,7 +568,7 @@ let n'        : ℕ+ := ⟨n.1 * 2, mul_pos n.2 dec_trivial⟩,
   size     := size',
   nbuckets := n',
   buckets  := buckets'',
-  is_valid := insert_lemma _ valid' }
+  is_valid := insert_theorem _ valid' }
 
 theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
   sigma.mk a' b' ∈ (m.insert a b).entries ↔

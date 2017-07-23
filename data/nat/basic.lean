@@ -20,10 +20,10 @@ def addl : ℕ → ℕ → ℕ
 | 0        y := y
 local infix ` ⊕ `:65 := addl
 
-@[simp] lemma addl_zero_left (n : ℕ) : 0 ⊕ n = n := rfl
-@[simp] lemma addl_succ_left (m n : ℕ) : succ m ⊕ n = succ (m ⊕ n) := rfl
+@[simp] theorem addl_zero_left (n : ℕ) : 0 ⊕ n = n := rfl
+@[simp] theorem addl_succ_left (m n : ℕ) : succ m ⊕ n = succ (m ⊕ n) := rfl
 
-@[simp] lemma zero_has_zero : nat.zero = 0 := rfl
+@[simp] theorem zero_has_zero : nat.zero = 0 := rfl
 
 local attribute [simp] nat.add_zero nat.add_succ nat.zero_add nat.succ_add
 
@@ -53,7 +53,7 @@ nat.succ.inj_arrow H id
 theorem discriminate {B : Type _} {n : ℕ} (H1: n = 0 → B) (H2 : ∀m, n = succ m → B) : B :=
 by ginduction n with h; [exact H1 h, exact H2 _ h]
 
-lemma one_succ_zero : 1 = succ 0 := rfl
+theorem one_succ_zero : 1 = succ 0 := rfl
 --local attribute [simp] one_succ_zero
 
 theorem two_step_induction {P : ℕ → Sort u} (H1 : P 0) (H2 : P 1)

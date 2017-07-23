@@ -133,44 +133,44 @@ namespace bool
   | tt tt := ff
 
   @[simp]
-  lemma ff_bxor_ff : bxor ff ff = ff := rfl
+  theorem ff_bxor_ff : bxor ff ff = ff := rfl
   @[simp]
-  lemma ff_bxor_tt : bxor ff tt = tt := rfl
+  theorem ff_bxor_tt : bxor ff tt = tt := rfl
   @[simp]
-  lemma tt_bxor_ff : bxor tt ff = tt := rfl
+  theorem tt_bxor_ff : bxor tt ff = tt := rfl
   @[simp]
-  lemma tt_bxor_tt : bxor tt tt = ff := rfl
+  theorem tt_bxor_tt : bxor tt tt = ff := rfl
 
   @[simp]
-  lemma bxor_self (a : bool) : bxor a a = ff :=
+  theorem bxor_self (a : bool) : bxor a a = ff :=
   by cases a; simp
 
   @[simp]
-  lemma bxor_ff (a : bool) : bxor a ff = a :=
+  theorem bxor_ff (a : bool) : bxor a ff = a :=
   by cases a; simp
 
   @[simp]
-  lemma bxor_tt (a : bool) : bxor a tt = bnot a :=
+  theorem bxor_tt (a : bool) : bxor a tt = bnot a :=
   by cases a; simp
 
   @[simp]
-  lemma ff_bxor (a : bool) : bxor ff a = a :=
+  theorem ff_bxor (a : bool) : bxor ff a = a :=
   by cases a; simp
 
   @[simp]
-  lemma tt_bxor (a : bool) : bxor tt a = bnot a :=
+  theorem tt_bxor (a : bool) : bxor tt a = bnot a :=
   by cases a; simp
 
   @[simp]
-  lemma bxor_comm (a b : bool) : bxor a b = bxor b a :=
+  theorem bxor_comm (a b : bool) : bxor a b = bxor b a :=
   by cases a; simp
 
   @[simp]
-  lemma bxor_assoc (a b c : bool) : bxor (bxor a b) c = bxor a (bxor b c) :=
+  theorem bxor_assoc (a b c : bool) : bxor (bxor a b) c = bxor a (bxor b c) :=
   by cases a; cases b; simp
 
   @[simp]
-  lemma bxor_left_comm (a b c : bool) : bxor a (bxor b c) = bxor b (bxor a c) :=
+  theorem bxor_left_comm (a b c : bool) : bxor a (bxor b c) = bxor b (bxor a c) :=
   by cases a; cases b; simp
 
   instance forall_decidable {P : bool → Prop} [decidable_pred P] : decidable (∀b, P b) :=

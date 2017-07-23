@@ -15,11 +15,11 @@ variables [weak_order α] [weak_order β] [weak_order γ]
 
 def monotone (f : α → β) := ∀{{a b}}, a ≤ b → f a ≤ f b
 
-lemma monotone_id : @monotone α α _ _ id := assume x y h, h
+theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 
-lemma monotone_const {b : β} : monotone (λ(a:α), b) := assume x y h, le_refl b
+theorem monotone_const {b : β} : monotone (λ(a:α), b) := assume x y h, le_refl b
 
-lemma monotone_comp {f : α → β} {g : β → γ} (m_f : monotone f) (m_g : monotone g) :
+theorem monotone_comp {f : α → β} {g : β → γ} (m_f : monotone f) (m_g : monotone g) :
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
 
@@ -61,22 +61,22 @@ def weak_order_dual (wo : weak_order α) : weak_order α :=
   le_trans := assume a b c h₁ h₂, le_trans h₂ h₁,
   le_antisymm := assume a b h₁ h₂, le_antisymm h₂ h₁ }
 
-lemma le_dual_eq_le {α : Type} (wo : weak_order α) (a b : α) :
+theorem le_dual_eq_le {α : Type} (wo : weak_order α) (a b : α) :
   @has_le.le _ (@weak_order.to_has_le _ (weak_order_dual wo)) a b =
   @has_le.le _ (@weak_order.to_has_le _ wo) b a :=
 rfl
 
-lemma comp_le_comp_left_of_monotone [weak_order α] [weak_order β] [weak_order γ]
+theorem comp_le_comp_left_of_monotone [weak_order α] [weak_order β] [weak_order γ]
   {f : β → α} {g h : γ → β} (m_f : monotone f) (le_gh : g ≤ h) : has_le.le.{max w u} (f ∘ g) (f ∘ h) :=
 assume x, m_f (le_gh x)
 
 section monotone
 variables [weak_order α] [weak_order γ]
 
-lemma monotone_lam {f : α → β → γ} (m : ∀b, monotone (λa, f a b)) : monotone f :=
+theorem monotone_lam {f : α → β → γ} (m : ∀b, monotone (λa, f a b)) : monotone f :=
 assume a a' h b, m b h
 
-lemma monotone_app (f : β → α → γ) (b : β) (m : monotone (λa b, f b a)) : monotone (f b) :=
+theorem monotone_app (f : β → α → γ) (b : β) (m : monotone (λa b, f b a)) : monotone (f b) :=
 assume a a' h, m h b
 
 end monotone

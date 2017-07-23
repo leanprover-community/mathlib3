@@ -215,7 +215,7 @@ example (n2 : ¬A₂) (n3 : ¬A₃) (b1 : B₁) (b2 : B₂) (b3 : B₃) (b4 : B�
 
 section club
 variables Scottish RedSocks WearKilt Married GoOutSunday : Prop
-lemma NoMember : (¬Scottish → RedSocks) → (WearKilt ∨ ¬RedSocks) → (Married → ¬GoOutSunday) →
+theorem NoMember : (¬Scottish → RedSocks) → (WearKilt ∨ ¬RedSocks) → (Married → ¬GoOutSunday) →
                  (GoOutSunday ↔ Scottish) → (WearKilt → Scottish ∧ Married) →
                  (Scottish → WearKilt) → false := by finish
 end club

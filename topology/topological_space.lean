@@ -22,7 +22,7 @@ section topological_space
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {a a₁ a₂ : α} {s s₁ s₂ : set α}
 
-lemma topological_space_eq {f g : topological_space α} (h' : f.open' = g.open') : f = g :=
+theorem topological_space_eq {f g : topological_space α} (h' : f.open' = g.open') : f = g :=
 begin
   cases f with a, cases g with b,
   have h : a = b, assumption,
@@ -38,21 +38,21 @@ include t
 def open' (s : set α) : Prop := topological_space.open' t s
 
 @[simp]
-lemma open_univ : open' (univ : set α) := topological_space.open_univ t
+theorem open_univ : open' (univ : set α) := topological_space.open_univ t
 
-lemma open_inter (h₁ : open' s₁) (h₂ : open' s₂) : open' (s₁ ∩ s₂) := topological_space.open_inter t s₁ s₂ h₁ h₂
+theorem open_inter (h₁ : open' s₁) (h₂ : open' s₂) : open' (s₁ ∩ s₂) := topological_space.open_inter t s₁ s₂ h₁ h₂
 
-lemma open_sUnion {s : set (set α)} (h : ∀t ∈ s, open' t) : open' (⋃₀ s) := topological_space.open_sUnion t s h
+theorem open_sUnion {s : set (set α)} (h : ∀t ∈ s, open' t) : open' (⋃₀ s) := topological_space.open_sUnion t s h
 
 end
 
 variables [topological_space α]
 
-lemma open_Union {f : ι → set α} (h : ∀i, open' (f i)) : open' (⋃i, f i) :=
+theorem open_Union {f : ι → set α} (h : ∀i, open' (f i)) : open' (⋃i, f i) :=
 open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 
 @[simp]
-lemma open_empty : open' (∅ : set α) :=
+theorem open_empty : open' (∅ : set α) :=
 have open' (⋃₀ ∅ : set α), from open_sUnion (assume a, false.elim),
 by simp at this; assumption
 
@@ -60,76 +60,76 @@ by simp at this; assumption
 def closed (s : set α) : Prop := open' (-s)
 
 @[simp]
-lemma closed_empty : closed (∅ : set α) := by simp [closed]
+theorem closed_empty : closed (∅ : set α) := by simp [closed]
 
 @[simp]
-lemma closed_univ : closed (univ : set α) := by simp [closed]
+theorem closed_univ : closed (univ : set α) := by simp [closed]
 
-lemma closed_union : closed s₁ → closed s₂ → closed (s₁ ∪ s₂) :=
+theorem closed_union : closed s₁ → closed s₂ → closed (s₁ ∪ s₂) :=
 by simp [closed]; exact open_inter
 
-lemma closed_sInter {s : set (set α)} : (∀t ∈ s, closed t) → closed (⋂₀ s) :=
+theorem closed_sInter {s : set (set α)} : (∀t ∈ s, closed t) → closed (⋂₀ s) :=
 by simp [closed, compl_sInter]; exact assume h, open_Union $ assume t, open_Union $ assume ht, h t ht
 
-lemma closed_Inter {f : ι → set α} (h : ∀i, closed (f i)) : closed (⋂i, f i ) :=
+theorem closed_Inter {f : ι → set α} (h : ∀i, closed (f i)) : closed (⋂i, f i ) :=
 closed_sInter $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 
 @[simp]
-lemma closed_compl_iff_open {s : set α} : open' (-s) ↔ closed s :=
+theorem closed_compl_iff_open {s : set α} : open' (-s) ↔ closed s :=
 by refl
 
 @[simp]
-lemma open_compl_iff_closed {s : set α} : closed (-s) ↔ open' s :=
+theorem open_compl_iff_closed {s : set α} : closed (-s) ↔ open' s :=
 by rw [←closed_compl_iff_open, compl_compl]
 
-lemma open_diff {s t : set α} (h₁ : open' s) (h₂ : closed t) : open' (s - t) :=
+theorem open_diff {s t : set α} (h₁ : open' s) (h₂ : closed t) : open' (s - t) :=
 open_inter h₁ $ closed_compl_iff_open.mpr h₂
 
 /- interior -/
 def interior (s : set α) : set α := ⋃₀ {t | open' t ∧ t ⊆ s}
 
 @[simp]
-lemma open_interior {s : set α} : open' (interior s) :=
+theorem open_interior {s : set α} : open' (interior s) :=
 open_sUnion $ assume t ⟨h₁, h₂⟩, h₁
 
-lemma interior_subset {s : set α} : interior s ⊆ s :=
+theorem interior_subset {s : set α} : interior s ⊆ s :=
 sUnion_subset $ assume t ⟨h₁, h₂⟩, h₂
 
-lemma interior_maximal {s t : set α} (h₁ : t ⊆ s) (h₂ : open' t) : t ⊆ interior s :=
+theorem interior_maximal {s t : set α} (h₁ : t ⊆ s) (h₂ : open' t) : t ⊆ interior s :=
 subset_sUnion_of_mem ⟨h₂, h₁⟩
 
-lemma interior_eq_of_open {s : set α} (h : open' s) : interior s = s :=
+theorem interior_eq_of_open {s : set α} (h : open' s) : interior s = s :=
 subset.antisymm interior_subset (interior_maximal (subset.refl s) h)
 
-lemma interior_eq_iff_open {s : set α} : interior s = s ↔ open' s :=
+theorem interior_eq_iff_open {s : set α} : interior s = s ↔ open' s :=
 ⟨assume h, h ▸ open_interior, interior_eq_of_open⟩
 
-lemma subset_interior_iff_subset_of_open {s t : set α} (h₁ : open' s) :
+theorem subset_interior_iff_subset_of_open {s t : set α} (h₁ : open' s) :
   s ⊆ interior t ↔ s ⊆ t :=
 ⟨assume h, subset.trans h interior_subset, assume h₂, interior_maximal h₂ h₁⟩
 
-lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
+theorem interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
 interior_maximal (subset.trans interior_subset h) open_interior
 
 @[simp]
-lemma interior_empty : interior (∅ : set α) = ∅ :=
+theorem interior_empty : interior (∅ : set α) = ∅ :=
 interior_eq_of_open open_empty
 
 @[simp]
-lemma interior_univ : interior (univ : set α) = univ :=
+theorem interior_univ : interior (univ : set α) = univ :=
 interior_eq_of_open open_univ
 
 @[simp]
-lemma interior_interior {s : set α} : interior (interior s) = interior s :=
+theorem interior_interior {s : set α} : interior (interior s) = interior s :=
 interior_eq_of_open open_interior
 
 @[simp]
-lemma interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
+theorem interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
 subset.antisymm
   (subset_inter (interior_mono $ inter_subset_left s t) (interior_mono $ inter_subset_right s t))
   (interior_maximal (inter_subset_inter interior_subset interior_subset) $ by simp [open_inter])
 
-lemma interior_union_closed_of_interior_empty {s t : set α} (h₁ : closed s) (h₂ : interior t = ∅) :
+theorem interior_union_closed_of_interior_empty {s t : set α} (h₁ : closed s) (h₂ : interior t = ∅) :
   interior (s ∪ t) = interior s :=
 have interior (s ∪ t) ⊆ s, from
   assume x ⟨u, ⟨(hu₁ : open' u), (hu₂ : u ⊆ s ∪ t)⟩, (hx₁ : x ∈ u)⟩,
@@ -149,50 +149,50 @@ subset.antisymm
 def closure (s : set α) : set α := ⋂₀ {t | closed t ∧ s ⊆ t}
 
 @[simp]
-lemma closed_closure {s : set α} : closed (closure s) :=
+theorem closed_closure {s : set α} : closed (closure s) :=
 closed_sInter $ assume t ⟨h₁, h₂⟩, h₁
 
-lemma subset_closure {s : set α} : s ⊆ closure s :=
+theorem subset_closure {s : set α} : s ⊆ closure s :=
 subset_sInter $ assume t ⟨h₁, h₂⟩, h₂
 
-lemma closure_minimal {s t : set α} (h₁ : s ⊆ t) (h₂ : closed t) : closure s ⊆ t :=
+theorem closure_minimal {s t : set α} (h₁ : s ⊆ t) (h₂ : closed t) : closure s ⊆ t :=
 sInter_subset_of_mem ⟨h₂, h₁⟩
 
-lemma closure_eq_of_closed {s : set α} (h : closed s) : closure s = s :=
+theorem closure_eq_of_closed {s : set α} (h : closed s) : closure s = s :=
 subset.antisymm (closure_minimal (subset.refl s) h) subset_closure
 
-lemma closure_eq_iff_closed {s : set α} : closure s = s ↔ closed s :=
+theorem closure_eq_iff_closed {s : set α} : closure s = s ↔ closed s :=
 ⟨assume h, h ▸ closed_closure, closure_eq_of_closed⟩
 
-lemma closure_subset_iff_subset_of_closed {s t : set α} (h₁ : closed t) :
+theorem closure_subset_iff_subset_of_closed {s t : set α} (h₁ : closed t) :
   closure s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_closure, assume h, closure_minimal h h₁⟩
 
-lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
+theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) closed_closure
 
 @[simp]
-lemma closure_empty : closure (∅ : set α) = ∅ :=
+theorem closure_empty : closure (∅ : set α) = ∅ :=
 closure_eq_of_closed closed_empty
 
 @[simp]
-lemma closure_univ : closure (univ : set α) = univ :=
+theorem closure_univ : closure (univ : set α) = univ :=
 closure_eq_of_closed closed_univ
 
 @[simp]
-lemma closure_closure {s : set α} : closure (closure s) = closure s :=
+theorem closure_closure {s : set α} : closure (closure s) = closure s :=
 closure_eq_of_closed closed_closure
 
 @[simp]
-lemma closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
+theorem closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
 subset.antisymm
   (closure_minimal (union_subset_union subset_closure subset_closure) $ by simp [closed_union])
   (union_subset (closure_mono $ subset_union_left _ _) (closure_mono $ subset_union_right _ _))
 
-lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
+theorem interior_subset_closure {s : set α} : interior s ⊆ closure s :=
 subset.trans interior_subset subset_closure
 
-lemma closure_eq_compl_interior_compl {s : set α} : closure s = - interior (- s) :=
+theorem closure_eq_compl_interior_compl {s : set α} : closure s = - interior (- s) :=
 begin
   simp [interior, closure],
   rw [compl_sUnion, compl_image_set_of],
@@ -200,17 +200,17 @@ begin
 end
 
 @[simp]
-lemma interior_compl_eq {s : set α} : interior (- s) = - closure s :=
+theorem interior_compl_eq {s : set α} : interior (- s) = - closure s :=
 by simp [closure_eq_compl_interior_compl]
 
 @[simp]
-lemma closure_compl_eq {s : set α} : closure (- s) = - interior s :=
+theorem closure_compl_eq {s : set α} : closure (- s) = - interior s :=
 by simp [closure_eq_compl_interior_compl]
 
 /- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ open' s}, principal s)
 
-lemma nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, open' t ∧ a ∈ t} :=
+theorem nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, open' t ∧ a ∈ t} :=
 calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ open' s}, (principal s).sets) : infi_sets_eq'
   begin
     simp,
@@ -223,7 +223,7 @@ calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ open' s}, (principal s).se
       (supr_le $ assume i, supr_le $ assume ⟨hi₁, hi₂⟩ t ht, ⟨i, ht, hi₂, hi₁⟩)
       (assume t ⟨i, hi₁, hi₂, hi₃⟩, begin simp; exact ⟨i, hi₂, hi₁, hi₃⟩ end)
 
-lemma map_nhds {a : α} {f : α → β} :
+theorem map_nhds {a : α} {f : α → β} :
   map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ open' s}, principal (image f s)) :=
 calc map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ open' s}, map f (principal s)) :
     map_binfi_eq
@@ -235,33 +235,33 @@ calc map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ open' s}, map f (prin
     ⟨univ, by simp⟩
   ... = _ : by simp
 
-lemma mem_nhds_sets_iff {a : α} {s : set α} :
+theorem mem_nhds_sets_iff {a : α} {s : set α} :
  s ∈ (nhds a).sets ↔ ∃t⊆s, open' t ∧ a ∈ t :=
 by simp [nhds_sets]
 
-lemma mem_nhds_sets {a : α} {s : set α} (hs : open' s) (ha : a ∈ s) :
+theorem mem_nhds_sets {a : α} {s : set α} (hs : open' s) (ha : a ∈ s) :
  s ∈ (nhds a).sets :=
 by simp [nhds_sets]; exact ⟨s, hs, subset.refl _, ha⟩
 
-lemma return_le_nhds : return ≤ (nhds : α → filter α) :=
+theorem return_le_nhds : return ≤ (nhds : α → filter α) :=
 assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $ by simp [h₁]
 
 @[simp]
-lemma nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
+theorem nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
 assume : nhds a = ⊥,
 have return a = (⊥ : filter α),
   from lattice.bot_unique $ this ▸ return_le_nhds a,
 return_neq_bot this
 
-lemma interior_eq_nhds {s : set α} : interior s = {a | nhds a ≤ principal s} :=
+theorem interior_eq_nhds {s : set α} : interior s = {a | nhds a ≤ principal s} :=
 set.ext $ by simp [interior, nhds_sets]
 
-lemma open_iff_nhds {s : set α} : open' s ↔ (∀a∈s, nhds a ≤ principal s) :=
+theorem open_iff_nhds {s : set α} : open' s ↔ (∀a∈s, nhds a ≤ principal s) :=
 calc open' s ↔ interior s = s : by rw [interior_eq_iff_open]
   ... ↔ s ⊆ interior s : ⟨assume h, by simp [*, subset.refl], subset.antisymm interior_subset⟩
   ... ↔ (∀a∈s, nhds a ≤ principal s) : by rw [interior_eq_nhds]; refl
 
-lemma closure_eq_nhds {s : set α} : closure s = {a | nhds a ⊓ principal s ≠ ⊥} :=
+theorem closure_eq_nhds {s : set α} : closure s = {a | nhds a ⊓ principal s ≠ ⊥} :=
 calc closure s = - interior (- s) : closure_eq_compl_interior_compl
   ... = {a | ¬ nhds a ≤ principal (-s)} : by rw [interior_eq_nhds]; refl
   ... = {a | nhds a ⊓ principal s ≠ ⊥} : set.ext $ assume a, not_congr
@@ -269,7 +269,7 @@ calc closure s = - interior (- s) : closure_eq_compl_interior_compl
       (show principal s ⊔ principal (-s) = ⊤, by simp [principal_univ])
       (by simp)).symm
 
-lemma closed_iff_nhds {s : set α} : closed s ↔ (∀a, nhds a ⊓ principal s ≠ ⊥ → a ∈ s) :=
+theorem closed_iff_nhds {s : set α} : closed s ↔ (∀a, nhds a ⊓ principal s ≠ ⊥ → a ∈ s) :=
 calc closed s ↔ closure s = s : by rw [closure_eq_iff_closed]
   ... ↔ closure s ⊆ s : ⟨assume h, by simp [*, subset.refl], assume h, subset.antisymm h subset_closure⟩
   ... ↔ (∀a, nhds a ⊓ principal s ≠ ⊥ → a ∈ s) : by rw [closure_eq_nhds]; refl
@@ -284,7 +284,7 @@ theorem not_eq_empty_iff_exists {s : set α} : ¬ (s = ∅) ↔ ∃ x, x ∈ s :
 ⟨exists_mem_of_ne_empty,
   assume ⟨x, (hx : x ∈ s)⟩ h_eq, by rw [h_eq] at hx; assumption⟩
 
-lemma closed_Union_of_locally_finite {f : β → set α}
+theorem closed_Union_of_locally_finite {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, closed (f i)) : closed (⋃i, f i) :=
 open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   have ∀i, a ∈ -f i,
@@ -314,7 +314,7 @@ section compact
 
 def compact (s : set α) := ∀{f}, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ nhds a ≠ ⊥
 
-lemma compact_adherence_nhdset {s t : set α} {f : filter α}
+theorem compact_adherence_nhdset {s t : set α} {f : filter α}
   (hs : compact s) (hf₂ : f ≤ principal s) (ht₁ : open' t) (ht₂ : ∀a∈s, nhds a ⊓ f ≠ ⊥ → a ∈ t) :
   t ∈ f.sets :=
 classical.by_cases mem_sets_of_neq_bot $
@@ -330,7 +330,7 @@ classical.by_cases mem_sets_of_neq_bot $
     from this _ ⟨t, mem_nhds_sets ht₁ ‹a ∈ t ›, -t, subset.refl _, subset.refl _⟩ (by simp),
   by contradiction
 
-lemma compact_iff_ultrafilter_le_nhds {s : set α} :
+theorem compact_iff_ultrafilter_le_nhds {s : set α} :
   compact s ↔ (∀f, ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ nhds a) :=
 ⟨assume hs : compact s, assume f hf hfs,
   let ⟨a, ha, h⟩ := hs hf.left hfs in
@@ -344,7 +344,7 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
     by simp [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
   ⟨a, ha, neq_bot_of_le_neq_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
 
-lemma finite_subcover_of_compact {s : set α} {c : set (set α)}
+theorem finite_subcover_of_compact {s : set α} {c : set (set α)}
   (hs : compact s) (hc₁ : ∀t∈c, open' t) (hc₂ : s ⊆ ⋃₀ c) : ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c' :=
 classical.by_contradiction $ assume h,
   have h : ∀{c'}, c' ⊆ c → finite c' → ¬ s ⊆ ⋃₀ c',
@@ -382,7 +382,7 @@ class t1_space (α : Type u) [topological_space α] :=
 class t2_space (α : Type u) [topological_space α] :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, open' u ∧ open' v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
-lemma eq_of_nhds_neq_bot [ht : t2_space α] {x y : α} (h : nhds x ⊓ nhds y ≠ ⊥) : x = y :=
+theorem eq_of_nhds_neq_bot [ht : t2_space α] {x y : α} (h : nhds x ⊓ nhds y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
 let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 _ x y this in
 have h₁ : u ∈ (nhds x ⊓ nhds y).sets,
@@ -413,7 +413,7 @@ def generate_from (g : set (set α)) : topological_space α :=
   open_inter  := generate_open.inter,
   open_sUnion := generate_open.sUnion  }
 
-lemma nhds_generate_from {g : set (set α)} {a : α} :
+theorem nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, principal s) :=
 le_antisymm
   (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
@@ -532,16 +532,16 @@ instance {α : Type u} : complete_lattice (topological_space α) :=
 instance inhabited_topological_space {α : Type u} : inhabited (topological_space α) :=
 ⟨⊤⟩
 
-lemma t2_space_top : @t2_space α ⊤ :=
+theorem t2_space_top : @t2_space α ⊤ :=
 ⟨assume x y hxy, ⟨{x}, {y}, trivial, trivial, mem_insert _ _, mem_insert _ _,
   eq_empty_of_forall_not_mem $ by intros z hz; simp at hz; cc⟩⟩
 
-lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x ≤ @nhds α t₁ x) :
+theorem le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x ≤ @nhds α t₁ x) :
   t₁ ≤ t₂ :=
 assume s, show @open' α t₁ s → @open' α t₂ s,
   begin simp [open_iff_nhds]; exact assume hs a ha, h _ $ hs _ ha end
 
-lemma eq_of_nhds_eq_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x = @nhds α t₁ x) :
+theorem eq_of_nhds_eq_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x = @nhds α t₁ x) :
   t₁ = t₂ :=
 le_antisymm
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ h x)
@@ -574,14 +574,14 @@ instance topological_space_Pi {β : α → Type v} [t₂ : Πa, topological_spac
 section
 open topological_space
 
-lemma generate_from_le {t : topological_space α} { g : set (set α) } (h : ∀s∈g, open' s) :
+theorem generate_from_le {t : topological_space α} { g : set (set α) } (h : ∀s∈g, open' s) :
   generate_from g ≤ t :=
 assume s (hs : generate_open g s), generate_open.rec_on hs h
   open_univ
   (assume s t _ _ hs ht, open_inter hs ht)
   (assume k _ hk, open_sUnion hk)
 
-lemma supr_eq_generate_from {ι : Sort w} { g : ι → topological_space α } :
+theorem supr_eq_generate_from {ι : Sort w} { g : ι → topological_space α } :
   supr g = generate_from (⋃i, {s | (g i).open' s}) :=
 le_antisymm
   (supr_le $ assume i s open_s,
@@ -594,7 +594,7 @@ le_antisymm
         this s open_s
     end)
 
-lemma sup_eq_generate_from { g₁ g₂ : topological_space α } :
+theorem sup_eq_generate_from { g₁ g₂ : topological_space α } :
   g₁ ⊔ g₂ = generate_from {s | g₁.open' s ∨ g₂.open' s} :=
 le_antisymm
   (sup_le (assume s, generate_open.basic _ ∘ or.inl) (assume s, generate_open.basic _ ∘ or.inr))
@@ -603,10 +603,10 @@ le_antisymm
     have h₂ : g₂ ≤ g₁ ⊔ g₂, from le_sup_right,
     or.rec_on hs (h₁ s) (h₂ s))
 
-lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) : @nhds α t₂ a ≤ @nhds α t₁ a :=
+theorem nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) : @nhds α t₂ a ≤ @nhds α t₁ a :=
 infi_le_infi $ assume s, infi_le_infi2 $ assume ⟨ha, hs⟩, ⟨⟨ha, h _ hs⟩, le_refl _⟩
 
-lemma nhds_supr {ι : Sort w} {t : ι → topological_space α} {a : α} :
+theorem nhds_supr {ι : Sort w} {t : ι → topological_space α} {a : α} :
   @nhds α (supr t) a = (⨅i, @nhds α (t i) a) :=
 le_antisymm
   (le_infi $ assume i, nhds_mono $ le_supr _ _)

@@ -136,7 +136,7 @@ dvd_antisymm
 
 /- coprime -/
 
-lemma gcd_eq_one_of_coprime {m n : ℕ} : coprime m n → gcd m n = 1 :=
+theorem gcd_eq_one_of_coprime {m n : ℕ} : coprime m n → gcd m n = 1 :=
 λ h, h
 
 theorem coprime_swap {m n : ℕ} (H : coprime n m) : coprime m n :=

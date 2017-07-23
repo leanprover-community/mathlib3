@@ -15,18 +15,18 @@ variables {α : Type u} {β : Type v}
 /- theorems -/
 
 @[simp]
-lemma cons_ne_nil (a : α) (l : list α) : a::l ≠ [] :=
+theorem cons_ne_nil (a : α) (l : list α) : a::l ≠ [] :=
 begin intro, contradiction end
 
-lemma head_eq_of_cons_eq {α : Type} {h₁ h₂ : α} {t₁ t₂ : list α} :
+theorem head_eq_of_cons_eq {α : Type} {h₁ h₂ : α} {t₁ t₂ : list α} :
       (h₁::t₁) = (h₂::t₂) → h₁ = h₂ :=
 assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pheq)
 
-lemma tail_eq_of_cons_eq {α : Type} {h₁ h₂ : α} {t₁ t₂ : list α} :
+theorem tail_eq_of_cons_eq {α : Type} {h₁ h₂ : α} {t₁ t₂ : list α} :
       (h₁::t₁) = (h₂::t₂) → t₁ = t₂ :=
 assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pteq)
 
-lemma cons_inj {α : Type} {a : α} : injective (cons a) :=
+theorem cons_inj {α : Type} {a : α} : injective (cons a) :=
 assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
 /- append -/
@@ -68,11 +68,11 @@ by induction l₂ with b l₂ ih; simp
 /- last -/
 
 @[simp]
-lemma last_singleton (a : α) (h : [a] ≠ []) : last [a] h = a :=
+theorem last_singleton (a : α) (h : [a] ≠ []) : last [a] h = a :=
 rfl
 
 @[simp]
-lemma last_cons_cons (a₁ a₂ : α) (l : list α) (h : a₁::a₂::l ≠ []) :
+theorem last_cons_cons (a₁ a₂ : α) (l : list α) (h : a₁::a₂::l ≠ []) :
   last (a₁::a₂::l) h = last (a₂::l) (cons_ne_nil a₂ l) :=
 rfl
 
@@ -130,7 +130,7 @@ list.rec_on l
       show index_of a (b::l) = length (b::l),
         begin rw [index_of_cons, if_neg this.left, ih this.right], reflexivity end)
 
-lemma index_of_le_length {a : α} {l : list α} : index_of a l ≤ length l :=
+theorem index_of_le_length {a : α} {l : list α} : index_of a l ≤ length l :=
 list.rec_on l
   (by simp)
   (assume b l, assume ih : index_of a l ≤ length l,
@@ -139,7 +139,7 @@ list.rec_on l
        (assume : a = b, begin simp [this, index_of_cons_of_eq l (eq.refl b)], apply zero_le end)
        (assume : a ≠ b, begin rw [index_of_cons_of_ne l this], apply succ_le_succ ih end))
 
-lemma not_mem_of_index_of_eq_length : ∀ {a : α} {l : list α}, index_of a l = length l → a ∉ l
+theorem not_mem_of_index_of_eq_length : ∀ {a : α} {l : list α}, index_of a l = length l → a ∉ l
 | a []        := by simp
 | a (b::l)    :=
   begin
@@ -151,7 +151,7 @@ lemma not_mem_of_index_of_eq_length : ∀ {a : α} {l : list α}, index_of a l =
     exact not_mem_of_index_of_eq_length (nat.succ_inj h)
   end
 
-lemma index_of_lt_length {a} {l : list α} (al : a ∈ l) : index_of a l < length l :=
+theorem index_of_lt_length {a} {l : list α} (al : a ∈ l) : index_of a l < length l :=
 begin
   apply lt_of_le_of_ne,
   apply index_of_le_length,
@@ -207,11 +207,11 @@ def ith : Π (l : list α) (i : nat), i < length l → α
 | (a::ains) (succ i) h := ith ains i (lt_of_succ_lt_succ h)
 
 @[simp]
-lemma ith_zero (a : α) (l : list α) (h : 0 < length (a::l)) : ith (a::l) 0 h = a :=
+theorem ith_zero (a : α) (l : list α) (h : 0 < length (a::l)) : ith (a::l) 0 h = a :=
 rfl
 
 @[simp]
-lemma ith_succ (a : α) (l : list α) (i : nat) (h : succ i < length (a::l))
+theorem ith_succ (a : α) (l : list α) (i : nat) (h : succ i < length (a::l))
                       : ith (a::l) (succ i) h = ith l i (lt_of_succ_lt_succ h) :=
 rfl
 end ith
@@ -219,22 +219,22 @@ end ith
 section take
 
 @[simp]
-lemma taken_zero : ∀ (l : list α), take 0 l = [] :=
+theorem taken_zero : ∀ (l : list α), take 0 l = [] :=
 begin intros, reflexivity end
 
 @[simp]
-lemma taken_nil : ∀ n, take n [] = ([] : list α)
+theorem taken_nil : ∀ n, take n [] = ([] : list α)
 | 0     := rfl
 | (n+1) := rfl
 
-lemma taken_cons : ∀ n (a : α) (l : list α), take (succ n) (a::l) = a :: take n l :=
+theorem taken_cons : ∀ n (a : α) (l : list α), take (succ n) (a::l) = a :: take n l :=
 begin intros, reflexivity end
 
-lemma taken_all : ∀ (l : list α), take (length l) l = l
+theorem taken_all : ∀ (l : list α), take (length l) l = l
 | []     := rfl
 | (a::l) := begin change a :: (take (length l) l) = a :: l, rw taken_all end
 
-lemma taken_all_of_ge : ∀ {n} {l : list α}, n ≥ length l → take n l = l
+theorem taken_all_of_ge : ∀ {n} {l : list α}, n ≥ length l → take n l = l
 | 0     []     h := rfl
 | 0     (a::l) h := absurd h (not_le_of_gt (zero_lt_succ _))
 | (n+1) []     h := rfl
@@ -246,14 +246,14 @@ lemma taken_all_of_ge : ∀ {n} {l : list α}, n ≥ length l → take n l = l
 
 -- TODO(Jeremy): restore when we have min
 /-
-lemma taken_taken : ∀ (n m) (l : list α), take n (take m l) = take (min n m) l
+theorem taken_taken : ∀ (n m) (l : list α), take n (take m l) = take (min n m) l
 | n         0        l      := sorry -- by rewrite [min_zero, taken_zero, taken_nil]
 | 0         m        l      := sorry -- by rewrite [zero_min]
 | (succ n)  (succ m) nil    := sorry -- by rewrite [*taken_nil]
 | (succ n)  (succ m) (a::l) := sorry -- by rewrite [*taken_cons, taken_taken, min_succ_succ]
 -/
 
-lemma length_taken_le : ∀ (n) (l : list α), length (take n l) ≤ n
+theorem length_taken_le : ∀ (n) (l : list α), length (take n l) ≤ n
 | 0        l      := begin rw [taken_zero], reflexivity end
 | (succ n) (a::l) := begin
                        rw [taken_cons, length_cons], apply succ_le_succ,
@@ -263,7 +263,7 @@ lemma length_taken_le : ∀ (n) (l : list α), length (take n l) ≤ n
 
 -- TODO(Jeremy): restore when we have min
 /-
-lemma length_taken_eq : ∀ (n) (l : list α), length (take n l) = min n (length l)
+theorem length_taken_eq : ∀ (n) (l : list α), length (take n l) = min n (length l)
 | 0        l      := sorry -- by rewrite [taken_zero, zero_min]
 | (succ n) (a::l) := sorry -- by rewrite [taken_cons, *length_cons, *add_one, min_succ_succ,
                                           length_taken_eq]
@@ -297,14 +297,14 @@ def count (a : α) : list α → nat
 | (x::xs) := if a = x then succ (count xs) else count xs
 
 @[simp]
-lemma count_nil (a : α) : count a [] = 0 :=
+theorem count_nil (a : α) : count a [] = 0 :=
 rfl
 
-lemma count_cons (a b : α) (l : list α) :
+theorem count_cons (a b : α) (l : list α) :
   count a (b :: l) = if a = b then succ (count a l) else count a l :=
 rfl
 
-lemma count_cons' (a b : α) (l : list α) :
+theorem count_cons' (a b : α) (l : list α) :
   count a (b :: l) = count a l + (if a = b then 1 else 0) :=
 decidable.by_cases
   (assume : a = b, begin rw [count_cons, if_pos this, if_pos this] end)
@@ -312,14 +312,14 @@ decidable.by_cases
 
 
 @[simp]
-lemma count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) :=
+theorem count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) :=
 if_pos rfl
 
 @[simp]
-lemma count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l :=
+theorem count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l :=
 if_neg h
 
-lemma count_cons_ge_count (a b : α) (l : list α) : count a (b :: l) ≥ count a l :=
+theorem count_cons_ge_count (a b : α) (l : list α) : count a (b :: l) ≥ count a l :=
 decidable.by_cases
   (assume : a = b, begin subst b, rewrite count_cons_self, apply le_succ end)
   (assume : a ≠ b, begin rw (count_cons_of_ne this), apply le_refl end)
@@ -327,11 +327,11 @@ decidable.by_cases
 -- TODO(Jeremy): without the reflexivity, this yields the goal "1 = 1". the first is from has_one,
 -- the second is succ 0. Make sure the simplifier can eventually handle this.
 
-lemma count_singleton (a : α) : count a [a] = 1 :=
+theorem count_singleton (a : α) : count a [a] = 1 :=
 by simp
 
 @[simp]
-lemma count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂
+theorem count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂
 | []      l₂ := begin rw [nil_append, count_nil, zero_add] end
 | (b::l₁) l₂ := decidable.by_cases
   (assume : a = b, by rw [←this, cons_append, count_cons_self, count_cons_self, succ_add,
@@ -339,10 +339,10 @@ lemma count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l�
   (assume : a ≠ b, by rw [cons_append, count_cons_of_ne this, count_cons_of_ne this, count_append])
 
 @[simp]
-lemma count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
+theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by rw [concat_eq_append, count_append, count_singleton]
 
-lemma mem_of_count_pos : ∀ {a : α} {l : list α}, count a l > 0 → a ∈ l
+theorem mem_of_count_pos : ∀ {a : α} {l : list α}, count a l > 0 → a ∈ l
 | a []     h := absurd h (lt_irrefl _)
 | a (b::l) h := decidable.by_cases
   (assume : a = b, begin subst b, apply mem_cons_self end)
@@ -351,7 +351,7 @@ lemma mem_of_count_pos : ∀ {a : α} {l : list α}, count a l > 0 → a ∈ l
    have a ∈ l,    from mem_of_count_pos this,
    show a ∈ b::l, from mem_cons_of_mem _ this)
 
-lemma count_pos_of_mem : ∀ {a : α} {l : list α}, a ∈ l → count a l > 0
+theorem count_pos_of_mem : ∀ {a : α} {l : list α}, a ∈ l → count a l > 0
 | a []     h := absurd h (not_mem_nil _)
 | a (b::l) h := or.elim h
   (assume : a = b, begin subst b, rw count_cons_self, apply zero_lt_succ end)
@@ -359,11 +359,11 @@ lemma count_pos_of_mem : ∀ {a : α} {l : list α}, a ∈ l → count a l > 0
    count a (b::l) ≥ count a l : count_cons_ge_count _ _ _
            ...    > 0         : count_pos_of_mem this)
 
-lemma mem_iff_count_pos (a : α) (l : list α) : a ∈ l ↔ count a l > 0 :=
+theorem mem_iff_count_pos (a : α) (l : list α) : a ∈ l ↔ count a l > 0 :=
 iff.intro count_pos_of_mem mem_of_count_pos
 
 @[simp]
-lemma count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
+theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
 have ∀ n, count a l = n → count a l = 0,
   begin
     intro n, cases n,
@@ -372,7 +372,7 @@ have ∀ n, count a l = n → count a l = 0,
   end,
 this (count a l) rfl
 
-lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
+theorem not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 assume : a ∈ l,
 have count a l > 0, from count_pos_of_mem this,
 show false, begin rw h at this, exact nat.not_lt_zero _ this end

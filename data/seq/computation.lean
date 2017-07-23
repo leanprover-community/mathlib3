@@ -170,7 +170,7 @@ section bisim
   def is_bisimulation := ∀ ⦃s₁ s₂⦄, s₁ ~ s₂ → bisim_o R (destruct s₁) (destruct s₂)
 
   -- If two computations are bisimilar, then they are equal
-  lemma eq_of_bisim (bisim : is_bisimulation R) {s₁ s₂} (r : s₁ ~ s₂) : s₁ = s₂ :=
+  theorem eq_of_bisim (bisim : is_bisimulation R) {s₁ s₂} (r : s₁ ~ s₂) : s₁ = s₂ :=
   begin
     apply subtype.eq,
     apply stream.eq_of_bisim (λx y, ∃ s s' : computation α, s.1 = x ∧ s'.1 = y ∧ R s s'),
@@ -456,12 +456,12 @@ theorem has_bind_eq_bind {β} (c : computation α) (f : α → computation β) :
 
 def join (c : computation (computation α)) : computation α := c >>= id
 
-@[simp] lemma map_ret (f : α → β) (a) : map f (return a) = return (f a) := rfl
+@[simp] theorem map_ret (f : α → β) (a) : map f (return a) = return (f a) := rfl
 
-@[simp] lemma map_think (f : α → β) : ∀ s, map f (think s) = think (map f s)
+@[simp] theorem map_think (f : α → β) : ∀ s, map f (think s) = think (map f s)
 | ⟨s, al⟩ := by apply subtype.eq; dsimp [think, map]; rw stream.map_cons
 
-@[simp] lemma destruct_map (f : α → β) (s) : destruct (map f s) = lmap f (rmap (map f) (destruct s)) :=
+@[simp] theorem destruct_map (f : α → β) (s) : destruct (map f s) = lmap f (rmap (map f) (destruct s)) :=
 by apply s.cases_on; intro; simp
 
 @[simp] theorem map_id : ∀ (s : computation α), map id s = s
@@ -472,7 +472,7 @@ by apply s.cases_on; intro; simp
   simp [e, stream.map_id]
 end
 
-lemma map_comp (f : α → β) (g : β → γ) :
+theorem map_comp (f : α → β) (g : β → γ) :
   ∀ (s : computation α), map (g ∘ f) s = map g (map f s)
 | ⟨s, al⟩ := begin
   apply subtype.eq; dsimp [map],
@@ -481,7 +481,7 @@ lemma map_comp (f : α → β) (g : β → γ) :
   apply funext, intro, cases x with x; refl
 end
 
-@[simp] lemma ret_bind (a) (f : α → computation β) :
+@[simp] theorem ret_bind (a) (f : α → computation β) :
   bind (return a) f = f a :=
 begin
   apply eq_of_bisim (λc1 c2,
@@ -500,7 +500,7 @@ begin
   { simp }
 end
 
-@[simp] lemma think_bind (c) (f : α → computation β) :
+@[simp] theorem think_bind (c) (f : α → computation β) :
   bind (think c) f = think (bind c f) :=
 destruct_eq_think $ by simp [bind, bind.F]
 
@@ -606,10 +606,10 @@ instance : monad computation :=
 
 theorem has_map_eq_map {β} (f : α → β) (c : computation α) : f <$> c = map f c := rfl
 
-@[simp] lemma return_def (a) : (_root_.return a : computation α) = return a := rfl
+@[simp] theorem return_def (a) : (_root_.return a : computation α) = return a := rfl
 
-@[simp] lemma map_ret' {α β} : ∀ (f : α → β) (a), f <$> return a = return (f a) := map_ret
-@[simp] lemma map_think' {α β} : ∀ (f : α → β) s, f <$> think s = think (f <$> s) := map_think
+@[simp] theorem map_ret' {α β} : ∀ (f : α → β) (a), f <$> return a = return (f a) := map_ret
+@[simp] theorem map_think' {α β} : ∀ (f : α → β) s, f <$> think s = think (f <$> s) := map_think
 
 theorem mem_map (f : α → β) {a} {s : computation α} (m : a ∈ s) : f a ∈ map f s :=
 by rw ←bind_ret; apply mem_bind m; apply ret_mem
@@ -884,7 +884,7 @@ by cases a with a ca; cases b with b cb; simp only [lift_rel_aux]
   lift_rel_aux R C (destruct ca) (sum.inl b) ↔ ∃ {a}, a ∈ ca ∧ R a b :=
 by rw [←lift_rel_aux.swap, lift_rel_aux.ret_left]
 
-lemma lift_rel_rec.lem {R : α → β → Prop} (C : computation α → computation β → Prop)
+theorem lift_rel_rec.lem {R : α → β → Prop} (C : computation α → computation β → Prop)
   (H : ∀ {ca cb}, C ca cb → lift_rel_aux R C (destruct ca) (destruct cb))
   (ca cb) (Hc : C ca cb) (a) (ha : a ∈ ca) : lift_rel R ca cb :=
 begin

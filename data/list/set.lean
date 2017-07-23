@@ -71,22 +71,22 @@ section erase
 variable [decidable_eq α]
 
 @[simp]
-lemma erase_nil (a : α) : [].erase a = [] :=
+theorem erase_nil (a : α) : [].erase a = [] :=
 rfl
 
-lemma erase_cons (a b : α) (l : list α) : (b :: l).erase a = if b = a then l else b :: l.erase a :=
+theorem erase_cons (a b : α) (l : list α) : (b :: l).erase a = if b = a then l else b :: l.erase a :=
 rfl
 
 @[simp]
-lemma erase_cons_head (a : α) (l : list α) : (a :: l).erase a = l :=
+theorem erase_cons_head (a : α) (l : list α) : (a :: l).erase a = l :=
 by simp [erase_cons, if_pos]
 
 @[simp]
-lemma erase_cons_tail {a b : α} (l : list α) (h : b ≠ a) : (b::l).erase a = b :: l.erase a :=
+theorem erase_cons_tail {a b : α} (l : list α) (h : b ≠ a) : (b::l).erase a = b :: l.erase a :=
 by simp [erase_cons, if_neg, h]
 
 @[simp]
-lemma length_erase_of_mem {a : α} : ∀{l:list α}, a ∈ l → length (l.erase a) = pred (length l)
+theorem length_erase_of_mem {a : α} : ∀{l:list α}, a ∈ l → length (l.erase a) = pred (length l)
 | []         h := rfl
 | [x]        h := begin simp at h, simp [h] end
 | (x::y::xs) h := if h' : x = a then
@@ -96,35 +96,35 @@ lemma length_erase_of_mem {a : α} : ∀{l:list α}, a ∈ l → length (l.erase
                     by simp [h', length_erase_of_mem ainyxs, one_add]
 
 @[simp]
-lemma erase_of_not_mem {a : α} : ∀{l : list α}, a ∉ l → l.erase a = l
+theorem erase_of_not_mem {a : α} : ∀{l : list α}, a ∉ l → l.erase a = l
 | []      h  := rfl
 | (x::xs) h  :=
   have anex   : x ≠ a,  from λ aeqx  : x = a,  absurd (or.inl aeqx.symm) h,
   have aninxs : a ∉ xs, from λ ainxs : a ∈ xs, absurd (or.inr ainxs) h,
   by simp [anex, erase_of_not_mem aninxs]
 
-lemma erase_append_left {a : α} : ∀ {l₁:list α} (l₂), a ∈ l₁ → (l₁++l₂).erase a = l₁.erase a ++ l₂
+theorem erase_append_left {a : α} : ∀ {l₁:list α} (l₂), a ∈ l₁ → (l₁++l₂).erase a = l₁.erase a ++ l₂
 | []      l₂  h := absurd h (not_mem_nil a)
 | (x::xs) l₂  h := if h' : x = a then by simp [h']
                    else
                      have a ∈ xs, from mem_of_ne_of_mem (assume h, h' h.symm) h,
                      by simp [erase_append_left l₂ this, h']
 
-lemma erase_append_right {a : α} : ∀{l₁ : list α} (l₂), a ∉ l₁ → (l₁++l₂).erase a = l₁ ++ l₂.erase a
+theorem erase_append_right {a : α} : ∀{l₁ : list α} (l₂), a ∉ l₁ → (l₁++l₂).erase a = l₁ ++ l₂.erase a
 | []      l₂ h := rfl
 | (x::xs) l₂ h := if h' : x = a then begin simp [h'] at h, contradiction end
                   else
                     have a ∉ xs, from not_mem_of_not_mem_cons h,
                     by simp [erase_append_right l₂ this, h']
 
-lemma erase_sublist (a : α) : ∀(l : list α), l.erase a <+ l
+theorem erase_sublist (a : α) : ∀(l : list α), l.erase a <+ l
 | []        := sublist.refl nil
 | (x :: xs) := if h : x = a then
                  by simp [h]
                else
                  begin simp [h], apply cons_sublist_cons, apply erase_sublist xs end
 
-lemma erase_subset (a : α) (l : list α) : l.erase a ⊆ l :=
+theorem erase_subset (a : α) (l : list α) : l.erase a ⊆ l :=
 subset_of_sublist (erase_sublist a l)
 
 theorem mem_erase_of_ne_of_mem {a b : α} : ∀ {l : list α}, a ≠ b → a ∈ l → a ∈ l.erase b
@@ -155,54 +155,54 @@ section disjoint
 
 def disjoint (l₁ l₂ : list α) : Prop := ∀ ⦃a⦄, (a ∈ l₁ → a ∈ l₂ → false)
 
-lemma disjoint_left {l₁ l₂ : list α} : disjoint l₁ l₂ → ∀ {a}, a ∈ l₁ → a ∉ l₂ :=
+theorem disjoint_left {l₁ l₂ : list α} : disjoint l₁ l₂ → ∀ {a}, a ∈ l₁ → a ∉ l₂ :=
 λ d, d
 
-lemma disjoint_right {l₁ l₂ : list α} : disjoint l₁ l₂ → ∀ {a}, a ∈ l₂ → a ∉ l₁ :=
+theorem disjoint_right {l₁ l₂ : list α} : disjoint l₁ l₂ → ∀ {a}, a ∈ l₂ → a ∉ l₁ :=
 λ d a i₂ i₁, d i₁ i₂
 
-lemma disjoint.comm {l₁ l₂ : list α} : disjoint l₁ l₂ → disjoint l₂ l₁ :=
+theorem disjoint.comm {l₁ l₂ : list α} : disjoint l₁ l₂ → disjoint l₂ l₁ :=
 λ d a i₂ i₁, d i₁ i₂
 
-lemma disjoint_of_subset_left {l₁ l₂ l : list α} : l₁ ⊆ l → disjoint l l₂ → disjoint l₁ l₂ :=
+theorem disjoint_of_subset_left {l₁ l₂ l : list α} : l₁ ⊆ l → disjoint l l₂ → disjoint l₁ l₂ :=
 λ ss d x xinl₁, d (ss xinl₁)
 
-lemma disjoint_of_subset_right {l₁ l₂ l : list α} : l₂ ⊆ l → disjoint l₁ l → disjoint l₁ l₂ :=
+theorem disjoint_of_subset_right {l₁ l₂ l : list α} : l₂ ⊆ l → disjoint l₁ l → disjoint l₁ l₂ :=
 λ ss d x xinl xinl₁, d xinl (ss xinl₁)
 
-lemma disjoint_of_disjoint_cons_left {a : α} {l₁ l₂} : disjoint (a::l₁) l₂ → disjoint l₁ l₂ :=
+theorem disjoint_of_disjoint_cons_left {a : α} {l₁ l₂} : disjoint (a::l₁) l₂ → disjoint l₁ l₂ :=
 disjoint_of_subset_left (list.subset_cons _ _)
 
-lemma disjoint_of_disjoint_cons_right {a : α} {l₁ l₂} : disjoint l₁ (a::l₂) → disjoint l₁ l₂ :=
+theorem disjoint_of_disjoint_cons_right {a : α} {l₁ l₂} : disjoint l₁ (a::l₂) → disjoint l₁ l₂ :=
 disjoint_of_subset_right (list.subset_cons _ _)
 
-lemma disjoint_nil_left (l : list α) : disjoint [] l :=
+theorem disjoint_nil_left (l : list α) : disjoint [] l :=
 λ a ab, absurd ab (not_mem_nil a)
 
-lemma disjoint_nil_right (l : list α) : disjoint l [] :=
+theorem disjoint_nil_right (l : list α) : disjoint l [] :=
 disjoint.comm (disjoint_nil_left l)
 
-lemma disjoint_cons_of_not_mem_of_disjoint {a : α} {l₁ l₂ : list α} :
+theorem disjoint_cons_of_not_mem_of_disjoint {a : α} {l₁ l₂ : list α} :
   a ∉ l₂ → disjoint l₁ l₂ → disjoint (a::l₁) l₂ :=
 λ nainl₂ d x (xinal₁ : x ∈ a::l₁),
   or.elim (eq_or_mem_of_mem_cons xinal₁)
     (λ xeqa  : x = a, eq.symm xeqa ▸ nainl₂)
     (λ xinl₁ : x ∈ l₁, disjoint_left d xinl₁)
 
-lemma disjoint_append_of_disjoint_left {l₁ l₂ l : list α} :
+theorem disjoint_append_of_disjoint_left {l₁ l₂ l : list α} :
   disjoint l₁ l → disjoint l₂ l → disjoint (l₁++l₂) l :=
 λ d₁ d₂ x h, or.elim (mem_or_mem_of_mem_append h) (@d₁ x) (@d₂ x)
 
-lemma disjoint_of_disjoint_append_left_left {l₁ l₂ l : list α} : disjoint (l₁++l₂) l → disjoint l₁ l :=
+theorem disjoint_of_disjoint_append_left_left {l₁ l₂ l : list α} : disjoint (l₁++l₂) l → disjoint l₁ l :=
 disjoint_of_subset_left (list.subset_append_left _ _)
 
-lemma disjoint_of_disjoint_append_left_right {l₁ l₂ l : list α} : disjoint (l₁++l₂) l → disjoint l₂ l :=
+theorem disjoint_of_disjoint_append_left_right {l₁ l₂ l : list α} : disjoint (l₁++l₂) l → disjoint l₂ l :=
 disjoint_of_subset_left (list.subset_append_right _ _)
 
-lemma disjoint_of_disjoint_append_right_left {l₁ l₂ l : list α} : disjoint l (l₁++l₂) → disjoint l l₁ :=
+theorem disjoint_of_disjoint_append_right_left {l₁ l₂ l : list α} : disjoint l (l₁++l₂) → disjoint l l₁ :=
 disjoint_of_subset_right (list.subset_append_left _ _)
 
-lemma disjoint_of_disjoint_append_right_right {l₁ l₂ l : list α} : disjoint l (l₁++l₂) → disjoint l l₂ :=
+theorem disjoint_of_disjoint_append_right_right {l₁ l₂ l : list α} : disjoint l (l₁++l₂) → disjoint l l₂ :=
 disjoint_of_subset_right (list.subset_append_right _ _)
 
 end disjoint
@@ -251,7 +251,7 @@ begin
   simp [ieq]
 end
 
-lemma upto_step : ∀ (n : nat), upto (succ n) = (map succ (upto n)) ++ [0]
+theorem upto_step : ∀ (n : nat), upto (succ n) = (map succ (upto n)) ++ [0]
 | 0        := rfl
 | (succ n) := by simp [(upto_step n).symm]
 
@@ -683,7 +683,7 @@ theorem nodup_filter (p : α → Prop) [decidable_pred p] :
     (λ pa  : p a, begin rw [filter_cons_of_pos _ pa], exact (nodup_cons nainf ndf) end)
     (λ npa : ¬ p a, begin rw [filter_cons_of_neg _ npa], exact ndf end)
 
-lemma dmap_nodup_of_dinj {p : α → Prop} [h : decidable_pred p] {f : Π a, p a → β} (pdi : dinj p f) :
+theorem dmap_nodup_of_dinj {p : α → Prop} [h : decidable_pred p] {f : Π a, p a → β} (pdi : dinj p f) :
     ∀ {l : list α}, nodup l → nodup (dmap p f l)
 | []     := assume P, nodup.ndnil
 | (a::l) := assume Pnodup,

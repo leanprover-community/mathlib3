@@ -65,9 +65,9 @@ def append {n m : nat} : vector α n → vector α m → vector α (n + m)
 def map (f : α → β) : vector α n → vector β n
 | ⟨ l, h ⟩  := ⟨ list.map f l, by simp * ⟩
 
-@[simp] lemma map_nil (f : α → β) : map f nil = nil := rfl
+@[simp] theorem map_nil (f : α → β) : map f nil = nil := rfl
 
-lemma map_cons (f : α → β) (a : α) : Π (v : vector α n), map f (a::v) = f a :: map f v
+theorem map_cons (f : α → β) (a : α) : Π (v : vector α n), map f (a::v) = f a :: map f v
 | ⟨l,h⟩ := rfl
 
 def map₂ (f : α → β → φ) : vector α n → vector β n → vector φ n
@@ -106,30 +106,30 @@ section accum
 
 end accum
 
-protected lemma eq {n : ℕ} : ∀ (a1 a2 : vector α n), to_list a1 = to_list a2 → a1 = a2
+protected theorem eq {n : ℕ} : ∀ (a1 a2 : vector α n), to_list a1 = to_list a2 → a1 = a2
 | ⟨x, h1⟩ ⟨._, h2⟩ rfl := rfl
 
 protected theorem eq_nil (v : vector α 0) : v = [] :=
 v.eq [] (list.eq_nil_of_length_eq_zero v.2)
 
-@[simp] lemma to_list_mk (v : list α) (P : list.length v = n) : to_list (subtype.mk v P) = v :=
+@[simp] theorem to_list_mk (v : list α) (P : list.length v = n) : to_list (subtype.mk v P) = v :=
 rfl
 
-@[simp] lemma to_list_nil : to_list [] = @list.nil α :=
+@[simp] theorem to_list_nil : to_list [] = @list.nil α :=
 rfl
 
-@[simp] lemma to_list_length (v : vector α n) : (to_list v).length = n := v.2
+@[simp] theorem to_list_length (v : vector α n) : (to_list v).length = n := v.2
 
-@[simp] lemma to_list_cons (a : α) (v : vector α n) : to_list (a :: v) = a :: to_list v :=
+@[simp] theorem to_list_cons (a : α) (v : vector α n) : to_list (a :: v) = a :: to_list v :=
 begin cases v, reflexivity end
 
-@[simp] lemma to_list_append {n m : nat} (v : vector α n) (w : vector α m) : to_list (append v w) = to_list v ++ to_list w :=
+@[simp] theorem to_list_append {n m : nat} (v : vector α n) (w : vector α m) : to_list (append v w) = to_list v ++ to_list w :=
 begin cases v, cases w, reflexivity end
 
-@[simp] lemma to_list_drop {n m : ℕ} (v : vector α m) : to_list (drop n v) = list.drop n (to_list v) :=
+@[simp] theorem to_list_drop {n m : ℕ} (v : vector α m) : to_list (drop n v) = list.drop n (to_list v) :=
 begin cases v, reflexivity end
 
-@[simp] lemma to_list_take {n m : ℕ} (v : vector α m) : to_list (take n v) = list.take n (to_list v) :=
+@[simp] theorem to_list_take {n m : ℕ} (v : vector α m) : to_list (take n v) = list.take n (to_list v) :=
 begin cases v, reflexivity end
 
 end vector

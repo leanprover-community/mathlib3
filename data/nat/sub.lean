@@ -137,7 +137,7 @@ theorem dist_mul_left (k n m : ℕ) : dist (k * n) (k * m) = k * dist n m :=
 by rw [mul_comm k n, mul_comm k m, dist_mul_right, mul_comm]
 
 -- TODO(Jeremy): do when we have max and minx
---lemma dist_eq_max_sub_min {i j : nat} : dist i j = (max i j) - min i j :=
+--theorem dist_eq_max_sub_min {i j : nat} : dist i j = (max i j) - min i j :=
 --sorry
 /-
 or.elim (lt_or_ge i j)
@@ -147,10 +147,10 @@ or.elim (lt_or_ge i j)
     by rw [max_eq_left this , min_eq_right this, dist_eq_sub_of_ge this])
 -/
 
-lemma dist_succ_succ {i j : nat} : dist (succ i) (succ j) = dist i j :=
+theorem dist_succ_succ {i j : nat} : dist (succ i) (succ j) = dist i j :=
 by simp [dist.def, succ_sub_succ]
 
-lemma dist_pos_of_ne {i j : nat} : i ≠ j → dist i j > 0 :=
+theorem dist_pos_of_ne {i j : nat} : i ≠ j → dist i j > 0 :=
 assume hne, nat.lt_by_cases
   (assume : i < j,
      begin rw [dist_eq_sub_of_le (le_of_lt this)], apply nat.sub_pos_of_lt this end)

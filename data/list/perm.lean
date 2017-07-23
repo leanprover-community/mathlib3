@@ -310,7 +310,7 @@ end count
 
 -- Auxiliary theorem for performing cases-analysis on l₂.
 -- We use it to prove perm_inv_core.
-private theorem discr {P : Prop} {a b : α} {l₁ l₂ l₃ : list α} :
+private lemma discr {P : Prop} {a b : α} {l₁ l₂ l₃ : list α} :
     a::l₁ = l₂++(b::l₃)                    →
     (l₂ = [] → a = b → l₁ = l₃ → P)        →
     (∀ t, l₂ = a::t → l₁ = t++(b::l₃) → P) → P :=
@@ -327,7 +327,7 @@ end
 
 -- Auxiliary theorem for performing cases-analysis on l₂.
 -- We use it to prove perm_inv_core.
-private theorem discr₂ {P : Prop} {a b c : α} {l₁ l₂ l₃ : list α}
+private lemma discr₂ {P : Prop} {a b c : α} {l₁ l₂ l₃ : list α}
     (e : a::b::l₁ = l₂++(c::l₃))
     (H₁ : l₂ = [] → l₃ = b::l₁ → a = c → P)
     (H₂ : l₂ = [a] → b = c → l₁ = l₃ → P)
@@ -348,7 +348,7 @@ open qeq
 
 notation l' `≈`:50 a `|` l:50 := qeq a l l'
 
-lemma perm_of_qeq {a : α} {l₁ l₂ : list α} : l₁≈a|l₂ → l₁~a::l₂ :=
+theorem perm_of_qeq {a : α} {l₁ l₂ : list α} : l₁≈a|l₂ → l₁~a::l₂ :=
 assume q, qeq.rec_on q
   (λ h, perm.refl (a :: h))
   (λ b t₁ t₂ q₁ r₁, calc
@@ -622,7 +622,7 @@ begin
       begin simp [ha₁, ha₂], apply ih, apply perm_app_left, exact h end
 end
 
-lemma perm_insert_insert (x y : α) (l : list α) :
+theorem perm_insert_insert (x y : α) (l : list α) :
   insert x (insert y l) ~ insert y (insert x l) :=
 if yl : y ∈ l then
   if xl : x ∈ l then by simp [xl, yl]

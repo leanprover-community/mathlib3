@@ -21,26 +21,26 @@ section miscellany
 universes u v
 variables {α : Type u} {β : Type v}
 
-lemma eq_iff_le_and_le {α : Type u} [weak_order α] {a b : α} : a = b ↔ (a ≤ b ∧ b ≤ a) :=
+theorem eq_iff_le_and_le {α : Type u} [weak_order α] {a b : α} : a = b ↔ (a ≤ b ∧ b ≤ a) :=
 ⟨assume eq, eq ▸ ⟨le_refl a, le_refl a⟩, assume ⟨ab, ba⟩, le_antisymm ab ba⟩
 
 @[simp]
-lemma prod.mk.inj_iff {α : Type u} {β : Type v} {a₁ a₂ : α} {b₁ b₂ : β} :
+theorem prod.mk.inj_iff {α : Type u} {β : Type v} {a₁ a₂ : α} {b₁ b₂ : β} :
   (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩
 
 @[simp]
-lemma prod.forall {α : Type u} {β : Type v} {p : α × β → Prop} :
+theorem prod.forall {α : Type u} {β : Type v} {p : α × β → Prop} :
   (∀x, p x) ↔ (∀a b, p (a, b)) :=
 ⟨assume h a b, h (a, b), assume h ⟨a, b⟩, h a b⟩
 
 @[simp]
-lemma prod.exists {α : Type u} {β : Type v} {p : α × β → Prop} :
+theorem prod.exists {α : Type u} {β : Type v} {p : α × β → Prop} :
   (∃x, p x) ↔ (∃a b, p (a, b)) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
 @[simp]
-lemma set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} = (∀a, p a → q a) :=
+theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} = (∀a, p a → q a) :=
 rfl
 
 
@@ -145,13 +145,13 @@ iff.intro
 theorem or_iff_or (h1 : a ↔ c) (h2 : b ↔ d) : (a ∨ b) ↔ (c ∨ d) :=
 iff.intro (or.imp (iff.mp h1) (iff.mp h2)) (or.imp (iff.mpr h1) (iff.mpr h2))
 
-lemma or_of_not_implies {a b : Prop} [decidable a] (h : ¬ a → b) : a ∨ b :=
+theorem or_of_not_implies {a b : Prop} [decidable a] (h : ¬ a → b) : a ∨ b :=
 dite _ or.inl (or.inr ∘ h)
 
-lemma or_of_not_implies' {a b : Prop} [decidable b] (h : ¬ b → a) : a ∨ b :=
+theorem or_of_not_implies' {a b : Prop} [decidable b] (h : ¬ b → a) : a ∨ b :=
 dite _ or.inr (or.inl ∘ h)
 
-lemma not_imp_iff_not_imp {a b : Prop} [decidable a] :
+theorem not_imp_iff_not_imp {a b : Prop} [decidable a] :
   (¬ a → ¬ b) ↔ (b → a) :=
 ⟨assume h hb, by_contradiction $ assume na, h na hb, mt⟩
 
@@ -242,7 +242,7 @@ by rewrite [←not_and_iff, not_not_iff]
 
 /- other identities -/
 
-lemma or_imp_iff_and_imp {a b c : Prop} : ((a ∨ b) → c) ↔ ((a → c) ∧ (b → c)) :=
+theorem or_imp_iff_and_imp {a b c : Prop} : ((a ∨ b) → c) ↔ ((a → c) ∧ (b → c)) :=
 ⟨assume h, ⟨assume ha, h (or.inl ha), assume hb, h (or.inr hb)⟩,
   assume ⟨ha, hb⟩, or.rec ha hb⟩
 
@@ -321,7 +321,7 @@ iff.intro
   (∃x, q ∧ p x) ↔ q ∧ (∃x, p x) :=
 ⟨assume ⟨x, hq, hp⟩, ⟨hq, x, hp⟩, assume ⟨hq, x, hp⟩, ⟨x, hq, hp⟩⟩
 
-lemma forall_eq {α : Type u} {p : α → Prop} {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
+theorem forall_eq {α : Type u} {p : α → Prop} {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
 ⟨assume h, h a' rfl, assume h a eq, eq.symm ▸ h⟩
 
 theorem forall_or_distrib_left {q : Prop} {p : α → Prop} [decidable q] :

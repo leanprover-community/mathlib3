@@ -477,13 +477,13 @@ variable [h : decidable_pred p]
 include h
 variable {f : Π a, p a → β}
 
-lemma dmap_nil : dmap p f [] = [] := rfl
-lemma dmap_cons_of_pos {a : α} (P : p a) : ∀ l, dmap p f (a::l) = (f a P) :: dmap p f l :=
+theorem dmap_nil : dmap p f [] = [] := rfl
+theorem dmap_cons_of_pos {a : α} (P : p a) : ∀ l, dmap p f (a::l) = (f a P) :: dmap p f l :=
       λ l, dif_pos P
-lemma dmap_cons_of_neg {a : α} (P : ¬ p a) : ∀ l, dmap p f (a::l) = dmap p f l :=
+theorem dmap_cons_of_neg {a : α} (P : ¬ p a) : ∀ l, dmap p f (a::l) = dmap p f l :=
       λ l, dif_neg P
 
-lemma mem_dmap : ∀ {l : list α} {a} (Pa : p a), a ∈ l → (f a Pa) ∈ dmap p f l
+theorem mem_dmap : ∀ {l : list α} {a} (Pa : p a), a ∈ l → (f a Pa) ∈ dmap p f l
 | []     := assume a Pa Pinnil, absurd Pinnil (not_mem_nil _)
 | (a::l) := assume b Pb Pbin, or.elim (eq_or_mem_of_mem_cons Pbin)
               (assume Pbeqa, begin
@@ -503,7 +503,7 @@ lemma mem_dmap : ∀ {l : list α} {a} (Pa : p a), a ∈ l → (f a Pa) ∈ dmap
                     exact mem_dmap Pb Pbinl
                    end)
 
-lemma exists_of_mem_dmap : ∀ {l : list α} {b : β}, b ∈ dmap p f l → ∃ a P, a ∈ l ∧ b = f a P
+theorem exists_of_mem_dmap : ∀ {l : list α} {b : β}, b ∈ dmap p f l → ∃ a P, a ∈ l ∧ b = f a P
 | []     := assume b, begin rw dmap_nil, intro h, exact absurd h (not_mem_nil _) end
 | (a::l) := assume b,
   if Pa : p a then
@@ -526,7 +526,7 @@ lemma exists_of_mem_dmap : ∀ {l : list α} {b : β}, b ∈ dmap p f l → ∃ 
           (and.right P')))
     end
 
-lemma map_dmap_of_inv_of_pos {g : β → α} (Pinv : ∀ a (Pa : p a), g (f a Pa) = a) :
+theorem map_dmap_of_inv_of_pos {g : β → α} (Pinv : ∀ a (Pa : p a), g (f a Pa) = a) :
                           ∀ {l : list α}, (∀ ⦃a⦄, a ∈ l → p a) → map g (dmap p f l) = l
 | []     := assume Pl, by rw [dmap_nil]; reflexivity
 | (a::l) := assume Pal,
@@ -535,7 +535,7 @@ lemma map_dmap_of_inv_of_pos {g : β → α} (Pinv : ∀ a (Pa : p a), g (f a Pa
               from assume x Pxin, Pal (mem_cons_of_mem a Pxin),
             by rw [dmap_cons_of_pos Pa, map_cons, Pinv, map_dmap_of_inv_of_pos Pl]
 
-lemma mem_of_dinj_of_mem_dmap (Pdi : dinj p f) :
+theorem mem_of_dinj_of_mem_dmap (Pdi : dinj p f) :
       ∀ {l : list α} {a} (Pa : p a), (f a Pa) ∈ dmap p f l → a ∈ l
 | []     := assume a Pa Pinnil, absurd Pinnil (not_mem_nil _)
 | (b::l) := assume a Pa Pmap,
@@ -555,7 +555,7 @@ lemma mem_of_dinj_of_mem_dmap (Pdi : dinj p f) :
                   exact mem_of_dinj_of_mem_dmap Pa Pmap
                 end
 
-lemma not_mem_dmap_of_dinj_of_not_mem (Pdi : dinj p f) {l : list α} {a} (Pa : p a) :
+theorem not_mem_dmap_of_dinj_of_not_mem (Pdi : dinj p f) {l : list α} {a} (Pa : p a) :
   a ∉ l → (f a Pa) ∉ dmap p f l :=
 mt (mem_of_dinj_of_mem_dmap Pdi Pa)
 

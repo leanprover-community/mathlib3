@@ -21,12 +21,12 @@ class complete_distrib_lattice α extends complete_lattice α :=
 section complete_distrib_lattice
 variables [complete_distrib_lattice α] {a : α} {s : set α}
 
-lemma sup_Inf_eq : a ⊔ Inf s = (⨅ b ∈ s, a ⊔ b) :=
+theorem sup_Inf_eq : a ⊔ Inf s = (⨅ b ∈ s, a ⊔ b) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume h, sup_le_sup (le_refl _) (Inf_le h))
   (complete_distrib_lattice.infi_sup_le_sup_Inf _ _)
 
-lemma inf_Sup_eq : a ⊓ Sup s = (⨆ b ∈ s, a ⊓ b) :=
+theorem inf_Sup_eq : a ⊓ Sup s = (⨆ b ∈ s, a ⊓ b) :=
 le_antisymm
   (complete_distrib_lattice.inf_Sup_le_supr_inf _ _)
   (supr_le $ assume i, supr_le $ assume h, inf_le_inf (le_refl _) (le_Sup h))
@@ -45,18 +45,18 @@ class complete_boolean_algebra α extends boolean_algebra α, complete_distrib_l
 section complete_boolean_algebra
 variables [complete_boolean_algebra α] {a b : α} {s : set α} {f : ι → α}
 
-lemma neg_infi : - infi f = (⨆i, - f i) :=
+theorem neg_infi : - infi f = (⨆i, - f i) :=
 le_antisymm
   (neg_le_of_neg_le $ le_infi $ assume i, neg_le_of_neg_le $ le_supr (λi, - f i) i)
   (supr_le $ assume i, neg_le_neg $ infi_le _ _)
 
-lemma neg_supr : - supr f = (⨅i, - f i) :=
+theorem neg_supr : - supr f = (⨅i, - f i) :=
 neg_eq_neg_of_eq (by simp [neg_infi])
 
-lemma neg_Inf : - Inf s = (⨆i∈s, - i) :=
+theorem neg_Inf : - Inf s = (⨆i∈s, - i) :=
 by simp [Inf_eq_infi, neg_infi]
 
-lemma neg_Sup : - Sup s = (⨅i∈s, - i) :=
+theorem neg_Sup : - Sup s = (⨅i∈s, - i) :=
 by simp [Sup_eq_supr, neg_supr]
 
 end complete_boolean_algebra

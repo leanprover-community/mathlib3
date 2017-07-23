@@ -62,7 +62,7 @@ theorem empty_def : (∅ : set α) = {x | false} := rfl
 @[simp] theorem mem_empty_eq (x : α) : x ∈ (∅ : set α) = false :=
 rfl
 
-@[simp] lemma set_of_false : {a : α | false} = ∅ := rfl
+@[simp] theorem set_of_false : {a : α | false} = ∅ := rfl
 
 theorem eq_empty_of_forall_not_mem {s : set α} (h : ∀ x, x ∉ s) : s = ∅ :=
 ext (assume x, iff.intro

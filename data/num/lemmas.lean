@@ -164,7 +164,7 @@ namespace pos_num
   by induction m with m IH m IH; intro n;
      cases n with n n; try {unfold cmp}; try {refl}; rw ←IH; cases cmp m n; refl
 
-  lemma cmp_dec_lemma {m n} : m < n → bit1 m < bit0 n :=
+  theorem cmp_dec_theorem {m n} : m < n → bit1 m < bit0 n :=
   show (m:ℕ) < n → (m + m + 1 + 1 : ℕ) ≤ n + n,
   by intro h; rw [nat.add_right_comm m m 1, add_assoc]; exact add_le_add h h
 
@@ -184,11 +184,11 @@ namespace pos_num
       have := cmp_dec a b, revert this, cases cmp a b; dsimp; intro,
       { exact nat.le_succ_of_le (@add_lt_add nat _ _ _ _ _ this this) },
       { rw this, apply nat.lt_succ_self },
-      { exact cmp_dec_lemma this }
+      { exact cmp_dec_theorem this }
     end
   | (bit1 a) (bit0 b) := begin dsimp [cmp],
       have := cmp_dec a b, revert this, cases cmp a b; dsimp; intro,
-      { exact cmp_dec_lemma this },
+      { exact cmp_dec_theorem this },
       { rw this, apply nat.lt_succ_self },
       { exact nat.le_succ_of_le (@add_lt_add nat _ _ _ _ _ this this) },
     end
@@ -360,7 +360,7 @@ namespace num
     decidable_le               := num.decidable_le,
     decidable_eq               := num.decidable_eq }
 
-  lemma bitwise_to_nat {f : num → num → num} {g : bool → bool → bool}
+  theorem bitwise_to_nat {f : num → num → num} {g : bool → bool → bool}
     (p : pos_num → pos_num → num)
     (gff : g ff ff = ff)
     (f00 : f 0 0 = 0)
@@ -407,23 +407,23 @@ namespace num
         rw [←bit_to_nat, pbb] } }
   end
 
-  @[simp] lemma lor_to_nat   : ∀ m n, (lor    m n : ℕ) = nat.lor    m n :=
+  @[simp] theorem lor_to_nat   : ∀ m n, (lor    m n : ℕ) = nat.lor    m n :=
   by apply bitwise_to_nat (λx y, ↑(pos_num.lor x y)); intros; try {cases a}; try {cases b}; refl
-  @[simp] lemma land_to_nat  : ∀ m n, (land   m n : ℕ) = nat.land   m n :=
+  @[simp] theorem land_to_nat  : ∀ m n, (land   m n : ℕ) = nat.land   m n :=
   by apply bitwise_to_nat pos_num.land; intros; try {cases a}; try {cases b}; refl
-  @[simp] lemma ldiff_to_nat : ∀ m n, (ldiff  m n : ℕ) = nat.ldiff  m n :=
+  @[simp] theorem ldiff_to_nat : ∀ m n, (ldiff  m n : ℕ) = nat.ldiff  m n :=
   by apply bitwise_to_nat pos_num.ldiff; intros; try {cases a}; try {cases b}; refl
-  @[simp] lemma lxor_to_nat  : ∀ m n, (lxor   m n : ℕ) = nat.lxor   m n :=
+  @[simp] theorem lxor_to_nat  : ∀ m n, (lxor   m n : ℕ) = nat.lxor   m n :=
   by apply bitwise_to_nat pos_num.lxor; intros; try {cases a}; try {cases b}; refl
 
-  @[simp] lemma shiftl_to_nat (m n) : (shiftl m n : ℕ) = nat.shiftl m n :=
+  @[simp] theorem shiftl_to_nat (m n) : (shiftl m n : ℕ) = nat.shiftl m n :=
   begin
     cases m; dunfold shiftl, {symmetry, apply nat.zero_shiftl},
     induction n with n IH, {refl},
     simp [pos_num.shiftl, nat.shiftl_succ], rw ←IH, refl
   end
 
-  @[simp] lemma shiftr_to_nat (m n) : (shiftr m n : ℕ) = nat.shiftr m n :=
+  @[simp] theorem shiftr_to_nat (m n) : (shiftr m n : ℕ) = nat.shiftr m n :=
   begin
     cases m with m; dunfold shiftr, {symmetry, apply nat.zero_shiftr},
     revert m; induction n with n IH; intro m, {cases m; refl},
@@ -444,7 +444,7 @@ namespace num
       rw nat.div2_bit }
   end
 
-  @[simp] lemma test_bit_to_nat (m n) : test_bit m n = nat.test_bit m n :=
+  @[simp] theorem test_bit_to_nat (m n) : test_bit m n = nat.test_bit m n :=
   begin
     cases m with m; unfold test_bit nat.test_bit,
     { change (zero : nat) with 0, rw nat.zero_shiftr, refl },

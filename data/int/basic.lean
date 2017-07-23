@@ -27,7 +27,7 @@ begin
  simp [*, sub_nat_nat]
 end
 
-@[simp] lemma neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
+@[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
 
 end int
 

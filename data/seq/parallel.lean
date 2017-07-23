@@ -36,7 +36,7 @@ def parallel.aux1 : list (computation α) × wseq (computation α) →
 def parallel (S : wseq (computation α)) : computation α :=
 corec parallel.aux1 ([], S)
 
-lemma terminates_parallel.aux : ∀ {l : list (computation α)} {S c},
+theorem terminates_parallel.aux : ∀ {l : list (computation α)} {S c},
   c ∈ l → terminates c → terminates (corec parallel.aux1 (l, S)) :=
 begin
   have lem1 : ∀ l S, (∃ (a : α), parallel.aux2 l = sum.inl a) →
@@ -176,7 +176,7 @@ begin
         exact seq.mem_cons_of_mem _ dS' } } }
 end
 
-lemma map_parallel (f : α → β) (S) : map f (parallel S) = parallel (S.map (map f)) :=
+theorem map_parallel (f : α → β) (S) : map f (parallel S) = parallel (S.map (map f)) :=
 begin
   refine eq_of_bisim (λ c1 c2, ∃ l S,
     c1 = map f (corec parallel.aux1 (l, S)) ∧
@@ -233,7 +233,7 @@ theorem mem_parallel {S : wseq (computation α)} {a}
 by have := terminates_of_mem ac; have := terminates_parallel cs;
    exact mem_of_promises _ (parallel_promises H)
 
-lemma parallel_congr_lem {S T : wseq (computation α)} {a}
+theorem parallel_congr_lem {S T : wseq (computation α)} {a}
   (H : S.lift_rel equiv T) : (∀ s ∈ S, s ~> a) ↔ (∀ t ∈ T, t ~> a) :=
 ⟨λ h1 t tT, let ⟨s, sS, se⟩ := wseq.exists_of_lift_rel_right H tT in
   (promises_congr se _).1 (h1 _ sS),

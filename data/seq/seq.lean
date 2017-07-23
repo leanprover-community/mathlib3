@@ -43,17 +43,17 @@ by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 theorem not_mem_nil (a : α) : a ∉ @nil α :=
 λ ⟨n, (h : some a = none)⟩, by injection h
 
-lemma mem_cons (a : α) : ∀ (s : seq α), a ∈ cons a s
+theorem mem_cons (a : α) : ∀ (s : seq α), a ∈ cons a s
 | ⟨f, al⟩ := stream.mem_cons (some a) _
 
-lemma mem_cons_of_mem (y : α) {a : α} : ∀ {s : seq α}, a ∈ s → a ∈ cons y s
+theorem mem_cons_of_mem (y : α) {a : α} : ∀ {s : seq α}, a ∈ s → a ∈ cons y s
 | ⟨f, al⟩ := stream.mem_cons_of_mem (some y)
 
-lemma eq_or_mem_of_mem_cons {a b : α} : ∀ {s : seq α}, a ∈ cons b s → a = b ∨ a ∈ s
+theorem eq_or_mem_of_mem_cons {a b : α} : ∀ {s : seq α}, a ∈ cons b s → a = b ∨ a ∈ s
 | ⟨f, al⟩ h := or_of_or_of_implies_left
   (stream.eq_or_mem_of_mem_cons h) (λh, by injection h)
 
-@[simp] lemma mem_cons_iff {a b : α} {s : seq α} : a ∈ cons b s ↔ a = b ∨ a ∈ s :=
+@[simp] theorem mem_cons_iff {a b : α} {s : seq α} : a ∈ cons b s ↔ a = b ∨ a ∈ s :=
 ⟨eq_or_mem_of_mem_cons, λo, by cases o with e m;
   [{rw e, apply mem_cons}, exact mem_cons_of_mem _ m]⟩
 
@@ -187,7 +187,7 @@ section bisim
   def is_bisimulation := ∀ ⦃s₁ s₂⦄, s₁ ~ s₂ → bisim_o R (destruct s₁) (destruct s₂)
 
   -- If two streams are bisimilar, then they are equal
-  lemma eq_of_bisim (bisim : is_bisimulation R) {s₁ s₂} (r : s₁ ~ s₂) : s₁ = s₂ :=
+  theorem eq_of_bisim (bisim : is_bisimulation R) {s₁ s₂} (r : s₁ ~ s₂) : s₁ = s₂ :=
   begin
     apply subtype.eq,
     apply stream.eq_of_bisim (λx y, ∃ s s' : seq α, s.1 = x ∧ s'.1 = y ∧ R s s'),
@@ -215,13 +215,13 @@ section bisim
   end
 end bisim
 
-lemma coinduction : ∀ {s₁ s₂ : seq α}, head s₁ = head s₂ →
+theorem coinduction : ∀ {s₁ s₂ : seq α}, head s₁ = head s₂ →
   (∀ (β : Type u) (fr : seq α → β),
     fr s₁ = fr s₂ → fr (tail s₁) = fr (tail s₂)) → s₁ = s₂
 | ⟨f₁, a₁⟩ ⟨f₂, a₂⟩ hh ht :=
   subtype.eq (stream.coinduction hh (λ β fr, ht β (λs, fr s.1)))
 
-lemma coinduction2 (s) (f g : seq α → seq β)
+theorem coinduction2 (s) (f g : seq α → seq β)
   (H : ∀ s, bisim_o (λ (s1 s2 : seq β), ∃ (s : seq α), s1 = f s ∧ s2 = g s)
     (destruct (f s)) (destruct (g s)))
   : f s = g s :=
@@ -325,7 +325,7 @@ if h : ∃ n, ¬ (nth s n).is_some
 then sum.inl (to_list s h)
 else sum.inr (to_stream s (λn, decidable.by_contradiction (λ hn, h ⟨n, hn⟩)))
 
-@[simp] lemma nil_append (s : seq α) : append nil s = s :=
+@[simp] theorem nil_append (s : seq α) : append nil s = s :=
 begin
   apply coinduction2, intro s,
   dsimp [append], rw [corec_eq],
@@ -336,14 +336,14 @@ begin
     exact ⟨rfl, s, rfl, rfl⟩ }
 end
 
-@[simp] lemma cons_append (a : α) (s t) : append (cons a s) t = cons a (append s t) :=
+@[simp] theorem cons_append (a : α) (s t) : append (cons a s) t = cons a (append s t) :=
 destruct_eq_cons $ begin
   dsimp [append], rw [corec_eq],
   dsimp [append], rw [destruct_cons],
   dsimp [append], refl
 end
 
-@[simp] lemma append_nil (s : seq α) : append s nil = s :=
+@[simp] theorem append_nil (s : seq α) : append s nil = s :=
 begin
   apply coinduction2 s, intro s,
   apply cases_on s _ _,
@@ -353,7 +353,7 @@ begin
     exact ⟨rfl, s, rfl, rfl⟩ }
 end
 
-@[simp] lemma append_assoc (s t u : seq α) :
+@[simp] theorem append_assoc (s t u : seq α) :
   append (append s t) u = append s (append t u) :=
 begin
   apply eq_of_bisim (λs1 s2, ∃ s t u,
@@ -369,21 +369,21 @@ begin
   { exact ⟨s, t, u, rfl, rfl⟩ }
 end
 
-@[simp] lemma map_nil (f : α → β) : map f nil = nil := rfl
+@[simp] theorem map_nil (f : α → β) : map f nil = nil := rfl
 
-@[simp] lemma map_cons (f : α → β) (a) : ∀ s, map f (cons a s) = cons (f a) (map f s)
+@[simp] theorem map_cons (f : α → β) (a) : ∀ s, map f (cons a s) = cons (f a) (map f s)
 | ⟨s, al⟩ := by apply subtype.eq; dsimp [cons, map]; rw stream.map_cons; refl
 
-@[simp] lemma map_id : ∀ (s : seq α), map id s = s
+@[simp] theorem map_id : ∀ (s : seq α), map id s = s
 | ⟨s, al⟩ := begin
   apply subtype.eq; dsimp [map],
   rw [option.map_id, stream.map_id]; refl
 end
 
-@[simp] lemma map_tail (f : α → β) : ∀ s, map f (tail s) = tail (map f s)
+@[simp] theorem map_tail (f : α → β) : ∀ s, map f (tail s) = tail (map f s)
 | ⟨s, al⟩ := by apply subtype.eq; dsimp [tail, map]; rw stream.map_tail; refl
 
-lemma map_comp (f : α → β) (g : β → γ) : ∀ (s : seq α), map (g ∘ f) s = map g (map f s)
+theorem map_comp (f : α → β) (g : β → γ) : ∀ (s : seq α), map (g ∘ f) s = map g (map f s)
 | ⟨s, al⟩ := begin
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
@@ -403,23 +403,23 @@ begin
   end end
 end
 
-@[simp] lemma map_nth (f : α → β) : ∀ s n, nth (map f s) n = option_map f (nth s n)
+@[simp] theorem map_nth (f : α → β) : ∀ s n, nth (map f s) n = option_map f (nth s n)
 | ⟨s, al⟩ n := rfl
 
 instance : functor seq :=
 { map := @map, id_map := @map_id, map_comp := @map_comp }
 
-@[simp] lemma join_nil : join nil = (nil : seq α) := destruct_eq_nil rfl
+@[simp] theorem join_nil : join nil = (nil : seq α) := destruct_eq_nil rfl
 
-@[simp] lemma join_cons_nil (a : α) (S) :
+@[simp] theorem join_cons_nil (a : α) (S) :
   join (cons (a, nil) S) = cons a (join S) :=
 destruct_eq_cons $ by simp [join]
 
-@[simp] lemma join_cons_cons (a b : α) (s S) :
+@[simp] theorem join_cons_cons (a b : α) (s S) :
   join (cons (a, cons b s) S) = cons a (join (cons (b, s) S)) :=
 destruct_eq_cons $ by simp [join]
 
-@[simp] lemma join_cons (a : α) (s S) :
+@[simp] theorem join_cons (a : α) (s S) :
   join (cons (a, s) S) = cons a (append s (join S)) :=
 begin
   apply eq_of_bisim (λs1 s2, s1 = s2 ∨
@@ -439,7 +439,7 @@ begin
   end
 end
 
-@[simp] lemma join_append (S T : seq (seq1 α)) :
+@[simp] theorem join_append (S T : seq (seq1 α)) :
   join (append S T) = append (join S) (join T) :=
 begin
   apply eq_of_bisim (λs1 s2, ∃ s S T,
@@ -505,7 +505,7 @@ end
 theorem mem_map (f : α → β) {a : α} : ∀ {s : seq α}, a ∈ s → f a ∈ map f s
 | ⟨g, al⟩ := stream.mem_map (option_map f)
 
-lemma exists_of_mem_map {f} {b : β} : ∀ {s : seq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
+theorem exists_of_mem_map {f} {b : β} : ∀ {s : seq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := stream.exists_of_mem_map h in
   by cases o; injection oe; exact ⟨a, om, h⟩
 
@@ -550,9 +550,9 @@ def join : seq1 (seq1 α) → seq1 α
   | some s' := (a, seq.join (cons s' S))
   end
 
-@[simp] lemma join_nil (a : α) (S) : join ((a, nil), S) = (a, seq.join S) := rfl
+@[simp] theorem join_nil (a : α) (S) : join ((a, nil), S) = (a, seq.join S) := rfl
 
-@[simp] lemma join_cons (a b : α) (s S) :
+@[simp] theorem join_cons (a b : α) (s S) :
   join ((a, cons b s), S) = (a, seq.join (cons (b, s) S)) :=
 by dsimp [join]; rw [destruct_cons]; refl
 

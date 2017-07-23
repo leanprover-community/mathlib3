@@ -60,12 +60,12 @@ instance bounded_lattice_Prop : bounded_lattice Prop :=
 section logic
 variable [weak_order α]
 
-lemma monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
+theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λx, p x ∧ q x) :=
 assume a b h, and.imp (m_p h) (m_q h)
 -- Note: by finish [monotone] doesn't work
 
-lemma monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
+theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λx, p x ∨ q x) :=
 assume a b h, or.imp (m_p h) (m_q h)
 end logic

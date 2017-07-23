@@ -20,13 +20,13 @@ if h₁ : a = b then h_eq h₁ else
 
 variables {a b : α} {h_eq : a = b → β} {h_lt : a < b → β} {h_gt : a > b → β}
 
-lemma linear_order_cases_on_eq (h : a = b) : linear_order_cases_on a b h_eq h_lt h_gt = h_eq h :=
+theorem linear_order_cases_on_eq (h : a = b) : linear_order_cases_on a b h_eq h_lt h_gt = h_eq h :=
 dif_pos h
 
-lemma linear_order_cases_on_lt (h : a < b) : linear_order_cases_on a b h_eq h_lt h_gt = h_lt h :=
+theorem linear_order_cases_on_lt (h : a < b) : linear_order_cases_on a b h_eq h_lt h_gt = h_lt h :=
 eq.trans (dif_neg $ ne_of_lt h) $ dif_pos h
 
-lemma linear_order_cases_on_gt (h : a > b) : linear_order_cases_on a b h_eq h_lt h_gt = h_gt h :=
+theorem linear_order_cases_on_gt (h : a > b) : linear_order_cases_on a b h_eq h_lt h_gt = h_gt h :=
 eq.trans (dif_neg $ (ne_of_lt h).symm) (dif_neg $ not_lt_of_ge $ le_of_lt h)
 
 end linear_order_cases_on
@@ -37,14 +37,14 @@ section ordered_ring
 universes u
 variables {α : Type u} [linear_ordered_ring α] {a b : α}
 
-lemma mul_nonneg_iff_right_nonneg_of_pos (h : 0 < a) : 0 ≤ b * a ↔ 0 ≤ b :=
+theorem mul_nonneg_iff_right_nonneg_of_pos (h : 0 < a) : 0 ≤ b * a ↔ 0 ≤ b :=
 ⟨assume : 0 ≤ b * a, nonneg_of_mul_nonneg_right this h, assume : 0 ≤ b, mul_nonneg this $ le_of_lt h⟩
 
 end ordered_ring
 
 /- auxiliary -/
 
-lemma not_antimono {a b : Prop} (nb : ¬ b) (h : (a → b)) : ¬ a :=
+theorem not_antimono {a b : Prop} (nb : ¬ b) (h : (a → b)) : ¬ a :=
 assume ha, nb (h ha)
 
 /- rational numbers -/
@@ -178,47 +178,47 @@ instance : has_inv ℚ := ⟨rat.inv⟩
 
 variables (a b c : ℚ)
 
-protected lemma add_zero : a + 0 = a :=
+protected theorem add_zero : a + 0 = a :=
 quotient.induction_on a $ λ⟨n, ⟨d, h⟩⟩, quotient.sound $
   by simp [rat.rel]
 
-protected lemma zero_add : 0 + a = a :=
+protected theorem zero_add : 0 + a = a :=
 quotient.induction_on a $ λ⟨n, ⟨d, h⟩⟩, quotient.sound $
   by simp [rat.rel]
 
-protected lemma add_comm : a + b = b + a :=
+protected theorem add_comm : a + b = b + a :=
 quotient.induction_on₂ a b $ λ⟨n₁, ⟨d₁, h₁⟩⟩ ⟨n₂, ⟨d₂, h₂⟩⟩, quotient.sound $
   by simp [rat.rel]
 
-protected lemma add_assoc : a + b + c = a + (b + c) :=
+protected theorem add_assoc : a + b + c = a + (b + c) :=
 quotient.induction_on₃ a b c $ λ⟨n₁, ⟨d₁, h₁⟩⟩ ⟨n₂, ⟨d₂, h₂⟩⟩ ⟨n₃, ⟨d₃, h₃⟩⟩, quotient.sound $
   by simp [rat.rel, mul_add, add_mul]
 
-protected lemma add_left_neg : -a + a = 0 :=
+protected theorem add_left_neg : -a + a = 0 :=
 quotient.induction_on a $ λ⟨n, ⟨d, h⟩⟩, quotient.sound $
   by simp [rat.rel]
 
-protected lemma mul_one : a * 1 = a :=
+protected theorem mul_one : a * 1 = a :=
 quotient.induction_on a $ λ⟨n, ⟨d, h⟩⟩, quotient.sound $
   by simp [rat.rel]
 
-protected lemma one_mul : 1 * a = a :=
+protected theorem one_mul : 1 * a = a :=
 quotient.induction_on a $ λ⟨n, ⟨d, h⟩⟩, quotient.sound $
   by simp [rat.rel]
 
-protected lemma mul_comm : a * b = b * a :=
+protected theorem mul_comm : a * b = b * a :=
 quotient.induction_on₂ a b $ λ⟨n₁, ⟨d₁, h₁⟩⟩ ⟨n₂, ⟨d₂, h₂⟩⟩, quotient.sound $
   by simp [rat.rel]
 
-protected lemma mul_assoc : a * b * c = a * (b * c) :=
+protected theorem mul_assoc : a * b * c = a * (b * c) :=
 quotient.induction_on₃ a b c $ λ⟨n₁, ⟨d₁, h₁⟩⟩ ⟨n₂, ⟨d₂, h₂⟩⟩ ⟨n₃, ⟨d₃, h₃⟩⟩, quotient.sound $
   by simp [rat.rel]
 
-protected lemma add_mul : (a + b) * c = a * c + b * c :=
+protected theorem add_mul : (a + b) * c = a * c + b * c :=
 quotient.induction_on₃ a b c $ λ⟨n₁, ⟨d₁, h₁⟩⟩ ⟨n₂, ⟨d₂, h₂⟩⟩ ⟨n₃, ⟨d₃, h₃⟩⟩, quotient.sound $
   by simp [rat.rel, mul_add, add_mul]
 
-protected lemma mul_add : a * (b + c) = a * b + a * c :=
+protected theorem mul_add : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ λ⟨n₁, ⟨d₁, h₁⟩⟩ ⟨n₂, ⟨d₂, h₂⟩⟩ ⟨n₃, ⟨d₃, h₃⟩⟩, quotient.sound $
   by simp [rat.rel, mul_add, add_mul]
 
@@ -233,10 +233,10 @@ private lemma eq_zero_of_rat_eq_zero : ∀{a : rat.num_denum}, a.1 = 0 → ⟦a�
 private lemma rat_eq_zero_iff {a : rat.num_denum} : ⟦a⟧ = (0:ℚ) ↔ a.1 = 0 :=
 ⟨rat_eq_zero, eq_zero_of_rat_eq_zero⟩
 
-protected lemma zero_ne_one : 0 ≠ (1:ℚ) :=
+protected theorem zero_ne_one : 0 ≠ (1:ℚ) :=
 assume h, zero_ne_one (rat_eq_zero h.symm).symm
 
-protected lemma mul_inv_cancel : a ≠ 0 → a * a⁻¹ = 1 :=
+protected theorem mul_inv_cancel : a ≠ 0 → a * a⁻¹ = 1 :=
 quotient.induction_on a $ λ⟨n, ⟨d, h⟩⟩ neq0,
 let a : rat.num_denum := ⟨n, ⟨d, h⟩⟩ in
 linear_order_cases_on n 0
@@ -250,7 +250,7 @@ linear_order_cases_on n 0
       from @inv'_pos n d h _,
     begin simp [this], apply quotient.sound, simp [rat.rel] end)
 
-protected lemma inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=
+protected theorem inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=
 eq.trans (rat.mul_comm _ _) (rat.mul_inv_cancel _ h)
 
 instance decidable_eq_rat.rel : Π{a b : rat.num_denum}, decidable (rat.rel a b)
@@ -318,7 +318,7 @@ protected def le (a b : ℚ) := rat.nonneg (b - a)
 
 instance : has_le ℚ := ⟨rat.le⟩
 
-protected lemma le_refl : a ≤ a :=
+protected theorem le_refl : a ≤ a :=
 show rat.nonneg (a - a), begin rw [sub_self], exact le_refl (0 : int) end
 
 instance : linear_strong_order_pair ℚ :=

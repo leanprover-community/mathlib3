@@ -34,10 +34,10 @@ iff.intro
     apply add_pos_right _ npos
   end
 
-lemma succ_le_succ_iff (m n : ℕ) : succ m ≤ succ n ↔ m ≤ n :=
+theorem succ_le_succ_iff (m n : ℕ) : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
 
-lemma lt_succ_iff_le (m n : ℕ) : m < succ n ↔ m ≤ n :=
+theorem lt_succ_iff_le (m n : ℕ) : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff m n
 
 end nat

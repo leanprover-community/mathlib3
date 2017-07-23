@@ -11,7 +11,7 @@ import algebra.lattice.complete_lattice
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-lemma ge_of_eq [weak_order α] {a b : α} : a = b → a ≥ b :=
+theorem ge_of_eq [weak_order α] {a b : α} : a = b → a ≥ b :=
 λ h, h ▸ le_refl a
 
 namespace lattice
@@ -22,18 +22,18 @@ variables [complete_lattice α] {f : α → α}
 def lfp (f : α → α) : α := Inf {a | f a ≤ a}
 def gfp (f : α → α) : α := Sup {a | a ≤ f a}
 
-lemma lfp_le {a : α} (h : f a ≤ a) : lfp f ≤ a :=
+theorem lfp_le {a : α} (h : f a ≤ a) : lfp f ≤ a :=
 Inf_le h
 
-lemma le_lfp {a : α} (h : ∀b, f b ≤ b → a ≤ b) : a ≤ lfp f :=
+theorem le_lfp {a : α} (h : ∀b, f b ≤ b → a ≤ b) : a ≤ lfp f :=
 le_Inf h
 
-lemma lfp_eq (m : monotone f) : lfp f = f (lfp f) :=
+theorem lfp_eq (m : monotone f) : lfp f = f (lfp f) :=
 have f (lfp f) ≤ lfp f,
   from le_lfp $ assume b, assume h : f b ≤ b, le_trans (m (lfp_le h)) h,
 le_antisymm (lfp_le (m this)) this
 
-lemma lfp_induct {p : α → Prop} (m : monotone f)
+theorem lfp_induct {p : α → Prop} (m : monotone f)
   (step : ∀a, p a → a ≤ lfp f → p (f a)) (sup : ∀s, (∀a∈s, p a) → p (Sup s)) :
 p (lfp f) :=
 let s := {a | a ≤ lfp f ∧ p a} in
@@ -46,21 +46,21 @@ have Sup s = lfp f,
     ⟨le_trans (m this) $ ge_of_eq $ lfp_eq m, step _ p_s this⟩,
 this ▸ p_s
 
-lemma monotone_lfp : monotone (@lfp α _) :=
+theorem monotone_lfp : monotone (@lfp α _) :=
 assume f g, assume : f ≤ g, le_lfp $ assume a, assume : g a ≤ a, lfp_le $ le_trans (‹f ≤ g› a) this
 
-lemma le_gfp {a : α} (h : a ≤ f a) : a ≤ gfp f :=
+theorem le_gfp {a : α} (h : a ≤ f a) : a ≤ gfp f :=
 le_Sup h
 
-lemma gfp_le {a : α} (h : ∀b, b ≤ f b → b ≤ a) : gfp f ≤ a :=
+theorem gfp_le {a : α} (h : ∀b, b ≤ f b → b ≤ a) : gfp f ≤ a :=
 Sup_le h
 
-lemma gfp_eq (m : monotone f) : gfp f = f (gfp f) :=
+theorem gfp_eq (m : monotone f) : gfp f = f (gfp f) :=
 have gfp f ≤ f (gfp f),
   from gfp_le $ assume b, assume h : b ≤ f b, le_trans h (m (le_gfp h)),
 le_antisymm this (le_gfp (m this))
 
-lemma gfp_induct {p : α → Prop} (m : monotone f)
+theorem gfp_induct {p : α → Prop} (m : monotone f)
   (step : ∀a, p a → gfp f ≤ a → p (f a)) (inf : ∀s, (∀a∈s, p a) → p (Inf s)) :
 p (gfp f) :=
 let s := {a | gfp f ≤ a ∧ p a} in
@@ -73,7 +73,7 @@ have Inf s = gfp f,
     ⟨le_trans (le_of_eq $ gfp_eq m) (m this), step _ p_s this⟩) this,
 this ▸ p_s
 
-lemma monotone_gfp : monotone (@gfp α _) :=
+theorem monotone_gfp : monotone (@gfp α _) :=
 assume f g, assume : f ≤ g, gfp_le $ assume a, assume : a ≤ f a, le_gfp $ le_trans this (‹f ≤ g› a)
 
 end fixedpoint
@@ -82,20 +82,20 @@ section fixedpoint_eqn
 variables [complete_lattice α] [complete_lattice β] {f : β → α} {g : α → β}
 
 -- Rolling rule
-lemma lfp_comp (m_f : monotone f) (m_g : monotone g) : lfp (f ∘ g) = f (lfp (g ∘ f)) := 
+theorem lfp_comp (m_f : monotone f) (m_g : monotone g) : lfp (f ∘ g) = f (lfp (g ∘ f)) := 
 le_antisymm
   (lfp_le $ m_f $ ge_of_eq $ lfp_eq $ monotone_comp m_f m_g)
   (le_lfp $ assume a fg_le,
     le_trans (m_f $ lfp_le $ show (g ∘ f) (g a) ≤ g a, from m_g fg_le) fg_le)
 
-lemma gfp_comp (m_f : monotone f) (m_g : monotone g) : gfp (f ∘ g) = f (gfp (g ∘ f)) := 
+theorem gfp_comp (m_f : monotone f) (m_g : monotone g) : gfp (f ∘ g) = f (gfp (g ∘ f)) := 
 le_antisymm
   (gfp_le $ assume a fg_le,
     le_trans fg_le $ m_f $ le_gfp $ show g a ≤ (g ∘ f) (g a), from m_g fg_le)
   (le_gfp $ m_f $ le_of_eq $ gfp_eq $ monotone_comp m_f m_g)
 
 -- Diagonal rule
-lemma lfp_lfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
+theorem lfp_lfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
   lfp (lfp ∘ h) = lfp (λx, h x x) := 
 let f := lfp (lfp ∘ h) in
 have f_eq : f = lfp (h f),
@@ -107,7 +107,7 @@ le_antisymm
        ... = h f (lfp (h f)) : lfp_eq $ assume a b h, m (le_refl _) h
        ... = h f f           : congr_arg (h f) f_eq.symm)
 
-lemma gfp_gfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
+theorem gfp_gfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
   gfp (gfp ∘ h) = gfp (λx, h x x) := 
 let f := gfp (gfp ∘ h) in
 have f_eq : f = gfp (h f),

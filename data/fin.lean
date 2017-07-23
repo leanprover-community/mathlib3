@@ -1,10 +1,10 @@
 open fin nat
 
-lemma lt_succ_of_lt {a b : nat} (h : a < b) : a < b + 1 := lt_add_of_lt_of_pos h one_pos
+theorem lt_succ_of_lt {a b : nat} (h : a < b) : a < b + 1 := lt_add_of_lt_of_pos h one_pos
 
 def raise_fin {n : ℕ} (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
 
-lemma eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
+theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,
 or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
 

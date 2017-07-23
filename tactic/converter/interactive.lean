@@ -5,7 +5,7 @@ Authors: Leonardo de Moura
 
 Converter monad for building simplifiers.
 -/
-import tools.converter.old_conv
+import tactic.converter.old_conv
 
 namespace old_conv
 meta def save_info (p : pos) : old_conv unit :=

@@ -23,8 +23,7 @@ The variants ifinish, iclarify, and isafe restrict to intuitionistic logic. They
 well with the current heuristic instantiation method used by ematch, so they should be revisited
 when the API changes.
 -/
-import tools.tactic.tactic logic.basic
-open tactic expr
+import logic.basic
 
 declare_trace auto.done
 declare_trace auto.finish
@@ -41,6 +40,33 @@ theorem iff_def (p q : Prop) : (p ↔ q) ↔ (p → q) ∧ (q → p) :=
 
 theorem {u} bexists_def {α : Type u} (p q : α → Prop) : (∃ x (h : p x), q x) ↔ ∃ x, p x ∧ q x :=
 ⟨λ ⟨x, px, qx⟩, ⟨x, px, qx⟩, λ ⟨x, px, qx⟩, ⟨x, px, qx⟩⟩
+
+namespace tactic
+
+/- call (assert n t) with a fresh name n. -/
+meta def assert_fresh (t : expr) : tactic expr :=
+do n ← get_unused_name `h none,
+   assert n t
+
+/- call (assertv n t v) with a fresh name n. -/
+meta def assertv_fresh (t : expr) (v : expr) : tactic expr :=
+do h ← get_unused_name `h none,
+   assertv h t v
+
+-- returns the number of hypotheses reverted
+meta def revert_all : tactic ℕ :=
+do ctx ← local_context,
+   revert_lst ctx
+
+namespace interactive
+
+meta def revert_all := tactic.revert_all
+
+end interactive
+
+end tactic
+
+open tactic expr
 
 namespace auto
 

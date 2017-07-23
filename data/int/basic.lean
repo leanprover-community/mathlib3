@@ -31,19 +31,6 @@ end
 
 end int
 
--- TODO: where to put these?
-meta def simp_coe_attr : user_attribute :=
-{ name     := `simp.coe,
-  descr    := "rules for pushing coercions inwards"}
-
-run_cmd attribute.register ``simp_coe_attr
-
-meta def simp_coe_out_attr : user_attribute :=
-{ name     := `simp.coe_out,
-  descr    := "rules for pushing coercions outwards"}
-
-run_cmd attribute.register ``simp_coe_out_attr
-
 instance : inhabited ℤ := ⟨0⟩
 meta instance : has_to_format ℤ := ⟨λ z, int.rec_on z (λ k, ↑k) (λ k, "-("++↑k++"+1)")⟩
 

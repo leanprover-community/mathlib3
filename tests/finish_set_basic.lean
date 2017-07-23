@@ -5,7 +5,7 @@ Author: Jeremy Avigad
 
 Test examples for "finish".
 -/
-import data.set.basic logic.basic algebra.lattice tools.auto.finish
+import data.set.basic logic.basic algebra.lattice tactic.finish
 
 open function lattice auto
 

@@ -7,7 +7,7 @@ Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl
 -/
 import logic.basic data.set.basic
 import algebra.lattice algebra.lattice.complete_boolean_algebra
-import tools.auto.finish
+import tactic.finish
 
 open function tactic set lattice auto
 

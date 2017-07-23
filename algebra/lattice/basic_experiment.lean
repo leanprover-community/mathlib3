@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Defines the inf/sup (semi)-lattice with optionally top/bot type class hierarchy.
 -/
 
-import algebra.order tools.auto.finish
+import algebra.order tactic.finish
 open auto
 
 set_option old_structure_cmd true

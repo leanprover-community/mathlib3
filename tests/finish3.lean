@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 Examples from the tutorial.
 -/
-import tools.auto.finish
+import tactic.finish
 open auto
 
 section

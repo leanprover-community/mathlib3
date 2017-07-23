@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Nathaniel Thomas
 
 More examples to test automation, stolen shamelessly by Jeremy from Nathaniel's "tauto".
 -/
-import tools.auto.finish
+import tactic.finish
 open nat
 
 section

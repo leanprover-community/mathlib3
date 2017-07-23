@@ -6,7 +6,7 @@ Authors: Jeremy Avigad
 Examples to test finish. (The designations "clarify," "safe," "iauto," etc. are
 from a previous tableau prover.)
 -/
-import tools.auto.finish
+import tactic.finish
 open auto
 
 section

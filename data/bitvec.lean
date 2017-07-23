@@ -7,7 +7,7 @@ Basic operations on bitvectors.
 
 This is a work-in-progress, and contains additions to other theories.
 -/
-import data.vector
+import data.nat.basic data.vector
 
 @[reducible] def bitvec (n : ℕ) := vector bool n
 
@@ -45,7 +45,7 @@ section shift
       { have h₁ := sub_le n i,
         rw [min_eq_right h], rw [min_eq_left h₁, ← nat.add_sub_assoc h, add_comm, nat.add_sub_cancel] },
       { have h₁ := le_of_not_ge h,
-        rw [min_eq_left h₁, sub_eq_zero_of_le h₁, min_zero_left, add_zero] }
+        rw [min_eq_left h₁, sub_eq_zero_of_le h₁, zero_min, add_zero] }
     end $
     repeat fill (min n i) ++ₜ take (n-i) x
 

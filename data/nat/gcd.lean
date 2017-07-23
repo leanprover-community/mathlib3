@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura
 
 Definitions and properties of gcd, lcm, and coprime.
 -/
+import data.nat.basic
 
 open well_founded decidable prod
 

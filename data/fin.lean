@@ -1,6 +1,6 @@
-open fin nat
+import data.nat.basic
 
-theorem lt_succ_of_lt {a b : nat} (h : a < b) : a < b + 1 := lt_add_of_lt_of_pos h one_pos
+open fin nat
 
 def raise_fin {n : ℕ} (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
 

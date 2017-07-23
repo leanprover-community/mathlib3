@@ -92,7 +92,7 @@ perm.symm (perm_cons_app a l)
 | (a::t) l₂ := calc
     a::(t++l₂) ~ a::(l₂++t)   : skip a perm_app_comm
           ...  ~ l₂++t++[a]   : perm_cons_app _ _
-          ...  = l₂++(t++[a]) : by rw append.assoc
+          ...  = l₂++(t++[a]) : by rw append_assoc
           ...  ~ l₂++(a::t)   : perm_app_right l₂ (perm.symm (perm_cons_app a t))
 
 theorem length_eq_length_of_perm {l₁ l₂ : list α} (p : l₁ ~ l₂) : length l₁ = length l₂ :=
@@ -794,9 +794,9 @@ assume p : l₁ ~ l₂, perm.rec_on p
     let m₁ := map (λ b, (x, b)) t₁ in
     let m₂ := map (λ b, (y, b)) t₁ in
     let c  := product l t₁ in
-    calc m₂ ++ (m₁ ++ c) = (m₂ ++ m₁) ++ c  : by rw append.assoc
+    calc m₂ ++ (m₁ ++ c) = (m₂ ++ m₁) ++ c  : by rw append_assoc
                      ... ~ (m₁ ++ m₂) ++ c  : perm_app perm_app_comm (perm.refl _)
-                     ... =  m₁ ++ (m₂ ++ c) : by rw append.assoc)
+                     ... =  m₁ ++ (m₂ ++ c) : by rw append_assoc)
   (λ l₁ l₂ l₃ p₁ p₂ r₁ r₂, trans r₁ r₂)
 
 theorem perm_product_right (l : list α) {t₁ t₂ : list β} :

@@ -325,7 +325,7 @@ begin
       show vimage (λx:Πi:ι, α i, x i) (s i) ∈ f.sets,
         from f.upwards_sets hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
     let ⟨a, ha⟩ := classical.axiom_of_choice this in
-    ⟨a, assume i, (ha i).left, le_infi $ assume i, le_vmap_iff_map_le.mpr $ (ha i).right⟩
+    ⟨a, assume i, (ha i).left, assume i, le_vmap_iff_map_le.mpr $ (ha i).right⟩
 end
 
 end pi

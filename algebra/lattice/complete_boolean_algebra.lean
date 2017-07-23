@@ -36,7 +36,7 @@ end complete_distrib_lattice
 instance [d : complete_distrib_lattice α] : bounded_distrib_lattice α :=
 { d with 
   le_sup_inf := assume x y z,
-    calc (x ⊔ y) ⊓ (x ⊔ z) ≤ (⨅ b ∈ ({z, y} : set α), x ⊔ b) : by rw insert_of_has_insert; simp
+    calc (x ⊔ y) ⊓ (x ⊔ z) ≤ (⨅ b ∈ ({z, y} : set α), x ⊔ b) : by rw insert_of_has_insert; finish
       ... = x ⊔ Inf {z, y} : sup_Inf_eq^.symm
       ... = x ⊔ y ⊓ z : by rw insert_of_has_insert; simp }
 

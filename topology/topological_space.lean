@@ -613,8 +613,12 @@ le_antisymm
   begin
     rw [supr_eq_generate_from, nhds_generate_from],
     simp,
-    exact (le_infi $ assume s, le_infi $ assume ⟨⟨i, hi⟩, hs⟩,
-      infi_le_of_le i $ le_principal_iff.mpr $ @mem_nhds_sets α (t i) _ _ hi hs)
+    intros s k,
+    cases k with k hs,
+    cases k with i hi,
+    apply infi_le_of_le i (_ : _ ≤ principal s),
+    apply subset.refl,
+    exact le_principal_iff.mpr (@mem_nhds_sets α (t i) _ _ hi hs),
   end
 
 end

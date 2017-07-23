@@ -41,7 +41,7 @@ instance bounded_lattice_Prop : bounded_lattice Prop :=
   le_trans     := assume a b c f g, g ∘ f,
   le_antisymm  := assume a b Hab Hba, propext ⟨Hab, Hba⟩,
 
-  sup          := or, 
+  sup          := or,
   le_sup_left  := @or.inl,
   le_sup_right := @or.inr,
   sup_le       := assume a b c, or.rec,
@@ -63,6 +63,7 @@ variable [weak_order α]
 lemma monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λx, p x ∧ q x) :=
 assume a b h, and.imp (m_p h) (m_q h)
+-- Note: by finish [monotone] doesn't work
 
 lemma monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λx, p x ∨ q x) :=
@@ -73,7 +74,7 @@ end logic
 
 /- TODO:
  * build up the lattice hierarchy for `fun`-functor piecewise. semilattic_*, bounded_lattice, lattice ...
- * can this be generalized to the dependent function space? 
+ * can this be generalized to the dependent function space?
 -/
 instance bounded_lattice_fun {α : Type u} {β : Type v} [bounded_lattice β] :
   bounded_lattice (α → β) :=

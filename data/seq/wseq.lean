@@ -692,11 +692,10 @@ end
 
 theorem exists_of_lift_rel_left {R : α → β → Prop} {s t}
   (H : lift_rel R s t) {a} (h : a ∈ s) : ∃ {b}, b ∈ t ∧ R a b :=
-/-let ⟨n, h⟩ := exists_nth_of_mem h,
+let ⟨n, h⟩ := exists_nth_of_mem h,
     ⟨some (._, s'), sd, rfl⟩ := exists_of_mem_map h,
     ⟨some (b, t'), td, ⟨ab, _⟩⟩ := (lift_rel_dropn_destruct H n).left sd in
-⟨b, nth_mem (mem_map ((<$>) prod.fst.{v v}) td), ab⟩-/
-sorry -- TODO(Mario): This proof causes an unknown type-checking error
+⟨b, nth_mem (mem_map ((<$>) prod.fst.{v v}) td), ab⟩
 
 theorem exists_of_lift_rel_right {R : α → β → Prop} {s t}
   (H : lift_rel R s t) {b} (h : b ∈ t) : ∃ {a}, a ∈ s ∧ R a b :=

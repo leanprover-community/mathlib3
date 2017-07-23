@@ -352,7 +352,7 @@ namespace Set
     ⟨λ⟨z, h⟩, ⟨⟦z⟧, h⟩, λ⟨z, h⟩, quotient.induction_on z (λz h, ⟨z, h⟩) h⟩)
 
   @[simp] theorem Union_singleton {x : Set.{u}} : Union (@insert Set.{u} _ _ x ∅) = x :=
-  ext $ λy, by simp; exact ⟨λ⟨z, zx, yz⟩, by simp at zx; simp[zx] at yz; exact yz, λyx, ⟨x, by simp, yx⟩⟩
+  ext $ λy, by simp; exact ⟨λ⟨z, zx, yz⟩, by subst z; exact yz, λyx, ⟨x, by simp, yx⟩⟩
 
   theorem singleton_inj {x y : Set.{u}} (H : @insert Set.{u} Set.{u} _ x ∅ = @insert Set _ _ y ∅) : x = y :=
   let this := congr_arg Union H in by rwa [Union_singleton, Union_singleton] at this

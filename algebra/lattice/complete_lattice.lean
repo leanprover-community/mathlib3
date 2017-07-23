@@ -5,20 +5,12 @@ Authors: Johannes Hölzl
 
 Theory of complete lattices.
 -/
-import algebra.lattice.bounded_lattice
+import algebra.lattice.bounded_lattice data.set.basic
 
 set_option old_structure_cmd true
 
 universes u v w w₂
 variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂}
-
-namespace set
-
-theorem subset_union_left (s t : set α) : s ⊆ s ∪ t := λ x H, or.inl H
-
-theorem subset_union_right (s t : set α) : t ⊆ s ∪ t := λ x H, or.inr H
-
-end set
 
 namespace lattice
 
@@ -43,9 +35,14 @@ section
 open set
 variables [complete_lattice α] {s t : set α} {a b : α}
 
+@[ematch]
 lemma le_Sup : a ∈ s → a ≤ Sup s         := complete_lattice.le_Sup s a
+
 lemma Sup_le : (∀b∈s, b ≤ a) → Sup s ≤ a := complete_lattice.Sup_le s a
+
+@[ematch]
 lemma Inf_le : a ∈ s → Inf s ≤ a         := complete_lattice.Inf_le s a
+
 lemma le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf s a
 
 lemma le_Sup_of_le (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
@@ -60,11 +57,13 @@ Sup_le (assume a, assume ha : a ∈ s, le_Sup $ h ha)
 lemma Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
 le_Inf (assume a, assume ha : a ∈ s, Inf_le $ h ha)
 
+@[simp]
 lemma le_Sup_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 ⟨assume : Sup s ≤ a, assume b, assume : b ∈ s,
   le_trans (le_Sup ‹b ∈ s›) ‹Sup s ≤ a›,
   Sup_le⟩
 
+@[simp]
 lemma Inf_le_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
 ⟨assume : a ≤ Inf s, assume b, assume : b ∈ s,
   le_trans ‹a ≤ Inf s› (Inf_le ‹b ∈ s›),
@@ -72,35 +71,54 @@ lemma Inf_le_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
 
 -- how to state this? instead a parameter `a`, use `∃a, a ∈ s` or `s ≠ ∅`?
 lemma Inf_le_Sup (h : a ∈ s) : Inf s ≤ Sup s :=
-Inf_le_of_le h (le_Sup h)
+by have := le_Sup h; finish
+--Inf_le_of_le h (le_Sup h)
 
+-- TODO: it is weird that we have to add union_def
 lemma Sup_union {s t : set α} : Sup (s ∪ t) = Sup s ⊔ Sup t :=
+le_antisymm (by finish) (by finish [union_def])
+
+/- old proof:
 le_antisymm
   (Sup_le $ assume a h, or.rec_on h (le_sup_left_of_le ∘ le_Sup) (le_sup_right_of_le ∘ le_Sup))
   (sup_le (Sup_le_Sup $ subset_union_left _ _) (Sup_le_Sup $ subset_union_right _ _))
+-/
 
 lemma Sup_inter_le {s t : set α} : Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
-Sup_le (assume a ⟨a_s, a_t⟩, le_inf (le_Sup a_s) (le_Sup a_t))
+by finish
+/-
+  Sup_le (assume a ⟨a_s, a_t⟩, le_inf (le_Sup a_s) (le_Sup a_t))
+-/
 
 lemma Inf_union {s t : set α} : Inf (s ∪ t) = Inf s ⊓ Inf t :=
+le_antisymm (by finish [union_def]) (by finish)
+
+/- old proof:
 le_antisymm
   (le_inf (Inf_le_Inf $ subset_union_left _ _) (Inf_le_Inf $ subset_union_right _ _))
   (le_Inf $ assume a h, or.rec_on h (inf_le_left_of_le ∘ Inf_le) (inf_le_right_of_le ∘ Inf_le))
+-/
 
 lemma le_Inf_inter {s t : set α} : Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
+by finish
+/-
 le_Inf (assume a ⟨a_s, a_t⟩, sup_le (Inf_le a_s) (Inf_le a_t))
+-/
 
 @[simp]
 lemma Sup_empty : Sup ∅ = (⊥ : α) :=
-le_antisymm (Sup_le (assume _, false.elim)) bot_le
+le_antisymm (by finish) (by finish)
+-- le_antisymm (Sup_le (assume _, false.elim)) bot_le
 
 @[simp]
 lemma Inf_empty : Inf ∅ = (⊤ : α) :=
-le_antisymm le_top (le_Inf (assume _, false.elim))
+le_antisymm (by finish) (by finish)
+--le_antisymm le_top (le_Inf (assume _, false.elim))
 
 @[simp]
 lemma Sup_univ : Sup univ = (⊤ : α) :=
-le_antisymm le_top (le_Sup ⟨⟩)
+le_antisymm (by finish) (le_Sup ⟨⟩) -- finish fails because ⊤ ≤ a simplifies to a = ⊤
+--le_antisymm le_top (le_Sup ⟨⟩)
 
 @[simp]
 lemma Inf_univ : Inf univ = (⊥ : α) :=
@@ -108,25 +126,35 @@ le_antisymm (Inf_le ⟨⟩) bot_le
 
 @[simp]
 lemma Sup_insert {a : α} {s : set α} : Sup (insert a s) = a ⊔ Sup s :=
+le_antisymm (by finish) (by finish [insert_def])
+
+/- old proof
 have Sup {b | b = a} = a,
   from le_antisymm (Sup_le $ assume b b_eq, b_eq ▸ le_refl _) (le_Sup rfl),
 calc Sup (insert a s) = Sup {b | b = a} ⊔ Sup s : Sup_union
                   ... = a ⊔ Sup s : by rw [this]
+-/
 
 @[simp]
 lemma Inf_insert {a : α} {s : set α} : Inf (insert a s) = a ⊓ Inf s :=
+le_antisymm (by finish [insert_def]) (by finish)
+
+/- old proof
 have Inf {b | b = a} = a,
   from le_antisymm (Inf_le rfl) (le_Inf $ assume b b_eq, b_eq ▸ le_refl _),
 calc Inf (insert a s) = Inf {b | b = a} ⊓ Inf s : Inf_union
                   ... = a ⊓ Inf s : by rw [this]
+-/
 
 @[simp]
 lemma Sup_singleton {a : α} : Sup {a} = a :=
-eq.trans Sup_insert $ by simp
+by finish [singleton_def]
+--eq.trans Sup_insert $ by simp
 
 @[simp]
 lemma Inf_singleton {a : α} : Inf {a} = a :=
-eq.trans Inf_insert $ by simp
+by finish [singleton_def]
+--eq.trans Inf_insert $ by simp
 
 end
 
@@ -137,8 +165,21 @@ section
 open set
 variables [complete_lattice α] {s t : ι → α} {a b : α}
 
+-- TODO: this declaration gives error when starting smt state
+--@[ematch]
 lemma le_supr (s : ι → α) (i : ι) : s i ≤ supr s :=
 le_Sup ⟨i, rfl⟩
+
+@[ematch]
+lemma le_supr' (s : ι → α) (i : ι) : (: s i ≤ supr s :) :=
+le_Sup ⟨i, rfl⟩
+
+/- TODO: this version would be more powerful, but, alas, the pattern matcher
+   doesn't accept it.
+@[ematch]
+lemma le_supr' (s : ι → α) (i : ι) : (: s i :) ≤ (: supr s :) :=
+le_Sup ⟨i, rfl⟩
+-/
 
 lemma le_supr_of_le (i : ι) (h : a ≤ s i) : a ≤ supr s :=
 le_trans h (le_supr _ i)
@@ -155,9 +196,11 @@ supr_le $ assume j, exists.elim (h j) le_supr_of_le
 lemma supr_le_supr_const (h : ι → ι₂) : (⨆ i:ι, a) ≤ (⨆ j:ι₂, a) :=
 supr_le $ le_supr _ ∘ h
 
+@[simp]
 lemma supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
 ⟨assume : supr s ≤ a, assume i, le_trans (le_supr _ _) this, supr_le⟩
 
+-- TODO: finish doesn't do well here.
 @[congr]
 lemma supr_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq^.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
@@ -167,6 +210,25 @@ le_antisymm
 
 lemma infi_le (s : ι → α) (i : ι) : infi s ≤ s i :=
 Inf_le ⟨i, rfl⟩
+
+@[ematch]
+lemma infi_le' (s : ι → α) (i : ι) : (: infi s ≤ s i :) :=
+Inf_le ⟨i, rfl⟩
+
+example {f : β → α} (b : β) : (⨅ x, f x) ≤ f b :=
+begin [smt]
+  eblast
+end
+
+/- I wanted to see if this would help for infi_comm; it doesn't.
+@[ematch]
+lemma infi_le₂' (s : ι → ι₂ → α) (i : ι) (j : ι₂): (: ⨅ i j, s i j :) ≤ (: s i j :) :=
+begin
+  transitivity,
+  apply (infi_le (λ i, ⨅ j, s i j) i),
+  apply infi_le
+end
+-/
 
 lemma infi_le_of_le (i : ι) (h : s i ≤ a) : infi s ≤ a :=
 le_trans (infi_le _ i) h
@@ -183,6 +245,7 @@ le_infi $ assume j, exists.elim (h j) infi_le_of_le
 lemma infi_le_infi_const (h : ι₂ → ι) : (⨅ i:ι, a) ≤ (⨅ j:ι₂, a) :=
 le_infi $ infi_le _ ∘ h
 
+@[simp]
 lemma le_infi_iff : a ≤ infi s ↔ (∀i, a ≤ s i) :=
 ⟨assume : a ≤ infi s, assume i, le_trans this (infi_le _ _), le_infi⟩
 
@@ -193,17 +256,35 @@ le_antisymm
   (infi_le_infi2 $ assume j, ⟨pq^.mpr j, le_of_eq $ f j⟩)
   (infi_le_infi2 $ assume j, ⟨pq^.mp j, le_of_eq $ (f _)^.symm⟩)
 
+-- TODO: why isn't this a valid simp lemma?
+-- @[simp]
 lemma infi_const {a : α} (b : ι) : (⨅ b:ι, a) = a :=
-le_antisymm (Inf_le ⟨b, rfl⟩) (le_Inf $ assume a' ⟨b', h⟩, h^.symm ▸ le_refl _)
+le_antisymm (Inf_le ⟨b, rfl⟩) (by finish)
+-- le_antisymm (Inf_le ⟨b, rfl⟩) (le_Inf $ assume a' ⟨b', h⟩, h^.symm ▸ le_refl _)
 
 lemma supr_const {a : α} (b : ι) : (⨆ b:ι, a) = a :=
-le_antisymm (Sup_le $ assume a' ⟨b', h⟩, h^.symm ▸ le_refl _) (le_Sup ⟨b, rfl⟩)
+le_antisymm (by finish) (le_Sup ⟨b, rfl⟩)
+--le_antisymm (Sup_le $ assume a' ⟨b', h⟩, h^.symm ▸ le_refl _) (le_Sup ⟨b, rfl⟩)
 
+-- TODO: should this be @[simp]?
 lemma infi_comm {f : ι → ι₂ → α} : (⨅i, ⨅j, f i j) = (⨅j, ⨅i, f i j) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume j, infi_le_of_le j $ infi_le _ i)
   (le_infi $ assume j, le_infi $ assume i, infi_le_of_le i $ infi_le _ j)
 
+/- TODO: this is strange. In the proof below, we get exactly the desired
+   among the equalities, but close does not get it.
+begin
+  apply @le_antisymm,
+    simp, intros,
+    begin [smt]
+      ematch, ematch, ematch, trace_state, have := le_refl (f i_1 i),
+      trace_state, close
+    end
+end
+-/
+
+-- TODO: should this be @[simp]?
 lemma supr_comm {f : ι → ι₂ → α} : (⨆i, ⨆j, f i j) = (⨆j, ⨆i, f i j) :=
 le_antisymm
   (supr_le $ assume i, supr_le $ assume j, le_supr_of_le j $ le_supr _ i)
@@ -233,6 +314,16 @@ le_antisymm
   (supr_le $ assume b', supr_le $ assume eq, match b', eq with ._, rfl := le_refl _ end)
   (le_supr_of_le b $ le_supr _ rfl)
 
+attribute [ematch] le_refl
+
+@[ematch]
+lemma foo {a b : α} (h : a = b) : a ≤ b :=
+by rw h; apply le_refl
+
+@[ematch]
+lemma foo' {a b : α} (h : b = a) : a ≤ b :=
+by rw h; apply le_refl
+
 lemma infi_inf_eq {f g : β → α} : (⨅ x, f x ⊓ g x) = (⨅ x, f x) ⊓ (⨅ x, g x) :=
 le_antisymm
   (le_inf
@@ -241,6 +332,15 @@ le_antisymm
   (le_infi $ assume i, le_inf
     (inf_le_left_of_le $ infi_le _ _)
     (inf_le_right_of_le $ infi_le _ _))
+
+/- TODO: here is another example where more flexible pattern matching
+   might help.
+
+begin
+  apply @le_antisymm,
+  safe, pose h := f a ⊓ g a, begin [smt] ematch, ematch  end
+end
+-/
 
 lemma supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 le_antisymm
@@ -329,7 +429,7 @@ calc Inf (set.image f s) = (⨅a, ⨅h : ∃b, b ∈ s ∧ f b = a, a) : Inf_eq_
                      ... = (⨅a, ⨅b, ⨅h : a = f b, ⨅h : b ∈ s, a) : by simp [infi_and, eq_comm]
                      ... = (⨅b, ⨅a, ⨅h : a = f b, ⨅h : b ∈ s, a) : by rw [infi_comm]
                      ... = (⨅a∈s, f a) : congr_arg infi $ funext $ assume x, by rw [infi_infi_eq_left]
- 
+
 lemma Sup_image {s : set β} {f : β → α} : Sup (set.image f s) = (⨆ a ∈ s, f a) :=
 calc Sup (set.image f s) = (⨆a, ⨆h : ∃b, b ∈ s ∧ f b = a, a) : Sup_eq_supr
                      ... = (⨆a, ⨆b, ⨆h : f b = a ∧ b ∈ s, a) : by simp
@@ -381,12 +481,12 @@ eq.trans supr_union $ congr_arg (λx:α, x ⊔ (⨆x∈s, f x)) supr_supr_eq_lef
 @[simp]
 lemma infi_singleton {f : β → α} {b : β} : (⨅ x ∈ (singleton b : set β), f x) = f b :=
 show (⨅ x ∈ insert b (∅ : set β), f x) = f b,
-  begin simp, rw [infi_const], simp, assumption end /- TODO: what to do with infi_const? -/
+  by simp
 
 @[simp]
 lemma supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
 show (⨆ x ∈ insert b (∅ : set β), f x) = f b,
-  begin simp, rw [supr_const], simp, assumption end /- TODO: what to do with supr_const? -/
+  by simp
 
 /- supr and infi under Type -/
 

@@ -11,7 +11,7 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import data.nat.basic data.int.basic ..tools.auto.finish 
+import data.nat.basic data.int.basic tools.auto.finish 
 
 universe u
 variable {α : Type u}

@@ -5,7 +5,7 @@ Author: Jeremy Avigad
 
 Insertion sort and merge sort.
 -/
-import .perm
+import data.list.perm
 
 -- TODO(Jeremy): move this
 

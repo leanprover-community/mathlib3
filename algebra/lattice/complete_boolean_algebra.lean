@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of complete Boolean algebras.
 -/
-import .complete_lattice .boolean_algebra data.set.basic
+import algebra.lattice.complete_lattice algebra.lattice.boolean_algebra data.set.basic
 
 set_option old_structure_cmd true
 

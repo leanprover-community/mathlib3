@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of complete lattices.
 -/
-import .bounded_lattice
+import algebra.lattice.bounded_lattice
 
 set_option old_structure_cmd true
 

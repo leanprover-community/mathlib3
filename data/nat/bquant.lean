@@ -1,4 +1,4 @@
-import .sub
+import data.nat.sub
 
 open nat
 

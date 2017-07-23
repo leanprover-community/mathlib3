@@ -1,1 +1,1 @@
-import .lattice .finite
+import data.set.lattice data.set.finite

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Finite sets -- assuming a classical logic.
 -/
-import .lattice
+import data.set.lattice
 noncomputable theory
 
 universes u v w

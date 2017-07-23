@@ -6,7 +6,7 @@ Authors: Leonardo de Moura, Jeremy Avigad
 Set-like operations on lists.
 -/
 
-import data.list.basic data.list.comb .basic .comb
+import data.list.basic data.list.comb
 open nat function decidable
 
 universe variables uu vv

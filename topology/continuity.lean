@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Continuous functions.
 -/
-import .topological_space
+import topology.topological_space
 open set filter lattice
 
 universes u v w x

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Type class hierarchy for Boolean algebras.
 -/
-import .bounded_lattice
+import algebra.lattice.bounded_lattice
 
 set_option old_structure_cmd true
 

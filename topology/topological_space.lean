@@ -37,8 +37,7 @@ include t
 /- open -/
 def open' (s : set α) : Prop := topological_space.open' t s
 
-@[simp]
-theorem open_univ : open' (univ : set α) := topological_space.open_univ t
+@[simp] theorem open_univ : open' (univ : set α) := topological_space.open_univ t
 
 theorem open_inter (h₁ : open' s₁) (h₂ : open' s₂) : open' (s₁ ∩ s₂) := topological_space.open_inter t s₁ s₂ h₁ h₂
 
@@ -51,19 +50,16 @@ variables [topological_space α]
 theorem open_Union {f : ι → set α} (h : ∀i, open' (f i)) : open' (⋃i, f i) :=
 open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 
-@[simp]
-theorem open_empty : open' (∅ : set α) :=
+@[simp] theorem open_empty : open' (∅ : set α) :=
 have open' (⋃₀ ∅ : set α), from open_sUnion (assume a, false.elim),
 by simp at this; assumption
 
 /- closed -/
 def closed (s : set α) : Prop := open' (-s)
 
-@[simp]
-theorem closed_empty : closed (∅ : set α) := by simp [closed]
+@[simp] theorem closed_empty : closed (∅ : set α) := by simp [closed]
 
-@[simp]
-theorem closed_univ : closed (univ : set α) := by simp [closed]
+@[simp] theorem closed_univ : closed (univ : set α) := by simp [closed]
 
 theorem closed_union : closed s₁ → closed s₂ → closed (s₁ ∪ s₂) :=
 by simp [closed]; exact open_inter
@@ -74,12 +70,10 @@ by simp [closed, compl_sInter]; exact assume h, open_Union $ assume t, open_Unio
 theorem closed_Inter {f : ι → set α} (h : ∀i, closed (f i)) : closed (⋂i, f i ) :=
 closed_sInter $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 
-@[simp]
-theorem closed_compl_iff_open {s : set α} : open' (-s) ↔ closed s :=
+@[simp] theorem closed_compl_iff_open {s : set α} : open' (-s) ↔ closed s :=
 by refl
 
-@[simp]
-theorem open_compl_iff_closed {s : set α} : closed (-s) ↔ open' s :=
+@[simp] theorem open_compl_iff_closed {s : set α} : closed (-s) ↔ open' s :=
 by rw [←closed_compl_iff_open, compl_compl]
 
 theorem open_diff {s t : set α} (h₁ : open' s) (h₂ : closed t) : open' (s - t) :=
@@ -88,8 +82,7 @@ open_inter h₁ $ closed_compl_iff_open.mpr h₂
 /- interior -/
 def interior (s : set α) : set α := ⋃₀ {t | open' t ∧ t ⊆ s}
 
-@[simp]
-theorem open_interior {s : set α} : open' (interior s) :=
+@[simp] theorem open_interior {s : set α} : open' (interior s) :=
 open_sUnion $ assume t ⟨h₁, h₂⟩, h₁
 
 theorem interior_subset {s : set α} : interior s ⊆ s :=
@@ -111,20 +104,16 @@ theorem subset_interior_iff_subset_of_open {s t : set α} (h₁ : open' s) :
 theorem interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
 interior_maximal (subset.trans interior_subset h) open_interior
 
-@[simp]
-theorem interior_empty : interior (∅ : set α) = ∅ :=
+@[simp] theorem interior_empty : interior (∅ : set α) = ∅ :=
 interior_eq_of_open open_empty
 
-@[simp]
-theorem interior_univ : interior (univ : set α) = univ :=
+@[simp] theorem interior_univ : interior (univ : set α) = univ :=
 interior_eq_of_open open_univ
 
-@[simp]
-theorem interior_interior {s : set α} : interior (interior s) = interior s :=
+@[simp] theorem interior_interior {s : set α} : interior (interior s) = interior s :=
 interior_eq_of_open open_interior
 
-@[simp]
-theorem interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
+@[simp] theorem interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
 subset.antisymm
   (subset_inter (interior_mono $ inter_subset_left s t) (interior_mono $ inter_subset_right s t))
   (interior_maximal (inter_subset_inter interior_subset interior_subset) $ by simp [open_inter])
@@ -148,8 +137,7 @@ subset.antisymm
 /- closure -/
 def closure (s : set α) : set α := ⋂₀ {t | closed t ∧ s ⊆ t}
 
-@[simp]
-theorem closed_closure {s : set α} : closed (closure s) :=
+@[simp] theorem closed_closure {s : set α} : closed (closure s) :=
 closed_sInter $ assume t ⟨h₁, h₂⟩, h₁
 
 theorem subset_closure {s : set α} : s ⊆ closure s :=
@@ -171,20 +159,16 @@ theorem closure_subset_iff_subset_of_closed {s t : set α} (h₁ : closed t) :
 theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) closed_closure
 
-@[simp]
-theorem closure_empty : closure (∅ : set α) = ∅ :=
+@[simp] theorem closure_empty : closure (∅ : set α) = ∅ :=
 closure_eq_of_closed closed_empty
 
-@[simp]
-theorem closure_univ : closure (univ : set α) = univ :=
+@[simp] theorem closure_univ : closure (univ : set α) = univ :=
 closure_eq_of_closed closed_univ
 
-@[simp]
-theorem closure_closure {s : set α} : closure (closure s) = closure s :=
+@[simp] theorem closure_closure {s : set α} : closure (closure s) = closure s :=
 closure_eq_of_closed closed_closure
 
-@[simp]
-theorem closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
+@[simp] theorem closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
 subset.antisymm
   (closure_minimal (union_subset_union subset_closure subset_closure) $ by simp [closed_union])
   (union_subset (closure_mono $ subset_union_left _ _) (closure_mono $ subset_union_right _ _))
@@ -199,12 +183,10 @@ begin
   simp [neg_subset_neg_iff_subset]
 end
 
-@[simp]
-theorem interior_compl_eq {s : set α} : interior (- s) = - closure s :=
+@[simp] theorem interior_compl_eq {s : set α} : interior (- s) = - closure s :=
 by simp [closure_eq_compl_interior_compl]
 
-@[simp]
-theorem closure_compl_eq {s : set α} : closure (- s) = - interior s :=
+@[simp] theorem closure_compl_eq {s : set α} : closure (- s) = - interior s :=
 by simp [closure_eq_compl_interior_compl]
 
 /- neighbourhood filter -/
@@ -246,8 +228,7 @@ by simp [nhds_sets]; exact ⟨s, hs, subset.refl _, ha⟩
 theorem return_le_nhds : return ≤ (nhds : α → filter α) :=
 assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $ by simp [h₁]
 
-@[simp]
-theorem nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
+@[simp] theorem nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
 assume : nhds a = ⊥,
 have return a = (⊥ : filter α),
   from lattice.bot_unique $ this ▸ return_le_nhds a,

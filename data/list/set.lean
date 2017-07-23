@@ -17,25 +17,20 @@ namespace list
 section insert
 variable [decidable_eq α]
 
-@[simp]
-theorem insert_nil (a : α) : insert a nil = [a] := rfl
+@[simp] theorem insert_nil (a : α) : insert a nil = [a] := rfl
 
 theorem insert.def (a : α) (l : list α) : insert a l = if a ∈ l then l else concat l a := rfl
 
-@[simp]
-theorem insert_of_mem {a : α} {l : list α} (h : a ∈ l) : insert a l = l :=
+@[simp] theorem insert_of_mem {a : α} {l : list α} (h : a ∈ l) : insert a l = l :=
 by rw [insert.def, if_pos h]
 
-@[simp]
-theorem insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) : insert a l = concat l a :=
+@[simp] theorem insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) : insert a l = concat l a :=
 by rw [insert.def, if_neg h]
 
-@[simp]
-theorem mem_insert_self (a : α) (l : list α) : a ∈ insert a l :=
+@[simp] theorem mem_insert_self (a : α) (l : list α) : a ∈ insert a l :=
 by by_cases a ∈ l with h; simp [h]
 
-@[simp]
-theorem mem_insert_of_mem {a b : α} {l : list α} (h : a ∈ l) : a ∈ insert b l :=
+@[simp] theorem mem_insert_of_mem {a b : α} {l : list α} (h : a ∈ l) : a ∈ insert b l :=
 by by_cases b ∈ l with h'; simp [h, h']
 
 theorem eq_or_mem_of_mem_insert {a b : α} {l : list α} (h : a ∈ insert b l) : a = b ∨ a ∈ l :=
@@ -44,18 +39,15 @@ if h' : b ∈ l then
 else
   begin simp [h'] at h, assumption end
 
-@[simp]
-theorem mem_insert_iff (a b : α) (l : list α) : a ∈ insert b l ↔ a = b ∨ a ∈ l :=
+@[simp] theorem mem_insert_iff (a b : α) (l : list α) : a ∈ insert b l ↔ a = b ∨ a ∈ l :=
 iff.intro eq_or_mem_of_mem_insert
   (λ h, or.elim h (begin intro h', simp [h'] end) mem_insert_of_mem)
 
-@[simp]
-theorem length_insert_of_mem {a : α} [decidable_eq α] {l : list α} (h : a ∈ l) :
+@[simp] theorem length_insert_of_mem {a : α} [decidable_eq α] {l : list α} (h : a ∈ l) :
   length (insert a l) = length l :=
 by simp [h]
 
-@[simp]
-theorem length_insert_of_not_mem {a : α} [decidable_eq α] {l : list α} (h : a ∉ l) :
+@[simp] theorem length_insert_of_not_mem {a : α} [decidable_eq α] {l : list α} (h : a ∉ l) :
   length (insert a l) = length l + 1 :=
 by simp [h]
 
@@ -70,23 +62,19 @@ end insert
 section erase
 variable [decidable_eq α]
 
-@[simp]
-theorem erase_nil (a : α) : [].erase a = [] :=
+@[simp] theorem erase_nil (a : α) : [].erase a = [] :=
 rfl
 
 theorem erase_cons (a b : α) (l : list α) : (b :: l).erase a = if b = a then l else b :: l.erase a :=
 rfl
 
-@[simp]
-theorem erase_cons_head (a : α) (l : list α) : (a :: l).erase a = l :=
+@[simp] theorem erase_cons_head (a : α) (l : list α) : (a :: l).erase a = l :=
 by simp [erase_cons, if_pos]
 
-@[simp]
-theorem erase_cons_tail {a b : α} (l : list α) (h : b ≠ a) : (b::l).erase a = b :: l.erase a :=
+@[simp] theorem erase_cons_tail {a b : α} (l : list α) (h : b ≠ a) : (b::l).erase a = b :: l.erase a :=
 by simp [erase_cons, if_neg, h]
 
-@[simp]
-theorem length_erase_of_mem {a : α} : ∀{l:list α}, a ∈ l → length (l.erase a) = pred (length l)
+@[simp] theorem length_erase_of_mem {a : α} : ∀{l:list α}, a ∈ l → length (l.erase a) = pred (length l)
 | []         h := rfl
 | [x]        h := begin simp at h, simp [h] end
 | (x::y::xs) h := if h' : x = a then
@@ -95,8 +83,7 @@ theorem length_erase_of_mem {a : α} : ∀{l:list α}, a ∈ l → length (l.era
                     have ainyxs : a ∈ y::xs, from or_resolve_right h $ by cc,
                     by simp [h', length_erase_of_mem ainyxs, one_add]
 
-@[simp]
-theorem erase_of_not_mem {a : α} : ∀{l : list α}, a ∉ l → l.erase a = l
+@[simp] theorem erase_of_not_mem {a : α} : ∀{l : list α}, a ∉ l → l.erase a = l
 | []      h  := rfl
 | (x::xs) h  :=
   have anex   : x ≠ a,  from λ aeqx  : x = a,  absurd (or.inl aeqx.symm) h,
@@ -212,14 +199,11 @@ def upto : nat → list nat
 | 0     := []
 | (n+1) := n :: upto n
 
-@[simp]
-theorem upto_nil  : upto 0 = nil := rfl
+@[simp] theorem upto_nil  : upto 0 = nil := rfl
 
-@[simp]
-theorem upto_succ (n : nat) : upto (succ n) = n :: upto n := rfl
+@[simp] theorem upto_succ (n : nat) : upto (succ n) = n :: upto n := rfl
 
-@[simp]
-theorem length_upto : ∀ n, length (upto n) = n
+@[simp] theorem length_upto : ∀ n, length (upto n) = n
 | 0        := rfl
 | (succ n) := begin rw [upto_succ, length_cons, length_upto] end
 
@@ -259,11 +243,9 @@ theorem upto_step : ∀ (n : nat), upto (succ n) = (map succ (upto n)) ++ [0]
 section union
 variable [decidable_eq α]
 
-@[simp]
-theorem union_nil (l : list α) : l ∪ [] = l := rfl
+@[simp] theorem union_nil (l : list α) : l ∪ [] = l := rfl
 
-@[simp]
-theorem union_cons (l₁ l₂ : list α) (a : α) : l₁ ∪ (a :: l₂) = insert a l₁ ∪ l₂ := rfl
+@[simp] theorem union_cons (l₁ l₂ : list α) (a : α) : l₁ ∪ (a :: l₂) = insert a l₁ ∪ l₂ := rfl
 
 theorem mem_or_mem_of_mem_union : ∀ {l₁ l₂ : list α} {a : α}, a ∈ l₁ ∪ l₂ → a ∈ l₁ ∨ a ∈ l₂
 | l₁ []        a h := begin simp at h, simp [h] end
@@ -300,8 +282,7 @@ begin
   apply ih h₀
 end
 
-@[simp]
-theorem mem_union_iff (a : α) (l₁ l₂ : list α) : a ∈ l₁ ∪ l₂ ↔ a ∈ l₁ ∨ a ∈ l₂ :=
+@[simp] theorem mem_union_iff (a : α) (l₁ l₂ : list α) : a ∈ l₁ ∪ l₂ ↔ a ∈ l₁ ∨ a ∈ l₂ :=
 iff.intro mem_or_mem_of_mem_union (λ h, or.elim h (λ h', mem_union_left h' l₂) (mem_union_right l₁))
 
 theorem forall_mem_union {p : α → Prop} {l₁ l₂ : list α} (h₁ : ∀ x ∈ l₁, p x) (h₂ : ∀ x ∈ l₂, p x) :
@@ -328,16 +309,13 @@ end union
 section inter
 variable [decidable_eq α]
 
-@[simp]
-theorem inter_nil (l : list α) : [] ∩ l = [] := rfl
+@[simp] theorem inter_nil (l : list α) : [] ∩ l = [] := rfl
 
-@[simp]
-theorem inter_cons_of_mem {a : α} (l₁ : list α) {l₂ : list α} (h : a ∈ l₂) :
+@[simp] theorem inter_cons_of_mem {a : α} (l₁ : list α) {l₂ : list α} (h : a ∈ l₂) :
   (a::l₁) ∩ l₂ = a :: (l₁ ∩ l₂) :=
 if_pos h
 
-@[simp]
-theorem inter_cons_of_not_mem {a : α} (l₁ : list α) {l₂ : list α} (h : a ∉ l₂) :
+@[simp] theorem inter_cons_of_not_mem {a : α} (l₁ : list α) {l₂ : list α} (h : a ∉ l₂) :
   (a::l₁) ∩ l₂ = l₁ ∩ l₂ :=
 if_neg h
 
@@ -385,8 +363,7 @@ theorem mem_inter_of_mem_of_mem : ∀ {l₁ l₂ : list α} {a : α}, a ∈ l₁
      (λ ainl₁ : a ∈ l₁,
        begin rw [inter_cons_of_not_mem _ nbinl₂], exact (mem_inter_of_mem_of_mem ainl₁ i₂) end))
 
-@[simp]
-theorem mem_inter_iff (a : α) (l₁ l₂ : list α) : a ∈ l₁ ∩ l₂ ↔ a ∈ l₁ ∧ a ∈ l₂ :=
+@[simp] theorem mem_inter_iff (a : α) (l₁ l₂ : list α) : a ∈ l₁ ∩ l₂ ↔ a ∈ l₁ ∧ a ∈ l₂ :=
 iff.intro
   (λ h, and.intro (mem_of_mem_inter_left h) (mem_of_mem_inter_right h))
   (λ h, mem_inter_of_mem_of_mem h.left h.right)
@@ -615,8 +592,7 @@ theorem mem_of_mem_erase_dup [decidable_eq α] {a : α} : ∀ {l : list α}, a �
       (λ aeqb  : a = b, begin rw aeqb, apply mem_cons_self end)
       (λ ainel : a ∈ erase_dup l, or.inr (mem_of_mem_erase_dup ainel)))
 
-@[simp]
-theorem mem_erase_dup_iff [decidable_eq α] (a : α) (l : list α) : a ∈ erase_dup l ↔ a ∈ l :=
+@[simp] theorem mem_erase_dup_iff [decidable_eq α] (a : α) (l : list α) : a ∈ erase_dup l ↔ a ∈ l :=
 iff.intro mem_of_mem_erase_dup mem_erase_dup
 
 theorem erase_dup_subset [decidable_eq α] (l : list α) : erase_dup l ⊆ l :=

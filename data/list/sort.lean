@@ -89,11 +89,9 @@ def ordered_insert (a : α) : list α → list α
 | []       := [a]
 | (b :: l) := if a ≼ b then a :: b :: l else b :: ordered_insert l
 
---@[simp]
---theorem ordered_insert_nil (a : α) : ordered_insert a [] = [a] := rfl
+--@[simp] theorem ordered_insert_nil (a : α) : ordered_insert a [] = [a] := rfl
 
---@[simp]
---theorem ordered_insert_cons (a b : α) (l : list α) :
+--@[simp] theorem ordered_insert_cons (a b : α) (l : list α) :
 --  ordered_insert a (b :: l) = if a ≼ b then a :: (b :: l) else b :: ordered_insert a l :=
 --rfl
 

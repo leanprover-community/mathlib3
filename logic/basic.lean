@@ -24,23 +24,19 @@ variables {α : Type u} {β : Type v}
 theorem eq_iff_le_and_le {α : Type u} [weak_order α] {a b : α} : a = b ↔ (a ≤ b ∧ b ≤ a) :=
 ⟨assume eq, eq ▸ ⟨le_refl a, le_refl a⟩, assume ⟨ab, ba⟩, le_antisymm ab ba⟩
 
-@[simp]
-theorem prod.mk.inj_iff {α : Type u} {β : Type v} {a₁ a₂ : α} {b₁ b₂ : β} :
+@[simp] theorem prod.mk.inj_iff {α : Type u} {β : Type v} {a₁ a₂ : α} {b₁ b₂ : β} :
   (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩
 
-@[simp]
-theorem prod.forall {α : Type u} {β : Type v} {p : α × β → Prop} :
+@[simp] theorem prod.forall {α : Type u} {β : Type v} {p : α × β → Prop} :
   (∀x, p x) ↔ (∀a b, p (a, b)) :=
 ⟨assume h a b, h (a, b), assume h ⟨a, b⟩, h a b⟩
 
-@[simp]
-theorem prod.exists {α : Type u} {β : Type v} {p : α × β → Prop} :
+@[simp] theorem prod.exists {α : Type u} {β : Type v} {p : α × β → Prop} :
   (∃x, p x) ↔ (∃a b, p (a, b)) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
-@[simp]
-theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} = (∀a, p a → q a) :=
+@[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} = (∀a, p a → q a) :=
 rfl
 
 

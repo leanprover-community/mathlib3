@@ -72,12 +72,10 @@ def dist (n m : ℕ) := (n - m) + (m - n)
 
 theorem dist.def (n m : ℕ) : dist n m = (n - m) + (m - n) := rfl
 
-@[simp]
-theorem dist_comm (n m : ℕ) : dist n m = dist m n :=
+@[simp] theorem dist_comm (n m : ℕ) : dist n m = dist m n :=
 by simp [dist.def]
 
-@[simp]
-theorem dist_self (n : ℕ) : dist n n = 0 :=
+@[simp] theorem dist_self (n : ℕ) : dist n n = 0 :=
 by simp [dist.def, nat.sub_self]
 
 theorem eq_of_dist_eq_zero {n m : ℕ} (h : dist n m = 0) : n = m :=

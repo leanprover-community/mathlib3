@@ -17,8 +17,7 @@ assume a, classical.cases_on a h1 h2
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ top_unique $ classical.cases (by simp) (by simp)
 
-@[simp]
-theorem false_neq_true : false ≠ true :=
+@[simp] theorem false_neq_true : false ≠ true :=
 begin intro h, rw [h], trivial end
 
 theorem subtype.val_image {p : α → Prop} {s : set (subtype p)} :
@@ -145,8 +144,7 @@ end constructions
 section sierpinski
 variables [topological_space α]
 
-@[simp]
-theorem open_singleton_true : open' ({true} : set Prop) :=
+@[simp] theorem open_singleton_true : open' ({true} : set Prop) :=
 topological_space.generate_open.basic _ (by simp)
 
 theorem continuous_Prop {p : α → Prop} : continuous p ↔ open' {x | p x} :=

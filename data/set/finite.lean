@@ -26,14 +26,12 @@ inductive finite : set α → Prop
 
 attribute [simp] finite.empty 
 
-@[simp]
-theorem finite_insert {a : α} {s : set α} (h : finite s) : finite (insert a s) :=
+@[simp] theorem finite_insert {a : α} {s : set α} (h : finite s) : finite (insert a s) :=
 classical.by_cases
   (assume : a ∈ s, by simp [*])
   (assume : a ∉ s, finite.insert a s this h)
 
-@[simp]
-theorem finite_singleton {a : α} : finite ({a} : set α) :=
+@[simp] theorem finite_singleton {a : α} : finite ({a} : set α) :=
 finite_insert finite.empty
 
 theorem finite_union {s t : set α} (hs : finite s) (ht : finite t) : finite (s ∪ t) :=

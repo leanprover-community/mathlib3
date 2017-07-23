@@ -51,20 +51,16 @@ class boolean_algebra α extends bounded_distrib_lattice α, has_neg α, has_sub
 section boolean_algebra
 variables [boolean_algebra α]
 
-@[simp]
-theorem inf_neg_eq_bot : x ⊓ - x = ⊥ :=
+@[simp] theorem inf_neg_eq_bot : x ⊓ - x = ⊥ :=
 boolean_algebra.inf_neg_eq_bot x
 
-@[simp]
-theorem neg_inf_eq_bot : - x ⊓ x = ⊥ :=
+@[simp] theorem neg_inf_eq_bot : - x ⊓ x = ⊥ :=
 eq.trans inf_comm inf_neg_eq_bot
 
-@[simp]
-theorem sup_neg_eq_top : x ⊔ - x = ⊤ :=
+@[simp] theorem sup_neg_eq_top : x ⊔ - x = ⊤ :=
 boolean_algebra.sup_neg_eq_top x
 
-@[simp]
-theorem neg_sup_eq_top : - x ⊔ x = ⊤ :=
+@[simp] theorem neg_sup_eq_top : - x ⊔ x = ⊤ :=
 eq.trans sup_comm sup_neg_eq_top
 
 theorem sub_eq : x - y = x ⊓ - y :=
@@ -77,16 +73,13 @@ have - x ⊓ (x ⊔ y) = y ⊓ (x ⊔ - x),
   begin [smt] eblast_using inf_sup_left end,
 by rsimp
 
-@[simp]
-theorem neg_top : - ⊤ = (⊥:α) :=
+@[simp] theorem neg_top : - ⊤ = (⊥:α) :=
 neg_unique (by simp) (by simp)
 
-@[simp]
-theorem neg_bot : - ⊥ = (⊤:α) :=
+@[simp] theorem neg_bot : - ⊥ = (⊤:α) :=
 neg_unique (by simp) (by simp)
 
-@[simp]
-theorem neg_neg : - (- x) = x :=
+@[simp] theorem neg_neg : - (- x) = x :=
 neg_unique (by simp) (by simp)
 
 theorem neg_eq_neg_of_eq (h : - x = - y) : x = y :=
@@ -94,20 +87,17 @@ have - - x = - - y,
   from congr_arg has_neg.neg h,
 by simp [neg_neg] at this; assumption
 
-@[simp]
-theorem neg_eq_neg_iff : - x = - y ↔ x = y :=
+@[simp] theorem neg_eq_neg_iff : - x = - y ↔ x = y :=
 ⟨neg_eq_neg_of_eq, congr_arg has_neg.neg⟩
 
-@[simp]
-theorem neg_inf : - (x ⊓ y) = -x ⊔ -y :=
+@[simp] theorem neg_inf : - (x ⊓ y) = -x ⊔ -y :=
 neg_unique -- TODO: try rsimp if it supports custom lemmas
   (calc (x ⊓ y) ⊓ (- x ⊔ - y) = (y ⊓ (x ⊓ - x)) ⊔ (x ⊓ (y ⊓ - y)) : by rw [inf_sup_left]; ac_refl
                           ... = ⊥ : by simp)
   (calc (x ⊓ y) ⊔ (- x ⊔ - y) = (- y ⊔ (x ⊔ - x)) ⊓ (- x ⊔ (y ⊔ - y)) : by rw [sup_inf_right]; ac_refl
                           ... = ⊤ : by simp)
 
-@[simp]
-theorem neg_sup : - (x ⊔ y) = -x ⊓ -y :=
+@[simp] theorem neg_sup : - (x ⊔ y) = -x ⊓ -y :=
 begin [smt] eblast_using [neg_neg, neg_inf] end
 
 theorem neg_le_neg (h : y ≤ x) : - x ≤ - y :=

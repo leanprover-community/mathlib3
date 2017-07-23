@@ -285,11 +285,9 @@ theorem eq_or_mem_of_mem_insert {x a : α} {s : set α} : x ∈ insert a s → x
 theorem mem_of_mem_insert_of_ne {x a : α} {s : set α} (xin : x ∈ insert a s) : x ≠ a → x ∈ s :=
 by finish [insert_def]
 
-@[simp]
-theorem mem_insert_iff (x a : α) (s : set α) : x ∈ insert a s ↔ (x = a ∨ x ∈ s) := iff.rfl
+@[simp] theorem mem_insert_iff (x a : α) (s : set α) : x ∈ insert a s ↔ (x = a ∨ x ∈ s) := iff.rfl
 
-@[simp]
-theorem insert_eq_of_mem {a : α} {s : set α} (h : a ∈ s) : insert a s = s :=
+@[simp] theorem insert_eq_of_mem {a : α} {s : set α} (h : a ∈ s) : insert a s = s :=
 by finish [set_eq_def, iff_def]
 
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
@@ -354,8 +352,7 @@ theorem singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := insert_ne_empty 
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
 ⟨xs, px⟩
 
-@[simp]
-theorem mem_sep_eq {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} = (x ∈ s ∧ p x) :=
+@[simp] theorem mem_sep_eq {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} = (x ∈ s ∧ p x) :=
 rfl
 
 theorem mem_sep_iff {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} ↔ x ∈ s ∧ p x :=

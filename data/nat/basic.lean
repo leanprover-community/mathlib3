@@ -47,7 +47,8 @@ theorem sub_induction {P : ℕ → ℕ → Sort u} (H1 : ∀m, P 0 m)
 
 /- addition -/
 
-theorem succ_add_eq_succ_add (n m : ℕ) : succ n + m = n + succ m := by simp
+theorem succ_add_eq_succ_add (n m : ℕ) : succ n + m = n + succ m :=
+by simp [succ_add, add_succ]
 
 theorem eq_zero_of_add_eq_zero {n m : ℕ} (H : n + m = 0) : n = 0 ∧ m = 0 :=
 ⟨nat.eq_zero_of_add_eq_zero_right H, nat.eq_zero_of_add_eq_zero_left H⟩

@@ -46,21 +46,16 @@ theorem prod.mk.eta : ∀{p : α × β}, (p.1, p.2) = p
 
 def prod.swap : (α×β) → (β×α) := λp, (p.2, p.1)
 
-@[simp]
-theorem prod.swap_swap : ∀x:α×β, prod.swap (prod.swap x) = x
+@[simp] theorem prod.swap_swap : ∀x:α×β, prod.swap (prod.swap x) = x
 | ⟨a, b⟩ := rfl
 
-@[simp]
-theorem prod.fst_swap {p : α×β} : (prod.swap p).1 = p.2 := rfl
+@[simp] theorem prod.fst_swap {p : α×β} : (prod.swap p).1 = p.2 := rfl
 
-@[simp]
-theorem prod.snd_swap {p : α×β} : (prod.swap p).2 = p.1 := rfl
+@[simp] theorem prod.snd_swap {p : α×β} : (prod.swap p).2 = p.1 := rfl
 
-@[simp]
-theorem prod.swap_prod_mk {a : α} {b : β} : prod.swap (a, b) = (b, a) := rfl
+@[simp] theorem prod.swap_prod_mk {a : α} {b : β} : prod.swap (a, b) = (b, a) := rfl
 
-@[simp]
-theorem prod.swap_swap_eq : prod.swap ∘ prod.swap = @id (α × β) :=
+@[simp] theorem prod.swap_swap_eq : prod.swap ∘ prod.swap = @id (α × β) :=
 funext $ prod.swap_swap
 
 end prod
@@ -161,8 +156,7 @@ set.ext $ assume ⟨b₁, b₂⟩,
       (by simp [eq₁, eq₂]),
     assume ⟨⟨a₁, a₂⟩, ⟨ha₁, ha₂⟩, eq⟩, eq ▸ ⟨mem_image_of_mem m₁ ha₁, mem_image_of_mem m₂ ha₂⟩⟩
 
-@[simp]
-theorem prod_singleton_singleton {a : α} {b : β} :
+@[simp] theorem prod_singleton_singleton {a : α} {b : β} :
   set.prod {a} {b} = ({(a, b)} : set (α×β)) :=
 set.ext $ assume ⟨a', b'⟩, by simp [set.prod]
 
@@ -175,8 +169,7 @@ begin
     assume ⟨⟨a, ha⟩, ⟨b, hb⟩⟩, ⟨a, b, ha, hb⟩⟩
 end
 
-@[simp]
-theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
+@[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) :=
 rfl
 
@@ -184,13 +177,11 @@ theorem monotone_inter [weak_order β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λx, (f x) ∩ (g x)) :=
 assume a b h x ⟨h₁, h₂⟩, ⟨hf h h₁, hg h h₂⟩
 
-@[simp]
-theorem vimage_set_of_eq {p : α → Prop} {f : β → α} :
+@[simp] theorem vimage_set_of_eq {p : α → Prop} {f : β → α} :
   vimage f {a | p a} = {a | p (f a)} :=
 rfl
 
-@[simp]
-theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s :=
+@[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s :=
 rfl
 
 theorem mem_image_iff_of_inverse (f : α → β) (g : β → α) {b : β} {s : set α}
@@ -235,8 +226,7 @@ theorem diff_neq_empty {s t : set α} : s - t = ∅ ↔ s ⊆ t :=
 ⟨assume h x hx, classical.by_contradiction $ assume : x ∉ t, show x ∈ (∅ : set α), from h ▸ ⟨hx, this⟩,
   assume h, bot_unique $ assume x ⟨hx, hnx⟩, hnx $ h hx⟩
 
-@[simp]
-theorem diff_empty {s : set α} : s - ∅ = s :=
+@[simp] theorem diff_empty {s : set α} : s - ∅ = s :=
 set.ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
 
 end
@@ -245,13 +235,11 @@ end
 theorem implies_implies_true_iff {α : Sort u} {β : Sort v} : (α → β → true) ↔ true :=
 ⟨assume _, trivial, assume _ _ _ , trivial⟩
 
-@[simp]
-theorem not_not_mem_iff {α : Type u} {a : α} {s : set α} [decidable (a ∈ s)] :
+@[simp] theorem not_not_mem_iff {α : Type u} {a : α} {s : set α} [decidable (a ∈ s)] :
   ¬ (a ∉ s) ↔ a ∈ s :=
 not_not_iff
 
-@[simp]
-theorem singleton_neq_emptyset {α : Type u} {a : α} : {a} ≠ (∅ : set α) :=
+@[simp] theorem singleton_neq_emptyset {α : Type u} {a : α} : {a} ≠ (∅ : set α) :=
 assume h,
 have a ∉ ({a} : set α),
   by simp [h],
@@ -457,16 +445,13 @@ assume f_in_s t' h, h f_in_s
 protected theorem Sup_le {s : set (filter α)} {f : filter α} : (∀g∈s, g ≤ f) → Sup s ≤ f :=
 assume h a ha g hg, h g hg ha
 
-@[simp]
-theorem mem_join_sets {s : set α} {f : filter (filter α)} : s ∈ (join f).sets = ({t | s ∈ filter.sets t} ∈ f.sets) :=
+@[simp] theorem mem_join_sets {s : set α} {f : filter (filter α)} : s ∈ (join f).sets = ({t | s ∈ filter.sets t} ∈ f.sets) :=
 rfl
 
-@[simp]
-theorem mem_principal_sets {s t : set α} : s ∈ (principal t).sets = (t ⊆ s) :=
+@[simp] theorem mem_principal_sets {s t : set α} : s ∈ (principal t).sets = (t ⊆ s) :=
 rfl
 
-@[simp]
-theorem le_principal_iff {s : set α} {f : filter α} : f ≤ principal s ↔ s ∈ f.sets :=
+@[simp] theorem le_principal_iff {s : set α} {f : filter α} : f ≤ principal s ↔ s ∈ f.sets :=
 show (∀{t}, s ⊆ t → t ∈ f.sets) ↔ s ∈ f.sets,
   from ⟨assume h, h (subset.refl s), assume hs t ht, f.upwards_sets hs ht⟩
 
@@ -476,8 +461,7 @@ by simp
 theorem monotone_principal : monotone (principal : set α → filter α) :=
 by simp [monotone, principal_mono]; exact assume a b h, h
 
-@[simp]
-theorem principal_eq_iff_eq {s t : set α} : principal s = principal t ↔ s = t :=
+@[simp] theorem principal_eq_iff_eq {s t : set α} : principal s = principal t ↔ s = t :=
 by simp [eq_iff_le_and_le]; refl
 
 instance complete_lattice_filter : complete_lattice (filter α) :=
@@ -502,13 +486,11 @@ instance complete_lattice_filter : complete_lattice (filter α) :=
   le_Inf        := assume s a h, filter.le_Sup h,
   Inf_le        := assume s a ha, filter.Sup_le $ assume b h, h _ ha }
 
-@[simp]
-theorem map_principal {s : set α} {f : α → β} :
+@[simp] theorem map_principal {s : set α} {f : α → β} :
   map f (principal s) = principal (set.image f s) :=
 filter_eq $ set.ext $ assume a, image_subset_iff_subset_vimage.symm
 
-@[simp]
-theorem join_principal_eq_Sup {s : set (filter α)} : join (principal s) = Sup s :=
+@[simp] theorem join_principal_eq_Sup {s : set (filter α)} : join (principal s) = Sup s :=
 rfl
 
 instance monad_filter : monad filter :=
@@ -545,8 +527,7 @@ theorem mem_inf_sets_of_right {f g : filter α} {s : set α} :
 have f ⊓ g ≤ g, from inf_le_right,
 assume hs, this hs
 
-@[simp]
-theorem mem_bot_sets {s : set α} : s ∈ (⊥ : filter α).sets :=
+@[simp] theorem mem_bot_sets {s : set α} : s ∈ (⊥ : filter α).sets :=
 assume x, false.elim
 
 theorem empty_in_sets_eq_bot {f : filter α} : ∅ ∈ f.sets ↔ f = ⊥ :=
@@ -575,13 +556,11 @@ let ⟨s₁, hs₁, s₂, (hs₂ : -s ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩
 have s₁ ⊆ s, from assume a ha, classical.by_contradiction $ assume ha', hs ⟨ha, hs₂ ha'⟩,
 f.upwards_sets hs₁ this
 
-@[simp]
-theorem mem_sup_sets {f g : filter α} {s : set α} :
+@[simp] theorem mem_sup_sets {f g : filter α} {s : set α} :
   s ∈ (f ⊔ g).sets = (s ∈ f.sets ∧ s ∈ g.sets) :=
 by refl
 
-@[simp]
-theorem mem_inf_sets {f g : filter α} {s : set α} :
+@[simp] theorem mem_inf_sets {f g : filter α} {s : set α} :
   s ∈ (f ⊓ g).sets = (∃t₁∈f.sets, ∃t₂∈g.sets, t₁ ∩ t₂ ⊆ s) :=
 by refl
 
@@ -625,12 +604,10 @@ begin
   exact ⟨assume h i, h (f i) ⟨_, rfl⟩, assume h x ⟨i, eq⟩, eq.symm ▸ h i⟩
 end
 
-@[simp]
-theorem sup_join {f₁ f₂ : filter (filter α)} : (join f₁ ⊔ join f₂) = join (f₁ ⊔ f₂) :=
+@[simp] theorem sup_join {f₁ f₂ : filter (filter α)} : (join f₁ ⊔ join f₂) = join (f₁ ⊔ f₂) :=
 filter_eq $ set.ext $ assume x, by simp [supr_sets_eq, join]
 
-@[simp]
-theorem supr_join {ι : Sort w} {f : ι → filter (filter α)} : (⨆x, join (f x)) = join (⨆x, f x) :=
+@[simp] theorem supr_join {ι : Sort w} {f : ι → filter (filter α)} : (⨆x, join (f x)) = join (⨆x, f x) :=
 filter_eq $ set.ext $ assume x, by simp [supr_sets_eq, join]
 
 instance : bounded_distrib_lattice (filter α) :=
@@ -652,7 +629,7 @@ private lemma infi_finite_distrib {s : set (filter α)} {f : filter α} (h : fin
   (⨅ a ∈ s, f ⊔ a) = f ⊔ (Inf s) :=
 begin
   induction h with a s hn hs hi,
-  { simp, exact infi_const ⊥ },
+  { simp },
   { rw [infi_insert], simp [hi, infi_or, sup_inf_left] }
 end
 
@@ -684,18 +661,15 @@ calc (⨅ x, f ⊔ g x) = (⨅ x (h : ∃i, g i = x), f ⊔ x) : by simp; rw [in
 
 /- principal equations -/
 
-@[simp]
-theorem inf_principal {s t : set α} : principal s ⊓ principal t = principal (s ∩ t) :=
+@[simp] theorem inf_principal {s t : set α} : principal s ⊓ principal t = principal (s ∩ t) :=
 le_antisymm
   (by simp; exact ⟨s, subset.refl s, t, subset.refl t, subset.refl _⟩)
   (by simp [le_inf_iff, inter_subset_left, inter_subset_right])
 
-@[simp]
-theorem sup_principal {s t : set α} : principal s ⊔ principal t = principal (s ∪ t) :=
+@[simp] theorem sup_principal {s t : set α} : principal s ⊔ principal t = principal (s ∪ t) :=
 filter_eq $ set.ext $ by simp [union_subset_iff]
 
-@[simp]
-theorem supr_principal {ι : Sort w} {s : ι → set α} : (⨆x, principal (s x)) = principal (⋃i, s i) :=
+@[simp] theorem supr_principal {ι : Sort w} {s : ι → set α} : (⨆x, principal (s x)) = principal (⋃i, s i) :=
 filter_eq $ set.ext $ assume x, by simp [supr_sets_eq]; exact (@supr_le_iff (set α) _ _ _ _).symm
 
 theorem principal_univ : principal (univ : set α) = ⊤ :=
@@ -704,18 +678,15 @@ rfl
 theorem principal_empty : principal (∅ : set α) = ⊥ :=
 rfl
 
-@[simp]
-theorem principal_eq_bot_iff {s : set α} : principal s = ⊥ ↔ s = ∅ :=
+@[simp] theorem principal_eq_bot_iff {s : set α} : principal s = ⊥ ↔ s = ∅ :=
 ⟨assume h, principal_eq_iff_eq.mp $ by simp [principal_empty, h], assume h, by simp [*, principal_empty]⟩
 
-@[simp]
-theorem mem_pure {a : α} {s : set α} : a ∈ s → s ∈ (pure a : filter α).sets :=
+@[simp] theorem mem_pure {a : α} {s : set α} : a ∈ s → s ∈ (pure a : filter α).sets :=
 by simp; exact id
 
 /- map equations -/
 
-@[simp]
-theorem mem_map {f : filter α} {s : set β} {m : α → β} :
+@[simp] theorem mem_map {f : filter α} {s : set β} {m : α → β} :
   (s ∈ (map m f).sets) = ({x | m x ∈ s} ∈ f.sets) :=
 rfl
 
@@ -723,29 +694,23 @@ theorem image_mem_map {f : filter α} {m : α → β} {s : set α} (hs : s ∈ f
   m '' s ∈ (map m f).sets :=
 f.upwards_sets hs $ assume x hx, ⟨x, hx, rfl⟩
 
-@[simp]
-theorem map_id {f : filter α} : filter.map id f = f :=
+@[simp] theorem map_id {f : filter α} : filter.map id f = f :=
 filter_eq $ rfl
 
-@[simp]
-theorem map_compose {γ : Type w} {f : α → β} {g : β → γ} :
+@[simp] theorem map_compose {γ : Type w} {f : α → β} {g : β → γ} :
   filter.map g ∘ filter.map f = filter.map (g ∘ f) :=
 funext $ assume _, filter_eq $ rfl
 
-@[simp]
-theorem map_sup {f g : filter α} {m : α → β} : map m (f ⊔ g) = map m f ⊔ map m g :=
+@[simp] theorem map_sup {f g : filter α} {m : α → β} : map m (f ⊔ g) = map m f ⊔ map m g :=
 filter_eq $ set.ext $ assume x, by simp
 
-@[simp]
-theorem supr_map {ι : Sort w} {f : ι → filter α} {m : α → β} : (⨆x, map m (f x)) = map m (⨆x, f x) :=
+@[simp] theorem supr_map {ι : Sort w} {f : ι → filter α} {m : α → β} : (⨆x, map m (f x)) = map m (⨆x, f x) :=
 filter_eq $ set.ext $ assume x, by simp [supr_sets_eq, map]
 
-@[simp]
-theorem map_bot {m : α → β} : map m ⊥ = ⊥ :=
+@[simp] theorem map_bot {m : α → β} : map m ⊥ = ⊥ :=
 filter_eq $ set.ext $ assume x, by simp
 
-@[simp]
-theorem map_eq_bot_iff {f : filter α} {m : α → β} : map m f = ⊥ ↔ f = ⊥ :=
+@[simp] theorem map_eq_bot_iff {f : filter α} {m : α → β} : map m f = ⊥ ↔ f = ⊥ :=
 ⟨by rw [←empty_in_sets_eq_bot, ←empty_in_sets_eq_bot]; exact id,
   assume h, by simp [*]⟩
 
@@ -812,8 +777,7 @@ theorem seq_mono {β : Type u} {f₁ f₂ : filter (α → β)} {g₁ g₂ : fil
   (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) : f₁ <*> g₁ ≤ f₂ <*> g₂ :=
 le_trans (bind_mono2 hf) (bind_mono $ univ_mem_sets' $ assume f, map_mono hg)
 
-@[simp]
-theorem fmap_principal {β : Type u} {s : set α} {f : α → β} :
+@[simp] theorem fmap_principal {β : Type u} {s : set α} {f : α → β} :
   f <$> principal s = principal (set.image f s) :=
 filter_eq $ set.ext $ assume a, image_subset_iff_subset_vimage.symm
 
@@ -860,8 +824,7 @@ assume s ⟨t, ht, h_sub⟩, ⟨t, h ht, h_sub⟩
 theorem monotone_vmap : monotone (vmap m : filter β → filter α) :=
 assume a b h, vmap_mono h
 
-@[simp]
-theorem vmap_principal {t : set β} : vmap m (principal t) = principal (vimage m t) :=
+@[simp] theorem vmap_principal {t : set β} : vmap m (principal t) = principal (vimage m t) :=
 filter_eq $ set.ext $ assume s,
   ⟨assume ⟨u, (hu : t ⊆ u), (b : vimage m u ⊆ s)⟩, subset.trans (vimage_mono hu) b,
     assume : vimage m t ⊆ s, ⟨t, subset.refl t, this⟩⟩
@@ -1151,8 +1114,7 @@ calc (f.lift' h ≠ ⊥) ↔ (∀s∈f.sets, principal (h s) ≠ ⊥) :
     lift_neq_bot_iff (monotone_comp hh monotone_principal)
   ... ↔ (∀s∈f.sets, h s ≠ ∅) : by simp [principal_eq_bot_iff]
 
-@[simp]
-theorem lift'_id {f : filter α} : f.lift' id = f :=
+@[simp] theorem lift'_id {f : filter α} : f.lift' id = f :=
 le_antisymm
   (assume s hs, mem_lift' hs)
   (le_infi $ assume s, le_infi $ assume hs, by simp [hs])
@@ -1349,12 +1311,11 @@ end prod
 theorem mem_infi_sets {f : ι → filter α} (i : ι) : ∀{s}, s ∈ (f i).sets → s ∈ (⨅i, f i).sets :=
 show (⨅i, f i) ≤ f i, from infi_le _ _
 
-@[simp]
-theorem mem_top_sets_iff {s : set α} : s ∈ (⊤ : filter α).sets ↔ s = univ :=
+@[simp] theorem mem_top_sets_iff {s : set α} : s ∈ (⊤ : filter α).sets ↔ s = univ :=
 ⟨assume h, top_unique $ h, assume h, h.symm ▸ univ_mem_sets⟩
 
-@[elab_as_eliminator]
-theorem infi_sets_induct {f : ι → filter α} {s : set α} (hs : s ∈ (infi f).sets) {p : set α → Prop}
+@[elab_as_eliminator] theorem infi_sets_induct
+  {f : ι → filter α} {s : set α} (hs : s ∈ (infi f).sets) {p : set α → Prop}
   (uni : p univ)
   (ins : ∀{i s₁ s₂}, s₁ ∈ (f i).sets → p s₂ → p (s₁ ∩ s₂))
   (upw : ∀{s₁ s₂}, s₁ ⊆ s₂ → p s₁ → p s₂) : p s :=

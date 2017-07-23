@@ -69,8 +69,7 @@ instance setoid_rat.rel : setoid rat.num_denum :=
     assume  ⟨n₁, ⟨d₁, _⟩⟩ ⟨n₂, ⟨d₂, _⟩⟩ h, h.symm,
     assume a b c, rel_trans⟩}
 
-@[simp]
-protected theorem rel_eq {n₁ d₁ n₂ d₂ : ℤ} { h₁ : d₁ > 0 } { h₂ : d₂ > 0 } :
+@[simp] protected theorem rel_eq {n₁ d₁ n₂ d₂ : ℤ} { h₁ : d₁ > 0 } { h₂ : d₂ > 0 } :
   @setoid.r rat.num_denum _ (n₁, ⟨d₁, h₁⟩) (n₂, ⟨d₂, h₂⟩) = (n₁ * d₂ = n₂ * d₁) :=
 rfl
 
@@ -309,8 +308,7 @@ quotient.induction_on a $ λ⟨n₁, ⟨d₁, h₁⟩⟩,
   show 0 ≤ n₁ ∨ 0 ≤ -n₁,
     from or.imp_right neg_nonneg_of_nonpos (le_total 0 n₁)
 
-@[instance]
-def decidable_nonneg : decidable (rat.nonneg a)  :=
+instance decidable_nonneg : decidable (rat.nonneg a)  :=
 quotient.rec_on_subsingleton a
   (λ⟨n, ⟨d, h⟩⟩, if h : 0 ≤ n then is_true h else is_false h)
 

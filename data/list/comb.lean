@@ -27,8 +27,7 @@ def map_accumr (f : α → σ → σ × β) : list α → σ → (σ × list β)
   let z := f y (prod.fst r) in
   (prod.fst z, prod.snd z :: prod.snd r)
 
-@[simp]
-theorem length_map_accumr
+@[simp] theorem length_map_accumr
 : ∀ (f : α → σ → σ × β) (x : list α) (s : σ),
   length (prod.snd (map_accumr f x s)) = length x
 | f (a::x) s := congr_arg succ (length_map_accumr f x s)
@@ -49,8 +48,7 @@ def map_accumr₂ {α β σ φ : Type} (f : α → β → σ → σ × φ)
   let q := f x y (prod.fst r) in
   (prod.fst q, prod.snd q :: (prod.snd r))
 
-@[simp]
-theorem length_map_accumr₂ {α β σ φ : Type}
+@[simp] theorem length_map_accumr₂ {α β σ φ : Type}
 : ∀ (f : α → β → σ → σ × φ) x y c,
   length (prod.snd (map_accumr₂ f x y c)) = min (length x) (length y)
 | f (a::x) (b::y) c := calc
@@ -64,28 +62,22 @@ theorem length_map_accumr₂ {α β σ φ : Type}
 | f [] []     c := rfl
 end map_accumr₂
 
-@[simp]
-theorem foldl_nil (f : α → β → α) (a : α) : foldl f a [] = a := rfl
+@[simp] theorem foldl_nil (f : α → β → α) (a : α) : foldl f a [] = a := rfl
 
-@[simp]
-theorem foldl_cons (f : α → β → α) (a : α) (b : β) (l : list β) :
+@[simp] theorem foldl_cons (f : α → β → α) (a : α) (b : β) (l : list β) :
   foldl f a (b::l) = foldl f (f a b) l := rfl
 
-@[simp]
-theorem foldr_nil (f : α → β → β) (b : β) : foldr f b [] = b := rfl
+@[simp] theorem foldr_nil (f : α → β → β) (b : β) : foldr f b [] = b := rfl
 
-@[simp]
-theorem foldr_cons (f : α → β → β) (b : β) (a : α) (l : list α) :
+@[simp] theorem foldr_cons (f : α → β → β) (b : β) (a : α) (l : list α) :
   foldr f b (a::l) = f a (foldr f b l) := rfl
 
-@[simp]
-theorem foldl_append (f : β → α → β) :
+@[simp] theorem foldl_append (f : β → α → β) :
   ∀ (b : β) (l₁ l₂ : list α), foldl f b (l₁++l₂) = foldl f (foldl f b l₁) l₂
 | b []      l₂ := rfl
 | b (a::l₁) l₂ := by simp [foldl_append]
 
-@[simp]
-theorem foldr_append (f : α → β → β) :
+@[simp] theorem foldr_append (f : α → β → β) :
   ∀ (b : β) (l₁ l₂ : list α), foldr f b (l₁++l₂) = foldr f (foldr f b l₂) l₁
 | b []      l₂ := rfl
 | b (a::l₁) l₂ := by simp [foldr_append]
@@ -116,8 +108,7 @@ def replicate : ℕ → α → list α
 | 0 a := []
 | (succ n) a := a :: replicate n a
 
-@[simp]
-theorem length_replicate : ∀ (i : ℕ) (a : α), length (replicate i a) = i
+@[simp] theorem length_replicate : ∀ (i : ℕ) (a : α), length (replicate i a) = i
 | 0 a := rfl
 | (succ i) a := congr_arg succ (length_replicate i a)
 
@@ -181,11 +172,9 @@ end foldl_eq_foldr
 
 /- all & any -/
 
-@[simp]
-theorem all_nil (p : α → bool) : all [] p = tt := rfl
+@[simp] theorem all_nil (p : α → bool) : all [] p = tt := rfl
 
-@[simp]
-theorem all_cons (p : α → bool) (a : α) (l : list α) : all (a::l) p = (p a && all l p) := rfl
+@[simp] theorem all_cons (p : α → bool) (a : α) (l : list α) : all (a::l) p = (p a && all l p) := rfl
 
 theorem all_eq_tt_of_forall {p : α → bool} : ∀ {l : list α}, (∀ a ∈ l, p a = tt) → all l p = tt
 | []     h := all_nil p
@@ -208,11 +197,9 @@ theorem forall_mem_eq_tt_of_all_eq_tt {p : α → bool} :
 theorem all_eq_tt_iff {p : α → bool} {l : list α} : all l p = tt ↔ ∀ a ∈ l, p a = tt :=
 iff.intro forall_mem_eq_tt_of_all_eq_tt all_eq_tt_of_forall
 
-@[simp]
-theorem any_nil (p : α → bool) : any [] p = ff := rfl
+@[simp] theorem any_nil (p : α → bool) : any [] p = ff := rfl
 
-@[simp]
-theorem any_cons (p : α → bool) (a : α) (l : list α) : any (a::l) p = (p a || any l p) := rfl
+@[simp] theorem any_cons (p : α → bool) (a : α) (l : list α) : any (a::l) p = (p a || any l p) := rfl
 
 theorem any_of_mem {p : α → bool} {a : α} : ∀ {l : list α}, a ∈ l → p a = tt → any l p = tt
 | []     i h := absurd i (not_mem_nil a)
@@ -256,8 +243,7 @@ theorem forall_mem_of_forall_mem_cons {p : α → Prop} {a : α} {l : list α}
   ∀ x ∈ l, p x :=
 assume x xl, h x (by simp [xl])
 
-@[simp]
-theorem forall_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
+@[simp] theorem forall_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
   (∀ x ∈ a :: l, p x) ↔ p a ∧ ∀ x ∈ l, p x :=
 iff.intro
   (λ h, ⟨of_forall_mem_cons h, forall_mem_of_forall_mem_cons h⟩)
@@ -281,22 +267,19 @@ bexists.elim h (λ x xal px,
     (assume : x = a, begin rw ←this, simp [px] end)
     (assume : x ∈ l, or.inr (bexists.intro x this px)))
 
-@[simp]
-theorem exists_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
+@[simp] theorem exists_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
   (∃ x ∈ a :: l, p x) ↔ p a ∨ ∃ x ∈ l, p x :=
 iff.intro or_exists_of_exists_mem_cons
   (assume h, or.elim h (exists_mem_cons_of l) exists_mem_cons_of_exists)
 
-@[instance]
-def decidable_forall_mem {p : α → Prop} [h : decidable_pred p] :
+instance decidable_forall_mem {p : α → Prop} [h : decidable_pred p] :
   ∀ l : list α, decidable (∀ x ∈ l, p x)
 | []       := is_true (forall_mem_nil p)
 | (a :: l) := decidable_of_decidable_of_iff
                 (@and.decidable _ _ _ (decidable_forall_mem l))
                 (forall_mem_cons_iff p a l).symm
 
-@[instance]
-def decidable_exists_mem {p : α → Prop} [h : decidable_pred p] :
+instance decidable_exists_mem {p : α → Prop} [h : decidable_pred p] :
   ∀ l : list α, decidable (∃ x ∈ l, p x)
 | []       := is_false (not_exists_mem_nil p)
 | (a :: l) := decidable_of_decidable_of_iff
@@ -305,27 +288,22 @@ def decidable_exists_mem {p : α → Prop} [h : decidable_pred p] :
 
 /- zip & unzip -/
 
-@[simp]
-theorem zip_cons_cons (a : α) (b : β) (l₁ : list α) (l₂ : list β) :
+@[simp] theorem zip_cons_cons (a : α) (b : β) (l₁ : list α) (l₂ : list β) :
   zip (a :: l₁) (b :: l₂) = (a, b) :: zip l₁ l₂ := rfl
 
-@[simp]
-theorem zip_nil_left (l : list α) : zip ([] : list β) l = [] := rfl
+@[simp] theorem zip_nil_left (l : list α) : zip ([] : list β) l = [] := rfl
 
-@[simp]
-theorem zip_nil_right (l : list α) : zip l ([] : list β) = [] :=
+@[simp] theorem zip_nil_right (l : list α) : zip l ([] : list β) = [] :=
 begin cases l, reflexivity, reflexivity end
 
-@[simp]
-theorem unzip_nil : unzip (@nil (α × β)) = ([], []) := rfl
+@[simp] theorem unzip_nil : unzip (@nil (α × β)) = ([], []) := rfl
 
 theorem unzip_cons' (a : α) (b : β) (l : list (α × β)) :
    unzip ((a, b) :: l) = match (unzip l) with (la, lb) := (a :: la, b :: lb) end :=
 rfl
 
 -- TODO(Jeremy): it seems this version is better for the simplifier
-@[simp]
-theorem unzip_cons (a : α) (b : β) (l : list (α × β)) :
+@[simp] theorem unzip_cons (a : α) (b : β) (l : list (α × β)) :
    unzip ((a, b) :: l) = let p := unzip l in (a :: p.1, b :: p.2) :=
 begin rw unzip_cons', cases unzip l, reflexivity end
 

@@ -40,8 +40,7 @@ begin
   simp [my_id_def] at *, simp [h] at h', simp [*]
 end
 
-@[simp]
-theorem mem_set_of {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
+@[simp] theorem mem_set_of {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
 
 -- TODO: write a tactic to unfold specific instances of generic notation?
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl

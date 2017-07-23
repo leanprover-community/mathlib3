@@ -62,17 +62,14 @@ instance : distrib_lattice (set α) :=
 
 /- union and intersection over a family of sets indexed by a type -/
 
-@[reducible]
-def Union (s : ι → set β) : set β := supr s
+@[reducible] def Union (s : ι → set β) : set β := supr s
 
-@[reducible]
-def Inter (s : ι → set β) : set β := infi s
+@[reducible] def Inter (s : ι → set β) : set β := infi s
 
 notation `⋃` binders `, ` r:(scoped f, Union f) := r
 notation `⋂` binders `, ` r:(scoped f, Inter f) := r
 
-@[simp]
-theorem mem_Union_eq (x : β) (s : ι → set β) : (x ∈ ⋃ i, s i) = (∃ i, x ∈ s i) :=
+@[simp] theorem mem_Union_eq (x : β) (s : ι → set β) : (x ∈ ⋃ i, s i) = (∃ i, x ∈ s i) :=
 propext
   ⟨assume ⟨t, ⟨⟨a, (t_eq : t = s a)⟩, (h : x ∈ t)⟩⟩, ⟨a, t_eq ▸ h⟩,
   assume ⟨a, h⟩, ⟨s a, ⟨⟨a, rfl⟩, h⟩⟩⟩
@@ -80,8 +77,7 @@ propext
   -- TODO: more rewrite rules wrt forall / existentials and logical connectives
   -- TODO: also eliminate ∃i, ... ∧ i = t ∧ ...
 
-@[simp]
-theorem mem_Inter_eq (x : β) (s : ι → set β) : (x ∈ ⋂ i, s i) = (∀ i, x ∈ s i) :=
+@[simp] theorem mem_Inter_eq (x : β) (s : ι → set β) : (x ∈ ⋂ i, s i) = (∀ i, x ∈ s i) :=
 propext
   ⟨assume (h : ∀a ∈ {a : set β | ∃i, a = s i}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
   assume h t ⟨a, (eq : t = s a)⟩, eq.symm ▸ h a⟩
@@ -156,21 +152,18 @@ theorem bInter_subset_of_mem {s : set α} {t : α → set β} {x : α} (xs : x �
 show (⨅x ∈ s, t x) ≤ t x,
   from infi_le_of_le x $ infi_le _ xs
 
-@[simp]
-theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
+@[simp] theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
 show (⨅x ∈ (∅ : set α), u x) = ⊤, -- simplifier should be able to rewrite x ∈ ∅ to false.
   from infi_emptyset
 
-@[simp]
-theorem bInter_univ (u : α → set β) : (⋂ x ∈ @univ α, u x) = ⋂ x, u x :=
+@[simp] theorem bInter_univ (u : α → set β) : (⋂ x ∈ @univ α, u x) = ⋂ x, u x :=
 infi_univ
 
 -- TODO(Jeremy): here is an artifact of the the encoding of bounded intersection:
 -- without dsimp, the next theorem fails to type check, because there is a lambda
 -- in a type that needs to be contracted. Using simp [eq_of_mem_singleton xa] also works.
 
-@[simp]
-theorem bInter_singleton (a : α) (s : α → set β) : (⋂ x ∈ ({a} : set α), s x) = s a :=
+@[simp] theorem bInter_singleton (a : α) (s : α → set β) : (⋂ x ∈ ({a} : set α), s x) = s a :=
 show (⨅ x ∈ ({a} : set α), s x) = s a, by simp
 
 theorem bInter_union (s t : set α) (u : α → set β) :
@@ -179,8 +172,7 @@ show (⨅ x ∈ s ∪ t, u x) = (⨅ x ∈ s, u x) ⊓ (⨅ x ∈ t, u x),
   from infi_union
 
 -- TODO(Jeremy): simp [insert_eq, bInter_union] doesn't work
-@[simp]
-theorem bInter_insert (a : α) (s : set α) (t : α → set β) :
+@[simp] theorem bInter_insert (a : α) (s : set α) (t : α → set β) :
   (⋂ x ∈ insert a s, t x) = t a ∩ (⋂ x ∈ s, t x) :=
 begin rw insert_eq, simp [bInter_union] end
 
@@ -190,16 +182,13 @@ theorem bInter_pair (a b : α) (s : α → set β) :
   (⋂ x ∈ ({a, b} : set α), s x) = s a ∩ s b :=
 by rw insert_of_has_insert; simp
 
-@[simp]
-theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
+@[simp] theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
 supr_emptyset
 
-@[simp]
-theorem bUnion_univ (s : α → set β) : (⋃ x ∈ @univ α, s x) = ⋃ x, s x :=
+@[simp] theorem bUnion_univ (s : α → set β) : (⋃ x ∈ @univ α, s x) = ⋃ x, s x :=
 supr_univ
 
-@[simp]
-theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : set α), s x) = s a :=
+@[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : set α), s x) = s a :=
 supr_singleton
 
 theorem bUnion_union (s t : set α) (u : α → set β) :
@@ -208,8 +197,7 @@ supr_union
 
 -- TODO(Jeremy): once again, simp doesn't do it alone.
 
-@[simp]
-theorem bUnion_insert (a : α) (s : set α) (t : α → set β) :
+@[simp] theorem bUnion_insert (a : α) (s : set α) (t : α → set β) :
   (⋃ x ∈ insert a s, t x) = t a ∪ (⋃ x ∈ s, t x) :=
 begin rw [insert_eq], simp [bUnion_union] end
 
@@ -217,8 +205,7 @@ theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=
 by rw insert_of_has_insert; simp
 
-@[reducible]
-def sInter (S : set (set α)) : set α := Inf S
+@[reducible] def sInter (S : set (set α)) : set α := Inf S
 
 prefix `⋂₀`:110 := sInter
 
@@ -226,8 +213,7 @@ theorem mem_sUnion {x : α} {t : set α} {S : set (set α)} (hx : x ∈ t) (ht :
   x ∈ ⋃₀ S :=
 ⟨t, ⟨ht, hx⟩⟩
 
-@[simp]
-theorem mem_sUnion_eq {x : α} {S : set (set α)} : x ∈ ⋃₀ S = (∃t ∈ S, x ∈ t) := rfl
+@[simp] theorem mem_sUnion_eq {x : α} {S : set (set α)} : x ∈ ⋃₀ S = (∃t ∈ S, x ∈ t) := rfl
 
 -- is this theorem really necessary?
 theorem not_mem_of_not_mem_sUnion {x : α} {t : set α} {S : set (set α)}
@@ -239,8 +225,7 @@ show false, from hx this
 
 theorem mem_sInter {x : α} {t : set α} {S : set (set α)} (h : ∀ t ∈ S, x ∈ t) : x ∈ ⋂₀ S := h
 
-@[simp]
-theorem mem_sInter_eq {x : α} {S : set (set α)} : x ∈ ⋂₀ S = (∀ t ∈ S, x ∈ t) := rfl
+@[simp] theorem mem_sInter_eq {x : α} {S : set (set α)} : x ∈ ⋂₀ S = (∀ t ∈ S, x ∈ t) := rfl
 
 theorem sInter_subset_of_mem {S : set (set α)} {t : set α} (tS : t ∈ S) : (⋂₀ S) ⊆ t :=
 Inf_le tS
@@ -257,33 +242,25 @@ theorem sUnion_subset_iff {s : set (set α)} {t : set α} : (⋃₀ s) ⊆ t ↔
 theorem subset_sInter {S : set (set α)} {t : set α} (h : ∀t' ∈ S, t ⊆ t') : t ⊆ (⋂₀ S) :=
 le_Inf h
 
-@[simp]
-theorem sUnion_empty : ⋃₀ ∅ = (∅ : set α) := Sup_empty
+@[simp] theorem sUnion_empty : ⋃₀ ∅ = (∅ : set α) := Sup_empty
 
-@[simp]
-theorem sInter_empty : ⋂₀ ∅ = (univ : set α) := Inf_empty
+@[simp] theorem sInter_empty : ⋂₀ ∅ = (univ : set α) := Inf_empty
 
-@[simp]
-theorem sUnion_singleton (s : set α) : ⋃₀ {s} = s := Sup_singleton
+@[simp] theorem sUnion_singleton (s : set α) : ⋃₀ {s} = s := Sup_singleton
 
-@[simp]
-theorem sInter_singleton (s : set α) : ⋂₀ {s} = s := Inf_singleton
+@[simp] theorem sInter_singleton (s : set α) : ⋂₀ {s} = s := Inf_singleton
 
 theorem sUnion_union (S T : set (set α)) : ⋃₀ (S ∪ T) = ⋃₀ S ∪ ⋃₀ T := Sup_union
 
 theorem sInter_union (S T : set (set α)) : ⋂₀ (S ∪ T) = ⋂₀ S ∩ ⋂₀ T := Inf_union
 
-@[simp]
-theorem sUnion_insert (s : set α) (T : set (set α)) : ⋃₀ (insert s T) = s ∪ ⋃₀ T := Sup_insert
+@[simp] theorem sUnion_insert (s : set α) (T : set (set α)) : ⋃₀ (insert s T) = s ∪ ⋃₀ T := Sup_insert
 
-@[simp]
-theorem sInter_insert (s : set α) (T : set (set α)) : ⋂₀ (insert s T) = s ∩ ⋂₀ T := Inf_insert
+@[simp] theorem sInter_insert (s : set α) (T : set (set α)) : ⋂₀ (insert s T) = s ∩ ⋂₀ T := Inf_insert
 
-@[simp]
-theorem sUnion_image (f : α → set β) (s : set α) : ⋃₀ (f '' s) = ⋃ x ∈ s, f x := Sup_image
+@[simp] theorem sUnion_image (f : α → set β) (s : set α) : ⋃₀ (f '' s) = ⋃ x ∈ s, f x := Sup_image
 
-@[simp]
-theorem sInter_image (f : α → set β) (s : set α) : ⋂₀ (f '' s) = ⋂ x ∈ s, f x := Inf_image
+@[simp] theorem sInter_image (f : α → set β) (s : set α) : ⋂₀ (f '' s) = ⋂ x ∈ s, f x := Inf_image
 
 theorem compl_sUnion (S : set (set α)) :
   - ⋃₀ S = ⋂₀ (compl '' S) :=
@@ -340,17 +317,14 @@ instance : complete_boolean_algebra (set α) :=
 theorem union_sdiff_same {a b : set α} : a ∪ (b \ a) = a ∪ b :=
 lattice.sup_sub_same
 
-@[simp]
-theorem union_same_compl {a : set α} : a ∪ (-a) = univ :=
+@[simp] theorem union_same_compl {a : set α} : a ∪ (-a) = univ :=
 sup_neg_eq_top
 
-@[simp]
-theorem sdiff_singleton_eq_same {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
+@[simp] theorem sdiff_singleton_eq_same {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
 sub_eq_left $ eq_empty_of_forall_not_mem $ assume x ⟨ht, ha⟩,
   begin simp at ha, simp [ha] at ht, exact h ht end
 
-@[simp]
-theorem insert_sdiff_singleton {a : α} {s : set α} :
+@[simp] theorem insert_sdiff_singleton {a : α} {s : set α} :
   insert a (s \ {a}) = insert a s :=
 by simp [insert_eq, union_sdiff_same]
 

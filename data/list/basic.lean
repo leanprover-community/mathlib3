@@ -14,8 +14,7 @@ variables {α : Type u} {β : Type v}
 
 /- theorems -/
 
-@[simp]
-theorem cons_ne_nil (a : α) (l : list α) : a::l ≠ [] :=
+@[simp] theorem cons_ne_nil (a : α) (l : list α) : a::l ≠ [] :=
 begin intro, contradiction end
 
 theorem head_eq_of_cons_eq {α : Type} {h₁ h₂ : α} {t₁ t₂ : list α} :
@@ -35,8 +34,7 @@ assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
 attribute [simp] cons_append nil_append
 
-@[simp]
-theorem append.assoc (s t u : list α) : s ++ t ++ u = s ++ (t ++ u) :=
+@[simp] theorem append.assoc (s t u : list α) : s ++ t ++ u = s ++ (t ++ u) :=
 begin induction s with a s ih, reflexivity, simp [ih] end
 
 /- length -/
@@ -52,14 +50,12 @@ attribute [simp] length_append
 @[simp] theorem concat_cons (a b : α) (l : list α) :
   concat (a :: l) b  = a :: concat l b := rfl
 
-@[simp]
-theorem concat_ne_nil (a : α) (l : list α) : concat l a ≠ [] :=
+@[simp] theorem concat_ne_nil (a : α) (l : list α) : concat l a ≠ [] :=
 by induction l; intro h; contradiction
 
 attribute [simp] length_concat
 
-@[simp]
-theorem concat_append (a : α) (l₁ l₂ : list α) : concat l₁ a ++ l₂ = l₁ ++ a :: l₂ :=
+@[simp] theorem concat_append (a : α) (l₁ l₂ : list α) : concat l₁ a ++ l₂ = l₁ ++ a :: l₂ :=
 by induction l₁ with b l₁ ih; [simp, simp [ih]]
 
 theorem append_concat (a : α) (l₁ l₂ : list α) : l₁ ++ concat l₂ a = concat (l₁ ++ l₂) a :=
@@ -67,12 +63,10 @@ by induction l₂ with b l₂ ih; simp
 
 /- last -/
 
-@[simp]
-theorem last_singleton (a : α) (h : [a] ≠ []) : last [a] h = a :=
+@[simp] theorem last_singleton (a : α) (h : [a] ≠ []) : last [a] h = a :=
 rfl
 
-@[simp]
-theorem last_cons_cons (a₁ a₂ : α) (l : list α) (h : a₁::a₂::l ≠ []) :
+@[simp] theorem last_cons_cons (a₁ a₂ : α) (l : list α) (h : a₁::a₂::l ≠ []) :
   last (a₁::a₂::l) h = last (a₂::l) (cons_ne_nil a₂ l) :=
 rfl
 
@@ -82,16 +76,13 @@ by subst l₁
 
 /- head and tail -/
 
-@[simp]
-theorem head_cons [h : inhabited α] (a : α) (l : list α) : head (a::l) = a :=
+@[simp] theorem head_cons [h : inhabited α] (a : α) (l : list α) : head (a::l) = a :=
 rfl
 
-@[simp]
-theorem tail_nil : tail (@nil α) = [] :=
+@[simp] theorem tail_nil : tail (@nil α) = [] :=
 rfl
 
-@[simp]
-theorem tail_cons (a : α) (l : list α) : tail (a::l) = l :=
+@[simp] theorem tail_cons (a : α) (l : list α) : tail (a::l) = l :=
 rfl
 
 /- list membership -/
@@ -104,23 +95,19 @@ attribute [simp] mem_nil_iff mem_cons_self mem_cons_iff
 section index_of
 variable [decidable_eq α]
 
-@[simp]
-theorem index_of_nil (a : α) : index_of a [] = 0 :=
+@[simp] theorem index_of_nil (a : α) : index_of a [] = 0 :=
 rfl
 
 theorem index_of_cons (a b : α) (l : list α) : index_of a (b::l) = if a = b then 0 else succ (index_of a l) :=
 rfl
 
-@[simp]
-theorem index_of_cons_of_eq {a b : α} (l : list α) : a = b → index_of a (b::l) = 0 :=
+@[simp] theorem index_of_cons_of_eq {a b : α} (l : list α) : a = b → index_of a (b::l) = 0 :=
 assume e, if_pos e
 
-@[simp]
-theorem index_of_cons_of_ne {a b : α} (l : list α) : a ≠ b → index_of a (b::l) = succ (index_of a l) :=
+@[simp] theorem index_of_cons_of_ne {a b : α} (l : list α) : a ≠ b → index_of a (b::l) = succ (index_of a l) :=
 assume n, if_neg n
 
-@[simp]
-theorem index_of_of_not_mem {l : list α} {a : α} : ¬a ∈ l → index_of a l = length l :=
+@[simp] theorem index_of_of_not_mem {l : list α} {a : α} : ¬a ∈ l → index_of a l = length l :=
 list.rec_on l
    (assume : ¬a ∈ [], rfl)
    (assume b l,
@@ -206,24 +193,20 @@ def ith : Π (l : list α) (i : nat), i < length l → α
 | (a::ains) 0        h := a
 | (a::ains) (succ i) h := ith ains i (lt_of_succ_lt_succ h)
 
-@[simp]
-theorem ith_zero (a : α) (l : list α) (h : 0 < length (a::l)) : ith (a::l) 0 h = a :=
+@[simp] theorem ith_zero (a : α) (l : list α) (h : 0 < length (a::l)) : ith (a::l) 0 h = a :=
 rfl
 
-@[simp]
-theorem ith_succ (a : α) (l : list α) (i : nat) (h : succ i < length (a::l))
+@[simp] theorem ith_succ (a : α) (l : list α) (i : nat) (h : succ i < length (a::l))
                       : ith (a::l) (succ i) h = ith l i (lt_of_succ_lt_succ h) :=
 rfl
 end ith
 
 section take
 
-@[simp]
-theorem taken_zero : ∀ (l : list α), take 0 l = [] :=
+@[simp] theorem taken_zero : ∀ (l : list α), take 0 l = [] :=
 begin intros, reflexivity end
 
-@[simp]
-theorem taken_nil : ∀ n, take n [] = ([] : list α)
+@[simp] theorem taken_nil : ∀ n, take n [] = ([] : list α)
 | 0     := rfl
 | (n+1) := rfl
 
@@ -296,8 +279,7 @@ def count (a : α) : list α → nat
 | []      := 0
 | (x::xs) := if a = x then succ (count xs) else count xs
 
-@[simp]
-theorem count_nil (a : α) : count a [] = 0 :=
+@[simp] theorem count_nil (a : α) : count a [] = 0 :=
 rfl
 
 theorem count_cons (a b : α) (l : list α) :
@@ -311,12 +293,10 @@ decidable.by_cases
   (assume : a ≠ b, begin rw [count_cons, if_neg this, if_neg this], reflexivity end)
 
 
-@[simp]
-theorem count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) :=
+@[simp] theorem count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) :=
 if_pos rfl
 
-@[simp]
-theorem count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l :=
+@[simp] theorem count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l :=
 if_neg h
 
 theorem count_cons_ge_count (a b : α) (l : list α) : count a (b :: l) ≥ count a l :=
@@ -330,16 +310,14 @@ decidable.by_cases
 theorem count_singleton (a : α) : count a [a] = 1 :=
 by simp
 
-@[simp]
-theorem count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂
+@[simp] theorem count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂
 | []      l₂ := begin rw [nil_append, count_nil, zero_add] end
 | (b::l₁) l₂ := decidable.by_cases
   (assume : a = b, by rw [←this, cons_append, count_cons_self, count_cons_self, succ_add,
                          count_append])
   (assume : a ≠ b, by rw [cons_append, count_cons_of_ne this, count_cons_of_ne this, count_append])
 
-@[simp]
-theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
+@[simp] theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by rw [concat_eq_append, count_append, count_singleton]
 
 theorem mem_of_count_pos : ∀ {a : α} {l : list α}, count a l > 0 → a ∈ l
@@ -362,8 +340,7 @@ theorem count_pos_of_mem : ∀ {a : α} {l : list α}, a ∈ l → count a l > 0
 theorem mem_iff_count_pos (a : α) (l : list α) : a ∈ l ↔ count a l > 0 :=
 iff.intro count_pos_of_mem mem_of_count_pos
 
-@[simp]
-theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
+@[simp] theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
 have ∀ n, count a l = n → count a l = 0,
   begin
     intro n, cases n,

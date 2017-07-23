@@ -23,13 +23,11 @@ inductive perm : list α → list α → Prop
 namespace perm
 infix ~ := perm
 
-@[refl]
-protected theorem refl : ∀ (l : list α), l ~ l
+@[refl] protected theorem refl : ∀ (l : list α), l ~ l
 | []      := nil
 | (x::xs) := skip x (refl xs)
 
-@[symm]
-protected theorem symm {l₁ l₂ : list α} (p : l₁ ~ l₂) : l₂ ~ l₁ :=
+@[symm] protected theorem symm {l₁ l₂ : list α} (p : l₁ ~ l₂) : l₂ ~ l₁ :=
 perm.rec_on p
   nil
   (λ x l₁ l₂ p₁ r₁, skip x r₁)
@@ -86,12 +84,10 @@ theorem perm_cons_app (a : α) : ∀ (l : list α), (a::l) ~ (l ++ [a])
 | []      := perm.refl _
 | (x::xs) := trans (swap x a xs) $ skip x (perm_cons_app xs)
 
-@[simp]
-theorem perm_cons_app_simp (a : α) (l : list α) : (l ++ [a]) ~ (a::l) :=
+@[simp] theorem perm_cons_app_simp (a : α) (l : list α) : (l ++ [a]) ~ (a::l) :=
 perm.symm (perm_cons_app a l)
 
-@[simp]
-theorem perm_app_comm : ∀ {l₁ l₂ : list α}, (l₁++l₂) ~ (l₂++l₁)
+@[simp] theorem perm_app_comm : ∀ {l₁ l₂ : list α}, (l₁++l₂) ~ (l₂++l₁)
 | []     l₂ := by simp
 | (a::t) l₂ := calc
     a::(t++l₂) ~ a::(l₂++t)   : skip a perm_app_comm
@@ -128,8 +124,7 @@ theorem perm_rev : ∀ (l : list α), l ~ (reverse l)
     ... ~ reverse xs ++ [x] : perm_cons_app _ _
     ... = reverse (x::xs)   : by rw [reverse_cons, concat_eq_append]
 
-@[simp]
-theorem perm_rev_simp (l : list α) : (reverse l) ~ l :=
+@[simp] theorem perm_rev_simp (l : list α) : (reverse l) ~ l :=
 perm.symm (perm_rev l)
 
 theorem perm_middle (a : α) (l₁ l₂ : list α) : (a::l₁)++l₂ ~ l₁++(a::l₂) :=
@@ -151,8 +146,8 @@ theorem perm_erase [decidable_eq α] {a : α} : ∀ {l : list α}, a ∈ l → l
   have aint : a ∈ t, from mem_of_ne_of_mem (assume h, ax h.symm) h,
   trans (skip _ $ perm_erase aint) (swap _ _ _)
 
-@[elab_as_eliminator]
-theorem perm_induction_on {P : list α → list α → Prop} {l₁ l₂ : list α} (p : l₁ ~ l₂)
+@[elab_as_eliminator] theorem perm_induction_on
+    {P : list α → list α → Prop} {l₁ l₂ : list α} (p : l₁ ~ l₂)
     (h₁ : P [] [])
     (h₂ : ∀ x l₁ l₂, l₁ ~ l₂ → P l₁ l₂ → P (x::l₁) (x::l₂))
     (h₃ : ∀ x y l₁ l₂, l₁ ~ l₂ → P l₁ l₂ → P (y::x::l₁) (x::y::l₂))
@@ -168,9 +163,9 @@ assume p, calc
   x::y::l₁  ~  y::x::l₁  : swap y x l₁
         ... ~  y::x::l₂  : skip y (skip x p)
 
-@[congr]
-theorem perm_map (f : α → β) {l₁ l₂ : list α} : l₁ ~ l₂ → map f l₁ ~ map f l₂ :=
-assume p, perm_induction_on p
+@[congr] theorem perm_map (f : α → β) {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+  map f l₁ ~ map f l₂ :=
+perm_induction_on p
   nil
   (λ x l₁ l₂ p r, skip (f x) r)
   (λ x y l₁ l₂ p r, xswap (f y) (f x) r)
@@ -263,10 +258,10 @@ theorem perm_of_forall_count_eq : ∀ {l₁ l₂ : list α}, (∀ a, count a l�
       assume a,
       if h' : a = b then
         nat.succ_inj (calc
-          count a l + 1 = count a (b :: l)         : begin simp [h'], rw add_comm end
+          count a l + 1 = count a (b :: l)         : by simp [h', nat.succ_eq_add_one]
                    ... = count a l₂                : by rw h
                    ... = count a (b :: l₂.erase b) : count_eq_count_of_perm (by assumption) a
-                   ... = count a (l₂.erase b) + 1  : begin simp [h'], rw add_comm end)
+                   ... = count a (l₂.erase b) + 1  : by simp [h', nat.succ_eq_add_one])
       else
         calc
           count a l = count a (b :: l)          : by simp [h']
@@ -303,7 +298,7 @@ iff.intro
 
 instance : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂) :=
 assume l₁ l₂,
-decidable_of_decidable_of_iff (decidable_forall_mem _)
+decidable_of_decidable_of_iff (list.decidable_forall_mem _)
                               (perm_iff_forall_mem_count_eq_count l₁ l₂).symm
 
 end count

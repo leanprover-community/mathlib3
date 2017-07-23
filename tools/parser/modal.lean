@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 A sample parser for modal logic.
 -/
-import tools.parser
+import tools.parser.parser
 
 /-
 namespace modal

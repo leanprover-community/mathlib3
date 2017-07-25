@@ -59,8 +59,7 @@ assume h : x ∈ ∅, h
 
 theorem empty_def : (∅ : set α) = {x | false} := rfl
 
-@[simp] theorem mem_empty_eq (x : α) : x ∈ (∅ : set α) = false :=
-rfl
+@[simp] theorem mem_empty_eq (x : α) : x ∈ (∅ : set α) = false := rfl
 
 @[simp] theorem set_of_false : {a : α | false} = ∅ := rfl
 
@@ -352,8 +351,7 @@ theorem singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := insert_ne_empty 
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
 ⟨xs, px⟩
 
-@[simp] theorem mem_sep_eq {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} = (x ∈ s ∧ p x) :=
-rfl
+@[simp] theorem mem_sep_eq {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} = (x ∈ s ∧ p x) := rfl
 
 theorem mem_sep_iff {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} ↔ x ∈ s ∧ p x :=
 iff.rfl
@@ -460,8 +458,7 @@ infix ` '' `:80 := image
 
 -- TODO(Jeremy): use bounded exists in image
 
-theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ image f s = ∃ x, x ∈ s ∧ f x = y :=
-rfl
+theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ image f s = ∃ x, x ∈ s ∧ f x = y := rfl
 
 -- the introduction rule
 theorem mem_image {f : α → β} {s : set α} {x : α} {y : β} (h₁ : x ∈ s) (h₂ : f x = y) :

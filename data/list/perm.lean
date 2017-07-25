@@ -287,10 +287,10 @@ iff.intro
      have ∀ a, count a l₁ = count a l₂, from
        assume a,
        if hl₁ : a ∈ l₁ then
-         have a ∈ erase_dup (l₁ ∪ l₂), from mem_erase_dup (mem_union_left hl₁ l₂),
+         have a ∈ erase_dup (l₁ ∪ l₂), from mem_erase_dup.2 (mem_union_left hl₁ l₂),
          h a this
        else if hl₂ : a ∈ l₂ then
-         have a ∈ erase_dup (l₁ ∪ l₂), from mem_erase_dup (mem_union_right l₁ hl₂),
+         have a ∈ erase_dup (l₁ ∪ l₂), from mem_erase_dup.2 (mem_union_right l₁ hl₂),
          h a this
        else
          by simp [hl₁, hl₂],
@@ -521,18 +521,18 @@ assume p, perm_induction_on p
   nil
   (λ x t₁ t₂ p r, by_cases
     (λ xint₁  : x ∈ t₁,
-      have xint₂ : x ∈ t₂, from mem_of_mem_erase_dup (mem_of_perm r (mem_erase_dup xint₁)),
+      have xint₂ : x ∈ t₂, from mem_erase_dup.1 (mem_of_perm r (mem_erase_dup.2 xint₁)),
       begin rw [erase_dup_cons_of_mem xint₁, erase_dup_cons_of_mem xint₂], exact r end)
     (λ nxint₁ : x ∉ t₁,
       have nxint₂ : x ∉ t₂, from
          assume xint₂ : x ∈ t₂,
-         absurd (mem_of_mem_erase_dup (mem_of_perm (perm.symm r) (mem_erase_dup xint₂))) nxint₁,
+         absurd (mem_erase_dup.1 (mem_of_perm (perm.symm r) (mem_erase_dup.2 xint₂))) nxint₁,
       begin rw [erase_dup_cons_of_not_mem nxint₂, erase_dup_cons_of_not_mem nxint₁],
             exact (skip x r) end))
   (λ y x t₁ t₂ p r, by_cases
     (λ xinyt₁  : x ∈ y::t₁, by_cases
       (λ yint₁  : y ∈ t₁,
-        have yint₂  : y ∈ t₂,    from mem_of_mem_erase_dup (mem_of_perm r (mem_erase_dup yint₁)),
+        have yint₂  : y ∈ t₂,    from mem_erase_dup.1 (mem_of_perm r (mem_erase_dup.2 yint₁)),
         have yinxt₂ : y ∈ x::t₂, from or.inr (yint₂),
         or.elim (eq_or_mem_of_mem_cons xinyt₁)
           (λ xeqy  : x = y,
@@ -543,7 +543,7 @@ assume p, perm_induction_on p
               exact r
             end)
           (λ xint₁ : x ∈ t₁,
-            have xint₂ : x ∈ t₂, from mem_of_mem_erase_dup (mem_of_perm r (mem_erase_dup xint₁)),
+            have xint₂ : x ∈ t₂, from mem_erase_dup.1 (mem_of_perm r (mem_erase_dup.2 xint₁)),
             begin
               rw [erase_dup_cons_of_mem xinyt₁, erase_dup_cons_of_mem yinxt₂,
                        erase_dup_cons_of_mem yint₁, erase_dup_cons_of_mem xint₂],
@@ -552,7 +552,7 @@ assume p, perm_induction_on p
       (λ nyint₁ : y ∉ t₁,
         have nyint₂ : y ∉ t₂, from
           assume yint₂ : y ∈ t₂,
-            absurd (mem_of_mem_erase_dup (mem_of_perm (perm.symm r) (mem_erase_dup yint₂))) nyint₁,
+            absurd (mem_erase_dup.1 (mem_of_perm (perm.symm r) (mem_erase_dup.2 yint₂))) nyint₁,
         by_cases
           (λ xeqy  : x = y,
             have nxint₂ : x ∉ t₂, begin rw [←xeqy] at nyint₂, exact nyint₂ end,
@@ -564,7 +564,7 @@ assume p, perm_induction_on p
             end)
           (λ xney : x ≠ y,
             have x ∈ t₁, from or_resolve_right xinyt₁ xney,
-            have x ∈ t₂, from mem_of_mem_erase_dup (mem_of_perm r (mem_erase_dup this)),
+            have x ∈ t₂, from mem_erase_dup.1 (mem_of_perm r (mem_erase_dup.2 this)),
             have y ∉ x::t₂, from
               assume : y ∈ x::t₂, or.elim (eq_or_mem_of_mem_cons this)
                 (λ h, absurd h (ne.symm xney))
@@ -579,11 +579,11 @@ assume p, perm_induction_on p
       have nxint₁  : x ∉ t₁, from not_mem_of_not_mem_cons nxinyt₁,
       have nxint₂  : x ∉ t₂, from
         assume xint₂ : x ∈ t₂,
-          absurd (mem_of_mem_erase_dup (mem_of_perm (perm.symm r) (mem_erase_dup xint₂))) nxint₁,
+          absurd (mem_erase_dup.1 (mem_of_perm (perm.symm r) (mem_erase_dup.2 xint₂))) nxint₁,
       by_cases
         (λ yint₁  : y ∈ t₁,
           have yinxt₂ : y ∈ x::t₂,
-            from or.inr (mem_of_mem_erase_dup (mem_of_perm r (mem_erase_dup yint₁))),
+            from or.inr (mem_erase_dup.1 (mem_of_perm r (mem_erase_dup.2 yint₁))),
           begin
             rw [erase_dup_cons_of_not_mem nxinyt₁, erase_dup_cons_of_mem yinxt₂,
                      erase_dup_cons_of_mem yint₁, erase_dup_cons_of_not_mem nxint₂],
@@ -593,7 +593,7 @@ assume p, perm_induction_on p
           have nyinxt₂ : y ∉ x::t₂, from
             assume yinxt₂ : y ∈ x::t₂, or.elim (eq_or_mem_of_mem_cons yinxt₂)
               (λ h, absurd h (ne.symm xney))
-              (λ h, absurd (mem_of_mem_erase_dup (mem_of_perm (r.symm) (mem_erase_dup h))) nyint₁),
+              (λ h, absurd (mem_erase_dup.1 (mem_of_perm (r.symm) (mem_erase_dup.2 h))) nyint₁),
           begin
             rw [erase_dup_cons_of_not_mem nxinyt₁, erase_dup_cons_of_not_mem nyinxt₂,
                      erase_dup_cons_of_not_mem nyint₁, erase_dup_cons_of_not_mem nxint₂],
@@ -601,66 +601,43 @@ assume p, perm_induction_on p
           end)))
   (λ t₁ t₂ t₃ p₁ p₂ r₁ r₂, trans r₁ r₂)
 
+-- attribute [congr]
+theorem perm_insert [decidable_eq α] (a : α)
+  {l₁ l₂ : list α} (p : l₁ ~ l₂) : (insert a l₁) ~ (insert a l₂) :=
+begin
+  by_cases a ∈ l₁ with al₁,
+  { simp [al₁, mem_of_perm p al₁], exact p },
+  { simp [al₁, mt (mem_of_perm p.symm) al₁], constructor, exact p }
+end
+
+theorem perm_insert_insert [decidable_eq α] (x y : α) (l : list α) :
+  insert x (insert y l) ~ insert y (insert x l) :=
+begin
+  by_cases x ∈ l with xl; by_cases y ∈ l with yl; simp [xl, yl],
+  by_cases x = y with xy, { simp [xy] },
+  simp [not_mem_cons_of_ne_of_not_mem xy xl,
+        not_mem_cons_of_ne_of_not_mem (ne.symm xy) yl],
+  constructor
+end
+
 section perm_union
 variable [decidable_eq α]
 
 theorem perm_union_left {l₁ l₂ : list α} (t₁ : list α) (h : l₁ ~ l₂) : (l₁ ∪ t₁) ~ (l₂ ∪ t₁) :=
 begin
-  induction t₁ with a t ih generalizing l₁ l₂,
-  { exact h },
-  exact
-    if ha₁ : a ∈ l₁ then
-      have ha₂ : a ∈ l₂, from mem_of_perm h ha₁,
-      begin simp [ha₁, ha₂], apply ih h end
-    else
-      have ha₂ : a ∉ l₂, from assume otherwise, ha₁ (mem_of_perm h.symm otherwise),
-      begin simp [ha₁, ha₂], apply ih, apply perm_app_left, exact h end
+  induction h using list.perm.rec_on with a l₁ l₂ generalizing t₁; try {simp},
+  exact perm_insert _ (ih_1 _),
+  apply perm_insert_insert,
+  exact (ih_1 _).trans (ih_2 _)
 end
-
-theorem perm_insert_insert (x y : α) (l : list α) :
-  insert x (insert y l) ~ insert y (insert x l) :=
-if yl : y ∈ l then
-  if xl : x ∈ l then by simp [xl, yl]
-  else by simp [xl, yl]
-else
-  if xl : x ∈ l then by simp [xl, yl]
-  else
-    if xy : x = y then by simp [xy, xl, yl]
-    else
-      have h₁ : x ∉ l ++ [y], begin intro h, simp at h, cases h, repeat { contradiction } end,
-      have h₂ : y ∉ l ++ [x], begin intro h, simp at h, cases h with h₃, exact xy h₃.symm,
-                                    contradiction end,
-      begin simp [xl, yl, h₁, h₂], apply perm_app_right, apply perm.swap end
 
 theorem perm_union_right (l : list α) {t₁ t₂ : list α} (h : t₁ ~ t₂) : (l ∪ t₁) ~ (l ∪ t₂) :=
-begin
-  induction h using list.perm.rec_on generalizing l,
-  { refl },
-  { apply ih_1 },
-  { simp, apply perm_union_left, apply perm_insert_insert },
-  { exact perm.trans (ih_1 l) (ih_2 l) }
-end
+by induction l; simp [*, perm_insert]
 
 -- attribute [congr]
 theorem perm_union {l₁ l₂ t₁ t₂ : list α} : l₁ ~ l₂ → t₁ ~ t₂ → (l₁ ∪ t₁) ~ (l₂ ∪ t₂) :=
 assume p₁ p₂, trans (perm_union_left t₁ p₁) (perm_union_right l₂ p₂)
 end perm_union
-
-section perm_insert
-variable [H : decidable_eq α]
-include H
-
--- attribute [congr]
-theorem perm_insert (a : α) {l₁ l₂ : list α} : l₁ ~ l₂ → (insert a l₁) ~ (insert a l₂) :=
-assume p,
-if al₁ : a ∈ l₁ then
-  have al₂ : a ∈ l₂, from mem_of_perm p al₁,
-  begin simp [al₁, al₂], exact p end
-else
-  have al₂ : a ∉ l₂, from assume otherwise, al₁ (mem_of_perm p.symm otherwise),
-  begin simp [al₁, al₂], exact perm_app_left _ p end
-
-end perm_insert
 
 section perm_inter
 variable [decidable_eq α]
@@ -726,21 +703,21 @@ theorem perm_ext : ∀ {l₁ l₂ : list α}, nodup l₁ → nodup l₂ → (∀
       (assume :  a ∈ t₁,
          have a ∈ a₂::t₂,       from iff.mp (e a) (mem_cons_of_mem _ this),
          have a ∈ s₁++(a₁::s₂), begin rw [t₂_eq] at this, exact this end,
-         or.elim (mem_or_mem_of_mem_append this)
+         or.elim (mem_append.1 this)
            (assume : a ∈ s₁, mem_append_left s₂ this)
            (assume : a ∈ a₁::s₂, or.elim (eq_or_mem_of_mem_cons this)
              (assume : a = a₁,
                have a₁ ∉ t₁, from not_mem_of_nodup_cons d₁,
                begin subst a, contradiction end)
              (assume : a ∈ s₂, mem_append_right s₁ this)))
-      (assume : a ∈ s₁ ++ s₂, or.elim (mem_or_mem_of_mem_append this)
+      (assume : a ∈ s₁ ++ s₂, or.elim (mem_append.1 this)
         (assume : a ∈ s₁,
            have a ∈ a₂::t₂, from begin rw [t₂_eq], exact (mem_append_left _ this) end,
            have a ∈ a₁::t₁, from iff.mpr (e a) this,
            or.elim (eq_or_mem_of_mem_cons this)
              (assume : a = a₁,
                 have a₁ ∉ s₁++s₂, from not_mem_of_nodup_cons dt₂',
-                have a₁ ∉ s₁,     from not_mem_of_not_mem_append_left this,
+                have a₁ ∉ s₁,     from mt (mem_append_left _) this,
                 begin subst a, contradiction end)
              (assume : a ∈ t₁, this))
         (assume : a ∈ s₂,
@@ -750,7 +727,7 @@ theorem perm_ext : ∀ {l₁ l₂ : list α}, nodup l₁ → nodup l₂ → (∀
            or.elim (eq_or_mem_of_mem_cons this)
              (assume : a = a₁,
                have a₁ ∉ s₁++s₂, from not_mem_of_nodup_cons dt₂',
-               have a₁ ∉ s₂, from not_mem_of_not_mem_append_right this,
+               have a₁ ∉ s₂, from mt (mem_append_right _) this,
                begin subst a, contradiction end)
              (assume : a ∈ t₁, this))),
   have ds₁s₂ : nodup (s₁++s₂), from nodup_of_nodup_cons dt₂',

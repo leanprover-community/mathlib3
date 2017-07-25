@@ -294,18 +294,17 @@ instance decidable_exists_mem {p : α → Prop} [h : decidable_pred p] :
 @[simp] theorem zip_nil_left (l : list α) : zip ([] : list β) l = [] := rfl
 
 @[simp] theorem zip_nil_right (l : list α) : zip l ([] : list β) = [] :=
-begin cases l, reflexivity, reflexivity end
+by cases l; refl
 
 @[simp] theorem unzip_nil : unzip (@nil (α × β)) = ([], []) := rfl
 
 theorem unzip_cons' (a : α) (b : β) (l : list (α × β)) :
-   unzip ((a, b) :: l) = match (unzip l) with (la, lb) := (a :: la, b :: lb) end :=
-rfl
+   unzip ((a, b) :: l) = match (unzip l) with (la, lb) := (a :: la, b :: lb) end := rfl
 
 -- TODO(Jeremy): it seems this version is better for the simplifier
 @[simp] theorem unzip_cons (a : α) (b : β) (l : list (α × β)) :
    unzip ((a, b) :: l) = let p := unzip l in (a :: p.1, b :: p.2) :=
-begin rw unzip_cons', cases unzip l, reflexivity end
+by rw unzip_cons'; cases unzip l; refl
 
 theorem zip_unzip : ∀ (l : list (α × β)), zip (unzip l).1 (unzip l).2 = l
 | []            := rfl
@@ -413,7 +412,7 @@ theorem mem_product {a : α} {b : β} : ∀ {l₁ l₂}, a ∈ l₁ → b ∈ l�
 theorem mem_of_mem_product_left {a : α} {b : β} : ∀ {l₁ l₂}, (a, b) ∈ @product α β l₁ l₂ → a ∈ l₁
 | []      l₂ h := absurd h (not_mem_nil _)
 | (x::l₁) l₂ h :=
-  or.elim (mem_or_mem_of_mem_append h)
+  or.elim (mem_append.1 h)
     (assume : (a, b) ∈ map (λ b, (x, b)) l₂,
        have a = x, from eq_of_mem_map_pair₁ this,
        begin rw this, apply mem_cons_self end)
@@ -424,7 +423,7 @@ theorem mem_of_mem_product_left {a : α} {b : β} : ∀ {l₁ l₂}, (a, b) ∈ 
 theorem mem_of_mem_product_right {a : α} {b : β} : ∀ {l₁ l₂}, (a, b) ∈ @product α β l₁ l₂ → b ∈ l₂
 | []      l₂ h := absurd h (not_mem_nil ((a, b)))
 | (x::l₁) l₂ h :=
-  or.elim (mem_or_mem_of_mem_append h)
+  or.elim (mem_append.1 h)
     (assume : (a, b) ∈ map (λ b, (x, b)) l₂,
       mem_of_mem_map_pair₁ this)
     (assume : (a, b) ∈ product l₁ l₂,

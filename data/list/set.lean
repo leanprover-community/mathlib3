@@ -19,29 +19,29 @@ variable [decidable_eq α]
 
 @[simp] theorem insert_nil (a : α) : insert a nil = [a] := rfl
 
-theorem insert.def (a : α) (l : list α) : insert a l = if a ∈ l then l else concat l a := rfl
+theorem insert.def (a : α) (l : list α) : insert a l = if a ∈ l then l else a :: l := rfl
 
 @[simp] theorem insert_of_mem {a : α} {l : list α} (h : a ∈ l) : insert a l = l :=
-by rw [insert.def, if_pos h]
+by simp [insert.def, h]
 
-@[simp] theorem insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) : insert a l = concat l a :=
-by rw [insert.def, if_neg h]
+@[simp] theorem insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) : insert a l = a :: l :=
+by simp [insert.def, h]
+
+@[simp] theorem mem_insert_iff {a b : α} {l : list α} : a ∈ insert b l ↔ a = b ∨ a ∈ l :=
+begin
+  by_cases b ∈ l with h'; simp [h'],
+  apply (or_iff_right_of_imp _).symm,
+  exact λ e, e.symm ▸ h'
+end
 
 @[simp] theorem mem_insert_self (a : α) (l : list α) : a ∈ insert a l :=
-by by_cases a ∈ l with h; simp [h]
+mem_insert_iff.2 (or.inl rfl)
 
 @[simp] theorem mem_insert_of_mem {a b : α} {l : list α} (h : a ∈ l) : a ∈ insert b l :=
-by by_cases b ∈ l with h'; simp [h, h']
+mem_insert_iff.2 (or.inr h)
 
 theorem eq_or_mem_of_mem_insert {a b : α} {l : list α} (h : a ∈ insert b l) : a = b ∨ a ∈ l :=
-if h' : b ∈ l then
-  begin simp [h'] at h, simp [h] end
-else
-  begin simp [h'] at h, assumption end
-
-@[simp] theorem mem_insert_iff (a b : α) (l : list α) : a ∈ insert b l ↔ a = b ∨ a ∈ l :=
-iff.intro eq_or_mem_of_mem_insert
-  (λ h, or.elim h (begin intro h', simp [h'] end) mem_insert_of_mem)
+mem_insert_iff.1 h
 
 @[simp] theorem length_insert_of_mem {a : α} [decidable_eq α] {l : list α} (h : a ∈ l) :
   length (insert a l) = length l :=
@@ -62,17 +62,13 @@ end insert
 section erase
 variable [decidable_eq α]
 
-@[simp] theorem erase_nil (a : α) : [].erase a = [] :=
-rfl
-
-theorem erase_cons (a b : α) (l : list α) : (b :: l).erase a = if b = a then l else b :: l.erase a :=
-rfl
+@[simp] theorem erase_nil (a : α) : [].erase a = [] := rfl
 
 @[simp] theorem erase_cons_head (a : α) (l : list α) : (a :: l).erase a = l :=
-by simp [erase_cons, if_pos]
+by simp [list.erase]
 
 @[simp] theorem erase_cons_tail {a b : α} (l : list α) (h : b ≠ a) : (b::l).erase a = b :: l.erase a :=
-by simp [erase_cons, if_neg, h]
+by simp [list.erase, h]
 
 @[simp] theorem length_erase_of_mem {a : α} : ∀{l:list α}, a ∈ l → length (l.erase a) = pred (length l)
 | []         h := rfl
@@ -148,8 +144,11 @@ theorem disjoint_left {l₁ l₂ : list α} : disjoint l₁ l₂ → ∀ {a}, a 
 theorem disjoint_right {l₁ l₂ : list α} : disjoint l₁ l₂ → ∀ {a}, a ∈ l₂ → a ∉ l₁ :=
 λ d a i₂ i₁, d i₁ i₂
 
-theorem disjoint.comm {l₁ l₂ : list α} : disjoint l₁ l₂ → disjoint l₂ l₁ :=
+theorem disjoint.symm {l₁ l₂ : list α} : disjoint l₁ l₂ → disjoint l₂ l₁ :=
 λ d a i₂ i₁, d i₁ i₂
+
+theorem disjoint_comm {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ disjoint l₂ l₁ :=
+⟨disjoint.symm, disjoint.symm⟩
 
 theorem disjoint_of_subset_left {l₁ l₂ l : list α} : l₁ ⊆ l → disjoint l l₂ → disjoint l₁ l₂ :=
 λ ss d x xinl₁, d (ss xinl₁)
@@ -166,8 +165,11 @@ disjoint_of_subset_right (list.subset_cons _ _)
 theorem disjoint_nil_left (l : list α) : disjoint [] l :=
 λ a ab, absurd ab (not_mem_nil a)
 
-theorem disjoint_nil_right (l : list α) : disjoint l [] :=
-disjoint.comm (disjoint_nil_left l)
+theorem disjoint_singleton {l : list α} {a : α} : disjoint l [a] ↔ a ∉ l :=
+⟨λ d h, d h (mem_cons_self _ _), λ m b bl ba, m (mem_singleton ba ▸ bl)⟩
+
+theorem singleton_disjoint {l : list α} {a : α} : disjoint [a] l ↔ a ∉ l :=
+disjoint_comm.trans disjoint_singleton
 
 theorem disjoint_cons_of_not_mem_of_disjoint {a : α} {l₁ l₂ : list α} :
   a ∉ l₂ → disjoint l₁ l₂ → disjoint (a::l₁) l₂ :=
@@ -178,7 +180,7 @@ theorem disjoint_cons_of_not_mem_of_disjoint {a : α} {l₁ l₂ : list α} :
 
 theorem disjoint_append_of_disjoint_left {l₁ l₂ l : list α} :
   disjoint l₁ l → disjoint l₂ l → disjoint (l₁++l₂) l :=
-λ d₁ d₂ x h, or.elim (mem_or_mem_of_mem_append h) (@d₁ x) (@d₂ x)
+λ d₁ d₂ x h, or.elim (mem_append.1 h) (@d₁ x) (@d₂ x)
 
 theorem disjoint_of_disjoint_append_left_left {l₁ l₂ l : list α} : disjoint (l₁++l₂) l → disjoint l₁ l :=
 disjoint_of_subset_left (list.subset_append_left _ _)
@@ -243,65 +245,35 @@ theorem upto_step : ∀ (n : nat), upto (succ n) = (map succ (upto n)) ++ [0]
 section union
 variable [decidable_eq α]
 
-@[simp] theorem union_nil (l : list α) : l ∪ [] = l := rfl
+@[simp] theorem nil_union (l : list α) : [] ∪ l = l := rfl
 
-@[simp] theorem union_cons (l₁ l₂ : list α) (a : α) : l₁ ∪ (a :: l₂) = insert a l₁ ∪ l₂ := rfl
+@[simp] theorem cons_union (l₁ l₂ : list α) (a : α) : a :: l₁ ∪ l₂ = insert a (l₁ ∪ l₂) := rfl
 
-theorem mem_or_mem_of_mem_union : ∀ {l₁ l₂ : list α} {a : α}, a ∈ l₁ ∪ l₂ → a ∈ l₁ ∨ a ∈ l₂
-| l₁ []        a h := begin simp at h, simp [h] end
-| l₁ (b :: l₂) a h :=
-  if h' : b ∈ l₂ then
-    begin
-      simp at h,
-      cases mem_or_mem_of_mem_union h with h₀ h₀,
-      { simp at h₀, cases h₀ with h₁ h₁, simp [h₁], simp [h₁] },
-      simp [h₀]
-    end
-  else
-    begin
-      simp [union_cons] at h,
-      cases mem_or_mem_of_mem_union h with h₀ h₀,
-      { simp at h₀, cases h₀ with h₁ h₁, repeat { simp [h₁] } },
-      simp [h₀]
-    end
+@[simp] theorem mem_union_iff {l₁ l₂ : list α} {a : α} : a ∈ l₁ ∪ l₂ ↔ a ∈ l₁ ∨ a ∈ l₂ :=
+by induction l₁; simp *
+
+theorem mem_or_mem_of_mem_union {l₁ l₂ : list α} {a : α} : a ∈ l₁ ∪ l₂ → a ∈ l₁ ∨ a ∈ l₂ :=
+mem_union_iff.1
 
 theorem mem_union_left {a : α} {l₁ : list α} (h : a ∈ l₁) (l₂ : list α) : a ∈ l₁ ∪ l₂ :=
-begin
-  induction l₂ with b l₂ ih generalizing l₁,
-  { simp [h] },
-  { apply ih, simp [h] }
-end
+mem_union_iff.2 (or.inl h)
 
 theorem mem_union_right {a : α} (l₁ : list α) {l₂ : list α} (h : a ∈ l₂) : a ∈ l₁ ∪ l₂ :=
-begin
-  induction l₂ with b l₂ ih generalizing l₁,
-  { simp at h, contradiction },
-  simp, simp at h,
-  cases h with h₀ h₀,
-  { subst h₀, apply mem_union_left, simp },
-  apply ih h₀
-end
-
-@[simp] theorem mem_union_iff (a : α) (l₁ l₂ : list α) : a ∈ l₁ ∪ l₂ ↔ a ∈ l₁ ∨ a ∈ l₂ :=
-iff.intro mem_or_mem_of_mem_union (λ h, or.elim h (λ h', mem_union_left h' l₂) (mem_union_right l₁))
+mem_union_iff.2 (or.inr h)
 
 theorem forall_mem_union {p : α → Prop} {l₁ l₂ : list α} (h₁ : ∀ x ∈ l₁, p x) (h₂ : ∀ x ∈ l₂, p x) :
   ∀ x ∈ l₁ ∪ l₂, p x :=
-begin
-  intro x, simp, intro h, cases h,
-  { apply h₁, assumption },
-  apply h₂, assumption
-end
+by simp [or_imp_iff_and_imp, forall_and_distrib]; exact ⟨h₁, h₂⟩
 
 theorem forall_mem_of_forall_mem_union_left {p : α → Prop} {l₁ l₂ : list α}
    (h : ∀ x ∈ l₁ ∪ l₂, p x) :
   ∀ x ∈ l₁, p x :=
-begin intros x xl₁, apply h, apply mem_union_left xl₁ end
+by intros x xl₁; apply h; apply mem_union_left xl₁
 
 theorem forall_mem_of_forall_mem_union_right {p : α → Prop} {l₁ l₂ : list α}
    (h : ∀ x ∈ l₁ ∪ l₂, p x) :
   ∀ x ∈ l₂, p x :=
-begin intros x xl₂, apply h, apply mem_union_right l₁ xl₂ end
+by intros x xl₂; apply h; apply mem_union_right l₁ xl₂
 
 end union
 
@@ -432,26 +404,20 @@ theorem nodup_of_nodup_append_right : ∀ {l₁ l₂ : list α}, nodup (l₁++l�
 
 theorem disjoint_of_nodup_append : ∀ {l₁ l₂ : list α}, nodup (l₁++l₂) → disjoint l₁ l₂
 | []      l₂  d := disjoint_nil_left l₂
-| (x::xs) l₂  d :=
-  have nodup (x::(xs++l₂)),    from d,
-  have x ∉ xs++l₂,             from not_mem_of_nodup_cons this,
-  have nxinl₂ : x ∉ l₂,        from not_mem_of_not_mem_append_right this,
-  assume a, assume : a ∈ x::xs,
-    or.elim (eq_or_mem_of_mem_cons this)
-      (assume : a = x, eq.symm this ▸ nxinl₂)
-      (assume ainxs : a ∈ xs,
-        have nodup (x::(xs++l₂)), from d,
-        have nodup (xs++l₂),      from nodup_of_nodup_cons this,
-        have disjoint xs l₂,      from disjoint_of_nodup_append this,
-        disjoint_left this ainxs)
+| (x::xs) l₂  d := begin
+    simp at d,
+    apply disjoint_cons_of_not_mem_of_disjoint,
+    exact mt (mem_append_right _) (not_mem_of_nodup_cons d),
+    exact disjoint_of_nodup_append (nodup_of_nodup_cons d),
+  end
 
-theorem nodup_append_of_nodup_of_nodup_of_disjoint :
+theorem nodup_append :
   ∀ {l₁ l₂ : list α}, nodup l₁ → nodup l₂ → disjoint l₁ l₂ → nodup (l₁++l₂)
 | []      l₂ d₁ d₂ dsj := begin rw [nil_append], exact d₂ end
 | (x::xs) l₂ d₁ d₂ dsj :=
   have ndxs     : nodup xs,            from nodup_of_nodup_cons d₁,
   have disjoint xs l₂,                 from disjoint_of_disjoint_cons_left dsj,
-  have ndxsl₂   : nodup (xs++l₂),      from nodup_append_of_nodup_of_nodup_of_disjoint ndxs d₂ this,
+  have ndxsl₂   : nodup (xs++l₂),      from nodup_append ndxs d₂ this,
   have nxinxs   : x ∉ xs,              from not_mem_of_nodup_cons d₁,
   have x ∉ l₂,                         from disjoint_left dsj (mem_cons_self x xs),
   have x ∉ xs++l₂,                     from not_mem_append nxinxs this,
@@ -461,15 +427,15 @@ theorem nodup_app_comm {l₁ l₂ : list α} (d : nodup (l₁++l₂)) : nodup (l
 have d₁  : nodup l₁,       from nodup_of_nodup_append_left d,
 have d₂  : nodup l₂,       from nodup_of_nodup_append_right d,
 have dsj : disjoint l₁ l₂, from disjoint_of_nodup_append d,
-nodup_append_of_nodup_of_nodup_of_disjoint d₂ d₁ (disjoint.comm dsj)
+nodup_append d₂ d₁ dsj.symm
 
 theorem nodup_head {a : α} {l₁ l₂ : list α} (d : nodup (l₁++(a::l₂))) : nodup (a::(l₁++l₂)) :=
 have d₁    : nodup (a::(l₂++l₁)), from nodup_app_comm d,
 have d₂    : nodup (l₂++l₁),      from nodup_of_nodup_cons d₁,
 have d₃    : nodup (l₁++l₂),      from nodup_app_comm d₂,
 have nain  : a ∉ l₂++l₁,          from not_mem_of_nodup_cons d₁,
-have nain₂ : a ∉ l₂,              from not_mem_of_not_mem_append_left nain,
-have nain₁ : a ∉ l₁,              from not_mem_of_not_mem_append_right nain,
+have nain₂ : a ∉ l₂,              from mt (mem_append_left _) nain,
+have nain₁ : a ∉ l₁,              from mt (mem_append_right _) nain,
 nodup_cons (not_mem_append nain₁ nain₂) d₃
 
 theorem nodup_middle {a : α} {l₁ l₂ : list α} (d : nodup (a::(l₁++l₂))) : nodup (l₁++(a::l₂)) :=
@@ -478,12 +444,11 @@ have nain  : a ∉ l₁++l₂,          from not_mem_of_nodup_cons d,
 have disj  : disjoint l₁ l₂,      from disjoint_of_nodup_append d₁,
 have d₂    : nodup l₁,            from nodup_of_nodup_append_left d₁,
 have d₃    : nodup l₂,            from nodup_of_nodup_append_right d₁,
-have nain₂ : a ∉ l₂,              from not_mem_of_not_mem_append_right nain,
-have nain₁ : a ∉ l₁,              from not_mem_of_not_mem_append_left nain,
+have nain₂ : a ∉ l₂,              from mt (mem_append_right _) nain,
+have nain₁ : a ∉ l₁,              from mt (mem_append_left _) nain,
 have d₄    : nodup (a::l₂),       from nodup_cons nain₂ d₃,
-have disj₂ : disjoint l₁ (a::l₂), from disjoint.comm (disjoint_cons_of_not_mem_of_disjoint nain₁
-                                           (disjoint.comm disj)),
-nodup_append_of_nodup_of_nodup_of_disjoint d₂ d₄ disj₂
+have disj₂ : disjoint l₁ (a::l₂), from (disjoint_cons_of_not_mem_of_disjoint nain₁ disj.symm).symm,
+nodup_append d₂ d₄ disj₂
 
 theorem nodup_of_nodup_map (f : α → β) : ∀ {l : list α}, nodup (map f l) → nodup l
 | []     d := ndnil
@@ -543,33 +508,23 @@ def erase_dup [decidable_eq α] : list α → list α
 | []        :=  []
 | (x :: xs) :=  if x ∈ xs then erase_dup xs else x :: erase_dup xs
 
-theorem erase_dup_nil [decidable_eq α] : erase_dup [] = ([] : list α) := rfl
+@[simp] theorem erase_dup_nil [decidable_eq α] : erase_dup [] = ([] : list α) := rfl
 
-theorem erase_dup_cons_of_mem [decidable_eq α] {a : α} {l : list α} :
-  a ∈ l → erase_dup (a::l) = erase_dup l :=
-assume ainl, calc
-  erase_dup (a::l) = if a ∈ l then erase_dup l else a :: erase_dup l : rfl
-              ...  = erase_dup l                                     : if_pos ainl
+@[simp] theorem erase_dup_cons_of_mem [decidable_eq α] {a : α} {l : list α} (h : a ∈ l) :
+  erase_dup (a::l) = erase_dup l :=
+by simp [erase_dup, h]
 
-theorem erase_dup_cons_of_not_mem [decidable_eq α] {a : α} {l : list α} :
-  a ∉ l → erase_dup (a::l) = a :: erase_dup l :=
-assume nainl, calc
-  erase_dup (a::l) = if a ∈ l then erase_dup l else a :: erase_dup l : rfl
-              ...  = a :: erase_dup l                                : if_neg nainl
+@[simp] theorem erase_dup_cons_of_not_mem [decidable_eq α] {a : α} {l : list α} (h : a ∉ l) :
+  erase_dup (a::l) = a :: erase_dup l :=
+by simp [erase_dup, h]
 
-theorem mem_erase_dup [decidable_eq α] {a : α} : ∀ {l : list α}, a ∈ l → a ∈ erase_dup l
-| []     h  := absurd h (not_mem_nil _)
-| (b::l) h  := by_cases
-  (λ binl  : b ∈ l, or.elim (eq_or_mem_of_mem_cons h)
-    (λ aeqb : a = b,
-      begin rw [erase_dup_cons_of_mem binl], rw ←aeqb at binl, exact (mem_erase_dup binl) end)
-    (λ ainl : a ∈ l,
-      begin rw [erase_dup_cons_of_mem binl], exact (mem_erase_dup ainl) end))
-  (λ nbinl : b ∉ l, or.elim (eq_or_mem_of_mem_cons h)
-    (λ aeqb : a = b,
-      begin rw [erase_dup_cons_of_not_mem nbinl, aeqb], apply mem_cons_self end)
-    (λ ainl : a ∈ l,
-      begin rw [erase_dup_cons_of_not_mem nbinl], exact (or.inr (mem_erase_dup ainl)) end))
+theorem mem_erase_dup [decidable_eq α] {a : α} {l : list α} : a ∈ erase_dup l ↔ a ∈ l :=
+begin
+  induction l with b l ih; simp,
+  by_cases b ∈ l with h'; simp [h', ih],
+  apply (or_iff_right_of_imp _).symm,
+  exact λ e, e.symm ▸ h'
+end
 
 theorem erase_dup_sublist [decidable_eq α] : ∀ (l : list α), erase_dup l <+ l
 | []     := sublist.slnil
@@ -578,45 +533,20 @@ theorem erase_dup_sublist [decidable_eq α] : ∀ (l : list α), erase_dup l <+ 
   else
     by simp[erase_dup, h]; exact cons_sublist_cons _ (erase_dup_sublist l)
 
-theorem mem_of_mem_erase_dup [decidable_eq α] {a : α} : ∀ {l : list α}, a ∈ erase_dup l → a ∈ l
-| []     h := begin rw [erase_dup_nil] at h, exact h end
-| (b::l) h := by_cases
-  (λ binl  : b ∈ l,
-    have h₁ : a ∈ erase_dup l,
-      begin rw [erase_dup_cons_of_mem binl] at h, exact h end,
-    or.inr (mem_of_mem_erase_dup h₁))
-  (λ nbinl : b ∉ l,
-    have h₁ : a ∈ b :: erase_dup l,
-      begin rw [erase_dup_cons_of_not_mem nbinl] at h, exact h end,
-    or.elim (eq_or_mem_of_mem_cons h₁)
-      (λ aeqb  : a = b, begin rw aeqb, apply mem_cons_self end)
-      (λ ainel : a ∈ erase_dup l, or.inr (mem_of_mem_erase_dup ainel)))
-
-@[simp] theorem mem_erase_dup_iff [decidable_eq α] (a : α) (l : list α) : a ∈ erase_dup l ↔ a ∈ l :=
-iff.intro mem_of_mem_erase_dup mem_erase_dup
-
 theorem erase_dup_subset [decidable_eq α] (l : list α) : erase_dup l ⊆ l :=
-λ a i, mem_of_mem_erase_dup i
+λ a, mem_erase_dup.1
 
 theorem subset_erase_dup [decidable_eq α] (l : list α) : l ⊆ erase_dup l :=
-λ a i, mem_erase_dup i
+λ a, mem_erase_dup.2
 
 theorem nodup_erase_dup [decidable_eq α] : ∀ l : list α, nodup (erase_dup l)
-| []        := begin rw erase_dup_nil, exact nodup_nil end
-| (a::l)    := by_cases
-  (λ ainl  : a ∈ l, begin rw [erase_dup_cons_of_mem ainl], exact (nodup_erase_dup l) end)
-  (λ nainl : a ∉ l,
-    have r   : nodup (erase_dup l), from nodup_erase_dup l,
-    have nin : a ∉ erase_dup l, from
-      assume ab : a ∈ erase_dup l, absurd (mem_of_mem_erase_dup ab) nainl,
-    begin rw [erase_dup_cons_of_not_mem nainl], exact (nodup_cons nin r) end)
+| []        := nodup_nil
+| (a::l)    := by by_cases a ∈ l with h; simp [h]; [
+    apply nodup_erase_dup,
+    exact nodup_cons (mt mem_erase_dup.1 h) (nodup_erase_dup _) ]
 
-theorem erase_dup_eq_of_nodup [decidable_eq α] : ∀ {l : list α}, nodup l → erase_dup l = l
-| []     d := rfl
-| (a::l) d :=
-  have nainl : a ∉ l, from not_mem_of_nodup_cons d,
-  have dl : nodup l,  from nodup_of_nodup_cons d,
-  by rw [erase_dup_cons_of_not_mem nainl, erase_dup_eq_of_nodup dl]
+theorem erase_dup_eq_of_nodup [decidable_eq α] {l : list α} (d : nodup l) : erase_dup l = l :=
+by induction d; simp *
 
 private def dgen (a : α) : ∀ l, nodup l → nodup (map (λ b : β, (a, b)) l)
 | []     h := nodup_nil
@@ -644,7 +574,7 @@ theorem nodup_product : ∀ {l₁ : list α} {l₂ : list β}, nodup l₁ → no
               have a ∈ l₁, begin rw ←this, assumption end,
               absurd this nainl₁
          end,
-  nodup_append_of_nodup_of_nodup_of_disjoint dm n₄ dsj
+  nodup_append dm n₄ dsj
 
 theorem nodup_filter (p : α → Prop) [decidable_pred p] :
   ∀ {l : list α}, nodup l → nodup (filter p l)
@@ -678,20 +608,10 @@ theorem dmap_nodup_of_dinj {p : α → Prop} [h : decidable_pred p] {f : Π a, p
               end
 
 theorem nodup_concat {a : α} {l : list α} (h : a ∉ l) (h' : nodup l) : nodup (concat l a) :=
-begin
-  revert h, induction l with b l ih,
-  { intro h₀, apply nodup_singleton },
-  intro h₀, rw [concat_cons], apply nodup_cons,
-  { simp, intro h₁, apply h₀, simp, cases h₁ with h₂ h₂, simp [h₂],
-    exact absurd h₂ (not_mem_of_nodup_cons h') },
-  apply ih,
-  { apply nodup_of_nodup_cons h' },
-  intro h₁, apply h₀, exact mem_cons_of_mem _ h₁
-end
+by simp; exact nodup_append h' (nodup_singleton _) (disjoint_singleton.2 h)
 
 theorem nodup_insert [decidable_eq α] {a : α} {l : list α} (h : nodup l) : nodup (insert a l) :=
-if h' : a ∈ l then by simp [h', h]
-else begin rw [insert_of_not_mem h'], apply nodup_concat, repeat {assumption} end
+by by_cases a ∈ l with h'; simp [h', h]; apply nodup_cons h' h
 
 theorem nodup_upto : ∀ n, nodup (upto n)
 | 0     := nodup_nil
@@ -701,16 +621,14 @@ theorem nodup_upto : ∀ n, nodup (upto n)
     assume i : n ∈ upto n, absurd (lt_of_mem_upto i) (nat.lt_irrefl n),
   nodup_cons n d
 
-theorem nodup_union_of_nodup_of_nodup [decidable_eq α] {l₁ l₂ : list α}
-    (h₁ : nodup l₁) (h₂ : nodup l₂) :
+theorem nodup_union [decidable_eq α] (l₁ : list α) {l₂ : list α} (h : nodup l₂) :
   nodup (l₁ ∪ l₂) :=
 begin
-  induction l₂ with a l₂ ih generalizing l₁,
-  { exact h₁ },
+  induction l₁ with a l₁ ih generalizing l₂,
+  { exact h },
   simp,
-  apply ih,
-  { apply nodup_of_nodup_cons h₂ },
-  apply nodup_insert h₁
+  apply nodup_insert,
+  exact ih h
 end
 
 theorem nodup_inter_of_nodup [decidable_eq α] : ∀ {l₁ : list α} (l₂), nodup l₁ → nodup (l₁ ∩ l₂)

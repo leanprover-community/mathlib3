@@ -36,8 +36,7 @@ theorem eq_iff_le_and_le {α : Type u} [weak_order α] {a b : α} : a = b ↔ (a
   (∃x, p x) ↔ (∃a b, p (a, b)) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
-@[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} = (∀a, p a → q a) :=
-rfl
+@[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} = (∀a, p a → q a) := rfl
 
 
 end miscellany

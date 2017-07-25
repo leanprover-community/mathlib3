@@ -185,7 +185,7 @@ begin
   exact ⟨list.nodup.ndnil, λ_, false.elim⟩,
   simp[array.iterate_aux, list.map_append], exact
   let ⟨nd, al⟩ := IH (le_of_lt h) in
-  ⟨ list.nodup_append_of_nodup_of_nodup_of_disjoint nd (v.nodup _ _) $ λa m1 m2,
+  ⟨list.nodup_append nd (v.nodup _ _) $ λa m1 m2,
     let ⟨⟨a', b⟩, m1, e1⟩ := list.exists_of_mem_map m1 in
     let ⟨⟨a'', b'⟩, m2, e2⟩ := list.exists_of_mem_map m2 in
     match a', a'', b, b', m1, m2, e1, e2 with ._, ._, b, b', m1, m2, rfl, rfl :=
@@ -319,14 +319,11 @@ section
           have nd' : ((u ++ v2 ++ w).map sigma.fst).nodup, begin
             rw [list.map_append, list.map_append] at nd,
             rw [list.map_append, list.map_append],
-            have ndu : (u.map sigma.fst).nodup := list.nodup_of_nodup_append_left (list.nodup_of_nodup_append_left nd),
-            have ndv1 : (v1.map sigma.fst).nodup := list.nodup_of_nodup_append_right (list.nodup_of_nodup_append_left nd),
-            have ndw : (w.map sigma.fst).nodup := list.nodup_of_nodup_append_right nd,
-            have djuw : (u.map sigma.fst).disjoint (w.map sigma.fst) :=
-              list.disjoint_of_disjoint_append_left_left (list.disjoint_of_nodup_append nd),
-            exact list.nodup_append_of_nodup_of_nodup_of_disjoint
-              (list.nodup_append_of_nodup_of_nodup_of_disjoint ndu hvnd djuv)
-              ndw (list.disjoint_append_of_disjoint_left djuw djwv.comm)
+            have ndu  := list.nodup_of_nodup_append_left (list.nodup_of_nodup_append_left nd),
+            have ndw  := list.nodup_of_nodup_append_right nd,
+            have djuw := list.disjoint_of_disjoint_append_left_left (list.disjoint_of_nodup_append nd),
+            exact list.nodup_append (list.nodup_append ndu hvnd djuv)
+              ndw (list.disjoint_append_of_disjoint_left djuw djwv.symm)
           end,
           begin
             rw [e, calc s + (u ++ v1 ++ w).length + v2.length - v1.length
@@ -495,7 +492,7 @@ theorem not_contains_empty (hash_fn : α → nat) (n a) :
   ¬ (@mk_hash_map α _ β hash_fn n).contains a :=
 by apply bool_iff_false.2; dsimp [contains]; rw [find_empty]; refl
 
-theorem insert_theorem (hash_fn : α → nat) {n n'}
+theorem insert_lemma (hash_fn : α → nat) {n n'}
   {bkts : bucket_array α β n} {sz} (v : valid hash_fn bkts sz) :
   valid hash_fn (bkts.foldl (mk_array _ [] : bucket_array α β n') (reinsert_aux hash_fn)) sz :=
 suffices ∀ (l : list Σ a, β a),
@@ -520,7 +517,7 @@ end,
   apply IH _ _ v',
   simp,
   have nd' := list.nodup_of_nodup_cons nd,
-  apply list.nodup_append_of_nodup_of_nodup_of_disjoint
+  apply list.nodup_append
     (list.nodup_of_nodup_append_left nd')
     (v'.as_list_nodup _),
   exact λa m1 m2,
@@ -568,7 +565,7 @@ let n'        : ℕ+ := ⟨n.1 * 2, mul_pos n.2 dec_trivial⟩,
   size     := size',
   nbuckets := n',
   buckets  := buckets'',
-  is_valid := insert_theorem _ valid' }
+  is_valid := insert_lemma _ valid' }
 
 theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
   sigma.mk a' b' ∈ (m.insert a b).entries ↔
@@ -701,7 +698,7 @@ match (by apply_instance : decidable (contains_aux a bkt)) with
         append_of_modify u' [⟨a, b⟩] [] _ hl' hfl', v.as_list_nodup _ with
   | ._, ._, ⟨u, w, rfl, rfl⟩, nd' := by simp; simp at nd'; exact
     ⟨λhm, ⟨λe, match a', e, b', hm with ._, rfl, b', hm := by {
-      rw [← list.mem_append_iff] at hm;
+      rw [← list.mem_append] at hm;
       have hm := list.mem_map sigma.fst hm;
       rw list.map_append at hm;
       exact list.not_mem_of_nodup_cons (list.nodup_head nd') hm }

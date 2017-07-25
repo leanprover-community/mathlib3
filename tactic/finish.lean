@@ -221,7 +221,7 @@ do simps ← if cfg.classical then
 -- eliminate an existential quantifier if there is one
 meta def eelim : tactic unit :=
 do ctx ← local_context,
-   first $ ctx.for $ λ h,
+   first $ ctx.map $ λ h,
      do t ← infer_type h >>= whnf_reducible,
         guard (is_app_of t ``Exists),
         tgt ← target,
@@ -239,7 +239,7 @@ meta def eelims : tactic unit := eelim >> repeat eelim
 -- carries out a subst if there is one, fails otherwise
 meta def do_subst : tactic unit :=
 do ctx ← local_context,
-   first $ ctx.for $ λ h,
+   first $ ctx.map $ λ h,
      do t ← infer_type h >>= whnf_reducible,
         match t with
         | `(%%a = %%b) := subst h

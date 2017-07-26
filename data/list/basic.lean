@@ -56,20 +56,7 @@ def split_at : ℕ → list α → list α × list α
 | (succ n) []        := rfl
 | (succ n) (x :: xs) := by simp [take_append_drop n xs]
 
-/- length -/
-
-theorem eq_nil_of_length_eq_zero {l : list α} : length l = 0 → l = [] :=
-by {induction l; intros, refl, contradiction}
-
-theorem ne_nil_of_length_eq_succ {l : list α} : ∀ {n : nat}, length l = succ n → l ≠ [] :=
-by induction l; intros; contradiction
-
 -- TODO(Leo): cleanup proof after arith dec proc
-@[simp] theorem length_take : ∀ (i : ℕ) (l : list α), length (take i l) = min i (length l)
-| 0        l      := by simp
-| (succ n) []     := by simp
-| (succ n) (a::l) := by simp [*, nat.min_succ_succ, add_one]
-
 theorem append_inj : ∀ {s₁ s₂ t₁ t₂ : list α}, s₁ ++ t₁ = s₂ ++ t₂ → length s₁ = length s₂ → s₁ = s₂ ∧ t₁ = t₂
 | []      []      t₁ t₂ h hl := ⟨rfl, h⟩
 | (a::s₁) []      t₁ t₂ h hl := list.no_confusion $ eq_nil_of_length_eq_zero hl
@@ -205,17 +192,6 @@ by revert a; induction l; intros; simp [*, foldl]
 theorem foldr_hom (f : α → β) (g : γ → α → α) (g' : γ → β → β) (a : α)
   (h : ∀x a, f (g x a) = g' x (f a)) (l : list γ) : f (foldr g a l) = foldr g' (f a) l :=
 by revert a; induction l; intros; simp [*, foldr]
-
-/- map₂ -/
-
-def map₂ (f : α → β → γ) : list α → list β → list γ
-| []      _       := []
-| _       []      := []
-| (x::xs) (y::ys) := f x y :: map₂ xs ys
-attribute [simp] map₂
-
-@[simp] theorem length_map₂ (f : α → β → γ) (l₁) : ∀ l₂, length (map₂ f l₁ l₂) = min (length l₁) (length l₂) :=
-by {induction l₁; intro l₂; cases l₂; simp [*, add_one, min_succ_succ]}
 
 /- filter_map -/
 
@@ -456,13 +432,6 @@ theorem index_of_lt_length {a} {l : list α} : index_of a l < length l ↔ a ∈
 end index_of
 
 /- nth element -/
-
-def nth_le : Π (l : list α) (n), n < l.length → α
-| []       n     h := absurd h (not_lt_zero n)
-| (a :: l) 0     h := a
-| (a :: l) (n+1) h := nth_le l n (le_of_succ_le_succ h)
-attribute [simp] nth_le
-
 theorem nth_le_nth : Π (l : list α) (n h), nth l n = some (nth_le l n h)
 | []       n     h := absurd h (not_lt_zero n)
 | (a :: l) 0     h := rfl
@@ -489,22 +458,6 @@ ext $ λn, if h₁ : n < length l₁
 
 @[simp] theorem index_of_nth [decidable_eq α] {a : α} {l : list α} (h : a ∈ l) : nth l (index_of a l) = some a :=
 by rw [nth_le_nth, index_of_nth_le (index_of_lt_length.2 h)]
-
-def update_nth : list α → ℕ → α → list α
-| (x::xs) 0     a := a :: xs
-| (x::xs) (i+1) a := x :: update_nth xs i a
-| []      _     _ := []
-
-def remove_nth : list α → ℕ → list α
-| []      _     := []
-| (x::xs) 0     := xs
-| (x::xs) (i+1) := x :: remove_nth xs i
-
-theorem length_remove_nth : ∀ (l : list α) (i : ℕ), i < length l → length (remove_nth l i) = length l - 1
-| []      _     h := rfl
-| (x::xs) 0     h := by simp [remove_nth, -add_comm]
-| (x::xs) (i+1) h := have i < length xs, from lt_of_succ_lt_succ h,
-  by dsimp [remove_nth]; rw [length_remove_nth xs i this, nat.sub_add_cancel (lt_of_le_of_lt (nat.zero_le _) this)]; refl
 
 theorem nth_le_reverse_aux1 : Π (l r : list α) (i h1 h2), nth_le (reverse_core l r) (i + length l) h1 = nth_le r i h2
 | []       r i := λh1 h2, rfl
@@ -567,9 +520,6 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 | 0         m        l      := by simp
 | (succ n)  (succ m) nil    := by simp
 | (succ n)  (succ m) (a::l) := by simp [min_succ_succ, take_take]
-
-theorem length_take_le (n) (l : list α) : length (take n l) ≤ n :=
-by simp [min_le_left]
 
 /- take_while -/
 
@@ -805,6 +755,8 @@ def inits : list α → list (list α)
 | (a::l) := [] :: map (λt, a::t) (inits l)
 attribute [simp] inits
 
+local infixr :: := list.cons -- temporary hack to fix overload issue
+
 @[simp] lemma mem_inits : ∀ (s t : list α), s ∈ inits t ↔ s <+: t
 | s []     := by simp; exact ⟨λh, by rw h; exact prefix_refl [], eq_nil_of_prefix_nil⟩
 | s (a::t) := by simp; exact ⟨λo, match s, o with
@@ -844,9 +796,10 @@ lemma sublists_aux_eq_foldl : ∀ (l : list α) {β : Type u} (f : list α → l
   sublists_aux l f = foldr f [] (sublists_aux l cons)
 | []     β f := rfl
 | (a::l) β f := suffices ∀ t, foldr (λ ys r, f ys (f (a :: ys) r)) [] t =
-                         foldr f [] (foldr (λ ys r, ys :: (a :: ys) :: r) nil t),
+                         foldr f [] (t.foldr (λ ys r, ys :: (a :: ys) :: r) nil),
 by simp [sublists_aux]; rw [sublists_aux_eq_foldl l, sublists_aux_eq_foldl l (λ ys r, ys :: (a :: ys) :: r), this],
 λt, by induction t; simp; simp [ih_1]
+
 
 lemma sublists_aux_cons_cons (l : list α) (a : α) :
   sublists_aux (a::l) cons = [a] :: foldr (λys r, ys :: (a :: ys) :: r) [] (sublists_aux l cons) :=

@@ -1,0 +1,8 @@
+language: generic
+
+install:
+  - curl https://leanprover.github.io/lean-nightly/build/lean-nightly-linux.tar.gz | tar xz -C ..
+  - export PATH=../lean-nightly-linux/bin:$PATH
+
+script:
+  - leanpkg test

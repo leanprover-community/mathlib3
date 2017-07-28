@@ -44,7 +44,7 @@ section group
 end group
 
 /- transport versions to additive -/
-run_cmd transport_multiplicative_to_additive'
+run_cmd transport_multiplicative_to_additive
   [  (`left_inverse_inv, `left_inverse_neg),
      (`inv_eq_inv_iff_eq, `neg_eq_neg_iff_eq),
      (`inv_eq_one_iff_eq_one, `neg_eq_zero_iff_eq_zero),

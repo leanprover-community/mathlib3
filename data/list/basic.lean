@@ -193,16 +193,6 @@ theorem foldr_hom (f : α → β) (g : γ → α → α) (g' : γ → β → β)
   (h : ∀x a, f (g x a) = g' x (f a)) (l : list γ) : f (foldr g a l) = foldr g' (f a) l :=
 by revert a; induction l; intros; simp [*, foldr]
 
-/- filter_map -/
-
-def filter_map (f : α → option β) : list α → list β
-| []     := []
-| (a::l) :=
-  match f a with
-  | none   := filter_map l
-  | some b := b :: filter_map l
-  end
-
 /- mem -/
 
 theorem eq_nil_of_forall_not_mem : ∀ {l : list α}, (∀ a, a ∉ l) → l = nil

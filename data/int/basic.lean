@@ -338,6 +338,12 @@ theorem mod_eq_zero_of_dvd : ∀ {a b : ℤ}, a ∣ b → b % a = 0
 theorem dvd_iff_mod_eq_zero (a b : ℤ) : a ∣ b ↔ b % a = 0 :=
 ⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
 
+theorem coe_nat_dvd_left {a b : ℤ} : (a.nat_abs : ℤ) ∣ b ↔ a ∣ b :=
+(nat_abs_eq a).elim (λ e, by rw ← e) (λ e, by rw [← neg_dvd_iff_dvd, ← e])
+
+theorem coe_nat_dvd_right {a b : ℤ} : a ∣ b.nat_abs ↔ a ∣ b :=
+(nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg_iff_dvd, ← e])
+
 instance decidable_dvd : @decidable_rel ℤ (∣) :=
 assume a n, decidable_of_decidable_of_iff (by apply_instance) (dvd_iff_mod_eq_zero _ _).symm
 
@@ -356,15 +362,6 @@ theorem div_dvd_div : ∀ {a b c : ℤ} (H1 : a ∣ b) (H2 : b ∣ c), b / a ∣
   by rw [int.mul_div_cancel_left _ az, mul_assoc, int.mul_div_cancel_left _ az];
      apply dvd_mul_right
 
-protected theorem div_eq_iff_eq_mul_right {a b : ℤ} (c : ℤ) (H : b ≠ 0) (H' : b ∣ a) :
-  a / b = c ↔ a = b * c :=
-⟨λ H1, by rw [← H1, int.mul_div_cancel' H'],
- λ H1, by rw [H1, int.mul_div_cancel_left _ H]⟩
-
-protected theorem div_eq_iff_eq_mul_left {a b : ℤ} (c : ℤ) (H : b ≠ 0) (H' : b ∣ a) :
-  a / b = c ↔ a = c * b :=
-by rw mul_comm; exact int.div_eq_iff_eq_mul_right _ H H'
-
 protected theorem eq_mul_of_div_eq_right {a b c : ℤ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=
 by rw [← H2, int.mul_div_cancel' H1]
@@ -372,6 +369,14 @@ by rw [← H2, int.mul_div_cancel' H1]
 protected theorem div_eq_of_eq_mul_right {a b c : ℤ} (H1 : b ≠ 0) (H2 : a = b * c) :
   a / b = c :=
 by rw [H2, int.mul_div_cancel_left _ H1]
+
+protected theorem div_eq_iff_eq_mul_right {a b c : ℤ} (H : b ≠ 0) (H' : b ∣ a) :
+  a / b = c ↔ a = b * c :=
+⟨int.eq_mul_of_div_eq_right H', int.div_eq_of_eq_mul_right H⟩
+
+protected theorem div_eq_iff_eq_mul_left {a b c : ℤ} (H : b ≠ 0) (H' : b ∣ a) :
+  a / b = c ↔ a = c * b :=
+by rw mul_comm; exact int.div_eq_iff_eq_mul_right H H'
 
 protected theorem eq_mul_of_div_eq_left {a b c : ℤ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = c * b :=
@@ -384,6 +389,19 @@ int.div_eq_of_eq_mul_right H1 (by rw [mul_comm, H2])
 theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
+
+theorem div_sign : ∀ a b, a / sign b = a * sign b
+| a (n+1:ℕ) := by simp [sign]
+| a 0       := by simp [sign]
+| a -[1+ n] := by simp [sign]
+
+@[simp] theorem sign_mul : ∀ a b, sign (a * b) = sign a * sign b
+| a       0       := by simp
+| 0       b       := by simp
+| (m+1:ℕ) (n+1:ℕ) := rfl
+| (m+1:ℕ) -[1+ n] := rfl
+| -[1+ m] (n+1:ℕ) := rfl
+| -[1+ m] -[1+ n] := rfl
 
 protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / (abs a) :=
 if az : a = 0 then by simp [az] else
@@ -492,65 +510,55 @@ end
 
 attribute [simp] nat_abs
 
-/-
-theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b := sorry
+theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
+begin
+  have, {
+    refine (λ a b, sub_nat_nat_elim a (succ b)
+      (λ m n i, n = succ b → nat_abs i ≤ succ (m + b)) _ _ rfl);
+    intros i n e,
+    { subst e, rw [add_comm _ i, add_assoc],
+      exact nat.le_add_right i (succ (succ b + b)) },
+    { apply succ_le_succ,
+      rw [← succ_inj e, ← add_assoc, add_comm],
+      apply nat.le_add_right } },
+  cases a; cases b with b b; simp [nat_abs, succ_add];
+  try {refl}; [skip, rw add_comm a b]; apply this
+end
 
 theorem nat_abs_neg_of_nat (n : nat) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
 
-section
-theorem nat_abs_mul : Π (a b : ℤ), nat_abs (a * b) = (nat_abs a) * (nat_abs b)
-| (of_nat m) (of_nat n) := rfl
-| (of_nat m) -[1+ n]    := by simp [mul, nat_abs_neg_of_nat]
-| -[1+ m]    (of_nat n) := by simp [mul_neg_succ_of_nat_of_nat, nat_abs_neg_of_nat]
-| -[1+ m]    -[1+ n]    := rfl
-end
-
-/- additional properties -/
-theorem of_nat_sub {m n : ℕ} (H : m ≥ n) : of_nat (m - n) = of_nat m - of_nat n :=
-have m - n + n = m,     from nat.sub_add_cancel H,
-begin
-  symmetry,
-  apply sub_eq_of_eq_add,
-  rewrite [←of_nat_add, this]
-end
+theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
+by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
-by rewrite [neg_succ_of_nat_eq, neg_add]
+by simp [neg_succ_of_nat_eq]
 
-def succ (a : ℤ) := a + (succ zero)
-def pred (a : ℤ) := a - (succ zero)
-def nat_succ_eq_int_succ (n : ℕ) : nat.succ n = int.succ n := rfl
-theorem pred_succ (a : ℤ) : pred (succ a) = a := !sub_add_cancel
-theorem succ_pred (a : ℤ) : succ (pred a) = a := !add_sub_cancel
+def succ (a : ℤ) := a + 1
+def pred (a : ℤ) := a - 1
 
-theorem neg_succ (a : ℤ) : -succ a = pred (-a) :=
-by rewrite [↑succ,neg_add]
+theorem nat_succ_eq_int_succ (n : ℕ) : (nat.succ n : ℤ) = int.succ n := rfl
+
+theorem pred_succ (a : ℤ) : pred (succ a) = a := add_sub_cancel _ _
+
+theorem succ_pred (a : ℤ) : succ (pred a) = a := sub_add_cancel _ _
+
+theorem neg_succ (a : ℤ) : -succ a = pred (-a) := neg_add _ _
 
 theorem succ_neg_succ (a : ℤ) : succ (-succ a) = -a :=
-by rewrite [neg_succ,succ_pred]
+by rw [neg_succ, succ_pred]
 
 theorem neg_pred (a : ℤ) : -pred a = succ (-a) :=
-by rewrite [↑pred,neg_sub,sub_eq_add_neg,add.comm]
+by rw [eq_neg_of_eq_neg (neg_succ (-a)).symm, neg_neg]
 
 theorem pred_neg_pred (a : ℤ) : pred (-pred a) = -a :=
-by rewrite [neg_pred,pred_succ]
+by rw [neg_pred, pred_succ]
 
 theorem pred_nat_succ (n : ℕ) : pred (nat.succ n) = n := pred_succ n
-theorem neg_nat_succ (n : ℕ) : -nat.succ n = pred (-n) := !neg_succ
-theorem succ_neg_nat_succ (n : ℕ) : succ (-nat.succ n) = -n := !succ_neg_succ
 
-attribute [unfold 2]
-def rec_nat_on {P : ℤ → Type} (z : ℤ) (H0 : P 0)
-  (Hsucc : Π⦃n : ℕ⦄, P n → P (succ n)) (Hpred : Π⦃n : ℕ⦄, P (-n) → P (-nat.succ n)) : P z :=
-int.rec (nat.rec H0 Hsucc) (λn, nat.rec H0 Hpred (nat.succ n)) z
+theorem neg_nat_succ (n : ℕ) : -(nat.succ n : ℤ) = pred (-n) := neg_succ n
 
---the only computation rule of rec_nat_on which is not defintional
-theorem rec_nat_on_neg {P : ℤ → Type} (n : nat) (H0 : P zero)
-  (Hsucc : Π⦃n : nat⦄, P n → P (succ n)) (Hpred : Π⦃n : nat⦄, P (-n) → P (-nat.succ n))
-  : rec_nat_on (-nat.succ n) H0 Hsucc Hpred = Hpred (rec_nat_on (-n) H0 Hsucc Hpred) :=
-nat.rec rfl (λn H, rfl) n
--/
+theorem succ_neg_nat_succ (n : ℕ) : succ (-nat.succ n) = -n := succ_neg_succ n
 
 /- bitwise ops -/
 

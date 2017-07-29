@@ -1,4 +1,4 @@
-import data.stream data.lazy_list data.seq.computation logic.basic pending
+import data.stream data.lazy_list data.seq.computation logic.basic
 universes u v w
 
 /-

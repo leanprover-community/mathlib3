@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Properties of the binary representation of integers.
 -/
-import data.num.basic data.num.bitwise pending
+import data.num.basic data.num.bitwise
 
 meta def unfold_coe : tactic unit :=
 `[unfold coe lift_t has_lift_t.lift coe_t has_coe_t.coe coe_b has_coe.coe]

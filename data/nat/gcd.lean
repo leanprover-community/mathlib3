@@ -219,12 +219,12 @@ coprime_of_coprime_dvd_right (dvd_mul_left _ _) H
 theorem coprime_of_coprime_mul_right_right {k m n : ℕ} (H : coprime m (n * k)) : coprime m n :=
 coprime_of_coprime_dvd_right (dvd_mul_right _ _) H
 
-theorem comprime_one_left : ∀ n, coprime 1 n := gcd_one_left
+theorem coprime_one_left : ∀ n, coprime 1 n := gcd_one_left
 
-theorem comprime_one_right : ∀ n, coprime n 1 := gcd_one_right
+theorem coprime_one_right : ∀ n, coprime n 1 := gcd_one_right
 
 theorem coprime_pow_left {m k : ℕ} (n : ℕ) (H1 : coprime m k) : coprime (m ^ n) k :=
-nat.rec_on n (comprime_one_left _) (λn IH, coprime_mul IH H1)
+nat.rec_on n (coprime_one_left _) (λn IH, coprime_mul IH H1)
 
 theorem coprime_pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (m ^ n) :=
 coprime_swap $ coprime_pow_left n $ coprime_swap H1

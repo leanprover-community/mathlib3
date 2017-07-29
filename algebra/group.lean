@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Leonardo de Moura
 
 Various multiplicative and additive structures.
 -/
-import pending
 
 universe variable uu
 variable {A : Type uu}

@@ -542,6 +542,27 @@ end complete_lattice
 
 end lattice
 
+section ord_continuous
+open lattice
+variables [complete_lattice α] [complete_lattice β]
+
+def ord_continuous (f : α → β) := ∀s : set α, f (Sup s) = (⨆i∈s, f i)
+
+lemma ord_continuous_sup {f : α → β} {a₁ a₂ : α} (hf : ord_continuous f) : f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
+have h : f (Sup {a₁, a₂}) = (⨆i∈({a₁, a₂} : set α), f i), from hf _,
+have h₁ : {a₁, a₂} = (insert a₂ {a₁} : set α), from rfl,
+begin
+  rw [h₁, Sup_insert, Sup_singleton, sup_comm] at h,
+  rw [h, supr_insert, supr_singleton, sup_comm]
+end
+
+lemma ord_continuous_mono {f : α → β} (hf : ord_continuous f) : monotone f :=
+assume a₁ a₂ h,
+calc f a₁ ≤ f a₁ ⊔ f a₂ : le_sup_left
+  ... = f (a₁ ⊔ a₂) : (ord_continuous_sup hf).symm
+  ... = _ : by rw [sup_of_le_right h]
+
+end ord_continuous
 
 /- Classical statements:
 

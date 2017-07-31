@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of uniform spaces.
 -/
-import algebra.lattice.filter .topological_space .continuity
+import algebra.lattice.filter topology.topological_space topology.continuity
 open set lattice filter classical
 local attribute [instance] decidable_inhabited
 local attribute [instance] prop_decidable

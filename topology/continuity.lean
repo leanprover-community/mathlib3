@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Continuous functions.
 -/
-import .topological_space
+import topology.topological_space
 noncomputable theory
 
 open set filter lattice

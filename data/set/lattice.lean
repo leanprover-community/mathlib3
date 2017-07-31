@@ -6,7 +6,7 @@ Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
 import logic.basic data.set.basic
-import algebra.lattice algebra.lattice.complete_boolean_algebra
+import algebra.lattice algebra.order algebra.lattice.complete_boolean_algebra
 import tactic.finish
 
 open function tactic set lattice auto
@@ -62,6 +62,8 @@ instance : distrib_lattice (set α) :=
       end
     end }
 
+lemma monotone_image {f : α → β} : monotone (image f) :=
+assume s t, assume h : s ⊆ t, image_subset _ h
 
 /- union and intersection over a family of sets indexed by a type -/
 

@@ -56,4 +56,15 @@ theorem succ_le_succ_iff (m n : ℕ) : succ m ≤ succ n ↔ m ≤ n :=
 theorem lt_succ_iff_le (m n : ℕ) : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff m n
 
+lemma le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
+⟨nat.eq_zero_of_le_zero, assume h, h ▸ le_refl i⟩
+
+lemma le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
+⟨assume h,
+  match nat.eq_or_lt_of_le h with
+  | or.inl h := or.inr h
+  | or.inr h := or.inl $ nat.le_of_succ_le_succ h
+  end,
+  or.rec (assume h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
+
 end nat

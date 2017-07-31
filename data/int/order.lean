@@ -35,6 +35,14 @@ let ⟨elt, Helt⟩ := Hinh in ⟨-elt, by rw [neg_neg]; exact Helt⟩,
 let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
 ⟨-lb, Plb, λ z h, by rw [← neg_neg z]; exact al _ (neg_lt_of_neg_lt h)⟩
 
+lemma of_nat_le_of_nat_of_le {n m : ℕ} (h : n ≤ m) : of_nat n ≤ of_nat m :=
+coe_nat_le_coe_nat_of_le h
+
+lemma le_of_of_nat_le_of_nat {n m : ℕ} (h : of_nat n ≤ of_nat m) : n ≤ m :=
+let ⟨i, (hi : of_nat n + of_nat i = of_nat m)⟩ := le.dest h in
+have i + n = m, by apply int.of_nat_inj; rwa [add_comm, of_nat_add],
+this ▸ nat.le_add_left _ _
+
 end int
 
 /-

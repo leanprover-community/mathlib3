@@ -520,11 +520,91 @@ instance : discrete_linear_ordered_field ℚ :=
   decidable_le    := assume a b, rat.decidable_nonneg (b - a),
   decidable_lt    := by apply_instance }
 
+lemma coe_int_eq_mk (z : ℤ) : ↑z = rat.mk z 1 :=
+show rat.of_int z = rat.mk_nat z 1,
+  by unfold rat.of_int rat.mk_nat; simp [rat.mk_pnat, int.coe_nat_one]
+
+lemma coe_nat_rat_eq_mk (n : ℕ) : ↑n = rat.mk ↑n 1 := coe_int_eq_mk _
+
+lemma coe_int_add (z₁ z₂ : ℤ) : ↑(z₁ + z₂) = (↑z₁ + ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
+
+lemma coe_int_sub (z₁ z₂ : ℤ) : ↑(z₁ - z₂) = (↑z₁ - ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
+
+lemma coe_int_one : ↑(1 : ℤ) = (1 : ℚ) := rfl
+
+lemma le_of_of_int_le_of_int {z₁ z₂ : ℤ} (h : (↑z₁ : ℚ) ≤ ↑z₂) : z₁ ≤ z₂ :=
+have rat.nonneg ↑(z₂ - z₁), by rwa [coe_int_sub],
+have 0 ≤ z₂ - z₁, by rwa [coe_int_eq_mk, rat.mk_nonneg] at this; exact zero_lt_one,
+have z₁ + 0 ≤ z₂, from add_le_of_le_sub_left this,
+by simp [*] at *
+
 def floor : ℚ → ℤ
 | ⟨n, d, h, c⟩ := n / d
 
 def ceil (r : ℚ) : ℤ :=
 -(floor (-r))
 
+/- nat ceiling -/
+
+lemma exists_upper_nat_bound (q:ℚ) : ∃n:ℕ, q ≤ ↑n :=
+rat.num_denom_cases_on' q $ λn d h₁,
+have h₂ : ↑d > (0:int), from lt_of_le_of_ne (int.coe_zero_le d) h₁.symm,
+have h₃ : (1:int) ≤ ↑d, from calc 1 = 0 + 1 : by simp
+   ... ≤ (↑d:int) : int.add_one_le_of_lt h₂,
+have n ≤ ↑d * ↑(int.to_nat n),
+  from calc n ≤ 1 * ↑(int.to_nat n) : begin simp, cases n, apply le_refl, simp [int.to_nat] end
+    ... ≤ ↑d * ↑(int.to_nat n): mul_le_mul h₃ (le_refl _) (int.coe_zero_le _) (int.coe_zero_le _),
+⟨int.to_nat n, show rat.nonneg (↑(int.to_nat n) - rat.mk n ↑d),
+begin
+  simp [h₁, h₂, coe_nat_rat_eq_mk, mk_nonneg],
+  rw [add_comm, ←sub_eq_add_neg, ge],
+  apply le_sub_left_of_add_le,
+  simp,
+  assumption
+end⟩
+
+def nat_ceil (q : ℚ) : ℕ := nat.find (exists_upper_nat_bound q)
+
+lemma nat_ceil_spec {q : ℚ} : q ≤ nat_ceil q :=
+nat.find_spec (exists_upper_nat_bound q)
+
+lemma nat_ceil_min {q : ℚ} {n : ℕ} : q ≤ n → nat_ceil q ≤ n :=
+nat.find_min' (exists_upper_nat_bound q)
+
+lemma nat_ceil_mono {q₁ q₂ : ℚ} (h : q₁ ≤ q₂) : nat_ceil q₁ ≤ nat_ceil q₂ :=
+nat_ceil_min $ le_trans h nat_ceil_spec
+
+@[simp] lemma nat_ceil_zero : nat_ceil 0 = 0 :=
+le_antisymm (nat_ceil_min $ le_refl _) (nat.zero_le _)
+
+lemma nat_ceil_add_one_eq {q : ℚ} (hq : 0 ≤ q) : nat_ceil (q + 1) = nat_ceil q + 1 :=
+le_antisymm
+  (nat_ceil_min $ show q + 1 ≤ ↑(int.of_nat $ nat_ceil q + 1),
+    begin
+      simp [int.of_nat_add, int.of_nat_one, coe_int_add, coe_int_one, -add_comm],
+      exact add_le_add_right nat_ceil_spec 1
+    end)
+  (have (↑(1:ℤ):ℚ) ≤ nat_ceil (q + 1),
+      from le_trans (le_add_of_nonneg_left hq) nat_ceil_spec, 
+    have h1le : 1 ≤ nat_ceil (q + 1),
+      from (int.coe_nat_le_coe_nat_iff _ _).mp $ le_of_of_int_le_of_int this,
+    have nat_ceil q ≤ nat_ceil (q + 1) - 1,
+      from nat_ceil_min $ show q ≤ ↑(int.of_nat (nat_ceil (q + 1) - 1)),
+      begin
+        rw [int.of_nat_sub h1le],
+        simp [-sub_eq_add_neg, coe_int_sub, int.of_nat_one, coe_int_one],
+        exact le_sub_right_of_add_le nat_ceil_spec
+      end,
+    show nat_ceil q + 1 ≤ nat_ceil (q + 1),
+      from (nat.add_le_to_le_sub _ h1le).mpr this)
+
+lemma nat_ceil_lt_add_one {q : ℚ} (hq : q ≥ 0) : ↑(nat_ceil q) < q + 1 :=
+lt_of_not_ge $ assume h : q + 1 ≤ ↑(nat_ceil q),
+  have nat_ceil q + 0 = nat_ceil q + 1,
+    from calc nat_ceil q + 0 = nat_ceil q : by simp
+      ... = nat_ceil (q + 1) :
+        le_antisymm (nat_ceil_mono $ le_add_of_le_of_nonneg (le_refl _) zero_le_one) (nat_ceil_min h)
+      ... = nat_ceil q + 1 : nat_ceil_add_one_eq hq,
+  nat.no_confusion $ eq_of_add_eq_add_left this
 
 end rat

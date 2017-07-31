@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Finite sets -- assuming a classical logic.
 -/
-import data.set.lattice
+import data.set.lattice data.nat.basic
 noncomputable theory
 
 universes u v w
@@ -69,5 +69,12 @@ begin
     { apply h, simp },
     { exact (hi $ assume t ht, h _ $ mem_insert_of_mem _ ht) } }
 end
+
+lemma finite_le_nat : ∀{n:ℕ}, finite {i | i ≤ n}
+| 0 := by simp [nat.le_zero_iff, set_compr_eq_eq_singleton]
+| (n + 1) :=
+  have insert (n + 1) {i | i ≤ n} = {i | i ≤ n + 1},
+    from set.ext $ by simp [nat.le_add_one_iff],
+  this ▸ finite_insert finite_le_nat
 
 end set

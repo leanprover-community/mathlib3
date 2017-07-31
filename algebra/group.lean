@@ -91,6 +91,25 @@ section add_group
   assume x, neg_add_cancel_left c x
 end add_group
 
+section ordered_comm_group
+variables [ordered_comm_group α]
+
+lemma le_sub_iff_add_le {a b c : α} : a ≤ b - c ↔ a + c ≤ b :=
+by rw [add_comm]; exact ⟨add_le_of_le_sub_left, le_sub_left_of_add_le⟩
+
+lemma sub_le_iff_le_add {a b c : α} : a - c ≤ b ↔ a ≤ b + c :=
+by rw [add_comm]; exact ⟨le_add_of_sub_left_le, sub_left_le_of_le_add⟩
+
+end ordered_comm_group
+
+section decidable_linear_ordered_comm_group
+variables [decidable_linear_ordered_comm_group α] {a b : α}
+
+lemma abs_le_iff  : abs a ≤ b ↔ (- b ≤ a ∧ a ≤ b) :=
+⟨assume h, ⟨neg_le_of_neg_le $ le_trans (neg_le_abs_self _) h, le_trans (le_abs_self _) h⟩,
+  assume ⟨h₁, h₂⟩, abs_le_of_le_of_neg_le h₂ $ neg_le_of_neg_le h₁⟩
+
+end decidable_linear_ordered_comm_group
 
 /-
 namespace norm_num

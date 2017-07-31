@@ -25,7 +25,15 @@ assume a b h, m_g (m_f h)
 
 end monotone
 
-section
+section linear_order
+variables [linear_order α] {a b : α}
+
+lemma not_le_iff : ¬ (a ≤ b) ↔ b < a := (lt_iff_not_ge b a).symm
+lemma not_lt_iff : ¬ (a < b) ↔ b ≤ a := ⟨le_of_not_gt, not_lt_of_ge⟩
+
+end linear_order
+
+section decidable_linear_order
   variable [decidable_linear_order α]
   variables {a b c d : α}
   open decidable
@@ -44,7 +52,7 @@ section
 
   theorem max.right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
   right_comm max max_comm max_assoc a b c
-end
+end decidable_linear_order
 
 /- order instances -/
 
@@ -59,14 +67,14 @@ instance partial_order_fun [partial_order β] : partial_order (α → β) :=
   le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b))
 }
 
-def weak_order_dual (wo : partial_order α) : partial_order α :=
+def partial_order_dual (wo : partial_order α) : partial_order α :=
 { le := λx y, y ≤ x,
   le_refl := le_refl,
   le_trans := assume a b c h₁ h₂, le_trans h₂ h₁,
   le_antisymm := assume a b h₁ h₂, le_antisymm h₂ h₁ }
 
 theorem le_dual_eq_le {α : Type} (wo : partial_order α) (a b : α) :
-  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ (weak_order_dual wo))) a b =
+  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ (partial_order_dual wo))) a b =
   @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ wo)) b a :=
 rfl
 

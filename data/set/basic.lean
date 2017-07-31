@@ -30,8 +30,11 @@ theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rf
 
 theorem subset.refl (a : set α) : a ⊆ a := assume x, id
 
-theorem subset.trans {a b c : set α} (subab : a ⊆ b) (subbc : b ⊆ c) : a ⊆ c :=
+@[trans] theorem subset.trans {a b c : set α} (subab : a ⊆ b) (subbc : b ⊆ c) : a ⊆ c :=
 assume x, assume ax, subbc (subab ax)
+
+@[trans] lemma mem_of_eq_of_mem {α : Type u} {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
+hx.symm ▸ h
 
 theorem subset.antisymm {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
 ext (λ x, iff.intro (λ ina, h₁ ina) (λ inb, h₂ inb))
@@ -343,6 +346,9 @@ theorem singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := insert_ne_empty 
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s :=
 ⟨λh, h (by simp), λh b e, by simp at e; simp [*]⟩
 
+lemma set_compr_eq_eq_singleton {a : α} : {b | b = a} = {a} :=
+set.ext $ by simp
+
 /- separation -/
 
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
@@ -574,6 +580,15 @@ set.ext $ assume x, ⟨assume ⟨y, hy, y_eq⟩, h y_eq ▸ hy, assume hx, mem_i
 theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
+
+lemma mem_image_iff_of_inverse (f : α → β) (g : β → α) {b : β} {s : set α}
+  (h₁ : ∀a, g (f a) = a ) (h₂ : ∀b, f (g b) = b ) : b ∈ f '' s ↔ g b ∈ s :=
+⟨assume ⟨a, ha, fa_eq⟩, fa_eq ▸ (h₁ a).symm ▸ ha,
+  assume h, ⟨g b, h, h₂ b⟩⟩
+
+theorem image_eq_preimage_of_inverse (f : α → β) (g : β → α)
+  (h₁ : ∀a, g (f a) = a ) (h₂ : ∀b, f (g b) = b ) : image f = preimage g :=
+funext $ assume s, set.ext $ assume b, mem_image_iff_of_inverse f g h₁ h₂
 
 theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t : set α} :
   s = subtype.val ⁻¹' t ↔ (∀x (h : p x), (⟨x, h⟩ : subtype p) ∈ s ↔ x ∈ t) :=

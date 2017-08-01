@@ -378,6 +378,10 @@ have filter.prod (nhds a) (nhds b) ⊓ principal (set.prod s t) =
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_nhds, nhds_prod_eq, this]; exact prod_neq_bot
 
+lemma closed_prod [topological_space α] [topological_space β] {s₁ : set α} {s₂ : set β}
+  (h₁ : closed s₁) (h₂ : closed s₂) : closed (set.prod s₁ s₂) :=
+closure_eq_iff_closed.mp $ by simp [h₁, h₂, closure_prod_eq, closure_eq_of_closed]
+
 end prod
 
 section sum

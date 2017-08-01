@@ -24,6 +24,12 @@ local attribute [instance] decidable_inhabited prop_decidable
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+lemma not_le_iff [linear_strong_order_pair  α] {a b : α } : ¬ (a ≤ b) ↔ b < a :=
+(lt_iff_not_ge b a).symm
+
+lemma not_lt_iff [linear_strong_order_pair  α] {a b : α } : ¬ (a < b) ↔ b ≤ a :=
+⟨le_of_not_gt, not_lt_of_ge⟩
+
 lemma lt_div_iff {α : Type u} [linear_ordered_field α] {a b c : α} (h : 0 < c) :
   a < b / c ↔ a * c < b :=
 ⟨mul_lt_of_lt_div h, lt_div_of_mul_lt h⟩
@@ -330,12 +336,6 @@ have {x | -r < -x} ∈ (nhds q).sets,
   from this $ lt_mem_nhds $ neg_lt_neg $ h,
 (nhds q).upwards_sets this $ assume x (h : -r < -x), lt_of_neg_lt_neg h
 
-lemma not_le_iff [linear_strong_order_pair  α] {a b : α } : ¬ (a ≤ b) ↔ b < a :=
-(lt_iff_not_ge b a).symm
-
-lemma not_lt_iff [linear_strong_order_pair  α] {a b : α } : ¬ (a < b) ↔ b ≤ a :=
-⟨le_of_not_gt, not_lt_of_ge⟩
-
 lemma open_lt {r : ℚ} : open' {x | r < x} :=
 by simp [open_iff_nhds]; exact assume a, lt_mem_nhds
 
@@ -586,12 +586,6 @@ begin
       (uniform_continuous_of_embedding uniform_embedding_of_rat)))
 end
 
-lemma closed_prod [topological_space α] [topological_space β] {s₁ : set α} {s₂ : set β}
-  (h₁ : closed s₁) (h₂ : closed s₂) : closed (set.prod s₁ s₂) :=
-closed_inter
-  (continuous_iff_closed.mp continuous_fst _ h₁)
-  (continuous_iff_closed.mp continuous_snd _ h₂)
-
 lemma continuous_mul_real : continuous (λp:ℝ×ℝ, p.1 * p.2) :=
 have ∀r, ∃(s : set ℚ) (q:ℚ),
     q > 0 ∧ closure (of_rat '' s) ∈ (nhds r).sets ∧ closed s ∧ (∀x∈s, abs x < q),
@@ -639,6 +633,15 @@ begin
       dense_embedding_of_rat_of_rat.dense
       hs hsc (assume ⟨p₁, p₂⟩ ⟨h₁, h₂⟩, ⟨hsq₁ p₁ h₁, hsq₂ p₂ h₂⟩))
 end
+
+lemma towards_inv_real {r : ℝ} (hr : r ≠ 0) : towards has_inv.inv (nhds r) (nhds r⁻¹) :=
+begin
+  rw [ℝ.has_inv],
+  simp [lift_rat_fun, hr],
+--  apply dense_embedding_of_rat.towards_ext,
+  
+end
+
 
 def nonneg (r : ℝ) : Prop := r ∈ closure (of_rat '' {q : ℚ | q ≥ 0})
 

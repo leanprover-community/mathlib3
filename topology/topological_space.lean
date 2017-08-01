@@ -417,6 +417,8 @@ class t1_space (α : Type u) [topological_space α] :=
 class t2_space (α : Type u) [topological_space α] :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, open' u ∧ open' v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
+-- intance t2_space.t1_spa
+
 lemma eq_of_nhds_neq_bot [ht : t2_space α] {x y : α} (h : nhds x ⊓ nhds y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
 let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 _ x y this in

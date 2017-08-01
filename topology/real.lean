@@ -24,11 +24,8 @@ local attribute [instance] decidable_inhabited prop_decidable
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-lemma not_le_iff [linear_strong_order_pair  α] {a b : α } : ¬ (a ≤ b) ↔ b < a :=
-(lt_iff_not_ge b a).symm
-
-lemma not_lt_iff [linear_strong_order_pair  α] {a b : α } : ¬ (a < b) ↔ b ≤ a :=
-⟨le_of_not_gt, not_lt_of_ge⟩
+lemma not_le_iff [linear_order  α] {a b : α } : ¬ (a ≤ b) ↔ b < a := (lt_iff_not_ge b a).symm
+lemma not_lt_iff [linear_order  α] {a b : α } : ¬ (a < b) ↔ b ≤ a := ⟨le_of_not_gt, not_lt_of_ge⟩
 
 lemma lt_div_iff {α : Type u} [linear_ordered_field α] {a b c : α} (h : 0 < c) :
   a < b / c ↔ a * c < b :=
@@ -121,10 +118,32 @@ begin
   exact (assume x hx, ⟨⟨x, hp x hx⟩, rfl⟩)
 end
 
+/- remove when we hava linear arithmetic tactic -/
+lemma one_lt_two : 1 < (2 : ℚ) :=
+calc (1:ℚ) < 1 + 1 : lt_add_of_le_of_pos (le_refl 1) zero_lt_one
+  ... = _ : by simp [bit0]
+
+lemma zero_lt_two : 0 < (2 : ℚ) :=
+calc (0:ℚ) < 1 + 1 : lt_add_of_le_of_pos zero_le_one zero_lt_one
+  ... = _ : by simp [bit0]
+
 def zero_nhd : filter ℚ := (⨅r > 0, principal {q | abs q < r})
 
-lemma mem_zero_nhds {r : ℚ} (h : 0 < r) : {q | abs q < r} ∈ zero_nhd.sets :=
+lemma mem_zero_nhd {r : ℚ} (h : 0 < r) : {q | abs q < r} ∈ zero_nhd.sets :=
 mem_infi_sets r $ mem_infi_sets h $ subset.refl _
+
+lemma mem_zero_nhd_iff {s : set ℚ} : s ∈ zero_nhd.sets ↔ ∃r>0, ∀q:ℚ, abs q < r → q ∈ s :=
+have directed_on (λx y:ℚ, principal {q | abs q < x} ≤ principal {q | abs q < y}) {r | r > 0},
+  from assume x hx y hy,
+  have h₁ : ∀a:ℚ, abs a < min x y → abs a < x, from assume a h, lt_of_lt_of_le h (min_le_left _ _),
+  have h₂ : ∀a:ℚ, abs a < min x y → abs a < y, from assume a h, lt_of_lt_of_le h (min_le_right _ _),
+  ⟨min x y, lt_min hx hy, by simp; exact ⟨h₁, h₂⟩⟩,
+show s ∈ (⨅r∈{r:ℚ | r > 0}, principal {q:ℚ | abs q < r}).sets ↔ ∃r>0, ∀q:ℚ, abs q < r → q ∈ s,
+begin
+  rw [infi_sets_eq' this],
+  simp [subset_def],
+  show ∃q:ℚ, 0 < q, from ⟨1, zero_lt_one⟩
+end
 
 lemma towards_zero_nhds {m : α → ℚ} {f : filter α} (hm : ∀r>0, {a | abs (m a) < r} ∈ f.sets) :
   towards m f zero_nhd :=
@@ -134,15 +153,13 @@ lemma pure_zero_le_zero_nhd : pure 0 ≤ zero_nhd :=
 by simp [zero_nhd, le_infi_iff, abs_zero, (>)] {contextual := tt}
 
 lemma towards_neg_rat_zero : towards has_neg.neg zero_nhd zero_nhd :=
-towards_zero_nhds $ assume i hi, by simp [abs_neg, mem_zero_nhds hi]
+towards_zero_nhds $ assume i hi, by simp [abs_neg, mem_zero_nhd hi]
 
 lemma towards_add_rat_zero : towards (λp:ℚ×ℚ, p.1 + p.2) (filter.prod zero_nhd zero_nhd) zero_nhd :=
 towards_zero_nhds $ assume i hi,
-have 0 < i / 2,
-  from calc 0 = 0 / 2 : (zero_div _).symm
-    ... < i / 2 : div_lt_div_of_lt_of_pos ‹0 < i› two_pos,
+have 0 < i / 2, from div_pos_of_pos_of_pos hi zero_lt_two,
 show {x : ℚ × ℚ | abs (x.1 + x.2) < i} ∈ (filter.prod zero_nhd zero_nhd).sets,
-  from filter.upwards_sets _ (prod_mem_prod (mem_zero_nhds this) (mem_zero_nhds this)) $
+  from filter.upwards_sets _ (prod_mem_prod (mem_zero_nhd this) (mem_zero_nhd this)) $
     assume ⟨a, b⟩ ⟨ha, hb⟩,
     calc abs (a + b) ≤ abs a + abs b : abs_add_le_abs_add_abs _ _
       ... < i/2 + i/2 : add_lt_add ha hb
@@ -162,7 +179,7 @@ lemma towards_mul_bnd_rat {f : filter ℚ} {r : ℚ} (hr : 0 < r) (hf : {x : ℚ
 towards_zero_nhds $ assume i hi,
 have 0 < i / r, from div_pos_of_pos_of_pos hi hr,
 show {x : ℚ × ℚ | abs (x.1 * x.2) < i} ∈ (filter.prod zero_nhd f).sets,
-  from filter.upwards_sets _ (prod_mem_prod (mem_zero_nhds this) hf) $
+  from filter.upwards_sets _ (prod_mem_prod (mem_zero_nhd this) hf) $
     assume ⟨a, b⟩ ⟨ha, hb⟩,
     calc abs (a * b) = abs a * abs b : by simp [abs_mul]
       ... < (i / r) * r : mul_lt_mul' (le_of_lt ha) hb (abs_nonneg b) this
@@ -175,7 +192,7 @@ towards_compose (towards_prod_mk hf towards_map) (towards_mul_bnd_rat hr hy)
 
 lemma towards_mul_rat' {f g : α → ℚ} {x : filter α}
   (hf : towards f x zero_nhd) (hg : towards g x zero_nhd) : towards (λa, f a * g a) x zero_nhd :=
-towards_mul_bnd_rat' zero_lt_one (hg $ mem_zero_nhds zero_lt_one) hf
+towards_mul_bnd_rat' zero_lt_one (hg $ mem_zero_nhd zero_lt_one) hf
 
 set_option eqn_compiler.zeta true
 /-- The rational numbers form a uniform space-/
@@ -212,7 +229,7 @@ instance : uniform_space ℚ :=
 
 lemma mem_uniformity_rat {r : ℚ} (h : 0 < r) :
   {x:(ℚ × ℚ) | abs (x.1 - x.2) < r} ∈ (@uniformity ℚ _).sets :=
-mem_vmap_of_mem $ mem_zero_nhds $ h
+mem_vmap_of_mem $ mem_zero_nhd $ h
 
 lemma uniform_continuous_rat [uniform_space α] {f : α → ℚ}
   (hf : towards (λp:α×α, f p.1 - f p.2) uniformity zero_nhd ) : uniform_continuous f :=
@@ -283,7 +300,7 @@ lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding (λ
     from le_antisymm
       (le_infi $ assume r, le_infi $ assume hr, le_principal_iff.mpr $
         ⟨{s:ℚ | abs s < abs q * r},
-          mem_zero_nhds $ mul_pos (abs_pos_of_ne_zero hq) hr,
+          mem_zero_nhd $ mul_pos (abs_pos_of_ne_zero hq) hr,
           begin
             simp [abs_mul],
             rw [mul_comm],
@@ -292,7 +309,7 @@ lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding (λ
       (le_vmap_iff_map_le.mpr $ le_infi $ assume r, le_infi $ assume hr,
         have ∀x:ℚ, abs (q * x) < r ↔ abs x < r / abs q,
           by simp [abs_mul, lt_div_iff (abs_pos_of_ne_zero hq)],
-        by simp [this]; exact (mem_zero_nhds $ div_pos_of_pos_of_pos hr (abs_pos_of_ne_zero hq))),
+        by simp [this]; exact (mem_zero_nhd $ div_pos_of_pos_of_pos hr (abs_pos_of_ne_zero hq))),
   begin
     rw [rat.uniform_space],
     simp [uniformity, vmap_vmap_comp, h₁],
@@ -317,12 +334,16 @@ begin
   apply monotone_vimage
 end
 
+lemma nhds_0_eq_zero_nhd : nhds 0 = zero_nhd :=
+have (λ (x : ℚ), x + 0) = id, from funext $ by simp,
+by rw [nhds_eq_map_zero_nhd, this]; simp
+
 lemma lt_mem_nhds {r q : ℚ} (h : r < q) : {x | r < x} ∈ (nhds q).sets :=
 have 0 < q - r, from lt_sub_left_of_add_lt $ by simp [h],
 begin
   rw [nhds_eq_map_zero_nhd],
   show {x | r < x + q} ∈ zero_nhd.sets,
-  apply zero_nhd.upwards_sets (mem_zero_nhds this),
+  apply zero_nhd.upwards_sets (mem_zero_nhd this),
   exact (assume x (h : abs x < q - r),
     calc  r < q - abs x : lt_sub_left_of_add_lt $ add_lt_of_lt_sub_right h
       ... ≤ q - (- x) : sub_le_sub (le_refl q) (neg_le_abs_self x)
@@ -384,11 +405,7 @@ begin
 end
 
 lemma towards_inv_pos_rat {r : ℚ} (hr : 0 < r) : towards (λq, q⁻¹) (nhds r) (nhds r⁻¹) :=
-have (1:ℚ) < 2, from calc
-    (1:ℚ) = 1 + 0 : by simp
-  ... < 1 + 1 : add_lt_add_left zero_lt_one _
-  ... = 2 : by simp [bit0, bit1],
-have r / 2 < r / 1, from div_lt_div_of_pos_of_lt_of_pos zero_lt_one this hr,
+have r / 2 < r / 1, from div_lt_div_of_pos_of_lt_of_pos zero_lt_one one_lt_two hr,
 have r / 2 < r, by simp [div_one] at this; assumption,
 have 0 < r / 2,
   from div_pos_of_pos_of_pos hr two_pos,
@@ -495,7 +512,7 @@ lemma uniform_embedding_of_rat : uniform_embedding of_rat :=
     have a - b ≠ 0, from assume h, ‹a ≠ b› $ sub_eq_zero_iff_eq.mp h,
     have 0 < abs (a - b), from abs_pos_of_ne_zero this,
     have {p:ℚ×ℚ | abs (p.1 - p.2) < abs (a - b)} ∈ (uniform_space.uniformity ℚ).sets,
-      from mem_vmap_of_mem $ mem_zero_nhds this,
+      from mem_vmap_of_mem $ mem_zero_nhd this,
     have {p:ℚ×ℚ | abs (p.1 - p.2) < abs (a - b)} ∈
       (vmap (λp:ℚ×ℚ, (pure_cauchy p.1, pure_cauchy p.2)) uniformity).sets,
       by rwa [uniform_embedding_pure_cauchy.right],
@@ -635,13 +652,68 @@ begin
 end
 
 lemma towards_inv_real {r : ℝ} (hr : r ≠ 0) : towards has_inv.inv (nhds r) (nhds r⁻¹) :=
+let inv := dense_embedding.ext dense_embedding_of_rat (of_rat ∘ has_inv.inv) in
+suffices towards inv (nhds r) (nhds (inv r)),
 begin
   rw [ℝ.has_inv],
   simp [lift_rat_fun, hr],
---  apply dense_embedding_of_rat.towards_ext,
-  
-end
-
+  exact (towards_cong this $ (nhds r).upwards_sets (compl_singleton_mem_nhds hr)
+    begin intro x, simp {contextual := tt} end)
+end,
+let ⟨u, v, hu, hv, hru, h0v, huv⟩ := t2_separation hr in
+have ∃i:ℚ, i>0 ∧ ∀q, abs q < i → of_rat q ∈ v,
+  from have {q:ℚ | of_rat q ∈ v} ∈ (nhds (0:ℚ)).sets,
+    from dense_embedding_of_rat.towards (mem_nhds_sets hv h0v),
+  by rw [nhds_0_eq_zero_nhd, mem_zero_nhd_iff] at this; simp * at *,
+let ⟨i, hi, hvi⟩ := this in
+have 0 < i / 2, from div_pos_of_pos_of_pos hi zero_lt_two,
+have u ∈ (nhds r).sets, from mem_nhds_sets hu hru,
+dense_embedding_of_rat.towards_ext $ (nhds r).upwards_sets this $
+  assume r hr,
+  let ⟨a, (ha : closure (of_rat '' {a' : ℚ | abs (a - a') < i / 2}) ∈ (nhds r).sets)⟩ :=
+    closure_image_mem_nhds_of_uniform_embedding r
+      uniform_embedding_of_rat dense_embedding_of_rat $ mem_uniformity_rat ‹0 < i / 2› in
+  have hia : i / 2 < abs a,
+    from lt_of_not_ge $ assume hia,
+    have of_rat '' {a' : ℚ | abs (a - a') < i / 2} ⊆ -u,
+      from assume x ⟨y, hy, hy_eq⟩,
+      have of_rat y ∈ v, from hvi _ $
+        calc abs y = abs (a + - (a - y)) : by rw [←sub_eq_add_neg, sub_sub_self]
+          ... ≤ abs a + abs (- (a - y)) : abs_add_le_abs_add_abs _ _
+          ... < i / 2 + i / 2 : add_lt_add_of_le_of_lt hia $ by rwa [abs_neg]
+          ... = (i + i) / 2 : div_add_div_same _ _ _
+          ... = i : add_self_div_two _,
+      have of_rat y ∈ - u, 
+        from assume hy,
+        have of_rat y ∈ u ∩ v, from ⟨hy, this⟩,
+        by rwa [huv] at this,
+      hy_eq ▸ this,
+    have u ∩ -u ∈ (nhds r).sets,
+      from inter_mem_sets (mem_nhds_sets hu hr) $
+         (nhds r).upwards_sets ha $ closure_minimal this $ closed_compl_iff.mpr $ hu,
+    have ∅ ∈ (nhds r).sets, by simp at this; exact this,
+    show false, from mem_of_nhds this,
+  linear_order_cases_on a 0
+    (assume : a = 0,
+      have 0 < (0:ℚ),
+        from calc 0 < i / 2 : by assumption
+          ... < 0 : by simp [*, abs_zero] at *,
+      (lt_irrefl 0 this).elim)
+    _
+    (assume : a > 0,
+      _)
+/-
+  have ∀x∈{a' : ℚ | abs (a - a') ≤ i / 2}, i / 2 < x, from _,
+  have hc : uniform_continuous (of_rat ∘ (has_inv.inv ∘ @subtype.val ℚ (λx, i / 2 < x))),
+    from uniform_continuous_compose
+      (uniform_continuous_inv_pos_rat _)
+      (uniform_continuous_of_embedding uniform_embedding_of_rat),
+  show ∃c, towards (of_rat ∘ has_inv.inv) (vmap of_rat (nhds r)) (nhds c),
+    from uniform_extend_subtype hc uniform_embedding_of_rat dense_embedding_of_rat.dense
+      _
+      closed_le
+      this
+-/
 
 def nonneg (r : ℝ) : Prop := r ∈ closure (of_rat '' {q : ℚ | q ≥ 0})
 

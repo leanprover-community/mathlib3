@@ -509,6 +509,9 @@ namespace dense_embedding
 variables [topological_space α] [topological_space β]
 variables {e : α → β} (de : dense_embedding e)
 
+protected lemma embedding (de : dense_embedding e) : embedding e :=
+⟨de.inj, eq_of_nhds_eq_nhds begin intro a, rw [← de.induced a, nhds_induced_eq_vmap] end⟩ 
+
 protected lemma towards (de : dense_embedding e) {a : α} : towards e (nhds a) (nhds (e a)) :=
 by rw [←de.induced a]; exact towards_vmap
 

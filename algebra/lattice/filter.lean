@@ -726,7 +726,7 @@ f.upwards_sets hs $ assume x hx, ⟨x, hx, rfl⟩
 
 @[simp] lemma map_id {f : filter α} : filter.map id f = f :=
 filter_eq $ rfl
-
+  
 @[simp] lemma map_compose {γ : Type w} {f : α → β} {g : β → γ} :
   filter.map g ∘ filter.map f = filter.map (g ∘ f) :=
 funext $ assume _, filter_eq $ rfl
@@ -759,6 +759,15 @@ le_of_sup_eq $ calc
 
 lemma monotone_map {m : α → β} : monotone (map m : filter α → filter β) :=
 assume a b h, map_mono h
+
+lemma map_cong {m₁ m₂ : α → β} {f : filter α} (h : {x | m₁ x = m₂ x} ∈ f.sets) :
+  map m₁ f = map m₂ f :=
+have ∀(m₁ m₂ : α → β) (h : {x | m₁ x = m₂ x} ∈ f.sets), map m₁ f ≤ map m₂ f,
+  from assume m₁ m₂ h s (hs : {x | m₂ x ∈ s} ∈ f.sets),
+  show {x | m₁ x ∈ s} ∈ f.sets,
+    from f.upwards_sets (inter_mem_sets hs h) $
+    assume x ⟨(h₁ : m₂ x ∈ s), (h₂ : m₁ x = m₂ x)⟩, show m₁ x ∈ s, from h₂.symm ▸ h₁,
+le_antisymm (this m₁ m₂ h) (this m₂ m₁ $ f.upwards_sets h $ assume x, eq.symm)
 
 -- this is a generic rule for monotone functions:
 lemma map_infi_le {f : ι → filter α} {m : α → β} :
@@ -969,6 +978,10 @@ end vmap
 
 /- towards -/
 def towards (f : α → β) (l₁ : filter α) (l₂ : filter β) := filter.map f l₁ ≤ l₂
+
+lemma towards_cong {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
+  (h : towards f₁ l₁ l₂) (hl : {x | f₁ x = f₂ x} ∈ l₁.sets) : towards f₂ l₁ l₂ :=
+by rwa [towards, ←map_cong hl]
 
 lemma towards_id' {x y : filter α} : x ≤ y → towards id x y :=
 by simp [towards] { contextual := tt }

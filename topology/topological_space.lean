@@ -414,10 +414,34 @@ section separation
 class t1_space (α : Type u) [topological_space α] :=
 (t1 : ∀x, closed ({x} : set α))
 
+lemma t1_separation [t1_space α] {x : α} : closed ({x} : set α) :=
+t1_space.t1 _ x
+
+lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : - {x} ∈ (nhds y).sets :=
+mem_nhds_sets t1_separation $ by simp; exact h
+
 class t2_space (α : Type u) [topological_space α] :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, open' u ∧ open' v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
--- intance t2_space.t1_spa
+lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) : 
+  ∃u v : set α, open' u ∧ open' v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
+t2_space.t2 _ _ _ h
+
+instance t2_space.t1_space [topological_space α] [t2_space α] : t1_space α :=
+⟨assume x,
+  have ∀y, y ≠ x ↔ ∃ (i : set α), open' i ∧ y ∈ i ∧ x ∉ i,
+    from assume y, ⟨assume h',
+      let ⟨u, v, hu, hv, hy, hx, h⟩ := t2_separation h' in
+      have x ∉ u,
+        from assume : x ∈ u,
+        have x ∈ u ∩ v, from ⟨this, hx⟩,
+        by rwa [h] at this,
+      ⟨u, hu, hy, this⟩,
+      assume ⟨s, hs, hy, hx⟩ h, hx $ h ▸ hy⟩,
+  have (-{x} : set α) = (⋃s∈{s : set α | x ∉ s ∧ open' s}, s),
+    by apply set.ext; simp; exact this,
+  show open' (- {x}),
+    by rw [this]; exact (open_Union $ assume s, open_Union $ assume ⟨_, hs⟩, hs)⟩
 
 lemma eq_of_nhds_neq_bot [ht : t2_space α] {x y : α} (h : nhds x ⊓ nhds y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
@@ -431,6 +455,10 @@ h $ empty_in_sets_eq_bot.mp $ huv ▸ this
 
 @[simp] lemma nhds_le_nhds_iff {a b : α} [t2_space α] : nhds a ≤ nhds b ↔ a = b :=
 ⟨assume h, eq_of_nhds_neq_bot $ by simp [inf_of_le_left h], assume h, h ▸ le_refl _⟩
+
+lemma towards_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : α}
+  (hl : l ≠ ⊥) (ha : towards f l (nhds a)) (hb : towards f l (nhds b)) : a = b :=
+eq_of_nhds_neq_bot $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ f _ hl) $ le_inf ha hb
 
 end separation
 

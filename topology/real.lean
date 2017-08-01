@@ -1,9 +1,23 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl
+
+The real numbers ℝ.
+
+They are constructed as the topological completion of ℚ. With the following steps:
+(1) prove that ℚ forms a uniform space.
+(2) subtraction and addition are uniform contiunuous functions in this space
+(3) for multiplication and inverse this only holds on bounded subsets
+(4) ℝ is defined as separated Cauchy filters over ℚ (the separation requires a quotient construction)
+(5) extend the uniform continuous functions along the completion
+(6) proof field properties using the principle of extension of identities
+-/
+
 import topology.uniform_space data.rat
 noncomputable theory
-
 open classical set
-local attribute [instance] decidable_inhabited
-local attribute [instance] prop_decidable
+local attribute [instance] decidable_inhabited prop_decidable
 
 /- rational numbers form a topological group and hence a uniform space -/
 

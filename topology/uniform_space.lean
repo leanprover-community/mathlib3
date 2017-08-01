@@ -4,11 +4,32 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 
 Theory of uniform spaces.
+
+Uniform spaces are a generalization of metric spaces and topological groups. Many concepts directly
+generalize to uniform spaces, e.g.
+
+* completeness
+* completion (on Cauchy filters instead of Cauchy sequences)
+* extension of uniform continuous functions to complete spaces
+* uniform contiunuity & embedding
+* totally bounded
+* totally bounded ∧ complete → compact
+
+One reason to directly formalize uniform spaces is foundational: we define ℝ as a completion of ℚ.
+
+The central concept of uniform spaces is its uniformity: a filter relating two elemenets of the
+space. This filter is reflexive, symmetric and transitive. So a set (i.e. a relation) in this filter
+represents a 'distance': it is reflexive, symmetric and the uniformity contains a set for which the
+`triangular` rule holds.
+
+The formalization is mostly based on the books:
+  N. Bourbaki: General Topology
+  I. M. James: Topologies and Uniformities
+A major difference is that this formalization is heavily based on the filter library.
 -/
 import algebra.lattice.filter topology.topological_space topology.continuity
 open set lattice filter classical
-local attribute [instance] decidable_inhabited
-local attribute [instance] prop_decidable
+local attribute [instance] decidable_inhabited prop_decidable
 
 set_option eqn_compiler.zeta true
 
@@ -19,8 +40,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort y}
 
 def id_rel {α : Type u} := {p : α × α | p.1 = p.2}
 
-def comp_rel {α : Type u} (r₁ r₂ : set (α×α)) :=
-{p : α × α | ∃z:α, (p.1, z) ∈ r₁ ∧ (z, p.2) ∈ r₂}
+def comp_rel {α : Type u} (r₁ r₂ : set (α×α)) := {p : α × α | ∃z:α, (p.1, z) ∈ r₁ ∧ (z, p.2) ∈ r₂}
 
 <<<<<<< HEAD
 @[simp] theorem swap_id_rel : prod.swap '' id_rel = @id_rel α :=

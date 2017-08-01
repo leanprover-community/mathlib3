@@ -4,6 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 
 Continuous functions.
+
+Parts of the formalization is based on the books:
+  N. Bourbaki: General Topology
+  I. M. James: Topologies and Uniformities
+A major difference is that this formalization is heavily based on the filter library.
 -/
 import topology.topological_space
 noncomputable theory

@@ -507,8 +507,7 @@ lemma uniform_embedding_of_rat : uniform_embedding of_rat :=
       (vmap (λp:Cauchy ℚ×Cauchy ℚ, (⟦p.1⟧, ⟦p.2⟧)) uniformity) : by rw [vmap_vmap_comp]; refl
     ... = _ : by rw [vmap_quotient_eq_uniformity, uniform_embedding_pure_cauchy.right] ⟩
 
-@[simp]
-lemma quot_mk_image_univ_eq : (λx : Cauchy ℚ, ⟦x⟧) '' univ = univ :=
+@[simp] lemma quot_mk_image_univ_eq : (λx : Cauchy ℚ, ⟦x⟧) '' univ = univ :=
 set.ext $ assume x, quotient.induction_on x $ assume a, ⟨by simp, assume _, ⟨a, trivial, rfl⟩⟩
 
 lemma dense_embedding_of_rat : dense_embedding of_rat :=

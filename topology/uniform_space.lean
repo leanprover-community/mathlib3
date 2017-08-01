@@ -540,8 +540,7 @@ lemma separated_equiv : equivalence (λx y, (x, y) ∈ separation_rel α) :=
 protected def separation_setoid (α : Type u) [uniform_space α] : setoid α :=
 ⟨λx y, (x, y) ∈ separation_rel α, separated_equiv⟩
 
-@[class]
-definition separated (α : Type u) [uniform_space α] :=
+@[class] definition separated (α : Type u) [uniform_space α] :=
 separation_rel α = id_rel
 
 instance separated_t2 [s : separated α] : t2_space α :=

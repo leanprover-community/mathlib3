@@ -30,6 +30,12 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, (h_eq : a' = a)⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
+@[simp] lemma univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
+set.ext $ assume ⟨a, b⟩, by simp
+
+lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
+set.ext $ assume ⟨x, h⟩, begin simp, exact ⟨x, h, rfl⟩ end
+
 section
 variables [topological_space α] [topological_space β] [topological_space γ]
 
@@ -59,7 +65,7 @@ lemma continuous_iff_towards {f : α → β} :
 lemma continuous_iff_closed {f : α → β} :
   continuous f ↔ (∀s, closed s → closed (preimage f s)) :=
 ⟨assume hf s hs, hf (-s) hs,
-  assume hf s, by rw [←open_compl_iff_closed, ←open_compl_iff_closed]; exact hf _⟩
+  assume hf s, by rw [←closed_compl_iff, ←closed_compl_iff]; exact hf _⟩
 
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
@@ -236,8 +242,7 @@ end embedding
 section sierpinski
 variables [topological_space α]
 
-@[simp]
-lemma open_singleton_true : open' ({true} : set Prop) :=
+@[simp] lemma open_singleton_true : open' ({true} : set Prop) :=
 topological_space.generate_open.basic _ (by simp)
 
 lemma continuous_Prop {p : α → Prop} : continuous p ↔ open' {x | p x} :=
@@ -402,8 +407,7 @@ lemma continuous_iff_of_embedding {f : α → β} {g : β → γ} (hg : embeddin
 by simp [continuous_iff_towards, @towards_nhds_iff_of_embedding α β γ _ _ _ f g _ _ hg]
 
 lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λx, (x, f x)) :=
-embedding_of_embedding_compose
-  (continuous_prod_mk continuous_id hf) continuous_fst embedding_id
+embedding_of_embedding_compose (continuous_prod_mk continuous_id hf) continuous_fst embedding_id
 
 lemma embedding_subtype_val : embedding (@subtype.val α p) :=
 ⟨assume a₁ a₂, subtype.eq, rfl⟩
@@ -536,9 +540,9 @@ lemma ext_e_eq {a : α} {f : α → γ} (de : dense_embedding e)
 de.ext_eq begin rw de.induced; exact hf end
 
 lemma towards_ext {b : β} {f : α → γ} (de : dense_embedding e)
-  (hf : {b | ∃c, towards f (vmap e (nhds b)) (nhds c)} ∈ (nhds b).sets) :
+  (hf : {b | ∃c, towards f (vmap e $ nhds b) (nhds c)} ∈ (nhds b).sets) :
   towards (de.ext f) (nhds b) (nhds (de.ext f b)) :=
-let φ := {b | towards f (vmap e (nhds b)) (nhds (de.ext f b))} in
+let φ := {b | towards f (vmap e $ nhds b) (nhds $ de.ext f b)} in
 have hφ : φ ∈ (nhds b).sets,
   from (nhds b).upwards_sets hf $ assume b ⟨c, hc⟩,
     show towards f (vmap e (nhds b)) (nhds (de.ext f b)), from (de.ext_eq hc).symm ▸ hc,
@@ -577,13 +581,6 @@ lemma continuous_ext {f : α → γ} (de : dense_embedding e)
 continuous_iff_towards.mpr $ assume b, de.towards_ext $ univ_mem_sets' hf
 
 end dense_embedding
-
-@[simp]
-lemma univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
-set.ext $ assume ⟨a, b⟩, by simp
-
-lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
-set.ext $ assume ⟨x, h⟩, begin simp, exact ⟨x, h, rfl⟩ end
 
 namespace dense_embedding
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]

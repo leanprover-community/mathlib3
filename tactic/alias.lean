@@ -23,13 +23,18 @@ This produces defs or theorems of the form:
 Iff alias syntax:
 
 alias A_iff_B ↔ B_of_A A_of_B
+alias A_iff_B ↔ ..
 
 This gets an existing biconditional theorem A_iff_B and produces
 the one-way implications B_of_A and A_of_B (with no change in
-implicit arguments).
+implicit arguments). A blank _ can be used to avoid generating one direction.
+The .. notation attempts to generate the 'of'-names automatically when the
+input theorem has the form A_iff_B or A_iff_B_left etc.
 
 -/
-open lean.parser tactic interactive
+import data.buffer.parser data.list.basic
+
+open lean.parser tactic interactive parser
 
 namespace tactic.alias
 
@@ -49,20 +54,33 @@ do updateex_env $ λ env,
   set_basic_attribute `alias al,
   add_doc_string al doc
 
-meta def mk_iff_mp_app (symm : bool) : expr → (nat → expr) → tactic expr
+meta def mk_iff_mp_app (iffmp : name) : expr → (nat → expr) → tactic expr
 | (expr.pi n bi e t) f := expr.lam n bi e <$> mk_iff_mp_app t (λ n, f (n+1) (expr.var n))
-| `(%%a ↔ %%b) f := pure $ (expr.const (if symm then `iff.mpr else `iff.mp) [] : expr) a b (f 0)
+| `(%%a ↔ %%b) f := pure $ @expr.const tt iffmp [] a b (f 0)
 | _ f := fail "Target theorem must have the form `Π x y z, a ↔ b`"
 
-meta def alias_iff (d : declaration) (doc : string) (al : name) (symm : bool) : tactic unit :=
-if al = `_ then skip else do
+meta def alias_iff (d : declaration) (doc : string) (al : name) (iffmp : name) : tactic unit :=
+(if al = `_ then skip else get_decl al >> skip) <|> do
   let ls := d.univ_params,
   let t := d.type,
-  v ← mk_iff_mp_app symm t (λ_, expr.const d.to_name (level.param <$> ls)),
+  v ← mk_iff_mp_app iffmp t (λ_, expr.const d.to_name (level.param <$> ls)),
   t' ← infer_type v,
   updateex_env $ λ env, env.add (declaration.thm al ls t' $ task.pure v),
   set_basic_attribute `alias al,
   add_doc_string al doc
+
+meta def make_left_right : name → tactic (name × name)
+| (name.mk_string s p) := do
+  let buf : char_buffer := s.to_char_buffer,
+  sum.inr parts ← pure $ run (sep_by1 (ch '_') (many_char (sat (≠ '_')))) s.to_char_buffer,
+  (left, _::right) ← pure $ parts.span (≠ "iff"),
+  let pfx (a b : string) := a.to_list <+: b.to_list,
+  (suffix', right') ← pure $ right.reverse.span (λ s, pfx "left" s ∨ pfx "right" s),
+  let right := right'.reverse,
+  let suffix := suffix'.reverse,
+  pure (p <.> "_".intercalate (right ++ "of" :: left ++ suffix),
+        p <.> "_".intercalate (left ++ "of" :: right ++ suffix))
+| _ := failed
 
 @[user_command] meta def alias_cmd (meta_info : decl_meta_info)
   (_ : parse $ tk "alias") : lean.parser unit :=
@@ -77,10 +95,12 @@ do old ← ident,
     ↑(aliases.mmap' $ λ al, alias_direct d (doc al) al) } <|>
   do {
     tk "↔" <|> tk "<->",
-    left ← types.ident_,
-    right ← types.ident_,
-    alias_iff d (doc left) left ff,
-    alias_iff d (doc right) right tt }
+    (left, right) ←
+      mcond ((tk "." *> tk "." >> pure tt) <|> pure ff)
+        (make_left_right old <|> fail "invalid name for automatic name generation")
+        (prod.mk <$> types.ident_ <*> types.ident_),
+    alias_iff d (doc left) left `iff.mp,
+    alias_iff d (doc right) right `iff.mpr }
 
 meta def get_lambda_body : expr → expr
 | (expr.lam _ _ _ b) := get_lambda_body b

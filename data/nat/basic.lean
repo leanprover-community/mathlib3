@@ -9,8 +9,6 @@ import logic.basic
 
 universe u
 
-open tactic
-
 namespace nat
 
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) : 
@@ -27,6 +25,35 @@ by rw mul_comm; exact nat.div_eq_iff_eq_mul_right H H'
  
 protected theorem eq_mul_of_div_eq_left {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) : 
   a = c * b := 
-by rw [mul_comm, nat.eq_mul_of_div_eq_right H1 H2] 
+by rw [mul_comm, nat.eq_mul_of_div_eq_right H1 H2]
+
+theorem add_pos_left {m : ℕ} (h : m > 0) (n : ℕ) : m + n > 0 :=
+calc
+  m + n > 0 + n : nat.add_lt_add_right h n
+    ... = n     : nat.zero_add n
+    ... ≥ 0     : zero_le n
+
+theorem add_pos_right (m : ℕ) {n : ℕ} (h : n > 0) : m + n > 0 :=
+begin rw add_comm, exact add_pos_left h m end
+
+theorem add_pos_iff_pos_or_pos (m n : ℕ) : m + n > 0 ↔ m > 0 ∨ n > 0 :=
+iff.intro
+  begin
+    intro h,
+    cases m with m,
+    {simp [zero_add] at h, exact or.inr h},
+    exact or.inl (succ_pos _)
+  end
+  begin
+    intro h, cases h with mpos npos,
+    { apply add_pos_left mpos },
+    apply add_pos_right _ npos
+  end
+
+theorem succ_le_succ_iff (m n : ℕ) : succ m ≤ succ n ↔ m ≤ n :=
+⟨le_of_succ_le_succ, succ_le_succ⟩
+
+theorem lt_succ_iff_le (m n : ℕ) : m < succ n ↔ m ≤ n :=
+succ_le_succ_iff m n
 
 end nat

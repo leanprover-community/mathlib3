@@ -56,6 +56,15 @@ theorem implies_intro (h : a) (h₂ : b) : a := h
 
 theorem implies_false_iff (a : Prop) : (a → false) ↔ ¬ a := iff.rfl
 
+theorem implies_and_iff (p q r : Prop) : (p → q ∧ r) ↔ (p → q) ∧ (p → r) :=
+iff.intro (λ h, ⟨λ hp, (h hp).left, λ hp, (h hp).right⟩) (λ h hp, ⟨h.left hp, h.right hp⟩)
+
+theorem and_implies_iff (p q r : Prop) : (p ∧ q → r) ↔ (p → q → r) :=
+iff.intro (λ h hp hq, h ⟨hp, hq⟩) (λ h ⟨hp, hq⟩, h hp hq)
+
+theorem iff_def (p q : Prop) : (p ↔ q) ↔ (p → q) ∧ (q → p) :=
+⟨ λh, ⟨h.1, h.2⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩ ⟩
+
 /- not -/
 
 theorem {u} not_elim {A : Sort u} (H1 : ¬a) (H2 : a) : A := absurd H2 H1
@@ -357,6 +366,9 @@ end classical
 section bounded_quantifiers
 universe variable u
 variables {α : Type u} {r p q : α → Prop} {b : Prop}
+
+theorem bexists_def {α : Type u} (p q : α → Prop) : (∃ x (h : p x), q x) ↔ ∃ x, p x ∧ q x :=
+⟨λ ⟨x, px, qx⟩, ⟨x, px, qx⟩, λ ⟨x, px, qx⟩, ⟨x, px, qx⟩⟩
 
 theorem bexists.elim {b : Prop} (h : ∃ x : α, ∃ h : p x, q x) (h' : ∀ (a : α), p a → q a → b) :
   b :=

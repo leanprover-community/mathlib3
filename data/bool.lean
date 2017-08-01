@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Leonardo de Moura, Jeremy Avigad
 -/
 
--- TODO(Jeremy): these used to be proved by rec_simp. Write a special tactic for these, or
--- get auto or super to do them.
-
 namespace bool
 
 -- TODO(Jeremy): is this right?

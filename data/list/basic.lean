@@ -84,8 +84,7 @@ attribute [simp] concat
 
 @[simp] theorem concat_nil (a : α) : concat [] a = [a] := rfl
 
-@[simp] theorem concat_cons (a b : α) (l : list α) :
-  concat (a :: l) b  = a :: concat l b := rfl
+@[simp] theorem concat_cons (a b : α) (l : list α) : concat (a :: l) b  = a :: concat l b := rfl
 
 @[simp] theorem concat_ne_nil (a : α) (l : list α) : concat l a ≠ [] :=
 by induction l; intro h; contradiction

@@ -29,17 +29,7 @@ declare_trace auto.done
 declare_trace auto.finish
 
 -- TODO(Jeremy): move these
-theorem implies_and_iff (p q r : Prop) : (p → q ∧ r) ↔ (p → q) ∧ (p → r) :=
-iff.intro (λ h, ⟨λ hp, (h hp).left, λ hp, (h hp).right⟩) (λ h hp, ⟨h.left hp, h.right hp⟩)
 
-theorem curry_iff (p q r : Prop) : (p ∧ q → r) ↔ (p → q → r) :=
-iff.intro (λ h hp hq, h ⟨hp, hq⟩) (λ h ⟨hp, hq⟩, h hp hq)
-
-theorem iff_def (p q : Prop) : (p ↔ q) ↔ (p → q) ∧ (q → p) :=
-⟨ λh, ⟨h.1, h.2⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩ ⟩
-
-theorem {u} bexists_def {α : Type u} (p q : α → Prop) : (∃ x (h : p x), q x) ↔ ∃ x, p x ∧ q x :=
-⟨λ ⟨x, px, qx⟩, ⟨x, px, qx⟩, λ ⟨x, px, qx⟩, ⟨x, px, qx⟩⟩
 
 namespace tactic
 

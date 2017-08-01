@@ -9,7 +9,7 @@ of a theorem or definition with different names.
 Syntax:
 
 / -- doc string - /
-alias alias1 alias2 ... → my_theorem
+alias my_theorem ← alias1 alias2 ...
 
 This produces defs or theorems of the form:
 
@@ -18,30 +18,83 @@ This produces defs or theorems of the form:
 
 / -- doc string - /
 @[alias] theorem alias2 : <type of my_theorem> := my_theorem
+
+
+Iff alias syntax:
+
+alias A_iff_B ↔ B_of_A A_of_B
+
+This gets an existing biconditional theorem A_iff_B and produces
+the one-way implications B_of_A and A_of_B (with no change in
+implicit arguments).
+
 -/
 open lean.parser tactic interactive
+
+namespace tactic.alias
 
 @[user_attribute] def alias_attr : user_attribute :=
 { name := `alias, descr := "This definition is an alias of another." }
 
-@[user_command] meta def alias_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "alias") : lean.parser unit :=
-do aliases ← many ident,
-  tk "→" <|> tk "->",
-  old ← ident,
-  d ← (do old ← resolve_constant old, get_decl old) <|>
-    fail ("theorem " ++ to_string old ++ " not found"),
-  updateex_env $ λ env, aliases.mfoldl (λ env al,
+meta def alias_direct (d : declaration) (doc : string) (al : name) : tactic unit :=
+do updateex_env $ λ env,
   env.add (match d.to_definition with
-  | (declaration.defn n ls t v h tr) :=
+  | declaration.defn n ls t _ _ _ :=
     declaration.defn al ls t (expr.const n (level.param <$> ls))
       reducibility_hints.abbrev tt
-  | (declaration.thm n ls t v)       :=
+  | declaration.thm n ls t _ :=
     declaration.thm al ls t $ task.pure $ expr.const n (level.param <$> ls)
   | _ := undefined
-  end)) env,
-  aliases.mmap' $ λ al, set_basic_attribute `alias al,
-  match meta_info.doc_string with
-  | none := skip
-  | some s := aliases.mmap' $ λ al, add_doc_string al s
-  end
+  end),
+  set_basic_attribute `alias al,
+  add_doc_string al doc
+
+meta def mk_iff_mp_app (symm : bool) : expr → (nat → expr) → tactic expr
+| (expr.pi n bi e t) f := expr.lam n bi e <$> mk_iff_mp_app t (λ n, f (n+1) (expr.var n))
+| `(%%a ↔ %%b) f := pure $ (expr.const (if symm then `iff.mpr else `iff.mp) [] : expr) a b (f 0)
+| _ f := fail "Target theorem must have the form `Π x y z, a ↔ b`"
+
+meta def alias_iff (d : declaration) (doc : string) (al : name) (symm : bool) : tactic unit :=
+if al = `_ then skip else do
+  let ls := d.univ_params,
+  let t := d.type,
+  v ← mk_iff_mp_app symm t (λ_, expr.const d.to_name (level.param <$> ls)),
+  t' ← infer_type v,
+  updateex_env $ λ env, env.add (declaration.thm al ls t' $ task.pure v),
+  set_basic_attribute `alias al,
+  add_doc_string al doc
+
+@[user_command] meta def alias_cmd (meta_info : decl_meta_info)
+  (_ : parse $ tk "alias") : lean.parser unit :=
+do old ← ident,
+  d ← (do old ← resolve_constant old, get_decl old) <|>
+    fail ("declaration " ++ to_string old ++ " not found"),
+  let doc := λ al : name, meta_info.doc_string.get_or_else $
+    "**Alias** of `" ++ to_string old ++ "`.",
+  do {
+    tk "←" <|> tk "<-",
+    aliases ← many ident,
+    ↑(aliases.mmap' $ λ al, alias_direct d (doc al) al) } <|>
+  do {
+    tk "↔" <|> tk "<->",
+    left ← types.ident_,
+    right ← types.ident_,
+    alias_iff d (doc left) left ff,
+    alias_iff d (doc right) right tt }
+
+meta def get_lambda_body : expr → expr
+| (expr.lam _ _ _ b) := get_lambda_body b
+| a                  := a
+
+meta def get_alias_target (n : name) : tactic (option name) :=
+do attr ← try_core (has_attribute `alias n),
+  option.cases_on attr (pure none) $ λ_, do
+  d ← get_decl n,
+  let (head, args) := (get_lambda_body d.value).get_app_fn_args,
+  let head := if head.is_constant_of `iff.mp ∨ head.is_constant_of `iff.mpr then
+    expr.get_app_fn (head.ith_arg 2)
+  else head,
+  guardb $ head.is_constant,
+  pure $ head.const_name
+
+end tactic.alias

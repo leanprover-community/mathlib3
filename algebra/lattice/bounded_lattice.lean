@@ -58,7 +58,7 @@ instance bounded_lattice_Prop : bounded_lattice Prop :=
   bot_le       := @false.elim }
 
 section logic
-variable [weak_order α]
+variable [pre_order α]
 
 theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λx, p x ∧ q x) :=
@@ -78,7 +78,7 @@ end logic
 -/
 instance bounded_lattice_fun {α : Type u} {β : Type v} [bounded_lattice β] :
   bounded_lattice (α → β) :=
-{ weak_order_fun with
+{ partial_order_fun with
   sup          := λf g a, f a ⊔ g a,
   le_sup_left  := assume f g a, le_sup_left,
   le_sup_right := assume f g a, le_sup_right,

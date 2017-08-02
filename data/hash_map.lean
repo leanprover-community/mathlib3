@@ -255,7 +255,7 @@ section
              array.iterate_aux bkts' (λ_ bkt r, r ++ bkt) i h [] = u' ++ v2 ++ w'
   | 0     _ hb := absurd hb (nat.not_lt_zero _)
   | (i+1) h hb :=
-    match nat.lt_or_eq_of_le $ nat.le_of_succ_le_succ hb with
+    match lt_or_eq_of_le $ nat.le_of_succ_le_succ hb with
     | or.inl hl :=
       have bn : bidx ≠ ⟨i, h⟩, from λhh, ne_of_gt hl $ fin.veq_of_eq $ eq.symm hh,
       have he : array.read bkts ⟨i, h⟩ = array.read bkts' ⟨i, h⟩, from
@@ -292,7 +292,7 @@ section
     valid_aux (λa, (mk_idx n (hash_fn a)).1) (array.iterate_aux bkts' (λ_ v l, v :: l) i h []) (sz + v2.length - v1.length)
   | 0     _ hb sz := absurd hb (nat.not_lt_zero _)
   | (i+1) h hb sz :=
-    match nat.lt_or_eq_of_le $ nat.le_of_succ_le_succ hb with
+    match lt_or_eq_of_le $ nat.le_of_succ_le_succ hb with
     | or.inl hl :=
       have bn : bidx ≠ ⟨i, h⟩, from λhh, ne_of_gt hl $ fin.veq_of_eq $ eq.symm hh,
       have he : array.read bkts ⟨i, h⟩ = array.read bkts' ⟨i, h⟩, from

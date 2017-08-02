@@ -26,7 +26,7 @@ def comp_rel {α : Type u} (r₁ r₂ : set (α×α)) :=
 @[simp] theorem swap_id_rel : prod.swap '' id_rel = @id_rel α :=
 set.ext $ assume ⟨a, b⟩, by simp [image_swap_eq_vimage_swap]; exact eq_comm
 
-theorem monotone_comp_rel [weak_order β] {f g : β → set (α×α)}
+theorem monotone_comp_rel [pre_order β] {f g : β → set (α×α)}
   (hf : monotone f) (hg : monotone g) : monotone (λx, comp_rel (f x) (g x)) :=
 assume a b h p ⟨z, h₁, h₂⟩, ⟨z, hf h h₁, hg h h₂⟩
 
@@ -965,9 +965,8 @@ end Cauchy
 section constructions
 variables {α : Type u} {β : Type v}
 
-instance : weak_order (uniform_space α) :=
-{ weak_order .
-  le          := λt s, s.uniformity ≤ t.uniformity,
+instance : partial_order (uniform_space α) :=
+{ le          := λt s, s.uniformity ≤ t.uniformity,
   le_antisymm := assume t s h₁ h₂, uniform_space_eq $ le_antisymm h₂ h₁,
   le_refl     := assume t, le_refl _,
   le_trans    := assume a b c h₁ h₂, @le_trans _ _ c.uniformity b.uniformity a.uniformity h₂ h₁ }
@@ -1006,7 +1005,7 @@ instance : has_top (uniform_space α) :=
   end}⟩
 
 instance : complete_lattice (uniform_space α) :=
-{ uniform_space.weak_order with
+{ uniform_space.partial_order with
   sup           := λa b, Sup {a, b},
   le_sup_left   := assume a b, le_Sup $ by simp,
   le_sup_right  := assume a b, le_Sup $ by simp,

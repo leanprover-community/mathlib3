@@ -20,8 +20,8 @@ section
   variable {α : Type u}
 
   -- TODO: this seems crazy, but it also seems to work reasonably well
-  @[ematch] theorem le_antisymm' [weak_order α] : ∀ {a b : α}, (: a ≤ b :) → b ≤ a → a = b :=
-  weak_order.le_antisymm
+  @[ematch] theorem le_antisymm' [partial_order α] : ∀ {a b : α}, (: a ≤ b :) → b ≤ a → a = b :=
+  @le_antisymm _ _
 end
 
 /- TODO: automatic construction of dual definitions / theorems -/
@@ -41,7 +41,7 @@ infix ⊓ := has_inf.inf
 notation `⊤` := has_top.top _
 notation `⊥` := has_bot.bot _
 
-class order_top (α : Type u) extends has_top α, weak_order α :=
+class order_top (α : Type u) extends has_top α, partial_order α :=
 (le_top : ∀ a : α, a ≤ ⊤)
 
 section order_top
@@ -62,7 +62,7 @@ theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
 
 end order_top
 
-class order_bot (α : Type u) extends has_bot α, weak_order α :=
+class order_bot (α : Type u) extends has_bot α, partial_order α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
 section order_bot
@@ -85,7 +85,7 @@ assume ha, hb $ bot_unique $ ha ▸ hab
 
 end order_bot
 
-class semilattice_sup (α : Type u) extends has_sup α, weak_order α :=
+class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
 (sup_le : ∀ a b c : α, a ≤ c → b ≤ c → a ⊔ b ≤ c)
@@ -149,7 +149,7 @@ instance semilattice_sup_to_is_associative [semilattice_sup α] : is_associative
 
 end semilattice_sup
 
-class semilattice_inf (α : Type u) extends has_inf α, weak_order α :=
+class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
 (le_inf : ∀ a b c : α, a ≤ b → a ≤ c → a ≤ b ⊓ c)

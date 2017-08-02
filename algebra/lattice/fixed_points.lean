@@ -11,7 +11,7 @@ import algebra.lattice.complete_lattice
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-theorem ge_of_eq [weak_order α] {a b : α} : a = b → a ≥ b :=
+theorem ge_of_eq [pre_order α] {a b : α} : a = b → a ≥ b :=
 λ h, h ▸ le_refl a
 
 namespace lattice
@@ -82,13 +82,13 @@ section fixedpoint_eqn
 variables [complete_lattice α] [complete_lattice β] {f : β → α} {g : α → β}
 
 -- Rolling rule
-theorem lfp_comp (m_f : monotone f) (m_g : monotone g) : lfp (f ∘ g) = f (lfp (g ∘ f)) := 
+theorem lfp_comp (m_f : monotone f) (m_g : monotone g) : lfp (f ∘ g) = f (lfp (g ∘ f)) :=
 le_antisymm
   (lfp_le $ m_f $ ge_of_eq $ lfp_eq $ monotone_comp m_f m_g)
   (le_lfp $ assume a fg_le,
     le_trans (m_f $ lfp_le $ show (g ∘ f) (g a) ≤ g a, from m_g fg_le) fg_le)
 
-theorem gfp_comp (m_f : monotone f) (m_g : monotone g) : gfp (f ∘ g) = f (gfp (g ∘ f)) := 
+theorem gfp_comp (m_f : monotone f) (m_g : monotone g) : gfp (f ∘ g) = f (gfp (g ∘ f)) :=
 le_antisymm
   (gfp_le $ assume a fg_le,
     le_trans fg_le $ m_f $ le_gfp $ show g a ≤ (g ∘ f) (g a), from m_g fg_le)
@@ -96,7 +96,7 @@ le_antisymm
 
 -- Diagonal rule
 theorem lfp_lfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
-  lfp (lfp ∘ h) = lfp (λx, h x x) := 
+  lfp (lfp ∘ h) = lfp (λx, h x x) :=
 let f := lfp (lfp ∘ h) in
 have f_eq : f = lfp (h f),
   from lfp_eq $ monotone_comp (assume a b h x, m h (le_refl _)) monotone_lfp,
@@ -108,7 +108,7 @@ le_antisymm
        ... = h f f           : congr_arg (h f) f_eq.symm)
 
 theorem gfp_gfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
-  gfp (gfp ∘ h) = gfp (λx, h x x) := 
+  gfp (gfp ∘ h) = gfp (λx, h x x) :=
 let f := gfp (gfp ∘ h) in
 have f_eq : f = gfp (h f),
   from gfp_eq $ monotone_comp (assume a b h x, m h (le_refl _)) monotone_gfp,

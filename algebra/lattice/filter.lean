@@ -133,7 +133,7 @@ subset.antisymm
     (prod_mono (inter_subset_left _ _) (inter_subset_left _ _))
     (prod_mono (inter_subset_right _ _) (inter_subset_right _ _)))
 
-theorem monotone_prod [weak_order α] {f : α → set β} {g : α → set γ}
+theorem monotone_prod [pre_order α] {f : α → set β} {g : α → set γ}
   (hf : monotone f) (hg : monotone g) : monotone (λx, set.prod (f x) (g x)) :=
 assume a b h, prod_mono (hf h) (hg h)
 
@@ -169,7 +169,7 @@ end
 @[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
 
-theorem monotone_inter [weak_order β] {f g : β → set α}
+theorem monotone_inter [pre_order β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λx, (f x) ∩ (g x)) :=
 assume a b h x ⟨h₁, h₂⟩, ⟨hf h h₁, hg h h₂⟩
 
@@ -192,7 +192,7 @@ image_eq_vimage_of_inverse (@prod.swap α β) (@prod.swap β α)
   begin simp; intros; trivial end
   begin simp; intros; trivial end
 
-theorem monotone_set_of [weak_order α] {p : α → β → Prop}
+theorem monotone_set_of [pre_order α] {p : α → β → Prop}
   (hp : ∀b, monotone (λa, p a b)) : monotone (λa, {b | p a b}) :=
 assume a a' h b, hp b h
 
@@ -296,7 +296,7 @@ def upwards (s : set α) := ∀{x y}, x ∈ s → x ≼ y → y ∈ s
 
 end order
 
-theorem directed_of_chain {α : Type u} {β : Type v} [weak_order β] {f : α → β} {c : set α}
+theorem directed_of_chain {α : Type u} {β : Type v} [pre_order β] {f : α → β} {c : set α}
   (h : @zorn.chain α (λa b, f b ≤ f a) c) :
   directed (≤) (λx:{a:α // a ∈ c}, f (x.val)) :=
 assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
@@ -421,8 +421,8 @@ def cofinite : filter α :=
     ⟨s ∩ t, by simp [compl_inter, finite_union, ht, hs],
       inter_subset_left _ _, inter_subset_right _ _⟩ }
 
-instance weak_order_filter : weak_order (filter α) :=
-{ weak_order .
+instance partial_order_filter : partial_order (filter α) :=
+{ partial_order .
   le            := λf g, g.sets ⊆ f.sets,
   le_antisymm   := assume a b h₁ h₂, filter_eq $ subset.antisymm h₂ h₁,
   le_refl       := assume a, subset.refl _,
@@ -457,7 +457,7 @@ by simp [monotone, principal_mono]; exact assume a b h, h
 by simp [eq_iff_le_and_le]; refl
 
 instance complete_lattice_filter : complete_lattice (filter α) :=
-{ filter.weak_order_filter with
+{ filter.partial_order_filter with
   sup           := filter.sup,
   le_sup_left   := assume a b, inter_subset_left _ _,
   le_sup_right  := assume a b, inter_subset_right _ _,
@@ -503,8 +503,8 @@ instance : alternative filter :=
   failure := λα, ⊥,
   orelse  := λα x y, x ⊔ y }
 
-def at_top [weak_order α] : filter α := ⨅ a, principal {b | a ≤ b}
-def at_bot [weak_order α] : filter α := ⨅ a, principal {b | b ≤ a}
+def at_top [pre_order α] : filter α := ⨅ a, principal {b | a ≤ b}
+def at_bot [pre_order α] : filter α := ⨅ a, principal {b | b ≤ a}
 
 /- lattice equations -/
 
@@ -981,7 +981,7 @@ le_antisymm
   (infi_le_of_le s $ infi_le _ $ subset.refl _)
   (le_infi $ assume t, le_infi $ assume hi, hg hi)
 
-theorem monotone_lift [weak_order γ] {f : γ → filter α} {g : γ → set α → filter β}
+theorem monotone_lift [pre_order γ] {f : γ → filter α} {g : γ → set α → filter β}
   (hf : monotone f) (hg : monotone g) : monotone (λc, (f c).lift (g c)) :=
 assume a b h, lift_mono (hf h) (hg h)
 
@@ -1054,7 +1054,7 @@ theorem principal_le_lift' {t : set β} (hh : ∀s∈f.sets, t ⊆ h s) :
   principal t ≤ f.lift' h :=
 le_infi $ assume s, le_infi $ assume hs, principal_mono.mpr (hh s hs)
 
-theorem monotone_lift' [weak_order γ] {f : γ → filter α} {g : γ → set α → set β}
+theorem monotone_lift' [pre_order γ] {f : γ → filter α} {g : γ → set α → set β}
   (hf : monotone f) (hg : monotone g) : monotone (λc, (f c).lift' (g c)) :=
 assume a b h, lift'_mono (hf h) (hg h)
 

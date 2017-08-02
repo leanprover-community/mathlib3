@@ -21,7 +21,7 @@ section miscellany
 universes u v
 variables {α : Type u} {β : Type v}
 
-theorem eq_iff_le_and_le {α : Type u} [weak_order α] {a b : α} : a = b ↔ (a ≤ b ∧ b ≤ a) :=
+theorem eq_iff_le_and_le {α : Type u} [partial_order α] {a b : α} : a = b ↔ (a ≤ b ∧ b ≤ a) :=
 ⟨assume eq, eq ▸ ⟨le_refl a, le_refl a⟩, assume ⟨ab, ba⟩, le_antisymm ab ba⟩
 
 @[simp] theorem prod.mk.inj_iff {α : Type u} {β : Type v} {a₁ a₂ : α} {b₁ b₂ : β} :

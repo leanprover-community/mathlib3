@@ -35,10 +35,10 @@ input theorem has the form A_iff_B or A_iff_B_left etc.
 import data.buffer.parser data.list.basic
 
 open lean.parser tactic interactive parser
-
+    
 namespace tactic.alias
 
-@[user_attribute] def alias_attr : user_attribute :=
+@[user_attribute] meta def alias_attr : user_attribute :=
 { name := `alias, descr := "This definition is an alias of another." }
 
 meta def alias_direct (d : declaration) (doc : string) (al : name) : tactic unit :=

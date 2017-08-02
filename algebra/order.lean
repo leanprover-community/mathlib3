@@ -11,7 +11,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 section monotone
-variables [pre_order α] [pre_order β] [pre_order γ]
+variables [preorder α] [preorder β] [preorder γ]
 
 def monotone (f : α → β) := ∀{{a b}}, a ≤ b → f a ≤ f b
 
@@ -48,14 +48,14 @@ end
 
 /- order instances -/
 
-instance pre_order_fun [pre_order β] : pre_order (α → β) :=
+instance preorder_fun [preorder β] : preorder (α → β) :=
 { le := λx y, ∀b, x b ≤ y b,
   le_refl := λf b, le_refl (f b),
   le_trans := λf g h h1 h2 b, le_trans (h1 b) (h2 b),
 }
 
 instance partial_order_fun [partial_order β] : partial_order (α → β) :=
-{ pre_order_fun with
+{ preorder_fun with
   le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b))
 }
 
@@ -66,16 +66,16 @@ def weak_order_dual (wo : partial_order α) : partial_order α :=
   le_antisymm := assume a b h₁ h₂, le_antisymm h₂ h₁ }
 
 theorem le_dual_eq_le {α : Type} (wo : partial_order α) (a b : α) :
-  @has_le.le _ (@pre_order.to_has_le _ (@partial_order.to_pre_order _ (weak_order_dual wo))) a b =
-  @has_le.le _ (@pre_order.to_has_le _ (@partial_order.to_pre_order _ wo)) b a :=
+  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ (weak_order_dual wo))) a b =
+  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ wo)) b a :=
 rfl
 
-theorem comp_le_comp_left_of_monotone [pre_order α] [pre_order β] [pre_order γ]
+theorem comp_le_comp_left_of_monotone [preorder α] [preorder β] [preorder γ]
   {f : β → α} {g h : γ → β} (m_f : monotone f) (le_gh : g ≤ h) : has_le.le.{max w u} (f ∘ g) (f ∘ h) :=
 assume x, m_f (le_gh x)
 
 section monotone
-variables [pre_order α] [pre_order γ]
+variables [preorder α] [preorder γ]
 
 theorem monotone_lam {f : α → β → γ} (m : ∀b, monotone (λa, f a b)) : monotone f :=
 assume a a' h b, m b h

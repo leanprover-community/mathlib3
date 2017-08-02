@@ -58,7 +58,7 @@ instance bounded_lattice_Prop : bounded_lattice Prop :=
   bot_le       := @false.elim }
 
 section logic
-variable [pre_order α]
+variable [preorder α]
 
 theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λx, p x ∧ q x) :=

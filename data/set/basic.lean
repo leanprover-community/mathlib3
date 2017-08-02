@@ -19,8 +19,7 @@ theorem set_eq_def (s t : set α) : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 
 /- mem and set_of -/
 
--- TODO(Jeremy): I had to add ematch here
-@[simp, ematch] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
+@[simp] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
 
 @[simp] theorem nmem_set_of_eq {a : α} {P : α → Prop} : a ∉ {a : α | P a} = ¬ P a := rfl
 
@@ -64,12 +63,10 @@ theorem empty_def : (∅ : set α) = {x | false} := rfl
 @[simp] theorem set_of_false : {a : α | false} = ∅ := rfl
 
 theorem eq_empty_of_forall_not_mem {s : set α} (h : ∀ x, x ∉ s) : s = ∅ :=
-ext (assume x, iff.intro
-  (assume xs, absurd xs (h x))
-  (assume xe, absurd xe (not_mem_empty _)))
+by apply ext; finish
 
 theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
-  begin intro hs, rewrite hs at h, apply not_mem_empty _ h end
+by { intro hs, rewrite hs at h, apply not_mem_empty _ h }
 
 @[simp] theorem empty_subset (s : set α) : ∅ ⊆ s :=
 assume x, assume h, false.elim h

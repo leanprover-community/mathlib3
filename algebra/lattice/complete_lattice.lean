@@ -55,12 +55,12 @@ Sup_le (assume a, assume ha : a ∈ s, le_Sup $ h ha)
 theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
 le_Inf (assume a, assume ha : a ∈ s, Inf_le $ h ha)
 
-@[simp] theorem le_Sup_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+@[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 ⟨assume : Sup s ≤ a, assume b, assume : b ∈ s,
   le_trans (le_Sup ‹b ∈ s›) ‹Sup s ≤ a›,
   Sup_le⟩
 
-@[simp] theorem Inf_le_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
+@[simp] theorem le_Inf_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
 ⟨assume : a ≤ Inf s, assume b, assume : b ∈ s,
   le_trans ‹a ≤ Inf s› (Inf_le ‹b ∈ s›),
   le_Inf⟩
@@ -72,7 +72,9 @@ by have := le_Sup h; finish
 
 -- TODO: it is weird that we have to add union_def
 theorem Sup_union {s t : set α} : Sup (s ∪ t) = Sup s ⊔ Sup t :=
-le_antisymm (by finish) (by finish [union_def])
+le_antisymm 
+  (by finish) 
+  (sup_le (Sup_le_Sup $ subset_union_left _ _) (Sup_le_Sup $ subset_union_right _ _))
 
 /- old proof:
 le_antisymm
@@ -87,7 +89,9 @@ by finish
 -/
 
 theorem Inf_union {s t : set α} : Inf (s ∪ t) = Inf s ⊓ Inf t :=
-le_antisymm (by finish [union_def]) (by finish)
+le_antisymm 
+  (le_inf (Inf_le_Inf $ subset_union_left _ _) (Inf_le_Inf $ subset_union_right _ _))
+  (by finish)
 
 /- old proof:
 le_antisymm
@@ -116,25 +120,19 @@ le_antisymm (by finish) (le_Sup ⟨⟩) -- finish fails because ⊤ ≤ a simpli
 @[simp] theorem Inf_univ : Inf univ = (⊥ : α) :=
 le_antisymm (Inf_le ⟨⟩) bot_le
 
+-- TODO(Jeremy): get this automatically
 @[simp] theorem Sup_insert {a : α} {s : set α} : Sup (insert a s) = a ⊔ Sup s :=
-le_antisymm (by finish) (by finish [insert_def])
-
-/- old proof
 have Sup {b | b = a} = a,
   from le_antisymm (Sup_le $ assume b b_eq, b_eq ▸ le_refl _) (le_Sup rfl),
 calc Sup (insert a s) = Sup {b | b = a} ⊔ Sup s : Sup_union
                   ... = a ⊔ Sup s : by rw [this]
--/
 
 @[simp] theorem Inf_insert {a : α} {s : set α} : Inf (insert a s) = a ⊓ Inf s :=
-le_antisymm (by finish [insert_def]) (by finish)
-
-/- old proof
 have Inf {b | b = a} = a,
   from le_antisymm (Inf_le rfl) (le_Inf $ assume b b_eq, b_eq ▸ le_refl _),
 calc Inf (insert a s) = Inf {b | b = a} ⊓ Inf s : Inf_union
                   ... = a ⊓ Inf s : by rw [this]
--/
+
 
 @[simp] theorem Sup_singleton {a : α} : Sup {a} = a :=
 by finish [singleton_def]
@@ -532,7 +530,7 @@ instance complete_lattice_fun {α : Type u} {β : Type v} [complete_lattice β] 
   le_Inf := assume s f h a, le_Inf $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a }
 
 section complete_lattice
-variables [pre_order α] [complete_lattice β]
+variables [preorder α] [complete_lattice β]
 
 theorem monotone_Sup_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone f) : monotone (Sup s) :=
 assume x y h, Sup_le $ assume x' ⟨f, f_in, fx_eq⟩, le_Sup_of_le ⟨f, f_in, rfl⟩ $ fx_eq ▸ m_s _ f_in h

@@ -245,7 +245,7 @@ namespace pos_num
   -- TODO(Mario): Prove these using transfer tactic
   instance : decidable_linear_order pos_num :=
   { lt              := (<),
-    lt_iff_le_not_le := λ a b, @pre_order.lt_iff_le_not_le ℕ _ _ _,
+    lt_iff_le_not_le := λ a b, @preorder.lt_iff_le_not_le ℕ _ _ _,
     le              := (≤),
     le_refl         := λa, @le_refl nat _ _,
     le_trans        := λa b c, @le_trans nat _ _ _ _,
@@ -336,7 +336,7 @@ namespace num
       have := congr_arg (coe : num → nat) h, revert this,
       transfer_rw, apply add_right_cancel },
     lt                         := (<),
-    lt_iff_le_not_le := λ a b, @pre_order.lt_iff_le_not_le ℕ _ _ _,
+    lt_iff_le_not_le := λ a b, @preorder.lt_iff_le_not_le ℕ _ _ _,
     le                         := (≤),
     le_refl                    := λa, @le_refl nat _ _,
     le_trans                   := λa b c, @le_trans nat _ _ _ _,

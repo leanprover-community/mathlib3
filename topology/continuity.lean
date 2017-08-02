@@ -29,7 +29,7 @@ set.ext $ assume a,
 section
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-def continuous (f : α → β) := ∀s, open' s → open' (vimage f s)
+def continuous (f : α → β) := ∀s, open' s → open' (preimage f s)
 
 theorem continuous_id : continuous (id : α → α) :=
 assume s h, h
@@ -44,12 +44,12 @@ theorem continuous_iff_towards {f : α → β} :
   show s ∈ (nhds (f x)).sets → s ∈ (map f (nhds x)).sets,
     by simp [nhds_sets];
       exact assume ⟨t, t_open, t_subset, fx_in_t⟩,
-        ⟨vimage f t, hf t t_open, fx_in_t, vimage_mono t_subset⟩,
+        ⟨preimage f t, hf t t_open, fx_in_t, preimage_mono t_subset⟩,
   assume hf : ∀x, towards f (nhds x) (nhds (f x)),
   assume s, assume hs : open' s,
   have ∀a, f a ∈ s → s ∈ (nhds (f a)).sets,
     by simp [nhds_sets]; exact assume a ha, ⟨s, hs, subset.refl s, ha⟩,
-  show open' (vimage f s),
+  show open' (preimage f s),
     by simp [open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
 
 end
@@ -70,11 +70,11 @@ theorem continuous_eq_le_coinduced {t₁ : tspace α} {t₂ : tspace β} :
   cont t₁ t₂ f = (t₂ ≤ coinduced f t₁) := rfl
 
 theorem continuous_generated_from {t : tspace α} {b : set (set β)}
-  (h : ∀s∈b, open' (vimage f s)) : cont t (generate_from b) f :=
+  (h : ∀s∈b, open' (preimage f s)) : cont t (generate_from b) f :=
 assume s hs, generate_open.rec_on hs h
   open_univ
   (assume s t _ _, open_inter)
-  (assume t _ h, by rw [vimage_sUnion]; exact (open_Union $ assume s, open_Union $ assume hs, h s hs))
+  (assume t _ h, by rw [preimage_sUnion]; exact (open_Union $ assume s, open_Union $ assume hs, h s hs))
 
 theorem continuous_induced_dom {t : tspace β} : cont (induced f t) t f :=
 assume s h, ⟨_, h, rfl⟩
@@ -148,12 +148,12 @@ topological_space.generate_open.basic _ (by simp)
 
 theorem continuous_Prop {p : α → Prop} : continuous p ↔ open' {x | p x} :=
 ⟨assume h : continuous p,
-  have open' (vimage p {true}),
+  have open' (preimage p {true}),
     from h _ open_singleton_true,
-  by simp [vimage, eq_true] at this; assumption,
+  by simp [preimage, eq_true] at this; assumption,
   assume h : open' {x | p x},
   continuous_generated_from $ assume s (hs : s ∈ {{true}}),
-    by simp at hs; simp [hs, vimage, eq_true, h]⟩
+    by simp at hs; simp [hs, preimage, eq_true, h]⟩
 
 end sierpinski
 
@@ -161,19 +161,19 @@ section induced
 open topological_space
 variables [t : topological_space β] {f : α → β}
 
-theorem open_induced {s : set β} (h : open' s) : (induced f t).open' (vimage f s) :=
+theorem open_induced {s : set β} (h : open' s) : (induced f t).open' (preimage f s) :=
 ⟨s, h, rfl⟩
 
 theorem nhds_induced_eq_vmap {a : α} : @nhds α (induced f t) a = vmap f (nhds (f a)) :=
 le_antisymm
-  (assume s ⟨s', hs', (h_s : vimage f s' ⊆ s)⟩,
+  (assume s ⟨s', hs', (h_s : preimage f s' ⊆ s)⟩,
     have ∃t':set β, open' t' ∧ t' ⊆ s' ∧ f a ∈ t',
       by simp [mem_nhds_sets_iff] at hs'; assumption,
     let ⟨t', ht', hsub, hin⟩ := this in
     (@nhds α (induced f t) a).upwards_sets
       begin
         simp [mem_nhds_sets_iff],
-        exact ⟨vimage f t', open_induced ht', hin, vimage_mono hsub⟩
+        exact ⟨preimage f t', open_induced ht', hin, preimage_mono hsub⟩
       end
       h_s)
   (le_infi $ assume s, le_infi $ assume ⟨as, ⟨s', open_s', s_eq⟩⟩,
@@ -186,7 +186,7 @@ theorem map_nhds_induced_eq {a : α} (h : image f univ ∈ (nhds (f a)).sets) :
   map f (@nhds α (induced f t) a) = nhds (f a) :=
 le_antisymm
   ((@continuous_iff_towards α β (induced f t) _ _).mp continuous_induced_dom a)
-  (assume s, assume hs : vimage f s ∈ (@nhds α (induced f t) a).sets,
+  (assume s, assume hs : preimage f s ∈ (@nhds α (induced f t) a).sets,
     let ⟨t', t_subset, open_t, a_in_t⟩ := mem_nhds_sets_iff.mp h in
     let ⟨s', s'_subset, ⟨s'', open_s'', s'_eq⟩, a_in_s'⟩ := (@mem_nhds_sets_iff _ (induced f t) _ _).mp hs in
     by subst s'_eq; exact (mem_nhds_sets_iff.mpr $
@@ -223,10 +223,10 @@ theorem prod_eq_generate_from [tα : topological_space α] [tβ : topological_sp
 le_antisymm
   (sup_le
     (assume s ⟨t, ht, s_eq⟩,
-      have set.prod t univ = s, by simp [s_eq, vimage, set.prod],
+      have set.prod t univ = s, by simp [s_eq, preimage, set.prod],
       this ▸ (generate_open.basic _ ⟨t, univ, ht, open_univ, rfl⟩))
     (assume s ⟨t, ht, s_eq⟩,
-      have set.prod univ t = s, by simp [s_eq, vimage, set.prod],
+      have set.prod univ t = s, by simp [s_eq, preimage, set.prod],
       this ▸ (generate_open.basic _ ⟨univ, t, open_univ, ht, rfl⟩)))
   (generate_from_le $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ open_set_prod hs ht)
 
@@ -319,7 +319,7 @@ begin
     let p : Πi:ι, filter (α i) := λi, map (λx:Πi:ι, α i, x i) f in
     have ∀i:ι, ∃a, a∈s i ∧ p i ≤ nhds a,
       from assume i, h i (p i) (ultrafilter_map hf) $
-      show vimage (λx:Πi:ι, α i, x i) (s i) ∈ f.sets,
+      show preimage (λx:Πi:ι, α i, x i) (s i) ∈ f.sets,
         from f.upwards_sets hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
     let ⟨a, ha⟩ := classical.axiom_of_choice this in
     ⟨a, assume i, (ha i).left, assume i, le_vmap_iff_map_le.mpr $ (ha i).right⟩

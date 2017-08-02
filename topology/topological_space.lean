@@ -450,7 +450,7 @@ assume s hs t' ht', h t' ht' s hs
 def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : topological_space β) :
   topological_space α :=
 { topological_space .
-  open'       := λs, ∃s', t.open' s' ∧ s = vimage f s',
+  open'       := λs, ∃s', t.open' s' ∧ s = preimage f s',
   open_univ   := ⟨univ, by simp; exact t.open_univ⟩,
   open_inter  := assume s₁ s₂ ⟨s'₁, hs₁, eq₁⟩ ⟨s'₂, hs₂, eq₂⟩,
     ⟨s'₁ ∩ s'₂, by simp [eq₁, eq₂]; exact t.open_inter _ _ hs₁ hs₂⟩,
@@ -467,11 +467,11 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
 def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t : topological_space α) :
   topological_space β :=
 { topological_space .
-  open'       := λs, t.open' (vimage f s),
+  open'       := λs, t.open' (preimage f s),
   open_univ   := by simp; exact t.open_univ,
   open_inter  := assume s₁ s₂ h₁ h₂, by simp; exact t.open_inter _ _ h₁ h₂,
-  open_sUnion := assume s h, by rw [vimage_sUnion]; exact (@open_Union _ _ t _ $ assume i,
-    show open' (⋃ (H : i ∈ s), vimage f i), from
+  open_sUnion := assume s h, by rw [preimage_sUnion]; exact (@open_Union _ _ t _ $ assume i,
+    show open' (⋃ (H : i ∈ s), preimage f i), from
       @open_Union _ _ t _ $ assume hi, h i hi) }
 
 instance : has_inf (topological_space α) :=

@@ -331,15 +331,15 @@ sub_eq_left $ eq_empty_of_forall_not_mem $ assume x ⟨ht, ha⟩,
   insert a (s \ {a}) = insert a s :=
 by simp [insert_eq, union_sdiff_same]
 
-theorem monotone_vimage {f : α → β} : monotone (vimage f) := assume a b h, vimage_mono h
+theorem monotone_preimage {f : α → β} : monotone (preimage f) := assume a b h, preimage_mono h
 
-@[simp] theorem vimage_Union {ι : Sort w} {f : α → β} {s : ι → set β} :
-  vimage f (⋃i, s i) = (⋃i, vimage f (s i)) :=
-set.ext $ by simp [vimage]
+@[simp] theorem preimage_Union {ι : Sort w} {f : α → β} {s : ι → set β} :
+  preimage f (⋃i, s i) = (⋃i, preimage f (s i)) :=
+set.ext $ by simp [preimage]
 
-@[simp] theorem vimage_sUnion {f : α → β} {s : set (set β)} :
-  vimage f (⋃₀ s) = (⋃t ∈ s, vimage f t) :=
-set.ext $ by simp [vimage]
+@[simp] theorem preimage_sUnion {f : α → β} {s : set (set β)} :
+  preimage f (⋃₀ s) = (⋃t ∈ s, preimage f t) :=
+set.ext $ by simp [preimage]
 
 /- disjoint sets -/
 

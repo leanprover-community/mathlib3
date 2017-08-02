@@ -455,79 +455,79 @@ infix ` '' `:80 := image
 
 -- TODO(Jeremy): use bounded exists in image
 
-theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ image f s = ∃ x, x ∈ s ∧ f x = y := rfl
+theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ f '' s = ∃ x, x ∈ s ∧ f x = y := rfl
 
 -- the introduction rule
 theorem mem_image {f : α → β} {s : set α} {x : α} {y : β} (h₁ : x ∈ s) (h₂ : f x = y) :
-  y ∈ image f s :=
+  y ∈ f '' s :=
 ⟨x, h₁, h₂⟩
 
-theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ image f a :=
+theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
 mem_image h rfl
 
-theorem mono_image {f : α → β} {s t : set α} (h : s ⊆ t) : image f s ⊆ image f t :=
+theorem mono_image {f : α → β} {s t : set α} (h : s ⊆ t) : f '' s ⊆ f '' t :=
 assume x ⟨y, hy, y_eq⟩, y_eq ▸ mem_image_of_mem _ $ h hy
 
-/- image and vimage are a Galois connection -/
-theorem image_subset_iff_subset_vimage {s : set α} {t : set β} {f : α → β} :
-  set.image f s ⊆ t ↔ s ⊆ {x | f x ∈ t} :=
+/- image and preimage are a Galois connection -/
+theorem image_subset_iff_subset_preimage {s : set α} {t : set β} {f : α → β} :
+  f '' s ⊆ t ↔ s ⊆ {x | f x ∈ t} :=
 ⟨assume h x hx, h (mem_image_of_mem f hx),
   assume h x hx, match x, hx with ._, ⟨y, hy, rfl⟩ := h hy end⟩
 
 def mem_image_elim {f : α → β} {s : set α} {C : β → Prop} (h : ∀ (x : α), x ∈ s → C (f x)) :
- ∀{y : β}, y ∈ image f s → C y
+ ∀{y : β}, y ∈ f '' s → C y
 | ._ ⟨a, a_in, rfl⟩ := h a a_in
 
-def mem_image_elim_on {f : α → β} {s : set α} {C : β → Prop} {y : β} (h_y : y ∈ image f s)
+def mem_image_elim_on {f : α → β} {s : set α} {C : β → Prop} {y : β} (h_y : y ∈ f '' s)
   (h : ∀ (x : α), x ∈ s → C (f x)) : C y :=
 mem_image_elim h h_y
 
 theorem image_eq_image_of_eq_on {f₁ f₂ : α → β} {s : set α} (heq : eq_on f₁ f₂ s) :
-  image f₁ s = image f₂ s :=
+  f₁ '' s = f₂ '' s :=
 by safe [set_eq_def, iff_def, mem_image_eq, eq_on]
 
 -- TODO(Jeremy): make automatic
-theorem image_comp (f : β → γ) (g : α → β) (a : set α) : image (f ∘ g) a = image f (image g a) :=
+theorem image_comp (f : β → γ) (g : α → β) (a : set α) : (f ∘ g) '' a = f '' (g '' a) :=
 begin
   safe [set_eq_def, iff_def, mem_image_eq, (∘)],
   have h' :=  h_1 (g a_1),
   finish
 end
 
-theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : image f a ⊆ image f b :=
+theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : f '' a ⊆ f '' b :=
 by finish [subset_def, mem_image_eq]
 
 theorem image_union (f : α → β) (s t : set α) :
-  image f (s ∪ t) = image f s ∪ image f t :=
+  f '' (s ∪ t) = f '' s ∪ f '' t :=
 by finish [set_eq_def, iff_def, mem_image_eq]
 
-theorem image_empty (f : α → β) : image f ∅ = ∅ :=
+theorem image_empty (f : α → β) : f '' ∅ = ∅ :=
 by finish [set_eq_def, mem_image_eq]
 
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t
 theorem mem_image_compl (t : set α) (S : set (set α)) :
-  t ∈ image compl S ↔ -t ∈ S :=
+  t ∈ compl '' S ↔ -t ∈ S :=
 begin
   safe [mem_image_eq, iff_def, fix_set_compl],
   have h' := h_1 (- t), clear h_1,
   all_goals { simp [compl_compl] at *; contradiction }
 end
 
-theorem image_id (s : set α) : image id s = s :=
+theorem image_id (s : set α) : id '' s = s :=
 by finish [set_eq_def, iff_def, mem_image_eq]
 
 theorem compl_compl_image (S : set (set α)) :
-  image compl (image compl S) = S :=
+  compl '' (compl '' S) = S :=
 by rw [←image_comp, compl_comp_compl, image_id]
 
 theorem bounded_forall_image_of_bounded_forall {f : α → β} {s : set α} {p : β → Prop}
-  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ image f s, p y :=
+  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
 by finish [mem_image_eq]
 
 theorem bounded_forall_image_iff {f : α → β} {s : set α} {p : β → Prop} :
-  (∀ y ∈ image f s, p y) ↔ (∀ x ∈ s, p (f x)) :=
+  (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
 begin
   safe [mem_image_eq, iff_def],
   have h' := h_1 (f a),
@@ -535,7 +535,7 @@ begin
 end
 
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
-  image f (insert a s) = insert (f a) (image f s) :=
+  f '' (insert a s) = insert (f a) (f '' s) :=
 begin
   safe [set_eq_def, iff_def, mem_image_eq],
   have h' := h_1 a,
@@ -546,39 +546,41 @@ end image
 
 /- inverse image -/
 
-def vimage {α : Type u} {β : Type v} (f : α → β) (s : set β) : set α := {x | f x ∈ s}
+def preimage {α : Type u} {β : Type v} (f : α → β) (s : set β) : set α := {x | f x ∈ s}
 
-section vimage
+infix ` ⁻¹' `:80 := preimage
+
+section preimage
 variables {f : α → β} {g : β → γ}
 
-@[simp] theorem vimage_empty : vimage f ∅ = ∅ := rfl
+@[simp] theorem preimage_empty : f ⁻¹' ∅ = ∅ := rfl
 
-@[simp] theorem mem_vimage_eq {s : set β} {a : α} : (a ∈ vimage f s) = (f a ∈ s) := rfl
+@[simp] theorem mem_preimage_eq {s : set β} {a : α} : (a ∈ f ⁻¹' s) = (f a ∈ s) := rfl
 
-theorem vimage_mono {s t : set β} (h : s ⊆ t) : vimage f s ⊆ vimage f t :=
+theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
 assume x hx, h hx
 
-theorem vimage_image_eq {s : set α} (h : ∀{x y}, f x = f y → x = y) : vimage f (image f s) = s :=
+theorem preimage_image_eq {s : set α} (h : ∀{x y}, f x = f y → x = y) : f ⁻¹' (f '' s) = s :=
 set.ext $ assume x, ⟨assume ⟨y, hy, y_eq⟩, h y_eq ▸ hy, assume hx, mem_image_of_mem _ hx⟩
 
-@[simp] theorem vimage_univ : vimage f univ = univ := rfl
+@[simp] theorem preimage_univ : f ⁻¹' univ = univ := rfl
 
-@[simp] theorem vimage_inter {s t : set β} : vimage f (s ∩ t) = vimage f s ∩ vimage f t := rfl
+@[simp] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
 
-@[simp] theorem vimage_union {s t : set β} : vimage f (s ∪ t) = vimage f s ∪ vimage f t := rfl
+@[simp] theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t := rfl
 
-@[simp] theorem vimage_compl {s : set β} : vimage f (- s) = - vimage f s := rfl
+@[simp] theorem preimage_compl {s : set β} : f ⁻¹' (- s) = - (f ⁻¹' s) := rfl
 
-theorem vimage_id {s : set α} : vimage id s = s := rfl
+theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
-theorem vimage_comp {s : set γ} : vimage (g ∘ f) s = vimage f (vimage g s) := rfl
+theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
 
-theorem eq_vimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t : set α} :
-  s = vimage subtype.val t ↔ (∀x (h : p x), (⟨x, h⟩ : subtype p) ∈ s ↔ x ∈ t) :=
+theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t : set α} :
+  s = subtype.val ⁻¹' t ↔ (∀x (h : p x), (⟨x, h⟩ : subtype p) ∈ s ↔ x ∈ t) :=
 ⟨ assume s_eq x h, by rw [s_eq]; simp
 , assume h, set.ext $ assume ⟨x, hx⟩, by simp [h]⟩
 
-end vimage
+end preimage
 
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀x ∈ s, ∀y ∈ s, x ≠ y → r x y
 

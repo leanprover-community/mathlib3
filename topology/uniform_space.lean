@@ -24,7 +24,7 @@ def comp_rel {α : Type u} (r₁ r₂ : set (α×α)) :=
 {p : α × α | ∃z:α, (p.1, z) ∈ r₁ ∧ (z, p.2) ∈ r₂}
 
 @[simp] theorem swap_id_rel : prod.swap '' id_rel = @id_rel α :=
-set.ext $ assume ⟨a, b⟩, by simp [image_swap_eq_vimage_swap]; exact eq_comm
+set.ext $ assume ⟨a, b⟩, by simp [image_swap_eq_preimage_swap]; exact eq_comm
 
 theorem monotone_comp_rel [preorder β] {f g : β → set (α×α)}
   (hf : monotone f) (hg : monotone g) : monotone (λx, comp_rel (f x) (g x)) :=
@@ -80,8 +80,8 @@ have s ∈ (uniformity.lift' (λt:set (α×α), comp_rel t t)).sets,
 
 theorem symm_of_uniformity {s : set (α × α)} (hs : s ∈ (@uniformity α _).sets) :
   ∃t∈(@uniformity α _).sets, (∀a b, (a, b) ∈ t → (b, a) ∈ t) ∧ t ⊆ s :=
-have vimage prod.swap s ∈ (@uniformity α _).sets, from symm_le_uniformity hs,
-⟨s ∩ vimage prod.swap s, inter_mem_sets hs this, assume a b ⟨h₁, h₂⟩, ⟨h₂, h₁⟩, inter_subset_left _ _⟩
+have preimage prod.swap s ∈ (@uniformity α _).sets, from symm_le_uniformity hs,
+⟨s ∩ preimage prod.swap s, inter_mem_sets hs this, assume a b ⟨h₁, h₂⟩, ⟨h₂, h₁⟩, inter_subset_left _ _⟩
 
 theorem comp_symm_of_uniformity {s : set (α × α)} (hs : s ∈ (@uniformity α _).sets) :
   ∃t∈(@uniformity α _).sets, (∀{a b}, (a, b) ∈ t → (b, a) ∈ t) ∧ comp_rel t t ⊆ s :=
@@ -101,10 +101,10 @@ theorem uniformity_eq_symm : uniformity = (@prod.swap α α) <$> uniformity :=
 le_antisymm uniformity_le_symm symm_le_uniformity
 
 theorem uniformity_lift_le_swap {g : set (α×α) → filter β} {f : filter β} (hg : monotone g)
-  (h : uniformity.lift (λs, g (vimage prod.swap s)) ≤ f) : uniformity.lift g ≤ f :=
+  (h : uniformity.lift (λs, g (preimage prod.swap s)) ≤ f) : uniformity.lift g ≤ f :=
 le_trans
   (lift_mono uniformity_le_symm (le_refl _))
-  (by rw [map_lift_eq2 hg, image_swap_eq_vimage_swap]; exact h)
+  (by rw [map_lift_eq2 hg, image_swap_eq_preimage_swap]; exact h)
 
 theorem uniformity_lift_le_comp {f : set (α×α) → filter β} (h : monotone f):
   uniformity.lift (λs, f (comp_rel s s)) ≤ uniformity.lift f :=
@@ -175,7 +175,7 @@ theorem nhds_eq_uniformity {x : α} :
   nhds x = uniformity.lift' (λs:set (α×α), {y | (x, y) ∈ s}) :=
 filter_eq $ set.ext $ assume s,
   begin
-    rw [mem_lift'_iff], tactic.swap, apply monotone_vimage,
+    rw [mem_lift'_iff], tactic.swap, apply monotone_preimage,
     simp [mem_nhds_uniformity_iff],
     exact ⟨assume h, ⟨_, h, assume y h, h rfl⟩,
       assume ⟨t, h₁, h₂⟩,
@@ -199,7 +199,7 @@ theorem lift_nhds_left {x : α} {g : set α → filter β} (hg : monotone g) :
 eq.trans
   begin
     rw [nhds_eq_uniformity],
-    exact (filter.lift_assoc $ monotone_comp monotone_vimage $ monotone_comp monotone_vimage monotone_principal)
+    exact (filter.lift_assoc $ monotone_comp monotone_preimage $ monotone_comp monotone_preimage monotone_principal)
   end
   (congr_arg _ $ funext $ assume s, filter.lift_principal hg)
 
@@ -208,8 +208,8 @@ theorem lift_nhds_right {x : α} {g : set α → filter β} (hg : monotone g) :
 calc (nhds x).lift g = uniformity.lift (λs:set (α×α), g {y | (x, y) ∈ s}) : lift_nhds_left hg
   ... = ((@prod.swap α α) <$> uniformity).lift (λs:set (α×α), g {y | (x, y) ∈ s}) : by rw [←uniformity_eq_symm]
   ... = uniformity.lift (λs:set (α×α), g {y | (x, y) ∈ image prod.swap s}) :
-    map_lift_eq2 $ monotone_comp monotone_vimage hg
-  ... = _ : by simp [image_swap_eq_vimage_swap]
+    map_lift_eq2 $ monotone_comp monotone_preimage hg
+  ... = _ : by simp [image_swap_eq_preimage_swap]
 
 theorem nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
   filter.prod (nhds a) (nhds b) =
@@ -231,8 +231,8 @@ theorem nhds_eq_uniformity_prod {a b : α} :
   uniformity.lift' (λs:set (α×α), set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ s}) :=
 begin
   rw [nhds_prod_eq, nhds_nhds_eq_uniformity_uniformity_prod, lift_lift'_same_eq_lift'],
-  { intro s, exact monotone_prod monotone_const monotone_vimage },
-  { intro t, exact monotone_prod monotone_vimage monotone_const }
+  { intro s, exact monotone_prod monotone_const monotone_preimage },
+  { intro t, exact monotone_prod monotone_preimage monotone_const }
 end
 
 theorem nhdset_of_mem_uniformity {d : set (α×α)} (s : set (α×α)) (hd : d ∈ (@uniformity α _).sets) :
@@ -244,7 +244,7 @@ have ∀p ∈ s, ∃t ⊆ cl_d, open' t ∧ p ∈ t, from
   begin
     rw [nhds_eq_uniformity_prod, mem_lift'_iff],
     exact ⟨d, hd, assume ⟨a, b⟩ ⟨ha, hb⟩, ⟨x, y, ha, hp, hb⟩⟩,
-    exact monotone_prod monotone_vimage monotone_vimage
+    exact monotone_prod monotone_preimage monotone_preimage
   end,
 have ∃t:(Π(p:α×α) (h:p ∈ s), set (α×α)),
     ∀p, ∀h:p ∈ s, t p h ⊆ cl_d ∧ open' (t p h) ∧ p ∈ t p h,
@@ -271,14 +271,14 @@ calc (a, b) ∈ closure t ↔ (nhds (a, b) ⊓ principal t ≠ ⊥) : by simp [c
       (λ (s : set (α × α)), set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s}) ⊓ principal t ≠ ⊥) :
   begin
     rw [map_lift'_eq2],
-    simp [image_swap_eq_vimage_swap, function.comp],
-    exact monotone_prod monotone_vimage monotone_vimage
+    simp [image_swap_eq_preimage_swap, function.comp],
+    exact monotone_prod monotone_preimage monotone_preimage
   end
   ... ↔ (∀s∈(@uniformity α _).sets, ∃x, x ∈ set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s} ∩ t) :
   begin
     rw [lift'_inf_principal_eq, lift'_neq_bot_iff],
     apply forall_congr, intro s, rw [ne_empty_iff_exists_mem],
-    exact monotone_inter (monotone_prod monotone_vimage monotone_vimage) monotone_const
+    exact monotone_inter (monotone_prod monotone_preimage monotone_preimage) monotone_const
   end
   ... ↔ (∀s∈(@uniformity α _).sets, (a, b) ∈ comp_rel s (comp_rel t s)) :
     forall_congr $ assume s, forall_congr $ assume hs,
@@ -334,8 +334,8 @@ calc map f (nhds a) ≤
     rw [nhds_eq_uniformity, map_lift'_eq, map_lift'_eq2],
     exact (lift'_mono' $ assume s hs b ⟨a', (ha' : (_, a') ∈ s), a'_eq⟩,
       ⟨(a, a'), ha', show (f a, f a') = (f a, b), from a'_eq ▸ rfl⟩),
-    exact monotone_vimage,
-    exact monotone_vimage
+    exact monotone_preimage,
+    exact monotone_preimage
   end
   ... ≤ nhds (f a) :
     by rw [nhds_eq_uniformity]; exact lift'_mono hf (le_refl _)
@@ -385,14 +385,14 @@ calc f ≤ f.lift' (λs:set α, {y | x ∈ closure s ∧ y ∈ closure s}) :
     rw [prod_same_eq],
     rw [lift'_lift'_assoc],
     exact monotone_prod monotone_id monotone_id,
-    exact monotone_comp (assume s t h x h', closure_mono h h') monotone_vimage
+    exact monotone_comp (assume s t h x h', closure_mono h h') monotone_preimage
   end
   ... ≤ uniformity.lift' (λs:set (α×α), {y | (x, y) ∈ closure s}) : lift'_mono hf.right (le_refl _)
   ... = (uniformity.lift' closure).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :
   begin
     rw [lift'_lift'_assoc],
     exact assume s t h, closure_mono h,
-    exact monotone_vimage
+    exact monotone_preimage
   end
   ... = uniformity.lift' (λs:set (α×α), {y | (x, y) ∈ s}) :
     by rw [←uniformity_eq_uniformity_closure]
@@ -429,7 +429,7 @@ protected def separation_rel (α : Type u) [uniform_space α] :=
 theorem separated_equiv : equivalence (λx y, (x, y) ∈ separation_rel α) :=
 ⟨assume x, assume s, refl_mem_uniformity,
   assume x y, assume h (s : set (α×α)) hs,
-    have vimage prod.swap s ∈ (@uniformity α _).sets,
+    have preimage prod.swap s ∈ (@uniformity α _).sets,
       from symm_le_uniformity hs,
     h _ this,
   assume x y z (hxy : (x, y) ∈ separation_rel α) (hyz : (y, z) ∈ separation_rel α)
@@ -607,11 +607,11 @@ have cauchy g, from
     ⟨s₂, hs₂, (comp_s₂ : comp_rel s₂ s₂ ⊆ s₁)⟩ := comp_mem_uniformity_sets hs₁,
     ⟨t, ht, (prod_t : set.prod t t ⊆ s₂)⟩ := mem_prod_same_iff.mp (hf.right hs₂)
   in
-  have hg₁ : p (vimage prod.swap s₁) t ∈ g.sets,
+  have hg₁ : p (preimage prod.swap s₁) t ∈ g.sets,
     from mem_lift (symm_le_uniformity hs₁) $ @mem_lift' α α f _ t ht,
   have hg₂ : p s₂ t ∈ g.sets,
     from mem_lift hs₂ $ @mem_lift' α α f _ t ht,
-  have hg : set.prod (p (vimage prod.swap s₁) t) (p s₂ t) ∈ (filter.prod g g).sets,
+  have hg : set.prod (p (preimage prod.swap s₁) t) (p s₂ t) ∈ (filter.prod g g).sets,
     from @prod_mem_prod α α _ _ g g hg₁ hg₂,
   (filter.prod g g).upwards_sets hg
     (assume ⟨a, b⟩ ⟨⟨c₁, c₁t, (hc₁ : (a, c₁) ∈ s₁)⟩, ⟨c₂, c₂t, (hc₂ : (c₂, b) ∈ s₂)⟩⟩,
@@ -640,7 +640,7 @@ instance : uniform_space (quotient (separation_setoid α)) :=
 { uniform_space .
   uniformity := map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) uniformity,
   refl  := assume s hs ⟨a, b⟩ (h : a = b),
-    have ∀a:α, (a, a) ∈ vimage (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) s,
+    have ∀a:α, (a, a) ∈ preimage (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) s,
       from assume a, refl_mem_uniformity hs,
     h ▸ quotient.induction_on a this,
   symm  :=
@@ -723,7 +723,7 @@ private lemma vmap_e_neq_empty {a : α} : vmap e (nhds a) ≠ ⊥ :=
 forall_sets_neq_empty_iff_neq_bot.mp $
 have neq_bot : nhds a ⊓ principal (e '' univ) ≠ ⊥,
   by simp [closure_eq_nhds] at h_dense; exact h_dense a,
-assume s ⟨t, ht, (hs : vimage e t ⊆ s)⟩,
+assume s ⟨t, ht, (hs : preimage e t ⊆ s)⟩,
 have h₁ : t ∈ (nhds a ⊓ principal (e '' univ)).sets,
   from @mem_inf_sets_of_left α (nhds a) (principal (e '' univ)) t ht,
 have h₂ : e '' univ ∈ (nhds a ⊓ principal (e '' univ)).sets,
@@ -762,12 +762,12 @@ have vmap e (nhds (e b)) ≤ nhds b,
   begin
     simp [nhds_eq_uniformity],
     rw [vmap_lift'_eq],
-    simp [vimage, function.comp],
+    simp [preimage, function.comp],
     rw [←h_e.right],
     rw [vmap_lift'_eq2],
     exact le_refl _,
-    exact monotone_vimage,
-    exact monotone_vimage
+    exact monotone_preimage,
+    exact monotone_preimage
   end,
 calc map f (vmap e (nhds (e b))) ≤ map f (nhds b) : map_mono this
   ... ≤ nhds (f b) : continuous_iff_towards.mp (continuous_of_uniform h_f) b
@@ -777,12 +777,12 @@ theorem uniform_continuous_uniformly_extend [nonempty γ] [cγ : complete_space 
 assume d hd,
 let ⟨s, hs, (hs_comp : comp_rel s (comp_rel s s) ⊆ d)⟩ := (mem_lift'_iff $
   monotone_comp_rel monotone_id $ monotone_comp_rel monotone_id monotone_id).mp (comp_le_uniformity3 hd) in
-have vimage (λp:β×β, (f p.1, f p.2)) s ∈ (@uniformity β _).sets,
+have preimage (λp:β×β, (f p.1, f p.2)) s ∈ (@uniformity β _).sets,
   from h_f hs,
-have vimage (λp:β×β, (f p.1, f p.2)) s ∈ (vmap (λx:β×β, (e x.1, e x.2)) uniformity).sets,
+have preimage (λp:β×β, (f p.1, f p.2)) s ∈ (vmap (λx:β×β, (e x.1, e x.2)) uniformity).sets,
   by rw [h_e.right.symm] at this; assumption,
 let ⟨t, ht, (ts : ∀p:(β×β), (e p.1, e p.2) ∈ t → (f p.1, f p.2) ∈ s)⟩ := this in
-show vimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ uniformity.sets, from
+show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ uniformity.sets, from
   (@uniformity α _).upwards_sets (interior_mem_uniformity ht) $
   assume ⟨x₁, x₂⟩ hx_t,
   have nhds (x₁, x₂) ≤ principal (interior t),
@@ -792,24 +792,24 @@ show vimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ uniformity.sets, from
   let ⟨m₁, hm₁, m₂, hm₂, (hm : set.prod m₁ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in
   have nb : ∀{x}, map f (vmap e (nhds x)) ≠ ⊥,
     from assume x hx, by rw [map_eq_bot_iff] at hx; exact vmap_e_neq_empty h_e h_dense hx,
-  have (f '' vimage e m₁) ∩ {y | (ψ x₁, y) ∈ s } ∈ (map f (vmap e (nhds x₁))).sets,
-    from inter_mem_sets (image_mem_map $ vimage_mem_vmap $ hm₁)
+  have (f '' preimage e m₁) ∩ {y | (ψ x₁, y) ∈ s } ∈ (map f (vmap e (nhds x₁))).sets,
+    from inter_mem_sets (image_mem_map $ preimage_mem_vmap $ hm₁)
       (uniformly_extend_spec h_e h_dense h_f $ mem_nhds_left hs),
   let ⟨a, ha₁, ha₂⟩ := inhabited_of_mem_sets nb this in
-  have (f '' vimage e m₂) ∩ {x | (x, ψ x₂) ∈ s } ∈ (map f (vmap e (nhds x₂))).sets,
-    from inter_mem_sets (image_mem_map $ vimage_mem_vmap $ hm₂)
+  have (f '' preimage e m₂) ∩ {x | (x, ψ x₂) ∈ s } ∈ (map f (vmap e (nhds x₂))).sets,
+    from inter_mem_sets (image_mem_map $ preimage_mem_vmap $ hm₂)
       (uniformly_extend_spec h_e h_dense h_f $ mem_nhds_right hs),
   let ⟨b, hb₁, hb₂⟩ := inhabited_of_mem_sets nb this in
-  have set.prod (vimage e m₁) (vimage e m₂) ⊆ vimage (λp:(β×β), (f p.1, f p.2)) s,
-    from calc vimage (λp:(β×β), (e p.1, e p.2)) (set.prod m₁ m₂) ⊆ vimage (λp:(β×β), (e p.1, e p.2)) (interior t) :
-        vimage_mono hm
-    ... ⊆ vimage (λp:(β×β), (e p.1, e p.2)) t : vimage_mono interior_subset
-    ... ⊆ vimage (λp:(β×β), (f p.1, f p.2)) s : ts,
-  have set.prod (f '' vimage e m₁) (f '' vimage e m₂) ⊆ s,
-    from calc set.prod (f '' vimage e m₁) (f '' vimage e m₂) =
-      (λp:(β×β), (f p.1, f p.2)) '' (set.prod (vimage e m₁) (vimage e m₂)) : prod_image_image_eq
-    ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' vimage (λp:(β×β), (f p.1, f p.2)) s : mono_image this
-    ... ⊆ s : image_subset_iff_subset_vimage.mpr $ subset.refl _,
+  have set.prod (preimage e m₁) (preimage e m₂) ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s,
+    from calc preimage (λp:(β×β), (e p.1, e p.2)) (set.prod m₁ m₂) ⊆ preimage (λp:(β×β), (e p.1, e p.2)) (interior t) :
+        preimage_mono hm
+    ... ⊆ preimage (λp:(β×β), (e p.1, e p.2)) t : preimage_mono interior_subset
+    ... ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s : ts,
+  have set.prod (f '' preimage e m₁) (f '' preimage e m₂) ⊆ s,
+    from calc set.prod (f '' preimage e m₁) (f '' preimage e m₂) =
+      (λp:(β×β), (f p.1, f p.2)) '' (set.prod (preimage e m₁) (preimage e m₂)) : prod_image_image_eq
+    ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' preimage (λp:(β×β), (f p.1, f p.2)) s : mono_image this
+    ... ⊆ s : image_subset_iff_subset_preimage.mpr $ subset.refl _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,
   hs_comp $ show (ψ x₁, ψ x₂) ∈ comp_rel s (comp_rel s s),
     from ⟨a, ha₂, ⟨b, this, hb₂⟩⟩
@@ -843,7 +843,7 @@ calc map prod.swap (uniformity.lift' gen) =
   begin
     delta gen,
     simp [map_lift'_eq, monotone_set_of, monotone_mem_sets,
-          function.comp, image_swap_eq_vimage_swap]
+          function.comp, image_swap_eq_preimage_swap]
   end
   ... ≤ uniformity.lift' gen :
     uniformity_lift_le_swap
@@ -909,11 +909,11 @@ theorem uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → 
     from principal_eq_iff_eq.mp this,
   by simp at this; assumption,
 
-  have (vimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) = id,
+  have (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) = id,
     from funext $ assume s, set.ext $ assume ⟨a₁, a₂⟩,
-      by simp [vimage, gen, pure_cauchy, prod_principal_principal],
+      by simp [preimage, gen, pure_cauchy, prod_principal_principal],
   calc vmap (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) (uniformity.lift' gen) =
-          uniformity.lift' (vimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
+          uniformity.lift' (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
       vmap_lift'_eq monotone_gen
     ... = uniformity : by simp [this]⟩
 
@@ -935,7 +935,7 @@ have h_ex : ∀s∈(@uniformity (Cauchy α) _).sets, ∃y:α, (f, pure_cauchy y)
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
 begin
   simp [closure_eq_nhds, nhds_eq_uniformity, lift'_inf_principal_eq],
-  exact (lift'_neq_bot_iff $ monotone_inter monotone_const monotone_vimage).mpr
+  exact (lift'_neq_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in
       have pure_cauchy y ∈ pure_cauchy '' univ ∩ {y : Cauchy α | (f, y) ∈ s},
@@ -949,13 +949,13 @@ complete_space_extension
   pure_cauchy_dense $
   assume f hf,
   let f' : Cauchy α := ⟨f, hf⟩ in
-  have map pure_cauchy f ≤ uniformity.lift' (vimage (prod.mk f')),
+  have map pure_cauchy f ≤ uniformity.lift' (preimage (prod.mk f')),
     from le_lift' $ assume s hs,
     let ⟨t, ht₁, (ht₂ : gen t ⊆ s)⟩ := (mem_lift'_iff monotone_gen).mp hs in
     let ⟨t', ht', (h : set.prod t' t' ⊆ t)⟩ := mem_prod_same_iff.mp (hf.right ht₁) in
     have t' ⊆ { y : α | (f', pure_cauchy y) ∈ gen t },
       from assume x hx, (filter.prod f (pure x)).upwards_sets (prod_mem_prod ht' $ mem_pure hx) h,
-    f.upwards_sets ht' $ subset.trans this (vimage_mono ht₂),
+    f.upwards_sets ht' $ subset.trans this (preimage_mono ht₂),
   ⟨f', by simp [nhds_eq_uniformity]; assumption⟩
 
 end
@@ -1052,9 +1052,9 @@ theorem to_topological_space_vmap {f : α → β} {u : uniform_space β} :
 eq_of_nhds_eq_nhds $ assume a,
 begin
   simp [nhds_induced_eq_vmap, nhds_eq_uniformity, nhds_eq_uniformity],
-  change vmap f (uniformity.lift' (vimage (λb, (f a, b)))) =
-      (u.uniformity.vmap (λp:α×α, (f p.1, f p.2))).lift' (vimage (λa', (a, a'))),
-  rw [vmap_lift'_eq monotone_vimage, vmap_lift'_eq2 monotone_vimage],
+  change vmap f (uniformity.lift' (preimage (λb, (f a, b)))) =
+      (u.uniformity.vmap (λp:α×α, (f p.1, f p.2))).lift' (preimage (λa', (a, a'))),
+  rw [vmap_lift'_eq monotone_preimage, vmap_lift'_eq2 monotone_preimage],
   exact rfl
 end
 
@@ -1107,7 +1107,7 @@ classical.by_cases
     eq_of_nhds_eq_nhds $ assume a,
     begin
       rw [nhds_supr, nhds_eq_uniformity],
-      change _ = (supr u).uniformity.lift' (vimage $ prod.mk a),
+      change _ = (supr u).uniformity.lift' (preimage $ prod.mk a),
       begin
         rw [supr_uniformity, lift'_infi],
         exact (congr_arg _ $ funext $ assume i, @nhds_eq_uniformity α (u i) a),

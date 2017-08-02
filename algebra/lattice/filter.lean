@@ -115,8 +115,8 @@ protected def prod (s : set α) (t : set β) : set (α × β) :=
 theorem mem_prod_eq {s : set α} {t : set β} {p : α × β} :
   p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈ t) := rfl
 
-theorem prod_vimage_eq {s : set α} {t : set β} {f : γ → α} {g : δ → β} :
-  set.prod (vimage f s) (vimage g t) = vimage (λp, (f p.1, g p.2)) (set.prod s t) := rfl
+theorem prod_preimage_eq {s : set α} {t : set β} {f : γ → α} {g : δ → β} :
+  set.prod (preimage f s) (preimage g t) = preimage (λp, (f p.1, g p.2)) (set.prod s t) := rfl
 
 theorem prod_mono {s₁ s₂ : set α} {t₁ t₂ : set β} (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
   set.prod s₁ t₁ ⊆ set.prod s₂ t₂ :=
@@ -170,8 +170,8 @@ theorem monotone_inter [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λx, (f x) ∩ (g x)) :=
 assume a b h x ⟨h₁, h₂⟩, ⟨hf h h₁, hg h h₂⟩
 
-@[simp] theorem vimage_set_of_eq {p : α → Prop} {f : β → α} :
-  vimage f {a | p a} = {a | p (f a)} := rfl
+@[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} :
+  preimage f {a | p a} = {a | p (f a)} := rfl
 
 @[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
@@ -180,12 +180,12 @@ theorem mem_image_iff_of_inverse (f : α → β) (g : β → α) {b : β} {s : s
 ⟨assume ⟨a, ha, fa_eq⟩, fa_eq ▸ (h₁ a).symm ▸ ha,
   assume h, ⟨g b, h, h₂ b⟩⟩
 
-theorem image_eq_vimage_of_inverse (f : α → β) (g : β → α)
-  (h₁ : ∀a, g (f a) = a ) (h₂ : ∀b, f (g b) = b ) : image f = vimage g :=
+theorem image_eq_preimage_of_inverse (f : α → β) (g : β → α)
+  (h₁ : ∀a, g (f a) = a ) (h₂ : ∀b, f (g b) = b ) : image f = preimage g :=
 funext $ assume s, set.ext $ assume b, mem_image_iff_of_inverse f g h₁ h₂
 
-theorem image_swap_eq_vimage_swap : image (@prod.swap α β) = vimage prod.swap :=
-image_eq_vimage_of_inverse (@prod.swap α β) (@prod.swap β α)
+theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
+image_eq_preimage_of_inverse (@prod.swap α β) (@prod.swap β α)
   begin simp; intros; trivial end
   begin simp; intros; trivial end
 
@@ -368,7 +368,7 @@ def join (f : filter (filter α)) : filter α :=
 
 def map (m : α → β) (f : filter α) : filter β :=
 { filter .
-  sets          := vimage (vimage m) f.sets,
+  sets          := preimage (preimage m) f.sets,
   inhabited     := ⟨univ, univ_mem_sets⟩,
   upwards_sets  := assume s t hs st, f.upwards_sets hs (assume x h, st h),
   directed_sets := assume s hs t ht, ⟨s ∩ t, inter_mem_sets hs ht,
@@ -376,14 +376,14 @@ def map (m : α → β) (f : filter α) : filter β :=
 
 def vmap (m : α → β) (f : filter β) : filter α :=
 { filter .
-  sets          := { s | ∃t∈f.sets, vimage m t ⊆ s },
+  sets          := { s | ∃t∈f.sets, preimage m t ⊆ s },
   inhabited     := ⟨univ, univ, univ_mem_sets, by simp⟩,
   upwards_sets  := assume a b ⟨a', ha', ma'a⟩ ab, ⟨a', ha', subset.trans ma'a ab⟩,
   directed_sets := assume a ⟨a', ha₁, ha₂⟩ b ⟨b', hb₁, hb₂⟩,
-    ⟨vimage m (a' ∩ b'),
+    ⟨preimage m (a' ∩ b'),
       ⟨a' ∩ b', inter_mem_sets ha₁ hb₁, subset.refl _⟩,
-      subset.trans (vimage_mono $ inter_subset_left _ _) ha₂,
-      subset.trans (vimage_mono $ inter_subset_right _ _) hb₂⟩ }
+      subset.trans (preimage_mono $ inter_subset_left _ _) ha₂,
+      subset.trans (preimage_mono $ inter_subset_right _ _) hb₂⟩ }
 
 protected def sup (f g : filter α) : filter α :=
 { filter .
@@ -477,7 +477,7 @@ instance complete_lattice_filter : complete_lattice (filter α) :=
 
 @[simp] theorem map_principal {s : set α} {f : α → β} :
   map f (principal s) = principal (set.image f s) :=
-filter_eq $ set.ext $ assume a, image_subset_iff_subset_vimage.symm
+filter_eq $ set.ext $ assume a, image_subset_iff_subset_preimage.symm
 
 @[simp] theorem join_principal_eq_Sup {s : set (filter α)} : join (principal s) = Sup s := rfl
 
@@ -489,7 +489,7 @@ instance monad_filter : monad filter :=
   id_map     := assume α f, filter_eq $ rfl,
   pure_bind  := assume α β a f, by simp [Sup_image],
   bind_assoc := assume α β γ f m₁ m₂, filter_eq $ rfl,
-  bind_pure_comp_eq_map := assume α β f x, filter_eq $ by simp [join, map, vimage, principal] }
+  bind_pure_comp_eq_map := assume α β f x, filter_eq $ by simp [join, map, preimage, principal] }
 
 @[simp] theorem pure_def (x : α) : pure x = principal {x} := rfl
 
@@ -716,8 +716,8 @@ theorem map_infi_eq {f : ι → filter α} {m : α → β} (hf : directed (≤) 
   map m (infi f) = (⨅ i, map m (f i)) :=
 le_antisymm
   map_infi_le
-  (assume s (hs : vimage m s ∈ (infi f).sets),
-    have ∃i, vimage m s ∈ (f i).sets,
+  (assume s (hs : preimage m s ∈ (infi f).sets),
+    have ∃i, preimage m s ∈ (f i).sets,
       by simp [infi_sets_eq hf hι] at hs; assumption,
     let ⟨i, hi⟩ := this in
     have (⨅ i, map m (f i)) ≤ principal s,
@@ -764,7 +764,7 @@ le_trans (bind_mono2 hf) (bind_mono $ univ_mem_sets' $ assume f, map_mono hg)
 
 @[simp] theorem fmap_principal {β : Type u} {s : set α} {f : α → β} :
   f <$> principal s = principal (set.image f s) :=
-filter_eq $ set.ext $ assume a, image_subset_iff_subset_vimage.symm
+filter_eq $ set.ext $ assume a, image_subset_iff_subset_preimage.symm
 
 theorem mem_return_sets {a : α} {s : set α} : s ∈ (return a : filter α).sets ↔ a ∈ s :=
 show s ∈ (principal {a}).sets ↔ a ∈ s,
@@ -800,7 +800,7 @@ by simp [return]
 section vmap
 variables {f f₁ f₂ : filter β} {m : α → β}
 
-theorem mem_vmap_of_mem {s : set β} (h : s ∈ f.sets) : vimage m s ∈ (vmap m f).sets :=
+theorem mem_vmap_of_mem {s : set β} (h : s ∈ f.sets) : preimage m s ∈ (vmap m f).sets :=
 ⟨s, h, subset.refl _⟩
 
 theorem vmap_mono (h : f₁ ≤ f₂) : vmap m f₁ ≤ vmap m f₂ :=
@@ -809,13 +809,13 @@ assume s ⟨t, ht, h_sub⟩, ⟨t, h ht, h_sub⟩
 theorem monotone_vmap : monotone (vmap m : filter β → filter α) :=
 assume a b h, vmap_mono h
 
-@[simp] theorem vmap_principal {t : set β} : vmap m (principal t) = principal (vimage m t) :=
+@[simp] theorem vmap_principal {t : set β} : vmap m (principal t) = principal (preimage m t) :=
 filter_eq $ set.ext $ assume s,
-  ⟨assume ⟨u, (hu : t ⊆ u), (b : vimage m u ⊆ s)⟩, subset.trans (vimage_mono hu) b,
-    assume : vimage m t ⊆ s, ⟨t, subset.refl t, this⟩⟩
+  ⟨assume ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, subset.trans (preimage_mono hu) b,
+    assume : preimage m t ⊆ s, ⟨t, subset.refl t, this⟩⟩
 
-theorem vimage_mem_vmap {f : filter β} {m : α → β} {s : set β} (hs : s ∈ f.sets):
-  vimage m s ∈ (vmap m f).sets :=
+theorem preimage_mem_vmap {f : filter β} {m : α → β} {s : set β} (hs : s ∈ f.sets):
+  preimage m s ∈ (vmap m f).sets :=
 ⟨s, hs, subset.refl _⟩
 
 theorem le_map_vmap {f : filter β} {m : α → β} (hm : ∀x, ∃y, m y = x) :
@@ -827,20 +827,20 @@ f.upwards_sets ht $
 
 theorem vmap_map {f : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
   vmap m (map m f) = f :=
-have ∀s, vimage m (image m s) = s,
-  from assume s, vimage_image_eq h,
+have ∀s, preimage m (image m s) = s,
+  from assume s, preimage_image_eq h,
 le_antisymm
   (assume s hs, ⟨
     image m s,
     f.upwards_sets hs $ by simp [this, subset.refl],
     by simp [this, subset.refl]⟩)
-  (assume s ⟨t, (h₁ : vimage m t ∈ f.sets), (h₂ : vimage m t ⊆ s)⟩,
+  (assume s ⟨t, (h₁ : preimage m t ∈ f.sets), (h₂ : preimage m t ⊆ s)⟩,
     f.upwards_sets h₁ h₂)
 
 theorem vmap_neq_bot {f : filter β} {m : α → β}
   (hm : ∀t∈f.sets, ∃a, m a ∈ t) : vmap m f ≠ ⊥ :=
 forall_sets_neq_empty_iff_neq_bot.mp $ assume s ⟨t, ht, t_s⟩,
-  let ⟨a, (ha : a ∈ vimage m t)⟩ := hm t ht in
+  let ⟨a, (ha : a ∈ preimage m t)⟩ := hm t ht in
   neq_bot_of_le_neq_bot (ne_empty_of_mem ha) t_s
 
 theorem vmap_neq_bot_of_surj {f : filter β} {m : α → β}
@@ -860,9 +860,9 @@ assume s ⟨t, ht, h_eq⟩, f.upwards_sets ht h_eq
 theorem vmap_vmap_comp {f : filter α} {m : γ → β} {n : β → α} :
   vmap m (vmap n f) = vmap (n ∘ m) f :=
 le_antisymm
-  (assume c ⟨b, hb, (h : vimage (n ∘ m) b ⊆ c)⟩, ⟨vimage n b, vimage_mem_vmap hb, h⟩)
-  (assume c ⟨b, ⟨a, ha, (h₁ : vimage n a ⊆ b)⟩, (h₂ : vimage m b ⊆ c)⟩,
-    ⟨a, ha, show vimage m (vimage n a) ⊆ c, from subset.trans (vimage_mono h₁) h₂⟩)
+  (assume c ⟨b, hb, (h : preimage (n ∘ m) b ⊆ c)⟩, ⟨preimage n b, preimage_mem_vmap hb, h⟩)
+  (assume c ⟨b, ⟨a, ha, (h₁ : preimage n a ⊆ b)⟩, (h₂ : preimage m b ⊆ c)⟩,
+    ⟨a, ha, show preimage m (preimage n a) ⊆ c, from subset.trans (preimage_mono h₁) h₂⟩)
 
 theorem le_vmap_iff_map_le {f : filter α} {g : filter β} {m : α → β} :
   f ≤ vmap m g ↔ map m f ≤ g :=
@@ -920,11 +920,11 @@ begin
 end
 
 theorem vmap_lift_eq2 {m : β → α} {g : set β → filter γ} (hg : monotone g) :
-  (vmap m f).lift g = f.lift (g ∘ vimage m) :=
+  (vmap m f).lift g = f.lift (g ∘ preimage m) :=
 le_antisymm
   (le_infi $ assume s, le_infi $ assume hs,
-    infi_le_of_le (vimage m s) $ infi_le _ ⟨s, hs, subset.refl _⟩)
-  (le_infi $ assume s, le_infi $ assume ⟨s', hs', (h_sub : vimage m s' ⊆ s)⟩,
+    infi_le_of_le (preimage m s) $ infi_le _ ⟨s, hs, subset.refl _⟩)
+  (le_infi $ assume s, le_infi $ assume ⟨s', hs', (h_sub : preimage m s' ⊆ s)⟩,
     infi_le_of_le s' $ infi_le_of_le hs' $ hg h_sub)
 
 theorem map_lift_eq2 {g : set β → filter γ} {m : α → β} (hg : monotone g) :
@@ -934,9 +934,9 @@ le_antisymm
     infi_le_infi2 $ assume hs, ⟨
       f.upwards_sets hs $ assume a h, mem_image_of_mem _ h,
       le_refl _⟩⟩)
-  (infi_le_infi2 $ assume t, ⟨vimage m t,
+  (infi_le_infi2 $ assume t, ⟨preimage m t,
     infi_le_infi2 $ assume ht, ⟨ht,
-      hg $ assume x, assume h : x ∈ m '' vimage m t,
+      hg $ assume x, assume h : x ∈ m '' preimage m t,
         let ⟨y, hy, h_eq⟩ := h in
         show x ∈ t, from h_eq ▸ hy⟩⟩)
 
@@ -1034,13 +1034,13 @@ theorem map_lift'_eq2 {g : set β → set γ} {m : α → β} (hg : monotone g) 
 map_lift_eq2 $ monotone_comp hg monotone_principal
 
 theorem vmap_lift'_eq {m : γ → β} (hh : monotone h) :
-  vmap m (f.lift' h) = f.lift' (vimage m ∘ h) :=
+  vmap m (f.lift' h) = f.lift' (preimage m ∘ h) :=
 calc vmap m (f.lift' h) = f.lift (vmap m ∘ principal ∘ h) :
     vmap_lift_eq $ monotone_comp hh monotone_principal
-  ... = f.lift' (vimage m ∘ h) : by simp [function.comp, filter.lift']
+  ... = f.lift' (preimage m ∘ h) : by simp [function.comp, filter.lift']
 
 theorem vmap_lift'_eq2 {m : β → α} {g : set β → set γ} (hg : monotone g) :
-  (vmap m f).lift' g = f.lift' (g ∘ vimage m) :=
+  (vmap m f).lift' g = f.lift' (g ∘ preimage m) :=
 vmap_lift_eq2 $ monotone_comp hg monotone_principal
 
 theorem lift'_principal {s : set α} (hh : monotone h) :
@@ -1113,8 +1113,8 @@ end
 end lift
 
 theorem vmap_eq_lift' {f : filter β} {m : α → β} :
-  vmap m f = f.lift' (vimage m) :=
-filter_eq $ set.ext $ by simp [mem_lift'_iff, monotone_vimage, vmap]
+  vmap m f = f.lift' (preimage m) :=
+filter_eq $ set.ext $ by simp [mem_lift'_iff, monotone_preimage, vmap]
 
 /- product filter -/
 
@@ -1229,7 +1229,7 @@ end
 theorem prod_vmap_vmap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : β₁ → α₁} {m₂ : β₂ → α₂} :
   filter.prod (vmap m₁ f₁) (vmap m₂ f₂) = vmap (λp:β₁×β₂, (m₁ p.1, m₂ p.2)) (filter.prod f₁ f₂) :=
-have ∀s t, set.prod (vimage m₁ s) (vimage m₂ t) = vimage (λp:β₁×β₂, (m₁ p.1, m₂ p.2)) (set.prod s t),
+have ∀s t, set.prod (preimage m₁ s) (preimage m₂ t) = preimage (λp:β₁×β₂, (m₁ p.1, m₂ p.2)) (set.prod s t),
   from assume s t, rfl,
 begin
   rw [vmap_eq_lift', vmap_eq_lift', prod_lift'_lift'],
@@ -1240,8 +1240,8 @@ begin
   dsimp [function.comp],
   rw [vmap_lift'_eq],
   exact set.monotone_prod monotone_const monotone_id,
-  exact monotone_vimage,
-  exact monotone_vimage
+  exact monotone_preimage,
+  exact monotone_preimage
 end
 
 theorem prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :
@@ -1358,11 +1358,11 @@ lift_infi hι $ by simp; apply assume s t, hg
 theorem map_eq_vmap_of_inverse {f : filter α} {m : α → β} {n : β → α}
   (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = vmap n f :=
 le_antisymm
-  (assume b ⟨a, ha, (h : vimage n a ⊆ b)⟩, f.upwards_sets ha $
-    calc a = vimage (n ∘ m) a : by simp [h₂, vimage_id]
-      ... ⊆ vimage m b : vimage_mono h)
-  (assume b (hb : vimage m b ∈ f.sets),
-    ⟨vimage m b, hb, show vimage (m ∘ n) b ⊆ b, by simp [h₁]; apply subset.refl⟩)
+  (assume b ⟨a, ha, (h : preimage n a ⊆ b)⟩, f.upwards_sets ha $
+    calc a = preimage (n ∘ m) a : by simp [h₂, preimage_id]
+      ... ⊆ preimage m b : preimage_mono h)
+  (assume b (hb : preimage m b ∈ f.sets),
+    ⟨preimage m b, hb, show preimage (m ∘ n) b ⊆ b, by simp [h₁]; apply subset.refl⟩)
 
 theorem map_swap_vmap_swap_eq {f : filter (α × β)} : prod.swap <$> f = vmap prod.swap f :=
 map_eq_vmap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
@@ -1465,8 +1465,8 @@ theorem ultrafilter_of_split {f : filter α} (hf : f ≠ ⊥) (h : ∀s, s ∈ f
 
 theorem ultrafilter_map {f : filter α} {m : α → β} (h : ultrafilter f) : ultrafilter (map m f) :=
 ultrafilter_of_split (by simp [map_eq_bot_iff, h.left]) $
-  assume s, show vimage m s ∈ f.sets ∨ - vimage m s ∈ f.sets,
-    from mem_or_compl_mem_of_ultrafilter h (vimage m s)
+  assume s, show preimage m s ∈ f.sets ∨ - preimage m s ∈ f.sets,
+    from mem_or_compl_mem_of_ultrafilter h (preimage m s)
 
 noncomputable def ultrafilter_of (f : filter α) : filter α :=
 if h : f = ⊥ then ⊥ else classical.epsilon (λu, u ≤ f ∧ ultrafilter u)

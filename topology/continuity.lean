@@ -382,6 +382,22 @@ lemma closed_prod [topological_space α] [topological_space β] {s₁ : set α} 
   (h₁ : closed s₁) (h₂ : closed s₂) : closed (set.prod s₁ s₂) :=
 closure_eq_iff_closed.mp $ by simp [h₁, h₂, closure_prod_eq, closure_eq_of_closed]
 
+lemma closed_diagonal [topological_space α] [t2_space α] : closed {p:α×α | p.1 = p.2} :=
+closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume : nhds a₁ ⊓ nhds a₂ = ⊥, h $
+  let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
+    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
+  begin
+    rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
+    apply filter.upwards_sets,
+    apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
+    exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
+      show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
+  end
+
+lemma closed_eq [topological_space α] [t2_space α] [topological_space β] {f g : β → α} 
+  (hf : continuous f) (hg : continuous g) : closed {x:β | f x = g x} :=
+continuous_iff_closed.mp (continuous_prod_mk hf hg) _ closed_diagonal
+
 end prod
 
 section sum
@@ -520,6 +536,10 @@ by rw [continuous_iff_towards]; exact assume a, de.towards
 
 lemma inj_iff (de : dense_embedding e) {x y} : e x = e y ↔ x = y :=
 ⟨de.inj _ _, assume h, h ▸ rfl⟩
+
+lemma closure_image_univ : closure (e '' univ) = univ :=
+let h := de.dense in
+set.ext $ assume x, ⟨assume _, trivial, assume _, @h x⟩
 
 private lemma inf_neq_bot (de : dense_embedding e) {b : β} : nhds b ⊓ principal (e '' univ) ≠ ⊥ :=
 begin

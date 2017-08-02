@@ -593,6 +593,35 @@ uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_
     uniform_continuous_neg_rat
     (uniform_continuous_of_embedding uniform_embedding_of_rat)
 
+lemma continuous_neg_real : continuous (λp:ℝ, - p) :=
+continuous_of_uniform uniform_continuous_neg_real
+
+lemma closed_property [topological_space α] [topological_space β] {e : α → β} {p : β → Prop}
+  (he : dense_embedding e) (hp : closed {x | p x}) (h : ∀a, p (e a)) :
+  ∀b, p b :=
+have univ ⊆ {b | p b},
+  from calc univ = closure (e '' univ) : he.closure_image_univ.symm
+    ... ⊆ closure {b | p b} : closure_mono $ image_subset_iff_subset_vimage.mpr $ assume a _, h a
+    ... = _ : closure_eq_of_closed hp,
+assume b, this trivial
+
+lemma neg_neg_real : ∀r:ℝ, - - r = r :=
+closed_property dense_embedding_of_rat
+  (closed_eq (continuous_compose continuous_neg_real continuous_neg_real) continuous_id)
+  (assume a, begin rw [←of_rat_neg, ←of_rat_neg]; simp end)
+
+lemma vimage_neg_real : vimage (has_neg.neg : ℝ → ℝ) = image (has_neg.neg : ℝ → ℝ) :=
+(image_eq_vimage_of_inverse _ _ neg_neg_real neg_neg_real).symm
+
+lemma vimage_neg_rat : vimage (has_neg.neg : ℚ → ℚ) = image (has_neg.neg : ℚ → ℚ) :=
+(image_eq_vimage_of_inverse _ _ neg_neg neg_neg).symm
+
+lemma map_neg_real : map (has_neg.neg : ℝ → ℝ) = vmap (has_neg.neg : ℝ → ℝ) :=
+funext $ assume f, map_eq_vmap_of_inverse (funext neg_neg_real) (funext neg_neg_real)
+
+lemma map_neg_rat : map (has_neg.neg : ℚ → ℚ) = vmap (has_neg.neg : ℚ → ℚ) :=
+funext $ assume f, map_eq_vmap_of_inverse (funext neg_neg) (funext neg_neg)
+
 lemma uniform_continuous_add_real : uniform_continuous (λp:ℝ×ℝ, p.1 + p.2) :=
 begin
   rw [ℝ.has_add], simp [lift_rat_op], -- TODO: necessary, otherwise elaborator doesn't terminate
@@ -651,6 +680,8 @@ begin
       hs hsc (assume ⟨p₁, p₂⟩ ⟨h₁, h₂⟩, ⟨hsq₁ p₁ h₁, hsq₂ p₂ h₂⟩))
 end
 
+#check @vmap_vmap_comp
+
 lemma towards_inv_real {r : ℝ} (hr : r ≠ 0) : towards has_inv.inv (nhds r) (nhds r⁻¹) :=
 let inv := dense_embedding.ext dense_embedding_of_rat (of_rat ∘ has_inv.inv) in
 suffices towards inv (nhds r) (nhds (inv r)),
@@ -693,27 +724,61 @@ dense_embedding_of_rat.towards_ext $ (nhds r).upwards_sets this $
          (nhds r).upwards_sets ha $ closure_minimal this $ closed_compl_iff.mpr $ hu,
     have ∅ ∈ (nhds r).sets, by simp at this; exact this,
     show false, from mem_of_nhds this,
-  linear_order_cases_on a 0
-    (assume : a = 0,
-      have 0 < (0:ℚ),
-        from calc 0 < i / 2 : by assumption
-          ... < 0 : by simp [*, abs_zero] at *,
-      (lt_irrefl 0 this).elim)
-    _
-    (assume : a > 0,
-      _)
-/-
-  have ∀x∈{a' : ℚ | abs (a - a') ≤ i / 2}, i / 2 < x, from _,
-  have hc : uniform_continuous (of_rat ∘ (has_inv.inv ∘ @subtype.val ℚ (λx, i / 2 < x))),
-    from uniform_continuous_compose
-      (uniform_continuous_inv_pos_rat _)
-      (uniform_continuous_of_embedding uniform_embedding_of_rat),
-  show ∃c, towards (of_rat ∘ has_inv.inv) (vmap of_rat (nhds r)) (nhds c),
-    from uniform_extend_subtype hc uniform_embedding_of_rat dense_embedding_of_rat.dense
-      _
-      closed_le
-      this
--/
+  have h_ex: ∀r (a > i / 2), closure (of_rat '' {a' : ℚ | abs (a - a') < i / 2}) ∈ (nhds r).sets → 
+    ∃c:ℝ, towards (of_rat ∘ has_inv.inv) (vmap of_rat (nhds r)) (nhds c),
+    from assume r a (hia : i / 2 < a) ha,
+    let j := a - i / 2 in
+    have 0 < j, from sub_pos_of_lt hia,
+    have 0 < j / 2, from div_pos_of_pos_of_pos this zero_lt_two,
+    have hsp : ∀x∈{x:ℚ | j ≤ x}, j / 2 < x,
+      from assume x (hx : j ≤ x),
+      lt_of_lt_of_le (div_lt_of_mul_lt_of_pos zero_lt_two $ lt_mul_of_gt_one_right ‹_› one_lt_two) hx,
+    have hs : ∀a':ℚ, abs (a - a') < i / 2 → a - i / 2 ≤ a',
+      from assume a' ha',
+      le_of_lt $ sub_lt_of_sub_lt $ lt_of_le_of_lt (le_abs_self _) ha',
+    have uniform_continuous (of_rat ∘ (has_inv.inv ∘ @subtype.val ℚ (λx, j / 2 < x))),
+      from uniform_continuous_compose
+        (uniform_continuous_inv_pos_rat ‹0 < j / 2›)
+        (uniform_continuous_of_embedding uniform_embedding_of_rat),
+    uniform_extend_subtype this uniform_embedding_of_rat dense_embedding_of_rat.dense
+      ((nhds r).upwards_sets ha $ closure_mono $ mono_image $ hs) closed_le hsp,
+  match le_total 0 a with
+  | (or.inl h) := h_ex r a (by rwa [abs_of_nonneg h] at hia) ha
+  | (or.inr h) :=
+    have towards (λr, -r) (nhds (-r)) (nhds (- - r)),
+      from continuous_iff_towards.mp (continuous_of_uniform uniform_continuous_neg_real) (-r),
+    have vimage (λr, -r) (closure (of_rat '' {a' : ℚ | abs (a - a') < i / 2})) ∈ (nhds (-r)).sets,
+      by rw [neg_neg_real] at this; exact this ha,
+    have (closure (of_rat '' {a' : ℚ | abs (- a - a') < i / 2})) ∈ (nhds (-r)).sets,
+      from (nhds (-r)).upwards_sets this $
+        calc vimage (λr, -r) (closure (of_rat '' {a' : ℚ | abs (a - a') < i / 2}))
+            = image (λr, -r) (closure (of_rat '' {a' : ℚ | abs (a - a') < i / 2})) : by rw [vimage_neg_real]
+          ... ⊆ closure ((λr, -r) '' (of_rat '' {a' : ℚ | abs (a - a') < i / 2})) :
+            image_closure_subset_closure_image $ continuous_of_uniform uniform_continuous_neg_real
+          ... = closure (of_rat '' (has_neg.neg '' {a' : ℚ | abs (a - a') < i / 2})) :
+            begin rw [← image_comp, ← image_comp], simp [(∘)] end
+          ... = closure (of_rat '' {a' : ℚ | abs (a - - a') < i / 2}) : by rw [←vimage_neg_rat]; refl
+          ... = closure (of_rat '' {a' : ℚ | abs (- a - a') < i / 2}) :
+            begin conv in (abs _) { rw [←abs_neg] }, simp end,
+    have ∃c:ℝ, towards (of_rat ∘ has_inv.inv) (vmap of_rat (nhds (-r))) (nhds c),
+      from h_ex (-r) (-a) (by rwa [abs_of_nonpos h] at hia) this,
+    let ⟨c, (hc : towards (of_rat ∘ has_inv.inv) (vmap of_rat (nhds (-r))) (nhds c))⟩ := this in
+    have towards (has_neg.neg ∘ (of_rat ∘ has_inv.inv)) (vmap of_rat (nhds (-r))) (nhds (- c)),
+      from towards_compose hc $ continuous_iff_towards.mp continuous_neg_real _,
+    have h_eq : has_neg.neg ∘ (of_rat ∘ has_inv.inv) = (of_rat ∘ has_inv.inv) ∘ has_neg.neg,
+      from funext $ assume r, by simp [(∘), -of_rat_inv, inv_neg],
+    have towards (of_rat ∘ has_inv.inv) (map has_neg.neg $ vmap of_rat (nhds (-r))) (nhds (- c)),
+      from towards_map' $ by rw [h_eq] at this; exact this,
+    have h_le : vmap of_rat (nhds r) ≤ (map has_neg.neg $ vmap of_rat $ nhds (-r)),
+      from have of_rat ∘ has_neg.neg = has_neg.neg ∘ of_rat,
+        from funext $ assume x, of_rat_neg,
+      begin
+        rw [map_neg_rat, vmap_vmap_comp, this],
+        conv in (vmap (has_neg.neg ∘ _) (nhds _)) { rw [←vmap_vmap_comp] },
+        exact (vmap_mono $ le_vmap_iff_map_le.mpr $ continuous_iff_towards.mp continuous_neg_real _)
+      end,
+    ⟨- c, le_trans (map_mono h_le) this⟩
+  end
 
 def nonneg (r : ℝ) : Prop := r ∈ closure (of_rat '' {q : ℚ | q ≥ 0})
 

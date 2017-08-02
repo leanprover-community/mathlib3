@@ -201,7 +201,7 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
 
 end chain
 
-theorem zorn_weak_order {α : Type u} [weak_order α]
+theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, @chain α (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩

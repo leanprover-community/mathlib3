@@ -426,9 +426,8 @@ section constructions
 
 variables {α : Type u} {β : Type v}
 
-instance : weak_order (topological_space α) :=
-{ weak_order .
-  le            := λt s, t.open' ≤ s.open',
+instance : partial_order (topological_space α) :=
+{ le            := λt s, t.open' ≤ s.open',
   le_antisymm   := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₁ h₂,
   le_refl       := assume t, le_refl t.open',
   le_trans      := assume a b c h₁ h₂, @le_trans _ _ a.open' b.open' c.open' h₁ h₂ }
@@ -490,7 +489,7 @@ instance : has_top (topological_space α) :=
   open_sUnion := assume s h, trivial }⟩
 
 instance {α : Type u} : complete_lattice (topological_space α) :=
-{ topological_space.weak_order with
+{ topological_space.partial_order with
   sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
   le_sup_left   := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.left,
   le_sup_right  := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.right,

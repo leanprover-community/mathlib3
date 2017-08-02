@@ -532,7 +532,7 @@ instance complete_lattice_fun {α : Type u} {β : Type v} [complete_lattice β] 
   le_Inf := assume s f h a, le_Inf $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a }
 
 section complete_lattice
-variables [weak_order α] [complete_lattice β]
+variables [pre_order α] [complete_lattice β]
 
 theorem monotone_Sup_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone f) : monotone (Sup s) :=
 assume x y h, Sup_le $ assume x' ⟨f, f_in, fx_eq⟩, le_Sup_of_le ⟨f, f_in, rfl⟩ $ fx_eq ▸ m_s _ f_in h

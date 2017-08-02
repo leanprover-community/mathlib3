@@ -23,6 +23,9 @@ instance lattice_set : complete_lattice (set α) :=
   le_trans     := assume a b c, subset.trans,
   le_antisymm  := assume a b, subset.antisymm,
 
+  lt           := λ x y, x ⊆ y ∧ ¬ y ⊆ x,
+  lt_iff_le_not_le := λ x y, iff.refl _,
+
   sup          := (∪),
   le_sup_left  := subset_union_left,
   le_sup_right := subset_union_right,

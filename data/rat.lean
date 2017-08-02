@@ -64,7 +64,7 @@ instance : has_zero ℚ := ⟨(0 : ℤ)⟩
 
 instance : has_one ℚ := ⟨(1 : ℤ)⟩
 
-def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ := 
+def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ :=
 let n' := n.nat_abs, g := n'.gcd d in
 ⟨n / g, d / g, begin
   apply (nat.le_div_iff_mul_le _ _ (nat.gcd_pos_of_pos_right _ dpos)).2,
@@ -78,7 +78,7 @@ end, begin
   exact nat.coprime_div_gcd_div_gcd (nat.gcd_pos_of_pos_right _ dpos)
 end⟩
 
-def mk_nat (n : ℤ) (d : ℕ) : ℚ := 
+def mk_nat (n : ℤ) (d : ℕ) : ℚ :=
 if d0 : d = 0 then 0 else mk_pnat n ⟨d, nat.pos_of_ne_zero d0⟩
 
 def mk : ℤ → ℤ → ℚ
@@ -480,14 +480,12 @@ by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simp; assumption)
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 by have := rat.nonneg_add hab hbc; simp at this; exact this
 
-instance : linear_strong_order_pair ℚ :=
+instance : linear_order ℚ :=
 { le              := rat.le,
   lt              := λa b, ¬ b ≤ a,
-  le_iff_lt_or_eq := assume a b,
-    ⟨λ h, if h' : b ≤ a then or.inr $ rat.le_antisymm h h' else or.inl h',
-    or.rec (or.resolve_left (rat.le_total _ _))
-      (by intro; subst b; apply rat.le_refl)⟩,
-  lt_irrefl       := assume a b, b (rat.le_refl _),
+  lt_iff_le_not_le := assume a b,
+    iff.intro (assume h, ⟨or.resolve_left (rat.le_total _ _) h, h⟩)
+      (assume ⟨h1, h2⟩, h2),
   le_refl         := rat.le_refl,
   le_trans        := @rat.le_trans,
   le_antisymm     := @rat.le_antisymm,
@@ -510,11 +508,7 @@ instance : discrete_linear_ordered_field ℚ :=
   le_trans        := @rat.le_trans,
   le_antisymm     := assume a b, le_antisymm,
   le_total        := le_total,
-  le_iff_lt_or_eq := assume a b, le_iff_lt_or_eq,
-  lt_irrefl       := lt_irrefl,
-  le_of_lt        := assume a b, le_of_lt,
-  lt_of_lt_of_le  := assume a b c, lt_of_lt_of_le,
-  lt_of_le_of_lt  := assume a b c, lt_of_le_of_lt,
+  lt_iff_le_not_le := @lt_iff_le_not_le _ _,
   zero_lt_one     := show ¬ (0:ℤ) ≤ -1, from dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
   add_lt_add_left := assume a b ab c ba, ab $ rat.add_le_add_left.1 ba,

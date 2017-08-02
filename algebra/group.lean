@@ -5,40 +5,39 @@ Authors: Jeremy Avigad, Leonardo de Moura
 
 Various multiplicative and additive structures.
 -/
-
-universe variable uu
-variable {A : Type uu}
+universe variable u
+variable {α : Type u}
 
 section group
-  variable [group A]
+  variable [group α]
 
-  variable (A)
-  theorem left_inverse_inv : function.left_inverse (λ a : A, a⁻¹) (λ a, a⁻¹) :=
+  variable (α)
+  theorem left_inverse_inv : function.left_inverse (λ a : α, a⁻¹) (λ a, a⁻¹) :=
   assume a, inv_inv a
-  variable {A}
+  variable {α}
 
-  theorem inv_eq_inv_iff_eq (a b : A) : a⁻¹ = b⁻¹ ↔ a = b :=
+  theorem inv_eq_inv_iff_eq (a b : α) : a⁻¹ = b⁻¹ ↔ a = b :=
   iff.intro inv_inj (begin intro h, simp [h] end)
 
-  theorem inv_eq_one_iff_eq_one (a : A) : a⁻¹ = 1 ↔ a = 1 :=
+  theorem inv_eq_one_iff_eq_one (a : α) : a⁻¹ = 1 ↔ a = 1 :=
   have a⁻¹ = 1⁻¹ ↔ a = 1, from inv_eq_inv_iff_eq a 1,
   begin rewrite this.symm, simp end
 
-  theorem eq_one_of_inv_eq_one (a : A) : a⁻¹ = 1 → a = 1 :=
+  theorem eq_one_of_inv_eq_one (a : α) : a⁻¹ = 1 → a = 1 :=
   iff.mp (inv_eq_one_iff_eq_one a)
 
-  theorem eq_inv_iff_eq_inv (a b : A) : a = b⁻¹ ↔ b = a⁻¹ :=
+  theorem eq_inv_iff_eq_inv (a b : α) : a = b⁻¹ ↔ b = a⁻¹ :=
   iff.intro eq_inv_of_eq_inv eq_inv_of_eq_inv
 
-  theorem eq_of_mul_inv_eq_one {a b : A} (H : a * b⁻¹ = 1) : a = b :=
+  theorem eq_of_mul_inv_eq_one {a b : α} (H : a * b⁻¹ = 1) : a = b :=
   calc
     a    = a * b⁻¹ * b : by simp
      ... = b           : begin rewrite H, simp end
 
-  theorem mul_eq_iff_eq_inv_mul (a b c : A) : a * b = c ↔ b = a⁻¹ * c :=
+  theorem mul_eq_iff_eq_inv_mul (a b c : α) : a * b = c ↔ b = a⁻¹ * c :=
   iff.intro eq_inv_mul_of_mul_eq mul_eq_of_eq_inv_mul
 
-  theorem mul_eq_iff_eq_mul_inv (a b c : A) : a * b = c ↔ a = c * b⁻¹ :=
+  theorem mul_eq_iff_eq_mul_inv (a b c : α) : a * b = c ↔ a = c * b⁻¹ :=
   iff.intro eq_mul_inv_of_mul_eq mul_eq_of_eq_mul_inv
 end group
 
@@ -58,36 +57,36 @@ run_cmd transport_multiplicative_to_additive
   ]
 
 section add_group
-  variable [add_group A]
+  variable [add_group α]
 
   local attribute [simp] sub_eq_add_neg
 
-  theorem eq_iff_sub_eq_zero (a b : A) : a = b ↔ a - b = 0 :=
+  theorem eq_iff_sub_eq_zero (a b : α) : a = b ↔ a - b = 0 :=
   iff.intro (assume h, by simp [h]) (assume h, eq_of_sub_eq_zero h)
 
-  theorem sub_eq_iff_eq_add (a b c : A) : a - b = c ↔ a = c + b :=
+  theorem sub_eq_iff_eq_add (a b c : α) : a - b = c ↔ a = c + b :=
   iff.intro (assume H, eq_add_of_add_neg_eq H) (assume H, add_neg_eq_of_eq_add H)
 
-  theorem eq_sub_iff_add_eq (a b c : A) : a = b - c ↔ a + c = b :=
+  theorem eq_sub_iff_add_eq (a b c : α) : a = b - c ↔ a + c = b :=
   iff.intro (assume H, add_eq_of_eq_add_neg H) (assume H, eq_add_neg_of_add_eq H)
 
-  theorem eq_iff_eq_of_sub_eq_sub {a b c d : A} (H : a - b = c - d) : a = b ↔ c = d :=
+  theorem eq_iff_eq_of_sub_eq_sub {a b c d : α} (H : a - b = c - d) : a = b ↔ c = d :=
   calc
     a = b ↔ a - b = 0   : eq_iff_sub_eq_zero a b
       ... = (c - d = 0) : by rewrite H
       ... ↔ c = d       : iff.symm (eq_iff_sub_eq_zero c d)
 
-  theorem left_inverse_sub_add_left (c : A) : function.left_inverse (λ x, x - c) (λ x, x + c) :=
+  theorem left_inverse_sub_add_left (c : α) : function.left_inverse (λ x, x - c) (λ x, x + c) :=
   assume x, add_sub_cancel x c
 
-  theorem left_inverse_add_left_sub (c : A) : function.left_inverse (λ x, x + c) (λ x, x - c) :=
+  theorem left_inverse_add_left_sub (c : α) : function.left_inverse (λ x, x + c) (λ x, x - c) :=
   assume x, sub_add_cancel x c
 
-  theorem left_inverse_add_right_neg_add (c : A) :
+  theorem left_inverse_add_right_neg_add (c : α) :
       function.left_inverse (λ x, c + x) (λ x, - c + x) :=
   assume x, add_neg_cancel_left c x
 
-  theorem left_inverse_neg_add_add_right (c : A) :
+  theorem left_inverse_neg_add_add_right (c : α) :
       function.left_inverse (λ x, - c + x) (λ x, c + x) :=
   assume x, neg_add_cancel_left c x
 end add_group

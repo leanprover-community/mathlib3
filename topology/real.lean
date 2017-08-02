@@ -489,13 +489,14 @@ continuous_subtype_closed_cover (λi x, if i then 0 ≤ x else x ≤ 0)
         from funext $ assume ⟨q, hq⟩, begin simp [h] at hq, simp [abs_of_nonpos hq, h] end,
       by rw [this]; apply continuous_compose continuous_subtype_val continuous_neg_rat)
 
-def ℝ : Type := quotient (separation_setoid (Cauchy ℚ))
+def real : Type := quotient (separation_setoid (Cauchy ℚ))
+notation `ℝ` := real
 
 section
 local attribute [instance] separation_setoid
 open Cauchy
 
-instance : uniform_space ℝ  := by unfold ℝ; apply_instance
+instance : uniform_space ℝ  := by unfold real; apply_instance
 instance : complete_space ℝ := by apply complete_space_separation; apply_instance
 instance : separated ℝ      := separated_separation
 
@@ -605,6 +606,20 @@ have univ ⊆ {b | p b},
     ... = _ : closure_eq_of_closed hp,
 assume b, this trivial
 
+lemma closed_property2 [topological_space α] [topological_space β] {e : α → β} {p : β → β → Prop}
+  (he : dense_embedding e) (hp : closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
+  ∀b₁ b₂, p b₁ b₂ :=
+have ∀q:β×β, p q.1 q.2, 
+  from closed_property (he.prod he) hp $ assume ⟨a₁, a₂⟩, h _ _,
+assume b₁ b₂, this ⟨b₁, b₂⟩
+
+lemma closed_property3 [topological_space α] [topological_space β] {e : α → β} {p : β → β → β → Prop}
+  (he : dense_embedding e) (hp : closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
+  ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
+have ∀q:β×β×β, p q.1 q.2.1 q.2.2, 
+  from closed_property (he.prod $ he.prod he) hp $ assume ⟨a₁, a₂, a₃⟩, h _ _ _,
+assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩
+
 lemma neg_neg_real : ∀r:ℝ, - - r = r :=
 closed_property dense_embedding_of_rat
   (closed_eq (continuous_compose continuous_neg_real continuous_neg_real) continuous_id)
@@ -624,7 +639,7 @@ funext $ assume f, map_eq_vmap_of_inverse (funext neg_neg) (funext neg_neg)
 
 lemma uniform_continuous_add_real : uniform_continuous (λp:ℝ×ℝ, p.1 + p.2) :=
 begin
-  rw [ℝ.has_add], simp [lift_rat_op], -- TODO: necessary, otherwise elaborator doesn't terminate
+  rw [real.has_add], simp [lift_rat_op], -- TODO: necessary, otherwise elaborator doesn't terminate
   exact (uniform_continuous_uniformly_extend
     (uniform_embedding_prod uniform_embedding_of_rat uniform_embedding_of_rat)
     dense_embedding_of_rat_of_rat.dense
@@ -659,7 +674,7 @@ have ∀r, ∃(s : set ℚ) (q:ℚ),
     lt_add_of_le_of_pos (le_add_of_le_of_nonneg (abs_nonneg _) zero_le_one) zero_lt_one,
     ‹_›, ‹_›, ‹_›⟩,
 begin
-  rw [ℝ.has_mul],
+  rw [real.has_mul],
   simp [lift_rat_op],
   apply dense_embedding_of_rat_of_rat.continuous_ext,
   exact (assume ⟨r₁, r₂⟩,
@@ -680,13 +695,12 @@ begin
       hs hsc (assume ⟨p₁, p₂⟩ ⟨h₁, h₂⟩, ⟨hsq₁ p₁ h₁, hsq₂ p₂ h₂⟩))
 end
 
-#check @vmap_vmap_comp
-
+-- TODO: clean up
 lemma towards_inv_real {r : ℝ} (hr : r ≠ 0) : towards has_inv.inv (nhds r) (nhds r⁻¹) :=
 let inv := dense_embedding.ext dense_embedding_of_rat (of_rat ∘ has_inv.inv) in
 suffices towards inv (nhds r) (nhds (inv r)),
 begin
-  rw [ℝ.has_inv],
+  rw [real.has_inv],
   simp [lift_rat_fun, hr],
   exact (towards_cong this $ (nhds r).upwards_sets (compl_singleton_mem_nhds hr)
     begin intro x, simp {contextual := tt} end)
@@ -779,6 +793,39 @@ dense_embedding_of_rat.towards_ext $ (nhds r).upwards_sets this $
       end,
     ⟨- c, le_trans (map_mono h_le) this⟩
   end
+
+instance : field ℝ :=
+{ zero             := 0,
+  add              := (+),
+  neg              := has_neg.neg,
+  one              := 1,
+  mul              := (*),
+  inv              := has_inv.inv,
+  zero_add         := closed_property dense_embedding_of_rat sorry
+    begin intros, show of_rat 0 + of_rat a = of_rat a, rw [←of_rat_add], simp [-of_rat_add] end,
+  add_zero         := closed_property dense_embedding_of_rat sorry
+    begin intros, show of_rat a + of_rat 0 = of_rat a, rw [←of_rat_add], simp [-of_rat_add] end,
+  add_comm         := closed_property2 dense_embedding_of_rat sorry
+    begin intros; simp only [of_rat_add.symm, add_comm] end,
+  add_assoc        := closed_property3 dense_embedding_of_rat sorry
+    begin intros; simp only [of_rat_add.symm, add_assoc] end,
+  add_left_neg     := closed_property dense_embedding_of_rat sorry
+    begin intros, simp only [of_rat_add.symm, of_rat_neg.symm, of_rat_zero, add_left_neg] end,
+  mul_one          := closed_property dense_embedding_of_rat sorry
+    begin intros, simp only [of_rat_mul.symm, of_rat_one.symm, mul_one] end,
+  one_mul          := closed_property dense_embedding_of_rat sorry
+    begin intros, simp only [of_rat_mul.symm, of_rat_one.symm, one_mul] end,
+  mul_comm         := closed_property2 dense_embedding_of_rat sorry
+    begin intros; simp only [of_rat_mul.symm, mul_comm] end,
+  mul_assoc        := closed_property3 dense_embedding_of_rat sorry
+    begin intros; simp only [of_rat_mul.symm, mul_assoc] end,
+  left_distrib     := closed_property3 dense_embedding_of_rat sorry
+    begin intros; simp only [of_rat_mul.symm, of_rat_add.symm, left_distrib] end,
+  right_distrib    := closed_property3 dense_embedding_of_rat sorry
+    begin intros; simp only [of_rat_mul.symm, of_rat_add.symm, right_distrib] end,
+  zero_ne_one      := assume h, zero_ne_one $ dense_embedding_of_rat.inj 0 1 h,
+  mul_inv_cancel   := _,
+  inv_mul_cancel   := _ }
 
 def nonneg (r : ℝ) : Prop := r ∈ closure (of_rat '' {q : ℚ | q ≥ 0})
 

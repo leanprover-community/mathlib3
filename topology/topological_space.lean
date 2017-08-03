@@ -18,6 +18,12 @@ universes u v w
 lemma compl_subset_of_compl_subset {α : Type u} {s t : set α} (h : -s ⊆ t) : -t ⊆ s :=
 assume x hx, by_contradiction $ assume : x ∉ s, hx $ h $ this
 
+lemma diff_subset_diff {α : Type u} {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
+by finish [subset_def]
+
+@[trans] lemma mem_of_mem_of_subset {α : Type u} {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t :=
+h hx
+
 structure topological_space (α : Type u) :=
 (open'       : set α → Prop)
 (open_univ   : open' univ)
@@ -303,6 +309,12 @@ have nhds a ⊓ principal (s ∩ t) ≠ ⊥,
     ... ≠ ⊥ : by rw [closure_eq_nhds] at ht; assumption,
 by rw [closure_eq_nhds]; assumption
 
+lemma closure_diff [topological_space α] {s t : set α} : closure s - closure t ⊆ closure (s - t) :=
+calc closure s \ closure t = (- closure t) ∩ closure s : by simp [diff_eq]
+  ... ⊆ closure (- closure t ∩ s) : closure_inter_open $ open_compl_iff.mpr $ closed_closure
+  ... = closure (s \ closure t) : by simp [diff_eq]
+  ... ⊆ closure (s \ t) : closure_mono $ diff_subset_diff (subset.refl s) subset_closure
+
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
 
@@ -414,11 +426,15 @@ section separation
 class t1_space (α : Type u) [topological_space α] :=
 (t1 : ∀x, closed ({x} : set α))
 
-lemma t1_separation [t1_space α] {x : α} : closed ({x} : set α) :=
+lemma closed_singleton [t1_space α] {x : α} : closed ({x} : set α) :=
 t1_space.t1 _ x
 
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : - {x} ∈ (nhds y).sets :=
-mem_nhds_sets t1_separation $ by simp; exact h
+mem_nhds_sets closed_singleton $ by simp; exact h
+
+@[simp] lemma closure_singleton [topological_space α] [t1_space α] {a : α} :
+  closure ({a} : set α) = {a} :=
+closure_eq_of_closed closed_singleton
 
 class t2_space (α : Type u) [topological_space α] :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, open' u ∧ open' v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)

@@ -642,9 +642,12 @@ begin
       (uniform_continuous_of_embedding uniform_embedding_of_rat)))
 end
 
+lemma continuous_add_real' : continuous (λp:ℝ×ℝ, p.1 + p.2) :=
+continuous_of_uniform uniform_continuous_add_real
+
 lemma continuous_add_real [topological_space α] {f g : α → ℝ} (hf : continuous f) (hg : continuous g) : 
   continuous (λx, f x + g x) :=
-continuous_compose (continuous_prod_mk hf hg) (continuous_of_uniform uniform_continuous_add_real)
+continuous_compose (continuous_prod_mk hf hg) continuous_add_real'
 
 lemma continuous_mul_real : continuous (λp:ℝ×ℝ, p.1 * p.2) :=
 have ∀r, ∃(s : set ℚ) (q:ℚ),
@@ -897,8 +900,45 @@ instance : field ℝ :=
       (assume ⟨a, (ha : a ≠ 0)⟩,
         by simp [*, -of_rat_mul, -of_rat_inv, of_rat_mul.symm, of_rat_inv.symm, mul_inv_cancel ha] at *) }
 
-def nonneg (r : ℝ) : Prop := r ∈ closure (of_rat '' {q : ℚ | q ≥ 0})
+def nonneg : set ℝ := closure (of_rat '' {q : ℚ | q ≥ 0})
 
-instance : has_le ℝ := ⟨λa b, nonneg (b - a)⟩
+instance : has_le ℝ := ⟨λa b, b - a ∈ nonneg⟩
+
+lemma of_rat_mem_nonneg {q : ℚ} (h : 0 ≤ q) : of_rat q ∈ nonneg :=
+have of_rat q ∈ of_rat '' {q:ℚ | q ≥ 0}, from ⟨q, h, rfl⟩,
+subset_closure this
+
+lemma nonneg_of_continuous {f : ℝ → ℝ → ℝ} {a b : ℝ}
+  (hf : continuous (λp:ℝ×ℝ, f p.1 p.2)) (ha : a ∈ nonneg) (hb : b ∈ nonneg)
+  (h : ∀{a b : ℚ}, 0 ≤ a → 0 ≤ b → f (of_rat a) (of_rat b) ∈ nonneg) :
+  (f a b) ∈ nonneg :=
+calc f (a, b).1 (a, b).2 ∈ (λp:ℝ×ℝ, f p.1 p.2) '' (set.prod nonneg nonneg) : mem_image_of_mem _ ⟨ha, hb⟩
+  ... ⊆ (λp:ℝ×ℝ, f p.1 p.2) '' closure (set.prod (of_rat '' {q : ℚ | q ≥ 0}) (of_rat '' {q : ℚ | q ≥ 0})) :
+    by simp [nonneg, closure_prod_eq]; exact subset.refl _
+  ... ⊆ closure ((λp:ℝ×ℝ, f p.1 p.2) '' set.prod (of_rat '' {q : ℚ | q ≥ 0}) (of_rat '' {q : ℚ | q ≥ 0})) :
+    image_closure_subset_closure_image hf
+  ... ⊆ closure nonneg : closure_mono $ image_subset_iff_subset_preimage.mpr $
+    assume ⟨r₁, r₂⟩ ⟨⟨q₁, hq₁, h₁⟩, ⟨q₂, hq₂, h₂⟩⟩,
+    show f r₁ r₂ ∈ nonneg, begin simp [] at h₁ h₂ hq₁ hq₂, rw [←h₁, ←h₂], exact h hq₁ hq₂ end
+  ... ⊆ nonneg : begin rw [closure_eq_of_closed], exact subset.refl _, exact closed_closure end
+
+lemma eq_0_of_nonneg_of_neg_nonneg {r : ℝ} (hp : r ∈ nonneg) (hn : -r ∈ nonneg) : r = 0 :=
+classical.by_contradiction $ assume h : r ≠ 0,
+  _
+  
+
+instance : linear_order ℝ :=
+{ le := (≤),
+  le_refl := assume a, show (a - a) ∈ nonneg, by simp; exact of_rat_mem_nonneg (le_refl _),
+  le_trans := assume a b c (h₁ : b - a ∈ nonneg) (h₂ : c - b ∈ nonneg),
+    have (c - b) + (b - a) ∈ nonneg,
+      from nonneg_of_continuous continuous_add_real' h₂ h₁ $
+        assume a b ha hb, by rw [←of_rat_add]; exact of_rat_mem_nonneg (le_add_of_le_of_nonneg ha hb),
+    have (c - b) + (b - a) = c - a, 
+      from calc (c - b) + (b - a) = c + - a + (b + -b) : by simp [-add_right_neg]
+        ... = c - a : by simp,
+    show (c - a) ∈ nonneg, by simp * at *,
+  le_antisymm := _,
+  le_total := _ }
 
 end

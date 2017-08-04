@@ -394,7 +394,7 @@ closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume : n
       show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
   end
 
-lemma closed_eq [topological_space α] [t2_space α] [topological_space β] {f g : β → α} 
+lemma closed_eq [topological_space α] [t2_space α] [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : closed {x:β | f x = g x} :=
 continuous_iff_closed.mp (continuous_prod_mk hf hg) _ closed_diagonal
 
@@ -517,7 +517,7 @@ end pi
 
 -- TODO: use embeddings from above!
 structure dense_embedding [topological_space α] [topological_space β] (e : α → β) :=
-(dense   : ∀{x}, x ∈ closure (e '' univ))
+(dense   : ∀x, x ∈ closure (e '' univ))
 (inj     : ∀x y, e x = e y → x = y)
 (induced : ∀a, vmap e (nhds (e a)) = nhds a)
 
@@ -526,7 +526,7 @@ variables [topological_space α] [topological_space β]
 variables {e : α → β} (de : dense_embedding e)
 
 protected lemma embedding (de : dense_embedding e) : embedding e :=
-⟨de.inj, eq_of_nhds_eq_nhds begin intro a, rw [← de.induced a, nhds_induced_eq_vmap] end⟩ 
+⟨de.inj, eq_of_nhds_eq_nhds begin intro a, rw [← de.induced a, nhds_induced_eq_vmap] end⟩
 
 protected lemma towards (de : dense_embedding e) {a : α} : towards e (nhds a) (nhds (e a)) :=
 by rw [←de.induced a]; exact towards_vmap
@@ -541,11 +541,11 @@ lemma closure_image_univ : closure (e '' univ) = univ :=
 let h := de.dense in
 set.ext $ assume x, ⟨assume _, trivial, assume _, @h x⟩
 
-private lemma inf_neq_bot (de : dense_embedding e) {b : β} : nhds b ⊓ principal (e '' univ) ≠ ⊥ :=
+protected lemma nhds_inf_neq_bot (de : dense_embedding e) {b : β} : nhds b ⊓ principal (e '' univ) ≠ ⊥ :=
 begin
   have h := de.dense,
   simp [closure_eq_nhds] at h,
-  exact h
+  exact h _
 end
 
 lemma vmap_nhds_neq_bot (de : dense_embedding e) {b : β} : vmap e (nhds b) ≠ ⊥ :=
@@ -553,7 +553,7 @@ forall_sets_neq_empty_iff_neq_bot.mp $
 assume s ⟨t, ht, (hs : preimage e t ⊆ s)⟩,
 have t ∩ e '' univ ∈ (nhds b ⊓ principal (e '' univ)).sets,
   from inter_mem_inf_sets ht (subset.refl _),
-let ⟨x, ⟨hx₁, y, hy, y_eq⟩⟩ := inhabited_of_mem_sets (inf_neq_bot de) this in
+let ⟨x, ⟨hx₁, y, hy, y_eq⟩⟩ := inhabited_of_mem_sets de.nhds_inf_neq_bot this in
 ne_empty_of_mem $ hs $ show e y ∈ t, from y_eq.symm ▸ hx₁
 
 variables [topological_space γ] [inhabited γ] [regular_space γ]

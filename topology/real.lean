@@ -70,9 +70,6 @@ if h : a = 0
 then by simp [h, inv_zero]
 else by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
-lemma continuous_const [topological_space α] [topological_space β] {b : β} : continuous (λa:α, b) :=
-continuous_iff_towards.mpr $ assume a, towards_const_nhds
-
 open lattice set filter
 
 lemma le_map_vmap' {f : filter β} {m : α → β} {s : set β}
@@ -134,38 +131,6 @@ begin
     end⟩,
   exact (assume x hx, ⟨⟨x, hp x hx⟩, rfl⟩)
 end
-
-lemma mem_uniformity_closed [uniform_space α] {s : set (α×α)} (h : s ∈ (@uniformity α _).sets) :
-  ∃t∈(@uniformity α _).sets, closed t ∧ t ⊆ s :=
-have s ∈ ((@uniformity α _).lift' closure).sets, by rwa [uniformity_eq_uniformity_closure] at h,
-have ∃t∈(@uniformity α _).sets, closure t ⊆ s,
-  by rwa [mem_lift'_iff] at this; apply closure_mono,
-let ⟨t, ht, hst⟩ := this in
-⟨closure t, uniformity.upwards_sets ht subset_closure, closed_closure, hst⟩
-
-lemma totally_bounded_closure [uniform_space α] {s : set α} (h : totally_bounded s) :
-  totally_bounded (closure s) :=
-assume t ht,
-let ⟨t', ht', hct', htt'⟩ := mem_uniformity_closed ht, ⟨c, hcf, hc⟩ := h t' ht' in
-⟨c, hcf,
-  calc closure s ⊆ closure (⋃ (y : α) (H : y ∈ c), {x : α | (x, y) ∈ t'}) : closure_mono hc
-    ... = _ : closure_eq_of_closed $ closed_Union hcf $ assume i hi,
-      continuous_iff_closed.mp (continuous_prod_mk continuous_id continuous_const) _ hct'
-    ... ⊆ _ : bUnion_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
-      (subset_bUnion_of_mem hi)⟩
-
-lemma totally_bounded_image [uniform_space α] [uniform_space β] {f : α → β} {s : set α}
-  (hf : uniform_continuous f) (hs : totally_bounded s) : totally_bounded (f '' s) :=
-assume t ht,
-have {p:α×α | (f p.1, f p.2) ∈ t} ∈ (@uniformity α _).sets,
-  from hf ht,
-let ⟨c, hfc, hct⟩ := hs _ this in
-⟨f '' c, finite_image hfc,
-  begin
-    simp [image_subset_iff_subset_preimage],
-    simp [subset_def] at hct,
-    exact (assume x hx, let ⟨i, hi, ht⟩ := hct x hx in ⟨f i, mem_image_of_mem f hi, ht⟩)
-  end⟩
 
 /- remove when we hava linear arithmetic tactic -/
 lemma one_lt_two : 1 < (2 : ℚ) :=
@@ -1194,7 +1159,7 @@ continuous_of_uniform uniform_continuous_abs_real
 lemma of_rat_abs {q : ℚ} : of_rat (abs q) = abs (of_rat q) :=
 by rw [←abs_real_eq_abs]; exact of_rat_abs_real
 
-lemma mem_uniformity_real {s : set (ℝ × ℝ)} :
+lemma mem_uniformity_real_iff {s : set (ℝ × ℝ)} :
   s ∈ (@uniformity ℝ _).sets ↔ (∃e>0, ∀r₁ r₂:ℝ, abs (r₁ - r₂) < of_rat e → (r₁, r₂) ∈ s) :=
 ⟨ assume : s ∈ uniformity.sets,
   let ⟨s', hs', hcs', hss'⟩ := mem_uniformity_closed this in
@@ -1267,21 +1232,34 @@ lemma finite_le_nat : ∀{n:ℕ}, finite {i | i ≤ n}
     from set.ext $ by simp [nat.le_add_one_iff],
   this ▸ finite_insert finite_le_nat
 
+lemma finite_0_le_int {i : ℤ} : finite {j | 0 ≤ j ∧ j ≤ i} :=
+suffices int.of_nat '' {j : ℕ | j ≤ int.to_nat i} = {j | 0 ≤ j ∧ j ≤ i},
+  from this ▸ finite_image finite_le_nat,
+set.ext $ assume x,
+⟨ assume ⟨z, hz, h⟩, ⟨_, _⟩,
+  _⟩
+
+lemma totally_bounded_01_rat : totally_bounded {q:ℚ | 0 ≤ q ∧ q ≤ 1} :=
+assume s (hs : s ∈ uniformity.sets),
+have s ∈ (zero_nhd.vmap (λp:ℚ×ℚ, p.1 - p.2)).sets, by rw [←uniformity_rat]; exact hs,
+let ⟨t, ht, (hst : _ ⊆ _)⟩ := this, ⟨e, he, het⟩ := by rw [mem_zero_nhd_iff] at ht; exact ht in
+let n := λq, rat.ceil $ (q / e) in
+let c := (λi, ↑i * e) '' {i:ℤ | 0 ≤ i ∧ i ≤ n 1} in
+have 0 < e⁻¹, by rw [inv_eq_one_div, lt_div_iff]; simp [zero_lt_one]; exact he,
+have ∀q, 0 ≤ q → q ≤ 1 → ∃i∈c, abs (q - i) < e,
+  from assume q hq0 hq1,
+  ⟨n q * e,
+    mem_image_of_mem _ _,
+    _⟩,
+⟨c, finite_image $ finite_image finite_0_le_int,
+  assume r ⟨hr0, hr1⟩,
+  let ⟨i, hi, hie⟩ := this r hr0 hr1 in
+  by simp; exact ⟨i, hi, @hst (r,i) $ het _ hie⟩⟩
+
 lemma compact_01 : compact {r:ℝ | 0 ≤ r ∧ r ≤ 1 } :=
 @compact_of_totally_bounded_closed ℝ _ _ {r:ℝ | 0 ≤ r ∧ r ≤ 1 }
-  (assume t ht,
-    let ⟨e, he, het⟩ := mem_uniformity_real.mp ht in
-    let n := int.to_nat $ rat.ceil $ e⁻¹ in
-    let c := (rat.of_int ∘ int.of_nat) '' {i:ℕ | i ≤ n} in
-    have 0 < e⁻¹, by rw [inv_eq_one_div, lt_div_iff]; simp [zero_lt_one]; exact he,
-    have ∀q, 0 ≤ q → q ≤ 1 → ∃i∈c, abs (q - i) < e,
-      from assume q hq0 hq1, _,
-    ⟨of_rat '' c, finite_image $ finite_image finite_le_nat, assume r ⟨hr0, hr1⟩,
-      begin
-        simp
-      end⟩)
+  _
   (show closed {r:ℝ | 0 ≤ r ∧ r ≤ 1 }, from _)
-
 
 def Sup (s : set ℝ) : ℝ := lim (⨅r:{r : ℝ // r ∈ s}, principal {r' | r' ∈ s ∧ r' ≥ r.val})
 

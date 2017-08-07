@@ -62,6 +62,9 @@ lemma continuous_iff_towards {f : α → β} :
   show open' (preimage f s),
     by simp [open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
 
+lemma continuous_const [topological_space α] [topological_space β] {b : β} : continuous (λa:α, b) :=
+continuous_iff_towards.mpr $ assume a, towards_const_nhds
+
 lemma continuous_iff_closed {f : α → β} :
   continuous f ↔ (∀s, closed s → closed (preimage f s)) :=
 ⟨assume hf s hs, hf (-s) hs,

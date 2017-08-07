@@ -33,6 +33,28 @@ noncomputable theory
 open classical set
 local attribute [instance] decidable_inhabited prop_decidable
 
+namespace rat
+
+@[simp] lemma floor_of_int_eq {i : ℤ} : rat.floor (rat.of_int i) = i := int.div_one i
+
+@[simp] lemma floor_mono {r₁ r₂ : ℚ} : r₁ ≤ r₂ → rat.floor r₁ ≤ rat.floor r₂ :=
+num_denom_cases_on' r₁ $ λ n₁ d₁ h₁,
+num_denom_cases_on' r₂ $ λ n₂ d₂ h₂,
+show rat.nonneg (mk n₂ ↑d₂ - mk n₁ ↑d₁) → floor (mk n₁ ↑d₁) ≤ floor (mk n₂ ↑d₂),
+begin
+  have d₁0 : (d₁:ℤ) > 0 := lt_of_le_of_ne (int.coe_zero_le _) h₁.symm,
+  have d₂0 : (d₂:ℤ) > 0 := lt_of_le_of_ne (int.coe_zero_le _) h₂.symm,
+  simp [*],
+  rw [mk_nonneg _ (mul_pos d₁0 d₂0)]
+end
+
+
+lemma floor_le_iff_of_int_le {i : ℤ} {r : ℚ} : i ≤ rat.floor r ↔ of_int i ≤ r :=
+⟨assume h, _,
+  assume h, _⟩
+
+end rat
+
 /- rational numbers form a topological group and hence a uniform space -/
 
 universes u v w
@@ -1232,12 +1254,16 @@ lemma finite_le_nat : ∀{n:ℕ}, finite {i | i ≤ n}
     from set.ext $ by simp [nat.le_add_one_iff],
   this ▸ finite_insert finite_le_nat
 
-lemma finite_0_le_int {i : ℤ} : finite {j | 0 ≤ j ∧ j ≤ i} :=
-suffices int.of_nat '' {j : ℕ | j ≤ int.to_nat i} = {j | 0 ≤ j ∧ j ≤ i},
-  from this ▸ finite_image finite_le_nat,
-set.ext $ assume x,
-⟨ assume ⟨z, hz, h⟩, ⟨_, _⟩,
-  _⟩
+lemma finite_0_le_int {i : ℤ} (hi : i ≥ 0) : finite {j | 0 ≤ j ∧ j ≤ i} :=
+suffices {j | 0 ≤ j ∧ j ≤ i} ⊆ int.of_nat '' {j : ℕ | j ≤ int.to_nat i},
+  from finite_subset (finite_image finite_le_nat) this,
+assume z ⟨hz0, hzi⟩,
+let ⟨n, hn⟩ := int.le.dest hz0 in
+have hn : int.of_nat n = z, by simp at hn; exact hn,
+let ⟨m, hm⟩ := int.le.dest hi in
+have hm : int.of_nat m = i, by simp at hm; exact hm,
+have n ≤ m, by apply int.le_of_of_nat_le_of_nat; rw [hm, hn]; exact hzi,
+by rw [←hn, ←hm]; exact (mem_image_of_mem _ this)
 
 lemma totally_bounded_01_rat : totally_bounded {q:ℚ | 0 ≤ q ∧ q ≤ 1} :=
 assume s (hs : s ∈ uniformity.sets),
@@ -1251,7 +1277,7 @@ have ∀q, 0 ≤ q → q ≤ 1 → ∃i∈c, abs (q - i) < e,
   ⟨n q * e,
     mem_image_of_mem _ _,
     _⟩,
-⟨c, finite_image $ finite_image finite_0_le_int,
+⟨c, finite_image $ finite_0_le_int _,
   assume r ⟨hr0, hr1⟩,
   let ⟨i, hi, hie⟩ := this r hr0 hr1 in
   by simp; exact ⟨i, hi, @hst (r,i) $ het _ hie⟩⟩

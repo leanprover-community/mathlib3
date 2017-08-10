@@ -975,46 +975,46 @@ le_antisymm
 
 end vmap
 
-/- towards -/
-def towards (f : α → β) (l₁ : filter α) (l₂ : filter β) := filter.map f l₁ ≤ l₂
+/- tendsto -/
+def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := filter.map f l₁ ≤ l₂
 
-lemma towards_cong {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
-  (h : towards f₁ l₁ l₂) (hl : {x | f₁ x = f₂ x} ∈ l₁.sets) : towards f₂ l₁ l₂ :=
-by rwa [towards, ←map_cong hl]
+lemma tendsto_cong {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
+  (h : tendsto f₁ l₁ l₂) (hl : {x | f₁ x = f₂ x} ∈ l₁.sets) : tendsto f₂ l₁ l₂ :=
+by rwa [tendsto, ←map_cong hl]
 
-lemma towards_id' {x y : filter α} : x ≤ y → towards id x y :=
-by simp [towards] { contextual := tt }
+lemma tendsto_id' {x y : filter α} : x ≤ y → tendsto id x y :=
+by simp [tendsto] { contextual := tt }
 
-lemma towards_id {x : filter α} : towards id x x := towards_id' $ le_refl x
+lemma tendsto_id {x : filter α} : tendsto id x x := tendsto_id' $ le_refl x
 
-lemma towards_compose {f : α → β} {g : β → γ} {x : filter α} {y : filter β} {z : filter γ}
-  (hf : towards f x y) (hg : towards g y z) : towards (g ∘ f) x z :=
+lemma tendsto_compose {f : α → β} {g : β → γ} {x : filter α} {y : filter β} {z : filter γ}
+  (hf : tendsto f x y) (hg : tendsto g y z) : tendsto (g ∘ f) x z :=
 calc map (g ∘ f) x = map g (map f x) : by rw [map_map]
   ... ≤ map g y : map_mono hf
   ... ≤ z : hg
 
-lemma towards_map {f : α → β} {x : filter α} : towards f x (map f x) := le_refl (map f x)
+lemma tendsto_map {f : α → β} {x : filter α} : tendsto f x (map f x) := le_refl (map f x)
 
-lemma towards_map' {f : β → γ} {g : α → β} {x : filter α} {y : filter γ}
-  (h : towards (f ∘ g) x y) : towards f (map g x) y :=
-by rwa [towards, map_map]
+lemma tendsto_map' {f : β → γ} {g : α → β} {x : filter α} {y : filter γ}
+  (h : tendsto (f ∘ g) x y) : tendsto f (map g x) y :=
+by rwa [tendsto, map_map]
 
-lemma towards_vmap {f : α → β} {x : filter β} : towards f (vmap f x) x :=
+lemma tendsto_vmap {f : α → β} {x : filter β} : tendsto f (vmap f x) x :=
 map_vmap_le
 
-lemma towards_vmap' {f : β → γ} {g : α → β} {x : filter α} {y : filter γ}
-  (h : towards (f ∘ g) x y) : towards g x (vmap f y) :=
+lemma tendsto_vmap' {f : β → γ} {g : α → β} {x : filter α} {y : filter γ}
+  (h : tendsto (f ∘ g) x y) : tendsto g x (vmap f y) :=
 le_vmap_iff_map_le.mpr $ by rwa [map_map]
 
-lemma towards_vmap'' {m : α → β} {f : filter α} {g : filter β} (s : set α)
+lemma tendsto_vmap'' {m : α → β} {f : filter α} {g : filter β} (s : set α)
   {i : γ → α} (hs : s ∈ f.sets) (hi : ∀a∈s, ∃c, i c = a)
-  (h : towards (m ∘ i) (vmap i f) g) : towards m f g :=
-have towards m (map i $ vmap i $ f) g,
-  by rwa [towards, ←map_compose] at h,
+  (h : tendsto (m ∘ i) (vmap i f) g) : tendsto m f g :=
+have tendsto m (map i $ vmap i $ f) g,
+  by rwa [tendsto, ←map_compose] at h,
 le_trans (map_mono $ le_map_vmap' hs hi) this
 
-lemma towards_inf {f : α → β} {x : filter α} {y₁ y₂ : filter β}
-  (h₁ : towards f x y₁) (h₂ : towards f x y₂) : towards f x (y₁ ⊓ y₂) :=
+lemma tendsto_inf {f : α → β} {x : filter α} {y₁ y₂ : filter β}
+  (h₁ : tendsto f x y₁) (h₂ : tendsto f x y₂) : tendsto f x (y₁ ⊓ y₂) :=
 le_inf h₁ h₂
 
 section lift
@@ -1382,16 +1382,16 @@ begin
     assume x, set.monotone_prod monotone_id monotone_const)
 end
 
-lemma towards_fst {f : filter α} {g : filter β} : towards prod.fst (filter.prod f g) f :=
+lemma tendsto_fst {f : filter α} {g : filter β} : tendsto prod.fst (filter.prod f g) f :=
 assume s hs, (filter.prod f g).upwards_sets (prod_mem_prod hs univ_mem_sets) $
   show set.prod s univ ⊆ preimage prod.fst s, by simp [set.prod, preimage] {contextual := tt}
 
-lemma towards_snd {f : filter α} {g : filter β} : towards prod.snd (filter.prod f g) g :=
+lemma tendsto_snd {f : filter α} {g : filter β} : tendsto prod.snd (filter.prod f g) g :=
 assume s hs, (filter.prod f g).upwards_sets (prod_mem_prod univ_mem_sets hs) $
   show set.prod univ s ⊆ preimage prod.snd s, by simp [set.prod, preimage] {contextual := tt}
 
-lemma towards_prod_mk {f : filter α} {g : filter β} {h : filter γ} {m₁ : α → β} {m₂ : α → γ}
-  (h₁ : towards m₁ f g) (h₂ : towards m₂ f h) : towards (λx, (m₁ x, m₂ x)) f (filter.prod g h) :=
+lemma tendsto_prod_mk {f : filter α} {g : filter β} {h : filter γ} {m₁ : α → β} {m₂ : α → γ}
+  (h₁ : tendsto m₁ f g) (h₂ : tendsto m₂ f h) : tendsto (λx, (m₁ x, m₂ x)) f (filter.prod g h) :=
 assume s hs,
 let ⟨s₁, hs₁, s₂, hs₂, h⟩ := mem_prod_iff.mp hs in
 f.upwards_sets (inter_mem_sets (h₁ hs₁) (h₂ hs₂)) $
@@ -1408,7 +1408,7 @@ le_antisymm
       calc set.prod (m₁ '' s₁) (m₂ '' s₂) = (λp:α₁×α₂, (m₁ p.1, m₂ p.2)) '' set.prod s₁ s₂ :
           set.prod_image_image_eq
         ... ⊆ _ : by rwa [image_subset_iff_subset_preimage])
-  (towards_prod_mk (towards_compose towards_fst (le_refl _)) (towards_compose towards_snd (le_refl _)))
+  (tendsto_prod_mk (tendsto_compose tendsto_fst (le_refl _)) (tendsto_compose tendsto_snd (le_refl _)))
 
 lemma prod_vmap_vmap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : β₁ → α₁} {m₂ : β₂ → α₂} :

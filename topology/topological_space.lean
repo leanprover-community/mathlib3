@@ -232,13 +232,13 @@ by simp [closure_eq_compl_interior_compl]
 /- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 
-lemma towards_nhds {m : β → α} {f : filter β} (h : ∀s, a ∈ s → is_open s → preimage m s ∈ f.sets) :
-  towards m f (nhds a) :=
+lemma tendsto_nhds {m : β → α} {f : filter β} (h : ∀s, a ∈ s → is_open s → preimage m s ∈ f.sets) :
+  tendsto m f (nhds a) :=
 show map m f ≤ (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s),
   from le_infi $ assume s, le_infi $ assume ⟨ha, hs⟩, le_principal_iff.mpr $ h s ha hs
 
-lemma towards_const_nhds {a : α} {f : filter β} : towards (λb:β, a) f (nhds a) :=
-towards_nhds $ assume s ha hs, univ_mem_sets' $ assume _, ha
+lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (nhds a) :=
+tendsto_nhds $ assume s ha hs, univ_mem_sets' $ assume _, ha
 
 lemma nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
 calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : infi_sets_eq'
@@ -572,8 +572,8 @@ h $ empty_in_sets_eq_bot.mp $ huv ▸ this
 @[simp] lemma nhds_le_nhds_iff {a b : α} [t2_space α] : nhds a ≤ nhds b ↔ a = b :=
 ⟨assume h, eq_of_nhds_neq_bot $ by simp [inf_of_le_left h], assume h, h ▸ le_refl _⟩
 
-lemma towards_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : α}
-  (hl : l ≠ ⊥) (ha : towards f l (nhds a)) (hb : towards f l (nhds b)) : a = b :=
+lemma tendsto_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : α}
+  (hl : l ≠ ⊥) (ha : tendsto f l (nhds a)) (hb : tendsto f l (nhds b)) : a = b :=
 eq_of_nhds_neq_bot $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ f _ hl) $ le_inf ha hb
 
 end separation

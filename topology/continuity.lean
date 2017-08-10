@@ -45,14 +45,14 @@ lemma continuous_compose {f : α → β} {g : β → γ} (hf : continuous f) (hg
   continuous (g ∘ f) :=
 assume s h, hf _ (hg s h)
 
-lemma continuous_iff_towards {f : α → β} :
-  continuous f ↔ (∀x, towards f (nhds x) (nhds (f x))) :=
+lemma continuous_iff_tendsto {f : α → β} :
+  continuous f ↔ (∀x, tendsto f (nhds x) (nhds (f x))) :=
 ⟨assume hf : continuous f, assume x s,
   show s ∈ (nhds (f x)).sets → s ∈ (map f (nhds x)).sets,
     by simp [nhds_sets];
       exact assume ⟨t, t_open, t_subset, fx_in_t⟩,
         ⟨preimage f t, hf t t_open, fx_in_t, preimage_mono t_subset⟩,
-  assume hf : ∀x, towards f (nhds x) (nhds (f x)),
+  assume hf : ∀x, tendsto f (nhds x) (nhds (f x)),
   assume s, assume hs : is_open s,
   have ∀a, f a ∈ s → s ∈ (nhds (f a)).sets,
     by simp [nhds_sets]; exact assume a ha, ⟨s, hs, subset.refl s, ha⟩,
@@ -60,7 +60,7 @@ lemma continuous_iff_towards {f : α → β} :
     by simp [is_open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
 
 lemma continuous_const [topological_space α] [topological_space β] {b : β} : continuous (λa:α, b) :=
-continuous_iff_towards.mpr $ assume a, towards_const_nhds
+continuous_iff_tendsto.mpr $ assume a, tendsto_const_nhds
 
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (preimage f s)) :=
@@ -75,7 +75,7 @@ have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (
     by rwa[map_eq_bot_iff],
   have h₂ : map f (nhds a ⊓ principal s) ≤ nhds (f a) ⊓ principal (f '' s),
     from le_inf
-      (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_towards] at h; exact h a)
+      (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_tendsto] at h; exact h a)
       (le_trans (map_mono inf_le_right) $ by simp; exact subset.refl _),
   neq_bot_of_le_neq_bot h₁ h₂,
 by simp [image_subset_iff_subset_preimage, closure_eq_nhds]; assumption
@@ -292,7 +292,7 @@ le_antisymm
 lemma map_nhds_induced_eq {a : α} (h : image f univ ∈ (nhds (f a)).sets) :
   map f (@nhds α (induced f t) a) = nhds (f a) :=
 le_antisymm
-  ((@continuous_iff_towards α β (induced f t) _ _).mp continuous_induced_dom a)
+  ((@continuous_iff_tendsto α β (induced f t) _ _).mp continuous_induced_dom a)
   (assume s, assume hs : preimage f s ∈ (@nhds α (induced f t) a).sets,
     let ⟨t', t_subset, is_open_t, a_in_t⟩ := mem_nhds_sets_iff.mp h in
     let ⟨s', s'_subset, ⟨s'', is_open_s'', s'_eq⟩, a_in_s'⟩ := (@mem_nhds_sets_iff _ (induced f t) _ _).mp hs in
@@ -426,13 +426,13 @@ end sum
 section subtype
 variables [topological_space α] [topological_space β] [topological_space γ] {p : α → Prop}
 
-lemma towards_nhds_iff_of_embedding {f : α → β} {g : β → γ} {a : filter α} {b : β} (hg : embedding g) :
-  towards f a (nhds b) ↔ towards (g ∘ f) a (nhds (g b)) :=
-by rw [towards, towards, hg.right, nhds_induced_eq_vmap, le_vmap_iff_map_le, map_map]
+lemma tendsto_nhds_iff_of_embedding {f : α → β} {g : β → γ} {a : filter α} {b : β} (hg : embedding g) :
+  tendsto f a (nhds b) ↔ tendsto (g ∘ f) a (nhds (g b)) :=
+by rw [tendsto, tendsto, hg.right, nhds_induced_eq_vmap, le_vmap_iff_map_le, map_map]
 
 lemma continuous_iff_of_embedding {f : α → β} {g : β → γ} (hg : embedding g) :
   continuous f ↔ continuous (g ∘ f) :=
-by simp [continuous_iff_towards, @towards_nhds_iff_of_embedding α β γ _ _ _ f g _ _ hg]
+by simp [continuous_iff_tendsto, @tendsto_nhds_iff_of_embedding α β γ _ _ _ f g _ _ hg]
 
 lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λx, (x, f x)) :=
 embedding_of_embedding_compose (continuous_prod_mk continuous_id hf) continuous_fst embedding_id
@@ -459,13 +459,13 @@ lemma continuous_subtype_nhds_cover {f : α → β} {c : ι → α → Prop}
   (c_cover : ∀x:α, ∃i, {x | c i x} ∈ (nhds x).sets)
   (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x.val)) :
   continuous f :=
-continuous_iff_towards.mpr $ assume x,
+continuous_iff_tendsto.mpr $ assume x,
   let ⟨i, (c_sets : {x | c i x} ∈ (nhds x).sets)⟩ := c_cover x in
   let x' : subtype (c i) := ⟨x, mem_of_nhds c_sets⟩ in
   calc map f (nhds x) = map f (map subtype.val (nhds x')) :
       congr_arg (map f) (map_nhds_subtype_val_eq _ $ c_sets).symm
     ... = map (λx:subtype (c i), f x.val) (nhds x') : rfl
-    ... ≤ nhds (f x) : continuous_iff_towards.mp (f_cont i) x'
+    ... ≤ nhds (f x) : continuous_iff_tendsto.mp (f_cont i) x'
 
 lemma continuous_subtype_is_closed_cover {f : α → β} (c : γ → α → Prop)
   (h_lf : locally_finite (λi, {x | c i x}))
@@ -536,11 +536,11 @@ variables {e : α → β} (de : dense_embedding e)
 protected lemma embedding (de : dense_embedding e) : embedding e :=
 ⟨de.inj, eq_of_nhds_eq_nhds begin intro a, rw [← de.induced a, nhds_induced_eq_vmap] end⟩
 
-protected lemma towards (de : dense_embedding e) {a : α} : towards e (nhds a) (nhds (e a)) :=
-by rw [←de.induced a]; exact towards_vmap
+protected lemma tendsto (de : dense_embedding e) {a : α} : tendsto e (nhds a) (nhds (e a)) :=
+by rw [←de.induced a]; exact tendsto_vmap
 
 protected lemma continuous (de : dense_embedding e) {a : α} : continuous e :=
-by rw [continuous_iff_towards]; exact assume a, de.towards
+by rw [continuous_iff_tendsto]; exact assume a, de.tendsto
 
 lemma inj_iff (de : dense_embedding e) {x y} : e x = e y ↔ x = y :=
 ⟨de.inj _ _, assume h, h ▸ rfl⟩
@@ -574,13 +574,13 @@ lemma ext_e_eq {a : α} {f : α → γ} (de : dense_embedding e)
   (hf : map f (nhds a) ≤ nhds (f a)) : de.ext f (e a) = f a :=
 de.ext_eq begin rw de.induced; exact hf end
 
-lemma towards_ext {b : β} {f : α → γ} (de : dense_embedding e)
-  (hf : {b | ∃c, towards f (vmap e $ nhds b) (nhds c)} ∈ (nhds b).sets) :
-  towards (de.ext f) (nhds b) (nhds (de.ext f b)) :=
-let φ := {b | towards f (vmap e $ nhds b) (nhds $ de.ext f b)} in
+lemma tendsto_ext {b : β} {f : α → γ} (de : dense_embedding e)
+  (hf : {b | ∃c, tendsto f (vmap e $ nhds b) (nhds c)} ∈ (nhds b).sets) :
+  tendsto (de.ext f) (nhds b) (nhds (de.ext f b)) :=
+let φ := {b | tendsto f (vmap e $ nhds b) (nhds $ de.ext f b)} in
 have hφ : φ ∈ (nhds b).sets,
   from (nhds b).upwards_sets hf $ assume b ⟨c, hc⟩,
-    show towards f (vmap e (nhds b)) (nhds (de.ext f b)), from (de.ext_eq hc).symm ▸ hc,
+    show tendsto f (vmap e (nhds b)) (nhds (de.ext f b)), from (de.ext_eq hc).symm ▸ hc,
 assume s hs,
 let ⟨s'', hs''₁, hs''₂, hs''₃⟩ := nhds_is_closed hs in
 let ⟨s', hs'₁, (hs'₂ : preimage e s' ⊆ preimage f s'')⟩ := mem_of_nhds hφ hs''₁ in
@@ -612,8 +612,8 @@ have h₂ : t ⊆ preimage (de.ext f) (closure (f '' preimage e t)), from
     ... ⊆ preimage (de.ext f) s : preimage_mono hs''₂)
 
 lemma continuous_ext {f : α → γ} (de : dense_embedding e)
-  (hf : ∀b, ∃c, towards f (vmap e (nhds b)) (nhds c)) : continuous (de.ext f) :=
-continuous_iff_towards.mpr $ assume b, de.towards_ext $ univ_mem_sets' hf
+  (hf : ∀b, ∃c, tendsto f (vmap e (nhds b)) (nhds c)) : continuous (de.ext f) :=
+continuous_iff_tendsto.mpr $ assume b, de.tendsto_ext $ univ_mem_sets' hf
 
 end dense_embedding
 

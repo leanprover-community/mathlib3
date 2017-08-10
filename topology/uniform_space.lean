@@ -65,7 +65,7 @@ set.ext $ assume ⟨a, b⟩, ⟨assume ⟨a', (heq : a = a'), ha'⟩, heq.symm �
 structure uniform_space.core (α : Type u) :=
 (uniformity : filter (α × α))
 (refl       : principal id_rel ≤ uniformity)
-(symm       : towards prod.swap uniformity uniformity)
+(symm       : tendsto prod.swap uniformity uniformity)
 (comp       : uniformity.lift' (λs, comp_rel s s) ≤ uniformity)
 
 def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.core α) :
@@ -134,10 +134,10 @@ lemma symm_le_uniformity : map (@prod.swap α α) uniformity ≤ uniformity :=
 lemma comp_le_uniformity : uniformity.lift' (λs:set (α×α), comp_rel s s) ≤ uniformity :=
 (@uniform_space.to_core α _).comp
 
-lemma towards_swap_uniformity : towards prod.swap (@uniformity α _) uniformity :=
+lemma tendsto_swap_uniformity : tendsto prod.swap (@uniformity α _) uniformity :=
 symm_le_uniformity
 
-lemma towards_const_uniformity {a : α} {f : filter β} : towards (λ_, (a, a)) f uniformity :=
+lemma tendsto_const_uniformity {a : α} {f : filter β} : tendsto (λ_, (a, a)) f uniformity :=
 assume s hs,
 show {x | (a, a) ∈ s} ∈ f.sets,
   from univ_mem_sets' $ assume b, refl_mem_uniformity hs
@@ -252,10 +252,10 @@ lemma mem_nhds_right {y : α} {s : set (α×α)} (h : s ∈ (uniformity.sets : s
   {x : α | (x, y) ∈ s} ∈ (nhds y).sets :=
 mem_nhds_left (symm_le_uniformity h)
 
-lemma towards_right_nhds_uniformity {a : α} : towards (λa', (a', a)) (nhds a) uniformity :=
+lemma tendsto_right_nhds_uniformity {a : α} : tendsto (λa', (a', a)) (nhds a) uniformity :=
 assume s hs, show {a' | (a', a) ∈ s} ∈ (nhds a).sets, from mem_nhds_right hs
 
-lemma towards_left_nhds_uniformity {a : α} : towards (λa', (a, a')) (nhds a) uniformity :=
+lemma tendsto_left_nhds_uniformity {a : α} : tendsto (λa', (a, a')) (nhds a) uniformity :=
 assume s hs, show {a' | (a, a') ∈ s} ∈ (nhds a).sets, from mem_nhds_left hs
 
 lemma lift_nhds_left {x : α} {g : set α → filter β} (hg : monotone g) :
@@ -387,14 +387,14 @@ let ⟨t, ht, hst⟩ := this in
 /- uniform continuity -/
 
 definition uniform_continuous [uniform_space β] (f : α → β) :=
-towards (λx:α×α, (f x.1, f x.2)) uniformity uniformity
+tendsto (λx:α×α, (f x.1, f x.2)) uniformity uniformity
 
 lemma uniform_continuous_const [uniform_space β] {b : β} : uniform_continuous (λa:α, b) :=
-@towards_const_uniformity _ _ _ b uniformity
+@tendsto_const_uniformity _ _ _ b uniformity
 
 lemma uniform_continuous_compose [uniform_space β] [uniform_space γ] {f : α → β} {g : β → γ}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (g ∘ f) :=
-towards_compose hf hg
+tendsto_compose hf hg
 
 definition uniform_embedding [uniform_space β] (f : α → β) :=
 (∀a₁ a₂, f a₁ = f a₂ → a₁ = a₂) ∧
@@ -402,7 +402,7 @@ vmap (λx:α×α, (f x.1, f x.2)) uniformity = uniformity
 
 lemma uniform_continuous_of_embedding [uniform_space β] {f : α → β}
   (hf : uniform_embedding f) : uniform_continuous f :=
-by simp [uniform_continuous, hf.right.symm]; exact towards_vmap
+by simp [uniform_continuous, hf.right.symm]; exact tendsto_vmap
 
 lemma dense_embedding_of_uniform_embedding [uniform_space β] {f : α → β}
   (h : uniform_embedding f) (hd : ∀x, x ∈ closure (f '' univ)) : dense_embedding f :=
@@ -421,7 +421,7 @@ lemma dense_embedding_of_uniform_embedding [uniform_space β] {f : α → β}
 
 lemma continuous_of_uniform [uniform_space β] {f : α → β}
   (hf : uniform_continuous f) : continuous f :=
-continuous_iff_towards.mpr $ assume a,
+continuous_iff_tendsto.mpr $ assume a,
 calc map f (nhds a) ≤
     (map (λp:α×α, (f p.1, f p.2)) uniformity).lift' (λs:set (β×β), {y | (f a, y) ∈ s}) :
   begin
@@ -826,8 +826,8 @@ instance {α : Type u} [u : uniform_space α] : uniform_space (quotient (separat
     have ∀a:α, (a, a) ∈ preimage (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) s,
       from assume a, refl_mem_uniformity hs,
     h ▸ quotient.induction_on a this,
-  symm  := towards_map' $
-    by simp [prod.swap, (∘)]; exact towards_compose towards_swap_uniformity towards_map,
+  symm  := tendsto_map' $
+    by simp [prod.swap, (∘)]; exact tendsto_compose tendsto_swap_uniformity tendsto_map,
   comp := calc (map (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) uniformity).lift' (λs, comp_rel s s) =
           uniformity.lift' ((λs, comp_rel s s) ∘ image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧))) :
       map_lift'_eq2 $ monotone_comp_rel monotone_id monotone_id
@@ -895,7 +895,7 @@ lemma complete_space_separation [h : complete_space α] :
   let ⟨x, (hx : vmap (λx, ⟦x⟧) f ≤ nhds x)⟩ := complete_space.complete this in
   ⟨⟦x⟧, calc f ≤ map (λx, ⟦x⟧) (vmap (λx, ⟦x⟧) f) : le_map_vmap $ assume b, quotient.exists_rep _
     ... ≤ map (λx, ⟦x⟧) (nhds x) : map_mono hx
-    ... ≤ _ : continuous_iff_towards.mp (continuous_of_uniform uniform_continuous_quotient_mk) _⟩⟩
+    ... ≤ _ : continuous_iff_tendsto.mp (continuous_of_uniform uniform_continuous_quotient_mk) _⟩⟩
 
 lemma separated_separation [h : complete_space α] : separated (quotient (separation_setoid α)) :=
 set.ext $ assume ⟨a, b⟩, quotient.induction_on₂ a b $ assume a b,
@@ -928,10 +928,10 @@ local notation `ψ` := (dense_embedding_of_uniform_embedding h_e h_dense).ext f
 
 lemma uniformly_extend_of_emb [cγ : complete_space γ] [sγ : separated γ] {b : β} :
   ψ (e b) = f b :=
-dense_embedding.ext_e_eq _ $ continuous_iff_towards.mp (continuous_of_uniform h_f) b
+dense_embedding.ext_e_eq _ $ continuous_iff_tendsto.mp (continuous_of_uniform h_f) b
 
 lemma uniformly_extend_exists [complete_space γ] [sγ : separated γ] {a : α} :
-  ∃c, towards f (vmap e (nhds a)) (nhds c) :=
+  ∃c, tendsto f (vmap e (nhds a)) (nhds c) :=
 let de := (dense_embedding_of_uniform_embedding h_e h_dense) in
 have cauchy (nhds a), from cauchy_nhds,
 have cauchy (vmap e (nhds a)), from
@@ -941,7 +941,7 @@ have cauchy (map f (vmap e (nhds a))), from
 complete_space.complete this
 
 lemma uniformly_extend_spec [complete_space γ] [sγ : separated γ] {a : α} :
-  towards f (vmap e (nhds a)) (nhds (ψ a)) :=
+  tendsto f (vmap e (nhds a)) (nhds (ψ a)) :=
 lim_spec $ uniformly_extend_exists h_e h_dense h_f
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] [sγ : separated γ] :
@@ -1175,7 +1175,7 @@ instance : has_top (uniform_space α) :=
 ⟨{ to_topological_space := ⊤,
   uniformity := principal id_rel,
   refl        := le_refl _,
-  symm        := by simp [towards]; apply subset.refl,
+  symm        := by simp [tendsto]; apply subset.refl,
   comp        :=
   begin
     rw [lift'_principal],
@@ -1227,7 +1227,7 @@ def uniform_space.vmap (f : α → β) (u : uniform_space β) : uniform_space α
 { uniformity := u.uniformity.vmap (λp:α×α, (f p.1, f p.2)),
   to_topological_space := u.to_topological_space.induced f,
   refl := le_trans (by simp; exact assume ⟨a, b⟩ (h : a = b), h ▸ rfl) (vmap_mono u.refl),
-  symm := towards_vmap' $ by simp [prod.swap, (∘)]; exact towards_compose towards_vmap towards_swap_uniformity,
+  symm := tendsto_vmap' $ by simp [prod.swap, (∘)]; exact tendsto_compose tendsto_vmap tendsto_swap_uniformity,
   comp := le_trans
     begin
       rw [vmap_lift'_eq, vmap_lift'_eq2],
@@ -1249,7 +1249,7 @@ def uniform_space.vmap (f : α → β) (u : uniform_space β) : uniform_space α
 
 lemma uniform_continuous_vmap {f : α → β} [u : uniform_space β] :
   @uniform_continuous α β (uniform_space.vmap f u) u f :=
-towards_vmap
+tendsto_vmap
 
 theorem to_topological_space_vmap {f : α → β} {u : uniform_space β} :
   @uniform_space.to_topological_space _ (uniform_space.vmap f u) =
@@ -1265,7 +1265,7 @@ end
 
 lemma uniform_continuous_vmap' {f : γ → β} {g : α → γ} [v : uniform_space β] [u : uniform_space α]
   (h : uniform_continuous (f ∘ g)) : @uniform_continuous α γ u (uniform_space.vmap f v) g :=
-towards_vmap' h
+tendsto_vmap' h
 
 lemma to_topological_space_mono {u₁ u₂ : uniform_space α} (h : u₁ ≤ u₂) :
   @uniform_space.to_topological_space _ u₁ ≤ @uniform_space.to_topological_space _ u₂ :=
@@ -1366,7 +1366,7 @@ lemma uniform_extend_subtype {α : Type u} {β : Type v} {γ : Type w}
   (hf : uniform_continuous (λx:subtype p, f x.val))
   (he : uniform_embedding e) (hd : ∀x, x ∈ closure (e '' univ))
   (hb : closure (e '' s) ∈ (nhds b).sets) (hs : is_closed s) (hp : ∀x∈s, p x) :
-  ∃c, towards f (vmap e (nhds b)) (nhds c) :=
+  ∃c, tendsto f (vmap e (nhds b)) (nhds c) :=
 have de : dense_embedding e,
   from dense_embedding_of_uniform_embedding he hd,
 have de' : dense_embedding (de.subtype_emb p),
@@ -1375,15 +1375,15 @@ have ue' : uniform_embedding (de.subtype_emb p),
   from uniform_embedding_subtype_emb _ he de,
 have b ∈ closure (e '' {x | p x}),
   from (closure_mono $ mono_image $ hp) (mem_of_nhds hb),
-let ⟨c, (hc : towards (f ∘ subtype.val) (vmap (de.subtype_emb p) (nhds ⟨b, this⟩)) (nhds c))⟩ :=
+let ⟨c, (hc : tendsto (f ∘ subtype.val) (vmap (de.subtype_emb p) (nhds ⟨b, this⟩)) (nhds c))⟩ :=
   uniformly_extend_exists ue' de'.dense hf in
 begin
   rw [nhds_subtype_eq_vmap] at hc,
   simp [vmap_vmap_comp] at hc,
-  change (towards (f ∘ @subtype.val α p) (vmap (e ∘ @subtype.val α p) (nhds b)) (nhds c)) at hc,
+  change (tendsto (f ∘ @subtype.val α p) (vmap (e ∘ @subtype.val α p) (nhds b)) (nhds c)) at hc,
   rw [←vmap_vmap_comp] at hc,
   existsi c,
-  apply towards_vmap'' s _ _ hc,
+  apply tendsto_vmap'' s _ _ hc,
   exact ⟨_, hb, assume x,
     begin
       change e x ∈ (closure (e '' s)) → x ∈ s,
@@ -1412,26 +1412,26 @@ lemma mem_uniform_prod [t₁ : uniform_space α] [t₂ : uniform_space β] {a : 
   {p:(α×β)×(α×β) | (p.1.1, p.2.1) ∈ a ∧ (p.1.2, p.2.2) ∈ b } ∈ (@uniformity (α × β) _).sets :=
 by rw [uniformity_prod]; exact inter_mem_inf_sets (preimage_mem_vmap ha) (preimage_mem_vmap hb)
 
-lemma towards_prod_uniformity_fst [uniform_space α] [uniform_space β] :
-  towards (λp:(α×β)×(α×β), (p.1.1, p.2.1)) uniformity uniformity :=
+lemma tendsto_prod_uniformity_fst [uniform_space α] [uniform_space β] :
+  tendsto (λp:(α×β)×(α×β), (p.1.1, p.2.1)) uniformity uniformity :=
 le_trans (map_mono (@le_sup_left (uniform_space (α×β)) _ _ _)) map_vmap_le
 
-lemma towards_prod_uniformity_snd [uniform_space α] [uniform_space β] :
-  towards (λp:(α×β)×(α×β), (p.1.2, p.2.2)) uniformity uniformity :=
+lemma tendsto_prod_uniformity_snd [uniform_space α] [uniform_space β] :
+  tendsto (λp:(α×β)×(α×β), (p.1.2, p.2.2)) uniformity uniformity :=
 le_trans (map_mono (@le_sup_right (uniform_space (α×β)) _ _ _)) map_vmap_le
 
 lemma uniform_continuous_fst [uniform_space α] [uniform_space β] : uniform_continuous (λp:α×β, p.1) :=
-towards_prod_uniformity_fst
+tendsto_prod_uniformity_fst
 
 lemma uniform_continuous_snd [uniform_space α] [uniform_space β] : uniform_continuous (λp:α×β, p.2) :=
-towards_prod_uniformity_snd
+tendsto_prod_uniformity_snd
 
 lemma uniform_continuous_prod_mk [uniform_space α] [uniform_space β] [uniform_space γ]
   {f₁ : α → β} {f₂ : α → γ} (h₁ : uniform_continuous f₁) (h₂ : uniform_continuous f₂) :
   uniform_continuous (λa, (f₁ a, f₂ a)) :=
 by
   rw [uniform_continuous, uniformity_prod];
-  exact towards_inf (towards_vmap' h₁) (towards_vmap' h₂)
+  exact tendsto_inf (tendsto_vmap' h₁) (tendsto_vmap' h₂)
 
 lemma uniform_embedding_prod {α' : Type w} {β' : Type x}
   [uniform_space α] [uniform_space β] [uniform_space α'] [uniform_space β']

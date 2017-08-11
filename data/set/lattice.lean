@@ -6,7 +6,7 @@ Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
 import logic.basic data.set.basic
-import algebra.lattice algebra.order algebra.lattice.complete_boolean_algebra
+import algebra.lattice algebra.order algebra.lattice.complete_boolean_algebra category.basic
 import tactic.finish
 
 open function tactic set lattice auto
@@ -304,6 +304,22 @@ by simp
 theorem Inter_eq_sInter_image {α I : Type} (s : I → set α) : (⋂ i, s i) = ⋂₀ (s '' univ) :=
 by simp
 
+lemma sUnion_mono {s t : set (set α)} (h : s ⊆ t) : (⋃₀ s) ⊆ (⋃₀ t) :=
+sUnion_subset $ assume t' ht', subset_sUnion_of_mem $ h ht'
+
+lemma Union_subset_Union {s t : ι → set α} (h : ∀i, s i ⊆ t i) : (⋃i, s i) ⊆ (⋃i, t i) :=
+@supr_le_supr (set α) ι _ s t h
+
+lemma Union_subset_Union2 {ι₂ : Sort x} {s : ι → set α} {t : ι₂ → set α} (h : ∀i, ∃j, s i ⊆ t j) :
+  (⋃i, s i) ⊆ (⋃i, t i) :=
+@supr_le_supr2 (set α) ι ι₂ _ s t h
+
+lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) : (⋃ i:ι, s) ⊆ (⋃ j:ι₂, s) :=
+@supr_le_supr_const (set α) ι ι₂ _ s h
+
+lemma sUnion_eq_Union {s : set (set α)} : (⋃₀ s) = (⋃ (i : set α) (h : i ∈ s), i) :=
+set.ext $ by simp
+
 instance : complete_boolean_algebra (set α) :=
 { set.lattice_set with
   neg                 := compl,
@@ -333,6 +349,25 @@ sub_eq_left $ eq_empty_of_forall_not_mem $ assume x ⟨ht, ha⟩,
   insert a (s \ {a}) = insert a s :=
 by simp [insert_eq, union_sdiff_same]
 
+lemma compl_subset_compl_iff_subset {α : Type u} {x y : set α} : - y ⊆ - x ↔ x ⊆ y :=
+@neg_le_neg_iff_le (set α) _ _ _
+
+section image
+
+lemma image_Union {f : α → β} {s : ι → set α} : f '' (⋃ i, s i) = (⋃i, f '' s i) :=
+begin
+  apply set.ext, intro x,
+  simp [image],
+  exact ⟨assume ⟨a, h, i, hi⟩, ⟨i, a, h, hi⟩, assume ⟨i, a, h, hi⟩, ⟨a, h, i, hi⟩⟩
+end
+
+lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
+set.ext $ assume ⟨x, h⟩, begin simp, exact ⟨x, h, rfl⟩ end
+
+end image
+
+section preimage
+
 theorem monotone_preimage {f : α → β} : monotone (preimage f) := assume a b h, preimage_mono h
 
 @[simp] theorem preimage_Union {ι : Sort w} {f : α → β} {s : ι → set β} :
@@ -342,6 +377,38 @@ set.ext $ by simp [preimage]
 @[simp] theorem preimage_sUnion {f : α → β} {s : set (set β)} :
   preimage f (⋃₀ s) = (⋃t ∈ s, preimage f t) :=
 set.ext $ by simp [preimage]
+
+end preimage
+
+instance : monad set :=
+{ monad .
+  pure       := λ(α : Type u) a, {a},
+  bind       := λ(α β : Type u) s f, ⋃i∈s, f i,
+  map        := λ(α β : Type u), set.image,
+  pure_bind  := assume α β x f, by simp,
+  bind_assoc := assume α β γ s f g, set.ext $ assume a,
+    by simp; exact ⟨assume ⟨b, ag, a, as, bf⟩, ⟨a, as, b, bf, ag⟩,
+      assume ⟨a, as, b, bf, ag⟩, ⟨b, ag, a, as, bf⟩⟩,
+  id_map     := assume α, functor.id_map,
+  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm] }
+
+section monad
+variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' → β')}
+
+@[simp] lemma bind_def : s >>= f = ⋃i∈s, f i := rfl
+
+lemma fmap_eq_image : f <$> s = f '' s := rfl
+
+lemma mem_seq_iff {b : β'} : b ∈ (g <*> s) ↔ (∃(f' : α' → β'), ∃a∈s, f' ∈ g ∧ b = f' a) :=
+begin
+  simp [seq_eq_bind_map],
+  apply exists_congr,
+  intro f',
+  exact ⟨assume ⟨hf', a, ha, h_eq⟩, ⟨a, h_eq.symm, ha, hf'⟩,
+    assume ⟨a, h_eq, ha, hf'⟩, ⟨hf', a, ha, h_eq.symm⟩⟩
+end
+
+end monad
 
 /- disjoint sets -/
 

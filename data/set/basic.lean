@@ -17,11 +17,16 @@ funext (assume x, propext (h x))
 theorem set_eq_def (s t : set α) : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 ⟨begin intros h x, rw h end, set.ext⟩
 
+@[trans] lemma mem_of_mem_of_subset {α : Type u} {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t :=
+h hx
+
 /- mem and set_of -/
 
 @[simp] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
 
 @[simp] theorem nmem_set_of_eq {a : α} {P : α → Prop} : a ∉ {a : α | P a} = ¬ P a := rfl
+
+@[simp] lemma set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
 /- subset -/
 
@@ -57,6 +62,11 @@ theorem ssubset_def {s t : set α} : (s ⊂ t) = (s ⊆ t ∧ s ≠ t) := rfl
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
+@[simp] lemma not_not_mem_iff {α : Type u} {a : α} {s : set α} [decidable (a ∈ s)] :
+  ¬ (a ∉ s) ↔ a ∈ s :=
+not_not_iff
+
+
 /- empty set -/
 
 theorem empty_def : (∅ : set α) = {x | false} := rfl
@@ -79,6 +89,13 @@ subset.antisymm h (empty_subset s)
 
 theorem exists_mem_of_ne_empty {s : set α} (h : s ≠ ∅) : ∃ x, x ∈ s :=
 by finish [set_eq_def]
+
+lemma ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s :=
+⟨exists_mem_of_ne_empty, assume ⟨x, hx⟩, ne_empty_of_mem hx⟩
+
+-- TODO: remove when simplifier stops rewriting `a ≠ b` to `¬ a = b`
+lemma not_eq_empty_iff_exists {s : set α} : ¬ (s = ∅) ↔ ∃ x, x ∈ s :=
+ne_empty_iff_exists_mem
 
 theorem subset_empty_iff (s : set α) : s ⊆ ∅ ↔ s = ∅ :=
 by finish [set_eq_def]
@@ -341,7 +358,7 @@ by simp [insert_eq]
 @[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} :=
 by finish
 
-theorem singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := insert_ne_empty _ _
+@[simp] theorem singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := insert_ne_empty _ _
 
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s :=
 ⟨λh, h (by simp), λh b e, by simp at e; simp [*]⟩
@@ -416,6 +433,9 @@ by finish [set_eq_def]
 theorem compl_comp_compl : compl ∘ compl = @id (set α) :=
 funext compl_compl
 
+lemma compl_subset_of_compl_subset {α : Type u} {s t : set α} (h : -s ⊆ t) : -t ⊆ s :=
+assume x hx, classical.by_contradiction $ assume : x ∉ s, hx $ h $ this
+
 /- set difference -/
 
 theorem diff_eq (s t : set α) : s \ t = s ∩ -t := rfl
@@ -439,8 +459,21 @@ by finish [set_eq_def, iff_def, subset_def]
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]
 
+lemma diff_subset_diff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
+by finish [subset_def]
+
+lemma diff_right_antimono {s t u : set α} (h : t ⊆ u) : s \ u ⊆ s \ t :=
+diff_subset_diff (subset.refl s) h
+
 theorem compl_eq_univ_diff (s : set α) : -s = univ \ s :=
 by finish [set_eq_def]
+
+lemma diff_neq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
+⟨assume h x hx, classical.by_contradiction $ assume : x ∉ t, show x ∈ (∅ : set α), from h ▸ ⟨hx, this⟩,
+  assume h, eq_empty_of_subset_empty $ assume x ⟨hx, hnx⟩, hnx $ h hx⟩
+
+@[simp] lemma diff_empty {s : set α} : s \ ∅ = s :=
+set.ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
 
 /- powerset -/
 
@@ -510,6 +543,21 @@ by finish [set_eq_def, iff_def, mem_image_eq]
 theorem image_empty (f : α → β) : f '' ∅ = ∅ :=
 by finish [set_eq_def, mem_image_eq]
 
+lemma image_inter {f : α → β} {s t : set α} (h : ∀ x y, f x = f y → x = y) :
+  f '' s ∩ f '' t = f '' (s ∩ t) :=
+subset.antisymm
+  (assume b ⟨⟨a₁, ha₁, h₁⟩, ⟨a₂, ha₂, h₂⟩⟩,
+    have a₂ = a₁, from h a₂ a₁ $ h₁.symm ▸ h₂.symm ▸ rfl,
+    ⟨a₁, ⟨ha₁, this ▸ ha₂⟩, h₁⟩)
+  (subset_inter (mono_image $ inter_subset_left _ _) (mono_image $ inter_subset_right _ _))
+
+@[simp] lemma image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
+begin
+  apply set.ext, intro x,
+  simp [image],
+  exact ⟨assume ⟨a', ha', hx⟩, hx ▸ ha' ▸ rfl, assume h, ⟨a, rfl, h.symm⟩⟩
+end
+
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t
@@ -527,6 +575,12 @@ by finish [set_eq_def, iff_def, mem_image_eq]
 theorem compl_compl_image (S : set (set α)) :
   compl '' (compl '' S) = S :=
 by rw [←image_comp, compl_comp_compl, image_id]
+
+lemma compl_image_set_of {α : Type u} {p : set α → Prop} :
+  compl '' {x | p x} = {x | p (- x)} :=
+set.ext $ assume x, ⟨assume ⟨y, (hy : p y), (h_eq : -y = x)⟩,
+  show p (- x), by rw [←h_eq, compl_compl]; assumption,
+  assume h : p (-x), ⟨_, h, compl_compl _⟩⟩
 
 theorem bounded_forall_image_of_bounded_forall {f : α → β} {s : set α} {p : β → Prop}
   (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
@@ -549,6 +603,9 @@ begin
 end
 
 end image
+
+lemma univ_eq_true_false : univ = ({true, false} : set Prop) :=
+eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
 /- inverse image -/
 
@@ -576,6 +633,9 @@ set.ext $ assume x, ⟨assume ⟨y, hy, y_eq⟩, h y_eq ▸ hy, assume hx, mem_i
 @[simp] theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t := rfl
 
 @[simp] theorem preimage_compl {s : set β} : f ⁻¹' (- s) = - (f ⁻¹' s) := rfl
+
+@[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
+rfl
 
 theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 

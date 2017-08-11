@@ -16,21 +16,6 @@ local attribute [instance] decidable_inhabited prop_decidable
 
 universes u v w
 
-lemma compl_subset_of_compl_subset {α : Type u} {s t : set α} (h : -s ⊆ t) : -t ⊆ s :=
-assume x hx, classical.by_contradiction $ assume : x ∉ s, hx $ h $ this
-
-lemma not_and_iff_imp_not {p q : Prop} : ¬ (p ∧ q) ↔ (p → ¬ q) :=
-⟨assume h hp hq, h ⟨hp, hq⟩, assume h ⟨hp, hq⟩, h hp hq⟩
-
-lemma diff_subset_diff {α : Type u} {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
-by finish [subset_def]
-
-@[trans] lemma mem_of_mem_of_subset {α : Type u} {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t :=
-h hx
-
-lemma univ_subtype {α : Type u} {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
-set.ext $ assume ⟨x, h⟩, begin simp, exact ⟨x, h, rfl⟩ end
-
 structure topological_space (α : Type u) :=
 (is_open       : set α → Prop)
 (is_open_univ   : is_open univ)
@@ -220,7 +205,7 @@ lemma closure_eq_compl_interior_compl {s : set α} : closure s = - interior (- s
 begin
   simp [interior, closure],
   rw [compl_sUnion, compl_image_set_of],
-  simp [neg_subset_neg_iff_subset]
+  simp [compl_subset_compl_iff_subset]
 end
 
 @[simp] lemma interior_compl_eq {s : set α} : interior (- s) = - closure s :=
@@ -422,9 +407,9 @@ classical.by_contradiction $ assume h,
     (assume ⟨c₁, hc₁, hc'₁⟩ ⟨c₂, hc₂, hc'₂⟩, ⟨⟨c₁ ∪ c₂, union_subset hc₁ hc₂, finite_union hc'₁ hc'₂⟩,
       principal_mono.mpr $ diff_right_antimono $ sUnion_mono $ subset_union_left _ _,
       principal_mono.mpr $ diff_right_antimono $ sUnion_mono $ subset_union_right _ _⟩)
-    (assume ⟨c', hc'₁, hc'₂⟩, by simp [diff_neq_empty]; exact h hc'₁ hc'₂),
+    (assume ⟨c', hc'₁, hc'₂⟩, show principal (s \ _) ≠ ⊥, by simp [diff_neq_empty]; exact h hc'₁ hc'₂),
   have f ≤ principal s, from infi_le_of_le ⟨∅, empty_subset _, finite.empty⟩ $
-    show principal (s - ⋃₀∅) ≤ principal s, by simp; exact subset.refl s,
+    show principal (s \ ⋃₀∅) ≤ principal s, by simp; exact subset.refl s,
   let
     ⟨a, ha, (h : f ⊓ nhds a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
     ⟨t, ht₁, (ht₂ : a ∈ t)⟩ := hc₂ ha

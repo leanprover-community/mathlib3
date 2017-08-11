@@ -39,9 +39,33 @@ calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_se
 theorem inf_sup_right : (y ⊔ z) ⊓ x = (y ⊓ x) ⊔ (z ⊓ x) :=
 by simp [inf_sup_left, λy:α, @inf_comm α _ y x] 
 
+lemma eq_of_sup_eq_inf_eq {α : Type u} [distrib_lattice α] {a b c : α}
+  (h₁ : b ⊓ a = c ⊓ a) (h₂ : b ⊔ a = c ⊔ a) : b = c :=
+le_antisymm
+  (calc b ≤ (c ⊓ a) ⊔ b     : le_sup_right
+    ... = (c ⊔ b) ⊓ (a ⊔ b) : sup_inf_right
+    ... = c ⊔ (c ⊓ a)       : by rw [←h₁, sup_inf_left, ←h₂]; simp [sup_comm]
+    ... = c                 : sup_inf_self)
+  (calc c ≤ (b ⊓ a) ⊔ c     : le_sup_right
+    ... = (b ⊔ c) ⊓ (a ⊔ c) : sup_inf_right
+    ... = b ⊔ (b ⊓ a)       : by rw [h₁, sup_inf_left, h₂]; simp [sup_comm]
+    ... = b                 : sup_inf_self)
+
 end distrib_lattice
 
 class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
+
+lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c : α}
+  (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
+⟨assume : a ⊓ b = ⊥,
+  calc a ≤ a ⊓ (b ⊔ c) : by simp [h₁]
+    ... = (a ⊓ b) ⊔ (a ⊓ c) : by simp [inf_sup_left]
+    ... ≤ c : by simp [this, inf_le_right],
+  assume : a ≤ c,
+  bot_unique $
+    calc a ⊓ b ≤ b ⊓ c : by rw [inf_comm]; exact inf_le_inf (le_refl _) this
+      ... = ⊥ : h₂⟩
+
 
 class boolean_algebra α extends bounded_distrib_lattice α, has_neg α, has_sub α :=
 (inf_neg_eq_bot : ∀x:α, x ⊓ - x = ⊥)

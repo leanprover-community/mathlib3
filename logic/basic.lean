@@ -45,6 +45,9 @@ end miscellany
     propositional connectives
 -/
 
+@[simp] lemma false_neq_true : false ≠ true :=
+begin intro h, rw [h], trivial end
+
 section propositional
 variables {a b c d : Prop}
 
@@ -64,6 +67,9 @@ iff.intro (λ h hp hq, h ⟨hp, hq⟩) (λ h ⟨hp, hq⟩, h hp hq)
 
 theorem iff_def (p q : Prop) : (p ↔ q) ↔ (p → q) ∧ (q → p) :=
 ⟨ λh, ⟨h.1, h.2⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩ ⟩
+
+@[simp] lemma {u v} implies_implies_true_iff {α : Sort u} {β : Sort v} : (α → β → true) ↔ true :=
+⟨assume _, trivial, assume _ _ _ , trivial⟩
 
 /- not -/
 
@@ -227,6 +233,9 @@ else
 theorem not_and_iff [decidable a] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 iff.intro not_or_not_of_not_and not_and_of_not_or_not
 
+theorem not_and_iff_imp_not {p q : Prop} : ¬ (p ∧ q) ↔ (p → ¬ q) :=
+⟨assume h hp hq, h ⟨hp, hq⟩, assume h ⟨hp, hq⟩, h hp hq⟩
+
 theorem not_or_of_not_and_not (h : ¬ a ∧ ¬ b) : ¬ (a ∨ b) :=
 assume h₁, or.elim h₁ (assume ha, and.left h ha) (assume hb, and.right h hb)
 
@@ -356,6 +365,9 @@ theorem not_forall_iff : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := not_forall_iff
 theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
 forall_or_distrib_left
+
+lemma cases {p : Prop → Prop} (h1 : p true) (h2 : p false) : ∀a, p a :=
+assume a, cases_on a h1 h2
 
 end classical
 

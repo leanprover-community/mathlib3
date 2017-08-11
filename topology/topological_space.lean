@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import algebra.lattice.filter
+import order.filter
 open set filter lattice classical
 local attribute [instance] decidable_inhabited prop_decidable
 

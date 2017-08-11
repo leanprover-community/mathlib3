@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of filters on sets.
 -/
-import algebra.lattice.complete_lattice data.set algebra.lattice.zorn
+import order.complete_lattice data.set order.zorn
 open lattice set
 
 universes u v w x y

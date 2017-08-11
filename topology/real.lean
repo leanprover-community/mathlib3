@@ -22,7 +22,7 @@ generalizations:
 
 -/
 
-import topology.uniform_space data.rat algebra.field algebra.order
+import topology.uniform_space data.rat algebra.field
 noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable

@@ -6,7 +6,7 @@ Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
 import logic.basic data.set.basic
-import algebra.lattice algebra.order algebra.lattice.complete_boolean_algebra category.basic
+import order.complete_boolean_algebra category.basic
 import tactic.finish
 
 open function tactic set lattice auto

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Binder elimination
 -/
-import algebra.lattice tactic.converter.old_conv
+import order tactic.converter.old_conv
 
 namespace old_conv
 open tactic monad

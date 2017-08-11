@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Fixed point construction on complete lattices.
 -/
 
-import algebra.lattice.complete_lattice
+import order.complete_lattice
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

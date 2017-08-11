@@ -8,7 +8,7 @@ Defines bounded lattice type class hierarchy.
 Includes the Prop and fun instances.
 -/
 
-import algebra.lattice.basic
+import order.lattice
 
 set_option old_structure_cmd true
 

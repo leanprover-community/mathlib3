@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of filters on sets.
 -/
-import order.complete_lattice data.set order.zorn
+import order.complete_lattice order.galois_connection data.set order.zorn
 open lattice set
 
 universes u v w x y
@@ -443,50 +443,132 @@ lemma principal_empty : principal (∅ : set α) = ⊥ := rfl
 @[simp] lemma mem_pure {a : α} {s : set α} : a ∈ s → s ∈ (pure a : filter α).sets :=
 by simp; exact id
 
-/- map equations -/
+/- map and vmap equations -/
+section map
 
-@[simp] lemma mem_map {f : filter α} {s : set β} {m : α → β} :
-  (s ∈ (map m f).sets) = ({x | m x ∈ s} ∈ f.sets) := rfl
+variables {f f₁ f₂ : filter α} {g g₁ g₂ : filter β} {m : α → β} {m' : β → γ} {s : set α} {t : set β}
 
-lemma image_mem_map {f : filter α} {m : α → β} {s : set α} (hs : s ∈ f.sets):
-  m '' s ∈ (map m f).sets :=
+@[simp] lemma mem_map : (t ∈ (map m f).sets) = ({x | m x ∈ t} ∈ f.sets) := rfl
+lemma image_mem_map (hs : s ∈ f.sets) : m '' s ∈ (map m f).sets :=
 f.upwards_sets hs $ assume x hx, ⟨x, hx, rfl⟩
 
-@[simp] lemma map_id {f : filter α} : filter.map id f = f :=
+@[simp] lemma map_id : filter.map id f = f :=
 filter_eq $ rfl
   
-@[simp] lemma map_compose {γ : Type w} {f : α → β} {g : β → γ} :
-  filter.map g ∘ filter.map f = filter.map (g ∘ f) :=
+@[simp] lemma map_compose : filter.map m' ∘ filter.map m = filter.map (m' ∘ m) :=
 funext $ assume _, filter_eq $ rfl
 
-@[simp] lemma map_map {f : α → β} {g : β → γ} {x : filter α} :
-  filter.map g (filter.map f x) = filter.map (g ∘ f) x :=
-congr_fun (@@filter.map_compose f g) x
+@[simp] lemma map_map : filter.map m' (filter.map m f) = filter.map (m' ∘ m) f :=
+congr_fun (@@filter.map_compose m m') f
 
-@[simp] lemma map_sup {f g : filter α} {m : α → β} : map m (f ⊔ g) = map m f ⊔ map m g :=
-filter_eq $ set.ext $ assume x, by simp
+theorem mem_vmap : s ∈ (vmap m g).sets = (∃t∈g.sets, m ⁻¹' t ⊆ s) := rfl
+theorem preimage_mem_vmap (ht : t ∈ g.sets) : m ⁻¹' t ∈ (vmap m g).sets :=
+⟨t, ht, subset.refl _⟩
 
-@[simp] lemma supr_map {ι : Sort w} {f : ι → filter α} {m : α → β} :
-  (⨆x, map m (f x)) = map m (⨆x, f x) :=
-filter_eq $ set.ext $ assume x, by simp [supr_sets_eq, map]
+lemma vmap_id : vmap id f = f :=
+le_antisymm (assume s, preimage_mem_vmap) (assume s ⟨t, ht, hst⟩, f.upwards_sets ht hst)
 
-@[simp] lemma map_bot {m : α → β} : map m ⊥ = ⊥ :=
-filter_eq $ set.ext $ assume x, by simp
+lemma vmap_vmap_comp {m : γ → β} {n : β → α} : vmap m (vmap n f) = vmap (n ∘ m) f :=
+le_antisymm
+  (assume c ⟨b, hb, (h : preimage (n ∘ m) b ⊆ c)⟩, ⟨preimage n b, preimage_mem_vmap hb, h⟩)
+  (assume c ⟨b, ⟨a, ha, (h₁ : preimage n a ⊆ b)⟩, (h₂ : preimage m b ⊆ c)⟩,
+    ⟨a, ha, show preimage m (preimage n a) ⊆ c, from subset.trans (preimage_mono h₁) h₂⟩)
 
-@[simp] lemma map_eq_bot_iff {f : filter α} {m : α → β} : map m f = ⊥ ↔ f = ⊥ :=
+@[simp] theorem vmap_principal {t : set β} : vmap m (principal t) = principal (m ⁻¹' t) :=
+filter_eq $ set.ext $ assume s,
+  ⟨assume ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, subset.trans (preimage_mono hu) b,
+    assume : preimage m t ⊆ s, ⟨t, subset.refl t, this⟩⟩
+
+lemma map_le_iff_vmap_le : map m f ≤ g ↔ f ≤ vmap m g :=
+⟨assume h s ⟨t, ht, hts⟩, f.upwards_sets (h ht) hts, assume h s ht, h ⟨_, ht, subset.refl _⟩⟩
+
+lemma gc_map_vmap (m : α → β) : galois_connection (map m) (vmap m) :=
+assume f g, map_le_iff_vmap_le
+
+lemma map_mono (h : f₁ ≤ f₂) : map m f₁ ≤ map m f₂ := (gc_map_vmap m).monotone_l h
+lemma monotone_map : monotone (map m) := assume a b h, map_mono h
+lemma vmap_mono (h : g₁ ≤ g₂) : vmap m g₁ ≤ vmap m g₂ := (gc_map_vmap m).monotone_u h
+lemma monotone_vmap : monotone (vmap m) := assume a b h, vmap_mono h
+
+@[simp] lemma map_bot : map m ⊥ = ⊥ := (gc_map_vmap m).l_bot
+@[simp] lemma map_sup : map m (f₁ ⊔ f₂) = map m f₁ ⊔ map m f₂ := (gc_map_vmap m).l_sup
+@[simp] lemma map_supr {f : ι → filter α} : map m (⨆i, f i) = (⨆i, map m (f i)) :=
+(gc_map_vmap m).l_supr
+
+@[simp] lemma vmap_top : vmap m ⊤ = ⊤ := (gc_map_vmap m).u_top
+@[simp] lemma vmap_inf : vmap m (g₁ ⊓ g₂) = vmap m g₁ ⊓ vmap m g₂ := (gc_map_vmap m).u_inf
+@[simp] lemma vmap_infi {f : ι → filter β} : vmap m (⨅i, f i) = (⨅i, vmap m (f i)) :=
+(gc_map_vmap m).u_infi
+
+lemma map_vmap_le : map m (vmap m g) ≤ g := (gc_map_vmap m).decreasing_l_u _
+lemma le_vmap_map : f ≤ vmap m (map m f) := (gc_map_vmap m).increasing_u_l _
+
+@[simp] lemma vmap_bot : vmap m ⊥ = ⊥ :=
+bot_unique $ assume s _, ⟨∅, by simp, by simp⟩
+
+lemma vmap_sup : vmap m (g₁ ⊔ g₂) = vmap m g₁ ⊔ vmap m g₂ :=
+le_antisymm
+  (assume s ⟨⟨t₁, ht₁, hs₁⟩, ⟨t₂, ht₂, hs₂⟩⟩,
+    ⟨t₁ ∪ t₂,
+      ⟨g₁.upwards_sets ht₁ (subset_union_left _ _), g₂.upwards_sets ht₂ (subset_union_right _ _)⟩,
+      union_subset hs₁ hs₂⟩)
+  (sup_le (vmap_mono le_sup_left) (vmap_mono le_sup_right))
+
+lemma le_map_vmap' {f : filter β} {m : α → β} {s : set β}
+  (hs : s ∈ f.sets) (hm : ∀b∈s, ∃a, m a = b) : f ≤ map m (vmap m f) :=
+assume t' ⟨t, ht, (sub : ∀x, m x ∈ t → m x ∈ t')⟩,
+f.upwards_sets (inter_mem_sets ht hs) $
+  assume x ⟨hxt, hxs⟩,
+  let ⟨y, (hy : m y = x)⟩ := hm x hxs in
+  hy ▸ sub _ (show m y ∈ t, from hy.symm ▸ hxt)
+
+lemma le_map_vmap {f : filter β} {m : α → β} (hm : ∀x, ∃y, m y = x) : f ≤ map m (vmap m f) :=
+le_map_vmap' univ_mem_sets (assume b _, hm b)
+
+lemma vmap_map {f : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
+  vmap m (map m f) = f :=
+have ∀s, preimage m (image m s) = s,
+  from assume s, preimage_image_eq h,
+le_antisymm
+  (assume s hs, ⟨
+    image m s,
+    f.upwards_sets hs $ by simp [this, subset.refl],
+    by simp [this, subset.refl]⟩)
+  (assume s ⟨t, (h₁ : preimage m t ∈ f.sets), (h₂ : preimage m t ⊆ s)⟩,
+    f.upwards_sets h₁ h₂)
+
+lemma map_inj {f g : filter α} {m : α → β} (hm : ∀ x y, m x = m y → x = y) (h : map m f = map m g) :
+  f = g :=
+have vmap m (map m f) = vmap m (map m g), by rw h,
+by rwa [vmap_map hm, vmap_map hm] at this
+
+lemma vmap_neq_bot {f : filter β} {m : α → β}
+  (hm : ∀t∈f.sets, ∃a, m a ∈ t) : vmap m f ≠ ⊥ :=
+forall_sets_neq_empty_iff_neq_bot.mp $ assume s ⟨t, ht, t_s⟩,
+  let ⟨a, (ha : a ∈ preimage m t)⟩ := hm t ht in
+  neq_bot_of_le_neq_bot (ne_empty_of_mem ha) t_s
+
+lemma vmap_neq_bot_of_surj {f : filter β} {m : α → β}
+  (hf : f ≠ ⊥) (hm : ∀b, ∃a, m a = b) : vmap m f ≠ ⊥ :=
+vmap_neq_bot $ assume t ht,
+  let
+    ⟨b, (hx : b ∈ t)⟩ := inhabited_of_mem_sets hf ht,
+    ⟨a, (ha : m a = b)⟩ := hm b
+  in ⟨a, ha.symm ▸ hx⟩
+
+lemma le_vmap_iff_map_le {f : filter α} {g : filter β} {m : α → β} :
+  f ≤ vmap m g ↔ map m f ≤ g :=
+⟨assume h, le_trans (map_mono h) map_vmap_le,
+  assume h, le_trans le_vmap_map (vmap_mono h)⟩
+
+@[simp] lemma map_eq_bot_iff : map m f = ⊥ ↔ f = ⊥ :=
 ⟨by rw [←empty_in_sets_eq_bot, ←empty_in_sets_eq_bot]; exact id,
   assume h, by simp [*]⟩
 
-lemma map_ne_bot {m : α → β} {f : filter α} (hf : f ≠ ⊥) : map m f ≠ ⊥ :=
+lemma map_ne_bot (hf : f ≠ ⊥) : map m f ≠ ⊥ :=
 assume h, hf $ by rwa [map_eq_bot_iff] at h
 
-lemma map_mono {f g : filter α} {m : α → β} (h : f ≤ g) : map m f ≤ map m g :=
-le_of_sup_eq $ calc
-  map m f ⊔ map m g = map m (f ⊔ g) : map_sup
-                ... = map m g : congr_arg (map m) $ sup_of_le_right h
-
-lemma monotone_map {m : α → β} : monotone (map m : filter α → filter β) :=
-assume a b h, map_mono h
+end map
 
 lemma map_cong {m₁ m₂ : α → β} {f : filter α} (h : {x | m₁ x = m₂ x} ∈ f.sets) :
   map m₁ f = map m₂ f :=
@@ -601,116 +683,6 @@ lemma infi_neq_bot_iff_of_directed {f : ι → filter α}
 
 @[simp] lemma return_neq_bot {α : Type u} {a : α} : return a ≠ (⊥ : filter α) :=
 by simp [return]
-
-section vmap
-variables {f f₁ f₂ : filter β} {m : α → β}
-
-theorem mem_vmap {s : set α} : s ∈ (vmap m f).sets = (∃t∈f.sets, m ⁻¹' t ⊆ s) := rfl
-
-lemma vmap_mono (h : f₁ ≤ f₂) : vmap m f₁ ≤ vmap m f₂ :=
-assume s ⟨t, ht, h_sub⟩, ⟨t, h ht, h_sub⟩
-
-lemma monotone_vmap : monotone (vmap m : filter β → filter α) :=
-assume a b h, vmap_mono h
-
-@[simp] lemma vmap_bot : vmap m ⊥ = ⊥ :=
-bot_unique $ assume s _, ⟨∅, by simp, by simp⟩
-
-@[simp] theorem vmap_principal {t : set β} : vmap m (principal t) = principal (preimage m t) :=
-filter_eq $ set.ext $ assume s,
-  ⟨assume ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, subset.trans (preimage_mono hu) b,
-    assume : preimage m t ⊆ s, ⟨t, subset.refl t, this⟩⟩
-
-
-theorem preimage_mem_vmap {s : set β} (hs : s ∈ f.sets) : m ⁻¹' s ∈ (vmap m f).sets :=
-⟨s, hs, subset.refl _⟩
-
-lemma vmap_sup : vmap m (f₁ ⊔ f₂) = vmap m f₁ ⊔ vmap m f₂ :=
-le_antisymm
-  (assume s ⟨⟨t₁, ht₁, hs₁⟩, ⟨t₂, ht₂, hs₂⟩⟩,
-    ⟨t₁ ∪ t₂,
-      ⟨f₁.upwards_sets ht₁ (subset_union_left _ _), f₂.upwards_sets ht₂ (subset_union_right _ _)⟩,
-      union_subset hs₁ hs₂⟩)
-  (sup_le (vmap_mono le_sup_left) (vmap_mono le_sup_right))
-
-lemma vmap_inf : vmap m (f₁ ⊓ f₂) = vmap m f₁ ⊓ vmap m f₂ :=
-le_antisymm
-  (le_inf (vmap_mono inf_le_left) (vmap_mono inf_le_right))
-  (assume s ⟨t, ht, (hs : preimage m t ⊆ s)⟩,
-    let ⟨t₁, ht₁, t₂, ht₂, (ht : t₁ ∩ t₂ ⊆ t)⟩ := mem_inf_sets.mp ht in
-    have preimage m t₁ ∩ preimage m t₂ ∈ (vmap m f₁ ⊓ vmap m f₂).sets,
-      from inter_mem_inf_sets (preimage_mem_vmap ht₁) (preimage_mem_vmap ht₂),
-    filter.upwards_sets _ this $
-      calc preimage m (t₁ ∩ t₂) ⊆ preimage m t : preimage_mono ht
-        ... ⊆ s : hs)
-
-lemma le_map_vmap' {f : filter β} {m : α → β} {s : set β}
-  (hs : s ∈ f.sets) (hm : ∀b∈s, ∃a, m a = b) : f ≤ map m (vmap m f) :=
-assume t' ⟨t, ht, (sub : ∀x, m x ∈ t → m x ∈ t')⟩,
-f.upwards_sets (inter_mem_sets ht hs) $
-  assume x ⟨hxt, hxs⟩,
-  let ⟨y, (hy : m y = x)⟩ := hm x hxs in
-  hy ▸ sub _ (show m y ∈ t, from hy.symm ▸ hxt)
-
-lemma le_map_vmap {f : filter β} {m : α → β} (hm : ∀x, ∃y, m y = x) : f ≤ map m (vmap m f) :=
-le_map_vmap' univ_mem_sets (assume b _, hm b)
-
-lemma vmap_map {f : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
-  vmap m (map m f) = f :=
-have ∀s, preimage m (image m s) = s,
-  from assume s, preimage_image_eq h,
-le_antisymm
-  (assume s hs, ⟨
-    image m s,
-    f.upwards_sets hs $ by simp [this, subset.refl],
-    by simp [this, subset.refl]⟩)
-  (assume s ⟨t, (h₁ : preimage m t ∈ f.sets), (h₂ : preimage m t ⊆ s)⟩,
-    f.upwards_sets h₁ h₂)
-
-lemma map_inj {f g : filter α} {m : α → β} (hm : ∀ x y, m x = m y → x = y) (h : map m f = map m g) :
-  f = g :=
-have vmap m (map m f) = vmap m (map m g), by rw h,
-by rwa [vmap_map hm, vmap_map hm] at this
-
-lemma vmap_neq_bot {f : filter β} {m : α → β}
-  (hm : ∀t∈f.sets, ∃a, m a ∈ t) : vmap m f ≠ ⊥ :=
-forall_sets_neq_empty_iff_neq_bot.mp $ assume s ⟨t, ht, t_s⟩,
-  let ⟨a, (ha : a ∈ preimage m t)⟩ := hm t ht in
-  neq_bot_of_le_neq_bot (ne_empty_of_mem ha) t_s
-
-lemma vmap_neq_bot_of_surj {f : filter β} {m : α → β}
-  (hf : f ≠ ⊥) (hm : ∀b, ∃a, m a = b) : vmap m f ≠ ⊥ :=
-vmap_neq_bot $ assume t ht,
-  let
-    ⟨b, (hx : b ∈ t)⟩ := inhabited_of_mem_sets hf ht,
-    ⟨a, (ha : m a = b)⟩ := hm b
-  in ⟨a, ha.symm ▸ hx⟩
-
-lemma map_vmap_le {f : filter β} {m : α → β} : map m (vmap m f) ≤ f :=
-assume s hs, ⟨s, hs, subset.refl _⟩
-
-lemma le_vmap_map {f : filter α} {m : α → β} : f ≤ vmap m (map m f) :=
-assume s ⟨t, ht, h_eq⟩, f.upwards_sets ht h_eq
-
-lemma vmap_vmap_comp {f : filter α} {m : γ → β} {n : β → α} :
-  vmap m (vmap n f) = vmap (n ∘ m) f :=
-le_antisymm
-  (assume c ⟨b, hb, (h : preimage (n ∘ m) b ⊆ c)⟩, ⟨preimage n b, preimage_mem_vmap hb, h⟩)
-  (assume c ⟨b, ⟨a, ha, (h₁ : preimage n a ⊆ b)⟩, (h₂ : preimage m b ⊆ c)⟩,
-    ⟨a, ha, show preimage m (preimage n a) ⊆ c, from subset.trans (preimage_mono h₁) h₂⟩)
-
-lemma le_vmap_iff_map_le {f : filter α} {g : filter β} {m : α → β} :
-  f ≤ vmap m g ↔ map m f ≤ g :=
-⟨assume h, le_trans (map_mono h) map_vmap_le,
-  assume h, le_trans le_vmap_map (vmap_mono h)⟩
-
-lemma vmap_infi {ι : Sort w} {f : ι → filter α} {m : β → α} :
-  vmap m (⨅i, f i) = (⨅i, vmap m (f i)) :=
-le_antisymm
-  (le_infi $ assume i, vmap_mono $ infi_le _ i)
-  (le_vmap_iff_map_le.mpr $ le_infi $ assume i, le_vmap_iff_map_le.mp $ infi_le _ _)
-
-end vmap
 
 /- tendsto -/
 def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := filter.map f l₁ ≤ l₂

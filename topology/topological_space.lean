@@ -559,7 +559,7 @@ h $ empty_in_sets_eq_bot.mp $ huv ▸ this
 
 lemma tendsto_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : α}
   (hl : l ≠ ⊥) (ha : tendsto f l (nhds a)) (hb : tendsto f l (nhds b)) : a = b :=
-eq_of_nhds_neq_bot $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ f _ hl) $ le_inf ha hb
+eq_of_nhds_neq_bot $ neq_bot_of_le_neq_bot (map_ne_bot hl) $ le_inf ha hb
 
 end separation
 

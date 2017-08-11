@@ -657,6 +657,33 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
 
 end preimage
 
+
+section range
+variables {f : ι → α}
+open function
+
+/-- Range of a function.
+
+This function is more flexiable as `f '' univ`, as the image requires that the domain is in Type
+and not an arbitrary Sort. -/
+def range (f : ι → α) : set α := {x | ∃y, f y = x}
+
+lemma mem_range {i : ι} : f i ∈ range f := ⟨i, rfl⟩ 
+
+lemma forall_range_iff {p : α → Prop} : (∀a∈range f, p a) ↔ (∀i, p (f i)) :=
+⟨assume h i, h (f i) mem_range, assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩
+
+lemma range_of_surjective (h : surjective f) : range f = univ :=
+eq_univ_of_univ_subset $ assume x _, h x
+
+@[simp] lemma range_id : range (@id α) = univ := range_of_surjective surjective_id
+
+lemma range_compose {g : α → β} : range (g ∘ f) = g '' range f :=
+subset.antisymm
+  (forall_range_iff.mpr $ assume i, mem_image_of_mem g mem_range)
+  (bounded_forall_image_iff.mpr $ forall_range_iff.mpr $ assume i, mem_range)
+end range
+
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀x ∈ s, ∀y ∈ s, x ≠ y → r x y
 
 end set

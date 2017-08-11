@@ -25,6 +25,19 @@ assume a b h, m_g (m_f h)
 
 end monotone
 
+section increasing
+variables [preorder α]
+
+definition increasing (f : α → α) := ∀a, a ≤ f a
+
+end increasing
+
+section decreasing
+variables [preorder α]
+
+definition decreasing (f : α → α) := ∀a, f a ≤ a
+end decreasing
+
 section linear_order
 variables [linear_order α] {a b : α}
 
@@ -56,13 +69,19 @@ end decidable_linear_order
 
 /- order instances -/
 
-instance preorder_fun [preorder β] : preorder (α → β) :=
-{ le := λx y, ∀b, x b ≤ y b,
-  le_refl := λf b, le_refl (f b),
-  le_trans := λf g h h1 h2 b, le_trans (h1 b) (h2 b),
-}
+def preorder_dual (o : preorder α) : preorder α :=
+{ le := λx y, y ≤ x,
+  le_refl := le_refl,
+  le_trans := assume a b c h₁ h₂, le_trans h₂ h₁ }
 
-instance partial_order_fun [partial_order β] : partial_order (α → β) :=
+instance preorder_fun {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] : preorder (Πi, α i) :=
+{ le := λx y, ∀i, x i ≤ y i,
+  le_refl := assume a i, le_refl (a i),
+  le_trans := assume a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
+
+-- instance preorder_fun [preorder β] : preorder (α → β) := by apply_instance
+
+instance partial_order_fun {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] : partial_order (Πi, α i) :=
 { preorder_fun with
   le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b))
 }

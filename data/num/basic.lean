@@ -11,7 +11,7 @@ in favor of the "Peano" natural numbers `nat`, and the purpose of this
 collection of theorems is to show the equivalence of the different approaches.
 -/
 
-import data.pnat data.bool
+import data.pnat data.bool data.vector data.bitvec
 universe u
 
 inductive pos_num : Type

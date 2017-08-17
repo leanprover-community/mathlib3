@@ -499,7 +499,7 @@ assume p, perm_induction_on p
               exact skip y r
             end)
           (λ xney : x ≠ y,
-            have x ∈ t₁, from or_resolve_right xinyt₁ xney,
+            have x ∈ t₁, from xinyt₁.resolve_left xney,
             have x ∈ t₂, from mem_erase_dup.1 (mem_of_perm r (mem_erase_dup.2 this)),
             have y ∉ x::t₂, from
               assume : y ∈ x::t₂, or.elim (eq_or_mem_of_mem_cons this)

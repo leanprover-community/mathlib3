@@ -62,7 +62,7 @@ instance : has_bot (measurable_space α) :=
 ⟨{measurable_space .
   is_measurable       := λs, s = ∅ ∨ s = univ,
   is_measurable_empty := or.inl rfl,
-  is_measurable_compl := by simp [or_imp_iff_and_imp] {contextual := tt},
+  is_measurable_compl := by simp [or_imp_distrib] {contextual := tt},
   is_measurable_Union := assume f hf, by_cases
     (assume h : ∃i, f i = univ,
       let ⟨i, hi⟩ := h in

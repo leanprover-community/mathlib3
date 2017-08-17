@@ -51,7 +51,7 @@ def directed_on (s : set α) := ∀x ∈ s, ∀y ∈ s, ∃z ∈ s, z ≼ x ∧ 
 lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊇) f)
   (h : ∀x, directed_on r (f x)) : directed_on r (⋃x, f x) :=
 by simp [directed_on]; exact
-  assume a₁ ⟨b₁, fb₁⟩ a₂ ⟨b₂, fb₂⟩,
+  assume a₁ b₁ fb₁ a₂ b₂ fb₂,
   let
     ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
     ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂)
@@ -333,7 +333,7 @@ let
     sets          := (⋃ i, (f i).sets),
     inhabited     := ⟨univ, begin simp, exact ⟨i, univ_mem_sets⟩ end⟩,
     directed_sets := directed_on_Union (show directed (≤) f, from h) (assume i, (f i).directed_sets),
-    upwards_sets  := by simp [upwards]; exact assume x y ⟨j, xf⟩ xy, ⟨j, (f j).upwards_sets xf xy⟩ }
+    upwards_sets  := by simp [upwards]; exact assume x y j xf xy, ⟨j, (f j).upwards_sets xf xy⟩ }
 in
   subset.antisymm
     (show u ≤ infi f, from le_infi $ assume i, le_supr (λi, (f i).sets) i)
@@ -361,8 +361,8 @@ set.ext $ assume s,
 show s ∈ (join (principal {a : filter α | ∃i : ι, a = f i})).sets ↔ s ∈ (⋂i, (f i).sets),
 begin
   rw [mem_join_sets],
-  simp,
-  exact ⟨assume h i, h (f i) ⟨_, rfl⟩, assume h x ⟨i, eq⟩, eq.symm ▸ h i⟩
+  simp, rw [forall_swap],
+  exact forall_congr (λ i, by simp)
 end
 
 @[simp] lemma sup_join {f₁ f₂ : filter (filter α)} : (join f₁ ⊔ join f₂) = join (f₁ ⊔ f₂) :=
@@ -377,7 +377,7 @@ instance : bounded_distrib_lattice (filter α) :=
   begin
     cases h with h₁ h₂, revert h₂,
     simp,
-    exact assume ⟨t₁, ht₁, t₂, ht₂, hs⟩, ⟨s ∪ t₁,
+    exact assume t₁ ht₁ t₂ ht₂ hs, ⟨s ∪ t₁,
       x.upwards_sets h₁ $ subset_union_left _ _,
       y.upwards_sets ht₁ $ subset_union_right _ _,
       s ∪ t₂,
@@ -1172,8 +1172,9 @@ le_antisymm
   (le_infi $ assume s, le_infi $ assume hs, le_infi $ assume t, le_infi $ assume ht,
   begin
     revert s hs t ht,
-    simp,
-    exact assume s ⟨s₁, hs₁, s₂, hs₂, hs⟩ t ⟨t₁, ht₁, t₂, ht₂, ht⟩,
+    simp [-and_imp], -- TODO(Mario): plain simp times out here
+    simp only [and_imp, exists_imp_distrib],
+    exact assume s s₁ hs₁ s₂ hs₂ hs t t₁ ht₁ t₂ ht₂ ht,
       ⟨set.prod s₁ t₁, prod_mem_prod hs₁ ht₁, set.prod s₂ t₂, prod_mem_prod hs₂ ht₂,
       by rw [set.prod_inter_prod]; exact set.prod_mono hs ht⟩
   end)
@@ -1260,7 +1261,7 @@ le_antisymm
         (assume i s₁ s₂ hs₁ hs₂,
           @hg s₁ s₂ ▸ le_inf (infi_le_of_le i $ infi_le_of_le s₁ $ infi_le _ hs₁) hs₂)
         (assume s₁ s₂ hs₁ hs₂, le_trans hs₂ $ g_mono hs₁),
-    by rw [lift_sets_eq g_mono]; simp; exact assume ⟨t, hs, ht⟩, this t ht hs)
+    by rw [lift_sets_eq g_mono]; simp; exact assume t hs ht, this t ht hs)
 
 lemma lift_infi' {f : ι → filter α} {g : set α → filter β}
   (hι : nonempty ι) (hf : directed (≤) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
@@ -1270,7 +1271,7 @@ le_antisymm
   begin
     rw [lift_sets_eq hg],
     simp [infi_sets_eq hf hι],
-    exact assume ⟨t, hs, i, ht⟩, mem_infi_sets i $ mem_lift ht hs
+    exact assume t hs i ht, mem_infi_sets i $ mem_lift ht hs
   end)
 
 lemma lift'_infi {f : ι → filter α} {g : set α → set β}
@@ -1305,8 +1306,8 @@ lemma ultrafilter_pure {a : α} : ultrafilter (pure a) :=
   have {a} ∈ g.sets, by simp at ha; assumption,
   show ∀s∈g.sets, {a} ⊆ s, from classical.by_contradiction $
   begin
-    simp [classical.not_forall_iff, not_implies_iff],
-    exact assume ⟨s, hna, hs⟩,
+    simp [classical.not_forall, not_imp],
+    exact assume s hna hs,
       have {a} ∩ s ∈ g.sets, from inter_mem_sets ‹{a} ∈ g.sets› hs,
       have ∅ ∈ g.sets, from g.upwards_sets this $
         assume x ⟨hxa, hxs⟩, begin simp at hxa; simp [hxa] at hxs, exact hna hxs end,
@@ -1344,7 +1345,7 @@ le_of_inf_eq $ ultrafilter_unique hf h inf_le_left
 
 lemma mem_or_compl_mem_of_ultrafilter (hf : ultrafilter f) (s : set α) :
   s ∈ f.sets ∨ - s ∈ f.sets :=
-or_of_not_implies' $ assume : - s ∉ f.sets,
+or_iff_not_imp_right.2 $ assume : - s ∉ f.sets,
   have f ≤ principal s,
     from le_of_ultrafilter hf $ assume h, this $ mem_sets_of_neq_bot $ by simp [*],
   by simp at this; assumption

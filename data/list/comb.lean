@@ -169,7 +169,7 @@ theorem exists_of_any_eq_tt {p : α → bool} : ∀ {l : list α}, any l p = tt 
 | []     h := begin simp at h, contradiction end
 | (b::l) h := begin
                 simp [bool.bor_eq_tt] at h, cases h with h h,
-                { existsi b, simp [h]},
+                { existsi b, simp [h] },
                 cases (exists_of_any_eq_tt h) with a ha,
                 existsi a, apply (and.intro (or.inr ha.left) ha.right)
               end
@@ -203,22 +203,22 @@ iff.intro
   (λ h, forall_mem_cons h.left h.right)
 
 theorem not_exists_mem_nil (p : α → Prop) : ¬ ∃ x ∈ @nil α, p x :=
-assume h, bexists.elim h (λ a anil, absurd anil (not_mem_nil a))
+assume h, bex.elim h (λ a anil, absurd anil (not_mem_nil a))
 
 theorem exists_mem_cons_of {p : α → Prop} {a : α} (l : list α) (h : p a) :
   ∃ x ∈ a :: l, p x :=
-bexists.intro a (by simp) h
+bex.intro a (by simp) h
 
 theorem exists_mem_cons_of_exists {p : α → Prop} {a : α} {l : list α} (h : ∃ x ∈ l, p x) :
   ∃ x ∈ a :: l, p x :=
-bexists.elim h (λ x xl px, bexists.intro x (by simp [xl]) px)
+bex.elim h (λ x xl px, bex.intro x (by simp [xl]) px)
 
 theorem or_exists_of_exists_mem_cons {p : α → Prop} {a : α} {l : list α} (h : ∃ x ∈ a :: l, p x) :
   p a ∨ ∃ x ∈ l, p x :=
-bexists.elim h (λ x xal px,
+bex.elim h (λ x xal px,
   or.elim (eq_or_mem_of_mem_cons xal)
     (assume : x = a, begin rw ←this, simp [px] end)
-    (assume : x ∈ l, or.inr (bexists.intro x this px)))
+    (assume : x ∈ l, or.inr (bex.intro x this px)))
 
 @[simp] theorem exists_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
   (∃ x ∈ a :: l, p x) ↔ p a ∨ ∃ x ∈ l, p x :=

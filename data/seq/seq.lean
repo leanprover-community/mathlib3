@@ -50,8 +50,7 @@ theorem mem_cons_of_mem (y : α) {a : α} : ∀ {s : seq α}, a ∈ s → a ∈ 
 | ⟨f, al⟩ := stream.mem_cons_of_mem (some y)
 
 theorem eq_or_mem_of_mem_cons {a b : α} : ∀ {s : seq α}, a ∈ cons b s → a = b ∨ a ∈ s
-| ⟨f, al⟩ h := or_of_or_of_implies_left
-  (stream.eq_or_mem_of_mem_cons h) (λh, by injection h)
+| ⟨f, al⟩ h := (stream.eq_or_mem_of_mem_cons h).imp_left (λh, by injection h)
 
 @[simp] theorem mem_cons_iff {a b : α} {s : seq α} : a ∈ cons b s ↔ a = b ∨ a ∈ s :=
 ⟨eq_or_mem_of_mem_cons, λo, by cases o with e m;
@@ -562,10 +561,7 @@ def bind (s : seq1 α) (f : α → seq1 β) : seq1 β :=
 join (map f s)
 
 @[simp] theorem join_map_ret (s : seq α) : seq.join (seq.map ret s) = s :=
-begin
-  apply coinduction2 s, intro s, apply cases_on s; simp [ret],
-  { intros x s, exact ⟨_, rfl, rfl⟩ }
-end
+by apply coinduction2 s; intro s; apply cases_on s; simp [ret]
 
 @[simp] theorem bind_ret (f : α → β) : ∀ s, bind s (ret ∘ f) = map f s
 | ⟨a, s⟩ := begin

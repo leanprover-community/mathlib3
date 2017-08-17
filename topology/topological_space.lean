@@ -255,7 +255,7 @@ lemma mem_nhds_sets_iff {a : α} {s : set α} :
 by simp [nhds_sets]
 
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ (nhds a).sets → a ∈ s :=
-begin simp [mem_nhds_sets_iff]; exact assume ⟨t, _, ht, hs⟩, ht hs end
+begin simp [mem_nhds_sets_iff]; exact assume t _ ht hs, ht hs end
 
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
  s ∈ (nhds a).sets :=
@@ -327,7 +327,7 @@ lemma is_closed_Union_of_locally_finite {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=
 is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   have ∀i, a ∈ -f i,
-    from assume i hi, by simp at h; exact h ⟨i, hi⟩,
+    from assume i hi, by simp at h; exact h i hi,
   have ∀i, - f i ∈ (nhds a).sets,
     by rw [nhds_sets]; exact assume i, ⟨- f i, subset.refl _, h₂ i, this i⟩,
   let ⟨t, h_sets, (h_fin : finite {i | f i ∩ t ≠ ∅ })⟩ := h₁ a in
@@ -344,7 +344,7 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
     simp,
     intro x,
     simp [not_eq_empty_iff_exists],
-    exact assume ⟨xt, ht⟩ i xfi, ht i ⟨x, xt, xfi⟩ xfi
+    exact assume xt ht i xfi, ht i x xt xfi xfi
   end
 
 end locally_finite
@@ -436,21 +436,21 @@ classical.by_cases
       by simp [skolem] at this; exact this,
     let ⟨f', hf⟩ := this, f := λx:set α, (if h : x ∈ d then f' x h else i) in
     have f_eq : f = λx:set α, (if h : x ∈ d then f' x h else i), from rfl,
-    have ∀(x : α) (i : set α), x ∈ i ∧ i ∈ d → (∃ (i : β), x ∈ c i ∧ i ∈ f '' d),
-      from assume x i ⟨hxi, hid⟩, ⟨f i,
+    have ∀(x : α) (i : set α), x ∈ i → i ∈ d → (∃ (i : β), x ∈ c i ∧ i ∈ f '' d),
+      from assume x i hxi hid, ⟨f i,
         by simp [f_eq, hid]; exact ((hf _ hid).left.symm ▸ hxi),
         mem_image_of_mem f hid⟩,
     ⟨f '' d,
       assume i ⟨j, hj, h⟩,
       h ▸ by simp [f_eq, hj]; exact (hf _ hj).right,
       finite_image hd₂,
-      subset.trans hd₃ $ by simp [subset_def, exists_implies_distrib]; exact this⟩)
+      subset.trans hd₃ $ by simp [subset_def]; exact this⟩)
 
 lemma compact_of_finite_subcover {s : set α}
   (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds x ≠ ⊥),
   have hf : ∀x∈s, nhds x ⊓ f = ⊥,
-    by simp [not_exists_iff, not_and_iff_imp_not, not_not_iff] at this; simp [inf_comm]; exact this,
+    by simp [not_and_distrib] at this; simp [inf_comm, imp_iff_not_or, this],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ (nhds x ⊓ f).sets, by rw [empty_in_sets_eq_bot, hf x hxs],
@@ -462,9 +462,9 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
     by simp [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
   have ∀x∈s, ∃t∈f.sets, x ∉ closure t,
   begin
-    simp [not_exists_iff, not_and_iff_imp_not, classical.not_forall_iff, not_implies_iff] at this,
-    simp,
-    assumption
+    simp [not_and_distrib, classical.not_forall] at this,
+    simp [imp_iff_not_or],
+    exact this
   end,
   let c := (λt, - closure t) '' f.sets in
   have ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c',
@@ -779,7 +779,7 @@ le_antisymm
   (generate_from_le $ assume s,
     begin
       simp,
-      exact assume ⟨i, is_open_s⟩,
+      exact assume i is_open_s,
         have g i ≤ supr g, from le_supr _ _,
         this s is_open_s
     end)

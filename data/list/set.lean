@@ -76,7 +76,7 @@ by simp [list.erase, h]
 | (x::y::xs) h := if h' : x = a then
                     by simp [h', one_add]
                   else
-                    have ainyxs : a ∈ y::xs, from or_resolve_right h $ by cc,
+                    have ainyxs : a ∈ y::xs, from h.resolve_left $ by cc,
                     by simp [h', length_erase_of_mem ainyxs, one_add]
 
 @[simp] theorem erase_of_not_mem {a : α} : ∀{l : list α}, a ∉ l → l.erase a = l
@@ -266,7 +266,7 @@ mem_union_iff.2 (or.inr h)
 
 theorem forall_mem_union {p : α → Prop} {l₁ l₂ : list α} (h₁ : ∀ x ∈ l₁, p x) (h₂ : ∀ x ∈ l₂, p x) :
   ∀ x ∈ l₁ ∪ l₂, p x :=
-by simp [or_imp_iff_and_imp, forall_and_distrib]; exact ⟨h₁, h₂⟩
+by simp [or_imp_distrib, forall_and_distrib]; exact ⟨h₁, h₂⟩
 
 theorem forall_mem_of_forall_mem_union_left {p : α → Prop} {l₁ l₂ : list α}
    (h : ∀ x ∈ l₁ ∪ l₂, p x) :

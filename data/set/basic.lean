@@ -62,9 +62,9 @@ theorem ssubset_def {s t : set α} : (s ⊂ t) = (s ⊆ t ∧ s ≠ t) := rfl
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
-@[simp] lemma not_not_mem_iff {α : Type u} {a : α} {s : set α} [decidable (a ∈ s)] :
+@[simp] lemma not_not_mem {α : Type u} {a : α} {s : set α} [decidable (a ∈ s)] :
   ¬ (a ∉ s) ↔ a ∈ s :=
-not_not_iff
+not_not
 
 
 /- empty set -/
@@ -100,7 +100,7 @@ ne_empty_iff_exists_mem
 theorem subset_empty_iff (s : set α) : s ⊆ ∅ ↔ s = ∅ :=
 by finish [set_eq_def]
 
-theorem bounded_forall_empty_iff {p : α → Prop} :
+theorem ball_empty_iff {p : α → Prop} :
   (∀ x ∈ (∅ : set α), p x) ↔ true :=
 by finish [iff_def]
 
@@ -139,7 +139,7 @@ theorem mem_union.elim {x : α} {a b : set α} {P : Prop}
     (H₁ : x ∈ a ∪ b) (H₂ : x ∈ a → P) (H₃ : x ∈ b → P) : P :=
 or.elim H₁ H₂ H₃
 
-theorem mem_union_iff (x : α) (a b : set α) : x ∈ a ∪ b ↔ x ∈ a ∨ x ∈ b := iff.rfl
+theorem mem_union (x : α) (a b : set α) : x ∈ a ∪ b ↔ x ∈ a ∨ x ∈ b := iff.rfl
 
 @[simp] theorem mem_union_eq (x : α) (a b : set α) : x ∈ a ∪ b = (x ∈ a ∨ x ∈ b) := rfl
 
@@ -271,16 +271,16 @@ by finish [set_eq_def, iff_def]
 /- distributivity laws -/
 
 theorem inter_distrib_left (s t u : set α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) :=
-ext (assume x, and_distrib _ _ _)
+ext (assume x, and_or_distrib_left)
 
 theorem inter_distrib_right (s t u : set α) : (s ∪ t) ∩ u = (s ∩ u) ∪ (t ∩ u) :=
-ext (assume x, and_distrib_right _ _ _)
+ext (assume x, or_and_distrib_right)
 
 theorem union_distrib_left (s t u : set α) : s ∪ (t ∩ u) = (s ∪ t) ∩ (s ∪ u) :=
-ext (assume x, or_distrib _ _ _)
+ext (assume x, or_and_distrib_left)
 
 theorem union_distrib_right (s t u : set α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) :=
-ext (assume x, or_distrib_right _ _ _)
+ext (assume x, and_or_distrib_right)
 
 /- insert -/
 
@@ -325,7 +325,7 @@ theorem forall_insert_of_forall {P : α → Prop} {a : α} {s : set α} (h : ∀
   ∀ x, x ∈ insert a s → P x :=
 by finish
 
-theorem bounded_forall_insert_iff {P : α → Prop} {a : α} {s : set α} :
+theorem ball_insert_iff {P : α → Prop} {a : α} {s : set α} :
   (∀ x ∈ insert a s, P x) ↔ P a ∧ (∀x ∈ s, P x) :=
 by finish [iff_def]
 
@@ -529,7 +529,7 @@ by safe [set_eq_def, iff_def, mem_image_eq, eq_on]
 theorem image_comp (f : β → γ) (g : α → β) (a : set α) : (f ∘ g) '' a = f '' (g '' a) :=
 begin
   safe [set_eq_def, iff_def, mem_image_eq, (∘)],
-  have h' :=  h_1 (g a_1),
+  have h' := h_2 (g a_2),
   finish
 end
 
@@ -552,11 +552,7 @@ subset.antisymm
   (subset_inter (mono_image $ inter_subset_left _ _) (mono_image $ inter_subset_right _ _))
 
 @[simp] lemma image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
-begin
-  apply set.ext, intro x,
-  simp [image],
-  exact ⟨assume ⟨a', ha', hx⟩, hx ▸ ha' ▸ rfl, assume h, ⟨a, rfl, h.symm⟩⟩
-end
+set.ext $ λ x, by simp [image]; rw eq_comm
 
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 
@@ -565,7 +561,7 @@ theorem mem_image_compl (t : set α) (S : set (set α)) :
   t ∈ compl '' S ↔ -t ∈ S :=
 begin
   safe [mem_image_eq, iff_def, fix_set_compl],
-  have h' := h_1 (- t), clear h_1,
+  tactic.swap, have h' := h_1 (- t),
   all_goals { simp [compl_compl] at *; contradiction }
 end
 
@@ -582,11 +578,11 @@ set.ext $ assume x, ⟨assume ⟨y, (hy : p y), (h_eq : -y = x)⟩,
   show p (- x), by rw [←h_eq, compl_compl]; assumption,
   assume h : p (-x), ⟨_, h, compl_compl _⟩⟩
 
-theorem bounded_forall_image_of_bounded_forall {f : α → β} {s : set α} {p : β → Prop}
+theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
   (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
 by finish [mem_image_eq]
 
-theorem bounded_forall_image_iff {f : α → β} {s : set α} {p : β → Prop} :
+theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
 begin
   safe [mem_image_eq, iff_def],
@@ -681,7 +677,7 @@ eq_univ_of_univ_subset $ assume x _, h x
 lemma range_compose {g : α → β} : range (g ∘ f) = g '' range f :=
 subset.antisymm
   (forall_range_iff.mpr $ assume i, mem_image_of_mem g mem_range)
-  (bounded_forall_image_iff.mpr $ forall_range_iff.mpr $ assume i, mem_range)
+  (ball_image_iff.mpr $ forall_range_iff.mpr $ assume i, mem_range)
 end range
 
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀x ∈ s, ∀y ∈ s, x ≠ y → r x y

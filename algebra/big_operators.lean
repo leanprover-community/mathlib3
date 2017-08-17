@@ -11,8 +11,6 @@ import algebra.group data.list data.list.comb algebra.group_power data.set.finit
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-@[simp] lemma exists_false {α : Sort u} : ¬ (∃a:α, false) := assume ⟨a, h⟩, h
-
 namespace list
 -- move to list.sum, needs to match exactly, otherwise transport fails
 definition prod [has_mul α] [has_one α] : list α → α := list.foldl (*) 1
@@ -277,7 +275,7 @@ lemma prod_eq_zero_iff : s.prod f = 0 ↔ (∃a∈s, f a = 0) :=
 s.induction_on (by simp)
 begin
   intros a s,
-  rw [bexists_def, bexists_def, exists_mem_insert_iff],
+  rw [bex_def, bex_def, exists_mem_insert_iff],
   simp [mul_eq_zero_iff_eq_zero_or_eq_zero] {contextual := tt}
 end
 

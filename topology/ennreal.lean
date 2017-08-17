@@ -321,7 +321,7 @@ end⟩
 
 lemma add_le_add : ∀{b d}, a ≤ b → c ≤ d → a + c ≤ b + d :=
 forall_ennreal.mpr ⟨assume r hr, forall_ennreal.mpr ⟨assume p hp,
-  by simp [le_of_real_iff, *, exists_implies_distrib, and_imp_iff] {contextual:=tt};
+  by simp [le_of_real_iff, *, exists_imp_distrib, -and_imp] {contextual:=tt};
     simp [*, add_nonneg, add_le_add] {contextual := tt}, by simp⟩, by simp⟩
 
 lemma lt_of_add_lt_add_left (h : a + b < a + c) : b < c :=
@@ -352,7 +352,7 @@ end
 
 lemma mul_le_mul : ∀{b d}, a ≤ b → c ≤ d → a * c ≤ b * d :=
 forall_ennreal.mpr ⟨assume r hr, forall_ennreal.mpr ⟨assume p hp,
-  by simp [le_of_real_iff, *, exists_implies_distrib, and_imp_iff] {contextual:=tt};
+  by simp [le_of_real_iff, *, exists_imp_distrib, -and_imp] {contextual:=tt};
     simp [*, zero_le_mul, mul_le_mul] {contextual := tt},
     by by_cases r = 0; simp [*] {contextual:=tt}⟩,
     assume d, by by_cases d = 0; simp [*] {contextual:=tt}⟩
@@ -366,7 +366,7 @@ assume x hx, le_infty
 
 lemma of_real_mem_upper_bounds {s : set real} (hs : ∀x∈s, (0:real) ≤ x) (hr : 0 ≤ r) :
   of_real r ∈ upper_bounds (of_real '' s) ↔ r ∈ upper_bounds s :=
-by simp [upper_bounds, bounded_forall_image_iff, *] {contextual := tt}
+by simp [upper_bounds, ball_image_iff, *] {contextual := tt}
 
 lemma is_lub_of_real {s : set real} (hs : ∀x∈s, (0:real) ≤ x) (hr : 0 ≤ r) (h : s ≠ ∅) :
   is_lub (of_real '' s) (of_real r) ↔ is_lub s r :=
@@ -403,7 +403,7 @@ by_cases (assume h : s = ∅, ⟨0, by simp [h, is_lub, is_least, lower_bounds, 
     begin
       intro h,
       existsi ∞,
-      simp [is_lub, is_least, lower_bounds, forall_ennreal, not_exists_iff, not_and_iff_imp_not]
+      simp [is_lub, is_least, lower_bounds, forall_ennreal, not_exists, not_and_iff_imp]
         at h ⊢,
       assumption
     end
@@ -416,7 +416,7 @@ some_spec _
 protected lemma le_Sup {s : set ennreal} : a ∈ s → a ≤ Sup s :=
 ennreal.is_lub_Sup.left a
 
-protected lemma Sup_le {s : set ennreal} : (∀b∈s, b ≤ a) → Sup s ≤ a :=
+protected lemma Sup_le {s : set ennreal} : (∀b ∈ s, b ≤ a) → Sup s ≤ a :=
 ennreal.is_lub_Sup.right _
 
 instance : complete_linear_order ennreal :=
@@ -426,7 +426,7 @@ instance : complete_linear_order ennreal :=
   inf := min,
   sup := max,
   Sup := Sup,
-  Inf := λs, Sup {a | ∀b∈s, a ≤ b},
+  Inf := λs, Sup {a | ∀b ∈ s, a ≤ b},
   le_top       := assume a, le_infty,
   bot_le       := assume a, ennreal.zero_le,
   le_sup_left  := le_max_left,

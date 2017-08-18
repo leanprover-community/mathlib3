@@ -1,5 +1,5 @@
-# stdlib
+# mathlib
 
-[![Build Status](https://travis-ci.org/leanprover/stdlib.svg?branch=master)](https://travis-ci.org/leanprover/stdlib)
+[![Build Status](https://travis-ci.org/leanprover/mathlib.svg?branch=master)](https://travis-ci.org/leanprover/mathlib)
 
 Lean standard library

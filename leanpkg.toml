@@ -1,5 +1,5 @@
 [package]
-name = "stdlib"
+name = "mathlib"
 version = "0.1"
 
 [dependencies]

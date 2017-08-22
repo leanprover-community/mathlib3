@@ -427,7 +427,7 @@ begin
       s2 = cons a (append s (join S))) _ (or.inr ⟨a, s, S, rfl, rfl⟩),
   intros s1 s2 h,
   exact match s1, s2, h with
-  | ._, s, (or.inl rfl) := begin
+  | _, _, (or.inl $ eq.refl s) := begin
       apply cases_on s, { trivial },
       { intros x s, rw [destruct_cons], exact ⟨rfl, or.inl rfl⟩ }
     end

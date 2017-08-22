@@ -27,7 +27,7 @@ set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_image_of_mem 
 lemma subtype.val_image {p : α → Prop} {s : set (subtype p)} :
   subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
 set.ext $ assume a,
-⟨assume ⟨⟨a', ha'⟩, in_s, (h_eq : a' = a)⟩, h_eq ▸ ⟨ha', in_s⟩,
+⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
 @[simp] lemma univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=

@@ -516,11 +516,11 @@ le_antisymm
 
 lemma le_map_vmap' {f : filter β} {m : α → β} {s : set β}
   (hs : s ∈ f.sets) (hm : ∀b∈s, ∃a, m a = b) : f ≤ map m (vmap m f) :=
-assume t' ⟨t, ht, (sub : ∀x, m x ∈ t → m x ∈ t')⟩,
+assume t' ⟨t, ht, (sub : m ⁻¹' t ⊆ m ⁻¹' t')⟩,
 f.upwards_sets (inter_mem_sets ht hs) $
   assume x ⟨hxt, hxs⟩,
   let ⟨y, (hy : m y = x)⟩ := hm x hxs in
-  hy ▸ sub _ (show m y ∈ t, from hy.symm ▸ hxt)
+  hy ▸ sub (show m y ∈ t, from hy.symm ▸ hxt)
 
 lemma le_map_vmap {f : filter β} {m : α → β} (hm : ∀x, ∃y, m y = x) : f ≤ map m (vmap m f) :=
 le_map_vmap' univ_mem_sets (assume b _, hm b)

@@ -430,8 +430,8 @@ begin
   refine computation.eq_of_bisim (λc1 c2, c1 = c2 ∨
     ∃ c, c1 = destruct (flatten c) ∧ c2 = computation.bind c destruct) _ (or.inr ⟨c, rfl, rfl⟩),
   intros c1 c2 h, exact match c1, c2, h with
-  | c, ._, (or.inl rfl) := by cases c.destruct; simp
-  | ._, ._, (or.inr ⟨c, rfl, rfl⟩) := begin
+  | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simp
+  | _, _, (or.inr ⟨c, rfl, rfl⟩) := begin
     apply c.cases_on (λa, _) (λc', _); repeat {simp},
     { cases (destruct a).destruct; simp },
     { exact or.inr ⟨c', rfl, rfl⟩ }
@@ -1042,8 +1042,8 @@ begin
   apply eq_of_bisim (λ c1 c2, c1 = c2 ∨ ∃ S, c1 = destruct (join S) ∧
     c2 = (destruct S).bind destruct_join.aux) _ (or.inr ⟨S, rfl, rfl⟩),
   intros c1 c2 h, exact match c1, c2, h with
-  | c, ._, or.inl rfl := by cases c.destruct; simp
-  | ._, ._, or.inr ⟨S, rfl, rfl⟩ := begin
+  | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simp
+  | _, _, or.inr ⟨S, rfl, rfl⟩ := begin
     apply S.cases_on _ (λ s S, _) (λ S, _); simp; simp,
     { refine or.inr ⟨S, rfl, rfl⟩ }
   end end

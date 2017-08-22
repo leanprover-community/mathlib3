@@ -136,10 +136,10 @@ uniform_space.of_core { uniform_space.core .
       exact calc zero_nhd.lift' f ≤
           zero_nhd.lift' (image (λp:ℚ×ℚ, p.1 + p.2) ∘ (λs, set.prod s s)) :
             lift'_mono' $
-            assume s hs r ⟨⟨p₁, p₂⟩, ⟨q, (h₁ : p₁ - q ∈ s), (h₂ : q - p₂ ∈ s)⟩, (h : p₁ - p₂ = r)⟩,
+            assume s hs r ⟨⟨p₁, p₂⟩, ⟨q, h₁, h₂⟩, h⟩,
             ⟨⟨p₁ - q, q - p₂⟩, ⟨h₁, h₂⟩,
               calc (p₁ - q) + (q - p₂) = p₁ - p₂ + (q - q) : by simp [-add_right_neg]
-                ... = r : by simp [h]⟩
+                ... = r : by simp [*] at *⟩
         ... = map (λp:ℚ×ℚ, p.1 + p.2) (filter.prod zero_nhd zero_nhd) :
           by rw [←map_lift'_eq, prod_same_eq]; exact monotone_prod monotone_id monotone_id
         ... ≤ zero_nhd : tendsto_add_rat_zero,
@@ -935,7 +935,7 @@ have 0 < i / 2, from div_pos_of_pos_of_pos hi zero_lt_two,
 have u ∈ (nhds r).sets, from mem_nhds_sets hu hru,
 dense_embedding_of_rat.tendsto_ext $ (nhds r).upwards_sets this $
   assume r hr,
-  let ⟨a, (ha : closure (of_rat '' {a' : ℚ | abs (a - a') < i / 2}) ∈ (nhds r).sets)⟩ :=
+  let ⟨a, ha⟩ :=
     closure_image_mem_nhds_of_uniform_embedding r
       uniform_embedding_of_rat dense_embedding_of_rat $ mem_uniformity_rat ‹0 < i / 2› in
   have hia : i / 2 < abs a,

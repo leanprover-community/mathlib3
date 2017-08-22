@@ -510,8 +510,8 @@ begin
          ∃ s, c1 = bind s (return ∘ f) ∧ c2 = map f s),
   { intros c1 c2 h,
     exact match c1, c2, h with
-    | c, ._, or.inl rfl := by cases destruct c with b cb; simp
-    | ._, ._, or.inr ⟨s, rfl, rfl⟩ := begin
+    | _, _, or.inl (eq.refl c) := begin cases destruct c with b cb; simp end
+    | _, _, or.inr ⟨s, rfl, rfl⟩ := begin
       apply cases_on s; intros s; simp,
       exact or.inr ⟨s, rfl, rfl⟩
     end end },
@@ -528,7 +528,7 @@ begin
          ∃ s, c1 = bind (bind s f) g ∧ c2 = bind s (λ (x : α), bind (f x) g)),
   { intros c1 c2 h,
     exact match c1, c2, h with
-    | c, ._, or.inl rfl := by cases destruct c with b cb; simp
+    | _, _, or.inl (eq.refl c) := by cases destruct c with b cb; simp
     | ._, ._, or.inr ⟨s, rfl, rfl⟩ := begin
       apply cases_on s; intros s; simp,
       { generalize : f s = fs,

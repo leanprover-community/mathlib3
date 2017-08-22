@@ -110,9 +110,18 @@ have a ∈ [b], from mem_of_perm p (by simp),
 by simp at this; simp [*]
 
 theorem eq_singleton_of_perm_inv {a : α} {l : list α} (p : [a] ~ l) : l = [a] :=
-match l, length_eq_length_of_perm p, p with
-| [a'], rfl, p := by simp [eq_singleton_of_perm p]
+begin
+  cases l with a' l',
+  cases (length_eq_length_of_perm p),
+  cases l',
+  simp [eq_singleton_of_perm p],
+  cases (length_eq_length_of_perm p),
 end
+/- old proof:
+match l, length_eq_length_of_perm p, p with
+| [a'], rfl, p := begin simp [eq_singleton_of_perm p] end
+end
+-/
 
 theorem perm_rev : ∀ (l : list α), l ~ (reverse l)
 | []      := nil

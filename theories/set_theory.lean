@@ -181,7 +181,7 @@ namespace pSet
 
     def eval (n) : resp n → arity Set.{u} n := eval_aux.1
 
-    @[simp] def eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (f.f x) := rfl
+    @[simp] def eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
   end resp
 
   inductive definable (n) : arity Set.{u} n → Type (u+1)

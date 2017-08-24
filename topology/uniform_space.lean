@@ -58,7 +58,7 @@ lemma prod_mk_mem_comp_rel {a b c : α} {s t : set (α×α)} (h₁ : (a, c) ∈ 
 ⟨c, h₁, h₂⟩
 
 @[simp] lemma id_comp_rel {r : set (α×α)} : comp_rel id_rel r = r :=
-set.ext $ assume ⟨a, b⟩, ⟨assume ⟨a', heq, ha'⟩, 
+set.ext $ assume ⟨a, b⟩, ⟨assume ⟨a', heq, ha'⟩,
   (show a' = a, from heq.symm) ▸ ha',
   assume ha, ⟨a, rfl, ha⟩⟩
 
@@ -698,7 +698,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   have f ≤ principal s, from infi_le_of_le ⟨∅, finite.empty⟩ $ by simp; exact subset.refl s,
   let
     ⟨c, (hc₁ : c ≤ f), (hc₂ : cauchy c)⟩ := h f ‹f ≠ ⊥› this,
-    ⟨m, hm, (hmd : set.prod m m ⊆ d)⟩ := (@mem_prod_same_iff α d c).mp $ hc₂.right hd
+    ⟨m, hm, (hmd : set.prod m m ⊆ d)⟩ := (@mem_prod_same_iff α c d).mp $ hc₂.right hd
   in
   have c ≤ principal s, from le_trans ‹c ≤ f› this,
   have m ∩ s ∈ c.sets, from inter_mem_sets hm $ le_principal_iff.mp this,
@@ -1409,6 +1409,15 @@ lemma uniformity_prod [uniform_space α] [uniform_space β] :
     vmap (λp:(α×β)×(α×β), (p.1.1, p.2.1)) uniformity ⊓
     vmap (λp:(α×β)×(α×β), (p.1.2, p.2.2)) uniformity :=
 by rw [prod.uniform_space, uniform_space.of_core_eq_to_core, uniformity, sup_uniformity]; refl
+
+lemma uniformity_prod_eq_prod [uniform_space α] [uniform_space β] :
+  @uniformity (α×β) _ =
+    map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) (filter.prod uniformity uniformity) :=
+have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
+  vmap (λp:(α×β)×(α×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))),
+  from funext $ assume f, map_eq_vmap_of_inverse
+    (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl) (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl),
+by rw [this, uniformity_prod, prod_def, vmap_inf, vmap_vmap_comp, vmap_vmap_comp]
 
 lemma mem_uniform_prod [t₁ : uniform_space α] [t₂ : uniform_space β] {a : set (α × α)} {b : set (β × β)}
   (ha : a ∈ (@uniformity α _).sets) (hb : b ∈ (@uniformity β _).sets) :

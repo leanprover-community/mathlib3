@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Introduces the rational numbers as discrete, linear ordered field.
 -/
 
-import data.nat.gcd data.pnat data.int.basic pending
+import data.nat.gcd data.pnat data.int.basic order.basic pending
 
 /- linorder -/
 

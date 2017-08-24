@@ -184,6 +184,9 @@ lemma abs_le_iff  : abs a ≤ b ↔ (- b ≤ a ∧ a ≤ b) :=
 ⟨assume h, ⟨neg_le_of_neg_le $ le_trans (neg_le_abs_self _) h, le_trans (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_le_of_le_of_neg_le h₂ $ neg_le_of_neg_le h₁⟩
 
+@[simp] lemma abs_eq_zero_iff : abs a = 0 ↔ a = 0 :=
+⟨eq_zero_of_abs_eq_zero, by simp [abs_zero] {contextual := tt}⟩
+
 end decidable_linear_ordered_comm_group
 
 /-

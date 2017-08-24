@@ -111,3 +111,45 @@ theorem monotone_app (f : β → α → γ) (b : β) (m : monotone (λa b, f b a
 assume a a' h, m h b
 
 end monotone
+
+/- additional order classes -/
+
+/-- order without a top element; somtimes called cofinal -/
+class no_top_order (α : Type u) [preorder α] : Prop :=
+(no_top : ∀a:α, ∃a', a < a')
+
+lemma no_top [preorder α] [no_top_order α] : ∀a:α, ∃a', a < a' :=
+no_top_order.no_top _
+
+/-- order without a bottom element; somtimes called coinitial or dense -/
+class no_bot_order (α : Type u) [preorder α] : Prop :=
+(no_bot : ∀a:α, ∃a', a' < a)
+
+lemma no_bot [preorder α] [no_bot_order α] : ∀a:α, ∃a', a' < a :=
+no_bot_order.no_bot _
+
+class densely_ordered (α : Type u) [preorder α] : Prop :=
+(dense : ∀a₁ a₂:α, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂)
+
+lemma dense [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
+densely_ordered.dense
+
+lemma le_of_forall_le [linear_order α] [densely_ordered α] {a₁ a₂ : α} (h : ∀a₃>a₂, a₁ ≤ a₃) :
+  a₁ ≤ a₂ :=
+le_of_not_gt $ assume ha,
+  let ⟨a, ha₁, ha₂⟩ := dense ha in
+  lt_irrefl a $ lt_of_lt_of_le ‹a < a₁› (h _ ‹a₂ < a›)
+
+lemma eq_of_le_of_forall_le [linear_order α] [densely_ordered α] {a₁ a₂ : α}
+  (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃>a₂, a₁ ≤ a₃) : a₁ = a₂ :=
+le_antisymm (le_of_forall_le h₂) h₁
+
+lemma le_of_forall_ge [linear_order α] [densely_ordered α] {a₁ a₂ : α}(h : ∀a₃<a₁, a₂ ≥ a₃) :
+  a₁ ≤ a₂ :=
+le_of_not_gt $ assume ha,
+  let ⟨a, ha₁, ha₂⟩ := dense ha in
+  lt_irrefl a $ lt_of_le_of_lt (h _ ‹a < a₁›) ‹a₂ < a›
+
+lemma eq_of_le_of_forall_ge [linear_order α] [densely_ordered α] {a₁ a₂ : α}
+  (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₂ ≥ a₃) : a₁ = a₂ :=
+le_antisymm (le_of_forall_ge h₂) h₁

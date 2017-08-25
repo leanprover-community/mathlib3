@@ -9,9 +9,11 @@ Finite sets.
 import data.list.set data.list.perm tactic.finish
 open list subtype nat
 
-def nodup_list (A : Type) := {l : list A // nodup l}
+universe u
 
-variable {α : Type}
+def nodup_list (α : Type u) := {l : list α // nodup l}
+
+variable {α : Type u}
 
 def to_nodup_list_of_nodup {l : list α} (n : nodup l) : nodup_list α := 
 ⟨l, n⟩
@@ -33,10 +35,10 @@ perm.symm
 private def eqv.trans {l₁ l₂ l₃ : nodup_list α} : l₁ ~ l₂ → l₂ ~ l₃ → l₁ ~ l₃ :=
 perm.trans
 
-instance finset.nodup_list_setoid  (α : Type) : setoid (nodup_list α) :=
+instance finset.nodup_list_setoid  (α : Type u) : setoid (nodup_list α) :=
 setoid.mk (@eqv α) (mk_equivalence (@eqv α) (@eqv.refl α) (@eqv.symm α) (@eqv.trans α))
 
-def finset (α : Type) : Type :=
+def finset (α : Type u) : Type u :=
 quotient (finset.nodup_list_setoid α)
 
 namespace finset
@@ -63,7 +65,7 @@ instance has_decidable_eq  [decidable_eq α] : decidable_eq (finset α) :=
      match perm.decidable_perm l₁.1 l₂.1 with
      | decidable.is_true e := decidable.is_true (quot.sound e)
      | decidable.is_false n := decidable.is_false (λ e : ⟦l₁⟧ = ⟦l₂⟧, absurd (quotient.exact e) n)
-end)
+     end)
 
 def mem (a : α) (s : finset α) : Prop :=
 quot.lift_on s (λ l, a ∈ l.1)
@@ -104,12 +106,10 @@ to_finset_of_nodup [] nodup_nil
 
 instance : has_emptyc (finset α) := ⟨empty⟩
 
-attribute [simp]
-theorem not_mem_empty (a : α) : a ∉ (∅ : finset α) :=
+@[simp] theorem not_mem_empty (a : α) : a ∉ (∅ : finset α) :=
 λ aine, aine
 
-attribute [simp]
-theorem mem_empty_iff (x : α) : x ∈ (∅ : finset α) ↔ false :=
+@[simp] theorem mem_empty_iff (x : α) : x ∈ (∅ : finset α) ↔ false :=
 iff_false_intro (not_mem_empty _)
 
 theorem mem_empty_eq (x : α) : x ∈ (∅ : finset α) = false :=
@@ -227,8 +227,7 @@ else by rewrite [card_insert_of_not_mem H]
 theorem perm_insert_cons_of_not_mem [decidable_eq α] {a : α} {l : list α} (h : a ∉ l) : perm (list.insert a l) (a :: l) := 
 have list.insert a l = a :: l, from if_neg h, by rw this
 
-attribute [recursor 6]
-protected theorem induction {P : finset α → Prop}
+@[recursor 6] protected theorem induction {P : finset α → Prop}
     (H1 : P empty)
     (H2 : ∀ ⦃a : α⦄, ∀{s : finset α}, a ∉ s → P s → P (insert a s)) :
   ∀s, P s :=
@@ -506,7 +505,7 @@ theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) �
 ext (λ x, by rw [mem_union_eq]; repeat {rw mem_inter_eq}; repeat {rw mem_union_eq}; apply iff.intro; repeat {finish})
 
 end inter
-def subset_aux {T : Type} (l₁ l₂ : list T) := ∀ ⦃a : T⦄, a ∈ l₁ → a ∈ l₂
+def subset_aux {α : Type u} (l₁ l₂ : list α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
 
 /- subset -/
 def subset (s₁ s₂ : finset α) : Prop :=

@@ -1117,7 +1117,7 @@ instance : discrete_linear_ordered_field ℝ :=
   decidable_le    := by apply_instance,
   decidable_lt    := by apply_instance }
 
-instance : topological_ring ℝ := 
+instance : topological_ring ℝ :=
 { real.topological_add_group with continuous_mul := continuous_mul_real }
 
 lemma compact_ivl {a b : ℝ} : compact {r:ℝ | a ≤ r ∧ r ≤ b } :=

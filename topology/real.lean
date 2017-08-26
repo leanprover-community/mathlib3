@@ -22,7 +22,7 @@ generalizations:
 
 -/
 
-import topology.uniform_space data.rat algebra.field
+import topology.uniform_space topology.topological_structures data.rat algebra.field
 noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable
@@ -184,25 +184,56 @@ have (λ (p : ℚ × ℚ), -p.fst - -p.snd) = (λ (p : ℚ × ℚ), p.fst - p.sn
 uniform_continuous_rat $
   by rw [this]; exact tendsto_compose tendsto_swap_uniformity tendsto_sub_uniformity_zero_nhd
 
-lemma continuous_add_rat : continuous (λp : ℚ × ℚ, p.1 + p.2) :=
-continuous_of_uniform uniform_continuous_add_rat
+instance : topological_add_group ℚ :=
+{ continuous_add := continuous_of_uniform uniform_continuous_add_rat,
+  continuous_neg := continuous_of_uniform uniform_continuous_neg_rat }
 
-lemma tendsto_add_rat {r₁ r₂ : ℚ} {f₁ f₂ : α → ℚ} {x : filter α}
-  (h₁ : tendsto f₁ x (nhds r₁)) (h₂ : tendsto f₂ x (nhds r₂)) :
-  tendsto (λa, f₁ a + f₂ a) x (nhds (r₁ + r₂)) :=
-have tendsto (λp:ℚ×ℚ, p.1 + p.2) (filter.prod (nhds r₁) (nhds r₂)) (nhds (r₁ + r₂)),
+lemma nhds_eq_map_zero_nhd {r : ℚ} : nhds r = map (λx, x + r) zero_nhd :=
 begin
-  rw [←nhds_prod_eq],
-  exact continuous_iff_tendsto.mp continuous_add_rat ⟨r₁, r₂⟩
-end,
-tendsto_compose (tendsto_prod_mk h₁ h₂) this
+  have h : ((λ (s : set (ℚ × ℚ)), {y : ℚ | (r, y) ∈ s}) ∘
+         preimage ((λ (p : ℚ × ℚ), p.fst - p.snd) ∘ prod.swap)) = image (λx, x + r) ∘ id,
+  { simp [(∘)],
+    apply (image_eq_preimage_of_inverse _ _ _ _).symm,
+    exact assume x, calc r + x + -r = x + (r + -r) : by cc
+       ... = x : by simp,
+    exact assume x, calc r + (x + -r) = x + (r + -r) : by cc
+       ... = x : by simp },
+  rw [nhds_eq_uniformity, uniformity_eq_symm, map_swap_vmap_swap_eq],
+  change (vmap (prod.swap : ℚ×ℚ → ℚ×ℚ) (zero_nhd.vmap (λp, p.1 - p.2))).lift'
+    (λ (s : set (ℚ × ℚ)), {y : ℚ | (r, y) ∈ s}) = _,
+  rw [vmap_vmap_comp, vmap_lift'_eq2, h, ←map_lift'_eq, lift'_id],
+  apply monotone_preimage,
+  apply monotone_preimage
+end
 
-lemma continuous_neg_rat : continuous (λp:ℚ, - p) :=
-continuous_of_uniform uniform_continuous_neg_rat
+lemma lt_mem_nhds {r q : ℚ} (h : r < q) : {x | r < x} ∈ (nhds q).sets :=
+have 0 < q - r, from lt_sub_left_of_add_lt $ by simp [h],
+begin
+  rw [nhds_eq_map_zero_nhd],
+  show {x | r < x + q} ∈ zero_nhd.sets,
+  apply zero_nhd.upwards_sets (mem_zero_nhd this),
+  exact (assume x (h : abs x < q - r),
+    calc  r < q - abs x : lt_sub_left_of_add_lt $ add_lt_of_lt_sub_right h
+      ... ≤ q - (- x) : sub_le_sub (le_refl q) (neg_le_abs_self x)
+      ... ≤ x + q : by simp)
+end
 
-lemma tendsto_neg_rat {r : ℚ} {f : α → ℚ} {x : filter α}
-  (h : tendsto f x (nhds r)) : tendsto (λa, - f a) x (nhds (-r)) :=
-tendsto_compose h (continuous_iff_tendsto.mp continuous_neg_rat r)
+lemma le_mem_nhds {r q : ℚ} (h : r < q) : {x | r ≤ x} ∈ (nhds q).sets :=
+(nhds q).upwards_sets (lt_mem_nhds h) $ assume x, le_of_lt
+
+lemma gt_mem_nhds {r q : ℚ} (h : q < r) : {x | x < r} ∈ (nhds q).sets :=
+have tendsto (λx:ℚ, -x) (nhds q) (nhds (-q)),
+  from tendsto_neg tendsto_id,
+have {x | -r < -x} ∈ (nhds q).sets,
+  from this $ lt_mem_nhds $ neg_lt_neg $ h,
+(nhds q).upwards_sets this $ assume x (h : -r < -x), lt_of_neg_lt_neg h
+
+lemma ge_mem_nhds {r q : ℚ} (h : q < r) : {x | x ≤ r} ∈ (nhds q).sets :=
+(nhds q).upwards_sets (gt_mem_nhds h) $ assume x, le_of_lt
+
+instance : linear_ordered_topology ℚ :=
+⟨assume r:ℚ, by simp [is_open_iff_nhds]; exact assume a, lt_mem_nhds,
+  assume r:ℚ, by simp [is_open_iff_nhds]; exact assume a, gt_mem_nhds⟩
 
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
 ⟨assume a b (h : a + r = b + r),
@@ -238,64 +269,9 @@ lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding (λ
         by simp [this]; exact (mem_zero_nhd $ div_pos_of_pos_of_pos hr (abs_pos_of_ne_zero hq))),
   by simp [uniformity_rat, vmap_vmap_comp, h₁]; rw [←vmap_vmap_comp, h₂]⟩
 
-lemma nhds_eq_map_zero_nhd {r : ℚ} : nhds r = map (λx, x + r) zero_nhd :=
-begin
-  have h : ((λ (s : set (ℚ × ℚ)), {y : ℚ | (r, y) ∈ s}) ∘
-         preimage ((λ (p : ℚ × ℚ), p.fst - p.snd) ∘ prod.swap)) = image (λx, x + r) ∘ id,
-  { simp [(∘)],
-    apply (image_eq_preimage_of_inverse _ _ _ _).symm,
-    exact assume x, calc r + x + -r = x + (r + -r) : by cc
-       ... = x : by simp,
-    exact assume x, calc r + (x + -r) = x + (r + -r) : by cc
-       ... = x : by simp },
-  rw [nhds_eq_uniformity, uniformity_eq_symm, map_swap_vmap_swap_eq],
-  change (vmap (prod.swap : ℚ×ℚ → ℚ×ℚ) (zero_nhd.vmap (λp, p.1 - p.2))).lift'
-    (λ (s : set (ℚ × ℚ)), {y : ℚ | (r, y) ∈ s}) = _,
-  rw [vmap_vmap_comp, vmap_lift'_eq2, h, ←map_lift'_eq, lift'_id],
-  apply monotone_preimage,
-  apply monotone_preimage
-end
-
 lemma nhds_0_eq_zero_nhd : nhds 0 = zero_nhd :=
 have (λ (x : ℚ), x + 0) = id, from funext $ by simp,
 by rw [nhds_eq_map_zero_nhd, this]; simp
-
-lemma lt_mem_nhds {r q : ℚ} (h : r < q) : {x | r < x} ∈ (nhds q).sets :=
-have 0 < q - r, from lt_sub_left_of_add_lt $ by simp [h],
-begin
-  rw [nhds_eq_map_zero_nhd],
-  show {x | r < x + q} ∈ zero_nhd.sets,
-  apply zero_nhd.upwards_sets (mem_zero_nhd this),
-  exact (assume x (h : abs x < q - r),
-    calc  r < q - abs x : lt_sub_left_of_add_lt $ add_lt_of_lt_sub_right h
-      ... ≤ q - (- x) : sub_le_sub (le_refl q) (neg_le_abs_self x)
-      ... ≤ x + q : by simp)
-end
-
-lemma le_mem_nhds {r q : ℚ} (h : r < q) : {x | r ≤ x} ∈ (nhds q).sets :=
-(nhds q).upwards_sets (lt_mem_nhds h) $ assume x, le_of_lt
-
-lemma gt_mem_nhds {r q : ℚ} (h : q < r) : {x | x < r} ∈ (nhds q).sets :=
-have tendsto (λx:ℚ, -x) (nhds q) (nhds (-q)),
-  from tendsto_neg_rat tendsto_id,
-have {x | -r < -x} ∈ (nhds q).sets,
-  from this $ lt_mem_nhds $ neg_lt_neg $ h,
-(nhds q).upwards_sets this $ assume x (h : -r < -x), lt_of_neg_lt_neg h
-
-lemma ge_mem_nhds {r q : ℚ} (h : q < r) : {x | x ≤ r} ∈ (nhds q).sets :=
-(nhds q).upwards_sets (gt_mem_nhds h) $ assume x, le_of_lt
-
-lemma is_open_lt {r : ℚ} : is_open {x | r < x} :=
-by simp [is_open_iff_nhds]; exact assume a, lt_mem_nhds
-
-lemma is_open_gt {r : ℚ} : is_open {x | x < r} :=
-by simp [is_open_iff_nhds]; exact assume a, gt_mem_nhds
-
-lemma is_closed_le {r : ℚ} : is_closed {x | r ≤ x} :=
-show is_open {x | ¬ r ≤ x}, by simp [not_le_iff]; exact is_open_gt
-
-lemma is_closed_ge {r : ℚ} : is_closed {x | x ≤ r} :=
-show is_open {x | ¬ x ≤ r}, by simp [not_le_iff]; exact is_open_lt
 
 lemma uniform_continuous_inv_pos_rat {r : ℚ} (hr : 0 < r) :
   uniform_continuous (λp:{q:ℚ // r ≤ q}, p.1⁻¹) :=
@@ -358,7 +334,7 @@ if h : 0 < r then tendsto_inv_pos_rat h else
 have r < 0, from lt_of_le_of_ne (le_of_not_gt h) hr,
 have 0 < -r, from lt_neg_of_lt_neg $ by simp * at *,
 have tendsto (λq, - (-q)⁻¹) (nhds r) (nhds (- (-r)⁻¹)),
-  from tendsto_neg_rat $ tendsto_compose (tendsto_neg_rat tendsto_id) (tendsto_inv_pos_rat this),
+  from tendsto_neg $ tendsto_compose (tendsto_neg tendsto_id) (tendsto_inv_pos_rat this),
 by simp [inv_neg] at this; assumption
 
 lemma uniform_continuous_mul_rat {r₁ r₂ : ℚ} (hr₁ : 0 < r₁) (hr₂ : 0 < r₂) :
@@ -398,7 +374,7 @@ uniform_continuous_prod_mk
   (uniform_continuous_subtype_mk
     (uniform_continuous_compose uniform_continuous_subtype_val uniform_continuous_snd) _)
 
-lemma tendsto_mul_rat {r q : ℚ} : tendsto (λp:ℚ×ℚ, p.1 * p.2) (nhds (r, q)) (nhds (r * q)) :=
+private lemma tendsto_mul_rat {r q : ℚ} : tendsto (λp:ℚ×ℚ, p.1 * p.2) (nhds (r, q)) (nhds (r * q)) :=
 have hr : ∀{r:ℚ}, 0 < abs r + 1, from assume r, lt_add_of_le_of_pos (abs_nonneg r) zero_lt_one,
 have ∀{r:ℚ}, {q | abs q ≤ abs r + 1} ∈ (nhds r).sets,
   from assume r,
@@ -415,6 +391,10 @@ have uniform_continuous (λp:{p:ℚ×ℚ // abs p.1 ≤ abs r + 1 ∧ abs p.2 �
   from uniform_continuous_compose uniform_continuous_swap
     (uniform_continuous_mul_rat hr hr),
 tendsto_of_uniform_continuous_subtype this h
+
+instance : topological_ring ℚ :=
+{ rat.topological_add_group with
+  continuous_mul := continuous_iff_tendsto.mpr $ assume ⟨r, q⟩, tendsto_mul_rat }
 
 lemma totally_bounded_01_rat : totally_bounded {q:ℚ | 0 ≤ q ∧ q ≤ 1} :=
 assume s (hs : s ∈ uniformity.sets),
@@ -542,9 +522,6 @@ uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_
     uniform_continuous_neg_rat
     (uniform_continuous_of_embedding uniform_embedding_of_rat)
 
-lemma continuous_neg_real : continuous (λp:ℝ, - p) :=
-continuous_of_uniform uniform_continuous_neg_real
-
 lemma uniform_continuous_add_real : uniform_continuous (λp:ℝ×ℝ, p.1 + p.2) :=
 begin
   rw [real.has_add], simp [lift_rat_op], -- TODO: necessary, otherwise elaborator doesn't terminate
@@ -555,11 +532,14 @@ begin
       (uniform_continuous_of_embedding uniform_embedding_of_rat)))
 end
 
-lemma continuous_add_real' : continuous (λp:ℝ×ℝ, p.1 + p.2) :=
+private lemma continuous_neg_real : continuous (λp:ℝ, - p) :=
+continuous_of_uniform uniform_continuous_neg_real
+
+private lemma continuous_add_real' : continuous (λp:ℝ×ℝ, p.1 + p.2) :=
 continuous_of_uniform uniform_continuous_add_real
 
-lemma continuous_add_real [topological_space α] {f g : α → ℝ} (hf : continuous f) (hg : continuous g) :
-  continuous (λx, f x + g x) :=
+private lemma continuous_add_real [topological_space α] {f g : α → ℝ}
+  (hf : continuous f) (hg : continuous g) : continuous (λx, f x + g x) :=
 continuous_compose (continuous_prod_mk hf hg) continuous_add_real'
 
 instance : add_comm_group ℝ :=
@@ -588,9 +568,9 @@ instance : add_comm_group ℝ :=
     (is_closed_eq (continuous_add_real continuous_neg_real continuous_id) continuous_const)
     (by simp) }
 
-lemma continuous_sub_real [topological_space α] {f g : α → ℝ} (hf : continuous f) (hg : continuous g) :
-  continuous (λx, f x - g x) :=
-by simp; exact continuous_add_real hf (continuous_compose hg continuous_neg_real)
+instance : topological_add_group ℝ :=
+{ continuous_add := continuous_add_real',
+  continuous_neg := continuous_neg_real }
 
 def nonneg : set ℝ := closure (of_rat '' {q : ℚ | q ≥ 0})
 
@@ -604,7 +584,7 @@ lemma of_rat_mem_nonneg_iff {q : ℚ} : of_rat q ∈ nonneg ↔ 0 ≤ q :=
 ⟨ begin
     rw [nonneg, ←closure_induced, ←dense_embedding_of_rat.embedding.right, closure_eq_of_is_closed],
     exact id,
-    exact is_closed_le,
+    exact is_closed_le continuous_const continuous_id,
     exact dense_embedding_of_rat.inj
   end,
   of_rat_mem_nonneg⟩
@@ -639,7 +619,7 @@ lift_rat_fun_of_rat $ continuous_iff_tendsto.mp (continuous_of_uniform uniform_c
 
 private lemma abs_real_neg : ∀{r}, abs_real (- r) = abs_real r :=
 is_closed_property dense_embedding_of_rat.closure_image_univ
-  (is_closed_eq (continuous_compose continuous_neg_real continuous_abs_real') continuous_abs_real')
+  (is_closed_eq (continuous_compose continuous_neg' continuous_abs_real') continuous_abs_real')
   (by simp [of_rat_abs_real, abs_neg])
 
 private lemma abs_real_of_nonneg {r:ℝ} : 0 ≤ r → abs_real r = r :=
@@ -661,11 +641,11 @@ have c_d : continuous d,
     uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_rat.dense $
     uniform_continuous_compose this (uniform_continuous_of_embedding uniform_embedding_of_rat),
 have d_of_rat : ∀q:ℚ, d (of_rat q) = of_rat (q * (1 / 2)),
-  from assume q, @lift_rat_fun_of_rat q (λq, q * (1 / 2)) $ 
+  from assume q, @lift_rat_fun_of_rat q (λq, q * (1 / 2)) $
     continuous_iff_tendsto.mp (continuous_of_uniform this) q,
 let f := λr, abs_real (- r) + (- r) in
 have continuous f,
-  from continuous_add_real (continuous_compose continuous_neg_real continuous_abs_real') continuous_neg_real,
+  from continuous_add (continuous_compose continuous_neg' continuous_abs_real') continuous_neg',
 have ∀ r∈nonneg, f r ∈ closure ({0} : set ℝ),
   from assume r hr, @mem_closure_of_continuous ℝ ℝ _ _ f r _ _ this hr $
     show ∀ (a : ℝ), a ∈ of_rat '' {q : ℚ | q ≥ 0} → abs_real (- a) + (- a) ∈ closure ({0}:set ℝ),
@@ -675,7 +655,7 @@ have h₁ : ∀{r}, r ∈ nonneg → abs_real (- r) + (- r) = 0,
   from assume r hr, show f r = 0, by simp [closure_singleton] at this; exact this _ hr,
 have h₂ : ∀r, r = d (r + r),
   from is_closed_property dense_embedding_of_rat.closure_image_univ
-    (is_closed_eq continuous_id $ continuous_compose (continuous_add_real continuous_id continuous_id) c_d)
+    (is_closed_eq continuous_id $ continuous_compose (continuous_add continuous_id continuous_id) c_d)
     begin
       intro a,
       have h : (a + a) * 2⁻¹ = a,
@@ -707,7 +687,7 @@ instance : linear_order ℝ :=
   le_refl := assume a, show (a - a) ∈ nonneg, by simp; exact of_rat_mem_nonneg (le_refl _),
   le_trans := assume a b c (h₁ : b - a ∈ nonneg) (h₂ : c - b ∈ nonneg),
     have (c - b) + (b - a) ∈ nonneg,
-      from mem_nonneg_of_continuous2 continuous_add_real' h₂ h₁ $
+      from mem_nonneg_of_continuous2 continuous_add' h₂ h₁ $
         assume a b ha hb, by rw [of_rat_add]; exact of_rat_mem_nonneg (le_add_of_le_of_nonneg ha hb),
     have (c - b) + (b - a) = c - a,
       from calc (c - b) + (b - a) = c + - a + (b + -b) : by simp [-add_right_neg]
@@ -767,31 +747,35 @@ funext $ assume f, map_eq_vmap_of_inverse (funext neg_neg) (funext neg_neg)
 lemma map_neg_rat : map (has_neg.neg : ℚ → ℚ) = vmap (has_neg.neg : ℚ → ℚ) :=
 funext $ assume f, map_eq_vmap_of_inverse (funext neg_neg) (funext neg_neg)
 
-lemma is_closed_le_real [topological_space α] {f g : α → ℝ} (hf : continuous f) (hg : continuous g) :
-  is_closed {a:α | f a ≤ g a} :=
+private lemma is_closed_le_real [topological_space α] {f g : α → ℝ}
+  (hf : continuous f) (hg : continuous g) : is_closed {a:α | f a ≤ g a} :=
 have h : {a:α | f a ≤ g a} = (λa, g a - f a) ⁻¹' nonneg,
   from set.ext $ by simp [-of_rat_zero, zero_le_iff_nonneg.symm, -sub_eq_add_neg, le_sub_iff_add_le],
 have is_closed ((λa, g a - f a) ⁻¹' nonneg),
-  from continuous_iff_is_closed.mp (continuous_sub_real hg hf) _ is_closed_closure,
+  from continuous_iff_is_closed.mp (continuous_sub hg hf) _ is_closed_closure,
 by rw [h]; exact this
 
-lemma is_open_lt_real [topological_space α] {f g : α → ℝ} (hf : continuous f) (hg : continuous g) :
-  is_open {a | f a < g a} :=
+private lemma is_open_lt_real [topological_space α] {f g : α → ℝ}
+  (hf : continuous f) (hg : continuous g) : is_open {a | f a < g a} :=
 have {a | f a < g a} = - {a | g a ≤ f a}, from set.ext $ assume y, by simp [not_le_iff],
 by rw [this]; exact is_open_compl_iff.mpr (is_closed_le_real hg hf)
+
+instance : linear_ordered_topology ℝ :=
+{ is_open_lt := assume x, is_open_lt_real continuous_const continuous_id,
+  is_open_gt := assume x, is_open_lt_real continuous_id continuous_const }
 
 lemma closure_of_rat_image_le_eq {q : ℚ} : closure (of_rat '' {x | q ≤ x}) = {r | of_rat q ≤ r } :=
 have {r : ℝ | of_rat q < r} ⊆ closure (of_rat '' {x : ℚ | q ≤ x}),
   from calc {r : ℝ | of_rat q < r} ⊆ {r : ℝ | of_rat q < r} ∩ closure (of_rat '' univ) :
       by simp [dense_embedding_of_rat.closure_image_univ, inter_univ]; exact subset.refl _
     ... ⊆ closure ({r : ℝ | of_rat q < r} ∩ of_rat '' univ) :
-      closure_inter_open (is_open_lt_real continuous_const continuous_id)
+      closure_inter_open (is_open_lt continuous_const continuous_id)
     ... ⊆ closure (of_rat '' {x : ℚ | q ≤ x}) : closure_mono $ assume r ⟨h₁, p, _, h₂⟩,
       by simp [h₂.symm, of_rat_lt_of_rat] at *; apply mem_image_of_mem; simp; apply le_of_lt h₁,
 subset.antisymm
   (closure_minimal
     (image_subset_iff_subset_preimage.mpr $ by simp [of_rat_le_of_rat] {contextual:=tt})
-    (is_closed_le_real continuous_const continuous_id)) $
+    (is_closed_le continuous_const continuous_id)) $
   calc {r:ℝ | of_rat q ≤ r} ⊆ {of_rat q} ∪ {r | of_rat q < r} :
       assume x, by simp [le_iff_lt_or_eq, and_imp_iff, or_imp_iff_and_imp] {contextual := tt}
     ... ⊆ closure (of_rat '' {x | q ≤ x}) :
@@ -806,7 +790,7 @@ have a_lt ∩ lt_b ⊆ ivl,
       by simp [dense_embedding_of_rat.closure_image_univ, inter_univ]; exact subset.refl _
     ... ⊆ closure ((a_lt ∩ lt_b) ∩ of_rat '' univ) :
       closure_inter_open $ is_open_inter
-        (is_open_lt_real continuous_const continuous_id) (is_open_lt_real continuous_id continuous_const)
+        (is_open_lt continuous_const continuous_id) (is_open_lt continuous_id continuous_const)
     ... ⊆ ivl :
       closure_mono $ assume r ⟨⟨hra, hrb⟩, q, hq, hrq⟩,
         hrq ▸ mem_image_of_mem of_rat
@@ -819,7 +803,7 @@ have hab : ({of_rat a, of_rat b}:set ℝ) ⊆ ivl,
     by simp [subset_def, or_imp_iff_and_imp, hab, mem_image_of_mem] {contextual := tt},
 subset.antisymm
   (closure_minimal (by simp [image_subset_iff_subset_preimage, of_rat_le_of_rat] {contextual := tt}) $
-    is_closed_inter (is_closed_le_real continuous_const continuous_id) (is_closed_le_real continuous_id continuous_const))
+    is_closed_inter (is_closed_le continuous_const continuous_id) (is_closed_le continuous_id continuous_const))
   (calc {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} ⊆ {of_rat a, of_rat b} ∪ (a_lt ∩ lt_b) :
       assume x, by simp [le_iff_lt_or_eq, and_imp_iff, or_imp_iff_and_imp] {contextual := tt}
     ... ⊆ ivl : union_subset hab this)
@@ -859,8 +843,8 @@ lemma mem_uniformity_real_iff {s : set (ℝ × ℝ)} :
   let ⟨t, ht, (hst : _ ⊆ _)⟩ := this, ⟨e, he, het⟩ := by rw [mem_zero_nhd_iff] at ht; exact ht in
   have ∀r:ℝ×ℝ, abs (r.1 - r.2) < of_rat e → (r.1, r.2) ∈ s',
     from is_closed_property dense_embedding_of_rat_of_rat.closure_image_univ
-      (is_closed_imp (is_open_lt_real
-        (continuous_compose (continuous_sub_real continuous_fst continuous_snd) continuous_abs_real)
+      (is_closed_imp (is_open_lt
+        (continuous_compose (continuous_sub continuous_fst continuous_snd) continuous_abs_real)
           continuous_const) $ by simp [s'_eq]; exact hcs') $
       assume ⟨q₁, q₂⟩,
       begin
@@ -875,8 +859,8 @@ lemma mem_uniformity_real_iff {s : set (ℝ × ℝ)} :
   let ⟨t, ht, hte⟩ := this in
   have ∀p:ℝ×ℝ, p ∈ interior t → abs (p.1 - p.2) ≤ of_rat (e/2),
     from is_closed_property dense_embedding_of_rat_of_rat.closure_image_univ
-      (is_closed_imp is_open_interior $ is_closed_le_real (continuous_compose
-        (continuous_sub_real continuous_fst continuous_snd) continuous_abs_real)
+      (is_closed_imp is_open_interior $ is_closed_le (continuous_compose
+        (continuous_sub continuous_fst continuous_snd) continuous_abs_real)
         continuous_const) $
       assume ⟨q₁, q₂⟩ hq,
         have (of_rat q₁, of_rat q₂) ∈ t, from interior_subset hq,
@@ -894,7 +878,7 @@ lemma mem_uniformity_real_iff {s : set (ℝ × ℝ)} :
 
 lemma exists_lt_of_rat (r : ℝ) : ∃q:ℚ, r < of_rat q :=
 have {r':ℝ | r < r'} ∩ of_rat '' univ ∈ (nhds (r + 1) ⊓ principal (of_rat '' univ)).sets,
-  from inter_mem_inf_sets (mem_nhds_sets (is_open_lt_real continuous_const continuous_id) $
+  from inter_mem_inf_sets (mem_nhds_sets (is_open_lt continuous_const continuous_id) $
     show r < r + 1, from lt_add_of_le_of_pos (le_refl _) (of_rat_lt_of_rat.mpr zero_lt_one))
     (mem_principal_sets.mpr $ subset.refl _),
 let ⟨x, hx, ⟨q, hq, hxq⟩⟩ := inhabited_of_mem_sets dense_embedding_of_rat.nhds_inf_neq_bot this in
@@ -919,26 +903,28 @@ have ∀a ∈ u ∩ of_rat '' {q : ℚ | 0 ≤ q}, a - of_rat i ∈ nonneg,
   heq ▸ by simp [of_rat_mem_nonneg_iff, -sub_eq_add_neg, le_sub_iff_add_le, this],
 have r - of_rat i ∈ nonneg,
   from @mem_closure_of_continuous _ _ _ _ (λr, r - of_rat i) _ (u ∩ of_rat '' {q | 0 ≤ q}) _
-    (continuous_sub_real continuous_id continuous_const) ‹r ∈ closure (u ∩ of_rat '' {q | 0 ≤ q})› this,
+    (continuous_sub continuous_id continuous_const) ‹r ∈ closure (u ∩ of_rat '' {q | 0 ≤ q})› this,
 ⟨i / 2, div_pos_of_pos_of_pos hi zero_lt_two,
   lt_of_lt_of_le (of_rat_lt_of_rat.mpr $ div_two_lt_of_pos hi) this⟩
 
 lemma continuous_mul_real : continuous (λp:ℝ×ℝ, p.1 * p.2) :=
-have ∀r:ℝ, ∃(s:set ℚ) (q:ℚ), 
+have ∀r:ℝ, ∃(s:set ℚ) (q:ℚ),
     q > 0 ∧ closure (of_rat '' s) ∈ (nhds r).sets ∧ is_closed s ∧ (∀x∈s, abs x ≤ q),
   from assume r,
   let ⟨q, (hrq : abs r < of_rat q)⟩ := exists_lt_of_rat (abs r) in
   have hq : 0 < q, from of_rat_lt_of_rat.mp $ lt_of_le_of_lt (abs_nonneg _) hrq,
   have h_eq : {r : ℝ | of_rat (-q) ≤ r ∧ r ≤ of_rat q} = {r:ℝ | abs r ≤ of_rat q}, by simp [abs_le_iff],
   have {r:ℝ | abs r < of_rat q} ∈ (nhds r).sets,
-    from mem_nhds_sets (is_open_lt_real continuous_abs_real continuous_const) hrq,
+    from mem_nhds_sets (is_open_lt continuous_abs_real continuous_const) hrq,
   ⟨{p:ℚ | - q ≤ p ∧ p ≤ q}, q, hq,
     begin
       rw [closure_of_rat_image_le_le_eq, h_eq],
       exact ((nhds r).upwards_sets this $ assume r hr, le_of_lt hr),
       exact (le_trans (neg_le_of_neg_le $ by simp [le_of_lt hq]) (le_of_lt hq))
     end,
-    is_closed_inter is_closed_le is_closed_ge,
+    is_closed_inter
+      (is_closed_le continuous_const continuous_id)
+      (is_closed_le continuous_id continuous_const),
     assume x, abs_le_iff.mpr⟩,
 begin
   rw [real.has_mul],
@@ -973,13 +959,13 @@ begin
   simp [lift_rat_fun, hr],
   apply tendsto_cong this,
   apply (nhds r).upwards_sets (compl_singleton_mem_nhds hr),
-  intro x; simp {contextual := tt} 
+  intro x; simp {contextual := tt}
 end,
-have h_ex : ∀q, 0 < q → ∀r, of_rat q < r → 
+have h_ex : ∀q, 0 < q → ∀r, of_rat q < r →
     ∃ (c : ℝ), tendsto (of_rat ∘ has_inv.inv) (vmap of_rat (nhds r)) (nhds c),
   from assume q hq a ha,
   have {r | of_rat q < r} ∈ (nhds a).sets,
-    from mem_nhds_sets (is_open_lt_real continuous_const continuous_id) ha,
+    from mem_nhds_sets (is_open_lt continuous_const continuous_id) ha,
   have ha : closure (of_rat '' {x : ℚ | q ≤ x}) ∈ (nhds a).sets,
     from (nhds a).upwards_sets this $ by simp [closure_of_rat_image_le_eq, le_of_lt] {contextual:=tt},
   have uniform_continuous (of_rat ∘ has_inv.inv ∘ subtype.val),
@@ -987,25 +973,25 @@ have h_ex : ∀q, 0 < q → ∀r, of_rat q < r →
       (uniform_continuous_inv_pos_rat hq)
       (uniform_continuous_of_embedding uniform_embedding_of_rat),
   uniform_extend_subtype this uniform_embedding_of_rat dense_embedding_of_rat.dense
-    ha is_closed_le (assume x, id),
+    ha (is_closed_le continuous_const continuous_id) (assume x, id),
 match lt_or_gt_of_ne hr  with
 | or.inr h :=
   let ⟨q, hq, hqr⟩ := exists_pos_of_rat h in
   have {r | of_rat q < r} ∈ (nhds r).sets,
-    from mem_nhds_sets (is_open_lt_real continuous_const continuous_id) hqr,
+    from mem_nhds_sets (is_open_lt continuous_const continuous_id) hqr,
   dense_embedding_of_rat.tendsto_ext $ (nhds r).upwards_sets this $ h_ex q hq
 | or.inl h :=
   have 0 < -r, from lt_neg_of_lt_neg $ by simp; assumption,
   let ⟨q, hq, hqr⟩ := exists_pos_of_rat this in
   have {r | r < of_rat (-q)} ∈ (nhds r).sets,
-    from mem_nhds_sets (is_open_lt_real continuous_id continuous_const)
+    from mem_nhds_sets (is_open_lt continuous_id continuous_const)
       begin rw [←of_rat_neg]; exact lt_neg_of_lt_neg hqr end,
   dense_embedding_of_rat.tendsto_ext $ (nhds r).upwards_sets this $
     assume a (ha : a < of_rat (-q)),
     have of_rat q < -a, by rw [←of_rat_neg] at ha; exact lt_neg_of_lt_neg ha,
     let ⟨c, (hc : tendsto (of_rat ∘ has_inv.inv) (vmap of_rat (nhds (-a))) (nhds c))⟩ := h_ex q hq _ this in
     have tendsto (has_neg.neg ∘ of_rat ∘ has_inv.inv) (vmap of_rat (nhds (-a))) (nhds (- c)),
-      from tendsto_compose hc $ continuous_iff_tendsto.mp continuous_neg_real _,
+      from tendsto_compose hc $ continuous_iff_tendsto.mp continuous_neg' _,
     have h_eq : has_neg.neg ∘ (of_rat ∘ has_inv.inv) = (of_rat ∘ has_inv.inv) ∘ has_neg.neg,
       from funext $ assume r, by simp [(∘), -of_rat_inv, inv_neg],
     have tendsto (of_rat ∘ has_inv.inv) (map has_neg.neg $ vmap of_rat (nhds (-a))) (nhds (- c)),
@@ -1016,7 +1002,7 @@ match lt_or_gt_of_ne hr  with
       begin
         rw [map_neg_rat, vmap_vmap_comp, this],
         conv in (vmap (has_neg.neg ∘ _) (nhds _)) { rw [←vmap_vmap_comp] },
-        exact (vmap_mono $ le_vmap_iff_map_le.mpr $ continuous_iff_tendsto.mp continuous_neg_real _)
+        exact (vmap_mono $ le_vmap_iff_map_le.mpr $ continuous_iff_tendsto.mp continuous_neg' _)
       end,
     ⟨- c, le_trans (map_mono h_le) this⟩
 end
@@ -1079,15 +1065,15 @@ instance : discrete_field ℝ :=
   left_distrib     :=
     is_closed_property3 dense_embedding_of_rat
     (is_closed_eq (continuous_mul_real' continuous_fst
-      (continuous_add_real (continuous_compose continuous_snd continuous_fst) (continuous_compose continuous_snd continuous_snd)))
-      (continuous_add_real (continuous_mul_real' continuous_fst (continuous_compose continuous_snd continuous_fst))
+      (continuous_add (continuous_compose continuous_snd continuous_fst) (continuous_compose continuous_snd continuous_snd)))
+      (continuous_add (continuous_mul_real' continuous_fst (continuous_compose continuous_snd continuous_fst))
          (continuous_mul_real' continuous_fst (continuous_compose continuous_snd continuous_snd))))
     begin intros, rw [of_rat_add, of_rat_mul, of_rat_mul, of_rat_mul, of_rat_add], simp [left_distrib] end,
   right_distrib    := is_closed_property3 dense_embedding_of_rat
     (is_closed_eq (continuous_mul_real'
-      (continuous_add_real continuous_fst (continuous_compose continuous_snd continuous_fst))
+      (continuous_add continuous_fst (continuous_compose continuous_snd continuous_fst))
       (continuous_compose continuous_snd continuous_snd))
-      (continuous_add_real
+      (continuous_add
         (continuous_mul_real' continuous_fst (continuous_compose continuous_snd continuous_snd))
         (continuous_mul_real' (continuous_compose continuous_snd continuous_fst)
           (continuous_compose continuous_snd continuous_snd))))
@@ -1131,11 +1117,14 @@ instance : discrete_linear_ordered_field ℝ :=
   decidable_le    := by apply_instance,
   decidable_lt    := by apply_instance }
 
+instance : topological_ring ℝ := 
+{ real.topological_add_group with continuous_mul := continuous_mul_real }
+
 lemma compact_ivl {a b : ℝ} : compact {r:ℝ | a ≤ r ∧ r ≤ b } :=
 have is_closed_ivl : ∀{a b : ℝ}, is_closed {r:ℝ | a ≤ r ∧ r ≤ b },
   from assume a b, is_closed_inter
-    (is_closed_le_real continuous_const continuous_id)
-    (is_closed_le_real continuous_id continuous_const),
+    (is_closed_le continuous_const continuous_id)
+    (is_closed_le continuous_id continuous_const),
 have compact_01 : compact {r:ℝ | of_rat 0 ≤ r ∧ r ≤ of_rat 1 },
   by rw [←closure_of_rat_image_le_le_eq zero_le_one];
      exact (compact_of_totally_bounded_is_closed (totally_bounded_closure $ totally_bounded_image
@@ -1147,8 +1136,8 @@ if h : a < b then
     by rw [image_comp, ivl_stretch this, ivl_translate]; simp [-of_rat_one, -of_rat_zero],
   by rw [this]; exact compact_image compact_01
     (continuous_compose
-      (continuous_mul_real' continuous_id continuous_const)
-      (continuous_add_real continuous_id continuous_const))
+      (continuous_mul continuous_id continuous_const)
+      (continuous_add continuous_id continuous_const))
 else
   have {r:ℝ | a ≤ r ∧ r ≤ b } ⊆ {a},
     from assume r ⟨har, hbr⟩,
@@ -1156,7 +1145,7 @@ else
     by simp [this],
   compact_of_is_closed_subset compact_singleton is_closed_ivl this
 
-lemma exists_supremum_real {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : ∀a∈s, a ≤ b) : 
+lemma exists_supremum_real {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : ∀a∈s, a ≤ b) :
   ∃x, (∀y∈s, y ≤ x) ∧ (∀y, (∀a∈s, a ≤ y) → x ≤ y) :=
 let f := (⨅r:{r : ℝ // r ∈ s}, principal {r' | r' ∈ s ∧ r.val ≤ r'}) in
 have hf : f ≠ ⊥,
@@ -1173,14 +1162,14 @@ let ⟨x, ⟨hx₁, hx₂⟩, h⟩ := @compact_ivl a b f hf (infi_le_of_le ⟨a,
     have {r' | r' ∈ s ∧ y ≤ r'} ∩ {z | z < y} ∈ (f ⊓ nhds x).sets,
       from inter_mem_inf_sets
         (le_principal_iff.mp $ infi_le_of_le ⟨y, hy⟩ $ subset.refl _)
-        (mem_nhds_sets (is_open_lt_real continuous_id continuous_const) hxy),
+        (mem_nhds_sets (is_open_lt continuous_id continuous_const) hxy),
     let ⟨z, ⟨_, hz₁⟩, hz₂⟩ := inhabited_of_mem_sets h this in
     lt_irrefl y $ lt_of_le_of_lt hz₁ hz₂,
- assume y hy, le_of_not_gt $ assume hxy, 
+ assume y hy, le_of_not_gt $ assume hxy,
     have {r' | r' ≤ y} ∩ {z | y < z} ∈ (f ⊓ nhds x).sets,
       from inter_mem_inf_sets
         (le_principal_iff.mp $ infi_le_of_le ⟨a, ha⟩ $ by simp [hy] {contextual := tt})
-        (mem_nhds_sets (is_open_lt_real continuous_const continuous_id) hxy),
+        (mem_nhds_sets (is_open_lt continuous_const continuous_id) hxy),
     let ⟨z, hzy, hyz⟩ := inhabited_of_mem_sets h this in
     lt_irrefl z $ lt_of_le_of_lt hzy hyz⟩
 

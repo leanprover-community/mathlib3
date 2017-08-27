@@ -42,10 +42,6 @@ lemma one_lt_two : 1 < (2 : ℚ) :=
 calc (1:ℚ) < 1 + 1 : lt_add_of_le_of_pos (le_refl 1) zero_lt_one
   ... = _ : by simp [bit0]
 
-lemma zero_lt_two : 0 < (2 : ℚ) :=
-calc (0:ℚ) < 1 + 1 : lt_add_of_le_of_pos zero_le_one zero_lt_one
-  ... = _ : by simp [bit0]
-
 /- rational numbers form a topological group and hence a uniform space -/
 def zero_nhd : filter ℚ := (⨅r > 0, principal {q | abs q < r})
 
@@ -80,7 +76,7 @@ tendsto_zero_nhds $ assume i hi, by simp [abs_neg, mem_zero_nhd hi]
 
 lemma tendsto_add_rat_zero : tendsto (λp:ℚ×ℚ, p.1 + p.2) (filter.prod zero_nhd zero_nhd) zero_nhd :=
 tendsto_zero_nhds $ assume i hi,
-have 0 < i / 2, from div_pos_of_pos_of_pos hi zero_lt_two,
+have 0 < i / 2, from div_pos_of_pos_of_pos hi two_pos,
 show {x : ℚ × ℚ | abs (x.1 + x.2) < i} ∈ (filter.prod zero_nhd zero_nhd).sets,
   from filter.upwards_sets _ (prod_mem_prod (mem_zero_nhd this) (mem_zero_nhd this)) $
     assume ⟨a, b⟩ ⟨ha, hb⟩,
@@ -635,7 +631,7 @@ lemma eq_0_of_nonneg_of_neg_nonneg {r : ℝ} (hp : r ∈ nonneg) (hn : -r ∈ no
 let d := lift_rat_fun (λq, q * (1 / 2)) in
 have uniform_continuous (λq:ℚ, q * (1 / 2)),
   from uniform_continuous_of_embedding $ uniform_embedding_mul_rat $
-        ne_of_gt $ div_pos_of_pos_of_pos zero_lt_one zero_lt_two,
+        ne_of_gt $ div_pos_of_pos_of_pos zero_lt_one two_pos,
 have c_d : continuous d,
   from continuous_of_uniform $
     uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_rat.dense $
@@ -853,7 +849,7 @@ lemma mem_uniformity_real_iff {s : set (ℝ × ℝ)} :
       end,
   ⟨e, he, assume r₁ r₂ hr, hss' $ this (r₁, r₂) hr⟩,
   assume ⟨e, he, (hes : ∀ (r₁ r₂ : ℝ), abs (r₁ - r₂) < of_rat e → (r₁, r₂) ∈ s)⟩,
-  have 0 < e/2, from div_pos_of_pos_of_pos he zero_lt_two,
+  have 0 < e/2, from div_pos_of_pos_of_pos he two_pos,
   have {q:ℚ×ℚ | abs (q.1 - q.2) < e/2 } ∈ (uniformity.vmap (λp:ℚ×ℚ, (of_rat p.1, of_rat p.2))).sets,
     by rw [uniform_embedding_of_rat.right]; exact mem_uniformity_rat this,
   let ⟨t, ht, hte⟩ := this in
@@ -870,7 +866,7 @@ lemma mem_uniformity_real_iff {s : set (ℝ × ℝ)} :
     assume p hp,
     have abs (p.1 - p.2) < of_rat e,
       from calc _ ≤ of_rat (e / 2) : this p hp
-        ... < of_rat e : of_rat_lt_of_rat.mpr $ div_lt_of_mul_lt_of_pos zero_lt_two $
+        ... < of_rat e : of_rat_lt_of_rat.mpr $ div_lt_of_mul_lt_of_pos two_pos $
           lt_mul_of_gt_one_right he two_gt_one,
     have (p.1, p.2) ∈ s,
       from hes _ _ this,
@@ -904,7 +900,7 @@ have ∀a ∈ u ∩ of_rat '' {q : ℚ | 0 ≤ q}, a - of_rat i ∈ nonneg,
 have r - of_rat i ∈ nonneg,
   from @mem_closure_of_continuous _ _ _ _ (λr, r - of_rat i) _ (u ∩ of_rat '' {q | 0 ≤ q}) _
     (continuous_sub continuous_id continuous_const) ‹r ∈ closure (u ∩ of_rat '' {q | 0 ≤ q})› this,
-⟨i / 2, div_pos_of_pos_of_pos hi zero_lt_two,
+⟨i / 2, div_pos_of_pos_of_pos hi two_pos,
   lt_of_lt_of_le (of_rat_lt_of_rat.mpr $ div_two_lt_of_pos hi) this⟩
 
 lemma continuous_mul_real : continuous (λp:ℝ×ℝ, p.1 * p.2) :=
@@ -1117,7 +1113,7 @@ instance : discrete_linear_ordered_field ℝ :=
   decidable_le    := by apply_instance,
   decidable_lt    := by apply_instance }
 
-instance : topological_ring ℝ := 
+instance : topological_ring ℝ :=
 { real.topological_add_group with continuous_mul := continuous_mul_real }
 
 lemma compact_ivl {a b : ℝ} : compact {r:ℝ | a ≤ r ∧ r ≤ b } :=

@@ -286,12 +286,6 @@ le_antisymm
 
 attribute [ematch] le_refl
 
-@[ematch] theorem foo {a b : α} (h : a = b) : a ≤ b :=
-by rw h; apply le_refl
-
-@[ematch] theorem foo' {a b : α} (h : b = a) : a ≤ b :=
-by rw h; apply le_refl
-
 theorem infi_inf_eq {f g : β → α} : (⨅ x, f x ⊓ g x) = (⨅ x, f x) ⊓ (⨅ x, g x) :=
 le_antisymm
   (le_inf
@@ -309,6 +303,14 @@ begin
   safe, pose h := f a ⊓ g a, begin [smt] ematch, ematch  end
 end
 -/
+
+lemma infi_inf {f : ι → α} {a : α} (i : ι) : (⨅x, f x) ⊓ a = (⨅ x, f x ⊓ a) :=
+le_antisymm
+  (le_infi $ assume i, le_inf (inf_le_left_of_le $ infi_le _ _) inf_le_right)
+  (le_inf (infi_le_infi $ assume i, inf_le_left) (infi_le_of_le i inf_le_right))
+
+lemma inf_infi {f : ι → α} {a : α} (i : ι) : a ⊓ (⨅x, f x) = (⨅ x, a ⊓ f x) :=
+by rw [inf_comm, infi_inf i]; simp [inf_comm]
 
 theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 le_antisymm

@@ -173,10 +173,10 @@ theorem mem_singleton (a : α) : a ∈ ({a} : finset α) := mem_insert a ∅
 theorem mem_singleton_of_eq {x a : α} (H : x = a) : x ∈ ({a} : finset α) :=
 by rw H; apply mem_insert
 
-theorem eq_of_mem_singleton {x a : α} (H : x ∈ insert a ∅) : x = a := iff.mp (mem_singleton_iff _ _) H
+theorem eq_of_mem_singleton {x a : α} (H : x ∈ ({a} : finset α)) : x = a := iff.mp (mem_singleton_iff _ _) H
 
-theorem eq_of_singleton_eq {a b : α} (H : insert a ∅ = insert b ∅) : a = b :=
-have a ∈ insert b ∅, by rw ←H; apply mem_singleton,
+theorem eq_of_singleton_eq {a b : α} (H : ({a} : finset α) = {b}) : a = b :=
+have a ∈ {b}, by rw ←H; apply mem_singleton,
 eq_of_mem_singleton this
 
 theorem insert_eq_of_mem {a : α} {s : finset α} (H : a ∈ s) : has_insert.insert a s = s :=

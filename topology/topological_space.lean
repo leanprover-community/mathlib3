@@ -512,7 +512,7 @@ class t1_space (α : Type u) [topological_space α] :=
 (t1 : ∀x, is_closed ({x} : set α))
 
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
-t1_space.t1 _ x
+t1_space.t1 x
 
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : - {x} ∈ (nhds y).sets :=
 mem_nhds_sets is_closed_singleton $ by simp; exact h
@@ -524,9 +524,9 @@ closure_eq_of_is_closed is_closed_singleton
 class t2_space (α : Type u) [topological_space α] :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
-lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) : 
+lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
-t2_space.t2 _ _ _ h
+t2_space.t2 x y h
 
 instance t2_space.t1_space [topological_space α] [t2_space α] : t1_space α :=
 ⟨assume x,
@@ -546,7 +546,7 @@ instance t2_space.t1_space [topological_space α] [t2_space α] : t1_space α :=
 
 lemma eq_of_nhds_neq_bot [ht : t2_space α] {x y : α} (h : nhds x ⊓ nhds y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
-let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 _ x y this in
+let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 x y this in
 have u ∩ v ∈ (nhds x ⊓ nhds y).sets,
   from inter_mem_inf_sets (mem_nhds_sets hu hx) (mem_nhds_sets hv hy),
 h $ empty_in_sets_eq_bot.mp $ huv ▸ this
@@ -723,8 +723,8 @@ instance inhabited_topological_space {α : Type u} : inhabited (topological_spac
 ⟨⊤⟩
 
 lemma t2_space_top : @t2_space α ⊤ :=
-⟨assume x y hxy, ⟨{x}, {y}, trivial, trivial, mem_insert _ _, mem_insert _ _,
-  eq_empty_of_forall_not_mem $ by intros z hz; simp at hz; cc⟩⟩
+{ t2 := assume x y hxy, ⟨{x}, {y}, trivial, trivial, mem_insert _ _, mem_insert _ _,
+  eq_empty_of_forall_not_mem $ by intros z hz; simp at hz; cc⟩ }
 
 lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x ≤ @nhds α t₁ x) :
   t₁ ≤ t₂ :=

@@ -27,7 +27,7 @@ class topological_add_monoid (α : Type u) [topological_space α] [add_monoid α
 variables [topological_space α] [add_monoid α]
 
 lemma continuous_add' [topological_add_monoid α] : continuous (λp:α×α, p.1 + p.2) :=
-topological_add_monoid.continuous_add _ _
+topological_add_monoid.continuous_add α
 
 lemma continuous_add [topological_add_monoid α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x + g x) :=
@@ -36,7 +36,7 @@ continuous_compose (continuous_prod_mk hf hg) continuous_add'
 lemma tendsto_add [topological_add_monoid α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x + g x) x (nhds (a + b)) :=
 have tendsto (λp:α×α, p.fst + p.snd) (nhds (a, b)) (nhds (a + b)),
-  from continuous_iff_tendsto.mp (topological_add_monoid.continuous_add _ _) (a, b),
+  from continuous_iff_tendsto.mp (topological_add_monoid.continuous_add α) (a, b),
 tendsto_compose (tendsto_prod_mk hf hg) (by rw [nhds_prod_eq] at this; exact this)
 
 end topological_add_monoid
@@ -49,7 +49,7 @@ class topological_add_group (α : Type u) [topological_space α] [add_group α]
 variables [topological_space α] [add_group α]
 
 lemma continuous_neg' [topological_add_group α] : continuous (λx:α, - x) :=
-topological_add_group.continuous_neg _ _
+topological_add_group.continuous_neg α
 
 lemma continuous_neg [topological_add_group α] [topological_space β] {f : β → α}
   (hf : continuous f) : continuous (λx, - f x) :=
@@ -57,7 +57,7 @@ continuous_compose hf continuous_neg'
 
 lemma tendsto_neg [topological_add_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (nhds a)) : tendsto (λx, - f x) x (nhds (- a)) :=
-tendsto_compose hf (continuous_iff_tendsto.mp (topological_add_group.continuous_neg _ _) a)
+tendsto_compose hf (continuous_iff_tendsto.mp (topological_add_group.continuous_neg α) a)
 
 lemma continuous_sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x - g x) :=
@@ -78,12 +78,12 @@ variables [topological_space α] [ring α]
 
 lemma continuous_mul [topological_ring α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x * g x) :=
-continuous_compose (continuous_prod_mk hf hg) (topological_ring.continuous_mul _ _)
+continuous_compose (continuous_prod_mk hf hg) (topological_ring.continuous_mul α)
 
 lemma tendsto_mul [topological_ring α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x * g x) x (nhds (a * b)) :=
 have tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)),
-  from continuous_iff_tendsto.mp (topological_ring.continuous_mul _ _) (a, b),
+  from continuous_iff_tendsto.mp (topological_ring.continuous_mul α) (a, b),
 tendsto_compose (tendsto_prod_mk hf hg) (by rw [nhds_prod_eq] at this; exact this)
 
 end topological_ring
@@ -100,10 +100,10 @@ lemma order_separated {a₁ a₂ : α} (h : a₁ < a₂) :
   ∃u v : set α, is_open u ∧ is_open v ∧ a₁ ∈ u ∧ a₂ ∈ v ∧ (∀b₁∈u, ∀b₂∈v, b₁ < b₂) :=
 match dense_or_discrete h with
 | or.inl ⟨a, ha₁, ha₂⟩ := ⟨{a' | a' < a}, {a' | a < a'},
-    linear_ordered_topology.is_open_gt _ _ a, linear_ordered_topology.is_open_lt _ _ a, ha₁, ha₂,
+    linear_ordered_topology.is_open_gt a, linear_ordered_topology.is_open_lt a, ha₁, ha₂,
     assume b₁ h₁ b₂ h₂, lt_trans h₁ h₂⟩
 | or.inr ⟨h₁, h₂⟩ := ⟨{a | a < a₂}, {a | a₁ < a},
-    linear_ordered_topology.is_open_gt _ _ a₂, linear_ordered_topology.is_open_lt _ _ a₁, h, h,
+    linear_ordered_topology.is_open_gt a₂, linear_ordered_topology.is_open_lt a₁, h, h,
     assume b₁ hb₁ b₂ hb₂,
     calc b₁ ≤ a₁ : h₂ _ hb₁
       ... < a₂ : h

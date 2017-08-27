@@ -183,7 +183,7 @@ namespace float
 
 variable [S : fpsettings]
 
-def default_nan : float := nan (fpsettings.default_nan C)
+def default_nan : float := nan fpsettings.default_nan
 
 instance : has_neg float := ⟨float.neg⟩
 

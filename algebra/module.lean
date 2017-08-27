@@ -25,9 +25,9 @@ section module
 variables {α : Type u} {β : Type v} [ring α] [module α β]
 variables {a b c : α} {u v w : β}
 
-theorem smul_left_distrib : a • (u + v) = a • u + a • v := module.smul_left_distrib _ a u v
-theorem smul_right_distrib : (a + b) • u = a • u + b • u := module.smul_right_distrib _ a b u
-theorem mul_smul : (a * b) • u = a • (b • u) :=  module.mul_smul _ a b u
+theorem smul_left_distrib : a • (u + v) = a • u + a • v := module.smul_left_distrib a u v
+theorem smul_right_distrib : (a + b) • u = a • u + b • u := module.smul_right_distrib a b u
+theorem mul_smul : (a * b) • u = a • (b • u) :=  module.mul_smul a b u
 @[simp] theorem one_smul : (1 : α) • u = u := module.one_smul _ u
 
 @[simp] theorem zero_smul : (0 : α) • u = 0 :=

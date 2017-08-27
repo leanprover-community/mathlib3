@@ -119,14 +119,14 @@ class no_top_order (α : Type u) [preorder α] : Prop :=
 (no_top : ∀a:α, ∃a', a < a')
 
 lemma no_top [preorder α] [no_top_order α] : ∀a:α, ∃a', a < a' :=
-no_top_order.no_top _
+no_top_order.no_top
 
 /-- order without a bottom element; somtimes called coinitial or dense -/
 class no_bot_order (α : Type u) [preorder α] : Prop :=
 (no_bot : ∀a:α, ∃a', a' < a)
 
 lemma no_bot [preorder α] [no_bot_order α] : ∀a:α, ∃a', a' < a :=
-no_bot_order.no_bot _
+no_bot_order.no_bot
 
 class densely_ordered (α : Type u) [preorder α] : Prop :=
 (dense : ∀a₁ a₂:α, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂)

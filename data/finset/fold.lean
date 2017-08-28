@@ -12,6 +12,14 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 namespace list
+
+@[congr] lemma map_congr {f g : α → β} : ∀{l : list α}, (∀x∈l, f x = g x) → map f l = map g l
+| [] _     := rfl
+| (a::l) h :=
+  have f a = g a, from h _ (mem_cons_self _ _),
+  have map f l = map g l, from map_congr $ assume a', h _ ∘ mem_cons_of_mem _,
+  show f a :: map f l = g a :: map g l, by simp [*]
+
 variables {op : α → α → α} [ha : is_associative α op] [hc : is_commutative α op]
 local notation a * b := op a b
 local notation l <*> a := foldl op a l
@@ -46,45 +54,46 @@ end list
 namespace finset
 
 section fold
-variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op] {f : α → β} {b : β}
+variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]
 local notation a * b := op a b
 include hc ha
 
 def fold (b : β) (f : α → β) (s : finset α) : β :=
 quot.lift_on s (λl, (l.val.map f).foldl op b) (λl₁ l₂, list.fold_op_eq_of_perm ∘ perm.perm_map _)
 
-variable {op}
+variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 
 @[simp] lemma fold_to_finset_of_nodup {l : list α} (hl : nodup l) :
   (to_finset_of_nodup l hl).fold op b f = (l.map f).foldl op b := rfl
 
 @[simp] lemma fold_empty : (∅:finset α).fold op b f = b := rfl
 
-variables [decidable_eq α] [decidable_eq γ]
+variables [decidable_eq α]
 
-@[simp] lemma fold_insert {s : finset α} {a : α} :
-  a ∉ s → (insert a s).fold op b f = f a * s.fold op b f :=
+@[simp] lemma fold_insert : a ∉ s → (insert a s).fold op b f = f a * s.fold op b f :=
 finset.induction_on_to_finset s $ assume l hl (h : a ∉ l),
   show ((if a ∈ l then l else a :: l).map f).foldl op b = f a * (l.map f).foldl op b,
     begin rw [if_neg h], simp [-foldl_map, -foldl_cons], exact list.foldl_assoc_comm_cons end
 
-@[simp] lemma fold_singleton {a : α} : ({a}:finset α).fold op b f = f a * b :=
+@[simp] lemma fold_singleton : ({a}:finset α).fold op b f = f a * b :=
 calc ({a}:finset α).fold op b f = f a * (∅:finset α).fold op b f : fold_insert $ by simp
   ... = f a * b : by rw [fold_empty]
 
-@[simp] lemma fold_image {g : γ → α} {s : finset γ} :
+@[simp] lemma fold_image [decidable_eq γ] {g : γ → α} {s : finset γ} :
   (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).fold op b f = s.fold op b (f ∘ g) :=
 finset.induction_on_to_finset s $ assume l hl hg, by rw [image_to_finset_of_nodup hl hg]; simp
 
-lemma fold_op_distrib {s : finset α} {f g : α → β} {b₁ b₂ : β} :
+@[congr] lemma fold_congr {g : α → β} : (∀x∈s, f x = g x) → s.fold op b f = s.fold op b g :=
+finset.induction_on_to_finset s $ assume l hl (hg : ∀x∈l, f x = g x),
+  by simp [-foldl_map]; rw [list.map_congr hg]
+
+lemma fold_op_distrib {f g : α → β} {b₁ b₂ : β} :
   s.fold op (b₁ * b₂) (λx, f x * g x) = s.fold op b₁ f * s.fold op b₂ g :=
 s.induction_on (by simp) (by simp {contextual := tt}; cc)
 
-lemma fold_hom
-  {op₁ : β → β → β} [is_commutative β op₁] [is_associative β op₁]
-  {op₂ : γ → γ → γ} [is_commutative γ op₂] [is_associative γ op₂]
-  {s : finset α} {f : α → β} {b : β} {m : β → γ} (hm : ∀x y, m (op₁ x y) = op₂ (m x) (m y)) :
-  m (s.fold op₁ b f) = s.fold op₂ (m b) (λx, m (f x)) :=
+lemma fold_hom {op' : γ → γ → γ} [is_commutative γ op'] [is_associative γ op']
+  {m : β → γ} (hm : ∀x y, m (op x y) = op' (m x) (m y)) :
+  s.fold op' (m b) (λx, m (f x)) = m (s.fold op b f) :=
 s.induction_on (by simp) (by simp [hm] {contextual := tt})
 
 lemma fold_union_inter {s₁ s₂ : finset α} {b₁ b₂ : β} :

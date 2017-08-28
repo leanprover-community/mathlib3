@@ -55,30 +55,32 @@ end comm_monoid
 end list
 
 namespace finset
-section prod_comm_monoid
-open list
-variables [comm_monoid β] (s : finset α) (f : α → β)
+variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
-protected definition prod : β := s.fold (*) 1 f
+protected definition prod [comm_monoid β] (s : finset α) (f : α → β) : β := s.fold (*) 1 f
 
-variables {s f} {s₁ s₂ : finset α}
+variables [decidable_eq α]
 
-@[simp] lemma prod_empty : (∅:finset α).prod f = 1 := rfl
+section comm_monoid
+variables [comm_monoid β]
 
-variable [decidable_eq α]
+@[simp] lemma prod_empty {α : Type u} {f : α → β} : (∅:finset α).prod f = 1 := rfl
 
-@[simp] lemma prod_to_finset_of_nodup {l : list α} (h : nodup l) :
+@[simp] lemma prod_to_finset_of_nodup {l : list α} (h : list.nodup l) :
   (to_finset_of_nodup l h).prod f = (l.map f).prod :=
 fold_to_finset_of_nodup h
 
-@[simp] lemma prod_insert {a : α} : a ∉ s → (insert a s).prod f = f a * s.prod f := fold_insert
+@[simp] lemma prod_insert : a ∉ s → (insert a s).prod f = f a * s.prod f := fold_insert
 
-@[simp] lemma prod_singleton {a : α} : ({a}:finset α).prod f = f a :=
+@[simp] lemma prod_singleton : ({a}:finset α).prod f = f a :=
 eq.trans fold_singleton (by simp)
 
-lemma prod_image [decidable_eq γ] {s : finset γ} {g : γ → α} :
+@[simp] lemma prod_image [decidable_eq γ] {s : finset γ} {g : γ → α} :
   (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).prod f = s.prod (λx, f (g x)) :=
 fold_image
+
+@[congr] lemma prod_congr : (∀x∈s, f x = g x) → s.prod f = s.prod g :=
+fold_congr
 
 lemma prod_union_inter : (s₁ ∪ s₂).prod f * (s₁ ∩ s₂).prod f = s₁.prod f * s₂.prod f :=
 fold_union_inter
@@ -86,10 +88,22 @@ fold_union_inter
 lemma prod_union (h : s₁ ∩ s₂ = ∅) : (s₁ ∪ s₂).prod f = s₁.prod f * s₂.prod f :=
 by rw [←prod_union_inter, h]; simp
 
-lemma prod_mul_distrib {g : α → β} : s.prod (λx, f x * g x) = s.prod f * s.prod g :=
+lemma prod_mul_distrib : s.prod (λx, f x * g x) = s.prod f * s.prod g :=
 eq.trans (by simp; refl) fold_op_distrib
 
-end prod_comm_monoid
+lemma prod_hom [comm_monoid γ] {g : β → γ}
+  (h₁ : g 1 = 1) (h₂ : ∀x y, g (x * y) = g x * g y) : s.prod (λx, g (f x)) = g (s.prod f) :=
+eq.trans (by rw [h₁]; refl) (fold_hom h₂)
+
+end comm_monoid
+
+section comm_group
+variables [comm_group β]
+
+@[simp] lemma prod_inv_distrib : s.prod (λx, (f x)⁻¹) = (s.prod f)⁻¹ := prod_hom one_inv mul_inv
+
+end comm_group
+
 end finset
 
 /- transport versions to additive -/
@@ -204,5 +218,19 @@ run_cmd transport_multiplicative_to_additive [
   (`finset.prod_union, `finset.sum_union),
   (`finset.prod_to_finset_of_nodup, `finset.sum_to_finset_of_nodup),
   (`finset.prod_image, `finset.sum_image),
-  (`finset.prod_mul_distrib, `finset.sum_add_distrib)
+  (`finset.prod_congr, `finset.sum_congr),
+  (`finset.prod_hom, `finset.sum_hom),
+  (`finset.prod_mul_distrib, `finset.sum_add_distrib),
+  (`finset.prod_inv_distrib, `finset.sum_neg_distrib)
   ]
+
+namespace finset
+section add_comm_group
+variables [add_comm_group β] [decidable_eq α] {s : finset α} {f g : α → β}
+
+@[simp] lemma sum_sub_distrib : s.sum (λx, f x - g x) = s.sum f - s.sum g :=
+by simp [sum_add_distrib]
+
+end add_comm_group
+
+end finset

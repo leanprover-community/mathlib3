@@ -11,19 +11,19 @@ open list subtype nat
 
 attribute [reducible] insert
 
-universe u
+universes u v w
 
 def nodup_list (α : Type u) := {l : list α // nodup l}
 
-variable {α : Type u}
+variables {α : Type u} {β : Type v} {γ : Type w}
 
-def to_nodup_list_of_nodup {l : list α} (n : nodup l) : nodup_list α := 
+def to_nodup_list_of_nodup {l : list α} (n : nodup l) : nodup_list α :=
 ⟨l, n⟩
 
 def to_nodup_list [decidable_eq α] (l : list α) : nodup_list α :=
 @to_nodup_list_of_nodup α (erase_dup l) (nodup_erase_dup l)
 
-private def eqv (l₁ l₂ : nodup_list α) := 
+private def eqv (l₁ l₂ : nodup_list α) :=
 perm l₁.1 l₂.1
 
 local infix ~ := eqv
@@ -55,7 +55,7 @@ lemma to_finset_eq_of_nodup [decidable_eq α] {l : list α} (n : nodup l) :
   to_finset_of_nodup l n = to_finset l :=
 have p : to_nodup_list_of_nodup n = to_nodup_list l, from
   begin
-    dsimp [to_nodup_list], have eq : erase_dup l = l, 
+    dsimp [to_nodup_list], have eq : erase_dup l = l,
     {apply erase_dup_eq_of_nodup n},
     {simp [eq]} -- rw [eq] doesn't work
   end,
@@ -101,10 +101,10 @@ theorem ext {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s�
 quotient.induction_on₂ s₁ s₂ (λ l₁ l₂ e, quot.sound (perm.perm_ext l₁.2 l₂.2 e))
 
 /- empty -/
-def empty : finset α :=
+protected def empty : finset α :=
 to_finset_of_nodup [] nodup_nil
 
-instance : has_emptyc (finset α) := ⟨empty⟩
+instance : has_emptyc (finset α) := ⟨finset.empty⟩
 
 @[simp] theorem not_mem_empty (a : α) : a ∉ (∅ : finset α) :=
 λ aine, aine
@@ -130,7 +130,7 @@ quot.lift_on s
   (λ l, length l.1)
   (λ l₁ l₂ p, perm.length_eq_length_of_perm p)
 
-theorem card_empty : card (@empty α) = 0 :=
+theorem card_empty : card (∅ : finset α) = 0 :=
 rfl
 
 lemma ne_empty_of_card_eq_succ {s : finset α} {n : nat} : card s = succ n → s ≠ ∅ :=
@@ -140,14 +140,14 @@ lemma ne_empty_of_card_eq_succ {s : finset α} {n : nat} : card s = succ n → s
 section insert
 variable [decidable_eq α]
 
-def insert (a : α) (s : finset α) : finset α :=
+protected def insert (a : α) (s : finset α) : finset α :=
 quot.lift_on s
   (λ l, to_finset_of_nodup (insert a l.1) (nodup_insert l.2))
   (λ (l₁ l₂ : nodup_list α) (p : l₁ ~ l₂), quot.sound (perm.perm_insert a p))
 
-instance : has_insert α (finset α) := ⟨insert⟩
+instance : has_insert α (finset α) := ⟨finset.insert⟩
 
-theorem mem_insert (a : α) (s : finset α) : a ∈ has_insert.insert a s :=
+theorem mem_insert (a : α) (s : finset α) : a ∈ insert a s :=
 quot.induction_on s
  (λ l : nodup_list α, mem_to_finset_of_nodup _ (mem_insert_self _ _))
 
@@ -161,11 +161,11 @@ quot.induction_on s (λ l : nodup_list α, λ H, list.eq_or_mem_of_mem_insert H)
 theorem mem_of_mem_insert_of_ne {x a : α} {s : finset α} (xin : x ∈ insert a s) : x ≠ a → x ∈ s :=
 or_resolve_right (eq_or_mem_of_mem_insert xin)
 
-theorem mem_insert_iff (x a : α) (s : finset α) : x ∈ has_insert.insert a s ↔ (x = a ∨ x ∈ s) :=
+theorem mem_insert_iff (x a : α) (s : finset α) : x ∈ insert a s ↔ (x = a ∨ x ∈ s) :=
 iff.intro eq_or_mem_of_mem_insert
   (λ h, or.elim h (λ l, by rw l; apply mem_insert) (λ r, mem_insert_of_mem _ r))
 
-theorem mem_singleton_iff (x a : α) : x ∈ (has_insert.insert a (∅ : finset α)) ↔ (x = a) :=
+theorem mem_singleton_iff (x a : α) : x ∈ (insert a (∅ : finset α)) ↔ (x = a) :=
 by rw [mem_insert_iff, mem_empty_iff, or_false]
 
 theorem mem_singleton (a : α) : a ∈ ({a} : finset α) := mem_insert a ∅
@@ -173,13 +173,14 @@ theorem mem_singleton (a : α) : a ∈ ({a} : finset α) := mem_insert a ∅
 theorem mem_singleton_of_eq {x a : α} (H : x = a) : x ∈ ({a} : finset α) :=
 by rw H; apply mem_insert
 
-theorem eq_of_mem_singleton {x a : α} (H : x ∈ ({a} : finset α)) : x = a := iff.mp (mem_singleton_iff _ _) H
+theorem eq_of_mem_singleton {x a : α} (H : x ∈ insert a (∅:finset α)) : x = a :=
+iff.mp (mem_singleton_iff _ _) H
 
-theorem eq_of_singleton_eq {a b : α} (H : ({a} : finset α) = {b}) : a = b :=
-have a ∈ {b}, by rw ←H; apply mem_singleton,
+theorem eq_of_singleton_eq {a b : α} (H : insert a ∅ = insert b (∅:finset α)) : a = b :=
+have a ∈ insert b ∅, by rw ←H; apply mem_singleton,
 eq_of_mem_singleton this
 
-theorem insert_eq_of_mem {a : α} {s : finset α} (H : a ∈ s) : has_insert.insert a s = s :=
+theorem insert_eq_of_mem {a : α} {s : finset α} (H : a ∈ s) : insert a s = s :=
 ext (λ x, by rw mem_insert_iff; apply or_iff_right_of_imp; intro eq; rw eq; assumption)
 
 theorem singleton_ne_empty (a : α) : ({a} : finset α) ≠ ∅ :=
@@ -191,7 +192,7 @@ begin
 end
 
 theorem pair_eq_singleton (a : α) : ({a, a} : finset α) = {a} :=
-by rw [insert_eq_of_mem]; apply mem_singleton
+show insert a {a} = ({a} : finset α), by rw [insert_eq_of_mem]; apply mem_singleton
 
 -- useful in proofs by induction
 theorem forall_of_forall_insert {p : α → Prop} {a : α} {s : finset α}
@@ -199,7 +200,7 @@ theorem forall_of_forall_insert {p : α → Prop} {a : α} {s : finset α}
   ∀ x, x ∈ s → p x :=
 λ x xs, H x (mem_insert_of_mem _ xs)
 
-theorem insert.comm (x y : α) (s : finset α) : has_insert.insert x (has_insert.insert y s) = has_insert.insert y (has_insert.insert x s) :=
+theorem insert.comm (x y : α) (s : finset α) : insert x (insert y s) = insert y (insert x s) :=
 ext (λ a, begin repeat {rw mem_insert_iff}, rw [propext or.left_comm] end)
 
 theorem card_insert_of_mem {a : α} {s : finset α} : a ∈ s → card (insert a s) = card s :=
@@ -215,11 +216,11 @@ theorem card_insert_le (a : α) (s : finset α) :
 if H : a ∈ s then by rw [card_insert_of_mem H]; apply le_succ
 else by rw [card_insert_of_not_mem H]
 
-theorem perm_insert_cons_of_not_mem [decidable_eq α] {a : α} {l : list α} (h : a ∉ l) : perm (list.insert a l) (a :: l) := 
+theorem perm_insert_cons_of_not_mem [decidable_eq α] {a : α} {l : list α} (h : a ∉ l) : perm (list.insert a l) (a :: l) :=
 have list.insert a l = a :: l, from if_neg h, by rw this
 
 @[recursor 6] protected theorem induction {p : finset α → Prop}
-    (H1 : p empty)
+    (H1 : p ∅)
     (H2 : ∀ ⦃a : α⦄, ∀{s : finset α}, ¬ a ∈ s → p s → p (insert a s)) :
   ∀s, p s :=
 λ s,
@@ -237,7 +238,7 @@ quot.induction_on s
         have a ∉ @id (finset α) (quot.mk _ (subtype.mk l' ndl')), from aux₁,
         have p' : p (insert a (quot.mk _ (subtype.mk l' ndl'))), from H2 this p1,
         have list.insert a l' = a :: l', from if_neg aux₁,
-        have hperm : perm (list.insert a l') (a :: l'), by rw this, 
+        have hperm : perm (list.insert a l') (a :: l'), by rw this,
         begin
           apply @eq.subst _ p _ _ _ p',
           apply quot.sound,
@@ -245,19 +246,19 @@ quot.induction_on s
         end)))
 
 protected theorem induction_on {p : finset α → Prop} (s : finset α)
-    (H1 : p empty)
+    (H1 : p ∅)
     (H2 : ∀ ⦃a : α⦄, ∀ {s : finset α}, a ∉ s → p s → p (insert a s)) :
   p s :=
 finset.induction H1 H2 s
 
 theorem exists_mem_of_ne_empty {s : finset α} : s ≠ ∅ → ∃ a : α, a ∈ s :=
-@finset.induction_on _ _ (λ x, x ≠ empty → ∃ a : α, a ∈ x) s 
+@finset.induction_on _ _ (λ x, x ≠ ∅ → ∃ a : α, a ∈ x) s
 (λ h, absurd rfl h)
 (by intros a s nin ih h; existsi a; apply mem_insert)
 
 theorem eq_empty_of_card_eq_zero {s : finset α} (H : card s = 0) : s = ∅ :=
-@finset.induction_on _ _ (λ x, card x = 0 → x = empty) s 
-(λ h, rfl) 
+@finset.induction_on _ _ (λ x, card x = 0 → x = ∅) s
+(λ h, rfl)
 (by intros a s' H1 Ih H; rw (card_insert_of_not_mem H1) at H; contradiction) H
 
 end insert
@@ -298,7 +299,7 @@ iff.intro
   (λ H, mem_erase_of_ne_of_mem (and.right H) (and.left H))
 
 open decidable
-theorem erase_insert {a : α} {s : finset α} : a ∉ s → erase a (has_insert.insert a s) = s :=
+theorem erase_insert {a : α} {s : finset α} : a ∉ s → erase a (insert a s) = s :=
 λ anins, finset.ext (λ b, by_cases
   (λ beqa : b = a, iff.intro
     (λ bin, by subst b; exact absurd bin (not_mem_erase _ _))
@@ -325,14 +326,14 @@ end erase
 section union
 variable [decidable_eq α]
 
-def union (s₁ s₂ : finset α) : finset α :=
+protected def union (s₁ s₂ : finset α) : finset α :=
 quotient.lift_on₂ s₁ s₂
   (λ l₁ l₂,
     to_finset_of_nodup (list.union l₁.1 l₂.1)
                        (nodup_union l₁.1 l₂.2))
   (λ v₁ v₂ w₁ w₂ p₁ p₂, quot.sound (perm.perm_union p₁ p₂))
 
-instance : has_union (finset α) := ⟨union⟩
+instance : has_union (finset α) := ⟨finset.union⟩
 
 theorem mem_union_left {a : α} {s₁ : finset α} (s₂ : finset α) : a ∈ s₁ → a ∈ s₁ ∪ s₂ :=
 quotient.induction_on₂ s₁ s₂ (λ l₁ l₂ ainl₁, list.mem_union_left ainl₁ _)
@@ -373,19 +374,19 @@ ext (λ a, iff.intro
   (λ ain, or.elim (mem_or_mem_of_mem_union ain) (λ i, i) (λ i, i))
   (λ i, mem_union_left _ i))
 
-theorem union_empty (s : finset α) : s ∪ empty = s :=
+theorem union_empty (s : finset α) : s ∪ ∅ = s :=
 ext (λ a, iff.intro
   (λ l, or.elim (mem_or_mem_of_mem_union l) (λ i, i) (λ i, absurd i (not_mem_empty _)))
   (λ r, mem_union_left _ r))
 
-theorem empty_union (s : finset α) : empty ∪ s = s :=
-calc empty ∪ s = s ∪ empty : union_comm _ _
+theorem empty_union (s : finset α) : ∅ ∪ s = s :=
+calc ∅ ∪ s = s ∪ ∅ : union_comm _ _
      ... = s : union_empty _
 
-theorem insert_eq (a : α) (s : finset α) : has_insert.insert a s = has_insert.insert a ∅ ∪ s :=
+theorem insert_eq (a : α) (s : finset α) : insert a s = insert a ∅ ∪ s :=
 ext (λ x, by rw [mem_insert_iff, mem_union_iff, mem_singleton_iff])
 
-theorem insert_union (a : α) (s t : finset α) : has_insert.insert a (s ∪ t) = has_insert.insert a s ∪ t :=
+theorem insert_union (a : α) (s t : finset α) : insert a (s ∪ t) = insert a s ∪ t :=
 by rw [insert_eq, insert_eq a s, union_assoc]
 
 end union
@@ -394,14 +395,14 @@ end union
 section inter
 variable [decidable_eq α]
 
-def inter (s₁ s₂ : finset α) : finset α :=
+protected def inter (s₁ s₂ : finset α) : finset α :=
 quotient.lift_on₂ s₁ s₂
   (λ l₁ l₂,
     to_finset_of_nodup (list.inter l₁.1 l₂.1)
                        (nodup_inter_of_nodup _ l₁.2))
   (λ v₁ v₂ w₁ w₂ p₁ p₂, quot.sound (perm.perm_inter p₁ p₂))
 
-instance : has_inter (finset α) := ⟨inter⟩
+instance : has_inter (finset α) := ⟨finset.inter⟩
 
 theorem mem_of_mem_inter_left {a : α} {s₁ s₂ : finset α} : a ∈ s₁ ∩ s₂ → a ∈ s₁ :=
 quotient.induction_on₂ s₁ s₂ (λ l₁ l₂ ainl₁l₂, list.mem_of_mem_inter_left ainl₁l₂)
@@ -434,34 +435,28 @@ ext (λ a, iff.intro
   (λ h, mem_of_mem_inter_right h)
   (λ h, mem_inter h h))
 
-theorem inter_empty (s : finset α) : s ∩ empty = empty :=
+theorem inter_empty (s : finset α) : s ∩ ∅ = ∅ :=
 ext (λ a, iff.intro
   (λ h, absurd (mem_of_mem_inter_right h) (not_mem_empty _))
   (λ h, absurd h (not_mem_empty _)))
 
-theorem empty_inter (s : finset α) : empty ∩ s = empty :=
-calc empty ∩ s = s ∩ empty : inter_comm _ _
-       ... = empty     : inter_empty _
+theorem empty_inter (s : finset α) : ∅ ∩ s = ∅ :=
+calc ∅ ∩ s = s ∩ ∅ : inter_comm _ _
+       ... = ∅     : inter_empty _
 
-theorem singleton_inter_of_mem {a : α} {s : finset α} (H : a ∈ s) :
-  has_insert.insert a ∅ ∩ s = has_insert.insert a ∅ :=
-ext (λ x,
-  begin
-    rw [mem_inter_iff, mem_singleton_iff],
-    exact iff.intro
-      (λ h, h.left)
-      (λ h, ⟨h, (eq.subst (eq.symm h) H)⟩)
-  end)
+theorem insert_inter_of_mem {s₁ s₂ : finset α} {a : α} (h : a ∈ s₂) :
+  insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
+ext $ assume a', by by_cases a' = a with h'; simp [mem_inter_iff, mem_insert_iff, h, h']
 
-theorem singleton_inter_of_not_mem {a : α} {s : finset α} (H : a ∉ s) :
-  has_insert.insert a ∅ ∩ s = (∅ : finset α) :=
-ext (λ x,
-  begin
-    rw [mem_inter_iff, mem_singleton_iff, mem_empty_iff],
-    exact iff.intro
-      (λ h, H (eq.subst h.left h.right))
-      (false.elim)
-end)
+theorem insert_inter_of_not_mem {s₁ s₂ : finset α} {a : α} (h : a ∉ s₂) :
+  insert a s₁ ∩ s₂ = s₁ ∩ s₂ :=
+ext $ assume a', by by_cases a' = a with h'; simp [mem_inter_iff, mem_insert_iff, h, h']
+
+theorem singleton_inter_of_mem {a : α} {s : finset α} : a ∈ s → insert a ∅ ∩ s = insert a ∅ :=
+by simp [insert_inter_of_mem, empty_inter] {contextual:=tt}
+
+theorem singleton_inter_of_not_mem {a : α} {s : finset α} : a ∉ s → insert a ∅ ∩ s = ∅ :=
+by simp [insert_inter_of_not_mem, empty_inter] {contextual:=tt}
 
 end inter
 
@@ -482,19 +477,19 @@ theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) �
 ext (λ x, by rw [mem_union_iff]; repeat {rw mem_inter_iff}; repeat {rw mem_union_iff}; apply iff.intro; repeat {finish})
 
 end inter
-def subset_aux {α : Type u} (l₁ l₂ : list α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
+protected def subset_aux {α : Type u} (l₁ l₂ : list α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
 
 /- subset -/
-def subset (s₁ s₂ : finset α) : Prop :=
+protected def subset (s₁ s₂ : finset α) : Prop :=
 quotient.lift_on₂ s₁ s₂
-  (λ l₁ l₂, subset_aux l₁.1 l₂.1)
+  (λ l₁ l₂, finset.subset_aux l₁.1 l₂.1)
   (λ v₁ v₂ w₁ w₂ p₁ p₂, propext (iff.intro
     (λ s₁ a i, perm.mem_of_perm p₂ (s₁ (perm.mem_of_perm (perm.symm p₁) i)))
     (λ s₂ a i, perm.mem_of_perm (perm.symm p₂) (s₂ (perm.mem_of_perm p₁ i)))))
 
-instance : has_subset (finset α) := ⟨subset⟩
+instance : has_subset (finset α) := ⟨finset.subset⟩
 
-theorem empty_subset (s : finset α) : empty ⊆ s :=
+theorem empty_subset (s : finset α) : ∅ ⊆ s :=
 quot.induction_on s (λ l, list.nil_subset l.1)
 
 -- theorem subset_univ [h : fintype α] (s : finset α) : s ⊆ univ :=
@@ -522,11 +517,11 @@ quotient.induction_on₂ s₁ s₂ (λ l₁ l₂ H, H)
 theorem subset_insert [h : decidable_eq α] (s : finset α) (a : α) : s ⊆ insert a s :=
 subset_of_forall (λ x h, mem_insert_of_mem _ h)
 
-theorem eq_empty_of_subset_empty {x : finset α} (H : x ⊆ empty) : x = empty :=
+theorem eq_empty_of_subset_empty {x : finset α} (H : x ⊆ ∅) : x = ∅ :=
 subset.antisymm H (empty_subset x)
 
-theorem subset_empty_iff (x : finset α) : x ⊆ empty ↔ x = empty :=
-iff.intro eq_empty_of_subset_empty (λ xeq, by rw xeq; apply subset.refl empty)
+theorem subset_empty_iff (x : finset α) : x ⊆ ∅ ↔ x = ∅ :=
+iff.intro eq_empty_of_subset_empty (λ xeq, by rw xeq; apply subset.refl ∅)
 
 section
 variable [decidable_eq α]
@@ -555,7 +550,7 @@ eq_of_subset_of_subset (erase_subset _ _)
     have x ≠ a, from λ H', anins (eq.subst H' xs),
 mem_erase_of_ne_of_mem this xs))
 
-theorem erase_insert_subset (a : α) (s : finset α) : erase a (has_insert.insert a s) ⊆ s :=
+theorem erase_insert_subset (a : α) (s : finset α) : erase a (insert a s) ⊆ s :=
 decidable.by_cases
   (λ ains : a ∈ s, by rw [insert_eq_of_mem ains]; apply erase_subset)
   (λ nains : a ∉ s, by rw [erase_insert nains]; apply subset.refl)
@@ -569,7 +564,7 @@ decidable.by_cases
   (λ ains : a ∈ s, by rw [insert_erase ains]; apply subset.refl)
   (λ nains : a ∉ s, by rw[erase_eq_of_not_mem nains]; apply subset_insert)
 
-theorem insert_subset_insert (a : α) {s t : finset α} (H : s ⊆ t) : has_insert.insert a s ⊆ has_insert.insert a t :=
+theorem insert_subset_insert (a : α) {s t : finset α} (H : s ⊆ t) : insert a s ⊆ insert a t :=
 begin
   apply subset_of_forall,
   intro x,
@@ -610,19 +605,19 @@ theorem mem_upto_of_lt {n a : nat} : a < n → a ∈ upto n :=
 theorem mem_upto_iff (a n : nat) : a ∈ upto n ↔ a < n :=
 iff.intro lt_of_mem_upto mem_upto_of_lt
 
-end upto
+theorem upto_zero : upto 0 = ∅ := rfl
 
-theorem upto_zero : upto 0 = empty := rfl
-
-theorem upto_succ (n : ℕ) : upto (succ n) = upto n ∪ has_insert.insert n ∅ :=
+theorem upto_succ (n : ℕ) : upto (succ n) = upto n ∪ insert n ∅ :=
 begin
   apply ext, intro x,
-  rw [mem_union_iff], repeat {rw mem_upto_iff}, 
-  rw [mem_singleton_iff, ←le_iff_lt_or_eq], 
+  rw [mem_union_iff], repeat {rw mem_upto_iff},
+  rw [mem_singleton_iff, ←le_iff_lt_or_eq],
   apply iff.intro,
   {intro h, apply le_of_lt_succ, exact h},
   {apply lt_succ_of_le}
 end
+
+end upto
 
 /- useful rules for calculations with quantifiers -/
 theorem exists_mem_empty_iff (p : α → Prop) : (∃ x, x ∈ (∅ : finset α) ∧ p x) ↔ false :=
@@ -658,5 +653,41 @@ iff.intro
     or.elim (eq_or_mem_of_mem_insert H')
       (λ l, eq.subst (eq.symm l) H.left)
       (λ r, and.right H _ r))
+
+section image
+variables (f : α → β) (s : finset α) [decidable_eq β]
+
+protected def image : finset β :=
+quot.lift_on s (λl, to_finset $ l.val.map f) $ assume ⟨l₁, hl₁⟩ ⟨l₂, hl₂⟩ (h : perm l₁ l₂),
+  quotient.sound $ perm.perm_erase_dup_of_perm $ perm.perm_map _ $ h
+
+variables {f s} [decidable_eq α]
+
+lemma erase_dup_map_erase_dup_eq {f : α → β} :
+  ∀{l : list α}, erase_dup (map f (erase_dup l)) = (erase_dup $ map f l)
+| [] := by simp
+| (x :: xs) :=
+  have f x ∈ map f (erase_dup xs) ↔ f x ∈ map f xs, by simp [mem_map_iff, mem_erase_dup],
+  by by_cases x ∈ xs; by_cases f x ∈ map f xs; simp [mem_map, erase_dup, *] at *
+
+lemma image_to_finset {l : list α} : (to_finset l).image f = to_finset (l.map f) :=
+quot.sound $ show perm (erase_dup $ map f $ erase_dup l) (erase_dup $ map f l),
+  by rw [erase_dup_map_erase_dup_eq]
+
+lemma image_to_finset_of_nodup {l : list α} (hl : nodup l) (h : ∀x∈l, ∀y∈l, f x = f y → x = y) :
+  (to_finset_of_nodup l hl).image f = to_finset_of_nodup (l.map f) (nodup_map_on h hl) :=
+quot.sound $ show perm (erase_dup (map f l)) (l.map f),
+  by rw [erase_dup_eq_of_nodup (nodup_map_on h hl)]
+
+lemma image_id : s.image id = s :=
+quot.induction_on s $ assume ⟨l, hl⟩, show to_finset (l.map id) = to_finset_of_nodup l hl,
+  by rw [map_id, to_finset_eq_of_nodup]
+
+lemma image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.image (g ∘ f) :=
+quot.induction_on s $ assume ⟨l, hl⟩,
+  show ((to_finset_of_nodup l hl).image f).image g = (to_finset_of_nodup l hl).image (g ∘ f),
+    by simp [to_finset_eq_of_nodup, image_to_finset]
+
+end image
 
 end finset

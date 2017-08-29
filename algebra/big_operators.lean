@@ -254,11 +254,11 @@ end ordered_cancel_comm_monoid
 section semiring
 variables [semiring β]
 
-@[simp] lemma sum_mul : s.sum (λx, f x * b) = s.sum f * b :=
-sum_hom (λx, x * b) (zero_mul b) (assume a b, add_mul _ _ _)
+lemma sum_mul : s.sum f * b = s.sum (λx, f x * b) :=
+(sum_hom (λx, x * b) (zero_mul b) (assume a b, add_mul _ _ _)).symm
 
-@[simp] lemma mul_sum : s.sum (λx, b * f x) = b * s.sum f :=
-sum_hom (λx, b * x) (mul_zero b) (assume a b, mul_add _ _ _)
+lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
+(sum_hom (λx, b * x) (mul_zero b) (assume a b, mul_add _ _ _)).symm
 
 end semiring
 

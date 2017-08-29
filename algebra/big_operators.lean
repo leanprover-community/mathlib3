@@ -255,10 +255,10 @@ section semiring
 variables [semiring β]
 
 lemma sum_mul : s.sum f * b = s.sum (λx, f x * b) :=
-(sum_hom (λx, x * b) (zero_mul b) (assume a b, add_mul _ _ _)).symm
+(sum_hom (λx, x * b) (zero_mul b) (assume a c, add_mul a c b)).symm
 
 lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
-(sum_hom (λx, b * x) (mul_zero b) (assume a b, mul_add _ _ _)).symm
+(sum_hom (λx, b * x) (mul_zero b) (assume a c, mul_add b a c)).symm
 
 end semiring
 

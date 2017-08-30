@@ -1141,8 +1141,8 @@ else
     by simp [this],
   compact_of_is_closed_subset compact_singleton is_closed_ivl this
 
-lemma exists_supremum_real {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : ∀a∈s, a ≤ b) :
-  ∃x, (∀y∈s, y ≤ x) ∧ (∀y, (∀a∈s, a ≤ y) → x ≤ y) :=
+lemma exists_supremum_real {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ upper_bounds s) :
+  ∃x, is_lub s x :=
 let f := (⨅r:{r : ℝ // r ∈ s}, principal {r' | r' ∈ s ∧ r.val ≤ r'}) in
 have hf : f ≠ ⊥,
   from infi_neq_bot_of_directed (by apply_instance)
@@ -1152,7 +1152,7 @@ have hf : f ≠ ⊥,
       by simp; exact assume a ⟨ha, h⟩, ⟨le_trans (le_max_right _ _) h, ha⟩⟩)
     (by simp [forall_subtype_iff]; exact assume a ha, ne_empty_of_mem ⟨ha, le_refl a⟩),
 have principal {r' : ℝ | r' ∈ s ∧ a ≤ r'} ≤ principal {r : ℝ | a ≤ r ∧ r ≤ b},
-  by simp [hb] {contextual := tt},
+  by simp [upper_bounds] at hb; simp [hb] {contextual := tt},
 let ⟨x, ⟨hx₁, hx₂⟩, h⟩ := @compact_ivl a b f hf (infi_le_of_le ⟨a, ha⟩ this) in
 ⟨x, assume y hy, le_of_not_gt $ assume hxy,
     have {r' | r' ∈ s ∧ y ≤ r'} ∩ {z | z < y} ∈ (f ⊓ nhds x).sets,
@@ -1161,7 +1161,7 @@ let ⟨x, ⟨hx₁, hx₂⟩, h⟩ := @compact_ivl a b f hf (infi_le_of_le ⟨a,
         (mem_nhds_sets (is_open_lt continuous_id continuous_const) hxy),
     let ⟨z, ⟨_, hz₁⟩, hz₂⟩ := inhabited_of_mem_sets h this in
     lt_irrefl y $ lt_of_le_of_lt hz₁ hz₂,
- assume y hy, le_of_not_gt $ assume hxy,
+ assume y (hy : ∀x∈s, x ≤ y), le_of_not_gt $ assume hxy,
     have {r' | r' ≤ y} ∩ {z | y < z} ∈ (f ⊓ nhds x).sets,
       from inter_mem_inf_sets
         (le_principal_iff.mp $ infi_le_of_le ⟨a, ha⟩ $ by simp [hy] {contextual := tt})

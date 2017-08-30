@@ -493,20 +493,22 @@ theorem nodup_erase_of_nodup [decidable_eq α] (a : α) : ∀ {l}, nodup l → n
     have aux   : nodup (b :: l.erase a),   from nodup_cons nbineal ndeal,
     begin rw [erase_cons_tail _ aneb], exact aux end)
 
-theorem mem_erase_of_nodup [decidable_eq α] (a : α) : ∀ {l}, nodup l → a ∉ l.erase a
-| []     n := (not_mem_nil _)
-| (b::l) n :=
-  have ndl     : nodup l,       from nodup_of_nodup_cons n,
-  have naineal : a ∉ l.erase a, from mem_erase_of_nodup ndl,
-  have nbinl   : b ∉ l,         from not_mem_of_nodup_cons n,
-  by_cases
-  (λ aeqb : b = a, begin rw [aeqb.symm, erase_cons_head], exact nbinl end)
-  (λ aneb : b ≠ a,
-    have aux : a ∉ b :: l.erase a, from
-      assume ainbeal : a ∈ b :: l.erase a, or.elim (eq_or_mem_of_mem_cons ainbeal)
-        (λ aeqb   : a = b, absurd aeqb.symm aneb)
-        (λ aineal : a ∈ l.erase a, absurd aineal naineal),
-    begin rw [erase_cons_tail _ aneb], exact aux end)
+theorem mem_erase_iff_of_nodup [decidable_eq α] {a b : α} :
+  ∀ {l}, nodup l → (a ∈ l.erase b ↔ (a ≠ b ∧ a ∈ l))
+| []       hn := by simp
+| (c :: l) hn :=
+  begin
+    by_cases c = b with h₁,
+    { by_cases a = b with h₂,
+      { simp [h₁, h₂, erase_cons_head],
+        exact h₁ ▸ not_mem_of_nodup_cons hn },
+      { simp [h₁, h₂] } },
+    { simp [h₁, erase_cons_tail, mem_erase_iff_of_nodup (nodup_of_nodup_cons hn)],
+      by_cases a = b; cc }
+  end
+
+theorem mem_erase_of_nodup [decidable_eq α] {a : α} {l} (h : nodup l) : a ∉ l.erase a :=
+by rw [mem_erase_iff_of_nodup h]; simp
 
 def erase_dup [decidable_eq α] : list α → list α
 | []        :=  []

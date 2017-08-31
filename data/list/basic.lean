@@ -600,6 +600,12 @@ theorem mem_filter_of_mem {p : α → Prop} [h : decidable_pred p] {a : α} :
       (assume : a = b, begin simp [this] at pa, contradiction end) --absurd (this ▸ pa) pb)
       (assume : a ∈ l, by simp [pa, pb, mem_filter_of_mem this])
 
+theorem mem_filter_iff {p : α → Prop} [h : decidable_pred p] {a : α} {l : list α} :
+  a ∈ filter p l ↔ a ∈ l ∧ p a :=
+iff.intro
+  (assume h, ⟨mem_of_mem_filter h, of_mem_filter h⟩)
+  (assume ⟨h₁, h₂⟩, mem_filter_of_mem h₁ h₂)
+
 @[simp] lemma span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
 | (a::l) := by by_cases p a with pa; simp [span, take_while, drop_while, pa, span_eq_take_drop l]

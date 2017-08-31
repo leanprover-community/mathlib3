@@ -6,7 +6,8 @@ Authors: Johannes Hölzl
 Theory of topological monoids, groups and rings.
 -/
 
-import topology.topological_space topology.continuity
+import topology.topological_space topology.continuity topology.uniform_space
+  algebra.big_operators
 open filter topological_space
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 
@@ -24,6 +25,7 @@ section topological_add_monoid
 class topological_add_monoid (α : Type u) [topological_space α] [add_monoid α] : Prop :=
 (continuous_add : continuous (λp:α×α, p.1 + p.2))
 
+section
 variables [topological_space α] [add_monoid α]
 
 lemma continuous_add' [topological_add_monoid α] : continuous (λp:α×α, p.1 + p.2) :=
@@ -33,11 +35,24 @@ lemma continuous_add [topological_add_monoid α] [topological_space β] {f : β 
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x + g x) :=
 continuous_compose (continuous_prod_mk hf hg) continuous_add'
 
+lemma tendsto_add' [topological_add_monoid α] {a b : α} :
+  tendsto (λp:α×α, p.fst + p.snd) (nhds (a, b)) (nhds (a + b)) :=
+continuous_iff_tendsto.mp (topological_add_monoid.continuous_add α) (a, b)
+
 lemma tendsto_add [topological_add_monoid α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x + g x) x (nhds (a + b)) :=
-have tendsto (λp:α×α, p.fst + p.snd) (nhds (a, b)) (nhds (a + b)),
-  from continuous_iff_tendsto.mp (topological_add_monoid.continuous_add α) (a, b),
-tendsto_compose (tendsto_prod_mk hf hg) (by rw [nhds_prod_eq] at this; exact this)
+tendsto_compose (tendsto_prod_mk hf hg) (by rw [←nhds_prod_eq]; exact tendsto_add')
+end
+
+section
+variables [topological_space α] [add_comm_monoid α]
+
+lemma tendsto_sum [topological_add_monoid α] {f : γ → β → α} {x : filter β} {a : γ → α} {s : finset γ} :
+  (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.sum (λc, f c b)) x (nhds (s.sum a)) :=
+s.induction_on (by simp; exact tendsto_const_nhds) $ assume b s,
+  by simp [or_imp_distrib, forall_and_distrib, tendsto_add] {contextual := tt}
+
+end
 
 end topological_add_monoid
 
@@ -68,6 +83,43 @@ lemma tendsto_sub [topological_add_group α] {f : β → α} {g : β → α} {x 
 by simp; exact tendsto_add hf (tendsto_neg hg)
 
 end topological_add_group
+
+section uniform_add_group
+class uniform_add_group (α : Type u) [uniform_space α] [add_group α] : Prop :=
+(uniform_continuous_sub : uniform_continuous (λp:α×α, p.1 - p.2))
+
+variables [uniform_space α] [add_group α]
+
+lemma uniform_continuous_sub' [uniform_add_group α] : uniform_continuous (λp:α×α, p.1 - p.2) :=
+uniform_add_group.uniform_continuous_sub α
+
+lemma uniform_continuous_sub [uniform_add_group α] [uniform_space β] {f : β → α} {g : β → α}
+  (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x - g x) :=
+uniform_continuous_compose (uniform_continuous_prod_mk hf hg) uniform_continuous_sub'
+
+lemma uniform_continuous_neg [uniform_add_group α] [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : uniform_continuous (λx, - f x) :=
+have uniform_continuous (λx, 0 - f x),
+  from uniform_continuous_sub uniform_continuous_const hf,
+by simp * at *
+
+lemma uniform_continuous_neg' [uniform_add_group α] : uniform_continuous (λx:α, - x) :=
+uniform_continuous_neg uniform_continuous_id
+
+lemma uniform_continuous_add [uniform_add_group α] [uniform_space β] {f : β → α} {g : β → α}
+  (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x + g x) :=
+have uniform_continuous (λx, f x - - g x),
+  from uniform_continuous_sub hf $ uniform_continuous_neg hg,
+by simp * at *
+
+lemma uniform_continuous_add' [uniform_add_group α] : uniform_continuous (λp:α×α, p.1 + p.2) :=
+uniform_continuous_add uniform_continuous_fst uniform_continuous_snd
+
+instance uniform_add_group.to_topological_add_group [uniform_add_group α] : topological_add_group α :=
+{ continuous_add := continuous_of_uniform uniform_continuous_add',
+  continuous_neg := continuous_of_uniform uniform_continuous_neg' }
+
+end uniform_add_group
 
 section topological_ring
 class topological_ring (α : Type u) [topological_space α] [ring α]

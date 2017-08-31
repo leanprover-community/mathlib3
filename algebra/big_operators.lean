@@ -75,6 +75,9 @@ fold_to_finset_of_nodup h
 @[simp] lemma prod_singleton : ({a}:finset α).prod f = f a :=
 eq.trans fold_singleton (by simp)
 
+@[simp] lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
+s.induction_on (by simp) (by simp {contextual:=tt})
+
 @[simp] lemma prod_image [decidable_eq γ] {s : finset γ} {g : γ → α} :
   (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).prod f = s.prod (λx, f (g x)) :=
 fold_image
@@ -88,15 +91,45 @@ fold_union_inter
 lemma prod_union (h : s₁ ∩ s₂ = ∅) : (s₁ ∪ s₂).prod f = s₁.prod f * s₂.prod f :=
 by rw [←prod_union_inter, h]; simp
 
+lemma prod_bind [decidable_eq γ] {s : finset γ} {t : γ → finset α} :
+  (∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
+s.induction_on (by simp) $
+  assume x s hxs ih hd,
+  have hd' : ∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅,
+    from assume _ hx _ hy, hd _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy),
+  have t x ∩ finset.bind s t = ∅,
+    from ext $ assume a,
+      by simp [mem_bind_iff];
+      from assume h₁ y hys hy₂,
+      have ha : a ∈ t x ∩ t y, by simp [*],
+      have t x ∩ t y = ∅,
+        from hd _ mem_insert _ (mem_insert_of_mem hys) $ assume h, hxs $ h.symm ▸ hys,
+      by rwa [this] at ha,
+  by simp [hxs, prod_union this, ih hd'] {contextual := tt}
+
+lemma prod_product [decidable_eq γ] {s : finset γ} {t : finset α} {f : γ×α → β} :
+  (s.product t).prod f = (s.prod $ λx, t.prod $ λy, f (x, y)) :=
+calc (s.product t).prod f = (s.prod $ λx, (t.image $ λy, (x, y)).prod f) :
+    prod_bind $ assume x hx y hy h, ext $ by simp [mem_image_iff]; cc
+  ... = _ : begin congr, apply funext, intro x, apply prod_image, simp {contextual := tt} end
+
 lemma prod_mul_distrib : s.prod (λx, f x * g x) = s.prod f * s.prod g :=
 eq.trans (by simp; refl) fold_op_distrib
+
+lemma prod_comm [decidable_eq γ] {s : finset γ} {t : finset α} {f : γ → α → β} :
+  (s.prod $ λx, t.prod $ f x) = (t.prod $ λy, s.prod $ λx, f x y) :=
+s.induction_on (by simp) (by simp [prod_mul_distrib] {contextual := tt})
 
 lemma prod_hom [comm_monoid γ] (g : β → γ)
   (h₁ : g 1 = 1) (h₂ : ∀x y, g (x * y) = g x * g y) : s.prod (λx, g (f x)) = g (s.prod f) :=
 eq.trans (by rw [h₁]; refl) (fold_hom h₂)
 
-@[simp] lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
-s.induction_on (by simp) (by simp {contextual:=tt})
+lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → f x = 1) : s₁.prod f = s₂.prod f :=
+have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
+  from prod_congr begin simp [hf] {contextual := tt} end,
+calc s₁.prod f = (s₂ \ s₁).prod f * s₁.prod f : by simp [this]
+  ... = ((s₂ \ s₁) ∪ s₁).prod f : by rw [prod_union]; exact sdiff_inter_self
+  ... = s₂.prod f : by rw [sdiff_union_of_subset h]
 
 end comm_monoid
 
@@ -215,19 +248,22 @@ run_cmd transport_multiplicative_to_additive [
   (`finset.prod._proof_2, `finset.sum._proof_2),
   (`finset.prod, `finset.sum),
   (`finset.prod.equations._eqn_1, `finset.sum.equations._eqn_1),
+  (`finset.prod_to_finset_of_nodup, `finset.sum_to_finset_of_nodup),
   (`finset.prod_empty, `finset.sum_empty),
   (`finset.prod_insert, `finset.sum_insert),
   (`finset.prod_singleton, `finset.sum_singleton),
   (`finset.prod_union_inter, `finset.sum_union_inter),
   (`finset.prod_union, `finset.sum_union),
-  (`finset.prod_to_finset_of_nodup, `finset.sum_to_finset_of_nodup),
   (`finset.prod_image, `finset.sum_image),
+  (`finset.prod_bind, `finset.sum_bind),
+  (`finset.prod_product, `finset.sum_product),
   (`finset.prod_congr, `finset.sum_congr),
   (`finset.prod_hom, `finset.sum_hom),
-  (`finset.prod_const_one, `finset.sum_const_zero),
   (`finset.prod_mul_distrib, `finset.sum_add_distrib),
-  (`finset.prod_inv_distrib, `finset.sum_neg_distrib)
-  ]
+  (`finset.prod_inv_distrib, `finset.sum_neg_distrib),
+  (`finset.prod_const_one, `finset.sum_const_zero),
+  (`finset.prod_comm, `finset.sum_comm),
+  (`finset.prod_subset, `finset.sum_subset)]
 
 namespace finset
 variables [decidable_eq α] {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}

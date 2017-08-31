@@ -427,7 +427,7 @@ theorem ball.imp_left (H : ∀ x, p x → q x)
 h₁ _ $ H _ h
 
 theorem bex.imp_left (H : ∀ x, p x → q x) :
-  (∃ x (_ : p x), r x) → ∃ x (_ : q x), r x 
+  (∃ x (_ : p x), r x) → ∃ x (_ : q x), r x
 | ⟨x, hp, hr⟩ := ⟨x, H _ hp, hr⟩
 
 theorem ball_of_forall (h : ∀ x, p x) (x) (_ : q x) : p x :=

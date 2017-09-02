@@ -86,6 +86,9 @@ by simp [list.erase, h]
   have aninxs : a ∉ xs, from λ ainxs : a ∈ xs, absurd (or.inr ainxs) h,
   by simp [anex, erase_of_not_mem aninxs]
 
+theorem length_erase_of_not_mem {a : α} {l : list α} : a ∉ l → length (l.erase a) = length l :=
+by intro h; simp [h]
+
 theorem erase_append_left {a : α} : ∀ {l₁:list α} (l₂), a ∈ l₁ → (l₁++l₂).erase a = l₁.erase a ++ l₂
 | []      l₂  h := absurd h (not_mem_nil a)
 | (x::xs) l₂  h := if h' : x = a then by simp [h']
@@ -455,20 +458,21 @@ theorem nodup_of_nodup_map (f : α → β) : ∀ {l : list α}, nodup (map f l) 
 | (a::l) d := ndcons (mt (mem_map f) (not_mem_of_nodup_cons d))
   (nodup_of_nodup_map (nodup_of_nodup_cons d))
 
-theorem nodup_map {f : α → β} (inj : injective f) : ∀ {l : list α}, nodup l → nodup (map f l)
-| []      n := begin apply nodup_nil end
-| (x::xs) n :=
-  have nxinxs : x ∉ xs,           from not_mem_of_nodup_cons n,
-  have ndxs   : nodup xs,         from nodup_of_nodup_cons n,
-  have ndmfxs : nodup (map f xs), from nodup_map ndxs,
-  have nfxinm : f x ∉ map f xs,   from
-    λ ab : f x ∈ map f xs,
-      match (exists_of_mem_map ab) with
-      | ⟨(y : α), (yinxs : y ∈ xs), (fyfx : f y = f x)⟩ :=
-        have yeqx : y = x, from inj fyfx,
-        begin subst y, contradiction end
-      end,
-  nodup_cons nfxinm ndmfxs
+theorem nodup_map_on {f : α → β} :
+  ∀{l : list α}, (∀x∈l, ∀y∈l, f x = f y → x = y) → nodup l → nodup (map f l)
+| []      h n := nodup_nil
+| (x::xs) h n :=
+  have f x ∉ map f xs,
+    from assume : f x ∈ map f xs,
+    let ⟨y, hy, heq⟩ := exists_of_mem_map this in
+    have y = x, from h _ (mem_cons_of_mem _ hy) _ (mem_cons_self _ _) heq,
+    not_mem_of_nodup_cons n (this ▸ hy),
+  have ∀x∈xs, ∀y∈xs, f x = f y → x = y,
+    from assume x hx y hy, h _ (mem_cons_of_mem _ hx) _ (mem_cons_of_mem _ hy),
+  nodup_cons ‹f x ∉ map f xs› $ nodup_map_on this $ nodup_of_nodup_cons n
+
+theorem nodup_map {f : α → β} {l : list α} (hf : injective f) (h : nodup l) : nodup (map f l) :=
+nodup_map_on (assume x _ y _ h, hf h) h
 
 instance nodup_decidable [decidable_eq α] : ∀ l : list α, decidable (nodup l)
 | [] := is_true ndnil
@@ -489,20 +493,22 @@ theorem nodup_erase_of_nodup [decidable_eq α] (a : α) : ∀ {l}, nodup l → n
     have aux   : nodup (b :: l.erase a),   from nodup_cons nbineal ndeal,
     begin rw [erase_cons_tail _ aneb], exact aux end)
 
-theorem mem_erase_of_nodup [decidable_eq α] (a : α) : ∀ {l}, nodup l → a ∉ l.erase a
-| []     n := (not_mem_nil _)
-| (b::l) n :=
-  have ndl     : nodup l,       from nodup_of_nodup_cons n,
-  have naineal : a ∉ l.erase a, from mem_erase_of_nodup ndl,
-  have nbinl   : b ∉ l,         from not_mem_of_nodup_cons n,
-  by_cases
-  (λ aeqb : b = a, begin rw [aeqb.symm, erase_cons_head], exact nbinl end)
-  (λ aneb : b ≠ a,
-    have aux : a ∉ b :: l.erase a, from
-      assume ainbeal : a ∈ b :: l.erase a, or.elim (eq_or_mem_of_mem_cons ainbeal)
-        (λ aeqb   : a = b, absurd aeqb.symm aneb)
-        (λ aineal : a ∈ l.erase a, absurd aineal naineal),
-    begin rw [erase_cons_tail _ aneb], exact aux end)
+theorem mem_erase_iff_of_nodup [decidable_eq α] {a b : α} :
+  ∀ {l}, nodup l → (a ∈ l.erase b ↔ (a ≠ b ∧ a ∈ l))
+| []       hn := by simp
+| (c :: l) hn :=
+  begin
+    by_cases c = b with h₁,
+    { by_cases a = b with h₂,
+      { simp [h₁, h₂, erase_cons_head],
+        exact h₁ ▸ not_mem_of_nodup_cons hn },
+      { simp [h₁, h₂] } },
+    { simp [h₁, erase_cons_tail, mem_erase_iff_of_nodup (nodup_of_nodup_cons hn)],
+      by_cases a = b; cc }
+  end
+
+theorem mem_erase_of_nodup [decidable_eq α] {a : α} {l} (h : nodup l) : a ∉ l.erase a :=
+by rw [mem_erase_iff_of_nodup h]; simp
 
 def erase_dup [decidable_eq α] : list α → list α
 | []        :=  []

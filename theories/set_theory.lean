@@ -181,7 +181,7 @@ namespace pSet
 
     def eval (n) : resp n → arity Set.{u} n := eval_aux.1
 
-    @[simp] def eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (f.f x) := rfl
+    @[simp] def eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
   end resp
 
   inductive definable (n) : arity Set.{u} n → Type (u+1)
@@ -204,7 +204,7 @@ namespace classical
   noncomputable def all_definable : Π {n} (F : arity Set.{u} n), definable n F
   | 0     F := let p := @quotient.exists_rep pSet _ F in
                definable.eq_mk ⟨some p, equiv.refl _⟩ (some_spec p)
-  | (n+1) (F : Set → arity Set.{u} n) := begin
+  | (n+1) (F : arity Set.{u} (n + 1)) := begin
       have I := λx, (all_definable (F x)),
       refine definable.eq_mk ⟨λx:pSet, (@definable.resp _ _ (I ⟦x⟧)).1, _⟩ _,
       { dsimp[arity.equiv],
@@ -295,7 +295,7 @@ namespace Set
   show pSet.mem ∅ pSet.omega, from ⟨⟨0⟩, equiv.refl _⟩
 
   @[simp] theorem omega_succ {n : Set.{u}} : n ∈ omega.{u} → insert n n ∈ omega.{u} :=
-  quotient.induction_on n (λx ⟨⟨n⟩, (h : x ≈ of_nat n)⟩, ⟨⟨n+1⟩,
+  quotient.induction_on n (λx ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩,
     have Set.insert ⟦x⟧ ⟦x⟧ = Set.insert ⟦of_nat n⟧ ⟦of_nat n⟧, by rw (@quotient.sound pSet _ _ _ h),
     quotient.exact this⟩)
 

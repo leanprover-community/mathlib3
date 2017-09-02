@@ -516,11 +516,11 @@ le_antisymm
 
 lemma le_map_vmap' {f : filter β} {m : α → β} {s : set β}
   (hs : s ∈ f.sets) (hm : ∀b∈s, ∃a, m a = b) : f ≤ map m (vmap m f) :=
-assume t' ⟨t, ht, (sub : ∀x, m x ∈ t → m x ∈ t')⟩,
+assume t' ⟨t, ht, (sub : m ⁻¹' t ⊆ m ⁻¹' t')⟩,
 f.upwards_sets (inter_mem_sets ht hs) $
   assume x ⟨hxt, hxs⟩,
   let ⟨y, (hy : m y = x)⟩ := hm x hxs in
-  hy ▸ sub _ (show m y ∈ t, from hy.symm ▸ hxt)
+  hy ▸ sub (show m y ∈ t, from hy.symm ▸ hxt)
 
 lemma le_map_vmap {f : filter β} {m : α → β} (hm : ∀x, ∃y, m y = x) : f ≤ map m (vmap m f) :=
 le_map_vmap' univ_mem_sets (assume b _, hm b)
@@ -725,6 +725,18 @@ le_trans (map_mono $ le_map_vmap' hs hi) this
 lemma tendsto_inf {f : α → β} {x : filter α} {y₁ y₂ : filter β}
   (h₁ : tendsto f x y₁) (h₂ : tendsto f x y₂) : tendsto f x (y₁ ⊓ y₂) :=
 le_inf h₁ h₂
+
+lemma tendsto_infi {f : α → β} {x : filter α} {y : ι → filter β}
+  (h : ∀i, tendsto f x (y i)) : tendsto f x (⨅i, y i) :=
+le_infi h
+
+lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : ι)
+  (h : tendsto f (x i) y) : tendsto f (⨅i, x i) y :=
+le_trans (map_mono $ infi_le _ _) h
+
+lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β}
+  (h : ∀a∈s, f a ∈ t) : tendsto f (principal s) (principal t) :=
+by simp [tendsto, image_subset_iff_subset_preimage]; exact h
 
 section lift
 
@@ -1016,21 +1028,21 @@ by simp [filter.prod, mem_inf_sets, mem_vmap];
 -/
 
 section prod
+variables {s : set α} {t : set β} {f : filter α} {g : filter β}
 
 protected def prod (f : filter α) (g : filter β) : filter (α × β) :=
 f.lift $ λs, g.lift' $ λt, set.prod s t
 
-lemma prod_mem_prod {s : set α} {t : set β} {f : filter α} {g : filter β}
-  (hs : s ∈ f.sets) (ht : t ∈ g.sets) : set.prod s t ∈ (filter.prod f g).sets :=
+lemma prod_mem_prod (hs : s ∈ f.sets) (ht : t ∈ g.sets) : set.prod s t ∈ (filter.prod f g).sets :=
 le_principal_iff.mp $ show filter.prod f g ≤ principal (set.prod s t),
   from infi_le_of_le s $ infi_le_of_le hs $ infi_le_of_le t $ infi_le _ ht
 
-lemma prod_same_eq {f : filter α} : filter.prod f f = f.lift' (λt, set.prod t t) :=
+lemma prod_same_eq : filter.prod f f = f.lift' (λt, set.prod t t) :=
 lift_lift'_same_eq_lift'
   (assume s, set.monotone_prod monotone_const monotone_id)
   (assume t, set.monotone_prod monotone_id monotone_const)
 
-lemma mem_prod_iff {s : set (α×β)} {f : filter α} {g : filter β} :
+lemma mem_prod_iff {s : set (α×β)} :
   s ∈ (filter.prod f g).sets ↔ (∃t₁∈f.sets, ∃t₂∈g.sets, set.prod t₁ t₂ ⊆ s) :=
 begin
   delta filter.prod,
@@ -1042,7 +1054,25 @@ begin
   exact (monotone_lift' monotone_const $ monotone_lam $ assume b, set.monotone_prod monotone_id monotone_const)
 end
 
-lemma mem_prod_same_iff {s : set (α×α)} {f : filter α} :
+lemma prod_def : filter.prod f g = f.vmap prod.fst ⊓ g.vmap prod.snd :=
+filter_eq $ set.ext $ assume s,
+  begin
+    simp [mem_prod_iff, mem_inf_sets],
+    exact ⟨assume ⟨t₁, ht₁, t₂, ht₂, h⟩,
+        ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, h, ⟨t₂, ht₂, subset.refl _⟩⟩,
+      assume ⟨t₁, ⟨s₁, hs₁, hts₁⟩, t₂, h, ⟨s₂, hs₂, hts₂⟩⟩,
+      ⟨s₁, hs₁, s₂, hs₂, subset.trans (inter_subset_inter hts₁ hts₂) h⟩⟩
+  end
+
+lemma prod_infi_left {f : ι → filter α} {g : filter β} (i : ι) :
+  filter.prod (⨅i, f i) g = (⨅i, filter.prod (f i) g) :=
+by rw [prod_def, vmap_infi, infi_inf i]; simp [prod_def]
+
+lemma prod_infi_right {f : filter α} {g : ι → filter β} (i : ι) :
+  filter.prod f (⨅i, g i) = (⨅i, filter.prod f (g i)) :=
+by rw [prod_def, vmap_infi, inf_infi i]; simp [prod_def]
+
+lemma mem_prod_same_iff {s : set (α×α)} :
   s ∈ (filter.prod f f).sets ↔ (∃t∈f.sets, set.prod t t ⊆ s) :=
 by rw [prod_same_eq, mem_lift'_iff]; exact set.monotone_prod monotone_id monotone_id
 
@@ -1050,8 +1080,7 @@ lemma prod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f
   filter.prod f₁ g₁ ≤ filter.prod f₂ g₂ :=
 lift_mono hf $ assume s, lift'_mono hg $ le_refl _
 
-lemma prod_comm {f : filter α} {g : filter β} :
-  filter.prod f g = map (λp:β×α, (p.2, p.1)) (filter.prod g f) :=
+lemma prod_comm : filter.prod f g = map (λp:β×α, (p.2, p.1)) (filter.prod g f) :=
 eq.symm $ calc map (λp:β×α, (p.2, p.1)) (filter.prod g f) =
         (g.lift $ λt, map (λp:β×α, (p.2, p.1)) (f.lift' $ λs, set.prod t s)) :
     map_lift_eq $ assume a b h, lift'_mono (le_refl f) (assume t, set.prod_mono h (subset.refl t))

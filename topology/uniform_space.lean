@@ -58,7 +58,9 @@ lemma prod_mk_mem_comp_rel {a b c : α} {s t : set (α×α)} (h₁ : (a, c) ∈ 
 ⟨c, h₁, h₂⟩
 
 @[simp] lemma id_comp_rel {r : set (α×α)} : comp_rel id_rel r = r :=
-set.ext $ assume ⟨a, b⟩, ⟨assume ⟨a', (heq : a = a'), ha'⟩, heq.symm ▸ ha', assume ha, ⟨a, rfl, ha⟩⟩
+set.ext $ assume ⟨a, b⟩, ⟨assume ⟨a', heq, ha'⟩,
+  (show a' = a, from heq.symm) ▸ ha',
+  assume ha, ⟨a, rfl, ha⟩⟩
 
 /-- This core description of a uniform space is outside of the type class hierarchy. It is useful
   for constructions of uniform spaces, when the topology is derived from the uniform space. -/
@@ -440,7 +442,8 @@ lemma closure_image_mem_nhds_of_uniform_embedding
 ∃a, closure (e '' {a' | (a, a') ∈ s}) ∈ (nhds b).sets :=
 have s ∈ (vmap (λp:α×α, (e p.1, e p.2)) $ uniformity).sets,
   from he₁.right.symm ▸ hs,
-let ⟨t₁, ht₁u, (ht₁ : ∀p:α×α, (e p.1, e p.2) ∈ t₁ → p ∈ s)⟩ := this in
+let ⟨t₁, ht₁u, ht₁⟩ := this in
+have ht₁ : ∀p:α×α, (e p.1, e p.2) ∈ t₁ → p ∈ s, from ht₁,
 let ⟨t₂, ht₂u, ht₂s, ht₂c⟩ := comp_symm_of_uniformity ht₁u in
 let ⟨t, htu, hts, htc⟩ := comp_symm_of_uniformity ht₂u in
 have preimage e {b' | (b, b') ∈ t₂} ∈ (vmap e $ nhds b).sets,
@@ -695,7 +698,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   have f ≤ principal s, from infi_le_of_le ⟨∅, finite.empty⟩ $ by simp; exact subset.refl s,
   let
     ⟨c, (hc₁ : c ≤ f), (hc₂ : cauchy c)⟩ := h f ‹f ≠ ⊥› this,
-    ⟨m, hm, (hmd : set.prod m m ⊆ d)⟩ := (@mem_prod_same_iff α d c).mp $ hc₂.right hd
+    ⟨m, hm, (hmd : set.prod m m ⊆ d)⟩ := (@mem_prod_same_iff α c d).mp $ hc₂.right hd
   in
   have c ≤ principal s, from le_trans ‹c ≤ f› this,
   have m ∩ s ∈ c.sets, from inter_mem_sets hm $ le_principal_iff.mp this,
@@ -796,7 +799,7 @@ have cauchy g, from
   have hg : set.prod (p (preimage prod.swap s₁) t) (p s₂ t) ∈ (filter.prod g g).sets,
     from @prod_mem_prod α α _ _ g g hg₁ hg₂,
   (filter.prod g g).upwards_sets hg
-    (assume ⟨a, b⟩ ⟨⟨c₁, c₁t, (hc₁ : (a, c₁) ∈ s₁)⟩, ⟨c₂, c₂t, (hc₂ : (c₂, b) ∈ s₂)⟩⟩,
+    (assume ⟨a, b⟩ ⟨⟨c₁, c₁t, hc₁⟩, ⟨c₂, c₂t, hc₂⟩⟩,
       have (c₁, c₂) ∈ set.prod t t, from ⟨c₁t, c₂t⟩,
       comp_s₁ $ prod_mk_mem_comp_rel hc₁ $
       comp_s₂ $ prod_mk_mem_comp_rel (prod_t this) hc₂)⟩,
@@ -947,7 +950,7 @@ lim_spec $ uniformly_extend_exists h_e h_dense h_f
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] [sγ : separated γ] :
   uniform_continuous ψ :=
 assume d hd,
-let ⟨s, hs, (hs_comp : comp_rel s (comp_rel s s) ⊆ d)⟩ := (mem_lift'_iff $
+let ⟨s, hs, hs_comp⟩ := (mem_lift'_iff $
   monotone_comp_rel monotone_id $ monotone_comp_rel monotone_id monotone_id).mp (comp_le_uniformity3 hd) in
 have h_pnt : ∀{a m}, m ∈ (nhds a).sets → ∃c, c ∈ f '' preimage e m ∧ (c, ψ a) ∈ s ∧ (ψ a, c) ∈ s,
   from assume a m hm,
@@ -961,7 +964,7 @@ have preimage (λp:β×β, (f p.1, f p.2)) s ∈ (@uniformity β _).sets,
   from h_f hs,
 have preimage (λp:β×β, (f p.1, f p.2)) s ∈ (vmap (λx:β×β, (e x.1, e x.2)) uniformity).sets,
   by rwa [h_e.right.symm] at this,
-let ⟨t, ht, (ts : ∀p:(β×β), (e p.1, e p.2) ∈ t → (f p.1, f p.2) ∈ s)⟩ := this in
+let ⟨t, ht, ts⟩ := this in
 show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ uniformity.sets,
   from (@uniformity α _).upwards_sets (interior_mem_uniformity ht) $
   assume ⟨x₁, x₂⟩ hx_t,
@@ -1406,6 +1409,15 @@ lemma uniformity_prod [uniform_space α] [uniform_space β] :
     vmap (λp:(α×β)×(α×β), (p.1.1, p.2.1)) uniformity ⊓
     vmap (λp:(α×β)×(α×β), (p.1.2, p.2.2)) uniformity :=
 by rw [prod.uniform_space, uniform_space.of_core_eq_to_core, uniformity, sup_uniformity]; refl
+
+lemma uniformity_prod_eq_prod [uniform_space α] [uniform_space β] :
+  @uniformity (α×β) _ =
+    map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) (filter.prod uniformity uniformity) :=
+have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
+  vmap (λp:(α×β)×(α×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))),
+  from funext $ assume f, map_eq_vmap_of_inverse
+    (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl) (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl),
+by rw [this, uniformity_prod, prod_def, vmap_inf, vmap_vmap_comp, vmap_vmap_comp]
 
 lemma mem_uniform_prod [t₁ : uniform_space α] [t₂ : uniform_space β] {a : set (α × α)} {b : set (β × β)}
   (ha : a ∈ (@uniformity α _).sets) (hb : b ∈ (@uniformity β _).sets) :

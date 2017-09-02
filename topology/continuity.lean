@@ -27,7 +27,7 @@ set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_image_of_mem 
 lemma subtype.val_image {p : α → Prop} {s : set (subtype p)} :
   subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
 set.ext $ assume a,
-⟨assume ⟨⟨a', ha'⟩, in_s, (h_eq : a' = a)⟩, h_eq ▸ ⟨ha', in_s⟩,
+⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
 @[simp] lemma univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
@@ -85,7 +85,7 @@ compact_of_finite_subcover $ assume c hco hcs,
   have hdo : ∀t∈c, is_open (preimage f t), from assume t' ht, hf _ $ hco _ ht,
   have hds : s ⊆ ⋃i∈c, preimage f i,
     by simp [subset_def]; simp [subset_def] at hcs; exact assume x hx, hcs _ (mem_image_of_mem f hx),
-  let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in 
+  let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in
   ⟨d', hcd', hfd', by simp [subset_def] at hd'; simp [image_subset_iff_subset_preimage]; assumption⟩
 
 end
@@ -340,7 +340,7 @@ lemma continuous_prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, prod.mk (f x) (g x)) :=
 continuous_sup_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
 
-lemma is_open_set_prod {s : set α} {t : set β} (hs : is_open s) (ht: is_open t) :
+lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht: is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
@@ -355,7 +355,7 @@ le_antisymm
     (assume s ⟨t, ht, s_eq⟩,
       have set.prod univ t = s, by simp [s_eq, preimage, set.prod],
       this ▸ (generate_open.basic _ ⟨univ, t, is_open_univ, ht, rfl⟩)))
-  (generate_from_le $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ is_open_set_prod hs ht)
+  (generate_from_le $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ is_open_prod hs ht)
 
 lemma nhds_prod_eq {a : α} {b : β} : nhds (a, b) = filter.prod (nhds a) (nhds b) :=
 by rw [prod_eq_generate_from, nhds_generate_from];
@@ -377,6 +377,19 @@ by rw [prod_eq_generate_from, nhds_generate_from];
           (mem_nhds_sets_iff.mpr ⟨s', subset.refl s', hs', ha⟩)
           (mem_nhds_sets_iff.mpr ⟨t', subset.refl t', ht', hb⟩)
       end)
+
+lemma is_open_prod_iff {s : set (α×β)} : is_open s ↔
+  (∀a b, (a, b) ∈ s → ∃u v, is_open u ∧ is_open v ∧ a ∈ u ∧ b ∈ v ∧ set.prod u v ⊆ s) :=
+begin
+  rw [is_open_iff_nhds],
+  simp [nhds_prod_eq, mem_prod_iff],
+  simp [mem_nhds_sets_iff],
+  exact (forall_congr $ assume a, forall_congr $ assume b, forall_congr $ assume h,
+    ⟨assume ⟨u', ⟨u, hu₁, hu₂, hu₃⟩, v', h, ⟨v, hv₁, hv₂, hv₃⟩⟩,
+      ⟨u, hu₁, v, hv₁, hu₃, hv₃, subset.trans (set.prod_mono hu₂ hv₂) h⟩,
+      assume ⟨u, hu₁, v, hv₁, hu₃, hv₃, h⟩,
+      ⟨u, ⟨u, hu₁, subset.refl u, hu₃⟩, v, h, ⟨v, hv₁, subset.refl v, hv₃⟩⟩⟩)
+end
 
 lemma closure_prod_eq {s : set α} {t : set β} :
   closure (set.prod s t) = set.prod (closure s) (closure t) :=

@@ -42,18 +42,93 @@ section group
 end group
 
 /- transport versions to additive -/
-run_cmd transport_multiplicative_to_additive
-  [  (`left_inverse_inv, `left_inverse_neg),
-     (`inv_eq_inv_iff_eq, `neg_eq_neg_iff_eq),
-     (`inv_eq_one_iff_eq_one, `neg_eq_zero_iff_eq_zero),
-     (`eq_one_of_inv_eq_one, `eq_zero_of_neg_eq_zero),
-     (`eq_inv_iff_eq_inv, `eq_neg_iff_eq_neg),
-     (`mul_right_inv, `add_right_inv),
-     (`eq_of_mul_inv_eq_one, `eq_of_add_neg_eq_zero),
-     (`mul_eq_iff_eq_inv_mul, `add_eq_iff_eq_neg_add),
-     (`mul_eq_iff_eq_mul_inv, `add_eq_iff_eq_add_neg)
-     -- (`mul_eq_one_of_mul_eq_one, `add_eq_zero_of_add_eq_zero)   not needed for commutative groups
-     -- (`muleq_one_iff_mul_eq_one, `add_eq_zero_iff_add_eq_zero)
+run_cmd transport_multiplicative_to_additive [
+  /- map operations -/
+  (`has_mul.mul, `has_add.add), (`has_one.one, `has_zero.zero), (`has_inv.inv, `has_neg.neg),
+  (`has_mul, `has_add), (`has_one, `has_zero), (`has_inv, `has_neg),
+  /- map constructors -/
+  (`has_mul.mk, `has_add.mk), (`has_one, `has_zero.mk), (`has_inv, `has_neg.mk),
+  /- map structures -/
+  (`semigroup, `add_semigroup),
+  (`monoid, `add_monoid),
+  (`group, `add_group),
+  (`comm_semigroup, `add_comm_semigroup),
+  (`comm_monoid, `add_comm_monoid),
+  (`comm_group, `add_comm_group),
+  (`left_cancel_semigroup, `add_left_cancel_semigroup),
+  (`right_cancel_semigroup, `add_right_cancel_semigroup),
+  (`left_cancel_semigroup.mk, `add_left_cancel_semigroup.mk),
+  (`right_cancel_semigroup.mk, `add_right_cancel_semigroup.mk),
+  /- map instances -/
+  (`semigroup.to_has_mul, `add_semigroup.to_has_add),
+  (`monoid.to_has_one, `add_monoid.to_has_zero),
+  (`group.to_has_inv, `add_group.to_has_neg),
+  (`comm_semigroup.to_semigroup, `add_comm_semigroup.to_add_semigroup),
+  (`monoid.to_semigroup, `add_monoid.to_add_semigroup),
+  (`comm_monoid.to_monoid, `add_comm_monoid.to_add_monoid),
+  (`comm_monoid.to_comm_semigroup, `add_comm_monoid.to_add_comm_semigroup),
+  (`group.to_monoid, `add_group.to_add_monoid),
+  (`comm_group.to_group, `add_comm_group.to_add_group),
+  (`comm_group.to_comm_monoid, `add_comm_group.to_add_comm_monoid),
+  (`left_cancel_semigroup.to_semigroup, `add_left_cancel_semigroup.to_add_semigroup),
+  (`right_cancel_semigroup.to_semigroup, `add_right_cancel_semigroup.to_add_semigroup),
+  /- map projections -/
+  (`semigroup.mul_assoc, `add_semigroup.add_assoc),
+  (`comm_semigroup.mul_comm, `add_comm_semigroup.add_comm),
+  (`left_cancel_semigroup.mul_left_cancel, `add_left_cancel_semigroup.add_left_cancel),
+  (`right_cancel_semigroup.mul_right_cancel, `add_right_cancel_semigroup.add_right_cancel),
+  (`monoid.one_mul, `add_monoid.zero_add),
+  (`monoid.mul_one, `add_monoid.add_zero),
+  (`group.mul_left_inv, `add_group.add_left_neg),
+  (`group.mul, `add_group.add),
+  (`group.mul_assoc, `add_group.add_assoc),
+  /- map lemmas -/
+  (`mul_assoc, `add_assoc),
+  (`mul_comm, `add_comm),
+  (`mul_left_comm, `add_left_comm),
+  (`mul_right_comm, `add_right_comm),
+  (`one_mul, `zero_add),
+  (`mul_one, `add_zero),
+  (`mul_left_inv, `add_left_neg),
+  (`mul_left_cancel, `add_left_cancel),
+  (`mul_right_cancel, `add_right_cancel),
+  (`mul_left_cancel_iff, `add_left_cancel_iff),
+  (`mul_right_cancel_iff, `add_right_cancel_iff),
+  (`inv_mul_cancel_left, `neg_add_cancel_left),
+  (`inv_mul_cancel_right, `neg_add_cancel_right),
+  (`eq_inv_mul_of_mul_eq, `eq_neg_add_of_add_eq),
+  (`inv_eq_of_mul_eq_one, `neg_eq_of_add_eq_zero),
+  (`inv_inv, `neg_neg),
+  (`mul_right_inv, `add_right_neg),
+  (`mul_inv_cancel_left, `add_neg_cancel_left),
+  (`mul_inv_cancel_right, `add_neg_cancel_right),
+  (`mul_inv_rev, `neg_add_rev),
+  (`mul_inv, `neg_add),
+  (`inv_inj, `neg_inj),
+  (`group.mul_left_cancel, `add_group.add_left_cancel),
+  (`group.mul_right_cancel, `add_group.add_right_cancel),
+  (`group.to_left_cancel_semigroup, `add_group.to_left_cancel_add_semigroup),
+  (`group.to_right_cancel_semigroup, `add_group.to_right_cancel_add_semigroup),
+  (`eq_inv_of_eq_inv, `eq_neg_of_eq_neg),
+  (`eq_inv_of_mul_eq_one, `eq_neg_of_add_eq_zero),
+  (`eq_mul_inv_of_mul_eq, `eq_add_neg_of_add_eq),
+  (`inv_mul_eq_of_eq_mul, `neg_add_eq_of_eq_add),
+  (`mul_inv_eq_of_eq_mul, `add_neg_eq_of_eq_add),
+  (`eq_mul_of_mul_inv_eq, `eq_add_of_add_neg_eq),
+  (`eq_mul_of_inv_mul_eq, `eq_add_of_neg_add_eq),
+  (`mul_eq_of_eq_inv_mul, `add_eq_of_eq_neg_add),
+  (`mul_eq_of_eq_mul_inv, `add_eq_of_eq_add_neg),
+  (`one_inv, `neg_zero),
+  (`left_inverse_inv, `left_inverse_neg),
+  (`inv_eq_inv_iff_eq, `neg_eq_neg_iff_eq),
+  (`inv_eq_one_iff_eq_one, `neg_eq_zero_iff_eq_zero),
+  (`eq_one_of_inv_eq_one, `eq_zero_of_neg_eq_zero),
+  (`eq_inv_iff_eq_inv, `eq_neg_iff_eq_neg),
+  (`eq_of_mul_inv_eq_one, `eq_of_add_neg_eq_zero),
+  (`mul_eq_iff_eq_inv_mul, `add_eq_iff_eq_neg_add),
+  (`mul_eq_iff_eq_mul_inv, `add_eq_iff_eq_add_neg)
+  -- (`mul_eq_one_of_mul_eq_one, `add_eq_zero_of_add_eq_zero)   not needed for commutative groups
+  -- (`muleq_one_iff_mul_eq_one, `add_eq_zero_iff_add_eq_zero)
   ]
 
 section add_group
@@ -108,6 +183,9 @@ variables [decidable_linear_ordered_comm_group α] {a b : α}
 lemma abs_le_iff  : abs a ≤ b ↔ (- b ≤ a ∧ a ≤ b) :=
 ⟨assume h, ⟨neg_le_of_neg_le $ le_trans (neg_le_abs_self _) h, le_trans (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_le_of_le_of_neg_le h₂ $ neg_le_of_neg_le h₁⟩
+
+@[simp] lemma abs_eq_zero_iff : abs a = 0 ↔ a = 0 :=
+⟨eq_zero_of_abs_eq_zero, by simp [abs_zero] {contextual := tt}⟩
 
 end decidable_linear_ordered_comm_group
 

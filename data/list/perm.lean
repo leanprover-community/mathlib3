@@ -7,9 +7,6 @@ List permutations.
 -/
 import data.list.basic data.list.comb data.list.set
 
--- TODO(Jeremy): Here is a common idiom: after simplifying, we have a goal 1 + t = nat.succ t
--- and need to say rw [add_comm, reflexivity]. Can we get the simplifier to finish this off?
-
 namespace list
 universe variables uu vv
 variables {α : Type uu} {β : Type vv}
@@ -76,9 +73,9 @@ theorem perm_app_right {t₁ t₂ : list α} : ∀ (l : list α), t₁ ~ t₂ �
 theorem perm_app {l₁ l₂ t₁ t₂ : list α} : l₁ ~ l₂ → t₁ ~ t₂ → (l₁++t₁) ~ (l₂++t₂) :=
 assume p₁ p₂, trans (perm_app_left t₁ p₁) (perm_app_right l₂ p₂)
 
---theorem perm_app_cons (a : α) {h₁ h₂ t₁ t₂ : list α} :
---  h₁ ~ h₂ → t₁ ~ t₂ → (h₁ ++ (a::t₁)) ~ (h₂ ++ (a::t₂)) :=
---assume p₁ p₂, perm_app p₁ (skip a p₂)
+theorem perm_app_cons (a : α) {h₁ h₂ t₁ t₂ : list α} :
+  h₁ ~ h₂ → t₁ ~ t₂ → (h₁ ++ (a::t₁)) ~ (h₂ ++ (a::t₂)) :=
+assume p₁ p₂, perm_app p₁ (skip a p₂)
 
 theorem perm_cons_app (a : α) : ∀ (l : list α), (a::l) ~ (l ++ [a])
 | []      := perm.refl _
@@ -113,9 +110,18 @@ have a ∈ [b], from mem_of_perm p (by simp),
 by simp at this; simp [*]
 
 theorem eq_singleton_of_perm_inv {a : α} {l : list α} (p : [a] ~ l) : l = [a] :=
-match l, length_eq_length_of_perm p, p with
-| [a'], rfl, p := by simp [eq_singleton_of_perm p]
+begin
+  cases l with a' l',
+  cases (length_eq_length_of_perm p),
+  cases l',
+  simp [eq_singleton_of_perm p],
+  cases (length_eq_length_of_perm p),
 end
+/- old proof:
+match l, length_eq_length_of_perm p, p with
+| [a'], rfl, p := begin simp [eq_singleton_of_perm p] end
+end
+-/
 
 theorem perm_rev : ∀ (l : list α), l ~ (reverse l)
 | []      := nil
@@ -170,66 +176,6 @@ perm_induction_on p
   (λ x l₁ l₂ p r, skip (f x) r)
   (λ x y l₁ l₂ p r, xswap (f y) (f x) r)
   (λ l₁ l₂ l₃ p₁ p₂ r₁ r₂, trans r₁ r₂)
-
-/- TODO(Jeremy)
-In the next section, the decidability proof works, but gave the following error:
-
-equation compiler failed to generate bytecode for auxiliary declaration 'list.perm.decidable_perm_aux._main'
-nested exception message:
-code generation failed, inductive predicate 'eq' is not supported
-
-So I will comment it out and give another decidability proof below.
--/
-
-/-
-/- permutation is decidable if α has decidable equality -/
-section dec
-open decidable
-variable [Ha : decidable_eq α]
-include Ha
-
-def decidable_perm_aux :
-  ∀ (n : nat) (l₁ l₂ : list α), length l₁ = n → length l₂ = n → decidable (l₁ ~ l₂)
-| 0     l₁      l₂ H₁ H₂ :=
-  have l₁n : l₁ = [], from eq_nil_of_length_eq_zero H₁,
-  have l₂n : l₂ = [], from eq_nil_of_length_eq_zero H₂,
-  begin rw [l₁n, l₂n], exact (is_true perm.nil) end
-| (n+1) (x::t₁) l₂ H₁ H₂ :=
-  by_cases
-    (assume xinl₂ : x ∈ l₂,
-      -- TODO(Jeremy): it seems the equation editor abstracts t₂, and loses the def, so
-      --               I had to expand it manually
-      -- let t₂ : list α := erase x l₂ in
-      have len_t₁ : length t₁ = n,
-        begin
-         simp at H₁,
-         have H₁' : nat.succ (length t₁) = nat.succ n, exact H₁,
-         injection H₁' with e, exact e
-       end,
-      have length (erase x l₂) = nat.pred (length l₂), from length_erase_of_mem xinl₂,
-      have length (erase x l₂) = n, begin rw [this, H₂], reflexivity end,
-      match decidable_perm_aux n t₁ (erase x l₂) len_t₁ this with
-      | is_true p  := is_true (calc
-          x::t₁ ~ x::erase x l₂   : skip x p
-           ...  ~ l₂              : perm.symm (perm_erase xinl₂))
-      | is_false np := is_false (λ p : x::t₁ ~ l₂,
-        have erase x (x::t₁) ~ erase x l₂, from erase_perm_erase_of_perm x p,
-        have t₁ ~ erase x l₂, begin rw [erase_cons_head] at this, exact this end,
-        absurd this np)
-      end)
-    (assume nxinl₂ : x ∉ l₂,
-      is_false (λ p : x::t₁ ~ l₂, absurd (mem_of_perm p (mem_cons_self _ _)) nxinl₂))
-
-attribute [instance]
-def decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂) :=
-λ l₁ l₂,
-by_cases
-  (assume eql : length l₁ = length l₂,
-    decidable_perm_aux (length l₂) l₁ l₂ eql rfl)
-  (assume neql : length l₁ ≠ length l₂,
-    is_false (λ p : l₁ ~ l₂, absurd (length_eq_length_of_perm p) neql))
-end dec
--/
 
 section count
 variable [decα : decidable_eq α]
@@ -410,15 +356,14 @@ theorem qeq_split {a : α} : ∀ {l l' : list α}, l'≈a|l → ∃ l₁ l₂, l
   | ⟨l₁, l₂, h₁, h₂⟩ := ⟨c :: l₁, l₂, by simp [h₁, h₂]⟩
   end
 
---theorem subset_of_mem_of_subset_of_qeq {a : α} {l : list α} {u v : list α} :
---  a ∉ l → a::l ⊆ v → v≈a|u → l ⊆ u :=
---λ (nainl : a ∉ l) (s : a::l ⊆ v) (q : v≈a|u) (b : α) (binl : b ∈ l),
---  have b ∈ v,    from s (or.inr binl),
---  have b ∈ a::u, from mem_cons_of_qeq q this,
---  or.elim (eq_or_mem_of_mem_cons this)
---    (assume : b = a, begin subst b, contradiction end)
---    (assume : b ∈ u, this)
---end qeq
+theorem subset_of_mem_of_subset_of_qeq {a : α} {l : list α} {u v : list α} :
+  a ∉ l → a::l ⊆ v → v≈a|u → l ⊆ u :=
+λ (nainl : a ∉ l) (s : a::l ⊆ v) (q : v≈a|u) (b : α) (binl : b ∈ l),
+  have b ∈ v,    from s (or.inr binl),
+  have b ∈ a::u, from mem_cons_of_qeq q this,
+  or.elim (eq_or_mem_of_mem_cons this)
+    (assume : b = a, begin subst b, contradiction end)
+    (assume : b ∈ u, this)
 
 theorem perm_inv_core {l₁ l₂ : list α} (p' : l₁ ~ l₂) : ∀ {a s₁ s₂}, l₁≈a|s₁ → l₂≈a|s₂ → s₁ ~ s₂ :=
 perm_induction_on p'
@@ -430,13 +375,13 @@ perm_induction_on p'
         (λe₁ _ e₂ e₃, match s₁₂, s₂₁, s₂₂, e₁, e₂, e₃ with
         | ._, ._, ._, rfl, rfl, rfl := p end)
         (λt₃ e₁ e₂ e₃, match s₂₁, s₁₂, t₂, e₁, e₂, e₃, p with
-        | ._, ._, ._, rfl, rfl, rfl, p := trans p (perm_middle _ _ _).symm end) 
+        | ._, ._, ._, rfl, rfl, rfl, p := trans p (perm_middle _ _ _).symm end)
         end)
       (λt₃ e₁ e₂, match s₁₁, t₁, e₁, e₂, C₂, p, @r with ._, ._, rfl, rfl, C₂, p, r := discr C₂
         (λe₁ xa e₂, match x, s₂₁, s₂₂, xa, e₁, e₂ with
         | ._, ._, ._, rfl, rfl, rfl := trans (perm_middle _ _ _) p end)
         (λt₃ e₁ e₂, match s₂₁, t₂, e₁, e₂, @r with
-        | ._, ._, rfl, rfl, r := skip x (r (qeq_app _ _ _) (qeq_app _ _ _)) end) 
+        | ._, ._, rfl, rfl, r := skip x (r (qeq_app _ _ _) (qeq_app _ _ _)) end)
         end)
     end)
   (λ x y t₁ t₂ p (r : ∀{a s₁ s₂}, t₁≈a|s₁ → t₂≈a|s₂ → s₁ ~ s₂) a s₁ s₂ e₁ e₂,
@@ -600,6 +545,51 @@ assume p, perm_induction_on p
             exact xswap x y r
           end)))
   (λ t₁ t₂ t₃ p₁ p₂ r₁ r₂, trans r₁ r₂)
+
+/- permutation is decidable if α has decidable equality -/
+section dec
+open decidable
+variable [Ha : decidable_eq α]
+include Ha
+
+def decidable_perm_aux :
+  ∀ (n : nat) (l₁ l₂ : list α), length l₁ = n → length l₂ = n → decidable (l₁ ~ l₂)
+| 0     l₁      l₂ H₁ H₂ :=
+  have l₁n : l₁ = [], from eq_nil_of_length_eq_zero H₁,
+  have l₂n : l₂ = [], from eq_nil_of_length_eq_zero H₂,
+  begin rw [l₁n, l₂n], exact (is_true perm.nil) end
+| (n+1) (x::t₁) l₂ H₁ H₂ :=
+  by_cases
+    (assume xinl₂ : x ∈ l₂,
+      have len_t₁ : length t₁ = n,
+        begin
+         simp only [length] at H₁,
+         have H₁' : nat.succ (length t₁) = nat.succ n, exact H₁,
+         injection H₁' with e
+       end,
+      have length (l₂.erase x) = nat.pred (length l₂), from length_erase_of_mem xinl₂,
+      have length (l₂.erase x) = n, begin rw [this, H₂], reflexivity end,
+      match decidable_perm_aux n t₁ (l₂.erase x) len_t₁ this with
+      | is_true p  := is_true (calc
+          x::t₁ ~ x::(l₂.erase x)   : skip x p
+           ...  ~ l₂              : perm.symm (perm_erase xinl₂))
+      | is_false np := is_false (λ p : x::t₁ ~ l₂,
+        have (x::t₁).erase x ~ l₂.erase x, from erase_perm_erase_of_perm x p,
+        have t₁ ~ l₂.erase x, begin rw [erase_cons_head] at this, exact this end,
+        absurd this np)
+      end)
+    (assume nxinl₂ : x ∉ l₂,
+      is_false (λ p : x::t₁ ~ l₂, absurd (mem_of_perm p (mem_cons_self _ _)) nxinl₂))
+
+@[instance]
+def decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂) :=
+λ l₁ l₂,
+by_cases
+  (assume eql : length l₁ = length l₂,
+    decidable_perm_aux (length l₂) l₁ l₂ eql rfl)
+  (assume neql : length l₁ ≠ length l₂,
+    is_false (λ p : l₁ ~ l₂, absurd (length_eq_length_of_perm p) neql))
+end dec
 
 -- attribute [congr]
 theorem perm_insert [decidable_eq α] (a : α)

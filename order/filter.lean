@@ -1172,8 +1172,7 @@ le_antisymm
   (le_infi $ assume s, le_infi $ assume hs, le_infi $ assume t, le_infi $ assume ht,
   begin
     revert s hs t ht,
-    simp [-and_imp], -- TODO(Mario): plain simp times out here
-    simp only [and_imp, exists_imp_distrib],
+    simp,
     exact assume s s₁ hs₁ s₂ hs₂ hs t t₁ ht₁ t₂ ht₂ ht,
       ⟨set.prod s₁ t₁, prod_mem_prod hs₁ ht₁, set.prod s₂ t₂, prod_mem_prod hs₂ ht₂,
       by rw [set.prod_inter_prod]; exact set.prod_mono hs ht⟩

@@ -107,8 +107,11 @@ by_contradiction $ hb ∘ h
 theorem not_imp_comm [decidable a] [decidable b] : (¬a → b) ↔ (¬b → a) :=
 ⟨not.imp_symm, not.imp_symm⟩
 
-theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
+theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 ⟨function.swap, function.swap⟩
+
+theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
+imp.swap
 
 /- and -/
 
@@ -308,8 +311,16 @@ by simp
 @[simp] theorem forall_true_iff : (α → true) ↔ true :=
 iff_true_intro (λ _, trivial)
 
-@[simp] theorem forall_true_iff' (h : b ↔ true) : (α → b) ↔ true :=
+-- Unfortunately this causes simp to loop sometimes, so we
+-- add the 2 and 3 cases as simp lemmas instead
+theorem forall_true_iff' (h : b ↔ true) : (α → b) ↔ true :=
 iff_true_intro (λ _, of_iff_true h)
+
+@[simp] theorem forall_2_true_iff {β} : (α → β → true) ↔ true :=
+forall_true_iff' forall_true_iff
+
+@[simp] theorem forall_3_true_iff {β γ} : (α → β → γ → true) ↔ true :=
+forall_true_iff' forall_2_true_iff
 
 @[simp] theorem forall_const (α : Sort*) [inhabited α] : (α → b) ↔ b :=
 ⟨λ h, h (arbitrary α), λ hb x, hb⟩

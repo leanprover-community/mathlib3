@@ -34,5 +34,13 @@ end
 meta def rcases (p : parse texpr) (ids : parse (tk "with" *> rcases_parse)?) : tactic unit :=
 tactic.rcases p $ rcases_parse.invert $ ids.get_or_else [default _]
 
+meta def simpf (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
+  (locat : parse (tk "at" *> ident)?) (cfg : simp_config_ext := {}) : tactic unit :=
+do lc ← match locat with
+| none := get_local `this >> pure [some `this, none] <|> pure [none]
+| some lc := pure [some lc, none]
+end,
+simp no_dflt hs attr_names (loc.ns lc) cfg >> (assumption <|> trivial)
+
 end interactive
 end tactic

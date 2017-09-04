@@ -403,8 +403,7 @@ by_cases (assume h : s = ∅, ⟨0, by simp [h, is_lub, is_least, lower_bounds, 
     begin
       intro h,
       existsi ∞,
-      simp [is_lub, is_least, lower_bounds, forall_ennreal, not_exists, not_and_iff_imp]
-        at h ⊢,
+      simp [is_lub, is_least, lower_bounds, forall_ennreal, not_exists, not_and] at h ⊢,
       assumption
     end
 

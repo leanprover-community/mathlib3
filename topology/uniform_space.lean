@@ -680,8 +680,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   assume h : ∀f, f ≠ ⊥ → f ≤ principal s → ∃c ≤ f, cauchy c, assume d hd,
   classical.by_contradiction $ assume hs,
   have hd_cover : ∀{t:set α}, finite t → ¬ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}),
-    by simp [not_and_distrib] at hs;
-       simp [imp_iff_not_or, hs],
+    by simpf at hs,
   let
     f := ⨅t:{t : set α // finite t}, principal (s \ (⋃y∈t.val, {x | (x,y) ∈ d})),
     ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
@@ -1220,7 +1219,7 @@ le_antisymm
 
 lemma sup_uniformity {u v : uniform_space α} :
   (u ⊔ v).uniformity = u.uniformity ⊓ v.uniformity :=
-have (u ⊔ v) = (⨆i (h : i = u ∨ i = v), i), by by simp [supr_or, supr_sup_eq],
+have (u ⊔ v) = (⨆i (h : i = u ∨ i = v), i), by simp [supr_or, supr_sup_eq],
 calc (u ⊔ v).uniformity = ((⨆i (h : i = u ∨ i = v), i) : uniform_space α).uniformity : by rw [this]
   ... = _ : by simp [supr_uniformity, infi_or, infi_inf_eq]
 
@@ -1243,7 +1242,7 @@ def uniform_space.vmap (f : α → β) (u : uniform_space β) : uniform_space α
     intro s,
     change (@is_open α (u.to_topological_space.induced f) s ↔ _),
     simp [is_open_iff_nhds, nhds_induced_eq_vmap, mem_nhds_uniformity_iff, filter.vmap],
-    exact (forall_congr $ assume x, forall_congr $ assume hx,
+    exact (ball_congr $ assume x hx,
       ⟨assume ⟨t, hts, ht⟩, ⟨_, ht, assume ⟨x₁, x₂⟩, by simp [*, subset_def] at * {contextual := tt} ⟩,
         assume ⟨t, ht, hts⟩, ⟨{y:β | (f x, y) ∈ t},
           assume y (hy : (f x, f y) ∈ t), @hts (x, y) hy rfl,

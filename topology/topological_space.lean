@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter
+import order.filter tactic
 open set filter lattice classical
 local attribute [instance] decidable_inhabited prop_decidable
 
@@ -255,7 +255,7 @@ lemma mem_nhds_sets_iff {a : α} {s : set α} :
 by simp [nhds_sets]
 
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ (nhds a).sets → a ∈ s :=
-begin simp [mem_nhds_sets_iff]; exact assume t _ ht hs, ht hs end
+by simp [mem_nhds_sets_iff]; exact assume t _ ht hs, ht hs
 
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
  s ∈ (nhds a).sets :=
@@ -450,7 +450,7 @@ lemma compact_of_finite_subcover {s : set α}
   (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds x ≠ ⊥),
   have hf : ∀x∈s, nhds x ⊓ f = ⊥,
-    by simp [not_and_distrib] at this; simp [inf_comm, imp_iff_not_or, this],
+    by simpf [not_and, inf_comm],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ (nhds x ⊓ f).sets, by rw [empty_in_sets_eq_bot, hf x hxs],
@@ -460,12 +460,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
     have nhds x ⊓ principal t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
     by simp [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
-  have ∀x∈s, ∃t∈f.sets, x ∉ closure t,
-  begin
-    simp [not_and_distrib, classical.not_forall] at this,
-    simp [imp_iff_not_or],
-    exact this
-  end,
+  have ∀x∈s, ∃t∈f.sets, x ∉ closure t, by simpf [_root_.not_forall],
   let c := (λt, - closure t) '' f.sets in
   have ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c',
     from h c (assume t ⟨s, hs, h⟩, h ▸ is_open_compl_iff.mpr is_closed_closure) $

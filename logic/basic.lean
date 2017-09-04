@@ -196,11 +196,8 @@ iff.comm.trans (iff_false_left ha)
 theorem not_or_of_imp [decidable a] (h : a → b) : ¬ a ∨ b :=
 if ha : a then or.inr (h ha) else or.inl ha
 
-theorem imp_of_not_or (h : ¬ a ∨ b) (ha : a) : b :=
-or.elim h (absurd ha) id
-
 theorem imp_iff_not_or [decidable a] : (a → b) ↔ (¬ a ∨ b) :=
-⟨not_or_of_imp, imp_of_not_or⟩
+⟨not_or_of_imp, or.neg_resolve_left⟩
 
 theorem not_imp_of_and_not (h : a ∧ ¬ b) : ¬ (a → b) :=
 assume h₁, and.right h (h₁ (and.left h))
@@ -222,6 +219,9 @@ by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr not_imp_comm imp_not_c
 theorem iff_not_comm [decidable a] [decidable b] : (a ↔ ¬ b) ↔ (b ↔ ¬ a) :=
 by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm
 
+@[simp] theorem not_and_not_right [decidable a] [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
+not_iff_comm.1 not_imp
+
 def decidable_of_iff (a : Prop) (h : a ↔ b) [D : decidable a] : decidable b :=
 decidable_of_decidable_of_iff D h
 
@@ -239,11 +239,10 @@ theorem not_and_distrib [decidable a] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 theorem not_and_distrib' [decidable b] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 ⟨λ h, if hb : b then or.inl (λ ha, h ⟨ha, hb⟩) else or.inr hb, not_and_of_not_or_not⟩
 
-theorem not_and_iff_imp : ¬ (a ∧ b) ↔ a → ¬b :=
-⟨λ hn ha hb, hn ⟨ha, hb⟩, λ hi ⟨ha, hb⟩, hi ha hb⟩
+@[simp] theorem not_and : ¬ (a ∧ b) ↔ (a → ¬ b) := and_imp
 
-theorem not_and_iff_imp' : ¬ (a ∧ b) ↔ b → ¬a :=
-not_and_iff_imp.trans imp_not_comm
+theorem not_and' : ¬ (a ∧ b) ↔ b → ¬a :=
+not_and.trans imp_not_comm
 
 theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
 ⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,

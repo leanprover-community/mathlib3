@@ -110,7 +110,7 @@ begin
       { exact (or.inr $ subset.trans h₂ succ_increasing) } },
     { exact (or.inl $ subset.antisymm h₁ h) } },
   case _root_.zorn.chain_closure.union s hs ih {
-    apply or.imp (assume h', subset.antisymm h' h) id,
+    apply or.imp_left (assume h', subset.antisymm h' h),
     apply classical.by_contradiction,
     simp [not_or_distrib, sUnion_subset_iff, classical.not_forall],
     intros h₁ c₃ h₂ hc₃,

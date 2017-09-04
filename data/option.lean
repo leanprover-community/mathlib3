@@ -12,6 +12,10 @@ namespace option
 | (some x) := x
 | none     := arbitrary α
 
+def map {α : Type u} {β : Type v} (f : α → β) : option α → option β
+| (some x) := some (f x)
+| none     := none
+
 def filter {α : Type u} (p : α → Prop) [decidable_pred p] : option α → option α
 | none     := none
 | (some a) := if p a then some a else none

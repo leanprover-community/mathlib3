@@ -12,7 +12,7 @@ namespace option
 | (some x) := x
 | none     := arbitrary α
 
-def map {α β : Type u} (f : α → β) : option α → option β
+def map {α : Type u} {β : Type v} (f : α → β) : option α → option β
 | (some x) := some (f x)
 | none     := none
 

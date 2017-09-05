@@ -392,10 +392,7 @@ definition uniform_continuous [uniform_space β] (f : α → β) :=
 tendsto (λx:α×α, (f x.1, f x.2)) uniformity uniformity
 
 lemma uniform_continuous_id : uniform_continuous (@id α) :=
-have (λx:α×α, (x.1, x.2)) = @id (α×α),
-  from funext $ by simp,
-show tendsto (λx:α×α, (x.1, x.2)) uniformity uniformity,
-  by rw [this]; exact tendsto_id
+by simp [uniform_continuous]; exact tendsto_id
 
 lemma uniform_continuous_const [uniform_space β] {b : β} : uniform_continuous (λa:α, b) :=
 @tendsto_const_uniformity _ _ _ b uniformity

@@ -574,7 +574,7 @@ theorem of_results_bind {s : computation α} {f : α → computation β} {b k} :
   results (bind s f) b k →
   ∃ a m n, results s a m ∧ results (f a) b n ∧ k = n + m :=
 begin
-  revert s, induction k with n IH; intro s;
+  induction k with n IH generalizing s;
   apply cases_on s (λ a, _) (λ s', _); intro e,
   { simp [thinkN] at e, refine ⟨a, _, _, results_ret _, e, rfl⟩ },
   { have := congr_arg head (eq_thinkN e), contradiction },

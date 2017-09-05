@@ -487,16 +487,16 @@ end int
 
 namespace int
 
-theorem of_nat_add_neg_succ_of_nat_of_lt {m n : ℕ} (h : m < succ n) : of_nat m + -[1+n] = -[1+ n - m] := 
+theorem of_nat_add_neg_succ_of_nat_of_lt {m n : ℕ} (h : m < succ n) : of_nat m + -[1+n] = -[1+ n - m] :=
 begin
- change sub_nat_nat _ _ = _, 
- have h' : succ n - m = succ (n - m), 
+ change sub_nat_nat _ _ = _,
+ have h' : succ n - m = succ (n - m),
  apply succ_sub,
  apply le_of_lt_succ h,
  simp [*, sub_nat_nat]
 end
 
-theorem of_nat_add_neg_succ_of_nat_of_ge {m n : ℕ} (h : m ≥ succ n) : of_nat m + -[1+n] = of_nat (m - succ n) := 
+theorem of_nat_add_neg_succ_of_nat_of_ge {m n : ℕ} (h : m ≥ succ n) : of_nat m + -[1+n] = of_nat (m - succ n) :=
 begin
  change sub_nat_nat _ _ = _,
  have h' : succ n - m = 0,
@@ -697,7 +697,7 @@ by rw [← bitwise_xor, bitwise_bit]
 @[simp] lemma test_bit_bitwise (f : bool → bool → bool) (m n k) :
   test_bit (bitwise f m n) k = f (test_bit m k) (test_bit n k) :=
 begin
-  revert m n; induction k with k IH; intros m n;
+  induction k with k IH generalizing m n;
   apply bit_cases_on m; intros a m';
   apply bit_cases_on n; intros b n';
   rw bitwise_bit,

@@ -48,7 +48,7 @@ begin
   intros l S c m T, revert l S,
   apply @terminates_rec_on _ _ c T _ _,
   { intros a l S m, apply lem1,
-    revert m, induction l with c l IH; intro; simp at m, { contradiction },
+    induction l with c l IH generalizing m; simp at m, { contradiction },
     cases m with e m,
     { rw ←e, simp [parallel.aux2],
       cases list.foldr parallel.aux2._match_1 (sum.inr list.nil) l with a' ls,
@@ -58,8 +58,8 @@ begin
       rw e, exact ⟨a', rfl⟩ } },
   { intros s IH l S m,
     have H1 : ∀ l', parallel.aux2 l = sum.inr l' → s ∈ l',
-    { revert m, induction l with c l IH';
-      intros m l' e'; simp at m, { contradiction },
+    { induction l with c l IH' generalizing m;
+      intros l' e'; simp at m, { contradiction },
       cases m with e m; simp [parallel.aux2] at e',
       { rw ←e at e',
         cases list.foldr parallel.aux2._match_1 (sum.inr list.nil) l with a' ls;

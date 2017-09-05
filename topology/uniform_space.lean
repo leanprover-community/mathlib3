@@ -33,16 +33,15 @@ local attribute [instance] decidable_inhabited prop_decidable
 
 set_option eqn_compiler.zeta true
 
-universes u v w x y
-
+universes u
 section
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort y}
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Sort*}
 
 lemma forall_quotient_iff [r : setoid α] {p : quotient r → Prop} :
   (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
 ⟨assume h x, h _, assume h a, a.induction_on h⟩
 
-def id_rel {α : Type u} := {p : α × α | p.1 = p.2}
+def id_rel {α : Type*} := {p : α × α | p.1 = p.2}
 
 def comp_rel {α : Type u} (r₁ r₂ : set (α×α)) := {p : α × α | ∃z:α, (p.1, z) ∈ r₁ ∧ (z, p.2) ∈ r₂}
 
@@ -163,11 +162,11 @@ let ⟨t', ht', ht'₁, ht'₂⟩ := symm_of_uniformity ht₁ in
 
 lemma uniformity_le_symm : uniformity ≤ map (@prod.swap α α) uniformity :=
 calc uniformity = id <$> uniformity : (functor.id_map _).symm
-  ... = (prod.swap.{u u} ∘ prod.swap) <$> uniformity :
+  ... = (@prod.swap α α ∘ prod.swap) <$> uniformity :
     congr_arg (λf : (α×α)→(α×α), f <$> uniformity) (by apply funext; intro x; cases x; refl)
   ... = (map prod.swap ∘ map prod.swap) uniformity :
     congr map_compose rfl
-  ... ≤ prod.swap.{u u} <$> uniformity : map_mono symm_le_uniformity
+  ... ≤ (@prod.swap α α) <$> uniformity : map_mono symm_le_uniformity
 
 lemma uniformity_eq_symm : uniformity = (@prod.swap α α) <$> uniformity :=
 le_antisymm uniformity_le_symm symm_le_uniformity
@@ -1146,7 +1145,7 @@ instance inhabited_Cauchy {α : Type u} [inhabited α] [uniform_space α] : inha
 ⟨Cauchy.pure_cauchy $ default α⟩
 
 section constructions
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort y}
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Sort*}
 
 instance : partial_order (uniform_space α) :=
 { le          := λt s, s.uniformity ≤ t.uniformity,
@@ -1213,7 +1212,7 @@ instance : complete_lattice (uniform_space α) :=
   le_Inf        := assume s a hs, le_Sup hs,
   Inf_le        := assume s a ha, Sup_le $ assume u hs, hs _ ha }
 
-lemma supr_uniformity {ι : Sort v} {u : ι → uniform_space α} :
+lemma supr_uniformity {ι : Sort*} {u : ι → uniform_space α} :
   (supr u).uniformity = (⨅i, (u i).uniformity) :=
 show (⨅a (h : ∃i:ι, a = u i), a.uniformity) = _, from
 le_antisymm
@@ -1290,7 +1289,7 @@ bot_unique $ assume s hs, classical.by_cases
       from top_unique $ assume y hy, @this (x, y) ⟨⟩ rfl,
     this.symm ▸ @is_open_univ _ ⊥)
 
-lemma to_topological_space_supr {ι : Sort v} {u : ι → uniform_space α} :
+lemma to_topological_space_supr {ι : Sort*} {u : ι → uniform_space α} :
   @uniform_space.to_topological_space α (supr u) = (⨆i, @uniform_space.to_topological_space α (u i)) :=
 classical.by_cases
   (assume h : nonempty ι,
@@ -1358,18 +1357,18 @@ uniform_space.of_core_eq
       by rw [to_topological_space_sup, to_topological_space_vmap, to_topological_space_vmap]; refl
     ... = _ : by rw [uniform_space.to_core_to_topological_space])
 
-lemma uniform_embedding_subtype_emb {α : Type u} {β : Type v} [uniform_space α] [uniform_space β]
+lemma uniform_embedding_subtype_emb {α : Type*} {β : Type*} [uniform_space α] [uniform_space β]
   (p : α → Prop) {e : α → β} (ue : uniform_embedding e) (de : dense_embedding e) :
   uniform_embedding (de.subtype_emb p) :=
 ⟨(de.subtype p).inj,
   by simp [vmap_vmap_comp, (∘), dense_embedding.subtype_emb, uniformity_subtype, ue.right.symm]⟩
 
-lemma uniform_extend_subtype {α : Type u} {β : Type v} {γ : Type w}
+lemma uniform_extend_subtype {α : Type*} {β : Type*} {γ : Type*}
   [uniform_space α] [uniform_space β] [uniform_space γ] [complete_space γ]
   [inhabited γ] [separated γ]
   {p : α → Prop} {e : α → β} {f : α → γ} {b : β} {s : set α}
   (hf : uniform_continuous (λx:subtype p, f x.val))
-  (he : uniform_embedding e) (hd : ∀x, x ∈ closure (e '' univ))
+  (he : uniform_embedding e) (hd : ∀x:β, x ∈ closure (e '' univ))
   (hb : closure (e '' s) ∈ (nhds b).sets) (hs : is_closed s) (hp : ∀x∈s, p x) :
   ∃c, tendsto f (vmap e (nhds b)) (nhds c) :=
 have de : dense_embedding e,
@@ -1447,7 +1446,7 @@ by
   rw [uniform_continuous, uniformity_prod];
   exact tendsto_inf (tendsto_vmap' h₁) (tendsto_vmap' h₂)
 
-lemma uniform_embedding_prod {α' : Type w} {β' : Type x}
+lemma uniform_embedding_prod {α' : Type*} {β' : Type*}
   [uniform_space α] [uniform_space β] [uniform_space α'] [uniform_space β']
   {e₁ : α → α'} {e₂ : β → β'} (h₁ : uniform_embedding e₁) (h₂ : uniform_embedding e₂) :
   uniform_embedding (λp:α×β, (e₁ p.1, e₂ p.2)) :=

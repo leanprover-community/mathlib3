@@ -5,8 +5,8 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import algebra.group data.list data.list.comb algebra.group_power data.set.finite data.finset
-  data.list.perm
+import data.list data.list.comb data.list.perm data.set.finite data.finset
+  algebra.group algebra.ordered_monoid algebra.group_power
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -316,5 +316,46 @@ begin
 end
 
 end integral_domain
+
+section ordered_comm_monoid
+variables [ordered_comm_monoid β] [∀a b : β, decidable (a ≤ b)]
+
+lemma sum_le_sum' : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
+s.induction_on (by simp; refl) $ assume a s ha ih h,
+  have f a + s.sum f ≤ g a + s.sum g,
+    from add_le_add' (h _ mem_insert) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
+  by simp [*]
+
+lemma zero_le_sum' (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by simp) (sum_le_sum' h)
+lemma sum_le_zero' (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum' h) (by simp)
+
+lemma sum_le_sum_of_subset_of_nonneg
+  (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → 0 ≤ f x) : s₁.sum f ≤ s₂.sum f :=
+calc s₁.sum f ≤ (s₂ \ s₁).sum f + s₁.sum f :
+    le_add_of_nonneg_left' $ zero_le_sum' $ by simp [hf] {contextual := tt}
+  ... = (s₂ \ s₁ ∪ s₁).sum f : (sum_union sdiff_inter_self).symm
+  ... = s₂.sum f : by rw [sdiff_union_of_subset h]
+
+lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → (s.sum f = 0 ↔ ∀x∈s, f x = 0) :=
+s.induction_on (by simp) $
+  by simp [or_imp_distrib, forall_and_distrib, zero_le_sum' ,
+           add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg'] {contextual := tt}
+
+end ordered_comm_monoid
+
+section canonically_ordered_monoid
+variables [canonically_ordered_monoid β] [∀a b:β, decidable (a ≤ b)]
+
+lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : s₁.sum f ≤ s₂.sum f :=
+sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le
+
+lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) : s₁.sum f ≤ s₂.sum f :=
+calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
+    by rw [←sum_union filter_inter_filter_neg_eq, filter_union_filter_neg_eq]
+  ... ≤ s₂.sum f : add_le_of_nonpos_of_le'
+      (sum_le_zero' $ by simp {contextual:=tt})
+      (sum_le_sum_of_subset $ by simp [subset_iff, *] {contextual:=tt})
+
+end canonically_ordered_monoid
 
 end finset

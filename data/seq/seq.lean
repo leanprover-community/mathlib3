@@ -74,7 +74,7 @@ begin
   dsimp [destruct],
   ginduction nth s 0 with f0 a'; intro h,
   { contradiction },
-  { unfold has_map.map at h, dsimp [option_map, option_bind] at h,
+  { unfold has_map.map at h, dsimp [option.map, option.bind] at h,
     cases s with f al,
     injections with _ h1 h2,
     rw ←h2, apply subtype.eq, dsimp [tail, cons],
@@ -154,7 +154,7 @@ begin
   change stream.corec' (corec.F f) (some b) 0 with (corec.F f (some b)).1,
   unfold has_map.map, dsimp [corec.F],
   ginduction f b with h s, { refl },
-  cases s with a b', dsimp [corec.F, option_bind],
+  cases s with a b', dsimp [corec.F, option.bind],
   apply congr_arg (λ b', some (a, b')),
   apply subtype.eq,
   dsimp [corec, tail],
@@ -259,7 +259,7 @@ def append (s₁ s₂ : seq α) : seq α :=
   end) (s₁, s₂)
 
 def map (f : α → β) : seq α → seq β | ⟨s, al⟩ :=
-⟨s.map (option_map f),
+⟨s.map (option.map f),
 λn, begin
   dsimp [stream.map, stream.nth],
   ginduction s n with e; intro,
@@ -402,7 +402,7 @@ begin
   end end
 end
 
-@[simp] theorem map_nth (f : α → β) : ∀ s n, nth (map f s) n = option_map f (nth s n)
+@[simp] theorem map_nth (f : α → β) : ∀ s n, nth (map f s) n = (nth s n).map f
 | ⟨s, al⟩ n := rfl
 
 instance : functor seq :=
@@ -502,7 +502,7 @@ begin
 end
 
 theorem mem_map (f : α → β) {a : α} : ∀ {s : seq α}, a ∈ s → f a ∈ map f s
-| ⟨g, al⟩ := stream.mem_map (option_map f)
+| ⟨g, al⟩ := stream.mem_map (option.map f)
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : seq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := stream.exists_of_mem_map h in

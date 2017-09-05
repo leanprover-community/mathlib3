@@ -245,7 +245,7 @@ def collect (s : wseq α) (n : ℕ) : list α :=
 
 def append : wseq α → wseq α → wseq α := seq.append
 
-def map (f : α → β) : wseq α → wseq β := seq.map (option_map f)
+def map (f : α → β) : wseq α → wseq β := seq.map (option.map f)
 
 def join (S : wseq (wseq α)) : wseq α :=
 seq.join ((λo : option (wseq α), match o with
@@ -885,13 +885,13 @@ theorem to_list_of_list (l : list α) : l ∈ to_list (of_list l) :=
 by induction l with a l IH; simp [ret_mem]; exact think_mem (mem_map _ IH)
 
 @[simp] theorem destruct_of_seq (s : seq α) :
-  destruct (of_seq s) = return (option_map (λ a, (a, of_seq s.tail)) s.head) :=
+  destruct (of_seq s) = return (s.head.map $ λ a, (a, of_seq s.tail)) :=
 destruct_eq_ret $ begin
   simp [of_seq, head, destruct, seq.destruct, seq.head],
   rw [show seq.nth (some <$> s) 0 = some <$> seq.nth s 0, by apply seq.map_nth],
   cases seq.nth s 0 with a, { refl },
   unfold has_map.map,
-  simp [option_map, option_bind, destruct]
+  simp [option.map, option.bind, destruct]
 end
 
 @[simp] theorem head_of_seq (s : seq α) : head (of_seq s) = return s.head :=
@@ -946,7 +946,7 @@ begin
 end
 
 theorem mem_map (f : α → β) {a : α} {s : wseq α} : a ∈ s → f a ∈ map f s :=
-seq.mem_map (option_map f)
+seq.mem_map (option.map f)
 
 -- The converse is not true without additional assumptions
 theorem exists_of_mem_join {a : α} : ∀ {S : wseq (wseq α)}, a ∈ join S → ∃ s, s ∈ S ∧ a ∈ s :=
@@ -983,10 +983,10 @@ let ⟨t, tm, bt⟩ := exists_of_mem_join h,
     ⟨a, as, e⟩ := exists_of_mem_map tm in ⟨a, as, by rwa e⟩
 
 theorem destruct_map (f : α → β) (s : wseq α) :
-  destruct (map f s) = computation.map (option_map (prod.map f (map f))) (destruct s) :=
+  destruct (map f s) = computation.map (option.map (prod.map f (map f))) (destruct s) :=
 begin
   apply eq_of_bisim (λ c1 c2, ∃ s, c1 = destruct (map f s) ∧
-    c2 = computation.map (option_map (prod.map f (map f))) (destruct s)),
+    c2 = computation.map (option.map (prod.map f (map f))) (destruct s)),
   { intros c1 c2 h, cases h with s h, rw [h.left, h.right],
     apply s.cases_on _ (λ a s, _) (λ s, _); simp; simp,
     { refl }, { refl }, { exact ⟨s, rfl, rfl⟩ } },
@@ -1003,7 +1003,7 @@ theorem lift_rel_map {δ} (R : α → β → Prop) (S : γ → δ → Prop)
 λ s1 s2 h, match s1, s2, h with ._, ._, ⟨s, t, rfl, rfl, h⟩ := begin
   simp [destruct_map], apply computation.lift_rel_map _ _ (lift_rel_destruct h),
   intros o p h,
-  cases o with a; cases p with b; simp [option_map, option_bind],
+  cases o with a; cases p with b; simp [option.map, option.bind],
   { cases b; cases h },
   { cases a; cases h },
   { cases a with a s; cases b with b t, cases h with r h,

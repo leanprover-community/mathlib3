@@ -13,7 +13,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 namespace list
 
-@[congr] lemma map_congr {f g : α → β} : ∀{l : list α}, (∀x∈l, f x = g x) → map f l = map g l
+@[congr] lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) → map f l = map g l
 | [] _     := rfl
 | (a::l) h :=
   have f a = g a, from h _ (mem_cons_self _ _),
@@ -80,10 +80,10 @@ calc ({a}:finset α).fold op b f = f a * (∅:finset α).fold op b f : fold_inse
   ... = f a * b : by rw [fold_empty]
 
 @[simp] lemma fold_image [decidable_eq γ] {g : γ → α} {s : finset γ} :
-  (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).fold op b f = s.fold op b (f ∘ g) :=
+  (∀ (x ∈ s) (y ∈ s), g x = g y → x = y) → (s.image g).fold op b f = s.fold op b (f ∘ g) :=
 finset.induction_on_to_finset s $ assume l hl hg, by rw [image_to_finset_of_nodup hl hg]; simp
 
-@[congr] lemma fold_congr {g : α → β} : (∀x∈s, f x = g x) → s.fold op b f = s.fold op b g :=
+@[congr] lemma fold_congr {g : α → β} : (∀ x ∈ s, f x = g x) → s.fold op b f = s.fold op b g :=
 finset.induction_on_to_finset s $ assume l hl (hg : ∀x∈l, f x = g x),
   by simp [-foldl_map]; rw [list.map_congr hg]
 

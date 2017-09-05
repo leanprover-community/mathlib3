@@ -50,7 +50,7 @@ lemma continuous_iff_tendsto {f : α → β} :
 ⟨assume hf : continuous f, assume x s,
   show s ∈ (nhds (f x)).sets → s ∈ (map f (nhds x)).sets,
     by simp [nhds_sets];
-      exact assume ⟨t, t_open, t_subset, fx_in_t⟩,
+      exact assume t t_open t_subset fx_in_t,
         ⟨preimage f t, hf t t_open, fx_in_t, preimage_mono t_subset⟩,
   assume hf : ∀x, tendsto f (nhds x) (nhds (f x)),
   assume s, assume hs : is_open s,
@@ -221,7 +221,7 @@ lemma embedding_compose {f : α → β} {g : β → γ} (hf : embedding f) (hg :
 
 lemma embedding_prod_mk {f : α → β} {g : γ → δ} (hf : embedding f) (hg : embedding g) :
   embedding (λx:α×γ, (f x.1, g x.2)) :=
-⟨assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by simp; exact assume ⟨h₁, h₂⟩, ⟨hf.left _ _ h₁, hg.left _ _ h₂⟩,
+⟨assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by simp; exact assume h₁ h₂, ⟨hf.left _ _ h₁, hg.left _ _ h₂⟩,
   by rw [prod.topological_space, prod.topological_space, hf.right, hg.right,
          induced_compose, induced_compose, induced_sup, induced_compose, induced_compose]⟩
 
@@ -373,7 +373,7 @@ by rw [prod_eq_generate_from, nhds_generate_from];
       begin
         revert hab,
         simp [s_eq],
-        exact assume ⟨ha, hb⟩, @prod_mem_prod α β s' t' (nhds a) (nhds b)
+        exact assume ha hb, @prod_mem_prod α β s' t' (nhds a) (nhds b)
           (mem_nhds_sets_iff.mpr ⟨s', subset.refl s', hs', ha⟩)
           (mem_nhds_sets_iff.mpr ⟨t', subset.refl t', ht', hb⟩)
       end)
@@ -642,7 +642,7 @@ protected def prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embeddin
       by rw [←closure_prod_eq, prod_image_image_eq, univ_prod_univ],
     assume ⟨b, d⟩, begin rw [this], simp, constructor, apply de₁.dense, apply de₂.dense end,
   inj     := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
-    by simp; exact assume ⟨h₁, h₂⟩, ⟨de₁.inj _ _ h₁, de₂.inj _ _ h₂⟩,
+    by simp; exact assume h₁ h₂, ⟨de₁.inj _ _ h₁, de₂.inj _ _ h₂⟩,
   induced := assume ⟨a, b⟩,
     by rw [nhds_prod_eq, nhds_prod_eq, ←prod_vmap_vmap_eq, de₁.induced, de₂.induced] }
 

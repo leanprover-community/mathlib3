@@ -50,8 +50,7 @@ theorem mem_cons_of_mem (y : α) {a : α} : ∀ {s : seq α}, a ∈ s → a ∈ 
 | ⟨f, al⟩ := stream.mem_cons_of_mem (some y)
 
 theorem eq_or_mem_of_mem_cons {a b : α} : ∀ {s : seq α}, a ∈ cons b s → a = b ∨ a ∈ s
-| ⟨f, al⟩ h := or_of_or_of_implies_left
-  (stream.eq_or_mem_of_mem_cons h) (λh, by injection h)
+| ⟨f, al⟩ h := (stream.eq_or_mem_of_mem_cons h).imp_left (λh, by injection h)
 
 @[simp] theorem mem_cons_iff {a b : α} {s : seq α} : a ∈ cons b s ↔ a = b ∨ a ∈ s :=
 ⟨eq_or_mem_of_mem_cons, λo, by cases o with e m;
@@ -75,7 +74,7 @@ begin
   dsimp [destruct],
   ginduction nth s 0 with f0 a'; intro h,
   { contradiction },
-  { unfold has_map.map at h, dsimp [option_map, option_bind] at h,
+  { unfold has_map.map at h, dsimp [option.map, option.bind] at h,
     cases s with f al,
     injections with _ h1 h2,
     rw ←h2, apply subtype.eq, dsimp [tail, cons],
@@ -155,7 +154,7 @@ begin
   change stream.corec' (corec.F f) (some b) 0 with (corec.F f (some b)).1,
   unfold has_map.map, dsimp [corec.F],
   ginduction f b with h s, { refl },
-  cases s with a b', dsimp [corec.F, option_bind],
+  cases s with a b', dsimp [corec.F, option.bind],
   apply congr_arg (λ b', some (a, b')),
   apply subtype.eq,
   dsimp [corec, tail],
@@ -260,7 +259,7 @@ def append (s₁ s₂ : seq α) : seq α :=
   end) (s₁, s₂)
 
 def map (f : α → β) : seq α → seq β | ⟨s, al⟩ :=
-⟨s.map (option_map f),
+⟨s.map (option.map f),
 λn, begin
   dsimp [stream.map, stream.nth],
   ginduction s n with e; intro,
@@ -403,7 +402,7 @@ begin
   end end
 end
 
-@[simp] theorem map_nth (f : α → β) : ∀ s n, nth (map f s) n = option_map f (nth s n)
+@[simp] theorem map_nth (f : α → β) : ∀ s n, nth (map f s) n = (nth s n).map f
 | ⟨s, al⟩ n := rfl
 
 instance : functor seq :=
@@ -503,7 +502,7 @@ begin
 end
 
 theorem mem_map (f : α → β) {a : α} : ∀ {s : seq α}, a ∈ s → f a ∈ map f s
-| ⟨g, al⟩ := stream.mem_map (option_map f)
+| ⟨g, al⟩ := stream.mem_map (option.map f)
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : seq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := stream.exists_of_mem_map h in
@@ -562,10 +561,7 @@ def bind (s : seq1 α) (f : α → seq1 β) : seq1 β :=
 join (map f s)
 
 @[simp] theorem join_map_ret (s : seq α) : seq.join (seq.map ret s) = s :=
-begin
-  apply coinduction2 s, intro s, apply cases_on s; simp [ret],
-  { intros x s, exact ⟨_, rfl, rfl⟩ }
-end
+by apply coinduction2 s; intro s; apply cases_on s; simp [ret]
 
 @[simp] theorem bind_ret (f : α → β) : ∀ s, bind s (ret ∘ f) = map f s
 | ⟨a, s⟩ := begin

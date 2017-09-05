@@ -104,11 +104,11 @@ theorem subset_Inter {t : set β} {s : α → set β} (h : ∀ i, t ⊆ s i) : t
 
 @[simp] -- complete_boolean_algebra
 theorem compl_Union (s : α → set β) : - (⋃ i, s i) = (⋂ i, - s i) :=
-ext (λ x, begin simp, apply not_exists_iff end)
+ext (λ x, by simp)
 
 -- classical -- complete_boolean_algebra
 theorem compl_Inter (s : α → set β) : -(⋂ i, s i) = (⋃ i, - s i) :=
-ext (λ x, begin simp, apply classical.not_forall_iff end)
+ext (λ x, by simp [classical.not_forall])
 
 -- classical -- complete_boolean_algebra
 theorem Union_eq_comp_Inter_comp (s : α → set β) : (⋃ i, s i) = - (⋂ i, - s i) :=
@@ -333,7 +333,7 @@ instance : complete_boolean_algebra (set α) :=
       or.imp_right
         (assume hn : x ∉ s, assume i hi, or.resolve_left (h i hi) hn)
         (classical.em $ x ∈ s),
-  inf_Sup_le_supr_inf := assume s t x, show x ∈ s ∩ (⋃₀ t) → x ∈ (⋃ b ∈ t, s ∩ b), by simp; exact id }
+  inf_Sup_le_supr_inf := assume s t x, show x ∈ s ∩ (⋃₀ t) → x ∈ (⋃ b ∈ t, s ∩ b), by simp [-and_imp] }
 
 theorem union_sdiff_same {a b : set α} : a ∪ (b \ a) = a ∪ b :=
 lattice.sup_sub_same

@@ -212,7 +212,7 @@ assume ainbl binl, or.elim (eq_or_mem_of_mem_cons ainbl)
   (assume : a ∈ l, this)
 
 theorem not_mem_append {a : α} {s t : list α} (h₁ : a ∉ s) (h₂ : a ∉ t) : a ∉ s++t :=
-mt mem_append.1 $ not_or_of_not_and_not ⟨h₁, h₂⟩
+mt mem_append.1 $ not_or_distrib.2 ⟨h₁, h₂⟩
 
 theorem length_pos_of_mem {a : α} : ∀ {l : list α}, a ∈ l → 0 < length l
 | (b::l) _ := zero_lt_succ _
@@ -301,7 +301,7 @@ theorem subset_app_of_subset_right (l l₁ l₂ : list α) : l ⊆ l₂ → l �
 
 theorem cons_subset_of_subset_of_mem {a : α} {l m : list α} (ainm : a ∈ m) (lsubm : l ⊆ m) :
   a::l ⊆ m :=
-λ b, or_imp_iff_and_imp.2 ⟨λ e, e.symm ▸ ainm, @lsubm _⟩
+λ b, or_imp_distrib.2 ⟨λ e, e.symm ▸ ainm, @lsubm _⟩
 
 theorem app_subset_of_subset_of_subset {l₁ l₂ l : list α} (l₁subl : l₁ ⊆ l) (l₂subl : l₂ ⊆ l) :
   l₁ ++ l₂ ⊆ l :=
@@ -398,7 +398,7 @@ assume n, if_neg n
 
 theorem index_of_eq_length {a : α} {l : list α} : index_of a l = length l ↔ a ∉ l :=
 begin
-  induction l with b l ih; simp [not_or_iff, -add_comm],
+  induction l with b l ih; simp [-add_comm],
   by_cases a = b with h; simp [h, -add_comm],
   { intro, contradiction },
   { rw ← ih, exact ⟨succ_inj, congr_arg _⟩ }

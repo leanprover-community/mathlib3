@@ -24,23 +24,17 @@ definition is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
 lemma mem_upper_bounds_image (Hf : monotone f) (Ha : a ∈ upper_bounds s) :
   f a ∈ upper_bounds (f '' s) :=
-bounded_forall_image_of_bounded_forall (assume x H, Hf (Ha _ ‹x ∈ s›))
+ball_image_of_ball (assume x H, Hf (Ha _ ‹x ∈ s›))
 
 lemma mem_lower_bounds_image (Hf : monotone f) (Ha : a ∈ lower_bounds s) :
   f a ∈ lower_bounds (f '' s) :=
-bounded_forall_image_of_bounded_forall (assume x H, Hf (Ha _ ‹x ∈ s›))
+ball_image_of_ball (assume x H, Hf (Ha _ ‹x ∈ s›))
 
 lemma is_lub_singleton {a : α} : is_lub {a} a :=
-begin
-  simp [is_lub, is_least, upper_bounds, lower_bounds] {contextual := tt},
-  exact ⟨assume a' _, le_refl _, assume a' ha', ha' _ rfl⟩
-end
+by simp [is_lub, is_least, upper_bounds, lower_bounds] {contextual := tt}
 
 lemma is_glb_singleton {a : α} : is_glb {a} a :=
-begin
-  simp [is_glb, is_greatest, upper_bounds, lower_bounds] {contextual := tt},
-  exact ⟨assume a' _, le_refl _, assume a' ha', ha' _ rfl⟩
-end
+by simp [is_glb, is_greatest, upper_bounds, lower_bounds] {contextual := tt}
 
 end preorder
 

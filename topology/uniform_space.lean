@@ -211,7 +211,7 @@ lemma mem_nhds_uniformity_iff {x : α} {s : set α} :
   (s ∈ (nhds x).sets) ↔ ({p : α × α | p.1 = x → p.2 ∈ s} ∈ (@uniformity α _).sets) :=
 ⟨ begin
     simp [mem_nhds_sets_iff, is_open_uniformity],
-    exact assume ⟨t, ts, xt, ht⟩, uniformity.upwards_sets (ht x xt) $ assume ⟨x', y⟩ h eq, ts $ h eq
+    exact assume t ts xt ht, uniformity.upwards_sets (ht x xt) $ assume ⟨x', y⟩ h eq, ts $ h eq
   end,
 
   assume hs,
@@ -581,7 +581,7 @@ have separation_rel α = id_rel,
   from s,
 have (x, y) ∉ separation_rel α,
   by simp [this]; exact h,
-let ⟨d, hd, (hxy : (x, y) ∉ d)⟩ := classical.bexists_not_of_not_bforall this in
+let ⟨d, hd, (hxy : (x, y) ∉ d)⟩ := classical.not_ball.1 this in
 let ⟨d', hd', (hd'd' : comp_rel d' d' ⊆ d)⟩ := comp_mem_uniformity_sets hd in
 have {y | (x, y) ∈ d'} ∈ (nhds x).sets,
   from mem_nhds_left hd',
@@ -680,8 +680,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   assume h : ∀f, f ≠ ⊥ → f ≤ principal s → ∃c ≤ f, cauchy c, assume d hd,
   classical.by_contradiction $ assume hs,
   have hd_cover : ∀{t:set α}, finite t → ¬ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}),
-    by simp [not_exists_iff, not_and_iff] at hs;
-       simp [implies_iff_not_or, hs],
+    by simpf at hs,
   let
     f := ⨅t:{t : set α // finite t}, principal (s \ (⋃y∈t.val, {x | (x,y) ∈ d})),
     ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
@@ -1220,7 +1219,7 @@ le_antisymm
 
 lemma sup_uniformity {u v : uniform_space α} :
   (u ⊔ v).uniformity = u.uniformity ⊓ v.uniformity :=
-have (u ⊔ v) = (⨆i (h : i = u ∨ i = v), i), by by simp [supr_or, supr_sup_eq],
+have (u ⊔ v) = (⨆i (h : i = u ∨ i = v), i), by simp [supr_or, supr_sup_eq],
 calc (u ⊔ v).uniformity = ((⨆i (h : i = u ∨ i = v), i) : uniform_space α).uniformity : by rw [this]
   ... = _ : by simp [supr_uniformity, infi_or, infi_inf_eq]
 
@@ -1243,7 +1242,7 @@ def uniform_space.vmap (f : α → β) (u : uniform_space β) : uniform_space α
     intro s,
     change (@is_open α (u.to_topological_space.induced f) s ↔ _),
     simp [is_open_iff_nhds, nhds_induced_eq_vmap, mem_nhds_uniformity_iff, filter.vmap],
-    exact (forall_congr $ assume x, forall_congr $ assume hx,
+    exact (ball_congr $ assume x hx,
       ⟨assume ⟨t, hts, ht⟩, ⟨_, ht, assume ⟨x₁, x₂⟩, by simp [*, subset_def] at * {contextual := tt} ⟩,
         assume ⟨t, ht, hts⟩, ⟨{y:β | (f x, y) ∈ t},
           assume y (hy : (f x, f y) ∈ t), @hts (x, y) hy rfl,
@@ -1450,7 +1449,7 @@ lemma uniform_embedding_prod {α' : Type w} {β' : Type x}
   {e₁ : α → α'} {e₂ : β → β'} (h₁ : uniform_embedding e₁) (h₂ : uniform_embedding e₂) :
   uniform_embedding (λp:α×β, (e₁ p.1, e₂ p.2)) :=
 ⟨assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-  by simp [prod.mk.inj_iff]; exact assume ⟨eq₁, eq₂⟩, ⟨h₁.left _ _ eq₁, h₂.left _ _ eq₂⟩,
+  by simp [prod.mk.inj_iff]; exact assume eq₁ eq₂, ⟨h₁.left _ _ eq₁, h₂.left _ _ eq₂⟩,
   by simp [(∘), uniformity_prod, h₁.right.symm, h₂.right.symm, vmap_inf, vmap_vmap_comp]⟩
 
 lemma to_topological_space_prod [u : uniform_space α] [v : uniform_space β] :

@@ -25,6 +25,8 @@ class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has
 (Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
 (le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
 
+class complete_linear_order (α : Type u) extends complete_lattice α, linear_order α
+
 def supr [complete_lattice α] (s : ι → α) : α := Sup {a : α | ∃i : ι, a = s i}
 def infi [complete_lattice α] (s : ι → α) : α := Inf {a : α | ∃i : ι, a = s i}
 

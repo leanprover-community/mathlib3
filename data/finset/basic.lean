@@ -11,13 +11,6 @@ open list subtype nat
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-@[simp] lemma or_self_or (a b : Prop) : a ∨ a ∨ b ↔ a ∨ b :=
-calc a ∨ a ∨ b ↔ (a ∨ a) ∨ b : or.assoc.symm
-  ... ↔ _ : by rw [or_self]
-
-theorem perm_insert_cons_of_not_mem [decidable_eq α] {a : α} {l : list α} (h : a ∉ l) : perm (list.insert a l) (a :: l) :=
-have list.insert a l = a :: l, from if_neg h, by rw this
-
 def nodup_list (α : Type u) := {l : list α // nodup l}
 
 def to_nodup_list_of_nodup {l : list α} (n : nodup l) : nodup_list α :=
@@ -138,8 +131,8 @@ quotient.induction_on₂ s₁ s₂ (λ l₁ l₂ h₁ h₂, h₁ h₂)
 theorem subset.antisymm {s₁ s₂ : finset α} (H₁ : s₁ ⊆ s₂) (H₂ : s₂ ⊆ s₁) : s₁ = s₂ :=
 ext (λ x, iff.intro (λ H, mem_of_subset_of_mem H₁ H) (λ H, mem_of_subset_of_mem H₂ H))
 
-theorem subset_of_forall {s₁ s₂ : finset α} : (∀x, x ∈ s₁ → x ∈ s₂) → s₁ ⊆ s₂ :=
-quotient.induction_on₂ s₁ s₂ (λ l₁ l₂ H, H)
+theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ (∀x, x ∈ s₁ → x ∈ s₂) :=
+⟨λ s a, mem_of_subset_of_mem s, quotient.induction_on₂ s₁ s₂ (λ l₁ l₂ H, H)⟩
 
 end subset
 
@@ -200,7 +193,7 @@ finset.induction_on_to_finset s $ assume l hl, show a ∈ insert b l ↔ (a = b 
 theorem mem_insert : a ∈ insert a s := by simp
 theorem mem_insert_of_mem : a ∈ s → a ∈ insert b s := by simp {contextual := tt}
 theorem mem_of_mem_insert_of_ne (h : b ∈ insert a s) : b ≠ a → b ∈ s :=
-or_resolve_right (mem_insert_iff.mp h)
+(mem_insert_iff.1 h).resolve_left
 
 @[simp] theorem insert_eq_of_mem (h : a ∈ s) : insert a s = s :=
 ext (λ x, by rw mem_insert_iff; apply or_iff_right_of_imp; intro eq; rw eq; assumption)
@@ -215,13 +208,13 @@ ext $ by simp [mem_insert_iff]
 assume h, @not_mem_empty α a $ h ▸ by simp
 
 theorem subset_insert [h : decidable_eq α] : s ⊆ insert a s :=
-subset_of_forall (λ x h, mem_insert_of_mem h)
+subset_iff.2 (λ x h, mem_insert_of_mem h)
 
 theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
-subset_of_forall $ assume x, by simp; exact or.imp_right (mem_of_subset_of_mem h)
+subset_iff.2 $ assume x, by simp [-forall_or_distrib_left]; exact or.imp_right (subset_iff.1 h _)
 
 @[recursor 6] protected theorem induction {p : finset α → Prop}
-  (h₁ : p ∅) (h₂ : ∀⦃a : α⦄, ∀{s : finset α}, a ∉ s → p s → p (insert a s)) (s) : p s :=
+  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) (s) : p s :=
 finset.induction_on_to_finset s $ λl, list.rec_on l
   (assume _, h₁)
   (assume a l ih hal,
@@ -231,7 +224,7 @@ finset.induction_on_to_finset s $ λl, list.rec_on l
     this ▸ @h₂ a l' (not_mem_of_nodup_cons hal) (ih _))
 
 protected theorem induction_on {p : finset α → Prop} (s : finset α)
-  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄, ∀ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
+  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
 -- useful in proofs by induction
@@ -244,25 +237,19 @@ end insert
 section singleton
 variables [decidable_eq α] {a b : α} {s : finset α}
 
-@[simp] theorem mem_singleton_iff : b ∈ ({a} : finset α) ↔ (b = a) :=
+@[simp] theorem mem_singleton : b ∈ ({a} : finset α) ↔ (b = a) :=
 show b ∈ insert a ∅ ↔ b = a, by simp
 
-theorem mem_singleton : a ∈ ({a} : finset α) := mem_insert
+theorem mem_singleton_self : a ∈ ({a} : finset α) := mem_insert
 
-theorem mem_singleton_of_eq (h : b = a) : b ∈ ({a} : finset α) :=
-by rw h; apply mem_insert
-
-theorem eq_of_mem_singleton (h : b ∈ ({a}:finset α)) : b = a :=
-iff.mp mem_singleton_iff h
-
-theorem eq_of_singleton_eq (h : {a} = ({b}:finset α)) : a = b :=
-have a ∈ ({b} : finset α), by rw ←h; apply mem_singleton,
-eq_of_mem_singleton this
+theorem singleton_inj (h : {a} = ({b}:finset α)) : a = b :=
+have a ∈ ({b} : finset α), by rw ← h; apply mem_singleton_self,
+mem_singleton.1 this
 
 @[simp] theorem singleton_ne_empty : ({a} : finset α) ≠ ∅ := insert_ne_empty
 
 @[simp] theorem insert_singelton_self_eq  : ({a, a} : finset α) = {a} :=
-show insert a {a} = ({a} : finset α), by rw [insert_eq_of_mem]; apply mem_singleton
+show insert a {a} = ({a} : finset α), by rw [insert_eq_of_mem]; apply mem_singleton_self
 
 end singleton
 
@@ -444,10 +431,10 @@ theorem insert_erase (h : a ∈ s) : insert a (erase a s) = s :=
 ext $ assume x, by simp; constructor; finish
 
 theorem erase_subset_erase (h : s ⊆ t) : erase a s ⊆ erase a t :=
-subset_of_forall $ assume x, by simp; exact and_implies_right (mem_of_subset_of_mem h)
+subset_iff.2 $ assume x, by simp [-and_imp]; exact and.imp_right (mem_of_subset_of_mem h)
 
 theorem erase_subset : erase a s ⊆ s :=
-subset_of_forall $ assume x, by simp {contextual:=tt}
+subset_iff.2 $ assume x, by simp {contextual:=tt}
 
 theorem erase_eq_of_not_mem (h : a ∉ s) : erase a s = s :=
 ext $ assume b, by by_cases b = a; simp [*]

@@ -117,19 +117,19 @@ variables (p q : Prop)
 variable  (s : α → Prop)
 
 local attribute [instance] classical.prop_decidable 
-theorem not_not_eq : (¬ ¬ p) = p := propext not_not_iff
-theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_iff
-theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_iff
-theorem not_forall_eq : (¬ ∀ x, s x) = (∃ x, ¬ s x) := propext not_forall_iff
-theorem not_exists_eq : (¬ ∃ x, s x) = (∀ x, ¬ s x) := propext not_exists_iff
-theorem not_implies_eq : (¬ (p → q)) = (p ∧ ¬ q) := propext not_implies_iff
+theorem not_not_eq : (¬ ¬ p) = p := propext not_not
+theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
+theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
+theorem not_forall_eq : (¬ ∀ x, s x) = (∃ x, ¬ s x) := propext not_forall
+theorem not_exists_eq : (¬ ∃ x, s x) = (∀ x, ¬ s x) := propext not_exists
+theorem not_implies_eq : (¬ (p → q)) = (p ∧ ¬ q) := propext not_imp
 
-theorem classical.implies_iff_not_or : (p → q) ↔ (¬ p ∨ q) := implies_iff_not_or
+theorem classical.implies_iff_not_or : (p → q) ↔ (¬ p ∨ q) := imp_iff_not_or
 
 end
 
 def common_normalize_lemma_names : list name :=
-[``bexists_def, ``forall_and_distrib, ``exists_implies_distrib]
+[``bex_def, ``forall_and_distrib, ``exists_imp_distrib]
 
 def classical_normalize_lemma_names : list name :=
 common_normalize_lemma_names ++ [``classical.implies_iff_not_or]

@@ -52,11 +52,9 @@ else
 theorem super_of_not_max {c : set α} (hc₁ : chain c) (hc₂ : ¬ is_max_chain c) :
   super_chain c (succ_chain c) :=
 begin
-  simp [is_max_chain, not_and_iff, not_not_iff] at hc₂,
-  exact have ∃c', super_chain c c', from hc₂.neg_resolve_left hc₁,
-  let ⟨c', hc'⟩ := this in
-  show super_chain c (succ_chain c),
-    from succ_spec ⟨c', hc₁, hc'⟩
+  simp [is_max_chain, not_and_distrib, not_forall_not] at hc₂,
+  cases hc₂.neg_resolve_left hc₁ with c' hc',
+  exact succ_spec ⟨c', hc₁, hc'⟩
 end
 
 theorem succ_increasing {c : set α} : c ⊆ succ_chain c :=
@@ -92,7 +90,7 @@ begin
       { exact or.inl h } },
     { exact or.inr (subset.trans ih succ_increasing) } },
   case _root_.zorn.chain_closure.union s hs ih {
-    refine (or_of_not_implies' $ λ hn, sUnion_subset $ λ a ha, _),
+    refine (or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
     apply (ih a ha).resolve_right,
     apply mt (λ h, _) hn,
     exact subset.trans h (subset_sUnion_of_mem ha) }
@@ -112,10 +110,10 @@ begin
       { exact (or.inr $ subset.trans h₂ succ_increasing) } },
     { exact (or.inl $ subset.antisymm h₁ h) } },
   case _root_.zorn.chain_closure.union s hs ih {
-    apply or.imp (assume h', subset.antisymm h' h) id,
+    apply or.imp_left (assume h', subset.antisymm h' h),
     apply classical.by_contradiction,
-    simp [not_or_iff, sUnion_subset_iff, classical.not_forall_iff, not_implies_iff],
-    intro h, cases h with h₁ h₂, cases h₂ with c₃ h₂, cases h₂ with h₂ hc₃,
+    simp [not_or_distrib, sUnion_subset_iff, classical.not_forall],
+    intros h₁ c₃ h₂ hc₃,
     have h := chain_closure_succ_total_aux hc₁ (hs c₃ hc₃) (assume c₄, ih _ hc₃),
     cases h with h h,
     { have h' := ih c₃ hc₃ hc₁ h,

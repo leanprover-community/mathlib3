@@ -19,7 +19,8 @@ structure measurable_space (α : Type u) :=
 
 attribute [class] measurable_space
 
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {s t u : set α}
+variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
+  {s t u : set α}
 
 section
 variable [m : measurable_space α]
@@ -61,7 +62,7 @@ instance : has_bot (measurable_space α) :=
 ⟨{measurable_space .
   is_measurable       := λs, s = ∅ ∨ s = univ,
   is_measurable_empty := or.inl rfl,
-  is_measurable_compl := by simp [or_imp_iff_and_imp] {contextual := tt},
+  is_measurable_compl := by simp [or_imp_distrib] {contextual := tt},
   is_measurable_Union := assume f hf, by_cases
     (assume h : ∃i, f i = univ,
       let ⟨i, hi⟩ := h in
@@ -135,7 +136,7 @@ protected def map (f : α → β) (m : measurable_space α) : measurable_space �
 measurable_space_eq $ assume s, iff.refl _
 
 @[simp] lemma map_comp {f : α → β} {g : β → γ} : (m.map f).map g = m.map (g ∘ f) :=
-measurable_space_eq $ assume s, by refl
+measurable_space_eq $ assume s, iff.refl _
 
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
 {measurable_space .
@@ -185,9 +186,16 @@ end functors
 end measurable_space
 
 section measurable_functions
+open measurable_space
 
-def measurable [m₁ : measurable_space α] [m₂ : measurable_space β] {f : α → β} := m₂ ≤ m₁.map f
+def measurable [m₁ : measurable_space α] [m₂ : measurable_space β] (f : α → β) : Prop :=
+m₂ ≤ m₁.map f
 
+lemma measurable_id [measurable_space α] : measurable (@id α) := le_refl _
+
+lemma measurable_comp [measurable_space α] [measurable_space β] [measurable_space γ]
+  {f : α → β} {g : β → γ} (hf : measurable f) (hg : measurable g) : measurable (g ∘ f) :=
+le_trans hg $ map_mono hf
 
 end measurable_functions
 

@@ -123,7 +123,7 @@ uniform_space.of_core { uniform_space.core .
     have ((λ (p : ℚ × ℚ), p.1 - p.2) '' id_rel) = {0},
       from set.subset.antisymm
         (by simp [set.image_subset_iff_subset_preimage, id_rel] {contextual := tt})
-        (assume x hx, ⟨⟨0, 0⟩, begin revert hx, simp [*, id_rel], cc end⟩),
+        (assume x hx, ⟨⟨0, 0⟩, begin revert hx, simp [*, id_rel, eq_comm] end⟩),
     by simp [le_vmap_iff_map_le, -sub_eq_add_neg, this]; exact pure_zero_le_zero_nhd,
   symm :=
     have (λ (p : ℚ × ℚ), p.fst - p.snd) ∘ prod.swap = has_neg.neg ∘ (λ (p : ℚ × ℚ), p.fst - p.snd),
@@ -773,7 +773,7 @@ subset.antisymm
     (image_subset_iff_subset_preimage.mpr $ by simp [of_rat_le_of_rat] {contextual:=tt})
     (is_closed_le continuous_const continuous_id)) $
   calc {r:ℝ | of_rat q ≤ r} ⊆ {of_rat q} ∪ {r | of_rat q < r} :
-      assume x, by simp [le_iff_lt_or_eq, and_imp_iff, or_imp_iff_and_imp] {contextual := tt}
+      assume x, by simp [le_iff_lt_or_eq, or_imp_distrib] {contextual := tt}
     ... ⊆ closure (of_rat '' {x | q ≤ x}) :
       union_subset (subset.trans (by simp; exact mem_image_of_mem _ (le_refl q)) subset_closure) this
 
@@ -796,12 +796,12 @@ have a_lt ∩ lt_b ⊆ ivl,
         end,
 have hab : ({of_rat a, of_rat b}:set ℝ) ⊆ ivl,
   from subset.trans subset_closure $ closure_mono $
-    by simp [subset_def, or_imp_iff_and_imp, hab, mem_image_of_mem] {contextual := tt},
+    by simp [subset_def, or_imp_distrib, hab, mem_image_of_mem] {contextual := tt},
 subset.antisymm
   (closure_minimal (by simp [image_subset_iff_subset_preimage, of_rat_le_of_rat] {contextual := tt}) $
     is_closed_inter (is_closed_le continuous_const continuous_id) (is_closed_le continuous_id continuous_const))
   (calc {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} ⊆ {of_rat a, of_rat b} ∪ (a_lt ∩ lt_b) :
-      assume x, by simp [le_iff_lt_or_eq, and_imp_iff, or_imp_iff_and_imp] {contextual := tt}
+      assume x, by simp [le_iff_lt_or_eq, and_imp, or_imp_distrib] {contextual := tt}; admit
     ... ⊆ ivl : union_subset hab this)
 
 lemma is_closed_imp [topological_space α] {p q : α → Prop}
@@ -1148,8 +1148,8 @@ have hf : f ≠ ⊥,
   from infi_neq_bot_of_directed (by apply_instance)
     (assume ⟨r₁, hr₁⟩ ⟨r₂, hr₂⟩, ⟨
       ⟨max r₁ r₂, if h: r₁ ≤ r₂ then by rwa [max_eq_right h] else by rwa [max_eq_left (le_of_not_ge h)]⟩,
-      by simp; exact assume a ⟨ha, h⟩, ⟨le_trans (le_max_left _ _) h, ha⟩,
-      by simp; exact assume a ⟨ha, h⟩, ⟨le_trans (le_max_right _ _) h, ha⟩⟩)
+      by simp; exact assume a ha h, ⟨le_trans (le_max_left _ _) h, ha⟩,
+      by simp; exact assume a ha h, ⟨le_trans (le_max_right _ _) h, ha⟩⟩)
     (by simp [forall_subtype_iff]; exact assume a ha, ne_empty_of_mem ⟨ha, le_refl a⟩),
 have principal {r' : ℝ | r' ∈ s ∧ a ≤ r'} ≤ principal {r : ℝ | a ≤ r ∧ r ≤ b},
   by simp [upper_bounds] at hb; simp [hb] {contextual := tt},

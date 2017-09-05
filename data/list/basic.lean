@@ -34,10 +34,10 @@ theorem append_ne_nil_of_ne_nil_right (s t : list α) : t ≠ [] → s ++ t ≠ 
 by induction s; intros; contradiction
 
 theorem append_foldl (f : α → β → α) (a : α) (s t : list β) : foldl f a (s ++ t) = foldl f (foldl f a s) t :=
-by {revert a, induction s with b s H, exact λ_, rfl, intros, simp [foldl], rw H _}
+by {induction s with b s H generalizing a, refl, simp [foldl], rw H _}
 
 theorem append_foldr (f : α → β → β) (a : β) (s t : list α) : foldr f a (s ++ t) = foldr f (foldr f a t) s :=
-by {revert a, induction s with b s H, exact λ_, rfl, intros, simp [foldr], rw H _}
+by {induction s with b s H generalizing a, refl, simp [foldr], rw H _}
 
 /- repeat take drop -/
 

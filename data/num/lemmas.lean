@@ -380,10 +380,10 @@ namespace num
       rw [fn0, nat.binary_rec_eq, nat.binary_rec_zero, ←h],
       cases g tt ff; refl,
       apply nat.bitwise_bit_aux gff },
-    { rw fnn, revert n,
+    { rw fnn,
       have : ∀b (n : pos_num), cond b ↑n 0 = ↑(cond b n 0 : num) :=
         by intros; cases b; refl,
-      induction m with m IH m IH; intro n; cases n with n n,
+      induction m with m IH m IH generalizing n; cases n with n n,
       any_goals { change one with 1 },
       any_goals { change pos 1 with 1 },
       any_goals { change pos_num.bit0 with pos_num.bit ff },
@@ -421,7 +421,7 @@ namespace num
   @[simp] theorem shiftr_to_nat (m n) : (shiftr m n : ℕ) = nat.shiftr m n :=
   begin
     cases m with m; dunfold shiftr, {symmetry, apply nat.zero_shiftr},
-    revert m; induction n with n IH; intro m, {cases m; refl},
+    induction n with n IH generalizing m, {cases m; refl},
     cases m with m m; dunfold pos_num.shiftr,
     { rw [nat.shiftr_eq_div_pow], symmetry, apply nat.div_eq_of_lt,
       exact @nat.pow_lt_pow_of_lt_right 2 dec_trivial 0 (n+1) (nat.succ_pos _) },
@@ -443,7 +443,7 @@ namespace num
   begin
     cases m with m; unfold test_bit nat.test_bit,
     { change (zero : nat) with 0, rw nat.zero_shiftr, refl },
-    revert m; induction n with n IH; intro m;
+    induction n with n IH generalizing m;
     cases m; dunfold pos_num.test_bit, {refl},
     { exact (nat.bodd_bit _ _).symm },
     { exact (nat.bodd_bit _ _).symm },

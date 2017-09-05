@@ -341,7 +341,7 @@ theorem eq_of_mem_map_pair₁  {a₁ a : α} {b₁ : β} {l : list β} :
   (a₁, b₁) ∈ map (λ b, (a, b)) l → a₁ = a :=
 assume ain,
 have fst (a₁, b₁) ∈ map fst (map (λ b, (a, b)) l), from mem_map fst ain,
-have a₁ ∈ map (λb, a) l, begin revert this, rw [map_map], intro this, assumption end,
+have a₁ ∈ map (λb, a) l, begin rw map_map at this, assumption end,
 eq_of_map_const this
 
 theorem mem_of_mem_map_pair₁ {a₁ a : α} {b₁ : β} {l : list β} :

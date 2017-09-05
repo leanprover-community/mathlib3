@@ -115,7 +115,7 @@ theorem mem_rec_on {C : seq α → Prop} {a s} (M : a ∈ s)
   (h1 : ∀ b s', (a = b ∨ C s') → C (cons b s')) : C s :=
 begin
   cases M with k e, unfold stream.nth at e,
-  revert s, induction k with k IH; intros s e,
+  induction k with k IH generalizing s,
   { have TH : s = cons a (tail s),
     { apply destruct_eq_cons,
       unfold destruct nth has_map.map, rw ←e, refl },
@@ -164,7 +164,7 @@ end
 
 def of_list (l : list α) : seq α :=
 ⟨list.nth l, λn h, begin
-  revert n, induction l with a l IH; intros, refl,
+  induction l with a l IH generalizing n, refl,
   dsimp [list.nth], cases n with n; dsimp [list.nth] at h,
   { contradiction },
   { apply IH _ h }
@@ -497,7 +497,7 @@ theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
 
 @[simp] theorem head_dropn (s : seq α) (n) : head (drop s n) = nth s n :=
 begin
-  revert s, induction n with n IH; intro, { refl },
+  induction n with n IH generalizing s, { refl },
   rw [nat.succ_eq_add_one, ←nth_tail, ←dropn_tail], apply IH
 end
 

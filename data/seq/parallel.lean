@@ -68,8 +68,8 @@ begin
         rw e at e', { contradiction },
         have := IH' m _ e,
         simp [parallel.aux2] at e',
-        cases destruct c; injection e',
-        rw ←h, simp [this] } },
+        cases destruct c; injection e' with h',
+        rw ←h', simp [this] } },
     ginduction parallel.aux2 l with h a l',
     { exact lem1 _ _ ⟨a, h⟩ },
     { have H2 : corec parallel.aux1 (l, S) = think _,
@@ -153,15 +153,15 @@ begin
             exact ⟨d, or.inr dm, ad⟩ } } } } },
   intros C aC, refine mem_rec_on aC _ (λ C' IH, _);
   intros l S e; have e' := congr_arg destruct e; have := lem1 l;
-  simp [parallel.aux1] at e'; cases parallel.aux2 l with a' l'; injection e',
-  { rw h at this, cases this with c cl, cases cl with cl ac,
+  simp [parallel.aux1] at e'; cases parallel.aux2 l with a' l'; injection e' with h',
+  { rw h' at this, cases this with c cl, cases cl with cl ac,
     exact ⟨c, or.inl cl, ac⟩ },
-  { ginduction seq.destruct S with e a; rw e at h,
-    { exact let ⟨d, o, ad⟩ := IH _ _ h,
+  { ginduction seq.destruct S with e a; rw e at h',
+    { exact let ⟨d, o, ad⟩ := IH _ _ h',
         ⟨c, cl, ac⟩ := this a ⟨d, o.resolve_right (not_mem_nil _), ad⟩ in
       ⟨c, or.inl cl, ac⟩ },
-    { cases a with o S', cases o with c; simp [parallel.aux1] at h;
-      cases IH _ _ h with d dm; cases dm with o ad; cases o with dl dS',
+    { cases a with o S', cases o with c; simp [parallel.aux1] at h';
+      cases IH _ _ h' with d dm; cases dm with o ad; cases o with dl dS',
       { exact let ⟨c, cl, ac⟩ := this a ⟨d, dl, ad⟩ in ⟨c, or.inl cl, ac⟩ },
       { refine ⟨d, or.inr _, ad⟩,
         rw seq.destruct_eq_cons e,

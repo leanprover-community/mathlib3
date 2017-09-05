@@ -211,7 +211,7 @@ show valid_aux (λa, (mk_idx n (hash_fn a)).1) (array.iterate_aux bkts (λ_ v l,
 theorem valid.find_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) (a : α) (b : β a) :
  find_aux a (bkts.read hash_fn a) = some b ↔ sigma.mk a b ∈ bkts.as_list :=
 iff.trans (find_aux_iff _ _ _ (v.nodup _ _))
-  $ iff.trans (by exact ⟨λm, ⟨_, m⟩, λ⟨⟨i, h⟩, m⟩, by rwa [← v.eq' _ m] at m⟩)
+  $ iff.trans (by exact ⟨λm, ⟨_, m⟩, λ⟨⟨i, h⟩, m⟩, let h := v.eq' _ m in by rwa [←h] at m⟩)
    (iff.symm (bkts.mem_as_list _))
 
 theorem valid.contains_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) (a : α) :

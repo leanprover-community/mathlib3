@@ -122,7 +122,8 @@ begin
     rw TH, apply h1 _ _ (or.inl rfl) },
   revert e, apply s.cases_on _ (λ b s', _); intro e,
   { injection e },
-  { rw [show (cons b s').val (nat.succ k) = s'.val k, by cases s'; refl] at e,
+  { have h_eq : (cons b s').val (nat.succ k) = s'.val k, { cases s'; refl },
+    rw [h_eq] at e,
     apply h1 _ _ (or.inr (IH e)) }
 end
 
@@ -506,7 +507,7 @@ theorem mem_map (f : α → β) {a : α} : ∀ {s : seq α}, a ∈ s → f a ∈
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : seq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := stream.exists_of_mem_map h in
-  by cases o; injection oe; exact ⟨a, om, h⟩
+  by cases o; injection oe with h'; exact ⟨a, om, h'⟩
 
 def of_mem_append {s₁ s₂ : seq α} {a : α} (h : a ∈ append s₁ s₂) : a ∈ s₁ ∨ a ∈ s₂ :=
 begin

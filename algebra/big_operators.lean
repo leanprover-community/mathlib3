@@ -113,6 +113,19 @@ calc (s.product t).prod f = (s.prod $ λx, (t.image $ λy, (x, y)).prod f) :
     prod_bind $ assume x hx y hy h, ext $ by simp [mem_image_iff]; cc
   ... = _ : begin congr, apply funext, intro x, apply prod_image, simp {contextual := tt} end
 
+lemma prod_sigma {σ : α → Type*} [∀a, decidable_eq (σ a)]
+  {s : finset α} {t : Πa, finset (σ a)} {f : sigma σ → β} :
+  (s.sigma t).prod f = (s.prod $ λa, (t a).prod $ λs, f ⟨a, s⟩) :=
+have ∀a₁ a₂:α, ∀s₁ : finset (σ a₁), ∀s₂ : finset (σ a₂), a₁ ≠ a₂ →
+    s₁.image (sigma.mk a₁) ∩ s₂.image (sigma.mk a₂) = ∅,
+  from assume b₁ b₂ s₁ s₂ h, ext $ assume ⟨b₃, c₃⟩,
+    by simp [mem_image_iff, sigma.mk_eq_mk_iff, heq_iff_eq] {contextual := tt}; cc,
+calc (s.bind (λa, (t a).image (λs, sigma.mk a s))).prod f =
+      s.prod (λa, ((t a).image (λs, sigma.mk a s)).prod f) :
+    prod_bind $ assume a₁ ha a₂ ha₂ h, this a₁ a₂ (t a₁) (t a₂) h
+  ... = (s.prod $ λa, (t a).prod $ λs, f ⟨a, s⟩) :
+    by simp [prod_image, sigma.mk_eq_mk_iff, heq_iff_eq]
+
 lemma prod_mul_distrib : s.prod (λx, f x * g x) = s.prod f * s.prod g :=
 eq.trans (by simp; refl) fold_op_distrib
 
@@ -263,6 +276,7 @@ run_cmd transport_multiplicative_to_additive [
   (`finset.prod_inv_distrib, `finset.sum_neg_distrib),
   (`finset.prod_const_one, `finset.sum_const_zero),
   (`finset.prod_comm, `finset.sum_comm),
+  (`finset.prod_sigma, `finset.sum_sigma),
   (`finset.prod_subset, `finset.sum_subset)]
 
 namespace finset

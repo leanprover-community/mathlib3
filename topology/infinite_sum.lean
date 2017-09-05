@@ -143,6 +143,49 @@ have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
 show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (nhds (g a)),
   by rw [this]; exact tendsto_compose hf (continuous_iff_tendsto.mp h₃ a)
 
+lemma is_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
+  (hf : ∀b, is_sum (λc, f ⟨b, c⟩) (g b)) (ha : is_sum f a) : is_sum g a :=
+assume s' hs',
+let
+  ⟨s, hs, hss', hsc⟩ := nhds_is_closed hs',
+  ⟨u, hu⟩ := mem_at_top_iff.mp $ ha $ hs,
+  fsts := u.image sigma.fst,
+  snds := λb, u.bind (λp, (if h : p.1 = b then {cast (congr_arg γ h) p.2} else ∅ : finset (γ b)))
+in
+have u_subset : u ⊆ fsts.sigma snds,
+  from subset_iff.mpr $ assume ⟨b, c⟩ hu,
+  have hb : b ∈ fsts, from mem_image_iff.mpr ⟨_, hu, rfl⟩,
+  have hc : c ∈ snds b, from mem_bind_iff.mpr ⟨_, hu, by simp; refl⟩,
+  by simp [mem_sigma_iff, hb, hc] ,
+mem_at_top_iff.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
+  have h : ∀cs:(Πb, b ∈ bs → finset (γ b)),
+      (⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
+      (λp, bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩))) ⁻¹' s ≠ ∅,
+    from assume cs,
+    let cs' := λb, (if h : b ∈ bs then cs b h else ∅) ∪ snds b in
+    have sum_eq : bs.sum (λb, (cs' b).sum (λc, f ⟨b, c⟩)) = (bs.sigma cs').sum f,
+      from sum_sigma.symm,
+    have (bs.sigma cs').sum f ∈ s,
+      from hu _ $ subset.trans u_subset $ sigma_mono hbs $
+        assume b, @finset.subset_union_right (γ b) _ _ _,
+    ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
+    by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_right] },
+  have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
+      (⨅b (h : b ∈ bs), at_top.vmap (λp, p b)) (nhds (bs.sum g)),
+    from tendsto_sum $
+      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_compose tendsto_vmap (hf c),
+  have bs.sum g ∈ s,
+    from mem_closure_of_tendsto this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
+      by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib',
+               filter.mem_infi_sets_finset, mem_vmap, skolem, mem_at_top_iff];
+      from
+        assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
+        have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
+          from infi_le_infi $ assume b, infi_le_infi $ assume hb,
+            le_trans (preimage_mono $ hp' b hb) (hp b hb),
+        neq_bot_of_le_neq_bot (h _) (le_trans (inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
+  hss' this
+
 end is_sum
 
 section is_sum_iff_is_sum_of_iso_ne_zero
@@ -202,67 +245,6 @@ lemma is_sum_iff_is_sum_of_ne_zero : is_sum f a ↔ is_sum g a :=
 iff.intro (is_sum_of_is_sum_ne_zero h₂ h₁ h₄ h₃) (is_sum_of_is_sum_ne_zero h₁ h₂ h₃ h₄)
 
 end is_sum_iff_is_sum_of_iso_ne_zero
-
-lemma is_sum_sigma
-  [add_comm_monoid α] [topological_space α] [topological_add_monoid α] [regular_space α]
-  {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
-  (hf : ∀b, is_sum (λc, f ⟨b, c⟩) (g b)) (ha : is_sum f a) : is_sum g a :=
-assume s' hs',
-let
-  ⟨s, hs, hss', hsc⟩ := nhds_is_closed hs',
-  ⟨u, hu⟩ := mem_at_top_iff.mp $ ha $ hs,
-  fsts := u.image sigma.fst,
-  snds := λb, u.bind (λp, (if h : p.1 = b then {cast (congr_arg γ h) p.2} else ∅ : finset (γ b)))
-in
-have sig_inj : ∀b, ∀c₁ c₂ : γ b, sigma.mk b c₁ = sigma.mk b c₂ ↔ c₁ = c₂,
-  from assume b c₁ c₂, ⟨assume h, by cases h; refl, assume h, by simp *⟩,
-have sig_image_inj : ∀b₁ b₂, ∀s₁ : finset (γ b₁), ∀s₂ : finset (γ b₂), b₁ ≠ b₂ →
-    s₁.image (sigma.mk b₁) ∩ s₂.image (sigma.mk b₂) = ∅,
-  from assume b₁ b₂ s₁ s₂ h, ext $ assume ⟨b₃, c₃⟩,
-    by simp [mem_image_iff];
-    from assume c₁ h₁ eq₁ c₂ h₂ eq₂,
-      have h₁ : b₁ = b₃, from congr_arg sigma.fst eq₁,
-      have h₂ : b₂ = b₃, from congr_arg sigma.fst eq₂,
-      h $ by simp [h₁, h₂],
-mem_at_top_iff.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
-  have h : ∀cs:(Πb, b ∈ bs → finset (γ b)),
-      (⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
-      (λp, bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩))) ⁻¹' s ≠ ∅,
-    from assume cs,
-    let cs' := λb, (if h : b ∈ bs then cs b h else ∅) ∪ snds b in
-    let sig : finset (sigma γ) := bs.bind (λb, (cs' b).image (λc, ⟨b, c⟩)) in
-    have sum_eq : bs.sum (λb, (cs' b).sum (λc, f ⟨b, c⟩)) = sig.sum f,
-      from calc bs.sum (λb, (cs' b).sum (λc, f ⟨b, c⟩)) =
-            bs.sum (λb, ((cs' b).image (@sigma.mk β γ b)).sum f) :
-          by simp [sum_image, sig_inj]
-        ... = sig.sum f :
-          (sum_bind $ assume b₁ hb b₂ hb₂ h, sig_image_inj b₁ b₂ (cs' b₁) (cs' b₂) h).symm,
-    have sig.sum f ∈ s,
-      from hu _ $ subset_iff.mpr $ show ∀x:sigma γ, x ∈ u → x ∈ sig,
-        from assume ⟨b, c⟩ hbc,
-        have hb : b ∈ fsts, from mem_image_iff.mpr ⟨_, hbc, rfl⟩,
-        have hb' : b ∈ bs, from mem_of_subset_of_mem hbs hb,
-        have hc : c ∈ snds b, from mem_bind_iff.mpr ⟨_, hbc, by simp; refl⟩,
-        have hc' : c ∈ cs' b, by simp [hb', hc],
-        by simp [sig, mem_bind_iff];
-        from ⟨b, hb', mem_image_iff.mpr ⟨c, hc', rfl⟩⟩,
-    ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
-    by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_right] },
-  have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
-      (⨅b (h : b ∈ bs), at_top.vmap (λp, p b)) (nhds (bs.sum g)),
-    from tendsto_sum $
-      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_compose tendsto_vmap (hf c),
-  have bs.sum g ∈ s,
-    from mem_closure_of_tendsto this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
-      by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib',
-               filter.mem_infi_sets_finset, mem_vmap, skolem, mem_at_top_iff];
-      from
-        assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
-        have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
-          from infi_le_infi $ assume b, infi_le_infi $ assume hb,
-            le_trans (preimage_mono $ hp' b hb) (hp b hb),
-        neq_bot_of_le_neq_bot (h _) (le_trans (inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
-  hss' this
 
 section topological_group
 variables [add_comm_group α] [uniform_space α] [complete_space α] [uniform_add_group α]

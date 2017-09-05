@@ -5,11 +5,18 @@ Author: Johannes Hölzl
 
 Fold on finite sets
 -/
-import data.list.set data.list.perm tactic.finish data.finset.basic
+import data.list.set data.list.perm data.finset.basic data.sigma tactic.finish
 open list subtype nat finset
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
+
+section logic
+
+lemma heq_iff_eq {a₁ a₂ : α} : a₁ == a₂ ↔ a₁ = a₂ :=
+iff.intro eq_of_heq heq_of_eq
+
+end logic
 
 namespace list
 
@@ -148,5 +155,23 @@ lemma mem_product_iff : ∀{p : α × β}, p ∈ s.product t ↔ p.1 ∈ s ∧ p
 by simp [finset.product, mem_bind_iff, mem_image_iff]
 
 end prod
+
+section sigma
+variables {σ : α → Type*} [decidable_eq α] [∀a, decidable_eq (σ a)]
+  {s : finset α} {t : Πa, finset (σ a)}
+
+protected def sigma (s : finset α) (t : Πa, finset (σ a)) : finset (Σa, σ a) :=
+s.bind $ λa, (t a).image $ λb, ⟨a, b⟩
+
+lemma mem_sigma_iff {p : sigma σ} : p ∈ s.sigma t ↔ p.1 ∈ s ∧ p.2 ∈ t (p.1) :=
+by cases p with a b;
+   simp [finset.sigma, mem_bind_iff, mem_image_iff, iff_def, sigma.mk_eq_mk_iff, heq_iff_eq]
+        {contextual := tt}
+
+lemma sigma_mono {s₁ s₂ : finset α} {t₁ t₂ : Πa, finset (σ a)} :
+  s₁ ⊆ s₂ → (∀a, t₁ a ⊆ t₂ a) → s₁.sigma t₁ ⊆ s₂.sigma t₂ :=
+by simp [subset_iff, mem_sigma_iff] {contextual := tt}
+
+end sigma
 
 end finset

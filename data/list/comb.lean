@@ -169,7 +169,7 @@ theorem exists_of_any_eq_tt {p : α → bool} : ∀ {l : list α}, any l p = tt 
 | []     h := begin simp at h, contradiction end
 | (b::l) h := begin
                 simp [bool.bor_eq_tt] at h, cases h with h h,
-                { existsi b, simp [h] },
+                { existsi b, simp [h], constructor },
                 cases (exists_of_any_eq_tt h) with a ha,
                 existsi a, apply (and.intro (or.inr ha.left) ha.right)
               end

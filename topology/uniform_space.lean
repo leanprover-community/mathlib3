@@ -231,6 +231,12 @@ lemma mem_nhds_uniformity_iff {x : α} {s : set α} :
             from tr this rfl,
     hs⟩⟩
 
+lemma nhds_eq_vmap_uniformity {x : α} : nhds x = uniformity.vmap (prod.mk x) :=
+filter_eq $ set.ext $ assume s, by rw [mem_nhds_uniformity_iff, mem_vmap]; from iff.intro
+  (assume hs, ⟨_, hs, assume x hx, hx rfl⟩)
+  (assume ⟨t, h, ht⟩, uniformity.upwards_sets h $
+    assume ⟨p₁, p₂⟩ hp (h : p₁ = x), ht $ by simp [h.symm, hp])
+
 lemma nhds_eq_uniformity {x : α} : nhds x = uniformity.lift' (λs:set (α×α), {y | (x, y) ∈ s}) :=
 filter_eq $ set.ext $ assume s,
   begin

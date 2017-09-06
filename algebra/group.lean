@@ -184,6 +184,10 @@ lemma abs_le_iff  : abs a ≤ b ↔ (- b ≤ a ∧ a ≤ b) :=
 ⟨assume h, ⟨neg_le_of_neg_le $ le_trans (neg_le_abs_self _) h, le_trans (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_le_of_le_of_neg_le h₂ $ neg_le_of_neg_le h₁⟩
 
+lemma abs_lt_iff  : abs a < b ↔ (- b < a ∧ a < b) :=
+⟨assume h, ⟨neg_lt_of_neg_lt $ lt_of_le_of_lt (neg_le_abs_self _) h, lt_of_le_of_lt (le_abs_self _) h⟩,
+  assume ⟨h₁, h₂⟩, abs_lt_of_lt_of_neg_lt h₂ $ neg_lt_of_neg_lt h₁⟩
+
 @[simp] lemma abs_eq_zero_iff : abs a = 0 ↔ a = 0 :=
 ⟨eq_zero_of_abs_eq_zero, by simp [abs_zero] {contextual := tt}⟩
 

@@ -42,6 +42,53 @@ lemma one_lt_two : 1 < (2 : ℚ) :=
 calc (1:ℚ) < 1 + 1 : lt_add_of_le_of_pos (le_refl 1) zero_lt_one
   ... = _ : by simp [bit0]
 
+lemma sub_lt_iff [ordered_comm_group α] {a b c : α} : (a - b < c) ↔ (a < c + b) :=
+iff.intro
+  lt_add_of_sub_right_lt
+  (assume h,
+    have a + - b < (c + b) + - b, from add_lt_add_right h _,
+    by simp * at *)
+
+lemma lt_sub_iff [ordered_comm_group α] {a b c : α} : (a < b - c) ↔ (a + c < b) :=
+iff.intro
+  (assume h,
+    have a + c < (b - c) + c, from add_lt_add_right h _,
+    by simp * at *)
+  lt_sub_right_of_add_lt
+
+lemma orderable_topology_of_nhds_abs
+  {α : Type*} [decidable_linear_ordered_comm_group α] [topological_space α]
+  (h_nhds : ∀a:α, nhds a = (⨅r>0, principal {b | abs (a - b) < r})) : orderable_topology α :=
+orderable_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
+begin
+  simp [infi_and, topological_space.nhds_generate_from, h_nhds, le_infi_iff, -le_principal_iff],
+  constructor,
+  exact assume s ha b hs,
+    match s, ha, hs with
+    | _, h, (or.inl rfl) :=
+      infi_le_of_le (a + - b) $ infi_le_of_le (lt_sub_left_of_add_lt $ by simp; exact h) $
+        principal_mono.mpr $ assume c (hc : abs (a + - c) < a - b),
+        have a + - c < a + - b, from lt_of_le_of_lt (le_abs_self _) hc,
+        show b < c, from lt_of_neg_lt_neg $ lt_of_add_lt_add_left this
+    | _, h, (or.inr rfl) :=
+      infi_le_of_le (b + - a) $ infi_le_of_le (lt_sub_left_of_add_lt $ by simp; exact h) $
+        principal_mono.mpr $ assume c (hc : abs (a + - c) < b + - a),
+        have abs (c + - a) < b + - a, by rw [←abs_neg]; simp [hc],
+        have c + - a < b + - a, from lt_of_le_of_lt (le_abs_self _) this,
+        show c < b, from lt_of_add_lt_add_right this
+    end,
+  { intros r hr,
+    have h : {b | abs (a + -b) < r} = {b | a - r < b} ∩ {b | b < a + r},
+      from (set.ext $ assume b,
+        by simp [abs_lt_iff, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm, sub_lt_iff, lt_sub_iff]),
+    rw [h, ←inf_principal],
+    apply le_inf _ _,
+    exact (infi_le_of_le {b : α | a - r < b} $ infi_le_of_le (sub_lt_self a hr) $
+      infi_le_of_le (a - r) $ infi_le _ (or.inl rfl)),
+    exact (infi_le_of_le {b : α | b < a + r} $ infi_le_of_le (lt_add_of_pos_right _ hr) $
+      infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) }
+end
+
 /- rational numbers form a topological group and hence a uniform space -/
 def zero_nhd : filter ℚ := (⨅r > 0, principal {q | abs q < r})
 
@@ -202,6 +249,17 @@ begin
   apply monotone_preimage
 end
 
+instance : orderable_topology ℚ :=
+orderable_topology_of_nhds_abs $ assume a,
+begin
+  rw [nhds_eq_map_zero_nhd],
+  have : zero_nhd.map (λ (x : ℚ), x + a) = zero_nhd.vmap (λ (x : ℚ), x - a),
+    from map_eq_vmap_of_inverse
+      (funext $ assume x, by simp [(∘)]; rw [←add_assoc, add_comm, ←add_assoc]; simp)
+      (funext $ assume x, by simp [(∘)]; rw [←add_assoc, add_comm, ←add_assoc]; simp),
+  rw [this], simp [zero_nhd, vmap_infi, (abs_neg (_ + -a)).symm]
+end
+
 lemma lt_mem_nhds {r q : ℚ} (h : r < q) : {x | r < x} ∈ (nhds q).sets :=
 have 0 < q - r, from lt_sub_left_of_add_lt $ by simp [h],
 begin
@@ -226,10 +284,6 @@ have {x | -r < -x} ∈ (nhds q).sets,
 
 lemma ge_mem_nhds {r q : ℚ} (h : q < r) : {x | x ≤ r} ∈ (nhds q).sets :=
 (nhds q).upwards_sets (gt_mem_nhds h) $ assume x, le_of_lt
-
-instance : linear_ordered_topology ℚ :=
-⟨assume r:ℚ, by simp [is_open_iff_nhds]; exact assume a, lt_mem_nhds,
-  assume r:ℚ, by simp [is_open_iff_nhds]; exact assume a, gt_mem_nhds⟩
 
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
 ⟨assume a b (h : a + r = b + r),
@@ -756,9 +810,117 @@ private lemma is_open_lt_real [topological_space α] {f g : α → ℝ}
 have {a | f a < g a} = - {a | g a ≤ f a}, from set.ext $ assume y, by simp [not_le_iff],
 by rw [this]; exact is_open_compl_iff.mpr (is_closed_le_real hg hf)
 
-instance : linear_ordered_topology ℝ :=
-{ is_open_lt := assume x, is_open_lt_real continuous_const continuous_id,
-  is_open_gt := assume x, is_open_lt_real continuous_id continuous_const }
+lemma abs_real_eq_abs : abs_real = abs :=
+funext $ assume r,
+match le_total 0 r with
+| or.inl h := by simp [abs_of_nonneg h, abs_real_of_nonneg h]
+| or.inr h :=
+  have 0 ≤ -r, from le_neg_of_le_neg $ by simp [-of_rat_zero, h],
+  calc abs_real r = abs_real (- - r) : by simp
+    ... = - r : by rw [abs_real_neg, abs_real_of_nonneg this]
+    ... = _ : by simp [abs_of_nonpos h]
+end
+
+lemma uniform_continuous_abs_real : uniform_continuous (abs : ℝ → ℝ) :=
+by rw [←abs_real_eq_abs]; exact uniform_continuous_abs_real'
+
+lemma continuous_abs_real : continuous (abs : ℝ → ℝ) :=
+continuous_of_uniform uniform_continuous_abs_real
+
+lemma of_rat_abs {q : ℚ} : of_rat (abs q) = abs (of_rat q) :=
+by rw [←abs_real_eq_abs]; exact of_rat_abs_real.symm
+
+lemma exists_pos_of_rat {r : ℝ} (hr : 0 < r) : ∃q:ℚ, 0 < q ∧ of_rat q < r :=
+let ⟨u, v, hu, hv, hru, h0v, huv⟩ := t2_separation (ne_of_gt hr) in
+have r ∈ nonneg, from zero_le_iff_nonneg.mp $ le_of_lt $ hr,
+have r ∈ closure (u ∩ of_rat '' {q | 0 ≤ q}),
+  from closure_inter_open hu ⟨hru, this⟩,
+have ∃i:ℚ, i>0 ∧ ∀q, abs q < i → of_rat q ∈ v,
+  from have {q:ℚ | of_rat q ∈ v} ∈ (nhds (0:ℚ)).sets,
+    from dense_embedding_of_rat.tendsto (mem_nhds_sets hv h0v),
+  by rw [nhds_0_eq_zero_nhd, mem_zero_nhd_iff] at this; simp * at *,
+let ⟨i, hi, hiq⟩ := this in
+have ∀a ∈ u ∩ of_rat '' {q : ℚ | 0 ≤ q}, a - of_rat i ∈ nonneg,
+  from assume a ⟨hau, q, (hq : 0 ≤ q), heq⟩,
+  have i ≤ q, from le_of_not_gt $ assume : q < i,
+    have of_rat q ∈ v, from hiq q $ by simp [abs_of_nonneg hq, *],
+    have of_rat q ∈ u ∩ v, from ⟨heq.symm ▸ hau, this⟩,
+    by rwa [huv] at this,
+  heq ▸ by simp [of_rat_mem_nonneg_iff, -sub_eq_add_neg, le_sub_iff_add_le, this],
+have r - of_rat i ∈ nonneg,
+  from @mem_closure_of_continuous _ _ _ _ (λr, r - of_rat i) _ (u ∩ of_rat '' {q | 0 ≤ q}) _
+    (continuous_sub continuous_id continuous_const) ‹r ∈ closure (u ∩ of_rat '' {q | 0 ≤ q})› this,
+⟨i / 2, div_pos_of_pos_of_pos hi two_pos,
+  lt_of_lt_of_le (of_rat_lt_of_rat.mpr $ div_two_lt_of_pos hi) this⟩
+
+lemma mem_uniformity_real_iff {s : set (ℝ × ℝ)} :
+  s ∈ (@uniformity ℝ _).sets ↔ (∃e>0, ∀r₁ r₂:ℝ, abs (r₁ - r₂) < of_rat e → (r₁, r₂) ∈ s) :=
+⟨ assume : s ∈ uniformity.sets,
+  let ⟨s', hs', hcs', hss'⟩ := mem_uniformity_is_closed this in
+  have s'_eq : {x : ℝ × ℝ | (x.fst, x.snd) ∈ s'} = s', by simp,
+  have (λp:ℚ×ℚ, (of_rat p.1, of_rat p.2)) ⁻¹' s' ∈ (zero_nhd.vmap (λp:ℚ×ℚ, p.1 - p.2)).sets,
+    by rw [←uniformity_rat, ←uniform_embedding_of_rat.right]; exact preimage_mem_vmap hs',
+  let ⟨t, ht, (hst : _ ⊆ _)⟩ := this, ⟨e, he, het⟩ := by rw [mem_zero_nhd_iff] at ht; exact ht in
+  have ∀r:ℝ×ℝ, abs (r.1 - r.2) < of_rat e → (r.1, r.2) ∈ s',
+    from is_closed_property dense_embedding_of_rat_of_rat.closure_image_univ
+      (is_closed_imp (is_open_lt_real
+        (continuous_compose (continuous_sub continuous_fst continuous_snd) continuous_abs_real)
+          continuous_const) $ by simp [s'_eq]; exact hcs') $
+      assume ⟨q₁, q₂⟩,
+      begin
+        simp [-sub_eq_add_neg, of_rat_abs.symm, of_rat_lt_of_rat],
+        exact assume hq, @hst (q₁, q₂) (het (q₁ - q₂) hq)
+      end,
+  ⟨e, he, assume r₁ r₂ hr, hss' $ this (r₁, r₂) hr⟩,
+  assume ⟨e, he, (hes : ∀ (r₁ r₂ : ℝ), abs (r₁ - r₂) < of_rat e → (r₁, r₂) ∈ s)⟩,
+  have 0 < e/2, from div_pos_of_pos_of_pos he two_pos,
+  have {q:ℚ×ℚ | abs (q.1 - q.2) < e/2 } ∈ (uniformity.vmap (λp:ℚ×ℚ, (of_rat p.1, of_rat p.2))).sets,
+    by rw [uniform_embedding_of_rat.right]; exact mem_uniformity_rat this,
+  let ⟨t, ht, hte⟩ := this in
+  have ∀p:ℝ×ℝ, p ∈ interior t → abs (p.1 - p.2) ≤ of_rat (e/2),
+    from is_closed_property dense_embedding_of_rat_of_rat.closure_image_univ
+      (is_closed_imp is_open_interior $ is_closed_le_real (continuous_compose
+        (continuous_sub continuous_fst continuous_snd) continuous_abs_real)
+        continuous_const) $
+      assume ⟨q₁, q₂⟩ hq,
+        have (of_rat q₁, of_rat q₂) ∈ t, from interior_subset hq,
+        have abs (q₁ - q₂) ≤ e / 2, from le_of_lt $ @hte (q₁, q₂) this,
+        by simp [-sub_eq_add_neg, of_rat_abs.symm, of_rat_le_of_rat]; assumption,
+  uniformity.upwards_sets (interior_mem_uniformity ht) $
+    assume p hp,
+    have abs (p.1 - p.2) < of_rat e,
+      from calc _ ≤ of_rat (e / 2) : this p hp
+        ... < of_rat e : of_rat_lt_of_rat.mpr $ div_lt_of_mul_lt_of_pos two_pos $
+          lt_mul_of_gt_one_right he two_gt_one,
+    have (p.1, p.2) ∈ s,
+      from hes _ _ this,
+    by simp * at *⟩
+
+lemma nhds_eq_real {x : ℝ} : nhds x = (⨅r > 0, principal {p | abs (x - p) < r}) :=
+le_antisymm
+  (le_infi $ assume r, le_infi $ assume hr,
+    let ⟨q, h₁, h₂⟩ := exists_pos_of_rat hr in
+    begin
+      rw [nhds_eq_vmap_uniformity, le_principal_iff],
+      show (prod.mk x) ⁻¹' {p:ℝ×ℝ | abs (p.1 - p.2) < r} ∈ (vmap (prod.mk x) uniformity).sets,
+      apply preimage_mem_vmap,
+      exact mem_uniformity_real_iff.mpr ⟨q, h₁, assume r₁ r₂ hr, lt_trans hr h₂⟩
+    end)
+  (assume s hs,
+    let hs := mem_nhds_uniformity_iff.mp hs in
+    let ⟨q, hq, h⟩ := mem_uniformity_real_iff.mp hs in
+    mem_infi_sets (of_rat q) $ mem_infi_sets (of_rat_lt_of_rat.mpr hq) $ mem_principal_sets.mpr $
+      assume r hr, h x r hr rfl)
+
+instance : orderable_topology ℝ := orderable_topology_of_nhds_abs $ assume a, nhds_eq_real
+
+lemma exists_lt_of_rat (r : ℝ) : ∃q:ℚ, r < of_rat q :=
+have {r':ℝ | r < r'} ∩ of_rat '' univ ∈ (nhds (r + 1) ⊓ principal (of_rat '' univ)).sets,
+  from inter_mem_inf_sets (mem_nhds_sets (is_open_lt continuous_const continuous_id) $
+    show r < r + 1, from lt_add_of_le_of_pos (le_refl _) (of_rat_lt_of_rat.mpr zero_lt_one))
+    (mem_principal_sets.mpr $ subset.refl _),
+let ⟨x, hx, ⟨q, hq, hxq⟩⟩ := inhabited_of_mem_sets dense_embedding_of_rat.nhds_inf_neq_bot this in
+⟨q, hxq.symm ▸ hx⟩
 
 lemma closure_of_rat_image_le_eq {q : ℚ} : closure (of_rat '' {x | q ≤ x}) = {r | of_rat q ≤ r } :=
 have {r : ℝ | of_rat q < r} ⊆ closure (of_rat '' {x : ℚ | q ≤ x}),
@@ -803,105 +965,6 @@ subset.antisymm
   (calc {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} ⊆ {of_rat a, of_rat b} ∪ (a_lt ∩ lt_b) :
       assume x, by simp [le_iff_lt_or_eq, and_imp, or_imp_distrib] {contextual := tt}; admit
     ... ⊆ ivl : union_subset hab this)
-
-lemma is_closed_imp [topological_space α] {p q : α → Prop}
-  (hp : is_open {x | p x}) (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
-have {x | p x → q x} = (- {x | p x}) ∪ {x | q x}, from set.ext $ by finish,
-by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
-
-lemma abs_real_eq_abs : abs_real = abs :=
-funext $ assume r,
-match le_total 0 r with
-| or.inl h := by simp [abs_of_nonneg h, abs_real_of_nonneg h]
-| or.inr h :=
-  have 0 ≤ -r, from le_neg_of_le_neg $ by simp [-of_rat_zero, h],
-  calc abs_real r = abs_real (- - r) : by simp
-    ... = - r : by rw [abs_real_neg, abs_real_of_nonneg this]
-    ... = _ : by simp [abs_of_nonpos h]
-end
-
-lemma uniform_continuous_abs_real : uniform_continuous (abs : ℝ → ℝ) :=
-by rw [←abs_real_eq_abs]; exact uniform_continuous_abs_real'
-
-lemma continuous_abs_real : continuous (abs : ℝ → ℝ) :=
-continuous_of_uniform uniform_continuous_abs_real
-
-lemma of_rat_abs {q : ℚ} : of_rat (abs q) = abs (of_rat q) :=
-by rw [←abs_real_eq_abs]; exact of_rat_abs_real.symm
-
-lemma mem_uniformity_real_iff {s : set (ℝ × ℝ)} :
-  s ∈ (@uniformity ℝ _).sets ↔ (∃e>0, ∀r₁ r₂:ℝ, abs (r₁ - r₂) < of_rat e → (r₁, r₂) ∈ s) :=
-⟨ assume : s ∈ uniformity.sets,
-  let ⟨s', hs', hcs', hss'⟩ := mem_uniformity_is_closed this in
-  have s'_eq : {x : ℝ × ℝ | (x.fst, x.snd) ∈ s'} = s', by simp,
-  have (λp:ℚ×ℚ, (of_rat p.1, of_rat p.2)) ⁻¹' s' ∈ (zero_nhd.vmap (λp:ℚ×ℚ, p.1 - p.2)).sets,
-    by rw [←uniformity_rat, ←uniform_embedding_of_rat.right]; exact preimage_mem_vmap hs',
-  let ⟨t, ht, (hst : _ ⊆ _)⟩ := this, ⟨e, he, het⟩ := by rw [mem_zero_nhd_iff] at ht; exact ht in
-  have ∀r:ℝ×ℝ, abs (r.1 - r.2) < of_rat e → (r.1, r.2) ∈ s',
-    from is_closed_property dense_embedding_of_rat_of_rat.closure_image_univ
-      (is_closed_imp (is_open_lt
-        (continuous_compose (continuous_sub continuous_fst continuous_snd) continuous_abs_real)
-          continuous_const) $ by simp [s'_eq]; exact hcs') $
-      assume ⟨q₁, q₂⟩,
-      begin
-        simp [-sub_eq_add_neg, of_rat_abs.symm, of_rat_lt_of_rat],
-        exact assume hq, @hst (q₁, q₂) (het (q₁ - q₂) hq)
-      end,
-  ⟨e, he, assume r₁ r₂ hr, hss' $ this (r₁, r₂) hr⟩,
-  assume ⟨e, he, (hes : ∀ (r₁ r₂ : ℝ), abs (r₁ - r₂) < of_rat e → (r₁, r₂) ∈ s)⟩,
-  have 0 < e/2, from div_pos_of_pos_of_pos he two_pos,
-  have {q:ℚ×ℚ | abs (q.1 - q.2) < e/2 } ∈ (uniformity.vmap (λp:ℚ×ℚ, (of_rat p.1, of_rat p.2))).sets,
-    by rw [uniform_embedding_of_rat.right]; exact mem_uniformity_rat this,
-  let ⟨t, ht, hte⟩ := this in
-  have ∀p:ℝ×ℝ, p ∈ interior t → abs (p.1 - p.2) ≤ of_rat (e/2),
-    from is_closed_property dense_embedding_of_rat_of_rat.closure_image_univ
-      (is_closed_imp is_open_interior $ is_closed_le (continuous_compose
-        (continuous_sub continuous_fst continuous_snd) continuous_abs_real)
-        continuous_const) $
-      assume ⟨q₁, q₂⟩ hq,
-        have (of_rat q₁, of_rat q₂) ∈ t, from interior_subset hq,
-        have abs (q₁ - q₂) ≤ e / 2, from le_of_lt $ @hte (q₁, q₂) this,
-        by simp [-sub_eq_add_neg, of_rat_abs.symm, of_rat_le_of_rat]; assumption,
-  uniformity.upwards_sets (interior_mem_uniformity ht) $
-    assume p hp,
-    have abs (p.1 - p.2) < of_rat e,
-      from calc _ ≤ of_rat (e / 2) : this p hp
-        ... < of_rat e : of_rat_lt_of_rat.mpr $ div_lt_of_mul_lt_of_pos two_pos $
-          lt_mul_of_gt_one_right he two_gt_one,
-    have (p.1, p.2) ∈ s,
-      from hes _ _ this,
-    by simp * at *⟩
-
-lemma exists_lt_of_rat (r : ℝ) : ∃q:ℚ, r < of_rat q :=
-have {r':ℝ | r < r'} ∩ of_rat '' univ ∈ (nhds (r + 1) ⊓ principal (of_rat '' univ)).sets,
-  from inter_mem_inf_sets (mem_nhds_sets (is_open_lt continuous_const continuous_id) $
-    show r < r + 1, from lt_add_of_le_of_pos (le_refl _) (of_rat_lt_of_rat.mpr zero_lt_one))
-    (mem_principal_sets.mpr $ subset.refl _),
-let ⟨x, hx, ⟨q, hq, hxq⟩⟩ := inhabited_of_mem_sets dense_embedding_of_rat.nhds_inf_neq_bot this in
-⟨q, hxq.symm ▸ hx⟩
-
-lemma exists_pos_of_rat {r : ℝ} (hr : 0 < r) : ∃q:ℚ, 0 < q ∧ of_rat q < r :=
-let ⟨u, v, hu, hv, hru, h0v, huv⟩ := t2_separation (ne_of_gt hr) in
-have r ∈ nonneg, from zero_le_iff_nonneg.mp $ le_of_lt $ hr,
-have r ∈ closure (u ∩ of_rat '' {q | 0 ≤ q}),
-  from closure_inter_open hu ⟨hru, this⟩,
-have ∃i:ℚ, i>0 ∧ ∀q, abs q < i → of_rat q ∈ v,
-  from have {q:ℚ | of_rat q ∈ v} ∈ (nhds (0:ℚ)).sets,
-    from dense_embedding_of_rat.tendsto (mem_nhds_sets hv h0v),
-  by rw [nhds_0_eq_zero_nhd, mem_zero_nhd_iff] at this; simp * at *,
-let ⟨i, hi, hiq⟩ := this in
-have ∀a ∈ u ∩ of_rat '' {q : ℚ | 0 ≤ q}, a - of_rat i ∈ nonneg,
-  from assume a ⟨hau, q, (hq : 0 ≤ q), heq⟩,
-  have i ≤ q, from le_of_not_gt $ assume : q < i,
-    have of_rat q ∈ v, from hiq q $ by simp [abs_of_nonneg hq, *],
-    have of_rat q ∈ u ∩ v, from ⟨heq.symm ▸ hau, this⟩,
-    by rwa [huv] at this,
-  heq ▸ by simp [of_rat_mem_nonneg_iff, -sub_eq_add_neg, le_sub_iff_add_le, this],
-have r - of_rat i ∈ nonneg,
-  from @mem_closure_of_continuous _ _ _ _ (λr, r - of_rat i) _ (u ∩ of_rat '' {q | 0 ≤ q}) _
-    (continuous_sub continuous_id continuous_const) ‹r ∈ closure (u ∩ of_rat '' {q | 0 ≤ q})› this,
-⟨i / 2, div_pos_of_pos_of_pos hi two_pos,
-  lt_of_lt_of_le (of_rat_lt_of_rat.mpr $ div_two_lt_of_pos hi) this⟩
 
 lemma continuous_mul_real : continuous (λp:ℝ×ℝ, p.1 * p.2) :=
 have ∀r:ℝ, ∃(s:set ℚ) (q:ℚ),

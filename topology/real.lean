@@ -1116,6 +1116,11 @@ instance : discrete_linear_ordered_field ℝ :=
 instance : topological_ring ℝ :=
 { real.topological_add_group with continuous_mul := continuous_mul_real }
 
+-- TODO: without this setup `continuous_mul` is not found correctly?!
+instance : semiring ℝ := by apply_instance
+instance : topological_semiring ℝ :=
+  @topological_ring.to_topological_semiring ℝ _ _ _
+
 lemma compact_ivl {a b : ℝ} : compact {r:ℝ | a ≤ r ∧ r ≤ b } :=
 have is_closed_ivl : ∀{a b : ℝ}, is_closed {r:ℝ | a ≤ r ∧ r ≤ b },
   from assume a b, is_closed_inter

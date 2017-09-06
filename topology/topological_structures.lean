@@ -121,24 +121,37 @@ instance uniform_add_group.to_topological_add_group [uniform_add_group α] : top
 
 end uniform_add_group
 
-section topological_ring
-class topological_ring (α : Type u) [topological_space α] [ring α]
-  extends topological_add_group α : Prop :=
+section topological_semiring
+class topological_semiring (α : Type u) [topological_space α] [semiring α]
+  extends topological_add_monoid α : Prop :=
 (continuous_mul : continuous (λp:α×α, p.1 * p.2))
 
-variables [topological_space α] [ring α]
+variables [topological_space α] [semiring α]
 
-lemma continuous_mul [topological_ring α] [topological_space β] {f : β → α} {g : β → α}
+lemma continuous_mul [topological_semiring α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x * g x) :=
-continuous_compose (continuous_prod_mk hf hg) (topological_ring.continuous_mul α)
+continuous_compose (continuous_prod_mk hf hg) (topological_semiring.continuous_mul α)
 
-lemma tendsto_mul [topological_ring α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
+lemma tendsto_mul [topological_semiring α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x * g x) x (nhds (a * b)) :=
 have tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)),
-  from continuous_iff_tendsto.mp (topological_ring.continuous_mul α) (a, b),
+  from continuous_iff_tendsto.mp (topological_semiring.continuous_mul α) (a, b),
 tendsto_compose (tendsto_prod_mk hf hg) (by rw [nhds_prod_eq] at this; exact this)
 
-end topological_ring
+end topological_semiring
+
+class topological_ring (α : Type u) [topological_space α] [ring α]
+  extends topological_add_monoid α : Prop :=
+(continuous_mul : continuous (λp:α×α, p.1 * p.2))
+(continuous_neg : continuous (λa:α, -a))
+
+instance topological_ring.to_topological_semiring
+  [topological_space α] [ring α] [t : topological_ring α] : topological_semiring α :=
+{ t.to_topological_add_monoid with continuous_mul := t.continuous_mul }
+
+instance topological_ring.to_topological_add_group
+  [topological_space α] [ring α] [t : topological_ring α] : topological_add_group α :=
+{ t.to_topological_add_monoid with continuous_neg := t.continuous_neg }
 
 section linear_ordered_topology
 class linear_ordered_topology (α : Type u) [t : topological_space α] [linear_order α] : Prop :=

@@ -59,7 +59,7 @@ lemma continuous_iff_tendsto {f : α → β} :
   show is_open (preimage f s),
     by simp [is_open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
 
-lemma continuous_const [topological_space α] [topological_space β] {b : β} : continuous (λa:α, b) :=
+lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_tendsto.mpr $ assume a, tendsto_const_nhds
 
 lemma continuous_iff_is_closed {f : α → β} :

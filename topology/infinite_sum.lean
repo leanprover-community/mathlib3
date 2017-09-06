@@ -108,21 +108,44 @@ This is based on Mario Carneiro's infinite sum in Metamath.
 -/
 def is_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, s.sum f) at_top (nhds a)
 
+def has_sum (f : β → α) : Prop := ∃a, is_sum f a
+
+def tsum (f : β → α) := if h : has_sum f then classical.some h else 0
+
+notation `∑` binders `, ` r:(scoped f, tsum f) := r
+
 variables {f g : β → α} {a b : α} {s : finset β}
+
+lemma is_sum_tsum (ha : has_sum f) : is_sum f (∑b, f b) :=
+by simp [ha, tsum]; exact some_spec ha
+
+lemma has_sum_spec (ha : is_sum f a) : has_sum f := ⟨a, ha⟩
 
 lemma is_sum_zero : is_sum (λb, 0 : β → α) 0 :=
 by simp [is_sum, tendsto_const_nhds]
 
+lemma has_sum_zero : has_sum (λb, 0 : β → α) := has_sum_spec is_sum_zero
+
 lemma is_sum_add (hf : is_sum f a) (hg : is_sum g b) : is_sum (λb, f b + g b) (a + b) :=
 by simp [is_sum, sum_add_distrib]; exact tendsto_add hf hg
+
+lemma has_sum_add (hf : has_sum f) (hg : has_sum g) : has_sum (λb, f b + g b) :=
+has_sum_spec $ is_sum_add (is_sum_tsum hf)(is_sum_tsum hg)
 
 lemma is_sum_sum {f : γ → β → α} {a : γ → α} {s : finset γ} :
   (∀i∈s, is_sum (f i) (a i)) → is_sum (λb, s.sum $ λi, f i b) (s.sum a) :=
 s.induction_on (by simp [is_sum_zero]) (by simp [is_sum_add] {contextual := tt})
 
-lemma is_sum_sum_of_ne_zero (hf : ∀b∉s, f b = 0) : is_sum f (s.sum f) :=
+lemma has_sum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, has_sum (f i)) :
+  has_sum (λb, s.sum $ λi, f i b) :=
+has_sum_spec $ is_sum_sum $ assume i hi, is_sum_tsum $ hf i hi
+
+lemma is_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : is_sum f (s.sum f) :=
 tendsto_infi' s $ tendsto_cong tendsto_const_nhds $
   assume t (ht : s ⊆ t), show s.sum f = t.sum f, from sum_subset ht $ assume x _, hf _
+
+lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f :=
+has_sum_spec $ is_sum_sum_of_ne_finset_zero hf
 
 lemma is_sum_of_iso {j : γ → β} {i : β → γ}
   (hf : is_sum f a) (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) : is_sum (f ∘ j) a :=
@@ -135,8 +158,8 @@ have (λs:finset γ, s.sum (f ∘ j)) = (λs:finset β, s.sum f) ∘ (λs:finset
 show tendsto (λs:finset γ, s.sum (f ∘ j)) at_top (nhds a),
    by rw [this]; apply tendsto_compose (tendsto_finset_image_at_top_at_top h₂) hf
 
-lemma is_sum_hom {g : α → γ} [add_comm_monoid γ] [topological_space γ] [topological_add_monoid γ]
-  (hf : is_sum f a) (h₁ : g 0 = 0) (h₂ : ∀x y, g (x + y) = g x + g y) (h₃ : continuous g) :
+lemma is_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ] [topological_add_monoid γ]
+  (h₁ : g 0 = 0) (h₂ : ∀x y, g (x + y) = g x + g y) (h₃ : continuous g) (hf : is_sum f a) :
   is_sum (g ∘ f) (g a) :=
 have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
   from funext $ assume s, sum_hom g h₁ h₂,
@@ -244,15 +267,97 @@ is_sum_of_is_sum $ assume u, exists.intro ((u.filter $ λc, g c ≠ 0).image i) 
 lemma is_sum_iff_is_sum_of_ne_zero : is_sum f a ↔ is_sum g a :=
 iff.intro (is_sum_of_is_sum_ne_zero h₂ h₁ h₄ h₃) (is_sum_of_is_sum_ne_zero h₁ h₂ h₃ h₄)
 
+lemma has_sum_iff_has_sum_ne_zero : has_sum g ↔ has_sum f :=
+exists_congr $ assume a, is_sum_iff_is_sum_of_ne_zero h₂ h₁ h₄ h₃
+
 end is_sum_iff_is_sum_of_iso_ne_zero
 
+section tsum
+variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α] [t2_space α]
+variables {f g : β → α} {a a₁ a₂ : α}
+
+lemma is_sum_unique : is_sum f a₁ → is_sum f a₂ → a₁ = a₂ := tendsto_nhds_unique at_top_ne_bot
+
+lemma tsum_eq_is_sum (ha : is_sum f a) : (∑b, f b) = a := is_sum_unique (is_sum_tsum ⟨a, ha⟩) ha
+
+lemma tsum_zero : (∑b:β, 0:α) = 0 := tsum_eq_is_sum is_sum_zero
+
+lemma tsum_add (hf : has_sum f) (hg : has_sum g) : (∑b, f b + g b) = (∑b, f b) + (∑b, g b) :=
+tsum_eq_is_sum $ is_sum_add (is_sum_tsum hf) (is_sum_tsum hg)
+
+lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, has_sum (f i)) :
+  (∑b, s.sum (λi, f i b)) = s.sum (λi, ∑b, f i b) :=
+tsum_eq_is_sum $ is_sum_sum $ assume i hi, is_sum_tsum $ hf i hi
+
+end tsum
+
 section topological_group
+variables [add_comm_group α] [topological_space α] [topological_add_group α]
+variables {f g : β → α} {a a₁ a₂ : α}
+
+lemma is_sum_neg : is_sum f a → is_sum (λb, - f b) (- a) :=
+is_sum_hom has_neg.neg (by simp) (by simp) continuous_neg'
+
+lemma has_sum_neg (hf : has_sum f) : has_sum (λb, - f b) :=
+has_sum_spec $ is_sum_neg $ is_sum_tsum $ hf
+
+lemma is_sum_sub (hf : is_sum f a₁) (hg : is_sum g a₂) : is_sum (λb, f b - g b) (a₁ - a₂) :=
+by simp; exact is_sum_add hf (is_sum_neg hg)
+
+lemma has_sum_sub (hf : has_sum f) (hg : has_sum g) : has_sum (λb, f b - g b) :=
+has_sum_spec $ is_sum_sub (is_sum_tsum hf) (is_sum_tsum hg)
+
+section tsum
+variables [t2_space α]
+
+lemma tsum_neg (hf : has_sum f) : (∑b, - f b) = - (∑b, f b) :=
+tsum_eq_is_sum $ is_sum_neg $ is_sum_tsum $ hf
+
+lemma tsum_sub (hf : has_sum f) (hg : has_sum g) : (∑b, f b - g b) = (∑b, f b) - (∑b, g b) :=
+tsum_eq_is_sum $ is_sum_sub (is_sum_tsum hf) (is_sum_tsum hg)
+
+end tsum
+
+end topological_group
+
+section topological_semiring
+variables [semiring α] [topological_space α] [topological_semiring α]
+variables {f g : β → α} {a a₁ a₂ : α}
+
+lemma is_sum_mul_left : is_sum f a₁ → is_sum (λb, a₂ * f b) (a₂ * a₁) :=
+is_sum_hom _ (by simp) (by simp [mul_add]) (continuous_mul continuous_const continuous_id)
+
+lemma is_sum_mul_right (hf : is_sum f a₁) : is_sum (λb, f b * a₂) (a₁ * a₂) :=
+@is_sum_hom _ _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _
+  (by simp) (by simp [add_mul]) (continuous_mul continuous_id continuous_const) hf
+
+lemma has_sum_mul_left (hf : has_sum f) : has_sum (λb, a * f b) :=
+has_sum_spec $ is_sum_mul_left $ is_sum_tsum hf
+
+lemma has_sum_mul_right (hf : has_sum f) : has_sum (λb, f b * a) :=
+has_sum_spec $ is_sum_mul_right $ is_sum_tsum hf
+
+section tsum
+variables [t2_space α]
+
+lemma tsum_mul_left (hf : has_sum f) : (∑b, a * f b) = a * (∑b, f b) :=
+tsum_eq_is_sum $ is_sum_mul_left $ is_sum_tsum hf
+
+lemma tsum_mul_right (hf : has_sum f) : (∑b, f b * a) = (∑b, f b) * a :=
+tsum_eq_is_sum $ is_sum_mul_right $ is_sum_tsum hf
+
+end tsum
+
+end topological_semiring
+
+section uniform_group
 variables [add_comm_group α] [uniform_space α] [complete_space α] [uniform_add_group α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 /- TODO: generalize to monoid with a uniform continuous subtraction operator: `(a + b) - b = a` -/
-lemma exists_is_sum_of_is_sum {f' : β → α} (hf : is_sum f a) (h : ∀b, f' b = 0 ∨ f' b = f b) :
-  ∃a, is_sum f' a :=
+lemma has_sum_of_has_sum_of_sub {f' : β → α} (hf : has_sum f) (h : ∀b, f' b = 0 ∨ f' b = f b) :
+  has_sum f' :=
+let ⟨a, hf⟩ := hf in
 suffices cauchy (at_top.map (λs:finset β, s.sum f')),
   from complete_space.complete this,
 ⟨map_ne_bot at_top_ne_bot,
@@ -300,4 +405,4 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
     image_mem_map $ mem_infi_sets t $ mem_principal_sets.mpr $ subset.refl _,
     assume ⟨a₁, a₂⟩ ⟨⟨t₁, h₁, eq₁⟩, ⟨t₂, h₂, eq₂⟩⟩, by simp at eq₁ eq₂; rw [←eq₁, ←eq₂]; exact this h₁ h₂⟩⟩
 
-end topological_group
+end uniform_group

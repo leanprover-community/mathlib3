@@ -60,6 +60,9 @@ theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
 @[simp] theorem top_le_iff : ⊤ ≤ a ↔ a = ⊤ :=
 ⟨top_unique, λ h, h.symm ▸ le_refl ⊤⟩
 
+@[simp] theorem not_top_lt : ¬ ⊤ < a :=
+assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
+
 end order_top
 
 class order_bot (α : Type u) extends has_bot α, partial_order α :=
@@ -79,6 +82,9 @@ theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
 
 @[simp] theorem le_bot_iff : a ≤ ⊥ ↔ a = ⊥ :=
 ⟨bot_unique, assume h, h.symm ▸ le_refl ⊥⟩
+
+@[simp] theorem not_lt_bot : ¬ a < ⊥ :=
+assume h, lt_irrefl a (lt_of_lt_of_le h bot_le)
 
 theorem neq_bot_of_le_neq_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
 assume ha, hb $ bot_unique $ ha ▸ hab

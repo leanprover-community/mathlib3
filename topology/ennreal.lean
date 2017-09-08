@@ -15,6 +15,14 @@ universe u
 lemma zero_le_mul {α : Type u} [ordered_semiring α] {a b : α} : 0 ≤ a → 0 ≤ b → 0 ≤ a * b :=
 mul_nonneg
 
+instance linear_ordered_semiring.to_top_order {α : Type*} [linear_ordered_semiring α] :
+  no_top_order α :=
+⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
+
+instance linear_ordered_semiring.to_bot_order {α : Type*} [linear_ordered_ring α] :
+  no_bot_order α :=
+⟨assume a, ⟨a - 1, sub_lt_iff.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
+
 lemma inv_pos {α : Type*} [linear_ordered_field α] {r : α} : 0 < r → 0 < r⁻¹ :=
 by rw [inv_eq_one_div]; exact div_pos_of_pos_of_pos zero_lt_one
 
@@ -523,35 +531,80 @@ instance : t2_space ennreal := by apply_instance
 lemma continuous_of_real : continuous of_real :=
 have ∀x:ennreal, is_open {a : ℝ | x < of_real a},
   from forall_ennreal.mpr ⟨assume r hr,
-    begin
-      simp [of_real_lt_of_real_iff_cases],
-      exact is_open_and
-        (is_open_lt continuous_const continuous_id)
-        (is_open_lt continuous_const continuous_id)
-    end,
+    by simp [of_real_lt_of_real_iff_cases]; exact is_open_and (is_open_lt' r) (is_open_lt' 0),
     by simp⟩,
 have ∀x:ennreal, is_open {a : ℝ | of_real a < x},
   from forall_ennreal.mpr ⟨assume r hr,
-    begin
-      simp [of_real_lt_of_real_iff_cases],
-      exact is_open_and (is_open_lt continuous_id continuous_const) is_open_const
-    end,
+    by simp [of_real_lt_of_real_iff_cases]; exact is_open_and (is_open_gt' r) is_open_const,
     by simp [is_open_const]⟩,
 continuous_generated_from $ begin simp [or_imp_distrib, *] {contextual := tt} end
 
-/- TODO:
-lemma nhds_of_real_eq_map_of_real_nhds {r : ℝ} (hr : 0 ≤ r) :
-  nhds (of_real r) = (nhds r ⊓ principal {x | 0 ≤ x}).map of_real :=
-le_antisymm
-  _
-  _
+lemma tendsto_of_real : tendsto of_real (nhds r) (nhds (of_real r)) :=
+continuous_iff_tendsto.mp continuous_of_real r
 
+lemma tendsto_of_ennreal (hr : 0 ≤ r) : tendsto of_ennreal (nhds (of_real r)) (nhds r) :=
+tendsto_orderable_unbounded (no_top _) (no_bot _) $
+assume l u hl hu,
+by_cases
+  (assume hr : r = 0,
+    have hl : l < 0, by rw [hr] at hl; exact hl,
+    have hu : 0 < u, by rw [hr] at hu; exact hu,
+    have nhds (of_real r) = (⨅l (h₂ : 0 < l), principal {x | x < l}),
+      from calc nhds (of_real r) = nhds ⊥ : by simp [hr]; refl
+        ... = (⨅u (h₂ : 0 < u), principal {x | x < u}) : nhds_bot_orderable,
+    have {x | x < of_real u} ∈ (nhds (of_real r)).sets,
+      by rw [this];
+      from mem_infi_sets (of_real u) (mem_infi_sets (by simp *) (subset.refl _)),
+    ((nhds (of_real r)).upwards_sets this $ forall_ennreal.mpr $
+        by simp [le_of_lt, hu, hl] {contextual := tt}; exact assume p hp _, lt_of_lt_of_le hl hp))
+  (assume hr_ne : r ≠ 0,
+    have hu0 : 0 < u, from lt_of_le_of_lt hr hu,
+    have hu_nn: 0 ≤ u, from le_of_lt hu0,
+    have hr' : 0 < r, from lt_of_le_of_ne hr hr_ne.symm,
+    have hl' : ∃l, l < of_real r, from ⟨0, by simp [hr, hr']⟩,
+    have hu' : ∃u, of_real r < u, from ⟨of_real u, by simp [hr, hu_nn, hu]⟩,
+    begin
+      rw [mem_nhds_lattice_unbounded hu' hl'],
+      existsi (of_real l), existsi (of_real u),
+      simp [*, of_real_lt_of_real_iff_cases, forall_ennreal] {contextual := tt}
+    end)
+
+lemma nhds_of_real_eq_map_of_real_nhds {r : ℝ} (hr : 0 ≤ r) :
+  nhds (of_real r) = (nhds r).map of_real :=
+have h₁ : {x | x < ∞} ∈ (nhds (of_real r)).sets,
+  from mem_nhds_sets (is_open_gt' ∞) of_real_lt_infty,
+have h₂ : {x | x < ∞} ∈ ((nhds r).map of_real).sets,
+  from mem_map.mpr $ univ_mem_sets' $ assume a, of_real_lt_infty,
+have h : ∀x<∞, ∀y<∞, of_ennreal x = of_ennreal y → x = y,
+  by simp [forall_ennreal] {contextual:=tt},
+le_antisymm
+  (by_cases
+    (assume (hr : r = 0) s (hs : {x | of_real x ∈ s} ∈ (nhds r).sets),
+      have hs : {x | of_real x ∈ s} ∈ (nhds (0:ℝ)).sets, from hr ▸ hs,
+      let ⟨l, u, hl, hu, h⟩ := (mem_nhds_lattice_unbounded (no_top 0) (no_bot 0)).mp hs in
+      have nhds (of_real r) = nhds ⊥, by simp [hr]; refl,
+      begin
+        rw [this, nhds_bot_orderable],
+        apply mem_infi_sets (of_real u) _,
+        apply mem_infi_sets (zero_lt_of_real_iff.mpr hu) _,
+        simp [set.subset_def],
+        intro x, rw [lt_iff_exists_of_real],
+        simp [le_of_lt hu] {contextual := tt},
+        exact assume p _ hp hpu, h _ (lt_of_lt_of_le hl hp) hpu
+      end)
+    (assume : r ≠ 0,
+      have hr' : 0 < r, from lt_of_le_of_ne hr this.symm,
+      have h' : map (of_ennreal ∘ of_real) (nhds r) = map id (nhds r),
+        from map_cong $ (nhds r).upwards_sets (mem_nhds_sets (is_open_lt' 0) hr') $
+          assume r hr, by simp [le_of_lt hr, (∘)],
+      le_of_map_le_map_inj' h₁ h₂ h $ le_trans (tendsto_of_ennreal hr) $ by simp [h']))
+  tendsto_of_real
+
+/- TODO
 instance : topological_add_monoid ennreal :=
 have ∀a₁ a₂ : ennreal, tendsto (λp:ennreal×ennreal, p.1 + p.2) (nhds (a₁, a₂)) (nhds (a₁ + a₂)),
   from forall_ennreal.mpr ⟨_, _⟩,
-⟨continuous_iff_tendsto.mpr $
-  assume ⟨a₁, a₂⟩,
-  begin simp [nhds_prod_eq] end⟩
+⟨continuous_iff_tendsto.mpr _⟩
 -/
 
 end topological_space

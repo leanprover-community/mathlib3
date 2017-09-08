@@ -8,11 +8,37 @@ Theory of topological monoids, groups and rings.
 
 import topology.topological_space topology.continuity topology.uniform_space
   algebra.big_operators
-open filter topological_space
+open lattice filter topological_space
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
+
+section linear_order
+variables [decidable_linear_order α] {a b c: α}
+
+lemma max_lt_iff : max a b < c ↔ (a < c ∧ b < c) :=
+⟨assume h, ⟨lt_of_le_of_lt (le_max_left _ _) h, lt_of_le_of_lt (le_max_right _ _) h⟩,
+  assume ⟨h₁, h₂⟩, max_lt h₁ h₂⟩
+
+lemma lt_min_iff : a < min b c ↔ (a < b ∧ a < c) :=
+⟨assume h, ⟨lt_of_lt_of_le h (min_le_left _ _), lt_of_lt_of_le h (min_le_right _ _)⟩,
+  assume ⟨h₁, h₂⟩, lt_min h₁ h₂⟩
+
+end linear_order
+
+section complete_lattice
+
+lemma binfi_inf {α : Type*} {ι : Sort*} {p : ι → Prop} [complete_lattice α]
+  {f : Πi, p i → α} {a : α} {i : ι} (hi : p i) :
+  (⨅i (h : p i), f i h) ⊓ a = (⨅ i (h : p i), f i h ⊓ a) :=
+le_antisymm
+  (le_infi $ assume i, le_infi $ assume hi,
+    le_inf (inf_le_left_of_le $ infi_le_of_le i $ infi_le _ _) inf_le_right)
+  (le_inf (infi_le_infi $ assume i, infi_le_infi $ assume hi, inf_le_left)
+     (infi_le_of_le i $ infi_le_of_le hi $ inf_le_right))
+
+end complete_lattice
 
 lemma dense_or_discrete [linear_order α] {a₁ a₂ : α} (h : a₁ < a₂) :
   (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
@@ -172,6 +198,12 @@ lemma is_closed_le [topological_space β] {f g : β → α} (hf : continuous f) 
   is_closed {b | f b ≤ g b} :=
 continuous_iff_is_closed.mp (continuous_prod_mk hf hg) _ t.is_closed_le'
 
+lemma is_closed_le' {a : α} : is_closed {b | b ≤ a} :=
+is_closed_le continuous_id continuous_const
+
+lemma is_closed_ge' {a : α} : is_closed {b | a ≤ b} :=
+is_closed_le continuous_const continuous_id
+
 lemma le_of_tendsto [topological_space β] {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
   (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) (h : {b | f b ≤ g b} ∈ b.sets) :
   a₁ ≤ a₂ :=
@@ -226,25 +258,96 @@ lemma is_open_iff_generate_intervals {s : set α} :
   is_open s ↔ generate_open {s | ∃a, s = {b : α | a < b} ∨ s = {b : α | b < a}} s :=
 by rw [t.topology_eq_generate_intervals]; refl
 
-lemma is_open_lt' {a : α} : is_open {b:α | a < b} :=
+lemma is_open_lt' (a : α) : is_open {b:α | a < b} :=
 by rw [@is_open_iff_generate_intervals α _ _ t]; exact generate_open.basic _ ⟨a, or.inl rfl⟩
 
-lemma is_open_gt' {a : α} : is_open {b:α | b < a} :=
+lemma is_open_gt' (a : α) : is_open {b:α | b < a} :=
 by rw [@is_open_iff_generate_intervals α _ _ t]; exact generate_open.basic _ ⟨a, or.inr rfl⟩
+
+lemma nhds_eq_orderable {a : α} :
+  nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) :=
+by rw [t.topology_eq_generate_intervals, nhds_generate_from];
+from le_antisymm
+  (le_inf
+    (le_infi $ assume b, le_infi $ assume hb,
+      infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
+    (le_infi $ assume b, le_infi $ assume hb,
+      infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
+  (le_infi $ assume s, le_infi $ assume ⟨ha, b, hs⟩,
+    match s, ha, hs with
+    | _, h, (or.inl rfl) := inf_le_left_of_le $ infi_le_of_le b $ infi_le _ h
+    | _, h, (or.inr rfl) := inf_le_right_of_le $ infi_le_of_le b $ infi_le _ h
+    end)
+
+lemma tendsto_orderable {f : β → α} {a : α} {x : filter β}
+  (h₁ : ∀a'<a, {b | a' < f b } ∈ x.sets) (h₂ : ∀a'>a, {b | a' > f b } ∈ x.sets) :
+  tendsto f x (nhds a) :=
+by rw [@nhds_eq_orderable α _ _];
+from tendsto_inf
+  (tendsto_infi $ assume b, tendsto_infi $ assume hb, tendsto_principal $ h₁ b hb)
+  (tendsto_infi $ assume b, tendsto_infi $ assume hb, tendsto_principal $ h₂ b hb)
+
+lemma nhds_orderable_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
+  nhds a = (⨅l (h₂ : l < a) u (h₂ : a < u), principal {x | l < x ∧ x < u }) :=
+let ⟨u, hu⟩ := hu, ⟨l, hl⟩ := hl in
+calc nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) : nhds_eq_orderable
+  ... = (⨅b<a, principal {c | b < c} ⊓ (⨅b>a, principal {c | c < b})) :
+    binfi_inf hl
+  ... = (⨅l<a, (⨅u>a, principal {c | c < u} ⊓ principal {c | l < c})) :
+    begin
+      congr, apply funext, intro x,
+      congr, apply funext, intro hx,
+      rw [inf_comm],
+      apply binfi_inf hu
+    end
+  ... = _ : by simp; refl
+
+lemma tendsto_orderable_unbounded {f : β → α} {a : α} {x : filter β}
+  (hu : ∃u, a < u) (hl : ∃l, l < a) (h : ∀l u, l < a → a < u → {b | l < f b ∧ f b < u } ∈ x.sets) :
+  tendsto f x (nhds a) :=
+by rw [nhds_orderable_unbounded hu hl];
+from (tendsto_infi $ assume l, tendsto_infi $ assume hl,
+  tendsto_infi $ assume u, tendsto_infi $ assume hu, tendsto_principal $ h l u hl hu)
 
 end partial_order
 
+lemma nhds_top_orderable [topological_space α] [order_top α] [orderable_topology α] :
+  nhds (⊤:α) = (⨅l (h₂ : l < ⊤), principal {x | l < x}) :=
+by rw [@nhds_eq_orderable α _ _]; simp [(>)]
+
+lemma nhds_bot_orderable [topological_space α] [order_bot α] [orderable_topology α] :
+  nhds (⊥:α) = (⨅l (h₂ : ⊥ < l), principal {x | x < l}) :=
+by rw [@nhds_eq_orderable α _ _]; simp
+
 section linear_order
 
-variables [topological_space α] [linear_order α] [t : orderable_topology α]
+variables [topological_space α] [decidable_linear_order α] [t : orderable_topology α]
 include t
+
+lemma mem_nhds_lattice_unbounded {a : α} {s : set α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
+  s ∈ (nhds a).sets ↔ (∃l u, l < a ∧ a < u ∧ ∀b, l < b → b < u → b ∈ s) :=
+let ⟨l, hl'⟩ := hl, ⟨u, hu'⟩ := hu in
+have nhds a = (⨅p : {l // l < a} × {u // a < u}, principal {x | p.1.val < x ∧ x < p.2.val }),
+  by simp [nhds_orderable_unbounded hu hl, infi_subtype, infi_prod],
+iff.intro
+  (assume hs, by rw [this] at hs; from infi_sets_induct hs
+    begin simp; exact ⟨l, u, hu', hl'⟩ end
+    begin
+      intro p, cases p with p₁ p₂, cases p₁ with l hl, cases p₂ with u hu,
+      simp [set.subset_def],
+      exact assume s₁ s₂ hs₁ l' u' hu' hl' hs₂,
+        ⟨max l l', min u u', by simp [*, lt_min_iff, max_lt_iff] {contextual := tt}⟩
+    end
+    (assume s₁ s₂ h ⟨l, u, h₁, h₂, h₃⟩, ⟨l, u, h₁, h₂, assume b hu hl, h $ h₃ _ hu hl⟩))
+  (assume ⟨l, u, hl, hu, h⟩,
+    by rw [this]; exact mem_infi_sets ⟨⟨l, hl⟩, ⟨u, hu⟩⟩ (assume b ⟨h₁, h₂⟩, h b h₁ h₂))
 
 lemma order_separated {a₁ a₂ : α} (h : a₁ < a₂) :
   ∃u v : set α, is_open u ∧ is_open v ∧ a₁ ∈ u ∧ a₂ ∈ v ∧ (∀b₁∈u, ∀b₂∈v, b₁ < b₂) :=
 match dense_or_discrete h with
-| or.inl ⟨a, ha₁, ha₂⟩ := ⟨{a' | a' < a}, {a' | a < a'}, is_open_gt', is_open_lt', ha₁, ha₂,
+| or.inl ⟨a, ha₁, ha₂⟩ := ⟨{a' | a' < a}, {a' | a < a'}, is_open_gt' a, is_open_lt' a, ha₁, ha₂,
     assume b₁ h₁ b₂ h₂, lt_trans h₁ h₂⟩
-| or.inr ⟨h₁, h₂⟩ := ⟨{a | a < a₂}, {a | a₁ < a}, is_open_gt', is_open_lt', h, h,
+| or.inr ⟨h₁, h₂⟩ := ⟨{a | a < a₂}, {a | a₁ < a}, is_open_gt' a₂, is_open_lt' a₁, h, h,
     assume b₁ hb₁ b₂ hb₂,
     calc b₁ ≤ a₁ : h₂ _ hb₁
       ... < a₂ : h

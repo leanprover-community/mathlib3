@@ -117,6 +117,9 @@ lemma is_closed_imp [topological_space α] {p q : α → Prop}
 have {x | p x → q x} = (- {x | p x}) ∪ {x | q x}, from set.ext $ by finish,
 by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
 
+lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
+is_open_compl_iff.mpr
+
 /- interior -/
 def interior (s : set α) : set α := ⋃₀ {t | is_open t ∧ t ⊆ s}
 

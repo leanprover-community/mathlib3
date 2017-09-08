@@ -543,13 +543,17 @@ by finish [set_eq_def, iff_def, mem_image_eq]
 theorem image_empty (f : α → β) : f '' ∅ = ∅ :=
 by finish [set_eq_def, mem_image_eq]
 
-lemma image_inter {f : α → β} {s t : set α} (h : ∀ x y, f x = f y → x = y) :
+lemma image_inter_on {f : α → β} {s t : set α} (h : ∀x∈t, ∀y∈s, f x = f y → x = y) :
   f '' s ∩ f '' t = f '' (s ∩ t) :=
 subset.antisymm
   (assume b ⟨⟨a₁, ha₁, h₁⟩, ⟨a₂, ha₂, h₂⟩⟩,
-    have a₂ = a₁, from h a₂ a₁ $ h₁.symm ▸ h₂.symm ▸ rfl,
+    have a₂ = a₁, from h _ ha₂ _ ha₁ (by simp *),
     ⟨a₁, ⟨ha₁, this ▸ ha₂⟩, h₁⟩)
   (subset_inter (mono_image $ inter_subset_left _ _) (mono_image $ inter_subset_right _ _))
+
+lemma image_inter {f : α → β} {s t : set α} (h : ∀ x y, f x = f y → x = y) :
+  f '' s ∩ f '' t = f '' (s ∩ t) :=
+image_inter_on (assume x _ y _, h x y)
 
 @[simp] lemma image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
 set.ext $ λ x, by simp [image]; rw eq_comm
@@ -664,7 +668,7 @@ This function is more flexiable as `f '' univ`, as the image requires that the d
 and not an arbitrary Sort. -/
 def range (f : ι → α) : set α := {x | ∃y, f y = x}
 
-lemma mem_range {i : ι} : f i ∈ range f := ⟨i, rfl⟩ 
+lemma mem_range {i : ι} : f i ∈ range f := ⟨i, rfl⟩
 
 lemma forall_range_iff {p : α → Prop} : (∀a∈range f, p a) ↔ (∀i, p (f i)) :=
 ⟨assume h i, h (f i) mem_range, assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩

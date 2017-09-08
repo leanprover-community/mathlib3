@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import data.prod
+import data.prod data.nat.pairing
 open function
 
 universes u v w
@@ -270,13 +270,11 @@ mk (λ n, match n with zero := inr () | succ a := inl a end)
 @[simp] def nat_sum_unit_equiv_nat : (nat ⊕ unit) ≃ nat :=
 equiv.symm nat_equiv_nat_sum_unit
 
-/- TODO: port nat.pairing
 @[simp] def nat_prod_nat_equiv_nat : (nat × nat) ≃ nat :=
-mk (λ p, mkpair p.1 p.2)
-   (λ n, unpair n)
-   (λ p, begin cases p, apply unpair_mkpair end)
-   (λ n, mkpair_unpair n)
--/
+mk (λ p, nat.mkpair p.1 p.2)
+   (λ n, nat.unpair n)
+   (λ p, begin cases p, apply nat.unpair_mkpair end)
+   (λ n, nat.mkpair_unpair n)
 
 @[simp] def nat_sum_bool_equiv_nat : (nat ⊕ bool) ≃ nat :=
 calc (ℕ ⊕ bool) ≃ (ℕ ⊕ (unit ⊕ unit)) : sum_congr (equiv.refl _) bool_equiv_unit_sum_unit

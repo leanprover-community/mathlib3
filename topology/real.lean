@@ -963,7 +963,7 @@ subset.antisymm
   (closure_minimal (by simp [image_subset_iff_subset_preimage, of_rat_le_of_rat] {contextual := tt}) $
     is_closed_inter (is_closed_le continuous_const continuous_id) (is_closed_le continuous_id continuous_const))
   (calc {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} ⊆ {of_rat a, of_rat b} ∪ (a_lt ∩ lt_b) :
-      assume x, by simp [le_iff_lt_or_eq, and_imp, or_imp_distrib] {contextual := tt}; admit
+      assume x, by simp [le_iff_lt_or_eq, and_imp, or_imp_distrib] {contextual := tt}
     ... ⊆ ivl : union_subset hab this)
 
 lemma continuous_mul_real : continuous (λp:ℝ×ℝ, p.1 * p.2) :=

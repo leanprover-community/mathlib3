@@ -9,13 +9,14 @@ Note that every encodable Type is countable.
 import data.finset data.list data.list.perm data.list.sort data.equiv data.nat.basic
 open option list nat function
 
-variables {α : Type*} {β : Type*}
-
 class encodable (α : Type*) :=
 (encode : α → nat) (decode : nat → option α) (encodek : ∀ a, decode (encode a) = some a)
 
 @[simp] lemma succ_ne_zero {n : ℕ} : succ n ≠ 0 :=
 assume h, nat.no_confusion h
+
+section encodable
+variables {α : Type*} {β : Type*}
 
 open encodable
 
@@ -326,6 +327,8 @@ def encodable_of_equiv [h : encodable α] : α ≃ β → encodable β
     (λ b, by rewrite r; reflexivity)
 end
 
+end encodable
+
 /-
 Choice function for encodable types and decidable predicates.
 We provide the following API
@@ -334,100 +337,73 @@ choose      {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pre
 choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) : p (choose ex) :=
 -/
 
-/- TODO: port
-
+namespace encodable
 section find_a
-parameters {p : α → Prop} [c : encodable α] [d : decidable_pred p]
-include c
-include d
+parameters {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p]
+include c d
 
-private def pn (n : nat) : Prop :=
+open encodable
+
+def pn (n : nat) : Prop :=
 match decode α n with
 | some a := p a
 | none   := false
 end
 
+private lemma pn_of_some {a : α} {n : ℕ} (h : decode α n = some a) : pn n ↔ p a :=
+by simp [pn, h]
+
 private def decidable_pn : decidable_pred pn :=
-λ n,
-match decode α n with
-| some a := λ e : decode α n = some a,
-  match d a with
-  | decidable.inl t :=
-    begin
-      unfold pn, rewrite e, esimp [option.cases_on],
-      exact (decidable.inl t)
-    end
-  | decidable.inr f :=
-    begin
-      unfold pn, rewrite e, esimp [option.cases_on],
-      exact (decidable.inr f)
-    end
-  end
-| none   := λ e : decode α n = none,
-  begin
-    unfold pn, rewrite e, esimp [option.cases_on],
-    exact decidable_false
-  end
-end (eq.refl (decode α n))
-
-private def ex_pn_of_ex : (∃ x, p x) → (∃ x, pn x) :=
-assume ex,
-obtain (w : α) (pw : p w), from ex,
-exists.intro (encode w)
-  begin
-    unfold pn, rewrite [encodek], esimp, exact pw
-  end
-
-private lemma decode_ne_none_of_pn {n : nat} : pn n → decode α n ≠ none :=
-assume pnn e,
+assume n,
 begin
-  rewrite [▸ (match decode α n with | some a := p a | none   := false end) at pnn],
-  rewrite [e at pnn], esimp [option.cases_on] at pnn,
-  exact (false.elim pnn)
+  cases h : decode α n,
+  { simp [pn, h],
+    exact decidable.is_false id },
+  { simp [pn_of_some h],
+    apply_instance }
+end
+local attribute [instance] decidable_pn
+
+private def ex_pn_of_ex : (∃ a, p a) → (∃ n, pn n)
+| ⟨w, (pw : p w)⟩ := ⟨encode w, by simp [pn, encodek, *]⟩
+
+private lemma decode_ne_none_of_pn {n : nat} (h : pn n) : decode α n ≠ none :=
+begin
+  cases h' : decode α n,
+  { simp [pn, h'] at h, contradiction },
+  { contradiction }
 end
 
-open subtype
+private def choose' (h : ∃ x, p x) : {a:α // p a} :=
+let n := nat.find $ ex_pn_of_ex $ h in
+begin
+  cases h' : decode α n,
+  { exact absurd h' (@decode_ne_none_of_pn α p c d n $ nat.find_spec _) },
+  { have : pn n, from nat.find_spec _,
+    exact ⟨a, by simp [pn_of_some h'] at this; assumption⟩ }
+end
 
-private def of_nat (n : nat) : pn n → { a : α | p a } :=
-match decode α n with
-| some a := λ (e : decode α n = some a),
-  begin
-    unfold pn, rewrite e, esimp [option.cases_on], intro pa,
-    exact (tag a pa)
-  end
-| none   := λ (e : decode α n = none) h, absurd e (decode_ne_none_of_pn h)
-end (eq.refl (decode α n))
+def choose : (∃ x, p x) → α := subtype.val ∘ choose'
 
-private def find_a : (∃ x, p x) → {a : α | p a} :=
-suppose ∃ x, p x,
-have    ∃ x, pn x, from ex_pn_of_ex this,
-let r := @nat.find _ decidable_pn this in
-have pn r, from @nat.find_spec pn decidable_pn this,
-of_nat r this
+lemma choose_spec (h : ∃ x, p x) : p (choose h) := subtype.property _
+
 end find_a
 
-namespace encodable
-open subtype
-
-def choose {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] : (∃ x, p x) → α :=
-assume ex, elt_of (find_a ex)
-
-theorem choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) : p (choose ex) :=
-has_property (find_a ex)
-
-theorem axiom_of_choice {α : Type*} {β : α → Type*} {R : Π x, β x → Prop} [c : Π a, encodable (β a)] [d : ∀ x y, decidable (R x y)]
-                        : (∀x, ∃y, R x y) → ∃f, ∀x, R x (f x) :=
+theorem axiom_of_choice {α : Type*} {β : α → Type*} {R : Π x, β x → Prop}
+  [c : Π a, encodable (β a)] [d : ∀ x y, decidable (R x y)] :
+  (∀x, ∃y, R x y) → ∃f:Πa, β a, ∀x, R x (f x) :=
 assume H,
-have ∀x, R x (choose (H x)), from take x, choose_spec (H x),
+have ∀x, R x (choose (H x)), from assume x, choose_spec (H x),
 exists.intro _ this
 
-theorem skolem {α : Type*} {β : α → Type*} {P : Π x, β x → Prop} [c : Π a, encodable (β a)] [d : ∀ x y, decidable (P x y)]
-               : (∀x, ∃y, P x y) ↔ ∃f, (∀x, P x (f x)) :=
+theorem skolem {α : Type*} {β : α → Type*} {P : Π x, β x → Prop}
+  [c : Π a, encodable (β a)] [d : ∀ x y, decidable (P x y)] :
+  (∀x, ∃y, P x y) ↔ ∃f:Πa, β a, (∀x, P x (f x)) :=
 iff.intro
-  (suppose (∀ x, ∃y, P x y), axiom_of_choice this)
-  (suppose (∃ f, (∀x, P x (f x))),
-   take x, obtain (fw : ∀x, β x) (Hw : ∀x, P x (fw x)), from this,
-     exists.intro (fw x) (Hw x))
+  (assume : (∀ x, ∃y, P x y), axiom_of_choice this)
+  (assume : (∃ f:Πa, β a, (∀x, P x (f x))),
+   assume x, let ⟨(fw : ∀x, β x), Hw⟩ := this in exists.intro (fw x) (Hw x))
+
 end encodable
 
 namespace quot
@@ -441,31 +417,34 @@ include decR
 include encA
 
 -- Choose equivalence class representative
-def rep (q : quot s) : α :=
+def rep (q : quotient s) : α :=
 choose (exists_rep q)
 
-theorem rep_spec (q : quot s) : ⟦rep q⟧ = q :=
+theorem rep_spec (q : quotient s) : ⟦rep q⟧ = q :=
 choose_spec (exists_rep q)
 
-private def encode_quot (q : quot s) : nat :=
+private def encode_quot (q : quotient s) : nat :=
 encode (rep q)
 
-private def decode_quot (n : nat) : option (quot s) :=
+private def decode_quot (n : nat) : option (quotient s) :=
 match decode α n with
 | some a := some ⟦ a ⟧
 | none   := none
 end
 
-private lemma decode_encode_quot (q : quot s) : decode_quot (encode_quot q) = some q :=
-quot.induction_on q (λ l, begin unfold [encode_quot, decode_quot], rewrite encodek, esimp, rewrite rep_spec end)
+private lemma decode_encode_quot (q : quotient s) : decode_quot (encode_quot q) = some q :=
+quot.induction_on q $ λ l,
+  begin
+    dsimp [encode_quot, decode_quot],
+    simp [encodek],
+    exact congr_arg some (rep_spec _)
+  end
 
-def encodable_quot : encodable (quot s) :=
+def encodable_quotient : encodable (quotient s) :=
 encodable.mk
   encode_quot
   decode_quot
   decode_encode_quot
 end
-end quot
-attribute quot.encodable_quot [instance]
 
--/
+end quot

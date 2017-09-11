@@ -16,15 +16,16 @@ open set lattice
 namespace set
 
 /-
-local attribute [instance] classical.decidable_inhabited
-local attribute [instance] classical.prop_decidable
+local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 -/
 
 inductive finite : set α → Prop
 | empty : finite ∅
-| insert : ∀a s, a ∉ s → finite s → finite (insert a s) 
+| insert : ∀a s, a ∉ s → finite s → finite (insert a s)
 
-attribute [simp] finite.empty 
+def infinite (s : set α) : Prop := ¬ finite s
+
+attribute [simp] finite.empty
 
 @[simp] theorem finite_insert {a : α} {s : set α} (h : finite s) : finite (insert a s) :=
 classical.by_cases

@@ -21,13 +21,6 @@ variables {α : Type*} {β : Type*}
 open encodable
 
 /-
-def countable_of_encodable {α : Type*} : encodable α → countable α :=
-assume e : encodable α,
-have injective encode, from
-  λ (a₁ a₂ : α) (h : encode a₁ = encode a₂),
-    have decode α (encode a₁) = decode α (encode a₂), by rewrite h,
-    by rewrite [*encodek at this]; injection this; assumption,
-exists.intro encode this
 
 def encodable_finType* [instance] {α : Type*} [h₁ : finType* α] [h₂ : decidable_eq α] :
   encodable α :=

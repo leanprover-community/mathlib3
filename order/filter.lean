@@ -11,8 +11,7 @@ open lattice set
 universes u v w x y
 
 open set classical
-local attribute [instance] decidable_inhabited
-local attribute [instance] prop_decidable
+local attribute [instance] decidable_inhabited prop_decidable
 
 -- should be handled by implies_true_iff
 

@@ -755,6 +755,10 @@ lemma tendsto_inf {f : α → β} {x : filter α} {y₁ y₂ : filter β}
   (h₁ : tendsto f x y₁) (h₂ : tendsto f x y₂) : tendsto f x (y₁ ⊓ y₂) :=
 le_inf h₁ h₂
 
+lemma tendsto_inf_left {f : α → β} {x₁ x₂ : filter α} {y : filter β}
+  (h : tendsto f x₁ y) : tendsto f (x₁ ⊓ x₂) y :=
+le_trans (map_mono inf_le_left) h
+
 lemma tendsto_infi {f : α → β} {x : filter α} {y : ι → filter β}
   (h : ∀i, tendsto f x (y i)) : tendsto f x (⨅i, y i) :=
 le_infi h

@@ -264,6 +264,18 @@ by rw [@is_open_iff_generate_intervals α _ _ t]; exact generate_open.basic _ �
 lemma is_open_gt' (a : α) : is_open {b:α | b < a} :=
 by rw [@is_open_iff_generate_intervals α _ _ t]; exact generate_open.basic _ ⟨a, or.inr rfl⟩
 
+lemma lt_mem_nhds {a b : α} (h : a < b) : {b | a < b} ∈ (nhds b).sets :=
+mem_nhds_sets (is_open_lt' _) h
+
+lemma le_mem_nhds {a b : α} (h : a < b) : {b | a ≤ b} ∈ (nhds b).sets :=
+(nhds b).upwards_sets (lt_mem_nhds h) $ assume b hb, le_of_lt hb
+
+lemma gt_mem_nhds {a b : α} (h : a < b) : {a | a < b} ∈ (nhds a).sets :=
+mem_nhds_sets (is_open_gt' _) h
+
+lemma ge_mem_nhds {a b : α} (h : a < b) : {a | a ≤ b} ∈ (nhds a).sets :=
+(nhds a).upwards_sets (gt_mem_nhds h) $ assume b hb, le_of_lt hb
+
 lemma nhds_eq_orderable {a : α} :
   nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) :=
 by rw [t.topology_eq_generate_intervals, nhds_generate_from];

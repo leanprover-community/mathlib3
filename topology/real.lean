@@ -260,31 +260,6 @@ begin
   rw [this], simp [zero_nhd, vmap_infi, (abs_neg (_ + -a)).symm]
 end
 
-lemma lt_mem_nhds {r q : ℚ} (h : r < q) : {x | r < x} ∈ (nhds q).sets :=
-have 0 < q - r, from lt_sub_left_of_add_lt $ by simp [h],
-begin
-  rw [nhds_eq_map_zero_nhd],
-  show {x | r < x + q} ∈ zero_nhd.sets,
-  apply zero_nhd.upwards_sets (mem_zero_nhd this),
-  exact (assume x (h : abs x < q - r),
-    calc  r < q - abs x : lt_sub_left_of_add_lt $ add_lt_of_lt_sub_right h
-      ... ≤ q - (- x) : sub_le_sub (le_refl q) (neg_le_abs_self x)
-      ... ≤ x + q : by simp)
-end
-
-lemma le_mem_nhds {r q : ℚ} (h : r < q) : {x | r ≤ x} ∈ (nhds q).sets :=
-(nhds q).upwards_sets (lt_mem_nhds h) $ assume x, le_of_lt
-
-lemma gt_mem_nhds {r q : ℚ} (h : q < r) : {x | x < r} ∈ (nhds q).sets :=
-have tendsto (λx:ℚ, -x) (nhds q) (nhds (-q)),
-  from tendsto_neg tendsto_id,
-have {x | -r < -x} ∈ (nhds q).sets,
-  from this $ lt_mem_nhds $ neg_lt_neg $ h,
-(nhds q).upwards_sets this $ assume x (h : -r < -x), lt_of_neg_lt_neg h
-
-lemma ge_mem_nhds {r q : ℚ} (h : q < r) : {x | x ≤ r} ∈ (nhds q).sets :=
-(nhds q).upwards_sets (gt_mem_nhds h) $ assume x, le_of_lt
-
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
 ⟨assume a b (h : a + r = b + r),
   calc a = (a + r) - r : by rw [add_sub_assoc]; simp

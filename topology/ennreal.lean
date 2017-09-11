@@ -600,12 +600,65 @@ le_antisymm
       le_of_map_le_map_inj' h₁ h₂ h $ le_trans (tendsto_of_ennreal hr) $ by simp [h']))
   tendsto_of_real
 
-/- TODO
+lemma nhds_of_real_eq_map_of_real_nhds_nonneg {r : ℝ} (hr : 0 ≤ r) :
+  nhds (of_real r) = (nhds r ⊓ principal {x | 0 ≤ x}).map of_real :=
+by rw [nhds_of_real_eq_map_of_real_nhds hr];
+from by_cases
+  (assume : r = 0,
+    le_antisymm
+      (assume s (hs : {a | of_real a ∈ s} ∈ (nhds r ⊓ principal {x | 0 ≤ x}).sets),
+        let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := mem_inf_sets.mp hs in
+        show {a | of_real a ∈ s} ∈ (nhds r).sets,
+          from (nhds r).upwards_sets ht₁ $ assume a ha,
+          match le_total 0 a with
+          | or.inl h := have a ∈ t₂, from ht₂ h, ht ⟨ha, this⟩
+          | or.inr h :=
+            have r ∈ t₁ ∩ t₂, from ⟨mem_of_nhds ht₁, ht₂ (le_of_eq ‹r = 0›.symm)⟩,
+            have of_real 0 ∈ s, from ‹r = 0› ▸ ht this,
+            by simp [of_real_of_nonpos h]; assumption
+          end)
+      (map_mono inf_le_left))
+  (assume : r ≠ 0,
+    have 0 < r, from lt_of_le_of_ne hr this.symm,
+    have nhds r ⊓ principal {x : ℝ | 0 ≤ x} = nhds r,
+      from inf_of_le_left $ le_principal_iff.mpr $ le_mem_nhds this,
+    by simp [*])
+
 instance : topological_add_monoid ennreal :=
-have ∀a₁ a₂ : ennreal, tendsto (λp:ennreal×ennreal, p.1 + p.2) (nhds (a₁, a₂)) (nhds (a₁ + a₂)),
-  from forall_ennreal.mpr ⟨_, _⟩,
-⟨continuous_iff_tendsto.mpr _⟩
--/
+have hinf : ∀a, tendsto (λ(p : ennreal × ennreal), p.1 + p.2) ((nhds ∞).prod (nhds a)) (nhds ⊤),
+begin
+  intro a,
+  rw [nhds_top_orderable],
+  apply tendsto_infi _, intro b,
+  apply tendsto_infi _, intro hb,
+  apply tendsto_principal _,
+  revert b,
+  simp [forall_ennreal],
+  exact assume r hr hr', mem_prod_iff.mpr ⟨
+    {a | of_real r < a}, mem_nhds_sets (is_open_lt' _) hr',
+    univ, univ_mem_sets, assume ⟨c, d⟩ ⟨hc, _⟩, lt_of_lt_of_le hc $ le_add_right $ le_refl _⟩
+end,
+have h : ∀{p r : ℝ}, 0 ≤ p → 0 ≤ r → tendsto (λp:ennreal×ennreal, p.1 + p.2)
+    ((nhds (of_real r)).prod (nhds (of_real p))) (nhds (of_real (r + p))),
+  from assume p r hp hr,
+  begin
+    rw [nhds_of_real_eq_map_of_real_nhds_nonneg hp, nhds_of_real_eq_map_of_real_nhds_nonneg hr,
+      prod_map_map_eq, ←prod_inf_prod, prod_principal_principal, ←nhds_prod_eq],
+    exact tendsto_map' (tendsto_cong
+      (tendsto_inf_left $ tendsto_compose tendsto_add' tendsto_of_real)
+      (mem_inf_sets_of_right $ mem_principal_sets.mpr $ by simp [subset_def, (∘)] {contextual:=tt}))
+  end,
+have ∀{a₁ a₂ : ennreal}, tendsto (λp:ennreal×ennreal, p.1 + p.2) (nhds (a₁, a₂)) (nhds (a₁ + a₂)),
+  from forall_ennreal.mpr ⟨assume r hr, forall_ennreal.mpr
+    ⟨assume p hp, by simp [*, nhds_prod_eq]; exact h _ _,
+      begin
+        rw [nhds_prod_eq, prod_comm],
+        apply tendsto_map' _,
+        simp [(∘)],
+        exact hinf _
+      end⟩,
+    by simp [nhds_prod_eq]; exact hinf⟩,
+⟨continuous_iff_tendsto.mpr $ assume ⟨a₁, a₂⟩, this⟩
 
 end topological_space
 

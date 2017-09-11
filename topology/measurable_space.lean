@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Measurable spaces -- σ-algberas
 -/
-import data.set order.galois_connection
+import data.set order.galois_connection data.set.countable
 open classical set lattice
 local attribute [instance] decidable_inhabited prop_decidable
 
@@ -27,11 +27,81 @@ variable [m : measurable_space α]
 include m
 
 def is_measurable : set α → Prop := m.is_measurable
+
 lemma is_measurable_empty : is_measurable (∅ : set α) := m.is_measurable_empty
+
 lemma is_measurable_compl : is_measurable s → is_measurable (-s) :=
 m.is_measurable_compl s
-lemma is_measurable_Union {f : ℕ → set α} : (∀i, is_measurable (f i)) → is_measurable (⋃i, f i) :=
+
+lemma is_measurable_Union_nat {f : ℕ → set α} : (∀i, is_measurable (f i)) → is_measurable (⋃i, f i) :=
 m.is_measurable_Union f
+
+lemma is_measurable_sUnion {s : set (set α)} (hs : countable s) (h : ∀t∈s, is_measurable t) :
+  is_measurable (⋃₀ s) :=
+let ⟨f, hf⟩ := countable_iff_exists_surjective.mp hs in
+have (⋃₀ s) = (⋃i, if f i ∈ s then f i else ∅),
+  from le_antisymm
+    (Sup_le $ assume u hu, let ⟨i, hi⟩ := hf hu in le_supr_of_le i $ by simp [hi, hu, le_refl])
+    (supr_le $ assume i, by_cases
+      (assume : f i ∈ s, by simp [this]; exact subset_sUnion_of_mem this)
+      (assume : f i ∉ s, by simp [this]; exact bot_le)),
+begin
+  rw [this],
+  apply is_measurable_Union_nat _,
+  intro i,
+  by_cases f i ∈ s with h'; simp [h', h, is_measurable_empty]
+end
+
+lemma is_measurable_bUnion {f : β → set α} {s : set β} (hs : countable s)
+  (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋃b∈s, f b) :=
+have ⋃₀ (f '' s) = (⋃a∈s, f a), from lattice.Sup_image,
+by rw [←this];
+from (is_measurable_sUnion (countable_image hs) $ assume a ⟨s', hs', eq⟩, eq ▸ h s' hs')
+
+lemma is_measurable_Union [encodable β] {f : β → set α} (h : ∀b, is_measurable (f b)) :
+  is_measurable (⋃b, f b) :=
+have is_measurable (⋃b∈(univ : set β), f b),
+  from is_measurable_bUnion countable_encodable $ assume b _, h b,
+by simp [*] at *
+
+lemma is_measurable_sInter {s : set (set α)} (hs : countable s) (h : ∀t∈s, is_measurable t) :
+  is_measurable (⋂₀ s) :=
+by rw [sInter_eq_comp_sUnion_compl, sUnion_image];
+from is_measurable_compl (is_measurable_bUnion hs $ assume t ht, is_measurable_compl $ h t ht)
+
+lemma is_measurable_bInter {f : β → set α} {s : set β} (hs : countable s)
+  (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋂b∈s, f b) :=
+have ⋂₀ (f '' s) = (⋂a∈s, f a), from lattice.Inf_image,
+by rw [←this];
+from (is_measurable_sInter (countable_image hs) $ assume a ⟨s', hs', eq⟩, eq ▸ h s' hs')
+
+lemma is_measurable_Inter [encodable β] {f : β → set α} (h : ∀b, is_measurable (f b)) :
+  is_measurable (⋂b, f b) :=
+by rw Inter_eq_comp_Union_comp;
+from is_measurable_compl (is_measurable_Union $ assume b, is_measurable_compl $ h b)
+
+lemma is_measurable_union {s₁ s₂ : set α}
+  (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) : is_measurable (s₁ ∪ s₂) :=
+have s₁ ∪ s₂ = (⨆b ∈ ({tt, ff} : set bool), bool.cases_on b s₁ s₂),
+  by simp [lattice.supr_or, lattice.supr_sup_eq]; refl,
+by rw [this]; from is_measurable_bUnion countable_encodable (assume b,
+  match b with
+  | tt := by simp [h₂]
+  | ff := by simp [h₁]
+  end)
+
+lemma is_measurable_inter {s₁ s₂ : set α}
+  (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) : is_measurable (s₁ ∩ s₂) :=
+by rw [inter_eq_compl_compl_union_compl];
+from is_measurable_compl (is_measurable_union (is_measurable_compl h₁) (is_measurable_compl h₂))
+
+lemma is_measurable_sdiff {s₁ s₂ : set α}
+  (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) : is_measurable (s₁ \ s₂) :=
+is_measurable_inter h₁ $ is_measurable_compl h₂
+
+lemma is_measurable_sub {s₁ s₂ : set α} :
+  is_measurable s₁ → is_measurable s₂ → is_measurable (s₁ - s₂) :=
+is_measurable_sdiff
 
 end
 

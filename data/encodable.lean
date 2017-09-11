@@ -20,18 +20,14 @@ variables {α : Type*} {β : Type*}
 
 open encodable
 
-/-
-
-def encodable_finType* [instance] {α : Type*} [h₁ : finType* α] [h₂ : decidable_eq α] :
-  encodable α :=
-encodable.mk
-  (λ a, find a (elements_of α))
-  (λ n, nth (elements_of α) n)
-  (λ a, find_nth (finType*.complete a))
--/
-
 instance encodable_nat : encodable nat :=
 encodable.mk (λ a, a) (λ n, some n) (λ a, rfl)
+
+instance encodable_empty : encodable empty :=
+encodable.mk (λ a:_root_.empty, a.rec _) (λ n, none) (λ a:_root_.empty, a.rec _)
+
+instance encodable_unit : encodable unit :=
+encodable.mk (λ_, 0) (λn, if n = 0 then some () else none) (λ⟨⟩, by simp)
 
 instance encodable_option {α : Type*} [h : encodable α] : encodable (option α) :=
 encodable.mk
@@ -319,6 +315,8 @@ def encodable_of_equiv [h : encodable α] : α ≃ β → encodable β
   encodable_of_left_injection g (λ a, some (f a))
     (λ b, by rewrite r; reflexivity)
 end
+
+instance : encodable bool := encodable_of_equiv equiv.bool_equiv_unit_sum_unit.symm
 
 end encodable
 

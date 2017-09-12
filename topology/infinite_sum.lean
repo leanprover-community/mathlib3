@@ -213,7 +213,7 @@ end is_sum
 
 section is_sum_iff_is_sum_of_iso_ne_zero
 variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α]
-variables {f : β → α} {g : γ → α} {i : γ → β} {j : β → γ} {a : α}
+variables {f : β → α} {g : γ → α} {a : α}
 
 lemma is_sum_of_is_sum
   (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ u'.sum g = v'.sum f)
@@ -231,44 +231,46 @@ lemma is_sum_iff_is_sum
 ⟨is_sum_of_is_sum h₂, is_sum_of_is_sum h₁⟩
 
 variables
-  (h₁ : ∀c, g c ≠ 0 → j (i c) = c) (h₂ : ∀b, f b ≠ 0 → i (j b) = b)
-  (h₃ : ∀c, g c ≠ 0 → g c = f (i c)) (h₄ : ∀b, f b ≠ 0 → f b = g (j b))
-include h₁ h₂ h₃ h₄
+  (i : Π{{c}}, g c ≠ 0 → β) (hi : ∀{{c}} (h : g c ≠ 0), f (i h) ≠ 0)
+  (j : Π{{b}}, f b ≠ 0 → γ) (hj : ∀{{b}} (h : f b ≠ 0), g (j h) ≠ 0)
+  (hji : ∀{{c}} (h : g c ≠ 0), j (hi h) = c)
+  (hij : ∀{{b}} (h : f b ≠ 0), i (hj h) = b)
+  (hgj : ∀{{b}} (h : f b ≠ 0), g (j h) = f b)
+include hi hj hji hij hgj
 
 lemma is_sum_of_is_sum_ne_zero : is_sum g a → is_sum f a :=
-have j_inj : ∀x y, f x ≠ 0 → f y ≠ 0 → (j x = j y ↔ x = y),
+have j_inj : ∀x y (hx : f x ≠ 0) (hy : f y ≠ 0), (j hx = j hy ↔ x = y),
   from assume x y hx hy,
   ⟨assume h,
-    have i (j x) = i (j y), from congr_arg i h,
-    by rwa [h₂, h₂] at this; assumption,
-  congr_arg j⟩,
-is_sum_of_is_sum $ assume u, exists.intro ((u.filter $ λc, g c ≠ 0).image i) $
-  assume v hv,
-  let u' := (v.filter $ λb, f b ≠ 0).image j in
-  exists.intro (u ∪ u') $ and.intro subset_union_left $
-  have ∀c:γ, c ∈ u ∪ u' → c ∉ u' → g c = 0,
+    have i (hj hx) = i (hj hy), by simp [h],
+    by rwa [hij, hij] at this; assumption,
+  by simp {contextual := tt}⟩,
+let ii : finset γ → finset β := λu, u.bind $ λc, if h : g c = 0 then ∅ else {i h} in
+let jj : finset β → finset γ := λv, v.bind $ λb, if h : f b = 0 then ∅ else {j h} in
+is_sum_of_is_sum $ assume u, exists.intro (ii u) $
+  assume v hv, exists.intro (u ∪ jj v) $ and.intro subset_union_left $
+  have ∀c:γ, c ∈ u ∪ jj v → c ∉ jj v → g c = 0,
     from assume c hc hnc, classical.by_contradiction $ assume h : g c ≠ 0,
     have c ∈ u,
       from (mem_or_mem_of_mem_union hc).resolve_right hnc,
-    have i c ∈ v,
-      from mem_of_subset_of_mem hv $ mem_image_iff.mpr ⟨_, mem_filter_iff.mpr ⟨this, h⟩, rfl⟩,
-    have j (i c) ∈ u',
-      from mem_image_iff.mpr ⟨_, mem_filter_iff.mpr ⟨this, h₃ _ h ▸ h⟩, rfl⟩,
-    by rw [h₁ c h] at this; exact hnc this,
-  calc (u ∪ u').sum g = u'.sum g :
-     (sum_subset subset_union_right this).symm
-    ... = (v.filter $ λb, f b ≠ 0).sum (g ∘ j) :
-      sum_image $ by simp [j_inj] {contextual := tt}
-    ... = (v.filter $ λb, f b ≠ 0).sum f :
-      sum_congr $ assume b hx, (h₄ b $ (mem_filter_iff.mp hx).right).symm
-    ... = v.sum f :
-      sum_subset filter_subset $ by simp [not_not] {contextual := tt}
+    have i h ∈ v,
+      from mem_of_subset_of_mem hv $ by simp [mem_bind_iff]; existsi c; simp [h, this],
+    have j (hi h) ∈ jj v,
+      by simp [mem_bind_iff]; existsi i h; simp [h, hi, this],
+    by rw [hji h] at this; exact hnc this,
+  calc (u ∪ jj v).sum g = (jj v).sum g : (sum_subset subset_union_right this).symm
+    ... = v.sum _ : sum_bind $ by intros x hx y hy hxy; by_cases f x = 0; by_cases f y = 0; simp [*]
+    ... = v.sum f : sum_congr $ by intros x hx; by_cases f x = 0; simp [*]
 
 lemma is_sum_iff_is_sum_of_ne_zero : is_sum f a ↔ is_sum g a :=
-iff.intro (is_sum_of_is_sum_ne_zero h₂ h₁ h₄ h₃) (is_sum_of_is_sum_ne_zero h₁ h₂ h₃ h₄)
+iff.intro
+  (is_sum_of_is_sum_ne_zero j hj i hi hij hji $ assume b hb, by rw [←hgj (hi _), hji])
+  (is_sum_of_is_sum_ne_zero i hi j hj hji hij hgj)
 
 lemma has_sum_iff_has_sum_ne_zero : has_sum g ↔ has_sum f :=
-exists_congr $ assume a, is_sum_iff_is_sum_of_ne_zero h₂ h₁ h₄ h₃
+exists_congr $
+  assume a, is_sum_iff_is_sum_of_ne_zero j hj i hi hij hji $
+    assume b hb, by rw [←hgj (hi _), hji]
 
 end is_sum_iff_is_sum_of_iso_ne_zero
 
@@ -280,7 +282,7 @@ lemma is_sum_unique : is_sum f a₁ → is_sum f a₂ → a₁ = a₂ := tendsto
 
 lemma tsum_eq_is_sum (ha : is_sum f a) : (∑b, f b) = a := is_sum_unique (is_sum_tsum ⟨a, ha⟩) ha
 
-lemma tsum_zero : (∑b:β, 0:α) = 0 := tsum_eq_is_sum is_sum_zero
+@[simp] lemma tsum_zero : (∑b:β, 0:α) = 0 := tsum_eq_is_sum is_sum_zero
 
 lemma tsum_add (hf : has_sum f) (hg : has_sum g) : (∑b, f b + g b) = (∑b, f b) + (∑b, g b) :=
 tsum_eq_is_sum $ is_sum_add (is_sum_tsum hf) (is_sum_tsum hg)
@@ -288,6 +290,24 @@ tsum_eq_is_sum $ is_sum_add (is_sum_tsum hf) (is_sum_tsum hg)
 lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, has_sum (f i)) :
   (∑b, s.sum (λi, f i b)) = s.sum (λi, ∑b, f i b) :=
 tsum_eq_is_sum $ is_sum_sum $ assume i hi, is_sum_tsum $ hf i hi
+
+lemma tsum_eq_tsum_of_ne_zero {f : β → α} {g : γ → α}
+  (i : Π{{c}}, g c ≠ 0 → β) (hi : ∀{{c}} (h : g c ≠ 0), f (i h) ≠ 0)
+  (j : Π{{b}}, f b ≠ 0 → γ) (hj : ∀{{b}} (h : f b ≠ 0), g (j h) ≠ 0)
+  (hji : ∀{{c}} (h : g c ≠ 0), j (hi h) = c)
+  (hij : ∀{{b}} (h : f b ≠ 0), i (hj h) = b)
+  (hgj : ∀{{b}} (h : f b ≠ 0), g (j h) = f b) :
+  (∑i, f i) = (∑j, g j) :=
+have h : ∀{a}, is_sum f a ↔ is_sum g a,
+  from assume a, is_sum_iff_is_sum_of_ne_zero i hi j hj hji hij hgj,
+by_cases
+  (assume : ∃a, is_sum f a,
+    let ⟨a, hfa⟩ := this in
+    have hga : is_sum g a, from h.mp hfa,
+    by rw [tsum_eq_is_sum hfa, tsum_eq_is_sum hga])
+  (assume hf : ¬ has_sum f,
+    have hg : ¬ has_sum g, from assume ⟨a, hga⟩, hf ⟨a, h.mpr hga⟩,
+    by simp [tsum, hf, hg])
 
 end tsum
 

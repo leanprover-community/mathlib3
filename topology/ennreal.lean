@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Extended non-negative reals
 -/
-import order.bounds topology.real topology.infinite_sum
+import order.bounds algebra.ordered_monoid topology.real topology.infinite_sum
 noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable
@@ -39,6 +39,11 @@ iff.intro
       from Sup_le $ assume a ha, le_of_not_gt $ assume h, this ⟨a, ha, h⟩,
     lt_irrefl b (lt_of_lt_of_le ‹b < Sup s› ‹Sup s ≤ b›))
   (assume ⟨a, ha, h⟩, lt_of_lt_of_le h $ le_Sup ha)
+
+lemma lt_supr_iff {ι : Sort*} {f : ι → α} : a < supr f ↔ (∃i, a < f i) :=
+iff.trans lt_Sup_iff $ iff.intro
+  (assume ⟨a', ⟨i, rfl⟩, ha⟩, ⟨i, ha⟩)
+  (assume ⟨i, hi⟩, ⟨f i, ⟨i, rfl⟩, hi⟩)
 
 lemma Sup_eq_top : Sup s = ⊤ ↔ (∀b<⊤, ∃a∈s, b < a) :=
 iff.intro
@@ -364,13 +369,24 @@ instance : densely_ordered ennreal :=
       ⟨of_real q, by simp [*]⟩ }
 end⟩
 
-lemma add_le_add : ∀{b d}, a ≤ b → c ≤ d → a + c ≤ b + d :=
+private lemma add_le_add : ∀{b d}, a ≤ b → c ≤ d → a + c ≤ b + d :=
 forall_ennreal.mpr ⟨assume r hr, forall_ennreal.mpr ⟨assume p hp,
   by simp [le_of_real_iff, *, exists_imp_distrib, -and_imp] {contextual:=tt};
     simp [*, add_nonneg, add_le_add] {contextual := tt}, by simp⟩, by simp⟩
 
-lemma lt_of_add_lt_add_left (h : a + b < a + c) : b < c :=
+private lemma lt_of_add_lt_add_left (h : a + b < a + c) : b < c :=
 lt_of_not_ge $ assume h', lt_irrefl (a + b) (lt_of_lt_of_le h $ add_le_add (le_refl a) h')
+
+instance : ordered_comm_monoid ennreal :=
+{ ennreal.add_comm_monoid with
+  le := (≤),
+  lt := (<),
+  le_refl := le_refl,
+  le_trans := assume a b c, le_trans,
+  le_antisymm := assume a b, le_antisymm,
+  lt_iff_le_not_le := assume a b, lt_iff_le_not_le,
+  add_le_add_left := assume a b h c, add_le_add (le_refl c) h,
+  lt_of_add_lt_add_left := assume a b c, lt_of_add_lt_add_left }
 
 lemma le_add_left (h : a ≤ c) : a ≤ b + c :=
 calc a = 0 + a : by simp
@@ -380,20 +396,23 @@ lemma le_add_right (h : a ≤ b) : a ≤ b + c :=
 calc a = a + 0 : by simp
   ... ≤ b + c : add_le_add h ennreal.zero_le
 
-protected lemma le_iff_exists_add : ∀{b a:ennreal}, a ≤ b ↔ (∃c, b = a + c) :=
-begin
-  simp [forall_ennreal] {contextual:=tt},
-  constructor,
-  exact assume r hr, ⟨∞, by simp⟩,
-  exact assume r hr p hp, iff.intro
-    (assume h, ⟨of_real (r - p),
-      begin
-        rw [of_real_add_of_real, sub_add_cancel],
-        { simp [le_sub_iff_add_le, *, -sub_eq_add_neg] },
-        exact hp
-      end⟩)
-    (assume ⟨c, hc⟩, by rw [←of_real_le_of_real_iff hp hr, hc]; exact le_add_left (le_refl _))
-end
+instance : canonically_ordered_monoid ennreal :=
+{ ennreal.ordered_comm_monoid with
+  le_iff_exists_add :=
+  begin
+    simp [forall_ennreal] {contextual:=tt},
+    intros r hr,
+    constructor,
+    exact ⟨∞, by simp⟩,
+    exact assume p hp, iff.intro
+      (assume h, ⟨of_real (p - r),
+        begin
+          rw [of_real_add_of_real, sub_add_cancel],
+          { simp [le_sub_iff_add_le, *, -sub_eq_add_neg] },
+          exact hr
+        end⟩)
+      (assume ⟨c, hc⟩, by rw [←of_real_le_of_real_iff hr hp, hc]; exact le_add_left (le_refl _))
+  end }
 
 lemma mul_le_mul : ∀{b d}, a ≤ b → c ≤ d → a * c ≤ b * d :=
 forall_ennreal.mpr ⟨assume r hr, forall_ennreal.mpr ⟨assume p hp,
@@ -488,11 +507,11 @@ protected lemma bot_eq_zero : (⊥ : ennreal) = 0 := rfl
 
 lemma Inf_add {s : set ennreal} : Inf s + a = ⨅b∈s, b + a :=
 le_antisymm
-  (le_infi $ assume b, le_infi $ assume hb, ennreal.add_le_add (Inf_le hb) (le_refl a))
+  (le_infi $ assume b, le_infi $ assume hb, add_le_add (Inf_le hb) (le_refl a))
   (le_of_forall_ge $ assume c hc,
     match le_total a c with
     | or.inl h :=
-      let ⟨d, hd⟩ := ennreal.le_iff_exists_add.mp h in
+      let ⟨d, hd⟩ := le_iff_exists_add.mp h in
       have ∀b∈s, d ≤ b,
         from assume b hb,
         have a + d < a + b,
@@ -500,16 +519,16 @@ le_antisymm
             ... < ⨅b∈s, b + a : hc
             ... ≤ a + b : infi_le_of_le b $ infi_le_of_le hb $ by simp,
         le_of_lt $ lt_of_add_lt_add_left this,
-      by rw [hd, add_comm]; exact ennreal.add_le_add (le_refl a) (le_Inf this)
+      by rw [hd, add_comm]; exact add_le_add (le_refl a) (le_Inf this)
     | or.inr h := le_add_left h
     end)
 
 lemma Sup_add {s : set ennreal} (hs : s ≠ ∅) : Sup s + a = ⨆b∈s, b + a :=
 eq_of_le_of_forall_ge
-  (supr_le $ assume b, supr_le $ assume hb, ennreal.add_le_add (le_Sup hb) (le_refl _))
+  (supr_le $ assume b, supr_le $ assume hb, add_le_add (le_Sup hb) (le_refl _))
   (assume b hb, match le_total a b with
   | or.inl h :=
-    let ⟨c, hc⟩ := ennreal.le_iff_exists_add.mp h in
+    let ⟨c, hc⟩ := le_iff_exists_add.mp h in
     have a + c < a + Sup s, by simp [hc] at hb; simp [hb],
     let ⟨x, hx, h⟩ := lt_Sup_iff.mp $ lt_of_add_lt_add_left this in
     le_supr_of_le x $ le_supr_of_le hx $
@@ -564,7 +583,7 @@ by_cases
     have hl' : ∃l, l < of_real r, from ⟨0, by simp [hr, hr']⟩,
     have hu' : ∃u, of_real r < u, from ⟨of_real u, by simp [hr, hu_nn, hu]⟩,
     begin
-      rw [mem_nhds_lattice_unbounded hu' hl'],
+      rw [mem_nhds_unbounded hu' hl'],
       existsi (of_real l), existsi (of_real u),
       simp [*, of_real_lt_of_real_iff_cases, forall_ennreal] {contextual := tt}
     end)
@@ -581,7 +600,7 @@ le_antisymm
   (by_cases
     (assume (hr : r = 0) s (hs : {x | of_real x ∈ s} ∈ (nhds r).sets),
       have hs : {x | of_real x ∈ s} ∈ (nhds (0:ℝ)).sets, from hr ▸ hs,
-      let ⟨l, u, hl, hu, h⟩ := (mem_nhds_lattice_unbounded (no_top 0) (no_bot 0)).mp hs in
+      let ⟨l, u, hl, hu, h⟩ := (mem_nhds_unbounded (no_top 0) (no_bot 0)).mp hs in
       have nhds (of_real r) = nhds ⊥, by simp [hr]; refl,
       begin
         rw [this, nhds_bot_orderable],
@@ -669,7 +688,7 @@ instance : has_sub ennreal := ⟨λa b, Inf {d | a ≤ d + b}⟩
 le_antisymm (Inf_le $ le_add_left h) ennreal.zero_le
 
 @[simp] lemma sub_add_cancel_of_le (h : b ≤ a) : (a - b) + b = a :=
-let ⟨c, hc⟩ := ennreal.le_iff_exists_add.mp h in
+let ⟨c, hc⟩ := le_iff_exists_add.mp h in
 eq.trans Inf_add $ le_antisymm
   (infi_le_of_le c $ infi_le_of_le (by simp [hc]) $ by simp [hc])
   (le_infi $ assume d, le_infi $ assume hd, hd)
@@ -747,5 +766,49 @@ forall_ennreal.mpr $ and.intro
   (by simp)
 
 end inv
+
+section tsum
+
+variables {α : Type*} {β : Type*} {f g : α → ennreal}
+
+protected lemma is_sum : is_sum f (⨆s:finset α, s.sum f) :=
+tendsto_orderable
+  (assume a' ha',
+    let ⟨s, hs⟩ := lt_supr_iff.mp ha' in
+    mem_at_top_iff.mpr ⟨s, assume t ht, lt_of_lt_of_le hs $ finset.sum_le_sum_of_subset ht⟩)
+  (assume a' ha',
+    univ_mem_sets' $ assume s,
+    have s.sum f ≤ ⨆(s : finset α), s.sum f,
+      from le_supr (λ(s : finset α), s.sum f) s,
+    lt_of_le_of_lt this ha')
+
+protected lemma has_sum : has_sum f := ⟨_, ennreal.is_sum⟩
+
+protected lemma tsum_eq_supr_sum : (∑a, f a) = (⨆s:finset α, s.sum f) :=
+tsum_eq_is_sum ennreal.is_sum
+
+protected lemma tsum_sigma {β : α → Type*} {f : Πa, β a → ennreal} :
+  (∑p:Σa, β a, f p.1 p.2) = (∑a, ∑b, f a b) :=
+tsum_sigma (assume b, ennreal.has_sum) ennreal.has_sum
+
+protected lemma tsum_prod {f : α → β → ennreal} : (∑p:α×β, f p.1 p.2) = (∑a, ∑b, f a b) :=
+let j : α × β → (Σa:α, β) := λp, sigma.mk p.1 p.2 in
+let i : (Σa:α, β) → α × β := λp, (p.1, p.2) in
+let f' : (Σa:α, β) → ennreal := λp, f p.1 p.2 in
+calc (∑p:α×β, f' (j p)) = (∑p:Σa:α, β, f' p) :
+    tsum_eq_tsum_of_iso j i (assume ⟨a, b⟩, rfl) (assume ⟨a, b⟩, rfl)
+  ... = (∑a, ∑b, f a b) : ennreal.tsum_sigma
+
+protected lemma tsum_comm {f : α → β → ennreal} : (∑a, ∑b, f a b) = (∑b, ∑a, f a b) :=
+let f' : α×β → ennreal := λp, f p.1 p.2 in
+calc (∑a, ∑b, f a b) = (∑p:α×β, f' p) : ennreal.tsum_prod.symm
+  ... = (∑p:β×α, f' (prod.swap p)) :
+    (tsum_eq_tsum_of_iso prod.swap (@prod.swap α β) (assume ⟨a, b⟩, rfl) (assume ⟨a, b⟩, rfl)).symm
+  ... = (∑b, ∑a, f' (prod.swap (b, a))) : @ennreal.tsum_prod β α (λb a, f' (prod.swap (b, a)))
+
+protected lemma tsum_le_tsum (h : ∀a, f a ≤ g a) : (∑a, f a) ≤ (∑a, g a) :=
+tsum_le_tsum h ennreal.has_sum ennreal.has_sum
+
+end tsum
 
 end ennreal

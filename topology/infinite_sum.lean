@@ -5,7 +5,8 @@ Authors: Johannes Hölzl
 
 Infinite sum over a topological monoid
 -/
-import data.finset topology.topological_structures algebra.big_operators
+import data.set data.finset topology.topological_structures algebra.big_operators
+  logic.function_inverse
 noncomputable theory
 open set lattice finset filter function
 
@@ -158,6 +159,15 @@ have (λs:finset γ, s.sum (f ∘ j)) = (λs:finset β, s.sum f) ∘ (λs:finset
 show tendsto (λs:finset γ, s.sum (f ∘ j)) at_top (nhds a),
    by rw [this]; apply tendsto_compose (tendsto_finset_image_at_top_at_top h₂) hf
 
+lemma is_sum_iff_is_sum_of_iso {j : γ → β} (i : β → γ)
+  (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) :
+  is_sum (f ∘ j) a ↔ is_sum f a :=
+iff.intro
+  (assume hfj,
+    have is_sum ((f ∘ j) ∘ i) a, from is_sum_of_iso hfj h₂ h₁,
+    by simp [(∘), h₂] at this; assumption)
+  (assume hf, is_sum_of_iso hf h₁ h₂)
+
 lemma is_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ] [topological_add_monoid γ]
   (h₁ : g 0 = 0) (h₂ : ∀x y, g (x + y) = g x + g y) (h₃ : continuous g) (hf : is_sum f a) :
   is_sum (g ∘ f) (g a) :=
@@ -208,6 +218,10 @@ mem_at_top_iff.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
             le_trans (preimage_mono $ hp' b hb) (hp b hb),
         neq_bot_of_le_neq_bot (h _) (le_trans (inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
   hss' this
+
+lemma has_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
+  (hf : ∀b, has_sum (λc, f ⟨b, c⟩)) (ha : has_sum f) : has_sum (λb, ∑c, f ⟨b, c⟩):=
+has_sum_spec $ is_sum_sigma (assume b, is_sum_tsum $ hf b) (is_sum_tsum ha)
 
 end is_sum
 
@@ -291,15 +305,16 @@ lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, has_sum (f
   (∑b, s.sum (λi, f i b)) = s.sum (λi, ∑b, f i b) :=
 tsum_eq_is_sum $ is_sum_sum $ assume i hi, is_sum_tsum $ hf i hi
 
-lemma tsum_eq_tsum_of_ne_zero {f : β → α} {g : γ → α}
-  (i : Π{{c}}, g c ≠ 0 → β) (hi : ∀{{c}} (h : g c ≠ 0), f (i h) ≠ 0)
-  (j : Π{{b}}, f b ≠ 0 → γ) (hj : ∀{{b}} (h : f b ≠ 0), g (j h) ≠ 0)
-  (hji : ∀{{c}} (h : g c ≠ 0), j (hi h) = c)
-  (hij : ∀{{b}} (h : f b ≠ 0), i (hj h) = b)
-  (hgj : ∀{{b}} (h : f b ≠ 0), g (j h) = f b) :
-  (∑i, f i) = (∑j, g j) :=
-have h : ∀{a}, is_sum f a ↔ is_sum g a,
-  from assume a, is_sum_iff_is_sum_of_ne_zero i hi j hj hji hij hgj,
+lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
+  (∑b, f b) = s.sum f :=
+tsum_eq_is_sum $ is_sum_sum_of_ne_finset_zero hf
+
+lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
+  (h₁ : ∀b, has_sum (λc, f ⟨b, c⟩)) (h₂ : has_sum f) : (∑p, f p) = (∑b c, f ⟨b, c⟩):=
+(tsum_eq_is_sum $ is_sum_sigma (assume b, is_sum_tsum $ h₁ b) $ is_sum_tsum h₂).symm
+
+lemma tsum_eq_tsum_of_is_sum_iff_is_sum {f : β → α} {g : γ → α}
+  (h : ∀{a}, is_sum f a ↔ is_sum g a) : (∑b, f b) = (∑c, g c) :=
 by_cases
   (assume : ∃a, is_sum f a,
     let ⟨a, hfa⟩ := this in
@@ -308,6 +323,38 @@ by_cases
   (assume hf : ¬ has_sum f,
     have hg : ¬ has_sum g, from assume ⟨a, hga⟩, hf ⟨a, h.mpr hga⟩,
     by simp [tsum, hf, hg])
+
+lemma tsum_eq_tsum_of_ne_zero {f : β → α} {g : γ → α}
+  (i : Π{{c}}, g c ≠ 0 → β) (hi : ∀{{c}} (h : g c ≠ 0), f (i h) ≠ 0)
+  (j : Π{{b}}, f b ≠ 0 → γ) (hj : ∀{{b}} (h : f b ≠ 0), g (j h) ≠ 0)
+  (hji : ∀{{c}} (h : g c ≠ 0), j (hi h) = c)
+  (hij : ∀{{b}} (h : f b ≠ 0), i (hj h) = b)
+  (hgj : ∀{{b}} (h : f b ≠ 0), g (j h) = f b) :
+  (∑i, f i) = (∑j, g j) :=
+tsum_eq_tsum_of_is_sum_iff_is_sum $ assume a, is_sum_iff_is_sum_of_ne_zero i hi j hj hji hij hgj
+
+lemma tsum_eq_tsum_of_ne_zero_bij {f : β → α} {g : γ → α}
+  (i : Π{{c}}, g c ≠ 0 → β)
+  (h₁ : ∀{{c₁ c₂}} (h₁ : g c₁ ≠ 0) (h₂ : g c₂ ≠ 0), i h₁ = i h₂ → c₁ = c₂)
+  (h₂ : ∀{{b}}, f b ≠ 0 → ∃c (h : g c ≠ 0), i h = b)
+  (h₃ : ∀{{c}} (h : g c ≠ 0), f (i h) = g c) :
+  (∑i, f i) = (∑j, g j) :=
+have hi : ∀{{c}} (h : g c ≠ 0), f (i h) ≠ 0,
+  from assume c h, by simp [h₃, h],
+let j : Π{{b}}, f b ≠ 0 → γ := λb h, some $ h₂ h in
+have hj : ∀{{b}} (h : f b ≠ 0), ∃(h : g (j h) ≠ 0), i h = b,
+  from assume b h, some_spec $ h₂ h,
+have hj₁ : ∀{{b}} (h : f b ≠ 0), g (j h) ≠ 0,
+  from assume b h, let ⟨h₁, _⟩ := hj h in h₁,
+have hj₂ : ∀{{b}} (h : f b ≠ 0), i (hj₁ h) = b,
+  from assume b h, let ⟨h₁, h₂⟩ := hj h in h₂,
+tsum_eq_tsum_of_ne_zero i hi j hj₁
+  (assume c h, h₁ (hj₁ _) h $ hj₂ _) hj₂ (assume b h, by rw [←h₃ (hj₁ _), hj₂])
+
+lemma tsum_eq_tsum_of_iso (j : γ → β) (i : β → γ)
+  (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) :
+  (∑c, f (j c)) = (∑b, f b) :=
+tsum_eq_tsum_of_is_sum_iff_is_sum $ assume a, is_sum_iff_is_sum_of_iso i h₁ h₂
 
 end tsum
 
@@ -369,6 +416,18 @@ tsum_eq_is_sum $ is_sum_mul_right $ is_sum_tsum hf
 end tsum
 
 end topological_semiring
+
+section order_topology
+variables [ordered_comm_monoid α] [topological_space α] [ordered_topology α] [topological_add_monoid α]
+variables {f g : β → α} {a a₁ a₂ : α}
+
+lemma is_sum_le (h : ∀b, f b ≤ g b) (hf : is_sum f a₁) (hg : is_sum g a₂) : a₁ ≤ a₂ :=
+le_of_tendsto at_top_ne_bot hf hg $ univ_mem_sets' $ assume s, sum_le_sum' $ assume b _, h b
+
+lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : has_sum f) (hg : has_sum g) : (∑b, f b) ≤ (∑b, g b) :=
+is_sum_le h (is_sum_tsum hf) (is_sum_tsum hg)
+
+end order_topology
 
 section uniform_group
 variables [add_comm_group α] [uniform_space α] [complete_space α] [uniform_add_group α]

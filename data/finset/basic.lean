@@ -10,6 +10,19 @@ open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+section linorder
+
+lemma lt_max_iff [decidable_linear_order α] {a b c : α} : a < max b c ↔ a < b ∨ a < c :=
+⟨assume h, (le_total c b).imp
+  (assume hcb, lt_of_lt_of_le h $ max_le (le_refl _) hcb)
+  (assume hbc, lt_of_lt_of_le h $ max_le hbc (le_refl _)),
+  (assume h, match h with
+    | or.inl h := lt_of_lt_of_le h (le_max_left _ _)
+    | or.inr h := lt_of_lt_of_le h (le_max_right _ _)
+    end)⟩
+
+end linorder
+
 def nodup_list (α : Type*) := {l : list α // nodup l}
 
 def to_nodup_list_of_nodup {l : list α} (n : nodup l) : nodup_list α :=
@@ -121,7 +134,7 @@ instance : has_subset (finset α) := ⟨finset.subset⟩
 -- theorem subset_univ [h : fintype α] (s : finset α) : s ⊆ univ :=
 -- quot.induction_on s (λ l a i, fintype.complete a)
 
-theorem subset.refl (s : finset α) : s ⊆ s :=
+@[simp] theorem subset.refl (s : finset α) : s ⊆ s :=
 quot.induction_on s (λ l, list.subset.refl l.1)
 
 theorem subset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₂ ⊆ s₃ → s₁ ⊆ s₃ :=
@@ -601,10 +614,10 @@ theorem mem_upto_of_lt : m < n → m ∈ upto n :=
 theorem mem_upto_iff : m ∈ upto n ↔ m < n :=
 iff.intro lt_of_mem_upto mem_upto_of_lt
 
-theorem upto_zero : upto 0 = ∅ := rfl
+@[simp] theorem upto_zero : upto 0 = ∅ := rfl
 
-theorem upto_succ : upto (succ n) = insert n (upto n) :=
-ext $ by simp [mem_upto_iff, mem_insert_iff, lt_succ_iff_lt_or_eq]
+@[simp] theorem upto_succ : upto (succ n) = insert n (upto n) :=
+ext $ by simp [mem_upto_iff, mem_insert_iff, le_iff_lt_or_eq, lt_succ_iff]
 
 @[simp] theorem not_mem_upto : n ∉ upto n :=
 by simp [mem_upto_iff, lt_irrefl]

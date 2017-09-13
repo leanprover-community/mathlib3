@@ -38,8 +38,8 @@ lemma forall_subtype_iff {α : Type u} {p : α → Prop} {q : {a // p a} → Pro
 ⟨assume h a ha, h ⟨_, _⟩, assume h ⟨a, ha⟩, h _ _⟩
 
 /- remove when we hava linear arithmetic tactic -/
-lemma one_lt_two : 1 < (2 : ℚ) :=
-calc (1:ℚ) < 1 + 1 : lt_add_of_le_of_pos (le_refl 1) zero_lt_one
+lemma one_lt_two {α : Type*} [linear_ordered_semiring α] : 1 < (2 : α) :=
+calc (1:α) < 1 + 1 : lt_add_of_le_of_pos (le_refl 1) zero_lt_one
   ... = _ : by simp [bit0]
 
 lemma sub_lt_iff [ordered_comm_group α] {a b c : α} : (a - b < c) ↔ (a < c + b) :=
@@ -55,6 +55,14 @@ iff.intro
     have a + c < (b - c) + c, from add_lt_add_right h _,
     by simp * at *)
   lt_sub_right_of_add_lt
+
+instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
+  no_top_order α :=
+⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
+
+instance linear_ordered_semiring.to_no_bot_order {α : Type*} [linear_ordered_ring α] :
+  no_bot_order α :=
+⟨assume a, ⟨a - 1, sub_lt_iff.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
 
 lemma orderable_topology_of_nhds_abs
   {α : Type*} [decidable_linear_ordered_comm_group α] [topological_space α]
@@ -1150,7 +1158,7 @@ instance : discrete_linear_ordered_field ℝ :=
 instance : ordered_comm_monoid ℝ :=
 { real.discrete_linear_ordered_field with
   lt_of_add_lt_add_left :=
-      assume a b, by simp [lt_iff_not_ge, ge, -add_comm, add_le_add_left_iff] {contextual := tt} }
+      assume a b, by simp [ge, -add_comm, add_le_add_left_iff] {contextual := tt} }
 
 instance : topological_ring ℝ :=
 { real.topological_add_group with continuous_mul := continuous_mul_real }

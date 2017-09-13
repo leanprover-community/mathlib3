@@ -64,10 +64,13 @@ instance linear_ordered_field.to_no_bot_order [linear_ordered_field α] : no_bot
 { no_bot := assume a, ⟨a + -1,
     add_lt_of_le_of_neg (le_refl _) (neg_lt_of_neg_lt $ by simp [zero_lt_one]) ⟩ }
 
+lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
+by rw [inv_eq_one_div]; exact div_pos_of_pos_of_pos zero_lt_one
+
 end
 
 section
-variables [discrete_linear_ordered_field α] (a b c: α) 
+variables [discrete_linear_ordered_field α] (a b c: α)
 
 lemma abs_inv : abs a⁻¹ = (abs a)⁻¹ :=
 have h : abs (1 / a) = 1 / abs a,

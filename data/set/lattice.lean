@@ -151,6 +151,9 @@ theorem subset_bInter {s : set α} {t : set β} {u : α → set β} (h : ∀ x �
 show t ≤ (⨅ x ∈ s, u x), -- TODO: should not be necessary when sets' order is based on lattices
   from le_infi $ assume x, le_infi (h x)
 
+theorem subset_Union {ι : Sort*} (u : ι → set α) (i : ι) : u i ⊆ (⋃i, u i) :=
+show u i ≤ (⨆i, u i), from le_supr u i
+
 theorem subset_bUnion_of_mem {s : set α} {u : α → set β} {x : α} (xs : x ∈ s) :
   u x ⊆ (⋃ x ∈ s, u x) :=
 show u x ≤ (⨆ x ∈ s, u x),
@@ -341,6 +344,9 @@ instance : complete_boolean_algebra (set α) :=
 
 theorem union_sdiff_same {a b : set α} : a ∪ (b \ a) = a ∪ b :=
 lattice.sup_sub_same
+
+theorem sdiff_subset_sdiff {a b c d : set α} : a ⊆ c → d ⊆ b → a \ b ⊆ c \ d :=
+@lattice.sub_le_sub (set α) _ _ _ _ _
 
 @[simp] theorem union_same_compl {a : set α} : a ∪ (-a) = univ :=
 sup_neg_eq_top

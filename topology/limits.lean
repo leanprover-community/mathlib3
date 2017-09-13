@@ -16,10 +16,6 @@ infix ` ^ ` := pow_nat
 section linear_ordered_field
 variables {α : Type*} [linear_ordered_field α] {a : α}
 
-lemma inv_pos (ha : 0 < a) : 0 < a⁻¹ :=
-by rw [inv_eq_one_div];
-from div_pos_of_pos_of_pos zero_lt_one ha
-
 lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
 by rw [inv_eq_one_div, lt_div_iff h₁]; simp [h₂]
 
@@ -94,7 +90,7 @@ lemma zero_le_of_nat : ∀{n}, 0 ≤ (of_nat n : α)
 
 lemma of_nat_le_of_nat {n m : ℕ} (h : n ≤ m) : of_nat n ≤ (of_nat m : α) :=
 let ⟨k, hk⟩ := nat.le.dest h in
-hk ▸ by simp; exact le_add_of_le_of_nonneg (le_refl _) zero_le_of_nat
+by simp [zero_le_of_nat, hk.symm]
 
 lemma of_nat_le_of_nat_iff {n m : ℕ} : of_nat n ≤ (of_nat m : α) ↔ n ≤ m :=
 suffices of_nat n ≤ (of_nat m : α) → n ≤ m,
@@ -126,7 +122,7 @@ instance : linear_ordered_semiring ℝ := by apply_instance
 lemma exists_lt_of_nat {r : ℝ} : ∃n, r < of_nat n :=
 let ⟨q, hq⟩ := exists_lt_of_rat r in
 ⟨rat.nat_ceil q, calc r < of_rat q : hq
-  ... ≤ of_rat (↑(int.of_nat $ rat.nat_ceil q)) : of_rat_le_of_rat.mpr $ @rat.nat_ceil_spec q
+  ... ≤ of_rat (↑(int.of_nat $ rat.nat_ceil q)) : of_rat_le_of_rat.mpr $ rat.le_nat_ceil q
   ... = of_nat (rat.nat_ceil q) :
     by simp [int_of_nat_eq_of_nat, rat_of_nat_eq_of_nat, real_of_rat_of_nat_eq_of_nat]⟩
 
@@ -213,11 +209,11 @@ calc (upto n).sum (λi, r ^ i) = (upto n).sum (λi, ((r - 1) + 1) ^ i) :
 
 lemma is_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   is_sum (λn, r ^ n) (1 / (1 - r)) :=
-(is_sum_iff_tendsto_nat_of_nonneg $ pow_nonneg h₁).mpr $
 have r ≠ 1, from ne_of_lt h₂,
+have r + -1 ≠ 0,
+  by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (nhds ((0 - 1) * (r - 1)⁻¹)),
   from tendsto_mul
     (tendsto_sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
-have h : r + -1 ≠ 0,
-  by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
-by simp [neg_inv, h] at this; simp [sum_geometric ‹r ≠ 1›, div_eq_mul_inv, this]
+(is_sum_iff_tendsto_nat_of_nonneg $ pow_nonneg h₁).mpr $
+  by simp [neg_inv, sum_geometric, div_eq_mul_inv, *] at *

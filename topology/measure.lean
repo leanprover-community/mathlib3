@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 
-Measurable spaces -- σ-algberas
+Measurable spaces -- measures
 -/
 import data.set order.galois_connection topology.ennreal topology.measurable_space
   algebra.big_operators
@@ -182,7 +182,7 @@ def count : measure_space α :=
       { have h' : (∑(i : ℕ), ite (x ∈ f i) 1 0 : ennreal) = 1,
           from let ⟨i, hi⟩ := h in
             calc (∑(i : ℕ), ite (x ∈ f i) 1 0 : ennreal) =
-              ({i} : finset ℕ).sum (λi, ite (x ∈ f i) 1 0) :
+              finset.sum {i} (λi, ite (x ∈ f i) 1 0) :
                 tsum_eq_sum (assume j hj,
                   have j ≠ i, by simp at hj; assumption,
                   have f j ∩ f i = ∅, from hd j i this,

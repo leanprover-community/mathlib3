@@ -15,22 +15,16 @@ universe u
 lemma zero_le_mul {α : Type u} [ordered_semiring α] {a b : α} : 0 ≤ a → 0 ≤ b → 0 ≤ a * b :=
 mul_nonneg
 
-instance linear_ordered_semiring.to_top_order {α : Type*} [linear_ordered_semiring α] :
-  no_top_order α :=
-⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
-
-instance linear_ordered_semiring.to_bot_order {α : Type*} [linear_ordered_ring α] :
-  no_bot_order α :=
-⟨assume a, ⟨a - 1, sub_lt_iff.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
-
-lemma inv_pos {α : Type*} [linear_ordered_field α] {r : α} : 0 < r → 0 < r⁻¹ :=
-by rw [inv_eq_one_div]; exact div_pos_of_pos_of_pos zero_lt_one
-
-lemma inv_inv' {α : Type*} [discrete_field α] {r : α} : r ≠ 0 → (r⁻¹)⁻¹ = r :=
-by rw [inv_eq_one_div, inv_eq_one_div, div_div_eq_mul_div]; simp [div_one]
-
 section complete_linear_order
 variables {α : Type u} [complete_linear_order α] {s : set α} {a b c : α}
+
+lemma Inf_lt_iff : Inf s < b ↔ (∃a∈s, a < b) :=
+iff.intro
+  (assume : Inf s < b, classical.by_contradiction $ assume : ¬ (∃a∈s, a < b),
+    have b ≤ Inf s,
+      from le_Inf $ assume a ha, le_of_not_gt $ assume h, this ⟨a, ha, h⟩,
+    lt_irrefl b (lt_of_le_of_lt ‹b ≤ Inf s› ‹Inf s < b›))
+  (assume ⟨a, ha, h⟩, lt_of_le_of_lt (Inf_le ha) h)
 
 lemma lt_Sup_iff : b < Sup s ↔ (∃a∈s, b < a) :=
 iff.intro
@@ -42,6 +36,11 @@ iff.intro
 
 lemma lt_supr_iff {ι : Sort*} {f : ι → α} : a < supr f ↔ (∃i, a < f i) :=
 iff.trans lt_Sup_iff $ iff.intro
+  (assume ⟨a', ⟨i, rfl⟩, ha⟩, ⟨i, ha⟩)
+  (assume ⟨i, hi⟩, ⟨f i, ⟨i, rfl⟩, hi⟩)
+
+lemma infi_lt_iff {ι : Sort*} {f : ι → α} : infi f < a ↔ (∃i, f i < a) :=
+iff.trans Inf_lt_iff $ iff.intro
   (assume ⟨a', ⟨i, rfl⟩, ha⟩, ⟨i, ha⟩)
   (assume ⟨i, hi⟩, ⟨f i, ⟨i, rfl⟩, hi⟩)
 
@@ -193,6 +192,12 @@ instance : add_comm_monoid ennreal :=
   zero_add := by simp [forall_ennreal, -of_real_zero, of_real_zero.symm] {contextual:=tt},
   add_comm := by simp [forall_ennreal, le_add_of_le_of_nonneg] {contextual:=tt},
   add_assoc := by simp [forall_ennreal, le_add_of_le_of_nonneg] {contextual:=tt} }
+
+@[simp] lemma sum_of_real {α : Type*} {s : finset α} {f : α → ℝ} :
+  (∀a∈s, 0 ≤ f a) → s.sum (λa, of_real (f a)) = of_real (s.sum f) :=
+s.induction_on (by simp) $ assume a s has ih h,
+  have 0 ≤ s.sum f, from finset.zero_le_sum $ assume a ha, h a $ finset.mem_insert_of_mem ha,
+  by simp [has, *] {contextual := tt}
 
 protected lemma mul_zero : ∀a:ennreal, a * 0 = 0 :=
 by simp [forall_ennreal, -of_real_zero, of_real_zero.symm] {contextual := tt}
@@ -396,6 +401,9 @@ lemma le_add_right (h : a ≤ b) : a ≤ b + c :=
 calc a = a + 0 : by simp
   ... ≤ b + c : add_le_add h ennreal.zero_le
 
+lemma lt_add_right : ∀{a b}, a < ∞ → 0 < b → a < a + b :=
+by simp [forall_ennreal, of_real_lt_of_real_iff, add_nonneg, lt_add_of_le_of_pos] {contextual := tt}
+
 instance : canonically_ordered_monoid ennreal :=
 { ennreal.ordered_comm_monoid with
   le_iff_exists_add :=
@@ -420,6 +428,17 @@ forall_ennreal.mpr ⟨assume r hr, forall_ennreal.mpr ⟨assume p hp,
     simp [*, zero_le_mul, mul_le_mul] {contextual := tt},
     by by_cases r = 0; simp [*] {contextual:=tt}⟩,
     assume d, by by_cases d = 0; simp [*] {contextual:=tt}⟩
+
+lemma le_of_forall_epsilon_le (h : ∀ε>0, b < ∞ → a ≤ b + of_real ε) : a ≤ b :=
+suffices ∀r, 0 ≤ r → of_real r > b → a ≤ of_real r,
+  from le_of_forall_le $ forall_ennreal.mpr $ by simp; assumption,
+assume r hr hrb,
+let ⟨p, hp, b_eq, hpr⟩ := lt_iff_exists_of_real.mp hrb in
+have p < r, by simp [hp, hr] at hpr; assumption,
+have pos : 0 < r - p, from lt_sub_iff.mpr $ begin simp [this] end,
+calc a ≤ b + of_real (r - p) : h _ pos (by simp [b_eq])
+  ... = of_real r :
+    by simp [-sub_eq_add_neg, le_of_lt pos, hp, hr, b_eq]; simp [sub_eq_add_neg]
 
 end order
 
@@ -536,6 +555,12 @@ eq_of_le_of_forall_ge
   | or.inr h := let ⟨x, hx⟩ := exists_mem_of_ne_empty hs in
     le_supr_of_le x $ le_supr_of_le hx $ le_add_left h
   end)
+
+lemma supr_add {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
+let ⟨x⟩ := h in
+calc supr s + a = Sup (range s) + a : by simp [Sup_range]
+  ... = (⨆b∈range s, b + a) : Sup_add $ ne_empty_iff_exists_mem.mpr ⟨s x, x, rfl⟩
+  ... = _ : by simp [supr_range]
 
 end complete_lattice
 
@@ -782,7 +807,7 @@ tendsto_orderable
       from le_supr (λ(s : finset α), s.sum f) s,
     lt_of_le_of_lt this ha')
 
-protected lemma has_sum : has_sum f := ⟨_, ennreal.is_sum⟩
+@[simp] protected lemma has_sum : has_sum f := ⟨_, ennreal.is_sum⟩
 
 protected lemma tsum_eq_supr_sum : (∑a, f a) = (⨆s:finset α, s.sum f) :=
 tsum_eq_is_sum ennreal.is_sum
@@ -799,6 +824,14 @@ calc (∑p:α×β, f' (j p)) = (∑p:Σa:α, β, f' p) :
     tsum_eq_tsum_of_iso j i (assume ⟨a, b⟩, rfl) (assume ⟨a, b⟩, rfl)
   ... = (∑a, ∑b, f a b) : ennreal.tsum_sigma
 
+protected lemma tsum_of_real {f : α → ℝ} (h : is_sum f r) (hf : ∀a, 0 ≤ f a) :
+  (∑a, of_real (f a)) = of_real r :=
+have (λs:finset α, s.sum (of_real ∘ f)) = of_real ∘ (λs:finset α, s.sum f),
+  from funext $ assume s, sum_of_real $ assume a _, hf a,
+have tendsto (λs:finset α, s.sum (of_real ∘ f)) at_top (nhds (of_real r)),
+  by rw [this]; exact tendsto_compose h tendsto_of_real,
+tsum_eq_is_sum this
+
 protected lemma tsum_comm {f : α → β → ennreal} : (∑a, ∑b, f a b) = (∑b, ∑a, f a b) :=
 let f' : α×β → ennreal := λp, f p.1 p.2 in
 calc (∑a, ∑b, f a b) = (∑p:α×β, f' p) : ennreal.tsum_prod.symm
@@ -808,6 +841,21 @@ calc (∑a, ∑b, f a b) = (∑p:α×β, f' p) : ennreal.tsum_prod.symm
 
 protected lemma tsum_le_tsum (h : ∀a, f a ≤ g a) : (∑a, f a) ≤ (∑a, g a) :=
 tsum_le_tsum h ennreal.has_sum ennreal.has_sum
+
+protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
+  (∑i:ℕ, f i) = (⨆i:ℕ, (finset.upto i).sum f) :=
+calc _ = (⨆s:finset ℕ, s.sum f) : ennreal.tsum_eq_supr_sum
+  ... = (⨆i:ℕ, (finset.upto i).sum f) : le_antisymm
+    (supr_le_supr2 $ assume s,
+      have ∃n, s ⊆ finset.upto n, from finset.exists_nat_subset_upto,
+      let ⟨n, hn⟩ := this in
+      ⟨n, finset.sum_le_sum_of_subset hn⟩)
+    (supr_le_supr2 $ assume i, ⟨finset.upto i, le_refl _⟩)
+
+protected lemma le_tsum {a : α} : f a ≤ (∑a, f a) :=
+calc f a = ({a} : finset α).sum f : by simp
+  ... ≤ (⨆s:finset α, s.sum f) : le_supr (λs:finset α, s.sum f) _
+  ... = (∑a, f a) : by rw [ennreal.tsum_eq_supr_sum]
 
 end tsum
 

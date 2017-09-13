@@ -51,15 +51,13 @@ namespace equiv
 
 infix ` ≃ `:50 := equiv
 
-def fn (e : equiv α β) : α → β :=
-@equiv.to_fun α β e
+instance : has_coe_to_fun (α ≃ β) :=
+⟨_, to_fun⟩
 
-infixr ` ∙ `:100 := fn
+@[simp] lemma coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
+rfl
 
-def inv {α β : Sort*} [e : equiv α β] : β → α :=
-@equiv.inv_fun α β e
-
-lemma eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, fn e₁ = fn e₂ → e₁ = e₂
+lemma eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e₂ → e₁ = e₂
 | (mk f₁ g₁ l₁ r₁) (mk f₂ g₂ l₂ r₂) h :=
   have f₁ = f₂, from h,
   have g₁ = g₂, from funext $ assume x,
@@ -84,32 +82,34 @@ def id := equiv.refl α
 
 namespace ops
   postfix ⁻¹ := equiv.symm
-  postfix ⁻¹ := equiv.inv
   notation e₁ ∘ e₂  := equiv.trans e₂ e₁
 end ops
 open equiv.ops
 
-lemma id_apply (x : α) : id ∙ x = x :=
+@[simp] lemma coe_fn_symm_mk (f : α → β) (g l r) : ((equiv.mk f g l r)⁻¹ : β → α) = g :=
 rfl
 
-lemma comp_apply (g : β ≃ γ) (f : α ≃ β) (x : α) : (g ∘ f) ∙ x = g ∙ f ∙ x :=
-begin cases g; cases f; simp [equiv.trans, *, (∙)] end
+lemma id_apply (x : α) : @id α x = x :=
+rfl
 
-lemma inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm ∙ e ∙ x = x
-| (mk f₁ g₁ l₁ r₁) x := begin simp [equiv.symm, fn], rw l₁ end
+lemma comp_apply (g : β ≃ γ) (f : α ≃ β) (x : α) : (g ∘ f) x = g (f x) :=
+begin cases g; cases f; simp [equiv.trans, *] end
+
+lemma inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e⁻¹ (e x) = x
+| (mk f₁ g₁ l₁ r₁) x := begin simp [equiv.symm], rw l₁ end
 
 lemma eq_iff_eq_of_injective {f : α → β} (inj : injective f) (a b : α) : f a = f b ↔ a = b :=
 iff.intro
   (assume : f a = f b, inj this)
   (assume : a = b,     by rewrite this)
 
-lemma apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f ∙ x = f ∙ y ↔ x = y
+lemma apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
 | (mk f₁ g₁ l₁ r₁) x y := eq_iff_eq_of_injective (injective_of_left_inverse l₁) x y
 
-lemma apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f ∙ x = y ↔ x = f.symm ∙ y
+lemma apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f x = y ↔ x = f⁻¹ y
 | (mk f₁ g₁ l₁ r₁) x y :=
   begin
-    simp [equiv.symm, fn],
+    simp [equiv.symm],
     apply iff.intro,
     { assume : f₁ x = y, subst this, exact (l₁ x).symm },
     { assume : x = g₁ y, subst this, exact r₁ y }
@@ -331,7 +331,7 @@ def inhabited_of_equiv [inhabited α] : α ≃ β → inhabited β
 section
 open subtype
 
-def subtype_equiv_of_subtype {p : α → Prop} : Π(e : α ≃ β), {a : α // p a} ≃ {b : β // p (e.inv_fun b)}
+def subtype_equiv_of_subtype {p : α → Prop} : Π(e : α ≃ β), {a : α // p a} ≃ {b : β // p (e⁻¹ b)}
 | (mk f g l r) :=
   mk
     (subtype.map f $ assume a ha, show p (g (f a)), by rwa [l])
@@ -389,23 +389,23 @@ eq_of_to_fun_eq $ funext $ λ r, swap_core_self r a
 lemma swap_comm (a b : α) : swap a b = swap b a :=
 eq_of_to_fun_eq $ funext $ λ r, swap_core_comm r _ _
 
-lemma swap_apply_def (a b x : α) : swap a b ∙ x = if x = a then b else if x = b then a else x :=
+lemma swap_apply_def (a b x : α) : swap a b x = if x = a then b else if x = b then a else x :=
 rfl
 
-lemma swap_apply_left (a b : α) : swap a b ∙ a = b :=
+lemma swap_apply_left (a b : α) : swap a b a = b :=
 if_pos rfl
 
-lemma swap_apply_right (a b : α) : swap a b ∙ b = a :=
+lemma swap_apply_right (a b : α) : swap a b b = a :=
 by by_cases b = a; simp [swap_apply_def, *]
 
-lemma swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b ∙ x = x :=
+lemma swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}
 
 lemma swap_swap (a b : α) : (swap a b).trans (swap a b) = id :=
 eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
 
 lemma swap_comp_apply {a b x : α} (π : perm α) :
-  (π.trans (swap a b)) ∙ x = if π ∙ x = a then b else if π ∙ x = b then a else π ∙ x :=
+  π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by cases π; refl
 
 end swap

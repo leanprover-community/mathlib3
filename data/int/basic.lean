@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.sub
+import data.nat.sub algebra.functions
 open nat
 
 namespace int
@@ -483,10 +483,6 @@ int.div_eq_of_eq_mul_right H3 $
 by rw [← int.mul_div_assoc _ H2]; exact
 (int.div_eq_of_eq_mul_left H4 H5.symm).symm
 
-end int
-
-namespace int
-
 theorem of_nat_add_neg_succ_of_nat_of_lt {m n : ℕ} (h : m < succ n) : of_nat m + -[1+n] = -[1+ n - m] :=
 begin
  change sub_nat_nat _ _ = _,
@@ -559,6 +555,25 @@ theorem pred_nat_succ (n : ℕ) : pred (nat.succ n) = n := pred_succ n
 theorem neg_nat_succ (n : ℕ) : -(nat.succ n : ℤ) = pred (-n) := neg_succ n
 
 theorem succ_neg_nat_succ (n : ℕ) : succ (-nat.succ n) = -n := succ_neg_succ n
+
+theorem lt_succ_self (a : ℤ) : a < succ a :=
+lt_add_of_pos_right _ zero_lt_one
+
+theorem pred_self_lt (a : ℤ) : pred a < a :=
+sub_lt_self _ zero_lt_one
+
+/- to_nat -/
+
+theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
+| (n : ℕ) := (max_eq_left (coe_zero_le n)).symm
+| -[1+ n] := (max_eq_right (le_of_lt (neg_succ_lt_zero n))).symm
+
+theorem le_to_nat (a : ℤ) : a ≤ to_nat a :=
+by rw [to_nat_eq_max]; apply le_max_left
+
+@[simp] theorem to_nat_le (a : ℤ) (n : ℕ) : to_nat a ≤ n ↔ a ≤ n :=
+by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
+   exact and_iff_left (coe_zero_le _)
 
 /- bitwise ops -/
 

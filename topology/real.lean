@@ -22,8 +22,7 @@ generalizations:
 
 -/
 
-import topology.uniform_space topology.topological_structures data.rat
-       algebra.field algebra.functions algebra.order algebra.ordered_group
+import topology.uniform_space topology.topological_structures data.rat algebra.field
 noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable
@@ -431,7 +430,7 @@ let c := (λi, ↑i * e) '' {i:ℕ | i ≤ n 1} in
 have ∀q, 0 ≤ q → q ≤ 1 → ∃i∈c, abs (q - i) < e,
   from assume q hq0 hq1,
   have hnn: 0 ≤ ↑(n q) * e - q,
-    from le_sub_left_of_add_le $ le_mul_of_div_le he $ by simp; exact rat.nat_ceil_spec,
+    from le_sub_left_of_add_le $ le_mul_of_div_le he $ by simp; exact rat.le_nat_ceil _,
   have hbnd : ↑(n q) * e - q < e,
     from have ↑(n q) < q / e + 1,
       from rat.nat_ceil_lt_add_one $ div_nonneg_of_nonneg_of_pos hq0 he,

@@ -52,35 +52,9 @@ mul_le_mul_of_nonneg_right h hb
 
 end linear_ordered_semiring
 
-lemma linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero [s : linear_ordered_ring α]
-        {a b : α} (h : a * b = 0) : a = 0 ∨ b = 0 :=
-match lt_trichotomy 0 a with
-| or.inl hlt₁          :=
-  match lt_trichotomy 0 b with
-  | or.inl hlt₂          :=
-    have 0 < a * b, from mul_pos hlt₁ hlt₂,
-    begin rw h at this, exact absurd this (lt_irrefl _) end
-  | or.inr (or.inl heq₂) := or.inr heq₂.symm
-  | or.inr (or.inr hgt₂) :=
-    have 0 > a * b, from mul_neg_of_pos_of_neg hlt₁ hgt₂,
-    begin rw h at this, exact absurd this (lt_irrefl _)  end
-  end
-| or.inr (or.inl heq₁) := or.inl heq₁.symm
-| or.inr (or.inr hgt₁) :=
-  match lt_trichotomy 0 b with
-  | or.inl hlt₂          :=
-    have 0 > a * b, from mul_neg_of_neg_of_pos hgt₁ hlt₂,
-    begin rw h at this, exact absurd this (lt_irrefl _)  end
-  | or.inr (or.inl heq₂) := or.inr heq₂.symm
-  | or.inr (or.inr hgt₂) :=
-    have 0 < a * b, from mul_pos_of_neg_of_neg hgt₁ hgt₂,
-    begin rw h at this, exact absurd this (lt_irrefl _)  end
-  end
-end
-
 instance to_domain [s : linear_ordered_ring α] : domain α :=
 { s with
-  eq_zero_or_eq_zero_of_mul_eq_zero := @linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero α s }
+  eq_zero_or_eq_zero_of_mul_eq_zero := @linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero α s s }
 
 section linear_ordered_ring
 variable [linear_ordered_ring α]

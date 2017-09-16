@@ -35,12 +35,21 @@ meta def rcases (p : parse texpr) (ids : parse (tk "with" *> rcases_parse)?) : t
 tactic.rcases p $ rcases_parse.invert $ ids.get_or_else [default _]
 
 meta def simpf (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
-  (locat : parse (tk "at" *> ident)?) (cfg : simp_config_ext := {}) : tactic unit :=
+  (locat : parse (tk "at" *> texpr)?) (cfg : simp_config_ext := {}) : tactic unit :=
 do lc ← match locat with
 | none := get_local `this >> pure [some `this, none] <|> pure [none]
-| some lc := pure [some lc, none]
+| some (local_const _ lc _ _) := pure [some lc, none]
+| some e := do
+    e ← i_to_expr e,
+    t ← infer_type e,
+    assertv `this t e >> pure [some `this, none]
 end,
 simp no_dflt hs attr_names (loc.ns lc) cfg >> (assumption <|> trivial)
+
+meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
+do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
+   tactic.try_for max tac <|> 
+     (tactic.trace "try_for timeout, using sorry" >> admit)
 
 end interactive
 end tactic

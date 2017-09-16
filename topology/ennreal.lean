@@ -307,7 +307,7 @@ instance : decidable_linear_order ennreal :=
   decidable_le := by apply_instance }
 
 @[simp] lemma not_infty_lt : ¬ ∞ < a :=
-assume ⟨h₁, h₂⟩, h₂ le_infty
+by simp
 
 @[simp] lemma of_real_lt_infty : of_real r < ∞ :=
 ⟨le_infty, assume h, ennreal.no_confusion $ infty_le_iff.mp h⟩
@@ -321,7 +321,7 @@ forall_ennreal.mpr $ ⟨this, by simp⟩
 
 @[simp] lemma of_real_lt_of_real_iff :
   0 ≤ r → 0 ≤ p → (of_real r < of_real p ↔ r < p) :=
-by simp [lt_iff_le_not_le] {contextual:=tt}
+by simp [lt_iff_le_not_le, -not_le] {contextual:=tt}
 
 lemma lt_iff_exists_of_real : ∀{a b}, a < b ↔ (∃p, 0 ≤ p ∧ a = of_real p ∧ of_real p < b) :=
 by simp [forall_ennreal] {contextual := tt}; exact assume r hr,
@@ -340,7 +340,7 @@ by_cases
   (by simp [lt_irrefl, not_imp_not, le_of_lt, of_real_of_not_nonneg] {contextual := tt})
 
 @[simp] lemma not_lt_zero : ¬ a < 0 :=
-assume h, lt_irrefl a $ lt_of_lt_of_le h ennreal.zero_le
+by simp
 
 protected lemma zero_lt_one : 0 < (1 : ennreal) :=
 zero_lt_of_real_iff.mpr zero_lt_one

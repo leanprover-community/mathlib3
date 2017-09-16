@@ -22,7 +22,8 @@ generalizations:
 
 -/
 
-import topology.uniform_space topology.topological_structures data.rat algebra.field
+import topology.uniform_space topology.topological_structures data.rat
+       algebra.field algebra.functions algebra.order algebra.ordered_group
 noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable
@@ -80,7 +81,7 @@ begin
   { intros r hr,
     have h : {b | abs (a + -b) < r} = {b | a - r < b} ∩ {b | b < a + r},
       from (set.ext $ assume b,
-        by simp [abs_lt_iff, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm, sub_lt_iff, lt_sub_iff]),
+        by simp [abs_lt, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm, sub_lt, lt_sub_iff]),
     rw [h, ←inf_principal],
     apply le_inf _ _,
     exact (infi_le_of_le {b : α | a - r < b} $ infi_le_of_le (sub_lt_self a hr) $
@@ -409,7 +410,7 @@ have ∀{r:ℚ}, {q | abs q ≤ abs r + 1} ∈ (nhds r).sets,
   have r < 1 + abs r, from lt_of_le_of_lt (le_abs_self r) (lt_add_of_pos_left _ zero_lt_one),
   have {q : ℚ | q ≤ 1 + abs r} ∩ {q:ℚ | -1 + -abs r ≤ q} ∈ (nhds r).sets,
     from inter_mem_sets (ge_mem_nhds ‹r < 1 + abs r›) (le_mem_nhds ‹-1 + -abs r < r›),
-  by simp [abs_le_iff]; exact this,
+  by simpf [abs_le],
 have h : {a : ℚ × ℚ | abs (a.fst) ≤ abs r + 1 ∧ abs (a.snd) ≤ abs q + 1} ∈ (nhds (r, q)).sets,
   by rw [nhds_prod_eq]; exact prod_mem_prod this this,
 have uniform_continuous (λp:{p:ℚ×ℚ // abs p.1 ≤ abs r + 1 ∧ abs p.2 ≤ abs q + 1}, p.1.1 * p.1.2),
@@ -677,7 +678,7 @@ have ∀ r∈nonneg, f r ∈ closure ({0} : set ℝ),
       from assume a ⟨q, (hq : 0 ≤ q), hrq⟩,
       by simp [hrq.symm, of_rat_abs_real, abs_neg, abs_of_nonneg hq],
 have h₁ : ∀{r}, r ∈ nonneg → abs_real (- r) + (- r) = 0,
-  from assume r hr, show f r = 0, by simp [closure_singleton] at this; exact this _ hr,
+  from assume r hr, show f r = 0, by specialize this _ hr; simpf [closure_singleton],
 have h₂ : ∀r, r = d (r + r),
   from is_closed_property dense_embedding_of_rat.closure_image_univ
     (is_closed_eq continuous_id $ continuous_compose (continuous_add continuous_id continuous_id) c_d)
@@ -711,13 +712,12 @@ instance : linear_order ℝ :=
 { le := (≤),
   le_refl := assume a, show (a - a) ∈ nonneg, by simp; exact of_rat_mem_nonneg (le_refl _),
   le_trans := assume a b c (h₁ : b - a ∈ nonneg) (h₂ : c - b ∈ nonneg),
-    have (c - b) + (b - a) ∈ nonneg,
-      from mem_nonneg_of_continuous2 continuous_add' h₂ h₁ $
-        assume a b ha hb, by rw [of_rat_add]; exact of_rat_mem_nonneg (le_add_of_le_of_nonneg ha hb),
     have (c - b) + (b - a) = c - a,
       from calc (c - b) + (b - a) = c + - a + (b + -b) : by simp [-add_right_neg]
         ... = c - a : by simp [-of_rat_zero],
-    show (c - a) ∈ nonneg, by simp * at *,
+    show (c - a) ∈ nonneg, by rw ← this;
+      refine mem_nonneg_of_continuous2 continuous_add' h₂ h₁ (λ a b ha hb, _);
+      rw [of_rat_add]; exact of_rat_mem_nonneg (le_add_of_le_of_nonneg ha hb),
   le_antisymm := assume a b (h₁ : b - a ∈ nonneg)  (h₂ : a - b ∈ nonneg),
     have h₁ : - (a - b) ∈ nonneg, by simp at h₁; simp [*],
     eq_of_sub_eq_zero $ eq_0_of_nonneg_of_neg_nonneg h₂ h₁,
@@ -738,14 +738,11 @@ instance : linear_order ℝ :=
     show b - a ∈ nonneg ∨ a - b ∈ nonneg, by simp [*] at * }
 
 lemma of_rat_lt_of_rat {q₁ q₂ : ℚ} : of_rat q₁ < of_rat q₂ ↔ q₁ < q₂ :=
-by simp [lt_iff_le_not_le, of_rat_le_of_rat]
+by simp [lt_iff_le_not_le, -not_le, of_rat_le_of_rat]
 
 private lemma add_le_add_left_iff {a b c : ℝ} : (c + a ≤ c + b) ↔ a ≤ b :=
-have (c + b) - (c + a) = b - a,
-  from calc (c + b) - (c + a) = c + - c + (b - a) : by simp [-add_right_neg]
-    ... = b - a : by simp [-of_rat_zero],
 show (c + b) - (c + a) ∈ nonneg ↔ b - a ∈ nonneg,
-  from by rwa [this]
+  by rwa [add_sub_add_left_eq_sub]
 
 instance : decidable_linear_ordered_comm_group ℝ :=
 { real.add_comm_group with
@@ -758,7 +755,7 @@ instance : decidable_linear_ordered_comm_group ℝ :=
   lt_iff_le_not_le := assume a b, lt_iff_le_not_le,
   add_le_add_left := assume a b h c, by rwa [add_le_add_left_iff],
   add_lt_add_left :=
-    assume a b, by simp [lt_iff_not_ge, ge, -add_comm, add_le_add_left_iff] {contextual := tt},
+    assume a b, by simp [lt_iff_not_ge, ge, -not_le, -add_comm, add_le_add_left_iff] {contextual := tt},
   decidable_eq    := by apply_instance,
   decidable_le    := by apply_instance,
   decidable_lt    := by apply_instance }
@@ -947,7 +944,7 @@ have ∀r:ℝ, ∃(s:set ℚ) (q:ℚ),
   from assume r,
   let ⟨q, (hrq : abs r < of_rat q)⟩ := exists_lt_of_rat (abs r) in
   have hq : 0 < q, from of_rat_lt_of_rat.mp $ lt_of_le_of_lt (abs_nonneg _) hrq,
-  have h_eq : {r : ℝ | of_rat (-q) ≤ r ∧ r ≤ of_rat q} = {r:ℝ | abs r ≤ of_rat q}, by simp [abs_le_iff],
+  have h_eq : {r : ℝ | of_rat (-q) ≤ r ∧ r ≤ of_rat q} = {r:ℝ | abs r ≤ of_rat q}, by simp [abs_le],
   have {r:ℝ | abs r < of_rat q} ∈ (nhds r).sets,
     from mem_nhds_sets (is_open_lt continuous_abs_real continuous_const) hrq,
   ⟨{p:ℚ | - q ≤ p ∧ p ≤ q}, q, hq,
@@ -959,7 +956,7 @@ have ∀r:ℝ, ∃(s:set ℚ) (q:ℚ),
     is_closed_inter
       (is_closed_le continuous_const continuous_id)
       (is_closed_le continuous_id continuous_const),
-    assume x, abs_le_iff.mpr⟩,
+    assume x, abs_le.2⟩,
 begin
   rw [real.has_mul],
   simp [lift_rat_op],
@@ -1142,7 +1139,7 @@ instance : discrete_linear_ordered_field ℝ :=
   zero_lt_one     := of_rat_lt_of_rat.mpr zero_lt_one,
   add_le_add_left := assume a b h c, by rwa [add_le_add_left_iff],
   add_lt_add_left :=
-    assume a b, by simp [lt_iff_not_ge, ge, -add_comm, add_le_add_left_iff] {contextual := tt},
+    assume a b, by simp [lt_iff_not_ge, ge, -not_le, -add_comm, add_le_add_left_iff] {contextual := tt},
   mul_nonneg      := assume a b, mul_nonneg,
   mul_pos         := assume a b ha hb,
     lt_of_le_of_ne (mul_nonneg (le_of_lt ha) (le_of_lt hb)) $

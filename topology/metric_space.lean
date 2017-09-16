@@ -91,7 +91,7 @@ instance : metric_space ℝ :=
 { real.uniform_space with
   dist := λx y, abs (x - y),
   dist_self := by simp [abs_zero],
-  eq_of_dist_eq_zero := by simp [add_eq_iff_eq_add_neg] {contextual := tt},
+  eq_of_dist_eq_zero := by simp,
   dist_comm := assume x y, by rw [abs_sub],
   dist_triangle := assume x y z, abs_sub_le _ _ _,
   uniformity_dist := le_antisymm

@@ -81,6 +81,8 @@ iff_true_intro $ λ_, trivial
 
 theorem not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
+@[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
+
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
 

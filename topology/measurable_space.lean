@@ -15,20 +15,6 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 
 def pairwise {α : Type*} (p : α → α → Prop) := ∀i j, i ≠ j → p i j
 
-namespace nat
-open nat
-
-lemma lt_succ_iff {n i : ℕ } : n < i.succ ↔ (n < i ∨ n = i) :=
-calc n < i.succ ↔ n ≤ i : succ_le_succ_iff _ _
-  ... ↔ (n + 1 ≤ i ∨ n = i) : iff.intro
-    (assume h : n ≤ i, match le.dest h with
-    | ⟨zero, h⟩ := by simp at h; simp [*]
-    | ⟨succ k, h⟩ := or.inl $ h ▸ add_le_add_left (le_add_left _ _) _
-    end)
-    (or.rec (assume h, le_trans (le_add_right _ _) h) le_of_eq)
-
-end nat
-
 namespace set
 
 def disjointed (f : ℕ → set α) (n : ℕ) : set α := f n ∩ (⋂i<n, - f i)
@@ -66,7 +52,7 @@ begin
   case nat.succ n ih {
     intro t,
     have h : (⨅i (H : i < n.succ), -f i) = (⨅i (H : i < n), -f i) ⊓ - f n,
-      by simp [nat.lt_succ_iff, infi_or, infi_inf_eq, inf_comm],
+      by simp [nat.lt_succ_iff_lt_or_eq, infi_or, infi_inf_eq, inf_comm],
     change (⋂ (i : ℕ) (H : i < n.succ), -f i) = (⋂ (i : ℕ) (H : i < n), -f i) ∩ - f n at h,
     rw [h, ←inter_assoc],
     exact assume ht, h₂ _ _ (ih _ ht) }

@@ -137,7 +137,7 @@ theorem gpow_add (a : α) : ∀i j : int, gpow a (i + j) = gpow a i * gpow a j
 | -[1+m]     (of_nat n) := begin rw [add_comm, gpow_add_aux], unfold gpow, rw [←inv_pow, pow_inv_comm] end
 | -[1+m]     -[1+n]     := 
   suffices (a ^ (m + succ (succ n)))⁻¹ = (a ^ succ m)⁻¹ * (a ^ succ n)⁻¹, from this,
-  by rw [←succ_add_eq_succ_add, add_comm, pow_add, mul_inv_rev]
+  by rw [←succ_add_eq_succ_add, add_comm, _root_.pow_add, mul_inv_rev]
 
 theorem gpow_mul_comm (a : α) (i j : ℤ) : gpow a i * gpow a j = gpow a j * gpow a i :=
 by rw [←gpow_add, ←gpow_add, add_comm]

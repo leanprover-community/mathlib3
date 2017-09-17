@@ -14,19 +14,6 @@ local attribute [instance] classical.decidable_inhabited classical.prop_decidabl
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-section linear_order
-variables [decidable_linear_order α] {a b c: α}
-
-lemma max_lt_iff : max a b < c ↔ (a < c ∧ b < c) :=
-⟨assume h, ⟨lt_of_le_of_lt (le_max_left _ _) h, lt_of_le_of_lt (le_max_right _ _) h⟩,
-  assume ⟨h₁, h₂⟩, max_lt h₁ h₂⟩
-
-lemma lt_min_iff : a < min b c ↔ (a < b ∧ a < c) :=
-⟨assume h, ⟨lt_of_lt_of_le h (min_le_left _ _), lt_of_lt_of_le h (min_le_right _ _)⟩,
-  assume ⟨h₁, h₂⟩, lt_min h₁ h₂⟩
-
-end linear_order
-
 section complete_lattice
 variables [complete_lattice α]
 
@@ -256,7 +243,7 @@ include t
 
 lemma is_open_lt [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   is_open {b | f b < g b} :=
-by simp [lt_iff_not_ge]; exact is_closed_le hg hf
+by simp [lt_iff_not_ge, -not_le]; exact is_closed_le hg hf
 
 end linear_order
 

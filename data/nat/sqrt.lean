@@ -1,118 +1,171 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Leonardo de Moura, Johannes Hölzl
+Authors: Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 
-Very simple (sqrt n) function that returns s s.t.
-    s * s ≤ n < (s + 1) * (s + 1)
+An efficient binary implementation of a (sqrt n) function that
+returns s s.t.
+    s*s ≤ n ≤ s*s + s + s
 -/
-import data.nat.sub
+import data.nat.basic algebra.ordered_group algebra.ring tactic
 
 namespace nat
-open decidable
 
-private lemma sqrt_exists (n : ℕ) : ∃k:ℕ, n < (k + 1) * (k + 1) :=
-⟨n, calc n < (n + 1) * 1 : by simp; exact nat.lt_add_of_pos_right zero_lt_one
-  ... ≤ (n + 1) * (n + 1) : mul_le_mul_left _ $ le_add_left _ _⟩
-
--- This is the simplest possible function that just performs a linear search
-definition sqrt (n : nat) : nat := nat.find $ sqrt_exists n
-
-theorem sqrt_upper {n : nat} : n < (sqrt n + 1) * (sqrt n + 1) :=
-nat.find_spec $ sqrt_exists n
-
-theorem sqrt_lower {n : nat} : sqrt n * sqrt n ≤ n :=
+theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=
 begin
-  cases h : sqrt n,
-  case nat.zero { simp [zero_le] },
-  case nat.succ k h {
-    have sqrt_min : ∀{k}, k < sqrt n → ¬ (n < (k + 1) * (k + 1)),
-      from assume k, nat.find_min $ sqrt_exists n,
-    show (k + 1) * (k + 1) ≤ n,
-      from le_of_not_gt (sqrt_min $ by simp [h, nat.lt_succ_self]) }
+  simp [shiftr_eq_div_pow],
+  apply (nat.div_lt_iff_lt_mul _ _ (dec_trivial : 4 > 0)).2,
+  have := nat.mul_lt_mul_of_pos_left
+    (dec_trivial : 1 < 4) (nat.pos_of_ne_zero h),
+  rwa mul_one at this
 end
 
-theorem sqrt_mono {n k : ℕ} (h : n ≤ k) : sqrt n ≤ sqrt k :=
-le_of_not_gt $ assume : sqrt k < sqrt n,
-  have k < n,
-    from calc k < (sqrt k + 1) * (sqrt k + 1) : sqrt_upper
-      ... ≤ sqrt n * sqrt n : mul_le_mul this this (zero_le _) (zero_le _)
-      ... ≤ n : sqrt_lower,
-  absurd h ((lt_iff_not_ge _ _).mp this)
+def sqrt_aux : ℕ → ℕ → ℕ → ℕ
+| b r n := if b0 : b = 0 then r else
+  let b' := shiftr b 2 in
+  have b' < b, from sqrt_aux_dec b0,
+  match (n - (r + b : ℕ) : ℤ) with
+  | (n' : ℕ) := sqrt_aux b' (div2 r + b) n'
+  | _ := sqrt_aux b' (div2 r) n
+  end
 
-theorem sqrt_eq {m n : ℕ} (h₁ : n * n ≤ m) (h₂ : m < (n + 1) * (n + 1)) : sqrt m = n :=
-have sqr_lt : ∀{n m:ℕ}, n * n < (m + 1) * (m + 1) → n ≤ m,
-  from assume n m h, le_of_not_gt $ assume : n > m,
-  have n * n ≥ (m + 1) * (m + 1), from mul_le_mul this this (zero_le _) (zero_le _),
-  absurd h (not_lt_of_ge this),
+def sqrt (n : ℕ) : ℕ :=
+match size n with
+| 0      := 0
+| succ s := sqrt_aux (shiftl 1 (bit0 (div2 s))) 0 n
+end
+
+theorem sqrt_aux_0 (r n) : sqrt_aux 0 r n = r :=
+by rw sqrt_aux; simp
+local attribute [simp] sqrt_aux_0
+
+theorem sqrt_aux_1 {r n b} (h : b ≠ 0) {n'} (h₂ : r + b + n' = n) :
+  sqrt_aux b r n = sqrt_aux (shiftr b 2) (div2 r + b) n' :=
+by rw sqrt_aux; simp only [h, h₂.symm, int.coe_nat_add, if_false];
+   rw [add_comm _ (n':ℤ), add_sub_cancel, sqrt_aux._match_1]
+  
+theorem sqrt_aux_2 {r n b} (h : b ≠ 0) (h₂ : n < r + b) :
+  sqrt_aux b r n = sqrt_aux (shiftr b 2) (div2 r) n :=
+begin
+  rw sqrt_aux; simp only [h, h₂, if_false],
+  cases int.eq_neg_succ_of_lt_zero
+    (sub_lt_zero.2 (int.coe_nat_lt_coe_nat_of_lt h₂)) with k e,
+  rw [e, sqrt_aux._match_1]
+end
+
+private def is_sqrt (n q : ℕ) : Prop := q*q ≤ n ∧ n < (q+1)*(q+1)
+
+private lemma sqrt_aux_is_sqrt_lemma (m r n)
+  (h₁ : r*r ≤ n)
+  (m') (hm : shiftr (2^m * 2^m) 2 = m')
+  (H1 : n < (r + 2^m) * (r + 2^m) →
+    is_sqrt n (sqrt_aux m' (r * 2^m) (n - r * r)))
+  (H2 : (r + 2^m) * (r + 2^m) ≤ n →
+    is_sqrt n (sqrt_aux m' ((r + 2^m) * 2^m) (n - (r + 2^m) * (r + 2^m)))) :
+  is_sqrt n (sqrt_aux (2^m * 2^m) ((2*r)*2^m) (n - r*r)) :=
+begin
+  have b0 :=
+    have b0:_, from ne_of_gt (@pos_pow_of_pos 2 m dec_trivial),
+    nat.mul_ne_zero b0 b0,
+  have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
+            n < (r+2^m)*(r+2^m), {
+    rw [nat.sub_lt_right_iff_lt_add h₁],
+    simp [left_distrib, right_distrib, two_mul] },
+  have re : div2 (2 * r * 2^m) = r * 2^m, {
+    rw [div2_val, mul_assoc,
+        nat.mul_div_cancel_left _ (dec_trivial:2>0)] },
+  cases lt_or_ge n ((r+2^m)*(r+2^m)) with hl hl,
+  { rw [sqrt_aux_2 b0 (lb.2 hl), hm, re], apply H1 hl },
+  { cases le.dest hl with n' e,
+    rw [@sqrt_aux_1 (2 * r * 2^m) (n-r*r) (2^m * 2^m) b0 (n - (r + 2^m) * (r + 2^m)),
+      hm, re, ← right_distrib],
+    { apply H2 hl },
+    apply eq.symm, apply nat.sub_eq_of_eq_add,
+    rw [← add_assoc, (_ : r*r + _ = _)],
+    exact (nat.add_sub_cancel' hl).symm,
+    simp [left_distrib, right_distrib, two_mul] },
+end
+
+private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
+  r*r ≤ n → n < (r + 2^(m+1)) * (r + 2^(m+1)) →
+  is_sqrt n (sqrt_aux (2^m * 2^m) (2*r*2^m) (n - r*r))
+| 0 r h₁ h₂ := by apply sqrt_aux_is_sqrt_lemma 0 r n h₁ 0 rfl;
+  intros; simp; [exact ⟨h₁, a⟩, exact ⟨a, h₂⟩]
+| (m+1) r h₁ h₂ := begin
+    apply sqrt_aux_is_sqrt_lemma
+      (m+1) r n h₁ (2^m * 2^m)
+      (by simp [shiftr, pow_succ, div2_val];
+          repeat {rw @nat.mul_div_cancel_left _ 2 dec_trivial});
+      intros,
+    { have := sqrt_aux_is_sqrt m r h₁ a,
+      simpf [pow_succ] },
+    { rw [pow_succ, mul_two, ← add_assoc] at h₂,
+      have := sqrt_aux_is_sqrt m (r + 2^(m+1)) a h₂,
+      rwa show (r + 2^(m + 1)) * 2^(m+1) = 2 * (r + 2^(m + 1)) * 2^m,
+          by simp [pow_succ] }
+  end
+
+private lemma sqrt_is_sqrt (n : ℕ) : is_sqrt n (sqrt n) :=
+begin
+  generalize e : size n = s, cases s with s; simp [e, sqrt],
+  { rw [size_eq_zero.1 e, is_sqrt], exact dec_trivial },
+  { have := sqrt_aux_is_sqrt n (div2 s) 0 (zero_le _),
+    simp [show 2^div2 s * 2^div2 s = shiftl 1 (bit0 (div2 s)), by {
+      generalize: div2 s = x,
+      change bit0 x with x+x,
+      rw [one_shiftl, pow_add] }] at this,
+    apply this,
+    rw [← pow_add, ← mul_two], apply size_le.1,
+    rw e, apply (@div_lt_iff_lt_mul _ _ 2 dec_trivial).1,
+    rw [div2_val], apply lt_succ_self }
+end
+
+theorem sqrt_le (n : ℕ) : sqrt n * sqrt n ≤ n :=
+(sqrt_is_sqrt n).left
+
+theorem lt_succ_sqrt (n : ℕ) : n < succ (sqrt n) * succ (sqrt n) :=
+(sqrt_is_sqrt n).right
+
+theorem sqrt_le_add (n : ℕ) : n ≤ sqrt n * sqrt n + sqrt n + sqrt n :=
+by rw ← succ_mul; exact le_of_lt_succ (lt_succ_sqrt n)
+
+theorem le_sqrt {m n : ℕ} : m ≤ sqrt n ↔ m*m ≤ n :=
+⟨λ h, le_trans (mul_self_le_mul_self h) (sqrt_le n),
+ λ h, le_of_lt_succ $ mul_self_lt_mul_self_iff.2 $
+   lt_of_le_of_lt h (lt_succ_sqrt n)⟩
+
+theorem sqrt_lt {m n : ℕ} : sqrt m < n ↔ m < n*n :=
+le_iff_le_iff_lt_iff_lt.1 le_sqrt
+
+theorem sqrt_le_self (n : ℕ) : sqrt n ≤ n :=
+le_trans (le_mul_self _) (sqrt_le n)
+
+theorem sqrt_le_sqrt {m n : ℕ} (h : m ≤ n) : sqrt m ≤ sqrt n :=
+le_sqrt.2 (le_trans (sqrt_le _) h)
+
+theorem sqrt_eq_zero {n : ℕ} : sqrt n = 0 ↔ n = 0 :=
+⟨λ h, eq_zero_of_le_zero $ le_of_lt_succ $ (@sqrt_lt n 1).1 $
+  by rw [h]; exact dec_trivial,
+ λ e, e.symm ▸ rfl⟩
+
+theorem le_three_of_sqrt_eq_one {n : ℕ} (h : sqrt n = 1) : n ≤ 3 :=
+le_of_lt_succ $ (@sqrt_lt n 2).1 $
+by rw [h]; exact dec_trivial
+
+theorem sqrt_lt_self {n : ℕ} (h : n > 1) : sqrt n < n :=
+sqrt_lt.2 $ by
+  have := nat.mul_lt_mul_of_pos_left h (lt_of_succ_lt h);
+  rwa [mul_one] at this
+
+theorem sqrt_pos {n : ℕ} : sqrt n > 0 ↔ n > 0 := le_sqrt
+
+theorem sqrt_add_eq (n : ℕ) {a : ℕ} (h : a ≤ n + n) : sqrt (n*n + a) = n :=
 le_antisymm
-  (sqr_lt $ show sqrt m * sqrt m < (n + 1) * (n + 1), from lt_of_le_of_lt sqrt_lower h₂)
-  (sqr_lt $ show n * n < (sqrt m + 1) * (sqrt m + 1), from lt_of_le_of_lt h₁ sqrt_upper)
+  (le_of_lt_succ $ sqrt_lt.2 $ by rw [succ_mul, mul_succ, add_succ, add_assoc];
+    exact lt_succ_of_le (nat.add_le_add_left h _))
+  (le_sqrt.2 $ nat.le_add_right _ _)
 
-private theorem le_squared : ∀ (n : nat), n ≤ n*n
-| 0        := by simp
-| (succ n) :=
-  have 1 ≤ succ n, from succ_le_succ (zero_le _),
-  have 1 * succ n ≤ succ n * succ n, from mul_le_mul_right _ this,
-  by rwa [one_mul] at this
-
-private theorem lt_squared : ∀ {n : nat}, n > 1 → n < n * n
-| 0               h := absurd h dec_trivial
-| 1               h := absurd h dec_trivial
-| (succ (succ n)) h :=
-  have 1 < succ (succ n),
-    from dec_trivial,
-  have succ (succ n) * 1 < succ (succ n) * succ (succ n),
-    from mul_lt_mul_of_pos_left this dec_trivial,
-  by rewrite [mul_one] at this; exact this
-
-theorem eq_zero_of_sqrt_eq_zero {n : nat} : sqrt n = 0 → n = 0 :=
-assume : sqrt n = 0,
-have n < (sqrt n + 1) * (sqrt n + 1), from sqrt_upper,
-have succ n ≤ succ 0, by simp [‹sqrt n = 0›] at this; assumption,
-eq_zero_of_le_zero $ le_of_succ_le_succ this
-
-theorem le_three_of_sqrt_eq_one {n : nat} : sqrt n = 1 → n ≤ 3 :=
-assume : sqrt n = 1,
-have n < 4,
-  from calc n < (sqrt n + 1) * (sqrt n + 1) : sqrt_upper
-    ... = 4 : by simp [this]; exact dec_trivial,
-le_of_succ_le_succ this
-
-theorem sqrt_lt : ∀ {n : nat}, n > 1 → sqrt n < n
-| 0     h := absurd h dec_trivial
-| 1     h := absurd h dec_trivial
-| 2     h := dec_trivial
-| 3     h := dec_trivial
-| (n+4) h :=
-  have sqrt (n+4) > 1, from decidable.by_contradiction $
-    assume : ¬ sqrt (n+4) > 1,
-    have sqrt (n+4) ≤ 1, from le_of_not_gt this,
-    or.elim (le_iff_lt_or_eq.mp this)
-      (assume : sqrt (n+4) < 1,
-        have sqrt (n+4) = 0, from eq_zero_of_le_zero (le_of_lt_succ this),
-        have n + 4 = 0,      from eq_zero_of_sqrt_eq_zero this,
-        absurd this dec_trivial)
-      (assume : sqrt (n+4) = 1,
-        have n+4 ≤ 3, from le_three_of_sqrt_eq_one this,
-        absurd this dec_trivial),
-  calc sqrt (n+4) < sqrt (n+4) * sqrt (n+4) : lt_squared this
-              ... ≤ n+4                     : sqrt_lower
-
-theorem sqrt_pos_of_pos {n : nat} : n > 0 → sqrt n > 0 :=
-assume : n > 0,
-have sqrt n ≠ 0, from
-  assume : sqrt n = 0,
-  have n = 0, from eq_zero_of_sqrt_eq_zero this,
-  by subst n; exact absurd ‹0 > 0› (lt_irrefl _),
-lt_of_le_of_ne (zero_le _) this.symm
-
-theorem sqrt_mul_eq {n : nat} : sqrt (n*n) = n :=
-sqrt_eq (le_refl _) (mul_lt_mul' (le_add_right _ _) (lt_succ_self _) (zero_le _) (zero_lt_succ _))
-
-theorem mul_square_cancel {a b : nat} : a*a = b*b → a = b :=
-assume h,
-have sqrt (a*a) = sqrt (b*b), by rewrite h,
-by rwa [sqrt_mul_eq, sqrt_mul_eq] at this
+theorem sqrt_eq (n : ℕ) : sqrt (n*n) = n :=
+sqrt_add_eq n (zero_le _)
 
 end nat

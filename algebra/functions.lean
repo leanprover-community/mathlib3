@@ -18,6 +18,14 @@ lemma max_le_iff : max a b ≤ c ↔ a ≤ c ∧ b ≤ c :=
 ⟨λ h, ⟨le_trans (le_max_left a b) h, le_trans (le_max_right a b) h⟩,
  λ ⟨h₁, h₂⟩, max_le h₁ h₂⟩
 
+lemma max_lt_iff : max a b < c ↔ (a < c ∧ b < c) :=
+⟨assume h, ⟨lt_of_le_of_lt (le_max_left _ _) h, lt_of_le_of_lt (le_max_right _ _) h⟩,
+  assume ⟨h₁, h₂⟩, max_lt h₁ h₂⟩
+
+lemma lt_min_iff : a < min b c ↔ (a < b ∧ a < c) :=
+⟨assume h, ⟨lt_of_lt_of_le h (min_le_left _ _), lt_of_lt_of_le h (min_le_right _ _)⟩,
+  assume ⟨h₁, h₂⟩, lt_min h₁ h₂⟩
+
 end
 
 section decidable_linear_ordered_comm_group

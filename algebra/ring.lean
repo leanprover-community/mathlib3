@@ -96,6 +96,8 @@ section
   variables [s : integral_domain α] (a b c d e : α)
   include s
 
+  instance integral_domain.to_domain : domain α := {s with}
+
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
   have b * a - c * a = 0, by simp [h],
   have (b - c) * a = 0, by rewrite [mul_sub_right_distrib, this],
@@ -108,27 +110,10 @@ section
   have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_left ha,
   eq_of_sub_eq_zero this
 
+  theorem mul_dvd_mul_iff_left {a b c : α} (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
+  exists_congr $ λ d, by rw [mul_assoc, domain.mul_left_inj ha]
 
-  -- TODO: do we want the iff versions?
+  theorem mul_dvd_mul_iff_right {a b c : α} (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
+  exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]
 
---  theorem dvd_of_mul_dvd_mul_left {a b c : α} (Ha : a ≠ 0) (Hdvd : (a * b ∣ a * c)) : (b ∣ c) :=
---  sorry
-  /-
-  dvd.elim Hdvd
-    (assume d,
-      assume : a * c = a * b * d,
-      have b * d = c, from eq_of_mul_eq_mul_left Ha begin rewrite ←mul.assoc, symmetry, exact this end,
-      dvd.intro this)
-  -/
-
---  theorem dvd_of_mul_dvd_mul_right {a b c : α} (Ha : a ≠ 0) (Hdvd : (b * a ∣ c * a)) : (b ∣ c) :=
---  sorry
-  /-
-  dvd.elim Hdvd
-    (assume d,
-      assume : c * a = b * a * d,
-      have b * d * a = c * a, from by rewrite [mul.right_comm, ←this],
-      have b * d = c, from eq_of_mul_eq_mul_right Ha this,
-      dvd.intro this)
-  -/
 end

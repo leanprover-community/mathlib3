@@ -598,7 +598,7 @@ iff.intro lt_of_mem_upto mem_upto_of_lt
 theorem upto_zero : upto 0 = ∅ := rfl
 
 theorem upto_succ : upto (succ n) = insert n (upto n) :=
-ext $ by simp [mem_upto_iff, mem_insert_iff, lt_succ_iff_le, le_iff_lt_or_eq]
+ext $ by simp [mem_upto_iff, mem_insert_iff, lt_succ_iff_lt_or_eq]
 
 end upto
 

@@ -171,8 +171,7 @@ begin
         apply nat.le_of_dvd,
         apply (nat.le_div_iff_mul_le _ _ gd0).2,
         simp, apply nat.le_of_dvd hd (nat.gcd_dvd_right _ _),
-        apply nat.dvd_of_coprime_of_dvd_mul_left,
-        exact nat.coprime_swap (nat.coprime_div_gcd_div_gcd gb0),
+        apply (nat.coprime_div_gcd_div_gcd gb0).symm.dvd_of_dvd_mul_left,
         refine ⟨c / c.gcd d, _⟩,
         rw [← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _),
             ← nat.mul_div_assoc _ (nat.gcd_dvd_right _ _)],
@@ -290,9 +289,9 @@ begin
 end
 
 protected def inv : ℚ → ℚ
-| ⟨(n+1:ℕ), d, h, c⟩ := ⟨d, n+1, n.succ_pos, nat.coprime_swap c⟩
+| ⟨(n+1:ℕ), d, h, c⟩ := ⟨d, n+1, n.succ_pos, c.symm⟩
 | ⟨0, d, h, c⟩ := 0
-| ⟨-[1+ n], d, h, c⟩ := ⟨-d, n+1, n.succ_pos, nat.coprime_swap $ by simp; exact c⟩
+| ⟨-[1+ n], d, h, c⟩ := ⟨-d, n+1, n.succ_pos, nat.coprime.symm $ by simp; exact c⟩
 
 instance : has_inv ℚ := ⟨rat.inv⟩
 

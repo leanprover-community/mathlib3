@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.sub algebra.functions
+import data.nat.basic algebra.functions
 open nat
 
 namespace int

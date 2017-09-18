@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 
 Infinite sum over a topological monoid
+
+This sum is known as unconditionally convergent, as it sums to the same value under all possible
+permutations. For Euclidean spaces (finite dimensional Banach spaces) this is equivalent to absolute
+convergence.
 -/
-import data.set data.finset topology.topological_structures algebra.big_operators
+import data.set data.finset topology.topological_structures topology.metric_space algebra.big_operators
   logic.function_inverse
 noncomputable theory
 open set lattice finset filter function
@@ -22,10 +26,16 @@ iff.intro
 
 end logic
 
+lemma add_div {α : Type*} [division_ring α] {a b c : α} : (a + b) / c = a / c + b / c :=
+by rw [div_eq_mul_one_div, add_mul, ←div_eq_mul_one_div, ←div_eq_mul_one_div]
+
 open classical
 local attribute [instance] decidable_inhabited prop_decidable
 
 namespace filter
+
+lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ (@at_top α _).sets :=
+mem_infi_sets a $ subset.refl _
 
 lemma mem_infi_sets_finset {s : finset α} {f : α → filter β} :
   ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⋂a∈s, p a) ⊆ t) :=
@@ -45,6 +55,8 @@ show ∀t,  t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a �
         assume a ha, hp _ (or.inr ha), le_refl _⟩)
 
 end filter
+
+open filter
 
 section topological_space
 
@@ -175,6 +187,14 @@ have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
   from funext $ assume s, sum_hom g h₁ h₂,
 show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (nhds (g a)),
   by rw [this]; exact tendsto_compose hf (continuous_iff_tendsto.mp h₃ a)
+
+lemma tendsto_sum_nat_of_is_sum {f : ℕ → α} (h : is_sum f a) :
+  tendsto (λn:ℕ, (upto n).sum f) at_top (nhds a) :=
+suffices map (λ (n : ℕ), sum (upto n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
+  from le_trans this h,
+assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top.sets),
+let ⟨t, ht⟩ := mem_at_top_iff.mp hs, ⟨n, hn⟩ := @exists_nat_subset_upto t in
+mem_at_top_iff.mpr ⟨n, assume n' hn', ht _ $ subset.trans hn $ upto_subset_upto_iff.mpr hn'⟩
 
 lemma is_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
   (hf : ∀b, is_sum (λc, f ⟨b, c⟩) (g b)) (ha : is_sum f a) : is_sum g a :=
@@ -481,7 +501,64 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
       from hss' this $ refl_mem_uniformity hs,
     by rwa [eq h₁, eq h₂] at this,
   mem_prod_same_iff.mpr ⟨(λu:finset β, u.sum f') '' {u | t ⊆ u},
-    image_mem_map $ mem_infi_sets t $ mem_principal_sets.mpr $ subset.refl _,
+    image_mem_map $ mem_at_top t,
     assume ⟨a₁, a₂⟩ ⟨⟨t₁, h₁, eq₁⟩, ⟨t₂, h₂, eq₂⟩⟩, by simp at eq₁ eq₂; rw [←eq₁, ←eq₂]; exact this h₁ h₂⟩⟩
 
 end uniform_group
+
+section real
+
+lemma has_sum_of_absolute_convergence {f : ℕ → ℝ}
+  (hf : ∃r, tendsto (λn, (upto n).sum (λi, abs (f i))) at_top (nhds r)) : has_sum f :=
+let f' := λs:finset ℕ, s.sum (λi, abs (f i)) in
+suffices cauchy (map (λs:finset ℕ, s.sum f) at_top),
+  from complete_space.complete this,
+cauchy_iff.mpr $ and.intro (map_ne_bot at_top_ne_bot) $
+assume s hs,
+let ⟨ε, hε, hsε⟩ := mem_uniformity_dist.mp hs, ⟨r, hr⟩ := hf in
+have hε' : {p : ℝ × ℝ | dist p.1 p.2 < ε / 2} ∈ (@uniformity ℝ _).sets,
+  from mem_uniformity_dist.mpr ⟨ε / 2, div_pos_of_pos_of_pos hε two_pos, assume a b h, h⟩,
+have cauchy (at_top.map $ λn, f' (upto n)),
+  from cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hr,
+have ∃n, ∀{n'}, n ≤ n' → dist (f' (upto n)) (f' (upto n')) < ε / 2,
+  by simp [cauchy_iff, mem_at_top_iff] at this;
+  from let ⟨t, ht, u, hu⟩ := this _ hε' in
+    ⟨u, assume n' hn, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ (le_refl _), hu _ hn⟩⟩,
+let ⟨n, hn⟩ := this in
+have ∀{s}, upto n ⊆ s → abs ((s \ upto n).sum f) < ε / 2,
+  from assume s hs,
+  let ⟨n', hn'⟩ := @exists_nat_subset_upto s in
+  have upto n ⊆ upto n', from subset.trans hs hn',
+  have f'_nn : 0 ≤ f' (upto n' \ upto n), from zero_le_sum $ assume _ _, abs_nonneg _,
+  calc abs ((s \ upto n).sum f) ≤ f' (s \ upto n) : abs_sum_le_sum_abs
+    ... ≤ f' (upto n' \ upto n) : sum_le_sum_of_subset_of_nonneg
+      (finset.sdiff_subset_sdiff hn' (finset.subset.refl _))
+      (assume _ _ _, abs_nonneg _)
+    ... = abs (f' (upto n' \ upto n)) : (abs_of_nonneg f'_nn).symm
+    ... = abs (f' (upto n') - f' (upto n)) :
+      by simp [f', (sum_sdiff ‹upto n ⊆ upto n'›).symm]
+    ... = abs (f' (upto n) - f' (upto n')) : abs_sub _ _
+    ... < ε / 2 : hn $ upto_subset_upto_iff.mp this,
+have ∀{s t}, upto n ⊆ s → upto n ⊆ t → dist (s.sum f) (t.sum f) < ε,
+  from assume s t hs ht,
+  calc abs (s.sum f - t.sum f) = abs ((s \ upto n).sum f + - (t \ upto n).sum f) :
+      by rw [←sum_sdiff hs, ←sum_sdiff ht]; simp
+    ... ≤ abs ((s \ upto n).sum f) + abs ((t \ upto n).sum f) :
+      le_trans (abs_add_le_abs_add_abs _ _) $ by rw [abs_neg]; exact le_refl _
+    ... < ε / 2 + ε / 2 : add_lt_add (this hs) (this ht)
+    ... = ε : by rw [←add_div, add_self_div_two],
+⟨(λs:finset ℕ, s.sum f) '' {s | upto n ⊆ s}, image_mem_map $ mem_at_top (upto n),
+  assume ⟨a, b⟩ ⟨⟨t, ht, ha⟩, ⟨s, hs, hb⟩⟩, by simp at ha hb; exact ha ▸ hb ▸ hsε _ _ (this ht hs)⟩
+
+lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} {r : ℝ} (hf : ∀n, 0 ≤ f n) :
+  is_sum f r ↔ tendsto (λn, (upto n).sum f) at_top (nhds r) :=
+⟨tendsto_sum_nat_of_is_sum,
+  assume hr,
+  have tendsto (λn, (upto n).sum (λn, abs (f n))) at_top (nhds r),
+    by simp [(λi, abs_of_nonneg (hf i)), hr],
+  let ⟨p, h⟩ := has_sum_of_absolute_convergence ⟨r, this⟩ in
+  have hp : tendsto (λn, (upto n).sum f) at_top (nhds p), from tendsto_sum_nat_of_is_sum h,
+  have p = r, from tendsto_nhds_unique at_top_ne_bot hp hr,
+  this ▸ h⟩
+
+end real

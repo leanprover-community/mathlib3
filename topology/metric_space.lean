@@ -54,6 +54,15 @@ metric_space.uniformity_dist _
 theorem uniformity_dist' : uniformity = (⨅ε:{ε:ℝ // ε>0}, principal {p:α×α | dist p.1 p.2 < ε.val}) :=
 by simp [infi_subtype]; exact uniformity_dist
 
+theorem mem_uniformity_dist {s : set (α×α)} :
+  s ∈ (@uniformity α _).sets ↔ (∃ε>0, ∀a b:α, dist a b < ε → (a, b) ∈ s) :=
+begin
+  rw [uniformity_dist', infi_sets_eq],
+  simp [subset_def, exists_subtype],
+  exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff] {contextual := tt}⟩,
+  exact ⟨⟨1, zero_lt_one⟩⟩
+end
+
 theorem dist_nonneg {x y : α} : 0 ≤ dist x y :=
 have 2 * dist x y ≥ 0,
   from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y]; simp [bit0, bit1, mul_add]
@@ -204,16 +213,3 @@ end
 
 theorem is_open_metric : is_open s ↔ (∀x∈s, ∃ε>0, open_ball x ε ⊆ s) :=
 by simp [is_open_iff_nhds, mem_nhds_sets_iff_metric]
-
-/-
-theorem is_closed_metric : is_closed s ↔ (∀x, (∀ε>0, open_ball x ε ∩ s ≠ ∅) → x ∈ s :=
-_
-
-theorem uniform_continuous_metric_iff [metric_space β] {f : α → β} :
-  uniform_continuous f ↔ (∀ε>0, ∃δ>0, ∀x y:α, dist x y < ε → dist (f x) (f y) < δ) :=
-_
-
-theorem continuous_metric_iff [metric_space β] {f : α → β} :
-  continuous f ↔ (∀x:α, ∀ε>0, ∃δ>0, ∀y, dist x y < ε → dist (f x) (f y) < δ) :=
-_
--/

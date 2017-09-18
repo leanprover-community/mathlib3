@@ -560,7 +560,7 @@ ext $ assume a, by by_cases p a; simp [*] {contextual := tt}
 end filter
 
 section sdiff
-variables [decidable_eq α] {a : α} {s₁ s₂ : finset α}
+variables [decidable_eq α] {a : α} {s₁ s₂ t₁ t₂ : finset α}
 
 instance : has_sdiff (finset α) := ⟨λs₁ s₂, s₁.filter (λa, a ∉ s₂)⟩
 
@@ -573,6 +573,12 @@ ext $ assume a,
 
 lemma sdiff_inter_self : (s₂ \ s₁) ∩ s₁ = ∅ :=
 ext $ by simp {contextual := tt}
+
+lemma sdiff_subset_sdiff : t₁ ⊆ t₂ → s₂ ⊆ s₁ → t₁ \ s₁ ⊆ t₂ \ s₂ :=
+begin
+  simp [subset_iff, mem_sdiff_iff] {contextual := tt},
+  exact assume h₁ h₂ a _ ha₁ ha₂, ha₁ $ h₂ _ ha₂
+end
 
 end sdiff
 
@@ -599,6 +605,29 @@ theorem upto_zero : upto 0 = ∅ := rfl
 
 theorem upto_succ : upto (succ n) = insert n (upto n) :=
 ext $ by simp [mem_upto_iff, mem_insert_iff, lt_succ_iff_lt_or_eq]
+
+@[simp] theorem not_mem_upto : n ∉ upto n :=
+by simp [mem_upto_iff, lt_irrefl]
+
+@[simp] theorem upto_subset_upto_iff {n m} : upto n ⊆ upto m ↔ n ≤ m :=
+begin
+  simp [subset_iff, mem_upto_iff],
+  constructor,
+  { cases n,
+    case nat.zero { simp [nat.zero_le] },
+    case nat.succ n { exact assume h, h _ (lt_succ_self _) } },
+  { exact assume h i hi, lt_of_lt_of_le hi h }
+end
+
+theorem exists_nat_subset_upto {s : finset ℕ} : ∃n:ℕ, s ⊆ upto n :=
+s.induction_on ⟨0, by simp⟩ $
+  assume a s ha ⟨n, hn⟩,
+  ⟨max (a + 1) n, subset_iff.mpr $ assume x,
+    begin
+      simp [subset_iff, mem_upto_iff] at hn,
+      simp [or_imp_distrib, mem_upto_iff, lt_max_iff, hn] {contextual := tt},
+      exact assume _, or.inr (lt_succ_self a)
+    end⟩
 
 end upto
 

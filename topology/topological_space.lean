@@ -472,7 +472,7 @@ lemma compact_of_finite_subcover {s : set α}
   (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds x ≠ ⊥),
   have hf : ∀x∈s, nhds x ⊓ f = ⊥,
-    by simpf [not_and, inf_comm],
+    by simpa [not_and, inf_comm],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ (nhds x ⊓ f).sets, by rw [empty_in_sets_eq_bot, hf x hxs],
@@ -482,7 +482,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
     have nhds x ⊓ principal t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
     by simp [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
-  have ∀x∈s, ∃t∈f.sets, x ∉ closure t, by simpf [_root_.not_forall],
+  have ∀x∈s, ∃t∈f.sets, x ∉ closure t, by simpa [_root_.not_forall],
   let c := (λt, - closure t) '' f.sets in
   have ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c',
     from h c (assume t ⟨s, hs, h⟩, h ▸ is_open_compl_iff.mpr is_closed_closure) $

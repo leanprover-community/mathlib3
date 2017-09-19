@@ -110,10 +110,10 @@ def nonneg_ring.to_linear_nonneg_ring
   eq_zero_or_eq_zero_of_mul_eq_zero :=
     suffices ∀ {a} b : α, nonneg a → a * b = 0 → a = 0 ∨ b = 0,
     from λ a b, (nonneg_total a).elim (this b)
-      (λ na, by simpf at this b na),
+      (λ na, by simpa using this b na),
     suffices ∀ {a b : α}, nonneg a → nonneg b → a * b = 0 → a = 0 ∨ b = 0,
     from λ a b na, (nonneg_total b).elim (this na)
-      (λ nb, by simpf at this na nb),
+      (λ nb, by simpa using this na nb),
     λ a b na nb z, classical.by_cases
       (λ nna : nonneg (-a), or.inl (nonneg_antisymm na nna))
       (λ pa, classical.by_cases

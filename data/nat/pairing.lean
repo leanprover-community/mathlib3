@@ -26,7 +26,7 @@ let s := sqrt n in begin
   { have hl : n - s*s - s ≤ s :=
       nat.sub_le_left_of_le_add (nat.sub_le_left_of_le_add $
       by rw ← add_assoc; apply sqrt_le_add),
-    suffices : s * s + (s + (n - s * s - s)) = n, {simpf [not_lt_of_ge hl]},
+    suffices : s * s + (s + (n - s * s - s)) = n, {simpa [not_lt_of_ge hl]},
     rwa [nat.add_sub_cancel' (le_of_not_gt h)] }
 end
 

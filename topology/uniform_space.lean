@@ -688,7 +688,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   assume h : ∀f, f ≠ ⊥ → f ≤ principal s → ∃c ≤ f, cauchy c, assume d hd,
   classical.by_contradiction $ assume hs,
   have hd_cover : ∀{t:set α}, finite t → ¬ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}),
-    by simpf at hs,
+    by simpa using hs,
   let
     f := ⨅t:{t : set α // finite t}, principal (s \ (⋃y∈t.val, {x | (x,y) ∈ d})),
     ⟨a, ha⟩ := @exists_mem_of_ne_empty α s

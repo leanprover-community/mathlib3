@@ -214,8 +214,8 @@ include s
     rw ← sub_add_sub_cancel; exact add_nonneg nbc nab,
   le_antisymm := λ a b nab nba, eq_of_sub_eq_zero $
     nonneg_antisymm nba (by rw neg_sub; exact nab),
-  add_le_add_left := λ a b nab c, by simpf [(≤), preorder.le] at nab,
-  add_lt_add_left := λ a b nab c, by simpf [(<), preorder.lt] at nab }
+  add_le_add_left := λ a b nab c, by simpa [(≤), preorder.le] using nab,
+  add_lt_add_left := λ a b nab c, by simpa [(<), preorder.lt] using nab }
 
 theorem nonneg_def {a : α} : nonneg a ↔ 0 ≤ a :=
 show _ ↔ nonneg _, by simp

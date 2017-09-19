@@ -98,7 +98,7 @@ private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
           repeat {rw @nat.mul_div_cancel_left _ 2 dec_trivial});
       intros,
     { have := sqrt_aux_is_sqrt m r h₁ a,
-      simpf [pow_succ] },
+      simpa [pow_succ] },
     { rw [pow_succ, mul_two, ← add_assoc] at h₂,
       have := sqrt_aux_is_sqrt m (r + 2^(m+1)) a h₂,
       rwa show (r + 2^(m + 1)) * 2^(m+1) = 2 * (r + 2^(m + 1)) * 2^m,

@@ -290,6 +290,9 @@ by induction n; simp [*, pow_succ]
 theorem pow_dvd_pow (a : ℕ) {m n : ℕ} (h : m ≤ n) : a^m ∣ a^n :=
 by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
 
+@[simp] theorem bodd_div2_eq (n : ℕ) : bodd_div2 n = (bodd n, div2 n) :=
+by unfold bodd div2; cases bodd_div2 n; refl
+
 /- size and shift -/
 
 theorem shiftl'_ne_zero_left (b) {m} (h : m ≠ 0) (n) : shiftl' b m n ≠ 0 :=

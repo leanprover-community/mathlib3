@@ -64,11 +64,13 @@ meta def simpa (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_name
   (tgt : parse (tk "using" *> texpr)?) (cfg : simp_config_ext := {}) : tactic unit :=
 do lc ← match tgt with
 | none := get_local `this >> pure [some `this, none] <|> pure [none]
-| some (local_const _ lc _ _) := pure [some lc, none]
-| some e := do
-    e ← i_to_expr e,
+| some e := do e ← i_to_expr e,
+  match e with
+  | local_const _ lc _ _ := pure [some lc, none]
+  | e := do
     t ← infer_type e,
     assertv `this t e >> pure [some `this, none]
+  end
 end,
 simp no_dflt hs attr_names (loc.ns lc) cfg >> (assumption <|> trivial)
 

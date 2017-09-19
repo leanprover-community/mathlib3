@@ -11,13 +11,6 @@ noncomputable theory
 
 open function set encodable
 
-namespace option
-
-@[simp] lemma bind_some {α β : Type*} {a : α} {f : α → option β} : some a >>= f = f a :=
-rfl
-
-end option
-
 namespace set
 
 section enumerate
@@ -53,8 +46,8 @@ lemma enumerate_mem (h_sel : ∀s a, sel s = some a → a ∈ s) :
 | s (n+1) a :=
   begin
     cases h : sel s,
-    case option.none { simp [enumerate_eq_none_of_sel, h], contradiction },
-    case option.some a' {
+    case none { simp [enumerate_eq_none_of_sel, h], contradiction },
+    case some a' {
       simp [enumerate, h],
       exact assume h' : enumerate _ (s - {a'}) n = some a,
         have a ∈ s - {a'}, from enumerate_mem h',
@@ -73,15 +66,14 @@ begin
       simp [enumerate] {contextual := tt},
       exact assume s _ h,
         have a ∈ s \ {a}, from enumerate_mem _ h_sel h,
-        by simp [mem_diff] at this; assumption } },
+        by simpa } },
   case nat.succ n ih {
     intro s,
     cases h : sel s,
-    case option.none { simp [enumerate, h], contradiction },
-    case option.some a' {
-      simp at ih,
+    case none { simp [enumerate, h], contradiction },
+    case some a' {
       simp [enumerate, h, nat.add_succ] {contextual := tt},
-      exact ih } }
+      simpa using ih } }
 end,
 match le_total n₁ n₂ with
 | or.inl h := let ⟨m, hm⟩ := nat.le.dest h in hm ▸ assume h₁ h₂, by simp [this h₁ h₂]

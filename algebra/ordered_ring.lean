@@ -54,7 +54,7 @@ end linear_ordered_semiring
 
 instance to_domain [s : linear_ordered_ring α] : domain α :=
 { s with
-  eq_zero_or_eq_zero_of_mul_eq_zero := @linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero α s s }
+  eq_zero_or_eq_zero_of_mul_eq_zero := @linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero α s }
 
 section linear_ordered_ring
 variable [linear_ordered_ring α]

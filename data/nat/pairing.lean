@@ -50,7 +50,7 @@ begin
         nat.add_sub_cancel, nat.add_sub_cancel_left] }
 end
 
-theorem unpair_lt_aux {n : nat} (n1 : n ≥ 1) : (unpair n).1 < n :=
+theorem unpair_lt {n : nat} (n1 : n ≥ 1) : (unpair n).1 < n :=
 let s := sqrt n in begin
   simp [unpair], change sqrt n with s,
   by_cases n - s * s < s with h; simp [h],
@@ -60,8 +60,8 @@ let s := sqrt n in begin
     exact lt_of_le_of_lt h (nat.sub_lt_self n1 (mul_pos s0 s0)) }
 end
 
-theorem unpair_lt : ∀ (n : nat), (unpair n).1 ≤ n
+theorem unpair_le : ∀ (n : nat), (unpair n).1 ≤ n
 | 0     := dec_trivial
-| (n+1) := le_of_lt (unpair_lt_aux (nat.succ_pos _))
+| (n+1) := le_of_lt (unpair_lt (nat.succ_pos _))
 
 end nat

@@ -333,7 +333,7 @@ def measure [ms : measurable_space α] (h : ms ≤ space) : measure_space α :=
   measure_of_Union := assume s hs hf, f_Union (assume i, h _ $ hs i) hf }
 
 lemma inf_space_is_measurable {m : set α → ennreal} {s : set α}
-  (h₀ : m ∅ = 0) (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) :
+  {h₀ : m ∅ = 0} (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) :
   (outer_measure.inf m h₀).space.is_measurable s :=
 let o := (outer_measure.inf m h₀), om := o.measure_of in
 assume t,

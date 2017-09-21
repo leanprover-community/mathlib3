@@ -10,7 +10,7 @@ import order.bounded_lattice
 set_option old_structure_cmd true
 
 universes u
-variables {α : Type u} {x y z : α}
+variables {α : Type u} {x y z w : α}
 
 namespace lattice
 
@@ -37,7 +37,7 @@ calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_se
              ... = (x ⊓ y) ⊔ (x ⊓ z)             : by rw [sup_inf_left]
 
 theorem inf_sup_right : (y ⊔ z) ⊓ x = (y ⊓ x) ⊔ (z ⊓ x) :=
-by simp [inf_sup_left, λy:α, @inf_comm α _ y x] 
+by simp [inf_sup_left, λy:α, @inf_comm α _ y x]
 
 lemma eq_of_sup_eq_inf_eq {α : Type u} [distrib_lattice α] {a b c : α}
   (h₁ : b ⊓ a = c ⊓ a) (h₂ : b ⊔ a = c ⊔ a) : b = c :=
@@ -125,12 +125,12 @@ neg_unique -- TODO: try rsimp if it supports custom lemmas
 begin [smt] eblast_using [neg_neg, neg_inf] end
 
 theorem neg_le_neg (h : y ≤ x) : - x ≤ - y :=
-le_of_inf_eq $ 
+le_of_inf_eq $
   calc -x ⊓ -y = - (x ⊔ y) : neg_sup.symm
            ... = -x        : congr_arg has_neg.neg $ sup_of_le_left h
 
 theorem neg_le_neg_iff_le : - y ≤ - x ↔ x ≤ y :=
-⟨assume h, by have h := neg_le_neg h; simp at h; assumption, 
+⟨assume h, by have h := neg_le_neg h; simp at h; assumption,
   neg_le_neg⟩
 
 theorem le_neg_of_le_neg (h : y ≤ - x) : x ≤ - y :=
@@ -152,6 +152,9 @@ calc x - y = (x ⊓ -y) ⊔ (x ⊓ y) : by simp [h, sub_eq]
   ... = (-y ⊓ x) ⊔ (y ⊓ x) : by simp [inf_comm]
   ... = (-y ⊔ y) ⊓ x : inf_sup_right.symm
   ... = x : by simp
+
+theorem sub_le_sub (h₁ : w ≤ y) (h₂ : z ≤ x) : w - x ≤ y - z :=
+by rw [sub_eq, sub_eq]; from inf_le_inf h₁ (neg_le_neg h₂)
 
 end boolean_algebra
 

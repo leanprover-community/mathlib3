@@ -91,6 +91,9 @@ fold_union_inter
 lemma prod_union (h : s₁ ∩ s₂ = ∅) : (s₁ ∪ s₂).prod f = s₁.prod f * s₂.prod f :=
 by rw [←prod_union_inter, h]; simp
 
+lemma prod_sdiff (h : s₁ ⊆ s₂) : (s₂ \ s₁).prod f * s₁.prod f = s₂.prod f :=
+by rw [←prod_union sdiff_inter_self, sdiff_union_of_subset h]
+
 lemma prod_bind [decidable_eq γ] {s : finset γ} {t : γ → finset α} :
   (∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
 s.induction_on (by simp) $
@@ -140,9 +143,7 @@ eq.trans (by rw [h₁]; refl) (fold_hom h₂)
 lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → f x = 1) : s₁.prod f = s₂.prod f :=
 have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr begin simp [hf] {contextual := tt} end,
-calc s₁.prod f = (s₂ \ s₁).prod f * s₁.prod f : by simp [this]
-  ... = ((s₂ \ s₁) ∪ s₁).prod f : by rw [prod_union]; exact sdiff_inter_self
-  ... = s₂.prod f : by rw [sdiff_union_of_subset h]
+by rw [←prod_sdiff h]; simp [this]
 
 end comm_monoid
 
@@ -236,6 +237,7 @@ run_cmd transport_multiplicative_to_additive [
   (`finset.prod_const_one, `finset.sum_const_zero),
   (`finset.prod_comm, `finset.sum_comm),
   (`finset.prod_sigma, `finset.sum_sigma),
+  (`finset.prod_sdiff, `finset.sum_sdiff),
   (`finset.prod_subset, `finset.sum_subset)]
 
 namespace finset
@@ -330,5 +332,18 @@ calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x �
       (sum_le_sum_of_subset $ by simp [subset_iff, *] {contextual:=tt})
 
 end canonically_ordered_monoid
+
+section discrete_linear_ordered_field
+variables [discrete_linear_ordered_field α] [decidable_eq β]
+
+lemma abs_sum_le_sum_abs {f : β → α} {s : finset β} : abs (s.sum f) ≤ s.sum (λa, abs (f a)) :=
+s.induction_on (by simp [abs_zero]) $
+  assume a s has ih,
+  calc abs (sum (insert a s) f) ≤ abs (f a) + abs (sum s f) :
+      by simp [has]; exact abs_add_le_abs_add_abs _ _
+    ... ≤ abs (f a) + s.sum (λa, abs (f a)) : add_le_add (le_refl _) ih
+    ... ≤ sum (insert a s) (λ (a : β), abs (f a)) : by simp [has]
+
+end discrete_linear_ordered_field
 
 end finset

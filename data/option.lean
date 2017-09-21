@@ -8,6 +8,9 @@ universes u v
 
 namespace option
 
+@[simp] lemma bind_some {α β : Type*} {a : α} {f : α → option β} : some a >>= f = f a :=
+rfl
+
 @[reducible] def iget {α : Type u} [inhabited α] : option α → α
 | (some x) := x
 | none     := arbitrary α

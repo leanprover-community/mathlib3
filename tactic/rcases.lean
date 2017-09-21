@@ -70,7 +70,7 @@ meta def rcases.continue
 
 meta def rcases_core (n : nat) : list (list rcases_patt) → expr → tactic (list expr)
 | ids e := do
-  t   ← infer_type e,
+  t   ← infer_type e >>= whnf,
   env ← get_env,
   let I := t.get_app_fn.const_name,
   when (¬env.is_inductive I) $

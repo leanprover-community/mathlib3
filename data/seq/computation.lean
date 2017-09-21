@@ -64,7 +64,7 @@ begin
   { apply subtype.eq, apply funext,
     dsimp [return], intro n,
     induction n with n IH,
-    { injection h, rwa h at f0 },
+    { injection h with h', rwa h' at f0 },
     { exact s.2 IH } }
 end
 
@@ -73,7 +73,7 @@ theorem destruct_eq_think {s : computation α} {s'} :
 begin
   dsimp [destruct],
   ginduction s.1 0 with f0 a'; intro h,
-  { injection h, rw ←h,
+  { injection h with h', rw ←h',
     cases s with f al,
     apply subtype.eq, dsimp [think, tail],
     rw ←f0, exact (stream.eta f).symm },
@@ -381,7 +381,7 @@ end
 
 @[simp] theorem results_think_iff {s : computation α} {a n} :
   results (think s) a (n + 1) ↔ results s a n :=
-⟨λ h, let ⟨n', r, e⟩ := of_results_think h in by injection e; rwa h,
+⟨λ h, let ⟨n', r, e⟩ := of_results_think h in by injection e with h'; rwa h',
 results_think⟩
 
 theorem results_thinkN {s : computation α} {a m} :
@@ -574,7 +574,7 @@ theorem of_results_bind {s : computation α} {f : α → computation β} {b k} :
   results (bind s f) b k →
   ∃ a m n, results s a m ∧ results (f a) b n ∧ k = n + m :=
 begin
-  revert s, induction k with n IH; intro s;
+  induction k with n IH generalizing s;
   apply cases_on s (λ a, _) (λ s', _); intro e,
   { simp [thinkN] at e, refine ⟨a, _, _, results_ret _, e, rfl⟩ },
   { have := congr_arg head (eq_thinkN e), contradiction },

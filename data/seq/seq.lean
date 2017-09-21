@@ -115,14 +115,15 @@ theorem mem_rec_on {C : seq α → Prop} {a s} (M : a ∈ s)
   (h1 : ∀ b s', (a = b ∨ C s') → C (cons b s')) : C s :=
 begin
   cases M with k e, unfold stream.nth at e,
-  revert s, induction k with k IH; intros s e,
+  induction k with k IH generalizing s,
   { have TH : s = cons a (tail s),
     { apply destruct_eq_cons,
       unfold destruct nth has_map.map, rw ←e, refl },
     rw TH, apply h1 _ _ (or.inl rfl) },
   revert e, apply s.cases_on _ (λ b s', _); intro e,
   { injection e },
-  { rw [show (cons b s').val (nat.succ k) = s'.val k, by cases s'; refl] at e,
+  { have h_eq : (cons b s').val (nat.succ k) = s'.val k, { cases s'; refl },
+    rw [h_eq] at e,
     apply h1 _ _ (or.inr (IH e)) }
 end
 
@@ -164,7 +165,7 @@ end
 
 def of_list (l : list α) : seq α :=
 ⟨list.nth l, λn h, begin
-  revert n, induction l with a l IH; intros, refl,
+  induction l with a l IH generalizing n, refl,
   dsimp [list.nth], cases n with n; dsimp [list.nth] at h,
   { contradiction },
   { apply IH _ h }
@@ -497,7 +498,7 @@ theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
 
 @[simp] theorem head_dropn (s : seq α) (n) : head (drop s n) = nth s n :=
 begin
-  revert s, induction n with n IH; intro, { refl },
+  induction n with n IH generalizing s, { refl },
   rw [nat.succ_eq_add_one, ←nth_tail, ←dropn_tail], apply IH
 end
 
@@ -506,7 +507,7 @@ theorem mem_map (f : α → β) {a : α} : ∀ {s : seq α}, a ∈ s → f a ∈
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : seq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := stream.exists_of_mem_map h in
-  by cases o; injection oe; exact ⟨a, om, h⟩
+  by cases o; injection oe with h'; exact ⟨a, om, h'⟩
 
 def of_mem_append {s₁ s₂ : seq α} {a : α} (h : a ∈ append s₁ s₂) : a ∈ s₁ ∨ a ∈ s₂ :=
 begin

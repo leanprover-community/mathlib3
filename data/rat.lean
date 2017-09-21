@@ -7,6 +7,8 @@ Introduces the rational numbers as discrete, linear ordered field.
 -/
 
 import data.nat.gcd data.pnat data.int.basic order.basic pending
+       algebra.ordered_group algebra.order
+      
 
 /- linorder -/
 
@@ -169,8 +171,7 @@ begin
         apply nat.le_of_dvd,
         apply (nat.le_div_iff_mul_le _ _ gd0).2,
         simp, apply nat.le_of_dvd hd (nat.gcd_dvd_right _ _),
-        apply nat.dvd_of_coprime_of_dvd_mul_left,
-        exact nat.coprime_swap (nat.coprime_div_gcd_div_gcd gb0),
+        apply (nat.coprime_div_gcd_div_gcd gb0).symm.dvd_of_dvd_mul_left,
         refine ⟨c / c.gcd d, _⟩,
         rw [← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _),
             ← nat.mul_div_assoc _ (nat.gcd_dvd_right _ _)],
@@ -288,9 +289,9 @@ begin
 end
 
 protected def inv : ℚ → ℚ
-| ⟨(n+1:ℕ), d, h, c⟩ := ⟨d, n+1, n.succ_pos, nat.coprime_swap c⟩
+| ⟨(n+1:ℕ), d, h, c⟩ := ⟨d, n+1, n.succ_pos, c.symm⟩
 | ⟨0, d, h, c⟩ := 0
-| ⟨-[1+ n], d, h, c⟩ := ⟨-d, n+1, n.succ_pos, nat.coprime_swap $ by simp; exact c⟩
+| ⟨-[1+ n], d, h, c⟩ := ⟨-d, n+1, n.succ_pos, nat.coprime.symm $ by simp; exact c⟩
 
 instance : has_inv ℚ := ⟨rat.inv⟩
 
@@ -408,6 +409,10 @@ instance field_rat : discrete_field ℚ :=
   has_decidable_eq := rat.decidable_eq,
   inv_zero         := rfl }
 
+theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
+  a /. b - c /. d = (a * d - c * b) /. (b * d) :=
+by simp [b0, d0]
+
 protected def nonneg : ℚ → Prop
 | ⟨n, d, h, c⟩ := n ≥ 0
 
@@ -494,6 +499,13 @@ instance : linear_order ℚ :=
 theorem nonneg_iff_zero_le {a} : rat.nonneg a ↔ 0 ≤ a :=
 show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
 
+theorem mk_le {a b c d : ℤ} (h₁ : b > 0) (h₂ : d > 0) :
+  a /. b ≤ c /. d ↔ a * d ≤ c * b :=
+by conv in (_ ≤ _) {
+  simp only [(≤), rat.le],
+  rw [sub_def (ne_of_gt h₂) (ne_of_gt h₁),
+      mk_nonneg _ (mul_pos h₂ h₁), ge, sub_nonneg] }
+
 protected theorem add_le_add_left {a b c : ℚ} : c + a ≤ c + b ↔ a ≤ b :=
 by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
 
@@ -520,23 +532,28 @@ instance : discrete_linear_ordered_field ℚ :=
   decidable_le    := assume a b, rat.decidable_nonneg (b - a),
   decidable_lt    := by apply_instance }
 
-lemma coe_int_eq_mk (z : ℤ) : ↑z = rat.mk z 1 :=
-show rat.of_int z = rat.mk_nat z 1,
-  by unfold rat.of_int rat.mk_nat; simp [rat.mk_pnat, int.coe_nat_one]
+theorem coe_int_eq_mk (z : ℤ) : ↑z = z /. 1 := num_denom' _ _ _ _
 
-lemma coe_nat_rat_eq_mk (n : ℕ) : ↑n = rat.mk ↑n 1 := coe_int_eq_mk _
+theorem coe_nat_rat_eq_mk (n : ℕ) : ↑n = ↑n /. 1 := coe_int_eq_mk _
 
-lemma coe_int_add (z₁ z₂ : ℤ) : ↑(z₁ + z₂) = (↑z₁ + ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
+theorem coe_int_inj {z₁ z₂ : ℤ} : (z₁ : ℚ) = z₂ ↔ z₁ = z₂ :=
+by simp [coe_int_eq_mk, mk_eq]
 
-lemma coe_int_sub (z₁ z₂ : ℤ) : ↑(z₁ - z₂) = (↑z₁ - ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
+theorem coe_int_add (z₁ z₂ : ℤ) : ↑(z₁ + z₂) = (↑z₁ + ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
 
-lemma coe_int_one : ↑(1 : ℤ) = (1 : ℚ) := rfl
+theorem coe_int_neg (z : ℤ) : ↑(-z) = (-↑z : ℚ) := by simp [coe_int_eq_mk]
 
-lemma le_of_of_int_le_of_int {z₁ z₂ : ℤ} (h : (↑z₁ : ℚ) ≤ ↑z₂) : z₁ ≤ z₂ :=
-have rat.nonneg ↑(z₂ - z₁), by rwa [coe_int_sub],
-have 0 ≤ z₂ - z₁, by rwa [coe_int_eq_mk, rat.mk_nonneg] at this; exact zero_lt_one,
-have z₁ + 0 ≤ z₂, from add_le_of_le_sub_left this,
-by simp [*] at *
+theorem coe_int_sub (z₁ z₂ : ℤ) : ↑(z₁ - z₂) = (↑z₁ - ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
+
+theorem coe_int_mul (z₁ z₂ : ℤ) : ↑(z₁ * z₂) = (↑z₁ * ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
+
+theorem coe_int_one : ↑(1 : ℤ) = (1 : ℚ) := rfl
+
+theorem coe_int_le {z₁ z₂ : ℤ} : (↑z₁ : ℚ) ≤ ↑z₂ ↔ z₁ ≤ z₂ :=
+by simp [coe_int_eq_mk, mk_le zero_lt_one zero_lt_one]
+
+theorem coe_int_lt {z₁ z₂ : ℤ} : (↑z₁ : ℚ) < ↑z₂ ↔ z₁ < z₂ :=
+not_iff_not.1 $ by rw [not_lt, not_lt, coe_int_le]
 
 def floor : ℚ → ℤ
 | ⟨n, d, h, c⟩ := n / d
@@ -544,67 +561,88 @@ def floor : ℚ → ℤ
 def ceil (r : ℚ) : ℤ :=
 -(floor (-r))
 
+theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
+| ⟨n, d, h, c⟩ := begin
+  simp [floor],
+  rw [num_denom'],
+  have h' := int.coe_nat_lt_coe_nat_of_lt h,
+  conv { to_rhs,
+    rw [coe_int_eq_mk, mk_le zero_lt_one h', mul_one] },
+  exact int.le_div_iff_mul_le h'
+end
+
+theorem floor_lt {r : ℚ} {z : ℤ} : floor r < z ↔ r < z :=
+not_iff_not.1 $ by rw [not_lt_iff, not_lt_iff, le_floor]
+
+theorem floor_le (r : ℚ) : (floor r : ℚ) ≤ r :=
+le_floor.1 (le_refl _)
+
+theorem lt_succ_floor (r : ℚ) : r < (floor r).succ :=
+floor_lt.1 $ int.lt_succ_self _
+
+@[simp] theorem floor_coe (z : ℤ) : floor z = z :=
+eq_of_forall_le_iff $ λ a, by rw [le_floor, coe_int_le]
+
+theorem floor_mono {a b : ℚ} (h : a ≤ b) : floor a ≤ floor b :=
+le_floor.2 (le_trans (floor_le _) h)
+
+@[simp] theorem floor_add_int (r : ℚ) (z : ℤ) : floor (r + z) = floor r + z :=
+le_antisymm
+  (le_add_of_sub_right_le $ le_floor.2 $
+    by rw coe_int_sub; exact sub_right_le_of_le_add (floor_le _))
+  (le_floor.2 $ by rw [coe_int_add]; apply add_le_add_right (floor_le _))
+
+theorem floor_sub_int (r : ℚ) (z : ℤ) : floor (r - z) = floor r - z :=
+floor_add_int _ _
+
+theorem ceil_le {z : ℤ} {r : ℚ} : ceil r ≤ z ↔ r ≤ z :=
+by rw [ceil, neg_le, le_floor, coe_int_neg, neg_le_neg_iff]
+
+theorem le_ceil (r : ℚ) : r ≤ ceil r :=
+ceil_le.1 (le_refl _)
+
+@[simp] theorem ceil_coe (z : ℤ) : ceil z = z :=
+by rw [ceil, ← coe_int_neg, floor_coe, neg_neg]
+
+theorem ceil_mono {a b : ℚ} (h : a ≤ b) : ceil a ≤ ceil b :=
+ceil_le.2 (le_trans h (le_ceil _))
+
+@[simp] theorem ceil_add_int (r : ℚ) (z : ℤ) : ceil (r + z) = ceil r + z :=
+by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
+
+theorem ceil_sub_int (r : ℚ) (z : ℤ) : ceil (r - z) = ceil r - z :=
+ceil_add_int _ _
+
 /- nat ceiling -/
 
-lemma exists_upper_nat_bound (q:ℚ) : ∃n:ℕ, q ≤ ↑n :=
-rat.num_denom_cases_on' q $ λn d h₁,
-have h₂ : ↑d > (0:int), from lt_of_le_of_ne (int.coe_zero_le d) h₁.symm,
-have h₃ : (1:int) ≤ ↑d, from calc 1 = 0 + 1 : by simp
-   ... ≤ (↑d:int) : int.add_one_le_of_lt h₂,
-have n ≤ ↑d * ↑(int.to_nat n),
-  from calc n ≤ 1 * ↑(int.to_nat n) : begin simp, cases n, apply le_refl, simp [int.to_nat] end
-    ... ≤ ↑d * ↑(int.to_nat n): mul_le_mul h₃ (le_refl _) (int.coe_zero_le _) (int.coe_zero_le _),
-⟨int.to_nat n, show rat.nonneg (↑(int.to_nat n) - rat.mk n ↑d),
-begin
-  simp [h₁, h₂, coe_nat_rat_eq_mk, mk_nonneg],
-  rw [add_comm, ←sub_eq_add_neg, ge],
-  apply le_sub_left_of_add_le,
-  simp,
-  assumption
-end⟩
+def nat_ceil (q : ℚ) : ℕ := int.to_nat (ceil q)
 
-def nat_ceil (q : ℚ) : ℕ := nat.find (exists_upper_nat_bound q)
+theorem nat_ceil_le {q : ℚ} {n : ℕ} : nat_ceil q ≤ n ↔ q ≤ n :=
+by rw [nat_ceil, int.to_nat_le, ceil_le]; refl
 
-lemma nat_ceil_spec {q : ℚ} : q ≤ nat_ceil q :=
-nat.find_spec (exists_upper_nat_bound q)
+theorem lt_nat_ceil {q : ℚ} {n : ℕ} : n < nat_ceil q ↔ (n : ℚ) < q :=
+not_iff_not.1 $ by rw [not_lt_iff, not_lt_iff, nat_ceil_le]
 
-lemma nat_ceil_min {q : ℚ} {n : ℕ} : q ≤ n → nat_ceil q ≤ n :=
-nat.find_min' (exists_upper_nat_bound q)
+theorem le_nat_ceil (q : ℚ) : q ≤ nat_ceil q :=
+nat_ceil_le.1 (le_refl _)
 
-lemma nat_ceil_mono {q₁ q₂ : ℚ} (h : q₁ ≤ q₂) : nat_ceil q₁ ≤ nat_ceil q₂ :=
-nat_ceil_min $ le_trans h nat_ceil_spec
+theorem nat_ceil_mono {q₁ q₂ : ℚ} (h : q₁ ≤ q₂) : nat_ceil q₁ ≤ nat_ceil q₂ :=
+nat_ceil_le.2 (le_trans h (le_nat_ceil _))
 
-@[simp] lemma nat_ceil_zero : nat_ceil 0 = 0 :=
-le_antisymm (nat_ceil_min $ le_refl _) (nat.zero_le _)
+@[simp] theorem nat_ceil_coe (n : ℕ) : nat_ceil n = n :=
+show (ceil (n:ℤ)).to_nat = n, by rw [ceil_coe]; refl
 
-lemma nat_ceil_add_one_eq {q : ℚ} (hq : 0 ≤ q) : nat_ceil (q + 1) = nat_ceil q + 1 :=
-le_antisymm
-  (nat_ceil_min $ show q + 1 ≤ ↑(int.of_nat $ nat_ceil q + 1),
-    begin
-      simp [int.of_nat_add, int.of_nat_one, coe_int_add, coe_int_one, -add_comm],
-      exact add_le_add_right nat_ceil_spec 1
-    end)
-  (have (↑(1:ℤ):ℚ) ≤ nat_ceil (q + 1),
-      from le_trans (le_add_of_nonneg_left hq) nat_ceil_spec, 
-    have h1le : 1 ≤ nat_ceil (q + 1),
-      from (int.coe_nat_le_coe_nat_iff _ _).mp $ le_of_of_int_le_of_int this,
-    have nat_ceil q ≤ nat_ceil (q + 1) - 1,
-      from nat_ceil_min $ show q ≤ ↑(int.of_nat (nat_ceil (q + 1) - 1)),
-      begin
-        rw [int.of_nat_sub h1le],
-        simp [-sub_eq_add_neg, coe_int_sub, int.of_nat_one, coe_int_one],
-        exact le_sub_right_of_add_le nat_ceil_spec
-      end,
-    show nat_ceil q + 1 ≤ nat_ceil (q + 1),
-      from (nat.add_le_to_le_sub _ h1le).mpr this)
+@[simp] theorem nat_ceil_zero : nat_ceil 0 = 0 := nat_ceil_coe 0
 
-lemma nat_ceil_lt_add_one {q : ℚ} (hq : q ≥ 0) : ↑(nat_ceil q) < q + 1 :=
-lt_of_not_ge $ assume h : q + 1 ≤ ↑(nat_ceil q),
-  have nat_ceil q + 0 = nat_ceil q + 1,
-    from calc nat_ceil q + 0 = nat_ceil q : by simp
-      ... = nat_ceil (q + 1) :
-        le_antisymm (nat_ceil_mono $ le_add_of_le_of_nonneg (le_refl _) zero_le_one) (nat_ceil_min h)
-      ... = nat_ceil q + 1 : nat_ceil_add_one_eq hq,
-  nat.no_confusion $ eq_of_add_eq_add_left this
+theorem nat_ceil_add_nat {q : ℚ} (hq : 0 ≤ q) (n : ℕ) : nat_ceil (q + n) = nat_ceil q + n :=
+show int.to_nat (ceil (q + (n:ℤ))) = int.to_nat (ceil q) + n, 
+by rw [ceil_add_int]; exact
+match ceil q, int.eq_coe_of_zero_le (ceil_mono hq) with
+| _, ⟨m, rfl⟩ := rfl
+end
+
+theorem nat_ceil_lt_add_one {q : ℚ} (hq : q ≥ 0) : ↑(nat_ceil q) < q + 1 :=
+lt_nat_ceil.1 $ by rw [
+  show nat_ceil (q+1) = nat_ceil q+1, from nat_ceil_add_nat hq 1]; apply nat.lt_succ_self
 
 end rat

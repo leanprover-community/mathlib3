@@ -6,6 +6,7 @@ Author: Jeremy Avigad
 Insertion sort and merge sort.
 -/
 import data.list.perm
+open list.perm
 
 namespace list
 
@@ -32,6 +33,40 @@ h.right
 theorem sorted_cons {a : α} {l : list α} (h₁ : sorted r l) (h₂ : ∀ b ∈ l, r a b) :
   sorted r (a :: l) :=
 ⟨h₁, h₂⟩
+
+lemma eq_of_sorted_of_perm (tr : transitive r) (anti : anti_symmetric r) :
+  ∀ {l₁ l₂ : list α}, l₁ ~ l₂ → sorted r l₁ → sorted r l₂ → l₁ = l₂
+| []       l   h₁ h₂ h₃ := eq.symm $ eq_nil_of_perm_nil $ h₁
+| l        []  h₁ h₂ h₃ := eq_nil_of_perm_nil $ h₁.symm
+| (a::l₁)  l₂  h₁ h₂ h₃ :=
+  have aux : ∀ {t}, l₂ = a::t → a::l₁ = l₂, from
+    assume t, assume : l₂ = a::t,
+    have l₁ ~ t,        by rewrite [this] at h₁; apply perm_cons_inv h₁,
+    have sorted r l₁,   from h₂.left,
+    have sorted r t,    by rewrite [‹l₂ = a::t›] at h₃; exact h₃.left,
+    have l₁ = t,        from eq_of_sorted_of_perm ‹l₁ ~ t› ‹sorted r l₁› ‹sorted r t›,
+    show a :: l₁ = l₂,  by rewrite [‹l₂ = a::t›, this],
+  have   a ∈ l₂,        from mem_of_perm h₁ $ mem_cons_self _ _,
+  let ⟨s, t, (e₁ : l₂ = s ++ (a::t))⟩ := mem_split this in
+  begin
+    cases s with b s,
+    { have : l₂ = a::t, by exact e₁,
+      exact aux this },
+    { have e₁ : l₂ = b::(s++(a::t)), by exact e₁,
+      have : b ∈ l₂,                begin rewrite e₁, apply mem_cons_self _ _ end,
+      have hall₂ : ∀c∈s++(a::t), r b c,
+        begin rw [e₁] at h₃, apply forall_mem_rel_of_sorted_cons r h₃ end,
+      have : a ∈ s++(a::t),         from mem_append_right _ (mem_cons_self _ _),
+      have : r b a,                 from hall₂ _ this,
+      have : b ∈ a::l₁,             from mem_of_perm (perm.symm h₁) ‹b ∈ l₂›,
+      have hall₁ : ∀b∈l₁, r a b,  from forall_mem_rel_of_sorted_cons r h₂,
+      apply or.elim (eq_or_mem_of_mem_cons ‹b ∈ a::l₁›),
+        assume : b = a,  begin rewrite this at e₁, exact aux e₁ end,
+        assume : b ∈ l₁,
+          have : r a b, from hall₁ _ this,
+          have : b = a, from anti ‹r b a› ‹r a b›,
+          begin rewrite this at e₁, exact aux e₁ end }
+end
 
 end sorted
 
@@ -99,9 +134,9 @@ theorem sorted_ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered
       { exact h.right _ bm } }
     end
 
-theorem sorted_insert_sort : ∀ l, sorted r (insertion_sort l)
+theorem sorted_insertion_sort : ∀ l, sorted r (insertion_sort l)
 | []       := sorted_nil r
-| (a :: l) := sorted_ordered_insert totr transr a _ (sorted_insert_sort l)
+| (a :: l) := sorted_ordered_insert totr transr a _ (sorted_insertion_sort l)
 
 end total_and_transitive
 end correctness

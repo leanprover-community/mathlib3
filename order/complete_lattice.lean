@@ -74,8 +74,8 @@ by have := le_Sup h; finish
 
 -- TODO: it is weird that we have to add union_def
 theorem Sup_union {s t : set α} : Sup (s ∪ t) = Sup s ⊔ Sup t :=
-le_antisymm 
-  (by finish) 
+le_antisymm
+  (by finish)
   (sup_le (Sup_le_Sup $ subset_union_left _ _) (Sup_le_Sup $ subset_union_right _ _))
 
 /- old proof:
@@ -91,7 +91,7 @@ by finish
 -/
 
 theorem Inf_union {s t : set α} : Inf (s ∪ t) = Inf s ⊓ Inf t :=
-le_antisymm 
+le_antisymm
   (le_inf (Inf_le_Inf $ subset_union_left _ _) (Inf_le_Inf $ subset_union_right _ _))
   (by finish)
 
@@ -198,11 +198,6 @@ Inf_le ⟨i, rfl⟩
 @[ematch] theorem infi_le' (s : ι → α) (i : ι) : (: infi s ≤ s i :) :=
 Inf_le ⟨i, rfl⟩
 
-example {f : β → α} (b : β) : (⨅ x, f x) ≤ f b :=
-begin [smt]
-  eblast
-end
-
 /- I wanted to see if this would help for infi_comm; it doesn't.
 @[ematch] theorem infi_le₂' (s : ι → ι₂ → α) (i : ι) (j : ι₂): (: ⨅ i j, s i j :) ≤ (: s i j :) :=
 begin
@@ -241,6 +236,12 @@ le_antisymm (Inf_le ⟨arbitrary ι, rfl⟩) (by finish)
 
 @[simp] theorem supr_const {a : α} [inhabited ι] : (⨆ b:ι, a) = a :=
 le_antisymm (by finish) (le_Sup ⟨arbitrary ι, rfl⟩)
+
+@[simp] lemma infi_top [complete_lattice α] : (⨅i:ι, ⊤ : α) = ⊤ :=
+top_unique $ le_infi $ assume i, le_refl _
+
+@[simp] lemma supr_bot [complete_lattice α] : (⨆i:ι, ⊥ : α) = ⊥ :=
+bot_unique $ supr_le $ assume i, le_refl _
 
 -- TODO: should this be @[simp]?
 theorem infi_comm {f : ι → ι₂ → α} : (⨅i, ⨅j, f i j) = (⨅j, ⨅i, f i j) :=

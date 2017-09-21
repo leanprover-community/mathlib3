@@ -3,69 +3,11 @@ Copyright (c) 2014 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 
 Authors: Floris van Doorn, Jeremy Avigad
-Subtraction on the natural numbers, as well as min, max, and distance.
+Distance function on the natural numbers.
 -/
 import data.nat.basic
 
 namespace nat
-
-/- interaction with inequalities -/
-
-protected theorem le_sub_add (n m : ℕ) : n ≤ n - m + m :=
-or.elim (le_total n m)
-  (assume : n ≤ m, begin rw [sub_eq_zero_of_le this, zero_add], exact this end)
-  (assume : m ≤ n, begin rw (nat.sub_add_cancel this) end)
-
-protected theorem sub_eq_of_eq_add {n m k : ℕ} (h : k = n + m) : k - n = m :=
-begin rw [h, nat.add_sub_cancel_left] end
-
-protected theorem lt_of_sub_pos {m n : ℕ} (h : n - m > 0) : m < n :=
-lt_of_not_ge
-  (assume : m ≥ n,
-    have n - m = 0, from sub_eq_zero_of_le this,
-    begin rw this at h, exact lt_irrefl _ h end)
-
-protected theorem lt_of_sub_lt_sub_right {n m k : ℕ} (h : n - k < m - k) : n < m :=
-lt_of_not_ge
-  (assume : m ≤ n,
-    have m - k ≤ n - k, from nat.sub_le_sub_right this _,
-    not_le_of_gt h this)
-
-protected theorem lt_of_sub_lt_sub_left {n m k : ℕ} (h : n - m < n - k) : k < m :=
-lt_of_not_ge
-  (assume : m ≤ k,
-    have n - k ≤ n - m, from nat.sub_le_sub_left _ this,
-    not_le_of_gt h this)
-
-protected theorem sub_lt_self {m n : ℕ} (h₁ : m > 0) (h₂ : n > 0) : m - n < m :=
-calc
-  m - n = succ (pred m) - succ (pred n) : by rw [succ_pred_eq_of_pos h₁, succ_pred_eq_of_pos h₂]
-    ... = pred m - pred n               : by rw succ_sub_succ
-    ... ≤ pred m                        : sub_le _ _
-    ... < succ (pred m)                 : lt_succ_self _
-    ... = m                             : succ_pred_eq_of_pos h₁
-
-protected theorem le_sub_of_add_le {m n k : ℕ} (h : m + k ≤ n) : m ≤ n - k :=
-calc
-  m = m + k - k : by rw nat.add_sub_cancel
-    ... ≤ n - k : nat.sub_le_sub_right h k
-
-protected theorem lt_sub_of_add_lt {m n k : ℕ} (h : m + k < n) : m < n - k :=
-lt_of_succ_le (nat.le_sub_of_add_le (calc
-    succ m + k = succ (m + k) : by rw succ_add
-           ... ≤ n            : succ_le_of_lt h))
-
-protected theorem add_lt_of_lt_sub {m n k : ℕ} (h : m < n - k) : m + k < n :=
-@nat.lt_of_sub_lt_sub_right _ _ k (by rwa nat.add_sub_cancel)
-
-protected theorem sub_lt_of_lt_add {k n m : nat} (h₁ : k < n + m) (h₂ : n ≤ k) : k - n < m :=
-have succ k ≤ n + m,   from succ_le_of_lt h₁,
-have succ (k - n) ≤ m, from
-  calc succ (k - n) = succ k - n : by rw (succ_sub h₂)
-        ...     ≤ n + m - n      : nat.sub_le_sub_right this n
-        ...     = m              : by rw nat.add_sub_cancel_left,
-lt_of_succ_le this
-
 
 /- distance -/
 

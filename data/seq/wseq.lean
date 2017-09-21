@@ -544,7 +544,7 @@ theorem head_some_of_head_tail_some {s : wseq α} {a}
 begin
   unfold head at h,
   cases exists_of_mem_map h with o ho, cases ho with md e, clear h,
-  cases o with o; injection e, clear e h,
+  cases o with o; injection e with h', clear e h',
   cases destruct_some_of_destruct_tail_some md with a am,
   exact ⟨_, mem_map ((<$>) (@prod.fst α (wseq α))) am⟩
 end
@@ -612,12 +612,16 @@ begin
   { rw [i4, i5],
     cases s' with f al,
     unfold cons has_mem.mem wseq.mem seq.mem seq.cons, simp,
-    rw [show a = a' ↔ some (some a) = some (some a'),
-        by constructor; intro h; [rw h, repeat {injection h}]],
+    have h_a_eq_a' : a = a' ↔ some (some a) = some (some a'),
+      { constructor,
+        { intro h, rw h },
+        { intro h, injection h with h', injection h' } },
+    rw [h_a_eq_a'],
     refine ⟨stream.eq_or_mem_of_mem_cons, λo, _⟩,
     { cases o with e m,
       { rw e, apply stream.mem_cons },
-      { exact stream.mem_cons_of_mem _ m } } },
+      { exact stream.mem_cons_of_mem _ m } }
+  },
   { simp, exact IH i2 }
 end
 
@@ -648,9 +652,9 @@ theorem nth_mem {s : wseq α} {a n} : some a ∈ nth s n → a ∈ s :=
 begin
   revert s, induction n with n IH; intros s h,
   { cases exists_of_mem_map h with o h, cases h with h1 h2,
-    cases o with o; injection h2,
+    cases o with o; injection h2 with h',
     cases o with a' s',
-    exact (eq_or_mem_iff_mem h1).2 (or.inl h.symm) },
+    exact (eq_or_mem_iff_mem h1).2 (or.inl h'.symm) },
   { have := @IH (tail s), rw nth_tail at this,
     exact mem_of_mem_tail (this h) }
 end
@@ -712,7 +716,7 @@ seq.mem_append_left
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : wseq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := seq.exists_of_mem_map h in
-  by cases o; injection oe; exact ⟨a, om, h⟩
+  by cases o; injection oe with h'; exact ⟨a, om, h'⟩
 
 @[simp] def lift_rel_nil (R : α → β → Prop) : lift_rel R nil nil :=
 by rw [lift_rel_destruct_iff]; simp

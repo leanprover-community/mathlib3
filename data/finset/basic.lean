@@ -5,13 +5,12 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu
 
 Finite sets.
 -/
-import data.list.set data.list.perm tactic.finish
-open list subtype nat
+import data.list.set data.list.basic data.list.perm order.boolean_algebra tactic.finish
+open list subtype nat lattice
 
-universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {α : Type*} {β : Type*} {γ : Type*}
 
-def nodup_list (α : Type u) := {l : list α // nodup l}
+def nodup_list (α : Type*) := {l : list α // nodup l}
 
 def to_nodup_list_of_nodup {l : list α} (n : nodup l) : nodup_list α :=
 ⟨l, n⟩
@@ -33,10 +32,10 @@ perm.symm
 private def eqv.trans {l₁ l₂ l₃ : nodup_list α} : l₁ ~ l₂ → l₂ ~ l₃ → l₁ ~ l₃ :=
 perm.trans
 
-instance finset.nodup_list_setoid  (α : Type u) : setoid (nodup_list α) :=
+instance finset.nodup_list_setoid  (α : Type*) : setoid (nodup_list α) :=
 setoid.mk (@eqv α) (mk_equivalence (@eqv α) (@eqv.refl α) (@eqv.symm α) (@eqv.trans α))
 
-def finset (α : Type u) : Type u :=
+def {u} finset (α : Type u) : Type u :=
 quotient (finset.nodup_list_setoid α)
 
 namespace finset
@@ -45,7 +44,7 @@ def to_finset_of_nodup (l : list α) (n : nodup l) : finset α :=
 ⟦to_nodup_list_of_nodup n⟧
 
 @[elab_as_eliminator]
-protected theorem induction_on_to_finset {α : Type u} {p : finset α → Prop} (s : finset α)
+protected theorem induction_on_to_finset {α : Type*} {p : finset α → Prop} (s : finset α)
   (h : ∀ (l : list α) (h : nodup l), p (to_finset_of_nodup l h)) : p s :=
 quot.induction_on s $ assume ⟨l, hl⟩, h l hl
 
@@ -90,15 +89,18 @@ theorem mem_of_mem_list {a : α} {l : nodup_list α} : a ∈ l.1 → a ∈ @id (
 theorem mem_list_of_mem {a : α} {l : nodup_list α} : a ∈ @id (finset α) ⟦l⟧ → a ∈ l.1 :=
 λ ainl, ainl
 
+theorem mem_to_finset [decidable_eq α] {a : α} {l : list α} : a ∈ l → a ∈ to_finset l :=
+λ ainl, mem_erase_dup.mpr ainl
+
+@[simp] theorem mem_to_finset_iff [decidable_eq α] {a : α} {l : list α} : a ∈ to_finset l ↔ a ∈ l :=
+mem_erase_dup
+
 instance decidable_mem [h : decidable_eq α] : ∀ (a : α) (s : finset α), decidable (a ∈ s) :=
 λ a s, quot.rec_on_subsingleton s
   (λ l, match list.decidable_mem a l.1 with
         | decidable.is_true p := decidable.is_true (mem_of_mem_list p)
         | decidable.is_false n := decidable.is_false (λ p, absurd (mem_list_of_mem p) n)
         end)
-
-theorem mem_to_finset [decidable_eq α] {a : α} {l : list α} : a ∈ l → a ∈ to_finset l :=
-λ ainl, mem_erase_dup.mpr ainl
 
 /- extensionality -/
 theorem ext {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
@@ -144,6 +146,8 @@ protected def empty : finset α :=
 to_finset_of_nodup [] nodup_nil
 
 instance : has_emptyc (finset α) := ⟨finset.empty⟩
+
+instance : inhabited (finset α) := ⟨∅⟩
 
 @[simp] theorem not_mem_empty : a ∉ (∅ : finset α) := λ aine, aine
 
@@ -253,6 +257,16 @@ show insert a {a} = ({a} : finset α), by rw [insert_eq_of_mem]; apply mem_singl
 
 end singleton
 
+/-
+section sep
+variables [decidable_eq α]
+
+instance : has_sep α (finset α) :=
+⟨λp s, quotient.lift_on s (λl, to_finset_of_nodup (l.val.filter p) _) _⟩
+
+end sep
+-/
+
 /- union -/
 section union
 variable [decidable_eq α]
@@ -278,11 +292,29 @@ by rw [mem_union_iff]; exact or.inr
 theorem mem_or_mem_of_mem_union {a : α} {s₁ s₂ : finset α} : a ∈ s₁ ∪ s₂ → a ∈ s₁ ∨ a ∈ s₂ :=
 mem_union_iff.mp
 
+theorem union_subset {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₃ → s₂ ⊆ s₃ → s₁ ∪ s₂ ⊆ s₃ :=
+by simp [subset_iff] {contextual:=tt}; finish
+
+theorem subset_union_left {s₁ s₂ : finset α} : s₁ ⊆ s₁ ∪ s₂ :=
+subset_iff.mpr $ assume x, mem_union_left _
+
+theorem subset_union_right {s₁ s₂ : finset α} : s₂ ⊆ s₁ ∪ s₂ :=
+subset_iff.mpr $ assume x, mem_union_right _
+
 @[simp] theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ :=
 ext $ by simp
 
+instance : is_commutative (finset α) (∪) := ⟨union_comm⟩
+
 @[simp] theorem union_assoc (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃ = s₁ ∪ (s₂ ∪ s₃) :=
 ext $ by simp
+
+instance : is_associative (finset α) (∪) := ⟨union_assoc⟩
+
+@[simp] theorem union_idempotent (s : finset α) : (s ∪ s) = s :=
+ext $ by simp
+
+instance : is_idempotent (finset α) (∪) := ⟨union_idempotent⟩
 
 theorem union_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∪ (s₂ ∪ s₃) = s₂ ∪ (s₁ ∪ s₃) :=
 ext $ by simp
@@ -332,6 +364,15 @@ by rw [mem_inter_iff]; exact and.right
 
 theorem mem_inter {a : α} {s₁ s₂ : finset α} : a ∈ s₁ → a ∈ s₂ → a ∈ s₁ ∩ s₂ :=
 by rw [mem_inter_iff]; exact and.intro
+
+theorem inter_subset_left {s₁ s₂ : finset α} : s₁ ∩ s₂ ⊆ s₁ :=
+by simp [subset_iff] {contextual:=tt}; finish
+
+theorem inter_subset_right {s₁ s₂ : finset α} : s₁ ∩ s₂ ⊆ s₂ :=
+by simp [subset_iff] {contextual:=tt}; finish
+
+theorem subset_inter {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₁ ⊆ s₃ → s₁ ⊆ s₂ ∩ s₃ :=
+by simp [subset_iff] {contextual:=tt}; finish
 
 @[simp] theorem inter_comm (s₁ s₂ : finset α) : s₁ ∩ s₂ = s₂ ∩ s₁ :=
 ext $ by simp
@@ -383,6 +424,34 @@ by rw [inter_comm, singleton_inter_of_mem h]
 by rw [inter_comm, singleton_inter_of_not_mem h]
 
 end inter
+
+section lattice
+
+instance [decidable_eq α] : lattice (finset α) :=
+{ le := (⊆),
+  le_refl := subset.refl,
+  le_trans := assume a b c, subset.trans,
+  le_antisymm := assume a b, subset.antisymm,
+  sup := (∪),
+  sup_le := assume a b c, union_subset,
+  le_sup_left := assume a b, subset_union_left,
+  le_sup_right := assume a b, subset_union_right,
+  inf := (∩),
+  le_inf := assume a b c, subset_inter,
+  inf_le_left := assume a b, inter_subset_left,
+  inf_le_right := assume a b, inter_subset_right }
+
+instance [decidable_eq α] : semilattice_inf_bot (finset α) :=
+{ finset.lattice.lattice with
+  bot := ∅,
+  bot_le := assume a, empty_subset }
+
+instance [decidable_eq α] : distrib_lattice (finset α) :=
+{ finset.lattice.lattice with
+  le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
+    by simp [subset_iff, and_imp, or_imp_distrib] {contextual:=tt} }
+
+end lattice
 
 /- distributivity laws -/
 section inter
@@ -458,6 +527,55 @@ iff.intro erase_subset_of_subset_insert subset_insert_of_erase_subset
 
 end erase
 
+section filter
+variables [decidable_eq α] {p : α → Prop} [decidable_pred p] {s s₁ s₂ : finset α} {a : α}
+
+protected def filter (p : α → Prop) [decidable_pred p] (s : finset α) : finset α :=
+quotient.lift_on s
+  (λl, to_finset_of_nodup (l.val.filter p) $ nodup_filter _ l.property)
+  (assume l₁ l₂ (h : perm l₁.val l₂.val), quot.sound $ perm.perm_filter h)
+
+@[simp] theorem mem_filter_iff : a ∈ s.filter p ↔ (a ∈ s ∧ p a) :=
+finset.induction_on_to_finset s $ λl₁ h₁, list.mem_filter_iff
+
+theorem filter_subset : s.filter p ⊆ s := by simp [subset_iff] {contextual := tt}
+
+theorem filter_union : (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=
+ext $ assume a, by simp [and_or_distrib_left]
+
+theorem filter_filter {p' : α → Prop} [decidable_pred p'] :
+  (s.filter p).filter p' = s.filter (λa, p a ∧ p' a) :=
+ext $ assume a, by simp
+
+@[simp] theorem filter_false {h : decidable_pred $ λa:α, false} :
+  @finset.filter α _ (λa:α, false) h s = ∅ :=
+ext $ assume a, by simp
+
+theorem filter_union_filter_neg_eq : s.filter p ∪ s.filter (λa, ¬ p a) = s :=
+ext $ assume a, by by_cases p a; simp [iff_iff_implies_and_implies, *] {contextual := tt}
+
+theorem filter_inter_filter_neg_eq : s.filter p ∩ s.filter (λa, ¬ p a) = ∅ :=
+ext $ assume a, by by_cases p a; simp [*] {contextual := tt}
+
+end filter
+
+section sdiff
+variables [decidable_eq α] {a : α} {s₁ s₂ : finset α}
+
+instance : has_sdiff (finset α) := ⟨λs₁ s₂, s₁.filter (λa, a ∉ s₂)⟩
+
+@[simp] theorem mem_sdiff_iff : a ∈ s₁ \ s₂ ↔ (a ∈ s₁ ∧ a ∉ s₂) := mem_filter_iff
+
+lemma sdiff_union_of_subset (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
+ext $ assume a,
+  by rw [subset_iff] at h;
+     by_cases a ∈ s₁; simp [iff_iff_implies_and_implies, *] {contextual := tt}
+
+lemma sdiff_inter_self : (s₂ \ s₁) ∩ s₁ = ∅ :=
+ext $ by simp {contextual := tt}
+
+end sdiff
+
 /- upto -/
 section upto
 variables {n m l : ℕ}
@@ -480,7 +598,7 @@ iff.intro lt_of_mem_upto mem_upto_of_lt
 theorem upto_zero : upto 0 = ∅ := rfl
 
 theorem upto_succ : upto (succ n) = insert n (upto n) :=
-ext $ by simp [mem_upto_iff, mem_insert_iff, lt_succ_iff_le, le_iff_lt_or_eq]
+ext $ by simp [mem_upto_iff, mem_insert_iff, lt_succ_iff_lt_or_eq]
 
 end upto
 
@@ -516,13 +634,19 @@ iff.intro
       (λ r, and.right H _ r))
 
 section image
-variables (f : α → β) (s : finset α) [decidable_eq β]
+variables (f : α → β) (s s₁ s₂ : finset α) [decidable_eq β]
 
 protected def image : finset β :=
 quot.lift_on s (λl, to_finset $ l.val.map f) $ assume ⟨l₁, hl₁⟩ ⟨l₂, hl₂⟩ (h : perm l₁ l₂),
   quotient.sound $ perm.perm_erase_dup_of_perm $ perm.perm_map _ $ h
 
-variables {f s} [decidable_eq α]
+@[simp] lemma image_empty {f : α → β} : (∅ : finset α).image f = ∅ := rfl
+
+variables {f s s₁ s₂} {b : β} [decidable_eq α]
+
+lemma mem_image_iff : b ∈ s.image f ↔ (∃a∈s, f a = b) :=
+finset.induction_on_to_finset s $ assume l h,
+  show b ∈ to_finset (l.map f) ↔ _, by simp [mem_to_finset_iff, mem_map_iff]
 
 lemma erase_dup_map_erase_dup_eq {f : α → β} :
   ∀{l : list α}, erase_dup (map f (erase_dup l)) = (erase_dup $ map f l)
@@ -548,6 +672,45 @@ lemma image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.im
 quot.induction_on s $ assume ⟨l, hl⟩,
   show ((to_finset_of_nodup l hl).image f).image g = (to_finset_of_nodup l hl).image (g ∘ f),
     by simp [to_finset_eq_of_nodup, image_to_finset]
+
+lemma image_subset_image : s₁ ⊆ s₂ → s₁.image f ⊆ s₂.image f :=
+by simp [subset_iff, mem_image_iff] {contextual:=tt};
+from assume h b a h_eq ha, ⟨a, h_eq, h _ ha⟩
+
+lemma image_filter {p : β → Prop} [decidable_pred p] :
+  (s.image f).filter p = (s.filter (p ∘ f)).image f :=
+ext $ assume b, by simp [mem_image_iff]; exact iff.intro
+  (assume ⟨hb, ⟨a, h_eq, ha⟩⟩, ⟨a, h_eq, show p (f a), from h_eq.symm ▸ hb, ha⟩)
+  (assume ⟨a, h_eq, ha, has⟩, ⟨h_eq ▸ ha, a, h_eq, has⟩)
+
+lemma image_union {f : α → β} : (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f  :=
+ext $ assume b, by simp [mem_image_iff, and_or_distrib_left, exists_or_distrib]
+
+lemma image_inter (hf : ∀x y, f x = f y → x = y) : (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
+ext $ assume b,
+  by simp [mem_image_iff, iff_def];
+  from and.intro
+    (assume x x_eq hx y y_eq hy,
+      have y = x, from hf _ _ $ by simp *,
+      ⟨x, x_eq, hx, this ▸ hy⟩)
+    (assume x x_eq h₁ h₂, ⟨⟨x, x_eq, h₁⟩, ⟨x, x_eq, h₂⟩⟩)
+
+@[simp] lemma image_singleton {f : α → β} {a : α} : ({a}: finset α).image f = {f a} :=
+ext $ by simp [mem_image_iff, and_or_distrib_left, exists_or_distrib, iff_def] {contextual := tt}
+
+@[simp] lemma image_insert {f : α → β} {s : finset α} {a : α} :
+  (insert a s).image f = insert (f a) (s.image f) :=
+by simp [insert_eq, image_union]
+
+@[simp] lemma image_eq_empty_iff : s.image f = ∅ ↔ s = ∅ :=
+iff.intro
+  (assume h,
+    have ∀a, a ∉ s,
+      from assume a ha,
+      have f a ∈ s.image f, from mem_image_iff.mpr ⟨a, ha, rfl⟩,
+      by simp * at *,
+    ext $ by simp *)
+  (assume h, by simp *)
 
 end image
 

@@ -34,10 +34,10 @@ theorem append_ne_nil_of_ne_nil_right (s t : list α) : t ≠ [] → s ++ t ≠ 
 by induction s; intros; contradiction
 
 theorem append_foldl (f : α → β → α) (a : α) (s t : list β) : foldl f a (s ++ t) = foldl f (foldl f a s) t :=
-by {revert a, induction s with b s H, exact λ_, rfl, intros, simp [foldl], rw H _}
+by {induction s with b s H generalizing a, refl, simp [foldl], rw H _}
 
 theorem append_foldr (f : α → β → β) (a : β) (s t : list α) : foldr f a (s ++ t) = foldr f (foldr f a t) s :=
-by {revert a, induction s with b s H, exact λ_, rfl, intros, simp [foldr], rw H _}
+by {induction s with b s H generalizing a, refl, simp [foldr], rw H _}
 
 /- repeat take drop -/
 
@@ -599,6 +599,12 @@ theorem mem_filter_of_mem {p : α → Prop} [h : decidable_pred p] {a : α} :
     or.elim (eq_or_mem_of_mem_cons ain)
       (assume : a = b, begin simp [this] at pa, contradiction end) --absurd (this ▸ pa) pb)
       (assume : a ∈ l, by simp [pa, pb, mem_filter_of_mem this])
+
+theorem mem_filter_iff {p : α → Prop} [h : decidable_pred p] {a : α} {l : list α} :
+  a ∈ filter p l ↔ a ∈ l ∧ p a :=
+iff.intro
+  (assume h, ⟨mem_of_mem_filter h, of_mem_filter h⟩)
+  (assume ⟨h₁, h₂⟩, mem_filter_of_mem h₁ h₂)
 
 @[simp] lemma span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl

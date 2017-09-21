@@ -118,8 +118,12 @@ by simp [compl_Inter, compl_compl]
 theorem Inter_eq_comp_Union_comp (s : α → set β) : (⋂ i, s i) = - (⋃ i, -s i) :=
 by simp [compl_compl]
 
-theorem inter_distrib_Union_left (s : set β) (t : α → set β) :
+theorem inter_distrib_Union_left (s : set β) (t : ι → set β) :
   s ∩ (⋃ i, t i) = ⋃ i, s ∩ t i :=
+set.ext (by simp)
+
+theorem inter_distrib_Union_right (s : set β) (t : ι → set β) :
+  (⋃ i, t i) ∩ s = ⋃ i, t i ∩ s :=
 set.ext (by simp)
 
 -- classical
@@ -310,7 +314,7 @@ sUnion_subset $ assume t' ht', subset_sUnion_of_mem $ h ht'
 lemma Union_subset_Union {s t : ι → set α} (h : ∀i, s i ⊆ t i) : (⋃i, s i) ⊆ (⋃i, t i) :=
 @supr_le_supr (set α) ι _ s t h
 
-lemma Union_subset_Union2 {ι₂ : Sort x} {s : ι → set α} {t : ι₂ → set α} (h : ∀i, ∃j, s i ⊆ t j) :
+lemma Union_subset_Union2 {ι₂ : Sort*} {s : ι → set α} {t : ι₂ → set α} (h : ∀i, ∃j, s i ⊆ t j) :
   (⋃i, s i) ⊆ (⋃i, t i) :=
 @supr_le_supr2 (set α) ι ι₂ _ s t h
 

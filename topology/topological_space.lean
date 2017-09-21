@@ -26,7 +26,7 @@ attribute [class] topological_space
 
 section topological_space
 
-variables {α : Type u} {β : Type v} {ι : Sort w} {a a₁ a₂ : α} {s s₁ s₂ : set α}
+variables {α : Type u} {β : Type v} {ι : Sort w} {a a₁ a₂ : α} {s s₁ s₂ : set α} {p p₁ p₂ : α → Prop}
 
 lemma topological_space_eq {f g : topological_space α} (h' : f.is_open = g.is_open) : f = g :=
 begin
@@ -68,6 +68,14 @@ is_open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 have is_open (⋃₀ ∅ : set α), from is_open_sUnion (assume a, false.elim),
 by simp at this; assumption
 
+lemma is_open_const {p : Prop} : is_open {a : α | p} :=
+by_cases
+  (assume : p, begin simp [*]; exact is_open_univ end)
+  (assume : ¬ p, begin simp [*]; exact is_open_empty end)
+
+lemma is_open_and : is_open {a | p₁ a} → is_open {a | p₂ a} → is_open {a | p₁ a ∧ p₂ a} :=
+is_open_inter
+
 /- is_closed -/
 def is_closed (s : set α) : Prop := is_open (-s)
 
@@ -103,6 +111,14 @@ begin
   simp,
   exact assume h, is_closed_union (h _ $ or.inl rfl) (by finish)
 end
+
+lemma is_closed_imp [topological_space α] {p q : α → Prop}
+  (hp : is_open {x | p x}) (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
+have {x | p x → q x} = (- {x | p x}) ∪ {x | q x}, from set.ext $ by finish,
+by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
+
+lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
+is_open_compl_iff.mpr
 
 /- interior -/
 def interior (s : set α) : set α := ⋃₀ {t | is_open t ∧ t ⊆ s}
@@ -301,11 +317,17 @@ have nhds a ⊓ principal (s ∩ t) ≠ ⊥,
     ... ≠ ⊥ : by rw [closure_eq_nhds] at ht; assumption,
 by rw [closure_eq_nhds]; assumption
 
-lemma closure_diff [topological_space α] {s t : set α} : closure s - closure t ⊆ closure (s - t) :=
+lemma closure_diff {s t : set α} : closure s - closure t ⊆ closure (s - t) :=
 calc closure s \ closure t = (- closure t) ∩ closure s : by simp [diff_eq]
   ... ⊆ closure (- closure t ∩ s) : closure_inter_open $ is_open_compl_iff.mpr $ is_closed_closure
   ... = closure (s \ closure t) : by simp [diff_eq]
   ... ⊆ closure (s \ t) : closure_mono $ diff_subset_diff (subset.refl s) subset_closure
+
+lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
+  (hb : b ≠ ⊥) (hf : tendsto f b (nhds a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b.sets) : a ∈ s :=
+have b.map f ≤ nhds a ⊓ principal s,
+  from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
+is_closed_iff_nhds.mp hs a $ neq_bot_of_le_neq_bot (map_ne_bot hb) this
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
@@ -450,7 +472,7 @@ lemma compact_of_finite_subcover {s : set α}
   (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds x ≠ ⊥),
   have hf : ∀x∈s, nhds x ⊓ f = ⊥,
-    by simpf [not_and, inf_comm],
+    by simpa [not_and, inf_comm],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ (nhds x ⊓ f).sets, by rw [empty_in_sets_eq_bot, hf x hxs],
@@ -460,7 +482,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
     have nhds x ⊓ principal t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
     by simp [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
-  have ∀x∈s, ∃t∈f.sets, x ∉ closure t, by simpf [_root_.not_forall],
+  have ∀x∈s, ∃t∈f.sets, x ∉ closure t, by simpa [_root_.not_forall],
   let c := (λt, - closure t) '' f.sets in
   have ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c',
     from h c (assume t ⟨s, hs, h⟩, h ▸ is_open_compl_iff.mpr is_closed_closure) $

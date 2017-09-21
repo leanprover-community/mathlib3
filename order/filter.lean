@@ -11,8 +11,7 @@ open lattice set
 universes u v w x y
 
 open set classical
-local attribute [instance] decidable_inhabited
-local attribute [instance] prop_decidable
+local attribute [instance] decidable_inhabited prop_decidable
 
 -- should be handled by implies_true_iff
 
@@ -454,7 +453,7 @@ f.upwards_sets hs $ assume x hx, ⟨x, hx, rfl⟩
 
 @[simp] lemma map_id : filter.map id f = f :=
 filter_eq $ rfl
-  
+
 @[simp] lemma map_compose : filter.map m' ∘ filter.map m = filter.map (m' ∘ m) :=
 funext $ assume _, filter_eq $ rfl
 
@@ -537,6 +536,23 @@ le_antisymm
   (assume s ⟨t, (h₁ : preimage m t ∈ f.sets), (h₂ : preimage m t ⊆ s)⟩,
     f.upwards_sets h₁ h₂)
 
+lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}
+  (hsf : s ∈ f.sets) (hsg : s ∈ g.sets) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y)
+  (h : map m f ≤ map m g) : f ≤ g :=
+assume t ht,
+  have m ⁻¹' (m '' (s ∩ t)) ∈ f.sets, from h $ image_mem_map (inter_mem_sets hsg ht),
+  f.upwards_sets (inter_mem_sets hsf this) $
+    assume a ⟨has, b, ⟨hbs, hb⟩, h⟩,
+    have b = a, from hm _ hbs _ has h,
+    this ▸ hb
+
+lemma eq_of_map_eq_map_inj' {f g : filter α} {m : α → β} {s : set α}
+  (hsf : s ∈ f.sets) (hsg : s ∈ g.sets) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y)
+  (h : map m f = map m g) : f = g :=
+le_antisymm
+  (le_of_map_le_map_inj' hsf hsg hm $ le_of_eq h)
+  (le_of_map_le_map_inj' hsg hsf hm $ le_of_eq h.symm)
+
 lemma map_inj {f g : filter α} {m : α → β} (hm : ∀ x y, m x = m y → x = y) (h : map m f = map m g) :
   f = g :=
 have vmap m (map m f) = vmap m (map m g), by rw h,
@@ -596,17 +612,18 @@ le_antisymm
       from infi_le_of_le i $ by simp; assumption,
     by simp at this; assumption)
 
-lemma map_binfi_eq {ι : Type w} {f : ι → filter α} {m : α → β} {s : set ι}
-  (h : directed_on (λx y, f x ≤ f y) s) (ne : ∃i, i ∈ s) : map m (⨅i∈s, f i) = (⨅i∈s, map m (f i)) :=
+lemma map_binfi_eq {ι : Type w} {f : ι → filter α} {m : α → β} {p : ι → Prop}
+  (h : directed_on (λx y, f x ≤ f y) {x | p x}) (ne : ∃i, p i) :
+  map m (⨅i (h : p i), f i) = (⨅i (h: p i), map m (f i)) :=
 let ⟨i, hi⟩ := ne in
-calc map m (⨅i∈s, f i) = map m (⨅i:{i // i ∈ s}, f i.val) : by simp [infi_subtype]
-  ... = (⨅i:{i // i ∈ s}, map m (f i.val)) : map_infi_eq
+calc map m (⨅i (h : p i), f i) = map m (⨅i:subtype p, f i.val) : by simp [infi_subtype]
+  ... = (⨅i:subtype p, map m (f i.val)) : map_infi_eq
     (assume ⟨x, hx⟩ ⟨y, hy⟩, match h x hx y hy with ⟨z, h₁, h₂, h₃⟩ := ⟨⟨z, h₁⟩, h₂, h₃⟩ end)
     ⟨⟨i, hi⟩⟩
-  ... = (⨅i∈s, map m (f i)) : by simp [infi_subtype]
+  ... = (⨅i (h : p i), map m (f i)) : by simp [infi_subtype]
 
-lemma map_inf {f g : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
-  map m (f ⊓ g) = map m f ⊓ map m g :=
+lemma map_inf' {f g : filter α} {m : α → β} {t : set α} (htf : t ∈ f.sets) (htg : t ∈ g.sets)
+  (h : ∀x∈t, ∀y∈t, m x = m y → x = y) : map m (f ⊓ g) = map m f ⊓ map m g :=
 le_antisymm
   (le_inf (map_mono inf_le_left) (map_mono inf_le_right))
   (assume s hs,
@@ -614,11 +631,23 @@ le_antisymm
     simp [map, mem_inf_sets] at hs,
     simp [map, mem_inf_sets],
     exact (let ⟨t₁, h₁, t₂, h₂, hs⟩ := hs in
-      ⟨m '' t₁, f.upwards_sets h₁ $ image_subset_iff_subset_preimage.mp $ subset.refl _,
-        m '' t₂,
-        by rwa [set.image_inter h, image_subset_iff_subset_preimage],
-        g.upwards_sets h₂ $ image_subset_iff_subset_preimage.mp $ subset.refl _⟩)
+      have m '' (t₁ ∩ t) ∩ m '' (t₂ ∩ t) ⊆ s,
+      begin
+        rw [image_inter_on],
+        apply image_subset_iff_subset_preimage.mpr _,
+        exact assume x ⟨⟨h₁, _⟩, h₂, _⟩, hs ⟨h₁, h₂⟩,
+        exact assume x ⟨_, hx⟩ y ⟨_, hy⟩, h x hx y hy
+      end,
+      ⟨m '' (t₁ ∩ t),
+        f.upwards_sets (inter_mem_sets h₁ htf) $ image_subset_iff_subset_preimage.mp $ subset.refl _,
+        m '' (t₂ ∩ t),
+        this,
+        g.upwards_sets (inter_mem_sets h₂ htg) $ image_subset_iff_subset_preimage.mp $ subset.refl _⟩)
   end)
+
+lemma map_inf {f g : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
+  map m (f ⊓ g) = map m f ⊓ map m g :=
+map_inf' univ_mem_sets univ_mem_sets (assume x _ y _, h x y)
 
 /- bind equations -/
 
@@ -726,6 +755,10 @@ lemma tendsto_inf {f : α → β} {x : filter α} {y₁ y₂ : filter β}
   (h₁ : tendsto f x y₁) (h₂ : tendsto f x y₂) : tendsto f x (y₁ ⊓ y₂) :=
 le_inf h₁ h₂
 
+lemma tendsto_inf_left {f : α → β} {x₁ x₂ : filter α} {y : filter β}
+  (h : tendsto f x₁ y) : tendsto f (x₁ ⊓ x₂) y :=
+le_trans (map_mono inf_le_left) h
+
 lemma tendsto_infi {f : α → β} {x : filter α} {y : ι → filter β}
   (h : ∀i, tendsto f x (y i)) : tendsto f x (⨅i, y i) :=
 le_infi h
@@ -733,6 +766,10 @@ le_infi h
 lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : ι)
   (h : tendsto f (x i) y) : tendsto f (⨅i, x i) y :=
 le_trans (map_mono $ infi_le _ _) h
+
+lemma tendsto_principal {f : α → β} {a : filter α} {s : set β}
+  (h : {a | f a ∈ s} ∈ a.sets) : tendsto f a (principal s) :=
+by simp [tendsto]; exact h
 
 lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β}
   (h : ∀a∈s, f a ∈ t) : tendsto f (principal s) (principal t) :=

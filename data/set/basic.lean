@@ -634,6 +634,10 @@ set.ext $ assume x, ⟨assume ⟨y, hy, y_eq⟩, h y_eq ▸ hy, assume hx, mem_i
 
 @[simp] theorem preimage_compl {s : set β} : f ⁻¹' (- s) = - (f ⁻¹' s) := rfl
 
+@[simp] theorem preimage_diff (f : α → β) (s t : set β) :
+  f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t :=
+rfl
+
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl
 
@@ -654,6 +658,31 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
   s = subtype.val ⁻¹' t ↔ (∀x (h : p x), (⟨x, h⟩ : subtype p) ∈ s ↔ x ∈ t) :=
 ⟨ assume s_eq x h, by rw [s_eq]; simp
 , assume h, set.ext $ assume ⟨x, hx⟩, by simp [h]⟩
+
+lemma image_subset_eq {f : α → β} {s : set α} {t : set β} :
+  (f '' s ⊆ t) = (s ⊆ f ⁻¹' t) :=
+propext ball_image_iff
+
+theorem image_preimage_subset (f : α → β) (s : set β) :
+  f '' (f ⁻¹' s) ⊆ s :=
+λ x h, let ⟨y, hx, heq⟩ := h in by rw [←heq]; exact hx
+
+theorem subset_preimage_image (s : set α) (f : α → β) :
+  s ⊆ f ⁻¹' (f '' s) :=
+λ x h, mem_image_of_mem f h
+
+theorem inter_preimage_subset (s : set α) (t : set β) (f : α → β) :
+  s ∩ f ⁻¹' t ⊆ f ⁻¹' (f '' s ∩ t) :=
+λ x h, ⟨mem_image_of_mem _ h.left, h.right⟩
+
+theorem union_preimage_subset (s : set α) (t : set β) (f : α → β) :
+  s ∪ f ⁻¹' t ⊆ f ⁻¹' (f '' s ∪ t) :=
+λ x h, or.elim h (λ l, or.inl $ mem_image_of_mem _ l) (λ r, or.inr r)
+
+theorem image_union_supset (f : α → β) (s : set α) (t : set β) :
+  f '' s ∪ t ⊇ f '' (s ∪ f ⁻¹' t) :=
+λ x h, let ⟨x, hx, heq⟩ := h in 
+or.elim hx (λ l, or.inl $ mem_image l heq) (λ r, or.inr $ by rw [←heq]; exact r)
 
 end preimage
 

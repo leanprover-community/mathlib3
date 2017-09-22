@@ -63,39 +63,6 @@ s.induction_on (by simp) $ assume a s ha ih,
 
 end ennreal
 
-section set
-variables {α : Type*} {s s₁ s₂ : set α}
-
-@[simp] lemma sdiff_empty : s \ ∅ = s :=
-set.ext $ by simp
-
-lemma sdiff_eq: s₁ \ s₂ = s₁ ∩ -s₂ := rfl
-
-lemma union_sdiff_left : (s₁ ∪ s₂) \ s₂ = s₁ \ s₂ :=
-set.ext $ assume x, by simp [iff_def] {contextual := tt}
-
-lemma union_sdiff_right : (s₂ ∪ s₁) \ s₂ = s₁ \ s₂ :=
-set.ext $ assume x, by simp [iff_def] {contextual := tt}
-
-section
-variables {p : Prop} {μ : p → set α}
-
-@[simp] lemma Inter_pos (hp : p) : (⋂h:p, μ h) = μ hp := infi_pos hp
-
-@[simp] lemma Inter_neg (hp : ¬ p) : (⋂h:p, μ h) = univ := infi_neg hp
-
-@[simp] lemma Union_pos (hp : p) : (⋃h:p, μ h) = μ hp := supr_pos hp
-
-@[simp] lemma Union_neg (hp : ¬ p) : (⋃h:p, μ h) = ∅ := supr_neg hp
-
-@[simp] lemma Union_empty {ι : Sort*} : (⋃i:ι, ∅:set α) = ∅ := supr_bot
-
-@[simp] lemma Inter_univ {ι : Sort*} : (⋂i:ι, univ:set α) = univ := infi_top
-
-end
-
-end set
-
 namespace measure_theory
 
 structure outer_measure (α : Type*) :=

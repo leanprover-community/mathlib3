@@ -518,20 +518,23 @@ ht.rec_on h d.has_empty (assume a _ h, d.has_compl h) (assume f hd _ hf, d.has_U
 end internal
 
 lemma generate_inter {s : set (set α)}
-  (hs : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ∈ s) {t₁ t₂ : set α}
+  (hs : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s) {t₁ t₂ : set α}
   (ht₁ : (generate s).has t₁) (ht₂ : (generate s).has t₂) : (generate s).has (t₁ ∩ t₂) :=
 have generate s ≤ (generate s).restrict_on ht₂,
   from generate_le _ $ assume s₁ hs₁,
   have (generate s).has s₁, from generate_has.basic s₁ hs₁,
   have generate s ≤ (generate s).restrict_on this,
-    from generate_le _ $ assume s₂ hs₂, show (generate s).has (s₂ ∩ s₁),
-      from generate_has.basic _ (hs _ _ hs₂ hs₁),
+    from generate_le _ $ assume s₂ hs₂,
+      show (generate s).has (s₂ ∩ s₁),
+        from by_cases
+          (assume : s₂ ∩ s₁ = ∅, by rw [this]; exact generate_has.empty _)
+          (assume : s₂ ∩ s₁ ≠ ∅, generate_has.basic _ (hs _ _ hs₂ hs₁ this)),
   have (generate s).has (t₂ ∩ s₁), from this _ ht₂,
   show (generate s).has (s₁ ∩ t₂), by rwa [inter_comm],
 this _ ht₁
 
 lemma generate_from_eq {s : set (set α)}
-  (hs : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ∈ s) :
+  (hs : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s) :
 generate_from s = (generate s).to_measurable_space (assume t₁ t₂, generate_inter hs) :=
 le_antisymm
   (generate_from_le $ assume t ht, generate_has.basic t ht)
@@ -543,7 +546,7 @@ end dynkin_system
 
 lemma induction_on_inter {C : set α → Prop} {s : set (set α)} {m : measurable_space α}
   (h_eq : m = generate_from s)
-  (h_inter : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ∈ s)
+  (h_inter : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s)
   (h_empty : C ∅) (h_basic : ∀t∈s, C t) (h_compl : ∀t, m.is_measurable t → C t → C (- t))
   (h_union : ∀f:ℕ → set α, (∀i j, i ≠ j → f i ∩ f j = ∅) →
     (∀i, m.is_measurable (f i)) → (∀i, C (f i)) → C (⋃i, f i)) :

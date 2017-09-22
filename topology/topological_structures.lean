@@ -17,18 +17,6 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 section complete_lattice
 variables [complete_lattice α]
 
-@[simp] lemma infi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
-le_antisymm (infi_le _ _) (le_infi $ assume h, le_refl _)
-
-@[simp] lemma infi_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨅ h : p, f h) = ⊤ :=
-le_antisymm le_top $ le_infi $ assume h, (hp h).elim
-
-@[simp] lemma supr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
-le_antisymm (supr_le $ assume h, le_refl _) (le_supr _ _)
-
-@[simp] lemma supr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
-le_antisymm (supr_le $ assume h, (hp h).elim) bot_le
-
 lemma binfi_inf {ι : Sort*} {p : ι → Prop}
   {f : Πi, p i → α} {a : α} {i : ι} (hi : p i) :
   (⨅i (h : p i), f i h) ⊓ a = (⨅ i (h : p i), f i h ⊓ a) :=

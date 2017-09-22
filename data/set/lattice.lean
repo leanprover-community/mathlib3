@@ -171,6 +171,7 @@ show (⨅x ∈ (∅ : set α), u x) = ⊤, -- simplifier should be able to rewri
 @[simp] theorem bInter_univ (u : α → set β) : (⋂ x ∈ @univ α, u x) = ⋂ x, u x :=
 infi_univ
 
+
 -- TODO(Jeremy): here is an artifact of the the encoding of bounded intersection:
 -- without dsimp, the next theorem fails to type check, because there is a lambda
 -- in a type that needs to be contracted. Using simp [eq_of_mem_singleton xa] also works.
@@ -362,6 +363,43 @@ by simp [insert_eq, union_sdiff_same]
 lemma compl_subset_compl_iff_subset {α : Type u} {x y : set α} : - y ⊆ - x ↔ x ⊆ y :=
 @neg_le_neg_iff_le (set α) _ _ _
 
+section sdiff
+
+variables {s s₁ s₂ : set α}
+
+@[simp] lemma sdiff_empty : s \ ∅ = s :=
+set.ext $ by simp
+
+lemma sdiff_eq: s₁ \ s₂ = s₁ ∩ -s₂ := rfl
+
+lemma union_sdiff_left : (s₁ ∪ s₂) \ s₂ = s₁ \ s₂ :=
+set.ext $ assume x, by simp [iff_def] {contextual := tt}
+
+lemma union_sdiff_right : (s₂ ∪ s₁) \ s₂ = s₁ \ s₂ :=
+set.ext $ assume x, by simp [iff_def] {contextual := tt}
+
+end sdiff
+
+section
+
+variables {p : Prop} {μ : p → set α}
+
+@[simp] lemma Inter_pos (hp : p) : (⋂h:p, μ h) = μ hp := infi_pos hp
+
+@[simp] lemma Inter_neg (hp : ¬ p) : (⋂h:p, μ h) = univ := infi_neg hp
+
+@[simp] lemma Union_pos (hp : p) : (⋃h:p, μ h) = μ hp := supr_pos hp
+
+@[simp] lemma Union_neg (hp : ¬ p) : (⋃h:p, μ h) = ∅ := supr_neg hp
+
+@[simp] lemma Union_empty {ι : Sort*} : (⋃i:ι, ∅:set α) = ∅ := supr_bot
+
+@[simp] lemma Inter_univ {ι : Sort*} : (⋂i:ι, univ:set α) = univ := infi_top
+
+end
+
+end set
+
 section image
 
 lemma image_Union {f : α → β} {s : ι → set α} : f '' (⋃ i, s i) = (⋃i, f '' s i) :=
@@ -433,5 +471,3 @@ theorem disjoint_bot_left {a : α} : disjoint ⊥ a := bot_inf_eq
 theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_bot_eq
 
 end disjoint
-
-end set

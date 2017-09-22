@@ -243,6 +243,19 @@ top_unique $ le_infi $ assume i, le_refl _
 @[simp] lemma supr_bot [complete_lattice α] : (⨆i:ι, ⊥ : α) = ⊥ :=
 bot_unique $ supr_le $ assume i, le_refl _
 
+@[simp] lemma infi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
+le_antisymm (infi_le _ _) (le_infi $ assume h, le_refl _)
+
+@[simp] lemma infi_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨅ h : p, f h) = ⊤ :=
+le_antisymm le_top $ le_infi $ assume h, (hp h).elim
+
+@[simp] lemma supr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
+le_antisymm (supr_le $ assume h, le_refl _) (le_supr _ _)
+
+@[simp] lemma supr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
+le_antisymm (supr_le $ assume h, (hp h).elim) bot_le
+
+
 -- TODO: should this be @[simp]?
 theorem infi_comm {f : ι → ι₂ → α} : (⨅i, ⨅j, f i j) = (⨅j, ⨅i, f i j) :=
 le_antisymm

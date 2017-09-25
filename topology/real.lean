@@ -901,6 +901,10 @@ have {r':ℝ | r < r'} ∩ of_rat '' univ ∈ (nhds (r + 1) ⊓ principal (of_ra
 let ⟨x, hx, ⟨q, hq, hxq⟩⟩ := inhabited_of_mem_sets dense_embedding_of_rat.nhds_inf_neq_bot this in
 ⟨q, hxq.symm ▸ hx⟩
 
+lemma exists_gt_of_rat (r : ℝ) : ∃q:ℚ, of_rat q < r :=
+let ⟨q, hq⟩ := exists_lt_of_rat (-r) in
+⟨-q, by rwa [←of_rat_neg, neg_lt]⟩
+
 lemma closure_of_rat_image_le_eq {q : ℚ} : closure (of_rat '' {x | q ≤ x}) = {r | of_rat q ≤ r } :=
 have {r : ℝ | of_rat q < r} ⊆ closure (of_rat '' {x : ℚ | q ≤ x}),
   from calc {r : ℝ | of_rat q < r} ⊆ {r : ℝ | of_rat q < r} ∩ closure (of_rat '' univ) :
@@ -1167,6 +1171,19 @@ instance : topological_ring ℝ :=
 instance : semiring ℝ := by apply_instance
 instance : topological_semiring ℝ :=
   @topological_ring.to_topological_semiring ℝ _ _ _
+
+lemma exists_lt_of_rat_of_rat_gt {r p : ℝ} (h : r < p) : ∃q, r < of_rat q ∧ of_rat q < p :=
+have h_dense : {x | r < x ∧ x < p} ≠ ∅,
+  from ne_empty_iff_exists_mem.mpr $ dense h,
+have {x | r < x ∧ x < p} ⊆ closure ({x | r < x ∧ x < p} ∩ of_rat '' univ),
+  from calc {x | r < x ∧ x < p} = {x | r < x ∧ x < p} ∩ closure (of_rat '' univ) :
+      by rw [dense_embedding_of_rat.closure_image_univ, inter_univ]
+    ... ⊆ closure ({x | r < x ∧ x < p} ∩ of_rat '' univ) :
+      closure_inter_open $ is_open_and (is_open_lt' _) (is_open_gt' _),
+have ({x | r < x ∧ x < p} ∩ of_rat '' univ) ≠ ∅,
+  by intro h; simp [h, subset_empty_iff, h_dense] at this; assumption,
+let ⟨r', ⟨h₁, h₂⟩, q, _, hq⟩ := ne_empty_iff_exists_mem.mp this in
+⟨q, hq.symm ▸ h₁, hq.symm ▸ h₂⟩
 
 lemma compact_ivl {a b : ℝ} : compact {r:ℝ | a ≤ r ∧ r ≤ b } :=
 have is_closed_ivl : ∀{a b : ℝ}, is_closed {r:ℝ | a ≤ r ∧ r ≤ b },

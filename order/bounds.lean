@@ -65,6 +65,18 @@ eq_of_is_greatest_of_is_greatest
 lemma is_glb_iff_eq_of_is_glb : is_glb s a₁ → (is_glb s a₂ ↔ a₁ = a₂) :=
 is_greatest_iff_eq_of_is_greatest
 
+lemma ne_empty_of_is_lub [no_bot_order α] (hs : is_lub s a) : s ≠ ∅ :=
+let ⟨a', ha'⟩ := no_bot a in
+assume h,
+have a ≤ a', from hs.right _ (by simp [upper_bounds, h]),
+lt_irrefl a $ lt_of_le_of_lt this ha'
+
+lemma ne_empty_of_is_glb [no_top_order α] (hs : is_glb s a) : s ≠ ∅ :=
+let ⟨a', ha'⟩ := no_top a in
+assume h,
+have a' ≤ a, from hs.right _ (by simp [lower_bounds, h]),
+lt_irrefl a $ lt_of_lt_of_le ha' this
+
 end partial_order
 
 section lattice

@@ -142,6 +142,19 @@ lemma measurable_mul [semiring α] [topological_semiring α] [second_countable_t
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
 measurable_of_continuous2 (topological_semiring.continuous_mul _)
 
+section ordered_topology
+variables [linear_order α] [topological_space α] [ordered_topology α] {a b c : α}
+
+lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_measurable_of_is_open is_open_Ioo
+
+lemma is_measurable_Iio : is_measurable (Iio a) := is_measurable_of_is_open is_open_Iio
+
+lemma is_measurable_Ico : is_measurable (Ico a b) :=
+is_measurable_inter (is_measurable_of_is_closed $ is_closed_le continuous_const continuous_id)
+  is_measurable_Iio
+
+end ordered_topology
+
 end
 
 end measure_theory

@@ -13,7 +13,8 @@ A major difference is that this formalization is heavily based on the filter lib
 import topology.topological_space
 noncomputable theory
 
-open set filter lattice
+open set filter lattice classical
+local attribute [instance] decidable_inhabited prop_decidable
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Sort x}
@@ -344,6 +345,33 @@ lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht: is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
+lemma prod_generate_from_generate_from_eq {s : set (set α)} {t : set (set β)}
+  (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
+  @prod.topological_space α β (generate_from s) (generate_from t) =
+  generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} :=
+let G := generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} in
+le_antisymm
+  (sup_le
+    (induced_le_iff_le_coinduced.mpr $ generate_from_le $ assume u hu,
+      have (⋃v∈t, set.prod u v) = prod.fst ⁻¹' u,
+        from calc (⋃v∈t, set.prod u v) = set.prod u univ:
+            set.ext $ assume ⟨a, b⟩, by rw [←ht]; simp {contextual:=tt}
+          ... = prod.fst ⁻¹' u : by simp [set.prod, preimage],
+      show G.is_open (prod.fst ⁻¹' u),
+        from this ▸ @is_open_Union _ _ G _ $ assume v, @is_open_Union _ _ G _ $ assume hv,
+          generate_open.basic _ ⟨_, hu, _, hv, rfl⟩)
+    (induced_le_iff_le_coinduced.mpr $ generate_from_le $ assume v hv,
+      have (⋃u∈s, set.prod u v) = prod.snd ⁻¹' v,
+        from calc (⋃u∈s, set.prod u v) = set.prod univ v:
+            set.ext $ assume ⟨a, b⟩, by rw [←hs]; by_cases b ∈ v; simp [h] {contextual:=tt}
+          ... = prod.snd ⁻¹' v : by simp [set.prod, preimage],
+      show G.is_open (prod.snd ⁻¹' v),
+        from this ▸ @is_open_Union _ _ G _ $ assume u, @is_open_Union _ _ G _ $ assume hu,
+          generate_open.basic _ ⟨_, hu, _, hv, rfl⟩))
+  (generate_from_le $ assume g ⟨u, hu, v, hv, g_eq⟩, g_eq.symm ▸
+    @is_open_prod _ _ (generate_from s) (generate_from t) _ _
+      (generate_open.basic _ hu) (generate_open.basic _ hv))
+
 lemma prod_eq_generate_from [tα : topological_space α] [tβ : topological_space β] :
   prod.topological_space =
   generate_from {g | ∃(s:set α) (t:set β), is_open s ∧ is_open t ∧ g = set.prod s t} :=
@@ -418,6 +446,17 @@ is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume 
 lemma is_closed_eq [topological_space α] [t2_space α] [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (continuous_prod_mk hf hg) _ is_closed_diagonal
+
+/- TODO: more fine grained instances for first_countable_topology, separable_space, t2_space, ... -/
+instance [second_countable_topology α] [second_countable_topology β] :
+  second_countable_topology (α × β) :=
+⟨let ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩ := is_open_generated_countable_inter α in
+  let ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩ := is_open_generated_countable_inter β in
+  ⟨{g | ∃u∈a, ∃v∈b, g = set.prod u v},
+    have {g | ∃u∈a, ∃v∈b, g = set.prod u v} = (⋃u∈a, ⋃v∈b, {set.prod u v}),
+      by apply set.ext; simp,
+    by rw [this]; exact (countable_bUnion ha₁ $ assume u hu, countable_bUnion hb₁ $ by simp),
+    by rw [ha₅, hb₅, prod_generate_from_generate_from_eq ha₄ hb₄]⟩⟩
 
 end prod
 

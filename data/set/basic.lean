@@ -678,6 +678,9 @@ eq_univ_of_univ_subset $ assume x _, h x
 
 @[simp] lemma range_id : range (@id α) = univ := range_of_surjective surjective_id
 
+lemma range_eq_image {ι : Type*} {f : ι → β} : range f = f '' univ :=
+set.ext $ by simp [image, range]
+
 lemma range_compose {g : α → β} : range (g ∘ f) = g '' range f :=
 subset.antisymm
   (forall_range_iff.mpr $ assume i, mem_image_of_mem g mem_range)

@@ -59,6 +59,14 @@ begin
 end,
 this _ _ h₁
 
+lemma disjointed_of_mono {f : ℕ → set α} {n : ℕ} (hf : monotone f) :
+  disjointed f (n + 1) = f (n + 1) \ f n :=
+have (⋂i (h : i < n + 1), -f i) = - f n,
+  from le_antisymm
+    (infi_le_of_le n $ infi_le_of_le (nat.lt_succ_self _) $ subset.refl _)
+    (le_infi $ assume i, le_infi $ assume hi, neg_le_neg $ hf $ nat.le_of_succ_le_succ hi),
+by simp [disjointed, this, sdiff_eq]
+
 end set
 
 open set
@@ -296,24 +304,23 @@ measurable_space_eq $ assume s, iff.refl _
 
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
 {measurable_space .
-  is_measurable       := λs, ∃s', m.is_measurable s' ∧ s = f ⁻¹' s',
+  is_measurable       := λs, ∃s', m.is_measurable s' ∧ f ⁻¹' s' = s,
   is_measurable_empty := ⟨∅, m.is_measurable_empty, rfl⟩,
-  is_measurable_compl := assume s ⟨s', h₁, h₂⟩, ⟨-s', m.is_measurable_compl _ h₁, h₂.symm ▸ rfl⟩,
+  is_measurable_compl := assume s ⟨s', h₁, h₂⟩, ⟨-s', m.is_measurable_compl _ h₁, h₂ ▸ rfl⟩,
   is_measurable_Union := assume s hs,
     let ⟨s', hs'⟩ := axiom_of_choice hs in
-    have ∀i, s i = f ⁻¹' s' i, from assume i, (hs' i).right,
+    have ∀i, f ⁻¹' s' i = s i, from assume i, (hs' i).right,
     ⟨⋃i, s' i, m.is_measurable_Union _ (λi, (hs' i).left), by simp [this] ⟩ }
 
 @[simp] lemma comap_id : m.comap id = m :=
-measurable_space_eq $ assume s, ⟨assume ⟨s', hs', h⟩, h.symm ▸ hs', assume h, ⟨s, h, rfl⟩⟩
+measurable_space_eq $ assume s, ⟨assume ⟨s', hs', h⟩, h ▸ hs', assume h, ⟨s, h, rfl⟩⟩
 
 @[simp] lemma comap_comp {f : β → α} {g : γ → β} : (m.comap f).comap g = m.comap (f ∘ g) :=
 measurable_space_eq $ assume s,
-  ⟨assume ⟨t, ⟨u, h, hu⟩, ht⟩, ⟨u, h, ht.symm ▸ hu.symm ▸ rfl⟩,
-    assume ⟨t, h, ht⟩, ⟨f ⁻¹' t, ⟨_, h, rfl⟩, ht⟩⟩
+  ⟨assume ⟨t, ⟨u, h, hu⟩, ht⟩, ⟨u, h, ht ▸ hu ▸ rfl⟩, assume ⟨t, h, ht⟩, ⟨f ⁻¹' t, ⟨_, h, rfl⟩, ht⟩⟩
 
 lemma comap_le_iff_le_map {f : α → β} : m'.comap f ≤ m ↔ m' ≤ m.map f :=
-⟨assume h s hs, h _ ⟨_, hs, rfl⟩, assume h s ⟨t, ht, heq⟩, heq.symm ▸ h _ ht⟩
+⟨assume h s hs, h _ ⟨_, hs, rfl⟩, assume h s ⟨t, ht, heq⟩, heq ▸ h _ ht⟩
 
 lemma gc_comap_map (f : α → β) :
   galois_connection (measurable_space.comap f) (measurable_space.map f) :=
@@ -338,6 +345,39 @@ lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).decreasing_l_u 
 lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).increasing_u_l _
 
 end functors
+
+lemma comap_generate_from {f : α → β} {s : set (set β)} :
+  (generate_from s).comap f = generate_from (preimage f '' s) :=
+le_antisymm
+  (assume u ⟨v, (hv : generate_measurable s v), eq⟩,
+  begin
+    rw [←eq], clear eq,
+    induction hv,
+    case generate_measurable.basic u hu { exact (generate_measurable.basic _ $ ⟨u, hu, rfl⟩) },
+    case generate_measurable.empty { simp [measurable_space.is_measurable_empty] },
+    case generate_measurable.compl u hu ih {
+      rw [preimage_compl],
+      exact measurable_space.is_measurable_compl _ _ ih },
+    case generate_measurable.union u hu ih {
+      rw [preimage_Union],
+      exact measurable_space.is_measurable_Union _ _ ih }
+  end)
+  (generate_from_le $ assume t ⟨u, hu, eq⟩, eq ▸ ⟨u, generate_measurable.basic _ hu, rfl⟩)
+
+lemma generate_from_le_generate_from {s t : set (set α)} (h : s ⊆ t) :
+  generate_from s ≤ generate_from t :=
+generate_from_le $ assume s hs, generate_measurable.basic s $ h hs
+
+lemma generate_from_sup_generate_from {s t : set (set α)} :
+  generate_from s ⊔ generate_from t = generate_from (s ∪ t) :=
+le_antisymm
+  (sup_le (generate_from_le_generate_from $ subset_union_left _ _)
+    (generate_from_le_generate_from $ subset_union_right _ _))
+  (generate_from_le $ assume u hu, hu.elim
+    (assume hu, have is_measurable (generate_from s) u, from generate_measurable.basic _ hu,
+      @le_sup_left (measurable_space α) _ _ _ _ this)
+    (assume hu, have is_measurable (generate_from t) u, from generate_measurable.basic _ hu,
+      @le_sup_right (measurable_space α) _ _ _ _ this))
 
 end measurable_space
 
@@ -367,11 +407,50 @@ instance : measurable_space bool := ⊤
 instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
 
+section subtype
+
 instance {p : α → Prop} [m : measurable_space α] : measurable_space (subtype p) :=
 m.comap subtype.val
 
+lemma measurable_subtype_val [measurable_space α] [measurable_space β] {p : β → Prop}
+  {f : α → subtype p} (hf : measurable f) : measurable (λa:α, (f a).val) :=
+measurable_comp hf $ measurable_space.comap_le_iff_le_map.mp $ le_refl _
+
+lemma measurable_subtype_mk [measurable_space α] [measurable_space β] {p : β → Prop}
+  {f : α → subtype p} (hf : measurable (λa, (f a).val)) : measurable f :=
+measurable_space.comap_le_iff_le_map.mpr $ by rw [measurable_space.map_comp]; exact hf
+
+end subtype
+
+section prod
+
 instance [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α × β) :=
 m₁.comap prod.fst ⊔ m₂.comap prod.snd
+
+lemma measurable_fst [measurable_space α] [measurable_space β] [measurable_space γ]
+  {f : α → β × γ} (hf : measurable f) : measurable (λa:α, (f a).1) :=
+measurable_comp hf $ measurable_space.comap_le_iff_le_map.mp $ le_sup_left
+
+lemma measurable_snd [measurable_space α] [measurable_space β] [measurable_space γ]
+  {f : α → β × γ} (hf : measurable f) : measurable (λa:α, (f a).2) :=
+measurable_comp hf $ measurable_space.comap_le_iff_le_map.mp $ le_sup_right
+
+lemma measurable_prod [measurable_space α] [measurable_space β] [measurable_space γ]
+  {f : α → β × γ} (hf₁ : measurable (λa, (f a).1)) (hf₂ : measurable (λa, (f a).2)) :
+  measurable f :=
+sup_le
+  (by rw [measurable_space.comap_le_iff_le_map, measurable_space.map_comp]; exact hf₁)
+  (by rw [measurable_space.comap_le_iff_le_map, measurable_space.map_comp]; exact hf₂)
+
+lemma measurable_prod_mk [measurable_space α] [measurable_space β] [measurable_space γ]
+  {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) : measurable (λa:α, (f a, g a)) :=
+measurable_prod hf hg
+
+lemma is_measurable_set_prod [measurable_space α] [measurable_space β] {s : set α} {t : set β}
+  (hs : is_measurable s) (ht : is_measurable t) : is_measurable (set.prod s t) :=
+is_measurable_inter (measurable_fst measurable_id _ hs) (measurable_snd measurable_id _ ht)
+
+end prod
 
 instance [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α ⊕ β) :=
 m₁.map sum.inl ⊓ m₂.map sum.inr

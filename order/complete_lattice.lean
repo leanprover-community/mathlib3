@@ -135,7 +135,6 @@ have Inf {b | b = a} = a,
 calc Inf (insert a s) = Inf {b | b = a} ⊓ Inf s : Inf_union
                   ... = a ⊓ Inf s : by rw [this]
 
-
 @[simp] theorem Sup_singleton {a : α} : Sup {a} = a :=
 by finish [singleton_def]
 --eq.trans Sup_insert $ by simp
@@ -146,6 +145,43 @@ by finish [singleton_def]
 
 end
 
+section complete_linear_order
+variables [complete_linear_order α] {s t : set α} {a b : α}
+
+lemma Inf_lt_iff : Inf s < b ↔ (∃a∈s, a < b) :=
+iff.intro
+  (assume : Inf s < b, classical.by_contradiction $ assume : ¬ (∃a∈s, a < b),
+    have b ≤ Inf s,
+      from le_Inf $ assume a ha, le_of_not_gt $ assume h, this ⟨a, ha, h⟩,
+    lt_irrefl b (lt_of_le_of_lt ‹b ≤ Inf s› ‹Inf s < b›))
+  (assume ⟨a, ha, h⟩, lt_of_le_of_lt (Inf_le ha) h)
+
+lemma lt_Sup_iff : b < Sup s ↔ (∃a∈s, b < a) :=
+iff.intro
+  (assume : b < Sup s, classical.by_contradiction $ assume : ¬ (∃a∈s, b < a),
+    have Sup s ≤ b,
+      from Sup_le $ assume a ha, le_of_not_gt $ assume h, this ⟨a, ha, h⟩,
+    lt_irrefl b (lt_of_lt_of_le ‹b < Sup s› ‹Sup s ≤ b›))
+  (assume ⟨a, ha, h⟩, lt_of_lt_of_le h $ le_Sup ha)
+
+lemma Sup_eq_top : Sup s = ⊤ ↔ (∀b<⊤, ∃a∈s, b < a) :=
+iff.intro
+  (assume (h : Sup s = ⊤) b hb, by rwa [←h, lt_Sup_iff] at hb)
+  (assume h, top_unique $ le_of_not_gt $ assume h',
+    let ⟨a, ha, h⟩ := h _ h' in
+    lt_irrefl a $ lt_of_le_of_lt (le_Sup ha) h)
+
+lemma lt_supr_iff {ι : Sort*} {f : ι → α} : a < supr f ↔ (∃i, a < f i) :=
+iff.trans lt_Sup_iff $ iff.intro
+  (assume ⟨a', ⟨i, rfl⟩, ha⟩, ⟨i, ha⟩)
+  (assume ⟨i, hi⟩, ⟨f i, ⟨i, rfl⟩, hi⟩)
+
+lemma infi_lt_iff {ι : Sort*} {f : ι → α} : infi f < a ↔ (∃i, f i < a) :=
+iff.trans Inf_lt_iff $ iff.intro
+  (assume ⟨a', ⟨i, rfl⟩, ha⟩, ⟨i, ha⟩)
+  (assume ⟨i, hi⟩, ⟨f i, ⟨i, rfl⟩, hi⟩)
+
+end complete_linear_order
 
 /- supr & infi -/
 
@@ -254,7 +290,6 @@ le_antisymm (supr_le $ assume h, le_refl _) (le_supr _ _)
 
 @[simp] lemma supr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
 le_antisymm (supr_le $ assume h, (hp h).elim) bot_le
-
 
 -- TODO: should this be @[simp]?
 theorem infi_comm {f : ι → ι₂ → α} : (⨅i, ⨅j, f i j) = (⨅j, ⨅i, f i j) :=

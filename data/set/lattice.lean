@@ -62,6 +62,9 @@ instance : distrib_lattice (set α) :=
       end
     end }
 
+lemma subset.antisymm_iff {α : Type*} {s t : set α} : s = t ↔ (s ⊆ t ∧ t ⊆ s) :=
+le_antisymm_iff
+
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
 
@@ -346,6 +349,12 @@ instance : complete_boolean_algebra (set α) :=
 theorem union_sdiff_same {a b : set α} : a ∪ (b \ a) = a ∪ b :=
 lattice.sup_sub_same
 
+theorem sdiff_union_same {a b : set α} : (b \ a) ∪ a = a ∪ b :=
+by rw [union_comm, union_sdiff_same]
+
+theorem sdiff_inter_same {a b : set α} : (b \ a) ∩ a = ∅ :=
+set.ext $ by simp [iff_def] {contextual:=tt}
+
 theorem sdiff_subset_sdiff {a b c d : set α} : a ⊆ c → d ⊆ b → a \ b ⊆ c \ d :=
 @lattice.sub_le_sub (set α) _ _ _ _ _
 
@@ -362,6 +371,9 @@ by simp [insert_eq, union_sdiff_same]
 
 lemma compl_subset_compl_iff_subset {α : Type u} {x y : set α} : - y ⊆ - x ↔ x ⊆ y :=
 @neg_le_neg_iff_le (set α) _ _ _
+
+lemma union_of_subset_right {a b : set α} (h : a ⊆ b) : a ∪ b = b :=
+sup_of_le_right h
 
 section sdiff
 

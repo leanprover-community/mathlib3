@@ -5,128 +5,117 @@ Authors: Johannes Hölzl
 
 Lebesgue measure on the real line
 -/
-import topology.outer_measure
+import topology.measure topology.borel_space
 noncomputable theory
+open classical set lattice filter
+open ennreal (of_real)
 
-namespace set
+section real
+open topological_space
 
-lemma subset.antisymm_iff {α : Type*} {s t : set α} : s = t ↔ (s ⊆ t ∧ t ⊆ s) :=
-le_antisymm_iff
-
-end set
-
-open set
-
-section decidable_linear_order
-variables {α : Type*} [decidable_linear_order α] {a b a₁ a₂ b₁ b₂ : α}
-
-def Ico (a b : α) := {x | a ≤ x ∧ x < b}
-def Iio (a : α) := {x | x < a}
-
-lemma Ico_eq_empty_iff : Ico a b = ∅ ↔ (b ≤ a) :=
-by rw [←not_lt_iff];
-from iff.intro
-  (assume eq h, have a ∈ Ico a b, from ⟨le_refl a, h⟩, by rwa [eq] at this)
-  (assume h, eq_empty_of_forall_not_mem $ assume x ⟨h₁, h₂⟩, h $ lt_of_le_of_lt h₁ h₂)
-
-@[simp] lemma Ico_eq_empty : b ≤ a → Ico a b = ∅ := Ico_eq_empty_iff.mpr
-
-lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) : Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ (a₂ ≤ a₁ ∧ b₁ ≤ b₂) :=
-iff.intro
-  (assume h,
-    have h' : a₁ ∈ Ico a₂ b₂, from h ⟨le_refl _, h₁⟩,
-    have ¬ b₂ < b₁, from assume : b₂ < b₁,
-      have b₂ ∈ Ico a₂ b₂, from h ⟨le_of_lt h'.right, this⟩,
-      lt_irrefl b₂ this.right,
-    ⟨h'.left, not_lt_iff.mp $ this⟩)
-  (assume ⟨h₁, h₂⟩ x ⟨hx₁, hx₂⟩, ⟨le_trans h₁ hx₁, lt_of_lt_of_le hx₂ h₂⟩)
-
-lemma Ico_eq_Ico_iff : Ico a₁ b₁ = Ico a₂ b₂ ↔ ((b₁ ≤ a₁ ∧ b₂ ≤ a₂) ∨ (a₁ = a₂ ∧ b₁ = b₂)) :=
+lemma inv_le_inv {α : Type*} [discrete_linear_ordered_field α] {a b : α} (hb : 0 < b) (h : b ≤ a) :
+  a⁻¹ ≤ b⁻¹ :=
 begin
-  by_cases a₁ < b₁ with h₁; by_cases a₂ < b₂ with h₂,
-  { rw [subset.antisymm_iff, Ico_subset_Ico_iff h₁, Ico_subset_Ico_iff h₂],
-    simp [iff_def, le_antisymm_iff, or_imp_distrib, not_le_of_gt h₁] {contextual := tt} },
-  { have h₂ : b₂ ≤ a₂, from not_lt_iff.mp h₂,
-    rw [Ico_eq_empty_iff.mpr h₂, Ico_eq_empty_iff],
-    simp [iff_def, h₂, or_imp_distrib] {contextual := tt} },
-  { have h₁ : b₁ ≤ a₁, from not_lt_iff.mp h₁,
-    rw [Ico_eq_empty_iff.mpr h₁, eq_comm, Ico_eq_empty_iff],
-    simp [iff_def, h₁, or_imp_distrib] {contextual := tt}, cc },
-  { have h₁ : b₁ ≤ a₁, from not_lt_iff.mp h₁,
-    have h₂ : b₂ ≤ a₂, from not_lt_iff.mp h₂,
-    rw [Ico_eq_empty_iff.mpr h₁, Ico_eq_empty_iff.mpr h₂],
-    simp [iff_def, h₁, h₂] {contextual := tt} }
+  rw [inv_eq_one_div, inv_eq_one_div],
+  exact one_div_le_one_div_of_le hb h
 end
 
-@[simp] lemma Ico_sdiff_Iio_eq {a b c : ℝ} : Ico a b \ Iio c = Ico (max a c) b :=
-set.ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
+lemma min_of_rat_of_rat {a b : ℚ} : min (of_rat a) (of_rat b) = of_rat (min a b) :=
+by by_cases a ≤ b; simp [h, min, of_rat_le_of_rat]
 
-@[simp] lemma Ico_inter_Iio_eq {a b c : ℝ} : Ico a b ∩ Iio c = Ico a (min b c) :=
-set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
+lemma max_of_rat_of_rat {a b : ℚ} : max (of_rat a) (of_rat b) = of_rat (max a b) :=
+by by_cases a ≤ b; simp [h, max, of_rat_le_of_rat]
 
-end decidable_linear_order
+lemma is_topological_basis_of_open_of_nhds {α : Type*} [topological_space α] {s : set (set α)}
+  (h_inter : ∀(u₁ u₂ : set α), u₁ ∈ s → u₂ ∈ s → u₁ ∩ u₂ ≠ ∅ → u₁ ∩ u₂ ∈ s)
+  (h_univ : ∀a:α, ∃u:set α, u ∈ s ∧ a ∈ u)
+  (h_open : ∀(u : set α), u ∈ s → is_open u)
+  (h_nhds : ∀(a:α) (u : set α), a ∈ u → is_open u → ∃v, v ∈ s ∧ a ∈ v ∧ v ⊆ u) :
+  is_topological_basis s :=
+have @is_topological_basis α (generate_from s) s,
+  from ⟨assume t₁ ht₁ t₂ ht₂, h_inter t₁ t₂ ht₁ ht₂,
+    eq_univ_of_forall $ assume a, by simpa using h_univ a, rfl⟩,
+⟨this.1, this.2.1,
+  le_antisymm
+    (assume u hu,
+      (@is_open_iff_nhds α (generate_from _) _).mpr $ assume a hau,
+        let ⟨v, hvs, hav, hvu⟩ := h_nhds a u hau hu in
+        by rw [nhds_generate_from]; exact (infi_le_of_le v $ infi_le_of_le ⟨hav, hvs⟩ $ by simp [hvu]))
+    (generate_from_le h_open)⟩
 
-open classical set lattice function filter
-open ennreal (of_real)
-local attribute [instance] decidable_inhabited prop_decidable
+lemma is_topological_basis_Ioo_of_rat_of_rat :
+  @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo (of_rat a) (of_rat b)}) :=
+is_topological_basis_of_open_of_nhds
+  (assume t₁ t₂ ht₁ ht₂ h,
+    have ∃a b, a < b ∧ t₁ = Ioo (of_rat a) (of_rat b), by simp at ht₁; simp [ht₁],
+    let ⟨a₁, b₁, hab₁, eq₁⟩ := this in
+    have ∃a b, a < b ∧ t₂ = Ioo (of_rat a) (of_rat b), by simp at ht₂; simp [ht₂],
+    let ⟨a₂, b₂, hab₂, eq₂⟩ := this in
+    have t₁₂ : t₁ ∩ t₂ = Ioo (of_rat $ max a₁ a₂) (of_rat $ min b₁ b₂),
+      by simp [eq₁, eq₂, Ioo_inter_Ioo, min_of_rat_of_rat, max_of_rat_of_rat],
+    have max a₁ a₂ < min b₁ b₂,
+      from have ∃a, a ∈ Ioo (of_rat $ max a₁ a₂) (of_rat $ min b₁ b₂),
+        from ne_empty_iff_exists_mem.mp $ by simp [t₁₂.symm, h],
+      let ⟨c, hc₁, hc₂⟩ := this in
+      have of_rat (max a₁ a₂) < of_rat (min b₁ b₂), from lt_trans hc₁ hc₂,
+      of_rat_lt_of_rat.mp this,
+    by simp [t₁₂]; exact ⟨max a₁ a₂, min b₁ b₂, this, rfl⟩)
+  (suffices ∀r, ∃(t : set ℝ), r ∈ t ∧ ∃a b, t = Ioo (of_rat a) (of_rat b) ∧ a < b,
+      by simpa,
+    assume r,
+    let ⟨a, ha⟩ := exists_gt_of_rat r, ⟨b, hb⟩ := exists_lt_of_rat r in
+    ⟨Ioo (of_rat a) (of_rat b), ⟨ha, hb⟩, a, b, rfl, of_rat_lt_of_rat.mp $ lt_trans ha hb⟩)
+  begin simp [is_open_Ioo] {contextual:=tt} end
+  (assume a v hav hv,
+    let
+      ⟨l, u, hl, hu, h⟩ := (mem_nhds_unbounded (no_top _) (no_bot _)).mp (mem_nhds_sets hv hav),
+      ⟨q, hlq, hqa⟩ := exists_lt_of_rat_of_rat_gt hl,
+      ⟨p, hap, hpu⟩ := exists_lt_of_rat_of_rat_gt hu
+    in
+    ⟨Ioo (of_rat q) (of_rat p),
+      begin simp; exact ⟨q, p, of_rat_lt_of_rat.mp $ lt_trans hqa hap, rfl⟩ end,
+      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h _ (lt_trans hlq hqa') (lt_trans ha'p hpu)⟩)
 
-section order_topology
-universes u v
-variables {α : Type u} {β : Type v} [topological_space α] [topological_space β]
-  [decidable_linear_order α] [decidable_linear_order β] [orderable_topology α] [orderable_topology β]
+instance : second_countable_topology ℝ :=
+⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo (of_rat a) (of_rat b)}),
+  by simp [countable_Union, countable_Union_Prop],
+  is_topological_basis_Ioo_of_rat_of_rat.2.2⟩⟩
 
-lemma nhds_principal_ne_top_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) :
-  nhds a ⊓ principal s ≠ ⊥ :=
-let ⟨a', ha'⟩ := exists_mem_of_ne_empty hs in
-forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
-  let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := mem_inf_sets.mp ht in
-  let ⟨hu, hl⟩ := mem_nhds_orderable_dest ht₁ in
-  by_cases
-    (assume h : a = a',
-      have a ∈ t₁, from mem_of_nhds ht₁,
-      have a ∈ t₂, from ht₂ $ by rwa [h],
-      ne_empty_iff_exists_mem.mpr ⟨a, ht ⟨‹a ∈ t₁›, ‹a ∈ t₂›⟩⟩)
-    (assume : a ≠ a',
-      have a' < a, from lt_of_le_of_ne (ha.left _ ‹a' ∈ s›) this.symm,
-      let ⟨l, hl, hlt₁⟩ := hl ⟨a', this⟩ in
-      have ∃a'∈s, l < a',
-        from classical.by_contradiction $ assume : ¬ ∃a'∈s, l < a',
-          have ∀a'∈s, a' ≤ l, from assume a ha, not_lt_iff.mp $ assume ha', this ⟨a, ha, ha'⟩,
-          have ¬ l < a, from not_lt_iff.mpr $ ha.right _ this,
-          this ‹l < a›,
-      let ⟨a', ha', ha'l⟩ := this in
-      have a' ∈ t₁, from hlt₁ _ ‹l < a'›  $ ha.left _ ha',
-      ne_empty_iff_exists_mem.mpr ⟨a', ht ⟨‹a' ∈ t₁›, ht₂ ‹a' ∈ s› ⟩⟩)
+open measure_theory measurable_space
 
-lemma is_lub_of_is_lub_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
-  (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) (ha : is_lub s a) (hs : s ≠ ∅)
-  (hb : tendsto f (nhds a ⊓ principal s) (nhds b)) : is_lub (f '' s) b :=
-have hnbot : (nhds a ⊓ principal s) ≠ ⊥, from nhds_principal_ne_top_of_is_lub ha hs,
-have ∀a'∈s, ¬ b < f a',
-  from assume a' ha' h,
-  have {x | x < f a'} ∈ (nhds b).sets, from mem_nhds_sets (is_open_gt' _) h,
-  let ⟨t₁, ht₁, t₂, ht₂, hs⟩ := mem_inf_sets.mp (hb this) in
-  by_cases
-    (assume h : a = a',
-      have a ∈ t₁ ∩ t₂, from ⟨mem_of_nhds ht₁, ht₂ $ by rwa [h]⟩,
-      have f a < f a', from hs this,
-      lt_irrefl (f a') $ by rwa [h] at this)
-    (assume h : a ≠ a',
-      have a' < a, from lt_of_le_of_ne (ha.left _ ha') h.symm,
-      have {x | a' < x} ∈ (nhds a).sets, from mem_nhds_sets (is_open_lt' _) this,
-      have {x | a' < x} ∩ t₁ ∈ (nhds a).sets, from inter_mem_sets this ht₁,
-      have ({x | a' < x} ∩ t₁) ∩ s ∈ (nhds a ⊓ principal s).sets,
-        from inter_mem_inf_sets this (subset.refl s),
-      let ⟨x, ⟨hx₁, hx₂⟩, hx₃⟩ := inhabited_of_mem_sets hnbot this in
-      have hxa' : f x < f a', from hs ⟨hx₂, ht₂ hx₃⟩,
-      have ha'x : f a' ≤ f x, from hf _ ha' _ hx₃ $ le_of_lt hx₁,
-      lt_irrefl _ (lt_of_le_of_lt ha'x hxa')),
-and.intro
-  (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt_iff.mp $ this _ ha')
-  (assume b' hb', le_of_tendsto hnbot hb tendsto_const_nhds $
-      mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
+lemma borel_eq_generate_from_Ioo_of_rat_of_rat :
+  measure_theory.borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo (of_rat a) (of_rat b)}) :=
+borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_of_rat_of_rat.2.2
 
-end order_topology
+lemma borel_eq_generate_from_Iio_of_rat :
+  measure_theory.borel ℝ = generate_from (⋃a, {Iio (of_rat a)}) :=
+let g := measurable_space.generate_from (⋃a, {Iio (of_rat a)} : set (set ℝ)) in
+have ∀a b, a < b → g.is_measurable (Ioo (of_rat a) (of_rat b)),
+  from assume a b h,
+  have hg : ∀q, g.is_measurable (Iio (of_rat q)),
+    from assume q, generate_measurable.basic _ $ by simp; exact ⟨_, rfl⟩,
+  have hgc : ∀q, g.is_measurable (- Iio (of_rat q)),
+    from assume q, g.is_measurable_compl _ $ hg q,
+  have (⋃c>a, - Iio (of_rat c)) ∩ Iio (of_rat b) = Ioo (of_rat a) (of_rat b),
+    from set.ext $ assume x,
+    have h₁ : x < of_rat b → ∀p, of_rat p ≤ x → p > a → of_rat a < x,
+      from assume hxb p hpx hpa, lt_of_lt_of_le (of_rat_lt_of_rat.mpr hpa) hpx,
+    have h₂ : x < of_rat b → of_rat a < x → (∃ (i : ℚ), of_rat i ≤ x ∧ i > a),
+      from assume hxb hax,
+      let ⟨c, hac, hcx⟩ := exists_lt_of_rat_of_rat_gt hax in
+      ⟨c, le_of_lt hcx, of_rat_lt_of_rat.mp hac⟩,
+    by simp [iff_def, Iio, Ioo] {contextual := tt}; exact ⟨h₁, h₂⟩,
+  this ▸ @is_measurable_inter _ g _ _
+    (@is_measurable_bUnion _ _ g _ _ countable_encodable $ assume b hb, hgc b)
+    (hg b),
+le_antisymm
+  (borel_eq_generate_from_Ioo_of_rat_of_rat.symm ▸ generate_from_le
+    (by simp [this] {contextual:=tt}))
+  (generate_from_le $ assume t,
+    have ∀r:ℝ, is_measurable (Iio r), from assume r, generate_measurable.basic _ $ is_open_gt' _,
+    by simp {contextual:=tt}; exact assume h _, this _)
+
+end real
 
 namespace measure_theory
 
@@ -234,7 +223,7 @@ calc lebesgue_length (Ico a b) ≤ s b : by simp [hab]; exact hbM.right.right
     lebesgue_length_Ico_le_lebesgue_length_Ico (le_refl _) (min_le_left _ _)
 
 def lebesgue_outer : outer_measure ℝ :=
-outer_measure.inf lebesgue_length lebesgue_length_empty
+outer_measure.of_function lebesgue_length lebesgue_length_empty
 
 lemma lebesgue_outer_Ico {a b : ℝ} (h : a ≤ b) :
   lebesgue_outer.measure_of (Ico a b) = of_real (b - a) :=
@@ -264,8 +253,8 @@ le_antisymm
         ... ≤ (∑i, lebesgue_length (f i)) : ennreal.le_tsum))
 
 lemma lebesgue_outer_is_measurable_Iio {c : ℝ} :
-  lebesgue_outer.space.is_measurable (Iio c) :=
-outer_measure.inf_space_is_measurable $ assume t, by_cases
+  lebesgue_outer.caratheodory.is_measurable (Iio c) :=
+outer_measure.caratheodory_is_measurable $ assume t, by_cases
   (assume : ∃a b, a ≤ b ∧ t = Ico a b,
     let ⟨a, b, hab, ht⟩ := this in
     begin
@@ -282,5 +271,111 @@ outer_measure.inf_space_is_measurable $ assume t, by_cases
     end)
   (assume h, by simp at h; from le_lebesgue_length h)
 
-end measure_theory
+/-- Lebesgue measure on the Borel sets
 
+The outer Lebesgue measure is the completion of this measure. (TODO: proof this)
+-/
+def lebesgue : measure_space ℝ :=
+lebesgue_outer.to_measure $
+  calc measure_theory.borel ℝ = measurable_space.generate_from (⋃a, {Iio (of_rat a)}) :
+      borel_eq_generate_from_Iio_of_rat
+    ... ≤ lebesgue_outer.caratheodory :
+      measurable_space.generate_from_le $ by simp [lebesgue_outer_is_measurable_Iio] {contextual := tt}
+
+lemma tendsto_of_nat_at_top_at_top : tendsto (of_nat : ℕ → ℝ) at_top at_top :=
+tendsto_infi $ assume r, tendsto_principal $
+  let ⟨q, hq⟩ := exists_lt_of_rat r in
+  show {n : ℕ | r ≤ of_nat n} ∈ at_top.sets,
+    from mem_at_top_iff.mpr ⟨rat.nat_ceil q, assume b (hb : rat.nat_ceil q ≤ b),
+      calc r ≤ of_rat q : le_of_lt hq
+        ... ≤ of_rat (rat.nat_ceil q) : of_rat_le_of_rat.mpr (rat.le_nat_ceil q)
+        ... = of_nat (rat.nat_ceil q) : by rw [rat_coe_eq_of_nat, real_of_rat_of_nat_eq_of_nat]
+        ... ≤ of_nat b : of_nat_le_of_nat hb⟩
+
+lemma lebesgue_Ico {a b : ℝ} : lebesgue.measure (Ico a b) = of_real (b - a) :=
+match le_total a b with
+| or.inl h :=
+  begin
+    rw [lebesgue.measure_eq is_measurable_Ico],
+    { exact lebesgue_outer_Ico h },
+    repeat {apply_instance}
+  end
+| or.inr h :=
+  have hba : b - a ≤ 0, by simp [-sub_eq_add_neg, h],
+  have eq : Ico a b = ∅, from Ico_eq_empty_iff.mpr h,
+  by simp [ennreal.of_real_of_nonpos, *] at *
+end
+
+lemma lebesgue_Ioo {a b : ℝ} : lebesgue.measure (Ioo a b) = of_real (b - a) :=
+by_cases (assume h : b ≤ a, by simp [h, -sub_eq_add_neg, ennreal.of_real_of_nonpos]) $
+assume : ¬ b ≤ a,
+have h : a < b, from not_le_iff.mp this,
+let s := λn:ℕ, a + (b - a) * (of_nat (n + 1))⁻¹ in
+have tendsto s at_top (nhds (a + (b - a) * 0)),
+  from tendsto_add tendsto_const_nhds $ tendsto_mul tendsto_const_nhds $ tendsto_compose
+   (tendsto_comp_succ_at_top_iff.mpr tendsto_of_nat_at_top_at_top) tendsto_inverse_at_top_nhds_0,
+have hs : tendsto s at_top (nhds a), by simpa,
+have hsm : ∀i j, j ≤ i → s i ≤ s j,
+  from assume i j hij,
+  have h₁ : ∀j:ℕ, (0:ℝ) < of_nat (j + 1),
+    from assume j, of_nat_pos $ add_pos_of_nonneg_of_pos (nat.zero_le j) zero_lt_one,
+  have h₂ : of_nat (j + 1) ≤ (of_nat (i + 1) : ℝ), from of_nat_le_of_nat $ add_le_add hij (le_refl _),
+  add_le_add (le_refl _) $ mul_le_mul (le_refl _) (inv_le_inv (h₁ j) h₂) (le_of_lt $ inv_pos $ h₁ i) $
+    by simp [le_sub_iff_add_le, -sub_eq_add_neg, le_of_lt h],
+have has : ∀i, a < s i,
+  from assume i,
+  have (0:ℝ) < of_nat (i + 1), from of_nat_pos $ lt_add_of_le_of_pos (nat.zero_le _) zero_lt_one,
+  (lt_add_iff_pos_right _).mpr $ mul_pos
+    (by simp [-sub_eq_add_neg, sub_lt_iff, (>), ‹a < b›]) (inv_pos this),
+have eq₁ : Ioo a b = (⋃n, Ico (s n) b),
+  from set.ext $ assume x,
+  begin
+    simp [iff_def, Ico, Ioo, -sub_eq_add_neg] {contextual := tt},
+    constructor,
+    exact assume hxb i hsx, lt_of_lt_of_le (has i) hsx,
+    exact assume hax hxb,
+      have {a | a < x } ∈ (nhds a).sets, from mem_nhds_sets (is_open_gt' _) hax,
+      have {n | s n < x} ∈ at_top.sets, from hs this,
+      let ⟨n, hn⟩ := inhabited_of_mem_sets at_top_ne_bot this in
+      ⟨n, le_of_lt hn⟩
+  end,
+have (⨆i, of_real (b - s i)) = of_real (b - a),
+  from is_lub_iff_supr_eq.mp $ is_lub_of_mem_nhds
+    (assume x ⟨i, eq⟩, eq ▸ ennreal.of_real_le_of_real $ sub_le_sub (le_refl _) $ le_of_lt $ has _)
+    begin
+      show range (λi, of_real (b - s i)) ∈ (at_top.map (λi, of_real (b - s i))).sets,
+      rw [range_eq_image]; exact image_mem_map univ_mem_sets
+    end
+    begin
+      have : tendsto (λi, of_real (b - s i)) at_top (nhds (of_real (b - a))),
+        from tendsto_compose (tendsto_sub tendsto_const_nhds hs) ennreal.tendsto_of_real,
+      rw [inf_of_le_left this],
+      exact map_ne_bot at_top_ne_bot
+    end,
+have eq₂ : (⨆i, lebesgue.measure (Ico (s i) b)) = of_real (b - a),
+  by simp only [lebesgue_Ico, this],
+begin
+  rw [eq₁, measure_Union_eq_supr_nat, eq₂],
+  show ∀i, is_measurable (Ico (s i) b), from assume i, is_measurable_Ico,
+  show monotone (λi, Ico (s i) b),
+    from assume i j hij x hx, ⟨le_trans (hsm _ _ hij) hx.1, hx.2⟩
+end
+
+lemma lebesgue_singleton {a : ℝ} : lebesgue.measure {a} = 0 :=
+have Ico a (a + 1) \ Ioo a (a + 1) = {a},
+  from set.ext $ assume a',
+  begin
+    simp [iff_def, Ico, Ioo, lt_irrefl, le_refl, zero_lt_one,
+      le_iff_eq_or_lt, or_imp_distrib] {contextual := tt},
+    exact assume h₁ h₂,
+      ⟨assume eq, by rw [eq] at h₂; exact (lt_irrefl _ h₂).elim,
+      assume h₃, (lt_irrefl a' $ lt_trans h₂ h₃).elim⟩
+  end,
+calc lebesgue.measure {a} = lebesgue.measure (Ico a (a + 1) \ Ioo a (a + 1)) :
+    congr_arg _ this.symm
+  ... = lebesgue.measure (Ico a (a + 1)) - lebesgue.measure (Ioo a (a + 1)) :
+    measure_sdiff (assume x, and.imp le_of_lt id) is_measurable_Ico is_measurable_Ioo $
+      by simp [lebesgue_Ico]; exact ennreal.of_real_lt_infty
+  ... = 0 : by simp [lebesgue_Ico, lebesgue_Ioo]
+
+end measure_theory

@@ -770,6 +770,12 @@ le_antisymm
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ h x)
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ (h x).symm)
 
+lemma induced_le_iff_le_coinduced {f : α → β } {tα : topological_space α} {tβ : topological_space β} :
+  tβ.induced f ≤ tα ↔ tβ ≤ tα.coinduced f :=
+iff.intro
+  (assume h s hs, show tα.is_open (f ⁻¹' s), from h _ ⟨s, hs, rfl⟩)
+  (assume h s ⟨t, ht, hst⟩, hst.symm ▸ h _ ht)
+
 instance : topological_space empty := ⊤
 instance : topological_space unit := ⊤
 instance : topological_space bool := ⊤
@@ -852,8 +858,46 @@ namespace topological_space
 For our applications we are interested that there exists a countable basis, but we do not need the
 concrete basis itself. This allows us to declare these type classes as `Prop` to use them as mixins.
 -/
-variables (α : Type u) [t : topological_space α]
+variables {α : Type u} [t : topological_space α]
 include t
+
+def is_topological_basis (s : set (set α)) : Prop :=
+(∀t₁∈s, ∀t₂∈s, t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s) ∧
+(⋃₀ s) = univ ∧
+t = generate_from s
+
+lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
+  is_topological_basis ((λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f ≠ ∅}) :=
+let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f ≠ ∅} in
+⟨assume s₁ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, eq₁⟩ s₂ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, eq₂⟩,
+    have ⋂₀(t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂, from Inf_union,
+    eq₁ ▸ eq₂ ▸ assume h,
+      ⟨t₁ ∪ t₂, ⟨finite_union hft₁ hft₂, union_subset ht₁b ht₂b, by simpa [this]⟩, this⟩,
+  eq_univ_of_forall $ assume a, ⟨univ, ⟨∅, by simp; exact (@empty_ne_univ _ ⟨a⟩).symm⟩, mem_univ _⟩,
+ have generate_from s = generate_from b',
+    from le_antisymm
+      (generate_from_le $ assume s hs,
+        by_cases
+          (assume : s = ∅, by rw [this]; apply @is_open_empty _ _)
+          (assume : s ≠ ∅, generate_open.basic _ ⟨{s}, by simp [this, hs]⟩))
+      (generate_from_le $ assume u ⟨t, ⟨hft, htb, ne⟩, eq⟩,
+        eq ▸ @is_open_sInter _ (generate_from s) _ hft (assume s hs, generate_open.basic _ $ htb hs)),
+  this ▸ hs⟩
+
+lemma mem_nhds_of_is_topological_basis [topological_space α] {a : α} {s : set α} {b : set (set α)}
+  (hb : is_topological_basis b) (hs : s ∈ (nhds a).sets) : ∃t∈b, a ∈ t ∧ t ⊆ s :=
+begin
+  rw [hb.2.2, nhds_generate_from, infi_sets_eq'] at hs,
+  { simpa using hs },
+  { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
+      have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
+      ⟨s ∩ t, ⟨this, hb.1 _ hs₂ _ ht₂ $ ne_empty_of_mem this⟩,
+        by simp [inter_subset_left, inter_subset_right]⟩ },
+  { suffices : a ∈ (⋃₀ b), { simpa },
+    { rw [hb.2.1], trivial } }
+end
+
+variables (α)
 
 class separable_space : Prop :=
 (exists_countable_closure_eq_univ : ∃s:set α, countable s ∧ closure s = univ)
@@ -870,54 +914,35 @@ let ⟨b, hb, eq⟩ := second_countable_topology.is_open_generated_countable α 
 ⟨assume a, ⟨{s | a ∈ s ∧ s ∈ b},
   countable_subset (assume x ⟨_, hx⟩, hx) hb, by rw [eq, nhds_generate_from]⟩⟩
 
-variables {α}
-
 lemma is_open_generated_countable_inter [second_countable_topology α] :
-  ∃b:set (set α),
-    countable b ∧
-    ∅ ∉ b ∧
-    (∀a:α, ∃t∈b, a ∈ t) ∧
-    (∀s₁∈b, ∀s₂∈b, s₁ ∩ s₂ ≠ ∅ → s₁ ∩ s₂ ∈ b) ∧
-    t = topological_space.generate_from b :=
+  ∃b:set (set α), countable b ∧ ∅ ∉ b ∧ is_topological_basis b :=
 let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
 let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ ⋂₀ s ≠ ∅} in
 ⟨b',
   countable_image $ countable_subset (by simp {contextual:=tt}) (countable_set_of_finite_subset hb₁),
   assume ⟨s, ⟨_, _, hn⟩, hp⟩, hn hp,
-  assume a, ⟨univ, ⟨∅, by simp; exact (@empty_ne_univ _ ⟨a⟩).symm⟩, mem_univ _⟩,
-  assume s₁ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, eq₁⟩ s₂ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, eq₂⟩,
-    have ⋂₀(t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂, from Inf_union,
-    eq₁ ▸ eq₂ ▸ assume h,
-      ⟨t₁ ∪ t₂, ⟨finite_union hft₁ hft₂, union_subset ht₁b ht₂b, by simpa [this]⟩, this⟩,
-  have generate_from b = generate_from b',
-    from le_antisymm
-      (generate_from_le $ assume s hs,
-        by_cases
-          (assume : s = ∅, by rw [this]; apply @is_open_empty _ _)
-          (assume : s ≠ ∅, generate_open.basic _ ⟨{s}, by simp [this, hs]⟩))
-      (generate_from_le $ assume s ⟨t, ⟨hft, htb, ne⟩, eq⟩,
-        eq ▸ @is_open_sInter _ (generate_from b) _ hft (assume s hs, generate_open.basic _ $ htb hs)),
-  this ▸ hb₂⟩
+  is_topological_basis_of_subbasis hb₂⟩
 
 instance second_countable_topology.to_separable_space
   [second_countable_topology α] : separable_space α :=
-let ⟨b, hb₁, hb₂, hb₃, hb₄, eq⟩ := @is_open_generated_countable_inter α _ _ in
+let ⟨b, hb₁, hb₂, hb₃, hb₄, eq⟩ := is_open_generated_countable_inter α in
 have nhds_eq : ∀a, nhds a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, principal s.val),
   by intro a; rw [eq, nhds_generate_from]; simp [infi_subtype],
 have ∀s∈b, ∃a, a ∈ s, from assume s hs, exists_mem_of_ne_empty $ assume eq, hb₂ $ eq ▸ hs,
 have ∃f:∀s∈b, α, ∀s h, f s h ∈ s, by simp only [skolem] at this; exact this,
 let ⟨f, hf⟩ := this in
 ⟨⟨(⋃s∈b, ⋃h:s∈b, {f s h}),
-  countable_Union hb₁ (assume s, by by_cases s ∈ b; simp [Union_pos, h]),
+  countable_bUnion hb₁ (by simp [countable_Union_Prop]),
   set.ext $ assume a,
-  let ⟨t, ht₁, ht₂⟩ := hb₃ a in
+  have a ∈ (⋃₀ b), by rw [hb₄]; exact trivial,
+  let ⟨t, ht₁, ht₂⟩ := this in
   have w : {s : set α // a ∈ s ∧ s ∈ b}, from ⟨t, ht₂, ht₁⟩,
   suffices (⨅ (x : {s // a ∈ s ∧ s ∈ b}), principal (x.val ∩ ⋃s (h₁ h₂ : s ∈ b), {f s h₂})) ≠ ⊥,
     by simpa [closure_eq_nhds, nhds_eq, infi_inf w],
   infi_neq_bot_of_directed ⟨a⟩
     (assume ⟨s₁, has₁, hs₁⟩ ⟨s₂, has₂, hs₂⟩,
       have a ∈ s₁ ∩ s₂, from ⟨has₁, has₂⟩,
-      ⟨⟨s₁ ∩ s₂, this, hb₄ _ hs₁ _ hs₂ $ ne_empty_of_mem this⟩, by simp [subset_def] {contextual := tt}⟩)
+      ⟨⟨s₁ ∩ s₂, this, hb₃ _ hs₁ _ hs₂ $ ne_empty_of_mem this⟩, by simp [subset_def] {contextual := tt}⟩)
     (assume ⟨s, has, hs⟩,
       have s ∩ (⋃ (s : set α) (H h : s ∈ b), {f s h}) ≠ ∅,
         from ne_empty_of_mem ⟨hf _ hs, mem_bUnion hs $ (mem_Union_eq _ _).mpr ⟨hs, by simp⟩⟩,

@@ -67,6 +67,9 @@ instance linear_ordered_field.to_no_bot_order [linear_ordered_field α] : no_bot
 lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
 by rw [inv_eq_one_div]; exact div_pos_of_pos_of_pos zero_lt_one
 
+lemma inv_lt_one {a : α} (ha : 1 < a) : a⁻¹ < 1 :=
+by rw [inv_eq_one_div]; exact div_lt_of_mul_lt_of_pos (lt_trans zero_lt_one ha) (by simp *)
+
 end
 
 section

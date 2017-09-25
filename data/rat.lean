@@ -6,9 +6,27 @@ Authors: Johannes Hölzl
 Introduces the rational numbers as discrete, linear ordered field.
 -/
 
-import data.nat.gcd data.pnat data.int.basic order.basic pending
-       algebra.ordered_group algebra.order
-      
+import
+  data.nat.gcd data.pnat data.int.basic data.encodable order.basic
+  algebra.ordered_group algebra.order
+  pending
+
+instance int.encodable : encodable ℤ :=
+⟨λz, match z with
+  | int.of_nat p := encodable.encode (@sum.inl ℕ ℕ p)
+  | int.neg_succ_of_nat n := encodable.encode (@sum.inr ℕ ℕ n)
+  end,
+  λn, match encodable.decode (ℕ ⊕ ℕ) n with
+  | option.some (sum.inl p) := int.of_nat p
+  | option.some (sum.inr n) := int.neg_succ_of_nat n
+  | option.none := none
+  end,
+  λz,
+  match z with
+  | int.of_nat p := by simp [int.encodable._match_1, encodable.encodek]; refl
+  | int.neg_succ_of_nat n := by simp [int.encodable._match_1, encodable.encodek]; refl
+  end⟩
+
 
 /- linorder -/
 
@@ -635,7 +653,7 @@ show (ceil (n:ℤ)).to_nat = n, by rw [ceil_coe]; refl
 @[simp] theorem nat_ceil_zero : nat_ceil 0 = 0 := nat_ceil_coe 0
 
 theorem nat_ceil_add_nat {q : ℚ} (hq : 0 ≤ q) (n : ℕ) : nat_ceil (q + n) = nat_ceil q + n :=
-show int.to_nat (ceil (q + (n:ℤ))) = int.to_nat (ceil q) + n, 
+show int.to_nat (ceil (q + (n:ℤ))) = int.to_nat (ceil q) + n,
 by rw [ceil_add_int]; exact
 match ceil q, int.eq_coe_of_zero_le (ceil_mono hq) with
 | _, ⟨m, rfl⟩ := rfl
@@ -644,5 +662,15 @@ end
 theorem nat_ceil_lt_add_one {q : ℚ} (hq : q ≥ 0) : ↑(nat_ceil q) < q + 1 :=
 lt_nat_ceil.1 $ by rw [
   show nat_ceil (q+1) = nat_ceil q+1, from nat_ceil_add_nat hq 1]; apply nat.lt_succ_self
+
+instance : encodable ℚ :=
+⟨λ⟨n, d, _, _⟩, encodable.encode (n, d),
+  λn, match encodable.decode (ℤ × ℕ) n with
+  | option.some ⟨n, d⟩ :=
+    if h : d > 0 ∧ n.nat_abs.coprime d then option.some ⟨n, d, h.1, h.2⟩ else option.none
+  | option.none := option.none
+  end,
+  assume ⟨n, d, hn, hd⟩,
+  by simp [encodable._match_1, encodable._match_2, encodable.encodek, hn, hd]⟩
 
 end rat

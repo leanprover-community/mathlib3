@@ -102,16 +102,25 @@ by_cases
         ⟨nat.mkpair i j, by simp [function.comp, nat.unpair_mkpair, hi, hj]⟩⟩)
   (assume : ¬ nonempty α, ⟨λ_, 0, assume a, (this ⟨a⟩).elim⟩)
 
-lemma countable_Union {s : set α} {t : α → set β} (hs : countable s) (ht : ∀a∈s, countable (t a)) :
+lemma countable_bUnion {s : set α} {t : α → set β} (hs : countable s) (ht : ∀a∈s, countable (t a)) :
   countable (⋃a∈s, t a) :=
 have ⋃₀ (t '' s) = (⋃a∈s, t a), from lattice.Sup_image,
 by rw [←this];
 from (countable_sUnion (countable_image hs) $ assume a ⟨s', hs', eq⟩, eq ▸ ht s' hs')
 
+lemma countable_Union {t : α → set β} [encodable α] (ht : ∀a, countable (t a)) :
+  countable (⋃a, t a) :=
+suffices countable (⋃a∈(univ : set α), t a), by simpa,
+countable_bUnion countable_encodable (assume a _, ht a)
+
+lemma countable_Union_Prop {p : Prop} {t : p → set β} (ht : ∀h:p, countable (t h)) :
+  countable (⋃h:p, t h) :=
+by by_cases p; simp [h, ht]
+
 lemma countable_union {s₁ s₂ : set α} (h₁ : countable s₁) (h₂ : countable s₂) : countable (s₁ ∪ s₂) :=
 have s₁ ∪ s₂ = (⨆b ∈ ({tt, ff} : set bool), bool.cases_on b s₁ s₂),
   by simp [lattice.supr_or, lattice.supr_sup_eq]; refl,
-by rw [this]; from countable_Union countable_encodable (assume b,
+by rw [this]; from countable_bUnion countable_encodable (assume b,
   match b with
   | tt := by simp [h₂]
   | ff := by simp [h₁]

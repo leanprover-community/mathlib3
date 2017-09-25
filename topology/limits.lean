@@ -88,6 +88,10 @@ lemma zero_le_of_nat : ∀{n}, 0 ≤ (of_nat n : α)
 | 0       := le_refl 0
 | (n + 1) := le_add_of_le_of_nonneg zero_le_of_nat (zero_le_one)
 
+lemma of_nat_pos : ∀{n}, 0 < n → 0 < (of_nat n : α)
+| 0       h := (lt_irrefl 0 h).elim
+| (n + 1) h := by simp; exact lt_add_of_le_of_pos zero_le_of_nat zero_lt_one
+
 lemma of_nat_le_of_nat {n m : ℕ} (h : n ≤ m) : of_nat n ≤ (of_nat m : α) :=
 let ⟨k, hk⟩ := nat.le.dest h in
 by simp [zero_le_of_nat, hk.symm]

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Finite sets -- assuming a classical logic.
 -/
-import data.set.lattice data.nat.basic
+import data.set.lattice data.set.prod data.nat.basic
 noncomputable theory
 
 universes u v w
@@ -77,5 +77,16 @@ lemma finite_le_nat : ∀{n:ℕ}, finite {i | i ≤ n}
   have insert (n + 1) {i | i ≤ n} = {i | i ≤ n + 1},
     from set.ext $ by simp [nat.le_add_one_iff],
   this ▸ finite_insert finite_le_nat
+
+lemma finite_prod {s : set α} {t : set β} (hs : finite s) (ht : finite t) :
+  finite (set.prod s t) :=
+begin
+  induction hs,
+  case finite.empty { simp },
+  case finite.insert a s has hs ih {
+    rw [set.insert_prod],
+    exact finite_union (finite_image ht) ih
+  }
+end
 
 end set

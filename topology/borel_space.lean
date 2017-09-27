@@ -79,7 +79,7 @@ calc @measure_theory.borel α (t.induced f) =
   ... = (@measure_theory.borel β t).comap f : comap_generate_from.symm
 
 section
-variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
+variables [topological_space α]
 
 lemma is_measurable_of_is_open : is_open s → is_measurable s := generate_measurable.basic s
 
@@ -93,10 +93,10 @@ is_measurable_compl $ is_measurable_of_is_open $ is_open_compl_iff.mpr h
 lemma is_measurable_closure : is_measurable (closure s) :=
 is_measurable_of_is_closed is_closed_closure
 
-lemma measurable_of_continuous {f : α → β} (h : continuous f) : measurable f :=
+lemma measurable_of_continuous [topological_space β] {f : α → β} (h : continuous f) : measurable f :=
 measurable_generate_from $ assume t ht, is_measurable_of_is_open $ h t ht
 
-lemma borel_prod [second_countable_topology α] [second_countable_topology β] :
+lemma borel_prod [second_countable_topology α] [topological_space β] [second_countable_topology β] :
   prod.measurable_space = measure_theory.borel (α × β) :=
 let ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩ := @is_open_generated_countable_inter α _ _ in
 let ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩ := @is_open_generated_countable_inter β _ _ in
@@ -114,11 +114,13 @@ le_antisymm
       eq.symm ▸ is_measurable_set_prod (is_measurable_of_is_open hu) (is_measurable_of_is_open hv))
   end
 
-lemma measurable_of_continuous2 [second_countable_topology β] [second_countable_topology γ]
-  {f : α → β} {g : α → γ} {c : β → γ → δ}
-  (h : continuous (λp:β×γ, c p.1 p.2)) (hf : measurable f) (hg : measurable g) :
+lemma measurable_of_continuous2
+  [topological_space α] [second_countable_topology α]
+  [topological_space β] [second_countable_topology β]
+  [topological_space γ] [measurable_space δ] {f : δ → α} {g : δ → β} {c : α → β → γ}
+  (h : continuous (λp:α×β, c p.1 p.2)) (hf : measurable f) (hg : measurable g) :
   measurable (λa, c (f a) (g a)) :=
-show measurable ((λp:β×γ, c p.1 p.2) ∘ (λa, (f a, g a))),
+show measurable ((λp:α×β, c p.1 p.2) ∘ (λa, (f a, g a))),
 begin
   apply measurable_comp,
   { rw [←borel_prod],
@@ -126,19 +128,23 @@ begin
   { exact measurable_of_continuous h }
 end
 
-lemma measurable_add [add_monoid α] [topological_add_monoid α] [second_countable_topology α]
+lemma measurable_add
+  [add_monoid α] [topological_add_monoid α] [second_countable_topology α] [measurable_space β]
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a + g a) :=
 measurable_of_continuous2 continuous_add'
 
-lemma measurable_neg [add_group α] [topological_add_group α] {f : β → α} (hf : measurable f) :
-  measurable (λa, - f a) :=
+lemma measurable_neg
+  [add_group α] [topological_add_group α] [measurable_space β] {f : β → α}
+  (hf : measurable f) : measurable (λa, - f a) :=
 measurable_comp hf (measurable_of_continuous continuous_neg')
 
-lemma measurable_sub [add_group α] [topological_add_group α] [second_countable_topology α]
+lemma measurable_sub
+  [add_group α] [topological_add_group α] [second_countable_topology α] [measurable_space β]
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a - g a) :=
 measurable_of_continuous2 continuous_sub'
 
-lemma measurable_mul [semiring α] [topological_semiring α] [second_countable_topology α]
+lemma measurable_mul
+  [semiring α] [topological_semiring α] [second_countable_topology α] [measurable_space β]
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
 measurable_of_continuous2 (topological_semiring.continuous_mul _)
 

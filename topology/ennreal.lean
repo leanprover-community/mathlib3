@@ -414,6 +414,32 @@ calc a ≤ b + of_real (r - p) : h _ pos (by simp [b_eq])
   ... = of_real r :
     by simp [-sub_eq_add_neg, le_of_lt pos, hp, hr, b_eq]; simp [sub_eq_add_neg]
 
+protected lemma lt_iff_exists_of_rat_lt_of_rat_gt :
+  a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < of_real (of_rat q) ∧ of_real (of_rat q) < b) :=
+have ∀r, 0 ≤ r → (∃ (i : ℚ), 0 ≤ i ∧ of_real r < of_real (of_rat i)),
+  from assume r hr,
+  let ⟨q, hq⟩ := exists_lt_of_rat r in
+  have 0 < of_rat q, from lt_of_le_of_lt hr hq,
+  ⟨q, le_of_lt $ of_rat_lt_of_rat.mp this, of_real_lt_of_real_iff_cases.mpr ⟨this, hq⟩⟩,
+have h₁ : ∀a, a < ∞ ↔ ∃ (i : ℚ), 0 ≤ i ∧ a < of_real (of_rat i),
+  from forall_ennreal.mpr $ by simp [this] {contextual := tt},
+have ∀r p, 0 ≤ r → 0 ≤ p →
+    (r < p ↔ ∃q, 0 ≤ q ∧ of_real r < of_real (of_rat q) ∧ of_real (of_rat q) < of_real p),
+  from assume r p hr hp, iff.intro
+    (assume hrp,
+      let ⟨q, hrq, hqp⟩ := exists_lt_of_rat_of_rat_gt hrp in
+      have 0 < of_rat q, from lt_of_le_of_lt hr hrq,
+      have hp' : 0 < p, from lt_of_le_of_lt hr hrp,
+      ⟨q, le_of_lt $ of_rat_lt_of_rat.mp this,
+        by simp [of_real_lt_of_real_iff_cases, this, hrq, hqp, hp']⟩)
+    (assume ⟨q, hq, hrq, hqp⟩, (of_real_lt_of_real_iff hr hp).mp $ lt_trans hrq hqp),
+have h₂ : ∀a r, 0 ≤ r →
+  (a < of_real r ↔ ∃ (i : ℚ), 0 ≤ i ∧ a < of_real (of_rat i) ∧ of_real (of_rat i) < of_real r),
+  from forall_ennreal.mpr $ by simp [this] {contextual := tt},
+have ∀b, a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < of_real (of_rat q) ∧ of_real (of_rat q) < b),
+  from forall_ennreal.mpr $ by simp; exact ⟨h₁ a, h₂ a⟩,
+this b
+
 end order
 
 section complete_lattice
@@ -502,12 +528,41 @@ protected lemma top_eq_infty : (⊤ : ennreal) = ∞ := rfl
 end complete_lattice
 
 section topological_space
+open topological_space
 
 instance : topological_space ennreal :=
 topological_space.generate_from {s | ∃a, s = {b | a < b} ∨ s = {b | b < a}}
 
 instance : orderable_topology ennreal := ⟨rfl⟩
+
 instance : t2_space ennreal := by apply_instance
+
+instance : second_countable_topology ennreal :=
+⟨⟨(⋃q ≥ 0, {{a : ennreal | a < of_real (of_rat q)}, {a : ennreal | of_real (of_rat q) < a}}),
+  countable_bUnion countable_encodable $ assume a ha, countable_insert countable_singleton,
+  le_antisymm
+    (generate_from_le $ assume s ⟨a, ha⟩,
+      match ha with
+      | or.inl hs :=
+        have s = (⋃q∈{q:ℚ | 0 ≤ q ∧ a < of_real (of_rat q)}, {b | of_real (of_rat q) < b}),
+          from set.ext $ assume b, by simp [hs, @ennreal.lt_iff_exists_of_rat_lt_of_rat_gt a b],
+        begin
+          rw [this],
+          apply is_open_Union, intro q,
+          apply is_open_Union, intro hq,
+          exact generate_open.basic _ (mem_bUnion hq.1 $ by simp)
+        end
+      | or.inr hs :=
+        have s = (⋃q∈{q:ℚ | 0 ≤ q ∧ of_real (of_rat q) < a}, {b | b < of_real (of_rat q)}),
+          from set.ext $ assume b, by simp [hs, @ennreal.lt_iff_exists_of_rat_lt_of_rat_gt b a],
+        begin
+          rw [this],
+          apply is_open_Union, intro q,
+          apply is_open_Union, intro hq,
+          exact generate_open.basic _ (mem_bUnion hq.1 $ by simp)
+        end
+      end)
+    (generate_from_le $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt})⟩⟩
 
 lemma continuous_of_real : continuous of_real :=
 have ∀x:ennreal, is_open {a : ℝ | x < of_real a},
@@ -640,6 +695,54 @@ have ∀{a₁ a₂ : ennreal}, tendsto (λp:ennreal×ennreal, p.1 + p.2) (nhds (
       end⟩,
     by simp [nhds_prod_eq]; exact hinf⟩,
 ⟨continuous_iff_tendsto.mpr $ assume ⟨a₁, a₂⟩, this⟩
+
+protected lemma tendsto_mul : ∀{a b : ennreal}, b ≠ 0 → tendsto ((*) a) (nhds b) (nhds (a * b)) :=
+forall_ennreal.mpr $ and.intro
+  (assume p hp, forall_ennreal.mpr $ and.intro
+    (assume r hr hr0,
+      have r ≠ 0, from assume h, by simp [h] at hr0; contradiction,
+      have 0 < r, from lt_of_le_of_ne hr this.symm,
+      have tendsto (λr, of_real (p * r)) (nhds r ⊓ principal {x : ℝ | 0 ≤ x}) (nhds (of_real (p * r))),
+        from tendsto_compose (tendsto_mul tendsto_const_nhds $ tendsto_id' inf_le_left) tendsto_of_real,
+      begin
+        rw [nhds_of_real_eq_map_of_real_nhds_nonneg hr, of_real_mul_of_real hp hr],
+        apply tendsto_map' (tendsto_cong this $ mem_inf_sets_of_right $ mem_principal_sets.mpr _),
+        simp [subset_def, (∘), hp] {contextual := tt}
+      end)
+    (assume _, by_cases
+      (assume : p = 0,
+        tendsto_cong tendsto_const_nhds $
+        (nhds ∞).upwards_sets (mem_nhds_sets (is_open_lt' _) (@of_real_lt_infty 1)) $
+        by simp [this])
+      (assume p0 : p ≠ 0,
+        have p_pos : 0 < p, from lt_of_le_of_ne hp p0.symm,
+        suffices tendsto ((*) (of_real p)) (nhds ⊤) (nhds ⊤), { simpa [hp, p0] },
+        by rw [nhds_top_orderable];
+        from (tendsto_infi $ assume l, tendsto_infi $ assume hl,
+          let ⟨q, hq, hlq, _⟩ := ennreal.lt_iff_exists_of_real.mp hl in
+          tendsto_infi' (of_real (q / p)) $ tendsto_infi' of_real_lt_infty $ tendsto_principal_principal $
+          forall_ennreal.mpr $ and.intro
+            begin
+              have : ∀r:ℝ, 0 < r → q / p < r → q < p * r ∧ 0 < p * r,
+                from assume r r_pos qpr,
+                have q < p * r,
+                  from calc q = (q / p) * p : by rw [div_mul_cancel _ (ne_of_gt p_pos)]
+                    ... < r * p : mul_lt_mul_of_pos_right qpr p_pos
+                    ... = p * r : mul_comm _ _,
+                ⟨this, mul_pos p_pos r_pos⟩,
+              simp [hlq, hp, of_real_lt_of_real_iff_cases, this] {contextual := tt}
+            end
+            begin simp [hp, p0]; exact hl end))))
+  begin
+    assume b hb0,
+    have : 0 < b, from lt_of_le_of_ne ennreal.zero_le hb0.symm,
+    suffices : tendsto ((*) ∞) (nhds b) (nhds ∞), { simpa [hb0] },
+    apply (tendsto_cong tendsto_const_nhds $
+      (nhds b).upwards_sets (mem_nhds_sets (is_open_lt' _) this) _),
+    { assume c hc,
+      have : c ≠ 0, from assume h, by simp [h] at hc; contradiction,
+      simp [this] }
+  end
 
 lemma supr_of_real {s : set ℝ} {a : ℝ} (h : is_lub s a) : (⨆a∈s, of_real a) = of_real a :=
 suffices Sup (of_real '' s) = of_real a, by simpa [Sup_image],
@@ -916,6 +1019,20 @@ protected lemma le_tsum {a : α} : f a ≤ (∑a, f a) :=
 calc f a = ({a} : finset α).sum f : by simp
   ... ≤ (⨆s:finset α, s.sum f) : le_supr (λs:finset α, s.sum f) _
   ... = (∑a, f a) : by rw [ennreal.tsum_eq_supr_sum]
+
+protected lemma mul_tsum : (∑i, a * f i) = a * (∑i, f i) :=
+by_cases (assume : ∀i, f i = 0, begin simp [this] end) $
+assume : ¬ ∀i, f i = 0,
+let ⟨i, (hi : f i ≠ 0)⟩ := classical.not_forall.mp this in
+have 0 < (∑i, f i),
+  from calc 0 < f i : lt_of_le_of_ne ennreal.zero_le hi.symm
+    ... ≤ (∑i, f i) : ennreal.le_tsum,
+have sum_ne_0 : (∑i, f i) ≠ 0, from ne_of_gt this,
+have (λs:finset α, s.sum ((*) a ∘ f)) = (*) a ∘ (λs:finset α, s.sum f),
+  from funext $ assume s, finset.mul_sum.symm,
+have tendsto (λs:finset α, s.sum ((*) a ∘ f)) at_top (nhds (a * (∑i, f i))),
+  by rw [this]; exact tendsto_compose (is_sum_tsum ennreal.has_sum) (ennreal.tendsto_mul sum_ne_0),
+tsum_eq_is_sum this
 
 end tsum
 

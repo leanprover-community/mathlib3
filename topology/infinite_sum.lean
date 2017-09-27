@@ -329,6 +329,11 @@ lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   (∑b, f b) = s.sum f :=
 tsum_eq_is_sum $ is_sum_sum_of_ne_finset_zero hf
 
+lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
+  (∑b, f b) = f b :=
+calc (∑b, f b) = ({b} : finset β).sum f : tsum_eq_sum $ by simp [hf] {contextual := tt}
+  ... = f b : by simp
+
 lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (h₁ : ∀b, has_sum (λc, f ⟨b, c⟩)) (h₂ : has_sum f) : (∑p, f p) = (∑b c, f ⟨b, c⟩):=
 (tsum_eq_is_sum $ is_sum_sigma (assume b, is_sum_tsum $ h₁ b) $ is_sum_tsum h₂).symm

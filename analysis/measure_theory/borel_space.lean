@@ -14,7 +14,7 @@ We would like to have definitional equality for
 
 Unfortunately, this only holds if t₁ and t₂ are second-countable topologies.
 -/
-import topology.measurable_space topology.real
+import analysis.measure_theory.measurable_space analysis.real
 
 open classical set lattice
 local attribute [instance] decidable_inhabited prop_decidable

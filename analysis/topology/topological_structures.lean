@@ -6,8 +6,9 @@ Authors: Johannes Hölzl
 Theory of topological monoids, groups and rings.
 -/
 
-import topology.topological_space topology.continuity topology.uniform_space
-  algebra.big_operators
+import algebra.big_operators
+  analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
+
 open classical set lattice filter topological_space
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 

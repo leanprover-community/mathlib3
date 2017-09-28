@@ -27,7 +27,7 @@ The formalization is mostly based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter data.quot topology.topological_space topology.continuity
+import order.filter data.quot analysis.topology.topological_space analysis.topology.continuity
 open set lattice filter classical
 local attribute [instance] decidable_inhabited prop_decidable
 

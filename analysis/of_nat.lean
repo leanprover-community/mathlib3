@@ -7,7 +7,7 @@ Morphism from `nat` into a semiring with 1.
 
 TODO: move to `data.nat` and split into the different parts for `int`, `rat`, and `real`.
 -/
-import data.rat topology.real
+import data.rat analysis.real
 
 section of_nat
 variables {α : Type*} [semiring α] {n : ℕ}

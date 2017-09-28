@@ -6,8 +6,10 @@ Authors: Johannes Hölzl
 Outer measures -- overapproximations of measures
 -/
 
-import data.set order.galois_connection algebra.big_operators topology.measurable_space
-  topology.ennreal topology.limits
+import data.set order.galois_connection algebra.big_operators
+  analysis.ennreal analysis.limits
+  analysis.measure_theory.measurable_space
+
 noncomputable theory
 
 open classical set lattice finset function filter

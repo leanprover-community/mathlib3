@@ -21,7 +21,8 @@ generalizations:
 * Archimedean fields
 
 -/
-import topology.uniform_space topology.topological_structures data.rat data.subtype algebra
+import algebra data.rat data.subtype
+  analysis.topology.uniform_space analysis.topology.topological_structures
 noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable

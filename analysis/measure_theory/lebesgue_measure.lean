@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Lebesgue measure on the real line
 -/
-import topology.measure topology.borel_space
+import analysis.measure_theory.measure_space analysis.measure_theory.borel_space
 noncomputable theory
 open classical set lattice filter
 open ennreal (of_real)

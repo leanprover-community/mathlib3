@@ -10,113 +10,6 @@ noncomputable theory
 open classical set lattice filter
 open ennreal (of_real)
 
-section real
-open topological_space
-
-lemma inv_le_inv {α : Type*} [discrete_linear_ordered_field α] {a b : α} (hb : 0 < b) (h : b ≤ a) :
-  a⁻¹ ≤ b⁻¹ :=
-begin
-  rw [inv_eq_one_div, inv_eq_one_div],
-  exact one_div_le_one_div_of_le hb h
-end
-
-lemma min_of_rat_of_rat {a b : ℚ} : min (of_rat a) (of_rat b) = of_rat (min a b) :=
-by by_cases a ≤ b; simp [h, min, of_rat_le_of_rat]
-
-lemma max_of_rat_of_rat {a b : ℚ} : max (of_rat a) (of_rat b) = of_rat (max a b) :=
-by by_cases a ≤ b; simp [h, max, of_rat_le_of_rat]
-
-lemma is_topological_basis_of_open_of_nhds {α : Type*} [topological_space α] {s : set (set α)}
-  (h_inter : ∀(u₁ u₂ : set α), u₁ ∈ s → u₂ ∈ s → u₁ ∩ u₂ ≠ ∅ → u₁ ∩ u₂ ∈ s)
-  (h_univ : ∀a:α, ∃u:set α, u ∈ s ∧ a ∈ u)
-  (h_open : ∀(u : set α), u ∈ s → is_open u)
-  (h_nhds : ∀(a:α) (u : set α), a ∈ u → is_open u → ∃v, v ∈ s ∧ a ∈ v ∧ v ⊆ u) :
-  is_topological_basis s :=
-have @is_topological_basis α (generate_from s) s,
-  from ⟨assume t₁ ht₁ t₂ ht₂, h_inter t₁ t₂ ht₁ ht₂,
-    eq_univ_of_forall $ assume a, by simpa using h_univ a, rfl⟩,
-⟨this.1, this.2.1,
-  le_antisymm
-    (assume u hu,
-      (@is_open_iff_nhds α (generate_from _) _).mpr $ assume a hau,
-        let ⟨v, hvs, hav, hvu⟩ := h_nhds a u hau hu in
-        by rw [nhds_generate_from]; exact (infi_le_of_le v $ infi_le_of_le ⟨hav, hvs⟩ $ by simp [hvu]))
-    (generate_from_le h_open)⟩
-
-lemma is_topological_basis_Ioo_of_rat_of_rat :
-  @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo (of_rat a) (of_rat b)}) :=
-is_topological_basis_of_open_of_nhds
-  (assume t₁ t₂ ht₁ ht₂ h,
-    have ∃a b, a < b ∧ t₁ = Ioo (of_rat a) (of_rat b), by simp at ht₁; simp [ht₁],
-    let ⟨a₁, b₁, hab₁, eq₁⟩ := this in
-    have ∃a b, a < b ∧ t₂ = Ioo (of_rat a) (of_rat b), by simp at ht₂; simp [ht₂],
-    let ⟨a₂, b₂, hab₂, eq₂⟩ := this in
-    have t₁₂ : t₁ ∩ t₂ = Ioo (of_rat $ max a₁ a₂) (of_rat $ min b₁ b₂),
-      by simp [eq₁, eq₂, Ioo_inter_Ioo, min_of_rat_of_rat, max_of_rat_of_rat],
-    have max a₁ a₂ < min b₁ b₂,
-      from have ∃a, a ∈ Ioo (of_rat $ max a₁ a₂) (of_rat $ min b₁ b₂),
-        from ne_empty_iff_exists_mem.mp $ by simp [t₁₂.symm, h],
-      let ⟨c, hc₁, hc₂⟩ := this in
-      have of_rat (max a₁ a₂) < of_rat (min b₁ b₂), from lt_trans hc₁ hc₂,
-      of_rat_lt_of_rat.mp this,
-    by simp [t₁₂]; exact ⟨max a₁ a₂, min b₁ b₂, this, rfl⟩)
-  (suffices ∀r, ∃(t : set ℝ), r ∈ t ∧ ∃a b, t = Ioo (of_rat a) (of_rat b) ∧ a < b,
-      by simpa,
-    assume r,
-    let ⟨a, ha⟩ := exists_gt_of_rat r, ⟨b, hb⟩ := exists_lt_of_rat r in
-    ⟨Ioo (of_rat a) (of_rat b), ⟨ha, hb⟩, a, b, rfl, of_rat_lt_of_rat.mp $ lt_trans ha hb⟩)
-  begin simp [is_open_Ioo] {contextual:=tt} end
-  (assume a v hav hv,
-    let
-      ⟨l, u, hl, hu, h⟩ := (mem_nhds_unbounded (no_top _) (no_bot _)).mp (mem_nhds_sets hv hav),
-      ⟨q, hlq, hqa⟩ := exists_lt_of_rat_of_rat_gt hl,
-      ⟨p, hap, hpu⟩ := exists_lt_of_rat_of_rat_gt hu
-    in
-    ⟨Ioo (of_rat q) (of_rat p),
-      begin simp; exact ⟨q, p, of_rat_lt_of_rat.mp $ lt_trans hqa hap, rfl⟩ end,
-      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h _ (lt_trans hlq hqa') (lt_trans ha'p hpu)⟩)
-
-instance : second_countable_topology ℝ :=
-⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo (of_rat a) (of_rat b)}),
-  by simp [countable_Union, countable_Union_Prop],
-  is_topological_basis_Ioo_of_rat_of_rat.2.2⟩⟩
-
-open measure_theory measurable_space
-
-lemma borel_eq_generate_from_Ioo_of_rat_of_rat :
-  measure_theory.borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo (of_rat a) (of_rat b)}) :=
-borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_of_rat_of_rat.2.2
-
-lemma borel_eq_generate_from_Iio_of_rat :
-  measure_theory.borel ℝ = generate_from (⋃a, {Iio (of_rat a)}) :=
-let g := measurable_space.generate_from (⋃a, {Iio (of_rat a)} : set (set ℝ)) in
-have ∀a b, a < b → g.is_measurable (Ioo (of_rat a) (of_rat b)),
-  from assume a b h,
-  have hg : ∀q, g.is_measurable (Iio (of_rat q)),
-    from assume q, generate_measurable.basic _ $ by simp; exact ⟨_, rfl⟩,
-  have hgc : ∀q, g.is_measurable (- Iio (of_rat q)),
-    from assume q, g.is_measurable_compl _ $ hg q,
-  have (⋃c>a, - Iio (of_rat c)) ∩ Iio (of_rat b) = Ioo (of_rat a) (of_rat b),
-    from set.ext $ assume x,
-    have h₁ : x < of_rat b → ∀p, of_rat p ≤ x → p > a → of_rat a < x,
-      from assume hxb p hpx hpa, lt_of_lt_of_le (of_rat_lt_of_rat.mpr hpa) hpx,
-    have h₂ : x < of_rat b → of_rat a < x → (∃ (i : ℚ), of_rat i ≤ x ∧ i > a),
-      from assume hxb hax,
-      let ⟨c, hac, hcx⟩ := exists_lt_of_rat_of_rat_gt hax in
-      ⟨c, le_of_lt hcx, of_rat_lt_of_rat.mp hac⟩,
-    by simp [iff_def, Iio, Ioo] {contextual := tt}; exact ⟨h₁, h₂⟩,
-  this ▸ @is_measurable_inter _ g _ _
-    (@is_measurable_bUnion _ _ g _ _ countable_encodable $ assume b hb, hgc b)
-    (hg b),
-le_antisymm
-  (borel_eq_generate_from_Ioo_of_rat_of_rat.symm ▸ generate_from_le
-    (by simp [this] {contextual:=tt}))
-  (generate_from_le $ assume t,
-    have ∀r:ℝ, is_measurable (Iio r), from assume r, generate_measurable.basic _ $ is_open_gt' _,
-    by simp {contextual:=tt}; exact assume h _, this _)
-
-end real
-
 namespace measure_theory
 
 /- "Lebesgue" lebesgue_length of an interval
@@ -320,7 +213,8 @@ have hsm : ∀i j, j ≤ i → s i ≤ s j,
   have h₁ : ∀j:ℕ, (0:ℝ) < of_nat (j + 1),
     from assume j, of_nat_pos $ add_pos_of_nonneg_of_pos (nat.zero_le j) zero_lt_one,
   have h₂ : of_nat (j + 1) ≤ (of_nat (i + 1) : ℝ), from of_nat_le_of_nat $ add_le_add hij (le_refl _),
-  add_le_add (le_refl _) $ mul_le_mul (le_refl _) (inv_le_inv (h₁ j) h₂) (le_of_lt $ inv_pos $ h₁ i) $
+  add_le_add (le_refl _) $
+  mul_le_mul (le_refl _) (inv_le_inv _ _ (h₁ j) h₂) (le_of_lt $ inv_pos $ h₁ i) $
     by simp [le_sub_iff_add_le, -sub_eq_add_neg, le_of_lt h],
 have has : ∀i, a < s i,
   from assume i,

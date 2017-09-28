@@ -14,94 +14,11 @@ local attribute [instance] classical.decidable_inhabited classical.prop_decidabl
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-section complete_lattice
-variables [complete_lattice α]
-
-lemma binfi_inf {ι : Sort*} {p : ι → Prop}
-  {f : Πi, p i → α} {a : α} {i : ι} (hi : p i) :
-  (⨅i (h : p i), f i h) ⊓ a = (⨅ i (h : p i), f i h ⊓ a) :=
-le_antisymm
-  (le_infi $ assume i, le_infi $ assume hi,
-    le_inf (inf_le_left_of_le $ infi_le_of_le i $ infi_le _ _) inf_le_right)
-  (le_inf (infi_le_infi $ assume i, infi_le_infi $ assume hi, inf_le_left)
-     (infi_le_of_le i $ infi_le_of_le hi $ inf_le_right))
-
-end complete_lattice
-
 lemma dense_or_discrete [linear_order α] {a₁ a₂ : α} (h : a₁ < a₂) :
   (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
 or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
-
-section filter
-
-lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : -s ∈ f.sets) : f ⊓ principal s = ⊥ :=
-empty_in_sets_eq_bot.mp $ (f ⊓ principal s).upwards_sets
-  (inter_mem_inf_sets hs (mem_principal_sets.mpr $ set.subset.refl s))
-  (assume x ⟨h₁, h₂⟩, h₁ h₂)
-
-end filter
-
-section
-variables [topological_space α] [topological_space β]
-
-def frontier (s : set α) : set α := closure s \ interior s
-
-lemma closure_compl {s : set α} : closure (-s) = - interior s :=
-subset.antisymm
-  (by simp [closure_subset_iff_subset_of_is_closed, compl_subset_compl_iff_subset, subset.refl])
-  begin
-    rw [←compl_subset_compl_iff_subset, compl_compl, subset_interior_iff_subset_of_open,
-      ←compl_subset_compl_iff_subset, compl_compl],
-    exact subset_closure,
-    exact is_open_compl_iff.mpr is_closed_closure
-  end
-
-lemma interior_compl {s : set α} : interior (-s) = - closure s :=
-calc interior (- s) = - - interior (- s) : by simp
-  ... = - closure (- (- s)) : by rw [closure_compl]
-  ... = - closure s : by simp
-
-lemma frontier_eq_closure_inter_closure {s : set α} :
-  frontier s = closure s ∩ closure (- s) :=
-by rw [closure_compl, frontier, sdiff_eq]
-
-lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
-  (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
-  continuous (λa, @ite (p a) (h a) β (f a) (g a)) :=
-continuous_iff_is_closed.mpr $
-assume s hs,
-have (λa, ite (p a) (f a) (g a)) ⁻¹' s =
-    (closure {a | p a} ∩  f ⁻¹' s) ∪ (closure {a | ¬ p a} ∩ g ⁻¹' s),
-  from set.ext $ assume a,
-  by_cases
-    (assume : a ∈ frontier {a | p a},
-      have hac : a ∈ closure {a | p a}, from this.left,
-      have hai : a ∈ closure {a | ¬ p a},
-        from have a ∈ - interior {a | p a}, from this.right, by rwa [←closure_compl] at this,
-      by by_cases p a; simp [h, hp a this, hac, hai, iff_def] {contextual := tt})
-    (assume hf : a ∈ - frontier {a | p a},
-      by_cases
-        (assume : p a,
-          have hc : a ∈ closure {a | p a}, from subset_closure this,
-          have hnc : a ∉ closure {a | ¬ p a},
-            by show a ∉ closure (- {a | p a}); rw [closure_compl]; simpa [frontier, hc] using hf,
-          by simp [this, hc, hnc])
-        (assume : ¬ p a,
-          have hc : a ∈ closure {a | ¬ p a}, from subset_closure this,
-          have hnc : a ∉ closure {a | p a},
-            begin
-              have hc : a ∈ closure (- {a | p a}), from hc,
-              simp [closure_compl] at hc,
-              simpa [frontier, hc] using hf
-            end,
-          by simp [this, hc, hnc])),
-by rw [this]; exact is_closed_union
-  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hf s hs)
-  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
-
-end
 
 section topological_add_monoid
 
@@ -745,3 +662,36 @@ and.intro
 end order_topology
 
 end orderable_topology
+
+lemma orderable_topology_of_nhds_abs
+  {α : Type*} [decidable_linear_ordered_comm_group α] [topological_space α]
+  (h_nhds : ∀a:α, nhds a = (⨅r>0, principal {b | abs (a - b) < r})) : orderable_topology α :=
+orderable_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
+begin
+  simp [infi_and, topological_space.nhds_generate_from, h_nhds, le_infi_iff, -le_principal_iff],
+  constructor,
+  exact assume s ha b hs,
+    match s, ha, hs with
+    | _, h, (or.inl rfl) :=
+      infi_le_of_le (a + - b) $ infi_le_of_le (lt_sub_left_of_add_lt $ by simp; exact h) $
+        principal_mono.mpr $ assume c (hc : abs (a + - c) < a - b),
+        have a + - c < a + - b, from lt_of_le_of_lt (le_abs_self _) hc,
+        show b < c, from lt_of_neg_lt_neg $ lt_of_add_lt_add_left this
+    | _, h, (or.inr rfl) :=
+      infi_le_of_le (b + - a) $ infi_le_of_le (lt_sub_left_of_add_lt $ by simp; exact h) $
+        principal_mono.mpr $ assume c (hc : abs (a + - c) < b + - a),
+        have abs (c + - a) < b + - a, by rw [←abs_neg]; simp [hc],
+        have c + - a < b + - a, from lt_of_le_of_lt (le_abs_self _) this,
+        show c < b, from lt_of_add_lt_add_right this
+    end,
+  { intros r hr,
+    have h : {b | abs (a + -b) < r} = {b | a - r < b} ∩ {b | b < a + r},
+      from (set.ext $ assume b,
+        by simp [abs_lt, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm, sub_lt, lt_sub_iff]),
+    rw [h, ←inf_principal],
+    apply le_inf _ _,
+    exact (infi_le_of_le {b : α | a - r < b} $ infi_le_of_le (sub_lt_self a hr) $
+      infi_le_of_le (a - r) $ infi_le _ (or.inl rfl)),
+    exact (infi_le_of_le {b : α | b < a + r} $ infi_le_of_le (lt_add_of_pos_right _ hr) $
+      infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) }
+end

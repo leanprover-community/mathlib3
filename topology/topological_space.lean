@@ -240,7 +240,29 @@ by simp [closure_eq_compl_interior_compl]
 @[simp] lemma closure_compl_eq {s : set α} : closure (- s) = - interior s :=
 by simp [closure_eq_compl_interior_compl]
 
-/- neighbourhood filter -/
+lemma closure_compl {s : set α} : closure (-s) = - interior s :=
+subset.antisymm
+  (by simp [closure_subset_iff_subset_of_is_closed, compl_subset_compl_iff_subset, subset.refl])
+  begin
+    rw [←compl_subset_compl_iff_subset, compl_compl, subset_interior_iff_subset_of_open,
+      ←compl_subset_compl_iff_subset, compl_compl],
+    exact subset_closure,
+    exact is_open_compl_iff.mpr is_closed_closure
+  end
+
+lemma interior_compl {s : set α} : interior (-s) = - closure s :=
+calc interior (- s) = - - interior (- s) : by simp
+  ... = - closure (- (- s)) : by rw [closure_compl]
+  ... = - closure s : by simp
+
+/-- frontier -/
+def frontier (s : set α) : set α := closure s \ interior s
+
+lemma frontier_eq_closure_inter_closure {s : set α} :
+  frontier s = closure s ∩ closure (- s) :=
+by rw [closure_compl, frontier, sdiff_eq]
+
+/-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 
 lemma tendsto_nhds {m : β → α} {f : filter β} (h : ∀s, a ∈ s → is_open s → preimage m s ∈ f.sets) :
@@ -338,6 +360,12 @@ lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set
 have b.map f ≤ nhds a ⊓ principal s,
   from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
 is_closed_iff_nhds.mp hs a $ neq_bot_of_le_neq_bot (map_ne_bot hb) this
+
+lemma mem_closure_of_tendsto {f : β → α} {x : filter β} {a : α} {s : set α}
+  (hf : tendsto f x (nhds a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
+is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
+  le_inf (le_trans (map_mono $ inf_le_left) hf) $
+    le_trans (map_mono $ inf_le_right_of_le $ by simp; exact subset.refl _) (@map_vmap_le _ _ _ f)
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
@@ -883,6 +911,23 @@ let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f
       (generate_from_le $ assume u ⟨t, ⟨hft, htb, ne⟩, eq⟩,
         eq ▸ @is_open_sInter _ (generate_from s) _ hft (assume s hs, generate_open.basic _ $ htb hs)),
   this ▸ hs⟩
+
+lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
+  (h_inter : ∀(u₁ u₂ : set α), u₁ ∈ s → u₂ ∈ s → u₁ ∩ u₂ ≠ ∅ → u₁ ∩ u₂ ∈ s)
+  (h_univ : ∀a:α, ∃u:set α, u ∈ s ∧ a ∈ u)
+  (h_open : ∀(u : set α), u ∈ s → _root_.is_open u)
+  (h_nhds : ∀(a:α) (u : set α), a ∈ u → _root_.is_open u → ∃v, v ∈ s ∧ a ∈ v ∧ v ⊆ u) :
+  is_topological_basis s :=
+have @is_topological_basis α (generate_from s) s,
+  from ⟨assume t₁ ht₁ t₂ ht₂, h_inter t₁ t₂ ht₁ ht₂,
+    eq_univ_of_forall $ assume a, by simpa using h_univ a, rfl⟩,
+⟨this.1, this.2.1,
+  le_antisymm
+    (assume u hu,
+      (@is_open_iff_nhds α (generate_from _) _).mpr $ assume a hau,
+        let ⟨v, hvs, hav, hvu⟩ := h_nhds a u hau hu in
+        by rw [nhds_generate_from]; exact (infi_le_of_le v $ infi_le_of_le ⟨hav, hvs⟩ $ by simp [hvu]))
+    (generate_from_le h_open)⟩
 
 lemma mem_nhds_of_is_topological_basis [topological_space α] {a : α} {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ (nhds a).sets) : ∃t∈b, a ∈ t ∧ t ⊆ s :=

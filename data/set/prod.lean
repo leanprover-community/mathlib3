@@ -84,4 +84,7 @@ end
 @[simp] lemma prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
 
+@[simp] lemma univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
+set.ext $ assume ⟨a, b⟩, by simp
+
 end set

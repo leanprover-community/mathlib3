@@ -12,102 +12,10 @@ convergence.
 import data.set data.finset topology.topological_structures topology.metric_space algebra.big_operators
   logic.function_inverse
 noncomputable theory
-open set lattice finset filter function
-
-variables {α : Type*} {β : Type*} {γ : Type*}
-
-section logic
-
-theorem forall_and_distrib' {α : Sort*} (p q : α → Prop) :
-  (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
-iff.intro
-  (assume h, ⟨(assume x, (h x).left), (assume x, (h x).right)⟩)
-  (assume h x, ⟨h.left x, h.right x⟩)
-
-end logic
-
-lemma add_div {α : Type*} [division_ring α] {a b c : α} : (a + b) / c = a / c + b / c :=
-by rw [div_eq_mul_one_div, add_mul, ←div_eq_mul_one_div, ←div_eq_mul_one_div]
-
-open classical
+open set lattice finset filter function classical
 local attribute [instance] decidable_inhabited prop_decidable
 
-namespace filter
-
-lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ (@at_top α _).sets :=
-mem_infi_sets a $ subset.refl _
-
-lemma mem_infi_sets_finset {s : finset α} {f : α → filter β} :
-  ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⋂a∈s, p a) ⊆ t) :=
-show ∀t,  t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⨅a∈s, p a) ≤ t),
-  from s.induction_on (by simp; exact assume t, iff.refl _) $
-    by simp [infi_or, mem_inf_sets, infi_inf_eq] {contextual := tt};
-    from assume a s has ih t, iff.intro
-      (assume ⟨t₁, ht₁, t₂, ht, p, hp, ht₂⟩,
-        ⟨λa', if a' = a then t₁ else p a',
-          assume a' ha', by by_cases a' = a; simp * at *,
-          have ∀a', (⨅ (h : a' ∈ s), ite (a' = a) t₁ (p a')) ≤ ⨅ (H : a' ∈ s), p a',
-            from assume a', infi_le_infi $ assume has',
-              have a' ≠ a, from assume h, has $ h ▸ has',
-              le_of_eq $ by simp [this],
-          le_trans (inf_le_inf (by simp; exact le_refl t₁) (le_trans (infi_le_infi this) ht₂)) ht⟩)
-      (assume ⟨p, hp, ht⟩, ⟨p a, hp _ (by simp), ⨅ (x : α) (h : x ∈ s), p x, ht, p,
-        assume a ha, hp _ (or.inr ha), le_refl _⟩)
-
-end filter
-
-open filter
-
-section topological_space
-
-variables [topological_space α]
-
-lemma mem_closure_of_tendsto {f : β → α} {x : filter β} {a : α} {s : set α}
-  (hf : tendsto f x (nhds a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
-is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
-  le_inf (le_trans (map_mono $ inf_le_left) hf) $
-    le_trans (map_mono $ inf_le_right_of_le $ by simp; exact subset.refl _) (@map_vmap_le _ _ _ f)
-
-end topological_space
-
-section uniform_space
-
-lemma cauchy_iff [uniform_space α] {f : filter α} :
-  cauchy f ↔ (f ≠ ⊥ ∧ (∀s∈(@uniformity α _).sets, ∃t∈f.sets, set.prod t t ⊆ s)) :=
-and_congr (iff.refl _) $ forall_congr $ assume s, forall_congr $ assume hs, mem_prod_same_iff
-
-end uniform_space
-
-section at_top
-
-@[simp] lemma at_top_ne_bot [inhabited α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
-infi_neq_bot_of_directed (by apply_instance)
-  (assume a b, ⟨a ⊔ b, by simp {contextual := tt}⟩)
-  (assume a, by simp [principal_eq_bot_iff]; exact ne_empty_of_mem (le_refl a))
-
-lemma mem_at_top_iff [inhabited α] [semilattice_sup α] {s : set α} :
-  s ∈ (at_top : filter α).sets ↔ (∃a:α, ∀b≥a, b ∈ s) :=
-iff.intro
-  (assume h, infi_sets_induct h ⟨default α, by simp⟩
-    (assume a s₁ s₂ ha ⟨b, hb⟩, ⟨a ⊔ b,
-      assume c hc, ⟨ha $ le_trans le_sup_left hc, hb _ $ le_trans le_sup_right hc⟩⟩)
-    (assume s₁ s₂ h ⟨a, ha⟩, ⟨a, assume b hb, h $ ha _ hb⟩))
-  (assume ⟨a, h⟩, mem_infi_sets a $ assume x, h x)
-
-lemma map_at_top_eq [inhabited α] [semilattice_sup α] {f : α → β} :
-  at_top.map f = (⨅a, principal $ f '' {a' | a ≤ a'}) :=
-calc map f (⨅a, principal {a' | a ≤ a'}) = (⨅a, map f $ principal {a' | a ≤ a'}) :
-    map_infi_eq (assume a b, ⟨a ⊔ b, by simp {contextual := tt}⟩) ⟨default α⟩
-  ... = (⨅a, principal $ f '' {a' | a ≤ a'}) : by simp
-
-lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :
-  tendsto (λs:finset γ, s.image j) at_top at_top :=
-tendsto_infi $ assume s, tendsto_infi' (s.image i) $ tendsto_principal_principal $
-  assume t (ht : s.image i ⊆ t),
-  calc s = (s.image i).image j : by simp [image_image, (∘), h]; exact finset.image_id.symm
-    ... ⊆  t.image j : image_subset_image ht
-
-end at_top
+variables {α : Type*} {β : Type*} {γ : Type*}
 
 section is_sum
 variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α]
@@ -229,7 +137,7 @@ mem_at_top_iff.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_compose tendsto_vmap (hf c),
   have bs.sum g ∈ s,
     from mem_closure_of_tendsto this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
-      by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib',
+      by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,
                filter.mem_infi_sets_finset, mem_vmap, skolem, mem_at_top_iff];
       from
         assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',

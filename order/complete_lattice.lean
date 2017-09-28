@@ -363,6 +363,15 @@ le_antisymm
 lemma inf_infi {f : ι → α} {a : α} (i : ι) : a ⊓ (⨅x, f x) = (⨅ x, a ⊓ f x) :=
 by rw [inf_comm, infi_inf i]; simp [inf_comm]
 
+lemma binfi_inf {ι : Sort*} {p : ι → Prop}
+  {f : Πi, p i → α} {a : α} {i : ι} (hi : p i) :
+  (⨅i (h : p i), f i h) ⊓ a = (⨅ i (h : p i), f i h ⊓ a) :=
+le_antisymm
+  (le_infi $ assume i, le_infi $ assume hi,
+    le_inf (inf_le_left_of_le $ infi_le_of_le i $ infi_le _ _) inf_le_right)
+  (le_inf (infi_le_infi $ assume i, infi_le_infi $ assume hi, inf_le_left)
+     (infi_le_of_le i $ infi_le_of_le hi $ inf_le_right))
+
 theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 le_antisymm
   (supr_le $ assume i, sup_le
@@ -526,6 +535,16 @@ le_antisymm (infi_le _ _) (le_infi $ assume ⟨⟩, le_refl _)
 
 @[simp] theorem supr_unit {f : unit → α} : (⨆ x, f x) = f () :=
 le_antisymm (supr_le $ assume ⟨⟩, le_refl _) (le_supr _ _)
+
+lemma supr_bool_eq {f : bool → α} : (⨆b:bool, f b) = f tt ⊔ f ff :=
+le_antisymm
+  (supr_le $ assume b, match b with tt := le_sup_left | ff := le_sup_right end)
+  (sup_le (le_supr _ _) (le_supr _ _))
+
+lemma infi_bool_eq {f : bool → α} : (⨅b:bool, f b) = f tt ⊓ f ff :=
+le_antisymm
+  (le_inf (infi_le _ _) (infi_le _ _))
+  (le_infi $ assume b, match b with tt := inf_le_left | ff := inf_le_right end)
 
 theorem infi_subtype {p : ι → Prop} {f : subtype p → α} : (⨅ x, f x) = (⨅ i, ⨅ h:p i, f ⟨i, h⟩) :=
 le_antisymm

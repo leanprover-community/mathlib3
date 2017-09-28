@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of filters on sets.
 -/
-import order.complete_lattice order.galois_connection data.set order.zorn
+import order.complete_lattice order.galois_connection data.set data.finset order.zorn
 open lattice set
 
 universes u v w x y
@@ -73,10 +73,10 @@ assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
       (assume : f a ≤ f b, ⟨⟨a, ha⟩, le_refl _, this⟩))
 
 structure filter (α : Type u) :=
-(sets           : set (set α))
-(inhabited      : ∃x, x ∈ sets)
-(upwards_sets   : upwards (⊆) sets)
-(directed_sets  : directed_on (⊆) sets)
+(sets            : set (set α))
+(exists_mem_sets : ∃x, x ∈ sets)
+(upwards_sets    : upwards (⊆) sets)
+(directed_sets   : directed_on (⊆) sets)
 
 namespace filter
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
@@ -85,7 +85,7 @@ lemma filter_eq : ∀{f g : filter α}, f.sets = g.sets → f = g
 | ⟨a, _, _, _⟩ ⟨._, _, _, _⟩ rfl := rfl
 
 lemma univ_mem_sets' {f : filter α} {s : set α} (h : ∀ a, a ∈ s): s ∈ f.sets :=
-let ⟨x, x_in_s⟩ := f.inhabited in
+let ⟨x, x_in_s⟩ := f.exists_mem_sets in
 f.upwards_sets x_in_s (assume x _, h x)
 
 lemma univ_mem_sets {f : filter α} : univ ∈ f.sets :=
@@ -120,34 +120,34 @@ assume s t hst h, f.upwards_sets h hst
 
 def principal (s : set α) : filter α :=
 { filter .
-  sets          := {t | s ⊆ t},
-  inhabited     := ⟨s, subset.refl _⟩,
-  upwards_sets  := assume x y hx hy, subset.trans hx hy,
-  directed_sets := assume x hx y hy, ⟨s, subset.refl _, hx, hy⟩ }
+  sets            := {t | s ⊆ t},
+  exists_mem_sets := ⟨s, subset.refl _⟩,
+  upwards_sets    := assume x y hx hy, subset.trans hx hy,
+  directed_sets   := assume x hx y hy, ⟨s, subset.refl _, hx, hy⟩ }
 
 def join (f : filter (filter α)) : filter α :=
 { filter .
-  sets          := {s | {t : filter α | s ∈ t.sets} ∈ f.sets},
-  inhabited     := ⟨univ, by simp [univ_mem_sets]; exact univ_mem_sets⟩,
-  upwards_sets  := assume x y hx xy, f.upwards_sets hx $ assume a h, a.upwards_sets h xy,
-  directed_sets := assume x hx y hy, ⟨x ∩ y,
+  sets            := {s | {t : filter α | s ∈ t.sets} ∈ f.sets},
+  exists_mem_sets := ⟨univ, by simp [univ_mem_sets]; exact univ_mem_sets⟩,
+  upwards_sets    := assume x y hx xy, f.upwards_sets hx $ assume a h, a.upwards_sets h xy,
+  directed_sets   := assume x hx y hy, ⟨x ∩ y,
     f.upwards_sets (inter_mem_sets hx hy) $ assume z ⟨h₁, h₂⟩, inter_mem_sets h₁ h₂,
     inter_subset_left _ _,  inter_subset_right _ _⟩ }
 
 def map (m : α → β) (f : filter α) : filter β :=
 { filter .
-  sets          := preimage (preimage m) f.sets,
-  inhabited     := ⟨univ, univ_mem_sets⟩,
-  upwards_sets  := assume s t hs st, f.upwards_sets hs (assume x h, st h),
-  directed_sets := assume s hs t ht, ⟨s ∩ t, inter_mem_sets hs ht,
+  sets            := preimage (preimage m) f.sets,
+  exists_mem_sets := ⟨univ, univ_mem_sets⟩,
+  upwards_sets    := assume s t hs st, f.upwards_sets hs (assume x h, st h),
+  directed_sets   := assume s hs t ht, ⟨s ∩ t, inter_mem_sets hs ht,
     inter_subset_left _ _,  inter_subset_right _ _⟩ }
 
 def vmap (m : α → β) (f : filter β) : filter α :=
 { filter .
-  sets          := { s | ∃t∈f.sets, preimage m t ⊆ s },
-  inhabited     := ⟨univ, univ, univ_mem_sets, by simp⟩,
-  upwards_sets  := assume a b ⟨a', ha', ma'a⟩ ab, ⟨a', ha', subset.trans ma'a ab⟩,
-  directed_sets := assume a ⟨a', ha₁, ha₂⟩ b ⟨b', hb₁, hb₂⟩,
+  sets            := { s | ∃t∈f.sets, preimage m t ⊆ s },
+  exists_mem_sets := ⟨univ, univ, univ_mem_sets, by simp⟩,
+  upwards_sets    := assume a b ⟨a', ha', ma'a⟩ ab, ⟨a', ha', subset.trans ma'a ab⟩,
+  directed_sets   := assume a ⟨a', ha₁, ha₂⟩ b ⟨b', hb₁, hb₂⟩,
     ⟨preimage m (a' ∩ b'),
       ⟨a' ∩ b', inter_mem_sets ha₁ hb₁, subset.refl _⟩,
       subset.trans (preimage_mono $ inter_subset_left _ _) ha₂,
@@ -155,21 +155,21 @@ def vmap (m : α → β) (f : filter β) : filter α :=
 
 protected def sup (f g : filter α) : filter α :=
 { filter .
-  sets          := f.sets ∩ g.sets,
-  inhabited     := ⟨univ, by simp [univ_mem_sets]; exact univ_mem_sets⟩,
-  upwards_sets  := assume x y hx xy,
+  sets            := f.sets ∩ g.sets,
+  exists_mem_sets := ⟨univ, by simp [univ_mem_sets]; exact univ_mem_sets⟩,
+  upwards_sets    := assume x y hx xy,
     and.imp (assume h, f.upwards_sets h xy) (assume h, g.upwards_sets h xy) hx,
-  directed_sets := assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩, ⟨x ∩ y,
+  directed_sets   := assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩, ⟨x ∩ y,
     ⟨inter_mem_sets hx₁ hy₁, inter_mem_sets hx₂ hy₂⟩,
     inter_subset_left _ _,  inter_subset_right _ _⟩ }
 
 protected def inf (f g : filter α) :=
 { filter .
-  sets          := {s | ∃ a ∈ f.sets, ∃ b ∈ g.sets, a ∩ b ⊆ s },
-  inhabited     := ⟨univ, univ, univ_mem_sets, univ, univ_mem_sets, subset_univ _⟩,
-  upwards_sets  := assume x y ⟨a, ha, b, hb, h⟩ xy,
+  sets            := {s | ∃ a ∈ f.sets, ∃ b ∈ g.sets, a ∩ b ⊆ s },
+  exists_mem_sets := ⟨univ, univ, univ_mem_sets, univ, univ_mem_sets, subset_univ _⟩,
+  upwards_sets    := assume x y ⟨a, ha, b, hb, h⟩ xy,
     ⟨a, ha, b, hb, subset.trans h xy⟩,
-  directed_sets := assume x ⟨a₁, ha₁, b₁, hb₁, h₁⟩ y ⟨a₂, ha₂, b₂, hb₂, h₂⟩,
+  directed_sets   := assume x ⟨a₁, ha₁, b₁, hb₁, h₁⟩ y ⟨a₂, ha₂, b₂, hb₂, h₂⟩,
     ⟨x ∩ y,
       ⟨_, inter_mem_sets ha₁ ha₂, _, inter_mem_sets hb₁ hb₂,
         calc (a₁ ⊓ a₂) ⊓ (b₁ ⊓ b₂) = (a₁ ⊓ b₁) ⊓ (a₂ ⊓ b₂) : by ac_refl
@@ -178,11 +178,11 @@ protected def inf (f g : filter α) :=
 
 def cofinite : filter α :=
 { filter .
-  sets          := {s | finite (- s)},
-  inhabited     := ⟨univ, by simp⟩,
-  upwards_sets  := assume s t, assume hs : finite (-s), assume st: s ⊆ t,
+  sets            := {s | finite (- s)},
+  exists_mem_sets := ⟨univ, by simp⟩,
+  upwards_sets    := assume s t, assume hs : finite (-s), assume st: s ⊆ t,
     finite_subset hs $ @lattice.neg_le_neg (set α) _ _ _ st,
-  directed_sets := assume s, assume hs : finite (-s), assume t, assume ht : finite (-t),
+  directed_sets   := assume s, assume hs : finite (-s), assume t, assume ht : finite (-t),
     ⟨s ∩ t, by simp [compl_inter, finite_union, ht, hs],
       inter_subset_left _ _, inter_subset_right _ _⟩ }
 
@@ -195,7 +195,7 @@ instance partial_order_filter : partial_order (filter α) :=
 
 instance : has_Sup (filter α) := ⟨join ∘ principal⟩
 
-instance inhabited' : _root_.inhabited (filter α) :=
+instance : inhabited (filter α) :=
 ⟨principal ∅⟩
 
 protected lemma le_Sup {s : set (filter α)} {f : filter α} : f ∈ s → f ≤ Sup s :=
@@ -248,6 +248,9 @@ instance complete_lattice_filter : complete_lattice (filter α) :=
   map f (principal s) = principal (set.image f s) :=
 filter_eq $ set.ext $ assume a, image_subset_iff_subset_preimage.symm
 
+@[simp] lemma mem_top_sets_iff {s : set α} : s ∈ (⊤ : filter α).sets ↔ s = univ :=
+⟨assume h, top_unique $ h, assume h, h.symm ▸ univ_mem_sets⟩
+
 @[simp] lemma join_principal_eq_Sup {s : set (filter α)} : join (principal s) = Sup s := rfl
 
 instance monad_filter : monad filter :=
@@ -268,9 +271,6 @@ instance : alternative filter :=
 { filter.monad_filter with
   failure := λα, ⊥,
   orelse  := λα x y, x ⊔ y }
-
-def at_top [preorder α] : filter α := ⨅ a, principal {b | a ≤ b}
-def at_bot [preorder α] : filter α := ⨅ a, principal {b | b ≤ a}
 
 /- lattice equations -/
 
@@ -329,10 +329,10 @@ lemma infi_sets_eq {f : ι → filter α} (h : directed (≤) f) (ne : nonempty 
 let
   ⟨i⟩          := ne,
   u           := { filter .
-    sets          := (⋃ i, (f i).sets),
-    inhabited     := ⟨univ, begin simp, exact ⟨i, univ_mem_sets⟩ end⟩,
-    directed_sets := directed_on_Union (show directed (≤) f, from h) (assume i, (f i).directed_sets),
-    upwards_sets  := by simp [upwards]; exact assume x y j xf xy, ⟨j, (f j).upwards_sets xf xy⟩ }
+    sets            := (⋃ i, (f i).sets),
+    exists_mem_sets := ⟨univ, begin simp, exact ⟨i, univ_mem_sets⟩ end⟩,
+    directed_sets   := directed_on_Union (show directed (≤) f, from h) (assume i, (f i).directed_sets),
+    upwards_sets    := by simp [upwards]; exact assume x y j xf xy, ⟨j, (f j).upwards_sets xf xy⟩ }
 in
   subset.antisymm
     (show u ≤ infi f, from le_infi $ assume i, le_supr (λi, (f i).sets) i)
@@ -419,6 +419,23 @@ calc (⨅ x, f ⊔ g x) = (⨅ x (h : ∃i, g i = x), f ⊔ x) : by simp; rw [in
   ... = f ⊔ Inf {x | ∃i, g i = x} : binfi_sup_eq
   ... = f ⊔ infi g : by rw [Inf_eq_infi]; dsimp; simp; rw [infi_comm]; simp
 
+lemma mem_infi_sets_finset {s : finset α} {f : α → filter β} :
+  ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⋂a∈s, p a) ⊆ t) :=
+show ∀t,  t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⨅a∈s, p a) ≤ t),
+  from s.induction_on (by simp; exact assume t, iff.refl _) $
+    by simp [infi_or, mem_inf_sets, infi_inf_eq] {contextual := tt};
+    from assume a s has ih t, iff.intro
+      (assume ⟨t₁, ht₁, t₂, ht, p, hp, ht₂⟩,
+        ⟨λa', if a' = a then t₁ else p a',
+          assume a' ha', by by_cases a' = a; simp * at *,
+          have ∀a', (⨅ (h : a' ∈ s), ite (a' = a) t₁ (p a')) ≤ ⨅ (H : a' ∈ s), p a',
+            from assume a', infi_le_infi $ assume has',
+              have a' ≠ a, from assume h, has $ h ▸ has',
+              le_of_eq $ by simp [this],
+          le_trans (inf_le_inf (by simp; exact le_refl t₁) (le_trans (infi_le_infi this) ht₂)) ht⟩)
+      (assume ⟨p, hp, ht⟩, ⟨p a, hp _ (by simp), ⨅ (x : α) (h : x ∈ s), p x, ht, p,
+        assume a ha, hp _ (or.inr ha), le_refl _⟩)
+
 /- principal equations -/
 
 @[simp] lemma inf_principal {s t : set α} : principal s ⊓ principal t = principal (s ∩ t) :=
@@ -438,6 +455,11 @@ lemma principal_empty : principal (∅ : set α) = ⊥ := rfl
 
 @[simp] lemma principal_eq_bot_iff {s : set α} : principal s = ⊥ ↔ s = ∅ :=
 ⟨assume h, principal_eq_iff_eq.mp $ by simp [principal_empty, h], assume h, by simp [*, principal_empty]⟩
+
+lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : -s ∈ f.sets) : f ⊓ principal s = ⊥ :=
+empty_in_sets_eq_bot.mp $ (f ⊓ principal s).upwards_sets
+  (inter_mem_inf_sets hs (mem_principal_sets.mpr $ set.subset.refl s))
+  (assume x ⟨h₁, h₂⟩, h₁ h₂)
 
 @[simp] lemma mem_pure {a : α} {s : set α} : a ∈ s → s ∈ (pure a : filter α).sets :=
 by simp; exact id
@@ -1255,9 +1277,6 @@ end prod
 lemma mem_infi_sets {f : ι → filter α} (i : ι) : ∀{s}, s ∈ (f i).sets → s ∈ (⨅i, f i).sets :=
 show (⨅i, f i) ≤ f i, from infi_le _ _
 
-@[simp] lemma mem_top_sets_iff {s : set α} : s ∈ (⊤ : filter α).sets ↔ s = univ :=
-⟨assume h, top_unique $ h, assume h, h.symm ▸ univ_mem_sets⟩
-
 @[elab_as_eliminator]
 lemma infi_sets_induct {f : ι → filter α} {s : set α} (hs : s ∈ (infi f).sets) {p : set α → Prop}
   (uni : p univ)
@@ -1325,6 +1344,43 @@ le_antisymm
 
 lemma map_swap_vmap_swap_eq {f : filter (α × β)} : prod.swap <$> f = vmap prod.swap f :=
 map_eq_vmap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
+
+/- at_top and at_bot -/
+
+def at_top [preorder α] : filter α := ⨅ a, principal {b | a ≤ b}
+def at_bot [preorder α] : filter α := ⨅ a, principal {b | b ≤ a}
+
+lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ (@at_top α _).sets :=
+mem_infi_sets a $ subset.refl _
+
+@[simp] lemma at_top_ne_bot [inhabited α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
+infi_neq_bot_of_directed (by apply_instance)
+  (assume a b, ⟨a ⊔ b, by simp {contextual := tt}⟩)
+  (assume a, by simp [principal_eq_bot_iff]; exact ne_empty_of_mem (le_refl a))
+
+lemma mem_at_top_iff [inhabited α] [semilattice_sup α] {s : set α} :
+  s ∈ (at_top : filter α).sets ↔ (∃a:α, ∀b≥a, b ∈ s) :=
+iff.intro
+  (assume h, infi_sets_induct h ⟨default α, by simp⟩
+    (assume a s₁ s₂ ha ⟨b, hb⟩, ⟨a ⊔ b,
+      assume c hc, ⟨ha $ le_trans le_sup_left hc, hb _ $ le_trans le_sup_right hc⟩⟩)
+    (assume s₁ s₂ h ⟨a, ha⟩, ⟨a, assume b hb, h $ ha _ hb⟩))
+  (assume ⟨a, h⟩, mem_infi_sets a $ assume x, h x)
+
+lemma map_at_top_eq [inhabited α] [semilattice_sup α] {f : α → β} :
+  at_top.map f = (⨅a, principal $ f '' {a' | a ≤ a'}) :=
+calc map f (⨅a, principal {a' | a ≤ a'}) = (⨅a, map f $ principal {a' | a ≤ a'}) :
+    map_infi_eq (assume a b, ⟨a ⊔ b, by simp {contextual := tt}⟩) ⟨default α⟩
+  ... = (⨅a, principal $ f '' {a' | a ≤ a'}) : by simp
+
+lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :
+  tendsto (λs:finset γ, s.image j) at_top at_top :=
+tendsto_infi $ assume s, tendsto_infi' (s.image i) $ tendsto_principal_principal $
+  assume t (ht : s.image i ⊆ t),
+  calc s = (s.image i).image j :
+      by simp [finset.image_image, (∘), h]; exact finset.image_id.symm
+    ... ⊆  t.image j : finset.image_subset_image ht
+
 
 /- ultrafilter -/
 

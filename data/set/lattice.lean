@@ -424,6 +424,12 @@ end
 lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
 set.ext $ assume ⟨x, h⟩, begin simp, exact ⟨x, h, rfl⟩ end
 
+lemma subtype_val_image {p : α → Prop} {s : set (subtype p)} :
+  subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
+set.ext $ assume a,
+⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
+  assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
+
 end image
 
 section preimage

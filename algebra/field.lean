@@ -70,6 +70,9 @@ by rw [inv_eq_one_div]; exact div_pos_of_pos_of_pos zero_lt_one
 lemma inv_lt_one {a : α} (ha : 1 < a) : a⁻¹ < 1 :=
 by rw [inv_eq_one_div]; exact div_lt_of_mul_lt_of_pos (lt_trans zero_lt_one ha) (by simp *)
 
+lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
+by rw [inv_eq_one_div, lt_div_iff h₁]; simp [h₂]
+
 end
 
 section
@@ -84,5 +87,12 @@ lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
 if h : a = 0
 then by simp [h, inv_zero]
 else by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
+
+lemma inv_le_inv (hb : 0 < b) (h : b ≤ a) :
+  a⁻¹ ≤ b⁻¹ :=
+begin
+  rw [inv_eq_one_div, inv_eq_one_div],
+  exact one_div_le_one_div_of_le hb h
+end
 
 end

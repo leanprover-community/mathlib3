@@ -15,12 +15,6 @@ universes u v w
 lemma zero_le_mul {α : Type u} [ordered_semiring α] {a b : α} : 0 ≤ a → 0 ≤ b → 0 ≤ a * b :=
 mul_nonneg
 
-lemma supr_bool_eq {α : Type*} [complete_lattice α] {f : bool → α} :
-  (⨆b:bool, f b) = f tt ⊔ f ff :=
-le_antisymm
-  (supr_le $ assume b, match b with tt := le_sup_left | ff := le_sup_right end)
-  (sup_le (le_supr _ _) (le_supr _ _))
-
 inductive ennreal : Type
 | of_nonneg_real : Πr:real, 0 ≤ r → ennreal
 | infinity : ennreal
@@ -65,7 +59,7 @@ section semiring
 
 instance : has_zero ennreal := ⟨of_real 0⟩
 instance : has_one ennreal := ⟨of_real 1⟩
-instance ennreal.inhabited : inhabited ennreal := ⟨0⟩
+instance : inhabited ennreal := ⟨0⟩
 
 @[simp] lemma of_real_zero : of_real 0 = 0 := rfl
 @[simp] lemma of_real_one : of_real 1 = 1 := rfl

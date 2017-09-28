@@ -117,3 +117,17 @@ section
   exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]
 
 end
+
+section division_ring
+variables [division_ring α] {a b c : α}
+
+lemma add_div : (a + b) / c = a / c + b / c :=
+by rw [div_eq_mul_one_div, add_mul, ←div_eq_mul_one_div, ←div_eq_mul_one_div]
+
+lemma div_eq_mul_inv : a / b = a * b⁻¹ :=
+by rw [div_eq_mul_one_div, inv_eq_one_div]
+
+lemma neg_inv (h : a ≠ 0) : - a⁻¹ = (- a)⁻¹ :=
+by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
+
+end division_ring

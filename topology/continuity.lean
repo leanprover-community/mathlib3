@@ -19,21 +19,6 @@ local attribute [instance] decidable_inhabited prop_decidable
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Sort x}
 
-lemma image_preimage_eq_inter_rng {f : α → β} {t : set β} :
-  f '' preimage f t = t ∩ f '' univ :=
-set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_image_of_mem f trivial⟩,
-  assume ⟨hx, ⟨y, hy, h_eq⟩⟩, h_eq ▸ mem_image_of_mem f $
-    show y ∈ preimage f t, by simp [preimage, h_eq, hx]⟩
-
-lemma subtype.val_image {p : α → Prop} {s : set (subtype p)} :
-  subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
-set.ext $ assume a,
-⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
-  assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
-
-@[simp] lemma univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
-set.ext $ assume ⟨a, b⟩, by simp
-
 section
 variables [topological_space α] [topological_space β] [topological_space γ]
 
@@ -67,6 +52,40 @@ lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (preimage f s)) :=
 ⟨assume hf s hs, hf (-s) hs,
   assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
+
+lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
+  (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
+  continuous (λa, @ite (p a) (h a) β (f a) (g a)) :=
+continuous_iff_is_closed.mpr $
+assume s hs,
+have (λa, ite (p a) (f a) (g a)) ⁻¹' s =
+    (closure {a | p a} ∩  f ⁻¹' s) ∪ (closure {a | ¬ p a} ∩ g ⁻¹' s),
+  from set.ext $ assume a,
+  by_cases
+    (assume : a ∈ frontier {a | p a},
+      have hac : a ∈ closure {a | p a}, from this.left,
+      have hai : a ∈ closure {a | ¬ p a},
+        from have a ∈ - interior {a | p a}, from this.right, by rwa [←closure_compl] at this,
+      by by_cases p a; simp [h, hp a this, hac, hai, iff_def] {contextual := tt})
+    (assume hf : a ∈ - frontier {a | p a},
+      by_cases
+        (assume : p a,
+          have hc : a ∈ closure {a | p a}, from subset_closure this,
+          have hnc : a ∉ closure {a | ¬ p a},
+            by show a ∉ closure (- {a | p a}); rw [closure_compl]; simpa [frontier, hc] using hf,
+          by simp [this, hc, hnc])
+        (assume : ¬ p a,
+          have hc : a ∈ closure {a | ¬ p a}, from subset_closure this,
+          have hnc : a ∉ closure {a | p a},
+            begin
+              have hc : a ∈ closure (- {a | p a}), from hc,
+              simp [closure_compl] at hc,
+              simpa [frontier, hc] using hf
+            end,
+          by simp [this, hc, hnc])),
+by rw [this]; exact is_closed_union
+  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hf s hs)
+  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
 
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
@@ -501,7 +520,7 @@ continuous_induced_rng h
 
 lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ (nhds a).sets) :
   map (@subtype.val α p) (nhds ⟨a, ha⟩) = nhds a :=
-map_nhds_induced_eq (by simp [subtype.val_image, h])
+map_nhds_induced_eq (by simp [subtype_val_image, h])
 
 lemma nhds_subtype_eq_vmap {a : α} {h : p a} :
   nhds (⟨a, h⟩ : subtype p) = vmap subtype.val (nhds a) :=
@@ -530,7 +549,7 @@ continuous_iff_is_closed.mpr $
   have ∀i, is_closed (@subtype.val α {x | c i x} '' (preimage (f ∘ subtype.val) s)),
     from assume i,
     embedding_is_closed embedding_subtype_val
-      (by simp [subtype.val_image]; exact h_is_closed i)
+      (by simp [subtype_val_image]; exact h_is_closed i)
       (continuous_iff_is_closed.mp (f_cont i) _ hs),
   have is_closed (⋃i, @subtype.val α {x | c i x} '' (preimage (f ∘ subtype.val) s)),
     from is_closed_Union_of_locally_finite
@@ -696,7 +715,7 @@ protected def subtype (p : α → Prop) {e : α → β} (de : dense_embedding e)
     have (λ (x : {x // p x}), e (x.val)) = e ∘ subtype.val, from rfl,
     begin
       simp [(image_comp _ _ _).symm, (∘), subtype_emb],
-      rw [this, image_comp, subtype.val_image],
+      rw [this, image_comp, subtype_val_image],
       simp,
       assumption
     end,

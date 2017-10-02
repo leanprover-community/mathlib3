@@ -21,81 +21,14 @@ generalizations:
 * Archimedean fields
 
 -/
-
-import topology.uniform_space topology.topological_structures data.rat algebra.field
+import algebra data.rat data.subtype
+  analysis.topology.uniform_space analysis.topology.topological_structures
 noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
-
-@[simp] lemma quot_mk_image_univ_eq [setoid α] : (λx : α, ⟦x⟧) '' univ = univ :=
-set.ext $ assume x, quotient.induction_on x $ assume a, ⟨by simp, assume _, ⟨a, trivial, rfl⟩⟩
-
-lemma forall_subtype_iff {α : Type u} {p : α → Prop} {q : {a // p a} → Prop} :
-  (∀x:{a // p a}, q x) ↔ (∀a (h : p a), q ⟨a, h⟩) :=
-⟨assume h a ha, h ⟨_, _⟩, assume h ⟨a, ha⟩, h _ _⟩
-
-/- remove when we hava linear arithmetic tactic -/
-lemma one_lt_two {α : Type*} [linear_ordered_semiring α] : 1 < (2 : α) :=
-calc (1:α) < 1 + 1 : lt_add_of_le_of_pos (le_refl 1) zero_lt_one
-  ... = _ : by simp [bit0]
-
-lemma sub_lt_iff [ordered_comm_group α] {a b c : α} : (a - b < c) ↔ (a < c + b) :=
-iff.intro
-  lt_add_of_sub_right_lt
-  (assume h,
-    have a + - b < (c + b) + - b, from add_lt_add_right h _,
-    by simp * at *)
-
-lemma lt_sub_iff [ordered_comm_group α] {a b c : α} : (a < b - c) ↔ (a + c < b) :=
-iff.intro
-  (assume h,
-    have a + c < (b - c) + c, from add_lt_add_right h _,
-    by simp * at *)
-  lt_sub_right_of_add_lt
-
-instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
-  no_top_order α :=
-⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
-
-instance linear_ordered_semiring.to_no_bot_order {α : Type*} [linear_ordered_ring α] :
-  no_bot_order α :=
-⟨assume a, ⟨a - 1, sub_lt_iff.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
-
-lemma orderable_topology_of_nhds_abs
-  {α : Type*} [decidable_linear_ordered_comm_group α] [topological_space α]
-  (h_nhds : ∀a:α, nhds a = (⨅r>0, principal {b | abs (a - b) < r})) : orderable_topology α :=
-orderable_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
-begin
-  simp [infi_and, topological_space.nhds_generate_from, h_nhds, le_infi_iff, -le_principal_iff],
-  constructor,
-  exact assume s ha b hs,
-    match s, ha, hs with
-    | _, h, (or.inl rfl) :=
-      infi_le_of_le (a + - b) $ infi_le_of_le (lt_sub_left_of_add_lt $ by simp; exact h) $
-        principal_mono.mpr $ assume c (hc : abs (a + - c) < a - b),
-        have a + - c < a + - b, from lt_of_le_of_lt (le_abs_self _) hc,
-        show b < c, from lt_of_neg_lt_neg $ lt_of_add_lt_add_left this
-    | _, h, (or.inr rfl) :=
-      infi_le_of_le (b + - a) $ infi_le_of_le (lt_sub_left_of_add_lt $ by simp; exact h) $
-        principal_mono.mpr $ assume c (hc : abs (a + - c) < b + - a),
-        have abs (c + - a) < b + - a, by rw [←abs_neg]; simp [hc],
-        have c + - a < b + - a, from lt_of_le_of_lt (le_abs_self _) this,
-        show c < b, from lt_of_add_lt_add_right this
-    end,
-  { intros r hr,
-    have h : {b | abs (a + -b) < r} = {b | a - r < b} ∩ {b | b < a + r},
-      from (set.ext $ assume b,
-        by simp [abs_lt, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm, sub_lt, lt_sub_iff]),
-    rw [h, ←inf_principal],
-    apply le_inf _ _,
-    exact (infi_le_of_le {b : α | a - r < b} $ infi_le_of_le (sub_lt_self a hr) $
-      infi_le_of_le (a - r) $ infi_le _ (or.inl rfl)),
-    exact (infi_le_of_le {b : α | b < a + r} $ infi_le_of_le (lt_add_of_pos_right _ hr) $
-      infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) }
-end
 
 /- rational numbers form a topological group and hence a uniform space -/
 def zero_nhd : filter ℚ := (⨅r > 0, principal {q | abs q < r})
@@ -660,7 +593,7 @@ let de := dense_embedding_of_rat.subtype (λq:ℚ, 0 ≤ q) in
 have ∀r:{x // x ∈ nonneg}, abs_real r.val = r.val,
   from is_closed_property de.closure_image_univ
     (is_closed_eq (continuous_compose continuous_subtype_val continuous_abs_real') continuous_subtype_val)
-    (by simp [forall_subtype_iff, dense_embedding.subtype_emb, of_rat_abs_real];
+    (by simp [forall_subtype, dense_embedding.subtype_emb, of_rat_abs_real];
       exact (assume a ha, congr_arg of_rat $ abs_of_nonneg ha) ),
 by rw [zero_le_iff_nonneg]; intro hr; exact this ⟨r, hr⟩
 
@@ -809,6 +742,12 @@ continuous_of_uniform uniform_continuous_abs_real
 lemma of_rat_abs {q : ℚ} : of_rat (abs q) = abs (of_rat q) :=
 by rw [←abs_real_eq_abs]; exact of_rat_abs_real.symm
 
+lemma min_of_rat_of_rat {a b : ℚ} : min (of_rat a) (of_rat b) = of_rat (min a b) :=
+by by_cases a ≤ b; simp [h, min, of_rat_le_of_rat]
+
+lemma max_of_rat_of_rat {a b : ℚ} : max (of_rat a) (of_rat b) = of_rat (max a b) :=
+by by_cases a ≤ b; simp [h, max, of_rat_le_of_rat]
+
 lemma exists_pos_of_rat {r : ℝ} (hr : 0 < r) : ∃q:ℚ, 0 < q ∧ of_rat q < r :=
 let ⟨u, v, hu, hv, hru, h0v, huv⟩ := t2_separation (ne_of_gt hr) in
 have r ∈ nonneg, from zero_le_iff_nonneg.mp $ le_of_lt $ hr,
@@ -900,6 +839,10 @@ have {r':ℝ | r < r'} ∩ of_rat '' univ ∈ (nhds (r + 1) ⊓ principal (of_ra
     (mem_principal_sets.mpr $ subset.refl _),
 let ⟨x, hx, ⟨q, hq, hxq⟩⟩ := inhabited_of_mem_sets dense_embedding_of_rat.nhds_inf_neq_bot this in
 ⟨q, hxq.symm ▸ hx⟩
+
+lemma exists_gt_of_rat (r : ℝ) : ∃q:ℚ, of_rat q < r :=
+let ⟨q, hq⟩ := exists_lt_of_rat (-r) in
+⟨-q, by rwa [←of_rat_neg, neg_lt]⟩
 
 lemma closure_of_rat_image_le_eq {q : ℚ} : closure (of_rat '' {x | q ≤ x}) = {r | of_rat q ≤ r } :=
 have {r : ℝ | of_rat q < r} ⊆ closure (of_rat '' {x : ℚ | q ≤ x}),
@@ -1168,6 +1111,19 @@ instance : semiring ℝ := by apply_instance
 instance : topological_semiring ℝ :=
   @topological_ring.to_topological_semiring ℝ _ _ _
 
+lemma exists_lt_of_rat_of_rat_gt {r p : ℝ} (h : r < p) : ∃q, r < of_rat q ∧ of_rat q < p :=
+have h_dense : {x | r < x ∧ x < p} ≠ ∅,
+  from ne_empty_iff_exists_mem.mpr $ dense h,
+have {x | r < x ∧ x < p} ⊆ closure ({x | r < x ∧ x < p} ∩ of_rat '' univ),
+  from calc {x | r < x ∧ x < p} = {x | r < x ∧ x < p} ∩ closure (of_rat '' univ) :
+      by rw [dense_embedding_of_rat.closure_image_univ, inter_univ]
+    ... ⊆ closure ({x | r < x ∧ x < p} ∩ of_rat '' univ) :
+      closure_inter_open $ is_open_and (is_open_lt' _) (is_open_gt' _),
+have ({x | r < x ∧ x < p} ∩ of_rat '' univ) ≠ ∅,
+  by intro h; simp [h, subset_empty_iff, h_dense] at this; assumption,
+let ⟨r', ⟨h₁, h₂⟩, q, _, hq⟩ := ne_empty_iff_exists_mem.mp this in
+⟨q, hq.symm ▸ h₁, hq.symm ▸ h₂⟩
+
 lemma compact_ivl {a b : ℝ} : compact {r:ℝ | a ≤ r ∧ r ≤ b } :=
 have is_closed_ivl : ∀{a b : ℝ}, is_closed {r:ℝ | a ≤ r ∧ r ≤ b },
   from assume a b, is_closed_inter
@@ -1202,7 +1158,7 @@ have hf : f ≠ ⊥,
       ⟨max r₁ r₂, if h: r₁ ≤ r₂ then by rwa [max_eq_right h] else by rwa [max_eq_left (le_of_not_ge h)]⟩,
       by simp; exact assume a ha h, ⟨le_trans (le_max_left _ _) h, ha⟩,
       by simp; exact assume a ha h, ⟨le_trans (le_max_right _ _) h, ha⟩⟩)
-    (by simp [forall_subtype_iff]; exact assume a ha, ne_empty_of_mem ⟨ha, le_refl a⟩),
+    (by simp [forall_subtype]; exact assume a ha, ne_empty_of_mem ⟨ha, le_refl a⟩),
 have principal {r' : ℝ | r' ∈ s ∧ a ≤ r'} ≤ principal {r : ℝ | a ≤ r ∧ r ≤ b},
   by simp [upper_bounds] at hb; simp [hb] {contextual := tt},
 let ⟨x, ⟨hx₁, hx₂⟩, h⟩ := @compact_ivl a b f hf (infi_le_of_le ⟨a, ha⟩ this) in

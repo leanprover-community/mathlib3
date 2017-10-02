@@ -10,28 +10,14 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import topology.topological_space
+import analysis.topology.topological_space
 noncomputable theory
 
-open set filter lattice
+open set filter lattice classical
+local attribute [instance] decidable_inhabited prop_decidable
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Sort x}
-
-lemma image_preimage_eq_inter_rng {f : α → β} {t : set β} :
-  f '' preimage f t = t ∩ f '' univ :=
-set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_image_of_mem f trivial⟩,
-  assume ⟨hx, ⟨y, hy, h_eq⟩⟩, h_eq ▸ mem_image_of_mem f $
-    show y ∈ preimage f t, by simp [preimage, h_eq, hx]⟩
-
-lemma subtype.val_image {p : α → Prop} {s : set (subtype p)} :
-  subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
-set.ext $ assume a,
-⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
-  assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
-
-@[simp] lemma univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
-set.ext $ assume ⟨a, b⟩, by simp
 
 section
 variables [topological_space α] [topological_space β] [topological_space γ]
@@ -66,6 +52,40 @@ lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (preimage f s)) :=
 ⟨assume hf s hs, hf (-s) hs,
   assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
+
+lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
+  (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
+  continuous (λa, @ite (p a) (h a) β (f a) (g a)) :=
+continuous_iff_is_closed.mpr $
+assume s hs,
+have (λa, ite (p a) (f a) (g a)) ⁻¹' s =
+    (closure {a | p a} ∩  f ⁻¹' s) ∪ (closure {a | ¬ p a} ∩ g ⁻¹' s),
+  from set.ext $ assume a,
+  by_cases
+    (assume : a ∈ frontier {a | p a},
+      have hac : a ∈ closure {a | p a}, from this.left,
+      have hai : a ∈ closure {a | ¬ p a},
+        from have a ∈ - interior {a | p a}, from this.right, by rwa [←closure_compl] at this,
+      by by_cases p a; simp [h, hp a this, hac, hai, iff_def] {contextual := tt})
+    (assume hf : a ∈ - frontier {a | p a},
+      by_cases
+        (assume : p a,
+          have hc : a ∈ closure {a | p a}, from subset_closure this,
+          have hnc : a ∉ closure {a | ¬ p a},
+            by show a ∉ closure (- {a | p a}); rw [closure_compl]; simpa [frontier, hc] using hf,
+          by simp [this, hc, hnc])
+        (assume : ¬ p a,
+          have hc : a ∈ closure {a | ¬ p a}, from subset_closure this,
+          have hnc : a ∉ closure {a | p a},
+            begin
+              have hc : a ∈ closure (- {a | p a}), from hc,
+              simp [closure_compl] at hc,
+              simpa [frontier, hc] using hf
+            end,
+          by simp [this, hc, hnc])),
+by rw [this]; exact is_closed_union
+  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hf s hs)
+  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
 
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
@@ -344,6 +364,33 @@ lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht: is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
+lemma prod_generate_from_generate_from_eq {s : set (set α)} {t : set (set β)}
+  (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
+  @prod.topological_space α β (generate_from s) (generate_from t) =
+  generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} :=
+let G := generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} in
+le_antisymm
+  (sup_le
+    (induced_le_iff_le_coinduced.mpr $ generate_from_le $ assume u hu,
+      have (⋃v∈t, set.prod u v) = prod.fst ⁻¹' u,
+        from calc (⋃v∈t, set.prod u v) = set.prod u univ:
+            set.ext $ assume ⟨a, b⟩, by rw [←ht]; simp {contextual:=tt}
+          ... = prod.fst ⁻¹' u : by simp [set.prod, preimage],
+      show G.is_open (prod.fst ⁻¹' u),
+        from this ▸ @is_open_Union _ _ G _ $ assume v, @is_open_Union _ _ G _ $ assume hv,
+          generate_open.basic _ ⟨_, hu, _, hv, rfl⟩)
+    (induced_le_iff_le_coinduced.mpr $ generate_from_le $ assume v hv,
+      have (⋃u∈s, set.prod u v) = prod.snd ⁻¹' v,
+        from calc (⋃u∈s, set.prod u v) = set.prod univ v:
+            set.ext $ assume ⟨a, b⟩, by rw [←hs]; by_cases b ∈ v; simp [h] {contextual:=tt}
+          ... = prod.snd ⁻¹' v : by simp [set.prod, preimage],
+      show G.is_open (prod.snd ⁻¹' v),
+        from this ▸ @is_open_Union _ _ G _ $ assume u, @is_open_Union _ _ G _ $ assume hu,
+          generate_open.basic _ ⟨_, hu, _, hv, rfl⟩))
+  (generate_from_le $ assume g ⟨u, hu, v, hv, g_eq⟩, g_eq.symm ▸
+    @is_open_prod _ _ (generate_from s) (generate_from t) _ _
+      (generate_open.basic _ hu) (generate_open.basic _ hv))
+
 lemma prod_eq_generate_from [tα : topological_space α] [tβ : topological_space β] :
   prod.topological_space =
   generate_from {g | ∃(s:set α) (t:set β), is_open s ∧ is_open t ∧ g = set.prod s t} :=
@@ -419,6 +466,17 @@ lemma is_closed_eq [topological_space α] [t2_space α] [topological_space β] {
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (continuous_prod_mk hf hg) _ is_closed_diagonal
 
+/- TODO: more fine grained instances for first_countable_topology, separable_space, t2_space, ... -/
+instance [second_countable_topology α] [second_countable_topology β] :
+  second_countable_topology (α × β) :=
+⟨let ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩ := is_open_generated_countable_inter α in
+  let ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩ := is_open_generated_countable_inter β in
+  ⟨{g | ∃u∈a, ∃v∈b, g = set.prod u v},
+    have {g | ∃u∈a, ∃v∈b, g = set.prod u v} = (⋃u∈a, ⋃v∈b, {set.prod u v}),
+      by apply set.ext; simp,
+    by rw [this]; exact (countable_bUnion ha₁ $ assume u hu, countable_bUnion hb₁ $ by simp),
+    by rw [ha₅, hb₅, prod_generate_from_generate_from_eq ha₄ hb₄]⟩⟩
+
 end prod
 
 section sum
@@ -462,7 +520,7 @@ continuous_induced_rng h
 
 lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ (nhds a).sets) :
   map (@subtype.val α p) (nhds ⟨a, ha⟩) = nhds a :=
-map_nhds_induced_eq (by simp [subtype.val_image, h])
+map_nhds_induced_eq (by simp [subtype_val_image, h])
 
 lemma nhds_subtype_eq_vmap {a : α} {h : p a} :
   nhds (⟨a, h⟩ : subtype p) = vmap subtype.val (nhds a) :=
@@ -491,7 +549,7 @@ continuous_iff_is_closed.mpr $
   have ∀i, is_closed (@subtype.val α {x | c i x} '' (preimage (f ∘ subtype.val) s)),
     from assume i,
     embedding_is_closed embedding_subtype_val
-      (by simp [subtype.val_image]; exact h_is_closed i)
+      (by simp [subtype_val_image]; exact h_is_closed i)
       (continuous_iff_is_closed.mp (f_cont i) _ hs),
   have is_closed (⋃i, @subtype.val α {x | c i x} '' (preimage (f ∘ subtype.val) s)),
     from is_closed_Union_of_locally_finite
@@ -657,7 +715,7 @@ protected def subtype (p : α → Prop) {e : α → β} (de : dense_embedding e)
     have (λ (x : {x // p x}), e (x.val)) = e ∘ subtype.val, from rfl,
     begin
       simp [(image_comp _ _ _).symm, (∘), subtype_emb],
-      rw [this, image_comp, subtype.val_image],
+      rw [this, image_comp, subtype_val_image],
       simp,
       assumption
     end,

@@ -62,6 +62,9 @@ instance : distrib_lattice (set α) :=
       end
     end }
 
+lemma subset.antisymm_iff {α : Type*} {s t : set α} : s = t ↔ (s ⊆ t ∧ t ⊆ s) :=
+le_antisymm_iff
+
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
 
@@ -170,6 +173,7 @@ show (⨅x ∈ (∅ : set α), u x) = ⊤, -- simplifier should be able to rewri
 
 @[simp] theorem bInter_univ (u : α → set β) : (⋂ x ∈ @univ α, u x) = ⋂ x, u x :=
 infi_univ
+
 
 -- TODO(Jeremy): here is an artifact of the the encoding of bounded intersection:
 -- without dsimp, the next theorem fails to type check, because there is a lambda
@@ -345,6 +349,12 @@ instance : complete_boolean_algebra (set α) :=
 theorem union_sdiff_same {a b : set α} : a ∪ (b \ a) = a ∪ b :=
 lattice.sup_sub_same
 
+theorem sdiff_union_same {a b : set α} : (b \ a) ∪ a = a ∪ b :=
+by rw [union_comm, union_sdiff_same]
+
+theorem sdiff_inter_same {a b : set α} : (b \ a) ∩ a = ∅ :=
+set.ext $ by simp [iff_def] {contextual:=tt}
+
 theorem sdiff_subset_sdiff {a b c d : set α} : a ⊆ c → d ⊆ b → a \ b ⊆ c \ d :=
 @lattice.sub_le_sub (set α) _ _ _ _ _
 
@@ -362,6 +372,46 @@ by simp [insert_eq, union_sdiff_same]
 lemma compl_subset_compl_iff_subset {α : Type u} {x y : set α} : - y ⊆ - x ↔ x ⊆ y :=
 @neg_le_neg_iff_le (set α) _ _ _
 
+lemma union_of_subset_right {a b : set α} (h : a ⊆ b) : a ∪ b = b :=
+sup_of_le_right h
+
+section sdiff
+
+variables {s s₁ s₂ : set α}
+
+@[simp] lemma sdiff_empty : s \ ∅ = s :=
+set.ext $ by simp
+
+lemma sdiff_eq: s₁ \ s₂ = s₁ ∩ -s₂ := rfl
+
+lemma union_sdiff_left : (s₁ ∪ s₂) \ s₂ = s₁ \ s₂ :=
+set.ext $ assume x, by simp [iff_def] {contextual := tt}
+
+lemma union_sdiff_right : (s₂ ∪ s₁) \ s₂ = s₁ \ s₂ :=
+set.ext $ assume x, by simp [iff_def] {contextual := tt}
+
+end sdiff
+
+section
+
+variables {p : Prop} {μ : p → set α}
+
+@[simp] lemma Inter_pos (hp : p) : (⋂h:p, μ h) = μ hp := infi_pos hp
+
+@[simp] lemma Inter_neg (hp : ¬ p) : (⋂h:p, μ h) = univ := infi_neg hp
+
+@[simp] lemma Union_pos (hp : p) : (⋃h:p, μ h) = μ hp := supr_pos hp
+
+@[simp] lemma Union_neg (hp : ¬ p) : (⋃h:p, μ h) = ∅ := supr_neg hp
+
+@[simp] lemma Union_empty {ι : Sort*} : (⋃i:ι, ∅:set α) = ∅ := supr_bot
+
+@[simp] lemma Inter_univ {ι : Sort*} : (⋂i:ι, univ:set α) = univ := infi_top
+
+end
+
+end set
+
 section image
 
 lemma image_Union {f : α → β} {s : ι → set α} : f '' (⋃ i, s i) = (⋃i, f '' s i) :=
@@ -373,6 +423,12 @@ end
 
 lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
 set.ext $ assume ⟨x, h⟩, begin simp, exact ⟨x, h, rfl⟩ end
+
+lemma subtype_val_image {p : α → Prop} {s : set (subtype p)} :
+  subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
+set.ext $ assume a,
+⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
+  assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
 end image
 
@@ -433,5 +489,3 @@ theorem disjoint_bot_left {a : α} : disjoint ⊥ a := bot_inf_eq
 theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_bot_eq
 
 end disjoint
-
-end set

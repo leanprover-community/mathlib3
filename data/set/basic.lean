@@ -659,6 +659,12 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
 ⟨ assume s_eq x h, by rw [s_eq]; simp
 , assume h, set.ext $ assume ⟨x, hx⟩, by simp [h]⟩
 
+lemma image_preimage_eq_inter_rng {f : α → β} {t : set β} :
+  f '' preimage f t = t ∩ f '' univ :=
+set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_image_of_mem f trivial⟩,
+  assume ⟨hx, ⟨y, hy, h_eq⟩⟩, h_eq ▸ mem_image_of_mem f $
+    show y ∈ preimage f t, by simp [preimage, h_eq, hx]⟩
+
 lemma image_subset_eq {f : α → β} {s : set α} {t : set β} :
   (f '' s ⊆ t) = (s ⊆ f ⁻¹' t) :=
 propext ball_image_iff
@@ -686,7 +692,6 @@ or.elim hx (λ l, or.inl $ mem_image l heq) (λ r, or.inr $ by rw [←heq]; exac
 
 end preimage
 
-
 section range
 variables {f : ι → α}
 open function
@@ -706,6 +711,9 @@ lemma range_of_surjective (h : surjective f) : range f = univ :=
 eq_univ_of_univ_subset $ assume x _, h x
 
 @[simp] lemma range_id : range (@id α) = univ := range_of_surjective surjective_id
+
+lemma range_eq_image {ι : Type*} {f : ι → β} : range f = f '' univ :=
+set.ext $ by simp [image, range]
 
 lemma range_compose {g : α → β} : range (g ∘ f) = g '' range f :=
 subset.antisymm

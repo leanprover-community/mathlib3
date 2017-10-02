@@ -17,6 +17,20 @@ protected def prod (s : set α) (t : set β) : set (α × β) :=
 lemma mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈ t) :=
 rfl
 
+@[simp] lemma prod_empty {s : set α} : set.prod s ∅ = (∅ : set (α × β)) :=
+set.ext $ by simp [set.prod]
+
+@[simp] lemma empty_prod {t : set β} : set.prod ∅ t = (∅ : set (α × β)) :=
+set.ext $ by simp [set.prod]
+
+lemma insert_prod {a : α} {s : set α} {t : set β} :
+  set.prod (insert a s) t = (prod.mk a '' t) ∪ set.prod s t :=
+set.ext begin simp [set.prod, image, iff_def, or_imp_distrib] {contextual := tt}; cc end
+
+lemma prod_insert {b : β} {s : set α} {t : set β} :
+  set.prod s (insert b t) = ((λa, (a, b)) '' s) ∪ set.prod s t :=
+set.ext begin simp [set.prod, image, iff_def, or_imp_distrib] {contextual := tt}; cc end
+
 theorem prod_preimage_eq {f : γ → α} {g : δ → β} :
   set.prod (preimage f s) (preimage g t) = preimage (λp, (f p.1, g p.2)) (set.prod s t) := rfl
 
@@ -69,5 +83,8 @@ end
 
 @[simp] lemma prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
+
+@[simp] lemma univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
+set.ext $ assume ⟨a, b⟩, by simp
 
 end set

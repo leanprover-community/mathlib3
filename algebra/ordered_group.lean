@@ -39,7 +39,7 @@ by rw [add_comm, lt_add_iff_pos_right]
 
 lemma add_eq_zero_iff_eq_zero_of_nonneg
   (ha : 0 ≤ a) (hb : 0 ≤ b) : a + b = 0 ↔ a = 0 ∧ b = 0 :=
-⟨λ hab : a + b = 0, 
+⟨λ hab : a + b = 0,
 by split; apply le_antisymm; try {assumption};
    rw ← hab; simp [ha, hb],
 λ ⟨ha', hb'⟩, by rw [ha', hb', add_zero]⟩
@@ -100,6 +100,20 @@ lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
 
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
 add_lt_add_iff_right _
+
+lemma sub_lt_iff {a b c : α} : (a - b < c) ↔ (a < c + b) :=
+iff.intro
+  lt_add_of_sub_right_lt
+  (assume h,
+    have a + - b < (c + b) + - b, from add_lt_add_right h _,
+    by simp * at *)
+
+lemma lt_sub_iff {a b c : α} : (a < b - c) ↔ (a + c < b) :=
+iff.intro
+  (assume h,
+    have a + c < (b - c) + c, from add_lt_add_right h _,
+    by simp * at *)
+  lt_sub_right_of_add_lt
 
 @[simp] lemma sub_nonneg : 0 ≤ a - b ↔ b ≤ a :=
 have a - a ≤ a - b ↔ b ≤ a, from sub_le_sub_iff_left a,

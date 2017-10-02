@@ -27,7 +27,7 @@ The formalization is mostly based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter topology.topological_space topology.continuity
+import order.filter data.quot analysis.topology.topological_space analysis.topology.continuity
 open set lattice filter classical
 local attribute [instance] decidable_inhabited prop_decidable
 
@@ -36,10 +36,6 @@ set_option eqn_compiler.zeta true
 universes u
 section
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Sort*}
-
-lemma forall_quotient_iff [r : setoid α] {p : quotient r → Prop} :
-  (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
-⟨assume h x, h _, assume h a, a.induction_on h⟩
 
 def id_rel {α : Type*} := {p : α × α | p.1 = p.2}
 
@@ -481,6 +477,10 @@ have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
 
 /- cauchy filters -/
 definition cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ uniformity
+
+lemma cauchy_iff [uniform_space α] {f : filter α} :
+  cauchy f ↔ (f ≠ ⊥ ∧ (∀s∈(@uniformity α _).sets, ∃t∈f.sets, set.prod t t ⊆ s)) :=
+and_congr (iff.refl _) $ forall_congr $ assume s, forall_congr $ assume hs, mem_prod_same_iff
 
 lemma cauchy_downwards {f g : filter α} (h_c : cauchy f) (hg : g ≠ ⊥) (h_le : g ≤ f) : cauchy g :=
 ⟨hg, le_trans (filter.prod_mono h_le h_le) h_c.right⟩

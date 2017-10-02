@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.order algebra.ordered_group algebra.ring
+import order algebra.order algebra.ordered_group algebra.ring
 
 universe u
 variable {α : Type u}
@@ -50,7 +50,20 @@ lemma le_mul_of_ge_one_left' {a b : α} (hb : b ≥ 0) (h : a ≥ 1) : b ≤ a *
 suffices 1 * b ≤ a * b, by rwa one_mul at this,
 mul_le_mul_of_nonneg_right h hb
 
+/- remove when we have a linear arithmetic tactic -/
+lemma one_lt_two : 1 < (2 : α) :=
+calc (1:α) < 1 + 1 : lt_add_of_le_of_pos (le_refl 1) zero_lt_one
+  ... = _ : by simp [bit0]
+
 end linear_ordered_semiring
+
+instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
+  no_top_order α :=
+⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
+
+instance linear_ordered_semiring.to_no_bot_order {α : Type*} [linear_ordered_ring α] :
+  no_bot_order α :=
+⟨assume a, ⟨a - 1, sub_lt_iff.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
 
 instance to_domain [s : linear_ordered_ring α] : domain α :=
 { s with

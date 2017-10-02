@@ -10,7 +10,8 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter tactic
+import order.filter data.set.countable tactic
+
 open set filter lattice classical
 local attribute [instance] decidable_inhabited prop_decidable
 
@@ -67,6 +68,15 @@ is_open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 @[simp] lemma is_open_empty : is_open (∅ : set α) :=
 have is_open (⋃₀ ∅ : set α), from is_open_sUnion (assume a, false.elim),
 by simp at this; assumption
+
+lemma is_open_sInter {s : set (set α)} (hs : finite s) (h : ∀t ∈ s, is_open t) : is_open (⋂₀ s) :=
+begin
+  induction hs,
+  case finite.empty { simp },
+  case finite.insert a s has hs ih {
+    suffices : is_open (a ∩ ⋂₀ s), { simpa },
+    exact is_open_inter (h _ $ mem_insert _ _) (ih $ assume t ht, h _ $ mem_insert_of_mem _ ht) }
+end
 
 lemma is_open_const {p : Prop} : is_open {a : α | p} :=
 by_cases
@@ -230,7 +240,29 @@ by simp [closure_eq_compl_interior_compl]
 @[simp] lemma closure_compl_eq {s : set α} : closure (- s) = - interior s :=
 by simp [closure_eq_compl_interior_compl]
 
-/- neighbourhood filter -/
+lemma closure_compl {s : set α} : closure (-s) = - interior s :=
+subset.antisymm
+  (by simp [closure_subset_iff_subset_of_is_closed, compl_subset_compl_iff_subset, subset.refl])
+  begin
+    rw [←compl_subset_compl_iff_subset, compl_compl, subset_interior_iff_subset_of_open,
+      ←compl_subset_compl_iff_subset, compl_compl],
+    exact subset_closure,
+    exact is_open_compl_iff.mpr is_closed_closure
+  end
+
+lemma interior_compl {s : set α} : interior (-s) = - closure s :=
+calc interior (- s) = - - interior (- s) : by simp
+  ... = - closure (- (- s)) : by rw [closure_compl]
+  ... = - closure s : by simp
+
+/-- frontier -/
+def frontier (s : set α) : set α := closure s \ interior s
+
+lemma frontier_eq_closure_inter_closure {s : set α} :
+  frontier s = closure s ∩ closure (- s) :=
+by rw [closure_compl, frontier, sdiff_eq]
+
+/-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 
 lemma tendsto_nhds {m : β → α} {f : filter β} (h : ∀s, a ∈ s → is_open s → preimage m s ∈ f.sets) :
@@ -329,6 +361,12 @@ have b.map f ≤ nhds a ⊓ principal s,
   from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
 is_closed_iff_nhds.mp hs a $ neq_bot_of_le_neq_bot (map_ne_bot hb) this
 
+lemma mem_closure_of_tendsto {f : β → α} {x : filter β} {a : α} {s : set α}
+  (hf : tendsto f x (nhds a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
+is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
+  le_inf (le_trans (map_mono $ inf_le_left) hf) $
+    le_trans (map_mono $ inf_le_right_of_le $ by simp; exact subset.refl _) (@map_vmap_le _ _ _ f)
+
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
 
@@ -371,6 +409,7 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
 
 end locally_finite
 
+/- compact sets -/
 section compact
 
 def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ nhds a ≠ ⊥
@@ -523,6 +562,8 @@ compact_of_finite_subcover $ assume c hc₁ hc₂,
 
 end compact
 
+/- separation axioms -/
+
 section separation
 
 class t1_space (α : Type u) [topological_space α] :=
@@ -598,6 +639,8 @@ let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 
 end regularity
 
+/- generating sets -/
+
 end topological_space
 
 namespace topological_space
@@ -644,6 +687,7 @@ le_antisymm
 
 end topological_space
 
+/- constructions using the complete lattice structure -/
 section constructions
 
 variables {α : Type u} {β : Type v}
@@ -754,6 +798,12 @@ le_antisymm
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ h x)
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ (h x).symm)
 
+lemma induced_le_iff_le_coinduced {f : α → β } {tα : topological_space α} {tβ : topological_space β} :
+  tβ.induced f ≤ tα ↔ tβ ≤ tα.coinduced f :=
+iff.intro
+  (assume h s hs, show tα.is_open (f ⁻¹' s), from h _ ⟨s, hs, rfl⟩)
+  (assume h s ⟨t, ht, hst⟩, hst.symm ▸ h _ ht)
+
 instance : topological_space empty := ⊤
 instance : topological_space unit := ⊤
 instance : topological_space bool := ⊤
@@ -829,6 +879,121 @@ le_antisymm
 end
 
 end constructions
+
+namespace topological_space
+/- countability axioms
+
+For our applications we are interested that there exists a countable basis, but we do not need the
+concrete basis itself. This allows us to declare these type classes as `Prop` to use them as mixins.
+-/
+variables {α : Type u} [t : topological_space α]
+include t
+
+def is_topological_basis (s : set (set α)) : Prop :=
+(∀t₁∈s, ∀t₂∈s, t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s) ∧
+(⋃₀ s) = univ ∧
+t = generate_from s
+
+lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
+  is_topological_basis ((λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f ≠ ∅}) :=
+let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f ≠ ∅} in
+⟨assume s₁ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, eq₁⟩ s₂ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, eq₂⟩,
+    have ⋂₀(t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂, from Inf_union,
+    eq₁ ▸ eq₂ ▸ assume h,
+      ⟨t₁ ∪ t₂, ⟨finite_union hft₁ hft₂, union_subset ht₁b ht₂b, by simpa [this]⟩, this⟩,
+  eq_univ_of_forall $ assume a, ⟨univ, ⟨∅, by simp; exact (@empty_ne_univ _ ⟨a⟩).symm⟩, mem_univ _⟩,
+ have generate_from s = generate_from b',
+    from le_antisymm
+      (generate_from_le $ assume s hs,
+        by_cases
+          (assume : s = ∅, by rw [this]; apply @is_open_empty _ _)
+          (assume : s ≠ ∅, generate_open.basic _ ⟨{s}, by simp [this, hs]⟩))
+      (generate_from_le $ assume u ⟨t, ⟨hft, htb, ne⟩, eq⟩,
+        eq ▸ @is_open_sInter _ (generate_from s) _ hft (assume s hs, generate_open.basic _ $ htb hs)),
+  this ▸ hs⟩
+
+lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
+  (h_inter : ∀(u₁ u₂ : set α), u₁ ∈ s → u₂ ∈ s → u₁ ∩ u₂ ≠ ∅ → u₁ ∩ u₂ ∈ s)
+  (h_univ : ∀a:α, ∃u:set α, u ∈ s ∧ a ∈ u)
+  (h_open : ∀(u : set α), u ∈ s → _root_.is_open u)
+  (h_nhds : ∀(a:α) (u : set α), a ∈ u → _root_.is_open u → ∃v, v ∈ s ∧ a ∈ v ∧ v ⊆ u) :
+  is_topological_basis s :=
+have @is_topological_basis α (generate_from s) s,
+  from ⟨assume t₁ ht₁ t₂ ht₂, h_inter t₁ t₂ ht₁ ht₂,
+    eq_univ_of_forall $ assume a, by simpa using h_univ a, rfl⟩,
+⟨this.1, this.2.1,
+  le_antisymm
+    (assume u hu,
+      (@is_open_iff_nhds α (generate_from _) _).mpr $ assume a hau,
+        let ⟨v, hvs, hav, hvu⟩ := h_nhds a u hau hu in
+        by rw [nhds_generate_from]; exact (infi_le_of_le v $ infi_le_of_le ⟨hav, hvs⟩ $ by simp [hvu]))
+    (generate_from_le h_open)⟩
+
+lemma mem_nhds_of_is_topological_basis [topological_space α] {a : α} {s : set α} {b : set (set α)}
+  (hb : is_topological_basis b) (hs : s ∈ (nhds a).sets) : ∃t∈b, a ∈ t ∧ t ⊆ s :=
+begin
+  rw [hb.2.2, nhds_generate_from, infi_sets_eq'] at hs,
+  { simpa using hs },
+  { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
+      have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
+      ⟨s ∩ t, ⟨this, hb.1 _ hs₂ _ ht₂ $ ne_empty_of_mem this⟩,
+        by simp [inter_subset_left, inter_subset_right]⟩ },
+  { suffices : a ∈ (⋃₀ b), { simpa },
+    { rw [hb.2.1], trivial } }
+end
+
+variables (α)
+
+class separable_space : Prop :=
+(exists_countable_closure_eq_univ : ∃s:set α, countable s ∧ closure s = univ)
+
+class first_countable_topology : Prop :=
+(nhds_generated_countable : ∀a:α, ∃s:set (set α), countable s ∧ nhds a = (⨅t∈s, principal t))
+
+class second_countable_topology : Prop :=
+(is_open_generated_countable : ∃b:set (set α), countable b ∧ t = topological_space.generate_from b)
+
+instance second_countable_topology.to_first_countable_topology
+  [second_countable_topology α] : first_countable_topology α :=
+let ⟨b, hb, eq⟩ := second_countable_topology.is_open_generated_countable α in
+⟨assume a, ⟨{s | a ∈ s ∧ s ∈ b},
+  countable_subset (assume x ⟨_, hx⟩, hx) hb, by rw [eq, nhds_generate_from]⟩⟩
+
+lemma is_open_generated_countable_inter [second_countable_topology α] :
+  ∃b:set (set α), countable b ∧ ∅ ∉ b ∧ is_topological_basis b :=
+let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
+let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ ⋂₀ s ≠ ∅} in
+⟨b',
+  countable_image $ countable_subset (by simp {contextual:=tt}) (countable_set_of_finite_subset hb₁),
+  assume ⟨s, ⟨_, _, hn⟩, hp⟩, hn hp,
+  is_topological_basis_of_subbasis hb₂⟩
+
+instance second_countable_topology.to_separable_space
+  [second_countable_topology α] : separable_space α :=
+let ⟨b, hb₁, hb₂, hb₃, hb₄, eq⟩ := is_open_generated_countable_inter α in
+have nhds_eq : ∀a, nhds a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, principal s.val),
+  by intro a; rw [eq, nhds_generate_from]; simp [infi_subtype],
+have ∀s∈b, ∃a, a ∈ s, from assume s hs, exists_mem_of_ne_empty $ assume eq, hb₂ $ eq ▸ hs,
+have ∃f:∀s∈b, α, ∀s h, f s h ∈ s, by simp only [skolem] at this; exact this,
+let ⟨f, hf⟩ := this in
+⟨⟨(⋃s∈b, ⋃h:s∈b, {f s h}),
+  countable_bUnion hb₁ (by simp [countable_Union_Prop]),
+  set.ext $ assume a,
+  have a ∈ (⋃₀ b), by rw [hb₄]; exact trivial,
+  let ⟨t, ht₁, ht₂⟩ := this in
+  have w : {s : set α // a ∈ s ∧ s ∈ b}, from ⟨t, ht₂, ht₁⟩,
+  suffices (⨅ (x : {s // a ∈ s ∧ s ∈ b}), principal (x.val ∩ ⋃s (h₁ h₂ : s ∈ b), {f s h₂})) ≠ ⊥,
+    by simpa [closure_eq_nhds, nhds_eq, infi_inf w],
+  infi_neq_bot_of_directed ⟨a⟩
+    (assume ⟨s₁, has₁, hs₁⟩ ⟨s₂, has₂, hs₂⟩,
+      have a ∈ s₁ ∩ s₂, from ⟨has₁, has₂⟩,
+      ⟨⟨s₁ ∩ s₂, this, hb₃ _ hs₁ _ hs₂ $ ne_empty_of_mem this⟩, by simp [subset_def] {contextual := tt}⟩)
+    (assume ⟨s, has, hs⟩,
+      have s ∩ (⋃ (s : set α) (H h : s ∈ b), {f s h}) ≠ ∅,
+        from ne_empty_of_mem ⟨hf _ hs, mem_bUnion hs $ (mem_Union_eq _ _).mpr ⟨hs, by simp⟩⟩,
+      by simp [this]) ⟩⟩
+
+end topological_space
 
 section limit
 variables {α : Type u} [inhabited α] [topological_space α]

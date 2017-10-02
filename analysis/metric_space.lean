@@ -9,16 +9,12 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import topology.real
+import analysis.real
 open lattice set filter classical
 noncomputable theory
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
-
-theorem exists_subtype {p : α → Prop} {q : subtype p → Prop} :
-  (∃x : subtype p, q x) ↔ (∃x (h : p x), q ⟨x, h⟩) :=
-⟨assume ⟨⟨x, h⟩, h'⟩, ⟨x, h, h'⟩, assume ⟨x, h, h'⟩, ⟨⟨x, h⟩, h'⟩⟩
 
 class metric_space (α : Type u) extends uniform_space α : Type u :=
 (dist : α → α → ℝ)

@@ -390,6 +390,9 @@ forall_or_distrib_left
 lemma cases {p : Prop → Prop} (h1 : p true) (h2 : p false) : ∀a, p a :=
 assume a, cases_on a h1 h2
 
+lemma or_not {p : Prop} : p ∨ ¬ p :=
+by_cases or.inl or.inr
+
 end classical
 
 /-

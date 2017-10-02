@@ -6,95 +6,15 @@ Authors: Johannes Hölzl
 Outer measures -- overapproximations of measures
 -/
 
-import data.set order.galois_connection algebra.big_operators topology.measurable_space
-  topology.measure topology.limits
+import data.set order.galois_connection algebra.big_operators
+  analysis.ennreal analysis.limits
+  analysis.measure_theory.measurable_space
+
 noncomputable theory
-
-section linear_ordered_field
-variables {α : Type*} [linear_ordered_field α]
-
-lemma inv_lt_one {a : α} (ha : 1 < a) : a⁻¹ < 1 :=
-by rw [inv_eq_one_div]; exact div_lt_of_mul_lt_of_pos (lt_trans zero_lt_one ha) (by simp *)
-
-end linear_ordered_field
 
 open classical set lattice finset function filter
 open ennreal (of_real)
 local attribute [instance] decidable_inhabited prop_decidable
-
-namespace classical
-
-lemma or_not {p : Prop} : p ∨ ¬ p :=
-by_cases or.inl or.inr
-
-end classical
-
-open classical
-
-namespace ennreal
-
-lemma infi_add {ι : Sort*} {s : ι → ennreal} {a : ennreal} : infi s + a = ⨅b, s b + a :=
-calc infi s + a = Inf (range s) + a : by simp [Inf_range]
-  ... = (⨅b∈range s, b + a) : Inf_add
-  ... = _ : by simp [infi_range]
-
-lemma add_infi {ι : Sort*} {s : ι → ennreal} {a : ennreal} : a + infi s = ⨅b, a + s b :=
-by rw [add_comm, infi_add]; simp
-
-lemma infi_add_infi {ι : Sort*} {f g : ι → ennreal} (h : ∀i j, ∃k, f k + g k ≤ f i + g j) :
-  infi f + infi g = (⨅a, f a + g a) :=
-suffices (⨅a, f a + g a) ≤ infi f + infi g,
-  from le_antisymm (le_infi $ assume a, add_le_add' (infi_le _ _) (infi_le _ _)) this,
-calc (⨅a, f a + g a) ≤ (⨅a', ⨅a, f a + g a') :
-    le_infi $ assume a', le_infi $ assume a, let ⟨k, h⟩ := h a a' in infi_le_of_le k h
-  ... ≤ infi f + infi g :
-    by simp [infi_add, add_infi, -add_comm, -le_infi_iff]
-
-lemma infi_sum {α : Type*} {ι : Sort*} {f : ι → α → ennreal} {s : finset α} [inhabited ι]
-  (h : ∀(t : finset α) (i j : ι), ∃k, ∀a∈t, f k a ≤ f i a ∧ f k a ≤ f j a) :
-  (⨅i, s.sum (f i)) = s.sum (λa, ⨅i, f i a) :=
-s.induction_on (by simp) $ assume a s ha ih,
-  have ∀ (i j : ι), ∃ (k : ι), f k a + sum s (f k) ≤ f i a + sum s (f j),
-    from assume i j,
-    let ⟨k, hk⟩ := h (insert a s) i j in
-    ⟨k, add_le_add' (hk a finset.mem_insert).left $ sum_le_sum' $
-      assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
-  by simp [ha, ih.symm, infi_add_infi this]
-
-end ennreal
-
-section set
-variables {α : Type*} {s s₁ s₂ : set α}
-
-@[simp] lemma sdiff_empty : s \ ∅ = s :=
-set.ext $ by simp
-
-lemma sdiff_eq: s₁ \ s₂ = s₁ ∩ -s₂ := rfl
-
-lemma union_sdiff_left : (s₁ ∪ s₂) \ s₂ = s₁ \ s₂ :=
-set.ext $ assume x, by simp [iff_def] {contextual := tt}
-
-lemma union_sdiff_right : (s₂ ∪ s₁) \ s₂ = s₁ \ s₂ :=
-set.ext $ assume x, by simp [iff_def] {contextual := tt}
-
-section
-variables {p : Prop} {μ : p → set α}
-
-@[simp] lemma Inter_pos (hp : p) : (⋂h:p, μ h) = μ hp := infi_pos hp
-
-@[simp] lemma Inter_neg (hp : ¬ p) : (⋂h:p, μ h) = univ := infi_neg hp
-
-@[simp] lemma Union_pos (hp : p) : (⋃h:p, μ h) = μ hp := supr_pos hp
-
-@[simp] lemma Union_neg (hp : ¬ p) : (⋃h:p, μ h) = ∅ := supr_neg hp
-
-@[simp] lemma Union_empty {ι : Sort*} : (⋃i:ι, ∅:set α) = ∅ := supr_bot
-
-@[simp] lemma Inter_univ {ι : Sort*} : (⋂i:ι, univ:set α) = univ := infi_top
-
-end
-
-end set
 
 namespace measure_theory
 
@@ -128,7 +48,7 @@ calc μ (s₁ ∪ s₂) ≤ μ (⋃i, s i) :
 
 end
 
-section
+section of_function
 set_option eqn_compiler.zeta true
 
 -- TODO: if we move this proof into the definition of inf it does not terminate anymore
@@ -150,7 +70,8 @@ end,
 have is_sum (λi, ε' i) ε, begin rw [eq] at this, exact this end,
 ennreal.tsum_of_real this (assume i, le_of_lt $ hε' i)
 
-def inf {α : Type*} (m : set α → ennreal) (m_empty : m ∅ = 0) : outer_measure α :=
+protected def of_function {α : Type*} (m : set α → ennreal) (m_empty : m ∅ = 0) :
+  outer_measure α :=
 let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
 { measure_of := μ,
   empty      := le_antisymm
@@ -190,7 +111,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
     show μ (⋃ (i : ℕ), s i) ≤ (∑ (i : ℕ), μ (s i)) + of_real ε,
       from infi_le_of_le f' $ infi_le_of_le hf' $ this }
 
-end
+end of_function
 
 section caratheodory_measurable
 universe u
@@ -320,22 +241,22 @@ private def caratheodory_dynkin : measurable_space.dynkin_system α :=
   has_compl := assume s, C_compl,
   has_Union := assume f hf hn, C_Union_nat hn hf }
 
-def space : measurable_space α :=
+protected def caratheodory : measurable_space α :=
 caratheodory_dynkin.to_measurable_space $ assume s₁ s₂, C_inter
 
-lemma space_is_measurable_eq {s : set α} :
-  space.is_measurable s = ∀t, μ t = μ (t ∩ s) + μ (t \ s) :=
+lemma caratheodory_is_measurable_eq {s : set α} :
+  caratheodory.is_measurable s = ∀t, μ t = μ (t ∩ s) + μ (t \ s) :=
 rfl
 
-def measure [ms : measurable_space α] (h : ms ≤ space) : measure_space α :=
-{ measure_of       := λs hs, μ s,
-  measure_of_empty := m.empty,
-  measure_of_Union := assume s hs hf, f_Union (assume i, h _ $ hs i) hf }
+protected lemma Union_eq_of_caratheodory {s : ℕ → set α}
+  (h : ∀i, caratheodory.is_measurable (s i)) (hd : pairwise (disjoint on s)) :
+  μ (⋃i, s i) = ∑i, μ (s i) :=
+f_Union h hd
 
-lemma inf_space_is_measurable {m : set α → ennreal} {s : set α}
+lemma caratheodory_is_measurable {m : set α → ennreal} {s : set α}
   {h₀ : m ∅ = 0} (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) :
-  (outer_measure.inf m h₀).space.is_measurable s :=
-let o := (outer_measure.inf m h₀), om := o.measure_of in
+  (outer_measure.of_function m h₀).caratheodory.is_measurable s :=
+let o := (outer_measure.of_function m h₀), om := o.measure_of in
 assume t,
 le_antisymm
   (calc om t = om ((t ∩ s) ∪ (t \ s)) :

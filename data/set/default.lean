@@ -1,1 +1,1 @@
-import data.set.lattice data.set.finite data.set.prod
+import data.set.lattice data.set.finite data.set.prod data.set.intervals

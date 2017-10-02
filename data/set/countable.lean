@@ -6,7 +6,7 @@ Author: Johannes Hölzl
 Countable sets.
 -/
 
-import data.encodable data.set.finite data.set.lattice data.set.prod logic.function_inverse
+import data.encodable data.set.finite logic.function_inverse
 noncomputable theory
 
 open function set encodable
@@ -65,10 +65,10 @@ lemma countable_encodable [e : encodable α] {s : set α} : countable s :=
   have decode α (encode x) = decode α (encode y), from congr_arg _ eq,
   by simp [encodek] at this; exact option.some.inj this⟩
 
-lemma countable_empty : countable (∅ : set α) :=
+@[simp] lemma countable_empty : countable (∅ : set α) :=
 ⟨λ_, 0, by simp⟩
 
-lemma countable_singleton {a : α} : countable ({a} : set α) :=
+@[simp] lemma countable_singleton {a : α} : countable ({a} : set α) :=
 ⟨λ_, 0, by simp⟩
 
 lemma countable_subset {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : countable s₂ → countable s₁
@@ -102,16 +102,25 @@ by_cases
         ⟨nat.mkpair i j, by simp [function.comp, nat.unpair_mkpair, hi, hj]⟩⟩)
   (assume : ¬ nonempty α, ⟨λ_, 0, assume a, (this ⟨a⟩).elim⟩)
 
-lemma countable_Union {s : set α} {t : α → set β} (hs : countable s) (ht : ∀a∈s, countable (t a)) :
+lemma countable_bUnion {s : set α} {t : α → set β} (hs : countable s) (ht : ∀a∈s, countable (t a)) :
   countable (⋃a∈s, t a) :=
 have ⋃₀ (t '' s) = (⋃a∈s, t a), from lattice.Sup_image,
 by rw [←this];
 from (countable_sUnion (countable_image hs) $ assume a ⟨s', hs', eq⟩, eq ▸ ht s' hs')
 
+lemma countable_Union {t : α → set β} [encodable α] (ht : ∀a, countable (t a)) :
+  countable (⋃a, t a) :=
+suffices countable (⋃a∈(univ : set α), t a), by simpa,
+countable_bUnion countable_encodable (assume a _, ht a)
+
+lemma countable_Union_Prop {p : Prop} {t : p → set β} (ht : ∀h:p, countable (t h)) :
+  countable (⋃h:p, t h) :=
+by by_cases p; simp [h, ht]
+
 lemma countable_union {s₁ s₂ : set α} (h₁ : countable s₁) (h₂ : countable s₂) : countable (s₁ ∪ s₂) :=
 have s₁ ∪ s₂ = (⨆b ∈ ({tt, ff} : set bool), bool.cases_on b s₁ s₂),
   by simp [lattice.supr_or, lattice.supr_sup_eq]; refl,
-by rw [this]; from countable_Union countable_encodable (assume b,
+by rw [this]; from countable_bUnion countable_encodable (assume b,
   match b with
   | tt := by simp [h₂]
   | ff := by simp [h₁]
@@ -122,5 +131,31 @@ by rw [set.insert_eq]; from countable_union countable_singleton h
 
 lemma countable_finite {s : set α} (h : finite s) : countable s :=
 h.rec_on countable_empty $ assume a s _ _, countable_insert
+
+lemma countable_set_of_finite_subset {s : set α} (h : countable s) :
+  countable {t | finite t ∧ t ⊆ s } :=
+have {t | finite t ∧ t ⊆ s } ⊆
+  (λt, {a:α | ∃h:a∈s, subtype.mk a h ∈ t} : finset {a:α // a ∈ s} → set α) '' univ,
+  from assume t ht,
+  begin
+    cases ht with ht₁ ht₂,
+    induction ht₁,
+    case finite.empty { exact ⟨∅, mem_univ _, by simp⟩ },
+    case finite.insert a t ha ht ih {
+      exact
+        have has : a ∈ s, from ht₂ $ mem_insert _ _,
+        have t ⊆ s, from assume x hx, ht₂ $ mem_insert_of_mem _ hx,
+        let ⟨t', ht', eq⟩ := ih this in
+        ⟨insert ⟨a, has⟩ t', mem_univ _,
+          set.ext $ assume x,
+          begin
+            simp [eq.symm, iff_def, or_imp_distrib, has] {contextual:=tt},
+            constructor,
+            exact assume hxs hxt', ⟨hxs, or.inr hxt'⟩,
+            exact assume hxs, or.imp (congr_arg subtype.val) (assume hxt', ⟨hxs, hxt'⟩)
+          end⟩ }
+  end,
+countable_subset this $ countable_image $
+  @countable_encodable _ (@encodable_finset _ h.to_encodable _) _
 
 end set

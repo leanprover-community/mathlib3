@@ -5,126 +5,70 @@ Authors: Johannes Hölzl
 
 A collection of limit properties.
 -/
-import algebra.big_operators algebra.group_power topology.real topology.infinite_sum
+import algebra.big_operators algebra.group_power
+  analysis.metric_space analysis.of_nat analysis.topology.infinite_sum
 noncomputable theory
-
 open classical set finset function filter
 local attribute [instance] decidable_inhabited prop_decidable
 
 infix ` ^ ` := pow_nat
 
-section linear_ordered_field
-variables {α : Type*} [linear_ordered_field α] {a : α}
+section real
 
-lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
-by rw [inv_eq_one_div, lt_div_iff h₁]; simp [h₂]
+lemma has_sum_of_absolute_convergence {f : ℕ → ℝ}
+  (hf : ∃r, tendsto (λn, (upto n).sum (λi, abs (f i))) at_top (nhds r)) : has_sum f :=
+let f' := λs:finset ℕ, s.sum (λi, abs (f i)) in
+suffices cauchy (map (λs:finset ℕ, s.sum f) at_top),
+  from complete_space.complete this,
+cauchy_iff.mpr $ and.intro (map_ne_bot at_top_ne_bot) $
+assume s hs,
+let ⟨ε, hε, hsε⟩ := mem_uniformity_dist.mp hs, ⟨r, hr⟩ := hf in
+have hε' : {p : ℝ × ℝ | dist p.1 p.2 < ε / 2} ∈ (@uniformity ℝ _).sets,
+  from mem_uniformity_dist.mpr ⟨ε / 2, div_pos_of_pos_of_pos hε two_pos, assume a b h, h⟩,
+have cauchy (at_top.map $ λn, f' (upto n)),
+  from cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hr,
+have ∃n, ∀{n'}, n ≤ n' → dist (f' (upto n)) (f' (upto n')) < ε / 2,
+  by simp [cauchy_iff, mem_at_top_iff] at this;
+  from let ⟨t, ht, u, hu⟩ := this _ hε' in
+    ⟨u, assume n' hn, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ (le_refl _), hu _ hn⟩⟩,
+let ⟨n, hn⟩ := this in
+have ∀{s}, upto n ⊆ s → abs ((s \ upto n).sum f) < ε / 2,
+  from assume s hs,
+  let ⟨n', hn'⟩ := @exists_nat_subset_upto s in
+  have upto n ⊆ upto n', from subset.trans hs hn',
+  have f'_nn : 0 ≤ f' (upto n' \ upto n), from zero_le_sum $ assume _ _, abs_nonneg _,
+  calc abs ((s \ upto n).sum f) ≤ f' (s \ upto n) : abs_sum_le_sum_abs
+    ... ≤ f' (upto n' \ upto n) : sum_le_sum_of_subset_of_nonneg
+      (finset.sdiff_subset_sdiff hn' (finset.subset.refl _))
+      (assume _ _ _, abs_nonneg _)
+    ... = abs (f' (upto n' \ upto n)) : (abs_of_nonneg f'_nn).symm
+    ... = abs (f' (upto n') - f' (upto n)) :
+      by simp [f', (sum_sdiff ‹upto n ⊆ upto n'›).symm]
+    ... = abs (f' (upto n) - f' (upto n')) : abs_sub _ _
+    ... < ε / 2 : hn $ upto_subset_upto_iff.mp this,
+have ∀{s t}, upto n ⊆ s → upto n ⊆ t → dist (s.sum f) (t.sum f) < ε,
+  from assume s t hs ht,
+  calc abs (s.sum f - t.sum f) = abs ((s \ upto n).sum f + - (t \ upto n).sum f) :
+      by rw [←sum_sdiff hs, ←sum_sdiff ht]; simp
+    ... ≤ abs ((s \ upto n).sum f) + abs ((t \ upto n).sum f) :
+      le_trans (abs_add_le_abs_add_abs _ _) $ by rw [abs_neg]; exact le_refl _
+    ... < ε / 2 + ε / 2 : add_lt_add (this hs) (this ht)
+    ... = ε : by rw [←add_div, add_self_div_two],
+⟨(λs:finset ℕ, s.sum f) '' {s | upto n ⊆ s}, image_mem_map $ mem_at_top (upto n),
+  assume ⟨a, b⟩ ⟨⟨t, ht, ha⟩, ⟨s, hs, hb⟩⟩, by simp at ha hb; exact ha ▸ hb ▸ hsε _ _ (this ht hs)⟩
 
-end linear_ordered_field
+lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} {r : ℝ} (hf : ∀n, 0 ≤ f n) :
+  is_sum f r ↔ tendsto (λn, (upto n).sum f) at_top (nhds r) :=
+⟨tendsto_sum_nat_of_is_sum,
+  assume hr,
+  have tendsto (λn, (upto n).sum (λn, abs (f n))) at_top (nhds r),
+    by simp [(λi, abs_of_nonneg (hf i)), hr],
+  let ⟨p, h⟩ := has_sum_of_absolute_convergence ⟨r, this⟩ in
+  have hp : tendsto (λn, (upto n).sum f) at_top (nhds p), from tendsto_sum_nat_of_is_sum h,
+  have p = r, from tendsto_nhds_unique at_top_ne_bot hp hr,
+  this ▸ h⟩
 
-section division_ring
-variables {α : Type*} [division_ring α] {a b : α}
-
-lemma div_eq_mul_inv : a / b = a * b⁻¹ :=
-by rw [div_eq_mul_one_div, inv_eq_one_div]
-
-lemma neg_inv (h : a ≠ 0) : - a⁻¹ = (- a)⁻¹ :=
-by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
-
-end division_ring
-
-section of_nat
-variables {α : Type*} [semiring α] {n : ℕ}
-
-@[simp] def of_nat : ℕ → α
-| 0            := 0
-| (nat.succ n) := of_nat n + 1
-
-@[simp] lemma of_nat_add : ∀{m}, of_nat (n + m) = (of_nat n + of_nat m : α)
-| 0       := by simp
-| (m + 1) := calc of_nat (n + (m + 1)) = of_nat (nat.succ (n + m)) :
-    by rw [nat.succ_eq_add_one]; simp
-  ... = (of_nat n + of_nat (nat.succ m) : α) :
-    by simp [of_nat_add]
-
-@[simp] lemma of_nat_one : of_nat 1 = (1 : α) :=
-calc of_nat 1 = 0 + 1 : rfl
- ... = (1:α) : by simp
-
-@[simp] lemma of_nat_mul : ∀{m}, of_nat (n * m) = (of_nat n * of_nat m : α)
-| 0       := by simp
-| (m + 1) := by simp [mul_add, of_nat_mul]
-
-@[simp] lemma of_nat_bit0 : of_nat (bit0 n) = (bit0 (of_nat n) : α) := of_nat_add
-
-@[simp] lemma of_nat_bit1 : of_nat (bit0 n) = (bit0 (of_nat n) : α) := of_nat_add
-
-lemma of_nat_sub {α : Type*} [ring α] {n m : ℕ} (h : m ≤ n) :
-  of_nat (n - m) = (of_nat n - of_nat m : α) :=
-calc of_nat (n - m) = (of_nat ((n - m) + m) - of_nat m : α) : by simp
-  ... = (of_nat n - of_nat m : α) : by rw [nat.sub_add_cancel h]
-
-end of_nat
-
-lemma int_of_nat_eq_of_nat : ∀{n : ℕ}, int.of_nat n = of_nat n
-| 0       := rfl
-| (n + 1) := by simp [int.of_nat_add, int.of_nat_one, @int_of_nat_eq_of_nat n]
-
-lemma rat_of_nat_eq_of_nat : ∀{n : ℕ}, (↑(of_nat n : ℤ) : ℚ) = of_nat n
-| 0       := rfl
-| (n + 1) :=
-  by rw [of_nat_add, rat.coe_int_add, of_nat_one, rat.coe_int_one, rat_of_nat_eq_of_nat]; simp
-
-lemma rat_coe_eq_of_nat {n : ℕ} : (↑n : ℚ) = of_nat n :=
-show ↑(int.of_nat n) = (of_nat n : ℚ), by rw [int_of_nat_eq_of_nat, rat_of_nat_eq_of_nat]
-
-lemma real_of_rat_of_nat_eq_of_nat : ∀{n : ℕ}, of_rat (of_nat n) = of_nat n
-| 0     := rfl
-| (n+1) := by simp [of_rat_add.symm, of_rat_one.symm, real_of_rat_of_nat_eq_of_nat]
-
-section of_nat_order
-variables {α : Type*} [linear_ordered_semiring α]
-
-lemma zero_le_of_nat : ∀{n}, 0 ≤ (of_nat n : α)
-| 0       := le_refl 0
-| (n + 1) := le_add_of_le_of_nonneg zero_le_of_nat (zero_le_one)
-
-lemma of_nat_le_of_nat {n m : ℕ} (h : n ≤ m) : of_nat n ≤ (of_nat m : α) :=
-let ⟨k, hk⟩ := nat.le.dest h in
-by simp [zero_le_of_nat, hk.symm]
-
-lemma of_nat_le_of_nat_iff {n m : ℕ} : of_nat n ≤ (of_nat m : α) ↔ n ≤ m :=
-suffices of_nat n ≤ (of_nat m : α) → n ≤ m,
-  from iff.intro this of_nat_le_of_nat,
-begin
-  induction n generalizing m,
-  case nat.zero { simp [nat.zero_le] },
-  case nat.succ n ih {
-    cases m,
-    case nat.zero {
-      exact assume h,
-        have of_nat (n + 1) = (0:α), from le_antisymm h zero_le_of_nat,
-        have 1 ≤ (0:α),
-          from calc (1:α) ≤ of_nat n + 1 : le_add_of_nonneg_left zero_le_of_nat
-            ... = (0:α) : this,
-        absurd this $ not_le_of_gt zero_lt_one },
-    case nat.succ m {
-      exact assume h,
-        have 1 + of_nat n ≤ (1 + of_nat m : α), by simp * at *,
-        have of_nat n ≤ (of_nat m : α), from le_of_add_le_add_left this,
-        show nat.succ n ≤ nat.succ m,
-          from nat.succ_le_succ $ ih this } }
-end
-
-end of_nat_order
-
-instance : linear_ordered_semiring ℝ := by apply_instance
-
-lemma exists_lt_of_nat {r : ℝ} : ∃n, r < of_nat n :=
-let ⟨q, hq⟩ := exists_lt_of_rat r in
-⟨rat.nat_ceil q, calc r < of_rat q : hq
-  ... ≤ of_rat (↑(int.of_nat $ rat.nat_ceil q)) : of_rat_le_of_rat.mpr $ rat.le_nat_ceil q
-  ... = of_nat (rat.nat_ceil q) :
-    by simp [int_of_nat_eq_of_nat, rat_of_nat_eq_of_nat, real_of_rat_of_nat_eq_of_nat]⟩
+end real
 
 lemma mul_add_one_le_pow {r : ℝ} (hr : 0 ≤ r) : ∀{n}, (of_nat n) * r + 1 ≤ (r + 1) ^ n
 | 0       := by simp; exact le_refl 1

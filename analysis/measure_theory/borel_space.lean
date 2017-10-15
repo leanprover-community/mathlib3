@@ -57,7 +57,7 @@ le_antisymm
               have u ∈ (nhds a).sets, from mem_nhds_sets (ht' _ hu) hau,
               let ⟨u', hu', hau', hu'u⟩ := mem_nhds_of_is_topological_basis hb₃ this in
               have u' ∈ b', from ⟨hu', subset.trans hu'u (subset_sUnion_of_mem hu), u, hu, hu'u⟩,
-              by simp; exact ⟨⟨u', this⟩, (hv u' this).right hau'⟩)
+              by simp; exact ⟨u', this, (hv u' this).right hau'⟩)
             (Union_subset $ assume ⟨u', hu'⟩, subset_sUnion_of_mem $ (hv u' hu').left),
         have h_encode : encodable {u // u ∈ b'},
           from (countable.to_encodable $ countable_subset (by simp [subset_def] {contextual := tt}) hb₁),
@@ -181,13 +181,13 @@ is_topological_basis_of_open_of_nhds
         from ne_empty_iff_exists_mem.mp $ by simp [t₁₂.symm, h],
       let ⟨c, hc₁, hc₂⟩ := this in
       have of_rat (max a₁ a₂) < of_rat (min b₁ b₂), from lt_trans hc₁ hc₂,
-      of_rat_lt_of_rat.mp this,
+      of_rat_lt.mp this,
     by simp [t₁₂]; exact ⟨max a₁ a₂, min b₁ b₂, this, rfl⟩)
   (suffices ∀r, ∃(t : set ℝ), r ∈ t ∧ ∃a b, t = Ioo (of_rat a) (of_rat b) ∧ a < b,
       by simpa,
     assume r,
     let ⟨a, ha⟩ := exists_gt_of_rat r, ⟨b, hb⟩ := exists_lt_of_rat r in
-    ⟨Ioo (of_rat a) (of_rat b), ⟨ha, hb⟩, a, b, rfl, of_rat_lt_of_rat.mp $ lt_trans ha hb⟩)
+    ⟨Ioo (of_rat a) (of_rat b), ⟨ha, hb⟩, a, b, rfl, of_rat_lt.mp $ lt_trans ha hb⟩)
   begin simp [is_open_Ioo] {contextual:=tt} end
   (assume a v hav hv,
     let
@@ -196,7 +196,7 @@ is_topological_basis_of_open_of_nhds
       ⟨p, hap, hpu⟩ := exists_lt_of_rat_of_rat_gt hu
     in
     ⟨Ioo (of_rat q) (of_rat p),
-      begin simp; exact ⟨q, p, of_rat_lt_of_rat.mp $ lt_trans hqa hap, rfl⟩ end,
+      begin simp; exact ⟨q, p, of_rat_lt.mp $ lt_trans hqa hap, rfl⟩ end,
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h _ (lt_trans hlq hqa') (lt_trans ha'p hpu)⟩)
 
 instance : second_countable_topology ℝ :=
@@ -222,11 +222,11 @@ have ∀a b, a < b → g.is_measurable (Ioo (of_rat a) (of_rat b)),
   have (⋃c>a, - Iio (of_rat c)) ∩ Iio (of_rat b) = Ioo (of_rat a) (of_rat b),
     from set.ext $ assume x,
     have h₁ : x < of_rat b → ∀p, of_rat p ≤ x → p > a → of_rat a < x,
-      from assume hxb p hpx hpa, lt_of_lt_of_le (of_rat_lt_of_rat.mpr hpa) hpx,
+      from assume hxb p hpx hpa, lt_of_lt_of_le (of_rat_lt.mpr hpa) hpx,
     have h₂ : x < of_rat b → of_rat a < x → (∃ (i : ℚ), of_rat i ≤ x ∧ i > a),
       from assume hxb hax,
       let ⟨c, hac, hcx⟩ := exists_lt_of_rat_of_rat_gt hax in
-      ⟨c, le_of_lt hcx, of_rat_lt_of_rat.mp hac⟩,
+      ⟨c, le_of_lt hcx, of_rat_lt.mp hac⟩,
     by simp [iff_def, Iio, Ioo] {contextual := tt}; exact ⟨h₁, h₂⟩,
   this ▸ @is_measurable_inter _ g _ _
     (@is_measurable_bUnion _ _ g _ _ countable_encodable $ assume b hb, hgc b)

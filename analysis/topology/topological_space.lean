@@ -490,22 +490,22 @@ classical.by_cases
   (assume : b ≠ ∅,
     let ⟨i, hi⟩ := exists_mem_of_ne_empty this in
     have hc'₁ : ∀i∈c '' b, is_open i, from assume i ⟨j, hj, h⟩, h ▸ hc₁ _ hj,
-    have hc'₂ : s ⊆ ⋃₀ (c '' b), by simp; assumption,
+    have hc'₂ : s ⊆ ⋃₀ (c '' b), by simpa,
     let ⟨d, hd₁, hd₂, hd₃⟩ := compact_elim_finite_subcover hs hc'₁ hc'₂ in
     have ∀x, x ∈ d → ∃i, i ∈ b ∧ c i = x, from assume x hx, hd₁ hx,
     have ∃f:(Πx:set α, x ∈ d → β), ∀x (hx : x ∈ d), c (f x hx) = x ∧ f x hx ∈ b,
-      by simp [skolem] at this; exact this,
+      by simpa [skolem],
     let ⟨f', hf⟩ := this, f := λx:set α, (if h : x ∈ d then f' x h else i) in
     have f_eq : f = λx:set α, (if h : x ∈ d then f' x h else i), from rfl,
     have ∀(x : α) (i : set α), x ∈ i → i ∈ d → (∃ (i : β), x ∈ c i ∧ i ∈ f '' d),
       from assume x i hxi hid, ⟨f i,
-        by simp [f_eq, hid]; exact ((hf _ hid).left.symm ▸ hxi),
+        by simpa [f_eq, hid, (hf _ hid).1] using hxi,
         mem_image_of_mem f hid⟩,
     ⟨f '' d,
       assume i ⟨j, hj, h⟩,
-      h ▸ by simp [f_eq, hj]; exact (hf _ hj).right,
+      h ▸ by simpa [f_eq, hj] using (hf _ hj).right,
       finite_image hd₂,
-      subset.trans hd₃ $ by simp [subset_def]; exact this⟩)
+      subset.trans hd₃ $ by simpa [subset_def]⟩)
 
 lemma compact_of_finite_subcover {s : set α}
   (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=

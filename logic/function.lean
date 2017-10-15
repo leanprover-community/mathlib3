@@ -1,29 +1,45 @@
 /-
 Copyright (c) 2016 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl, Mario Carneiro
 
-Inverse of a function.
+Miscellaneous function constructions and lemmas.
 -/
 import logic.basic
-noncomputable theory
-
-open classical function
-local attribute [instance] decidable_inhabited prop_decidable
-
-namespace set
 
 universes u v
-variables {α : Type u} {β : Type v} {f : α → β} {s : set α} {a : α} {b : β}
+variables {α : Type u} {β : Type v} {f : α → β}
+
+namespace function
+
+@[simp] theorem injective.eq_iff (I : injective f) {a b : α} :
+  f a = f b ↔ a = b :=
+⟨@I _ _, congr_arg f⟩
+
+local attribute [instance] classical.decidable_inhabited classical.prop_decidable
+
+noncomputable def partial_inv (f : α → β) (b : β) : option α :=
+if h : ∃ a, f a = b then some (classical.some h) else none
+
+theorem partial_inv_eq {f : α → β} (I : injective f) (a : α) : (partial_inv f (f a)) = some a :=
+have h : ∃ a', f a' = f a, from ⟨_, rfl⟩,
+(dif_pos h).trans (congr_arg _ (I $ classical.some_spec h))
+
+theorem partial_inv_eq_of_eq {f : α → β} (I : injective f) {b : β} {a : α}
+  (h : partial_inv f b = some a) : f a = b :=
+by by_cases (∃ a, f a = b) with h'; simp [partial_inv, h'] at h;
+   injection h with h; subst h; apply classical.some_spec h'
+
+variables {s : set α} {a : α} {b : β}
 
 section inv_fun
 variable [inhabited α]
 
-def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
-if h : ∃a, a ∈ s ∧ f a = b then some h else default α
+noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
+if h : ∃a, a ∈ s ∧ f a = b then classical.some h else default α
 
 theorem inv_fun_on_pos (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s ∧ f (inv_fun_on f s b) = b :=
-by rw [bex_def] at h; rw [inv_fun_on, dif_pos h]; exact some_spec h
+by rw [bex_def] at h; rw [inv_fun_on, dif_pos h]; exact classical.some_spec h
 
 theorem inv_fun_on_mem (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s := (inv_fun_on_pos h).left
 
@@ -37,7 +53,7 @@ h _ (inv_fun_on_mem this) _ ha (inv_fun_on_eq this)
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = default α :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
-def inv_fun (f : α → β) : β → α := inv_fun_on f univ
+noncomputable def inv_fun (f : α → β) : β → α := inv_fun_on f set.univ
 
 theorem inv_fun_eq (h : ∃a, f a = b) : f (inv_fun f b) = b :=
 inv_fun_on_eq $ let ⟨a, ha⟩ := h in ⟨a, trivial, ha⟩
@@ -56,21 +72,21 @@ have f (inv_fun f (f b)) = f b,
   from inv_fun_eq ⟨b, rfl⟩,
 hf this
 
-lemma has_left_inverse (hf : injective f) : has_left_inverse f :=
+lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
 ⟨inv_fun f, left_inverse_inv_fun hf⟩
 
 end inv_fun
 
 section surj_inv
 
-def surj_inv {f : α → β} (h : surjective f) (b : β) : α := some (h b)
+noncomputable def surj_inv {f : α → β} (h : surjective f) (b : β) : α := classical.some (h b)
 
-lemma surj_inv_eq (h : surjective f) : f (surj_inv h b) = b := some_spec (h b)
+lemma surj_inv_eq (h : surjective f) : f (surj_inv h b) = b := classical.some_spec (h b)
 
 lemma right_inverse_surj_inv (hf : surjective f) : right_inverse (surj_inv hf) f :=
 assume b, surj_inv_eq hf
 
-lemma has_right_inverse (hf : surjective f) : has_right_inverse f :=
+lemma surjective.has_right_inverse (hf : surjective f) : has_right_inverse f :=
 ⟨_, right_inverse_surj_inv hf⟩
 
 lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
@@ -78,4 +94,4 @@ injective_of_has_left_inverse ⟨f, right_inverse_surj_inv h⟩
 
 end surj_inv
 
-end set
+end function

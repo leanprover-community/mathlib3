@@ -426,7 +426,7 @@ have nhds a = (⨅p : {l // l < a} × {u // a < u}, principal {x | p.1.val < x �
   by simp [nhds_orderable_unbounded hu hl, infi_subtype, infi_prod],
 iff.intro
   (assume hs, by rw [this] at hs; from infi_sets_induct hs
-    begin simp; exact ⟨l, u, hu', hl'⟩ end
+    begin simp; exact ⟨⟨u, hu'⟩, l, hl'⟩ end
     begin
       intro p, cases p with p₁ p₂, cases p₁ with l hl, cases p₂ with u hu,
       simp [set.subset_def],

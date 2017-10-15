@@ -5,18 +5,11 @@ Author: Johannes Hölzl
 
 Fold on finite sets
 -/
-import data.list.set data.list.perm data.finset.basic data.sigma tactic.finish
+import data.list.perm data.finset.basic data.sigma tactic.finish
 open list subtype nat finset
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
-
-section logic
-
-lemma heq_iff_eq {a₁ a₂ : α} : a₁ == a₂ ↔ a₁ = a₂ :=
-iff.intro eq_of_heq heq_of_eq
-
-end logic
 
 namespace list
 
@@ -66,7 +59,7 @@ local notation a * b := op a b
 include hc ha
 
 def fold (b : β) (f : α → β) (s : finset α) : β :=
-quot.lift_on s (λl, (l.val.map f).foldl op b) (λl₁ l₂, list.fold_op_eq_of_perm ∘ perm.perm_map _)
+quot.lift_on s (λl, (l.val.map f).foldl op b) (λl₁ l₂, list.fold_op_eq_of_perm ∘ perm_map _)
 
 variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 
@@ -133,7 +126,7 @@ protected def bind (s : finset α) (t : α → finset β) : finset β := s.fold 
 lemma mem_bind_iff {b : β} : b ∈ s.bind t ↔ (∃a∈s, b ∈ t a) :=
 s.induction_on (by simp [not_exists]) $ assume a s has ih,
   calc b ∈ (insert a s).bind t ↔ b ∈ t a ∨ (∃a∈s, b ∈ t a) : by simp [ih]
-    ... ↔ _ : by rw [bex_def, bex_def, exists_mem_insert_iff]
+    ... ↔ _ : by rw [bex_def, bex_def, exists_mem_insert]
 
 lemma image_bind {f : α → β} {s : finset α} {t : β → finset γ} :
   (s.image f).bind t = s.bind (λa, t (f a)) :=

@@ -16,7 +16,7 @@ infix ` ^ ` := pow_nat
 section real
 
 lemma has_sum_of_absolute_convergence {f : ℕ → ℝ}
-  (hf : ∃r, tendsto (λn, (upto n).sum (λi, abs (f i))) at_top (nhds r)) : has_sum f :=
+  (hf : ∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) : has_sum f :=
 let f' := λs:finset ℕ, s.sum (λi, abs (f i)) in
 suffices cauchy (map (λs:finset ℕ, s.sum f) at_top),
   from complete_space.complete this,
@@ -25,46 +25,46 @@ assume s hs,
 let ⟨ε, hε, hsε⟩ := mem_uniformity_dist.mp hs, ⟨r, hr⟩ := hf in
 have hε' : {p : ℝ × ℝ | dist p.1 p.2 < ε / 2} ∈ (@uniformity ℝ _).sets,
   from mem_uniformity_dist.mpr ⟨ε / 2, div_pos_of_pos_of_pos hε two_pos, assume a b h, h⟩,
-have cauchy (at_top.map $ λn, f' (upto n)),
+have cauchy (at_top.map $ λn, f' (range n)),
   from cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hr,
-have ∃n, ∀{n'}, n ≤ n' → dist (f' (upto n)) (f' (upto n')) < ε / 2,
+have ∃n, ∀{n'}, n ≤ n' → dist (f' (range n)) (f' (range n')) < ε / 2,
   by simp [cauchy_iff, mem_at_top_iff] at this;
   from let ⟨t, ht, u, hu⟩ := this _ hε' in
     ⟨u, assume n' hn, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ (le_refl _), hu _ hn⟩⟩,
 let ⟨n, hn⟩ := this in
-have ∀{s}, upto n ⊆ s → abs ((s \ upto n).sum f) < ε / 2,
+have ∀{s}, range n ⊆ s → abs ((s \ range n).sum f) < ε / 2,
   from assume s hs,
-  let ⟨n', hn'⟩ := @exists_nat_subset_upto s in
-  have upto n ⊆ upto n', from subset.trans hs hn',
-  have f'_nn : 0 ≤ f' (upto n' \ upto n), from zero_le_sum $ assume _ _, abs_nonneg _,
-  calc abs ((s \ upto n).sum f) ≤ f' (s \ upto n) : abs_sum_le_sum_abs
-    ... ≤ f' (upto n' \ upto n) : sum_le_sum_of_subset_of_nonneg
+  let ⟨n', hn'⟩ := @exists_nat_subset_range s in
+  have range n ⊆ range n', from subset.trans hs hn',
+  have f'_nn : 0 ≤ f' (range n' \ range n), from zero_le_sum $ assume _ _, abs_nonneg _,
+  calc abs ((s \ range n).sum f) ≤ f' (s \ range n) : abs_sum_le_sum_abs
+    ... ≤ f' (range n' \ range n) : sum_le_sum_of_subset_of_nonneg
       (finset.sdiff_subset_sdiff hn' (finset.subset.refl _))
       (assume _ _ _, abs_nonneg _)
-    ... = abs (f' (upto n' \ upto n)) : (abs_of_nonneg f'_nn).symm
-    ... = abs (f' (upto n') - f' (upto n)) :
-      by simp [f', (sum_sdiff ‹upto n ⊆ upto n'›).symm]
-    ... = abs (f' (upto n) - f' (upto n')) : abs_sub _ _
-    ... < ε / 2 : hn $ upto_subset_upto_iff.mp this,
-have ∀{s t}, upto n ⊆ s → upto n ⊆ t → dist (s.sum f) (t.sum f) < ε,
+    ... = abs (f' (range n' \ range n)) : (abs_of_nonneg f'_nn).symm
+    ... = abs (f' (range n') - f' (range n)) :
+      by simp [f', (sum_sdiff ‹range n ⊆ range n'›).symm]
+    ... = abs (f' (range n) - f' (range n')) : abs_sub _ _
+    ... < ε / 2 : hn $ range_subset.mp this,
+have ∀{s t}, range n ⊆ s → range n ⊆ t → dist (s.sum f) (t.sum f) < ε,
   from assume s t hs ht,
-  calc abs (s.sum f - t.sum f) = abs ((s \ upto n).sum f + - (t \ upto n).sum f) :
+  calc abs (s.sum f - t.sum f) = abs ((s \ range n).sum f + - (t \ range n).sum f) :
       by rw [←sum_sdiff hs, ←sum_sdiff ht]; simp
-    ... ≤ abs ((s \ upto n).sum f) + abs ((t \ upto n).sum f) :
+    ... ≤ abs ((s \ range n).sum f) + abs ((t \ range n).sum f) :
       le_trans (abs_add_le_abs_add_abs _ _) $ by rw [abs_neg]; exact le_refl _
     ... < ε / 2 + ε / 2 : add_lt_add (this hs) (this ht)
     ... = ε : by rw [←add_div, add_self_div_two],
-⟨(λs:finset ℕ, s.sum f) '' {s | upto n ⊆ s}, image_mem_map $ mem_at_top (upto n),
+⟨(λs:finset ℕ, s.sum f) '' {s | range n ⊆ s}, image_mem_map $ mem_at_top (range n),
   assume ⟨a, b⟩ ⟨⟨t, ht, ha⟩, ⟨s, hs, hb⟩⟩, by simp at ha hb; exact ha ▸ hb ▸ hsε _ _ (this ht hs)⟩
 
 lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} {r : ℝ} (hf : ∀n, 0 ≤ f n) :
-  is_sum f r ↔ tendsto (λn, (upto n).sum f) at_top (nhds r) :=
+  is_sum f r ↔ tendsto (λn, (range n).sum f) at_top (nhds r) :=
 ⟨tendsto_sum_nat_of_is_sum,
   assume hr,
-  have tendsto (λn, (upto n).sum (λn, abs (f n))) at_top (nhds r),
+  have tendsto (λn, (range n).sum (λn, abs (f n))) at_top (nhds r),
     by simp [(λi, abs_of_nonneg (hf i)), hr],
   let ⟨p, h⟩ := has_sum_of_absolute_convergence ⟨r, this⟩ in
-  have hp : tendsto (λn, (upto n).sum f) at_top (nhds p), from tendsto_sum_nat_of_is_sum h,
+  have hp : tendsto (λn, (range n).sum f) at_top (nhds p), from tendsto_sum_nat_of_is_sum h,
   have p = r, from tendsto_nhds_unique at_top_ne_bot hp hr,
   this ▸ h⟩
 
@@ -138,13 +138,13 @@ by_cases
     tendsto_cong this $ univ_mem_sets' $ assume a, by simp [*, pow_inv])
 
 lemma sum_geometric' {r : ℝ} (h : r ≠ 0) :
-  ∀{n}, (upto n).sum (λi, (r + 1) ^ i) = ((r + 1) ^ n - 1) / r
+  ∀{n}, (finset.range n).sum (λi, (r + 1) ^ i) = ((r + 1) ^ n - 1) / r
 | 0     := by simp [zero_div]
 | (n+1) := by simp [@sum_geometric' n, h, pow_succ, add_div_eq_mul_add_div, add_mul]
 
 lemma sum_geometric {r : ℝ} {n : ℕ} (h : r ≠ 1) :
-  (upto n).sum (λi, r ^ i) = (r ^ n - 1) / (r - 1) :=
-calc (upto n).sum (λi, r ^ i) = (upto n).sum (λi, ((r - 1) + 1) ^ i) :
+  (range n).sum (λi, r ^ i) = (r ^ n - 1) / (r - 1) :=
+calc (range n).sum (λi, r ^ i) = (range n).sum (λi, ((r - 1) + 1) ^ i) :
     by simp
   ... = (((r - 1) + 1) ^ n - 1) / (r - 1) :
     sum_geometric' $ by simp [sub_eq_iff_eq_add, -sub_eq_add_neg, h]

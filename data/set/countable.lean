@@ -6,7 +6,7 @@ Author: Johannes Hölzl
 Countable sets.
 -/
 
-import data.encodable data.set.finite logic.function_inverse
+import data.encodable data.set.finite logic.function
 noncomputable theory
 
 open function set encodable
@@ -18,24 +18,12 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 namespace set
 
-section encodable
-
-def encodable_of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
-let g : β → option α := λb, if h : ∃a, f a = b then some (classical.some h) else none in
-encodable_of_left_injection f g $ assume a,
-  have h : ∃a', f a' = f a, from ⟨a, rfl⟩,
-  have f (classical.some h) = f a, from some_spec h,
-  have classical.some h = a, from hf this,
-  by simp [g, h, this]
-
-end encodable
-
 /-- Countable sets
 
 A set is countable if there exists a injective functions from the set into the natural numbers.
 This is choosen instead of surjective functions, as this would require that α is non empty.
 -/
-def countable (s : set α) : Prop := ∃f:α → ℕ, ∀x∈s, ∀y∈s, f x = f y → x = y
+def countable (s : set α) : Prop := ∃f:α → ℕ, ∀x ∈ s, ∀y ∈ s, f x = f y → x = y
 
 lemma countable_iff_exists_surjective [ne : inhabited α] {s : set α} :
   countable s ↔ (∃f:ℕ → α, s ⊆ range f) :=
@@ -58,12 +46,12 @@ lemma countable_encodable' {s : set α} (e : encodable {a // a∈s}) : countable
     by simp [hx, hy] at h; assumption,
   have decode {a // a∈s} (@encode _ e ⟨x, hx⟩) = decode {a // a∈s} (@encode _ e ⟨y, hy⟩),
     from congr_arg _ this,
-  begin simp [encodek] at this, injection this with h, injection h end⟩
+  by simp [encodek] at this; injection this⟩
 
 lemma countable_encodable [e : encodable α] {s : set α} : countable s :=
 ⟨encode, assume x _ y _ eq,
   have decode α (encode x) = decode α (encode y), from congr_arg _ eq,
-  by simp [encodek] at this; exact option.some.inj this⟩
+  by simpa [encodek]⟩
 
 @[simp] lemma countable_empty : countable (∅ : set α) :=
 ⟨λ_, 0, by simp⟩
@@ -155,7 +143,7 @@ have {t | finite t ∧ t ⊆ s } ⊆
             exact assume hxs, or.imp (congr_arg subtype.val) (assume hxt', ⟨hxs, hxt'⟩)
           end⟩ }
   end,
-countable_subset this $ countable_image $
-  @countable_encodable _ (@encodable_finset _ h.to_encodable _) _
+by have enc := h.to_encodable; exact
+countable_subset this (countable_image countable_encodable)
 
 end set

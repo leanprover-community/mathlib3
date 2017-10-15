@@ -35,10 +35,10 @@ theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rf
 
 theorem subset.refl (a : set α) : a ⊆ a := assume x, id
 
-@[trans] theorem subset.trans {a b c : set α} (subab : a ⊆ b) (subbc : b ⊆ c) : a ⊆ c :=
-assume x, assume ax, subbc (subab ax)
+@[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c :=
+assume x h, bc (ab h)
 
-@[trans] lemma mem_of_eq_of_mem {α : Type u} {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
+@[trans] theorem mem_of_eq_of_mem {α : Type u} {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
 hx.symm ▸ h
 
 theorem subset.antisymm {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
@@ -483,6 +483,44 @@ theorem subset_of_mem_powerset {x s : set α} (h : x ∈ powerset s) : x ⊆ s :
 
 theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
 
+/- inverse image -/
+
+def preimage {α : Type u} {β : Type v} (f : α → β) (s : set β) : set α := {x | f x ∈ s}
+
+infix ` ⁻¹' `:80 := preimage
+
+section preimage
+variables {f : α → β} {g : β → γ}
+
+@[simp] theorem preimage_empty : f ⁻¹' ∅ = ∅ := rfl
+
+@[simp] theorem mem_preimage_eq {s : set β} {a : α} : (a ∈ f ⁻¹' s) = (f a ∈ s) := rfl
+
+theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
+assume x hx, h hx
+
+@[simp] theorem preimage_univ : f ⁻¹' univ = univ := rfl
+
+@[simp] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
+
+@[simp] theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t := rfl
+
+@[simp] theorem preimage_compl {s : set β} : f ⁻¹' (- s) = - (f ⁻¹' s) := rfl
+
+@[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
+rfl
+
+theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
+
+theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
+
+theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t : set α} :
+  s = subtype.val ⁻¹' t ↔ (∀x (h : p x), (⟨x, h⟩ : subtype p) ∈ s ↔ x ∈ t) :=
+⟨assume s_eq x h, by rw [s_eq]; simp,
+ assume h, set.ext $ assume ⟨x, hx⟩, by simp [h]⟩
+
+end preimage
+
 /- function image -/
 
 section image
@@ -494,24 +532,18 @@ infix ` '' `:80 := image
 
 -- TODO(Jeremy): use bounded exists in image
 
+theorem mem_image_iff_bex {f : α → β} {s : set α} {y : β} :
+  y ∈ f '' s ↔ ∃ x (_ : x ∈ s), f x = y := bex_def.symm
+
 theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ f '' s = ∃ x, x ∈ s ∧ f x = y := rfl
 
--- the introduction rule
-theorem mem_image {f : α → β} {s : set α} {x : α} {y : β} (h₁ : x ∈ s) (h₂ : f x = y) :
-  y ∈ f '' s :=
-⟨x, h₁, h₂⟩
+@[simp] theorem mem_image (f : α → β) (s : set α) (y : β) : y ∈ f '' s ↔ ∃ x, x ∈ s ∧ f x = y := iff.rfl
 
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
-mem_image h rfl
+⟨_, h, rfl⟩
 
 theorem mono_image {f : α → β} {s t : set α} (h : s ⊆ t) : f '' s ⊆ f '' t :=
 assume x ⟨y, hy, y_eq⟩, y_eq ▸ mem_image_of_mem _ $ h hy
-
-/- image and preimage are a Galois connection -/
-theorem image_subset_iff_subset_preimage {s : set α} {t : set β} {f : α → β} :
-  f '' s ⊆ t ↔ s ⊆ {x | f x ∈ t} :=
-⟨assume h x hx, h (mem_image_of_mem f hx),
-  assume h x hx, match x, hx with ._, ⟨y, hy, rfl⟩ := h hy end⟩
 
 def mem_image_elim {f : α → β} {s : set α} {C : β → Prop} (h : ∀ (x : α), x ∈ s → C (f x)) :
  ∀{y : β}, y ∈ f '' s → C y
@@ -523,12 +555,12 @@ mem_image_elim h h_y
 
 theorem image_eq_image_of_eq_on {f₁ f₂ : α → β} {s : set α} (heq : eq_on f₁ f₂ s) :
   f₁ '' s = f₂ '' s :=
-by safe [set_eq_def, iff_def, mem_image_eq, eq_on]
+by safe [set_eq_def, iff_def, mem_image, eq_on]
 
 -- TODO(Jeremy): make automatic
 theorem image_comp (f : β → γ) (g : α → β) (a : set α) : (f ∘ g) '' a = f '' (g '' a) :=
 begin
-  safe [set_eq_def, iff_def, mem_image_eq, (∘)],
+  safe [set_eq_def, iff_def, mem_image, (∘)],
   have h' := h_2 (g a_2),
   finish
 end
@@ -564,9 +596,8 @@ theorem fix_set_compl (t : set α) : compl t = - t := rfl
 theorem mem_image_compl (t : set α) (S : set (set α)) :
   t ∈ compl '' S ↔ -t ∈ S :=
 begin
-  safe [mem_image_eq, iff_def, fix_set_compl],
-  tactic.swap, have h' := h_1 (- t),
-  all_goals { simp [compl_compl] at *; contradiction }
+  suffices : ∀ x, -x = t ↔ -t = x, {simp [fix_set_compl, this]},
+  intro x, split; { intro e, subst e, simp }
 end
 
 theorem image_id (s : set α) : id '' s = s :=
@@ -574,86 +605,69 @@ by finish [set_eq_def, iff_def, mem_image_eq]
 
 theorem compl_compl_image (S : set (set α)) :
   compl '' (compl '' S) = S :=
-by rw [←image_comp, compl_comp_compl, image_id]
-
-lemma compl_image_set_of {α : Type u} {p : set α → Prop} :
-  compl '' {x | p x} = {x | p (- x)} :=
-set.ext $ assume x, ⟨assume ⟨y, (hy : p y), (h_eq : -y = x)⟩,
-  show p (- x), by rw [←h_eq, compl_compl]; assumption,
-  assume h : p (-x), ⟨_, h, compl_compl _⟩⟩
+by rw [← image_comp, compl_comp_compl, image_id]
 
 theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
   (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
 by finish [mem_image_eq]
 
-theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
+@[simp] theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
 begin
-  safe [mem_image_eq, iff_def],
-  have h' := h_1 (f a),
-  finish
+  simp, rw forall_swap, apply forall_congr, simp
 end
 
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
   f '' (insert a s) = insert (f a) (f '' s) :=
-begin
-  safe [set_eq_def, iff_def, mem_image_eq],
-  have h' := h_1 a,
-  finish
-end
+ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm]
 
-end image
+theorem image_subset_preimage_of_inverse {f : α → β} {g : β → α}
+  (I : function.left_inverse g f) (s : set α) :
+  f '' s ⊆ g ⁻¹' s :=
+λ b ⟨a, h, e⟩, e ▸ ((I a).symm ▸ h : g (f a) ∈ s)
 
-lemma univ_eq_true_false : univ = ({true, false} : set Prop) :=
-eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
+theorem preimage_subset_image_of_inverse {f : α → β} {g : β → α}
+  (I : function.left_inverse g f) (s : set β) :
+  f ⁻¹' s ⊆ g '' s :=
+λ b h, ⟨f b, h, I b⟩
 
-/- inverse image -/
+theorem image_eq_preimage_of_inverse {f : α → β} {g : β → α}
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  image f = preimage g :=
+funext $ λ s, subset.antisymm
+  (image_subset_preimage_of_inverse h₁ s)
+  (preimage_subset_image_of_inverse h₂ s)
 
-def preimage {α : Type u} {β : Type v} (f : α → β) (s : set β) : set α := {x | f x ∈ s}
+theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : set α}
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  b ∈ f '' s ↔ g b ∈ s :=
+by rw image_eq_preimage_of_inverse h₁ h₂; refl
 
-infix ` ⁻¹' `:80 := preimage
+/- image and preimage are a Galois connection -/
+theorem image_subset_iff_subset_preimage {s : set α} {t : set β} {f : α → β} :
+  f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
+⟨assume h x hx, h (mem_image_of_mem f hx),
+ assume h x hx, match x, hx with ._, ⟨y, hy, rfl⟩ := h hy end⟩
 
-section preimage
-variables {f : α → β} {g : β → γ}
+theorem image_preimage_subset (f : α → β) (s : set β) :
+  f '' (f ⁻¹' s) ⊆ s :=
+image_subset_iff_subset_preimage.2 (subset.refl _)
 
-@[simp] theorem preimage_empty : f ⁻¹' ∅ = ∅ := rfl
+theorem subset_preimage_image (f : α → β) (s : set α) :
+  s ⊆ f ⁻¹' (f '' s) :=
+λ x, mem_image_of_mem f
 
-@[simp] theorem mem_preimage_eq {s : set β} {a : α} : (a ∈ f ⁻¹' s) = (f a ∈ s) := rfl
+theorem preimage_image_eq {f : α → β} {s : set α}
+  (h : function.injective f) : f ⁻¹' (f '' s) = s :=
+subset.antisymm
+  (λ x ⟨y, hy, e⟩, h e ▸ hy)
+  (subset_preimage_image f s)
 
-theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
-assume x hx, h hx
-
-theorem preimage_image_eq {s : set α} (h : ∀{x y}, f x = f y → x = y) : f ⁻¹' (f '' s) = s :=
-set.ext $ assume x, ⟨assume ⟨y, hy, y_eq⟩, h y_eq ▸ hy, assume hx, mem_image_of_mem _ hx⟩
-
-@[simp] theorem preimage_univ : f ⁻¹' univ = univ := rfl
-
-@[simp] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
-
-@[simp] theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t := rfl
-
-@[simp] theorem preimage_compl {s : set β} : f ⁻¹' (- s) = - (f ⁻¹' s) := rfl
-
-@[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
-rfl
-
-theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
-
-theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
-
-lemma mem_image_iff_of_inverse (f : α → β) (g : β → α) {b : β} {s : set α}
-  (h₁ : ∀a, g (f a) = a ) (h₂ : ∀b, f (g b) = b ) : b ∈ f '' s ↔ g b ∈ s :=
-⟨assume ⟨a, ha, fa_eq⟩, fa_eq ▸ (h₁ a).symm ▸ ha,
-  assume h, ⟨g b, h, h₂ b⟩⟩
-
-theorem image_eq_preimage_of_inverse (f : α → β) (g : β → α)
-  (h₁ : ∀a, g (f a) = a ) (h₂ : ∀b, f (g b) = b ) : image f = preimage g :=
-funext $ assume s, set.ext $ assume b, mem_image_iff_of_inverse f g h₁ h₂
-
-theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t : set α} :
-  s = subtype.val ⁻¹' t ↔ (∀x (h : p x), (⟨x, h⟩ : subtype p) ∈ s ↔ x ∈ t) :=
-⟨ assume s_eq x h, by rw [s_eq]; simp
-, assume h, set.ext $ assume ⟨x, hx⟩, by simp [h]⟩
+theorem image_preimage_eq {f : α → β} {s : set β}
+  (h : function.surjective f) : f '' (f ⁻¹' s) = s :=
+subset.antisymm
+  (image_preimage_subset f s)
+  (λ x hx, let ⟨y, e⟩ := h x in ⟨y, (e.symm ▸ hx : f y ∈ s), e⟩)
 
 lemma image_preimage_eq_inter_rng {f : α → β} {t : set β} :
   f '' preimage f t = t ∩ f '' univ :=
@@ -661,7 +675,17 @@ set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_image_of_mem 
   assume ⟨hx, ⟨y, hy, h_eq⟩⟩, h_eq ▸ mem_image_of_mem f $
     show y ∈ preimage f t, by simp [preimage, h_eq, hx]⟩
 
-end preimage
+theorem compl_image : image (@compl α) = preimage compl :=
+image_eq_preimage_of_inverse compl_compl compl_compl
+
+lemma compl_image_set_of {α : Type u} {p : set α → Prop} :
+  compl '' {x | p x} = {x | p (- x)} :=
+congr_fun compl_image p
+
+end image
+
+lemma univ_eq_true_false : univ = ({true, false} : set Prop) :=
+eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
 section range
 variables {f : ι → α}
@@ -669,17 +693,17 @@ open function
 
 /-- Range of a function.
 
-This function is more flexiable as `f '' univ`, as the image requires that the domain is in Type
+This function is more flexible than `f '' univ`, as the image requires that the domain is in Type
 and not an arbitrary Sort. -/
 def range (f : ι → α) : set α := {x | ∃y, f y = x}
 
 lemma mem_range {i : ι} : f i ∈ range f := ⟨i, rfl⟩
 
-lemma forall_range_iff {p : α → Prop} : (∀a∈range f, p a) ↔ (∀i, p (f i)) :=
+lemma forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
 ⟨assume h i, h (f i) mem_range, assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩
 
-lemma range_of_surjective (h : surjective f) : range f = univ :=
-eq_univ_of_univ_subset $ assume x _, h x
+lemma range_of_surjective : surjective f → range f = univ :=
+eq_univ_of_forall
 
 @[simp] lemma range_id : range (@id α) = univ := range_of_surjective surjective_id
 
@@ -692,6 +716,6 @@ subset.antisymm
   (ball_image_iff.mpr $ forall_range_iff.mpr $ assume i, mem_range)
 end range
 
-def pairwise_on (s : set α) (r : α → α → Prop) := ∀x ∈ s, ∀y ∈ s, x ≠ y → r x y
+def pairwise_on (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y
 
 end set

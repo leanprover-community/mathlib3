@@ -17,7 +17,7 @@ This allows us for the `lebesgue` measure space to have the `borel` measurable s
 a complete measure.
 -/
 import data.set order.galois_connection analysis.ennreal
-  analysis.measure_theory.outer_measure
+       analysis.measure_theory.outer_measure
 
 noncomputable theory
 
@@ -90,7 +90,7 @@ have hms : ∀n, is_measurable (s n),
 calc μ.measure' (s₁ ∪ s₂) = μ.measure' (⋃n, s n) : by rw [Un_s]
   ... = (∑n, μ.measure' (s n)) :
     measure_space.measure'_Union μ hd hms
-  ... = (upto (nat.succ (nat.succ 0))).sum (λn, μ.measure' (s n)) :
+  ... = (range (nat.succ (nat.succ 0))).sum (λn, μ.measure' (s n)) :
     tsum_eq_sum $ assume n hn,
     match n, hn with
     | 0,                     h := by simp at h; contradiction
@@ -144,7 +144,7 @@ le_antisymm
           begin
             simp,
             intro hb,
-            rw [Union_neg hb, infi_pos is_measurable_empty, measure_space.measure_of_empty]
+            rw [set.Union_neg hb, infi_pos is_measurable_empty, measure_space.measure_of_empty]
           end
       ... ≤ μ.measure_of s hs : by simp [hs])
   (le_infi $ assume f, le_infi $ assume hf,
@@ -277,12 +277,12 @@ calc μ.measure (s₁ \ s₂) = (μ.measure (s₁ \ s₂) + μ.measure s₂) - �
 lemma measure_Union_eq_supr_nat {s : ℕ → set α} (h : ∀i, is_measurable (s i)) (hs : monotone s) :
   μ.measure (⋃i, s i) = (⨆i, μ.measure (s i)) :=
 -- TODO: generalize and extract from this proof
-have ∀i, (upto (i + 1)).sum (λi, μ.measure (disjointed s i)) = μ.measure (s i),
+have ∀i, (range (i + 1)).sum (λi, μ.measure (disjointed s i)) = μ.measure (s i),
 begin
   intro i, induction i,
   case nat.zero { simp [disjointed, nat.not_lt_zero, univ_inter] },
   case nat.succ i ih {
-    rw [upto_succ, sum_insert, ih, ←measure_union],
+    rw [range_succ, sum_insert, ih, ←measure_union],
     { show μ.measure (disjointed s (i + 1) ∪ s i) = μ.measure (s (i + 1)),
       rw [disjointed_of_mono hs, sdiff_union_same, union_of_subset_right],
       exact hs (nat.le_succ _) },
@@ -291,15 +291,15 @@ begin
       exact sdiff_inter_same },
     { exact is_measurable_disjointed h },
     { exact h _ },
-    { exact not_mem_upto } }
+    { exact not_mem_range_self } }
 end,
 calc μ.measure (⋃i, s i) = μ.measure (⋃i, disjointed s i) :
     by rw [disjointed_Union]
   ... = (∑i, μ.measure (disjointed s i)) :
     measure_Union_nat (disjoint_disjointed) (assume i, is_measurable_disjointed h)
-  ... = (⨆i, (upto i).sum (λi, μ.measure (disjointed s i))) :
+  ... = (⨆i, (finset.range i).sum (λi, μ.measure (disjointed s i))) :
     by rw [ennreal.tsum_eq_supr_nat]
-  ... = (⨆i, (upto (i + 1)).sum (λi, μ.measure (disjointed s i))) :
+  ... = (⨆i, (range (i + 1)).sum (λi, μ.measure (disjointed s i))) :
     le_antisymm
       (supr_le begin intro i, cases i with j, simp, exact le_supr_of_le j (le_refl _) end)
       (supr_le $ assume i, le_supr_of_le (i + 1) $ le_refl _)

@@ -104,4 +104,3 @@ let ⟨q, hq⟩ := exists_lt_of_rat r in
   ... ≤ of_rat (↑(int.of_nat $ rat.nat_ceil q)) : of_rat_le_of_rat.mpr $ rat.le_nat_ceil q
   ... = of_nat (rat.nat_ceil q) :
     by simp [int_of_nat_eq_of_nat, rat_of_nat_eq_of_nat, real_of_rat_of_nat_eq_of_nat]⟩
-

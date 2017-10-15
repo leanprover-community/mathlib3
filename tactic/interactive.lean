@@ -79,5 +79,8 @@ do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
    tactic.try_for max tac <|> 
      (tactic.trace "try_for timeout, using sorry" >> admit)
 
+meta def substs (l : parse ident*) : tactic unit :=
+l.mmap' (λ h, get_local h >>= tactic.subst)
+
 end interactive
 end tactic

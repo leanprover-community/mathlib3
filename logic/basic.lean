@@ -28,15 +28,34 @@ theorem eq_iff_le_and_le [partial_order α] {a b : α} : a = b ↔ (a ≤ b ∧ 
 ⟨prod.mk.inj, by cc⟩
 
 @[simp] theorem prod.forall {p : α × β → Prop} :
-  (∀x, p x) ↔ (∀a b, p (a, b)) :=
+  (∀ x, p x) ↔ (∀ a b, p (a, b)) :=
 ⟨assume h a b, h (a, b), assume h ⟨a, b⟩, h a b⟩
 
 @[simp] theorem prod.exists {p : α × β → Prop} :
-  (∃x, p x) ↔ (∃a b, p (a, b)) :=
+  (∃ x, p x) ↔ (∃ a b, p (a, b)) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} = (∀a, p a → q a) := rfl
 
+@[simp] theorem sigma.mk.inj_iff {β : α → Type*} {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
+  sigma.mk a₁ b₁ = ⟨a₂, b₂⟩ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
+⟨sigma.mk.inj, λ ⟨h₁, h₂⟩, by congr; assumption⟩
+
+@[simp] theorem sigma.forall {β : α → Type*} {p : (Σ a, β a) → Prop} :
+  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
+⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
+
+@[simp] theorem sigma.exists {β : α → Type*} {p : (Σ a, β a) → Prop} :
+  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
+⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
+
+@[simp] theorem subtype.forall {β : α → Prop} {p : {a // β a} → Prop} :
+  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
+⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
+
+@[simp] theorem subtype.exists {β : α → Prop} {p : {a // β a} → Prop} :
+  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
+⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
 end miscellany
 
@@ -134,6 +153,12 @@ iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
 
 theorem not_and_self_iff (a : Prop) : ¬ a ∧ a ↔ false :=
 iff.intro (assume ⟨hna, ha⟩, hna ha) false.elim
+
+lemma and_iff_left_of_imp {a b : Prop} (h : a → b) : (a ∧ b) ↔ a :=
+iff.intro and.left (λ ha, ⟨ha, h ha⟩)
+
+lemma and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
+iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 
 /- or -/
 
@@ -261,6 +286,16 @@ by rw [← not_and_distrib, not_not]
 
 end propositional
 
+/- equality -/
+
+section equality
+variables {α : Sort*} {a b : α}
+
+@[simp] lemma heq_iff_eq : a == b ↔ a = b :=
+⟨eq_of_heq, heq_of_eq⟩
+
+end equality
+
 /-
   quantifiers
 -/
@@ -340,6 +375,10 @@ theorem exists_or_distrib : (∃ x, p x ∨ q x) ↔ (∃ x, p x) ∨ (∃ x, q 
 @[simp] theorem exists_and_distrib_left {q : Prop} {p : α → Prop} :
   (∃x, q ∧ p x) ↔ q ∧ (∃x, p x) :=
 ⟨λ ⟨x, hq, hp⟩, ⟨hq, x, hp⟩, λ ⟨hq, x, hp⟩, ⟨x, hq, hp⟩⟩
+
+@[simp] theorem exists_and_distrib_right {q : Prop} {p : α → Prop} :
+  (∃x, p x ∧ q) ↔ (∃x, p x) ∧ q :=
+by simp
 
 @[simp] theorem forall_eq {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
 ⟨λ h, h a' rfl, λ h a e, e.symm ▸ h⟩

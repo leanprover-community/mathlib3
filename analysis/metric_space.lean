@@ -54,7 +54,7 @@ theorem mem_uniformity_dist {s : set (α×α)} :
   s ∈ (@uniformity α _).sets ↔ (∃ε>0, ∀a b:α, dist a b < ε → (a, b) ∈ s) :=
 begin
   rw [uniformity_dist', infi_sets_eq],
-  simp [subset_def, exists_subtype],
+  simp [subset_def],
   exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff] {contextual := tt}⟩,
   exact ⟨⟨1, zero_lt_one⟩⟩
 end
@@ -105,7 +105,7 @@ instance : metric_space ℝ :=
       ⟨q, hq₁, assume r₁ r₂ hr, lt_trans hr hq₂⟩)
     (assume s hs,
       let ⟨q, hq₁, hq₂⟩ := mem_uniformity_real_iff.mp hs in
-      mem_infi_sets (of_rat q) $ mem_infi_sets (of_rat_lt_of_rat.mpr hq₁) $
+      mem_infi_sets (of_rat q) $ mem_infi_sets (of_rat_lt.mpr hq₁) $
       assume ⟨r₁, r₂⟩, hq₂ r₁ r₂) }
 
 theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
@@ -196,7 +196,7 @@ end
 theorem mem_nhds_sets_iff_metric : s ∈ (nhds x).sets ↔ ∃ε>0, open_ball x ε ⊆ s :=
 begin
   rw [nhds_eq_metric, infi_sets_eq],
-  simp [exists_subtype],
+  simp,
   exact assume ⟨x, hx⟩ ⟨y, hy⟩, ⟨⟨min x y, lt_min hx hy⟩,
     begin
       simp,

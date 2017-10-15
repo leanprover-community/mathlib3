@@ -65,7 +65,7 @@ theorem directed_of_chain {α : Type u} {β : Type v} [preorder β] {f : α → 
   (h : @zorn.chain α (λa b, f b ≤ f a) c) :
   directed (≤) (λx:{a:α // a ∈ c}, f (x.val)) :=
 assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
-  (assume : a = b, begin simp [this]; exact ⟨⟨b, hb⟩, le_refl _⟩ end)
+  (assume : a = b, by simp [this]; exact ⟨b, hb, le_refl _⟩)
   (assume : a ≠ b,
     have f b ≤ f a ∨ f a ≤ f b, from h a ha b hb this,
     or.elim this

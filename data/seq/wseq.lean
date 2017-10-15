@@ -961,24 +961,26 @@ begin
   intros ss h, apply mem_rec_on h (λ b ss o, _) (λ ss IH, _); intros s S,
   { refine s.cases_on (S.cases_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
     intros ej m; simp at ej;
-    have := congr_arg seq.destruct ej; simp at this; injections with i1 i2 i3 i4,
-    simp at m, simp,
-    cases o with e IH, { apply or.inl, rwa i4 },
+    have := congr_arg seq.destruct ej; simp at this;
+    try {cases this}; try {contradiction},
+    substs b' ss,
+    simp at m ⊢,
+    cases o with e IH, { simp [e] },
     apply or.imp_right (λ m, _) m,
-    simp at IH, apply IH _ _ i3 m },
+    simp at IH, apply IH _ _ rfl m },
   { refine s.cases_on (S.cases_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
     intros ej m; simp at ej;
-    have := congr_arg seq.destruct ej; simp at this; injections with i1 i2 i3 i4,
+    have := congr_arg seq.destruct ej; simp at this;
+    try { try {have := this.1}, contradiction }; subst ss,
+    { apply or.inr, simp at m ⊢,
+      cases IH s S rfl m with as ex,
+      { exact ⟨s, as, or.inl rfl⟩ },
+      { rcases ex with ⟨s', sS, as⟩,
+        exact ⟨s', as, or.inr sS⟩ } },
     { apply or.inr, simp at m,
-      cases IH s S i3 m with as ex,
-      { exact ⟨s, mem_cons _ _, as⟩ },
-      { cases ex with s' h, cases h with sS as,
-        exact ⟨s', mem_cons_of_mem _ sS, as⟩ } },
-    { apply or.inr, simp at m,
-      cases (IH nil S (by simp [i3]) (by simp [m])).resolve_left (not_mem_nil _) with s h,
-      cases h with sS as,
+      rcases (IH nil S (by simp) (by simp [m])).resolve_left (not_mem_nil _) with ⟨s, sS, as⟩,
       exact ⟨s, by simp [sS], as⟩ },
-    { rw [mem_think], simp at m, apply IH _ _ i3 m } }
+    { simp at m IH ⊢, apply IH _ _ rfl m } }
 end
 
 theorem exists_of_mem_bind {s : wseq α} {f : α → wseq β} {b}

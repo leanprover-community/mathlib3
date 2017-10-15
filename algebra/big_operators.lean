@@ -5,15 +5,13 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import data.list data.list.comb data.list.perm data.set.finite data.finset
+import data.list data.list.perm data.set.finite data.finset
   algebra.group algebra.ordered_monoid algebra.group_power
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 namespace list
--- move to list.sum, needs to match exactly, otherwise transport fails
-definition prod [has_mul α] [has_one α] : list α → α := list.foldl (*) 1
 
 section monoid
 variables [monoid α] {l l₁ l₂ : list α} {a : α}
@@ -31,12 +29,9 @@ calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list
 @[simp] theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; simp [list.join, *] at *
 
-@[simp] theorem prod_replicate {n : ℕ} : (list.replicate n a).prod = a ^ n :=
-begin
-  induction n with n ih,
-  { show [].prod = (1:α), refl },
-  { show (a :: list.replicate n a).prod = a ^ (n+1), simp [pow_succ, ih] }
-end
+@[simp] theorem prod_repeat : ∀ (n : ℕ), (list.repeat a n).prod = a ^ n
+| 0 := rfl
+| (n+1) := by simp [pow_succ, prod_repeat n]
 
 end monoid
 
@@ -45,10 +40,10 @@ open list
 variable [comm_monoid α]
 
 lemma prod_eq_of_perm {l₁ l₂ : list α} (h : perm l₁ l₂) : l₁.prod = l₂.prod :=
-by induction h; repeat { simp [*] }
+by induction h; simp *
 
 lemma prod_reverse {l : list α} : l.reverse.prod = l.prod :=
-prod_eq_of_perm $ perm.perm_rev_simp l
+prod_eq_of_perm $ reverse_perm l
 
 end comm_monoid
 
@@ -57,7 +52,7 @@ end list
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
-protected definition prod [comm_monoid β] (s : finset α) (f : α → β) : β := s.fold (*) 1 f
+protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := s.fold (*) 1 f
 
 variables [decidable_eq α]
 
@@ -106,7 +101,7 @@ s.induction_on (by simp) $
       from assume h₁ y hys hy₂,
       have ha : a ∈ t x ∩ t y, by simp [*],
       have t x ∩ t y = ∅,
-        from hd _ mem_insert _ (mem_insert_of_mem hys) $ assume h, hxs $ h.symm ▸ hys,
+        from hd _ mem_insert_self _ (mem_insert_of_mem hys) $ assume h, hxs $ h.symm ▸ hys,
       by rwa [this] at ha,
   by simp [hxs, prod_union this, ih hd'] {contextual := tt}
 
@@ -250,9 +245,9 @@ section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid β]
 
 lemma sum_le_sum : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
-s.induction_on (by simp; refl) $ assume a s ha ih h,
+s.induction_on (by simp) $ assume a s ha ih h,
   have f a + s.sum f ≤ g a + s.sum g,
-    from add_le_add (h _ mem_insert) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
+    from add_le_add (h _ mem_insert_self) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simp [*]
 
 lemma zero_le_sum (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by simp) (sum_le_sum h)
@@ -286,7 +281,7 @@ lemma prod_eq_zero_iff : s.prod f = 0 ↔ (∃a∈s, f a = 0) :=
 s.induction_on (by simp)
 begin
   intros a s,
-  rw [bex_def, bex_def, exists_mem_insert_iff],
+  rw [bex_def, bex_def, exists_mem_insert],
   simp [mul_eq_zero_iff_eq_zero_or_eq_zero] {contextual := tt}
 end
 
@@ -298,7 +293,7 @@ variables [ordered_comm_monoid β] [∀a b : β, decidable (a ≤ b)]
 lemma sum_le_sum' : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
 s.induction_on (by simp; refl) $ assume a s ha ih h,
   have f a + s.sum f ≤ g a + s.sum g,
-    from add_le_add' (h _ mem_insert) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
+    from add_le_add' (h _ mem_insert_self) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simp [*]
 
 lemma zero_le_sum' (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by simp) (sum_le_sum' h)

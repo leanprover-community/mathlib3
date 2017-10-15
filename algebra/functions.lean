@@ -26,6 +26,15 @@ lemma lt_min_iff : a < min b c ↔ (a < b ∧ a < c) :=
 ⟨assume h, ⟨lt_of_lt_of_le h (min_le_left _ _), lt_of_lt_of_le h (min_le_right _ _)⟩,
   assume ⟨h₁, h₂⟩, lt_min h₁ h₂⟩
 
+lemma lt_max_iff : a < max b c ↔ a < b ∨ a < c :=
+⟨assume h, (le_total c b).imp
+  (assume hcb, lt_of_lt_of_le h $ max_le (le_refl _) hcb)
+  (assume hbc, lt_of_lt_of_le h $ max_le hbc (le_refl _)),
+  (assume h, match h with
+    | or.inl h := lt_of_lt_of_le h (le_max_left _ _)
+    | or.inr h := lt_of_lt_of_le h (le_max_right _ _)
+    end)⟩
+
 end
 
 section decidable_linear_ordered_comm_group

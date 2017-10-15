@@ -6,7 +6,8 @@ Author: Leonardo de Moura, Mario Carneiro
 Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
-import data.finset data.list data.list.perm data.list.sort data.equiv data.nat.basic
+import data.finset data.list data.list.perm data.list.sort
+       data.equiv data.nat.basic logic.function
 open option list nat function
 
 class encodable (α : Type*) :=
@@ -14,26 +15,34 @@ class encodable (α : Type*) :=
 
 section encodable
 variables {α : Type*} {β : Type*}
-
-
 open encodable
+
+section
+variables [encodable α]
+
+theorem encode_injective : function.injective (@encode α _)
+| x y e := option.some.inj $ by rw [← encodek, e, encodek]
+
+instance decidable_eq_of_encodable : decidable_eq α
+| a b := decidable_of_iff _ encode_injective.eq_iff 
+end
+
 instance encodable_nat : encodable nat :=
-encodable.mk (λ a, a) (λ n, some n) (λ a, rfl)
+⟨id, some, λ a, rfl⟩
 
 instance encodable_empty : encodable empty :=
-encodable.mk (λ a:_root_.empty, a.rec _) (λ n, none) (λ a:_root_.empty, a.rec _)
+⟨λ a, a.rec _, λ n, none, λ a, a.rec _⟩
 
 instance encodable_unit : encodable unit :=
-encodable.mk (λ_, 0) (λn, if n = 0 then some () else none) (λ⟨⟩, by simp)
+⟨λ_, 0, λn, if n = 0 then some () else none, λ⟨⟩, by simp⟩
 
 instance encodable_option {α : Type*} [h : encodable α] : encodable (option α) :=
-encodable.mk
-  (λ o, match o with
-        | some a := succ (encode a)
-        | none := 0
-        end)
-  (λ n, if n = 0 then some none else some (decode α (pred n)))
-  (λ o, by cases o; simp [encodable_option._match_1, encodek, nat.succ_ne_zero])
+⟨λ o, match o with
+      | some a := succ (encode a)
+      | none := 0
+      end,
+ λ n, if n = 0 then some none else some (decode α (pred n)),
+ λ o, by cases o; simp [encodable_option._match_1, encodek, nat.succ_ne_zero]⟩
 
 section sum
 variables [encodable α] [encodable β]
@@ -101,7 +110,7 @@ instance encodable_list : encodable (list α) :=
 end list
 
 section finset
-variables [encodable α] [decidable_eq α]
+variables [encodable α]
 
 private def enle (a b : α) : Prop := encode a ≤ encode b
 
@@ -132,7 +141,7 @@ insertion_sort enle l
 open subtype list.perm
 
 private lemma sorted_eq_of_perm {l₁ l₂ : list α} (h : l₁ ~ l₂) : ensort l₁ = ensort l₂ :=
-eq_of_sorted_of_perm _ enle.trans enle.antisymm
+eq_of_sorted_of_perm enle.trans enle.antisymm
   (perm.trans (perm_insertion_sort _ _) $ perm.trans h (perm_insertion_sort _ _).symm)
   (sorted_insertion_sort _ enle.total enle.trans _)
   (sorted_insertion_sort _ enle.total enle.trans _)
@@ -152,18 +161,15 @@ match decode (list α) n with
 end
 
 instance encodable_finset : encodable (finset α) :=
-⟨encode_finset, decode_finset, λ s, quot.induction_on s $ λ⟨l, nd⟩,
-  begin
-    simp [encode_finset],
-    show decode_finset (encode (ensort l)) = some (quot.mk setoid.r ⟨l, nd⟩),
-    simp [decode_finset, encodek],
-    apply congr_arg some,
-    apply quot.sound,
-    show erase_dup (ensort l) ~ l, from
-      have nodup (ensort l), from nodup_of_perm_of_nodup (perm.symm $ perm_insertion_sort _ _) nd,
-      calc erase_dup (ensort l) = ensort l : erase_dup_eq_of_nodup this
-                ...             ~ l        : perm_insertion_sort _ _
-  end⟩
+⟨encode_finset, decode_finset, λ s, quot.induction_on s $ λ⟨l, nd⟩, begin
+  suffices : finset.to_finset (ensort l) = ⟦⟨l, nd⟩⟧,
+  { simp [encode_finset], simpa [decode_finset, encodek] },
+  apply quot.sound,
+  show erase_dup (ensort l) ~ l,
+  rw erase_dup_eq_self.2,
+  { apply perm_insertion_sort },
+  { exact (perm_nodup (perm_insertion_sort _ _)).2 nd }
+end⟩
 
 end finset
 
@@ -184,14 +190,9 @@ match decode α v with
 | none   := none
 end
 
-private lemma decode_encode_subtype : ∀ s : {a : α // P a}, decode_subtype (encode_subtype s) = some s
-| ⟨v, h⟩ := by simp [encode_subtype, decode_subtype, encodek, h]
-
 instance encodable_subtype : encodable {a : α // P a} :=
-encodable.mk
-  encode_subtype
-  decode_subtype
-  decode_encode_subtype
+⟨encode_subtype, decode_subtype,
+ λ ⟨v, h⟩, by simp [encode_subtype, decode_subtype, encodek, h]⟩
 end subtype
 
 def encodable_of_left_injection [h₁ : encodable α]
@@ -209,6 +210,9 @@ def encodable_of_equiv [h : encodable α] : α ≃ β → encodable β
 end
 
 instance : encodable bool := encodable_of_equiv equiv.bool_equiv_unit_sum_unit.symm
+
+noncomputable def encodable_of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
+encodable_of_left_injection f (partial_inv f) (partial_inv_eq hf)
 
 end encodable
 

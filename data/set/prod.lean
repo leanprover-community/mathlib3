@@ -14,8 +14,9 @@ namespace set
 protected def prod (s : set α) (t : set β) : set (α × β) :=
 {p | p.1 ∈ s ∧ p.2 ∈ t}
 
-lemma mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈ t) :=
-rfl
+lemma mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈ t) := rfl
+
+@[simp] lemma mem_prod {p : α × β} : p ∈ set.prod s t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
 @[simp] lemma prod_empty {s : set α} : set.prod s ∅ = (∅ : set (α × β)) :=
 set.ext $ by simp [set.prod]
@@ -55,31 +56,19 @@ set.ext $ assume ⟨a, b⟩, by simp [mem_image_eq, set.prod]; exact
   assume ⟨ha, hb⟩, ⟨b, a, rfl, rfl, ⟨ha, hb⟩⟩⟩
 
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
-image_eq_preimage_of_inverse (@prod.swap α β) (@prod.swap β α)
-  begin simp; intros; trivial end
-  begin simp; intros; trivial end
+image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
 
 lemma prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
   set.prod (image m₁ s) (image m₂ t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (set.prod s t) :=
-set.ext $ assume ⟨b₁, b₂⟩,
-  ⟨assume ⟨⟨a₁, ha₁, (eq₁ : m₁ a₁ = b₁)⟩, ⟨a₂, ha₂, (eq₂ : m₂ a₂ = b₂)⟩⟩,
-    mem_image
-      (show (a₁, a₂) ∈ set.prod s t, from ⟨ha₁, ha₂⟩)
-      (by simp [eq₁, eq₂]),
-    assume ⟨⟨a₁, a₂⟩, ⟨ha₁, ha₂⟩, eq⟩, eq ▸ ⟨mem_image_of_mem m₁ ha₁, mem_image_of_mem m₂ ha₂⟩⟩
+set.ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm]
 
 @[simp] lemma prod_singleton_singleton {a : α} {b : β} :
   set.prod {a} {b} = ({(a, b)} : set (α×β)) :=
-set.ext $ assume ⟨a', b'⟩, by simp [set.prod]
+set.ext $ by simp [set.prod]
 
 lemma prod_neq_empty_iff {s : set α} {t : set β} :
   set.prod s t ≠ ∅ ↔ (s ≠ ∅ ∧ t ≠ ∅) :=
-begin
-  rw [ne_empty_iff_exists_mem, ne_empty_iff_exists_mem, ne_empty_iff_exists_mem,
-    prod.exists],
-  exact ⟨assume ⟨a, b, ha, hb⟩, ⟨⟨a, ha⟩, ⟨b, hb⟩⟩,
-    assume ⟨⟨a, ha⟩, ⟨b, hb⟩⟩, ⟨a, b, ha, hb⟩⟩
-end
+by simp [not_eq_empty_iff_exists]
 
 @[simp] lemma prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl

@@ -30,6 +30,9 @@ let s := sqrt n in begin
     rwa [nat.add_sub_cancel' (le_of_not_gt h)] }
 end
 
+theorem mkpair_unpair' {n a b} (H : unpair n = (a, b)) : mkpair a b = n :=
+by simpa [H] using mkpair_unpair n
+
 theorem unpair_mkpair (a b : nat) : unpair (mkpair a b) = (a, b) :=
 begin
   by_cases a < b; simp [h, mkpair],

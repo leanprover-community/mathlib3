@@ -123,7 +123,7 @@ by by_cases n = 0; simp [*, mk_nat]
 @[simp] theorem zero_mk (n) : 0 /. n = 0 :=
 by cases n; simp [mk]
 
-private lemma gcd_abs_eq_left {a b} : (nat.gcd (int.nat_abs a) b : ℤ) ∣ a :=
+private lemma gcd_abs_dvd_left {a b} : (nat.gcd (int.nat_abs a) b : ℤ) ∣ a :=
 int.coe_nat_dvd_right.1
   (int.coe_nat_dvd_coe_nat_of_dvd $ nat.gcd_dvd_left (int.nat_abs a) b)
 
@@ -133,7 +133,7 @@ begin
   have : ∀ {a b}, mk_pnat a b = 0 → a = 0,
   { intros a b e, cases b with b h,
     injection e with e,
-    apply int.eq_mul_of_div_eq_right gcd_abs_eq_left e },
+    apply int.eq_mul_of_div_eq_right gcd_abs_dvd_left e },
   cases b with b; simp [mk, mk_nat] at h,
   { simp [mt (congr_arg int.of_nat) b0] at h,
     exact this h },
@@ -161,7 +161,7 @@ begin
   intros, simp [mk_pnat], constructor; intro h,
   { injection h with ha hb,
     have ha, {
-      have dv := @gcd_abs_eq_left,
+      have dv := @gcd_abs_dvd_left,
       have := int.eq_mul_of_div_eq_right dv ha,
       rw ← int.mul_div_assoc _ dv at this,
       exact int.eq_mul_of_div_eq_left (dvd_mul_of_dvd_right dv _) this.symm },
@@ -490,18 +490,24 @@ instance : has_le ℚ := ⟨rat.le⟩
 instance decidable_le : decidable_rel ((≤) : ℚ → ℚ → Prop) :=
 show ∀ a b, decidable (rat.nonneg (b - a)), by intros; apply_instance
 
+protected theorem le_def {a b c d : ℤ} (b0 : b > 0) (d0 : d > 0) :
+  a /. b ≤ c /. d ↔ a * d ≤ c * b :=
+show rat.nonneg _ ↔ _,
+by simpa [ne_of_gt b0, ne_of_gt d0, mul_pos b0 d0]
+   using @sub_nonneg _ _ (b * c) (a * d)
+
 protected theorem le_refl : a ≤ a :=
-show rat.nonneg (a - a), begin rw [sub_self], exact le_refl (0 : int) end
+show rat.nonneg (a - a), by rw sub_self; exact le_refl (0 : ℤ)
 
 protected theorem le_total : a ≤ b ∨ b ≤ a :=
 by have := rat.nonneg_total (b - a); rwa neg_sub at this
 
 protected theorem le_antisymm {a b : ℚ} (hab : a ≤ b) (hba : b ≤ a) : a = b :=
-by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simp; assumption);
+by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
    rwa neg_neg at this
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
-by have := rat.nonneg_add hab hbc; simp at this; exact this
+by simpa using rat.nonneg_add hab hbc
 
 instance : linear_order ℚ :=
 { le              := rat.le,
@@ -528,7 +534,7 @@ protected theorem add_le_add_left {a b c : ℚ} : c + a ≤ c + b ↔ a ≤ b :=
 by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
 
 protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
-by simp [nonneg_iff_zero_le.symm] at *; exact rat.nonneg_mul ha hb
+by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
 instance : discrete_linear_ordered_field ℚ :=
 { rat.field_rat with

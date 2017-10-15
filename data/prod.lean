@@ -27,3 +27,8 @@ def prod.swap : (α×β) → (β×α) := λp, (p.2, p.1)
 @[simp] lemma prod.swap_swap_eq : prod.swap ∘ prod.swap = @id (α × β) :=
 funext $ prod.swap_swap
 
+@[simp] lemma prod.swap_left_inverse : function.left_inverse (@prod.swap α β) prod.swap :=
+prod.swap_swap
+
+@[simp] lemma prod.swap_right_inverse : function.right_inverse (@prod.swap α β) prod.swap :=
+prod.swap_swap

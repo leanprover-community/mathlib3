@@ -403,7 +403,7 @@ suffices ∀r, 0 ≤ r → of_real r > b → a ≤ of_real r,
 assume r hr hrb,
 let ⟨p, hp, b_eq, hpr⟩ := lt_iff_exists_of_real.mp hrb in
 have p < r, by simp [hp, hr] at hpr; assumption,
-have pos : 0 < r - p, from lt_sub_iff.mpr $ begin simp [this] end,
+have pos : 0 < r - p, from lt_sub_iff.mpr $ by simp [this],
 calc a ≤ b + of_real (r - p) : h _ pos (by simp [b_eq])
   ... = of_real r :
     by simp [-sub_eq_add_neg, le_of_lt pos, hp, hr, b_eq]; simp [sub_eq_add_neg]
@@ -414,7 +414,7 @@ have ∀r, 0 ≤ r → (∃ (i : ℚ), 0 ≤ i ∧ of_real r < of_real (of_rat i
   from assume r hr,
   let ⟨q, hq⟩ := exists_lt_of_rat r in
   have 0 < of_rat q, from lt_of_le_of_lt hr hq,
-  ⟨q, le_of_lt $ of_rat_lt_of_rat.mp this, of_real_lt_of_real_iff_cases.mpr ⟨this, hq⟩⟩,
+  ⟨q, le_of_lt $ of_rat_lt.mp this, of_real_lt_of_real_iff_cases.mpr ⟨this, hq⟩⟩,
 have h₁ : ∀a, a < ∞ ↔ ∃ (i : ℚ), 0 ≤ i ∧ a < of_real (of_rat i),
   from forall_ennreal.mpr $ by simp [this] {contextual := tt},
 have ∀r p, 0 ≤ r → 0 ≤ p →
@@ -424,7 +424,7 @@ have ∀r p, 0 ≤ r → 0 ≤ p →
       let ⟨q, hrq, hqp⟩ := exists_lt_of_rat_of_rat_gt hrp in
       have 0 < of_rat q, from lt_of_le_of_lt hr hrq,
       have hp' : 0 < p, from lt_of_le_of_lt hr hrp,
-      ⟨q, le_of_lt $ of_rat_lt_of_rat.mp this,
+      ⟨q, le_of_lt $ of_rat_lt.mp this,
         by simp [of_real_lt_of_real_iff_cases, this, hrq, hqp, hp']⟩)
     (assume ⟨q, hq, hrq, hqp⟩, (of_real_lt_of_real_iff hr hp).mp $ lt_trans hrq hqp),
 have h₂ : ∀a r, 0 ≤ r →
@@ -443,7 +443,7 @@ assume x hx, le_infty
 
 lemma of_real_mem_upper_bounds {s : set real} (hs : ∀x∈s, (0:real) ≤ x) (hr : 0 ≤ r) :
   of_real r ∈ upper_bounds (of_real '' s) ↔ r ∈ upper_bounds s :=
-by simp [upper_bounds, ball_image_iff, *] {contextual := tt}
+by simp [upper_bounds, ball_image_iff, -mem_image, *] {contextual := tt}
 
 lemma is_lub_of_real {s : set real} (hs : ∀x∈s, (0:real) ≤ x) (hr : 0 ≤ r) (h : s ≠ ∅) :
   is_lub (of_real '' s) (of_real r) ↔ is_lub s r :=
@@ -801,7 +801,7 @@ s.induction_on (by simp) $ assume a s ha ih,
   have ∀ (i j : ι), ∃ (k : ι), f k a + s.sum (f k) ≤ f i a + s.sum (f j),
     from assume i j,
     let ⟨k, hk⟩ := h (insert a s) i j in
-    ⟨k, add_le_add' (hk a finset.mem_insert).left $ finset.sum_le_sum' $
+    ⟨k, add_le_add' (hk a finset.mem_insert_self).left $ finset.sum_le_sum' $
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
 
@@ -1000,14 +1000,14 @@ protected lemma tsum_le_tsum (h : ∀a, f a ≤ g a) : (∑a, f a) ≤ (∑a, g 
 tsum_le_tsum h ennreal.has_sum ennreal.has_sum
 
 protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
-  (∑i:ℕ, f i) = (⨆i:ℕ, (finset.upto i).sum f) :=
+  (∑i:ℕ, f i) = (⨆i:ℕ, (finset.range i).sum f) :=
 calc _ = (⨆s:finset ℕ, s.sum f) : ennreal.tsum_eq_supr_sum
-  ... = (⨆i:ℕ, (finset.upto i).sum f) : le_antisymm
+  ... = (⨆i:ℕ, (finset.range i).sum f) : le_antisymm
     (supr_le_supr2 $ assume s,
-      have ∃n, s ⊆ finset.upto n, from finset.exists_nat_subset_upto,
+      have ∃n, s ⊆ finset.range n, from finset.exists_nat_subset_range,
       let ⟨n, hn⟩ := this in
       ⟨n, finset.sum_le_sum_of_subset hn⟩)
-    (supr_le_supr2 $ assume i, ⟨finset.upto i, le_refl _⟩)
+    (supr_le_supr2 $ assume i, ⟨finset.range i, le_refl _⟩)
 
 protected lemma le_tsum {a : α} : f a ≤ (∑a, f a) :=
 calc f a = ({a} : finset α).sum f : by simp

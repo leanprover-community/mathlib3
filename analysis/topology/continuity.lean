@@ -104,9 +104,9 @@ lemma compact_image {s : set α} {f : α → β} (hs : compact s) (hf : continuo
 compact_of_finite_subcover $ assume c hco hcs,
   have hdo : ∀t∈c, is_open (preimage f t), from assume t' ht, hf _ $ hco _ ht,
   have hds : s ⊆ ⋃i∈c, preimage f i,
-    by simp [subset_def]; simp [subset_def] at hcs; exact assume x hx, hcs _ (mem_image_of_mem f hx),
+    by simpa [subset_def, -mem_image] using hcs,
   let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in
-  ⟨d', hcd', hfd', by simp [subset_def] at hd'; simp [image_subset_iff_subset_preimage]; assumption⟩
+  ⟨d', hcd', hfd', by simpa [subset_def, -mem_image, image_subset_iff_subset_preimage] using hd'⟩
 
 end
 
@@ -558,9 +558,10 @@ continuous_iff_is_closed.mpr $
   have preimage f s = (⋃i, @subtype.val α {x | c i x} '' (preimage (f ∘ subtype.val) s)),
   begin
     apply set.ext,
-    simp,
-    exact assume x, ⟨assume hx, let ⟨i, hi⟩ := h_cover x in ⟨i, ⟨x, hi⟩, hx, rfl⟩,
-      assume ⟨i, ⟨x', hx'⟩, hx₁, hx₂⟩, hx₂ ▸ hx₁⟩
+    have : ∀ (x : α), f x ∈ s ↔ ∃ (i : γ), c i x ∧ f x ∈ s :=
+      λ x, ⟨λ hx, let ⟨i, hi⟩ := h_cover x in ⟨i, hi, hx⟩,
+            λ ⟨i, hi, hx⟩, hx⟩,
+    simp, simpa [(∘)]
   end,
   by rwa [this]
 

@@ -7,14 +7,16 @@ Outer measures -- overapproximations of measures
 -/
 
 import data.set order.galois_connection algebra.big_operators
-  analysis.ennreal analysis.limits
-  analysis.measure_theory.measurable_space
+       analysis.ennreal analysis.limits
+       analysis.measure_theory.measurable_space
 
 noncomputable theory
 
 open classical set lattice finset function filter
 open ennreal (of_real)
 local attribute [instance] decidable_inhabited prop_decidable
+
+open classical
 
 namespace measure_theory
 
@@ -161,7 +163,7 @@ private lemma C_inter (h₁ : C s₁) (h₂ : C s₂) : C (s₁ ∩ s₂) :=
 by rw [←C_compl_iff, compl_inter]; from C_union _ (C_compl _ h₁) (C_compl _ h₂)
 
 private lemma C_sum {s : ℕ → set α} (h : ∀i, C (s i)) (hd : pairwise (disjoint on s)) {n} {t : set α} :
-  (finset.upto n).sum (λi, μ (t ∩ s i)) = μ (t ∩ ⋃i<n, s i) :=
+  (finset.range n).sum (λi, μ (t ∩ s i)) = μ (t ∩ ⋃i<n, s i) :=
 begin
   induction n,
   case nat.zero { simp [nat.not_lt_zero, m.empty] },
@@ -189,8 +191,8 @@ begin
         ... = _ : by simp,
     have : C _ (⋃i<n, s i),
       from C_Union_lt m (assume i _, h i),
-    from calc (upto (nat.succ n)).sum (λi, μ (t ∩ s i)) = μ (t ∩ s n) + μ (t ∩ ⋃i < n, s i) :
-        by simp [upto_succ, sum_insert, mem_upto_iff, lt_irrefl, ih]
+    from calc (range (nat.succ n)).sum (λi, μ (t ∩ s i)) = μ (t ∩ s n) + μ (t ∩ ⋃i < n, s i) :
+        by simp [range_succ, sum_insert, lt_irrefl, ih]
       ... = μ ((t ∩ ⋃i<n+1, s i) ∩ ⋃i<n, s i) + μ ((t ∩ ⋃i<n+1, s i) \ ⋃i<n, s i) :
         by rw [e₁, e₂]; simp
       ... = μ (t ∩ ⋃i<n+1, s i) : (this $ t ∩ ⋃i<n+1, s i).symm }
@@ -208,7 +210,7 @@ suffices μ t ≥ μ (t ∩ (⋃i, s i)) + μ (t \ (⋃i, s i)),
 have hp : μ (t ∩ ⋃i, s i) ≤ (⨆n, μ (t ∩ ⋃i<n, s i)),
   from calc μ (t ∩ ⋃i, s i) = μ (⋃i, t ∩ s i) : by rw [inter_distrib_Union_left]
     ... ≤ ∑i, μ (t ∩ s i) : @outer_measure.Union_nat α m _
-    ... = ⨆n, (finset.upto n).sum (λi, μ (t ∩ s i)) : ennreal.tsum_eq_supr_nat
+    ... = ⨆n, (finset.range n).sum (λi, μ (t ∩ s i)) : ennreal.tsum_eq_supr_nat
     ... = ⨆n, μ (t ∩ ⋃i<n, s i) : congr_arg _ $ funext $ assume n, C_sum h hd,
 have hn : ∀n, μ (t \ (⋃i<n, s i)) ≥ μ (t \ (⋃i, s i)),
   from assume n,
@@ -223,16 +225,16 @@ calc μ (t ∩ (⋃i, s i)) + μ (t \ (⋃i, s i)) ≤ (⨆n, μ (t ∩ ⋃i<n, 
 
 private lemma f_Union {s : ℕ → set α} (h : ∀i, C (s i)) (hd : pairwise (disjoint on s)) :
   μ (⋃i, s i) = ∑i, μ (s i) :=
-have ∀n, (upto n).sum (λ (i : ℕ), μ (s i)) ≤ μ (⋃ (i : ℕ), s i),
+have ∀n, (finset.range n).sum (λ (i : ℕ), μ (s i)) ≤ μ (⋃ (i : ℕ), s i),
   from assume n,
-  calc (upto n).sum (λi, μ (s i)) = (upto n).sum (λi, μ (univ ∩ s i)) :
+  calc (finset.range n).sum (λi, μ (s i)) = (finset.range n).sum (λi, μ (univ ∩ s i)) :
       by simp [univ_inter]
     ... = μ (⋃i<n, s i) :
       by rw [C_sum _ h hd, univ_inter]
     ... ≤ μ (⋃ (i : ℕ), s i) : m.mono $ bUnion_subset $ assume i _, le_supr s i,
 suffices μ (⋃i, s i) ≥ ∑i, μ (s i),
   from le_antisymm (@outer_measure.Union_nat α m s) this,
-calc (∑i, μ (s i)) = (⨆n, (finset.upto n).sum (λi, μ (s i))) : ennreal.tsum_eq_supr_nat
+calc (∑i, μ (s i)) = (⨆n, (finset.range n).sum (λi, μ (s i))) : ennreal.tsum_eq_supr_nat
   ... ≤ _ : supr_le this
 
 private def caratheodory_dynkin : measurable_space.dynkin_system α :=

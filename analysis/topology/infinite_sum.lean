@@ -9,9 +9,9 @@ This sum is known as unconditionally convergent, as it sums to the same value un
 permutations. For Euclidean spaces (finite dimensional Banach spaces) this is equivalent to absolute
 convergence.
 -/
-import
-  logic.function_inverse algebra.big_operators data.set data.finset
-  analysis.topology.topological_structures
+import logic.function algebra.big_operators data.set data.finset
+       analysis.metric_space analysis.topology.topological_structures
+
 noncomputable theory
 open set lattice finset filter function classical
 local attribute [instance] decidable_inhabited prop_decidable
@@ -98,12 +98,12 @@ show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (nhds (g a)),
   by rw [this]; exact tendsto_compose hf (continuous_iff_tendsto.mp h₃ a)
 
 lemma tendsto_sum_nat_of_is_sum {f : ℕ → α} (h : is_sum f a) :
-  tendsto (λn:ℕ, (upto n).sum f) at_top (nhds a) :=
-suffices map (λ (n : ℕ), sum (upto n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
+  tendsto (λn:ℕ, (range n).sum f) at_top (nhds a) :=
+suffices map (λ (n : ℕ), sum (range n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
   from le_trans this h,
 assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top.sets),
-let ⟨t, ht⟩ := mem_at_top_iff.mp hs, ⟨n, hn⟩ := @exists_nat_subset_upto t in
-mem_at_top_iff.mpr ⟨n, assume n' hn', ht _ $ subset.trans hn $ upto_subset_upto_iff.mpr hn'⟩
+let ⟨t, ht⟩ := mem_at_top_iff.mp hs, ⟨n, hn⟩ := @exists_nat_subset_range t in
+mem_at_top_iff.mpr ⟨n, assume n' hn', ht _ $ subset.trans hn $ range_subset.mpr hn'⟩
 
 lemma is_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
   (hf : ∀b, is_sum (λc, f ⟨b, c⟩) (g b)) (ha : is_sum f a) : is_sum g a :=

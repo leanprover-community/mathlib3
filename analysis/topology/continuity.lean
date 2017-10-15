@@ -98,7 +98,7 @@ have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (
       (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_tendsto] at h; exact h a)
       (le_trans (map_mono inf_le_right) $ by simp; exact subset.refl _),
   neq_bot_of_le_neq_bot h₁ h₂,
-by simp [image_subset_iff_subset_preimage, closure_eq_nhds]; assumption
+by simp [image_subset_iff, closure_eq_nhds]; assumption
 
 lemma compact_image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) : compact (f '' s) :=
 compact_of_finite_subcover $ assume c hco hcs,
@@ -106,7 +106,7 @@ compact_of_finite_subcover $ assume c hco hcs,
   have hds : s ⊆ ⋃i∈c, preimage f i,
     by simpa [subset_def, -mem_image] using hcs,
   let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in
-  ⟨d', hcd', hfd', by simpa [subset_def, -mem_image, image_subset_iff_subset_preimage] using hd'⟩
+  ⟨d', hcd', hfd', by simpa [subset_def, -mem_image, image_subset_iff] using hd'⟩
 
 end
 
@@ -658,7 +658,7 @@ let ⟨s'', hs''₁, hs''₂, hs''₃⟩ := nhds_is_closed hs in
 let ⟨s', hs'₁, (hs'₂ : preimage e s' ⊆ preimage f s'')⟩ := mem_of_nhds hφ hs''₁ in
 let ⟨t, (ht₁ : t ⊆ φ ∩ s'), ht₂, ht₃⟩ := mem_nhds_sets_iff.mp $ inter_mem_sets hφ hs'₁ in
 have h₁ : closure (f '' preimage e s') ⊆ s'',
-  by rw [closure_subset_iff_subset_of_is_closed hs''₃, image_subset_iff_subset_preimage]; exact hs'₂,
+  by rw [closure_subset_iff_subset_of_is_closed hs''₃, image_subset_iff]; exact hs'₂,
 have h₂ : t ⊆ preimage (de.ext f) (closure (f '' preimage e t)), from
   assume b' hb',
   have nhds b' ≤ principal t, by simp; exact mem_nhds_sets ht₂ hb',
@@ -732,7 +732,7 @@ lemma is_closed_property [topological_space α] [topological_space β] {e : α �
   ∀b, p b :=
 have univ ⊆ {b | p b},
   from calc univ = closure (e '' univ) : he.symm
-    ... ⊆ closure {b | p b} : closure_mono $ image_subset_iff_subset_preimage.mpr $ assume a _, h a
+    ... ⊆ closure {b | p b} : closure_mono $ image_subset_iff.mpr $ assume a _, h a
     ... = _ : closure_eq_of_is_closed hp,
 assume b, this trivial
 
@@ -756,7 +756,7 @@ lemma mem_closure_of_continuous [topological_space α] [topological_space β]
   f a ∈ closure t :=
 calc f a ∈ f '' closure s : mem_image_of_mem _ ha
   ... ⊆ closure (f '' s) : image_closure_subset_closure_image hf
-  ... ⊆ closure (closure t) : closure_mono $ image_subset_iff_subset_preimage.mpr $ h
+  ... ⊆ closure (closure t) : closure_mono $ image_subset_iff.mpr $ h
   ... ⊆ closure t : begin rw [closure_eq_of_is_closed], exact subset.refl _, exact is_closed_closure end
 
 lemma mem_closure_of_continuous2 [topological_space α] [topological_space β] [topological_space γ]

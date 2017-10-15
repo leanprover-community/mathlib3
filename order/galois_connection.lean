@@ -161,7 +161,7 @@ namespace set
 variables {f : α → β}
 
 protected lemma image_preimage : galois_connection (image f) (preimage f) :=
-assume a b, image_subset_iff_subset_preimage
+assume a b, image_subset_iff
 
 /- Move to set? -/
 definition kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s }

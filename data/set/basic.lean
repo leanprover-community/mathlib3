@@ -507,6 +507,9 @@ assume x hx, h hx
 
 @[simp] theorem preimage_compl {s : set β} : f ⁻¹' (- s) = - (f ⁻¹' s) := rfl
 
+@[simp] theorem preimage_diff (f : α → β) (s t : set β) :
+  f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t := rfl
+
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl
 
@@ -644,14 +647,13 @@ theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : s
 by rw image_eq_preimage_of_inverse h₁ h₂; refl
 
 /- image and preimage are a Galois connection -/
-theorem image_subset_iff_subset_preimage {s : set α} {t : set β} {f : α → β} :
+theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :
   f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
-⟨assume h x hx, h (mem_image_of_mem f hx),
- assume h x hx, match x, hx with ._, ⟨y, hy, rfl⟩ := h hy end⟩
+ball_image_iff
 
 theorem image_preimage_subset (f : α → β) (s : set β) :
   f '' (f ⁻¹' s) ⊆ s :=
-image_subset_iff_subset_preimage.2 (subset.refl _)
+image_subset_iff.2 (subset.refl _)
 
 theorem subset_preimage_image (f : α → β) (s : set α) :
   s ⊆ f ⁻¹' (f '' s) :=
@@ -681,6 +683,18 @@ image_eq_preimage_of_inverse compl_compl compl_compl
 lemma compl_image_set_of {α : Type u} {p : set α → Prop} :
   compl '' {x | p x} = {x | p (- x)} :=
 congr_fun compl_image p
+
+theorem inter_preimage_subset (s : set α) (t : set β) (f : α → β) :
+  s ∩ f ⁻¹' t ⊆ f ⁻¹' (f '' s ∩ t) :=
+λ x h, ⟨mem_image_of_mem _ h.left, h.right⟩
+
+theorem union_preimage_subset (s : set α) (t : set β) (f : α → β) :
+  s ∪ f ⁻¹' t ⊆ f ⁻¹' (f '' s ∪ t) :=
+λ x h, or.elim h (λ l, or.inl $ mem_image_of_mem _ l) (λ r, or.inr r)
+
+theorem subset_image_union (f : α → β) (s : set α) (t : set β) :
+  f '' (s ∪ f ⁻¹' t) ⊆ f '' s ∪ t :=
+image_subset_iff.2 (union_preimage_subset _ _ _)
 
 end image
 

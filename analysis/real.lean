@@ -111,7 +111,7 @@ uniform_space.of_core { uniform_space.core .
   refl :=
     have ((λ (p : ℚ × ℚ), p.1 - p.2) '' id_rel) = {0},
       from set.subset.antisymm
-        (by simp [set.image_subset_iff_subset_preimage, subset_def, id_rel, -add_neg_eq_iff_eq_add] {contextual := tt})
+        (by simp [set.image_subset_iff, subset_def, id_rel, -add_neg_eq_iff_eq_add] {contextual := tt})
         (assume x hx, ⟨⟨0, 0⟩, begin revert hx, simp [*, id_rel, eq_comm] end⟩),
     by simp [le_vmap_iff_map_le, -sub_eq_add_neg, this]; exact pure_zero_le_zero_nhd,
   symm :=
@@ -861,7 +861,7 @@ have {r : ℝ | of_rat q < r} ⊆ closure (of_rat '' {x : ℚ | q ≤ x}),
       by simp [h₂.symm] at *; apply le_of_lt h₁,
 subset.antisymm
   (closure_minimal
-    (image_subset_iff_subset_preimage.mpr $ by simp [of_rat_le_of_rat] {contextual:=tt})
+    (image_subset_iff.mpr $ by simp [of_rat_le_of_rat] {contextual := tt})
     (is_closed_le continuous_const continuous_id)) $
   calc {r:ℝ | of_rat q ≤ r} ⊆ {of_rat q} ∪ {r | of_rat q < r} :
       assume x, by simp [le_iff_lt_or_eq, or_imp_distrib] {contextual := tt}
@@ -889,7 +889,7 @@ have hab : ({of_rat a, of_rat b}:set ℝ) ⊆ ivl,
   from subset.trans subset_closure $ closure_mono $
     by simp [subset_def, or_imp_distrib, forall_and_distrib, hab, le_refl],
 subset.antisymm
-  (closure_minimal (by simp [image_subset_iff_subset_preimage, of_rat_le_of_rat] {contextual := tt}) $
+  (closure_minimal (by simp [image_subset_iff, of_rat_le_of_rat] {contextual := tt}) $
     is_closed_inter (is_closed_le continuous_const continuous_id) (is_closed_le continuous_id continuous_const))
   (calc {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} ⊆ {of_rat a, of_rat b} ∪ (a_lt ∩ lt_b) :
       assume x, by simp [le_iff_lt_or_eq, and_imp, or_imp_distrib] {contextual := tt}

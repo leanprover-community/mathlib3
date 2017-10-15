@@ -165,7 +165,7 @@ suffices at_top.map (λs:finset β, s.sum f) ≤ at_top.map (λs:finset γ, s.su
   from le_trans this hf,
 by rw [map_at_top_eq, map_at_top_eq];
 from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
-  by simp [image_subset_iff_subset_preimage]; exact hv)
+  by simp [image_subset_iff]; exact hv)
 
 lemma is_sum_iff_is_sum
   (h₁ : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ u'.sum g = v'.sum f)

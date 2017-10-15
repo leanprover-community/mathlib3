@@ -246,7 +246,7 @@ instance complete_lattice_filter : complete_lattice (filter α) :=
 
 @[simp] lemma map_principal {s : set α} {f : α → β} :
   map f (principal s) = principal (set.image f s) :=
-filter_eq $ set.ext $ assume a, image_subset_iff_subset_preimage.symm
+filter_eq $ set.ext $ assume a, image_subset_iff.symm
 
 @[simp] lemma mem_top_sets_iff {s : set α} : s ∈ (⊤ : filter α).sets ↔ s = univ :=
 ⟨assume h, top_unique $ h, assume h, h.symm ▸ univ_mem_sets⟩
@@ -656,15 +656,15 @@ le_antisymm
       have m '' (t₁ ∩ t) ∩ m '' (t₂ ∩ t) ⊆ s,
       begin
         rw [image_inter_on],
-        apply image_subset_iff_subset_preimage.mpr _,
+        apply image_subset_iff.mpr _,
         exact assume x ⟨⟨h₁, _⟩, h₂, _⟩, hs ⟨h₁, h₂⟩,
         exact assume x ⟨_, hx⟩ y ⟨_, hy⟩, h x hx y hy
       end,
       ⟨m '' (t₁ ∩ t),
-        f.upwards_sets (inter_mem_sets h₁ htf) $ image_subset_iff_subset_preimage.mp $ subset.refl _,
+        f.upwards_sets (inter_mem_sets h₁ htf) $ image_subset_iff.mp $ subset.refl _,
         m '' (t₂ ∩ t),
         this,
-        g.upwards_sets (inter_mem_sets h₂ htg) $ image_subset_iff_subset_preimage.mp $ subset.refl _⟩)
+        g.upwards_sets (inter_mem_sets h₂ htg) $ image_subset_iff.mp $ subset.refl _⟩)
   end)
 
 lemma map_inf {f g : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
@@ -702,7 +702,7 @@ le_trans (bind_mono2 hf) (bind_mono $ univ_mem_sets' $ assume f, map_mono hg)
 
 @[simp] lemma fmap_principal {β : Type u} {s : set α} {f : α → β} :
   f <$> principal s = principal (set.image f s) :=
-filter_eq $ set.ext $ assume a, image_subset_iff_subset_preimage.symm
+filter_eq $ set.ext $ assume a, image_subset_iff.symm
 
 lemma mem_return_sets {a : α} {s : set α} : s ∈ (return a : filter α).sets ↔ a ∈ s :=
 show s ∈ (principal {a}).sets ↔ a ∈ s,
@@ -795,7 +795,7 @@ by simp [tendsto]; exact h
 
 lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β}
   (h : ∀a∈s, f a ∈ t) : tendsto f (principal s) (principal t) :=
-by simp [tendsto, image_subset_iff_subset_preimage]; exact h
+by simp [tendsto, image_subset_iff]; exact h
 
 section lift
 
@@ -1204,7 +1204,7 @@ le_antisymm
     filter.upwards_sets _ (prod_mem_prod (image_mem_map hs₁) (image_mem_map hs₂)) $
       calc set.prod (m₁ '' s₁) (m₂ '' s₂) = (λp:α₁×α₂, (m₁ p.1, m₂ p.2)) '' set.prod s₁ s₂ :
           set.prod_image_image_eq
-        ... ⊆ _ : by rwa [image_subset_iff_subset_preimage])
+        ... ⊆ _ : by rwa [image_subset_iff])
   (tendsto_prod_mk (tendsto_compose tendsto_fst (le_refl _)) (tendsto_compose tendsto_snd (le_refl _)))
 
 lemma prod_vmap_vmap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}

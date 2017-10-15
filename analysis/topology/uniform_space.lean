@@ -658,7 +658,7 @@ have {p:α×α | (f p.1, f p.2) ∈ t} ∈ (@uniformity α _).sets,
 let ⟨c, hfc, hct⟩ := hs _ this in
 ⟨f '' c, finite_image hfc,
   begin
-    simp [image_subset_iff_subset_preimage],
+    simp [image_subset_iff],
     simp [subset_def] at hct,
     intros x hx, simp [-mem_image],
     exact let ⟨i, hi, ht⟩ := hct x hx in ⟨f i, mem_image_of_mem f hi, ht⟩
@@ -991,7 +991,7 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ uniformity.sets,
     from calc set.prod (f '' preimage e m₁) (f '' preimage e m₂) =
       (λp:(β×β), (f p.1, f p.2)) '' (set.prod (preimage e m₁) (preimage e m₂)) : prod_image_image_eq
     ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' preimage (λp:(β×β), (f p.1, f p.2)) s : mono_image this
-    ... ⊆ s : image_subset_iff_subset_preimage.mpr $ subset.refl _,
+    ... ⊆ s : image_subset_iff.mpr $ subset.refl _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,
   hs_comp $ show (ψ x₁, ψ x₂) ∈ comp_rel s (comp_rel s s),
     from ⟨a, ha₂, ⟨b, this, hb₂⟩⟩

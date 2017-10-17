@@ -131,17 +131,29 @@ section
   variables {α : Type u} [has_zero α] [has_one α] [has_add α]
 
   def cast_pos_num : pos_num → α
-  | 1                := 1
+  | 1      := 1
   | (pos_num.bit0 a) := bit0 (cast_pos_num a)
   | (pos_num.bit1 a) := bit1 (cast_pos_num a)
 
   def cast_num : num → α
-  | 0           := 0
+  | 0    := 0
   | (num.pos p) := cast_pos_num p
 
-  @[priority 0] instance pos_num_coe : has_coe pos_num α := ⟨cast_pos_num⟩
+  @[priority 0]
+  instance pos_num_coe : has_coe pos_num α := ⟨cast_pos_num⟩
 
-  @[priority 0] instance num_nat_coe : has_coe num α := ⟨cast_num⟩
+  @[priority 0]
+  instance num_nat_coe : has_coe num α := ⟨cast_num⟩
+
+  variable [has_neg α]
+
+  def cast_znum : znum → α
+  | 0    := 0
+  | (znum.pos p) := cast_pos_num p
+  | (znum.neg p) := - cast_pos_num p
+
+  -- @[priority 0]
+  instance num_int_coe : has_coe znum α := ⟨cast_znum⟩
 end
 
 namespace nat
@@ -168,7 +180,7 @@ namespace num
   | 0 := 0
   | (nat.succ n) := succ (of_nat n)
 
-  instance nat_num_coe : has_coe nat num := ⟨of_nat⟩
+  def nat_num_coe : has_coe nat num := ⟨of_nat⟩
 
   protected def add : num → num → num
   | 0       a       := a
@@ -278,7 +290,7 @@ namespace int
   | (znum.pos a) := a
   | (znum.neg a) := -[1+ option.cases_on (pos_num.pred' a) 0 nat.of_pos_num]
 
-  instance znum_coe : has_coe znum ℤ := ⟨of_znum⟩
+  def znum_coe : has_coe znum ℤ := ⟨of_znum⟩
 end int
 
 instance : has_lt znum := ⟨λa b, (a : ℤ) < b⟩

@@ -115,6 +115,8 @@ namespace num
 
   theorem succ_to_nat (n) : (succ n : ℕ) = n + 1 := succ'_to_nat n
 
+  local attribute [instance] nat_num_coe
+
   @[simp] theorem to_of_nat : Π (n : ℕ), ((n : num) : ℕ) = n
   | 0     := rfl
   | (n+1) := (succ_to_nat (num.of_nat n)).trans (congr_arg nat.succ (to_of_nat n))
@@ -137,6 +139,7 @@ end num
 
 namespace pos_num
   open num
+  local attribute [instance] nat_num_coe
 
   @[simp] theorem of_to_nat : Π (n : pos_num), ((n : ℕ) : num) = pos n
   | 1        := rfl
@@ -259,6 +262,8 @@ end pos_num
 
 namespace num
   open pos_num
+
+  local attribute [instance] nat_num_coe
 
   @[simp] theorem of_to_nat : Π (n : num), ((n : ℕ) : num) = n
   | 0       := rfl

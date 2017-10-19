@@ -482,10 +482,20 @@ by have := rat.nonneg_add hab hbc; simp at this; exact this
 
 instance : linear_order ℚ :=
 { le              := rat.le,
-  lt              := λa b, ¬ b ≤ a,
+  lt              := λa b, a ≤ b ∧ a ≠ b,
   lt_iff_le_not_le := assume a b,
-    iff.intro (assume h, ⟨or.resolve_left (rat.le_total _ _) h, h⟩)
-      (assume ⟨h1, h2⟩, h2),
+    iff.intro 
+      (assume ⟨h1, h2⟩, 
+       have hnle : ¬ b ≤ a, from
+        assume hle,
+        have a = b, from rat.le_antisymm h1 hle,
+        h2 this,
+       ⟨or.resolve_left (rat.le_total _ _) hnle, hnle⟩)
+      (assume ⟨h1, h2⟩, 
+       ⟨h1, 
+        assume heq, 
+        suffices ¬b≤b, from this (rat.le_refl _), 
+        by rw heq at h2; assumption⟩),
   le_refl         := rat.le_refl,
   le_trans        := @rat.le_trans,
   le_antisymm     := @rat.le_antisymm,
@@ -496,6 +506,10 @@ show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
 
 protected theorem add_le_add_left {a b c : ℚ} : c + a ≤ c + b ↔ a ≤ b :=
 by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
+
+protected theorem add_lt_add_left {a b c : ℚ} : c + a < c + b ↔ a < b :=
+⟨assume ⟨h1, h2⟩, ⟨rat.add_le_add_left.mp h1, λ h, by cc⟩,
+ assume ⟨h1, h2⟩, ⟨rat.add_le_add_left.mpr h1, λ h, h2 (eq_of_add_eq_add_left h)⟩⟩
 
 protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 by simp [nonneg_iff_zero_le.symm] at *; exact rat.nonneg_mul ha hb
@@ -509,9 +523,9 @@ instance : discrete_linear_ordered_field ℚ :=
   le_antisymm     := assume a b, le_antisymm,
   le_total        := le_total,
   lt_iff_le_not_le := @lt_iff_le_not_le _ _,
-  zero_lt_one     := show ¬ (0:ℤ) ≤ -1, from dec_trivial,
+  zero_lt_one     := show (0:ℚ) ≤ 1 ∧ (0:ℚ) ≠ 1, from dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
-  add_lt_add_left := assume a b ab c ba, ab $ rat.add_le_add_left.1 ba,
+  add_lt_add_left := assume a b ab c, rat.add_lt_add_left.2 ab,
   mul_nonneg      := @rat.mul_nonneg,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))

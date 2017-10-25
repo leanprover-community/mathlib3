@@ -482,10 +482,6 @@ by have := rat.nonneg_add hab hbc; simp at this; exact this
 
 instance : linear_order ℚ :=
 { le              := rat.le,
-  lt              := λa b, ¬ b ≤ a,
-  lt_iff_le_not_le := assume a b,
-    iff.intro (assume h, ⟨or.resolve_left (rat.le_total _ _) h, h⟩)
-      (assume ⟨h1, h2⟩, h2),
   le_refl         := rat.le_refl,
   le_trans        := @rat.le_trans,
   le_antisymm     := @rat.le_antisymm,
@@ -509,16 +505,17 @@ instance : discrete_linear_ordered_field ℚ :=
   le_antisymm     := assume a b, le_antisymm,
   le_total        := le_total,
   lt_iff_le_not_le := @lt_iff_le_not_le _ _,
-  zero_lt_one     := show ¬ (0:ℤ) ≤ -1, from dec_trivial,
+  zero_lt_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
-  add_lt_add_left := assume a b ab c ba, ab $ rat.add_le_add_left.1 ba,
+  add_lt_add_left := assume a b ab c, lt_of_not_ge $ λ ba,
+    not_le_of_gt ab $ rat.add_le_add_left.1 ba,
   mul_nonneg      := @rat.mul_nonneg,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
   decidable_eq    := by apply_instance,
   decidable_le    := assume a b, rat.decidable_nonneg (b - a),
-  decidable_lt    := by apply_instance }
+  decidable_lt    := λ a b, decidable_of_iff' _ (lt_iff_not_ge a b) }
 
 lemma coe_int_eq_mk (z : ℤ) : ↑z = rat.mk z 1 :=
 show rat.of_int z = rat.mk_nat z 1,

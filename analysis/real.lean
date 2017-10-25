@@ -7,7 +7,7 @@ The real numbers ℝ.
 
 They are constructed as the topological completion of ℚ. With the following steps:
 (1) prove that ℚ forms a uniform space.
-(2) subtraction and addition are uniform contiunuous functions in this space
+(2) subtraction and addition are uniform continuous functions in this space
 (3) for multiplication and inverse this only holds on bounded subsets
 (4) ℝ is defined as separated Cauchy filters over ℚ (the separation requires a quotient construction)
 (5) extend the uniform continuous functions along the completion
@@ -442,17 +442,19 @@ dense_embedding_of_uniform_embedding uniform_embedding_of_rat $ assume x, this t
 lemma dense_embedding_of_rat_of_rat : dense_embedding (λp:ℚ×ℚ, (of_rat p.1, of_rat p.2)) :=
 dense_embedding_of_rat.prod dense_embedding_of_rat
 
-def lift_rat_fun (f : ℚ → ℚ) : ℝ → ℝ := dense_embedding_of_rat.ext (of_rat ∘ f)
-def lift_rat_op (f : ℚ → ℚ → ℚ) (a : ℝ) (b : ℝ) : ℝ :=
+@[irreducible] def lift_rat_fun (f : ℚ → ℚ) : ℝ → ℝ := dense_embedding_of_rat.ext (of_rat ∘ f)
+@[irreducible] def lift_rat_op (f : ℚ → ℚ → ℚ) (a : ℝ) (b : ℝ) : ℝ :=
 dense_embedding_of_rat_of_rat.ext (of_rat ∘ (λp:ℚ×ℚ, f p.1 p.2)) (a, b)
 
 lemma lift_rat_fun_of_rat {r : ℚ} {f : ℚ → ℚ} (hf : tendsto f (nhds r) (nhds (f r))) :
   lift_rat_fun f (of_rat r) = of_rat (f r) :=
-dense_embedding_of_rat.ext_e_eq $ tendsto_compose hf $ dense_embedding_of_rat.tendsto
+by unfold lift_rat_fun; exact
+dense_embedding_of_rat.ext_e_eq (tendsto_compose hf $ dense_embedding_of_rat.tendsto)
 
 lemma lift_rat_op_of_rat_of_rat {r₁ r₂: ℚ} {f : ℚ → ℚ → ℚ}
   (hf : tendsto (λp:ℚ×ℚ, f p.1 p.2) (nhds (r₁, r₂)) (nhds (f r₁ r₂))) :
   lift_rat_op f (of_rat r₁) (of_rat r₂) = of_rat (f r₁ r₂) :=
+by unfold lift_rat_op; exact
 let h := dense_embedding_of_rat_of_rat.ext_e_eq (tendsto_compose hf dense_embedding_of_rat.tendsto)
 in h
 
@@ -490,19 +492,21 @@ show (if of_rat r = 0 then 0 else lift_rat_fun has_inv.inv (of_rat r)) = of_rat 
 local attribute [simp] of_rat_zero of_rat_one of_rat_neg of_rat_add of_rat_sub of_rat_mul of_rat_inv
 
 lemma uniform_continuous_neg_real : uniform_continuous (λp:ℝ, - p) :=
-uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_rat.dense $
-  uniform_continuous_compose
-    uniform_continuous_neg_rat
-    (uniform_continuous_of_embedding uniform_embedding_of_rat)
+begin
+  rw [real.has_neg], simp [lift_rat_fun],
+  exact uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_rat.dense
+   (uniform_continuous_compose uniform_continuous_neg_rat
+    (uniform_continuous_of_embedding uniform_embedding_of_rat))
+end
 
 lemma uniform_continuous_add_real : uniform_continuous (λp:ℝ×ℝ, p.1 + p.2) :=
 begin
-  rw [real.has_add], simp [lift_rat_op], -- TODO: necessary, otherwise elaborator doesn't terminate
-  exact (uniform_continuous_uniformly_extend
+  rw [real.has_add], simp [lift_rat_op],
+  exact uniform_continuous_uniformly_extend
     (uniform_embedding_prod uniform_embedding_of_rat uniform_embedding_of_rat)
     dense_embedding_of_rat_of_rat.dense
     (uniform_continuous_compose uniform_continuous_add_rat
-      (uniform_continuous_of_embedding uniform_embedding_of_rat)))
+      (uniform_continuous_of_embedding uniform_embedding_of_rat))
 end
 
 private lemma continuous_neg_real : continuous (λp:ℝ, - p) :=
@@ -580,9 +584,12 @@ show (r - 0) ∈ nonneg ↔ r ∈ nonneg, by simp [-of_rat_zero]
 private def abs_real := lift_rat_fun abs
 
 private lemma uniform_continuous_abs_real' : uniform_continuous abs_real :=
-uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_rat.dense $
-  uniform_continuous_compose
-  uniform_continuous_abs_rat (uniform_continuous_of_embedding uniform_embedding_of_rat)
+begin
+  rw [abs_real, lift_rat_fun],
+  exact uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_rat.dense
+    (uniform_continuous_compose uniform_continuous_abs_rat
+      (uniform_continuous_of_embedding uniform_embedding_of_rat))
+end
 
 private lemma continuous_abs_real' : continuous abs_real :=
 continuous_of_uniform uniform_continuous_abs_real'
@@ -610,9 +617,9 @@ have uniform_continuous (λq:ℚ, q * (1 / 2)),
   from uniform_continuous_of_embedding $ uniform_embedding_mul_rat $
         ne_of_gt $ div_pos_of_pos_of_pos zero_lt_one two_pos,
 have c_d : continuous d,
-  from continuous_of_uniform $
-    uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_rat.dense $
-    uniform_continuous_compose this (uniform_continuous_of_embedding uniform_embedding_of_rat),
+  from continuous_of_uniform $ by simp [d, lift_rat_fun]; exact
+    uniform_continuous_uniformly_extend uniform_embedding_of_rat dense_embedding_of_rat.dense
+      (uniform_continuous_compose this (uniform_continuous_of_embedding uniform_embedding_of_rat)),
 have d_of_rat : ∀q:ℚ, d (of_rat q) = of_rat (q * (1 / 2)),
   from assume q, @lift_rat_fun_of_rat q (λq, q * (1 / 2)) $
     continuous_iff_tendsto.mp (continuous_of_uniform this) q,
@@ -1118,6 +1125,13 @@ instance : semiring ℝ := by apply_instance
 instance : topological_semiring ℝ :=
   @topological_ring.to_topological_semiring ℝ _ _ _
 
+theorem coe_rat_eq_of_rat (r : ℚ) : ↑r = of_rat r :=
+have ∀ n : ℕ, (n:ℝ) = of_rat n, by intro n; induction n; simp *,
+have ∀ n : ℤ, (n:ℝ) = of_rat n, by intro n; cases n; simp [this],
+rat.num_denom_cases_on r $ λ n d h c,
+by rw [rat.cast_mk, rat.mk_eq_div, this, this, int.cast_coe_nat,
+       division_def, division_def, ← of_rat_mul, ← of_rat_inv]
+
 lemma exists_lt_of_rat_of_rat_gt {r p : ℝ} (h : r < p) : ∃q, r < of_rat q ∧ of_rat q < p :=
 have h_dense : {x | r < x ∧ x < p} ≠ ∅,
   from ne_empty_iff_exists_mem.mpr $ dense h,
@@ -1130,6 +1144,11 @@ have ({x | r < x ∧ x < p} ∩ of_rat '' univ) ≠ ∅,
   by intro h; simp [h, subset_empty_iff, h_dense] at this; assumption,
 let ⟨r', ⟨h₁, h₂⟩, q, _, hq⟩ := ne_empty_iff_exists_mem.mp this in
 ⟨q, hq.symm ▸ h₁, hq.symm ▸ h₂⟩
+
+lemma exists_lt_nat (r : ℝ) : ∃n : ℕ, r < n :=
+let ⟨q, hq⟩ := exists_lt_of_rat r in
+⟨rat.nat_ceil q, lt_of_lt_of_le hq $ coe_rat_eq_of_rat q ▸
+  @rat.cast_coe_nat ℝ _ q.nat_ceil ▸ rat.cast_le.2 $ q.le_nat_ceil⟩
 
 lemma compact_ivl {a b : ℝ} : compact {r:ℝ | a ≤ r ∧ r ≤ b } :=
 have is_closed_ivl : ∀{a b : ℝ}, is_closed {r:ℝ | a ≤ r ∧ r ≤ b },

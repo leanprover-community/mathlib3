@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 A collection of limit properties.
 -/
 import algebra.big_operators algebra.group_power
-  analysis.metric_space analysis.of_nat analysis.topology.infinite_sum
+  analysis.metric_space analysis.topology.infinite_sum
 noncomputable theory
 open classical set finset function filter
 local attribute [instance] decidable_inhabited prop_decidable
@@ -70,25 +70,25 @@ lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} {r : ℝ} (hf : ∀n, 0
 
 end real
 
-lemma mul_add_one_le_pow {r : ℝ} (hr : 0 ≤ r) : ∀{n}, (of_nat n) * r + 1 ≤ (r + 1) ^ n
+lemma mul_add_one_le_pow {r : ℝ} (hr : 0 ≤ r) : ∀{n:ℕ}, (n:ℝ) * r + 1 ≤ (r + 1) ^ n
 | 0       := by simp; exact le_refl 1
 | (n + 1) :=
-  let h : of_nat n ≥ (0 : ℝ) := @zero_le_of_nat ℝ _ n in
-  calc of_nat (n + 1) * r + 1 ≤ (of_nat (n + 1) * r + 1) + r * r * of_nat n :
+  let h : (n:ℝ) ≥ 0 := nat.cast_nonneg n in
+  calc ↑(n + 1) * r + 1 ≤ ((n + 1) * r + 1) + r * r * n :
       le_add_of_le_of_nonneg (le_refl _) (mul_nonneg (mul_nonneg hr hr) h)
-    ... = (r + 1) * (of_nat n * r + 1) : by simp [mul_add, add_mul]
+    ... = (r + 1) * (n * r + 1) : by simp [mul_add, add_mul]
     ... ≤ (r + 1) * (r + 1) ^ n : mul_le_mul (le_refl _) mul_add_one_le_pow
       (add_nonneg (mul_nonneg h hr) zero_le_one) (add_nonneg hr zero_le_one)
 
 lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ, r ^ n) at_top at_top :=
 tendsto_infi $ assume p, tendsto_principal $
-  let ⟨n, hn⟩ := @exists_lt_of_nat (p / (r - 1)) in
-  have hn_nn : (0:ℝ) ≤ of_nat n, from (@zero_le_of_nat ℝ _ n),
+  let ⟨n, hn⟩ := @exists_lt_nat (p / (r - 1)) in
+  have hn_nn : (0:ℝ) ≤ n, from nat.cast_nonneg n,
   have r - 1 > 0, from sub_lt_iff.mp $ by simp; assumption,
   have p ≤ r ^ n,
     from calc p = (p / (r - 1)) * (r - 1) : (div_mul_cancel _ $ ne_of_gt this).symm
-      ... ≤ of_nat n * (r - 1) : mul_le_mul (le_of_lt hn) (le_refl _) (le_of_lt this) hn_nn
-      ... ≤ of_nat n * (r - 1) + 1 : le_add_of_le_of_nonneg (le_refl _) zero_le_one
+      ... ≤ n * (r - 1) : mul_le_mul (le_of_lt hn) (le_refl _) (le_of_lt this) hn_nn
+      ... ≤ n * (r - 1) + 1 : le_add_of_le_of_nonneg (le_refl _) zero_le_one
       ... ≤ ((r - 1) + 1) ^ n : mul_add_one_le_pow $ le_of_lt this
       ... ≤ r ^ n : by simp; exact le_refl _,
   show {n | p ≤ r ^ n} ∈ at_top.sets,

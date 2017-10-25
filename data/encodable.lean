@@ -27,6 +27,16 @@ instance decidable_eq_of_encodable : decidable_eq α
 | a b := decidable_of_iff _ encode_injective.eq_iff 
 end
 
+def encodable_of_left_injection [h₁ : encodable α]
+  (f : β → α) (finv : α → option β) (linv : ∀ b, finv (f b) = some b) : encodable β :=
+⟨λ b, encode (f b),
+ λ n, (decode α n).bind finv,
+ λ b, by simp [encodable.encodek, option.bind, linv]⟩
+
+def encodable_of_equiv (α) [h : encodable α] : β ≃ α → encodable β
+| ⟨f, g, l, r⟩ :=
+  encodable_of_left_injection f (λ b, some (g b)) (λ b, by rw l; refl)
+
 instance encodable_nat : encodable nat :=
 ⟨id, some, λ a, rfl⟩
 
@@ -69,23 +79,23 @@ instance encodable_sum : encodable (sum α β) :=
      rw [bodd_bit, div2_bit, decode_sum, encodek]; refl⟩
 end sum
 
-section prod
-variables [encodable α] [encodable β]
+section sigma
+variables {γ : α → Type*} [encodable α] [∀ a, encodable (γ a)]
 
-private def encode_prod : α × β → nat
-| (a, b) := mkpair (encode a) (encode b)
+private def encode_sigma : sigma γ → nat
+| ⟨a, b⟩ := mkpair (encode a) (encode b)
 
-private def decode_prod (n : nat) : option (α × β) :=
+private def decode_sigma (n : nat) : option (sigma γ) :=
 let (n₁, n₂) := unpair n in
-match decode α n₁, decode β n₂ with
-| some a, some b := some (a, b)
-| _,      _      := none
-end
+(decode α n₁).bind $ λ a, (decode (γ a) n₂).map $ sigma.mk a
 
-instance encodable_product : encodable (α × β) :=
-⟨encode_prod, decode_prod, λ ⟨a, b⟩,
-  by simp [encode_prod, decode_prod, unpair_mkpair, encodek]⟩
-end prod
+instance encodable_sigma : encodable (sigma γ) :=
+⟨encode_sigma, decode_sigma, λ ⟨a, b⟩,
+  by simp [encode_sigma, decode_sigma, option.bind, option.map, unpair_mkpair, encodek]⟩
+end sigma
+
+instance encodable_product [encodable α] [encodable β] : encodable (α × β) :=
+encodable_of_equiv _ (equiv.sigma_equiv_prod α β).symm
 
 section list
 variable [encodable α]
@@ -114,21 +124,14 @@ variables [encodable α]
 
 private def enle (a b : α) : Prop := encode a ≤ encode b
 
-private lemma enle.refl (a : α) : enle a a :=
-le_refl _
+private lemma enle.refl (a : α) : enle a a := le_refl _
 
-private lemma enle.trans (a b c : α) : enle a b → enle b c → enle a c :=
-assume h₁ h₂, le_trans h₁ h₂
+private lemma enle.trans (a b c : α) : enle a b → enle b c → enle a c := le_trans
 
-private lemma enle.total (a b : α) : enle a b ∨ enle b a :=
-le_total _ _
+private lemma enle.total (a b : α) : enle a b ∨ enle b a := le_total _ _
 
-private lemma enle.antisymm (a b : α) : enle a b → enle b a → a = b :=
-assume h₁ h₂,
-have encode a = encode b, from le_antisymm h₁ h₂,
-have decode α (encode a) = decode α (encode b), by rewrite this,
-have some a = some b, by rewrite [encodek, encodek] at this; exact this,
-option.no_confusion this (λ e, e)
+private lemma enle.antisymm (a b : α) (h₁ : enle a b) (h₂ : enle b a) : a = b :=
+encode_injective (le_antisymm h₁ h₂)
 
 private def decidable_enle (a b : α) : decidable (enle a b) :=
 by unfold enle; apply_instance
@@ -152,7 +155,7 @@ quot.lift_on s
   (λ l₁ l₂ p,
     have l₁.val ~ l₂.val,               from p,
     have ensort l₁.val = ensort l₂.val, from sorted_eq_of_perm this,
-    by dsimp; rewrite this)
+    by dsimp; rw this)
 
 private def decode_finset (n : nat) : option (finset α) :=
 match decode (list α) n with
@@ -195,21 +198,11 @@ instance encodable_subtype : encodable {a : α // P a} :=
  λ ⟨v, h⟩, by simp [encode_subtype, decode_subtype, encodek, h]⟩
 end subtype
 
-def encodable_of_left_injection [h₁ : encodable α]
-  (f : β → α) (finv : α → option β) (linv : ∀ b, finv (f b) = some b) : encodable β :=
-⟨λ b, encode (f b),
- λ n, (decode α n).bind finv,
- λ b, by simp [encodable.encodek, option.bind, linv]⟩
+instance bool.encodable : encodable bool := encodable_of_equiv _ equiv.bool_equiv_unit_sum_unit
 
-section
-open equiv
+instance int.encodable : encodable ℤ :=
+encodable_of_equiv _ equiv.int_equiv_nat
 
-def encodable_of_equiv [h : encodable α] : α ≃ β → encodable β
-| ⟨f, g, l, r⟩ :=
-  encodable_of_left_injection g (λ b, some (f b)) (λ b, by rw r; refl)
-end
-
-instance : encodable bool := encodable_of_equiv equiv.bool_equiv_unit_sum_unit.symm
 
 noncomputable def encodable_of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
 encodable_of_left_injection f (partial_inv f) (partial_inv_eq hf)

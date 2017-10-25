@@ -96,7 +96,7 @@ instance : metric_space ℝ :=
 { real.uniform_space with
   dist := λx y, abs (x - y),
   dist_self := by simp [abs_zero],
-  eq_of_dist_eq_zero := by simp,
+  eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
   dist_comm := assume x y, by rw [abs_sub],
   dist_triangle := assume x y z, abs_sub_le _ _ _,
   uniformity_dist := le_antisymm
@@ -134,7 +134,7 @@ begin
   exact (tendsto_map' $ tendsto_infi $ assume ε, tendsto_infi $ assume hε,
     let ε' : subtype {r : ℝ | r > 0} := ⟨ε / 2, div_pos_of_pos_of_pos hε two_pos⟩ in
     tendsto_infi' ε' $ tendsto_infi' ε' $ tendsto_principal_principal $
-    assume ⟨⟨p₁, p₂⟩, ⟨q₁, q₂⟩⟩, by simp; exact this hε),
+    assume ⟨⟨p₁, p₂⟩, ⟨q₁, q₂⟩⟩, by simpa using this hε),
 end
 
 theorem uniform_continuous_dist [uniform_space β] {f g : β → α}
@@ -185,26 +185,22 @@ assume y, assume ymem, lt_of_lt_of_le ymem h
 theorem nhds_eq_metric : nhds x = (⨅ε:{ε:ℝ // ε>0}, principal (open_ball x ε.val)) :=
 begin
   rw [nhds_eq_uniformity, uniformity_dist', lift'_infi],
-  apply congr_arg, apply funext, intro ε,
-  rw [lift'_principal],
-  simp [open_ball, dist_comm],
-  exact monotone_preimage,
-  exact ⟨⟨1, zero_lt_one⟩⟩,
-  exact assume a b, rfl
+  { apply congr_arg, apply funext, intro ε,
+    rw [lift'_principal],
+    { simp [open_ball, dist_comm] },
+    { exact monotone_preimage } },
+  { exact ⟨⟨1, zero_lt_one⟩⟩ },
+  { intros, refl }
 end
 
 theorem mem_nhds_sets_iff_metric : s ∈ (nhds x).sets ↔ ∃ε>0, open_ball x ε ⊆ s :=
 begin
   rw [nhds_eq_metric, infi_sets_eq],
-  simp,
-  exact assume ⟨x, hx⟩ ⟨y, hy⟩, ⟨⟨min x y, lt_min hx hy⟩,
-    begin
-      simp,
-      constructor,
-      exact open_ball_subset_open_ball_of_le (min_le_left _ _),
-      exact open_ball_subset_open_ball_of_le (min_le_right _ _)
-    end⟩,
-  exact ⟨⟨1, zero_lt_one⟩⟩,
+  { simp },
+  { intros y z, cases y with y hy, cases z with z hz,
+    refine ⟨⟨min y z, lt_min hy hz⟩, _⟩,
+    simp [open_ball_subset_open_ball_of_le, min_le_left, min_le_right] },
+  { exact ⟨⟨1, zero_lt_one⟩⟩ }
 end
 
 theorem is_open_metric : is_open s ↔ (∀x∈s, ∃ε>0, open_ball x ε ⊆ s) :=

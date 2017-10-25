@@ -46,7 +46,7 @@ lemma enumerate_mem (h_sel : ∀s a, sel s = some a → a ∈ s) :
 | s (n+1) a :=
   begin
     cases h : sel s,
-    case none { simp [enumerate_eq_none_of_sel, h], contradiction },
+    case none { simp [enumerate_eq_none_of_sel, h] },
     case some a' {
       simp [enumerate, h],
       exact assume h' : enumerate _ (s - {a'}) n = some a,
@@ -70,7 +70,7 @@ begin
   case nat.succ n ih {
     intro s,
     cases h : sel s,
-    case none { simp [enumerate, h], contradiction },
+    case none { simp [enumerate, h] },
     case some a' {
       simp [enumerate, h, nat.add_succ] {contextual := tt},
       simpa using ih } }

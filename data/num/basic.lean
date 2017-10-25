@@ -12,7 +12,6 @@ collection of theorems is to show the equivalence of the different approaches.
 -/
 
 import data.pnat data.bool data.vector data.bitvec
-universe u
 
 inductive pos_num : Type
 | one  : pos_num
@@ -26,7 +25,6 @@ inductive num : Type
 | pos   : pos_num → num
 instance : has_zero num := ⟨num.zero⟩
 instance : has_one num := ⟨num.pos 1⟩
-instance : has_coe pos_num num := ⟨num.pos⟩
 instance : decidable_eq num := by tactic.mk_dec_eq_instance
 
 -- Representation of integers using trichotomy around zero
@@ -36,7 +34,6 @@ inductive znum : Type
 | neg  : pos_num → znum
 instance : has_zero znum := ⟨znum.zero⟩
 instance : has_one znum := ⟨znum.pos 1⟩
-instance : has_coe pos_num znum := ⟨znum.pos⟩
 instance : decidable_eq znum := by tactic.mk_dec_eq_instance
 
 -- Alternative representation of integers using a sign bit at the end
@@ -112,6 +109,14 @@ namespace pos_num
   | (bit1 a) (bit1 b) := cmp a b
 
   instance : has_ordering pos_num := ⟨cmp⟩
+  instance : has_lt pos_num := ⟨λa b, cmp a b = ordering.lt⟩
+  instance : has_le pos_num := ⟨λa b, ¬ b < a⟩
+
+  instance decidable_lt : @decidable_rel pos_num (<)
+  | a b := by dsimp [(<)]; apply_instance
+
+  instance decidable_le : @decidable_rel pos_num (≤)
+  | a b := by dsimp [(≤)]; apply_instance
 
   def psub : pos_num → pos_num → option pos_num
   | 1        b        := none
@@ -128,7 +133,7 @@ namespace pos_num
 end pos_num
 
 section
-  variables {α : Type u} [has_zero α] [has_one α] [has_add α]
+  variables {α : Type*} [has_zero α] [has_one α] [has_add α]
 
   def cast_pos_num : pos_num → α
   | 1                := 1
@@ -143,17 +148,6 @@ section
 
   @[priority 0] instance num_nat_coe : has_coe num α := ⟨cast_num⟩
 end
-
-namespace nat
-  def of_pos_num : pos_num → nat := cast_pos_num
-  def of_num : num → nat := cast_num
-end nat
-
-instance : has_lt pos_num := ⟨λa b, (a : ℕ) < b⟩
-instance : has_le pos_num := ⟨λa b, (a : ℕ) ≤ b⟩
-
-instance : has_lt num := ⟨λa b, (a : ℕ) < b⟩
-instance : has_le num := ⟨λa b, (a : ℕ) ≤ b⟩
 
 namespace num
   open pos_num
@@ -210,6 +204,14 @@ namespace num
   | (pos a) (pos b) := pos_num.cmp a b
 
   instance : has_ordering num := ⟨cmp⟩
+  instance : has_lt num := ⟨λa b, cmp a b = ordering.lt⟩
+  instance : has_le num := ⟨λa b, ¬ b < a⟩
+
+  instance decidable_lt : @decidable_rel num (<)
+  | a b := by dsimp [(<)]; apply_instance
+
+  instance decidable_le : @decidable_rel num (≤)
+  | a b := by dsimp [(≤)]; apply_instance
 
   protected def sub : num → num → num
   | a       0       := a
@@ -221,8 +223,6 @@ namespace num
   def to_znum : num → znum
   | 0       := 0
   | (pos a) := znum.pos a
-
-  instance coe_znum : has_coe num znum := ⟨to_znum⟩
 
 end num
 
@@ -270,19 +270,38 @@ namespace znum
 
   instance : has_mul znum := ⟨znum.mul⟩
 
+  open ordering
+  def cmp : znum → znum → ordering
+  | 0       0       := eq
+  | (pos a) (pos b) := pos_num.cmp a b
+  | (neg a) (neg b) := pos_num.cmp b a
+  | (pos _) _       := gt
+  | (neg _) _       := lt
+  | _       (pos _) := lt
+  | _       (neg _) := gt
+
+  instance : has_ordering znum := ⟨cmp⟩
+  instance : has_lt znum := ⟨λa b, cmp a b = ordering.lt⟩
+  instance : has_le znum := ⟨λa b, ¬ b < a⟩
+
+  instance decidable_lt : @decidable_rel znum (<)
+  | a b := by dsimp [(<)]; apply_instance
+
+  instance decidable_le : @decidable_rel znum (≤)
+  | a b := by dsimp [(≤)]; apply_instance
+
 end znum
 
-namespace int
-  def of_znum : znum → ℤ
-  | 0       := 0
-  | (znum.pos a) := a
-  | (znum.neg a) := -[1+ option.cases_on (pos_num.pred' a) 0 nat.of_pos_num]
+section
+  variables {α : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
 
-  instance znum_coe : has_coe znum ℤ := ⟨of_znum⟩
-end int
+  def cast_znum : znum → α
+  | 0            := 0
+  | (znum.pos p) := cast_pos_num p
+  | (znum.neg p) := -cast_pos_num p
 
-instance : has_lt znum := ⟨λa b, (a : ℤ) < b⟩
-instance : has_le znum := ⟨λa b, (a : ℤ) ≤ b⟩
+  @[priority 0] instance znum_coe : has_coe znum α := ⟨cast_znum⟩
+end
 
 /- The snum representation uses a bit string, essentially a list of 0 (ff) and 1 (tt) bits,
    and the negation of the MSB is sign-extended to all higher bits. -/
@@ -341,7 +360,7 @@ end snum
 namespace nzsnum
   open snum
 
-  def drec' {C : snum → Sort u} (z : Π b, C (snum.zero b))
+  def drec' {C : snum → Sort*} (z : Π b, C (snum.zero b))
     (s : Π b p, C p → C (b :: p)) : Π p : nzsnum, C p
   | (one b)  := by rw ←bit_one; exact s b (snum.zero (bnot b)) (z (bnot b))
   | (bit b p) := s b p (drec' p)
@@ -358,7 +377,7 @@ namespace snum
   | (zero z) := zero z
   | (nz p)   := p.tail
 
-  def drec' {C : snum → Sort u} (z : Π b, C (snum.zero b))
+  def drec' {C : snum → Sort*} (z : Π b, C (snum.zero b))
     (s : Π b p, C p → C (b :: p)) : Π p, C p
   | (zero b) := z b
   | (nz p)   := p.drec' z s

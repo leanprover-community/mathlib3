@@ -8,59 +8,8 @@ Introduces the rational numbers as discrete, linear ordered field.
 
 import
   data.nat.gcd data.pnat data.int.basic data.encodable order.basic
-  algebra.ordered_group algebra.order
+  algebra.ordered_ring algebra.field
   pending
-
-instance int.encodable : encodable ℤ :=
-⟨λz, match z with
-  | int.of_nat p := encodable.encode (@sum.inl ℕ ℕ p)
-  | int.neg_succ_of_nat n := encodable.encode (@sum.inr ℕ ℕ n)
-  end,
-  λn, match encodable.decode (ℕ ⊕ ℕ) n with
-  | option.some (sum.inl p) := int.of_nat p
-  | option.some (sum.inr n) := int.neg_succ_of_nat n
-  | option.none := none
-  end,
-  λz,
-  match z with
-  | int.of_nat p := by simp [int.encodable._match_1, encodable.encodek]; refl
-  | int.neg_succ_of_nat n := by simp [int.encodable._match_1, encodable.encodek]; refl
-  end⟩
-
-
-/- linorder -/
-
-section linear_order_cases_on
-universes u v
-variables {α : Type u} [decidable_linear_order α] {β : Sort v}
-
-def linear_order_cases_on (a b : α) (h_eq : a = b → β) (h_lt : a < b → β) (h_gt : a > b → β) : β :=
-if h₁ : a = b then h_eq h₁ else
-  if h₂ : a < b then h_lt h₂ else h_gt ((lt_or_gt_of_ne h₁).resolve_left h₂)
-
-variables {a b : α} {h_eq : a = b → β} {h_lt : a < b → β} {h_gt : a > b → β}
-
-@[simp] theorem linear_order_cases_on_eq (h : a = b) : linear_order_cases_on a b h_eq h_lt h_gt = h_eq h :=
-dif_pos h
-
-@[simp] theorem linear_order_cases_on_lt (h : a < b) : linear_order_cases_on a b h_eq h_lt h_gt = h_lt h :=
-eq.trans (dif_neg $ ne_of_lt h) $ dif_pos h
-
-@[simp] theorem linear_order_cases_on_gt (h : a > b) : linear_order_cases_on a b h_eq h_lt h_gt = h_gt h :=
-eq.trans (dif_neg $ (ne_of_lt h).symm) (dif_neg $ not_lt_of_ge $ le_of_lt h)
-
-end linear_order_cases_on
-
-/- linorder ring -/
-
-section ordered_ring
-universes u
-variables {α : Type u} [linear_ordered_ring α] {a b : α}
-
-theorem mul_nonneg_iff_right_nonneg_of_pos (h : 0 < a) : 0 ≤ b * a ↔ 0 ≤ b :=
-⟨assume : 0 ≤ b * a, nonneg_of_mul_nonneg_right this h, assume : 0 ≤ b, mul_nonneg this $ le_of_lt h⟩
-
-end ordered_ring
 
 /- rational numbers -/
 
@@ -73,16 +22,16 @@ notation `ℚ` := rat
 
 namespace rat
 
+instance : encodable ℚ := encodable_of_equiv (Σ n : ℤ, {d : ℕ // d > 0 ∧ n.nat_abs.coprime d})
+  ⟨λ ⟨a, b, c, d⟩, ⟨a, b, c, d⟩, λ⟨a, b, c, d⟩, ⟨a, b, c, d⟩,
+   λ ⟨a, b, c, d⟩, rfl, λ⟨a, b, c, d⟩, rfl⟩
+
 def of_int (n : ℤ) : ℚ :=
 ⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩
 
-instance coe_int_rat : has_coe ℤ ℚ := ⟨of_int⟩
+instance : has_zero ℚ := ⟨of_int 0⟩
 
-instance coe_nat_rat : has_coe ℕ ℚ := ⟨of_int ∘ int.of_nat⟩
-
-instance : has_zero ℚ := ⟨(0 : ℤ)⟩
-
-instance : has_one ℚ := ⟨(1 : ℤ)⟩
+instance : has_one ℚ := ⟨of_int 1⟩
 
 def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ :=
 let n' := n.nat_abs, g := n'.gcd d in
@@ -93,7 +42,7 @@ end, begin
   have : int.nat_abs (n / ↑g) = n' / g,
   { cases int.nat_abs_eq n with e e; rw e, { refl },
     rw [int.neg_div_of_dvd, int.nat_abs_neg], { refl },
-    exact int.coe_nat_dvd_coe_nat_of_dvd (nat.gcd_dvd_left _ _) },
+    exact int.coe_nat_dvd.2 (nat.gcd_dvd_left _ _) },
   rw this,
   exact nat.coprime_div_gcd_div_gcd (nat.gcd_pos_of_pos_right _ dpos)
 end⟩
@@ -124,8 +73,7 @@ by by_cases n = 0; simp [*, mk_nat]
 by cases n; simp [mk]
 
 private lemma gcd_abs_dvd_left {a b} : (nat.gcd (int.nat_abs a) b : ℤ) ∣ a :=
-int.coe_nat_dvd_right.1
-  (int.coe_nat_dvd_coe_nat_of_dvd $ nat.gcd_dvd_left (int.nat_abs a) b)
+int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $ nat.gcd_dvd_left (int.nat_abs a) b
 
 @[simp] theorem mk_eq_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b = 0 ↔ a = 0 :=
 begin
@@ -151,11 +99,12 @@ begin
     simp [mt (congr_arg int.of_nat) hd],
     all_goals { rw this, try {refl} } },
   { change a * ↑(d.succ) = -c * ↑b ↔ a * -(d.succ) = c * b,
-    constructor; intro h; apply neg_inj; simp at h; simp [h] },
+    constructor; intro h; apply neg_inj; simpa [left_distrib, neg_add_eq_iff_eq_add,
+      eq_neg_iff_add_eq_zero, neg_eq_iff_add_eq_zero] using h },
   { change -a * ↑d = c * b.succ ↔ a * d = c * -b.succ,
-    constructor; intro h; apply neg_inj; simp at h; simp [h] },
+    constructor; intro h; apply neg_inj; simpa [left_distrib, eq_comm] using h },
   { change -a * d.succ = -c * b.succ ↔ a * -d.succ = c * -b.succ,
-    simp }
+    simp [left_distrib] }
 end,
 begin
   intros, simp [mk_pnat], constructor; intro h,
@@ -208,13 +157,13 @@ begin
     end,
     tactic.congr_core,
     { have hs := congr_arg int.sign h,
-      simp [int.sign_eq_one_of_pos (int.coe_nat_lt_coe_nat_of_lt hb),
-            int.sign_eq_one_of_pos (int.coe_nat_lt_coe_nat_of_lt hd)] at hs,
+      simp [int.sign_eq_one_of_pos (int.coe_nat_lt.2 hb),
+            int.sign_eq_one_of_pos (int.coe_nat_lt.2 hd)] at hs,
       conv in a { rw ← int.sign_mul_nat_abs a },
       conv in c { rw ← int.sign_mul_nat_abs c },
       rw [int.mul_div_assoc, int.mul_div_assoc],
       exact congr (congr_arg (*) hs) (congr_arg coe ha.left),
-      all_goals { exact int.coe_nat_dvd_coe_nat_of_dvd (nat.gcd_dvd_left _ _) } },
+      all_goals { exact int.coe_nat_dvd.2 (nat.gcd_dvd_left _ _) } },
     { exact ha.right } }
 end
 
@@ -239,9 +188,29 @@ theorem num_denom' (n d h c) : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom _
 | ⟨n, d, h, c⟩ H := by rw num_denom'; exact H n d h c
 
 @[elab_as_eliminator] theorem {u} num_denom_cases_on' {C : ℚ → Sort u}
-   (a : ℚ) (H : ∀ (n:ℤ) (d:ℕ), (d:ℤ) ≠ 0 → C (n /. d)) : C a :=
+   (a : ℚ) (H : ∀ (n:ℤ) (d:ℕ), d ≠ 0 → C (n /. d)) : C a :=
 num_denom_cases_on a $ λ n d h c,
-H n d $ ne_of_gt (int.coe_nat_lt_coe_nat_of_lt h)
+H n d $ ne_of_gt h
+
+theorem num_dvd (a) {b} (b0 : b ≠ 0) : (a /. b).num ∣ a :=
+begin
+  cases e : a /. b with n d h c,
+  rw [num_denom', mk_eq (int.coe_nat_ne_zero.2 b0)
+    (ne_of_gt (int.coe_nat_pos.2 h))] at e,
+  refine (int.nat_abs_dvd.1 $ int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $
+    c.dvd_of_dvd_mul_right _),
+  have := congr_arg int.nat_abs e,
+  simp [int.nat_abs_mul, int.nat_abs_of_nat] at this, simp [this]
+end
+
+theorem denom_dvd (a b : ℤ) : ((a /. b).denom : ℤ) ∣ b :=
+begin
+  by_cases b = 0 with b0, {simp [b0]},
+  cases e : a /. b with n d h c,
+  rw [num_denom', mk_eq b0 (ne_of_gt (int.coe_nat_pos.2 h))] at e,
+  refine (int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $ c.symm.dvd_of_dvd_mul_left _),
+  rw [← int.nat_abs_mul, ← int.coe_nat_dvd, int.dvd_nat_abs, ← e], simp
+end
 
 protected def add : ℚ → ℚ → ℚ
 | ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := mk_pnat (n₁ * d₂ + n₂ * d₁) ⟨d₁ * d₂, mul_pos h₁ h₂⟩
@@ -260,8 +229,8 @@ begin
   generalize ha : a /. b = x, cases x with n₁ d₁ h₁ c₁, rw num_denom' at ha,
   generalize hc : c /. d = x, cases x with n₂ d₂ h₂ c₂, rw num_denom' at hc,
   rw fv,
-  have d₁0 := ne_of_gt (int.coe_nat_lt_coe_nat_of_lt h₁),
-  have d₂0 := ne_of_gt (int.coe_nat_lt_coe_nat_of_lt h₂),
+  have d₁0 := ne_of_gt (int.coe_nat_lt.2 h₁),
+  have d₂0 := ne_of_gt (int.coe_nat_lt.2 h₂),
   exact (mk_eq (f0 d₁0 d₂0) (f0 b0 d0)).2 (H ((mk_eq b0 d₁0).1 ha) ((mk_eq d0 d₂0).1 hc))
 end
 
@@ -287,7 +256,7 @@ begin
   by_cases b = 0 with b0, { subst b0, simp, refl },
   generalize ha : a /. b = x, cases x with n₁ d₁ h₁ c₁, rw num_denom' at ha,
   show rat.mk' _ _ _ _ = _, rw num_denom',
-  have d0 := ne_of_gt (int.coe_nat_lt_coe_nat_of_lt h₁),
+  have d0 := ne_of_gt (int.coe_nat_lt.2 h₁),
   apply (mk_eq d0 b0).2, have h₁ := (mk_eq b0 d0).1 ha,
   simp only [neg_mul_eq_neg_mul_symm, congr_arg has_neg.neg h₁]
 end
@@ -322,13 +291,13 @@ begin
   { cases n with n; [cases n with n, skip],
     { refl },
     { change int.of_nat n.succ with (n+1:ℕ),
-      simp [rat.inv], rw num_denom' },
-    { simp [rat.inv], rw num_denom', refl } },
+      unfold rat.inv, rw num_denom' },
+    { unfold rat.inv, rw num_denom', refl } },
   have n0 : n ≠ 0,
   { refine mt (λ (n0 : n = 0), _) a0,
     subst n0, simp at ha,
     exact (mk_eq_zero b0).1 ha },
-  have d0 := ne_of_gt (int.coe_nat_lt_coe_nat_of_lt h),
+  have d0 := ne_of_gt (int.coe_nat_lt.2 h),
   have ha := (mk_eq b0 d0).1 ha,
   apply (mk_eq n0 a0).2,
   cc
@@ -383,7 +352,7 @@ num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 num_denom_cases_on' c $ λ n₃ d₃ h₃,
 by simp [h₁, h₂, h₃, mul_ne_zero];
-   refine (div_mk_div_cancel_left h₃).symm.trans _;
+   refine (div_mk_div_cancel_left (int.coe_nat_ne_zero.2 h₃)).symm.trans _;
    simp [mul_add]
 
 protected theorem mul_add : a * (b + c) = a * b + a * c :=
@@ -438,7 +407,7 @@ protected def nonneg : ℚ → Prop
 begin
   generalize ha : a /. b = x, cases x with n₁ d₁ h₁ c₁, rw num_denom' at ha,
   simp [rat.nonneg],
-  have d0 := int.coe_nat_lt_coe_nat_of_lt h₁,
+  have d0 := int.coe_nat_lt.2 h₁,
   have := (mk_eq (ne_of_gt h) (ne_of_gt d0)).1 ha,
   constructor; intro h₂,
   { apply nonneg_of_mul_nonneg_right _ d0,
@@ -451,8 +420,8 @@ protected def nonneg_add {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
-  have d₁0 : (d₁:ℤ) > 0 := lt_of_le_of_ne (int.coe_zero_le _) h₁.symm,
-  have d₂0 : (d₂:ℤ) > 0 := lt_of_le_of_ne (int.coe_zero_le _) h₂.symm,
+  have d₁0 : (d₁:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
+  have d₂0 : (d₂:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
   simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   intros n₁0 n₂0,
   apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le}
@@ -462,8 +431,8 @@ protected def nonneg_mul {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
-  have d₁0 : (d₁:ℤ) > 0 := lt_of_le_of_ne (int.coe_zero_le _) h₁.symm,
-  have d₂0 : (d₂:ℤ) > 0 := lt_of_le_of_ne (int.coe_zero_le _) h₂.symm,
+  have d₁0 : (d₁:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
+  have d₂0 : (d₂:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
   simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   exact mul_nonneg
 end
@@ -471,7 +440,7 @@ end
 protected def nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
 num_denom_cases_on' a $ λ n d h,
 begin
-  have d0 : (d:ℤ) > 0 := lt_of_le_of_ne (int.coe_zero_le _) h.symm,
+  have d0 : (d:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h),
   simp [d0, h],
   exact λ h₁ h₂, le_antisymm (nonpos_of_neg_nonneg h₂) h₁
 end
@@ -487,8 +456,8 @@ protected def le (a b : ℚ) := rat.nonneg (b - a)
 
 instance : has_le ℚ := ⟨rat.le⟩
 
-instance decidable_le : decidable_rel ((≤) : ℚ → ℚ → Prop) :=
-show ∀ a b, decidable (rat.nonneg (b - a)), by intros; apply_instance
+instance decidable_le : decidable_rel ((≤) : ℚ → ℚ → Prop)
+| a b := show decidable (rat.nonneg (b - a)), by apply_instance
 
 protected theorem le_def {a b c d : ℤ} (b0 : b > 0) (d0 : d > 0) :
   a /. b ≤ c /. d ↔ a * d ≤ c * b :=
@@ -511,10 +480,6 @@ by simpa using rat.nonneg_add hab hbc
 
 instance : linear_order ℚ :=
 { le              := rat.le,
-  lt              := λa b, ¬ b ≤ a,
-  lt_iff_le_not_le := assume a b,
-    iff.intro (assume h, ⟨or.resolve_left (rat.le_total _ _) h, h⟩)
-      (assume ⟨h1, h2⟩, h2),
   le_refl         := rat.le_refl,
   le_trans        := @rat.le_trans,
   le_antisymm     := @rat.le_antisymm,
@@ -545,39 +510,39 @@ instance : discrete_linear_ordered_field ℚ :=
   le_antisymm     := assume a b, le_antisymm,
   le_total        := le_total,
   lt_iff_le_not_le := @lt_iff_le_not_le _ _,
-  zero_lt_one     := show ¬ (0:ℤ) ≤ -1, from dec_trivial,
+  zero_lt_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
-  add_lt_add_left := assume a b ab c ba, ab $ rat.add_le_add_left.1 ba,
+  add_lt_add_left := assume a b ab c, lt_of_not_ge $ λ ba,
+    not_le_of_lt ab $ rat.add_le_add_left.1 ba,
   mul_nonneg      := @rat.mul_nonneg,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
   decidable_eq    := by apply_instance,
   decidable_le    := assume a b, rat.decidable_nonneg (b - a),
-  decidable_lt    := by apply_instance }
+  decidable_lt    := λ a b, decidable_of_iff' _ (lt_iff_not_ge a b) }
 
-theorem coe_int_eq_mk (z : ℤ) : ↑z = z /. 1 := num_denom' _ _ _ _
+theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom' _ _ _ _
 
-theorem coe_nat_rat_eq_mk (n : ℕ) : ↑n = ↑n /. 1 := coe_int_eq_mk _
+theorem coe_int_eq_mk : ∀ z : ℤ, ↑z = z /. 1
+| (n : ℕ) := show (n:ℚ) = n /. 1,
+  by induction n with n IH n; simp [*, show (1:ℚ) = 1 /. 1, from rfl]
+| -[1+ n] := show (-(n + 1) : ℚ) = -[1+ n] /. 1, begin
+  induction n with n IH, {refl},
+  show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
+  rw [neg_add, IH],
+  simpa [show -1 = (-1) /. 1, from rfl]
+end
 
-theorem coe_int_inj {z₁ z₂ : ℤ} : (z₁ : ℚ) = z₂ ↔ z₁ = z₂ :=
-by simp [coe_int_eq_mk, mk_eq]
+theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
+(coe_int_eq_mk z).trans (of_int_eq_mk z).symm
 
-theorem coe_int_add (z₁ z₂ : ℤ) : ↑(z₁ + z₂) = (↑z₁ + ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
-
-theorem coe_int_neg (z : ℤ) : ↑(-z) = (-↑z : ℚ) := by simp [coe_int_eq_mk]
-
-theorem coe_int_sub (z₁ z₂ : ℤ) : ↑(z₁ - z₂) = (↑z₁ - ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
-
-theorem coe_int_mul (z₁ z₂ : ℤ) : ↑(z₁ * z₂) = (↑z₁ * ↑z₂ : ℚ) := by simp [coe_int_eq_mk]
-
-theorem coe_int_one : ↑(1 : ℤ) = (1 : ℚ) := rfl
-
-theorem coe_int_le {z₁ z₂ : ℤ} : (↑z₁ : ℚ) ≤ ↑z₂ ↔ z₁ ≤ z₂ :=
-by simp [coe_int_eq_mk, mk_le zero_lt_one zero_lt_one]
-
-theorem coe_int_lt {z₁ z₂ : ℤ} : (↑z₁ : ℚ) < ↑z₂ ↔ z₁ < z₂ :=
-not_iff_not.1 $ by rw [not_lt, not_lt, coe_int_le]
+theorem mk_eq_div (n d : ℤ) : n /. d = (n / d : ℚ) :=
+begin
+  by_cases d = 0 with d0, {simp [d0, div_zero]},
+  rw [division_def, coe_int_eq_mk, coe_int_eq_mk, inv_def,
+      mul_def one_ne_zero d0, one_mul, mul_one]
+end
 
 def floor : ℚ → ℤ
 | ⟨n, d, h, c⟩ := n / d
@@ -589,7 +554,7 @@ theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
 | ⟨n, d, h, c⟩ := begin
   simp [floor],
   rw [num_denom'],
-  have h' := int.coe_nat_lt_coe_nat_of_lt h,
+  have h' := int.coe_nat_lt.2 h,
   conv { to_rhs,
     rw [coe_int_eq_mk, mk_le zero_lt_one h', mul_one] },
   exact int.le_div_iff_mul_le h'
@@ -605,7 +570,7 @@ theorem lt_succ_floor (r : ℚ) : r < (floor r).succ :=
 floor_lt.1 $ int.lt_succ_self _
 
 @[simp] theorem floor_coe (z : ℤ) : floor z = z :=
-eq_of_forall_le_iff $ λ a, by rw [le_floor, coe_int_le]
+eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
 
 theorem floor_mono {a b : ℚ} (h : a ≤ b) : floor a ≤ floor b :=
 le_floor.2 (le_trans (floor_le _) h)
@@ -613,20 +578,20 @@ le_floor.2 (le_trans (floor_le _) h)
 @[simp] theorem floor_add_int (r : ℚ) (z : ℤ) : floor (r + z) = floor r + z :=
 le_antisymm
   (le_add_of_sub_right_le $ le_floor.2 $
-    by rw coe_int_sub; exact sub_right_le_of_le_add (floor_le _))
-  (le_floor.2 $ by rw [coe_int_add]; apply add_le_add_right (floor_le _))
+    by rw int.cast_sub; exact sub_right_le_of_le_add (floor_le _))
+  (le_floor.2 $ by rw [int.cast_add]; apply add_le_add_right (floor_le _))
 
 theorem floor_sub_int (r : ℚ) (z : ℤ) : floor (r - z) = floor r - z :=
-floor_add_int _ _
+eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
 
 theorem ceil_le {z : ℤ} {r : ℚ} : ceil r ≤ z ↔ r ≤ z :=
-by rw [ceil, neg_le, le_floor, coe_int_neg, neg_le_neg_iff]
+by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
 
 theorem le_ceil (r : ℚ) : r ≤ ceil r :=
 ceil_le.1 (le_refl _)
 
 @[simp] theorem ceil_coe (z : ℤ) : ceil z = z :=
-by rw [ceil, ← coe_int_neg, floor_coe, neg_neg]
+by rw [ceil, ← int.cast_neg, floor_coe, neg_neg]
 
 theorem ceil_mono {a b : ℚ} (h : a ≤ b) : ceil a ≤ ceil b :=
 ceil_le.2 (le_trans h (le_ceil _))
@@ -635,7 +600,154 @@ ceil_le.2 (le_trans h (le_ceil _))
 by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
 
 theorem ceil_sub_int (r : ℚ) (z : ℤ) : ceil (r - z) = ceil r - z :=
-ceil_add_int _ _
+eq.trans (by rw [int.cast_neg]; refl) (ceil_add_int _ _)
+
+/- cast (injection into fields) -/
+
+section cast
+variables {α : Type*}
+
+section
+variables [division_ring α]
+
+protected def cast : ℚ → α
+| ⟨n, d, h, c⟩ := n / d
+
+@[priority 0] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
+
+
+@[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
+show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
+
+@[simp] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
+by rw [coe_int_eq_of_int, cast_of_int]
+
+@[simp] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n := cast_coe_int n
+
+@[simp] theorem cast_zero : ((0 : ℚ) : α) = 0 :=
+(cast_of_int _).trans int.cast_zero
+
+@[simp] theorem cast_one : ((1 : ℚ) : α) = 1 :=
+(cast_of_int _).trans int.cast_one
+
+theorem mul_cast_comm (a : α) :
+  ∀ (n : ℚ), (n.denom : α) ≠ 0 → a * n = n * a
+| ⟨n, d, h, c⟩ h₂ := show a * (n * d⁻¹) = n * d⁻¹ * a,
+  by rw [← mul_assoc, int.mul_cast_comm, mul_assoc, mul_assoc,
+         ← show (d:α)⁻¹ * a = a * d⁻¹, from
+           inv_comm_of_comm h₂ (int.mul_cast_comm a d).symm]
+
+theorem cast_mk_of_ne_zero (a b : ℤ)
+  (b0 : (b:α) ≠ 0) : (a /. b : α) = a / b :=
+begin
+  have b0' : b ≠ 0, { refine mt _ b0, simp {contextual := tt} },
+  cases e : a /. b with n d h c,
+  have d0 : (d:α) ≠ 0,
+  { intro d0,
+    have dd := denom_dvd a b,
+    cases (show (d:ℤ) ∣ b, by rwa e at dd) with k ke,
+    have : (b:α) = (d:α) * (k:α), {rw [ke, int.cast_mul], refl},
+    rw [d0, zero_mul] at this, contradiction },
+  rw [num_denom'] at e,
+  have := congr_arg (coe : ℤ → α) ((mk_eq b0' $ ne_of_gt $ int.coe_nat_pos.2 h).1 e),
+  rw [int.cast_mul, int.cast_mul, int.cast_coe_nat] at this,
+  symmetry, change (a * b⁻¹ : α) = n / d,
+  rw [eq_div_iff_mul_eq _ _ d0, mul_assoc, nat.mul_cast_comm,
+      ← mul_assoc, this, mul_assoc, mul_inv_cancel b0, mul_one]
+end
+
+theorem cast_add_of_ne_zero : ∀ {m n : ℚ},
+  (m.denom : α) ≠ 0 → (n.denom : α) ≠ 0 → ((m + n : ℚ) : α) = m + n
+| ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := λ (d₁0 : (d₁:α) ≠ 0) (d₂0 : (d₂:α) ≠ 0), begin
+  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 rfl),
+  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 rfl),
+  rw [num_denom', num_denom', add_def d₁0' d₂0'],
+  suffices : (n₁ * (d₂ * (d₂⁻¹ * d₁⁻¹)) +
+    n₂ * (d₁ * d₂⁻¹) * d₁⁻¹ : α) = n₁ * d₁⁻¹ + n₂ * d₂⁻¹,
+  { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
+    { simpa [division_def, left_distrib, right_distrib, mul_inv_eq,
+             d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0] },
+    all_goals {simp [d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0]} },
+  rw [← mul_assoc (d₂:α), mul_inv_cancel d₂0, one_mul,
+      ← nat.mul_cast_comm], simp [d₁0]
+end
+
+@[simp] theorem cast_neg : ∀ n, ((-n : ℚ) : α) = -n
+| ⟨n, d, h, c⟩ := show (↑-n * d⁻¹ : α) = -(n * d⁻¹),
+  by rw [int.cast_neg, neg_mul_eq_neg_mul]
+
+theorem cast_sub_of_ne_zero {m n : ℚ}
+  (m0 : (m.denom : α) ≠ 0) (n0 : (n.denom : α) ≠ 0) : ((m - n : ℚ) : α) = m - n :=
+have ((-n).denom : α) ≠ 0, by cases n; exact n0,
+by simp [m0, this, cast_add_of_ne_zero]
+
+theorem cast_mul_of_ne_zero : ∀ {m n : ℚ},
+  (m.denom : α) ≠ 0 → (n.denom : α) ≠ 0 → ((m * n : ℚ) : α) = m * n
+| ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := λ (d₁0 : (d₁:α) ≠ 0) (d₂0 : (d₂:α) ≠ 0), begin
+  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 rfl),
+  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 rfl),
+  rw [num_denom', num_denom', mul_def d₁0' d₂0'],
+  suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
+  { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
+    { simpa [division_def, mul_inv_eq, d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0] },
+    all_goals {simp [d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0]} },
+  rw [inv_comm_of_comm d₁0 (nat.mul_cast_comm _ _).symm]
+end
+
+end
+
+theorem cast_mk [discrete_linear_ordered_field α] (a b : ℤ) : ((a /. b) : α) = a / b :=
+if b0 : b = 0 then by simp [b0, div_zero]
+else cast_mk_of_ne_zero a b (int.cast_ne_zero.2 b0)
+
+@[simp] theorem cast_add [linear_ordered_field α] (m n) : ((m + n : ℚ) : α) = m + n :=
+cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+@[simp] theorem cast_sub [linear_ordered_field α] (m n) : ((m - n : ℚ) : α) = m - n :=
+cast_sub_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+@[simp] theorem cast_mul [linear_ordered_field α] (m n) : ((m * n : ℚ) : α) = m * n :=
+cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+@[simp] theorem cast_bit0 [linear_ordered_field α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _
+
+@[simp] theorem cast_bit1 [linear_ordered_field α] (n : ℚ) : ((bit1 n : ℚ) : α) = bit1 n :=
+by rw [bit1, cast_add, cast_one, cast_bit0]; refl
+
+@[simp] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
+| ⟨n, d, h, c⟩ := show 0 ≤ (n * d⁻¹ : α) ↔ 0 ≤ (⟨n, d, h, c⟩ : ℚ),
+  by rw [num_denom', ← nonneg_iff_zero_le, mk_nonneg _ (int.coe_nat_pos.2 h),
+    mul_nonneg_iff_right_nonneg_of_pos (@inv_pos α _ _ (nat.cast_pos.2 h)),
+    int.cast_nonneg]
+
+@[simp] theorem cast_le [linear_ordered_field α] {m n : ℚ} : (m : α) ≤ n ↔ m ≤ n :=
+by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
+
+@[simp] theorem cast_lt [linear_ordered_field α] {m n : ℚ} : (m : α) < n ↔ m < n :=
+by simpa [-cast_le] using not_congr (@cast_le α _ n m)
+
+@[simp] theorem cast_inj [linear_ordered_field α] {m n : ℚ} : (m : α) = n ↔ m = n :=
+by simp [le_antisymm_iff]
+
+@[simp] theorem cast_nonpos [linear_ordered_field α] {n : ℚ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
+by rw [← cast_zero, cast_le]
+
+@[simp] theorem cast_pos [linear_ordered_field α] {n : ℚ} : (0 : α) < n ↔ 0 < n :=
+by rw [← cast_zero, cast_lt]
+
+@[simp] theorem cast_lt_zero [linear_ordered_field α] {n : ℚ} : (n : α) < 0 ↔ n < 0 :=
+by rw [← cast_zero, cast_lt]
+
+@[simp] theorem cast_eq_zero [linear_ordered_field α] {n : ℚ} : (n : α) = 0 ↔ n = 0 :=
+by rw [← cast_zero, cast_inj]
+
+@[simp] theorem cast_ne_zero [linear_ordered_field α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+not_congr cast_eq_zero
+
+@[simp] theorem cast_id : ∀ n : ℚ, ↑n = n
+| ⟨n, d, h, c⟩ := show (n / (d : ℤ) : ℚ) = _, by rw [num_denom', mk_eq_div]
+
+end cast
 
 /- nat ceiling -/
 
@@ -668,15 +780,5 @@ end
 theorem nat_ceil_lt_add_one {q : ℚ} (hq : q ≥ 0) : ↑(nat_ceil q) < q + 1 :=
 lt_nat_ceil.1 $ by rw [
   show nat_ceil (q+1) = nat_ceil q+1, from nat_ceil_add_nat hq 1]; apply nat.lt_succ_self
-
-instance : encodable ℚ :=
-⟨λ⟨n, d, _, _⟩, encodable.encode (n, d),
-  λn, match encodable.decode (ℤ × ℕ) n with
-  | option.some ⟨n, d⟩ :=
-    if h : d > 0 ∧ n.nat_abs.coprime d then option.some ⟨n, d, h.1, h.2⟩ else option.none
-  | option.none := option.none
-  end,
-  assume ⟨n, d, hn, hd⟩,
-  by simp [encodable._match_1, encodable._match_2, encodable.encodek, hn, hd]⟩
 
 end rat

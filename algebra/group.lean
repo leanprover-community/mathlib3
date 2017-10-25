@@ -51,16 +51,22 @@ section group
   theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
   by rw [mul_eq_one_iff_eq_inv, eq_inv_iff_eq_inv, eq_comm]
 
-  @[simp] theorem eq_mul_inv_iff_mul_eq : a = b * c⁻¹ ↔ a * c = b :=
+  theorem eq_inv_iff_mul_eq_one : a = b⁻¹ ↔ a * b = 1 :=
+  mul_eq_one_iff_eq_inv.symm
+
+  theorem inv_eq_iff_mul_eq_one : a⁻¹ = b ↔ a * b = 1 :=
+  mul_eq_one_iff_inv_eq.symm
+
+  theorem eq_mul_inv_iff_mul_eq : a = b * c⁻¹ ↔ a * c = b :=
   ⟨λ h, by simp [h], λ h, by simp [h.symm]⟩
 
-  @[simp] theorem eq_inv_mul_iff_mul_eq : a = b⁻¹ * c ↔ b * a = c :=
+  theorem eq_inv_mul_iff_mul_eq : a = b⁻¹ * c ↔ b * a = c :=
   ⟨λ h, by simp [h], λ h, by simp [h.symm]⟩
 
-  @[simp] theorem inv_mul_eq_iff_eq_mul : a⁻¹ * b = c ↔ b = a * c :=
+  theorem inv_mul_eq_iff_eq_mul : a⁻¹ * b = c ↔ b = a * c :=
   ⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
 
-  @[simp] theorem mul_inv_eq_iff_eq_mul : a * b⁻¹ = c ↔ a = c * b :=
+  theorem mul_inv_eq_iff_eq_mul : a * b⁻¹ = c ↔ a = c * b :=
   ⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
 
   theorem mul_inv_eq_one {a b : α} : a * b⁻¹ = 1 ↔ a = b :=
@@ -107,6 +113,8 @@ run_cmd transport_multiplicative_to_additive [
   (`inv_eq_iff_inv_eq, `neg_eq_iff_neg_eq),
   (`mul_eq_one_iff_eq_inv, `add_eq_zero_iff_eq_neg),
   (`mul_eq_one_iff_inv_eq, `add_eq_zero_iff_neg_eq),
+  (`eq_inv_iff_mul_eq_one, `eq_neg_iff_add_eq_zero),
+  (`inv_eq_iff_mul_eq_one, `neg_eq_iff_add_eq_zero),
   (`eq_mul_inv_iff_mul_eq, `eq_add_neg_iff_add_eq),
   (`eq_inv_mul_iff_mul_eq, `eq_neg_add_iff_add_eq),
   (`inv_mul_eq_iff_eq_mul, `neg_add_eq_iff_eq_add),
@@ -136,11 +144,11 @@ section add_group
   theorem sub_ne_zero : a - b ≠ 0 ↔ a ≠ b :=
   not_congr sub_eq_zero
 
-  @[simp] theorem eq_sub_iff_add_eq : a = b - c ↔ a + c = b :=
-  by split; intro h; simp [h]
+  theorem eq_sub_iff_add_eq : a = b - c ↔ a + c = b :=
+  by split; intro h; simp [h, eq_add_neg_iff_add_eq]
 
   theorem sub_eq_iff_eq_add : a - b = c ↔ a = c + b :=
-  by split; intro h; simp * at *
+  by split; intro h; simp [*, add_neg_eq_iff_eq_add] at *
 
   theorem eq_iff_eq_of_sub_eq_sub {a b c d : α} (H : a - b = c - d) : a = b ↔ c = d :=
   by rw [← sub_eq_zero, H, sub_eq_zero]

@@ -15,6 +15,14 @@ variables [division_ring α] {a b : α}
 lemma division_ring.neg_inv (h : a ≠ 0) : - a⁻¹ = (- a)⁻¹ :=
 by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
+lemma inv_comm_of_comm {a b : α} (h : a ≠ 0) (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
+begin
+  have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
+    congr_arg (λ x:α, a⁻¹ * x * a⁻¹) H.symm,
+  rwa [mul_assoc, mul_assoc, mul_inv_cancel, mul_one,
+       ← mul_assoc, inv_mul_cancel, one_mul] at this; exact h
+end
+
 end division_ring
 
 section

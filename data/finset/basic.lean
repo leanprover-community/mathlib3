@@ -62,7 +62,7 @@ instance has_decidable_eq  [decidable_eq α] : decidable_eq (finset α)
 section mem
 
 def mem (a : α) (s : finset α) : Prop :=
-quot.lift_on s (λ l, a ∈ l.1) (λ l₁ l₂ (e : l₁ ~ l₂), propext $ mem_iff_mem_of_perm e)
+quot.lift_on s (λ l, a ∈ l.1) (λ l₁ l₂ (e : l₁ ~ l₂), propext $ mem_of_perm e)
 
 instance : has_mem α (finset α) := ⟨mem⟩
 
@@ -94,8 +94,8 @@ section subset
 protected def subset (s₁ s₂ : finset α) : Prop :=
 quotient.lift_on₂ s₁ s₂ (λ l₁ l₂, l₁.1 ⊆ l₂.1)
   (λ v₁ v₂ w₁ w₂ p₁ p₂, propext (iff.intro
-    (λ s₁ a i, mem_of_perm p₂ (s₁ (mem_of_perm p₁.symm i)))
-    (λ s₂ a i, mem_of_perm p₂.symm (s₂ (mem_of_perm p₁ i)))))
+    (λ s₁ a i, perm_subset p₂ (s₁ (perm_subset p₁.symm i)))
+    (λ s₂ a i, perm_subset p₂.symm (s₂ (perm_subset p₁ i)))))
 
 instance : has_subset (finset α) := ⟨finset.subset⟩
 

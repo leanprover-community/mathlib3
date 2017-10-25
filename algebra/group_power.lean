@@ -73,6 +73,9 @@ by rw [←pow_add, ←pow_add, add_comm]
 
 end monoid
 
+theorem nat.pow_eq_pow_nat (p q : ℕ) : nat.pow p q = pow_nat p q :=
+by induction q; [refl, simp [nat.pow_succ, pow_succ, *]]
+
 /- commutative monoid -/
 
 section comm_monoid

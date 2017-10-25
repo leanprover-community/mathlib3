@@ -1442,7 +1442,37 @@ end else by simp [h, al]
 theorem mem_of_mem_erase {a b : α} {l : list α} : a ∈ l.erase b → a ∈ l :=
 @erase_subset _ _ _ _ _
 
+theorem erase_comm (a b : α) (l : list α) : (l.erase a).erase b = (l.erase b).erase a :=
+if ab : a = b then by simp [ab] else
+if ha : a ∈ l then
+if hb : b ∈ l then match l, l.erase a, exists_erase_eq ha, hb with
+| ._, ._, ⟨l₁, l₂, ha', rfl, rfl⟩, hb :=
+  if h₁ : b ∈ l₁ then
+    by rw [erase_append_left _ h₁, erase_append_left _ h₁,
+           erase_append_right _ (mt mem_of_mem_erase ha'), erase_cons_head]
+  else
+    by rw [erase_append_right _ h₁, erase_append_right _ h₁, erase_append_right _ ha',
+           erase_cons_tail _ ab, erase_cons_head]
+end
+else by simp [hb, mt mem_of_mem_erase hb]
+else by simp [ha, mt mem_of_mem_erase ha]
+
 end erase
+
+/- diff -/
+section diff
+variable [decidable_eq α]
+
+@[simp] theorem diff_nil (l : list α) : l.diff [] = l := rfl 
+
+@[simp] theorem diff_cons (l₁ l₂ : list α) (a : α) : l₁.diff (a::l₂) = (l₁.erase a).diff l₂ :=
+by by_cases a ∈ l₁; simp [list.diff, h]
+
+theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.erase l₁ l₂
+| l₁ []      := rfl
+| l₁ (a::l₂) := (diff_cons l₁ l₂ a).trans (diff_eq_foldl _ _)
+
+end diff
 
 /- zip & unzip -/
 
@@ -1485,9 +1515,6 @@ by simp [product]
 theorem length_product (l₁ : list α) (l₂ : list β) :
   length (product l₁ l₂) = length l₁ * length l₂ :=
 by induction l₁ with x l₁ IH; simp [*, right_distrib]
-
-/- disjoint -/
-
 
 /- disjoint -/
 section disjoint
@@ -1754,13 +1781,10 @@ let S (a a' : β) := ∀ (b ∈ f a) (b' ∈ f a'), R b b' in
 begin
   simp, induction l with a l IH; simp,
   cases e : f a with b; simp [e, IH],
-  { show pairwise S l ↔ pairwise S l ∧ ∀ (a' : β), a' ∈ l →
-      ∀ (b : α), none = some b → ∀ (b' : α), f a' = some b' → R b b',
-    refine (and_iff_left _).symm, intros, contradiction },
-  { rw [filter_map_cons_some _ _ _ e], simp [IH],
-    show (∀ (a' : α) (x : β), f x = some a' → x ∈ l → R b a') ∧ pairwise S l ↔
-         (∀ (a' : β), a' ∈ l → ∀ (b' : α), f a' = some b' → R b b') ∧ pairwise S l,
-    from and_congr ⟨λ h b mb a ma, h a b ma mb, λ h a b ma mb, h b mb a ma⟩ iff.rfl }
+  rw [filter_map_cons_some _ _ _ e], simp [IH],
+  show (∀ (a' : α) (x : β), f x = some a' → x ∈ l → R b a') ∧ pairwise S l ↔
+        (∀ (a' : β), a' ∈ l → ∀ (b' : α), f a' = some b' → R b b') ∧ pairwise S l,
+  from and_congr ⟨λ h b mb a ma, h a b ma mb, λ h a b ma mb, h b mb a ma⟩ iff.rfl
 end
 
 theorem pairwise_filter_map_of_pairwise {S : β → β → Prop} (f : α → option β)

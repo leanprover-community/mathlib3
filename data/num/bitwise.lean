@@ -33,8 +33,8 @@ namespace pos_num
   def ldiff : pos_num → pos_num → num
   | 1        (bit0 q) := 1
   | 1        _        := 0
-  | (bit0 p) 1        := bit0 p
-  | (bit1 p) 1        := bit0 p
+  | (bit0 p) 1        := num.pos (bit0 p)
+  | (bit1 p) 1        := num.pos (bit0 p)
   | (bit0 p) (bit0 q) := num.bit0 (ldiff p q)
   | (bit0 p) (bit1 q) := num.bit0 (ldiff p q)
   | (bit1 p) (bit0 q) := num.bit1 (ldiff p q)
@@ -42,10 +42,10 @@ namespace pos_num
 
   def lxor : pos_num → pos_num → num
   | 1        1        := 0
-  | 1        (bit0 q) := bit1 q
-  | 1        (bit1 q) := bit0 q
-  | (bit0 p) 1        := bit1 p
-  | (bit1 p) 1        := bit0 p
+  | 1        (bit0 q) := num.pos (bit1 q)
+  | 1        (bit1 q) := num.pos (bit0 q)
+  | (bit0 p) 1        := num.pos (bit1 p)
+  | (bit1 p) 1        := num.pos (bit0 p)
   | (bit0 p) (bit0 q) := num.bit0 (lxor p q)
   | (bit0 p) (bit1 q) := num.bit1 (lxor p q)
   | (bit1 p) (bit0 q) := num.bit1 (lxor p q)
@@ -69,7 +69,7 @@ namespace pos_num
   | (n+1) := bit0 (shiftl n)
 
   def shiftr : pos_num → nat → num
-  | p        0     := p
+  | p        0     := num.pos p
   | 1        (n+1) := 0
   | (bit0 p) (n+1) := shiftr p n
   | (bit1 p) (n+1) := shiftr p n
@@ -81,7 +81,7 @@ namespace num
   def lor : num → num → num
   | 0       q       := q
   | p       0       := p
-  | (pos p) (pos q) := p.lor q
+  | (pos p) (pos q) := pos (p.lor q)
 
   def land : num → num → num
   | 0       q       := 0

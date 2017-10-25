@@ -89,6 +89,9 @@ rfl
 lemma comp_apply (g : β ≃ γ) (f : α ≃ β) (x : α) : (g ∘ f) x = g (f x) :=
 by cases g; cases f; simp [equiv.trans, *]
 
+lemma apply_inverse_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
+| ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw r₁
+
 lemma inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm (e x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw l₁
 
@@ -161,6 +164,12 @@ end
 
 section
 open sum
+def psum_equiv_sum (α β : Sort*) : psum α β ≃ (α ⊕ β) :=
+⟨λ s, psum.cases_on s inl inr,
+ λ s, sum.cases_on s psum.inl psum.inr,
+ λ s, by cases s; refl,
+ λ s, by cases s; refl⟩
+
 def sum_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ β₂ → (α₁ ⊕ β₁) ≃ (α₂ ⊕ β₂)
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ :=
   ⟨λ s, match s with inl a₁ := inl (f₁ a₁) | inr b₁ := inr (f₂ b₁) end,
@@ -200,6 +209,32 @@ def bool_equiv_unit_sum_unit : bool ≃ (unit ⊕ unit) :=
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
+end
+
+section
+def psigma_equiv_sigma {α} (β : α → Sort*) : psigma β ≃ sigma β :=
+⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+def sigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : ∀ a, β₁ a ≃ β₂ a) : sigma β₁ ≃ sigma β₂ :=
+⟨λ ⟨a, b⟩, ⟨a, F a b⟩, λ ⟨a, b⟩, ⟨a, (F a).symm b⟩,
+ λ ⟨a, b⟩, congr_arg (sigma.mk a) $ inverse_apply_apply (F a) b,
+ λ ⟨a, b⟩, congr_arg (sigma.mk a) $ apply_inverse_apply (F a) b⟩
+
+def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} : ∀ f : α₁ ≃ α₂, (Σ a:α₁, β (f a)) ≃ (Σ a:α₂, β a)
+| ⟨f, g, l, r⟩ :=
+  ⟨λ ⟨a, b⟩, ⟨f a, b⟩, λ ⟨a, b⟩, ⟨g a, @@eq.rec β b (r a).symm⟩,
+   λ ⟨a, b⟩, match g (f a), l a : ∀ a' (h : a' = a),
+       @sigma.mk _ (β ∘ f) _ (@@eq.rec β b (congr_arg f h.symm)) = ⟨a, b⟩ with
+     | _, rfl := rfl end,
+   λ ⟨a, b⟩, match f (g a), _ : ∀ a' (h : a' = a), sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
+     | _, rfl := rfl end⟩
+
+def sigma_equiv_prod (α β : Sort*) : (Σ_:α, β) ≃ (α × β) :=
+⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+def sigma_equiv_prod_of_equiv {α β} {β₁ : α → Sort*} (F : ∀ a, β₁ a ≃ β) : sigma β₁ ≃ (α × β) :=
+(sigma_congr_right F).trans (sigma_equiv_prod α β)
+
 end
 
 section
@@ -269,8 +304,13 @@ calc (ℕ ⊕ bool) ≃ (ℕ ⊕ (unit ⊕ unit)) : sum_congr (equiv.refl _) boo
  λ n, by simp [bool_prod_nat_equiv_nat._match_1, bit_decomp]⟩
 
 @[simp] def nat_sum_nat_equiv_nat : (ℕ ⊕ ℕ) ≃ ℕ :=
-calc (ℕ ⊕ ℕ) ≃ (bool × ℕ) : (bool_prod_equiv_sum ℕ).symm
-        ...  ≃ ℕ          : bool_prod_nat_equiv_nat
+(bool_prod_equiv_sum ℕ).symm.trans bool_prod_nat_equiv_nat
+
+def int_equiv_nat_sum_nat : ℤ ≃ (ℕ ⊕ ℕ) :=
+by refine ⟨_, _, _, _⟩; intro z; {cases z; [left, right]; assumption} <|> {cases z; refl}
+
+def int_equiv_nat : ℤ ≃ ℕ :=
+int_equiv_nat_sum_nat.trans nat_sum_nat_equiv_nat
 
 def prod_equiv_of_equiv_nat {α : Sort*} (e : α ≃ ℕ) : (α × α) ≃ α :=
 calc (α × α) ≃ (ℕ × ℕ) : prod_congr e e

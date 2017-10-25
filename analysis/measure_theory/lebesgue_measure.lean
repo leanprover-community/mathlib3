@@ -175,15 +175,10 @@ lebesgue_outer.to_measure $
     ... ≤ lebesgue_outer.caratheodory :
       measurable_space.generate_from_le $ by simp [lebesgue_outer_is_measurable_Iio] {contextual := tt}
 
-lemma tendsto_of_nat_at_top_at_top : tendsto (of_nat : ℕ → ℝ) at_top at_top :=
+lemma tendsto_of_nat_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
 tendsto_infi $ assume r, tendsto_principal $
-  let ⟨q, hq⟩ := exists_lt_of_rat r in
-  show {n : ℕ | r ≤ of_nat n} ∈ at_top.sets,
-    from mem_at_top_iff.mpr ⟨rat.nat_ceil q, assume b (hb : rat.nat_ceil q ≤ b),
-      calc r ≤ of_rat q : le_of_lt hq
-        ... ≤ of_rat (rat.nat_ceil q) : of_rat_le_of_rat.mpr (rat.le_nat_ceil q)
-        ... = of_nat (rat.nat_ceil q) : by rw [rat_coe_eq_of_nat, real_of_rat_of_nat_eq_of_nat]
-        ... ≤ of_nat b : of_nat_le_of_nat hb⟩
+let ⟨n, hn⟩ := exists_lt_nat r in
+mem_at_top_iff.2 ⟨n, λ m h, le_trans (le_of_lt hn) (nat.cast_le.2 h)⟩
 
 lemma lebesgue_Ico {a b : ℝ} : lebesgue.measure (Ico a b) = of_real (b - a) :=
 match le_total a b with
@@ -203,22 +198,22 @@ lemma lebesgue_Ioo {a b : ℝ} : lebesgue.measure (Ioo a b) = of_real (b - a) :=
 by_cases (assume h : b ≤ a, by simp [h, -sub_eq_add_neg, ennreal.of_real_of_nonpos]) $
 assume : ¬ b ≤ a,
 have h : a < b, from not_le_iff.mp this,
-let s := λn:ℕ, a + (b - a) * (of_nat (n + 1))⁻¹ in
+let s := λn:ℕ, a + (b - a) * (↑(n + 1))⁻¹ in
 have tendsto s at_top (nhds (a + (b - a) * 0)),
   from tendsto_add tendsto_const_nhds $ tendsto_mul tendsto_const_nhds $ tendsto_compose
    (tendsto_comp_succ_at_top_iff.mpr tendsto_of_nat_at_top_at_top) tendsto_inverse_at_top_nhds_0,
 have hs : tendsto s at_top (nhds a), by simpa,
 have hsm : ∀i j, j ≤ i → s i ≤ s j,
   from assume i j hij,
-  have h₁ : ∀j:ℕ, (0:ℝ) < of_nat (j + 1),
-    from assume j, of_nat_pos $ add_pos_of_nonneg_of_pos (nat.zero_le j) zero_lt_one,
-  have h₂ : of_nat (j + 1) ≤ (of_nat (i + 1) : ℝ), from of_nat_le_of_nat $ add_le_add hij (le_refl _),
+  have h₁ : ∀j:ℕ, (0:ℝ) < (j + 1),
+    from assume j, nat.cast_pos.2 $ add_pos_of_nonneg_of_pos (nat.zero_le j) zero_lt_one,
+  have h₂ : (↑(j + 1) : ℝ) ≤ ↑(i + 1), from nat.cast_le.2 $ add_le_add hij (le_refl _),
   add_le_add (le_refl _) $
   mul_le_mul (le_refl _) (inv_le_inv _ _ (h₁ j) h₂) (le_of_lt $ inv_pos $ h₁ i) $
     by simp [le_sub_iff_add_le, -sub_eq_add_neg, le_of_lt h],
 have has : ∀i, a < s i,
   from assume i,
-  have (0:ℝ) < of_nat (i + 1), from of_nat_pos $ lt_add_of_le_of_pos (nat.zero_le _) zero_lt_one,
+  have (0:ℝ) < ↑(i + 1), from nat.cast_pos.2 $ lt_add_of_le_of_pos (nat.zero_le _) zero_lt_one,
   (lt_add_iff_pos_right _).mpr $ mul_pos
     (by simp [-sub_eq_add_neg, sub_lt_iff, (>), ‹a < b›]) (inv_pos this),
 have eq₁ : Ioo a b = (⋃n, Ico (s n) b),

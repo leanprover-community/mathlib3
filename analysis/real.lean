@@ -21,7 +21,7 @@ generalizations:
 * Archimedean fields
 
 -/
-import algebra data.rat data.subtype logic.function
+import algebra data.rat logic.function
        analysis.topology.uniform_space analysis.topology.topological_structures
 
 noncomputable theory

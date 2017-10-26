@@ -747,6 +747,15 @@ not_congr cast_eq_zero
 @[simp] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := show (n / (d : ℤ) : ℚ) = _, by rw [num_denom', mk_eq_div]
 
+@[simp] theorem cast_min [discrete_linear_ordered_field α] {a b : ℚ} : (↑(min a b) : α) = min a b :=
+by by_cases a ≤ b; simp [h, min]
+
+@[simp] theorem cast_max [discrete_linear_ordered_field α] {a b : ℚ} : (↑(max a b) : α) = max a b :=
+by by_cases a ≤ b; simp [h, max]
+
+@[simp] theorem cast_abs [discrete_linear_ordered_field α] {q : ℚ} : ((abs q : ℚ) : α) = abs q :=
+by simp [abs]
+
 end cast
 
 /- nat ceiling -/

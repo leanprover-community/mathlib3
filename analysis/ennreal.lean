@@ -408,29 +408,29 @@ calc a ≤ b + of_real (r - p) : h _ pos (by simp [b_eq])
   ... = of_real r :
     by simp [-sub_eq_add_neg, le_of_lt pos, hp, hr, b_eq]; simp [sub_eq_add_neg]
 
-protected lemma lt_iff_exists_of_rat_lt_of_rat_gt :
-  a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < of_real (of_rat q) ∧ of_real (of_rat q) < b) :=
-have ∀r, 0 ≤ r → (∃ (i : ℚ), 0 ≤ i ∧ of_real r < of_real (of_rat i)),
+protected lemma lt_iff_exists_rat_btwn :
+  a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < of_real q ∧ of_real q < b) :=
+have ∀r, 0 ≤ r → (∃ (i : ℚ), 0 ≤ i ∧ of_real r < of_real i),
   from assume r hr,
-  let ⟨q, hq⟩ := exists_lt_of_rat r in
-  have 0 < of_rat q, from lt_of_le_of_lt hr hq,
-  ⟨q, le_of_lt $ of_rat_lt.mp this, of_real_lt_of_real_iff_cases.mpr ⟨this, hq⟩⟩,
-have h₁ : ∀a, a < ∞ ↔ ∃ (i : ℚ), 0 ≤ i ∧ a < of_real (of_rat i),
+  let ⟨q, hq⟩ := exists_lt_rat r in
+  have 0 < (q:ℝ), from lt_of_le_of_lt hr hq,
+  ⟨q, le_of_lt $ rat.cast_pos.1 this, of_real_lt_of_real_iff_cases.mpr ⟨this, hq⟩⟩,
+have h₁ : ∀a, a < ∞ ↔ ∃ (i : ℚ), 0 ≤ i ∧ a < of_real i,
   from forall_ennreal.mpr $ by simp [this] {contextual := tt},
 have ∀r p, 0 ≤ r → 0 ≤ p →
-    (r < p ↔ ∃q, 0 ≤ q ∧ of_real r < of_real (of_rat q) ∧ of_real (of_rat q) < of_real p),
+    (r < p ↔ ∃q:ℚ, 0 ≤ q ∧ of_real r < of_real q ∧ of_real q < of_real p),
   from assume r p hr hp, iff.intro
     (assume hrp,
-      let ⟨q, hrq, hqp⟩ := exists_lt_of_rat_of_rat_gt hrp in
-      have 0 < of_rat q, from lt_of_le_of_lt hr hrq,
+      let ⟨q, hrq, hqp⟩ := exists_rat_btwn hrp in
+      have 0 < (q:ℝ), from lt_of_le_of_lt hr hrq,
       have hp' : 0 < p, from lt_of_le_of_lt hr hrp,
-      ⟨q, le_of_lt $ of_rat_lt.mp this,
+      ⟨q, le_of_lt $ rat.cast_pos.1 this,
         by simp [of_real_lt_of_real_iff_cases, this, hrq, hqp, hp']⟩)
     (assume ⟨q, hq, hrq, hqp⟩, (of_real_lt_of_real_iff hr hp).mp $ lt_trans hrq hqp),
 have h₂ : ∀a r, 0 ≤ r →
-  (a < of_real r ↔ ∃ (i : ℚ), 0 ≤ i ∧ a < of_real (of_rat i) ∧ of_real (of_rat i) < of_real r),
+  (a < of_real r ↔ ∃ (i : ℚ), 0 ≤ i ∧ a < of_real i ∧ of_real i < of_real r),
   from forall_ennreal.mpr $ by simp [this] {contextual := tt},
-have ∀b, a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < of_real (of_rat q) ∧ of_real (of_rat q) < b),
+have ∀b, a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < of_real q ∧ of_real q < b),
   from forall_ennreal.mpr $ by simp; exact ⟨h₁ a, h₂ a⟩,
 this b
 
@@ -532,14 +532,14 @@ instance : orderable_topology ennreal := ⟨rfl⟩
 instance : t2_space ennreal := by apply_instance
 
 instance : second_countable_topology ennreal :=
-⟨⟨(⋃q ≥ 0, {{a : ennreal | a < of_real (of_rat q)}, {a : ennreal | of_real (of_rat q) < a}}),
+⟨⟨(⋃q ≥ (0:ℚ), {{a : ennreal | a < of_real q}, {a : ennreal | of_real ↑q < a}}),
   countable_bUnion countable_encodable $ assume a ha, countable_insert countable_singleton,
   le_antisymm
     (generate_from_le $ assume s ⟨a, ha⟩,
       match ha with
       | or.inl hs :=
-        have s = (⋃q∈{q:ℚ | 0 ≤ q ∧ a < of_real (of_rat q)}, {b | of_real (of_rat q) < b}),
-          from set.ext $ assume b, by simp [hs, @ennreal.lt_iff_exists_of_rat_lt_of_rat_gt a b],
+        have s = (⋃q∈{q:ℚ | 0 ≤ q ∧ a < of_real q}, {b | of_real q < b}),
+          from set.ext $ assume b, by simp [hs, @ennreal.lt_iff_exists_rat_btwn a b],
         begin
           rw [this],
           apply is_open_Union, intro q,
@@ -547,8 +547,8 @@ instance : second_countable_topology ennreal :=
           exact generate_open.basic _ (mem_bUnion hq.1 $ by simp)
         end
       | or.inr hs :=
-        have s = (⋃q∈{q:ℚ | 0 ≤ q ∧ of_real (of_rat q) < a}, {b | b < of_real (of_rat q)}),
-          from set.ext $ assume b, by simp [hs, @ennreal.lt_iff_exists_of_rat_lt_of_rat_gt b a],
+        have s = (⋃q∈{q:ℚ | 0 ≤ q ∧ of_real q < a}, {b | b < of_real q}),
+          from set.ext $ assume b, by simp [hs, @ennreal.lt_iff_exists_rat_btwn b a],
         begin
           rw [this],
           apply is_open_Union, intro q,

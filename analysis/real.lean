@@ -1122,8 +1122,7 @@ instance : topological_ring ℝ :=
 
 -- TODO: without this setup `continuous_mul` is not found correctly?!
 instance : semiring ℝ := by apply_instance
-instance : topological_semiring ℝ :=
-  @topological_ring.to_topological_semiring ℝ _ _ _
+instance : topological_semiring ℝ := topological_ring.to_topological_semiring
 
 theorem coe_rat_eq_of_rat (r : ℚ) : ↑r = of_rat r :=
 have ∀ n : ℕ, (n:ℝ) = of_rat n, by intro n; induction n; simp *,
@@ -1132,7 +1131,7 @@ rat.num_denom_cases_on r $ λ n d h c,
 by rw [rat.cast_mk, rat.mk_eq_div, this, this, int.cast_coe_nat,
        division_def, division_def, ← of_rat_mul, ← of_rat_inv]
 
-lemma exists_lt_of_rat_of_rat_gt {r p : ℝ} (h : r < p) : ∃q, r < of_rat q ∧ of_rat q < p :=
+lemma exists_rat_btwn {r p : ℝ} (h : r < p) : ∃q : ℚ, r < (q:ℝ) ∧ (q:ℝ) < p :=
 have h_dense : {x | r < x ∧ x < p} ≠ ∅,
   from ne_empty_iff_exists_mem.mpr $ dense h,
 have {x | r < x ∧ x < p} ⊆ closure ({x | r < x ∧ x < p} ∩ of_rat '' univ),
@@ -1143,11 +1142,17 @@ have {x | r < x ∧ x < p} ⊆ closure ({x | r < x ∧ x < p} ∩ of_rat '' univ
 have ({x | r < x ∧ x < p} ∩ of_rat '' univ) ≠ ∅,
   by intro h; simp [h, subset_empty_iff, h_dense] at this; assumption,
 let ⟨r', ⟨h₁, h₂⟩, q, _, hq⟩ := ne_empty_iff_exists_mem.mp this in
-⟨q, hq.symm ▸ h₁, hq.symm ▸ h₂⟩
+⟨q, ((coe_rat_eq_of_rat q).trans hq).symm ▸ ⟨h₁, h₂⟩⟩
+
+lemma exists_lt_rat (r : ℝ) : ∃q:ℚ, r < q :=
+by simpa [coe_rat_eq_of_rat] using exists_lt_of_rat r
+
+lemma exists_rat_lt (r : ℝ) : ∃q:ℚ, (q : ℝ) < r :=
+by simpa [coe_rat_eq_of_rat] using exists_gt_of_rat r
 
 lemma exists_lt_nat (r : ℝ) : ∃n : ℕ, r < n :=
-let ⟨q, hq⟩ := exists_lt_of_rat r in
-⟨rat.nat_ceil q, lt_of_lt_of_le hq $ coe_rat_eq_of_rat q ▸
+let ⟨q, hq⟩ := exists_lt_rat r in
+⟨rat.nat_ceil q, lt_of_lt_of_le hq $
   @rat.cast_coe_nat ℝ _ q.nat_ceil ▸ rat.cast_le.2 $ q.le_nat_ceil⟩
 
 lemma compact_ivl {a b : ℝ} : compact {r:ℝ | a ≤ r ∧ r ≤ b } :=
@@ -1184,7 +1189,7 @@ have hf : f ≠ ⊥,
       ⟨max r₁ r₂, if h: r₁ ≤ r₂ then by rwa [max_eq_right h] else by rwa [max_eq_left (le_of_not_ge h)]⟩,
       by simp; exact assume a ha h, ⟨le_trans (le_max_left _ _) h, ha⟩,
       by simp; exact assume a ha h, ⟨le_trans (le_max_right _ _) h, ha⟩⟩)
-    (by simp [forall_subtype]; exact assume a ha, ne_empty_of_mem ⟨ha, le_refl a⟩),
+    (by simp; exact assume a ha, ne_empty_of_mem ⟨ha, le_refl a⟩),
 have principal {r' : ℝ | r' ∈ s ∧ a ≤ r'} ≤ principal {r : ℝ | a ≤ r ∧ r ≤ b},
   by simp [upper_bounds] at hb; simp [hb] {contextual := tt},
 let ⟨x, ⟨hx₁, hx₂⟩, h⟩ := @compact_ivl a b f hf (infi_le_of_le ⟨a, ha⟩ this) in

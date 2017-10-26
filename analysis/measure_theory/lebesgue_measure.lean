@@ -159,8 +159,8 @@ outer_measure.caratheodory_is_measurable $ assume t, by_cases
         { exact zero_le },
         { have : b ≤ a, from le_trans hbc hca,
           have : b + b ≤ a + a, from add_le_add this this,
-          have : (b + b) - (a + a) ≤ 0, by simp [sub_le_iff_le_add, -sub_eq_add_neg, this],
-          { simp, simp at this, exact this } } }
+          simpa using show (b + b) - (a + a) ≤ 0,
+            by simp [sub_le_iff_le_add, -sub_eq_add_neg, this] } }
     end)
   (assume h, by simp at h; from le_lebesgue_length h)
 
@@ -170,8 +170,8 @@ The outer Lebesgue measure is the completion of this measure. (TODO: proof this)
 -/
 def lebesgue : measure_space ℝ :=
 lebesgue_outer.to_measure $
-  calc measure_theory.borel ℝ = measurable_space.generate_from (⋃a, {Iio (of_rat a)}) :
-      borel_eq_generate_from_Iio_of_rat
+  calc measure_theory.borel ℝ = measurable_space.generate_from (⋃a:ℚ, {Iio a}) :
+      borel_eq_generate_from_Iio_rat
     ... ≤ lebesgue_outer.caratheodory :
       measurable_space.generate_from_le $ by simp [lebesgue_outer_is_measurable_Iio] {contextual := tt}
 

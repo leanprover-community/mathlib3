@@ -80,4 +80,10 @@ not_congr cast_eq_zero
 | 0     := rfl
 | (n+1) := congr_arg (+1) (cast_id n)
 
+@[simp] theorem cast_min [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(min a b) : α) = min a b :=
+by by_cases a ≤ b; simp [h, min]
+
+@[simp] theorem cast_max [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(max a b) : α) = max a b :=
+by by_cases a ≤ b; simp [h, max]
+
 end nat

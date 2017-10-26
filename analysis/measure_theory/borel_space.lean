@@ -166,73 +166,72 @@ end
 section real
 open topological_space
 
-lemma is_topological_basis_Ioo_of_rat_of_rat :
-  @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo (of_rat a) (of_rat b)}) :=
+lemma is_topological_basis_Ioo_rat :
+  @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_of_open_of_nhds
   (assume t₁ t₂ ht₁ ht₂ h,
-    have ∃a b, a < b ∧ t₁ = Ioo (of_rat a) (of_rat b), by simp at ht₁; simp [ht₁],
+    have ∃a b:ℚ, a < b ∧ t₁ = Ioo a b, by simpa using ht₁,
     let ⟨a₁, b₁, hab₁, eq₁⟩ := this in
-    have ∃a b, a < b ∧ t₂ = Ioo (of_rat a) (of_rat b), by simp at ht₂; simp [ht₂],
+    have ∃a b:ℚ, a < b ∧ t₂ = Ioo a b, by simpa using ht₂,
     let ⟨a₂, b₂, hab₂, eq₂⟩ := this in
-    have t₁₂ : t₁ ∩ t₂ = Ioo (of_rat $ max a₁ a₂) (of_rat $ min b₁ b₂),
-      by simp [eq₁, eq₂, Ioo_inter_Ioo, min_of_rat_of_rat, max_of_rat_of_rat],
+    have t₁₂ : t₁ ∩ t₂ = Ioo (max a₁ a₂) (min b₁ b₂),
+      by simp [eq₁, eq₂, Ioo_inter_Ioo],
     have max a₁ a₂ < min b₁ b₂,
-      from have ∃a, a ∈ Ioo (of_rat $ max a₁ a₂) (of_rat $ min b₁ b₂),
+      from have ∃a, a ∈ Ioo (max a₁ a₂:ℝ) (min b₁ b₂),
         from ne_empty_iff_exists_mem.mp $ by simp [t₁₂.symm, h],
       let ⟨c, hc₁, hc₂⟩ := this in
-      have of_rat (max a₁ a₂) < of_rat (min b₁ b₂), from lt_trans hc₁ hc₂,
-      of_rat_lt.mp this,
-    by simp [t₁₂]; exact ⟨max a₁ a₂, min b₁ b₂, this, rfl⟩)
-  (suffices ∀r, ∃(t : set ℝ), r ∈ t ∧ ∃a b, t = Ioo (of_rat a) (of_rat b) ∧ a < b,
+      (@rat.cast_lt ℝ _ _ _).1 $ by simpa using lt_trans hc₁ hc₂,
+    by simp [t₁₂]; exact ⟨max a₁ a₂, min b₁ b₂, this, by simp⟩)
+  (suffices ∀r, ∃(t : set ℝ), r ∈ t ∧ ∃a b : ℚ, t = Ioo a b ∧ a < b,
       by simpa,
     assume r,
-    let ⟨a, ha⟩ := exists_gt_of_rat r, ⟨b, hb⟩ := exists_lt_of_rat r in
-    ⟨Ioo (of_rat a) (of_rat b), ⟨ha, hb⟩, a, b, rfl, of_rat_lt.mp $ lt_trans ha hb⟩)
+    let ⟨a, ha⟩ := exists_rat_lt r, ⟨b, hb⟩ := exists_lt_rat r in
+    ⟨Ioo a b, ⟨ha, hb⟩, a, b, rfl, rat.cast_lt.1 $ lt_trans ha hb⟩)
   begin simp [is_open_Ioo] {contextual:=tt} end
   (assume a v hav hv,
     let
       ⟨l, u, hl, hu, h⟩ := (mem_nhds_unbounded (no_top _) (no_bot _)).mp (mem_nhds_sets hv hav),
-      ⟨q, hlq, hqa⟩ := exists_lt_of_rat_of_rat_gt hl,
-      ⟨p, hap, hpu⟩ := exists_lt_of_rat_of_rat_gt hu
+      ⟨q, hlq, hqa⟩ := exists_rat_btwn hl,
+      ⟨p, hap, hpu⟩ := exists_rat_btwn hu
     in
-    ⟨Ioo (of_rat q) (of_rat p),
-      begin simp; exact ⟨q, p, of_rat_lt.mp $ lt_trans hqa hap, rfl⟩ end,
+    ⟨Ioo q p,
+      begin simp; exact ⟨q, p, rat.cast_lt.1 $ lt_trans hqa hap, rfl⟩ end,
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h _ (lt_trans hlq hqa') (lt_trans ha'p hpu)⟩)
 
 instance : second_countable_topology ℝ :=
-⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo (of_rat a) (of_rat b)}),
+⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),
   by simp [countable_Union, countable_Union_Prop],
-  is_topological_basis_Ioo_of_rat_of_rat.2.2⟩⟩
+  is_topological_basis_Ioo_rat.2.2⟩⟩
 
 open measure_theory measurable_space
 
-lemma borel_eq_generate_from_Ioo_of_rat_of_rat :
-  measure_theory.borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo (of_rat a) (of_rat b)}) :=
-borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_of_rat_of_rat.2.2
+lemma borel_eq_generate_from_Ioo_rat :
+  measure_theory.borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
+borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_rat.2.2
 
-lemma borel_eq_generate_from_Iio_of_rat :
-  measure_theory.borel ℝ = generate_from (⋃a, {Iio (of_rat a)}) :=
-let g := measurable_space.generate_from (⋃a, {Iio (of_rat a)} : set (set ℝ)) in
-have ∀a b, a < b → g.is_measurable (Ioo (of_rat a) (of_rat b)),
+lemma borel_eq_generate_from_Iio_rat :
+  measure_theory.borel ℝ = generate_from (⋃a:ℚ, {Iio a}) :=
+let g := measurable_space.generate_from (⋃a:ℚ, {Iio a} : set (set ℝ)) in
+have ∀a b : ℚ, a < b → g.is_measurable (Ioo a b),
   from assume a b h,
-  have hg : ∀q, g.is_measurable (Iio (of_rat q)),
+  have hg : ∀q:ℚ, g.is_measurable (Iio q),
     from assume q, generate_measurable.basic _ $ by simp; exact ⟨_, rfl⟩,
-  have hgc : ∀q, g.is_measurable (- Iio (of_rat q)),
+  have hgc : ∀q:ℚ, g.is_measurable (- Iio q),
     from assume q, g.is_measurable_compl _ $ hg q,
-  have (⋃c>a, - Iio (of_rat c)) ∩ Iio (of_rat b) = Ioo (of_rat a) (of_rat b),
+  have (⋃c>a, - Iio (c:ℝ)) ∩ Iio b = Ioo a b,
     from set.ext $ assume x,
-    have h₁ : x < of_rat b → ∀p, of_rat p ≤ x → p > a → of_rat a < x,
-      from assume hxb p hpx hpa, lt_of_lt_of_le (of_rat_lt.mpr hpa) hpx,
-    have h₂ : x < of_rat b → of_rat a < x → (∃ (i : ℚ), of_rat i ≤ x ∧ i > a),
+    have h₁ : x < b → ∀p:ℚ, p > a → (p:ℝ) ≤ x → (a:ℝ) < x,
+      from assume hxb p hpa hpx, lt_of_lt_of_le (rat.cast_lt.2 hpa) hpx,
+    have h₂ : x < b → (a:ℝ) < x → (∃ (i : ℚ), i > a ∧ (i:ℝ) ≤ x),
       from assume hxb hax,
-      let ⟨c, hac, hcx⟩ := exists_lt_of_rat_of_rat_gt hax in
-      ⟨c, le_of_lt hcx, of_rat_lt.mp hac⟩,
+      let ⟨c, hac, hcx⟩ := exists_rat_btwn hax in
+      ⟨c, rat.cast_lt.1 hac, le_of_lt hcx⟩,
     by simp [iff_def, Iio, Ioo] {contextual := tt}; exact ⟨h₁, h₂⟩,
   this ▸ @is_measurable_inter _ g _ _
     (@is_measurable_bUnion _ _ g _ _ countable_encodable $ assume b hb, hgc b)
     (hg b),
 le_antisymm
-  (borel_eq_generate_from_Ioo_of_rat_of_rat.symm ▸ generate_from_le
+  (borel_eq_generate_from_Ioo_rat.symm ▸ generate_from_le
     (by simp [this] {contextual:=tt}))
   (generate_from_le $ assume t,
     have ∀r:ℝ, is_measurable (Iio r), from assume r, generate_measurable.basic _ $ is_open_gt' _,

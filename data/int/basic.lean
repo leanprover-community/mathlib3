@@ -911,6 +911,15 @@ not_congr cast_eq_zero
 | (n : ℕ) := (cast_coe_nat n).trans (nat_cast_eq_coe_nat n)
 | -[1+ n] := eq.trans (by rw ← nat_cast_eq_coe_nat; refl) (neg_succ_of_nat_eq _).symm
 
+@[simp] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(min a b) : α) = min a b :=
+by by_cases a ≤ b; simp [h, min]
+
+@[simp] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(max a b) : α) = max a b :=
+by by_cases a ≤ b; simp [h, max]
+
+@[simp] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} : ((abs q : ℤ) : α) = abs q :=
+by simp [abs]
+
 end cast
 
 end int

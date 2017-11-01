@@ -44,6 +44,9 @@ by split; apply le_antisymm; try {assumption};
    rw ← hab; simp [ha, hb],
 λ ⟨ha', hb'⟩, by rw [ha', hb', add_zero]⟩
 
+lemma bit0_pos {a : α} (h : 0 < a) : 0 < bit0 a :=
+add_pos h h
+
 end ordered_cancel_comm_monoid
 
 section ordered_comm_group

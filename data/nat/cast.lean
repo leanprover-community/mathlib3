@@ -31,6 +31,11 @@ end
 | 0     := (add_zero _).symm
 | (n+1) := show ((m + n : ℕ) : α) + 1 = m + (n + 1), by rw [cast_add n, add_assoc]
 
+@[simp] theorem cast_bit0 [add_monoid α] [has_one α] (n : ℕ) : ((bit0 n : ℕ) : α) = bit0 n := cast_add _ _
+
+@[simp] theorem cast_bit1 [add_monoid α] [has_one α] (n : ℕ) : ((bit1 n : ℕ) : α) = bit1 n :=
+by rw [bit1, cast_add_one, cast_bit0]; refl
+
 @[simp] theorem cast_pred [add_group α] [has_one α] : ∀ {n}, n > 0 → ((n - 1 : ℕ) : α) = n - 1
 | (n+1) h := (add_sub_cancel (n:α) 1).symm
 
@@ -44,11 +49,6 @@ show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mu
 
 theorem mul_cast_comm [semiring α] (a : α) (n : ℕ) : a * n = n * a :=
 by induction n; simp [left_distrib, right_distrib, *]
-
-@[simp] theorem cast_bit0 [semiring α] (n : ℕ) : ((bit0 n : ℕ) : α) = bit0 n := cast_add _ _
-
-@[simp] theorem cast_bit1 [semiring α] (n : ℕ) : ((bit1 n : ℕ) : α) = bit1 n :=
-by rw [bit1, cast_add_one, cast_bit0]; refl
 
 @[simp] theorem cast_nonneg [linear_ordered_semiring α] : ∀ n : ℕ, 0 ≤ (n : α)
 | 0     := le_refl _

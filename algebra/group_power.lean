@@ -27,6 +27,9 @@ class has_pow_nat (α : Type u) :=
 def pow_nat {α : Type u} [has_pow_nat α] : α → nat → α :=
 has_pow_nat.pow_nat
 
+@[simp] theorem has_pow_nat_eq_pow_nat {α : Type u} [has_pow_nat α] :
+  @has_pow_nat.pow_nat α _ = pow_nat := rfl
+
 infix ` ^ ` := pow_nat
 
 class has_pow_int (α : Type u) :=
@@ -67,6 +70,10 @@ by induction n; simp [*, pow_succ]
 theorem pow_mul (a : α) (m : ℕ) : ∀ n, a^(m * n) = (a^m)^n
 | 0     := by simp
 | (n+1) := by rw [nat.mul_succ, pow_add, pow_succ', pow_mul]
+
+theorem pow_bit0 (a : α) (n : ℕ) : a ^ bit0 n = a^n * a^n := pow_add _ _ _
+theorem pow_bit1 (a : α) (n : ℕ) : a ^ bit1 n = a^n * a^n * a :=
+by rw [bit1, pow_succ', pow_bit0]
 
 theorem pow_mul_comm (a : α) (m n : ℕ)  : a^m * a^n = a^n * a^m :=
 by rw [←pow_add, ←pow_add, add_comm]

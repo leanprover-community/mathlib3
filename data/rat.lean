@@ -22,6 +22,14 @@ notation `ℚ` := rat
 
 namespace rat
 
+protected def repr : ℚ → string
+| ⟨n, d, _, _⟩ := if d = 1 then _root_.repr n else
+  _root_.repr n ++ "/" ++ _root_.repr d
+
+instance : has_repr ℚ := ⟨rat.repr⟩
+instance : has_to_string ℚ := ⟨rat.repr⟩
+meta instance : has_to_format ℚ := ⟨coe ∘ rat.repr⟩
+
 instance : encodable ℚ := encodable_of_equiv (Σ n : ℤ, {d : ℕ // d > 0 ∧ n.nat_abs.coprime d})
   ⟨λ ⟨a, b, c, d⟩, ⟨a, b, c, d⟩, λ⟨a, b, c, d⟩, ⟨a, b, c, d⟩,
    λ ⟨a, b, c, d⟩, rfl, λ⟨a, b, c, d⟩, rfl⟩
@@ -694,6 +702,27 @@ theorem cast_mul_of_ne_zero : ∀ {m n : ℚ},
   rw [inv_comm_of_comm d₁0 (nat.mul_cast_comm _ _).symm]
 end
 
+theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
+  (n.num : α) ≠ 0 → (n.denom : α) ≠ 0 → ((n⁻¹ : ℚ) : α) = n⁻¹
+| ⟨n, d, h, c⟩ := λ (n0 : (n:α) ≠ 0) (d0 : (d:α) ≠ 0), begin
+  have n0' : (n:ℤ) ≠ 0 := λ e, by rw e at n0; exact n0 rfl,
+  have d0' : (d:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d0; exact d0 rfl),
+  rw [num_denom', inv_def],
+  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, division_ring.inv_div];
+  simp [n0, d0]
+end
+
+theorem cast_div_of_ne_zero {m n : ℚ} (md : (m.denom : α) ≠ 0)
+  (nn : (n.num : α) ≠ 0) (nd : (n.denom : α) ≠ 0) : ((m / n : ℚ) : α) = m / n :=
+have (n⁻¹.denom : ℤ) ∣ n.num,
+by conv in n⁻¹.denom { rw [num_denom n, inv_def] };
+   apply denom_dvd,
+have (n⁻¹.denom : α) = 0 → (n.num : α) = 0, from
+λ h, let ⟨k, e⟩ := this in
+  by have := congr_arg (coe : ℤ → α) e;
+     rwa [int.cast_mul, int.cast_coe_nat, h, zero_mul] at this,
+by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn nd, division_def]
+
 end
 
 theorem cast_mk [discrete_linear_ordered_field α] (a b : ℤ) : ((a /. b) : α) = a / b :=
@@ -708,6 +737,14 @@ cast_sub_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ 
 
 @[simp] theorem cast_mul [linear_ordered_field α] (m n) : ((m * n : ℚ) : α) = m * n :=
 cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+@[simp] theorem cast_inv [discrete_linear_ordered_field α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+if n0 : n.num = 0 then
+  by simp [show n = 0, by rw [num_denom n, n0]; simp, inv_zero] else
+cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+@[simp] theorem cast_div [discrete_linear_ordered_field α] (m n) : ((m / n : ℚ) : α) = m / n :=
+by rw [division_def, cast_mul, cast_inv, division_def]
 
 @[simp] theorem cast_bit0 [linear_ordered_field α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _
 

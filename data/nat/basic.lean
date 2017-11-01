@@ -5,7 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 Basic operations on the natural numbers.
 -/
-import logic.basic algebra.order
+import logic.basic algebra.order data.option
 
 universe u
 
@@ -282,6 +282,54 @@ theorem bit_lt_bit0 : ∀ (b) {n m : ℕ}, n < m → bit b n < bit0 m
 theorem bit_lt_bit (a b) {n m : ℕ} (h : n < m) : bit a n < bit b m :=
 lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
 
+/- partial subtraction -/
+
+@[simp] def ppred : ℕ → option ℕ
+| 0     := none
+| (n+1) := some n
+
+@[simp] def psub (m : ℕ) : ℕ → option ℕ
+| 0     := some m
+| (n+1) := psub n >>= ppred
+
+theorem pred_eq_ppred (n : ℕ) : pred n = (ppred n).get_or_else 0 :=
+by cases n; refl
+
+theorem sub_eq_psub (m : ℕ) : ∀ n, m - n = (psub m n).get_or_else 0
+| 0     := rfl
+| (n+1) := (pred_eq_ppred (m-n)).trans $
+  by rw [sub_eq_psub, psub]; cases psub m n; refl
+
+@[simp] theorem ppred_eq_some {m : ℕ} : ∀ {n}, ppred n = some m ↔ succ m = n
+| 0     := by split; intro h; contradiction
+| (n+1) := by dsimp; split; intro h; injection h; subst n
+
+@[simp] theorem ppred_eq_none : ∀ {n : ℕ}, ppred n = none ↔ n = 0
+| 0     := by simp
+| (n+1) := by dsimp; split; contradiction
+
+theorem psub_eq_some {m : ℕ} : ∀ {n k}, psub m n = some k ↔ k + n = m
+| 0     k := by simp [eq_comm]
+| (n+1) k := by dsimp; apply option.bind_eq_some.trans; simp [psub_eq_some]
+
+theorem psub_eq_none (m n : ℕ) : psub m n = none ↔ m < n :=
+begin
+  cases s : psub m n; simp [eq_comm],
+  { show m < n, refine lt_of_not_ge (λ h, _),
+    cases le.dest h with k e,
+    injection s.symm.trans (psub_eq_some.2 $ (add_comm _ _).trans e) },
+  { show n ≤ m, rw ← psub_eq_some.1 s, apply le_add_left }
+end
+
+theorem ppred_eq_pred {n} (h : 0 < n) : ppred n = some (pred n) :=
+ppred_eq_some.2 $ succ_pred_eq_of_pos h
+
+theorem psub_eq_sub {m n} (h : n ≤ m) : psub m n = some (m - n) :=
+psub_eq_some.2 $ nat.sub_add_cancel h
+
+theorem psub_add (m n k) : psub m (n + k) = do x ← psub m n, psub x k :=
+by induction k; simp [*, add_succ, monad.bind_assoc]
+
 /- pow -/
 
 theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
@@ -316,6 +364,8 @@ end
 
 @[simp] theorem size_bit1 (n) : size (bit1 n) = succ (size n) :=
 @size_bit tt n (nat.bit1_ne_zero n)
+
+@[simp] theorem size_one : size 1 = 1 := size_bit1 0
 
 @[simp] theorem size_shiftl' {b m n} (h : shiftl' b m n ≠ 0) :
   size (shiftl' b m n) = size m + n :=

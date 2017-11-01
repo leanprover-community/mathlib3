@@ -53,6 +53,12 @@ mul_le_mul_of_nonneg_right h hb
 theorem mul_nonneg_iff_right_nonneg_of_pos {a b : α} (h : 0 < a) : 0 ≤ b * a ↔ 0 ≤ b :=
 ⟨assume : 0 ≤ b * a, nonneg_of_mul_nonneg_right this h, assume : 0 ≤ b, mul_nonneg this $ le_of_lt h⟩
 
+lemma bit1_pos {a : α} (h : 0 ≤ a) : 0 < bit1 a :=
+lt_add_of_le_of_pos (add_nonneg h h) zero_lt_one
+
+lemma bit1_pos' {a : α} (h : 0 < a) : 0 < bit1 a :=
+bit1_pos (le_of_lt h)
+
 /- remove when we have a linear arithmetic tactic -/
 lemma one_lt_two : 1 < (2 : α) :=
 calc (1:α) < 1 + 1 : lt_add_of_le_of_pos (le_refl 1) zero_lt_one

@@ -73,13 +73,14 @@ namespace pos_num
 
   instance : has_add pos_num := ⟨pos_num.add⟩
 
-  def pred' : pos_num → option pos_num
-  | 1        := none
-  | (bit0 n) := some (option.cases_on (pred' n) 1 bit1)
-  | (bit1 n) := bit0 n
+  def pred' : pos_num → num
+  | 1        := 0
+  | (bit0 n) := num.pos (num.cases_on (pred' n) 1 bit1)
+  | (bit1 n) := num.pos (bit0 n)
 
-  def pred (a : pos_num) : pos_num := (pred' a).get_or_else 1
-
+  def pred (a : pos_num) : pos_num :=
+  num.cases_on (pred' a) 1 id
+  
   def size : pos_num → pos_num
   | 1        := 1
   | (bit0 n) := succ (size n)
@@ -118,18 +119,6 @@ namespace pos_num
   instance decidable_le : @decidable_rel pos_num (≤)
   | a b := by dsimp [(≤)]; apply_instance
 
-  def psub : pos_num → pos_num → option pos_num
-  | 1        b        := none
-  | a        1        := pred' a
-  | (bit0 a) (bit0 b) := bit0 <$> psub a b
-  | (bit0 a) (bit1 b) := bit1 <$> psub a b
-  | (bit1 a) (bit0 b) := bit1 <$> psub a b
-  | (bit1 a) (bit1 b) := bit0 <$> psub a b
-
-  protected def sub (a b : pos_num) : pos_num := (psub a b).get_or_else 1
-
-  instance : has_sub pos_num := ⟨pos_num.sub⟩
-
 end pos_num
 
 section
@@ -158,22 +147,12 @@ namespace num
 
   def succ (n : num) : num := pos (succ' n)
 
-  def of_nat : nat → num
-  | 0 := 0
-  | (nat.succ n) := succ (of_nat n)
-
-  instance nat_num_coe : has_coe nat num := ⟨of_nat⟩
-
   protected def add : num → num → num
   | 0       a       := a
   | b       0       := b
   | (pos a) (pos b) := pos (a + b)
 
   instance : has_add num := ⟨num.add⟩
-
-  def pred : num → num
-  | 0       := 0
-  | (pos p) := option.cases_on (pred' p) 0 pos
 
   protected def bit0 : num → num
   | 0       := 0
@@ -213,31 +192,18 @@ namespace num
   instance decidable_le : @decidable_rel num (≤)
   | a b := by dsimp [(≤)]; apply_instance
 
-  protected def sub : num → num → num
-  | a       0       := a
-  | 0       b       := b
-  | (pos a) (pos b) := option.cases_on (psub a b) 0 pos
-
-  instance : has_sub num := ⟨num.sub⟩
-
   def to_znum : num → znum
   | 0       := 0
   | (pos a) := znum.pos a
+
+  def to_znum_neg : num → znum
+  | 0       := 0
+  | (pos a) := znum.neg a
 
 end num
 
 namespace znum
   open pos_num
-
-  def succ : znum → znum
-  | 0       := 1
-  | (pos a) := pos (pos_num.succ a)
-  | (neg a) := option.cases_on (pos_num.pred' a) 0 neg
-
-  def pred : znum → znum
-  | 0       := neg 1
-  | (pos a) := option.cases_on (pos_num.pred' a) 0 pos
-  | (neg a) := neg (pos_num.succ a)
 
   def zneg : znum → znum
   | 0       := 0
@@ -246,19 +212,106 @@ namespace znum
 
   instance : has_neg znum := ⟨zneg⟩
 
+  def succ : znum → znum
+  | 0       := 1
+  | (pos a) := pos (pos_num.succ a)
+  | (neg a) := (pos_num.pred' a).to_znum_neg
+
+  def pred : znum → znum
+  | 0       := neg 1
+  | (pos a) := (pos_num.pred' a).to_znum
+  | (neg a) := neg (pos_num.succ a)
+
+  protected def bit0 : znum → znum
+  | 0       := 0
+  | (pos n) := pos (pos_num.bit0 n)
+  | (neg n) := neg (pos_num.bit0 n)
+
+  protected def bit1 : znum → znum
+  | 0       := 1
+  | (pos n) := pos (pos_num.bit1 n)
+  | (neg n) := neg (num.cases_on (pred' n) 1 pos_num.bit1)
+  
+  protected def bitm1 : znum → znum
+  | 0       := neg 1
+  | (pos n) := pos (num.cases_on (pred' n) 1 pos_num.bit1)
+  | (neg n) := neg (pos_num.bit1 n)
+
+end znum
+
+namespace pos_num
+  open znum
+
+  def sub' : pos_num → pos_num → znum
+  | a        1        := (pred' a).to_znum
+  | 1        b        := (pred' b).to_znum_neg
+  | (bit0 a) (bit0 b) := (sub' a b).bit0
+  | (bit0 a) (bit1 b) := (sub' a b).bitm1
+  | (bit1 a) (bit0 b) := (sub' a b).bit1
+  | (bit1 a) (bit1 b) := (sub' a b).bit0
+
+  def of_znum' : znum → option pos_num
+  | (znum.pos p) := some p
+  | _            := none
+
+  def of_znum : znum → pos_num
+  | (znum.pos p) := p
+  | _            := 1
+
+  protected def sub (a b : pos_num) : pos_num :=
+  match sub' a b with
+  | (znum.pos p) := p
+  | _ := 1
+  end
+
+  instance : has_sub pos_num := ⟨pos_num.sub⟩
+end pos_num
+
+namespace num
+  def ppred : num → option num
+  | 0       := none
+  | (pos p) := some p.pred'
+
+  def pred : num → num
+  | 0       := 0
+  | (pos p) := p.pred'
+
+  def of_znum' : znum → option num
+  | 0            := some 0
+  | (znum.pos p) := some (pos p)
+  | (znum.neg p) := none
+
+  def of_znum : znum → num
+  | (znum.pos p) := pos p
+  | _            := 0
+
+  def sub' : num → num → znum
+  | 0       0       := 0
+  | (pos a) 0       := znum.pos a
+  | 0       (pos b) := znum.neg b
+  | (pos a) (pos b) := a.sub' b
+
+  def psub (a b : num) : option num :=
+  of_znum' (sub' a b)
+  
+  protected def sub (a b : num) : num :=
+  of_znum (sub' a b)
+
+  instance : has_sub num := ⟨num.sub⟩
+end num
+
+namespace znum
+  open pos_num
+
   protected def add : znum → znum → znum
   | 0       a       := a
   | b       0       := b
   | (pos a) (pos b) := pos (a + b)
-  | (pos a) (neg b) := option.cases_on (psub a b) (option.cases_on (psub b a) 0 neg) pos
-  | (neg a) (pos b) := option.cases_on (psub a b) (option.cases_on (psub b a) 0 pos) neg
+  | (pos a) (neg b) := sub' a b
+  | (neg a) (pos b) := sub' b a
   | (neg a) (neg b) := neg (a + b)
 
   instance : has_add znum := ⟨znum.add⟩
-
-  protected def sub (a b : znum) : znum := a + zneg b
-
-  instance : has_sub znum := ⟨znum.sub⟩
 
   protected def mul : znum → znum → znum
   | 0       a       := 0
@@ -297,8 +350,8 @@ section
 
   def cast_znum : znum → α
   | 0            := 0
-  | (znum.pos p) := cast_pos_num p
-  | (znum.neg p) := -cast_pos_num p
+  | (znum.pos p) := p
+  | (znum.neg p) := -p
 
   @[priority 0] instance znum_coe : has_coe znum α := ⟨cast_znum⟩
 end

@@ -1,4 +1,4 @@
-import data.stream data.lazy_list data.seq.computation logic.basic
+import data.stream data.lazy_list data.seq.computation logic.basic tactic.interactive
 universes u v w
 
 /-
@@ -516,13 +516,14 @@ begin
   apply mem_rec_on h _,
   intros b s' o s₁,
   apply s₁.cases_on _ (λ c t₁, _); intros m e;
-  have := congr_arg destruct e; simp at this; injections with i1 i2 i3,
-  { simp at m, exact or.inr m },
-  { simp at m, cases m with e' m,
+  have := congr_arg destruct e,
+  { apply or.inr, simpa using m },
+  { cases (show a = c ∨ a ∈ append t₁ s₂, by simpa using m) with e' m,
     { rw e', exact or.inl (mem_cons _ _) },
-    { rw i2, cases o with e' IH,
-      { rw e', exact or.inl (mem_cons _ _) },
-      { exact or.imp_left (mem_cons_of_mem _) (IH m i3) } } }
+    { cases (show c = b ∧ append t₁ s₂ = s', by simpa) with i1 i2,
+      cases o with e' IH,
+      { simp [i1, e'] },
+      { exact or.imp_left (mem_cons_of_mem _) (IH m i2) } } }
 end
 
 def mem_append_left {s₁ s₂ : seq α} {a : α} (h : a ∈ s₁) : a ∈ append s₁ s₂ :=

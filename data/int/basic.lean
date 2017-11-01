@@ -822,6 +822,9 @@ protected def cast : ℤ → α
 
 @[simp] theorem cast_of_nat (n : ℕ) : (of_nat n : α) = n := rfl
 @[simp] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n := rfl
+@[simp] theorem cast_coe_nat' (n : ℕ) :
+  (@coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ nat.cast_coe)) n : α) = n :=
+by simp
 
 @[simp] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : α) = -(n + 1) := rfl
 

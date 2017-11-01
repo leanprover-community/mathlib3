@@ -20,9 +20,12 @@ iff.rfl
 @[simp] lemma none_ne_some (a : α) : none ≠ some a
 | h := option.no_confusion h
 
-@[simp] lemma bind_none {f : α → option β} : none >>= f = none := rfl
+@[simp] lemma none_bind (f : α → option β) : none >>= f = none := rfl
 
-@[simp] lemma bind_some {a : α} {f : α → option β} : some a >>= f = f a := rfl
+@[simp] lemma some_bind (a : α) (f : α → option β) : some a >>= f = f a := rfl
+
+@[simp] lemma bind_some : ∀ x : option α, x >>= some = x :=
+@monad.bind_pure α α option _
 
 @[simp] lemma bind_eq_some {x : option α} {f : α → option β} {b : β} : x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp

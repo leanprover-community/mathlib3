@@ -82,5 +82,16 @@ do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
 meta def substs (l : parse ident*) : tactic unit :=
 l.mmap' (λ h, get_local h >>= tactic.subst)
 
+meta def unfold_coes (loc : parse location) : tactic unit :=
+unfold [`coe,`lift_t,`has_lift_t.lift,`coe_t,`has_coe_t.coe,`coe_b,`has_coe.coe] loc
+
+meta def recover : tactic unit :=
+do r ← tactic.result,
+   tactic.set_goals $ r.fold [] $ λ e _ l,
+     match e with
+     | expr.mvar _ _ _ := insert e l
+     | _ := l
+     end
+
 end interactive
 end tactic

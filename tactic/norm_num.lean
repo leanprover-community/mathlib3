@@ -154,10 +154,11 @@ meta def prove_lt (simp : expr → tactic (expr × expr)) : instance_cache → e
   return (c, p)
 | c `(- %%e₁) e₂ := do
   (c, p₁) ← prove_pos c e₁,
+  (c, me₁) ← c.mk_app ``has_neg.neg [e₁],
   (c, p₁) ← c.mk_app ``neg_neg_of_pos [e₁, p₁],
   (c, p₂) ← prove_pos c e₂,
   (c, z) ← c.mk_app ``has_zero.zero [],
-  (c, p) ← c.mk_app ``lt_trans [e₁, z, e₂, p₁, p₂],
+  (c, p) ← c.mk_app ``lt_trans [me₁, z, e₂, p₁, p₂],
   return (c, p)
 | c `(has_zero.zero _) e₂ := prove_pos c e₂
 | c e₁ e₂ := do
@@ -226,6 +227,7 @@ do (_, e', pr) ←
     ext_simplify_core () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
       (λ _ _ _ _ e,
         do (new_e, pr) ← derive1 derive e,
+           pe1 ← pp e, pe2 ← pp new_e, trace(pe1 ++ " -> "++pe2), 
            guard (¬ new_e =ₐ e),
            return ((), new_e, some pr, tt))
       `eq e,

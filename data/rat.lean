@@ -723,32 +723,54 @@ have (n⁻¹.denom : α) = 0 → (n.num : α) = 0, from
      rwa [int.cast_mul, int.cast_coe_nat, h, zero_mul] at this,
 by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn nd, division_def]
 
+@[simp] theorem cast_inj [char_zero α] : ∀ {m n : ℚ}, (m : α) = n ↔ m = n
+| ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  have d₁0 : d₁ ≠ 0 := ne_of_gt h₁,
+  have d₂0 : d₂ ≠ 0 := ne_of_gt h₂,
+  have d₁a : (d₁:α) ≠ 0 := nat.cast_ne_zero.2 d₁0,
+  have d₂a : (d₂:α) ≠ 0 := nat.cast_ne_zero.2 d₂0,
+  rw [num_denom', num_denom'] at h ⊢,
+  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
+  rwa [eq_div_iff_mul_eq _ _ d₂a, division_def, mul_assoc,
+    inv_comm_of_comm d₁a (nat.mul_cast_comm _ _),
+    ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq _ _ d₁a, eq_comm,
+    ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul,
+    int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h
 end
 
-theorem cast_mk [discrete_linear_ordered_field α] (a b : ℤ) : ((a /. b) : α) = a / b :=
+@[simp] theorem cast_eq_zero [char_zero α] {n : ℚ} : (n : α) = 0 ↔ n = 0 :=
+by rw [← cast_zero, cast_inj]
+
+@[simp] theorem cast_ne_zero [char_zero α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+not_congr cast_eq_zero
+
+end
+
+theorem cast_mk [discrete_field α] [char_zero α] (a b : ℤ) : ((a /. b) : α) = a / b :=
 if b0 : b = 0 then by simp [b0, div_zero]
 else cast_mk_of_ne_zero a b (int.cast_ne_zero.2 b0)
 
-@[simp] theorem cast_add [linear_ordered_field α] (m n) : ((m + n : ℚ) : α) = m + n :=
+@[simp] theorem cast_add [division_ring α] [char_zero α] (m n) : ((m + n : ℚ) : α) = m + n :=
 cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[simp] theorem cast_sub [linear_ordered_field α] (m n) : ((m - n : ℚ) : α) = m - n :=
+@[simp] theorem cast_sub [division_ring α] [char_zero α] (m n) : ((m - n : ℚ) : α) = m - n :=
 cast_sub_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[simp] theorem cast_mul [linear_ordered_field α] (m n) : ((m * n : ℚ) : α) = m * n :=
+@[simp] theorem cast_mul [division_ring α] [char_zero α] (m n) : ((m * n : ℚ) : α) = m * n :=
 cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[simp] theorem cast_inv [discrete_linear_ordered_field α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+@[simp] theorem cast_inv [discrete_field α] [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 if n0 : n.num = 0 then
   by simp [show n = 0, by rw [num_denom n, n0]; simp, inv_zero] else
 cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[simp] theorem cast_div [discrete_linear_ordered_field α] (m n) : ((m / n : ℚ) : α) = m / n :=
+@[simp] theorem cast_div [discrete_field α] [char_zero α] (m n) : ((m / n : ℚ) : α) = m / n :=
 by rw [division_def, cast_mul, cast_inv, division_def]
 
-@[simp] theorem cast_bit0 [linear_ordered_field α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _
+@[simp] theorem cast_bit0 [division_ring α] [char_zero α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _
 
-@[simp] theorem cast_bit1 [linear_ordered_field α] (n : ℚ) : ((bit1 n : ℚ) : α) = bit1 n :=
+@[simp] theorem cast_bit1 [division_ring α] [char_zero α] (n : ℚ) : ((bit1 n : ℚ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 @[simp] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
@@ -763,9 +785,6 @@ by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
 @[simp] theorem cast_lt [linear_ordered_field α] {m n : ℚ} : (m : α) < n ↔ m < n :=
 by simpa [-cast_le] using not_congr (@cast_le α _ n m)
 
-@[simp] theorem cast_inj [linear_ordered_field α] {m n : ℚ} : (m : α) = n ↔ m = n :=
-by simp [le_antisymm_iff]
-
 @[simp] theorem cast_nonpos [linear_ordered_field α] {n : ℚ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
 by rw [← cast_zero, cast_le]
 
@@ -774,12 +793,6 @@ by rw [← cast_zero, cast_lt]
 
 @[simp] theorem cast_lt_zero [linear_ordered_field α] {n : ℚ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
-
-@[simp] theorem cast_eq_zero [linear_ordered_field α] {n : ℚ} : (n : α) = 0 ↔ n = 0 :=
-by rw [← cast_zero, cast_inj]
-
-@[simp] theorem cast_ne_zero [linear_ordered_field α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
-not_congr cast_eq_zero
 
 @[simp] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := show (n / (d : ℤ) : ℚ) = _, by rw [num_denom', mk_eq_div]

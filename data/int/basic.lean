@@ -862,6 +862,19 @@ end
 theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
 by simp
 
+@[simp] theorem cast_eq_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) = 0 ↔ n = 0 :=
+⟨λ h, begin cases n,
+  { exact congr_arg coe (nat.cast_eq_zero.1 h) },
+  { rw [cast_neg_succ_of_nat, neg_eq_zero, ← cast_succ, nat.cast_eq_zero] at h,
+    contradiction }
+end, λ h, by rw [h, cast_zero]⟩
+
+@[simp] theorem cast_inj [add_group α] [has_one α] [char_zero α] {m n : ℤ} : (m : α) = n ↔ m = n :=
+by rw [← sub_eq_zero, ← cast_sub, cast_eq_zero, sub_eq_zero]
+
+@[simp] theorem cast_ne_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+not_congr cast_eq_zero
+
 @[simp] theorem cast_mul [ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n
 | (m : ℕ) (n : ℕ) := nat.cast_mul _ _
 | (m : ℕ) -[1+ n] := (cast_neg_of_nat _).trans $
@@ -900,15 +913,6 @@ by rw [← cast_zero, cast_lt]
 
 @[simp] theorem cast_lt_zero [linear_ordered_ring α] {n : ℤ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
-
-@[simp] theorem cast_inj [linear_ordered_ring α] {m n : ℤ} : (m : α) = n ↔ m = n :=
-by simp [le_antisymm_iff]
-
-@[simp] theorem cast_eq_zero [linear_ordered_ring α] {n : ℤ} : (n : α) = 0 ↔ n = 0 :=
-by rw [← cast_zero, cast_inj]
-
-@[simp] theorem cast_ne_zero [linear_ordered_ring α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
-not_congr cast_eq_zero
 
 @[simp] theorem cast_id : ∀ n : ℤ, ↑n = n
 | (n : ℕ) := (cast_coe_nat n).trans (nat_cast_eq_coe_nat n)

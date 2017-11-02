@@ -227,7 +227,6 @@ do (_, e', pr) ←
     ext_simplify_core () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
       (λ _ _ _ _ e,
         do (new_e, pr) ← derive1 derive e,
-           pe1 ← pp e, pe2 ← pp new_e, trace(pe1 ++ " -> "++pe2), 
            guard (¬ new_e =ₐ e),
            return ((), new_e, some pr, tt))
       `eq e,

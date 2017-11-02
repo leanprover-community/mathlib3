@@ -17,6 +17,9 @@ example : (2:real)/4 + 4 = 3*3/2 := by norm_num
 example : (((3:real)/4)-12)<6 := by norm_num
 example : (5:real) ≠ 8 := by norm_num
 example : (10:real) > 7 := by norm_num
+example : (2:real) * 2 + 3 = 7 := by norm_num
+example : (6:real) < 10 := by norm_num
+example : (7:real)/2 > 3 := by norm_num
 
 example : (1103 : ℤ) ≤ (2102 : ℤ) := by norm_num
 example : (110474 : ℤ) ≤ (210485 : ℤ) := by norm_num

@@ -6,10 +6,13 @@ Authors: Simon Hudon, Mario Carneiro
 Tests for norm_num
 -/
 
-import tactic.norm_num
+import tactic.norm_num analysis.real
 
 example : 374 + (32 - (2 * 8123) : ℤ) - 61 * 50 = 86 + 32 * 32 - 4 * 5000
       ∧ 43 ≤ 74 + (33 : ℤ) :=
+by norm_num
+
+example : ¬ (7-2)/(2*3) ≥ (1:ℝ) + 2/(3^2) :=
 by norm_num
 
 example : (1103 : ℤ) ≤ (2102 : ℤ) :=

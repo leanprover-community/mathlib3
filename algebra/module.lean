@@ -3,17 +3,15 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad
 
-Modules and vector spaces over a ring.
+Modules over a ring.
 -/
-import algebra.field
+import .field
 
 universes u v
 
 class has_scalar (α : inout Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixl ` • `:73 := has_scalar.smul
-
-/- modules over a ring -/
 
 class module (α : inout Type u) (β : Type v) [ring α] extends has_scalar α β, add_comm_group β :=
 (smul_left_distrib  : ∀r (x y : β), r • (x + y) = r • x + r • y)
@@ -52,6 +50,8 @@ by simp [smul_left_distrib]
 theorem sub_smul_right_distrib (a b : α) (v : β) : (a - b) • v = a • v - b • v :=
 by simp [smul_right_distrib]
 
+lemma smul_smul : a • (b • u) = (a * b) • u := mul_smul.symm
+
 end module
 
 def ring.to_module {α : Type u} [r : ring α] : module α α :=
@@ -61,7 +61,3 @@ def ring.to_module {α : Type u} [r : ring α] : module α α :=
   smul_right_distrib := assume a b c, add_mul _ _ _,
   mul_smul := assume a b c, mul_assoc _ _ _,
   one_smul := assume a, one_mul _ }
-
-/- vector spaces -/
-
-class vector_space (α : inout Type u)  (β : Type v) [field α] extends module α β

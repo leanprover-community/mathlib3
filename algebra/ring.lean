@@ -71,15 +71,13 @@ section units
   @[simp] lemma inv_mul : (a⁻¹*a).val = 1 := by simp [a.inv_val]
 
   instance : group (invertible α) :=
-  {
-    mul := has_mul.mul,
+  { mul := has_mul.mul,
     mul_assoc := (λ a b c, units.ext (by simp)),
     one := has_one.one _,
     mul_one := (λ a, units.ext (by simp)),
     one_mul := (λ a, units.ext (by simp)),
     inv := has_inv.inv,
-    mul_left_inv := (λ a, units.ext (by simp [a.inv_val]))
-  }
+    mul_left_inv := (λ a, units.ext (by simp [a.inv_val])) }
 
 end units
 

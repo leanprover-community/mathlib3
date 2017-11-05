@@ -48,15 +48,15 @@ instance : has_scalar K {x // x ∈ p} := ⟨(λ c v,
 @[simp] lemma smul_val : (c • v).val = c • v.val := rfl
 
 instance : vector_space K {x // x ∈ p} :=
-{ add                := has_add.add,
+{ add                := (+),
   add_assoc          := (λ u v w, subtype.eq (by simp [add_assoc])),
-  zero               := has_zero.zero _,
+  zero               := 0,
   zero_add           := (λ v, subtype.eq (by simp [zero_add])),
   add_zero           := (λ v, subtype.eq (by simp [add_zero])),
   neg                := has_neg.neg,
   add_left_neg       := (λ v, subtype.eq (by simp [add_left_neg])),
   add_comm           := (λ u v, subtype.eq (by simp [add_comm])),
-  smul               := has_scalar.smul,
+  smul               := (•),
   smul_left_distrib  := (λ c u v, subtype.eq (by simp [smul_left_distrib])),
   smul_right_distrib := (λ c u v, subtype.eq (by simp [smul_right_distrib])),
   mul_smul           := (λ c d v, subtype.eq (by simp [mul_smul])),
@@ -191,36 +191,29 @@ section Hom
 
 variables {u v : V} {A B C : linear_space K V W}
 
-def add (A B : linear_space K V W) : (linear_space K V W) :=
+instance : has_add (linear_space K V W) := ⟨(λ A B,
 { T        := (λ v, (A v) + (B v)),
   map_add  := (λ u v, by simp),
-  map_smul := (λ c v, by simp [smul_left_distrib]) }
+  map_smul := (λ c v, by simp [smul_left_distrib]) })⟩
 
-def zero : linear_space K V W :=
+instance : has_zero (linear_space K V W) := ⟨
 { T        := (λ v, 0),
   map_add  := (λ u v, by simp),
-  map_smul := (λ c v, by simp) }
+  map_smul := (λ c v, by simp) }⟩
 
-def neg (A : linear_space K V W) : linear_space K V W :=
+instance : has_neg (linear_space K V W) := ⟨(λ A,
 { T        := (λ v, -A v),
   map_add  := (λ u v, by simp),
-  map_smul := (λ c v, by simp) }
+  map_smul := (λ c v, by simp) })⟩
 
-instance : has_add (linear_space K V W) := ⟨add⟩
-instance : has_zero (linear_space K V W) := ⟨zero⟩
-instance : has_neg (linear_space K V W) := ⟨neg⟩
+instance : has_scalar K (linear_space K V W) := ⟨(λ c A,
+{ T        := (λ v, c•(A v)),
+  map_add  := (λ u v, by simp [smul_left_distrib]),
+  map_smul := (λ k v, by simp [smul_smul]) })⟩
 
 @[simp] lemma add_vec : (A + B) v = A v + B v := rfl
 @[simp] lemma zero_vec : (0:linear_space K V W) v = 0 := rfl
 @[simp] lemma neg_vec : (-A) v = -(A v) := rfl
-
-def smul (c : K) (A : linear_space K V W) : linear_space K V W :=
-{ T        := (λ v, c•(A v)),
-  map_add  := (λ u v, by simp [smul_left_distrib]),
-  map_smul := (λ k v, by simp [smul_smul]) }
-
-instance : has_scalar K (linear_space K V W) := ⟨smul⟩
-
 @[simp] lemma smul_vec : (c • A) v = c • (A v) := rfl
 
 variables (c d u v A B C)
@@ -237,15 +230,15 @@ theorem mul_smul : (c*d)•A = c•(d•A) := ext (λ v, by simp [mul_smul])
 theorem one_smul : (1:K) • A = A := ext (λ v, by simp [one_smul])
 
 instance : vector_space K (linear_space K V W) :=
-{ add                 := add,
+{ add                 := (+),
   add_assoc           := add_assoc,
-  zero                := zero,
+  zero                := 0,
   zero_add            := zero_add,
   add_zero            := add_zero,
-  neg                 := neg,
+  neg                 := has_neg.neg,
   add_left_neg        := add_left_neg,
   add_comm            := add_comm,
-  smul                := smul,
+  smul                := (•),
   smul_left_distrib   := smul_left_distrib,
   smul_right_distrib  := smul_right_distrib,
   mul_smul            := mul_smul,
@@ -266,12 +259,10 @@ def id : linear_space K V V :=
   map_add  := (λ u v, rfl),
   map_smul := (λ u v, rfl) }
 
-def comp (A B : linear_space K V V) : linear_space K V V :=
+instance : has_mul (linear_space K V V) := ⟨(λ A B,
 { T        := A ∘ B,
   map_add  := (λ u v, by simp [function.comp]),
-  map_smul := (λ c v, by simp [function.comp]) }
-
-instance : has_mul (linear_space K V V) := ⟨comp⟩
+  map_smul := (λ c v, by simp [function.comp]) })⟩
 
 @[simp] lemma id_vec : (id : linear_space K V V) v = v := rfl
 @[simp] lemma comp_vec : (A * B) v = A (B v) := rfl
@@ -285,15 +276,15 @@ theorem comp_add : A * (B + C) = A * B + A * C := ext (λ v, by simp)
 theorem add_comp : (A + B) * C = A * C + B * C := ext (λ v, rfl)
 
 instance : ring (linear_space K V V) :=
-{ add             := add,
+{ add             := (+),
   add_assoc       := add_assoc,
-  zero            := zero,
+  zero            := 0,
   zero_add        := zero_add,
   add_zero        := add_zero,
-  neg             := neg,
+  neg             := has_neg.neg,
   add_left_neg    := add_left_neg,
   add_comm        := add_comm,
-  mul             := comp,
+  mul             := (*),
   mul_assoc       := comp_assoc,
   one             := id,
   one_mul         := id_comp,

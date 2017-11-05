@@ -15,6 +15,66 @@ section
   (left_distrib n 1 1).trans (by simp)
 end
 
+structure units (α : Type u) [semiring α] :=
+(val : α)
+(inv : α)
+(val_inv : val * inv = 1)
+(inv_val : inv * val = 1)
+
+namespace units
+  variables [semiring α] {a b c : units α}
+
+  def ext (HAB : a.val = b.val) : a = b :=
+  begin
+    cases a,
+    cases b,
+    dsimp at HAB,
+    congr,
+    exact HAB,
+    exact calc
+        inv = inv * (val_1 * inv_1) : by rw [val_inv_1, mul_one]
+        ... = (inv * val_1) * inv_1 : by rw [mul_assoc]
+        ... = (inv * val) * inv_1   : by rw [HAB]
+        ... = inv_1                 : by rw [inv_val, one_mul]
+  end
+
+  instance : has_coe (units α) α := ⟨val⟩
+
+  lemma mul_four {a b c d : α} :
+  (a * b) * (c * d) = a * (b * c) * d := by simp
+
+  protected def mul : units α → units α → units α
+  | ⟨v₁, i₁, vi₁, iv₁⟩ ⟨v₂, i₂, vi₂, iv₂⟩ :=
+  { val     := v₁ * v₂,
+    inv     := i₂ * i₁,
+    val_inv := by rw [mul_four, vi₂, mul_one, vi₁],
+    inv_val := by rw [mul_four, iv₁, mul_one, iv₂] }
+  
+  protected def inv' : units α → units α
+  | ⟨v, i, vi, iv⟩ := ⟨i, v, iv, vi⟩
+
+  instance : has_mul (units α) := ⟨units.mul⟩
+  instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
+  instance : has_inv (units α) := ⟨units.inv'⟩
+
+  variables (a b c)
+
+  @[simp] lemma mul_val : (a*b).val = a.val * b.val := by cases a; cases b; refl
+  @[simp] lemma one_val : (1 : units α).val = 1 := rfl
+  @[simp] lemma inv_val' : (a⁻¹).val = a.inv := by cases a; refl
+  @[simp] lemma inv_mul : (a⁻¹*a).val = 1 := by simp [a.inv_val]
+
+  instance : group (units α) :=
+  { mul          := (*),
+    mul_assoc    := λ a b c, units.ext (by simp),
+    one          := 1,
+    mul_one      := λ a, units.ext (by simp),
+    one_mul      := λ a, units.ext (by simp),
+    inv          := has_inv.inv,
+    mul_left_inv := λ a, units.ext (by simp [a.inv_val]) }
+
+end units
+
 section
   variables [ring α] (a b c d e : α)
 

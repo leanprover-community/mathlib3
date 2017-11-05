@@ -18,6 +18,10 @@ end
 section
   variables [ring α] (a b c d e : α)
 
+  lemma mul_neg_one (a : α) : a * -1 = -a := by simp
+
+  lemma neg_one_mul (a : α) : -1 * a = -a := by simp
+
   theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
   calc
     a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp
@@ -31,18 +35,11 @@ section
     (a - b) * e + c = (a * e + c) - b * e : begin simp [@sub_eq_add_neg α, @right_distrib α] end
                 ... = d                   : begin rewrite h, simp [@add_sub_cancel α] end
 
-  theorem mul_neg_one_eq_neg : a * (-1) = -a :=
-    have a + a * -1 = 0, from calc
-      a + a * -1 = a * 1 + a * -1 : by simp
-             ... = a * (1 + -1)   : eq.symm (left_distrib a 1 (-1))
-             ... = 0              : by simp,
-    (neg_eq_of_add_eq_zero this).symm
-
   theorem ne_zero_and_ne_zero_of_mul_ne_zero {a b : α} (h : a * b ≠ 0) : a ≠ 0 ∧ b ≠ 0 :=
   begin
     split,
-      intro ha, apply h, simp [ha],
-    intro hb, apply h, simp [hb]
+    { intro ha, apply h, simp [ha] },
+    { intro hb, apply h, simp [hb] }
   end
 end
 

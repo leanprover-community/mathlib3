@@ -12,17 +12,8 @@ variables {α : Type u}
 section division_ring
 variables [division_ring α] {a b : α}
 
-lemma inv_ne_zero {a : α} (h : a ≠ 0) : a⁻¹ ≠ 0 :=
-by rw inv_eq_one_div; exact one_div_ne_zero h
-
-@[simp] lemma division_ring.inv_inv {a : α} (h : a ≠ 0) : a⁻¹⁻¹ = a :=
-by rw [inv_eq_one_div, inv_eq_one_div, division_ring.one_div_one_div h]
-
 lemma division_ring.inv_div {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : (a / b)⁻¹ = b / a :=
 by rw [division_def, mul_inv_eq (inv_ne_zero hb) ha, division_ring.inv_inv hb, division_def]
-
-lemma division_ring.one_div_div {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : 1 / (a / b) = b / a :=
-by rw [one_div_eq_inv, division_ring.inv_div ha hb]
 
 lemma division_ring.neg_inv (h : a ≠ 0) : - a⁻¹ = (- a)⁻¹ :=
 by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]

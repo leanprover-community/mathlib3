@@ -5,7 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad
 
 Modules over a ring.
 -/
-import .field
+import algebra.field
 
 universes u v
 

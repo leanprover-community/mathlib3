@@ -51,6 +51,25 @@ protected meta def of_rat (α : expr) : ℚ → tactic expr
   tactic.mk_app ``has_neg.neg [e]
 end expr
 
+namespace tactic
+
+meta def replace_at (tac : expr → tactic (expr × expr)) (hs : list expr) (tgt : bool) : tactic bool :=
+do to_remove ← hs.mfilter $ λ h, do {
+         h_type ← infer_type h,
+         (do (new_h_type, pr) ← tac h_type,
+             assert h.local_pp_name new_h_type,
+             mk_eq_mp pr h >>= tactic.exact >> return tt)
+         <|>
+         (return ff) },
+   goal_simplified ← if tgt then (do
+     (new_t, pr) ← target >>= tac,
+     replace_target new_t pr,
+     return tt) <|> return ff else return ff,
+   to_remove.mmap' (λ h, try (clear h)),
+   return (¬ to_remove.empty ∨ goal_simplified)
+
+end tactic
+
 namespace norm_num
 variable {α : Type u}
 
@@ -102,6 +121,17 @@ do d ← get_decl n,
    return (c, (expr.const n [c.univ]).mk_app (c.α :: l))
 
 end instance_cache
+
+meta def eval_inv (simp : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
+| `(has_inv.inv %%e) := do
+  c ← infer_type e >>= mk_instance_cache,
+  (c, p₁) ← c.mk_app ``inv_eq_one_div [e],
+  (c, o) ← c.mk_app ``has_one.one [],
+  (c, e') ← c.mk_app ``has_div.div [o, e],
+  (do (e'', p₂) ← simp e',
+    p ← mk_eq_trans p₁ p₂,
+    return (e'', p)) <|> return (e', p₁)
+| _ := failed
 
 meta def eval_pow (simp : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
 | `(pow_nat %%e₁ 0) := do
@@ -219,8 +249,7 @@ meta def eval_ineq (simp : expr → tactic (expr × expr)) : expr → tactic (ex
 
 meta def derive1 (simp : expr → tactic (expr × expr)) (e : expr) :
   tactic (expr × expr) :=
-norm_num e <|> eval_pow simp e <|> eval_ineq simp e
-
+norm_num e <|> eval_inv simp e <|> eval_pow simp e <|> eval_ineq simp e
 
 meta def derive : expr → tactic (expr × expr) | e :=
 do (_, e', pr) ←
@@ -237,14 +266,16 @@ end norm_num
 namespace tactic.interactive
 open norm_num interactive interactive.types
 
-meta def norm_num1 : tactic unit :=
-do t ← target,
-   (new_target, pr) ← derive t,
-    replace_target new_target pr,
-    try (tactic.triv)
+meta def norm_num1 (loc : parse location) : tactic unit :=
+do ns ← loc.get_locals,
+   tt ← tactic.replace_at derive ns loc.include_goal
+      | fail "norm_num failed to simplify",
+   when loc.include_goal $ try tactic.triv,
+   when (¬ ns.empty) $ try tactic.contradiction
 
-meta def norm_num : tactic unit :=
-repeat (norm_num1 <|> `[simp])
+meta def norm_num (loc : parse location) : tactic unit :=
+let t := orelse' (norm_num1 loc) $ simp_core {} failed ff [] [] loc in
+t >> repeat t
 
 meta def apply_normed (x : parse texpr) : tactic unit :=
 do x₁ ← to_expr x,

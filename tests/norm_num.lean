@@ -6,7 +6,7 @@ Authors: Simon Hudon, Mario Carneiro
 Tests for norm_num
 -/
 
-import analysis.real init.classical tactic.norm_num
+import analysis.real tactic.norm_num
 
 example : 374 + (32 - (2 * 8123) : ℤ) - 61 * 50 = 86 + 32 * 32 - 4 * 5000
       ∧ 43 ≤ 74 + (33 : ℤ) := by norm_num
@@ -20,6 +20,10 @@ example : (10:real) > 7 := by norm_num
 example : (2:real) * 2 + 3 = 7 := by norm_num
 example : (6:real) < 10 := by norm_num
 example : (7:real)/2 > 3 := by norm_num
+example : (4:real)⁻¹ < 1 := by norm_num
+
+example (x : ℤ) (h : 1000 + 2000 < x) : 100 * 30 < x :=
+by norm_num at *; try_for 100 {exact h}
 
 example : (1103 : ℤ) ≤ (2102 : ℤ) := by norm_num
 example : (110474 : ℤ) ≤ (210485 : ℤ) := by norm_num

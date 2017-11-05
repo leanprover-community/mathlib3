@@ -20,14 +20,15 @@ section units
   variable (α)
 
   structure invertible :=
-    (val : α)
-    (inv : α)
-    (property : val * inv = 1 ∧ inv * val = 1)
+  (val : α)
+  (inv : α)
+  (val_inv : val * inv = 1)
+  (inv_val : inv * val = 1)
 
   variables {a b c : invertible α}
   variable {α}
 
-  def ext (HAB : a.val = b.val) : a = b :=
+  def units.ext (HAB : a.val = b.val) : a = b :=
   begin
     cases a,
     cases b,
@@ -35,61 +36,49 @@ section units
     congr,
     exact HAB,
     exact calc
-        inv = inv * (val_1 * inv_1) : by rw [property_1.1, mul_one]
+        inv = inv * (val_1 * inv_1) : by rw [val_inv_1, mul_one]
         ... = (inv * val_1) * inv_1 : by rw [mul_assoc]
         ... = (inv * val) * inv_1   : by rw [HAB]
-        ... = inv_1                 : by rw [property.2, one_mul]
+        ... = inv_1                 : by rw [inv_val, one_mul]
   end
 
   lemma mul_four {a b c d : α} :
   (a * b) * (c * d) = a * (b * c) * d := by simp
 
-  def mul (a b : invertible α) : invertible α :=
-  {
-    val := a.val * b.val,
-    inv := b.inv * a.inv,
-    property := ⟨by rw [mul_four,b.property.1,mul_one,a.property.1],
-                by rw [mul_four,a.property.2,mul_one,b.property.2]⟩
-  }
+  instance : has_mul (invertible α) := ⟨(λ a b,
+  { val     := a.val * b.val,
+    inv     := b.inv * a.inv,
+    val_inv := by rw [mul_four,b.val_inv,mul_one,a.val_inv],
+    inv_val := by rw [mul_four,a.inv_val,mul_one,b.inv_val] })⟩
 
-  def one : invertible α :=
-  {
-    val := 1,
-    inv := 1,
-    property := ⟨mul_one 1, one_mul 1⟩
-  }
+  instance : has_one (invertible α) := ⟨
+  { val     := 1,
+    inv     := 1,
+    val_inv := mul_one 1,
+    inv_val := one_mul 1 }⟩
 
-  def inv (a : invertible α) : invertible α :=
-  {
-    val := a.inv,
-    inv := a.val,
-    property := ⟨a.property.2, a.property.1⟩
-  }
-
-  instance : has_mul (invertible α) := ⟨mul⟩
-  instance : has_one (invertible α) := ⟨one⟩
-  instance : has_inv (invertible α) := ⟨inv⟩
+  instance : has_inv (invertible α) := ⟨(λ a,
+  { val     := a.inv,
+    inv     := a.val,
+    val_inv := a.inv_val,
+    inv_val := a.val_inv })⟩
 
   variables (a b c)
 
-  @[simp] lemma mul_simp : (mul a b).val = a.val * b.val := rfl
-  @[simp] lemma one_simp : (one : invertible α).val = 1 := rfl
-  @[simp] lemma inv_simp : (inv a).val = a.inv := rfl
-  @[simp] lemma mul_simp' : (a*b).val = a.val * b.val := rfl
-  @[simp] lemma one_simp' : (1 : invertible α).val = 1 := rfl
-  @[simp] lemma inv_simp' : (a⁻¹).val = a.inv := rfl
-  @[simp] lemma mul_inv_simp' : (a*a⁻¹).val = 1 := by simp [a.property.1]
-  @[simp] lemma inv_mul_simp' : (a⁻¹*a).val = 1 := by simp [a.property.2]
+  @[simp] lemma mul_val : (a*b).val = a.val * b.val := rfl
+  @[simp] lemma one_val : (1 : invertible α).val = 1 := rfl
+  @[simp] lemma inv_val : (a⁻¹).val = a.inv := rfl
+  @[simp] lemma inv_mul : (a⁻¹*a).val = 1 := by simp [a.inv_val]
 
   instance : group (invertible α) :=
   {
-    mul := mul,
-    mul_assoc := (λ a b c, ext (by simp)),
-    one := one,
-    mul_one := (λ a, ext (by simp)),
-    one_mul := (λ a, ext (by simp)),
-    inv := inv,
-    mul_left_inv := (λ a, ext (by simp [a.property.2]))
+    mul := has_mul.mul,
+    mul_assoc := (λ a b c, units.ext (by simp)),
+    one := has_one.one _,
+    mul_one := (λ a, units.ext (by simp)),
+    one_mul := (λ a, units.ext (by simp)),
+    inv := has_inv.inv,
+    mul_left_inv := (λ a, units.ext (by simp [a.inv_val]))
   }
 
 end units

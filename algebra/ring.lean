@@ -18,10 +18,6 @@ end
 section
   variables [ring α] (a b c d e : α)
 
-  lemma mul_neg_one (a : α) : a * -1 = -a := by simp
-
-  lemma neg_one_mul (a : α) : -1 * a = -a := by simp
-
   theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
   calc
     a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp
@@ -35,13 +31,99 @@ section
     (a - b) * e + c = (a * e + c) - b * e : begin simp [@sub_eq_add_neg α, @right_distrib α] end
                 ... = d                   : begin rewrite h, simp [@add_sub_cancel α] end
 
+  theorem mul_neg_one_eq_neg : a * (-1) = -a :=
+    have a + a * -1 = 0, from calc
+      a + a * -1 = a * 1 + a * -1 : by simp
+             ... = a * (1 + -1)   : eq.symm (left_distrib a 1 (-1))
+             ... = 0              : by simp,
+    (neg_eq_of_add_eq_zero this).symm
+
   theorem ne_zero_and_ne_zero_of_mul_ne_zero {a b : α} (h : a * b ≠ 0) : a ≠ 0 ∧ b ≠ 0 :=
   begin
     split,
-    { intro ha, apply h, simp [ha] },
-    { intro hb, apply h, simp [hb] }
+      intro ha, apply h, simp [ha],
+    intro hb, apply h, simp [hb]
   end
 end
+
+section units
+  variables [semiring α]
+  variable (α)
+
+  structure invertible :=
+    (val : α)
+    (inv : α)
+    (property : val * inv = 1 ∧ inv * val = 1)
+
+  variables {a b c : invertible α}
+  variable {α}
+
+  def ext (HAB : a.val = b.val) : a = b :=
+  begin
+    cases a,
+    cases b,
+    dsimp at HAB,
+    congr,
+    exact HAB,
+    exact calc
+        inv = inv * (val_1 * inv_1) : by rw [property_1.1, mul_one]
+        ... = (inv * val_1) * inv_1 : by rw [mul_assoc]
+        ... = (inv * val) * inv_1   : by rw [HAB]
+        ... = inv_1                 : by rw [property.2, one_mul]
+  end
+
+  lemma mul_four {a b c d : α} :
+  (a * b) * (c * d) = a * (b * c) * d := by simp
+
+  def mul (a b : invertible α) : invertible α :=
+  {
+    val := a.val * b.val,
+    inv := b.inv * a.inv,
+    property := ⟨by rw [mul_four,b.property.1,mul_one,a.property.1],
+                by rw [mul_four,a.property.2,mul_one,b.property.2]⟩
+  }
+
+  def one : invertible α :=
+  {
+    val := 1,
+    inv := 1,
+    property := ⟨mul_one 1, one_mul 1⟩
+  }
+
+  def inv (a : invertible α) : invertible α :=
+  {
+    val := a.inv,
+    inv := a.val,
+    property := ⟨a.property.2, a.property.1⟩
+  }
+
+  instance : has_mul (invertible α) := ⟨mul⟩
+  instance : has_one (invertible α) := ⟨one⟩
+  instance : has_inv (invertible α) := ⟨inv⟩
+
+  variables (a b c)
+
+  @[simp] lemma mul_simp : (mul a b).val = a.val * b.val := rfl
+  @[simp] lemma one_simp : (one : invertible α).val = 1 := rfl
+  @[simp] lemma inv_simp : (inv a).val = a.inv := rfl
+  @[simp] lemma mul_simp' : (a*b).val = a.val * b.val := rfl
+  @[simp] lemma one_simp' : (1 : invertible α).val = 1 := rfl
+  @[simp] lemma inv_simp' : (a⁻¹).val = a.inv := rfl
+  @[simp] lemma mul_inv_simp' : (a*a⁻¹).val = 1 := by simp [a.property.1]
+  @[simp] lemma inv_mul_simp' : (a⁻¹*a).val = 1 := by simp [a.property.2]
+
+  instance : group (invertible α) :=
+  {
+    mul := mul,
+    mul_assoc := (λ a b c, ext (by simp)),
+    one := one,
+    mul_one := (λ a, ext (by simp)),
+    one_mul := (λ a, ext (by simp)),
+    inv := inv,
+    mul_left_inv := (λ a, ext (by simp [a.property.2]))
+  }
+
+end units
 
 section comm_ring
   variable [comm_ring α]
@@ -51,6 +133,7 @@ section comm_ring
 
   @[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
   ⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
+
 end comm_ring
 
 set_option old_structure_cmd true

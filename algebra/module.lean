@@ -162,7 +162,7 @@ eq_neg_of_add_eq_zero (by {rw [←map_add_app], simp})
 end basic
 
 
-@[simp] def ker [ring R] [module R M] [module R N]
+def ker [ring R] [module R M] [module R N]
   (A : linear_map R M N) : set M := {v | A v = 0}
 
 namespace ker
@@ -192,7 +192,7 @@ submodule.sub R HU HV
 end ker
 
 
-@[simp] def im [ring R] [module R M] [module R N]
+def im [ring R] [module R M] [module R N]
   (A : linear_map R M N) : set N := {w | ∃ v, A v = w}
 
 namespace im

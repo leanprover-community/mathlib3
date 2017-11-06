@@ -414,6 +414,12 @@ end set
 
 section image
 
+@[congr]
+lemma image_congr {f g : α → β} {s : set α} (h : ∀a∈s, f a = g a) : f '' s = g '' s :=
+set.ext $ assume x, ⟨
+  assume ⟨a, ha, eq⟩, ⟨a, ha, eq ▸ (h _ ha).symm⟩,
+  assume ⟨a, ha, eq⟩, ⟨a, ha, eq ▸ h _ ha⟩⟩
+
 lemma image_Union {f : α → β} {s : ι → set α} : f '' (⋃ i, s i) = (⋃i, f '' s i) :=
 begin
   apply set.ext, intro x,

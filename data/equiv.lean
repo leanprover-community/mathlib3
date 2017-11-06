@@ -113,6 +113,12 @@ def equiv_empty (h : α → false) : α ≃ empty :=
 def false_equiv_empty : false ≃ empty :=
 equiv_empty _root_.id
 
+lemma empty_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : α ≃ empty :=
+⟨assume a, (h ⟨a⟩).elim, assume e, e.rec_on _, assume a, (h ⟨a⟩).elim, assume e, e.rec_on _⟩
+
+protected lemma ulift {α : Type u} : ulift α ≃ α :=
+⟨ulift.down, ulift.up, ulift.up_down, ulift.down_up⟩
+
 @[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ β₂ → (α₁ → β₁) ≃ (α₂ → β₂)
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ :=
   ⟨λ (h : α₁ → β₁) (a : α₂), f₂ (h (g₁ a)),
@@ -133,6 +139,10 @@ section
 @[simp] def false_arrow_equiv_unit (α : Sort*) : (false → α) ≃ unit :=
 calc (false → α) ≃ (empty → α) : arrow_congr false_equiv_empty (equiv.refl _)
              ... ≃ unit        : empty_arrow_equiv_unit _
+
+lemma arrow_empty_unit {α : Sort*} : (empty → α) ≃ unit :=
+⟨λf, (), λu e, e.rec_on _, assume f, funext $ assume e, e.rec_on _, assume u, unit_eq _ _⟩
+
 end
 
 @[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ β₂ → (α₁ × β₁) ≃ (α₂ × β₂)
@@ -175,7 +185,7 @@ def sum_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ 
   ⟨λ s, match s with inl a₁ := inl (f₁ a₁) | inr b₁ := inr (f₂ b₁) end,
    λ s, match s with inl a₂ := inl (g₁ a₂) | inr b₂ := inr (g₂ b₂) end,
    λ s, match s with inl a := congr_arg inl (l₁ a) | inr a := congr_arg inr (l₂ a) end,
-   λ s, match s with inl a := congr_arg inl (r₁ a) | inr a := congr_arg inr (r₂ a) end⟩ 
+   λ s, match s with inl a := congr_arg inl (r₁ a) | inr a := congr_arg inr (r₂ a) end⟩
 
 def bool_equiv_unit_sum_unit : bool ≃ (unit ⊕ unit) :=
 ⟨λ b, cond b inl inr (),

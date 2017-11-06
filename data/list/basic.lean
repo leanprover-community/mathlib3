@@ -442,6 +442,15 @@ by induction h; [refl,
   apply sublist_cons_of_sublist _ ih_1,
   apply cons_sublist_cons _ ih_1]
 
+theorem sublist_or_mem_of_sublist {l l₁ l₂ : list α} {a : α} (h : l <+ l₁ ++ a::l₂) : l <+ l₁ ++ l₂ ∨ a ∈ l :=
+begin
+  induction l₁ with b l₁ IH generalizing l,
+  { cases h; simp * },
+  { cases h with _ _ _ h _ _ _ h,
+    { exact or.imp_left (sublist_cons_of_sublist _) (IH h) },
+    { exact (IH h).imp (cons_sublist_cons _) (mem_cons_of_mem _) } }
+end
+
 theorem reverse_sublist {l₁ l₂ : list α} (h : l₁ <+ l₂) : l₁.reverse <+ l₂.reverse :=
 by induction h; simp; [
   exact sublist_app_of_sublist_left ih_1,
@@ -1432,6 +1441,15 @@ end else by simp [h]
 
 theorem erase_subset (a : α) (l : list α) : l.erase a ⊆ l :=
 subset_of_sublist (erase_sublist a l)
+
+theorem erase_sublist_erase (a : α) : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → l₁.erase a <+ l₂.erase a
+| ._ ._ sublist.slnil             := sublist.slnil
+| ._ ._ (sublist.cons  l₁ l₂ b s) := if h : b = a
+  then by rw [h, erase_cons_head]; exact (erase_sublist _ _).trans s
+  else by rw erase_cons_tail _ h; exact (erase_sublist_erase s).cons _ _ _
+| ._ ._ (sublist.cons2 l₁ l₂ b s) := if h : b = a
+  then by rw [h, erase_cons_head, erase_cons_head]; exact s
+  else by rw [erase_cons_tail _ h, erase_cons_tail _ h]; exact (erase_sublist_erase s).cons2 _ _ _
 
 theorem mem_erase_of_ne_of_mem {a b : α} {l : list α} (ab : a ≠ b) (al : a ∈ l) : a ∈ l.erase b :=
 if h : b ∈ l then match l, l.erase b, exists_erase_eq h, al with

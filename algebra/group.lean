@@ -91,6 +91,7 @@ run_cmd transport_multiplicative_to_additive [
   (`left_cancel_semigroup.to_semigroup, `add_left_cancel_semigroup.to_add_semigroup),
   (`right_cancel_semigroup.to_semigroup, `add_right_cancel_semigroup.to_add_semigroup),
   /- map lemmas -/
+  (`mul_one, `add_zero),
   (`mul_left_inv, `add_left_neg),
   (`mul_left_cancel, `add_left_cancel),
   (`mul_right_cancel, `add_right_cancel),
@@ -99,6 +100,7 @@ run_cmd transport_multiplicative_to_additive [
   (`inv_inv, `neg_neg),
   (`mul_inv_cancel_left, `add_neg_cancel_left),
   (`mul_inv_cancel_right, `add_neg_cancel_right),
+  (`group.to_left_cancel_semigroup, `add_group.to_left_cancel_add_semigroup),
   (`group.to_right_cancel_semigroup, `add_group.to_right_cancel_add_semigroup),
   (`eq_inv_of_eq_inv, `eq_neg_of_eq_neg),
   (`one_inv, `neg_zero),
@@ -106,6 +108,7 @@ run_cmd transport_multiplicative_to_additive [
   (`mul_left_inj, `add_left_inj),
   (`mul_right_inj, `add_right_inj),
   (`inv_inj', `neg_inj'),
+  (`mul_self_iff_eq_one, `add_self_iff_eq_zero),
   (`inv_eq_one, `neg_eq_zero),
   (`inv_ne_one, `neg_ne_zero),
   (`left_inverse_inv, `left_inverse_neg),

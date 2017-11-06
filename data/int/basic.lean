@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.basic data.nat.cast algebra.functions
+import data.nat.basic data.nat.cast algebra.functions algebra.ring
 open nat
 
 namespace int
@@ -415,6 +415,11 @@ protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / (abs a) :=
 if az : a = 0 then by simp [az] else
 (int.div_eq_of_eq_mul_left (mt eq_zero_of_abs_eq_zero az)
   (sign_mul_abs _).symm).symm
+
+theorem mul_sign : ∀ (i : ℤ), i * sign i = nat_abs i
+| (n+1:ℕ) := mul_one _
+| 0       := mul_zero _
+| -[1+ n] := mul_neg_one _
 
 theorem le_of_dvd {a b : ℤ} (bpos : b > 0) (H : a ∣ b) : a ≤ b :=
 match a, b, eq_succ_of_zero_lt bpos, H with

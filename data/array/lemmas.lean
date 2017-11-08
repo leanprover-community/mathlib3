@@ -31,19 +31,19 @@ theorem rev_list_reverse_core (a : array n α) : Π i (h : i ≤ n) (t : list α
 | 0     h t := rfl
 | (i+1) h t := rev_list_reverse_core i _ _
 
-theorem rev_list_reverse (a : array n α) : a.rev_list.reverse = a.to_list :=
+@[simp] theorem rev_list_reverse (a : array n α) : a.rev_list.reverse = a.to_list :=
 rev_list_reverse_core a _ _ _
 
-theorem to_list_reverse (a : array n α) : a.to_list.reverse = a.rev_list :=
+@[simp] theorem to_list_reverse (a : array n α) : a.to_list.reverse = a.rev_list :=
 by rw [← rev_list_reverse, list.reverse_reverse]
 
 theorem rev_list_length_aux (a : array n α) (i h) : (a.iterate_aux (λ _ v l, v :: l) i h []).length = i :=
 by induction i; simp [*, d_array.iterate_aux]
 
-theorem rev_list_length (a : array n α) : a.rev_list.length = n :=
+@[simp] theorem rev_list_length (a : array n α) : a.rev_list.length = n :=
 rev_list_length_aux a _ _
 
-theorem to_list_length (a : array n α) : a.to_list.length = n :=
+@[simp] theorem to_list_length (a : array n α) : a.to_list.length = n :=
 by rw[← rev_list_reverse, list.length_reverse, rev_list_length]
 
 theorem to_list_nth_le_core (a : array n α) (i : ℕ) (ih : i < n) : Π (j) {jh t h'},
@@ -59,6 +59,9 @@ theorem to_list_nth_le_core (a : array n α) (i : ℕ) (ih : i < n) : Π (j) {jh
 theorem to_list_nth_le (a : array n α) (i : ℕ) (h h') : list.nth_le a.to_list i h' = a.read ⟨i, h⟩ :=
 to_list_nth_le_core _ _ _ _ (λk tl, absurd tl $ nat.not_lt_zero _)
 
+@[simp] theorem to_list_nth_le' (a : array n α) (i : fin n) (h') : list.nth_le a.to_list i.1 h' = a.read i :=
+by cases i; apply to_list_nth_le
+
 theorem to_list_nth {a : array n α} {i : ℕ} {v} : list.nth a.to_list i = some v ↔ ∃ h, a.read ⟨i, h⟩ = v :=
 begin
   rw list.nth_eq_some,
@@ -70,6 +73,20 @@ end
 
 theorem to_list_foldl (a : array n α) (b : β) (f : β → α → β) : a.to_list.foldl f b = a.foldl b (function.swap f) :=
 by rw [← rev_list_reverse, list.foldl_reverse, rev_list_foldr]
+
+theorem write_to_list {a : array n α} {i v} : (a.write i v).to_list = a.to_list.update_nth i.1 v :=
+list.ext_le (by simp) $ λ j h₁ h₂, begin
+  have h₃ : j < n, {simpa using h₁},
+  rw [to_list_nth_le _ _ h₃],
+  refine let ⟨_, e⟩ := list.nth_eq_some.1 _ in e.symm,
+  by_cases i.1 = j with ij,
+  { subst j, rw [show fin.mk i.val h₃ = i, from fin.eq_of_veq rfl,
+      array.read_write, list.nth_update_nth_of_lt],
+    simp [h₃] },
+  { rw [list.nth_update_nth_ne _ _ ij, a.read_write_of_ne,
+        to_list_nth.2 ⟨h₃, rfl⟩],
+    exact fin.ne_of_vne ij }
+end
 
 theorem mem_rev_list_core (a : array n α) (v : α) : Π i (h : i ≤ n),
   (∃ (j : fin n), j.1 < i ∧ read a j = v) ↔ v ∈ a.iterate_aux (λ _ v l, v :: l) i h []
@@ -93,7 +110,11 @@ iff.symm $ iff.trans
   (mem_rev_list_core a v _ _)
 
 @[simp] theorem mem_to_list (a : array n α) (v : α) : v ∈ a.to_list ↔ v ∈ a :=
-by rw ← rev_list_reverse; simp
+by rw ← rev_list_reverse; simp [-rev_list_reverse]
+
+theorem mem_to_list_enum (a : array n α) {i v} :
+  (i, v) ∈ a.to_list.enum ↔ ∃ h, a.read ⟨i, h⟩ = v :=
+by simp [list.mem_iff_nth, to_list_nth]
 
 @[simp] theorem to_list_to_array (a : array n α) : a.to_list.to_array == a :=
 heq_of_heq_of_eq
@@ -155,10 +176,6 @@ read_foreach _ _ _
 theorem read_map₂ (f : α → α → α) (a b : array n α) (i : fin n) :
   (map₂ f a b).read i = f (a.read i) (b.read i) :=
 read_foreach _ _ _
-
-theorem mem_to_list_enum (a : array n α) {i v} :
-  (i, v) ∈ a.to_list.enum ↔ ∃ h, a.read ⟨i, h⟩ = v :=
-by simp [list.mem_iff_nth, to_list_nth]
 
 end array
 

@@ -30,43 +30,21 @@ def modify (hash_fn : α → nat) (a : α) (f : list (Σ a, β a) → list (Σ a
 let bidx := hash_map.mk_idx n (hash_fn a) in
 array.write data bidx (f (array.read data bidx))
 
-def as_list : list Σ a, β a :=
-data.foldl [] (λbkt r, r ++ bkt)
+def as_list : list Σ a, β a := data.to_list.join
 
 theorem mem_as_list {a : Σ a, β a} : a ∈ data.as_list ↔ ∃i, a ∈ array.read data i :=
-suffices ∀j h, a ∈ d_array.iterate_aux data (λ_ bkt r, r ++ bkt) j h [] ↔
-  ∃ (i : fin n.1), i.1 < j ∧ a ∈ array.read data i, from
-(this _ _).trans (exists_congr $ λi, and_iff_right i.2),
-begin
-  intros, induction j with j IH,
-  { exact ⟨false.elim, λ⟨i, h, _⟩, absurd h (nat.not_lt_zero _)⟩ },
-  { suffices : a ∈ array.read data ⟨j, h⟩ ∨ (∃ (i : fin (n.val)), i.val < j ∧ a ∈ array.read data i) ↔
-      ∃ (i : fin (n.val)), i.val ≤ j ∧ a ∈ array.read data i,
-    { simpa [d_array.iterate_aux, nat.lt_succ_iff, IH (le_of_lt h)] },
-    exact ⟨λo, or.elim o
-      (λm, ⟨⟨j, h⟩, nat.le_refl _, m⟩)
-      (λ⟨i, il, im⟩, ⟨i, le_of_lt il, im⟩),
-    λ⟨i, le, m⟩, (lt_or_eq_of_le le).elim
-      (λl, or.inr ⟨i, l, m⟩)
-      (λe, or.inl $ by rwa [← show i = ⟨j, h⟩, from fin.eq_of_veq e])⟩ }
-end
+have (∃ (l : list (Σ (a : α), β a)) (i : fin (n.val)), a ∈ l ∧ array.read data i = l) ↔
+  ∃ (i : fin (n.val)), a ∈ array.read data i,
+by rw exists_swap; exact exists_congr (λ i, by simp),
+by simp [as_list]; simpa [array.mem.def]
 
 def foldl {δ : Type w} (d : δ) (f : δ → Π a, β a → δ) : δ :=
 data.foldl d (λ b d, b.foldl (λ r a, f r a.1 a.2) d)
 
-theorem foldl_eq_lem {γ : Type u} {δ : Type w} (d : δ) (f : δ → γ → δ) : Π l : list (list γ),
-  l.foldr (λ (b:list γ) d, b.foldl f d) d = (l.foldr (λ(bkt r : list γ), r ++ bkt) []).foldl f d
-| []      := rfl
-| (l::ls) := show l.foldl f (ls.foldr (λ (b:list γ) d, b.foldl f d) d) =
-  (ls.foldr (λ (bkt r : list γ), r ++ bkt) [] ++ l).foldl f d, by rw [list.append_foldl, foldl_eq_lem ls]
-
 theorem foldl_eq {δ : Type w} (d : δ) (f : δ → Π a, β a → δ) :
   data.foldl d f = data.as_list.foldl (λ r a, f r a.1 a.2) d :=
-let f' : δ → (Σ a, β a) → δ := λ r a, f r a.1 a.2 in
-let g : list (Σ a, β a) → δ → δ := λ b d, b.foldl f' d in
-calc array.foldl data d g = data.rev_list.foldr g d : (data.rev_list_foldr d g).symm
-   ... = (data.rev_list.foldr (λ(bkt r : list (Σa, β a)), r ++ bkt) []).foldl f' d : foldl_eq_lem _ _ _
-   ... = (array.foldl data [] (λbkt r, r ++ bkt)).foldl f' d : by rw array.rev_list_foldr data [] (λbkt r, r ++ bkt)
+by rw [foldl, as_list, list.foldl_join, ← array.to_list_foldl]
+
 end
 end bucket_array
 
@@ -119,165 +97,79 @@ def erase_aux (a : α) : list (Σ a, β a) → list (Σ a, β a)
 | []            := []
 | (⟨a', b'⟩::t) := if a' = a then t else ⟨a', b'⟩ :: erase_aux t
 
-inductive valid_aux {α : Type u} {β : α → Type v} (idx : α → nat) : Π (l : list (list Σ a, β a)) (sz : nat), Prop
-| nil {} : valid_aux [] 0
-| cons : Π (c : list Σ a, β a) {l sz}, valid_aux l sz → (c.map sigma.fst).nodup →
-  (∀ a ∈ c, idx (sigma.fst a) = l.length) → valid_aux (c::l) (sz + c.length)
+structure valid {n} (bkts : bucket_array α β n) (sz : nat) : Prop :=
+(len : bkts.as_list.length = sz)
+(idx : ∀ {i} {a : Σ a, β a}, a ∈ array.read bkts i →
+  mk_idx n (hash_fn a.1) = i) 
+(nodup : ∀i, ((array.read bkts i).map sigma.fst).nodup) 
 
-theorem valid_aux.unfold_cons {idx : α → nat} : Π {c l sz}, valid_aux idx (c::l) sz →
-  ∃ sz', valid_aux idx l sz' ∧ (c.map sigma.fst).nodup ∧ (∀ a ∈ c, idx (sigma.fst a) = l.length) ∧ sz = sz' + c.length
-| ._ ._ ._ (@valid_aux.cons ._ ._ ._ c l sz' v nd e) := ⟨sz', v, nd, e, rfl⟩
+theorem valid.idx_enum {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
+  {i l} (he : (i, l) ∈ bkts.to_list.enum) {a b} (hl : sigma.mk a b ∈ l) :
+  ∃ h, mk_idx n (hash_fn a) = ⟨i, h⟩ :=
+by refine exists_imp_exists (λ h e, _) (bkts.mem_to_list_enum.1 he);
+   subst e; exact v.idx hl
 
-theorem valid_aux.nodup {idx : α → nat} : Π {l : list (list Σ a, β a)} {sz : nat}, valid_aux idx l sz →
-  ∀ ⦃c : list Σ a, β a⦄, c ∈ l → (c.map sigma.fst).nodup
-| ._ ._ valid_aux.nil                            c' cl := false.elim cl
-| ._ ._ (@valid_aux.cons ._ ._ ._ c l sz v nd e) c' cl := or.elim cl (λe, by rwa e) (λm : c' ∈ l, valid_aux.nodup v m)
-
-theorem valid_aux.eq {idx : α → nat} : Π {l : list (list Σ a, β a)} {sz : nat}, valid_aux idx l sz →
-  ∀ {i h a b}, sigma.mk a b ∈ l.nth_le i h → idx a = l.length - 1 - i
-| ._ ._ valid_aux.nil                            i     h _ _ _  := absurd h (nat.not_lt_zero _)
-| ._ ._ (@valid_aux.cons ._ ._ ._ c l sz v nd e) 0     h a b el := e ⟨a, b⟩ el
-| ._ ._ (@valid_aux.cons ._ ._ ._ c l sz v nd e) (i+1) h a b el :=
-  have idx a = list.length l - 1 - i, from valid_aux.eq v el,
-  by rwa [nat.sub_sub, nat.add_comm] at this
-
-private lemma valid_aux.insert_lemma1 {idx : α → nat} : Π {l : list (list Σ a, β a)} {sz : nat}, valid_aux idx l sz →
-  ∀ {i h a b}, sigma.mk a b ∈ l.nth_le i h → idx a = l.length - 1 - i
-| ._ ._ valid_aux.nil                            i     h _ _ _  := absurd h (nat.not_lt_zero _)
-| ._ ._ (@valid_aux.cons ._ ._ ._ c l sz v nd e) 0     h a b el := e ⟨a, b⟩ el
-| ._ ._ (@valid_aux.cons ._ ._ ._ c l sz v nd e) (i+1) h a b el :=
-  have idx a = list.length l - 1 - i, from valid_aux.eq v el,
-  by rwa [nat.sub_sub, nat.add_comm] at this
-
-def valid {n} (bkts : bucket_array α β n) (sz : nat) : Prop :=
-valid_aux (λa, (mk_idx n (hash_fn a)).1) bkts.rev_list sz
-
-theorem valid.nodup {n} {bkts : bucket_array α β n} {sz : nat} : valid bkts sz → ∀i, ((array.read bkts i).map sigma.fst).nodup :=
-λv i, valid_aux.nodup v ((bkts.mem_rev_list _).2 (bkts.read_mem i))
-
-theorem valid.nodupd {n} {bkts : bucket_array α β n} {sz : nat} : valid bkts sz → ∀i, ((d_array.read bkts i).map sigma.fst).nodup :=
-valid.nodup
-
-theorem valid.eq {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
- {i h a b} (el : sigma.mk a b ∈ array.read bkts ⟨i, h⟩) : (mk_idx n (hash_fn a)).1 = i :=
-begin
-  have v : valid_aux (λa, (mk_idx n (hash_fn a)).1) (array.to_list bkts).reverse sz,
-  { rw array.to_list_reverse, exact v },
-  have : sigma.mk a b ∈ list.nth_le (array.to_list bkts) i (by simp [*, array.to_list_length]),
-  { rw array.to_list_nth_le, exact el },
-  rw [← list.nth_le_reverse bkts.to_list i
-    (by simp [*, array.to_list_length, nat.sub_one_sub_lt])] at this,
-  apply (v.eq this).trans,
-  have : i ≤ list.length (array.to_list bkts) - 1,
-  { simpa [array.to_list_length] using nat.pred_le_pred h },
-  simp [nat.sub_sub_self this]
-end
-
-theorem valid.eq' {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
- {i a b} (el : sigma.mk a b ∈ array.read bkts i) : mk_idx n (hash_fn a) = i :=
-fin.eq_of_veq (match i, el with ⟨j, h⟩, el := v.eq _ el end)
+theorem valid.idx_enum_1 {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
+  {i l} (he : (i, l) ∈ bkts.to_list.enum) {a b} (hl : sigma.mk a b ∈ l) :
+  (mk_idx n (hash_fn a)).1 = i :=
+let ⟨h, e⟩ := v.idx_enum _ he hl in by rw e; refl
 
 theorem valid.as_list_nodup {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) : (bkts.as_list.map sigma.fst).nodup :=
-suffices ∀i h, ((bkts.iterate_aux (λ _ bkt r, r ++ bkt) i h []).map sigma.fst).nodup ∧
-  ∀ a b, sigma.mk a b ∈ bkts.iterate_aux (λ _ bkt r, r ++ bkt) i h [] → (mk_idx n (hash_fn a)).1 < i,
-from (this n.1 (le_refl _)).left, begin
-  intros, induction i with i IH,
-  { exact ⟨list.nodup_nil, λ_ _, false.elim⟩ },
-  { cases IH (le_of_lt h) with nd al,
-    suffices : ∀ (a : α) (b : β a),
-      (∀ (m1 : sigma.mk a b ∈ bkts.iterate_aux (λ _ bkt r, r ++ bkt) i _ [])
-         (b' : β a), sigma.mk a b' ∉ array.read bkts ⟨i, h⟩) ∧
-      (sigma.mk a b ∈ array.read bkts ⟨i, h⟩ ∨
-       sigma.mk a b ∈ bkts.iterate_aux (λ _ bkt r, r ++ bkt) i _ [] →
-       (mk_idx n (hash_fn a)).val ≤ i),
-    { simpa [d_array.iterate_aux, list.nodup_append, nd, v.nodupd _ _,
-             nat.lt_succ_iff, list.disjoint, forall_and_distrib.symm] },
-    refine λ a b, ⟨λ m1 b' m2, _,
-      λ m, m.elim (λ m2, _) (λ m1, le_of_lt (al _ _ m1))⟩,
-    { have hlt := al a b m1,
-      rw v.eq _ m2 at hlt,
-      exact lt_irrefl _ hlt },
-    { rw v.eq _ m2 } }
-end
-
-theorem valid.as_list_length {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) : bkts.as_list.length = sz :=
-have ∀ l sz, valid_aux (λ (a : α), (mk_idx n (hash_fn a)).val) l sz → ∀t, (l.foldr (λbkt r, r ++ bkt) t).length = sz + t.length,
-by intros; induction a; simp [list.foldr, *],
-by simpa [array.rev_list_foldr] using this _ _ v []
-
-theorem valid.mk (n : ℕ+) : @valid n (mk_array n.1 []) 0 :=
-let bkts : bucket_array α β n := mk_array n.1 [] in
-suffices ∀ i (h : i ≤ n.1), valid_aux (λa, (mk_idx n (hash_fn a)).1) (bkts.iterate_aux (λ_ v l, v :: l) i h []) 0,
-from this _ (le_refl _), begin
-  intros, induction i with i IH,
-  { exact valid_aux.nil },
-  { exact valid_aux.cons _ (IH (le_of_lt h)) list.nodup_nil (λ_, false.elim) }
-end
-
-theorem valid.find_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) (a : α) (b : β a) :
-  find_aux a (bkts.read hash_fn a) = some b ↔ sigma.mk a b ∈ bkts.as_list :=
-(find_aux_iff (v.nodup _ _)).trans $
-  iff.trans (by exact ⟨λm, ⟨_, m⟩, λ⟨⟨i, h⟩, m⟩, let h := v.eq' _ m in by rwa [←h] at m⟩)
-    bkts.mem_as_list.symm
-
-theorem valid.contains_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) (a : α) :
-  contains_aux a (bkts.read hash_fn a) ↔ a ∈ bkts.as_list.map sigma.fst :=
 begin
-  unfold contains_aux,
-  cases h : find_aux a (bkts.read hash_fn a) with b,
-  { refine ⟨λn, by contradiction, _⟩,
-    suffices : ∀ (b : β a), sigma.mk a b ∈ bkts.as_list → _, {simpa},
-    intros b m, rw (v.find_aux_iff _ a b).2 m at h, contradiction },
-  { exact ⟨λ_, list.mem_map_of_mem _ ((v.find_aux_iff _ a b).1 h), λ_, dec_trivial⟩ }
+  suffices : (bkts.to_list.map (list.map sigma.fst)).pairwise list.disjoint,
+  { simp [bucket_array.as_list, list.nodup_join, this],
+    change ∀ l s, list.map sigma.fst s = l → array.mem s bkts → l.nodup,
+    introv e m, subst e, cases m with i e, subst e,
+    apply v.nodup },
+  rw [← list.enum_map_snd bkts.to_list, list.pairwise_map, list.pairwise_map],
+  have : (bkts.to_list.enum.map prod.fst).nodup := by simp [list.nodup_range],
+  refine list.pairwise.imp_of_mem _ ((list.pairwise_map _).1 this),
+  rw prod.forall, intros i l₁,
+  rw prod.forall, intros j l₂ me₁ me₂ ij,
+  simp [list.disjoint], intros a b ml₁ b' ml₂,
+  apply ij, rwa [← v.idx_enum_1 _ me₁ ml₁, ← v.idx_enum_1 _ me₂ ml₂]
 end
 
 theorem mk_as_list (n : ℕ+) : bucket_array.as_list (mk_array n.1 [] : bucket_array α β n) = [] :=
-list.eq_nil_of_length_eq_zero ((valid.mk n).as_list_length _)
+list.eq_nil_of_forall_not_mem $ λ x m,
+let ⟨i, h⟩ := (bucket_array.mem_as_list _).1 m in h
+
+theorem mk_valid (n : ℕ+) : @valid n (mk_array n.1 []) 0 :=
+⟨by simp [mk_as_list], λ i a h, by cases h, λ i, list.nodup_nil⟩
+
+theorem valid.find_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) {a : α} {b : β a} :
+  find_aux a (bkts.read hash_fn a) = some b ↔ sigma.mk a b ∈ bkts.as_list :=
+(find_aux_iff (v.nodup _)).trans $
+by rw bkts.mem_as_list; exact ⟨λ h, ⟨_, h⟩, λ ⟨i, h⟩, (v.idx h).symm ▸ h⟩
+
+theorem valid.contains_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) (a : α) :
+  contains_aux a (bkts.read hash_fn a) ↔ a ∈ bkts.as_list.map sigma.fst :=
+by simp [contains_aux, option.is_some_iff_exists, v.find_aux_iff hash_fn]
 
 section
   parameters {n : ℕ+} {bkts : bucket_array α β n}
              {bidx : fin n.1} {f : list (Σ a, β a) → list (Σ a, β a)}
              (u v1 v2 w : list Σ a, β a)
 
-  local notation `L` := d_array.read bkts bidx
+  local notation `L` := array.read bkts bidx
   private def bkts' : bucket_array α β n := array.write bkts bidx (f L)
-
-  private lemma valid.modify_aux1 {δ fn} {b : δ} : Π (i) (h : i ≤ n.1) (hb : i ≤ bidx.1),
-    d_array.iterate_aux bkts fn i h b = d_array.iterate_aux bkts' fn i h b
-  | 0     h hb := by simp [d_array.iterate_aux]
-  | (i+1) h (hb : i < bidx.1) := begin
-    have : d_array.read bkts ⟨i, h⟩ = d_array.read bkts' ⟨i, h⟩,
-    { have bn : bidx ≠ ⟨i, h⟩ := λhh, ne_of_lt hb $ fin.veq_of_eq $ eq.symm hh,
-      unfold bkts' array.write, rw d_array.read_write_of_ne _ _ bn },
-    simp [d_array.iterate_aux, valid.modify_aux1 i (le_of_lt h) (le_of_lt hb), this]
-  end
 
   variables (hl : L = u ++ v1 ++ w)
             (hfl : f L = u ++ v2 ++ w)
   include hl hfl
 
-  private lemma append_of_modify_aux : Π (i) (h : i ≤ n.1) (hb : i > bidx.1),
-    ∃ u' w', bkts.iterate_aux (λ_ bkt r, r ++ bkt) i h [] = u' ++ v1 ++ w' ∧
-             bkts'.iterate_aux (λ_ bkt r, r ++ bkt) i h [] = u' ++ v2 ++ w'
-  | 0     _ hb := (nat.not_lt_zero _).elim hb
-  | (i+1) h hb := begin
-    cases lt_or_eq_of_le (nat.le_of_succ_le_succ hb) with hl e,
-    { have bn : bidx ≠ ⟨i, h⟩ := λhh, ne_of_gt hl $ fin.veq_of_eq $ eq.symm hh,
-      have he : d_array.read bkts' ⟨i, h⟩ = d_array.read bkts ⟨i, h⟩,
-      { unfold bkts' array.write, rw d_array.read_write_of_ne _ _ bn },
-      dsimp [d_array.iterate_aux], rw he,
-      rcases append_of_modify_aux i (le_of_lt h) hl with ⟨u', w', hb, hb'⟩,
-      exact ⟨u', w' ++ d_array.read bkts ⟨i, h⟩, by simp [hb], by simp [hb']⟩ },
-    { subst i, dsimp [d_array.iterate_aux],
-      refine ⟨bkts.iterate_aux (λ_ bkt r, r ++ bkt) bidx.1 (le_of_lt h) [] ++ u, w, _⟩,
-      rw [← show bidx = ⟨bidx.1, h⟩, from fin.eq_of_veq rfl,
-          show d_array.read bkts' bidx = f L, by apply array.read_write,
-          ← valid.modify_aux1 _ _ (le_refl _), hfl, hl],
-      simp }
-  end
-
   theorem append_of_modify : ∃ u' w', bkts.as_list = u' ++ v1 ++ w' ∧ bkts'.as_list = u' ++ v2 ++ w' :=
-  append_of_modify_aux hl hfl _ _ bidx.2
+  begin
+    unfold bucket_array.as_list,
+    have h : bidx.1 < bkts.to_list.length, {simp [bidx.2]},
+    refine ⟨(bkts.to_list.take bidx.1).join ++ u, w ++ (bkts.to_list.drop (bidx.1+1)).join, _, _⟩,
+    { conv { to_lhs,
+        rw [← list.take_append_drop bidx.1 bkts.to_list, list.drop_eq_nth_le_cons h],
+        simp [hl] }, simp },
+    { conv { to_lhs,
+        rw [bkts', array.write_to_list, list.update_nth_eq_take_cons_drop _ h],
+        simp [hfl] }, simp }
+  end
 
   variables (hvnd : (v2.map sigma.fst).nodup)
             (hal : ∀ (a : Σ a, β a), a ∈ v2 → mk_idx n (hash_fn a.1) = bidx)
@@ -285,82 +177,48 @@ section
             (djwv : (w.map sigma.fst).disjoint (v2.map sigma.fst))
   include hvnd hal djuv djwv
 
-  private lemma valid.modify_aux2 : Π (i) (h : i ≤ n.1) (hb : i > bidx.1) {sz : ℕ},
-    valid_aux (λa, (mk_idx n (hash_fn a)).1) (d_array.iterate_aux bkts (λ_ v l, v :: l) i h []) sz → sz + v2.length ≥ v1.length ∧
-    valid_aux (λa, (mk_idx n (hash_fn a)).1) (d_array.iterate_aux bkts' (λ_ v l, v :: l) i h []) (sz + v2.length - v1.length)
-  | 0     _ hb sz := absurd hb (nat.not_lt_zero _)
-  | (i+1) h hb sz := begin
-    cases lt_or_eq_of_le (nat.le_of_succ_le_succ hb) with hl e,
-    { have bn : bidx ≠ ⟨i, h⟩ := λhh, ne_of_gt hl $ fin.veq_of_eq $ eq.symm hh,
-      have he : d_array.read bkts' ⟨i, h⟩ = d_array.read bkts ⟨i, h⟩,
-      { unfold bkts' array.write, rw d_array.read_write_of_ne _ _ bn },
-      dsimp [d_array.iterate_aux], rw he,
-      intro vv,
-      rcases vv.unfold_cons with ⟨s, v, nd, al, e⟩,
-      cases valid.modify_aux2 i (le_of_lt h) hl v with hsz v',
-      have : (s + (d_array.read bkts ⟨i, h⟩).length) + v2.length - v1.length =
-        s + v2.length - v1.length + (d_array.read bkts ⟨i, h⟩).length,
-      { rw ← nat.sub_add_comm hsz, simp },
-      rw [e, this],
-      existsi le_trans hsz (nat.add_le_add_right (nat.le_add_right _ _) _),
-      apply v'.cons _ nd,
-      rw bkts'.rev_list_length_aux,
-      rwa bkts.rev_list_length_aux at al },
-    { subst i, dsimp [d_array.iterate_aux],
-      rw [← show bidx = ⟨bidx.1, h⟩, from fin.eq_of_veq rfl,
-          show d_array.read bkts' bidx = f L, by apply d_array.read_write,
-          ← valid.modify_aux1 _ _ (le_refl _), hfl, hl],
-      intro vv,
-      rcases vv.unfold_cons with ⟨s, v, nd, al, e⟩,
-      have nd' : ((u ++ v2 ++ w).map sigma.fst).nodup,
-      { simp [list.nodup_append] at nd djuv djwv,
-        simp [list.nodup_append, nd, djuv, djwv, hvnd] },
-      constructor,
-      { subst e,
-        have := nat.le_add_right v1.length (s + (u ++ v2 ++ w).length),
-        rw (_ : v1.length + (s + (u ++ v2 ++ w).length) = _) at this, exact this,
-        -- TODO(Mario): Why does simp fail here?
-        have :
-          s + (u.length + (v1.length + (v2.length + w.length))) =
-          s + (v2.length + (u.length + (v1.length + w.length))), {simp},
-        simp, exact this },
-      { rw show sz + v2.length - v1.length = s + (u ++ v2 ++ w).length,
-          by subst e; simpa using nat.add_sub_cancel (s + (u ++ v2 ++ w).length) v1.length,
-        apply v.cons _ nd', simp at al ⊢,
-        intros a b muvw,
-        rcases muvw with mu | mv | mw,
-        { exact al a b (or.inl mu) },
-        { rw [bkts.rev_list_length_aux, hal _ mv] },
-        { exact al a b (or.inr (or.inr mw)) } } }
-    end
-
-  theorem valid.modify {sz : ℕ} : valid bkts sz → sz + v2.length ≥ v1.length ∧ valid bkts' (sz + v2.length - v1.length) :=
-  valid.modify_aux2 hl hfl hvnd hal djuv djwv _ _ bidx.2
+  theorem valid.modify {sz : ℕ} (v : valid bkts sz) : sz + v2.length ≥ v1.length ∧ valid bkts' (sz + v2.length - v1.length) :=
+  begin
+    rcases append_of_modify u v1 v2 w hl hfl with ⟨u', w', e₁, e₂⟩,
+    rw [← v.len, e₁],
+    suffices : valid bkts' (u' ++ v2 ++ w').length,
+    { simpa [ge, nat.le_add_right, nat.add_sub_cancel_left] },
+    refine ⟨congr_arg _ e₂, λ i a, _, λ i, _⟩,
+    { by_cases bidx = i,
+      { subst i, rw [bkts', array.read_write, hfl],
+        have := @valid.idx _ _ _ v bidx a,
+        simp only [hl, list.mem_append, or_imp_distrib, forall_and_distrib] at this ⊢,
+        exact ⟨⟨this.1.1, hal _⟩, this.2⟩ },
+      { rw [bkts', array.read_write_of_ne _ _ h], apply v.idx } },
+    { by_cases bidx = i,
+      { subst i, rw [bkts', array.read_write, hfl],
+        have := @valid.nodup _ _ _ v bidx,
+        simp [hl, list.nodup_append] at this,
+        simp [list.nodup_append, this, hvnd, djuv, djwv.symm] },
+      { rw [bkts', array.read_write_of_ne _ _ h], apply v.nodup } }
+  end
 end
 
 theorem valid.replace_aux (a : α) (b : β a) : Π (l : list (Σ a, β a)), a ∈ l.map sigma.fst →
-  ∃ (u w : list Σ a, β a) b', l = u ++ [⟨a, b'⟩] ++ w ∧ replace_aux a b l = u ++ [⟨a, b⟩] ++ w ∧ a ∉ u.map sigma.fst
+  ∃ (u w : list Σ a, β a) b', l = u ++ [⟨a, b'⟩] ++ w ∧ replace_aux a b l = u ++ [⟨a, b⟩] ++ w
 | []            := false.elim
 | (⟨a', b'⟩::t) := begin
   by_cases a' = a with e,
   { subst a',
     suffices : ∃ u w (b'' : β a),
-      (∀ (x : β a), sigma.mk a x ∉ u) ∧
       sigma.mk a b' :: t = u ++ ⟨a, b''⟩ :: w ∧
       replace_aux a b (⟨a, b'⟩ :: t) = u ++ ⟨a, b⟩ :: w, {simpa},
     refine ⟨[], t, b', _⟩, simp [replace_aux] },
   { suffices : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (b'' : β a),
-      (∀ (x : β a), sigma.mk a x ∉ u) ∧
       sigma.mk a' b' :: t = u ++ ⟨a, b''⟩ :: w ∧
       sigma.mk a' b' :: replace_aux a b t = u ++ ⟨a, b⟩ :: w,
     { simpa [replace_aux, ne.symm e, e] },
     intros x m,
     have IH : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (b'' : β a),
-      (∀ (x : β a), sigma.mk a x ∉ u) ∧
       t = u ++ ⟨a, b''⟩ :: w ∧ replace_aux a b t = u ++ ⟨a, b⟩ :: w,
     { simpa using valid.replace_aux t },
-    rcases IH x m with ⟨u, w, b'', nin, hl, hfl⟩,
-    exact ⟨⟨a', b'⟩ :: u, w, b'', by simp [hl, hfl.symm, ne.symm e, nin]⟩ }
+    rcases IH x m with ⟨u, w, b'', hl, hfl⟩,
+    exact ⟨⟨a', b'⟩ :: u, w, b'', by simp [hl, hfl.symm, ne.symm e]⟩ }
 end
 
 theorem valid.replace {n : ℕ+}
@@ -368,17 +226,16 @@ theorem valid.replace {n : ℕ+}
   (Hc : contains_aux a (bkts.read hash_fn a))
   (v : valid bkts sz) : valid (bkts.modify hash_fn a (replace_aux a b)) sz :=
 begin
-  have nd := v.nodup hash_fn (mk_idx n (hash_fn a)),
-  rcases valid.replace_aux a b (array.read bkts (mk_idx n (hash_fn a)))
-    ((contains_aux_iff nd).1 Hc) with ⟨u, w, b', hl, hfl, nin⟩,
+  have nd := v.nodup (mk_idx n (hash_fn a)),
+  rcases hash_map.valid.replace_aux a b (array.read bkts (mk_idx n (hash_fn a)))
+    ((contains_aux_iff nd).1 Hc) with ⟨u, w, b', hl, hfl⟩,
+  simp [hl, list.nodup_append] at nd,
   refine (v.modify hash_fn
     u [⟨a, b'⟩] [⟨a, b⟩] w hl hfl (list.nodup_singleton _)
     (λa' e, by simp at e; rw e)
-    (λa' e1 e2, by simp at e2; subst a'; contradiction)
-    (λa' e1 e2, _)).2,
-  rw hl at nd, revert e1,
-  simp at e2, subst a',
-  simp [list.nodup_append] at nd, simp [nd]
+    (λa' e1 e2, _)
+    (λa' e1 e2, _)).2;
+  { revert e1, simp at e2, subst a', simp [nd] }
 end
 
 theorem valid.insert {n : ℕ+}
@@ -386,7 +243,7 @@ theorem valid.insert {n : ℕ+}
   (Hnc : ¬ contains_aux a (bkts.read hash_fn a))
   (v : valid bkts sz) : valid (reinsert_aux bkts a b) (sz+1) :=
 begin
-  have nd := v.nodup hash_fn (mk_idx n (hash_fn a)),
+  have nd := v.nodup (mk_idx n (hash_fn a)),
   refine (v.modify hash_fn
     [] [] [⟨a, b⟩] (bkts.read hash_fn a) rfl rfl (list.nodup_singleton _)
     (λa' e, by simp at e; rw e)
@@ -421,11 +278,11 @@ theorem valid.erase {n} {bkts : bucket_array α β n} {sz}
   (a : α) (Hc : contains_aux a (bkts.read hash_fn a))
   (v : valid bkts sz) : valid (bkts.modify hash_fn a (erase_aux a)) (sz-1) :=
 begin
-  have nd := v.nodup _ (mk_idx n (hash_fn a)),
-  rcases valid.erase_aux a (array.read bkts (mk_idx n (hash_fn a)))
+  have nd := v.nodup (mk_idx n (hash_fn a)),
+  rcases hash_map.valid.erase_aux a (array.read bkts (mk_idx n (hash_fn a)))
     ((contains_aux_iff nd).1 Hc) with ⟨u, w, b, hl, hfl⟩,
   refine (v.modify hash_fn u [⟨a, b⟩] [] w hl hfl list.nodup_nil _ _ _).2;
-  intros; simp at *; contradiction
+  { intros, simp at *; contradiction }
 end
 
 end
@@ -445,7 +302,7 @@ let nz : n > 0 := by abstract { cases nbuckets, {simp, tactic.comp_val}, simp [i
   size     := 0,
   nbuckets := ⟨n, nz⟩,
   buckets  := mk_array n [],
-  is_valid := hash_map.valid.mk _ _ }
+  is_valid := hash_map.mk_valid _ _ }
 
 namespace hash_map
 variables {α : Type u} {β : α → Type v} [decidable_eq α]
@@ -469,7 +326,7 @@ m.entries.map sigma.fst
 
 theorem find_iff (m : hash_map α β) (a : α) (b : β a) :
   m.find a = some b ↔ sigma.mk a b ∈ m.entries :=
-m.is_valid.find_aux_iff _ _ _
+m.is_valid.find_aux_iff _
 
 theorem contains_iff (m : hash_map α β) (a : α) :
   m.contains a ↔ a ∈ m.keys :=
@@ -477,7 +334,7 @@ m.is_valid.contains_aux_iff _ _
 
 theorem entries_empty (hash_fn : α → nat) (n) :
   (@mk_hash_map α _ β hash_fn n).entries = [] :=
-by dsimp [entries, mk_hash_map]; rw mk_as_list hash_fn
+by dsimp [entries, mk_hash_map]; rw mk_as_list
 
 theorem keys_empty (hash_fn : α → nat) (n) :
   (@mk_hash_map α _ β hash_fn n).keys = [] :=
@@ -499,8 +356,8 @@ begin
   suffices : ∀ (l : list Σ a, β a) (t : bucket_array α β n') sz,
     valid hash_fn t sz → ((l ++ t.as_list).map sigma.fst).nodup →
     valid hash_fn (l.foldl (λr (a : Σ a, β a), reinsert_aux hash_fn r a.1 a.2) t) (sz + l.length),
-  { have p := this bkts.as_list _ _ (valid.mk _ _),
-    rw [mk_as_list hash_fn, list.append_nil, zero_add, v.as_list_length _] at p,
+  { have p := this bkts.as_list _ _ (mk_valid _ _),
+    rw [mk_as_list, list.append_nil, zero_add, v.len] at p,
     rw bucket_array.foldl_eq,
     exact p (v.as_list_nodup _) },
   intro l, induction l with c l IH; intros t sz v nd, {exact v},
@@ -515,7 +372,7 @@ begin
   have v' := v.insert _ _ c.2 (λHc, nm2 $ (v.contains_aux_iff _ c.1).1 Hc),
   apply IH _ _ v',
   suffices : ∀ ⦃a : α⦄ (b : β a), sigma.mk a b ∈ l →
-    ∀ (b' : β a), sigma.mk a b' ∈  (reinsert_aux hash_fn t c.1 c.2).as_list → false,
+    ∀ (b' : β a), sigma.mk a b' ∈ (reinsert_aux hash_fn t c.1 c.2).as_list → false,
   { simpa [list.nodup_append, nd1, v'.as_list_nodup _, list.disjoint] },
   intros a b m1 b' m2,
   rcases (reinsert_aux hash_fn t c.1 c.2).mem_as_list.1 m2 with ⟨i, im⟩,
@@ -567,7 +424,7 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
   if a = a' then b == b' else sigma.mk a' b' ∈ m.entries
 | ⟨hash_fn, size, n, bkts, v⟩ a b a' b' := begin
   let bkt := bkts.read hash_fn a,
-  have nd : (bkt.map sigma.fst).nodup := v.nodup hash_fn (mk_idx n (hash_fn a)),
+  have nd : (bkt.map sigma.fst).nodup := v.nodup (mk_idx n (hash_fn a)),
   have lem : Π (bkts' : bucket_array α β n) (v1 u w)
     (hl : bucket_array.as_list bkts = u ++ v1 ++ w)
     (hfl : bucket_array.as_list bkts' = u ++ [⟨a, b⟩] ++ w)
@@ -588,8 +445,8 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
     { suffices : sigma.mk a' b' ∉ v1, {simp [h, ne.symm h, this]},
       rcases veq with ⟨e, Hnc⟩ | ⟨b'', e⟩; subst v1; simp [ne.symm h] } },
   by_cases (contains_aux a bkt : Prop) with Hc,
-  { rcases valid.replace_aux a b (array.read bkts (mk_idx n (hash_fn a)))
-      ((contains_aux_iff nd).1 Hc) with ⟨u', w', b'', hl', hfl', _⟩,
+  { rcases hash_map.valid.replace_aux a b (array.read bkts (mk_idx n (hash_fn a)))
+      ((contains_aux_iff nd).1 Hc) with ⟨u', w', b'', hl', hfl'⟩,
     rcases (append_of_modify u' [⟨a, b''⟩] [⟨a, b⟩] w' hl' hfl') with ⟨u, w, hl, hfl⟩,
     simpa [insert, @dif_pos (contains_aux a bkt) _ Hc]
       using lem _ _ u w hl hfl (or.inr ⟨b'', rfl⟩) },
@@ -610,7 +467,7 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
       rw [show bkts'' = bkts'.as_list.foldl _ _, from bkts'.foldl_eq _ _,
           ← list.foldr_reverse],
       induction bkts'.as_list.reverse with a l IH,
-      { simp [mk_as_list hash_fn n'] },
+      { simp [mk_as_list] },
       { cases a with a'' b'',
         let B := l.foldr (λ (y : sigma β) (x : bucket_array α β n'),
           reinsert_aux hash_fn x y.1 y.2) (mk_array n'.1 []),
@@ -660,7 +517,7 @@ theorem mem_erase : Π (m : hash_map α β) (a a' b'),
   { let bkts' := bkts.modify hash_fn a (erase_aux a),
     suffices : sigma.mk a' b' ∈ bkts'.as_list ↔ a ≠ a' ∧ sigma.mk a' b' ∈ bkts.as_list,
     { simpa [erase, @dif_pos (contains_aux a bkt) _ Hc] },
-    have nd := v.nodup _ (mk_idx n (hash_fn a)),
+    have nd := v.nodup (mk_idx n (hash_fn a)),
     rcases valid.erase_aux a bkt ((contains_aux_iff nd).1 Hc) with ⟨u', w', b, hl', hfl'⟩,
     rcases append_of_modify u' [⟨a, b⟩] [] _ hl' hfl' with ⟨u, w, hl, hfl⟩,
     suffices : ∀_:sigma.mk a' b' ∈ u ∨ sigma.mk a' b' ∈ w, a ≠ a',

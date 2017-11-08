@@ -174,6 +174,9 @@ by {induction s with b s H generalizing a, refl, simp [foldr], rw H _}
 
 attribute [simp] join
 
+@[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
+by induction L₁; simp *
+
 /- repeat take drop -/
 
 def split_at : ℕ → list α → list α × list α
@@ -673,31 +676,45 @@ theorem modify_nth_eq_update_nth (f : α → α) : ∀ n (l : list α),
   (modify_nth_eq_update_nth n l)).trans $ by cases nth l n; refl
 
 theorem nth_modify_nth (f : α → α) : ∀ n (l : list α) m,
-  nth (modify_nth f n l) m = (λ a, if m = n then f a else a) <$> nth l m
+  nth (modify_nth f n l) m = (λ a, if n = m then f a else a) <$> nth l m
 | n     l      0     := by cases l; cases n; refl
 | n     []     (m+1) := by cases n; refl
 | 0     (a::l) (m+1) := by cases nth l m; refl
 | (n+1) (a::l) (m+1) := (nth_modify_nth n l m).trans $
-  by cases nth l m with b; by_cases m = n; simp [h, mt succ_inj]
+  by cases nth l m with b; by_cases n = m; simp [h, mt succ_inj]
+
+theorem modify_nth_tail_length (f : list α → list α) (H : ∀ l, length (f l) = length l) :
+  ∀ n l, length (modify_nth_tail f n l) = length l
+| 0     l      := H _
+| (n+1) []     := rfl
+| (n+1) (a::l) := @congr_arg _ _ _ _ (+1) (modify_nth_tail_length _ _)
+
+@[simp] theorem modify_nth_length (f : α → α) :
+  ∀ n l, length (modify_nth f n l) = length l :=
+modify_nth_tail_length _ (λ l, by cases l; refl)
+
+@[simp] theorem update_nth_length (l : list α) (n) (a : α) :
+  length (update_nth l n a) = length l :=
+by simp [update_nth_eq_modify_nth]
 
 @[simp] theorem nth_modify_nth_eq (f : α → α) (n) (l : list α) :
   nth (modify_nth f n l) n = f <$> nth l n :=
 by simp [nth_modify_nth]
 
 @[simp] theorem nth_modify_nth_ne (f : α → α) {m n} (l : list α) (h : m ≠ n) :
-  nth (modify_nth f n l) m = nth l m :=
-by simp [nth_modify_nth, h]; cases nth l m; refl
+  nth (modify_nth f m l) n = nth l n :=
+by simp [nth_modify_nth, h]; cases nth l n; refl
 
 theorem nth_update_nth_eq (a : α) (n) (l : list α) :
   nth (update_nth l n a) n = (λ _, a) <$> nth l n :=
 by simp [update_nth_eq_modify_nth]
 
-theorem nth_update_nth_of_lt (a : α) (n) (l : list α) (h : n < length l) :
+theorem nth_update_nth_of_lt (a : α) {n} {l : list α} (h : n < length l) :
   nth (update_nth l n a) n = some a :=
 by rw [nth_update_nth_eq, nth_le_nth h]; refl
 
 theorem nth_update_nth_ne (a : α) {m n} (l : list α) (h : m ≠ n) :
-  nth (update_nth l n a) m = nth l m :=
+  nth (update_nth l m a) n = nth l n :=
 by simp [update_nth_eq_modify_nth, h]
 
 /- take, drop -/
@@ -730,6 +747,11 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 | (succ n)  (succ m) nil    := by simp
 | (succ n)  (succ m) (a::l) := by simp [min_succ_succ, take_take]
 
+theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
+  drop n l = nth_le l n h :: drop (n+1) l
+| 0     (a::l) h := rfl
+| (n+1) (a::l) h := @drop_eq_nth_le_cons n _ _
+
 theorem modify_nth_tail_eq_take_drop (f : list α → list α) (H : f [] = []) :
   ∀ n l, modify_nth_tail f n l = take n l ++ f (drop n l)
 | 0     l      := rfl
@@ -739,6 +761,14 @@ theorem modify_nth_tail_eq_take_drop (f : list α → list α) (H : f [] = []) :
 theorem modify_nth_eq_take_drop (f : α → α) :
   ∀ n l, modify_nth f n l = take n l ++ modify_head f (drop n l) :=
 modify_nth_tail_eq_take_drop _ rfl
+
+theorem modify_nth_eq_take_cons_drop (f : α → α) {n l} (h) :
+  modify_nth f n l = take n l ++ f (nth_le l n h) :: drop (n+1) l :=
+by rw [modify_nth_eq_take_drop, drop_eq_nth_le_cons h]; refl
+
+theorem update_nth_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
+  update_nth l n a = take n l ++ a :: drop (n+1) l :=
+by rw [update_nth_eq_modify_nth, modify_nth_eq_take_cons_drop _ h]
 
 /- take_while -/
 

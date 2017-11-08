@@ -93,5 +93,8 @@ do r ← tactic.result,
      | _ := l
      end
 
+meta def swap (n := 2) : tactic unit :=
+if n = 2 then tactic.swap else tactic.rotate n
+
 end interactive
 end tactic

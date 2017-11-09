@@ -140,6 +140,16 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr begin simp [hf] {contextual := tt} end,
 by rw [←prod_sdiff h]; simp [this]
 
+lemma exists_ne_one_of_prod_ne_one [decidable_eq β] : s.prod f ≠ 1 → ∃a∈s, f a ≠ 1 :=
+s.induction_on (by simp) $ assume a s has ih h,
+  decidable.by_cases
+    (assume ha : f a = 1,
+      have s.prod f ≠ 1, by simpa [ha, has] using h,
+      let ⟨a, ha, hfa⟩ := ih this in
+      ⟨a, mem_insert_of_mem ha, hfa⟩)
+    (assume hna : f a ≠ 1,
+      ⟨a, mem_insert_self, hna⟩)
+
 end comm_monoid
 
 section comm_group
@@ -233,7 +243,8 @@ run_cmd transport_multiplicative_to_additive [
   (`finset.prod_comm, `finset.sum_comm),
   (`finset.prod_sigma, `finset.sum_sigma),
   (`finset.prod_sdiff, `finset.sum_sdiff),
-  (`finset.prod_subset, `finset.sum_subset)]
+  (`finset.prod_subset, `finset.sum_subset),
+  (`finset.exists_ne_one_of_prod_ne_one, `finset.exists_ne_zero_of_sum_ne_zero)]
 
 namespace finset
 variables [decidable_eq α] {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}

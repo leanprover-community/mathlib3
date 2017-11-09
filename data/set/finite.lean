@@ -5,13 +5,14 @@ Authors: Johannes Hölzl
 
 Finite sets -- assuming a classical logic.
 -/
-import data.set.lattice data.set.prod data.nat.basic
+import data.set.lattice data.set.prod data.nat.basic logic.function
 noncomputable theory
+open classical set lattice function
+local attribute [instance] decidable_inhabited prop_decidable
 
 universes u v w
 variables {α : Type u} {β : Type v} {ι : Sort w}
 
-open set lattice
 
 namespace set
 
@@ -59,6 +60,18 @@ begin
   simp [image_empty, finite.empty],
   simp [image_insert_eq, finite_insert, hi]
 end
+
+theorem finite_of_finite_image {s : set α} {f : α → β}
+  (hf : injective f) (hs : finite (f '' s)) : finite s :=
+if hα : nonempty α
+then
+  let ⟨a⟩ := hα in
+  have h : inhabited α := ⟨a⟩,
+  have finite (@inv_fun _ _ h f '' (f '' s)), from finite_image hs,
+  by rwa [←image_comp, inv_fun_comp hf, image_id] at this
+else
+  have s = ∅, from eq_empty_of_forall_not_mem $ assume a, (hα ⟨a⟩).elim,
+  by simp [this]
 
 theorem finite_sUnion {s : set (set α)} (h : finite s) : (∀t∈s, finite t) → finite (⋃₀ s) :=
 begin

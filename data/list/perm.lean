@@ -265,6 +265,30 @@ perm_induction_on p
   (λ x y t₁ t₂ p r b, by simp; rw [lcomm, r b])
   (λ t₁ t₂ t₃ p₁ p₂ r₁ r₂ a, eq.trans (r₁ a) (r₂ a))
 
+
+section
+variables {op : α → α → α} [is_associative α op] [is_commutative α op]
+local notation a * b := op a b
+local notation l <*> a := foldl op a l
+
+lemma fold_op_eq_of_perm {l₁ l₂ : list α} {a : α} (h : l₁ ~ l₂) : l₁ <*> a = l₂ <*> a :=
+foldl_eq_of_perm (right_comm _ (is_commutative.comm _) (is_associative.assoc _)) h _
+end
+
+section comm_monoid
+open list
+variable [comm_monoid α]
+
+@[to_additive list.sum_eq_of_perm]
+lemma prod_eq_of_perm {l₁ l₂ : list α} (h : perm l₁ l₂) : prod l₁ = prod l₂ :=
+by induction h; simp *
+
+@[to_additive list.sum_reverse]
+lemma prod_reverse (l : list α) : prod l.reverse = prod l :=
+prod_eq_of_perm $ reverse_perm l
+
+end comm_monoid
+
 theorem perm_inv_core {a : α} {l₁ l₂ r₁ r₂ : list α} : l₁++a::r₁ ~ l₂++a::r₂ → l₁++r₁ ~ l₂++r₂ :=
 begin
   generalize e₁ : l₁++a::r₁ = s₁, generalize e₂ : l₂++a::r₂ = s₂,

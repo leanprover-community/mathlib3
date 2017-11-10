@@ -5,7 +5,8 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Basic properties of lists.
 -/
-import logic.basic data.nat.basic data.option data.bool tactic.interactive
+import logic.basic data.nat.basic data.option data.bool
+       tactic.interactive algebra.group
 open function nat
 
 namespace list
@@ -352,6 +353,13 @@ theorem cons_head_tail [h : inhabited α] {l : list α} (h : l ≠ []) : (head l
 by {induction l, contradiction, simp}
 
 /- map -/
+
+lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) → map f l = map g l
+| [] _     := rfl
+| (a::l) h :=
+  have f a = g a, from h _ (mem_cons_self _ _),
+  have map f l = map g l, from map_congr $ assume a', h _ ∘ mem_cons_of_mem _,
+  show f a :: map f l = g a :: map g l, by simp [*]
 
 theorem map_concat (f : α → β) (a : α) (l : list α) : map f (concat l a) = concat (map f l) (f a) :=
 by induction l; simp *
@@ -863,11 +871,57 @@ section foldl_eq_foldr
     by simp [foldl_eq_of_comm_of_assoc hcomm hassoc]; rw (foldl_eq_foldr a l)
 end foldl_eq_foldr
 
+section
+variables {op : α → α → α} [ha : is_associative α op] [hc : is_commutative α op]
+local notation a * b := op a b
+local notation l <*> a := foldl op a l
+
+include ha
+
+lemma foldl_assoc : ∀ {l : list α} {a₁ a₂}, l <*> (a₁ * a₂) = a₁ * (l <*> a₂)
+| [] a₁ a₂ := by simp
+| (a :: l) a₁ a₂ :=
+  calc a::l <*> (a₁ * a₂) = l <*> (a₁ * (a₂ * a)) : by simp [ha.assoc]
+    ... = a₁ * (a::l <*> a₂) : by rw [foldl_assoc]; simp
+
+lemma foldl_op_eq_op_foldr_assoc : ∀{l : list α} {a₁ a₂}, (l <*> a₁) * a₂ = a₁ * l.foldr (*) a₂
+| [] a₁ a₂ := by simp
+| (a :: l) a₁ a₂ := by simp [foldl_assoc, ha.assoc]; rw [foldl_op_eq_op_foldr_assoc]
+
+include hc
+
+lemma foldl_assoc_comm_cons {l : list α} {a₁ a₂} : (a₁ :: l) <*> a₂ = a₁ * (l <*> a₂) :=
+by rw [foldl_cons, hc.comm, foldl_assoc]
+
+end
+
 /- sum -/
 
+@[to_additive list.sum]
 def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
+attribute [to_additive list.sum.equations._eqn_1] list.prod.equations._eqn_1
 
-def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
+section monoid
+variables [monoid α] {l l₁ l₂ : list α} {a : α}
+
+@[simp, to_additive list.sum_nil]
+theorem prod_nil : ([] : list α).prod = 1 := rfl
+
+@[simp, to_additive list.sum_cons]
+theorem prod_cons : (a::l).prod = a * l.prod :=
+calc (a::l).prod = foldl (*) (a * 1) l : by simp [list.prod]
+  ... = _ : foldl_assoc
+
+@[simp, to_additive list.sum_append]
+theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
+calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list.prod]
+  ... = l₁.prod * l₂.prod : foldl_assoc
+
+@[simp, to_additive list.sum_join]
+theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
+by induction l; simp [list.join, *] at *
+
+end monoid
 
 /- all & any, bounded quantifiers over lists -/
 

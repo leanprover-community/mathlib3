@@ -11,84 +11,61 @@ import data.list data.list.perm data.set.finite data.finset
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-namespace list
-
-section monoid
-variables [monoid α] {l l₁ l₂ : list α} {a : α}
-
-@[simp] theorem prod_nil : ([] : list α).prod = 1 := rfl
-
-@[simp] theorem prod_cons : (a::l).prod = a * l.prod :=
-calc (a::l).prod = foldl (*) (a * 1) l : by simp [list.prod]
-  ... = _ : foldl_assoc
-
-@[simp] theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
-calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list.prod]
-  ... = l₁.prod * l₂.prod : foldl_assoc
-
-@[simp] theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
-by induction l; simp [list.join, *] at *
-
-@[simp] theorem prod_repeat : ∀ (n : ℕ), (list.repeat a n).prod = a ^ n
-| 0 := rfl
-| (n+1) := by simp [pow_succ, prod_repeat n]
-
-end monoid
-
-section comm_monoid
-open list
-variable [comm_monoid α]
-
-lemma prod_eq_of_perm {l₁ l₂ : list α} (h : perm l₁ l₂) : l₁.prod = l₂.prod :=
-by induction h; simp *
-
-lemma prod_reverse {l : list α} : l.reverse.prod = l.prod :=
-prod_eq_of_perm $ reverse_perm l
-
-end comm_monoid
-
-end list
-
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := s.fold (*) 1 f
+attribute [to_additive finset.sum._proof_1] finset.prod._proof_1
+attribute [to_additive finset.sum._proof_2] finset.prod._proof_2
+attribute [to_additive finset.sum] finset.prod
+attribute [to_additive finset.sum.equations._eqn_1] finset.prod.equations._eqn_1
 
 variables [decidable_eq α]
 
 section comm_monoid
 variables [comm_monoid β]
 
-@[simp] lemma prod_empty {α : Type u} {f : α → β} : (∅:finset α).prod f = 1 := rfl
+@[simp, to_additive finset.sum_empty]
+lemma prod_empty {α : Type u} {f : α → β} : (∅:finset α).prod f = 1 := rfl
 
-@[simp] lemma prod_to_finset_of_nodup {l : list α} (h : list.nodup l) :
+@[simp, to_additive finset.sum_to_finset_of_nodup]
+lemma prod_to_finset_of_nodup {l : list α} (h : list.nodup l) :
   (to_finset_of_nodup l h).prod f = (l.map f).prod :=
 fold_to_finset_of_nodup h
 
-@[simp] lemma prod_insert : a ∉ s → (insert a s).prod f = f a * s.prod f := fold_insert
+@[simp, to_additive finset.sum_insert]
+lemma prod_insert : a ∉ s → (insert a s).prod f = f a * s.prod f := fold_insert
 
-@[simp] lemma prod_singleton : ({a}:finset α).prod f = f a :=
+@[simp, to_additive finset.sum_singleton]
+lemma prod_singleton : ({a}:finset α).prod f = f a :=
 eq.trans fold_singleton (by simp)
 
-@[simp] lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
+@[simp, to_additive finset.sum_const_zero]
+lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
 s.induction_on (by simp) (by simp {contextual:=tt})
 
-@[simp] lemma prod_image [decidable_eq γ] {s : finset γ} {g : γ → α} :
+@[simp, to_additive finset.sum_image]
+lemma prod_image [decidable_eq γ] {s : finset γ} {g : γ → α} :
   (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).prod f = s.prod (λx, f (g x)) :=
 fold_image
 
-@[congr] lemma prod_congr : (∀x∈s, f x = g x) → s.prod f = s.prod g :=
+@[congr, to_additive finset.sum_congr]
+lemma prod_congr : (∀x∈s, f x = g x) → s.prod f = s.prod g :=
 fold_congr
 
+@[to_additive finset.sum_union_inter]
 lemma prod_union_inter : (s₁ ∪ s₂).prod f * (s₁ ∩ s₂).prod f = s₁.prod f * s₂.prod f :=
 fold_union_inter
 
+@[to_additive finset.sum_union]
 lemma prod_union (h : s₁ ∩ s₂ = ∅) : (s₁ ∪ s₂).prod f = s₁.prod f * s₂.prod f :=
 by rw [←prod_union_inter, h]; simp
 
+@[to_additive finset.sum_sdiff]
 lemma prod_sdiff (h : s₁ ⊆ s₂) : (s₂ \ s₁).prod f * s₁.prod f = s₂.prod f :=
 by rw [←prod_union sdiff_inter_self, sdiff_union_of_subset h]
 
+@[to_additive finset.sum_bind]
 lemma prod_bind [decidable_eq γ] {s : finset γ} {t : γ → finset α} :
   (∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
 s.induction_on (by simp) $
@@ -105,12 +82,14 @@ s.induction_on (by simp) $
       by rwa [this] at ha,
   by simp [hxs, prod_union this, ih hd'] {contextual := tt}
 
+@[to_additive finset.sum_product]
 lemma prod_product [decidable_eq γ] {s : finset γ} {t : finset α} {f : γ×α → β} :
   (s.product t).prod f = (s.prod $ λx, t.prod $ λy, f (x, y)) :=
 calc (s.product t).prod f = (s.prod $ λx, (t.image $ λy, (x, y)).prod f) :
     prod_bind $ assume x hx y hy h, ext $ by simp [mem_image_iff]; cc
   ... = _ : begin congr, apply funext, intro x, apply prod_image, simp {contextual := tt} end
 
+@[to_additive finset.sum_sigma]
 lemma prod_sigma {σ : α → Type*} [∀a, decidable_eq (σ a)]
   {s : finset α} {t : Πa, finset (σ a)} {f : sigma σ → β} :
   (s.sigma t).prod f = (s.prod $ λa, (t a).prod $ λs, f ⟨a, s⟩) :=
@@ -124,22 +103,27 @@ calc (s.bind (λa, (t a).image (λs, sigma.mk a s))).prod f =
   ... = (s.prod $ λa, (t a).prod $ λs, f ⟨a, s⟩) :
     by simp [prod_image, sigma.mk_eq_mk_iff, heq_iff_eq]
 
+@[to_additive finset.sum_add_distrib]
 lemma prod_mul_distrib : s.prod (λx, f x * g x) = s.prod f * s.prod g :=
 eq.trans (by simp; refl) fold_op_distrib
 
+@[to_additive finset.sum_comm]
 lemma prod_comm [decidable_eq γ] {s : finset γ} {t : finset α} {f : γ → α → β} :
   (s.prod $ λx, t.prod $ f x) = (t.prod $ λy, s.prod $ λx, f x y) :=
 s.induction_on (by simp) (by simp [prod_mul_distrib] {contextual := tt})
 
+@[to_additive finset.sum_hom]
 lemma prod_hom [comm_monoid γ] (g : β → γ)
   (h₁ : g 1 = 1) (h₂ : ∀x y, g (x * y) = g x * g y) : s.prod (λx, g (f x)) = g (s.prod f) :=
 eq.trans (by rw [h₁]; refl) (fold_hom h₂)
 
+@[to_additive finset.sum_subset]
 lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → f x = 1) : s₁.prod f = s₂.prod f :=
 have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr begin simp [hf] {contextual := tt} end,
 by rw [←prod_sdiff h]; simp [this]
 
+@[to_additive finset.exists_ne_zero_of_sum_ne_zero]
 lemma exists_ne_one_of_prod_ne_one [decidable_eq β] : s.prod f ≠ 1 → ∃a∈s, f a ≠ 1 :=
 s.induction_on (by simp) $ assume a s has ih h,
   decidable.by_cases
@@ -155,96 +139,13 @@ end comm_monoid
 section comm_group
 variables [comm_group β]
 
-@[simp] lemma prod_inv_distrib : s.prod (λx, (f x)⁻¹) = (s.prod f)⁻¹ :=
+@[simp, to_additive finset.sum_neg_distrib]
+lemma prod_inv_distrib : s.prod (λx, (f x)⁻¹) = (s.prod f)⁻¹ :=
 prod_hom has_inv.inv one_inv mul_inv
 
 end comm_group
 
 end finset
-
-/- transport versions to additive -/
--- TODO: change transport_multiplicative_to_additive to use attribute
-run_cmd transport_multiplicative_to_additive [
-  /- map operations -/
-  (`has_mul.mul, `has_add.add), (`has_one.one, `has_zero.zero), (`has_inv.inv, `has_neg.neg),
-  (`has_one, `has_zero), (`has_mul, `has_add), (`has_inv, `has_neg),
-  /- map structures -/
-  (`semigroup, `add_semigroup),
-  (`monoid, `add_monoid),
-  (`group, `add_group),
-  (`comm_semigroup, `add_comm_semigroup),
-  (`comm_monoid, `add_comm_monoid),
-  (`comm_group, `add_comm_group),
-  (`left_cancel_semigroup, `add_left_cancel_semigroup),
-  (`right_cancel_semigroup, `add_right_cancel_semigroup),
-  (`left_cancel_semigroup.mk, `add_left_cancel_semigroup.mk),
-  (`right_cancel_semigroup.mk, `add_right_cancel_semigroup.mk),
-  /- map instances -/
-  (`semigroup.to_has_mul, `add_semigroup.to_has_add),
-  (`semigroup_to_is_associative, `add_semigroup_to_is_associative),
-  (`comm_semigroup_to_is_commutative, `add_comm_semigroup_to_is_commutative),
-  (`monoid.to_has_one, `add_monoid.to_has_zero),
-  (`group.to_has_inv, `add_group.to_has_neg),
-  (`comm_semigroup.to_semigroup, `add_comm_semigroup.to_add_semigroup),
-  (`monoid.to_semigroup, `add_monoid.to_add_semigroup),
-  (`comm_monoid.to_monoid, `add_comm_monoid.to_add_monoid),
-  (`comm_monoid.to_comm_semigroup, `add_comm_monoid.to_add_comm_semigroup),
-  (`group.to_monoid, `add_group.to_add_monoid),
-  (`comm_group.to_group, `add_comm_group.to_add_group),
-  (`comm_group.to_comm_monoid, `add_comm_group.to_add_comm_monoid),
-  (`left_cancel_semigroup.to_semigroup, `add_left_cancel_semigroup.to_add_semigroup),
-  (`right_cancel_semigroup.to_semigroup, `add_right_cancel_semigroup.to_add_semigroup),
-  /- map lemmas -/
-  (`mul_assoc, `add_assoc),
-  (`mul_comm, `add_comm),
-  (`mul_left_comm, `add_left_comm),
-  (`mul_right_comm, `add_right_comm),
-  (`one_mul, `zero_add),
-  (`mul_one, `add_zero),
-  (`mul_left_inv, `add_left_neg),
-  (`mul_left_cancel, `add_left_cancel),
-  (`mul_right_cancel, `add_right_cancel),
-  (`inv_mul_cancel_left, `neg_add_cancel_left),
-  (`inv_mul_cancel_right, `neg_add_cancel_right),
-  (`inv_inv, `neg_neg),
-  (`mul_inv_cancel_left, `add_neg_cancel_left),
-  (`mul_inv_cancel_right, `add_neg_cancel_right),
-  (`mul_inv, `neg_add),
-  (`group.to_right_cancel_semigroup, `add_group.to_right_cancel_add_semigroup),
-  (`eq_inv_of_eq_inv, `eq_neg_of_eq_neg),
-  (`one_inv, `neg_zero),
-  /- new lemmas -/
-  (`list.prod, `list.sum),
-  (`list.prod.equations._eqn_1, `list.sum.equations._eqn_1),
-  (`list.prod_nil, `list.sum_nil),
-  (`list.prod_cons, `list.sum_cons),
-  (`list.prod_append, `list.sum_append),
-  (`list.prod_join, `list.sum_join),
-  (`list.prod_eq_of_perm, `list.sum_eq_of_perm),
-  (`list.prod_reverse, `list.sum_reverse),
-  (`finset.prod._proof_1, `finset.sum._proof_1),
-  (`finset.prod._proof_2, `finset.sum._proof_2),
-  (`finset.prod, `finset.sum),
-  (`finset.prod.equations._eqn_1, `finset.sum.equations._eqn_1),
-  (`finset.prod_to_finset_of_nodup, `finset.sum_to_finset_of_nodup),
-  (`finset.prod_empty, `finset.sum_empty),
-  (`finset.prod_insert, `finset.sum_insert),
-  (`finset.prod_singleton, `finset.sum_singleton),
-  (`finset.prod_union_inter, `finset.sum_union_inter),
-  (`finset.prod_union, `finset.sum_union),
-  (`finset.prod_image, `finset.sum_image),
-  (`finset.prod_bind, `finset.sum_bind),
-  (`finset.prod_product, `finset.sum_product),
-  (`finset.prod_congr, `finset.sum_congr),
-  (`finset.prod_hom, `finset.sum_hom),
-  (`finset.prod_mul_distrib, `finset.sum_add_distrib),
-  (`finset.prod_inv_distrib, `finset.sum_neg_distrib),
-  (`finset.prod_const_one, `finset.sum_const_zero),
-  (`finset.prod_comm, `finset.sum_comm),
-  (`finset.prod_sigma, `finset.sum_sigma),
-  (`finset.prod_sdiff, `finset.sum_sdiff),
-  (`finset.prod_subset, `finset.sum_subset),
-  (`finset.exists_ne_one_of_prod_ne_one, `finset.exists_ne_zero_of_sum_ne_zero)]
 
 namespace finset
 variables [decidable_eq α] {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}

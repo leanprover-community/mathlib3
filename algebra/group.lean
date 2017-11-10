@@ -5,124 +5,221 @@ Authors: Jeremy Avigad, Leonardo de Moura
 
 Various multiplicative and additive structures.
 -/
+
+
+section pending_1857
+
+/- Transport multiplicative to additive -/
+section transport
+open tactic
+
+@[user_attribute]
+meta def to_additive_attr : user_attribute (name_map name) name :=
+{ name      := `to_additive,
+  descr     := "Transport multiplicative to additive",
+  cache_cfg := ⟨λ ns, ns.mfoldl (λ dict n, do
+    val ← to_additive_attr.get_param n,
+    pure $ dict.insert n val) mk_name_map, []⟩,
+  parser    := lean.parser.ident,
+  after_set := some $ λ src _ _, do
+    env ← get_env,
+    dict ← to_additive_attr.get_cache,
+    tgt ← to_additive_attr.get_param src,
+    (get_decl tgt >> skip) <|>
+      transport_with_dict dict src tgt }
+
+end transport
+
+/- map operations -/
+attribute [to_additive has_add.add] has_mul.mul
+attribute [to_additive has_zero.zero] has_one.one
+attribute [to_additive has_neg.neg] has_inv.inv
+attribute [to_additive has_add] has_mul
+attribute [to_additive has_zero] has_one
+attribute [to_additive has_neg] has_inv
+
+/- map constructors -/
+attribute [to_additive has_add.mk] has_mul.mk
+attribute [to_additive has_zero.mk] has_one.mk
+attribute [to_additive has_neg.mk] has_neg.mk
+
+/- map structures -/
+attribute [to_additive add_semigroup] semigroup
+attribute [to_additive add_semigroup.mk] semigroup.mk
+attribute [to_additive add_semigroup.to_has_add] semigroup.to_has_mul
+attribute [to_additive add_semigroup.add_assoc] semigroup.mul_assoc
+
+attribute [to_additive add_comm_semigroup] comm_semigroup
+attribute [to_additive add_comm_semigroup.mk] comm_semigroup.mk
+attribute [to_additive add_comm_semigroup.to_add_semigroup] comm_semigroup.to_semigroup
+attribute [to_additive add_comm_semigroup.add_comm] comm_semigroup.mul_comm
+
+attribute [to_additive add_left_cancel_semigroup] left_cancel_semigroup
+attribute [to_additive add_left_cancel_semigroup.mk] left_cancel_semigroup.mk
+attribute [to_additive add_left_cancel_semigroup.to_add_semigroup] left_cancel_semigroup.to_semigroup
+attribute [to_additive add_left_cancel_semigroup.add_left_cancel] left_cancel_semigroup.mul_left_cancel
+
+attribute [to_additive add_right_cancel_semigroup] right_cancel_semigroup
+attribute [to_additive add_right_cancel_semigroup.mk] right_cancel_semigroup.mk
+attribute [to_additive add_right_cancel_semigroup.to_add_semigroup] right_cancel_semigroup.to_semigroup
+attribute [to_additive add_right_cancel_semigroup.add_right_cancel] right_cancel_semigroup.mul_right_cancel
+
+attribute [to_additive add_monoid] monoid
+attribute [to_additive add_monoid.mk] monoid.mk
+attribute [to_additive add_monoid.to_has_zero] monoid.to_has_one
+attribute [to_additive add_monoid.to_add_semigroup] monoid.to_semigroup
+attribute [to_additive add_monoid.zero_add] monoid.one_mul
+attribute [to_additive add_monoid.add_zero] monoid.mul_one
+
+attribute [to_additive add_comm_monoid] comm_monoid
+attribute [to_additive add_comm_monoid.mk] comm_monoid.mk
+attribute [to_additive add_comm_monoid.to_add_monoid] comm_monoid.to_monoid
+attribute [to_additive add_comm_monoid.to_add_comm_semigroup] comm_monoid.to_comm_semigroup
+
+attribute [to_additive add_group] group
+attribute [to_additive add_group.mk] group.mk
+attribute [to_additive add_group.to_has_neg] group.to_has_inv
+attribute [to_additive add_group.to_add_monoid] group.to_monoid
+attribute [to_additive add_group.add_left_neg] group.mul_left_inv
+attribute [to_additive add_group.add] group.mul
+attribute [to_additive add_group.add_assoc] group.mul_assoc
+
+attribute [to_additive add_comm_group] comm_group
+attribute [to_additive add_comm_group.mk] comm_group.mk
+attribute [to_additive add_comm_group.to_add_group] comm_group.to_group
+attribute [to_additive add_comm_group.to_add_comm_monoid] comm_group.to_comm_monoid
+
+/- map theorems -/
+attribute [to_additive add_assoc] mul_assoc
+attribute [to_additive add_semigroup_to_is_associative] semigroup_to_is_associative
+attribute [to_additive add_comm] mul_comm
+attribute [to_additive add_comm_semigroup_to_is_commutative] comm_semigroup_to_is_commutative
+attribute [to_additive add_left_comm] mul_left_comm
+attribute [to_additive add_right_comm] mul_right_comm
+attribute [to_additive add_left_cancel] mul_left_cancel
+attribute [to_additive add_right_cancel] mul_right_cancel
+attribute [to_additive add_left_cancel_iff] mul_left_cancel_iff
+attribute [to_additive add_right_cancel_iff] mul_right_cancel_iff
+attribute [to_additive zero_add] one_mul
+attribute [to_additive add_zero] mul_one
+attribute [to_additive add_left_neg] mul_left_inv
+attribute [to_additive neg_add_self] inv_mul_self
+attribute [to_additive neg_add_cancel_left] inv_mul_cancel_left
+attribute [to_additive neg_add_cancel_right] inv_mul_cancel_right
+attribute [to_additive neg_eq_of_add_eq_zero] inv_eq_of_mul_eq_one
+attribute [to_additive neg_zero] one_inv
+attribute [to_additive neg_neg] inv_inv
+attribute [to_additive add_right_neg] mul_right_inv
+attribute [to_additive add_neg_self] mul_inv_self
+attribute [to_additive neg_inj] inv_inj
+attribute [to_additive add_group.add_left_cancel] group.mul_left_cancel
+attribute [to_additive add_group.add_right_cancel] group.mul_right_cancel
+attribute [to_additive add_group.to_left_cancel_add_semigroup] group.to_left_cancel_semigroup
+attribute [to_additive add_group.to_right_cancel_add_semigroup] group.to_right_cancel_semigroup
+attribute [to_additive add_neg_cancel_left] mul_inv_cancel_left
+attribute [to_additive add_neg_cancel_right] mul_inv_cancel_right
+attribute [to_additive neg_add_rev] mul_inv_rev
+attribute [to_additive eq_neg_of_eq_neg] eq_inv_of_eq_inv
+attribute [to_additive eq_neg_of_add_eq_zero] eq_inv_of_mul_eq_one
+attribute [to_additive eq_add_neg_of_add_eq] eq_mul_inv_of_mul_eq
+attribute [to_additive eq_neg_add_of_add_eq] eq_inv_mul_of_mul_eq
+attribute [to_additive neg_add_eq_of_eq_add] inv_mul_eq_of_eq_mul
+attribute [to_additive add_neg_eq_of_eq_add] mul_inv_eq_of_eq_mul
+attribute [to_additive eq_add_of_add_neg_eq] eq_mul_of_mul_inv_eq
+attribute [to_additive eq_add_of_neg_add_eq] eq_mul_of_inv_mul_eq
+attribute [to_additive add_eq_of_eq_neg_add] mul_eq_of_eq_inv_mul
+attribute [to_additive add_eq_of_eq_add_neg] mul_eq_of_eq_mul_inv
+attribute [to_additive neg_add] mul_inv
+
+end pending_1857
+
 universe variable u
 variable {α : Type u}
 
-@[simp] theorem mul_left_inj [left_cancel_semigroup α] {a b c : α} : a * b = a * c ↔ b = c :=
+@[simp, to_additive add_left_inj]
+theorem mul_left_inj [left_cancel_semigroup α] {a b c : α} : a * b = a * c ↔ b = c :=
 ⟨mul_left_cancel, congr_arg _⟩
 
-@[simp] theorem mul_right_inj [right_cancel_semigroup α] {a b c : α} : b * a = c * a ↔ b = c :=
+@[simp, to_additive add_right_inj]
+theorem mul_right_inj [right_cancel_semigroup α] {a b c : α} : b * a = c * a ↔ b = c :=
 ⟨mul_right_cancel, congr_arg _⟩
 
 section group
   variables [group α] {a b c : α}
 
-  @[simp] theorem inv_inj' : a⁻¹ = b⁻¹ ↔ a = b :=
+  @[simp, to_additive neg_inj']
+  theorem inv_inj' : a⁻¹ = b⁻¹ ↔ a = b :=
   ⟨λ h, by rw ← inv_inv a; simp [h], congr_arg _⟩
 
+  @[to_additive eq_of_neg_eq_neg]
   theorem eq_of_inv_eq_inv : a⁻¹ = b⁻¹ → a = b :=
   inv_inj'.1
 
-  @[simp] theorem mul_self_iff_eq_one : a * a = a ↔ a = 1 :=
+  @[simp, to_additive add_self_iff_eq_zero]
+  theorem mul_self_iff_eq_one : a * a = a ↔ a = 1 :=
   by have := @mul_left_inj _ _ a a 1; rwa mul_one at this
 
-  @[simp] theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
+  @[simp, to_additive neg_eq_zero]
+  theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
   by rw [← @inv_inj' _ _ a 1, one_inv]
 
-  @[simp] theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 :=
+  @[simp, to_additive neg_ne_zero]
+  theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 :=
   not_congr inv_eq_one
 
+  @[to_additive left_inverse_neg]
   theorem left_inverse_inv (α) [group α] :
     function.left_inverse (λ a : α, a⁻¹) (λ a, a⁻¹) :=
   assume a, inv_inv a
 
-  attribute [simp] mul_inv_cancel_left mul_inv_cancel_right
+  attribute [simp] mul_inv_cancel_left add_neg_cancel_left
+                   mul_inv_cancel_right add_neg_cancel_right
 
+  @[to_additive eq_neg_iff_eq_neg]
   theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
   ⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
 
+  @[to_additive neg_eq_iff_neg_eq]
   theorem inv_eq_iff_inv_eq : a⁻¹ = b ↔ b⁻¹ = a :=
   by rw [eq_comm, @eq_comm _ _ a, eq_inv_iff_eq_inv]
 
+  @[to_additive add_eq_zero_iff_eq_neg]
   theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
   have a * b = b⁻¹ * b ↔ a = b⁻¹, from mul_right_inj,
   by rwa mul_left_inv at this
 
+  @[to_additive add_eq_zero_iff_neg_eq]
   theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
   by rw [mul_eq_one_iff_eq_inv, eq_inv_iff_eq_inv, eq_comm]
 
+  @[to_additive eq_neg_iff_add_eq_zero]
   theorem eq_inv_iff_mul_eq_one : a = b⁻¹ ↔ a * b = 1 :=
   mul_eq_one_iff_eq_inv.symm
 
+  @[to_additive neg_eq_iff_add_eq_zero]
   theorem inv_eq_iff_mul_eq_one : a⁻¹ = b ↔ a * b = 1 :=
   mul_eq_one_iff_inv_eq.symm
 
+  @[to_additive eq_add_neg_iff_add_eq]
   theorem eq_mul_inv_iff_mul_eq : a = b * c⁻¹ ↔ a * c = b :=
   ⟨λ h, by simp [h], λ h, by simp [h.symm]⟩
 
+  @[to_additive eq_neg_add_iff_add_eq]
   theorem eq_inv_mul_iff_mul_eq : a = b⁻¹ * c ↔ b * a = c :=
   ⟨λ h, by simp [h], λ h, by simp [h.symm]⟩
 
+  @[to_additive neg_add_eq_iff_eq_add]
   theorem inv_mul_eq_iff_eq_mul : a⁻¹ * b = c ↔ b = a * c :=
   ⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
 
+  @[to_additive add_neg_eq_iff_eq_add]
   theorem mul_inv_eq_iff_eq_mul : a * b⁻¹ = c ↔ a = c * b :=
   ⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
 
+  @[to_additive add_neg_eq_zero]
   theorem mul_inv_eq_one {a b : α} : a * b⁻¹ = 1 ↔ a = b :=
   by rw [mul_eq_one_iff_eq_inv, inv_inv]
 end group
-
-/- transport versions to additive -/
-run_cmd transport_multiplicative_to_additive [
-  /- map operations -/
-  (`has_mul.mul, `has_add.add), (`has_one.one, `has_zero.zero), (`has_inv.inv, `has_neg.neg),
-  (`has_mul, `has_add), (`has_inv, `has_neg),
-  /- map structures -/
-  (`group, `add_group),
-  (`left_cancel_semigroup, `add_left_cancel_semigroup),
-  (`right_cancel_semigroup, `add_right_cancel_semigroup),
-  /- map instances -/
-  (`semigroup.to_has_mul, `add_semigroup.to_has_add),
-  (`monoid.to_has_one, `add_monoid.to_has_zero),
-  (`group.to_has_inv, `add_group.to_has_neg),
-  (`monoid.to_semigroup, `add_monoid.to_add_semigroup),
-  (`group.to_monoid, `add_group.to_add_monoid),
-  (`left_cancel_semigroup.to_semigroup, `add_left_cancel_semigroup.to_add_semigroup),
-  (`right_cancel_semigroup.to_semigroup, `add_right_cancel_semigroup.to_add_semigroup),
-  /- map lemmas -/
-  (`mul_one, `add_zero),
-  (`mul_left_inv, `add_left_neg),
-  (`mul_left_cancel, `add_left_cancel),
-  (`mul_right_cancel, `add_right_cancel),
-  (`inv_mul_cancel_left, `neg_add_cancel_left),
-  (`inv_mul_cancel_right, `neg_add_cancel_right),
-  (`inv_inv, `neg_neg),
-  (`mul_inv_cancel_left, `add_neg_cancel_left),
-  (`mul_inv_cancel_right, `add_neg_cancel_right),
-  (`group.to_left_cancel_semigroup, `add_group.to_left_cancel_add_semigroup),
-  (`group.to_right_cancel_semigroup, `add_group.to_right_cancel_add_semigroup),
-  (`eq_inv_of_eq_inv, `eq_neg_of_eq_neg),
-  (`one_inv, `neg_zero),
-  /- new lemmas -/
-  (`mul_left_inj, `add_left_inj),
-  (`mul_right_inj, `add_right_inj),
-  (`inv_inj', `neg_inj'),
-  (`mul_self_iff_eq_one, `add_self_iff_eq_zero),
-  (`inv_eq_one, `neg_eq_zero),
-  (`inv_ne_one, `neg_ne_zero),
-  (`left_inverse_inv, `left_inverse_neg),
-  (`eq_inv_iff_eq_inv, `eq_neg_iff_eq_neg),
-  (`inv_eq_iff_inv_eq, `neg_eq_iff_neg_eq),
-  (`mul_eq_one_iff_eq_inv, `add_eq_zero_iff_eq_neg),
-  (`mul_eq_one_iff_inv_eq, `add_eq_zero_iff_neg_eq),
-  (`eq_inv_iff_mul_eq_one, `eq_neg_iff_add_eq_zero),
-  (`inv_eq_iff_mul_eq_one, `neg_eq_iff_add_eq_zero),
-  (`eq_mul_inv_iff_mul_eq, `eq_add_neg_iff_add_eq),
-  (`eq_inv_mul_iff_mul_eq, `eq_neg_add_iff_add_eq),
-  (`inv_mul_eq_iff_eq_mul, `neg_add_eq_iff_eq_add),
-  (`mul_inv_eq_iff_eq_mul, `add_neg_eq_iff_eq_add),
-  (`mul_inv_eq_one, `add_neg_eq_zero)]
 
 section add_group
   variables [add_group α] {a b c : α}

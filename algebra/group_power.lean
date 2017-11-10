@@ -78,6 +78,10 @@ by rw [bit1, pow_succ', pow_bit0]
 theorem pow_mul_comm (a : α) (m n : ℕ)  : a^m * a^n = a^n * a^m :=
 by rw [←pow_add, ←pow_add, add_comm]
 
+@[simp] theorem list.prod_repeat (a : α) : ∀ (n : ℕ), (list.repeat a n).prod = a ^ n
+| 0 := rfl
+| (n+1) := by simp [pow_succ, list.prod_repeat n]
+
 end monoid
 
 theorem nat.pow_eq_pow_nat (p q : ℕ) : nat.pow p q = pow_nat p q :=

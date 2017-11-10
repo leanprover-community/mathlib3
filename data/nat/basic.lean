@@ -365,7 +365,7 @@ end
 @[simp] theorem size_bit1 (n) : size (bit1 n) = succ (size n) :=
 @size_bit tt n (nat.bit1_ne_zero n)
 
-@[simp] theorem size_one : size 1 = 1 := size_bit1 0
+@[simp] theorem size_one : size 1 = 1 := by apply size_bit1 0
 
 @[simp] theorem size_shiftl' {b m n} (h : shiftl' b m n ≠ 0) :
   size (shiftl' b m n) = size m + n :=

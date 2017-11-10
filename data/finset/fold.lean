@@ -11,46 +11,6 @@ open list subtype nat finset
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-namespace list
-
-@[congr] lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) → map f l = map g l
-| [] _     := rfl
-| (a::l) h :=
-  have f a = g a, from h _ (mem_cons_self _ _),
-  have map f l = map g l, from map_congr $ assume a', h _ ∘ mem_cons_of_mem _,
-  show f a :: map f l = g a :: map g l, by simp [*]
-
-variables {op : α → α → α} [ha : is_associative α op] [hc : is_commutative α op]
-local notation a * b := op a b
-local notation l <*> a := foldl op a l
-
-section associative
-include ha
-
-lemma foldl_assoc : ∀{l : list α} {a₁ a₂}, l <*> (a₁ * a₂) = a₁ * (l <*> a₂)
-| [] a₁ a₂ := by simp
-| (a :: l) a₁ a₂ :=
-  calc a::l <*> (a₁ * a₂) = l <*> (a₁ * (a₂ * a)) : by simp [ha.assoc]
-    ... = a₁ * (a::l <*> a₂) : by rw [foldl_assoc]; simp
-
-lemma foldl_op_eq_op_foldr_assoc : ∀{l : list α} {a₁ a₂}, (l <*> a₁) * a₂ = a₁ * l.foldr (*) a₂
-| [] a₁ a₂ := by simp
-| (a :: l) a₁ a₂ := by simp [foldl_assoc, ha.assoc]; rw [foldl_op_eq_op_foldr_assoc]
-end associative
-
-section commutative
-include ha hc
-
-lemma foldl_assoc_comm_cons {l : list α} {a₁ a₂} : (a₁ :: l) <*> a₂ = a₁ * (l <*> a₂) :=
-by rw [foldl_cons, hc.comm, foldl_assoc]
-
-lemma fold_op_eq_of_perm {l₁ l₂ : list α} {a : α} (h : perm l₁ l₂) : l₁ <*> a = l₂ <*> a :=
-by induction h; simp [*, -foldl_cons, foldl_assoc_comm_cons]; cc
-
-end commutative
-
-end list
-
 namespace finset
 
 section fold

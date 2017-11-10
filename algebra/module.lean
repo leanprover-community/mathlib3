@@ -15,14 +15,15 @@ class has_scalar (α : inout Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
-class module (α : inout Type u) (β : Type v) [ring α] extends has_scalar α β, add_comm_group β :=
+class module (α : inout Type u) (β : Type v) [inout ring α]
+  extends has_scalar α β, add_comm_group β :=
 (smul_left_distrib  : ∀r (x y : β), r • (x + y) = r • x + r • y)
 (smul_right_distrib : ∀r s (x : β), (r + s) • x = r • x + s • x)
 (mul_smul           : ∀r s (x : β), (r * s) • x = r • s • x)
 (one_smul           : ∀x : β, (1 : α) • x = x)
 
 section module
-variables [ring α] [module α β] (r s : α) (x y : β)
+variables [ring α] [module α β] {r s : α} {x y : β}
 
 theorem smul_left_distrib : r • (x + y) = r • x + r • y := module.smul_left_distrib r x y
 theorem smul_right_distrib : (r + s) • x = r • x + s • x := module.smul_right_distrib r s x
@@ -51,7 +52,7 @@ by simp [smul_left_distrib]
 theorem sub_smul_right_distrib (r s : α) (y : β) : (r - s) • y = r • y - s • y :=
 by simp [smul_right_distrib]
 
-lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm
+lemma smul_smul : r • s • x = (r * s) • x := mul_smul.symm
 
 end module
 
@@ -63,39 +64,41 @@ instance ring.to_module [r : ring α] : module α α :=
   mul_smul := mul_assoc,
   one_smul := one_mul }
 
-class submodule (α : Type u) (β : Type v) [ring α] [module α β] (p : set β) :=
+class submodule {α : Type u} {β : Type v} [ring α] [module α β] (p : set β) : Prop :=
 (add : ∀ {x y}, x ∈ p → y ∈ p → x + y ∈ p)
 (zero : (0:β) ∈ p)
 (smul : ∀ c {x}, x ∈ p → c • x ∈ p)
 
 namespace submodule
-
 variables [ring α] [module α β]
-variables {p : set β} [submodule α β p]
-variables (r : α) (x y : {x : β // x ∈ p})
+variables {p : set β} [submodule p]
+variables {r : α}
 
+section
+variables {x y : β}
 include α
-variables (α)
 
-lemma neg {x : β} (hx : x ∈ p) : -x ∈ p :=
+lemma neg (hx : x ∈ p) : -x ∈ p :=
 by rw ← neg_one_smul x; exact smul _ hx
 
-lemma sub {x y : β} (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p :=
-add α hx (neg α hy)
+lemma sub (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p :=
+add α hx (neg hy)
+
+end
+
+section subtype
+variables  {x y : {x : β // x ∈ p}}
+include α
 
 instance : has_add {x : β // x ∈ p} := ⟨λ ⟨x, px⟩ ⟨y, py⟩, ⟨x + y, add α px py⟩⟩
 instance : has_zero {x : β // x ∈ p} := ⟨⟨0, zero α p⟩⟩
-instance : has_neg {x : β // x ∈ p} := ⟨λ ⟨x, p⟩, ⟨-x, neg α p⟩⟩
+instance : has_neg {x : β // x ∈ p} := ⟨λ ⟨x, p⟩, ⟨-x, neg p⟩⟩
 instance : has_scalar α {x : β // x ∈ p} := ⟨λ c ⟨x, p⟩, ⟨c • x, smul c p⟩⟩
-
-variables {α}
 
 @[simp] lemma add_val : (x + y).val = x.val + y.val := by cases x; cases y; refl
 @[simp] lemma zero_val : (0 : {x : β // x ∈ p}).val = 0 := rfl
 @[simp] lemma neg_val : (-x).val = -x.val := by cases x; refl
 @[simp] lemma smul_val : (r • x).val = r • x.val := by cases x; refl
-
-variables (α β p)
 
 instance : module α {x : β // x ∈ p} :=
 by refine {
@@ -114,11 +117,11 @@ by refine {
     one_smul           := _ };
   { intros, apply subtype.eq,
     simp [smul_left_distrib, smul_right_distrib, mul_smul] }
+end subtype
 
 end submodule
 
-structure linear_map (α : Type u) (β : Type v) (γ : Type w)
-  [ring α] [module α β] [module α γ] :=
+structure linear_map (α : Type u) (β : Type v) (γ : Type w) [ring α] [module α β] [module α γ] :=
 (T : β → γ)
 (map_add : ∀ x y, T (x + y) = T x + T y)
 (map_smul : ∀ (c:α) x, T (c • x) = c • T x)
@@ -126,7 +129,7 @@ structure linear_map (α : Type u) (β : Type v) (γ : Type w)
 namespace linear_map
 
 variables [ring α] [module α β] [module α γ]
-variables (r : α) (A B C : linear_map α β γ) (x y : β)
+variables {r : α} {A B C : linear_map α β γ} {x y : β}
 
 instance : has_coe_to_fun (linear_map α β γ) := ⟨_, T⟩
 
@@ -147,15 +150,13 @@ eq_neg_of_add_eq_zero (by rw ← map_add_app; simp)
 
 /- kernel -/
 
-def ker : set β := {y | A y = 0}
+def ker (A : linear_map α β γ) : set β := {y | A y = 0}
 
 section ker
 
-@[simp] lemma mem_ker {A : linear_map α β γ} {x : β} :
-  x ∈ A.ker ↔ A x = 0 := iff.rfl
+@[simp] lemma mem_ker : x ∈ A.ker ↔ A x = 0 := iff.rfl
 
-theorem ker_of_map_eq_map {A : linear_map α β γ} {x y : β}
-  (h : A x = A y) : x - y ∈ A.ker :=
+theorem ker_of_map_eq_map (h : A x = A y) : x - y ∈ A.ker :=
 by rw [mem_ker, map_sub]; exact sub_eq_zero_of_eq h
 
 theorem inj_of_trivial_ker (H : A.ker ⊆ {0}) (h : A x = A y) : x = y :=
@@ -163,36 +164,38 @@ eq_of_sub_eq_zero $ set.eq_of_mem_singleton $ H $ ker_of_map_eq_map h
 
 variables (α A)
 
-instance : submodule α β A.ker :=
+instance : submodule A.ker :=
 { add  := λ x y HU HV, by rw mem_ker at *; simp [HU, HV, mem_ker],
-  zero := map_zero A,
+  zero := map_zero,
   smul := λ r x HV, by rw mem_ker at *; simp [HV] }
 
 theorem sub_ker (HU : x ∈ A.ker) (HV : y ∈ A.ker) : x - y ∈ A.ker :=
-submodule.sub α HU HV
+submodule.sub HU HV
 
 end ker
 
 /- image -/
 
-def im : set γ := {x | ∃ y, A y = x}
+def im (A : linear_map α β γ) : set γ := {x | ∃ y, A y = x}
 
 @[simp] lemma mem_im {A : linear_map α β γ} {z : γ} :
   z ∈ A.im ↔ ∃ y, A y = z := iff.rfl
 
-instance im.submodule : submodule α γ A.im :=
+instance im.submodule : submodule A.im :=
 { add  := λ a b ⟨x, hx⟩ ⟨y, hy⟩, ⟨x + y, by simp [hx, hy]⟩,
-  zero := ⟨0, map_zero A⟩,
+  zero := ⟨0, map_zero⟩,
   smul := λ r a ⟨x, hx⟩, ⟨r • x, by simp [hx]⟩ }
 
 section add_comm_group
 
-instance : has_add (linear_map α β γ) := ⟨λ ⟨T₁, a₁, s₁⟩ ⟨T₂, a₂, s₂⟩,
+instance : has_add (linear_map α β γ) :=
+⟨λ ⟨T₁, a₁, s₁⟩ ⟨T₂, a₂, s₂⟩,
   ⟨λ y, T₁ y + T₂ y, by simp [a₁, a₂], by simp [smul_left_distrib, s₁, s₂]⟩⟩
 
 instance : has_zero (linear_map α β γ) := ⟨⟨λ_, 0, by simp, by simp⟩⟩
 
-instance : has_neg (linear_map α β γ) := ⟨λ ⟨T, a, s⟩,
+instance : has_neg (linear_map α β γ) :=
+⟨λ ⟨T, a, s⟩,
   ⟨λ y, -T y, by simp [a], by simp [s]⟩⟩
 
 @[simp] lemma add_app : (A + B) x = A x + B x := by cases A; cases B; refl
@@ -250,8 +253,6 @@ end linear_map
 
 namespace module
 
-def dual (α β) [ring α] [module α β] := module α (linear_map α β α)
-
 variables [ring α] [module α β]
 
 instance : has_one (linear_map α β β) := ⟨⟨id, λ x y, rfl, λ x y, rfl⟩⟩
@@ -262,8 +263,8 @@ protected def mul : linear_map α β β → linear_map α β β → linear_map �
 instance : has_mul (linear_map α β β) := ⟨module.mul⟩
 
 @[simp] lemma one_app (x : β) : (1 : linear_map α β β) x = x := rfl
-@[simp] lemma mul_app (A B : linear_map α β β) (x : β) :
-  (A * B) x = A (B x) := by cases A; cases B; refl
+@[simp] lemma mul_app (A B : linear_map α β β) (x : β) : (A * B) x = A (B x) :=
+by cases A; cases B; refl
 
 variables (α β)
 
@@ -284,6 +285,8 @@ by have := endomorphism_ring α β; exact units (linear_map α β β)
 
 end module
 
-@[reducible] def vector_space (α : inout Type u) (β : Type v) [field α] := module α β
+class vector_space (α : inout Type u) (β : Type v) [inout field α] extends module α β
 
-@[reducible] def subspace (α : Type) (β : Type) [field α] [vector_space α β] := submodule α β
+@[reducible] def subspace {α : Type u} {β : Type v} [field α] [vector_space α β] (p : set β) :
+  Prop :=
+submodule p

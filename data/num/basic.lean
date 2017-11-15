@@ -109,7 +109,6 @@ namespace pos_num
   | (bit1 a) (bit0 b) := ordering.cases_on (cmp a b) lt gt gt
   | (bit1 a) (bit1 b) := cmp a b
 
-  instance : has_ordering pos_num := ⟨cmp⟩
   instance : has_lt pos_num := ⟨λa b, cmp a b = ordering.lt⟩
   instance : has_le pos_num := ⟨λa b, ¬ b < a⟩
 
@@ -182,7 +181,6 @@ namespace num
   | 0       _       := lt
   | (pos a) (pos b) := pos_num.cmp a b
 
-  instance : has_ordering num := ⟨cmp⟩
   instance : has_lt num := ⟨λa b, cmp a b = ordering.lt⟩
   instance : has_le num := ⟨λa b, ¬ b < a⟩
 
@@ -333,7 +331,6 @@ namespace znum
   | _       (pos _) := lt
   | _       (neg _) := gt
 
-  instance : has_ordering znum := ⟨cmp⟩
   instance : has_lt znum := ⟨λa b, cmp a b = ordering.lt⟩
   instance : has_le znum := ⟨λa b, ¬ b < a⟩
 

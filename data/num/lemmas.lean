@@ -381,8 +381,7 @@ namespace pos_num
   begin
     have := cmp_to_nat m n,
     cases cmp m n; simp at this ⊢; try {exact this};
-    { simp [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this],
-      exact dec_trivial }
+    { simp [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this] }
   end
 
   @[simp] theorem cast_lt [linear_ordered_semiring α] {m n : pos_num} : (m:α) < n ↔ m < n :=
@@ -484,8 +483,7 @@ namespace num
   begin
     have := cmp_to_nat m n,
     cases cmp m n; simp at this ⊢; try {exact this};
-    { simp [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this],
-      exact dec_trivial }
+    { simp [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this] }
   end
 
   @[simp] theorem cast_lt [linear_ordered_semiring α] {m n : num} : (m:α) < n ↔ m < n :=

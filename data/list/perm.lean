@@ -215,8 +215,7 @@ theorem length_le_of_subperm {l₁ l₂ : list α} : l₁ <+~ l₂ → length l�
 theorem subperm.perm_of_length_le {l₁ l₂ : list α} : l₁ <+~ l₂ → length l₂ ≤ length l₁ → l₁ ~ l₂
 | ⟨l, p, s⟩ h :=
   suffices l = l₂, from this ▸ p.symm,
-  eq_of_sublist_of_length_eq s $ le_antisymm (length_le_of_sublist s) $
-  perm_length p.symm ▸ h
+  eq_of_sublist_of_length_le s $ perm_length p.symm ▸ h
 
 theorem subperm.antisymm {l₁ l₂ : list α} (h₁ : l₁ <+~ l₂) (h₂ : l₂ <+~ l₁) : l₁ ~ l₂ :=
 h₁.perm_of_length_le (length_le_of_subperm h₂)

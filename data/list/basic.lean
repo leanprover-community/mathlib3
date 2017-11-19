@@ -59,6 +59,9 @@ theorem length_pos_of_mem {a : α} : ∀ {l : list α}, a ∈ l → 0 < length l
 theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a ∈ l
 | (b::l) _ := ⟨b, mem_cons_self _ _⟩
 
+theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=
+⟨exists_mem_of_length_pos, λ ⟨a, h⟩, length_pos_of_mem h⟩
+
 theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = s ++ a :: t :=
 begin
   induction l with b l ih; simp at h; cases h with h h,
@@ -246,7 +249,7 @@ theorem eq_repeat {a : α} {n} {l : list α} : l = repeat a n ↔ length l = n �
 theorem repeat_subset_singleton (a : α) (n) : repeat a n ⊆ [a] :=
 λ b h, mem_singleton.2 (eq_of_mem_repeat h)
 
-@[simp] theorem map_const {l : list α} {b : β} : map (function.const α b) l = repeat b l.length :=
+@[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
 by induction l; simp [-add_comm, *]
 
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) : b₁ = b₂ :=
@@ -506,8 +509,11 @@ theorem eq_of_sublist_of_length_eq : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ →
 | ._ ._ (sublist.cons2 l₁ l₂ a s) h :=
   by rw [length, length] at h; injection h with h; rw eq_of_sublist_of_length_eq s h
 
+theorem eq_of_sublist_of_length_le {l₁ l₂ : list α} (s : l₁ <+ l₂) (h : length l₂ ≤ length l₁) : l₁ = l₂ :=
+eq_of_sublist_of_length_eq s (le_antisymm (length_le_of_sublist s) h)
+
 theorem sublist_antisymm {l₁ l₂ : list α} (s₁ : l₁ <+ l₂) (s₂ : l₂ <+ l₁) : l₁ = l₂ :=
-eq_of_sublist_of_length_eq s₁ (le_antisymm (length_le_of_sublist s₁) (length_le_of_sublist s₂))
+eq_of_sublist_of_length_le s₁ (length_le_of_sublist s₂)
 
 instance decidable_sublist [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <+ l₂)
 | []      l₂      := is_true $ nil_sublist _
@@ -1229,14 +1235,8 @@ local attribute [simp] countp_eq_length_filter
 @[simp] theorem countp_append (l₁ l₂) : countp p (l₁ ++ l₂) = countp p l₁ + countp p l₂ :=
 by simp
 
-theorem exists_mem_of_countp_pos {l} (h : countp p l > 0) : ∃ a ∈ l, p a :=
-by simp at h; exact
-exists_imp_exists
-  (λ a al, ⟨mem_of_mem_filter al, of_mem_filter al⟩)
-  (exists_mem_of_length_pos h)
-
-theorem countp_pos_of_mem {l a} (h : a ∈ l) (pa : p a) : countp p l > 0 :=
-by simp; exact length_pos_of_mem (mem_filter_of_mem h pa)
+theorem countp_pos {l} : 0 < countp p l ↔ ∃ a ∈ l, p a :=
+by simp [countp_eq_length_filter, length_pos_iff_exists_mem]
 
 theorem countp_le_of_sublist {l₁ l₂} (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ :=
 by simpa using length_le_of_sublist (filter_sublist_filter s)
@@ -1271,7 +1271,7 @@ if_neg h
 theorem count_le_of_sublist (a : α) {l₁ l₂} : l₁ <+ l₂ → count a l₁ ≤ count a l₂ :=
 countp_le_of_sublist
 
-theorem count_cons_ge_count (a b : α) (l : list α) : count a (b :: l) ≥ count a l :=
+theorem count_le_count_cons (a b : α) (l : list α) : count a l ≤ count a (b :: l) :=
 count_le_of_sublist _ (sublist_cons _ _)
 
 theorem count_singleton (a : α) : count a [a] = 1 :=
@@ -1283,14 +1283,8 @@ countp_append
 @[simp] theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by rw [concat_eq_append, count_append, count_singleton]
 
-theorem mem_of_count_pos {a : α} {l : list α} (h : count a l > 0) : a ∈ l :=
-let ⟨a', ael, e⟩ := exists_mem_of_countp_pos h in e.symm ▸ ael
-
-theorem count_pos_of_mem {a : α} {l : list α} (h : a ∈ l) : count a l > 0 :=
-countp_pos_of_mem h rfl
-
-theorem count_pos {a : α} {l : list α} : count a l > 0 ↔ a ∈ l :=
-⟨mem_of_count_pos, count_pos_of_mem⟩
+theorem count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
+by simp [count, countp_pos]
 
 @[simp] theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
 by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
@@ -1711,6 +1705,9 @@ by by_cases a ∈ l₁; simp [list.diff, h]
 theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.erase l₁ l₂
 | l₁ []      := rfl
 | l₁ (a::l₂) := (diff_cons l₁ l₂ a).trans (diff_eq_foldl _ _)
+
+@[simp] theorem diff_append (l₁ l₂ l₃ : list α) : l₁.diff (l₂ ++ l₃) = (l₁.diff l₂).diff l₃ :=
+by simp [diff_eq_foldl]
 
 end diff
 
@@ -2336,7 +2333,7 @@ have [a, a] <+ l ↔ 1 < count a l, from (@le_count_iff_repeat_sublist _ _ a l 2
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=
-le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos_of_mem h)
+le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 
 theorem nodup_of_nodup_append_left {l₁ l₂ : list α} : nodup (l₁++l₂) → nodup l₁ :=
 nodup_of_sublist (sublist_append_left l₁ l₂)

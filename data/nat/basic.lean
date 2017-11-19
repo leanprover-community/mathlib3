@@ -12,6 +12,9 @@ universe u
 namespace nat
 variables {m n k : ℕ}
 
+theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
+by rw [← sub_one, nat.sub_sub, one_add]; refl
+
 theorem pos_iff_ne_zero : n > 0 ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 
@@ -22,11 +25,24 @@ or.elim (le_total n m)
   (assume : n ≤ m, begin rw [sub_eq_zero_of_le this, zero_add], exact this end)
   (assume : m ≤ n, begin rw (nat.sub_add_cancel this) end)
 
+theorem sub_add_eq_max (n m : ℕ) : n - m + m = max n m :=
+eq_max (nat.le_sub_add _ _) (le_add_left _ _) $ λ k h₁ h₂,
+by rw ← nat.sub_add_cancel h₂; exact
+add_le_add_right (nat.sub_le_sub_right h₁ _) _
+
+theorem sub_add_min (n m : ℕ) : n - m + min n m = n :=
+(le_total n m).elim
+  (λ h, by rw [min_eq_left h, sub_eq_zero_of_le h, zero_add])
+  (λ h, by rw [min_eq_right h, nat.sub_add_cancel h])
+
 protected theorem add_sub_cancel' {n m : ℕ} (h : n ≥ m) : m + (n - m) = n :=
 by rw [add_comm, nat.sub_add_cancel h]
 
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
 begin rw [h, nat.add_sub_cancel_left] end
+
+theorem sub_min (n m : ℕ) : n - min n m = n - m :=
+nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
 
 protected theorem lt_of_sub_pos (h : n - m > 0) : m < n :=
 lt_of_not_ge

@@ -222,8 +222,7 @@ variable [s : nonneg_comm_group α]
 include s
 
 @[reducible] instance to_ordered_comm_group : ordered_comm_group α :=
-{ s with
-  le := λ a b, nonneg (b - a),
+{ le := λ a b, nonneg (b - a),
   lt := λ a b, pos (b - a),
   lt_iff_le_not_le := λ a b, by simp; rw [pos_iff]; simp,
   le_refl := λ a, by simp [zero_nonneg],
@@ -232,7 +231,7 @@ include s
   le_antisymm := λ a b nab nba, eq_of_sub_eq_zero $
     nonneg_antisymm nba (by rw neg_sub; exact nab),
   add_le_add_left := λ a b nab c, by simpa [(≤), preorder.le] using nab,
-  add_lt_add_left := λ a b nab c, by simpa [(<), preorder.lt] using nab }
+  add_lt_add_left := λ a b nab c, by simpa [(<), preorder.lt] using nab, ..s }
 
 theorem nonneg_def {a : α} : nonneg a ↔ 0 ≤ a :=
 show _ ↔ nonneg _, by simp
@@ -257,8 +256,7 @@ def to_decidable_linear_ordered_comm_group
   [decidable_pred (@nonneg α _)]
   (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))
   : decidable_linear_ordered_comm_group α :=
-{ @nonneg_comm_group.to_ordered_comm_group _ s with
-  le := (≤),
+{ le := (≤),
   lt := (<),
   lt_iff_le_not_le := @lt_iff_le_not_le _ _,
   le_refl := @le_refl _ _,
@@ -267,6 +265,7 @@ def to_decidable_linear_ordered_comm_group
   le_total := nonneg_total_iff.1 nonneg_total,
   decidable_le := by apply_instance,
   decidable_eq := by apply_instance,
-  decidable_lt := by apply_instance }
+  decidable_lt := by apply_instance,
+  ..@nonneg_comm_group.to_ordered_comm_group _ s }
 
 end nonneg_comm_group

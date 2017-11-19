@@ -656,7 +656,7 @@ le_antisymm
       have m '' (t₁ ∩ t) ∩ m '' (t₂ ∩ t) ⊆ s,
       begin
         rw [image_inter_on],
-        apply image_subset_iff.mpr _,
+        refine image_subset_iff.2 _,
         exact assume x ⟨⟨h₁, _⟩, h₂, _⟩, hs ⟨h₁, h₂⟩,
         exact assume x ⟨_, hx⟩ y ⟨_, hy⟩, h x hx y hy
       end,

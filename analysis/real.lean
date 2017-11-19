@@ -360,8 +360,8 @@ have uniform_continuous (λp:{p:ℚ×ℚ // abs p.1 ≤ abs r + 1 ∧ abs p.2 �
 tendsto_of_uniform_continuous_subtype this h
 
 instance : topological_ring ℚ :=
-{ rat.topological_add_group with
-  continuous_mul := continuous_iff_tendsto.mpr $ assume ⟨r, q⟩, tendsto_mul_rat }
+{ continuous_mul := continuous_iff_tendsto.mpr $ assume ⟨r, q⟩, tendsto_mul_rat,
+  ..rat.topological_add_group }
 
 lemma totally_bounded_01_rat : totally_bounded {q:ℚ | 0 ≤ q ∧ q ≤ 1} :=
 assume s (hs : s ∈ uniformity.sets),
@@ -699,8 +699,7 @@ show (c + b) - (c + a) ∈ nonneg ↔ b - a ∈ nonneg,
   by rwa [add_sub_add_left_eq_sub]
 
 instance : decidable_linear_ordered_comm_group ℝ :=
-{ real.add_comm_group with
-  le := (≤),
+{ le := (≤),
   lt := (<),
   le_refl := le_refl,
   le_trans := assume a b c, le_trans,
@@ -712,7 +711,8 @@ instance : decidable_linear_ordered_comm_group ℝ :=
     assume a b, by simp [lt_iff_not_ge, ge, -not_le, -add_comm, add_le_add_left_iff] {contextual := tt},
   decidable_eq    := by apply_instance,
   decidable_le    := by apply_instance,
-  decidable_lt    := by apply_instance }
+  decidable_lt    := by apply_instance,
+  ..real.add_comm_group }
 
 lemma preimage_neg_rat : preimage (has_neg.neg : ℚ → ℚ) = image (has_neg.neg : ℚ → ℚ) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
@@ -1036,8 +1036,7 @@ begin
 end
 
 instance : discrete_field ℝ :=
-{ real.add_comm_group with
-  one              := 1,
+{ one              := 1,
   mul              := (*),
   inv              := has_inv.inv,
   mul_one          := is_closed_property dense_embedding_of_rat.closure_image_univ
@@ -1089,11 +1088,11 @@ instance : discrete_field ℝ :=
       (assume ⟨a, (ha : a ≠ 0)⟩,
         by simp [*, mul_inv_cancel ha] at *),
   inv_zero := show (0:ℝ)⁻¹ = 0, from by simp [has_inv.inv],
-  has_decidable_eq := by apply_instance }
+  has_decidable_eq := by apply_instance,
+  ..real.add_comm_group }
 
 instance : discrete_linear_ordered_field ℝ :=
-{ real.discrete_field with
-  le              := (≤),
+{ le              := (≤),
   lt              := (<),
   le_refl         := le_refl,
   le_trans        := assume a b c, le_trans,
@@ -1110,15 +1109,16 @@ instance : discrete_linear_ordered_field ℝ :=
       ne.symm $ mul_ne_zero (ne_of_gt ha) (ne_of_gt hb),
   decidable_eq    := by apply_instance,
   decidable_le    := by apply_instance,
-  decidable_lt    := by apply_instance }
+  decidable_lt    := by apply_instance,
+  ..real.discrete_field }
 
 instance : ordered_comm_monoid ℝ :=
-{ real.discrete_linear_ordered_field with
-  lt_of_add_lt_add_left :=
-      assume a b, by simp [ge, -add_comm, add_le_add_left_iff] {contextual := tt} }
+{ lt_of_add_lt_add_left :=
+      assume a b, by simp [ge, -add_comm, add_le_add_left_iff] {contextual := tt},
+  ..real.discrete_linear_ordered_field }
 
 instance : topological_ring ℝ :=
-{ real.topological_add_group with continuous_mul := continuous_mul_real }
+{ continuous_mul := continuous_mul_real, ..real.topological_add_group }
 
 -- TODO: without this setup `continuous_mul` is not found correctly?!
 instance : semiring ℝ := by apply_instance

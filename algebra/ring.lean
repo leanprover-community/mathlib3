@@ -53,13 +53,13 @@ namespace units
 
   instance : group (units α) :=
   by refine {
-      mul          := (*),
-      one          := 1,
-      inv          := has_inv.inv,
-      mul_assoc    := _,
-      mul_one      := _,
-      one_mul      := _,
-      mul_left_inv := _ };
+      mul := (*),
+      one := 1,
+      inv := has_inv.inv,
+      mul_assoc := _, --TODO(Mario): remove after #1870
+      one_mul := _,
+      mul_one := _,
+      mul_left_inv := _, ..};
     { intros, apply ext, simp }
 
 end units
@@ -142,7 +142,7 @@ section
   variables [s : integral_domain α] (a b c d e : α)
   include s
 
-  instance integral_domain.to_domain : domain α := {s with}
+  instance integral_domain.to_domain : domain α := {..s}
 
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
   have b * a - c * a = 0, by simp [h],

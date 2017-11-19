@@ -93,8 +93,7 @@ set.ext $ assume ⟨x, y⟩,
 
 /- instantiate reals -/
 instance : metric_space ℝ :=
-{ real.uniform_space with
-  dist := λx y, abs (x - y),
+{ dist := λx y, abs (x - y),
   dist_self := by simp [abs_zero],
   eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
   dist_comm := assume x y, by rw [abs_sub],
@@ -106,7 +105,8 @@ instance : metric_space ℝ :=
     (assume s hs,
       let ⟨q, hq₁, hq₂⟩ := mem_uniformity_real_iff.mp hs in
       mem_infi_sets (of_rat q) $ mem_infi_sets (of_rat_lt.mpr hq₁) $
-      assume ⟨r₁, r₂⟩, hq₂ r₁ r₂) }
+      assume ⟨r₁, r₂⟩, hq₂ r₁ r₂),
+  ..real.uniform_space }
 
 theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
 let i : {ε:ℝ // ε>0} := ⟨1, zero_lt_one⟩ in

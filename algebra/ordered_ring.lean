@@ -75,8 +75,8 @@ instance linear_ordered_semiring.to_no_bot_order {α : Type*} [linear_ordered_ri
 ⟨assume a, ⟨a - 1, sub_lt_iff.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
 
 instance to_domain [s : linear_ordered_ring α] : domain α :=
-{ s with
-  eq_zero_or_eq_zero_of_mul_eq_zero := @linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero α s }
+{ eq_zero_or_eq_zero_of_mul_eq_zero := @linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero α s,
+  ..s }
 
 section linear_ordered_ring
 variable [linear_ordered_ring α]
@@ -112,8 +112,7 @@ open nonneg_comm_group
 variable [s : nonneg_ring α]
 
 instance to_ordered_ring : ordered_ring α :=
-{ s with
-  le := (≤),
+{ le := (≤),
   lt := (<),
   lt_iff_le_not_le := @lt_iff_le_not_le _ _,
   le_refl := @le_refl _ _,
@@ -122,13 +121,13 @@ instance to_ordered_ring : ordered_ring α :=
   add_lt_add_left := @add_lt_add_left _ _,
   add_le_add_left := @add_le_add_left _ _,
   mul_nonneg := λ a b, by simp [nonneg_def.symm]; exact mul_nonneg,
-  mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos }
+  mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos,
+  ..s }
 
 def nonneg_ring.to_linear_nonneg_ring
   (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))
   : linear_nonneg_ring α :=
-{ s with
-  nonneg_total := nonneg_total,
+{ nonneg_total := nonneg_total,
   eq_zero_or_eq_zero_of_mul_eq_zero :=
     suffices ∀ {a} b : α, nonneg a → a * b = 0 → a = 0 ∨ b = 0,
     from λ a b, (nonneg_total a).elim (this b)
@@ -142,7 +141,8 @@ def nonneg_ring.to_linear_nonneg_ring
         (λ nnb : nonneg (-b), or.inr (nonneg_antisymm nb nnb))
         (λ pb, absurd z $ ne_of_gt $ pos_def.1 $ mul_pos
           ((pos_iff _ _).2 ⟨na, pa⟩)
-          ((pos_iff _ _).2 ⟨nb, pb⟩))) }
+          ((pos_iff _ _).2 ⟨nb, pb⟩))),
+  ..s }
 
 end nonneg_ring
 
@@ -151,8 +151,7 @@ open nonneg_comm_group
 variable [s : linear_nonneg_ring α]
 
 instance to_nonneg_ring : nonneg_ring α :=
-{ s with
-  mul_pos := λ a b pa pb,
+{ mul_pos := λ a b pa pb,
   let ⟨a1, a2⟩ := (pos_iff α a).1 pa,
       ⟨b1, b2⟩ := (pos_iff α b).1 pb in
   have ab : nonneg (a * b), from mul_nonneg a1 b1,
@@ -160,21 +159,21 @@ instance to_nonneg_ring : nonneg_ring α :=
     have a * b = 0, from nonneg_antisymm ab hn,
     (eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).elim
       (ne_of_gt (pos_def.1 pa))
-      (ne_of_gt (pos_def.1 pb))⟩ }
+      (ne_of_gt (pos_def.1 pb))⟩,
+  ..s }
 
 instance to_linear_order : linear_order α :=
-{ s with
-  le := (≤),
+{ le := (≤),
   lt := (<),
   lt_iff_le_not_le := @lt_iff_le_not_le _ _,
   le_refl := @le_refl _ _,
   le_trans := @le_trans _ _,
   le_antisymm := @le_antisymm _ _,
-  le_total := nonneg_total_iff.1 nonneg_total }
+  le_total := nonneg_total_iff.1 nonneg_total,
+  ..s }
 
 instance to_linear_ordered_ring : linear_ordered_ring α :=
-{ s with
-  le := (≤),
+{ le := (≤),
   lt := (<),
   lt_iff_le_not_le := @lt_iff_le_not_le _ _,
   le_refl := @le_refl _ _,
@@ -189,16 +188,16 @@ instance to_linear_ordered_ring : linear_ordered_ring α :=
     rw [zero_sub] at h,
     have := mul_nonneg h h, simp at this,
     exact zero_ne_one _ (nonneg_antisymm this h).symm
-  end }
+  end, ..s }
 
 instance to_decidable_linear_ordered_comm_ring
   [decidable_pred (@nonneg α _)]
   [comm : @is_commutative α (*)]
   : decidable_linear_ordered_comm_ring α :=
-{ @linear_nonneg_ring.to_linear_ordered_ring _ s with
-  decidable_le := by apply_instance,
+{ decidable_le := by apply_instance,
   decidable_eq := by apply_instance,
   decidable_lt := by apply_instance,
-  mul_comm := is_commutative.comm (*) }
+  mul_comm := is_commutative.comm (*),
+  ..@linear_nonneg_ring.to_linear_ordered_ring _ s }
 
 end linear_nonneg_ring

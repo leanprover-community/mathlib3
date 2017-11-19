@@ -150,12 +150,10 @@ class topological_ring (α : Type u) [topological_space α] [ring α]
 (continuous_neg : continuous (λa:α, -a))
 
 instance topological_ring.to_topological_semiring
-  [topological_space α] [ring α] [t : topological_ring α] : topological_semiring α :=
-{ t.to_topological_add_monoid with continuous_mul := t.continuous_mul }
+  [topological_space α] [ring α] [t : topological_ring α] : topological_semiring α := {..t}
 
 instance topological_ring.to_topological_add_group
-  [topological_space α] [ring α] [t : topological_ring α] : topological_add_group α :=
-{ t.to_topological_add_monoid with continuous_neg := t.continuous_neg }
+  [topological_space α] [ring α] [t : topological_ring α] : topological_add_group α := {..t}
 
 /- (Partially) ordered topology
 Also called: partially ordered spaces (pospaces).

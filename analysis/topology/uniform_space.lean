@@ -860,15 +860,15 @@ instance {α : Type u} [u : uniform_space α] : uniform_space (quotient (separat
   is_open_uniformity := assume s,
     have ∀a, ⟦a⟧ ∈ s →
         ({p:α×α | p.1 = a → ⟦p.2⟧ ∈ s} ∈ (@uniformity α _).sets ↔
-          {p:α×α | ⟦p.1⟧ = ⟦a⟧ → ⟦p.2⟧ ∈ s} ∈ (@uniformity α _).sets),
+          {p:α×α | p.1 ≈ a → ⟦p.2⟧ ∈ s} ∈ (@uniformity α _).sets),
       from assume a ha,
       ⟨assume h,
         let ⟨t, ht, hts⟩ := comp_mem_uniformity_sets h in
         have hts : ∀{a₁ a₂}, (a, a₁) ∈ t → (a₁, a₂) ∈ t → ⟦a₂⟧ ∈ s,
           from assume a₁ a₂ ha₁ ha₂, @hts (a, a₂) ⟨a₁, ha₁, ha₂⟩ rfl,
-        have ht' : ∀{a₁ a₂}, ⟦a₁⟧ = ⟦a₂⟧ → (a₁, a₂) ∈ t,
-          from assume a₁ a₂ h, sInter_subset_of_mem ht (quotient.exact h),
-        uniformity.upwards_sets ht $ assume ⟨a₁, a₂⟩ h₁ h₂, hts (ht' h₂.symm) h₁,
+        have ht' : ∀{a₁ a₂}, a₁ ≈ a₂ → (a₁, a₂) ∈ t,
+          from assume a₁ a₂ h, sInter_subset_of_mem ht h,
+        uniformity.upwards_sets ht $ assume ⟨a₁, a₂⟩ h₁ h₂, hts (ht' $ setoid.symm h₂) h₁,
         assume h, uniformity.upwards_sets h $ by simp {contextual := tt}⟩,
     begin
       simp [topological_space.coinduced, u.is_open_uniformity, uniformity, forall_quotient_iff],

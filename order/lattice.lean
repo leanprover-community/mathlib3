@@ -135,6 +135,12 @@ by apply le_antisymm; finish
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 by finish
 
+theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
+by finish
+
+theorem sup_le_sup_right (h₁ : a ≤ b) (c) : a ⊔ c ≤ b ⊔ c :=
+by finish
+
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by finish
 

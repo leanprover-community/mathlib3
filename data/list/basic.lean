@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Basic properties of lists.
 -/
-import logic.basic data.nat.basic data.option data.bool
+import logic.basic data.nat.basic data.option data.bool data.prod
        tactic.interactive algebra.group
 open function nat
 
@@ -923,6 +923,15 @@ by induction l; simp [list.join, *] at *
 
 end monoid
 
+@[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
+by induction n; simp [*, nat.mul_succ]
+
+@[simp] theorem length_join (L : list (list α)) : length (join L) = sum (map length L) :=
+by induction L; simp *
+
+@[simp] theorem length_bind (l : list α) (f : α → list β) : length (bind l f) = sum (map (length ∘ f) l) :=
+by rw [bind, length_join, map_map]
+
 /- all & any, bounded quantifiers over lists -/
 
 theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x :=
@@ -1517,36 +1526,47 @@ def transpose : list (list α) → list (list α)
 
 /- permutations -/
 
-def permutations_aux2 (t : α) (ts : list α) : list α → (list α → β) → list β → list α × list β
-| []      f r := (ts, r)
-| (y::ys) f r := let (us, zs) := permutations_aux2 ys (λx : list α, f (y::x)) r in
-                (y :: us, f (t :: y :: us) :: zs)
+section permutations
 
-private def meas : list α × list α → ℕ × ℕ | (l, i) := (length l + length i, length l)
+def permutations_aux2 (t : α) (ts : list α) (r : list β) : list α → (list α → β) → list α × list β
+| []      f := (ts, r)
+| (y::ys) f := let (us, zs) := permutations_aux2 ys (λx : list α, f (y::x)) in
+               (y :: us, f (t :: y :: us) :: zs)
+
+private def meas : (Σ'_:list α, list α) → ℕ × ℕ | ⟨l, i⟩ := (length l + length i, length l)
 
 local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 
-def permutations_aux.F : Π (x : list α × list α), (Π (y : list α × list α), y ≺ x → list (list α)) → list (list α)
-| ([],    is) IH := []
-| (t::ts, is) IH :=
-have h1 : (ts, t :: is) ≺ (t :: ts, is), from
-  show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
-  by rw nat.succ_add; exact prod.lex.right _ _ (lt_succ_self _),
-have h2 : (is, []) ≺ (t :: ts, is), from prod.lex.left _ _ _ (lt_add_of_pos_left _ (succ_pos _)),
-foldr (λy r, (permutations_aux2 t ts y id r).2) (IH (ts, t::is) h1) (is :: IH (is, []) h2)
+@[elab_as_eliminator] def permutations_aux.rec {C : list α → list α → Sort v}
+  (H0 : ∀ is, C [] is) 
+  (H1 : ∀ t ts is, C ts (t::is) → C is [] → C (t::ts) is) : ∀ l₁ l₂, C l₁ l₂
+| []      is := H0 is
+| (t::ts) is :=
+  have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
+    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
+    by rw nat.succ_add; exact prod.lex.right _ _ (lt_succ_self _),
+  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ _ (lt_add_of_pos_left _ (succ_pos _)),
+  H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
+using_well_founded {
+  dec_tac := tactic.assumption,
+  rel_tac := λ _ _, `[exact ⟨(≺), @inv_image.wf _ _ _ meas (prod.lex_wf lt_wf lt_wf)⟩] }
 
-def permutations_aux : list α × list α → list (list α) :=
-well_founded.fix (inv_image.wf meas (prod.lex_wf lt_wf lt_wf)) permutations_aux.F
+def permutations_aux : list α → list α → list (list α) :=
+@@permutations_aux.rec (λ _ _, list (list α)) (λ is, [])
+  (λ t ts is IH1 IH2, foldr (λy r, (permutations_aux2 t ts r y id).2) IH1 (is :: IH2))
 
 def permutations (l : list α) : list (list α) :=
-l :: permutations_aux (l, [])
+l :: permutations_aux l []
 
-def permutations_aux.eqn_1 (is : list α) : permutations_aux ([], is) = [] :=
-well_founded.fix_eq _ _ _
+@[simp] theorem permutations_aux_nil (is : list α) : permutations_aux [] is = [] :=
+by simp [permutations_aux, permutations_aux.rec]
 
-def permutations_aux.eqn_2 (t : α) (ts is) : permutations_aux (t::ts, is) =
-  foldr (λy r, (permutations_aux2 t ts y id r).2) (permutations_aux (ts, t::is)) (permutations is) :=
-well_founded.fix_eq _ _ _
+@[simp] theorem permutations_aux_cons (t : α) (ts is : list α) :
+  permutations_aux (t :: ts) is = foldr (λy r, (permutations_aux2 t ts r y id).2)
+    (permutations_aux ts (t::is)) (permutations is) :=
+by simp [permutations_aux, permutations_aux.rec, permutations]
+
+end permutations
 
 /- insert -/
 section insert
@@ -1652,14 +1672,15 @@ theorem erase_sublist_erase (a : α) : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ �
   then by rw [h, erase_cons_head, erase_cons_head]; exact s
   else by rw [erase_cons_tail _ h, erase_cons_tail _ h]; exact (erase_sublist_erase s).cons2 _ _ _
 
-theorem mem_erase_of_ne_of_mem {a b : α} {l : list α} (ab : a ≠ b) (al : a ∈ l) : a ∈ l.erase b :=
-if h : b ∈ l then match l, l.erase b, exists_erase_eq h, al with
-| ._, ._, ⟨l₁, l₂, _, rfl, rfl⟩, al :=
-  by simp at *; exact or.resolve_left al ab
-end else by simp [h, al]
-
 theorem mem_of_mem_erase {a b : α} {l : list α} : a ∈ l.erase b → a ∈ l :=
 @erase_subset _ _ _ _ _
+
+@[simp] theorem mem_erase_of_ne {a b : α} {l : list α} (ab : a ≠ b) : a ∈ l.erase b ↔ a ∈ l :=
+⟨mem_of_mem_erase, λ al,
+  if h : b ∈ l then match l, l.erase b, exists_erase_eq h, al with
+  | ._, ._, ⟨l₁, l₂, _, rfl, rfl⟩, al :=
+    by simp at *; exact or.resolve_left al ab
+  end else by simp [h, al]⟩
 
 theorem erase_comm (a b : α) (l : list α) : (l.erase a).erase b = (l.erase b).erase a :=
 if ab : a = b then by simp [ab] else
@@ -1931,6 +1952,40 @@ theorem forall_mem_inter_of_forall_right {p : α → Prop} (l₁ : list α) {l�
 ball.imp_left (λ x, mem_of_mem_inter_right) h
 
 end inter
+
+/- bag_inter -/
+section bag_inter
+variable [decidable_eq α]
+
+@[simp] theorem nil_bag_inter (l : list α) : [].bag_inter l = [] :=
+by cases l; refl
+
+@[simp] theorem bag_inter_nil (l : list α) : l.bag_inter [] = [] :=
+by cases l; refl
+
+@[simp] theorem cons_bag_inter_of_pos {a} (l₁ : list α) {l₂} (h : a ∈ l₂) :
+  (a :: l₁).bag_inter l₂ = a :: l₁.bag_inter (l₂.erase a) :=
+by cases l₂; exact if_pos h
+
+@[simp] theorem cons_bag_inter_of_neg {a} (l₁ : list α) {l₂} (h : a ∉ l₂) :
+  (a :: l₁).bag_inter l₂ = l₁.bag_inter l₂ :=
+by cases l₂; simp [h, list.bag_inter]
+
+theorem mem_bag_inter {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁.bag_inter l₂ ↔ a ∈ l₁ ∧ a ∈ l₂
+| []      l₂ := by simp
+| (b::l₁) l₂ := by
+  by_cases b ∈ l₂; simp [*, and_or_distrib_left];
+  by_cases a = b with ba; simp *
+
+theorem bag_inter_sublist_left : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ <+ l₁
+| []      l₂ := by simp [nil_sublist]
+| (b::l₁) l₂ := begin
+  by_cases b ∈ l₂; simp [h],
+  { apply cons_sublist_cons, apply bag_inter_sublist_left },
+  { apply sublist_cons_of_sublist, apply bag_inter_sublist_left }
+end
+
+end bag_inter
 
 /- pairwise relation (generalized no duplicate) -/
 
@@ -2483,6 +2538,10 @@ theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ 
   (mem_range'.1 $ h $ mem_range'.2 ⟨le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
  λ h, subset_of_sublist (range'_sublist_right.2 h)⟩
 
+theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)
+| s 0     (n+1) _ := by simp
+| s (m+1) (n+1) h := by simp [nth_range' (s+1) (lt_of_add_lt_add_right h)]
+
 theorem range'_concat (s n : ℕ) : range' s (n + 1) = range' s n ++ [s+n] :=
 by rw add_comm n 1; exact (range'_append s n 1).symm
 
@@ -2513,6 +2572,9 @@ by simp [range_eq_range', zero_le]
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n :=
 mt mem_range.1 $ lt_irrefl _ 
+
+theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
+by simp [range_eq_range', nth_range' _ h]
 
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl

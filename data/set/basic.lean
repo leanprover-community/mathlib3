@@ -696,6 +696,9 @@ theorem subset_image_union (f : α → β) (s : set α) (t : set β) :
   f '' (s ∪ f ⁻¹' t) ⊆ f '' s ∪ t :=
 image_subset_iff.2 (union_preimage_subset _ _ _)
 
+@[simp] lemma quot_mk_image_univ_eq [setoid α] : (λx : α, ⟦x⟧) '' univ = univ :=
+set.ext $ assume x, quotient.induction_on x $ assume a, ⟨by simp, assume _, ⟨a, trivial, rfl⟩⟩
+
 end image
 
 lemma univ_eq_true_false : univ = ({true, false} : set Prop) :=

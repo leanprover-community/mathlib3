@@ -12,9 +12,6 @@ lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a :=
 
 lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a
 | hab := not_le_of_gt hab h
- 
-lemma not_lt_of_lt [linear_order α] {a b : α} (h : a < b) : ¬ b < a :=
-lt_asymm h
 
 lemma le_iff_eq_or_lt [partial_order α] {a b : α} : a ≤ b ↔ a = b ∨ a < b :=
 le_iff_lt_or_eq.trans or.comm

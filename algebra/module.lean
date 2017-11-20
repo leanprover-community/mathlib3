@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Nathaniel Thomas, Jeremy Avigad
+Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl
 
 Modules over a ring.
 -/
@@ -17,40 +17,40 @@ infixr ` • `:73 := has_scalar.smul
 
 class module (α : inout Type u) (β : Type v) [inout ring α]
   extends has_scalar α β, add_comm_group β :=
-(smul_left_distrib  : ∀r (x y : β), r • (x + y) = r • x + r • y)
-(smul_right_distrib : ∀r s (x : β), (r + s) • x = r • x + s • x)
-(mul_smul           : ∀r s (x : β), (r * s) • x = r • s • x)
-(one_smul           : ∀x : β, (1 : α) • x = x)
+(smul_add : ∀r (x y : β), r • (x + y) = r • x + r • y)
+(add_smul : ∀r s (x : β), (r + s) • x = r • x + s • x)
+(mul_smul : ∀r s (x : β), (r * s) • x = r • s • x)
+(one_smul : ∀x : β, (1 : α) • x = x)
 
 section module
 variables [ring α] [module α β] {r s : α} {x y : β}
 
-theorem smul_left_distrib : r • (x + y) = r • x + r • y := module.smul_left_distrib r x y
-theorem smul_right_distrib : (r + s) • x = r • x + s • x := module.smul_right_distrib r s x
+theorem smul_add : r • (x + y) = r • x + r • y := module.smul_add r x y
+theorem add_smul : (r + s) • x = r • x + s • x := module.add_smul r s x
 theorem mul_smul : (r * s) • x = r • s • x :=  module.mul_smul r s x
 @[simp] theorem one_smul : (1 : α) • x = x := module.one_smul _ x
 
 @[simp] theorem zero_smul : (0 : α) • x = 0 :=
-have (0 : α) • x + 0 • x = 0 • x + 0, by rw ← smul_right_distrib; simp,
+have (0 : α) • x + 0 • x = 0 • x + 0, by rw ← add_smul; simp,
 add_left_cancel this
 
 @[simp] theorem smul_zero : r • (0 : β) = 0 :=
-have r • (0:β) + r • 0 = r • 0 + 0, by rw ← smul_left_distrib; simp,
+have r • (0:β) + r • 0 = r • 0 + 0, by rw ← smul_add; simp,
 add_left_cancel this
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
-eq_neg_of_add_eq_zero (by rw [← smul_right_distrib, add_left_neg, zero_smul])
+eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
 
 theorem neg_one_smul (x : β) : (-1 : α) • x = -x := by simp
 
 @[simp] theorem smul_neg : r • (-x) = -(r • x) :=
 by rw [← neg_one_smul x, ← mul_smul, mul_neg_one, neg_smul]
 
-theorem smul_sub_left_distrib (r : α) (x y : β) : r • (x - y) = r • x - r • y :=
-by simp [smul_left_distrib]
+theorem smul_sub (r : α) (x y : β) : r • (x - y) = r • x - r • y :=
+by simp [smul_add]
 
-theorem sub_smul_right_distrib (r s : α) (y : β) : (r - s) • y = r • y - s • y :=
-by simp [smul_right_distrib]
+theorem sub_smul (r s : α) (y : β) : (r - s) • y = r • y - s • y :=
+by simp [add_smul]
 
 lemma smul_smul : r • s • x = (r * s) • x := mul_smul.symm
 
@@ -58,19 +58,19 @@ end module
 
 instance ring.to_module [r : ring α] : module α α :=
 { smul := (*),
-  smul_left_distrib := mul_add,
-  smul_right_distrib := add_mul,
+  smul_add := mul_add,
+  add_smul := add_mul,
   mul_smul := mul_assoc,
   one_smul := one_mul, ..r }
 
-class submodule {α : Type u} {β : Type v} [ring α] [module α β] (p : set β) : Prop :=
+class is_submodule {α : Type u} {β : Type v} [ring α] [module α β] (p : set β) : Prop :=
 (add : ∀ {x y}, x ∈ p → y ∈ p → x + y ∈ p)
 (zero : (0:β) ∈ p)
 (smul : ∀ c {x}, x ∈ p → c • x ∈ p)
 
-namespace submodule
+namespace is_submodule
 variables [ring α] [module α β]
-variables {p : set β} [submodule p]
+variables {p : set β} [is_submodule p]
 variables {r : α}
 
 section
@@ -102,10 +102,10 @@ instance : has_scalar α {x : β // x ∈ p} := ⟨λ c ⟨x, p⟩, ⟨c • x, 
 instance : module α {x : β // x ∈ p} :=
 by refine {add := (+), zero := 0, neg := has_neg.neg, smul := (•), ..};
   { intros, apply subtype.eq,
-    simp [smul_left_distrib, smul_right_distrib, mul_smul] }
+    simp [smul_add, add_smul, mul_smul] }
 end subtype
 
-end submodule
+end is_submodule
 
 structure linear_map (α : Type u) (β : Type v) (γ : Type w) [ring α] [module α β] [module α γ] :=
 (T : β → γ)
@@ -150,13 +150,13 @@ eq_of_sub_eq_zero $ set.eq_of_mem_singleton $ H $ ker_of_map_eq_map h
 
 variables (α A)
 
-instance : submodule A.ker :=
+instance ker.is_submodule : is_submodule A.ker :=
 { add  := λ x y HU HV, by rw mem_ker at *; simp [HU, HV, mem_ker],
   zero := map_zero,
   smul := λ r x HV, by rw mem_ker at *; simp [HV] }
 
 theorem sub_ker (HU : x ∈ A.ker) (HV : y ∈ A.ker) : x - y ∈ A.ker :=
-submodule.sub HU HV
+is_submodule.sub HU HV
 
 end ker
 
@@ -167,7 +167,7 @@ def im (A : linear_map α β γ) : set γ := {x | ∃ y, A y = x}
 @[simp] lemma mem_im {A : linear_map α β γ} {z : γ} :
   z ∈ A.im ↔ ∃ y, A y = z := iff.rfl
 
-instance im.submodule : submodule A.im :=
+instance im.is_submodule : is_submodule A.im :=
 { add  := λ a b ⟨x, hx⟩ ⟨y, hy⟩, ⟨x + y, by simp [hx, hy]⟩,
   zero := ⟨0, map_zero⟩,
   smul := λ r a ⟨x, hx⟩, ⟨r • x, by simp [hx]⟩ }
@@ -176,7 +176,7 @@ section add_comm_group
 
 instance : has_add (linear_map α β γ) :=
 ⟨λ ⟨T₁, a₁, s₁⟩ ⟨T₂, a₂, s₂⟩,
-  ⟨λ y, T₁ y + T₂ y, by simp [a₁, a₂], by simp [smul_left_distrib, s₁, s₂]⟩⟩
+  ⟨λ y, T₁ y + T₂ y, by simp [a₁, a₂], by simp [smul_add, s₁, s₂]⟩⟩
 
 instance : has_zero (linear_map α β γ) := ⟨⟨λ_, 0, by simp, by simp⟩⟩
 
@@ -205,7 +205,7 @@ variables {r : α} {A B C : linear_map α β γ} {x y : β}
 
 protected def smul : α → linear_map α β γ → linear_map α β γ
 | r ⟨T, a, s⟩ := ⟨λ x, r • T x,
-  by simp [smul_left_distrib, a], by simp [smul_smul, s, mul_comm]⟩
+  by simp [smul_add, a], by simp [smul_smul, s, mul_comm]⟩
 
 instance : has_scalar α (linear_map α β γ) := ⟨linear_map.smul⟩
 
@@ -216,7 +216,7 @@ variables (α β γ)
 instance : module α (linear_map α β γ) :=
 by refine {smul := (•), ..linear_map.add_comm_group, ..};
   { intros, apply ext,
-    simp [smul_left_distrib, smul_right_distrib, mul_smul] }
+    simp [smul_add, add_smul, mul_smul] }
 
 end Hom
 
@@ -249,8 +249,8 @@ by have := endomorphism_ring α β; exact units (linear_map α β β)
 
 end module
 
-class vector_space (α : inout Type u) (β : Type v) [inout field α] extends module α β
+class vector_space (α : inout Type u) (β : Type v) [field α] extends module α β
 
 @[reducible] def subspace {α : Type u} {β : Type v} [field α] [vector_space α β] (p : set β) :
   Prop :=
-submodule p
+is_submodule p

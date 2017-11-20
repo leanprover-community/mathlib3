@@ -52,14 +52,7 @@ namespace units
   @[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := by simp [val_coe, inv_coe, val_inv]
 
   instance : group (units α) :=
-  by refine {
-      mul := (*),
-      one := 1,
-      inv := has_inv.inv,
-      mul_assoc := _, --TODO(Mario): remove after #1870
-      one_mul := _,
-      mul_one := _,
-      mul_left_inv := _, ..};
+  by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
     { intros, apply ext, simp }
 
 end units

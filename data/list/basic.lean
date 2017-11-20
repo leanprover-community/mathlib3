@@ -1784,7 +1784,7 @@ by induction l₁ with x l₁ IH; simp [*, right_distrib]
 /- disjoint -/
 section disjoint
 
-def disjoint (l₁ l₂ : list α) : Prop := ∀ ⦃a⦄, (a ∈ l₁ → a ∈ l₂ → false)
+def disjoint (l₁ l₂ : list α) : Prop := ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → false
 
 theorem disjoint.symm {l₁ l₂ : list α} (d : disjoint l₁ l₂) : disjoint l₂ l₁
 | a i₂ i₁ := d i₁ i₂
@@ -1837,10 +1837,6 @@ disjoint_comm.trans $ by simp [disjoint_append_left]
   disjoint l₁ (a::l₂) ↔ a ∉ l₁ ∧ disjoint l₁ l₂ :=
 disjoint_comm.trans $ by simp [disjoint_cons_left]
 
-theorem disjoint_append_of_disjoint_left {l₁ l₂ l : list α} :
-  disjoint l₁ l → disjoint l₂ l → disjoint (l₁++l₂) l :=
-λ d₁ d₂ x h, or.elim (mem_append.1 h) (@d₁ x) (@d₂ x)
-
 theorem disjoint_of_disjoint_append_left_left {l₁ l₂ l : list α} (d : disjoint (l₁++l₂) l) : disjoint l₁ l :=
 (disjoint_append_left.1 d).1
 
@@ -1872,7 +1868,7 @@ mem_union.2 (or.inl h)
 theorem mem_union_right {a : α} (l₁ : list α) {l₂ : list α} (h : a ∈ l₂) : a ∈ l₁ ∪ l₂ :=
 mem_union.2 (or.inr h)
 
-theorem sublist_suffix_of_union : Π l₁ l₂ : list α, ∃ t, t <+ l₁ ∧ t ++ l₂ = l₁ ∪ l₂
+theorem sublist_suffix_of_union : ∀ l₁ l₂ : list α, ∃ t, t <+ l₁ ∧ t ++ l₂ = l₁ ∪ l₂
 | [] l₂ := ⟨[], by refl, rfl⟩
 | (a::l₁) l₂ := let ⟨t, s, e⟩ := sublist_suffix_of_union l₁ l₂ in
   by simp [e.symm]; by_cases a ∈ t ++ l₂ with h;
@@ -2477,7 +2473,7 @@ theorem nodup_erase_dup : ∀ l : list α, nodup (erase_dup l) := pairwise_pw_fi
 
 theorem erase_dup_eq_self {l : list α} : erase_dup l = l ↔ nodup l := pw_filter_eq_self
 
-theorem erase_dup_append {l₁ l₂ : list α} : erase_dup (l₁ ++ l₂) = l₁ ∪ erase_dup l₂ :=
+theorem erase_dup_append (l₁ l₂ : list α) : erase_dup (l₁ ++ l₂) = l₁ ∪ erase_dup l₂ :=
 begin
   induction l₁ with a l₁ IH; simp, rw ← IH,
   show erase_dup (a :: (l₁ ++ l₂)) = insert a (erase_dup (l₁ ++ l₂)),

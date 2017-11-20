@@ -30,95 +30,6 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 | s₁ s₂ := quotient.rec_on_subsingleton₂ s₁ s₂ $ λ l₁ l₂,
   decidable_of_iff' _ quotient.eq
 
-section mem
-
-def mem (a : α) (s : multiset α) : Prop :=
-quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~ l₂), propext $ mem_of_perm e)
-
-instance : has_mem α (multiset α) := ⟨mem⟩
-
-@[simp] lemma mem_coe {a : α} {l : list α} : a ∈ (l : multiset α) ↔ a ∈ l := iff.rfl
-
-instance decidable_mem [decidable_eq α] (a : α) (s : multiset α) : decidable (a ∈ s) :=
-quot.rec_on_subsingleton s $ list.decidable_mem a
-
-end mem
-
-
-/- subset -/
-section subset
--- TODO(Mario): This relation is called subset in list, but for multisets
--- the `le` relation below is a more logical "subset" relation. Keep this or rename?
-protected def subset (s₁ s₂ : multiset α) : Prop :=
-quotient.lift_on₂ s₁ s₂ (⊆)
-  (λ v₁ v₂ w₁ w₂ p₁ p₂, propext (iff.intro
-    (λ s₁ a i, perm_subset p₂ (s₁ (perm_subset p₁.symm i)))
-    (λ s₂ a i, perm_subset p₂.symm (s₂ (perm_subset p₁ i)))))
-
-instance : has_subset (multiset α) := ⟨multiset.subset⟩
-
--- theorem subset_univ [h : fintype α] (s : multiset α) : s ⊆ univ :=
--- quot.induction_on s (λ l a i, fintype.complete a)
-
-@[simp] theorem subset.refl (s : multiset α) : s ⊆ s :=
-quot.induction_on s (λ l, by refl)
-
-theorem subset.trans {s₁ s₂ s₃ : multiset α} : s₁ ⊆ s₂ → s₂ ⊆ s₃ → s₁ ⊆ s₃ :=
-quotient.induction_on₃ s₁ s₂ s₃ (λ l₁ l₂ l₃, list.subset.trans)
-
-theorem subset_iff {s₁ s₂ : multiset α} : s₁ ⊆ s₂ ↔ (∀⦃x⦄, x ∈ s₁ → x ∈ s₂) :=
-quotient.induction_on₂ s₁ s₂ $ λ l₁ l₂, iff.rfl
-
-theorem mem_of_subset {s₁ s₂ : multiset α} {a : α} (h : s₁ ⊆ s₂) : a ∈ s₁ → a ∈ s₂ :=
-λ m, subset_iff.1 h m
-
-end subset
-
-/- multiset order -/
-
-protected def le (s₁ s₂ : multiset α) : Prop :=
-quotient.lift_on₂ s₁ s₂ (<+~) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
-  propext (p₂.subperm_left.trans p₁.subperm_right)
-
-instance : partial_order (multiset α) :=
-{ le := multiset.le,
-  le_refl := λ s, quot.induction_on s $ λ l, subperm.refl _,
-  le_trans := λ s₁ s₂ s₃, quotient.induction_on₃ s₁ s₂ s₃ $ @subperm.trans _,
-  le_antisymm := λ s₁ s₂, quotient.induction_on₂ s₁ s₂ $
-    λ l₁ l₂ h₁ h₂, quot.sound (subperm.antisymm h₁ h₂) }
-
-theorem subset_of_le {s₁ s₂ : multiset α} : s₁ ≤ s₂ → s₁ ⊆ s₂ :=
-quotient.induction_on₂ s₁ s₂ $ λ l₁ l₂, subset_of_subperm
-
-theorem mem_of_le {s₁ s₂ : multiset α} {a : α} (h : s₁ ≤ s₂) : a ∈ s₁ → a ∈ s₂ :=
-mem_of_subset (subset_of_le h)
-
-@[simp] theorem coe_le {l₁ l₂ : list α} : (l₁ : multiset α) ≤ l₂ ↔ l₁ <+~ l₂ := iff.rfl
-
-@[elab_as_eliminator] theorem le_induction_on {C : multiset α → multiset α → Prop}
-  {s₁ s₂ : multiset α} (h : s₁ ≤ s₂)
-  (H : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → C l₁ l₂) : C s₁ s₂ :=
-quotient.induction_on₂ s₁ s₂ (λ l₁ l₂ ⟨l, p, s⟩,
-  (show ⟦l⟧ = ⟦l₁⟧, from quot.sound p) ▸ H s) h
-
-/- cardinality -/
-def card (s : multiset α) : ℕ :=
-quot.lift_on s length $ λ l₁ l₂, perm_length
-
-@[simp] theorem coe_card (l : list α) : card (l : multiset α) = length l := rfl
-
-theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
-le_induction_on h $ λ l₁ l₂, length_le_of_sublist
-
-theorem eq_of_le_of_card_le {s t : multiset α} (h : s ≤ t) : card t ≤ card s → s = t :=
-le_induction_on h $ λ l₁ l₂ s h₂, congr_arg coe $ eq_of_sublist_of_length_le s h₂
-
-theorem card_lt_of_lt {s t : multiset α} (h : s < t) : card s < card t :=
-lt_of_not_ge $ λ h₂, ne_of_lt h $ eq_of_le_of_card_le (le_of_lt h) h₂
-
-theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
-quot.induction_on s $ λ l, length_pos_iff_exists_mem
-
 /- empty multilist -/
 protected def zero : multiset α := @nil α
 
@@ -127,34 +38,6 @@ instance : has_emptyc (multiset α) := ⟨0⟩
 instance : inhabited (multiset α)  := ⟨0⟩
 
 @[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
-
-@[simp] theorem card_zero : @card α 0 = 0 := rfl
-
-theorem zero_le (s : multiset α) : 0 ≤ s :=
-quot.induction_on s $ λ l, subperm_of_sublist $ nil_sublist l
-
-theorem eq_zero_of_le_zero {s : multiset α} (h : s ≤ 0) : s = 0 :=
-le_antisymm h (zero_le _)
-
-@[simp] theorem not_mem_zero (a : α) : a ∉ (0 : multiset α) := id
-
-theorem zero_subset (s : multiset α) : 0 ⊆ s := subset_of_le (zero_le s)
-
-theorem eq_zero_of_forall_not_mem {s : multiset α} : (∀x, x ∉ s) → s = 0 :=
-quot.induction_on s $ λ l H, by rw eq_nil_of_forall_not_mem H; refl
-
-theorem eq_zero_of_subset_zero {s : multiset α} (h : s ⊆ 0) : s = 0 :=
-eq_zero_of_forall_not_mem (subset_iff.1 h)
-
-theorem subset_zero_iff {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
-⟨eq_zero_of_subset_zero, λ xeq, xeq.symm ▸ subset.refl 0⟩
-
-theorem exists_mem_of_ne_zero {s : multiset α} : s ≠ 0 → ∃ a : α, a ∈ s :=
-quot.induction_on s $ assume l hl,
-  match l, hl with
-  | [] := assume h, false.elim $ h rfl
-  | (a :: l) := assume _, ⟨a, by simp⟩
-  end
 
 /- cons -/
 def cons (a : α) (s : multiset α) : multiset α :=
@@ -183,12 +66,6 @@ theorem singleton_coe (a : α) : (a::0 : multiset α) = ([a] : list α) := rfl
   a::s = a::t ↔ s = t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp [perm_cons]
 
-@[simp] theorem mem_cons {a b : α} {s : multiset α} : a ∈ b :: s ↔ a = b ∨ a ∈ s :=
-quot.induction_on s $ λ l, iff.rfl
-
-@[simp] theorem mem_cons_self (a : α) (s : multiset α) : a ∈ a :: s :=
-mem_cons.2 (or.inl rfl)
-
 @[recursor 5] protected theorem induction {p : multiset α → Prop}
   (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) (s) : p s :=
 quot.induction_on s $ λ l, by induction l; [exact h₁, exact h₂ ih_1]
@@ -197,10 +74,111 @@ quot.induction_on s $ λ l, by induction l; [exact h₁, exact h₂ ih_1]
   (s : multiset α) (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) : p s :=
 multiset.induction h₁ h₂ s
 
+theorem cons_swap (a b : α) (s : multiset α) : a :: b :: s = b :: a :: s :=
+quot.induction_on s $ λ l, quotient.sound $ perm.swap _ _ _
+
+section mem
+
+def mem (a : α) (s : multiset α) : Prop :=
+quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~ l₂), propext $ mem_of_perm e)
+
+instance : has_mem α (multiset α) := ⟨mem⟩
+
+@[simp] lemma mem_coe {a : α} {l : list α} : a ∈ (l : multiset α) ↔ a ∈ l := iff.rfl
+
+instance decidable_mem [decidable_eq α] (a : α) (s : multiset α) : decidable (a ∈ s) :=
+quot.rec_on_subsingleton s $ list.decidable_mem a
+
+@[simp] theorem mem_cons {a b : α} {s : multiset α} : a ∈ b :: s ↔ a = b ∨ a ∈ s :=
+quot.induction_on s $ λ l, iff.rfl
+
+@[simp] theorem mem_cons_self (a : α) (s : multiset α) : a ∈ a :: s :=
+mem_cons.2 (or.inl rfl)
+
 theorem exists_cons_of_mem {s : multiset α} {a : α} : a ∈ s → ∃ t, s = a :: t :=
 quot.induction_on s $ λ l (h : a ∈ l),
 let ⟨l₁, l₂, e⟩ := mem_split h in
 e.symm ▸ ⟨(l₁++l₂ : list α), quot.sound perm_middle⟩
+
+@[simp] theorem not_mem_zero (a : α) : a ∉ (0 : multiset α) := id
+
+theorem eq_zero_of_forall_not_mem {s : multiset α} : (∀x, x ∉ s) → s = 0 :=
+quot.induction_on s $ λ l H, by rw eq_nil_of_forall_not_mem H; refl
+
+theorem exists_mem_of_ne_zero {s : multiset α} : s ≠ 0 → ∃ a : α, a ∈ s :=
+quot.induction_on s $ assume l hl,
+  match l, hl with
+  | [] := assume h, false.elim $ h rfl
+  | (a :: l) := assume _, ⟨a, by simp⟩
+  end
+
+end mem
+
+
+/- subset -/
+section subset
+
+protected def subset (s t : multiset α) : Prop := ∀ ⦃a : α⦄, a ∈ s → a ∈ t
+
+instance : has_subset (multiset α) := ⟨multiset.subset⟩
+
+@[simp] theorem coe_subset {l₁ l₂ : list α} : (l₁ : multiset α) ⊆ l₂ ↔ l₁ ⊆ l₂ := iff.rfl
+
+@[simp] theorem subset.refl (s : multiset α) : s ⊆ s := λ a h, h
+
+theorem subset.trans {s t u : multiset α} : s ⊆ t → t ⊆ u → s ⊆ u :=
+λ h₁ h₂ a m, h₂ (h₁ m)
+
+theorem subset_iff {s t : multiset α} : s ⊆ t ↔ (∀⦃x⦄, x ∈ s → x ∈ t) := iff.rfl
+
+theorem mem_of_subset {s t : multiset α} {a : α} (h : s ⊆ t) : a ∈ s → a ∈ t := @h _
+
+@[simp] theorem zero_subset (s : multiset α) : 0 ⊆ s :=
+λ a, (not_mem_nil a).elim
+
+@[simp] theorem cons_subset {a : α} {s t : multiset α} : (a :: s) ⊆ t ↔ a ∈ t ∧ s ⊆ t :=
+by simp [subset_iff, or_imp_distrib, forall_and_distrib]
+
+theorem eq_zero_of_subset_zero {s : multiset α} (h : s ⊆ 0) : s = 0 :=
+eq_zero_of_forall_not_mem h
+
+theorem subset_zero_iff {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
+⟨eq_zero_of_subset_zero, λ xeq, xeq.symm ▸ subset.refl 0⟩
+
+end subset
+
+/- multiset order -/
+
+protected def le (s t : multiset α) : Prop :=
+quotient.lift_on₂ s t (<+~) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
+  propext (p₂.subperm_left.trans p₁.subperm_right)
+
+instance : partial_order (multiset α) :=
+{ le := multiset.le,
+  le_refl := λ s, quot.induction_on s $ λ l, subperm.refl _,
+  le_trans := λ s t u, quotient.induction_on₃ s t u $ @subperm.trans _,
+  le_antisymm := λ s t, quotient.induction_on₂ s t $
+    λ l₁ l₂ h₁ h₂, quot.sound (subperm.antisymm h₁ h₂) }
+
+theorem subset_of_le {s t : multiset α} : s ≤ t → s ⊆ t :=
+quotient.induction_on₂ s t $ λ l₁ l₂, subset_of_subperm
+
+theorem mem_of_le {s t : multiset α} {a : α} (h : s ≤ t) : a ∈ s → a ∈ t :=
+mem_of_subset (subset_of_le h)
+
+@[simp] theorem coe_le {l₁ l₂ : list α} : (l₁ : multiset α) ≤ l₂ ↔ l₁ <+~ l₂ := iff.rfl
+
+@[elab_as_eliminator] theorem le_induction_on {C : multiset α → multiset α → Prop}
+  {s t : multiset α} (h : s ≤ t)
+  (H : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → C l₁ l₂) : C s t :=
+quotient.induction_on₂ s t (λ l₁ l₂ ⟨l, p, s⟩,
+  (show ⟦l⟧ = ⟦l₁⟧, from quot.sound p) ▸ H s) h
+
+theorem zero_le (s : multiset α) : 0 ≤ s :=
+quot.induction_on s $ λ l, subperm_of_sublist $ nil_sublist l
+
+theorem le_zero {s : multiset α} : s ≤ 0 ↔ s = 0 :=
+⟨λ h, le_antisymm h (zero_le _), le_of_eq⟩
 
 theorem lt_cons_self (s : multiset α) (a : α) : s < a :: s :=
 quot.induction_on s $ λ l,
@@ -230,16 +208,33 @@ begin
     (sublist_or_mem_of_sublist s).resolve_right m₁)
 end
 
+/- cardinality -/
+def card (s : multiset α) : ℕ :=
+quot.lift_on s length $ λ l₁ l₂, perm_length
+
+@[simp] theorem coe_card (l : list α) : card (l : multiset α) = length l := rfl
+
+@[simp] theorem card_zero : @card α 0 = 0 := rfl
+
+@[simp] theorem card_cons (a : α) (s : multiset α) : card (a :: s) = card s + 1 :=
+quot.induction_on s $ λ l, rfl
+
+theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
+le_induction_on h $ λ l₁ l₂, length_le_of_sublist
+
+theorem eq_of_le_of_card_le {s t : multiset α} (h : s ≤ t) : card t ≤ card s → s = t :=
+le_induction_on h $ λ l₁ l₂ s h₂, congr_arg coe $ eq_of_sublist_of_length_le s h₂
+
+theorem card_lt_of_lt {s t : multiset α} (h : s < t) : card s < card t :=
+lt_of_not_ge $ λ h₂, ne_of_lt h $ eq_of_le_of_card_le (le_of_lt h) h₂
+
 theorem lt_iff_cons_le {s t : multiset α} : s < t ↔ ∃ a, a :: s ≤ t :=
 ⟨quotient.induction_on₂ s t $ λ l₁ l₂ h,
   subperm.exists_of_length_lt (le_of_lt h) (card_lt_of_lt h),
 λ ⟨a, h⟩, lt_of_lt_of_le (lt_cons_self _ _) h⟩
 
-theorem cons_swap (a b : α) (s : multiset α) : a :: b :: s = b :: a :: s :=
-quot.induction_on s $ λ l, quotient.sound $ perm.swap _ _ _
-
-theorem card_cons (a : α) (s : multiset α) : card (a :: s) = card s + 1 :=
-quot.induction_on s $ λ l, rfl
+theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
+quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
 /- singleton -/
 @[simp] theorem mem_singleton {a b : α} : b ∈ a::0 ↔ b = a :=
@@ -311,8 +306,10 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
   let ⟨l, p⟩ := exists_perm_append_of_sublist s in ⟨l, quot.sound p⟩,
 λ⟨u, e⟩, e.symm ▸ le_add_right s u⟩
 
-/- repeat -/
+@[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
+quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
 
+/- repeat -/
 def repeat (a : α) (n : ℕ) : multiset α := repeat a n
 
 @[simp] lemma card_repeat : ∀ (a : α) n, card (repeat a n) = n := length_repeat
@@ -334,6 +331,18 @@ theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ a::0 := repeat_
 
 theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p.symm).symm ▸ s, subperm_of_sublist⟩
+
+/- range -/
+def range (n : ℕ) : multiset ℕ := range n
+
+@[simp] theorem card_range (n : ℕ) : card (range n) = n := length_range _
+
+theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subset
+
+@[simp] theorem mem_range {m n : ℕ} : m ∈ range n ↔ m < n := mem_range
+
+@[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
+
 
 /- erase -/
 section erase
@@ -357,11 +366,11 @@ quot.induction_on s $ λ l, congr_arg coe $ erase_cons_tail l h
 @[simp] theorem erase_of_not_mem {a : α} {s : multiset α} : a ∉ s → s.erase a = s :=
 quot.induction_on s $ λ l h, congr_arg coe $ erase_of_not_mem h
 
-theorem eq_cons_erase {s : multiset α} {a : α} : a ∈ s → s = a :: s.erase a :=
-quot.induction_on s $ λ l h, quot.sound $ perm_erase h
+@[simp] theorem cons_erase {s : multiset α} {a : α} : a ∈ s → a :: s.erase a = s :=
+quot.induction_on s $ λ l h, quot.sound (perm_erase h).symm
 
 theorem le_cons_erase (s : multiset α) (a : α) : s ≤ a :: s.erase a :=
-if h : a ∈ s then le_of_eq (eq_cons_erase h)
+if h : a ∈ s then le_of_eq (cons_erase h).symm
 else by rw erase_of_not_mem h; apply le_cons_self
 
 @[simp] theorem card_erase_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.erase a) = pred (card s) :=
@@ -400,7 +409,7 @@ le_induction_on h $ λ l₁ l₂ h, subperm_of_sublist (erase_sublist_erase _ h)
 theorem erase_le_iff_le_cons {s t : multiset α} {a : α} : s.erase a ≤ t ↔ s ≤ a :: t :=
 ⟨λ h, le_trans (le_cons_erase _ _) (cons_le_cons _ h),
  λ h, if m : a ∈ s
-  then by rw [eq_cons_erase m] at h; exact (cons_le_cons_iff _).1 h
+  then by rw ← cons_erase m at h; exact (cons_le_cons_iff _).1 h
   else le_trans (erase_le _ _) ((le_cons_of_not_mem m).1 h)⟩
 
 end erase
@@ -597,9 +606,9 @@ theorem add_sub_of_le (h : s ≤ t) : s + (t - s) = t :=
 begin
   revert t,
   refine multiset.induction_on s (by simp) (λ a s IH t h, _),
-  have := eq_cons_erase (mem_of_le h (mem_cons_self _ _)),
-  rw [cons_add, sub_cons, IH, ← this],
-  exact (cons_le_cons_iff a).1 (this ▸ h)
+  have := cons_erase (mem_of_le h (mem_cons_self _ _)),
+  rw [cons_add, sub_cons, IH, this],
+  exact (cons_le_cons_iff a).1 (this.symm ▸ h)
 end
 
 theorem sub_add' : s - (t + u) = s - t - u :=
@@ -639,6 +648,9 @@ multiset.induction_on t (by simp)
 theorem le_sub_add (s t : multiset α) : s ≤ s - t + t :=
 sub_le_iff_le_add.1 (le_refl _)
 
+theorem sub_le_self (s t : multiset α) : s - t ≤ s :=
+sub_le_iff_le_add.2 (le_add_right _ _)
+
 @[simp] theorem card_sub {s t : multiset α} (h : t ≤ s) : card (s - t) = card s - card t :=
 (nat.sub_eq_of_eq_add $ by rw [add_comm, ← card_add, sub_add_cancel h]).symm
 
@@ -646,6 +658,8 @@ sub_le_iff_le_add.1 (le_refl _)
 def union (s t : multiset α) : multiset α := s - t + t
 
 instance : has_union (multiset α) := ⟨union⟩
+
+theorem union_def (s t : multiset α) : s ∪ t = s - t + t := rfl
 
 theorem le_union_left (s t : multiset α) : s ≤ s ∪ t := le_sub_add _ _
 
@@ -658,6 +672,10 @@ add_le_add_right (sub_le_sub_right h _) u
 
 theorem union_le (h₁ : s ≤ u) (h₂ : t ≤ u) : s ∪ t ≤ u :=
 by rw ← eq_union_left h₂; exact union_le_union_right h₁ t
+
+@[simp] theorem mem_union : a ∈ s ∪ t ↔ a ∈ s ∨ a ∈ t :=
+⟨λ h, (mem_add.1 h).imp_left (mem_of_le $ sub_le_self _ _),
+ or.rec (mem_of_le $ le_union_left _ _) (mem_of_le $ le_union_right _ _)⟩
 
 /- inter -/
 def inter (s t : multiset α) : multiset α :=
@@ -689,7 +707,7 @@ subperm_of_sublist $ bag_inter_sublist_left _ _
 theorem inter_le_right (s : multiset α) : ∀ t, s ∩ t ≤ t :=
 multiset.induction_on s (λ t, (zero_inter t).symm ▸ zero_le _) $
 λ a s IH t, if h : a ∈ t
-  then by simpa [h, (eq_cons_erase h).symm] using cons_le_cons a (IH (t.erase a))
+  then by simpa [h] using cons_le_cons a (IH (t.erase a))
   else by simp [h, IH]
 
 theorem le_inter (h₁ : s ≤ t) (h₂ : s ≤ u) : s ≤ t ∩ u :=
@@ -702,6 +720,10 @@ begin
   { rw cons_inter_of_neg _ h,
     exact IH ((le_cons_of_not_mem $ mt (mem_of_le h₂) h).1 h₁) h₂ }
 end
+
+@[simp] theorem mem_inter : a ∈ s ∩ t ↔ a ∈ s ∧ a ∈ t :=
+⟨λ h, ⟨mem_of_le (inter_le_left _ _) h, mem_of_le (inter_le_right _ _) h⟩,
+ λ ⟨h₁, h₂⟩, by rw [← cons_erase h₁, cons_inter_of_pos _ h₂]; apply mem_cons_self⟩
 
 instance : lattice (multiset α) :=
 { sup          := (∪),
@@ -717,6 +739,9 @@ instance : lattice (multiset α) :=
 @[simp] theorem sup_eq_union (s t : multiset α) : s ⊔ t = s ∪ t := rfl
 @[simp] theorem inf_eq_inter (s t : multiset α) : s ⊓ t = s ∩ t := rfl
 
+@[simp] theorem le_inter_iff : s ≤ t ∩ u ↔ s ≤ t ∧ s ≤ u := le_inf_iff
+@[simp] theorem union_le_iff : s ∪ t ≤ u ↔ s ≤ u ∧ t ≤ u := sup_le_iff
+
 instance : semilattice_inf_bot (multiset α) :=
 { bot := 0, bot_le := zero_le, ..multiset.lattice.lattice }
 
@@ -728,6 +753,9 @@ by rw [union_comm, eq_union_left h]
 
 theorem union_le_union_left (h : s ≤ t) (u) : u ∪ s ≤ u ∪ t :=
 sup_le_sup_left h _
+
+theorem union_le_add (s t : multiset α) : s ∪ t ≤ s + t :=
+union_le (le_add_right _ _) (le_add_left _ _)
 
 theorem union_add_distrib : (s ∪ t) + u = (s + u) ∪ (t + u) :=
 by simpa [(∪), union, eq_comm] using show s + u - (t + u) = s - t,
@@ -767,7 +795,7 @@ begin
   rw [inter_comm],
   revert s, refine multiset.induction_on t (by simp) (λ a t IH s, _),
   by_cases a ∈ s,
-  { rw [cons_inter_of_pos _ h, sub_cons, add_cons, IH, ← eq_cons_erase h] },
+  { rw [cons_inter_of_pos _ h, sub_cons, add_cons, IH, cons_erase h] },
   { rw [cons_inter_of_neg _ h, sub_cons, erase_of_not_mem h, IH] }
 end
 
@@ -845,13 +873,12 @@ begin
   { rw [filter_cons_of_pos _ h, sub_cons], congr,
     by_cases a ∈ s with m,
     { rw [← cons_inj_right a, ← filter_cons_of_pos _ h,
-          ← eq_cons_erase (mem_filter_of_mem m h), ← eq_cons_erase m] },
+          cons_erase (mem_filter_of_mem m h), cons_erase m] },
     { rw [erase_of_not_mem m, erase_of_not_mem (mt mem_of_mem_filter m)] } },
   { rw [filter_cons_of_neg _ h],
     by_cases a ∈ s with m,
-    { rw [(_ : filter p (erase s a) = filter p (a :: erase s a)),
-          ← eq_cons_erase m],
-      rw [filter_cons_of_neg _ h] },
+    { rw [(by rw filter_cons_of_neg _ h : filter p (erase s a) = filter p (a :: erase s a)),
+          cons_erase m] },
     { rw [erase_of_not_mem m] } }
 end
 
@@ -946,7 +973,7 @@ by simp [repeat]
 @[simp] theorem count_erase_self (a : α) (s : multiset α) : count a (erase s a) = pred (count a s) :=
 begin
   by_cases a ∈ s,
-  { rw [(by rw ← eq_cons_erase h : count a s = count a (a::erase s a)),
+  { rw [(by rw cons_erase h : count a s = count a (a::erase s a)),
         count_cons_self]; refl },
   { rw [erase_of_not_mem h, count_eq_zero.2 h]; refl }
 end
@@ -954,7 +981,7 @@ end
 @[simp] theorem count_erase_of_ne {a b : α} (ab : a ≠ b) (s : multiset α) : count a (erase s b) = count a s :=
 begin
   by_cases b ∈ s,
-  { rw [← count_cons_of_ne ab, ← eq_cons_erase h] },
+  { rw [← count_cons_of_ne ab, cons_erase h] },
   { rw [erase_of_not_mem h] }
 end
 
@@ -991,495 +1018,337 @@ instance : distrib_lattice (multiset α) :=
 { le_sup_inf := λ s t u, le_of_eq $ eq.symm $
     ext.2 $ λ a, by simp [max_min_distrib_left],
   ..multiset.lattice.lattice }
+end
+
+/- disjoint -/
+def disjoint (s t : multiset α) : Prop := ∀ ⦃a⦄, a ∈ s → a ∈ t → false
+
+@[simp] theorem coe_disjoint (l₁ l₂ : list α) : @disjoint α l₁ l₂ ↔ l₁.disjoint l₂ := iff.rfl
+
+theorem disjoint.symm {s t : multiset α} (d : disjoint s t) : disjoint t s
+| a i₂ i₁ := d i₁ i₂
+
+@[simp] theorem disjoint_comm {s t : multiset α} : disjoint s t ↔ disjoint t s :=
+⟨disjoint.symm, disjoint.symm⟩
+
+theorem disjoint_left {s t : multiset α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t := iff.rfl
+
+theorem disjoint_right {s t : multiset α} : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
+disjoint_comm
+
+theorem disjoint_iff_ne {s t : multiset α} : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
+by simp [disjoint_left, imp_not_comm]
+
+theorem disjoint_of_subset_left {s t u : multiset α} (h : s ⊆ u) (d : disjoint u t) : disjoint s t
+| x m₁ := d (h m₁)
+
+theorem disjoint_of_subset_right {s t u : multiset α} (h : t ⊆ u) (d : disjoint s u) : disjoint s t
+| x m m₁ := d m (h m₁)
+
+theorem disjoint_of_le_left {s t u : multiset α} (h : s ≤ u) : disjoint u t → disjoint s t :=
+disjoint_of_subset_left (subset_of_le h)
+
+theorem disjoint_of_le_right {s t u : multiset α} (h : t ≤ u) : disjoint s u → disjoint s t :=
+disjoint_of_subset_right (subset_of_le h)
+
+@[simp] theorem zero_disjoint (l : multiset α) : disjoint 0 l
+| a := (not_mem_nil a).elim
+
+@[simp] theorem singleton_disjoint {l : multiset α} {a : α} : disjoint (a::0) l ↔ a ∉ l :=
+by simp [disjoint]; refl
+
+@[simp] theorem disjoint_singleton {l : multiset α} {a : α} : disjoint l (a::0) ↔ a ∉ l :=
+by rw disjoint_comm; simp
+
+@[simp] theorem disjoint_add_left {s t u : multiset α} :
+  disjoint (s + t) u ↔ disjoint s u ∧ disjoint t u :=
+by simp [disjoint, or_imp_distrib, forall_and_distrib]
+
+@[simp] theorem disjoint_add_right {s t u : multiset α} :
+  disjoint s (t + u) ↔ disjoint s t ∧ disjoint s u :=
+disjoint_comm.trans $ by simp [disjoint_append_left]
+
+@[simp] theorem disjoint_cons_left {a : α} {s t : multiset α} :
+  disjoint (a::s) t ↔ a ∉ t ∧ disjoint s t :=
+(@disjoint_add_left _ (a::0) s t).trans $ by simp
+
+@[simp] theorem disjoint_cons_right {a : α} {s t : multiset α} :
+  disjoint s (a::t) ↔ a ∉ s ∧ disjoint s t :=
+disjoint_comm.trans $ by simp [disjoint_cons_left]
+
+theorem inter_eq_zero_iff_disjoint [decidable_eq α] {s t : multiset α} : s ∩ t = 0 ↔ disjoint s t :=
+by rw ← subset_zero_iff; simp [subset_iff, disjoint]
 
 /- nodup -/
 def nodup (s : multiset α) : Prop :=
 quot.lift_on s nodup (λ s t p, propext $ perm_nodup p)
 
+@[simp] theorem coe_nodup {l : list α} : @nodup α l ↔ l.nodup := iff.rfl
+
+@[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
+⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
+
+@[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil _
+
+@[simp] theorem nodup_cons {a : α} {s : multiset α} : nodup (a::s) ↔ a ∉ s ∧ nodup s :=
+quot.induction_on s $ λ l, nodup_cons
+
+theorem nodup_cons_of_nodup {a : α} {s : multiset α} (m : a ∉ s) (n : nodup s) : nodup (a::s) :=
+nodup_cons.2 ⟨m, n⟩
+
+theorem nodup_singleton : ∀ a : α, nodup (a::0) := nodup_singleton
+
+theorem nodup_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a::s)) : nodup s :=
+(nodup_cons.1 h).2
+
+theorem not_mem_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a::s)) : a ∉ s :=
+(nodup_cons.1 h).1
+
+theorem nodup_of_le {s t : multiset α} (h : s ≤ t) : nodup t → nodup s :=
+le_induction_on h $ λ l₁ l₂, nodup_of_sublist
+
+theorem not_nodup_pair : ∀ a : α, ¬ nodup (a::a::0) := not_nodup_pair
+
+theorem nodup_iff_le {s : multiset α} : nodup s ↔ ∀ a : α, ¬ a::a::0 ≤ s :=
+quot.induction_on s $ λ l, nodup_iff_sublist.trans $ forall_congr $ λ a,
+not_congr (@repeat_le_coe _ a 2 _).symm
+
+theorem nodup_iff_count_le_one [decidable_eq α] {s : multiset α} : nodup s ↔ ∀ a, count a s ≤ 1 :=
+quot.induction_on s $ λ l, nodup_iff_count_le_one
+
+@[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {s : multiset α}
+  (d : nodup s) (h : a ∈ s) : count a s = 1 :=
+le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
+
+theorem nodup_add {s t : multiset α} : nodup (s + t) ↔ nodup s ∧ nodup t ∧ disjoint s t :=
+quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append
+
+theorem disjoint_of_nodup_add {s t : multiset α} (d : nodup (s + t)) : disjoint s t :=
+(nodup_add.1 d).2.2
+
+theorem nodup_add_of_nodup {s t : multiset α} (d₁ : nodup s) (d₂ : nodup t) : nodup (s + t) ↔ disjoint s t :=
+by simp [nodup_add, d₁, d₂]
+
+theorem nodup_of_nodup_map (f : α → β) {s : multiset α} : nodup (map f s) → nodup s :=
+quot.induction_on s $ λ l, nodup_of_nodup_map f
+
+theorem nodup_map_on {f : α → β} {s : multiset α} : (∀x∈s, ∀y∈s, f x = f y → x = y) →
+  nodup s → nodup (map f s) :=
+quot.induction_on s $ λ l, nodup_map_on
+
+theorem nodup_map {f : α → β} {s : multiset α} (hf : function.injective f) : nodup s → nodup (map f s) :=
+nodup_map_on (λ x _ y _ h, hf h)
+
+theorem nodup_filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
+quot.induction_on s $ λ l, nodup_filter p
+
+instance nodup_decidable [decidable_eq α] (s : multiset α) : decidable (nodup s) :=
+quotient.rec_on_subsingleton s $ λ l, l.nodup_decidable
+
+theorem nodup_erase_eq_filter [decidable_eq α] (a : α) {s} : nodup s → s.erase a = filter (≠ a) s :=
+quot.induction_on s $ λ l d, congr_arg coe $ nodup_erase_eq_filter a d
+
+theorem nodup_erase_of_nodup [decidable_eq α] (a : α) {l} : nodup l → nodup (l.erase a) :=
+nodup_of_le (erase_le _ _)
+
+theorem mem_erase_iff_of_nodup [decidable_eq α] {a b : α} {l} (d : nodup l) :
+  a ∈ l.erase b ↔ a ≠ b ∧ a ∈ l :=
+by rw nodup_erase_eq_filter b d; simp
+
+theorem mem_erase_of_nodup [decidable_eq α] {a : α} {l} (h : nodup l) : a ∉ l.erase a :=
+by rw mem_erase_iff_of_nodup h; simp
+
+theorem nodup_product {s : multiset α} {t : multiset β} : nodup s → nodup t → nodup (product s t) :=
+quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, by simp [nodup_product d₁ d₂]
+
+theorem nodup_range (n : ℕ) : nodup (range n) := nodup_range _
+
+theorem nodup_inter_of_nodup [decidable_eq α] {s : multiset α} (t) : nodup s → nodup (s ∩ t) :=
+nodup_of_le $ inter_le_left _ _
+
+theorem nodup_ext {s t : multiset α} : nodup s → nodup t → (s = t ↔ ∀ a, a ∈ s ↔ a ∈ t) :=
+quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, quotient.eq.trans $ perm_ext d₁ d₂
+
+theorem le_iff_subset {s t : multiset α} : nodup s → (s ≤ t ↔ s ⊆ t) :=
+quotient.induction_on₂ s t $ λ l₁ l₂ d, ⟨subset_of_le, subperm_of_subset_nodup d⟩
+
+theorem range_le {m n : ℕ} : range m ≤ range n ↔ m ≤ n :=
+(le_iff_subset (nodup_range _)).trans range_subset
+
+section
+variable [decidable_eq α]
+
+/- erase_dup -/
+def erase_dup (s : multiset α) : multiset α :=
+quot.lift_on s (λ l, (l.erase_dup : multiset α))
+  (λ s t p, quot.sound (perm_erase_dup_of_perm p))
+
+@[simp] theorem coe_erase_dup (l : list α) : @erase_dup α _ l = l.erase_dup := rfl
+
+@[simp] theorem erase_dup_zero : @erase_dup α _ 0 = 0 := rfl
+
+@[simp] theorem mem_erase_dup {a : α} {s : multiset α} : a ∈ erase_dup s ↔ a ∈ s :=
+quot.induction_on s $ λ l, mem_erase_dup
+
+@[simp] theorem erase_dup_cons_of_mem {a : α} {s : multiset α} : a ∈ s →
+  erase_dup (a::s) = erase_dup s :=
+quot.induction_on s $ λ l m, @congr_arg _ _ _ _ coe $ erase_dup_cons_of_mem m
+
+@[simp] theorem erase_dup_cons_of_not_mem {a : α} {s : multiset α} : a ∉ s →
+  erase_dup (a::s) = a :: erase_dup s :=
+quot.induction_on s $ λ l m, congr_arg coe $ erase_dup_cons_of_not_mem m
+
+theorem erase_dup_le (s : multiset α) : erase_dup s ≤ s :=
+quot.induction_on s $ λ l, subperm_of_sublist $ erase_dup_sublist _
+
+theorem erase_dup_subset (s : multiset α) : erase_dup s ⊆ s :=
+subset_of_le $ erase_dup_le _
+
+theorem subset_erase_dup (s : multiset α) : s ⊆ erase_dup s :=
+λ a, mem_erase_dup.2
+
+theorem nodup_erase_dup (s : multiset α) : nodup (erase_dup s) :=
+quot.induction_on s nodup_erase_dup
+
+theorem erase_dup_eq_self {s : multiset α} : erase_dup s = s ↔ nodup s :=
+⟨λ e, e ▸ nodup_erase_dup s,
+ quot.induction_on s $ λ l h, congr_arg coe $ erase_dup_eq_self.2 h⟩
+
+theorem le_erase_dup {s t : multiset α} : s ≤ erase_dup t ↔ s ≤ t ∧ nodup s :=
+⟨λ h, ⟨le_trans h (erase_dup_le _), nodup_of_le h (nodup_erase_dup _)⟩,
+ λ ⟨l, d⟩, (le_iff_subset d).2 $ subset.trans (subset_of_le l) (subset_erase_dup _)⟩
+
+/- finset insert -/
+
 def ndinsert (a : α) (s : multiset α) : multiset α :=
 quot.lift_on s (λ l, (l.insert a : multiset α))
   (λ s t p, quot.sound (perm_insert a p))
 
+@[simp] theorem coe_ndinsert (a : α) (l : list α) : ndinsert a l = (insert a l : list α) := rfl
+
+@[simp] theorem ndinsert_zero (a : α) : ndinsert a 0 = a::0 := rfl
+
+@[simp] theorem ndinsert_of_mem {a : α} {s : multiset α} : a ∈ s → ndinsert a s = s :=
+quot.induction_on s $ λ l h, congr_arg coe $ insert_of_mem h
+
+@[simp] theorem ndinsert_of_not_mem {a : α} {s : multiset α} : a ∉ s → ndinsert a s = a :: s :=
+quot.induction_on s $ λ l h, congr_arg coe $ insert_of_not_mem h
+
+@[simp] theorem mem_ndinsert {a b : α} {s : multiset α} : a ∈ ndinsert b s ↔ a = b ∨ a ∈ s :=
+quot.induction_on s $ λ l, mem_insert_iff
+
+@[simp] theorem le_ndinsert_self (a : α) (s : multiset α) : s ≤ ndinsert a s :=
+quot.induction_on s $ λ l, subperm_of_sublist $ sublist_of_suffix $ suffix_insert _ _
+
+@[simp] theorem mem_ndinsert_self (a : α) (s : multiset α) : a ∈ ndinsert a s :=
+mem_ndinsert.2 (or.inl rfl)
+
+@[simp] theorem mem_ndinsert_of_mem {a b : α} {s : multiset α} (h : a ∈ s) : a ∈ ndinsert b s :=
+mem_ndinsert.2 (or.inr h)
+
+@[simp] theorem length_ndinsert_of_mem {a : α} [decidable_eq α] {s : multiset α} (h : a ∈ s) :
+  card (ndinsert a s) = card s :=
+by simp [h]
+
+@[simp] theorem length_ndinsert_of_not_mem {a : α} [decidable_eq α] {s : multiset α} (h : a ∉ s) :
+  card (ndinsert a s) = card s + 1 :=
+by simp [h]
+
+theorem nodup_ndinsert {a : α} {s : multiset α} : nodup s → nodup (ndinsert a s) :=
+quot.induction_on s $ λ l, nodup_insert
+
+theorem ndinsert_le {a : α} {s t : multiset α} : ndinsert a s ≤ t ↔ s ≤ t ∧ a ∈ t :=
+⟨λ h, ⟨le_trans (le_ndinsert_self _ _) h, mem_of_le h (mem_ndinsert_self _ _)⟩,
+ λ ⟨l, m⟩, if h : a ∈ s then by simp [h, l] else
+   by rw [ndinsert_of_not_mem h, ← cons_erase m, cons_le_cons_iff,
+          ← le_cons_of_not_mem h, cons_erase m]; exact l⟩
+
+/- finset union -/
+
+def ndunion (s t : multiset α) : multiset α :=
+quotient.lift_on₂ s t (λ l₁ l₂, (l₁.union l₂ : multiset α)) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
+  quot.sound $ perm_union p₁ p₂
+
+@[simp] theorem coe_ndunion (l₁ l₂ : list α) : @ndunion α _ l₁ l₂ = (l₁ ∪ l₂ : list α) := rfl
+
+@[simp] theorem zero_ndunion (s : multiset α) : ndunion 0 s = s :=
+quot.induction_on s $ λ l, rfl
+
+@[simp] theorem cons_ndunion (s t : multiset α) (a : α) : ndunion (a :: s) t = ndinsert a (ndunion s t) :=
+quotient.induction_on₂ s t $ λ l₁ l₂, rfl
+
+@[simp] theorem mem_ndunion {s t : multiset α} {a : α} : a ∈ ndunion s t ↔ a ∈ s ∨ a ∈ t :=
+quotient.induction_on₂ s t $ λ l₁ l₂, list.mem_union
+
+theorem le_ndunion_right (s t : multiset α) : t ≤ ndunion s t :=
+quotient.induction_on₂ s t $ λ l₁ l₂,
+subperm_of_sublist $ sublist_of_suffix $ suffix_union_right _ _
+
+theorem ndunion_le_add (s t : multiset α) : ndunion s t ≤ s + t :=
+quotient.induction_on₂ s t $ λ l₁ l₂, subperm_of_sublist $ union_sublist_append _ _
+
+theorem ndunion_le {s t u : multiset α} : ndunion s t ≤ u ↔ s ⊆ u ∧ t ≤ u :=
+multiset.induction_on s (by simp) (by simp [ndinsert_le] {contextual := tt})
+
+theorem subset_ndunion_left (s t : multiset α) : s ⊆ ndunion s t :=
+λ a h, mem_ndunion.2 $ or.inl h
+
+theorem le_ndunion_left {s} (t : multiset α) (d : nodup s) : s ≤ ndunion s t :=
+(le_iff_subset d).2 $ subset_ndunion_left _ _
+
+theorem ndunion_le_union (s t : multiset α) : ndunion s t ≤ s ∪ t :=
+ndunion_le.2 ⟨subset_of_le (le_union_left _ _), le_union_right _ _⟩
+
+theorem nodup_ndunion (s : multiset α) {t : multiset α} : nodup t → nodup (ndunion s t) :=
+quotient.induction_on₂ s t $ λ l₁ l₂, nodup_union _
+
+@[simp] theorem ndunion_eq_union {s t : multiset α} (d : nodup s) : ndunion s t = s ∪ t :=
+le_antisymm (ndunion_le_union _ _) $ union_le (le_ndunion_left _ d) (le_ndunion_right _ _)
+
+theorem erase_dup_add (s t : multiset α) : erase_dup (s + t) = ndunion s (erase_dup t) :=
+quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ erase_dup_append _ _
+
+/- finset inter -/
+
+def ndinter (s t : multiset α) : multiset α := filter (∈ t) s
+
+@[simp] theorem coe_ndinter (l₁ l₂ : list α) : @ndinter α _ l₁ l₂ = (l₁ ∩ l₂ : list α) := rfl
+
+@[simp] theorem zero_ndinter (s : multiset α) : ndinter 0 s = 0 := rfl
+
+@[simp] theorem cons_ndinter_of_mem {a : α} (s : multiset α) {t : multiset α} (h : a ∈ t) :
+  ndinter (a::s) t = a :: (ndinter s t) := by simp [ndinter, h]
+
+@[simp] theorem ndinter_cons_of_not_mem {a : α} (s : multiset α) {t : multiset α} (h : a ∉ t) :
+  ndinter (a::s) t = ndinter s t := by simp [ndinter, h]
+
+@[simp] theorem mem_ndinter {s t : multiset α} {a : α} : a ∈ ndinter s t ↔ a ∈ s ∧ a ∈ t :=
+mem_filter
+
+theorem nodup_ndinter {s : multiset α} (t : multiset α) : nodup s → nodup (ndinter s t) :=
+nodup_filter _
+
+theorem le_ndinter {s t u : multiset α} : s ≤ ndinter t u ↔ s ≤ t ∧ s ⊆ u :=
+by simp [ndinter, le_filter, subset_iff]
+
+theorem ndinter_le_left (s t : multiset α) : ndinter s t ≤ s :=
+(le_ndinter.1 (le_refl _)).1
+
+theorem ndinter_subset_right (s t : multiset α) : ndinter s t ⊆ t :=
+(le_ndinter.1 (le_refl _)).2
+
+theorem ndinter_le_right {s} (t : multiset α) (d : nodup s) : ndinter s t ≤ t :=
+(le_iff_subset $ nodup_ndinter _ d).2 (ndinter_subset_right _ _)
+
+theorem inter_le_ndinter (s t : multiset α) : s ∩ t ≤ ndinter s t :=
+le_ndinter.2 ⟨inter_le_left _ _, subset_of_le $ inter_le_right _ _⟩
+
+@[simp] theorem ndinter_eq_inter {s t : multiset α} (d : nodup s) : ndinter s t = s ∩ t :=
+le_antisymm (le_inter (ndinter_le_left _ _) (ndinter_le_right _ d)) (inter_le_ndinter _ _)
+
+theorem ndinter_eq_zero_iff_disjoint {s t : multiset α} : ndinter s t = 0 ↔ disjoint s t :=
+by rw ← subset_zero_iff; simp [subset_iff, disjoint]
+
 end
-
-/-
-/- union -/
-section union
-variable [decidable_eq α]
-
-protected def union (s₁ s₂ : multiset α) : multiset α :=
-quotient.lift_on₂ s₁ s₂ (λ l₁ l₂, (↑(l₁ ∪ l₂) : multiset α))
-  (λ v₁ v₂ w₁ w₂ p₁ p₂, quot.sound (perm_union p₁ p₂))
-
-instance : has_union (multiset α) := ⟨multiset.union⟩
-
-@[simp] theorem mem_union {a : α} {s₁ s₂ : multiset α} : a ∈ s₁ ∪ s₂ ↔ a ∈ s₁ ∨ a ∈ s₂ :=
-quotient.induction_on₂ s₁ s₂ (λ l₁ l₂, list.mem_union)
-
-theorem mem_union_left {a : α} {s₁ : multiset α} (s₂ : multiset α) : a ∈ s₁ → a ∈ s₁ ∪ s₂ :=
-by simp {contextual := tt}
-
-theorem mem_union_right {a : α} {s₂ : multiset α} (s₁ : multiset α) : a ∈ s₂ → a ∈ s₁ ∪ s₂ :=
-by simp {contextual := tt}
-
-theorem mem_or_mem_of_mem_union {a : α} {s₁ s₂ : multiset α} : a ∈ s₁ ∪ s₂ → a ∈ s₁ ∨ a ∈ s₂ :=
-mem_union.1
-
-theorem union_subset {s₁ s₂ s₃ : multiset α} : s₁ ⊆ s₃ → s₂ ⊆ s₃ → s₁ ∪ s₂ ⊆ s₃ :=
-by simp [subset_iff] {contextual:=tt}; finish
-
-theorem subset_union_left {s₁ s₂ : multiset α} : s₁ ⊆ s₁ ∪ s₂ :=
-subset_iff.mpr $ assume x, mem_union_left _
-
-theorem subset_union_right {s₁ s₂ : multiset α} : s₂ ⊆ s₁ ∪ s₂ :=
-subset_iff.mpr $ assume x, mem_union_right _
-
-@[simp] theorem union_assoc (s₁ s₂ s₃ : multiset α) : (s₁ ∪ s₂) ∪ s₃ = s₁ ∪ (s₂ ∪ s₃) :=
-_
-
-instance : is_associative (multiset α) (∪) := ⟨union_assoc⟩
-
-@[simp] theorem union_idempotent (s : multiset α) : s ∪ s = s :=
-ext $ by simp
-
-instance : is_idempotent (multiset α) (∪) := ⟨union_idempotent⟩
-
-theorem union_left_comm (s₁ s₂ s₃ : multiset α) : s₁ ∪ (s₂ ∪ s₃) = s₂ ∪ (s₁ ∪ s₃) :=
-ext $ by simp
-
-theorem union_right_comm (s₁ s₂ s₃ : multiset α) : (s₁ ∪ s₂) ∪ s₃ = (s₁ ∪ s₃) ∪ s₂ :=
-ext $ by simp
-
-@[simp] theorem union_self (s : multiset α) : s ∪ s = s :=
-ext $ by simp
-
-@[simp] theorem union_empty (s : multiset α) : s ∪ ∅ = s :=
-ext $ by simp
-
-@[simp] theorem empty_union (s : multiset α) : ∅ ∪ s = s :=
-ext $ by simp
-
-theorem insert_eq (a : α) (s : multiset α) : insert a s = {a} ∪ s :=
-ext $ by simp
-
-@[simp] theorem insert_union (a : α) (s t : multiset α) : insert a s ∪ t = insert a (s ∪ t) :=
-ext $ by simp
-
-@[simp] theorem union_insert (a : α) (s t : multiset α) : s ∪ insert a t = insert a (s ∪ t) :=
-ext $ by simp
-
-end union
-
-/- inter -/
-section inter
-variable [decidable_eq α]
-
-protected def inter (s₁ s₂ : multiset α) : multiset α :=
-quotient.lift_on₂ s₁ s₂
-  (λ l₁ l₂, to_multiset_of_nodup (list.inter l₁.1 l₂.1) (nodup_inter_of_nodup _ l₁.2))
-  (λ v₁ v₂ w₁ w₂ p₁ p₂, quot.sound (perm_inter p₁ p₂))
-
-instance : has_inter (multiset α) := ⟨multiset.inter⟩
-
-@[simp] theorem mem_inter (a : α) (s₁ s₂ : multiset α) : a ∈ s₁ ∩ s₂ ↔ a ∈ s₁ ∧ a ∈ s₂ :=
-quotient.induction_on₂ s₁ s₂ (λ l₁ l₂, mem_inter)
-
-theorem mem_of_mem_inter_left {a : α} {s₁ s₂ : multiset α} : a ∈ s₁ ∩ s₂ → a ∈ s₁ :=
-by simp {contextual := tt}
-
-theorem mem_of_mem_inter_right {a : α} {s₁ s₂ : multiset α} : a ∈ s₁ ∩ s₂ → a ∈ s₂ :=
-by simp {contextual := tt}
-
-theorem mem_inter_of_mem {a : α} {s₁ s₂ : multiset α} : a ∈ s₁ → a ∈ s₂ → a ∈ s₁ ∩ s₂ :=
-by simp {contextual := tt}
-
-theorem inter_subset_left {s₁ s₂ : multiset α} : s₁ ∩ s₂ ⊆ s₁ :=
-by simp [subset_iff] {contextual:=tt}; finish
-
-theorem inter_subset_right {s₁ s₂ : multiset α} : s₁ ∩ s₂ ⊆ s₂ :=
-by simp [subset_iff] {contextual:=tt}; finish
-
-theorem subset_inter {s₁ s₂ s₃ : multiset α} : s₁ ⊆ s₂ → s₁ ⊆ s₃ → s₁ ⊆ s₂ ∩ s₃ :=
-by simp [subset_iff] {contextual:=tt}; finish
-
-@[simp] theorem inter_comm (s₁ s₂ : multiset α) : s₁ ∩ s₂ = s₂ ∩ s₁ :=
-ext $ by simp
-
-@[simp] theorem inter_assoc (s₁ s₂ s₃ : multiset α) : (s₁ ∩ s₂) ∩ s₃ = s₁ ∩ (s₂ ∩ s₃) :=
-ext $ by simp
-
-@[simp] theorem inter_left_comm (s₁ s₂ s₃ : multiset α) : s₁ ∩ (s₂ ∩ s₃) = s₂ ∩ (s₁ ∩ s₃) :=
-ext $ by simp
-
-@[simp] theorem inter_right_comm (s₁ s₂ s₃ : multiset α) : (s₁ ∩ s₂) ∩ s₃ = (s₁ ∩ s₃) ∩ s₂ :=
-ext $ by simp
-
-@[simp] theorem inter_self (s : multiset α) : s ∩ s = s :=
-ext $ by simp
-
-@[simp] theorem inter_empty (s : multiset α) : s ∩ ∅ = ∅ :=
-ext $ by simp
-
-@[simp] theorem empty_inter (s : multiset α) : ∅ ∩ s = ∅ :=
-ext $ by simp
-
-@[simp] theorem insert_inter_of_mem {s₁ s₂ : multiset α} {a : α} (h : a ∈ s₂) :
-  insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
-ext $ by simp; intro x; constructor; finish
-
-@[simp] theorem inter_insert_of_mem {s₁ s₂ : multiset α} {a : α} (h : a ∈ s₁) :
-  s₁ ∩ insert a s₂ = insert a (s₁ ∩ s₂) :=
-by rw [inter_comm, insert_inter_of_mem h, inter_comm]
-
-@[simp] theorem insert_inter_of_not_mem {s₁ s₂ : multiset α} {a : α} (h : a ∉ s₂) :
-  insert a s₁ ∩ s₂ = s₁ ∩ s₂ :=
-ext $ assume a', by by_cases a' = a with h'; simp [mem_inter, mem_insert, h, h']
-
-@[simp] theorem inter_insert_of_not_mem {s₁ s₂ : multiset α} {a : α} (h : a ∉ s₁) :
-  s₁ ∩ insert a s₂ = s₁ ∩ s₂ :=
-by rw [inter_comm, insert_inter_of_not_mem h, inter_comm]
-
-@[simp] theorem singleton_inter_of_mem {a : α} {s : multiset α} : a ∈ s → {a} ∩ s = {a} :=
-show a ∈ s → insert a ∅ ∩ s = insert a ∅, by simp {contextual := tt}
-
-@[simp] theorem singleton_inter_of_not_mem {a : α} {s : multiset α} : a ∉ s → {a} ∩ s = ∅ :=
-show a ∉ s → insert a ∅ ∩ s = ∅, by simp {contextual := tt}
-
-@[simp] theorem inter_singleton_of_mem {a : α} {s : multiset α} (h : a ∈ s) : s ∩ {a} = {a} :=
-by rw [inter_comm, singleton_inter_of_mem h]
-
-@[simp] theorem inter_singleton_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) : s ∩ {a} = ∅ :=
-by rw [inter_comm, singleton_inter_of_not_mem h]
-
-end inter
-
-section lattice
-
-instance [decidable_eq α] : lattice (multiset α) :=
-{ le := (⊆),
-  le_refl := subset.refl,
-  le_trans := assume a b c, subset.trans,
-  le_antisymm := assume a b, subset.antisymm,
-  sup := (∪),
-  sup_le := assume a b c, union_subset,
-  le_sup_left := assume a b, subset_union_left,
-  le_sup_right := assume a b, subset_union_right,
-  inf := (∩),
-  le_inf := assume a b c, subset_inter,
-  inf_le_left := assume a b, inter_subset_left,
-  inf_le_right := assume a b, inter_subset_right }
-
-instance [decidable_eq α] : semilattice_inf_bot (multiset α) :=
-{ multiset.lattice.lattice with
-  bot := ∅,
-  bot_le := assume a, empty_subset }
-
-instance [decidable_eq α] : distrib_lattice (multiset α) :=
-{ multiset.lattice.lattice with
-  le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
-    by simp [subset_iff, and_imp, or_imp_distrib] {contextual:=tt} }
-
-end lattice
-
-/- distributivity laws -/
-section inter
-variable [decidable_eq α]
-
-theorem inter_distrib_left (s t u : multiset α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) :=
-ext $ by simp [mem_inter, mem_union]; intro; split; finish
-
-theorem inter_distrib_right (s t u : multiset α) : (s ∪ t) ∩ u = (s ∩ u) ∪ (t ∩ u) :=
-ext $ by simp [mem_inter, mem_union]; intro; split; finish
-
-theorem union_distrib_left (s t u : multiset α) : s ∪ (t ∩ u) = (s ∪ t) ∩ (s ∪ u) :=
-ext $ by simp [mem_inter, mem_union]; intro; split; finish
-
-theorem union_distrib_right (s t u : multiset α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) :=
-ext $ by simp [mem_inter, mem_union]; intro; split; finish
-
-end inter
-
-/- erase -/
-section erase
-variables [decidable_eq α] {a b c : α} {s t : multiset α}
-
-def erase (a : α) (s : multiset α) : multiset α :=
-quot.lift_on s
-  (λ l, to_multiset_of_nodup (l.1.erase a) (nodup_erase_of_nodup a l.2))
-  (λ (l₁ l₂ : nodup_list α) (p : l₁ ~ l₂), quot.sound (erase_perm_erase a p))
-
-@[simp] theorem mem_erase : a ∈ erase b s ↔ a ≠ b ∧ a ∈ s :=
-multiset.induction_on_to_multiset s $ λ l hl, mem_erase_iff_of_nodup hl
-
-theorem not_mem_erase : a ∉ erase a s := by simp
-
-@[simp] theorem erase_empty : erase a ∅ = ∅ := rfl
-
-theorem ne_of_mem_erase : b ∈ erase a s → b ≠ a := by simp {contextual:=tt}
-
-theorem mem_of_mem_erase : b ∈ erase a s → b ∈ s := by simp {contextual:=tt}
-
-theorem mem_erase_of_ne_of_mem : a ≠ b → a ∈ s → a ∈ erase b s := by simp {contextual:=tt}
-
-theorem erase_insert (h : a ∉ s) : erase a (insert a s) = s :=
-ext $ assume x, by simp; constructor; finish
-
-theorem insert_erase (h : a ∈ s) : insert a (erase a s) = s :=
-ext $ assume x, by simp; constructor; finish
-
-theorem erase_subset_erase (h : s ⊆ t) : erase a s ⊆ erase a t :=
-subset_iff.2 $ assume x, by simp [-and_imp]; exact and.imp_right (mem_of_subset_of_mem h)
-
-theorem erase_subset : erase a s ⊆ s :=
-subset_iff.2 $ assume x, by simp {contextual:=tt}
-
-theorem erase_eq_of_not_mem (h : a ∉ s) : erase a s = s :=
-ext $ assume b, by by_cases b = a; simp *
-
-theorem erase_insert_subset : erase a (insert a s) ⊆ s :=
-by by_cases a ∈ s; simp [h, erase_subset, erase_insert, subset.refl]
-
-theorem erase_subset_of_subset_insert (h : s ⊆ insert a t) : erase a s ⊆ t :=
-subset.trans (erase_subset_erase h) erase_insert_subset
-
-theorem insert_erase_subset : s ⊆ insert a (erase a s) :=
-decidable.by_cases
-  (λ ains : a ∈ s, by rw [insert_erase ains]; apply subset.refl)
-  (λ nains : a ∉ s, by rw[erase_eq_of_not_mem nains]; apply subset_insert)
-
-theorem subset_insert_of_erase_subset (h : erase a s ⊆ t) : s ⊆ insert a t :=
-subset.trans insert_erase_subset (insert_subset_insert h)
-
-theorem subset_insert_iff (s t : multiset α) (a : α) : s ⊆ insert a t ↔ erase a s ⊆ t :=
-iff.intro erase_subset_of_subset_insert subset_insert_of_erase_subset
-
-end erase
-
-section filter
-variables [decidable_eq α] {p : α → Prop} [decidable_pred p] {s s₁ s₂ : multiset α} {a : α}
-
-protected def filter (p : α → Prop) [decidable_pred p] (s : multiset α) : multiset α :=
-quotient.lift_on s
-  (λl, to_multiset_of_nodup (l.val.filter p) $ nodup_filter _ l.property)
-  (assume l₁ l₂ (h : perm l₁.val l₂.val), quot.sound $ perm_filter _ h)
-
-@[simp] theorem mem_filter : a ∈ s.filter p ↔ (a ∈ s ∧ p a) :=
-multiset.induction_on_to_multiset s $ λl₁ h₁, list.mem_filter
-
-theorem filter_subset : s.filter p ⊆ s := by simp [subset_iff] {contextual := tt}
-
-theorem filter_union : (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=
-ext $ assume a, by simp [and_or_distrib_left]
-
-theorem filter_filter {p' : α → Prop} [decidable_pred p'] :
-  (s.filter p).filter p' = s.filter (λa, p a ∧ p' a) :=
-ext $ assume a, by simp
-
-@[simp] theorem filter_false {h : decidable_pred $ λa:α, false} :
-  @multiset.filter α _ (λa:α, false) h s = ∅ :=
-ext $ assume a, by simp
-
-theorem filter_union_filter_neg_eq : s.filter p ∪ s.filter (λa, ¬ p a) = s :=
-ext $ assume a, by by_cases p a; simp [iff_iff_implies_and_implies, *] {contextual := tt}
-
-theorem filter_inter_filter_neg_eq : s.filter p ∩ s.filter (λa, ¬ p a) = ∅ :=
-ext $ assume a, by by_cases p a; simp * {contextual := tt}
-
-end filter
-
-section sdiff
-variables [decidable_eq α] {a : α} {s₁ s₂ t₁ t₂ : multiset α}
-
-instance : has_sdiff (multiset α) := ⟨λs₁ s₂, s₁.filter (λa, a ∉ s₂)⟩
-
-@[simp] theorem mem_sdiff_iff : a ∈ s₁ \ s₂ ↔ (a ∈ s₁ ∧ a ∉ s₂) := mem_filter
-
-lemma sdiff_union_of_subset (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
-ext $ assume a,
-  by rw [subset_iff] at h;
-     by_cases a ∈ s₁; simp [iff_iff_implies_and_implies, *] {contextual := tt}
-
-lemma sdiff_inter_self : (s₂ \ s₁) ∩ s₁ = ∅ :=
-ext $ by simp {contextual := tt}
-
-lemma sdiff_subset_sdiff : t₁ ⊆ t₂ → s₂ ⊆ s₁ → t₁ \ s₁ ⊆ t₂ \ s₂ :=
-begin
-  simp [subset_iff, mem_sdiff_iff] {contextual := tt},
-  exact assume h₁ h₂ a _ ha₁ ha₂, ha₁ $ h₂ _ ha₂
-end
-
-end sdiff
-
-/- range -/
-section range
-variables {n m l : ℕ}
-
-def range (n : ℕ) : multiset ℕ :=
-to_multiset_of_nodup (list.range n) (nodup_range n)
-
-@[simp] theorem mem_range : m ∈ range n ↔ m < n :=
-list.mem_range
-
-@[simp] theorem range_zero : range 0 = ∅ := rfl
-
-@[simp] theorem range_succ : range (succ n) = insert n (range n) :=
-ext $ by simp [mem_insert, le_iff_lt_or_eq, lt_succ_iff]
-
-@[simp] theorem not_mem_range_self : n ∉ range n :=
-not_mem_range_self
-
-@[simp] theorem range_subset {n m} : range n ⊆ range m ↔ n ≤ m :=
-range_subset
-
-theorem exists_nat_subset_range {s : multiset ℕ} : ∃n : ℕ, s ⊆ range n :=
-s.induction_on ⟨0, by simp⟩ $
-  assume a s ha ⟨n, hn⟩,
-  ⟨max (a + 1) n, subset_iff.mpr $ assume x,
-    begin
-      simp [subset_iff, mem_range] at hn,
-      simp [or_imp_distrib, mem_range, lt_max_iff, hn] {contextual := tt},
-      exact assume _, or.inr (lt_succ_self a)
-    end⟩
-
-end range
-
-/- useful rules for calculations with quantifiers -/
-theorem exists_mem_empty_iff (p : α → Prop) : (∃ x, x ∈ (∅ : multiset α) ∧ p x) ↔ false :=
-⟨λ⟨x, hx⟩, not_mem_empty (hx.left), false.elim⟩
-
-theorem exists_mem_insert [d : decidable_eq α]
-    (a : α) (s : multiset α) (p : α → Prop) :
-  (∃ x, x ∈ insert a s ∧ p x) ↔ p a ∨ (∃ x, x ∈ s ∧ p x) :=
-iff.intro
-  (λ H,
-    let ⟨x,H1,H2⟩ := H in
-    or.elim (mem_insert.mp H1)
-      (λ l, or.inl (eq.subst l H2))
-      (λ r, or.inr ⟨x, ⟨r, H2⟩⟩))
-  (λ H,
-    or.elim H
-      (λ l, ⟨a, ⟨mem_insert_self, l⟩⟩)
-      (λ r, let ⟨x,H2,H3⟩ := r in ⟨x, ⟨mem_insert_of_mem H2, H3⟩⟩))
-
-theorem forall_mem_empty_iff (p : α → Prop) : (∀ x, x ∈ (∅ : multiset α) → p x) ↔ true :=
-iff.intro (λ H, trivial) (λ H x H', absurd H' not_mem_empty)
-
-theorem forall_mem_insert [d : decidable_eq α]
-    (a : α) (s : multiset α) (p : α → Prop) :
-  (∀ x, x ∈ insert a s → p x) ↔ p a ∧ (∀ x, x ∈ s → p x) :=
-by simp [or_imp_distrib, forall_and_distrib]
-
-section image
-variables (f : α → β) (s s₁ s₂ : multiset α) [decidable_eq β]
-
-protected def image : multiset β :=
-quot.lift_on s (λl, to_multiset $ l.val.map f) $ assume ⟨l₁, hl₁⟩ ⟨l₂, hl₂⟩ (h : perm l₁ l₂),
-  quotient.sound $ perm_erase_dup_of_perm $ perm_map _ $ h
-
-@[simp] lemma image_empty {f : α → β} : (∅ : multiset α).image f = ∅ := rfl
-
-variables {f s s₁ s₂} {b : β} [decidable_eq α]
-
-lemma mem_image_iff : b ∈ s.image f ↔ (∃a∈s, f a = b) :=
-multiset.induction_on_to_multiset s $ assume l h,
-  show b ∈ to_multiset (l.map f) ↔ _, by simp [mem_to_multiset]
-
-lemma erase_dup_map_erase_dup_eq {f : α → β} :
-  ∀{l : list α}, erase_dup (map f (erase_dup l)) = (erase_dup $ map f l)
-| [] := by simp
-| (x :: xs) :=
-  have f x ∈ map f (erase_dup xs) ↔ f x ∈ map f xs, by simp,
-  by by_cases x ∈ xs; by_cases f x ∈ map f xs; simp * at *
-
-lemma image_to_multiset {l : list α} : (to_multiset l).image f = to_multiset (l.map f) :=
-quot.sound $ show perm (erase_dup $ map f $ erase_dup l) (erase_dup $ map f l),
-  by rw [erase_dup_map_erase_dup_eq]
-
-lemma image_to_multiset_of_nodup {l : list α} (hl : nodup l) (h : ∀x∈l, ∀y∈l, f x = f y → x = y) :
-  (to_multiset_of_nodup l hl).image f = to_multiset_of_nodup (l.map f) (nodup_map_on h hl) :=
-quot.sound $ show perm (erase_dup (map f l)) (l.map f),
-  by rw [erase_dup_eq_self.2 (nodup_map_on h hl)]
-
-lemma image_id : s.image id = s :=
-quot.induction_on s $ assume ⟨l, hl⟩, show to_multiset (l.map id) = to_multiset_of_nodup l hl,
-  by rw [map_id, to_multiset_eq_of_nodup]
-
-lemma image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.image (g ∘ f) :=
-quot.induction_on s $ assume ⟨l, hl⟩,
-  show ((to_multiset_of_nodup l hl).image f).image g = (to_multiset_of_nodup l hl).image (g ∘ f),
-    by simp [to_multiset_eq_of_nodup, image_to_multiset]
-
-lemma image_subset_image : s₁ ⊆ s₂ → s₁.image f ⊆ s₂.image f :=
-by simp [subset_iff, mem_image_iff] {contextual:=tt};
-from assume h b a h_eq ha, ⟨a, h_eq, h _ ha⟩
-
-lemma image_filter {p : β → Prop} [decidable_pred p] :
-  (s.image f).filter p = (s.filter (p ∘ f)).image f :=
-ext $ assume b, by simp [mem_image_iff]; exact iff.intro
-  (assume ⟨hb, ⟨a, h_eq, ha⟩⟩, ⟨a, h_eq, show p (f a), from h_eq.symm ▸ hb, ha⟩)
-  (assume ⟨a, h_eq, ha, has⟩, ⟨h_eq ▸ ha, a, h_eq, has⟩)
-
-lemma image_union {f : α → β} : (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f  :=
-ext $ assume b, by simp [mem_image_iff, and_or_distrib_left, exists_or_distrib]
-
-lemma image_inter (hf : ∀x y, f x = f y → x = y) : (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
-ext $ assume b,
-  by simp [mem_image_iff, iff_def];
-  from and.intro
-    (assume x x_eq hx y y_eq hy,
-      have y = x, from hf _ _ $ by simp *,
-      ⟨x, x_eq, hx, this ▸ hy⟩)
-    (assume x x_eq h₁ h₂, ⟨⟨x, x_eq, h₁⟩, ⟨x, x_eq, h₂⟩⟩)
-
-@[simp] lemma image_singleton {f : α → β} {a : α} : ({a}: multiset α).image f = {f a} :=
-ext $ by simp [mem_image_iff, and_or_distrib_left, exists_or_distrib, iff_def] {contextual := tt}
-
-@[simp] lemma image_insert {f : α → β} {s : multiset α} {a : α} :
-  (insert a s).image f = insert (f a) (s.image f) :=
-by simp [insert_eq, image_union]
-
-@[simp] lemma image_eq_empty_iff : s.image f = ∅ ↔ s = ∅ :=
-iff.intro
-  (assume h,
-    have ∀a, a ∉ s,
-      from assume a ha,
-      have f a ∈ s.image f, from mem_image_iff.mpr ⟨a, ha, rfl⟩,
-      by simp * at *,
-    ext $ by simp *)
-  (assume h, by simp *)
-
-end image
-
-section card
-variables [decidable_eq α] {a : α} {s : multiset α} {n : ℕ}
-
-/- card -/
-def card (s : multiset α) : nat :=
-quot.lift_on s (λ l, length l.1) (λ l₁ l₂, perm_length)
-
-@[simp] theorem card_empty : card (∅ : multiset α) = 0 := rfl
-
-lemma ne_empty_of_card_eq_succ : card s = succ n → s ≠ ∅ :=
-λ h hn, by rw hn at h; contradiction
-
-@[simp] theorem card_insert_of_not_mem : a ∉ s → card (insert a s) = card s + 1 :=
-quot.induction_on s (λ (l : nodup_list α) (nainl : a ∉ ⟦l⟧), list.length_insert_of_not_mem nainl)
-
-theorem card_insert_le : card (insert a s) ≤ card s + 1 :=
-if h : a ∈ s then by simp [h, le_add_left] else by rw [card_insert_of_not_mem h]
-
-theorem eq_empty_of_card_eq_zero : card s = 0 → s = ∅ :=
-s.induction_on
-  (assume _, rfl)
-  (assume a s ha ih, by rw [card_insert_of_not_mem ha]; exact assume h, nat.no_confusion h)
-
-theorem card_erase_of_mem : a ∈ s → card (erase a s) = pred (card s) :=
-quot.induction_on s (λ l ainl, list.length_erase_of_mem ainl)
-
-theorem card_range : card (range n) = n :=
-list.length_range n
-
-end card
--/
 
 end multiset

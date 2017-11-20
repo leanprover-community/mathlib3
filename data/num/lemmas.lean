@@ -242,26 +242,16 @@ namespace num
   meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
 
   instance : comm_semiring num :=
-  { add            := (+),
-    add_assoc      := by transfer,
-    zero           := 0,
-    zero_add       := zero_add,
-    add_zero       := add_zero,
-    add_comm       := by transfer,
-    mul            := (*),
-    mul_assoc      := by transfer,
-    one            := 1,
-    one_mul        := by transfer,
-    mul_one        := by transfer,
-    left_distrib   := by {transfer, simp [left_distrib]},
-    right_distrib  := by {transfer, simp [left_distrib]},
-    zero_mul       := by transfer,
-    mul_zero       := by transfer,
-    mul_comm       := by transfer }
+  by refine {
+    add      := (+),
+    zero     := 0,
+    zero_add := zero_add,
+    add_zero := add_zero,
+    mul      := (*),
+    one      := 1, .. }; try {transfer}; simp [left_distrib]
 
   instance : decidable_linear_ordered_semiring num :=
-  { num.comm_semiring with
-    add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
+  { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
     add_right_cancel           := by {intros a b c, transfer_rw, apply add_right_cancel},
     lt                         := (<),
     lt_iff_le_not_le           := by {intros a b, transfer_rw, apply lt_iff_le_not_le},
@@ -279,7 +269,8 @@ namespace num
     mul_lt_mul_of_pos_right    := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_right},
     decidable_lt               := num.decidable_lt,
     decidable_le               := num.decidable_le,
-    decidable_eq               := num.decidable_eq }
+    decidable_eq               := num.decidable_eq,
+    ..num.comm_semiring }
 
 end num
 
@@ -326,23 +317,14 @@ namespace pos_num
   meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
 
   instance : add_comm_semigroup pos_num :=
-  { add            := (+),
-    add_assoc      := by transfer,
-    add_comm       := by transfer }
+  by refine {add := (+), ..}; transfer
 
   instance : comm_monoid pos_num :=
-  { mul            := (*),
-    mul_assoc      := by transfer,
-    one            := 1,
-    one_mul        := by transfer,
-    mul_one        := by transfer,
-    mul_comm       := by transfer }
+  by refine {mul := (*), one := 1, ..}; transfer
+  
 
   instance : distrib pos_num :=
-  { add            := (+),
-    mul            := (*),
-    left_distrib   := by {transfer, simp [left_distrib]},
-    right_distrib  := by {transfer, simp [left_distrib]} }
+  by refine {add := (+), mul := (*), ..}; {transfer, simp [left_distrib]}
 
   instance : decidable_linear_order pos_num :=
   { lt              := (<),

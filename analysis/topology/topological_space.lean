@@ -653,8 +653,7 @@ inductive generate_open (g : set (set α)) : set α → Prop
 | sUnion : ∀k, (∀s∈k, generate_open s) → generate_open (⋃₀ k)
 
 def generate_from (g : set (set α)) : topological_space α :=
-{ topological_space .
-  is_open       := generate_open g,
+{ is_open       := generate_open g,
   is_open_univ   := generate_open.univ g,
   is_open_inter  := generate_open.inter,
   is_open_sUnion := generate_open.sUnion  }
@@ -693,14 +692,13 @@ section constructions
 variables {α : Type u} {β : Type v}
 
 instance : partial_order (topological_space α) :=
-{ le            := λt s, t.is_open ≤ s.is_open,
-  le_antisymm   := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₁ h₂,
-  le_refl       := assume t, le_refl t.is_open,
-  le_trans      := assume a b c h₁ h₂, @le_trans _ _ a.is_open b.is_open c.is_open h₁ h₂ }
+{ le          := λt s, t.is_open ≤ s.is_open,
+  le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₁ h₂,
+  le_refl     := assume t, le_refl t.is_open,
+  le_trans    := assume a b c h₁ h₂, @le_trans _ _ a.is_open b.is_open c.is_open h₁ h₂ }
 
-instance : has_Inf (topological_space α) :=
-⟨assume (tt : set (topological_space α)), { topological_space .
-  is_open := λs, ∀t∈tt, topological_space.is_open t s,
+instance : has_Inf (topological_space α) := ⟨λ tt,
+{ is_open        := λs, ∀t∈tt, topological_space.is_open t s,
   is_open_univ   := assume t h, t.is_open_univ,
   is_open_inter  := assume s₁ s₂ h₁ h₂ t ht, t.is_open_inter s₁ s₂ (h₁ t ht) (h₂ t ht),
   is_open_sUnion := assume s h t ht, t.is_open_sUnion _ $ assume s' hss', h _ hss' _ ht }⟩
@@ -715,8 +713,7 @@ assume s hs t' ht', h t' ht' s hs
 
 def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : topological_space β) :
   topological_space α :=
-{ topological_space .
-  is_open       := λs, ∃s', t.is_open s' ∧ s = preimage f s',
+{ is_open        := λs, ∃s', t.is_open s' ∧ s = preimage f s',
   is_open_univ   := ⟨univ, by simp; exact t.is_open_univ⟩,
   is_open_inter  := assume s₁ s₂ ⟨s'₁, hs₁, eq₁⟩ ⟨s'₂, hs₂, eq₂⟩,
     ⟨s'₁ ∩ s'₂, by simp [eq₁, eq₂]; exact t.is_open_inter _ _ hs₁ hs₂⟩,
@@ -737,31 +734,27 @@ lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → 
 
 def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t : topological_space α) :
   topological_space β :=
-{ topological_space .
-  is_open       := λs, t.is_open (preimage f s),
+{ is_open        := λs, t.is_open (preimage f s),
   is_open_univ   := by simp; exact t.is_open_univ,
   is_open_inter  := assume s₁ s₂ h₁ h₂, by simp; exact t.is_open_inter _ _ h₁ h₂,
   is_open_sUnion := assume s h, by rw [preimage_sUnion]; exact (@is_open_Union _ _ t _ $ assume i,
     show is_open (⋃ (H : i ∈ s), preimage f i), from
       @is_open_Union _ _ t _ $ assume hi, h i hi) }
 
-instance : has_inf (topological_space α) :=
-⟨assume t₁ t₂ : topological_space α, { topological_space .
-  is_open       := λs, t₁.is_open s ∧ t₂.is_open s,
+instance : has_inf (topological_space α) := ⟨λ t₁ t₂,
+{ is_open        := λs, t₁.is_open s ∧ t₂.is_open s,
   is_open_univ   := ⟨t₁.is_open_univ, t₂.is_open_univ⟩,
   is_open_inter  := assume s₁ s₂ ⟨h₁₁, h₁₂⟩ ⟨h₂₁, h₂₂⟩, ⟨t₁.is_open_inter s₁ s₂ h₁₁ h₂₁, t₂.is_open_inter s₁ s₂ h₁₂ h₂₂⟩,
   is_open_sUnion := assume s h, ⟨t₁.is_open_sUnion _ $ assume t ht, (h t ht).left, t₂.is_open_sUnion _ $ assume t ht, (h t ht).right⟩ }⟩
 
 instance : has_top (topological_space α) :=
-⟨{topological_space .
-  is_open       := λs, true,
+⟨{is_open        := λs, true,
   is_open_univ   := trivial,
   is_open_inter  := assume a b ha hb, trivial,
   is_open_sUnion := assume s h, trivial }⟩
 
 instance {α : Type u} : complete_lattice (topological_space α) :=
-{ topological_space.partial_order with
-  sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
+{ sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
   le_sup_left   := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.left,
   le_sup_right  := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.right,
   sup_le        := assume a b c h₁ h₂, Inf_le $ show c ∈ {x | a ≤ x ∧ b ≤ x}, from ⟨h₁, h₂⟩,
@@ -778,7 +771,8 @@ instance {α : Type u} : complete_lattice (topological_space α) :=
   Sup_le        := assume s f h, Inf_le $ assume t ht, h _ ht,
   Inf           := Inf,
   le_Inf        := assume s a, le_Inf,
-  Inf_le        := assume s a, Inf_le }
+  Inf_le        := assume s a, Inf_le,
+  ..topological_space.partial_order }
 
 instance inhabited_topological_space {α : Type u} : inhabited (topological_space α) :=
 ⟨⊤⟩

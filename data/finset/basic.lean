@@ -407,28 +407,28 @@ end inter
 section lattice
 
 instance [decidable_eq α] : lattice (finset α) :=
-{ le := (⊆),
-  le_refl := subset.refl,
-  le_trans := assume a b c, subset.trans,
-  le_antisymm := assume a b, subset.antisymm,
-  sup := (∪),
-  sup_le := assume a b c, union_subset,
-  le_sup_left := assume a b, subset_union_left,
+{ le           := (⊆),
+  le_refl      := subset.refl,
+  le_trans     := assume a b c, subset.trans,
+  le_antisymm  := assume a b, subset.antisymm,
+  sup          := (∪),
+  sup_le       := assume a b c, union_subset,
+  le_sup_left  := assume a b, subset_union_left,
   le_sup_right := assume a b, subset_union_right,
-  inf := (∩),
-  le_inf := assume a b c, subset_inter,
-  inf_le_left := assume a b, inter_subset_left,
+  inf          := (∩),
+  le_inf       := assume a b c, subset_inter,
+  inf_le_left  := assume a b, inter_subset_left,
   inf_le_right := assume a b, inter_subset_right }
 
 instance [decidable_eq α] : semilattice_inf_bot (finset α) :=
-{ finset.lattice.lattice with
-  bot := ∅,
-  bot_le := assume a, empty_subset }
+{ bot    := ∅,
+  bot_le := assume a, empty_subset,
+  ..finset.lattice.lattice }
 
 instance [decidable_eq α] : distrib_lattice (finset α) :=
-{ finset.lattice.lattice with
-  le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
-    by simp [subset_iff, and_imp, or_imp_distrib] {contextual:=tt} }
+{ le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
+    by simp [subset_iff, and_imp, or_imp_distrib] {contextual:=tt},
+  ..finset.lattice.lattice }
 
 end lattice
 

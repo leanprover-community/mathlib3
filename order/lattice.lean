@@ -307,8 +307,7 @@ end lattice
 /- Lattices derived from linear orders -/
 
 instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : lattice α :=
-{ o with
-  sup          := max,
+{ sup          := max,
   le_sup_left  := le_max_left,
   le_sup_right := le_max_right,
   sup_le       := assume a b c, max_le,
@@ -316,6 +315,7 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
   inf          := min,
   inf_le_left  := min_le_left,
   inf_le_right := min_le_right,
-  le_inf       := assume a b c, le_min }
+  le_inf       := assume a b c, le_min,
+  ..o }
 
 end lattice

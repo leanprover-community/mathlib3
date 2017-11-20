@@ -277,8 +277,7 @@ le_antisymm ((multiset.add_le_add_left _).1 (le_of_eq h))
   ((multiset.add_le_add_left _).1 (le_of_eq h.symm))
 
 instance : ordered_cancel_comm_monoid (multiset α) :=
-{ @multiset.partial_order α with
-  zero                  := 0,
+{ zero                  := 0,
   add                   := (+),
   add_comm              := multiset.add_comm,
   add_assoc             := λ s₁ s₂ s₃, quotient.induction_on₃ s₁ s₂ s₃ $ λ l₁ l₂ l₃,
@@ -289,7 +288,8 @@ instance : ordered_cancel_comm_monoid (multiset α) :=
   add_right_cancel      := λ s₁ s₂ s₃ h, multiset.add_left_cancel s₂ $
     by simpa [multiset.add_comm] using h,
   add_le_add_left       := λ s₁ s₂ h s₃, (multiset.add_le_add_left _).2 h,
-  le_of_add_le_add_left := λ s₁ s₂ s₃, (multiset.add_le_add_left _).1 }
+  le_of_add_le_add_left := λ s₁ s₂ s₃, (multiset.add_le_add_left _).1,
+  ..@multiset.partial_order α }
 
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a :: s + t = a :: (s + t) :=
 by rw [← singleton_add, ← singleton_add, add_assoc]
@@ -704,23 +704,21 @@ begin
 end
 
 instance : lattice (multiset α) :=
-{ @multiset.partial_order α with
-  sup := (∪),
-  sup_le := @union_le _ _,
-  le_sup_left := le_union_left,
+{ sup          := (∪),
+  sup_le       := @union_le _ _,
+  le_sup_left  := le_union_left,
   le_sup_right := le_union_right,
-  inf := (∩),
-  le_inf := @le_inter _ _,
-  inf_le_left := inter_le_left,
-  inf_le_right := inter_le_right }
+  inf          := (∩),
+  le_inf       := @le_inter _ _,
+  inf_le_left  := inter_le_left,
+  inf_le_right := inter_le_right,
+  ..@multiset.partial_order α }
 
 @[simp] theorem sup_eq_union (s t : multiset α) : s ⊔ t = s ∪ t := rfl
 @[simp] theorem inf_eq_inter (s t : multiset α) : s ⊓ t = s ∩ t := rfl
 
 instance : semilattice_inf_bot (multiset α) :=
-{ multiset.lattice.lattice with
-  bot := 0,
-  bot_le := zero_le }
+{ bot := 0, bot_le := zero_le, ..multiset.lattice.lattice }
 
 theorem union_comm (s t : multiset α) : s ∪ t = t ∪ s := sup_comm
 theorem inter_comm (s t : multiset α) : s ∩ t = t ∩ s := inf_comm

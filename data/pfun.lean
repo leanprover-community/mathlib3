@@ -93,7 +93,7 @@ instance : monad roption :=
   bind_assoc := @bind_assoc }
 
 instance : monad_fail roption :=
-{ roption.monad with fail := λ_ _, roption.none }
+{ fail := λ_ _, roption.none, ..roption.monad }
 
 def restrict (p : Prop) : ∀ (o : roption α), (p → o.dom) → roption α
 | ⟨d, f⟩ H := ⟨p, λh, f (H h)⟩

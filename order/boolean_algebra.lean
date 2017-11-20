@@ -54,8 +54,8 @@ le_antisymm
 end distrib_lattice
 
 instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : distrib_lattice α :=
-{ lattice.lattice_of_decidable_linear_order with
-  le_sup_inf := assume a b c, le_of_eq max_min_distrib_left.symm }
+{ le_sup_inf := assume a b c, le_of_eq max_min_distrib_left.symm,
+  ..lattice.lattice_of_decidable_linear_order }
 
 class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
 

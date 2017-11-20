@@ -638,9 +638,7 @@ def orelse (c1 c2 : computation α) : computation α :=
   end) (c1, c2)
 
 instance : alternative computation :=
-{ computation.monad with
-  orelse := @orelse,
-  failure := @empty }
+{ orelse := @orelse, failure := @empty, ..computation.monad }
 
 @[simp] theorem ret_orelse (a : α) (c2 : computation α) :
   (return a <|> c2) = return a :=

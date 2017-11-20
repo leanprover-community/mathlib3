@@ -486,12 +486,14 @@ by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 by simpa using rat.nonneg_add hab hbc
 
-instance : linear_order ℚ :=
+instance : decidable_linear_order ℚ :=
 { le              := rat.le,
   le_refl         := rat.le_refl,
   le_trans        := @rat.le_trans,
   le_antisymm     := @rat.le_antisymm,
-  le_total        := rat.le_total }
+  le_total        := rat.le_total,
+  decidable_eq    := by apply_instance,
+  decidable_le    := assume a b, rat.decidable_nonneg (b - a) }
 
 theorem nonneg_iff_zero_le {a} : rat.nonneg a ↔ 0 ≤ a :=
 show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
@@ -510,15 +512,7 @@ protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a
 by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
 instance : discrete_linear_ordered_field ℚ :=
-{ rat.field_rat with
-  le              := (≤),
-  lt              := (<),
-  le_refl         := le_refl,
-  le_trans        := @rat.le_trans,
-  le_antisymm     := assume a b, le_antisymm,
-  le_total        := le_total,
-  lt_iff_le_not_le := @lt_iff_le_not_le _ _,
-  zero_lt_one     := dec_trivial,
+{ zero_lt_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
   add_lt_add_left := assume a b ab c, lt_of_not_ge $ λ ba,
     not_le_of_lt ab $ rat.add_le_add_left.1 ba,
@@ -526,9 +520,7 @@ instance : discrete_linear_ordered_field ℚ :=
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
-  decidable_eq    := by apply_instance,
-  decidable_le    := assume a b, rat.decidable_nonneg (b - a),
-  decidable_lt    := λ a b, decidable_of_iff' _ (lt_iff_not_ge a b) }
+  ..rat.field_rat, ..rat.decidable_linear_order }
 
 theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom' _ _ _ _
 

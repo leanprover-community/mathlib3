@@ -223,8 +223,7 @@ by simp [monotone, principal_mono]; exact assume a b h, h
 by simp [eq_iff_le_and_le]; refl
 
 instance complete_lattice_filter : complete_lattice (filter α) :=
-{ filter.partial_order_filter with
-  sup           := filter.sup,
+{ sup           := filter.sup,
   le_sup_left   := assume a b, inter_subset_left _ _,
   le_sup_right  := assume a b, inter_subset_right _ _,
   sup_le        := assume a b c h₁ h₂, subset_inter h₁ h₂,
@@ -242,7 +241,8 @@ instance complete_lattice_filter : complete_lattice (filter α) :=
   Sup_le        := assume s f, filter.Sup_le,
   Inf           := λs, Sup {x | ∀y∈s, x ≤ y},
   le_Inf        := assume s a h, filter.le_Sup h,
-  Inf_le        := assume s a ha, filter.Sup_le $ assume b h, h _ ha }
+  Inf_le        := assume s a ha, filter.Sup_le $ assume b h, h _ ha,
+  ..filter.partial_order_filter }
 
 @[simp] lemma map_principal {s : set α} {f : α → β} :
   map f (principal s) = principal (set.image f s) :=
@@ -268,9 +268,9 @@ instance monad_filter : monad filter :=
 @[simp] lemma bind_def {α β} (f : filter α) (m : α → filter β) : f >>= m = join (map m f) := rfl
 
 instance : alternative filter :=
-{ filter.monad_filter with
-  failure := λα, ⊥,
-  orelse  := λα x y, x ⊔ y }
+{ failure := λα, ⊥,
+  orelse  := λα x y, x ⊔ y,
+  ..filter.monad_filter }
 
 /- lattice equations -/
 
@@ -371,11 +371,8 @@ filter_eq $ set.ext $ assume x, by simp [supr_sets_eq, join]
 filter_eq $ set.ext $ assume x, by simp [supr_sets_eq, join]
 
 instance : bounded_distrib_lattice (filter α) :=
-{ filter.complete_lattice_filter with
-  le_sup_inf := assume x y z s h,
-  begin
-    cases h with h₁ h₂, revert h₂,
-    simp,
+{ le_sup_inf := assume x y z s ⟨h₁, h₂⟩, begin
+    revert h₂, simp,
     exact assume t₁ ht₁ t₂ ht₂ hs, ⟨s ∪ t₁,
       x.upwards_sets h₁ $ subset_union_left _ _,
       y.upwards_sets ht₁ $ subset_union_right _ _,
@@ -383,7 +380,7 @@ instance : bounded_distrib_lattice (filter α) :=
       x.upwards_sets h₁ $ subset_union_left _ _,
       z.upwards_sets ht₂ $ subset_union_right _ _,
       subset.trans (@le_sup_inf (set α) _ _ _ _) (union_subset (subset.refl _) hs)⟩
-  end }
+  end, ..filter.complete_lattice_filter }
 
 private lemma infi_finite_distrib {s : set (filter α)} {f : filter α} (h : finite s) :
   (⨅ a ∈ s, f ⊔ a) = f ⊔ (Inf s) :=

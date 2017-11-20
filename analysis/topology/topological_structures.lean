@@ -457,8 +457,7 @@ instance orderable_topology.to_ordered_topology : ordered_topology α :=
 instance orderable_topology.t2_space : t2_space α := by apply_instance
 
 instance orderable_topology.regular_space : regular_space α :=
-{ orderable_topology.t2_space with
-  regular := assume s a hs ha,
+{ regular := assume s a hs ha,
     have -s ∈ (nhds a).sets, from mem_nhds_sets hs ha,
     let ⟨h₁, h₂⟩ := mem_nhds_orderable_dest this in
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ nhds a ⊓ principal t = ⊥,
@@ -499,7 +498,8 @@ instance orderable_topology.regular_space : regular_space α :=
       assume x hx,
       have x ≠ a, from assume eq, ha $ eq ▸ hx,
       (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
-      by rw [←sup_principal, inf_sup_left, ht₁a, ht₂a, bot_sup_eq]⟩ }
+      by rw [←sup_principal, inf_sup_left, ht₁a, ht₂a, bot_sup_eq]⟩,
+  ..orderable_topology.t2_space }
 
 end linear_order
 

@@ -70,26 +70,25 @@ end decidable_linear_order
 /- order instances -/
 
 def preorder_dual (o : preorder α) : preorder α :=
-{ le := λx y, y ≤ x,
-  le_refl := le_refl,
+{ le       := λx y, y ≤ x,
+  le_refl  := le_refl,
   le_trans := assume a b c h₁ h₂, le_trans h₂ h₁ }
 
 instance preorder_fun {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] : preorder (Πi, α i) :=
-{ le := λx y, ∀i, x i ≤ y i,
-  le_refl := assume a i, le_refl (a i),
+{ le       := λx y, ∀i, x i ≤ y i,
+  le_refl  := assume a i, le_refl (a i),
   le_trans := assume a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
 
 -- instance preorder_fun [preorder β] : preorder (α → β) := by apply_instance
 
 instance partial_order_fun {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] : partial_order (Πi, α i) :=
-{ preorder_fun with
-  le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b))
-}
+{ le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),
+  ..preorder_fun }
 
 def partial_order_dual (wo : partial_order α) : partial_order α :=
-{ le := λx y, y ≤ x,
-  le_refl := le_refl,
-  le_trans := assume a b c h₁ h₂, le_trans h₂ h₁,
+{ le          := λx y, y ≤ x,
+  le_refl     := le_refl,
+  le_trans    := assume a b c h₁ h₂, le_trans h₂ h₁,
   le_antisymm := assume a b h₁ h₂, le_antisymm h₂ h₁ }
 
 theorem le_dual_eq_le {α : Type} (wo : partial_order α) (a b : α) :

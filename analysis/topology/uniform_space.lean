@@ -67,8 +67,7 @@ structure uniform_space.core (α : Type u) :=
 
 def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.core α) :
   topological_space α :=
-{ topological_space .
-  is_open       := λs, ∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ u.uniformity.sets,
+{ is_open        := λs, ∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ u.uniformity.sets,
   is_open_univ   := by simp; intro; exact univ_mem_sets,
   is_open_inter  := assume s t hs ht x ⟨xs, xt⟩,
     u.uniformity.upwards_sets (inter_mem_sets (hs x xs) (ht x xt)) $ assume p ⟨ps, pt⟩ h, ⟨ps h, pt h⟩,
@@ -412,8 +411,7 @@ by simp [uniform_continuous, hf.right.symm]; exact tendsto_vmap
 
 lemma dense_embedding_of_uniform_embedding [uniform_space β] {f : α → β}
   (h : uniform_embedding f) (hd : ∀x, x ∈ closure (f '' univ)) : dense_embedding f :=
-{ dense_embedding .
-  dense   := hd,
+{ dense   := hd,
   inj     := h.left,
   induced :=
   begin
@@ -605,8 +603,7 @@ have u ∩ v = ∅, from
 ⟨u, v, hu₂, hv₂, hu₃, hv₃, this⟩⟩
 
 instance separated_regular [separated α] : regular_space α :=
-{ separated_t2 with
-  regular := λs a hs ha,
+{ regular := λs a hs ha,
     have -s ∈ (nhds a).sets,
       from mem_nhds_sets hs ha,
     have {p : α × α | p.1 = a → p.2 ∈ -s} ∈ uniformity.sets,
@@ -629,7 +626,8 @@ instance separated_regular [separated α] : regular_space α :=
     have nhds a ⊓ principal (-closure e) = ⊥,
       from (@inf_eq_bot_iff_le_compl _ _ _ (principal (- closure e)) (principal (closure e))
         (by simp [principal_univ]) (by simp)).mpr (by simp [this]),
-    ⟨- closure e, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩ }
+    ⟨- closure e, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
+  ..separated_t2 }
 
 /- totally bounded -/
 def totally_bounded (s : set α) : Prop :=
@@ -830,14 +828,13 @@ section separation_space
 local attribute [instance] separation_setoid
 
 instance {α : Type u} [u : uniform_space α] : uniform_space (quotient (separation_setoid α)) :=
-{ uniform_space .
-  to_topological_space := u.to_topological_space.coinduced (λx, ⟦x⟧),
+{ to_topological_space := u.to_topological_space.coinduced (λx, ⟦x⟧),
   uniformity := map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) uniformity,
-  refl  := assume s hs ⟨a, b⟩ (h : a = b),
+  refl := assume s hs ⟨a, b⟩ (h : a = b),
     have ∀a:α, (a, a) ∈ preimage (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) s,
       from assume a, refl_mem_uniformity hs,
     h ▸ quotient.induction_on a this,
-  symm  := tendsto_map' $
+  symm := tendsto_map' $
     by simp [prod.swap, (∘)]; exact tendsto_compose tendsto_swap_uniformity tendsto_map,
   comp := calc (map (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) uniformity).lift' (λs, comp_rel s s) =
           uniformity.lift' ((λs, comp_rel s s) ∘ image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧))) :
@@ -1161,7 +1158,7 @@ instance : partial_order (uniform_space α) :=
   le_trans    := assume a b c h₁ h₂, @le_trans _ _ c.uniformity b.uniformity a.uniformity h₂ h₁ }
 
 instance : has_Sup (uniform_space α) :=
-⟨assume s, uniform_space.of_core { uniform_space.core .
+⟨assume s, uniform_space.of_core {
   uniformity := (⨅u∈s, @uniformity α u),
   refl       := le_infi $ assume u, le_infi $ assume hu, u.refl,
   symm       := le_infi $ assume u, le_infi $ assume hu,
@@ -1184,7 +1181,7 @@ instance : has_bot (uniform_space α) :=
 
 instance : has_top (uniform_space α) :=
 ⟨{ to_topological_space := ⊤,
-  uniformity := principal id_rel,
+  uniformity  := principal id_rel,
   refl        := le_refl _,
   symm        := by simp [tendsto]; apply subset.refl,
   comp        :=
@@ -1198,8 +1195,7 @@ instance : has_top (uniform_space α) :=
 }⟩
 
 instance : complete_lattice (uniform_space α) :=
-{ uniform_space.partial_order with
-  sup           := λa b, Sup {a, b},
+{ sup           := λa b, Sup {a, b},
   le_sup_left   := assume a b, le_Sup $ by simp,
   le_sup_right  := assume a b, le_Sup $ by simp,
   sup_le        := assume a b c h₁ h₂, Sup_le $ assume t',
@@ -1217,7 +1213,8 @@ instance : complete_lattice (uniform_space α) :=
   Sup_le        := assume s u, Sup_le,
   Inf           := λtt, Sup {t | ∀t'∈tt, t ≤ t'},
   le_Inf        := assume s a hs, le_Sup hs,
-  Inf_le        := assume s a ha, Sup_le $ assume u hs, hs _ ha }
+  Inf_le        := assume s a ha, Sup_le $ assume u hs, hs _ ha,
+  ..uniform_space.partial_order }
 
 lemma supr_uniformity {ι : Sort*} {u : ι → uniform_space α} :
   (supr u).uniformity = (⨅i, (u i).uniformity) :=

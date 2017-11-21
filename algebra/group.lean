@@ -13,18 +13,27 @@ section pending_1857
 section transport
 open tactic
 
+-- TODO(Mario): hack for #1871
+meta def to_additive_get_param
+  (to_additive_attr : user_attribute (name_map name) name) (src : name) : tactic name :=
+(do e ← get_decl (src <.> "_to_additive"),
+    eval_expr name e.value) <|>
+do tgt ← to_additive_attr.get_param src,
+   add_decl (mk_definition (src <.> "_to_additive") [] `(name) (reflect tgt)),
+   pure tgt
+
 @[user_attribute]
 meta def to_additive_attr : user_attribute (name_map name) name :=
 { name      := `to_additive,
   descr     := "Transport multiplicative to additive",
   cache_cfg := ⟨λ ns, ns.mfoldl (λ dict n, do
-    val ← to_additive_attr.get_param n,
+    val ← to_additive_get_param to_additive_attr n,
     pure $ dict.insert n val) mk_name_map, []⟩,
   parser    := lean.parser.ident,
   after_set := some $ λ src _ _, do
     env ← get_env,
     dict ← to_additive_attr.get_cache,
-    tgt ← to_additive_attr.get_param src,
+    tgt ← to_additive_get_param to_additive_attr src,
     (get_decl tgt >> skip) <|>
       transport_with_dict dict src tgt }
 

@@ -1156,6 +1156,10 @@ by induction s with l₁ l₂ a s IH l₁ l₂ a s IH;
    simp [filter_map]; cases f a with b;
    simp [filter_map, IH, sublist.cons, sublist.cons2]
 
+theorem map_sublist_map (f : α → β) {l₁ l₂ : list α}
+  (s : l₁ <+ l₂) : map f l₁ <+ map f l₂ :=
+by rw ← filter_map_eq_map; exact filter_map_sublist_filter_map _ s
+
 /- filter -/
 
 section filter
@@ -2568,6 +2572,9 @@ mt mem_range.1 $ lt_irrefl _
 
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
 by simp [range_eq_range', nth_range' _ h]
+
+theorem range_concat (n : ℕ) : range (n + 1) = range n ++ [n] :=
+by simp [range_eq_range', range'_concat]
 
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl

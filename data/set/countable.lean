@@ -123,7 +123,7 @@ h.rec_on countable_empty $ assume a s _ _, countable_insert
 lemma countable_set_of_finite_subset {s : set α} (h : countable s) :
   countable {t | finite t ∧ t ⊆ s } :=
 have {t | finite t ∧ t ⊆ s } ⊆
-  (λt, {a:α | ∃h:a∈s, subtype.mk a h ∈ t} : finset {a:α // a ∈ s} → set α) '' univ,
+  (λt : finset {a:α // a ∈ s}, {a:α | ∃h:a∈s, subtype.mk a h ∈ t}) '' univ,
   from assume t ht,
   begin
     cases ht with ht₁ ht₂,

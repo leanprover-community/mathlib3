@@ -596,7 +596,7 @@ end
 end pi
 
 -- TODO: use embeddings from above!
-structure dense_embedding [topological_space α] [topological_space β] (e : α → β) :=
+structure dense_embedding [topological_space α] [topological_space β] (e : α → β) : Prop :=
 (dense   : ∀x, x ∈ closure (e '' univ))
 (inj     : ∀x y, e x = e y → x = y)
 (induced : ∀a, vmap e (nhds (e a)) = nhds a)

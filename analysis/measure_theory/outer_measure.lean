@@ -270,7 +270,7 @@ le_antisymm
       by rw [←inter_distrib_Union_right]; from inter_subset_inter hf (subset.refl s),
     have h₂ : t \ s ⊆ ⋃i, f i \ s,
       from subset.trans (sdiff_subset_sdiff hf (subset.refl s)) $
-        by simp [subset_def] {contextual := tt},
+        by simp [set.subset_def] {contextual := tt},
     calc om (t ∩ s) + om (t \ s) ≤ (∑i, m (f i ∩ s)) + (∑i, m (f i \ s)) :
         add_le_add'
           (infi_le_of_le (λi, f i ∩ s) $ infi_le_of_le h₁ $ le_refl _)

@@ -50,7 +50,7 @@ variables [topological_space α] [add_comm_monoid α]
 
 lemma tendsto_sum [topological_add_monoid α] {f : γ → β → α} {x : filter β} {a : γ → α} {s : finset γ} :
   (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.sum (λc, f c b)) x (nhds (s.sum a)) :=
-s.induction_on (by simp; exact tendsto_const_nhds) $ assume b s,
+finset.induction_on s (by simp; exact tendsto_const_nhds) $ assume b s,
   by simp [or_imp_distrib, forall_and_distrib, tendsto_add] {contextual := tt}
 
 end

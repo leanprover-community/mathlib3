@@ -28,11 +28,6 @@ variables [comm_monoid β]
 @[simp, to_additive finset.sum_empty]
 lemma prod_empty {α : Type u} {f : α → β} : (∅:finset α).prod f = 1 := rfl
 
-@[simp, to_additive finset.sum_to_finset_of_nodup]
-lemma prod_to_finset_of_nodup {l : list α} (h : list.nodup l) :
-  (to_finset_of_nodup l h).prod f = (l.map f).prod :=
-fold_to_finset_of_nodup h
-
 @[simp, to_additive finset.sum_insert]
 lemma prod_insert : a ∉ s → (insert a s).prod f = f a * s.prod f := fold_insert
 
@@ -42,7 +37,7 @@ eq.trans fold_singleton (by simp)
 
 @[simp, to_additive finset.sum_const_zero]
 lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
-s.induction_on (by simp) (by simp {contextual:=tt})
+finset.induction_on s (by simp) (by simp {contextual:=tt})
 
 @[simp, to_additive finset.sum_image]
 lemma prod_image [decidable_eq γ] {s : finset γ} {g : γ → α} :
@@ -63,31 +58,32 @@ by rw [←prod_union_inter, h]; simp
 
 @[to_additive finset.sum_sdiff]
 lemma prod_sdiff (h : s₁ ⊆ s₂) : (s₂ \ s₁).prod f * s₁.prod f = s₂.prod f :=
-by rw [←prod_union sdiff_inter_self, sdiff_union_of_subset h]
+by rw [←prod_union (sdiff_inter_self _ _), sdiff_union_of_subset h]
 
 @[to_additive finset.sum_bind]
 lemma prod_bind [decidable_eq γ] {s : finset γ} {t : γ → finset α} :
   (∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
-s.induction_on (by simp) $
+finset.induction_on s (by simp) $
   assume x s hxs ih hd,
   have hd' : ∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅,
     from assume _ hx _ hy, hd _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy),
   have t x ∩ finset.bind s t = ∅,
-    from ext $ assume a,
-      by simp [mem_bind_iff];
+    from ext.2 $ assume a,
+      by simp [mem_bind];
       from assume h₁ y hys hy₂,
       have ha : a ∈ t x ∩ t y, by simp [*],
       have t x ∩ t y = ∅,
-        from hd _ mem_insert_self _ (mem_insert_of_mem hys) $ assume h, hxs $ h.symm ▸ hys,
+        from hd _ (mem_insert_self _ _) _ (mem_insert_of_mem hys) $ assume h, hxs $ h.symm ▸ hys,
       by rwa [this] at ha,
   by simp [hxs, prod_union this, ih hd'] {contextual := tt}
 
 @[to_additive finset.sum_product]
 lemma prod_product [decidable_eq γ] {s : finset γ} {t : finset α} {f : γ×α → β} :
   (s.product t).prod f = (s.prod $ λx, t.prod $ λy, f (x, y)) :=
-calc (s.product t).prod f = (s.prod $ λx, (t.image $ λy, (x, y)).prod f) :
-    prod_bind $ assume x hx y hy h, ext $ by simp [mem_image_iff]; cc
-  ... = _ : begin congr, apply funext, intro x, apply prod_image, simp {contextual := tt} end
+begin
+  rw [product_eq_bind, prod_bind (λ x hx y hy h, ext.2 _)], {simp [prod_image]},
+  simp [mem_image], intros, intro, refine h _, cc
+end
 
 @[to_additive finset.sum_sigma]
 lemma prod_sigma {σ : α → Type*} [∀a, decidable_eq (σ a)]
@@ -95,8 +91,8 @@ lemma prod_sigma {σ : α → Type*} [∀a, decidable_eq (σ a)]
   (s.sigma t).prod f = (s.prod $ λa, (t a).prod $ λs, f ⟨a, s⟩) :=
 have ∀a₁ a₂:α, ∀s₁ : finset (σ a₁), ∀s₂ : finset (σ a₂), a₁ ≠ a₂ →
     s₁.image (sigma.mk a₁) ∩ s₂.image (sigma.mk a₂) = ∅,
-  from assume b₁ b₂ s₁ s₂ h, ext $ assume ⟨b₃, c₃⟩,
-    by simp [mem_image_iff, sigma.mk_eq_mk_iff, heq_iff_eq] {contextual := tt}; cc,
+  from assume b₁ b₂ s₁ s₂ h, ext.2 $ assume ⟨b₃, c₃⟩,
+    by simp [mem_image, sigma.mk_eq_mk_iff, heq_iff_eq] {contextual := tt}; cc,
 calc (s.bind (λa, (t a).image (λs, sigma.mk a s))).prod f =
       s.prod (λa, ((t a).image (λs, sigma.mk a s)).prod f) :
     prod_bind $ assume a₁ ha a₂ ha₂ h, this a₁ a₂ (t a₁) (t a₂) h
@@ -110,7 +106,7 @@ eq.trans (by simp; refl) fold_op_distrib
 @[to_additive finset.sum_comm]
 lemma prod_comm [decidable_eq γ] {s : finset γ} {t : finset α} {f : γ → α → β} :
   (s.prod $ λx, t.prod $ f x) = (t.prod $ λy, s.prod $ λx, f x y) :=
-s.induction_on (by simp) (by simp [prod_mul_distrib] {contextual := tt})
+finset.induction_on s (by simp) (by simp [prod_mul_distrib] {contextual := tt})
 
 @[to_additive finset.sum_hom]
 lemma prod_hom [comm_monoid γ] (g : β → γ)
@@ -125,14 +121,14 @@ by rw [←prod_sdiff h]; simp [this]
 
 @[to_additive finset.exists_ne_zero_of_sum_ne_zero]
 lemma exists_ne_one_of_prod_ne_one [decidable_eq β] : s.prod f ≠ 1 → ∃a∈s, f a ≠ 1 :=
-s.induction_on (by simp) $ assume a s has ih h,
+finset.induction_on s (by simp) $ assume a s has ih h,
   decidable.by_cases
     (assume ha : f a = 1,
       have s.prod f ≠ 1, by simpa [ha, has] using h,
       let ⟨a, ha, hfa⟩ := ih this in
       ⟨a, mem_insert_of_mem ha, hfa⟩)
     (assume hna : f a ≠ 1,
-      ⟨a, mem_insert_self, hna⟩)
+      ⟨a, mem_insert_self _ _, hna⟩)
 
 end comm_monoid
 
@@ -157,9 +153,9 @@ section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid β]
 
 lemma sum_le_sum : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
-s.induction_on (by simp) $ assume a s ha ih h,
+finset.induction_on s (by simp) $ assume a s ha ih h,
   have f a + s.sum f ≤ g a + s.sum g,
-    from add_le_add (h _ mem_insert_self) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
+    from add_le_add (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simp [*]
 
 lemma zero_le_sum (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by simp) (sum_le_sum h)
@@ -182,7 +178,7 @@ section comm_semiring
 variables [comm_semiring β]
 
 lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : s.prod f = 0 :=
-calc s.prod f = (insert a (erase a s)).prod f : by simp [ha, insert_erase]
+calc s.prod f = (insert a (erase s a)).prod f : by simp [ha, insert_erase]
   ... = 0 : by simp [h]
 end comm_semiring
 
@@ -190,7 +186,7 @@ section integral_domain /- add integral_semi_domain to support nat and ennreal -
 variables [integral_domain β]
 
 lemma prod_eq_zero_iff : s.prod f = 0 ↔ (∃a∈s, f a = 0) :=
-s.induction_on (by simp)
+finset.induction_on s (by simp)
 begin
   intros a s,
   rw [bex_def, bex_def, exists_mem_insert],
@@ -203,9 +199,9 @@ section ordered_comm_monoid
 variables [ordered_comm_monoid β] [∀a b : β, decidable (a ≤ b)]
 
 lemma sum_le_sum' : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
-s.induction_on (by simp; refl) $ assume a s ha ih h,
+finset.induction_on s (by simp; refl) $ assume a s ha ih h,
   have f a + s.sum f ≤ g a + s.sum g,
-    from add_le_add' (h _ mem_insert_self) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
+    from add_le_add' (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simp [*]
 
 lemma zero_le_sum' (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by simp) (sum_le_sum' h)
@@ -215,11 +211,11 @@ lemma sum_le_sum_of_subset_of_nonneg
   (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → 0 ≤ f x) : s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f ≤ (s₂ \ s₁).sum f + s₁.sum f :
     le_add_of_nonneg_left' $ zero_le_sum' $ by simp [hf] {contextual := tt}
-  ... = (s₂ \ s₁ ∪ s₁).sum f : (sum_union sdiff_inter_self).symm
+  ... = (s₂ \ s₁ ∪ s₁).sum f : (sum_union (sdiff_inter_self _ _)).symm
   ... = s₂.sum f : by rw [sdiff_union_of_subset h]
 
 lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → (s.sum f = 0 ↔ ∀x∈s, f x = 0) :=
-s.induction_on (by simp) $
+finset.induction_on s (by simp) $
   by simp [or_imp_distrib, forall_and_distrib, zero_le_sum' ,
            add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg'] {contextual := tt}
 
@@ -233,7 +229,7 @@ sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le
 
 lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) : s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
-    by rw [←sum_union filter_inter_filter_neg_eq, filter_union_filter_neg_eq]
+    by rw [←sum_union, filter_union_filter_neg_eq]; apply filter_inter_filter_neg_eq
   ... ≤ s₂.sum f : add_le_of_nonpos_of_le'
       (sum_le_zero' $ by simp {contextual:=tt})
       (sum_le_sum_of_subset $ by simp [subset_iff, *] {contextual:=tt})
@@ -244,7 +240,7 @@ section discrete_linear_ordered_field
 variables [discrete_linear_ordered_field α] [decidable_eq β]
 
 lemma abs_sum_le_sum_abs {f : β → α} {s : finset β} : abs (s.sum f) ≤ s.sum (λa, abs (f a)) :=
-s.induction_on (by simp [abs_zero]) $
+finset.induction_on s (by simp [abs_zero]) $
   assume a s has ih,
   calc abs (sum (insert a s) f) ≤ abs (f a) + abs (sum s f) :
       by simp [has]; exact abs_add_le_abs_add_abs _ _

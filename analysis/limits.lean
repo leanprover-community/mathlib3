@@ -35,7 +35,7 @@ let ⟨n, hn⟩ := this in
 have ∀{s}, range n ⊆ s → abs ((s \ range n).sum f) < ε / 2,
   from assume s hs,
   let ⟨n', hn'⟩ := @exists_nat_subset_range s in
-  have range n ⊆ range n', from subset.trans hs hn',
+  have range n ⊆ range n', from finset.subset.trans hs hn',
   have f'_nn : 0 ≤ f' (range n' \ range n), from zero_le_sum $ assume _ _, abs_nonneg _,
   calc abs ((s \ range n).sum f) ≤ f' (s \ range n) : abs_sum_le_sum_abs
     ... ≤ f' (range n' \ range n) : sum_le_sum_of_subset_of_nonneg

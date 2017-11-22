@@ -114,7 +114,7 @@ protected theorem sub_lt_left_iff_lt_add (H : n ≤ k) : k - n < m ↔ k < n + m
 protected theorem le_sub_left_iff_add_le (H : m ≤ k) : n ≤ k - m ↔ m + n ≤ k :=
 le_iff_le_iff_lt_iff_lt.2 (nat.sub_lt_left_iff_lt_add H)
 
-@[simp] protected theorem le_sub_right_iff_add_le (H : n ≤ k) : m ≤ k - n ↔ m + n ≤ k :=
+protected theorem le_sub_right_iff_add_le (H : n ≤ k) : m ≤ k - n ↔ m + n ≤ k :=
 by rw [nat.le_sub_left_iff_add_le H, add_comm]
 
 protected theorem lt_sub_left_iff_add_lt (H : m ≤ k) : n < k - m ↔ m + n < k :=
@@ -122,16 +122,16 @@ protected theorem lt_sub_left_iff_add_lt (H : m ≤ k) : n < k - m ↔ m + n < k
          rwa [nat.add_sub_cancel' H] at this,
  nat.lt_sub_left_of_add_lt⟩
 
-@[simp] protected theorem lt_sub_right_iff_add_lt (H : n ≤ k) : m < k - n ↔ m + n < k :=
+protected theorem lt_sub_right_iff_add_lt (H : n ≤ k) : m < k - n ↔ m + n < k :=
 by rw [nat.lt_sub_left_iff_add_lt H, add_comm]
 
 theorem sub_le_left_iff_le_add (H : n ≤ m) : m - n ≤ k ↔ m ≤ n + k :=
 le_iff_le_iff_lt_iff_lt.2 (nat.lt_sub_left_iff_add_lt H)
 
-@[simp] theorem sub_le_right_iff_le_add (H : k ≤ m) : m - k ≤ n ↔ m ≤ n + k :=
+theorem sub_le_right_iff_le_add (H : k ≤ m) : m - k ≤ n ↔ m ≤ n + k :=
 by rw [nat.sub_le_left_iff_le_add H, add_comm]
 
-@[simp] protected theorem sub_lt_right_iff_lt_add (H : k ≤ m) : m - k < n ↔ m < n + k :=
+protected theorem sub_lt_right_iff_lt_add (H : k ≤ m) : m - k < n ↔ m < n + k :=
 by rw [nat.sub_lt_left_iff_lt_add H, add_comm]
 
 protected theorem sub_le_sub_left_iff (H : k ≤ m) : m - n ≤ m - k ↔ k ≤ n :=

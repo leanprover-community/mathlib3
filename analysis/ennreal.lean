@@ -157,7 +157,7 @@ instance : add_comm_monoid ennreal :=
 
 @[simp] lemma sum_of_real {α : Type*} {s : finset α} {f : α → ℝ} :
   (∀a∈s, 0 ≤ f a) → s.sum (λa, of_real (f a)) = of_real (s.sum f) :=
-s.induction_on (by simp) $ assume a s has ih h,
+finset.induction_on s (by simp) $ assume a s has ih h,
   have 0 ≤ s.sum f, from finset.zero_le_sum $ assume a ha, h a $ finset.mem_insert_of_mem ha,
   by simp [has, *] {contextual := tt}
 
@@ -795,11 +795,11 @@ calc (⨅a, f a + g a) ≤ (⨅a', ⨅a, f a + g a') :
 lemma infi_sum {α : Type*} {ι : Sort*} {f : ι → α → ennreal} {s : finset α} [inhabited ι]
   (h : ∀(t : finset α) (i j : ι), ∃k, ∀a∈t, f k a ≤ f i a ∧ f k a ≤ f j a) :
   (⨅i, s.sum (f i)) = s.sum (λa, ⨅i, f i a) :=
-s.induction_on (by simp) $ assume a s ha ih,
+finset.induction_on s (by simp) $ assume a s ha ih,
   have ∀ (i j : ι), ∃ (k : ι), f k a + s.sum (f k) ≤ f i a + s.sum (f j),
     from assume i j,
     let ⟨k, hk⟩ := h (insert a s) i j in
-    ⟨k, add_le_add' (hk a finset.mem_insert_self).left $ finset.sum_le_sum' $
+    ⟨k, add_le_add' (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum' $
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
 
@@ -1002,8 +1002,7 @@ protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
 calc _ = (⨆s:finset ℕ, s.sum f) : ennreal.tsum_eq_supr_sum
   ... = (⨆i:ℕ, (finset.range i).sum f) : le_antisymm
     (supr_le_supr2 $ assume s,
-      have ∃n, s ⊆ finset.range n, from finset.exists_nat_subset_range,
-      let ⟨n, hn⟩ := this in
+      let ⟨n, hn⟩ := finset.exists_nat_subset_range s in
       ⟨n, finset.sum_le_sum_of_subset hn⟩)
     (supr_le_supr2 $ assume i, ⟨finset.range i, le_refl _⟩)
 

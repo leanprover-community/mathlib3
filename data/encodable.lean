@@ -149,30 +149,19 @@ eq_of_sorted_of_perm enle.trans enle.antisymm
   (sorted_insertion_sort _ enle.total enle.trans _)
   (sorted_insertion_sort _ enle.total enle.trans _)
 
-private def encode_finset (s : finset α) : nat :=
-quot.lift_on s
-  (λ l, encode (ensort l.val))
-  (λ l₁ l₂ p,
-    have l₁.val ~ l₂.val,               from p,
-    have ensort l₁.val = ensort l₂.val, from sorted_eq_of_perm this,
-    by dsimp; rw this)
+private def encode_multiset (s : multiset α) : nat :=
+encode $ quot.lift_on s
+  (λ l, ensort l)
+  (λ l₁ l₂ p, sorted_eq_of_perm p)
 
-private def decode_finset (n : nat) : option (finset α) :=
-match decode (list α) n with
-| some l₁ := some (finset.to_finset l₁)
-| none    := none
-end
+private def decode_multiset (n : nat) : option (multiset α) :=
+coe <$> decode (list α) n
 
-instance encodable_finset : encodable (finset α) :=
-⟨encode_finset, decode_finset, λ s, quot.induction_on s $ λ⟨l, nd⟩, begin
-  suffices : finset.to_finset (ensort l) = ⟦⟨l, nd⟩⟧,
-  { simp [encode_finset], simpa [decode_finset, encodek] },
-  apply quot.sound,
-  show erase_dup (ensort l) ~ l,
-  rw erase_dup_eq_self.2,
-  { apply perm_insertion_sort },
-  { exact (perm_nodup (perm_insertion_sort _ _)).2 nd }
-end⟩
+instance encodable_multiset : encodable (multiset α) :=
+⟨encode_multiset, decode_multiset, λ s, quot.induction_on s $ λ l,
+show coe <$> decode (list α) (encode (ensort l)) = some ↑l,
+by rw [encodek, ← show (ensort l:multiset α) = l,
+       from quotient.sound (perm_insertion_sort _ _)]; refl⟩
 
 end finset
 
@@ -202,6 +191,16 @@ instance bool.encodable : encodable bool := encodable_of_equiv _ equiv.bool_equi
 
 instance int.encodable : encodable ℤ :=
 encodable_of_equiv _ equiv.int_equiv_nat
+
+instance encodable_finset [encodable α] : encodable (finset α) :=
+encodable_of_equiv {s : multiset α // s.nodup}
+  ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
+
+instance encodable_ulift [encodable α] : encodable (ulift α) :=
+encodable_of_equiv α ⟨ulift.down, ulift.up, ulift.up_down, ulift.down_up⟩
+
+instance encodable_plift [encodable α] : encodable (plift α) :=
+encodable_of_equiv α ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
 
 noncomputable def encodable_of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=

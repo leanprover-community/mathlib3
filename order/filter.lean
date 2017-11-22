@@ -418,8 +418,8 @@ calc (⨅ x, f ⊔ g x) = (⨅ x (h : ∃i, g i = x), f ⊔ x) : by simp; rw [in
 
 lemma mem_infi_sets_finset {s : finset α} {f : α → filter β} :
   ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⋂a∈s, p a) ⊆ t) :=
-show ∀t,  t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⨅a∈s, p a) ≤ t),
-  from s.induction_on (by simp; exact assume t, iff.refl _) $
+show ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⨅a∈s, p a) ≤ t),
+  from finset.induction_on s (by simp; exact assume t, iff.refl _) $
     by simp [infi_or, mem_inf_sets, infi_inf_eq] {contextual := tt};
     from assume a s has ih t, iff.intro
       (assume ⟨t₁, ht₁, t₂, ht, p, hp, ht₂⟩,

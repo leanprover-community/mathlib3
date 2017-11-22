@@ -28,6 +28,20 @@ h hx
 
 @[simp] lemma set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
+/- set coercion to a type -/
+
+instance : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
+
+@[simp] theorem set_coe_eq_subtype (s : set α) : coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
+
+@[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
+  (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=
+subtype.forall
+
+@[simp] theorem set_coe.exists {s : set α} {p : s → Prop} :
+  (∃ x : s, p x) ↔ (∃ x (h : x ∈ s), p ⟨x, h⟩) :=
+subtype.exists
+
 /- subset -/
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?

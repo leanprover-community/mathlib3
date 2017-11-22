@@ -203,7 +203,7 @@ begin
   { exact λ h, (cons_le_cons_iff a).1 (this h (mem_cons_self _ _)) },
   introv h, revert m, refine le_induction_on h _,
   introv s m₁ m₂,
-  rcases mem_split m₂ with ⟨r₁, r₂, e⟩, subst e,
+  rcases mem_split m₂ with ⟨r₁, r₂, rfl⟩,
   exact perm_middle.subperm_left.2 ((subperm_cons _).2 $ subperm_of_sublist $
     (sublist_or_mem_of_sublist s).resolve_right m₁)
 end

@@ -382,7 +382,7 @@ begin
       { exact let ⟨t, p', s'⟩ := IH m d h p in ⟨t, p', s'.cons _ _ _⟩ } },
     { have bm : b ∈ l₁' := (perm_subset p $ mem_cons_self _ _),
       have am : a ∈ r₂ := H₁.resolve_left (λ e, h $ e.symm ▸ bm),
-      rcases mem_split bm with ⟨t₁, t₂, e⟩, subst l₁',
+      rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
       have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,
       rcases IH am (nodup_of_sublist st d)
         (mt (λ x, subset_of_sublist st x) h)
@@ -519,7 +519,7 @@ suffices ∀ {l₁ l₂}, l₁ ~ l₂ → pairwise R l₁ → pairwise R l₂, f
   induction d with a l₁ h d IH generalizing l₂,
   { rw eq_nil_of_perm_nil p, constructor },
   { have : a ∈ l₂ := perm_subset p (mem_cons_self _ _),
-    rcases mem_split this with ⟨s₂, t₂, e⟩, subst e,
+    rcases mem_split this with ⟨s₂, t₂, rfl⟩,
     have p' := perm_cons_inv (p.trans perm_middle),
     refine (pairwise_middle S).2 (pairwise_cons.2 ⟨λ b m, _, IH _ p'⟩),
     exact h _ (perm_subset p'.symm m) }
@@ -590,7 +590,7 @@ begin
     { rcases h with e | ⟨l₁, l₂, l0, ye, _⟩,
       { subst l', exact ⟨[], y::ys, by simp⟩ },
       { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
-    { rcases h with ⟨_ | ⟨y', l₁⟩, l₂, l0, ye, _⟩; subst l',
+    { rcases h with ⟨_ | ⟨y', l₁⟩, l₂, l0, ye, rfl⟩,
       { simp [ye] },
       { simp at ye, injection ye, substs y' ys,
         exact or.inr ⟨l₁, l₂, l0, by simp⟩ } } }

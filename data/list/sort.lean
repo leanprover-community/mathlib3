@@ -37,7 +37,7 @@ begin
   induction s₁ with a l₁ h₁ s₁ IH generalizing l₂,
   { rw eq_nil_of_perm_nil p },
   { have : a ∈ l₂ := perm_subset p (mem_cons_self _ _),
-    rcases mem_split this with ⟨u₂, v₂, e⟩, subst e,
+    rcases mem_split this with ⟨u₂, v₂, rfl⟩,
     have p' := (perm_cons a).1 (p.trans perm_middle),
     have := IH p' (pairwise_of_sublist (by simp) s₂), subst l₁,
     change a::u₂ ++ v₂ = u₂ ++ ([a] ++ v₂), rw ← append_assoc, congr,

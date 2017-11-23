@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.rcases
+import data.dlist tactic.rcases tactic.generalize_proofs
 
 open lean
 open lean.parser
@@ -110,6 +110,9 @@ meta def continue (tac : itactic) : tactic unit :=
 
 meta def swap (n := 2) : tactic unit :=
 if n = 2 then tactic.swap else tactic.rotate n
+
+meta def generalize_proofs : parse ident_* → tactic unit :=
+tactic.generalize_proofs
 
 end interactive
 end tactic

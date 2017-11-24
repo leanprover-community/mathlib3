@@ -1024,6 +1024,71 @@ le_antisymm (le_inter
 ⟨inf_le_inf (filter_le _) (filter_le _),
   λ a h, of_mem_filter (mem_of_le (inter_le_left _ _) h)⟩
 
+/- filter_map -/
+
+def filter_map (f : α → option β) (s : multiset α) : multiset β :=
+quot.lift_on s (λ l, (filter_map f l : multiset β))
+  (λ l₁ l₂ h, quot.sound $perm_filter_map f h)
+
+@[simp] theorem coe_filter_map (f : α → option β) (l : list α) : filter_map f l = l.filter_map f := rfl
+
+@[simp] theorem filter_map_zero (f : α → option β) : filter_map f 0 = 0 := rfl
+
+@[simp] theorem filter_map_cons_none {f : α → option β} (a : α) (s : multiset α) (h : f a = none) :
+  filter_map f (a :: s) = filter_map f s :=
+quot.induction_on s $ λ l, @congr_arg _ _ _ _ coe $ filter_map_cons_none a l h
+
+@[simp] theorem filter_map_cons_some (f : α → option β)
+  (a : α) (s : multiset α) {b : β} (h : f a = some b) :
+  filter_map f (a :: s) = b :: filter_map f s :=
+quot.induction_on s $ λ l, @congr_arg _ _ _ _ coe $ filter_map_cons_some f a l h
+
+theorem filter_map_eq_map (f : α → β) : filter_map (some ∘ f) = map f :=
+funext $ λ s, quot.induction_on s $ λ l,
+@congr_arg _ _ _ _ coe $ congr_fun (filter_map_eq_map f) l
+
+theorem filter_map_eq_filter (p : α → Prop) [decidable_pred p] :
+  filter_map (option.guard p) = filter p :=
+funext $ λ s, quot.induction_on s $ λ l,
+@congr_arg _ _ _ _ coe $ congr_fun (filter_map_eq_filter p) l
+
+theorem filter_map_filter_map (f : α → option β) (g : β → option γ) (s : multiset α) :
+  filter_map g (filter_map f s) = filter_map (λ x, (f x).bind g) s :=
+quot.induction_on s $ λ l, congr_arg coe $ filter_map_filter_map f g l
+
+theorem map_filter_map (f : α → option β) (g : β → γ) (s : multiset α) :
+  map g (filter_map f s) = filter_map (λ x, (f x).map g) s :=
+quot.induction_on s $ λ l, congr_arg coe $ map_filter_map f g l
+
+theorem filter_map_map (f : α → β) (g : β → option γ) (s : multiset α) :
+  filter_map g (map f s) = filter_map (g ∘ f) s :=
+quot.induction_on s $ λ l, congr_arg coe $ filter_map_map f g l
+
+theorem filter_filter_map (f : α → option β) (p : β → Prop) [decidable_pred p] (s : multiset α) :
+  filter p (filter_map f s) = filter_map (λ x, (f x).filter p) s :=
+quot.induction_on s $ λ l, congr_arg coe $ filter_filter_map f p l
+
+theorem filter_map_filter (p : α → Prop) [decidable_pred p] (f : α → option β) (s : multiset α) :
+  filter_map f (filter p s) = filter_map (λ x, if p x then f x else none) s :=
+quot.induction_on s $ λ l, congr_arg coe $ filter_map_filter p f l
+
+@[simp] theorem filter_map_some (s : multiset α) : filter_map some s = s :=
+quot.induction_on s $ λ l, congr_arg coe $ filter_map_some l
+
+@[simp] theorem mem_filter_map (f : α → option β) (s : multiset α) {b : β} :
+  b ∈ filter_map f s ↔ ∃ a, a ∈ s ∧ f a = some b :=
+quot.induction_on s $ λ l, mem_filter_map f l
+
+theorem map_filter_map_of_inv (f : α → option β) (g : β → α)
+  (H : ∀ x : α, (f x).map g = some x) (s : multiset α) :
+  map g (filter_map f s) = s :=
+quot.induction_on s $ λ l, congr_arg coe $ map_filter_map_of_inv f g H l
+
+theorem filter_map_le_filter_map (f : α → option β) {s t : multiset α}
+  (h : s ≤ t) : filter_map f s ≤ filter_map f t :=
+le_induction_on h $ λ l₁ l₂ h,
+subperm_of_sublist $ filter_map_sublist_filter_map _ h
+
 /- countp -/
 
 def countp (p : α → Prop) [decidable_pred p] (s : multiset α) : ℕ :=
@@ -1308,6 +1373,11 @@ let l₂ (a) : list (σ a) := classical.some (quotient.exists_rep (t a)) in
 have t = λ a, l₂ a, from eq.symm $ funext $ λ a,
   classical.some_spec (quotient.exists_rep (t a)),
 by rw [this]; simpa using nodup_sigma
+
+theorem nodup_filter_map (f : α → option β) {s : multiset α}
+  (H : ∀ (a a' : α) (b : β), b ∈ f a → b ∈ f a' → a = a') :
+  nodup s → nodup (filter_map f s) :=
+quot.induction_on s $ λ l, nodup_filter_map H
 
 theorem nodup_range (n : ℕ) : nodup (range n) := nodup_range _
 
@@ -1602,7 +1672,7 @@ theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
   { simp [count_eq_zero.2 h, nat.zero_le] }
 end⟩
 
-section
+section sort
 variables (r : α → α → Prop) [decidable_rel r]
   [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r] 
 include tr an to
@@ -1622,6 +1692,6 @@ quot.induction_on s $ λ l, sorted_merge_sort r to.total tr.trans _
 @[simp] theorem sort_eq (s : multiset α) : ↑(sort r s) = s :=
 quot.induction_on s $ λ l, quot.sound $ perm_merge_sort _ _
 
-end
+end sort
 
 end multiset

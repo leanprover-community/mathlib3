@@ -61,10 +61,11 @@ lemma prod_sdiff (h : s₁ ⊆ s₂) : (s₂ \ s₁).prod f * s₁.prod f = s₂
 by rw [←prod_union (sdiff_inter_self _ _), sdiff_union_of_subset h]
 
 @[to_additive finset.sum_bind]
-lemma prod_bind [decidable_eq γ] {s : finset γ} {t : γ → finset α} :
+lemma prod_bind {s : finset γ} {t : γ → finset α} :
   (∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
-finset.induction_on s (by simp) $
-  assume x s hxs ih hd,
+by have := classical.decidable_eq γ; exact
+finset.induction_on s (by simp)
+  (assume x s hxs ih hd,
   have hd' : ∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅,
     from assume _ hx _ hy, hd _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy),
   have t x ∩ finset.bind s t = ∅,
@@ -75,12 +76,13 @@ finset.induction_on s (by simp) $
       have t x ∩ t y = ∅,
         from hd _ (mem_insert_self _ _) _ (mem_insert_of_mem hys) $ assume h, hxs $ h.symm ▸ hys,
       by rwa [this] at ha,
-  by simp [hxs, prod_union this, ih hd'] {contextual := tt}
+  by simp [hxs, prod_union this, ih hd'] {contextual := tt})
 
 @[to_additive finset.sum_product]
-lemma prod_product [decidable_eq γ] {s : finset γ} {t : finset α} {f : γ×α → β} :
+lemma prod_product {s : finset γ} {t : finset α} {f : γ×α → β} :
   (s.product t).prod f = (s.prod $ λx, t.prod $ λy, f (x, y)) :=
 begin
+  have := classical.decidable_eq γ,
   rw [product_eq_bind, prod_bind (λ x hx y hy h, ext.2 _)], {simp [prod_image]},
   simp [mem_image], intros, intro, refine h _, cc
 end
@@ -93,8 +95,9 @@ have ∀a₁ a₂:α, ∀s₁ : finset (σ a₁), ∀s₂ : finset (σ a₂), a�
     s₁.image (sigma.mk a₁) ∩ s₂.image (sigma.mk a₂) = ∅,
   from assume b₁ b₂ s₁ s₂ h, ext.2 $ assume ⟨b₃, c₃⟩,
     by simp [mem_image, sigma.mk_eq_mk_iff, heq_iff_eq] {contextual := tt}; cc,
-calc (s.bind (λa, (t a).image (λs, sigma.mk a s))).prod f =
-      s.prod (λa, ((t a).image (λs, sigma.mk a s)).prod f) :
+calc (s.sigma t).prod f =
+       (s.bind (λa, (t a).image (λs, sigma.mk a s))).prod f : by rw sigma_eq_bind
+  ... = s.prod (λa, ((t a).image (λs, sigma.mk a s)).prod f) :
     prod_bind $ assume a₁ ha a₂ ha₂ h, this a₁ a₂ (t a₁) (t a₂) h
   ... = (s.prod $ λa, (t a).prod $ λs, f ⟨a, s⟩) :
     by simp [prod_image, sigma.mk_eq_mk_iff, heq_iff_eq]

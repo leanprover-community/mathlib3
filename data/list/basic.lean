@@ -1012,6 +1012,42 @@ instance decidable_exists_mem {p : α → Prop} [decidable_pred p] (l : list α)
   decidable (∃ x ∈ l, p x) :=
 decidable_of_iff _ any_iff_exists_prop
 
+/- map for partial functions -/
+
+@[simp] def pmap {p : α → Prop} (f : Π a, p a → β) : Π l : list α, (∀ a ∈ l, p a) → list β
+| []     H := []
+| (a::l) H := f a (forall_mem_cons.1 H).1 :: pmap l (forall_mem_cons.1 H).2
+
+def attach (l : list α) : list {x // x ∈ l} := pmap subtype.mk l (λ a, id)
+
+theorem pmap_eq_map (p : α → Prop) (f : α → β) (l : list α) (H) :
+  @pmap _ _ p (λ a _, f a) l H = map f l :=
+by induction l; simp *
+
+theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
+  (l : list α) {H₁ H₂} (h : ∀ a h₁ h₂, f a h₁ = g a h₂) :
+  pmap f l H₁ = pmap g l H₂ :=
+by induction l; simp *; apply ih_1
+
+theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
+  (l H) : map g (pmap f l H) = pmap (λ a h, g (f a h)) l H :=
+by induction l; simp *
+
+theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
+  (l H) : pmap f l H = l.attach.map (λ x, f x.1 (H _ x.2)) :=
+by rw [attach, map_pmap]; exact pmap_congr l (λ a h₁ h₂, rfl)
+
+theorem attach_map_val (l : list α) : l.attach.map subtype.val = l :=
+by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _).trans (map_id l)
+
+@[simp] theorem mem_attach (l : list α) : ∀ x, x ∈ l.attach | ⟨a, h⟩ :=
+by have := mem_map.1 (by rw [attach_map_val]; exact h);
+   { rcases this with ⟨a, m, rfl⟩, cases a, exact m }
+
+@[simp] theorem mem_pmap {p : α → Prop} {f : Π a, p a → β}
+  {l H b} : b ∈ pmap f l H ↔ ∃ a (h : a ∈ l), f a (H a h) = b :=
+by simp [pmap_eq_map_attach]
+
 /- find -/
 
 section find
@@ -1775,7 +1811,7 @@ l₁.bind $ λ a, l₂.map $ prod.mk a
 
 @[simp] theorem product_nil : ∀ (l : list α), product l (@nil β) = []
 | []     := rfl
-| (a::l) := begin rw [product_cons, product_nil], reflexivity end
+| (a::l) := by rw [product_cons, product_nil]; refl
 
 @[simp] theorem mem_product {l₁ : list α} {l₂ : list β} {a : α} {b : β} :
   (a, b) ∈ product l₁ l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ :=
@@ -1784,6 +1820,32 @@ by simp [product]
 theorem length_product (l₁ : list α) (l₂ : list β) :
   length (product l₁ l₂) = length l₁ * length l₂ :=
 by induction l₁ with x l₁ IH; simp [*, right_distrib]
+
+
+/- sigma -/
+section
+variable {σ : α → Type*}
+
+def sigma (l₁ : list α) (l₂ : Π a, list (σ a)) : list (Σ a, σ a) :=
+l₁.bind $ λ a, (l₂ a).map $ sigma.mk a
+
+@[simp] theorem nil_sigma (l : Π a, list (σ a)) : (@nil α).sigma l = [] := rfl
+
+@[simp] theorem sigma_cons (a : α) (l₁ : list α) (l₂ : Π a, list (σ a))
+        : (a::l₁).sigma l₂ = map (sigma.mk a) (l₂ a) ++ l₁.sigma l₂ := rfl
+
+@[simp] theorem sigma_nil : ∀ (l : list α), l.sigma (λ a, @nil (σ a)) = []
+| []     := rfl
+| (a::l) := by rw [sigma_cons, sigma_nil]; refl
+
+@[simp] theorem mem_sigma {l₁ : list α} {l₂ : Π a, list (σ a)} {a : α} {b : σ a} :
+  sigma.mk a b ∈ l₁.sigma l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ a :=
+by simp [sigma]
+
+theorem length_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
+  length (sigma l₁ l₂) = (l₁.map (λ a, length (l₂ a))).sum :=
+by induction l₁ with x l₁ IH; simp *
+end
 
 /- disjoint -/
 section disjoint
@@ -2366,6 +2428,16 @@ pairwise_map_of_pairwise _ (by exact λ a b ⟨ma, mb, n⟩ e, n (H a ma b mb e)
 theorem nodup_map {f : α → β} {l : list α} (hf : injective f) (h : nodup l) : nodup (map f l) :=
 nodup_map_on (assume x _ y _ h, hf h) h
 
+@[simp] theorem nodup_attach {l : list α} : nodup (attach l) ↔ nodup l :=
+⟨λ h, attach_map_val l ▸ nodup_map (λ a b, subtype.eq) h,
+ λ h, nodup_of_nodup_map subtype.val ((attach_map_val l).symm ▸ h)⟩
+
+theorem nodup_pmap {p : α → Prop} {f : Π a, p a → β} {l : list α} {H}
+  (hf : ∀ a ha b hb, f a ha = f b hb → a = b) (h : nodup l) : nodup (pmap f l H) :=
+by rw [pmap_eq_map_attach]; exact nodup_map
+  (λ ⟨a, ha⟩ ⟨b, hb⟩ h, by congr; exact hf a (H _ ha) b (H _ hb) h)
+  (nodup_attach.2 h)
+
 theorem nodup_filter (p : α → Prop) [decidable_pred p] {l} : nodup l → nodup (filter p l) :=
 pairwise_filter_of_pairwise p
 
@@ -2410,6 +2482,15 @@ theorem nodup_product {l₁ : list α} {l₂ : list β} (d₁ : nodup l₁) (d�
   d₁.imp (λ a₁ a₂ n x,
     suffices ∀ (b₁ : β), b₁ ∈ l₂ → (a₁, b₁) = x → ∀ (b₂ : β), b₂ ∈ l₂ → (a₂, b₂) ≠ x, by simpa,
     λ b₁ mb₁ e b₂ mb₂ e', by subst e'; injection e; contradiction)⟩
+
+theorem nodup_sigma {σ : α → Type*} {l₁ : list α} {l₂ : Π a, list (σ a)}
+  (d₁ : nodup l₁) (d₂ : ∀ a, nodup (l₂ a)) : nodup (sigma l₁ l₂) :=
+ nodup_bind.2
+  ⟨λ a ma, nodup_map (λ b b' h, by injection h with _ h; exact eq_of_heq h) (d₂ a),
+  d₁.imp (λ a₁ a₂ n x,
+    suffices ∀ (b₁ : σ a₁), sigma.mk a₁ b₁ = x → b₁ ∈ l₂ a₁ →
+      ∀ (b₂ : σ a₂), sigma.mk a₂ b₂ = x → b₂ ∉ l₂ a₂, by simpa,
+    λ b₁ e mb₁ b₂ e' mb₂, by subst e'; injection e; contradiction)⟩
 
 theorem nodup_filter_map {f : α → option β} (pdi : true) {l : list α}
   (H : ∀ (a a' : α) (b : β), b ∈ f a → b ∈ f a' → a = a') :

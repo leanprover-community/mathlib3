@@ -73,8 +73,6 @@ section insertion_sort
 | (b :: l) := ordered_insert b (insertion_sort l)
 
 section correctness
-parameter [deceqα : decidable_eq α]
-include deceqα
 open perm
 
 theorem perm_ordered_insert (a) : ∀ l : list α, ordered_insert a l ~ a :: l
@@ -121,10 +119,9 @@ section merge_sort
 -- TODO(Jeremy): observation: if instead we write (a :: (split l).1, b :: (split l).2), the
 -- equation compiler can't prove the third equation
 
-def split : list α → list α × list α
+@[simp] def split : list α → list α × list α
 | []            := ([], [])
 | (a :: l) := let (l₁, l₂) := split l in (a :: l₂, l₁)
-attribute [simp] split
 
 theorem split_cons_of_eq (a : α) {l l₁ l₂ : list α} (h : split l = (l₁, l₂)) :
   split (a :: l) = (a :: l₂, l₁) :=
@@ -187,8 +184,6 @@ begin
 end
 
 section correctness
-parameter [deceqα : decidable_eq α]
-include deceqα
 
 theorem perm_merge : ∀ (l l' : list α), merge l l' ~ l ++ l'
 | []       []        := perm.nil

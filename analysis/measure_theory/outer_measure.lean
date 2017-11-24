@@ -12,11 +12,10 @@ import data.set order.galois_connection algebra.big_operators
 
 noncomputable theory
 
-open classical set lattice finset function filter
+open set lattice finset function filter
 open ennreal (of_real)
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] classical.prop_decidable
 
-open classical
 local infix ` ^ ` := monoid.pow
 
 namespace measure_theory
@@ -95,7 +94,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
             ... < ⊤ : hb)
           (by simp; exact hε' _),
       by simpa [μ, infi_lt_iff] using this,
-    let ⟨f, hf⟩ := axiom_of_choice this in
+    let ⟨f, hf⟩ := classical.axiom_of_choice this in
     let f' := λi, f (nat.unpair i).1 (nat.unpair i).2 in
     have hf' : (⋃ (i : ℕ), s i) ⊆ (⋃i, f' i),
       from Union_subset $ assume i, subset.trans (hf i).left $ Union_subset_Union2 $ assume j,

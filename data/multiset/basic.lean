@@ -5,10 +5,13 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import data.list.basic data.list.perm order.boolean_algebra algebra.functions data.quot
+import data.list.basic data.list.perm data.list.sort order.boolean_algebra
+       algebra.functions data.quot algebra.group_power
 open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
+
+local infix ` • `:73 := add_monoid.smul
 
 instance list.perm.setoid (α : Type*) : setoid (list α) :=
 setoid.mk perm ⟨perm.refl, @perm.symm _, @perm.trans _⟩
@@ -548,6 +551,10 @@ foldr_cons _ _ _ _ _
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
+@[simp, to_additive multiset.sum_repeat]
+theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = monoid.pow a n :=
+by simp [repeat, list.prod_repeat]
+
 /- join -/
 def join : multiset (multiset α) → multiset α := sum
 
@@ -614,6 +621,87 @@ multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
 
 @[simp] theorem mem_product {s t} : ∀ {p : α × β}, p ∈ @product α β s t ↔ p.1 ∈ s ∧ p.2 ∈ t
 | (a, b) := by simp [product]
+
+/- sigma -/
+section
+variable {σ : α → Type*}
+
+protected def sigma (s : multiset α) (t : Π a, multiset (σ a)) : multiset (Σ a, σ a) :=
+s.bind $ λ a, (t a).map $ sigma.mk a
+
+@[simp] theorem coe_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
+  @multiset.sigma α σ l₁ (λ a, l₂ a) = l₁.sigma l₂ :=
+by rw [multiset.sigma, list.sigma, ← coe_bind]; simp
+
+@[simp] theorem zero_sigma (t) : @multiset.sigma α σ 0 t = 0 := rfl
+
+@[simp] theorem cons_sigma (a : α) (s : multiset α) (t : Π a, multiset (σ a)) :
+  (a :: s).sigma t = map (sigma.mk a) (t a) + s.sigma t :=
+by simp [multiset.sigma]
+
+@[simp] theorem sigma_singleton (a : α) (b : α → β) :
+  (a::0).sigma (λ a, b a::0) = ⟨a, b a⟩::0 := rfl
+
+@[simp] theorem add_sigma (s t : multiset α) (u : Π a, multiset (σ a)) :
+  (s + t).sigma u = s.sigma u + t.sigma u :=
+by simp [multiset.sigma]
+
+@[simp] theorem sigma_add (s : multiset α) : ∀ t u : Π a, multiset (σ a),
+  s.sigma (λ a, t a + u a) = s.sigma t + s.sigma u :=
+multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
+  by rw [cons_sigma, IH]; simp
+
+@[simp] theorem mem_sigma {s t} : ∀ {p : Σ a, σ a},
+  p ∈ @multiset.sigma α σ s t ↔ p.1 ∈ s ∧ p.2 ∈ t p.1
+| ⟨a, b⟩ := by simp [multiset.sigma]
+
+end
+
+/- map for partial functions -/
+
+@[simp] def pmap {p : α → Prop} (f : Π a, p a → β) (s : multiset α) : (∀ a ∈ s, p a) → multiset β :=
+quot.rec_on s (λ l H, ↑(pmap f l H)) $ λ l₁ l₂ (pp : l₁ ~ l₂),
+funext $ λ (H₂ : ∀ a ∈ l₂, p a),
+have H₁ : ∀ a ∈ l₁, p a, from λ a h, H₂ a ((mem_of_perm pp).1 h),
+have ∀ {s₂ e H}, @eq.rec (multiset α) l₁
+  (λ s, (∀ a ∈ s, p a) → multiset β) (λ _, ↑(pmap f l₁ H₁))
+  s₂ e H = ↑(pmap f l₁ H₁), by intros s₂ e _; subst e,
+this.trans $ quot.sound $ perm_pmap f pp
+
+@[simp] theorem coe_pmap {p : α → Prop} (f : Π a, p a → β)
+  (l : list α) (H : ∀ a ∈ l, p a) : pmap f l H = l.pmap f H := rfl
+
+def attach (s : multiset α) : multiset {x // x ∈ s} := pmap subtype.mk s (λ a, id)
+
+@[simp] theorem coe_attach (l : list α) :
+ @eq (multiset {x // x ∈ l}) (@attach α l) l.attach := rfl
+
+theorem pmap_eq_map (p : α → Prop) (f : α → β) (s : multiset α) :
+  ∀ H, @pmap _ _ p (λ a _, f a) s H = map f s :=
+quot.induction_on s $ λ l H, congr_arg coe $ pmap_eq_map p f l H
+
+theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
+  (s : multiset α) {H₁ H₂} (h : ∀ a h₁ h₂, f a h₁ = g a h₂) :
+  pmap f s H₁ = pmap g s H₂ :=
+quot.induction_on s (λ l H₁ H₂, congr_arg coe $ pmap_congr l h) H₁ H₂
+
+theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
+  (s) : ∀ H, map g (pmap f s H) = pmap (λ a h, g (f a h)) s H :=
+quot.induction_on s $ λ l H, congr_arg coe $ map_pmap g f l H
+
+theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
+  (s) : ∀ H, pmap f s H = s.attach.map (λ x, f x.1 (H _ x.2)) :=
+quot.induction_on s $ λ l H, congr_arg coe $ pmap_eq_map_attach f l H
+
+theorem attach_map_val (s : multiset α) : s.attach.map subtype.val = s :=
+quot.induction_on s $ λ l, congr_arg coe $ attach_map_val l
+
+@[simp] theorem mem_attach (s : multiset α) : ∀ x, x ∈ s.attach :=
+quot.induction_on s $ λ l, mem_attach _
+
+@[simp] theorem mem_pmap {p : α → Prop} {f : Π a, p a → β}
+  {s H b} : b ∈ pmap f s H ↔ ∃ a (h : a ∈ s), f a (H a h) = b :=
+quot.induction_on s (λ l H, mem_pmap) H
 
 /- subtraction -/
 section
@@ -1000,6 +1088,9 @@ by simp
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
 countp_add
 
+@[simp] theorem count_smul (a : α) (s n) : count a (s • n) = count a s * n :=
+by induction n; simp [*, smul_succ', mul_succ]
+
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]
 
@@ -1184,6 +1275,13 @@ nodup_map_on (λ x _ y _ h, hf h)
 theorem nodup_filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
 quot.induction_on s $ λ l, nodup_filter p
 
+@[simp] theorem nodup_attach {s : multiset α} : nodup (attach s) ↔ nodup s :=
+quot.induction_on s $ λ l, nodup_attach
+
+theorem nodup_pmap {p : α → Prop} {f : Π a, p a → β} {s : multiset α} {H}
+  (hf : ∀ a ha b hb, f a ha = f b hb → a = b) : nodup s → nodup (pmap f s H) :=
+quot.induction_on s (λ l H, nodup_pmap hf) H
+
 instance nodup_decidable [decidable_eq α] (s : multiset α) : decidable (nodup s) :=
 quotient.rec_on_subsingleton s $ λ l, l.nodup_decidable
 
@@ -1202,6 +1300,14 @@ by rw mem_erase_iff_of_nodup h; simp
 
 theorem nodup_product {s : multiset α} {t : multiset β} : nodup s → nodup t → nodup (product s t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, by simp [nodup_product d₁ d₂]
+
+theorem nodup_sigma {σ : α → Type*} {s : multiset α} {t : Π a, multiset (σ a)} :
+  nodup s → (∀ a, nodup (t a)) → nodup (s.sigma t) :=
+quot.induction_on s $ λ l₁,
+let l₂ (a) : list (σ a) := classical.some (quotient.exists_rep (t a)) in
+have t = λ a, l₂ a, from eq.symm $ funext $ λ a,
+  classical.some_spec (quotient.exists_rep (t a)),
+by rw [this]; simpa using nodup_sigma
 
 theorem nodup_range (n : ℕ) : nodup (range n) := nodup_range _
 
@@ -1485,5 +1591,37 @@ multiset.induction_on s (by simp) $ λ a s IH, begin
 end
 
 end fold
+
+theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
+  ∃ n : ℕ, s ≤ erase_dup s • n :=
+⟨(s.map (λ a, count a s)).fold max 0, le_iff_count.2 $ λ a, begin
+  rw count_smul, by_cases a ∈ s,
+  { refine le_trans _ (mul_le_mul_right _ $ count_pos.2 $ mem_erase_dup.2 h),
+    have : count a s ≤ fold max 0 (map (λ a, count a s) (a :: erase s a));
+    [simp [le_max_left], simpa [cons_erase h]] },
+  { simp [count_eq_zero.2 h, nat.zero_le] }
+end⟩
+
+section
+variables (r : α → α → Prop) [decidable_rel r]
+  [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r] 
+include tr an to
+
+def sort (s : multiset α) : list α :=
+quot.lift_on s (merge_sort r) $ λ a b h,
+eq_of_sorted_of_perm tr.trans an.antisymm
+  ((perm_merge_sort _ _).trans $ h.trans (perm_merge_sort _ _).symm)
+  (sorted_merge_sort r to.total tr.trans _)
+  (sorted_merge_sort r to.total tr.trans _)
+
+@[simp] theorem coe_sort (l : list α) : sort r l = merge_sort r l := rfl
+
+@[simp] theorem sort_sorted (s : multiset α) : sorted r (sort r s) :=
+quot.induction_on s $ λ l, sorted_merge_sort r to.total tr.trans _
+
+@[simp] theorem sort_eq (s : multiset α) : ↑(sort r s) = s :=
+quot.induction_on s $ λ l, quot.sound $ perm_merge_sort _ _
+
+end
 
 end multiset

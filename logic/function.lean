@@ -12,9 +12,14 @@ variables {α : Type u} {β : Type v} {f : α → β}
 
 namespace function
 
-@[simp] theorem injective.eq_iff (I : injective f) {a b : α} :
+@[simp] theorem injective.eq_iff
+  {α : Sort u} {β : Sort v} {f : α → β} (I : injective f) {a b : α} :
   f a = f b ↔ a = b :=
 ⟨@I _ _, congr_arg f⟩
+
+def injective.decidable_eq
+  {α : Sort u} {β : Sort v} [decidable_eq β] {f : α → β} (I : injective f) : decidable_eq α
+| a b := decidable_of_iff _ I.eq_iff
 
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 

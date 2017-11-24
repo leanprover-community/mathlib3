@@ -159,6 +159,17 @@ end
   map f l₁ ~ map f l₂ :=
 by rw ← filter_map_eq_map; apply perm_filter_map _ p
 
+theorem perm_pmap {p : α → Prop} (f : Π a, p a → β)
+  {l₁ l₂ : list α} (p : l₁ ~ l₂) {H₁ H₂} : pmap f l₁ H₁ ~ pmap f l₂ H₂ :=
+begin
+  induction p with x l₂ l₂' p IH  x y l₂  l₂ m₂ r₂ p₁ p₂ IH₁ IH₂,
+  { simp },
+  { simp [IH, skip] },
+  { simp [swap] },
+  { refine IH₁.trans IH₂,
+    exact λ a m, H₂ a (perm_subset p₂ m) }
+end
+
 theorem perm_filter (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} (s : l₁ ~ l₂) : filter p l₁ ~ filter p l₂ :=
 by rw ← filter_map_eq_filter; apply perm_filter_map _ s

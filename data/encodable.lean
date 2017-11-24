@@ -197,11 +197,10 @@ encodable_of_equiv {s : multiset α // s.nodup}
   ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
 
 instance encodable_ulift [encodable α] : encodable (ulift α) :=
-encodable_of_equiv α ⟨ulift.down, ulift.up, ulift.up_down, ulift.down_up⟩
+encodable_of_equiv _ equiv.ulift
 
 instance encodable_plift [encodable α] : encodable (plift α) :=
-encodable_of_equiv α ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
-
+encodable_of_equiv _ equiv.plift
 
 noncomputable def encodable_of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
 encodable_of_left_injection f (partial_inv f) (partial_inv_eq hf)

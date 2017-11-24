@@ -5,7 +5,7 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-import data.multiset.basic order.boolean_algebra algebra.functions
+import data.multiset.basic order.boolean_algebra algebra.functions data.sigma.basic
 open multiset subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -37,6 +37,8 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α)
 instance : has_mem α (finset α) := ⟨λ a s, a ∈ s.1⟩
 
 theorem mem_def {a : α} {s : finset α} : a ∈ s ↔ a ∈ s.1 := iff.rfl
+
+@[simp] theorem mem_mk {a : α} {s nd} : a ∈ @finset.mk α s nd ↔ a ∈ s := iff.rfl
 
 instance decidable_mem [h : decidable_eq α] (a : α) (s : finset α) : decidable (a ∈ s) :=
 multiset.decidable_mem _ _
@@ -381,6 +383,14 @@ by simpa [subset_iff] using λ a m₁ m₂, and.intro (h₁ m₁) (mt (@h₂ _) 
 
 end decidable_eq
 
+/- attach -/
+
+def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attach.2 s.2⟩
+
+@[simp] theorem attach_val (s : finset α) : s.attach.1 = s.1.attach := rfl
+
+@[simp] theorem mem_attach (s : finset α) : ∀ x, x ∈ s.attach := mem_attach _
+
 /- filter -/
 section filter
 variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]
@@ -503,35 +513,7 @@ mem_erase_dup
 
 end list
 
-/- fintype -/
-
-class fintype (α : Type*) :=
-(univ : finset α)
-(complete : ∀ x : α, x ∈ univ)
-
-instance (α : Type*) : subsingleton (fintype α) :=
-⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
-
-def fintype.of_multiset {α : Type*} [decidable_eq α] (s : multiset α)
-  (H : ∀ x : α, x ∈ s) : fintype α :=
-⟨s.to_finset, by simpa using H⟩
-
-def fintype.of_list {α : Type*} [decidable_eq α] (l : list α)
-  (H : ∀ x : α, x ∈ l) : fintype α :=
-⟨l.to_finset, by simpa using H⟩
-
 namespace finset
-
-section univ
-variable [fintype α]
-
-def univ : finset α := fintype.univ α
-
-theorem mem_univ [fintype α] (x : α) : x ∈ (univ : finset α) :=
-fintype.complete x
-
-theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
-end univ
 
 section image
 variables [decidable_eq β] 
@@ -610,5 +592,138 @@ by by_cases a ∈ s; simp [h, nat.le_add_right]
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
 theorem card_range (n : ℕ) : card (range n) = n := card_range n
+
+section bind
+variables [decidable_eq β] {s : finset α} {t : α → finset β}
+
+protected def bind (s : finset α) (t : α → finset β) : finset β := (s.1.bind (λ a, (t a).1)).to_finset
+
+@[simp] theorem bind_val (s : finset α) (t : α → finset β) :
+  (s.bind t).1 = (s.1.bind (λ a, (t a).1)).erase_dup := rfl
+
+@[simp] theorem bind_empty : finset.bind ∅ t = ∅ := rfl
+
+@[simp] theorem mem_bind {b : β} : b ∈ s.bind t ↔ ∃a∈s, b ∈ t a :=
+by simp [mem_def]
+
+@[simp] theorem bind_insert [decidable_eq α] {a : α} : (insert a s).bind t = t a ∪ s.bind t :=
+ext.2 $ by simp [and_or_distrib_left, exists_or_distrib]
+
+theorem image_bind [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
+  (s.image f).bind t = s.bind (λa, t (f a)) :=
+by have := classical.decidable_eq α; exact
+finset.induction_on s (by simp) (by simp {contextual := tt})
+
+theorem bind_image [decidable_eq γ] {s : finset α} {t : α → finset β} {f : β → γ} :
+  (s.bind t).image f = s.bind (λa, (t a).image f) :=
+by have := classical.decidable_eq α; exact
+finset.induction_on s (by simp) (by simp [image_union] {contextual := tt})
+
+theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :
+  (s.bind t).to_finset = s.to_finset.bind (λa, (t a).to_finset) :=
+ext.2 $ by simp
+
+end bind
+
+section prod
+variables {s : finset α} {t : finset β}
+
+protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, nodup_product s.2 t.2⟩
+
+@[simp] theorem product_val : (s.product t).1 = s.1.product t.1 := rfl
+
+@[simp] theorem mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
+
+theorem product_eq_bind [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
+ s.product t = s.bind (λa, t.image $ λb, (a, b)) :=
+ext.2 $ by simp
+
+end prod
+
+section sigma
+variables {σ : α → Type*} {s : finset α} {t : Πa, finset (σ a)}
+
+protected def sigma (s : finset α) (t : Πa, finset (σ a)) : finset (Σa, σ a) :=
+⟨_, nodup_sigma s.2 (λ a, (t a).2)⟩
+
+@[simp] theorem mem_sigma {p : sigma σ} : p ∈ s.sigma t ↔ p.1 ∈ s ∧ p.2 ∈ t (p.1) := mem_sigma
+
+theorem sigma_mono {s₁ s₂ : finset α} {t₁ t₂ : Πa, finset (σ a)} :
+  s₁ ⊆ s₂ → (∀a, t₁ a ⊆ t₂ a) → s₁.sigma t₁ ⊆ s₂.sigma t₂ :=
+by simp [subset_iff, mem_sigma] {contextual := tt}
+
+theorem sigma_eq_bind [decidable_eq α] [∀a, decidable_eq (σ a)] (s : finset α) (t : Πa, finset (σ a)) :
+ s.sigma t = s.bind (λa, (t a).image $ λb, ⟨a, b⟩) :=
+ext.2 $ by simp
+
+end sigma
+
+section fold
+variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]
+local notation a * b := op a b
+include hc ha
+
+def fold (b : β) (f : α → β) (s : finset α) : β := (s.1.map f).fold op b 
+
+variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
+
+@[simp] theorem fold_empty : (∅ : finset α).fold op b f = b := rfl
+
+variables [decidable_eq α]
+
+@[simp] theorem fold_insert (h : a ∉ s) : (insert a s).fold op b f = f a * s.fold op b f :=
+by simp [fold, ndinsert_of_not_mem h]
+
+@[simp] theorem fold_singleton : ({a}:finset α).fold op b f = f a * b :=
+by simp [fold]
+
+@[simp] theorem fold_image [decidable_eq γ] {g : γ → α} {s : finset γ}
+  (H : ∀ (x ∈ s) (y ∈ s), g x = g y → x = y) : (s.image g).fold op b f = s.fold op b (f ∘ g) :=
+by simp [fold, image_val_of_inj_on H, map_map]
+
+@[congr] theorem fold_congr {g : α → β} (H : ∀ x ∈ s, f x = g x) : s.fold op b f = s.fold op b g :=
+by rw [fold, fold, map_congr H]
+
+theorem fold_op_distrib {f g : α → β} {b₁ b₂ : β} :
+  s.fold op (b₁ * b₂) (λx, f x * g x) = s.fold op b₁ f * s.fold op b₂ g :=
+by simp [fold, fold_distrib]
+
+theorem fold_hom {op' : γ → γ → γ} [is_commutative γ op'] [is_associative γ op']
+  {m : β → γ} (hm : ∀x y, m (op x y) = op' (m x) (m y)) :
+  s.fold op' (m b) (λx, m (f x)) = m (s.fold op b f) :=
+by rw [fold, fold, ← fold_hom op hm, map_map]
+
+theorem fold_union_inter {s₁ s₂ : finset α} {b₁ b₂ : β} :
+  (s₁ ∪ s₂).fold op b₁ f * (s₁ ∩ s₂).fold op b₂ f = s₁.fold op b₂ f * s₂.fold op b₁ f :=
+by unfold fold; rw [← fold_add op, ← map_add, union_val,
+     inter_val, union_add_inter, map_add, hc.comm, fold_add]
+
+@[simp] theorem fold_insert_idem [hi : is_idempotent β op] :
+  (insert a s).fold op b f = f a * s.fold op b f :=
+by have : decidable_eq β := (λ _ _, classical.prop_decidable _);
+   rw [fold, insert_val', ← fold_erase_dup_idem op, erase_dup_map_erase_dup_eq,
+       fold_erase_dup_idem op]; simp [fold]
+
+end fold
+
+section sort
+variables (r : α → α → Prop) [decidable_rel r]
+  [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r] 
+include tr an to
+
+def sort (s : finset α) : list α := sort r s.1
+
+@[simp] theorem sort_sorted (s : finset α) : list.sorted r (sort r s) :=
+sort_sorted _ _
+
+@[simp] theorem sort_eq (s : finset α) : ↑(sort r s) = s.1 :=
+sort_eq _ _
+
+@[simp] theorem sort_nodup (s : finset α) : (sort r s).nodup :=
+(by rw sort_eq; exact s.2 : @multiset.nodup α (sort r s))
+
+@[simp] theorem sort_to_finset [decidable_eq α] (s : finset α) : (sort r s).to_finset = s :=
+list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
+end sort
 
 end finset

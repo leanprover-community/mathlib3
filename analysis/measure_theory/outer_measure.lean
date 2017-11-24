@@ -17,6 +17,7 @@ open ennreal (of_real)
 local attribute [instance] decidable_inhabited prop_decidable
 
 open classical
+local infix ` ^ ` := monoid.pow
 
 namespace measure_theory
 

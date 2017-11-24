@@ -11,7 +11,7 @@ noncomputable theory
 open classical set finset function filter
 local attribute [instance] decidable_inhabited prop_decidable
 
-infix ` ^ ` := pow_nat
+local infix ` ^ ` := monoid.pow
 
 section real
 

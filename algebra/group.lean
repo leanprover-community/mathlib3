@@ -228,6 +228,15 @@ section group
   @[to_additive add_neg_eq_zero]
   theorem mul_inv_eq_one {a b : α} : a * b⁻¹ = 1 ↔ a = b :=
   by rw [mul_eq_one_iff_eq_inv, inv_inv]
+
+  @[to_additive neg_comm_of_comm]
+  theorem inv_comm_of_comm {a b : α} (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
+  begin
+    have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
+      congr_arg (λ x:α, a⁻¹ * x * a⁻¹) H.symm,
+    rwa [mul_assoc, mul_assoc, mul_inv_self, mul_one,
+        ← mul_assoc, inv_mul_self, one_mul] at this; exact h
+  end
 end group
 
 section add_group

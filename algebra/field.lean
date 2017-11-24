@@ -18,7 +18,7 @@ by rw [division_def, mul_inv_eq (inv_ne_zero hb) ha, division_ring.inv_inv hb, d
 lemma division_ring.neg_inv (h : a ≠ 0) : - a⁻¹ = (- a)⁻¹ :=
 by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
-lemma inv_comm_of_comm {a b : α} (h : a ≠ 0) (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
+lemma division_ring.inv_comm_of_comm {a b : α} (h : a ≠ 0) (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
 begin
   have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
     congr_arg (λ x:α, a⁻¹ * x * a⁻¹) H.symm,

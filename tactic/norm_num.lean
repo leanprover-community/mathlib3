@@ -77,7 +77,8 @@ theorem bit0_zero [add_group α] : bit0 (0 : α) = 0 := add_zero _
  
 theorem bit1_zero [add_group α] [has_one α] : bit1 (0 : α) = 1 :=
 by rw [bit1, bit0_zero, zero_add]
- 
+
+local infix ` ^ ` := monoid.pow
 lemma pow_bit0_helper [monoid α] (a t : α) (b : ℕ) (h : a ^ b = t) :
   a ^ bit0 b = t * t :=
 by simp [pow_bit0, h]
@@ -134,30 +135,29 @@ meta def eval_inv (simp : expr → tactic (expr × expr)) : expr → tactic (exp
 | _ := failed
 
 meta def eval_pow (simp : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
-| `(pow_nat %%e₁ 0) := do
+| `(monoid.pow %%e₁ 0) := do
   p ← mk_app ``pow_zero [e₁],
   a ← infer_type e₁,
   o ← mk_app ``has_one.one [a],
   return (o, p)
-| `(pow_nat %%e₁ 1) := do
+| `(monoid.pow %%e₁ 1) := do
   p ← mk_app ``pow_one [e₁],
   return (e₁, p)
-| `(pow_nat %%e₁ (bit0 %%e₂)) := do
-  e ← mk_app ``pow_nat [e₁, e₂],
+| `(monoid.pow %%e₁ (bit0 %%e₂)) := do
+  e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p) ← simp e,
   p' ← mk_app ``norm_num.pow_bit0_helper [e₁, e', e₂, p],
   e'' ← to_expr ``(%%e' * %%e'),
   return (e'', p')
-| `(pow_nat %%e₁ (bit1 %%e₂)) := do
-  e ← mk_app ``pow_nat [e₁, e₂],
+| `(monoid.pow %%e₁ (bit1 %%e₂)) := do
+  e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p) ← simp e,
   p' ← mk_app ``norm_num.pow_bit1_helper [e₁, e', e₂, p],
   e'' ← to_expr ``(%%e' * %%e' * %%e₁),
   return (e'', p')
-| `(has_pow_nat.pow_nat %%e₁ %%e₂) := mk_app ``pow_nat [e₁, e₂] >>= simp
 | `(nat.pow %%e₁ %%e₂) := do
-  p₁ ← mk_app ``nat.pow_eq_pow_nat [e₁, e₂],
-  e ← mk_app ``pow_nat [e₁, e₂],
+  p₁ ← mk_app ``nat.pow_eq_pow [e₁, e₂],
+  e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p₂) ← simp e,
   p ← mk_eq_trans p₁ p₂,
   return (e', p)

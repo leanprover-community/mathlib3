@@ -635,7 +635,7 @@ theorem mul_cast_comm (a : α) :
 | ⟨n, d, h, c⟩ h₂ := show a * (n * d⁻¹) = n * d⁻¹ * a,
   by rw [← mul_assoc, int.mul_cast_comm, mul_assoc, mul_assoc,
          ← show (d:α)⁻¹ * a = a * d⁻¹, from
-           inv_comm_of_comm h₂ (int.mul_cast_comm a d).symm]
+           division_ring.inv_comm_of_comm h₂ (int.mul_cast_comm a d).symm]
 
 theorem cast_mk_of_ne_zero (a b : ℤ)
   (b0 : (b:α) ≠ 0) : (a /. b : α) = a / b :=
@@ -691,7 +691,7 @@ theorem cast_mul_of_ne_zero : ∀ {m n : ℚ},
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
     { simpa [division_def, mul_inv_eq, d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0] },
     all_goals {simp [d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0]} },
-  rw [inv_comm_of_comm d₁0 (nat.mul_cast_comm _ _).symm]
+  rw [division_ring.inv_comm_of_comm d₁0 (nat.mul_cast_comm _ _).symm]
 end
 
 theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
@@ -725,7 +725,7 @@ by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn
   rw [num_denom', num_denom'] at h ⊢,
   rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
   rwa [eq_div_iff_mul_eq _ _ d₂a, division_def, mul_assoc,
-    inv_comm_of_comm d₁a (nat.mul_cast_comm _ _),
+    division_ring.inv_comm_of_comm d₁a (nat.mul_cast_comm _ _),
     ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq _ _ d₁a, eq_comm,
     ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul,
     int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h

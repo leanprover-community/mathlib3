@@ -28,6 +28,12 @@ h hx
 
 @[simp] lemma set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
+theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
+
+instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a ∈ s) := H
+
+instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred {a | p a} := H
+
 /- set coercion to a type -/
 
 instance : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
@@ -90,7 +96,7 @@ theorem empty_def : (∅ : set α) = {x | false} := rfl
 @[simp] theorem set_of_false : {a : α | false} = ∅ := rfl
 
 theorem eq_empty_of_forall_not_mem {s : set α} (h : ∀ x, x ∉ s) : s = ∅ :=
-by apply ext; finish
+ext $ by simp [h]
 
 theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
 by { intro hs, rewrite hs at h, apply not_mem_empty _ h }

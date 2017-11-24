@@ -433,9 +433,11 @@ assume a, cases_on a h1 h2
 theorem or_not {p : Prop} : p ∨ ¬ p :=
 by_cases or.inl or.inr
 
-noncomputable theorem decidable (p : Prop) : decidable p := by apply_instance
-noncomputable theorem decidable_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
-noncomputable theorem decidable_eq (α : Sort*) : decidable_eq α := by apply_instance
+/- use shortened names to avoid conflict when classical namespace is open -/
+noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
+noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
+noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
+noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
 
 end classical
 

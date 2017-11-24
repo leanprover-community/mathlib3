@@ -691,7 +691,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   let
     f := ⨅t:{t : set α // finite t}, principal (s \ (⋃y∈t.val, {x | (x,y) ∈ d})),
     ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
-      (assume h, hd_cover finite.empty $ h.symm ▸ empty_subset _)
+      (assume h, hd_cover finite_empty $ h.symm ▸ empty_subset _)
   in
   have f ≠ ⊥,
     from infi_neq_bot_of_directed ⟨a⟩
@@ -701,7 +701,7 @@ lemma totally_bounded_iff_filter {s : set α} :
         principal_mono.mpr $ diff_right_antimono $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inr⟩)
       (assume ⟨t, ht⟩, by simp [diff_neq_empty]; exact hd_cover ht),
-  have f ≤ principal s, from infi_le_of_le ⟨∅, finite.empty⟩ $ by simp; exact subset.refl s,
+  have f ≤ principal s, from infi_le_of_le ⟨∅, finite_empty⟩ $ by simp; exact subset.refl s,
   let
     ⟨c, (hc₁ : c ≤ f), (hc₂ : cauchy c)⟩ := h f ‹f ≠ ⊥› this,
     ⟨m, hm, (hmd : set.prod m m ⊆ d)⟩ := (@mem_prod_same_iff α c d).mp $ hc₂.right hd
@@ -715,7 +715,7 @@ lemma totally_bounded_iff_filter {s : set α} :
       show  y' ∈ (⋃y'∈({y}:set α), {x | (x, y') ∈ d}),
         by simp; exact @hmd (y', y) ⟨hy', hym⟩,
   have c ≤ principal (s - ys),
-    from le_trans hc₁ $ infi_le_of_le ⟨{y}, finite_insert finite.empty⟩ $ le_refl _,
+    from le_trans hc₁ $ infi_le_of_le ⟨{y}, finite_singleton _⟩ $ le_refl _,
   have (s - ys) ∩ (m ∩ s) ∈ c.sets,
     from inter_mem_sets (le_principal_iff.mp this) ‹m ∩ s ∈ c.sets›,
   have ∅ ∈ c.sets,

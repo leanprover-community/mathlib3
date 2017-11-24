@@ -22,6 +22,8 @@ def univ : finset α := fintype.elems α
 @[simp] theorem mem_univ [fintype α] (x : α) : x ∈ (univ : finset α) :=
 fintype.complete x
 
+@[simp] theorem mem_univ_val [fintype α] : ∀ x, x ∈ (univ : finset α).1 := mem_univ
+
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 end finset
 

@@ -2492,7 +2492,7 @@ theorem nodup_sigma {σ : α → Type*} {l₁ : list α} {l₂ : Π a, list (σ 
       ∀ (b₂ : σ a₂), sigma.mk a₂ b₂ = x → b₂ ∉ l₂ a₂, by simpa,
     λ b₁ e mb₁ b₂ e' mb₂, by subst e'; injection e; contradiction)⟩
 
-theorem nodup_filter_map {f : α → option β} (pdi : true) {l : list α}
+theorem nodup_filter_map {f : α → option β} {l : list α}
   (H : ∀ (a a' : α) (b : β), b ∈ f a → b ∈ f a' → a = a') :
   nodup l → nodup (filter_map f l) :=
 pairwise_filter_map_of_pairwise f $ λ a a' n b bm b' bm' e, n $ H a a' b' (e ▸ bm) bm'

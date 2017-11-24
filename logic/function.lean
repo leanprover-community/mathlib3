@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Miscellaneous function constructions and lemmas.
 -/
-import logic.basic
+import logic.basic data.option
 
 universes u v
 variables {α : Type u} {β : Type v} {f : α → β}
@@ -23,17 +23,28 @@ def injective.decidable_eq
 
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 
+def is_partial_inv (f : α → β) (g : β → option α) : Prop :=
+∀ x y, g y = some x ↔ f x = y
+
+theorem injective_of_partial_inv {f : α → β} {g} (H : is_partial_inv f g) : injective f :=
+λ a b h, option.some.inj $ ((H _ _).2 h).symm.trans ((H _ _).2 rfl)
+
+theorem injective_of_partial_inv_right {f : α → β} {g} (H : is_partial_inv f g)
+ (x y b) (h₁ : b ∈ g x) (h₂ : b ∈ g y) : x = y :=
+((H _ _).1 h₁).symm.trans ((H _ _).1 h₂)
+
 noncomputable def partial_inv (f : α → β) (b : β) : option α :=
 if h : ∃ a, f a = b then some (classical.some h) else none
 
-theorem partial_inv_eq {f : α → β} (I : injective f) (a : α) : (partial_inv f (f a)) = some a :=
-have h : ∃ a', f a' = f a, from ⟨_, rfl⟩,
-(dif_pos h).trans (congr_arg _ (I $ classical.some_spec h))
-
-theorem partial_inv_eq_of_eq {f : α → β} (I : injective f) {b : β} {a : α}
-  (h : partial_inv f b = some a) : f a = b :=
-by by_cases (∃ a, f a = b) with h'; simp [partial_inv, h'] at h;
-   injection h with h; subst h; apply classical.some_spec h'
+theorem partial_inv_of_injective {f : α → β} (I : injective f) :
+  is_partial_inv f (partial_inv f) | a b :=
+⟨λ h, if h' : ∃ a, f a = b then begin
+    rw [partial_inv, dif_pos h'] at h,
+    injection h with h, subst h,
+    apply classical.some_spec h'
+  end else by rw [partial_inv, dif_neg h'] at h; contradiction,
+ λ e, e ▸ have h : ∃ a', f a' = f a, from ⟨_, rfl⟩,
+   (dif_pos h).trans (congr_arg _ (I $ classical.some_spec h))⟩
 
 variables {s : set α} {a : α} {b : β}
 

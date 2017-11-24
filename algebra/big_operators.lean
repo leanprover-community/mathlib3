@@ -63,7 +63,7 @@ by rw [←prod_union (sdiff_inter_self _ _), sdiff_union_of_subset h]
 @[to_additive finset.sum_bind]
 lemma prod_bind {s : finset γ} {t : γ → finset α} :
   (∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
-by have := classical.decidable_eq γ; exact
+by have := classical.dec_eq γ; exact
 finset.induction_on s (by simp)
   (assume x s hxs ih hd,
   have hd' : ∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅,
@@ -82,7 +82,7 @@ finset.induction_on s (by simp)
 lemma prod_product {s : finset γ} {t : finset α} {f : γ×α → β} :
   (s.product t).prod f = (s.prod $ λx, t.prod $ λy, f (x, y)) :=
 begin
-  have := classical.decidable_eq γ,
+  have := classical.dec_eq γ,
   rw [product_eq_bind, prod_bind (λ x hx y hy h, ext.2 _)], {simp [prod_image]},
   simp [mem_image], intros, intro, refine h _, cc
 end

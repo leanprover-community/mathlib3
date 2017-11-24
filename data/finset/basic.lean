@@ -611,12 +611,12 @@ ext.2 $ by simp [and_or_distrib_left, exists_or_distrib]
 
 theorem image_bind [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
   (s.image f).bind t = s.bind (λa, t (f a)) :=
-by have := classical.decidable_eq α; exact
+by have := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp {contextual := tt})
 
 theorem bind_image [decidable_eq γ] {s : finset α} {t : α → finset β} {f : β → γ} :
   (s.bind t).image f = s.bind (λa, (t a).image f) :=
-by have := classical.decidable_eq α; exact
+by have := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp [image_union] {contextual := tt})
 
 theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :

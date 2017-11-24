@@ -69,13 +69,10 @@ is_open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 have is_open (⋃₀ ∅ : set α), from is_open_sUnion (assume a, false.elim),
 by simp at this; assumption
 
-lemma is_open_sInter {s : set (set α)} (hs : finite s) (h : ∀t ∈ s, is_open t) : is_open (⋂₀ s) :=
-begin
-  induction hs,
-  case finite.empty { simp },
-  case finite.insert a s has hs ih {
-    suffices : is_open (a ∩ ⋂₀ s), { simpa },
-    exact is_open_inter (h _ $ mem_insert _ _) (ih $ assume t ht, h _ $ mem_insert_of_mem _ ht) }
+lemma is_open_sInter {s : set (set α)} (hs : finite s) : (∀t ∈ s, is_open t) → is_open (⋂₀ s) :=
+finite.induction_on hs (by simp) $ λ a s has hs ih h, begin
+  suffices : is_open (a ∩ ⋂₀ s), { simpa },
+  exact is_open_inter (h _ $ mem_insert _ _) (ih $ assume t ht, h _ $ mem_insert_of_mem _ ht)
 end
 
 lemma is_open_const {p : Prop} : is_open {a : α | p} :=
@@ -115,12 +112,9 @@ by rw [is_closed, compl_inter]; exact is_open_union h₁ h₂
 
 lemma is_closed_Union {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
-begin
-  induction hs,
-  simp,
-  simp,
-  exact assume h, is_closed_union (h _ $ or.inl rfl) (by finish)
-end
+finite.induction_on hs (by simp) $
+λ _ _ _ _ _, by simp; exact
+assume h, is_closed_union (h _ $ or.inl rfl) (by finish)
 
 lemma is_closed_imp [topological_space α] {p q : α → Prop}
   (hp : is_open {x | p x}) (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
@@ -462,20 +456,20 @@ classical.by_contradiction $ assume h,
   let
     f : filter α := (⨅c':{c' : set (set α) // c' ⊆ c ∧ finite c'}, principal (s - ⋃₀ c')),
     ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
-      (assume h', h (empty_subset _) finite.empty $ h'.symm ▸ empty_subset _)
+      (assume h', h (empty_subset _) finite_empty $ h'.symm ▸ empty_subset _)
   in
   have f ≠ ⊥, from infi_neq_bot_of_directed ⟨a⟩
     (assume ⟨c₁, hc₁, hc'₁⟩ ⟨c₂, hc₂, hc'₂⟩, ⟨⟨c₁ ∪ c₂, union_subset hc₁ hc₂, finite_union hc'₁ hc'₂⟩,
       principal_mono.mpr $ diff_right_antimono $ sUnion_mono $ subset_union_left _ _,
       principal_mono.mpr $ diff_right_antimono $ sUnion_mono $ subset_union_right _ _⟩)
     (assume ⟨c', hc'₁, hc'₂⟩, show principal (s \ _) ≠ ⊥, by simp [diff_neq_empty]; exact h hc'₁ hc'₂),
-  have f ≤ principal s, from infi_le_of_le ⟨∅, empty_subset _, finite.empty⟩ $
+  have f ≤ principal s, from infi_le_of_le ⟨∅, empty_subset _, finite_empty⟩ $
     show principal (s \ ⋃₀∅) ≤ principal s, by simp; exact subset.refl s,
   let
     ⟨a, ha, (h : f ⊓ nhds a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
     ⟨t, ht₁, (ht₂ : a ∈ t)⟩ := hc₂ ha
   in
-  have f ≤ principal (-t), from infi_le_of_le ⟨{t}, by simp [ht₁], finite_insert finite.empty⟩ $
+  have f ≤ principal (-t), from infi_le_of_le ⟨{t}, by simp [ht₁], finite_insert _ finite_empty⟩ $
     principal_mono.mpr $ show s - ⋃₀{t} ⊆ - t, begin simp; exact assume x ⟨_, hnt⟩, hnt end,
   have is_closed (- t), from is_open_compl_iff.mp $ by simp; exact hc₁ t ht₁,
   have a ∈ - t, from is_closed_iff_nhds.mp this _ $ neq_bot_of_le_neq_bot h $
@@ -558,7 +552,7 @@ lemma compact_singleton {a : α} : compact ({a} : set α) :=
 compact_of_finite_subcover $ assume c hc₁ hc₂,
   have ∃i, a ∈ i ∧ i ∈ c, by simp at hc₂; assumption,
   let ⟨i, hai, hic⟩ := this in
-  ⟨{i}, by simp [hic], finite_singleton, by simp [hai]⟩
+  ⟨{i}, by simp [hic], finite_singleton _, by simp [hai]⟩
 
 end compact
 

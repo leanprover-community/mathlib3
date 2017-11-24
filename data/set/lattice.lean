@@ -5,7 +5,7 @@ Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
-import logic.basic data.set.basic
+import logic.basic data.set.basic tactic
 import order.complete_boolean_algebra category.basic
 import tactic.finish
 
@@ -321,6 +321,9 @@ lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) 
 
 lemma sUnion_eq_Union {s : set (set α)} : (⋃₀ s) = (⋃ (i : set α) (h : i ∈ s), i) :=
 set.ext $ by simp
+
+lemma sUnion_eq_Union' {s : set (set α)} : (⋃₀ s) = (⋃ (i : s), i) :=
+set.ext $ λ x, by simp; unfold_coes; simp
 
 instance : complete_boolean_algebra (set α) :=
 { neg                 := compl,

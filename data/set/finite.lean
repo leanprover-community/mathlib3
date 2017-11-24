@@ -1,14 +1,14 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Mario Carneiro
 
-Finite sets -- assuming a classical logic.
+Finite sets.
 -/
 import data.set.lattice data.set.prod data.nat.basic logic.function
-noncomputable theory
-open classical set lattice function
-local attribute [instance] decidable_inhabited prop_decidable
+       data.finset.fintype
+
+open set lattice function
 
 universes u v w
 variables {α : Type u} {β : Type v} {ι : Sort w}
@@ -16,90 +16,143 @@ variables {α : Type u} {β : Type v} {ι : Sort w}
 
 namespace set
 
-/-
-local attribute [instance] classical.decidable_inhabited classical.prop_decidable
--/
-
-inductive finite : set α → Prop
-| empty : finite ∅
-| insert : ∀a s, a ∉ s → finite s → finite (insert a s)
+def finite (s : set α) : Prop := nonempty (fintype s)
 
 def infinite (s : set α) : Prop := ¬ finite s
 
-attribute [simp] finite.empty
+def fintype_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
+fintype.subtype s H
 
-@[simp] theorem finite_insert {a : α} {s : set α} (h : finite s) : finite (insert a s) :=
-classical.by_cases
-  (assume : a ∈ s, by simp [*])
-  (assume : a ∉ s, finite.insert a s this h)
+def to_finset (s : set α) [fintype s] : finset α :=
+⟨(@finset.univ s _).1.map subtype.val,
+ multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
 
-@[simp] theorem finite_singleton {a : α} : finite ({a} : set α) :=
-finite_insert finite.empty
+@[simp] theorem mem_to_finset {s : set α} [fintype s] {a : α} : a ∈ s.to_finset ↔ a ∈ s :=
+by simp [to_finset]
 
-theorem finite_union {s t : set α} (hs : finite s) (ht : finite t) : finite (s ∪ t) :=
-finite.drec_on ht (by simp [hs]) $ assume a t _ _, by simp; exact finite_insert
+@[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
+mem_to_finset
 
-theorem finite_subset {s : set α} (hs : finite s) : ∀{t}, t ⊆ s → finite t :=
-begin
-  induction hs with a t' ha ht' ih,
-  { intros t ht, simp [(subset_empty_iff t).mp ht, finite.empty] },
-  { intros t ht,
-    have tm : finite (t \ {a}) :=
-      (ih $ show t \ {a} ⊆ t',
-        from assume x ⟨hxt, hna⟩, or.resolve_left (ht hxt) (by simp at hna; assumption)),
-    cases (classical.em $ a ∈ t) with ha hna,
-    { exact have finite (insert a (t \ {a})), from finite_insert tm,
-      show finite t,
-        by simp [ha] at this; assumption },
-    { simp [sdiff_singleton_eq_same, hna] at tm, exact tm } }
+noncomputable instance finite.fintype {s : set α} (h : finite s) : fintype s :=
+classical.choice h
+
+noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
+@set.to_finset _ _ (finite.fintype h)
+
+@[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
+@mem_to_finset _ _ (finite.fintype h) _
+
+instance decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
+decidable_of_iff _ mem_to_finset
+
+instance fintype_empty : fintype (∅ : set α) :=
+fintype_of_finset ∅ $ by simp
+
+@[simp] theorem finite_empty : @finite α ∅ := ⟨set.fintype_empty⟩
+
+def fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) : fintype (insert a s : set α) :=
+fintype_of_finset ⟨a :: s.to_finset.1,
+  multiset.nodup_cons_of_nodup (by simp [h]) s.to_finset.2⟩ $ by simp
+
+instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] : fintype (insert a s : set α) :=
+if h : a ∈ s then by rwa [insert_eq, union_eq_self_of_subset_left (singleton_subset_iff.2 h)]
+else fintype_insert' _ h
+
+@[simp] theorem finite_insert (a : α) {s : set α} : finite s → finite (insert a s)
+| ⟨h⟩ := ⟨@set.fintype_insert _ (classical.dec_eq α) _ _ h⟩
+
+inductive finite' : set α → Prop
+| empty : finite' ∅
+| insert : ∀a s, a ∉ s → finite' s → finite' (insert a s)
+
+@[elab_as_eliminator]
+theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)
+  (H0 : C ∅) (H1 : ∀ {a s}, a ∉ s → finite s → C s → C (insert a s)) : C s :=
+let ⟨t⟩ := h in by exact
+match s.to_finset, @mem_to_finset _ s _ with
+| ⟨l, nd⟩, al := begin
+    change ∀ a, a ∈ l ↔ a ∈ s at al,
+    clear _let_match _match t h, revert s nd al,
+    refine multiset.induction_on l _ (λ a l IH, _); intros s nd al,
+    { rw show s = ∅, from eq_empty_of_forall_not_mem (by simpa using al),
+      exact H0 },
+    { rw ← show insert a {x | x ∈ l} = s, from set.ext (by simpa using al),
+      cases multiset.nodup_cons.1 nd with m nd',
+      refine H1 _ ⟨finset.subtype.fintype ⟨l, nd'⟩⟩ (IH nd' (λ _, iff.rfl)),
+      exact m }
+  end
 end
 
-theorem finite_image {s : set α} {f : α → β} (h : finite s) : finite (f '' s) :=
+instance fintype_singleton (a : α) : fintype ({a} : set α) :=
+fintype_insert' _ (not_mem_empty _)
+
+@[simp] theorem finite_singleton (a : α) : finite ({a} : set α) :=
+⟨set.fintype_singleton _⟩
+
+instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
+fintype_of_finset (s.to_finset ∪ t.to_finset) $ by simp
+
+theorem finite_union {s t : set α} : finite s → finite t → finite (s ∪ t)
+| ⟨hs⟩ ⟨ht⟩ := ⟨@set.fintype_union _ (classical.dec_eq α) _ _ hs ht⟩
+
+instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred p] : fintype ({a ∈ s | p a} : set α) :=
+fintype_of_finset (s.to_finset.filter p) $ by simp
+
+instance fintype_inter (s t : set α) [fintype s] [decidable_pred t] : fintype (s ∩ t : set α) :=
+set.fintype_sep s t
+
+def fintype_subset (s : set α) {t : set α} [fintype s] [decidable_pred t] (h : t ⊆ s) : fintype t :=
+by rw ← inter_eq_self_of_subset_right h; apply_instance
+
+theorem finite_subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
+| ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
+
+instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
+fintype_of_finset (s.to_finset.image f) $ by simp
+
+theorem finite_image {s : set α} {f : α → β} : finite s → finite (f '' s)
+| ⟨h⟩ := ⟨@set.fintype_image _ _ (classical.dec_eq β) _ _ h⟩
+
+def fintype_of_fintype_image [decidable_eq β] (s : set α)
+  {f : α → β} {g} (I : is_partial_inv f g) [fintype (f '' s)] : fintype s :=
+fintype_of_finset ⟨_, @multiset.nodup_filter_map β α g _
+  (@injective_of_partial_inv_right _ _ f g I) (f '' s).to_finset.2⟩ $ λ a,
 begin
-  induction h with a s' hns' hs' hi,
-  simp [image_empty, finite.empty],
-  simp [image_insert_eq, finite_insert, hi]
+  suffices : (∃ b x, f x = b ∧ g b = some a ∧ x ∈ s) ↔ a ∈ s,
+  by simpa [exists_and_distrib_left.symm],
+  rw exists_swap,
+  suffices : (∃ x, x ∈ s ∧ g (f x) = some a) ↔ a ∈ s, {simpa},
+  simp [I _, (injective_of_partial_inv I).eq_iff]
 end
 
 theorem finite_of_finite_image {s : set α} {f : α → β}
-  (hf : injective f) (hs : finite (f '' s)) : finite s :=
-if hα : nonempty α
-then
-  let ⟨a⟩ := hα in
-  have h : inhabited α := ⟨a⟩,
-  have finite (@inv_fun _ _ h f '' (f '' s)), from finite_image hs,
-  by rwa [←image_comp, inv_fun_comp hf, image_id] at this
-else
-  have s = ∅, from eq_empty_of_forall_not_mem $ assume a, (hα ⟨a⟩).elim,
-  by simp [this]
+  (I : injective f) : finite (f '' s) → finite s | ⟨hs⟩ :=
+by have := classical.dec_eq β; exact
+⟨fintype_of_fintype_image _ (partial_inv_of_injective I)⟩
 
-theorem finite_sUnion {s : set (set α)} (h : finite s) : (∀t∈s, finite t) → finite (⋃₀ s) :=
-begin
-  induction h with a s' hns' hs' hi,
-  { simp [finite.empty] },
-  { intro h,
-    simp,
-    apply finite_union,
-    { apply h, simp },
-    { exact (hi $ assume t ht, h _ $ mem_insert_of_mem _ ht) } }
-end
+instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
+  (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=
+fintype_of_finset (finset.univ.bind (λ i, (f i).to_finset)) $ by simp
 
-lemma finite_le_nat : ∀{n:ℕ}, finite {i | i ≤ n}
-| 0 := by simp [nat.le_zero_iff, set_compr_eq_eq_singleton]
-| (n + 1) :=
-  have insert (n + 1) {i | i ≤ n} = {i | i ≤ n + 1},
-    from set.ext $ by simp [nat.le_add_one_iff],
-  this ▸ finite_insert finite_le_nat
+theorem finite_Union {ι : Type*} [fintype ι] {f : ι → set α} (H : ∀i, finite (f i)) : finite (⋃ i, f i) :=
+⟨@set.fintype_Union _ (classical.dec_eq α) _ _ _ (λ i, finite.fintype (H i))⟩
 
-lemma finite_prod {s : set α} {t : set β} (hs : finite s) (ht : finite t) :
-  finite (set.prod s t) :=
-begin
-  induction hs,
-  case finite.empty { simp },
-  case finite.insert a s has hs ih {
-    rw [set.insert_prod],
-    exact finite_union (finite_image ht) ih
-  }
-end
+theorem finite_sUnion {s : set (set α)} (h : finite s) (H : ∀t∈s, finite t) : finite (⋃₀ s) :=
+by rw sUnion_eq_Union'; have := finite.fintype h;
+   apply finite_Union; simpa using H
+
+instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=
+fintype_of_finset (finset.range n) $ by simp
+
+instance fintype_le_nat (n : ℕ) : fintype {i | i ≤ n} :=
+by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1) 
+
+lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _⟩
+
+instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (set.prod s t) :=
+fintype_of_finset (s.to_finset.product t.to_finset) $ by simp
+
+lemma finite_prod {s : set α} {t : set β} : finite s → finite t → finite (set.prod s t)
+| ⟨hs⟩ ⟨ht⟩ := by exact ⟨set.fintype_prod s t⟩
 
 end set

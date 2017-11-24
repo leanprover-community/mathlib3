@@ -165,6 +165,16 @@ by rw [encodek, ← show (ensort l:multiset α) = l,
 
 end finset
 
+def encodable_of_list [decidable_eq α] (l : list α) (H : ∀ x, x ∈ l) : encodable α :=
+⟨λ a, index_of a l, l.nth, λ a, index_of_nth (H _)⟩
+
+def trunc_encodable_of_fintype (α : Type*) [decidable_eq α] [fintype α] : trunc (encodable α) :=
+@@quot.rec_on_subsingleton _
+  (λ s : multiset α, (∀ x:α, x ∈ s) → trunc (encodable α)) _
+  finset.univ.1
+  (λ l H, trunc.mk $ encodable_of_list l H)
+  finset.mem_univ
+
 section subtype
 open subtype decidable
 variable {P : α → Prop}
@@ -203,7 +213,7 @@ instance encodable_plift [encodable α] : encodable (plift α) :=
 encodable_of_equiv _ equiv.plift
 
 noncomputable def encodable_of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
-encodable_of_left_injection f (partial_inv f) (partial_inv_eq hf)
+encodable_of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 rfl)
 
 end encodable
 

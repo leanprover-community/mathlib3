@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Some big operators for lists and finite sets.
 -/
 import data.list data.list.perm data.set.finite data.finset
-  algebra.group algebra.ordered_monoid algebra.group_power
+  algebra.group algebra.ordered_group algebra.group_power
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

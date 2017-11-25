@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 Finite sets.
 -/
 import data.set.lattice data.set.prod data.nat.basic logic.function
-       data.finset.fintype
+       data.fintype
 
 open set lattice function
 

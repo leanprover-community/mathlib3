@@ -6,7 +6,7 @@ Author: Leonardo de Moura, Mario Carneiro
 Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
-import data.finset data.list data.list.perm data.list.sort
+import data.fintype data.list data.list.perm data.list.sort
        data.equiv data.nat.basic logic.function
 open option list nat function
 

@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Extended non-negative reals
 -/
-import order.bounds algebra.ordered_monoid analysis.real analysis.topology.infinite_sum
+import order.bounds algebra.ordered_group analysis.real analysis.topology.infinite_sum
 noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable

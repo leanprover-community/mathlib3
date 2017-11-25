@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset.basic data.equiv
+import data.finset data.equiv
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}

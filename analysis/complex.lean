@@ -249,7 +249,7 @@ instance : discrete_field complex :=
       by simpa,
     rw [←mul_div_assoc,←mul_div_assoc,div_add_div_same],
     simp [zero_div],
-  end, -- it worked without modification! 
+  end, -- it worked without modification!
   -- Presumably I could just have proved mul_comm outside the verification that C is a field
   -- and then used that too?
   inv_zero         := begin
@@ -260,7 +260,75 @@ instance : discrete_field complex :=
   has_decidable_eq := by apply_instance,
   }
 
--- instance : topological_ring complex := missing
+theorem im_eq_zero_of_complex_nat (n : ℕ) : (n:complex).im = 0 :=
+begin
+induction n with d Hd,
+simp,
+simp [Hd],
+end
+
+#print char_zero 
+
+theorem of_real_nat_eq_complex_nat {n : ℕ} : of_real (n:ℝ) = (n:complex) :=
+begin
+rw [eq_iff_re_eq_and_im_eq],
+split,
+  rw [proj_of_real_re],
+  induction n with d Hd,
+    simp,
+  simp [Hd],
+  induction n with d Hd,
+    simp,
+  simp [Hd],
+exact eq.symm (im_eq_zero_of_complex_nat d),
+end
+
+instance char_zero_complex : char_zero complex :=
+⟨begin
+intros,
+split,
+  rw [←complex.of_real_nat_eq_complex_nat,←complex.of_real_nat_eq_complex_nat],
+  intro H,
+  have real_eq := of_real_injective H,
+  revert real_eq,
+  have H2 : char_zero ℝ,
+  apply_instance,
+  exact (char_zero.cast_inj ℝ).1,
+intro H,rw [H],
+end⟩
+
+#check complex.char_zero_complex 
+
+theorem of_real_int_eq_complex_int {n : ℤ} : of_real (n:ℝ) = (n:complex) :=
+begin
+cases n with nnat nneg,
+  exact of_real_nat_eq_complex_nat,
+rw [int.cast_neg_succ_of_nat,int.cast_neg_succ_of_nat],
+rw [←of_real_neg,←of_real_add],
+rw [of_real_nat_eq_complex_nat,of_real_one],
+end 
+
+example : char_zero complex := by apply_instance
+
+/-
+-- Why does Lean time out trying to infer complexes have char 0? I proved it above.
+
+theorem of_real_rat_eq_complex_rat {q : ℚ} : of_real (q:ℝ) = (q:complex) :=
+begin
+rw [rat.num_denom q],
+rw [rat.cast_mk q.num ↑(q.denom)],
+rw [rat.cast_mk q.num ↑(q.denom)],
+rw [div_eq_mul_inv,div_eq_mul_inv,←of_real_mul],
+rw [of_real_int_eq_complex_int],
+rw [←@of_real_int_eq_complex_int ((q.denom):ℤ)],
+rw [of_real_inv],
+tactic.swap,
+apply_instance,
+-- exact complex.char_zero_complex, -- times out
+admit,
+end
+-/
+-- TODO : instance : topological_ring complex := missing
 
 end complex
 

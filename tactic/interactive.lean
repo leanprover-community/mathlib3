@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.rcases
+import data.dlist tactic.rcases tactic.generalize_proofs
 
 open lean
 open lean.parser
@@ -62,17 +62,26 @@ it is first added to the local context using `have`.
 -/
 meta def simpa (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (tgt : parse (tk "using" *> texpr)?) (cfg : simp_config_ext := {}) : tactic unit :=
-do lc ← match tgt with
-| none := get_local `this >> pure [some `this, none] <|> pure [none]
-| some e := do e ← i_to_expr e,
-  match e with
-  | local_const _ lc _ _ := pure [some lc, none]
-  | e := do
-    t ← infer_type e,
-    assertv `this t e >> pure [some `this, none]
-  end
-end,
-simp no_dflt hs attr_names (loc.ns lc) cfg >> (assumption <|> trivial)
+let simp_at (lc) := simp no_dflt hs attr_names (loc.ns lc) cfg >> try (assumption <|> trivial) in
+match tgt with
+| none := get_local `this >> simp_at [some `this, none] <|> simp_at [none]
+| some e :=
+  (do e ← i_to_expr e,
+    match e with
+    | local_const _ lc _ _ := simp_at [some lc, none]
+    | e := do
+      t ← infer_type e,
+      assertv `this t e >> simp_at [some `this, none]
+    end) <|> (do
+      simp_at [none],
+      ty ← target,
+      e ← i_to_expr_strict ``(%%e : %%ty), -- for positional error messages, don't care about the result
+      pty ← pp ty, ptgt ← pp e,
+      -- Fail deliberately, to advise regarding `simp; exact` usage
+      fail ("simpa failed, 'using' expression type not directly " ++
+        "inferrable. Try:\n\nsimpa ... using\nshow " ++
+        to_fmt pty ++ ",\nfrom " ++ ptgt : format))
+end
 
 meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
@@ -83,7 +92,8 @@ meta def substs (l : parse ident*) : tactic unit :=
 l.mmap' (λ h, get_local h >>= tactic.subst)
 
 meta def unfold_coes (loc : parse location) : tactic unit :=
-unfold [`coe,`lift_t,`has_lift_t.lift,`coe_t,`has_coe_t.coe,`coe_b,`has_coe.coe] loc
+unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_coe.coe,
+        ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
 meta def recover : tactic unit :=
 do r ← tactic.result,
@@ -93,8 +103,16 @@ do r ← tactic.result,
      | _ := l
      end
 
+meta def continue (tac : itactic) : tactic unit :=
+λ s, result.cases_on (tac s)
+ (λ a, result.success ())
+ (λ e ref, result.success ())
+
 meta def swap (n := 2) : tactic unit :=
 if n = 2 then tactic.swap else tactic.rotate n
+
+meta def generalize_proofs : parse ident_* → tactic unit :=
+tactic.generalize_proofs
 
 end interactive
 end tactic

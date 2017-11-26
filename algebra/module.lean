@@ -57,12 +57,11 @@ lemma smul_smul : r • s • x = (r * s) • x := mul_smul.symm
 end module
 
 instance ring.to_module [r : ring α] : module α α :=
-{ r with
-  smul := (*),
+{ smul := (*),
   smul_left_distrib := mul_add,
   smul_right_distrib := add_mul,
   mul_smul := mul_assoc,
-  one_smul := one_mul }
+  one_smul := one_mul, ..r }
 
 class submodule {α : Type u} {β : Type v} [ring α] [module α β] (p : set β) : Prop :=
 (add : ∀ {x y}, x ∈ p → y ∈ p → x + y ∈ p)
@@ -101,20 +100,7 @@ instance : has_scalar α {x : β // x ∈ p} := ⟨λ c ⟨x, p⟩, ⟨c • x, 
 @[simp] lemma smul_val : (r • x).val = r • x.val := by cases x; refl
 
 instance : module α {x : β // x ∈ p} :=
-by refine {
-    add                := (+),
-    zero               := 0,
-    neg                := has_neg.neg,
-    smul               := (•),
-    add_assoc          := _,
-    zero_add           := _,
-    add_zero           := _,
-    add_left_neg       := _,
-    add_comm           := _,
-    smul_left_distrib  := _,
-    smul_right_distrib := _,
-    mul_smul           := _,
-    one_smul           := _ };
+by refine {add := (+), zero := 0, neg := has_neg.neg, smul := (•), ..};
   { intros, apply subtype.eq,
     simp [smul_left_distrib, smul_right_distrib, mul_smul] }
 end subtype
@@ -203,15 +189,7 @@ instance : has_neg (linear_map α β γ) :=
 @[simp] lemma neg_app : (-A) x = -A x := by cases A; refl
 
 instance : add_comm_group (linear_map α β γ) :=
-by refine {
-    add          := (+),
-    zero         := 0,
-    neg          := has_neg.neg,
-    add_assoc    := _,
-    zero_add     := _,
-    add_zero     := _,
-    add_left_neg := _,
-    add_comm     := _ };
+by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
   { intros, apply ext, simp }
 
 end add_comm_group
@@ -236,13 +214,7 @@ instance : has_scalar α (linear_map α β γ) := ⟨linear_map.smul⟩
 variables (α β γ)
 
 instance : module α (linear_map α β γ) :=
-by refine {
-    linear_map.add_comm_group with
-    smul               := (•),
-    smul_left_distrib  := _,
-    smul_right_distrib := _,
-    mul_smul           := _,
-    one_smul           := _ };
+by refine {smul := (•), ..linear_map.add_comm_group, ..};
   { intros, apply ext,
     simp [smul_left_distrib, smul_right_distrib, mul_smul] }
 
@@ -269,15 +241,7 @@ by cases A; cases B; refl
 variables (α β)
 
 def endomorphism_ring : ring (linear_map α β β) :=
-by refine {
-    linear_map.add_comm_group with
-    mul             := (*),
-    mul_assoc       := _,
-    one             := 1,
-    one_mul         := _,
-    mul_one         := _,
-    left_distrib    := _,
-    right_distrib   := _ };
+by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
 
 def general_linear_group [ring α] [module α β] :=

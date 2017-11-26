@@ -12,11 +12,11 @@ import data.set order.galois_connection algebra.big_operators
 
 noncomputable theory
 
-open classical set lattice finset function filter
+open set lattice finset function filter
 open ennreal (of_real)
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] classical.prop_decidable
 
-open classical
+local infix ` ^ ` := monoid.pow
 
 namespace measure_theory
 
@@ -94,7 +94,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
             ... < ⊤ : hb)
           (by simp; exact hε' _),
       by simpa [μ, infi_lt_iff] using this,
-    let ⟨f, hf⟩ := axiom_of_choice this in
+    let ⟨f, hf⟩ := classical.axiom_of_choice this in
     let f' := λi, f (nat.unpair i).1 (nat.unpair i).2 in
     have hf' : (⋃ (i : ℕ), s i) ⊆ (⋃i, f' i),
       from Union_subset $ assume i, subset.trans (hf i).left $ Union_subset_Union2 $ assume j,
@@ -270,7 +270,7 @@ le_antisymm
       by rw [←inter_distrib_Union_right]; from inter_subset_inter hf (subset.refl s),
     have h₂ : t \ s ⊆ ⋃i, f i \ s,
       from subset.trans (sdiff_subset_sdiff hf (subset.refl s)) $
-        by simp [subset_def] {contextual := tt},
+        by simp [set.subset_def] {contextual := tt},
     calc om (t ∩ s) + om (t \ s) ≤ (∑i, m (f i ∩ s)) + (∑i, m (f i \ s)) :
         add_le_add'
           (infi_le_of_le (λi, f i ∩ s) $ infi_le_of_le h₁ $ le_refl _)

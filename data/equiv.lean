@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import data.prod data.nat.pairing tactic
+import data.prod data.nat.pairing logic.function tactic
 open function
 
 universes u v w
@@ -20,22 +20,22 @@ def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q
   subtype p → subtype q
 | ⟨v, hv⟩ := ⟨f v, h v hv⟩
 
-lemma map_comp {p : α → Prop} {q : β → Prop} {r : γ → Prop} {x : subtype p}
+theorem map_comp {p : α → Prop} {q : β → Prop} {r : γ → Prop} {x : subtype p}
   (f : α → β) (h : ∀a, p a → q (f a)) (g : β → γ) (l : ∀a, q a → r (g a)) :
   map g l (map f h x) = map (g ∘ f) (assume a ha, l (f a) $ h a ha) x :=
 by cases x with v h; refl
 
-lemma map_id {p : α → Prop} {h : ∀a, p a → p (id a)} : map (@id α) h = id :=
+theorem map_id {p : α → Prop} {h : ∀a, p a → p (id a)} : map (@id α) h = id :=
 funext $ assume ⟨v, h⟩, rfl
 
 end subtype
 
 namespace function
 
-lemma left_inverse.f_g_eq_id {f : α → β} {g : β → α} (h : left_inverse f g) : f ∘ g = id :=
+theorem left_inverse.f_g_eq_id {f : α → β} {g : β → α} (h : left_inverse f g) : f ∘ g = id :=
 funext $ h
 
-lemma right_inverse.g_f_eq_id {f : α → β} {g : β → α} (h : right_inverse f g) : g ∘ f = id :=
+theorem right_inverse.g_f_eq_id {f : α → β} {g : β → α} (h : right_inverse f g) : g ∘ f = id :=
 funext $ h
 
 end function
@@ -54,10 +54,10 @@ infix ` ≃ `:50 := equiv
 instance : has_coe_to_fun (α ≃ β) :=
 ⟨_, to_fun⟩
 
-@[simp] lemma coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
+@[simp] theorem coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
 rfl
 
-lemma eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e₂ → e₁ = e₂
+theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e₂ → e₁ = e₂
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
   have f₁ = f₂, from h,
   have g₁ = g₂, from funext $ assume x,
@@ -78,30 +78,31 @@ lemma eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e₂
     λ x, show g₁ (g₂ (f₂ (f₁ x))) = x, by rw [l₂, l₁],
     λ x, show f₂ (f₁ (g₁ (g₂ x))) = x, by rw [r₁, r₂]⟩
 
+protected theorem bijective : ∀ f : α ≃ β, bijective f
+| ⟨f, g, h₁, h₂⟩ :=
+  ⟨injective_of_left_inverse h₁, surjective_of_has_right_inverse ⟨_, h₂⟩⟩
+
 def id := equiv.refl α
 
-@[simp] lemma coe_fn_symm_mk (f : α → β) (g l r) : ((equiv.mk f g l r).symm : β → α) = g :=
+@[simp] theorem coe_fn_symm_mk (f : α → β) (g l r) : ((equiv.mk f g l r).symm : β → α) = g :=
 rfl
 
-lemma id_apply (x : α) : @id α x = x :=
+theorem id_apply (x : α) : @id α x = x :=
 rfl
 
-lemma comp_apply (g : β ≃ γ) (f : α ≃ β) (x : α) : (g ∘ f) x = g (f x) :=
+theorem comp_apply (g : β ≃ γ) (f : α ≃ β) (x : α) : (g ∘ f) x = g (f x) :=
 by cases g; cases f; simp [equiv.trans, *]
 
-lemma apply_inverse_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
+theorem apply_inverse_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw r₁
 
-lemma inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm (e x) = x
+theorem inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm (e x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw l₁
 
-lemma eq_iff_eq_of_injective {f : α → β} (inj : injective f) (a b : α) : f a = f b ↔ a = b :=
-⟨λ h, inj h, λ h, by rw h⟩
+theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
+| ⟨f₁, g₁, l₁, r₁⟩ x y := (injective_of_left_inverse l₁).eq_iff
 
-lemma apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
-| ⟨f₁, g₁, l₁, r₁⟩ x y := eq_iff_eq_of_injective (injective_of_left_inverse l₁) x y
-
-lemma apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f x = y ↔ x = f.symm y
+theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f x = y ↔ x = f.symm y
 | ⟨f₁, g₁, l₁, r₁⟩ x y := by simp [equiv.symm];
   show f₁ x = y ↔ x = g₁ y; from
   ⟨λ e : f₁ x = y, e ▸ (l₁ x).symm,
@@ -113,11 +114,14 @@ def equiv_empty (h : α → false) : α ≃ empty :=
 def false_equiv_empty : false ≃ empty :=
 equiv_empty _root_.id
 
-lemma empty_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : α ≃ empty :=
+def empty_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : α ≃ empty :=
 ⟨assume a, (h ⟨a⟩).elim, assume e, e.rec_on _, assume a, (h ⟨a⟩).elim, assume e, e.rec_on _⟩
 
-protected lemma ulift {α : Type u} : ulift α ≃ α :=
+protected def ulift {α : Type u} : ulift α ≃ α :=
 ⟨ulift.down, ulift.up, ulift.up_down, ulift.down_up⟩
+
+protected def plift {α : Type u} : plift α ≃ α :=
+⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
 @[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ β₂ → (α₁ → β₁) ≃ (α₂ → β₂)
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ :=
@@ -140,7 +144,7 @@ section
 calc (false → α) ≃ (empty → α) : arrow_congr false_equiv_empty (equiv.refl _)
              ... ≃ unit        : empty_arrow_equiv_unit _
 
-lemma arrow_empty_unit {α : Sort*} : (empty → α) ≃ unit :=
+def arrow_empty_unit {α : Sort*} : (empty → α) ≃ unit :=
 ⟨λf, (), λu e, e.rec_on _, assume f, funext $ assume e, e.rec_on _, assume u, unit_eq _ _⟩
 
 end
@@ -219,6 +223,13 @@ def bool_equiv_unit_sum_unit : bool ≃ (unit ⊕ unit) :=
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
+ 
+def sum_equiv_sigma_bool (α β : Sort*) : (α ⊕ β) ≃ (Σ b: bool, cond b α β) :=
+⟨λ s, match s with inl a := ⟨tt, a⟩ | inr b := ⟨ff, b⟩ end,
+ λ s, match s with ⟨tt, a⟩ := inl a | ⟨ff, b⟩ := inr b end,
+ λ s, by cases s; refl,
+ λ s, by rcases s with ⟨_|_, _⟩; refl⟩
+
 end
 
 section
@@ -405,10 +416,10 @@ if r = a then b
 else if r = b then a
 else r
 
-lemma swap_core_self (r a : α) : swap_core a a r = r :=
+theorem swap_core_self (r a : α) : swap_core a a r = r :=
 by by_cases r = a; simp [swap_core, *]
 
-lemma swap_core_swap_core (r a b : α) : swap_core a b (swap_core a b r) = r :=
+theorem swap_core_swap_core (r a b : α) : swap_core a b (swap_core a b r) = r :=
 begin
   by_cases r = b with hb,
   { by_cases r = a with ha,
@@ -421,7 +432,7 @@ begin
     simp [swap_core, *] }
 end
 
-lemma swap_core_comm (r a b : α) : swap_core a b r = swap_core b a r :=
+theorem swap_core_comm (r a b : α) : swap_core a b r = swap_core b a r :=
 begin
   by_cases r = b with hb,
   { by_cases r = a with ha,
@@ -437,28 +448,28 @@ end
 def swap (a b : α) : perm α :=
 ⟨swap_core a b, swap_core a b, λr, swap_core_swap_core r a b, λr, swap_core_swap_core r a b⟩
 
-lemma swap_self (a : α) : swap a a = id :=
+theorem swap_self (a : α) : swap a a = id :=
 eq_of_to_fun_eq $ funext $ λ r, swap_core_self r a
 
-lemma swap_comm (a b : α) : swap a b = swap b a :=
+theorem swap_comm (a b : α) : swap a b = swap b a :=
 eq_of_to_fun_eq $ funext $ λ r, swap_core_comm r _ _
 
-lemma swap_apply_def (a b x : α) : swap a b x = if x = a then b else if x = b then a else x :=
+theorem swap_apply_def (a b x : α) : swap a b x = if x = a then b else if x = b then a else x :=
 rfl
 
-lemma swap_apply_left (a b : α) : swap a b a = b :=
+theorem swap_apply_left (a b : α) : swap a b a = b :=
 if_pos rfl
 
-lemma swap_apply_right (a b : α) : swap a b b = a :=
+theorem swap_apply_right (a b : α) : swap a b b = a :=
 by by_cases b = a; simp [swap_apply_def, *]
 
-lemma swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
+theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}
 
-lemma swap_swap (a b : α) : (swap a b).trans (swap a b) = id :=
+theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = id :=
 eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
 
-lemma swap_comp_apply {a b x : α} (π : perm α) :
+theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by cases π; refl
 

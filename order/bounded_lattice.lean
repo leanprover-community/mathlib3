@@ -22,16 +22,16 @@ namespace lattice
 class bounded_lattice (α : Type u) extends lattice α, order_top α, order_bot α
 
 instance semilattice_inf_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_inf_top α :=
-{ bl with le_top := assume x, @le_top α _ x }
+{ le_top := assume x, @le_top α _ x, ..bl }
 
 instance semilattice_inf_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_inf_bot α :=
-{ bl with bot_le := assume x, @bot_le α _ x }
+{ bot_le := assume x, @bot_le α _ x, ..bl }
 
 instance semilattice_sup_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_sup_top α :=
-{ bl with le_top := assume x, @le_top α _ x }
+{ le_top := assume x, @le_top α _ x, ..bl }
 
 instance semilattice_sup_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_sup_bot α :=
-{ bl with bot_le := assume x, @bot_le α _ x }
+{ bot_le := assume x, @bot_le α _ x, ..bl }
 
 /- Prop instance -/
 instance bounded_lattice_Prop : bounded_lattice Prop :=
@@ -78,8 +78,7 @@ end logic
 -/
 instance bounded_lattice_fun {α : Type u} {β : Type v} [bounded_lattice β] :
   bounded_lattice (α → β) :=
-{ partial_order_fun with
-  sup          := λf g a, f a ⊔ g a,
+{ sup          := λf g a, f a ⊔ g a,
   le_sup_left  := assume f g a, le_sup_left,
   le_sup_right := assume f g a, le_sup_right,
   sup_le       := assume f g h Hfg Hfh a, sup_le (Hfg a) (Hfh a),
@@ -93,6 +92,7 @@ instance bounded_lattice_fun {α : Type u} {β : Type v} [bounded_lattice β] :
   le_top       := assume f a, le_top,
 
   bot          := λa, ⊥,
-  bot_le       := assume f a, bot_le }
+  bot_le       := assume f a, bot_le,
+  ..partial_order_fun }
 
 end lattice

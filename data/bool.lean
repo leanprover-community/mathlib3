@@ -5,8 +5,6 @@ Author: Leonardo de Moura, Jeremy Avigad
 -/
 
 namespace bool
-set_option pp.universes true
-
 
 @[simp] theorem coe_sort_tt : coe_sort.{1 1} tt = true := eq_true_intro rfl
 

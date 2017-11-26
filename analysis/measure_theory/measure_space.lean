@@ -102,9 +102,9 @@ calc μ.measure' (s₁ ∪ s₂) = μ.measure' (⋃n, s n) : by rw [Un_s]
 
 protected lemma measure'_mono (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) (hs : s₁ ⊆ s₂) :
   μ.measure' s₁ ≤ μ.measure' s₂ :=
-have hd : s₁ ∩ (s₂ \ s₁) = ∅, from set.ext $ by simp [mem_sdiff_iff] {contextual:=tt},
+have hd : s₁ ∩ (s₂ \ s₁) = ∅, from set.ext $ by simp [mem_sdiff] {contextual:=tt},
 have hu : s₁ ∪ (s₂ \ s₁) = s₂,
-  from set.ext $ assume x, by by_cases x ∈ s₁; simp [mem_sdiff_iff, h, @hs x] {contextual:=tt},
+  from set.ext $ assume x, by by_cases x ∈ s₁; simp [mem_sdiff, h, @hs x] {contextual:=tt},
 calc μ.measure' s₁ ≤ μ.measure' s₁ + μ.measure' (s₂ \ s₁) :
     le_add_of_nonneg_right' ennreal.zero_le
   ... = μ.measure' (s₁ ∪ (s₂ \ s₁)) :
@@ -137,7 +137,7 @@ protected def measure (s : set α) : ennreal := μ.to_outer_measure.measure_of s
 protected lemma measure_eq (hs : is_measurable s) : μ.measure s = μ.measure_of s hs :=
 le_antisymm
   (infi_le_of_le (λn, ⋃h : n = 0, s) $
-    infi_le_of_le begin simp [subset_def] end $
+    infi_le_of_le begin simp [set.subset_def] end $
     calc (∑i, ⨅ h : is_measurable (⋃ h : i = 0, s), μ.measure_of _ h) =
           ({0}:finset ℕ).sum (λi, ⨅ h : is_measurable (⋃ h : i = 0, s), μ.measure_of _ h) :
         tsum_eq_sum $ assume b,

@@ -34,17 +34,17 @@ iff.intro
       ... = f (inv_fun f y) : by rw [h]
       ... = y : inv_fun_eq $ hf hy⟩)
 
-lemma countable.to_encodable {s : set α} (h : countable s) : encodable {a // a ∈ s} :=
+lemma countable.to_encodable {s : set α} (h : countable s) : encodable s :=
 let f := classical.some h in
 have hf : ∀x∈s, ∀y∈s, f x = f y → x = y, from classical.some_spec h,
 let f' : {a // a ∈ s} → ℕ := f ∘ subtype.val in
 encodable_of_inj f' $ assume ⟨a, ha⟩ ⟨b, hb⟩ (h : f a = f b), subtype.eq $ hf a ha b hb h
 
-lemma countable_encodable' {s : set α} (e : encodable {a // a∈s}) : countable s :=
-⟨λx, if h : x ∈ s then @encode _ e ⟨x, h⟩ else 0, assume x hx y hy h,
-  have @encode _ e ⟨x, hx⟩ = @encode _ e ⟨y, hy⟩,
+lemma countable_encodable' (s : set α) [encodable s] : countable s :=
+⟨λx, if h : x ∈ s then @encode s _ ⟨x, h⟩ else 0, assume x hx y hy h,
+  have @encode s _ ⟨x, hx⟩ = @encode s _ ⟨y, hy⟩,
     by simp [hx, hy] at h; assumption,
-  have decode {a // a∈s} (@encode _ e ⟨x, hx⟩) = decode {a // a∈s} (@encode _ e ⟨y, hy⟩),
+  have decode s (@encode s _ ⟨x, hx⟩) = decode s (@encode s _ ⟨y, hy⟩),
     from congr_arg _ this,
   by simp [encodek] at this; injection this⟩
 
@@ -63,9 +63,9 @@ lemma countable_subset {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : countable s₂
 | ⟨f, hf⟩ := ⟨f, assume x hx y hy eq, hf x (h hx) y (h hy) eq⟩
 
 lemma countable_image {s : set α} {f : α → β} (hs : countable s) : countable (f '' s) :=
-let f' : {a // a ∈ s} → {b // b ∈ f '' s} := λ⟨a, ha⟩, ⟨f a, mem_image_of_mem f ha⟩ in
+let f' : s → f '' s := λ⟨a, ha⟩, ⟨f a, mem_image_of_mem f ha⟩ in
 have hf' : surjective f', from assume ⟨b, a, ha, hab⟩, ⟨⟨a, ha⟩, subtype.eq hab⟩,
-countable_encodable' $ @encodable_of_inj _ _ hs.to_encodable (surj_inv hf') (injective_surj_inv hf')
+@countable_encodable' _ _ $ @encodable_of_inj _ _ hs.to_encodable (surj_inv hf') (injective_surj_inv hf')
 
 lemma countable_sUnion {s : set (set α)} (hs : countable s) (h : ∀a∈s, countable a) :
   countable (⋃₀ s) :=
@@ -117,20 +117,19 @@ by rw [this]; from countable_bUnion countable_encodable (assume b,
 lemma countable_insert {s : set α} {a : α} (h : countable s) : countable (insert a s) :=
 by rw [set.insert_eq]; from countable_union countable_singleton h
 
-lemma countable_finite {s : set α} (h : finite s) : countable s :=
-h.rec_on countable_empty $ assume a s _ _, countable_insert
+lemma countable_finite {s : set α} : finite s → countable s
+| ⟨h⟩ := by have := (trunc_encodable_of_fintype s).out; apply countable_encodable'
 
 lemma countable_set_of_finite_subset {s : set α} (h : countable s) :
   countable {t | finite t ∧ t ⊆ s } :=
 have {t | finite t ∧ t ⊆ s } ⊆
-  (λt, {a:α | ∃h:a∈s, subtype.mk a h ∈ t} : finset {a:α // a ∈ s} → set α) '' univ,
+  (λt : finset {a:α // a ∈ s}, {a:α | ∃h:a∈s, subtype.mk a h ∈ t}) '' univ,
   from assume t ht,
   begin
-    cases ht with ht₁ ht₂,
-    induction ht₁,
-    case finite.empty { exact ⟨∅, mem_univ _, by simp⟩ },
-    case finite.insert a t ha ht ih {
-      exact
+    cases ht with ht₁ ht₂, revert ht₂,
+    refine finite.induction_on ht₁ _ (λ a t ha ht ih, _); intro ht₂,
+    { exact ⟨∅, mem_univ _, by simp⟩ },
+    { exact
         have has : a ∈ s, from ht₂ $ mem_insert _ _,
         have t ⊆ s, from assume x hx, ht₂ $ mem_insert_of_mem _ hx,
         let ⟨t', ht', eq⟩ := ih this in

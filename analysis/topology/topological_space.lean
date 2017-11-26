@@ -69,13 +69,10 @@ is_open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 have is_open (⋃₀ ∅ : set α), from is_open_sUnion (assume a, false.elim),
 by simp at this; assumption
 
-lemma is_open_sInter {s : set (set α)} (hs : finite s) (h : ∀t ∈ s, is_open t) : is_open (⋂₀ s) :=
-begin
-  induction hs,
-  case finite.empty { simp },
-  case finite.insert a s has hs ih {
-    suffices : is_open (a ∩ ⋂₀ s), { simpa },
-    exact is_open_inter (h _ $ mem_insert _ _) (ih $ assume t ht, h _ $ mem_insert_of_mem _ ht) }
+lemma is_open_sInter {s : set (set α)} (hs : finite s) : (∀t ∈ s, is_open t) → is_open (⋂₀ s) :=
+finite.induction_on hs (by simp) $ λ a s has hs ih h, begin
+  suffices : is_open (a ∩ ⋂₀ s), { simpa },
+  exact is_open_inter (h _ $ mem_insert _ _) (ih $ assume t ht, h _ $ mem_insert_of_mem _ ht)
 end
 
 lemma is_open_const {p : Prop} : is_open {a : α | p} :=
@@ -115,12 +112,9 @@ by rw [is_closed, compl_inter]; exact is_open_union h₁ h₂
 
 lemma is_closed_Union {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
-begin
-  induction hs,
-  simp,
-  simp,
-  exact assume h, is_closed_union (h _ $ or.inl rfl) (by finish)
-end
+finite.induction_on hs (by simp) $
+λ _ _ _ _ _, by simp; exact
+assume h, is_closed_union (h _ $ or.inl rfl) (by finish)
 
 lemma is_closed_imp [topological_space α] {p q : α → Prop}
   (hp : is_open {x | p x}) (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
@@ -462,20 +456,20 @@ classical.by_contradiction $ assume h,
   let
     f : filter α := (⨅c':{c' : set (set α) // c' ⊆ c ∧ finite c'}, principal (s - ⋃₀ c')),
     ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
-      (assume h', h (empty_subset _) finite.empty $ h'.symm ▸ empty_subset _)
+      (assume h', h (empty_subset _) finite_empty $ h'.symm ▸ empty_subset _)
   in
   have f ≠ ⊥, from infi_neq_bot_of_directed ⟨a⟩
     (assume ⟨c₁, hc₁, hc'₁⟩ ⟨c₂, hc₂, hc'₂⟩, ⟨⟨c₁ ∪ c₂, union_subset hc₁ hc₂, finite_union hc'₁ hc'₂⟩,
       principal_mono.mpr $ diff_right_antimono $ sUnion_mono $ subset_union_left _ _,
       principal_mono.mpr $ diff_right_antimono $ sUnion_mono $ subset_union_right _ _⟩)
     (assume ⟨c', hc'₁, hc'₂⟩, show principal (s \ _) ≠ ⊥, by simp [diff_neq_empty]; exact h hc'₁ hc'₂),
-  have f ≤ principal s, from infi_le_of_le ⟨∅, empty_subset _, finite.empty⟩ $
+  have f ≤ principal s, from infi_le_of_le ⟨∅, empty_subset _, finite_empty⟩ $
     show principal (s \ ⋃₀∅) ≤ principal s, by simp; exact subset.refl s,
   let
     ⟨a, ha, (h : f ⊓ nhds a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
     ⟨t, ht₁, (ht₂ : a ∈ t)⟩ := hc₂ ha
   in
-  have f ≤ principal (-t), from infi_le_of_le ⟨{t}, by simp [ht₁], finite_insert finite.empty⟩ $
+  have f ≤ principal (-t), from infi_le_of_le ⟨{t}, by simp [ht₁], finite_insert _ finite_empty⟩ $
     principal_mono.mpr $ show s - ⋃₀{t} ⊆ - t, begin simp; exact assume x ⟨_, hnt⟩, hnt end,
   have is_closed (- t), from is_open_compl_iff.mp $ by simp; exact hc₁ t ht₁,
   have a ∈ - t, from is_closed_iff_nhds.mp this _ $ neq_bot_of_le_neq_bot h $
@@ -558,7 +552,7 @@ lemma compact_singleton {a : α} : compact ({a} : set α) :=
 compact_of_finite_subcover $ assume c hc₁ hc₂,
   have ∃i, a ∈ i ∧ i ∈ c, by simp at hc₂; assumption,
   let ⟨i, hai, hic⟩ := this in
-  ⟨{i}, by simp [hic], finite_singleton, by simp [hai]⟩
+  ⟨{i}, by simp [hic], finite_singleton _, by simp [hai]⟩
 
 end compact
 
@@ -653,8 +647,7 @@ inductive generate_open (g : set (set α)) : set α → Prop
 | sUnion : ∀k, (∀s∈k, generate_open s) → generate_open (⋃₀ k)
 
 def generate_from (g : set (set α)) : topological_space α :=
-{ topological_space .
-  is_open       := generate_open g,
+{ is_open       := generate_open g,
   is_open_univ   := generate_open.univ g,
   is_open_inter  := generate_open.inter,
   is_open_sUnion := generate_open.sUnion  }
@@ -693,14 +686,13 @@ section constructions
 variables {α : Type u} {β : Type v}
 
 instance : partial_order (topological_space α) :=
-{ le            := λt s, t.is_open ≤ s.is_open,
-  le_antisymm   := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₁ h₂,
-  le_refl       := assume t, le_refl t.is_open,
-  le_trans      := assume a b c h₁ h₂, @le_trans _ _ a.is_open b.is_open c.is_open h₁ h₂ }
+{ le          := λt s, t.is_open ≤ s.is_open,
+  le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₁ h₂,
+  le_refl     := assume t, le_refl t.is_open,
+  le_trans    := assume a b c h₁ h₂, @le_trans _ _ a.is_open b.is_open c.is_open h₁ h₂ }
 
-instance : has_Inf (topological_space α) :=
-⟨assume (tt : set (topological_space α)), { topological_space .
-  is_open := λs, ∀t∈tt, topological_space.is_open t s,
+instance : has_Inf (topological_space α) := ⟨λ tt,
+{ is_open        := λs, ∀t∈tt, topological_space.is_open t s,
   is_open_univ   := assume t h, t.is_open_univ,
   is_open_inter  := assume s₁ s₂ h₁ h₂ t ht, t.is_open_inter s₁ s₂ (h₁ t ht) (h₂ t ht),
   is_open_sUnion := assume s h t ht, t.is_open_sUnion _ $ assume s' hss', h _ hss' _ ht }⟩
@@ -715,8 +707,7 @@ assume s hs t' ht', h t' ht' s hs
 
 def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : topological_space β) :
   topological_space α :=
-{ topological_space .
-  is_open       := λs, ∃s', t.is_open s' ∧ s = preimage f s',
+{ is_open        := λs, ∃s', t.is_open s' ∧ s = preimage f s',
   is_open_univ   := ⟨univ, by simp; exact t.is_open_univ⟩,
   is_open_inter  := assume s₁ s₂ ⟨s'₁, hs₁, eq₁⟩ ⟨s'₂, hs₂, eq₂⟩,
     ⟨s'₁ ∩ s'₂, by simp [eq₁, eq₂]; exact t.is_open_inter _ _ hs₁ hs₂⟩,
@@ -737,31 +728,27 @@ lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → 
 
 def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t : topological_space α) :
   topological_space β :=
-{ topological_space .
-  is_open       := λs, t.is_open (preimage f s),
+{ is_open        := λs, t.is_open (preimage f s),
   is_open_univ   := by simp; exact t.is_open_univ,
   is_open_inter  := assume s₁ s₂ h₁ h₂, by simp; exact t.is_open_inter _ _ h₁ h₂,
   is_open_sUnion := assume s h, by rw [preimage_sUnion]; exact (@is_open_Union _ _ t _ $ assume i,
     show is_open (⋃ (H : i ∈ s), preimage f i), from
       @is_open_Union _ _ t _ $ assume hi, h i hi) }
 
-instance : has_inf (topological_space α) :=
-⟨assume t₁ t₂ : topological_space α, { topological_space .
-  is_open       := λs, t₁.is_open s ∧ t₂.is_open s,
+instance : has_inf (topological_space α) := ⟨λ t₁ t₂,
+{ is_open        := λs, t₁.is_open s ∧ t₂.is_open s,
   is_open_univ   := ⟨t₁.is_open_univ, t₂.is_open_univ⟩,
   is_open_inter  := assume s₁ s₂ ⟨h₁₁, h₁₂⟩ ⟨h₂₁, h₂₂⟩, ⟨t₁.is_open_inter s₁ s₂ h₁₁ h₂₁, t₂.is_open_inter s₁ s₂ h₁₂ h₂₂⟩,
   is_open_sUnion := assume s h, ⟨t₁.is_open_sUnion _ $ assume t ht, (h t ht).left, t₂.is_open_sUnion _ $ assume t ht, (h t ht).right⟩ }⟩
 
 instance : has_top (topological_space α) :=
-⟨{topological_space .
-  is_open       := λs, true,
+⟨{is_open        := λs, true,
   is_open_univ   := trivial,
   is_open_inter  := assume a b ha hb, trivial,
   is_open_sUnion := assume s h, trivial }⟩
 
 instance {α : Type u} : complete_lattice (topological_space α) :=
-{ topological_space.partial_order with
-  sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
+{ sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
   le_sup_left   := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.left,
   le_sup_right  := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.right,
   sup_le        := assume a b c h₁ h₂, Inf_le $ show c ∈ {x | a ≤ x ∧ b ≤ x}, from ⟨h₁, h₂⟩,
@@ -778,7 +765,8 @@ instance {α : Type u} : complete_lattice (topological_space α) :=
   Sup_le        := assume s f h, Inf_le $ assume t ht, h _ ht,
   Inf           := Inf,
   le_Inf        := assume s a, le_Inf,
-  Inf_le        := assume s a, Inf_le }
+  Inf_le        := assume s a, Inf_le,
+  ..topological_space.partial_order }
 
 instance inhabited_topological_space {α : Type u} : inhabited (topological_space α) :=
 ⟨⊤⟩

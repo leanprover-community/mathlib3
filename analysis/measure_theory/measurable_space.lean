@@ -123,8 +123,7 @@ namespace measurable_space
 section complete_lattice
 
 instance : partial_order (measurable_space α) :=
-{ partial_order .
-  le          := λm₁ m₂, m₁.is_measurable ≤ m₂.is_measurable,
+{ le          := λm₁ m₂, m₁.is_measurable ≤ m₂.is_measurable,
   le_refl     := assume a b, le_refl _,
   le_trans    := assume a b c, le_trans,
   le_antisymm := assume a b h₁ h₂, measurable_space_eq $ assume s, ⟨h₁ s, h₂ s⟩ }
@@ -138,8 +137,7 @@ inductive generate_measurable (s : set (set α)) : set α → Prop
 | union : ∀f:ℕ → set α, (∀n, generate_measurable (f n)) → generate_measurable (⋃i, f i)
 
 def generate_from (s : set (set α)) : measurable_space α :=
-{measurable_space .
-  is_measurable       := generate_measurable s,
+{ is_measurable       := generate_measurable s,
   is_measurable_empty := generate_measurable.empty s,
   is_measurable_compl := generate_measurable.compl,
   is_measurable_Union := generate_measurable.union }
@@ -158,15 +156,13 @@ assume t (ht : generate_measurable s t), ht.rec_on h
 end generated_from
 
 instance : has_top (measurable_space α) :=
-⟨{measurable_space .
-  is_measurable       := λs, true,
+⟨{is_measurable       := λs, true,
   is_measurable_empty := trivial,
   is_measurable_compl := assume s hs, trivial,
   is_measurable_Union := assume f hf, trivial }⟩
 
 instance : has_bot (measurable_space α) :=
-⟨{measurable_space .
-  is_measurable       := λs, s = ∅ ∨ s = univ,
+⟨{is_measurable       := λs, s = ∅ ∨ s = univ,
   is_measurable_empty := or.inl rfl,
   is_measurable_compl := by simp [or_imp_distrib] {contextual := tt},
   is_measurable_Union := assume f hf, by_cases
@@ -178,7 +174,7 @@ instance : has_bot (measurable_space α) :=
         (hf i).elim (by simp {contextual := tt}) (assume hi, false.elim $ h ⟨i, hi⟩)) }⟩
 
 instance : has_inf (measurable_space α) :=
-⟨λm₁ m₂, {measurable_space .
+⟨λm₁ m₂, {
   is_measurable       := λs:set α, m₁.is_measurable s ∧ m₂.is_measurable s,
   is_measurable_empty := ⟨m₁.is_measurable_empty, m₂.is_measurable_empty⟩,
   is_measurable_compl := assume s ⟨h₁, h₂⟩, ⟨m₁.is_measurable_compl s h₁, m₂.is_measurable_compl s h₂⟩,
@@ -186,7 +182,7 @@ instance : has_inf (measurable_space α) :=
     ⟨m₁.is_measurable_Union f (λi, (hf i).left), m₂.is_measurable_Union f (λi, (hf i).right)⟩ }⟩
 
 instance : has_Inf (measurable_space α) :=
-⟨λx, {measurable_space .
+⟨λx, {
   is_measurable       := λs:set α, ∀m:measurable_space α, m ∈ x → m.is_measurable s,
   is_measurable_empty := assume m hm, m.is_measurable_empty,
   is_measurable_compl := assume s hs m hm, m.is_measurable_compl s $ hs _ hm,
@@ -201,8 +197,7 @@ protected lemma Inf_le {s : set (measurable_space α)} {m : measurable_space α}
 assume s hs, hs m h
 
 instance : complete_lattice (measurable_space α) :=
-{ measurable_space.partial_order with
-  sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
+{ sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
   le_sup_left   := assume a b, measurable_space.le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.left,
   le_sup_right  := assume a b, measurable_space.le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.right,
   sup_le        := assume a b c h₁ h₂,
@@ -222,7 +217,8 @@ instance : complete_lattice (measurable_space α) :=
   Sup_le        := assume s f h, measurable_space.Inf_le $ assume t ht, h _ ht,
   Inf           := Inf,
   le_Inf        := assume s a, measurable_space.le_Inf,
-  Inf_le        := assume s a, measurable_space.Inf_le }
+  Inf_le        := assume s a, measurable_space.Inf_le,
+  ..measurable_space.partial_order }
 
 instance : inhabited (measurable_space α) := ⟨⊤⟩
 
@@ -232,8 +228,7 @@ section functors
 variables {m m₁ m₂ : measurable_space α} {m' : measurable_space β} {f : α → β} {g : β → α}
 
 protected def map (f : α → β) (m : measurable_space α) : measurable_space β :=
-{measurable_space .
-  is_measurable       := λs, m.is_measurable $ f ⁻¹' s,
+{ is_measurable       := λs, m.is_measurable $ f ⁻¹' s,
   is_measurable_empty := m.is_measurable_empty,
   is_measurable_compl := assume s hs, m.is_measurable_compl _ hs,
   is_measurable_Union := assume f hf, by rw [preimage_Union]; exact m.is_measurable_Union _ hf }
@@ -245,8 +240,7 @@ measurable_space_eq $ assume s, iff.refl _
 measurable_space_eq $ assume s, iff.refl _
 
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
-{measurable_space .
-  is_measurable       := λs, ∃s', m.is_measurable s' ∧ f ⁻¹' s' = s,
+{ is_measurable       := λs, ∃s', m.is_measurable s' ∧ f ⁻¹' s' = s,
   is_measurable_empty := ⟨∅, m.is_measurable_empty, rfl⟩,
   is_measurable_compl := assume s ⟨s', h₁, h₂⟩, ⟨-s', m.is_measurable_compl _ h₁, h₂ ▸ rfl⟩,
   is_measurable_Union := assume s hs,
@@ -423,15 +417,13 @@ lemma dynkin_system_eq :
   by subst this
 
 instance : partial_order (dynkin_system α) :=
-{ partial_order .
-  le          := λm₁ m₂, m₁.has ≤ m₂.has,
+{ le          := λm₁ m₂, m₁.has ≤ m₂.has,
   le_refl     := assume a b, le_refl _,
   le_trans    := assume a b c, le_trans,
   le_antisymm := assume a b h₁ h₂, dynkin_system_eq $ assume s, ⟨h₁ s, h₂ s⟩ }
 
 def of_measurable_space (m : measurable_space α) : dynkin_system α :=
-{ dynkin_system .
-  has       := m.is_measurable,
+{ has       := m.is_measurable,
   has_empty := m.is_measurable_empty,
   has_compl := m.is_measurable_compl,
   has_Union := assume f _ hf, m.is_measurable_Union f hf }
@@ -448,8 +440,7 @@ inductive generate_has (s : set (set α)) : set α → Prop
     (∀i, generate_has (f i)) → generate_has (⋃i, f i)
 
 def generate (s : set (set α)) : dynkin_system α :=
-{ dynkin_system .
-  has := generate_has s,
+{ has := generate_has s,
   has_empty := generate_has.empty s,
   has_compl := assume a, generate_has.compl,
   has_Union := assume f, generate_has.Union }
@@ -513,8 +504,7 @@ lemma of_measurable_space_to_measurable_space
 dynkin_system_eq $ assume s, iff.refl _
 
 def restrict_on {s : set δ} (h : d.has s) : dynkin_system δ :=
-{ dynkin_system .
-  has       := λt, d.has (t ∩ s),
+{ has       := λt, d.has (t ∩ s),
   has_empty := by simp [d.has_empty],
   has_compl := assume t hts,
     have -t ∩ s = (- (t ∩ s)) \ -s,

@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Basic properties of lists.
 -/
-import logic.basic data.nat.basic data.option data.bool
+import logic.basic data.nat.basic data.option data.bool data.prod
        tactic.interactive algebra.group
 open function nat
 
@@ -58,6 +58,9 @@ theorem length_pos_of_mem {a : α} : ∀ {l : list α}, a ∈ l → 0 < length l
 
 theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a ∈ l
 | (b::l) _ := ⟨b, mem_cons_self _ _⟩
+
+theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=
+⟨exists_mem_of_length_pos, λ ⟨a, h⟩, length_pos_of_mem h⟩
 
 theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = s ++ a :: t :=
 begin
@@ -246,7 +249,7 @@ theorem eq_repeat {a : α} {n} {l : list α} : l = repeat a n ↔ length l = n �
 theorem repeat_subset_singleton (a : α) (n) : repeat a n ⊆ [a] :=
 λ b h, mem_singleton.2 (eq_of_mem_repeat h)
 
-@[simp] theorem map_const {l : list α} {b : β} : map (function.const α b) l = repeat b l.length :=
+@[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
 by induction l; simp [-add_comm, *]
 
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) : b₁ = b₂ :=
@@ -506,8 +509,11 @@ theorem eq_of_sublist_of_length_eq : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ →
 | ._ ._ (sublist.cons2 l₁ l₂ a s) h :=
   by rw [length, length] at h; injection h with h; rw eq_of_sublist_of_length_eq s h
 
+theorem eq_of_sublist_of_length_le {l₁ l₂ : list α} (s : l₁ <+ l₂) (h : length l₂ ≤ length l₁) : l₁ = l₂ :=
+eq_of_sublist_of_length_eq s (le_antisymm (length_le_of_sublist s) h)
+
 theorem sublist_antisymm {l₁ l₂ : list α} (s₁ : l₁ <+ l₂) (s₂ : l₂ <+ l₁) : l₁ = l₂ :=
-eq_of_sublist_of_length_eq s₁ (le_antisymm (length_le_of_sublist s₁) (length_le_of_sublist s₂))
+eq_of_sublist_of_length_le s₁ (length_le_of_sublist s₂)
 
 instance decidable_sublist [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <+ l₂)
 | []      l₂      := is_true $ nil_sublist _
@@ -923,6 +929,15 @@ by induction l; simp [list.join, *] at *
 
 end monoid
 
+@[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
+by induction n; simp [*, nat.mul_succ]
+
+@[simp] theorem length_join (L : list (list α)) : length (join L) = sum (map length L) :=
+by induction L; simp *
+
+@[simp] theorem length_bind (l : list α) (f : α → list β) : length (bind l f) = sum (map (length ∘ f) l) :=
+by rw [bind, length_join, map_map]
+
 /- all & any, bounded quantifiers over lists -/
 
 theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x :=
@@ -996,6 +1011,42 @@ decidable_of_iff _ all_iff_forall_prop
 instance decidable_exists_mem {p : α → Prop} [decidable_pred p] (l : list α) :
   decidable (∃ x ∈ l, p x) :=
 decidable_of_iff _ any_iff_exists_prop
+
+/- map for partial functions -/
+
+@[simp] def pmap {p : α → Prop} (f : Π a, p a → β) : Π l : list α, (∀ a ∈ l, p a) → list β
+| []     H := []
+| (a::l) H := f a (forall_mem_cons.1 H).1 :: pmap l (forall_mem_cons.1 H).2
+
+def attach (l : list α) : list {x // x ∈ l} := pmap subtype.mk l (λ a, id)
+
+theorem pmap_eq_map (p : α → Prop) (f : α → β) (l : list α) (H) :
+  @pmap _ _ p (λ a _, f a) l H = map f l :=
+by induction l; simp *
+
+theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
+  (l : list α) {H₁ H₂} (h : ∀ a h₁ h₂, f a h₁ = g a h₂) :
+  pmap f l H₁ = pmap g l H₂ :=
+by induction l; simp *; apply ih_1
+
+theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
+  (l H) : map g (pmap f l H) = pmap (λ a h, g (f a h)) l H :=
+by induction l; simp *
+
+theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
+  (l H) : pmap f l H = l.attach.map (λ x, f x.1 (H _ x.2)) :=
+by rw [attach, map_pmap]; exact pmap_congr l (λ a h₁ h₂, rfl)
+
+theorem attach_map_val (l : list α) : l.attach.map subtype.val = l :=
+by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _).trans (map_id l)
+
+@[simp] theorem mem_attach (l : list α) : ∀ x, x ∈ l.attach | ⟨a, h⟩ :=
+by have := mem_map.1 (by rw [attach_map_val]; exact h);
+   { rcases this with ⟨a, m, rfl⟩, cases a, exact m }
+
+@[simp] theorem mem_pmap {p : α → Prop} {f : Π a, p a → β}
+  {l H b} : b ∈ pmap f l H ↔ ∃ a (h : a ∈ l), f a (H a h) = b :=
+by simp [pmap_eq_map_attach]
 
 /- find -/
 
@@ -1141,6 +1192,10 @@ by induction s with l₁ l₂ a s IH l₁ l₂ a s IH;
    simp [filter_map]; cases f a with b;
    simp [filter_map, IH, sublist.cons, sublist.cons2]
 
+theorem map_sublist_map (f : α → β) {l₁ l₂ : list α}
+  (s : l₁ <+ l₂) : map f l₁ <+ map f l₂ :=
+by rw ← filter_map_eq_map; exact filter_map_sublist_filter_map _ s
+
 /- filter -/
 
 section filter
@@ -1220,14 +1275,8 @@ local attribute [simp] countp_eq_length_filter
 @[simp] theorem countp_append (l₁ l₂) : countp p (l₁ ++ l₂) = countp p l₁ + countp p l₂ :=
 by simp
 
-theorem exists_mem_of_countp_pos {l} (h : countp p l > 0) : ∃ a ∈ l, p a :=
-by simp at h; exact
-exists_imp_exists
-  (λ a al, ⟨mem_of_mem_filter al, of_mem_filter al⟩)
-  (exists_mem_of_length_pos h)
-
-theorem countp_pos_of_mem {l a} (h : a ∈ l) (pa : p a) : countp p l > 0 :=
-by simp; exact length_pos_of_mem (mem_filter_of_mem h pa)
+theorem countp_pos {l} : 0 < countp p l ↔ ∃ a ∈ l, p a :=
+by simp [countp_eq_length_filter, length_pos_iff_exists_mem]
 
 theorem countp_le_of_sublist {l₁ l₂} (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ :=
 by simpa using length_le_of_sublist (filter_sublist_filter s)
@@ -1262,7 +1311,7 @@ if_neg h
 theorem count_le_of_sublist (a : α) {l₁ l₂} : l₁ <+ l₂ → count a l₁ ≤ count a l₂ :=
 countp_le_of_sublist
 
-theorem count_cons_ge_count (a b : α) (l : list α) : count a (b :: l) ≥ count a l :=
+theorem count_le_count_cons (a b : α) (l : list α) : count a l ≤ count a (b :: l) :=
 count_le_of_sublist _ (sublist_cons _ _)
 
 theorem count_singleton (a : α) : count a [a] = 1 :=
@@ -1274,14 +1323,8 @@ countp_append
 @[simp] theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by rw [concat_eq_append, count_append, count_singleton]
 
-theorem mem_of_count_pos {a : α} {l : list α} (h : count a l > 0) : a ∈ l :=
-let ⟨a', ael, e⟩ := exists_mem_of_countp_pos h in e.symm ▸ ael
-
-theorem count_pos_of_mem {a : α} {l : list α} (h : a ∈ l) : count a l > 0 :=
-countp_pos_of_mem h rfl
-
-theorem count_pos {a : α} {l : list α} : count a l > 0 ↔ a ∈ l :=
-⟨mem_of_count_pos, count_pos_of_mem⟩
+theorem count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
+by simp [count, countp_pos]
 
 @[simp] theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
 by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
@@ -1517,36 +1560,47 @@ def transpose : list (list α) → list (list α)
 
 /- permutations -/
 
-def permutations_aux2 (t : α) (ts : list α) : list α → (list α → β) → list β → list α × list β
-| []      f r := (ts, r)
-| (y::ys) f r := let (us, zs) := permutations_aux2 ys (λx : list α, f (y::x)) r in
-                (y :: us, f (t :: y :: us) :: zs)
+section permutations
 
-private def meas : list α × list α → ℕ × ℕ | (l, i) := (length l + length i, length l)
+def permutations_aux2 (t : α) (ts : list α) (r : list β) : list α → (list α → β) → list α × list β
+| []      f := (ts, r)
+| (y::ys) f := let (us, zs) := permutations_aux2 ys (λx : list α, f (y::x)) in
+               (y :: us, f (t :: y :: us) :: zs)
+
+private def meas : (Σ'_:list α, list α) → ℕ × ℕ | ⟨l, i⟩ := (length l + length i, length l)
 
 local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 
-def permutations_aux.F : Π (x : list α × list α), (Π (y : list α × list α), y ≺ x → list (list α)) → list (list α)
-| ([],    is) IH := []
-| (t::ts, is) IH :=
-have h1 : (ts, t :: is) ≺ (t :: ts, is), from
-  show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
-  by rw nat.succ_add; exact prod.lex.right _ _ (lt_succ_self _),
-have h2 : (is, []) ≺ (t :: ts, is), from prod.lex.left _ _ _ (lt_add_of_pos_left _ (succ_pos _)),
-foldr (λy r, (permutations_aux2 t ts y id r).2) (IH (ts, t::is) h1) (is :: IH (is, []) h2)
+@[elab_as_eliminator] def permutations_aux.rec {C : list α → list α → Sort v}
+  (H0 : ∀ is, C [] is) 
+  (H1 : ∀ t ts is, C ts (t::is) → C is [] → C (t::ts) is) : ∀ l₁ l₂, C l₁ l₂
+| []      is := H0 is
+| (t::ts) is :=
+  have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
+    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
+    by rw nat.succ_add; exact prod.lex.right _ _ (lt_succ_self _),
+  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ _ (lt_add_of_pos_left _ (succ_pos _)),
+  H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
+using_well_founded {
+  dec_tac := tactic.assumption,
+  rel_tac := λ _ _, `[exact ⟨(≺), @inv_image.wf _ _ _ meas (prod.lex_wf lt_wf lt_wf)⟩] }
 
-def permutations_aux : list α × list α → list (list α) :=
-well_founded.fix (inv_image.wf meas (prod.lex_wf lt_wf lt_wf)) permutations_aux.F
+def permutations_aux : list α → list α → list (list α) :=
+@@permutations_aux.rec (λ _ _, list (list α)) (λ is, [])
+  (λ t ts is IH1 IH2, foldr (λy r, (permutations_aux2 t ts r y id).2) IH1 (is :: IH2))
 
 def permutations (l : list α) : list (list α) :=
-l :: permutations_aux (l, [])
+l :: permutations_aux l []
 
-def permutations_aux.eqn_1 (is : list α) : permutations_aux ([], is) = [] :=
-well_founded.fix_eq _ _ _
+@[simp] theorem permutations_aux_nil (is : list α) : permutations_aux [] is = [] :=
+by simp [permutations_aux, permutations_aux.rec]
 
-def permutations_aux.eqn_2 (t : α) (ts is) : permutations_aux (t::ts, is) =
-  foldr (λy r, (permutations_aux2 t ts y id r).2) (permutations_aux (ts, t::is)) (permutations is) :=
-well_founded.fix_eq _ _ _
+@[simp] theorem permutations_aux_cons (t : α) (ts is : list α) :
+  permutations_aux (t :: ts) is = foldr (λy r, (permutations_aux2 t ts r y id).2)
+    (permutations_aux ts (t::is)) (permutations is) :=
+by simp [permutations_aux, permutations_aux.rec, permutations]
+
+end permutations
 
 /- insert -/
 section insert
@@ -1652,14 +1706,15 @@ theorem erase_sublist_erase (a : α) : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ �
   then by rw [h, erase_cons_head, erase_cons_head]; exact s
   else by rw [erase_cons_tail _ h, erase_cons_tail _ h]; exact (erase_sublist_erase s).cons2 _ _ _
 
-theorem mem_erase_of_ne_of_mem {a b : α} {l : list α} (ab : a ≠ b) (al : a ∈ l) : a ∈ l.erase b :=
-if h : b ∈ l then match l, l.erase b, exists_erase_eq h, al with
-| ._, ._, ⟨l₁, l₂, _, rfl, rfl⟩, al :=
-  by simp at *; exact or.resolve_left al ab
-end else by simp [h, al]
-
 theorem mem_of_mem_erase {a b : α} {l : list α} : a ∈ l.erase b → a ∈ l :=
 @erase_subset _ _ _ _ _
+
+@[simp] theorem mem_erase_of_ne {a b : α} {l : list α} (ab : a ≠ b) : a ∈ l.erase b ↔ a ∈ l :=
+⟨mem_of_mem_erase, λ al,
+  if h : b ∈ l then match l, l.erase b, exists_erase_eq h, al with
+  | ._, ._, ⟨l₁, l₂, _, rfl, rfl⟩, al :=
+    by simp at *; exact or.resolve_left al ab
+  end else by simp [h, al]⟩
 
 theorem erase_comm (a b : α) (l : list α) : (l.erase a).erase b = (l.erase b).erase a :=
 if ab : a = b then by simp [ab] else
@@ -1690,6 +1745,9 @@ by by_cases a ∈ l₁; simp [list.diff, h]
 theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.erase l₁ l₂
 | l₁ []      := rfl
 | l₁ (a::l₂) := (diff_cons l₁ l₂ a).trans (diff_eq_foldl _ _)
+
+@[simp] theorem diff_append (l₁ l₂ l₃ : list α) : l₁.diff (l₂ ++ l₃) = (l₁.diff l₂).diff l₃ :=
+by simp [diff_eq_foldl]
 
 end diff
 
@@ -1753,7 +1811,7 @@ l₁.bind $ λ a, l₂.map $ prod.mk a
 
 @[simp] theorem product_nil : ∀ (l : list α), product l (@nil β) = []
 | []     := rfl
-| (a::l) := begin rw [product_cons, product_nil], reflexivity end
+| (a::l) := by rw [product_cons, product_nil]; refl
 
 @[simp] theorem mem_product {l₁ : list α} {l₂ : list β} {a : α} {b : β} :
   (a, b) ∈ product l₁ l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ :=
@@ -1763,10 +1821,36 @@ theorem length_product (l₁ : list α) (l₂ : list β) :
   length (product l₁ l₂) = length l₁ * length l₂ :=
 by induction l₁ with x l₁ IH; simp [*, right_distrib]
 
+
+/- sigma -/
+section
+variable {σ : α → Type*}
+
+def sigma (l₁ : list α) (l₂ : Π a, list (σ a)) : list (Σ a, σ a) :=
+l₁.bind $ λ a, (l₂ a).map $ sigma.mk a
+
+@[simp] theorem nil_sigma (l : Π a, list (σ a)) : (@nil α).sigma l = [] := rfl
+
+@[simp] theorem sigma_cons (a : α) (l₁ : list α) (l₂ : Π a, list (σ a))
+        : (a::l₁).sigma l₂ = map (sigma.mk a) (l₂ a) ++ l₁.sigma l₂ := rfl
+
+@[simp] theorem sigma_nil : ∀ (l : list α), l.sigma (λ a, @nil (σ a)) = []
+| []     := rfl
+| (a::l) := by rw [sigma_cons, sigma_nil]; refl
+
+@[simp] theorem mem_sigma {l₁ : list α} {l₂ : Π a, list (σ a)} {a : α} {b : σ a} :
+  sigma.mk a b ∈ l₁.sigma l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ a :=
+by simp [sigma]
+
+theorem length_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
+  length (sigma l₁ l₂) = (l₁.map (λ a, length (l₂ a))).sum :=
+by induction l₁ with x l₁ IH; simp *
+end
+
 /- disjoint -/
 section disjoint
 
-def disjoint (l₁ l₂ : list α) : Prop := ∀ ⦃a⦄, (a ∈ l₁ → a ∈ l₂ → false)
+def disjoint (l₁ l₂ : list α) : Prop := ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → false
 
 theorem disjoint.symm {l₁ l₂ : list α} (d : disjoint l₁ l₂) : disjoint l₂ l₁
 | a i₂ i₁ := d i₁ i₂
@@ -1819,10 +1903,6 @@ disjoint_comm.trans $ by simp [disjoint_append_left]
   disjoint l₁ (a::l₂) ↔ a ∉ l₁ ∧ disjoint l₁ l₂ :=
 disjoint_comm.trans $ by simp [disjoint_cons_left]
 
-theorem disjoint_append_of_disjoint_left {l₁ l₂ l : list α} :
-  disjoint l₁ l → disjoint l₂ l → disjoint (l₁++l₂) l :=
-λ d₁ d₂ x h, or.elim (mem_append.1 h) (@d₁ x) (@d₂ x)
-
 theorem disjoint_of_disjoint_append_left_left {l₁ l₂ l : list α} (d : disjoint (l₁++l₂) l) : disjoint l₁ l :=
 (disjoint_append_left.1 d).1
 
@@ -1854,7 +1934,7 @@ mem_union.2 (or.inl h)
 theorem mem_union_right {a : α} (l₁ : list α) {l₂ : list α} (h : a ∈ l₂) : a ∈ l₁ ∪ l₂ :=
 mem_union.2 (or.inr h)
 
-theorem sublist_suffix_of_union : Π l₁ l₂ : list α, ∃ t, t <+ l₁ ∧ t ++ l₂ = l₁ ∪ l₂
+theorem sublist_suffix_of_union : ∀ l₁ l₂ : list α, ∃ t, t <+ l₁ ∧ t ++ l₂ = l₁ ∪ l₂
 | [] l₂ := ⟨[], by refl, rfl⟩
 | (a::l₁) l₂ := let ⟨t, s, e⟩ := sublist_suffix_of_union l₁ l₂ in
   by simp [e.symm]; by_cases a ∈ t ++ l₂ with h;
@@ -1931,6 +2011,40 @@ theorem forall_mem_inter_of_forall_right {p : α → Prop} (l₁ : list α) {l�
 ball.imp_left (λ x, mem_of_mem_inter_right) h
 
 end inter
+
+/- bag_inter -/
+section bag_inter
+variable [decidable_eq α]
+
+@[simp] theorem nil_bag_inter (l : list α) : [].bag_inter l = [] :=
+by cases l; refl
+
+@[simp] theorem bag_inter_nil (l : list α) : l.bag_inter [] = [] :=
+by cases l; refl
+
+@[simp] theorem cons_bag_inter_of_pos {a} (l₁ : list α) {l₂} (h : a ∈ l₂) :
+  (a :: l₁).bag_inter l₂ = a :: l₁.bag_inter (l₂.erase a) :=
+by cases l₂; exact if_pos h
+
+@[simp] theorem cons_bag_inter_of_neg {a} (l₁ : list α) {l₂} (h : a ∉ l₂) :
+  (a :: l₁).bag_inter l₂ = l₁.bag_inter l₂ :=
+by cases l₂; simp [h, list.bag_inter]
+
+theorem mem_bag_inter {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁.bag_inter l₂ ↔ a ∈ l₁ ∧ a ∈ l₂
+| []      l₂ := by simp
+| (b::l₁) l₂ := by
+  by_cases b ∈ l₂; simp [*, and_or_distrib_left];
+  by_cases a = b with ba; simp *
+
+theorem bag_inter_sublist_left : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ <+ l₁
+| []      l₂ := by simp [nil_sublist]
+| (b::l₁) l₂ := begin
+  by_cases b ∈ l₂; simp [h],
+  { apply cons_sublist_cons, apply bag_inter_sublist_left },
+  { apply sublist_cons_of_sublist, apply bag_inter_sublist_left }
+end
+
+end bag_inter
 
 /- pairwise relation (generalized no duplicate) -/
 
@@ -2281,7 +2395,7 @@ have [a, a] <+ l ↔ 1 < count a l, from (@le_count_iff_repeat_sublist _ _ a l 2
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=
-le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos_of_mem h)
+le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 
 theorem nodup_of_nodup_append_left {l₁ l₂ : list α} : nodup (l₁++l₂) → nodup l₁ :=
 nodup_of_sublist (sublist_append_left l₁ l₂)
@@ -2313,6 +2427,16 @@ pairwise_map_of_pairwise _ (by exact λ a b ⟨ma, mb, n⟩ e, n (H a ma b mb e)
 
 theorem nodup_map {f : α → β} {l : list α} (hf : injective f) (h : nodup l) : nodup (map f l) :=
 nodup_map_on (assume x _ y _ h, hf h) h
+
+@[simp] theorem nodup_attach {l : list α} : nodup (attach l) ↔ nodup l :=
+⟨λ h, attach_map_val l ▸ nodup_map (λ a b, subtype.eq) h,
+ λ h, nodup_of_nodup_map subtype.val ((attach_map_val l).symm ▸ h)⟩
+
+theorem nodup_pmap {p : α → Prop} {f : Π a, p a → β} {l : list α} {H}
+  (hf : ∀ a ha b hb, f a ha = f b hb → a = b) (h : nodup l) : nodup (pmap f l H) :=
+by rw [pmap_eq_map_attach]; exact nodup_map
+  (λ ⟨a, ha⟩ ⟨b, hb⟩ h, by congr; exact hf a (H _ ha) b (H _ hb) h)
+  (nodup_attach.2 h)
 
 theorem nodup_filter (p : α → Prop) [decidable_pred p] {l} : nodup l → nodup (filter p l) :=
 pairwise_filter_of_pairwise p
@@ -2359,7 +2483,16 @@ theorem nodup_product {l₁ : list α} {l₂ : list β} (d₁ : nodup l₁) (d�
     suffices ∀ (b₁ : β), b₁ ∈ l₂ → (a₁, b₁) = x → ∀ (b₂ : β), b₂ ∈ l₂ → (a₂, b₂) ≠ x, by simpa,
     λ b₁ mb₁ e b₂ mb₂ e', by subst e'; injection e; contradiction)⟩
 
-theorem nodup_filter_map {f : α → option β} (pdi : true) {l : list α}
+theorem nodup_sigma {σ : α → Type*} {l₁ : list α} {l₂ : Π a, list (σ a)}
+  (d₁ : nodup l₁) (d₂ : ∀ a, nodup (l₂ a)) : nodup (sigma l₁ l₂) :=
+ nodup_bind.2
+  ⟨λ a ma, nodup_map (λ b b' h, by injection h with _ h; exact eq_of_heq h) (d₂ a),
+  d₁.imp (λ a₁ a₂ n x,
+    suffices ∀ (b₁ : σ a₁), sigma.mk a₁ b₁ = x → b₁ ∈ l₂ a₁ →
+      ∀ (b₂ : σ a₂), sigma.mk a₂ b₂ = x → b₂ ∉ l₂ a₂, by simpa,
+    λ b₁ e mb₁ b₂ e' mb₂, by subst e'; injection e; contradiction)⟩
+
+theorem nodup_filter_map {f : α → option β} {l : list α}
   (H : ∀ (a a' : α) (b : β), b ∈ f a → b ∈ f a' → a = a') :
   nodup l → nodup (filter_map f l) :=
 pairwise_filter_map_of_pairwise f $ λ a a' n b bm b' bm' e, n $ H a a' b' (e ▸ bm) bm'
@@ -2425,7 +2558,7 @@ theorem nodup_erase_dup : ∀ l : list α, nodup (erase_dup l) := pairwise_pw_fi
 
 theorem erase_dup_eq_self {l : list α} : erase_dup l = l ↔ nodup l := pw_filter_eq_self
 
-theorem erase_dup_append {l₁ l₂ : list α} : erase_dup (l₁ ++ l₂) = l₁ ∪ erase_dup l₂ :=
+theorem erase_dup_append (l₁ l₂ : list α) : erase_dup (l₁ ++ l₂) = l₁ ∪ erase_dup l₂ :=
 begin
   induction l₁ with a l₁ IH; simp, rw ← IH,
   show erase_dup (a :: (l₁ ++ l₂)) = insert a (erase_dup (l₁ ++ l₂)),
@@ -2483,6 +2616,10 @@ theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ 
   (mem_range'.1 $ h $ mem_range'.2 ⟨le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
  λ h, subset_of_sublist (range'_sublist_right.2 h)⟩
 
+theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)
+| s 0     (n+1) _ := by simp
+| s (m+1) (n+1) h := by simp [nth_range' (s+1) (lt_of_add_lt_add_right h)]
+
 theorem range'_concat (s n : ℕ) : range' s (n + 1) = range' s n ++ [s+n] :=
 by rw add_comm n 1; exact (range'_append s n 1).symm
 
@@ -2513,6 +2650,12 @@ by simp [range_eq_range', zero_le]
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n :=
 mt mem_range.1 $ lt_irrefl _ 
+
+theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
+by simp [range_eq_range', nth_range' _ h]
+
+theorem range_concat (n : ℕ) : range (n + 1) = range n ++ [n] :=
+by simp [range_eq_range', range'_concat]
 
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl

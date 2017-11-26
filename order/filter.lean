@@ -97,17 +97,14 @@ let ⟨z, ⟨z_in_s, z_le_x, z_le_y⟩⟩ := f.directed_sets _ hx _ hy in
 f.upwards_sets z_in_s (subset_inter z_le_x z_le_y)
 
 lemma Inter_mem_sets {f : filter α} {s : β → set α}
-  {is : set β} (hf : finite is) (hs : ∀i∈is, s i ∈ f.sets) : (⋂i∈is, s i) ∈ f.sets :=
-begin /- equation compiler complains that this requires well-founded recursion -/
-  induction hf with i is _ hf hi,
-  { simp [univ_mem_sets] },
-  begin
-    simp,
-    apply inter_mem_sets,
-    apply hs i,
-    simp,
-    exact (hi $ assume a ha, hs _ $ by simp [ha])
-  end
+  {is : set β} (hf : finite is) : (∀i∈is, s i ∈ f.sets) → (⋂i∈is, s i) ∈ f.sets :=
+finite.induction_on hf (λ hs, by simp [univ_mem_sets]) $
+λ i is _ hf hi hs, begin
+  simp,
+  apply inter_mem_sets,
+  apply hs i,
+  simp,
+  exact (hi $ assume a ha, hs _ $ by simp [ha])
 end
 
 lemma exists_sets_subset_iff {f : filter α} {x : set α} :
@@ -223,8 +220,7 @@ by simp [monotone, principal_mono]; exact assume a b h, h
 by simp [eq_iff_le_and_le]; refl
 
 instance complete_lattice_filter : complete_lattice (filter α) :=
-{ filter.partial_order_filter with
-  sup           := filter.sup,
+{ sup           := filter.sup,
   le_sup_left   := assume a b, inter_subset_left _ _,
   le_sup_right  := assume a b, inter_subset_right _ _,
   sup_le        := assume a b c h₁ h₂, subset_inter h₁ h₂,
@@ -242,7 +238,8 @@ instance complete_lattice_filter : complete_lattice (filter α) :=
   Sup_le        := assume s f, filter.Sup_le,
   Inf           := λs, Sup {x | ∀y∈s, x ≤ y},
   le_Inf        := assume s a h, filter.le_Sup h,
-  Inf_le        := assume s a ha, filter.Sup_le $ assume b h, h _ ha }
+  Inf_le        := assume s a ha, filter.Sup_le $ assume b h, h _ ha,
+  ..filter.partial_order_filter }
 
 @[simp] lemma map_principal {s : set α} {f : α → β} :
   map f (principal s) = principal (set.image f s) :=
@@ -268,9 +265,9 @@ instance monad_filter : monad filter :=
 @[simp] lemma bind_def {α β} (f : filter α) (m : α → filter β) : f >>= m = join (map m f) := rfl
 
 instance : alternative filter :=
-{ filter.monad_filter with
-  failure := λα, ⊥,
-  orelse  := λα x y, x ⊔ y }
+{ failure := λα, ⊥,
+  orelse  := λα x y, x ⊔ y,
+  ..filter.monad_filter }
 
 /- lattice equations -/
 
@@ -371,11 +368,8 @@ filter_eq $ set.ext $ assume x, by simp [supr_sets_eq, join]
 filter_eq $ set.ext $ assume x, by simp [supr_sets_eq, join]
 
 instance : bounded_distrib_lattice (filter α) :=
-{ filter.complete_lattice_filter with
-  le_sup_inf := assume x y z s h,
-  begin
-    cases h with h₁ h₂, revert h₂,
-    simp,
+{ le_sup_inf := assume x y z s ⟨h₁, h₂⟩, begin
+    revert h₂, simp,
     exact assume t₁ ht₁ t₂ ht₂ hs, ⟨s ∪ t₁,
       x.upwards_sets h₁ $ subset_union_left _ _,
       y.upwards_sets ht₁ $ subset_union_right _ _,
@@ -383,15 +377,12 @@ instance : bounded_distrib_lattice (filter α) :=
       x.upwards_sets h₁ $ subset_union_left _ _,
       z.upwards_sets ht₂ $ subset_union_right _ _,
       subset.trans (@le_sup_inf (set α) _ _ _ _) (union_subset (subset.refl _) hs)⟩
-  end }
+  end, ..filter.complete_lattice_filter }
 
 private lemma infi_finite_distrib {s : set (filter α)} {f : filter α} (h : finite s) :
   (⨅ a ∈ s, f ⊔ a) = f ⊔ (Inf s) :=
-begin
-  induction h with a s hn hs hi,
-  { simp },
-  { rw [infi_insert], simp [hi, infi_or, sup_inf_left] }
-end
+finite.induction_on h (by simp) $ λ a s hn hs hi,
+by rw [infi_insert]; simp [hi, infi_or, sup_inf_left]
 
 /- the complementary version with ⨆ g∈s, f ⊓ g does not hold! -/
 lemma binfi_sup_eq { f : filter α } {s : set (filter α)} :
@@ -421,8 +412,8 @@ calc (⨅ x, f ⊔ g x) = (⨅ x (h : ∃i, g i = x), f ⊔ x) : by simp; rw [in
 
 lemma mem_infi_sets_finset {s : finset α} {f : α → filter β} :
   ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⋂a∈s, p a) ⊆ t) :=
-show ∀t,  t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⨅a∈s, p a) ≤ t),
-  from s.induction_on (by simp; exact assume t, iff.refl _) $
+show ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⨅a∈s, p a) ≤ t),
+  from finset.induction_on s (by simp; exact assume t, iff.refl _) $
     by simp [infi_or, mem_inf_sets, infi_inf_eq] {contextual := tt};
     from assume a s has ih t, iff.intro
       (assume ⟨t₁, ht₁, t₂, ht, p, hp, ht₂⟩,
@@ -656,7 +647,7 @@ le_antisymm
       have m '' (t₁ ∩ t) ∩ m '' (t₂ ∩ t) ⊆ s,
       begin
         rw [image_inter_on],
-        apply image_subset_iff.mpr _,
+        refine image_subset_iff.2 _,
         exact assume x ⟨⟨h₁, _⟩, h₂, _⟩, hs ⟨h₁, h₂⟩,
         exact assume x ⟨_, hx⟩ y ⟨_, hy⟩, h x hx y hy
       end,
@@ -1286,18 +1277,16 @@ begin
   have hs' : s ∈ (complete_lattice.Inf {a : filter α | ∃ (i : ι), a = f i}).sets := hs,
   rw [Inf_sets_eq_finite] at hs',
   simp at hs',
-  cases hs' with is hs, cases hs with fin_is hs, cases hs with hs his,
-  induction fin_is generalizing s,
-  case finite.empty hs' s hs' hs {
-    simp at hs, subst hs, assumption },
-  case finite.insert fi is fi_ne_is fin_is ih fi_sub s hs' hs {
-    simp at hs,
+  rcases hs' with ⟨is, fin_is, hs, his⟩, revert his s,
+  refine finite.induction_on fin_is _ (λ fi is fi_ne_is fin_is ih, _); intros his s hs' hs,
+  { simp at hs, subst hs, assumption },
+  { simp at hs,
     cases hs with s₁ hs, cases hs with hs₁ hs, cases hs with s₂ hs, cases hs with hs hs₂,
-    have hi : ∃i, fi = f i := fi_sub (mem_insert _ _),
+    have hi : ∃i, fi = f i := his (mem_insert _ _),
     cases hi with i hi,
     exact have hs₁ : s₁ ∈ (f i).sets, from hi ▸ hs₁,
     have hs₂ : p s₂, from
-      have his : is ⊆ {x | ∃i, x = f i}, from assume i hi, fi_sub $  mem_insert_of_mem _ hi,
+      have his : is ⊆ {x | ∃i, x = f i}, from assume i hi, his $ mem_insert_of_mem _ hi,
       have infi f ≤ Inf is, from Inf_le_Inf his,
       ih his (this hs₂) hs₂,
     show p s, from upw hs $ ins hs₁ hs₂ }
@@ -1450,15 +1439,11 @@ lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : ultrafilter f) (h : s ∪ t
 
 lemma mem_of_finite_sUnion_ultrafilter {s : set (set α)} (hf : ultrafilter f) (hs : finite s)
   : ⋃₀ s ∈ f.sets → ∃t∈s, t ∈ f.sets :=
-begin
-  induction hs,
-  case finite.empty { simp [empty_in_sets_eq_bot, hf.left] },
-  case finite.insert t s' ht' hs' ih {
-    simp,
-    exact assume h, (mem_or_mem_of_ultrafilter hf h).elim
-      (assume : t ∈ f.sets, ⟨t, this, or.inl rfl⟩)
-      (assume h, let ⟨t, hts', ht⟩ := ih h in ⟨t, ht, or.inr hts'⟩) }
-end
+finite.induction_on hs (by simp [empty_in_sets_eq_bot, hf.left]) $
+λ t s' ht' hs' ih, by simp; exact
+assume h, (mem_or_mem_of_ultrafilter hf h).elim
+  (assume : t ∈ f.sets, ⟨t, this, or.inl rfl⟩)
+  (assume h, let ⟨t, hts', ht⟩ := ih h in ⟨t, ht, or.inr hts'⟩)
 
 lemma mem_of_finite_Union_ultrafilter {is : set β} {s : β → set α}
   (hf : ultrafilter f) (his : finite is) (h : (⋃i∈is, s i) ∈ f.sets) : ∃i∈is, s i ∈ f.sets :=

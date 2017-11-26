@@ -59,6 +59,11 @@ private def align {α β} (p : α → β → Prop) [∀ a b, decidable (p a b)] 
   if p a b then (a, b) :: align as bs else align as (b::bs)
 | _ _ := []
 
+private meta def get_local_and_type (e : expr) : tactic (expr × expr) :=
+(do t ← infer_type e, pure (t, e)) <|> (do
+    e ← get_local e.local_pp_name,
+    t ← infer_type e, pure (t, e))
+
 meta def rcases.continue
   (rcases_core : list (list rcases_patt) → expr → tactic (list expr))
   (n : nat) : list (rcases_patt × expr) → tactic (list expr)
@@ -66,11 +71,16 @@ meta def rcases.continue
 | ((rcases_patt.many ids, e) :: l) := do
   gs ← rcases_core ids e,
   list.join <$> gs.mmap (λ g, set_goals [g] >> rcases.continue l)
+| ((rcases_patt.one `rfl, e) :: l) := do
+  (t, e) ← get_local_and_type e,
+  subst e,
+  rcases.continue l
 | (_ :: l) := rcases.continue l
 
 meta def rcases_core (n : nat) : list (list rcases_patt) → expr → tactic (list expr)
 | ids e := do
-  t   ← infer_type e >>= whnf,
+  (t, e) ← get_local_and_type e,
+  t ← whnf t,
   env ← get_env,
   let I := t.get_app_fn.const_name,
   when (¬env.is_inductive I) $

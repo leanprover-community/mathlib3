@@ -603,23 +603,23 @@ end
 /- Instances -/
 
 instance complete_lattice_Prop : complete_lattice Prop :=
-{ lattice.bounded_lattice_Prop with
-  Sup    := λs, ∃a∈s, a,
+{ Sup    := λs, ∃a∈s, a,
   le_Sup := assume s a h p, ⟨a, h, p⟩,
   Sup_le := assume s a h ⟨b, h', p⟩, h b h' p,
   Inf    := λs, ∀a:Prop, a∈s → a,
   Inf_le := assume s a h p, p a h,
-  le_Inf := assume s a h p b hb, h b hb p }
+  le_Inf := assume s a h p b hb, h b hb p,
+  ..lattice.bounded_lattice_Prop }
 
 instance complete_lattice_fun {α : Type u} {β : Type v} [complete_lattice β] :
   complete_lattice (α → β) :=
-{ lattice.bounded_lattice_fun with
-  Sup    := λs a, Sup (set.image (λf : α → β, f a) s),
+{ Sup    := λs a, Sup (set.image (λf : α → β, f a) s),
   le_Sup := assume s f h a, le_Sup ⟨f, h, rfl⟩,
   Sup_le := assume s f h a, Sup_le $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a,
   Inf    := λs a, Inf (set.image (λf : α → β, f a) s),
   Inf_le := assume s f h a, Inf_le ⟨f, h, rfl⟩,
-  le_Inf := assume s f h a, le_Inf $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a }
+  le_Inf := assume s f h a, le_Inf $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a,
+  ..lattice.bounded_lattice_fun }
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]

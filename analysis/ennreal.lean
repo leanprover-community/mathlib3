@@ -157,7 +157,7 @@ instance : add_comm_monoid ennreal :=
 
 @[simp] lemma sum_of_real {α : Type*} {s : finset α} {f : α → ℝ} :
   (∀a∈s, 0 ≤ f a) → s.sum (λa, of_real (f a)) = of_real (s.sum f) :=
-s.induction_on (by simp) $ assume a s has ih h,
+finset.induction_on s (by simp) $ assume a s has ih h,
   have 0 ≤ s.sum f, from finset.zero_le_sum $ assume a ha, h a $ finset.mem_insert_of_mem ha,
   by simp [has, *] {contextual := tt}
 
@@ -226,8 +226,7 @@ begin
 end
 
 instance : comm_semiring ennreal :=
-{ ennreal.add_comm_monoid with
-  one  := 1,
+{ one  := 1,
   mul  := (*),
   mul_zero := ennreal.mul_zero,
   zero_mul := ennreal.zero_mul,
@@ -237,7 +236,8 @@ instance : comm_semiring ennreal :=
   mul_assoc := ennreal.mul_assoc,
   left_distrib := ennreal.left_distrib,
   right_distrib := assume a b c, by rw [ennreal.mul_comm, ennreal.left_distrib,
-    ennreal.mul_comm, ennreal.mul_comm b c]; refl }
+    ennreal.mul_comm, ennreal.mul_comm b c]; refl,
+  ..ennreal.add_comm_monoid }
 
 end semiring
 
@@ -351,15 +351,15 @@ private lemma lt_of_add_lt_add_left (h : a + b < a + c) : b < c :=
 lt_of_not_ge $ assume h', lt_irrefl (a + b) (lt_of_lt_of_le h $ add_le_add (le_refl a) h')
 
 instance : ordered_comm_monoid ennreal :=
-{ ennreal.add_comm_monoid with
-  le := (≤),
+{ le := (≤),
   lt := (<),
   le_refl := le_refl,
   le_trans := assume a b c, le_trans,
   le_antisymm := assume a b, le_antisymm,
   lt_iff_le_not_le := assume a b, lt_iff_le_not_le,
   add_le_add_left := assume a b h c, add_le_add (le_refl c) h,
-  lt_of_add_lt_add_left := assume a b c, lt_of_add_lt_add_left }
+  lt_of_add_lt_add_left := assume a b c, lt_of_add_lt_add_left,
+  ..ennreal.add_comm_monoid }
 
 lemma le_add_left (h : a ≤ c) : a ≤ b + c :=
 calc a = 0 + a : by simp
@@ -373,9 +373,7 @@ lemma lt_add_right : ∀{a b}, a < ∞ → 0 < b → a < a + b :=
 by simp [forall_ennreal, of_real_lt_of_real_iff, add_nonneg, lt_add_of_le_of_pos] {contextual := tt}
 
 instance : canonically_ordered_monoid ennreal :=
-{ ennreal.ordered_comm_monoid with
-  le_iff_exists_add :=
-  begin
+{ le_iff_exists_add := begin
     simp [forall_ennreal] {contextual:=tt},
     intros r hr,
     constructor,
@@ -388,7 +386,7 @@ instance : canonically_ordered_monoid ennreal :=
           exact hr
         end⟩)
       (assume ⟨c, hc⟩, by rw [←of_real_le_of_real_iff hr hp, hc]; exact le_add_left (le_refl _))
-  end }
+  end, ..ennreal.ordered_comm_monoid }
 
 lemma mul_le_mul : ∀{b d}, a ≤ b → c ≤ d → a * c ≤ b * d :=
 forall_ennreal.mpr ⟨assume r hr, forall_ennreal.mpr ⟨assume p hp,
@@ -496,8 +494,7 @@ protected lemma Sup_le {s : set ennreal} : (∀b ∈ s, b ≤ a) → Sup s ≤ a
 ennreal.is_lub_Sup.right _
 
 instance : complete_linear_order ennreal :=
-{ ennreal.decidable_linear_order with
-  top := ∞,
+{ top := ∞,
   bot := 0,
   inf := min,
   sup := max,
@@ -514,7 +511,8 @@ instance : complete_linear_order ennreal :=
   le_Sup       := assume s a, ennreal.le_Sup,
   Sup_le       := assume s a, ennreal.Sup_le,
   le_Inf       := assume s a h, ennreal.le_Sup h,
-  Inf_le       := assume s a ha, ennreal.Sup_le $ assume b hb, hb _ ha }
+  Inf_le       := assume s a ha, ennreal.Sup_le $ assume b hb, hb _ ha,
+  ..ennreal.decidable_linear_order }
 
 protected lemma bot_eq_zero : (⊥ : ennreal) = 0 := rfl
 protected lemma top_eq_infty : (⊤ : ennreal) = ∞ := rfl
@@ -797,11 +795,11 @@ calc (⨅a, f a + g a) ≤ (⨅a', ⨅a, f a + g a') :
 lemma infi_sum {α : Type*} {ι : Sort*} {f : ι → α → ennreal} {s : finset α} [inhabited ι]
   (h : ∀(t : finset α) (i j : ι), ∃k, ∀a∈t, f k a ≤ f i a ∧ f k a ≤ f j a) :
   (⨅i, s.sum (f i)) = s.sum (λa, ⨅i, f i a) :=
-s.induction_on (by simp) $ assume a s ha ih,
+finset.induction_on s (by simp) $ assume a s ha ih,
   have ∀ (i j : ι), ∃ (k : ι), f k a + s.sum (f k) ≤ f i a + s.sum (f j),
     from assume i j,
     let ⟨k, hk⟩ := h (insert a s) i j in
-    ⟨k, add_le_add' (hk a finset.mem_insert_self).left $ finset.sum_le_sum' $
+    ⟨k, add_le_add' (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum' $
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
 
@@ -1004,8 +1002,7 @@ protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
 calc _ = (⨆s:finset ℕ, s.sum f) : ennreal.tsum_eq_supr_sum
   ... = (⨆i:ℕ, (finset.range i).sum f) : le_antisymm
     (supr_le_supr2 $ assume s,
-      have ∃n, s ⊆ finset.range n, from finset.exists_nat_subset_range,
-      let ⟨n, hn⟩ := this in
+      let ⟨n, hn⟩ := finset.exists_nat_subset_range s in
       ⟨n, finset.sum_le_sum_of_subset hn⟩)
     (supr_le_supr2 $ assume i, ⟨finset.range i, le_refl _⟩)
 

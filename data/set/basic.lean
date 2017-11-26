@@ -28,6 +28,26 @@ h hx
 
 @[simp] lemma set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
+theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
+
+instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a ∈ s) := H
+
+instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred {a | p a} := H
+
+/- set coercion to a type -/
+
+instance : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
+
+@[simp] theorem set_coe_eq_subtype (s : set α) : coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
+
+@[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
+  (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=
+subtype.forall
+
+@[simp] theorem set_coe.exists {s : set α} {p : s → Prop} :
+  (∃ x : s, p x) ↔ (∃ x (h : x ∈ s), p ⟨x, h⟩) :=
+subtype.exists
+
 /- subset -/
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
@@ -76,7 +96,7 @@ theorem empty_def : (∅ : set α) = {x | false} := rfl
 @[simp] theorem set_of_false : {a : α | false} = ∅ := rfl
 
 theorem eq_empty_of_forall_not_mem {s : set α} (h : ∀ x, x ∉ s) : s = ∅ :=
-by apply ext; finish
+ext $ by simp [h]
 
 theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
 by { intro hs, rewrite hs at h, apply not_mem_empty _ h }
@@ -695,6 +715,9 @@ theorem union_preimage_subset (s : set α) (t : set β) (f : α → β) :
 theorem subset_image_union (f : α → β) (s : set α) (t : set β) :
   f '' (s ∪ f ⁻¹' t) ⊆ f '' s ∪ t :=
 image_subset_iff.2 (union_preimage_subset _ _ _)
+
+@[simp] lemma quot_mk_image_univ_eq [setoid α] : (λx : α, ⟦x⟧) '' univ = univ :=
+set.ext $ assume x, quotient.induction_on x $ assume a, ⟨by simp, assume _, ⟨a, trivial, rfl⟩⟩
 
 end image
 

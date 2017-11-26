@@ -11,7 +11,7 @@ namespace old_conv
 open tactic monad
 
 meta instance : monad_fail old_conv :=
-{ old_conv.monad with fail := λ α s, (λr e, tactic.fail (to_fmt s) : old_conv α) }
+{ fail := λ α s, (λr e, tactic.fail (to_fmt s) : old_conv α), ..old_conv.monad }
 
 meta instance : monad.has_monad_lift tactic old_conv :=
 ⟨λα, lift_tactic⟩

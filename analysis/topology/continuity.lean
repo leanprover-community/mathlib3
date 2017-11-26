@@ -13,8 +13,8 @@ A major difference is that this formalization is heavily based on the filter lib
 import analysis.topology.topological_space
 noncomputable theory
 
-open set filter lattice classical
-local attribute [instance] decidable_inhabited prop_decidable
+open set filter lattice
+local attribute [instance] classical.prop_decidable
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Sort x}
@@ -61,14 +61,14 @@ assume s hs,
 have (λa, ite (p a) (f a) (g a)) ⁻¹' s =
     (closure {a | p a} ∩  f ⁻¹' s) ∪ (closure {a | ¬ p a} ∩ g ⁻¹' s),
   from set.ext $ assume a,
-  by_cases
+  classical.by_cases
     (assume : a ∈ frontier {a | p a},
       have hac : a ∈ closure {a | p a}, from this.left,
       have hai : a ∈ closure {a | ¬ p a},
         from have a ∈ - interior {a | p a}, from this.right, by rwa [←closure_compl] at this,
       by by_cases p a; simp [h, hp a this, hac, hai, iff_def] {contextual := tt})
     (assume hf : a ∈ - frontier {a | p a},
-      by_cases
+      classical.by_cases
         (assume : p a,
           have hc : a ∈ closure {a | p a}, from subset_closure this,
           have hnc : a ∉ closure {a | ¬ p a},
@@ -596,7 +596,7 @@ end
 end pi
 
 -- TODO: use embeddings from above!
-structure dense_embedding [topological_space α] [topological_space β] (e : α → β) :=
+structure dense_embedding [topological_space α] [topological_space β] (e : α → β) : Prop :=
 (dense   : ∀x, x ∈ closure (e '' univ))
 (inj     : ∀x y, e x = e y → x = y)
 (induced : ∀a, vmap e (nhds (e a)) = nhds a)

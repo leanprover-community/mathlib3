@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Type class hierarchy for Boolean algebras.
 -/
-import order.bounded_lattice
+import order.bounded_lattice algebra.functions
 
 set_option old_structure_cmd true
 
@@ -52,6 +52,10 @@ le_antisymm
     ... = b                 : sup_inf_self)
 
 end distrib_lattice
+
+instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : distrib_lattice α :=
+{ le_sup_inf := assume a b c, le_of_eq max_min_distrib_left.symm,
+  ..lattice.lattice_of_decidable_linear_order }
 
 class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
 

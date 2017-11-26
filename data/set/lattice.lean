@@ -5,7 +5,7 @@ Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
-import logic.basic data.set.basic
+import logic.basic data.set.basic tactic
 import order.complete_boolean_algebra category.basic
 import tactic.finish
 
@@ -51,16 +51,7 @@ instance lattice_set : complete_lattice (set α) :=
   Inf_le       := assume s t t_in a h, h _ t_in }
 
 instance : distrib_lattice (set α) :=
-{ set.lattice_set with
-  le_sup_inf     := assume s t u x ⟨h₁, h₂⟩,
-    match h₁ with
-    | or.inl h₁ := or.inl h₁
-    | or.inr h₁ :=
-      match h₂ with
-      | or.inl h₂ := or.inl h₂
-      | or.inr h₂ := or.inr ⟨h₁, h₂⟩
-      end
-    end }
+{ le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
 
 lemma subset.antisymm_iff {α : Type*} {s t : set α} : s = t ↔ (s ⊆ t ∧ t ⊆ s) :=
 le_antisymm_iff
@@ -331,9 +322,11 @@ lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) 
 lemma sUnion_eq_Union {s : set (set α)} : (⋃₀ s) = (⋃ (i : set α) (h : i ∈ s), i) :=
 set.ext $ by simp
 
+lemma sUnion_eq_Union' {s : set (set α)} : (⋃₀ s) = (⋃ (i : s), i) :=
+set.ext $ λ x, by simp; unfold_coes; simp
+
 instance : complete_boolean_algebra (set α) :=
-{ set.lattice_set with
-  neg                 := compl,
+{ neg                 := compl,
   sub                 := (\),
   inf_neg_eq_bot      := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
   sup_neg_eq_top      := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
@@ -344,7 +337,8 @@ instance : complete_boolean_algebra (set α) :=
       or.imp_right
         (assume hn : x ∉ s, assume i hi, or.resolve_left (h i hi) hn)
         (classical.em $ x ∈ s),
-  inf_Sup_le_supr_inf := assume s t x, show x ∈ s ∩ (⋃₀ t) → x ∈ (⋃ b ∈ t, s ∩ b), by simp [-and_imp] }
+  inf_Sup_le_supr_inf := assume s t x, show x ∈ s ∩ (⋃₀ t) → x ∈ (⋃ b ∈ t, s ∩ b), by simp [-and_imp],
+  ..set.lattice_set }
 
 theorem union_sdiff_same {a b : set α} : a ∪ (b \ a) = a ∪ b :=
 lattice.sup_sub_same

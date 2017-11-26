@@ -63,7 +63,7 @@ end miscellany
     propositional connectives
 -/
 
-@[simp] lemma false_neq_true : false ≠ true :=
+@[simp] theorem false_neq_true : false ≠ true :=
 begin intro h, rw [h], trivial end
 
 section propositional
@@ -154,10 +154,10 @@ iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
 theorem not_and_self_iff (a : Prop) : ¬ a ∧ a ↔ false :=
 iff.intro (assume ⟨hna, ha⟩, hna ha) false.elim
 
-lemma and_iff_left_of_imp {a b : Prop} (h : a → b) : (a ∧ b) ↔ a :=
+theorem and_iff_left_of_imp {a b : Prop} (h : a → b) : (a ∧ b) ↔ a :=
 iff.intro and.left (λ ha, ⟨ha, h ha⟩)
 
-lemma and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
+theorem and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
 iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 
 /- or -/
@@ -291,7 +291,7 @@ end propositional
 section equality
 variables {α : Sort*} {a b : α}
 
-@[simp] lemma heq_iff_eq : a == b ↔ a = b :=
+@[simp] theorem heq_iff_eq : a == b ↔ a = b :=
 ⟨eq_of_heq, heq_of_eq⟩
 
 end equality
@@ -350,14 +350,15 @@ iff_true_intro (λ _, trivial)
 
 -- Unfortunately this causes simp to loop sometimes, so we
 -- add the 2 and 3 cases as simp lemmas instead
-theorem forall_true_iff' (h : b ↔ true) : (α → b) ↔ true :=
-iff_true_intro (λ _, of_iff_true h)
+theorem forall_true_iff' (h : ∀ a, p a ↔ true) : (∀ a, p a) ↔ true :=
+iff_true_intro (λ _, of_iff_true (h _))
 
-@[simp] theorem forall_2_true_iff {β} : (α → β → true) ↔ true :=
-forall_true_iff' forall_true_iff
+@[simp] theorem forall_2_true_iff {β : α → Sort*} : (∀ a, β a → true) ↔ true :=
+forall_true_iff' $ λ _, forall_true_iff
 
-@[simp] theorem forall_3_true_iff {β γ} : (α → β → γ → true) ↔ true :=
-forall_true_iff' forall_2_true_iff
+@[simp] theorem forall_3_true_iff {β : α → Sort*} {γ : Π a, β a → Sort*} :
+  (∀ a (b : β a), γ a b → true) ↔ true :=
+forall_true_iff' $ λ _, forall_2_true_iff
 
 @[simp] theorem forall_const (α : Sort*) [inhabited α] : (α → b) ↔ b :=
 ⟨λ h, h (arbitrary α), λ hb x, hb⟩
@@ -426,11 +427,17 @@ theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
 forall_or_distrib_left
 
-lemma cases {p : Prop → Prop} (h1 : p true) (h2 : p false) : ∀a, p a :=
+theorem cases {p : Prop → Prop} (h1 : p true) (h2 : p false) : ∀a, p a :=
 assume a, cases_on a h1 h2
 
-lemma or_not {p : Prop} : p ∨ ¬ p :=
+theorem or_not {p : Prop} : p ∨ ¬ p :=
 by_cases or.inl or.inr
+
+/- use shortened names to avoid conflict when classical namespace is open -/
+noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
+noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
+noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
+noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
 
 end classical
 

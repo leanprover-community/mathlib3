@@ -393,11 +393,11 @@ meta def finish (s : simp_lemmas × list name) (cfg : auto_config := {}) : tacti
   safe_core s cfg case_option.force
 
 meta def iclarify (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  clarify s {cfg with classical := false}
+  clarify s {classical := ff, ..cfg}
 meta def isafe (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  safe s {cfg with classical := false}
+  safe s {classical := ff, ..cfg}
 meta def ifinish (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  finish s {cfg with classical := false}
+  finish s {classical := ff, ..cfg}
 
 end auto
 

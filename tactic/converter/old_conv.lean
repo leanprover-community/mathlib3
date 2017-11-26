@@ -76,9 +76,9 @@ meta instance : monad old_conv :=
   bind_pure_comp_eq_map := undefined, bind_map_eq_seq := undefined }
 
 meta instance : alternative old_conv :=
-{ old_conv.monad with
-  failure := @old_conv.failed,
-  orelse  := @old_conv.orelse }
+{ failure := @old_conv.failed,
+  orelse  := @old_conv.orelse,
+  ..old_conv.monad }
 
 meta def whnf (md : transparency := reducible) : old_conv unit :=
 λ r e, do n ← tactic.whnf e md, return ⟨(), n, none⟩

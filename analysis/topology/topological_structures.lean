@@ -50,7 +50,7 @@ variables [topological_space α] [add_comm_monoid α]
 
 lemma tendsto_sum [topological_add_monoid α] {f : γ → β → α} {x : filter β} {a : γ → α} {s : finset γ} :
   (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.sum (λc, f c b)) x (nhds (s.sum a)) :=
-s.induction_on (by simp; exact tendsto_const_nhds) $ assume b s,
+finset.induction_on s (by simp; exact tendsto_const_nhds) $ assume b s,
   by simp [or_imp_distrib, forall_and_distrib, tendsto_add] {contextual := tt}
 
 end
@@ -150,12 +150,10 @@ class topological_ring (α : Type u) [topological_space α] [ring α]
 (continuous_neg : continuous (λa:α, -a))
 
 instance topological_ring.to_topological_semiring
-  [topological_space α] [ring α] [t : topological_ring α] : topological_semiring α :=
-{ t.to_topological_add_monoid with continuous_mul := t.continuous_mul }
+  [topological_space α] [ring α] [t : topological_ring α] : topological_semiring α := {..t}
 
 instance topological_ring.to_topological_add_group
-  [topological_space α] [ring α] [t : topological_ring α] : topological_add_group α :=
-{ t.to_topological_add_monoid with continuous_neg := t.continuous_neg }
+  [topological_space α] [ring α] [t : topological_ring α] : topological_add_group α := {..t}
 
 /- (Partially) ordered topology
 Also called: partially ordered spaces (pospaces).
@@ -459,8 +457,7 @@ instance orderable_topology.to_ordered_topology : ordered_topology α :=
 instance orderable_topology.t2_space : t2_space α := by apply_instance
 
 instance orderable_topology.regular_space : regular_space α :=
-{ orderable_topology.t2_space with
-  regular := assume s a hs ha,
+{ regular := assume s a hs ha,
     have -s ∈ (nhds a).sets, from mem_nhds_sets hs ha,
     let ⟨h₁, h₂⟩ := mem_nhds_orderable_dest this in
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ nhds a ⊓ principal t = ⊥,
@@ -501,7 +498,8 @@ instance orderable_topology.regular_space : regular_space α :=
       assume x hx,
       have x ≠ a, from assume eq, ha $ eq ▸ hx,
       (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
-      by rw [←sup_principal, inf_sup_left, ht₁a, ht₂a, bot_sup_eq]⟩ }
+      by rw [←sup_principal, inf_sup_left, ht₁a, ht₂a, bot_sup_eq]⟩,
+  ..orderable_topology.t2_space }
 
 end linear_order
 

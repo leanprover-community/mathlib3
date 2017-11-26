@@ -35,6 +35,36 @@ lemma lt_max_iff : a < max b c ↔ a < b ∨ a < c :=
     | or.inr h := lt_of_lt_of_le h (le_max_right _ _)
     end)⟩
 
+lemma max_min_distrib_left : max a (min b c) = min (max a b) (max a c) :=
+begin
+  apply le_antisymm (le_min
+    (max_le (le_max_left _ _) (le_trans (min_le_left _ _) (le_max_right _ _)))
+    (max_le (le_max_left _ _) (le_trans (min_le_right _ _) (le_max_right _ _)))),
+  cases le_total b a with ba ab,
+  { rw max_eq_left ba, exact le_trans (min_le_left _ _) (le_max_left _ _) },
+  cases le_total c a with ca ac,
+  { rw max_eq_left ca, exact le_trans (min_le_right _ _) (le_max_left _ _) },
+  rw [max_eq_right ab, max_eq_right ac], apply le_max_right
+end
+
+lemma max_min_distrib_right : max (min a b) c = min (max a c) (max b c) :=
+by rw [max_comm, max_min_distrib_left, max_comm, max_comm b]
+
+lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) :=
+begin
+  refine le_antisymm _ (max_le
+    (le_min (min_le_left _ _) (le_trans (min_le_right _ _) (le_max_left _ _)))
+    (le_min (min_le_left _ _) (le_trans (min_le_right _ _) (le_max_right _ _)))),
+  cases le_total a b with ab ba,
+  { rw min_eq_left ab, exact le_trans (min_le_left _ _) (le_max_left _ _) },
+  cases le_total a c with ac ca,
+  { rw min_eq_left ac, exact le_trans (min_le_left _ _) (le_max_right _ _) },
+  rw [min_eq_right ba, min_eq_right ca], apply min_le_right
+end
+
+lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) :=
+by rw [min_comm, min_max_distrib_left, min_comm, min_comm b]
+
 end
 
 section decidable_linear_ordered_comm_group

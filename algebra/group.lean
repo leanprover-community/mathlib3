@@ -13,18 +13,27 @@ section pending_1857
 section transport
 open tactic
 
+-- TODO(Mario): hack for #1871
+meta def to_additive_get_param
+  (to_additive_attr : user_attribute (name_map name) name) (src : name) : tactic name :=
+(do e ← get_decl (src <.> "_to_additive"),
+    eval_expr name e.value) <|>
+do tgt ← to_additive_attr.get_param src,
+   add_decl (mk_definition (src <.> "_to_additive") [] `(name) (reflect tgt)),
+   pure tgt
+
 @[user_attribute]
 meta def to_additive_attr : user_attribute (name_map name) name :=
 { name      := `to_additive,
   descr     := "Transport multiplicative to additive",
   cache_cfg := ⟨λ ns, ns.mfoldl (λ dict n, do
-    val ← to_additive_attr.get_param n,
+    val ← to_additive_get_param to_additive_attr n,
     pure $ dict.insert n val) mk_name_map, []⟩,
   parser    := lean.parser.ident,
   after_set := some $ λ src _ _, do
     env ← get_env,
     dict ← to_additive_attr.get_cache,
-    tgt ← to_additive_attr.get_param src,
+    tgt ← to_additive_get_param to_additive_attr src,
     (get_decl tgt >> skip) <|>
       transport_with_dict dict src tgt }
 
@@ -219,6 +228,15 @@ section group
   @[to_additive add_neg_eq_zero]
   theorem mul_inv_eq_one {a b : α} : a * b⁻¹ = 1 ↔ a = b :=
   by rw [mul_eq_one_iff_eq_inv, inv_inv]
+
+  @[to_additive neg_comm_of_comm]
+  theorem inv_comm_of_comm {a b : α} (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
+  begin
+    have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
+      congr_arg (λ x:α, a⁻¹ * x * a⁻¹) H.symm,
+    rwa [mul_assoc, mul_assoc, mul_inv_self, mul_one,
+        ← mul_assoc, inv_mul_self, one_mul] at this; exact h
+  end
 end group
 
 section add_group

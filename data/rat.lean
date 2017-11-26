@@ -486,12 +486,14 @@ by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 by simpa using rat.nonneg_add hab hbc
 
-instance : linear_order ℚ :=
+instance : decidable_linear_order ℚ :=
 { le              := rat.le,
   le_refl         := rat.le_refl,
   le_trans        := @rat.le_trans,
   le_antisymm     := @rat.le_antisymm,
-  le_total        := rat.le_total }
+  le_total        := rat.le_total,
+  decidable_eq    := by apply_instance,
+  decidable_le    := assume a b, rat.decidable_nonneg (b - a) }
 
 theorem nonneg_iff_zero_le {a} : rat.nonneg a ↔ 0 ≤ a :=
 show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
@@ -510,15 +512,7 @@ protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a
 by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
 instance : discrete_linear_ordered_field ℚ :=
-{ rat.field_rat with
-  le              := (≤),
-  lt              := (<),
-  le_refl         := le_refl,
-  le_trans        := @rat.le_trans,
-  le_antisymm     := assume a b, le_antisymm,
-  le_total        := le_total,
-  lt_iff_le_not_le := @lt_iff_le_not_le _ _,
-  zero_lt_one     := dec_trivial,
+{ zero_lt_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
   add_lt_add_left := assume a b ab c, lt_of_not_ge $ λ ba,
     not_le_of_lt ab $ rat.add_le_add_left.1 ba,
@@ -526,9 +520,7 @@ instance : discrete_linear_ordered_field ℚ :=
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
-  decidable_eq    := by apply_instance,
-  decidable_le    := assume a b, rat.decidable_nonneg (b - a),
-  decidable_lt    := λ a b, decidable_of_iff' _ (lt_iff_not_ge a b) }
+  ..rat.field_rat, ..rat.decidable_linear_order }
 
 theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom' _ _ _ _
 
@@ -643,7 +635,7 @@ theorem mul_cast_comm (a : α) :
 | ⟨n, d, h, c⟩ h₂ := show a * (n * d⁻¹) = n * d⁻¹ * a,
   by rw [← mul_assoc, int.mul_cast_comm, mul_assoc, mul_assoc,
          ← show (d:α)⁻¹ * a = a * d⁻¹, from
-           inv_comm_of_comm h₂ (int.mul_cast_comm a d).symm]
+           division_ring.inv_comm_of_comm h₂ (int.mul_cast_comm a d).symm]
 
 theorem cast_mk_of_ne_zero (a b : ℤ)
   (b0 : (b:α) ≠ 0) : (a /. b : α) = a / b :=
@@ -699,7 +691,7 @@ theorem cast_mul_of_ne_zero : ∀ {m n : ℚ},
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
     { simpa [division_def, mul_inv_eq, d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0] },
     all_goals {simp [d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0]} },
-  rw [inv_comm_of_comm d₁0 (nat.mul_cast_comm _ _).symm]
+  rw [division_ring.inv_comm_of_comm d₁0 (nat.mul_cast_comm _ _).symm]
 end
 
 theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
@@ -733,7 +725,7 @@ by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn
   rw [num_denom', num_denom'] at h ⊢,
   rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
   rwa [eq_div_iff_mul_eq _ _ d₂a, division_def, mul_assoc,
-    inv_comm_of_comm d₁a (nat.mul_cast_comm _ _),
+    division_ring.inv_comm_of_comm d₁a (nat.mul_cast_comm _ _),
     ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq _ _ d₁a, eq_comm,
     ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul,
     int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h

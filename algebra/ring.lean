@@ -52,14 +52,7 @@ namespace units
   @[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := by simp [val_coe, inv_coe, val_inv]
 
   instance : group (units α) :=
-  by refine {
-      mul          := (*),
-      one          := 1,
-      inv          := has_inv.inv,
-      mul_assoc    := _,
-      mul_one      := _,
-      one_mul      := _,
-      mul_left_inv := _ };
+  by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
     { intros, apply ext, simp }
 
 end units
@@ -142,7 +135,7 @@ section
   variables [s : integral_domain α] (a b c d e : α)
   include s
 
-  instance integral_domain.to_domain : domain α := {s with}
+  instance integral_domain.to_domain : domain α := {..s}
 
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
   have b * a - c * a = 0, by simp [h],

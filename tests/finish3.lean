@@ -65,7 +65,6 @@ by finish [iff_def]
 example (h : ∀ x, ¬ ¬ p x) : p a := by finish
 example (h : ∀ x, ¬ ¬ p x) : ∀ x, p x := by finish
 
-set_option pp.all true
 example : (∀ x, p x) ↔ ¬ (∃ x, ¬ p x) := by finish
 
 example : (∃ x, p x) ↔ ¬ (∀ x, ¬ p x) := by finish

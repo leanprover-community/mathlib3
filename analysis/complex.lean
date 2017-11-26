@@ -5,32 +5,22 @@ Author: Kevin Buzzard
 
 The complex numbers, modelled as R^2 in the obvious way.
 
-Natural next step: one could prove that complexes are a topological ring.
+TODO: Add topology, and prove that the complexes are a topological ring.
 -/
 import analysis.real
 noncomputable theory
--- because reals are noncomputable
 
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
--- because I don't know how to do inverses sensibly otherwise;
--- e.g. I needed to know that if z was non-zero then either its real part
--- was non-zero or its imaginary part was non-zero.
 
 structure complex : Type :=
 (re : ℝ) (im : ℝ)
 
 notation `ℂ` := complex
 
--- definition goes outside namespace, then everything else in it?
-
 namespace complex
-
--- handy checks for equality etc
 
 theorem eta (z : complex) : complex.mk z.re z.im = z :=
   cases_on z (λ _ _, rfl)
-
--- very useful
 
 theorem eq_of_re_eq_and_im_eq (z w : complex) : z.re=w.re ∧ z.im=w.im → z=w :=
 begin
@@ -51,84 +41,92 @@ lemma proj_im (r0 i0 : real) : (complex.mk r0 i0).im = i0 := rfl
 
 local attribute [simp] eq_iff_re_eq_and_im_eq proj_re proj_im
 
--- Am I right in
--- thinking that the end user should not need to
--- have to use this function?
-
 def of_real : ℝ → ℂ := λ x, { re := x, im := 0 }
 
--- does one name these instances or not? I've named a random selection
-
 instance coe_real_complex : has_coe ℝ ℂ := ⟨of_real⟩
-instance : has_zero complex := ⟨of_real 0⟩
-instance : has_one complex := ⟨of_real 1⟩
+instance has_zero_complex : has_zero complex := ⟨of_real 0⟩
+instance has_one_complex : has_one complex := ⟨of_real 1⟩
 instance inhabited_complex : inhabited complex := ⟨0⟩
 
--- dangerously short variable name so I protected it.
--- It's never used in the library (other than in the projection
--- commands) but I think end users will use it.
-
-protected def i : complex := {re := 0, im := 1}
+def I : complex := {re := 0, im := 1}
 
 def conjugate (z : complex) : complex := {re := z.re, im := -(z.im)}
 
 -- Are these supposed to be protected too?
 
-def add : complex → complex → complex :=
+protected def add : complex → complex → complex :=
 λ z w, { re :=z.re+w.re, im:=z.im+w.im}
 
-def neg : complex → complex :=
+protected def neg : complex → complex :=
 λ z, { re := -z.re, im := -z.im}
 
-def mul : complex → complex → complex :=
+protected def mul : complex → complex → complex :=
 λ z w, { re := z.re*w.re - z.im*w.im,
          im := z.re*w.im + z.im*w.re}
 
 def norm_squared : complex → real :=
 λ z, z.re*z.re+z.im*z.im
 
-def inv : complex → complex :=
+protected def inv : complex → complex :=
 λ z,  { re := z.re / norm_squared z,
         im := -z.im / norm_squared z }
 
 instance : has_add complex := ⟨complex.add⟩
 instance : has_neg complex := ⟨complex.neg⟩
-instance : has_sub complex := ⟨λx y, x + - y⟩
 instance : has_mul complex := ⟨complex.mul⟩
 instance : has_inv complex := ⟨complex.inv⟩
-instance : has_div complex := ⟨λx y, x * y⁻¹⟩
-
--- I was initially astounded to find that at some point there was a typo in has_div but
--- this didn't cause any problems at all. I have since understood what is
--- going on: "/" is never used in the field axioms, only ^{-1} .
-
--- These are very useful for proofs in the library so I make them local simp lemmas.
 
 lemma proj_zero_re : (0:complex).re=0 := rfl
 lemma proj_zero_im : (0:complex).im=0 := rfl
 lemma proj_one_re : (1:complex).re=1 := rfl
 lemma proj_one_im : (1:complex).im=0 := rfl
-lemma proj_i_re : complex.i.re=0 := rfl
-lemma proj_i_im : complex.i.im=1 := rfl
+lemma proj_I_re : complex.I.re=0 := rfl
+lemma proj_I_im : complex.I.im=1 := rfl
 lemma proj_conj_re (z : complex) : (conjugate z).re = z.re := rfl
 lemma proj_conj_im (z : complex) : (conjugate z).im = -z.im := rfl
 lemma proj_add_re (z w: complex) : (z+w).re=z.re+w.re := rfl
 lemma proj_add_im (z w: complex) : (z+w).im=z.im+w.im := rfl
+lemma proj_add_re' (z w: complex) : (complex.add z w).re=z.re+w.re := rfl
+lemma proj_add_im' (z w: complex) : (complex.add z w).im=z.im+w.im := rfl
+lemma proj_add_re'' (z w: complex) : (has_add.add z w).re=z.re+w.re := rfl
+lemma proj_add_im'' (z w: complex) : (has_add.add z w).im=z.im+w.im := rfl
 lemma proj_neg_re (z: complex) : (-z).re=-z.re := rfl
 lemma proj_neg_im (z: complex) : (-z).im=-z.im := rfl
-lemma proj_neg_re' (z: complex) : (neg z).re=-z.re := rfl
-lemma proj_neg_im' (z: complex) : (neg z).im=-z.im := rfl
+lemma proj_neg_re' (z: complex) : (complex.neg z).re=-z.re := rfl
+lemma proj_neg_im' (z: complex) : (complex.neg z).im=-z.im := rfl
+
+local attribute [simp] proj_zero_re proj_zero_im proj_one_re proj_one_im
+local attribute [simp] proj_I_re proj_I_im proj_conj_re proj_conj_im
+local attribute [simp] proj_add_re proj_add_im proj_add_re' proj_add_im' proj_add_re'' proj_add_im''
+local attribute [simp] proj_neg_re proj_neg_im proj_neg_re' proj_neg_im'
+
+meta def crunch : tactic unit := do
+`[intros],
+`[rw [eq_iff_re_eq_and_im_eq]],
+`[split;simp[add_mul,mul_add]]
+
+instance : add_comm_group complex :=
+{ add_comm_group .
+  zero         := 0,
+  add          := complex.add,
+  neg          := complex.neg,
+  zero_add     := by crunch,
+  add_zero     := by crunch,
+  add_comm     := by crunch,
+  add_assoc    := by crunch,
+  add_left_neg := by crunch
+}
+
 lemma proj_sub_re (z w : complex) : (z-w).re=z.re-w.re := rfl
 lemma proj_sub_im (z w : complex) : (z-w).im=z.im-w.im := rfl
 lemma proj_mul_re (z w: complex) : (z*w).re=z.re*w.re-z.im*w.im := rfl
 lemma proj_mul_im (z w: complex) : (z*w).im=z.re*w.im+z.im*w.re := rfl
+lemma proj_mul_re' (z w: complex) : (complex.mul z w).re=z.re*w.re-z.im*w.im := rfl
+lemma proj_mul_im' (z w: complex) : (complex.mul z w).im=z.re*w.im+z.im*w.re := rfl
 lemma proj_of_real_re (r:real) : (of_real r).re = r := rfl
 lemma proj_of_real_im (r:real) : (of_real r).im = 0 := rfl
-local attribute [simp] proj_zero_re proj_zero_im proj_one_re proj_one_im
-local attribute [simp] proj_i_re proj_i_im proj_conj_re proj_conj_im
-local attribute [simp] proj_add_re proj_add_im proj_neg_re proj_neg_im
-local attribute [simp] proj_neg_re' proj_neg_im' proj_sub_re proj_sub_im
-local attribute [simp] proj_mul_re proj_mul_im proj_of_real_re proj_of_real_im
+local attribute [simp] proj_sub_re proj_sub_im proj_of_real_re proj_of_real_im
+local attribute [simp] proj_mul_re proj_mul_im proj_mul_re' proj_mul_im'
 
 lemma norm_squared_pos_of_nonzero (z : complex) (H : z ≠ 0) : norm_squared z > 0 :=
 begin -- far more painful than it should be but I need it for inverses
@@ -151,23 +149,14 @@ cases classical.em (z.re = 0) with Hre_eq Hre_ne,
 left,assumption,
 end
 
--- I don't know how to set up
--- real.cast_zero etc
-
 lemma of_real_injective : function.injective of_real :=
 begin
 intros x₁ x₂ H,
 exact congr_arg complex.re H,
 end
 
-lemma of_real_zero : (0:complex) = of_real 0 := rfl
-lemma of_real_one : (1:complex) = of_real 1 := rfl
-
--- amateurish definition of killer tactic but it works!
-meta def crunch : tactic unit := do
-`[intros],
-`[rw [eq_iff_re_eq_and_im_eq]],
-`[split;simp[add_mul,mul_add]]
+lemma of_real_zero : of_real 0 = (0:complex) := rfl
+lemma of_real_one : of_real 1 = (1:complex) := rfl
 
 lemma of_real_neg (r : real) : -of_real r = of_real (-r) := by crunch
 
@@ -201,16 +190,10 @@ rw [abs_mul_abs_self],
   simp,
 end
 
-lemma add_comm : ∀ (a b : ℂ), a + b = b + a := by crunch
-
--- I don't think I ever use these actually.
-local attribute [simp] of_real_zero of_real_one of_real_neg of_real_add
-local attribute [simp] of_real_sub of_real_mul of_real_inv
-
 instance : discrete_field complex :=
 { discrete_field .
-  zero         := 0,
-  add          := (+),
+  add              := (+),
+  zero             := 0,
   neg          := complex.neg,
   zero_add     := by crunch,
   add_zero     := by crunch,
@@ -218,7 +201,7 @@ instance : discrete_field complex :=
   add_assoc    := by crunch,
   add_left_neg := by crunch,
   one              := 1,
-  mul              := (*),
+  mul              := has_mul.mul,
   inv              := has_inv.inv,
   mul_one          := by crunch,
   one_mul          := by crunch,
@@ -237,7 +220,7 @@ instance : discrete_field complex :=
     intros z H,
     have H2 : norm_squared z ≠ 0 := ne_of_gt (norm_squared_pos_of_nonzero z H),
     apply eq_of_re_eq_and_im_eq,
-    unfold has_inv.inv inv,
+    unfold has_inv.inv complex.inv,
     rw [proj_mul_re,proj_mul_im],
     split,
       suffices : z.re*(z.re/norm_squared z) + -z.im*(-z.im/norm_squared z) = 1,
@@ -254,7 +237,7 @@ instance : discrete_field complex :=
     intros z H,
     have H2 : norm_squared z ≠ 0 := ne_of_gt (norm_squared_pos_of_nonzero z H),
     apply eq_of_re_eq_and_im_eq,
-    unfold has_inv.inv inv,
+    unfold has_inv.inv complex.inv,
     rw [proj_mul_re,proj_mul_im],
     split,
       suffices : z.re*(z.re/norm_squared z) + -z.im*(-z.im/norm_squared z) = 1,
@@ -270,12 +253,14 @@ instance : discrete_field complex :=
   -- Presumably I could just have proved mul_comm outside the verification that C is a field
   -- and then used that too?
   inv_zero         := begin
-  unfold has_inv.inv inv add_comm_group.zero,
+  unfold has_inv.inv complex.inv add_comm_group.zero,
   apply eq_of_re_eq_and_im_eq,
   split;simp [zero_div],
   end,
-  has_decidable_eq := by apply_instance }
+  has_decidable_eq := by apply_instance,
+  }
 
 -- instance : topological_ring complex := missing
 
 end complex
+

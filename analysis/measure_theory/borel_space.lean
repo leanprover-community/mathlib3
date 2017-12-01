@@ -55,7 +55,7 @@ le_antisymm
           from subset.antisymm
             (assume a ⟨u, hu, hau⟩,
               have u ∈ (nhds a).sets, from mem_nhds_sets (ht' _ hu) hau,
-              let ⟨u', hu', hau', hu'u⟩ := mem_nhds_of_is_topological_basis hb₃ this in
+              let ⟨u', hu', hau', hu'u⟩ := (mem_nhds_of_is_topological_basis hb₃).1 this in
               have u' ∈ b', from ⟨hu', subset.trans hu'u (subset_sUnion_of_mem hu), u, hu, hu'u⟩,
               by simp; exact ⟨u', this, (hv u' this).right hau'⟩)
             (Union_subset $ assume ⟨u', hu'⟩, subset_sUnion_of_mem $ (hv u' hu').left),
@@ -169,19 +169,19 @@ open topological_space
 lemma is_topological_basis_Ioo_rat :
   @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_of_open_of_nhds
-  (assume t₁ t₂ ht₁ ht₂ h,
+  (assume t₁ t₂ ht₁ ht₂ x hx₁ hx₂,
     have ∃a b:ℚ, a < b ∧ t₁ = Ioo a b, by simpa using ht₁,
     let ⟨a₁, b₁, hab₁, eq₁⟩ := this in
     have ∃a b:ℚ, a < b ∧ t₂ = Ioo a b, by simpa using ht₂,
     let ⟨a₂, b₂, hab₂, eq₂⟩ := this in
     have t₁₂ : t₁ ∩ t₂ = Ioo (max a₁ a₂) (min b₁ b₂),
       by simp [eq₁, eq₂, Ioo_inter_Ioo],
+    have hx : x ∈ Ioo (max a₁ a₂:ℝ) (min b₁ b₂),
+      by rw ← t₁₂; exact ⟨hx₁, hx₂⟩,
     have max a₁ a₂ < min b₁ b₂,
-      from have ∃a, a ∈ Ioo (max a₁ a₂:ℝ) (min b₁ b₂),
-        from ne_empty_iff_exists_mem.mp $ by simp [t₁₂.symm, h],
-      let ⟨c, hc₁, hc₂⟩ := this in
-      (@rat.cast_lt ℝ _ _ _).1 $ by simpa using lt_trans hc₁ hc₂,
-    by simp [t₁₂]; exact ⟨max a₁ a₂, min b₁ b₂, this, by simp⟩)
+      from (@rat.cast_lt ℝ _ _ _).1 $ by simpa using lt_trans hx.1 hx.2,
+    ⟨t₁ ∩ t₂, by simp [t₁₂]; exact ⟨max a₁ a₂, min b₁ b₂, this, by simp⟩,
+      ⟨hx₁, hx₂⟩, subset.refl _⟩)
   (suffices ∀r, ∃(t : set ℝ), r ∈ t ∧ ∃a b : ℚ, t = Ioo a b ∧ a < b,
       by simpa,
     assume r,

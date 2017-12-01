@@ -93,13 +93,13 @@ rfl
 theorem comp_apply (g : β ≃ γ) (f : α ≃ β) (x : α) : (g ∘ f) x = g (f x) :=
 by cases g; cases f; simp [equiv.trans, *]
 
-theorem apply_inverse_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
+@[simp] theorem apply_inverse_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw r₁
 
-theorem inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm (e x) = x
+@[simp] theorem inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm (e x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw l₁
 
-theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
+@[simp] theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
 | ⟨f₁, g₁, l₁, r₁⟩ x y := (injective_of_left_inverse l₁).eq_iff
 
 theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f x = y ↔ x = f.symm y

@@ -75,7 +75,7 @@ assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
 structure filter (α : Type u) :=
 (sets            : set (set α))
 (exists_mem_sets : ∃x, x ∈ sets)
-(upwards_sets    : upwards (⊆) sets)
+(upwards_sets    : ∀{x y}, x ∈ sets → x ⊆ y → y ∈ sets)
 (directed_sets   : directed_on (⊆) sets)
 
 namespace filter
@@ -250,19 +250,23 @@ filter_eq $ set.ext $ assume a, image_subset_iff.symm
 
 @[simp] lemma join_principal_eq_Sup {s : set (filter α)} : join (principal s) = Sup s := rfl
 
+def bind (f : filter α) (m : α → filter β) : filter β := join (map m f)
+
 instance monad_filter : monad filter :=
 { monad .
-  bind       := λ(α β : Type u) f m, join (map m f),
+  bind       := @bind,
   pure       := λ(α : Type u) x, principal {x},
-  map        := λ(α β : Type u), filter.map,
+  map        := @filter.map,
   id_map     := assume α f, filter_eq $ rfl,
-  pure_bind  := assume α β a f, by simp [Sup_image],
+  pure_bind  := assume α β a f, by simp [bind, Sup_image],
   bind_assoc := assume α β γ f m₁ m₂, filter_eq $ rfl,
-  bind_pure_comp_eq_map := assume α β f x, filter_eq $ by simp [join, map, preimage, principal] }
+  bind_pure_comp_eq_map := assume α β f x, filter_eq $ by simp [bind, join, map, preimage, principal] }
 
 @[simp] lemma pure_def (x : α) : pure x = principal {x} := rfl
 
-@[simp] lemma bind_def {α β} (f : filter α) (m : α → filter β) : f >>= m = join (map m f) := rfl
+@[simp] lemma map_def {α β} (m : α → β) (f : filter α) : m <$> f = map m f := rfl
+
+@[simp] lemma bind_def {α β} (f : filter α) (m : α → filter β) : f >>= m = bind f m := rfl
 
 instance : alternative filter :=
 { failure := λα, ⊥,
@@ -323,17 +327,15 @@ inter_mem_sets (mem_inf_sets_of_left hs) (mem_inf_sets_of_right ht)
 
 lemma infi_sets_eq {f : ι → filter α} (h : directed (≤) f) (ne : nonempty ι) :
   (infi f).sets = (⋃ i, (f i).sets) :=
-let
-  ⟨i⟩          := ne,
-  u           := { filter .
+let ⟨i⟩ := ne, u := { filter .
     sets            := (⋃ i, (f i).sets),
     exists_mem_sets := ⟨univ, begin simp, exact ⟨i, univ_mem_sets⟩ end⟩,
     directed_sets   := directed_on_Union (show directed (≤) f, from h) (assume i, (f i).directed_sets),
-    upwards_sets    := by simp [upwards]; exact assume x y j xf xy, ⟨j, (f j).upwards_sets xf xy⟩ }
-in
-  subset.antisymm
-    (show u ≤ infi f, from le_infi $ assume i, le_supr (λi, (f i).sets) i)
-    (Union_subset $ assume i, infi_le f i)
+    upwards_sets    := by simpa using assume x y j xf (xy : x ⊆ y),
+      exists.intro j ((f j).upwards_sets xf xy) } in
+subset.antisymm
+  (show u ≤ infi f, from le_infi $ assume i, le_supr (λi, (f i).sets) i)
+  (Union_subset $ assume i, infi_le f i)
 
 lemma infi_sets_eq' {f : β → filter α} {s : set β} (h : directed_on (λx y, f x ≤ f y) s) (ne : ∃i, i ∈ s) :
   (⨅ i∈s, f i).sets = (⋃ i ∈ s, (f i).sets) :=
@@ -431,7 +433,7 @@ show ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a �
 
 @[simp] lemma inf_principal {s t : set α} : principal s ⊓ principal t = principal (s ∩ t) :=
 le_antisymm
-  (by simp; exact ⟨s, subset.refl s, t, subset.refl t, subset.refl _⟩)
+  (by simp; exact ⟨s, subset.refl s, t, subset.refl t, by simp⟩)
   (by simp [le_inf_iff, inter_subset_left, inter_subset_right])
 
 @[simp] lemma sup_principal {s t : set α} : principal s ⊔ principal t = principal (s ∪ t) :=
@@ -664,36 +666,32 @@ map_inf' univ_mem_sets univ_mem_sets (assume x _ y _, h x y)
 
 /- bind equations -/
 
-lemma mem_bind_sets {β : Type u} {s : set β} {f : filter α} {m : α → filter β} :
-  s ∈ (f >>= m).sets ↔ (∃t ∈ f.sets, ∀x ∈ t, s ∈ (m x).sets) :=
-calc s ∈ (f >>= m).sets ↔ {a | s ∈ (m a).sets} ∈ f.sets : by simp
+lemma mem_bind_sets {s : set β} {f : filter α} {m : α → filter β} :
+  s ∈ (bind f m).sets ↔ (∃t ∈ f.sets, ∀x ∈ t, s ∈ (m x).sets) :=
+calc s ∈ (bind f m).sets ↔ {a | s ∈ (m a).sets} ∈ f.sets : by simp [bind]
                      ... ↔ (∃t ∈ f.sets, t ⊆ {a | s ∈ (m a).sets}) : exists_sets_subset_iff.symm
                      ... ↔ (∃t ∈ f.sets, ∀x ∈ t, s ∈ (m x).sets) : iff.refl _
 
-lemma bind_mono {β : Type u} {f : filter α} {g h : α → filter β} (h₁ : {a | g a ≤ h a} ∈ f.sets) :
-  f >>= g ≤ f >>= h :=
+lemma bind_mono {f : filter α} {g h : α → filter β} (h₁ : {a | g a ≤ h a} ∈ f.sets) :
+  bind f g ≤ bind f h :=
 assume x h₂, f.upwards_sets (inter_mem_sets h₁ h₂) $ assume s ⟨gh', h'⟩, gh' h'
 
-lemma bind_sup {β : Type u} {f g : filter α} {h : α → filter β} :
-  (f ⊔ g) >>= h = (f >>= h) ⊔ (g >>= h) :=
-by simp
+lemma bind_sup {f g : filter α} {h : α → filter β} :
+  bind (f ⊔ g) h = bind f h ⊔ bind g h :=
+by simp [bind]
 
-lemma bind_mono2 {β : Type u} {f g : filter α} {h : α → filter β} (h₁ : f ≤ g) :
-  f >>= h ≤ g >>= h :=
+lemma bind_mono2 {f g : filter α} {h : α → filter β} (h₁ : f ≤ g) :
+  bind f h ≤ bind g h :=
 assume s h', h₁ h'
 
-lemma principal_bind {β : Type u} {s : set α} {f : α → filter β} :
-  (principal s >>= f) = (⨆x ∈ s, f x) :=
+lemma principal_bind {s : set α} {f : α → filter β} :
+  (bind (principal s) f) = (⨆x ∈ s, f x) :=
 show join (map f (principal s)) = (⨆x ∈ s, f x),
   by simp [Sup_image]
 
 lemma seq_mono {β : Type u} {f₁ f₂ : filter (α → β)} {g₁ g₂ : filter α}
   (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) : f₁ <*> g₁ ≤ f₂ <*> g₂ :=
 le_trans (bind_mono2 hf) (bind_mono $ univ_mem_sets' $ assume f, map_mono hg)
-
-@[simp] lemma fmap_principal {β : Type u} {s : set α} {f : α → β} :
-  f <$> principal s = principal (set.image f s) :=
-filter_eq $ set.ext $ assume a, image_subset_iff.symm
 
 lemma mem_return_sets {a : α} {s : set α} : s ∈ (return a : filter α).sets ↔ a ∈ s :=
 show s ∈ (principal {a}).sets ↔ a ∈ s,

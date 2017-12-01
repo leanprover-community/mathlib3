@@ -39,6 +39,22 @@ def of_list [decidable_eq α] (l : list α)
   (H : ∀ x : α, x ∈ l) : fintype α :=
 ⟨l.to_finset, by simpa using H⟩
 
+def card (α) [fintype α] : ℕ := (@univ α _).card
+
+def equiv_fin (α) [fintype α] [decidable_eq α] : trunc (α ≃ fin (card α)) :=
+by unfold card finset.card; exact
+quot.rec_on_subsingleton (@univ α _).1
+  (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk
+   ⟨λ a, ⟨_, list.index_of_lt_length.2 (h a)⟩,
+    λ i, l.nth_le i.1 i.2,
+    λ a, by simp,
+    λ ⟨i, h⟩, fin.eq_of_veq $ list.nodup_iff_nth_le_inj.1 nd _ _
+      (list.index_of_lt_length.2 (list.nth_le_mem _ _ _)) h $ by simp⟩)
+  mem_univ_val univ.2
+
+theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
+by have := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin α)⟩
+
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
 
@@ -82,7 +98,7 @@ fintype.of_equiv _ equiv.ulift.symm
 
 instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
 @fintype.of_equiv _ _ (@sigma.fintype _
-    (λ b, cond b (ulift.{(max u v) u} α) (ulift.{(max u v) v} β)) _
+    (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) _
     (λ b, by cases b; apply ulift.fintype))
   ((equiv.sum_equiv_sigma_bool _ _).symm.trans
     (equiv.sum_congr equiv.ulift equiv.ulift))
@@ -95,3 +111,10 @@ fintype.of_multiset s.attach s.mem_attach
 
 instance finset.subtype.fintype (s : finset α) : fintype {x // x ∈ s} :=
 ⟨s.attach, s.mem_attach⟩
+
+instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
+⟨if h : p then finset.singleton ⟨h⟩ else ∅, λ ⟨h⟩, by simp [h]⟩
+
+instance Prop.fintype : fintype Prop :=
+⟨⟨true::false::0, by simp [true_ne_false]⟩,
+ classical.cases (by simp) (by simp)⟩

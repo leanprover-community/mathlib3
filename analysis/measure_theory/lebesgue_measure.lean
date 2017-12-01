@@ -156,11 +156,9 @@ outer_measure.caratheodory_is_measurable $ assume t, by_cases
         -sub_eq_add_neg, add_sub_cancel'_right, add_sub],
       { show of_real (b + b - a - a) ≤ of_real (b - a),
         rw [ennreal.of_real_of_nonpos],
-        { exact zero_le },
+        { apply zero_le },
         { have : b ≤ a, from le_trans hbc hca,
-          have : b + b ≤ a + a, from add_le_add this this,
-          simpa using show (b + b) - (a + a) ≤ 0,
-            by simp [sub_le_iff_le_add, -sub_eq_add_neg, this] } }
+          simpa using sub_nonpos.2 (add_le_add this this) } }
     end)
   (assume h, by simp at h; from le_lebesgue_length h)
 

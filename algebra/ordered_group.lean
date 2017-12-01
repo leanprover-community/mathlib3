@@ -2,7 +2,7 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
- 
+
 Ordered monoids and groups.
 -/
 import algebra.group tactic
@@ -130,10 +130,10 @@ variables [canonically_ordered_monoid α] {a b c d : α}
 lemma le_iff_exists_add : a ≤ b ↔ ∃c, b = a + c :=
 canonically_ordered_monoid.le_iff_exists_add a b
 
-@[simp] lemma zero_le : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
+@[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
 
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
-add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg' zero_le zero_le
+add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg' (zero_le _) (zero_le _)
 
 end canonically_ordered_monoid
 

@@ -117,8 +117,14 @@ lemma ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s :=
 lemma not_eq_empty_iff_exists {s : set α} : ¬ (s = ∅) ↔ ∃ x, x ∈ s :=
 ne_empty_iff_exists_mem
 
-theorem subset_empty_iff (s : set α) : s ⊆ ∅ ↔ s = ∅ :=
+theorem subset_empty_iff {s : set α} : s ⊆ ∅ ↔ s = ∅ :=
 by finish [set_eq_def]
+
+theorem subset_eq_empty {s t : set α} (h : t ⊆ s) (e : s = ∅) : t = ∅ :=
+subset_empty_iff.1 $ e ▸ h
+
+theorem subset_ne_empty {s t : set α} (h : t ⊆ s) : t ≠ ∅ → s ≠ ∅ :=
+mt (subset_eq_empty h)
 
 theorem ball_empty_iff {p : α → Prop} :
   (∀ x ∈ (∅ : set α), p x) ↔ true :=
@@ -142,8 +148,10 @@ by finish [set_eq_def]
 theorem eq_univ_of_univ_subset {s : set α} (h : univ ⊆ s) : s = univ :=
 by finish [subset_def, set_eq_def]
 
-theorem eq_univ_of_forall {s : set α} (H : ∀ x, x ∈ s) : s = univ :=
+theorem eq_univ_iff_forall {s : set α} : s = univ ↔ ∀ x, x ∈ s :=
 by finish [set_eq_def]
+
+theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
 /- union -/
 
@@ -253,12 +261,16 @@ by finish
 theorem inter_right_comm (s₁ s₂ s₃ : set α) : (s₁ ∩ s₂) ∩ s₃ = (s₁ ∩ s₃) ∩ s₂ :=
 by finish
 
-theorem inter_subset_left (s t : set α) : s ∩ t ⊆ s := λ x H, and.left H
+@[simp] theorem inter_subset_left (s t : set α) : s ∩ t ⊆ s := λ x H, and.left H
 
-theorem inter_subset_right (s t : set α) : s ∩ t ⊆ t := λ x H, and.right H
+@[simp] theorem inter_subset_right (s t : set α) : s ∩ t ⊆ t := λ x H, and.right H
 
 theorem subset_inter {s t r : set α} (rs : r ⊆ s) (rt : r ⊆ t) : r ⊆ s ∩ t :=
 by finish [subset_def, inter_def]
+
+@[simp] theorem subset_inter_iff {s t r : set α} : r ⊆ s ∩ t ↔ r ⊆ s ∧ r ⊆ t :=
+⟨λ h, ⟨subset.trans h (inter_subset_left _ _), subset.trans h (inter_subset_right _ _)⟩,
+ λ ⟨h₁, h₂⟩, subset_inter h₁ h₂⟩
 
 theorem inter_univ (a : set α) : a ∩ univ = a :=
 ext (assume x, and_true _)
@@ -739,10 +751,10 @@ lemma mem_range {i : ι} : f i ∈ range f := ⟨i, rfl⟩
 lemma forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
 ⟨assume h i, h (f i) mem_range, assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩
 
-lemma range_of_surjective : surjective f → range f = univ :=
-eq_univ_of_forall
+lemma range_iff_surjective : range f = univ ↔ surjective f :=
+eq_univ_iff_forall
 
-@[simp] lemma range_id : range (@id α) = univ := range_of_surjective surjective_id
+@[simp] lemma range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
 
 lemma range_eq_image {ι : Type*} {f : ι → β} : range f = f '' univ :=
 set.ext $ by simp [image, range]

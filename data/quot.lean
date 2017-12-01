@@ -84,3 +84,5 @@ noncomputable def out : trunc α → α := quot.out
 
 end trunc
 
+theorem nonempty_of_trunc (q : trunc α) : nonempty α :=
+let ⟨a, _⟩ := q.exists_rep in ⟨a⟩

@@ -361,7 +361,7 @@ def count : measure_space α :=
       { have h' : (∑(i : ℕ), ite (x ∈ f i) 1 0 : ennreal) = 1,
           from let ⟨i, hi⟩ := h in
             calc (∑(i : ℕ), ite (x ∈ f i) 1 0 : ennreal) =
-              finset.sum {i} (λi, ite (x ∈ f i) 1 0) :
+              (finset.singleton i).sum (λi, ite (x ∈ f i) 1 0) :
                 tsum_eq_sum (assume j hj,
                   have j ≠ i, by simp at hj; assumption,
                   have f j ∩ f i = ∅, from hd j i this,

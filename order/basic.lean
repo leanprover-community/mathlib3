@@ -13,7 +13,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
 
-def monotone (f : α → β) := ∀{{a b}}, a ≤ b → f a ≤ f b
+def monotone (f : α → β) := ∀⦃a b⦄, a ≤ b → f a ≤ f b
 
 theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 

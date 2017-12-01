@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Multisets.
 -/
 import data.list.basic data.list.perm data.list.sort order.boolean_algebra
-       algebra.functions data.quot algebra.group_power
+       algebra.functions data.quot algebra.group_power algebra.ordered_group
 open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -314,13 +314,18 @@ by simpa using add_le_add_right (zero_le t) s
 @[simp] theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 quotient.induction_on₂ s t length_append
 
+@[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
+quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
+
 theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
 ⟨λ h, le_induction_on h $ λ l₁ l₂ s,
   let ⟨l, p⟩ := exists_perm_append_of_sublist s in ⟨l, quot.sound p⟩,
 λ⟨u, e⟩, e.symm ▸ le_add_right s u⟩
 
-@[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
-quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
+instance : canonically_ordered_monoid (multiset α) :=
+{ lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _,
+  le_iff_exists_add     := @le_iff_exists_add _,
+  ..multiset.ordered_cancel_comm_monoid }
 
 /- repeat -/
 def repeat (a : α) (n : ℕ) : multiset α := repeat a n

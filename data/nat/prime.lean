@@ -210,6 +210,16 @@ suffices ∀ {n}, n ≥ 2 → ∃ p, p ≥ n ∧ prime p, from
     pp.not_dvd_one this,
   ⟨p, this, pp⟩
 
+def factors : ℕ → list ℕ
+| 0 := []
+| 1 := []
+| n@(k+2) := let m := min_fac n in
+  have n / m < n, from
+    have n * 1 < n * min_fac n, from nat.mul_lt_mul_of_pos_left
+      (min_fac_prime dec_trivial).gt_one (succ_pos _),
+    (nat.div_lt_iff_lt_mul _ _ (min_fac_pos _)).2 $ by simpa,
+  m :: factors (n / m)
+
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
  λ nd, coprime_of_dvd $ λ m m2 mp, ((dvd_prime_ge_two pp m2).1 mp).symm ▸ nd⟩

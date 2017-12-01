@@ -174,11 +174,11 @@ lemma is_sum_iff_is_sum
 ⟨is_sum_of_is_sum h₂, is_sum_of_is_sum h₁⟩
 
 variables
-  (i : Π{{c}}, g c ≠ 0 → β) (hi : ∀{{c}} (h : g c ≠ 0), f (i h) ≠ 0)
-  (j : Π{{b}}, f b ≠ 0 → γ) (hj : ∀{{b}} (h : f b ≠ 0), g (j h) ≠ 0)
-  (hji : ∀{{c}} (h : g c ≠ 0), j (hi h) = c)
-  (hij : ∀{{b}} (h : f b ≠ 0), i (hj h) = b)
-  (hgj : ∀{{b}} (h : f b ≠ 0), g (j h) = f b)
+  (i : Π⦃c⦄, g c ≠ 0 → β) (hi : ∀⦃c⦄ (h : g c ≠ 0), f (i h) ≠ 0)
+  (j : Π⦃b⦄, f b ≠ 0 → γ) (hj : ∀⦃b⦄ (h : f b ≠ 0), g (j h) ≠ 0)
+  (hji : ∀⦃c⦄ (h : g c ≠ 0), j (hi h) = c)
+  (hij : ∀⦃b⦄ (h : f b ≠ 0), i (hj h) = b)
+  (hgj : ∀⦃b⦄ (h : f b ≠ 0), g (j h) = f b)
 include hi hj hji hij hgj
 
 lemma is_sum_of_is_sum_ne_zero : is_sum g a → is_sum f a :=
@@ -240,7 +240,7 @@ tsum_eq_is_sum $ is_sum_sum_of_ne_finset_zero hf
 
 lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   (∑b, f b) = f b :=
-calc (∑b, f b) = ({b} : finset β).sum f : tsum_eq_sum $ by simp [hf] {contextual := tt}
+calc (∑b, f b) = (finset.singleton b).sum f : tsum_eq_sum $ by simp [hf] {contextual := tt}
   ... = f b : by simp
 
 lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
@@ -259,28 +259,28 @@ by_cases
     by simp [tsum, hf, hg])
 
 lemma tsum_eq_tsum_of_ne_zero {f : β → α} {g : γ → α}
-  (i : Π{{c}}, g c ≠ 0 → β) (hi : ∀{{c}} (h : g c ≠ 0), f (i h) ≠ 0)
-  (j : Π{{b}}, f b ≠ 0 → γ) (hj : ∀{{b}} (h : f b ≠ 0), g (j h) ≠ 0)
-  (hji : ∀{{c}} (h : g c ≠ 0), j (hi h) = c)
-  (hij : ∀{{b}} (h : f b ≠ 0), i (hj h) = b)
-  (hgj : ∀{{b}} (h : f b ≠ 0), g (j h) = f b) :
+  (i : Π⦃c⦄, g c ≠ 0 → β) (hi : ∀⦃c⦄ (h : g c ≠ 0), f (i h) ≠ 0)
+  (j : Π⦃b⦄, f b ≠ 0 → γ) (hj : ∀⦃b⦄ (h : f b ≠ 0), g (j h) ≠ 0)
+  (hji : ∀⦃c⦄ (h : g c ≠ 0), j (hi h) = c)
+  (hij : ∀⦃b⦄ (h : f b ≠ 0), i (hj h) = b)
+  (hgj : ∀⦃b⦄ (h : f b ≠ 0), g (j h) = f b) :
   (∑i, f i) = (∑j, g j) :=
 tsum_eq_tsum_of_is_sum_iff_is_sum $ assume a, is_sum_iff_is_sum_of_ne_zero i hi j hj hji hij hgj
 
 lemma tsum_eq_tsum_of_ne_zero_bij {f : β → α} {g : γ → α}
-  (i : Π{{c}}, g c ≠ 0 → β)
-  (h₁ : ∀{{c₁ c₂}} (h₁ : g c₁ ≠ 0) (h₂ : g c₂ ≠ 0), i h₁ = i h₂ → c₁ = c₂)
-  (h₂ : ∀{{b}}, f b ≠ 0 → ∃c (h : g c ≠ 0), i h = b)
-  (h₃ : ∀{{c}} (h : g c ≠ 0), f (i h) = g c) :
+  (i : Π⦃c⦄, g c ≠ 0 → β)
+  (h₁ : ∀⦃c₁ c₂⦄ (h₁ : g c₁ ≠ 0) (h₂ : g c₂ ≠ 0), i h₁ = i h₂ → c₁ = c₂)
+  (h₂ : ∀⦃b⦄, f b ≠ 0 → ∃c (h : g c ≠ 0), i h = b)
+  (h₃ : ∀⦃c⦄ (h : g c ≠ 0), f (i h) = g c) :
   (∑i, f i) = (∑j, g j) :=
-have hi : ∀{{c}} (h : g c ≠ 0), f (i h) ≠ 0,
+have hi : ∀⦃c⦄ (h : g c ≠ 0), f (i h) ≠ 0,
   from assume c h, by simp [h₃, h],
-let j : Π{{b}}, f b ≠ 0 → γ := λb h, some $ h₂ h in
-have hj : ∀{{b}} (h : f b ≠ 0), ∃(h : g (j h) ≠ 0), i h = b,
+let j : Π⦃b⦄, f b ≠ 0 → γ := λb h, some $ h₂ h in
+have hj : ∀⦃b⦄ (h : f b ≠ 0), ∃(h : g (j h) ≠ 0), i h = b,
   from assume b h, some_spec $ h₂ h,
-have hj₁ : ∀{{b}} (h : f b ≠ 0), g (j h) ≠ 0,
+have hj₁ : ∀⦃b⦄ (h : f b ≠ 0), g (j h) ≠ 0,
   from assume b h, let ⟨h₁, _⟩ := hj h in h₁,
-have hj₂ : ∀{{b}} (h : f b ≠ 0), i (hj₁ h) = b,
+have hj₂ : ∀⦃b⦄ (h : f b ≠ 0), i (hj₁ h) = b,
   from assume b h, let ⟨h₁, h₂⟩ := hj h in h₂,
 tsum_eq_tsum_of_ne_zero i hi j hj₁
   (assume c h, h₁ (hj₁ _) h $ hj₂ _) hj₂ (assume b h, by rw [←h₃ (hj₁ _), hj₂])

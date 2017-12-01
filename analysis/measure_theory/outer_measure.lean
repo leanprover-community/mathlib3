@@ -78,7 +78,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
 { measure_of := μ,
   empty      := le_antisymm
     (infi_le_of_le (λ_, ∅) $ infi_le_of_le (empty_subset _) $ by simp [m_empty])
-    zero_le,
+    (zero_le _),
   mono       := assume s₁ s₂ hs, infi_le_infi $ assume f,
     infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
   Union_nat := assume s, ennreal.le_of_forall_epsilon_le $

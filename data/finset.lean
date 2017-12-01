@@ -92,6 +92,22 @@ theorem subset_empty {s : finset α} : s ⊆ ∅ ↔ s = ∅ := subset_zero.tran
 theorem exists_mem_of_ne_empty {s : finset α} (h : s ≠ ∅) : ∃ a : α, a ∈ s :=
 exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 
+/- singleton -/
+def singleton (a : α) : finset α := ⟨_, nodup_singleton a⟩
+local prefix `ι`:90 := singleton
+
+@[simp] theorem singleton_val (a : α) : (ι a).1 = a :: 0 := rfl
+
+@[simp] theorem mem_singleton {a b : α} : b ∈ ι a ↔ b = a :=
+by simp [singleton]
+
+theorem mem_singleton_self (a : α) : a ∈ ι a := by simp
+
+theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
+⟨λ h, mem_singleton.1 (h ▸ mem_singleton_self _), congr_arg _⟩
+
+@[simp] theorem singleton_ne_empty (a : α) : ι a ≠ ∅ := ne_empty_of_mem (mem_singleton_self _)
+
 /- insert -/
 section decidable_eq
 variables [decidable_eq α] 
@@ -148,20 +164,11 @@ insert_subset.2 ⟨subset.trans h (subset_insert _ _), mem_insert_self _ _⟩
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
-/- singleton -/
-@[simp] theorem singleton_val (a : α) : (singleton a : finset α).1 = a :: 0 := rfl
+@[simp] theorem singleton_eq_singleton (a : α) : _root_.singleton a = singleton a := rfl
 
-@[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : finset α) ↔ (b = a) :=
-by simp [singleton]
+@[simp] theorem insert_empty_eq_singleton (a : α) : {a} = singleton a := rfl
 
-theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := mem_insert_self _ _
-
-theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
-⟨λ h, mem_singleton.1 (h ▸ mem_singleton_self _), congr_arg _⟩
-
-@[simp] theorem singleton_ne_empty (a : α) : ({a} : finset α) ≠ ∅ := insert_ne_empty _ _
-
-@[simp] theorem insert_singelton_self_eq (a : α) : ({a, a} : finset α) = {a} :=
+@[simp] theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = ι a :=
 by simp [singleton]
 
 /- union -/
@@ -253,6 +260,9 @@ by simp [subset_iff] {contextual:=tt}; finish
 
 @[simp] theorem empty_inter (s : finset α) : ∅ ∩ s = ∅ := ext.2 $ by simp
 
+theorem inter_eq_empty_iff_disjoint {s₁ s₂ : finset α} : s₁ ∩ s₂ = ∅ ↔ s₁.1.disjoint s₂.1 :=
+by rw ← val_eq_zero; simp [inter_eq_zero_iff_disjoint]
+
 @[simp] theorem insert_inter_of_mem {s₁ s₂ : finset α} {a : α} (h : a ∈ s₂) :
   insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
 ext.2 $ by simp; intro x; constructor; finish
@@ -269,16 +279,16 @@ ext.2 $ assume a', by by_cases a' = a with h'; simp [mem_inter, mem_insert, h, h
   s₁ ∩ insert a s₂ = s₁ ∩ s₂ :=
 by rw [inter_comm, insert_inter_of_not_mem h, inter_comm]
 
-@[simp] theorem singleton_inter_of_mem {a : α} {s : finset α} : a ∈ s → {a} ∩ s = {a} :=
+@[simp] theorem singleton_inter_of_mem {a : α} {s : finset α} : a ∈ s → ι a ∩ s = ι a :=
 show a ∈ s → insert a ∅ ∩ s = insert a ∅, by simp {contextual := tt}
 
-@[simp] theorem singleton_inter_of_not_mem {a : α} {s : finset α} : a ∉ s → {a} ∩ s = ∅ :=
+@[simp] theorem singleton_inter_of_not_mem {a : α} {s : finset α} : a ∉ s → ι a ∩ s = ∅ :=
 show a ∉ s → insert a ∅ ∩ s = ∅, by simp {contextual := tt}
 
-@[simp] theorem inter_singleton_of_mem {a : α} {s : finset α} (h : a ∈ s) : s ∩ {a} = {a} :=
+@[simp] theorem inter_singleton_of_mem {a : α} {s : finset α} (h : a ∈ s) : s ∩ ι a = ι a :=
 by rw [inter_comm, singleton_inter_of_mem h]
 
-@[simp] theorem inter_singleton_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : s ∩ {a} = ∅ :=
+@[simp] theorem inter_singleton_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : s ∩ ι a = ∅ :=
 by rw [inter_comm, singleton_inter_of_not_mem h]
 
 /- lattice laws -/
@@ -557,7 +567,7 @@ ext.2 $ by simp [mem_image]; exact λ b,
 ⟨λ ⟨a, e, m₁, m₂⟩, ⟨⟨a, e, m₁⟩, ⟨a, e, m₂⟩⟩,
  λ ⟨⟨a, e₁, m₁⟩, ⟨a', e₂, m₂⟩⟩, ⟨a, e₁, m₁, hf _ _ (e₂.trans e₁.symm) ▸ m₂⟩⟩.
 
-@[simp] theorem image_singleton [decidable_eq α] (f : α → β) (a : α) : ({a}: finset α).image f = {f a} :=
+@[simp] theorem image_singleton [decidable_eq α] (f : α → β) (a : α) : (singleton a).image f = singleton (f a) :=
 ext.2 $ by simp [mem_image, eq_comm]
 
 @[simp] theorem image_insert [decidable_eq α] (f : α → β) (a : α) (s : finset α) :
@@ -669,15 +679,13 @@ variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 
 @[simp] theorem fold_empty : (∅ : finset α).fold op b f = b := rfl
 
-variables [decidable_eq α]
-
-@[simp] theorem fold_insert (h : a ∉ s) : (insert a s).fold op b f = f a * s.fold op b f :=
+@[simp] theorem fold_insert [decidable_eq α] (h : a ∉ s) : (insert a s).fold op b f = f a * s.fold op b f :=
 by simp [fold, ndinsert_of_not_mem h]
 
-@[simp] theorem fold_singleton : ({a}:finset α).fold op b f = f a * b :=
+@[simp] theorem fold_singleton : (singleton a).fold op b f = f a * b :=
 by simp [fold]
 
-@[simp] theorem fold_image [decidable_eq γ] {g : γ → α} {s : finset γ}
+@[simp] theorem fold_image [decidable_eq α] [decidable_eq γ] {g : γ → α} {s : finset γ}
   (H : ∀ (x ∈ s) (y ∈ s), g x = g y → x = y) : (s.image g).fold op b f = s.fold op b (f ∘ g) :=
 by simp [fold, image_val_of_inj_on H, map_map]
 
@@ -693,12 +701,12 @@ theorem fold_hom {op' : γ → γ → γ} [is_commutative γ op'] [is_associativ
   s.fold op' (m b) (λx, m (f x)) = m (s.fold op b f) :=
 by rw [fold, fold, ← fold_hom op hm, map_map]
 
-theorem fold_union_inter {s₁ s₂ : finset α} {b₁ b₂ : β} :
+theorem fold_union_inter [decidable_eq α] {s₁ s₂ : finset α} {b₁ b₂ : β} :
   (s₁ ∪ s₂).fold op b₁ f * (s₁ ∩ s₂).fold op b₂ f = s₁.fold op b₂ f * s₂.fold op b₁ f :=
 by unfold fold; rw [← fold_add op, ← map_add, union_val,
      inter_val, union_add_inter, map_add, hc.comm, fold_add]
 
-@[simp] theorem fold_insert_idem [hi : is_idempotent β op] :
+@[simp] theorem fold_insert_idem [decidable_eq α] [hi : is_idempotent β op] :
   (insert a s).fold op b f = f a * s.fold op b f :=
 by have : decidable_eq β := (λ _ _, classical.prop_decidable _);
    rw [fold, insert_val', ← fold_erase_dup_idem op, erase_dup_map_erase_dup_eq,

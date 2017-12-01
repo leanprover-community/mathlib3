@@ -2199,6 +2199,21 @@ from λ R l, ⟨λ p, reverse_reverse l ▸ this p, this⟩,
 λ R l p, by induction p with a l h p IH;
   [simp, simpa [pairwise_append, IH] using h]
 
+theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
+  pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j), R (nth_le l i (lt_trans h₂ h₁)) (nth_le l j h₁)
+| [] := by simp; exact λ i j h, (not_lt_zero j).elim h
+| (a::l) := begin
+  rw [pairwise_cons, pairwise_iff_nth_le],
+  refine ⟨λ H i j h₁ h₂, _, λ H, ⟨λ a' m, _,
+    λ i j h₁ h₂, H _ _ (succ_lt_succ h₁) (succ_lt_succ h₂)⟩⟩,
+  { cases j with j, {exact (not_lt_zero _).elim h₂},
+    cases i with i,
+    { apply H.1, simp [nth_le_mem] },
+    { exact H.2 _ _ (lt_of_succ_lt_succ h₁) (lt_of_succ_lt_succ h₂) } },
+  { rcases nth_le_of_mem m with ⟨n, h, rfl⟩,
+    exact H _ _ (succ_lt_succ h) (succ_pos _) }
+end
+
 variable [decidable_rel R]
 instance decidable_pairwise (l : list α) : decidable (pairwise R l) :=
 by induction l; simp; apply_instance
@@ -2387,6 +2402,14 @@ theorem nodup_iff_sublist {l : list α} : nodup l ↔ ∀ a, ¬ [a, a] <+ l :=
     (λ al, h a $ cons_sublist_cons _ $ singleton_sublist.2 al)
     (IH $ λ a s, h a $ sublist_cons_of_sublist _ s)
 end⟩
+
+theorem nodup_iff_nth_le_inj {l : list α} :
+  nodup l ↔ ∀ i j h₁ h₂, nth_le l i h₁ = nth_le l j h₂ → i = j :=
+pairwise_iff_nth_le.trans
+⟨λ H i j h₁ h₂ h, ((lt_trichotomy _ _)
+  .resolve_left (λ h', H _ _ h₂ h' h))
+  .resolve_right (λ h', H _ _ h₁ h' h.symm),
+ λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
 
 theorem nodup_iff_count_le_one [decidable_eq α] {l : list α} : nodup l ↔ ∀ a, count a l ≤ 1 :=
 nodup_iff_sublist.trans $ forall_congr $ λ a,

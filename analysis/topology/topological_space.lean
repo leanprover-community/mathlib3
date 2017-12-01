@@ -315,10 +315,17 @@ return_neq_bot this
 lemma interior_eq_nhds {s : set α} : interior s = {a | nhds a ≤ principal s} :=
 set.ext $ by simp [interior, nhds_sets]
 
+lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
+  a ∈ interior s ↔ s ∈ (nhds a).sets :=
+by simp [interior_eq_nhds]
+
 lemma is_open_iff_nhds {s : set α} : is_open s ↔ (∀a∈s, nhds a ≤ principal s) :=
 calc is_open s ↔ interior s = s : by rw [interior_eq_iff_open]
   ... ↔ s ⊆ interior s : ⟨assume h, by simp [*, subset.refl], subset.antisymm interior_subset⟩
   ... ↔ (∀a∈s, nhds a ≤ principal s) : by rw [interior_eq_nhds]; refl
+
+lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ (∀a∈s, s ∈ (nhds a).sets) :=
+by simpa using @is_open_iff_nhds α _ _
 
 lemma closure_eq_nhds {s : set α} : closure s = {a | nhds a ⊓ principal s ≠ ⊥} :=
 calc closure s = - interior (- s) : closure_eq_compl_interior_compl
@@ -544,9 +551,8 @@ lemma compact_iff_finite_subcover {s : set α} :
 ⟨assume hc c, compact_elim_finite_subcover hc, compact_of_finite_subcover⟩
 
 lemma compact_empty : compact (∅ : set α) :=
-assume f hnf hsf,
-have f = ⊥, by simp [empty_in_sets_eq_bot] at hsf; assumption,
-false.elim $ hnf this
+assume f hnf hsf, not.elim hnf $
+by simpa [empty_in_sets_eq_bot] using hsf
 
 lemma compact_singleton {a : α} : compact ({a} : set α) :=
 compact_of_finite_subcover $ assume c hc₁ hc₂,
@@ -878,7 +884,7 @@ variables {α : Type u} [t : topological_space α]
 include t
 
 def is_topological_basis (s : set (set α)) : Prop :=
-(∀t₁∈s, ∀t₂∈s, t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s) ∧
+(∀t₁∈s, ∀t₂∈s, ∀ x ∈ t₁ ∩ t₂, ∃ t₃∈s, x ∈ t₃ ∧ t₃ ⊆ t₁ ∩ t₂) ∧
 (⋃₀ s) = univ ∧
 t = generate_from s
 
@@ -886,10 +892,11 @@ lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_fro
   is_topological_basis ((λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f ≠ ∅}) :=
 let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f ≠ ∅} in
 ⟨assume s₁ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, eq₁⟩ s₂ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, eq₂⟩,
-    have ⋂₀(t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂, from Inf_union,
-    eq₁ ▸ eq₂ ▸ assume h,
-      ⟨t₁ ∪ t₂, ⟨finite_union hft₁ hft₂, union_subset ht₁b ht₂b, by simpa [this]⟩, this⟩,
-  eq_univ_of_forall $ assume a, ⟨univ, ⟨∅, by simp; exact (@empty_ne_univ _ ⟨a⟩).symm⟩, mem_univ _⟩,
+    have ie : ⋂₀(t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂, from Inf_union,
+    eq₁ ▸ eq₂ ▸ assume x h,
+      ⟨_, ⟨t₁ ∪ t₂, ⟨finite_union hft₁ hft₂, union_subset ht₁b ht₂b,
+        by simpa [ie] using ne_empty_of_mem h⟩, ie⟩, h, subset.refl _⟩,
+  eq_univ_iff_forall.2 $ assume a, ⟨univ, ⟨∅, by simp; exact (@empty_ne_univ _ ⟨a⟩).symm⟩, mem_univ _⟩,
  have generate_from s = generate_from b',
     from le_antisymm
       (generate_from_le $ assume s hs,
@@ -901,14 +908,14 @@ let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f
   this ▸ hs⟩
 
 lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
-  (h_inter : ∀(u₁ u₂ : set α), u₁ ∈ s → u₂ ∈ s → u₁ ∩ u₂ ≠ ∅ → u₁ ∩ u₂ ∈ s)
+  (h_inter : ∀(u₁ u₂ : set α), u₁ ∈ s → u₂ ∈ s → ∀ x, x ∈ u₁ → x ∈ u₂ → ∃ u₃, u₃ ∈ s ∧ x ∈ u₃ ∧ u₃ ⊆ u₁ ∩ u₂)
   (h_univ : ∀a:α, ∃u:set α, u ∈ s ∧ a ∈ u)
   (h_open : ∀(u : set α), u ∈ s → _root_.is_open u)
   (h_nhds : ∀(a:α) (u : set α), a ∈ u → _root_.is_open u → ∃v, v ∈ s ∧ a ∈ v ∧ v ⊆ u) :
   is_topological_basis s :=
 have @is_topological_basis α (generate_from s) s,
-  from ⟨assume t₁ ht₁ t₂ ht₂, h_inter t₁ t₂ ht₁ ht₂,
-    eq_univ_of_forall $ assume a, by simpa using h_univ a, rfl⟩,
+  from ⟨assume t₁ ht₁ t₂ ht₂, by simpa using h_inter t₁ t₂ ht₁ ht₂,
+    eq_univ_iff_forall.2 $ assume a, by simpa using h_univ a, rfl⟩,
 ⟨this.1, this.2.1,
   le_antisymm
     (assume u hu,
@@ -917,15 +924,15 @@ have @is_topological_basis α (generate_from s) s,
         by rw [nhds_generate_from]; exact (infi_le_of_le v $ infi_le_of_le ⟨hav, hvs⟩ $ by simp [hvu]))
     (generate_from_le h_open)⟩
 
-lemma mem_nhds_of_is_topological_basis [topological_space α] {a : α} {s : set α} {b : set (set α)}
-  (hb : is_topological_basis b) (hs : s ∈ (nhds a).sets) : ∃t∈b, a ∈ t ∧ t ⊆ s :=
+lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
+  (hb : is_topological_basis b) : s ∈ (nhds a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
 begin
-  rw [hb.2.2, nhds_generate_from, infi_sets_eq'] at hs,
-  { simpa using hs },
+  rw [hb.2.2, nhds_generate_from, infi_sets_eq'],
+  { simpa },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
-      ⟨s ∩ t, ⟨this, hb.1 _ hs₂ _ ht₂ $ ne_empty_of_mem this⟩,
-        by simp [inter_subset_left, inter_subset_right]⟩ },
+      let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in
+      ⟨u, ⟨hu₂, hu₁⟩, by simpa using hu₃⟩ },
   { suffices : a ∈ (⋃₀ b), { simpa },
     { rw [hb.2.1], trivial } }
 end
@@ -975,7 +982,11 @@ let ⟨f, hf⟩ := this in
   infi_neq_bot_of_directed ⟨a⟩
     (assume ⟨s₁, has₁, hs₁⟩ ⟨s₂, has₂, hs₂⟩,
       have a ∈ s₁ ∩ s₂, from ⟨has₁, has₂⟩,
-      ⟨⟨s₁ ∩ s₂, this, hb₃ _ hs₁ _ hs₂ $ ne_empty_of_mem this⟩, by simp [subset_def] {contextual := tt}⟩)
+      let ⟨s₃, hs₃, has₃, hs⟩ := hb₃ _ hs₁ _ hs₂ _ this in
+      ⟨⟨s₃, has₃, hs₃⟩, begin
+        simp only [le_principal_iff, mem_principal_sets],
+        simp at hs, split; apply inter_subset_inter_right; simp [hs]
+      end⟩)
     (assume ⟨s, has, hs⟩,
       have s ∩ (⋃ (s : set α) (H h : s ∈ b), {f s h}) ≠ ∅,
         from ne_empty_of_mem ⟨hf _ hs, mem_bUnion hs $ (mem_Union_eq _ _).mpr ⟨hs, by simp⟩⟩,

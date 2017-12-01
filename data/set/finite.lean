@@ -42,6 +42,9 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ (finite.fintype h) _
 
+theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
+⟨fintype_of_finset s (λ _, iff.rfl)⟩
+
 instance decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
 decidable_of_iff _ mem_to_finset
 
@@ -60,10 +63,6 @@ else fintype_insert' _ h
 
 @[simp] theorem finite_insert (a : α) {s : set α} : finite s → finite (insert a s)
 | ⟨h⟩ := ⟨@set.fintype_insert _ (classical.dec_eq α) _ _ h⟩
-
-inductive finite' : set α → Prop
-| empty : finite' ∅
-| insert : ∀a s, a ∉ s → finite' s → finite' (insert a s)
 
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)

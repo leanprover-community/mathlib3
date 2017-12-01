@@ -158,7 +158,7 @@ protected def lift (f : α → β) : α →. β := λ a, roption.some (f a)
 
 instance : has_coe (α → β) (α →. β) := ⟨pfun.lift⟩
 
-def graph (f : α →. β) : set (α × β) := λ ⟨a, b⟩, b ∈ f a
+def graph (f : α →. β) : set (α × β) := {p | p.2 ∈ f p.1}
 
 def ran (f : α →. β) : set β := {b | ∃a, b ∈ f a}
 
@@ -167,6 +167,9 @@ def restrict (f : α →. β) {p : set α} (H : p ⊆ f.dom) : α →. β :=
 
 theorem dom_iff_graph (f : α →. β) (x : α) : x ∈ f.dom ↔ ∃y, (x, y) ∈ f.graph :=
 roption.dom_iff_mem _
+
+theorem lift_graph {f : α → β} {a b} : (a, b) ∈ (f : α →. β).graph ↔ f a = b :=
+show (∃ (h : true), f a = b) ↔ f a = b, by simp
 
 protected def pure (x : β) : α →. β := λ_, roption.some x
 

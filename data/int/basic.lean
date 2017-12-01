@@ -146,6 +146,8 @@ by have := int.mul_div_cancel 1 H; rwa one_mul at this
 
 theorem of_nat_mod (m n : nat) : (m % n : ℤ) = of_nat (m % n) := rfl
 
+@[simp] theorem coe_nat_mod (m n : ℕ) : (↑(m % n) : ℤ) = ↑m % ↑n := rfl
+
 theorem neg_succ_of_nat_mod (m : ℕ) {b : ℤ} (bpos : b > 0) :
   -[1+m] % b = b - 1 - m % b :=
 by rw [sub_sub, add_comm]; exact
@@ -239,15 +241,22 @@ theorem add_mod_eq_add_mod_left {m n k : ℤ} (i : ℤ) (H : m % n = k % n) :
   (i + m) % n = (i + k) % n :=
 by rw [add_comm, add_mod_eq_add_mod_right _ H, add_comm]
 
-theorem mod_eq_mod_of_add_mod_eq_add_mod_right {m n k i : ℤ}
-    (H : (m + i) % n = (k + i) % n) :
+theorem mod_add_cancel_right {m n k : ℤ} (i) : (m + i) % n = (k + i) % n ↔ 
   m % n = k % n :=
-by have := add_mod_eq_add_mod_right (-i) H;
-   rwa [add_neg_cancel_right, add_neg_cancel_right] at this
+⟨λ H, by have := add_mod_eq_add_mod_right (-i) H;
+      rwa [add_neg_cancel_right, add_neg_cancel_right] at this,
+ add_mod_eq_add_mod_right _⟩
 
-theorem mod_eq_mod_of_add_mod_eq_add_mod_left {m n k i : ℤ} :
-  (i + m) % n = (i + k) % n → m % n = k % n :=
-by rw [add_comm, add_comm i]; apply mod_eq_mod_of_add_mod_eq_add_mod_right
+theorem mod_add_cancel_left {m n k i : ℤ} :
+  (i + m) % n = (i + k) % n ↔ m % n = k % n :=
+by rw [add_comm, add_comm i, mod_add_cancel_right]
+
+theorem mod_sub_cancel_right {m n k : ℤ} (i) : (m - i) % n = (k - i) % n ↔ 
+  m % n = k % n :=
+mod_add_cancel_right _
+
+theorem mod_eq_mod_iff_mod_sub_eq_zero {m n k : ℤ} : m % n = k % n ↔ (m - k) % n = 0 :=
+(mod_sub_cancel_right k).symm.trans $ by simp
 
 @[simp] theorem mul_mod_left (a b : ℤ) : (a * b) % b = 0 :=
 by rw [← zero_add (a * b), add_mul_mod_self, zero_mod]
@@ -580,6 +589,11 @@ sub_lt_self _ zero_lt_one
 theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
 | (n : ℕ) := (max_eq_left (coe_zero_le n)).symm
 | -[1+ n] := (max_eq_right (le_of_lt (neg_succ_lt_zero n))).symm
+
+@[simp] theorem to_nat_of_nonneg {a : ℤ} (h : 0 ≤ a) : (to_nat a : ℤ) = a :=
+by rw [to_nat_eq_max, max_eq_left h]
+
+@[simp] theorem to_nat_coe_nat (n : ℕ) : to_nat ↑n = n := rfl
 
 theorem le_to_nat (a : ℤ) : a ≤ to_nat a :=
 by rw [to_nat_eq_max]; apply le_max_left

@@ -230,6 +230,13 @@ section group
   end
 end group
 
+section add_monoid
+  variables [add_monoid α] {a b c : α}
+
+  @[simp] lemma bit0_zero : bit0 0 = 0 := add_zero _
+  @[simp] lemma bit1_zero : bit1 0 = 1 := add_zero _
+end add_monoid
+
 section add_group
   variables [add_group α] {a b c : α}
 

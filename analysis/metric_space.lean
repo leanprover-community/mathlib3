@@ -61,7 +61,8 @@ end
 
 theorem dist_nonneg {x y : α} : 0 ≤ dist x y :=
 have 2 * dist x y ≥ 0,
-  from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y]; simp [bit0, bit1, mul_add]
+  from calc 2 * dist x y = dist x y + dist y x :
+      by rw [dist_comm x y]; simp [bit0, bit1, mul_add, add_comm, mul_comm]
     ... ≥ 0 : by rw [←(dist_self x)]; apply dist_triangle,
 nonneg_of_mul_nonneg_left this two_pos
 

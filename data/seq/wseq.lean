@@ -16,6 +16,8 @@ universes u v w
 -- under most interesting computation patterns on infinite lists,
 -- but conversely it is difficult to extract elements from it.
 
+local attribute [simp] and.left_comm and.assoc and.comm or.left_comm or.assoc or.comm
+
 /-
 coinductive wseq (α : Type u) : Type u
 | nil : wseq α

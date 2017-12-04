@@ -52,15 +52,15 @@ assume a b h, prod_mono (hf h) (hg h)
 
 lemma image_swap_prod : (λp:β×α, (p.2, p.1)) '' set.prod t s = set.prod s t :=
 set.ext $ assume ⟨a, b⟩, by simp [mem_image_eq, set.prod]; exact
-⟨ assume ⟨b', a', h_a, h_b, h⟩, by rw [h_a, h_b] at h; assumption,
-  assume ⟨ha, hb⟩, ⟨b, a, rfl, rfl, ⟨ha, hb⟩⟩⟩
+⟨ assume ⟨b', a', h, h_a, h_b⟩, by rw [h_a, h_b, and_comm] at h; assumption,
+  assume h, ⟨b, a, h.symm, rfl, rfl⟩⟩
 
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
 
 lemma prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
   set.prod (image m₁ s) (image m₂ t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (set.prod s t) :=
-set.ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm]
+set.ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm, and.left_comm, and.assoc, and.comm]
 
 @[simp] lemma prod_singleton_singleton {a : α} {b : β} :
   set.prod {a} {b} = ({(a, b)} : set (α×β)) :=

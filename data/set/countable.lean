@@ -85,7 +85,7 @@ by_cases
     (@countable_iff_exists_surjective α inh _).mpr
       ⟨(λp:ℕ×ℕ, ft (fs p.1) p.2) ∘ nat.unpair,
         by simp [subset_def];
-        from assume a t ha ht,
+        from assume a t ht ha,
         let ⟨i, hi⟩ := hfs ht, ⟨j, hj⟩ := hft t ht ha in
         ⟨nat.mkpair i j, by simp [function.comp, nat.unpair_mkpair, hi, hj]⟩⟩)
   (assume : ¬ nonempty α, ⟨λ_, 0, assume a, (this ⟨a⟩).elim⟩)
@@ -138,8 +138,8 @@ have {t | finite t ∧ t ⊆ s } ⊆
           begin
             simp [eq.symm, iff_def, or_imp_distrib, has] {contextual:=tt},
             constructor,
+            exact assume hxs, or.imp (congr_arg subtype.val) (assume hxt', ⟨hxs, hxt'⟩),
             exact assume hxs hxt', ⟨hxs, or.inr hxt'⟩,
-            exact assume hxs, or.imp (congr_arg subtype.val) (assume hxt', ⟨hxs, hxt'⟩)
           end⟩ }
   end,
 by have enc := h.to_encodable; exact

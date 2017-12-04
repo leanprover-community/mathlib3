@@ -11,6 +11,7 @@ import algebra.big_operators
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

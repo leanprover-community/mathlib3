@@ -11,6 +11,9 @@ import
   algebra.ordered_ring algebra.field
   pending
 
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
+
 /- rational numbers -/
 
 structure rat := mk' ::
@@ -482,7 +485,9 @@ by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
    rwa neg_neg at this
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
-by simpa using rat.nonneg_add hab hbc
+have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
+have rat.nonneg (c - a + (b - b)), by simpa [-add_right_neg],
+by simpa
 
 instance : decidable_linear_order ℚ :=
 { le              := rat.le,

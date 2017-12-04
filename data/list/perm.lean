@@ -294,7 +294,7 @@ variable [comm_monoid α]
 
 @[to_additive list.sum_eq_of_perm]
 lemma prod_eq_of_perm {l₁ l₂ : list α} (h : perm l₁ l₂) : prod l₁ = prod l₂ :=
-by induction h; simp *
+by induction h; simp [*, mul_left_comm]
 
 @[to_additive list.sum_reverse]
 lemma prod_reverse (l : list α) : prod l.reverse = prod l :=
@@ -628,7 +628,8 @@ have (∃ (a : list α), a ∈ L ∧
     ∃ (l₁ l₂ : list α), ¬l₂ = nil ∧ l₁ ++ l₂ ∈ L ∧ l' = l₁ ++ t :: (l₂ ++ ts),
 from ⟨λ ⟨a, aL, l₁, l₂, l0, e, h⟩, ⟨l₁, l₂, l0, e ▸ aL, h⟩,
       λ ⟨l₁, l₂, l0, aL, h⟩, ⟨_, aL, l₁, l₂, l0, rfl, h⟩⟩,
-by rw foldr_permutations_aux2; simp [mem_permutations_aux2', this]
+by rw foldr_permutations_aux2; simp [mem_permutations_aux2', this,
+  or.comm, or.left_comm, or.assoc, and.comm, and.left_comm, and.assoc]
 
 theorem length_foldr_permutations_aux2 (t : α) (ts : list α) (r L : list (list α)) :
   length (foldr (λy r, (permutations_aux2 t ts r y id).2) r L) = sum (map length L) + length r :=
@@ -675,7 +676,7 @@ begin
   intros t ts is IH1 IH2,
   have IH2 : length (permutations_aux is nil) + 1 = is.length.fact,
   { simpa using IH2 },
-  simp [-add_comm, nat.fact, nat.add_succ] at IH1,
+  simp [-add_comm, nat.fact, nat.add_succ, mul_comm] at IH1,
   rw [permutations_aux_cons,
       length_foldr_permutations_aux2' _ _ _ _ _
         (λ l m, perm_length (perm_of_mem_permutations m)),
@@ -685,7 +686,7 @@ begin
 end
 
 theorem length_permutations (l : list α) : length (permutations l) = (length l).fact :=
-length_permutations_aux l [] 
+length_permutations_aux l []
 
 theorem mem_permutations_of_perm_lemma {is l : list α}
   (H : l ~ [] ++ is → (∃ ts' ~ [], l = ts' ++ is) ∨ l ∈ permutations_aux is [])

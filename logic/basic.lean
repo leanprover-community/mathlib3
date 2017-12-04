@@ -383,7 +383,7 @@ theorem exists_or_distrib : (∃ x, p x ∨ q x) ↔ (∃ x, p x) ∨ (∃ x, q 
 
 @[simp] theorem exists_and_distrib_right {q : Prop} {p : α → Prop} :
   (∃x, p x ∧ q) ↔ (∃x, p x) ∧ q :=
-by simp
+by simp [and_comm]
 
 @[simp] theorem forall_eq {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
 ⟨λ h, h a' rfl, λ h a e, e.symm ▸ h⟩

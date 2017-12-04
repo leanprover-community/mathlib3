@@ -29,7 +29,7 @@ have cauchy (at_top.map $ λn, f' (range n)),
   from cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hr,
 have ∃n, ∀{n'}, n ≤ n' → dist (f' (range n)) (f' (range n')) < ε / 2,
   by simp [cauchy_iff, mem_at_top_iff] at this;
-  from let ⟨t, ht, u, hu⟩ := this _ hε' in
+  from let ⟨t, ⟨u, hu⟩, ht⟩ := this _ hε' in
     ⟨u, assume n' hn, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ (le_refl _), hu _ hn⟩⟩,
 let ⟨n, hn⟩ := this in
 have ∀{s}, range n ⊆ s → abs ((s \ range n).sum f) < ε / 2,
@@ -76,7 +76,7 @@ lemma mul_add_one_le_pow {r : ℝ} (hr : 0 ≤ r) : ∀{n:ℕ}, (n:ℝ) * r + 1 
   let h : (n:ℝ) ≥ 0 := nat.cast_nonneg n in
   calc ↑(n + 1) * r + 1 ≤ ((n + 1) * r + 1) + r * r * n :
       le_add_of_le_of_nonneg (le_refl _) (mul_nonneg (mul_nonneg hr hr) h)
-    ... = (r + 1) * (n * r + 1) : by simp [mul_add, add_mul]
+    ... = (r + 1) * (n * r + 1) : by simp [mul_add, add_mul, mul_comm, mul_assoc]
     ... ≤ (r + 1) * (r + 1) ^ n : mul_le_mul (le_refl _) mul_add_one_le_pow
       (add_nonneg (mul_nonneg h hr) zero_le_one) (add_nonneg hr zero_le_one)
 
@@ -140,7 +140,8 @@ by_cases
 lemma sum_geometric' {r : ℝ} (h : r ≠ 0) :
   ∀{n}, (finset.range n).sum (λi, (r + 1) ^ i) = ((r + 1) ^ n - 1) / r
 | 0     := by simp [zero_div]
-| (n+1) := by simp [@sum_geometric' n, h, pow_succ, add_div_eq_mul_add_div, add_mul]
+| (n+1) :=
+  by simp [@sum_geometric' n, h, pow_succ, add_div_eq_mul_add_div, add_mul, mul_comm, mul_assoc]
 
 lemma sum_geometric {r : ℝ} {n : ℕ} (h : r ≠ 1) :
   (range n).sum (λi, r ^ i) = (r ^ n - 1) / (r - 1) :=

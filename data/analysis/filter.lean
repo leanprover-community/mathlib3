@@ -8,6 +8,9 @@ Computational realization of filters (experimental).
 import order.filter
 open set filter
 
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
+
 structure cfilter (α σ : Type*) [partial_order α] :=
 (f : σ → α)
 (pt : σ)

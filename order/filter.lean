@@ -13,6 +13,8 @@ universes u v w x y
 open set classical
 local attribute [instance] decidable_inhabited prop_decidable
 
+local attribute [simp] and.comm and.assoc and.left_comm
+
 -- should be handled by implies_true_iff
 
 namespace lattice
@@ -55,7 +57,7 @@ by simp [directed_on]; exact
     ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
     ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂)
   in
-    ⟨x, xa₁, xa₂, z, xf⟩
+    ⟨x, xa₁, xa₂, ⟨z, xf⟩⟩
 
 def upwards (s : set α) := ∀{x y}, x ∈ s → x ≼ y → y ∈ s
 
@@ -371,7 +373,7 @@ filter_eq $ set.ext $ assume x, by simp [supr_sets_eq, join]
 
 instance : bounded_distrib_lattice (filter α) :=
 { le_sup_inf := assume x y z s ⟨h₁, h₂⟩, begin
-    revert h₂, simp,
+    revert h₂, simp [and_assoc],
     exact assume t₁ ht₁ t₂ ht₂ hs, ⟨s ∪ t₁,
       x.upwards_sets h₁ $ subset_union_left _ _,
       y.upwards_sets ht₁ $ subset_union_right _ _,
@@ -394,7 +396,7 @@ le_antisymm
     intros t h,
     cases h with h₁ h₂,
     rw [Inf_sets_eq_finite] at h₂,
-    simp at h₂,
+    simp [and_assoc] at h₂,
     cases h₂ with s' hs', cases hs' with hs' hs'', cases hs'' with hs's ht',
     have ht : t ∈ (⨅ a ∈ s', f ⊔ a).sets,
     { rw [infi_finite_distrib], exact ⟨h₁, ht'⟩, exact hs' },
@@ -416,7 +418,8 @@ lemma mem_infi_sets_finset {s : finset α} {f : α → filter β} :
   ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⋂a∈s, p a) ⊆ t) :=
 show ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⨅a∈s, p a) ≤ t),
   from finset.induction_on s (by simp; exact assume t, iff.refl _) $
-    by simp [infi_or, mem_inf_sets, infi_inf_eq] {contextual := tt};
+    by simp [infi_or, mem_inf_sets, infi_inf_eq, and_assoc, and_comm, and.left_comm]
+          {contextual := tt};
     from assume a s has ih t, iff.intro
       (assume ⟨t₁, ht₁, t₂, ht, p, hp, ht₂⟩,
         ⟨λa', if a' = a then t₁ else p a',

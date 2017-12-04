@@ -8,6 +8,9 @@ Finite sets.
 import data.multiset order.boolean_algebra algebra.functions data.sigma.basic
 open multiset subtype nat lattice
 
+local attribute [simp] mul_comm mul_assoc mul_left_comm and.comm and.left_comm and.assoc
+  or.comm or.left_comm or.assoc
+
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 structure finset (α : Type*) :=
@@ -20,7 +23,7 @@ theorem eq_of_veq : ∀ {s t : finset α}, s.1 = t.1 → s = t
 | ⟨s, _⟩ ⟨t, _⟩ h := by congr; assumption
 
 @[simp] theorem val_inj {s t : finset α} : s.1 = t.1 ↔ s = t :=
-⟨eq_of_veq, congr_arg _⟩ 
+⟨eq_of_veq, congr_arg _⟩
 
 @[simp] theorem erase_dup_eq_self [decidable_eq α] (s : finset α) : erase_dup s.1 = s.1 :=
 erase_dup_eq_self.2 s.2
@@ -110,7 +113,7 @@ theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
 
 /- insert -/
 section decidable_eq
-variables [decidable_eq α] 
+variables [decidable_eq α]
 
 instance : has_insert α (finset α) := ⟨λ a s, ⟨_, nodup_ndinsert a s.2⟩⟩
 
@@ -526,7 +529,7 @@ end list
 namespace finset
 
 section image
-variables [decidable_eq β] 
+variables [decidable_eq β]
 
 def image (f : α → β) (s : finset α) : finset β := (s.1.map f).to_finset
 
@@ -673,7 +676,7 @@ variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associati
 local notation a * b := op a b
 include hc ha
 
-def fold (b : β) (f : α → β) (s : finset α) : β := (s.1.map f).fold op b 
+def fold (b : β) (f : α → β) (s : finset α) : β := (s.1.map f).fold op b
 
 variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 
@@ -716,7 +719,7 @@ end fold
 
 section sort
 variables (r : α → α → Prop) [decidable_rel r]
-  [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r] 
+  [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r]
 include tr an to
 
 def sort (s : finset α) : list α := sort r s.1

@@ -5,6 +5,8 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.list.basic data.pnat data.array.lemmas
 
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+
 universes u v w
 
 def bucket_array (α : Type u) (β : α → Type v) (n : ℕ+) :=
@@ -100,8 +102,8 @@ def erase_aux (a : α) : list (Σ a, β a) → list (Σ a, β a)
 structure valid {n} (bkts : bucket_array α β n) (sz : nat) : Prop :=
 (len : bkts.as_list.length = sz)
 (idx : ∀ {i} {a : Σ a, β a}, a ∈ array.read bkts i →
-  mk_idx n (hash_fn a.1) = i) 
-(nodup : ∀i, ((array.read bkts i).map sigma.fst).nodup) 
+  mk_idx n (hash_fn a.1) = i)
+(nodup : ∀i, ((array.read bkts i).map sigma.fst).nodup)
 
 theorem valid.idx_enum {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
   {i l} (he : (i, l) ∈ bkts.to_list.enum) {a b} (hl : sigma.mk a b ∈ l) :

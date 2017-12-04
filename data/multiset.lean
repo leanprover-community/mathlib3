@@ -9,6 +9,9 @@ import data.list.basic data.list.perm data.list.sort order.boolean_algebra
        algebra.functions data.quot algebra.group_power algebra.ordered_group
 open list subtype nat lattice
 
+local attribute [simp] mul_comm mul_assoc mul_left_comm and.comm and.left_comm and.assoc
+  or.comm or.left_comm or.assoc
+
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 local infix ` • `:73 := add_monoid.smul
@@ -26,6 +29,8 @@ instance : has_coe (list α) (multiset α) := ⟨quot.mk _⟩
 @[simp] theorem quot_mk_to_coe (l : list α) : @eq (multiset α) ⟦l⟧ l := rfl
 
 @[simp] theorem quot_mk_to_coe' (l : list α) : @eq (multiset α) (quot.mk (≈) l) l := rfl
+
+@[simp] theorem quot_mk_to_coe'' (l : list α) : @eq (multiset α) (quot.mk setoid.r l) l := rfl
 
 @[simp] theorem coe_eq_coe (l₁ l₂ : list α) : (l₁ : multiset α) = l₂ ↔ l₁ ~ l₂ := quotient.eq
 
@@ -185,10 +190,11 @@ theorem le_zero {s : multiset α} : s ≤ 0 ↔ s = 0 :=
 
 theorem lt_cons_self (s : multiset α) (a : α) : s < a :: s :=
 quot.induction_on s $ λ l,
-suffices l <+~ a :: l ∧ ¬l ~ a :: l,
+suffices l <+~ a :: l ∧ (¬l ~ a :: l),
   by simpa [lt_iff_le_and_ne],
 ⟨subperm_of_sublist (sublist_cons _ _),
  λ p, ne_of_lt (lt_succ_self (length l)) (perm_length p)⟩
+
 
 theorem le_cons_self (s : multiset α) (a : α) : s ≤ a :: s :=
 le_of_lt $ lt_cons_self _ _
@@ -261,7 +267,7 @@ ne_of_gt (lt_cons_self _ _)
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
 /- add -/
-protected def add (s₁ s₂ : multiset α) : multiset α := 
+protected def add (s₁ s₂ : multiset α) : multiset α :=
 quotient.lift_on₂ s₁ s₂ (λ l₁ l₂, ((l₁ ++ l₂ : list α) : multiset α)) $
   λ v₁ v₂ w₁ w₂ p₁ p₂, quot.sound $ perm_app p₁ p₂
 
@@ -438,7 +444,7 @@ theorem erase_le_iff_le_cons {s t : multiset α} {a : α} : s.erase a ≤ t ↔ 
 end erase
 
 @[simp] theorem coe_reverse (l : list α) : (reverse l : multiset α) = l :=
-quot.sound $ reverse_perm _ 
+quot.sound $ reverse_perm _
 
 /- map -/
 def map (f : α → β) (s : multiset α) : multiset β :=
@@ -906,7 +912,7 @@ begin
   exact not_le_of_lt (lt_cons_self (s ∩ t) a) (le_inter
     (le_of_add_le_add_right (le_trans hl (inter_le_left _ _)))
     (le_of_add_le_add_right (le_trans hl (inter_le_right _ _))))
-end  
+end
 
 theorem add_inter_distrib (s t u : multiset α) : s + (t ∩ u) = (s + t) ∩ (s + u) :=
 by rw [add_comm, inter_add_distrib, add_comm s, add_comm s]
@@ -1679,7 +1685,7 @@ end⟩
 
 section sort
 variables (r : α → α → Prop) [decidable_rel r]
-  [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r] 
+  [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r]
 include tr an to
 
 def sort (s : multiset α) : list α :=

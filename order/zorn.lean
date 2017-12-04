@@ -113,14 +113,14 @@ begin
     apply or.imp_left (assume h', subset.antisymm h' h),
     apply classical.by_contradiction,
     simp [not_or_distrib, sUnion_subset_iff, classical.not_forall],
-    intros h₁ c₃ h₂ hc₃,
+    intros c₃ hc₃ h₁ h₂,
     have h := chain_closure_succ_total_aux hc₁ (hs c₃ hc₃) (assume c₄, ih _ hc₃),
     cases h with h h,
     { have h' := ih c₃ hc₃ hc₁ h,
       cases h' with h' h',
-      { exact (h₂ $ h' ▸ subset.refl _) },
-      { exact (h₁ $ subset.trans h' $ subset_sUnion_of_mem hc₃) } },
-    { exact (h₂ $ subset.trans succ_increasing h) } }
+      { exact (h₁ $ h' ▸ subset.refl _) },
+      { exact (h₂ $ subset.trans h' $ subset_sUnion_of_mem hc₃) } },
+    { exact (h₁ $ subset.trans succ_increasing h) } }
 end
 
 theorem chain_closure_total (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂) : c₁ ⊆ c₂ ∨ c₂ ⊆ c₁ :=

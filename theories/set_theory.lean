@@ -423,7 +423,7 @@ namespace Set
 
   def pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' := begin
     have ae := ext_iff.2 H,
-    simp[pair] at ae,
+    simp[pair, or_comm] at ae,
     have : x = x',
     { have xx'y' := (ae (@insert Set.{u} _ _ x ∅)).1 (by simp),
       cases xx'y' with h h,
@@ -448,9 +448,9 @@ namespace Set
       simp at yx, exact he yx },
     { have yxy' := (ext_iff.2 xyy' y).1 (by simp),
       simp at yxy',
-      cases yxy' with yx yy',
-      exact he yx,
-      assumption }
+      cases yxy' with yy' yx,
+      assumption,
+      exact he yx }
   end
 
   def prod : Set.{u} → Set.{u} → Set.{u} := pair_sep (λa b, true)
@@ -470,7 +470,7 @@ namespace Set
   {f ∈ powerset (prod x y) | is_func x y f}
 
   @[simp] def mem_funs {x y f : Set.{u}} : f ∈ funs x y ↔ is_func x y f :=
-  by simp[funs]; exact ⟨and.left, λh, ⟨h, h.left⟩⟩
+  by simp[funs]; exact ⟨and.right, λh, ⟨h.left, h⟩⟩
 
   -- TODO(Mario): Prove this computably
   noncomputable instance map_definable_aux (f : Set → Set) [H : definable 1 f] : definable 1 (λy, pair y (f y)) :=

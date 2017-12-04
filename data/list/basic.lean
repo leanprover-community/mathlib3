@@ -7,7 +7,10 @@ Basic properties of lists.
 -/
 import logic.basic data.nat.basic data.option data.bool data.prod
        tactic.interactive algebra.group
+       pending
 open function nat
+
+local attribute [simp] and.left_comm and.assoc and.comm
 
 namespace list
 universes u v w
@@ -113,12 +116,7 @@ end
 
 @[simp] theorem mem_join {a : α} : ∀ {L : list (list α)}, a ∈ join L ↔ ∃ l, l ∈ L ∧ a ∈ l
 | []       := ⟨false.elim, λ⟨_, h, _⟩, false.elim h⟩
-| (c :: L) := by simp [join, @mem_join L]; exact
-  ⟨λh, match h with
-  | or.inl ac         := ⟨c, ac, or.inl rfl⟩
-  | or.inr ⟨l, al, lL⟩ := ⟨l, al, or.inr lL⟩
-  end,
-  λ⟨l, al, o⟩, o.elim (λ lc, by rw lc at al; exact or.inl al) (λlL, or.inr ⟨l, al, lL⟩)⟩
+| (c :: L) := by simp [join, @mem_join L, or_and_distrib_right, exists_or_distrib]
 
 theorem exists_of_mem_join {a : α} {L : list (list α)} : a ∈ join L → ∃ l, l ∈ L ∧ a ∈ l :=
 mem_join.1
@@ -314,7 +312,7 @@ by induction l; simp *
 by induction l; simp *
 
 @[simp] theorem mem_reverse {a : α} {l : list α} : a ∈ reverse l ↔ a ∈ l :=
-by induction l; simp *; rw mem_append_eq
+by induction l; simp [*, or_comm]
 
 /- last -/
 
@@ -995,7 +993,7 @@ by simp [all_iff_forall]
 @[simp] theorem any_cons (p : α → bool) (a : α) (l : list α) : any (a::l) p = (p a || any l p) := rfl
 
 theorem any_iff_exists {p : α → bool} {l : list α} : any l p ↔ ∃ a ∈ l, p a :=
-by induction l with a l; simp [and_or_distrib_left, exists_or_distrib, *]
+by induction l with a l; simp [or_and_distrib_right, exists_or_distrib, *]
 
 theorem any_iff_exists_prop {p : α → Prop} [decidable_pred p]
   {l : list α} : any l (λ a, p a) ↔ ∃ a ∈ l, p a :=
@@ -1051,7 +1049,7 @@ by simp [pmap_eq_map_attach]
 /- find -/
 
 section find
-variables (p : α → Prop) [decidable_pred p] 
+variables (p : α → Prop) [decidable_pred p]
 def find : list α → option α
 | []     := none
 | (a::l) := if p a then some a else find l
@@ -1390,7 +1388,7 @@ theorem sublist_of_infix {l₁ l₂ : list α} : l₁ <:+: l₂ → l₁ <+ l₂
 λ⟨s, t, h⟩, by rw [← h]; exact (sublist_append_right _ _).trans (sublist_append_left _ _)
 
 theorem sublist_of_prefix {l₁ l₂ : list α} : l₁ <+: l₂ → l₁ <+ l₂ :=
-sublist_of_infix ∘ infix_of_prefix 
+sublist_of_infix ∘ infix_of_prefix
 
 theorem sublist_of_suffix {l₁ l₂ : list α} : l₁ <:+ l₂ → l₁ <+ l₂ :=
 sublist_of_infix ∘ infix_of_suffix
@@ -1450,13 +1448,13 @@ theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: joi
 
 @[simp] theorem mem_tails : ∀ (s t : list α), s ∈ tails t ↔ s <:+ t
 | s []     := by simp; exact ⟨λh, by rw h; exact suffix_refl [], eq_nil_of_suffix_nil⟩
-| s (a::t) := by simp [mem_tails s t]; exact show s <:+ t ∨ s = a :: t ↔ s <:+ a :: t, from
+| s (a::t) := by simp [mem_tails s t]; exact show s = a :: t ∨ s <:+ t ↔ s <:+ a :: t, from
   ⟨λo, match s, t, o with
-  | s, ._, or.inl ⟨l, rfl⟩ := ⟨a::l, rfl⟩
-  | ._, t, or.inr rfl := suffix_refl _
+  | s, ._, or.inr ⟨l, rfl⟩ := ⟨a::l, rfl⟩
+  | ._, t, or.inl rfl := suffix_refl _
   end, λe, match s, t, e with
-  | ._, t, ⟨[], rfl⟩ := or.inr rfl
-  | s, t, ⟨b::l, he⟩ := list.no_confusion he (λab lt, or.inl ⟨l, lt⟩)
+  | ._, t, ⟨[], rfl⟩ := or.inl rfl
+  | s, t, ⟨b::l, he⟩ := list.no_confusion he (λab lt, or.inr ⟨l, lt⟩)
   end⟩
 
 def sublists_aux : list α → (list α → list β → list β) → list β
@@ -1572,7 +1570,7 @@ private def meas : (Σ'_:list α, list α) → ℕ × ℕ | ⟨l, i⟩ := (lengt
 local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 
 @[elab_as_eliminator] def permutations_aux.rec {C : list α → list α → Sort v}
-  (H0 : ∀ is, C [] is) 
+  (H0 : ∀ is, C [] is)
   (H1 : ∀ t ts is, C ts (t::is) → C is [] → C (t::ts) is) : ∀ l₁ l₂, C l₁ l₂
 | []      is := H0 is
 | (t::ts) is :=
@@ -1712,8 +1710,7 @@ theorem mem_of_mem_erase {a b : α} {l : list α} : a ∈ l.erase b → a ∈ l 
 @[simp] theorem mem_erase_of_ne {a b : α} {l : list α} (ab : a ≠ b) : a ∈ l.erase b ↔ a ∈ l :=
 ⟨mem_of_mem_erase, λ al,
   if h : b ∈ l then match l, l.erase b, exists_erase_eq h, al with
-  | ._, ._, ⟨l₁, l₂, _, rfl, rfl⟩, al :=
-    by simp at *; exact or.resolve_left al ab
+  | ._, ._, ⟨l₁, l₂, _, rfl, rfl⟩, al := by simp * at *
   end else by simp [h, al]⟩
 
 theorem erase_comm (a b : α) (l : list α) : (l.erase a).erase b = (l.erase b).erase a :=
@@ -1737,7 +1734,7 @@ end erase
 section diff
 variable [decidable_eq α]
 
-@[simp] theorem diff_nil (l : list α) : l.diff [] = l := rfl 
+@[simp] theorem diff_nil (l : list α) : l.diff [] = l := rfl
 
 @[simp] theorem diff_cons (l₁ l₂ : list α) (a : α) : l₁.diff (a::l₂) = (l₁.erase a).diff l₂ :=
 by by_cases a ∈ l₁; simp [list.diff, h]
@@ -1815,7 +1812,7 @@ l₁.bind $ λ a, l₂.map $ prod.mk a
 
 @[simp] theorem mem_product {l₁ : list α} {l₂ : list β} {a : α} {b : β} :
   (a, b) ∈ product l₁ l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ :=
-by simp [product]
+by simp [product, and.left_comm]
 
 theorem length_product (l₁ : list α) (l₂ : list β) :
   length (product l₁ l₂) = length l₁ * length l₂ :=
@@ -1840,7 +1837,7 @@ l₁.bind $ λ a, (l₂ a).map $ sigma.mk a
 
 @[simp] theorem mem_sigma {l₁ : list α} {l₂ : Π a, list (σ a)} {a : α} {b : σ a} :
   sigma.mk a b ∈ l₁.sigma l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ a :=
-by simp [sigma]
+by simp [sigma, and.left_comm]
 
 theorem length_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
   length (sigma l₁ l₂) = (l₁.map (λ a, length (l₂ a))).sum :=
@@ -1926,7 +1923,7 @@ variable [decidable_eq α]
 @[simp] theorem cons_union (l₁ l₂ : list α) (a : α) : a :: l₁ ∪ l₂ = insert a (l₁ ∪ l₂) := rfl
 
 @[simp] theorem mem_union {l₁ l₂ : list α} {a : α} : a ∈ l₁ ∪ l₂ ↔ a ∈ l₁ ∨ a ∈ l₂ :=
-by induction l₁; simp *
+by induction l₁; simp [*, or_assoc]
 
 theorem mem_union_left {a : α} {l₁ : list α} (h : a ∈ l₁) (l₂ : list α) : a ∈ l₁ ∪ l₂ :=
 mem_union.2 (or.inl h)
@@ -2129,8 +2126,8 @@ by simp [pairwise_append]; rw iff.intro (this l₁ l₂) (this l₂ l₁)
 theorem pairwise_middle (s : symmetric R) {a : α} {l₁ l₂ : list α} :
   pairwise R (l₁ ++ a::l₂) ↔ pairwise R (a::(l₁++l₂)) :=
 show pairwise R (l₁ ++ ([a] ++ l₂)) ↔ pairwise R ([a] ++ l₁ ++ l₂),
-by rw [← append_assoc, pairwise_append, @pairwise_append _ _ ([a] ++ l₁),
-       pairwise_app_comm s]; simp
+by rw [← append_assoc, pairwise_append, @pairwise_append _ _ ([a] ++ l₁), pairwise_app_comm s];
+   simp [or_imp_distrib]
 
 theorem pairwise_map (f : β → α) :
   ∀ {l : list β}, pairwise R (map f l) ↔ pairwise (λ a b : β, R (f a) (f b)) l
@@ -2224,7 +2221,7 @@ def pw_filter (R : α → α → Prop) [decidable_rel R] : list α → list α
 | []        := []
 | (x :: xs) := let IH := pw_filter xs in if ∀ y ∈ IH, R x y then x :: IH else IH
 
-@[simp] theorem pw_filter_nil : pw_filter R [] = [] := rfl 
+@[simp] theorem pw_filter_nil : pw_filter R [] = [] := rfl
 
 @[simp] theorem pw_filter_cons_of_pos {a : α} {l : list α} (h : ∀ b ∈ pw_filter R l, R a b) :
   pw_filter R (a::l) = a :: pw_filter R l := if_pos h
@@ -2672,7 +2669,7 @@ by simp [range_eq_range', range'_subset_right]
 by simp [range_eq_range', zero_le]
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n :=
-mt mem_range.1 $ lt_irrefl _ 
+mt mem_range.1 $ lt_irrefl _
 
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
 by simp [range_eq_range', nth_range' _ h]

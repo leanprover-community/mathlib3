@@ -9,6 +9,8 @@ returns s s.t.
 -/
 import data.nat.basic algebra.ordered_group algebra.ring tactic
 
+local attribute [simp] add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
+
 namespace nat
 
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=
@@ -43,7 +45,7 @@ theorem sqrt_aux_1 {r n b} (h : b ≠ 0) {n'} (h₂ : r + b + n' = n) :
   sqrt_aux b r n = sqrt_aux (shiftr b 2) (div2 r + b) n' :=
 by rw sqrt_aux; simp only [h, h₂.symm, int.coe_nat_add, if_false];
    rw [add_comm _ (n':ℤ), add_sub_cancel, sqrt_aux._match_1]
-  
+
 theorem sqrt_aux_2 {r n b} (h : b ≠ 0) (h₂ : n < r + b) :
   sqrt_aux b r n = sqrt_aux (shiftr b 2) (div2 r) n :=
 begin

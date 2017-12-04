@@ -8,6 +8,8 @@ Properties of the binary representation of integers.
 import data.num.basic data.num.bitwise algebra.order
        tactic.interactive data.int.basic
 
+local attribute [simp] mul_left_comm mul_comm mul_assoc
+
 namespace pos_num
   variables {α : Type*}
 
@@ -321,7 +323,7 @@ namespace pos_num
 
   instance : comm_monoid pos_num :=
   by refine {mul := (*), one := 1, ..}; transfer
-  
+
 
   instance : distrib pos_num :=
   by refine {add := (+), mul := (*), ..}; {transfer, simp [left_distrib]}
@@ -621,7 +623,7 @@ namespace znum
 
   theorem zneg_pred (n : znum) : -n.pred = (-n).succ :=
   by rw [← zneg_zneg (succ (-n)), zneg_succ, zneg_zneg]
-  
+
   @[simp] theorem neg_of_int : ∀ n, ((-n : ℤ) : znum) = -n
   | (n+1:ℕ) := rfl
   | 0       := rfl

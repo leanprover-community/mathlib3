@@ -139,7 +139,8 @@ mem_at_top_iff.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
   have bs.sum g ∈ s,
     from mem_closure_of_tendsto this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
       by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,
-               filter.mem_infi_sets_finset, mem_vmap, skolem, mem_at_top_iff];
+               filter.mem_infi_sets_finset, mem_vmap, skolem, mem_at_top_iff,
+               and_comm];
       from
         assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
         have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
@@ -387,7 +388,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
   have cauchy (at_top.map (λs:finset β, s.sum f)),
     from cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hf,
   have ∃t, ∀u₁ u₂:finset β, t ⊆ u₁ → t ⊆ u₂ → (u₁.sum f, u₂.sum f) ∈ s,
-    by simp [cauchy_iff, mem_at_top_iff] at this;
+    by simp [cauchy_iff, mem_at_top_iff, and.assoc, and.left_comm, and.comm] at this;
     from let ⟨t, ht, u, hu⟩ := this s hs in
       ⟨u, assume u₁ u₂ h₁ h₂, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ h₁, hu _ h₂⟩⟩,
   let ⟨t, ht⟩ := this in
@@ -400,7 +401,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
     calc (t ∪ u.filter (λb, f' b ≠ 0)).sum f - d =
         (t.filter (λb, f' b = 0) ∪ u.filter (λb, f' b ≠ 0)).sum f - d : by rw [this]
       ... = (d + (u.filter (λb, f' b ≠ 0)).sum f) - d :
-        by rw [sum_union]; exact (finset.ext.2 $ by simp)
+        by rw [sum_union]; exact (finset.ext.2 $ by simp {contextual := tt})
       ... = (u.filter (λb, f' b ≠ 0)).sum f :
         by simp
       ... = (u.filter (λb, f' b ≠ 0)).sum f' :

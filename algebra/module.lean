@@ -205,7 +205,7 @@ variables {r : α} {A B C : linear_map α β γ} {x y : β}
 
 protected def smul : α → linear_map α β γ → linear_map α β γ
 | r ⟨T, a, s⟩ := ⟨λ x, r • T x,
-  by simp [smul_left_distrib, a], by simp [smul_smul, s]⟩
+  by simp [smul_left_distrib, a], by simp [smul_smul, s, mul_comm]⟩
 
 instance : has_scalar α (linear_map α β γ) := ⟨linear_map.smul⟩
 

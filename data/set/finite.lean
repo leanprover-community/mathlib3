@@ -118,9 +118,9 @@ fintype_of_finset ⟨_, @multiset.nodup_filter_map β α g _
   (@injective_of_partial_inv_right _ _ f g I) (f '' s).to_finset.2⟩ $ λ a,
 begin
   suffices : (∃ b x, f x = b ∧ g b = some a ∧ x ∈ s) ↔ a ∈ s,
-  by simpa [exists_and_distrib_left.symm],
+  by simpa [exists_and_distrib_left.symm, and.comm, and.left_comm, and.assoc],
   rw exists_swap,
-  suffices : (∃ x, x ∈ s ∧ g (f x) = some a) ↔ a ∈ s, {simpa},
+  suffices : (∃ x, x ∈ s ∧ g (f x) = some a) ↔ a ∈ s, {simpa [and.comm, and.left_comm, and.assoc]},
   simp [I _, (injective_of_partial_inv I).eq_iff]
 end
 
@@ -144,7 +144,7 @@ instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=
 fintype_of_finset (finset.range n) $ by simp
 
 instance fintype_le_nat (n : ℕ) : fintype {i | i ≤ n} :=
-by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1) 
+by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1)
 
 lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _⟩
 

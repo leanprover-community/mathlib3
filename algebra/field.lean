@@ -36,7 +36,7 @@ have a * b ≠ 0, by simp [mul_eq_zero_iff_eq_zero_or_eq_zero, ha, hb],
 calc (a⁻¹ - b⁻¹) = ((a⁻¹ - b⁻¹) * (a * b)) / (a * b) : by rwa [mul_div_cancel]
   ... = _ :
   begin
-    simp [mul_add, add_mul, hb],
+    simp [mul_add, add_mul, hb, mul_assoc, mul_comm, mul_left_comm],
     rw [mul_comm a, mul_assoc, mul_comm a⁻¹, mul_inv_cancel ha],
     simp
   end

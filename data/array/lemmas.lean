@@ -114,7 +114,7 @@ by rw ← rev_list_reverse; simp [-rev_list_reverse]
 
 theorem mem_to_list_enum (a : array n α) {i v} :
   (i, v) ∈ a.to_list.enum ↔ ∃ h, a.read ⟨i, h⟩ = v :=
-by simp [list.mem_iff_nth, to_list_nth]
+by simp [list.mem_iff_nth, to_list_nth, and.comm, and.assoc, and.left_comm]
 
 @[simp] theorem to_list_to_array (a : array n α) : a.to_list.to_array == a :=
 heq_of_heq_of_eq

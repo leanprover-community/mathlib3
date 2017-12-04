@@ -342,7 +342,7 @@ theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
 by finish [ssubset_def, set_eq_def]
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
-ext (assume c, by simp)
+ext (assume c, by simp [or.left_comm])
 
 -- TODO(Jeremy): make this automatic
 theorem insert_ne_empty (a : α) (s : set α) : insert a s ≠ ∅ :=
@@ -381,7 +381,7 @@ theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) :=
 by finish
 
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s :=
-by finish [set_eq_def]
+by finish [set_eq_def, or_comm]
 
 @[simp] theorem union_insert_eq {a : α} {s t : set α} :
   s ∪ (insert a t) = insert a (s ∪ t) :=
@@ -648,13 +648,13 @@ by finish [mem_image_eq]
 
 @[simp] theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
-begin
-  simp, rw forall_swap, apply forall_congr, simp
-end
+iff.intro
+  (assume h a ha, h _ $ mem_image_of_mem _ ha)
+  (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
 
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
   f '' (insert a s) = insert (f a) (f '' s) :=
-ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm]
+ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm, or_comm, and_comm]
 
 theorem image_subset_preimage_of_inverse {f : α → β} {g : β → α}
   (I : function.left_inverse g f) (s : set α) :

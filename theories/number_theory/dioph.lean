@@ -1,5 +1,8 @@
 import theories.number_theory.pell data.set data.pfun
 
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
+
 universe u
 
 open nat function
@@ -27,22 +30,22 @@ namespace fin2
     Π (i : fin2 (succ n)), C i
   | fz     := H1
   | (fs n) := H2 n
-  
+
   def elim0 {C : fin2 0 → Sort u} : Π (i : fin2 0), C i.
 
   def opt_of_nat : Π {n} (k : ℕ), option (fin2 n)
   | 0 _ := none
   | (succ n) 0 := some fz
   | (succ n) (succ k) := fs <$> @opt_of_nat n k
-  
+
   def add {n} (i : fin2 n) : Π k, fin2 (n + k)
   | 0        := i
   | (succ k) := fs (add k)
-  
+
   def left (k) : Π {n}, fin2 n → fin2 (k + n)
   | ._ (@fz n)   := fz
   | ._ (@fs n i) := fs (left i)
-  
+
   def insert_perm : Π {n}, fin2 n → fin2 n → fin2 n
   | ._ (@fz n)          (@fz ._)   := fz
   | ._ (@fz n)          (@fs ._ j) := fs j
@@ -369,7 +372,7 @@ end poly
 
 namespace sum
   def join {α β γ} (f : α → γ) (g : β → γ) : α ⊕ β → γ :=
-  by {refine sum.rec _ _, exacts [f, g]} 
+  by {refine sum.rec _ _, exacts [f, g]}
 
   infixr ` ⊗ `:65 := join
 end sum
@@ -565,11 +568,11 @@ section
       show cons (f v) (λ (i : fin2 n), fl i v) = λ (i : fin2 (succ n)), (f :: fl) i v,
       from funext $ λs, by cases s with a b; refl]
 
-  theorem dioph_comp {n} {S : set (vector3 ℕ n)} (d : dioph S) 
+  theorem dioph_comp {n} {S : set (vector3 ℕ n)} (d : dioph S)
     (f : vector3 ((α → ℕ) → ℕ) n) (df : vector_allp dioph_fn f) : dioph (λv, S (λi, f i v)) :=
   dioph_fn_compn (reindex_dioph d inr) df
 
-  theorem dioph_fn_comp {n} {f : vector3 ℕ n → ℕ} (df : dioph_fn f) 
+  theorem dioph_fn_comp {n} {f : vector3 ℕ n → ℕ} (df : dioph_fn f)
     (g : vector3 ((α → ℕ) → ℕ) n) (dg : vector_allp dioph_fn g) : dioph_fn (λv, f (λi, g i v)) :=
   dioph_comp ((dioph_fn_vec _).1 df) ((λv, v none) :: λi v, g i (v ∘ some)) $
   by simp; exact ⟨proj_dioph none, (vector_allp_iff_forall _ _).2 $ λi,
@@ -726,7 +729,7 @@ section
   dioph_fn_comp2 df dg $ (dioph_fn_vec _).2 $ dioph.ext this $ λv, iff.symm $
   eq_pow_of_pell.trans $ or_congr iff.rfl $ and_congr iff.rfl $ or_congr iff.rfl $ and_congr iff.rfl $
   ⟨λ⟨w, a, t, z, a1, h⟩, ⟨w, a, t, z, _, _, ⟨a1, rfl, rfl⟩, h⟩,
-   λ⟨w, a, t, z, ._, ._, ⟨a1, rfl, rfl⟩, h⟩, ⟨w, a, t, z, a1, h⟩⟩  
+   λ⟨w, a, t, z, ._, ._, ⟨a1, rfl, rfl⟩, h⟩, ⟨w, a, t, z, a1, h⟩⟩
 
 end
 end dioph

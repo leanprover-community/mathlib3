@@ -10,6 +10,9 @@ noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable
 
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
+
 universes u v w
 -- TODO: this is necessary additionally to mul_nonneg otherwise the simplifier can not match
 lemma zero_le_mul {α : Type u} [ordered_semiring α] {a b : α} : 0 ≤ a → 0 ≤ b → 0 ≤ a * b :=
@@ -122,7 +125,7 @@ instance : has_mul ennreal := ⟨ennreal.mul⟩
 
 @[simp] lemma of_real_add_of_real (hr : 0 ≤ r) (hq : 0 ≤ p) :
   of_real r + of_real p = of_real (r + p) :=
-by simp [of_real, max, hr, hq]; refl
+by simp [of_real, max, hr, hq, add_comm]; refl
 
 @[simp] lemma add_infty : a + ∞ = ∞ :=
 by cases a; refl

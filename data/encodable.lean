@@ -23,7 +23,7 @@ variables [encodable α]
 theorem encode_injective : function.injective (@encode α _)
 | x y e := option.some.inj $ by rw [← encodek, e, encodek]
 
-instance decidable_eq_of_encodable : decidable_eq α
+@[priority 0] instance decidable_eq_of_encodable : decidable_eq α
 | a b := decidable_of_iff _ encode_injective.eq_iff 
 end
 

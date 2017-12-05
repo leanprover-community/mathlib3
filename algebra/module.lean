@@ -23,8 +23,8 @@ class module (α : inout Type u) (β : Type v) [inout ring α]
   extends has_scalar α β, add_comm_group β :=
 (smul_add : ∀r (x y : β), r • (x + y) = r • x + r • y)
 (add_smul : ∀r s (x : β), (r + s) • x = r • x + s • x)
-(mul_smul : ∀r s (x : β), (r * s) • x = r • s • x)
-(one_smul : ∀x : β, (1 : α) • x = x)
+(mul_smul           : ∀r s (x : β), (r * s) • x = r • s • x)
+(one_smul           : ∀x : β, (1 : α) • x = x)
 
 section module
 variables [ring α] [module α β] {r s : α} {x y : β}
@@ -135,7 +135,7 @@ end is_linear_map
 class is_submodule {α : Type u} {β : Type v} [ring α] [module α β] (p : set β) : Prop :=
 (zero_ : (0:β) ∈ p)
 (add_  : ∀ {x y}, x ∈ p → y ∈ p → x + y ∈ p)
-(smul  : ∀ c {x}, x ∈ p → c • x ∈ p)
+(smul : ∀ c {x}, x ∈ p → c • x ∈ p)
 
 namespace is_submodule
 variables [ring α] [module α β] [module α γ]
@@ -201,16 +201,16 @@ suffices is_submodule (⋂₀ {p, p'} : set β), by simpa,
 end
 
 section subtype
-variables {x y : {x : β // x ∈ p}}
+variables  {x y : {x : β // x ∈ p}}
 
 instance : has_add {x : β // x ∈ p} := ⟨λ ⟨x, px⟩ ⟨y, py⟩, ⟨x + y, add px py⟩⟩
 instance : has_zero {x : β // x ∈ p} := ⟨⟨0, zero⟩⟩
 instance : has_neg {x : β // x ∈ p} := ⟨λ ⟨x, hx⟩, ⟨-x, neg hx⟩⟩
 instance : has_scalar α {x : β // x ∈ p} := ⟨λ c ⟨x, hx⟩, ⟨c • x, smul c hx⟩⟩
 
-@[simp] lemma add_val  : (x + y).val = x.val + y.val := by cases x; cases y; refl
+@[simp] lemma add_val : (x + y).val = x.val + y.val := by cases x; cases y; refl
 @[simp] lemma zero_val : (0 : {x : β // x ∈ p}).val = 0 := rfl
-@[simp] lemma neg_val  : (-x).val = -x.val := by cases x; refl
+@[simp] lemma neg_val : (-x).val = -x.val := by cases x; refl
 @[simp] lemma smul_val : (r • x).val = r • x.val := by cases x; refl
 
 instance : module α {x : β // x ∈ p} :=

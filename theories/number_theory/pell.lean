@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2017 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro
+-/
 import data.int.basic data.nat.prime data.nat.modeq
 
 local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
@@ -186,9 +191,12 @@ section
   by refine ⟨_, _, _, _⟩; {
     intros xy zw,
     have := int.mul_nonneg (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le xy))
-                             (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
+                           (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
     refine int.le_of_coe_nat_le_coe_nat (le_of_sub_nonneg _),
-    simpa [left_distrib, int.cast_add, int.cast_mul] }
+    simp [left_distrib] at this ⊢,
+    --TODO(Mario): remove when we can cancel negatives
+    repeat {rw ← add_left_comm (-(↑d * (↑x * (↑y * (↑z * ↑w))))),
+            try {rw add_neg_cancel_left} }, simpa }
 
   def nonnegg (c d : ℕ) : ℤ → ℤ → Prop
   | (a : ℕ) (b : ℕ) := true
@@ -796,7 +804,7 @@ section
       (modeq.modeq_zero_iff.2 $ by simp)
       (modeq.modeq_zero_iff.2 $ by simp).symm
 
-  -- Hopefully a tactic will be able to dispense this lemma
+  -- TODO(Mario): Hopefully a tactic will be able to dispense this lemma
   lemma x_sub_y_dvd_pow_lem (y2 y1 y0 yn1 yn0 xn1 xn0 ay a2 : ℤ) :
     (a2 * yn1 - yn0) * ay + y2 - (a2 * xn1 - xn0) =
       y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) :=
@@ -804,7 +812,8 @@ section
       = a2 * yn1 * ay - yn0 * ay + y2 - (a2 * xn1 - xn0) : by rw [mul_sub_right_distrib]
   ... = y2 + a2 * (yn1 * ay) - a2 * xn1 - yn0 * ay + xn0 : by simp
   ... = y2 + a2 * (yn1 * ay) - a2 * y1 + a2 * y1 - a2 * xn1 - yn0 * ay + y0 - y0 + xn0 : by rw [add_sub_cancel, sub_add_cancel]
-  ... = y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) : by simp [left_distrib]
+  ... = y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) :
+     by simp [left_distrib]; repeat {rw [add_left_comm (y1*a2)], try {rw add_neg_cancel_left}}
 
   theorem x_sub_y_dvd_pow (y : ℕ) :
     ∀ n, (2*a*y - y*y - 1 : ℤ) ∣ yz n * (a - y) + y^n - xz n
@@ -813,8 +822,7 @@ section
   | (n+2) :=
     have (2*a*y - y*y - 1 : ℤ) ∣ ↑(y^(n + 2)) - ↑(2 * a) * ↑(y^(n + 1)) + ↑(y^n), from
     ⟨-↑(y^n), by simp [nat.pow_succ, right_distrib, int.coe_nat_mul, show ((2:ℕ):ℤ) = 2, from rfl]⟩,
-    by have t := dvd_sub (dvd_add this $ dvd_mul_of_dvd_right (x_sub_y_dvd_pow (n+1)) sorry) (x_sub_y_dvd_pow n);
-    rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 (y^(n+2)) (y^(n+1)) (y^n)]; exact
+    by rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 (y^(n+2)) (y^(n+1)) (y^n)]; exact
     dvd_sub (dvd_add this $ dvd_mul_of_dvd_right (x_sub_y_dvd_pow (n+1)) _) (x_sub_y_dvd_pow n)
 
   theorem xn_modeq_x2n_add_lem (n j) : xn n ∣ d * yn n * (yn n * xn j) + xn j :=

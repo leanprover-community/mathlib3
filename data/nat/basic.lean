@@ -349,7 +349,7 @@ by induction k; simp [*, add_succ, monad.bind_assoc]
 /- pow -/
 
 theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
-by induction n; simp [*, pow_succ]; cc
+by induction n; simp [*, pow_succ, mul_assoc]
 
 theorem pow_dvd_pow (a : ℕ) {m n : ℕ} (h : m ≤ n) : a^m ∣ a^n :=
 by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right

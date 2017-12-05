@@ -10,16 +10,13 @@ namespace bool
 
 @[simp] theorem coe_sort_ff : coe_sort.{1 1} ff = false := eq_false_intro ff_ne_tt
 
-attribute [simp] to_bool_iff
-
 @[simp] theorem to_bool_true {h} : @to_bool true h = tt :=
 show _ = to_bool true, by congr
 
 @[simp] theorem to_bool_false {h} : @to_bool false h = ff :=
 show _ = to_bool false, by congr
 
-@[simp] theorem to_bool_bool (b : bool) : to_bool b = b :=
-by cases b; simp
+@[simp] theorem coe_to_bool (p : Prop) [decidable p] : to_bool p ↔ p := to_bool_iff _
 
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
 by cases b; simp

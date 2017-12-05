@@ -250,7 +250,7 @@ namespace num
     zero_add := zero_add,
     add_zero := add_zero,
     mul      := (*),
-    one      := 1, .. }; try {transfer}; simp [left_distrib]
+    one      := 1, .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm]
 
   instance : decidable_linear_ordered_semiring num :=
   { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
@@ -316,7 +316,7 @@ namespace pos_num
   `[repeat {rw ← to_nat_inj <|> rw ← lt_to_nat <|> rw ← le_to_nat},
     repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
-  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
+  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp [mul_comm, mul_left_comm]}]
 
   instance : add_comm_semigroup pos_num :=
   by refine {add := (+), ..}; transfer
@@ -326,7 +326,7 @@ namespace pos_num
 
 
   instance : distrib pos_num :=
-  by refine {add := (+), mul := (*), ..}; {transfer, simp [left_distrib]}
+  by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}
 
   instance : decidable_linear_order pos_num :=
   { lt              := (<),
@@ -835,7 +835,7 @@ namespace znum
   `[repeat {rw ← to_int_inj <|> rw ← lt_to_int <|> rw ← le_to_int},
     repeat {rw cast_add <|> rw mul_to_int <|> rw cast_one <|> rw cast_zero}]
 
-  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
+  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp [mul_comm, mul_left_comm]}]
 
   instance : decidable_linear_ordered_comm_ring znum :=
   { add              := (+),
@@ -851,8 +851,8 @@ namespace znum
     one              := 1,
     one_mul          := by transfer,
     mul_one          := by transfer,
-    left_distrib     := by {transfer, simp [left_distrib]},
-    right_distrib    := by {transfer, simp [left_distrib]},
+    left_distrib     := by {transfer, simp [mul_add]},
+    right_distrib    := by {transfer, simp [mul_add, mul_comm]},
     mul_comm         := by transfer,
     lt               := (<),
     lt_iff_le_not_le := by {intros a b, transfer_rw, apply lt_iff_le_not_le},

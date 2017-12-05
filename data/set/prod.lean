@@ -51,9 +51,9 @@ theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
 assume a b h, prod_mono (hf h) (hg h)
 
 lemma image_swap_prod : (λp:β×α, (p.2, p.1)) '' set.prod t s = set.prod s t :=
-set.ext $ assume ⟨a, b⟩, by simp [mem_image_eq, set.prod]; exact
-⟨ assume ⟨b', a', h, h_a, h_b⟩, by rw [h_a, h_b, and_comm] at h; assumption,
-  assume h, ⟨b, a, h.symm, rfl, rfl⟩⟩
+set.ext $ assume ⟨a, b⟩, by simp [mem_image_eq, set.prod, and_comm]; exact
+⟨ assume ⟨b', a', ⟨h_a, h_b⟩, h⟩, by substs a' b'; assumption,
+  assume h, ⟨b, a, ⟨rfl, rfl⟩, h⟩⟩
 
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse

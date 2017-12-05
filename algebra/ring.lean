@@ -33,8 +33,8 @@ namespace units
 
   protected def mul : units α → units α → units α
   | ⟨v₁, i₁, vi₁, iv₁⟩ ⟨v₂, i₂, vi₂, iv₂⟩ := ⟨v₁ * v₂, i₂ * i₁,
-    have v₁ * (v₂ * i₂) * i₁ = 1, by rw [vi₂]; simp [vi₁], by simpa [mul_left_comm, mul_assoc],
-    have i₂ * (i₁ * v₁) * v₂ = 1, by rw [iv₁]; simp [iv₂], by simpa [mul_left_comm, mul_assoc]⟩
+    have v₁ * (v₂ * i₂) * i₁ = 1, by rw [vi₂]; simp [vi₁], by simpa [mul_comm, mul_assoc],
+    have i₂ * (i₁ * v₁) * v₂ = 1, by rw [iv₁]; simp [iv₂], by simpa [mul_comm, mul_assoc]⟩
 
   protected def inv' : units α → units α
   | ⟨v, i, vi, iv⟩ := ⟨i, v, iv, vi⟩
@@ -53,7 +53,7 @@ namespace units
 
   instance : group (units α) :=
   by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
-    { intros, apply ext, simp [mul_left_comm, mul_assoc] }
+    { intros, apply ext, simp [mul_assoc] }
 
 end units
 

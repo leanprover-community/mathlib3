@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2017 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro
+-/
 import theories.number_theory.pell data.set data.pfun
 
 local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm

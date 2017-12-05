@@ -16,8 +16,6 @@ universes u v w
 -- under most interesting computation patterns on infinite lists,
 -- but conversely it is difficult to extract elements from it.
 
-local attribute [simp] and.left_comm and.assoc and.comm or.left_comm or.assoc or.comm
-
 /-
 coinductive wseq (α : Type u) : Type u
 | nil : wseq α
@@ -419,9 +417,8 @@ seq.destruct_cons _ _
 begin
   refine seq.eq_of_bisim (λs1 s2, flatten (return s2) = s1) _ rfl,
   intros s' s h, rw ←h, simp [flatten],
-  cases seq.destruct s with a,
-  { simp },
-  { cases a with o s', simp }
+  cases seq.destruct s, { simp },
+  { cases val with o s', simp }
 end
 
 @[simp] theorem flatten_think (c : computation (wseq α)) : flatten c.think = think (flatten c) :=
@@ -500,7 +497,7 @@ theorem destruct_tail (s : wseq α) :
 begin
   dsimp [tail], simp, rw [←monad.bind_pure_comp_eq_map, monad.bind_assoc],
   apply congr_arg, funext o,
-  cases o with a; [skip, cases a with a s];
+  rcases o with _|⟨a, s⟩;
   apply (monad.pure_bind _ _).trans _; simp
 end
 
@@ -968,17 +965,17 @@ begin
     substs b' ss,
     simp at m ⊢,
     cases o with e IH, { simp [e] },
-    apply or.imp_right (λ m, _) m,
-    simp at IH, apply IH _ _ rfl m },
+    cases m with e m, { simp [e] },
+    exact or.imp_left or.inr (IH _ _ rfl m) },
   { refine s.cases_on (S.cases_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
     intros ej m; simp at ej;
     have := congr_arg seq.destruct ej; simp at this;
     try { try {have := this.1}, contradiction }; subst ss,
     { apply or.inr, simp at m ⊢,
       cases IH s S rfl m with as ex,
-      { exact ⟨s, as, or.inl rfl⟩ },
+      { exact ⟨s, or.inl rfl, as⟩ },
       { rcases ex with ⟨s', sS, as⟩,
-        exact ⟨s', as, or.inr sS⟩ } },
+        exact ⟨s', or.inr sS, as⟩ } },
     { apply or.inr, simp at m,
       rcases (IH nil S (by simp) (by simp [m])).resolve_left (not_mem_nil _) with ⟨s, sS, as⟩,
       exact ⟨s, by simp [sS], as⟩ },
@@ -1015,7 +1012,7 @@ theorem lift_rel_map {δ} (R : α → β → Prop) (S : γ → δ → Prop)
   { cases b; cases h },
   { cases a; cases h },
   { cases a with a s; cases b with b t, cases h with r h,
-    exact ⟨h2 r, s, t, h, rfl, rfl⟩ }
+    exact ⟨h2 r, s, rfl, t, rfl, h⟩ }
 end end⟩
 
 theorem map_congr (f : α → β) {s t : wseq α} (h : s ~ t) : map f s ~ map f t :=
@@ -1079,7 +1076,7 @@ or.inr ⟨s1, t1, rfl, rfl, h1⟩,
     { cases b; cases h },
     { cases a; cases h },
     { cases a with a s; cases b with b t, cases h with r h,
-      simp, exact ⟨r, or.inr ⟨s, t, h, rfl, rfl⟩⟩ }
+      simp, exact ⟨r, or.inr ⟨s, rfl, t, rfl, h⟩⟩ }
   end
 end⟩
 
@@ -1096,7 +1093,7 @@ begin
       ⟨p, mT, rop⟩ := computation.exists_of_lift_rel_left (lift_rel_destruct ST) rs1.mem in
   by exact match o, p, rop, rs1, rs2, mT with
   | none, none, _, rs1, rs2, mT := by simp [destruct_join]; exact
-    ⟨none, by rw eq_of_ret_mem rs2.mem; trivial, mem_bind mT (ret_mem _)⟩
+    ⟨none, mem_bind mT (ret_mem _), by rw eq_of_ret_mem rs2.mem; trivial⟩
   | some (s, S'), some (t, T'), ⟨st, ST'⟩, rs1, rs2, mT :=
     by simp [destruct_append] at rs2; exact
     let ⟨k1, rs3, ek⟩ := of_results_think rs2,
@@ -1135,7 +1132,7 @@ theorem lift_rel_join (R : α → β → Prop) {S : wseq (wseq α)} {T : wseq (w
   apply computation.lift_rel_bind _ _ (lift_rel_destruct st),
   exact λ o p h, match o, p, h with
   | some (a, s), some (b, t), ⟨h1, h2⟩ :=
-    by simp; exact ⟨h1, s, t, h2, S, rfl, T, ST, rfl⟩
+    by simp; exact ⟨h1, s, t, S, rfl, T, rfl, h2, ST⟩
   | none, none, _ := begin
     dsimp [destruct_append.aux, computation.lift_rel], constructor,
     { intro, apply lift_rel_join.lem _ ST (λ _ _, id) },
@@ -1177,7 +1174,7 @@ begin
     | ._, ._, ⟨s, rfl, rfl⟩ := begin
       clear h _match,
       apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret]; simp [ret],
-      { refine ⟨_, _, ret_mem _⟩, simp },
+      { refine ⟨_, ret_mem _, _⟩, simp },
       { exact ⟨s, rfl, rfl⟩ }
     end end },
   { exact ⟨s, rfl, rfl⟩ }

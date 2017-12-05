@@ -337,9 +337,8 @@ instance : complete_boolean_algebra (set α) :=
       or.imp_right
         (assume hn : x ∉ s, assume i hi, or.resolve_left (h i hi) hn)
         (classical.em $ x ∈ s),
-  inf_Sup_le_supr_inf :=
-    assume s t x, show x ∈ s ∩ (⋃₀ t) → x ∈ (⋃ b ∈ t, s ∩ b),
-      by simp [-and_imp, and_comm, and_assoc, and.left_comm],
+  inf_Sup_le_supr_inf := assume s t x, show x ∈ s ∩ (⋃₀ t) → x ∈ (⋃ b ∈ t, s ∩ b),
+    by simp [-and_imp, and.left_comm],
   ..set.lattice_set }
 
 theorem union_sdiff_same {a b : set α} : a ∪ (b \ a) = a ∪ b :=
@@ -381,10 +380,10 @@ set.ext $ by simp
 lemma sdiff_eq: s₁ \ s₂ = s₁ ∩ -s₂ := rfl
 
 lemma union_sdiff_left : (s₁ ∪ s₂) \ s₂ = s₁ \ s₂ :=
-set.ext $ assume x, by simp [iff_def, or_imp_distrib] {contextual := tt}
+set.ext $ by simp [or_and_distrib_right]
 
 lemma union_sdiff_right : (s₂ ∪ s₁) \ s₂ = s₁ \ s₂ :=
-set.ext $ assume x, by simp [iff_def, or_imp_distrib] {contextual := tt}
+set.ext $ by simp [or_and_distrib_right]
 
 end sdiff
 
@@ -419,7 +418,7 @@ set.ext $ assume x, ⟨
 lemma image_Union {f : α → β} {s : ι → set α} : f '' (⋃ i, s i) = (⋃i, f '' s i) :=
 begin
   apply set.ext, intro x,
-  simp [image, exists_and_distrib_right.symm,  -exists_and_distrib_right],
+  simp [image, exists_and_distrib_right.symm, -exists_and_distrib_right],
   exact exists_swap
 end
 
@@ -455,8 +454,8 @@ instance : monad set :=
   map        := λ(α β : Type u), set.image,
   pure_bind  := assume α β x f, by simp,
   bind_assoc := assume α β γ s f g, set.ext $ assume a,
-    by simp [exists_and_distrib_right.symm,  -exists_and_distrib_right,
-             exists_and_distrib_left.symm,  -exists_and_distrib_left, and_assoc];
+    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
+             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
        exact exists_swap,
   id_map     := assume α, functor.id_map,
   bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm] }

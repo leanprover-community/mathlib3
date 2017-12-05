@@ -6,7 +6,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl
 Modules over a ring.
 -/
 
-import algebra.ring data.set.basic
+import algebra.ring algebra.big_operators data.set.basic
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -64,45 +64,53 @@ instance ring.to_module [r : ring α] : module α α :=
   one_smul := one_mul, ..r }
 
 class is_submodule {α : Type u} {β : Type v} [ring α] [module α β] (p : set β) : Prop :=
-(add : ∀ {x y}, x ∈ p → y ∈ p → x + y ∈ p)
-(zero : (0:β) ∈ p)
-(smul : ∀ c {x}, x ∈ p → c • x ∈ p)
+(zero_ : (0:β) ∈ p)
+(add_  : ∀ {x y}, x ∈ p → y ∈ p → x + y ∈ p)
+(smul  : ∀ c {x}, x ∈ p → c • x ∈ p)
 
 namespace is_submodule
 variables [ring α] [module α β]
 variables {p : set β} [is_submodule p]
 variables {r : α}
+include α
 
 section
 variables {x y : β}
-include α
 
-lemma neg (hx : x ∈ p) : -x ∈ p :=
-by rw ← neg_one_smul x; exact smul _ hx
+lemma zero : (0 : β) ∈ p := is_submodule.zero_ α p
 
-lemma sub (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p :=
-add α hx (neg hy)
+lemma add : x ∈ p → y ∈ p → x + y ∈ p := is_submodule.add_ α
+
+lemma neg (hx : x ∈ p) : -x ∈ p := by rw ← neg_one_smul x; exact smul _ hx
+
+lemma sub (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := add hx (neg hy)
+
+lemma sum {ι : Type w} [decidable_eq ι] {t : finset ι} {f : ι → β} :
+  (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
+finset.induction_on t (by simp [zero]) (by simp [add] {contextual := tt})
 
 end
 
 section subtype
 variables  {x y : {x : β // x ∈ p}}
-include α
 
-instance : has_add {x : β // x ∈ p} := ⟨λ ⟨x, px⟩ ⟨y, py⟩, ⟨x + y, add α px py⟩⟩
-instance : has_zero {x : β // x ∈ p} := ⟨⟨0, zero α p⟩⟩
-instance : has_neg {x : β // x ∈ p} := ⟨λ ⟨x, p⟩, ⟨-x, neg p⟩⟩
-instance : has_scalar α {x : β // x ∈ p} := ⟨λ c ⟨x, p⟩, ⟨c • x, smul c p⟩⟩
+instance : has_add {x : β // x ∈ p} := ⟨λ ⟨x, px⟩ ⟨y, py⟩, ⟨x + y, add px py⟩⟩
+instance : has_zero {x : β // x ∈ p} := ⟨⟨0, zero⟩⟩
+instance : has_neg {x : β // x ∈ p} := ⟨λ ⟨x, hx⟩, ⟨-x, neg hx⟩⟩
+instance : has_scalar α {x : β // x ∈ p} := ⟨λ c ⟨x, hx⟩, ⟨c • x, smul c hx⟩⟩
 
-@[simp] lemma add_val : (x + y).val = x.val + y.val := by cases x; cases y; refl
+@[simp] lemma add_val  : (x + y).val = x.val + y.val := by cases x; cases y; refl
 @[simp] lemma zero_val : (0 : {x : β // x ∈ p}).val = 0 := rfl
-@[simp] lemma neg_val : (-x).val = -x.val := by cases x; refl
+@[simp] lemma neg_val  : (-x).val = -x.val := by cases x; refl
 @[simp] lemma smul_val : (r • x).val = r • x.val := by cases x; refl
 
 instance : module α {x : β // x ∈ p} :=
 by refine {add := (+), zero := 0, neg := has_neg.neg, smul := (•), ..};
   { intros, apply subtype.eq,
     simp [smul_add, add_smul, mul_smul] }
+
+lemma sub_val  : (x - y).val = x.val - y.val := by simp
+
 end subtype
 
 end is_submodule
@@ -151,8 +159,8 @@ eq_of_sub_eq_zero $ set.eq_of_mem_singleton $ H $ ker_of_map_eq_map h
 variables (α A)
 
 instance ker.is_submodule : is_submodule A.ker :=
-{ add  := λ x y HU HV, by rw mem_ker at *; simp [HU, HV, mem_ker],
-  zero := map_zero,
+{ zero_ := map_zero,
+  add_ := λ x y HU HV, by rw mem_ker at *; simp [HU, HV, mem_ker],
   smul := λ r x HV, by rw mem_ker at *; simp [HV] }
 
 theorem sub_ker (HU : x ∈ A.ker) (HV : y ∈ A.ker) : x - y ∈ A.ker :=
@@ -168,8 +176,8 @@ def im (A : linear_map α β γ) : set γ := {x | ∃ y, A y = x}
   z ∈ A.im ↔ ∃ y, A y = z := iff.rfl
 
 instance im.is_submodule : is_submodule A.im :=
-{ add  := λ a b ⟨x, hx⟩ ⟨y, hy⟩, ⟨x + y, by simp [hx, hy]⟩,
-  zero := ⟨0, map_zero⟩,
+{ zero_ := ⟨0, map_zero⟩,
+  add_ := λ a b ⟨x, hx⟩ ⟨y, hy⟩, ⟨x + y, by simp [hx, hy]⟩,
   smul := λ r a ⟨x, hx⟩, ⟨r • x, by simp [hx]⟩ }
 
 section add_comm_group

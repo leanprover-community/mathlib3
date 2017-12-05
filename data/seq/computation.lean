@@ -105,9 +105,9 @@ destruct_eq_think destruct_empty
 
 def cases_on {C : computation α → Sort v} (s : computation α)
   (h1 : ∀ a, C (return a)) (h2 : ∀ s, C (think s)) : C s := begin
-  ginduction destruct s with H,
+  ginduction destruct s with H v v,
   { rw destruct_eq_ret H, apply h1 },
-  { cases a with a s', rw destruct_eq_think H, apply h2 }
+  { cases v with a s', rw destruct_eq_think H, apply h2 }
 end
 
 def corec.F (f : β → α ⊕ β) : α ⊕ β → option α × (α ⊕ β)

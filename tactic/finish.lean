@@ -319,7 +319,7 @@ do when_tracing `auto.done (trace "entering done" >> trace_state),
          (do smt_tactic.intros,
              ctx ← local_context,
              hs ← mk_hinst_lemmas ctx,
-             smt_tactic.repeat_at_most cfg.max_ematch_rounds
+             smt_tactic.iterate_at_most cfg.max_ematch_rounds
                (smt_tactic.ematch_using hs >> smt_tactic.try smt_tactic.close))))
 
 /-

@@ -106,9 +106,9 @@ by cases s with f al; apply subtype.eq; dsimp [tail, cons]; rw [stream.tail_cons
 
 def cases_on {C : seq α → Sort v} (s : seq α)
   (h1 : C nil) (h2 : ∀ x s, C (cons x s)) : C s := begin
-  ginduction destruct s with H,
+  ginduction destruct s with H v v,
   { rw destruct_eq_nil H, apply h1 },
-  { cases a with a s', rw destruct_eq_cons H, apply h2 }
+  { cases v with a s', rw destruct_eq_cons H, apply h2 }
 end
 
 theorem mem_rec_on {C : seq α → Prop} {a s} (M : a ∈ s)
@@ -507,7 +507,7 @@ theorem mem_map (f : α → β) {a : α} : ∀ {s : seq α}, a ∈ s → f a ∈
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : seq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := stream.exists_of_mem_map h in
-  by cases o; injection oe with h'; exact ⟨a, om, h'⟩
+  by cases o with a; injection oe with h'; exact ⟨a, om, h'⟩
 
 def of_mem_append {s₁ s₂ : seq α} {a : α} (h : a ∈ append s₁ s₂) : a ∈ s₁ ∨ a ∈ s₂ :=
 begin

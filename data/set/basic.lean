@@ -577,6 +577,16 @@ theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ f '' s = ∃ x
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
 ⟨_, h, rfl⟩
 
+theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
+  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
+by finish [mem_image_eq]
+
+@[simp] theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
+  (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
+iff.intro
+  (assume h a ha, h _ $ mem_image_of_mem _ ha)
+  (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
+
 theorem mono_image {f : α → β} {s t : set α} (h : s ⊆ t) : f '' s ⊆ f '' t :=
 assume x ⟨y, hy, y_eq⟩, y_eq ▸ mem_image_of_mem _ $ h hy
 
@@ -592,13 +602,17 @@ theorem image_eq_image_of_eq_on {f₁ f₂ : α → β} {s : set α} (heq : eq_o
   f₁ '' s = f₂ '' s :=
 by safe [set_eq_def, iff_def, mem_image, eq_on]
 
--- TODO(Jeremy): make automatic
 theorem image_comp (f : β → γ) (g : α → β) (a : set α) : (f ∘ g) '' a = f '' (g '' a) :=
+subset.antisymm
+  (ball_image_of_ball $ assume a ha, mem_image_of_mem _ $ mem_image_of_mem _ ha)
+  (ball_image_of_ball $ ball_image_of_ball $ assume a ha, mem_image_of_mem _ ha)
+/- Proof is removed as it uses generated names
+TODO(Jeremy): make automatic,
 begin
   safe [set_eq_def, iff_def, mem_image, (∘)],
   have h' := h_2 (g a_2),
   finish
-end
+end -/
 
 theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : f '' a ⊆ f '' b :=
 by finish [subset_def, mem_image_eq]
@@ -641,16 +655,6 @@ by finish [set_eq_def, iff_def, mem_image_eq]
 theorem compl_compl_image (S : set (set α)) :
   compl '' (compl '' S) = S :=
 by rw [← image_comp, compl_comp_compl, image_id]
-
-theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
-  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
-by finish [mem_image_eq]
-
-@[simp] theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
-  (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
-iff.intro
-  (assume h a ha, h _ $ mem_image_of_mem _ ha)
-  (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
 
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
   f '' (insert a s) = insert (f a) (f '' s) :=

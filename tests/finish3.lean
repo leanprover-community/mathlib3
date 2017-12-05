@@ -74,8 +74,8 @@ example : (∃ x, ¬ p x) → (¬ ∀ x, p x) := by finish
 
 example : (∀ x, p x → r) ↔ (∃ x, p x) → r := by finish [iff_def]
 -- TODO(Jeremy): can we get these automatically?
-example (a : A) : (∃ x, p x → r) ↔ (∀ x, p x) → r := begin safe [iff_def]; exact h a end
-example (a : A) : (∃ x, r → p x) ↔ (r → ∃ x, p x) := begin safe [iff_def]; exact h a end
+example (a : A) : (∃ x, p x → r) ↔ (∀ x, p x) → r := begin safe [iff_def]; exact h_1 a end
+example (a : A) : (∃ x, r → p x) ↔ (r → ∃ x, p x) := begin safe [iff_def]; exact h_1 a end
 
 example : (∃ x, p x → r) → (∀ x, p x) → r := by finish
 example : (∃ x, r → p x) → (r → ∃ x, p x) := by finish

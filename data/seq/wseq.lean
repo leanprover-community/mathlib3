@@ -420,7 +420,8 @@ seq.destruct_cons _ _
 begin
   refine seq.eq_of_bisim (λs1 s2, flatten (return s2) = s1) _ rfl,
   intros s' s h, rw ←h, simp [flatten],
-  cases seq.destruct s, { simp },
+  cases seq.destruct s with a,
+  { simp },
   { cases a with o s', simp }
 end
 
@@ -500,7 +501,7 @@ theorem destruct_tail (s : wseq α) :
 begin
   dsimp [tail], simp, rw [←monad.bind_pure_comp_eq_map, monad.bind_assoc],
   apply congr_arg, apply funext, intro o,
-  cases o; [skip, cases a with a s];
+  cases o with a; [skip, cases a with a s];
   apply (monad.pure_bind _ _).trans _; simp
 end
 
@@ -718,7 +719,7 @@ seq.mem_append_left
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : wseq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := seq.exists_of_mem_map h in
-  by cases o; injection oe with h'; exact ⟨a, om, h'⟩
+  by cases o with a; injection oe with h'; exact ⟨a, om, h'⟩
 
 @[simp] def lift_rel_nil (R : α → β → Prop) : lift_rel R nil nil :=
 by rw [lift_rel_destruct_iff]; simp

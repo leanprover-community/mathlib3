@@ -38,7 +38,7 @@ by cases x; simp
 by cases x; simp
 
 lemma is_some_iff_exists {x : option α} : is_some x ↔ ∃ a, x = some a :=
-by cases x; simp [is_some]; exact show ∃ a', a = a', from ⟨_, rfl⟩
+by cases x; simp [is_some]; exact ⟨_, rfl⟩
 
 @[reducible] def iget [inhabited α] : option α → α
 | (some x) := x

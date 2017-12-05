@@ -78,7 +78,7 @@ begin
         rw h, simp [rmap] },
       rw H2, apply @computation.think_terminates _ _ _,
       have := H1 _ h,
-      cases seq.destruct S,
+      cases seq.destruct S with a,
       { simp [parallel.aux1], apply IH, exact this },
       { cases a with c S',
         cases c with c; simp [parallel.aux1]; apply IH; simp [this] } } }
@@ -92,7 +92,7 @@ suffices ∀ n (l : list (computation α)) S c,
 from let ⟨n, h⟩ := h in this n [] S c (or.inr h) T,
 begin
   intro n, induction n with n IH; intros l S c o T,
-  { cases o, { exact terminates_parallel.aux a T },
+  { cases o with a a, { exact terminates_parallel.aux a T },
     have H : seq.destruct S = some (some c, _),
     { unfold seq.destruct has_map.map, rw ←a, simp [option.map, option.bind] },
     ginduction (parallel.aux2 l) with h a l';
@@ -102,7 +102,7 @@ begin
     { apply destruct_eq_think, simp [parallel.aux1], rw [h, H], simp [rmap] },
     { rw C, apply @computation.think_terminates _ _ _,
       apply terminates_parallel.aux _ T, simp } },
-  { cases o, { exact terminates_parallel.aux a T },
+  { cases o with a a, { exact terminates_parallel.aux a T },
     ginduction (parallel.aux2 l) with h a l';
     have C : corec parallel.aux1 (l, S) = _,
     { apply destruct_eq_ret, simp [parallel.aux1], rw [h], simp [rmap] },

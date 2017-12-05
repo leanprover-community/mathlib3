@@ -241,12 +241,12 @@ instance decidable_ball_lt (n : nat) (P : Π k < n, Prop)
 begin
   induction n with n IH,
   { exact is_true (λ n, dec_trivial) },
-  cases IH (λ k h, P k (lt_succ_of_lt h)),
-  { refine is_false (mt _ a), intros hn k h, apply hn },
+  cases IH (λ k h, P k (lt_succ_of_lt h)) with h,
+  { refine is_false (mt _ h), intros hn k h, apply hn },
   by_cases P n (lt_succ_self n) with p,
-  { exact is_true (λ k h,
-     (lt_or_eq_of_le $ le_of_lt_succ h).elim (a _)
-       (λ e, match k, e, h with _, rfl, h := p end)) },
+  { exact is_true (λ k h',
+     (lt_or_eq_of_le $ le_of_lt_succ h').elim (h _)
+       (λ e, match k, e, h' with _, rfl, h := p end)) },
   { exact is_false (mt (λ hn, hn _ _) p) }
 end
 

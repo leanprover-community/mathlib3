@@ -425,11 +425,13 @@ instance : has_mul (linear_map β β) := ⟨λf g, ⟨_, is_linear_map.comp f.2 
 
 variables (α β)
 
-instance endomorphism_ring : ring (linear_map β β) :=
+-- declaring this an instance breaks `real.lean` with reaching max. instance resolution depth
+def endomorphism_ring : ring (linear_map β β) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
 
-def general_linear_group := units (linear_map β β)
+def general_linear_group :=
+@units (linear_map β β) (@ring.to_semiring _ (endomorphism_ring α β))
 
 end module
 

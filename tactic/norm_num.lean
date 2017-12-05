@@ -103,6 +103,12 @@ lemma int_div_helper (a b q r : ℤ) (h : r + q * b = a) (h₁ : 0 ≤ r) (h₂ 
 by rw [← h, int.add_mul_div_right _ _ (ne_of_gt (lt_of_le_of_lt h₁ h₂)),
        int.div_eq_zero_of_lt h₁ h₂, zero_add]
 
+lemma nat_mod_helper (a b q r : ℕ) (h : r + q * b = a) (h₂ : r < b) : a % b = r :=
+by rw [← h, nat.add_mul_mod_self_right, nat.mod_eq_of_lt h₂]
+
+lemma int_mod_helper (a b q r : ℤ) (h : r + q * b = a) (h₁ : 0 ≤ r) (h₂ : r < b) : a % b = r :=
+by rw [← h, int.add_mul_mod_self, int.mod_eq_of_lt h₁ h₂]
+
 meta structure instance_cache :=
 (α : expr)
 (univ : level)
@@ -296,6 +302,47 @@ meta def eval_div_ext (simp : expr → tactic (expr × expr)) : expr → tactic 
       (c, p₂) ← prove_lt simp c r e₂,
       p ← mk_app ``norm_num.int_div_helper [e₁, e₂, q, r, p, p₁, p₂],
       return (q, p)
+    end
+  | _ := failed
+  end
+| `(%%e₁ % %%e₂) := do
+  α ← infer_type e₁,
+  c ← mk_instance_cache α,
+  match α with
+  | `(nat) := do
+    n₁ ← e₁.to_nat, n₂ ← e₂.to_nat,
+    q ← expr.of_nat α (n₁ / n₂),
+    r ← expr.of_nat α (n₁ % n₂),
+    (c, e₃) ← c.mk_app ``has_mul.mul [q, e₂],
+    (c, e₃) ← c.mk_app ``has_add.add [r, e₃],
+    (e₁', p) ← norm_num e₃,
+    guard (e₁' =ₐ e₁),
+    (c, p') ← prove_lt simp c r e₂,
+    p ← mk_app ``norm_num.nat_mod_helper [e₁, e₂, q, r, p, p'],
+    return (r, p)
+  | `(int) := match e₂ with
+    | `(- %%e₂') := do
+      (c, p₁) ← c.mk_app ``int.mod_neg [e₁, e₂'],
+      (c, e) ← c.mk_app ``has_mod.mod [e₁, e₂'],
+      (e', p₂) ← simp e,
+      p ← mk_eq_trans p₁ p₂,
+      return (e', p)
+    | _ := do
+      n₁ ← e₁.to_int,
+      n₂ ← e₂.to_int,
+      q ← expr.of_rat α $ rat.of_int (n₁ / n₂),
+      r ← expr.of_rat α $ rat.of_int (n₁ % n₂),
+      (c, e₃) ← c.mk_app ``has_mul.mul [q, e₂],
+      (c, e₃) ← c.mk_app ``has_add.add [r, e₃],
+      (e₁', p) ← norm_num e₃,
+      guard (e₁' =ₐ e₁),
+      (c, r0) ← c.mk_app ``has_zero.zero [],
+      (c, r0) ← c.mk_app ``has_le.le [r0, r],
+      (_, p₁) ← simp r0,
+      p₁ ← mk_app ``of_eq_true [p₁],
+      (c, p₂) ← prove_lt simp c r e₂,
+      p ← mk_app ``norm_num.int_mod_helper [e₁, e₂, q, r, p, p₁, p₂],
+      return (r, p)
     end
   | _ := failed
   end

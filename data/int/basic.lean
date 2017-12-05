@@ -526,7 +526,7 @@ end
 
 /- nat abs -/
 
-attribute [simp] nat_abs
+attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin

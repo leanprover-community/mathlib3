@@ -24,6 +24,10 @@ example : (6:real) < 10 := by norm_num
 example : (7:real)/2 > 3 := by norm_num
 example : (4:real)⁻¹ < 1 := by norm_num
 
+example : (5 / 2:ℕ) = 2 := by norm_num
+example : (5 / -2:ℤ) < -1 := by norm_num
+example : (0 + 1) / 2 < 0 + 1 := by norm_num
+
 example (x : ℤ) (h : 1000 + 2000 < x) : 100 * 30 < x :=
 by norm_num at *; try_for 100 {exact h}
 

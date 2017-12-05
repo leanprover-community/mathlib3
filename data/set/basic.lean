@@ -7,7 +7,7 @@ import tactic.finish
 
 namespace set
 universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
+variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t : set α}
 
 instance : inhabited (set α) := ⟨∅⟩
 
@@ -71,21 +71,22 @@ subset.antisymm h₁ h₂
 theorem mem_of_subset_of_mem {s₁ s₂ : set α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ :=
 assume h₁ h₂, h₁ h₂
 
+lemma not_subset : (¬ s ⊆ t) ↔ ∃a, a ∈ s ∧ a ∉ t :=
+by simp [subset_def, classical.not_forall]
+
 /- strict subset -/
 
 def strict_subset (s t : set α) := s ⊆ t ∧ s ≠ t
 
 instance : has_ssubset (set α) := ⟨strict_subset⟩
 
-theorem ssubset_def {s t : set α} : (s ⊂ t) = (s ⊆ t ∧ s ≠ t) := rfl
+theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ s ≠ t) := rfl
 
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
-@[simp] lemma not_not_mem {α : Type u} {a : α} {s : set α} [decidable (a ∈ s)] :
-  ¬ (a ∉ s) ↔ a ∈ s :=
+@[simp] lemma not_not_mem [decidable (a ∈ s)] : ¬ (a ∉ s) ↔ a ∈ s :=
 not_not
-
 
 /- empty set -/
 
@@ -294,10 +295,10 @@ theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t
 by finish [subset_def, set_eq_def, iff_def]
 
 -- TODO(Mario): remove?
-theorem nonempty_of_inter_nonempty_right {T : Type} {s t : set T} (h : s ∩ t ≠ ∅) : t ≠ ∅ :=
+theorem nonempty_of_inter_nonempty_right {s t : set α} (h : s ∩ t ≠ ∅) : t ≠ ∅ :=
 by finish [set_eq_def, iff_def]
 
-theorem nonempty_of_inter_nonempty_left {T : Type} {s t : set T} (h : s ∩ t ≠ ∅) : s ≠ ∅ :=
+theorem nonempty_of_inter_nonempty_left {s t : set α} (h : s ∩ t ≠ ∅) : s ≠ ∅ :=
 by finish [set_eq_def, iff_def]
 
 /- distributivity laws -/
@@ -338,11 +339,23 @@ by finish [insert_def]
 @[simp] theorem insert_eq_of_mem {a : α} {s : set α} (h : a ∈ s) : insert a s = s :=
 by finish [set_eq_def, iff_def]
 
+lemma insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
+by simp [subset_def, or_imp_distrib, forall_and_distrib]
+
+lemma insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
+assume a', or.imp_right (@h a')
+
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
 by finish [ssubset_def, set_eq_def]
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ by simp [or.left_comm]
+
+lemma insert_union : insert a s ∪ t = insert a (s ∪ t) :=
+set.ext $ assume a, by simp [or.comm, or.left_comm]
+
+lemma union_insert : s ∪ insert a t = insert a (s ∪ t) :=
+set.ext $ assume a, by simp [or.comm, or.left_comm]
 
 -- TODO(Jeremy): make this automatic
 theorem insert_ne_empty (a : α) (s : set α) : insert a s ≠ ∅ :=
@@ -506,6 +519,12 @@ lemma diff_neq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
 
 @[simp] lemma diff_empty {s : set α} : s \ ∅ = s :=
 set.ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
+
+lemma diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
+set.ext $ by simp [not_or_distrib, and.comm, and.left_comm]
+
+@[simp] theorem insert_sdiff (h : a ∈ t) : insert a s \ t = s \ t :=
+set.ext $ by intro; constructor; simp [or_imp_distrib, h] {contextual := tt}
 
 /- powerset -/
 

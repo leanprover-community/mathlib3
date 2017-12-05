@@ -64,6 +64,10 @@ else fintype_insert' _ h
 @[simp] theorem finite_insert (a : α) {s : set α} : finite s → finite (insert a s)
 | ⟨h⟩ := ⟨@set.fintype_insert _ (classical.dec_eq α) _ _ h⟩
 
+lemma to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : finite s) :
+  (finite_insert a hs).to_finset = insert a hs.to_finset :=
+finset.ext.mpr $ by simp
+
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)
   (H0 : C ∅) (H1 : ∀ {a s}, a ∉ s → finite s → C s → C (insert a s)) : C s :=
@@ -81,6 +85,15 @@ match s.to_finset, @mem_to_finset _ s _ with
       exact m }
   end
 end
+
+@[elab_as_eliminator]
+theorem finite.dinduction_on {C : ∀s:set α, finite s → Prop} {s : set α} (h : finite s)
+  (H0 : C ∅ finite_empty)
+  (H1 : ∀ {a s}, a ∉ s → ∀h:finite s, C s h → C (insert a s) (finite_insert a h)) :
+  C s h :=
+have ∀h:finite s, C s h,
+  from finite.induction_on h (assume h, H0) (assume a s has hs ih h, H1 has hs (ih _)),
+this h
 
 instance fintype_singleton (a : α) : fintype ({a} : set α) :=
 fintype_insert' _ (not_mem_empty _)

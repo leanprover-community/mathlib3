@@ -636,6 +636,14 @@ theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset 
   (s.bind t).to_finset = s.to_finset.bind (λa, (t a).to_finset) :=
 ext.2 $ by simp
 
+lemma bind_mono  {t₁ t₂ : α → finset β} (h : ∀a∈s, t₁ a ⊆ t₂ a) : s.bind t₁ ⊆ s.bind t₂ :=
+have ∀b a, a ∈ s → b ∈ t₁ a → (∃ (a : α), a ∈ s ∧ b ∈ t₂ a),
+  from assume b a ha hb, ⟨a, ha, finset.mem_of_subset (h a ha) hb⟩,
+by simpa [finset.subset_iff]
+
+lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
+finset.ext.mpr $ by simp [eq_comm]
+
 end bind
 
 section prod

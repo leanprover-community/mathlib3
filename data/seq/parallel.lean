@@ -208,7 +208,7 @@ begin
     S.map (λc, c.map (λ a, (a, c))),
   have : S = T.map (map (λ c, c.1)),
   { rw [←wseq.map_comp], refine (wseq.map_id _).symm.trans (congr_arg (λ f, wseq.map f S) _),
-    apply funext, intro c, dsimp [id, function.comp], rw [←map_comp], exact (map_id _).symm },
+    funext c, dsimp [id, function.comp], rw [←map_comp], exact (map_id _).symm },
   have pe := congr_arg parallel this, rw ←map_parallel at pe,
   have h' := h, rw pe at h',
   have : terminates (parallel T) := (terminates_map_iff _ _).1 ⟨_, h'⟩,

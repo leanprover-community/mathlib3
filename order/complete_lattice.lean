@@ -472,14 +472,14 @@ calc Inf (set.image f s) = (⨅a, ⨅h : ∃b, b ∈ s ∧ f b = a, a) : Inf_eq_
                      ... = (⨅a, ⨅b, ⨅h : f b = a ∧ b ∈ s, a) : by simp [and_comm]
                      ... = (⨅a, ⨅b, ⨅h : a = f b, ⨅h : b ∈ s, a) : by simp [infi_and, eq_comm]
                      ... = (⨅b, ⨅a, ⨅h : a = f b, ⨅h : b ∈ s, a) : by rw [infi_comm]
-                     ... = (⨅a∈s, f a) : congr_arg infi $ funext $ assume x, by rw [infi_infi_eq_left]
+                     ... = (⨅a∈s, f a) : congr_arg infi $ by funext x; rw [infi_infi_eq_left]
 
 theorem Sup_image {s : set β} {f : β → α} : Sup (f '' s) = (⨆ a ∈ s, f a) :=
 calc Sup (set.image f s) = (⨆a, ⨆h : ∃b, b ∈ s ∧ f b = a, a) : Sup_eq_supr
                      ... = (⨆a, ⨆b, ⨆h : f b = a ∧ b ∈ s, a) : by simp [and_comm]
                      ... = (⨆a, ⨆b, ⨆h : a = f b, ⨆h : b ∈ s, a) : by simp [supr_and, eq_comm]
                      ... = (⨆b, ⨆a, ⨆h : a = f b, ⨆h : b ∈ s, a) : by rw [supr_comm]
-                     ... = (⨆a∈s, f a) : congr_arg supr $ funext $ assume x, by rw [supr_supr_eq_left]
+                     ... = (⨆a∈s, f a) : congr_arg supr $ by funext x; rw [supr_supr_eq_left]
 
 /- supr and infi under set constructions -/
 

@@ -342,8 +342,8 @@ calc nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}
     binfi_inf hl
   ... = (⨅l<a, (⨅u>a, principal {c | c < u} ⊓ principal {c | l < c})) :
     begin
-      congr, apply funext, intro x,
-      congr, apply funext, intro hx,
+      congr, funext x,
+      congr, funext hx,
       rw [inf_comm],
       apply binfi_inf hu
     end

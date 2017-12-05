@@ -1147,9 +1147,9 @@ lemma prod_lift_lift {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ :
 begin
   delta filter.prod,
   rw [lift_assoc],
-  apply congr_arg, apply funext, intro x,
+  apply congr_arg, funext x,
   rw [lift_comm],
-  apply congr_arg, apply funext, intro y,
+  apply congr_arg, funext y,
   rw [lift'_lift_assoc],
   exact hg₂,
   exact hg₁
@@ -1162,7 +1162,7 @@ lemma prod_lift'_lift' {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂
 begin
   delta filter.prod,
   rw [lift_lift'_assoc],
-  apply congr_arg, apply funext, intro x,
+  apply congr_arg, funext x,
   rw [lift'_lift'_assoc],
   exact hg₂,
   exact set.monotone_prod monotone_const monotone_id,
@@ -1209,7 +1209,7 @@ begin
   simp [this, filter.prod],
   rw [vmap_lift_eq], tactic.swap, exact (monotone_lift' monotone_const $
     monotone_lam $ assume t, set.monotone_prod monotone_id monotone_const),
-  apply congr_arg, apply funext, intro t',
+  apply congr_arg, funext t',
   dsimp [function.comp],
   rw [vmap_lift'_eq],
   exact set.monotone_prod monotone_const monotone_id,

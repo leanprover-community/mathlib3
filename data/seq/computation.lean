@@ -61,8 +61,7 @@ begin
   dsimp [destruct],
   ginduction s.1 0 with f0; intro h,
   { contradiction },
-  { apply subtype.eq, apply funext,
-    dsimp [return], intro n,
+  { apply subtype.eq, funext n,
     induction n with n IH,
     { injection h with h', rwa h' at f0 },
     { exact s.2 IH } }
@@ -252,7 +251,7 @@ theorem not_terminates_empty : ¬ terminates (empty α) :=
 
 theorem eq_empty_of_not_terminates {s} (H : ¬ terminates s) : s = empty α :=
 begin
-  apply subtype.eq, apply funext, intro n,
+  apply subtype.eq, funext n,
   ginduction s.val n with h, {refl},
   refine absurd _ H, exact ⟨_, _, h.symm⟩
 end
@@ -468,7 +467,7 @@ by apply s.cases_on; intro; simp
 | ⟨f, al⟩ := begin
   apply subtype.eq; simp [map, function.comp],
   have e : (@option.rec α (λ_, option α) none some) = id,
-  { apply funext, intro, cases x; refl },
+  { funext x, cases x; refl },
   simp [e, stream.map_id]
 end
 
@@ -478,7 +477,7 @@ theorem map_comp (f : α → β) (g : β → γ) :
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
   apply congr_arg (λ f : _ → option γ, stream.map f s),
-  apply funext, intro, cases x with x; refl
+  funext x, cases x with x; refl
 end
 
 @[simp] theorem ret_bind (a) (f : α → computation β) :

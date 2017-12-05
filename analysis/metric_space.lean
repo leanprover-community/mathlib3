@@ -186,7 +186,7 @@ assume y, assume ymem, lt_of_lt_of_le ymem h
 theorem nhds_eq_metric : nhds x = (⨅ε:{ε:ℝ // ε>0}, principal (open_ball x ε.val)) :=
 begin
   rw [nhds_eq_uniformity, uniformity_dist', lift'_infi],
-  { apply congr_arg, apply funext, intro ε,
+  { apply congr_arg, funext ε,
     rw [lift'_principal],
     { simp [open_ball, dist_comm] },
     { exact monotone_preimage } },

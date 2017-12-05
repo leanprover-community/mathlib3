@@ -158,7 +158,7 @@ let ⟨t', ht', ht'₁, ht'₂⟩ := symm_of_uniformity ht₁ in
 lemma uniformity_le_symm : uniformity ≤ map (@prod.swap α α) uniformity :=
 calc uniformity = id <$> uniformity : (functor.id_map _).symm
   ... = (@prod.swap α α ∘ prod.swap) <$> uniformity :
-    congr_arg (λf : (α×α)→(α×α), f <$> uniformity) (by apply funext; intro x; cases x; refl)
+    congr_arg (λf : (α×α)→(α×α), f <$> uniformity) (by funext x; cases x; refl)
   ... = (map prod.swap ∘ map prod.swap) uniformity :
     congr map_compose rfl
   ... ≤ (@prod.swap α α) <$> uniformity : map_mono symm_le_uniformity
@@ -284,7 +284,7 @@ lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
 show (nhds a).lift (λs:set α, (nhds b).lift (λt:set α, principal (set.prod s t))) = _,
 begin
   rw [lift_nhds_right],
-  apply congr_arg, apply funext, intro s,
+  apply congr_arg, funext s,
   rw [lift_nhds_left],
   refl,
   exact monotone_comp (monotone_prod monotone_const monotone_id) monotone_principal,
@@ -1321,8 +1321,7 @@ lemma to_topological_space_Sup {s : set (uniform_space α)} :
 begin
   rw [Sup_eq_supr, to_topological_space_supr],
   apply congr rfl,
-  apply funext,
-  intro x,
+  funext x,
   exact to_topological_space_supr
 end
 

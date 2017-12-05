@@ -334,8 +334,7 @@ end
 
 def lift_rel_o.swap (R : α → β → Prop) (C) :
   function.swap (lift_rel_o R C) = lift_rel_o (function.swap R) (function.swap C) :=
-funext $ λ x, funext $ λ y,
-by cases x with x; [skip, cases x]; { cases y with y; [skip, cases y]; refl }
+by funext x y; cases x with x; [skip, cases x]; { cases y with y; [skip, cases y]; refl }
 
 def lift_rel.swap_lem {R : α → β → Prop} {s1 s2} (h : lift_rel R s1 s2) :
   lift_rel (function.swap R) s2 s1 :=
@@ -500,7 +499,7 @@ theorem destruct_tail (s : wseq α) :
   destruct (tail s) = destruct s >>= tail.aux :=
 begin
   dsimp [tail], simp, rw [←monad.bind_pure_comp_eq_map, monad.bind_assoc],
-  apply congr_arg, apply funext, intro o,
+  apply congr_arg, funext o,
   cases o with a; [skip, cases a with a s];
   apply (monad.pure_bind _ _).trans _; simp
 end
@@ -922,7 +921,7 @@ instance productive_of_seq (s : seq α) : productive (of_seq s) :=
 
 theorem to_seq_of_seq (s : seq α) : to_seq (of_seq s) = s :=
 begin
-  apply subtype.eq, apply funext, intro n,
+  apply subtype.eq, funext n,
   dsimp [to_seq], apply get_eq_of_mem,
   rw nth_of_seq, apply ret_mem
 end
@@ -949,7 +948,7 @@ theorem map_comp (f : α → β) (g : β → γ) (s : wseq α) :
 begin
   dsimp [map], rw ←seq.map_comp,
   apply congr_fun, apply congr_arg,
-  apply funext, intro o, cases o; refl
+  funext o, cases o; refl
 end
 
 theorem mem_map (f : α → β) {a : α} {s : wseq α} : a ∈ s → f a ∈ map f s :=

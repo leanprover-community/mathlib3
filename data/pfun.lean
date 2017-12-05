@@ -63,7 +63,7 @@ theorem dom_iff_mem : ∀ (o : roption α), o.dom ↔ ∃y, y ∈ o
 | ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨._, h, rfl⟩, h⟩
 
 def assert (p : Prop) (f : p → roption α) : roption α :=
-⟨∃h : p, (f h).dom, λha, (f (let ⟨h, _⟩ := ha in h)).get (let ⟨_, h⟩ := ha in h)⟩ 
+⟨∃h : p, (f h).dom, λha, (f (let ⟨h, _⟩ := ha in h)).get (let ⟨_, h⟩ := ha in h)⟩
 
 protected def bind (f : roption α) (g : α → roption β) : roption β :=
 assert (dom f) (λb, g (f.get b))
@@ -184,7 +184,7 @@ instance : monad (pfun.{u v} α) :=
   bind := @pfun.bind _,
   map := @pfun.map _,
   bind_pure_comp_eq_map := λβ γ f x, funext $ λ a, roption.bind_some_eq_map _ _,
-  id_map := λβ f, funext $ λ a, by dsimp [pfun.map]; cases f a; refl,
+  id_map := λβ f, by funext a; dsimp [pfun.map]; cases f a; refl,
   pure_bind := λβ γ x f, funext $ λ a, roption.some_bind _ (f x),
   bind_assoc := λβ γ δ f g k,
     funext $ λ a, roption.bind_assoc (f a) (λ b, g b a) (λ b, k b a) }

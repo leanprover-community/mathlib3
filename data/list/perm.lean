@@ -515,8 +515,7 @@ theorem perm_inter_left {l₁ l₂ : list α} (t₁ : list α) : l₁ ~ l₂ →
 perm_filter _
 
 theorem perm_inter_right (l : list α) {t₁ t₂ : list α} (p : t₁ ~ t₂) : l ∩ t₁ = l ∩ t₂ :=
-by dsimp [(∩), list.inter]; congr;
-   exact funext (λ a, propext $ mem_of_perm p)
+by dsimp [(∩), list.inter]; congr; funext a; rw [mem_of_perm p]
 
 -- @[congr]
 theorem perm_inter {l₁ l₂ t₁ t₂ : list α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
@@ -597,7 +596,7 @@ begin
   { simpa using λ (l₁ l₂ : list α) (n : ¬ l₂ = []) (e : [] = l₁ ++ l₂),
      n.elim (eq_nil_of_sublist_nil $ e.symm ▸ sublist_append_right l₁ l₂) },
   { rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
-        from funext (by simp), mem_cons_iff, ih_1], split; intro h,
+        by funext; simp, mem_cons_iff, ih_1], split; intro h,
     { rcases h with e | ⟨l₁, l₂, l0, ye, _⟩,
       { subst l', exact ⟨[], y::ys, by simp⟩ },
       { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
@@ -610,7 +609,7 @@ end
 theorem mem_permutations_aux2' {t : α} {ts : list α} {ys : list α} {l : list α} :
     l ∈ (permutations_aux2 t ts [] ys id).2 ↔
     ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l = l₁ ++ t :: l₂ ++ ts :=
-by rw [show @id (list α) = append nil, from funext (λ x, rfl)]; apply mem_permutations_aux2
+by rw [show @id (list α) = append nil, by funext; refl]; apply mem_permutations_aux2
 
 theorem length_permutations_aux2 (t : α) (ts : list α) (ys : list α) (f : list α → β) :
   length (permutations_aux2 t ts [] ys f).2 = length ys :=

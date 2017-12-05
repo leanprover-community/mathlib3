@@ -1115,14 +1115,16 @@ by simp [filter_map, h]
 by simp [filter_map, h]
 
 theorem filter_map_eq_map (f : α → β) : filter_map (some ∘ f) = map f :=
-funext $ λ l, begin
+begin
+  funext l,
   induction l with a l IH, {simp},
   simp [filter_map_cons_some (some ∘ f) _ _ rfl, IH]
 end
 
 theorem filter_map_eq_filter (p : α → Prop) [decidable_pred p] :
   filter_map (option.guard p) = filter p :=
-funext $ λ l, begin
+begin
+  funext l,
   induction l with a l IH, {simp},
   by_cases p a with pa; simp [filter_map, option.guard, pa, IH]
 end
@@ -1157,7 +1159,7 @@ theorem filter_map_filter (p : α → Prop) [decidable_pred p] (f : α → optio
   filter_map f (filter p l) = filter_map (λ x, if p x then f x else none) l :=
 begin
   rw [← filter_map_eq_filter, filter_map_filter_map], congr,
-  apply funext, intro x,
+  funext x,
   show (option.guard p x).bind f = ite (p x) (f x) none,
   by_cases p x; simp [h, option.guard, option.bind]
 end

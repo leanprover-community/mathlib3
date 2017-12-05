@@ -127,15 +127,15 @@ protected def plift {α : Type u} : plift α ≃ α :=
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ :=
   ⟨λ (h : α₁ → β₁) (a : α₂), f₂ (h (g₁ a)),
    λ (h : α₂ → β₂) (a : α₁), g₂ (h (f₁ a)),
-   λ h, funext $ λ a, by dsimp; rw [l₁, l₂],
-   λ h, funext $ λ a, by dsimp; rw [r₁, r₂]⟩
+   λ h, by funext a; dsimp; rw [l₁, l₂],
+   λ h, by funext a; dsimp; rw [r₁, r₂]⟩
 
 section
 @[simp] def arrow_unit_equiv_unit (α : Sort*) : (α → unit) ≃ unit :=
-⟨λ f, (), λ u f, (), λ f, funext $ λ x, by cases f x; refl, λ u, by cases u; reflexivity⟩
+⟨λ f, (), λ u f, (), λ f, by funext x; cases f x; refl, λ u, by cases u; reflexivity⟩
 
 @[simp] def unit_arrow_equiv (α : Sort*) : (unit → α) ≃ α :=
-⟨λ f, f (), λ a u, a, λ f, funext $ λ x, by cases x; refl, λ u, rfl⟩
+⟨λ f, f (), λ a u, a, λ f, by funext x; cases x; refl, λ u, rfl⟩
 
 @[simp] def empty_arrow_equiv_unit (α : Sort*) : (empty → α) ≃ unit :=
 ⟨λ f, (), λ u e, e.rec _, λ f, funext $ λ x, x.rec _, λ u, by cases u; refl⟩
@@ -223,7 +223,7 @@ def bool_equiv_unit_sum_unit : bool ≃ (unit ⊕ unit) :=
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
- 
+
 def sum_equiv_sigma_bool (α β : Sort*) : (α ⊕ β) ≃ (Σ b: bool, cond b α β) :=
 ⟨λ s, match s with inl a := ⟨tt, a⟩ | inr b := ⟨ff, b⟩ end,
  λ s, match s with ⟨tt, a⟩ := inl a | ⟨ff, b⟩ := inr b end,
@@ -269,13 +269,13 @@ def arrow_arrow_equiv_prod_arrow (α β γ : Sort*) : (α → β → γ) ≃ (α
 ⟨λ f, λ p, f p.1 p.2,
  λ f, λ a b, f (a, b),
  λ f, rfl,
- λ f, funext $ λ p, by cases p; refl⟩
+ λ f, by funext p; cases p; refl⟩
 
 open sum
 def sum_arrow_equiv_prod_arrow (α β γ : Type*) : ((α ⊕ β) → γ) ≃ ((α → γ) × (β → γ)) :=
 ⟨λ f, (f ∘ inl, f ∘ inr),
  λ p s, sum.rec_on s p.1 p.2,
- λ f, funext $ λ s, by cases s; refl,
+ λ f, by funext s; cases s; refl,
  λ p, by cases p; refl⟩
 
 def sum_prod_distrib (α β γ : Sort*) : ((α ⊕ β) × γ) ≃ ((α × γ) ⊕ (β × γ)) :=

@@ -356,7 +356,7 @@ def count : measure_space α :=
   measure_of_Union := assume f _ hd,
     begin
       rw [ennreal.tsum_comm],
-      congr, apply funext, intro,
+      congr, funext,
       by_cases ∃i, x ∈ f i,
       { have h' : (∑(i : ℕ), ite (x ∈ f i) 1 0 : ennreal) = 1,
           from let ⟨i, hi⟩ := h in

@@ -63,8 +63,8 @@ theorem destruct_eq_nil {s : seq α} : destruct s = none → s = nil :=
 begin
   dsimp [destruct],
   ginduction nth s 0 with f0; intro h,
-  { apply subtype.eq, apply funext,
-    dsimp [nil], intro n,
+  { apply subtype.eq,
+    funext n,
     induction n with n IH, exacts [f0, s.2 IH] },
   { contradiction }
 end
@@ -388,7 +388,7 @@ theorem map_comp (f : α → β) (g : β → γ) : ∀ (s : seq α), map (g ∘ 
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
   apply congr_arg (λ f : _ → option γ, stream.map f s),
-  apply funext, intro, cases x with x; refl
+  funext x, cases x with x; refl
 end
 
 @[simp] theorem map_append (f : α → β) (s t) : map f (append s t) = append (map f s) (map f t) :=
@@ -464,7 +464,7 @@ end
   of_list (a :: l) = cons a (of_list l) :=
 begin
   apply subtype.eq, simp [of_list, cons],
-  apply funext, intro n, cases n; simp [list.nth, stream.cons]
+  funext n, cases n; simp [list.nth, stream.cons]
 end
 
 @[simp] def of_stream_cons (a : α) (s) :

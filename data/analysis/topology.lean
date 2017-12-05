@@ -105,7 +105,7 @@ topological_space_eq $ funext $ λ s, begin
   have : ∀ T s, @topological_space.is_open _ T s ↔ _ := @is_open_iff_mem_nhds α,
   rw [this, this],
   apply congr_arg (λ f : α → filter α, ∀ a ∈ s, s ∈ (f a).sets),
-  apply funext, intro a, apply filter_eq, apply set.ext, intro x,
+  funext a, apply filter_eq, apply set.ext, intro x,
   rw [mem_nhds_to_topsp, H]
 end
 

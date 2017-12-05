@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
 
+section sigma
 variables {α : Type*} {β : α → Type*}
 
 instance [inhabited α] [inhabited (β (default α))] : inhabited (sigma β) :=
-⟨⟨default α, default (β (default α))⟩⟩
-
-instance [inhabited α] [inhabited (β (default α))] : inhabited (psigma β) :=
 ⟨⟨default α, default (β (default α))⟩⟩
 
 instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable_eq (sigma β)
@@ -22,6 +20,24 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, sigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
+lemma sigma.mk_eq_mk_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
+  @sigma.mk α β a₁ b₁ = @sigma.mk α β a₂ b₂ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
+iff.intro sigma.mk.inj $
+  assume ⟨h₁, h₂⟩, match a₁, a₂, b₁, b₂, h₁, h₂ with _, _, _, _, eq.refl a, heq.refl b := rfl end
+
+variables {α₁ : Type*} {α₂ : Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
+
+def sigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : sigma β₁ → sigma β₂
+| ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
+
+end sigma
+
+section psigma
+variables {α : Sort*} {β : α → Sort*}
+
+instance [inhabited α] [inhabited (β (default α))] : inhabited (psigma β) :=
+⟨⟨default α, default (β (default α))⟩⟩
+
 instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable_eq (psigma β)
 | ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ := match a₁, b₁, a₂, b₂, h₁ a₁ a₂ with
   | _, b₁, _, b₂, is_true (eq.refl a) :=
@@ -32,20 +48,14 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, psigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
-lemma sigma.mk_eq_mk_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
-  @sigma.mk α β a₁ b₁ = @sigma.mk α β a₂ b₂ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
-iff.intro sigma.mk.inj $
-  assume ⟨h₁, h₂⟩, match a₁, a₂, b₁, b₂, h₁, h₂ with _, _, _, _, eq.refl a, heq.refl b := rfl end
-
 lemma psigma.mk_eq_mk_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
   @psigma.mk α β a₁ b₁ = @psigma.mk α β a₂ b₂ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
 iff.intro psigma.mk.inj $
   assume ⟨h₁, h₂⟩, match a₁, a₂, b₁, b₂, h₁, h₂ with _, _, _, _, eq.refl a, heq.refl b := rfl end
 
-variables {α₁ : Type*} {α₂ : Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
-
-def sigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : sigma β₁ → sigma β₂
-| ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
+variables {α₁ : Sort*} {α₂ : Sort*} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*}
 
 def psigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : psigma β₁ → psigma β₂
 | ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
+
+end psigma

@@ -580,10 +580,10 @@ namespace num
     { change ff = nat.bodd (nat.shiftr 1 (n + 1)),
       rw [add_comm, nat.shiftr_add], change nat.shiftr 1 1 with 0,
       rw nat.zero_shiftr; refl },
-    { change pos_num.test_bit a n = nat.bodd (nat.shiftr (nat.bit tt a) (n + 1)),
+    { change pos_num.test_bit m n = nat.bodd (nat.shiftr (nat.bit tt m) (n + 1)),
       rw [add_comm, nat.shiftr_add], unfold nat.shiftr,
       rw nat.div2_bit, apply IH },
-    { change pos_num.test_bit a n = nat.bodd (nat.shiftr (nat.bit ff a) (n + 1)),
+    { change pos_num.test_bit m n = nat.bodd (nat.shiftr (nat.bit ff m) (n + 1)),
       rw [add_comm, nat.shiftr_add], unfold nat.shiftr,
       rw nat.div2_bit, apply IH },
   end

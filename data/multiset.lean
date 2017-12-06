@@ -76,7 +76,7 @@ quotient.induction_on₂ s t $ λ l₁ l₂, by simp [perm_cons]
 
 @[recursor 5] protected theorem induction {p : multiset α → Prop}
   (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) (s) : p s :=
-quot.induction_on s $ λ l, by induction l; [exact h₁, exact h₂ ih_1]
+quot.induction_on s $ λ l, by induction l with _ _ ih; [exact h₁, exact h₂ ih]
 
 @[elab_as_eliminator] protected theorem induction_on {p : multiset α → Prop}
   (s : multiset α) (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) : p s :=

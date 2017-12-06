@@ -23,6 +23,16 @@ variables [encodable α]
 theorem encode_injective : function.injective (@encode α _)
 | x y e := option.some.inj $ by rw [← encodek, e, encodek]
 
+/- lower priority of instance below because we don't want to use encodability
+   to prove that e.g. equality of nat is decidable. Example of a problem:
+   
+   lemma H (e : ℕ) : finset.range (nat.succ e) = insert e (finset.range e) :=
+   begin
+   exact finset.range_succ
+   end
+
+  fails with this priority not set to zero
+-/
 @[priority 0] instance decidable_eq_of_encodable : decidable_eq α
 | a b := decidable_of_iff _ encode_injective.eq_iff 
 end

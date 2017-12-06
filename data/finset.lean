@@ -601,6 +601,9 @@ by simp [insert_eq, image_union]
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_image_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
 
+lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
+eq_of_veq $ by simp [multiset.attach_map_val]
+
 end image
 
 /- card -/

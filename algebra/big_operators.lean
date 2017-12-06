@@ -123,6 +123,50 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr begin simp [hf] {contextual := tt} end,
 by rw [←prod_sdiff h]; simp [this]
 
+@[to_additive sum_attach]
+lemma prod_attach [decidable_eq α] {f : α → β} :
+  s.attach.prod (λx, f x.val) = s.prod f :=
+calc s.attach.prod (λx, f x.val) = ((s.attach).image subtype.val).prod f :
+    by rw [prod_image]; exact assume x _ y _, subtype.eq
+  ... = _ : by rw [attach_image_val]
+
+@[to_additive finset.sum_bij]
+lemma prod_bij [decidable_eq α] [decidable_eq β] [decidable_eq γ]
+  {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
+  (i : Πa∈s, γ) (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
+  (i_inj : ∀a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (i_surj : ∀b∈t, ∃a ha, b = i a ha) :
+  s.prod f = t.prod g :=
+calc s.prod f = s.attach.prod (λx, f x.val) : prod_attach.symm
+  ... = s.attach.prod (λx, g (i x.1 x.2)) : prod_congr $ assume x hx, h _ _
+  ... = (s.attach.image $ λx:{x // x ∈ s}, i x.1 x.2).prod g :
+    (prod_image $ assume (a₁:{x // x ∈ s}) _ a₂ _ eq, subtype.eq $ i_inj a₁.1 a₂.1 a₁.2 a₂.2 eq).symm
+  ... = _ :
+      prod_subset
+        (by simp [subset_iff]; intros b a h eq; subst eq; exact hi _ _)
+        (assume b hb, not_imp_comm.mp $ assume hb₂,
+          let ⟨a, ha, eq⟩ := i_surj b hb in by simp [eq]; exact ⟨_, _, rfl⟩)
+
+@[to_additive finset.sum_bij_ne_zero]
+lemma prod_bij_ne_one [decidable_eq α] [decidable_eq β] [decidable_eq γ]
+  {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
+  (i : Πa∈s, f a ≠ 1 → γ) (hi₁ : ∀a h₁ h₂, i a h₁ h₂ ∈ t) (hi₂ : ∀a h₁ h₂, g (i a h₁ h₂) ≠ 1)
+  (hi₃ : ∀a₁ a₂ h₁₁ h₁₂ h₂₁ h₂₂, i a₁ h₁₁ h₁₂ = i a₂ h₂₁ h₂₂ → a₁ = a₂)
+  (hi₄ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
+  (h : ∀a h₁ h₂, f a = g (i a h₁ h₂)) :
+  s.prod f = t.prod g :=
+calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
+    (prod_subset (filter_subset _) $ by simp {contextual:=tt}).symm
+  ... = (t.filter $ λx, g x ≠ 1).prod g :
+    prod_bij (assume a ha, i a (mem_filter.mp ha).1 (mem_filter.mp ha).2)
+      (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr ⟨hi₁ a h₁ h₂, hi₂ a h₁ h₂⟩)
+      (assume a ha, (mem_filter.mp ha).elim $ h a)
+      (assume a₁ a₂ ha₁ ha₂,
+        (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₃ a₁ a₂ _ _ _ _)
+      (assume b hb, (mem_filter.mp hb).elim $ λh₁ h₂,
+        let ⟨a, ha₁, ha₂, eq⟩ := hi₄ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
+  ... = t.prod g :
+    (prod_subset (filter_subset _) $ by simp {contextual:=tt})
+
 @[to_additive finset.exists_ne_zero_of_sum_ne_zero]
 lemma exists_ne_one_of_prod_ne_one : s.prod f ≠ 1 → ∃a∈s, f a ≠ 1 :=
 by have := classical.dec_eq α; exact

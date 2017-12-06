@@ -11,6 +11,7 @@ import algebra.big_operators
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -341,8 +342,8 @@ calc nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}
     binfi_inf hl
   ... = (⨅l<a, (⨅u>a, principal {c | c < u} ⊓ principal {c | l < c})) :
     begin
-      congr, apply funext, intro x,
-      congr, apply funext, intro hx,
+      congr, funext x,
+      congr, funext hx,
       rw [inf_comm],
       apply binfi_inf hu
     end

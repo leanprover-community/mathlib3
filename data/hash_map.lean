@@ -36,7 +36,7 @@ theorem mem_as_list {a : Σ a, β a} : a ∈ data.as_list ↔ ∃i, a ∈ array.
 have (∃ (l : list (Σ (a : α), β a)) (i : fin (n.val)), a ∈ l ∧ array.read data i = l) ↔
   ∃ (i : fin (n.val)), a ∈ array.read data i,
 by rw exists_swap; exact exists_congr (λ i, by simp),
-by simp [as_list]; simpa [array.mem.def]
+by simp [as_list]; simpa [array.mem.def, and_comm]
 
 def foldl {δ : Type w} (d : δ) (f : δ → Π a, β a → δ) : δ :=
 data.foldl d (λ b d, b.foldl (λ r a, f r a.1 a.2) d)
@@ -100,8 +100,8 @@ def erase_aux (a : α) : list (Σ a, β a) → list (Σ a, β a)
 structure valid {n} (bkts : bucket_array α β n) (sz : nat) : Prop :=
 (len : bkts.as_list.length = sz)
 (idx : ∀ {i} {a : Σ a, β a}, a ∈ array.read bkts i →
-  mk_idx n (hash_fn a.1) = i) 
-(nodup : ∀i, ((array.read bkts i).map sigma.fst).nodup) 
+  mk_idx n (hash_fn a.1) = i)
+(nodup : ∀i, ((array.read bkts i).map sigma.fst).nodup)
 
 theorem valid.idx_enum {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
   {i l} (he : (i, l) ∈ bkts.to_list.enum) {a b} (hl : sigma.mk a b ∈ l) :
@@ -118,8 +118,8 @@ theorem valid.as_list_nodup {n} {bkts : bucket_array α β n} {sz : nat} (v : va
 begin
   suffices : (bkts.to_list.map (list.map sigma.fst)).pairwise list.disjoint,
   { simp [bucket_array.as_list, list.nodup_join, this],
-    change ∀ l s, list.map sigma.fst s = l → array.mem s bkts → l.nodup,
-    introv e m, subst e, cases m with i e, subst e,
+    change ∀ l s, array.mem s bkts → list.map sigma.fst s = l → l.nodup,
+    introv m e, subst e, cases m with i e, subst e,
     apply v.nodup },
   rw [← list.enum_map_snd bkts.to_list, list.pairwise_map, list.pairwise_map],
   have : (bkts.to_list.enum.map prod.fst).nodup := by simp [list.nodup_range],
@@ -259,7 +259,7 @@ theorem valid.erase_aux (a : α) : Π (l : list (Σ a, β a)), a ∈ l.map sigma
 | (⟨a', b'⟩::t) := begin
   by_cases a' = a with e,
   { subst a',
-    simpa [erase_aux] using show ∃ u w (x : β a),
+    simpa [erase_aux, and_comm] using show ∃ u w (x : β a),
       t = u ++ w ∧ sigma.mk a b' :: t = u ++ ⟨a, x⟩ :: w, from ⟨[], t, b', by simp⟩ },
   { simp [erase_aux, e, ne.symm e],
     suffices : ∀ (b : β a) (_ : sigma.mk a b ∈ t), ∃ u w (x : β a),
@@ -367,7 +367,7 @@ begin
       c.fst ∉ l.map sigma.fst ∧
       c.fst ∉ (bucket_array.as_list t).map sigma.fst ∧
       (l.map sigma.fst).disjoint ((bucket_array.as_list t).map sigma.fst),
-    by simpa [list.nodup_append, not_or_distrib] using nd)
+    by simpa [list.nodup_append, not_or_distrib, and_comm, and.left_comm] using nd)
     with ⟨nd1, nd2, nm1, nm2, dj⟩,
   have v' := v.insert _ _ c.2 (λHc, nm2 $ (v.contains_aux_iff _ c.1).1 Hc),
   apply IH _ _ v',
@@ -435,7 +435,8 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
     rw [hl, hfl],
     by_cases a = a' with h,
     { subst a',
-      suffices : b = b' ∨ sigma.mk a b' ∈ u ∨ sigma.mk a b' ∈ w ↔ b = b', {simpa [eq_comm]},
+      suffices : b = b' ∨ sigma.mk a b' ∈ u ∨ sigma.mk a b' ∈ w ↔ b = b',
+      { simpa [eq_comm, or.left_comm] },
       refine or_iff_left_of_imp (not.elim $ not_or_distrib.2 _),
       rcases veq with ⟨rfl, Hnc⟩ | ⟨b'', rfl⟩,
       { have na := (not_iff_not_of_iff $ v.contains_aux_iff _ _).1 Hnc,
@@ -472,7 +473,7 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
         let B := l.foldr (λ (y : sigma β) (x : bucket_array α β n'),
           reinsert_aux hash_fn x y.1 y.2) (mk_array n'.1 []),
         rcases append_of_modify [] [] [⟨a'', b''⟩] _ rfl rfl with ⟨u, w, hl, hfl⟩,
-        simp [IH.symm, show B.as_list = _, from hl,
+        simp [IH.symm, or.left_comm, show B.as_list = _, from hl,
               show (reinsert_aux hash_fn B a'' b'').as_list = _, from hfl] } } }
 end
 
@@ -524,7 +525,8 @@ theorem mem_erase : Π (m : hash_map α β) (a a' b'),
     { have : sigma.mk a' b' ∈ u ∨ sigma.mk a' b' ∈ w ↔ (¬a = a' ∧ a' = a) ∧ b' == b ∨
         ¬a = a' ∧ (sigma.mk a' b' ∈ u ∨ sigma.mk a' b' ∈ w),
       { simp [eq_comm, not_and_self_iff, and_iff_right_of_imp this] },
-      simpa [hl, show bkts'.as_list = _, from hfl, and_or_distrib_left] },
+      simpa [hl, show bkts'.as_list = _, from hfl, and_or_distrib_left,
+             and_comm, and.left_comm, or.left_comm] },
     intros m e, subst a', revert m, apply not_or_distrib.2,
     have nd' := v.as_list_nodup _,
     simp [hl, list.nodup_append] at nd', simp [nd'] },

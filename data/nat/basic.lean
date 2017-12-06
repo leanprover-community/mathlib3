@@ -158,20 +158,20 @@ lemma lt_pred_of_succ_lt {n m : ℕ} : succ n < m → n < pred m :=
 protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0
 | nm := (eq_zero_of_mul_eq_zero nm).elim n0 m0
 
-protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) : 
-  a = b * c := 
-by rw [← H2, nat.mul_div_cancel' H1] 
- 
-protected theorem div_eq_iff_eq_mul_right {a b c : ℕ} (H : b > 0) (H' : b ∣ a) : 
-  a / b = c ↔ a = b * c := 
-⟨nat.eq_mul_of_div_eq_right H', nat.div_eq_of_eq_mul_right H⟩ 
- 
-protected theorem div_eq_iff_eq_mul_left {a b c : ℕ} (H : b > 0) (H' : b ∣ a) : 
-  a / b = c ↔ a = c * b := 
-by rw mul_comm; exact nat.div_eq_iff_eq_mul_right H H' 
- 
-protected theorem eq_mul_of_div_eq_left {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) : 
-  a = c * b := 
+protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
+  a = b * c :=
+by rw [← H2, nat.mul_div_cancel' H1]
+
+protected theorem div_eq_iff_eq_mul_right {a b c : ℕ} (H : b > 0) (H' : b ∣ a) :
+  a / b = c ↔ a = b * c :=
+⟨nat.eq_mul_of_div_eq_right H', nat.div_eq_of_eq_mul_right H⟩
+
+protected theorem div_eq_iff_eq_mul_left {a b c : ℕ} (H : b > 0) (H' : b ∣ a) :
+  a / b = c ↔ a = c * b :=
+by rw mul_comm; exact nat.div_eq_iff_eq_mul_right H H'
+
+protected theorem eq_mul_of_div_eq_left {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
+  a = c * b :=
 by rw [mul_comm, nat.eq_mul_of_div_eq_right H1 H2]
 
 protected theorem mul_right_inj {a b c : ℕ} (ha : a > 0) : b * a = c * a ↔ b = c :=
@@ -241,12 +241,12 @@ instance decidable_ball_lt (n : nat) (P : Π k < n, Prop)
 begin
   induction n with n IH,
   { exact is_true (λ n, dec_trivial) },
-  cases IH (λ k h, P k (lt_succ_of_lt h)),
-  { refine is_false (mt _ a), intros hn k h, apply hn },
+  cases IH (λ k h, P k (lt_succ_of_lt h)) with h,
+  { refine is_false (mt _ h), intros hn k h, apply hn },
   by_cases P n (lt_succ_self n) with p,
-  { exact is_true (λ k h,
-     (lt_or_eq_of_le $ le_of_lt_succ h).elim (a _)
-       (λ e, match k, e, h with _, rfl, h := p end)) },
+  { exact is_true (λ k h',
+     (lt_or_eq_of_le $ le_of_lt_succ h').elim (h _)
+       (λ e, match k, e, h' with _, rfl, h := p end)) },
   { exact is_false (mt (λ hn, hn _ _) p) }
 end
 
@@ -349,7 +349,7 @@ by induction k; simp [*, add_succ, monad.bind_assoc]
 /- pow -/
 
 theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
-by induction n; simp [*, pow_succ]
+by induction n; simp [*, pow_succ, mul_assoc]
 
 theorem pow_dvd_pow (a : ℕ) {m n : ℕ} (h : m ≤ n) : a^m ∣ a^n :=
 by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
@@ -474,7 +474,7 @@ begin
   { have := eq_zero_of_le_zero h, subst m, simp },
   { cases eq_or_lt_of_le h with he hl,
     { subst m, simp },
-    { apply dvd_mul_of_dvd_left (IH (le_of_lt_succ hl)) } }
+    { apply dvd_mul_of_dvd_right (IH (le_of_lt_succ hl)) } }
 end
 
 theorem dvd_fact : ∀ {m n}, m > 0 → m ≤ n → m ∣ fact n

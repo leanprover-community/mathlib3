@@ -63,8 +63,8 @@ theorem destruct_eq_nil {s : seq α} : destruct s = none → s = nil :=
 begin
   dsimp [destruct],
   ginduction nth s 0 with f0; intro h,
-  { apply subtype.eq, apply funext,
-    dsimp [nil], intro n,
+  { apply subtype.eq,
+    funext n,
     induction n with n IH, exacts [f0, s.2 IH] },
   { contradiction }
 end
@@ -106,9 +106,9 @@ by cases s with f al; apply subtype.eq; dsimp [tail, cons]; rw [stream.tail_cons
 
 def cases_on {C : seq α → Sort v} (s : seq α)
   (h1 : C nil) (h2 : ∀ x s, C (cons x s)) : C s := begin
-  ginduction destruct s with H,
+  ginduction destruct s with H v v,
   { rw destruct_eq_nil H, apply h1 },
-  { cases a with a s', rw destruct_eq_cons H, apply h2 }
+  { cases v with a s', rw destruct_eq_cons H, apply h2 }
 end
 
 theorem mem_rec_on {C : seq α → Prop} {a s} (M : a ∈ s)
@@ -388,7 +388,7 @@ theorem map_comp (f : α → β) (g : β → γ) : ∀ (s : seq α), map (g ∘ 
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
   apply congr_arg (λ f : _ → option γ, stream.map f s),
-  apply funext, intro, cases x with x; refl
+  funext x, cases x with x; refl
 end
 
 @[simp] theorem map_append (f : α → β) (s t) : map f (append s t) = append (map f s) (map f t) :=
@@ -464,7 +464,7 @@ end
   of_list (a :: l) = cons a (of_list l) :=
 begin
   apply subtype.eq, simp [of_list, cons],
-  apply funext, intro n, cases n; simp [list.nth, stream.cons]
+  funext n, cases n; simp [list.nth, stream.cons]
 end
 
 @[simp] def of_stream_cons (a : α) (s) :
@@ -507,7 +507,7 @@ theorem mem_map (f : α → β) {a : α} : ∀ {s : seq α}, a ∈ s → f a ∈
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : seq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := stream.exists_of_mem_map h in
-  by cases o; injection oe with h'; exact ⟨a, om, h'⟩
+  by cases o with a; injection oe with h'; exact ⟨a, om, h'⟩
 
 def of_mem_append {s₁ s₂ : seq α} {a : α} (h : a ∈ append s₁ s₂) : a ∈ s₁ ∨ a ∈ s₂ :=
 begin

@@ -332,8 +332,7 @@ end
 
 def lift_rel_o.swap (R : α → β → Prop) (C) :
   function.swap (lift_rel_o R C) = lift_rel_o (function.swap R) (function.swap C) :=
-funext $ λ x, funext $ λ y,
-by cases x with x; [skip, cases x]; { cases y with y; [skip, cases y]; refl }
+by funext x y; cases x with x; [skip, cases x]; { cases y with y; [skip, cases y]; refl }
 
 def lift_rel.swap_lem {R : α → β → Prop} {s1 s2} (h : lift_rel R s1 s2) :
   lift_rel (function.swap R) s2 s1 :=
@@ -419,7 +418,7 @@ begin
   refine seq.eq_of_bisim (λs1 s2, flatten (return s2) = s1) _ rfl,
   intros s' s h, rw ←h, simp [flatten],
   cases seq.destruct s, { simp },
-  { cases a with o s', simp }
+  { cases val with o s', simp }
 end
 
 @[simp] theorem flatten_think (c : computation (wseq α)) : flatten c.think = think (flatten c) :=
@@ -497,8 +496,8 @@ theorem destruct_tail (s : wseq α) :
   destruct (tail s) = destruct s >>= tail.aux :=
 begin
   dsimp [tail], simp, rw [←monad.bind_pure_comp_eq_map, monad.bind_assoc],
-  apply congr_arg, apply funext, intro o,
-  cases o; [skip, cases a with a s];
+  apply congr_arg, funext o,
+  rcases o with _|⟨a, s⟩;
   apply (monad.pure_bind _ _).trans _; simp
 end
 
@@ -716,7 +715,7 @@ seq.mem_append_left
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : wseq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := seq.exists_of_mem_map h in
-  by cases o; injection oe with h'; exact ⟨a, om, h'⟩
+  by cases o with a; injection oe with h'; exact ⟨a, om, h'⟩
 
 @[simp] def lift_rel_nil (R : α → β → Prop) : lift_rel R nil nil :=
 by rw [lift_rel_destruct_iff]; simp
@@ -919,7 +918,7 @@ instance productive_of_seq (s : seq α) : productive (of_seq s) :=
 
 theorem to_seq_of_seq (s : seq α) : to_seq (of_seq s) = s :=
 begin
-  apply subtype.eq, apply funext, intro n,
+  apply subtype.eq, funext n,
   dsimp [to_seq], apply get_eq_of_mem,
   rw nth_of_seq, apply ret_mem
 end
@@ -946,7 +945,7 @@ theorem map_comp (f : α → β) (g : β → γ) (s : wseq α) :
 begin
   dsimp [map], rw ←seq.map_comp,
   apply congr_fun, apply congr_arg,
-  apply funext, intro o, cases o; refl
+  funext o, cases o; refl
 end
 
 theorem mem_map (f : α → β) {a : α} {s : wseq α} : a ∈ s → f a ∈ map f s :=
@@ -966,17 +965,17 @@ begin
     substs b' ss,
     simp at m ⊢,
     cases o with e IH, { simp [e] },
-    apply or.imp_right (λ m, _) m,
-    simp at IH, apply IH _ _ rfl m },
+    cases m with e m, { simp [e] },
+    exact or.imp_left or.inr (IH _ _ rfl m) },
   { refine s.cases_on (S.cases_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
     intros ej m; simp at ej;
     have := congr_arg seq.destruct ej; simp at this;
     try { try {have := this.1}, contradiction }; subst ss,
     { apply or.inr, simp at m ⊢,
       cases IH s S rfl m with as ex,
-      { exact ⟨s, as, or.inl rfl⟩ },
+      { exact ⟨s, or.inl rfl, as⟩ },
       { rcases ex with ⟨s', sS, as⟩,
-        exact ⟨s', as, or.inr sS⟩ } },
+        exact ⟨s', or.inr sS, as⟩ } },
     { apply or.inr, simp at m,
       rcases (IH nil S (by simp) (by simp [m])).resolve_left (not_mem_nil _) with ⟨s, sS, as⟩,
       exact ⟨s, by simp [sS], as⟩ },
@@ -1013,7 +1012,7 @@ theorem lift_rel_map {δ} (R : α → β → Prop) (S : γ → δ → Prop)
   { cases b; cases h },
   { cases a; cases h },
   { cases a with a s; cases b with b t, cases h with r h,
-    exact ⟨h2 r, s, t, h, rfl, rfl⟩ }
+    exact ⟨h2 r, s, rfl, t, rfl, h⟩ }
 end end⟩
 
 theorem map_congr (f : α → β) {s t : wseq α} (h : s ~ t) : map f s ~ map f t :=
@@ -1077,7 +1076,7 @@ or.inr ⟨s1, t1, rfl, rfl, h1⟩,
     { cases b; cases h },
     { cases a; cases h },
     { cases a with a s; cases b with b t, cases h with r h,
-      simp, exact ⟨r, or.inr ⟨s, t, h, rfl, rfl⟩⟩ }
+      simp, exact ⟨r, or.inr ⟨s, rfl, t, rfl, h⟩⟩ }
   end
 end⟩
 
@@ -1094,7 +1093,7 @@ begin
       ⟨p, mT, rop⟩ := computation.exists_of_lift_rel_left (lift_rel_destruct ST) rs1.mem in
   by exact match o, p, rop, rs1, rs2, mT with
   | none, none, _, rs1, rs2, mT := by simp [destruct_join]; exact
-    ⟨none, by rw eq_of_ret_mem rs2.mem; trivial, mem_bind mT (ret_mem _)⟩
+    ⟨none, mem_bind mT (ret_mem _), by rw eq_of_ret_mem rs2.mem; trivial⟩
   | some (s, S'), some (t, T'), ⟨st, ST'⟩, rs1, rs2, mT :=
     by simp [destruct_append] at rs2; exact
     let ⟨k1, rs3, ek⟩ := of_results_think rs2,
@@ -1133,7 +1132,7 @@ theorem lift_rel_join (R : α → β → Prop) {S : wseq (wseq α)} {T : wseq (w
   apply computation.lift_rel_bind _ _ (lift_rel_destruct st),
   exact λ o p h, match o, p, h with
   | some (a, s), some (b, t), ⟨h1, h2⟩ :=
-    by simp; exact ⟨h1, s, t, h2, S, rfl, T, ST, rfl⟩
+    by simp; exact ⟨h1, s, t, S, rfl, T, rfl, h2, ST⟩
   | none, none, _ := begin
     dsimp [destruct_append.aux, computation.lift_rel], constructor,
     { intro, apply lift_rel_join.lem _ ST (λ _ _, id) },
@@ -1175,7 +1174,7 @@ begin
     | ._, ._, ⟨s, rfl, rfl⟩ := begin
       clear h _match,
       apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret]; simp [ret],
-      { refine ⟨_, _, ret_mem _⟩, simp },
+      { refine ⟨_, ret_mem _, _⟩, simp },
       { exact ⟨s, rfl, rfl⟩ }
     end end },
   { exact ⟨s, rfl, rfl⟩ }

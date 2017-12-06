@@ -15,6 +15,7 @@ import order.filter data.set.countable tactic
 open set filter lattice classical
 local attribute [instance] decidable_inhabited prop_decidable
 
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
 universes u v w
 
 structure topological_space (α : Type u) :=

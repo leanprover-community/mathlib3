@@ -158,7 +158,7 @@ let ⟨t', ht', ht'₁, ht'₂⟩ := symm_of_uniformity ht₁ in
 lemma uniformity_le_symm : uniformity ≤ map (@prod.swap α α) uniformity :=
 calc uniformity = id <$> uniformity : (functor.id_map _).symm
   ... = (@prod.swap α α ∘ prod.swap) <$> uniformity :
-    congr_arg (λf : (α×α)→(α×α), f <$> uniformity) (by apply funext; intro x; cases x; refl)
+    congr_arg (λf : (α×α)→(α×α), f <$> uniformity) (by funext x; cases x; refl)
   ... = (map prod.swap ∘ map prod.swap) uniformity :
     congr map_compose rfl
   ... ≤ (@prod.swap α α) <$> uniformity : map_mono symm_le_uniformity
@@ -205,7 +205,7 @@ lemma mem_nhds_uniformity_iff {x : α} {s : set α} :
   (s ∈ (nhds x).sets) ↔ ({p : α × α | p.1 = x → p.2 ∈ s} ∈ (@uniformity α _).sets) :=
 ⟨ begin
     simp [mem_nhds_sets_iff, is_open_uniformity],
-    exact assume t ts xt ht, uniformity.upwards_sets (ht x xt) $ assume ⟨x', y⟩ h eq, ts $ h eq
+    exact assume t ts ht xt, uniformity.upwards_sets (ht x xt) $ assume ⟨x', y⟩ h eq, ts $ h eq
   end,
 
   assume hs,
@@ -284,7 +284,7 @@ lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
 show (nhds a).lift (λs:set α, (nhds b).lift (λt:set α, principal (set.prod s t))) = _,
 begin
   rw [lift_nhds_right],
-  apply congr_arg, apply funext, intro s,
+  apply congr_arg, funext s,
   rw [lift_nhds_left],
   refl,
   exact monotone_comp (monotone_prod monotone_const monotone_id) monotone_principal,
@@ -846,7 +846,7 @@ instance {α : Type u} [u : uniform_space α] : uniform_space (quotient (separat
         simp at b_eq,
         have h : ⟦a₂⟧ = ⟦b₁⟧, { rw [a_eq.right, b_eq.left] },
         have h : (a₂, b₁) ∈ separation_rel α := quotient.exact h,
-        simp [function.comp, set.image, comp_rel],
+        simp [function.comp, set.image, comp_rel, and.comm, and.left_comm, and.assoc],
         exact ⟨a₁, a_eq.left, b₂, b_eq.right, a₂, ha, b₁, h s hs, hb⟩
       end
     ... = map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) (uniformity.lift' (λs:set (α×α), comp_rel s (comp_rel s s))) :
@@ -1247,7 +1247,7 @@ def uniform_space.vmap (f : α → β) (u : uniform_space β) : uniform_space α
   begin
     intro s,
     change (@is_open α (u.to_topological_space.induced f) s ↔ _),
-    simp [is_open_iff_nhds, nhds_induced_eq_vmap, mem_nhds_uniformity_iff, filter.vmap],
+    simp [is_open_iff_nhds, nhds_induced_eq_vmap, mem_nhds_uniformity_iff, filter.vmap, and_comm],
     exact (ball_congr $ assume x hx,
       ⟨assume ⟨t, hts, ht⟩, ⟨_, ht, assume ⟨x₁, x₂⟩, by simp [*, subset_def] at * {contextual := tt} ⟩,
         assume ⟨t, ht, hts⟩, ⟨{y:β | (f x, y) ∈ t},
@@ -1321,8 +1321,7 @@ lemma to_topological_space_Sup {s : set (uniform_space α)} :
 begin
   rw [Sup_eq_supr, to_topological_space_supr],
   apply congr rfl,
-  apply funext,
-  intro x,
+  funext x,
   exact to_topological_space_supr
 end
 

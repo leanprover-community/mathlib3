@@ -219,12 +219,12 @@ have eq₁ : Ioo a b = (⋃n, Ico (s n) b),
   begin
     simp [iff_def, Ico, Ioo, -sub_eq_add_neg] {contextual := tt},
     constructor,
-    exact assume hxb i hsx, lt_of_lt_of_le (has i) hsx,
     exact assume hax hxb,
       have {a | a < x } ∈ (nhds a).sets, from mem_nhds_sets (is_open_gt' _) hax,
       have {n | s n < x} ∈ at_top.sets, from hs this,
       let ⟨n, hn⟩ := inhabited_of_mem_sets at_top_ne_bot this in
-      ⟨n, le_of_lt hn⟩
+      ⟨n, le_of_lt hn⟩,
+    exact assume i hsx hxb, lt_of_lt_of_le (has i) hsx,
   end,
 have (⨆i, of_real (b - s i)) = of_real (b - a),
   from is_lub_iff_supr_eq.mp $ is_lub_of_mem_nhds

@@ -67,7 +67,7 @@ begin
   have ne_two : (2:ℝ) ≠ 0, from (ne_of_lt two_pos).symm,
   rw [inv_eq_one_div, sub_eq_add_neg, ←neg_div, add_div_eq_mul_add_div _ _ ne_two],
   simp [bit0, bit1] at ne_two,
-  simp [bit0, bit1, mul_div_cancel' _ ne_two]
+  simp [bit0, bit1, mul_div_cancel' _ ne_two, mul_comm]
 end,
 have is_sum (λi, ε' i) ε, begin rw [eq] at this, exact this end,
 ennreal.tsum_of_real this (assume i, le_of_lt $ hε' i)
@@ -154,7 +154,7 @@ private lemma C_Union_lt {s : ℕ → set α} : ∀{n:ℕ}, (∀i<n, C (s i)) �
 | 0       h := by simp [nat.not_lt_zero]
 | (n + 1) h := show C (⨆i < nat.succ n, s i),
   begin
-    simp [nat.lt_succ_iff_lt_or_eq, supr_or, supr_sup_eq],
+    simp [nat.lt_succ_iff_lt_or_eq, supr_or, supr_sup_eq, sup_comm],
     exact C_union m (h n (le_refl (n + 1)))
       (C_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
   end
@@ -176,10 +176,10 @@ begin
     have : (⋃i<n+1, s i) \ (⋃i<n, s i) = s n,
     { apply set.ext, intro x, simp,
       constructor,
-      from assume ⟨hx, i, hi, hin⟩, (nat.lt_succ_iff_lt_or_eq.mp hin).elim
+      from assume ⟨⟨i, hin, hi⟩, hx⟩, (nat.lt_succ_iff_lt_or_eq.mp hin).elim
         (assume h, (hx i h hi).elim)
         (assume h, h ▸ hi),
-      from assume hx, ⟨assume i, disj x i hx, ⟨n, hx, nat.lt_succ_self _⟩⟩ },
+      from assume hx, ⟨⟨n, nat.lt_succ_self _, hx⟩, assume i, disj x i hx⟩ },
     have e₁ : t ∩ s n = (t ∩ ⋃i<n+1, s i) \ ⋃i<n, s i,
       from calc t ∩ s n = t ∩ ((⋃i<n+1, s i) \ (⋃i<n, s i)) : by rw [this]
         ... = (t ∩ ⋃i<n+1, s i) \ ⋃i<n, s i : by simp [sdiff_eq],

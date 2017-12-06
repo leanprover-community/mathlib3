@@ -28,6 +28,9 @@ noncomputable theory
 open classical set lattice filter
 local attribute [instance] decidable_inhabited prop_decidable
 
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
+
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
@@ -309,7 +312,7 @@ lemma uniform_continuous_mul_rat {r₁ r₂ : ℚ} (hr₁ : 0 < r₁) (hr₂ : 0
 have h : ∀a₁ a₂ b₁ b₂ : ℚ, a₁ * a₂ - b₁ * b₂ = (a₁ - b₁) * a₂ + (a₂ - b₂) * a₁ - (a₁ - b₁) * (a₂ - b₂),
   from assume a₁ a₂ b₁ b₂, calc
     a₁ * a₂ - b₁ * b₂ =
-          a₁ * a₂ + a₁ * b₂ + a₂ * b₁ + -(a₁ * b₂) + -(a₂ * b₁) + -(b₁ * b₂) : by simp
+          a₁ * a₂ + (a₁ * b₂ + -(a₁ * b₂)) + (a₂ * b₁ + -(a₂ * b₁)) + -(b₁ * b₂) : by simp
     ... = a₁ * a₂ + (a₁ * b₂ + (a₂ * b₁ + (-(a₁ * b₂) + (-(a₂ * b₁) + -(b₁ * b₂))))) : by cc
     ... = (a₁ - b₁) * a₂ + (a₂ - b₂) * a₁ - (a₁ - b₁) * (a₂ - b₂) : by simp [mul_add, add_mul],
 uniform_continuous_rat

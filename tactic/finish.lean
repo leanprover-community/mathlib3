@@ -116,7 +116,7 @@ variable  {α : Type u}
 variables (p q : Prop)
 variable  (s : α → Prop)
 
-local attribute [instance] classical.prop_decidable 
+local attribute [instance] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
 theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
@@ -129,7 +129,8 @@ theorem classical.implies_iff_not_or : (p → q) ↔ (¬ p ∨ q) := imp_iff_not
 end
 
 def common_normalize_lemma_names : list name :=
-[``bex_def, ``forall_and_distrib, ``exists_imp_distrib]
+[``bex_def, ``forall_and_distrib, ``exists_imp_distrib, ``or.assoc, ``or.comm, ``or.left_comm,
+  ``and.assoc, ``and.comm, ``and.left_comm]
 
 def classical_normalize_lemma_names : list name :=
 common_normalize_lemma_names ++ [``classical.implies_iff_not_or]
@@ -318,7 +319,7 @@ do when_tracing `auto.done (trace "entering done" >> trace_state),
          (do smt_tactic.intros,
              ctx ← local_context,
              hs ← mk_hinst_lemmas ctx,
-             smt_tactic.repeat_at_most cfg.max_ematch_rounds
+             smt_tactic.iterate_at_most cfg.max_ematch_rounds
                (smt_tactic.ematch_using hs >> smt_tactic.try smt_tactic.close))))
 
 /-

@@ -8,6 +8,8 @@ Properties of the binary representation of integers.
 import data.num.basic data.num.bitwise algebra.order
        tactic.interactive data.int.basic
 
+local attribute [simp] mul_left_comm mul_comm mul_assoc
+
 namespace pos_num
   variables {α : Type*}
 
@@ -248,7 +250,7 @@ namespace num
     zero_add := zero_add,
     add_zero := add_zero,
     mul      := (*),
-    one      := 1, .. }; try {transfer}; simp [left_distrib]
+    one      := 1, .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm]
 
   instance : decidable_linear_ordered_semiring num :=
   { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
@@ -314,17 +316,17 @@ namespace pos_num
   `[repeat {rw ← to_nat_inj <|> rw ← lt_to_nat <|> rw ← le_to_nat},
     repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
-  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
+  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp [mul_comm, mul_left_comm]}]
 
   instance : add_comm_semigroup pos_num :=
   by refine {add := (+), ..}; transfer
 
   instance : comm_monoid pos_num :=
   by refine {mul := (*), one := 1, ..}; transfer
-  
+
 
   instance : distrib pos_num :=
-  by refine {add := (+), mul := (*), ..}; {transfer, simp [left_distrib]}
+  by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}
 
   instance : decidable_linear_order pos_num :=
   { lt              := (<),
@@ -578,10 +580,10 @@ namespace num
     { change ff = nat.bodd (nat.shiftr 1 (n + 1)),
       rw [add_comm, nat.shiftr_add], change nat.shiftr 1 1 with 0,
       rw nat.zero_shiftr; refl },
-    { change pos_num.test_bit a n = nat.bodd (nat.shiftr (nat.bit tt a) (n + 1)),
+    { change pos_num.test_bit m n = nat.bodd (nat.shiftr (nat.bit tt m) (n + 1)),
       rw [add_comm, nat.shiftr_add], unfold nat.shiftr,
       rw nat.div2_bit, apply IH },
-    { change pos_num.test_bit a n = nat.bodd (nat.shiftr (nat.bit ff a) (n + 1)),
+    { change pos_num.test_bit m n = nat.bodd (nat.shiftr (nat.bit ff m) (n + 1)),
       rw [add_comm, nat.shiftr_add], unfold nat.shiftr,
       rw nat.div2_bit, apply IH },
   end
@@ -621,7 +623,7 @@ namespace znum
 
   theorem zneg_pred (n : znum) : -n.pred = (-n).succ :=
   by rw [← zneg_zneg (succ (-n)), zneg_succ, zneg_zneg]
-  
+
   @[simp] theorem neg_of_int : ∀ n, ((-n : ℤ) : znum) = -n
   | (n+1:ℕ) := rfl
   | 0       := rfl
@@ -833,7 +835,7 @@ namespace znum
   `[repeat {rw ← to_int_inj <|> rw ← lt_to_int <|> rw ← le_to_int},
     repeat {rw cast_add <|> rw mul_to_int <|> rw cast_one <|> rw cast_zero}]
 
-  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
+  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp [mul_comm, mul_left_comm]}]
 
   instance : decidable_linear_ordered_comm_ring znum :=
   { add              := (+),
@@ -849,8 +851,8 @@ namespace znum
     one              := 1,
     one_mul          := by transfer,
     mul_one          := by transfer,
-    left_distrib     := by {transfer, simp [left_distrib]},
-    right_distrib    := by {transfer, simp [left_distrib]},
+    left_distrib     := by {transfer, simp [mul_add]},
+    right_distrib    := by {transfer, simp [mul_add, mul_comm]},
     mul_comm         := by transfer,
     lt               := (<),
     lt_iff_le_not_le := by {intros a b, transfer_rw, apply lt_iff_le_not_le},

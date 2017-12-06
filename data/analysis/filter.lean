@@ -8,6 +8,9 @@ Computational realization of filters (experimental).
 import order.filter
 open set filter
 
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
+
 structure cfilter (α σ : Type*) [partial_order α] :=
 (f : σ → α)
 (pt : σ)
@@ -174,7 +177,7 @@ protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : 
     show (x ∈ ⋃ (i : α) (H : i ∈ F.F (F.F.inf a b)), _) →
           x ∈ ⋃ i (H : i ∈ F.F b), ((G i).F) (f' i H), by simp; exact
     λ i h₁ h₂, ⟨i, F.F.inf_le_right _ _ h₁, (G i).F.inf_le_right _ _ h₂⟩ },
-filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_bind_sets]; exact
+filter_eq $ set.ext $ λ x, by cases F with _ F _; subst f; simp [cfilter.to_filter, mem_bind_sets]; exact
 ⟨λ ⟨s, f, h⟩, ⟨F s, λ i H, (G i).mem_sets.2
    ⟨f i H, λ a h', h ⟨_, ⟨i, rfl⟩, _, ⟨H, rfl⟩, h'⟩⟩, s, subset.refl _⟩,
  λ ⟨y, f, s, h⟩,

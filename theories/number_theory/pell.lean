@@ -1,4 +1,12 @@
+/-
+Copyright (c) 2017 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro
+-/
 import data.int.basic data.nat.prime data.nat.modeq
+
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
 
 structure zsqrtd (d : ℕ) := mk {} ::
 (re : ℤ)
@@ -39,7 +47,7 @@ section
   | ⟨x, y⟩ ⟨x', y'⟩ := ⟨x + x', y + y'⟩
   instance : has_add ℤ√d := ⟨zsqrtd.add⟩
   @[simp] theorem add_def (x y x' y' : ℤ) :
-    (⟨x, y⟩ + ⟨x', y'⟩ : ℤ√d) = ⟨x + x', y + y'⟩ := rfl 
+    (⟨x, y⟩ + ⟨x', y'⟩ : ℤ√d) = ⟨x + x', y + y'⟩ := rfl
   @[simp] theorem add_re : ∀ z w : ℤ√d, (z + w).re = z.re + w.re
   | ⟨x, y⟩ ⟨x', y'⟩ := rfl
   @[simp] theorem add_im : ∀ z w : ℤ√d, (z + w).im = z.im + w.im
@@ -164,7 +172,7 @@ section
   begin
     apply le_of_not_gt,
     intro l,
-    refine not_le_of_gt _ h, 
+    refine not_le_of_gt _ h,
     simp [sq_le, left_distrib],
     have hm := sq_le_add_mixed zw (le_of_lt l),
     simp [sq_le] at l, simp [sq_le] at zw,
@@ -183,9 +191,12 @@ section
   by refine ⟨_, _, _, _⟩; {
     intros xy zw,
     have := int.mul_nonneg (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le xy))
-                             (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
+                           (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
     refine int.le_of_coe_nat_le_coe_nat (le_of_sub_nonneg _),
-    simpa [left_distrib, int.cast_add, int.cast_mul] }
+    simp [left_distrib] at this ⊢,
+    --TODO(Mario): remove when we can cancel negatives
+    repeat {rw ← add_left_comm (-(↑d * (↑x * (↑y * (↑z * ↑w))))),
+            try {rw add_neg_cancel_left} }, simpa }
 
   def nonnegg (c d : ℕ) : ℤ → ℤ → Prop
   | (a : ℕ) (b : ℕ) := true
@@ -217,7 +228,7 @@ section
   instance : has_le ℤ√d := ⟨zsqrtd.le⟩
 
   protected def lt (a b : ℤ√d) : Prop := ¬(b ≤ a)
-  
+
   instance : has_lt ℤ√d := ⟨zsqrtd.lt⟩
 
   instance decidable_nonnegg (c d a b) : decidable (nonnegg c d a b) :=
@@ -278,7 +289,9 @@ section
   theorem le_refl (a : ℤ√d) : a ≤ a := show nonneg (a - a), by simp
 
   protected theorem le_trans {a b c : ℤ√d} (ab : a ≤ b) (bc : b ≤ c) : a ≤ c :=
-  let t := nonneg_add ab bc in by simp at t; exact t
+  have nonneg (b - a + (c - b)), from nonneg_add ab bc,
+  have nonneg (c - a + (b - b)), by simpa [-add_right_neg],
+  by simpa
 
   theorem nonneg_iff_zero_le {a : ℤ√d} : nonneg a ↔ 0 ≤ a := show _ ↔ nonneg _, by simp
 
@@ -499,7 +512,7 @@ section
 
   def xn (n : ℕ) : ℕ := (pell n).1
   def yn (n : ℕ) : ℕ := (pell n).2
-  
+
   @[simp] theorem pell_val (n : ℕ) : pell n = (xn n, yn n) :=
   show pell n = ((pell n).1, (pell n).2), from match pell n with (a, b) := rfl end
 
@@ -625,7 +638,7 @@ section
 
   theorem eq_pell_zd (b : ℤ√d) (b1 : 1 ≤ b) (hp : is_pell b) : ∃n, b = pell_zd n :=
   let ⟨n, h⟩ := @zsqrtd.le_arch d b in
-  eq_pell_lem n b b1 hp $ zsqrtd.le_trans h $ by rw zsqrtd.coe_nat_val; exact 
+  eq_pell_lem n b b1 hp $ zsqrtd.le_trans h $ by rw zsqrtd.coe_nat_val; exact
   zsqrtd.le_of_le_le
     (int.coe_nat_le_coe_nat_of_le $ le_of_lt $ n_lt_xn _ _) (int.coe_zero_le _)
 
@@ -746,7 +759,7 @@ section
     (xm.modeq_of_dvd_of_modeq $ by simp [nat.pow_succ]).symm.trans
       (modeq.modeq_zero_iff.2 h),
   by rw ke; exact dvd_mul_of_dvd_right
-    (((xy_coprime _ _).pow_left _).symm.dvd_of_dvd_mul_right this) _ 
+    (((xy_coprime _ _).pow_left _).symm.dvd_of_dvd_mul_right this) _
 
   theorem pell_zd_succ_succ (n) : pell_zd (n + 2) + pell_zd n = (2 * a : ℕ) * pell_zd (n + 1) :=
   have (1:ℤ√d) + ⟨a, 1⟩ * ⟨a, 1⟩ = ⟨a, 1⟩ * (2 * a),
@@ -791,7 +804,7 @@ section
       (modeq.modeq_zero_iff.2 $ by simp)
       (modeq.modeq_zero_iff.2 $ by simp).symm
 
-  -- Hopefully a tactic will be able to dispense this lemma
+  -- TODO(Mario): Hopefully a tactic will be able to dispense this lemma
   lemma x_sub_y_dvd_pow_lem (y2 y1 y0 yn1 yn0 xn1 xn0 ay a2 : ℤ) :
     (a2 * yn1 - yn0) * ay + y2 - (a2 * xn1 - xn0) =
       y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) :=
@@ -799,7 +812,8 @@ section
       = a2 * yn1 * ay - yn0 * ay + y2 - (a2 * xn1 - xn0) : by rw [mul_sub_right_distrib]
   ... = y2 + a2 * (yn1 * ay) - a2 * xn1 - yn0 * ay + xn0 : by simp
   ... = y2 + a2 * (yn1 * ay) - a2 * y1 + a2 * y1 - a2 * xn1 - yn0 * ay + y0 - y0 + xn0 : by rw [add_sub_cancel, sub_add_cancel]
-  ... = y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) : by simp [left_distrib]
+  ... = y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) :
+     by simp [left_distrib]; repeat {rw [add_left_comm (y1*a2)], try {rw add_neg_cancel_left}}
 
   theorem x_sub_y_dvd_pow (y : ℕ) :
     ∀ n, (2*a*y - y*y - 1 : ℤ) ∣ yz n * (a - y) + y^n - xz n
@@ -808,8 +822,7 @@ section
   | (n+2) :=
     have (2*a*y - y*y - 1 : ℤ) ∣ ↑(y^(n + 2)) - ↑(2 * a) * ↑(y^(n + 1)) + ↑(y^n), from
     ⟨-↑(y^n), by simp [nat.pow_succ, right_distrib, int.coe_nat_mul, show ((2:ℕ):ℤ) = 2, from rfl]⟩,
-    by have t := dvd_sub (dvd_add this $ dvd_mul_of_dvd_right (x_sub_y_dvd_pow (n+1)) sorry) (x_sub_y_dvd_pow n);
-    rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 (y^(n+2)) (y^(n+1)) (y^n)]; exact
+    by rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 (y^(n+2)) (y^(n+1)) (y^n)]; exact
     dvd_sub (dvd_add this $ dvd_mul_of_dvd_right (x_sub_y_dvd_pow (n+1)) _) (x_sub_y_dvd_pow n)
 
   theorem xn_modeq_x2n_add_lem (n j) : xn n ∣ d * yn n * (yn n * xn j) + xn j :=
@@ -958,7 +971,7 @@ section
      eq_of_xn_modeq npos i2n j42n
        (h.symm.trans $ let t := xn_modeq_x4n_sub j42n in by rwa [nat.sub_sub_self j4n] at t)
        (λa2 n1, ⟨λi0, absurd i0 (ne_of_gt ipos), λi2, by rw[n1, i2] at hin; exact absurd hin dec_trivial⟩))
-  
+
   theorem modeq_of_xn_modeq {i j n} (ipos : i > 0) (hin : i ≤ n) (h : xn j ≡ xn i [MOD xn n]) :
     j ≡ i [MOD 4 * n] ∨ j + i ≡ 0 [MOD 4 * n] :=
   let j' := j % (4 * n) in

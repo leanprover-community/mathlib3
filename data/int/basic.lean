@@ -241,7 +241,7 @@ theorem add_mod_eq_add_mod_left {m n k : ℤ} (i : ℤ) (H : m % n = k % n) :
   (i + m) % n = (i + k) % n :=
 by rw [add_comm, add_mod_eq_add_mod_right _ H, add_comm]
 
-theorem mod_add_cancel_right {m n k : ℤ} (i) : (m + i) % n = (k + i) % n ↔ 
+theorem mod_add_cancel_right {m n k : ℤ} (i) : (m + i) % n = (k + i) % n ↔
   m % n = k % n :=
 ⟨λ H, by have := add_mod_eq_add_mod_right (-i) H;
       rwa [add_neg_cancel_right, add_neg_cancel_right] at this,
@@ -251,7 +251,7 @@ theorem mod_add_cancel_left {m n k i : ℤ} :
   (i + m) % n = (i + k) % n ↔ m % n = k % n :=
 by rw [add_comm, add_comm i, mod_add_cancel_right]
 
-theorem mod_sub_cancel_right {m n k : ℤ} (i) : (m - i) % n = (k - i) % n ↔ 
+theorem mod_sub_cancel_right {m n k : ℤ} (i) : (m - i) % n = (k - i) % n ↔
   m % n = k % n :=
 mod_add_cancel_right _
 
@@ -526,7 +526,7 @@ end
 
 /- nat abs -/
 
-attribute [simp] nat_abs
+attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
@@ -681,8 +681,8 @@ end
 | -[1+ n] := by rw [bit_neg_succ]; dsimp [test_bit]; rw [nat.test_bit_succ]
 
 private meta def bitwise_tac : tactic unit := `[
-  apply funext, intro m,
-  apply funext, intro n,
+  funext m,
+  funext n,
   cases m with m m; cases n with n n; try {refl},
   all_goals {
     apply congr_arg of_nat <|> apply congr_arg neg_succ_of_nat,
@@ -692,8 +692,8 @@ private meta def bitwise_tac : tactic unit := `[
            nat.bitwise (λ a b, b && bnot a) m n, from
       congr_fun (congr_fun (@nat.bitwise_swap (λ a b, b && bnot a) rfl) n) m]},
     apply congr_arg (λ f, nat.bitwise f m n),
-    apply funext, intro a,
-    apply funext, intro b,
+    funext a,
+    funext b,
     cases a; cases b; refl
   },
   all_goals {unfold nat.land nat.ldiff nat.lor}
@@ -915,7 +915,7 @@ by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 theorem cast_nonneg [linear_ordered_ring α] : ∀ {n : ℤ}, (0 : α) ≤ n ↔ 0 ≤ n
 | (n : ℕ) := by simp
-| -[1+ n] := by simpa [not_le_of_gt (neg_succ_lt_zero n)] using 
+| -[1+ n] := by simpa [not_le_of_gt (neg_succ_lt_zero n)] using
              show -(n:α) < 1, from lt_of_le_of_lt (by simp) zero_lt_one
 
 @[simp] theorem cast_le [linear_ordered_ring α] {m n : ℤ} : (m : α) ≤ n ↔ m ≤ n :=

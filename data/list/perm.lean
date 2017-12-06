@@ -294,7 +294,7 @@ variable [comm_monoid α]
 
 @[to_additive list.sum_eq_of_perm]
 lemma prod_eq_of_perm {l₁ l₂ : list α} (h : perm l₁ l₂) : prod l₁ = prod l₂ :=
-by induction h; simp *
+by induction h; simp [*, mul_left_comm]
 
 @[to_additive list.sum_reverse]
 lemma prod_reverse (l : list α) : prod l.reverse = prod l :=
@@ -369,7 +369,7 @@ theorem subperm.exists_of_length_lt {l₁ l₂ : list α} :
     this $ perm_length p.symm ▸ h,
   begin
     clear subperm.exists_of_length_lt p h l₁, rename l₂ u,
-    induction s with _ _ _ s IH _ _ b s IH; intro h,
+    induction s with l₁ l₂ a s IH _ _ b s IH; intro h,
     { cases h },
     { cases lt_or_eq_of_le (nat.le_of_lt_succ h : length l₁ ≤ length l₂) with h h,
       { refine exists_imp_exists _ (IH h),
@@ -429,7 +429,7 @@ by induction h generalizing l; simp [*, erase_perm_erase, erase_comm]
 
 theorem perm_bag_inter_left {l₁ l₂ : list α} (t : list α) (h : l₁ ~ l₂) : l₁.bag_inter t ~ l₂.bag_inter t :=
 begin
-  induction h generalizing t, {simp},
+  induction h with x _ _ _ _ x y _ _ _ _ _ _ ih_1 ih_2 generalizing t, {simp},
   { by_cases x ∈ t; simp [*, skip] },
   { by_cases x = y, {simp [h]},
     by_cases x ∈ t with xt; by_cases y ∈ t with yt,
@@ -498,10 +498,10 @@ end
 
 theorem perm_union_left {l₁ l₂ : list α} (t₁ : list α) (h : l₁ ~ l₂) : l₁ ∪ t₁ ~ l₂ ∪ t₁ :=
 begin
-  induction h with a l₁ l₂; try {simp},
-  exact perm_insert _ ih_1,
-  apply perm_insert_swap,
-  exact ih_1.trans ih_2
+  induction h with a _ _ _ ih _ _ _ _ _ _ _ _ ih_1 ih_2; try {simp},
+  { exact perm_insert a ih },
+  { apply perm_insert_swap },
+  { exact ih_1.trans ih_2 }
 end
 
 theorem perm_union_right (l : list α) {t₁ t₂ : list α} (h : t₁ ~ t₂) : l ∪ t₁ ~ l ∪ t₂ :=
@@ -515,8 +515,7 @@ theorem perm_inter_left {l₁ l₂ : list α} (t₁ : list α) : l₁ ~ l₂ →
 perm_filter _
 
 theorem perm_inter_right (l : list α) {t₁ t₂ : list α} (p : t₁ ~ t₂) : l ∩ t₁ = l ∩ t₂ :=
-by dsimp [(∩), list.inter]; congr;
-   exact funext (λ a, propext $ mem_of_perm p)
+by dsimp [(∩), list.inter]; congr; funext a; rw [mem_of_perm p]
 
 -- @[congr]
 theorem perm_inter {l₁ l₂ t₁ t₂ : list α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
@@ -593,11 +592,11 @@ theorem mem_permutations_aux2 {t : α} {ts : list α} {ys : list α} {l l' : lis
     l' ∈ (permutations_aux2 t ts [] ys (append l)).2 ↔
     ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l' = l ++ l₁ ++ t :: l₂ ++ ts :=
 begin
-  induction ys with y ys generalizing l,
+  induction ys with y ys ih generalizing l,
   { simpa using λ (l₁ l₂ : list α) (n : ¬ l₂ = []) (e : [] = l₁ ++ l₂),
      n.elim (eq_nil_of_sublist_nil $ e.symm ▸ sublist_append_right l₁ l₂) },
   { rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
-        from funext (by simp), mem_cons_iff, ih_1], split; intro h,
+        by funext; simp, mem_cons_iff, ih], split; intro h,
     { rcases h with e | ⟨l₁, l₂, l0, ye, _⟩,
       { subst l', exact ⟨[], y::ys, by simp⟩ },
       { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
@@ -610,7 +609,7 @@ end
 theorem mem_permutations_aux2' {t : α} {ts : list α} {ys : list α} {l : list α} :
     l ∈ (permutations_aux2 t ts [] ys id).2 ↔
     ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l = l₁ ++ t :: l₂ ++ ts :=
-by rw [show @id (list α) = append nil, from funext (λ x, rfl)]; apply mem_permutations_aux2
+by rw [show @id (list α) = append nil, by funext; refl]; apply mem_permutations_aux2
 
 theorem length_permutations_aux2 (t : α) (ts : list α) (ys : list α) (f : list α → β) :
   length (permutations_aux2 t ts [] ys f).2 = length ys :=
@@ -618,7 +617,7 @@ by induction ys generalizing f; simp *
 
 theorem foldr_permutations_aux2 (t : α) (ts : list α) (r L : list (list α)) :
   foldr (λy r, (permutations_aux2 t ts r y id).2) r L = L.bind (λ y, (permutations_aux2 t ts [] y id).2) ++ r :=
-by induction L with l L; [refl, {simp [ih_1], rw ← permutations_aux2_append}]
+by induction L with l L ih; [refl, {simp [ih], rw ← permutations_aux2_append}]
 
 theorem mem_foldr_permutations_aux2 {t : α} {ts : list α} {r L : list (list α)} {l' : list α} :
   l' ∈ foldr (λy r, (permutations_aux2 t ts r y id).2) r L ↔ l' ∈ r ∨
@@ -628,7 +627,8 @@ have (∃ (a : list α), a ∈ L ∧
     ∃ (l₁ l₂ : list α), ¬l₂ = nil ∧ l₁ ++ l₂ ∈ L ∧ l' = l₁ ++ t :: (l₂ ++ ts),
 from ⟨λ ⟨a, aL, l₁, l₂, l0, e, h⟩, ⟨l₁, l₂, l0, e ▸ aL, h⟩,
       λ ⟨l₁, l₂, l0, aL, h⟩, ⟨_, aL, l₁, l₂, l0, rfl, h⟩⟩,
-by rw foldr_permutations_aux2; simp [mem_permutations_aux2', this]
+by rw foldr_permutations_aux2; simp [mem_permutations_aux2', this,
+  or.comm, or.left_comm, or.assoc, and.comm, and.left_comm, and.assoc]
 
 theorem length_foldr_permutations_aux2 (t : α) (ts : list α) (r L : list (list α)) :
   length (foldr (λy r, (permutations_aux2 t ts r y id).2) r L) = sum (map length L) + length r :=
@@ -639,8 +639,8 @@ theorem length_foldr_permutations_aux2' (t : α) (ts : list α) (r L : list (lis
   length (foldr (λy r, (permutations_aux2 t ts r y id).2) r L) = n * length L + length r :=
 begin
   rw [length_foldr_permutations_aux2, (_ : sum (map length L) = n * length L)],
-  induction L with l L, {simp},
-  simp [ih_1 (λ l m, H l (mem_cons_of_mem _ m)), H l (mem_cons_self _ _), mul_add]
+  induction L with l L ih, {simp},
+  simp [ih (λ l m, H l (mem_cons_of_mem _ m)), H l (mem_cons_self _ _), mul_add]
 end
 
 private def meas : (Σ'_:list α, list α) → ℕ × ℕ | ⟨l, i⟩ := (length l + length i, length l)
@@ -675,7 +675,7 @@ begin
   intros t ts is IH1 IH2,
   have IH2 : length (permutations_aux is nil) + 1 = is.length.fact,
   { simpa using IH2 },
-  simp [-add_comm, nat.fact, nat.add_succ] at IH1,
+  simp [-add_comm, nat.fact, nat.add_succ, mul_comm] at IH1,
   rw [permutations_aux_cons,
       length_foldr_permutations_aux2' _ _ _ _ _
         (λ l m, perm_length (perm_of_mem_permutations m)),
@@ -685,7 +685,7 @@ begin
 end
 
 theorem length_permutations (l : list α) : length (permutations l) = (length l).fact :=
-length_permutations_aux l [] 
+length_permutations_aux l []
 
 theorem mem_permutations_of_perm_lemma {is l : list α}
   (H : l ~ [] ++ is → (∃ ts' ~ [], l = ts' ++ is) ∨ l ∈ permutations_aux is [])

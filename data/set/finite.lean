@@ -64,6 +64,10 @@ else fintype_insert' _ h
 @[simp] theorem finite_insert (a : α) {s : set α} : finite s → finite (insert a s)
 | ⟨h⟩ := ⟨@set.fintype_insert _ (classical.dec_eq α) _ _ h⟩
 
+lemma to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : finite s) :
+  (finite_insert a hs).to_finset = insert a hs.to_finset :=
+finset.ext.mpr $ by simp
+
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)
   (H0 : C ∅) (H1 : ∀ {a s}, a ∉ s → finite s → C s → C (insert a s)) : C s :=
@@ -81,6 +85,15 @@ match s.to_finset, @mem_to_finset _ s _ with
       exact m }
   end
 end
+
+@[elab_as_eliminator]
+theorem finite.dinduction_on {C : ∀s:set α, finite s → Prop} {s : set α} (h : finite s)
+  (H0 : C ∅ finite_empty)
+  (H1 : ∀ {a s}, a ∉ s → ∀h:finite s, C s h → C (insert a s) (finite_insert a h)) :
+  C s h :=
+have ∀h:finite s, C s h,
+  from finite.induction_on h (assume h, H0) (assume a s has hs ih h, H1 has hs (ih _)),
+this h
 
 instance fintype_singleton (a : α) : fintype ({a} : set α) :=
 fintype_insert' _ (not_mem_empty _)
@@ -118,9 +131,9 @@ fintype_of_finset ⟨_, @multiset.nodup_filter_map β α g _
   (@injective_of_partial_inv_right _ _ f g I) (f '' s).to_finset.2⟩ $ λ a,
 begin
   suffices : (∃ b x, f x = b ∧ g b = some a ∧ x ∈ s) ↔ a ∈ s,
-  by simpa [exists_and_distrib_left.symm],
+  by simpa [exists_and_distrib_left.symm, and.comm, and.left_comm, and.assoc],
   rw exists_swap,
-  suffices : (∃ x, x ∈ s ∧ g (f x) = some a) ↔ a ∈ s, {simpa},
+  suffices : (∃ x, x ∈ s ∧ g (f x) = some a) ↔ a ∈ s, {simpa [and.comm, and.left_comm, and.assoc]},
   simp [I _, (injective_of_partial_inv I).eq_iff]
 end
 
@@ -144,7 +157,7 @@ instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=
 fintype_of_finset (finset.range n) $ by simp
 
 instance fintype_le_nat (n : ℕ) : fintype {i | i ≤ n} :=
-by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1) 
+by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1)
 
 lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _⟩
 
@@ -155,3 +168,52 @@ lemma finite_prod {s : set α} {t : set β} : finite s → finite t → finite (
 | ⟨hs⟩ ⟨ht⟩ := by exact ⟨set.fintype_prod s t⟩
 
 end set
+
+namespace finset
+variables [decidable_eq α] [decidable_eq β]
+variables {s t u : finset α} {f : α → β} {a : α}
+
+def to_set (s : finset α) : set α := {x | x ∈ s}
+
+instance : has_lift (finset α) (set α) := ⟨to_set⟩
+
+@[simp] lemma mem_coe : a ∈ (↑s : set α) = (a ∈ s) :=
+rfl
+
+@[simp] lemma coe_eq_coe : ((↑s : set α) = ↑t) ↔ s = t :=
+by simp [finset.ext, set.set_eq_def]
+
+@[simp] lemma coe_subseteq_coe : ((↑s : set α) ⊆ ↑t) ↔ s ⊆ t :=
+by simp [finset.subset_iff, set.subset_def]
+
+@[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_insert : ↑(insert a s) = (insert a ↑s : set α) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_erase : ↑(erase s a) = (↑s \ {a} : set α) :=
+by simp [set.set_eq_def, and_comm]
+
+@[simp] lemma coe_sdiff : ↑(s \ t) = (↑s \ ↑t : set α) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_singleton : ↑({a} : finset α) = ({a} : set α) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_union : ↑(s ∪ t) = (↑s ∪ ↑t : set α) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_inter : ↑(s ∩ t) = (↑s ∩ ↑t : set α) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_filter {p : α → Prop} [decidable_pred p] : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
+by simp [set.set_eq_def]
+
+end finset

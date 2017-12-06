@@ -7,7 +7,7 @@ import tactic.finish
 
 namespace set
 universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
+variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t : set α}
 
 instance : inhabited (set α) := ⟨∅⟩
 
@@ -71,21 +71,22 @@ subset.antisymm h₁ h₂
 theorem mem_of_subset_of_mem {s₁ s₂ : set α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ :=
 assume h₁ h₂, h₁ h₂
 
+lemma not_subset : (¬ s ⊆ t) ↔ ∃a, a ∈ s ∧ a ∉ t :=
+by simp [subset_def, classical.not_forall]
+
 /- strict subset -/
 
 def strict_subset (s t : set α) := s ⊆ t ∧ s ≠ t
 
 instance : has_ssubset (set α) := ⟨strict_subset⟩
 
-theorem ssubset_def {s t : set α} : (s ⊂ t) = (s ⊆ t ∧ s ≠ t) := rfl
+theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ s ≠ t) := rfl
 
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
-@[simp] lemma not_not_mem {α : Type u} {a : α} {s : set α} [decidable (a ∈ s)] :
-  ¬ (a ∉ s) ↔ a ∈ s :=
+@[simp] lemma not_not_mem [decidable (a ∈ s)] : ¬ (a ∉ s) ↔ a ∈ s :=
 not_not
-
 
 /- empty set -/
 
@@ -294,10 +295,10 @@ theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t
 by finish [subset_def, set_eq_def, iff_def]
 
 -- TODO(Mario): remove?
-theorem nonempty_of_inter_nonempty_right {T : Type} {s t : set T} (h : s ∩ t ≠ ∅) : t ≠ ∅ :=
+theorem nonempty_of_inter_nonempty_right {s t : set α} (h : s ∩ t ≠ ∅) : t ≠ ∅ :=
 by finish [set_eq_def, iff_def]
 
-theorem nonempty_of_inter_nonempty_left {T : Type} {s t : set T} (h : s ∩ t ≠ ∅) : s ≠ ∅ :=
+theorem nonempty_of_inter_nonempty_left {s t : set α} (h : s ∩ t ≠ ∅) : s ≠ ∅ :=
 by finish [set_eq_def, iff_def]
 
 /- distributivity laws -/
@@ -338,11 +339,23 @@ by finish [insert_def]
 @[simp] theorem insert_eq_of_mem {a : α} {s : set α} (h : a ∈ s) : insert a s = s :=
 by finish [set_eq_def, iff_def]
 
+lemma insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
+by simp [subset_def, or_imp_distrib, forall_and_distrib]
+
+lemma insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
+assume a', or.imp_right (@h a')
+
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
 by finish [ssubset_def, set_eq_def]
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
-ext (assume c, by simp)
+ext $ by simp [or.left_comm]
+
+lemma insert_union : insert a s ∪ t = insert a (s ∪ t) :=
+set.ext $ assume a, by simp [or.comm, or.left_comm]
+
+lemma union_insert : s ∪ insert a t = insert a (s ∪ t) :=
+set.ext $ assume a, by simp [or.comm, or.left_comm]
 
 -- TODO(Jeremy): make this automatic
 theorem insert_ne_empty (a : α) (s : set α) : insert a s ≠ ∅ :=
@@ -381,7 +394,7 @@ theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) :=
 by finish
 
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s :=
-by finish [set_eq_def]
+by finish [set_eq_def, or_comm]
 
 @[simp] theorem union_insert_eq {a : α} {s t : set α} :
   s ∪ (insert a t) = insert a (s ∪ t) :=
@@ -507,6 +520,12 @@ lemma diff_neq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
 @[simp] lemma diff_empty {s : set α} : s \ ∅ = s :=
 set.ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
 
+lemma diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
+set.ext $ by simp [not_or_distrib, and.comm, and.left_comm]
+
+@[simp] theorem insert_sdiff (h : a ∈ t) : insert a s \ t = s \ t :=
+set.ext $ by intro; constructor; simp [or_imp_distrib, h] {contextual := tt}
+
 /- powerset -/
 
 theorem mem_powerset {x s : set α} (h : x ⊆ s) : x ∈ powerset s := h
@@ -577,6 +596,16 @@ theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ f '' s = ∃ x
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
 ⟨_, h, rfl⟩
 
+theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
+  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
+by finish [mem_image_eq]
+
+@[simp] theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
+  (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
+iff.intro
+  (assume h a ha, h _ $ mem_image_of_mem _ ha)
+  (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
+
 theorem mono_image {f : α → β} {s t : set α} (h : s ⊆ t) : f '' s ⊆ f '' t :=
 assume x ⟨y, hy, y_eq⟩, y_eq ▸ mem_image_of_mem _ $ h hy
 
@@ -592,13 +621,17 @@ theorem image_eq_image_of_eq_on {f₁ f₂ : α → β} {s : set α} (heq : eq_o
   f₁ '' s = f₂ '' s :=
 by safe [set_eq_def, iff_def, mem_image, eq_on]
 
--- TODO(Jeremy): make automatic
 theorem image_comp (f : β → γ) (g : α → β) (a : set α) : (f ∘ g) '' a = f '' (g '' a) :=
+subset.antisymm
+  (ball_image_of_ball $ assume a ha, mem_image_of_mem _ $ mem_image_of_mem _ ha)
+  (ball_image_of_ball $ ball_image_of_ball $ assume a ha, mem_image_of_mem _ ha)
+/- Proof is removed as it uses generated names
+TODO(Jeremy): make automatic,
 begin
   safe [set_eq_def, iff_def, mem_image, (∘)],
   have h' := h_2 (g a_2),
   finish
-end
+end -/
 
 theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : f '' a ⊆ f '' b :=
 by finish [subset_def, mem_image_eq]
@@ -642,19 +675,9 @@ theorem compl_compl_image (S : set (set α)) :
   compl '' (compl '' S) = S :=
 by rw [← image_comp, compl_comp_compl, image_id]
 
-theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
-  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
-by finish [mem_image_eq]
-
-@[simp] theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
-  (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
-begin
-  simp, rw forall_swap, apply forall_congr, simp
-end
-
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
   f '' (insert a s) = insert (f a) (f '' s) :=
-ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm]
+ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm, or_comm, and_comm]
 
 theorem image_subset_preimage_of_inverse {f : α → β} {g : β → α}
   (I : function.left_inverse g f) (s : set α) :

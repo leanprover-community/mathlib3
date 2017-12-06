@@ -183,7 +183,7 @@ is_topological_basis_of_open_of_nhds
     ⟨t₁ ∩ t₂, by simp [t₁₂]; exact ⟨max a₁ a₂, min b₁ b₂, this, by simp⟩,
       ⟨hx₁, hx₂⟩, subset.refl _⟩)
   (suffices ∀r, ∃(t : set ℝ), r ∈ t ∧ ∃a b : ℚ, t = Ioo a b ∧ a < b,
-      by simpa,
+      by simpa [and_comm],
     assume r,
     let ⟨a, ha⟩ := exists_rat_lt r, ⟨b, hb⟩ := exists_lt_rat r in
     ⟨Ioo a b, ⟨ha, hb⟩, a, b, rfl, rat.cast_lt.1 $ lt_trans ha hb⟩)
@@ -226,7 +226,7 @@ have ∀a b : ℚ, a < b → g.is_measurable (Ioo a b),
       from assume hxb hax,
       let ⟨c, hac, hcx⟩ := exists_rat_btwn hax in
       ⟨c, rat.cast_lt.1 hac, le_of_lt hcx⟩,
-    by simp [iff_def, Iio, Ioo] {contextual := tt}; exact ⟨h₁, h₂⟩,
+    by simp [iff_def, Iio, Ioo, and_comm] {contextual := tt}; exact ⟨h₁, h₂⟩,
   this ▸ @is_measurable_inter _ g _ _
     (@is_measurable_bUnion _ _ g _ _ countable_encodable $ assume b hb, hgc b)
     (hg b),

@@ -8,6 +8,9 @@ Finite sets.
 import data.multiset order.boolean_algebra algebra.functions data.sigma.basic
 open multiset subtype nat lattice
 
+local attribute [simp] mul_comm mul_assoc mul_left_comm and.comm and.left_comm and.assoc
+  or.comm or.left_comm or.assoc
+
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 structure finset (α : Type*) :=
@@ -20,7 +23,7 @@ theorem eq_of_veq : ∀ {s t : finset α}, s.1 = t.1 → s = t
 | ⟨s, _⟩ ⟨t, _⟩ h := by congr; assumption
 
 @[simp] theorem val_inj {s t : finset α} : s.1 = t.1 ↔ s = t :=
-⟨eq_of_veq, congr_arg _⟩ 
+⟨eq_of_veq, congr_arg _⟩
 
 @[simp] theorem erase_dup_eq_self [decidable_eq α] (s : finset α) : erase_dup s.1 = s.1 :=
 erase_dup_eq_self.2 s.2
@@ -66,6 +69,10 @@ theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ (∀x, x ∈ s₁
 
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
 
+/- struct subset -- follows the definition of lt -/
+
+instance : has_ssubset (finset α) := ⟨λa b, a ⊆ b ∧ ¬ b ⊆ a⟩
+
 /- empty -/
 protected def empty : finset α := ⟨0, nodup_zero⟩
 
@@ -110,7 +117,7 @@ theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
 
 /- insert -/
 section decidable_eq
-variables [decidable_eq α] 
+variables [decidable_eq α]
 
 instance : has_insert α (finset α) := ⟨λ a s, ⟨_, nodup_ndinsert a s.2⟩⟩
 
@@ -150,6 +157,18 @@ theorem subset_insert [h : decidable_eq α] (a : α) (s : finset α) : s ⊆ ins
 
 theorem insert_subset_insert (a : α) {s t : finset α} (h : s ⊆ t) : insert a s ⊆ insert a t :=
 insert_subset.2 ⟨subset.trans h (subset_insert _ _), mem_insert_self _ _⟩
+
+lemma ssubset_iff {s t : finset α} : s ⊂ t ↔ (∃a, a ∉ s ∧ insert a s ⊆ t) :=
+iff.intro
+  (assume ⟨h₁, h₂⟩,
+    have ∃a, a ∈ t ∧ a ∉ s, by simpa [finset.subset_iff, classical.not_forall] using h₂,
+    let ⟨a, hat, has⟩ := this in ⟨a, has, insert_subset.mpr ⟨h₁, hat⟩⟩)
+  (assume ⟨a, hat, has⟩,
+    let ⟨h₁, h₂⟩ := insert_subset.mp has in
+    ⟨h₁, assume h, hat $ h h₂⟩)
+
+lemma ssubset_insert {s : finset α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
+ssubset_iff.mpr ⟨a, h, subset.refl _⟩
 
 @[recursor 6] protected theorem induction {p : finset α → Prop}
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s
@@ -357,6 +376,10 @@ val_le_iff.1 $ erase_le_erase _ $ val_le_iff.2 h
 
 theorem erase_subset (a : α) (s : finset α) : erase s a ⊆ s := erase_subset _ _
 
+lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
+calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
+  ... = _ : insert_erase h
+
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
@@ -526,7 +549,7 @@ end list
 namespace finset
 
 section image
-variables [decidable_eq β] 
+variables [decidable_eq β]
 
 def image (f : α → β) (s : finset α) : finset β := (s.1.map f).to_finset
 
@@ -578,9 +601,14 @@ by simp [insert_eq, image_union]
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_image_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
 
+lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
+eq_of_veq $ by simp [multiset.attach_map_val]
+
 end image
 
 /- card -/
+section card
+
 def card (s : finset α) : nat := s.1.card
 
 theorem card_def (s : finset α) : s.card = s.1.card := rfl
@@ -602,6 +630,46 @@ by by_cases a ∈ s; simp [h, nat.le_add_right]
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
 theorem card_range (n : ℕ) : card (range n) = n := card_range n
+
+lemma card_eq_succ [decidable_eq α] {s : finset α} {a : α} {n : ℕ} :
+  s.card = n + 1 ↔ (∃a t, a ∉ t ∧ insert a t = s ∧ card t = n) :=
+iff.intro
+  (assume eq,
+    have card s > 0, from eq.symm ▸ nat.zero_lt_succ _,
+    let ⟨a, has⟩ := finset.exists_mem_of_ne_empty $ card_pos.mp this in
+    ⟨a, s.erase a, s.not_mem_erase a, insert_erase has, by simp [eq, card_erase_of_mem has]⟩)
+  (assume ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat)
+
+theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
+multiset.card_le_of_le ∘ val_le_iff.mpr
+
+theorem eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : card t ≤ card s) : s = t :=
+eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
+
+lemma card_lt_card [decidable_eq α] {s t : finset α} (h : s ⊂ t) : s.card < t.card :=
+let ⟨a, ha, ht⟩ := ssubset_iff.mp h in
+calc card s < card (insert a s) : by simp [card_insert_of_not_mem, ha, zero_lt_one]
+  ... ≤ card t : card_le_of_subset ht
+
+lemma strong_induction_on [decidable_eq α] {p : finset α → Prop} (s : finset α)
+  (ih : ∀s:finset α, (∀t⊂s, p t) → p s) : p s :=
+have ∀(n:ℕ) (s : finset α), s.card = n → p s,
+  from assume n, n.strong_induction_on $ assume n ih' s n_eq,
+    ih s $ assume t hts, ih' (card t) (n_eq ▸ card_lt_card hts) _ rfl,
+this _ _ rfl
+
+lemma case_strong_induction_on [decidable_eq α] {p : finset α → Prop} (s : finset α)
+  (h₀ : p ∅) (h₁ : ∀(a : α) (s:finset α), a ∉ s → (∀t⊆s, p t) → p (insert a s)) : p s :=
+s.strong_induction_on $ assume s ih, decidable.by_cases
+  (assume : s = ∅, this.symm ▸ h₀)
+  (assume : s ≠ ∅,
+    let ⟨a, has⟩ := exists_mem_of_ne_empty this in
+    have p (insert a (s.erase a)),
+      from h₁ a (s.erase a) (not_mem_erase _ _) $ assume t ht,
+        ih t $ show t < s, from lt_of_le_of_lt ht $ erase_ssubset has,
+    by rwa [insert_erase has] at this)
+
+end card
 
 section bind
 variables [decidable_eq β] {s : finset α} {t : α → finset β}
@@ -632,6 +700,14 @@ finset.induction_on s (by simp) (by simp [image_union] {contextual := tt})
 theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :
   (s.bind t).to_finset = s.to_finset.bind (λa, (t a).to_finset) :=
 ext.2 $ by simp
+
+lemma bind_mono  {t₁ t₂ : α → finset β} (h : ∀a∈s, t₁ a ⊆ t₂ a) : s.bind t₁ ⊆ s.bind t₂ :=
+have ∀b a, a ∈ s → b ∈ t₁ a → (∃ (a : α), a ∈ s ∧ b ∈ t₂ a),
+  from assume b a ha hb, ⟨a, ha, finset.mem_of_subset (h a ha) hb⟩,
+by simpa [finset.subset_iff]
+
+lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
+finset.ext.mpr $ by simp [eq_comm]
 
 end bind
 
@@ -673,7 +749,7 @@ variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associati
 local notation a * b := op a b
 include hc ha
 
-def fold (b : β) (f : α → β) (s : finset α) : β := (s.1.map f).fold op b 
+def fold (b : β) (f : α → β) (s : finset α) : β := (s.1.map f).fold op b
 
 variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 
@@ -716,7 +792,7 @@ end fold
 
 section sort
 variables (r : α → α → Prop) [decidable_rel r]
-  [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r] 
+  [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r]
 include tr an to
 
 def sort (s : finset α) : list α := sort r s.1

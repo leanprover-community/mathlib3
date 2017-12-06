@@ -46,7 +46,7 @@ begin
         (h₁ _ (by simp [m])),
     rw [(@eq_repeat _ a (length u₂ + 1) (a::u₂)).2,
         (@eq_repeat _ a (length u₂ + 1) (u₂++[a])).2];
-    split; simp [iff_true_intro this] }
+    split; simp [iff_true_intro this, or_comm] }
 end
 
 end sorted
@@ -223,7 +223,7 @@ theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
   { suffices : ∀ (b' : α) (_ : b' ∈ merge r l (b :: l')), r a b',
     { simpa [merge, h, sorted_merge (sorted_of_sorted_cons h₁) h₂] },
     intros b' bm,
-    rcases (show b' = b ∨ b' ∈ l ∨ b' ∈ l', by simpa using
+    rcases (show b' = b ∨ b' ∈ l ∨ b' ∈ l', by simpa [or.left_comm] using
       perm_subset (perm_merge _ _ _) bm) with be | bl | bl',
     { subst b', assumption },
     { exact rel_of_sorted_cons h₁ _ bl },

@@ -427,30 +427,30 @@ namespace Set
     have : x = x',
     { have xx'y' := (ae (@insert Set.{u} _ _ x ∅)).1 (by simp),
       cases xx'y' with h h,
-      exact singleton_inj h,
       { have m : x' ∈ insert x (∅:Set.{u}),
         { rw h, simp },
-        simp at m, simp [*] } },
+        simp at m, simp [*] },
+      exact singleton_inj h },
     refine ⟨this, _⟩,
     cases this,
     have he : y = x → y = y',
     { intro yx,
       cases yx,
       have xy'x := (ae (@insert Set.{u} _ _ y' {x})).2 (by simp),
-      cases xy'x with xy'x xy'xx,
-      { have y'x : y' ∈ @insert Set.{u} Set.{u} _ x ∅ := by rw ←xy'x; simp,
-        simp at y'x, simp [*] },
+      cases xy'x with xy'xx xy'x,
       { have yxx := (ext_iff.2 xy'xx y').1 (by simp),
-        simp at yxx, cases yxx; simp } },
+        simp at yxx, cases yxx; simp },
+      { have y'x : y' ∈ @insert Set.{u} Set.{u} _ x ∅ := by rw ←xy'x; simp,
+        simp at y'x, simp [*] } },
     have xyxy' := (ae (@insert Set.{u} _ _ y {x})).1 (by simp),
-    cases xyxy' with xyx xyy',
-    { have yx := (ext_iff.2 xyx y).1 (by simp),
-      simp at yx, exact he yx },
+    cases xyxy' with xyy' xyx,
     { have yxy' := (ext_iff.2 xyy' y).1 (by simp),
       simp at yxy',
-      cases yxy' with yx yy',
-      exact he yx,
-      assumption }
+      cases yxy' with yy' yx,
+      assumption,
+      exact he yx },
+    { have yx := (ext_iff.2 xyx y).1 (by simp),
+      simp at yx, exact he yx }
   end
 
   def prod : Set.{u} → Set.{u} → Set.{u} := pair_sep (λa b, true)
@@ -470,7 +470,7 @@ namespace Set
   {f ∈ powerset (prod x y) | is_func x y f}
 
   @[simp] def mem_funs {x y f : Set.{u}} : f ∈ funs x y ↔ is_func x y f :=
-  by simp[funs]; exact ⟨and.left, λh, ⟨h, h.left⟩⟩
+  by simp [funs]; exact and_iff_right_of_imp and.left
 
   -- TODO(Mario): Prove this computably
   noncomputable instance map_definable_aux (f : Set → Set) [H : definable 1 f] : definable 1 (λy, pair y (f y)) :=
@@ -522,7 +522,7 @@ namespace Class
   def Class_to_Cong (x : Class.{u}) : set Class.{u} := {y | y ∈ x}
 
   def powerset (x : Class) : Class := Cong_to_Class (set.powerset x)
-  notation `𝒫` := powerset
+  notation `��` := powerset
 
   def Union (x : Class) : Class := set.sUnion (Class_to_Cong x)
   notation `⋃` := Union

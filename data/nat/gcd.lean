@@ -121,7 +121,7 @@ theorem xgcd_aux_val (x y) : xgcd_aux x 1 0 y 0 1 = (gcd x y, xgcd x y) :=
 by rw [xgcd, ← xgcd_aux_fst x y 1 0 0 1]; cases xgcd_aux x 1 0 y 0 1; refl
 
 theorem xgcd_val (x y) : xgcd x y = (gcd_a x y, gcd_b x y) :=
-by unfold gcd_a gcd_b; cases xgcd x y; refl 
+by unfold gcd_a gcd_b; cases xgcd x y; refl
 
 section
 parameters (a b : ℕ)
@@ -132,7 +132,7 @@ theorem xgcd_aux_P {r r'} : ∀ {s t s' t'}, P (r, s, t) → P (r', s', t') → 
 gcd.induction r r' (by simp) $ λ x y h IH s t s' t' p p', begin
   rw [xgcd_aux_rec h], refine IH _ p, dsimp [P] at *,
   rw [int.mod_def], generalize : (y / x : ℤ) = k,
-  rw [p, p'], simp [mul_add]
+  rw [p, p'], simp [mul_add, mul_comm, mul_left_comm]
 end
 
 theorem gcd_eq_gcd_ab : (gcd a b : ℤ) = a * gcd_a a b + b * gcd_b a b :=

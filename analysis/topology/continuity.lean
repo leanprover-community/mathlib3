@@ -15,6 +15,7 @@ noncomputable theory
 
 open set filter lattice
 local attribute [instance] classical.prop_decidable
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Sort x}

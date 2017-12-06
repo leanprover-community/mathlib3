@@ -11,6 +11,9 @@ import
   algebra.ordered_ring algebra.field
   pending
 
+local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
+
 /- rational numbers -/
 
 structure rat := mk' ::
@@ -137,9 +140,9 @@ begin
       a / nat.gcd a b = c / nat.gcd c d ∧ b / nat.gcd a b = d / nat.gcd c d,
     { intros a c h,
       have bd : b / nat.gcd a b = d / nat.gcd c d,
-      { have : ∀ {a c} (b>0) (d>0),
+      { suffices : ∀ {a c} (b>0) (d>0),
           a * d = c * b → b / nat.gcd a b ≤ d / nat.gcd c d,
-        tactic.swap, { exact le_antisymm (this _ hb _ hd h) (this _ hd _ hb h.symm) },
+        { exact le_antisymm (this _ hb _ hd h) (this _ hd _ hb h.symm) },
         intros a c b hb d hd h,
         have gb0 := nat.gcd_pos_of_pos_right a hb,
         have gd0 := nat.gcd_pos_of_pos_right c hd,
@@ -159,10 +162,8 @@ begin
           nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), bd,
           ← nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), h, mul_comm,
           nat.mul_div_assoc _ (nat.gcd_dvd_left _ _)] },
-    have ha := this a.nat_abs c.nat_abs begin
-      have := congr_arg int.nat_abs h,
-      simp [int.nat_abs_mul] at this, exact this
-    end,
+    have ha := this a.nat_abs c.nat_abs
+      (by simpa [int.nat_abs_mul] using congr_arg int.nat_abs h),
     tactic.congr_core,
     { have hs := congr_arg int.sign h,
       simp [int.sign_eq_one_of_pos (int.coe_nat_lt.2 hb),
@@ -484,7 +485,9 @@ by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
    rwa neg_neg at this
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
-by simpa using rat.nonneg_add hab hbc
+have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
+have rat.nonneg (c - a + (b - b)), by simpa [-add_right_neg],
+by simpa
 
 instance : decidable_linear_order ℚ :=
 { le              := rat.le,

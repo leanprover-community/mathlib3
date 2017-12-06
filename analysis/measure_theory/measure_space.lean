@@ -247,7 +247,7 @@ calc μ.measure (⋃b∈i, s b) = μ.measure (⋃i, g i) : by rw [eq₁]
       have g n ≠ ∅, from assume h, by simp [h] at hn; assumption,
       have ∃b∈i, f b = n,
         from let ⟨x, hx⟩ := set.exists_mem_of_ne_empty this in
-        by simp at hx; exact let ⟨b, h_eq, hb, _⟩ := hx in ⟨b, hb, h_eq⟩,
+        by simp at hx; exact let ⟨b, hb, h_eq, _⟩ := hx in ⟨b, hb, h_eq⟩,
       let ⟨b, hb, h_eq⟩ := this in
       have g n = s b,
         from h_eq ▸ h_gf b hb,
@@ -356,7 +356,7 @@ def count : measure_space α :=
   measure_of_Union := assume f _ hd,
     begin
       rw [ennreal.tsum_comm],
-      congr, apply funext, intro,
+      congr, funext,
       by_cases ∃i, x ∈ f i,
       { have h' : (∑(i : ℕ), ite (x ∈ f i) 1 0 : ennreal) = 1,
           from let ⟨i, hi⟩ := h in

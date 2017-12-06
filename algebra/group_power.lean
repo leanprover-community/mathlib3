@@ -13,6 +13,8 @@ Note: power adopts the convention that 0^0=1.
 -/
 import data.nat.basic data.int.basic algebra.group
 
+local attribute [simp] mul_comm mul_assoc mul_left_comm
+
 universe u
 variable {α : Type u}
 

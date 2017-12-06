@@ -9,6 +9,8 @@ returns s s.t.
 -/
 import data.nat.basic algebra.ordered_group algebra.ring tactic
 
+local attribute [simp] add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
+
 namespace nat
 
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=
@@ -43,7 +45,7 @@ theorem sqrt_aux_1 {r n b} (h : b ≠ 0) {n'} (h₂ : r + b + n' = n) :
   sqrt_aux b r n = sqrt_aux (shiftr b 2) (div2 r + b) n' :=
 by rw sqrt_aux; simp only [h, h₂.symm, int.coe_nat_add, if_false];
    rw [add_comm _ (n':ℤ), add_sub_cancel, sqrt_aux._match_1]
-  
+
 theorem sqrt_aux_2 {r n b} (h : b ≠ 0) (h₂ : n < r + b) :
   sqrt_aux b r n = sqrt_aux (shiftr b 2) (div2 r) n :=
 begin
@@ -70,7 +72,7 @@ begin
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
             n < (r+2^m)*(r+2^m), {
     rw [nat.sub_lt_right_iff_lt_add h₁],
-    simp [left_distrib, right_distrib, two_mul] },
+    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc] },
   have re : div2 (2 * r * 2^m) = r * 2^m, {
     rw [div2_val, mul_assoc,
         nat.mul_div_cancel_left _ (dec_trivial:2>0)] },
@@ -83,7 +85,7 @@ begin
     apply eq.symm, apply nat.sub_eq_of_eq_add,
     rw [← add_assoc, (_ : r*r + _ = _)],
     exact (nat.add_sub_cancel' hl).symm,
-    simp [left_distrib, right_distrib, two_mul] },
+    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc] },
 end
 
 private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
@@ -94,15 +96,15 @@ private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
 | (m+1) r h₁ h₂ := begin
     apply sqrt_aux_is_sqrt_lemma
       (m+1) r n h₁ (2^m * 2^m)
-      (by simp [shiftr, pow_succ, div2_val];
+      (by simp [shiftr, pow_succ, div2_val, mul_comm, mul_left_comm];
           repeat {rw @nat.mul_div_cancel_left _ 2 dec_trivial});
       intros,
     { have := sqrt_aux_is_sqrt m r h₁ a,
-      simpa [pow_succ] },
+      simpa [pow_succ, mul_comm, mul_left_comm] },
     { rw [pow_succ, mul_two, ← add_assoc] at h₂,
       have := sqrt_aux_is_sqrt m (r + 2^(m+1)) a h₂,
       rwa show (r + 2^(m + 1)) * 2^(m+1) = 2 * (r + 2^(m + 1)) * 2^m,
-          by simp [pow_succ] }
+          by simp [pow_succ, mul_comm, mul_left_comm] }
   end
 
 private lemma sqrt_is_sqrt (n : ℕ) : is_sqrt n (sqrt n) :=

@@ -9,6 +9,7 @@ Classical versions are in the namespace "classical".
 Note: in the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
+import data.prod
 
 /-
     miscellany
@@ -22,18 +23,6 @@ variables {α : Type*} {β : Type*}
 
 theorem eq_iff_le_and_le [partial_order α] {a b : α} : a = b ↔ (a ≤ b ∧ b ≤ a) :=
 ⟨assume eq, eq ▸ ⟨le_refl a, le_refl a⟩, assume ⟨ab, ba⟩, le_antisymm ab ba⟩
-
-@[simp] theorem prod.mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} :
-  (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
-⟨prod.mk.inj, by cc⟩
-
-@[simp] theorem prod.forall {p : α × β → Prop} :
-  (∀ x, p x) ↔ (∀ a b, p (a, b)) :=
-⟨assume h a b, h (a, b), assume h ⟨a, b⟩, h a b⟩
-
-@[simp] theorem prod.exists {p : α × β → Prop} :
-  (∃ x, p x) ↔ (∃ a b, p (a, b)) :=
-⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} = (∀a, p a → q a) := rfl
 
@@ -383,7 +372,7 @@ theorem exists_or_distrib : (∃ x, p x ∨ q x) ↔ (∃ x, p x) ∨ (∃ x, q 
 
 @[simp] theorem exists_and_distrib_right {q : Prop} {p : α → Prop} :
   (∃x, p x ∧ q) ↔ (∃x, p x) ∧ q :=
-by simp
+by simp [and_comm]
 
 @[simp] theorem forall_eq {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
 ⟨λ h, h a' rfl, λ h a e, e.symm ▸ h⟩

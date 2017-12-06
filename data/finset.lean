@@ -604,6 +604,8 @@ by simp [insert_eq, image_union]
 end image
 
 /- card -/
+section card
+
 def card (s : finset α) : nat := s.1.card
 
 theorem card_def (s : finset α) : s.card = s.1.card := rfl
@@ -625,6 +627,46 @@ by by_cases a ∈ s; simp [h, nat.le_add_right]
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
 theorem card_range (n : ℕ) : card (range n) = n := card_range n
+
+lemma card_eq_succ [decidable_eq α] {s : finset α} {a : α} {n : ℕ} :
+  s.card = n + 1 ↔ (∃a t, a ∉ t ∧ insert a t = s ∧ card t = n) :=
+iff.intro
+  (assume eq,
+    have card s > 0, from eq.symm ▸ nat.zero_lt_succ _,
+    let ⟨a, has⟩ := finset.exists_mem_of_ne_empty $ card_pos.mp this in
+    ⟨a, s.erase a, s.not_mem_erase a, insert_erase has, by simp [eq, card_erase_of_mem has]⟩)
+  (assume ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat)
+
+theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
+multiset.card_le_of_le ∘ val_le_iff.mpr
+
+theorem eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : card t ≤ card s) : s = t :=
+eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
+
+lemma card_lt_card [decidable_eq α] {s t : finset α} (h : s ⊂ t) : s.card < t.card :=
+let ⟨a, ha, ht⟩ := ssubset_iff.mp h in
+calc card s < card (insert a s) : by simp [card_insert_of_not_mem, ha, zero_lt_one]
+  ... ≤ card t : card_le_of_subset ht
+
+lemma strong_induction_on [decidable_eq α] {p : finset α → Prop} (s : finset α)
+  (ih : ∀s:finset α, (∀t⊂s, p t) → p s) : p s :=
+have ∀(n:ℕ) (s : finset α), s.card = n → p s,
+  from assume n, n.strong_induction_on $ assume n ih' s n_eq,
+    ih s $ assume t hts, ih' (card t) (n_eq ▸ card_lt_card hts) _ rfl,
+this _ _ rfl
+
+lemma case_strong_induction_on [decidable_eq α] {p : finset α → Prop} (s : finset α)
+  (h₀ : p ∅) (h₁ : ∀(a : α) (s:finset α), a ∉ s → (∀t⊆s, p t) → p (insert a s)) : p s :=
+s.strong_induction_on $ assume s ih, decidable.by_cases
+  (assume : s = ∅, this.symm ▸ h₀)
+  (assume : s ≠ ∅,
+    let ⟨a, has⟩ := exists_mem_of_ne_empty this in
+    have p (insert a (s.erase a)),
+      from h₁ a (s.erase a) (not_mem_erase _ _) $ assume t ht,
+        ih t $ show t < s, from lt_of_le_of_lt ht $ erase_ssubset has,
+    by rwa [insert_erase has] at this)
+
+end card
 
 section bind
 variables [decidable_eq β] {s : finset α} {t : α → finset β}

@@ -69,6 +69,10 @@ theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ (∀x, x ∈ s₁
 
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
 
+/- struct subset -- follows the definition of lt -/
+
+instance : has_ssubset (finset α) := ⟨λa b, a ⊆ b ∧ ¬ b ⊆ a⟩
+
 /- empty -/
 protected def empty : finset α := ⟨0, nodup_zero⟩
 
@@ -153,6 +157,18 @@ theorem subset_insert [h : decidable_eq α] (a : α) (s : finset α) : s ⊆ ins
 
 theorem insert_subset_insert (a : α) {s t : finset α} (h : s ⊆ t) : insert a s ⊆ insert a t :=
 insert_subset.2 ⟨subset.trans h (subset_insert _ _), mem_insert_self _ _⟩
+
+lemma ssubset_iff {s t : finset α} : s ⊂ t ↔ (∃a, a ∉ s ∧ insert a s ⊆ t) :=
+iff.intro
+  (assume ⟨h₁, h₂⟩,
+    have ∃a, a ∈ t ∧ a ∉ s, by simpa [finset.subset_iff, classical.not_forall] using h₂,
+    let ⟨a, hat, has⟩ := this in ⟨a, has, insert_subset.mpr ⟨h₁, hat⟩⟩)
+  (assume ⟨a, hat, has⟩,
+    let ⟨h₁, h₂⟩ := insert_subset.mp has in
+    ⟨h₁, assume h, hat $ h h₂⟩)
+
+lemma ssubset_insert {s : finset α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
+ssubset_iff.mpr ⟨a, h, subset.refl _⟩
 
 @[recursor 6] protected theorem induction {p : finset α → Prop}
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s
@@ -359,6 +375,10 @@ theorem erase_subset_erase (a : α) {s t : finset α} (h : s ⊆ t) : erase s a 
 val_le_iff.1 $ erase_le_erase _ $ val_le_iff.2 h
 
 theorem erase_subset (a : α) (s : finset α) : erase s a ⊆ s := erase_subset _ _
+
+lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
+calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
+  ... = _ : insert_erase h
 
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h

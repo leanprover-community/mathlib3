@@ -452,9 +452,12 @@ theorem cons_sublist_cons_iff {l₁ l₂ : list α} {a : α} : a::l₁ <+ a::l�
 | (a::l) := cons_sublist_cons_iff.trans (append_sublist_append_left l)
 
 theorem append_sublist_append_of_sublist_right {l₁ l₂ : list α} (h : l₁ <+ l₂) (l) : l₁++l <+ l₂++l :=
-by induction h; [refl,
-  apply sublist_cons_of_sublist _ ih_1,
-  apply cons_sublist_cons _ ih_1]
+begin
+  induction h with _ _ a _ ih _ _ a _ ih,
+  { refl },
+  { apply sublist_cons_of_sublist a ih },
+  { apply cons_sublist_cons a ih }
+end
 
 theorem sublist_or_mem_of_sublist {l l₁ l₂ : list α} {a : α} (h : l <+ l₁ ++ a::l₂) : l <+ l₁ ++ l₂ ∨ a ∈ l :=
 begin
@@ -466,9 +469,11 @@ begin
 end
 
 theorem reverse_sublist {l₁ l₂ : list α} (h : l₁ <+ l₂) : l₁.reverse <+ l₂.reverse :=
-by induction h; simp; [
-  exact sublist_app_of_sublist_left ih_1,
-  exact append_sublist_append_of_sublist_right ih_1 _]
+begin
+  induction h with _ _ _ _ ih _ _ a _ ih; simp,
+  { exact sublist_app_of_sublist_left ih },
+  { exact append_sublist_append_of_sublist_right ih [a] }
+end
 
 @[simp] theorem reverse_sublist_iff {l₁ l₂ : list α} : l₁.reverse <+ l₂.reverse ↔ l₁ <+ l₂ :=
 ⟨λ h, by have := reverse_sublist h; simp at this; assumption, reverse_sublist⟩
@@ -1023,7 +1028,7 @@ by induction l; simp *
 theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
   (l : list α) {H₁ H₂} (h : ∀ a h₁ h₂, f a h₁ = g a h₂) :
   pmap f l H₁ = pmap g l H₂ :=
-by induction l; simp *; apply ih_1
+by induction l with _ _ ih; simp *; apply ih
 
 theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
   (l H) : map g (pmap f l H) = pmap (λ a h, g (f a h)) l H :=
@@ -1470,7 +1475,7 @@ theorem sublists_aux_eq_foldl : ∀ (l : list α) {β : Type u} (f : list α →
 | (a::l) β f := suffices ∀ t, foldr (λ ys r, f ys (f (a :: ys) r)) [] t =
                          foldr f [] (t.foldr (λ ys r, ys :: (a :: ys) :: r) nil),
 by simp [sublists_aux]; rw [sublists_aux_eq_foldl l, sublists_aux_eq_foldl l (λ ys r, ys :: (a :: ys) :: r), this],
-λt, by induction t; simp; simp [ih_1]
+λt, by induction t with _ _ ih; simp; simp [ih]
 
 theorem sublists_aux_cons_cons (l : list α) (a : α) :
   sublists_aux (a::l) cons = [a] :: foldr (λys r, ys :: (a :: ys) :: r) [] (sublists_aux l cons) :=
@@ -1658,16 +1663,16 @@ by simp [erase_cons]
 by simp [erase_cons, h]
 
 @[simp] theorem erase_of_not_mem {a : α} {l : list α} (h : a ∉ l) : l.erase a = l :=
-by induction l with b l; [refl,
-  simp [(ne_of_not_mem_cons h).symm, ih_1 (not_mem_of_not_mem_cons h)]]
+by induction l with _ _ ih; [refl,
+  simp [(ne_of_not_mem_cons h).symm, ih (not_mem_of_not_mem_cons h)]]
 
 theorem exists_erase_eq {a : α} {l : list α} (h : a ∈ l) :
   ∃ l₁ l₂, a ∉ l₁ ∧ l = l₁ ++ a :: l₂ ∧ l.erase a = l₁ ++ l₂ :=
-by induction l with b l; [cases h, {
+by induction l with b l ih; [cases h, {
   simp at h,
   by_cases b = a with e,
   { subst b, exact ⟨[], l, not_mem_nil _, rfl, by simp⟩ },
-  { exact let ⟨l₁, l₂, h₁, h₂, h₃⟩ := ih_1 (h.resolve_left (ne.symm e)) in
+  { exact let ⟨l₁, l₂, h₁, h₂, h₃⟩ := ih (h.resolve_left (ne.symm e)) in
     ⟨b::l₁, l₂, not_mem_cons_of_ne_of_not_mem (ne.symm e) h₁,
       by rw h₂; refl,
       by simp [e, h₃]⟩ } }]

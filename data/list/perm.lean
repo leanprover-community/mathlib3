@@ -369,7 +369,7 @@ theorem subperm.exists_of_length_lt {l₁ l₂ : list α} :
     this $ perm_length p.symm ▸ h,
   begin
     clear subperm.exists_of_length_lt p h l₁, rename l₂ u,
-    induction s with _ _ _ s IH _ _ b s IH; intro h,
+    induction s with l₁ l₂ a s IH _ _ b s IH; intro h,
     { cases h },
     { cases lt_or_eq_of_le (nat.le_of_lt_succ h : length l₁ ≤ length l₂) with h h,
       { refine exists_imp_exists _ (IH h),
@@ -429,7 +429,7 @@ by induction h generalizing l; simp [*, erase_perm_erase, erase_comm]
 
 theorem perm_bag_inter_left {l₁ l₂ : list α} (t : list α) (h : l₁ ~ l₂) : l₁.bag_inter t ~ l₂.bag_inter t :=
 begin
-  induction h generalizing t, {simp},
+  induction h with x _ _ _ _ x y _ _ _ _ _ _ ih_1 ih_2 generalizing t, {simp},
   { by_cases x ∈ t; simp [*, skip] },
   { by_cases x = y, {simp [h]},
     by_cases x ∈ t with xt; by_cases y ∈ t with yt,
@@ -498,10 +498,10 @@ end
 
 theorem perm_union_left {l₁ l₂ : list α} (t₁ : list α) (h : l₁ ~ l₂) : l₁ ∪ t₁ ~ l₂ ∪ t₁ :=
 begin
-  induction h with a l₁ l₂; try {simp},
-  exact perm_insert _ ih_1,
-  apply perm_insert_swap,
-  exact ih_1.trans ih_2
+  induction h with a _ _ _ ih _ _ _ _ _ _ _ _ ih_1 ih_2; try {simp},
+  { exact perm_insert a ih },
+  { apply perm_insert_swap },
+  { exact ih_1.trans ih_2 }
 end
 
 theorem perm_union_right (l : list α) {t₁ t₂ : list α} (h : t₁ ~ t₂) : l ∪ t₁ ~ l ∪ t₂ :=
@@ -592,11 +592,11 @@ theorem mem_permutations_aux2 {t : α} {ts : list α} {ys : list α} {l l' : lis
     l' ∈ (permutations_aux2 t ts [] ys (append l)).2 ↔
     ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l' = l ++ l₁ ++ t :: l₂ ++ ts :=
 begin
-  induction ys with y ys generalizing l,
+  induction ys with y ys ih generalizing l,
   { simpa using λ (l₁ l₂ : list α) (n : ¬ l₂ = []) (e : [] = l₁ ++ l₂),
      n.elim (eq_nil_of_sublist_nil $ e.symm ▸ sublist_append_right l₁ l₂) },
   { rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
-        by funext; simp, mem_cons_iff, ih_1], split; intro h,
+        by funext; simp, mem_cons_iff, ih], split; intro h,
     { rcases h with e | ⟨l₁, l₂, l0, ye, _⟩,
       { subst l', exact ⟨[], y::ys, by simp⟩ },
       { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
@@ -617,7 +617,7 @@ by induction ys generalizing f; simp *
 
 theorem foldr_permutations_aux2 (t : α) (ts : list α) (r L : list (list α)) :
   foldr (λy r, (permutations_aux2 t ts r y id).2) r L = L.bind (λ y, (permutations_aux2 t ts [] y id).2) ++ r :=
-by induction L with l L; [refl, {simp [ih_1], rw ← permutations_aux2_append}]
+by induction L with l L ih; [refl, {simp [ih], rw ← permutations_aux2_append}]
 
 theorem mem_foldr_permutations_aux2 {t : α} {ts : list α} {r L : list (list α)} {l' : list α} :
   l' ∈ foldr (λy r, (permutations_aux2 t ts r y id).2) r L ↔ l' ∈ r ∨
@@ -639,8 +639,8 @@ theorem length_foldr_permutations_aux2' (t : α) (ts : list α) (r L : list (lis
   length (foldr (λy r, (permutations_aux2 t ts r y id).2) r L) = n * length L + length r :=
 begin
   rw [length_foldr_permutations_aux2, (_ : sum (map length L) = n * length L)],
-  induction L with l L, {simp},
-  simp [ih_1 (λ l m, H l (mem_cons_of_mem _ m)), H l (mem_cons_self _ _), mul_add]
+  induction L with l L ih, {simp},
+  simp [ih (λ l m, H l (mem_cons_of_mem _ m)), H l (mem_cons_self _ _), mul_add]
 end
 
 private def meas : (Σ'_:list α, list α) → ℕ × ℕ | ⟨l, i⟩ := (length l + length i, length l)

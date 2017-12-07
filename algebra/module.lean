@@ -127,7 +127,7 @@ lemma map_smul_right {α : Type u} {β : Type v} {γ : Type w} [comm_ring α] [m
   is_linear_map (λb, r • f b) :=
 by refine {..}; simp [hf.add, hf.smul, smul_add, smul_smul, mul_comm]
 
-lemma map_smul_left {f : β → α} (hf : is_linear_map f) : is_linear_map (λb, f b • x) :=
+lemma map_smul_left {f : γ → α} (hf : is_linear_map f) : is_linear_map (λb, f b • x) :=
 by refine {..}; simp [hf.add, hf.smul, add_smul, smul_smul]
 
 end is_linear_map
@@ -170,6 +170,9 @@ instance image {f : β → γ} (hf : is_linear_map f) : is_submodule (f '' p) :=
   add_  := assume c₁ c₂ ⟨b₁, hb₁, eq₁⟩ ⟨b₂, hb₂, eq₂⟩,
     ⟨b₁ + b₂, add hb₁ hb₂, by simp [eq₁, eq₂, hf.add]⟩,
   smul  := assume a c ⟨b, hb, eq⟩, ⟨a • b, smul a hb, by simp [hf.smul, eq]⟩ }
+
+instance range {f : β → γ} (hf : is_linear_map f) : is_submodule (set.range f) :=
+by rw [set.range_eq_image]; exact is_submodule.image hf
 
 instance preimage {f : γ → β} (hf : is_linear_map f) : is_submodule (f ⁻¹' p) :=
 by refine {..}; simp [hf.zero, hf.add, hf.smul, zero, add, smul] {contextual:=tt}

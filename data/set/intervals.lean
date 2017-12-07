@@ -43,37 +43,31 @@ set.ext $ assume x,
   by simp [Ioo]; exact this
 
 lemma Ico_eq_empty_iff : Ico a b = ∅ ↔ (b ≤ a) :=
-by rw [←not_lt_iff];
-from iff.intro
-  (assume eq h, have a ∈ Ico a b, from ⟨le_refl a, h⟩, by rwa [eq] at this)
-  (assume h, eq_empty_of_forall_not_mem $ assume x ⟨h₁, h₂⟩, h $ lt_of_le_of_lt h₁ h₂)
+by rw ← not_lt; exact
+⟨assume eq h, have a ∈ Ico a b, from ⟨le_refl a, h⟩, by rwa [eq] at this,
+ assume h, eq_empty_of_forall_not_mem $ assume x ⟨h₁, h₂⟩, h $ lt_of_le_of_lt h₁ h₂⟩
 
 @[simp] lemma Ico_eq_empty : b ≤ a → Ico a b = ∅ := Ico_eq_empty_iff.mpr
 
 lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) : Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ (a₂ ≤ a₁ ∧ b₁ ≤ b₂) :=
-iff.intro
-  (assume h,
-    have h' : a₁ ∈ Ico a₂ b₂, from h ⟨le_refl _, h₁⟩,
-    have ¬ b₂ < b₁, from assume : b₂ < b₁,
-      have b₂ ∈ Ico a₂ b₂, from h ⟨le_of_lt h'.right, this⟩,
-      lt_irrefl b₂ this.right,
-    ⟨h'.left, not_lt_iff.mp $ this⟩)
-  (assume ⟨h₁, h₂⟩ x ⟨hx₁, hx₂⟩, ⟨le_trans h₁ hx₁, lt_of_lt_of_le hx₂ h₂⟩)
+⟨assume h,
+  have h' : a₁ ∈ Ico a₂ b₂, from h ⟨le_refl _, h₁⟩,
+  have ¬ b₂ < b₁, from assume : b₂ < b₁,
+    have b₂ ∈ Ico a₂ b₂, from h ⟨le_of_lt h'.right, this⟩,
+    lt_irrefl b₂ this.right,
+  ⟨h'.left, not_lt.1 $ this⟩,
+assume ⟨h₁, h₂⟩ x ⟨hx₁, hx₂⟩, ⟨le_trans h₁ hx₁, lt_of_lt_of_le hx₂ h₂⟩⟩
 
 lemma Ico_eq_Ico_iff : Ico a₁ b₁ = Ico a₂ b₂ ↔ ((b₁ ≤ a₁ ∧ b₂ ≤ a₂) ∨ (a₁ = a₂ ∧ b₁ = b₂)) :=
 begin
-  by_cases a₁ < b₁ with h₁; by_cases a₂ < b₂ with h₂,
+  cases lt_or_le a₁ b₁ with h₁ h₁; cases lt_or_le a₂ b₂ with h₂ h₂,
   { rw [subset.antisymm_iff, Ico_subset_Ico_iff h₁, Ico_subset_Ico_iff h₂],
     simp [iff_def, le_antisymm_iff, or_imp_distrib, not_le_of_gt h₁] {contextual := tt} },
-  { have h₂ : b₂ ≤ a₂, from not_lt_iff.mp h₂,
-    rw [Ico_eq_empty_iff.mpr h₂, Ico_eq_empty_iff],
+  { rw [Ico_eq_empty_iff.mpr h₂, Ico_eq_empty_iff],
     simp [iff_def, h₂, or_imp_distrib] {contextual := tt} },
-  { have h₁ : b₁ ≤ a₁, from not_lt_iff.mp h₁,
-    rw [Ico_eq_empty_iff.mpr h₁, eq_comm, Ico_eq_empty_iff],
+  { rw [Ico_eq_empty_iff.mpr h₁, eq_comm, Ico_eq_empty_iff],
     simp [iff_def, h₁, or_imp_distrib] {contextual := tt}, cc },
-  { have h₁ : b₁ ≤ a₁, from not_lt_iff.mp h₁,
-    have h₂ : b₂ ≤ a₂, from not_lt_iff.mp h₂,
-    rw [Ico_eq_empty_iff.mpr h₁, Ico_eq_empty_iff.mpr h₂],
+  { rw [Ico_eq_empty_iff.mpr h₁, Ico_eq_empty_iff.mpr h₂],
     simp [iff_def, h₁, h₂] {contextual := tt} }
 end
 
@@ -84,7 +78,7 @@ set.ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
 
 lemma Ioo_inter_Ioo {a b c d : α} : Ioo a b ∩ Ioo c d = Ioo (max a c) (min b d) :=
-set.ext $ assume x, by simp [iff_def, Ioo, lt_min_iff, max_lt_iff] {contextual := tt}
+set.ext $ by simp [iff_def, Ioo, lt_min_iff, max_lt_iff] {contextual := tt}
 
 end decidable_linear_order
 

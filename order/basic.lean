@@ -38,35 +38,6 @@ variables [preorder α]
 definition decreasing (f : α → α) := ∀a, f a ≤ a
 end decreasing
 
-section linear_order
-variables [linear_order α] {a b : α}
-
-lemma not_le_iff : ¬ (a ≤ b) ↔ b < a := (lt_iff_not_ge b a).symm
-lemma not_lt_iff : ¬ (a < b) ↔ b ≤ a := ⟨le_of_not_gt, not_lt_of_ge⟩
-
-end linear_order
-
-section decidable_linear_order
-  variable [decidable_linear_order α]
-  variables {a b c d : α}
-  open decidable
-
-  theorem le_max_left_iff_true (a b : α) : a ≤ max a b ↔ true :=
-  iff_true_intro (le_max_left a b)
-
-  theorem le_max_right_iff_true (a b : α) : b ≤ max a b ↔ true :=
-  iff_true_intro (le_max_right a b)
-
-  theorem min_right_comm (a b c : α) : min (min a b) c = min (min a c) b :=
-  right_comm min min_comm min_assoc a b c
-
-  theorem max.left_comm (a b c : α) : max a (max b c) = max b (max a c) :=
-  left_comm max max_comm max_assoc a b c
-
-  theorem max.right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
-  right_comm max max_comm max_assoc a b c
-end decidable_linear_order
-
 /- order instances -/
 
 def preorder_dual (o : preorder α) : preorder α :=

@@ -10,8 +10,7 @@ import algebra.big_operators
   analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
 
 open classical set lattice filter topological_space
-local attribute [instance] classical.decidable_inhabited classical.prop_decidable
-local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
+local attribute [instance] classical.prop_decidable
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -237,7 +236,7 @@ lemma frontier_le_subset_eq : frontier {b | f b ≤ g b} ⊆ {b | f b = g b} :=
 assume b ⟨hb₁, hb₂⟩,
 le_antisymm
   (by simpa [closure_le_eq hf hg] using hb₁)
-  (not_lt_iff.mp $ assume hb : f b < g b,
+  (not_lt.1 $ assume hb : f b < g b,
     have {b | f b < g b} ⊆ interior {b | f b ≤ g b},
       from (subset_interior_iff_subset_of_open $ is_open_lt hf hg).mpr $ assume x, le_of_lt,
     have b ∈ interior {b | f b ≤ g b}, from this hb,
@@ -388,9 +387,8 @@ have ht₁ : ((∃l, l<a) → ∃l, l < a ∧ ∀b, l < b → b ∈ t₁) ∧ (�
               ⟨hs₁ $ lt_of_le_of_lt (le_max_right _ _) hb,
                 hu₂ _ $ lt_of_le_of_lt (le_max_left _ _) hb⟩⟩,
             assume b hb, ⟨hs₁ $ lt_of_lt_of_le h hb, hs₃ _ hb⟩⟩ },
-        { simp [h] at hs₁,
-          simp at hs₂, simp [hs₁] at ⊢,
-          exact ⟨hs₃, hs₂⟩ }
+        { simp [h] at hs₁, simp [hs₁],
+          exact ⟨by simpa using hs₂, hs₃⟩ }
       end)
     (assume s₁ s₂ h ih, and.intro
       (assume hx, let ⟨u, hu₁, hu₂⟩ := ih.left hx in ⟨u, hu₁, assume b hb, h $ hu₂ _ hb⟩)
@@ -407,9 +405,8 @@ have ht₂ : ((∃u, u>a) → ∃u, a < u ∧ ∀b, b < u → b ∈ t₂) ∧ (�
               ⟨hs₁ $ lt_of_lt_of_le hb (min_le_right _ _),
                 hu₂ _ $ lt_of_lt_of_le hb (min_le_left _ _)⟩⟩,
             assume b hb, ⟨hs₁ $ lt_of_le_of_lt hb h, hs₃ _ hb⟩⟩ },
-        { simp [h] at hs₁,
-          simp at hs₂, simp [hs₁] at ⊢,
-          exact ⟨hs₃, hs₂⟩ }
+        { simp [h] at hs₁, simp [hs₁],
+          exact ⟨by simpa using hs₂, hs₃⟩ }
       end)
     (assume s₁ s₂ h ih, and.intro
       (assume hx, let ⟨u, hu₁, hu₂⟩ := ih.left hx in ⟨u, hu₁, assume b hb, h $ hu₂ _ hb⟩)
@@ -425,12 +422,13 @@ have nhds a = (⨅p : {l // l < a} × {u // a < u}, principal {x | p.1.val < x �
   by simp [nhds_orderable_unbounded hu hl, infi_subtype, infi_prod],
 iff.intro
   (assume hs, by rw [this] at hs; from infi_sets_induct hs
-    begin simp; exact ⟨⟨u, hu'⟩, l, hl'⟩ end
+    ⟨l, u, hl', hu', by simp⟩
     begin
       intro p, cases p with p₁ p₂, cases p₁ with l hl, cases p₂ with u hu,
       simp [set.subset_def],
-      exact assume s₁ s₂ hs₁ l' u' hu' hl' hs₂,
-        ⟨max l l', min u u', by simp [*, lt_min_iff, max_lt_iff] {contextual := tt}⟩
+      intros s₁ s₂ hs₁ l' hl' u' hu' hs₂,
+      refine ⟨max l l', _, min u u', _⟩;
+      simp [*, lt_min_iff, max_lt_iff] {contextual := tt}
     end
     (assume s₁ s₂ h ⟨l, u, h₁, h₂, h₃⟩, ⟨l, u, h₁, h₂, assume b hu hl, h $ h₃ _ hu hl⟩))
   (assume ⟨l, u, hl, hu, h⟩,
@@ -470,10 +468,10 @@ instance orderable_topology.regular_space : regular_space α :=
               assume c hcs hca, show c < b,
                 from lt_of_not_ge $ assume hbc, h c (lt_of_lt_of_le hb₁ hbc) (le_of_lt hca) hcs,
               inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_lt' _) hb₂) $
-                assume x (hx : b < x), show ¬ x < b, from not_lt_iff.mpr $ le_of_lt hx⟩
+                assume x (hx : b < x), show ¬ x < b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' < a}, is_open_gt' _, assume b hbs hba, hba,
               inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_lt' _) hl) $
-                assume x (hx : l < x), show ¬ x < a, from not_lt_iff.mpr $ h₁ _ hx⟩
+                assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
           end)
         (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
           by rw [principal_empty, inf_bot_eq]⟩),
@@ -487,10 +485,10 @@ instance orderable_topology.regular_space : regular_space α :=
               assume c hcs hca, show c > b,
                 from lt_of_not_ge $ assume hbc, h c (le_of_lt hca) (lt_of_le_of_lt hbc hb₂) hcs,
               inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_gt' _) hb₁) $
-                assume x (hx : b > x), show ¬ x > b, from not_lt_iff.mpr $ le_of_lt hx⟩
+                assume x (hx : b > x), show ¬ x > b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' > a}, is_open_lt' _, assume b hbs hba, hba,
               inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_gt' _) hu) $
-                assume x (hx : u > x), show ¬ x > a, from not_lt_iff.mpr $ h₂ _ hx⟩
+                assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
           end)
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
           by rw [principal_empty, inf_bot_eq]⟩),
@@ -525,8 +523,8 @@ forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
       let ⟨l, hl, hlt₁⟩ := hl ⟨a', this⟩ in
       have ∃a'∈s, l < a',
         from classical.by_contradiction $ assume : ¬ ∃a'∈s, l < a',
-          have ∀a'∈s, a' ≤ l, from assume a ha, not_lt_iff.mp $ assume ha', this ⟨a, ha, ha'⟩,
-          have ¬ l < a, from not_lt_iff.mpr $ ha.right _ this,
+          have ∀a'∈s, a' ≤ l, from assume a ha, not_lt.1 $ assume ha', this ⟨a, ha, ha'⟩,
+          have ¬ l < a, from not_lt.2 $ ha.right _ this,
           this ‹l < a›,
       let ⟨a', ha', ha'l⟩ := this in
       have a' ∈ t₁, from hlt₁ _ ‹l < a'›  $ ha.left _ ha',
@@ -548,8 +546,8 @@ forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
       let ⟨u, hu, hut₁⟩ := hu ⟨a', this⟩ in
       have ∃a'∈s, a' < u,
         from classical.by_contradiction $ assume : ¬ ∃a'∈s, a' < u,
-          have ∀a'∈s, u ≤ a', from assume a ha, not_lt_iff.mp $ assume ha', this ⟨a, ha, ha'⟩,
-          have ¬ a < u, from not_lt_iff.mpr $ ha.right _ this,
+          have ∀a'∈s, u ≤ a', from assume a ha, not_lt.1 $ assume ha', this ⟨a, ha, ha'⟩,
+          have ¬ a < u, from not_lt.2 $ ha.right _ this,
           this ‹a < u›,
       let ⟨a', ha', ha'l⟩ := this in
       have a' ∈ t₁, from hut₁ _ (ha.left _ ha') ‹a' < u›,
@@ -558,7 +556,7 @@ forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
 lemma is_lub_of_mem_nhds {s : set α} {a : α} {f : filter α}
   (hsa : a ∈ upper_bounds s) (hsf : s ∈ f.sets) (hfa : f ⊓ nhds a ≠ ⊥) : is_lub s a :=
 ⟨hsa, assume b hb,
-  not_lt_iff.mp $ assume hba,
+  not_lt.1 $ assume hba,
   have s ∩ {a | b < a} ∈ (f ⊓ nhds a).sets,
     from inter_mem_inf_sets hsf (mem_nhds_sets (is_open_lt' _) hba),
   let ⟨x, ⟨hxs, hxb⟩⟩ := inhabited_of_mem_sets hfa this in
@@ -568,7 +566,7 @@ lemma is_lub_of_mem_nhds {s : set α} {a : α} {f : filter α}
 lemma is_glb_of_mem_nhds {s : set α} {a : α} {f : filter α}
   (hsa : a ∈ lower_bounds s) (hsf : s ∈ f.sets) (hfa : f ⊓ nhds a ≠ ⊥) : is_glb s a :=
 ⟨hsa, assume b hb,
-  not_lt_iff.mp $ assume hba,
+  not_lt.1 $ assume hba,
   have s ∩ {a | a < b} ∈ (f ⊓ nhds a).sets,
     from inter_mem_inf_sets hsf (mem_nhds_sets (is_open_gt' _) hba),
   let ⟨x, ⟨hxs, hxb⟩⟩ := inhabited_of_mem_sets hfa this in
@@ -599,7 +597,7 @@ have ∀a'∈s, ¬ b < f a',
       have ha'x : f a' ≤ f x, from hf _ ha' _ hx₃ $ le_of_lt hx₁,
       lt_irrefl _ (lt_of_le_of_lt ha'x hxa')),
 and.intro
-  (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt_iff.mp $ this _ ha')
+  (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt.1 $ this _ ha')
   (assume b' hb', le_of_tendsto hnbot hb tendsto_const_nhds $
       mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
 
@@ -627,7 +625,7 @@ have ∀a'∈s, ¬ b > f a',
       have ha'x : f a' ≥ f x, from hf _ hx₃ _ ha' $ le_of_lt hx₁,
       lt_irrefl _ (lt_of_lt_of_le hxa' ha'x)),
 and.intro
-  (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt_iff.mp $ this _ ha')
+  (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt.1 $ this _ ha')
   (assume b' hb', le_of_tendsto hnbot tendsto_const_nhds hb $
       mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
 
@@ -655,7 +653,7 @@ have ∀a'∈s, ¬ b > f a',
       have ha'x : f a' ≥ f x, from hf _ ha' _ hx₃ $ le_of_lt hx₁,
       lt_irrefl _ (lt_of_lt_of_le hxa' ha'x)),
 and.intro
-  (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt_iff.mp $ this _ ha')
+  (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt.1 $ this _ ha')
   (assume b' hb', le_of_tendsto hnbot tendsto_const_nhds hb $
       mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
 
@@ -668,30 +666,28 @@ lemma orderable_topology_of_nhds_abs
   (h_nhds : ∀a:α, nhds a = (⨅r>0, principal {b | abs (a - b) < r})) : orderable_topology α :=
 orderable_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
 begin
-  simp [infi_and, topological_space.nhds_generate_from, h_nhds, le_infi_iff, -le_principal_iff],
-  constructor,
-  exact assume s ha b hs,
-    match s, ha, hs with
-    | _, h, (or.inl rfl) :=
-      infi_le_of_le (a + - b) $ infi_le_of_le (lt_sub_left_of_add_lt $ by simp; exact h) $
-        principal_mono.mpr $ assume c (hc : abs (a + - c) < a - b),
-        have a + - c < a + - b, from lt_of_le_of_lt (le_abs_self _) hc,
-        show b < c, from lt_of_neg_lt_neg $ lt_of_add_lt_add_left this
-    | _, h, (or.inr rfl) :=
-      infi_le_of_le (b + - a) $ infi_le_of_le (lt_sub_left_of_add_lt $ by simp; exact h) $
-        principal_mono.mpr $ assume c (hc : abs (a + - c) < b + - a),
-        have abs (c + - a) < b + - a, by rw [←abs_neg]; simp [hc],
-        have c + - a < b + - a, from lt_of_le_of_lt (le_abs_self _) this,
-        show c < b, from lt_of_add_lt_add_right this
-    end,
-  { intros r hr,
-    have h : {b | abs (a + -b) < r} = {b | a - r < b} ∩ {b | b < a + r},
-      from (set.ext $ assume b,
+  simp [infi_and, topological_space.nhds_generate_from,
+        h_nhds, le_infi_iff, -le_principal_iff, and_comm],
+  refine ⟨λ s ha b hs, _, λ r hr, _⟩,
+  { rcases hs with rfl | rfl,
+    { refine infi_le_of_le (a - b)
+        (infi_le_of_le (lt_sub_left_of_add_lt $ by simpa using ha) $
+          principal_mono.mpr $ assume c (hc : abs (a - c) < a - b), _),
+      have : a - c < a - b := lt_of_le_of_lt (le_abs_self _) hc,
+      exact lt_of_neg_lt_neg (lt_of_add_lt_add_left this) },
+    { refine infi_le_of_le (b - a)
+        (infi_le_of_le (lt_sub_left_of_add_lt $ by simpa using ha) $
+          principal_mono.mpr $ assume c (hc : abs (a - c) < b - a), _),
+      have : abs (c - a) < b - a, {rw abs_sub; simpa using hc},
+      have : c - a < b - a := lt_of_le_of_lt (le_abs_self _) this,
+      exact lt_of_add_lt_add_right this } },
+  { have h : {b | abs (a + -b) < r} = {b | a - r < b} ∩ {b | b < a + r},
+      from set.ext (assume b,
         by simp [abs_lt, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm, sub_lt, lt_sub_iff]),
-    rw [h, ←inf_principal],
+    rw [h, ← inf_principal],
     apply le_inf _ _,
-    exact (infi_le_of_le {b : α | a - r < b} $ infi_le_of_le (sub_lt_self a hr) $
-      infi_le_of_le (a - r) $ infi_le _ (or.inl rfl)),
-    exact (infi_le_of_le {b : α | b < a + r} $ infi_le_of_le (lt_add_of_pos_right _ hr) $
-      infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) }
+    { exact infi_le_of_le {b : α | a - r < b} (infi_le_of_le (sub_lt_self a hr) $
+        infi_le_of_le (a - r) $ infi_le _ (or.inl rfl)) },
+    { exact infi_le_of_le {b : α | b < a + r} (infi_le_of_le (lt_add_of_pos_right _ hr) $
+        infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) } }
 end

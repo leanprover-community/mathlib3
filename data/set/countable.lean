@@ -12,7 +12,7 @@ noncomputable theory
 open function set encodable
 
 open classical (hiding some)
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] prop_decidable
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 

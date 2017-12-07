@@ -14,7 +14,7 @@ import logic.function algebra.big_operators data.set data.finset
 
 noncomputable theory
 open set lattice finset filter function classical
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] prop_decidable
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 

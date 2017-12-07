@@ -9,9 +9,6 @@ import analysis.topology.topological_space data.analysis.filter
 open set
 open filter (hiding realizer)
 
-local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
-  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
-
 structure ctop (α σ : Type*) :=
 (f : σ → set α)
 (top : α → σ)
@@ -89,7 +86,7 @@ theorem is_closed_iff [topological_space α] (F : realizer α) {s : set α} :
 F.is_open_iff.trans $ forall_congr $ λ a,
 show (a ∉ s → (∃ (b : F.σ), a ∈ F.F b ∧ ∀ z ∈ F.F b, z ∉ s)) ↔ _,
 by have := classical.prop_decidable; rw [not_imp_comm];
-   simp [not_exists, not_and, not_forall]
+   simp [not_exists, not_and, not_forall, and_comm]
 
 theorem mem_interior_iff [topological_space α] (F : realizer α) {s : set α} {a : α} :
   a ∈ interior s ↔ ∃ b, a ∈ F.F b ∧ F.F b ⊆ s :=

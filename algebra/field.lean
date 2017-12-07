@@ -29,6 +29,12 @@ end
 end division_ring
 
 section
+variables [field α] {a b c : α}
+
+lemma div_eq_inv_mul : a / b = b⁻¹ * a := mul_comm _ _
+end
+
+section
 variables [discrete_field α] {a b c : α}
 
 lemma inv_sub_inv_eq (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ - b⁻¹ = (b - a) / (a * b) :=

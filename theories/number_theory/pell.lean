@@ -5,9 +5,6 @@ Authors: Mario Carneiro
 -/
 import data.int.basic data.nat.prime data.nat.modeq
 
-local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
-  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
-
 structure zsqrtd (d : ℕ) := mk {} ::
 (re : ℤ)
 (im : ℤ)
@@ -88,7 +85,7 @@ section
     neg            := has_neg.neg,
     mul            := (*),
     one            := 1, ..};
-  { intros, simp [ext, left_distrib] }
+  { intros, simp [ext, add_mul, mul_add, mul_comm, mul_left_comm] }
 
   instance : add_comm_monoid ℤ√d    := by apply_instance
   instance : add_monoid ℤ√d         := by apply_instance
@@ -136,7 +133,7 @@ section
   by simp [ext]
 
   theorem mul_conj {x y : ℤ} : (⟨x, y⟩ * conj ⟨x, y⟩ : ℤ√d) = x * x - d * y * y :=
-  by simp [ext]
+  by simp [ext, mul_comm]
 
   theorem conj_mul : Π {a b : ℤ√d}, conj (a * b) = conj a * conj b :=
   by simp [ext]
@@ -157,15 +154,15 @@ section
   theorem sq_le_add_mixed {c d x y z w : ℕ} (xy : sq_le x c y d) (zw : sq_le z c w d) :
     c * (x * z) ≤ d * (y * w) :=
   nat.mul_self_le_mul_self_iff.2 $
-  by simpa using mul_le_mul xy zw (nat.zero_le _) (nat.zero_le _)
+  by simpa [mul_comm, mul_left_comm] using
+     mul_le_mul xy zw (nat.zero_le _) (nat.zero_le _)
 
   theorem sq_le_add {c d x y z w : ℕ} (xy : sq_le x c y d) (zw : sq_le z c w d) :
     sq_le (x + z) c (y + w) d :=
   begin
-    simp [sq_le, left_distrib],
     have xz := sq_le_add_mixed xy zw,
-    simp [sq_le] at xy, simp [sq_le] at zw,
-    simp [add_le_add, *]
+    simp [sq_le, mul_assoc] at xy zw,
+    simp [sq_le, mul_add, mul_comm, mul_left_comm, add_le_add, *]
   end
 
   theorem sq_le_cancel {c d x y z w : ℕ} (zw : sq_le y d x c) (h : sq_le (x + z) c (y + w) d) : sq_le z c w d :=
@@ -173,15 +170,16 @@ section
     apply le_of_not_gt,
     intro l,
     refine not_le_of_gt _ h,
-    simp [sq_le, left_distrib],
+    simp [sq_le, mul_add, mul_comm, mul_left_comm],
     have hm := sq_le_add_mixed zw (le_of_lt l),
-    simp [sq_le] at l, simp [sq_le] at zw,
+    simp [sq_le, mul_assoc] at l zw,
     exact lt_of_le_of_lt (add_le_add_right zw _)
       (add_lt_add_left (add_lt_add_of_le_of_lt hm (add_lt_add_of_le_of_lt hm l)) _)
   end
 
   theorem sq_le_smul {c d x y : ℕ} (n : ℕ) (xy : sq_le x c y d) : sq_le (n * x) c (n * y) d :=
-  by have t := nat.mul_le_mul_left (n * n) xy; simp at t; simp [sq_le, t]
+  by simpa [sq_le, mul_left_comm, mul_assoc] using
+     nat.mul_le_mul_left (n * n) xy
 
   theorem sq_le_mul {d x y z w : ℕ} :
     (sq_le x 1 y d → sq_le z 1 w d → sq_le (x * w + y * z) d (x * z + d * y * w) 1) ∧
@@ -193,10 +191,7 @@ section
     have := int.mul_nonneg (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le xy))
                            (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
     refine int.le_of_coe_nat_le_coe_nat (le_of_sub_nonneg _),
-    simp [left_distrib] at this ⊢,
-    --TODO(Mario): remove when we can cancel negatives
-    repeat {rw ← add_left_comm (-(↑d * (↑x * (↑y * (↑z * ↑w))))),
-            try {rw add_neg_cancel_left} }, simpa }
+    simpa [mul_add, mul_left_comm, mul_comm] }
 
   def nonnegg (c d : ℕ) : ℤ → ℤ → Prop
   | (a : ℕ) (b : ℕ) := true
@@ -290,7 +285,7 @@ section
 
   protected theorem le_trans {a b c : ℤ√d} (ab : a ≤ b) (bc : b ≤ c) : a ≤ c :=
   have nonneg (b - a + (c - b)), from nonneg_add ab bc,
-  have nonneg (c - a + (b - b)), by simpa [-add_right_neg],
+  have nonneg (c - a + (b - b)), by simpa [-add_right_neg, add_left_comm],
   by simpa
 
   theorem nonneg_iff_zero_le {a : ℤ√d} : nonneg a ↔ 0 ≤ a := show _ ↔ nonneg _, by simp
@@ -311,10 +306,9 @@ section
     change nonneg ⟨(↑x + d*y) - ↑x, 0-↑y⟩,
     cases y with y,
     { simp },
-    have h : ∀y, sq_le y d (d * y) 1,
-    { intro y,
-      have t := nat.mul_le_mul_right (y * y) (nat.le_mul_self d),
-      simp at t, simp [sq_le], exact t },
+    have h : ∀y, sq_le y d (d * y) 1 := λ y,
+      by simpa [sq_le, mul_comm, mul_left_comm] using
+         nat.mul_le_mul_right (y * y) (nat.le_mul_self d),
     rw [show (x:ℤ) + d * nat.succ y - x = d * nat.succ y, by simp],
     exact h (y+1)
   end
@@ -359,12 +353,12 @@ section
   theorem nonneg_muld {a : ℤ√d} (ha : nonneg a) : nonneg (sqrtd * a) :=
   by refine match a, nonneg_cases ha, ha with
   | ._, ⟨x, y, or.inl rfl⟩,          ha := trivial
-  | ._, ⟨x, y, or.inr $ or.inl rfl⟩, ha := by simp;
-    have t := nat.mul_le_mul_left d (nonnegg_pos_neg.1 ha);
-    apply nonnegg_pos_neg.2; simp at t; simp [sq_le, t]
-  | ._, ⟨x, y, or.inr $ or.inr rfl⟩, ha := by simp;
-    have t := nat.mul_le_mul_left d (nonnegg_pos_neg.1 ha);
-    apply nonnegg_pos_neg.2; simp at t; simp [sq_le, t]
+  | ._, ⟨x, y, or.inr $ or.inl rfl⟩, ha := by simp; apply nonnegg_pos_neg.2;
+    simpa [sq_le, mul_comm, mul_left_comm] using
+      nat.mul_le_mul_left d (nonnegg_pos_neg.1 ha)
+  | ._, ⟨x, y, or.inr $ or.inr rfl⟩, ha := by simp; apply nonnegg_pos_neg.2;
+    simpa [sq_le, mul_comm, mul_left_comm] using
+      nat.mul_le_mul_left d (nonnegg_pos_neg.1 ha)
   end
 
   theorem nonneg_mul_lem {x y : ℕ} {a : ℤ√d} (ha : nonneg a) : nonneg (⟨x, y⟩ * a) :=
@@ -417,7 +411,7 @@ section
       begin
         rw [hx, hy] at h,
         have : m * m = d * (n * n) := nat.eq_of_mul_eq_mul_left (mul_pos gpos gpos)
-          (by simp at h; simp [h]),
+          (by simpa [mul_comm, mul_left_comm] using h),
         have co2 := let co1 := co.mul_right co in co1.mul co1,
         exact nonsquare.ns d m (nat.dvd_antisymm (by rw this; apply dvd_mul_right) $
           co2.dvd_of_dvd_mul_right $ by simp [this])
@@ -463,12 +457,12 @@ section
       or.inr (match z, w, z0, w0 with ._, ._, rfl, rfl := rfl end)
     else
        or.inl $ fin $ eq_of_mul_eq_mul_right w0 $ calc
-         x * x * w = -y * (x * z) : by simp [h2]
-               ... = d * y * y * w : by simp [h1]
+         x * x * w = -y * (x * z) : by simp [h2, mul_assoc, mul_left_comm]
+               ... = d * y * y * w : by simp [h1, mul_assoc, mul_left_comm]
     else
        or.inl $ fin $ eq_of_mul_eq_mul_right z0 $ calc
-         x * x * z = d * -y * (x * w) : by simp [h1]
-               ... = d * y * y * z : by simp [h2]
+         x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
+               ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
   instance : integral_domain ℤ√d :=
   { zero_ne_one := zero_ne_one,
@@ -530,7 +524,7 @@ section
   def az : ℤ := a
 
   theorem asq_pos : 0 < a*a :=
-  le_trans (le_of_lt a1) (by have this := @nat.mul_le_mul_left 1 a a (le_of_lt a1); rwa mul_one at this)
+  le_trans (le_of_lt a1) (by have := @nat.mul_le_mul_left 1 a a (le_of_lt a1); rwa mul_one at this)
 
   theorem dz_val : ↑d = az*az - 1 :=
   have 1 ≤ a*a, from asq_pos,
@@ -550,10 +544,11 @@ section
   λh, show ((x*x : ℕ) - (d*y*y:ℕ) : ℤ) = 1, by rw [← int.coe_nat_sub $ le_of_lt $ nat.lt_of_sub_eq_succ h, h]; refl⟩
 
   def is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * b.conj = 1
-  | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell]
+  | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]
 
   def is_pell_mul {b c : ℤ√d} (hb : is_pell b) (hc : is_pell c) : is_pell (b * c) :=
-  is_pell_norm.2 (by simp [zsqrtd.conj_mul, pell.is_pell_norm.1 hb, pell.is_pell_norm.1 hc])
+  is_pell_norm.2 (by simp [mul_comm, mul_left_comm,
+    zsqrtd.conj_mul, pell.is_pell_norm.1 hb, pell.is_pell_norm.1 hc])
 
   def is_pell_conj : ∀ {b : ℤ√d}, is_pell b ↔ is_pell b.conj | ⟨x, y⟩ :=
   by simp [is_pell, zsqrtd.conj]
@@ -582,19 +577,19 @@ section
     have n*n + 1 = a*a, by rw ← h; exact nat.succ_pred_eq_of_pos (asq_pos a1),
     have na : n < a, from nat.mul_self_lt_mul_self_iff.2 (by rw ← this; exact nat.lt_succ_self _),
     have (n+1)*(n+1) ≤ n*n + 1, by rw this; exact nat.mul_self_le_mul_self na,
-    have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by simp [left_distrib] at this; simp [this]),
+    have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by simpa [mul_add, mul_comm, mul_left_comm]),
     ne_of_gt d_pos $ by rw nat.eq_zero_of_le_zero (le_trans (nat.le_add_left _ _) this) at h; exact h⟩
 
   def xn_ge_a_pow : ∀ (n : ℕ), a^n ≤ xn n
   | 0     := le_refl 1
   | (n+1) := by simp [nat.pow_succ]; exact le_trans
-    (nat.mul_le_mul_left _ (xn_ge_a_pow n)) (nat.le_add_right _ _)
+    (nat.mul_le_mul_right _ (xn_ge_a_pow n)) (nat.le_add_right _ _)
 
   def n_lt_a_pow : ∀ (n : ℕ), n < a^n
   | 0     := nat.le_refl 1
   | (n+1) := begin have IH := n_lt_a_pow n,
-    have : a^n + a^n ≤ a * a^n,
-    { rw ← two_mul, exact nat.mul_le_mul_right _ a1 },
+    have : a^n + a^n ≤ a^n * a,
+    { rw ← mul_two, exact nat.mul_le_mul_left _ a1 },
     simp [nat.pow_succ], refine lt_of_lt_of_le _ this,
     exact add_lt_add_of_lt_of_le IH (lt_of_le_of_lt (nat.zero_le _) IH)
   end
@@ -687,8 +682,8 @@ section
     have yn m ≤ yn n, from or.elim (lt_or_eq_of_le $ nat.le_of_succ_le_succ h)
       (λhl, le_of_lt $ y_increasing hl) (λe, by rw e),
     by simp; refine lt_of_le_of_lt _ (nat.lt_add_of_pos_left $ x_pos a1 n);
-       rw ← one_mul (yn a1 m);
-       exact mul_le_mul (le_of_lt a1) this (nat.zero_le _) (nat.zero_le _)
+       rw ← mul_one (yn a1 m);
+       exact mul_le_mul this (le_of_lt a1) (nat.zero_le _) (nat.zero_le _)
 
   theorem x_increasing {m} : Π {n}, m < n → xn m < xn n
   | 0     h := absurd h $ nat.not_lt_zero _
@@ -696,8 +691,7 @@ section
     have xn m ≤ xn n, from or.elim (lt_or_eq_of_le $ nat.le_of_succ_le_succ h)
       (λhl, le_of_lt $ x_increasing hl) (λe, by rw e),
     by simp; refine lt_of_lt_of_le (lt_of_le_of_lt this _) (nat.le_add_right _ _);
-       have t := nat.mul_lt_mul_of_pos_right a1 (x_pos a1 n);
-       rw one_mul (xn a1 n) at t; exact t
+       have t := nat.mul_lt_mul_of_pos_left a1 (x_pos a1 n); rwa mul_one at t
 
   theorem yn_ge_n : Π n, n ≤ yn n
   | 0 := nat.zero_le _
@@ -738,7 +732,7 @@ section
              xn n^k * yn n + k * xn n^k * yn n [MOD yn n^3], from
     modeq.modeq_add (by rw nat.pow_succ; exact modeq.modeq_mul_right' _ hx) $
       have k * xn n^(k - 1) * yn n * xn n = k * xn n^k * yn n,
-        by clear _let_match; cases k with k; simp [nat.pow_succ],
+        by clear _let_match; cases k with k; simp [nat.pow_succ, mul_comm, mul_left_comm],
       by rw ← this; exact modeq.modeq_mul_right _ hy,
     by rw [nat.add_sub_cancel, nat.mul_succ, xn_add, yn_add, nat.pow_succ (xn _ n),
            nat.succ_mul, add_comm (k * xn _ n^k) (xn _ n^k), right_distrib];
@@ -747,7 +741,7 @@ section
   theorem ysq_dvd_yy (n) : yn n * yn n ∣ yn (n * yn n) :=
   modeq.modeq_zero_iff.1 $
     ((xy_modeq_yn n (yn n)).right.modeq_of_dvd_of_modeq $ by simp [nat.pow_succ]).trans
-    (modeq.modeq_zero_iff.2 $ by simp [mul_dvd_mul_left])
+    (modeq.modeq_zero_iff.2 $ by simp [mul_dvd_mul_left, mul_assoc])
 
   theorem dvd_of_ysq_dvd {n t} (h : yn n * yn n ∣ yn t) : yn n ∣ t :=
   have nt : n ∣ t, from (y_dvd_iff n t).1 $ dvd_of_mul_left_dvd h,
@@ -765,7 +759,7 @@ section
   have (1:ℤ√d) + ⟨a, 1⟩ * ⟨a, 1⟩ = ⟨a, 1⟩ * (2 * a),
   by rw zsqrtd.coe_nat_val; change (⟨_,_⟩:ℤ√(d a1))=⟨_,_⟩;
      rw dz_val; change az a1 with a; simp [mul_add, add_mul],
-  by simpa [mul_add] using congr_arg (* pell_zd a1 n) this
+  by simpa [mul_add, mul_comm, mul_left_comm] using congr_arg (* pell_zd a1 n) this
 
   theorem xy_succ_succ (n) : xn (n + 2) + xn n = (2 * a) * xn (n + 1) ∧
                              yn (n + 2) + yn n = (2 * a) * yn (n + 1) := begin
@@ -810,10 +804,9 @@ section
       y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) :=
   calc  (a2 * yn1 - yn0) * ay + y2 - (a2 * xn1 - xn0)
       = a2 * yn1 * ay - yn0 * ay + y2 - (a2 * xn1 - xn0) : by rw [mul_sub_right_distrib]
-  ... = y2 + a2 * (yn1 * ay) - a2 * xn1 - yn0 * ay + xn0 : by simp
+  ... = y2 + a2 * (yn1 * ay) - a2 * xn1 - yn0 * ay + xn0 : by simp [mul_comm, mul_left_comm]
   ... = y2 + a2 * (yn1 * ay) - a2 * y1 + a2 * y1 - a2 * xn1 - yn0 * ay + y0 - y0 + xn0 : by rw [add_sub_cancel, sub_add_cancel]
-  ... = y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) :
-     by simp [left_distrib]; repeat {rw [add_left_comm (y1*a2)], try {rw add_neg_cancel_left}}
+  ... = y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) : by simp [mul_add]
 
   theorem x_sub_y_dvd_pow (y : ℕ) :
     ∀ n, (2*a*y - y*y - 1 : ℤ) ∣ yz n * (a - y) + y^n - xz n
@@ -821,12 +814,14 @@ section
   | 1 := by simp [xz, yz, int.coe_nat_zero, int.coe_nat_one]
   | (n+2) :=
     have (2*a*y - y*y - 1 : ℤ) ∣ ↑(y^(n + 2)) - ↑(2 * a) * ↑(y^(n + 1)) + ↑(y^n), from
-    ⟨-↑(y^n), by simp [nat.pow_succ, right_distrib, int.coe_nat_mul, show ((2:ℕ):ℤ) = 2, from rfl]⟩,
+    ⟨-↑(y^n), by simp [nat.pow_succ, mul_add, int.coe_nat_mul,
+        show ((2:ℕ):ℤ) = 2, from rfl, mul_comm, mul_left_comm]⟩,
     by rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 (y^(n+2)) (y^(n+1)) (y^n)]; exact
     dvd_sub (dvd_add this $ dvd_mul_of_dvd_right (x_sub_y_dvd_pow (n+1)) _) (x_sub_y_dvd_pow n)
 
   theorem xn_modeq_x2n_add_lem (n j) : xn n ∣ d * yn n * (yn n * xn j) + xn j :=
-  have h1 : d * yn n * (yn n * xn j) + xn j = (d * yn n * yn n + 1) * xn j, by simp [right_distrib],
+  have h1 : d * yn n * (yn n * xn j) + xn j = (d * yn n * yn n + 1) * xn j,
+    by simp [add_mul, mul_assoc],
   have h2 : d * yn n * yn n + 1 = xn n * xn n, by apply int.coe_nat_inj;
     repeat {rw int.coe_nat_add <|> rw int.coe_nat_mul}; exact
     add_eq_of_eq_sub' (eq.symm $ pell_eqz _ _),

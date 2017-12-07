@@ -17,7 +17,7 @@ Unfortunately, this only holds if t₁ and t₂ are second-countable topologies.
 import analysis.measure_theory.measurable_space analysis.real
 
 open classical set lattice
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] prop_decidable
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort y} {s t u : set α}

@@ -9,8 +9,6 @@ returns s s.t.
 -/
 import data.nat.basic algebra.ordered_group algebra.ring tactic
 
-local attribute [simp] add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
-
 namespace nat
 
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=

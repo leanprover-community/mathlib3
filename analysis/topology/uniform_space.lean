@@ -29,7 +29,7 @@ A major difference is that this formalization is heavily based on the filter lib
 -/
 import order.filter data.quot analysis.topology.topological_space analysis.topology.continuity
 open set lattice filter classical
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] prop_decidable
 
 set_option eqn_compiler.zeta true
 

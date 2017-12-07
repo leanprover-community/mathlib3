@@ -53,7 +53,7 @@ meta def find (p : parse lean.parser.pexpr) (c : itactic) : old_conv unit :=
        (λ u, return u)
        (λ found s r p e, do
          guard (not found),
-         matched ← (tactic.match_pattern_core reducible pat e >> return tt) <|> return ff,
+         matched ← (tactic.match_pattern pat e >> return tt) <|> return ff,
          guard matched,
          ⟨u, new_e, pr⟩ ← c r e,
          return (tt, new_e, pr, ff))

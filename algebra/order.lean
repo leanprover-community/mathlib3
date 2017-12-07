@@ -22,15 +22,14 @@ lemma lt_iff_le_and_ne [partial_order α] {a b : α} : a < b ↔ a ≤ b ∧ a �
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b :=
 (lt_or_eq_of_le h).symm
 
-@[simp] lemma not_lt [linear_order α] {a b : α} : ¬ a < b ↔ b ≤ a :=
-⟨(lt_or_ge a b).resolve_left, not_lt_of_le⟩
+@[simp] lemma not_lt [linear_order α] {a b : α} : ¬ a < b ↔ b ≤ a := ⟨le_of_not_gt, not_lt_of_ge⟩
 
-lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a :=
-not_lt.1
+lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt.1
 
-@[simp] lemma not_le [linear_order α] {a b : α} : ¬ a ≤ b ↔ b < a :=
-(lt_iff_le_not_le.trans ⟨and.right,
-  λ h, ⟨(le_total _ _).resolve_left h, h⟩⟩).symm
+@[simp] lemma not_le [linear_order α] {a b : α} : ¬ a ≤ b ↔ b < a := (lt_iff_not_ge b a).symm
+
+lemma lt_or_le [linear_order α] : ∀ a b : α, a < b ∨ b ≤ a := lt_or_ge
+lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ a > b := le_or_gt
 
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl

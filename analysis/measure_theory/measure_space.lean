@@ -22,7 +22,7 @@ import data.set order.galois_connection analysis.ennreal
 noncomputable theory
 
 open classical set lattice filter finset function
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] prop_decidable
 
 universes u v w x
 

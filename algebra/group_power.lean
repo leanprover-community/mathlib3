@@ -13,8 +13,6 @@ Note: power adopts the convention that 0^0=1.
 -/
 import data.nat.basic data.int.basic algebra.group
 
-local attribute [simp] mul_comm mul_assoc mul_left_comm
-
 universe u
 variable {α : Type u}
 
@@ -49,7 +47,7 @@ attribute [to_additive add_monoid.smul_one] pow_one
 
 @[to_additive smul_add_comm']
 theorem pow_mul_comm' (a : α) (n : ℕ) : a^n * a = a * a^n :=
-by induction n with n ih; simp [*, pow_succ]
+by induction n with n ih; simp [*, pow_succ, mul_assoc]
 
 theorem pow_succ' (a : α) (n : ℕ) : a^(n+1) = a^n * a :=
 by simp [pow_succ, pow_mul_comm']
@@ -59,7 +57,7 @@ attribute [to_additive smul_succ'] pow_succ'
 
 @[to_additive add_monoid.smul_add]
 theorem pow_add (a : α) (m n : ℕ) : a^(m + n) = a^m * a^n :=
-by induction n; simp [*, pow_succ', nat.add_succ]
+by induction n; simp [*, pow_succ', nat.add_succ, mul_assoc]
 
 @[simp] theorem one_pow (n : ℕ) : (1 : α)^n = (1:α) :=
 by induction n; simp [*, pow_succ]
@@ -99,7 +97,7 @@ attribute [to_additive list.sum_repeat] list.prod_repeat
 end monoid
 
 theorem nat.pow_eq_pow (p q : ℕ) : nat.pow p q = p ^ q :=
-by induction q; [refl, simp [nat.pow_succ, pow_succ, *]]
+by induction q; [refl, simp [nat.pow_succ, pow_succ, mul_comm, *]]
 
 /- commutative monoid -/
 
@@ -108,7 +106,7 @@ variables [comm_monoid α] {β : Type*} [add_comm_monoid β]
 
 theorem mul_pow (a b : α) : ∀ n, (a * b)^n = a^n * b^n
 | 0     := by simp
-| (n+1) := by simp [pow_succ]; rw mul_pow
+| (n+1) := by simp [pow_succ, mul_assoc, mul_left_comm]; rw mul_pow
 theorem add_monoid.add_smul (a b : β) : ∀ n, (a + b)•n = a•n + b•n
 | 0     := by simp
 | (n+1) := by simp [smul_succ]; rw add_monoid.add_smul
@@ -192,7 +190,7 @@ section discrete_field
 variables [discrete_field α] {a b c : α} {n : ℕ}
 
 theorem pow_inv (ha : a ≠ 0) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
-by induction n with n ih; simp [pow_succ, mul_inv', pow_ne_zero, *]
+by induction n with n ih; simp [pow_succ, mul_inv', pow_ne_zero, mul_comm, *]
 
 end discrete_field
 

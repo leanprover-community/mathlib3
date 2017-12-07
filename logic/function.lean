@@ -21,7 +21,7 @@ def injective.decidable_eq
   {α : Sort u} {β : Sort v} [decidable_eq β] {f : α → β} (I : injective f) : decidable_eq α
 | a b := decidable_of_iff _ I.eq_iff
 
-local attribute [instance] classical.decidable_inhabited classical.prop_decidable
+local attribute [instance] classical.prop_decidable
 
 def is_partial_inv (f : α → β) (g : β → option α) : Prop :=
 ∀ x y, g y = some x ↔ f x = y

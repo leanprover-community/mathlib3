@@ -9,9 +9,6 @@ import data.list.basic data.list.perm data.list.sort order.boolean_algebra
        algebra.functions data.quot algebra.group_power algebra.ordered_group
 open list subtype nat lattice
 
-local attribute [simp] mul_comm mul_assoc mul_left_comm and.comm and.left_comm and.assoc
-  or.comm or.left_comm or.assoc
-
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 local infix ` • `:73 := add_monoid.smul
@@ -534,18 +531,18 @@ theorem foldl_swap (f : β → α → β) (H : right_commutative f) (b : β) (s 
 (foldr_swap _ _ _ _).symm
 
 def prod [comm_monoid α] : multiset α → α :=
-foldr (*) (λ x y z, by simp) 1
+foldr (*) (λ x y z, by simp [mul_left_comm]) 1
 attribute [to_additive multiset.sum._proof_1] prod._proof_1
 attribute [to_additive multiset.sum] prod
 
 @[to_additive multiset.sum_eq_foldr]
 theorem prod_eq_foldr [comm_monoid α] (s : multiset α) :
-  prod s = foldr (*) (λ x y z, by simp) 1 s := rfl
+  prod s = foldr (*) (λ x y z, by simp [mul_left_comm]) 1 s := rfl
 
 @[to_additive multiset.sum_eq_foldl]
 theorem prod_eq_foldl [comm_monoid α] (s : multiset α) :
-  prod s = foldl (*) (λ x y z, by simp) 1 s :=
-(foldr_swap _ _ _ _).trans (by simp)
+  prod s = foldl (*) (λ x y z, by simp [mul_right_comm]) 1 s :=
+(foldr_swap _ _ _ _).trans (by simp [mul_comm])
 
 @[simp, to_additive multiset.coe_sum]
 theorem coe_prod [comm_monoid α] (l : list α) : prod ↑l = l.prod :=
@@ -584,7 +581,7 @@ sum_add _ _
 
 @[simp] theorem mem_join {a S} : a ∈ @join α S ↔ ∃ s ∈ S, a ∈ s :=
 multiset.induction_on S (by simp) $
-  by simp [and_or_distrib_left, exists_or_distrib] {contextual := tt}
+  by simp [or_and_distrib_right, exists_or_distrib] {contextual := tt}
 
 /- bind -/
 def bind (s : multiset α) (f : α → multiset β) : multiset β :=
@@ -603,7 +600,8 @@ by simp [bind]
 by simp [bind]
 
 @[simp] theorem mem_bind {b s} {f : α → multiset β} : b ∈ bind s f ↔ ∃ a ∈ s, b ∈ f a :=
-by simp [bind]; simp [exists_and_distrib_left.symm]; rw exists_swap; simp
+by simp [bind]; simp [-exists_and_distrib_right, exists_and_distrib_right.symm];
+   rw exists_swap; simp [and_assoc]
 
 /- product -/
 def product (s : multiset α) (t : multiset β) : multiset (α × β) :=
@@ -631,7 +629,7 @@ multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
   by rw [cons_product, IH]; simp
 
 @[simp] theorem mem_product {s t} : ∀ {p : α × β}, p ∈ @product α β s t ↔ p.1 ∈ s ∧ p.2 ∈ t
-| (a, b) := by simp [product]
+| (a, b) := by simp [product, and.left_comm]
 
 /- sigma -/
 section
@@ -664,7 +662,7 @@ multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
 
 @[simp] theorem mem_sigma {s t} : ∀ {p : Σ a, σ a},
   p ∈ @multiset.sigma α σ s t ↔ p.1 ∈ s ∧ p.2 ∈ t p.1
-| ⟨a, b⟩ := by simp [multiset.sigma]
+| ⟨a, b⟩ := by simp [multiset.sigma, and_assoc, and.left_comm]
 
 end
 
@@ -1369,7 +1367,7 @@ nodup_of_le (erase_le _ _)
 
 theorem mem_erase_iff_of_nodup [decidable_eq α] {a b : α} {l} (d : nodup l) :
   a ∈ l.erase b ↔ a ≠ b ∧ a ∈ l :=
-by rw nodup_erase_eq_filter b d; simp
+by rw nodup_erase_eq_filter b d; simp [and_comm]
 
 theorem mem_erase_of_nodup [decidable_eq α] {a : α} {l} (h : nodup l) : a ∉ l.erase a :=
 by rw mem_erase_iff_of_nodup h; simp
@@ -1548,7 +1546,7 @@ theorem ndunion_le_add (s t : multiset α) : ndunion s t ≤ s + t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, subperm_of_sublist $ union_sublist_append _ _
 
 theorem ndunion_le {s t u : multiset α} : ndunion s t ≤ u ↔ s ⊆ u ∧ t ≤ u :=
-multiset.induction_on s (by simp) (by simp [ndinsert_le] {contextual := tt})
+multiset.induction_on s (by simp) (by simp [ndinsert_le, and_comm, and.left_comm] {contextual := tt})
 
 theorem subset_ndunion_left (s t : multiset α) : s ⊆ ndunion s t :=
 λ a h, mem_ndunion.2 $ or.inl h

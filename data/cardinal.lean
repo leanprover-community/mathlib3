@@ -17,7 +17,7 @@ import data.set data.quot data.equiv order.fixed_points logic.function order.zor
 noncomputable theory
 
 open function lattice set classical
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] prop_decidable
 
 universes u v w x
 

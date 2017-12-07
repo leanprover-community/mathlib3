@@ -15,7 +15,6 @@ noncomputable theory
 
 open set filter lattice
 local attribute [instance] classical.prop_decidable
-local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Sort x}
@@ -37,12 +36,12 @@ lemma continuous_iff_tendsto {f : α → β} :
 ⟨assume hf : continuous f, assume x s,
   show s ∈ (nhds (f x)).sets → s ∈ (map f (nhds x)).sets,
     by simp [nhds_sets];
-      exact assume t t_open t_subset fx_in_t,
-        ⟨preimage f t, hf t t_open, fx_in_t, preimage_mono t_subset⟩,
+      exact assume t t_subset t_open fx_in_t,
+        ⟨preimage f t, preimage_mono t_subset, hf t t_open, fx_in_t⟩,
   assume hf : ∀x, tendsto f (nhds x) (nhds (f x)),
   assume s, assume hs : is_open s,
   have ∀a, f a ∈ s → s ∈ (nhds (f a)).sets,
-    by simp [nhds_sets]; exact assume a ha, ⟨s, hs, subset.refl s, ha⟩,
+    by simp [nhds_sets]; exact assume a ha, ⟨s, subset.refl s, hs, ha⟩,
   show is_open (preimage f s),
     by simp [is_open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
 
@@ -295,19 +294,17 @@ theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (pr
 lemma nhds_induced_eq_vmap {a : α} : @nhds α (induced f t) a = vmap f (nhds (f a)) :=
 le_antisymm
   (assume s ⟨s', hs', (h_s : preimage f s' ⊆ s)⟩,
-    have ∃t':set β, is_open t' ∧ t' ⊆ s' ∧ f a ∈ t',
-      by simp [mem_nhds_sets_iff] at hs'; assumption,
-    let ⟨t', ht', hsub, hin⟩ := this in
+    let ⟨t', hsub, ht', hin⟩ := mem_nhds_sets_iff.1 hs' in
     (@nhds α (induced f t) a).upwards_sets
       begin
         simp [mem_nhds_sets_iff],
-        exact ⟨preimage f t', is_open_induced ht', hin, preimage_mono hsub⟩
+        exact ⟨preimage f t', preimage_mono hsub, is_open_induced ht', hin⟩
       end
       h_s)
-  (le_infi $ assume s, le_infi $ assume ⟨as, ⟨s', is_open_s', s_eq⟩⟩,
+  (le_infi $ assume s, le_infi $ assume ⟨as, s', is_open_s', s_eq⟩,
     begin
       simp [vmap, mem_nhds_sets_iff, s_eq],
-      exact ⟨s', subset.refl _, s', is_open_s', subset.refl _, by rw [s_eq] at as; assumption⟩
+      exact ⟨s', ⟨s', subset.refl _, is_open_s', by rwa [s_eq] at as⟩, subset.refl _⟩
     end)
 
 lemma map_nhds_induced_eq {a : α} (h : image f univ ∈ (nhds (f a)).sets) :
@@ -374,8 +371,8 @@ le_antisymm
   (sup_le
     (induced_le_iff_le_coinduced.mpr $ generate_from_le $ assume u hu,
       have (⋃v∈t, set.prod u v) = prod.fst ⁻¹' u,
-        from calc (⋃v∈t, set.prod u v) = set.prod u univ:
-            set.ext $ assume ⟨a, b⟩, by rw [←ht]; simp {contextual:=tt}
+        from calc (⋃v∈t, set.prod u v) = set.prod u univ :
+            set.ext $ assume ⟨a, b⟩, by rw ← ht; simp [and.left_comm] {contextual:=tt}
           ... = prod.fst ⁻¹' u : by simp [set.prod, preimage],
       show G.is_open (prod.fst ⁻¹' u),
         from this ▸ @is_open_Union _ _ G _ $ assume v, @is_open_Union _ _ G _ $ assume hv,
@@ -411,10 +408,10 @@ by rw [prod_eq_generate_from, nhds_generate_from];
     (le_infi $ assume s, le_infi $ assume hs, le_infi $ assume t, le_infi $ assume ht,
       begin
         simp [mem_nhds_sets_iff] at hs, simp [mem_nhds_sets_iff] at ht,
-        revert hs ht,
-        exact (assume ⟨s', hs', hs_sub, as'⟩ ⟨t', ht', ht_sub, at'⟩,
-          infi_le_of_le (set.prod s' t') $
-          infi_le_of_le ⟨⟨as', at'⟩, s', t', hs', ht', rfl⟩ $
+        rcases hs with ⟨s', hs_sub, hs', as'⟩,
+        rcases ht with ⟨t', ht_sub, ht', at'⟩,
+        exact infi_le_of_le (set.prod s' t')
+          (infi_le_of_le ⟨⟨as', at'⟩, s', t', hs', ht', rfl⟩ $
           principal_mono.mpr $ set.prod_mono hs_sub ht_sub)
       end)
     (le_infi $ assume s, le_infi $ assume ⟨hab, s', t', hs', ht', s_eq⟩,
@@ -432,11 +429,11 @@ begin
   rw [is_open_iff_nhds],
   simp [nhds_prod_eq, mem_prod_iff],
   simp [mem_nhds_sets_iff],
-  exact (forall_congr $ assume a, forall_congr $ assume b, forall_congr $ assume h,
-    ⟨assume ⟨u', ⟨u, hu₁, hu₂, hu₃⟩, v', h, ⟨v, hv₁, hv₂, hv₃⟩⟩,
-      ⟨u, hu₁, v, hv₁, hu₃, hv₃, subset.trans (set.prod_mono hu₂ hv₂) h⟩,
-      assume ⟨u, hu₁, v, hv₁, hu₃, hv₃, h⟩,
-      ⟨u, ⟨u, hu₁, subset.refl u, hu₃⟩, v, h, ⟨v, hv₁, subset.refl v, hv₃⟩⟩⟩)
+  exact forall_congr (assume a, ball_congr $ assume b h,
+    ⟨assume ⟨u', ⟨u, us, uo, au⟩, v', ⟨v, vs, vo, bv⟩, h⟩,
+      ⟨u, uo, v, vo, au, bv, subset.trans (set.prod_mono us vs) h⟩,
+      assume ⟨u, uo, v, vo, au, bv, h⟩,
+      ⟨u, ⟨u, subset.refl u, uo, au⟩, v, ⟨v, subset.refl v, vo, bv⟩, h⟩⟩)
 end
 
 lemma closure_prod_eq {s : set α} {t : set β} :

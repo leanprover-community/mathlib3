@@ -33,7 +33,7 @@ le_antisymm
 
 @[simp] lemma lebesgue_length_empty : lebesgue_length ∅ = 0 :=
 have ∅ = Ico 0 (0:ℝ),
-  from set.ext $ by simp [Ico, not_le_iff],
+  from set.ext $ by simp [Ico, not_le],
 by rw [this, lebesgue_length_Ico]; simp [le_refl]
 
 lemma le_lebesgue_length {r : ennreal} {s : set ℝ } (h : ∀a b, a ≤ b → s ≠ Ico a b) :
@@ -45,7 +45,7 @@ lemma lebesgue_length_Ico_le_lebesgue_length_Ico {a₁ b₁ a₂ b₂ : ℝ} (ha
 by_cases
   (assume : b₁ ≤ a₁, by simp [Ico_eq_empty_iff.mpr this])
   (assume : ¬ b₁ ≤ a₁,
-    have h₁ : a₁ ≤ b₁, from le_of_lt $ not_le_iff.mp this,
+    have h₁ : a₁ ≤ b₁, from le_of_lt $ not_le.mp this,
     have h₂ : a₂ ≤ b₂, from le_trans (le_trans ha h₁) hb,
     have b₁ + a₂ ≤ a₁ + (b₂ - a₂) + a₂,
       from calc b₁ + a₂ ≤ b₂ + a₁ : add_le_add hb ha
@@ -83,7 +83,7 @@ have hx_sx : of_real (x - a) ≤ s x,
 have hxM : x ∈ M,
   from ⟨hax, hxb, hx_sx⟩,
 have x = b,
-  from le_antisymm hxb $ not_lt_iff.mp $ assume hxb : x < b,
+  from le_antisymm hxb $ not_lt.mp $ assume hxb : x < b,
   have ∃k, x ∈ Ico (c k) (d k), by simpa using habcd ⟨hxM.left, hxb⟩,
   let ⟨k, hxc, hxd⟩ := this, y := min (d k) b in
   have hxy' : x < y, from lt_min hxd hxb,
@@ -108,7 +108,7 @@ have x = b,
             by simp [h, hxy, hxc, eq, eq₁, eq₂, this, -sub_eq_add_neg, add_sub_cancel'_right, le_refl])
           (assume h : i ≠ k, by simp [h, ennreal.bot_eq_zero];
             from lebesgue_length_Ico_le_lebesgue_length_Ico (le_refl _) (inf_le_inf (le_refl _) hxy)),
-  have ¬ x < y, from not_lt_iff.mpr $ hx.left y ⟨le_trans hax hxy, min_le_right _ _, this⟩,
+  have ¬ x < y, from not_lt.mpr $ hx.left y ⟨le_trans hax hxy, min_le_right _ _, this⟩,
   this hxy',
 have hbM : b ∈ M, from this ▸ hxM,
 calc lebesgue_length (Ico a b) ≤ s b : by simp [hab]; exact hbM.right.right
@@ -195,7 +195,7 @@ end
 lemma lebesgue_Ioo {a b : ℝ} : lebesgue.measure (Ioo a b) = of_real (b - a) :=
 by_cases (assume h : b ≤ a, by simp [h, -sub_eq_add_neg, ennreal.of_real_of_nonpos]) $
 assume : ¬ b ≤ a,
-have h : a < b, from not_le_iff.mp this,
+have h : a < b, from not_le.mp this,
 let s := λn:ℕ, a + (b - a) * (↑(n + 1))⁻¹ in
 have tendsto s at_top (nhds (a + (b - a) * 0)),
   from tendsto_add tendsto_const_nhds $ tendsto_mul tendsto_const_nhds $ tendsto_compose

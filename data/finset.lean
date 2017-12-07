@@ -8,9 +8,6 @@ Finite sets.
 import data.multiset order.boolean_algebra algebra.functions data.sigma.basic
 open multiset subtype nat lattice
 
-local attribute [simp] mul_comm mul_assoc mul_left_comm and.comm and.left_comm and.assoc
-  or.comm or.left_comm or.assoc
-
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 structure finset (α : Type*) :=
@@ -141,7 +138,7 @@ theorem mem_of_mem_insert_of_ne {a b : α} {s : finset α} (h : b ∈ insert a s
 eq_of_veq $ ndinsert_of_mem h
 
 @[simp] theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
-ext.2 $ by simp
+ext.2 $ by simp [or.left_comm]
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext.2 $ by simp
@@ -149,23 +146,23 @@ ext.2 $ by simp
 @[simp] theorem insert_ne_empty (a : α) (s : finset α) : insert a s ≠ ∅ :=
 ne_empty_of_mem (mem_insert_self a s)
 
-theorem insert_subset {a : α} {s t : finset α} : insert a s ⊆ t ↔ s ⊆ t ∧ a ∈ t :=
+theorem insert_subset {a : α} {s t : finset α} : insert a s ⊆ t ↔ a ∈ t ∧ s ⊆ t :=
 by simp [subset_iff, or_imp_distrib, forall_and_distrib]
 
 theorem subset_insert [h : decidable_eq α] (a : α) (s : finset α) : s ⊆ insert a s :=
 λ b, mem_insert_of_mem
 
 theorem insert_subset_insert (a : α) {s t : finset α} (h : s ⊆ t) : insert a s ⊆ insert a t :=
-insert_subset.2 ⟨subset.trans h (subset_insert _ _), mem_insert_self _ _⟩
+insert_subset.2 ⟨mem_insert_self _ _, subset.trans h (subset_insert _ _)⟩
 
 lemma ssubset_iff {s t : finset α} : s ⊂ t ↔ (∃a, a ∉ s ∧ insert a s ⊆ t) :=
 iff.intro
   (assume ⟨h₁, h₂⟩,
     have ∃a, a ∈ t ∧ a ∉ s, by simpa [finset.subset_iff, classical.not_forall] using h₂,
-    let ⟨a, hat, has⟩ := this in ⟨a, has, insert_subset.mpr ⟨h₁, hat⟩⟩)
+    let ⟨a, hat, has⟩ := this in ⟨a, has, insert_subset.mpr ⟨hat, h₁⟩⟩)
   (assume ⟨a, hat, has⟩,
     let ⟨h₁, h₂⟩ := insert_subset.mp has in
-    ⟨h₁, assume h, hat $ h h₂⟩)
+    ⟨h₂, assume h, hat $ h h₁⟩)
 
 lemma ssubset_insert {s : finset α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
 ssubset_iff.mpr ⟨a, h, subset.refl _⟩
@@ -212,11 +209,12 @@ theorem subset_union_left {s₁ s₂ : finset α} : s₁ ⊆ s₁ ∪ s₂ := λ
 
 theorem subset_union_right {s₁ s₂ : finset α} : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
 
-@[simp] theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ := by simp [ext]
+@[simp] theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ := by simp [ext, or_comm]
 
 instance : is_commutative (finset α) (∪) := ⟨union_comm⟩
 
-@[simp] theorem union_assoc (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃ = s₁ ∪ (s₂ ∪ s₃) := by simp [ext]
+@[simp] theorem union_assoc (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃ = s₁ ∪ (s₂ ∪ s₃) :=
+by simp [ext, or_comm, or.left_comm]
 
 instance : is_associative (finset α) (∪) := ⟨union_assoc⟩
 
@@ -224,7 +222,8 @@ instance : is_associative (finset α) (∪) := ⟨union_assoc⟩
 
 instance : is_idempotent (finset α) (∪) := ⟨union_idempotent⟩
 
-theorem union_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∪ (s₂ ∪ s₃) = s₂ ∪ (s₁ ∪ s₃) := ext.2 $ by simp
+theorem union_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∪ (s₂ ∪ s₃) = s₂ ∪ (s₁ ∪ s₃) :=
+ext.2 $ by simp [or_comm, or.left_comm]
 
 theorem union_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃ = (s₁ ∪ s₃) ∪ s₂ := by simp
 
@@ -234,11 +233,11 @@ theorem union_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃
 
 @[simp] theorem empty_union (s : finset α) : ∅ ∪ s = s := by simp [ext]
 
-theorem insert_eq (a : α) (s : finset α) : insert a s = {a} ∪ s := by simp [ext]
+theorem insert_eq (a : α) (s : finset α) : insert a s = {a} ∪ s := by simp [ext, or_comm, or.left_comm]
 
-@[simp] theorem insert_union (a : α) (s t : finset α) : insert a s ∪ t = insert a (s ∪ t) := by simp [ext]
+@[simp] theorem insert_union (a : α) (s t : finset α) : insert a s ∪ t = insert a (s ∪ t) := by simp [ext, or_comm, or.left_comm]
 
-@[simp] theorem union_insert (a : α) (s t : finset α) : s ∪ insert a t = insert a (s ∪ t) := by simp [ext]
+@[simp] theorem union_insert (a : α) (s t : finset α) : s ∪ insert a t = insert a (s ∪ t) := by simp [ext, or.left_comm]
 
 /- inter -/
 
@@ -265,13 +264,13 @@ theorem inter_subset_right {s₁ s₂ : finset α} : s₁ ∩ s₂ ⊆ s₂ := �
 theorem subset_inter {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₁ ⊆ s₃ → s₁ ⊆ s₂ ∩ s₃ :=
 by simp [subset_iff] {contextual:=tt}; finish
 
-@[simp] theorem inter_comm (s₁ s₂ : finset α) : s₁ ∩ s₂ = s₂ ∩ s₁ := ext.2 $ by simp
+@[simp] theorem inter_comm (s₁ s₂ : finset α) : s₁ ∩ s₂ = s₂ ∩ s₁ := ext.2 $ by simp [and_comm]
 
-@[simp] theorem inter_assoc (s₁ s₂ s₃ : finset α) : (s₁ ∩ s₂) ∩ s₃ = s₁ ∩ (s₂ ∩ s₃) := ext.2 $ by simp
+@[simp] theorem inter_assoc (s₁ s₂ s₃ : finset α) : (s₁ ∩ s₂) ∩ s₃ = s₁ ∩ (s₂ ∩ s₃) := ext.2 $ by simp [and_comm, and.left_comm]
 
-@[simp] theorem inter_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∩ (s₂ ∩ s₃) = s₂ ∩ (s₁ ∩ s₃) := ext.2 $ by simp
+@[simp] theorem inter_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∩ (s₂ ∩ s₃) = s₂ ∩ (s₁ ∩ s₃) := ext.2 $ by simp [and.left_comm]
 
-@[simp] theorem inter_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∩ s₂) ∩ s₃ = (s₁ ∩ s₃) ∩ s₂ := ext.2 $ by simp
+@[simp] theorem inter_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∩ s₂) ∩ s₃ = (s₁ ∩ s₃) ∩ s₂ := ext.2 $ by simp [and.left_comm]
 
 @[simp] theorem inter_self (s : finset α) : s ∩ s = s := ext.2 $ by simp
 
@@ -292,7 +291,7 @@ by rw [inter_comm, insert_inter_of_mem h, inter_comm]
 
 @[simp] theorem insert_inter_of_not_mem {s₁ s₂ : finset α} {a : α} (h : a ∉ s₂) :
   insert a s₁ ∩ s₂ = s₁ ∩ s₂ :=
-ext.2 $ assume a', by by_cases a' = a with h'; simp [mem_inter, mem_insert, h, h']
+ext.2 $ assume a', by by_cases a' = a with h'; simp [mem_inter, mem_insert, h, h', and_comm]
 
 @[simp] theorem inter_insert_of_not_mem {s₁ s₂ : finset α} {a : α} (h : a ∉ s₁) :
   s₁ ∩ insert a s₂ = s₁ ∩ s₂ :=
@@ -439,7 +438,7 @@ def filter (p : α → Prop) [decidable_pred p] (s : finset α) : finset α :=
 
 theorem filter_filter (s : finset α) :
   (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
-ext.2 $ assume a, by simp
+ext.2 $ assume a, by simp [and_comm, and.left_comm]
 
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext.2 $ assume a, by simp
@@ -447,16 +446,16 @@ ext.2 $ assume a, by simp
 variable [decidable_eq α]
 theorem filter_union (s₁ s₂ : finset α) :
   (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=
-ext.2 $ by simp [and_or_distrib_left]
-
-theorem filter_or (s : finset α) : s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=
 ext.2 $ by simp [or_and_distrib_right]
 
+theorem filter_or (s : finset α) : s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=
+ext.2 $ by simp [and_or_distrib_left]
+
 theorem filter_and (s : finset α) : s.filter (λ a, p a ∧ q a) = s.filter p ∩ s.filter q :=
-ext.2 $ by simp
+ext.2 $ by simp [and_comm, and.left_comm]
 
 theorem filter_not (s : finset α) : s.filter (λ a, ¬ p a) = s \ s.filter p :=
-ext.2 $ by simpa using λ a, and_congr_right $
+ext.2 $ by simpa [and_comm] using λ a, and_congr_right $
   λ h : a ∈ s, (imp_iff_right h).symm.trans imp_not_comm
 
 theorem sdiff_eq_filter (s₁ s₂ : finset α) :
@@ -491,7 +490,7 @@ def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 finset.induction_on s ⟨0, by simp⟩ $ λ a s ha ⟨n, hn⟩,
 ⟨max (a + 1) n, insert_subset.2
-  ⟨subset.trans hn (by simp [le_max_right]), by simpa using le_max_left (a+1) n⟩⟩
+  ⟨by simpa using le_max_left (a+1) n, subset.trans hn (by simp [le_max_right])⟩⟩
 
 end range
 
@@ -502,7 +501,7 @@ by simp
 theorem exists_mem_insert [d : decidable_eq α]
     (a : α) (s : finset α) (p : α → Prop) :
   (∃ x, x ∈ insert a s ∧ p x) ↔ p a ∨ (∃ x, x ∈ s ∧ p x) :=
-by simp [and_or_distrib_left, exists_or_distrib]
+by simp [or_and_distrib_right, exists_or_distrib]
 
 theorem forall_mem_empty_iff (p : α → Prop) : (∀ x, x ∈ (∅ : finset α) → p x) ↔ true :=
 by simp
@@ -579,16 +578,16 @@ by simp [subset_def, map_subset_map h]
 
 theorem image_filter {p : β → Prop} [decidable_pred p] :
   (s.image f).filter p = (s.filter (p ∘ f)).image f :=
-ext.2 $ λ b, by simp; rw ← exists_and_distrib_left; exact
+ext.2 $ λ b, by simp [and_comm]; rw ← exists_and_distrib_left; exact
 exists_congr (λ a, and.left_comm.trans $ and_congr_right $ λ e, by simp [e.symm])
 
 theorem image_union [decidable_eq α] {f : α → β} (s₁ s₂ : finset α) : (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f :=
-ext.2 $ by simp [mem_image, and_or_distrib_left, exists_or_distrib]
+ext.2 $ by simp [mem_image, or_and_distrib_right, exists_or_distrib]
 
 theorem image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀x y, f x = f y → x = y) : (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
 ext.2 $ by simp [mem_image]; exact λ b,
-⟨λ ⟨a, e, m₁, m₂⟩, ⟨⟨a, e, m₁⟩, ⟨a, e, m₂⟩⟩,
- λ ⟨⟨a, e₁, m₁⟩, ⟨a', e₂, m₂⟩⟩, ⟨a, e₁, m₁, hf _ _ (e₂.trans e₁.symm) ▸ m₂⟩⟩.
+⟨λ ⟨a, ⟨m₁, m₂⟩, e⟩, ⟨⟨a, m₁, e⟩, ⟨a, m₂, e⟩⟩,
+ λ ⟨⟨a, m₁, e₁⟩, ⟨a', m₂, e₂⟩⟩, ⟨a, ⟨m₁, hf _ _ (e₂.trans e₁.symm) ▸ m₂⟩, e₁⟩⟩.
 
 @[simp] theorem image_singleton [decidable_eq α] (f : α → β) (a : α) : (singleton a).image f = singleton (f a) :=
 ext.2 $ by simp [mem_image, eq_comm]
@@ -685,7 +684,7 @@ protected def bind (s : finset α) (t : α → finset β) : finset β := (s.1.bi
 by simp [mem_def]
 
 @[simp] theorem bind_insert [decidable_eq α] {a : α} : (insert a s).bind t = t a ∪ s.bind t :=
-ext.2 $ by simp [and_or_distrib_left, exists_or_distrib]
+ext.2 $ by simp [or_and_distrib_right, exists_or_distrib]
 
 theorem image_bind [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
   (s.image f).bind t = s.bind (λa, t (f a)) :=
@@ -722,7 +721,7 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 
 theorem product_eq_bind [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
  s.product t = s.bind (λa, t.image $ λb, (a, b)) :=
-ext.2 $ by simp
+ext.2 $ by simp [and.left_comm]
 
 end prod
 
@@ -740,7 +739,7 @@ by simp [subset_iff, mem_sigma] {contextual := tt}
 
 theorem sigma_eq_bind [decidable_eq α] [∀a, decidable_eq (σ a)] (s : finset α) (t : Πa, finset (σ a)) :
  s.sigma t = s.bind (λa, (t a).image $ λb, ⟨a, b⟩) :=
-ext.2 $ by simp
+ext.2 $ by simp [and.left_comm]
 
 end sigma
 

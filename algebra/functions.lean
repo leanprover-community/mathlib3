@@ -35,6 +35,21 @@ lemma lt_max_iff : a < max b c ↔ a < b ∨ a < c :=
     | or.inr h := lt_of_lt_of_le h (le_max_right _ _)
     end)⟩
 
+theorem le_max_left_iff_true (a b : α) : a ≤ max a b ↔ true :=
+iff_true_intro (le_max_left a b)
+
+theorem le_max_right_iff_true (a b : α) : b ≤ max a b ↔ true :=
+iff_true_intro (le_max_right a b)
+
+theorem min_right_comm (a b c : α) : min (min a b) c = min (min a c) b :=
+right_comm min min_comm min_assoc a b c
+
+theorem max.left_comm (a b c : α) : max a (max b c) = max b (max a c) :=
+left_comm max max_comm max_assoc a b c
+
+theorem max.right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
+right_comm max max_comm max_assoc a b c
+
 lemma max_min_distrib_left : max a (min b c) = min (max a b) (max a c) :=
 begin
   apply le_antisymm (le_min

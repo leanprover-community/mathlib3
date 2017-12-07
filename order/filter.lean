@@ -11,11 +11,7 @@ open lattice set
 universes u v w x y
 
 open set classical
-local attribute [instance] decidable_inhabited prop_decidable
-
-local attribute [simp] and.comm and.assoc and.left_comm
-
--- should be handled by implies_true_iff
+local attribute [instance] prop_decidable
 
 namespace lattice
 variables {α : Type u} {ι : Sort v} [complete_lattice α]
@@ -52,12 +48,10 @@ def directed_on (s : set α) := ∀x ∈ s, ∀y ∈ s, ∃z ∈ s, z ≼ x ∧ 
 lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊇) f)
   (h : ∀x, directed_on r (f x)) : directed_on r (⋃x, f x) :=
 by simp [directed_on]; exact
-  assume a₁ b₁ fb₁ a₂ b₂ fb₂,
-  let
-    ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
-    ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂)
-  in
-    ⟨x, xa₁, xa₂, ⟨z, xf⟩⟩
+assume a₁ b₁ fb₁ a₂ b₂ fb₂,
+let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
+    ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂) in
+⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
 
 def upwards (s : set α) := ∀{x y}, x ∈ s → x ≼ y → y ∈ s
 
@@ -642,26 +636,20 @@ calc map m (⨅i (h : p i), f i) = map m (⨅i:subtype p, f i.val) : by simp [in
 
 lemma map_inf' {f g : filter α} {m : α → β} {t : set α} (htf : t ∈ f.sets) (htg : t ∈ g.sets)
   (h : ∀x∈t, ∀y∈t, m x = m y → x = y) : map m (f ⊓ g) = map m f ⊓ map m g :=
-le_antisymm
-  (le_inf (map_mono inf_le_left) (map_mono inf_le_right))
-  (assume s hs,
-  begin
-    simp [map, mem_inf_sets] at hs,
-    simp [map, mem_inf_sets],
-    exact (let ⟨t₁, h₁, t₂, h₂, hs⟩ := hs in
-      have m '' (t₁ ∩ t) ∩ m '' (t₂ ∩ t) ⊆ s,
-      begin
-        rw [image_inter_on],
-        refine image_subset_iff.2 _,
-        exact assume x ⟨⟨h₁, _⟩, h₂, _⟩, hs ⟨h₁, h₂⟩,
-        exact assume x ⟨_, hx⟩ y ⟨_, hy⟩, h x hx y hy
-      end,
-      ⟨m '' (t₁ ∩ t),
-        f.upwards_sets (inter_mem_sets h₁ htf) $ image_subset_iff.mp $ subset.refl _,
-        m '' (t₂ ∩ t),
-        this,
-        g.upwards_sets (inter_mem_sets h₂ htg) $ image_subset_iff.mp $ subset.refl _⟩)
-  end)
+begin
+  refine le_antisymm
+    (le_inf (map_mono inf_le_left) (map_mono inf_le_right))
+    (assume s hs, _),
+  simp [map, mem_inf_sets] at hs ⊢,
+  rcases hs with ⟨t₁, h₁, t₂, h₂, hs⟩,
+  refine ⟨m '' (t₁ ∩ t), _, m '' (t₂ ∩ t), _, _⟩,
+  { exact f.upwards_sets (inter_mem_sets h₁ htf) (image_subset_iff.mp $ subset.refl _) },
+  { exact g.upwards_sets (inter_mem_sets h₂ htg) (image_subset_iff.mp $ subset.refl _) },
+  { rw [image_inter_on],
+    { refine image_subset_iff.2 _,
+      exact λ x ⟨⟨h₁, _⟩, h₂, _⟩, hs ⟨h₁, h₂⟩ },
+    { exact λ x ⟨_, hx⟩ y ⟨_, hy⟩, h x hx y hy } }
+end
 
 lemma map_inf {f g : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
   map m (f ⊓ g) = map m f ⊓ map m g :=
@@ -833,12 +821,12 @@ lemma vmap_lift_eq {m : γ → β} (hg : monotone g) :
   vmap m (f.lift g) = f.lift (vmap m ∘ g) :=
 have monotone (vmap m ∘ g),
   from monotone_comp hg monotone_vmap,
-filter_eq $ set.ext $
-begin
+filter_eq $ set.ext begin
   simp [vmap, mem_lift_iff, hg, @mem_lift_iff _ _ f _ this],
-  simp [vmap, function.comp],
-  exact assume s, ⟨assume ⟨t₁, hs, t₂, ht, ht₁⟩, ⟨t₂, ht, t₁, hs, ht₁⟩,
-    assume ⟨t₂, ht, t₁, hs, ht₁⟩, ⟨t₁, hs, t₂, ht, ht₁⟩⟩
+  simp [vmap, (∘)],
+  exact λ s,
+   ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩,
+    λ ⟨a, ha, b, hb, hs⟩, ⟨b, ⟨a, ha, hb⟩, hs⟩⟩
 end
 
 theorem vmap_lift_eq2 {m : β → α} {g : set β → filter γ} (hg : monotone g) :
@@ -1110,8 +1098,8 @@ filter_eq $ set.ext $ assume s,
   begin
     simp [mem_prod_iff, mem_inf_sets],
     exact ⟨assume ⟨t₁, ht₁, t₂, ht₂, h⟩,
-        ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, h, ⟨t₂, ht₂, subset.refl _⟩⟩,
-      assume ⟨t₁, ⟨s₁, hs₁, hts₁⟩, t₂, h, ⟨s₂, hs₂, hts₂⟩⟩,
+        ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, ⟨t₂, ht₂, subset.refl _⟩, h⟩,
+      assume ⟨t₁, ⟨s₁, hs₁, hts₁⟩, t₂, ⟨s₂, hs₂, hts₂⟩, h⟩,
       ⟨s₁, hs₁, s₂, hs₂, subset.trans (inter_subset_inter hts₁ hts₂) h⟩⟩
   end
 
@@ -1278,19 +1266,17 @@ begin
   have hs' : s ∈ (complete_lattice.Inf {a : filter α | ∃ (i : ι), a = f i}).sets := hs,
   rw [Inf_sets_eq_finite] at hs',
   simp at hs',
-  rcases hs' with ⟨is, fin_is, hs, his⟩, revert his s,
+  rcases hs' with ⟨is, h, hs⟩, cases h with fin_is his, revert his s,
   refine finite.induction_on fin_is _ (λ fi is fi_ne_is fin_is ih, _); intros his s hs' hs,
   { simp at hs, subst hs, assumption },
   { simp at hs,
-    cases hs with s₁ hs, cases hs with hs₁ hs, cases hs with s₂ hs, cases hs with hs hs₂,
-    have hi : ∃i, fi = f i := his (mem_insert _ _),
-    cases hi with i hi,
-    exact have hs₁ : s₁ ∈ (f i).sets, from hi ▸ hs₁,
+    rcases hs with ⟨s₁, hs₁, s₂, hs₂, hs⟩,
+    rcases (his (mem_insert _ _) : ∃i, fi = f i) with ⟨i, rfl⟩,
     have hs₂ : p s₂, from
       have his : is ⊆ {x | ∃i, x = f i}, from assume i hi, his $ mem_insert_of_mem _ hi,
       have infi f ≤ Inf is, from Inf_le_Inf his,
       ih his (this hs₂) hs₂,
-    show p s, from upw hs $ ins hs₁ hs₂ }
+    exact upw hs (ins hs₁ hs₂) }
 end
 
 lemma lift_infi {f : ι → filter α} {g : set α → filter β}
@@ -1306,7 +1292,7 @@ le_antisymm
         (assume i s₁ s₂ hs₁ hs₂,
           @hg s₁ s₂ ▸ le_inf (infi_le_of_le i $ infi_le_of_le s₁ $ infi_le _ hs₁) hs₂)
         (assume s₁ s₂ hs₁ hs₂, le_trans hs₂ $ g_mono hs₁),
-    by rw [lift_sets_eq g_mono]; simp; exact assume t hs ht, this t ht hs)
+    by rw [lift_sets_eq g_mono]; simp; exact assume t ht hs, this t ht hs)
 
 lemma lift_infi' {f : ι → filter α} {g : set α → filter β}
   (hι : nonempty ι) (hf : directed (≤) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
@@ -1316,7 +1302,7 @@ le_antisymm
   begin
     rw [lift_sets_eq hg],
     simp [infi_sets_eq hf hι],
-    exact assume t hs i ht, mem_infi_sets i $ mem_lift ht hs
+    exact assume t i ht hs, mem_infi_sets i $ mem_lift ht hs
   end)
 
 lemma lift'_infi {f : ι → filter α} {g : set α → set β}
@@ -1375,8 +1361,7 @@ tendsto_infi $ assume s, tendsto_infi' (s.image i) $ tendsto_principal_principal
 /- ultrafilter -/
 
 section ultrafilter
-open classical zorn
-local attribute [instance] prop_decidable
+open zorn
 
 variables {f g : filter α}
 
@@ -1389,7 +1374,7 @@ lemma ultrafilter_pure {a : α} : ultrafilter (pure a) :=
   show ∀s∈g.sets, {a} ⊆ s, from classical.by_contradiction $
   begin
     simp [classical.not_forall, not_imp],
-    exact assume s hna hs,
+    exact assume s hs hna,
       have {a} ∩ s ∈ g.sets, from inter_mem_sets ‹{a} ∈ g.sets› hs,
       have ∅ ∈ g.sets, from g.upwards_sets this $
         assume x ⟨hxa, hxs⟩, begin simp at hxa; simp [hxa] at hxs, exact hna hxs end,
@@ -1443,8 +1428,8 @@ lemma mem_of_finite_sUnion_ultrafilter {s : set (set α)} (hf : ultrafilter f) (
 finite.induction_on hs (by simp [empty_in_sets_eq_bot, hf.left]) $
 λ t s' ht' hs' ih, by simp; exact
 assume h, (mem_or_mem_of_ultrafilter hf h).elim
-  (assume : t ∈ f.sets, ⟨t, this, or.inl rfl⟩)
-  (assume h, let ⟨t, hts', ht⟩ := ih h in ⟨t, ht, or.inr hts'⟩)
+  (assume : t ∈ f.sets, ⟨t, or.inl rfl, this⟩)
+  (assume h, let ⟨t, hts', ht⟩ := ih h in ⟨t, or.inr hts', ht⟩)
 
 lemma mem_of_finite_Union_ultrafilter {is : set β} {s : β → set α}
   (hf : ultrafilter f) (his : finite is) (h : (⋃i∈is, s i) ∈ f.sets) : ∃i∈is, s i ∈ f.sets :=

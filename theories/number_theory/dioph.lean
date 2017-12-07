@@ -5,9 +5,6 @@ Authors: Mario Carneiro
 -/
 import theories.number_theory.pell data.set data.pfun
 
-local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
-  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
-
 universe u
 
 open nat function
@@ -328,7 +325,7 @@ instance : comm_ring (poly α) := by refine
   zero := 0,
   neg  := has_neg.neg,
   mul  := (*),
-  one  := 1, .. }; {intros, exact ext (λx, by simp [left_distrib])}
+  one  := 1, .. }; {intros, exact ext (λx, by simp [mul_add, mul_left_comm, mul_comm])}
 
 def induction {C : poly α → Prop}
   (H1 : ∀i, C (proj i)) (H2 : ∀n, C (const n))

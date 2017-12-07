@@ -9,7 +9,7 @@ import algebra.big_operators algebra.group_power
   analysis.metric_space analysis.topology.infinite_sum
 noncomputable theory
 open classical set finset function filter
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] prop_decidable
 
 local infix ` ^ ` := monoid.pow
 

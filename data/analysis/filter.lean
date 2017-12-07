@@ -8,9 +8,6 @@ Computational realization of filters (experimental).
 import order.filter
 open set filter
 
-local attribute [simp] and.comm and.assoc and.left_comm or.comm or.assoc or.left_comm
-  add_comm add_assoc add_left_comm mul_comm mul_assoc mul_left_comm
-
 structure cfilter (α σ : Type*) [partial_order α] :=
 (f : σ → α)
 (pt : σ)
@@ -128,8 +125,8 @@ protected def vmap (m : α → β) {f : filter β} (F : f.realizer) : (vmap m f)
   inf_le_left  := λ a b, preimage_mono (F.F.inf_le_left _ _),
   inf_le_right := λ a b, preimage_mono (F.F.inf_le_right _ _) },
 filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_vmap]; exact
-⟨λ ⟨s, h⟩, ⟨_, h, s, subset.refl _⟩,
- λ ⟨y, h, s, h₂⟩, ⟨s, subset.trans (preimage_mono h₂) h⟩⟩⟩
+⟨λ ⟨s, h⟩, ⟨_, ⟨s, subset.refl _⟩, h⟩,
+ λ ⟨y, ⟨s, h⟩, h₂⟩, ⟨s, subset.trans (preimage_mono h) h₂⟩⟩⟩
 
 protected def sup {f g : filter α} (F : f.realizer) (G : g.realizer) : (f ⊔ g).realizer := ⟨F.σ × G.σ,
 { f            := λ ⟨s, t⟩, F.F s ∪ G.F t,
@@ -149,8 +146,8 @@ protected def inf {f g : filter α} (F : f.realizer) (G : g.realizer) : (f ⊓ g
   inf_le_left  := λ ⟨a, a'⟩ ⟨b, b'⟩, inter_subset_inter (F.F.inf_le_left _ _) (G.F.inf_le_left _ _),
   inf_le_right := λ ⟨a, a'⟩ ⟨b, b'⟩, inter_subset_inter (F.F.inf_le_right _ _) (G.F.inf_le_right _ _) },
 filter_eq $ set.ext $ λ x, by cases F; cases G; substs f g; simp [cfilter.to_filter]; exact
-⟨λ ⟨s, t, h⟩, ⟨_, ⟨s, subset.refl _⟩, _, h, ⟨t, subset.refl _⟩⟩,
- λ ⟨y, ⟨s, h₁⟩, z, h, ⟨t, h₂⟩⟩, ⟨s, t, subset.trans (inter_subset_inter h₁ h₂) h⟩⟩⟩
+⟨λ ⟨s, t, h⟩, ⟨_, ⟨s, subset.refl _⟩, _, ⟨t, subset.refl _⟩, h⟩,
+ λ ⟨y, ⟨s, h₁⟩, z, ⟨t, h₂⟩, h⟩, ⟨s, t, subset.trans (inter_subset_inter h₁ h₂) h⟩⟩⟩
 
 protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset α,
 { f            := λ s, {a | a ∉ s},
@@ -178,9 +175,9 @@ protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : 
           x ∈ ⋃ i (H : i ∈ F.F b), ((G i).F) (f' i H), by simp; exact
     λ i h₁ h₂, ⟨i, F.F.inf_le_right _ _ h₁, (G i).F.inf_le_right _ _ h₂⟩ },
 filter_eq $ set.ext $ λ x, by cases F with _ F _; subst f; simp [cfilter.to_filter, mem_bind_sets]; exact
-⟨λ ⟨s, f, h⟩, ⟨F s, λ i H, (G i).mem_sets.2
-   ⟨f i H, λ a h', h ⟨_, ⟨i, rfl⟩, _, ⟨H, rfl⟩, h'⟩⟩, s, subset.refl _⟩,
- λ ⟨y, f, s, h⟩,
+⟨λ ⟨s, f, h⟩, ⟨F s, ⟨s, subset.refl _⟩, λ i H, (G i).mem_sets.2
+   ⟨f i H, λ a h', h ⟨_, ⟨i, rfl⟩, _, ⟨H, rfl⟩, h'⟩⟩⟩,
+ λ ⟨y, ⟨s, h⟩, f⟩,
   let ⟨f', h'⟩ := classical.axiom_of_choice (λ i:F s, (G i).mem_sets.1 (f i (h i.2))) in
   ⟨s, λ i h, f' ⟨i, h⟩, λ a ⟨_, ⟨i, rfl⟩, _, ⟨H, rfl⟩, m⟩, h' ⟨_, H⟩ m⟩⟩⟩
 

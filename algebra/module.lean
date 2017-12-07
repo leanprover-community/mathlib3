@@ -95,7 +95,7 @@ eq_neg_of_add_eq_zero $ by rw [←hf.add]; simp [hf.zero]
 @[simp] lemma sub (x y : β) : f (x - y) = f x - f y :=
 by simp [hf.neg, hf.add]
 
-@[simp] lemma sum {ι : Type w} {t : finset ι} {g : ι → β} : f (t.sum g) = t.sum (λi, f (g i)) :=
+@[simp] lemma sum {ι : Type x} {t : finset ι} {g : ι → β} : f (t.sum g) = t.sum (λi, f (g i)) :=
 (finset.sum_hom f hf.zero hf.add).symm
 
 end

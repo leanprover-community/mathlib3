@@ -180,6 +180,9 @@ instance : has_lift (finset α) (set α) := ⟨to_set⟩
 @[simp] lemma mem_coe : a ∈ (↑s : set α) = (a ∈ s) :=
 rfl
 
+lemma finite_to_set (s : finset α) : set.finite (↑s : set α) :=
+set.finite_mem_finset s
+
 @[simp] lemma coe_eq_coe : ((↑s : set α) = ↑t) ↔ s = t :=
 by simp [finset.ext, set.set_eq_def]
 
@@ -213,7 +216,11 @@ by simp [set.set_eq_def]
 @[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
 by simp [set.set_eq_def]
 
-@[simp] lemma coe_filter {p : α → Prop} [decidable_pred p] : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
+@[simp] lemma coe_filter {p : α → Prop} [decidable_pred p] :
+  ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
 by simp [set.set_eq_def]
 
 end finset

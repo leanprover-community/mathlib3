@@ -106,6 +106,17 @@ by refine {..}; simp [(∘), hg.add, hf.add, hg.smul, hf.smul]
 lemma id : is_linear_map (id : β → β) :=
 by refine {..}; simp
 
+lemma inverse {f : γ → β} {g : β → γ}
+  (hf : is_linear_map f) (h₁ : left_inverse g f) (h₂ : right_inverse g f): is_linear_map g :=
+⟨assume x y,
+  have g (f (g (x + y))) = g (f (g x + g y)),
+    by rw [h₂ (x + y), hf.add, h₂ x, h₂ y],
+  by rwa [h₁ (g (x + y)), h₁ (g x + g y)] at this,
+assume a b,
+  have g (f (g (a • b))) = g (f (a • g b)),
+    by rw [h₂ (a • b), hf.smul, h₂ b],
+  by rwa [h₁ (g (a • b)), h₁ (a • g b)] at this ⟩
+
 lemma map_zero : is_linear_map (λb, 0 : β → γ) :=
 by refine {..}; simp
 
@@ -157,6 +168,11 @@ lemma sub (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := add hx (neg hy)
 lemma sum {ι : Type w} [decidable_eq ι] {t : finset ι} {f : ι → β} :
   (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
 finset.induction_on t (by simp [zero]) (by simp [add] {contextual := tt})
+
+lemma smul_ne_0 {a : α} {b : β} (h : a ≠ 0 → b ∈ p) : a • b ∈ p :=
+classical.by_cases
+  (assume : a = 0, by simp [this, zero])
+  (assume : a ≠ 0, by simp [h this, smul])
 
 instance single_zero : is_submodule ({0} : set β) :=
 by refine {..}; by simp {contextual := tt}

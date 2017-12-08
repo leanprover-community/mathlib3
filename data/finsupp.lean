@@ -472,8 +472,7 @@ private lemma right_distrib (a b c : α →₀ β) : (a + b) * c = a * c + b * c
 by simp [mul_def, sum_add_index, add_mul]
 
 def to_semiring : semiring (α →₀ β) :=
-{ finsupp.add_comm_monoid with
-  one       := 1,
+{ one       := 1,
   mul       := (*),
   one_mul   := assume f, by simp [mul_def, one_def, sum_single_index],
   mul_one   := assume f, by simp [mul_def, one_def, sum_single_index],
@@ -483,30 +482,31 @@ def to_semiring : semiring (α →₀ β) :=
     by simp [mul_def, sum_sum_index, sum_zero_index, sum_add_index, sum_single_index,
         add_mul, mul_add, mul_assoc],
   left_distrib  := left_distrib,
-  right_distrib := right_distrib }
+  right_distrib := right_distrib,
+  .. finsupp.add_comm_monoid }
 
 end
 
 local attribute [instance] to_semiring
 
 def to_comm_semiring [add_comm_monoid α] [comm_semiring β] : comm_semiring (α →₀ β) :=
-{ finsupp.to_semiring with
-  mul_comm := assume f g,
+{ mul_comm := assume f g,
   begin
     simp [mul_def, finsupp.sum, mul_comm],
     rw [finset.sum_comm],
     simp
-  end }
+  end,
+  .. finsupp.to_semiring }
 
 local attribute [instance] to_comm_semiring
 
 def to_ring [add_monoid α] [ring β] : ring (α →₀ β) :=
-{ finsupp.to_semiring with
-  neg := has_neg.neg,
-  add_left_neg := add_left_neg }
+{ neg := has_neg.neg,
+  add_left_neg := add_left_neg,
+  .. finsupp.to_semiring }
 
 def to_comm_ring [add_comm_monoid α] [comm_ring β] : comm_ring (α →₀ β) :=
-{ finsupp.to_ring with mul_comm := mul_comm }
+{ mul_comm := mul_comm, .. finsupp.to_ring}
 
 lemma single_mul_single [has_add α] [semiring β] {a₁ a₂ : α} {b₁ b₂ : β}:
   single a₁ b₁ * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=

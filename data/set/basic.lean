@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
 import tactic.finish
+open function
 
 namespace set
 universes u v w x
@@ -595,6 +596,12 @@ theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ f '' s = ∃ x
 
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
 ⟨_, h, rfl⟩
+
+lemma mem_image_of_injective {f : α → β} {a : α} {s : set α} (hf : injective f) :
+  f a ∈ f '' s ↔ a ∈ s :=
+iff.intro
+  (assume ⟨b, hb, eq⟩, (hf eq) ▸ hb)
+  (assume h, mem_image_of_mem _ h)
 
 theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
   (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=

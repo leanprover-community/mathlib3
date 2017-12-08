@@ -61,6 +61,9 @@ def support (f : α →₀ β) : finset α := f.finite_supp.to_finset
 @[simp] lemma mem_support_iff (f : α →₀ β) {a : α} : a ∈ f.support ↔ f a ≠ 0 :=
 by simp [finsupp.support]
 
+lemma support_subset_iff {s : set α} {f : α →₀ β} : ↑f.support ⊆ s ↔ (∀a∉s, f a = 0) :=
+by simp [set.subset_def]; exact forall_congr (assume a, not_imp_comm)
+
 @[simp] lemma support_zero : (0 : α →₀ β).support = ∅ :=
 by simp [finset.ext]
 
@@ -135,6 +138,23 @@ begin
   simp [hf] {contextual := tt}
 end
 
+section filter
+variables [has_zero β] {p : α → Prop} {f : α →₀ β}
+
+def filter (p : α → Prop) (f : α →₀ β) : α →₀ β :=
+⟨λa, if p a then f a else 0, finite_subset f.2 $ assume a, by by_cases p a; simp *; exact id⟩
+
+@[simp] lemma filter_apply_pos {a : α} (h : p a) : f.filter p a = f a :=
+if_pos h
+
+@[simp] lemma filter_apply_neg {a : α} (h : ¬ p a) : f.filter p a = 0 :=
+if_neg h
+
+@[simp] lemma support_filter : (f.filter p).support = f.support.filter p :=
+finset.ext.mpr $ assume a, by by_cases p a; simp *
+
+end filter
+
 def sum {γ : Type w} [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 f.support.sum (λa, g a (f a))
 
@@ -174,6 +194,10 @@ begin
   { rw [h, add_apply, single_eq_same, single_eq_same, single_eq_same] },
   { rw [add_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, zero_add] }
 end
+
+lemma filter_pos_add_filter_neg [add_monoid β] {f : α →₀ β} {p : α → Prop} :
+  f.filter p + f.filter (λa, ¬ p a) = f :=
+finsupp.ext $ assume a, by by_cases p a; simp *
 
 instance [add_monoid β] : add_monoid (α →₀ β) :=
 { add_monoid .

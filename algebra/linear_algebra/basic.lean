@@ -208,6 +208,46 @@ have l = 0,
 have l 0 = 1, from finsupp.single_eq_same,
 by rw [‹l = 0›] at this; simp * at *
 
+lemma linear_independent_union {s t : set β}
+  (hs : linear_independent s) (ht : linear_independent t) (hst : span s ∩ span t = {0}) :
+  linear_independent (s ∪ t) :=
+(zero_ne_one_or_forall_eq_0 α).elim
+  (assume ne l hl eq0,
+    let ls := l.filter $ λb, b ∈ s, lt := l.filter $ λb, b ∈ t in
+    have hls : ↑ls.support ⊆ s, by simp [ls, subset_def],
+    have hlt : ↑lt.support ⊆ t, by simp [ls, subset_def],
+    have lt.sum (λb a, a • b) ∈ span t,
+      from is_submodule.sum $ assume b hb, is_submodule.smul _ $ subset_span $ hlt hb,
+    have l = ls + lt,
+      from
+      have ∀b, b ∈ s → b ∉ t,
+        from assume b hbs hbt,
+        have b ∈ span s ∩ span t, from ⟨subset_span hbs, subset_span hbt⟩,
+        have b = 0, by rw [hst] at this; simp * at *,
+        zero_not_mem_of_linear_independent ne hs $ this ▸ hbs,
+      have lt = l.filter (λb, b ∉ s),
+        from finsupp.ext $ assume b, by by_cases b ∈ t; by_cases b ∈ s; simp * at *,
+      by rw [this]; exact finsupp.filter_pos_add_filter_neg.symm,
+    have ls.sum (λb a, a • b) + lt.sum (λb a, a • b) = l.sum (λb a, a • b),
+      by rw [this, finsupp.sum_add_index]; simp [add_smul],
+    have ls_eq_neg_lt : ls.sum (λb a, a • b) = - lt.sum (λb a, a • b),
+      from eq_of_sub_eq_zero $ by simp [this, eq0],
+    have ls_sum_eq : ls.sum (λb a, a • b) = 0,
+      from
+      have - lt.sum (λb a, a • b) ∈ span t,
+        from is_submodule.neg $ is_submodule.sum $
+          assume b hb, is_submodule.smul _ $ subset_span $ hlt hb,
+      have ls.sum (λb a, a • b) ∈ span s ∩ span t,
+        from ⟨is_submodule.sum $ assume b hb, is_submodule.smul _ $ subset_span $ hls hb,
+          ls_eq_neg_lt.symm ▸ this⟩,
+      by rw [hst] at this; simp * at *,
+    have ls = 0, from hs _ (finsupp.support_subset_iff.mp hls) ls_sum_eq,
+    have lt_sum_eq : lt.sum (λb a, a • b) = 0,
+      from eq_of_neg_eq_neg $ by rw [←ls_eq_neg_lt, ls_sum_eq]; simp,
+    have lt = 0, from ht _ (finsupp.support_subset_iff.mp hlt) lt_sum_eq,
+    by simp [‹l = ls + lt›, ‹ls = 0›, ‹lt = 0›])
+  (assume eq_0 l _ _, finsupp.ext $ assume b, eq_0 _)
+
 lemma linear_independent_Union_of_directed {s : set (set β)} (hs : ∀a∈s, ∀b∈s, ∃c∈s, a ∪ b ⊆ c)
   (h : ∀a∈s, linear_independent a) : linear_independent (⋃₀s) :=
 assume l hl eq,

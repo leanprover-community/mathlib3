@@ -133,8 +133,8 @@ attribute [to_additive neg_add] mul_inv
 
 end pending_1857
 
-universe variable u
-variable {α : Type u}
+universe u
+variables {α : Type u}
 
 @[simp, to_additive add_left_inj]
 theorem mul_left_inj [left_cancel_semigroup α] {a b c : α} : a * b = a * c ↔ b = c :=

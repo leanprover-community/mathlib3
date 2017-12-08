@@ -16,6 +16,9 @@ show _ = to_bool true, by congr
 @[simp] theorem to_bool_false {h} : @to_bool false h = ff :=
 show _ = to_bool false, by congr
 
+@[simp] theorem to_bool_coe (b:bool) {h} : @to_bool b h = b :=
+(show _ = to_bool b, by congr).trans (by cases b; refl)
+
 @[simp] theorem coe_to_bool (p : Prop) [decidable p] : to_bool p ↔ p := to_bool_iff _
 
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=

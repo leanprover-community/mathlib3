@@ -85,8 +85,8 @@ namespace vector3
   notation a :: b := cons a b
   notation `[` l:(foldr `, ` (h t, cons h t) nil `]`) := l
 
-  @[simp] def cons_fz {α} {n} (a : α) (v : vector3 α n) : (a :: v) fz = a := rfl
-  @[simp] def cons_fs {α} {n} (a : α) (v : vector3 α n) (i) : (a :: v) (fs i) = v i := rfl
+  @[simp] theorem cons_fz {α} {n} (a : α) (v : vector3 α n) : (a :: v) fz = a := rfl
+  @[simp] theorem cons_fs {α} {n} (a : α) (v : vector3 α n) (i) : (a :: v) (fs i) = v i := rfl
 
   @[reducible] def nth {α} {n} (i : fin2 n) (v : vector3 α n) : α := v i
 
@@ -131,17 +131,17 @@ namespace vector3
 
   infix ` +-+ `:65 := append
 
-  @[simp] def append_nil {α} {n} (w : vector3 α n) : [] +-+ w = w := rfl
+  @[simp] theorem append_nil {α} {n} (w : vector3 α n) : [] +-+ w = w := rfl
 
-  @[simp] def append_cons {α} (a : α) {m} (v : vector3 α m) {n} (w : vector3 α n) :
+  @[simp] theorem append_cons {α} (a : α) {m} (v : vector3 α m) {n} (w : vector3 α n) :
     (a::v) +-+ w = a :: (v +-+ w) := rfl
 
-  @[simp] def append_left {α} : ∀ {m} (i : fin2 m) (v : vector3 α m) {n} (w : vector3 α n),
+  @[simp] theorem append_left {α} : ∀ {m} (i : fin2 m) (v : vector3 α m) {n} (w : vector3 α n),
     (v +-+ w) (left n i) = v i
   | ._ (@fz m)   v n w := v.cons_elim (λa t, by simp [*, left])
   | ._ (@fs m i) v n w := v.cons_elim (λa t, by simp [*, left])
 
-  @[simp] def append_add {α} : ∀ {m} (v : vector3 α m) {n} (w : vector3 α n) (i : fin2 n),
+  @[simp] theorem append_add {α} : ∀ {m} (v : vector3 α m) {n} (w : vector3 α n) (i : fin2 n),
     (v +-+ w) (add i m) = w i
   | 0        v n w i := rfl
   | (succ m) v n w i := v.cons_elim (λa t, by simp [*, add])
@@ -152,7 +152,7 @@ namespace vector3
   @[simp] theorem insert_fz {α} (a : α) {n} (v : vector3 α n) : insert a v fz = a :: v :=
   by refine funext (λj, j.cases' _ _); intros; refl
 
-  @[simp] def insert_fs {α} (a : α) {n} (b : α) (v : vector3 α n) (i : fin2 (succ n)) :
+  @[simp] theorem insert_fs {α} (a : α) {n} (b : α) (v : vector3 α n) (i : fin2 (succ n)) :
     insert a (b :: v) (fs i) = b :: insert a v i :=
   funext $ λj, by {
     refine j.cases' _ (λj, _); simp [insert, insert_perm],
@@ -172,17 +172,6 @@ namespace vector3
 end vector3
 
 open vector3
-
-def arity (α β : Type u) (n : nat) : Type u :=
-nat.rec β (λn T, α → T) n
-
-def curry (α β) : Π {n}, (vector3 α n → β) → arity α β n
-| 0 f     := f []
-| (succ n) f := λx, curry (λv, f (x :: v))
-
-def uncurry {α β} : Π (n), arity α β n → vector3 α n → β
-| 0        f v := f
-| (succ n) f v := v.cons_elim $ λa t, uncurry n (f a) t
 
 -- "Curried" exists and forall, i.e. ∃ x1 ... xn, f [x1, ..., xn]
 def vector_ex {α} : Π k, (vector3 α k → Prop) → Prop
@@ -634,16 +623,16 @@ section
   dioph_fn_comp2 df dg $ (dioph_fn_vec _).2 $
   ext (D&1 D= D&0 D+ D&2 D∨ D&1 D≤ D&2 D∧ D&0 D= D.0) $ (vector_all_iff_forall _).1 $ λx y z,
   show (y = x + z ∨ y ≤ z ∧ x = 0) ↔ y - z = x, from
-  ⟨λo, by { cases o with ae h,
-    rw [ae, nat.add_sub_cancel],
-    cases h with yz x0,
-    rw [x0, nat.sub_eq_zero_of_le yz]
-  }, λh, by {
-    rw ← h,
+  ⟨λo, begin
+    rcases o with ae | ⟨yz, x0⟩,
+    { rw [ae, nat.add_sub_cancel] },
+    { rw [x0, nat.sub_eq_zero_of_le yz] }
+  end, λh, begin
+    subst x,
     cases le_total y z with yz zy,
-    exact or.inr ⟨yz, nat.sub_eq_zero_of_le yz⟩,
-    exact or.inl (nat.sub_add_cancel zy).symm,
-  }⟩
+    { exact or.inr ⟨yz, nat.sub_eq_zero_of_le yz⟩ },
+    { exact or.inl (nat.sub_add_cancel zy).symm },
+  end⟩
   local infix ` D- `:80 := sub_dioph
 
   theorem dvd_dioph : dioph (λv, f v ∣ g v) :=

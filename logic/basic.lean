@@ -21,6 +21,8 @@ section miscellany
 
 variables {α : Type*} {β : Type*}
 
+theorem empty.elim {C : Sort*} : empty → C.
+
 theorem eq_iff_le_and_le [partial_order α] {a b : α} : a = b ↔ (a ≤ b ∧ b ≤ a) :=
 ⟨assume eq, eq ▸ ⟨le_refl a, le_refl a⟩, assume ⟨ab, ba⟩, le_antisymm ab ba⟩
 

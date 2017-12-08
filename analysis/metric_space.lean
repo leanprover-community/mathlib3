@@ -164,7 +164,7 @@ def open_ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 
 theorem open_ball_eq_empty_of_nonpos (hε : ε ≤ 0) : open_ball x ε = ∅ :=
-eq_empty_of_forall_not_mem $ assume y hy,
+eq_empty_iff_forall_not_mem.2 $ assume y hy,
   have dist y x < 0, from lt_of_lt_of_le hy hε,
   lt_irrefl 0 (lt_of_le_of_lt dist_nonneg this)
 

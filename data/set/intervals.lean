@@ -45,7 +45,7 @@ set.ext $ assume x,
 lemma Ico_eq_empty_iff : Ico a b = ∅ ↔ (b ≤ a) :=
 by rw ← not_lt; exact
 ⟨assume eq h, have a ∈ Ico a b, from ⟨le_refl a, h⟩, by rwa [eq] at this,
- assume h, eq_empty_of_forall_not_mem $ assume x ⟨h₁, h₂⟩, h $ lt_of_le_of_lt h₁ h₂⟩
+ assume h, eq_empty_iff_forall_not_mem.2 $ assume x ⟨h₁, h₂⟩, h $ lt_of_le_of_lt h₁ h₂⟩
 
 @[simp] lemma Ico_eq_empty : b ≤ a → Ico a b = ∅ := Ico_eq_empty_iff.mpr
 

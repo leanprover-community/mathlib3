@@ -357,7 +357,7 @@ theorem sdiff_subset_sdiff {a b c d : set α} : a ⊆ c → d ⊆ b → a \ b �
 sup_neg_eq_top
 
 @[simp] theorem sdiff_singleton_eq_same {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
-sub_eq_left $ eq_empty_of_forall_not_mem $ assume x ⟨ht, ha⟩,
+sub_eq_left $ eq_empty_iff_forall_not_mem.2 $ assume x ⟨ht, ha⟩,
   begin simp at ha, simp [ha] at ht, exact h ht end
 
 @[simp] theorem insert_sdiff_singleton {a : α} {s : set α} :
@@ -405,8 +405,6 @@ variables {p : Prop} {μ : p → set α}
 
 end
 
-end set
-
 section image
 
 @[congr]
@@ -447,6 +445,10 @@ set.ext $ by simp [preimage]
 
 end preimage
 
+theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
+  (hf : monotone f) (hg : monotone g) : monotone (λx, set.prod (f x) (g x)) :=
+assume a b h, prod_mono (hf h) (hg h)
+
 instance : monad set :=
 { monad .
   pure       := λ(α : Type u) a, {a},
@@ -477,6 +479,8 @@ begin
 end
 
 end monad
+
+end set
 
 /- disjoint sets -/
 

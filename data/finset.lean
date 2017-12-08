@@ -66,9 +66,20 @@ theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ (∀x, x ∈ s₁
 
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
 
-/- struct subset -- follows the definition of lt -/
-
 instance : has_ssubset (finset α) := ⟨λa b, a ⊆ b ∧ ¬ b ⊆ a⟩
+
+instance : partial_order (finset α) :=
+{ le := (⊆),
+  lt := (⊂),
+  le_refl := subset.refl,
+  le_trans := @subset.trans _,
+  le_antisymm := @subset.antisymm _ }
+
+@[simp] theorem le_iff_subset {s₁ s₂ : finset α} : s₁ ≤ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
+@[simp] theorem lt_iff_ssubset {s₁ s₂ : finset α} : s₁ < s₂ ↔ s₁ ⊂ s₂ := iff.rfl
+
+@[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
+and_congr val_le_iff $ not_congr val_le_iff
 
 /- empty -/
 protected def empty : finset α := ⟨0, nodup_zero⟩
@@ -646,27 +657,18 @@ theorem eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : card t �
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
 
 lemma card_lt_card [decidable_eq α] {s t : finset α} (h : s ⊂ t) : s.card < t.card :=
-let ⟨a, ha, ht⟩ := ssubset_iff.mp h in
-calc card s < card (insert a s) : by simp [card_insert_of_not_mem, ha, zero_lt_one]
-  ... ≤ card t : card_le_of_subset ht
+card_lt_of_lt (val_lt_iff.2 h)
 
-lemma strong_induction_on [decidable_eq α] {p : finset α → Prop} (s : finset α)
-  (ih : ∀s:finset α, (∀t⊂s, p t) → p s) : p s :=
-have ∀(n:ℕ) (s : finset α), s.card = n → p s,
-  from assume n, n.strong_induction_on $ assume n ih' s n_eq,
-    ih s $ assume t hts, ih' (card t) (n_eq ▸ card_lt_card hts) _ rfl,
-this _ _ rfl
+@[elab_as_eliminator] lemma strong_induction_on {p : finset α → Sort*} :
+  ∀ (s : finset α), (∀s, (∀t ⊂ s, p t) → p s) → p s
+| ⟨s, nd⟩ ih := multiset.strong_induction_on s
+  (λ s IH nd, ih ⟨s, nd⟩ (λ ⟨t, nd'⟩ ss, IH t (val_lt_iff.2 ss) nd')) nd
 
-lemma case_strong_induction_on [decidable_eq α] {p : finset α → Prop} (s : finset α)
-  (h₀ : p ∅) (h₁ : ∀(a : α) (s:finset α), a ∉ s → (∀t⊆s, p t) → p (insert a s)) : p s :=
-s.strong_induction_on $ assume s ih, decidable.by_cases
-  (assume : s = ∅, this.symm ▸ h₀)
-  (assume : s ≠ ∅,
-    let ⟨a, has⟩ := exists_mem_of_ne_empty this in
-    have p (insert a (s.erase a)),
-      from h₁ a (s.erase a) (not_mem_erase _ _) $ assume t ht,
-        ih t $ show t < s, from lt_of_le_of_lt ht $ erase_ssubset has,
-    by rwa [insert_erase has] at this)
+@[elab_as_eliminator] lemma case_strong_induction_on [decidable_eq α] {p : finset α → Prop}
+  (s : finset α) (h₀ : p ∅) (h₁ : ∀ a s, a ∉ s → (∀t ⊆ s, p t) → p (insert a s)) : p s :=
+finset.strong_induction_on s $ λ s,
+finset.induction_on s (λ _, h₀) $ λ a s n _ ih, h₁ a s n $
+λ t ss, ih _ (lt_of_le_of_lt ss (ssubset_insert n) : t < _)
 
 end card
 

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Finite sets.
 -/
-import data.set.lattice data.set.prod data.nat.basic logic.function
+import data.set.lattice data.nat.basic logic.function
        data.fintype
 
 open set lattice function
@@ -77,7 +77,7 @@ match s.to_finset, @mem_to_finset _ s _ with
     change ∀ a, a ∈ l ↔ a ∈ s at al,
     clear _let_match _match t h, revert s nd al,
     refine multiset.induction_on l _ (λ a l IH, _); intros s nd al,
-    { rw show s = ∅, from eq_empty_of_forall_not_mem (by simpa using al),
+    { rw show s = ∅, from eq_empty_iff_forall_not_mem.2 (by simpa using al),
       exact H0 },
     { rw ← show insert a {x | x ∈ l} = s, from set.ext (by simpa using al),
       cases multiset.nodup_cons.1 nd with m nd',

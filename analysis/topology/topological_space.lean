@@ -771,7 +771,7 @@ instance inhabited_topological_space {α : Type u} : inhabited (topological_spac
 
 lemma t2_space_top : @t2_space α ⊤ :=
 { t2 := assume x y hxy, ⟨{x}, {y}, trivial, trivial, mem_insert _ _, mem_insert _ _,
-  eq_empty_of_forall_not_mem $ by intros z hz; simp at hz; cc⟩ }
+  eq_empty_iff_forall_not_mem.2 $ by intros z hz; simp at hz; cc⟩ }
 
 lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x ≤ @nhds α t₁ x) :
   t₁ ≤ t₂ :=

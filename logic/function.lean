@@ -21,6 +21,10 @@ def injective.decidable_eq
   {α : Sort u} {β : Sort v} [decidable_eq β] {f : α → β} (I : injective f) : decidable_eq α
 | a b := decidable_of_iff _ I.eq_iff
 
+theorem cantor_surjective {α} (f : α → α → Prop) : ¬ function.surjective f | h :=
+let ⟨D, e⟩ := h (λ a, ¬ f a a) in
+(iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
+
 local attribute [instance] classical.prop_decidable
 
 def is_partial_inv (f : α → β) (g : β → option α) : Prop :=
@@ -94,6 +98,10 @@ lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
 ⟨inv_fun f, left_inverse_inv_fun hf⟩
 
 end inv_fun
+
+theorem cantor_injective {α : Type*} (f : (α → Prop) → α) : ¬ function.injective f | h :=
+cantor_surjective (inv_fun f) $
+surjective_of_has_right_inverse ⟨f, left_inverse_inv_fun h⟩
 
 section surj_inv
 

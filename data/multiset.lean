@@ -248,6 +248,19 @@ pos_iff_ne_zero.trans $ not_congr card_eq_zero
 theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
 quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
+@[elab_as_eliminator] lemma strong_induction_on {p : multiset α → Sort*} :
+  ∀ (s : multiset α), (∀ s, (∀t < s, p t) → p s) → p s
+| s := λ ih, ih s $ λ t h,
+  have card t < card s, from card_lt_of_lt h,
+  strong_induction_on t ih
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
+
+@[elab_as_eliminator] lemma case_strong_induction_on {p : multiset α → Prop}
+  (s : multiset α) (h₀ : p 0) (h₁ : ∀ a s, (∀t ≤ s, p t) → p (a :: s)) : p s :=
+multiset.strong_induction_on s $ assume s,
+multiset.induction_on s (λ _, h₀) $ λ a s _ ih, h₁ _ _ $
+λ t h, ih _ $ lt_of_le_of_lt h $ lt_cons_self _ _
+
 /- singleton -/
 @[simp] theorem mem_singleton {a b : α} : b ∈ a::0 ↔ b = a :=
 by simp

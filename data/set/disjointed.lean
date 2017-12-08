@@ -22,7 +22,7 @@ def disjointed (f : ℕ → set α) (n : ℕ) : set α := f n ∩ (⋂i<n, - f i
 lemma disjoint_disjointed {f : ℕ → set α} : pairwise (disjoint on disjointed f) :=
 assume i j h,
 have ∀i j, i < j → disjointed f i ∩ disjointed f j = ∅,
-  from assume i j hij, eq_empty_of_forall_not_mem $ assume x h,
+  from assume i j hij, eq_empty_iff_forall_not_mem.2 $ assume x h,
   have x ∈ f i, from h.left.left,
   have x ∈ (⋂i<j, - f i), from h.right.right,
   have x ∉ f i, begin simp at this; exact this _ hij end,

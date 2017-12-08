@@ -198,7 +198,7 @@ instance ordered_topology.to_t2_space : t2_space α :=
   assume a b h,
   let ⟨u, v, hu, hv, ha, hb, h⟩ := is_open_prod_iff.mp this a b h in
   ⟨u, v, hu, hv, ha, hb,
-    set.eq_empty_of_forall_not_mem $ assume a ⟨h₁, h₂⟩,
+    set.eq_empty_iff_forall_not_mem.2 $ assume a ⟨h₁, h₂⟩,
     have a ≠ a, from @h (a, a) ⟨h₁, h₂⟩,
     this rfl⟩ }
 

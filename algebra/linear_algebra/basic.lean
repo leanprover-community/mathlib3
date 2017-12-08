@@ -607,9 +607,14 @@ have t ⊆ span m,
   hbm this,
 ⟨m, hmt, hsm, this, hml⟩
 
-lemma exists_is_basis (hs : linear_independent s) : ∃b, s ⊆ b ∧ is_basis b :=
+lemma exists_subset_is_basis (hs : linear_independent s) : ∃b, s ⊆ b ∧ is_basis b :=
 let ⟨b, hb₀, hb₁, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_univ _ _) in
 ⟨b, hb₁, hb₃, assume x, hb₂ trivial⟩
+
+variable (β)
+lemma exists_is_basis : ∃b : set β, is_basis b :=
+let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
+variable {β}
 
 lemma eq_of_linear_independent_of_span
   (hs : linear_independent s) (h : t ⊆ s) (hst : s ⊆ span t) : s = t :=
@@ -679,10 +684,10 @@ have finite s, from finite_subset u.finite_to_set hsu,
 
 lemma exists_left_inverse_linear_map_of_injective {f : β → γ}
   (hf : is_linear_map f) (hf_inj : injective f) : ∃g:γ → β, is_linear_map g ∧ g ∘ f = id :=
-let ⟨bβ, _, hbβ⟩ := exists_is_basis linear_independent_empty in
+let ⟨bβ, hbβ⟩ := exists_is_basis β in
 have linear_independent (f '' bβ),
   from hbβ.1.image hf $ assume b₁ _ b₂ _ eq, hf_inj eq,
-let ⟨bγ, hbγ₁, hbγ₂⟩ := exists_is_basis this in
+let ⟨bγ, hbγ₁, hbγ₂⟩ := exists_subset_is_basis this in
 have ∀b∈bβ, (hbγ₂.constr (@inv_fun _ _ ⟨0⟩ f) : γ → β) (f b) = b,
   begin
     assume b hb,
@@ -699,7 +704,7 @@ lemma exists_right_inverse_linear_map_of_surjective {f : β → γ}
 let g := @inv_fun _ _ ⟨0⟩ f in
 have ri_gf : right_inverse g f, from @right_inverse_inv_fun _ _ _ ⟨0⟩ hf_surj,
 have injective g, from injective_of_left_inverse ri_gf,
-let ⟨bγ, _, hbγ⟩ := exists_is_basis (linear_independent_empty : linear_independent (∅ : set γ)) in
+let ⟨bγ, hbγ⟩ := exists_is_basis γ in
 have ∀c∈bγ, f ((hbγ.constr g : γ → β) c) = c,
   from assume c hc, by rw [constr_basis hbγ hc, ri_gf],
 ⟨hbγ.constr g, hbγ.map_constr, hbγ.eq_linear_map (hf.comp hbγ.map_constr) is_linear_map.id this⟩

@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import data.prod data.nat.pairing logic.function tactic
+import data.prod data.nat.pairing logic.function tactic data.set.basic
 open function
 
 universes u v w
@@ -196,6 +196,10 @@ def bool_equiv_unit_sum_unit : bool ≃ (unit ⊕ unit) :=
  λ s, sum.rec_on s (λ_, tt) (λ_, ff),
  λ b, by cases b; refl,
  λ s, by rcases s with ⟨⟨⟩⟩ | ⟨⟨⟩⟩; refl⟩
+
+noncomputable def Prop_equiv_bool : Prop ≃ bool :=
+⟨λ p, @to_bool p (classical.prop_decidable _),
+ λ b, b, λ p, by simp, λ b, by simp⟩
 
 @[simp] def sum_comm (α β : Sort*) : (α ⊕ β) ≃ (β ⊕ α) :=
 ⟨λ s, match s with inl a := inr a | inr b := inl b end,
@@ -406,9 +410,53 @@ def subtype_equiv_of_subtype {p : α → Prop} : Π (e : α ≃ β), {a : α // 
 
 end
 
+namespace set
+open set
+
+protected def univ (α) : @univ α ≃ α :=
+⟨subtype.val, λ a, ⟨a, trivial⟩, λ ⟨a, _⟩, rfl, λ a, rfl⟩
+
+protected def empty (α) : (∅ : set α) ≃ empty :=
+equiv_empty $ λ ⟨x, h⟩, not_mem_empty x h
+
+protected def union {α} {s t : set α} [decidable_pred s] (H : s ∩ t = ∅) :
+  (s ∪ t : set α) ≃ (s ⊕ t) :=
+⟨λ ⟨x, h⟩, if hs : x ∈ s then sum.inl ⟨_, hs⟩ else sum.inr ⟨_, h.resolve_left hs⟩,
+ λ o, match o with
+ | (sum.inl ⟨x, h⟩) := ⟨x, or.inl h⟩
+ | (sum.inr ⟨x, h⟩) := ⟨x, or.inr h⟩
+ end,
+ λ ⟨x, h'⟩, by by_cases x ∈ s; simp [union._match_1, union._match_2, h]; congr,
+ λ o, by rcases o with ⟨x, h⟩ | ⟨x, h⟩; simp [union._match_1, union._match_2, h];
+   simp [show x ∉ s, from λ h', eq_empty_iff_forall_not_mem.1 H _ ⟨h', h⟩]⟩
+
+protected def sum_compl {α} (s : set α) [decidable_pred s] :
+  (s ⊕ (-s : set α)) ≃ α :=
+(set.union (inter_compl_self _)).symm.trans
+  (by rw union_compl_self; exact set.univ _)
+
+protected def prod {α β} (s : set α) (t : set β) :
+  (s.prod t) ≃ (s × t) :=
+⟨λ ⟨⟨x, y⟩, ⟨h₁, h₂⟩⟩, ⟨⟨x, h₁⟩, ⟨y, h₂⟩⟩,
+ λ ⟨⟨x, h₁⟩, ⟨y, h₂⟩⟩, ⟨⟨x, y⟩, ⟨h₁, h₂⟩⟩,
+ λ ⟨⟨x, y⟩, ⟨h₁, h₂⟩⟩, rfl,
+ λ ⟨⟨x, h₁⟩, ⟨y, h₂⟩⟩, rfl⟩
+
+protected noncomputable def image {α β} (f : α → β) (s : set α) (H : injective f) :
+  s ≃ (f '' s) :=
+⟨λ ⟨x, h⟩, ⟨f x, mem_image_of_mem _ h⟩,
+ λ ⟨y, h⟩, ⟨classical.some h, (classical.some_spec h).1⟩,
+ λ ⟨x, h⟩, subtype.eq (H (classical.some_spec (mem_image_of_mem f h)).2),
+ λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩
+
+protected noncomputable def range {α β} (f : α → β) (H : injective f) :
+  α ≃ range f :=
+by rw range_eq_image; exact (set.univ _).symm.trans (set.image f univ H)
+
+end set
+
 section swap
-variable [h : decidable_eq α]
-include h
+variable [decidable_eq α]
 open decidable
 
 def swap_core (a b r : α) : α :=

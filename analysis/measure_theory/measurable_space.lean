@@ -479,7 +479,7 @@ by rw [eq]; exact d.has_Union this (assume i,
 
 lemma has_sdiff {s₁ s₂ : set δ} (h₁ : d.has s₁) (h₂ : d.has s₂) (h : s₂ ⊆ s₁) : d.has (s₁ - s₂) :=
 have d.has (- (s₂ ∪ -s₁)),
-  from d.has_compl $ d.has_union h₂ (d.has_compl h₁) $ eq_empty_of_forall_not_mem $
+  from d.has_compl $ d.has_union h₂ (d.has_compl h₁) $ eq_empty_iff_forall_not_mem.2 $
     assume x ⟨h₁, h₂⟩, h₂ $ h h₁,
 have s₁ - s₂ = - (s₂ ∪ -s₁),
   by rw [compl_union, compl_compl, inter_comm]; refl,

@@ -203,4 +203,9 @@ theorem zorn_partial_order {α : Type u} [partial_order α]
 let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
 
+theorem chain.total {α : Type u} [partial_order α]
+  {c} (H : @chain α (≤) c) {x y} (hx : x ∈ c) (hy : y ∈ c) :
+  x ≤ y ∨ y ≤ x :=
+if e : x = y then or.inl (le_of_eq e) else H _ hx _ hy e
+
 end zorn

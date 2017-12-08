@@ -30,10 +30,16 @@ import algebra algebra.big_operators order.zorn data.finset data.finsupp
 noncomputable theory
 
 open classical set function lattice
-local attribute [instance] decidable_inhabited prop_decidable
+local attribute [instance] prop_decidable
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Type x}
+
+lemma zero_ne_one_or_forall_eq_0 (α : Type u) [ring α] : (0 : α) ≠ 1 ∨ (∀a:α, a = 0) :=
+classical.by_cases
+  (assume h : 0 = (1:α),
+    or.inr $ assume a, calc a = 1 * a : by simp ... = 0 : by rw [h.symm]; simp)
+  or.inl
 
 namespace finset
 
@@ -191,6 +197,16 @@ assume l hl eq, finsupp.ext $ by simp * at *
 
 lemma linear_independent.mono (hs : linear_independent s) (h : t ⊆ s) : linear_independent t :=
 assume l hl eq, hs l (assume b, hl b ∘ mt (@h b)) eq
+
+lemma zero_not_mem_of_linear_independent (ne : 0 ≠ (1:α)) (hs : linear_independent s) : (0:β) ∉ s :=
+assume (h : 0 ∈ s),
+let l : lc α β := finsupp.single 0 1 in
+have l = 0,
+  from hs l
+    (by intro x; by_cases 0 = x; simp [l, finsupp.single_apply, *] at *)
+    (by simp [finsupp.sum_single_index]),
+have l 0 = 1, from finsupp.single_eq_same,
+by rw [‹l = 0›] at this; simp * at *
 
 lemma linear_independent_Union_of_directed {s : set (set β)} (hs : ∀a∈s, ∀b∈s, ∃c∈s, a ∪ b ⊆ c)
   (h : ∀a∈s, linear_independent a) : linear_independent (⋃₀s) :=
@@ -509,15 +525,6 @@ local attribute [instance] is_submodule_span
 
 /- TODO: some of the following proofs can generalized with a zero_ne_one predicate type class
    (instead of a data containing type classs) -/
-lemma zero_not_mem_of_linear_independent (hs : linear_independent s) : (0:β) ∉ s :=
-assume h : 0 ∈ s,
-let l : lc α β := finsupp.single 0 1 in
-have l = 0,
-  from hs l
-    (by intro x; by_cases 0 = x; simp [l, finsupp.single_apply, *] at *)
-    (by simp [finsupp.sum_single_index]),
-have l 0 = 1, from finsupp.single_eq_same,
-by rw [‹l = 0›] at this; simp * at *
 
 lemma mem_span_insert_exchange : b₁ ∈ span (insert b₂ s) → b₁ ∉ span s → b₂ ∈ span (insert b₁ s) :=
 begin

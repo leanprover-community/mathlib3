@@ -710,10 +710,10 @@ begin
   cases m with m m; cases n with n n;
   repeat { rw [← int.coe_nat_eq] <|> rw bit_coe_nat <|> rw bit_neg_succ };
   unfold bitwise nat_bitwise bnot;
-  [ ginduction f ff ff with h,
-    ginduction f ff tt with h,
-    ginduction f tt ff with h,
-    ginduction f tt tt with h ],
+  [ induction h : f ff ff,
+    induction h : f ff tt,
+    induction h : f tt ff,
+    induction h : f tt tt ],
   all_goals {
     unfold cond, rw nat.bitwise_bit,
     repeat { rw bit_coe_nat <|> rw bit_neg_succ <|> rw bnot_bnot } },

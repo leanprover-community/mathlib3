@@ -59,7 +59,7 @@ theorem destruct_eq_ret {s : computation α} {a : α} :
   destruct s = sum.inl a → s = return a :=
 begin
   dsimp [destruct],
-  ginduction s.1 0 with f0; intro h,
+  induction f0 : s.1 0; intro h,
   { contradiction },
   { apply subtype.eq, funext n,
     induction n with n IH,
@@ -71,7 +71,7 @@ theorem destruct_eq_think {s : computation α} {s'} :
   destruct s = sum.inr s' → s = think s' :=
 begin
   dsimp [destruct],
-  ginduction s.1 0 with f0 a'; intro h,
+  induction f0 : s.1 0 with a'; intro h,
   { injection h with h', rw ←h',
     cases s with f al,
     apply subtype.eq, dsimp [think, tail],
@@ -104,7 +104,7 @@ destruct_eq_think destruct_empty
 
 def cases_on {C : computation α → Sort v} (s : computation α)
   (h1 : ∀ a, C (return a)) (h2 : ∀ s, C (think s)) : C s := begin
-  ginduction destruct s with H v v,
+  induction H : destruct s with v v,
   { rw destruct_eq_ret H, apply h1 },
   { cases v with a s', rw destruct_eq_think H, apply h2 }
 end
@@ -147,7 +147,7 @@ attribute [simp] lmap rmap
 begin
   dsimp [corec, destruct],
   change stream.corec' (corec.F f) (sum.inr b) 0 with corec.F._match_1 (f b),
-  ginduction f b with h a b', { refl },
+  induction h : f b with a b', { refl },
   dsimp [corec.F, destruct],
   apply congr_arg, apply subtype.eq,
   dsimp [corec, tail],
@@ -252,7 +252,7 @@ theorem not_terminates_empty : ¬ terminates (empty α) :=
 theorem eq_empty_of_not_terminates {s} (H : ¬ terminates s) : s = empty α :=
 begin
   apply subtype.eq, funext n,
-  ginduction s.val n with h, {refl},
+  induction h : s.val n, {refl},
   refine absurd _ H, exact ⟨_, _, h.symm⟩
 end
 
@@ -428,7 +428,7 @@ def map (f : α → β) : computation α → computation β
 | ⟨s, al⟩ := ⟨s.map (λo, option.cases_on o none (some ∘ f)),
 λn b, begin
   dsimp [stream.map, stream.nth],
-  ginduction s n with e a; intro h,
+  induction e : s n with a; intro h,
   { contradiction }, { rw [al e, ←h] }
 end⟩
 

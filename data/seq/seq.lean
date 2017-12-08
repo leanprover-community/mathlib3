@@ -62,7 +62,7 @@ def destruct (s : seq α) : option (seq1 α) :=
 theorem destruct_eq_nil {s : seq α} : destruct s = none → s = nil :=
 begin
   dsimp [destruct],
-  ginduction nth s 0 with f0; intro h,
+  induction f0 : nth s 0; intro h,
   { apply subtype.eq,
     funext n,
     induction n with n IH, exacts [f0, s.2 IH] },
@@ -72,7 +72,7 @@ end
 theorem destruct_eq_cons {s : seq α} {a s'} : destruct s = some (a, s') → s = cons a s' :=
 begin
   dsimp [destruct],
-  ginduction nth s 0 with f0 a'; intro h,
+  induction f0 : nth s 0 with a'; intro h,
   { contradiction },
   { unfold has_map.map at h, dsimp [option.map, option.bind] at h,
     cases s with f al,
@@ -106,7 +106,7 @@ by cases s with f al; apply subtype.eq; dsimp [tail, cons]; rw [stream.tail_cons
 
 def cases_on {C : seq α → Sort v} (s : seq α)
   (h1 : C nil) (h2 : ∀ x s, C (cons x s)) : C s := begin
-  ginduction destruct s with H v v,
+  induction H : destruct s with v v,
   { rw destruct_eq_nil H, apply h1 },
   { cases v with a s', rw destruct_eq_cons H, apply h2 }
 end
@@ -154,7 +154,7 @@ begin
   dsimp [corec, destruct, nth],
   change stream.corec' (corec.F f) (some b) 0 with (corec.F f (some b)).1,
   unfold has_map.map, dsimp [corec.F],
-  ginduction f b with h s, { refl },
+  induction h : f b with s, { refl },
   cases s with a b', dsimp [corec.F, option.bind],
   apply congr_arg (λ b', some (a, b')),
   apply subtype.eq,
@@ -263,7 +263,7 @@ def map (f : α → β) : seq α → seq β | ⟨s, al⟩ :=
 ⟨s.map (option.map f),
 λn, begin
   dsimp [stream.map, stream.nth],
-  ginduction s n with e; intro,
+  induction e : s n; intro,
   { rw al e, assumption }, { contradiction }
 end⟩
 
@@ -302,9 +302,9 @@ def zip_with (f : α → β → γ) : seq α → seq β → seq γ
     | _, _ := none
     end,
   λn, begin
-    ginduction f₁ n with h1,
+    induction h1 : f₁ n,
     { intro H, rw a₁ h1, refl },
-    ginduction f₂ n with h2; dsimp [seq.zip_with._match_1]; intro H,
+    induction h2 : f₂ n; dsimp [seq.zip_with._match_1]; intro H,
     { rw a₂ h2, cases f₁ (n + 1); refl },
     { contradiction }
   end⟩

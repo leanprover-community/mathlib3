@@ -64,13 +64,13 @@ begin
       { rw ←e at e',
         cases list.foldr parallel.aux2._match_1 (sum.inr list.nil) l with a' ls;
         injection e' with e', rw ←e', simp },
-      { ginduction list.foldr parallel.aux2._match_1 (sum.inr list.nil) l with e a' ls;
+      { induction e : list.foldr parallel.aux2._match_1 (sum.inr list.nil) l with a' ls;
         rw e at e', { contradiction },
         have := IH' m _ e,
         simp [parallel.aux2] at e',
         cases destruct c; injection e' with h',
         rw ←h', simp [this] } },
-    ginduction parallel.aux2 l with h a l',
+    induction h : parallel.aux2 l with a l',
     { exact lem1 _ _ ⟨a, h⟩ },
     { have H2 : corec parallel.aux1 (l, S) = think _,
       { apply destruct_eq_think,
@@ -93,7 +93,7 @@ begin
   { cases o with a a, { exact terminates_parallel.aux a T },
     have H : seq.destruct S = some (some c, _),
     { unfold seq.destruct has_map.map, rw ← a, simp [option.map, option.bind] },
-    ginduction (parallel.aux2 l) with h a l';
+    induction h : parallel.aux2 l with a l';
     have C : corec parallel.aux1 (l, S) = _,
     { apply destruct_eq_ret, simp [parallel.aux1], rw [h], simp [rmap] },
     { rw C, apply_instance },
@@ -101,7 +101,7 @@ begin
     { rw C, apply @computation.think_terminates _ _ _,
       apply terminates_parallel.aux _ T, simp } },
   { cases o with a a, { exact terminates_parallel.aux a T },
-    ginduction (parallel.aux2 l) with h a l';
+    induction h : parallel.aux2 l with a l';
     have C : corec parallel.aux1 (l, S) = _,
     { apply destruct_eq_ret, simp [parallel.aux1], rw [h], simp [rmap] },
     { rw C, apply_instance },
@@ -109,7 +109,7 @@ begin
     { rw C, apply @computation.think_terminates _ _ _,
       have TT : ∀ l', terminates (corec parallel.aux1 (l', S.tail)),
       { intro, apply IH _ _ _ (or.inr _) T, rw a, cases S with f al, refl },
-      ginduction seq.nth S 0 with e o,
+      induction e : seq.nth S 0 with o,
       { have D : seq.destruct S = none,
         { dsimp [seq.destruct], rw e, refl },
         rw D, simp [parallel.aux1], have TT := TT l',
@@ -138,7 +138,7 @@ begin
       simp [parallel.aux2],
       { cases IH with c' cl, cases cl with cl ac,
         refine ⟨c', or.inr cl, ac⟩ },
-      { ginduction destruct c with h a c'; simp [rmap],
+      { induction h : destruct c with a c'; simp [rmap],
         { refine ⟨c, list.mem_cons_self _ _, _⟩,
           rw destruct_eq_ret h,
           apply ret_mem },
@@ -154,7 +154,7 @@ begin
   simp [parallel.aux1] at e'; cases parallel.aux2 l with a' l'; injection e' with h',
   { rw h' at this, cases this with c cl, cases cl with cl ac,
     exact ⟨c, or.inl cl, ac⟩ },
-  { ginduction seq.destruct S with e a; rw e at h',
+  { induction e : seq.destruct S with a; rw e at h',
     { exact let ⟨d, o, ad⟩ := IH _ _ h',
         ⟨c, cl, ac⟩ := this a ⟨d, o.resolve_right (not_mem_nil _), ad⟩ in
       ⟨c, or.inl cl, ac⟩ },
@@ -210,7 +210,7 @@ begin
   have pe := congr_arg parallel this, rw ←map_parallel at pe,
   have h' := h, rw pe at h',
   have : terminates (parallel T) := (terminates_map_iff _ _).1 ⟨_, h'⟩,
-  ginduction get (parallel T) with e a' c,
+  induction e : get (parallel T) with a' c,
   have : a ∈ c ∧ c ∈ S,
   { cases exists_of_mem_map h' with d h, cases h with dT cd,
     rw get_eq_of_mem _ dT at e, cases e, dsimp at cd, cases cd,

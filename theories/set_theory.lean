@@ -327,8 +327,8 @@ namespace Set
     (αβ : ∀a, ∃b, equiv (A a) (B b)) : ∀a, ∃b, (equiv ((Union ⟨α, A⟩).func a) ((Union ⟨β, B⟩).func b))
   | ⟨a, c⟩ := let ⟨b, hb⟩ := αβ a in
     begin
-      ginduction A a with ea γ Γ,
-      ginduction B b with eb δ Δ,
+      induction ea : A a with γ Γ,
+      induction eb : B b with δ Δ,
       rw [ea, eb] at hb,
       cases hb with γδ δγ,
       exact

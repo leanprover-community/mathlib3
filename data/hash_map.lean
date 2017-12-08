@@ -342,7 +342,7 @@ by dsimp [keys]; rw entries_empty; refl
 
 theorem find_empty (hash_fn : α → nat) (n a) :
   (@mk_hash_map α _ β hash_fn n).find a = none :=
-by ginduction (@mk_hash_map α _ β hash_fn n).find a with h; [refl,
+by induction h : (@mk_hash_map α _ β hash_fn n).find a; [refl,
    { have := (find_iff _ _ _).1 h, rw entries_empty at this, contradiction }]
 
 theorem not_contains_empty (hash_fn : α → nat) (n a) :

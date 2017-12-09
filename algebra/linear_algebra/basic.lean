@@ -32,8 +32,13 @@ noncomputable theory
 open classical set function lattice
 local attribute [instance] prop_decidable
 
+reserve infix `≃ₗ` : 50
+
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Type x}
+
+@[simp] lemma set.diff_self {s : set α} : s \ s = ∅ :=
+set.ext $ by simp
 
 lemma zero_ne_one_or_forall_eq_0 (α : Type u) [ring α] : (0 : α) ≠ 1 ∨ (∀a:α, a = 0) :=
 classical.by_cases
@@ -98,11 +103,37 @@ hf.sum
 
 end is_linear_map
 
+structure linear_equiv {α : Type u} [ring α] (β : Type v) (γ : Type w) [module α β] [module α γ]
+  extends equiv β γ :=
+(linear_fun : is_linear_map to_fun)
+
+infix ` ≃ₗ ` := linear_equiv
+
+namespace linear_equiv
+variables [ring α] [module α β] [module α γ] [module α δ]
+include α
+
+lemma linear_inv (e : β ≃ₗ γ) : is_linear_map e.inv_fun :=
+e.linear_fun.inverse e.left_inv e.right_inv
+
+section
+variable (β)
+def refl : β ≃ₗ β := { linear_fun := is_linear_map.id, .. equiv.refl β }
+end
+
+def symm (e : β ≃ₗ γ) : γ ≃ₗ β := { linear_fun := e.linear_inv, .. e.to_equiv.symm }
+
+def trans (e₁ : β ≃ₗ γ) (e₂ : γ ≃ₗ δ) : β ≃ₗ δ :=
+{ linear_fun := is_linear_map.comp e₂.linear_fun e₁.linear_fun,
+  .. e₁.to_equiv.trans e₂.to_equiv }
+
+
+end linear_equiv
+
 section module
 variables [ring α] [module α β] [module α γ] [module α δ]
 variables {a a' : α} {s t : set β} {b b' b₁ b₂ : β}
 include α
-
 
 def span (s : set β) : set β := { x | ∃(v : lc α β), (∀x∉s, v x = 0) ∧ x = v.sum (λb a, a • b) }
 
@@ -166,6 +197,14 @@ begin
   apply iff.intro; simp [insert_eq, span_union, span_singleton, set.set_eq_def, range],
   exact (assume x hx y a eq_y eq, ⟨a, x, hx, by simp [eq_y, eq]⟩),
   exact (assume a b₂ hb₂ eq, ⟨b₂, hb₂, a • b, ⟨a, rfl⟩, eq⟩)
+end
+
+lemma mem_span_insert : b₁ ∈ span (insert b s) ↔ ∃a, b₁ + a • b ∈ span s :=
+begin
+  simp [span_insert],
+  constructor,
+  exact assume ⟨a, b, hb, eq⟩, ⟨-a, by simp [eq, hb]⟩,
+  exact assume ⟨a, hb⟩, ⟨-a, _, hb, by simp⟩
 end
 
 @[simp] lemma span_span : span (span s) = span s :=
@@ -498,6 +537,20 @@ def module_equiv_lc (hs : is_basis s) : β ≃ (s →₀ α) :=
       { simp [hs.2] }
     end }
 
+def equiv_of_is_basis {s : set β} {t : set γ} {f : β → γ} {g : γ → β}
+  (hs : is_basis s) (ht : is_basis t) (hf : ∀b∈s, f b ∈ t) (hg : ∀c∈t, g c ∈ s)
+  (hgf : ∀b∈s, g (f b) = b) (hfg : ∀c∈t, f (g c) = c) :
+  β ≃ₗ γ :=
+{ to_fun := hs.constr f,
+  inv_fun := ht.constr g,
+  left_inv := assume b,
+    congr_fun (hs.eq_linear_map (ht.map_constr.comp hs.map_constr) is_linear_map.id $
+      by simp [constr_basis, hs, ht, hf, hgf, (∘)] {contextual := tt}) b,
+  right_inv := assume c,
+    congr_fun (ht.eq_linear_map (hs.map_constr.comp ht.map_constr) is_linear_map.id $
+      by simp [constr_basis, hs, ht, hg, hfg, (∘)] {contextual := tt}) c,
+  linear_fun := hs.map_constr }
+
 end is_basis
 
 lemma linear_independent.inj_span_iff_inj {s : set β} {f : β → γ}
@@ -600,6 +653,9 @@ iff.intro
           by simp [finsupp.smul_sum, smul_smul],
         by simp [-sub_eq_add_neg, add_smul, finsupp.sum_add_index, finsupp.sum_single_index,
                 lc.sum_smul_index, this, eq]⟩)
+
+lemma linear_independent_singleton {b : β} (hb : b ≠ 0) : linear_independent ({b} : set β) :=
+linear_independent_iff_not_mem_span.mpr $ by simp [hb] {contextual := tt}
 
 lemma linear_independent.insert (hs : linear_independent s) (hb : b ∉ span s) :
   linear_independent (insert b s) :=

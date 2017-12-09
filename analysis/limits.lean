@@ -135,7 +135,7 @@ by_cases
       from tendsto_compose
         (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂)
         tendsto_inverse_at_top_nhds_0,
-    tendsto_cong this $ univ_mem_sets' $ assume a, by simp [*, pow_inv])
+    tendsto_cong this $ univ_mem_sets' $ by simp *)
 
 lemma sum_geometric' {r : ℝ} (h : r ≠ 0) :
   ∀{n}, (finset.range n).sum (λi, (r + 1) ^ i) = ((r + 1) ^ n - 1) / r

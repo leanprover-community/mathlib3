@@ -158,7 +158,14 @@ section
 end
 
 section division_ring
-variables [division_ring α] {a b c : α}
+variables [s : division_ring α] {a b c : α}
+include s
+
+instance division_ring.to_domain : domain α :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
+    classical.by_contradiction $ λ hn,
+      division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
+  ..s }
 
 lemma add_div : (a + b) / c = a / c + b / c :=
 by rw [div_eq_mul_one_div, add_mul, ←div_eq_mul_one_div, ←div_eq_mul_one_div]

@@ -11,7 +11,7 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import data.nat.basic data.int.basic algebra.group
+import data.nat.basic data.int.basic algebra.group algebra.ring
 
 universe u
 variable {α : Type u}
@@ -119,10 +119,10 @@ variables [group α] {β : Type*} [add_group β]
 
 section nat
 
-theorem inv_pow (a : α) : ∀n, (a⁻¹)^n = (a^n)⁻¹
+@[simp] theorem inv_pow (a : α) : ∀n, (a⁻¹)^n = (a^n)⁻¹
 | 0     := by simp
 | (n+1) := by rw [pow_succ', pow_succ, mul_inv_rev, inv_pow]
-theorem add_monoid.neg_smul (a : β) : ∀n, (-a)•n = -(a•n)
+@[simp] theorem add_monoid.neg_smul (a : β) : ∀n, (-a)•n = -(a•n)
 | 0     := by simp
 | (n+1) := by rw [smul_succ', smul_succ, neg_add_rev, add_monoid.neg_smul]
 attribute [to_additive add_monoid.neg_smul] inv_pow
@@ -140,18 +140,52 @@ end nat
 
 open int
 
-def gpow (a : α) : ℤ → α
+@[simp] def gpow (a : α) : ℤ → α
 | (of_nat n) := a^n
 | -[1+n]     := (a^(nat.succ n))⁻¹
 attribute [to_additive gsmul._main] gpow._main
 attribute [to_additive gsmul] gpow
 attribute [to_additive gsmul._main.equations._eqn_1] gpow._main.equations._eqn_1
 attribute [to_additive gsmul._main.equations._eqn_2] gpow._main.equations._eqn_2
-attribute [to_additive gsmul.equations._eqn_1] gpow.equations._eqn_1
-attribute [to_additive gsmul.equations._eqn_2] gpow.equations._eqn_2
+attribute [simp, to_additive gsmul.equations._eqn_1] gpow.equations._eqn_1
+attribute [simp, to_additive gsmul.equations._eqn_2] gpow.equations._eqn_2
+
+@[simp, to_additive smul_coe_nat]
+theorem gpow_coe_nat (a : α) (n : ℕ) : gpow a n = a ^ n := rfl
 
 local attribute [ematch] le_of_lt
 open nat
+
+@[simp, to_additive gsmul_zero]
+theorem gpow_zero (a : α) : gpow a 0 = 1 := rfl
+
+@[simp] theorem gpow_one (a : α) : gpow a 1 = a := mul_one _
+@[simp] theorem gsmul_one (a : β) : gsmul a 1 = a := add_zero _
+attribute [to_additive gsmul_one] gpow_one
+
+@[simp, to_additive zero_gsmul]
+theorem one_gpow : ∀ (n : ℤ), gpow (1 : α) n = (1:α)
+| (n : ℕ) := one_pow _
+| -[1+ n] := by simp
+
+@[simp] theorem gpow_neg (a : α) : ∀ (n : ℤ), gpow a (-n) = (gpow a n)⁻¹
+| (n+1:ℕ) := rfl
+| 0       := one_inv.symm
+| -[1+ n] := (inv_inv _).symm
+@[simp] theorem gsmul_neg (a : β) : ∀ (n : ℤ), gsmul a (-n) = -gsmul a n
+| (n+1:ℕ) := rfl
+| 0       := neg_zero.symm
+| -[1+ n] := (neg_neg _).symm
+attribute [to_additive gsmul_neg] gpow_neg
+
+theorem gpow_neg_one (x : α) : gpow x (-1) = x⁻¹ := by simp
+theorem gsmul_neg_one (x : β) : gsmul x (-1) = -x := by simp
+attribute [to_additive gsmul_neg_one] gpow_neg_one
+
+@[to_additive neg_gsmul]
+theorem inv_gpow (a : α) : ∀n, gpow (a⁻¹) n = (gpow a n)⁻¹
+| (n : ℕ) := inv_pow a n
+| -[1+ n] := by simp [inv_pow]
 
 @[to_additive gsmul_add_aux]
 private lemma gpow_add_aux (a : α) (m n : nat) :
@@ -180,19 +214,48 @@ theorem gpow_add (a : α) : ∀i j : int, gpow a (i + j) = gpow a i * gpow a j
 
 @[to_additive gsmul_add_comm]
 theorem gpow_mul_comm (a : α) (i j : ℤ) : gpow a i * gpow a j = gpow a j * gpow a i :=
-by rw [←gpow_add, ←gpow_add, add_comm]
+by rw [← gpow_add, ← gpow_add, add_comm]
+
+theorem gpow_mul (a : α) : ∀ m n : ℤ, gpow a (m * n) = gpow (gpow a m) n
+| (m : ℕ) (n : ℕ) := pow_mul _ _ _
+| (m : ℕ) -[1+ n] := (gpow_neg _ (m * succ n)).trans $
+  show (a^ (m * succ n))⁻¹ = _, by rw pow_mul; refl
+| -[1+ m] (n : ℕ) := (gpow_neg _ (succ m * n)).trans $
+  show (a^ (succ m * n))⁻¹ = _, by simp [pow_mul]
+| -[1+ m] -[1+ n] := (pow_mul a (succ m) (succ n)).trans $ by simp
+theorem gsmul_mul (a : β) : ∀ m n : ℤ, gsmul a (m * n) = gsmul (gsmul a m) n
+| (m : ℕ) (n : ℕ) := add_monoid.smul_mul _ _ _
+| (m : ℕ) -[1+ n] := (gsmul_neg _ (m * succ n)).trans $
+  show -(a•(m * succ n)) = _, by rw add_monoid.smul_mul; refl
+| -[1+ m] (n : ℕ) := (gsmul_neg _ (succ m * n)).trans $
+  show -(a•(succ m * n)) = _, by simp [add_monoid.smul_mul]
+| -[1+ m] -[1+ n] := (add_monoid.smul_mul a (succ m) (succ n)).trans $ by simp
+attribute [to_additive gsmul_mul] gpow_mul
+
+@[to_additive gsmul_bit0]
+theorem gpow_bit0 (a : α) (n : ℤ) : gpow a (bit0 n) = gpow a n * gpow a n := gpow_add _ _ _
+
+theorem gpow_bit1 (a : α) (n : ℤ) : gpow a (bit1 n) = gpow a n * gpow a n * a :=
+by rw [bit1, gpow_add]; simp [gpow_bit0]
+theorem gsmul_bit1 (a : β) (n : ℤ) : gsmul a (bit1 n) = gsmul a n + gsmul a n + a :=
+by rw [bit1, gsmul_add]; simp [gsmul_bit0]
+attribute [to_additive gsmul_bit1] gpow_bit1
+
 end group
 
-theorem pow_ne_zero [integral_domain α] {a : α} {n : ℕ} (h : a ≠ 0) : a ^ n ≠ 0 :=
-by induction n with n ih; simp [pow_succ, mul_eq_zero_iff_eq_zero_or_eq_zero, *]
+theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+by induction n with n ih; simp [pow_succ, mul_eq_zero, *]
 
-section discrete_field
-variables [discrete_field α] {a b c : α} {n : ℕ}
+@[simp] theorem one_div_pow [division_ring α] {a : α} (ha : a ≠ 0) : ∀ n, (1 / a) ^ n = 1 / a ^ n
+| 0     := by simp
+| (n+1) := by rw [pow_succ', pow_succ,
+  ← division_ring.one_div_mul_one_div (pow_ne_zero n ha) ha, one_div_pow]
 
-theorem pow_inv (ha : a ≠ 0) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
-by induction n with n ih; simp [pow_succ, mul_inv', pow_ne_zero, mul_comm, *]
+@[simp] theorem division_ring.inv_pow [division_ring α] {a : α} (ha : a ≠ 0) (n) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
+by simp [inv_eq_one_div, -one_div_eq_inv, ha]
 
-end discrete_field
+@[simp] theorem div_pow [field α] (a : α) {b : α} (hb : b ≠ 0) (n) : (a / b) ^ n = a ^ n / b ^ n :=
+by rw [div_eq_mul_one_div, mul_pow, one_div_pow hb, ← div_eq_mul_one_div]
 
 section ordered_ring
 variable [linear_ordered_ring α]

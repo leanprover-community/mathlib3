@@ -38,6 +38,14 @@ funext $ h
 theorem right_inverse.g_f_eq_id {f : α → β} {g : β → α} (h : right_inverse f g) : g ∘ f = id :=
 funext $ h
 
+theorem left_inverse.comp {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+  (hf : left_inverse f g) (hh : left_inverse h i) : left_inverse (h ∘ f) (g ∘ i) :=
+assume a, show h (f (g (i a))) = a, by rw [hf (i a), hh a]
+
+theorem right_inverse.comp {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+  (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
+left_inverse.comp hh hf
+
 end function
 
 structure equiv (α : Sort*) (β : Sort*) :=
@@ -66,17 +74,13 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e�
     show g₁ x = g₂ x,           from injective_of_left_inverse l₁ this,
   by simp *
 
-@[refl] protected def refl (α : Sort*) : α ≃ α :=
-⟨id, id, λ x, rfl, λ x, rfl⟩
+@[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
 
-@[symm] protected def symm : α ≃ β → β ≃ α
-| ⟨f, g, h₁, h₂⟩ := ⟨g, f, h₂, h₁⟩
+@[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
 
-@[trans] protected def trans : α ≃ β → β ≃ γ → α ≃ γ
-| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ :=
-  ⟨f₂ ∘ f₁, g₁ ∘ g₂,
-    λ x, show g₁ (g₂ (f₂ (f₁ x))) = x, by rw [l₂, l₁],
-    λ x, show f₂ (f₁ (g₁ (g₂ x))) = x, by rw [r₁, r₂]⟩
+@[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂.to_fun ∘ e₁.to_fun, e₁.inv_fun ∘ e₂.inv_fun,
+  e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
 protected theorem bijective : ∀ f : α ≃ β, bijective f
 | ⟨f, g, h₁, h₂⟩ :=

@@ -357,6 +357,16 @@ by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
 @[simp] theorem bodd_div2_eq (n : ℕ) : bodd_div2 n = (bodd n, div2 n) :=
 by unfold bodd div2; cases bodd_div2 n; refl
 
+/- foldl & foldr -/
+
+@[simp] def foldl {α : Sort*} (op : α → α) : ℕ → α → α
+ | 0        a := a
+ | (succ k) a := foldl k (op a)
+
+@[simp] def foldr {α : Sort*} (op : α → α) (a : α) : ℕ → α
+ | 0        := a
+ | (succ k) := op (foldr k)
+
 /- size and shift -/
 
 theorem shiftl'_ne_zero_left (b) {m} (h : m ≠ 0) (n) : shiftl' b m n ≠ 0 :=

@@ -49,6 +49,10 @@ subtype.forall
   (∃ x : s, p x) ↔ (∃ x (h : x ∈ s), p ⟨x, h⟩) :=
 subtype.exists
 
+@[simp] theorem set_coe_cast : ∀ {s t : set α} (H' : s = t) (H : @eq (Type u) s t) (x : s),
+  cast H x = ⟨x.1, H' ▸ x.2⟩
+| s _ rfl _ ⟨x, h⟩ := rfl
+
 /- subset -/
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?

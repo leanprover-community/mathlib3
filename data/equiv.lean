@@ -82,16 +82,16 @@ protected theorem bijective : ∀ f : α ≃ β, bijective f
 | ⟨f, g, h₁, h₂⟩ :=
   ⟨injective_of_left_inverse h₁, surjective_of_has_right_inverse ⟨_, h₂⟩⟩
 
-def id := equiv.refl α
+protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
+⟨cast h, cast h.symm, λ x, by cases h; refl, λ x, by cases h; refl⟩
 
 @[simp] theorem coe_fn_symm_mk (f : α → β) (g l r) : ((equiv.mk f g l r).symm : β → α) = g :=
 rfl
 
-theorem id_apply (x : α) : @id α x = x :=
-rfl
+@[simp] theorem refl_apply (x : α) : equiv.refl α x = x := rfl
 
-theorem comp_apply (g : β ≃ γ) (f : α ≃ β) (x : α) : (g ∘ f) x = g (f x) :=
-by cases g; cases f; simp [equiv.trans, *]
+@[simp] theorem trans_apply : ∀ (f : α ≃ β) (g : β ≃ γ) (a : α), (f.trans g) a = g (f a)
+| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ a := rfl
 
 @[simp] theorem apply_inverse_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw r₁
@@ -101,6 +101,8 @@ by cases g; cases f; simp [equiv.trans, *]
 
 @[simp] theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
 | ⟨f₁, g₁, l₁, r₁⟩ x y := (injective_of_left_inverse l₁).eq_iff
+
+@[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 
 theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f x = y ↔ x = f.symm y
 | ⟨f₁, g₁, l₁, r₁⟩ x y := by simp [equiv.symm];
@@ -449,11 +451,26 @@ protected noncomputable def image {α β} (f : α → β) (s : set α) (H : inje
  λ ⟨x, h⟩, subtype.eq (H (classical.some_spec (mem_image_of_mem f h)).2),
  λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩
 
+@[simp] theorem image_apply {α β} (f : α → β) (s : set α) (H : injective f) (a h) : 
+  set.image f s H ⟨a, h⟩ = ⟨f a, mem_image_of_mem _ h⟩ := rfl
+
 protected noncomputable def range {α β} (f : α → β) (H : injective f) :
   α ≃ range f :=
-by rw range_eq_image; exact (set.univ _).symm.trans (set.image f univ H)
+(set.univ _).symm.trans $ (set.image f univ H).trans (equiv.cast $ by rw range_eq_image)
+
+@[simp] theorem range_apply {α β} (f : α → β) (H : injective f) (a) : 
+  set.range f H a = ⟨f a, set.mem_range⟩ :=
+by dunfold equiv.set.range equiv.set.univ;
+   simp [set_coe_cast, range_eq_image]
 
 end set
+
+noncomputable def of_bijective {α β} {f : α → β} (hf : bijective f) : α ≃ β :=
+(set.range f hf.1).trans $ (equiv.cast (by rw set.range_iff_surjective.2 hf.2)).trans (set.univ _)
+
+@[simp] theorem of_bijective_to_fun {α β} {f : α → β} (hf : bijective f) : (of_bijective hf : α → β) = f :=
+by funext a; dunfold of_bijective equiv.set.univ;
+   simp [set.set_coe_cast, set.range_iff_surjective.2 hf.2]
 
 section swap
 variable [decidable_eq α]
@@ -496,7 +513,7 @@ end
 def swap (a b : α) : perm α :=
 ⟨swap_core a b, swap_core a b, λr, swap_core_swap_core r a b, λr, swap_core_swap_core r a b⟩
 
-theorem swap_self (a : α) : swap a a = id :=
+theorem swap_self (a : α) : swap a a = equiv.refl _ :=
 eq_of_to_fun_eq $ funext $ λ r, swap_core_self r a
 
 theorem swap_comm (a b : α) : swap a b = swap b a :=
@@ -514,7 +531,7 @@ by by_cases b = a; simp [swap_apply_def, *]
 theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}
 
-theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = id :=
+theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
 
 theorem swap_comp_apply {a b x : α} (π : perm α) :

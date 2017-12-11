@@ -6,3 +6,5 @@ install:
 
 script:
   - leanpkg test
+  - lean --recursive --export=mathlib.txt
+  - leanchecker mathlib.txt

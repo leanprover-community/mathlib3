@@ -59,7 +59,7 @@ example : (∃ x : A, r) → r := by finish
 example (a : A) : r → (∃ x : A, r) := begin safe; apply a_2; assumption end
 example : (∃ x, p x ∧ r) ↔ (∃ x, p x) ∧ r := by finish
 
-theorem foo: (∃ x, p x ∨ q x) ↔ (∃ x, p x) ∨ (∃ x, q x) :=
+theorem foo': (∃ x, p x ∨ q x) ↔ (∃ x, p x) ∨ (∃ x, q x) :=
 by finish [iff_def]
 
 example (h : ∀ x, ¬ ¬ p x) : p a := by finish

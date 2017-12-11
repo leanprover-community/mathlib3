@@ -62,7 +62,7 @@ by cases a; simp
 by cases a; simp
 
 theorem band_elim_left {a b : bool} (H : a && b = tt) : a = tt :=
-begin cases a, simp at H, simp [H] end
+begin cases a; simp at H, simp [H] end
 
 theorem band_intro {a b : bool} (H₁ : a = tt) (H₂ : b = tt) : a && b = tt :=
 begin cases a, simp [H₁, H₂], simp [H₂] end

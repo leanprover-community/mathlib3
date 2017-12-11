@@ -6,10 +6,22 @@ Authors: Johannes Hölzl, Kenny Lau
 Type of linear functions
 -/
 import algebra.linear_algebra.basic
+  algebra.linear_algebra.prod_module
+  algebra.linear_algebra.quotient_module
+  algebra.linear_algebra.subtype_module
+noncomputable theory
+local attribute [instance] classical.prop_decidable
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+namespace classical
+
+lemma some_spec2 {α : Type u} {p : α → Prop} {h : ∃a, p a} (q : α → Prop) (hpq : ∀a, p a → q a) :
+  q (some h) :=
+hpq _ $ some_spec _
+
+end classical
 
 def linear_map {α : Type u} (β : Type v) (γ : Type w) [ring α] [module α β] [module α γ] :=
 subtype (@is_linear_map α β γ _ _ _)
@@ -68,6 +80,104 @@ instance im.is_submodule : is_submodule A.im :=
 { zero_ := ⟨0, map_zero⟩,
   add_ := λ a b ⟨x, hx⟩ ⟨y, hy⟩, ⟨x + y, by simp [hx, hy]⟩,
   smul := λ r a ⟨x, hx⟩, ⟨r • x, by simp [hx]⟩ }
+
+/- equivalences -/
+section
+open is_submodule
+
+/-- first isomorphism law -/
+def quot_ker_equiv_im (f : linear_map β γ) : (quotient β f.ker) ≃ₗ f.im :=
+{ to_fun     := is_submodule.quotient.lift _
+    (is_linear_map_subtype_mk f.1 f.2 $ assume b, ⟨b, rfl⟩) (assume b eq, subtype.eq eq),
+  inv_fun    := λb, @quotient.mk _ (quotient_rel _) (classical.some b.2),
+  left_inv   := assume b', @quotient.induction_on _ (quotient_rel _) _ b' $
+    begin
+      assume b,
+      apply quotient.sound,
+      apply classical.some_spec2 (λa, f (a - b) = 0),
+      show (∀a, f a = f b → f (a - b) = 0), simp {contextual := tt}
+    end,
+  right_inv  := assume c, subtype.eq $ classical.some_spec2 (λa, f a = c) $ assume b, id,
+  linear_fun :=
+    is_linear_map_quotient_lift _ $ @is_linear_map_subtype_mk _ _ _ _ _ _ f.im _ f f.2 _ }
+
+lemma is_submodule.add_left_iff {s : set β} [is_submodule s] {b₁ b₂ : β} (h₂ : b₂ ∈ s) :
+  b₁ + b₂ ∈ s ↔ b₁ ∈ s :=
+iff.intro
+  (assume h,
+    have b₁ + b₂ - b₂ ∈ s, from is_submodule.sub h h₂,
+    by rwa [add_sub_cancel] at this)
+  (assume h₁, is_submodule.add h₁ h₂)
+
+lemma is_submodule.neg_iff {s : set β} [is_submodule s] {b : β} :
+  - b ∈ s ↔ b ∈ s :=
+iff.intro
+  (assume h,
+    have - - b ∈ s, from is_submodule.neg h,
+    by rwa [neg_neg] at this)
+  is_submodule.neg
+
+/-- second isomorphism law -/
+def union_quotient_equiv_quotient_inter {s t : set β} [is_submodule s] [is_submodule t] :
+  quotient s (subtype.val ⁻¹' (s ∩ t)) ≃ₗ quotient (span (s ∪ t)) (subtype.val ⁻¹' t) :=
+let sel₁ : s → span (s ∪ t) := λb, ⟨b.1, subset_span $ or.inl b.2⟩ in
+have sel₁_val : ∀b:s, (sel₁ b).1 = b.1, from assume b, rfl,
+have ∀b'∈span (s ∪ t), ∃x:s, ∃y∈t, b' = x.1 + y,
+  by simp [span_union, span_eq_of_is_submodule, _inst_4, _inst_5] {contextual := tt},
+let sel₂ : span (s ∪ t) → s := λb', classical.some (this b'.1 b'.2) in
+have sel₂_spec : ∀b':span (s ∪ t), ∃y∈t, b'.1 = (sel₂ b').1 + y,
+  from assume b', classical.some_spec (this b'.1 b'.2),
+{ to_fun :=
+  begin
+    intro b,
+    fapply @quotient.lift_on _ _ (quotient_rel _) b,
+    { intro b', apply quotient.mk, exact (sel₁ b') },
+    { intros b₁ b₂ h, apply quotient.sound, simp [quotient_rel_eq, *] at * }
+  end,
+  inv_fun :=
+  begin
+    intro b,
+    fapply @quotient.lift_on _ _ (quotient_rel _) b,
+    { intro b', apply quotient.mk, exact sel₂ b' },
+    { intros b₁ b₂ h,
+      rcases (sel₂_spec b₁) with ⟨c₁, hc₁, eq_c₁⟩,
+      rcases (sel₂_spec b₂) with ⟨c₂, hc₂, eq_c₂⟩,
+      have : ((sel₂ b₁).1 - (sel₂ b₂).1) + (c₁ - c₂) ∈ t,
+      { simpa [quotient_rel_eq, eq_c₁, eq_c₂, add_comm, add_left_comm, add_assoc] using h },
+      have ht : (sel₂ b₁).1 - (sel₂ b₂).1 ∈ t,
+      { rwa [is_submodule.add_left_iff (is_submodule.sub hc₁ hc₂)] at this },
+      have hs : (sel₂ b₁).1 - (sel₂ b₂).1 ∈ s,
+      { from is_submodule.sub (sel₂ b₁).2 (sel₂ b₂).2 },
+      apply quotient.sound,
+      simp [quotient_rel_eq, *] at * }
+  end,
+  right_inv :=
+  begin
+    intro b',
+    apply @quotient.induction_on _ (quotient_rel _) _ b',
+    intro b,
+    rcases (sel₂_spec b) with ⟨c, hc, eq_c⟩,
+    apply quotient.sound,
+    simp [quotient_rel_eq, eq_c, hc, is_submodule.neg_iff]
+  end,
+  left_inv   :=
+  begin
+    intro b',
+    apply @quotient.induction_on _ (quotient_rel _) _ b',
+    intro b,
+    rcases (sel₂_spec (sel₁ b)) with ⟨c, hc, eq⟩,
+    have b_eq : b.1 = c + (sel₂ (sel₁ b)).1,
+    { simpa [sel₁_val] using eq },
+    have : b.1 ∈ s, from b.2,
+    have hcs : c ∈ s,
+    { rwa [b_eq, is_submodule.add_left_iff (sel₂ (sel₁ b)).2] at this },
+    apply quotient.sound,
+    simp [eq, hc, hcs, quotient_rel_eq, is_submodule.neg_iff],
+  end,
+  linear_fun :=  is_linear_map_quotient_lift _ $ (is_linear_map_quotient_mk _).comp $
+    is_linear_map_subtype_mk _ (is_linear_map_subtype_val is_linear_map.id) _ }
+
+end
 
 section add_comm_group
 

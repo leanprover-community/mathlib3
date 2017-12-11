@@ -29,9 +29,14 @@ def quotient_rel : setoid β :=
 
 local attribute [instance] quotient_rel
 
-def quotient : Type v := quotient (quotient_rel s)
+lemma quotient_rel_eq {b₁ b₂ : β} : (b₁ ≈ b₂) = (b₁ - b₂ ∈ s) := rfl
 
-local notation ` Q ` := quotient s
+section
+variable (β)
+def quotient : Type v := quotient (quotient_rel s)
+end
+
+local notation ` Q ` := quotient β s
 
 instance quotient.has_zero : has_zero Q := ⟨⟦ 0 ⟧⟩
 
@@ -88,6 +93,10 @@ def quotient.lift {f : β → γ} (hf : is_linear_map f) (h : ∀x∈s, f x = 0)
 b.lift_on f $ assume a b (hab : a - b ∈ s),
   have f a - f b = 0, by rw [←hf.sub]; exact h _ hab,
   show f a = f b, from eq_of_sub_eq_zero this
+
+@[simp] lemma quotient.lift_mk {f : β → γ} (hf : is_linear_map f) (h : ∀x∈s, f x = 0) (b : β) :
+  quotient.lift s hf h ⟦b⟧ = f b :=
+rfl
 
 lemma is_linear_map_quotient_lift {f : β → γ} {h : ∀x y, x - y ∈ s → f x = f y}
   (hf : is_linear_map f) : is_linear_map (λq:Q, quotient.lift_on q f h) :=

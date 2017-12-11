@@ -20,6 +20,8 @@ local attribute [instance] prop_decidable
 
 universes u v w x
 
+namespace cardinal
+
 structure embedding (α : Sort*) (β : Sort*) :=
 (to_fun : α → β)
 (inj    : injective to_fun)
@@ -224,7 +226,9 @@ let f' : (α → γ) → (β → γ) := λf b, if h : ∃c, e c = b then f (some
 
 end embedding
 
-protected def equiv.to_embedding {α : Type u} {β : Type v} (f : α ≃ β) : embedding α β :=
+end cardinal
+
+protected def equiv.to_embedding {α : Type u} {β : Type v} (f : α ≃ β) : cardinal.embedding α β :=
 ⟨f, f.bijective.1⟩
 
 @[simp] theorem equiv.to_embedding_coe_fn {α : Type u} {β : Type v} (f : α ≃ β) :

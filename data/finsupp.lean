@@ -272,7 +272,7 @@ begin
     refine (finset.sum_subset this _).symm,
     simp {contextual := tt} },
   { transitivity (f.support.sum (λa, (0 : β))),
-    { refine (finset.sum_congr _),
+    { refine (finset.sum_congr rfl _),
       intros a' ha',
       have h: a' ≠ a,
         { assume eq, simp * at * },
@@ -351,7 +351,7 @@ sum_zero_index
 
 lemma map_domain_congr {f g : α → α₂} (h : ∀x∈v.support, f x = g x) :
   v.map_domain f = v.map_domain g :=
-finset.sum_congr $ by simp [*] at * { contextual := tt}
+finset.sum_congr rfl $ by simp [*] at * { contextual := tt}
 
 lemma map_domain_add {f : α → α₂} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
 sum_add_index (by simp) (by simp)

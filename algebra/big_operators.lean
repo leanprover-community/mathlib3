@@ -44,8 +44,9 @@ lemma prod_image [decidable_eq α] [decidable_eq γ] {s : finset γ} {g : γ →
 fold_image
 
 @[congr, to_additive finset.sum_congr]
-lemma prod_congr : (∀x∈s, f x = g x) → s.prod f = s.prod g :=
-fold_congr
+lemma prod_congr (h : s₁ = s₂) : (∀x∈s₂, f x = g x) → s₁.prod f = s₂.prod g :=
+by rw [h]; exact fold_congr
+attribute [congr] finset.sum_congr
 
 @[to_additive finset.sum_union_inter]
 lemma prod_union_inter [decidable_eq α] : (s₁ ∪ s₂).prod f * (s₁ ∩ s₂).prod f = s₁.prod f * s₂.prod f :=
@@ -120,7 +121,7 @@ eq.trans (by rw [h₁]; refl) (fold_hom h₂)
 lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → f x = 1) : s₁.prod f = s₂.prod f :=
 by have := classical.dec_eq α; exact
 have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
-  from prod_congr begin simp [hf] {contextual := tt} end,
+  from prod_congr rfl begin simp [hf] {contextual := tt} end,
 by rw [←prod_sdiff h]; simp [this]
 
 @[to_additive sum_attach]
@@ -137,7 +138,7 @@ lemma prod_bij [decidable_eq α] [decidable_eq β] [decidable_eq γ]
   (i_inj : ∀a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (i_surj : ∀b∈t, ∃a ha, b = i a ha) :
   s.prod f = t.prod g :=
 calc s.prod f = s.attach.prod (λx, f x.val) : prod_attach.symm
-  ... = s.attach.prod (λx, g (i x.1 x.2)) : prod_congr $ assume x hx, h _ _
+  ... = s.attach.prod (λx, g (i x.1 x.2)) : prod_congr rfl $ assume x hx, h _ _
   ... = (s.attach.image $ λx:{x // x ∈ s}, i x.1 x.2).prod g :
     (prod_image $ assume (a₁:{x // x ∈ s}) _ a₂ _ eq, subtype.eq $ i_inj a₁.1 a₂.1 a₁.2 a₂.2 eq).symm
   ... = _ :

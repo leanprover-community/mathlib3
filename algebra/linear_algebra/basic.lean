@@ -222,7 +222,7 @@ lemma linear_eq_on {f g : β → γ} (hf : is_linear_map f) (hg : is_linear_map 
 | _ ⟨l, hl, rfl⟩ :=
   begin
     simp [hf.finsupp_sum, hg.finsupp_sum],
-    apply finset.sum_congr,
+    apply finset.sum_congr rfl,
     assume b hb,
     have : b ∈ s, { by_contradiction, simp * at * },
     simp [this, h, hf.smul, hg.smul]
@@ -465,7 +465,7 @@ funext $ assume b, linear_eq_on hf hg h (hs.2 b)
 
 lemma constr_congr {f g : β → γ} {b : β} (hs : is_basis s) (h : ∀b∈s, f b = g b) :
   hs.constr f = hs.constr g :=
-funext $ assume b', finset.sum_congr $ assume b hb,
+funext $ assume b', finset.sum_congr rfl $ assume b hb,
   have b ∈ s, from repr_support hs.1 hb,
   by simp [h b this]
 
@@ -521,7 +521,7 @@ def module_equiv_lc (hs : is_basis s) : β ≃ (s →₀ α) :=
     have v.sum (λb' a, hs.1.repr (a • b'.val) b) = v ⟨b, hb⟩,
       from calc v.sum (λb' a, hs.1.repr (a • b'.val) b) =
           v.sum (λb' a, a * (finsupp.single b'.val 1 : lc α β) b) :
-            finset.sum_congr $ assume ⟨b', hb'⟩ h',
+            finset.sum_congr rfl $ assume ⟨b', hb'⟩ h',
               by dsimp; rw [repr_smul hs.1 (hs.2 _), repr_eq_single _ hb']; refl
         ... = ({⟨b, hb⟩} : finset s).sum (λb', v b' * (finsupp.single b'.val 1 : lc α β) b) :
           finset.sum_bij_ne_zero (λx hx x0, x)

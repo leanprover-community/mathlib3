@@ -204,7 +204,7 @@ is_sum_of_is_sum $ assume u, exists.intro (ii u) $
     by rw [hji h] at this; exact hnc this,
   calc (u ∪ jj v).sum g = (jj v).sum g : (sum_subset subset_union_right this).symm
     ... = v.sum _ : sum_bind $ by intros x hx y hy hxy; by_cases f x = 0; by_cases f y = 0; simp [*]
-    ... = v.sum f : sum_congr $ by intros x hx; by_cases f x = 0; simp [*]
+    ... = v.sum f : sum_congr rfl $ by intros x hx; by_cases f x = 0; simp [*]
 
 lemma is_sum_iff_is_sum_of_ne_zero : is_sum f a ↔ is_sum g a :=
 iff.intro
@@ -405,7 +405,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
       ... = (u.filter (λb, f' b ≠ 0)).sum f :
         by simp
       ... = (u.filter (λb, f' b ≠ 0)).sum f' :
-        sum_congr $ assume b, by have h := h b; cases h with h h; simp [*]
+        sum_congr rfl $ assume b, by have h := h b; cases h with h h; simp [*]
       ... = u.sum f' :
         by apply sum_subset; by simp [subset_iff, not_not] {contextual := tt},
   have ∀{u₁ u₂}, t ⊆ u₁ → t ⊆ u₂ → (u₁.sum f', u₂.sum f') ∈ s',

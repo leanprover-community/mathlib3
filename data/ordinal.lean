@@ -10,7 +10,7 @@ Ordinals are defined as equivalences of well-ordered sets by order isomorphism.
 import data.cardinal
 noncomputable theory
 
-open function
+open function cardinal
 local attribute [instance] classical.prop_decidable
 
 universes u v w

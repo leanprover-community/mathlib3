@@ -151,28 +151,22 @@ have sel₂_spec : ∀b':span (s ∪ t), ∃y∈t, b'.1 = (sel₂ b').1 + y,
       apply quotient.sound,
       simp [quotient_rel_eq, *] at * }
   end,
-  right_inv :=
+  right_inv := assume b', @quotient.induction_on _ (quotient_rel _) _ b'
   begin
-    intro b',
-    apply @quotient.induction_on _ (quotient_rel _) _ b',
-    intro b,
+    intro b, apply quotient.sound,
     rcases (sel₂_spec b) with ⟨c, hc, eq_c⟩,
-    apply quotient.sound,
     simp [quotient_rel_eq, eq_c, hc, is_submodule.neg_iff]
   end,
-  left_inv   :=
+  left_inv := assume b', @quotient.induction_on _ (quotient_rel _) _ b'
   begin
-    intro b',
-    apply @quotient.induction_on _ (quotient_rel _) _ b',
-    intro b,
+    intro b, apply quotient.sound,
     rcases (sel₂_spec (sel₁ b)) with ⟨c, hc, eq⟩,
     have b_eq : b.1 = c + (sel₂ (sel₁ b)).1,
     { simpa [sel₁_val] using eq },
     have : b.1 ∈ s, from b.2,
     have hcs : c ∈ s,
     { rwa [b_eq, is_submodule.add_left_iff (sel₂ (sel₁ b)).2] at this },
-    apply quotient.sound,
-    simp [eq, hc, hcs, quotient_rel_eq, is_submodule.neg_iff],
+    show (sel₂ (sel₁ b) - b).1 ∈ s ∩ t, { simp [eq, hc, hcs, is_submodule.neg_iff] }
   end,
   linear_fun :=  is_linear_map_quotient_lift _ $ (is_linear_map_quotient_mk _).comp $
     is_linear_map_subtype_mk _ (is_linear_map_subtype_val is_linear_map.id) _ }

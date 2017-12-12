@@ -37,13 +37,13 @@ le_antisymm
     begin
       rw [hs] at hu,
       induction hu,
-      case generate_open.basic u hu
+      case generate_open.basic : u hu
       { exact generate_measurable.basic u hu },
       case generate_open.univ
       { exact @is_measurable_univ α (generate_from s) },
-      case generate_open.inter s₁ s₂ _ _ hs₁ hs₂
+      case generate_open.inter : s₁ s₂ _ _ hs₁ hs₂
       { exact @is_measurable_inter α (generate_from s) _ _ hs₁ hs₂ },
-      case generate_open.sUnion f hf ih {
+      case generate_open.sUnion : f hf ih {
         have ht' : ∀u∈f, t.is_open u, { rwa [hs] },
         let b' := {u ∈ b | u ⊆ (⋃₀ f) ∧ ∃v, v ∈ f ∧ u ⊆ v },
         have : ∀u∈b', ∃v, v ∈ f ∧ u ⊆ v,

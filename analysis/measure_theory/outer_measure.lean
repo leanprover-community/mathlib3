@@ -167,7 +167,7 @@ private lemma C_sum {s : ℕ → set α} (h : ∀i, C (s i)) (hd : pairwise (dis
 begin
   induction n,
   case nat.zero { simp [nat.not_lt_zero, m.empty] },
-  case nat.succ n ih {
+  case nat.succ : n ih {
     have disj : ∀x i, x ∈ s n → i < n → x ∉ s i,
       from assume x i hn h hi,
       have hx : x ∈ s i ∩ s n, from ⟨hi, hn⟩,

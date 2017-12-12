@@ -49,7 +49,7 @@ begin
       { apply eq_univ_of_forall,
         simp [mem_Inter, nat.not_lt_zero] },
     simp [h, inter_univ] },
-  case nat.succ n ih {
+  case nat.succ : n ih {
     intro t,
     have h : (⨅i (H : i < n.succ), -f i) = (⨅i (H : i < n), -f i) ⊓ - f n,
       by simp [nat.lt_succ_iff_lt_or_eq, infi_or, infi_inf_eq, inf_comm],

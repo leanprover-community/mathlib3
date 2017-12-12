@@ -281,7 +281,7 @@ have ∀i, (range (i + 1)).sum (λi, μ.measure (disjointed s i)) = μ.measure (
 begin
   intro i, induction i,
   case nat.zero { simp [disjointed, nat.not_lt_zero, univ_inter] },
-  case nat.succ i ih {
+  case nat.succ : i ih {
     rw [range_succ, sum_insert, ih, ←measure_union],
     { show μ.measure (disjointed s (i + 1) ∪ s i) = μ.measure (s (i + 1)),
       rw [disjointed_of_mono hs, sdiff_union_same, union_of_subset_right],

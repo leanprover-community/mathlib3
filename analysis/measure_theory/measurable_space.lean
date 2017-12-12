@@ -289,12 +289,12 @@ le_antisymm
   begin
     rw [←eq], clear eq,
     induction hv,
-    case generate_measurable.basic u hu { exact (generate_measurable.basic _ $ ⟨u, hu, rfl⟩) },
+    case generate_measurable.basic : u hu { exact (generate_measurable.basic _ $ ⟨u, hu, rfl⟩) },
     case generate_measurable.empty { simp [measurable_space.is_measurable_empty] },
-    case generate_measurable.compl u hu ih {
+    case generate_measurable.compl : u hu ih {
       rw [preimage_compl],
       exact measurable_space.is_measurable_compl _ _ ih },
-    case generate_measurable.union u hu ih {
+    case generate_measurable.union : u hu ih {
       rw [preimage_Union],
       exact measurable_space.is_measurable_Union _ _ ih }
   end)

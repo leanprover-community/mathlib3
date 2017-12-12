@@ -662,15 +662,15 @@ le_antisymm
     begin
       intros s hs,
       induction hs,
-      case generate_open.basic s hs
+      case generate_open.basic : s hs
       { exact assume as, infi_le_of_le s $ infi_le _ ⟨as, hs⟩ },
       case generate_open.univ
       { rw [principal_univ],
         exact assume _, le_top },
-      case generate_open.inter s t hs' ht' hs ht
+      case generate_open.inter : s t hs' ht' hs ht
       { exact assume ⟨has, hat⟩, calc _ ≤ principal s ⊓ principal t : le_inf (hs has) (ht hat)
           ... = _ : by simp },
-      case generate_open.sUnion k hk' hk
+      case generate_open.sUnion : k hk' hk
       { exact λ ⟨t, htk, hat⟩, calc _ ≤ principal t : hk t htk hat
           ... ≤ _ : begin simp; exact subset_sUnion_of_mem htk end }
     end,

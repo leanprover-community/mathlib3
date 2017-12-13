@@ -20,10 +20,17 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, sigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
-lemma sigma.mk_eq_mk_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
-  @sigma.mk α β a₁ b₁ = @sigma.mk α β a₂ b₂ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
-iff.intro sigma.mk.inj $
-  assume ⟨h₁, h₂⟩, match a₁, a₂, b₁, b₂, h₁, h₂ with _, _, _, _, eq.refl a, heq.refl b := rfl end
+@[simp] theorem sigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
+  sigma.mk a₁ b₁ = ⟨a₂, b₂⟩ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
+⟨sigma.mk.inj, λ ⟨h₁, h₂⟩, by congr; assumption⟩
+
+@[simp] theorem sigma.forall {p : (Σ a, β a) → Prop} :
+  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
+⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
+
+@[simp] theorem sigma.exists {p : (Σ a, β a) → Prop} :
+  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
+⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
 variables {α₁ : Type*} {α₂ : Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
 
@@ -48,7 +55,7 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, psigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
-lemma psigma.mk_eq_mk_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
+lemma psigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
   @psigma.mk α β a₁ b₁ = @psigma.mk α β a₂ b₂ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
 iff.intro psigma.mk.inj $
   assume ⟨h₁, h₂⟩, match a₁, a₂, b₁, b₂, h₁, h₂ with _, _, _, _, eq.refl a, heq.refl b := rfl end
@@ -59,3 +66,16 @@ def psigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a))
 | ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
 
 end psigma
+
+section subtype
+variables {α : Sort*} {β : α → Prop}
+
+@[simp] theorem subtype.forall {p : {a // β a} → Prop} :
+  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
+⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
+
+@[simp] theorem subtype.exists {p : {a // β a} → Prop} :
+  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
+⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
+
+end subtype

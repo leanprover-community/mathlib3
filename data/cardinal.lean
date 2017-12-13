@@ -33,6 +33,9 @@ instance {α : Sort u} {β : Sort v} : has_coe_to_fun (embedding α β) :=
 
 @[simp] theorem to_fun_eq_coe {α β} (f : embedding α β) : to_fun f = f := rfl
 
+@[simp] theorem coe_fn_mk {α β} (f : α → β) (i) :
+  (@mk _ _ f i : α → β) = f := rfl
+
 theorem inj' {α β} : ∀ (f : embedding α β), injective f
 | ⟨f, hf⟩ := hf
 

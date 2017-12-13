@@ -94,13 +94,13 @@ by have := classical.dec_eq α; have := (λ a, classical.dec_eq (σ a)); exact
 have ∀a₁ a₂:α, ∀s₁ : finset (σ a₁), ∀s₂ : finset (σ a₂), a₁ ≠ a₂ →
     s₁.image (sigma.mk a₁) ∩ s₂.image (sigma.mk a₂) = ∅,
   from assume b₁ b₂ s₁ s₂ h, ext.2 $ assume ⟨b₃, c₃⟩,
-    by simp [mem_image, sigma.mk_eq_mk_iff, heq_iff_eq] {contextual := tt}; cc,
+    by simp [mem_image, sigma.mk.inj_iff, heq_iff_eq] {contextual := tt}; cc,
 calc (s.sigma t).prod f =
        (s.bind (λa, (t a).image (λs, sigma.mk a s))).prod f : by rw sigma_eq_bind
   ... = s.prod (λa, ((t a).image (λs, sigma.mk a s)).prod f) :
     prod_bind $ assume a₁ ha a₂ ha₂ h, this a₁ a₂ (t a₁) (t a₂) h
   ... = (s.prod $ λa, (t a).prod $ λs, f ⟨a, s⟩) :
-    by simp [prod_image, sigma.mk_eq_mk_iff, heq_iff_eq]
+    by simp [prod_image, sigma.mk.inj_iff, heq_iff_eq]
 
 @[to_additive finset.sum_add_distrib]
 lemma prod_mul_distrib : s.prod (λx, f x * g x) = s.prod f * s.prod g :=

@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.finish
+import tactic.finish data.sigma
 open function
 
 namespace set
@@ -34,6 +34,8 @@ theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
 instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a ∈ s) := H
 
 instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred {a | p a} := H
+
+@[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
 
 /- set coercion to a type -/
 

@@ -22,6 +22,19 @@ local infix ` ≺ `:50  := r
 
 def chain (c : set α) := pairwise_on c (λx y, x ≺ y ∨ y ≺ x)
 
+theorem chain.total_of_refl [is_refl α r]
+  {c} (H : chain c) {x y} (hx : x ∈ c) (hy : y ∈ c) :
+  x ≺ y ∨ y ≺ x :=
+if e : x = y then or.inl (e ▸ refl _) else H _ hx _ hy e
+
+theorem chain.directed [is_refl α r]
+  {c} (H : chain c) {x y} (hx : x ∈ c) (hy : y ∈ c) :
+  ∃ z, z ∈ c ∧ x ≺ z ∧ y ≺ z :=
+match H.total_of_refl hx hy with
+| or.inl h := ⟨y, hy, h, refl _⟩
+| or.inr h := ⟨x, hx, refl _, h⟩
+end
+
 theorem chain_insert {c : set α} {a : α} (hc : chain c) (ha : ∀b∈c, b ≠ a → a ≺ b ∨ b ≺ a) :
   chain (insert a c) :=
 forall_insert_of_forall
@@ -203,9 +216,9 @@ theorem zorn_partial_order {α : Type u} [partial_order α]
 let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
 
-theorem chain.total {α : Type u} [partial_order α]
-  {c} (H : @chain α (≤) c) {x y} (hx : x ∈ c) (hy : y ∈ c) :
-  x ≤ y ∨ y ≤ x :=
-if e : x = y then or.inl (le_of_eq e) else H _ hx _ hy e
+theorem chain.total {α : Type u} [preorder α]
+  {c} (H : @chain α (≤) c) :
+  ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=
+@chain.total_of_refl _ (≤) ⟨le_refl⟩ _ H
 
 end zorn

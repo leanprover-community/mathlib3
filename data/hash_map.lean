@@ -235,7 +235,7 @@ begin
     (λa' e, by simp at e; rw e)
     (λa' e1 e2, _)
     (λa' e1 e2, _)).2;
-  { revert e1, simp at e2, subst a', simp [nd] }
+  { revert e1, simp [-sigma.exists] at e2, subst a', simp [nd] }
 end
 
 theorem valid.insert {n : ℕ+}
@@ -249,7 +249,7 @@ begin
     (λa' e, by simp at e; rw e)
     (λa', false.elim)
     (λa' e1 e2, _)).2,
-  simp at e2, subst a',
+  simp [-sigma.exists] at e2, subst a',
   exact Hnc ((contains_aux_iff nd).2 e1)
 end
 

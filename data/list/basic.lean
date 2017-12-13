@@ -6,7 +6,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 Basic properties of lists.
 -/
 import logic.basic data.nat.basic data.option data.bool data.prod
-       tactic.interactive algebra.group
+       tactic.interactive algebra.group data.sigma
        pending
 open function nat
 

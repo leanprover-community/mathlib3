@@ -213,7 +213,7 @@ lemma monotone_principal : monotone (principal : set α → filter α) :=
 by simp [monotone, principal_mono]; exact assume a b h, h
 
 @[simp] lemma principal_eq_iff_eq {s t : set α} : principal s = principal t ↔ s = t :=
-by simp [eq_iff_le_and_le]; refl
+by simp [le_antisymm_iff]; refl
 
 instance complete_lattice_filter : complete_lattice (filter α) :=
 { sup           := filter.sup,

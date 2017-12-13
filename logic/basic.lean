@@ -23,31 +23,6 @@ variables {α : Type*} {β : Type*}
 
 theorem empty.elim {C : Sort*} : empty → C.
 
-theorem eq_iff_le_and_le [partial_order α] {a b : α} : a = b ↔ (a ≤ b ∧ b ≤ a) :=
-⟨assume eq, eq ▸ ⟨le_refl a, le_refl a⟩, assume ⟨ab, ba⟩, le_antisymm ab ba⟩
-
-@[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} = (∀a, p a → q a) := rfl
-
-@[simp] theorem sigma.mk.inj_iff {β : α → Type*} {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
-  sigma.mk a₁ b₁ = ⟨a₂, b₂⟩ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
-⟨sigma.mk.inj, λ ⟨h₁, h₂⟩, by congr; assumption⟩
-
-@[simp] theorem sigma.forall {β : α → Type*} {p : (Σ a, β a) → Prop} :
-  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
-⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
-
-@[simp] theorem sigma.exists {β : α → Type*} {p : (Σ a, β a) → Prop} :
-  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
-⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
-
-@[simp] theorem subtype.forall {β : α → Prop} {p : {a // β a} → Prop} :
-  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
-⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
-
-@[simp] theorem subtype.exists {β : α → Prop} {p : {a // β a} → Prop} :
-  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
-⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
-
 end miscellany
 
 /-

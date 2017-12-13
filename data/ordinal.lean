@@ -7,7 +7,7 @@ Ordinal arithmetic.
 
 Ordinals are defined as equivalences of well-ordered sets by order isomorphism.
 -/
-import data.cardinal
+import data.cardinal data.sum
 noncomputable theory
 
 open function cardinal
@@ -68,6 +68,39 @@ instance is_extensional_of_is_strict_total_order'
 
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
+
+def empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
+⟨⟨⟨λ a b, or.inr $ or.inl $ subsingleton.elim _ _⟩,
+  ⟨λ a, id⟩, ⟨λ a b c, false.elim⟩⟩,
+  ⟨λ a, ⟨_, λ y, false.elim⟩⟩⟩
+
+def sum.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
+⟨⟨⟨λ a b, by cases a; cases b; simp; apply trichotomous⟩,
+  ⟨λ a, by cases a; simp; apply irrefl⟩,
+  ⟨λ a b c, by cases a; cases b; simp; cases c; simp; apply trans⟩⟩,
+  sum.lex_wf (is_well_order.wf r) (is_well_order.wf s)⟩
+
+def prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α × β) (prod.lex r s) :=
+⟨⟨⟨λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩, match @trichotomous _ r _ a₁ b₁ with
+    | or.inl h₁ := or.inl $ prod.lex.left _ _ _ h₁
+    | or.inr (or.inr h₁) := or.inr $ or.inr $ prod.lex.left _ _ _ h₁
+    | or.inr (or.inl e) := e ▸  match @trichotomous _ s _ a₂ b₂ with
+      | or.inl h := or.inl $ prod.lex.right _ _ h
+      | or.inr (or.inr h) := or.inr $ or.inr $ prod.lex.right _ _ h
+      | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
+      end
+    end⟩,
+  ⟨λ ⟨a₁, a₂⟩ h, by cases h with _ _ _ _ h _ _ _ h;
+     [exact irrefl _ h, exact irrefl _ h]⟩,
+  ⟨λ a b c h₁ h₂, begin
+    cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
+    cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
+    { exact prod.lex.left _ _ _ (trans ab bc) },
+    { exact prod.lex.left _ _ _ ab },
+    { exact prod.lex.left _ _ _ bc },
+    { exact prod.lex.right _ _ (trans ab bc) }
+  end⟩⟩,
+  prod.lex_wf (is_well_order.wf r) (is_well_order.wf s)⟩
 
 structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends embedding α β :=
 (ord : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
@@ -493,16 +526,16 @@ sum.inl ⟨f, classical.some h', classical.some_spec h'⟩
   (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inl g) (a : α) : g a = f a :=
 begin
   unfold initial_seg.lt_or_eq at h,
-  by_cases surjective f with sj; simp [sj] at h; injection h with h,
-  subst g, refl
+  by_cases surjective f with sj; simp [sj] at h,
+  {injection h}, {subst h, refl}
 end
 
 @[simp] theorem initial_seg.lt_or_eq_apply_right [is_well_order β s]
   (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inr g) (a : α) : g a = f a :=
 begin
   unfold initial_seg.lt_or_eq at h,
-  by_cases surjective f with sj; simp [sj] at h; injection h with h,
-  subst g, simp
+  by_cases surjective f with sj; simp [sj] at h,
+  {subst g, simp}, {injection h}
 end
 
 def initial_seg.le_lt [is_well_order β s] [is_trans γ t] (f : r ≼i s) (g : s ≺i t) : r ≺i t :=
@@ -518,6 +551,138 @@ begin
   { simp [f.lt_or_eq_apply_left h] },
   { simp [f.lt_or_eq_apply_right h] }
 end
+
+section well_ordering_thm
+parameter {σ : Type*}
+
+private def partial_wo := Σ p : set σ, {r // is_well_order p r}
+
+private def partial_wo.le (x y : partial_wo) := ∃ f : x.2.1 ≼i y.2.1, ∀ x, (f x).1 = x.1
+
+local infix ` ≤ `:50 := partial_wo.le
+
+private def partial_wo.is_refl : is_refl _ (≤) :=
+⟨λ a, ⟨initial_seg.refl _, λ x, rfl⟩⟩
+local attribute [instance] partial_wo.is_refl
+
+private def partial_wo.trans {a b c} : a ≤ b → b ≤ c → a ≤ c
+| ⟨f, hf⟩ ⟨g, hg⟩ := ⟨f.trans g, λ a, by simp [hf, hg]⟩
+
+private def sub_of_le {s t} : s ≤ t → s.1 ⊆ t.1
+| ⟨f, hf⟩ x h := by have := (f ⟨x, h⟩).2; rwa [hf ⟨x, h⟩] at this
+
+private def agree_of_le {s t} : s ≤ t → ∀ {a b} sa sb ta tb,
+  s.2.1 ⟨a, sa⟩ ⟨b, sb⟩ ↔ t.2.1 ⟨a, ta⟩ ⟨b, tb⟩
+| ⟨f, hf⟩ a b sa sb ta tb := by rw [f.to_order_embedding.ord',
+  show f.to_order_embedding ⟨a, sa⟩ = ⟨a, ta⟩, from subtype.eq (hf ⟨a, sa⟩),
+  show f.to_order_embedding ⟨b, sb⟩ = ⟨b, tb⟩, from subtype.eq (hf ⟨b, sb⟩)]
+
+section
+parameters {c : set partial_wo} (hc : @zorn.chain _ (≤) c)
+
+private def U := ⋃₀ ((λ x:partial_wo, x.1) '' c)
+
+private def R (x y : U) := ∃ a : partial_wo, a ∈ c ∧
+  ∃ (hx : x.1 ∈ a.1) (hy : y.1 ∈ a.1), a.2.1 ⟨_, hx⟩ ⟨_, hy⟩
+
+private lemma mem_U {a} : a ∈ U ↔ ∃ s : partial_wo, s ∈ c ∧ a ∈ s.1 :=
+by unfold U; simp [-sigma.exists]
+
+private lemma mem_U2 {a b} (au : a ∈ U) (bu : b ∈ U) :
+  ∃ s : partial_wo, s ∈ c ∧ a ∈ s.1 ∧ b ∈ s.1 :=
+let ⟨s, sc, as⟩ := mem_U.1 au, ⟨t, tc, bt⟩ := mem_U.1 bu,
+    ⟨k, kc, ks, kt⟩ := hc.directed sc tc in
+⟨k, kc, sub_of_le ks as, sub_of_le kt bt⟩
+
+private lemma R_ex {s : partial_wo} (sc : s ∈ c)
+  {a b : σ} (hb : b ∈ s.1) {au bu} :
+  R ⟨a, au⟩ ⟨b, bu⟩ → ∃ ha, s.2.1 ⟨a, ha⟩ ⟨b, hb⟩
+| ⟨t, tc, at', bt, h⟩ :=
+  match hc.total_of_refl sc tc with
+  | or.inr hr := ⟨sub_of_le hr at', (agree_of_le hr _ _ _ _).1 h⟩
+  | or.inl hr@⟨f, hf⟩ := begin
+      rw [← show (f ⟨b, hb⟩) = ⟨(subtype.mk b bu).val, bt⟩, from
+        subtype.eq (hf _)] at h,
+      rcases f.init_iff.1 h with ⟨a', e, h'⟩, cases a' with a' ha,
+      have : a' = a,
+      { have := congr_arg subtype.val e, rwa hf at this },
+      subst a', exact ⟨_, h'⟩
+    end
+  end
+
+private lemma R_iff {s : partial_wo} (sc : s ∈ c)
+  {a b : σ} (ha hb) {au bu} :
+  R ⟨a, au⟩ ⟨b, bu⟩ ↔ s.2.1 ⟨a, ha⟩ ⟨b, hb⟩ :=
+⟨λ h, let ⟨_, h⟩ := R_ex sc hb h in h,
+ λ h, ⟨s, sc, ha, hb, h⟩⟩
+
+private def wo : is_well_order U R :=
+⟨⟨⟨λ ⟨a, au⟩ ⟨b, bu⟩,
+  let ⟨s, sc, ha, hb⟩ := mem_U2 au bu in
+  by have := s.2.2; exact
+  (@trichotomous _ s.2.1 _ ⟨a, ha⟩ ⟨b, hb⟩).imp
+    (R_iff hc sc _ _).2
+    (λ o, o.imp (λ h, by congr; injection h)
+    (R_iff hc sc _ _).2)⟩,
+⟨λ ⟨a, au⟩ h, let ⟨s, sc, ha⟩ := mem_U.1 au in
+  by have := s.2.2; exact irrefl _ ((R_iff hc sc _ ha).1 h)⟩,
+⟨λ ⟨a, au⟩ ⟨b, bu⟩ ⟨d, du⟩ ab bd,
+  let ⟨s, sc, as, bs⟩ := mem_U2 au bu, ⟨t, tc, dt⟩ := mem_U.1 du,
+      ⟨k, kc, ks, kt⟩ := hc.directed sc tc in begin
+    simp only [R_iff hc kc, sub_of_le ks as, sub_of_le ks bs, sub_of_le kt dt] at ab bd ⊢,
+    have := k.2.2, exact trans ab bd
+  end⟩⟩,
+⟨λ ⟨a, au⟩, let ⟨s, sc, ha⟩ := mem_U.1 au in
+  suffices ∀ (a : s.1) au, acc R ⟨a.1, au⟩, from this ⟨a, ha⟩ au,
+  λ a, acc.rec_on ((@is_well_order.wf _ _ s.2.2).apply a) $
+  λ ⟨a, ha⟩ H IH au, ⟨_, λ ⟨b, hb⟩ h,
+    let ⟨hb, h⟩ := R_ex sc ha h in IH ⟨b, hb⟩ h _⟩⟩⟩
+
+theorem chain_ub : ∃ ub, ∀ a ∈ c, a ≤ ub :=
+⟨⟨U, R, wo⟩, λ s sc, ⟨⟨⟨⟨
+  λ a, ⟨a.1, mem_U.2 ⟨s, sc, a.2⟩⟩,
+  λ a b h, by injection h with h; exact subtype.eq h⟩,
+  λ a b, by cases a with a ha; cases b with b hb; exact
+     (R_iff hc sc _ _).symm⟩,
+  λ ⟨a, ha⟩ ⟨b, hb⟩ h,
+    let ⟨bs, h'⟩ := R_ex sc ha h in ⟨⟨_, bs⟩, rfl⟩⟩,
+  λ a, rfl⟩⟩
+
+end
+
+theorem well_ordering_thm : ∃ r, is_well_order σ r :=
+let ⟨m, MM⟩ := zorn.zorn (λ c, chain_ub) (λ a b c, partial_wo.trans) in
+suffices hf : ∀ a, a ∈ m.1, from
+  let f : σ ≃ m.1 := ⟨λ a, ⟨a, hf a⟩, λ a, a.1, λ a, rfl, λ ⟨a, ha⟩, rfl⟩ in
+  ⟨order.preimage f m.2.1,
+    @order_embedding.is_well_order _ _ _ _ ↑(order_iso.preimage f m.2.1) m.2.2⟩,
+λ a, classical.by_contradiction $ λ ha,
+let f : (insert a m.1 : set σ) ≃ (m.1 ⊕ unit) :=
+ ⟨λ x, if h : x.1 ∈ m.1 then sum.inl ⟨_, h⟩ else sum.inr ⟨⟩,
+  λ x, sum.cases_on x (λ x, ⟨x.1, or.inr x.2⟩) (λ _, ⟨a, or.inl rfl⟩),
+  λ x, match x with
+    | ⟨_, or.inl rfl⟩ := by dsimp; rw [dif_neg ha]
+    | ⟨x, or.inr h⟩ := by dsimp; rw [dif_pos h]
+    end,
+  λ x, by rcases x with ⟨x, h⟩ | ⟨⟨⟩⟩; dsimp;
+    [rw [dif_pos h], rw [dif_neg ha]]⟩ in
+let r' := sum.lex m.2.1 (@empty_relation unit) in
+have r'wo : is_well_order _ r' :=
+  @sum.lex.is_well_order _ _ _ _ m.2.2 empty_relation.is_well_order,
+let m' : partial_wo := ⟨insert a m.1, order.preimage f r',
+  @order_embedding.is_well_order _ _ _ _ ↑(order_iso.preimage f r') r'wo⟩ in
+let g : m.2.1 ≼i r' := ⟨⟨⟨sum.inl, λ a b, sum.inl.inj⟩,
+  λ a b, by simp [r']⟩,
+  λ a b h, begin
+    rcases b with b | ⟨⟨⟩⟩; simp [r'] at h ⊢,
+    { cases b, exact ⟨_, _, rfl⟩ },
+    { contradiction }
+  end⟩ in
+ha (sub_of_le (MM m' ⟨g.trans
+  (initial_seg.of_iso (order_iso.preimage f r').symm),
+  λ x, rfl⟩) (or.inl rfl))
+
+end well_ordering_thm
 
 structure Well_order : Type (u+1) :=
 (α : Type u)

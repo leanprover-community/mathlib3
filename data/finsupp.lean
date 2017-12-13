@@ -155,24 +155,33 @@ finset.ext.mpr $ assume a, by by_cases p a; simp *
 
 end filter
 
+-- [to_additive finsupp.sum] for finsupp.prod doesn't work, the equation lemmas are not generated
 def sum {γ : Type w} [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 f.support.sum (λa, g a (f a))
 
-lemma sum_map_range_index {γ : Type w} [has_zero β₁] [has_zero β₂] [add_comm_monoid γ]
-  {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {h : α → β₂ → γ} (h0 : ∀a, h a 0 = 0) :
-  (map_range f hf g).sum h = g.sum (λa b, h a (f b)) :=
-finset.sum_subset support_map_range $ by simp [h0] {contextual := tt}
+@[to_additive finsupp.sum]
+def prod {γ : Type w} [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
+f.support.prod (λa, g a (f a))
+attribute [to_additive finsupp.sum.equations._eqn_1] finsupp.prod.equations._eqn_1
 
-lemma sum_zero_index {γ : Type w} [add_comm_monoid β] [add_comm_monoid γ] {h : α → β → γ} :
-  (0 : α →₀ β).sum h = 0 :=
-by simp [finsupp.sum, support_zero]
+@[to_additive finsupp.sum_map_range_index]
+lemma prod_map_range_index {γ : Type w} [has_zero β₁] [has_zero β₂] [comm_monoid γ]
+  {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {h : α → β₂ → γ} (h0 : ∀a, h a 0 = 1) :
+  (map_range f hf g).prod h = g.prod (λa b, h a (f b)) :=
+finset.prod_subset support_map_range $ by simp [h0] {contextual := tt}
 
-lemma sum_single_index {γ : Type w} [add_comm_monoid β] [add_comm_monoid γ] {a : α} {b : β}
-  {h : α → β → γ} (h_zero : h a 0 = 0) : (single a b).sum h = h a b :=
+@[to_additive finsupp.sum_zero_index]
+lemma prod_zero_index {γ : Type w} [add_comm_monoid β] [comm_monoid γ] {h : α → β → γ} :
+  (0 : α →₀ β).prod h = 1 :=
+by simp [finsupp.prod]
+
+@[to_additive finsupp.sum_single_index]
+lemma prod_single_index {γ : Type w} [add_comm_monoid β] [comm_monoid γ] {a : α} {b : β}
+  {h : α → β → γ} (h_zero : h a 0 = 1) : (single a b).prod h = h a b :=
 begin
   by_cases b = 0 with h,
-  { simp [h, sum_zero_index, h_zero] },
-  { simp [finsupp.sum, support_single_ne_zero h] }
+  { simp [h, prod_zero_index, h_zero] },
+  { simp [finsupp.prod, support_single_ne_zero h] }
 end
 
 instance [add_monoid β] : has_add (α →₀ β) :=
@@ -216,10 +225,11 @@ instance [add_group β] : add_group (α →₀ β) :=
   add_left_neg := assume ⟨f, _⟩, ext $ assume x, add_left_neg _,
   .. finsupp.add_monoid }
 
-lemma sum_neg_index {γ : Type w} [add_group β] [add_comm_monoid γ]
-  {g : α →₀ β} {h : α → β → γ} (h0 : ∀a, h a 0 = 0) :
-  (-g).sum h = g.sum (λa b, h a (- b)) :=
-sum_map_range_index h0
+@[to_additive finsupp.sum_neg_index]
+lemma prod_neg_index {γ : Type w} [add_group β] [comm_monoid γ]
+  {g : α →₀ β} {h : α → β → γ} (h0 : ∀a, h a 0 = 1) :
+  (-g).prod h = g.prod (λa b, h a (- b)) :=
+prod_map_range_index h0
 
 @[simp] lemma neg_apply [add_group β] {g : α →₀ β} {a : α} :
   (- g) a = - g a :=
@@ -281,22 +291,23 @@ begin
 end,
 ext $ assume a, by simp [single_apply, this]
 
-lemma sum_add_index {γ : Type w} [add_comm_monoid β] [add_comm_monoid γ] {f g : α →₀ β}
-  {h : α → β → γ} (h_zero : ∀a, h a 0 = 0) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ + h a b₂) :
-  (f + g).sum h = f.sum h + g.sum h :=
-have f_eq : (f.support ∪ g.support).sum (λa, h a (f a)) = f.sum h,
-  from (finset.sum_subset finset.subset_union_left $
+@[to_additive finsupp.sum_add_index]
+lemma prod_add_index {γ : Type w} [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
+  {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
+  (f + g).prod h = f.prod h * g.prod h :=
+have f_eq : (f.support ∪ g.support).prod (λa, h a (f a)) = f.prod h,
+  from (finset.prod_subset finset.subset_union_left $
     by simp [mem_support_iff, h_zero] {contextual := tt}).symm,
-have g_eq : (f.support ∪ g.support).sum (λa, h a (g a)) = g.sum h,
-  from (finset.sum_subset finset.subset_union_right $
+have g_eq : (f.support ∪ g.support).prod (λa, h a (g a)) = g.prod h,
+  from (finset.prod_subset finset.subset_union_right $
     by simp [mem_support_iff, h_zero] {contextual := tt}).symm,
-calc (f + g).support.sum (λa, h a ((f + g) a)) =
-      (f.support ∪ g.support).sum (λa, h a ((f + g) a)) :
-    finset.sum_subset support_add $
+calc (f + g).support.prod (λa, h a ((f + g) a)) =
+      (f.support ∪ g.support).prod (λa, h a ((f + g) a)) :
+    finset.prod_subset support_add $
       by simp [mem_support_iff, h_zero] {contextual := tt}
-  ... = (f.support ∪ g.support).sum (λa, h a (f a)) +
-      (f.support ∪ g.support).sum (λa, h a (g a)) :
-    by simp [h_add, finset.sum_add_distrib]
+  ... = (f.support ∪ g.support).prod (λa, h a (f a)) *
+      (f.support ∪ g.support).prod (λa, h a (g a)) :
+    by simp [h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
 
 lemma sum_sub_index {γ : Type w} [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
@@ -318,17 +329,21 @@ calc (f - g).sum h = (f + - g).sum h : by simp
   ... = f.sum h + - g.sum h : by simp [sum_add_index, sum_neg_index, h_add, h_zero, h_neg]
   ... = _ : by simp
 
-lemma sum_finset_sum_index {γ : Type w} {ι : Type x} [add_comm_monoid β] [add_comm_monoid γ]
+@[to_additive finsupp.sum_finset_sum_index]
+lemma prod_finset_sum_index {γ : Type w} {ι : Type x} [add_comm_monoid β] [comm_monoid γ]
   {s : finset ι} {g : ι → α →₀ β}
-  {h : α → β → γ} (h_zero : ∀a, h a 0 = 0) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ + h a b₂):
-  s.sum (λi, (g i).sum h) = (s.sum g).sum h :=
-finset.sum_hom (λf : α →₀ β, f.sum h) sum_zero_index (assume f g, sum_add_index h_zero h_add)
+  {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
+  s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
+finset.induction_on s
+  (by simp [prod_zero_index])
+  (by simp [prod_add_index, h_zero, h_add] {contextual := tt})
 
-lemma sum_sum_index {γ : Type w} [add_comm_monoid β₁] [add_comm_monoid β₂] [add_comm_monoid γ]
+@[to_additive finsupp.sum_sum_index]
+lemma prod_sum_index {γ : Type w} [add_comm_monoid β₁] [add_comm_monoid β₂] [comm_monoid γ]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → α₂ →₀ β₂}
-  {h : α₂ → β₂ → γ} (h_zero : ∀a, h a 0 = 0) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ + h a b₂):
-  (f.sum g).sum h = f.sum (λa b, (g a b).sum h) :=
-(sum_finset_sum_index h_zero h_add).symm
+  {h : α₂ → β₂ → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
+  (f.sum g).prod h = f.prod (λa b, (g a b).prod h) :=
+(prod_finset_sum_index h_zero h_add).symm
 
 section map_domain
 variables [add_comm_monoid β] {v v₁ v₂ : α →₀ β}
@@ -370,10 +385,11 @@ finset.subset.trans support_sum $
   finset.subset.trans (finset.bind_mono $ assume a ha, support_single_subset) $
   by rw [finset.bind_singleton]; exact subset.refl _
 
-lemma sum_map_domain_index {γ : Type w} [add_comm_monoid γ] {f : α → α₂} {s : α →₀ β}
-  {h : α₂ → β → γ} (h_zero : ∀a, h a 0 = 0) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ + h a b₂) :
-  (s.map_domain f).sum h = s.sum (λa b, h (f a) b) :=
-by simp [map_domain, sum_sum_index, h_zero, h_add, sum_single_index]
+@[to_additive finsupp.sum_map_domain_index]
+lemma prod_map_domain_index {γ : Type w} [comm_monoid γ] {f : α → α₂} {s : α →₀ β}
+  {h : α₂ → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
+  (s.map_domain f).prod h = s.prod (λa b, h (f a) b) :=
+by simp [map_domain, prod_sum_index, h_zero, h_add, prod_single_index]
 
 end map_domain
 
@@ -407,11 +423,12 @@ rfl
 @[simp] lemma comap_domain_zero : (0:α' →₀ β).comap_domain f hf  = 0 :=
 rfl
 
-lemma sum_comap_domain_index [add_comm_monoid γ]
+@[to_additive finsupp.sum_comap_domain_index]
+lemma prod_comap_domain_index [comm_monoid γ]
   {h : α' → β → γ} (hvf : ∀a'∈v.support, ∃a, f a = a' ) :
-  (v.comap_domain f hf).sum (λa b, h (f a) b) = v.sum h :=
+  (v.comap_domain f hf).prod (λa b, h (f a) b) = v.prod h :=
 begin
-  refine finset.sum_bij (assume a ha, f a) _ _ _ _; simp,
+  refine finset.prod_bij (assume a ha, f a) _ _ _ _; simp,
   exact (assume a₁ a₂ _ _ eq, hf eq),
   exact (assume a' ha',
     have a' ∈ v.support, by simpa,
@@ -421,10 +438,11 @@ end
 def subtype_domain (p : α → Prop) : (α →₀ β) → (subtype p →₀ β) :=
 comap_domain subtype.val $ assume a₁ a₂, subtype.eq
 
-lemma sum_subtype_domain_index  [add_comm_monoid γ] {v : α →₀ β}
+@[to_additive finsupp.sum_subtype_domain_index]
+lemma prod_subtype_domain_index [comm_monoid γ] {v : α →₀ β}
   {h : α → β → γ} (hp : ∀x∈v.support, p x) :
-  (v.subtype_domain p).sum (λa b, h a.1 b) = v.sum h :=
-sum_comap_domain_index (assume a ha, ⟨⟨a, hp a ha⟩, rfl⟩)
+  (v.subtype_domain p).prod (λa b, h a.1 b) = v.prod h :=
+prod_comap_domain_index (assume a ha, ⟨⟨a, hp a ha⟩, rfl⟩)
 
 @[simp] lemma subtype_domain_apply {a : subtype p} {v : α →₀ β} :
   (subtype_domain p v) a = v (a.val) :=

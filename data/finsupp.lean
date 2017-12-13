@@ -239,6 +239,12 @@ rfl
   (g₁ - g₂) a = g₁ a - g₂ a :=
 rfl
 
+@[simp] lemma support_neg [add_group β] {f : α →₀ β} : support (-f) = support f :=
+finset.subset.antisymm
+  support_map_range
+  (calc support f = support (- (- f)) : by simp
+     ... ⊆ support (- f) : support_map_range)
+
 instance [add_comm_group β] : add_comm_group (α →₀ β) :=
 { add_comm := add_comm, ..finsupp.add_group }
 

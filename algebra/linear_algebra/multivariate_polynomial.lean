@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Multivariate Polynomial
 -/
-import data.finsupp
+import data.finsupp algebra.linear_algebra.basic
 noncomputable theory
 
 open classical set function finsupp lattice
@@ -240,5 +240,13 @@ def total_degree (p : mv_polynomial σ α) : ℕ := p.support.sup (λs, s.sum $ 
 end total_degree
 
 end comm_semiring
+
+section comm_ring
+variable [comm_ring α]
+instance : ring (mv_polynomial σ α) := finsupp.to_ring
+instance : has_scalar α (mv_polynomial σ α) := finsupp.to_has_scalar
+instance : module α (mv_polynomial σ α) := finsupp.to_module
+
+end comm_ring
 
 end mv_polynomial

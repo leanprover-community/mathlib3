@@ -67,30 +67,15 @@ end finsupp
 namespace lc
 variables [ring α] [module α β]
 
-instance : has_scalar α (lc α β) :=
-⟨λa (v : β →₀ α), v.map_range ((*) a) (mul_zero a)⟩
+instance : has_scalar α (lc α β) := finsupp.to_has_scalar
 
-@[simp] lemma smul_apply {a : α} {v : lc α β} {b : β} :
-  (a • v) b = a * v b :=
-rfl
-
-instance : module α (lc α β) :=
-{ smul     := (•),
-  smul_add := assume a x y, finsupp.ext $ by simp [mul_add],
-  add_smul := assume a x y, finsupp.ext $ by simp [add_mul],
-  one_smul := assume x, finsupp.ext $ by simp,
-  mul_smul := assume r s x, finsupp.ext $ by simp [mul_assoc],
-  .. finsupp.add_comm_group }
-
-lemma sum_smul_index {γ : Type x} [add_comm_monoid γ] {g : lc α β} {a : α} {h : β → α → γ}
-  (h0 : ∀i, h i 0 = 0) : (a • g).sum h = g.sum (λi b, h i (a * b)) :=
-finsupp.sum_map_range_index h0
+instance : module α (lc α β) := finsupp.to_module
 
 lemma is_linear_map_sum [module α γ] [module α δ] {f : β → α → γ} {g : δ → lc α β}
   (hf : ∀b, is_linear_map (f b)) (hg : is_linear_map g) : is_linear_map (λd, (g d).sum f) :=
 ⟨assume d₁ d₂, by simp [hg.add, finsupp.sum_add_index, (hf _).zero, (hf _).add],
   assume a d,
-    by simp [hg.smul, sum_smul_index, (hf _).zero, finsupp.smul_sum, ((hf _).smul _ _).symm]⟩
+    by simp [hg.smul, finsupp.sum_smul_index, (hf _).zero, finsupp.smul_sum, ((hf _).smul _ _).symm]⟩
 
 end lc
 
@@ -144,7 +129,7 @@ def span (s : set β) : set β := { x | ∃(v : lc α β), (∀x∉s, v x = 0) �
   add_  := assume x y ⟨vx, hx, eqx⟩ ⟨vy, hy, eqy⟩, ⟨vx + vy,
     by simp [hx, hy, eqx, eqy, finsupp.sum_add_index, add_smul] {contextual := tt}⟩,
   smul  := assume a b ⟨v, hv, veq⟩, ⟨a • v,
-    by simp [hv, veq, lc.sum_smul_index, finsupp.smul_sum, smul_smul] {contextual := tt}⟩ }
+    by simp [hv, veq, finsupp.sum_smul_index, finsupp.smul_sum, smul_smul] {contextual := tt}⟩ }
 
 lemma subset_span : s ⊆ span s :=
 assume b (hb : b ∈ s),
@@ -377,7 +362,7 @@ repr_eq hs (is_submodule.add hb hb')
 repr_eq hs (is_submodule.smul _ hb)
   (by simp [repr_eq_zero] {contextual := tt})
   (calc (a • hs.repr b).sum (λb a, a • b) = (hs.repr b).sum (λb a', a • (a' • b)) :
-      by simp [lc.sum_smul_index, add_smul, smul_smul]
+      by simp [finsupp.sum_smul_index, add_smul, smul_smul]
     ... = a • (hs.repr b).sum (λb a', a' • b) : finsupp.smul_sum.symm
     ... = a • b : by rw [repr_sum_eq hs hb])
 
@@ -652,7 +637,7 @@ iff.intro
         have l.sum (λb a', (a * a') • b) = a • l.sum (λb a, a • b),
           by simp [finsupp.smul_sum, smul_smul],
         by simp [-sub_eq_add_neg, add_smul, finsupp.sum_add_index, finsupp.sum_single_index,
-                lc.sum_smul_index, this, eq]⟩)
+                finsupp.sum_smul_index, this, eq]⟩)
 
 lemma linear_independent_singleton {b : β} (hb : b ≠ 0) : linear_independent ({b} : set β) :=
 linear_independent_iff_not_mem_span.mpr $ by simp [hb] {contextual := tt}

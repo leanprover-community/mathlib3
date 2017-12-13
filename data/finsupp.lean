@@ -21,7 +21,7 @@ The best is to define a copy and select the instances best suited.
 
 -/
 
-import data.set.finite data.finset algebra.big_operators
+import data.set.finite data.finset algebra.big_operators algebra.module
 noncomputable theory
 
 open classical set function
@@ -38,7 +38,8 @@ def finsupp (α : Type u) (β : Type v) [has_zero β] := {f : α → β // finit
 infix →₀ := finsupp
 
 namespace finsupp
-variables {α : Type u} {β : Type v} {α₁ : Type u₁} {α₂ : Type u₂} {β₁ : Type v₁} {β₂ : Type v₂}
+variables {α : Type u} {β : Type v} {γ : Type w}
+  {α₁ : Type u₁} {α₂ : Type u₂} {β₁ : Type v₁} {β₂ : Type v₂}
 
 section
 variable [has_zero β]
@@ -156,27 +157,27 @@ finset.ext.mpr $ assume a, by by_cases p a; simp *
 end filter
 
 -- [to_additive finsupp.sum] for finsupp.prod doesn't work, the equation lemmas are not generated
-def sum {γ : Type w} [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
+def sum [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 f.support.sum (λa, g a (f a))
 
 @[to_additive finsupp.sum]
-def prod {γ : Type w} [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
+def prod [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 f.support.prod (λa, g a (f a))
 attribute [to_additive finsupp.sum.equations._eqn_1] finsupp.prod.equations._eqn_1
 
 @[to_additive finsupp.sum_map_range_index]
-lemma prod_map_range_index {γ : Type w} [has_zero β₁] [has_zero β₂] [comm_monoid γ]
+lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]
   {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {h : α → β₂ → γ} (h0 : ∀a, h a 0 = 1) :
   (map_range f hf g).prod h = g.prod (λa b, h a (f b)) :=
 finset.prod_subset support_map_range $ by simp [h0] {contextual := tt}
 
 @[to_additive finsupp.sum_zero_index]
-lemma prod_zero_index {γ : Type w} [add_comm_monoid β] [comm_monoid γ] {h : α → β → γ} :
+lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → γ} :
   (0 : α →₀ β).prod h = 1 :=
 by simp [finsupp.prod]
 
 @[to_additive finsupp.sum_single_index]
-lemma prod_single_index {γ : Type w} [add_comm_monoid β] [comm_monoid γ] {a : α} {b : β}
+lemma prod_single_index [add_comm_monoid β] [comm_monoid γ] {a : α} {b : β}
   {h : α → β → γ} (h_zero : h a 0 = 1) : (single a b).prod h = h a b :=
 begin
   by_cases b = 0 with h,
@@ -226,18 +227,13 @@ instance [add_group β] : add_group (α →₀ β) :=
   .. finsupp.add_monoid }
 
 @[to_additive finsupp.sum_neg_index]
-lemma prod_neg_index {γ : Type w} [add_group β] [comm_monoid γ]
-  {g : α →₀ β} {h : α → β → γ} (h0 : ∀a, h a 0 = 1) :
-  (-g).prod h = g.prod (λa b, h a (- b)) :=
+lemma prod_neg_index [add_group β] [comm_monoid γ] {g : α →₀ β} {h : α → β → γ}
+  (h0 : ∀a, h a 0 = 1) : (-g).prod h = g.prod (λa b, h a (- b)) :=
 prod_map_range_index h0
 
-@[simp] lemma neg_apply [add_group β] {g : α →₀ β} {a : α} :
-  (- g) a = - g a :=
-rfl
+@[simp] lemma neg_apply [add_group β] {g : α →₀ β} {a : α} : (- g) a = - g a := rfl
 
-@[simp] lemma sub_apply [add_group β] {g₁ g₂ : α →₀ β} {a : α} :
-  (g₁ - g₂) a = g₁ a - g₂ a :=
-rfl
+@[simp] lemma sub_apply [add_group β] {g₁ g₂ : α →₀ β} {a : α} : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 @[simp] lemma support_neg [add_group β] {f : α →₀ β} : support (-f) = support f :=
 finset.subset.antisymm
@@ -414,7 +410,7 @@ rfl
 
 section comap_domain
 
-variables {α' : Type u₁} {γ : Type x} {δ : Type y} [has_zero δ]
+variables {α' : Type u₁} {δ : Type y} [has_zero δ]
   {f : α → α'} {hf : injective f} {p : α → Prop}
 
 section zero
@@ -564,5 +560,24 @@ lemma prod_single {ι : Type x} [add_comm_monoid α] [comm_semiring β] {s : fin
   {a : ι → α} {b : ι → β} :
   s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
  finset.induction_on s (by simp [one_def]) (by simp [single_mul_single] {contextual := tt})
+
+def to_has_scalar [semiring β] : has_scalar β (α →₀ β) := ⟨λa v, v.map_range ((*) a) (mul_zero a)⟩
+local attribute [instance] to_has_scalar
+
+@[simp] lemma smul_apply [semiring β] {a : α} {b : β} {v : α →₀ β} : (b • v) a = b * v a :=
+rfl
+
+/- should this be stronger? [module γ β] → module γ (α →₀ β) -/
+def to_module [ring β] : module β (α →₀ β) :=
+{ smul     := (•),
+  smul_add := assume a x y, finsupp.ext $ by simp [mul_add],
+  add_smul := assume a x y, finsupp.ext $ by simp [add_mul],
+  one_smul := assume x, finsupp.ext $ by simp,
+  mul_smul := assume r s x, finsupp.ext $ by simp [mul_assoc],
+  .. finsupp.add_comm_group }
+
+lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} {h : α → β → γ}
+  (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
+finsupp.sum_map_range_index h0
 
 end finsupp

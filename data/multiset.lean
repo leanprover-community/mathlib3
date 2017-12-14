@@ -1023,12 +1023,12 @@ begin
   rw [sub_cons, IH],
   by_cases p a,
   { rw [filter_cons_of_pos _ h, sub_cons], congr,
-    by_cases a ∈ s with m,
+    by_cases m : a ∈ s,
     { rw [← cons_inj_right a, ← filter_cons_of_pos _ h,
           cons_erase (mem_filter_of_mem m h), cons_erase m] },
     { rw [erase_of_not_mem m, erase_of_not_mem (mt mem_of_mem_filter m)] } },
   { rw [filter_cons_of_neg _ h],
-    by_cases a ∈ s with m,
+    by_cases m : a ∈ s,
     { rw [(by rw filter_cons_of_neg _ h : filter p (erase s a) = filter p (a :: erase s a)),
           cons_erase m] },
     { rw [erase_of_not_mem m] } }
@@ -1209,7 +1209,7 @@ end
 begin
   revert s, refine multiset.induction_on t (by simp) (λ b t IH s, _),
   rw [sub_cons, IH],
-  by_cases a = b with ab,
+  by_cases ab : a = b,
   { subst b, rw [count_erase_self, count_cons_self, sub_succ, pred_sub] },
   { rw [count_erase_of_ne ab, count_cons_of_ne ab] }
 end

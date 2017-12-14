@@ -93,7 +93,7 @@ include totr transr
 theorem sorted_ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered_insert a l)
 | []       h := sorted_singleton a
 | (b :: l) h := begin
-  by_cases a ≼ b with h',
+  by_cases h' : a ≼ b,
   { simpa [ordered_insert, h', h] using λ b' bm, transr h' (rel_of_sorted_cons h _ bm) },
   { suffices : ∀ (b' : α), b' ∈ ordered_insert r a l → r b b',
     { simpa [ordered_insert, h', sorted_ordered_insert l (sorted_of_sorted_cons h)] },

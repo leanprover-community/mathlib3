@@ -302,7 +302,7 @@ by rw [inter_comm, insert_inter_of_mem h, inter_comm]
 
 @[simp] theorem insert_inter_of_not_mem {s₁ s₂ : finset α} {a : α} (h : a ∉ s₂) :
   insert a s₁ ∩ s₂ = s₁ ∩ s₂ :=
-ext.2 $ assume a', by by_cases a' = a with h'; simp [mem_inter, mem_insert, h, h', and_comm]
+ext.2 $ assume a', by by_cases h' : a' = a; simp [mem_inter, mem_insert, h, h', and_comm]
 
 @[simp] theorem inter_insert_of_not_mem {s₁ s₂ : finset α} {a : α} (h : a ∉ s₁) :
   s₁ ∩ insert a s₂ = s₁ ∩ s₂ :=

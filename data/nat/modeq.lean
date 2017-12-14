@@ -68,8 +68,8 @@ theorem chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n]
   rw xgcd_val, dsimp,
   rw [modeq_iff_dvd, modeq_iff_dvd],
   rw [int.to_nat_of_nonneg], swap,
-  { by_cases n = 0 with h₁, {simp [coprime, h₁] at co, substs m n, simp},
-    by_cases m = 0 with h₂, {simp [coprime, h₂] at co, substs m n, simp},
+  { by_cases h₁ : n = 0, {simp [coprime, h₁] at co, substs m n, simp},
+    by_cases h₂ : m = 0, {simp [coprime, h₂] at co, substs m n, simp},
     exact int.mod_nonneg _
       (mul_ne_zero (int.coe_nat_ne_zero.2 h₁) (int.coe_nat_ne_zero.2 h₂)) },
   have := gcd_eq_gcd_ab n m, simp [co.gcd_eq_one, mul_comm] at this,

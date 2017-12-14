@@ -432,7 +432,7 @@ begin
   induction h with x _ _ _ _ x y _ _ _ _ _ _ ih_1 ih_2 generalizing t, {simp},
   { by_cases x ∈ t; simp [*, skip] },
   { by_cases x = y, {simp [h]},
-    by_cases x ∈ t with xt; by_cases y ∈ t with yt,
+    by_cases xt : x ∈ t; by_cases yt : y ∈ t,
     { simp [xt, yt, mem_erase_of_ne h, mem_erase_of_ne (ne.symm h), erase_comm, swap] },
     { simp [xt, yt, mt mem_of_mem_erase, skip] },
     { simp [xt, yt, mt mem_of_mem_erase, skip] },
@@ -489,8 +489,8 @@ else by simpa [h, mt (mem_of_perm p).2 h] using skip a p
 theorem perm_insert_swap (x y : α) (l : list α) :
   insert x (insert y l) ~ insert y (insert x l) :=
 begin
-  by_cases x ∈ l with xl; by_cases y ∈ l with yl; simp [xl, yl],
-  by_cases x = y with xy, { simp [xy] },
+  by_cases xl : x ∈ l; by_cases yl : y ∈ l; simp [xl, yl],
+  by_cases xy : x = y, { simp [xy] },
   simp [not_mem_cons_of_ne_of_not_mem xy xl,
         not_mem_cons_of_ne_of_not_mem (ne.symm xy) yl],
   constructor

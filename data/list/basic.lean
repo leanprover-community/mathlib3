@@ -550,7 +550,7 @@ assume n, if_neg n
 theorem index_of_eq_length {a : α} {l : list α} : index_of a l = length l ↔ a ∉ l :=
 begin
   induction l with b l ih; simp [-add_comm],
-  by_cases a = b with h; simp [h, -add_comm],
+  by_cases h : a = b; simp [h, -add_comm],
   { intro, contradiction },
   { rw ← ih, exact ⟨succ_inj, congr_arg _⟩ }
 end
@@ -561,7 +561,7 @@ index_of_eq_length.2
 theorem index_of_le_length {a : α} {l : list α} : index_of a l ≤ length l :=
 begin
   induction l with b l ih; simp [-add_comm, index_of_cons],
-  by_cases a = b with h; simp [h, -add_comm, zero_le],
+  by_cases h : a = b; simp [h, -add_comm, zero_le],
   exact succ_le_succ ih
 end
 
@@ -622,7 +622,7 @@ ext $ λn, if h₁ : n < length l₁
   else let h₁ := le_of_not_gt h₁ in by rw [nth_ge_len h₁, nth_ge_len (by rwa [← hl])]
 
 @[simp] theorem index_of_nth_le [decidable_eq α] {a : α} : ∀ {l : list α} h, nth_le l (index_of a l) h = a
-| (b::l) h := by by_cases a = b with h'; simp *
+| (b::l) h := by by_cases h' : a = b; simp *
 
 @[simp] theorem index_of_nth [decidable_eq α] {a : α} {l : list α} (h : a ∈ l) : nth l (index_of a l) = some a :=
 by rw [nth_le_nth, index_of_nth_le (index_of_lt_length.2 h)]
@@ -1129,7 +1129,7 @@ theorem filter_map_eq_filter (p : α → Prop) [decidable_pred p] :
 begin
   funext l,
   induction l with a l IH, {simp},
-  by_cases p a with pa; simp [filter_map, option.guard, pa, IH]
+  by_cases pa : p a; simp [filter_map, option.guard, pa, IH]
 end
 
 theorem filter_map_filter_map (f : α → option β) (g : β → option γ) (l : list α) :
@@ -1253,11 +1253,11 @@ by rw ← filter_map_eq_filter; exact filter_map_sublist_filter_map _ s
 
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
-| (a::l) := by by_cases p a with pa; simp [span, take_while, drop_while, pa, span_eq_take_drop l]
+| (a::l) := by by_cases pa : p a; simp [span, take_while, drop_while, pa, span_eq_take_drop l]
 
 @[simp] theorem take_while_append_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), take_while p l ++ drop_while p l = l
 | []     := rfl
-| (a::l) := by by_cases p a with pa; simp [take_while, drop_while, pa, take_while_append_drop l]
+| (a::l) := by by_cases pa : p a; simp [take_while, drop_while, pa, take_while_append_drop l]
 
 def countp (p : α → Prop) [decidable_pred p] : list α → nat
 | []      := 0
@@ -1621,7 +1621,7 @@ by simp [insert.def, h]
 
 @[simp] theorem mem_insert_iff {a b : α} {l : list α} : a ∈ insert b l ↔ a = b ∨ a ∈ l :=
 begin
-  by_cases b ∈ l with h'; simp [h'],
+  by_cases h' : b ∈ l; simp [h'],
   apply (or_iff_right_of_imp _).symm,
   exact λ e, e.symm ▸ h'
 end
@@ -1670,7 +1670,7 @@ theorem exists_erase_eq {a : α} {l : list α} (h : a ∈ l) :
   ∃ l₁ l₂, a ∉ l₁ ∧ l = l₁ ++ a :: l₂ ∧ l.erase a = l₁ ++ l₂ :=
 by induction l with b l ih; [cases h, {
   simp at h,
-  by_cases b = a with e,
+  by_cases e : b = a,
   { subst b, exact ⟨[], l, not_mem_nil _, rfl, by simp⟩ },
   { exact let ⟨l₁, l₂, h₁, h₂, h₃⟩ := ih (h.resolve_left (ne.symm e)) in
     ⟨b::l₁, l₂, not_mem_cons_of_ne_of_not_mem (ne.symm e) h₁,
@@ -1684,7 +1684,7 @@ end
 
 theorem erase_append_left {a : α} : ∀ {l₁ : list α} (l₂), a ∈ l₁ → (l₁++l₂).erase a = l₁.erase a ++ l₂
 | (x::xs) l₂  h := begin
-  by_cases x = a with h'; simp [h'],
+  by_cases h' : x = a; simp [h'],
   rw erase_append_left l₂ (mem_of_ne_of_mem (ne.symm h') h)
 end
 
@@ -1939,7 +1939,7 @@ mem_union.2 (or.inr h)
 theorem sublist_suffix_of_union : ∀ l₁ l₂ : list α, ∃ t, t <+ l₁ ∧ t ++ l₂ = l₁ ∪ l₂
 | [] l₂ := ⟨[], by refl, rfl⟩
 | (a::l₁) l₂ := let ⟨t, s, e⟩ := sublist_suffix_of_union l₁ l₂ in
-  by simp [e.symm]; by_cases a ∈ t ++ l₂ with h;
+  by simp [e.symm]; by_cases h : a ∈ t ++ l₂;
      [existsi t, existsi a::t]; simp [h];
      [apply sublist_cons_of_sublist _ s, apply cons_sublist_cons _ s]
 
@@ -2036,7 +2036,7 @@ theorem mem_bag_inter {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁.bag_inter
 | []      l₂ := by simp
 | (b::l₁) l₂ := by
   by_cases b ∈ l₂; simp [*, and_or_distrib_left];
-  by_cases a = b with ba; simp *
+  by_cases ba : a = b; simp *
 
 theorem bag_inter_sublist_left : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ <+ l₁
 | []      l₂ := by simp [nil_sublist]
@@ -2523,7 +2523,7 @@ theorem nodup_concat {a : α} {l : list α} (h : a ∉ l) (h' : nodup l) : nodup
 by simp; exact nodup_append_of_nodup h' (nodup_singleton _) (disjoint_singleton.2 h)
 
 theorem nodup_insert [decidable_eq α] {a : α} {l : list α} (h : nodup l) : nodup (insert a l) :=
-by by_cases a ∈ l with h'; simp [h', h]; apply nodup_cons h' h
+by by_cases h' : a ∈ l; simp [h', h]; apply nodup_cons h' h
 
 theorem nodup_union [decidable_eq α] (l₁ : list α) {l₂ : list α} (h : nodup l₂) :
   nodup (l₁ ∪ l₂) :=

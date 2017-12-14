@@ -114,14 +114,14 @@ section min_fac
     ∀ k i, k = 2*i+3 → (∀ m ≥ 2, m ∣ n → k ≤ m) → min_fac_prop n (min_fac_aux n k)
   | k := λ i e a, begin
     rw min_fac_aux,
-    by_cases n < k*k with h; simp [h],
+    by_cases h : n < k*k; simp [h],
     { have pp : prime n :=
         prime_def_le_sqrt.2 ⟨n2, λ m m2 l d,
           not_lt_of_ge l $ lt_of_lt_of_le (sqrt_lt.2 h) (a m m2 d)⟩,
       from ⟨n2, dvd_refl _, λ m m2 d, le_of_eq
         ((dvd_prime_ge_two pp m2).1 d).symm⟩ },
     have k2 : 2 ≤ k, { subst e, exact dec_trivial },
-    by_cases k ∣ n with dk; simp [dk],
+    by_cases dk : k ∣ n; simp [dk],
     { exact ⟨k2, dk, a⟩ },
     { refine have _, from min_fac_lemma n k h,
         min_fac_aux_has_prop (k+2) (i+1)
@@ -138,10 +138,10 @@ section min_fac
   theorem min_fac_has_prop {n : ℕ} (n1 : n ≠ 1) :
     min_fac_prop n (min_fac n) :=
   begin
-    by_cases n = 0 with n0, {simp [n0, min_fac_prop, ge]},
+    by_cases n0 : n = 0, {simp [n0, min_fac_prop, ge]},
     have n2 : 2 ≤ n, { revert n0 n1, rcases n with _|_|_; exact dec_trivial },
     simp [min_fac_eq n2],
-    by_cases 2 ∣ n with d2; simp [d2],
+    by_cases d2 : 2 ∣ n; simp [d2],
     { exact ⟨le_refl _, d2, λ k k2 d, k2⟩ },
     { refine min_fac_aux_has_prop n2 d2 3 0 rfl
         (λ m m2 d, (nat.eq_or_lt_of_le m2).resolve_left (mt _ d2)),
@@ -149,7 +149,7 @@ section min_fac
   end
 
   theorem min_fac_dvd (n : ℕ) : min_fac n ∣ n :=
-  by by_cases n = 1 with n1;
+  by by_cases n1 : n = 1;
      [exact n1.symm ▸ dec_trivial, exact (min_fac_has_prop n1).2.1]
 
   theorem min_fac_prime {n : ℕ} (n1 : n ≠ 1) : prime (min_fac n) :=
@@ -157,12 +157,12 @@ section min_fac
   prime_def_lt'.2 ⟨f2, λ m m2 l d, not_le_of_gt l (a m m2 (dvd_trans d fd))⟩
 
   theorem min_fac_le_of_dvd (n : ℕ) : ∀ (m : ℕ), m ≥ 2 → m ∣ n → min_fac n ≤ m :=
-  by by_cases n = 1 with n1;
+  by by_cases n1 : n = 1;
     [exact λ m m2 d, n1.symm ▸ le_trans dec_trivial m2,
      exact (min_fac_has_prop n1).2.2]
 
   theorem min_fac_pos (n : ℕ) : min_fac n > 0 :=
-  by by_cases n = 1 with n1;
+  by by_cases n1 : n = 1;
      [exact n1.symm ▸ dec_trivial, exact (min_fac_prime n1).pos]
 
   theorem min_fac_le {n : ℕ} (H : n > 0) : min_fac n ≤ n :=

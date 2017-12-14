@@ -203,7 +203,7 @@ theorem valid.replace_aux (a : α) (b : β a) : Π (l : list (Σ a, β a)), a �
   ∃ (u w : list Σ a, β a) b', l = u ++ [⟨a, b'⟩] ++ w ∧ replace_aux a b l = u ++ [⟨a, b⟩] ++ w
 | []            := false.elim
 | (⟨a', b'⟩::t) := begin
-  by_cases a' = a with e,
+  by_cases e : a' = a,
   { subst a',
     suffices : ∃ u w (b'' : β a),
       sigma.mk a b' :: t = u ++ ⟨a, b''⟩ :: w ∧
@@ -257,7 +257,7 @@ theorem valid.erase_aux (a : α) : Π (l : list (Σ a, β a)), a ∈ l.map sigma
   ∃ (u w : list Σ a, β a) b, l = u ++ [⟨a, b⟩] ++ w ∧ erase_aux a l = u ++ [] ++ w
 | []            := false.elim
 | (⟨a', b'⟩::t) := begin
-  by_cases a' = a with e,
+  by_cases e : a' = a,
   { subst a',
     simpa [erase_aux, and_comm] using show ∃ u w (x : β a),
       t = u ++ w ∧ sigma.mk a b' :: t = u ++ ⟨a, x⟩ :: w, from ⟨[], t, b', by simp⟩ },
@@ -380,7 +380,7 @@ begin
   { intro m3,
     have : a ∈ list.map sigma.fst t.as_list := list.mem_map_of_mem _ (t.mem_as_list.2 ⟨_, m3⟩),
     exact dj (list.mem_map_of_mem sigma.fst m1) this },
-  by_cases mk_idx n' (hash_fn c.1) = i with h,
+  by_cases h : mk_idx n' (hash_fn c.1) = i,
   { subst h,
     have e : sigma.mk a b' = ⟨c.1, c.2⟩,
     { simpa [reinsert_aux, bucket_array.modify, array.read_write, this] using im },
@@ -433,7 +433,7 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
     if a = a' then b == b' else sigma.mk a' b' ∈ bkts.as_list,
   { intros bkts' v1 u w hl hfl veq,
     rw [hl, hfl],
-    by_cases a = a' with h,
+    by_cases h : a = a',
     { subst a',
       suffices : b = b' ∨ sigma.mk a b' ∈ u ∨ sigma.mk a b' ∈ w ↔ b = b',
       { simpa [eq_comm, or.left_comm] },
@@ -445,7 +445,7 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
         simp [hl, list.nodup_append] at nd', simp [nd'] } },
     { suffices : sigma.mk a' b' ∉ v1, {simp [h, ne.symm h, this]},
       rcases veq with ⟨rfl, Hnc⟩ | ⟨b'', rfl⟩; simp [ne.symm h] } },
-  by_cases (contains_aux a bkt : Prop) with Hc,
+  by_cases Hc : (contains_aux a bkt : Prop),
   { rcases hash_map.valid.replace_aux a b (array.read bkts (mk_idx n (hash_fn a)))
       ((contains_aux_iff nd).1 Hc) with ⟨u', w', b'', hl', hfl'⟩,
     rcases (append_of_modify u' [⟨a, b''⟩] [⟨a, b⟩] w' hl' hfl') with ⟨u, w, hl, hfl⟩,
@@ -458,7 +458,7 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
       let ⟨u, w, hl, hfl⟩ := append_of_modify [] [] [⟨a, b⟩] _ rfl rfl in
       lem bkts' _ u w hl hfl $ or.inl ⟨rfl, Hc⟩,
     simp [insert, @dif_neg (contains_aux a bkt) _ Hc],
-    by_cases size' ≤ n.1 with h,
+    by_cases h : size' ≤ n.1,
     -- TODO(Mario): Why does the by_cases assumption look different than the stated one?
     { simpa [show size' ≤ n.1, from h] using mi },
     { let n' : ℕ+ := ⟨n.1 * 2, mul_pos n.2 dec_trivial⟩,
@@ -514,7 +514,7 @@ theorem mem_erase : Π (m : hash_map α β) (a a' b'),
   a ≠ a' ∧ sigma.mk a' b' ∈ m.entries
 | ⟨hash_fn, size, n, bkts, v⟩ a a' b' := begin
   let bkt := bkts.read hash_fn a,
-  by_cases (contains_aux a bkt : Prop) with Hc,
+  by_cases Hc : (contains_aux a bkt : Prop),
   { let bkts' := bkts.modify hash_fn a (erase_aux a),
     suffices : sigma.mk a' b' ∈ bkts'.as_list ↔ a ≠ a' ∧ sigma.mk a' b' ∈ bkts.as_list,
     { simpa [erase, @dif_pos (contains_aux a bkt) _ Hc] },

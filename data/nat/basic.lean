@@ -243,7 +243,7 @@ begin
   { exact is_true (λ n, dec_trivial) },
   cases IH (λ k h, P k (lt_succ_of_lt h)) with h,
   { refine is_false (mt _ h), intros hn k h, apply hn },
-  by_cases P n (lt_succ_self n) with p,
+  by_cases p : P n (lt_succ_self n),
   { exact is_true (λ k h',
      (lt_or_eq_of_le $ le_of_lt_succ h').elim (h _)
        (λ e, match k, e, h' with _, rfl, h := p end)) },
@@ -398,7 +398,7 @@ end
 begin
   induction n with n IH; simp [shiftl'] at h ⊢,
   rw [size_bit h, nat.add_succ],
-  by_cases shiftl' b m n = 0 with s0; [skip, rw [IH s0]],
+  by_cases s0 : shiftl' b m n = 0; [skip, rw [IH s0]],
   rw s0 at h ⊢,
   cases b, {exact absurd rfl h},
   have : shiftl' tt m n + 1 = 1 := congr_arg (+1) s0,
@@ -434,7 +434,7 @@ begin
   apply binary_rec _ _ m,
   { intros n h, apply zero_le },
   { intros b m IH n h,
-    by_cases bit b m = 0 with e, { rw e, apply zero_le },
+    by_cases e : bit b m = 0, { rw e, apply zero_le },
     rw [size_bit e],
     cases n with n,
     { exact e.elim (eq_zero_of_le_zero (le_of_lt_succ h)) },

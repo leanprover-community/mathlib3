@@ -291,7 +291,7 @@ def set_coe_embedding {α : Type*} (p : set α) :
   embedding p α := ⟨subtype.val, @subtype.eq _ _⟩
 
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
-@subtype.val _ p ⁻¹'o r 
+@subtype.val _ p ⁻¹'o r
 
 namespace subrel
 
@@ -526,7 +526,7 @@ sum.inl ⟨f, classical.some h', classical.some_spec h'⟩
   (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inl g) (a : α) : g a = f a :=
 begin
   unfold initial_seg.lt_or_eq at h,
-  by_cases surjective f with sj; simp [sj] at h,
+  by_cases sj : surjective f; simp [sj] at h,
   {injection h}, {subst h, refl}
 end
 
@@ -534,7 +534,7 @@ end
   (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inr g) (a : α) : g a = f a :=
 begin
   unfold initial_seg.lt_or_eq at h,
-  by_cases surjective f with sj; simp [sj] at h,
+  by_cases sj : surjective f; simp [sj] at h,
   {subst g, simp}, {injection h}
 end
 
@@ -755,7 +755,7 @@ by exact propext ⟨
     h.lt_le (initial_seg.of_iso g)⟩,
   λ ⟨h⟩, ⟨principal_seg.equiv_lt f $
     h.lt_le (initial_seg.of_iso g.symm)⟩⟩
-    
+
 instance : has_lt ordinal := ⟨ordinal.lt⟩
 
 @[simp] theorem type_lt {α β} {r : α → α → Prop} {s : β → β → Prop}

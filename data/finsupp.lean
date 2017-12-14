@@ -70,7 +70,7 @@ by simp [finset.ext]
 
 def single (a : α) (b : β) : α →₀ β :=
 ⟨λa', if a = a' then b else 0,
-  finite_subset (@finite_singleton α a) $ assume a', by by_cases a = a' with h; simp [h]⟩
+  finite_subset (@finite_singleton α a) $ assume a', by by_cases h : a = a'; simp [h]⟩
 
 lemma single_apply {a a' : α} {b : β} :
   (single a b : α →₀ β) a' = (if a = a' then b else 0) :=
@@ -87,7 +87,7 @@ by simp [single_apply, h]
 @[simp] lemma single_zero {a : α} : (single a 0 : α →₀ β) = 0 :=
 ext $ assume a',
 begin
-  by_cases a = a' with h,
+  by_cases h : a = a',
   { rw [h, single_eq_same, zero_apply] },
   { rw [single_eq_of_ne h, zero_apply] }
 end
@@ -180,7 +180,7 @@ by simp [finsupp.prod]
 lemma prod_single_index [add_comm_monoid β] [comm_monoid γ] {a : α} {b : β}
   {h : α → β → γ} (h_zero : h a 0 = 1) : (single a b).prod h = h a b :=
 begin
-  by_cases b = 0 with h,
+  by_cases h : b = 0,
   { simp [h, prod_zero_index, h_zero] },
   { simp [finsupp.prod, support_single_ne_zero h] }
 end
@@ -200,7 +200,7 @@ support_zip_with
   single a (b₁ + b₂) = single a b₁ + single a b₂ :=
 ext $ assume a',
 begin
-  by_cases a = a' with h,
+  by_cases h : a = a',
   { rw [h, add_apply, single_eq_same, single_eq_same, single_eq_same] },
   { rw [add_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, zero_add] }
 end
@@ -278,7 +278,7 @@ have ∀a:α, f.sum (λa' b, ite (a' = a) b 0) =
     ({a} : finset α).sum (λa', ite (a' = a) (f a') 0),
 begin
   intro a,
-  by_cases a ∈ f.support with h,
+  by_cases h : a ∈ f.support,
   { have : {a} ⊆ f.support,
       { simp [finset.subset_iff, *] at * },
     refine (finset.sum_subset this _).symm,

@@ -52,7 +52,7 @@ begin
   rw [this],
   apply is_measurable_Union_nat _,
   intro i,
-  by_cases f i ∈ s with h'; simp [h', h, is_measurable_empty]
+  by_cases h' : f i ∈ s; simp [h', h, is_measurable_empty]
 end
 
 lemma is_measurable_bUnion {f : β → set α} {s : set β} (hs : countable s)

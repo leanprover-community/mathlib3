@@ -79,7 +79,7 @@ list.ext_le (by simp) $ λ j h₁ h₂, begin
   have h₃ : j < n, {simpa using h₁},
   rw [to_list_nth_le _ _ h₃],
   refine let ⟨_, e⟩ := list.nth_eq_some.1 _ in e.symm,
-  by_cases i.1 = j with ij,
+  by_cases ij : i.1 = j,
   { subst j, rw [show fin.mk i.val h₃ = i, from fin.eq_of_veq rfl,
       array.read_write, list.nth_update_nth_of_lt],
     simp [h₃] },
@@ -158,7 +158,7 @@ theorem read_foreach_aux (f : fin n → α → α) (ai : array n α) :
 | 0     hi a ⟨j, hj⟩ ji := absurd ji (nat.not_lt_zero _)
 | (i+1) hi a ⟨j, hj⟩ ji := begin
   dsimp [d_array.iterate_aux], dsimp at ji,
-  by_cases (⟨i, hi⟩ : fin _) = ⟨j, hj⟩ with e,
+  by_cases e : (⟨i, hi⟩ : fin _) = ⟨j, hj⟩,
   { rw [e], simp, refl },
   { rw [read_write_of_ne _ _ e, read_foreach_aux _ _ _ ⟨j, hj⟩],
     exact (lt_or_eq_of_le (nat.le_of_lt_succ ji)).resolve_right

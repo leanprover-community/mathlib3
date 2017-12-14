@@ -455,14 +455,14 @@ protected noncomputable def image {α β} (f : α → β) (s : set α) (H : inje
  λ ⟨x, h⟩, subtype.eq (H (classical.some_spec (mem_image_of_mem f h)).2),
  λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩
 
-@[simp] theorem image_apply {α β} (f : α → β) (s : set α) (H : injective f) (a h) : 
+@[simp] theorem image_apply {α β} (f : α → β) (s : set α) (H : injective f) (a h) :
   set.image f s H ⟨a, h⟩ = ⟨f a, mem_image_of_mem _ h⟩ := rfl
 
 protected noncomputable def range {α β} (f : α → β) (H : injective f) :
   α ≃ range f :=
 (set.univ _).symm.trans $ (set.image f univ H).trans (equiv.cast $ by rw range_eq_image)
 
-@[simp] theorem range_apply {α β} (f : α → β) (H : injective f) (a) : 
+@[simp] theorem range_apply {α β} (f : α → β) (H : injective f) (a) :
   set.range f H a = ⟨f a, set.mem_range⟩ :=
 by dunfold equiv.set.range equiv.set.univ;
    simp [set_coe_cast, range_eq_image]
@@ -490,12 +490,12 @@ by by_cases r = a; simp [swap_core, *]
 
 theorem swap_core_swap_core (r a b : α) : swap_core a b (swap_core a b r) = r :=
 begin
-  by_cases r = b with hb,
-  { by_cases r = a with ha,
+  by_cases hb : r = b,
+  { by_cases ha : r = a,
     { simp [hb.symm, ha.symm, swap_core_self] },
     { have : b ≠ a, by rwa [hb] at ha,
       simp [swap_core, *] } },
-  { by_cases r = a with ha,
+  { by_cases ha : r = a,
     { have : b ≠ a, begin rw [ha] at hb, exact ne.symm hb end,
       simp [swap_core, *] },
     simp [swap_core, *] }
@@ -503,12 +503,12 @@ end
 
 theorem swap_core_comm (r a b : α) : swap_core a b r = swap_core b a r :=
 begin
-  by_cases r = b with hb,
-  { by_cases r = a with ha,
+  by_cases hb : r = b,
+  { by_cases ha : r = a,
     { simp [hb.symm, ha.symm, swap_core_self] },
     { have : b ≠ a, by rwa [hb] at ha,
       simp [swap_core, *] } },
-  { by_cases r = a with ha,
+  { by_cases ha : r = a,
     { have : a ≠ b, by rwa [ha] at hb,
       simp [swap_core, *] },
     simp [swap_core, *] }

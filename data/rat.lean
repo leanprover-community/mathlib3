@@ -176,7 +176,7 @@ end
 @[simp] theorem div_mk_div_cancel_left {a b c : ℤ} (c0 : c ≠ 0) :
   (a * c) /. (b * c) = a /. b :=
 begin
-  by_cases b = 0 with b0, { subst b0, simp },
+  by_cases b0 : b = 0, { subst b0, simp },
   apply (mk_eq (mul_ne_zero b0 c0) b0).2, simp [mul_comm, mul_assoc]
 end
 
@@ -211,7 +211,7 @@ end
 
 theorem denom_dvd (a b : ℤ) : ((a /. b).denom : ℤ) ∣ b :=
 begin
-  by_cases b = 0 with b0, {simp [b0]},
+  by_cases b0 : b = 0, {simp [b0]},
   cases e : a /. b with n d h c,
   rw [num_denom', mk_eq b0 (ne_of_gt (int.coe_nat_pos.2 h))] at e,
   refine (int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $ c.symm.dvd_of_dvd_mul_left _),
@@ -259,7 +259,7 @@ instance : has_neg ℚ := ⟨rat.neg⟩
 
 @[simp] theorem neg_def {a b : ℤ} : -(a /. b) = -a /. b :=
 begin
-  by_cases b = 0 with b0, { subst b0, simp, refl },
+  by_cases b0 :  b = 0, { subst b0, simp, refl },
   generalize ha : a /. b = x, cases x with n₁ d₁ h₁ c₁, rw num_denom' at ha,
   show rat.mk' _ _ _ _ = _, rw num_denom',
   have d0 := ne_of_gt (int.coe_nat_lt.2 h₁),
@@ -290,8 +290,8 @@ instance : has_inv ℚ := ⟨rat.inv⟩
 
 @[simp] theorem inv_def {a b : ℤ} : (a /. b)⁻¹ = b /. a :=
 begin
-  by_cases a = 0 with a0, { subst a0, simp, refl },
-  by_cases b = 0 with b0, { subst b0, simp, refl },
+  by_cases a0 : a = 0, { subst a0, simp, refl },
+  by_cases b0 : b = 0, { subst b0, simp, refl },
   generalize ha : a /. b = x, cases x with n d h c, rw num_denom' at ha,
   refine eq.trans (_ : rat.inv ⟨n, d, h, c⟩ = d /. n) _,
   { cases n with n; [cases n with n, skip],
@@ -539,7 +539,7 @@ theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
 
 theorem mk_eq_div (n d : ℤ) : n /. d = (n / d : ℚ) :=
 begin
-  by_cases d = 0 with d0, {simp [d0, div_zero]},
+  by_cases d0 : d = 0, {simp [d0, div_zero]},
   rw [division_def, coe_int_eq_mk, coe_int_eq_mk, inv_def,
       mul_def one_ne_zero d0, one_mul, mul_one]
 end

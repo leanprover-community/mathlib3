@@ -495,3 +495,63 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
   (¬ ∀ x h, P x h) ↔ (∃ x h, ¬ P x h) := _root_.not_ball
 
 end classical
+
+section nonempty
+universes u v w
+variables {α : Type u} {β : Type v} {γ : α → Type w}
+
+attribute [simp] nonempty_of_inhabited
+
+@[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
+iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)
+
+@[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=
+iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
+
+@[simp] lemma nonempty_subtype {α : Sort u} {p : α → Prop} : nonempty (subtype p) ↔ (∃a:α, p a) :=
+iff.intro (assume ⟨⟨a, h⟩⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a, h⟩⟩)
+
+@[simp] lemma nonempty_prod : nonempty (α × β) ↔ (nonempty α ∧ nonempty β) :=
+iff.intro (assume ⟨⟨a, b⟩⟩, ⟨⟨a⟩, ⟨b⟩⟩) (assume ⟨⟨a⟩, ⟨b⟩⟩, ⟨⟨a, b⟩⟩)
+
+@[simp] lemma nonempty_pprod {α : Sort u} {β : Sort v} :
+  nonempty (pprod α β) ↔ (nonempty α ∧ nonempty β) :=
+iff.intro (assume ⟨⟨a, b⟩⟩, ⟨⟨a⟩, ⟨b⟩⟩) (assume ⟨⟨a⟩, ⟨b⟩⟩, ⟨⟨a, b⟩⟩)
+
+@[simp] lemma nonempty_sum : nonempty (α ⊕ β) ↔ (nonempty α ∨ nonempty β) :=
+iff.intro
+  (assume ⟨h⟩, match h with sum.inl a := or.inl ⟨a⟩ | sum.inr b := or.inr ⟨b⟩ end)
+  (assume h, match h with or.inl ⟨a⟩ := ⟨sum.inl a⟩ | or.inr ⟨b⟩ := ⟨sum.inr b⟩ end)
+
+@[simp] lemma nonempty_psum {α : Sort u} {β : Sort v} :
+  nonempty (psum α β) ↔ (nonempty α ∨ nonempty β) :=
+iff.intro
+  (assume ⟨h⟩, match h with psum.inl a := or.inl ⟨a⟩ | psum.inr b := or.inr ⟨b⟩ end)
+  (assume h, match h with or.inl ⟨a⟩ := ⟨psum.inl a⟩ | or.inr ⟨b⟩ := ⟨psum.inr b⟩ end)
+
+@[simp] lemma nonempty_psigma {α : Sort u} {β : α → Sort v} :
+  nonempty (psigma β) ↔ (∃a:α, nonempty (β a)) :=
+iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
+
+@[simp] lemma nonempty_empty : ¬ nonempty empty :=
+assume ⟨h⟩, h.elim
+
+@[simp] lemma nonempty_ulift : nonempty (ulift α) ↔ nonempty α :=
+iff.intro (assume ⟨⟨a⟩⟩, ⟨a⟩) (assume ⟨a⟩, ⟨⟨a⟩⟩)
+
+@[simp] lemma nonempty_plift {α : Sort u} : nonempty (plift α) ↔ nonempty α :=
+iff.intro (assume ⟨⟨a⟩⟩, ⟨a⟩) (assume ⟨a⟩, ⟨⟨a⟩⟩)
+
+@[simp] lemma nonempty.forall {α : Sort u} {p : nonempty α → Prop} :
+  (∀h:nonempty α, p h) ↔ (∀a, p ⟨a⟩) :=
+iff.intro (assume h a, h _) (assume h ⟨a⟩, h _)
+
+@[simp] lemma nonempty.exists {α : Sort u} {p : nonempty α → Prop} :
+  (∃h:nonempty α, p h) ↔ (∃a, p ⟨a⟩) :=
+iff.intro (assume ⟨⟨a⟩, h⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a⟩, h⟩)
+
+lemma classical.nonempty_pi {α : Sort u} {β : α → Sort v} :
+  nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
+iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
+
+end nonempty

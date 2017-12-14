@@ -1,7 +1,8 @@
 # Library Style Guidelines #
 Author: [Jeremy Avigad](http://www.andrew.cmu.edu/user/avigad)
 
-This is an old version for Lean 2.
+**This is an old version for Lean 2** Some suggestions are outdated,
+but it is a good introduction to understand the format of theorem names in `mathlib.`
 
 Files in the Lean library generally adhere to the following guidelines
 and conventions. Having a uniform style makes it easier to browse the
@@ -18,8 +19,6 @@ We generally use lower case with underscores for theorem names and
 definitions. Sometimes upper case is used for bundled structures, such
 as `Group`. In that case, use CamelCase for compound names, such as
 `AbelianGroup`.
-
-**this is old**
 
 We adopt the following naming guidelines to make it easier for users
 to guess the name of a theorem or find it using tab completion. Common
@@ -262,7 +261,7 @@ nat.induction_on n
                  ... = succ (n + k) : succ_add n k,
     have H3 : n + m = n + k, from succ.inj H2,
     IH H3)
-``` lean
+```
 
 ### Binders ###
 
@@ -292,7 +291,9 @@ theorem reverse_reverse : ∀ (l : list α), reverse (reverse l) = l
                            ... = reverse [a] ++ l                   : reverse_reverse
                            ... = a :: l                             : rfl
 ```
+
 To be more compact, for example, you may do this only after the first line:
+
 ```lean
 import data.list
 open list
@@ -307,7 +308,7 @@ theorem reverse_reverse : ∀ (l : list α), reverse (reverse l) = l
       ... = reverse [a] ++ reverse (reverse l) : reverse_append
       ... = reverse [a] ++ l                   : reverse_reverse
       ... = a :: l                             : rfl
-``` lean
+```
 
 ### Sections ###
 

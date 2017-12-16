@@ -15,11 +15,11 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 lemma set.sInter_eq_Inter {s : set (set α)} : (⋂₀ s) = (⋂i ∈ s, i) :=
 set.ext $ by simp
 
-class has_scalar (α : inout Type u) (γ : Type v) := (smul : α → γ → γ)
+class has_scalar (α : out_param $ Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
-class module (α : inout Type u) (β : Type v) [inout ring α]
+class module (α : out_param $ Type u) (β : Type v) [out_param $ ring α]
   extends has_scalar α β, add_comm_group β :=
 (smul_add : ∀r (x y : β), r • (x + y) = r • x + r • y)
 (add_smul : ∀r s (x : β), (r + s) • x = r • x + s • x)
@@ -221,7 +221,7 @@ end
 
 end is_submodule
 
-class vector_space (α : inout Type u) (β : Type v) [field α] extends module α β
+class vector_space (α : out_param $ Type u) (β : Type v) [field α] extends module α β
 
 @[reducible] def subspace {α : Type u} {β : Type v} [field α] [vector_space α β] (p : set β) :
   Prop :=

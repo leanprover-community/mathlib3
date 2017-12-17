@@ -1019,7 +1019,7 @@ theorem add_le_add_iff_left (o₁) {o₂ o₃ : ordinal} : o₁ + o₂ ≤ o₁ 
       f.to_order_embedding (sum.inr a) (sum.inr b)⟩,
     λ a b, begin
       have nex : ¬ ∃ (a : α), f (sum.inl a) = sum.inr b :=
-        λ ⟨a, e⟩, by rw [fl] at e; contradiction,
+        λ ⟨a, e⟩, by rw [fl] at e; injection e,
       simpa [fr, nex] using f.init (sum.inr a) (sum.inr b),
     end⟩⟩,
 λ h, add_le_add_left h _⟩

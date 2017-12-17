@@ -74,13 +74,13 @@ def empty_relation.is_well_order [subsingleton α] : is_well_order α empty_rela
   ⟨λ a, id⟩, ⟨λ a b c, false.elim⟩⟩,
   ⟨λ a, ⟨_, λ y, false.elim⟩⟩⟩
 
-def sum.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
+instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
 ⟨⟨⟨λ a b, by cases a; cases b; simp; apply trichotomous⟩,
   ⟨λ a, by cases a; simp; apply irrefl⟩,
   ⟨λ a b c, by cases a; cases b; simp; cases c; simp; apply trans⟩⟩,
   sum.lex_wf (is_well_order.wf r) (is_well_order.wf s)⟩
 
-def prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α × β) (prod.lex r s) :=
+instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α × β) (prod.lex r s) :=
 ⟨⟨⟨λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩, match @trichotomous _ r _ a₁ b₁ with
     | or.inl h₁ := or.inl $ prod.lex.left _ _ _ h₁
     | or.inr (or.inr h₁) := or.inr $ or.inr $ prod.lex.left _ _ _ h₁
@@ -101,6 +101,24 @@ def prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_o
     { exact prod.lex.right _ _ (trans ab bc) }
   end⟩⟩,
   prod.lex_wf (is_well_order.wf r) (is_well_order.wf s)⟩
+
+theorem well_founded.has_min {α} {r : α → α → Prop} (H : well_founded r)
+  (p : set α) : p ≠ ∅ → ∃ a ∈ p, ∀ x ∈ p, ¬ r x a :=
+not_imp_comm.1 $ λ he, set.eq_empty_iff_forall_not_mem.2 $ λ a,
+acc.rec_on (H.apply a) $ λ a H IH h,
+he ⟨_, h, λ y, imp_not_comm.1 (IH y)⟩
+
+def well_founded.min {α} {r : α → α → Prop} (H : well_founded r)
+  (p : set α) (h : p ≠ ∅) : α :=
+classical.some (H.has_min p h)
+
+theorem well_founded.min_mem {α} {r : α → α → Prop} (H : well_founded r)
+  (p : set α) (h : p ≠ ∅) : H.min p h ∈ p :=
+let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
+
+theorem well_founded.not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
+  (p : set α) (h : p ≠ ∅) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
+let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
 structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends embedding α β :=
 (ord : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
@@ -139,6 +157,8 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : r ≼o s}, (e₁ : α → β) = e₂ 
 
 def rsymm (f : r ≼o s) : swap r ≼o swap s :=
 ⟨f.to_embedding, λ a b, f.ord'⟩
+
+def preimage (f : embedding α β) (s : β → β → Prop) : f ⁻¹'o s ≼o s := ⟨f, λ a b, iff.rfl⟩
 
 theorem eq_preimage (f : r ≼o s) : r = f ⁻¹'o s :=
 by funext a b; exact propext f.ord'
@@ -195,7 +215,7 @@ protected def well_founded : ∀ (f : r ≼o s) (h : well_founded s), well_found
 protected def is_well_order : ∀ (f : r ≼o s) [is_well_order β s], is_well_order α r
 | f ⟨H₁, H₂⟩ := by exact ⟨f.is_strict_total_order', f.well_founded H₂⟩
 
-theorem of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β) (H : ∀ a b, r a b → s (f a) (f b)) : r ≼o s :=
+def of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β) (H : ∀ a b, r a b → s (f a) (f b)) : r ≼o s :=
 begin
   have := @is_irrefl_of_is_asymm β s _,
   refine ⟨⟨f, λ a b e, _⟩, λ a b, ⟨H _ _, λ h, _⟩⟩,
@@ -205,6 +225,9 @@ begin
     { subst e, exact irrefl _ h },
     { exact asymm (H _ _ h') h } }
 end
+
+@[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
+  (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
 theorem nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
   ((<) : ℕ → ℕ → Prop) ≼o r :=
@@ -291,7 +314,7 @@ def set_coe_embedding {α : Type*} (p : set α) :
   embedding p α := ⟨subtype.val, @subtype.eq _ _⟩
 
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
-@subtype.val _ p ⁻¹'o r
+@subtype.val _ p ⁻¹'o r 
 
 namespace subrel
 
@@ -371,6 +394,9 @@ instance [is_well_order β s] : subsingleton (r ≼i s) :=
 ⟨λ a, @subsingleton.elim _ (unique_of_extensional
   (@order_embedding.well_founded _ _ r s a (is_well_order.wf s))) a⟩
 
+protected theorem eq [is_well_order β s] (f g : r ≼i s) (a) : f a = g a :=
+by rw subsingleton.elim f g
+
 theorem antisymm.aux [is_well_order α r] (f : r ≼i s) (g : s ≼i r) : left_inverse g f
 | x := begin
   have := ((is_well_order.wf r).apply x), induction this with x _ IH,
@@ -405,6 +431,13 @@ def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i sub
   let ⟨a', e⟩ := f.init' h in ⟨a', by clear _let_match; subst e; refl⟩⟩
 
 @[simp] theorem cod_restrict_apply (p) (f : r ≼i s) (H a) : cod_restrict p f H a = ⟨f a, H a⟩ := rfl
+
+def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
+⟨⟨⟨sum.inl, λ _ _, sum.inl.inj⟩, λ a b, by simp⟩,
+  λ a b, by cases b; simp; exact λ _, ⟨_, rfl⟩⟩
+
+@[simp] theorem le_add_apply (r : α → α → Prop) (s : β → β → Prop)
+  (a) : le_add r s a = sum.inl a := rfl
 
 end initial_seg
 
@@ -445,8 +478,8 @@ initial_seg.init_iff f
 theorem irrefl (r : α → α → Prop) [is_well_order α r] (f : r ≺i r) : false :=
 begin
   have := f.lt_top f.top,
-  rw [show f f.top = f.top, from congr_arg (λ g : r ≼i r, g f.top)
-    (subsingleton.elim ↑f (initial_seg.refl r))] at this,
+  rw [show f f.top = f.top, from
+      initial_seg.eq ↑f (initial_seg.refl r) f.top] at this,
   exact irrefl _ this
 end
 
@@ -551,6 +584,54 @@ begin
   { simp [f.lt_or_eq_apply_left h] },
   { simp [f.lt_or_eq_apply_right h] }
 end
+
+namespace order_embedding
+
+def collapse_F [is_well_order β s] (f : r ≼o s) : Π a, {b // ¬ s (f a) b} :=
+(order_embedding.well_founded f $ is_well_order.wf s).fix $ λ a IH, begin
+  let S := {b | ∀ a h, s (IH a h).1 b},
+  have : f a ∈ S, from λ a' h, ((trichotomous _ _)
+    .resolve_left $ λ h', (IH a' h).2 $ trans (f.ord'.1 h) h')
+    .resolve_left $ λ h', (IH a' h).2 $ h' ▸ f.ord'.1 h,
+  exact ⟨(is_well_order.wf s).min S (set.ne_empty_of_mem this),
+   (is_well_order.wf s).not_lt_min _ _ this⟩
+end
+
+theorem collapse_F.lt [is_well_order β s] (f : r ≼o s) {a : α}
+   : ∀ {a'}, r a' a → s (collapse_F f a').1 (collapse_F f a).1 :=
+show (collapse_F f a).1 ∈ {b | ∀ a' (h : r a' a), s (collapse_F f a').1 b}, begin
+  unfold collapse_F, rw well_founded.fix_eq,
+  apply well_founded.min_mem _ _
+end
+
+theorem collapse_F.not_lt [is_well_order β s] (f : r ≼o s) (a : α)
+   {b} (h : ∀ a' (h : r a' a), s (collapse_F f a').1 b) : ¬ s b (collapse_F f a).1 :=
+begin
+  unfold collapse_F, rw well_founded.fix_eq,
+  exact well_founded.not_lt_min _ _ _
+    (show b ∈ {b | ∀ a' (h : r a' a), s (collapse_F f a').1 b}, from h)
+end
+
+def collapse [is_well_order β s] (f : r ≼o s) : r ≼i s :=
+by have := order_embedding.is_well_order f; exact
+⟨order_embedding.of_monotone
+  (λ a, (collapse_F f a).1) (λ a b, collapse_F.lt f),
+λ a b, by revert a; dsimp; exact
+acc.rec_on ((is_well_order.wf s).apply b) (λ b H IH a h, begin
+  let S := {a | ¬ s (collapse_F f a).1 b},
+  have : S ≠ ∅ := set.ne_empty_of_mem (asymm h),
+  existsi (is_well_order.wf r).min S this,
+  refine ((@trichotomous _ s _ _ _).resolve_left _).resolve_right _,
+  { exact (is_well_order.wf r).min_mem S this },
+  { refine collapse_F.not_lt f _ (λ a' h', _),
+    by_contradiction hn,
+    exact (is_well_order.wf r).not_lt_min S this hn h' }
+end)⟩
+
+@[simp] theorem collapse_apply [is_well_order β s] (f : r ≼o s)
+  (a) : collapse f a = (collapse_F f a).1 := rfl
+
+end order_embedding
 
 section well_ordering_thm
 parameter {σ : Type*}
@@ -755,7 +836,7 @@ by exact propext ⟨
     h.lt_le (initial_seg.of_iso g)⟩,
   λ ⟨h⟩, ⟨principal_seg.equiv_lt f $
     h.lt_le (initial_seg.of_iso g.symm)⟩⟩
-
+    
 instance : has_lt ordinal := ⟨ordinal.lt⟩
 
 @[simp] theorem type_lt {α β} {r : α → α → Prop} {s : β → β → Prop}
@@ -843,7 +924,8 @@ by clear _let_match; subst e; simp
 theorem enum_lt {α β} {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
   [is_well_order α r] [is_well_order β s] [is_well_order γ t]
   (h₁ : type s < type r) (h₂ : type t < type r) :
-  r (enum r (type s) h₁) (enum r (type t) h₂) ↔ type s < type t :=
+  r (enum r (type s) h₁) (enum r 
+  (type t) h₂) ↔ type s < type t :=
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
 
 theorem wf : @well_founded ordinal (<) :=
@@ -859,4 +941,211 @@ def card (o : ordinal) : cardinal :=
 quot.lift_on o (λ ⟨α, r, _⟩, ⟦α⟧) $
 λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
 
+theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ card o₂ :=
+induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
+
+instance : has_zero ordinal :=
+⟨⟦⟨ulift empty, empty_relation, empty_relation.is_well_order⟩⟧⟩
+
+@[simp] theorem card_zero : card 0 = 0 := rfl
+
+theorem zero_le (o : ordinal) : 0 ≤ o :=
+induction_on o $ λ α r _,
+⟨⟨⟨embedding.of_not_nonempty $ λ ⟨⟨a⟩⟩, a.elim,
+  λ ⟨a⟩, a.elim⟩, λ ⟨a⟩, a.elim⟩⟩
+
+instance : has_one ordinal :=
+⟨⟦⟨ulift unit, empty_relation, empty_relation.is_well_order⟩⟧⟩
+
+@[simp] theorem card_one : card 1 = 1 := rfl
+
+instance : has_add ordinal.{u} :=
+⟨λo₁ o₂, quotient.lift_on₂ o₁ o₂
+  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exact sum.lex.is_well_order⟩⟧
+    : Well_order → Well_order → ordinal) $
+λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨⟨f, hf⟩⟩ ⟨⟨g, hg⟩⟩,
+quot.sound ⟨⟨equiv.sum_congr f g, λ a b,
+  by cases a; cases b; simp [hf, hg]⟩⟩⟩
+
+def succ (o : ordinal) : ordinal := o + 1
+
+@[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
+induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
+
+instance : add_monoid ordinal.{u} :=
+{ add       := (+),
+  zero      := 0,
+  zero_add  := λ o, induction_on o $ λ α r _, eq.symm $ quot.sound
+    ⟨⟨(equiv.symm $ (equiv.ulift.sum_congr (equiv.refl _)).trans (equiv.empty_sum _)),
+    λ a b, show r a b ↔ sum.lex _ _ (sum.inr a) (sum.inr b), by simp⟩⟩,
+  add_zero  := λ o, induction_on o $ λ α r _, eq.symm $ quot.sound
+    ⟨⟨(equiv.symm $ ((equiv.refl _).sum_congr equiv.ulift).trans (equiv.sum_empty _)),
+    λ a b, show r a b ↔ sum.lex _ _ (sum.inl a) (sum.inl b), by simp⟩⟩,
+  add_assoc := λ o₁ o₂ o₃, quotient.induction_on₃ o₁ o₂ o₃ $
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩, quot.sound
+    ⟨⟨equiv.sum_assoc _ _ _, λ a b,
+    by rcases a with ⟨a|a⟩|a; rcases b with ⟨b|b⟩|b; simp⟩⟩ }
+
+theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :=
+(add_assoc _ _ _).symm
+
+theorem add_le_add_left {o₁ o₂ : ordinal} : o₁ ≤ o₂ → ∀ o₃, o₃ + o₁ ≤ o₃ + o₂ :=
+induction_on o₁ $ λ α₁ r₁ _, induction_on o₂ $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ o₃,
+induction_on o₃ $ λ β s _,
+⟨⟨⟨(embedding.refl _).sum_congr f,
+  λ a b, by cases a with a a; cases b with b b; simp [fo]⟩,
+  λ a b, begin
+    cases b with b b, { simp [(⟨_, rfl⟩ : ∃ a, a=b)] },
+    cases a with a a; simp, exact λ h, or.inr (fi _ _ h),
+  end⟩⟩
+
+theorem le_add_right (o₁ o₂ : ordinal) : o₁ ≤ o₁ + o₂ :=
+by simpa using add_le_add_left (zero_le o₂) o₁
+
+theorem add_le_add_iff_left (o₁) {o₂ o₃ : ordinal} : o₁ + o₂ ≤ o₁ + o₃ ↔ o₂ ≤ o₃ :=
+⟨induction_on o₁ $ λ α r _, induction_on o₂ $ λ β₁ s₁ _, induction_on o₃ $ λ β₂ s₂ _ ⟨f⟩, ⟨
+  have fl : ∀ a, f (sum.inl a) = sum.inl a := λ a,
+    by simpa using initial_seg.eq ((initial_seg.le_add r s₁).trans f) (initial_seg.le_add r s₂) a,
+  have ∀ b, {b' // f (sum.inr b) = sum.inr b'}, begin
+    intro b, cases e : f (sum.inr b),
+    { rw ← fl at e, have := f.inj e, contradiction },
+    { exact ⟨_, rfl⟩ }
+  end,
+  let g (b) := (this b).1 in
+  have fr : ∀ b, f (sum.inr b) = sum.inr (g b), from λ b, (this b).2,
+  ⟨⟨⟨g, λ x y h, by injection f.inj
+    (by rw [fr, fr, h] : f (sum.inr x) = f (sum.inr y))⟩,
+    λ a b, by simpa [fr] using @order_embedding.ord _ _ _ _
+      f.to_order_embedding (sum.inr a) (sum.inr b)⟩,
+    λ a b, begin
+      have nex : ¬ ∃ (a : α), f (sum.inl a) = sum.inr b :=
+        λ ⟨a, e⟩, by rw [fl] at e; contradiction,
+      simpa [fr, nex] using f.init (sum.inr a) (sum.inr b),
+    end⟩⟩,
+λ h, add_le_add_left h _⟩
+
+instance : has_mul ordinal.{u} :=
+⟨λo₁ o₂, quotient.lift_on₂ o₁ o₂
+  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α × β, prod.lex r s, by exact prod.lex.is_well_order⟩⟧
+    : Well_order → Well_order → ordinal) $
+λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨⟨f, hf⟩⟩ ⟨⟨g, hg⟩⟩,
+quot.sound ⟨⟨equiv.prod_congr f g, λ a b, begin
+  cases a with a₁ a₂; cases b with b₁ b₂,
+  suffices : prod.lex r₁ r₂ (a₁, a₂) (b₁, b₂) ↔
+    prod.lex s₁ s₂ (f a₁, g a₂) (f b₁, g b₂), {simpa [hf, hg]},
+  split,
+  { intro h, cases h with _ _ _ _ h _ _ _ h,
+    { left, exact hf.1 h },
+    { right, exact hg.1 h } },
+  { generalize e : f b₁ = fb₁,
+    intro h, cases h with _ _ _ _ h _ _ _ h,
+    { subst e, left, exact hf.2 h },
+    { have := f.bijective.1 e, subst b₁,
+      right, exact hg.2 h } }  
+end⟩⟩⟩
+
+theorem type_le_of_order_embedding {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] (f : r ≼o s) : type r ≤ type s :=
+⟨f.collapse⟩
+
+theorem le_add_left (o₁ o₂ : ordinal) : o₁ ≤ o₂ + o₁ :=
+induction_on o₁ $ λ α₁ r₁ _, induction_on o₂ $ λ α₂ r₂ _,
+by exact type_le_of_order_embedding
+⟨⟨sum.inr, λ _ _, sum.inr.inj⟩, λ a b, by simp⟩
+
+theorem le_total (o₁ o₂ : ordinal) : o₁ ≤ o₂ ∨ o₂ ≤ o₁ :=
+match lt_or_eq_of_le (le_add_left o₂ o₁), lt_or_eq_of_le (le_add_right o₁ o₂) with
+| or.inr h, _ := by rw h; exact or.inl (le_add_right _ _)
+| _, or.inr h := by rw h; exact or.inr (le_add_left _ _)
+| or.inl h₁, or.inl h₂ := induction_on o₁ (λ α₁ r₁ _,
+  induction_on o₂ $ λ α₂ r₂ _ ⟨f⟩ ⟨g⟩, begin
+    rw [← typein_top f, ← typein_top g, le_iff_lt_or_eq,
+        le_iff_lt_or_eq, typein_lt_typein, typein_lt_typein],
+    rcases trichotomous_of (sum.lex r₁ r₂) g.top f.top with h|h|h; simp [h],
+  end) h₁ h₂
+end
+
+instance : linear_order ordinal :=
+{ le_total := le_total, ..ordinal.partial_order }
+
+instance : is_well_order ordinal (<) :=
+⟨⟨⟨lt_trichotomy⟩, ⟨lt_irrefl⟩, ⟨@lt_trans _ _⟩⟩, wf⟩
+
+def min {ι} [inhabited ι] (f : ι → ordinal) : ordinal :=
+wf.min (set.range f) (set.ne_empty_of_mem (set.mem_range_self (default _)))
+
+theorem min_eq {ι} [inhabited ι] (f : ι → ordinal) : ∃ i, min f = f i :=
+let ⟨i, e⟩ := wf.min_mem (set.range f) _ in ⟨i, e.symm⟩
+
+theorem min_le {ι} [inhabited ι] (f : ι → ordinal) (i) : min f ≤ f i :=
+le_of_not_gt $ wf.not_lt_min (set.range f) _ (set.mem_range_self i)
+
+theorem le_min {ι} [inhabited ι] {f : ι → ordinal} {a} : a ≤ min f ↔ ∀ i, a ≤ f i :=
+⟨λ h i, le_trans h (min_le _ _),
+ λ h, let ⟨i, e⟩ := min_eq f in e.symm ▸ h i⟩
+
+/-
+def cof (o : ordinal) : cardinal :=
+let f : Well_order → cardinal := λ ⟨α, r, _⟩,
+  @cardinal.min {S : set α // ∀ a, ∃ b ∈ S, ¬ r b a}
+    ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, by apply irrefl⟩⟩⟩
+    (λ S, mk S) in
+quot.lift_on o f $
+suffices ∀ {a b : Well_order}, a ≈ b → f a ≤ f b, from
+λ a b h, le_antisymm (this h) (this (setoid.symm h)),
+λ a b, let ⟨α, r, _⟩ := a, ⟨β, s, _⟩ := b in λ ⟨g⟩,
+_
+-/
+
 end ordinal
+
+namespace cardinal
+
+def ord (c : cardinal) : ordinal :=
+begin
+  let ι := λ α, {r // is_well_order α r},
+  have : ∀ α, inhabited (ι α) := λ α,
+    ⟨classical.indefinite_description _ well_ordering_thm⟩,
+  let F := λ α, ordinal.min (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
+  refine quot.lift_on c F _,
+  suffices : ∀ {α β}, α ≃ β → F α ≤ F β,
+  from λ α β ⟨f⟩, le_antisymm (this f) (this f.symm),
+  intros α β f, refine ordinal.le_min.2 (λ i, _),
+  have := @order_embedding.is_well_order _ _
+    (f ⁻¹'o i.1) _ ↑(order_iso.preimage f i.1) i.2,
+  rw ← show ordinal.type (f ⁻¹'o i.1) = ⟦⟨β, i.1, i.2⟩⟧, from
+    quot.sound ⟨order_iso.preimage f i.1⟩,
+  exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
+end
+
+instance : has_coe cardinal ordinal := ⟨ord⟩
+
+theorem ord_eq_min (α : Type u) : (mk α : ordinal.{u}) =
+  @ordinal.min _ ⟨classical.indefinite_description _ well_ordering_thm⟩
+    (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
+
+theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
+  @ordinal.type α r wo = mk α :=
+let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq _
+  ⟨classical.indefinite_description _ well_ordering_thm⟩
+  (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
+⟨r, wo, h.symm⟩
+
+theorem ord_le {α : Type u} (r : α → α → Prop) [is_well_order α r] : (mk α : ordinal.{u}) ≤ ordinal.type r :=
+@ordinal.min_le _
+  ⟨classical.indefinite_description _ well_ordering_thm⟩
+  (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
+
+@[simp] theorem ord_le_ord {c₁ c₂ : cardinal.{u}} : (c₁ : ordinal.{u}) ≤ c₂ ↔ c₁ ≤ c₂ :=
+quotient.induction_on₂ c₁ c₂ $ λ α β,
+let ⟨r, _, e⟩ := ord_eq α, ⟨s, _, e'⟩ := ord_eq β in by exact
+⟨λ h, let ⟨f⟩ := show ordinal.type r ≤ ordinal.type s, from
+    e.symm ▸ e'.symm ▸ h in ⟨f.to_embedding⟩,
+λ ⟨f⟩, show (mk α : ordinal.{u}) ≤ mk β, begin
+  rw ← e',
+  have g := order_embedding.preimage f s,
+  have := order_embedding.is_well_order g,
+  exact le_trans (ord_le _) (ordinal.type_le_of_order_embedding g)
+end⟩
+
+end cardinal

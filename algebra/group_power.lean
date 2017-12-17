@@ -11,7 +11,7 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import data.nat.basic data.int.basic algebra.group algebra.ring
+import data.nat.basic data.int.basic algebra.group algebra.ring data.list.basic
 
 universe u
 variable {α : Type u}

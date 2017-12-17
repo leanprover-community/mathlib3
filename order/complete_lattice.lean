@@ -450,21 +450,21 @@ le_antisymm
 lemma Sup_range {f : ι → α} : Sup (range f) = supr f :=
 le_antisymm
   (Sup_le $ forall_range_iff.mpr $ assume i, le_supr _ _)
-  (supr_le $ assume i, le_Sup mem_range)
+  (supr_le $ assume i, le_Sup (mem_range_self _))
 
 lemma Inf_range {f : ι → α} : Inf (range f) = infi f :=
 le_antisymm
-  (le_infi $ assume i, Inf_le mem_range)
+  (le_infi $ assume i, Inf_le (mem_range_self _))
   (le_Inf $ forall_range_iff.mpr $ assume i, infi_le _ _)
 
 lemma supr_range {g : β → α} {f : ι → β} : (⨆b∈range f, g b) = (⨆i, g (f i)) :=
 le_antisymm
   (supr_le $ assume b, supr_le $ assume ⟨i, (h : f i = b)⟩, h ▸ le_supr _ i)
-  (supr_le $ assume i, le_supr_of_le (f i) $ le_supr (λp, g (f i)) mem_range)
+  (supr_le $ assume i, le_supr_of_le (f i) $ le_supr (λp, g (f i)) (mem_range_self _))
 
 lemma infi_range {g : β → α} {f : ι → β} : (⨅b∈range f, g b) = (⨅i, g (f i)) :=
 le_antisymm
-  (le_infi $ assume i, infi_le_of_le (f i) $ infi_le (λp, g (f i)) mem_range)
+  (le_infi $ assume i, infi_le_of_le (f i) $ infi_le (λp, g (f i)) (mem_range_self _))
   (le_infi $ assume b, le_infi $ assume ⟨i, (h : f i = b)⟩, h ▸ infi_le _ i)
 
 theorem Inf_image {s : set β} {f : β → α} : Inf (f '' s) = (⨅ a ∈ s, f a) :=

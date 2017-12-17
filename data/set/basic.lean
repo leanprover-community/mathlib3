@@ -782,10 +782,12 @@ This function is more flexible than `f '' univ`, as the image requires that the 
 and not an arbitrary Sort. -/
 def range (f : ι → α) : set α := {x | ∃y, f y = x}
 
-lemma mem_range {i : ι} : f i ∈ range f := ⟨i, rfl⟩
+lemma mem_range {x : α} : x ∈ range f ↔ ∃ y, f y = x := iff.rfl
+
+lemma mem_range_self (i : ι) : f i ∈ range f := ⟨i, rfl⟩
 
 lemma forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
-⟨assume h i, h (f i) mem_range, assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩
+⟨assume h i, h (f i) (mem_range_self _), assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩
 
 lemma range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall
@@ -797,8 +799,8 @@ set.ext $ by simp [image, range]
 
 lemma range_compose {g : α → β} : range (g ∘ f) = g '' range f :=
 subset.antisymm
-  (forall_range_iff.mpr $ assume i, mem_image_of_mem g mem_range)
-  (ball_image_iff.mpr $ forall_range_iff.mpr $ assume i, mem_range)
+  (forall_range_iff.mpr $ assume i, mem_image_of_mem g (mem_range_self _))
+  (ball_image_iff.mpr $ forall_range_iff.mpr mem_range_self)
 end range
 
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y

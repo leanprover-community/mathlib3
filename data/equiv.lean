@@ -86,6 +86,12 @@ protected theorem bijective : ∀ f : α ≃ β, bijective f
 | ⟨f, g, h₁, h₂⟩ :=
   ⟨injective_of_left_inverse h₁, surjective_of_has_right_inverse ⟨_, h₂⟩⟩
 
+protected theorem subsingleton (e : α ≃ β) : ∀ [subsingleton β], subsingleton α
+| ⟨H⟩ := ⟨λ a b, e.bijective.1 (H _ _)⟩
+
+protected def decidable_eq (e : α ≃ β) [H : decidable_eq β] : decidable_eq α
+| a b := decidable_of_iff _ e.bijective.1.eq_iff
+
 protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
 ⟨cast h, cast h.symm, λ x, by cases h; refl, λ x, by cases h; refl⟩
 
@@ -124,9 +130,9 @@ def empty_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : α ≃ empty :=
 ⟨assume a, (h ⟨a⟩).elim, assume e, e.rec_on _, assume a, (h ⟨a⟩).elim, assume e, e.rec_on _⟩
 
 protected def ulift {α : Type u} : ulift α ≃ α :=
-⟨ulift.down, ulift.up, ulift.up_down, ulift.down_up⟩
+⟨ulift.down, ulift.up, ulift.up_down, λ a, rfl⟩
 
-protected def plift {α : Type u} : plift α ≃ α :=
+protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
 @[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ β₂ → (α₁ → β₁) ≃ (α₂ → β₂)
@@ -161,6 +167,10 @@ end
    λ ⟨a, b⟩, show (g₁ (f₁ a), g₂ (f₂ b)) = (a, b), by rw [l₁ a, l₂ b],
    λ ⟨a, b⟩, show (f₁ (g₁ a), f₂ (g₂ b)) = (a, b), by rw [r₁ a, r₂ b]⟩
 
+@[simp] theorem prod_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) (a : α₁) (b : β₁) :
+  prod_congr e₁ e₂ (a, b) = (e₁ a, e₂ b) :=
+by cases e₁; cases e₂; refl
+
 @[simp] def prod_comm (α β : Sort*) : (α × β) ≃ (β × α) :=
 ⟨λ⟨a, b⟩, (b, a), λ⟨a, b⟩, (b, a), λ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
 
@@ -168,17 +178,17 @@ end
 ⟨λ ⟨⟨a, b⟩, c⟩, ⟨a, ⟨b, c⟩⟩, λ⟨a, ⟨b, c⟩⟩, ⟨⟨a, b⟩, c⟩, λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
 
 section
-@[simp] def prod_unit_right (α : Sort*) : (α × unit) ≃ α :=
+@[simp] def prod_unit (α : Sort*) : (α × unit) ≃ α :=
 ⟨λ p, p.1, λ a, (a, ()), λ ⟨_, ⟨⟩⟩, rfl, λ a, rfl⟩
 
-@[simp] def prod_unit_left (α : Sort*) : (unit × α) ≃ α :=
+@[simp] def unit_prod (α : Sort*) : (unit × α) ≃ α :=
 calc (unit × α) ≃ (α × unit) : prod_comm _ _
-            ... ≃ α          : prod_unit_right _
+            ... ≃ α          : prod_unit _
 
-@[simp] def prod_empty_right (α : Sort*) : (α × empty) ≃ empty :=
+@[simp] def prod_empty (α : Sort*) : (α × empty) ≃ empty :=
 equiv_empty (λ ⟨_, e⟩, e.rec _)
 
-@[simp] def prod_empty_left (α : Sort*) : (empty × α) ≃ empty :=
+@[simp] def empty_prod (α : Sort*) : (empty × α) ≃ empty :=
 equiv_empty (λ ⟨e, _⟩, e.rec _)
 end
 
@@ -196,6 +206,14 @@ def sum_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ 
    λ s, match s with inl a₂ := inl (g₁ a₂) | inr b₂ := inr (g₂ b₂) end,
    λ s, match s with inl a := congr_arg inl (l₁ a) | inr a := congr_arg inr (l₂ a) end,
    λ s, match s with inl a := congr_arg inl (r₁ a) | inr a := congr_arg inr (r₂ a) end⟩
+
+@[simp] theorem sum_congr_apply_inl {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) (a : α₁) :
+  sum_congr e₁ e₂ (inl a) = inl (e₁ a) :=
+by cases e₁; cases e₂; refl
+
+@[simp] theorem sum_congr_apply_inr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) (b : β₁) :
+  sum_congr e₁ e₂ (inr b) = inr (e₂ b) :=
+by cases e₁; cases e₂; refl
 
 def bool_equiv_unit_sum_unit : bool ≃ (unit ⊕ unit) :=
 ⟨λ b, cond b inl inr (),
@@ -219,14 +237,18 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
  λ s, by rcases s with ⟨_ | _⟩ | _; refl,
  λ s, by rcases s with _ | _ | _; refl⟩
 
-@[simp] def sum_empty_right (α : Sort*) : (α ⊕ empty) ≃ α :=
+@[simp] theorem sum_assoc_apply_in1 {α β γ} (a) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
+@[simp] theorem sum_assoc_apply_in2 {α β γ} (b) : sum_assoc α β γ (inl (inr b)) = inr (inl b) := rfl
+@[simp] theorem sum_assoc_apply_in3 {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+
+@[simp] def sum_empty (α : Sort*) : (α ⊕ empty) ≃ α :=
 ⟨λ s, match s with inl a := a | inr e := empty.rec _ e end,
  inl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl,
  λ a, rfl⟩
 
-@[simp] def sum_empty_left (α : Sort*) : (empty ⊕ α) ≃ α :=
-(sum_comm _ _).trans $ sum_empty_right _
+@[simp] def empty_sum (α : Sort*) : (empty ⊕ α) ≃ α :=
+(sum_comm _ _).trans $ sum_empty _
 
 @[simp] def option_equiv_sum_unit (α : Sort*) : option α ≃ (α ⊕ unit) :=
 ⟨λ o, match o with none := inr () | some a := inl a end,
@@ -303,7 +325,7 @@ def bool_prod_equiv_sum (α : Type u) : (bool × α) ≃ (α ⊕ α) :=
 calc (bool × α) ≃ ((unit ⊕ unit) × α)       : prod_congr bool_equiv_unit_sum_unit (equiv.refl _)
         ...     ≃ (α × (unit ⊕ unit))       : prod_comm _ _
         ...     ≃ ((α × unit) ⊕ (α × unit)) : prod_sum_distrib _ _ _
-        ...     ≃ (α ⊕ α)                   : sum_congr (prod_unit_right _) (prod_unit_right _)
+        ...     ≃ (α ⊕ α)                   : sum_congr (prod_unit _) (prod_unit _)
 end
 
 section
@@ -463,7 +485,7 @@ protected noncomputable def range {α β} (f : α → β) (H : injective f) :
 (set.univ _).symm.trans $ (set.image f univ H).trans (equiv.cast $ by rw range_eq_image)
 
 @[simp] theorem range_apply {α β} (f : α → β) (H : injective f) (a) :
-  set.range f H a = ⟨f a, set.mem_range⟩ :=
+  set.range f H a = ⟨f a, set.mem_range_self _⟩ :=
 by dunfold equiv.set.range equiv.set.univ;
    simp [set_coe_cast, range_eq_image]
 
@@ -544,3 +566,9 @@ by cases π; refl
 
 end swap
 end equiv
+
+instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
+instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
+
+instance {α} [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
+instance {α} [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq

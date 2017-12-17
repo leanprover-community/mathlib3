@@ -114,5 +114,14 @@ if n = 2 then tactic.swap else tactic.rotate n
 meta def generalize_proofs : parse ident_* → tactic unit :=
 tactic.generalize_proofs
 
+/-- Clear all hypotheses starting with `_`, like `_match` and `_let_match`. -/
+meta def clear_ : tactic unit := tactic.repeat $ do
+  l ← local_context,
+  l.reverse.mfirst $ λ h, do
+    name.mk_string s p ← return $ local_pp_name h,
+    guard (s.front = '_'),
+    cl ← infer_type h >>= is_class, guard (¬ cl),
+    tactic.clear h
+
 end interactive
 end tactic

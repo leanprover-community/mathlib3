@@ -32,7 +32,7 @@ The .. notation attempts to generate the 'of'-names automatically when the
 input theorem has the form A_iff_B or A_iff_B_left etc.
 
 -/
-import data.buffer.parser data.list.basic
+import data.buffer.parser
 
 open lean.parser tactic interactive parser
     
@@ -74,7 +74,7 @@ meta def make_left_right : name → tactic (name × name)
   let buf : char_buffer := s.to_char_buffer,
   sum.inr parts ← pure $ run (sep_by1 (ch '_') (many_char (sat (≠ '_')))) s.to_char_buffer,
   (left, _::right) ← pure $ parts.span (≠ "iff"),
-  let pfx (a b : string) := a.to_list <+: b.to_list,
+  let pfx (a b : string) := a.to_list.is_prefix_of b.to_list,
   (suffix', right') ← pure $ right.reverse.span (λ s, pfx "left" s ∨ pfx "right" s),
   let right := right'.reverse,
   let suffix := suffix'.reverse,

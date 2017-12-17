@@ -21,7 +21,15 @@ section miscellany
 
 variables {α : Type*} {β : Type*}
 
-theorem empty.elim {C : Sort*} : empty → C.
+def empty.elim {C : Sort*} : empty → C.
+
+instance : subsingleton empty := ⟨λa, a.elim⟩
+
+instance : decidable_eq empty := λa, a.elim
+
+@[priority 0] instance decidable_eq_of_subsingleton
+  {α} [subsingleton α] : decidable_eq α
+| a b := is_true (subsingleton.elim a b)
 
 end miscellany
 

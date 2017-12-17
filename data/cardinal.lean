@@ -212,6 +212,12 @@ def sum_congr {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
     | inr b₁, inr b₂, h := congr_arg inr $ e₂.inj $ inr.inj h
     end⟩
 
+@[simp] theorem sum_congr_apply_inl {α β γ δ}
+  (e₁ : embedding α β) (e₂ : embedding γ δ) (a) : sum_congr e₁ e₂ (inl a) = inl (e₁ a) := rfl
+
+@[simp] theorem sum_congr_apply_inr {α β γ δ}
+  (e₁ : embedding α β) (e₂ : embedding γ δ) (b) : sum_congr e₁ e₂ (inr b) = inr (e₂ b) := rfl
+
 end sum
 
 def arrow_congr_left {α : Type u} {β : Type v} {γ : Type w}
@@ -247,6 +253,8 @@ instance cardinal.is_equivalent : setoid (Type u) :=
 def cardinal : Type (u + 1) := quotient cardinal.is_equivalent
 
 namespace cardinal
+
+def mk : Type u → cardinal := quotient.mk
 
 instance : has_le cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ embedding α β) $
@@ -291,16 +299,16 @@ quotient.induction_on₂ a b $ assume α β, quotient.sound ⟨equiv.prod_comm �
 
 private theorem zero_add (a : cardinal.{u}) : 0 + a = a :=
 quotient.induction_on a $ assume α, quotient.sound
-  ⟨equiv.trans (equiv.sum_congr equiv.ulift (equiv.refl α)) (equiv.sum_empty_left α)⟩
+  ⟨equiv.trans (equiv.sum_congr equiv.ulift (equiv.refl α)) (equiv.empty_sum α)⟩
 
 private theorem zero_mul (a : cardinal.{u}) : 0 * a = 0 :=
 quotient.induction_on a $ assume α, quotient.sound
   ⟨equiv.trans (equiv.prod_congr equiv.ulift (equiv.refl α)) $
-    equiv.trans (equiv.prod_empty_left α) equiv.ulift.symm⟩
+    equiv.trans (equiv.empty_prod α) equiv.ulift.symm⟩
 
 private theorem one_mul (a : cardinal.{u}) : 1 * a = a :=
 quotient.induction_on a $ assume α, quotient.sound
-  ⟨equiv.trans (equiv.prod_congr equiv.ulift (equiv.refl α)) (equiv.prod_unit_left α)⟩
+  ⟨equiv.trans (equiv.prod_congr equiv.ulift (equiv.refl α)) (equiv.unit_prod α)⟩
 
 private theorem left_distrib (a b c : cardinal.{u}) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ assume α β γ, quotient.sound ⟨equiv.prod_sum_distrib α β γ⟩

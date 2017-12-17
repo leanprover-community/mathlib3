@@ -1108,9 +1108,9 @@ begin
     ⟨classical.indefinite_description _ well_ordering_thm⟩,
   let F := λ α, ordinal.min (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
   refine quot.lift_on c F _,
-  suffices : ∀ {α β}, α ≃ β → F α ≤ F β,
-  from λ α β ⟨f⟩, le_antisymm (this f) (this f.symm),
-  intros α β f, refine ordinal.le_min.2 (λ i, _),
+  suffices : ∀ {α β}, α ≈ β → F α ≤ F β,
+  from λ α β h, le_antisymm (this h) (this (setoid.symm h)),
+  intros α β h, cases h with f, refine ordinal.le_min.2 (λ i, _),
   have := @order_embedding.is_well_order _ _
     (f ⁻¹'o i.1) _ ↑(order_iso.preimage f i.1) i.2,
   rw ← show ordinal.type (f ⁻¹'o i.1) = ⟦⟨β, i.1, i.2⟩⟧, from

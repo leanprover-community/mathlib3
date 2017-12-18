@@ -99,6 +99,9 @@ end monoid
 theorem nat.pow_eq_pow (p q : ℕ) : nat.pow p q = p ^ q :=
 by induction q; [refl, simp [nat.pow_succ, pow_succ, mul_comm, *]]
 
+@[simp] theorem nat.smul_eq_mul (m n : ℕ) : m • n = m * n :=
+by induction n; simp [smul_succ', nat.mul_succ, *]
+
 /- commutative monoid -/
 
 section comm_monoid

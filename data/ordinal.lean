@@ -37,6 +37,9 @@ def is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (swap r
 def is_strict_total_order'.swap (r) [is_strict_total_order' α r] : is_strict_total_order' α (swap r) :=
 ⟨is_trichotomous.swap r, is_strict_order.swap r⟩
 
+instance [linear_order α] : is_strict_total_order' α (<) :=
+⟨⟨lt_trichotomy⟩, ⟨lt_irrefl⟩, ⟨@lt_trans _ _⟩⟩
+
 @[algebra] class is_order_connected (α : Type u) (lt : α → α → Prop) : Prop :=
 (conn : ∀ a b c, lt a c → lt a b ∨ lt b c)
 
@@ -73,6 +76,9 @@ def empty_relation.is_well_order [subsingleton α] : is_well_order α empty_rela
 ⟨⟨⟨λ a b, or.inr $ or.inl $ subsingleton.elim _ _⟩,
   ⟨λ a, id⟩, ⟨λ a b c, false.elim⟩⟩,
   ⟨λ a, ⟨_, λ y, false.elim⟩⟩⟩
+
+instance nat.lt.is_well_order : is_well_order ℕ (<) :=
+⟨by apply_instance, nat.lt_wf⟩
 
 instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
 ⟨⟨⟨λ a b, by cases a; cases b; simp; apply trichotomous⟩,
@@ -280,11 +286,12 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : r ≃o s}, (e₁ : α → β) = e₂ 
 @[refl] protected def refl (r : α → α → Prop) : r ≃o r :=
 ⟨equiv.refl _, λ a b, iff.rfl⟩
 
-@[symm] protected def symm : r ≃o s → s ≃o r
-| ⟨f, o⟩ := ⟨f.symm, λ a b, by rw o; simp⟩
+@[symm] protected def symm (f : r ≃o s) : s ≃o r :=
+⟨f.to_equiv.symm, λ a b, by cases f with f o; rw o; simp⟩
 
-@[trans] protected def trans : r ≃o s → s ≃o t → r ≃o t
-| ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ := ⟨f₁.trans f₂, λ a b, by rw [o₁, o₂]; simp⟩
+@[trans] protected def trans (f₁ : r ≃o s) (f₂ : s ≃o t) : r ≃o t :=
+⟨f₁.to_equiv.trans f₂.to_equiv, λ a b,
+  by cases f₁ with f₁ o₁; cases f₂ with f₂ o₂; rw [o₁, o₂]; simp⟩
 
 @[simp] theorem coe_fn_symm_mk (f o) : ((@order_iso.mk _ _ r s f o).symm : β → α) = f.symm :=
 rfl
@@ -305,8 +312,34 @@ def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃o s := �
 def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
 ⟨equiv.of_bijective ⟨f.inj, H⟩, by simp [f.ord']⟩
 
-@[simp] theorem of_surjective_apply (f : r ≼o s) (H) (a : α) : of_surjective f H a = f a :=
+@[simp] theorem of_surjective_coe (f : r ≼o s) (H) : (of_surjective f H : α → β) = f :=
 by delta of_surjective; simp
+
+theorem sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
+  (e₁ : @order_iso α₁ α₂ r₁ r₂) (e₂ : @order_iso β₁ β₂ s₁ s₂) :
+  sum.lex r₁ s₁ ≃o sum.lex r₂ s₂ :=
+⟨equiv.sum_congr e₁.to_equiv e₂.to_equiv, λ a b,
+ by cases e₁ with f hf; cases e₂ with g hg;
+    cases a; cases b; simp [hf, hg]⟩
+
+theorem prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
+  (e₁ : @order_iso α₁ α₂ r₁ r₂) (e₂ : @order_iso β₁ β₂ s₁ s₂) :
+  prod.lex r₁ s₁ ≃o prod.lex r₂ s₂ :=
+⟨equiv.prod_congr e₁.to_equiv e₂.to_equiv,  λ a b, begin
+  cases e₁ with f hf; cases e₂ with g hg,
+  cases a with a₁ a₂; cases b with b₁ b₂,
+  suffices : prod.lex r₁ s₁ (a₁, a₂) (b₁, b₂) ↔
+    prod.lex r₂ s₂ (f a₁, g a₂) (f b₁, g b₂), {simpa [hf, hg]},
+  split,
+  { intro h, cases h with _ _ _ _ h _ _ _ h,
+    { left, exact hf.1 h },
+    { right, exact hg.1 h } },
+  { generalize e : f b₁ = fb₁,
+    intro h, cases h with _ _ _ _ h _ _ _ h,
+    { subst e, left, exact hf.2 h },
+    { have := f.bijective.1 e, subst b₁,
+      right, exact hg.2 h } }  
+end⟩
 
 end order_iso
 
@@ -941,6 +974,9 @@ def card (o : ordinal) : cardinal :=
 quot.lift_on o (λ ⟨α, r, _⟩, ⟦α⟧) $
 λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
 
+@[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
+  card (type r) = mk α := rfl
+
 theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
 
@@ -963,14 +999,37 @@ instance : has_add ordinal.{u} :=
 ⟨λo₁ o₂, quotient.lift_on₂ o₁ o₂
   (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exact sum.lex.is_well_order⟩⟧
     : Well_order → Well_order → ordinal) $
-λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨⟨f, hf⟩⟩ ⟨⟨g, hg⟩⟩,
-quot.sound ⟨⟨equiv.sum_congr f g, λ a b,
-  by cases a; cases b; simp [hf, hg]⟩⟩⟩
+λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
+quot.sound ⟨order_iso.sum_lex_congr f g⟩⟩
 
 def succ (o : ordinal) : ordinal := o + 1
 
+theorem lt_succ_self (o : ordinal.{u}) : o < succ o :=
+induction_on o $ λ α r _,
+⟨begin
+  have := @empty_relation.is_well_order (ulift.{u 0} unit) _,
+  cases e : initial_seg.lt_or_eq
+    (@initial_seg.le_add α (ulift.{u 0} unit) r empty_relation) with f f,
+  { exact f },
+  { have := (initial_seg.of_iso f).eq (initial_seg.le_add _ _) (f.symm (sum.inr ⟨()⟩)),
+    simp at this, injection this }
+end⟩
+
+/-
+set_option pp.universes true
+theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
+⟨lt_of_lt_of_le (lt_succ_self _),
+induction_on a $ λ α r _, induction_on b $ λ β s _ ⟨⟨f, t, hf⟩⟩, begin
+  have := @empty_relation.is_well_order (ulift.{u 0} unit) _,
+  refine ⟨⟨order_embedding.of_monotone _ _, _⟩⟩
+end⟩
+-/
+
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
+
+@[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
+by induction n; simp *
 
 instance : add_monoid ordinal.{u} :=
 { add       := (+),
@@ -1028,30 +1087,97 @@ instance : has_mul ordinal.{u} :=
 ⟨λo₁ o₂, quotient.lift_on₂ o₁ o₂
   (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α × β, prod.lex r s, by exact prod.lex.is_well_order⟩⟧
     : Well_order → Well_order → ordinal) $
-λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨⟨f, hf⟩⟩ ⟨⟨g, hg⟩⟩,
-quot.sound ⟨⟨equiv.prod_congr f g, λ a b, begin
-  cases a with a₁ a₂; cases b with b₁ b₂,
-  suffices : prod.lex r₁ r₂ (a₁, a₂) (b₁, b₂) ↔
-    prod.lex s₁ s₂ (f a₁, g a₂) (f b₁, g b₂), {simpa [hf, hg]},
-  split,
-  { intro h, cases h with _ _ _ _ h _ _ _ h,
-    { left, exact hf.1 h },
-    { right, exact hg.1 h } },
-  { generalize e : f b₁ = fb₁,
-    intro h, cases h with _ _ _ _ h _ _ _ h,
-    { subst e, left, exact hf.2 h },
-    { have := f.bijective.1 e, subst b₁,
-      right, exact hg.2 h } }  
-end⟩⟩⟩
+λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
+quot.sound ⟨order_iso.prod_lex_congr f g⟩⟩
 
-theorem type_le_of_order_embedding {α β} {r : α → α → Prop} {s : β → β → Prop}
-  [is_well_order α r] [is_well_order β s] (f : r ≼o s) : type r ≤ type s :=
-⟨f.collapse⟩
+def lift (o : ordinal.{u}) : ordinal.{max u v} :=
+quotient.lift_on o (λ ⟨α, r, wo⟩,
+  @type _ _ (@order_embedding.is_well_order _ _ (@equiv.ulift.{u v} α ⁻¹'o r) r
+    (order_iso.preimage equiv.ulift.{u v} r) wo)) $
+λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩,
+quot.sound ⟨(order_iso.preimage equiv.ulift r).trans $
+  f.trans (order_iso.preimage equiv.ulift s).symm⟩
+
+def ω : ordinal.{u} := lift $ @type ℕ (<) _
+
+theorem lift_umax : lift.{u (max u v)} = lift.{u v} :=
+funext $ λ a, induction_on a $ λ α r _,
+quotient.sound ⟨(order_iso.preimage equiv.ulift r).trans (order_iso.preimage equiv.ulift r).symm⟩
+
+@[simp] theorem lift_id (a : ordinal) : lift a = a :=
+induction_on a $ λ α r _,
+quotient.sound ⟨order_iso.preimage equiv.ulift r⟩
+
+@[simp] theorem lift_lift (a : ordinal) : lift.{(max u v) w} (lift.{u v} a) = lift.{u (max v w)} a :=
+induction_on a $ λ α r _,
+quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans $
+  (order_iso.preimage equiv.ulift _).trans (order_iso.preimage equiv.ulift _).symm⟩
+
+theorem lift_type_le {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
+  lift.{u (max v w)} (type r) ≤ lift.{v (max u w)} (type s) ↔ nonempty (r ≼i s) :=
+⟨λ ⟨f⟩, ⟨(initial_seg.of_iso (order_iso.preimage equiv.ulift r).symm).trans $
+    f.trans (initial_seg.of_iso (order_iso.preimage equiv.ulift s))⟩,
+ λ ⟨f⟩, ⟨(initial_seg.of_iso (order_iso.preimage equiv.ulift r)).trans $
+    f.trans (initial_seg.of_iso (order_iso.preimage equiv.ulift s).symm)⟩⟩
+
+theorem lift_type_eq {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
+  lift.{u (max v w)} (type r) = lift.{v (max u w)} (type s) ↔ nonempty (r ≃o s) :=
+quotient.eq.trans
+⟨λ ⟨f⟩, ⟨(order_iso.preimage equiv.ulift r).symm.trans $
+    f.trans (order_iso.preimage equiv.ulift s)⟩,
+ λ ⟨f⟩, ⟨(order_iso.preimage equiv.ulift r).trans $
+    f.trans (order_iso.preimage equiv.ulift s).symm⟩⟩
+
+theorem lift_type_lt {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
+  lift.{u (max v w)} (type r) < lift.{v (max u w)} (type s) ↔ nonempty (r ≺i s) :=
+by have := @order_embedding.is_well_order _ _ (@equiv.ulift.{u (max v w)} α ⁻¹'o r)
+     r (order_iso.preimage equiv.ulift.{u (max v w)} r) _;
+   have := @order_embedding.is_well_order _ _ (@equiv.ulift.{v (max u w)} β ⁻¹'o s)
+     s (order_iso.preimage equiv.ulift.{v (max u w)} s) _; exact
+⟨λ ⟨f⟩, ⟨(f.equiv_lt (order_iso.preimage equiv.ulift r).symm).lt_le
+    (initial_seg.of_iso (order_iso.preimage equiv.ulift s))⟩,
+ λ ⟨f⟩, ⟨(f.equiv_lt (order_iso.preimage equiv.ulift r)).lt_le
+    (initial_seg.of_iso (order_iso.preimage equiv.ulift s).symm)⟩⟩
+
+@[simp] theorem lift_le {a b : ordinal} : lift.{u v} a ≤ lift b ↔ a ≤ b :=
+induction_on a $ λ α r _, induction_on b $ λ β s _,
+by rw ← lift_umax; exact lift_type_le
+
+@[simp] theorem lift_inj {a b : ordinal} : lift a = lift b ↔ a = b :=
+by simp [le_antisymm_iff]
+
+@[simp] theorem lift_lt {a b : ordinal} : lift a < lift b ↔ a < b :=
+by simp [lt_iff_le_not_le, -not_le]
+
+@[simp] theorem lift_zero : lift 0 = 0 :=
+quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
+ ⟨equiv.ulift.trans equiv.ulift.symm, λ a b, iff.rfl⟩⟩
+
+@[simp] theorem lift_one : lift 1 = 1 :=
+quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
+ ⟨equiv.ulift.trans equiv.ulift.symm, λ a b, iff.rfl⟩⟩
+
+@[simp] theorem lift_add (a b) : lift (a + b) = lift a + lift b :=
+quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩, 
+quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
+ (order_iso.sum_lex_congr (order_iso.preimage equiv.ulift _)
+   (order_iso.preimage equiv.ulift _)).symm⟩
+
+@[simp] theorem lift_mul (a b) : lift (a * b) = lift a * lift b :=
+quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩, 
+quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
+ (order_iso.prod_lex_congr (order_iso.preimage equiv.ulift _)
+   (order_iso.preimage equiv.ulift _)).symm⟩
+
+@[simp] theorem lift_ω : lift ω = ω := lift_lift _
+
+theorem type_le' {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] : type r ≤ type s ↔ nonempty (r ≼o s) :=
+⟨λ ⟨f⟩, ⟨f⟩, λ ⟨f⟩, ⟨f.collapse⟩⟩
 
 theorem le_add_left (o₁ o₂ : ordinal) : o₁ ≤ o₂ + o₁ :=
 induction_on o₁ $ λ α₁ r₁ _, induction_on o₂ $ λ α₂ r₂ _,
-by exact type_le_of_order_embedding
-⟨⟨sum.inr, λ _ _, sum.inr.inj⟩, λ a b, by simp⟩
+by exact type_le'.2 ⟨⟨⟨sum.inr, λ _ _, sum.inr.inj⟩, λ a b, by simp⟩⟩
 
 theorem le_total (o₁ o₂ : ordinal) : o₁ ≤ o₂ ∨ o₂ ≤ o₁ :=
 match lt_or_eq_of_le (le_add_left o₂ o₁), lt_or_eq_of_le (le_add_right o₁ o₂) with
@@ -1068,8 +1194,17 @@ end
 instance : linear_order ordinal :=
 { le_total := le_total, ..ordinal.partial_order }
 
-instance : is_well_order ordinal (<) :=
-⟨⟨⟨lt_trichotomy⟩, ⟨lt_irrefl⟩, ⟨@lt_trans _ _⟩⟩, wf⟩
+instance : is_well_order ordinal (<) := ⟨by apply_instance, wf⟩
+
+def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order α r] :
+  @principal_seg α ordinal.{u} r (<) :=
+⟨order_embedding.of_monotone (typein r)
+  (λ a b, (typein_lt_typein r).2), type r, λ b,
+    ⟨λ h, ⟨enum r _ h, typein_enum r h⟩,
+    λ ⟨a, e⟩, e ▸ typein_lt_type _ _⟩⟩
+
+@[simp] theorem typein.principal_seg_coe (r : α → α → Prop) [is_well_order α r] :
+  (typein.principal_seg r : α → ordinal) = typein r := rfl
 
 def min {ι} [inhabited ι] (f : ι → ordinal) : ordinal :=
 wf.min (set.range f) (set.ne_empty_of_mem (set.mem_range_self (default _)))
@@ -1084,7 +1219,79 @@ theorem le_min {ι} [inhabited ι] {f : ι → ordinal} {a} : a ≤ min f ↔ �
 ⟨λ h i, le_trans h (min_le _ _),
  λ h, let ⟨i, e⟩ := min_eq f in e.symm ▸ h i⟩
 
+@[simp] theorem lift_min {ι} [inhabited ι] (f : ι → ordinal) : lift (min f) = min (lift ∘ f) :=
+le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
+let ⟨i, e⟩ := min_eq (lift ∘ f) in
+by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
+by have := min_le (lift ∘ f) j; rwa e at this)
+
+theorem lift_down {a : ordinal.{u}} {b : ordinal.{max u v}} :
+  b ≤ lift a → ∃ a', lift a' = b :=
+induction_on a $ λ α r _, induction_on b $ λ β s _,
+by rw [← lift_id (type s), ← lift_umax, ← lift_umax.{u v}, lift_type_le]; exact
+λ ⟨f⟩, ⟨type (subrel r (set.range f)), eq.symm $ lift_type_eq.2
+  ⟨order_iso.of_surjective
+    (order_embedding.cod_restrict _ f set.mem_range_self)
+    $ λ ⟨a, ⟨b, e⟩⟩, ⟨b, subtype.eq e⟩⟩⟩
+
+def lift.initial_seg : @initial_seg ordinal.{u} ordinal.{max u v} (<) (<) :=
+⟨⟨⟨lift.{u v}, λ a b, lift_inj.1⟩, λ a b, lift_lt.symm⟩,
+  λ a b h, lift_down (le_of_lt h)⟩
+
+@[simp] theorem lift.initial_seg_coe : (lift.initial_seg : ordinal → ordinal) = lift := rfl
+
+def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<) :=
+⟨↑lift.initial_seg.{u (max (u+1) v)}, lift.{(u+1) v} (@type ordinal.{u} (<) _), begin
+  refine λ b, induction_on b _, intros β s _,
+  rw ← lift_umax, split; intro h,
+  { rw ← lift_id.{(max (u+1) v) (max (u+1) v)} (type s) at h ⊢,
+    cases lift_type_lt.1 h with f, cases f with f a hf,
+    existsi a, revert hf,
+    apply induction_on a, intros α r _ hf,
+    refine lift_type_eq.{u (max (u+1) v) (max (u+1) v)}.2
+      ⟨(order_iso.of_surjective (order_embedding.of_monotone _ _) _).symm⟩,
+    { exact λ b, enum r (f b) ((hf _).2 ⟨_, rfl⟩) },
+    { refine λ a b h, (typein_lt_typein r).1 _,
+      rw [typein_enum, typein_enum],
+      exact f.ord'.1 h },
+    { intro a', cases (hf _).1 (typein_lt_type _ a') with b e,
+      existsi b, simp, simp [e] } },
+  { cases h with a e, rw [← e],
+    apply induction_on a, intros α r _,
+    exact lift_type_lt.{u (u+1) (max (u+1) v)}.2
+      ⟨typein.principal_seg r⟩ }
+end⟩
+
+@[simp] theorem lift.principal_seg_coe :
+  (lift.principal_seg.{u v} : ordinal → ordinal) = lift.{u (max (u+1) v)} := rfl
+
+@[simp] theorem lift.principal_seg_top :
+  lift.principal_seg.{u v}.top = lift.{(u+1) v} (@type ordinal.{u} (<) _) := rfl
+
+theorem lift.principal_seg_top' :
+  lift.principal_seg.{u (u+1)}.top = @type ordinal.{u} (<) _ :=
+by simp [lift_id.{(u+1) (u+1)}]
+
+end ordinal
+
+def order.cof (r : α → α → Prop) [is_refl α r] : cardinal :=
+@cardinal.min {S : set α // ∀ a, ∃ b ∈ S, r a b}
+  ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, refl _⟩⟩⟩
+  (λ S, mk S)
+
 /-
+theorem order_iso.cof.aux {α : Type u} {β : Type v} {r s}
+  [is_refl α r] [is_refl β s] (f : r ≃o s) :
+  cardinal.lift.{u (max u v)} (order.cof r) ≤
+  cardinal.lift.{v (max u v)} (order.cof s) :=
+_
+
+theorem order_iso.cof {α : Type u} {β : Type v} {r s}
+  [is_refl α r] [is_refl β s] (f : r ≃o s) :
+  cardinal.lift.{u (max u v)} (order.cof r) =
+  cardinal.lift.{v (max u v)} (order.cof s) :=
+le_antisymm (order_iso.cof.aux f) (order_iso.cof.aux f.symm)
+
 def cof (o : ordinal) : cardinal :=
 let f : Well_order → cardinal := λ ⟨α, r, _⟩,
   @cardinal.min {S : set α // ∀ a, ∃ b ∈ S, ¬ r b a}
@@ -1096,8 +1303,6 @@ suffices ∀ {a b : Well_order}, a ≈ b → f a ≤ f b, from
 λ a b, let ⟨α, r, _⟩ := a, ⟨β, s, _⟩ := b in λ ⟨g⟩,
 _
 -/
-
-end ordinal
 
 namespace cardinal
 
@@ -1118,34 +1323,134 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
-instance : has_coe cardinal ordinal := ⟨ord⟩
-
-theorem ord_eq_min (α : Type u) : (mk α : ordinal.{u}) =
+theorem ord_eq_min (α : Type u) : ord (mk α) =
   @ordinal.min _ ⟨classical.indefinite_description _ well_ordering_thm⟩
     (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
-  @ordinal.type α r wo = mk α :=
+  ord (mk α) = @ordinal.type α r wo :=
 let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq _
   ⟨classical.indefinite_description _ well_ordering_thm⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
-⟨r, wo, h.symm⟩
+⟨r, wo, h⟩
 
-theorem ord_le {α : Type u} (r : α → α → Prop) [is_well_order α r] : (mk α : ordinal.{u}) ≤ ordinal.type r :=
+theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (mk α) ≤ ordinal.type r :=
 @ordinal.min_le _
   ⟨classical.indefinite_description _ well_ordering_thm⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
 
-@[simp] theorem ord_le_ord {c₁ c₂ : cardinal.{u}} : (c₁ : ordinal.{u}) ≤ c₂ ↔ c₁ ≤ c₂ :=
-quotient.induction_on₂ c₁ c₂ $ λ α β,
-let ⟨r, _, e⟩ := ord_eq α, ⟨s, _, e'⟩ := ord_eq β in by exact
-⟨λ h, let ⟨f⟩ := show ordinal.type r ≤ ordinal.type s, from
-    e.symm ▸ e'.symm ▸ h in ⟨f.to_embedding⟩,
-λ ⟨f⟩, show (mk α : ordinal.{u}) ≤ mk β, begin
-  rw ← e',
-  have g := order_embedding.preimage f s,
-  have := order_embedding.is_well_order g,
-  exact le_trans (ord_le _) (ordinal.type_le_of_order_embedding g)
-end⟩
+theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
+quotient.induction_on c $ λ α, ordinal.induction_on o $ λ β s _,
+let ⟨r, _, e⟩ := ord_eq α in begin
+  simp, split; intro h,
+  { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
+  { cases h with f,
+    have g := order_embedding.preimage f s,
+    have := order_embedding.is_well_order g,
+    exact le_trans (ord_le_type _) (ordinal.type_le'.2 ⟨g⟩) }
+end
+
+theorem lt_ord {c o} : o < ord c ↔ o.card < c :=
+by rw [← not_le, ← not_le, ord_le]
+
+@[simp] theorem card_ord (c : cardinal) : (ord c).card = c :=
+quotient.induction_on c $ λ α,
+let ⟨r, _, e⟩ := ord_eq α in by simp [e]
+
+@[simp] theorem ord_le_ord {c₁ c₂ : cardinal.{u}} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
+by simp [ord_le]
+
+@[simp] theorem ord_lt_ord {c₁ c₂ : cardinal.{u}} : ord c₁ < ord c₂ ↔ c₁ < c₂ :=
+by simp [lt_ord]
+
+@[simp] theorem ord_zero : ord 0 = 0 :=
+le_antisymm (ord_le.2 $ cardinal.zero_le _) (ordinal.zero_le _)
+
+/-
+@[simp] theorem ord_nat (n : ℕ) : ord.{u} n = n :=
+le_antisymm (ord_le.2 $ by simp) $
+begin
+  rcases ord_eq _ with ⟨r, _, e⟩,
+  rw [← lift_mk_fin, lift_mk, e],
+end
+-/
+
+def ord.order_embedding : @order_embedding cardinal ordinal (<) (<) :=
+order_embedding.of_monotone cardinal.ord $ λ a b, cardinal.ord_lt_ord.2
+
+@[simp] theorem ord.order_embedding_coe :
+  (ord.order_embedding : cardinal → ordinal) = ord := rfl
+
+def aleph_idx.initial_seg : @initial_seg cardinal ordinal (<) (<) :=
+@order_embedding.collapse cardinal ordinal (<) (<) _ cardinal.ord.order_embedding
+
+def aleph_idx : cardinal → ordinal := aleph_idx.initial_seg
+
+@[simp] theorem aleph_idx.initial_seg_coe :
+  (aleph_idx.initial_seg : cardinal → ordinal) = aleph_idx := rfl
+
+@[simp] theorem aleph_idx_lt {a b} : aleph_idx a < aleph_idx b ↔ a < b :=
+aleph_idx.initial_seg.to_order_embedding.ord'.symm
+
+@[simp] theorem aleph_idx_le {a b} : aleph_idx a ≤ aleph_idx b ↔ a ≤ b :=
+by rw [← not_lt, ← not_lt, aleph_idx_lt]
+
+theorem aleph_idx.init {a b} : b < aleph_idx a → ∃ c, aleph_idx c = b :=
+aleph_idx.initial_seg.init _ _
+
+def aleph_idx.order_iso : @order_iso cardinal.{u} ordinal.{u} (<) (<) :=
+@order_iso.of_surjective cardinal.{u} ordinal.{u} (<) (<) aleph_idx.initial_seg.{u} $
+(initial_seg.eq_or_principal aleph_idx.initial_seg.{u}).resolve_right $
+λ ⟨o, e⟩, begin
+  have : ∀ c, aleph_idx c < o := λ c, (e _).2 ⟨_, rfl⟩,
+  refine ordinal.induction_on o _ this, intros α r _ h,
+  let s := sup.{u u} (λ a:α, inv_fun aleph_idx (ordinal.typein r a)),
+  apply not_le_of_gt (lt_succ_self s),
+  have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.inj,
+  simpa [left_inverse_inv_fun I (succ s)] using
+    le_sup.{u u} (λ a, inv_fun aleph_idx (ordinal.typein r a))
+      (ordinal.enum r _ (h (succ s))),
+end
+
+@[simp] theorem aleph_idx.order_iso_coe :
+  (aleph_idx.order_iso : cardinal → ordinal) = aleph_idx :=
+by delta aleph_idx.order_iso; simp
 
 end cardinal
+
+namespace ordinal
+
+theorem ord_card_le (o : ordinal) : (card o).ord ≤ o :=
+cardinal.ord_le.2 (le_refl _)
+
+def aleph'.order_iso := cardinal.aleph_idx.order_iso.symm
+
+def aleph' : ordinal → cardinal := aleph'.order_iso
+
+@[simp] theorem aleph'.order_iso_coe :
+  (aleph'.order_iso : ordinal → cardinal) = aleph' := rfl
+
+@[simp] theorem aleph'_lt {o₁ o₂ : ordinal.{u}} : aleph' o₁ < aleph' o₂ ↔ o₁ < o₂ :=
+aleph'.order_iso.ord'.symm
+
+@[simp] theorem aleph'_le {o₁ o₂ : ordinal.{u}} : aleph' o₁ ≤ aleph' o₂ ↔ o₁ ≤ o₂ :=
+by rw [← not_lt, ← not_lt, aleph'_lt]
+
+@[simp] theorem aleph'_aleph_idx (c : cardinal.{u}) : aleph' c.aleph_idx = c :=
+by simpa using cardinal.aleph_idx.order_iso.to_equiv.inverse_apply_apply c
+
+@[simp] theorem aleph_idx_aleph' (o : ordinal.{u}) : o.aleph'.aleph_idx = o :=
+by simpa using cardinal.aleph_idx.order_iso.to_equiv.apply_inverse_apply o
+
+/-
+@[simp] theorem aleph'_succ {o : ordinal.{u}} : aleph' (succ o) = (aleph' o).succ :=
+le_antisymm
+ (cardinal.aleph_idx_le.1 $ begin
+    rw [aleph_idx_aleph', succ_le]
+  end)
+ (succ_le.2 $ aleph'_lt.2 $ ordinal.lt_succ_self _)
+-/
+
+def aleph (o : ordinal) : cardinal := aleph' (ω + o)
+
+end ordinal

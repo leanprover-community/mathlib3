@@ -6,7 +6,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl
 Modules over a ring.
 -/
 
-import algebra.ring algebra.big_operators data.set.basic
+import algebra.ring algebra.big_operators data.set.lattice
 open function
 
 universes u v w x

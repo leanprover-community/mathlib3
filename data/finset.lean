@@ -641,6 +641,14 @@ theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s �
 
 theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
+theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
+  (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
+by simp [card, image_val_of_inj_on H]
+
+theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α)
+  (H : function.injective f) : card (image f s) = card s :=
+card_image_of_inj_on $ λ x _ y _ h, H h
+
 lemma card_eq_succ [decidable_eq α] {s : finset α} {a : α} {n : ℕ} :
   s.card = n + 1 ↔ (∃a t, a ∉ t ∧ insert a t = s ∧ card t = n) :=
 iff.intro
@@ -702,7 +710,7 @@ theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset 
   (s.bind t).to_finset = s.to_finset.bind (λa, (t a).to_finset) :=
 ext.2 $ by simp
 
-lemma bind_mono  {t₁ t₂ : α → finset β} (h : ∀a∈s, t₁ a ⊆ t₂ a) : s.bind t₁ ⊆ s.bind t₂ :=
+lemma bind_mono {t₁ t₂ : α → finset β} (h : ∀a∈s, t₁ a ⊆ t₂ a) : s.bind t₁ ⊆ s.bind t₂ :=
 have ∀b a, a ∈ s → b ∈ t₁ a → (∃ (a : α), a ∈ s ∧ b ∈ t₂ a),
   from assume b a ha hb, ⟨a, ha, finset.mem_of_subset (h a ha) hb⟩,
 by simpa [finset.subset_iff]
@@ -724,6 +732,9 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 theorem product_eq_bind [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
  s.product t = s.bind (λa, t.image $ λb, (a, b)) :=
 ext.2 $ by simp [and.left_comm]
+
+@[simp] theorem card_product (s : finset α) (t : finset β) : card (s.product t) = card s * card t :=
+multiset.card_product _ _
 
 end prod
 

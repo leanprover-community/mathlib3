@@ -1049,6 +1049,10 @@ by have := mem_map.1 (by rw [attach_map_val]; exact h);
   {l H b} : b ∈ pmap f l H ↔ ∃ a (h : a ∈ l), f a (H a h) = b :=
 by simp [pmap_eq_map_attach]
 
+@[simp] theorem length_pmap {p : α → Prop} {f : Π a, p a → β}
+  {l H} : length (pmap f l H) = length l :=
+by induction l; simp *
+
 /- find -/
 
 section find
@@ -2409,6 +2413,10 @@ pairwise_iff_nth_le.trans
   .resolve_left (λ h', H _ _ h₂ h' h))
   .resolve_right (λ h', H _ _ h₁ h' h.symm),
  λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
+
+@[simp] theorem nth_le_index_of [decidable_eq α] {l : list α} (H : nodup l) (n h) : index_of (nth_le l n h) l = n :=
+nodup_iff_nth_le_inj.1 H _ _ _ h $
+index_of_nth_le $ index_of_lt_length.2 $ nth_le_mem _ _ _
 
 theorem nodup_iff_count_le_one [decidable_eq α] {l : list α} : nodup l ↔ ∀ a, count a l ≤ 1 :=
 nodup_iff_sublist.trans $ forall_congr $ λ a,

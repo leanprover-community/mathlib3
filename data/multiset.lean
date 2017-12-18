@@ -475,6 +475,9 @@ quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
 quot.induction_on s $ λ l, mem_map
 
+@[simp] theorem card_map (f : α → β) (s) : card (map f s) = card s :=
+quot.induction_on s $ λ l, length_map _ _
+
 theorem mem_map_of_mem (f : α → β) {a : α} {s : multiset α} (h : a ∈ s) : f a ∈ map f s :=
 mem_map.2 ⟨_, h, rfl⟩
 
@@ -596,6 +599,9 @@ sum_add _ _
 multiset.induction_on S (by simp) $
   by simp [or_and_distrib_right, exists_or_distrib] {contextual := tt}
 
+@[simp] theorem card_join (S) : card (@join α S) = sum (map card S) :=
+multiset.induction_on S (by simp) (by simp)
+
 /- bind -/
 def bind (s : multiset α) (f : α → multiset β) : multiset β :=
 join (map f s)
@@ -615,6 +621,9 @@ by simp [bind]
 @[simp] theorem mem_bind {b s} {f : α → multiset β} : b ∈ bind s f ↔ ∃ a ∈ s, b ∈ f a :=
 by simp [bind]; simp [-exists_and_distrib_right, exists_and_distrib_right.symm];
    rw exists_swap; simp [and_assoc]
+
+@[simp] theorem card_bind (s) (f : α → multiset β) : card (bind s f) = sum (map (card ∘ f) s) :=
+by simp [bind]
 
 /- product -/
 def product (s : multiset α) (t : multiset β) : multiset (α × β) :=
@@ -643,6 +652,9 @@ multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
 
 @[simp] theorem mem_product {s t} : ∀ {p : α × β}, p ∈ @product α β s t ↔ p.1 ∈ s ∧ p.2 ∈ t
 | (a, b) := by simp [product, and.left_comm]
+
+@[simp] theorem card_product (s : multiset α) (t : multiset β) : card (product s t) = card s * card t :=
+by simp [product, (∘), mul_comm]
 
 /- sigma -/
 section
@@ -676,6 +688,10 @@ multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
 @[simp] theorem mem_sigma {s t} : ∀ {p : Σ a, σ a},
   p ∈ @multiset.sigma α σ s t ↔ p.1 ∈ s ∧ p.2 ∈ t p.1
 | ⟨a, b⟩ := by simp [multiset.sigma, and_assoc, and.left_comm]
+
+@[simp] theorem card_sigma (s : multiset α) (t : Π a, multiset (σ a)) :
+  card (s.sigma t) = sum (map (λ a, card (t a)) s) :=
+by simp [multiset.sigma, (∘)]
 
 end
 
@@ -724,6 +740,10 @@ quot.induction_on s $ λ l, mem_attach _
 @[simp] theorem mem_pmap {p : α → Prop} {f : Π a, p a → β}
   {s H b} : b ∈ pmap f s H ↔ ∃ a (h : a ∈ s), f a (H a h) = b :=
 quot.induction_on s (λ l H, mem_pmap) H
+
+@[simp] theorem card_pmap {p : α → Prop} (f : Π a, p a → β)
+  (s H) : card (pmap f s H) = card s :=
+quot.induction_on s (λ l H, length_pmap) H
 
 /- subtraction -/
 section

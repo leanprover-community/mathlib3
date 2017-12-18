@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import data.list data.list.perm data.set.finite data.finset
+import data.list.basic data.list.perm data.finset
   algebra.group algebra.ordered_group algebra.group_power
 
 universes u v w
@@ -190,6 +190,10 @@ lemma prod_inv_distrib : s.prod (λx, (f x)⁻¹) = (s.prod f)⁻¹ :=
 prod_hom has_inv.inv one_inv mul_inv
 
 end comm_group
+
+@[simp] theorem card_sigma {σ : α → Type*} (s : finset α) (t : Π a, finset (σ a)) :
+  card (s.sigma t) = s.sum (λ a, card (t a)) :=
+multiset.card_sigma _ _
 
 end finset
 

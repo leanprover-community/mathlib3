@@ -75,7 +75,7 @@ have 0 < (0:real), by simp [this] at h; exact h,
 lt_irrefl _ this
 
 theorem eq_of_forall_dist_le {x y : α} (h : ∀ε, ε > 0 → dist x y ≤ ε) : x = y :=
-eq_of_dist_eq_zero (eq_of_le_of_forall_le dist_nonneg h)
+eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
 
 instance metric_space.to_separated [metric_space α] : separated α :=
 set.ext $ assume ⟨x, y⟩,

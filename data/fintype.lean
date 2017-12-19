@@ -68,6 +68,16 @@ instance subtype {p : α → Prop} (s : finset α)
   multiset.nodup_pmap (λ a _ b _, congr_arg subtype.val) s.2⟩,
 λ ⟨x, px⟩, multiset.mem_pmap.2 ⟨x, (H x).2 px, rfl⟩⟩
 
+theorem subtype_card {p : α → Prop} (s : finset α)
+  (H : ∀ x : α, x ∈ s ↔ p x) :
+  @card {x // p x} (fintype.subtype s H) = s.card :=
+multiset.card_pmap _ _ _
+
+theorem card_of_subtype {p : α → Prop} (s : finset α)
+  (H : ∀ x : α, x ∈ s ↔ p x) [fintype {x // p x}] :
+  card {x // p x} = s.card :=
+by rw ← subtype_card s H; congr
+
 def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : fintype β :=
 ⟨⟨univ.1.map f, multiset.nodup_map H.1 univ.2⟩,
 λ b, let ⟨a, e⟩ := H.2 b in e ▸ multiset.mem_map_of_mem _ (mem_univ _)⟩

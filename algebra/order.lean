@@ -48,6 +48,14 @@ lemma eq_of_forall_le_iff [partial_order α] {a b : α}
   (H : ∀ c, c ≤ a ↔ c ≤ b) : a = b :=
 le_antisymm ((H _).1 (le_refl _)) ((H _).2 (le_refl _))
 
+lemma le_of_forall_le [preorder α] {a b : α}
+  (H : ∀ c, c ≤ a → c ≤ b) : a ≤ b :=
+H _ (le_refl _)
+
+lemma le_of_forall_lt [linear_order α] {a b : α}
+  (H : ∀ c, c < a → c < b) : a ≤ b :=
+le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
+
 lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 le_antisymm ((H _).2 (le_refl _)) ((H _).1 (le_refl _))

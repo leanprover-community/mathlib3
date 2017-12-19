@@ -11,9 +11,6 @@ open classical set lattice filter
 local attribute [instance] prop_decidable
 
 universes u v w
--- TODO: this is necessary additionally to mul_nonneg otherwise the simplifier can not match
-lemma zero_le_mul {α : Type u} [ordered_semiring α] {a b : α} : 0 ≤ a → 0 ≤ b → 0 ≤ a * b :=
-mul_nonneg
 
 inductive ennreal : Type
 | of_nonneg_real : Πr:real, 0 ≤ r → ennreal
@@ -377,7 +374,7 @@ forall_ennreal.mpr ⟨assume r hr, forall_ennreal.mpr ⟨assume p hp,
 
 lemma le_of_forall_epsilon_le (h : ∀ε>0, b < ∞ → a ≤ b + of_real ε) : a ≤ b :=
 suffices ∀r, 0 ≤ r → of_real r > b → a ≤ of_real r,
-  from le_of_forall_le $ forall_ennreal.mpr $ by simp; assumption,
+  from le_of_forall_le_of_dense $ forall_ennreal.mpr $ by simp; assumption,
 assume r hr hrb,
 let ⟨p, hp, b_eq, hpr⟩ := lt_iff_exists_of_real.mp hrb in
 have p < r, by simp [hp, hr] at hpr; assumption,
@@ -871,7 +868,7 @@ instance : has_div ennreal := ⟨λa b, a * b⁻¹⟩
 show Inf {b : ennreal | 1 ≤ 0 * b} = ∞, by simp; refl
 
 @[simp] lemma inv_infty : (∞ : ennreal)⁻¹ = 0 :=
-bot_unique $ le_of_forall_le $ λ a (h : a > 0), Inf_le $ by simp [*, ne_of_gt h]
+bot_unique $ le_of_forall_le_of_dense $ λ a (h : a > 0), Inf_le $ by simp [*, ne_of_gt h]
 
 @[simp] lemma inv_of_real (hr : 0 < r) : (of_real r)⁻¹ = of_real (r⁻¹) :=
 have 0 ≤ r⁻¹, from le_of_lt (inv_pos hr),

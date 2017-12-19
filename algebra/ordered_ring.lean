@@ -8,6 +8,10 @@ import order algebra.order algebra.ordered_group algebra.ring
 universe u
 variable {α : Type u}
 
+-- TODO: this is necessary additionally to mul_nonneg otherwise the simplifier can not match
+lemma zero_le_mul [ordered_semiring α] {a b : α} : 0 ≤ a → 0 ≤ b → 0 ≤ a * b :=
+mul_nonneg
+
 section linear_ordered_semiring
 variable [linear_ordered_semiring α]
 

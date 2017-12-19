@@ -286,19 +286,27 @@ instance : has_zero cardinal.{u} := ⟨⟦ulift empty⟧⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
-theorem ne_zero_iff_nonempty {α : Type u} : @ne cardinal ⟦α⟧ 0 ↔ nonempty α :=
+theorem ne_zero_iff_nonempty {α : Type u} : mk α ≠ 0 ↔ nonempty α :=
 not_iff_comm.1
   ⟨λ h, quotient.sound ⟨(equiv.empty_of_not_nonempty h).trans equiv.ulift.symm⟩,
    λ e, let ⟨h⟩ := quotient.exact e in λ ⟨a⟩, (h a).down.elim⟩
 
 instance : has_one cardinal.{u} := ⟨⟦ulift unit⟧⟩
 
+instance : zero_ne_one_class cardinal.{u} :=
+{ zero := 0, one := 1, zero_ne_one :=
+  ne.symm $ ne_zero_iff_nonempty.2 ⟨⟨()⟩⟩ }
+
+theorem le_one_iff_subsingleton {α : Type u} : mk α ≤ 1 ↔ subsingleton α :=
+⟨λ ⟨f⟩, ⟨λ a b, f.inj (subsingleton.elim _ _)⟩,
+ λ ⟨h⟩, ⟨⟨λ a, ⟨()⟩, λ a b _, h _ _⟩⟩⟩
+
 instance : has_add cardinal.{u} :=
-⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, ⟦ α ⊕ β ⟧) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
+⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α ⊕ β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.sum_congr e₁ e₂⟩⟩
 
 instance : has_mul cardinal.{u} :=
-⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, ⟦ α × β ⟧) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
+⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.prod_congr e₁ e₂⟩⟩
 
 private theorem add_comm (a b : cardinal.{u}) : a + b = b + a :=
@@ -345,7 +353,7 @@ instance : comm_semiring cardinal.{u} :=
     by rw [mul_comm (a + b) c, left_distrib c a b, mul_comm c a, mul_comm c b] }
 
 protected def power (a b : cardinal.{u}) : cardinal.{u} :=
-quotient.lift_on₂ a b (λα β, ⟦β → α⟧) $ assume α₁ α₂ β₁ β₂ ⟨e₁⟩ ⟨e₂⟩,
+quotient.lift_on₂ a b (λα β, mk (β → α)) $ assume α₁ α₂ β₁ β₂ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.arrow_congr e₂ e₁⟩
 
 local notation a ^ b := cardinal.power a b
@@ -362,7 +370,7 @@ quotient.induction_on a $ assume α, quotient.sound ⟨
   equiv.trans (equiv.arrow_unit_equiv_unit α) $
   equiv.ulift.symm⟩
 
-@[simp] theorem prop_eq_two : @eq cardinal.{u} ⟦ulift Prop⟧ 2 :=
+@[simp] theorem prop_eq_two : mk (ulift Prop) = 2 :=
 quot.sound ⟨equiv.ulift.trans $ equiv.Prop_equiv_bool.trans $
   equiv.bool_equiv_unit_sum_unit.trans
   (equiv.sum_congr equiv.ulift equiv.ulift).symm⟩
@@ -394,6 +402,9 @@ open sum
 
 theorem zero_le (a : cardinal.{u}) : 0 ≤ a :=
 quot.induction_on a $ λ α, ⟨embedding.of_not_nonempty $ λ ⟨⟨a⟩⟩, a.elim⟩
+
+theorem zero_lt_one : (0 : cardinal) < 1 :=
+lt_of_le_of_ne (zero_le _) zero_ne_one
 
 theorem add_mono {a b c d : cardinal.{u}} : a ≤ b → c ≤ d → a + c ≤ b + d :=
 quotient.induction_on₂ a b $ assume α β, quotient.induction_on₂ c d $ assume γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -442,29 +453,28 @@ quot.induction_on a (λ α, ⟨⟨⟨λ a b, ⟨a = b⟩,
 instance : no_top_order cardinal.{u} :=
 { no_top := λ a, ⟨_, cantor a⟩, ..cardinal.linear_order }
 
-def min {ι} [inhabited ι] (f : ι → cardinal) : cardinal :=
+def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
 f $ classical.some $
-@embedding.injective_min _ (λ i, (f i).out) nonempty_of_inhabited
+@embedding.injective_min _ (λ i, (f i).out) I
 
-theorem min_eq {ι} [inhabited ι] (f : ι → cardinal) : ∃ i, min f = f i :=
+theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
 ⟨_, rfl⟩
 
-theorem min_le {ι} [inhabited ι] (f : ι → cardinal) (i) : min f ≤ f i :=
-by rw [← quotient.out_eq (min f), ← quotient.out_eq (f i)]; exact
+theorem min_le {ι I} (f : ι → cardinal) (i) : min I f ≤ f i :=
+by rw [← quotient.out_eq (min I f), ← quotient.out_eq (f i)]; exact
 let ⟨g, hg⟩ := classical.some_spec
-  (@embedding.injective_min _ (λ i, (f i).out) nonempty_of_inhabited) i in
+  (@embedding.injective_min _ (λ i, (f i).out) I) i in
 ⟨⟨g, hg⟩⟩
 
-theorem le_min {ι} [inhabited ι] {f : ι → cardinal} {a} : a ≤ min f ↔ ∀ i, a ≤ f i :=
+theorem le_min {ι I} {f : ι → cardinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
 ⟨λ h i, le_trans h (min_le _ _),
- λ h, let ⟨i, e⟩ := min_eq f in e.symm ▸ h i⟩
+ λ h, let ⟨i, e⟩ := min_eq I f in e.symm ▸ h i⟩
 
 protected theorem wf : @well_founded cardinal.{u} (<) :=
 ⟨λ a, classical.by_contradiction $ λ h,
   let ι := {c :cardinal // ¬ acc (<) c},
-      f : ι → cardinal := subtype.val in
-  by have : inhabited ι := ⟨⟨_, h⟩⟩; exact
-  let ⟨⟨c, hc⟩, hi⟩ := min_eq f in
+      f : ι → cardinal := subtype.val,
+      ⟨⟨c, hc⟩, hi⟩ := @min_eq ι ⟨⟨_, h⟩⟩ f in
     hc (acc.intro _ (λ j ⟨_, h'⟩,
       classical.by_contradiction $ λ hj, h' $
       by have := min_le f ⟨j, hj⟩; rwa hi at this))⟩
@@ -475,11 +485,11 @@ def succ (c : cardinal) : cardinal :=
 @min {c' // c < c'} ⟨⟨_, cantor _⟩⟩ subtype.val 
 
 theorem lt_succ_self (c : cardinal) : c < succ c :=
-by cases min_eq _ with s e; rw [succ, e]; exact s.2
+by cases min_eq _ _ with s e; rw [succ, e]; exact s.2
 
 theorem succ_le {a b : cardinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _), λ h,
-  by exact @min_le _ ⟨_⟩ _ (subtype.mk b h)⟩
+  by exact min_le _ (subtype.mk b h)⟩
 
 theorem add_one_le_succ (c : cardinal) : c + 1 ≤ succ c :=
 begin
@@ -508,7 +518,7 @@ def sup {ι} (f : ι → cardinal) : cardinal :=
 @min {c // ∀ i, f i ≤ c} ⟨⟨sum f, le_sum f⟩⟩ (λ a, a.1)
 
 theorem le_sup {ι} (f : ι → cardinal) (i) : f i ≤ sup f :=
-by dsimp [sup]; cases min_eq _ with c hc; rw hc; exact c.2 i
+by dsimp [sup]; cases min_eq _ _ with c hc; rw hc; exact c.2 i
 
 theorem sup_le {ι} (f : ι → cardinal) (a) : sup f ≤ a ↔ ∀ i, f i ≤ a :=
 ⟨λ h i, le_trans (le_sup _ _) h,
@@ -570,13 +580,13 @@ quotient.sound ⟨equiv.ulift.trans (equiv.prod_congr equiv.ulift equiv.ulift).s
 quotient.induction_on₂ a b $ λ α β, 
 quotient.sound ⟨equiv.ulift.trans (equiv.arrow_congr equiv.ulift equiv.ulift).symm⟩
 
-@[simp] theorem lift_min {ι} [inhabited ι] (f : ι → cardinal) : lift (min f) = min (lift ∘ f) :=
+@[simp] theorem lift_min {ι I} (f : ι → cardinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
-let ⟨i, e⟩ := min_eq (lift ∘ f) in
+let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
-def ω : cardinal.{u} := lift (mk ℕ)
+def omega : cardinal.{u} := lift (mk ℕ)
 
 @[simp] theorem mk_fin : ∀ (n : ℕ), mk (fin n) = n
 | 0     := quotient.sound ⟨(equiv.empty_of_not_nonempty $
@@ -613,15 +623,19 @@ by simp [le_antisymm_iff]
 @[simp] theorem nat_succ (n : ℕ) : succ n = n.succ :=
 le_antisymm (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _) (add_one_le_succ _)
 
-theorem nat_lt_ω (n : ℕ) : (n : cardinal.{u}) < ω :=
-succ_le.1 $ by rw [nat_succ, ← lift_mk_fin, ω, lift_mk_le.{0 0 u}]; exact
+@[simp] theorem succ_zero : succ 0 = 1 :=
+by simpa using nat_succ 0
+
+theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
+succ_le.1 $ by rw [nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 ⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
 
 /-
-theorem lt_ω {c : cardinal} : c < ω ↔ ∃ n : ℕ, c = n :=
+theorem lt_omega {c : cardinal} : c < omega ↔ ∃ n : ℕ, c = n :=
 ⟨λ h, begin
   cases le_mk_iff_exists_set.1 h.1 with S e, rw ← e,
-end, λ ⟨n, e⟩, e.symm ▸ nat_lt_ω _⟩
+
+end, λ ⟨n, e⟩, e.symm ▸ nat_lt_omega _⟩
 -/
 
 end cardinal

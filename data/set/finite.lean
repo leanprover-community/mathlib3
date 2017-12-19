@@ -23,6 +23,14 @@ def infinite (s : set α) : Prop := ¬ finite s
 def fintype_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
 fintype.subtype s H
 
+@[simp] theorem card_fintype_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
+  @fintype.card p (fintype_of_finset s H) = s.card :=
+fintype.subtype_card s H
+
+theorem card_fintype_of_finset' {p : set α} (s : finset α)
+  (H : ∀ x, x ∈ s ↔ x ∈ p) [fintype p] : fintype.card p = s.card :=
+by rw ← card_fintype_of_finset s H; congr
+
 def to_finset (s : set α) [fintype s] : finset α :=
 ⟨(@finset.univ s _).1.map subtype.val,
  multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
@@ -51,15 +59,26 @@ decidable_of_iff _ mem_to_finset
 instance fintype_empty : fintype (∅ : set α) :=
 fintype_of_finset ∅ $ by simp
 
+@[simp] theorem empty_card : fintype.card (∅ : set α) = 0 := rfl
+
 @[simp] theorem finite_empty : @finite α ∅ := ⟨set.fintype_empty⟩
 
 def fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) : fintype (insert a s : set α) :=
 fintype_of_finset ⟨a :: s.to_finset.1,
   multiset.nodup_cons_of_nodup (by simp [h]) s.to_finset.2⟩ $ by simp
 
+theorem card_fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) :
+  @fintype.card _ (fintype_insert' s h) = fintype.card s + 1 :=
+by rw [fintype_insert', card_fintype_of_finset];
+   simp [finset.card, to_finset]; refl
+
 instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] : fintype (insert a s : set α) :=
 if h : a ∈ s then by rwa [insert_eq, union_eq_self_of_subset_left (singleton_subset_iff.2 h)]
 else fintype_insert' _ h
+
+@[simp] theorem card_insert [decidable_eq α] {a : α} (s : set α) [fintype s] (h : a ∉ s) :
+  fintype.card (insert a s : set α) = fintype.card s + 1 :=
+by rw ← card_fintype_insert' s h; congr
 
 @[simp] theorem finite_insert (a : α) {s : set α} : finite s → finite (insert a s)
 | ⟨h⟩ := ⟨@set.fintype_insert _ (classical.dec_eq α) _ _ h⟩
@@ -97,6 +116,11 @@ this h
 
 instance fintype_singleton (a : α) : fintype ({a} : set α) :=
 fintype_insert' _ (not_mem_empty _)
+
+@[simp] theorem card_singleton (a : α) :
+  fintype.card ({a} : set α) = 1 :=
+by rw [show fintype.card ({a} : set α) = _, from
+    card_fintype_insert' ∅ (not_mem_empty a)]; refl
 
 @[simp] theorem finite_singleton (a : α) : finite ({a} : set α) :=
 ⟨set.fintype_singleton _⟩

@@ -104,22 +104,22 @@ class densely_ordered (α : Type u) [preorder α] : Prop :=
 lemma dense [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
 
-lemma le_of_forall_le [linear_order α] [densely_ordered α] {a₁ a₂ : α} (h : ∀a₃>a₂, a₁ ≤ a₃) :
+lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α} (h : ∀a₃>a₂, a₁ ≤ a₃) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
   let ⟨a, ha₁, ha₂⟩ := dense ha in
   lt_irrefl a $ lt_of_lt_of_le ‹a < a₁› (h _ ‹a₂ < a›)
 
-lemma eq_of_le_of_forall_le [linear_order α] [densely_ordered α] {a₁ a₂ : α}
+lemma eq_of_le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
   (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃>a₂, a₁ ≤ a₃) : a₁ = a₂ :=
-le_antisymm (le_of_forall_le h₂) h₁
+le_antisymm (le_of_forall_le_of_dense h₂) h₁
 
-lemma le_of_forall_ge [linear_order α] [densely_ordered α] {a₁ a₂ : α}(h : ∀a₃<a₁, a₂ ≥ a₃) :
+lemma le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}(h : ∀a₃<a₁, a₂ ≥ a₃) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
   let ⟨a, ha₁, ha₂⟩ := dense ha in
   lt_irrefl a $ lt_of_le_of_lt (h _ ‹a < a₁›) ‹a₂ < a›
 
-lemma eq_of_le_of_forall_ge [linear_order α] [densely_ordered α] {a₁ a₂ : α}
+lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
   (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₂ ≥ a₃) : a₁ = a₂ :=
-le_antisymm (le_of_forall_ge h₂) h₁
+le_antisymm (le_of_forall_ge_of_dense h₂) h₁

@@ -654,7 +654,7 @@ assume t ht,
 have {p:α×α | (f p.1, f p.2) ∈ t} ∈ (@uniformity α _).sets,
   from hf ht,
 let ⟨c, hfc, hct⟩ := hs _ this in
-⟨f '' c, finite_image hfc,
+⟨f '' c, finite_image f hfc,
   begin
     simp [image_subset_iff],
     simp [subset_def] at hct,

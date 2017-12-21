@@ -418,9 +418,9 @@ have l.map_domain f = 0,
       ... = 0 : h,
 calc l = l.map_domain id :
     by rw [finsupp.map_domain_id]
-   ... = l.map_domain (@inv_fun_on _ _ ⟨0⟩ f s ∘ f) :
+   ... = l.map_domain (@inv_fun_on _ ⟨0⟩ _ f s ∘ f) :
     finsupp.map_domain_congr $
-      assume b hb, (@inv_fun_on_eq' _ _ _ _ _ ⟨0⟩ hf_inj $ l_imp_s $ by simpa using hb).symm
+      assume b hb, (@inv_fun_on_eq' _ ⟨0⟩ _ _ _ _ hf_inj $ l_imp_s $ by simpa using hb).symm
   ... = 0 :
     by rw [finsupp.map_domain_comp, this, finsupp.map_domain_zero]
 
@@ -551,9 +551,9 @@ lemma linear_independent.image {s : set β} {f : β → γ}
   (hf : is_linear_map f) (hs : linear_independent s)
   (hf_inj : ∀a∈span s, ∀b∈span s, f a = f b → a = b) :
   linear_independent (f '' s) :=
-let g := @inv_fun_on _ _ ⟨0⟩ f (span s) in
+let g := @inv_fun_on _ ⟨0⟩ _ f (span s) in
 have hg : ∀x∈span s, g (f x) = x,
-  from assume x, @inv_fun_on_eq' _ _ _ _ _ ⟨0⟩ hf_inj,
+  from assume x, @inv_fun_on_eq' _ ⟨0⟩ _ _ _ _ hf_inj,
 assume l hl eq,
 have l_g : ∀b∈(l.map_domain g).support, b ∈ s, from
   assume b hb,
@@ -776,21 +776,21 @@ let ⟨bβ, hbβ⟩ := exists_is_basis β in
 have linear_independent (f '' bβ),
   from hbβ.1.image hf $ assume b₁ _ b₂ _ eq, hf_inj eq,
 let ⟨bγ, hbγ₁, hbγ₂⟩ := exists_subset_is_basis this in
-have ∀b∈bβ, (hbγ₂.constr (@inv_fun _ _ ⟨0⟩ f) : γ → β) (f b) = b,
+have ∀b∈bβ, (hbγ₂.constr (@inv_fun _ ⟨0⟩ _ f) : γ → β) (f b) = b,
   begin
     assume b hb,
     rw [constr_basis],
-    { exact @inv_fun_on_eq' β γ f univ b ⟨0⟩ (assume b₁ _ b₂ _ eq, hf_inj eq) trivial },
+    { exact @inv_fun_on_eq' β ⟨0⟩ γ f univ b (assume b₁ _ b₂ _ eq, hf_inj eq) trivial },
     { exact hbγ₁ (mem_image_of_mem _ hb) }
   end,
-⟨hbγ₂.constr $ @inv_fun _ _ ⟨0⟩ f, hbγ₂.map_constr,
+⟨hbγ₂.constr $ @inv_fun _ ⟨0⟩ _ f, hbγ₂.map_constr,
   hbβ.eq_linear_map (hbγ₂.map_constr.comp hf) is_linear_map.id this⟩
 
 lemma exists_right_inverse_linear_map_of_surjective {f : β → γ}
   (hf : is_linear_map f) (hf_surj : surjective f) :
   ∃g:γ → β, is_linear_map g ∧ f ∘ g = id :=
-let g := @inv_fun _ _ ⟨0⟩ f in
-have ri_gf : right_inverse g f, from @right_inverse_inv_fun _ _ _ ⟨0⟩ hf_surj,
+let g := @inv_fun _ ⟨0⟩ _ f in
+have ri_gf : right_inverse g f, from @right_inverse_inv_fun _ ⟨0⟩ _ _ hf_surj,
 have injective g, from injective_of_left_inverse ri_gf,
 let ⟨bγ, hbγ⟩ := exists_is_basis γ in
 have ∀c∈bγ, f ((hbγ.constr g : γ → β) c) = c,

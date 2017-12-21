@@ -1433,7 +1433,7 @@ assume h, (mem_or_mem_of_ultrafilter hf h).elim
 
 lemma mem_of_finite_Union_ultrafilter {is : set β} {s : β → set α}
   (hf : ultrafilter f) (his : finite is) (h : (⋃i∈is, s i) ∈ f.sets) : ∃i∈is, s i ∈ f.sets :=
-have his : finite (image s is), from finite_image his,
+have his : finite (image s is), from finite_image s his,
 have h : (⋃₀ image s is) ∈ f.sets, from by simp [sUnion_image]; assumption,
 let ⟨t, ⟨i, hi, h_eq⟩, (ht : t ∈ f.sets)⟩ := mem_of_finite_sUnion_ultrafilter hf his h in
 ⟨i, hi, h_eq.symm ▸ ht⟩

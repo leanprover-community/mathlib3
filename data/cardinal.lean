@@ -12,236 +12,13 @@ Future work:
 * proof `κ + κ = κ` and `κ * κ = κ` for all infinite cardinal `κ`
 -/
 
-import data.set data.quot data.equiv order.fixed_points logic.function order.zorn
+import data.set.finite data.quot logic.schroeder_bernstein logic.function
 noncomputable theory
 
 open function lattice set classical
 local attribute [instance] prop_decidable
 
 universes u v w x
-
-namespace cardinal
-
-structure embedding (α : Sort*) (β : Sort*) :=
-(to_fun : α → β)
-(inj    : injective to_fun)
-
-namespace embedding
-
-instance {α : Sort u} {β : Sort v} : has_coe_to_fun (embedding α β) :=
-⟨_, to_fun⟩
-
-@[simp] theorem to_fun_eq_coe {α β} (f : embedding α β) : to_fun f = f := rfl
-
-@[simp] theorem coe_fn_mk {α β} (f : α → β) (i) :
-  (@mk _ _ f i : α → β) = f := rfl
-
-theorem inj' {α β} : ∀ (f : embedding α β), injective f
-| ⟨f, hf⟩ := hf
-
-@[refl] protected def refl (α : Sort*) : embedding α α :=
-⟨id, injective_id⟩
-
-@[trans] protected def trans {α β γ} (f : embedding α β) (g : embedding β γ) : embedding α γ :=
-⟨_, injective_comp g.inj' f.inj'⟩
-
-@[simp] theorem refl_apply {α} (x : α) : embedding.refl α x = x := rfl
-
-@[simp] theorem trans_apply {α β γ} (f : embedding α β) (g : embedding β γ) (a : α) :
-  (f.trans g) a = g (f a) := rfl
-
-protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
-  (e₁ : α ≃ β) (e₂ : γ ≃ δ) : embedding α γ → embedding β δ
-| ⟨f, hf⟩ := ⟨e₂ ∘ f ∘ e₁.symm, assume x y h,
-  begin
-    apply (e₁.symm.apply_eq_iff_eq x y).mp,
-    cases e₁,
-    apply @hf _ _ ((e₂.apply_eq_iff_eq _ _).mp h)
-  end⟩
-
-protected def of_surjective {α : Type u} {β : Type v} {f : β → α} (hf : surjective f) :
-  embedding α β :=
-⟨surj_inv hf, injective_surj_inv _⟩
-
-protected def of_not_nonempty {α : Type u} {β : Type v} (hα : ¬ nonempty α) : embedding α β :=
-⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
-
-section antisymm
-variables {α : Type u} {β : Type v}
-
-theorem schroeder_bernstein {f : α → β} {g : β → α}
-  (hf : injective f) (hg : injective g) : ∃h:α→β, bijective h :=
-let s : set α := lfp $ λs, - (g '' - (f '' s)) in
-have hs : s = - (g '' - (f '' s)),
-  from lfp_eq $ assume s t h,
-    compl_subset_compl_iff_subset.mpr $ image_subset _ $
-    compl_subset_compl_iff_subset.mpr $ image_subset _ h,
-
-have hns : - s = g '' - (f '' s),
-  from lattice.neg_eq_neg_of_eq $ by simp [hs.symm],
-
-let g' := λa, @inv_fun β α ⟨f a⟩ g a in
-have g'g : g' ∘ g = id,
-  from funext $ assume b, @left_inverse_inv_fun _ _ _ ⟨f (g b)⟩ hg b,
-have hg'ns : g' '' (-s) = - (f '' s),
-  by rw [hns, ←image_comp, g'g, image_id],
-
-let h := λa, if a ∈ s then f a else g' a in
-
-have h '' univ = univ,
-  from calc h '' univ = h '' s ∪ h '' (- s) : by rw [←image_union, union_compl_self]
-    ... = f '' s ∪ g' '' (-s) :
-      congr (congr_arg (∪)
-        (image_congr $ by simp [h, if_pos] {contextual := tt}))
-        (image_congr $ by simp [h, if_neg] {contextual := tt})
-    ... = univ : by rw [hg'ns, union_compl_self],
-have surjective h,
-  from assume b,
-  have b ∈ h '' univ, by rw [this]; trivial,
-  let ⟨a, _, eq⟩ := this in
-  ⟨a, eq⟩,
-
-have split : ∀x∈s, ∀y∉s, h x = h y → false,
-  from assume x hx y hy eq,
-  have y ∈ g '' - (f '' s), by rwa [←hns],
-  let ⟨y', hy', eq_y'⟩ := this in
-  have f x = y',
-    from calc f x = g' y : by simp [h, hx, hy, if_pos, if_neg] at eq; assumption
-      ... = (g' ∘ g) y' : by simp [(∘), eq_y']
-      ... = _ : by simp [g'g],
-  have y' ∈ f '' s, from this ▸ mem_image_of_mem _ hx,
-  hy' this,
-have injective h,
-  from assume x y eq,
-  by_cases
-    (assume hx : x ∈ s, by_cases
-      (assume hy : y ∈ s, by simp [h, hx, hy, if_pos, if_neg] at eq; exact hf eq)
-      (assume hy : y ∉ s, (split x hx y hy eq).elim))
-    (assume hx : x ∉ s, by_cases
-      (assume hy : y ∈ s, (split y hy x hx eq.symm).elim)
-      (assume hy : y ∉ s,
-        have x ∈ g '' - (f '' s), by rwa [←hns],
-        let ⟨x', hx', eqx⟩ := this in
-        have y ∈ g '' - (f '' s), by rwa [←hns],
-        let ⟨y', hy', eqy⟩ := this in
-        have g' x = g' y, by simp [h, hx, hy, if_pos, if_neg] at eq; assumption,
-        have (g' ∘ g) x' = (g' ∘ g) y', by simp [(∘), eqx, eqy, this],
-        have x' = y', by rwa [g'g] at this,
-        calc x = g x' : eqx.symm
-          ... = g y' : by rw [this]
-          ... = y : eqy)),
-
-⟨h, ‹injective h›, ‹surjective h›⟩
-
-theorem antisymm : embedding α β → embedding β α → nonempty (equiv α β)
-| ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ :=
-  let ⟨f, hf⟩ := schroeder_bernstein h₁ h₂ in
-  ⟨equiv.of_bijective hf⟩
-
-end antisymm
-
-section wo
-parameters {ι : Type u} {β : ι → Type v}
-
-private def sets := {s : set (∀ i, β i) //
-  ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i → x = y}
-
-private def sets.partial_order : partial_order sets :=
-{ le          := λ s t, s.1 ⊆ t.1,
-  le_refl     := λ s, subset.refl _,
-  le_trans    := λ s t u, subset.trans,
-  le_antisymm := λ s t h₁ h₂, subtype.eq (subset.antisymm h₁ h₂) }
-
-local attribute [instance] sets.partial_order
-
-theorem injective_min (I : nonempty ι) : ∃ i, ∀ j, ∃ f : β i → β j, injective f :=
-let ⟨⟨s, hs⟩, ms⟩ := show ∃s:sets, ∀a, s ≤ a → a = s, from
-  zorn.zorn_partial_order $ λ c hc,
-    ⟨⟨⋃₀ (subtype.val '' c),
-    λ x ⟨_, ⟨⟨s, hs⟩, sc, rfl⟩, xs⟩ y ⟨_, ⟨⟨t, ht⟩, tc, rfl⟩, yt⟩,
-      (hc.total sc tc).elim (λ h, ht _ (h xs) _ yt) (λ h, hs _ xs _ (h yt))⟩,
-    λ ⟨s, hs⟩ sc x h, ⟨s, ⟨⟨s, hs⟩, sc, rfl⟩, h⟩⟩ in
-let ⟨i, e⟩ := show ∃ i, ∀ y, ∃ x ∈ s, (x : ∀ i, β i) i = y, from
-  classical.by_contradiction $ λ h,
-  have h : ∀ i, ∃ y, ∀ x ∈ s, (x : ∀ i, β i) i ≠ y,
-    by simpa [classical.not_forall] using h,
-  let ⟨f, hf⟩ := axiom_of_choice h in
-  have f ∈ (⟨s, hs⟩:sets).1, from
-    let s' : sets := ⟨insert f s, λ x hx y hy, begin
-      cases hx; cases hy, {simp [hx, hy]},
-      { subst x, exact λ i e, (hf i y hy e.symm).elim },
-      { subst y, exact λ i e, (hf i x hx e).elim },
-      { exact hs x hx y hy }
-    end⟩ in ms s' (subset_insert f s) ▸ mem_insert _ _,
-  let ⟨i⟩ := I in hf i f this rfl in
-let ⟨f, hf⟩ := axiom_of_choice e in
-⟨i, λ j, ⟨λ a, f a j, λ a b e',
-  let ⟨sa, ea⟩ := hf a, ⟨sb, eb⟩ := hf b in
-  by rw [← ea, ← eb, hs _ sa _ sb _ e']⟩⟩
-
-end wo
-
-private theorem total.aux {α : Type u} {β : Type v} (f : ulift α → ulift β) (hf : injective f) : nonempty (embedding α β) :=
-⟨⟨λ x, (f ⟨x⟩).down, λ x y h, begin
-  have := congr_arg ulift.up h,
-  rw [ulift.up_down, ulift.up_down] at this,
-  injection hf this
-end⟩⟩
-
-theorem total {α : Type u} {β : Type v} : nonempty (embedding α β) ∨ nonempty (embedding β α) :=
-match @injective_min bool (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) ⟨tt⟩ with
-| ⟨tt, h⟩ := let ⟨f, hf⟩ := h ff in or.inl (total.aux f hf)
-| ⟨ff, h⟩ := let ⟨f, hf⟩ := h tt in or.inr (total.aux f hf)
-end
-
-def prod_congr {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
-  (e₁ : embedding α β) (e₂ : embedding γ δ) : embedding (α × γ) (β × δ) :=
-⟨assume ⟨a, b⟩, (e₁ a, e₂ b),
-  assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h,
-  have a₁ = a₂ ∧ b₁ = b₂, from (prod.mk.inj h).imp (assume h, e₁.inj h) (assume h, e₂.inj h),
-  this.left ▸ this.right ▸ rfl⟩
-
-section sum
-open sum
-
-def sum_congr {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
-  (e₁ : embedding α β) (e₂ : embedding γ δ) : embedding (α ⊕ γ) (β ⊕ δ) :=
-⟨assume s, match s with inl a := inl (e₁ a) | inr b := inr (e₂ b) end,
-    assume s₁ s₂ h, match s₁, s₂, h with
-    | inl a₁, inl a₂, h := congr_arg inl $ e₁.inj $ inl.inj h
-    | inr b₁, inr b₂, h := congr_arg inr $ e₂.inj $ inr.inj h
-    end⟩
-
-@[simp] theorem sum_congr_apply_inl {α β γ δ}
-  (e₁ : embedding α β) (e₂ : embedding γ δ) (a) : sum_congr e₁ e₂ (inl a) = inl (e₁ a) := rfl
-
-@[simp] theorem sum_congr_apply_inr {α β γ δ}
-  (e₁ : embedding α β) (e₂ : embedding γ δ) (b) : sum_congr e₁ e₂ (inr b) = inr (e₂ b) := rfl
-
-end sum
-
-def arrow_congr_left {α : Type u} {β : Type v} {γ : Type w}
-  (e : embedding α β) : embedding (γ → α) (γ → β) :=
-⟨λf d, e $ f $ d, assume f₁ f₂ h, funext $ assume d, e.inj $ @congr_fun _ _ _ _ h d⟩
-
-def arrow_congr_right {α : Type u} {β : Type v} {γ : Type w} [inhabited γ]
-  (e : embedding α β) : embedding (α → γ) (β → γ) :=
-let f' : (α → γ) → (β → γ) := λf b, if h : ∃c, e c = b then f (some h) else default γ in
-⟨f', assume f₁ f₂ h, funext $ assume c,
-  have ∃c', e c' = e c, from ⟨c, rfl⟩,
-  have eq' : f' f₁ (e c) = f' f₂ (e c), from congr_fun h _,
-  have eq_b : some this = c, from e.inj $ some_spec this,
-  by simp [f', this, if_pos, eq_b] at eq'; assumption⟩
-
-end embedding
-
-end cardinal
-
-protected def equiv.to_embedding {α : Type u} {β : Type v} (f : α ≃ β) : cardinal.embedding α β :=
-⟨f, f.bijective.1⟩
-
-@[simp] theorem equiv.to_embedding_coe_fn {α : Type u} {β : Type v} (f : α ≃ β) :
-  (f.to_embedding : α → β) = f := rfl
 
 instance cardinal.is_equivalent : setoid (Type u) :=
 { r := λα β, nonempty (α ≃ β),
@@ -259,7 +36,7 @@ def mk : Type u → cardinal := quotient.mk
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (mk α) := rfl
 
 instance : has_le cardinal.{u} :=
-⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ embedding α β) $
+⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ α ↪ β) $
   assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
     propext ⟨assume ⟨e⟩, ⟨e.congr e₁ e₂⟩, assume ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
@@ -542,7 +319,7 @@ quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
 
 theorem lift_mk_le {α : Type u} {β : Type v} :
-  lift.{u (max v w)} (mk α) ≤ lift.{v (max u w)} (mk β) ↔ nonempty (embedding α β) :=
+  lift.{u (max v w)} (mk α) ≤ lift.{v (max u w)} (mk β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
@@ -585,6 +362,15 @@ le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
 let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
+
+theorem lift_down {a : cardinal.{u}} {b : cardinal.{max u v}} :
+  b ≤ lift a → ∃ a', lift a' = b :=
+quotient.induction_on₂ a b $ λ α β,
+by dsimp; rw [← lift_id (mk β), ← lift_umax, ← lift_umax.{u v}, lift_mk_le]; exact
+λ ⟨f⟩, ⟨mk (set.range f), eq.symm $ lift_mk_eq.2
+  ⟨embedding.equiv_of_surjective
+    (embedding.cod_restrict _ f set.mem_range_self)
+    $ λ ⟨a, ⟨b, e⟩⟩, ⟨b, subtype.eq e⟩⟩⟩
 
 def omega : cardinal.{u} := lift (mk ℕ)
 
@@ -630,12 +416,34 @@ theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 ⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
 
-/-
-theorem lt_omega {c : cardinal} : c < omega ↔ ∃ n : ℕ, c = n :=
+theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
 ⟨λ h, begin
-  cases le_mk_iff_exists_set.1 h.1 with S e, rw ← e,
-
+  rcases lift_down (le_of_lt h) with ⟨c, rfl⟩,
+  rw [omega, lift_lt] at h,
+  rcases le_mk_iff_exists_set.1 h.1 with ⟨S, rfl⟩,
+  suffices : finite S,
+  { cases this,
+    existsi fintype.card S,
+    rw [← lift_nat_cast.{0 u}, lift_inj, fintype_card S] },
+  by_contra nf,
+  have P : ∀ (n : ℕ) (IH : ∀ i<n, S), ∃ a : S, ¬ ∃ y h, IH y h = a :=
+    λ n IH,
+    let g : {i | i < n} → S := λ ⟨i, h⟩, IH i h in
+    classical.not_forall.1 (λ h, nf
+      ⟨fintype.of_surjective g (λ a, subtype.exists.2 (h a))⟩),
+  let F : ℕ → S := nat.lt_wf.fix (λ n IH, some (P n IH)),
+  refine not_le_of_lt h ⟨⟨F, _⟩⟩,
+  suffices : ∀ (n : ℕ) (m < n), F m ≠ F n,
+  { refine λ m n, not_imp_not.1 (λ ne, _),
+    rcases lt_trichotomy m n with h|h|h,
+    { exact this n m h },
+    { contradiction },
+    { exact (this m n h).symm } },
+  intros n m h,
+  have := some_spec (P n (λ y _, F y)),
+  rw [← show F n = some (P n (λ y _, F y)),
+      from nat.lt_wf.fix_eq (λ n IH, some (P n IH)) n] at this,
+  exact λ e, this ⟨m, h, e⟩,
 end, λ ⟨n, e⟩, e.symm ▸ nat_lt_omega _⟩
--/
 
 end cardinal

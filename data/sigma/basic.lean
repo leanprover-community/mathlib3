@@ -55,7 +55,7 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, psigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
-lemma psigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
+theorem psigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
   @psigma.mk α β a₁ b₁ = @psigma.mk α β a₂ b₂ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
 iff.intro psigma.mk.inj $
   assume ⟨h₁, h₂⟩, match a₁, a₂, b₁, b₂, h₁, h₂ with _, _, _, _, eq.refl a, heq.refl b := rfl end
@@ -69,6 +69,12 @@ end psigma
 
 section subtype
 variables {α : Sort*} {β : α → Prop}
+
+@[simp] theorem subtype.coe_eta {α : Type*} {β : α → Prop}
+ (a : {a // β a}) (h : β a) : subtype.mk ↑a h = a := subtype.eta _ _
+
+@[simp] theorem subtype.coe_mk {α : Type*} {β : α → Prop}
+ (a h) : (@subtype.mk α β a h : α) = a := rfl
 
 @[simp] theorem subtype.forall {p : {a // β a} → Prop} :
   (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=

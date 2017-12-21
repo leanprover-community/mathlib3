@@ -504,7 +504,7 @@ have ∀(x : α) (i : set α), i ∈ d → x ∈ i → (∃ (i : β), i ∈ f ''
 ⟨f '' d,
   assume i ⟨j, hj, h⟩,
   h ▸ by simpa [f, hj] using (hf ⟨_, hj⟩).1,
-  finite_image hd₂,
+  finite_image f hd₂,
   subset.trans hd₃ $ by simpa [subset_def]⟩
 
 lemma compact_of_finite_subcover {s : set α}

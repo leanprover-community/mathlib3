@@ -146,7 +146,10 @@ theorem finite_subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → 
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype_of_finset (s.to_finset.image f) $ by simp
 
-theorem finite_image {s : set α} {f : α → β} : finite s → finite (f '' s)
+instance fintype_range [decidable_eq β] (f : α → β) [fintype α] : fintype (range f) :=
+fintype_of_finset (finset.univ.image f) $ by simp [range]
+
+theorem finite_image {s : set α} (f : α → β) : finite s → finite (f '' s)
 | ⟨h⟩ := ⟨@set.fintype_image _ _ (classical.dec_eq β) _ _ h⟩
 
 def fintype_of_fintype_image [decidable_eq β] (s : set α)

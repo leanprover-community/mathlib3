@@ -376,7 +376,7 @@ have ∀q, 0 ≤ q → q ≤ 1 → ∃i∈c, abs (q - i) < e,
   ⟨n q * e,
     mem_image_of_mem _ $ rat.nat_ceil_mono $ div_le_div_of_le_of_pos hq1 he,
     by rwa [abs_sub, abs_of_nonneg hnn]⟩,
-⟨c, finite_image $ finite_le_nat _,
+⟨c, finite_image _ $ finite_le_nat _,
   assume r ⟨hr0, hr1⟩,
   let ⟨i, hi, hie⟩ := this r hr0 hr1 in
   by simp [-mem_image]; exact ⟨i, hi, @hst (r,i) $ het _ hie⟩⟩

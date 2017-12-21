@@ -390,6 +390,12 @@ theorem forall_or_distrib_left {q : Prop} {p : α → Prop} [decidable q] :
 
 @[simp] theorem exists_false : ¬ (∃a:α, false) := assume ⟨a, h⟩, h
 
+theorem Exists.fst {p : b → Prop} : Exists p → b
+| ⟨h, _⟩ := h
+
+theorem Exists.snd {p : b → Prop} : ∀ h : Exists p, p h.fst
+| ⟨_, h⟩ := h
+
 end quantifiers
 
 /- classical versions -/

@@ -37,15 +37,15 @@ end miscellany
     propositional connectives
 -/
 
-@[simp] theorem false_neq_true : false ≠ true :=
-begin intro h, rw [h], trivial end
+@[simp] theorem false_ne_true : false ≠ true
+| h := h.symm ▸ trivial
 
 section propositional
 variables {a b c d : Prop}
 
 /- implies -/
 
-theorem iff_of_eq (e : a = b) : (a ↔ b) := e ▸ iff.rfl
+theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 
 theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 

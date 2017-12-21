@@ -103,7 +103,7 @@ private def sets.partial_order : partial_order sets :=
 
 local attribute [instance] sets.partial_order
 
-theorem injective_min (I : nonempty ι) : ∃ i, ∀ j, ∃ f : β i → β j, injective f :=
+theorem injective_min (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
 let ⟨⟨s, hs⟩, ms⟩ := show ∃s:sets, ∀a, s ≤ a → a = s, from
   zorn.zorn_partial_order $ λ c hc,
     ⟨⟨⋃₀ (subtype.val '' c),
@@ -124,23 +124,16 @@ let ⟨i, e⟩ := show ∃ i, ∀ y, ∃ x ∈ s, (x : ∀ i, β i) i = y, from
     end⟩ in ms s' (subset_insert f s) ▸ mem_insert _ _,
   let ⟨i⟩ := I in hf i f this rfl in
 let ⟨f, hf⟩ := axiom_of_choice e in
-⟨i, λ j, ⟨λ a, f a j, λ a b e',
+⟨i, ⟨λ j, ⟨λ a, f a j, λ a b e',
   let ⟨sa, ea⟩ := hf a, ⟨sb, eb⟩ := hf b in
-  by rw [← ea, ← eb, hs _ sa _ sb _ e']⟩⟩
+  by rw [← ea, ← eb, hs _ sa _ sb _ e']⟩⟩⟩
 
 end wo
 
-private theorem total.aux {α : Type u} {β : Type v} (f : ulift α → ulift β) (hf : injective f) : nonempty (embedding α β) :=
-⟨⟨λ x, (f ⟨x⟩).down, λ x y h, begin
-  have := congr_arg ulift.up h,
-  rw [ulift.up_down, ulift.up_down] at this,
-  injection hf this
-end⟩⟩
-
 theorem total {α : Type u} {β : Type v} : nonempty (α ↪ β) ∨ nonempty (β ↪ α) :=
 match @injective_min bool (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) ⟨tt⟩ with
-| ⟨tt, h⟩ := let ⟨f, hf⟩ := h ff in or.inl (total.aux f hf)
-| ⟨ff, h⟩ := let ⟨f, hf⟩ := h tt in or.inr (total.aux f hf)
+| ⟨tt, ⟨h⟩⟩ := let ⟨f, hf⟩ := h ff in or.inl ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩
+| ⟨ff, ⟨h⟩⟩ := let ⟨f, hf⟩ := h tt in or.inr ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩
 end
 
 end embedding

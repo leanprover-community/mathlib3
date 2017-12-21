@@ -146,6 +146,17 @@ theorem well_founded_iff_no_descending_seq [is_strict_order α r] : well_founded
 
 end order_embedding
 
+def fin.val.order_embedding (n) : @order_embedding (fin n) ℕ (<) (<) :=
+⟨⟨fin.val, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
+
+def fin_fin.order_embedding {m n} (h : m ≤ n) : @order_embedding (fin m) (fin n) (<) (<) :=
+⟨⟨λ ⟨x, h'⟩, ⟨x, lt_of_lt_of_le h' h⟩,
+  λ ⟨a, _⟩ ⟨b, _⟩ h, by congr; injection h⟩,
+  by intros; cases a; cases b; refl⟩
+
+instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
+(fin.val.order_embedding _).is_well_order
+
 structure order_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_equiv a) (to_equiv b))
 
@@ -153,7 +164,10 @@ infix ` ≃o `:50 := order_iso
 
 namespace order_iso
 
-instance : has_coe (r ≃o s) (r ≼o s) := ⟨λ o, ⟨o.to_equiv.to_embedding, o.ord⟩⟩
+def to_order_embedding (f : r ≃o s) : r ≼o s :=
+⟨f.to_equiv.to_embedding, f.ord⟩
+
+instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
 
 @[simp] theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
 

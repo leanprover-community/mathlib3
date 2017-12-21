@@ -239,9 +239,9 @@ theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
 
 theorem min_le {ι I} (f : ι → cardinal) (i) : min I f ≤ f i :=
 by rw [← quotient.out_eq (min I f), ← quotient.out_eq (f i)]; exact
-let ⟨g, hg⟩ := classical.some_spec
-  (@embedding.injective_min _ (λ i, (f i).out) I) i in
-⟨⟨g, hg⟩⟩
+let ⟨g⟩ := classical.some_spec
+  (@embedding.injective_min _ (λ i, (f i).out) I) in
+⟨g i⟩
 
 theorem le_min {ι I} {f : ι → cardinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
 ⟨λ h i, le_trans h (min_le _ _),
@@ -372,7 +372,20 @@ by dsimp; rw [← lift_id (mk β), ← lift_umax, ← lift_umax.{u v}, lift_mk_l
     (embedding.cod_restrict _ f set.mem_range_self)
     $ λ ⟨a, ⟨b, e⟩⟩, ⟨b, subtype.eq e⟩⟩⟩
 
+theorem le_lift_iff {a : cardinal.{u}} {b : cardinal.{max u v}} :
+  b ≤ lift a ↔ ∃ a', lift a' = b ∧ a' ≤ a :=
+⟨λ h, let ⟨a', e⟩ := lift_down h in ⟨a', e, lift_le.1 $ e.symm ▸ h⟩,
+ λ ⟨a', e, h⟩, e ▸ lift_le.2 h⟩
+
+theorem lt_lift_iff {a : cardinal.{u}} {b : cardinal.{max u v}} :
+  b < lift a ↔ ∃ a', lift a' = b ∧ a' < a :=
+⟨λ h, let ⟨a', e⟩ := lift_down (le_of_lt h) in
+      ⟨a', e, lift_lt.1 $ e.symm ▸ h⟩,
+ λ ⟨a', e, h⟩, e ▸ lift_lt.2 h⟩
+
 def omega : cardinal.{u} := lift (mk ℕ)
+
+@[simp] theorem lift_omega : lift omega = omega := lift_lift _
 
 @[simp] theorem mk_fin : ∀ (n : ℕ), mk (fin n) = n
 | 0     := quotient.sound ⟨(equiv.empty_of_not_nonempty $
@@ -418,9 +431,8 @@ succ_le.1 $ by rw [nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 
 theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
 ⟨λ h, begin
-  rcases lift_down (le_of_lt h) with ⟨c, rfl⟩,
-  rw [omega, lift_lt] at h,
-  rcases le_mk_iff_exists_set.1 h.1 with ⟨S, rfl⟩,
+  rcases lt_lift_iff.1 h with ⟨c, rfl, h'⟩,
+  rcases le_mk_iff_exists_set.1 h'.1 with ⟨S, rfl⟩,
   suffices : finite S,
   { cases this,
     existsi fintype.card S,
@@ -432,7 +444,7 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
     classical.not_forall.1 (λ h, nf
       ⟨fintype.of_surjective g (λ a, subtype.exists.2 (h a))⟩),
   let F : ℕ → S := nat.lt_wf.fix (λ n IH, some (P n IH)),
-  refine not_le_of_lt h ⟨⟨F, _⟩⟩,
+  refine not_le_of_lt h' ⟨⟨F, _⟩⟩,
   suffices : ∀ (n : ℕ) (m < n), F m ≠ F n,
   { refine λ m n, not_imp_not.1 (λ ne, _),
     rcases lt_trichotomy m n with h|h|h,
@@ -445,5 +457,15 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
       from nat.lt_wf.fix_eq (λ n IH, some (P n IH)) n] at this,
   exact λ e, this ⟨m, h, e⟩,
 end, λ ⟨n, e⟩, e.symm ▸ nat_lt_omega _⟩
+
+theorem lt_omega_iff_fintype {α : Type u} : mk α < omega ↔ nonempty (fintype α) :=
+lt_omega.trans ⟨λ ⟨n, e⟩, begin
+  rw [← lift_mk_fin n] at e,
+  cases quotient.exact e with f,
+  exact ⟨fintype.of_equiv _ f.symm⟩
+end, λ ⟨_⟩, by exact ⟨_, fintype_card _⟩⟩
+
+theorem lt_omega_iff_finite {α} {S : set α} : mk S < omega ↔ finite S :=
+lt_omega_iff_fintype
 
 end cardinal

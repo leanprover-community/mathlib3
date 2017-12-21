@@ -34,12 +34,12 @@ lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ a > b := le_or_gt
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
 
-lemma le_imp_le_iff_lt_imp_lt [linear_order α] {a b c d : α} :
+lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [linear_order β] {a b : α} {c d : β} :
   (a ≤ b → c ≤ d) ↔ (d < c → b < a) :=
 ⟨λ H h, lt_of_not_ge $ λ h', not_lt_of_ge (H h') h,
 λ H h, le_of_not_gt $ λ h', not_le_of_gt (H h') h⟩
 
-lemma le_iff_le_iff_lt_iff_lt [linear_order α] {a b c d : α} :
+lemma le_iff_le_iff_lt_iff_lt {β} [linear_order α] [linear_order β] {a b : α} {c d : β} :
   (a ≤ b ↔ c ≤ d) ↔ (b < a ↔ d < c) :=
 ⟨λ H, not_le.symm.trans $ iff.trans (not_congr H) $ not_le,
 λ H, not_lt.symm.trans $ iff.trans (not_congr H) $ not_lt⟩

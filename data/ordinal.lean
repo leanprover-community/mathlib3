@@ -836,14 +836,35 @@ quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
 @[simp] theorem lift_card (a) : (card a).lift = card (lift a) :=
 induction_on a $ λ α r _, rfl
 
-theorem lift_down {a : ordinal.{u}} {b : ordinal.{max u v}} :
-  b ≤ lift a → ∃ a', lift a' = b :=
-induction_on a $ λ α r _, induction_on b $ λ β s _,
-by rw [← lift_id (type s), ← lift_umax, ← lift_umax.{u v}, lift_type_le]; exact
-λ ⟨f⟩, ⟨type (subrel r (set.range f)), eq.symm $ lift_type_eq.2
-  ⟨order_iso.of_surjective
-    (order_embedding.cod_restrict _ f set.mem_range_self)
-    $ λ ⟨a, ⟨b, e⟩⟩, ⟨b, subtype.eq e⟩⟩⟩
+theorem lift_down' {a : cardinal.{u}} {b : ordinal.{max u v}}
+  (h : card b ≤ a.lift) : ∃ a', lift a' = b :=
+let ⟨c, e⟩ := cardinal.lift_down h in
+quotient.induction_on c (λ α, induction_on b $ λ β s _ e', begin
+  dsimp at e',
+  rw [← cardinal.lift_id.{(max u v) u} (mk β),
+      ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
+  cases e' with f,
+  have g := order_iso.preimage f s,
+  have := g.to_order_embedding.is_well_order,
+  have := lift_type_eq.{u (max u v) (max u v)}.2 ⟨g⟩,
+  rw [lift_id.{(max u v) (max u v)}, lift_umax.{u v}] at this,
+  exact ⟨_, this⟩
+end) e
+
+theorem lift_down {a : ordinal.{u}} {b : ordinal.{max u v}}
+  (h : b ≤ lift a) : ∃ a', lift a' = b :=
+@lift_down' (card a) _ (by rw lift_card; exact card_le_card h)
+
+theorem le_lift_iff {a : ordinal.{u}} {b : ordinal.{max u v}} :
+  b ≤ lift a ↔ ∃ a', lift a' = b ∧ a' ≤ a :=
+⟨λ h, let ⟨a', e⟩ := lift_down h in ⟨a', e, lift_le.1 $ e.symm ▸ h⟩,
+ λ ⟨a', e, h⟩, e ▸ lift_le.2 h⟩
+
+theorem lt_lift_iff {a : ordinal.{u}} {b : ordinal.{max u v}} :
+  b < lift a ↔ ∃ a', lift a' = b ∧ a' < a :=
+⟨λ h, let ⟨a', e⟩ := lift_down (le_of_lt h) in
+      ⟨a', e, lift_lt.1 $ e.symm ▸ h⟩,
+ λ ⟨a', e, h⟩, e ▸ lift_lt.2 h⟩
 
 def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
@@ -1119,20 +1140,20 @@ end
 theorem lt_ord {c o} : o < ord c ↔ o.card < c :=
 by rw [← not_le, ← not_le, ord_le]
 
-@[simp] theorem card_ord (c : cardinal) : (ord c).card = c :=
+@[simp] theorem card_ord (c) : (ord c).card = c :=
 quotient.induction_on c $ λ α,
 let ⟨r, _, e⟩ := ord_eq α in by simp [e]
 
-@[simp] theorem ord_le_ord {c₁ c₂ : cardinal.{u}} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
+@[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
 by simp [ord_le]
 
-@[simp] theorem ord_lt_ord {c₁ c₂ : cardinal.{u}} : ord c₁ < ord c₂ ↔ c₁ < c₂ :=
+@[simp] theorem ord_lt_ord {c₁ c₂} : ord c₁ < ord c₂ ↔ c₁ < c₂ :=
 by simp [lt_ord]
 
 @[simp] theorem ord_zero : ord 0 = 0 :=
 le_antisymm (ord_le.2 $ cardinal.zero_le _) (ordinal.zero_le _)
 
-@[simp] theorem ord_nat (n : ℕ) : ord.{u} n = n :=
+@[simp] theorem ord_nat (n : ℕ) : ord n = n :=
 le_antisymm (ord_le.2 $ by simp) $ begin
   induction n with n IH,
   { apply ordinal.zero_le },
@@ -1140,10 +1161,16 @@ le_antisymm (ord_le.2 $ by simp) $ begin
     ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
 end
 
-/-
-@[simp] theorem ord_omega : ord.{u} omega = ordinal.omega :=
-le_antisymm (ord_le.2 $ le_refl _) $ le_of_forall_lt $ λ o h,
-_-/
+@[simp] theorem lift_ord (c) : (ord c).lift = ord (lift c) :=
+eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
+  split; intro h,
+  { rcases ordinal.lt_lift_iff.1 h with ⟨a, e, h⟩,
+    rwa [← e, lt_ord, ← ordinal.lift_card, lift_lt, ← lt_ord] },
+  { rw lt_ord at h,
+    rcases ordinal.lift_down' (le_of_lt h) with ⟨o, rfl⟩,
+    rw [← ordinal.lift_card, lift_lt] at h,
+    rwa [ordinal.lift_lt, lt_ord] }
+end
 
 def ord.order_embedding : @order_embedding cardinal ordinal (<) (<) :=
 order_embedding.of_monotone cardinal.ord $ λ a b, cardinal.ord_lt_ord.2
@@ -1283,6 +1310,43 @@ le_antisymm
 
 def aleph (o : ordinal) : cardinal := aleph' (omega + o)
 
+@[simp] theorem nat_cast_le {m n : ℕ} : (m : ordinal) ≤ n ↔ m ≤ n :=
+by rw [← cardinal.ord_nat, ← cardinal.ord_nat,
+       cardinal.ord_le_ord, cardinal.nat_cast_le]
+
+@[simp] theorem nat_cast_lt {m n : ℕ} : (m : ordinal) < n ↔ m < n :=
+by simp [lt_iff_le_not_le, -not_le]
+
+@[simp] theorem nat_cast_inj {m n : ℕ} : (m : ordinal) = n ↔ m = n :=
+by simp [le_antisymm_iff]
+
+@[simp] theorem nat_le_card {o} {n : ℕ} : (n : cardinal) ≤ card o ↔ (n : ordinal) ≤ o :=
+⟨λ h, by rwa [← cardinal.ord_le, cardinal.ord_nat] at h,
+ λ h, card_nat n ▸ card_le_card h⟩
+
+@[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
+by rw [← succ_le, ← cardinal.succ_le, cardinal.nat_succ, nat_le_card]; refl
+
+@[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
+le_iff_le_iff_lt_iff_lt.1 nat_le_card
+
+@[simp] theorem card_le_nat {o} {n : ℕ} : card o ≤ n ↔ o ≤ n :=
+le_iff_le_iff_lt_iff_lt.2 nat_lt_card
+
+@[simp] theorem card_eq_nat {o} {n : ℕ} : card o = n ↔ o = n :=
+by simp [le_antisymm_iff]
+
+@[simp] theorem type_fin (n : ℕ) : @type (fin n) (<) _ = n :=
+by rw [← card_eq_nat, card_type, mk_fin]
+
+@[simp] theorem lift_nat_cast (n : ℕ) : lift n = n :=
+by induction n; simp *
+
+theorem lift_type_fin (n : ℕ) : lift (@type (fin n) (<) _) = n := by simp
+
+theorem fintype_card (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
+by rw [← card_eq_nat, card_type, fintype_card]
+
 set_option eqn_compiler.zeta true
 def cof (o : ordinal.{u}) : cardinal.{u} :=
 quot.lift_on o (λ ⟨α, r, _⟩,
@@ -1369,7 +1433,7 @@ begin
     rw [← (_ : mk _ = 1)], apply cof_type_le,
     { refine λ a, ⟨sum.inr ⟨()⟩, set.mem_singleton _, _⟩,
       rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
-    { rw [fintype_card, set.card_singleton], simp } },
+    { rw [cardinal.fintype_card, set.card_singleton], simp } },
   { rw [← cardinal.succ_zero, cardinal.succ_le],
     simpa [lt_iff_le_and_ne, cardinal.zero_le] using
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
@@ -1439,24 +1503,6 @@ let ⟨S, hS, e₁⟩ := ord_cof_eq r,
 end
 
 /-
-theorem omega_is_limit : is_limit omega :=
-begin
-  refine ((zero_or_succ_or_limit _).resolve_left _)
-    .resolve_left (λ h, _),
-  { refine iff.mpr (by apply type_ne_zero_iff_nonempty) _,
-    exact ⟨⟨0⟩⟩ },
-  { have : cof (type _) = _ := cof_eq_one_iff_is_succ.2 h,
-    rcases cof_eq _ with ⟨S, hS, e⟩,
-    rw this at e,
-  }
-end-/
-
-/-
-theorem nat_lt_omega (n : ℕ) : (n : ordinal) < ω :=
-_-/
-
-
-/-
 theorem sub_add_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - b) = a :=
 le_antisymm
   begin
@@ -1473,5 +1519,46 @@ theorem add_is_limit (a b) (h : is_limit b) : is_limit (a + b) :=
 
 end⟩
 -/
+
+end ordinal
+
+namespace cardinal
+
+@[simp] theorem ord_omega : ord.{u} omega = ordinal.omega :=
+le_antisymm (ord_le.2 $ le_refl _) $
+le_of_forall_lt $ λ o h, begin
+  rcases ordinal.lt_lift_iff.1 h with ⟨o, rfl, h'⟩,
+  rw [lt_ord, ← ordinal.lift_card, ← lift_omega.{0 u},
+      lift_lt, ← ordinal.typein_enum (<) h'],
+  exact lt_omega_iff_fintype.2 ⟨set.fintype_lt_nat _⟩
+end
+
+end cardinal
+
+namespace ordinal
+
+theorem lt_omega {o : ordinal.{u}} : o < omega ↔ ∃ n : ℕ, o = n :=
+by rw [← cardinal.ord_omega, cardinal.lt_ord, lt_omega]; simp
+
+theorem nat_lt_omega (n : ℕ) : (n : ordinal) < omega :=
+lt_omega.2 ⟨_, rfl⟩
+
+theorem omega_is_limit : is_limit omega :=
+⟨ne_of_gt (nat_lt_omega 0), λ o h,
+  let ⟨n, e⟩ := lt_omega.1 h in
+  by rw [e]; exact nat_lt_omega (n+1)⟩
+
+theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) ≤ o :=
+⟨λ h n, le_trans (le_of_lt (nat_lt_omega _)) h,
+ λ H, le_of_forall_lt $ λ a h,
+   let ⟨n, e⟩ := lt_omega.1 h in
+   by rw [e, ← succ_le]; exact H (n+1)⟩
+
+theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
+| 0     := lt_of_le_of_ne (zero_le o) h.1.symm
+| (n+1) := h.2 _ (nat_lt_limit n)
+
+theorem omega_le_of_is_limit {o} (h : is_limit o) : omega ≤ o :=
+omega_le.2 $ λ n, le_of_lt $ nat_lt_limit h n
 
 end ordinal

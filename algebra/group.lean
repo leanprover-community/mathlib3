@@ -322,3 +322,47 @@ theorem sub_le_iff_le_add {a b c : α} : a - c ≤ b ↔ a ≤ b + c :=
 by rw [add_comm]; exact ⟨le_add_of_sub_left_le, sub_left_le_of_le_add⟩
 
 end ordered_comm_group
+
+section morphisms
+variables { β : Type*} [group α] [group β] {a b : α}
+
+@[simp]
+def is_mph (f : α → β) : Prop :=
+∀ a b : α, f(a*b) = f(a)*f(b)
+
+@[simp]
+lemma mph_one { f : α → β } (H : is_mph f) : f 1 = 1 :=
+mul_self_iff_eq_one.1 (eq.symm (
+  calc f 1 = f (1*1)     : by simp
+       ... = (f 1)*(f 1) : by rw[H 1 1]))
+
+@[simp]
+lemma mph_inv { f : α → β } (H : is_mph f) : (f a)⁻¹ = f (a⁻¹) :=
+inv_eq_of_mul_eq_one (
+  calc (f a) * (f a⁻¹) = f (a * a⁻¹) : by rw[H a a⁻¹]
+                  ...  = f 1 : by simp
+                  ...  = 1   : by rw[mph_one H])
+
+end morphisms
+
+section anti_morphisms
+variables { β : Type*} [group α] [group β] {a : α}
+
+@[simp]
+def is_anti_mph (f : α → β) : Prop :=
+∀ a b : α, f(a*b) = f(b)*f(a)
+
+@[simp]
+lemma anti_mph_one { f : α → β } (H : is_anti_mph f) : f 1 = 1 :=
+mul_self_iff_eq_one.1 (eq.symm (
+  calc f 1 = f (1*1)     : by simp
+       ... = (f 1)*(f 1) : by rw[H 1 1]))
+
+@[simp]
+lemma anti_mph_inv { f : α → β } (H : is_anti_mph f) : (f a)⁻¹ = f (a⁻¹) :=
+inv_eq_of_mul_eq_one (
+  calc (f a) * (f a⁻¹) = f (a⁻¹ * a) : by rw[H a⁻¹ a]
+                  ...  = f 1 : by simp
+                  ...  = 1   : by rw[anti_mph_one H])
+
+end anti_morphisms

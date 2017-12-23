@@ -333,4 +333,8 @@ begin
     rw anti_mph,
     simp[IH] }
 end
+
+-- Following lemma could also be proved directly by "by induction l; simp *"
+lemma inv_prod (l : list α) : (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) := 
+anti_mph_prod (λ x, x⁻¹) inv_anti_mph l
 end group

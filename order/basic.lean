@@ -188,7 +188,7 @@ instance is_extensional_of_is_strict_total_order'
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
 
-def empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
+instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 ⟨⟨⟨λ a b, or.inr $ or.inl $ subsingleton.elim _ _⟩,
   ⟨λ a, id⟩, ⟨λ a b c, false.elim⟩⟩,
   ⟨λ a, ⟨_, λ y, false.elim⟩⟩⟩

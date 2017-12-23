@@ -47,5 +47,14 @@ swap_swap
 lemma eq_iff_fst_eq_snd_eq : ∀{p q : α × β}, p = q ↔ (p.1 = q.1 ∧ p.2 = q.2)
 | ⟨p₁, p₂⟩ ⟨q₁, q₂⟩ := by simp
 
+theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
+  {p q : α × β} : prod.lex r s p q ↔ r p.1 q.1 ∨ p.1 = q.1 ∧ s p.2 q.2 :=
+⟨λ h, by cases h; simp *,
+ λ h, match p, q, h with
+ | (a, b), (c, d), or.inl h := lex.left _ _ _ h
+ | (a, b), (c, d), or.inr ⟨e, h⟩ :=
+   by change a = c at e; subst e; exact lex.right _ _ h
+ end⟩
+
 end prod
 

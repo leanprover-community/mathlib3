@@ -172,18 +172,25 @@ end
 by cases e₁; cases e₂; refl
 
 @[simp] def prod_comm (α β : Sort*) : (α × β) ≃ (β × α) :=
-⟨λ⟨a, b⟩, (b, a), λ⟨a, b⟩, (b, a), λ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
+⟨λ p, (p.2, p.1), λ p, (p.2, p.1), λ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
 
 @[simp] def prod_assoc (α β γ : Sort*) : ((α × β) × γ) ≃ (α × (β × γ)) :=
-⟨λ ⟨⟨a, b⟩, c⟩, ⟨a, ⟨b, c⟩⟩, λ⟨a, ⟨b, c⟩⟩, ⟨⟨a, b⟩, c⟩, λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
+⟨λ p, ⟨p.1.1, ⟨p.1.2, p.2⟩⟩, λp, ⟨⟨p.1, p.2.1⟩, p.2.2⟩, λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
+
+@[simp] theorem prod_assoc_apply {α β γ : Sort*} (p : (α × β) × γ) :
+  prod_assoc α β γ p = ⟨p.1.1, ⟨p.1.2, p.2⟩⟩ := rfl
 
 section
 @[simp] def prod_unit (α : Sort*) : (α × unit) ≃ α :=
 ⟨λ p, p.1, λ a, (a, ()), λ ⟨_, ⟨⟩⟩, rfl, λ a, rfl⟩
 
+@[simp] theorem prod_unit_apply {α : Sort*} (a : α × unit) : prod_unit α a = a.1 := rfl
+
 @[simp] def unit_prod (α : Sort*) : (unit × α) ≃ α :=
 calc (unit × α) ≃ (α × unit) : prod_comm _ _
             ... ≃ α          : prod_unit _
+
+@[simp] theorem unit_prod_apply {α : Sort*} (a : unit × α) : unit_prod α a = a.2 := rfl
 
 @[simp] def prod_empty (α : Sort*) : (α × empty) ≃ empty :=
 equiv_empty (λ ⟨_, e⟩, e.rec _)
@@ -316,10 +323,20 @@ def sum_prod_distrib (α β γ : Sort*) : ((α ⊕ β) × γ) ≃ ((α × γ) �
  λ p, by rcases p with ⟨_ | _, _⟩; refl,
  λ s, by rcases s with ⟨_, _⟩ | ⟨_, _⟩; refl⟩
 
+@[simp] theorem sum_prod_distrib_apply_left {α β γ} (a : α) (c : γ) :
+   sum_prod_distrib α β γ (sum.inl a, c) = sum.inl (a, c) := rfl
+@[simp] theorem sum_prod_distrib_apply_right {α β γ} (b : β) (c : γ) :
+   sum_prod_distrib α β γ (sum.inr b, c) = sum.inr (b, c) := rfl
+
 def prod_sum_distrib (α β γ : Sort*) : (α × (β ⊕ γ)) ≃ ((α × β) ⊕ (α × γ)) :=
 calc (α × (β ⊕ γ)) ≃ ((β ⊕ γ) × α)       : prod_comm _ _
              ...   ≃ ((β × α) ⊕ (γ × α)) : sum_prod_distrib _ _ _
              ...   ≃ ((α × β) ⊕ (α × γ)) : sum_congr (prod_comm _ _) (prod_comm _ _)
+
+@[simp] theorem prod_sum_distrib_apply_left {α β γ} (a : α) (b : β) :
+   prod_sum_distrib α β γ (a, sum.inl b) = sum.inl (a, b) := rfl
+@[simp] theorem prod_sum_distrib_apply_right {α β γ} (a : α) (c : γ) :
+   prod_sum_distrib α β γ (a, sum.inr c) = sum.inr (a, c) := rfl
 
 def bool_prod_equiv_sum (α : Type u) : (bool × α) ≃ (α ⊕ α) :=
 calc (bool × α) ≃ ((unit ⊕ unit) × α)       : prod_congr bool_equiv_unit_sum_unit (equiv.refl _)

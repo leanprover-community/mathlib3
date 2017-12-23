@@ -180,6 +180,9 @@ open sum
 theorem zero_le (a : cardinal.{u}) : 0 ≤ a :=
 quot.induction_on a $ λ α, ⟨embedding.of_not_nonempty $ λ ⟨⟨a⟩⟩, a.elim⟩
 
+theorem le_zero (a : cardinal.{u}) : a ≤ 0 ↔ a = 0 :=
+by simp [le_antisymm_iff, zero_le]
+
 theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
@@ -384,6 +387,9 @@ theorem lt_lift_iff {a : cardinal.{u}} {b : cardinal.{max u v}} :
  λ ⟨a', e, h⟩, e ▸ lift_lt.2 h⟩
 
 def omega : cardinal.{u} := lift (mk ℕ)
+
+theorem omega_ne_zero : omega ≠ 0 :=
+ne_zero_iff_nonempty.2 ⟨⟨0⟩⟩
 
 @[simp] theorem lift_omega : lift omega = omega := lift_lift _
 

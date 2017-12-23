@@ -46,7 +46,7 @@ lemma countable_encodable' (s : set α) [encodable s] : countable s :=
     by simp [hx, hy] at h; assumption,
   have decode s (@encode s _ ⟨x, hx⟩) = decode s (@encode s _ ⟨y, hy⟩),
     from congr_arg _ this,
-  by simp [encodek] at this; injection this⟩
+  by simpa [encodek]⟩
 
 lemma countable_encodable [e : encodable α] {s : set α} : countable s :=
 ⟨encode, assume x _ y _ eq,
@@ -138,7 +138,7 @@ have {t | finite t ∧ t ⊆ s } ⊆
           begin
             simp [eq.symm, iff_def, or_imp_distrib, has] {contextual:=tt},
             constructor,
-            exact assume hxs, or.imp (congr_arg subtype.val) (assume hxt', ⟨hxs, hxt'⟩),
+            exact assume hxs, or.imp_right (assume hxt', ⟨hxs, hxt'⟩),
             exact assume hxs hxt', ⟨hxs, or.inr hxt'⟩,
           end⟩ }
   end,

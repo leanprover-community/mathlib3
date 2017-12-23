@@ -30,6 +30,10 @@ namespace sum
 @[simp] theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b :=
 ⟨inr.inj, congr_arg _⟩
 
+@[simp] theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b.
+
+@[simp] theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a.
+
 section
   variables (ra : α → α → Prop) (rb : β → β → Prop)
 

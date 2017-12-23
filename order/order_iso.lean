@@ -129,6 +129,10 @@ of_monotone f $ λ a b h, begin
   { subst b, apply H }
 end
 
+theorem nat_gt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
+  ((>) : ℕ → ℕ → Prop) ≼o r :=
+by have := is_strict_order.swap r; exact rsymm (nat_lt f H)
+
 theorem well_founded_iff_no_descending_seq [is_strict_order α r] : well_founded r ↔ ¬ nonempty (((>) : ℕ → ℕ → Prop) ≼o r) :=
 ⟨λ ⟨h⟩ ⟨⟨f, o⟩⟩,
   suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
@@ -141,8 +145,7 @@ theorem well_founded_iff_no_descending_seq [is_strict_order α r] : well_founded
     show ∀ x : {a // ¬ acc r a}, ∃ y : {a // ¬ acc r a}, r y.1 x.1,
     from λ ⟨x, h⟩, classical.by_contradiction $ λ hn, h $
       ⟨_, λ y h, classical.by_contradiction $ λ na, hn ⟨⟨y, na⟩, h⟩⟩ in
-  N ⟨rsymm $ @nat_lt _ _ (is_strict_order.swap r)
-    (λ n, (n.foldr f ⟨a, na⟩).1) $ λ n, h _⟩⟩⟩
+  N ⟨nat_gt (λ n, (n.foldr f ⟨a, na⟩).1) $ λ n, h _⟩⟩⟩
 
 end order_embedding
 
@@ -247,10 +250,16 @@ def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @s
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
 @subtype.val _ p ⁻¹'o r 
 
+@[simp] theorem subrel_val (r : α → α → Prop) (p : set α)
+  {a b} : subrel r p a b ↔ r a.1 b.1 := iff.rfl
+
 namespace subrel
 
 protected def order_embedding (r : α → α → Prop) (p : set α) :
   subrel r p ≼o r := ⟨set_coe_embedding _, λ a b, iff.rfl⟩
+
+@[simp] theorem order_embedding_apply (r : α → α → Prop) (p a) :
+  subrel.order_embedding r p a = a.1 := rfl
 
 instance (r : α → α → Prop) [is_well_order α r]
   (p : set α) : is_well_order p (subrel r p) :=

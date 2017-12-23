@@ -76,6 +76,10 @@ variables {α : Sort*} {β : α → Prop}
 @[simp] theorem subtype.coe_mk {α : Type*} {β : α → Prop}
  (a h) : (@subtype.mk α β a h : α) = a := rfl
 
+@[simp] theorem subtype.mk_eq_mk {α : Type*} {β : α → Prop}
+ {a h a' h'} : @subtype.mk α β a h = @subtype.mk α β a' h' ↔ a = a' :=
+⟨λ H, by injection H, λ H, by congr; assumption⟩
+
 @[simp] theorem subtype.forall {p : {a // β a} → Prop} :
   (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
 ⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩

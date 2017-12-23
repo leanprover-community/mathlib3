@@ -365,4 +365,8 @@ inv_eq_of_mul_eq_one (
                   ...  = f 1 : by simp
                   ...  = 1   : by rw[anti_mph_one H])
 
+
+lemma inv_anti_mph : is_anti_mph (λ x : α, x⁻¹) :=
+mul_inv_rev
+
 end anti_morphisms

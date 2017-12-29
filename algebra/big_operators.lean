@@ -310,24 +310,24 @@ section group
 open list
 variables [group α] [group β]
 
-lemma mph_prod (f : α → β) (mph : is_mph f) (l : list α) :
+lemma mph_prod (f : α → β) (hom : is_group_hom f) (l : list α) :
 f (prod l) = prod (map f l) :=
 begin
   induction l,
   case nil :
-  { simp[mph_one mph] },
+  { simp[group_hom.one hom] },
   case cons : hd tl IH
   { simp,
-    rw mph,
+    rw hom,
     simp[IH] }
 end
 
-lemma anti_mph_prod (f : α → β) (anti_mph : is_anti_mph f) (l : list α) :
+lemma anti_mph_prod (f : α → β) (anti_mph : is_group_anti_hom f) (l : list α) :
 f (prod l) = prod (map f (reverse l)) :=
 begin
   induction l,
   case nil :
-  { simp [anti_mph_one anti_mph] },
+  { simp [group_anti_hom.one anti_mph] },
   case cons : hd tl IH
   { simp,
     rw anti_mph,
@@ -336,5 +336,5 @@ end
 
 -- Following lemma could also be proved directly by "by induction l; simp *"
 lemma inv_prod (l : list α) : (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) := 
-anti_mph_prod (λ x, x⁻¹) inv_anti_mph l
+anti_mph_prod (λ x, x⁻¹) group_anti_hom.inv_is_group_anti_hom l
 end group

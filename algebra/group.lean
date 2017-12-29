@@ -323,50 +323,49 @@ by rw [add_comm]; exact ⟨le_add_of_sub_left_le, sub_left_le_of_le_add⟩
 
 end ordered_comm_group
 
-section morphisms
+
 variables { β : Type*} [group α] [group β] {a b : α}
 
 @[simp]
-def is_mph (f : α → β) : Prop :=
+def is_group_hom (f : α → β) : Prop :=
 ∀ a b : α, f(a*b) = f(a)*f(b)
 
+namespace group_hom
 @[simp]
-lemma mph_one { f : α → β } (H : is_mph f) : f 1 = 1 :=
+lemma one { f : α → β } (H : is_group_hom f) : f 1 = 1 :=
 mul_self_iff_eq_one.1 (eq.symm (
   calc f 1 = f (1*1)     : by simp
        ... = (f 1)*(f 1) : by rw[H 1 1]))
 
 @[simp]
-lemma mph_inv { f : α → β } (H : is_mph f) : (f a)⁻¹ = f (a⁻¹) :=
+lemma inv { f : α → β } (H : is_group_hom f) : (f a)⁻¹ = f (a⁻¹) :=
 inv_eq_of_mul_eq_one (
   calc (f a) * (f a⁻¹) = f (a * a⁻¹) : by rw[H a a⁻¹]
                   ...  = f 1 : by simp
-                  ...  = 1   : by rw[mph_one H])
+                  ...  = 1   : by rw[one H])
 
-end morphisms
-
-section anti_morphisms
-variables { β : Type*} [group α] [group β] {a : α}
+end group_hom
 
 @[simp]
-def is_anti_mph (f : α → β) : Prop :=
+def is_group_anti_hom (f : α → β) : Prop :=
 ∀ a b : α, f(a*b) = f(b)*f(a)
 
+namespace group_anti_hom
 @[simp]
-lemma anti_mph_one { f : α → β } (H : is_anti_mph f) : f 1 = 1 :=
+lemma one { f : α → β } (H : is_group_anti_hom f) : f 1 = 1 :=
 mul_self_iff_eq_one.1 (eq.symm (
   calc f 1 = f (1*1)     : by simp
        ... = (f 1)*(f 1) : by rw[H 1 1]))
 
 @[simp]
-lemma anti_mph_inv { f : α → β } (H : is_anti_mph f) : (f a)⁻¹ = f (a⁻¹) :=
+lemma inv { f : α → β } (H : is_group_anti_hom f) : (f a)⁻¹ = f (a⁻¹) :=
 inv_eq_of_mul_eq_one (
   calc (f a) * (f a⁻¹) = f (a⁻¹ * a) : by rw[H a⁻¹ a]
                   ...  = f 1 : by simp
-                  ...  = 1   : by rw[anti_mph_one H])
+                  ...  = 1   : by rw[one H])
 
 
-lemma inv_anti_mph : is_anti_mph (λ x : α, x⁻¹) :=
+lemma inv_is_group_anti_hom : is_group_anti_hom (λ x : α, x⁻¹) :=
 mul_inv_rev
 
-end anti_morphisms
+end group_anti_hom

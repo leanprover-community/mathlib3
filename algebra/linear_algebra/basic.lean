@@ -179,9 +179,9 @@ span_eq is_submodule_span (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mon
 lemma span_insert : span (insert b s) = {z | ∃a, ∃x∈span s, z = a • b + x } :=
 set.ext $ assume b',
 begin
-  apply iff.intro; simp [insert_eq, span_union, span_singleton, set.set_eq_def, range],
-  exact (assume x hx y a eq_y eq, ⟨a, x, hx, by simp [eq_y, eq]⟩),
-  exact (assume a b₂ hb₂ eq, ⟨b₂, hb₂, a • b, ⟨a, rfl⟩, eq⟩)
+  apply iff.intro; simp [insert_eq, span_union, span_singleton, set.set_eq_def, range, -add_comm],
+  exact (assume y a eq_y x hx eq, ⟨a, x, hx, by simp [eq_y, eq]⟩),
+  exact (assume a b₂ hb₂ eq, ⟨a • b, ⟨a, rfl⟩, b₂, hb₂, eq⟩)
 end
 
 lemma mem_span_insert : b₁ ∈ span (insert b s) ↔ ∃a, b₁ + a • b ∈ span s :=

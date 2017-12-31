@@ -36,7 +36,7 @@ def swap : (α×β) → (β×α) := λp, (p.2, p.1)
 @[simp] lemma swap_prod_mk {a : α} {b : β} : swap (a, b) = (b, a) := rfl
 
 @[simp] lemma swap_swap_eq : swap ∘ swap = @id (α × β) :=
-funext $ swap_swap
+funext swap_swap
 
 @[simp] lemma swap_left_inverse : function.left_inverse (@swap α β) swap :=
 swap_swap

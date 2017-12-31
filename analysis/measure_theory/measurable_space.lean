@@ -460,7 +460,7 @@ have hf2 : ∀n:ℕ, f n.succ.succ = ∅, from assume n, rfl,
 have (∀i j, i ≠ j → f i ∩ f j = ∅),
   from assume i, i.two_step_induction
     (assume j, j.two_step_induction (by simp) (by simp [hf0, hf1, h]) (by simp [hf2]))
-    (assume j, j.two_step_induction (by simp [hf0, hf1, h]) (by simp) (by simp [hf2]))
+    (assume j, j.two_step_induction (by simp [hf0, hf1, h, inter_comm]) (by simp) (by simp [hf2]))
     (by simp [hf2]),
 have eq : s₁ ∪ s₂ = (⋃i, f i),
   from subset.antisymm (union_subset (le_supr f 0) (le_supr f 1)) $

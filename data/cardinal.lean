@@ -5,11 +5,7 @@ Author: Johannes Hölzl, Mario Carneiro
 
 Cardinal arithmetic.
 
-Cardinals are represented as quotient over equinumerable types.
-
-Future work:
-* define ordinal numbers and relate them to cardinals
-* proof `κ + κ = κ` and `κ * κ = κ` for all infinite cardinal `κ`
+Cardinals are represented as quotient over equinumerous types.
 -/
 
 import data.set.finite data.quot logic.schroeder_bernstein logic.function
@@ -177,46 +173,64 @@ from (quotient.induction_on₃ a b c $ assume α β γ,
 section order_properties
 open sum
 
-theorem zero_le (a : cardinal.{u}) : 0 ≤ a :=
+theorem zero_le (a : cardinal) : 0 ≤ a :=
 quot.induction_on a $ λ α, ⟨embedding.of_not_nonempty $ λ ⟨⟨a⟩⟩, a.elim⟩
 
-theorem le_zero (a : cardinal.{u}) : a ≤ 0 ↔ a = 0 :=
+theorem le_zero (a : cardinal) : a ≤ 0 ↔ a = 0 :=
 by simp [le_antisymm_iff, zero_le]
 
 theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
-theorem add_mono {a b c d : cardinal.{u}} : a ≤ b → c ≤ d → a + c ≤ b + d :=
+theorem add_le_add {a b c d : cardinal} : a ≤ b → c ≤ d → a + c ≤ b + d :=
 quotient.induction_on₂ a b $ assume α β, quotient.induction_on₂ c d $ assume γ δ ⟨e₁⟩ ⟨e₂⟩,
   ⟨embedding.sum_congr e₁ e₂⟩
 
-theorem mul_mono {a b c d : cardinal.{u}} : a ≤ b → c ≤ d → a * c ≤ b * d :=
+theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
+add_le_add (le_refl _)
+
+theorem add_le_add_right {a b : cardinal} (c) (h : a ≤ b) : a + c ≤ b + c :=
+add_le_add h (le_refl _)
+
+theorem le_add_right (a b : cardinal) : a ≤ a + b :=
+by simpa using add_le_add_left a (zero_le b)
+
+theorem le_add_left (a b : cardinal) : a ≤ b + a :=
+by simpa using add_le_add_right a (zero_le b)
+
+theorem mul_le_mul {a b c d : cardinal} : a ≤ b → c ≤ d → a * c ≤ b * d :=
 quotient.induction_on₂ a b $ assume α β, quotient.induction_on₂ c d $ assume γ δ ⟨e₁⟩ ⟨e₂⟩,
   ⟨embedding.prod_congr e₁ e₂⟩
 
-theorem power_mono_left {a b c : cardinal.{u}} : a ≤ b → a ^ c ≤ b ^ c :=
-quotient.induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_left e⟩
+theorem mul_le_mul_left (a) {b c : cardinal} : b ≤ c → a * b ≤ a * c :=
+mul_le_mul (le_refl _)
 
-theorem power_mono_right {a b c : cardinal.{u}} : a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
+theorem mul_le_mul_right {a b : cardinal} (c) (h : a ≤ b) : a * c ≤ b * c :=
+mul_le_mul h (le_refl _)
+
+theorem power_le_power_left {a b c : cardinal} : a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 quotient.induction_on₃ a b c $ assume α β γ hα ⟨e⟩,
   have nonempty α, from classical.by_contradiction $ assume hnα,
     hα $ quotient.sound ⟨equiv.trans (equiv.empty_of_not_nonempty hnα) equiv.ulift.symm⟩,
   let ⟨a⟩ := this in
   ⟨@embedding.arrow_congr_right _ _ _ ⟨a⟩ e⟩
 
-theorem le_iff_exists_add {a b : cardinal.{u}} : a ≤ b ↔ ∃ c, b = a + c :=
+theorem power_le_power_right {a b c : cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
+quotient.induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_left e⟩
+
+theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
 ⟨quotient.induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
   have (α ⊕ ↥-range f) ≃ β, from
     (equiv.sum_congr (equiv.set.range f hf) (equiv.refl _)).trans $
     (equiv.set.sum_compl (range f)),
   ⟨⟦(-range f : set β)⟧, quotient.sound ⟨this.symm⟩⟩,
- λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ add_mono (le_refl _) (zero_le _)⟩
+ λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ add_le_add_left _ (zero_le _)⟩
 
 end order_properties
 
 instance : canonically_ordered_monoid cardinal.{u} :=
-{ add_le_add_left       := λ a b h c, add_mono (le_refl _) h,
-  lt_of_add_lt_add_left := λ a b c, le_imp_le_iff_lt_imp_lt.1 (add_mono (le_refl _)),
+{ add_le_add_left       := λ a b h c, add_le_add_left _ h,
+  lt_of_add_lt_add_left := λ a b c, le_imp_le_iff_lt_imp_lt.1 (add_le_add_left _),
   le_iff_exists_add     := @le_iff_exists_add,
   ..cardinal.comm_semiring, ..cardinal.linear_order }
 
@@ -435,6 +449,9 @@ theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 ⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
 
+theorem one_lt_omega : 1 < omega :=
+by simpa using nat_lt_omega 1
+
 theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
 ⟨λ h, begin
   rcases lt_lift_iff.1 h with ⟨c, rfl, h'⟩,
@@ -464,6 +481,13 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
   exact λ e, this ⟨m, h, e⟩,
 end, λ ⟨n, e⟩, e.symm ▸ nat_lt_omega _⟩
 
+theorem omega_le {c : cardinal.{u}} : omega ≤ c ↔ ∀ n : ℕ, (n:cardinal) ≤ c :=
+⟨λ h n, le_trans (le_of_lt (nat_lt_omega _)) h,
+ λ h, le_of_not_lt $ λ hn, begin
+  rcases lt_omega.1 hn with ⟨n, rfl⟩,
+  exact not_le_of_lt (nat.lt_succ_self _) (nat_cast_le.1 (h (n+1)))
+end⟩
+
 theorem lt_omega_iff_fintype {α : Type u} : mk α < omega ↔ nonempty (fintype α) :=
 lt_omega.trans ⟨λ ⟨n, e⟩, begin
   rw [← lift_mk_fin n] at e,
@@ -473,5 +497,15 @@ end, λ ⟨_⟩, by exact ⟨_, fintype_card _⟩⟩
 
 theorem lt_omega_iff_finite {α} {S : set α} : mk S < omega ↔ finite S :=
 lt_omega_iff_fintype
+
+theorem add_lt_omega {a b : cardinal} (ha : a < omega) (hb : b < omega) : a + b < omega :=
+match a, b, lt_omega.1 ha, lt_omega.1 hb with
+| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_add]; apply nat_lt_omega
+end
+
+theorem mul_lt_omega {a b : cardinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
+match a, b, lt_omega.1 ha, lt_omega.1 hb with
+| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_mul]; apply nat_lt_omega
+end
 
 end cardinal

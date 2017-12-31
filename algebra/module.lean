@@ -213,7 +213,7 @@ instance sInter_submodule {s : set (set β)} [hs : ∀t∈s, is_submodule t] : i
 by rw [set.sInter_eq_Inter]; exact Inter_submodule (assume t, Inter_submodule $ hs t)
 
 instance inter_submodule : is_submodule (p ∩ p') :=
-suffices is_submodule (⋂₀ {p, p'} : set β), by simpa,
+suffices is_submodule (⋂₀ {p, p'} : set β), by simpa [set.inter_comm],
 @is_submodule.sInter_submodule α β _ _ {p, p'} $
   by simp [or_imp_distrib, ‹is_submodule p›, ‹is_submodule p'›] {contextual := tt}
 

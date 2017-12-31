@@ -34,6 +34,12 @@ lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ a > b := le_or_gt
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
 
+lemma lt_iff_lt_of_strict_mono {β} [linear_order α] [linear_order β]
+  (f : α → β) (H : ∀ a b, a < b → f a < f b) {a b} :
+  f a < f b ↔ a < b :=
+⟨by rw [← not_le, ← not_le, le_iff_lt_or_eq, le_iff_lt_or_eq];
+    exact mt (or.imp (H _ _) (congr_arg _)), H _ _⟩
+
 lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [linear_order β] {a b : α} {c d : β} :
   (a ≤ b → c ≤ d) ↔ (d < c → b < a) :=
 ⟨λ H h, lt_of_not_ge $ λ h', not_lt_of_ge (H h') h,

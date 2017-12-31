@@ -110,3 +110,10 @@ let f' : (α → γ) → (β → γ) := λf b, if h : ∃c, e c = b then f (clas
 
 end embedding
 end function
+
+namespace set
+
+def embedding_of_subset {α} {s t : set α} (h : s ⊆ t) : s ↪ t :=
+⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by congr; injection h⟩
+
+end set

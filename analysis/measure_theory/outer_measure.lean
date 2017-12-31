@@ -121,6 +121,7 @@ parameters {α : Type u} (m : outer_measure α)
 include m
 
 local notation `μ` := m.measure_of
+local attribute [simp] set.inter_comm set.inter_left_comm set.inter_assoc
 
 variables {s s₁ s₂ : set α}
 

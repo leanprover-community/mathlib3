@@ -17,6 +17,8 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
 noncomputable def quot.out {r : α → α → Prop} (q : quot r) : α :=
 classical.some (quot.exists_rep q)
 
+meta def quot.unquot {r : α → α → Prop} : quot r → α := unchecked_cast
+
 @[simp] theorem quot.out_eq {r : α → α → Prop} (q : quot r) : quot.mk r q.out = q :=
 classical.some_spec (quot.exists_rep q)
 

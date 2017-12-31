@@ -625,7 +625,7 @@ instance separated_regular [separated α] : regular_space α :=
     have closure e ∈ (nhds a).sets, from (nhds a).upwards_sets (mem_nhds_left hd) subset_closure,
     have nhds a ⊓ principal (-closure e) = ⊥,
       from (@inf_eq_bot_iff_le_compl _ _ _ (principal (- closure e)) (principal (closure e))
-        (by simp [principal_univ]) (by simp)).mpr (by simp [this]),
+        (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
     ⟨- closure e, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
   ..separated_t2 }
 
@@ -1114,7 +1114,7 @@ have h_ex : ∀s∈(@uniformity (Cauchy α) _).sets, ∃y:α, (f, pure_cauchy y)
         ht'₂ $ prod_mk_mem_comp_rel (@h (a, x) ⟨h₁, hx⟩) h₂⟩,
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
 begin
-  simp [closure_eq_nhds, nhds_eq_uniformity, lift'_inf_principal_eq],
+  simp [closure_eq_nhds, nhds_eq_uniformity, lift'_inf_principal_eq, set.inter_comm],
   exact (lift'_neq_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in

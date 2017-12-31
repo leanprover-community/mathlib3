@@ -475,6 +475,17 @@ protected def union {α} {s t : set α} [decidable_pred s] (H : s ∩ t = ∅) :
  λ o, by rcases o with ⟨x, h⟩ | ⟨x, h⟩; simp [union._match_1, union._match_2, h];
    simp [show x ∉ s, from λ h', eq_empty_iff_forall_not_mem.1 H _ ⟨h', h⟩]⟩
 
+protected def singleton {α} (a : α) : ({a} : set α) ≃ unit :=
+⟨λ _, (), λ _, ⟨a, mem_singleton _⟩,
+ λ ⟨x, h⟩, by simp at h; subst x,
+ λ ⟨⟩, rfl⟩
+ 
+protected def insert {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s) :
+  (insert a s : set α) ≃ (s ⊕ unit) :=
+by rw ← union_singleton; exact
+(set.union $ inter_singleton_eq_empty.2 H).trans
+  (sum_congr (equiv.refl _) (set.singleton _))
+
 protected def sum_compl {α} (s : set α) [decidable_pred s] :
   (s ⊕ (-s : set α)) ≃ α :=
 (set.union (inter_compl_self _)).symm.trans

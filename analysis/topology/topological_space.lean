@@ -58,7 +58,7 @@ end
 variables [topological_space α]
 
 lemma is_open_union (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∪ s₂) :=
-have (⋃₀ {s₁, s₂}) = (s₁ ∪ s₂), by simp,
+have (⋃₀ {s₁, s₂}) = (s₁ ∪ s₂), by simp [union_comm],
 this ▸ is_open_sUnion $ show ∀(t : set α), t ∈ ({s₁, s₂} : set (set α)) → is_open t,
   by finish
 
@@ -355,9 +355,9 @@ have nhds a ⊓ principal (s ∩ t) ≠ ⊥,
 by rw [closure_eq_nhds]; assumption
 
 lemma closure_diff {s t : set α} : closure s - closure t ⊆ closure (s - t) :=
-calc closure s \ closure t = (- closure t) ∩ closure s : by simp [diff_eq]
+calc closure s \ closure t = (- closure t) ∩ closure s : by simp [diff_eq, inter_comm]
   ... ⊆ closure (- closure t ∩ s) : closure_inter_open $ is_open_compl_iff.mpr $ is_closed_closure
-  ... = closure (s \ closure t) : by simp [diff_eq]
+  ... = closure (s \ closure t) : by simp [diff_eq, inter_comm]
   ... ⊆ closure (s \ t) : closure_mono $ diff_subset_diff (subset.refl s) subset_closure
 
 lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
@@ -409,7 +409,7 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
     simp,
     intro x,
     simp [not_eq_empty_iff_exists],
-    exact assume xt ht i xfi, ht i x xt xfi xfi
+    exact assume xt ht i xfi, ht i x xfi xt xfi
   end
 
 end locally_finite

@@ -187,7 +187,7 @@ begin rw insert_eq, simp [bInter_union] end
 
 theorem bInter_pair (a b : α) (s : α → set β) :
   (⋂ x ∈ ({a, b} : set α), s x) = s a ∩ s b :=
-by rw insert_of_has_insert; simp
+by rw insert_of_has_insert; simp [inter_comm]
 
 @[simp] theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
 supr_emptyset
@@ -210,7 +210,7 @@ begin rw [insert_eq], simp [bUnion_union] end
 
 theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=
-by rw insert_of_has_insert; simp
+by rw insert_of_has_insert; simp [union_comm]
 
 @[reducible] def sInter (S : set (set α)) : set α := Inf S
 

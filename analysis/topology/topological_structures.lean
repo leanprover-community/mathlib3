@@ -346,7 +346,7 @@ calc nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}
       rw [inf_comm],
       apply binfi_inf hu
     end
-  ... = _ : by simp; refl
+  ... = _ : by simp [inter_comm]; refl
 
 lemma tendsto_orderable_unbounded {f : β → α} {a : α} {x : filter β}
   (hu : ∃u, a < u) (hl : ∃l, l < a) (h : ∀l u, l < a → a < u → {b | l < f b ∧ f b < u } ∈ x.sets) :
@@ -683,7 +683,7 @@ begin
       exact lt_of_add_lt_add_right this } },
   { have h : {b | abs (a + -b) < r} = {b | a - r < b} ∩ {b | b < a + r},
       from set.ext (assume b,
-        by simp [abs_lt, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm, sub_lt, lt_sub_iff]),
+        by simp [abs_lt, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm, sub_lt, lt_sub_iff, and_comm]),
     rw [h, ← inf_principal],
     apply le_inf _ _,
     { exact infi_le_of_le {b : α | a - r < b} (infi_le_of_le (sub_lt_self a hr) $

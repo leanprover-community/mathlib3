@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import tactic.interactive logic.basic data.sigma data.sum data.set.basic
+import tactic.interactive logic.basic data.sigma data.sum data.set.basic algebra.order
 open function
 
 /- TODO: automatic construction of dual definitions / theorems -/
@@ -140,7 +140,43 @@ def is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=
 def is_strict_order.swap (r) [is_strict_order α r] : is_strict_order α (swap r) :=
 ⟨is_irrefl.swap r, is_trans.swap r⟩
 
+def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
+{ le := λ x y, x = y ∨ r x y,
+  lt := r,
+  le_refl := λ x, or.inl rfl,
+  le_trans := λ x y z h₁ h₂,
+    match y, z, h₁, h₂ with
+    | _, _, or.inl rfl, h₂ := h₂
+    | _, _, h₁, or.inl rfl := h₁
+    | _, _, or.inr h₁, or.inr h₂ := or.inr (trans h₁ h₂)
+    end,
+  le_antisymm := λ x y h₁ h₂,
+    match y, h₁, h₂ with
+    | _, or.inl rfl, h₂ := rfl
+    | _, h₁, or.inl rfl := rfl
+    | _, or.inr h₁, or.inr h₂ := (asymm h₁ h₂).elim
+    end,
+  lt_iff_le_not_le := λ x y,
+    ⟨λ h, ⟨or.inr h, not_or
+      (λ e, by rw e at h; exact irrefl _ h)
+      (asymm h)⟩,
+    λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
+
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop) extends is_trichotomous α lt, is_strict_order α lt : Prop.
+
+def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
+{ le_total := λ x y,
+    match y, trichotomous_of r x y with
+    | y, or.inl h := or.inl (or.inr h)
+    | _, or.inr (or.inl rfl) := or.inl (or.inl rfl)
+    | _, or.inr (or.inr h) := or.inr (or.inr h)
+    end,
+  ..partial_order_of_SO r }
+
+def decidable_linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] : decidable_linear_order α :=
+by let := linear_order_of_STO' r; exact
+{ decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
+  ..this }
 
 def is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (swap r) :=
 ⟨λ a b, by simpa [swap, or_comm, or.left_comm] using @trichotomous _ r _ a b⟩

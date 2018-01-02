@@ -123,5 +123,10 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
+meta def congr_n : nat → tactic unit
+| 0     := failed
+| (n+1) := focus1 (try assumption >> congr_core >>
+  all_goals (try reflexivity >> try (congr_n n)))
+
 end interactive
 end tactic

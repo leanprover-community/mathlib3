@@ -7,7 +7,7 @@ Ordinal arithmetic.
 
 Ordinals are defined as equivalences of well-ordered sets by order isomorphism.
 -/
-import order.order_iso data.cardinal data.sum
+import order.order_iso set_theory.cardinal data.sum
 noncomputable theory
 
 open function cardinal
@@ -1725,6 +1725,12 @@ match o, o.out, o.out_eq, f :
   ⟨λ H i h, by simpa using H (enum r i h), λ H b, H _ _⟩
 end
 
+theorem bsup_type (r : α → α → Prop) [is_well_order α r] (f) :
+  bsup (type r) f = sup (λ a, f (typein r a) (typein_lt_type _ _)) :=
+eq_of_forall_ge_iff $ λ o,
+by rw [bsup_le, sup_le]; exact
+  ⟨λ H b, H _ _, λ H i h, by simpa using H (enum r i h)⟩
+
 theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
 bsup_le.1 (le_refl _) _ _
 
@@ -1999,6 +2005,9 @@ by simp [le_antisymm_iff]
 @[simp] theorem nat_cast_ne_zero {n : ℕ} : (n : ordinal) ≠ 0 ↔ n ≠ 0 :=
 not_congr nat_cast_eq_zero
 
+@[simp] theorem nat_cast_pos {n : ℕ} : (0 : ordinal) < n ↔ 0 < n :=
+by simpa using @nat_cast_lt 0 n
+
 @[simp] theorem nat_cast_sub {m n : ℕ} : ((m - n : ℕ) : ordinal) = m - n :=
 (_root_.le_total m n).elim
   (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
@@ -2155,6 +2164,36 @@ theorem add_absorp_iff {o : ordinal} (o0 : o > 0) : (∀ a < o, a + o = o) ↔ �
   simp [mul_add_one, this, IH]
 end⟩,
 λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_power⟩
+
+theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
+  (l : is_limit c)
+  (IH : ∀ c' < c, (a + b) * succ c' = a * succ c' + b) :
+  (a + b) * c = a * c :=
+le_antisymm
+  ((mul_le_of_limit l).2 $ λ c' h, begin
+    apply le_trans (mul_le_mul_left _ (le_of_lt $ lt_succ_self _)),
+    rw IH _ h,
+    apply le_trans (add_le_add_left _ _),
+    { rw ← mul_succ, exact mul_le_mul_left _ (succ_le.2 $ l.2 _ h) },
+    { rw ← ba, exact le_add_right _ _ }
+  end)
+  (mul_le_mul_right _ (le_add_right _ _))
+
+theorem add_mul_succ {a b : ordinal} (c) (ba : b + a = a) :
+  (a + b) * succ c = a * succ c + b :=
+begin
+  apply limit_rec_on c,
+  { simp },
+  { intros c IH,
+    rw [mul_succ, IH, ← add_assoc, add_assoc _ b, ba, ← mul_succ] },
+  { intros c l IH,
+    have := add_mul_limit_aux ba l IH,
+    rw [mul_succ, add_mul_limit_aux ba l IH, mul_succ, add_assoc] }
+end
+
+theorem add_mul_limit {a b c : ordinal} (ba : b + a = a)
+  (l : is_limit c) : (a + b) * c = a * c :=
+add_mul_limit_aux ba l (λ c' _, add_mul_succ c' ba)
 
 theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
 le_antisymm
@@ -2685,9 +2724,15 @@ theorem cof_sup_le {ι} (f : ι → ordinal) (H : ∀ i, f i < sup.{u u} f) :
   cof (sup.{u u} f) ≤ mk ι :=
 by simpa [cardinal.lift_id.{u u}] using cof_sup_le_lift.{u u} f H
 
-/-
-theorem cof_bsup_le_lift {o : ordinal} (f : Π a < o, ordinal) (H : ∀ i h, f i h < bsup o f) :
+theorem cof_bsup_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup o f) →
   cof (bsup o f) ≤ o.card.lift :=
-_-/
+induction_on o $ λ α r _ f H,
+by rw bsup_type; refine cof_sup_le_lift _ _;
+   rw ← bsup_type; intro a; apply H
+
+theorem cof_bsup_le {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup.{u u} o f) →
+  cof (bsup.{u u} o f) ≤ o.card :=
+induction_on o $ λ α r _ f H,
+by simpa [cardinal.lift_id.{u u}] using cof_bsup_le_lift.{u u} f H
 
 end ordinal

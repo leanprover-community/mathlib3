@@ -21,7 +21,7 @@ protected def cast : ℕ → α
 
 @[simp] theorem cast_zero : ((0 : ℕ) : α) = 0 := rfl
 
-@[simp] theorem cast_add_one (n : ℕ) : ((n + 1 : ℕ) : α) = n + 1 := rfl
+theorem cast_add_one (n : ℕ) : ((n + 1 : ℕ) : α) = n + 1 := rfl
 @[simp] theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := rfl
 end
 

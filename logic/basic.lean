@@ -207,6 +207,12 @@ if ha : a then or.inr (h ha) else or.inl ha
 theorem imp_iff_not_or [decidable a] : (a → b) ↔ (¬ a ∨ b) :=
 ⟨not_or_of_imp, or.neg_resolve_left⟩
 
+theorem imp_or_distrib [decidable a] : (a → b ∨ c) ↔ (a → b) ∨ (a → c) :=
+by simp [imp_iff_not_or, or.comm, or.left_comm]
+
+theorem imp_or_distrib' [decidable b] : (a → b ∨ c) ↔ (a → b) ∨ (a → c) :=
+by by_cases b; simp [h, or_iff_right_of_imp ((∘) false.elim)]
+
 theorem not_imp_of_and_not (h : a ∧ ¬ b) : ¬ (a → b) :=
 assume h₁, and.right h (h₁ (and.left h))
 

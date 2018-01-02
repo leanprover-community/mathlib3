@@ -304,3 +304,37 @@ finset.induction_on s (by simp [abs_zero]) $
 end discrete_linear_ordered_field
 
 end finset
+
+section group
+
+open list
+variables [group α] [group β]
+
+lemma mph_prod (f : α → β) (hom : is_group_hom f) (l : list α) :
+f (prod l) = prod (map f l) :=
+begin
+  induction l,
+  case nil :
+  { simp[group_hom.one hom] },
+  case cons : hd tl IH
+  { simp,
+    rw hom,
+    simp[IH] }
+end
+
+lemma anti_mph_prod (f : α → β) (anti_mph : is_group_anti_hom f) (l : list α) :
+f (prod l) = prod (map f (reverse l)) :=
+begin
+  induction l,
+  case nil :
+  { simp [group_anti_hom.one anti_mph] },
+  case cons : hd tl IH
+  { simp,
+    rw anti_mph,
+    simp[IH] }
+end
+
+-- Following lemma could also be proved directly by "by induction l; simp *"
+lemma inv_prod (l : list α) : (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) := 
+anti_mph_prod (λ x, x⁻¹) group_anti_hom.inv_is_group_anti_hom l
+end group

@@ -29,7 +29,7 @@ lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt
 @[simp] lemma not_le [linear_order α] {a b : α} : ¬ a ≤ b ↔ b < a := (lt_iff_not_ge b a).symm
 
 lemma lt_or_le [linear_order α] : ∀ a b : α, a < b ∨ b ≤ a := lt_or_ge
-lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ a > b := le_or_gt
+lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
 
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl

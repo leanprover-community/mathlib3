@@ -31,6 +31,12 @@ instance : decidable_eq empty := λa, a.elim
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
+/- Add an instance to "undo" coercion transitivity into a chain of coercions, because
+   most simp lemmas are stated with respect to simple coercions and will not match when
+   part of a chain. -/
+@[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
+  (a : α) : (a : γ) = (a : β) := rfl
+
 end miscellany
 
 /-

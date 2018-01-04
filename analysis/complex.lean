@@ -10,12 +10,11 @@ TODO: Add topology, and prove that the complexes are a topological ring.
 import analysis.real
 noncomputable theory
 
--- I have no idea about whether I should be proving that
+-- I am unclear about whether I should be proving that
 -- C is a field or a discrete field. As far as I am personally
--- concerned these structures are the same. I have gone for
--- a field which enables me to comment out the next line.
+-- concerned these structures are the same. 
 
---local attribute [instance] classical.decidable_inhabited classical.prop_decidable
+local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 
 structure complex : Type :=
 (re : ℝ) (im : ℝ)
@@ -43,8 +42,8 @@ theorem eq_iff_re_eq_and_im_eq (z w : complex) : z=w ↔ z.re=w.re ∧ z.im=w.im
 --exact eq_of_re_eq_and_im_eq _ _,
 --end
 
-lemma proj_re (r0 i0 : real) : (complex.mk r0 i0).re = r0 := rfl
-lemma proj_im (r0 i0 : real) : (complex.mk r0 i0).im = i0 := rfl
+lemma proj_re (r i : real) : (complex.mk r i).re = r := rfl
+lemma proj_im (r i : real) : (complex.mk r i).im = i := rfl
 
 local attribute [simp] eq_iff_re_eq_and_im_eq proj_re proj_im
 
@@ -54,8 +53,8 @@ protected def zero := of_real 0
 protected def one := of_real 1
 
 instance coe_real_complex : has_coe ℝ ℂ := ⟨of_real⟩
-instance has_zero_complex : has_zero complex := ⟨complex.zero⟩
-instance has_one_complex : has_one complex := ⟨complex.one⟩
+instance has_zero_complex : has_zero complex := ⟨of_real 0⟩
+instance has_one_complex : has_one complex := ⟨of_real 1⟩
 instance inhabited_complex : inhabited complex := ⟨complex.zero⟩ 
 
 @[simp] lemma coe_re (r:real) : ((↑r):complex).re = r := rfl
@@ -127,22 +126,22 @@ instance : add_comm_group complex :=
 lemma norm_squared_pos_of_nonzero (z : complex) (H : z ≠ 0) : norm_squared z > 0 :=
 begin -- far more painful than it should be but I need it for inverses
   suffices : z.re ≠ 0 ∨ z.im ≠ 0,
-    apply lt_of_le_of_ne,
-      exact add_nonneg (mul_self_nonneg _) (mul_self_nonneg _),
+  { apply lt_of_le_of_ne,
+    { exact add_nonneg (mul_self_nonneg _) (mul_self_nonneg _) },
     intro H2,
     cases this with Hre Him,
-      exact Hre (eq_zero_of_mul_self_add_mul_self_eq_zero (eq.symm H2)),
+    { exact Hre (eq_zero_of_mul_self_add_mul_self_eq_zero (eq.symm H2)) },
     unfold norm_squared at H2,rw [add_comm] at H2,
-    exact Him (eq_zero_of_mul_self_add_mul_self_eq_zero (eq.symm H2)),
+    exact Him (eq_zero_of_mul_self_add_mul_self_eq_zero (eq.symm H2)) },
   have : ¬ (z.re = 0 ∧ z.im = 0),
-    intro H2,
-    exact H (eq_of_re_eq_and_im_eq z 0 H2.left H2.right),
-  cases classical.em (z.re = 0) with Hre_eq Hre_ne,
-    right,
+  { intro H2,
+    exact H (eq_of_re_eq_and_im_eq z 0 H2.left H2.right) },
+  by_cases z0 : (z.re = 0),-- with Hre_eq,-- Hre_ne,
+  { right,
     intro H2,
     apply this,
-    exact ⟨Hre_eq,H2⟩,
-  left,assumption,
+    exact ⟨z0,H2⟩ },
+  { left,assumption }
 end
 
 lemma of_real_injective : function.injective of_real :=
@@ -284,13 +283,9 @@ instance : field complex :=
 theorem im_eq_zero_of_complex_nat (n : ℕ) : (n:complex).im = 0 :=
 begin
 induction n with d Hd,
-simp,
-simp [Hd],
+{ simp },
+{ simp [Hd] },
 end
-
-#print char_zero 
-theorem T : has_coe ℕ complex := by apply_instance
-#print nat.cast_coe
 
 theorem of_real_nat_eq_complex_nat {n : ℕ} : ↑(n:ℝ) = (n:complex) :=
 begin
@@ -324,6 +319,9 @@ begin
 end 
 
 /-
+
+I could never get this one working.
+
 theorem of_real_rat_eq_complex_rat {q : ℚ} : of_real (q:ℝ) = (q:complex) :=
 begin
 rw [rat.num_denom q], -- this line doesn't even work now. I don't even understand goal.
@@ -342,4 +340,3 @@ end
 -- TODO : instance : topological_ring complex := missing
 
 end complex
-

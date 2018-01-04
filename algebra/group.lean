@@ -323,49 +323,41 @@ by rw [add_comm]; exact ⟨le_add_of_sub_left_le, sub_left_le_of_le_add⟩
 
 end ordered_comm_group
 
+variables {β : Type*} [group α] [group β] {a b : α}
 
-variables { β : Type*} [group α] [group β] {a b : α}
-
-@[simp]
 def is_group_hom (f : α → β) : Prop :=
-∀ a b : α, f(a*b) = f(a)*f(b)
+∀ a b : α, f (a * b) = f a * f b
 
-namespace group_hom
-@[simp]
-lemma one { f : α → β } (H : is_group_hom f) : f 1 = 1 :=
-mul_self_iff_eq_one.1 (eq.symm (
-  calc f 1 = f (1*1)     : by simp
-       ... = (f 1)*(f 1) : by rw[H 1 1]))
+namespace is_group_hom
+variables {f : α → β} (H : is_group_hom f)
+include H
 
-@[simp]
-lemma inv { f : α → β } (H : is_group_hom f) : (f a)⁻¹ = f (a⁻¹) :=
-inv_eq_of_mul_eq_one (
-  calc (f a) * (f a⁻¹) = f (a * a⁻¹) : by rw[H a a⁻¹]
-                  ...  = f 1 : by simp
-                  ...  = 1   : by rw[one H])
+theorem mul : ∀ a b : α, f (a * b) = f a * f b := H
 
-end group_hom
+theorem one : f 1 = 1 :=
+mul_self_iff_eq_one.1 $ by simp [(H 1 1).symm]
 
-@[simp]
+theorem inv (a : α) : (f a)⁻¹ = f a⁻¹ :=
+inv_eq_of_mul_eq_one $ by simp [(H a a⁻¹).symm, one H]
+
+end is_group_hom
+
 def is_group_anti_hom (f : α → β) : Prop :=
-∀ a b : α, f(a*b) = f(b)*f(a)
+∀ a b : α, f (a * b) = f b * f a
 
-namespace group_anti_hom
-@[simp]
-lemma one { f : α → β } (H : is_group_anti_hom f) : f 1 = 1 :=
-mul_self_iff_eq_one.1 (eq.symm (
-  calc f 1 = f (1*1)     : by simp
-       ... = (f 1)*(f 1) : by rw[H 1 1]))
+namespace is_group_anti_hom
+variables {f : α → β} (H : is_group_anti_hom f)
+include H
 
-@[simp]
-lemma inv { f : α → β } (H : is_group_anti_hom f) : (f a)⁻¹ = f (a⁻¹) :=
-inv_eq_of_mul_eq_one (
-  calc (f a) * (f a⁻¹) = f (a⁻¹ * a) : by rw[H a⁻¹ a]
-                  ...  = f 1 : by simp
-                  ...  = 1   : by rw[one H])
+theorem mul : ∀ a b : α, f (a * b) = f b * f a := H
 
+theorem one : f 1 = 1 :=
+mul_self_iff_eq_one.1 $ by simp [(H 1 1).symm]
 
-lemma inv_is_group_anti_hom : is_group_anti_hom (λ x : α, x⁻¹) :=
+theorem inv (a : α) : (f a)⁻¹ = f a⁻¹ :=
+inv_eq_of_mul_eq_one $ by simp [(H a⁻¹ a).symm, one H]
+
+end is_group_anti_hom
+
+theorem inv_is_group_anti_hom : is_group_anti_hom (λ x : α, x⁻¹) :=
 mul_inv_rev
-
-end group_anti_hom

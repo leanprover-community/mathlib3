@@ -16,13 +16,40 @@ noncomputable theory
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+def metric_space.uniform_space_of_dist
+  (dist : α → α → ℝ)
+  (dist_self : ∀ x : α, dist x x = 0)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
+uniform_space.of_core {
+  uniformity := (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}),
+  refl       := le_infi $ assume ε, le_infi $
+    by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
+  comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
+    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos_of_pos_of_pos h two_pos) (subset.refl _)) $
+    have ∀ (a b c : α), dist a c < ε / 2 → dist c b < ε / 2 → dist a b < ε,
+      from assume a b c hac hcb,
+      calc dist a b ≤ dist a c + dist c b : dist_triangle _ _ _
+        ... < ε / 2 + ε / 2 : add_lt_add hac hcb
+        ... = ε : by rw [div_add_div_same, add_self_div_two],
+    by simpa [comp_rel],
+  symm       := tendsto_infi $ assume ε, tendsto_infi $ assume h,
+    tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal $ by simp [dist_comm] }
+
+/-- Metric space
+
+Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
+This is enforced in the type class definition, by extending the `uniform_space` structure. When
+instantiating a `metric_space` structure, the uniformity fields are not necessary, they will be
+filled in by default. -/
 class metric_space (α : Type u) extends uniform_space α : Type u :=
 (dist : α → α → ℝ)
 (dist_self : ∀ x : α, dist x x = 0)
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
 (dist_comm : ∀ x y : α, dist x y = dist y x)
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
-(uniformity_dist : uniformity = (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}))
+(uniformity_dist : uniformity = (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}) . control_laws_tac)
+(to_uniform_space := metric_space.uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 
 variables [metric_space α]
 
@@ -107,7 +134,7 @@ instance : metric_space ℝ :=
       let ⟨q, hq₁, hq₂⟩ := mem_uniformity_real_iff.mp hs in
       mem_infi_sets (of_rat q) $ mem_infi_sets (of_rat_lt.mpr hq₁) $
       assume ⟨r₁, r₂⟩, hq₂ r₁ r₂),
-  ..real.uniform_space }
+  to_uniform_space := real.uniform_space }
 
 theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
 let i : {ε:ℝ // ε>0} := ⟨1, zero_lt_one⟩ in

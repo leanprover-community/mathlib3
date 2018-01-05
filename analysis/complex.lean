@@ -35,13 +35,6 @@ theorem eq_of_re_eq_and_im_eq : ∀ (z w : complex), z.re=w.re → z.im=w.im →
 theorem eq_iff_re_eq_and_im_eq (z w : complex) : z=w ↔ z.re=w.re ∧ z.im=w.im :=
 ⟨λ H, ⟨by rw [H],by rw [H]⟩,λ H, eq_of_re_eq_and_im_eq _ _ H.left H.right⟩
 
-
---  begin
---split,
---  intro H,rw [H],split;trivial,
---exact eq_of_re_eq_and_im_eq _ _,
---end
-
 lemma proj_re (r i : real) : (complex.mk r i).re = r := rfl
 lemma proj_im (r i : real) : (complex.mk r i).im = i := rfl
 
@@ -64,8 +57,7 @@ def I : complex := {re := 0, im := 1}
 
 def conjugate (z : complex) : complex := {re := z.re, im := -(z.im)}
 
-def norm_squared : complex → real :=
-λ z, z.re*z.re+z.im*z.im
+def norm_squared (z : complex) : real := z.re*z.re+z.im*z.im
 
 protected def inv : complex → complex :=
 λ z,  { re := z.re / norm_squared z,
@@ -98,12 +90,8 @@ meta def crunch : tactic unit := do
 `[rw [eq_iff_re_eq_and_im_eq]],
 `[split;simp [add_mul,mul_add,mul_assoc]]
 
-meta def crunch2 : tactic unit := do 
-`[simp [add_mul, mul_add, eq_iff_re_eq_and_im_eq] {contextual:=tt}]
-
-
-meta def crunch3 : tactic unit := do 
-`[simp [add_mul, mul_add, mul_comm, mul_assoc, eq_iff_re_eq_and_im_eq] {contextual:=tt}]
+meta def crunch' : tactic unit := do 
+`[simp [add_mul, mul_add, mul_comm, mul_assoc, eq_iff_re_eq_and_im_eq,add_comm_group.add] {contextual:=tt}]
 
 instance : add_comm_group complex :=
 { add_comm_group .
@@ -156,32 +144,17 @@ lemma of_real_eq_coe (r : real) : of_real r = ↑r := rfl
 
 lemma of_real_neg (r : real) : -(r:complex) = ((-r:ℝ):complex) := by crunch
 
-lemma of_real_add (r s: real) : (r:complex) + (s:complex) = ((r+s):complex) := by crunch
+lemma of_real_add (r s: real) : (r:complex) + (s:complex) = ((r+s):complex) := rfl
 
-lemma of_real_sub (r s:real) : (r:complex) - (s:complex) = ((r-s):complex) := by crunch
+lemma of_real_sub (r s:real) : (r:complex) - (s:complex) = ((r-s):complex) := rfl
 
-lemma of_real_mul (r s:real) : (r:complex) * (s:complex) = ((r*s):complex) := by crunch
+lemma of_real_mul (r s:real) : (r:complex) * (s:complex) = ((r*s):complex) := rfl
 
-lemma of_real_inv (r:real) : (r:complex)⁻¹ = ((r⁻¹):complex) :=
-begin
-rw [eq_iff_re_eq_and_im_eq],
-split,
-  unfold has_inv.inv,
-  unfold has_inv.inv,
-end
+lemma of_real_inv (r:real) : (r:complex)⁻¹ = ((r⁻¹):complex) := rfl
 
 lemma of_real_abs_squared (r:real) : norm_squared (of_real r) = (abs r)*(abs r) :=
-begin
-rw [abs_mul_abs_self],
-  suffices : r*r+0*0=r*r,
-  exact this,
-  simp,
-end
+by simp [abs_mul_abs_self, norm_squared,of_real_eq_coe]
 
-#print field 
-
---set_option pp.all true
---set_option trace.simp_lemmas_cache true
 instance : field complex :=
 { --field .
   add              := (+), -- I need this!
@@ -198,25 +171,10 @@ instance : field complex :=
   inv              := has_inv.inv,
   mul_one          := by crunch,
   one_mul          := by crunch,
-  mul_comm         := by crunch3,
+  mul_comm         := by crunch',
   mul_assoc        := by crunch,
-  left_distrib := by begin
-    intros,
-    apply eq_of_re_eq_and_im_eq,
-    { rw [mul_re,add_re,add_re,add_im,mul_re,mul_re],
-    simp [add_mul,mul_add] },
-    { rw [mul_im,add_re,add_im,add_im,mul_im,mul_im],
-    simp [add_mul,mul_add] },
-  end,
---  left_distrib     := by crunch,
-  right_distrib    := by begin
-    intros,
-    apply eq_of_re_eq_and_im_eq,
-    { rw [mul_re,add_re,add_re,add_im,mul_re,mul_re],
-    simp [add_mul,mul_add] },
-    { rw [mul_im,add_re,add_im,add_im,mul_im,mul_im],
-    simp [add_mul,mul_add] },
-  end,
+  left_distrib     := by crunch',
+  right_distrib    := by crunch',
   zero_ne_one      := begin
     intro H,
     suffices : ((0:real):complex).re = ((1:real):complex).re,
@@ -282,9 +240,9 @@ instance : field complex :=
 
 theorem im_eq_zero_of_complex_nat (n : ℕ) : (n:complex).im = 0 :=
 begin
-induction n with d Hd,
-{ simp },
-{ simp [Hd] },
+  induction n with d Hd,
+  { simp },
+  { simp [Hd] },
 end
 
 theorem of_real_nat_eq_complex_nat {n : ℕ} : ↑(n:ℝ) = (n:complex) :=
@@ -340,3 +298,4 @@ end
 -- TODO : instance : topological_ring complex := missing
 
 end complex
+

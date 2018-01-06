@@ -94,6 +94,9 @@ have f (inv_fun f (f b)) = f b,
   from inv_fun_eq ⟨b, rfl⟩,
 hf this
 
+lemma inv_fun_surjective (hf : injective f) : surjective (inv_fun f) :=
+surjective_of_has_right_inverse ⟨_, left_inverse_inv_fun hf⟩
+
 lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_inverse_inv_fun hf
 
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=

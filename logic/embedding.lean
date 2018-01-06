@@ -94,9 +94,24 @@ def sum_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α �
 
 end sum
 
+section sigma
+open sigma
+
+def sigma_congr_right {α : Type*} {β γ : α → Type*} (e : ∀ a, β a ↪ γ a) : sigma β ↪ sigma γ :=
+⟨λ ⟨a, b⟩, ⟨a, e a b⟩, λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h, begin
+  injection h with h₁ h₂, subst a₂,
+  congr,
+  exact (e a₁).2 (eq_of_heq h₂)
+end⟩
+
+end sigma
+
+def Pi_congr_right {α : Sort*} {β γ : α → Sort*} (e : ∀ a, β a ↪ γ a) : (Π a, β a) ↪ (Π a, γ a) :=
+⟨λf a, e a (f a), λ f₁ f₂ h, funext $ λ a, (e a).inj (congr_fun h a)⟩
+
 def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w}
   (e : α ↪ β) : (γ → α) ↪ (γ → β) :=
-⟨λf d, e $ f $ d, assume f₁ f₂ h, funext $ assume d, e.inj $ @congr_fun _ _ _ _ h d⟩
+Pi_congr_right (λ _, e)
 
 noncomputable def arrow_congr_right {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
   (e : α ↪ β) : (α → γ) ↪ (β → γ) :=

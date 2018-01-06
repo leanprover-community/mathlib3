@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 
-Ordinal notations (constructive ordinal arithmetic).
+Ordinal notations (constructive ordinal arithmetic for ordinals < ε₀).
 -/
 import set_theory.ordinal data.pnat
 open ordinal
@@ -730,6 +730,9 @@ instance NF (o : nonote) : NF o.1 := o.2
 def mk (o : onote) [h : NF o] : nonote := ⟨o, h⟩
 
 noncomputable def repr (o : nonote) : ordinal := o.1.repr
+
+instance : has_to_string nonote := ⟨λ x, x.1.to_string⟩
+instance : has_repr nonote := ⟨λ x, x.1.repr'⟩
 
 instance : preorder nonote :=
 { le       := λ x y, repr x ≤ repr y,

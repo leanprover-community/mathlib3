@@ -31,6 +31,8 @@ def mk : Type u → cardinal := quotient.mk
 
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (mk α) := rfl
 
+@[simp] theorem mk_out (c : cardinal) : mk (c.out) = c := quotient.out_eq _
+
 instance : has_le cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ α ↪ β) $
   assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -78,9 +80,13 @@ instance : has_add cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α ⊕ β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.sum_congr e₁ e₂⟩⟩
 
+@[simp] theorem add_def (α β) : mk α + mk β = mk (α ⊕ β) := rfl
+
 instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.prod_congr e₁ e₂⟩⟩
+
+@[simp] theorem mul_def (α β) : mk α * mk β = mk (α × β) := rfl
 
 private theorem add_comm (a b : cardinal.{u}) : a + b = b + a :=
 quotient.induction_on₂ a b $ assume α β, quotient.sound ⟨equiv.sum_comm α β⟩
@@ -131,6 +137,8 @@ quotient.lift_on₂ a b (λα β, mk (β → α)) $ assume α₁ α₂ β₁ β�
 
 local notation a ^ b := cardinal.power a b
 
+@[simp] theorem power_def (α β) : mk α ^ mk β = mk (β → α) := rfl
+
 @[simp] theorem power_zero {a : cardinal} : a ^ 0 = 1 :=
 quotient.induction_on a $ assume α, quotient.sound ⟨
   equiv.trans (equiv.arrow_congr equiv.ulift (equiv.refl α)) $
@@ -157,6 +165,11 @@ quotient.induction_on a $ assume α heq,
   quotient.sound
     ⟨equiv.trans (equiv.arrow_congr (equiv.refl α) equiv.ulift) $ equiv.trans this equiv.ulift.symm⟩
 
+theorem power_ne_zero {a : cardinal} (b) : a ≠ 0 → a ^ b ≠ 0 :=
+quotient.induction_on₂ a b $ λ α β h,
+let ⟨a⟩ := ne_zero_iff_nonempty.1 h in
+ne_zero_iff_nonempty.2 ⟨λ _, a⟩
+
 theorem mul_power {a b c : cardinal} : (a * b) ^ c = a ^ c * b ^ c :=
 quotient.induction_on₃ a b c $ assume α β γ,
   quotient.sound ⟨equiv.arrow_prod_equiv_prod_arrow α β γ⟩
@@ -178,6 +191,9 @@ quot.induction_on a $ λ α, ⟨embedding.of_not_nonempty $ λ ⟨⟨a⟩⟩, a.
 
 theorem le_zero (a : cardinal) : a ≤ 0 ↔ a = 0 :=
 by simp [le_antisymm_iff, zero_le]
+
+theorem pos_iff_ne_zero {o : cardinal} : 0 < o ↔ o ≠ 0 :=
+by simp [lt_iff_le_and_ne, eq_comm, zero_le]
 
 theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
@@ -255,7 +271,7 @@ theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
 ⟨_, rfl⟩
 
 theorem min_le {ι I} (f : ι → cardinal) (i) : min I f ≤ f i :=
-by rw [← quotient.out_eq (min I f), ← quotient.out_eq (f i)]; exact
+by rw [← mk_out (min I f), ← mk_out (f i)]; exact
 let ⟨g⟩ := classical.some_spec
   (@embedding.injective_min _ (λ i, (f i).out) I) in
 ⟨g i⟩
@@ -275,6 +291,9 @@ protected theorem wf : @well_founded cardinal.{u} (<) :=
 
 instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
 
+instance wo : @is_well_order cardinal.{u} (<) :=
+⟨by apply_instance, cardinal.wf⟩
+
 def succ (c : cardinal) : cardinal :=
 @min {c' // c < c'} ⟨⟨_, cantor _⟩⟩ subtype.val 
 
@@ -284,6 +303,9 @@ by cases min_eq _ _ with s e; rw [succ, e]; exact s.2
 theorem succ_le {a b : cardinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _), λ h,
   by exact min_le _ (subtype.mk b h)⟩
+
+theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
+by rw [← not_le, succ_le, not_lt]
 
 theorem add_one_le_succ (c : cardinal) : c + 1 ≤ succ c :=
 begin
@@ -302,11 +324,23 @@ begin
     { refl } }
 end
 
-def sum {ι} (f : ι → cardinal) : cardinal := ⟦Σ i, (f i).out⟧
+def sum {ι} (f : ι → cardinal) : cardinal := mk Σ i, (f i).out
 
 theorem le_sum {ι} (f : ι → cardinal) (i) : f i ≤ sum f :=
 by rw ← quotient.out_eq (f i); exact
 ⟨⟨λ a, ⟨i, a⟩, λ a b h, eq_of_heq $ by injection h⟩⟩
+
+@[simp] theorem sum_mk {ι} (f : ι → Type*) : sum (λ i, mk (f i)) = mk (Σ i, f i) :=
+quot.sound ⟨equiv.sigma_congr_right $ λ i,
+  classical.choice $ quotient.exact $ quot.out_eq $ mk (f i)⟩
+
+theorem sum_const (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = mk ι * a :=
+quotient.induction_on a $ λ α, by simp; exact
+  quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩
+
+theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
+⟨embedding.sigma_congr_right $ λ i, classical.choice $
+  by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
 
 def sup {ι} (f : ι → cardinal) : cardinal :=
 @min {c // ∀ i, f i ≤ c} ⟨⟨sum f, le_sum f⟩⟩ (λ a, a.1)
@@ -318,6 +352,38 @@ theorem sup_le {ι} (f : ι → cardinal) (a) : sup f ≤ a ↔ ∀ i, f i ≤ a
 ⟨λ h i, le_trans (le_sup _ _) h,
  λ h, by dsimp [sup]; change a with (⟨a, h⟩:subtype _).1; apply min_le⟩
 
+theorem sup_le_sup {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sup f ≤ sup g :=
+(sup_le _ _).2 $ λ i, le_trans (H i) (le_sup _ _)
+
+theorem sup_le_sum {ι} (f : ι → cardinal) : sup f ≤ sum f :=
+(sup_le _ _).2 $ le_sum _
+
+theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ mk ι * sup.{u u} f :=
+by rw ← sum_const; exact sum_le_sum _ _ (le_sup _)
+
+def prod {ι : Type u} (f : ι → cardinal) : cardinal := mk (Π i, (f i).out)
+
+@[simp] theorem prod_mk {ι} (f : ι → Type*) : prod (λ i, mk (f i)) = mk (Π i, f i) :=
+quot.sound ⟨equiv.Pi_congr_right $ λ i,
+  classical.choice $ quotient.exact $ mk_out $ mk (f i)⟩
+
+theorem prod_const (ι : Type u) (a : cardinal.{u}) : prod (λ _:ι, a) = a ^ mk ι :=
+quotient.induction_on a $ by simp
+
+theorem prod_le_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : prod f ≤ prod g :=
+⟨embedding.Pi_congr_right $ λ i, classical.choice $
+  by have := H i; rwa [← mk_out (f i), ← mk_out (g i)] at this⟩
+
+theorem prod_ne_zero {ι} (f : ι → cardinal) : prod f ≠ 0 ↔ ∀ i, f i ≠ 0 :=
+begin
+  conv in (f _) {rw ← mk_out (f i)},
+  simp [prod, ne_zero_iff_nonempty, -mk_out, -ne.def],
+  exact ⟨λ ⟨F⟩ i, ⟨F i⟩, λ h, ⟨λ i, classical.choice (h i)⟩⟩,
+end
+
+theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 :=
+not_iff_not.1 $ by simpa using prod_ne_zero f
+
 def lift (c : cardinal.{u}) : cardinal.{max u v} :=
 quotient.lift_on c (λ α, ⟦ulift α⟧) $ λ α β ⟨e⟩,
 quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
@@ -328,8 +394,10 @@ theorem lift_umax : lift.{u (max u v)} = lift.{u v} :=
 funext $ λ a, quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans equiv.ulift.symm⟩
 
-@[simp] theorem lift_id (a : cardinal) : lift a = a :=
+theorem lift_id' (a : cardinal) : lift a = a :=
 quot.induction_on a $ λ α, quot.sound ⟨equiv.ulift⟩
+
+@[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
 @[simp] theorem lift_lift (a : cardinal) : lift.{(max u v) w} (lift.{u v} a) = lift.{u (max v w)} a :=
 quot.induction_on a $ λ α,
@@ -374,6 +442,9 @@ quotient.sound ⟨equiv.ulift.trans (equiv.prod_congr equiv.ulift equiv.ulift).s
 quotient.induction_on₂ a b $ λ α β, 
 quotient.sound ⟨equiv.ulift.trans (equiv.arrow_congr equiv.ulift equiv.ulift).symm⟩
 
+@[simp] theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a :=
+by simp [bit0]
+
 @[simp] theorem lift_min {ι I} (f : ι → cardinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
 let ⟨i, e⟩ := min_eq I (lift ∘ f) in
@@ -400,10 +471,22 @@ theorem lt_lift_iff {a : cardinal.{u}} {b : cardinal.{max u v}} :
       ⟨a', e, lift_lt.1 $ e.symm ▸ h⟩,
  λ ⟨a', e, h⟩, e ▸ lift_lt.2 h⟩
 
+@[simp] theorem lift_succ (a) : lift (succ a) = succ (lift a) :=
+le_antisymm
+  (le_of_not_gt $ λ h, begin
+    rcases lt_lift_iff.1 h with ⟨b, e, h⟩,
+    rw [lt_succ, ← lift_le, e] at h,
+    exact not_lt_of_le h (lt_succ_self _)
+  end)
+  (succ_le.2 $ lift_lt.2 $ lt_succ_self _)
+
 def omega : cardinal.{u} := lift (mk ℕ)
 
 theorem omega_ne_zero : omega ≠ 0 :=
 ne_zero_iff_nonempty.2 ⟨⟨0⟩⟩
+
+theorem omega_pos : 0 < omega :=
+pos_iff_ne_zero.2 omega_ne_zero
 
 @[simp] theorem lift_omega : lift omega = omega := lift_lift _
 
@@ -419,7 +502,7 @@ by induction n; simp *
 theorem lift_mk_fin (n : ℕ) : lift (mk (fin n)) = n := by simp
 
 theorem fintype_card (α : Type u) [fintype α] : mk α = fintype.card α :=
-by rw [← lift_mk_fin.{u}, ← lift_id.{u u} (mk α), lift_mk_eq.{u 0 u}];
+by rw [← lift_mk_fin.{u}, ← lift_id (mk α), lift_mk_eq.{u 0 u}];
    exact fintype.card_eq.1 (by simp)
 
 @[simp] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
@@ -444,6 +527,16 @@ le_antisymm (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _) (add_one_le_succ _)
 
 @[simp] theorem succ_zero : succ 0 = 1 :=
 by simpa using nat_succ 0
+
+theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
+by rw [← succ_le, (by simpa using nat_succ 1 : succ 1 = 2)] at hb;
+   exact lt_of_lt_of_le (cantor _) (power_le_power_right hb)
+
+theorem one_le_iff_pos {c : cardinal} : 1 ≤ c ↔ 0 < c :=
+by rw [← succ_zero, succ_le]
+
+theorem one_le_iff_ne_zero {c : cardinal} : 1 ≤ c ↔ c ≠ 0 :=
+by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
@@ -506,6 +599,24 @@ end
 theorem mul_lt_omega {a b : cardinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_mul]; apply nat_lt_omega
+end
+
+/-- König's theorem -/
+theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
+lt_of_not_ge $ λ ⟨F⟩, begin
+  have : inhabited (Π (i : ι), (g i).out),
+  { refine ⟨λ i, classical.choice $ ne_zero_iff_nonempty.1 _⟩,
+    rw mk_out,
+    exact ne_of_gt (lt_of_le_of_lt (zero_le _) (H i)) },
+  let G := inv_fun F,
+  have sG : surjective G := inv_fun_surjective F.2,
+  have : ∀ i, ¬ ∀ b, ∃ a, G ⟨i, a⟩ i = b,
+  { refine λ i h, not_le_of_lt (H i) _,
+    rw [← mk_out (f i), ← mk_out (g i)],
+    exact ⟨embedding.of_surjective h⟩ },
+  simp [classical.not_forall] at this,
+  exact let ⟨C, hc⟩ := axiom_of_choice this, ⟨⟨i, a⟩, h⟩ := sG C in
+  hc i a (congr_fun h _),
 end
 
 end cardinal

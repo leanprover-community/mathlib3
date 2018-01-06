@@ -272,6 +272,14 @@ def sum_equiv_sigma_bool (α β : Sort*) : (α ⊕ β) ≃ (Σ b: bool, cond b �
 end
 
 section
+
+def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : ∀ a, β₁ a ≃ β₂ a) : (Π a, β₁ a) ≃ (Π a, β₂ a) :=
+⟨λ H a, F a (H a), λ H a, (F a).symm (H a),
+ λ H, funext $ by simp, λ H, funext $ by simp⟩
+
+end
+
+section
 def psigma_equiv_sigma {α} (β : α → Sort*) : psigma β ≃ sigma β :=
 ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 

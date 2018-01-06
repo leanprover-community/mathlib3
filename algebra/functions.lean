@@ -85,6 +85,8 @@ end
 section decidable_linear_ordered_comm_group
 variables [decidable_linear_ordered_comm_group α] {a b : α}
 
+attribute [simp] abs_zero abs_neg
+
 theorem abs_le : abs a ≤ b ↔ (- b ≤ a ∧ a ≤ b) :=
 ⟨assume h, ⟨neg_le_of_neg_le $ le_trans (neg_le_abs_self _) h, le_trans (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_le_of_le_of_neg_le h₂ $ neg_le_of_neg_le h₁⟩
@@ -97,3 +99,10 @@ lemma abs_lt : abs a < b ↔ (- b < a ∧ a < b) :=
 ⟨eq_zero_of_abs_eq_zero, λ e, e.symm ▸ abs_zero⟩
 
 end decidable_linear_ordered_comm_group
+
+section decidable_linear_ordered_comm_ring
+variables [decidable_linear_ordered_comm_ring α] {a b : α}
+
+@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
+
+end decidable_linear_ordered_comm_ring

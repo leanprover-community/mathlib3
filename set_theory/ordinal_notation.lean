@@ -641,8 +641,6 @@ begin
     simpa using mul_le_mul_right ω (one_le_iff_ne_zero.2 e0) }
 end
 
-set_option type_context.smart_unfolding true
-
 theorem repr_power_aux₂ {a0 a'} [N0 : NF a0] [Na' : NF a'] (m : ℕ)
   (d : ω ∣ repr a')
   (e0 : repr a0 ≠ 0) (h : repr a' + m < ω ^ repr a0) (n : ℕ+) (k : ℕ) :
@@ -706,6 +704,8 @@ begin
       rw [power_mul, power_succ],
       exact mul_le_mul_left _ (omega_le_oadd _ _ _) } }
 end
+
+set_option type_context.smart_unfolding true
 
 theorem repr_power (o₁ o₂) [NF o₁] [NF o₂] : repr (power o₁ o₂) = (repr o₁).power (repr o₂) :=
 begin

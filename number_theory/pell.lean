@@ -256,29 +256,26 @@ section
   show nonneg ⟨_, _⟩, by rw [neg_add_eq_sub]; rwa [int.sub_nat_nat_eq_coe,int.sub_nat_nat_eq_coe] at this
 
   theorem nonneg_add {a b : ℤ√d} (ha : nonneg a) (hb : nonneg b) : nonneg (a + b) :=
-  match a, b, nonneg_cases ha, nonneg_cases hb, ha, hb with
-  | ._, ._, ⟨x, y, or.inl rfl⟩,          ⟨z, w, or.inl rfl⟩,          ha, hb := trivial
-  | ._, ._, ⟨x, y, or.inl rfl⟩,          ⟨z, w, or.inr $ or.inr rfl⟩, ha, hb :=
-    nonnegg_cases_left (λi h, sq_le_of_le (int.le_of_coe_nat_le_coe_nat $
-      le_of_neg_le_neg $ @int.le.intro _ _ x (by simp *)) (nat.le_add_left _ _) $ nonnegg_neg_pos.1 hb)
-  | ._, ._, ⟨x, y, or.inl rfl⟩,          ⟨z, w, or.inr $ or.inl rfl⟩, ha, hb :=
-    nonnegg_cases_left (λi h, sq_le_of_le (int.le_of_coe_nat_le_coe_nat $
-      le_of_neg_le_neg $ @int.le.intro _ _ y (by simp *)) (nat.le_add_left _ _) $ nonnegg_pos_neg.1 hb)
-  | ._, ._, ⟨x, y, or.inr $ or.inr rfl⟩, ⟨z, w, or.inl rfl⟩,          ha, hb :=
-    nonnegg_cases_left (λi h, sq_le_of_le (int.le_of_coe_nat_le_coe_nat $
-      le_of_neg_le_neg $ @int.le.intro _ _ z (by simp *)) (nat.le_add_right _ _) $ nonnegg_pos_neg.1 ha)
-  | ._, ._, ⟨x, y, or.inr $ or.inl rfl⟩, ⟨z, w, or.inl rfl⟩,          ha, hb :=
-    nonnegg_cases_left (λi h, sq_le_of_le (int.le_of_coe_nat_le_coe_nat $
-      le_of_neg_le_neg $ @int.le.intro _ _ w (by simp *)) (nat.le_add_right _ _) $ nonnegg_pos_neg.1 ha)
-  | ._, ._, ⟨x, y, or.inr $ or.inl rfl⟩, ⟨z, w, or.inr $ or.inl rfl⟩, ha, hb :=
-    let t := nonnegg_pos_neg.2 $ sq_le_add (nonnegg_pos_neg.1 ha) (nonnegg_pos_neg.1 hb) in
-    by rw [int.coe_nat_add, int.coe_nat_add, neg_add] at t; exact t
-  | ._, ._, ⟨x, y, or.inr $ or.inr rfl⟩, ⟨z, w, or.inr $ or.inr rfl⟩, ha, hb :=
-    let t := nonnegg_pos_neg.2 $ sq_le_add (nonnegg_pos_neg.1 ha) (nonnegg_pos_neg.1 hb) in
-    by rw [int.coe_nat_add, int.coe_nat_add, neg_add] at t; exact t
-  | ._, ._, ⟨x, y, or.inr $ or.inl rfl⟩, ⟨z, w, or.inr $ or.inr rfl⟩, ha, hb := nonneg_add_lem ha hb
-  | ._, ._, ⟨x, y, or.inr $ or.inr rfl⟩, ⟨z, w, or.inr $ or.inl rfl⟩, ha, hb :=
-    let t := nonneg_add_lem hb ha in by rwa add_comm at t
+  begin
+    rcases nonneg_cases ha with ⟨x, y, rfl|rfl|rfl⟩;
+    rcases nonneg_cases hb with ⟨z, w, rfl|rfl|rfl⟩; dsimp [add, nonneg] at ha hb ⊢,
+    { trivial },
+    { refine nonnegg_cases_right (λi h, sq_le_of_le _ _ (nonnegg_pos_neg.1 hb)),
+      { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ y (by simp *))) },
+      { apply nat.le_add_left } },
+    { refine nonnegg_cases_left (λi h, sq_le_of_le _ _ (nonnegg_neg_pos.1 hb)),
+      { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ x (by simp *))) },
+      { apply nat.le_add_left } },
+    { refine nonnegg_cases_right (λi h, sq_le_of_le _ _ (nonnegg_pos_neg.1 ha)),
+      { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ w (by simp *))) },
+      { apply nat.le_add_right } },
+    { simpa using nonnegg_pos_neg.2 (sq_le_add (nonnegg_pos_neg.1 ha) (nonnegg_pos_neg.1 hb)) },
+    { exact nonneg_add_lem ha hb },
+    { refine nonnegg_cases_left (λi h, sq_le_of_le _ _ (nonnegg_neg_pos.1 ha)),
+      { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ z (by simp *))) },
+      { apply nat.le_add_right } },
+    { rw [add_comm, add_comm ↑y], exact nonneg_add_lem hb ha },
+    { simpa using nonnegg_neg_pos.2 (sq_le_add (nonnegg_neg_pos.1 ha) (nonnegg_neg_pos.1 hb)) },
   end
 
   theorem le_refl (a : ℤ√d) : a ≤ a := show nonneg (a - a), by simp
@@ -353,12 +350,12 @@ section
   theorem nonneg_muld {a : ℤ√d} (ha : nonneg a) : nonneg (sqrtd * a) :=
   by refine match a, nonneg_cases ha, ha with
   | ._, ⟨x, y, or.inl rfl⟩,          ha := trivial
-  | ._, ⟨x, y, or.inr $ or.inl rfl⟩, ha := by simp; apply nonnegg_pos_neg.2;
+  | ._, ⟨x, y, or.inr $ or.inl rfl⟩, ha := by simp; apply nonnegg_neg_pos.2;
     simpa [sq_le, mul_comm, mul_left_comm] using
       nat.mul_le_mul_left d (nonnegg_pos_neg.1 ha)
   | ._, ⟨x, y, or.inr $ or.inr rfl⟩, ha := by simp; apply nonnegg_pos_neg.2;
     simpa [sq_le, mul_comm, mul_left_comm] using
-      nat.mul_le_mul_left d (nonnegg_pos_neg.1 ha)
+      nat.mul_le_mul_left d (nonnegg_neg_pos.1 ha)
   end
 
   theorem nonneg_mul_lem {x y : ℕ} {a : ℤ√d} (ha : nonneg a) : nonneg (⟨x, y⟩ * a) :=

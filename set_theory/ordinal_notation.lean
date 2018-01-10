@@ -69,10 +69,11 @@ by cases n; simp
 by simpa using repr_of_nat 1
 
 theorem omega_le_oadd (e n a) : ω ^ repr e ≤ repr (oadd e n a) :=
-le_trans
-  (by simpa using (mul_le_mul_iff_left $
-     power_pos (repr e) omega_pos).2 (nat_cast_le.2 n.2))
-  (le_add_right _ _)
+begin
+  unfold repr,
+  refine le_trans _ (le_add_right _ _),
+  simpa using (mul_le_mul_iff_left $ power_pos (repr e) omega_pos).2 (nat_cast_le.2 n.2)
+end
 
 theorem oadd_pos (e n a) : 0 < oadd e n a :=
 @lt_of_lt_of_le _ _ _ _ _ (power_pos _ omega_pos)
@@ -202,7 +203,10 @@ end
 theorem oadd_lt_oadd_3 {e n a₁ a₂}
   (h₁ : NF (oadd e n a₁)) (h₂ : NF (oadd e n a₂))
   (h : a₁ < a₂) : oadd e n a₁ < oadd e n a₂ :=
-(ordinal.add_lt_add_iff_left _).2 h
+begin
+  rw lt_def, unfold repr,
+  exact (ordinal.add_lt_add_iff_left _).2 h
+end
 
 theorem cmp_compares : ∀ (a b : onote) [NF a] [NF b], (cmp a b).compares a b
 | 0 0 h₁ h₂ := rfl
@@ -335,7 +339,8 @@ instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
   have := h₁.fst, have := nf.fst, have ee := cmp_compares e e',
   cases cmp e e'; simp [add],
   { rw [← add_assoc, @add_absorp _ (repr e') (ω ^ repr e' * (n':ℕ))],
-    { exact lt_of_le_of_lt (le_add_right _ _) (h₁.below_of_lt ee).repr_lt },
+    { have := (h₁.below_of_lt ee).repr_lt, unfold repr at this,
+      exact lt_of_le_of_lt (le_add_right _ _) this },
     { simpa using (mul_le_mul_iff_left $
         power_pos (repr e') omega_pos).2 (nat_cast_le.2 n'.pos) } },
   { change e = e' at ee, subst e',
@@ -606,12 +611,13 @@ theorem repr_power_aux₁ {e a} [Ne : NF e] [Na : NF a] {a' : ordinal}
 begin
   subst aa,
   have No := Ne.oadd n (Na.below_of_lt' h),
-  have := omega_le_oadd e n a,
+  have := omega_le_oadd e n a, unfold repr at this,
   refine le_antisymm _ (power_le_power_left _ this),
   apply (power_le_of_limit
     (ne_of_gt $ lt_of_lt_of_le (power_pos _ omega_pos) this) omega_is_limit).2,
   intros b l,
-  apply le_trans (power_le_power_left b $ le_of_lt (No.below_of_lt (lt_succ_self _)).repr_lt),
+  have := (No.below_of_lt (lt_succ_self _)).repr_lt, unfold repr at this,
+  apply le_trans (power_le_power_left b $ le_of_lt this),
   rw [← power_mul, ← power_mul],
   apply power_le_power_right omega_pos,
   cases le_or_lt ω (repr e) with h h,
@@ -641,7 +647,7 @@ begin
   have RR : R' = ω0 ^ k * (α' * m) + R,
   { by_cases m = 0; simp [h, R', power_aux, R, power_mul],
     { cases k; simp [power_aux] }, { refl } },
-  have α0 : 0 < α' := oadd_pos _ _ _,
+  have α0 : 0 < α', {simpa [α', lt_def, repr] using oadd_pos a0 n a'},
   have ω00 : 0 < ω0 ^ k := power_pos _ (power_pos _ omega_pos),
   have Rl : R < ω ^ (repr a0 * succ ↑k),
   { by_cases k0 : k = 0,
@@ -657,8 +663,8 @@ begin
     apply add_lt_omega_power,
     { simp [power_mul, ω0, power_add],
       rw [mul_lt_mul_iff_left ω00, ← ordinal.power_add],
-      refine mul_lt_omega_power rr0
-        ((No.below_of_lt _).repr_lt) (nat_lt_omega _),
+      have := (No.below_of_lt _).repr_lt, unfold repr at this,
+      refine mul_lt_omega_power rr0 this (nat_lt_omega _),
       simpa using (add_lt_add_iff_left (repr a0)).2 e0 },
     { refine lt_of_lt_of_le Rl (power_le_power_right omega_pos $
         mul_le_mul_left _ $ succ_le_succ.2 $ nat_cast_le.2 $ le_of_lt k.lt_succ_self) } },
@@ -684,7 +690,8 @@ begin
     { rw [← nat_cast_succ, add_mul_succ],
       apply add_absorp Rl,
       rw [power_mul, power_succ],
-      exact mul_le_mul_left _ (omega_le_oadd _ _ _) } }
+      apply mul_le_mul_left,
+      simpa [α', repr] using omega_le_oadd a0 n a' } }
 end
 
 theorem repr_power (o₁ o₂) [NF o₁] [NF o₂] : repr (power o₁ o₂) = (repr o₁).power (repr o₂) :=

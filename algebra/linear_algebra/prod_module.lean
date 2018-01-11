@@ -270,4 +270,8 @@ lemma is_basis_inl_union_inr {s : set β} {t : set γ}
   by rw [span_inl_union_inr]; exact assume ⟨b, c⟩, ⟨hs.2 b, ht.2 c⟩⟩
 
 end module
+
+instance [field α] [vector_space α β] [vector_space α γ] : vector_space α (β × γ) :=
+{..prod.module}
+
 end prod

@@ -911,7 +911,7 @@ tendsto_orderable
 protected lemma tsum_eq_supr_sum : (∑a, f a) = (⨆s:finset α, s.sum f) :=
 tsum_eq_is_sum ennreal.is_sum
 
-protected lemma tsum_sigma {β : α → Type*} {f : Πa, β a → ennreal} :
+protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ennreal) :
   (∑p:Σa, β a, f p.1 p.2) = (∑a, ∑b, f a b) :=
 tsum_sigma (assume b, ennreal.has_sum) ennreal.has_sum
 
@@ -919,9 +919,9 @@ protected lemma tsum_prod {f : α → β → ennreal} : (∑p:α×β, f p.1 p.2)
 let j : α × β → (Σa:α, β) := λp, sigma.mk p.1 p.2 in
 let i : (Σa:α, β) → α × β := λp, (p.1, p.2) in
 let f' : (Σa:α, β) → ennreal := λp, f p.1 p.2 in
-calc (∑p:α×β, f' (j p)) = (∑p:Σa:α, β, f' p) :
+calc (∑p:α×β, f' (j p)) = (∑p:Σa:α, β, f p.1 p.2) :
     tsum_eq_tsum_of_iso j i (assume ⟨a, b⟩, rfl) (assume ⟨a, b⟩, rfl)
-  ... = (∑a, ∑b, f a b) : ennreal.tsum_sigma
+   ... = (∑a, ∑b, f a b) : ennreal.tsum_sigma f
 
 protected lemma tsum_of_real {f : α → ℝ} (h : is_sum f r) (hf : ∀a, 0 ≤ f a) :
   (∑a, of_real (f a)) = of_real r :=

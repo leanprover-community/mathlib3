@@ -26,22 +26,9 @@ assume a b h, m_g (m_f h)
 
 end monotone
 
-section increasing
-variables [preorder α]
-
-definition increasing (f : α → α) := ∀a, a ≤ f a
-
-end increasing
-
-section decreasing
-variables [preorder α]
-
-definition decreasing (f : α → α) := ∀a, f a ≤ a
-end decreasing
-
 /- order instances -/
 
-def preorder_dual (o : preorder α) : preorder α :=
+def preorder.dual (o : preorder α) : preorder α :=
 { le       := λx y, y ≤ x,
   le_refl  := le_refl,
   le_trans := assume a b c h₁ h₂, le_trans h₂ h₁ }
@@ -51,20 +38,18 @@ instance preorder_fun {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)]
   le_refl  := assume a i, le_refl (a i),
   le_trans := assume a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
 
--- instance preorder_fun [preorder β] : preorder (α → β) := by apply_instance
-
 instance partial_order_fun {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] : partial_order (Πi, α i) :=
 { le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),
   ..preorder_fun }
 
-def partial_order_dual (wo : partial_order α) : partial_order α :=
+def partial_order.dual (wo : partial_order α) : partial_order α :=
 { le          := λx y, y ≤ x,
   le_refl     := le_refl,
   le_trans    := assume a b c h₁ h₂, le_trans h₂ h₁,
   le_antisymm := assume a b h₁ h₂, le_antisymm h₂ h₁ }
 
 theorem le_dual_eq_le {α : Type} (wo : partial_order α) (a b : α) :
-  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ (partial_order_dual wo))) a b =
+  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ wo.dual)) a b =
   @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ wo)) b a :=
 rfl
 

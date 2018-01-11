@@ -19,7 +19,7 @@ section
 variables [preorder α] [preorder β] {l : α → β} {u : β → α} (gc : galois_connection l u)
 
 lemma monotone_intro (hu : monotone u) (hl : monotone l)
-  (hul : increasing (u ∘ l)) (hlu : decreasing (l ∘ u)) : galois_connection l u :=
+  (hul : ∀ a, a ≤ u (l a)) (hlu : ∀ a, l (u a) ≤ a) : galois_connection l u :=
 assume a b, ⟨assume h, le_trans (hul _) (hu h), assume h, le_trans (hl h) (hlu _)⟩
 
 include gc
@@ -30,11 +30,11 @@ lemma l_le {a : α} {b : β} : a ≤ u b → l a ≤ b :=
 lemma le_u {a : α} {b : β} : l a ≤ b → a ≤ u b :=
 (gc _ _).mp
 
-lemma increasing_u_l : increasing (u ∘ l) :=
-assume a, gc.le_u $ le_refl _
+lemma increasing_u_l (a) : a ≤ u (l a) :=
+gc.le_u $ le_refl _
 
-lemma decreasing_l_u : decreasing (l ∘ u) :=
-assume a, gc.l_le $ le_refl _
+lemma decreasing_l_u (a) : l (u a) ≤ a :=
+gc.l_le $ le_refl _
 
 lemma monotone_u : monotone u :=
 assume a b H, gc.le_u (le_trans (gc.decreasing_l_u a) H)
@@ -144,7 +144,7 @@ by intros a b; rewrite gc2; rewrite gc1
 
 protected lemma dual [pα : preorder α] [pβ : preorder β]
   (l : α → β) (u : β → α) (gc : galois_connection l u) :
-  @galois_connection β α (preorder_dual pβ) (preorder_dual pα) u l :=
+  @galois_connection β α pβ.dual pα.dual u l :=
 assume a b, (gc _ _).symm
 
 protected lemma dfun {ι : Type u} {α : ι → Type v} {β : ι → Type w}
@@ -164,7 +164,7 @@ protected lemma image_preimage : galois_connection (image f) (preimage f) :=
 assume a b, image_subset_iff
 
 /- Move to set? -/
-definition kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s }
+def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
 
 protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=
 assume a b,

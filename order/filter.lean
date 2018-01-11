@@ -58,7 +58,7 @@ def upwards (s : set α) := ∀{x y}, x ∈ s → x ≼ y → y ∈ s
 end order
 
 theorem directed_of_chain {α : Type u} {β : Type v} [preorder β] {f : α → β} {c : set α}
-  (h : @zorn.chain α (λa b, f b ≤ f a) c) :
+  (h : zorn.chain (λa b, f b ≤ f a) c) :
   directed (≤) (λx:{a:α // a ∈ c}, f (x.val)) :=
 assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
   (assume : a = b, by simp [this]; exact ⟨b, hb, le_refl _⟩)
@@ -1391,14 +1391,14 @@ let
   r : τ → τ → Prop := λt₁ t₂, t₂.val ≤ t₁.val,
   ⟨a, ha⟩          := inhabited_of_mem_sets h univ_mem_sets,
   top : τ          := ⟨f, h, le_refl f⟩,
-  sup : Π(c:set τ), chain c → τ :=
+  sup : Π(c:set τ), chain r c → τ :=
     λc hc, ⟨⨅a:{a:τ // a ∈ insert top c}, a.val.val,
       infi_neq_bot_of_directed ⟨a⟩
         (directed_of_chain $ chain_insert hc $ assume ⟨b, _, hb⟩ _ _, or.inl hb)
         (assume ⟨⟨a, ha, _⟩, _⟩, ha),
       infi_le_of_le ⟨top, mem_insert _ _⟩ (le_refl _)⟩
 in
-have ∀c (hc: chain c) a (ha : a ∈ c), r a (sup c hc),
+have ∀c (hc: chain r c) a (ha : a ∈ c), r a (sup c hc),
   from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ (le_refl _),
 have (∃ (u : τ), ∀ (a : τ), r u a → r a u),
   from zorn (assume c hc, ⟨sup c hc, this c hc⟩) (assume f₁ f₂ f₃ h₁ h₂, le_trans h₂ h₁),

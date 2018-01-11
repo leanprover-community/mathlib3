@@ -342,7 +342,7 @@ private def agree_of_le {s t} : s ≤ t → ∀ {a b} sa sb ta tb,
   show f.to_order_embedding ⟨b, sb⟩ = ⟨b, tb⟩, from subtype.eq (hf ⟨b, sb⟩)]
 
 section
-parameters {c : set partial_wo} (hc : @zorn.chain _ (≤) c)
+parameters {c : set partial_wo} (hc : zorn.chain (≤) c)
 
 private def U := ⋃₀ ((λ x:partial_wo, x.1) '' c)
 

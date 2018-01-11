@@ -665,7 +665,7 @@ assume l hl eq, by_cases
 lemma exists_linear_independent (hs : linear_independent s) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span b ∧ linear_independent b :=
 let C := { b : set β // s ⊆ b ∧ b ⊆ t ∧ linear_independent b }, s' : C := ⟨s, le_refl s, hst, hs⟩ in
-have ∀c, @zorn.chain C (λa b, a.val ⊆ b.val) c → c ≠ ∅ → ∃(m : C), ∀a:C, a ∈ c → a.val ⊆ m.val, from
+have ∀c, zorn.chain (λa b:C, a.val ⊆ b.val) c → c ≠ ∅ → ∃(m : C), ∀a:C, a ∈ c → a.val ⊆ m.val, from
   assume c hc ne,
   let ⟨a, ha⟩ := exists_mem_of_ne_empty ne in
   ⟨⟨(⋃a ∈ c, (a : C).val),

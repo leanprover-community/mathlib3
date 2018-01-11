@@ -117,7 +117,7 @@ protected def mul : ennreal → ennreal → ennreal
 instance : has_add ennreal := ⟨ennreal.add⟩
 instance : has_mul ennreal := ⟨ennreal.mul⟩
 
-@[simp] lemma of_real_add_of_real (hr : 0 ≤ r) (hq : 0 ≤ p) :
+@[simp] lemma of_real_add (hr : 0 ≤ r) (hq : 0 ≤ p) :
   of_real r + of_real p = of_real (r + p) :=
 by simp [of_real, max, hr, hq, add_comm]; refl
 
@@ -144,13 +144,24 @@ forall_ennreal.mpr ⟨assume r hr, by simp [hr]; by_cases r = 0; simp [h], by si
 forall_ennreal.mpr ⟨assume r hr, by simp [hr]; by_cases r = 0; simp [h], by simp; refl⟩
 
 instance : add_comm_monoid ennreal :=
-{ add_comm_monoid .
-  zero := 0,
+{ zero := 0,
   add  := (+),
-  add_zero := by simp [forall_ennreal, -of_real_zero, of_real_zero.symm] {contextual:=tt},
-  zero_add := by simp [forall_ennreal, -of_real_zero, of_real_zero.symm] {contextual:=tt},
-  add_comm := by simp [forall_ennreal, le_add_of_le_of_nonneg] {contextual:=tt},
-  add_assoc := by simp [forall_ennreal, le_add_of_le_of_nonneg] {contextual:=tt} }
+  add_zero := forall_ennreal.2 ⟨λ a ha,
+    by rw [← of_real_zero, of_real_add ha (le_refl _), add_zero], by simp⟩,
+  zero_add := forall_ennreal.2 ⟨λ a ha,
+    by rw [← of_real_zero, of_real_add (le_refl _) ha, zero_add], by simp⟩,
+  add_comm := begin
+    refine forall_ennreal.2 ⟨λ a ha, _, by simp⟩,
+    refine forall_ennreal.2 ⟨λ b hb, _, by simp⟩,
+    rw [of_real_add ha hb, of_real_add hb ha, add_comm]
+  end,
+  add_assoc := begin
+    refine forall_ennreal.2 ⟨λ a ha, _, by simp⟩,
+    refine forall_ennreal.2 ⟨λ b hb, _, by simp⟩,
+    refine forall_ennreal.2 ⟨λ c hc, _, by simp⟩,
+    rw [of_real_add ha hb, of_real_add (add_nonneg ha hb) hc,
+        of_real_add hb hc, of_real_add ha (add_nonneg hb hc), add_assoc],
+  end }
 
 @[simp] lemma sum_of_real {α : Type*} {s : finset α} {f : α → ℝ} :
   (∀a∈s, 0 ≤ f a) → s.sum (λa, of_real (f a)) = of_real (s.sum f) :=
@@ -360,7 +371,7 @@ instance : canonically_ordered_monoid ennreal :=
 { le_iff_exists_add := by simp [forall_ennreal] {contextual:=tt}; exact
     λ r hr, ⟨λ p hp,
       ⟨λ h, ⟨of_real (p - r),
-        by rw [of_real_add_of_real (sub_nonneg.2 h) hr, sub_add_cancel]⟩,
+        by rw [of_real_add (sub_nonneg.2 h) hr, sub_add_cancel]⟩,
       λ ⟨c, hc⟩, by rw [← of_real_le_of_real_iff hr hp, hc]; exact le_add_left (le_refl _)⟩,
     ⟨∞, by simp⟩⟩,
   ..ennreal.ordered_comm_monoid }

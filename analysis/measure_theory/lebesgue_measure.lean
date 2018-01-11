@@ -91,7 +91,7 @@ have x = b,
   have of_real (y - a) ≤ s y,
     from calc of_real (y - a) = of_real (x - a) + of_real (y - x) :
       begin
-        rw [ennreal.of_real_add_of_real],
+        rw [ennreal.of_real_add],
         simp,
         repeat { simp [hax, hxy, -sub_eq_add_neg] }
       end

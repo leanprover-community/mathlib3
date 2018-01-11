@@ -17,10 +17,11 @@ local attribute [instance] prop_decidable
 namespace zorn
 
 section chain
-parameters {α : Type u} {r : α → α → Prop}
+parameters {α : Type u} (r : α → α → Prop)
 local infix ` ≺ `:50  := r
 
 def chain (c : set α) := pairwise_on c (λx y, x ≺ y ∨ y ≺ x)
+parameters {r}
 
 theorem chain.total_of_refl [is_refl α r]
   {c} (H : chain c) {x y} (hx : x ∈ c) (hy : y ∈ c) :

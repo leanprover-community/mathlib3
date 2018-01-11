@@ -69,7 +69,7 @@ theorem find_aux_iff {a : α} {b : β a} : Π {l : list Σ a, β a}, (l.map sigm
     suffices : b' = b ↔ b' = b ∨ sigma.mk a' b ∈ t, {simpa [find_aux, eq_comm]},
     refine (or_iff_left_of_imp (λ m, _)).symm,
     have : a' ∉ t.map sigma.fst, from list.not_mem_of_nodup_cons nd,
-    exact this.elim (list.mem_map_of_mem _ m) },
+    exact this.elim (list.mem_map_of_mem sigma.fst m) },
   { have : sigma.mk a b ≠ ⟨a', b'⟩,
     { intro e, injection e with e, exact h e.symm },
     simp at nd, simp [find_aux, h, ne.symm h, find_aux_iff, nd] }
@@ -378,14 +378,15 @@ begin
   rcases (reinsert_aux hash_fn t c.1 c.2).mem_as_list.1 m2 with ⟨i, im⟩,
   have : sigma.mk a b' ∉ array.read t i,
   { intro m3,
-    have : a ∈ list.map sigma.fst t.as_list := list.mem_map_of_mem _ (t.mem_as_list.2 ⟨_, m3⟩),
+    have : a ∈ list.map sigma.fst t.as_list :=
+      list.mem_map_of_mem sigma.fst (t.mem_as_list.2 ⟨_, m3⟩),
     exact dj (list.mem_map_of_mem sigma.fst m1) this },
   by_cases h : mk_idx n' (hash_fn c.1) = i,
   { subst h,
     have e : sigma.mk a b' = ⟨c.1, c.2⟩,
     { simpa [reinsert_aux, bucket_array.modify, array.read_write, this] using im },
     injection e with e, subst a,
-    exact nm1.elim (@list.mem_map_of_mem _ _ _ _ _ m1) },
+    exact nm1.elim (@list.mem_map_of_mem _ _ sigma.fst _ _ m1) },
   { apply this,
     simpa [reinsert_aux, bucket_array.modify, array.read_write_of_ne _ _ h] using im }
 end

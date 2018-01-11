@@ -599,7 +599,7 @@ let ⟨n, h, e⟩ := nth_le_of_mem h in ⟨n, by rw [nth_le_nth, e]⟩
 
 theorem nth_le_mem : ∀ (l : list α) n h, nth_le l n h ∈ l
 | (a :: l) 0     h := mem_cons_self _ _
-| (a :: l) (n+1) h := mem_cons_of_mem _ (nth_le_mem _ _ _)
+| (a :: l) (n+1) h := mem_cons_of_mem _ (nth_le_mem l _ _)
 
 theorem nth_mem {l : list α} {n a} (e : nth l n = some a) : a ∈ l :=
 let ⟨h, e⟩ := nth_eq_some.1 e in e ▸ nth_le_mem _ _ _

@@ -419,7 +419,7 @@ end locally_finite
 /- compact sets -/
 section compact
 
-/-- A set `s` is compact if every filter that contains `s` also contains every
+/-- A set `s` is compact if every filter that contains `s` also meets every
   neighborhood of some `a ∈ s`. -/
 def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ nhds a ≠ ⊥
 
@@ -654,6 +654,7 @@ end topological_space
 namespace topological_space
 variables {α : Type u}
 
+/-- The least topology containing a collection of basic sets. -/
 inductive generate_open (g : set (set α)) : set α → Prop
 | basic  : ∀s∈g, generate_open s
 | univ   : generate_open univ
@@ -742,7 +743,7 @@ lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → 
   assume ⟨t, ht, heq⟩, ⟨-t, ht, by simp [preimage_compl, heq.symm]⟩⟩
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
-  such that `s:set β` is open if the preimage of `s` is open. This is the coarsest topology that
+  such that `s:set β` is open if the preimage of `s` is open. This is the finest topology that
   makes `f` continuous. -/
 def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t : topological_space α) :
   topological_space β :=

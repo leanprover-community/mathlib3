@@ -18,11 +18,14 @@ variables {α : Type u} {β : Type v}
 namespace prod
 
 -- copied from parser
-@[simp] lemma mk.eta : ∀{p : α × β}, (p.1, p.2) = p
+@[simp] lemma mk.eta : ∀ p : α × β, (p.1, p.2) = p
 | (a, b) := rfl
 
 @[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩
+
+lemma ext {p q : α × β} : p = q ↔ p.1 = q.1 ∧ p.2 = q.2 :=
+by rw [← mk.eta p, ← mk.eta q, mk.inj_iff]
 
 /-- Swap the factors of a product. `swap (a, b) = (b, a)` -/
 def swap : α × β → β × α := λp, (p.2, p.1)

@@ -99,6 +99,9 @@ nonneg_of_mul_nonneg_left this two_pos
 theorem dist_pos_of_ne {x y : α} (h : x ≠ y) : dist x y > 0 :=
 lt_of_le_of_ne dist_nonneg (by simp * at *)
 
+theorem dist_le_zero_iff {x y : α} : dist x y ≤ 0 ↔ x = y :=
+by simpa [le_antisymm_iff, dist_nonneg] using @dist_eq_zero_iff _ _ x y
+
 theorem ne_of_dist_pos {x y : α} (h : dist x y > 0) : x ≠ y :=
 assume : x = y,
 have 0 < (0:real), by simp [this] at h; exact h,
@@ -239,3 +242,23 @@ end
 
 theorem is_open_metric : is_open s ↔ (∀x∈s, ∃ε>0, open_ball x ε ⊆ s) :=
 by simp [is_open_iff_nhds, mem_nhds_sets_iff_metric]
+
+instance prod.metric_space_max [metric_space α] [metric_space β] : metric_space (α × β) :=
+{ dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
+  dist_self := λ x, by simp,
+  eq_of_dist_eq_zero := λ x y h, begin
+    cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
+    exact prod.ext.2 ⟨dist_le_zero_iff.1 h₁, dist_le_zero_iff.1 h₂⟩
+  end,
+  dist_comm := λ x y, by simp [dist_comm],
+  dist_triangle := λ x y z, max_le
+    (le_trans (dist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
+    (le_trans (dist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
+  uniformity_dist := begin
+    refine prod_uniformity.trans _,
+    simp [uniformity_dist, vmap_infi],
+    rw ← infi_inf_eq, congr, funext,
+    rw ← infi_inf_eq, congr, funext,
+    simp [inf_principal, set_eq_def, max_lt_iff]
+  end,
+  to_uniform_space := prod.uniform_space }

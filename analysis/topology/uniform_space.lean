@@ -1382,6 +1382,11 @@ uniform_space.of_core_eq
       by rw [to_topological_space_sup, to_topological_space_vmap, to_topological_space_vmap]; refl
     ... = _ : by rw [uniform_space.to_core_to_topological_space])
 
+theorem prod_uniformity [uniform_space α] [uniform_space β] : @uniformity (α × β) _ =
+  uniformity.vmap (λp:(α × β) × α × β, (p.1.1, p.2.1)) ⊓
+  uniformity.vmap (λp:(α × β) × α × β, (p.1.2, p.2.2)) :=
+sup_uniformity
+
 lemma uniform_embedding_subtype_emb {α : Type*} {β : Type*} [uniform_space α] [uniform_space β]
   (p : α → Prop) {e : α → β} (ue : uniform_embedding e) (de : dense_embedding e) :
   uniform_embedding (de.subtype_emb p) :=

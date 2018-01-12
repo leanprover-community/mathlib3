@@ -346,7 +346,7 @@ le_antisymm
 
 attribute [ematch] le_refl
 
-theorem infi_inf_eq {f g : β → α} : (⨅ x, f x ⊓ g x) = (⨅ x, f x) ⊓ (⨅ x, g x) :=
+theorem infi_inf_eq {f g : ι → α} : (⨅ x, f x ⊓ g x) = (⨅ x, f x) ⊓ (⨅ x, g x) :=
 le_antisymm
   (le_inf
     (le_infi $ assume i, infi_le_of_le i inf_le_left)

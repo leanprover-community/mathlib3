@@ -325,6 +325,7 @@ end ordered_comm_group
 
 variables {β : Type*} [group α] [group β] {a b : α}
 
+/-- Predicate for group homomorphism. -/
 def is_group_hom (f : α → β) : Prop :=
 ∀ a b : α, f (a * b) = f a * f b
 
@@ -342,6 +343,8 @@ inv_eq_of_mul_eq_one $ by simp [(H a a⁻¹).symm, one H]
 
 end is_group_hom
 
+/-- Predicate for group anti-homomorphism, or a homomorphism
+  into the opposite group. -/
 def is_group_anti_hom (f : α → β) : Prop :=
 ∀ a b : α, f (a * b) = f b * f a
 

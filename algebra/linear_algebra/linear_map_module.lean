@@ -23,6 +23,7 @@ hpq _ $ some_spec _
 
 end classical
 
+/-- The type of linear maps `β → γ` between α-modules β and γ -/
 def linear_map {α : Type u} (β : Type v) (γ : Type w) [ring α] [module α β] [module α γ] :=
 subtype (@is_linear_map α β γ _ _ _)
 
@@ -45,6 +46,7 @@ lemma is_linear_map_coe : is_linear_map A := A.property
 
 /- kernel -/
 
+/-- Kernel of a linear map, i.e. the set of vectors mapped to zero by the map -/
 def ker (A : linear_map β γ) : set β := {y | A y = 0}
 
 section ker
@@ -71,6 +73,7 @@ end ker
 
 /- image -/
 
+/-- Image of a linear map, the set of vectors of the form `A x` for some β -/
 def im (A : linear_map β γ) : set γ := {x | ∃ y, A y = x}
 
 @[simp] lemma mem_im {A : linear_map β γ} {z : γ} :
@@ -222,6 +225,7 @@ def endomorphism_ring : ring (linear_map β β) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
 
+/-- The group of invertible linear maps from `β` to itself -/
 def general_linear_group :=
 @units (linear_map β β) (@ring.to_semiring _ (endomorphism_ring α β))
 

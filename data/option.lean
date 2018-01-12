@@ -40,13 +40,18 @@ by cases x; simp
 lemma is_some_iff_exists {x : option α} : is_some x ↔ ∃ a, x = some a :=
 by cases x; simp [is_some]; exact ⟨_, rfl⟩
 
+/-- inhabited `get` function. Returns `a` if the input is `some a`,
+  otherwise returns `default`. -/
 @[reducible] def iget [inhabited α] : option α → α
 | (some x) := x
-| none     := arbitrary α
+| none     := default α
 
+/-- `guard p a` returns `some a` if `p a` holds, otherwise `none`. -/
 def guard (p : α → Prop) [decidable_pred p] (a : α) : option α :=
 if p a then some a else none
 
+/-- `filter p o` returns `some a` if `o` is `some a`
+  and `p a` holds, otherwise `none`. -/
 def filter (p : α → Prop) [decidable_pred p] (o : option α) : option α :=
 o.bind (guard p)
 

@@ -83,6 +83,7 @@ by simp [subset_def, classical.not_forall]
 
 /- strict subset -/
 
+/-- `s ⊂ t` means that `s` is a strict subset of `t`, that is, `s ⊆ t` but `s ≠ t`. -/
 def strict_subset (s t : set α) := s ⊆ t ∧ s ≠ t
 
 instance : has_ssubset (set α) := ⟨strict_subset⟩
@@ -548,6 +549,8 @@ theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rf
 
 /- inverse image -/
 
+/-- The preimage of `s : set β` by `f : α → β`, written `f ⁻¹' s`,
+  is the set of `x : α` such that `f x ∈ s`. -/
 def preimage {α : Type u} {β : Type v} (f : α → β) (s : set β) : set α := {x | f x ∈ s}
 
 infix ` ⁻¹' `:80 := preimage
@@ -593,6 +596,8 @@ section image
 
 infix ` '' `:80 := image
 
+/-- Two functions `f₁ f₂ : α → β` are equal on `s`
+  if `f₁ x = f₂ x` for all `x ∈ a`. -/
 @[reducible] def eq_on (f1 f2 : α → β) (a : set α) : Prop :=
 ∀ x ∈ a, f1 x = f2 x
 
@@ -627,11 +632,11 @@ iff.intro
 theorem mono_image {f : α → β} {s t : set α} (h : s ⊆ t) : f '' s ⊆ f '' t :=
 assume x ⟨y, hy, y_eq⟩, y_eq ▸ mem_image_of_mem _ $ h hy
 
-def mem_image_elim {f : α → β} {s : set α} {C : β → Prop} (h : ∀ (x : α), x ∈ s → C (f x)) :
+theorem mem_image_elim {f : α → β} {s : set α} {C : β → Prop} (h : ∀ (x : α), x ∈ s → C (f x)) :
  ∀{y : β}, y ∈ f '' s → C y
 | ._ ⟨a, a_in, rfl⟩ := h a a_in
 
-def mem_image_elim_on {f : α → β} {s : set α} {C : β → Prop} {y : β} (h_y : y ∈ f '' s)
+theorem mem_image_elim_on {f : α → β} {s : set α} {C : β → Prop} {y : β} (h_y : y ∈ f '' s)
   (h : ∀ (x : α), x ∈ s → C (f x)) : C y :=
 mem_image_elim h h_y
 
@@ -808,6 +813,7 @@ subset.antisymm
   (ball_image_iff.mpr $ forall_range_iff.mpr mem_range_self)
 end range
 
+/-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y
 
 end set
@@ -819,6 +825,8 @@ section prod
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β}
 
+/-- The cartesian product `prod s t` is the set of `(a, b)`
+  such that `a ∈ s` and `b ∈ t`. -/
 protected def prod (s : set α) (t : set β) : set (α × β) :=
 {p | p.1 ∈ s ∧ p.2 ∈ t}
 

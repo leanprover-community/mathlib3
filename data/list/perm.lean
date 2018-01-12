@@ -11,6 +11,8 @@ namespace list
 universe variables uu vv
 variables {α : Type uu} {β : Type vv}
 
+/-- `perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
+  of each other. This is defined by induction using pairwise swaps. -/
 inductive perm : list α → list α → Prop
 | nil   : perm [] []
 | skip  : Π (x : α) {l₁ l₂ : list α}, perm l₁ l₂ → perm (x::l₁) (x::l₂)
@@ -36,8 +38,7 @@ attribute [trans] perm.trans
 theorem perm.eqv (α : Type) : equivalence (@perm α) :=
 mk_equivalence (@perm α) (@perm.refl α) (@perm.symm α) (@perm.trans α)
 
-attribute [instance]
-protected def is_setoid (α : Type) : setoid (list α) :=
+instance is_setoid (α : Type) : setoid (list α) :=
 setoid.mk (@perm α) (perm.eqv α)
 
 theorem perm_subset {l₁ l₂ : list α} (p : l₁ ~ l₂) : l₁ ⊆ l₂ :=
@@ -193,6 +194,9 @@ end
 
 section subperm
 
+/-- `subperm l₁ l₂`, denoted `l₁ <+~ l₂`, means that `l₁` is a sublist of
+  a permutation of `l₂`. This is an analogue of `l₁ ⊆ l₂` which respects
+  multiplicities of elements, and is used for the `≤` relation on multisets. -/
 def subperm (l₁ l₂ : list α) : Prop := ∃ l ~ l₁, l <+ l₂
 
 infix ` <+~ `:50 := subperm

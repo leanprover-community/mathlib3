@@ -78,7 +78,8 @@ section
 
 end
 
-@[simp] def swap : (α ⊕ β) → (β ⊕ α)
+/-- Swap the factors of a sum type -/
+@[simp] def swap : α ⊕ β → β ⊕ α
 | (inl a) := inr a
 | (inr b) := inl b
 

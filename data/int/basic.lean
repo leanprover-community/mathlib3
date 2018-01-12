@@ -556,7 +556,10 @@ by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]
 
+/-- Immediate successor of an integer: `succ n = n + 1` -/
 def succ (a : ℤ) := a + 1
+
+/-- Immediate predecessor of an integer: `pred n = n - 1` -/
 def pred (a : ℤ) := a - 1
 
 theorem nat_succ_eq_int_succ (n : ℕ) : (nat.succ n : ℤ) = int.succ n := rfl
@@ -835,6 +838,7 @@ variables {α : Type*}
 section
 variables [has_zero α] [has_one α] [has_add α] [has_neg α]
 
+/-- Canonical homomorphism from the integers to any ring(-like) structure `α` -/
 protected def cast : ℤ → α
 | (n : ℕ) := n
 | -[1+ n] := -(n+1)

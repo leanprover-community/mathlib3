@@ -367,6 +367,7 @@ end norm_num
 namespace tactic.interactive
 open norm_num interactive interactive.types
 
+/-- Basic version of `norm_num` that does not call `simp`. -/
 meta def norm_num1 (loc : parse location) : tactic unit :=
 do ns ← loc.get_locals,
    tt ← tactic.replace_at derive ns loc.include_goal
@@ -374,6 +375,9 @@ do ns ← loc.get_locals,
    when loc.include_goal $ try tactic.triv,
    when (¬ ns.empty) $ try tactic.contradiction
 
+/-- Normalize numerical expressions. Supports the operations
+  `+` `-` `*` `/` `^` `<` `≤` over ordered fields (or other
+  appropriate classes), as well as `-` `/` `%` over `ℤ` and `ℕ`. -/
 meta def norm_num (loc : parse location) : tactic unit :=
 let t := orelse' (norm_num1 loc) $ simp_core {} failed ff [] [] loc in
 t >> repeat t

@@ -11,6 +11,7 @@ namespace nat
 
 /- distance -/
 
+/-- Distance (absolute value of difference) between natural numbers. -/
 def dist (n m : ℕ) := (n - m) + (m - n)
 
 theorem dist.def (n m : ℕ) : dist n m = (n - m) + (m - n) := rfl

@@ -62,6 +62,8 @@ finset.smul_sum
 
 end finsupp
 
+/-- The type of linear coefficients, which are simply the finitely supported functions
+from the module `β` to the scalar ring `α`. -/
 @[reducible] def lc (α : Type u) (β : Type v) [ring α] [module α β] : Type (max u v) := β →₀ α
 
 namespace lc
@@ -120,6 +122,7 @@ variables [ring α] [module α β] [module α γ] [module α δ]
 variables {a a' : α} {s t : set β} {b b' b₁ b₂ : β}
 include α
 
+/-- Linear span of a set of vectors -/
 def span (s : set β) : set β := { x | ∃(v : lc α β), (∀x∉s, v x = 0) ∧ x = v.sum (λb a, a • b) }
 
 @[instance] lemma is_submodule_span : is_submodule (span s) :=
@@ -213,6 +216,7 @@ lemma linear_eq_on {f g : β → γ} (hf : is_linear_map f) (hg : is_linear_map 
     simp [this, h, hf.smul, hg.smul]
   end
 
+/-- Linearly independent set of vectors -/
 def linear_independent (s : set β) : Prop :=
 ∀l : lc α β, (∀x∉s, l x = 0) → l.sum (λv c, c • v) = 0 → l = 0
 
@@ -432,6 +436,7 @@ lemma linear_independent.eq_0_of_span : ∀a∈span s, f a = 0 → a = 0
 
 end
 
+/-- A set of vectors is a basis if it is linearly independent and all vectors are in the span -/
 def is_basis (s : set β) := linear_independent s ∧ (∀x, x ∈ span s)
 
 section is_basis

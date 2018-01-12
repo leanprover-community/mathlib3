@@ -25,6 +25,7 @@ section
 variable [m : measurable_space α]
 include m
 
+/-- `is_measurable s` means that `s` is measurable (in the ambient measure space on `α`) -/
 def is_measurable : set α → Prop := m.is_measurable
 
 lemma is_measurable_empty : is_measurable (∅ : set α) := m.is_measurable_empty
@@ -130,12 +131,14 @@ instance : partial_order (measurable_space α) :=
 
 section generated_from
 
+/-- The smallest σ-algebra containing a collection `s` of basic sets -/
 inductive generate_measurable (s : set (set α)) : set α → Prop
 | basic : ∀u∈s, generate_measurable u
 | empty : generate_measurable ∅
 | compl : ∀s, generate_measurable s → generate_measurable (-s)
 | union : ∀f:ℕ → set α, (∀n, generate_measurable (f n)) → generate_measurable (⋃i, f i)
 
+/-- Construct the smallest measure space containing a collection of basic sets -/
 def generate_from (s : set (set α)) : measurable_space α :=
 { is_measurable       := generate_measurable s,
   is_measurable_empty := generate_measurable.empty s,
@@ -227,6 +230,8 @@ end complete_lattice
 section functors
 variables {m m₁ m₂ : measurable_space α} {m' : measurable_space β} {f : α → β} {g : β → α}
 
+/-- The forward image of a measure space under a function. `map f m` contains the sets `s : set β`
+  whose preimage under `f` is measurable. -/
 protected def map (f : α → β) (m : measurable_space α) : measurable_space β :=
 { is_measurable       := λs, m.is_measurable $ f ⁻¹' s,
   is_measurable_empty := m.is_measurable_empty,
@@ -239,6 +244,8 @@ measurable_space_eq $ assume s, iff.refl _
 @[simp] lemma map_comp {f : α → β} {g : β → γ} : (m.map f).map g = m.map (g ∘ f) :=
 measurable_space_eq $ assume s, iff.refl _
 
+/-- The reverse image of a measure space under a function. `comap f m` contains the sets `s : set α`
+  such that `s` is the `f`-preimage of a measurable set in `β`. -/
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
 { is_measurable       := λs, ∃s', m.is_measurable s' ∧ f ⁻¹' s' = s,
   is_measurable_empty := ⟨∅, m.is_measurable_empty, rfl⟩,
@@ -320,6 +327,8 @@ end measurable_space
 section measurable_functions
 open measurable_space
 
+/-- A function `f` between measurable spaces is measurable if the preimage of every
+  measurable set is measurable. -/
 def measurable [m₁ : measurable_space α] [m₂ : measurable_space β] (f : α → β) : Prop :=
 m₂ ≤ m₁.map f
 

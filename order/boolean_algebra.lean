@@ -14,6 +14,12 @@ variables {α : Type u} {x y z w : α}
 
 namespace lattice
 
+/-- A distributive lattice is a lattice that satisfies any of four
+  equivalent distribution properties (of sup over inf or inf over sup,
+  on the left or right). A classic example of a distributive lattice
+  is the lattice of subsets of a set, and in fact this example is
+  generic in the sense that every distributive lattice is realizable
+  as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
 
@@ -57,6 +63,7 @@ instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_
 { le_sup_inf := assume a b c, le_of_eq max_min_distrib_left.symm,
   ..lattice.lattice_of_decidable_linear_order }
 
+/-- A bounded distributive lattice is exactly what it sounds like. -/
 class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
 
 lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c : α}
@@ -70,7 +77,10 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
     calc a ⊓ b ≤ b ⊓ c : by rw [inf_comm]; exact inf_le_inf (le_refl _) this
       ... = ⊥ : h₂⟩
 
-
+/-- A boolean algebra is a bounded distributive lattice with a
+  complementation operation `-` such that `x ⊓ - x = ⊥` and `x ⊔ - x = ⊤`.
+  This is a generalization of (classical) logic of propositions, or
+  the powerset lattice. -/
 class boolean_algebra α extends bounded_distrib_lattice α, has_neg α, has_sub α :=
 (inf_neg_eq_bot : ∀x:α, x ⊓ - x = ⊥)
 (sup_neg_eq_top : ∀x:α, x ⊔ - x = ⊤)

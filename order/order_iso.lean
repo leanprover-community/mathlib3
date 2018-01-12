@@ -16,6 +16,10 @@ structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → �
 
 infix ` ≼o `:50 := order_embedding
 
+/-- Given an order `R` on `β` and a function `f : α → β`,
+  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
+  It is the unique order on `α` making `f` an order embedding
+  (assuming `f` is injective). -/
 def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
 
 infix ` ⁻¹'o `:80 := order.preimage
@@ -46,51 +50,54 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : r ≼o s}, (e₁ : α → β) = e₂ 
 @[simp] theorem trans_apply : ∀ (f : r ≼o s) (g : s ≼o t) (a : α), (f.trans g) a = g (f a)
 | ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ a := rfl
 
+/-- An order embedding is also an order embedding between dual orders. -/
 def rsymm (f : r ≼o s) : swap r ≼o swap s :=
 ⟨f.to_embedding, λ a b, f.ord'⟩
 
+/-- If `f` is injective, then it is an order embedding from the
+  preimage order of `s` to `s`. -/
 def preimage (f : α ↪ β) (s : β → β → Prop) : f ⁻¹'o s ≼o s := ⟨f, λ a b, iff.rfl⟩
 
 theorem eq_preimage (f : r ≼o s) : r = f ⁻¹'o s :=
 by funext a b; exact propext f.ord'
 
-protected def is_irrefl : ∀ (f : r ≼o s) [is_irrefl β s], is_irrefl α r
+protected theorem is_irrefl : ∀ (f : r ≼o s) [is_irrefl β s], is_irrefl α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a h, H _ (o.1 h)⟩
 
-protected def is_refl : ∀ (f : r ≼o s) [is_refl β s], is_refl α r
+protected theorem is_refl : ∀ (f : r ≼o s) [is_refl β s], is_refl α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a, o.2 (H _)⟩
 
-protected def is_symm : ∀ (f : r ≼o s) [is_symm β s], is_symm α r
+protected theorem is_symm : ∀ (f : r ≼o s) [is_symm β s], is_symm α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b h, o.2 (H _ _ (o.1 h))⟩
 
-protected def is_asymm : ∀ (f : r ≼o s) [is_asymm β s], is_asymm α r
+protected theorem is_asymm : ∀ (f : r ≼o s) [is_asymm β s], is_asymm α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b h₁ h₂, H _ _ (o.1 h₁) (o.1 h₂)⟩
 
-protected def is_antisymm : ∀ (f : r ≼o s) [is_antisymm β s], is_antisymm α r
+protected theorem is_antisymm : ∀ (f : r ≼o s) [is_antisymm β s], is_antisymm α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b h₁ h₂, f.inj' (H _ _ (o.1 h₁) (o.1 h₂))⟩
 
-protected def is_trans : ∀ (f : r ≼o s) [is_trans β s], is_trans α r
+protected theorem is_trans : ∀ (f : r ≼o s) [is_trans β s], is_trans α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b c h₁ h₂, o.2 (H _ _ _ (o.1 h₁) (o.1 h₂))⟩
 
-protected def is_total : ∀ (f : r ≼o s) [is_total β s], is_total α r
+protected theorem is_total : ∀ (f : r ≼o s) [is_total β s], is_total α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o o).2 (H _ _)⟩
 
-protected def is_preorder : ∀ (f : r ≼o s) [is_preorder β s], is_preorder α r
+protected theorem is_preorder : ∀ (f : r ≼o s) [is_preorder β s], is_preorder α r
 | f ⟨H₁, H₂⟩ := by exact ⟨f.is_refl, f.is_trans⟩
 
-protected def is_partial_order : ∀ (f : r ≼o s) [is_partial_order β s], is_partial_order α r
+protected theorem is_partial_order : ∀ (f : r ≼o s) [is_partial_order β s], is_partial_order α r
 | f ⟨H₁, H₂⟩ := by exact ⟨f.is_preorder, f.is_antisymm⟩
 
-protected def is_linear_order : ∀ (f : r ≼o s) [is_linear_order β s], is_linear_order α r
+protected theorem is_linear_order : ∀ (f : r ≼o s) [is_linear_order β s], is_linear_order α r
 | f ⟨H₁, H₂⟩ := by exact ⟨f.is_partial_order, f.is_total⟩
 
-protected def is_strict_order : ∀ (f : r ≼o s) [is_strict_order β s], is_strict_order α r
+protected theorem is_strict_order : ∀ (f : r ≼o s) [is_strict_order β s], is_strict_order α r
 | f ⟨H₁, H₂⟩ := by exact ⟨f.is_irrefl, f.is_trans⟩
 
-protected def is_trichotomous : ∀ (f : r ≼o s) [is_trichotomous β s], is_trichotomous α r
+protected theorem is_trichotomous : ∀ (f : r ≼o s) [is_trichotomous β s], is_trichotomous α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o (or_congr f.inj'.eq_iff.symm o)).2 (H _ _)⟩
 
-protected def is_strict_total_order' : ∀ (f : r ≼o s) [is_strict_total_order' β s], is_strict_total_order' α r
+protected theorem is_strict_total_order' : ∀ (f : r ≼o s) [is_strict_total_order' β s], is_strict_total_order' α r
 | f ⟨H₁, H₂⟩ := by exact ⟨f.is_trichotomous, f.is_strict_order⟩
 
 protected theorem acc (f : r ≼o s) (a : α) : acc s (f a) → acc r a :=
@@ -100,12 +107,14 @@ begin
   exact ⟨_, λ a' h, IH (f a') (f.ord'.1 h) _ rfl⟩
 end
 
-protected def well_founded : ∀ (f : r ≼o s) (h : well_founded s), well_founded r
+protected theorem well_founded : ∀ (f : r ≼o s) (h : well_founded s), well_founded r
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
-protected def is_well_order : ∀ (f : r ≼o s) [is_well_order β s], is_well_order α r
+protected theorem is_well_order : ∀ (f : r ≼o s) [is_well_order β s], is_well_order α r
 | f ⟨H₁, H₂⟩ := by exact ⟨f.is_strict_total_order', f.well_founded H₂⟩
 
+/-- It suffices to prove `f` is monotone between strict orders
+  to show it is an order embedding. -/
 def of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β) (H : ∀ a b, r a b → s (f a) (f b)) : r ≼o s :=
 begin
   have := @is_irrefl_of_is_asymm β s _,
@@ -149,9 +158,11 @@ theorem well_founded_iff_no_descending_seq [is_strict_order α r] : well_founded
 
 end order_embedding
 
+/-- The inclusion map `fin n → ℕ` is an order embedding. -/
 def fin.val.order_embedding (n) : @order_embedding (fin n) ℕ (<) (<) :=
 ⟨⟨fin.val, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
 
+/-- The inclusion map `fin m → fin n` is an order embedding. -/
 def fin_fin.order_embedding {m n} (h : m ≤ n) : @order_embedding (fin m) (fin n) (<) (<) :=
 ⟨⟨λ ⟨x, h'⟩, ⟨x, lt_of_lt_of_le h' h⟩,
   λ ⟨a, _⟩ ⟨b, _⟩ h, by congr; injection h⟩,
@@ -160,6 +171,7 @@ def fin_fin.order_embedding {m n} (h : m ≤ n) : @order_embedding (fin m) (fin 
 instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 (fin.val.order_embedding _).is_well_order
 
+/-- An order isomorphism is an equivalence that is also an order embedding. -/
 structure order_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_equiv a) (to_equiv b))
 
@@ -209,6 +221,7 @@ rfl
 @[simp] theorem inverse_apply_apply : ∀ (e : r ≃o s) (x : α), e.symm (e x) = x
 | ⟨f₁, o₁⟩ x := by simp
 
+/-- Any equivalence lifts to an order isomorphism between `s` and its preimage. -/
 def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃o s := ⟨f, λ a b, iff.rfl⟩
 
 noncomputable def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
@@ -245,8 +258,10 @@ end⟩
 
 end order_iso
 
+/-- A subset `p : set α` embeds into `α` -/
 def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @subtype.eq _ _⟩
 
+/-- `subrel r p` is the inherited relation on a subset. -/
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
 @subtype.val _ p ⁻¹'o r 
 
@@ -267,6 +282,7 @@ order_embedding.is_well_order (subrel.order_embedding r p)
 
 end subrel
 
+/-- Restrict the codomain of an order embedding -/
 def order_embedding.cod_restrict (p : set β) (f : r ≼o s) (H : ∀ a, f a ∈ p) : r ≼o subrel s p :=
 ⟨f.to_embedding.cod_restrict p H, f.ord⟩
 

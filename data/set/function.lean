@@ -14,18 +14,19 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 
 /- maps to -/
 
-@[reducible] def maps_to (f : α → β) (a : set α) (b : set β) : Prop := ∀⦃x⦄, x ∈ a → f x ∈ b
+/-- `maps_to f a b` means that the image of `a` is contained in `b`. -/
+@[reducible] def maps_to (f : α → β) (a : set α) (b : set β) : Prop := a ⊆ f ⁻¹' b
 
 theorem maps_to_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
     (h₂ : maps_to f1 a b) :
   maps_to f2 a b :=
-λ x h, by rw [← h₁ _ h]; exact h₂ h
+λ x h, by rw [mem_preimage_eq, ← h₁ _ h]; exact h₂ h
 
 theorem maps_to_comp {g : β → γ} {f : α → β} {a : set α} {b : set β} {c : set γ}
    (h₁ : maps_to g b c) (h₂ : maps_to f a b) : maps_to (g ∘ f) a c :=
 λ x h, h₁ (h₂ h)
 
-theorem maps_to_univ_univ (f : α → β) : maps_to f univ univ :=
+theorem maps_to_univ (f : α → β) (a) : maps_to f a univ :=
 λ x h, trivial
 
 theorem image_subset_of_maps_to_of_subset {f : α → β} {a c : set α} {b : set β} (h₁ : maps_to f a b)
@@ -40,6 +41,7 @@ image_subset_of_maps_to_of_subset h (subset.refl _)
 
 /- injectivity -/
 
+/-- `f` is injective on `a` if the restriction of `f` to `a` is injective. -/
 @[reducible] def inj_on (f : α → β) (a : set α) : Prop :=
 ∀⦃x1 x2 : α⦄, x1 ∈ a → x2 ∈ a → f x1 = f x2 → x1 = x2
 
@@ -66,6 +68,7 @@ iff.intro (λ h _ _ _ _ heq, h heq) (λ h _ _ heq, h trivial trivial heq)
 
 /- surjectivity -/
 
+/-- `f` is surjective from `a` to `b` if `b` is contained in the image of `a`. -/
 @[reducible] def surj_on (f : α → β) (a : set α) (b : set β) : Prop := b ⊆ f '' a
 
 theorem surj_on_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
@@ -91,6 +94,7 @@ eq_of_subset_of_subset (image_subset_of_maps_to h₁) h₂
 
 /- bijectivity -/
 
+/-- `f` is bijective from `a` to `b` if `f` is injective on `a` and `f '' a = b`. -/
 @[reducible] def bij_on (f : α → β) (a : set α) (b : set β) : Prop :=
 maps_to f a b ∧ inj_on f a ∧ surj_on f a b
 
@@ -129,13 +133,13 @@ let ⟨gmap, ginj, gsurj⟩ := h₁, ⟨fmap, finj, fsurj⟩ := h₂ in
 lemma bijective_iff_bij_on_univ {f : α → β} : bijective f ↔ bij_on f univ univ :=
 iff.intro 
 (λ h, let ⟨inj, surj⟩ := h in 
-⟨maps_to_univ_univ f, iff.mp injective_iff_inj_on_univ inj, iff.mp surjective_iff_surj_on_univ surj⟩)
+⟨maps_to_univ f _, iff.mp injective_iff_inj_on_univ inj, iff.mp surjective_iff_surj_on_univ surj⟩)
 (λ h, let ⟨map, inj, surj⟩ := h in 
 ⟨iff.mpr injective_iff_inj_on_univ inj, iff.mpr surjective_iff_surj_on_univ surj⟩)
 
 /- left inverse -/
 
--- g is a left inverse to f on a
+/-- `g` is a left inverse to `f` on `a` means that `g (f x) = x` for all `x ∈ a`. -/
 @[reducible] def left_inv_on (g : β → α) (f : α → β) (a : set α) : Prop :=
 ∀ x ∈ a, g (f x) = x
 
@@ -171,7 +175,7 @@ calc
 
 /- right inverse -/
 
--- g is a right inverse to f on a
+/-- `g` is a right inverse to `f` on `b` if `f (g x) = x` for all `x ∈ b`. -/
 @[reducible] def right_inv_on (g : β → α) (f : α → β) (b : set β) : Prop :=
 left_inv_on f g b
 
@@ -216,7 +220,7 @@ calc
 
 /- inverses -/
 
--- g is an inverse to f viewed as a map from a to b
+/-- `g` is an inverse to `f` viewed as a map from `a` to `b` -/
 @[reducible] def inv_on (g : β → α) (f : α → β) (a : set α) (b : set β) : Prop :=
 left_inv_on g f a ∧ right_inv_on g f b
 

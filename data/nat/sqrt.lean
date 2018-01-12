@@ -29,6 +29,8 @@ def sqrt_aux : ℕ → ℕ → ℕ → ℕ
   | _ := sqrt_aux b' (div2 r) n
   end
 
+/-- `sqrt n` is the square root of a natural number `n`. If `n` is not a
+  perfect square, it returns the largest `k:ℕ` such that `k*k ≤ n`. -/
 def sqrt (n : ℕ) : ℕ :=
 match size n with
 | 0      := 0

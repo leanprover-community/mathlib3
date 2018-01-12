@@ -61,8 +61,10 @@ assume s t, assume h : s ⊆ t, image_subset _ h
 
 /- union and intersection over a family of sets indexed by a type -/
 
+/-- Indexed union of a family of sets -/
 @[reducible] def Union (s : ι → set β) : set β := supr s
 
+/-- Indexed intersection of a family of sets -/
 @[reducible] def Inter (s : ι → set β) : set β := infi s
 
 notation `⋃` binders `, ` r:(scoped f, Union f) := r
@@ -212,6 +214,7 @@ theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=
 by rw insert_of_has_insert; simp [union_comm]
 
+/-- Intersection of a set of sets. -/
 @[reducible] def sInter (S : set (set α)) : set α := Inf S
 
 prefix `⋂₀`:110 := sInter
@@ -486,6 +489,8 @@ end set
 
 section disjoint
 variable [semilattice_inf_bot α]
+/-- Two elements of a lattice are disjoint if their inf is the bottom element.
+  (This generalizes disjoint sets, viewed as members of the subset lattice.) -/
 def disjoint (a b : α) : Prop := a ⊓ b = ⊥
 
 theorem disjoint_symm {a b : α} : disjoint a b → disjoint b a :=

@@ -8,6 +8,9 @@ Computational realization of filters (experimental).
 import order.filter
 open set filter
 
+/-- A `cfilter α σ` is a realization of a filter (base) on `α`,
+  represented by a type `σ` together with operations for the top element and
+  the binary inf operation. -/
 structure cfilter (α σ : Type*) [partial_order α] :=
 (f : σ → α)
 (pt : σ)
@@ -25,6 +28,7 @@ instance : has_coe_to_fun (cfilter α σ) := ⟨_, cfilter.f⟩
 
 @[simp] theorem coe_mk (f pt inf h₁ h₂ a) : (@cfilter.mk α σ _ f pt inf h₁ h₂) a = f a := rfl
 
+/-- Map a cfilter to an equivalent representation type. -/
 def of_equiv (E : σ ≃ τ) : cfilter α σ → cfilter α τ
 | ⟨f, p, g, h₁, h₂⟩ :=
   { f            := λ a, f (E.symm a),
@@ -38,6 +42,8 @@ def of_equiv (E : σ ≃ τ) : cfilter α σ → cfilter α τ
 
 end
 
+/-- The filter represented by a `cfilter` is the collection of supersets of
+  elements of the filter base. -/
 def to_filter (F : cfilter (set α) σ) : filter α :=
 { sets            := {a | ∃ b, F b ⊆ a},
   exists_mem_sets := ⟨_, F.pt, subset.refl _⟩,
@@ -50,6 +56,7 @@ def to_filter (F : cfilter (set α) σ) : filter α :=
 
 end cfilter
 
+/-- A realizer for filter `f` is a cfilter which generates `f`. -/
 structure filter.realizer (f : filter α) :=
 (σ : Type*)
 (F : cfilter (set α) σ)
@@ -66,6 +73,7 @@ by cases F; subst f; simp
 def of_eq {f g : filter α} (e : f = g) (F : f.realizer) : g.realizer :=
 ⟨F.σ, F.F, F.eq.trans e⟩
 
+/-- A filter realizes itself. -/
 def of_filter (f : filter α) : f.realizer := ⟨f.sets,
 { f            := subtype.val,
   pt           := ⟨univ, univ_mem_sets⟩,
@@ -74,6 +82,7 @@ def of_filter (f : filter α) : f.realizer := ⟨f.sets,
   inf_le_right := λ ⟨x, h₁⟩ ⟨y, h₂⟩, inter_subset_right x y },
 filter_eq $ set.ext $ λ x, set_coe.exists.trans exists_sets_subset_iff⟩
 
+/-- Transfer a filter realizer to another realizer on a different base type. -/
 def of_equiv {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) : f.realizer :=
 ⟨τ, F.F.of_equiv E, by refine eq.trans _ F.eq; exact filter_eq (set.ext $ λ x,
 ⟨λ ⟨s, h⟩, ⟨E.symm s, by simpa using h⟩, λ ⟨t, h⟩, ⟨E t, by simp [h]⟩⟩)⟩
@@ -82,6 +91,7 @@ def of_equiv {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) : f.realizer :=
 @[simp] theorem of_equiv_F {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) (s : τ) :
   (F.of_equiv E).F s = F.F (E.symm s) := by delta of_equiv; simp
 
+/-- `unit` is a realizer for the principal filter -/
 protected def principal (s : set α) : (principal s).realizer := ⟨unit,
 { f            := λ _, s,
   pt           := (),
@@ -94,18 +104,21 @@ filter_eq $ set.ext $ λ x,
 @[simp] theorem principal_σ (s : set α) : (realizer.principal s).σ = unit := rfl
 @[simp] theorem principal_F (s : set α) (u : unit) : (realizer.principal s).F u = s := rfl
 
+/-- `unit` is a realizer for the top filter -/
 protected def top : (⊤ : filter α).realizer :=
 (realizer.principal _).of_eq principal_univ
 
 @[simp] theorem top_σ : (@realizer.top α).σ = unit := rfl
 @[simp] theorem top_F (u : unit) : (@realizer.top α).F u = univ := rfl
 
+/-- `unit` is a realizer for the bottom filter -/
 protected def bot : (⊥ : filter α).realizer :=
 (realizer.principal _).of_eq principal_empty
 
 @[simp] theorem bot_σ : (@realizer.bot α).σ = unit := rfl
 @[simp] theorem bot_F (u : unit) : (@realizer.bot α).F u = ∅ := rfl
 
+/-- Construct a realizer for `map m f` given a realizer for `f` -/
 protected def map (m : α → β) {f : filter α} (F : f.realizer) : (map m f).realizer := ⟨F.σ,
 { f            := λ s, image m (F.F s),
   pt           := F.F.pt,
@@ -118,6 +131,7 @@ exists_congr (λ s, image_subset_iff)⟩
 @[simp] theorem map_σ (m : α → β) {f : filter α} (F : f.realizer) : (F.map m).σ = F.σ := rfl
 @[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) : (F.map m).F s = image m (F.F s) := rfl
 
+/-- Construct a realizer for `vmap m f` given a realizer for `f` -/
 protected def vmap (m : α → β) {f : filter β} (F : f.realizer) : (vmap m f).realizer := ⟨F.σ,
 { f            := λ s, preimage m (F.F s),
   pt           := F.F.pt,
@@ -128,6 +142,7 @@ filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_vm
 ⟨λ ⟨s, h⟩, ⟨_, ⟨s, subset.refl _⟩, h⟩,
  λ ⟨y, ⟨s, h⟩, h₂⟩, ⟨s, subset.trans (preimage_mono h) h₂⟩⟩⟩
 
+/-- Construct a realizer for the sup of two filters -/
 protected def sup {f g : filter α} (F : f.realizer) (G : g.realizer) : (f ⊔ g).realizer := ⟨F.σ × G.σ,
 { f            := λ ⟨s, t⟩, F.F s ∪ G.F t,
   pt           := (F.F.pt, G.F.pt),
@@ -139,6 +154,7 @@ filter_eq $ set.ext $ λ x, by cases F; cases G; substs f g; simp [cfilter.to_fi
                ⟨t, subset.trans (subset_union_right _ _) h⟩⟩,
  λ ⟨⟨s, h₁⟩, ⟨t, h₂⟩⟩, ⟨s, t, union_subset h₁ h₂⟩⟩⟩
 
+/-- Construct a realizer for the inf of two filters -/
 protected def inf {f g : filter α} (F : f.realizer) (G : g.realizer) : (f ⊓ g).realizer := ⟨F.σ × G.σ,
 { f            := λ ⟨s, t⟩, F.F s ∩ G.F t,
   pt           := (F.F.pt, G.F.pt),
@@ -149,6 +165,7 @@ filter_eq $ set.ext $ λ x, by cases F; cases G; substs f g; simp [cfilter.to_fi
 ⟨λ ⟨s, t, h⟩, ⟨_, ⟨s, subset.refl _⟩, _, ⟨t, subset.refl _⟩, h⟩,
  λ ⟨y, ⟨s, h₁⟩, z, ⟨t, h₂⟩, h⟩, ⟨s, t, subset.trans (inter_subset_inter h₁ h₂) h⟩⟩⟩
 
+/-- Construct a realizer for the cofinite filter -/
 protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset α,
 { f            := λ s, {a | a ∉ s},
   pt           := ∅,
@@ -160,6 +177,7 @@ filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; exact
  λ ⟨fs⟩, ⟨(-x).to_finset, λ a (h : a ∉ (-x).to_finset),
   classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩⟩
 
+/-- Construct a realizer for filter bind -/
 protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) : (f.bind m).realizer :=
 ⟨Σ s : F.σ, Π i ∈ F.F s, (G i).σ,
 { f            := λ ⟨s, f⟩, ⋃ i ∈ F.F s, (G i).F (f i H),
@@ -181,6 +199,7 @@ filter_eq $ set.ext $ λ x, by cases F with _ F _; subst f; simp [cfilter.to_fil
   let ⟨f', h'⟩ := classical.axiom_of_choice (λ i:F s, (G i).mem_sets.1 (f i (h i.2))) in
   ⟨s, λ i h, f' ⟨i, h⟩, λ a ⟨_, ⟨i, rfl⟩, _, ⟨H, rfl⟩, m⟩, h' ⟨_, H⟩ m⟩⟩⟩
 
+/-- Construct a realizer for indexed supremum -/
 protected def Sup {f : α → filter β} (F : ∀ i, (f i).realizer) : (⨆ i, f i).realizer :=
 let F' : (⨆ i, f i).realizer :=
   ((realizer.bind realizer.top F).of_eq $
@@ -189,6 +208,7 @@ F'.of_equiv $ show (Σ u:unit, Π (i : α), true → (F i).σ) ≃ Π i, (F i).�
 ⟨λ⟨_,f⟩ i, f i ⟨⟩, λ f, ⟨(), λ i _, f i⟩,
  λ ⟨⟨⟩, f⟩, by dsimp; congr; simp, λ f, rfl⟩
 
+/-- Construct a realizer for the product of filters -/
 protected def prod {f g : filter α} (F : f.realizer) (G : g.realizer) : (f.prod g).realizer :=
 of_eq prod_def.symm $ (F.vmap _).inf (G.vmap _)
 

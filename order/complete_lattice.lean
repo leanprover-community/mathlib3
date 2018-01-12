@@ -14,20 +14,29 @@ variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂}
 
 namespace lattice
 
+/-- class for the `Sup` operator -/
 class has_Sup (α : Type u) := (Sup : set α → α)
+/-- class for the `Inf` operator -/
 class has_Inf (α : Type u) := (Inf : set α → α)
+/-- Supremum of a set -/
 def Sup [has_Sup α] : set α → α := has_Sup.Sup
+/-- Infimum of a set -/
 def Inf [has_Inf α] : set α → α := has_Inf.Inf
 
+/-- A complete lattice is a bounded lattice which
+  has suprema and infima for every subset. -/
 class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has_Inf α :=
 (le_Sup : ∀s, ∀a∈s, a ≤ Sup s)
 (Sup_le : ∀s a, (∀b∈s, b ≤ a) → Sup s ≤ a)
 (Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
 (le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
 
+/-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type u) extends complete_lattice α, linear_order α
 
+/-- Indexed supremum -/
 def supr [complete_lattice α] (s : ι → α) : α := Sup {a : α | ∃i : ι, a = s i}
+/-- Indexed infimum -/
 def infi [complete_lattice α] (s : ι → α) : α := Inf {a : α | ∃i : ι, a = s i}
 
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
@@ -37,11 +46,11 @@ section
 open set
 variables [complete_lattice α] {s t : set α} {a b : α}
 
-@[ematch] theorem le_Sup : a ∈ s → a ≤ Sup s         := complete_lattice.le_Sup s a
+@[ematch] theorem le_Sup : a ∈ s → a ≤ Sup s := complete_lattice.le_Sup s a
 
 theorem Sup_le : (∀b∈s, b ≤ a) → Sup s ≤ a := complete_lattice.Sup_le s a
 
-@[ematch] theorem Inf_le : a ∈ s → Inf s ≤ a         := complete_lattice.Inf_le s a
+@[ematch] theorem Inf_le : a ∈ s → Inf s ≤ a := complete_lattice.Inf_le s a
 
 theorem le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf s a
 
@@ -638,6 +647,8 @@ section ord_continuous
 open lattice
 variables [complete_lattice α] [complete_lattice β]
 
+/-- A function `f` between complete lattices is order-continuous
+  if it preserves all suprema. -/
 def ord_continuous (f : α → β) := ∀s : set α, f (Sup s) = (⨆i∈s, f i)
 
 lemma ord_continuous_sup {f : α → β} {a₁ a₂ : α} (hf : ord_continuous f) : f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=

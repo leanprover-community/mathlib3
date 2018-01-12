@@ -75,6 +75,8 @@ le_antisymm ((H _).2 (le_refl _)) ((H _).1 (le_refl _))
 
 namespace ordering
 
+/-- `compares o a b` means that `a` and `b` have the ordering relation
+  `o` between them, assuming that the relation `a < b` is defined -/
 @[simp] def compares [has_lt α] : ordering → α → α → Prop
 | lt a b := a < b
 | eq a b := a = b

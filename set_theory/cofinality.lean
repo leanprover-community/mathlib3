@@ -14,6 +14,8 @@ local attribute [instance] classical.prop_decidable
 universes u v w
 variables {α : Type*} {r : α → α → Prop}
 
+/-- Cofinality of a reflexive order `≼`. This is the smallest cardinality
+  of a subset `S : set α` such that `∀ a, ∃ b ∈ S, a ≼ b`. -/
 def order.cof (r : α → α → Prop) [is_refl α r] : cardinal :=
 @cardinal.min {S : set α // ∀ a, ∃ b ∈ S, r a b}
   ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, refl _⟩⟩⟩
@@ -42,7 +44,11 @@ le_antisymm (order_iso.cof.aux f) (order_iso.cof.aux f.symm)
 
 namespace ordinal
 
-set_option eqn_compiler.zeta true
+/-- Cofinality of an ordinal. This is the smallest cardinal of a
+  subset `S` of the ordinal which is unbounded, in the sense
+  `∀ a, ∃ b ∈ S, a ≤ b`. It is defined for all ordinals, but
+  `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
+  interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
 quot.lift_on o (λ ⟨α, r, _⟩,
   @order.cof α (λ x y, ¬ r y x) ⟨λ a, by apply irrefl⟩) $
@@ -308,15 +314,20 @@ open ordinal
 
 local infix ` ^ ` := cardinal.power
 
+/-- A cardinal is a limit if it is not zero or a successor
+  cardinal. Note that `ω` is a limit cardinal by this definition. -/
 def is_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, succ x < c
 
+/-- A cardinal is a strong limit if it is not zero and it is
+  closed under powersets. Note that `ω` is a strong limit by this definition. -/
 def is_strong_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 ⟨H.1, λ x h, lt_of_le_of_lt (succ_le.2 $ cantor _) (H.2 _ h)⟩
 
+/-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
 def is_regular (c : cardinal) : Prop :=
 omega ≤ c ∧ c.ord.cof = c
 
@@ -347,6 +358,8 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
     apply typein_lt_type }
 end⟩
 
+/-- A cardinal is inaccessible if it is an
+  uncountable regular strong limit cardinal. -/
 def is_inaccessible (c : cardinal) :=
 omega < c ∧ is_regular c ∧ is_strong_limit c
 
@@ -384,7 +397,7 @@ quotient.induction_on c $ λ α h, begin
     rwa [← re, lt_ord] at this }
 end
 
-theorem lt_cof_power {a b : cardinal.{u}} (ha : omega ≤ a) (b1 : 1 < b) :
+theorem lt_cof_power {a b : cardinal} (ha : omega ≤ a) (b1 : 1 < b) :
   a < cof (b ^ a).ord :=
 begin
   have b0 : b ≠ 0 := ne_of_gt (lt_trans zero_lt_one b1),

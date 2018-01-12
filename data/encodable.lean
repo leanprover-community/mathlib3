@@ -10,6 +10,10 @@ import data.fintype data.list data.list.perm data.list.sort
        data.equiv data.nat.basic logic.function
 open option list nat function
 
+/-- An encodable type is a "constructively countable" type. This is where
+  we have an explicit injection `encode : α → nat` and a partial inverse
+  `decode : nat → option α`. This makes the range of `encode` decidable,
+  although it is not decidable if `α` is finite or not. -/
 class encodable (α : Type*) :=
 (encode : α → nat) (decode : nat → option α) (encodek : ∀ a, decode (encode a) = some a)
 

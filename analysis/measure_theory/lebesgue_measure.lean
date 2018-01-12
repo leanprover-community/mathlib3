@@ -115,6 +115,7 @@ calc lebesgue_length (Ico a b) ≤ s b : by simp [hab]; exact hbM.right.right
   ... ≤ ∑i, lebesgue_length (Ico (c i) (d i)) : ennreal.tsum_le_tsum $ assume a,
     lebesgue_length_Ico_le_lebesgue_length_Ico (le_refl _) (min_le_left _ _)
 
+/-- The Lebesgue outer measure, as an outer measure of ℝ. -/
 def lebesgue_outer : outer_measure ℝ :=
 outer_measure.of_function lebesgue_length lebesgue_length_empty
 

@@ -83,18 +83,25 @@ match tgt with
         to_fmt pty ++ ",\nfrom " ++ ptgt : format))
 end
 
+/-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
+  Never fails. Useful for debugging. -/
 meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
    tactic.try_for max tac <|> 
      (tactic.trace "try_for timeout, using sorry" >> admit)
 
+/-- Multiple subst. `substs x y z` is the same as `subst x, subst y, subst z`. -/
 meta def substs (l : parse ident*) : tactic unit :=
 l.mmap' (λ h, get_local h >>= tactic.subst)
 
+/-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=
 unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_coe.coe,
         ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
+/-- For debugging only. This tactic checks the current state for any
+  missing dropped goals and restores them. Useful when there are no
+  goals to solve but "result contains meta-variables". -/
 meta def recover : tactic unit :=
 do r ← tactic.result,
    tactic.set_goals $ r.fold [] $ λ e _ l,
@@ -103,14 +110,18 @@ do r ← tactic.result,
      | _ := l
      end
 
+/-- Like `try { tac }`, but in the case of failure it continues
+  from the failure state instead of reverting to the original state. -/
 meta def continue (tac : itactic) : tactic unit :=
 λ s, result.cases_on (tac s)
  (λ a, result.success ())
  (λ e ref, result.success ())
 
+/-- Move goal `n` to the front. -/
 meta def swap (n := 2) : tactic unit :=
 if n = 2 then tactic.swap else tactic.rotate n
 
+/-- Generalize proofs in the goal, naming them with the provided list. -/
 meta def generalize_proofs : parse ident_* → tactic unit :=
 tactic.generalize_proofs
 
@@ -123,6 +134,11 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
+/-- Same as the `congr` tactic, but only works up to depth `n`. This
+  is useful when the `congr` tactic is too aggressive in breaking
+  down the goal. For example, given `⊢ f (g (x + y)) = f (g (y + x))`,
+  `congr` produces the goals `⊢ x = y` and `⊢ y = x`, while
+  `congr_n 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr_n : nat → tactic unit
 | 0     := failed
 | (n+1) := focus1 (try assumption >> congr_core >>

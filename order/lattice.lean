@@ -30,17 +30,23 @@ namespace lattice
 reserve infixl ` ⊓ `:70
 reserve infixl ` ⊔ `:65
 
+/-- Typeclass for the `⊤` (`\top`) notation -/
 class has_top (α : Type u) := (top : α)
+/-- Typeclass for the `⊥` (`\bot`) notation -/
 class has_bot (α : Type u) := (bot : α)
+/-- Typeclass for the `⊔` (`\lub`) notation -/
 class has_sup (α : Type u) := (sup : α → α → α)
+/-- Typeclass for the `⊓` (`\glb`) notation -/
 class has_inf (α : Type u) := (inf : α → α → α)
-class has_imp (α : Type u) := (imp : α → α → α) /- Better name -/
 
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
 notation `⊤` := has_top.top _
 notation `⊥` := has_bot.bot _
 
+/-- An `order_top` is a partial order with a maximal element.
+  (We could state this on preorders, but then it wouldn't be unique
+  so distinguishing one would seem odd.) -/
 class order_top (α : Type u) extends has_top α, partial_order α :=
 (le_top : ∀ a : α, a ≤ ⊤)
 
@@ -65,6 +71,9 @@ assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
 
 end order_top
 
+/-- An `order_bot` is a partial order with a minimal element.
+  (We could state this on preorders, but then it wouldn't be unique
+  so distinguishing one would seem odd.) -/
 class order_bot (α : Type u) extends has_bot α, partial_order α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
@@ -91,6 +100,9 @@ assume ha, hb $ bot_unique $ ha ▸ hab
 
 end order_bot
 
+/-- A `semilattice_sup` is a join-semilattice, that is, a partial order
+  with a join (a.k.a. lub / least upper bound, sup / supremum) operation
+  `⊔` which is the least element larger than both factors. -/
 class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
@@ -161,6 +173,9 @@ instance semilattice_sup_to_is_associative [semilattice_sup α] : is_associative
 
 end semilattice_sup
 
+/-- A `semilattice_sup` is a meet-semilattice, that is, a partial order
+  with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
+  `⊓` which is the greatest element smaller than both factors. -/
 class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
@@ -223,6 +238,7 @@ instance semilattice_inf_to_is_associative [semilattice_inf α] : is_associative
 
 end semilattice_inf
 
+/-- A `semilattice_sup_top` is a semilattice with top and join. -/
 class semilattice_sup_top (α : Type u) extends order_top α, semilattice_sup α
 
 section semilattice_sup_top
@@ -236,6 +252,7 @@ sup_of_le_right le_top
 
 end semilattice_sup_top
 
+/-- A `semilattice_sup_bot` is a semilattice with bottom and join. -/
 class semilattice_sup_bot (α : Type u) extends order_bot α, semilattice_sup α
 
 section semilattice_sup_bot
@@ -252,6 +269,7 @@ by rw [eq_bot_iff, sup_le_iff]; simp
 
 end semilattice_sup_bot
 
+/-- A `semilattice_inf_top` is a semilattice with top and meet. -/
 class semilattice_inf_top (α : Type u) extends order_top α, semilattice_inf α
 
 section semilattice_inf_top
@@ -268,6 +286,7 @@ by rw [eq_top_iff, le_inf_iff]; simp
 
 end semilattice_inf_top
 
+/-- A `semilattice_inf_bot` is a semilattice with bottom and meet. -/
 class semilattice_inf_bot (α : Type u) extends order_bot α, semilattice_inf α
 
 section semilattice_inf_bot
@@ -283,6 +302,7 @@ end semilattice_inf_bot
 
 /- Lattices -/
 
+/-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 section lattice

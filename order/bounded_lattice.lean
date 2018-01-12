@@ -19,6 +19,9 @@ namespace lattice
 
 /- Bounded lattices -/
 
+/-- A bounded lattice is a lattice with a top and bottom element,
+  denoted `⊤` and `⊥` respectively. This allows for the interpretation
+  of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
 class bounded_lattice (α : Type u) extends lattice α, order_top α, order_bot α
 
 instance semilattice_inf_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_inf_top α :=

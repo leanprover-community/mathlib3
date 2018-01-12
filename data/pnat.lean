@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 
+/-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
+  and the VM representation of `ℕ+` is the same as `ℕ` because the proof
+  is not stored. -/
 def pnat := {n : ℕ // n > 0}
 notation `ℕ+` := pnat
 
@@ -13,12 +16,17 @@ meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
 
 namespace nat
 
+/-- Convert a natural number to a positive natural number. The
+  positivity assumption is inferred by `dec_trivial`. -/
 def to_pnat (n : ℕ) (h : n > 0 . exact_dec_trivial) : ℕ+ := ⟨n, h⟩
 
+/-- Write a successor as an element of `ℕ+`. -/
 def succ_pnat (n : ℕ) : ℕ+ := ⟨succ n, succ_pos n⟩
 
 @[simp] theorem succ_pnat_coe (n : ℕ) : (succ_pnat n : ℕ) = succ n := rfl
 
+/-- Convert a natural number to a pnat. `n+1` is mapped to itself,
+  and `0` becomes `1`. -/
 def to_pnat' (n : ℕ) : ℕ+ := succ_pnat (pred n)
 
 end nat
@@ -55,6 +63,7 @@ instance : comm_monoid ℕ+ :=
 
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
 
+/-- The power of a pnat and a nat is a pnat. -/
 @[simp] def pow (m : ℕ+) (n : ℕ) : ℕ+ :=
 ⟨nat.pow m n, nat.pos_pow_of_pos _ m.pos⟩
 

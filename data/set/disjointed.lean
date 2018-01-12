@@ -13,10 +13,14 @@ universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
   {s t u : set α}
 
+/-- A relation `p` holds pairwise if `p i j` for all `i ≠ j`. -/
 def pairwise {α : Type*} (p : α → α → Prop) := ∀i j, i ≠ j → p i j
 
 namespace set
 
+/-- If `f : ℕ → set α` is a sequence of sets, then `disjointed f` is
+  the sequence formed with each set subtracted from the later ones
+  in the sequence, to form a disjoint sequence. -/
 def disjointed (f : ℕ → set α) (n : ℕ) : set α := f n ∩ (⋂i<n, - f i)
 
 lemma disjoint_disjointed {f : ℕ → set α} : pairwise (disjoint on disjointed f) :=

@@ -14,14 +14,20 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
 ⟨assume h x, h _, assume h a, a.induction_on h⟩
 
+/-- Choose an element of the equivalence class using the axiom of choice.
+  Sound but noncomputable. -/
 noncomputable def quot.out {r : α → α → Prop} (q : quot r) : α :=
 classical.some (quot.exists_rep q)
 
+/-- Unwrap the VM representation of a quotient to obtain an element of the equivalence class.
+  Computable but unsound. -/
 meta def quot.unquot {r : α → α → Prop} : quot r → α := unchecked_cast
 
 @[simp] theorem quot.out_eq {r : α → α → Prop} (q : quot r) : quot.mk r q.out = q :=
 classical.some_spec (quot.exists_rep q)
 
+/-- Choose an element of the equivalence class using the axiom of choice.
+  Sound but noncomputable. -/
 noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 
 @[simp] theorem quotient.out_eq [s : setoid α] (q : quotient s) : ⟦q.out⟧ = q := q.out_eq
@@ -29,12 +35,19 @@ noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 theorem quotient.mk_out [s : setoid α] (a : α) : ⟦a⟧.out ≈ a :=
 quotient.exact (quotient.out_eq _)
 
+/-- `trunc α` is the quotient of `α` by the always-true relation. This
+  is related to the propositional truncation in HoTT, and is similar
+  in effect to `nonempty α`, but unlike `nonempty α`, `trunc α` is data,
+  so the VM representation is the same as `α`, and so this can be used to
+  maintain computability. -/
 def {u} trunc (α : Sort u) : Sort u := @quot α (λ _ _, true)
 
 namespace trunc
 
+/-- Constructor for `trunc α` -/
 def mk (a : α) : trunc α := quot.mk _ a
 
+/-- Any constant function lifts to a function out of the truncation -/
 def lift (f : α → β) (c : ∀ a b : α, f a = f b) : trunc α → β :=
 quot.lift f (λ a b _, c a b)
 
@@ -80,6 +93,7 @@ protected def rec_on_subsingleton
    [∀ a, subsingleton (C (mk a))] (q : trunc α) (f : Π a, C (mk a)) : C q :=
 trunc.rec f (λ a b, subsingleton.elim _ (f b)) q
 
+/-- Noncomputably extract a representative of `trunc α` (using the axiom of choice). -/
 noncomputable def out : trunc α → α := quot.out
 
 @[simp] theorem out_eq (q : trunc α) : mk q.out = q := trunc.eq _ _

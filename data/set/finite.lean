@@ -16,10 +16,14 @@ variables {α : Type u} {β : Type v} {ι : Sort w}
 
 namespace set
 
+/-- A set is finite if the subtype is a fintype, i.e. there is a
+  list that enumerates its members. -/
 def finite (s : set α) : Prop := nonempty (fintype s)
 
+/-- A set is infinite if it is not finite. -/
 def infinite (s : set α) : Prop := ¬ finite s
 
+/-- Construct a fintype from a finset with the same elements. -/
 def fintype_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
 fintype.subtype s H
 
@@ -31,6 +35,7 @@ theorem card_fintype_of_finset' {p : set α} (s : finset α)
   (H : ∀ x, x ∈ s ↔ x ∈ p) [fintype p] : fintype.card p = s.card :=
 by rw ← card_fintype_of_finset s H; congr
 
+/-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
 ⟨(@finset.univ s _).1.map subtype.val,
  multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
@@ -44,6 +49,7 @@ mem_to_finset
 noncomputable instance finite.fintype {s : set α} (h : finite s) : fintype s :=
 classical.choice h
 
+/-- Get a finset from a finite set -/
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @set.to_finset _ _ (finite.fintype h)
 
@@ -200,6 +206,7 @@ namespace finset
 variables [decidable_eq α] [decidable_eq β]
 variables {s t u : finset α} {f : α → β} {a : α}
 
+/-- Convert a finset to a set in the natural way. -/
 def to_set (s : finset α) : set α := {x | x ∈ s}
 
 instance : has_lift (finset α) (set α) := ⟨to_set⟩

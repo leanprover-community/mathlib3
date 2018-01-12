@@ -72,6 +72,8 @@ end,
 have is_sum (λi, ε' i) ε, begin rw [eq] at this, exact this end,
 ennreal.tsum_of_real this (assume i, le_of_lt $ hε' i)
 
+/-- Given any function `m` assigning measures to sets satisying `m ∅ = 0`, there is
+  a unique minimal outer measure `μ` satisfying `μ s ≥ m s` for all `s : set α`. -/
 protected def of_function {α : Type*} (m : set α → ennreal) (m_empty : m ∅ = 0) :
   outer_measure α :=
 let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
@@ -244,6 +246,8 @@ private def caratheodory_dynkin : measurable_space.dynkin_system α :=
   has_compl := assume s, C_compl,
   has_Union := assume f hf hn, C_Union_nat hn hf }
 
+/-- Given an outer measure `μ`, the Caratheodory measurable space is
+  defined such that `s` is measurable if `∀t, μ t = μ (t ∩ s) + μ (t \ s)`. -/
 protected def caratheodory : measurable_space α :=
 caratheodory_dynkin.to_measurable_space $ assume s₁ s₂, C_inter
 

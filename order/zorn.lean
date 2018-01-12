@@ -20,6 +20,8 @@ section chain
 parameters {α : Type u} (r : α → α → Prop)
 local infix ` ≺ `:50  := r
 
+/-- A chain is a subset `c` satisfying
+  `x ≺ y ∨ x = y ∨ y ≺ x` for all `x y ∈ c`. -/
 def chain (c : set α) := pairwise_on c (λx y, x ≺ y ∨ y ≺ x)
 parameters {r}
 

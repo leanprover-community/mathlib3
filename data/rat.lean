@@ -13,6 +13,11 @@ import
 
 /- rational numbers -/
 
+/-- `rat`, or `ℚ`, is the type of rational numbers. It is defined
+  as the set of pairs ⟨n, d⟩ of integers such that `d` is positive and `n` and
+  `d` are coprime. This representation is preferred to the quotient
+  because without periodic reduction, the numerator and denominator can grow
+  exponentially (for example, adding 1/2 to itself repeatedly). -/
 structure rat := mk' ::
 (num : ℤ)
 (denom : ℕ)
@@ -34,6 +39,7 @@ instance : encodable ℚ := encodable_of_equiv (Σ n : ℤ, {d : ℕ // d > 0 �
   ⟨λ ⟨a, b, c, d⟩, ⟨a, b, c, d⟩, λ⟨a, b, c, d⟩, ⟨a, b, c, d⟩,
    λ ⟨a, b, c, d⟩, rfl, λ⟨a, b, c, d⟩, rfl⟩
 
+/-- Embed an integer as a rational number -/
 def of_int (n : ℤ) : ℚ :=
 ⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩
 
@@ -41,6 +47,7 @@ instance : has_zero ℚ := ⟨of_int 0⟩
 
 instance : has_one ℚ := ⟨of_int 1⟩
 
+/-- Form the quotient `n / d` where `n:ℤ` and `d:ℕ+` (not necessarily coprime) -/
 def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ :=
 let n' := n.nat_abs, g := n'.gcd d in
 ⟨n / g, d / g, begin
@@ -55,9 +62,12 @@ end, begin
   exact nat.coprime_div_gcd_div_gcd (nat.gcd_pos_of_pos_right _ dpos)
 end⟩
 
+/-- Form the quotient `n / d` where `n:ℤ` and `d:ℕ`. In the case `d = 0`, we
+  define `n / 0 = 0` by convention. -/
 def mk_nat (n : ℤ) (d : ℕ) : ℚ :=
 if d0 : d = 0 then 0 else mk_pnat n ⟨d, nat.pos_of_ne_zero d0⟩
 
+/-- Form the quotient `n / d` where `n d : ℤ`. -/
 def mk : ℤ → ℤ → ℚ
 | n (int.of_nat d) := mk_nat n d
 | n -[1+ d]        := mk_pnat (-n) d.succ_pnat
@@ -544,9 +554,11 @@ begin
       mul_def one_ne_zero d0, one_mul, mul_one]
 end
 
+/-- `floor q` is the largest integer `z` such that `z ≤ q` -/
 def floor : ℚ → ℤ
 | ⟨n, d, h, c⟩ := n / d
 
+/-- `ceil q` is the smallest integer `z` such that `q ≤ z` -/
 def ceil (r : ℚ) : ℤ :=
 -(floor (-r))
 
@@ -610,6 +622,10 @@ variables {α : Type*}
 section
 variables [division_ring α]
 
+/-- Construct the canonical injection from `ℚ` into an arbitrary
+  division ring. If the field has positive characteristic `p`,
+  we define `1 / p = 1 / 0 = 0` for consistency with our
+  division by zero convention. -/
 protected def cast : ℚ → α
 | ⟨n, d, h, c⟩ := n / d
 
@@ -802,6 +818,8 @@ end cast
 
 /- nat ceiling -/
 
+/-- `nat_ceil q` is the smallest nonnegative integer `n` with `q ≤ n`.
+  It is the same as `ceil q` when `q ≥ 0`, otherwise it is `0`. -/
 def nat_ceil (q : ℚ) : ℕ := int.to_nat (ceil q)
 
 theorem nat_ceil_le {q : ℚ} {n : ℕ} : nat_ceil q ≤ n ↔ q ≤ n :=

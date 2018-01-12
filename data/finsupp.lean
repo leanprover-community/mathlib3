@@ -33,6 +33,8 @@ universes u u₁ u₂ v v₁ v₂ v₃ w x y
 
 /- Should we use finset instead of finite? -/
 
+/-- `finsupp α β`, denoted `α →₀ β`, is the type of functions `f : α → β` such that
+  `f x = 0` for all but finitely many `x`. -/
 def finsupp (α : Type u) (β : Type v) [has_zero β] := {f : α → β // finite {a | f a ≠ 0}}
 
 infix →₀ := finsupp
@@ -57,6 +59,7 @@ lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
 lemma finite_supp (f : α →₀ β) : finite {a | f a ≠ 0} :=
 f.property
 
+/-- `support f` is the finite set of values such that `f x ≠ 0`. -/
 def support (f : α →₀ β) : finset α := f.finite_supp.to_finset
 
 @[simp] lemma mem_support_iff (f : α →₀ β) {a : α} : a ∈ f.support ↔ f a ≠ 0 :=
@@ -68,13 +71,14 @@ by simp [set.subset_def]; exact forall_congr (assume a, not_imp_comm)
 @[simp] lemma support_zero : (0 : α →₀ β).support = ∅ :=
 by simp [finset.ext]
 
+/-- `single a b` is the finitely supported function which has
+  value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : β) : α →₀ β :=
 ⟨λa', if a = a' then b else 0,
   finite_subset (@finite_singleton α a) $ assume a', by by_cases h : a = a'; simp [h]⟩
 
 lemma single_apply {a a' : α} {b : β} :
-  (single a b : α →₀ β) a' = (if a = a' then b else 0) :=
-rfl
+  (single a b : α →₀ β) a' = (if a = a' then b else 0) := rfl
 
 @[simp] lemma single_eq_same {a : α} {b : β} :
   (single a b : α →₀ β) a = b :=
@@ -105,20 +109,24 @@ finset.subset.antisymm
 
 end
 
+/-- The composition of `f : β₁ → β₂` and `g : α →₀ β₁` is
+  `map_range f hf g : α →₀ β₂`, well defined when `f 0 = 0`. -/
 def map_range [has_zero β₁] [has_zero β₂]
   (f : β₁ → β₂) (hf : f 0 = 0) (g : α →₀ β₁) : α →₀ β₂ :=
 ⟨f ∘ g, finite_subset g.finite_supp $
   assume a, by simp [(∘), hf, not_imp_not] {contextual:=tt}⟩
 
 @[simp] lemma map_range_apply [has_zero β₁] [has_zero β₂]
-  {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {a : α} : map_range f hf g a = f (g a) :=
-rfl
+  {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {a : α} :
+  map_range f hf g a = f (g a) := rfl
 
 lemma support_map_range [has_zero β₁] [has_zero β₂]
   {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} :
   (map_range f hf g).support ⊆ g.support :=
 by simp [finset.subset_iff, not_imp_not, hf] {contextual:=tt}
 
+/-- `zip_with f hf g₁ g₂` is the finitely supported function satisfying
+  `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, and well defined when `f 0 0 = 0`. -/
 def zip_with [has_zero β] [has_zero β₁] [has_zero β₂] (f : β₁ → β₂ → β) (hf : f 0 0 = 0)
   (g₁ : α →₀ β₁) (g₂ : α →₀ β₂) : (α →₀ β) :=
 ⟨λa, f (g₁ a) (g₂ a), finite_subset (finite_union g₁.finite_supp g₂.finite_supp) $
@@ -126,8 +134,7 @@ def zip_with [has_zero β] [has_zero β₁] [has_zero β₂] (f : β₁ → β�
 
 @[simp] lemma zip_with_apply [has_zero β] [has_zero β₁] [has_zero β₂]
   {f : β₁ → β₂ → β} {hf : f 0 0 = 0} {g₁ : α →₀ β₁} {g₂ : α →₀ β₂} {a : α} :
-  zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a) :=
-rfl
+  zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a) := rfl
 
 lemma support_zip_with [has_zero β] [has_zero β₁] [has_zero β₂]
   {f : β₁ → β₂ → β} {hf : f 0 0 = 0} {g₁ : α →₀ β₁} {g₂ : α →₀ β₂} :
@@ -142,6 +149,7 @@ end
 section filter
 variables [has_zero β] {p : α → Prop} {f : α →₀ β}
 
+/-- `filter p f` is the function which is `f a` if `p a` is true and 0 otherwise. -/
 def filter (p : α → Prop) (f : α →₀ β) : α →₀ β :=
 ⟨λa, if p a then f a else 0, finite_subset f.2 $ assume a, by by_cases p a; simp *; exact id⟩
 
@@ -157,9 +165,11 @@ finset.ext.mpr $ assume a, by by_cases p a; simp *
 end filter
 
 -- [to_additive finsupp.sum] for finsupp.prod doesn't work, the equation lemmas are not generated
+/-- `sum f g` is the sum of `g a (f a)` over the support of `f`. -/
 def sum [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 f.support.sum (λa, g a (f a))
 
+/-- `prod f g` is the product of `g a (f a)` over the support of `f`. -/
 @[to_additive finsupp.sum]
 def prod [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 f.support.prod (λa, g a (f a))
@@ -189,8 +199,7 @@ instance [add_monoid β] : has_add (α →₀ β) :=
 ⟨zip_with (+) (add_zero 0)⟩
 
 @[simp] lemma add_apply [add_monoid β] {g₁ g₂ : α →₀ β} {a : α} :
-  (g₁ + g₂) a = g₁ a + g₂ a :=
-rfl
+  (g₁ + g₂) a = g₁ a + g₂ a := rfl
 
 lemma support_add [add_monoid β] {g₁ g₂ : α →₀ β} :
   (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
@@ -350,8 +359,11 @@ lemma prod_sum_index {γ : Type w} [add_comm_monoid β₁] [add_comm_monoid β�
 section map_domain
 variables [add_comm_monoid β] {v v₁ v₂ : α →₀ β}
 
+/-- Given `f : α₁ → α₂` and `v : α₁ →₀ β`, `map_domain f v : α₂ →₀ β`
+  is the finitely supported function whose value at `a : α₂` is the sum
+  of `v x` over all `x` such that `f x = a`. -/
 def map_domain (f : α₁ → α₂) (v : α₁ →₀ β) : α₂ →₀ β :=
-v.sum $ λa b, single (f a) b
+v.sum $ λa, single (f a)
 
 lemma map_domain_id : map_domain id v = v :=
 sum_single
@@ -368,7 +380,7 @@ sum_zero_index
 
 lemma map_domain_congr {f g : α → α₂} (h : ∀x∈v.support, f x = g x) :
   v.map_domain f = v.map_domain g :=
-finset.sum_congr rfl $ by simp [*] at * { contextual := tt}
+finset.sum_congr rfl $ by simp [*] at * {contextual := tt}
 
 lemma map_domain_add {f : α → α₂} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
 sum_add_index (by simp) (by simp)
@@ -395,18 +407,22 @@ by simp [map_domain, prod_sum_index, h_zero, h_add, prod_single_index]
 
 end map_domain
 
+/-- The product of `f g : α →₀ β` is the finitely supported function
+  whose value at `a` is the sum of `f x * g y` over all pairs `x, y`
+  such that `x + y = a`. (Think of the product of multivariate
+  polynomials where `α` is the monoid of monomial exponents.) -/
 instance [has_add α] [semiring β] : has_mul (α →₀ β) :=
 ⟨λf g, f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)⟩
 
 lemma mul_def [has_add α] [semiring β] {f g : α →₀ β} :
-  f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) :=
-rfl
+  f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) := rfl
 
+/-- The unit of the multiplication is `single 0 1`, i.e. the function
+  that is 1 at 0 and zero elsewhere. -/
 instance [has_zero α] [has_zero β] [has_one β] : has_one (α →₀ β) :=
 ⟨single 0 1⟩
 
-lemma one_def [has_zero α] [has_zero β] [has_one β] : 1 = (single 0 1 : α →₀ β) :=
-rfl
+lemma one_def [has_zero α] [has_zero β] [has_one β] : 1 = (single 0 1 : α →₀ β) := rfl
 
 section comap_domain
 
@@ -416,14 +432,14 @@ variables {α' : Type u₁} {δ : Type y} [has_zero δ]
 section zero
 variables [has_zero β] {v v' : α' →₀ β}
 
+/-- The composition of `f : α → α'` and `v : α' →₀ β` is
+  `comap_domain f hf v : α →₀ β`, well defined when `f` is injective. -/
 def comap_domain (f : α → α') (hf : injective f) (v : α' →₀ β) : α →₀ β :=
-⟨λa, v.1 (f a), finite_of_finite_image hf $ finite_subset v.2 $ image_subset_iff.mpr $ subset.refl _⟩
+⟨λa, v (f a), finite_of_finite_image hf $ finite_subset v.2 $ image_subset_iff.mpr $ subset.refl _⟩
 
-@[simp] lemma comap_domain_apply {a : α} : (comap_domain f hf v) a = v (f a) :=
-rfl
+@[simp] lemma comap_domain_apply {a : α} : (comap_domain f hf v) a = v (f a) := rfl
 
-@[simp] lemma comap_domain_zero : (0:α' →₀ β).comap_domain f hf  = 0 :=
-rfl
+@[simp] lemma comap_domain_zero : (0:α' →₀ β).comap_domain f hf  = 0 := rfl
 
 @[to_additive finsupp.sum_comap_domain_index]
 lemma prod_comap_domain_index [comm_monoid γ]
@@ -437,6 +453,8 @@ begin
     let ⟨a, eq⟩ := hvf _ this in ⟨a, eq.symm ▸ ha', eq.symm⟩)
 end
 
+/-- `subtype_domain p f` is the restriction of the finitely supported function
+  `f` to the subtype `p`. -/
 def subtype_domain (p : α → Prop) : (α →₀ β) → (subtype p →₀ β) :=
 comap_domain subtype.val $ assume a₁ a₂, subtype.eq
 
@@ -447,8 +465,7 @@ lemma prod_subtype_domain_index [comm_monoid γ] {v : α →₀ β}
 prod_comap_domain_index (assume a ha, ⟨⟨a, hp a ha⟩, rfl⟩)
 
 @[simp] lemma subtype_domain_apply {a : subtype p} {v : α →₀ β} :
-  (subtype_domain p v) a = v (a.val) :=
-rfl
+  (subtype_domain p v) a = v (a.val) := rfl
 
 @[simp] lemma subtype_domain_zero : subtype_domain p (0 : α →₀ β) = 0 := rfl
 
@@ -564,8 +581,8 @@ lemma prod_single {ι : Type x} [add_comm_monoid α] [comm_semiring β] {s : fin
 def to_has_scalar [semiring β] : has_scalar β (α →₀ β) := ⟨λa v, v.map_range ((*) a) (mul_zero a)⟩
 local attribute [instance] to_has_scalar
 
-@[simp] lemma smul_apply [semiring β] {a : α} {b : β} {v : α →₀ β} : (b • v) a = b * v a :=
-rfl
+@[simp] lemma smul_apply [semiring β] {a : α} {b : β} {v : α →₀ β} :
+  (b • v) a = b * v a := rfl
 
 /- should this be stronger? [module γ β] → module γ (α →₀ β) -/
 def to_module [ring β] : module β (α →₀ β) :=

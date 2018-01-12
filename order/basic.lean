@@ -14,6 +14,8 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
 
+/-- A function between preorders is monotone if
+  `a ≤ b` implies `f a ≤ f b`. -/
 def monotone (f : α → β) := ∀⦃a b⦄, a ≤ b → f a ≤ f b
 
 theorem monotone_id : @monotone α α _ _ id := assume x y h, h
@@ -28,6 +30,7 @@ end monotone
 
 /- order instances -/
 
+/-- Order dual of a preorder -/
 def preorder.dual (o : preorder α) : preorder α :=
 { le       := λx y, y ≤ x,
   le_refl  := le_refl,
@@ -42,6 +45,7 @@ instance partial_order_fun {ι : Type u} {α : ι → Type v} [∀i, partial_ord
 { le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),
   ..preorder_fun }
 
+/-- Order dual of a partial order -/
 def partial_order.dual (wo : partial_order α) : partial_order α :=
 { le          := λx y, y ≤ x,
   le_refl     := le_refl,
@@ -84,6 +88,7 @@ class no_bot_order (α : Type u) [preorder α] : Prop :=
 lemma no_bot [preorder α] [no_bot_order α] : ∀a:α, ∃a', a' < a :=
 no_bot_order.no_bot
 
+/-- An order is dense if there is an element between any pair of distinct elements. -/
 class densely_ordered (α : Type u) [preorder α] : Prop :=
 (dense : ∀a₁ a₂:α, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂)
 
@@ -113,18 +118,19 @@ le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 section
 variables {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
-def is_irrefl_of_is_asymm [is_asymm α r] : is_irrefl α r :=
+theorem is_irrefl_of_is_asymm [is_asymm α r] : is_irrefl α r :=
 ⟨λ a h, asymm h h⟩
 
-def is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) :=
+theorem is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) :=
 ⟨@irrefl α r _⟩
 
-def is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=
+theorem is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=
 ⟨λ a b c h₁ h₂, (trans h₂ h₁ : r c a)⟩
 
-def is_strict_order.swap (r) [is_strict_order α r] : is_strict_order α (swap r) :=
+theorem is_strict_order.swap (r) [is_strict_order α r] : is_strict_order α (swap r) :=
 ⟨is_irrefl.swap r, is_trans.swap r⟩
 
+/-- Construct a partial order from a `is_strict_order` relation -/
 def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
 { le := λ x y, x = y ∨ r x y,
   lt := r,
@@ -147,8 +153,11 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
       (asymm h)⟩,
     λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
 
+/-- This is basically the same as `is_strict_total_order`, but that definition is
+  in Type (probably by mistake) and also has redundant assumptions. -/
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop) extends is_trichotomous α lt, is_strict_order α lt : Prop.
 
+/-- Construct a linear order from a `is_strict_total_order'` relation -/
 def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
 { le_total := λ x y,
     match y, trichotomous_of r x y with
@@ -158,20 +167,25 @@ def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
     end,
   ..partial_order_of_SO r }
 
+/-- Construct a decidable linear order from a `is_strict_total_order'` relation -/
 def decidable_linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] : decidable_linear_order α :=
 by let := linear_order_of_STO' r; exact
 { decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
   ..this }
 
-def is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (swap r) :=
+theorem is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (swap r) :=
 ⟨λ a b, by simpa [swap, or_comm, or.left_comm] using @trichotomous _ r _ a b⟩
 
-def is_strict_total_order'.swap (r) [is_strict_total_order' α r] : is_strict_total_order' α (swap r) :=
+theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] : is_strict_total_order' α (swap r) :=
 ⟨is_trichotomous.swap r, is_strict_order.swap r⟩
 
 instance [linear_order α] : is_strict_total_order' α (<) :=
 ⟨⟨lt_trichotomy⟩, ⟨lt_irrefl⟩, ⟨@lt_trans _ _⟩⟩
 
+/-- A connected order is one satisfying the condition `a < c → a < b ∨ b < c`.
+  This is recognizable as an intuitionistic substitute for `a ≤ b ∨ b ≤ a` on
+  the constructive reals, and is also known as negative transitivity,
+  since the contrapositive asserts transitivity of the relation `¬ a < b`.  -/
 @[algebra] class is_order_connected (α : Type u) (lt : α → α → Prop) : Prop :=
 (conn : ∀ a b c, lt a c → lt a b ∨ lt b c)
 
@@ -179,7 +193,7 @@ theorem is_order_connected.neg_trans (r : α → α → Prop) [is_order_connecte
   {a b c} (h₁ : ¬ r a b) (h₂ : ¬ r b c) : ¬ r a c :=
 mt (is_order_connected.conn a b c) $ by simp [h₁, h₂]
 
-def is_strict_weak_order_of_is_order_connected [is_asymm α r] :
+theorem is_strict_weak_order_of_is_order_connected [is_asymm α r] :
   ∀ [is_order_connected α r], is_strict_weak_order α r
 | ⟨H⟩ := ⟨⟨is_irrefl_of_is_asymm,
   ⟨λ a b c h₁ h₂, (H _ c _ h₁).resolve_right (asymm h₂)⟩⟩,
@@ -197,6 +211,9 @@ instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
 ⟨by apply_instance, is_strict_weak_order_of_is_order_connected⟩
 
+/-- An extensional relation is one in which an element is determined by its set
+  of predecessors. It is named for the `x ∈ y` relation in set theory, whose
+  extensionality is one of the first axioms of ZFC. -/
 @[algebra] class is_extensional (α : Type u) (r : α → α → Prop) : Prop :=
 (ext : ∀ a b, (∀ x, r x a ↔ r x b) → a = b)
 
@@ -206,6 +223,7 @@ instance is_extensional_of_is_strict_total_order'
   .resolve_left $ mt (H _).2 (irrefl a))
   .resolve_right $ mt (H _).1 (irrefl b)⟩
 
+/-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
 
@@ -252,6 +270,7 @@ not_imp_comm.1 (λ he, set.eq_empty_iff_forall_not_mem.2 $ λ a,
 acc.rec_on (H.apply a) $ λ a H IH h,
 he ⟨_, h, λ y, imp_not_comm.1 (IH y)⟩)
 
+/-- The minimum element of a nonempty set in a well-founded order -/
 noncomputable def well_founded.min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p ≠ ∅) : α :=
 classical.some (H.has_min p h)

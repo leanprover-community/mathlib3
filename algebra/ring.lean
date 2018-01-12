@@ -96,6 +96,9 @@ section comm_ring
 end comm_ring
 
 set_option old_structure_cmd true
+/-- A domain is a ring with no zero divisors, i.e. satisfying
+  the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
+  is an integral domain without assuming commutativity of multiplication. -/
 class domain (α : Type u) extends ring α, no_zero_divisors α, zero_ne_one_class α
 
 section domain

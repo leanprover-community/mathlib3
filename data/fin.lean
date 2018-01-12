@@ -2,6 +2,7 @@ import data.nat.basic
 
 open fin nat
 
+/-- Embedding of `fin n` in `fin (n+1)` -/
 def raise_fin {n : ℕ} (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
 
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=

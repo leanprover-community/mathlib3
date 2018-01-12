@@ -22,7 +22,9 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Sort x}
 section
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-def continuous (f : α → β) := ∀s, is_open s → is_open (preimage f s)
+/-- A function between topological spaces is continuous if the preimage
+  of every open set is open. -/
+def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 
 lemma continuous_id : continuous (id : α → α) :=
 assume s h, h
@@ -37,19 +39,19 @@ lemma continuous_iff_tendsto {f : α → β} :
   show s ∈ (nhds (f x)).sets → s ∈ (map f (nhds x)).sets,
     by simp [nhds_sets];
       exact assume t t_subset t_open fx_in_t,
-        ⟨preimage f t, preimage_mono t_subset, hf t t_open, fx_in_t⟩,
+        ⟨f ⁻¹' t, preimage_mono t_subset, hf t t_open, fx_in_t⟩,
   assume hf : ∀x, tendsto f (nhds x) (nhds (f x)),
   assume s, assume hs : is_open s,
   have ∀a, f a ∈ s → s ∈ (nhds (f a)).sets,
     by simp [nhds_sets]; exact assume a ha, ⟨s, subset.refl s, hs, ha⟩,
-  show is_open (preimage f s),
+  show is_open (f ⁻¹' s),
     by simp [is_open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
 
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_tendsto.mpr $ assume a, tendsto_const_nhds
 
 lemma continuous_iff_is_closed {f : α → β} :
-  continuous f ↔ (∀s, is_closed s → is_closed (preimage f s)) :=
+  continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
 ⟨assume hf s hs, hf (-s) hs,
   assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
 
@@ -102,8 +104,8 @@ by simp [image_subset_iff, closure_eq_nhds]; assumption
 
 lemma compact_image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) : compact (f '' s) :=
 compact_of_finite_subcover $ assume c hco hcs,
-  have hdo : ∀t∈c, is_open (preimage f t), from assume t' ht, hf _ $ hco _ ht,
-  have hds : s ⊆ ⋃i∈c, preimage f i,
+  have hdo : ∀t∈c, is_open (f ⁻¹' t), from assume t' ht, hf _ $ hco _ ht,
+  have hds : s ⊆ ⋃i∈c, f ⁻¹' i,
     by simpa [subset_def, -mem_image] using hcs,
   let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in
   ⟨d', hcd', hfd', by simpa [subset_def, -mem_image, image_subset_iff] using hd'⟩
@@ -127,7 +129,7 @@ lemma continuous_eq_le_coinduced {t₁ : tspace α} {t₂ : tspace β} :
 rfl
 
 theorem continuous_generated_from {t : tspace α} {b : set (set β)}
-  (h : ∀s∈b, is_open (preimage f s)) : cont t (generate_from b) f :=
+  (h : ∀s∈b, is_open (f ⁻¹' s)) : cont t (generate_from b) f :=
 assume s hs, generate_open.rec_on hs h
   is_open_univ
   (assume s t _ _, is_open_inter)
@@ -227,6 +229,8 @@ le_antisymm
     (continuous_sup_dom_right continuous_induced_dom))
   (sup_le (induced_mono le_sup_left) (induced_mono le_sup_right))
 
+/-- A function between topological spaces is an embedding if it is injective,
+  and for all `s : set α`, `s` is open iff it is the preimage of an open set. -/
 def embedding [tα : topological_space α] [tβ : topological_space β] (f : α → β) : Prop :=
 (∀a₁ a₂, f a₁ = f a₂ → a₁ = a₂) ∧ tα = tβ.induced f
 
@@ -275,7 +279,7 @@ topological_space.generate_open.basic _ (by simp)
 
 lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
 ⟨assume h : continuous p,
-  have is_open (preimage p {true}),
+  have is_open (p ⁻¹' {true}),
     from h _ is_open_singleton_true,
   by simp [preimage, eq_true] at this; assumption,
   assume h : is_open {x | p x},
@@ -288,12 +292,12 @@ section induced
 open topological_space
 variables [t : topological_space β] {f : α → β}
 
-theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (preimage f s) :=
+theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
 ⟨s, h, rfl⟩
 
 lemma nhds_induced_eq_vmap {a : α} : @nhds α (induced f t) a = vmap f (nhds (f a)) :=
 le_antisymm
-  (assume s ⟨s', hs', (h_s : preimage f s' ⊆ s)⟩,
+  (assume s ⟨s', hs', (h_s : f ⁻¹' s' ⊆ s)⟩,
     let ⟨t', hsub, ht', hin⟩ := mem_nhds_sets_iff.1 hs' in
     (@nhds α (induced f t) a).upwards_sets
       begin
@@ -311,7 +315,7 @@ lemma map_nhds_induced_eq {a : α} (h : image f univ ∈ (nhds (f a)).sets) :
   map f (@nhds α (induced f t) a) = nhds (f a) :=
 le_antisymm
   ((@continuous_iff_tendsto α β (induced f t) _ _).mp continuous_induced_dom a)
-  (assume s, assume hs : preimage f s ∈ (@nhds α (induced f t) a).sets,
+  (assume s, assume hs : f ⁻¹' s ∈ (@nhds α (induced f t) a).sets,
     let ⟨t', t_subset, is_open_t, a_in_t⟩ := mem_nhds_sets_iff.mp h in
     let ⟨s', s'_subset, ⟨s'', is_open_s'', s'_eq⟩, a_in_s'⟩ := (@mem_nhds_sets_iff _ (induced f t) _ _).mp hs in
     by subst s'_eq; exact (mem_nhds_sets_iff.mpr $
@@ -329,7 +333,7 @@ have vmap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ nhds (f a) ⊓ princ
   from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ vmap_bot,
     assume h,
     forall_sets_neq_empty_iff_neq_bot.mp $
-      assume s₁ ⟨s₂, hs₂, (hs : preimage f s₂ ⊆ s₁)⟩,
+      assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
       have f '' s ∈ (nhds (f a) ⊓ principal (f '' s)).sets,
         from mem_inf_sets_of_right $ by simp [subset.refl],
       have s₂ ∩ f '' s ∈ (nhds (f a) ⊓ principal (f '' s)).sets,
@@ -338,7 +342,7 @@ have vmap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ nhds (f a) ⊓ princ
       ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
     ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl
-  ... ↔ vmap f (nhds (f a)) ⊓ principal (preimage f (f '' s)) ≠ ⊥ : by rw [nhds_induced_eq_vmap, preimage_image_eq hf]
+  ... ↔ vmap f (nhds (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced_eq_vmap, preimage_image_eq hf]
   ... ↔ vmap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ : by rw [vmap_inf, ←vmap_principal]
   ... ↔ _ : by rwa [closure_eq_nhds]
 
@@ -544,16 +548,16 @@ lemma continuous_subtype_is_closed_cover {f : α → β} (c : γ → α → Prop
   continuous f :=
 continuous_iff_is_closed.mpr $
   assume s hs,
-  have ∀i, is_closed (@subtype.val α {x | c i x} '' (preimage (f ∘ subtype.val) s)),
+  have ∀i, is_closed (@subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
     from assume i,
     embedding_is_closed embedding_subtype_val
       (by simp [subtype_val_image]; exact h_is_closed i)
       (continuous_iff_is_closed.mp (f_cont i) _ hs),
-  have is_closed (⋃i, @subtype.val α {x | c i x} '' (preimage (f ∘ subtype.val) s)),
+  have is_closed (⋃i, @subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
     from is_closed_Union_of_locally_finite
       (locally_finite_subset h_lf $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')
       this,
-  have preimage f s = (⋃i, @subtype.val α {x | c i x} '' (preimage (f ∘ subtype.val) s)),
+  have f ⁻¹' s = (⋃i, @subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
   begin
     apply set.ext,
     have : ∀ (x : α), f x ∈ s ↔ ∃ (i : γ), c i x ∧ f x ∈ s :=
@@ -585,7 +589,7 @@ begin
     let p : Πi:ι, filter (α i) := λi, map (λx:Πi:ι, α i, x i) f in
     have ∀i:ι, ∃a, a∈s i ∧ p i ≤ nhds a,
       from assume i, h i (p i) (ultrafilter_map hf) $
-      show preimage (λx:Πi:ι, α i, x i) (s i) ∈ f.sets,
+      show (λx:Πi:ι, α i, x i) ⁻¹' s i ∈ f.sets,
         from f.upwards_sets hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
     let ⟨a, ha⟩ := classical.axiom_of_choice this in
     ⟨a, assume i, (ha i).left, assume i, le_vmap_iff_map_le.mpr $ (ha i).right⟩
@@ -628,13 +632,14 @@ end
 
 lemma vmap_nhds_neq_bot (de : dense_embedding e) {b : β} : vmap e (nhds b) ≠ ⊥ :=
 forall_sets_neq_empty_iff_neq_bot.mp $
-assume s ⟨t, ht, (hs : preimage e t ⊆ s)⟩,
+assume s ⟨t, ht, (hs : e ⁻¹' t ⊆ s)⟩,
 have t ∩ e '' univ ∈ (nhds b ⊓ principal (e '' univ)).sets,
   from inter_mem_inf_sets ht (subset.refl _),
 let ⟨x, ⟨hx₁, y, hy, y_eq⟩⟩ := inhabited_of_mem_sets de.nhds_inf_neq_bot this in
 ne_empty_of_mem $ hs $ show e y ∈ t, from y_eq.symm ▸ hx₁
 
 variables [topological_space γ] [inhabited γ] [regular_space γ]
+/-- If `e : α → β` is a dense embedding, then any function `α → γ` extends to a function `β → γ`. -/
 def ext (de : dense_embedding e) (f : α → γ) : β → γ := lim ∘ map f ∘ vmap e ∘ nhds
 
 lemma ext_eq {b : β} {c : γ} {f : α → γ} (hf : map f (vmap e (nhds b)) ≤ nhds c) : de.ext f b = c :=
@@ -653,20 +658,20 @@ have hφ : φ ∈ (nhds b).sets,
     show tendsto f (vmap e (nhds b)) (nhds (de.ext f b)), from (de.ext_eq hc).symm ▸ hc,
 assume s hs,
 let ⟨s'', hs''₁, hs''₂, hs''₃⟩ := nhds_is_closed hs in
-let ⟨s', hs'₁, (hs'₂ : preimage e s' ⊆ preimage f s'')⟩ := mem_of_nhds hφ hs''₁ in
+let ⟨s', hs'₁, (hs'₂ : e ⁻¹' s' ⊆ f ⁻¹' s'')⟩ := mem_of_nhds hφ hs''₁ in
 let ⟨t, (ht₁ : t ⊆ φ ∩ s'), ht₂, ht₃⟩ := mem_nhds_sets_iff.mp $ inter_mem_sets hφ hs'₁ in
-have h₁ : closure (f '' preimage e s') ⊆ s'',
+have h₁ : closure (f '' (e ⁻¹' s')) ⊆ s'',
   by rw [closure_subset_iff_subset_of_is_closed hs''₃, image_subset_iff]; exact hs'₂,
-have h₂ : t ⊆ preimage (de.ext f) (closure (f '' preimage e t)), from
+have h₂ : t ⊆ de.ext f ⁻¹' closure (f '' (e ⁻¹' t)), from
   assume b' hb',
   have nhds b' ≤ principal t, by simp; exact mem_nhds_sets ht₂ hb',
-  have map f (vmap e (nhds b')) ≤ nhds (de.ext f b') ⊓ principal (f '' preimage e t),
+  have map f (vmap e (nhds b')) ≤ nhds (de.ext f b') ⊓ principal (f '' (e ⁻¹' t)),
     from calc _ ≤ map f (vmap e (nhds b' ⊓ principal t)) : map_mono $ vmap_mono $ le_inf (le_refl _) this
       ... ≤ map f (vmap e (nhds b')) ⊓ map f (vmap e (principal t)) :
         le_inf (map_mono $ vmap_mono $ inf_le_left) (map_mono $ vmap_mono $ inf_le_right)
-      ... ≤ map f (vmap e (nhds b')) ⊓ principal (f '' preimage e t) : by simp [le_refl]
+      ... ≤ map f (vmap e (nhds b')) ⊓ principal (f '' (e ⁻¹' t)) : by simp [le_refl]
       ... ≤ _ : inf_le_inf ((ht₁ hb').left) (le_refl _),
-  show de.ext f b' ∈ closure (f '' preimage e t),
+  show de.ext f b' ∈ closure (f '' (e ⁻¹' t)),
   begin
     rw [closure_eq_nhds],
     apply neq_bot_of_le_neq_bot _ this,
@@ -675,11 +680,11 @@ have h₂ : t ⊆ preimage (de.ext f) (closure (f '' preimage e t)), from
   end,
 (nhds b).upwards_sets
   (show t ∈ (nhds b).sets, from mem_nhds_sets ht₂ ht₃)
-  (calc t ⊆ preimage (de.ext f) (closure (f '' preimage e t)) : h₂
-    ... ⊆ preimage (de.ext f) (closure (f '' preimage e s')) :
+  (calc t ⊆ de.ext f ⁻¹' closure (f '' (e ⁻¹' t)) : h₂
+    ... ⊆ de.ext f ⁻¹' closure (f '' (e ⁻¹' s')) :
       preimage_mono $ closure_mono $ image_subset f $ preimage_mono $ subset.trans ht₁ $ inter_subset_right _ _
-    ... ⊆ preimage (de.ext f) s'' : preimage_mono h₁
-    ... ⊆ preimage (de.ext f) s : preimage_mono hs''₂)
+    ... ⊆ de.ext f ⁻¹' s'' : preimage_mono h₁
+    ... ⊆ de.ext f ⁻¹' s : preimage_mono hs''₂)
 
 lemma continuous_ext {f : α → γ} (de : dense_embedding e)
   (hf : ∀b, ∃c, tendsto f (vmap e (nhds b)) (nhds c)) : continuous (de.ext f) :=
@@ -690,6 +695,7 @@ end dense_embedding
 namespace dense_embedding
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
+/-- The product of two dense embeddings is a dense embedding -/
 protected def prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :
   dense_embedding (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { dense_embedding .

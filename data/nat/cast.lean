@@ -13,6 +13,7 @@ variables {α : Type*}
 section
 variables [has_zero α] [has_one α] [has_add α]
 
+/-- Canonical homomorphism from `ℕ` to a type `α` with `0`, `1` and `+`. -/
 protected def cast : ℕ → α
 | 0     := 0
 | (n+1) := cast n + 1
@@ -79,6 +80,8 @@ by by_cases a ≤ b; simp [h, max]
 
 end nat
 
+/-- Typeclass for monoids with characteristic zero. (This is usually stated on fields
+  but it makes sense for any additive monoid with 1.) -/
 class char_zero (α : Type*) [add_monoid α] [has_one α] : Prop :=
 (cast_inj : ∀ {m n : ℕ}, (m : α) = n ↔ m = n)
 

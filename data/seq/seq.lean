@@ -7,27 +7,36 @@ coinductive seq (α : Type u) : Type u
 | cons : α → seq α → seq α
 -/
 
+/-- `seq α` is the type of possibly infinite lists (referred here as sequences).
+  It is encoded as an infinite stream of options such that if `f n = none`, then
+  `f m = none` for all `m ≥ n`. -/
 def seq (α : Type u) : Type u := { f : stream (option α) // ∀ {n}, f n = none → f (n+1) = none }
 
+/-- `seq1 α` is the type of nonempty sequences. -/
 def seq1 (α) := α × seq α
 
 namespace seq
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+/-- The empty sequence -/
 def nil : seq α := ⟨stream.const none, λn h, rfl⟩
 
+/-- Prepend an element to a sequence -/
 def cons (a : α) : seq α → seq α
 | ⟨f, al⟩ := ⟨some a :: f, λn h, by {cases n with n, contradiction, exact al h}⟩
 
+/-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
 
-def omap (f : β → γ) : option (α × β) → option (α × γ)
+/-- Functorial action of the functor `option (α × _)` -/
+@[simp] def omap (f : β → γ) : option (α × β) → option (α × γ)
 | none          := none
 | (some (a, b)) := some (a, f b)
-attribute [simp] omap
 
+/-- Get the first element of a sequence -/
 def head (s : seq α) : option α := nth s 0
 
+/-- Get the tail of a sequence (or `nil` if the sequence is `nil`) -/
 def tail : seq α → seq α
 | ⟨f, al⟩ := ⟨f.tail, λ n, al⟩
 
@@ -56,6 +65,8 @@ theorem eq_or_mem_of_mem_cons {a b : α} : ∀ {s : seq α}, a ∈ cons b s → 
 ⟨eq_or_mem_of_mem_cons, λo, by cases o with e m;
   [{rw e, apply mem_cons}, exact mem_cons_of_mem _ m]⟩
 
+/-- Destructor for a sequence, resulting in either `none` (for `nil`) or
+  `some (a, s)` (for `cons a s`). -/
 def destruct (s : seq α) : option (seq1 α) :=
 (λa', (a', s.tail)) <$> nth s 0
 
@@ -131,6 +142,8 @@ def corec.F (f : β → option (α × β)) : option β → option α × option �
 | none     := (none, none)
 | (some b) := match f b with none := (none, none) | some (a, b') := (some a, some b') end
 
+/-- Corecursor for `seq α` as a coinductive type. Iterates `f` to produce new elements
+  of the sequence until `none` is obtained. -/
 def corec (f : β → option (α × β)) (b : β) : seq α :=
 begin
   refine ⟨stream.corec' (corec.F f) (some b), λn h, _⟩,
@@ -148,7 +161,7 @@ begin
     exact IH (corec.F f o).2 }
 end
 
-@[simp] def corec_eq (f : β → option (α × β)) (b : β) :
+@[simp] theorem corec_eq (f : β → option (α × β)) (b : β) :
   destruct (corec f b) = omap (corec f) (f b) :=
 begin
   dsimp [corec, destruct, nth],
@@ -163,6 +176,7 @@ begin
   dsimp [corec.F], rw h, refl
 end
 
+/-- Embed a list as a sequence -/
 def of_list (l : list α) : seq α :=
 ⟨list.nth l, λn h, begin
   induction l with a l IH generalizing n, refl,
@@ -231,11 +245,15 @@ begin
   rw [h1, h2], apply H
 end
 
+/-- Embed an infinite stream as a sequence -/
 def of_stream (s : stream α) : seq α :=
 ⟨s.map some, λn h, by contradiction⟩
 
 instance coe_stream : has_coe (stream α) (seq α) := ⟨of_stream⟩
 
+/-- Embed a `lazy_list α` as a sequence. Note that even though this
+  is non-meta, it will produce infinite sequences if used with
+  cyclic `lazy_list`s created by meta constructions. -/
 def of_lazy_list : lazy_list α → seq α :=
 corec (λl, match l with
   | lazy_list.nil := none
@@ -244,14 +262,20 @@ corec (λl, match l with
 
 instance coe_lazy_list : has_coe (lazy_list α) (seq α) := ⟨of_lazy_list⟩
 
+/-- Translate a sequence into a `lazy_list`. Since `lazy_list` and `list`
+  are isomorphic as non-meta types, this function is necessarily meta. -/
 meta def to_lazy_list : seq α → lazy_list α | s :=
 match destruct s with
 | none := lazy_list.nil
 | some (a, s') := lazy_list.cons a (to_lazy_list s')
 end
 
+/-- Translate a sequence to a list. This function will run forever if
+  run on an infinite sequence. -/
 meta def force_to_list (s : seq α) : list α := (to_lazy_list s).to_list
 
+/-- Append two sequences. If `s₁` is infinite, then `s₁ ++ s₂ = s₁`,
+  otherwise it puts `s₂` at the location of the `nil` in `s₁`. -/
 def append (s₁ s₂ : seq α) : seq α :=
 @corec α (seq α × seq α) (λ⟨s₁, s₂⟩,
   match destruct s₁ with
@@ -259,6 +283,7 @@ def append (s₁ s₂ : seq α) : seq α :=
   | some (a, s₁') := some (a, s₁', s₂)
   end) (s₁, s₂)
 
+/-- Map a function over a sequence. -/
 def map (f : α → β) : seq α → seq β | ⟨s, al⟩ :=
 ⟨s.map (option.map f),
 λn, begin
@@ -267,6 +292,10 @@ def map (f : α → β) : seq α → seq β | ⟨s, al⟩ :=
   { rw al e, assumption }, { contradiction }
 end⟩
 
+/-- Flatten a sequence of sequences. (It is required that the
+  sequences be nonempty to ensure productivity; in the case
+  of an infinite sequence of `nil`, the first element is never
+  generated.) -/
 def join : seq (seq1 α) → seq α :=
 corec (λS, match destruct S with
   | none := none
@@ -276,11 +305,13 @@ corec (λS, match destruct S with
     end)
   end)
 
+/-- Remove the first `n` elements from the sequence. -/
 def drop (s : seq α) : ℕ → seq α
 | 0     := s
 | (n+1) := tail (drop n)
 attribute [simp] drop
 
+/-- Take the first `n` elements of the sequence (producing a list) -/
 def take : ℕ → seq α → list α
 | 0     s := []
 | (n+1) s := match destruct s with
@@ -288,6 +319,8 @@ def take : ℕ → seq α → list α
   | some (x, r) := list.cons x (take n r)
   end
 
+/-- Split a sequence at `n`, producing a finite initial segment
+  and an infinite tail. -/
 def split_at : ℕ → seq α → list α × seq α
 | 0     s := ([], s)
 | (n+1) s := match destruct s with
@@ -295,6 +328,7 @@ def split_at : ℕ → seq α → list α × seq α
   | some (x, s') := let (l, r) := split_at n s' in (list.cons x l, r)
   end
 
+/-- Combine two sequences with a function -/
 def zip_with (f : α → β → γ) : seq α → seq β → seq γ
 | ⟨f₁, a₁⟩ ⟨f₂, a₂⟩ := ⟨λn,
     match f₁ n, f₂ n with
@@ -309,16 +343,23 @@ def zip_with (f : α → β → γ) : seq α → seq β → seq γ
     { contradiction }
   end⟩
 
+/-- Pair two sequences into a sequence of pairs -/
 def zip : seq α → seq β → seq (α × β) := zip_with prod.mk
 
+/-- Separate a sequence of pairs into two sequences -/
 def unzip (s : seq (α × β)) : seq α × seq β := (map prod.fst s, map prod.snd s)
 
+/-- Convert a sequence which is known to terminate into a list -/
 def to_list (s : seq α) (h : ∃ n, ¬ (nth s n).is_some) : list α :=
 take (nat.find h) s
 
+/-- Convert a sequence which is known not to terminate into a stream -/
 def to_stream (s : seq α) (h : ∀ n, (nth s n).is_some) : stream α :=
 λn, option.get (h n)
 
+/-- Convert a sequence into either a list or a stream depending on whether
+  it is finite or infinite. (Without decidability of the infiniteness predicate,
+  this is not constructively possible.) -/
 def to_list_or_stream (s : seq α) [decidable (∃ n, ¬ (nth s n).is_some)] :
   list α ⊕ stream α :=
 if h : ∃ n, ¬ (nth s n).is_some
@@ -458,27 +499,30 @@ begin
   { refine ⟨nil, S, T, _, _⟩; simp }
 end
 
-@[simp] def of_list_nil : of_list [] = (nil : seq α) := rfl
+@[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
 
-@[simp] def of_list_cons (a : α) (l) :
+@[simp] theorem of_list_cons (a : α) (l) :
   of_list (a :: l) = cons a (of_list l) :=
 begin
   apply subtype.eq, simp [of_list, cons],
   funext n, cases n; simp [list.nth, stream.cons]
 end
 
-@[simp] def of_stream_cons (a : α) (s) :
+@[simp] theorem of_stream_cons (a : α) (s) :
   of_stream (a :: s) = cons a (of_stream s) :=
 by apply subtype.eq; simp [of_stream, cons]; rw stream.map_cons
 
-@[simp] def of_list_append (l l' : list α) :
+@[simp] theorem of_list_append (l l' : list α) :
   of_list (l ++ l') = append (of_list l) (of_list l') :=
 by induction l; simp [*]
 
-@[simp] def of_stream_append (l : list α) (s : stream α) :
+@[simp] theorem of_stream_append (l : list α) (s : stream α) :
   of_stream (l ++ₛ s) = append (of_list l) (of_stream s) :=
 by induction l; simp [*, stream.nil_append_stream, stream.cons_append_stream]
 
+/-- Convert a sequence into a list, embedded in a computation to allow for
+  the possibility of infinite sequences (in which case the computation
+  never returns anything). -/
 def to_list' {α} (s : seq α) : computation (list α) :=
 @computation.corec (list α) (list α × seq α) (λ⟨l, s⟩,
   match destruct s with
@@ -509,7 +553,7 @@ theorem exists_of_mem_map {f} {b : β} : ∀ {s : seq α}, b ∈ map f s → ∃
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := stream.exists_of_mem_map h in
   by cases o with a; injection oe with h'; exact ⟨a, om, h'⟩
 
-def of_mem_append {s₁ s₂ : seq α} {a : α} (h : a ∈ append s₁ s₂) : a ∈ s₁ ∨ a ∈ s₂ :=
+theorem of_mem_append {s₁ s₂ : seq α} {a : α} (h : a ∈ append s₁ s₂) : a ∈ s₁ ∨ a ∈ s₂ :=
 begin
   have := h, revert this,
   generalize e : append s₁ s₂ = ss, intro h, revert s₁,
@@ -526,7 +570,7 @@ begin
       { exact or.imp_left (mem_cons_of_mem _) (IH m i2) } } }
 end
 
-def mem_append_left {s₁ s₂ : seq α} {a : α} (h : a ∈ s₁) : a ∈ append s₁ s₂ :=
+theorem mem_append_left {s₁ s₂ : seq α} {a : α} (h : a ∈ s₁) : a ∈ append s₁ s₂ :=
 by apply mem_rec_on h; intros; simp [*]
 
 end seq
@@ -535,16 +579,19 @@ namespace seq1
 variables {α : Type u} {β : Type v} {γ : Type w}
 open seq
 
+/-- Convert a `seq1` to a sequence. -/
 def to_seq : seq1 α → seq α
 | (a, s) := cons a s
 
 instance coe_seq : has_coe (seq1 α) (seq α) := ⟨to_seq⟩
 
+/-- Map a function on a `seq1` -/
 def map (f : α → β) : seq1 α → seq1 β
 | (a, s) := (f a, seq.map f s)
 
 theorem map_id : ∀ (s : seq1 α), map id s = s | ⟨a, s⟩ := by simp [map]
 
+/-- Flatten a nonempty sequence of nonempty sequences -/
 def join : seq1 (seq1 α) → seq1 α
 | ((a, s), S) := match destruct s with
   | none := (a, seq.join S)
@@ -557,8 +604,14 @@ def join : seq1 (seq1 α) → seq1 α
   join ((a, cons b s), S) = (a, seq.join (cons (b, s) S)) :=
 by dsimp [join]; rw [destruct_cons]; refl
 
+/-- The `return` operator for the `seq1` monad,
+  which produces a singleton sequence. -/
 def ret (a : α) : seq1 α := (a, nil)
 
+/-- The `bind` operator for the `seq1` monad,
+  which maps `f` on each element of `s` and appends the results together.
+  (Not all of `s` may be evaluated, because the first few elements of `s`
+  may already produce an infinite result.) -/
 def bind (s : seq1 α) (f : α → seq1 β) : seq1 β :=
 join (map f s)
 

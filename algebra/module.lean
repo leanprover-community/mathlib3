@@ -15,10 +15,16 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 lemma set.sInter_eq_Inter {s : set (set α)} : (⋂₀ s) = (⋂i ∈ s, i) :=
 set.ext $ by simp
 
+/-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
 class has_scalar (α : out_param $ Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
+/-- A module is a generalization of vector spaces to a scalar ring.
+  It consists of a scalar ring `α` and an additive group of "vectors" `β`,
+  connected by a "scalar multiplication" operation `r • x : β`
+  (where `r : α` and `x : β`) with some natural associativity and
+  distributivity axioms similar to those on a ring. -/
 class module (α : out_param $ Type u) (β : Type v) [out_param $ ring α]
   extends has_scalar α β, add_comm_group β :=
 (smul_add : ∀r (x y : β), r • (x + y) = r • x + r • y)
@@ -143,6 +149,9 @@ by refine {..}; simp [hf.add, hf.smul, add_smul, smul_smul]
 
 end is_linear_map
 
+/-- A submodule of a module is one which is closed under vector operations.
+  This is a sufficient condition for the subset of vectors in the submodule
+  to themselves form a module. -/
 class is_submodule {α : Type u} {β : Type v} [ring α] [module α β] (p : set β) : Prop :=
 (zero_ : (0:β) ∈ p)
 (add_  : ∀ {x y}, x ∈ p → y ∈ p → x + y ∈ p)
@@ -221,8 +230,14 @@ end
 
 end is_submodule
 
+/-- A vector space is the same as a module, except the scalar ring is actually
+  a field. (This adds commutativity of the multiplication and existence of inverses.)
+  This is the traditional generalization of spaces like `ℝ^n`, which have a natural
+  addition operation and a way to multiply them by real numbers, but no multiplication
+  operation between vectors. -/
 class vector_space (α : out_param $ Type u) (β : Type v) [field α] extends module α β
 
+/-- Subspace of a vector space. Defined to equal `is_submodule`. -/
 @[reducible] def subspace {α : Type u} {β : Type v} [field α] [vector_space α β] (p : set β) :
   Prop :=
 is_submodule p

@@ -102,11 +102,15 @@ le_iff_le_iff_lt_iff_lt.1 (mul_le_mul_right_of_neg h)
 end linear_ordered_ring
 
 set_option old_structure_cmd true
+/-- Extend `nonneg_comm_group` to support ordered rings
+  specified by their nonnegative elements -/
 class nonneg_ring (α : Type*)
   extends ring α, zero_ne_one_class α, nonneg_comm_group α :=
 (mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (mul_pos : ∀ {a b}, pos a → pos b → pos (a * b))
 
+/-- Extend `nonneg_comm_group` to support linearly ordered rings
+  specified by their nonnegative elements -/
 class linear_nonneg_ring (α : Type*) extends domain α, nonneg_comm_group α :=
 (mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (nonneg_total : ∀ a, nonneg a ∨ nonneg (-a))

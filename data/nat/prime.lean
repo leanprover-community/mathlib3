@@ -11,6 +11,8 @@ open bool subtype
 namespace nat
 open decidable
 
+/-- `prime p` means that `p` is a prime number, that is, a natural number
+  at least 2 whose only divisors are `p` and `1`. -/
 def prime (p : ℕ) := p ≥ 2 ∧ ∀ m ∣ p, m = 1 ∨ m = p
 
 theorem prime.ge_two {p : ℕ} : prime p → p ≥ 2 := and.left
@@ -92,7 +94,7 @@ section min_fac
   using_well_founded {rel_tac :=
     λ _ _, `[exact ⟨_, measure_wf (λ k, sqrt n + 2 - k)⟩]}
 
-  -- returns the smallest prime factor of n ≠ 1
+  /-- Returns the smallest prime factor of `n ≠ 1`. -/
   def min_fac : ℕ → ℕ
   | 0 := 2
   | 1 := 1
@@ -210,6 +212,7 @@ suffices ∀ {n}, n ≥ 2 → ∃ p, p ≥ n ∧ prime p, from
     pp.not_dvd_one this,
   ⟨p, this, pp⟩
 
+/-- `factors n` is the prime factorization of `n`, listed in increasing order. -/
 def factors : ℕ → list ℕ
 | 0 := []
 | 1 := []

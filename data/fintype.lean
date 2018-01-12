@@ -10,6 +10,10 @@ universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+/-- `fintype α` means that `α` is finite, i.e. there are only
+  finitely many distinct elements of type `α`. The evidence of this
+  is a finset `elems` (a list up to permutation without duplicates),
+  together with a proof that everything of type `α` is in the list. -/
 class fintype (α : Type*) :=
 (elems : finset α)
 (complete : ∀ x : α, x ∈ elems)
@@ -17,6 +21,8 @@ class fintype (α : Type*) :=
 namespace finset
 variable [fintype α]
 
+/-- `univ` is the universal finite set of type `finset α` implied from
+  the assumption `fintype α`. -/
 def univ : finset α := fintype.elems α
 
 @[simp] theorem mem_univ (x : α) : x ∈ (univ : finset α) :=
@@ -35,16 +41,23 @@ open finset
 
 namespace fintype
 
+/-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
   (H : ∀ x : α, x ∈ s) : fintype α :=
 ⟨s.to_finset, by simpa using H⟩
 
+/-- Construct a proof of `fintype α` from a universal list -/
 def of_list [decidable_eq α] (l : list α)
   (H : ∀ x : α, x ∈ l) : fintype α :=
 ⟨l.to_finset, by simpa using H⟩
 
+/-- `card α` is the number of elements in `α`, defined when `α` is a fintype. -/
 def card (α) [fintype α] : ℕ := (@univ α _).card
 
+/-- There is (computably) a bijection between `α` and `fin n` where
+  `n = card α`. Since it is not unique, and depends on which permutation
+  of the universe list is used, the bijection is wrapped in `trunc` to
+  preserve computability.  -/
 def equiv_fin (α) [fintype α] [decidable_eq α] : trunc (α ≃ fin (card α)) :=
 by unfold card finset.card; exact
 quot.rec_on_subsingleton (@univ α _).1
@@ -78,13 +91,16 @@ theorem card_of_subtype {p : α → Prop} (s : finset α)
   card {x // p x} = s.card :=
 by rw ← subtype_card s H; congr
 
+/-- If `f : α → β` is a bijection and `α` is a fintype, then `β` is also a fintype. -/
 def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : fintype β :=
 ⟨⟨univ.1.map f, multiset.nodup_map H.1 univ.2⟩,
 λ b, let ⟨a, e⟩ := H.2 b in e ▸ multiset.mem_map_of_mem _ (mem_univ _)⟩
 
+/-- If `f : α → β` is a surjection and `α` is a fintype, then `β` is also a fintype. -/
 def of_surjective [fintype α] [decidable_eq β] (f : α → β) (H : function.surjective f) : fintype β :=
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
+/-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective
 
 theorem of_equiv_card [fintype α] (f : α ≃ β) :

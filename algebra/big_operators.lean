@@ -14,6 +14,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
+/-- `prod s f` is the product of `f x` as `x` ranges over the elements of the finite set `s`. -/
 @[to_additive finset.sum]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 attribute [to_additive finset.sum.equations._eqn_1] finset.prod.equations._eqn_1

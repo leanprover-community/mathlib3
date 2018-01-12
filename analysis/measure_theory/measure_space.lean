@@ -350,6 +350,7 @@ def outer_measure.to_measure
 section constructions
 variables {α : Type u} [measurable_space α]
 
+/-- Counting measure on any measurable space -/
 def count : measure_space α :=
 { measure_of := λs hs, ∑x, if x ∈ s then 1 else 0,
   measure_of_empty := by simp,

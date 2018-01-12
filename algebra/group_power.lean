@@ -21,6 +21,7 @@ variable {α : Type u}
 @[simp] theorem inv_inv' [discrete_field α] {a:α} : a⁻¹⁻¹ = a :=
 by rw [inv_eq_one_div, inv_eq_one_div, div_div_eq_mul_div]; simp [div_one]
 
+/-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [monoid α] (a : α) : ℕ → α
 | 0     := 1
 | (n+1) := a * monoid.pow n
@@ -143,6 +144,10 @@ end nat
 
 open int
 
+/--
+The power operation in a group. This extends `monoid.pow` to negative integers
+with the definition `a^(-n) = (a^n)⁻¹`.
+-/
 @[simp] def gpow (a : α) : ℤ → α
 | (of_nat n) := a^n
 | -[1+n]     := (a^(nat.succ n))⁻¹

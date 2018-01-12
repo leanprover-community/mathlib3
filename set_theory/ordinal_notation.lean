@@ -11,6 +11,11 @@ open ordinal
 local infixr ` ^ ` := power
 local notation `ω` := omega
 
+/-- Recursive definition of an ordinal notation. `zero` denotes the
+  ordinal 0, and `oadd e n a` is intended to refer to `ω^e * n + a`.
+  For this to be valid Cantor normal form, we must have the exponents
+  decrease to the right, but we can't state this condition until we've
+  defined `repr`, so it is a separate definition `NF`. -/
 @[derive decidable_eq]
 inductive onote : Type
 | zero : onote
@@ -18,13 +23,17 @@ inductive onote : Type
 
 namespace onote
 
+/-- Notation for 0 -/
 instance : has_zero onote := ⟨zero⟩
 @[simp] theorem zero_def : zero = 0 := rfl
 
+/-- Notation for 1 -/
 instance : has_one onote := ⟨oadd 0 1 0⟩
 
+/-- Notation for ω -/
 def omega : onote := oadd 1 1 0
 
+/-- The ordinal denoted by a notation -/
 @[simp] noncomputable def repr : onote → ordinal.{0}
 | 0 := 0
 | (oadd e n a) := ω ^ repr e * n + repr a
@@ -34,11 +43,13 @@ if e = 0 then _root_.to_string n else
 (if e = 1 then "ω" else "ω^(" ++ s ++ ")") ++
 if n = 1 then "" else "*" ++ _root_.to_string n
 
+/-- Print an ordinal notation -/
 def to_string : onote → string
 | zero := "0"
 | (oadd e n 0) := to_string_aux1 e n (to_string e)
 | (oadd e n a) := to_string_aux1 e n (to_string e) ++ " + " ++ to_string a
 
+/-- Print an ordinal notation -/
 def repr' : onote → string
 | zero := "0"
 | (oadd e n a) := "(oadd " ++ repr' e ++ " " ++ _root_.to_string (n:ℕ) ++ " " ++ repr' a ++ ")"
@@ -56,6 +67,7 @@ instance : preorder onote :=
 theorem lt_def {x y : onote} : x < y ↔ repr x < repr y := iff.rfl
 theorem le_def {x y : onote} : x ≤ y ↔ repr x ≤ repr y := iff.rfl
 
+/-- Convert a `nat` into an ordinal -/
 @[simp] def of_nat : ℕ → onote
 | 0            := 0
 | (nat.succ n) := oadd 0 n.succ_pnat 0
@@ -79,6 +91,7 @@ theorem oadd_pos (e n a) : 0 < oadd e n a :=
 @lt_of_lt_of_le _ _ _ _ _ (power_pos _ omega_pos)
   (omega_le_oadd _ _ _)
 
+/-- Compare ordinal notations -/
 def cmp : onote → onote → ordering
 | 0 0 := ordering.eq
 | _ 0 := ordering.gt
@@ -103,11 +116,23 @@ end
 theorem zero_lt_one : (0 : onote) < 1 :=
 by rw [lt_def, repr, repr_one]; exact zero_lt_one
 
+/-- `NF_below o b` says that `o` is a normal form ordinal notation
+  satisfying `repr o < ω ^ b`. -/
 inductive NF_below : onote → ordinal.{0} → Prop
 | zero {b} : NF_below 0 b
 | oadd' {e n a eb b} : NF_below e eb →
   NF_below a (repr e) → repr e < b → NF_below (oadd e n a) b
 
+/-- A normal form ordinal notation has the form
+
+     ω ^ a₁ * n₁ + ω ^ a₂ * n₂ + ... ω ^ aₖ * nₖ
+  where `a₁ > a₂ > ... > aₖ` and all the `aᵢ` are
+  also in normal form.
+  
+  We will essentially only be interested in normal form
+  ordinal notations, but to avoid complicating the algorithms
+  we define everything over general ordinal notations and
+  only prove correctness with normal form as an invariant. -/
 @[class] def NF (o : onote) := Exists (NF_below o)
 
 instance NF.zero : NF 0 := ⟨0, NF_below.zero⟩
@@ -253,6 +278,9 @@ theorem NF.of_dvd_omega {e n a} (h : NF (oadd e n a)) :
    ω ∣ repr (oadd e n a) → repr e ≠ 0 ∧ ω ∣ repr a :=
 by rw [← power_one ω, ← one_le_iff_ne_zero]; exact h.of_dvd_omega_power
 
+/-- `top_below b o` asserts that the largest exponent in `o`, if
+  it exists, is less than `b`. This is an auxiliary definition
+  for decidability of `NF`. -/
 def top_below (b) : onote → Prop
 | 0            := true
 | (oadd e n a) := cmp e b = ordering.lt
@@ -278,6 +306,7 @@ instance decidable_NF : decidable_pred NF
     exact ⟨λ ⟨h₁, h₂⟩, NF.oadd h₁ n h₂, λ h, ⟨h.fst, h.snd'⟩⟩ },
 end
 
+/-- Addition of ordinal notations (correct only for normal input) -/
 def add : onote → onote → onote
 | 0            o := o
 | (oadd e n a) o := match add a o with
@@ -294,6 +323,7 @@ instance : has_add onote := ⟨add⟩
 @[simp] theorem zero_add (o : onote) : 0 + o = o := rfl
 theorem oadd_add (e n a o) : oadd e n a + o = add._match_1 e n (a + o) := rfl
 
+/-- Subtraction of ordinal notations (correct only for normal input) -/
 def sub : onote → onote → onote
 | 0 o := 0
 | o 0 := o
@@ -398,6 +428,7 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
       omega_le_oadd _ _ _).symm }
 end
 
+/-- Multiplication of ordinal notations (correct only for normal input) -/
 def mul : onote → onote → onote
 | 0 _ := 0
 | _ 0 := 0
@@ -457,20 +488,26 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
     simpa using power_dvd_power ω (one_le_iff_ne_zero.2 this) },
 end
 
+/-- Calculate division and remainder of `o` mod ω.
+  `split' o = (a, n)` means `o = ω * a + n`. -/
 def split' : onote → onote × ℕ
 | 0            := (0, 0)
 | (oadd e n a) := if e = 0 then (0, n) else
   let (a', m) := split' a in (oadd (e - 1) n a', m)
 
+/-- Calculate division and remainder of `o` mod ω.
+  `split o = (a, n)` means `o = a + n`, where `ω ∣ a`. -/
 def split : onote → onote × ℕ
 | 0            := (0, 0)
 | (oadd e n a) := if e = 0 then (0, n) else
   let (a', m) := split a in (oadd e n a', m)
 
+/-- `scale x o` is the ordinal notation for `ω ^ x * o`. -/
 def scale (x : onote) : onote → onote
 | 0            := 0
 | (oadd e n a) := oadd (x + e) n (scale a)
 
+/-- `mul_nat o n` is the ordinal notation for `o * n`. -/
 def mul_nat : onote → ℕ → onote
 | 0            m := 0
 | _            0 := 0
@@ -481,6 +518,8 @@ def power_aux (e a0 a : onote) : ℕ → ℕ → onote
 | 0     (m+1) := oadd e m.succ_pnat 0
 | (k+1) m     := scale (e + mul_nat a0 k) a + power_aux k m
 
+/-- `power o₁ o₂` calculates the ordinal notation for
+  the ordinal exponential `o₁ ^ o₂`. -/
 def power (o₁ o₂ : onote) : onote :=
 match split o₁ with
 | (0, 0) := if o₂ = 0 then 1 else 0
@@ -725,6 +764,11 @@ end
 
 end onote
 
+/-- The type of normal ordinal notations. (It would have been
+  nicer to define this right in the inductive type, but `NF o`
+  requires `repr` which requires `onote`, so all these things
+  would have to be defined at once, which messes up the VM
+  representation.) -/
 def nonote := {o : onote // o.NF}
 
 instance : decidable_eq nonote := by unfold nonote; apply_instance
@@ -734,8 +778,16 @@ open onote
 
 instance NF (o : nonote) : NF o.1 := o.2
 
+/-- Construct a `nonote` from an ordinal notation
+  (and infer normality) -/
 def mk (o : onote) [h : NF o] : nonote := ⟨o, h⟩
 
+/-- The ordinal represented by an ordinal notation.
+  (This function is noncomputable because ordinal
+  arithmetic is noncomputable. In computational applications
+  `nonote` can be used exclusively without reference
+  to `ordinal`, but this function allows for correctness
+  results to be stated.) -/
 noncomputable def repr (o : nonote) : ordinal := o.1.repr
 
 instance : has_to_string nonote := ⟨λ x, x.1.to_string⟩
@@ -750,8 +802,10 @@ instance : preorder nonote :=
 
 instance : has_zero nonote := ⟨⟨0, NF.zero⟩⟩
 
+/-- Convert a natural number to an ordinal notation -/
 def of_nat (n : ℕ) : nonote := ⟨of_nat n, _, NF_below_of_nat _⟩
 
+/-- Compare ordinal notations -/
 def cmp (a b : nonote) : ordering :=
 cmp a.1 b.1 
 
@@ -783,10 +837,15 @@ instance : decidable_linear_order nonote :=
   decidable_lt := nonote.decidable_lt,
   ..nonote.linear_order }
 
+/-- Asserts that `repr a < ω ^ repr b`. Used in `nonote.rec_on` -/
 def below (a b : nonote) : Prop := NF_below a.1 (repr b)
 
+/-- The `oadd` pseudo-constructor for `nonote` -/
 def oadd (e : nonote) (n : ℕ+) (a : nonote) (h : below a e) : nonote := ⟨_, NF.oadd e.2 n h⟩
 
+/-- This is a recursor-like theorem for `nonote` suggesting an
+  inductive definition, which can't actually be defined this
+  way due to conflicting dependencies. -/
 @[elab_as_eliminator] def rec_on {C : nonote → Sort*} (o : nonote)
   (H0 : C 0)
   (H1 : ∀ e n a h, C e → C a → C (oadd e n a h)) : C o :=
@@ -796,21 +855,25 @@ begin
   { exact H1 ⟨e, h.fst⟩ n ⟨a, h.snd⟩ h.snd' (IHe _) (IHa _) }
 end
 
+/-- Addition of ordinal notations -/
 instance : has_add nonote := ⟨λ x y, mk (x.1 + y.1)⟩
 
 theorem repr_add (a b) : repr (a + b) = repr a + repr b :=
 onote.repr_add a.1 b.1
 
+/-- Subtraction of ordinal notations -/
 instance : has_sub nonote := ⟨λ x y, mk (x.1 - y.1)⟩
 
 theorem repr_sub (a b) : repr (a - b) = repr a - repr b :=
 onote.repr_sub a.1 b.1
 
+/-- Multiplication of ordinal notations -/
 instance : has_mul nonote := ⟨λ x y, mk (x.1 * y.1)⟩
 
 theorem repr_mul (a b) : repr (a * b) = repr a * repr b :=
 onote.repr_mul a.1 b.1
 
+/-- Exponentiation of ordinal notations -/
 def power (x y : nonote) := mk (x.1.power y.1)
 
 theorem repr_power (a b) : repr (power a b) = (repr a).power (repr b) :=

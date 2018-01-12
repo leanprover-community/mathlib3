@@ -33,6 +33,7 @@ lemma quotient_rel_eq {b₁ b₂ : β} : (b₁ ≈ b₂) = (b₁ - b₂ ∈ s) :
 
 section
 variable (β)
+/-- Quotient module. `quotient β s` is the quotient of the module `β` by the submodule `s`. -/
 def quotient : Type v := quotient (quotient_rel s)
 end
 

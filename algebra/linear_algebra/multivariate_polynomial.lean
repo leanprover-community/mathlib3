@@ -20,6 +20,7 @@ instance {α : Type u} [semilattice_sup α] : is_idempotent α (⊔) := ⟨assum
 namespace finset
 variables [semilattice_sup_bot α]
 
+/-- Supremum of a finite set: `sup {a, b, c} f = f a ⊔ f b ⊔ f c` -/
 def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
 
 variables {s s₁ s₂ : finset β} {f : β → α}
@@ -91,6 +92,8 @@ have ∀(s : finset α) (f : α →₀ β), s = f.support → p f,
       end),
 this _ _ rfl
 
+/-- Multivariate polynomial, where `σ` is the index set of the variables and
+  `α` is the coefficient ring -/
 def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := (σ →₀ ℕ) →₀ α
 
 namespace mv_polynomial
@@ -105,10 +108,13 @@ instance : has_add (mv_polynomial σ α) := finsupp.has_add
 instance : has_mul (mv_polynomial σ α) := finsupp.has_mul
 instance : comm_semiring (mv_polynomial σ α) := finsupp.to_comm_semiring
 
+/-- monomial s a is the monomial `a * X^s` -/
 def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
 
+/-- C a is the constant polynomial with value a -/
 def C (a : α) : mv_polynomial σ α := monomial 0 a
 
+/-- X n is the polynomial with value X_n -/
 def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
 
 @[simp] lemma C_0 : C 0 = (0 : mv_polynomial σ α) := by simp [C, monomial]; refl
@@ -165,6 +171,7 @@ finsupp.single_induction_on p
 section eval
 variables {f : σ → α}
 
+/-- Evaluate a polynomial `p` given a valuation `f` of all the variables -/
 def eval (p : mv_polynomial σ α) (f : σ → α) : α :=
 p.sum (λs a, a * s.prod (λn e, f n ^ e))
 
@@ -209,6 +216,7 @@ end eval
 
 section vars
 
+/-- `vars p` is the set of variables appearing in the polynomial `p` -/
 def vars (p : mv_polynomial σ α) : finset σ := p.support.bind finsupp.support
 
 @[simp] lemma vars_0 : (0 : mv_polynomial σ α).vars = ∅ :=
@@ -230,11 +238,13 @@ calc (X n : mv_polynomial σ α).vars = (single n 1).support : vars_monomial h.s
 end vars
 
 section degree_of
+/-- `degree_of n p` gives the highest power of X_n that appears in `p` -/
 def degree_of (n : σ) (p : mv_polynomial σ α) : ℕ := p.support.sup (λs, s n)
 
 end degree_of
 
 section total_degree
+/-- `total_degree p` gives the maximum |s| over the monomials X^s in `p` -/
 def total_degree (p : mv_polynomial σ α) : ℕ := p.support.sup (λs, s.sum $ λn e, e)
 
 end total_degree

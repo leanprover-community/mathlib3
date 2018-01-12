@@ -6,43 +6,53 @@ Author: Mario Carneiro
 import data.seq.seq data.seq.computation data.list.basic data.dlist
 universes u v w
 
--- While the `seq` structure allows for lists which may not be finite,
--- a weak sequence also allows the computation of each element to
--- involve an indeterminate amount of computation, including possibly
--- an infinite loop. This is represented as a regular `seq` interspersed
--- with `none` elements to indicate that computation is ongoing.
---
--- This model is appropriate for Haskell style lazy lists, and is closed
--- under most interesting computation patterns on infinite lists,
--- but conversely it is difficult to extract elements from it.
-
 /-
 coinductive wseq (α : Type u) : Type u
 | nil : wseq α
 | cons : α → wseq α → wseq α
 | think : wseq α → wseq α
 -/
+
+/-- Weak sequences.
+
+  While the `seq` structure allows for lists which may not be finite,
+  a weak sequence also allows the computation of each element to
+  involve an indeterminate amount of computation, including possibly
+  an infinite loop. This is represented as a regular `seq` interspersed
+  with `none` elements to indicate that computation is ongoing.
+ 
+  This model is appropriate for Haskell style lazy lists, and is closed
+  under most interesting computation patterns on infinite lists,
+  but conversely it is difficult to extract elements from it. -/
 def wseq (α) := seq (option α)
 
 namespace wseq
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+/-- Turn a sequence into a weak sequence -/
 def of_seq : seq α → wseq α := (<$>) some
 
+/-- Turn a list into a weak sequence -/
 def of_list (l : list α) : wseq α := of_seq l
 
+/-- Turn a stream into a weak sequence -/
 def of_stream (l : stream α) : wseq α := of_seq l
 
 instance coe_seq : has_coe (seq α) (wseq α) := ⟨of_seq⟩
 instance coe_list : has_coe (list α) (wseq α) := ⟨of_list⟩
 instance coe_stream : has_coe (stream α) (wseq α) := ⟨of_stream⟩
 
+/-- The empty weak sequence -/
 def nil : wseq α := seq.nil
 
+/-- Prepend an element to a weak sequence -/
 def cons (a : α) : wseq α → wseq α := seq.cons (some a)
 
+/-- Compute for one tick, without producing any elements -/
 def think : wseq α → wseq α := seq.cons none
 
+/-- Destruct a weak sequence, to (eventually possibly) produce either
+  `none` for `nil` or `some (a, s)` if an element is produced. -/
 def destruct : wseq α → computation (option (α × wseq α)) :=
 computation.corec (λs, match seq.destruct s with
   | none              := sum.inl none
@@ -61,25 +71,35 @@ instance : has_mem α (wseq α) :=
 
 theorem not_mem_nil (a : α) : a ∉ @nil α := seq.not_mem_nil a
 
+/-- Get the head of a weak sequence. This involves a possibly
+  infinite computation. -/
 def head (s : wseq α) : computation (option α) :=
 computation.map ((<$>) prod.fst) (destruct s)
 
+/-- Encode a computation yielding a weak sequence into additional
+  `think` constructors in a weak sequence -/
 def flatten : computation (wseq α) → wseq α :=
 seq.corec (λc, match computation.destruct c with
   | sum.inl s := seq.omap return (seq.destruct s)
   | sum.inr c' := some (none, c')
   end)
 
+/-- Get the tail of a weak sequence. This doesn't need a `computation`
+  wrapper, unlike `head`, because `flatten` allows us to hide this
+  in the construction of the weak sequence itself. -/
 def tail (s : wseq α) : wseq α :=
 flatten $ (λo, option.rec_on o nil prod.snd) <$> destruct s
 
+/-- drop the first `n` elements from `s`. -/
 def drop (s : wseq α) : ℕ → wseq α
 | 0     := s
 | (n+1) := tail (drop n)
 attribute [simp] drop
 
+/-- Get the nth element of `s`. -/
 def nth (s : wseq α) (n : ℕ) : computation (option α) := head (drop s n)
 
+/-- Convert `s` to a list (if it is finite and completes in finite time). -/
 def to_list (s : wseq α) : computation (list α) :=
 @computation.corec (list α) (list α × wseq α) (λ⟨l, s⟩,
   match seq.destruct s with
@@ -88,6 +108,7 @@ def to_list (s : wseq α) : computation (list α) :=
   | some (some a, s') := sum.inr (a::l, s')
   end) ([], s)
 
+/-- Get the length of `s` (if it is finite and completes in finite time). -/
 def length (s : wseq α) : computation ℕ :=
 @computation.corec ℕ (ℕ × wseq α) (λ⟨n, s⟩,
   match seq.destruct s with
@@ -96,18 +117,25 @@ def length (s : wseq α) : computation ℕ :=
   | some (some a, s') := sum.inr (n+1, s')
   end) (0, s)
 
+/-- A weak sequence is finite if `to_list s` terminates. Equivalently,
+  it is a finite number of `think` and `cons` applied to `nil`. -/
 @[class] def is_finite (s : wseq α) : Prop := (to_list s).terminates
 
 instance to_list_terminates (s : wseq α) [h : is_finite s] : (to_list s).terminates := h
 
+/-- Get the list corresponding to a finite weak sequence. -/
 def get (s : wseq α) [is_finite s] : list α := (to_list s).get
 
+/-- A weak sequence is *productive* if it never stalls forever - there are
+ always a finite number of `think`s between `cons` constructors.
+ The sequence itself is allowed to be infinite though. -/
 @[class] def productive (s : wseq α) : Prop := ∀ n, (nth s n).terminates
 
 instance nth_terminates (s : wseq α) [h : productive s] : ∀ n, (nth s n).terminates := h
 
 instance head_terminates (s : wseq α) [h : productive s] : (head s).terminates := h 0
 
+/-- Replace the `n`th element of `s` with `a`. -/
 def update_nth (s : wseq α) (n : ℕ) (a : α) : wseq α :=
 @seq.corec (option α) (ℕ × wseq α) (λ⟨n, s⟩,
   match seq.destruct s, n with
@@ -118,6 +146,7 @@ def update_nth (s : wseq α) (n : ℕ) (a : α) : wseq α :=
   | some (some a', s'), (n+2) := some (some a', n+1, s')
   end) (n+1, s)
 
+/-- Remove the `n`th element of `s`. -/
 def remove_nth (s : wseq α) (n : ℕ) : wseq α :=
 @seq.corec (option α) (ℕ × wseq α) (λ⟨n, s⟩,
   match seq.destruct s, n with
@@ -128,6 +157,7 @@ def remove_nth (s : wseq α) (n : ℕ) : wseq α :=
   | some (some a', s'), (n+2) := some (some a', n+1, s')
   end) (n+1, s)
 
+/-- Map the elements of `s` over `f`, removing any values that yield `none`. -/
 def filter_map (f : α → option β) : wseq α → wseq β :=
 seq.corec (λs, match seq.destruct s with
   | none              := none
@@ -135,13 +165,16 @@ seq.corec (λs, match seq.destruct s with
   | some (some a, s') := some (f a, s')
   end)
 
+/-- Select the elements of `s` that satisfy `p`. -/
 def filter (p : α → Prop) [decidable_pred p] : wseq α → wseq α :=
 filter_map (λa, if p a then some a else none)
 
 -- example of infinite list manipulations
+/-- Get the first element of `s` satisfying `p`. -/
 def find (p : α → Prop) [decidable_pred p] (s : wseq α) : computation (option α) :=
 head $ filter p s
 
+/-- Zip a function over two weak sequences -/
 def zip_with (f : α → β → γ) (s1 : wseq α) (s2 : wseq β) : wseq γ :=
 @seq.corec (option γ) (wseq α × wseq β) (λ⟨s1, s2⟩,
   match seq.destruct s1, seq.destruct s2 with
@@ -152,20 +185,26 @@ def zip_with (f : α → β → γ) (s1 : wseq α) (s2 : wseq β) : wseq γ :=
   | _,                   _                   := none
   end) (s1, s2)
 
+/-- Zip two weak sequences into a single sequence of pairs -/
 def zip : wseq α → wseq β → wseq (α × β) := zip_with prod.mk
 
+/-- Get the list of indexes of elements of `s` satisfying `p` -/
 def find_indexes (p : α → Prop) [decidable_pred p] (s : wseq α) : wseq ℕ :=
 (zip s (stream.nats : wseq ℕ)).filter_map
   (λ ⟨a, n⟩, if p a then some n else none)
 
+/-- Get the index of the first element of `s` satisfying `p` -/
 def find_index (p : α → Prop) [decidable_pred p] (s : wseq α) : computation ℕ :=
 (λ o, option.get_or_else o 0) <$> head (find_indexes p s)
 
+/-- Get the index of the first occurrence of `a` in `s` -/
 def index_of [decidable_eq α] (a : α) : wseq α → computation ℕ := find_index (eq a)
 
+/-- Get the indexes of occurrences of `a` in `s` -/
 def indexes_of [decidable_eq α] (a : α) : wseq α → wseq ℕ := find_indexes (eq a)
 
--- nondeterministic
+/-- `union s1 s2` is a weak sequence which interleaves `s1` and `s2` in
+  some order (nondeterministically). -/
 def union (s1 s2 : wseq α) : wseq α :=
 @seq.corec (option α) (wseq α × wseq α) (λ⟨s1, s2⟩,
   match seq.destruct s1, seq.destruct s2 with
@@ -178,16 +217,18 @@ def union (s1 s2 : wseq α) : wseq α :=
   | some (some a1, s1'), some (some a2, s2') := some (some a1, cons a2 s1', s2')
   end) (s1, s2)
 
+/-- Returns `tt` if `s` is `nil` and `ff` if `s` has an element -/
 def is_empty (s : wseq α) : computation bool :=
 computation.map option.is_none $ head s
 
--- Calculate one step of computation
+/-- Calculate one step of computation -/
 def compute (s : wseq α) : wseq α :=
 match seq.destruct s with
 | some (none, s') := s'
 | _               := s
 end
 
+/-- Get the first `n` elements of a weak sequence -/
 def take (s : wseq α) (n : ℕ) : wseq α :=
 @seq.corec (option α) (ℕ × wseq α) (λ⟨n, s⟩,
   match n, seq.destruct s with
@@ -197,6 +238,8 @@ def take (s : wseq α) (n : ℕ) : wseq α :=
   | m+1, some (some a, s') := some (some a, m, s')
   end) (n, s)
 
+/-- Split the sequence at position `n` into a finite initial segment
+  and the weak sequence tail -/
 def split_at (s : wseq α) (n : ℕ) : computation (list α × wseq α) :=
 @computation.corec (list α × wseq α) (ℕ × list α × wseq α) (λ⟨n, l, s⟩,
   match n, seq.destruct s with
@@ -206,6 +249,7 @@ def split_at (s : wseq α) (n : ℕ) : computation (list α × wseq α) :=
   | m+1, some (some a, s') := sum.inr (m, a::l, s')
   end) (n, [], s)
 
+/-- Returns `tt` if any element of `s` satisfies `p` -/
 def any (s : wseq α) (p : α → bool) : computation bool :=
 computation.corec (λs : wseq α,
   match seq.destruct s with
@@ -214,6 +258,7 @@ computation.corec (λs : wseq α,
   | some (some a, s') := if p a then sum.inl tt else sum.inr s'
   end) s
 
+/-- Returns `tt` if every element of `s` satisfies `p` -/
 def all (s : wseq α) (p : α → bool) : computation bool :=
 computation.corec (λs : wseq α,
   match seq.destruct s with
@@ -222,6 +267,9 @@ computation.corec (λs : wseq α,
   | some (some a, s') := if p a then sum.inr s' else sum.inl ff
   end) s
 
+/-- Apply a function to the elements of the sequence to produce a sequence
+  of partial results. (There is no `scanr` because this would require
+  working from the end of the sequence, which may not exist.) -/
 def scanl (f : α → β → α) (a : α) (s : wseq β) : wseq α :=
 cons a $ @seq.corec (option α) (α × wseq β) (λ⟨a, s⟩,
   match seq.destruct s with
@@ -230,6 +278,7 @@ cons a $ @seq.corec (option α) (α × wseq β) (λ⟨a, s⟩,
   | some (some b, s') := let a' := f a b in some (some a', a', s')
   end) (a, s)
 
+/-- Get the weak sequence of initial segments of the input sequence -/
 def inits (s : wseq α) : wseq (list α) :=
 cons [] $ @seq.corec (option (list α)) (dlist α × wseq α) (λ ⟨l, s⟩,
   match seq.destruct s with
@@ -239,29 +288,35 @@ cons [] $ @seq.corec (option (list α)) (dlist α × wseq α) (λ ⟨l, s⟩,
                          some (some l'.to_list, l', s')
   end) (dlist.empty, s)
 
--- Like take, but does not wait for a result
+/-- Like take, but does not wait for a result. Calculates `n` steps of
+  computation and returns the sequence computed so far -/
 def collect (s : wseq α) (n : ℕ) : list α :=
 (seq.take n s).filter_map id
 
+/-- Append two weak sequences. As with `seq.append`, this may not use
+  the second sequence if the first one takes forever to compute -/
 def append : wseq α → wseq α → wseq α := seq.append
 
+/-- Map a function over a weak sequence -/
 def map (f : α → β) : wseq α → wseq β := seq.map (option.map f)
 
+/-- Flatten a sequence of weak sequences. (Note that this allows
+  empty sequences, unlike `seq.join`.) -/
 def join (S : wseq (wseq α)) : wseq α :=
 seq.join ((λo : option (wseq α), match o with
   | none := seq1.ret none
   | some s := (none, s)
   end) <$> S)
 
+/-- Monadic bind operator for weak sequences -/
 def bind (s : wseq α) (f : α → wseq β) : wseq β :=
 join (map f s)
 
-def lift_rel_o (R : α → β → Prop) (C : wseq α → wseq β → Prop) :
+@[simp] def lift_rel_o (R : α → β → Prop) (C : wseq α → wseq β → Prop) :
   option (α × wseq α) → option (β × wseq β) → Prop
 | none          none          := true
 | (some (a, s)) (some (b, t)) := R a b ∧ C s t
 | _             _             := false
-attribute [simp] lift_rel_o
 
 theorem lift_rel_o.imp {R S : α → β → Prop} {C D : wseq α → wseq β → Prop}
   (H1 : ∀ a b, R a b → S a b) (H2 : ∀ s t, C s t → D s t) :
@@ -275,22 +330,24 @@ theorem lift_rel_o.imp_right (R : α → β → Prop) {C D : wseq α → wseq β
   (H : ∀ s t, C s t → D s t) {o p} : lift_rel_o R C o p → lift_rel_o R D o p :=
 lift_rel_o.imp (λ _ _, id) H
 
-def bisim_o (R : wseq α → wseq α → Prop) :
+@[simp] def bisim_o (R : wseq α → wseq α → Prop) :
   option (α × wseq α) → option (α × wseq α) → Prop := lift_rel_o (=) R
-attribute [simp] bisim_o
 
 theorem bisim_o.imp {R S : wseq α → wseq α → Prop} (H : ∀ s t, R s t → S s t) {o p} :
   bisim_o R o p → bisim_o S o p :=
 lift_rel_o.imp_right _ H
 
+/-- Two weak sequences are `lift_rel R` related if they are either both empty,
+  or they are both nonempty and the heads are `R` related and the tails are
+  `lift_rel R` related. (This is a coinductive definition.) -/
 def lift_rel (R : α → β → Prop) (s : wseq α) (t : wseq β) : Prop :=
 ∃ C : wseq α → wseq β → Prop, C s t ∧
 ∀ {s t}, C s t → computation.lift_rel (lift_rel_o R C) (destruct s) (destruct t)
 
--- If two sequences are equivalent, then they have the same values and
--- the same computational behavior (i.e. if one loops forever then so does
--- the other), although they may differ in the number of `think`s needed to
--- arrive at the answer.
+/-- If two sequences are equivalent, then they have the same values and
+  the same computational behavior (i.e. if one loops forever then so does
+  the other), although they may differ in the number of `think`s needed to
+  arrive at the answer. -/
 def equiv : wseq α → wseq α → Prop := lift_rel (=)
 
 theorem lift_rel_destruct {R : α → β → Prop} {s : wseq α} {t : wseq β} :
@@ -323,18 +380,18 @@ theorem destruct_congr_iff {s t : wseq α} :
   s ~ t ↔ computation.lift_rel (bisim_o (~)) (destruct s) (destruct t) :=
 lift_rel_destruct_iff
 
-def lift_rel.refl (R : α → α → Prop) (H : reflexive R) : reflexive (lift_rel R) :=
+theorem lift_rel.refl (R : α → α → Prop) (H : reflexive R) : reflexive (lift_rel R) :=
 λ s, begin
   refine ⟨(=), rfl, λ s t (h : s = t), _⟩,
   rw ←h, apply computation.lift_rel.refl,
   intro a, cases a with a, simp, cases a; simp, apply H
 end
 
-def lift_rel_o.swap (R : α → β → Prop) (C) :
+theorem lift_rel_o.swap (R : α → β → Prop) (C) :
   function.swap (lift_rel_o R C) = lift_rel_o (function.swap R) (function.swap C) :=
 by funext x y; cases x with x; [skip, cases x]; { cases y with y; [skip, cases y]; refl }
 
-def lift_rel.swap_lem {R : α → β → Prop} {s1 s2} (h : lift_rel R s1 s2) :
+theorem lift_rel.swap_lem {R : α → β → Prop} {s1 s2} (h : lift_rel R s1 s2) :
   lift_rel (function.swap R) s2 s1 :=
 begin
   refine ⟨function.swap (lift_rel R), h, λ s t (h : lift_rel R t s), _⟩,
@@ -342,16 +399,16 @@ begin
   apply lift_rel_destruct h
 end
 
-def lift_rel.swap (R : α → β → Prop) :
+theorem lift_rel.swap (R : α → β → Prop) :
   function.swap (lift_rel R) = lift_rel (function.swap R) :=
 funext $ λ x, funext $ λ y, propext ⟨lift_rel.swap_lem, lift_rel.swap_lem⟩
 
-def lift_rel.symm (R : α → α → Prop) (H : symmetric R) : symmetric (lift_rel R) :=
+theorem lift_rel.symm (R : α → α → Prop) (H : symmetric R) : symmetric (lift_rel R) :=
 λ s1 s2 (h : function.swap (lift_rel R) s2 s1),
 by rwa [lift_rel.swap, show function.swap R = R, from
         funext $ λ a, funext $ λ b, propext $ by constructor; apply H] at h
 
-def lift_rel.trans (R : α → α → Prop) (H : transitive R) : transitive (lift_rel R) :=
+theorem lift_rel.trans (R : α → α → Prop) (H : transitive R) : transitive (lift_rel R) :=
 λ s t u h1 h2, begin
   refine ⟨λ s u, ∃ t, lift_rel R s t ∧ lift_rel R t u, ⟨t, h1, h2⟩, λ s u h, _⟩,
   cases h with t h, cases h with h1 h2,
@@ -372,7 +429,7 @@ def lift_rel.trans (R : α → α → Prop) (H : transitive R) : transitive (lif
     exact ⟨H ab bc, t, st, tu⟩ }
 end
 
-def lift_rel.equiv (R : α → α → Prop) : equivalence R → equivalence (lift_rel R)
+theorem lift_rel.equiv (R : α → α → Prop) : equivalence R → equivalence (lift_rel R)
 | ⟨refl, symm, trans⟩ :=
   ⟨lift_rel.refl R refl, lift_rel.symm R symm, lift_rel.trans R trans⟩
 
@@ -464,13 +521,13 @@ congr_arg head (dropn_add _ _ _)
 theorem nth_tail (s : wseq α) (n) : nth (tail s) n = nth s (n + 1) :=
 congr_arg head (dropn_tail _ _)
 
-@[simp] def join_nil : join nil = (nil : wseq α) := seq.join_nil
+@[simp] theorem join_nil : join nil = (nil : wseq α) := seq.join_nil
 
-@[simp] def join_think (S : wseq (wseq α)) :
+@[simp] theorem join_think (S : wseq (wseq α)) :
   join (think S) = think (join S) :=
 by { simp [think, join], unfold has_map.map, simp [join, seq1.ret] }
 
-@[simp] def join_cons (s : wseq α) (S) :
+@[simp] theorem join_cons (s : wseq α) (S) :
   join (cons s S) = think (append s (join S)) :=
 by { simp [think, join], unfold has_map.map, simp [join, cons, append] }
 
@@ -487,10 +544,9 @@ by { simp [think, join], unfold has_map.map, simp [join, cons, append] }
 @[simp] theorem append_assoc (s t u : wseq α) :
   append (append s t) u = append s (append t u) := seq.append_assoc _ _ _
 
-def tail.aux : option (α × wseq α) → computation (option (α × wseq α))
+@[simp] def tail.aux : option (α × wseq α) → computation (option (α × wseq α))
 | none          := return none
 | (some (a, s)) := destruct s
-attribute [simp] tail.aux
 
 theorem destruct_tail (s : wseq α) :
   destruct (tail s) = destruct s >>= tail.aux :=
@@ -501,16 +557,14 @@ begin
   apply (monad.pure_bind _ _).trans _; simp
 end
 
-def drop.aux : ℕ → option (α × wseq α) → computation (option (α × wseq α))
+@[simp] def drop.aux : ℕ → option (α × wseq α) → computation (option (α × wseq α))
 | 0     := return
 | (n+1) := λ a, tail.aux a >>= drop.aux n
-attribute [simp] drop.aux
 
-def drop.aux_none : ∀ n, @drop.aux α n none = return none
+theorem drop.aux_none : ∀ n, @drop.aux α n none = return none
 | 0     := rfl
 | (n+1) := show computation.bind (return none) (drop.aux n) = return none,
            by rw [ret_bind, drop.aux_none]
-attribute [simp] drop.aux
 
 theorem destruct_dropn :
   ∀ (s : wseq α) n, destruct (drop s n) = destruct s >>= drop.aux n
@@ -561,6 +615,8 @@ instance productive_tail (s : wseq α) [productive s] : productive (tail s) :=
 instance productive_dropn (s : wseq α) [productive s] (n) : productive (drop s n) :=
 λ m, by rw [←nth_add]; apply_instance
 
+/-- Given a productive weak sequence, we can collapse all the `think`s to
+  produce a sequence. -/
 def to_seq (s : wseq α) [productive s] : seq α :=
 ⟨λ n, (nth s n).get, λn h,
 begin
@@ -708,28 +764,28 @@ by rw ←lift_rel.swap at H; exact exists_of_lift_rel_left H h
 theorem head_terminates_of_mem {s : wseq α} {a} (h : a ∈ s) : terminates (head s) :=
 let ⟨n, h⟩ := exists_nth_of_mem h in head_terminates_of_nth_terminates ⟨_, h⟩
 
-def of_mem_append {s₁ s₂ : wseq α} {a : α} : a ∈ append s₁ s₂ → a ∈ s₁ ∨ a ∈ s₂ :=
+theorem of_mem_append {s₁ s₂ : wseq α} {a : α} : a ∈ append s₁ s₂ → a ∈ s₁ ∨ a ∈ s₂ :=
 seq.of_mem_append
 
-def mem_append_left {s₁ s₂ : wseq α} {a : α} : a ∈ s₁ → a ∈ append s₁ s₂ :=
+theorem mem_append_left {s₁ s₂ : wseq α} {a : α} : a ∈ s₁ → a ∈ append s₁ s₂ :=
 seq.mem_append_left
 
 theorem exists_of_mem_map {f} {b : β} : ∀ {s : wseq α}, b ∈ map f s → ∃ a, a ∈ s ∧ f a = b
 | ⟨g, al⟩ h := let ⟨o, om, oe⟩ := seq.exists_of_mem_map h in
   by cases o with a; injection oe with h'; exact ⟨a, om, h'⟩
 
-@[simp] def lift_rel_nil (R : α → β → Prop) : lift_rel R nil nil :=
+@[simp] theorem lift_rel_nil (R : α → β → Prop) : lift_rel R nil nil :=
 by rw [lift_rel_destruct_iff]; simp
 
-@[simp] def lift_rel_cons (R : α → β → Prop) (a b s t) :
+@[simp] theorem lift_rel_cons (R : α → β → Prop) (a b s t) :
   lift_rel R (cons a s) (cons b t) ↔ R a b ∧ lift_rel R s t :=
 by rw [lift_rel_destruct_iff]; simp
 
-@[simp] def lift_rel_think_left (R : α → β → Prop) (s t) :
+@[simp] theorem lift_rel_think_left (R : α → β → Prop) (s t) :
   lift_rel R (think s) t ↔ lift_rel R s t :=
 by rw [lift_rel_destruct_iff, lift_rel_destruct_iff]; simp
 
-@[simp] def lift_rel_think_right (R : α → β → Prop) (s t) :
+@[simp] theorem lift_rel_think_right (R : α → β → Prop) (s t) :
   lift_rel R s (think t) ↔ lift_rel R s t :=
 by rw [lift_rel_destruct_iff, lift_rel_destruct_iff]; simp
 
@@ -841,28 +897,28 @@ begin
   { refine ⟨l, s, _, _⟩; simp }
 end
 
-@[simp] def of_list_nil : of_list [] = (nil : wseq α) := rfl
+@[simp] theorem of_list_nil : of_list [] = (nil : wseq α) := rfl
 
-@[simp] def of_list_cons (a : α) (l) :
+@[simp] theorem of_list_cons (a : α) (l) :
   of_list (a :: l) = cons a (of_list l) :=
 show seq.map some (seq.of_list (a :: l)) =
      seq.cons (some a) (seq.map some (seq.of_list l)), by simp
 
-@[simp] def to_list'_nil (l : list α) :
+@[simp] theorem to_list'_nil (l : list α) :
   corec to_list._match_2 (l, nil) = return l.reverse :=
 destruct_eq_ret rfl
 
-@[simp] def to_list'_cons (l : list α) (s : wseq α) (a : α) :
+@[simp] theorem to_list'_cons (l : list α) (s : wseq α) (a : α) :
   corec to_list._match_2 (l, cons a s) =
   (corec to_list._match_2 (a::l, s)).think :=
 destruct_eq_think $ by simp [to_list, cons]
 
-@[simp] def to_list'_think (l : list α) (s : wseq α) :
+@[simp] theorem to_list'_think (l : list α) (s : wseq α) :
   corec to_list._match_2 (l, think s) =
   (corec to_list._match_2 (l, s)).think :=
 destruct_eq_think $ by simp [to_list, think]
 
-def to_list'_map (l : list α) (s : wseq α) :
+theorem to_list'_map (l : list α) (s : wseq α) :
   corec to_list._match_2 (l, s) =
   ((++) l.reverse) <$> to_list s :=
 begin
@@ -878,11 +934,11 @@ begin
   { refine ⟨l', s, _, _⟩; simp }
 end
 
-@[simp] def to_list_cons (a : α) (s) :
+@[simp] theorem to_list_cons (a : α) (s) :
   to_list (cons a s) = (list.cons a <$> to_list s).think :=
 destruct_eq_think $ by unfold to_list; simp; rw to_list'_map; simp; refl
 
-@[simp] def to_list_nil : to_list (nil : wseq α) = return [] :=
+@[simp] theorem to_list_nil : to_list (nil : wseq α) = return [] :=
 destruct_eq_ret rfl
 
 theorem to_list_of_list (l : list α) : l ∈ to_list (of_list l) :=
@@ -924,6 +980,7 @@ begin
   rw nth_of_seq, apply ret_mem
 end
 
+/-- The monadic `return a` is a singleton list containing `a`. -/
 def ret (a : α) : wseq α := of_list [a]
 
 @[simp] theorem map_nil (f : α → β) : map f nil = nil := rfl
@@ -1019,11 +1076,10 @@ end end⟩
 theorem map_congr (f : α → β) {s t : wseq α} (h : s ~ t) : map f s ~ map f t :=
 lift_rel_map _ _ h (λ _ _, congr_arg _)
 
-def destruct_append.aux (t : wseq α) :
+@[simp] def destruct_append.aux (t : wseq α) :
   option (α × wseq α) → computation (option (α × wseq α))
 | none          := destruct t
 | (some (a, s)) := return (some (a, append s t))
-attribute [simp] destruct_append.aux
 
 theorem destruct_append (s t : wseq α) :
   destruct (append s t) = (destruct s).bind (destruct_append.aux t) :=
@@ -1037,10 +1093,9 @@ begin
   { exact ⟨s, t, rfl, rfl⟩ }
 end
 
-def destruct_join.aux : option (wseq α × wseq (wseq α)) → computation (option (α × wseq α))
+@[simp] def destruct_join.aux : option (wseq α × wseq (wseq α)) → computation (option (α × wseq α))
 | none          := return none
 | (some (s, S)) := (destruct (append s (join S))).think
-attribute [simp] destruct_join.aux
 
 theorem destruct_join (S : wseq (wseq α)) :
   destruct (join S) = (destruct S).bind destruct_join.aux :=

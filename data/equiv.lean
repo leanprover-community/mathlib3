@@ -16,6 +16,7 @@ variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
 namespace subtype
 
+/-- Restriction of a function to a function on subtypes. -/
 def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
   subtype p → subtype q
 | ⟨v, hv⟩ := ⟨f v, h v hv⟩
@@ -48,13 +49,15 @@ left_inverse.comp hh hf
 
 end function
 
+/-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
 structure equiv (α : Sort*) (β : Sort*) :=
-  (to_fun    : α → β)
-  (inv_fun   : β → α)
-  (left_inv  : left_inverse inv_fun to_fun)
-  (right_inv : right_inverse inv_fun to_fun)
+(to_fun    : α → β)
+(inv_fun   : β → α)
+(left_inv  : left_inverse inv_fun to_fun)
+(right_inv : right_inverse inv_fun to_fun)
 
 namespace equiv
+/-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
 
 infix ` ≃ `:50 := equiv
@@ -572,6 +575,8 @@ begin
     simp [swap_core, *] }
 end
 
+/-- `swap a b` is the permutation that swaps `a` and `b` and
+  leaves other values as is. -/
 def swap (a b : α) : perm α :=
 ⟨swap_core a b, swap_core a b, λr, swap_core_swap_core r a b, λr, swap_core_swap_core r a b⟩
 

@@ -10,6 +10,8 @@ open multiset subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+/-- `finset α` is the type of finite sets of elements of `α`. It is implemented
+  as a multiset (a list up to permutation) which has no duplicate elements. -/
 structure finset (α : Type*) :=
 (val : multiset α)
 (nodup : nodup val)
@@ -107,7 +109,7 @@ theorem subset_empty {s : finset α} : s ⊆ ∅ ↔ s = ∅ := subset_zero.tran
 theorem exists_mem_of_ne_empty {s : finset α} (h : s ≠ ∅) : ∃ a : α, a ∈ s :=
 exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 
-/- singleton -/
+/-- `singleton a` is the set `{a}` containing `a` and nothing else. -/
 def singleton (a : α) : finset α := ⟨_, nodup_singleton a⟩
 local prefix `ι`:90 := singleton
 
@@ -127,6 +129,7 @@ theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
 section decidable_eq
 variables [decidable_eq α]
 
+/-- `insert a s` is the set `{a} ∪ s` containing `a` and the elements of `s`. -/
 instance : has_insert α (finset α) := ⟨λ a s, ⟨_, nodup_ndinsert a s.2⟩⟩
 
 @[simp] theorem has_insert_eq_insert (a : α) (s : finset α) : has_insert.insert a s = insert a s := rfl
@@ -200,6 +203,7 @@ by simp [singleton]
 
 /- union -/
 
+/-- `s ∪ t` is the set such that `a ∈ s ∪ t` iff `a ∈ s` or `a ∈ t`. -/
 instance : has_union (finset α) := ⟨λ s₁ s₂, ⟨_, nodup_ndunion s₁.1 s₂.2⟩⟩
 
 theorem union_val_nd (s₁ s₂ : finset α) : (s₁ ∪ s₂).1 = ndunion s₁.1 s₂.1 := rfl
@@ -252,6 +256,7 @@ theorem insert_eq (a : α) (s : finset α) : insert a s = {a} ∪ s := by simp [
 
 /- inter -/
 
+/-- `s ∩ t` is the set such that `a ∈ s ∩ t` iff `a ∈ s` and `a ∈ t`. -/
 instance : has_inter (finset α) := ⟨λ s₁ s₂, ⟨_, nodup_ndinter s₂.1 s₁.2⟩⟩
 
 theorem inter_val_nd (s₁ s₂ : finset α) : (s₁ ∩ s₂).1 = ndinter s₁.1 s₂.1 := rfl
@@ -358,6 +363,8 @@ ext.2 $ by simp [mem_inter, mem_union]; intro; split; finish
 
 /- erase -/
 
+/-- `erase s a` is the set `s - {a}`, that is, the elements of `s` which are
+  not equal to `a`. -/
 def erase (s : finset α) (a : α) : finset α := ⟨_, nodup_erase_of_nodup a s.2⟩
 
 @[simp] theorem erase_val (s : finset α) (a : α) : (erase s a).1 = s.1.erase a := rfl
@@ -404,6 +411,7 @@ subset_insert_iff.2 $ subset.refl _
 
 /- sdiff -/
 
+/-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/
 instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le (sub_le_self _ _) s₁.2⟩⟩
 
 @[simp] theorem mem_sdiff {a : α} {s₁ s₂ : finset α} :
@@ -428,6 +436,8 @@ end decidable_eq
 
 /- attach -/
 
+/-- `attach s` takes the elements of `s` and forms a new set of elements of the
+  subtype `{x // x ∈ s}`. -/
 def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attach.2 s.2⟩
 
 @[simp] theorem attach_val (s : finset α) : s.attach.1 = s.1.attach := rfl
@@ -438,6 +448,7 @@ def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attac
 section filter
 variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]
 
+/-- `filter p s` is the set of elements of `s` that satisfy `p`. -/
 def filter (p : α → Prop) [decidable_pred p] (s : finset α) : finset α :=
 ⟨_, nodup_filter p s.2⟩
 
@@ -484,6 +495,7 @@ end filter
 section range
 variables {n m l : ℕ}
 
+/-- `range n` is the set of integers less than `n`. -/
 def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
 @[simp] theorem range_val (n : ℕ) : (range n).1 = multiset.range n := rfl
@@ -529,6 +541,7 @@ end finset
 namespace multiset
 variable [decidable_eq α]
 
+/-- `to_finset s` removes duplicates from the multiset `s` to produce a finset. -/
 def to_finset (s : multiset α) : finset α := ⟨_, nodup_erase_dup s⟩
 
 @[simp] theorem to_finset_val (s : multiset α) : s.to_finset.1 = s.erase_dup := rfl
@@ -544,6 +557,7 @@ end multiset
 namespace list
 variable [decidable_eq α]
 
+/-- `to_finset l` removes duplicates from the list `l` to produce a finset. -/
 def to_finset (l : list α) : finset α := multiset.to_finset l
 
 @[simp] theorem to_finset_val (l : list α) : l.to_finset.1 = (l.erase_dup : multiset α) := rfl
@@ -561,6 +575,7 @@ namespace finset
 section image
 variables [decidable_eq β]
 
+/-- `image f s` is the forward image of `s` under `f`. -/
 def image (f : α → β) (s : finset α) : finset β := (s.1.map f).to_finset
 
 @[simp] theorem image_val (f : α → β) (s : finset α) : (image f s).1 = (s.1.map f).erase_dup := rfl
@@ -619,6 +634,7 @@ end image
 /- card -/
 section card
 
+/-- `card s` is the cardinality (number of elements) of `s`. -/
 def card (s : finset α) : nat := s.1.card
 
 theorem card_def (s : finset α) : s.card = s.1.card := rfl
@@ -683,6 +699,7 @@ end card
 section bind
 variables [decidable_eq β] {s : finset α} {t : α → finset β}
 
+/-- `bind s t` is the union of `t x` over `x ∈ s` -/
 protected def bind (s : finset α) (t : α → finset β) : finset β := (s.1.bind (λ a, (t a).1)).to_finset
 
 @[simp] theorem bind_val (s : finset α) (t : α → finset β) :
@@ -723,6 +740,7 @@ end bind
 section prod
 variables {s : finset α} {t : finset β}
 
+/-- `product s t` is the set of pairs `(a, b)` such that `a ∈ s` and `b ∈ t`. -/
 protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, nodup_product s.2 t.2⟩
 
 @[simp] theorem product_val : (s.product t).1 = s.1.product t.1 := rfl
@@ -741,6 +759,7 @@ end prod
 section sigma
 variables {σ : α → Type*} {s : finset α} {t : Πa, finset (σ a)}
 
+/-- `sigma s t` is the set of dependent pairs `⟨a, b⟩` such that `a ∈ s` and `b ∈ t a`. -/
 protected def sigma (s : finset α) (t : Πa, finset (σ a)) : finset (Σa, σ a) :=
 ⟨_, nodup_sigma s.2 (λ a, (t a).2)⟩
 
@@ -761,6 +780,8 @@ variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associati
 local notation a * b := op a b
 include hc ha
 
+/-- `fold op b f s` folds the commutative associative operation `op` over the
+  `f`-image of `s`, i.e. `fold (+) b f {1,2,3} = `f 1 + f 2 + f 3 + b`. -/
 def fold (b : β) (f : α → β) (s : finset α) : β := (s.1.map f).fold op b
 
 variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
@@ -807,6 +828,8 @@ variables (r : α → α → Prop) [decidable_rel r]
   [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r]
 include tr an to
 
+/-- `sort s` constructs a sorted list from the unordered set `s`.
+  (Uses merge sort algorithm.) -/
 def sort (s : finset α) : list α := sort r s.1
 
 @[simp] theorem sort_sorted (s : finset α) : list.sorted r (sort r s) :=

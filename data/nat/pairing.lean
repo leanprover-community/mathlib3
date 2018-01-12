@@ -10,9 +10,11 @@ open prod decidable
 
 namespace nat
 
+/-- Pairing function for the natural numbers. -/
 def mkpair (a b : nat) : nat :=
 if a < b then b*b + a else a*a + a + b
 
+/-- Unpairing function for the natural numbers. -/
 def unpair (n : nat) : nat × nat :=
 let s := sqrt n in
 if n - s*s < s then (n - s*s, s) else (s, n - s*s - s)

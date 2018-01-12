@@ -16,6 +16,7 @@ noncomputable theory
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+/-- Construct a metric space from a distance function and metric space axioms -/
 def metric_space.uniform_space_of_dist
   (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
@@ -53,6 +54,8 @@ class metric_space (α : Type u) extends uniform_space α : Type u :=
 
 variables [metric_space α]
 
+/-- The distance function (given an ambient metric space on `α`), which returns
+  a nonnegative real number `dist x y` given `x y : α`. -/
 def dist : α → α → ℝ := metric_space.dist
 
 @[simp] theorem dist_self (x : α) : dist x x = 0 := metric_space.dist_self x
@@ -187,7 +190,10 @@ tendsto_compose (tendsto_prod_mk hf hg) (by rw [nhds_prod_eq] at this; exact thi
 /- instantiate metric space as a topology -/
 variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
 
+/-- `open_ball x ε` is the set of all points `y` with `dist y x < ε` -/
 def open_ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
+
+/-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 
 theorem open_ball_eq_empty_of_nonpos (hε : ε ≤ 0) : open_ball x ε = ∅ :=

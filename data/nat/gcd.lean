@@ -108,9 +108,14 @@ by simp [xgcd_aux]
 @[simp] theorem xgcd_aux_rec {r s t r' s' t'} (h : 0 < r) : xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
 by cases r; [exact absurd h (lt_irrefl _), {simp only [xgcd_aux], refl}]
 
+/-- Use the extended GCD algorithm to generate the `a` and `b` values
+  satisfying `gcd x y = x * a + y * b`. -/
 def xgcd (x y : ℕ) : ℤ × ℤ := (xgcd_aux x 1 0 y 0 1).2
 
+/-- The extended GCD `a` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_a (x y : ℕ) : ℤ := (xgcd x y).1
+
+/-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_b (x y : ℕ) : ℤ := (xgcd x y).2
 
 @[simp] theorem xgcd_aux_fst (x y) : ∀ s t s' t',

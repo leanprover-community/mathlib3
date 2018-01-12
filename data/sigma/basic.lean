@@ -34,6 +34,7 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
 
 variables {α₁ : Type*} {α₂ : Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
 
+/-- Map the left and right components of a sigma -/
 def sigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : sigma β₁ → sigma β₂
 | ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
 
@@ -62,6 +63,7 @@ iff.intro psigma.mk.inj $
 
 variables {α₁ : Sort*} {α₂ : Sort*} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*}
 
+/-- Map the left and right components of a sigma -/
 def psigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : psigma β₁ → psigma β₂
 | ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
 

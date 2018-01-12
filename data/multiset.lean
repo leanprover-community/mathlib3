@@ -16,6 +16,8 @@ local infix ` • `:73 := add_monoid.smul
 instance list.perm.setoid (α : Type*) : setoid (list α) :=
 setoid.mk perm ⟨perm.refl, @perm.symm _, @perm.trans _⟩
 
+/-- `multiset α` is the quotient of `list α` by list permutation. The result
+  is a type of finite sets with duplicates allowed.  -/
 def {u} multiset (α : Type u) : Type u :=
 quotient (list.perm.setoid α)
 
@@ -35,7 +37,9 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 | s₁ s₂ := quotient.rec_on_subsingleton₂ s₁ s₂ $ λ l₁ l₂,
   decidable_of_iff' _ quotient.eq
 
-/- empty multilist -/
+/- empty multiset -/
+
+/-- `0 : multiset α` is the empty set -/
 protected def zero : multiset α := @nil α
 
 instance : has_zero (multiset α)   := ⟨multiset.zero⟩
@@ -45,6 +49,9 @@ instance : inhabited (multiset α)  := ⟨0⟩
 @[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
 
 /- cons -/
+
+/-- `cons a s` is the multiset which contains `s` plus one more
+  instance of `a`. -/
 def cons (a : α) (s : multiset α) : multiset α :=
 quot.lift_on s (λ l, (a :: l : multiset α))
   (λ l₁ l₂ p, quot.sound ((perm_cons a).2 p))
@@ -84,6 +91,7 @@ quot.induction_on s $ λ l, quotient.sound $ perm.swap _ _ _
 
 section mem
 
+/-- `a ∈ s` means that `a` has nonzero multiplicity in `s`. -/
 def mem (a : α) (s : multiset α) : Prop :=
 quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~ l₂), propext $ mem_of_perm e)
 
@@ -123,6 +131,10 @@ end mem
 /- subset -/
 section subset
 
+/-- `s ⊆ t` is the lift of the list subset relation. It means that any
+  element with nonzero multiplicity in `s` has nonzero multiplicity in `t`,
+  but it does not imply that the multiplicity of `a` in `s` is less or equal than in `t`;
+  see `s ≤ t` for this relation. -/
 protected def subset (s t : multiset α) : Prop := ∀ ⦃a : α⦄, a ∈ s → a ∈ t
 
 instance : has_subset (multiset α) := ⟨multiset.subset⟩
@@ -154,6 +166,8 @@ end subset
 
 /- multiset order -/
 
+/-- `s ≤ t` means that `s` is a sublist of `t` (up to permutation).
+  Equivalently, `s ≤ t` means that `count a s ≤ count a t` for all `a`. -/
 protected def le (s t : multiset α) : Prop :=
 quotient.lift_on₂ s t (<+~) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
   propext (p₂.subperm_left.trans p₁.subperm_right)
@@ -215,6 +229,9 @@ begin
 end
 
 /- cardinality -/
+
+/-- The cardinality of a multiset is the sum of the multiplicities
+  of all its elements, or simply the length of the underlying list. -/
 def card (s : multiset α) : ℕ :=
 quot.lift_on s length $ λ l₁ l₂, perm_length
 
@@ -277,6 +294,10 @@ ne_of_gt (lt_cons_self _ _)
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
 /- add -/
+
+/-- The sum of two multisets is the lift of the list append operation.
+  This adds the multiplicities of each element,
+  i.e. `count a (s + t) = count a s + count a t`. -/
 protected def add (s₁ s₂ : multiset α) : multiset α :=
 quotient.lift_on₂ s₁ s₂ (λ l₁ l₂, ((l₁ ++ l₂ : list α) : multiset α)) $
   λ v₁ v₂ w₁ w₂ p₁ p₂, quot.sound $ perm_app p₁ p₂
@@ -344,6 +365,8 @@ instance : canonically_ordered_monoid (multiset α) :=
   ..multiset.ordered_cancel_comm_monoid }
 
 /- repeat -/
+
+/-- `repeat a n` is the multiset containing only `a` with multiplicity `n`. -/
 def repeat (a : α) (n : ℕ) : multiset α := repeat a n
 
 @[simp] lemma card_repeat : ∀ (a : α) n, card (repeat a n) = n := length_repeat
@@ -367,6 +390,9 @@ theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.rep
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p.symm).symm ▸ s, subperm_of_sublist⟩
 
 /- range -/
+
+/-- `range n` is the multiset lifted from the list `range n`,
+  that is, the set `{0, 1, ..., n-1}`. -/
 def range (n : ℕ) : multiset ℕ := range n
 
 @[simp] theorem range_zero (n : ℕ) : range 0 = 0 := rfl
@@ -387,6 +413,8 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subs
 section erase
 variables [decidable_eq α] {s t : multiset α} {a b : α}
 
+/-- `erase s a` is the multiset that subtracts 1 from the
+  multiplicity of `a`. -/
 def erase (s : multiset α) (a : α) : multiset α :=
 quot.lift_on s (λ l, (l.erase a : multiset α))
   (λ l₁ l₂ p, quot.sound (erase_perm_erase a p))
@@ -457,6 +485,10 @@ end erase
 quot.sound $ reverse_perm _
 
 /- map -/
+
+/-- `map f s` is the lift of the list `map` operation. The multiplicity
+  of `b` in `map f s` is the number of `a ∈ s` (counting multiplicity)
+  such that `f a = b`. -/
 def map (f : α → β) (s : multiset α) : multiset β :=
 quot.lift_on s (λ l : list α, (l.map f : multiset β))
   (λ l₁ l₂ p, quot.sound (perm_map f p))
@@ -504,6 +536,10 @@ le_induction_on h $ λ l₁ l₂ h, subperm_of_sublist $ map_sublist_map f h
 λ b m, let ⟨a, h, e⟩ := mem_map.1 m in mem_map.2 ⟨a, H h, e⟩
 
 /- fold -/
+
+/-- `foldl f H b s` is the lift of the list operation `foldl f b l`,
+  which folds `f` over the multiset. It is well defined when `f` is right-commutative,
+  that is, `f (f b a₁) a₂ = f (f b a₂) a₁`. -/
 def foldl (f : β → α → β) (H : right_commutative f) (b : β) (s : multiset α) : β :=
 quot.lift_on s (λ l, foldl f b l)
   (λ l₁ l₂ p, foldl_eq_of_perm H p b)
@@ -516,6 +552,9 @@ quot.induction_on s $ λ l, rfl
 @[simp] theorem foldl_add (f : β → α → β) (H b s t) : foldl f H b (s + t) = foldl f H (foldl f H b s) t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, foldl_append _ _ _ _
 
+/-- `foldr f H b s` is the lift of the list operation `foldr f b l`,
+  which folds `f` over the multiset. It is well defined when `f` is left-commutative,
+  that is, `f a₁ (f a₂ b) = f a₂ (f a₁ b)`. -/
 def foldr (f : α → β → β) (H : left_commutative f) (b : β) (s : multiset α) : β :=
 quot.lift_on s (λ l, foldr f b l)
   (λ l₁ l₂ p, foldr_eq_of_perm H p b)
@@ -546,6 +585,8 @@ theorem foldl_swap (f : β → α → β) (H : right_commutative f) (b : β) (s 
   foldl f H b s = foldr (λ x y, f y x) (λ x y z, (H _ _ _).symm) b s :=
 (foldr_swap _ _ _ _).symm
 
+/-- Product of a multiset given a commutative monoid structure on `α`.
+  `prod {a, b, c} = a * b * c` -/
 def prod [comm_monoid α] : multiset α → α :=
 foldr (*) (λ x y z, by simp [mul_left_comm]) 1
 attribute [to_additive multiset.sum._proof_1] prod._proof_1
@@ -580,6 +621,11 @@ theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat 
 by simp [repeat, list.prod_repeat]
 
 /- join -/
+
+/-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
+  operation, that is, the union of all the sets.
+  
+     join {{1, 2}, {1, 2}, {0, 1}} = {0, 1, 1, 1, 2, 2} -/
 def join : multiset (multiset α) → multiset α := sum
 
 theorem coe_join : ∀ L : list (list α),
@@ -603,6 +649,9 @@ multiset.induction_on S (by simp) $
 multiset.induction_on S (by simp) (by simp)
 
 /- bind -/
+
+/-- `bind s f` is the monad bind operation, defined as `join (map f s)`.
+  It is the union of `f a` as `a` ranges over `s`. -/
 def bind (s : multiset α) (f : α → multiset β) : multiset β :=
 join (map f s)
 
@@ -626,6 +675,9 @@ by simp [bind]; simp [-exists_and_distrib_right, exists_and_distrib_right.symm];
 by simp [bind]
 
 /- product -/
+
+/-- The multiplicity of `(a, b)` in `product s t` is
+  the product of the multiplicity of `a` in `s` and `b` in `t`. -/
 def product (s : multiset α) (t : multiset β) : multiset (α × β) :=
 s.bind $ λ a, t.map $ prod.mk a
 
@@ -660,6 +712,8 @@ by simp [product, (∘), mul_comm]
 section
 variable {σ : α → Type*}
 
+/-- `sigma s t` is the dependent version of `product`. It is the sum of
+  `(a, b)` as `a` ranges over `s` and `b` ranges over `t a`. -/
 protected def sigma (s : multiset α) (t : Π a, multiset (σ a)) : multiset (Σ a, σ a) :=
 s.bind $ λ a, (t a).map $ sigma.mk a
 
@@ -697,6 +751,8 @@ end
 
 /- map for partial functions -/
 
+/-- Lift of the list `pmap` operation. Map a partial function `f` over a multiset
+  `s` whose elements are all in the domain of `f`. -/
 @[simp] def pmap {p : α → Prop} (f : Π a, p a → β) (s : multiset α) : (∀ a ∈ s, p a) → multiset β :=
 quot.rec_on s (λ l H, ↑(pmap f l H)) $ λ l₁ l₂ (pp : l₁ ~ l₂),
 funext $ λ (H₂ : ∀ a ∈ l₂, p a),
@@ -709,6 +765,8 @@ this.trans $ quot.sound $ perm_pmap f pp
 @[simp] theorem coe_pmap {p : α → Prop} (f : Π a, p a → β)
   (l : list α) (H : ∀ a ∈ l, p a) : pmap f l H = l.pmap f H := rfl
 
+/-- "Attach" a proof that `a ∈ s` to each element `a` in `s` to produce
+  a multiset on `{x // x ∈ s}`. -/
 def attach (s : multiset α) : multiset {x // x ∈ s} := pmap subtype.mk s (λ a, id)
 
 @[simp] theorem coe_attach (l : list α) :
@@ -749,6 +807,8 @@ quot.induction_on s (λ l H, length_pmap) H
 section
 variables [decidable_eq α] {s t u : multiset α} {a b : α}
 
+/-- `s - t` is the multiset such that
+  `count a (s - t) = count a s - count a t` for all `a`. -/
 protected def sub (s t : multiset α) : multiset α :=
 quotient.lift_on₂ s t (λ l₁ l₂, (l₁.diff l₂ : multiset α)) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
   quot.sound $ perm_diff_right w₁ p₂ ▸ perm_diff_left _ p₁
@@ -821,6 +881,10 @@ sub_le_iff_le_add.2 (le_add_right _ _)
 (nat.sub_eq_of_eq_add $ by rw [add_comm, ← card_add, sub_add_cancel h]).symm
 
 /- union -/
+
+/-- `s ∪ t` is the lattice join operation with respect to the
+  multiset `≤`. The multiplicity of `a` in `s ∪ t` is the maximum
+  of the multiplicities in `s` and `t`. -/
 def union (s t : multiset α) : multiset α := s - t + t
 
 instance : has_union (multiset α) := ⟨union⟩
@@ -844,6 +908,10 @@ by rw ← eq_union_left h₂; exact union_le_union_right h₁ t
  or.rec (mem_of_le $ le_union_left _ _) (mem_of_le $ le_union_right _ _)⟩
 
 /- inter -/
+
+/-- `s ∩ t` is the lattice meet operation with respect to the
+  multiset `≤`. The multiplicity of `a` in `s ∩ t` is the minimum
+  of the multiplicities in `s` and `t`. -/
 def inter (s t : multiset α) : multiset α :=
 quotient.lift_on₂ s t (λ l₁ l₂, (l₁.bag_inter l₂ : multiset α)) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
   quot.sound $ perm_bag_inter_right w₁ p₂ ▸ perm_bag_inter_left _ p₁
@@ -982,6 +1050,8 @@ end
 section
 variables {p : α → Prop} [decidable_pred p]
 
+/-- `filter p s` returns the elements in `s` (with the same multiplicities)
+  which satisfy `p`, and removes the rest. -/
 def filter (p : α → Prop) [h : decidable_pred p] (s : multiset α) : multiset α :=
 quot.lift_on s (λ l, (filter p l : multiset α))
   (λ l₁ l₂ h, quot.sound $ perm_filter p h)
@@ -1068,6 +1138,10 @@ le_antisymm (le_inter
 
 /- filter_map -/
 
+/-- `filter_map f s` is a combination filter/map operation on `s`.
+  The function `f : α → option β` is applied to each element of `s`;
+  if `f a` is `some b` then `b` is added to the result, otherwise
+  `a` is removed from the resulting multiset. -/
 def filter_map (f : α → option β) (s : multiset α) : multiset β :=
 quot.lift_on s (λ l, (filter_map f l : multiset β))
   (λ l₁ l₂ h, quot.sound $perm_filter_map f h)
@@ -1133,6 +1207,8 @@ subperm_of_sublist $ filter_map_sublist_filter_map _ h
 
 /- countp -/
 
+/-- `countp p s` counts the number of elements of `s` (with multiplicity) that
+  satisfy `p`. -/
 def countp (p : α → Prop) [decidable_pred p] (s : multiset α) : ℕ :=
 quot.lift_on s (countp p) (λ l₁ l₂, perm_countp p)
 
@@ -1171,6 +1247,7 @@ end
 section
 variable [decidable_eq α]
 
+/-- `count a s` is the multiplicity of `a` in `s`. -/
 def count (a : α) : multiset α → ℕ := countp (eq a)
 
 @[simp] theorem coe_count (a : α) (l : list α) : count a (↑l) = l.count a := coe_countp _
@@ -1261,6 +1338,8 @@ instance : distrib_lattice (multiset α) :=
 end
 
 /- disjoint -/
+
+/-- `disjoint s t` means that `s` and `t` have no elements in common. -/
 def disjoint (s t : multiset α) : Prop := ∀ ⦃a⦄, a ∈ s → a ∈ t → false
 
 @[simp] theorem coe_disjoint (l₁ l₂ : list α) : @disjoint α l₁ l₂ ↔ l₁.disjoint l₂ := iff.rfl
@@ -1320,6 +1399,9 @@ theorem inter_eq_zero_iff_disjoint [decidable_eq α] {s t : multiset α} : s ∩
 by rw ← subset_zero; simp [subset_iff, disjoint]
 
 /- nodup -/
+
+/-- `nodup s` means that `s` has no duplicates, i.e. the multiplicity of
+  any element is at most 1. -/
 def nodup (s : multiset α) : Prop :=
 quot.lift_on s nodup (λ s t p, propext $ perm_nodup p)
 
@@ -1454,6 +1536,8 @@ section
 variable [decidable_eq α]
 
 /- erase_dup -/
+
+/-- `erase_dup s` removes duplicates from `s`, yielding a `nodup` multiset. -/
 def erase_dup (s : multiset α) : multiset α :=
 quot.lift_on s (λ l, (l.erase_dup : multiset α))
   (λ s t p, quot.sound (perm_erase_dup_of_perm p))
@@ -1507,6 +1591,9 @@ theorem erase_dup_map_erase_dup_eq [decidable_eq β] (f : α → β) (s : multis
 
 /- finset insert -/
 
+/-- `ndinsert a s` is the lift of the list `insert` operation. This operation
+  does not respect multiplicities, unlike `cons`, but it is suitable as
+  an insert operation on `finset`. -/
 def ndinsert (a : α) (s : multiset α) : multiset α :=
 quot.lift_on s (λ l, (l.insert a : multiset α))
   (λ s t p, quot.sound (perm_insert a p))
@@ -1556,6 +1643,10 @@ theorem ndinsert_le {a : α} {s t : multiset α} : ndinsert a s ≤ t ↔ s ≤ 
 
 /- finset union -/
 
+/-- `ndunion s t` is the lift of the list `union` operation. This operation
+  does not respect multiplicities, unlike `s ∪ t`, but it is suitable as
+  a union operation on `finset`. (`s ∪ t` would also work as a union operation
+  on finset, but this is more efficient.) -/
 def ndunion (s t : multiset α) : multiset α :=
 quotient.lift_on₂ s t (λ l₁ l₂, (l₁.union l₂ : multiset α)) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
   quot.sound $ perm_union p₁ p₂
@@ -1601,6 +1692,10 @@ quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ erase_dup_append _ 
 
 /- finset inter -/
 
+/-- `ndinter s t` is the lift of the list `∩` operation. This operation
+  does not respect multiplicities, unlike `s ∩ t`, but it is suitable as
+  an intersection operation on `finset`. (`s ∩ t` would also work as a union operation
+  on finset, but this is more efficient.) -/
 def ndinter (s t : multiset α) : multiset α := filter (∈ t) s
 
 @[simp] theorem coe_ndinter (l₁ l₂ : list α) : @ndinter α _ l₁ l₂ = (l₁ ∩ l₂ : list α) := rfl
@@ -1648,6 +1743,8 @@ variables (op : α → α → α) [hc : is_commutative α op] [ha : is_associati
 local notation a * b := op a b
 include hc ha
 
+/-- `fold op b s` folds a commutative associative operation `op` over
+  the multiset `s`. -/
 def fold : α → multiset α → α := foldr op (left_comm _ hc.comm ha.assoc)
 
 theorem fold_eq_foldr (b : α) (s : multiset α) : fold op b s = foldr op (left_comm _ hc.comm ha.assoc) b s := rfl
@@ -1719,6 +1816,8 @@ variables (r : α → α → Prop) [decidable_rel r]
   [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r]
 include tr an to
 
+/-- `sort s` constructs a sorted list from the multiset `s`.
+  (Uses merge sort algorithm.) -/
 def sort (s : multiset α) : list α :=
 quot.lift_on s (merge_sort r) $ λ a b h,
 eq_of_sorted_of_perm tr.trans an.antisymm

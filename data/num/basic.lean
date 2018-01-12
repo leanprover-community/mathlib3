@@ -13,6 +13,9 @@ collection of theorems is to show the equivalence of the different approaches.
 
 import data.pnat data.bool data.vector data.bitvec
 
+/-- The type of positive binary numbers.
+
+     13 = 1101(base 2) = bit1 (bit0 (bit1 one)) -/
 inductive pos_num : Type
 | one  : pos_num
 | bit1 : pos_num → pos_num
@@ -20,6 +23,9 @@ inductive pos_num : Type
 instance : has_one pos_num := ⟨pos_num.one⟩
 instance : decidable_eq pos_num := by tactic.mk_dec_eq_instance
 
+/-- The type of nonnegative binary numbers, using `pos_num`.
+
+     13 = 1101(base 2) = pos (bit1 (bit0 (bit1 one))) -/
 inductive num : Type
 | zero  : num
 | pos   : pos_num → num
@@ -27,7 +33,10 @@ instance : has_zero num := ⟨num.zero⟩
 instance : has_one num := ⟨num.pos 1⟩
 instance : decidable_eq num := by tactic.mk_dec_eq_instance
 
--- Representation of integers using trichotomy around zero
+/-- Representation of integers using trichotomy around zero.
+     
+     13 = 1101(base 2) = pos (bit1 (bit0 (bit1 one)))
+     -13 = -1101(base 2) = neg (bit1 (bit0 (bit1 one))) -/
 inductive znum : Type
 | zero : znum
 | pos  : pos_num → znum
@@ -36,16 +45,30 @@ instance : has_zero znum := ⟨znum.zero⟩
 instance : has_one znum := ⟨znum.pos 1⟩
 instance : decidable_eq znum := by tactic.mk_dec_eq_instance
 
--- Alternative representation of integers using a sign bit at the end
+/-- See `snum`. -/
 inductive nzsnum : Type
-| one : bool → nzsnum
+| msb : bool → nzsnum
 | bit : bool → nzsnum → nzsnum
+/-- Alternative representation of integers using a sign bit at the end.
+  The convention on sign here is to have the argument to `msb` denote
+  the sign of the MSB itself, with all higher bits set to the negation
+  of this sign. The result is interpreted in two's complement.
+
+     13  = ..0001101(base 2) = nz (bit1 (bit0 (bit1 (msb tt))))
+     -13 = ..1110011(base 2) = nz (bit1 (bit1 (bit0 (msb ff))))
+     
+  As with `num`, a special case must be added for zero, which has no msb,
+  but by two's complement symmetry there is a second special case for -1.
+  Here the `bool` field indicates the sign of the number.
+  
+     0  = ..0000000(base 2) = zero ff
+     -1 = ..1111111(base 2) = zero tt -/
 inductive snum : Type
 | zero : bool → snum
 | nz : nzsnum → snum
 instance : has_coe nzsnum snum := ⟨snum.nz⟩
 instance : has_zero snum := ⟨snum.zero ff⟩
-instance : has_one nzsnum := ⟨nzsnum.one tt⟩
+instance : has_one nzsnum := ⟨nzsnum.msb tt⟩
 instance : has_one snum := ⟨snum.nz 1⟩
 instance : decidable_eq nzsnum := by tactic.mk_dec_eq_instance
 instance : decidable_eq snum := by tactic.mk_dec_eq_instance
@@ -359,11 +382,11 @@ namespace nzsnum
   notation a :: b := bit a b
 
   def sign : nzsnum → bool
-  | (one b) := bnot b
+  | (msb b) := bnot b
   | (b :: p) := sign p
 
   @[pattern] def not : nzsnum → nzsnum
-  | (one b) := one (bnot b)
+  | (msb b) := msb (bnot b)
   | (b :: p) := bnot b :: not p
   prefix ~ := not
 
@@ -371,11 +394,11 @@ namespace nzsnum
   def bit1 : nzsnum → nzsnum := bit tt
 
   def head : nzsnum → bool
-  | (one b)  := b
+  | (msb b)  := b
   | (b :: p) := b
 
   def tail : nzsnum → snum
-  | (one b)  := snum.zero (bnot b)
+  | (msb b)  := snum.zero (bnot b)
   | (b :: p) := p
 
 end nzsnum
@@ -393,7 +416,7 @@ namespace snum
   prefix ~ := not
 
   @[pattern] def bit : bool → snum → snum
-  | b (zero z) := if b = z then zero b else one b
+  | b (zero z) := if b = z then zero b else msb b
   | b (nz p)   := p.bit b
 
   notation a :: b := bit a b
@@ -403,7 +426,7 @@ namespace snum
 
   theorem bit_zero (b) : b :: zero b = zero b := by cases b; refl
 
-  theorem bit_one (b) : b :: zero (bnot b) = one b := by cases b; refl
+  theorem bit_one (b) : b :: zero (bnot b) = msb b := by cases b; refl
 
 end snum
 
@@ -412,7 +435,7 @@ namespace nzsnum
 
   def drec' {C : snum → Sort*} (z : Π b, C (snum.zero b))
     (s : Π b p, C p → C (b :: p)) : Π p : nzsnum, C p
-  | (one b)  := by rw ←bit_one; exact s b (snum.zero (bnot b)) (z (bnot b))
+  | (msb b)  := by rw ←bit_one; exact s b (snum.zero (bnot b)) (z (bnot b))
   | (bit b p) := s b p (drec' p)
 end nzsnum
 

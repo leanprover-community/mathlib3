@@ -25,6 +25,9 @@ theorem cantor_surjective {α} (f : α → α → Prop) : ¬ function.surjective
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
 
+/-- `g` is a partial inverse to `f` (an injective but not necessarily
+  surjective function) if `g y = some x` implies `f x = y`, and `g y = none`
+  implies that `y` is not in the range of `f`. -/
 def is_partial_inv {α β} (f : α → β) (g : β → option α) : Prop :=
 ∀ x y, g y = some x ↔ f x = y
 
@@ -37,6 +40,8 @@ theorem injective_of_partial_inv_right {α β} {f : α → β} {g} (H : is_parti
 
 local attribute [instance] classical.prop_decidable
 
+/-- We can use choice to construct explicitly a partial inverse for
+  a given injective function `f`. -/
 noncomputable def partial_inv {α β} (f : α → β) (b : β) : option α :=
 if h : ∃ a, f a = b then some (classical.some h) else none
 
@@ -57,6 +62,7 @@ variables {α : Type u} [inhabited α] {β : Sort v} {f : α → β} {s : set α
 
 local attribute [instance] classical.prop_decidable
 
+/-- Construct the inverse for a function `f` on domain `s`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
 if h : ∃a, a ∈ s ∧ f a = b then classical.some h else default α
 
@@ -75,6 +81,8 @@ h _ (inv_fun_on_mem this) _ ha (inv_fun_on_eq this)
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = default α :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
+/-- The inverse of a function (which is a left inverse if `f` is injective
+  and a right inverse if `f` is surjective). -/
 noncomputable def inv_fun (f : α → β) : β → α := inv_fun_on f set.univ
 
 theorem inv_fun_eq (h : ∃a, f a = b) : f (inv_fun f b) = b :=
@@ -111,6 +119,8 @@ surjective_of_has_right_inverse ⟨f, left_inverse_inv_fun h⟩
 section surj_inv
 variables {α : Sort u} {β : Sort v} {f : α → β}
 
+/-- The inverse of a surjective function. (Unlike `inv_fun`, this does not require
+  `α` to be inhabited.) -/
 noncomputable def surj_inv {f : α → β} (h : surjective f) (b : β) : α := classical.some (h b)
 
 lemma surj_inv_eq (h : surjective f) (b) : f (surj_inv h b) = b := classical.some_spec (h b)

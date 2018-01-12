@@ -19,7 +19,9 @@ namespace lattice
 section fixedpoint
 variables [complete_lattice α] {f : α → α}
 
+/-- Least fixed point of a monotone function -/
 def lfp (f : α → α) : α := Inf {a | f a ≤ a}
+/-- Greatest fixed point of a monotone function -/
 def gfp (f : α → α) : α := Sup {a | a ≤ f a}
 
 theorem lfp_le {a : α} (h : f a ≤ a) : lfp f ≤ a :=

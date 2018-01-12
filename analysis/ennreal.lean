@@ -12,6 +12,8 @@ local attribute [instance] prop_decidable
 
 universes u v w
 
+/-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
+  and is relevant as the codomain of a measure. -/
 inductive ennreal : Type
 | of_nonneg_real : Πr:real, 0 ≤ r → ennreal
 | infinity : ennreal
@@ -23,8 +25,11 @@ variables {a b c d : ennreal} {r p q : ℝ}
 
 section projections
 
+/-- `of_real r` is the nonnegative extended real number `r` if `r` is nonnegative,
+  otherwise 0. -/
 def of_real (r : ℝ) : ennreal := of_nonneg_real (max 0 r) (le_max_left 0 r)
 
+/-- `of_ennreal x` returns `x` if it is real, otherwise 0. -/
 def of_ennreal : ennreal → ℝ
 | (of_nonneg_real r _) := r
 | ∞ := 0

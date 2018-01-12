@@ -9,6 +9,8 @@ import data.int.basic data.nat.gcd
 
 namespace nat
 
+/-- Modular equality. `modeq n a b`, or `a ≡ b [MOD n]`, means
+  that `a - b` is a multiple of `n`. -/
 def modeq (n a b : ℕ) := a % n = b % n
 
 notation a ` ≡ `:50 b ` [MOD `:50 n `]`:0 := modeq n a b

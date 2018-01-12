@@ -9,6 +9,9 @@ import analysis.topology.topological_space data.analysis.filter
 open set
 open filter (hiding realizer)
 
+/-- A `ctop α σ` is a realization of a topology (basis) on `α`,
+  represented by a type `σ` together with operations for the top element and
+  the intersection operation. -/
 structure ctop (α σ : Type*) :=
 (f : σ → set α)
 (top : α → σ)
@@ -27,6 +30,7 @@ instance : has_coe_to_fun (ctop α σ) := ⟨_, ctop.f⟩
 
 @[simp] theorem coe_mk (f T h₁ I h₂ h₃ a) : (@ctop.mk α σ f T h₁ I h₂ h₃) a = f a := rfl
 
+/-- Map a ctop to an equivalent representation type. -/
 def of_equiv (E : σ ≃ τ) : ctop α σ → ctop α τ
 | ⟨f, T, h₁, I, h₂, h₃⟩ :=
   { f         := λ a, f (E.symm a),
@@ -58,6 +62,8 @@ eq_univ_iff_forall.2 $ λ x, ⟨_, ⟨_, rfl⟩, F.top_mem x⟩, rfl⟩
 
 end ctop
 
+/-- A `ctop` realizer for the topological space `T` is a `ctop`
+  which generates `T`. -/
 structure ctop.realizer (α) [T : topological_space α] :=
 (σ : Type*)
 (F : ctop α σ)

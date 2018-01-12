@@ -23,10 +23,14 @@ instance cardinal.is_equivalent : setoid (Type u) :=
     λα β ⟨e⟩, ⟨e.symm⟩,
     λα β γ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
+/-- `cardinal.{u}` is the type of cardinal numbers in `Type u`,
+  defined as the quotient of `Type u` by existence of an equivalence
+  (a bijection with explicit inverse). -/
 def cardinal : Type (u + 1) := quotient cardinal.is_equivalent
 
 namespace cardinal
 
+/-- The cardinal of a type -/
 def mk : Type u → cardinal := quotient.mk
 
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (mk α) := rfl
@@ -131,6 +135,7 @@ instance : comm_semiring cardinal.{u} :=
   right_distrib := assume a b c,
     by rw [mul_comm (a + b) c, left_distrib c a b, mul_comm c a, mul_comm c b] }
 
+/-- The cardinal exponential. `mk α ^ mk β` is the cardinal of `β → α`. -/
 protected def power (a b : cardinal.{u}) : cardinal.{u} :=
 quotient.lift_on₂ a b (λα β, mk (β → α)) $ assume α₁ α₂ β₁ β₂ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.arrow_congr e₂ e₁⟩
@@ -263,6 +268,8 @@ quot.induction_on a (λ α, ⟨⟨⟨λ a b, ⟨a = b⟩,
 instance : no_top_order cardinal.{u} :=
 { no_top := λ a, ⟨_, cantor a⟩, ..cardinal.linear_order }
 
+/-- The minimum cardinal in a family of cardinals (the existence
+  of which is provided by `injective_min`). -/
 def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
 f $ classical.some $
 @embedding.injective_min _ (λ i, (f i).out) I
@@ -294,6 +301,8 @@ instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
 instance wo : @is_well_order cardinal.{u} (<) :=
 ⟨by apply_instance, cardinal.wf⟩
 
+/-- The successor cardinal - the smallest cardinal greater than
+  `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
 def succ (c : cardinal) : cardinal :=
 @min {c' // c < c'} ⟨⟨_, cantor _⟩⟩ subtype.val 
 
@@ -324,6 +333,8 @@ begin
     { refl } }
 end
 
+/-- The indexed sum of cardinals is the cardinality of the
+  indexed disjoint union, i.e. sigma type. -/
 def sum {ι} (f : ι → cardinal) : cardinal := mk Σ i, (f i).out
 
 theorem le_sum {ι} (f : ι → cardinal) (i) : f i ≤ sum f :=
@@ -342,6 +353,8 @@ theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f
 ⟨embedding.sigma_congr_right $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
 
+/-- The indexed supremum of cardinals is the smallest cardinal above
+  everything in the family. -/
 def sup {ι} (f : ι → cardinal) : cardinal :=
 @min {c // ∀ i, f i ≤ c} ⟨⟨sum f, le_sum f⟩⟩ (λ a, a.1)
 
@@ -361,6 +374,8 @@ theorem sup_le_sum {ι} (f : ι → cardinal) : sup f ≤ sum f :=
 theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ mk ι * sup.{u u} f :=
 by rw ← sum_const; exact sum_le_sum _ _ (le_sup _)
 
+/-- The indexed product of cardinals is the cardinality of the Pi type
+  (dependent product). -/
 def prod {ι : Type u} (f : ι → cardinal) : cardinal := mk (Π i, (f i).out)
 
 @[simp] theorem prod_mk {ι} (f : ι → Type*) : prod (λ i, mk (f i)) = mk (Π i, f i) :=
@@ -384,6 +399,7 @@ end
 theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 :=
 not_iff_not.1 $ by simpa using prod_ne_zero f
 
+/-- The universe lift operation on cardinals -/
 def lift (c : cardinal.{u}) : cardinal.{max u v} :=
 quotient.lift_on c (λ α, ⟦ulift α⟧) $ λ α β ⟨e⟩,
 quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
@@ -480,6 +496,7 @@ le_antisymm
   end)
   (succ_le.2 $ lift_lt.2 $ lt_succ_self _)
 
+/-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)
 
 theorem omega_ne_zero : omega ≠ 0 :=

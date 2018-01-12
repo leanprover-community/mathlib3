@@ -10,174 +10,208 @@ universe u
 open nat function
 
 namespace int
-  lemma eq_nat_abs_iff_mul (x n) : nat_abs x = n ↔ (x - n) * (x + n) = 0 :=
-  begin
-    refine iff.trans _ mul_eq_zero.symm,
-    refine iff.trans _ (or_congr sub_eq_zero add_eq_zero_iff_eq_neg).symm,
-    exact ⟨λe, by rw ← e; apply nat_abs_eq,
-      λo, by cases o; subst x; simp [nat_abs_of_nat]⟩
-  end
 
-  example : integral_domain int := by apply_instance
+lemma eq_nat_abs_iff_mul (x n) : nat_abs x = n ↔ (x - n) * (x + n) = 0 :=
+begin
+  refine iff.trans _ mul_eq_zero.symm,
+  refine iff.trans _ (or_congr sub_eq_zero add_eq_zero_iff_eq_neg).symm,
+  exact ⟨λe, by rw ← e; apply nat_abs_eq,
+    λo, by cases o; subst x; simp [nat_abs_of_nat]⟩
+end
+
 end int
 
+/-- An alternate definition of `fin n` defined as an inductive type
+  instead of a subtype of `nat`. This is useful for its induction
+  principle and different definitional equalities. -/
 inductive fin2 : ℕ → Type
 | fz {n} : fin2 (succ n)
 | fs {n} : fin2 n → fin2 (succ n)
 
 namespace fin2
 
-  @[elab_as_eliminator]
-  protected def cases' {n} {C : fin2 (succ n) → Sort u} (H1 : C fz) (H2 : Π n, C (fs n)) :
-    Π (i : fin2 (succ n)), C i
-  | fz     := H1
-  | (fs n) := H2 n
+@[elab_as_eliminator]
+protected def cases' {n} {C : fin2 (succ n) → Sort u} (H1 : C fz) (H2 : Π n, C (fs n)) :
+  Π (i : fin2 (succ n)), C i
+| fz     := H1
+| (fs n) := H2 n
 
-  def elim0 {C : fin2 0 → Sort u} : Π (i : fin2 0), C i.
+def elim0 {C : fin2 0 → Sort u} : Π (i : fin2 0), C i.
 
-  def opt_of_nat : Π {n} (k : ℕ), option (fin2 n)
-  | 0 _ := none
-  | (succ n) 0 := some fz
-  | (succ n) (succ k) := fs <$> @opt_of_nat n k
+/-- convert a `fin2` into a `nat` -/
+def to_nat : Π {n}, fin2 n → ℕ
+| ._ (@fz n)   := 0
+| ._ (@fs n i) := succ (to_nat i)
 
-  def add {n} (i : fin2 n) : Π k, fin2 (n + k)
-  | 0        := i
-  | (succ k) := fs (add k)
+/-- convert a `nat` into a `fin2` if it is in range -/
+def opt_of_nat : Π {n} (k : ℕ), option (fin2 n)
+| 0 _ := none
+| (succ n) 0 := some fz
+| (succ n) (succ k) := fs <$> @opt_of_nat n k
 
-  def left (k) : Π {n}, fin2 n → fin2 (k + n)
-  | ._ (@fz n)   := fz
-  | ._ (@fs n i) := fs (left i)
+/-- `i + k : fin2 (n + k)` when `i : fin2 n` and `k : ℕ` -/
+def add {n} (i : fin2 n) : Π k, fin2 (n + k)
+| 0        := i
+| (succ k) := fs (add k)
 
-  def insert_perm : Π {n}, fin2 n → fin2 n → fin2 n
-  | ._ (@fz n)          (@fz ._)   := fz
-  | ._ (@fz n)          (@fs ._ j) := fs j
-  | ._ (@fs (succ n) i) (@fz ._)   := fs fz
-  | ._ (@fs (succ n) i) (@fs ._ j) := match insert_perm i j with fz := fz | fs k := fs (fs k) end
+/-- `left k` is the embedding `fin2 n → fin2 (k + n)` -/
+def left (k) : Π {n}, fin2 n → fin2 (k + n)
+| ._ (@fz n)   := fz
+| ._ (@fs n i) := fs (left i)
 
-  def remap_left {m n} (f : fin2 m → fin2 n) : Π k, fin2 (m + k) → fin2 (n + k)
-  | 0        i          := f i
-  | (succ k) (@fz ._)   := fz
-  | (succ k) (@fs ._ i) := fs (remap_left _ i)
+/-- `insert_perm a` is a permutation of `fin2 n` with the following properties:
+  * `insert_perm a i = i+1` if `i < a`
+  * `insert_perm a a = 0`
+  * `insert_perm a i = i` if `i > a` -/
+def insert_perm : Π {n}, fin2 n → fin2 n → fin2 n
+| ._ (@fz n)          (@fz ._)   := fz
+| ._ (@fz n)          (@fs ._ j) := fs j
+| ._ (@fs (succ n) i) (@fz ._)   := fs fz
+| ._ (@fs (succ n) i) (@fs ._ j) := match insert_perm i j with fz := fz | fs k := fs (fs k) end
 
-  class is_lt (m n : ℕ) := (h : m < n)
-  instance is_lt.zero (n) : is_lt 0 (succ n) := ⟨succ_pos _⟩
-  instance is_lt.succ (m n) [l : is_lt m n] : is_lt (succ m) (succ n) := ⟨succ_lt_succ l.h⟩
+/-- `remap_left f k : fin2 (m + k) → fin2 (n + k)` applies the function
+  `f : fin2 m → fin2 n` to inputs less than `m`, and leaves the right part
+  on the right (that is, `remap_left f k (m + i) = n + i`). -/
+def remap_left {m n} (f : fin2 m → fin2 n) : Π k, fin2 (m + k) → fin2 (n + k)
+| 0        i          := f i
+| (succ k) (@fz ._)   := fz
+| (succ k) (@fs ._ i) := fs (remap_left _ i)
 
-  def of_nat' : Π {n} m [is_lt m n], fin2 n
-  | 0        m        ⟨h⟩ := absurd h (not_lt_zero _)
-  | (succ n) 0        ⟨h⟩ := fz
-  | (succ n) (succ m) ⟨h⟩ := fs (@of_nat' n m ⟨lt_of_succ_lt_succ h⟩)
+/-- This is a simple type class inference prover for proof obligations
+  of the form `m < n` where `m n : ℕ`. -/
+class is_lt (m n : ℕ) := (h : m < n)
+instance is_lt.zero (n) : is_lt 0 (succ n) := ⟨succ_pos _⟩
+instance is_lt.succ (m n) [l : is_lt m n] : is_lt (succ m) (succ n) := ⟨succ_lt_succ l.h⟩
 
-  local prefix `&`:max := of_nat'
+/-- Use type class inference to infer the boundedness proof, so that we
+  can directly convert a `nat` into a `fin2 n`. This supports
+  notation like `&1 : fin 3`. -/
+def of_nat' : Π {n} m [is_lt m n], fin2 n
+| 0        m        ⟨h⟩ := absurd h (not_lt_zero _)
+| (succ n) 0        ⟨h⟩ := fz
+| (succ n) (succ m) ⟨h⟩ := fs (@of_nat' n m ⟨lt_of_succ_lt_succ h⟩)
+
+local prefix `&`:max := of_nat'
 
 end fin2
 
 open fin2
 
+/-- Alternate definition of `vector` based on `fin2`. -/
 def vector3 (α : Type u) (n : ℕ) : Type u := fin2 n → α
 
 namespace vector3
 
-  @[pattern] def nil {α} : vector3 α 0 := λi, match i with end
-  @[pattern] def cons {α} {n} (a : α) (v : vector3 α n) : vector3 α (succ n) :=
-  λi, by {refine i.cases' _ _, exact a, exact v}
+/-- The empty vector -/
+@[pattern] def nil {α} : vector3 α 0.
 
-  notation a :: b := cons a b
-  notation `[` l:(foldr `, ` (h t, cons h t) nil `]`) := l
+/-- The vector cons operation -/
+@[pattern] def cons {α} {n} (a : α) (v : vector3 α n) : vector3 α (succ n) :=
+λi, by {refine i.cases' _ _, exact a, exact v}
 
-  @[simp] theorem cons_fz {α} {n} (a : α) (v : vector3 α n) : (a :: v) fz = a := rfl
-  @[simp] theorem cons_fs {α} {n} (a : α) (v : vector3 α n) (i) : (a :: v) (fs i) = v i := rfl
+notation a :: b := cons a b
+notation `[` l:(foldr `, ` (h t, cons h t) nil `]`) := l
 
-  @[reducible] def nth {α} {n} (i : fin2 n) (v : vector3 α n) : α := v i
+@[simp] theorem cons_fz {α} {n} (a : α) (v : vector3 α n) : (a :: v) fz = a := rfl
+@[simp] theorem cons_fs {α} {n} (a : α) (v : vector3 α n) (i) : (a :: v) (fs i) = v i := rfl
 
-  @[reducible] def of_fn {α} {n} (f : fin2 n → α) : vector3 α n := f
+/-- Get the `i`th element of a vector -/
+@[reducible] def nth {α} {n} (i : fin2 n) (v : vector3 α n) : α := v i
 
-  def head {α} {n} (v : vector3 α (succ n)) : α := v fz
+/-- Construct a vector from a function on `fin2`. -/
+@[reducible] def of_fn {α} {n} (f : fin2 n → α) : vector3 α n := f
 
-  def tail {α} {n} (v : vector3 α (succ n)) : vector3 α n := λi, v (fs i)
+/-- Get the head of a nonempty vector. -/
+def head {α} {n} (v : vector3 α (succ n)) : α := v fz
 
-  theorem eq_nil {α} (v : vector3 α 0) : v = [] :=
-  funext $ λi, match i with end
+/-- Get the tail of a nonempty vector. -/
+def tail {α} {n} (v : vector3 α (succ n)) : vector3 α n := λi, v (fs i)
 
-  theorem cons_head_tail {α} {n} (v : vector3 α (succ n)) : head v :: tail v = v :=
-  funext $ λi, fin2.cases' rfl (λ_, rfl) i
+theorem eq_nil {α} (v : vector3 α 0) : v = [] :=
+funext $ λi, match i with end
 
-  def nil_elim {α} {C : vector3 α 0 → Sort u} (H : C []) (v : vector3 α 0) : C v :=
-  by rw eq_nil v; apply H
+theorem cons_head_tail {α} {n} (v : vector3 α (succ n)) : head v :: tail v = v :=
+funext $ λi, fin2.cases' rfl (λ_, rfl) i
 
-  def cons_elim {α n} {C : vector3 α (succ n) → Sort u} (H : Π (a : α) (t : vector3 α n), C (a :: t))
-    (v : vector3 α (succ n)) : C v :=
-  by rw ← (cons_head_tail v); apply H
+def nil_elim {α} {C : vector3 α 0 → Sort u} (H : C []) (v : vector3 α 0) : C v :=
+by rw eq_nil v; apply H
 
-  @[simp] theorem cons_elim_cons {α n C H a t} : @cons_elim α n C H (a :: t) = H a t := rfl
+def cons_elim {α n} {C : vector3 α (succ n) → Sort u} (H : Π (a : α) (t : vector3 α n), C (a :: t))
+  (v : vector3 α (succ n)) : C v :=
+by rw ← (cons_head_tail v); apply H
 
-  @[elab_as_eliminator]
-  protected def rec_on {α} {C : Π {n}, vector3 α n → Sort u} {n} (v : vector3 α n)
-    (H0 : C [])
-    (Hs : Π {n} (a) (w : vector3 α n), C w → C (a :: w)) : C v :=
-  nat.rec_on n
-    (λv, v.nil_elim H0)
-    (λn IH v, v.cons_elim (λa t, Hs _ _ (IH _))) v
+@[simp] theorem cons_elim_cons {α n C H a t} : @cons_elim α n C H (a :: t) = H a t := rfl
 
-  @[simp] theorem rec_on_nil {α C H0 Hs} : @vector3.rec_on α @C 0 [] H0 @Hs = H0 :=
-  rfl
+@[elab_as_eliminator]
+protected def rec_on {α} {C : Π {n}, vector3 α n → Sort u} {n} (v : vector3 α n)
+  (H0 : C [])
+  (Hs : Π {n} (a) (w : vector3 α n), C w → C (a :: w)) : C v :=
+nat.rec_on n
+  (λv, v.nil_elim H0)
+  (λn IH v, v.cons_elim (λa t, Hs _ _ (IH _))) v
 
-  @[simp] theorem rec_on_cons {α C H0 Hs n a v} :
-    @vector3.rec_on α @C (succ n) (a :: v) H0 @Hs = Hs a v (@vector3.rec_on α @C n v H0 @Hs) :=
-  rfl
+@[simp] theorem rec_on_nil {α C H0 Hs} : @vector3.rec_on α @C 0 [] H0 @Hs = H0 :=
+rfl
 
-  def append {α} {m} (v : vector3 α m) {n} (w : vector3 α n) : vector3 α (n+m) :=
-  nat.rec_on m (λ_, w) (λm IH v, v.cons_elim $ λa t, @fin2.cases' (n+m) (λ_, α) a (IH t)) v
+@[simp] theorem rec_on_cons {α C H0 Hs n a v} :
+  @vector3.rec_on α @C (succ n) (a :: v) H0 @Hs = Hs a v (@vector3.rec_on α @C n v H0 @Hs) :=
+rfl
 
-  infix ` +-+ `:65 := append
+/-- Append two vectors -/
+def append {α} {m} (v : vector3 α m) {n} (w : vector3 α n) : vector3 α (n+m) :=
+nat.rec_on m (λ_, w) (λm IH v, v.cons_elim $ λa t, @fin2.cases' (n+m) (λ_, α) a (IH t)) v
 
-  @[simp] theorem append_nil {α} {n} (w : vector3 α n) : [] +-+ w = w := rfl
+infix ` +-+ `:65 := append
 
-  @[simp] theorem append_cons {α} (a : α) {m} (v : vector3 α m) {n} (w : vector3 α n) :
-    (a::v) +-+ w = a :: (v +-+ w) := rfl
+@[simp] theorem append_nil {α} {n} (w : vector3 α n) : [] +-+ w = w := rfl
 
-  @[simp] theorem append_left {α} : ∀ {m} (i : fin2 m) (v : vector3 α m) {n} (w : vector3 α n),
-    (v +-+ w) (left n i) = v i
-  | ._ (@fz m)   v n w := v.cons_elim (λa t, by simp [*, left])
-  | ._ (@fs m i) v n w := v.cons_elim (λa t, by simp [*, left])
+@[simp] theorem append_cons {α} (a : α) {m} (v : vector3 α m) {n} (w : vector3 α n) :
+  (a::v) +-+ w = a :: (v +-+ w) := rfl
 
-  @[simp] theorem append_add {α} : ∀ {m} (v : vector3 α m) {n} (w : vector3 α n) (i : fin2 n),
-    (v +-+ w) (add i m) = w i
-  | 0        v n w i := rfl
-  | (succ m) v n w i := v.cons_elim (λa t, by simp [*, add])
+@[simp] theorem append_left {α} : ∀ {m} (i : fin2 m) (v : vector3 α m) {n} (w : vector3 α n),
+  (v +-+ w) (left n i) = v i
+| ._ (@fz m)   v n w := v.cons_elim (λa t, by simp [*, left])
+| ._ (@fs m i) v n w := v.cons_elim (λa t, by simp [*, left])
 
-  def insert {α} (a : α) {n} (v : vector3 α n) (i : fin2 (succ n)) : vector3 α (succ n) :=
-  λj, (a :: v) (insert_perm i j)
+@[simp] theorem append_add {α} : ∀ {m} (v : vector3 α m) {n} (w : vector3 α n) (i : fin2 n),
+  (v +-+ w) (add i m) = w i
+| 0        v n w i := rfl
+| (succ m) v n w i := v.cons_elim (λa t, by simp [*, add])
 
-  @[simp] theorem insert_fz {α} (a : α) {n} (v : vector3 α n) : insert a v fz = a :: v :=
-  by refine funext (λj, j.cases' _ _); intros; refl
+/-- Insert `a` into `v` at index `i`. -/
+def insert {α} (a : α) {n} (v : vector3 α n) (i : fin2 (succ n)) : vector3 α (succ n) :=
+λj, (a :: v) (insert_perm i j)
 
-  @[simp] theorem insert_fs {α} (a : α) {n} (b : α) (v : vector3 α n) (i : fin2 (succ n)) :
-    insert a (b :: v) (fs i) = b :: insert a v i :=
-  funext $ λj, by {
-    refine j.cases' _ (λj, _); simp [insert, insert_perm],
-    refine fin2.cases' _ _ (insert_perm i j); simp [insert_perm] }
+@[simp] theorem insert_fz {α} (a : α) {n} (v : vector3 α n) : insert a v fz = a :: v :=
+by refine funext (λj, j.cases' _ _); intros; refl
 
-  theorem append_insert {α} (a : α) {k} (t : vector3 α k) {n} (v : vector3 α n) (i : fin2 (succ n)) (e : succ n + k = succ (n + k)) :
-    insert a (t +-+ v) (eq.rec_on e (i.add k)) = eq.rec_on e (t +-+ insert a v i) :=
-  begin
-    refine vector3.rec_on t (λe, _) (λk b t IH e, _) e, refl,
-    have e' := succ_add n k,
-    change insert a (b :: (t +-+ v)) (eq.rec_on (congr_arg succ e') (fs (add i k)))
-      = eq.rec_on (congr_arg succ e') (b :: (t +-+ insert a v i)),
-    rw ← (eq.drec_on e' rfl : fs (eq.rec_on e' (i.add k) : fin2 (succ (n + k))) = eq.rec_on (congr_arg succ e') (fs (i.add k))),
-    simp, rw IH, exact eq.drec_on e' rfl
-  end
+@[simp] theorem insert_fs {α} (a : α) {n} (b : α) (v : vector3 α n) (i : fin2 (succ n)) :
+  insert a (b :: v) (fs i) = b :: insert a v i :=
+funext $ λj, by {
+  refine j.cases' _ (λj, _); simp [insert, insert_perm],
+  refine fin2.cases' _ _ (insert_perm i j); simp [insert_perm] }
+
+theorem append_insert {α} (a : α) {k} (t : vector3 α k) {n} (v : vector3 α n) (i : fin2 (succ n)) (e : succ n + k = succ (n + k)) :
+  insert a (t +-+ v) (eq.rec_on e (i.add k)) = eq.rec_on e (t +-+ insert a v i) :=
+begin
+  refine vector3.rec_on t (λe, _) (λk b t IH e, _) e, refl,
+  have e' := succ_add n k,
+  change insert a (b :: (t +-+ v)) (eq.rec_on (congr_arg succ e') (fs (add i k)))
+    = eq.rec_on (congr_arg succ e') (b :: (t +-+ insert a v i)),
+  rw ← (eq.drec_on e' rfl : fs (eq.rec_on e' (i.add k) : fin2 (succ (n + k))) = eq.rec_on (congr_arg succ e') (fs (i.add k))),
+  simp, rw IH, exact eq.drec_on e' rfl
+end
 
 end vector3
 
 open vector3
 
--- "Curried" exists and forall, i.e. ∃ x1 ... xn, f [x1, ..., xn]
+/-- "Curried" exists, i.e. ∃ x1 ... xn, f [x1, ..., xn] -/
 def vector_ex {α} : Π k, (vector3 α k → Prop) → Prop
 | 0        f := f []
 | (succ k) f := ∃x : α, vector_ex k (λv, f (x :: v))
 
+/-- "Curried" forall, i.e. ∀ x1 ... xn, f [x1, ..., xn] -/
 def vector_all {α} : Π k, (vector3 α k → Prop) → Prop
 | 0        f := f []
 | (succ k) f := ∀x : α, vector_all k (λv, f (x :: v))
@@ -197,6 +231,8 @@ theorem vector_all_iff_forall {α} : ∀ {n} (f : vector3 α n → Prop), vector
 | (succ n) f := (forall_congr (λx, vector_all_iff_forall (λv, f (x :: v)))).trans
   ⟨λal v, v.cons_elim al, λal x v, al (x::v)⟩
 
+/-- `vector_allp p v` is equivalent to `∀ i, p (v i)`, but unfolds directly to a conjunction,
+  i.e. `vector_allp p [0, 1, 2] = p 0 ∧ p 1 ∧ p 2`. -/
 def vector_allp {α} (p : α → Prop) {n} (v : vector3 α n) : Prop :=
 vector3.rec_on v true (λn a v IH, @vector3.rec_on _ (λn v, Prop) _ v (p a) (λn b v' _, p a ∧ IH))
 
@@ -219,11 +255,12 @@ theorem vector_allp.imp {α} {p q : α → Prop} (h : ∀ x, p x → q x)
   {n} {v : vector3 α n} (al : vector_allp p v) : vector_allp q v :=
 (vector_allp_iff_forall _ _).2 (λi, h _ $ (vector_allp_iff_forall _ _).1 al _)
 
-def list_all {α} (p : α → Prop) : list α → Prop
+/-- `list_all p l` is equivalent to `∀ a ∈ l, p a`, but unfolds directly to a conjunction,
+  i.e. `list_all p [0, 1, 2] = p 0 ∧ p 1 ∧ p 2`. -/
+@[simp] def list_all {α} (p : α → Prop) : list α → Prop
 | []        := true
 | (x :: []) := p x
 | (x :: l)  := p x ∧ list_all l
-attribute [simp] list_all
 
 @[simp] theorem list_all_cons {α} (p : α → Prop) (x : α) : ∀ (l : list α), list_all p (x :: l) ↔ p x ∧ list_all p l
 | []       := (and_true _).symm
@@ -248,12 +285,17 @@ decidable_of_decidable_of_iff (by apply_instance) (list_all_iff_forall _ _).symm
 
 /- poly -/
 
+/-- A predicate asserting that a function is a multivariate integer polynomial.
+  (We are being a bit lazy here by allowing many representations for multiplication,
+  rather than only allowing monomials and addition, but the definition is equivalent
+  and this is easier to use.) -/
 inductive is_poly {α} : ((α → ℕ) → ℤ) → Prop
 | proj : ∀ i, is_poly (λx : α → ℕ, x i)
-| const : Π (n : ℕ), is_poly (λx : α → ℕ, n)
+| const : Π (n : ℤ), is_poly (λx : α → ℕ, n)
 | sub : Π {f g : (α → ℕ) → ℤ}, is_poly f → is_poly g → is_poly (λx, f x - g x)
 | mul : Π {f g : (α → ℕ) → ℤ}, is_poly f → is_poly g → is_poly (λx, f x * g x)
 
+/-- The type of multivariate integer polynomials -/
 def poly (α : Type u) := {f : (α → ℕ) → ℤ // is_poly f}
 
 namespace poly
@@ -262,40 +304,50 @@ parameter {α : Type u}
 
 instance : has_coe_to_fun (poly α) := ⟨_, λ f, f.1⟩
 
+/-- The underlying function of a `poly` is a polynomial -/
 def isp (f : poly α) : is_poly f := f.2
 
+/-- Extensionality for `poly α` -/
 def ext {f g : poly α} (e : ∀x, f x = g x) : f = g :=
 subtype.eq (funext e)
 
+/-- Construct a `poly` given an extensionally equivalent `poly`. -/
 def subst (f : poly α) (g : (α → ℕ) → ℤ) (e : ∀x, f x = g x) : poly α :=
 ⟨g, by rw ← (funext e : coe_fn f = g); exact f.isp⟩
 @[simp] theorem subst_eval (f g e x) : subst f g e x = g x := rfl
 
+/-- The `i`th projection function, `x_i`. -/
 def proj (i) : poly α := ⟨_, is_poly.proj i⟩
 @[simp] theorem proj_eval (i x) : proj i x = x i := rfl
 
+/-- The constant function with value `n : ℤ`. -/
 def const (n) : poly α := ⟨_, is_poly.const n⟩
 @[simp] theorem const_eval (n x) : const n x = n := rfl
 
+/-- The zero polynomial -/
 def zero : poly α := const 0
 instance : has_zero (poly α) := ⟨poly.zero⟩
 @[simp] theorem zero_eval (x) : (0 : poly α) x = 0 := rfl
 
+/-- The zero polynomial -/
 def one : poly α := const 1
 instance : has_one (poly α) := ⟨poly.one⟩
 @[simp] theorem one_eval (x) : (1 : poly α) x = 1 := rfl
 
+/-- Subtraction of polynomials -/
 def sub : poly α → poly α → poly α | ⟨f, pf⟩ ⟨g, pg⟩ :=
 ⟨_, is_poly.sub pf pg⟩
 instance : has_sub (poly α) := ⟨poly.sub⟩
 @[simp] theorem sub_eval : Π (f g x), (f - g : poly α) x = f x - g x
 | ⟨f, pf⟩ ⟨g, pg⟩ x := rfl
 
+/-- Negation of a polynomial -/
 def neg (f : poly α) : poly α := 0 - f
 instance : has_neg (poly α) := ⟨poly.neg⟩
 @[simp] theorem neg_eval (f x) : (-f : poly α) x = -f x :=
 show (0-f) x = _, by simp
 
+/-- Addition of polynomials -/
 def add : poly α → poly α → poly α | ⟨f, pf⟩ ⟨g, pg⟩ :=
 subst (⟨f, pf⟩ - -⟨g, pg⟩) _
  (λx, show f x - (0 - g x) = f x + g x, by simp)
@@ -303,6 +355,7 @@ instance : has_add (poly α) := ⟨poly.add⟩
 @[simp] theorem add_eval : Π (f g x), (f + g : poly α) x = f x + g x
 | ⟨f, pf⟩ ⟨g, pg⟩ x := rfl
 
+/-- Multiplication of polynomials -/
 def mul : poly α → poly α → poly α | ⟨f, pf⟩ ⟨g, pg⟩ :=
 ⟨_, is_poly.mul pf pg⟩
 instance : has_mul (poly α) := ⟨poly.mul⟩
@@ -326,10 +379,10 @@ begin
   apply H1, apply H2, apply H3 _ _ ihf ihg, apply H4 _ _ ihf ihg
 end
 
-def pow (f : poly α) : ℕ → poly α
-| 0     := 1
-| (n+1) := pow n * f
-
+/-- The sum of squares of a list of polynomials. This is relevant for
+  Diophantine equations, because it means that a list of equations
+  can be encoded as a single equation: `x = 0 ∧ y = 0 ∧ z = 0` is
+  equivalent to `x^2 + y^2 + z^2 = 0`. -/
 def sumsq : list (poly α) → poly α
 | []      := 0
 | (p::ps) := p*p + sumsq ps
@@ -351,6 +404,7 @@ theorem sumsq_eq_zero (x) : ∀ l, sumsq l x = 0 ↔ list_all (λa : poly α, a 
 
 end
 
+/-- Map the index set of variables, replacing `x_i` with `x_(f i)`. -/
 def remap {α β} (f : α → β) (g : poly α) : poly β :=
 ⟨λv, g $ v ∘ f, g.induction
   (λi, by simp; apply is_poly.proj)
@@ -362,26 +416,33 @@ def remap {α β} (f : α → β) (g : poly α) : poly β :=
 end poly
 
 namespace sum
-  def join {α β γ} (f : α → γ) (g : β → γ) : α ⊕ β → γ :=
-  by {refine sum.rec _ _, exacts [f, g]}
 
-  infixr ` ⊗ `:65 := join
+/-- combine two functions into a function on the disjoint union -/
+def join {α β γ} (f : α → γ) (g : β → γ) : α ⊕ β → γ :=
+by {refine sum.rec _ _, exacts [f, g]}
+
 end sum
+
+local infixr ` ⊗ `:65 := sum.join
 
 open sum
 
 namespace option
-  def cons {α β} (a : β) (v : α → β) : option α → β :=
-  by {refine option.rec _ _, exacts [a, v]}
 
-  notation a :: b := cons a b
+/-- Functions from `option` can be combined similarly to `vector.cons` -/
+def cons {α β} (a : β) (v : α → β) : option α → β :=
+by {refine option.rec _ _, exacts [a, v]}
 
-  @[simp] def cons_head_tail {α β} (v : option α → β) : v none :: v ∘ some = v :=
-  funext $ λo, by cases o; refl
+notation a :: b := cons a b
+
+@[simp] theorem cons_head_tail {α β} (v : option α → β) : v none :: v ∘ some = v :=
+funext $ λo, by cases o; refl
 end option
 
 /- dioph -/
 
+/-- A set `S ⊆ ℕ^α` is diophantine if there exists a polynomial on
+  `α ⊕ β` such that `v ∈ S` iff there exists `t : ℕ^β` with `p (v, t) = 0`. -/
 def dioph {α : Type u} (S : set (α → ℕ)) : Prop :=
 ∃ {β : Type u} (p : poly (α ⊕ β)), ∀ (v : α → ℕ), S v ↔ ∃t, p (v ⊗ t) = 0
 
@@ -460,23 +521,14 @@ section
       exact inject_dummies_lem _ ((λ_, none) ⊗ some) (λx, rfl) _ _,
     end⟩
 
+  /-- A partial function is Diophantine if its graph is Diophantine. -/
   def dioph_pfun (f : (α → ℕ) →. ℕ) := dioph (λv : option α → ℕ, f.graph (v ∘ some, v none))
 
+  /-- A function is Diophantine if its graph is Diophantine. -/
   def dioph_fn (f : (α → ℕ) → ℕ) := dioph (λv : option α → ℕ, f (v ∘ some) = v none)
 
   theorem reindex_dioph_fn {f : (α → ℕ) → ℕ} (d : dioph_fn f) (g : α → β) : dioph_fn (λv, f (v ∘ g)) :=
   reindex_dioph d (has_map.map g)
-
-/-
-  @[simp] theorem eproj_fz (S : set (vector3 ℕ (succ n))) : eproj S fz = eproj1 S :=
-  set.ext $ λv, exists_congr $ λx, by rw insert_fz
-
-  def eproj_dioph {n} {S : set (vector3 ℕ (succ n))} (d : dioph S) (i : fin2 (succ n)) : dioph (eproj S i) :=
-  let ⟨k, p, pe⟩ := d, E := succ_add n k, p' : poly (succ (n + k)) := E.rec_on p in
-  by refine ⟨succ k, p'.insert_poly (E.rec_on $ add i k), λv, (exists_congr $ λx, _).trans (exists_vector_succ _).symm⟩; exact
-  show insert x v i ∈ S ↔ ∃ (t : vector3 ℕ k), (E.rec_on p).eval (insert x (t +-+ v) (E.rec_on $ add i k)) = 0, from
-  (pe _).trans $ exists_congr $ λt, by rw append_insert; exact match succ (n + k), E with ._, rfl := iff.rfl end
--/
 
   theorem ex_dioph {S : set (α ⊕ β → ℕ)} : dioph S → dioph (λv, ∃x, S (v ⊗ x))
   | ⟨γ, p, pe⟩ := ⟨β ⊕ γ, p.remap ((inl ⊗ inr ∘ inl) ⊗ inr ∘ inr), λv,
@@ -575,7 +627,7 @@ section
   local notation `D∃`:30 := vec_ex1_dioph
 
   local prefix `&`:max := of_nat'
-  @[reducible] def proj_dioph_of_nat {n : ℕ} (m : ℕ) [is_lt m n] : dioph_fn (λv : vector3 ℕ n, v &m) :=
+  theorem proj_dioph_of_nat {n : ℕ} (m : ℕ) [is_lt m n] : dioph_fn (λv : vector3 ℕ n, v &m) :=
   proj_dioph &m
   local prefix `D&`:100 := proj_dioph_of_nat
 

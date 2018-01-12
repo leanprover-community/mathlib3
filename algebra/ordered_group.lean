@@ -14,10 +14,18 @@ section old_structure_cmd
 
 set_option old_structure_cmd true
 
+/-- An ordered (additive) commutative monoid is a commutative monoid 
+  with a partial order such that addition is an order embedding, i.e.
+  `a + b ≤ a + c ↔ b ≤ c`. These monoids are automatically cancellative. -/
 class ordered_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
 
+/-- A canonically ordered monoid is an ordered commutative monoid
+  in which the ordering coincides with the divisibility relation,
+  which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
+  This is satisfied by the natural numbers, for example, but not
+  the integers or other ordered groups. -/
 class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α :=
 (le_iff_exists_add : ∀a b:α, a ≤ b ↔ ∃c, b = a + c)
 
@@ -335,9 +343,9 @@ sub_left_lt_iff_lt_add.trans (lt_add_iff_pos_left _)
 
 end ordered_comm_group
 
--- This is not so much a new structure as a construction mechanism
--- for ordered groups
 set_option old_structure_cmd true
+/-- This is not so much a new structure as a construction mechanism
+  for ordered groups, by specifying only the "positive cone" of the group. -/
 class nonneg_comm_group (α : Type*) extends add_comm_group α :=
 (nonneg : α → Prop)
 (pos : α → Prop := λ a, nonneg a ∧ ¬ nonneg (neg a))

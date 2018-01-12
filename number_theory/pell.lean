@@ -5,6 +5,10 @@ Authors: Mario Carneiro
 -/
 import data.int.basic data.nat.prime data.nat.modeq
 
+/-- The ring of integers adjoined with a square root of `d`.
+  These have the form `a + b √d` where `a b : ℤ`. The components
+  are called `re` and `im` by analogy to the negative `d` case,
+  but of course both parts are real here since `d` is nonnegative. -/
 structure zsqrtd (d : ℕ) := mk {} ::
 (re : ℤ)
 (im : ℤ)
@@ -22,24 +26,29 @@ section
   | ⟨x, y⟩ ⟨x', y'⟩ := ⟨λ h, by injection h; split; assumption,
                         λ ⟨h₁, h₂⟩, by congr; assumption⟩
 
+  /-- Convert an integer to a `ℤ√d` -/
   def of_int (n : ℤ) : ℤ√d := ⟨n, 0⟩
   @[simp] theorem of_int_re (n : ℤ) : (of_int n).re = n := rfl
   @[simp] theorem of_int_im (n : ℤ) : (of_int n).im = 0 := rfl
 
+  /-- The zero of the ring -/
   def zero : ℤ√d := of_int 0
   instance : has_zero ℤ√d := ⟨zsqrtd.zero⟩
   @[simp] theorem zero_re : (0 : ℤ√d).re = 0 := rfl
   @[simp] theorem zero_im : (0 : ℤ√d).im = 0 := rfl
 
+  /-- The one of the ring -/
   def one : ℤ√d := of_int 1
   instance : has_one ℤ√d := ⟨zsqrtd.one⟩
   @[simp] theorem one_re : (1 : ℤ√d).re = 1 := rfl
   @[simp] theorem one_im : (1 : ℤ√d).im = 0 := rfl
 
+  /-- The representative of `√d` in the ring -/
   def sqrtd : ℤ√d := ⟨0, 1⟩
   @[simp] theorem sqrtd_re : (sqrtd : ℤ√d).re = 0 := rfl
   @[simp] theorem sqrtd_im : (sqrtd : ℤ√d).im = 1 := rfl
 
+  /-- Addition of elements of `ℤ√d` -/
   def add : ℤ√d → ℤ√d → ℤ√d
   | ⟨x, y⟩ ⟨x', y'⟩ := ⟨x + x', y + y'⟩
   instance : has_add ℤ√d := ⟨zsqrtd.add⟩
@@ -56,6 +65,7 @@ section
   @[simp] theorem bit1_re (z) : (bit1 z : ℤ√d).re = bit1 z.re := by simp [bit1]
   @[simp] theorem bit1_im (z) : (bit1 z : ℤ√d).im = bit0 z.im := by simp [bit1]
 
+  /-- Negation in `ℤ√d` -/
   def neg : ℤ√d → ℤ√d
   | ⟨x, y⟩ := ⟨-x, -y⟩
   instance : has_neg ℤ√d := ⟨zsqrtd.neg⟩
@@ -64,6 +74,7 @@ section
   @[simp] theorem neg_im : ∀ z : ℤ√d, (-z).im = -z.im
   | ⟨x, y⟩ := rfl
 
+  /-- Conjugation in `ℤ√d`. The conjugate of `a + b √d` is `a - b √d`. -/
   def conj : ℤ√d → ℤ√d
   | ⟨x, y⟩ := ⟨x, -y⟩
   @[simp] theorem conj_re : ∀ z : ℤ√d, (conj z).re = z.re
@@ -71,6 +82,7 @@ section
   @[simp] theorem conj_im : ∀ z : ℤ√d, (conj z).im = -z.im
   | ⟨x, y⟩ := rfl
 
+  /-- Multiplication in `ℤ√d` -/
   def mul : ℤ√d → ℤ√d → ℤ√d
   | ⟨x, y⟩ ⟨x', y'⟩ := ⟨x * x' + d * y * y', x * y' + y * x'⟩
   instance : has_mul ℤ√d := ⟨zsqrtd.mul⟩
@@ -144,7 +156,7 @@ section
   protected lemma coe_int_inj {m n : ℤ} (h : (↑m : ℤ√d) = ↑n) : m = n :=
   by simpa using congr_arg re h
 
-  -- Read `sq_le a c b d` as `a √c ≤ b √d`
+  /-- Read `sq_le a c b d` as `a √c ≤ b √d` -/
   def sq_le (a c b d : ℕ) : Prop := c*a*a ≤ d*b*b
 
   theorem sq_le_of_le {c d x y z w : ℕ} (xz : z ≤ x) (yw : y ≤ w) (xy : sq_le x c y d) : sq_le z c w d :=
@@ -193,29 +205,32 @@ section
     refine int.le_of_coe_nat_le_coe_nat (le_of_sub_nonneg _),
     simpa [mul_add, mul_left_comm, mul_comm] }
 
+  /-- "Generalized" `nonneg`. `nonnegg c d x y` means `a √c + b √d ≥ 0`;
+    we are interested in the case `c = 1` but this is more symmetric -/
   def nonnegg (c d : ℕ) : ℤ → ℤ → Prop
   | (a : ℕ) (b : ℕ) := true
   | (a : ℕ) -[1+ b] := sq_le (b+1) c a d
   | -[1+ a] (b : ℕ) := sq_le (a+1) d b c
   | -[1+ a] -[1+ b] := false
 
-  def nonnegg_comm {c d : ℕ} {x y : ℤ} : nonnegg c d x y = nonnegg d c y x :=
+  theorem nonnegg_comm {c d : ℕ} {x y : ℤ} : nonnegg c d x y = nonnegg d c y x :=
   by induction x; induction y; refl
 
-  def nonnegg_neg_pos {c d} : Π {a b : ℕ}, nonnegg c d (-a) b ↔ sq_le a d b c
+  theorem nonnegg_neg_pos {c d} : Π {a b : ℕ}, nonnegg c d (-a) b ↔ sq_le a d b c
   | 0     b := ⟨by simp [sq_le, nat.zero_le], λa, trivial⟩
   | (a+1) b := by rw ← int.neg_succ_of_nat_coe; refl
 
-  def nonnegg_pos_neg {c d} {a b : ℕ} : nonnegg c d a (-b) ↔ sq_le b c a d :=
+  theorem nonnegg_pos_neg {c d} {a b : ℕ} : nonnegg c d a (-b) ↔ sq_le b c a d :=
   by rw nonnegg_comm; exact nonnegg_neg_pos
 
-  def nonnegg_cases_right {c d} {a : ℕ} : Π {b : ℤ}, (Π x : ℕ, b = -x → sq_le x c a d) → nonnegg c d a b
+  theorem nonnegg_cases_right {c d} {a : ℕ} : Π {b : ℤ}, (Π x : ℕ, b = -x → sq_le x c a d) → nonnegg c d a b
   | (b:nat) h := trivial
   | -[1+ b] h := h (b+1) rfl
 
-  def nonnegg_cases_left {c d} {b : ℕ} {a : ℤ} (h : Π x : ℕ, a = -x → sq_le x d b c) : nonnegg c d a b :=
+  theorem nonnegg_cases_left {c d} {b : ℕ} {a : ℤ} (h : Π x : ℕ, a = -x → sq_le x d b c) : nonnegg c d a b :=
   cast nonnegg_comm (nonnegg_cases_right h)
 
+  /-- Nonnegativity of an element of `ℤ√d`. -/
   def nonneg : ℤ√d → Prop | ⟨a, b⟩ := nonnegg d 1 a b
 
   protected def le (a b : ℤ√d) : Prop := nonneg (b - a)
@@ -393,6 +408,9 @@ section
   theorem not_sq_le_succ (c d y) (h : c > 0) : ¬sq_le (y + 1) c 0 d :=
   not_le_of_gt $ mul_pos (mul_pos h $ nat.succ_pos _) $ nat.succ_pos _
 
+  /-- A nonsquare is a natural number that is not equal to the square of an
+    integer. This is implemented as a typeclass because it's a necessary condition
+    for much of the Pell equation theory. -/
   class nonsquare (x : ℕ) := (ns : ∀n : ℕ, x ≠ n*n)
 
   parameter [dnsq : nonsquare d]
@@ -498,10 +516,13 @@ section
 
   @[simp] theorem d_pos : 0 < d := nat.sub_pos_of_lt (mul_lt_mul a1 (le_of_lt a1) dec_trivial dec_trivial : 1*1<a*a)
 
-  def pell : ℕ → (ℕ × ℕ) :=
+  /-- The Pell sequences, defined together in mutual recursion. -/
+  def pell : ℕ → ℕ × ℕ :=
   λn, nat.rec_on n (1, 0) (λn xy, (xy.1*a + d*xy.2, xy.1 + xy.2*a))
 
+  /-- The Pell `x` sequence. -/
   def xn (n : ℕ) : ℕ := (pell n).1
+  /-- The Pell `y` sequence. -/
   def yn (n : ℕ) : ℕ := (pell n).2
 
   @[simp] theorem pell_val (n : ℕ) : pell n = (xn n, yn n) :=
@@ -530,33 +551,36 @@ section
   @[simp] theorem xz_succ (n : ℕ) : xz (n+1) = xz n * az + ↑d * yz n := rfl
   @[simp] theorem yz_succ (n : ℕ) : yz (n+1) = xz n + yz n * az := rfl
 
+  /-- The Pell sequence can also be viewed as an element of `ℤ√d` -/
   def pell_zd (n : ℕ) : ℤ√d := ⟨xn n, yn n⟩
   @[simp] theorem pell_zd_re (n : ℕ) : (pell_zd n).re = xn n := rfl
   @[simp] theorem pell_zd_im (n : ℕ) : (pell_zd n).im = yn n := rfl
 
+  /-- The property of being a solution to the Pell equation, expressed
+    as a property of elements of `ℤ√d`. -/
   def is_pell : ℤ√d → Prop | ⟨x, y⟩ := x*x - d*y*y = 1
 
-  def is_pell_nat {x y : ℕ} : is_pell ⟨x, y⟩ ↔ x*x - d*y*y = 1 :=
+  theorem is_pell_nat {x y : ℕ} : is_pell ⟨x, y⟩ ↔ x*x - d*y*y = 1 :=
   ⟨λh, int.coe_nat_inj (by rw int.coe_nat_sub (int.le_of_coe_nat_le_coe_nat $ int.le.intro_sub h); exact h),
   λh, show ((x*x : ℕ) - (d*y*y:ℕ) : ℤ) = 1, by rw [← int.coe_nat_sub $ le_of_lt $ nat.lt_of_sub_eq_succ h, h]; refl⟩
 
-  def is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * b.conj = 1
+  theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * b.conj = 1
   | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]
 
-  def is_pell_mul {b c : ℤ√d} (hb : is_pell b) (hc : is_pell c) : is_pell (b * c) :=
+  theorem is_pell_mul {b c : ℤ√d} (hb : is_pell b) (hc : is_pell c) : is_pell (b * c) :=
   is_pell_norm.2 (by simp [mul_comm, mul_left_comm,
     zsqrtd.conj_mul, pell.is_pell_norm.1 hb, pell.is_pell_norm.1 hc])
 
-  def is_pell_conj : ∀ {b : ℤ√d}, is_pell b ↔ is_pell b.conj | ⟨x, y⟩ :=
+  theorem is_pell_conj : ∀ {b : ℤ√d}, is_pell b ↔ is_pell b.conj | ⟨x, y⟩ :=
   by simp [is_pell, zsqrtd.conj]
 
   @[simp] theorem pell_zd_succ (n : ℕ) : pell_zd (n+1) = pell_zd n * ⟨a, 1⟩ :=
   by simp [zsqrtd.ext]
 
-  def is_pell_one : is_pell ⟨a, 1⟩ :=
+  theorem is_pell_one : is_pell ⟨a, 1⟩ :=
   show az*az-d*1*1=1, by simp [dz_val]
 
-  def is_pell_pell_zd : ∀ (n : ℕ), is_pell (pell_zd n)
+  theorem is_pell_pell_zd : ∀ (n : ℕ), is_pell (pell_zd n)
   | 0     := rfl
   | (n+1) := let o := is_pell_one in by simp; exact pell.is_pell_mul (is_pell_pell_zd n) o
 
@@ -577,12 +601,12 @@ section
     have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by simpa [mul_add, mul_comm, mul_left_comm]),
     ne_of_gt d_pos $ by rw nat.eq_zero_of_le_zero (le_trans (nat.le_add_left _ _) this) at h; exact h⟩
 
-  def xn_ge_a_pow : ∀ (n : ℕ), a^n ≤ xn n
+  theorem xn_ge_a_pow : ∀ (n : ℕ), a^n ≤ xn n
   | 0     := le_refl 1
   | (n+1) := by simp [nat.pow_succ]; exact le_trans
     (nat.mul_le_mul_right _ (xn_ge_a_pow n)) (nat.le_add_right _ _)
 
-  def n_lt_a_pow : ∀ (n : ℕ), n < a^n
+  theorem n_lt_a_pow : ∀ (n : ℕ), n < a^n
   | 0     := nat.le_refl 1
   | (n+1) := begin have IH := n_lt_a_pow n,
     have : a^n + a^n ≤ a^n * a,

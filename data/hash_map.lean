@@ -7,9 +7,12 @@ import data.list.basic data.pnat data.array.lemmas
 
 universes u v w
 
+/-- `bucket_array α β` is the underlying data type for `hash_map α β`,
+  an array of linked lists of key-value pairs. -/
 def bucket_array (α : Type u) (β : α → Type v) (n : ℕ+) :=
 array n.1 (list Σ a, β a)
 
+/-- Make a hash_map index from a `nat` hash value and a (positive) buffer size -/
 def hash_map.mk_idx (n : ℕ+) (i : nat) : fin n.1 :=
 ⟨i % n.1, nat.mod_lt _ n.2⟩
 
@@ -18,18 +21,22 @@ section
 parameters {α : Type u} {β : α → Type v} (hash_fn : α → nat)
 variables {n : ℕ+} (data : bucket_array α β n)
 
+/-- Read the bucket corresponding to an element -/
 def read (a : α) : list Σ a, β a :=
 let bidx := hash_map.mk_idx n (hash_fn a) in
 data.read bidx
 
-def write (hash_fn : α → nat) (a : α) (l : list Σ a, β a) : bucket_array α β n :=
+/-- Write the bucket corresponding to an element -/
+def write (a : α) (l : list Σ a, β a) : bucket_array α β n :=
 let bidx := hash_map.mk_idx n (hash_fn a) in
 data.write bidx l
 
-def modify (hash_fn : α → nat) (a : α) (f : list (Σ a, β a) → list (Σ a, β a)) : bucket_array α β n :=
+/-- Modify (read, apply `f`, and write) the bucket corresponding to an element -/
+def modify (a : α) (f : list (Σ a, β a) → list (Σ a, β a)) : bucket_array α β n :=
 let bidx := hash_map.mk_idx n (hash_fn a) in
 array.write data bidx (f (array.read data bidx))
 
+/-- The list of all key-value pairs in the bucket list -/
 def as_list : list Σ a, β a := data.to_list.join
 
 theorem mem_as_list {a : Σ a, β a} : a ∈ data.as_list ↔ ∃i, a ∈ array.read data i :=
@@ -38,6 +45,7 @@ have (∃ (l : list (Σ (a : α), β a)) (i : fin (n.val)), a ∈ l ∧ array.re
 by rw exists_swap; exact exists_congr (λ i, by simp),
 by simp [as_list]; simpa [array.mem.def, and_comm]
 
+/-- Fold a function `f` over the key-value pairs in the bucket list -/
 def foldl {δ : Type w} (d : δ) (f : δ → Π a, β a → δ) : δ :=
 data.foldl d (λ b d, b.foldl (λ r a, f r a.1 a.2) d)
 
@@ -52,11 +60,14 @@ namespace hash_map
 section
 parameters {α : Type u} {β : α → Type v} (hash_fn : α → nat)
 
+/-- Insert the pair `⟨a, b⟩` into the correct location in the bucket array
+  (without checking for duplication) -/
 def reinsert_aux {n} (data : bucket_array α β n) (a : α) (b : β a) : bucket_array α β n :=
 data.modify hash_fn a (λl, ⟨a, b⟩ :: l)
 
 parameter [decidable_eq α]
 
+/-- Search a bucket for a key `a` and return the value -/
 def find_aux (a : α) : list (Σ a, β a) → option (β a)
 | []          := none
 | (⟨a',b⟩::t) := if h : a' = a then some (eq.rec_on h b) else find_aux t
@@ -75,6 +86,7 @@ theorem find_aux_iff {a : α} {b : β a} : Π {l : list Σ a, β a}, (l.map sigm
     simp at nd, simp [find_aux, h, ne.symm h, find_aux_iff, nd] }
 end
 
+/-- Returns `tt` if the bucket `l` contains the key `a` -/
 def contains_aux (a : α) (l : list Σ a, β a) : bool :=
 (find_aux a l).is_some
 
@@ -89,14 +101,21 @@ begin
     exact ⟨_, (find_aux_iff nd).1 h⟩ },
 end
 
+/-- Modify a bucket to replace a value in the list. Leaves the list
+ unchanged if the key is not found. -/
 def replace_aux (a : α) (b : β a) : list (Σ a, β a) → list (Σ a, β a)
 | []            := []
 | (⟨a', b'⟩::t) := if a' = a then ⟨a, b⟩::t else ⟨a', b'⟩ :: replace_aux t
 
+/-- Modify a bucket to remove a key, if it exists. -/
 def erase_aux (a : α) : list (Σ a, β a) → list (Σ a, β a)
 | []            := []
 | (⟨a', b'⟩::t) := if a' = a then t else ⟨a', b'⟩ :: erase_aux t
 
+/-- The predicate `valid bkts sz` means that `bkts` satisfies the `hash_map`
+  invariants: There are exactly `sz` elements in it, every pair is in the
+  bucket determined by its key and the hash function, and no key appears
+  multiple times in the list. -/
 structure valid {n} (bkts : bucket_array α β n) (sz : nat) : Prop :=
 (len : bkts.as_list.length = sz)
 (idx : ∀ {i} {a : Σ a, β a}, a ∈ array.read bkts i →
@@ -288,6 +307,8 @@ end
 end
 end hash_map
 
+/-- A hash map data structure, representing a finite key-value map
+  with key type `α` and value type `β` (which may depend on `α`). -/
 structure hash_map (α : Type u) [decidable_eq α] (β : α → Type v) :=
 (hash_fn : α → nat)
 (size : ℕ)
@@ -295,6 +316,7 @@ structure hash_map (α : Type u) [decidable_eq α] (β : α → Type v) :=
 (buckets : bucket_array α β nbuckets)
 (is_valid : hash_map.valid hash_fn buckets size)
 
+/-- Construct an empty hash map with buffer size `nbuckets` (default 8). -/
 def mk_hash_map {α : Type u} [decidable_eq α] {β : α → Type v} (hash_fn : α → nat) (nbuckets := 8) : hash_map α β :=
 let n := if nbuckets = 0 then 8 else nbuckets in
 let nz : n > 0 := by abstract { cases nbuckets, {simp, tactic.comp_val}, simp [if_pos, nat.succ_ne_zero], apply nat.zero_lt_succ} in
@@ -307,20 +329,25 @@ let nz : n > 0 := by abstract { cases nbuckets, {simp, tactic.comp_val}, simp [i
 namespace hash_map
 variables {α : Type u} {β : α → Type v} [decidable_eq α]
 
+/-- Return the value corresponding to a key, or `none` if not found -/
 def find (m : hash_map α β) (a : α) : option (β a) :=
 find_aux a (m.buckets.read m.hash_fn a)
 
+/-- Return `tt` if the key exists in the map -/
 def contains (m : hash_map α β) (a : α) : bool :=
 (m.find a).is_some
 
 instance : has_mem α (hash_map α β) := ⟨λa m, m.contains a⟩
 
+/-- Fold a function over the key-value pairs in the map -/
 def fold {δ : Type w} (m : hash_map α β) (d : δ) (f : δ → Π a, β a → δ) : δ :=
 m.buckets.foldl d f
 
+/-- The list of key-value pairs in the map -/
 def entries (m : hash_map α β) : list Σ a, β a :=
 m.buckets.as_list
 
+/-- The list of keys in the map -/
 def keys (m : hash_map α β) : list α :=
 m.entries.map sigma.fst
 
@@ -391,6 +418,7 @@ begin
     simpa [reinsert_aux, bucket_array.modify, array.read_write_of_ne _ _ h] using im }
 end
 
+/-- Insert a key-value pair into the map. (Modifies `m` in-place when applicable) -/
 def insert : Π (m : hash_map α β) (a : α) (b : β a), hash_map α β
 | ⟨hash_fn, size, n, buckets, v⟩ a b :=
 let bkt := buckets.read hash_fn a in
@@ -493,12 +521,15 @@ if h : a = a' then by rw dif_pos h; exact
   match a', h with ._, rfl := find_insert_eq m a b end
 else by rw dif_neg h; exact find_insert_ne m a a' b h
 
+/-- Insert a list of key-value pairs into the map. (Modifies `m` in-place when applicable) -/
 def insert_all (l : list (Σ a, β a)) (m : hash_map α β) : hash_map α β :=
 l.foldl (λ m ⟨a, b⟩, insert m a b) m
 
-def of_list (l : list (Σ a, β a)) (hash_fn): hash_map α β :=
+/-- Construct a hash map from a list of key-value pairs. -/
+def of_list (l : list (Σ a, β a)) (hash_fn) : hash_map α β :=
 insert_all l (mk_hash_map hash_fn (2 * l.length))
 
+/-- Remove a key from the map. (Modifies `m` in-place when applicable) -/
 def erase (m : hash_map α β) (a : α) : hash_map α β :=
 match m with ⟨hash_fn, size, n, buckets, v⟩ :=
   if hc : contains_aux a (buckets.read hash_fn a) then

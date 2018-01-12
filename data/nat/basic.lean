@@ -300,10 +300,14 @@ lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
 
 /- partial subtraction -/
 
+/-- Partial predecessor operation. Returns `ppred n = some m`
+  if `n = m + 1`, otherwise `none`. -/
 @[simp] def ppred : ℕ → option ℕ
 | 0     := none
 | (n+1) := some n
 
+/-- Partial subtraction operation. Returns `psub m n = some k`
+  if `m = n + k`, otherwise `none`. -/
 @[simp] def psub (m : ℕ) : ℕ → option ℕ
 | 0     := some m
 | (n+1) := psub n >>= ppred
@@ -359,10 +363,14 @@ by unfold bodd div2; cases bodd_div2 n; refl
 
 /- foldl & foldr -/
 
+/-- `foldl op n a` is the `n`-times iterate of `op` on `a`. -/
 @[simp] def foldl {α : Sort*} (op : α → α) : ℕ → α → α
  | 0        a := a
  | (succ k) a := foldl k (op a)
 
+/-- `foldr op n a` is the `n`-times iterate of `op` on `a`.
+  It is provably the same as `foldl` but has different
+  definitional equalities. -/
 @[simp] def foldr {α : Sort*} (op : α → α) (a : α) : ℕ → α
  | 0        := a
  | (succ k) := op (foldr k)
@@ -462,9 +470,10 @@ size_le.2 $ lt_of_le_of_lt h (lt_size_self _)
 
 /- factorial -/
 
+/-- `fact n` is the factorial of `n`. -/
 @[simp] def fact : nat → nat
 | 0        := 1
-| (succ n) := (succ n) * fact n
+| (succ n) := succ n * fact n
 
 @[simp] theorem fact_zero : fact 0 = 1 := rfl
 

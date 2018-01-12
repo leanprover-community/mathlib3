@@ -24,14 +24,15 @@ namespace prod
 @[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩
 
-def swap : (α×β) → (β×α) := λp, (p.2, p.1)
+/-- Swap the factors of a product. `swap (a, b) = (b, a)` -/
+def swap : α × β → β × α := λp, (p.2, p.1)
 
-@[simp] lemma swap_swap : ∀x:α×β, swap (swap x) = x
+@[simp] lemma swap_swap : ∀ x : α × β, swap (swap x) = x
 | ⟨a, b⟩ := rfl
 
-@[simp] lemma fst_swap {p : α×β} : (swap p).1 = p.2 := rfl
+@[simp] lemma fst_swap {p : α × β} : (swap p).1 = p.2 := rfl
 
-@[simp] lemma snd_swap {p : α×β} : (swap p).2 = p.1 := rfl
+@[simp] lemma snd_swap {p : α × β} : (swap p).2 = p.1 := rfl
 
 @[simp] lemma swap_prod_mk {a : α} {b : β} : swap (a, b) = (b, a) := rfl
 

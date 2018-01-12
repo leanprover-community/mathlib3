@@ -41,7 +41,7 @@ section
 variables [t : topological_space α]
 include t
 
-/- open -/
+/-- `is_open s` means that `s` is open in the ambient topological space on `α` -/
 def is_open (s : set α) : Prop := topological_space.is_open t s
 
 @[simp]
@@ -83,7 +83,7 @@ by_cases
 lemma is_open_and : is_open {a | p₁ a} → is_open {a | p₂ a} → is_open {a | p₁ a ∧ p₂ a} :=
 is_open_inter
 
-/- is_closed -/
+/-- A set is closed if its complement is open -/
 def is_closed (s : set α) : Prop := is_open (-s)
 
 @[simp] lemma is_closed_empty : is_closed (∅ : set α) := by simp [is_closed]
@@ -124,7 +124,7 @@ by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
 lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
 is_open_compl_iff.mpr
 
-/- interior -/
+/-- The interior of a set `s` is the largest open subset of `s`. -/
 def interior (s : set α) : set α := ⋃₀ {t | is_open t ∧ t ⊆ s}
 
 lemma mem_interior {s : set α} {x : α} :
@@ -189,7 +189,7 @@ subset.antisymm
 lemma is_open_iff_forall_mem_open : is_open s ↔ ∀ x ∈ s, ∃ t ⊆ s, is_open t ∧ x ∈ t :=
 by rw ← subset_interior_iff_open; simp [subset_def, mem_interior]
 
-/- closure -/
+/-- The closure of `s` is the smallest closed set containing `s`. -/
 def closure (s : set α) : set α := ⋂₀ {t | is_closed t ∧ s ⊆ t}
 
 @[simp] lemma is_closed_closure {s : set α} : is_closed (closure s) :=
@@ -259,7 +259,7 @@ calc interior (- s) = - - interior (- s) : by simp
   ... = - closure (- (- s)) : by rw [closure_compl]
   ... = - closure s : by simp
 
-/-- frontier -/
+/-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s
 
 lemma frontier_eq_closure_inter_closure {s : set α} :
@@ -269,7 +269,7 @@ by rw [closure_compl, frontier, sdiff_eq]
 /-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 
-lemma tendsto_nhds {m : β → α} {f : filter β} (h : ∀s, a ∈ s → is_open s → preimage m s ∈ f.sets) :
+lemma tendsto_nhds {m : β → α} {f : filter β} (h : ∀s, a ∈ s → is_open s → m ⁻¹' s ∈ f.sets) :
   tendsto m f (nhds a) :=
 show map m f ≤ (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s),
   from le_infi $ assume s, le_infi $ assume ⟨ha, hs⟩, le_principal_iff.mpr $ h s ha hs
@@ -375,6 +375,8 @@ is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
 
+/-- A family of sets in `set α` is locally finite if at every point `x:α`, 
+  there is a neighborhood of `x` which meets only finitely many sets in the family -/
 def locally_finite (f : β → set α) :=
 ∀x:α, ∃t∈(nhds x).sets, finite {i | f i ∩ t ≠ ∅ }
 
@@ -417,6 +419,8 @@ end locally_finite
 /- compact sets -/
 section compact
 
+/-- A set `s` is compact if every filter that contains `s` also contains every
+  neighborhood of some `a ∈ s`. -/
 def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ nhds a ≠ ⊥
 
 lemma compact_of_is_closed_subset {s t : set α}
@@ -561,6 +565,9 @@ end compact
 
 section separation
 
+/-- A T₁ space, also known as a Fréchet space, is a topological space
+  where for every pair `x ≠ y`, there is an open set containing `x` and not `y`.
+  Equivalently, every singleton set is closed. -/
 class t1_space (α : Type u) [topological_space α] :=
 (t1 : ∀x, is_closed ({x} : set α))
 
@@ -574,6 +581,9 @@ mem_nhds_sets is_closed_singleton $ by simp; exact h
   closure ({a} : set α) = {a} :=
 closure_eq_of_is_closed is_closed_singleton
 
+/-- A T₂ space, also known as a Hausdorff space, is one in which for every
+  `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
+  the most widely used of the separation axioms. -/
 class t2_space (α : Type u) [topological_space α] :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
@@ -618,6 +628,9 @@ end separation
 
 section regularity
 
+/-- A T₃ space, also known as a regular space (although this condition sometimes
+  omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
+  disjoint open sets containing `x` and `C` respectively. -/
 class regular_space (α : Type u) [topological_space α] extends t2_space α :=
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ nhds a ⊓ principal t = ⊥)
 
@@ -647,8 +660,9 @@ inductive generate_open (g : set (set α)) : set α → Prop
 | inter  : ∀s t, generate_open s → generate_open t → generate_open (s ∩ t)
 | sUnion : ∀k, (∀s∈k, generate_open s) → generate_open (⋃₀ k)
 
+/-- The smallest topological space containing the collection `g` of basic sets -/
 def generate_from (g : set (set α)) : topological_space α :=
-{ is_open       := generate_open g,
+{ is_open        := generate_open g,
   is_open_univ   := generate_open.univ g,
   is_open_inter  := generate_open.inter,
   is_open_sUnion := generate_open.sUnion  }
@@ -703,9 +717,12 @@ private lemma le_Inf {tt : set (topological_space α)} {t : topological_space α
   t ≤ Inf tt :=
 assume s hs t' ht', h t' ht' s hs
 
+/-- Given `f : α → β` and a topology on `β`, the induced topology on `α` is the collection of
+  sets that are preimages of some open set in `β`. This is the coarsest topology that
+  makes `f` continuous. -/
 def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : topological_space β) :
   topological_space α :=
-{ is_open        := λs, ∃s', t.is_open s' ∧ s = preimage f s',
+{ is_open        := λs, ∃s', t.is_open s' ∧ s = f ⁻¹' s',
   is_open_univ   := ⟨univ, by simp; exact t.is_open_univ⟩,
   is_open_inter  := assume s₁ s₂ ⟨s'₁, hs₁, eq₁⟩ ⟨s'₂, hs₂, eq₂⟩,
     ⟨s'₁ ∩ s'₂, by simp [eq₁, eq₂]; exact t.is_open_inter _ _ hs₁ hs₂⟩,
@@ -720,17 +737,20 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
   end }
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
-  @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = preimage f t) :=
+  @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
 ⟨assume ⟨t, ht, heq⟩, ⟨-t, by simp; assumption, by simp [preimage_compl, heq.symm]⟩,
   assume ⟨t, ht, heq⟩, ⟨-t, ht, by simp [preimage_compl, heq.symm]⟩⟩
 
+/-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
+  such that `s:set β` is open if the preimage of `s` is open. This is the coarsest topology that
+  makes `f` continuous. -/
 def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t : topological_space α) :
   topological_space β :=
-{ is_open        := λs, t.is_open (preimage f s),
+{ is_open        := λs, t.is_open (f ⁻¹' s),
   is_open_univ   := by simp; exact t.is_open_univ,
   is_open_inter  := assume s₁ s₂ h₁ h₂, by simp; exact t.is_open_inter _ _ h₁ h₂,
   is_open_sUnion := assume s h, by rw [preimage_sUnion]; exact (@is_open_Union _ _ t _ $ assume i,
-    show is_open (⋃ (H : i ∈ s), preimage f i), from
+    show is_open (⋃ (H : i ∈ s), f ⁻¹' i), from
       @is_open_Union _ _ t _ $ assume hi, h i hi) }
 
 instance : has_inf (topological_space α) := ⟨λ t₁ t₂,
@@ -875,6 +895,9 @@ concrete basis itself. This allows us to declare these type classes as `Prop` to
 variables {α : Type u} [t : topological_space α]
 include t
 
+/-- A topological basis is one that satisfies the necessary conditions so that
+  it suffices to take unions of the basis sets to get a topology (without taking
+  finite intersections as well). -/
 def is_topological_basis (s : set (set α)) : Prop :=
 (∀t₁∈s, ∀t₂∈s, ∀ x ∈ t₁ ∩ t₂, ∃ t₃∈s, x ∈ t₃ ∧ t₃ ⊆ t₁ ∩ t₂) ∧
 (⋃₀ s) = univ ∧
@@ -931,12 +954,16 @@ end
 
 variables (α)
 
+/-- A separable space is one with a countable dense subset. -/
 class separable_space : Prop :=
 (exists_countable_closure_eq_univ : ∃s:set α, countable s ∧ closure s = univ)
 
+/-- A first-countable space is one in which every point has a
+  countable neighborhood basis. -/
 class first_countable_topology : Prop :=
 (nhds_generated_countable : ∀a:α, ∃s:set (set α), countable s ∧ nhds a = (⨅t∈s, principal t))
 
+/-- A second-countable space is one with a countable basis. -/
 class second_countable_topology : Prop :=
 (is_open_generated_countable : ∃b:set (set α), countable b ∧ t = topological_space.generate_from b)
 
@@ -990,6 +1017,7 @@ section limit
 variables {α : Type u} [inhabited α] [topological_space α]
 open classical
 
+/-- If `f` is a filter, then `lim f` is a limit of the filter, if it exists. -/
 noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ nhds a
 
 lemma lim_spec {f : filter α} (h : ∃a, f ≤ nhds a) : f ≤ nhds (lim f) := epsilon_spec h

@@ -30,8 +30,10 @@ This is based on Mario Carneiro's infinite sum in Metamath.
 -/
 def is_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, s.sum f) at_top (nhds a)
 
+/-- `has_sum f` means that `f` has some (infinite) sum. Use `tsum` to get the value. -/
 def has_sum (f : β → α) : Prop := ∃a, is_sum f a
 
+/-- `tsum f` is the sum of `f` it exists, or 0 otherwise -/
 def tsum (f : β → α) := if h : has_sum f then classical.some h else 0
 
 notation `∑` binders `, ` r:(scoped f, tsum f) := r

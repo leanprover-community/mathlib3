@@ -64,6 +64,7 @@ equiv.of_bijective ⟨f.inj, hf⟩
 protected def of_not_nonempty {α : Sort u} {β : Sort v} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
 
+/-- Restrict the codomain of an embedding. -/
 def cod_restrict {α β} (p : set β) (f : α ↪ β) (H : ∀ a, f a ∈ p) : α ↪ p :=
 ⟨λ a, ⟨f a, H a⟩, λ a b h, f.inj (@congr_arg _ _ _ _ subtype.val h)⟩
 
@@ -128,6 +129,7 @@ end function
 
 namespace set
 
+/-- The injection map is an embedding between subsets. -/
 def embedding_of_subset {α} {s t : set α} (h : s ⊆ t) : s ↪ t :=
 ⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by congr; injection h⟩
 

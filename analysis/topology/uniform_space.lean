@@ -37,8 +37,10 @@ universes u
 section
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Sort*}
 
+/-- The identity relation, or the graph of the identity function -/
 def id_rel {α : Type*} := {p : α × α | p.1 = p.2}
 
+/-- The composition of relations -/
 def comp_rel {α : Type u} (r₁ r₂ : set (α×α)) := {p : α × α | ∃z:α, (p.1, z) ∈ r₁ ∧ (z, p.2) ∈ r₂}
 
 @[simp] theorem swap_id_rel : prod.swap '' id_rel = @id_rel α :=
@@ -65,6 +67,7 @@ structure uniform_space.core (α : Type u) :=
 (symm       : tendsto prod.swap uniformity uniformity)
 (comp       : uniformity.lift' (λs, comp_rel s s) ≤ uniformity)
 
+/-- A uniform space generates a topological space -/
 def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.core α) :
   topological_space α :=
 { is_open        := λs, ∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ u.uniformity.sets,
@@ -77,7 +80,13 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
 lemma uniform_space.core_eq : ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
 | ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := have u₁ = u₂, from h, by simp [*]
 
-/-- uniformity: usable typeclass incorporating a topology -/
+/-- A uniform space is a generalization of the "uniform" topological aspects of a
+  metric space. It consists of a filter on `α × α` called the "uniformity", which
+  satisfies properties analogous to the reflexivity, symmetry, and triangle properties
+  of a metric.
+  
+  A metric space has a natural uniformity, and a uniform space has a natural topology.
+  A topological group also has a natural uniformity, even when it is not metrizable. -/
 class uniform_space (α : Type u) extends topological_space α, uniform_space.core α :=
 (is_open_uniformity : ∀s, is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ uniformity.sets))
 
@@ -111,6 +120,8 @@ uniform_space_eq rfl
 section uniform_space
 variables [uniform_space α]
 
+/-- The uniformity is a filter on α × α (inferred from an ambient uniform space
+  structure on α). -/
 def uniformity : filter (α × α) := (@uniform_space.to_core α _).uniformity
 
 lemma is_open_uniformity {s : set α} :
@@ -473,8 +484,11 @@ have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
   from assume b' hb', by rw [closure_eq_nhds]; exact this b' hb',
 ⟨a, (nhds b).upwards_sets (mem_nhds_left htu) this⟩
 
-/- cauchy filters -/
-definition cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ uniformity
+/-- A filter `f` is Cauchy if for every entourage `r`, there exists an
+  `s ∈ f` such that `s × s ⊆ r`. This is a generalization of Cauchy
+  sequences, because if `a : ℕ → α` then the filter of sets containing
+  cofinitely many of the `a n` is Cauchy iff `a` is a Cauchy sequence. -/
+def cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ uniformity
 
 lemma cauchy_iff [uniform_space α] {f : filter α} :
   cauchy f ↔ (f ≠ ⊥ ∧ (∀s∈(@uniformity α _).sets, ∃t∈f.sets, set.prod t t ⊆ s)) :=
@@ -560,8 +574,11 @@ lemma cauchy_vmap [uniform_space β] {f : filter β} {m : α → β}
 
 /- separated uniformity -/
 
+/-- The separation relation is the intersection of all entourages.
+  Two points which are related by the separation relation are "indistinguishable"
+  according to the uniform structure. -/
 protected def separation_rel (α : Type u) [u : uniform_space α] :=
-(⋂₀ (@uniformity α _).sets)
+⋂₀ (@uniformity α _).sets
 
 lemma separated_equiv : equivalence (λx y, (x, y) ∈ separation_rel α) :=
 ⟨assume x, assume s, refl_mem_uniformity,
@@ -629,7 +646,8 @@ instance separated_regular [separated α] : regular_space α :=
     ⟨- closure e, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
   ..separated_t2 }
 
-/- totally bounded -/
+/-- A set `s` is totally bounded if for every entourage `d` there is a finite
+  set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
 def totally_bounded (s : set α) : Prop :=
 ∀d ∈ (@uniformity α _).sets, ∃t : set α, finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d})
 
@@ -739,7 +757,8 @@ begin
   exact assume f hf hfs, hc (ht _ hf hfs) hfs
 end
 
-/- complete space -/
+/-- A complete space is defined here using uniformities. A uniform space
+  is complete if every Cauchy filter converges. -/
 class complete_space (α : Type u) [uniform_space α] : Prop :=
 (complete : ∀{f:filter α}, cauchy f → ∃x, f ≤ nhds x)
 
@@ -1079,6 +1098,7 @@ uniform_space.of_core
   symm        := symm_gen,
   comp        := comp_gen }
 
+/-- Embedding of `α` into its completion -/
 def pure_cauchy (a : α) : Cauchy α :=
 ⟨pure a, cauchy_pure⟩
 
@@ -1231,6 +1251,8 @@ calc (u ⊔ v).uniformity = ((⨆i (h : i = u ∨ i = v), i) : uniform_space α)
 
 instance inhabited_uniform_space : inhabited (uniform_space α) := ⟨⊤⟩
 
+/-- Given `f : α → β` and a uniformity `u` on `β`, the inverse image of `u` under `f`
+  is the inverse image in the filter sense of the induced function `α × α → β × β`. -/
 def uniform_space.vmap (f : α → β) (u : uniform_space β) : uniform_space α :=
 { uniformity := u.uniformity.vmap (λp:α×α, (f p.1, f p.2)),
   to_topological_space := u.to_topological_space.induced f,

@@ -31,8 +31,8 @@ def parallel.aux1 : list (computation α) × wseq (computation α) →
   | some (some c, S') := (c::l', S')
   end) (parallel.aux2 l)
 
--- parallel computation of an infinite stream of computations,
--- taking the first result
+/-- Parallel computation of an infinite stream of computations,
+  taking the first result -/
 def parallel (S : wseq (computation α)) : computation α :=
 corec parallel.aux1 ([], S)
 

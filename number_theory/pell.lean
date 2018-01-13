@@ -270,6 +270,9 @@ section
         absurd this (not_le_of_gt $ nat.succ_le_succ $ nat.le_add_right _ _))) (nonnegg_pos_neg.1 xy) (nonnegg_neg_pos.1 zw),
   show nonneg ⟨_, _⟩, by rw [neg_add_eq_sub]; rwa [int.sub_nat_nat_eq_coe,int.sub_nat_nat_eq_coe] at this
 
+  -- TODO We temporarily disable smart_unfolding, to get mathlib working again. This code should be updated.
+  set_option type_context.smart_unfolding false
+
   theorem nonneg_add {a b : ℤ√d} (ha : nonneg a) (hb : nonneg b) : nonneg (a + b) :=
   begin
     rcases nonneg_cases ha with ⟨x, y, rfl|rfl|rfl⟩;
@@ -292,6 +295,8 @@ section
     { rw [add_comm, add_comm ↑y], exact nonneg_add_lem hb ha },
     { simpa using nonnegg_neg_pos.2 (sq_le_add (nonnegg_neg_pos.1 ha) (nonnegg_neg_pos.1 hb)) },
   end
+
+  set_option type_context.smart_unfolding true
 
   theorem le_refl (a : ℤ√d) : a ≤ a := show nonneg (a - a), by simp
 
@@ -362,6 +367,9 @@ section
     nonnegg_neg_pos.2 (sq_le_smul n $ nonnegg_neg_pos.1 ha)
   end
 
+  -- TODO We temporarily disable smart_unfolding, to get mathlib working again. This code should be updated.
+  set_option type_context.smart_unfolding false
+  
   theorem nonneg_muld {a : ℤ√d} (ha : nonneg a) : nonneg (sqrtd * a) :=
   by refine match a, nonneg_cases ha, ha with
   | ._, ⟨x, y, or.inl rfl⟩,          ha := trivial
@@ -372,6 +380,8 @@ section
     simpa [sq_le, mul_comm, mul_left_comm] using
       nat.mul_le_mul_left d (nonnegg_neg_pos.1 ha)
   end
+
+  set_option type_context.smart_unfolding true
 
   theorem nonneg_mul_lem {x y : ℕ} {a : ℤ√d} (ha : nonneg a) : nonneg (⟨x, y⟩ * a) :=
   have (⟨x, y⟩ * a : ℤ√d) = x * a + sqrtd * (y * a), by rw [decompose, right_distrib, mul_assoc]; refl,

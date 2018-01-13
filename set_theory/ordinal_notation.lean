@@ -80,12 +80,17 @@ by cases n; simp
 @[simp] theorem repr_one : repr 1 = 1 :=
 by simpa using repr_of_nat 1
 
+-- TODO We temporarily disable smart_unfolding, to get mathlib working again. This code should be updated.
+set_option type_context.smart_unfolding false
+
 theorem omega_le_oadd (e n a) : ω ^ repr e ≤ repr (oadd e n a) :=
 begin
   unfold repr,
   refine le_trans _ (le_add_right _ _),
   simpa using (mul_le_mul_iff_left $ power_pos (repr e) omega_pos).2 (nat_cast_le.2 n.2)
 end
+
+set_option type_context.smart_unfolding true  
 
 theorem oadd_pos (e n a) : 0 < oadd e n a :=
 @lt_of_lt_of_le _ _ _ _ _ (power_pos _ omega_pos)
@@ -225,6 +230,9 @@ begin
        ordinal.succ_le, nat_cast_lt]
 end
 
+-- TODO We temporarily disable smart_unfolding, to get mathlib working again. This code should be updated.
+set_option type_context.smart_unfolding false
+
 theorem oadd_lt_oadd_3 {e n a₁ a₂}
   (h₁ : NF (oadd e n a₁)) (h₂ : NF (oadd e n a₂))
   (h : a₁ < a₂) : oadd e n a₁ < oadd e n a₂ :=
@@ -232,6 +240,8 @@ begin
   rw lt_def, unfold repr,
   exact (ordinal.add_lt_add_iff_left _).2 h
 end
+
+set_option type_context.smart_unfolding true
 
 theorem cmp_compares : ∀ (a b : onote) [NF a] [NF b], (cmp a b).compares a b
 | 0 0 h₁ h₂ := rfl
@@ -357,6 +367,9 @@ instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
   (λ h, ⟨b₂, add_NF_below (h₁.mono h) h₂⟩)
   (λ h, ⟨b₁, add_NF_below h₁ (h₂.mono h)⟩)
 
+-- TODO We temporarily disable smart_unfolding, to get mathlib working again. This code should be updated.
+set_option type_context.smart_unfolding false
+
 @[simp] theorem repr_add : ∀ o₁ o₂ [NF o₁] [NF o₂], repr (o₁ + o₂) = repr o₁ + repr o₂
 | 0            o h₁ h₂ := by simp
 | (oadd e n a) o h₁ h₂ := begin
@@ -376,6 +389,8 @@ instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
   { change e = e' at ee, subst e',
     rw [← add_assoc, ← ordinal.mul_add, ← nat.cast_add] }
 end
+
+set_option type_context.smart_unfolding true
 
 theorem sub_NF_below : ∀ {o₁ o₂ b}, NF_below o₁ b → NF o₂ → NF_below (o₁ - o₂) b
 | 0            o b h₁ h₂ := by cases o; exact NF_below.zero
@@ -644,6 +659,9 @@ theorem scale_power_aux (e a0 a : onote) [NF e] [NF a0] [NF a] :
 | (k+1) m := by by_cases m = 0; simp [h, power_aux,
   ordinal.mul_add, power_add, mul_assoc, scale_power_aux]
 
+-- TODO We temporarily disable smart_unfolding, to get mathlib working again. This code should be updated.
+set_option type_context.smart_unfolding false
+
 theorem repr_power_aux₁ {e a} [Ne : NF e] [Na : NF a] {a' : ordinal}
   (e0 : repr e ≠ 0) (h : a' < ω ^ repr e) (aa : repr a = a') (n : ℕ+) :
   (ω ^ repr e * (n:ℕ) + a') ^ ω = (ω ^ repr e) ^ ω :=
@@ -732,6 +750,8 @@ begin
       apply mul_le_mul_left,
       simpa [α', repr] using omega_le_oadd a0 n a' } }
 end
+
+set_option type_context.smart_unfolding true
 
 theorem repr_power (o₁ o₂) [NF o₁] [NF o₂] : repr (power o₁ o₂) = (repr o₁).power (repr o₂) :=
 begin

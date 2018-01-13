@@ -42,8 +42,8 @@ theorem pow_succ (a : α) (n : ℕ) : a^(n+1) = a * a^n := rfl
 theorem smul_succ (a : β) (n : ℕ) : a•(n+1) = a + a • n := rfl
 attribute [to_additive smul_succ] pow_succ
 
-theorem pow_one (a : α) : a^1 = a := mul_one _
-theorem add_monoid.smul_one (a : β) : a•1 = a := add_zero _
+@[simp] theorem pow_one (a : α) : a^1 = a := mul_one _
+@[simp] theorem add_monoid.smul_one (a : β) : a•1 = a := add_zero _
 attribute [to_additive add_monoid.smul_one] pow_one
 
 @[to_additive smul_add_comm']

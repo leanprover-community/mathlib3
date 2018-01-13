@@ -6,40 +6,20 @@ Authors: Simon Hudon, Mario Carneiro
 Evaluating arithmetic expressions including *, +, -, ^, ≤
 -/
 
-import algebra.group_power data.rat tactic.interactive data.hash_map
+import algebra.group_power data.rat tactic.interactive
 
 universes u v w
 open tactic
 
 namespace expr
 
-protected meta def to_pos_nat : expr → option ℕ
-| `(has_one.one _) := some 1
-| `(bit0 %%e) := bit0 <$> e.to_pos_nat
-| `(bit1 %%e) := bit1 <$> e.to_pos_nat
-| _           := none
-
-protected meta def to_nat : expr → option ℕ
-| `(has_zero.zero _) := some 0
-| e                  := e.to_pos_nat
-
 protected meta def to_pos_rat : expr → option ℚ
 | `(%%e₁ / %%e₂) := do m ← e₁.to_nat, n ← e₂.to_nat, some (rat.mk m n)
 | e              := do n ← e.to_nat, return (rat.of_int n)
 
-protected meta def to_int : expr → option ℤ
-| `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
-| e                  := do n ← e.to_nat, return n
-
 protected meta def to_rat : expr → option ℚ
 | `(has_neg.neg %%e) := do q ← e.to_pos_rat, some (-q)
 | e                  := e.to_pos_rat
-
-protected meta def of_nat (α : expr) : ℕ → tactic expr :=
-nat.binary_rec
-  (tactic.mk_mapp ``has_zero.zero [some α, none])
-  (λ b n tac, if n = 0 then mk_mapp ``has_one.one [some α, none] else
-    do e ← tac, tactic.mk_app (cond b ``bit1 ``bit0) [e])
 
 protected meta def of_rat (α : expr) : ℚ → tactic expr
 | ⟨(n:ℕ), d, h, c⟩   := do
@@ -53,26 +33,8 @@ protected meta def of_rat (α : expr) : ℚ → tactic expr
     e₂ ← expr.of_nat α d,
     tactic.mk_app ``has_div.div [e₁, e₂]),
   tactic.mk_app ``has_neg.neg [e]
+
 end expr
-
-namespace tactic
-
-meta def replace_at (tac : expr → tactic (expr × expr)) (hs : list expr) (tgt : bool) : tactic bool :=
-do to_remove ← hs.mfilter $ λ h, do {
-         h_type ← infer_type h,
-         (do (new_h_type, pr) ← tac h_type,
-             assert h.local_pp_name new_h_type,
-             mk_eq_mp pr h >>= tactic.exact >> return tt)
-         <|>
-         (return ff) },
-   goal_simplified ← if tgt then (do
-     (new_t, pr) ← target >>= tac,
-     replace_target new_t pr,
-     return tt) <|> return ff else return ff,
-   to_remove.mmap' (λ h, try (clear h)),
-   return (¬ to_remove.empty ∨ goal_simplified)
-
-end tactic
 
 namespace norm_num
 variable {α : Type u}
@@ -108,38 +70,6 @@ by rw [← h, nat.add_mul_mod_self_right, nat.mod_eq_of_lt h₂]
 
 lemma int_mod_helper (a b q r : ℤ) (h : r + q * b = a) (h₁ : 0 ≤ r) (h₂ : r < b) : a % b = r :=
 by rw [← h, int.add_mul_mod_self, int.mod_eq_of_lt h₁ h₂]
-
-meta structure instance_cache :=
-(α : expr)
-(univ : level)
-(inst : hash_map name (λ_, expr))
-
-meta def mk_instance_cache (α : expr) : tactic instance_cache :=
-do u ← mk_meta_univ,
-   infer_type α >>= unify (expr.sort (level.succ u)),
-   u ← get_univ_assignment u,
-   return ⟨α, u, mk_hash_map (λ n, (expr.const n []).hash)⟩
-
-namespace instance_cache
-meta def get (c : instance_cache) (n : name) : tactic (instance_cache × expr) :=
-match c.inst.find n with
-| some i := return (c, i)
-| none := do e ← mk_app n [c.α] >>= mk_instance,
-  return (⟨c.α, c.univ, c.inst.insert n e⟩, e)
-end
-open expr
-meta def append_typeclasses : expr → instance_cache → list expr →
-  tactic (instance_cache × list expr)
-| (pi _ binder_info.inst_implicit (app (const n _) (var _)) body) c l :=
-  do (c, p) ← c.get n, return (c, p :: l)
-| _ c l := return (c, l)
-
-meta def mk_app (c : instance_cache) (n : name) (l : list expr) : tactic (instance_cache × expr) :=
-do d ← get_decl n,
-   (c, l) ← append_typeclasses d.type.binding_body c l,
-   return (c, (expr.const n [c.univ]).mk_app (c.α :: l))
-
-end instance_cache
 
 meta def eval_pow (simp : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
 | `(monoid.pow %%e₁ 0) := do

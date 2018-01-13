@@ -3,6 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
+import tactic.basic
 
 /-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
   and the VM representation of `ℕ+` is the same as `ℕ` because the proof
@@ -12,13 +13,11 @@ notation `ℕ+` := pnat
 
 instance coe_pnat_nat : has_coe ℕ+ ℕ := ⟨subtype.val⟩
 
-meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
-
 namespace nat
 
 /-- Convert a natural number to a positive natural number. The
   positivity assumption is inferred by `dec_trivial`. -/
-def to_pnat (n : ℕ) (h : n > 0 . exact_dec_trivial) : ℕ+ := ⟨n, h⟩
+def to_pnat (n : ℕ) (h : n > 0 . tactic.exact_dec_trivial) : ℕ+ := ⟨n, h⟩
 
 /-- Write a successor as an element of `ℕ+`. -/
 def succ_pnat (n : ℕ) : ℕ+ := ⟨succ n, succ_pos n⟩

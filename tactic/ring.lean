@@ -76,7 +76,7 @@ do d ← destruct a, match d with
   p ← mk_eq_refl e, return (e, p)
 | destruct_ty.xadd a₁ x₁ n₁ _ b₁ :=
   if x₁ = x ∧ b₁.to_nat = some 0 then do
-    (n', h) ← mk_app ``has_mul.mul [n₁, n] >>= norm_num,
+    (n', h) ← mk_app ``has_add.add [n₁, n] >>= norm_num,
     return (c.cs_app ``horner [a₁, x, n', b],
       c.cs_app ``horner_horner [a₁, x, n₁, n, b, n', h])
   else do
@@ -123,7 +123,7 @@ match d₁, d₂ with
   if k = 0 then do
     p ← mk_app ``add_zero [e₁],
     return (e₁, p) else do
-  (b', h) ← eval_add e₂ b,
+  (b', h) ← eval_add b e₂,
   return (c.cs_app ``horner [a, x, n, b'],
     c.cs_app ``horner_add_const [a, x, n, b, e₂, b', h])
 | destruct_ty.xadd a₁ x₁ en₁ n₁ b₁, destruct_ty.xadd a₂ x₂ en₂ n₂ b₂ :=
@@ -136,13 +136,13 @@ match d₁, d₂ with
     return (c.cs_app ``horner [a₂, x₂, en₂, b'],
       c.cs_app ``const_add_horner [e₁, a₂, x₂, en₂, b₂, b', h])
   else if n₁ < n₂ then do
-    k ← expr.of_nat c.α (n₂ - n₁),
+    k ← expr.of_nat (expr.const `nat []) (n₂ - n₁),
     (_, h₁) ← mk_app ``has_add.add [en₁, k] >>= norm_num,
     (b', h₂) ← eval_add b₁ b₂,
     return (c.cs_app ``horner [c.cs_app ``horner [a₂, x₁, k, a₁], x₁, en₁, b'],
       c.cs_app ``horner_add_horner_lt [a₁, x₁, en₁, b₁, a₂, en₂, b₂, k, b', h₁, h₂])
   else if n₁ ≠ n₂ then do
-    k ← expr.of_nat c.α (n₁ - n₂),
+    k ← expr.of_nat (expr.const `nat []) (n₁ - n₂),
     (_, h₁) ← mk_app ``has_add.add [en₂, k] >>= norm_num,
     (b', h₂) ← eval_add b₁ b₂,
     return (c.cs_app ``horner [c.cs_app ``horner [a₁, x₁, k, a₂], x₁, en₂, b'],

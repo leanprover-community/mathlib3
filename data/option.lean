@@ -14,11 +14,7 @@ instance has_mem : has_mem α (option α) := ⟨λ a b, b = some a⟩
 @[simp] lemma mem_def {a : α} {b : option α} : a ∈ b ↔ b = some a :=
 iff.rfl
 
-@[simp] lemma some_inj {a b : α} : some a = some b ↔ a = b :=
-⟨by intro h; injection h, congr_arg some⟩
-
-@[simp] lemma none_ne_some (a : α) : none ≠ some a
-| h := option.no_confusion h
+lemma some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
 @[simp] lemma none_bind (f : α → option β) : none >>= f = none := rfl
 

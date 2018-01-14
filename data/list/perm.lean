@@ -466,7 +466,7 @@ theorem perm_iff_count {l₁ l₂ : list α} : l₁ ~ l₂ ↔ ∀ a, count a l�
     refine trans (skip a $ IH $ λ b, _) (perm_erase this).symm,
     specialize H b,
     rw perm_count (perm_erase this) at H,
-    by_cases b = a; simp [h] at H ⊢; [injection H, assumption] }
+    by_cases b = a; simp [h] at H ⊢; assumption }
 end⟩
 
 instance decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂)
@@ -606,7 +606,7 @@ begin
       { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
     { rcases h with ⟨_ | ⟨y', l₁⟩, l₂, l0, ye, rfl⟩,
       { simp [ye] },
-      { simp at ye, injection ye, substs y' ys,
+      { simp at ye, rcases ye with ⟨rfl, rfl⟩,
         exact or.inr ⟨l₁, l₂, l0, by simp⟩ } } }
 end
 

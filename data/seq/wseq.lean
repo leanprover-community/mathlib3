@@ -664,21 +664,17 @@ begin
   revert s, apply computation.mem_rec_on h _ (λ c IH, _); intro s;
   apply s.cases_on _ (λ x s, _) (λ s, _); intros m;
   have := congr_arg computation.destruct m; simp at this;
-  injections with i1 i2 i3 i4 i5,
-  { rw [i4, i5],
+  cases this with i1 i2,
+  { rw [i1, i2],
     cases s' with f al,
     unfold cons has_mem.mem wseq.mem seq.mem seq.cons, simp,
-    have h_a_eq_a' : a = a' ↔ some (some a) = some (some a'),
-      { constructor,
-        { intro h, rw h },
-        { intro h, injection h with h', injection h' } },
+    have h_a_eq_a' : a = a' ↔ some (some a) = some (some a'), {simp},
     rw [h_a_eq_a'],
     refine ⟨stream.eq_or_mem_of_mem_cons, λo, _⟩,
     { cases o with e m,
       { rw e, apply stream.mem_cons },
-      { exact stream.mem_cons_of_mem _ m } }
-  },
-  { simp, exact IH i2 }
+      { exact stream.mem_cons_of_mem _ m } } },
+  { simp, exact IH this }
 end
 
 @[simp] theorem mem_cons_iff (s : wseq α) (b) {a} : a ∈ cons b s ↔ a = b ∨ a ∈ s :=

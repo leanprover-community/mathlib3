@@ -126,7 +126,7 @@ begin
 end,
 begin
   intros, simp [mk_pnat], constructor; intro h,
-  { injection h with ha hb,
+  { cases h with ha hb,
     have ha, {
       have dv := @gcd_abs_dvd_left,
       have := int.eq_mul_of_div_eq_right dv ha,
@@ -143,44 +143,42 @@ begin
     apply eq_of_mul_eq_mul_right m0,
     simpa [mul_comm, mul_left_comm] using
       congr (congr_arg (*) ha.symm) (congr_arg coe hb) },
-  { have : ∀ a c, a * d = c * b →
+  { suffices : ∀ a c, a * d = c * b →
       a / a.gcd b = c / c.gcd d ∧ b / a.gcd b = d / c.gcd d,
-    { intros a c h,
-      have bd : b / a.gcd b = d / c.gcd d,
-      { suffices : ∀ {a c : ℕ} (b>0) (d>0),
-          a * d = c * b → b / a.gcd b ≤ d / c.gcd d,
-        { exact le_antisymm (this _ hb _ hd h) (this _ hd _ hb h.symm) },
-        intros a c b hb d hd h,
-        have gb0 := nat.gcd_pos_of_pos_right a hb,
-        have gd0 := nat.gcd_pos_of_pos_right c hd,
-        apply nat.le_of_dvd,
-        apply (nat.le_div_iff_mul_le _ _ gd0).2,
-        simp, apply nat.le_of_dvd hd (nat.gcd_dvd_right _ _),
-        apply (nat.coprime_div_gcd_div_gcd gb0).symm.dvd_of_dvd_mul_left,
-        refine ⟨c / c.gcd d, _⟩,
-        rw [← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _),
-            ← nat.mul_div_assoc _ (nat.gcd_dvd_right _ _)],
-        apply congr_arg (/ c.gcd d),
-        rw [mul_comm, ← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _),
-            mul_comm, h, nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), mul_comm] },
-      refine ⟨_, bd⟩,
-      apply nat.eq_of_mul_eq_mul_left hb,
-      rw [← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _), mul_comm,
-          nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), bd,
-          ← nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), h, mul_comm,
-          nat.mul_div_assoc _ (nat.gcd_dvd_left _ _)] },
-    cases this a.nat_abs c.nat_abs
-      (by simpa [int.nat_abs_mul] using congr_arg int.nat_abs h) with h₁ h₂,
-    tactic.congr_core,
-    { have hs := congr_arg int.sign h,
+    { cases this a.nat_abs c.nat_abs
+        (by simpa [int.nat_abs_mul] using congr_arg int.nat_abs h) with h₁ h₂,
+      have hs := congr_arg int.sign h,
       simp [int.sign_eq_one_of_pos (int.coe_nat_lt.2 hb),
             int.sign_eq_one_of_pos (int.coe_nat_lt.2 hd)] at hs,
       conv in a { rw ← int.sign_mul_nat_abs a },
       conv in c { rw ← int.sign_mul_nat_abs c },
       rw [int.mul_div_assoc, int.mul_div_assoc],
-      exact congr (congr_arg (*) hs) (congr_arg coe h₁),
+      exact ⟨congr (congr_arg (*) hs) (congr_arg coe h₁), h₂⟩,
       all_goals { exact int.coe_nat_dvd.2 (nat.gcd_dvd_left _ _) } },
-    { assumption } }
+    intros a c h,
+    suffices bd : b / a.gcd b = d / c.gcd d,
+    { refine ⟨_, bd⟩,
+      apply nat.eq_of_mul_eq_mul_left hb,
+      rw [← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _), mul_comm,
+          nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), bd,
+          ← nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), h, mul_comm,
+          nat.mul_div_assoc _ (nat.gcd_dvd_left _ _)] },
+    suffices : ∀ {a c : ℕ} (b>0) (d>0),
+      a * d = c * b → b / a.gcd b ≤ d / c.gcd d,
+    { exact le_antisymm (this _ hb _ hd h) (this _ hd _ hb h.symm) },
+    intros a c b hb d hd h,
+    have gb0 := nat.gcd_pos_of_pos_right a hb,
+    have gd0 := nat.gcd_pos_of_pos_right c hd,
+    apply nat.le_of_dvd,
+    apply (nat.le_div_iff_mul_le _ _ gd0).2,
+    simp, apply nat.le_of_dvd hd (nat.gcd_dvd_right _ _),
+    apply (nat.coprime_div_gcd_div_gcd gb0).symm.dvd_of_dvd_mul_left,
+    refine ⟨c / c.gcd d, _⟩,
+    rw [← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _),
+        ← nat.mul_div_assoc _ (nat.gcd_dvd_right _ _)],
+    apply congr_arg (/ c.gcd d),
+    rw [mul_comm, ← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _),
+        mul_comm, h, nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), mul_comm] }
 end
 
 @[simp] theorem div_mk_div_cancel_left {a b c : ℤ} (c0 : c ≠ 0) :
@@ -191,11 +189,8 @@ begin
 end
 
 theorem num_denom : ∀ a : ℚ, a = a.num /. a.denom
-| ⟨n, d, h, (c:_=1)⟩ := begin
-  change _ = mk_nat n d,
-  simp [mk_nat, ne_of_gt h, mk_pnat],
-  tactic.congr_core; `[rw c, simp [int.coe_nat_one]]
-end
+| ⟨n, d, h, (c:_=1)⟩ := show _ = mk_nat n d,
+  by simp [mk_nat, ne_of_gt h, mk_pnat, c]
 
 theorem num_denom' (n d h c) : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom _
 

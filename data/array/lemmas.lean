@@ -131,11 +131,11 @@ lemma push_back_rev_list_core (a : array n α) (v : α) :
     d_array.iterate_aux a (λ_, list.cons) i h' []
 | 0 h h' := rfl
 | (i+1) h h' := begin
-  simp [d_array.iterate_aux]; rw push_back_rev_list_core,
-  apply congr_fun, apply congr_arg,
+  simp [d_array.iterate_aux],
+  refine ⟨_, push_back_rev_list_core _ _ _⟩,
   dsimp [read, d_array.read, push_back],
   rw [dif_neg], refl,
-  exact ne_of_lt h'
+  exact ne_of_lt h',
 end
 
 @[simp] theorem push_back_rev_list (a : array n α) (v : α) :

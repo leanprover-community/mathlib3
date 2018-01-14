@@ -126,7 +126,7 @@ begin
 end,
 begin
   intros, simp [mk_pnat], constructor; intro h,
-  { injection h with ha hb,
+  { induction h with ha hb,
     have ha, {
       have dv := @gcd_abs_dvd_left,
       have := int.eq_mul_of_div_eq_right dv ha,
@@ -171,16 +171,17 @@ begin
           nat.mul_div_assoc _ (nat.gcd_dvd_left _ _)] },
     cases this a.nat_abs c.nat_abs
       (by simpa [int.nat_abs_mul] using congr_arg int.nat_abs h) with h₁ h₂,
-    tactic.congr_core,
     { have hs := congr_arg int.sign h,
       simp [int.sign_eq_one_of_pos (int.coe_nat_lt.2 hb),
             int.sign_eq_one_of_pos (int.coe_nat_lt.2 hd)] at hs,
       conv in a { rw ← int.sign_mul_nat_abs a },
       conv in c { rw ← int.sign_mul_nat_abs c },
       rw [int.mul_div_assoc, int.mul_div_assoc],
+      split,
       exact congr (congr_arg (*) hs) (congr_arg coe h₁),
+      assumption,
       all_goals { exact int.coe_nat_dvd.2 (nat.gcd_dvd_left _ _) } },
-    { assumption } }
+    }
 end
 
 @[simp] theorem div_mk_div_cancel_left {a b c : ℤ} (c0 : c ≠ 0) :
@@ -194,7 +195,7 @@ theorem num_denom : ∀ a : ℚ, a = a.num /. a.denom
 | ⟨n, d, h, (c:_=1)⟩ := begin
   change _ = mk_nat n d,
   simp [mk_nat, ne_of_gt h, mk_pnat],
-  tactic.congr_core; `[rw c, simp [int.coe_nat_one]]
+  `[rw c, simp [int.coe_nat_one]]
 end
 
 theorem num_denom' (n d h c) : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom _

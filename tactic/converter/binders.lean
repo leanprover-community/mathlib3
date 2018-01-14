@@ -47,7 +47,7 @@ meta def congr_binder (congr : name) (cs : expr → old_conv unit) : old_conv un
 
 meta def funext' : (expr → old_conv unit) → old_conv unit := congr_binder ``_root_.funext
 
-meta def propext {α : Type} (c : old_conv α) : old_conv α := λr lhs, (do
+meta def propext' {α : Type} (c : old_conv α) : old_conv α := λr lhs, (do
   guard (r = `iff),
   c r lhs)
 <|> (do
@@ -151,7 +151,7 @@ theorem {u v} exists_elim_eq_right {α : Sort u} (a : α) (p : Π(a':α), a = a'
 
 meta def exists_eq_elim : binder_eq_elim :=
 { match_binder  := λe, (do `(@Exists %%β %%f) ← return e, return (β, f)),
-  adapt_rel     := propext,
+  adapt_rel     := propext',
   apply_comm    := applyc ``exists_comm,
   apply_congr   := congr_binder ``exists_congr,
   apply_elim_eq := apply' ``exists_elim_eq_left <|> apply' ``exists_elim_eq_right }
@@ -170,7 +170,7 @@ theorem {u v} forall_elim_eq_right {α : Sort u} (a : α) (p : Π(a':α), a = a'
 
 meta def forall_eq_elim : binder_eq_elim :=
 { match_binder  := λe, (do (expr.pi n bi d bd) ← return e, return (d, expr.lam n bi d bd)),
-  adapt_rel     := propext,
+  adapt_rel     := propext',
   apply_comm    := applyc ``forall_comm,
   apply_congr   := congr_binder ``forall_congr,
   apply_elim_eq := apply' ``forall_elim_eq_left <|> apply' ``forall_elim_eq_right }

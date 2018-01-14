@@ -1109,8 +1109,7 @@ if_neg h
   find p l = none ↔ ∀ x ∈ l, ¬ p x :=
 begin
   induction l with a l IH, {simp},
-  by_cases p a; simp [h, IH],
-  intro, contradiction
+  by_cases p a; simp [h, IH]
 end
 
 @[simp] theorem find_some {p : α → Prop} [h : decidable_pred p] {l : list α} {a : α}

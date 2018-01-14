@@ -110,7 +110,7 @@ theorem eq_of_cmp_eq : ∀ {o₁ o₂}, cmp o₁ o₂ = ordering.eq → o₁ = o
   revert h, cases h₂ : _root_.cmp (n₁:ℕ) n₂; intro h; try {cases h},
   have := eq_of_cmp_eq h, subst a₂,
   rw [_root_.cmp, cmp_using_eq_eq] at h₂,
-  have := subtype.eq (eq_of_incomp h₂), subst n₂
+  have := subtype.eq (eq_of_incomp h₂), subst n₂, simp
 end
 
 theorem zero_lt_one : (0 : onote) < 1 :=

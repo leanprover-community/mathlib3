@@ -144,5 +144,21 @@ meta def congr_n : nat → tactic unit
 | (n+1) := focus1 (try assumption >> congr_core >>
   all_goals (try reflexivity >> try (congr_n n)))
 
+/-- Acts like `have`, but removes a hypothesis with the same name as
+  this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
+  then after `replace h := f h` the goal will be `h : q ⊢ goal`,
+  where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
+  This can be used to simulate the `specialize` and `apply at` tactics
+  of Coq. -/
+meta def replace (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
+do let h := h.get_or_else `this,
+  old ← try_core (get_local h),
+  «have» h q₁ q₂,
+  match old, q₂ with
+  | none,   _      := skip
+  | some o, some _ := tactic.clear o
+  | some o, none   := swap >> tactic.clear o >> swap
+  end
+
 end interactive
 end tactic

@@ -37,22 +37,23 @@ meta def cache.cs_app (c : cache) (n : name) : list expr → expr :=
 meta inductive destruct_ty : Type
 | const : ℤ → destruct_ty
 | xadd : expr → expr → expr → ℕ → expr → destruct_ty
+open destruct_ty
 
 meta def destruct (e : expr) : option destruct_ty :=
 match expr.to_int e with
-| some n := some $ destruct_ty.const n
+| some n := some $ const n
 | none := match e with
   | `(horner %%a %%x %%n %%b) :=
     do n' ← expr.to_nat n,
-       some (destruct_ty.xadd a x n n' b)
+       some (xadd a x n n' b)
   | _ := none
   end
 end
 
 meta def normal_form_to_string : expr → string
 | e := match destruct e with
-  | some (destruct_ty.const n) := to_string n
-  | some (destruct_ty.xadd a x _ n b) :=
+  | some (const n) := to_string n
+  | some (xadd a x _ n b) :=
     "(" ++ normal_form_to_string a ++ ") * (" ++ to_string x ++ ")^"
         ++ to_string n ++ " + " ++ normal_form_to_string b
   | none := to_string e
@@ -67,21 +68,27 @@ theorem horner_horner {α} [comm_semiring α] (a₁ x n₁ n₂ b n')
   @horner α _ (horner a₁ x n₁ 0) x n₂ b = horner a₁ x n' b :=
 by simp [h.symm, horner, pow_add, mul_assoc]
 
+meta def refl_conv (e : expr) : tactic (expr × expr) :=
+do p ← mk_eq_refl e, return (e, p)
+
+meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
+  tactic (expr × expr) :=
+(do (e₁, p₁) ← t₁ e,
+  (do (e₂, p₂) ← t₂ e₁,
+    p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
+  return (e₁, p₁)) <|> t₂ e
+
 meta def eval_horner (c : cache) (a x n b : expr) : tactic (expr × expr) :=
 do d ← destruct a, match d with
-| destruct_ty.const 0 :=
+| const 0 :=
   return (b, c.cs_app ``zero_horner [x, n, b])
-| destruct_ty.const _ := do
-  let e := c.cs_app ``horner [a, x, n, b],
-  p ← mk_eq_refl e, return (e, p)
-| destruct_ty.xadd a₁ x₁ n₁ _ b₁ :=
+| const _ := refl_conv $ c.cs_app ``horner [a, x, n, b]
+| xadd a₁ x₁ n₁ _ b₁ :=
   if x₁ = x ∧ b₁.to_nat = some 0 then do
     (n', h) ← mk_app ``has_add.add [n₁, n] >>= norm_num,
     return (c.cs_app ``horner [a₁, x, n', b],
       c.cs_app ``horner_horner [a₁, x, n₁, n, b, n', h])
-  else do
-    let e := c.cs_app ``horner [a, x, n, b],
-    p ← mk_eq_refl e, return (e, p)
+  else refl_conv $ c.cs_app ``horner [a, x, n, b]
 end
 
 theorem const_add_horner {α} [comm_semiring α] (k a x n b b') (h : k + b = b') :
@@ -110,23 +117,23 @@ by simp [h₃.symm, h₂.symm, h₁.symm, horner, mul_add, mul_comm]
 meta def eval_add (c : cache) : expr → expr → tactic (expr × expr)
 | e₁ e₂ := do d₁ ← destruct e₁, d₂ ← destruct e₂,
 match d₁, d₂ with
-| destruct_ty.const n₁, destruct_ty.const n₂ :=
+| const n₁, const n₂ :=
   mk_app ``has_add.add [e₁, e₂] >>= norm_num
-| destruct_ty.const k, destruct_ty.xadd a x n _ b :=
+| const k, xadd a x n _ b :=
   if k = 0 then do
     p ← mk_app ``zero_add [e₂],
     return (e₂, p) else do
   (b', h) ← eval_add e₁ b,
   return (c.cs_app ``horner [a, x, n, b'],
     c.cs_app ``const_add_horner [e₁, a, x, n, b, b', h])
-| destruct_ty.xadd a x n _ b, destruct_ty.const k :=
+| xadd a x n _ b, const k :=
   if k = 0 then do
     p ← mk_app ``add_zero [e₁],
     return (e₁, p) else do
   (b', h) ← eval_add b e₂,
   return (c.cs_app ``horner [a, x, n, b'],
     c.cs_app ``horner_add_const [a, x, n, b, e₂, b', h])
-| destruct_ty.xadd a₁ x₁ en₁ n₁ b₁, destruct_ty.xadd a₂ x₂ en₂ n₂ b₂ :=
+| xadd a₁ x₁ en₁ n₁ b₁, xadd a₂ x₂ en₂ n₂ b₂ :=
   if expr.lex_lt x₁ x₂ then do
     (b', h) ← eval_add b₁ e₂,
     return (c.cs_app ``horner [a₁, x₁, en₁, b'],
@@ -162,9 +169,9 @@ by simp [h₂.symm, h₁.symm, horner]
 
 meta def eval_neg (c : cache) : expr → tactic (expr × expr) | e :=
 do d ← destruct e, match d with
-| destruct_ty.const _ :=
+| const _ :=
   mk_app ``has_neg.neg [e] >>= norm_num
-| destruct_ty.xadd a x n _ b := do
+| xadd a x n _ b := do
   (a', h₁) ← eval_neg a,
   (b', h₂) ← eval_neg b,
   p ← mk_app ``horner_neg [a, x, n, b, a', b', h₁, h₂],
@@ -183,9 +190,9 @@ by simp [h₂.symm, h₁.symm, horner, add_mul, mul_right_comm]
 
 meta def eval_const_mul (c : cache) (k : expr) : expr → tactic (expr × expr) | e :=
 do d ← destruct e, match d with
-| destruct_ty.const _ :=
+| const _ :=
   mk_app ``has_mul.mul [k, e] >>= norm_num
-| destruct_ty.xadd a x n _ b := do
+| xadd a x n _ b := do
   (a', h₁) ← eval_const_mul a,
   (b', h₂) ← eval_const_mul b,
   return (c.cs_app ``horner [a', x, n, b'],
@@ -212,9 +219,9 @@ by rw [← H, ← h₂, ← h₁, ← h₃, ← h₄];
 meta def eval_mul (c : cache) : expr → expr → tactic (expr × expr)
 | e₁ e₂ := do d₁ ← destruct e₁, d₂ ← destruct e₂,
 match d₁, d₂ with
-| destruct_ty.const n₁, destruct_ty.const n₂ :=
+| const n₁, const n₂ :=
   mk_app ``has_mul.mul [e₁, e₂] >>= norm_num
-| destruct_ty.const n₁, _ :=
+| const n₁, _ :=
   if n₁ = 0 then do
     α0 ← expr.of_nat c.α 0,
     p ← mk_app ``zero_mul [e₂],
@@ -223,11 +230,11 @@ match d₁, d₂ with
     p ← mk_app ``one_mul [e₂],
     return (e₂, p) else
   eval_const_mul c e₁ e₂
-| _, destruct_ty.const _ := do
+| _, const _ := do
   p₁ ← mk_app ``mul_comm [e₁, e₂],
   (e', p₂) ← eval_mul e₂ e₁,
   p ← mk_eq_trans p₁ p₂, return (e', p)
-| destruct_ty.xadd a₁ x₁ en₁ n₁ b₁, destruct_ty.xadd a₂ x₂ en₂ n₂ b₂ :=
+| xadd a₁ x₁ en₁ n₁ b₁, xadd a₂ x₂ en₂ n₂ b₂ :=
   if expr.lex_lt x₁ x₂ then do
     (a', h₁) ← eval_mul a₁ e₂,
     (b', h₂) ← eval_mul b₁ e₂,
@@ -269,10 +276,10 @@ meta def eval_pow (c : cache) : expr → nat → tactic (expr × expr)
 | e m := do d ← destruct e,
   let N : expr := expr.const `nat [],
   match d with
-  | destruct_ty.const _ := do
+  | const _ := do
     e₂ ← expr.of_nat N m,
     mk_app ``monoid.pow [e, e₂] >>= norm_num.derive
-  | destruct_ty.xadd a x n _ b := match b.to_nat with
+  | xadd a x n _ b := match b.to_nat with
     | some 0 := do
       e₂ ← expr.of_nat N m,
       (n', h₁) ← mk_app ``has_mul.mul [n, e₂] >>= norm_num,
@@ -340,31 +347,103 @@ meta def eval (c : cache) : expr → tactic (expr × expr)
     p ← mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
     return (e', p)
   end
-| e@`(horner _ _ _ _) := --assume horner expression means already normalized
-  do p ← mk_eq_refl e, return (e, p)
 | e := match e.to_nat with
-  | some _ := do p ← mk_eq_refl e, return (e, p)
+  | some _ := refl_conv e
   | none := eval_atom c e
   end
+
+theorem horner_def' {α} [comm_semiring α] (a x n b) : @horner α _ a x n b = x ^ n * a + b :=
+by simp [horner, mul_comm]
+
+theorem mul_assoc_rev {α} [semigroup α] (a b c : α) : a * (b * c) = a * b * c :=
+by simp [mul_assoc]
+
+theorem pow_add_rev {α} [monoid α] (a b : α) (m n) : a ^ m * a ^ n = a ^ (m + n) :=
+by simp [pow_add]
+
+theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
+by simp [pow_add, mul_assoc]
+
+theorem add_neg_eq_sub {α : Type u} [add_group α] (a b : α) : a + -b = a - b := rfl
+
+@[derive has_reflect]
+inductive normalize_mode | raw | SOP | horner
+
+meta def normalize (mode := normalize_mode.horner) (e : expr) : tactic (expr × expr) := do
+pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
+let lemmas := match mode with
+| normalize_mode.SOP :=
+  [``horner_def', ``add_zero, ``mul_one, ``mul_add, ``mul_sub,
+   ``mul_assoc_rev, ``pow_add_rev, ``pow_add_rev_right,
+   ``mul_neg_eq_neg_mul_symm, ``add_neg_eq_sub]
+| normalize_mode.horner :=
+  [``horner.equations._eqn_1, ``add_zero, ``one_mul, ``pow_one,
+   ``neg_mul_eq_neg_mul_symm, ``add_neg_eq_sub]
+| _ := []
+end,
+lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
+(_, e', pr) ← ext_simplify_core () {}
+  simp_lemmas.mk (λ _, failed) (λ _ _ _ _ e, do
+    c ← mk_cache e,
+    (new_e, pr) ← match mode with
+    | normalize_mode.raw := eval c
+    | normalize_mode.horner := trans_conv (eval c) (simplify lemmas [])
+    | normalize_mode.SOP :=
+      trans_conv (eval c) $
+      trans_conv (simplify lemmas []) $
+      simp_bottom_up' (λ e, norm_num e <|> pow_lemma.rewrite e)
+    end e,
+    trace (e, new_e),
+    guard (¬ new_e =ₐ e),
+    return ((), new_e, some pr, ff))
+   (λ _ _ _ _ _, failed) `eq e,
+return (e', pr)
 
 end ring
 
 namespace interactive
-open interactive interactive.types
+open interactive interactive.types lean.parser
 open tactic.ring
 
-/-- Tactic for solving equations in the language of rings. -/
-meta def ring : tactic unit :=
+local postfix `?`:9001 := optional
+
+/-- Tactic for solving equations in the language of rings.
+  This version of `ring` fails if the target is not an equality
+  that is provable by the axioms of commutative (semi)rings. -/
+meta def ring1 : tactic unit :=
 do `(%%e₁ = %%e₂) ← target,
   c ← mk_cache e₁,
   (e₁', p₁) ← eval c e₁,
   (e₂', p₂) ← eval c e₂,
-  is_def_eq e₁' e₂' <|> fail
-    ("normal forms not equal, possibly false" ++
-     "\n  LHS = " ++ normal_form_to_string e₁' ++
-     "\n  RHS = " ++ normal_form_to_string e₂'),
+  is_def_eq e₁' e₂',
   p ← mk_eq_symm p₂ >>= mk_eq_trans p₁,
   tactic.exact p
+
+meta def ring.mode : lean.parser ring.normalize_mode :=
+with_desc "(SOP|raw|horner)?" $
+do mode ← ident?, match mode with
+| none         := return ring.normalize_mode.horner
+| some `horner := return ring.normalize_mode.horner
+| some `SOP    := return ring.normalize_mode.SOP
+| some `raw    := return ring.normalize_mode.raw
+| _            := failed
+end
+
+/-- Tactic for solving equations in the language of rings.
+  Attempts to prove the goal outright if there is no `at`
+  specifier and the target is an equality, but if this
+  fails it falls back to rewriting all ring expressions
+  into a normal form. When writing a normal form,
+  `ring SOP` will use sum-of-products form instead of horner form. -/
+meta def ring (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
+match loc with
+| interactive.loc.ns [none] := ring1
+| _ := failed
+end <|>
+do ns ← loc.get_locals,
+   tt ← tactic.replace_at (normalize SOP) ns loc.include_goal
+      | fail "ring failed to simplify",
+   when loc.include_goal $ try tactic.reflexivity
 
 end interactive
 end tactic

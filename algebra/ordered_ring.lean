@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import order algebra.order algebra.ordered_group algebra.ring
+import order.basic algebra.order algebra.ordered_group algebra.ring
 
 universe u
 variable {α : Type u}
@@ -63,10 +63,10 @@ lt_add_of_le_of_pos (add_nonneg h h) zero_lt_one
 lemma bit1_pos' {a : α} (h : 0 < a) : 0 < bit1 a :=
 bit1_pos (le_of_lt h)
 
-/- remove when we have a linear arithmetic tactic -/
-lemma one_lt_two : 1 < (2 : α) :=
-calc (1:α) < 1 + 1 : lt_add_of_le_of_pos (le_refl 1) zero_lt_one
-  ... = _ : by simp [bit0]
+lemma lt_add_one (a : α) : a < a + 1 :=
+lt_add_of_le_of_pos (le_refl _) zero_lt_one
+
+lemma one_lt_two : 1 < (2 : α) := lt_add_one _
 
 end linear_ordered_semiring
 

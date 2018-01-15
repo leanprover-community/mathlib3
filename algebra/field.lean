@@ -3,22 +3,65 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set algebra.group
+import algebra.ring logic.basic
 open set
 
 universe u
 variables {α : Type u}
 
-section division_ring
+namespace units
 variables [division_ring α] {a b : α}
 
-lemma division_ring.inv_div {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : (a / b)⁻¹ = b / a :=
+/-- Embed an element of a division ring into the unit group.
+  By combining this function with the operations on units,
+  or the `/ₚ` operation, it is possible to write a division
+  as a partial function with three arguments. -/
+def mk0 (a : α) (ha : a ≠ 0) : units α :=
+⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
+
+@[simp] theorem ne_zero (u : units α) : (u : α) ≠ 0
+| h := by simpa [h] using inv_mul u
+
+@[simp] theorem inv_eq_inv (u : units α) : (↑u⁻¹ : α) = u⁻¹ :=
+(mul_left_inj u).1 $ by simp
+
+@[simp] theorem mk0_val (ha : a ≠ 0) : (mk0 a ha : α) = a := rfl
+
+@[simp] theorem mk0_inv (ha : a ≠ 0) : ((mk0 a ha)⁻¹ : α) = a⁻¹ := rfl
+
+end units
+
+section division_ring
+variables [s : division_ring α] {a b c : α}
+include s
+
+instance division_ring.to_domain : domain α :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
+    classical.by_contradiction $ λ hn,
+      division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
+  ..s }
+
+lemma div_eq_mul_inv : a / b = a * b⁻¹ := rfl
+
+attribute [simp] div_one zero_div div_self
+
+theorem divp_eq_div (a : α) (u : units α) : a /ₚ u = a / u :=
+by simp [divp, (/), algebra.div]
+
+@[simp] theorem divp_mk0 (a : α) {b : α} (hb : b ≠ 0) :
+  a /ₚ units.mk0 b hb = a / b :=
+divp_eq_div _ _
+
+lemma inv_div (ha : a ≠ 0) (hb : b ≠ 0) : (a / b)⁻¹ = b / a :=
 by rw [division_def, mul_inv_eq (inv_ne_zero hb) ha, division_ring.inv_inv hb, division_def]
 
-lemma division_ring.neg_inv (h : a ≠ 0) : - a⁻¹ = (- a)⁻¹ :=
+lemma inv_div_left (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ / b = (b * a)⁻¹ :=
+by rw [mul_inv_eq ha hb]; refl
+
+lemma neg_inv (h : a ≠ 0) : - a⁻¹ = (- a)⁻¹ :=
 by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
-lemma division_ring.inv_comm_of_comm {a b : α} (h : a ≠ 0) (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
+lemma division_ring.inv_comm_of_comm (h : a ≠ 0) (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
 begin
   have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
     congr_arg (λ x:α, a⁻¹ * x * a⁻¹) H.symm,
@@ -26,16 +69,84 @@ begin
        ← mul_assoc, inv_mul_cancel, one_mul] at this; exact h
 end
 
+lemma div_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a / b ≠ 0 :=
+division_ring.mul_ne_zero ha (inv_ne_zero hb)
+
+lemma div_ne_zero_iff (hb : b ≠ 0) : a / b ≠ 0 ↔ a ≠ 0 :=
+⟨mt (λ h, by simp [h]), λ ha, div_ne_zero ha hb⟩
+
+lemma div_eq_zero_iff (hb : b ≠ 0) : a / b = 0 ↔ a = 0 :=
+by have := classical.prop_decidable; exact
+not_iff_not.1 (div_ne_zero_iff hb)
+
+lemma add_div (a b c : α) : (a + b) / c = a / c + b / c :=
+(div_add_div_same _ _ _).symm
+
+lemma div_right_inj (hc : c ≠ 0) : a / c = b / c ↔ a = b :=
+by rw [← divp_mk0 _ hc, ← divp_mk0 _ hc, divp_right_inj]
+
+lemma sub_div (a b c : α) : (a - b) / c = a / c - b / c :=
+(div_sub_div_same _ _ _).symm
+
+lemma division_ring.inv_inj (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ = b⁻¹ ↔ a = b :=
+⟨λ h, by simpa [division_ring.inv_inv, ha, hb]
+  using congr_arg (λx,x⁻¹) h, congr_arg (λx,x⁻¹)⟩
+
+lemma division_ring.inv_eq_iff (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ = b ↔ b⁻¹ = a :=
+by rw [← division_ring.inv_inj (inv_ne_zero ha) hb,
+       eq_comm, division_ring.inv_inv ha]
+
+lemma div_neg (a : α) (hb : b ≠ 0) : a / -b = -(a / b) :=
+by rw [← division_ring.neg_div_neg_eq _ (neg_ne_zero.2 hb), neg_neg, neg_div]
+
 end division_ring
 
 section
-variables [field α] {a b c : α}
+variables [field α] {a b c d : α}
 
 lemma div_eq_inv_mul : a / b = b⁻¹ * a := mul_comm _ _
+
+lemma inv_add_inv {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ + b⁻¹ = (a + b) / (a * b) :=
+by rw [inv_eq_one_div, inv_eq_one_div, one_div_add_one_div ha hb]
+
+lemma inv_sub_inv {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ - b⁻¹ = (b - a) / (a * b) :=
+by rw [inv_eq_one_div, inv_eq_one_div, div_sub_div _ _ ha hb, one_mul, mul_one]
+
+lemma mul_div_right_comm (a b c : α) : (a * b) / c = (a / c) * b :=
+(div_mul_eq_mul_div _ _ _).symm
+
+lemma mul_comm_div (a b c : α) : (a / b) * c = a * (c / b) :=
+by rw [← mul_div_assoc, mul_div_right_comm]
+
+lemma div_mul_comm (a b c : α) : (a / b) * c = (c / b) * a :=
+by rw [div_mul_eq_mul_div, mul_comm, mul_div_right_comm]
+
+lemma mul_div_comm (a b c : α) : a * (b / c) = b * (a / c) :=
+by rw [← mul_div_assoc, mul_comm, mul_div_assoc]
+
+lemma field.div_right_comm (a : α) (hb : b ≠ 0) (hc : c ≠ 0) : (a / b) / c = (a / c) / b :=
+by rw [field.div_div_eq_div_mul _ hb hc, field.div_div_eq_div_mul _ hc hb, mul_comm]
+
+lemma field.div_div_div_cancel_right (a : α) (hb : b ≠ 0) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
+by rw [field.div_div_eq_mul_div _ hb hc, div_mul_cancel _ hc]
+
+lemma field.div_mul_div_cancel (a : α) (hb : b ≠ 0) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
+by rw [← mul_div_assoc, div_mul_cancel _ hc]
+
+lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
+(domain.mul_right_inj (mul_ne_zero' hb hd)).symm.trans $
+by rw [← mul_assoc, div_mul_cancel _ hb,
+       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
+
+lemma field.div_div_cancel (ha : a ≠ 0) (hb : b ≠ 0) : a / (a / b) = b :=
+by rw [div_eq_mul_inv, inv_div ha hb, mul_div_cancel' _ ha]
+
 end
 
 section
 variables [discrete_field α] {a b c : α}
+
+attribute [simp] div_zero
 
 lemma inv_sub_inv_eq (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ - b⁻¹ = (b - a) / (a * b) :=
 have a * b ≠ 0, by simp [mul_eq_zero_iff_eq_zero_or_eq_zero, ha, hb],
@@ -47,77 +158,21 @@ calc (a⁻¹ - b⁻¹) = ((a⁻¹ - b⁻¹) * (a * b)) / (a * b) : by rwa [mul_d
     simp
   end
 
-end
+lemma div_right_comm (a b c : α) : (a / b) / c = (a / c) / b :=
+if b0 : b = 0 then by simp [b0] else
+if c0 : c = 0 then by simp [c0] else
+field.div_right_comm _ b0 c0
 
-section
-variables [linear_ordered_field α] {a b c : α}
+lemma div_div_div_cancel_right (a b : α) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
+if b0 : b = 0 then by simp [b0] else
+field.div_div_div_cancel_right _ b0 hc
 
-lemma le_div_iff_mul_le_of_pos (hc : 0 < c) : a ≤ b / c ↔ a * c ≤ b :=
-⟨mul_le_of_le_div hc, le_div_of_mul_le hc⟩
+lemma div_mul_div_cancel (a : α) (hb : b ≠ 0) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
+if b0 : b = 0 then by simp [b0] else
+field.div_mul_div_cancel _ b0 hc
 
-lemma div_le_iff_le_mul_of_pos (hb : 0 < b) : a / b ≤ c ↔ a ≤ c * b :=
-⟨le_mul_of_div_le hb, by rw [mul_comm]; exact div_le_of_le_mul hb⟩
-
-lemma lt_div_iff (h : 0 < c) : a < b / c ↔ a * c < b :=
-⟨mul_lt_of_lt_div h, lt_div_of_mul_lt h⟩
-
-lemma ivl_translate : (λx, x + c) '' {r:α | a ≤ r ∧ r ≤ b } = {r:α | a + c ≤ r ∧ r ≤ b + c} :=
-calc (λx, x + c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x - c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :
-    congr_fun (image_eq_preimage_of_inverse
-      (assume a, add_sub_cancel a c) (assume b, sub_add_cancel b c)) _
-  ... = {r | a + c ≤ r ∧ r ≤ b + c} :
-    set.ext $ by simp [-sub_eq_add_neg, le_sub_iff_add_le, sub_le_iff_le_add]
-
-lemma ivl_stretch (hc : 0 < c) : (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = {r | a * c ≤ r ∧ r ≤ b * c} :=
-calc (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x / c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :
-    congr_fun (image_eq_preimage_of_inverse
-      (assume a, mul_div_cancel _ $ ne_of_gt hc) (assume b, div_mul_cancel _ $ ne_of_gt hc)) _
-  ... = {r | a * c ≤ r ∧ r ≤ b * c} :
-    set.ext $ by simp [le_div_iff_mul_le_of_pos, div_le_iff_le_mul_of_pos, hc]
-
-instance linear_ordered_field.to_densely_ordered [linear_ordered_field α] : densely_ordered α :=
-{ dense := assume a₁ a₂ h, ⟨(a₁ + a₂) / 2,
-  calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm
-    ... < (a₁ + a₂) / 2 : div_lt_div_of_lt_of_pos (add_lt_add_left h _) two_pos,
-  calc (a₁ + a₂) / 2 < (a₂ + a₂) / 2 : div_lt_div_of_lt_of_pos (add_lt_add_right h _) two_pos
-    ... = a₂ : add_self_div_two a₂⟩ }
-
-instance linear_ordered_field.to_no_top_order [linear_ordered_field α] : no_top_order α :=
-{ no_top := assume a, ⟨a + 1, lt_add_of_le_of_pos (le_refl a) zero_lt_one ⟩ }
-
-instance linear_ordered_field.to_no_bot_order [linear_ordered_field α] : no_bot_order α :=
-{ no_bot := assume a, ⟨a + -1,
-    add_lt_of_le_of_neg (le_refl _) (neg_lt_of_neg_lt $ by simp [zero_lt_one]) ⟩ }
-
-lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
-by rw [inv_eq_one_div]; exact div_pos_of_pos_of_pos zero_lt_one
-
-lemma inv_lt_one {a : α} (ha : 1 < a) : a⁻¹ < 1 :=
-by rw [inv_eq_one_div]; exact div_lt_of_mul_lt_of_pos (lt_trans zero_lt_one ha) (by simp *)
-
-lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
-by rw [inv_eq_one_div, lt_div_iff h₁]; simp [h₂]
-
-end
-
-section
-variables [discrete_linear_ordered_field α] (a b c: α)
-
-lemma abs_inv : abs a⁻¹ = (abs a)⁻¹ :=
-have h : abs (1 / a) = 1 / abs a,
-  begin rw [abs_div, abs_of_nonneg], exact zero_le_one end,
-by simp [*] at *
-
-lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
-if h : a = 0
-then by simp [h, inv_zero]
-else by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
-
-lemma inv_le_inv (hb : 0 < b) (h : b ≤ a) :
-  a⁻¹ ≤ b⁻¹ :=
-begin
-  rw [inv_eq_one_div, inv_eq_one_div],
-  exact one_div_le_one_div_of_le hb h
-end
+lemma div_div_cancel (ha : a ≠ 0) : a / (a / b) = b :=
+if b0 : b = 0 then by simp [b0] else
+field.div_div_cancel ha b0
 
 end

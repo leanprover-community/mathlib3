@@ -80,8 +80,6 @@ structure is_linear_map {α : Type u} {β : Type v} {γ : Type w} [ring α] [mod
 (add  : ∀x y, f (x + y) = f x + f y)
 (smul : ∀c x, f (c • x) = c • f x)
 
-attribute [simp] is_linear_map.add is_linear_map.smul
-
 namespace is_linear_map
 variables [ring α] [module α β] [module α γ] [module α δ]
 variables {f g h : β → γ} {r : α} {x y : β}

@@ -251,7 +251,7 @@ end
 end integral_domain
 
 section ordered_comm_monoid
-variables [ordered_comm_monoid β] [∀a b : β, decidable (a ≤ b)]
+variables [ordered_comm_monoid β]
 
 lemma sum_le_sum' : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
 finset.induction_on s (by simp; refl) $ assume a s ha ih h,
@@ -273,6 +273,11 @@ lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → (s.sum f = 0 ↔ ∀
 finset.induction_on s (by simp) $
   by simp [or_imp_distrib, forall_and_distrib, zero_le_sum' ,
            add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg'] {contextual := tt}
+
+lemma single_le_sum (hf : ∀x∈s, 0 ≤ f x) {a} (h : a ∈ s) : f a ≤ s.sum f :=
+by simpa using show (singleton a).sum f ≤ s.sum f,
+from sum_le_sum_of_subset_of_nonneg
+ (λ x e, (mem_singleton.1 e).symm ▸ h) (λ x h _, hf x h)
 
 end ordered_comm_monoid
 

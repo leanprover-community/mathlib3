@@ -145,6 +145,10 @@ add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg' (zero_le _) (zero_le _)
 
 end canonically_ordered_monoid
 
+instance ordered_cancel_comm_monoid.to_ordered_comm_monoid
+  [H : ordered_cancel_comm_monoid α] : ordered_comm_monoid α :=
+{ lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
+
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c : α}
 

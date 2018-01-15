@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura
 
 Various multiplicative and additive structures.
 -/
-
+import tactic.interactive
 
 section pending_1857
 
@@ -137,15 +137,112 @@ universe u
 variables {α : Type u}
 
 @[simp, to_additive add_left_inj]
-theorem mul_left_inj [left_cancel_semigroup α] {a b c : α} : a * b = a * c ↔ b = c :=
+theorem mul_left_inj [left_cancel_semigroup α] (a : α) {b c : α} : a * b = a * c ↔ b = c :=
 ⟨mul_left_cancel, congr_arg _⟩
 
 @[simp, to_additive add_right_inj]
-theorem mul_right_inj [right_cancel_semigroup α] {a b c : α} : b * a = c * a ↔ b = c :=
+theorem mul_right_inj [right_cancel_semigroup α] (a : α) {b c : α} : b * a = c * a ↔ b = c :=
 ⟨mul_right_cancel, congr_arg _⟩
+
+structure units (α : Type u) [monoid α] :=
+(val : α)
+(inv : α)
+(val_inv : val * inv = 1)
+(inv_val : inv * val = 1)
+
+namespace units
+  variables [monoid α] {a b c : units α}
+
+  instance : has_coe (units α) α := ⟨val⟩
+
+  theorem ext : ∀ {a b : units α}, (a : α) = b → a = b
+  | ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=
+    by change v = v' at e; subst v'; congr;
+       simpa [iv₂, vi₁] using mul_assoc i₂ v i₁
+
+  protected def mul : units α → units α → units α
+  | ⟨v₁, i₁, vi₁, iv₁⟩ ⟨v₂, i₂, vi₂, iv₂⟩ := ⟨v₁ * v₂, i₂ * i₁,
+    have v₁ * (v₂ * i₂) * i₁ = 1, by rw [vi₂]; simp [vi₁], by simpa [mul_comm, mul_assoc],
+    have i₂ * (i₁ * v₁) * v₂ = 1, by rw [iv₁]; simp [iv₂], by simpa [mul_comm, mul_assoc]⟩
+
+  protected def inv' : units α → units α
+  | ⟨v, i, vi, iv⟩ := ⟨i, v, iv, vi⟩
+
+  instance : has_mul (units α) := ⟨units.mul⟩
+  instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
+  instance : has_inv (units α) := ⟨units.inv'⟩
+
+  variables (a b)
+  @[simp] lemma mul_coe : (↑(a * b) : α) = a * b := by cases a; cases b; refl
+  @[simp] lemma one_coe : ((1 : units α) : α) = 1 := rfl
+  lemma val_coe : (↑a : α) = a.val := rfl
+  lemma inv_coe : ((a⁻¹ : units α) : α) = a.inv := by cases a; refl
+  @[simp] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := by simp [val_coe, inv_coe, inv_val]
+  @[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := by simp [val_coe, inv_coe, val_inv]
+
+  @[simp] lemma mul_inv_cancel_left (a : units α) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
+  by rw [← mul_assoc, mul_inv, one_mul]
+
+  @[simp] lemma inv_mul_cancel_left (a : units α) (b : α) : (↑a⁻¹:α) * (a * b) = b :=
+  by rw [← mul_assoc, inv_mul, one_mul]
+
+  @[simp] lemma mul_inv_cancel_right (a : α) (b : units α) : a * b * ↑b⁻¹ = a :=
+  by rw [mul_assoc, mul_inv, mul_one]
+
+  @[simp] lemma inv_mul_cancel_right (a : α) (b : units α) : a * ↑b⁻¹ * b = a :=
+  by rw [mul_assoc, inv_mul, mul_one]
+
+  instance : group (units α) :=
+  by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
+    { intros, apply ext, simp [mul_assoc] }
+
+  @[simp] theorem mul_left_inj (a : units α) {b c : α} : (a:α) * b = a * c ↔ b = c :=
+  ⟨λ h, by simpa using congr_arg ((*) ↑(a⁻¹ : units α)) h, congr_arg _⟩
+
+  @[simp] theorem mul_right_inj (a : units α) {b c : α} : b * a = c * a ↔ b = c :=
+  ⟨λ h, by simpa using congr_arg (* ↑(a⁻¹ : units α)) h, congr_arg _⟩
+
+end units
+
+section monoid
+  variables [monoid α] {a b c : α}
+
+  /-- Partial division. It is defined when the
+    second argument is invertible, and unlike the division operator
+    in `division_ring` it is not totalized at zero. -/
+  def divp (a : α) (u) : α := a * (u⁻¹ : units α)
+
+  infix ` /ₚ `:70 := divp
+
+  @[simp] theorem divp_self (u : units α) : (u : α) /ₚ u = 1 := by simp [divp]
+
+  @[simp] theorem divp_one (a : α) : a /ₚ 1 = a := by simp [divp]
+
+  theorem divp_assoc (a b : α) (u : units α) : a * b /ₚ u = a * (b /ₚ u) :=
+  by simp [divp, mul_assoc]
+
+  @[simp] theorem divp_mul_cancel (a : α) (u : units α) : a /ₚ u * u = a :=
+  by simp [divp, mul_assoc]
+
+  @[simp] theorem mul_divp_cancel (a : α) (u : units α) : (a * u) /ₚ u = a :=
+  by simp [divp, mul_assoc]
+
+  @[simp] theorem divp_right_inj (u : units α) {a b : α} : a /ₚ u = b /ₚ u ↔ a = b :=
+  units.mul_right_inj _
+  
+  theorem divp_eq_one (a : α) (u : units α) : a /ₚ u = 1 ↔ a = u :=
+  (units.mul_right_inj u).symm.trans $ by simp
+
+  @[simp] theorem one_divp (u : units α) : 1 /ₚ u = ↑u⁻¹ :=
+  by simp [divp]
+
+end monoid
 
 section group
   variables [group α] {a b c : α}
+
+  instance : has_lift α (units α) :=
+  ⟨λ a, ⟨a, a⁻¹, mul_inv_self _, inv_mul_self _⟩⟩
 
   @[simp, to_additive neg_inj']
   theorem inv_inj' : a⁻¹ = b⁻¹ ↔ a = b :=
@@ -185,8 +282,7 @@ section group
 
   @[to_additive add_eq_zero_iff_eq_neg]
   theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
-  have a * b = b⁻¹ * b ↔ a = b⁻¹, from mul_right_inj,
-  by rwa mul_left_inv at this
+  by simpa [mul_left_inv, -mul_right_inj] using @mul_right_inj _ _ b a (b⁻¹)
 
   @[to_additive add_eq_zero_iff_neg_eq]
   theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
@@ -243,10 +339,10 @@ section add_group
   local attribute [simp] sub_eq_add_neg
 
   @[simp] lemma sub_left_inj : a - b = a - c ↔ b = c :=
-  add_left_inj.trans neg_inj'
+  (add_left_inj _).trans neg_inj'
 
   @[simp] lemma sub_right_inj : b - a = c - a ↔ b = c :=
-  add_right_inj
+  add_right_inj _
 
   lemma sub_add_sub_cancel (a b c : α) : (a - b) + (b - c) = a - c :=
   by simp

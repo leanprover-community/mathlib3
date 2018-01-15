@@ -87,6 +87,8 @@ variables [decidable_linear_ordered_comm_group α] {a b : α}
 
 attribute [simp] abs_zero abs_neg
 
+def abs_add := @abs_add_le_abs_add_abs
+
 theorem abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 ⟨assume h, ⟨neg_le_of_neg_le $ le_trans (neg_le_abs_self _) h, le_trans (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_le_of_le_of_neg_le h₂ $ neg_le_of_neg_le h₁⟩

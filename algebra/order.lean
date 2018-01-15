@@ -34,6 +34,12 @@ lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
 
+lemma exists_ge_of_linear [linear_order α] (a b : α) : ∃ c, a ≤ c ∧ b ≤ c :=
+match le_total a b with
+| or.inl h := ⟨_, h, le_refl _⟩
+| or.inr h := ⟨_, le_refl _, h⟩
+end
+
 lemma lt_iff_lt_of_strict_mono {β} [linear_order α] [preorder β]
   (f : α → β) (H : ∀ a b, a < b → f a < f b) {a b} :
   f a < f b ↔ a < b :=

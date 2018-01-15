@@ -41,10 +41,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Type x}
 set.ext $ by simp
 
 lemma zero_ne_one_or_forall_eq_0 (α : Type u) [ring α] : (0 : α) ≠ 1 ∨ (∀a:α, a = 0) :=
-classical.by_cases
-  (assume h : 0 = (1:α),
-    or.inr $ assume a, calc a = 1 * a : by simp ... = 0 : by rw [h.symm]; simp)
-  or.inl
+not_or_of_imp $ λ h a, by simpa using congr_arg ((*) a) h.symm
 
 namespace finset
 
@@ -125,9 +122,8 @@ include α
 /-- Linear span of a set of vectors -/
 def span (s : set β) : set β := { x | ∃(v : lc α β), (∀x∉s, v x = 0) ∧ x = v.sum (λb a, a • b) }
 
-@[instance] lemma is_submodule_span : is_submodule (span s) :=
-{ is_submodule .
-  zero_ := ⟨0,
+instance is_submodule_span : is_submodule (span s) :=
+{ zero_ := ⟨0,
     by simp [finsupp.sum_zero_index]⟩,
   add_  := assume x y ⟨vx, hx, eqx⟩ ⟨vy, hy, eqy⟩, ⟨vx + vy,
     by simp [hx, hy, eqx, eqy, finsupp.sum_add_index, add_smul] {contextual := tt}⟩,

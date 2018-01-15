@@ -15,48 +15,6 @@ section
   (left_distrib n 1 1).trans (by simp)
 end
 
-structure units (α : Type u) [semiring α] :=
-(val : α)
-(inv : α)
-(val_inv : val * inv = 1)
-(inv_val : inv * val = 1)
-
-namespace units
-  variables [semiring α] {a b c : units α}
-
-  instance : has_coe (units α) α := ⟨val⟩
-
-  theorem ext : ∀ {a b : units α}, (a : α) = b → a = b
-  | ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=
-    by change v = v' at e; subst v'; congr;
-       simpa [iv₂, vi₁] using mul_assoc i₂ v i₁
-
-  protected def mul : units α → units α → units α
-  | ⟨v₁, i₁, vi₁, iv₁⟩ ⟨v₂, i₂, vi₂, iv₂⟩ := ⟨v₁ * v₂, i₂ * i₁,
-    have v₁ * (v₂ * i₂) * i₁ = 1, by rw [vi₂]; simp [vi₁], by simpa [mul_comm, mul_assoc],
-    have i₂ * (i₁ * v₁) * v₂ = 1, by rw [iv₁]; simp [iv₂], by simpa [mul_comm, mul_assoc]⟩
-
-  protected def inv' : units α → units α
-  | ⟨v, i, vi, iv⟩ := ⟨i, v, iv, vi⟩
-
-  instance : has_mul (units α) := ⟨units.mul⟩
-  instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
-  instance : has_inv (units α) := ⟨units.inv'⟩
-
-  variables (a b)
-  @[simp] lemma mul_coe : (↑(a * b) : α) = a * b := by cases a; cases b; refl
-  @[simp] lemma one_coe : ((1 : units α) : α) = 1 := rfl
-  lemma val_coe : (↑a : α) = a.val := rfl
-  lemma inv_coe : ((a⁻¹ : units α) : α) = a.inv := by cases a; refl
-  @[simp] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := by simp [val_coe, inv_coe, inv_val]
-  @[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := by simp [val_coe, inv_coe, val_inv]
-
-  instance : group (units α) :=
-  by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
-    { intros, apply ext, simp [mul_assoc] }
-
-end units
-
 section
   variables [ring α] (a b c d e : α)
 
@@ -83,6 +41,7 @@ section
     { intro ha, apply h, simp [ha] },
     { intro hb, apply h, simp [hb] }
   end
+
 end
 
 section comm_ring
@@ -159,24 +118,3 @@ section
   exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]
 
 end
-
-section division_ring
-variables [s : division_ring α] {a b c : α}
-include s
-
-instance division_ring.to_domain : domain α :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
-    classical.by_contradiction $ λ hn,
-      division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
-  ..s }
-
-lemma add_div : (a + b) / c = a / c + b / c :=
-by rw [div_eq_mul_one_div, add_mul, ←div_eq_mul_one_div, ←div_eq_mul_one_div]
-
-lemma div_eq_mul_inv : a / b = a * b⁻¹ :=
-by rw [div_eq_mul_one_div, inv_eq_one_div]
-
-lemma neg_inv (h : a ≠ 0) : - a⁻¹ = (- a)⁻¹ :=
-by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
-
-end division_ring

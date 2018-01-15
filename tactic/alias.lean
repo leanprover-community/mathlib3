@@ -51,7 +51,7 @@ do updateex_env $ λ env,
     declaration.thm al ls t $ task.pure $ expr.const n (level.param <$> ls)
   | _ := undefined
   end),
-  set_basic_attribute `alias al,
+  alias_attr.set al () tt,
   add_doc_string al doc
 
 meta def mk_iff_mp_app (iffmp : name) : expr → (nat → expr) → tactic expr
@@ -66,7 +66,7 @@ meta def alias_iff (d : declaration) (doc : string) (al : name) (iffmp : name) :
   v ← mk_iff_mp_app iffmp t (λ_, expr.const d.to_name (level.param <$> ls)),
   t' ← infer_type v,
   updateex_env $ λ env, env.add (declaration.thm al ls t' $ task.pure v),
-  set_basic_attribute `alias al,
+  alias_attr.set al () tt,
   add_doc_string al doc
 
 meta def make_left_right : name → tactic (name × name)

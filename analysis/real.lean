@@ -1098,10 +1098,7 @@ instance : discrete_linear_ordered_field ℝ :=
   decidable_lt    := by apply_instance,
   ..real.discrete_field }
 
-instance : ordered_comm_monoid ℝ :=
-{ lt_of_add_lt_add_left :=
-      assume a b, by simp [ge, -add_comm, add_le_add_left_iff] {contextual := tt},
-  ..real.discrete_linear_ordered_field }
+instance : ordered_comm_monoid ℝ := by apply_instance
 
 instance : topological_ring ℝ :=
 { continuous_mul := continuous_mul_real, ..real.topological_add_group }

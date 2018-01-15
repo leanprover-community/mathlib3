@@ -8,8 +8,7 @@ Introduces the rational numbers as discrete, linear ordered field.
 
 import
   data.nat.gcd data.pnat data.int.basic data.encodable order.basic
-  algebra.ordered_ring algebra.field
-  pending
+  algebra.ordered_field
 
 /- rational numbers -/
 
@@ -626,7 +625,6 @@ protected def cast : ℚ → α
 
 @[priority 0] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
 
-
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
@@ -711,7 +709,7 @@ theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
   have n0' : (n:ℤ) ≠ 0 := λ e, by rw e at n0; exact n0 rfl,
   have d0' : (d:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d0; exact d0 rfl),
   rw [num_denom', inv_def],
-  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, division_ring.inv_div];
+  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, inv_div];
   simp [n0, d0]
 end
 
@@ -747,6 +745,23 @@ by rw [← cast_zero, cast_inj]
 
 @[simp] theorem cast_ne_zero [char_zero α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
+
+theorem eq_cast_of_ne_zero (f : ℚ → α) (H1 : f 1 = 1)
+  (Hadd : ∀ x y, f (x + y) = f x + f y)
+  (Hmul : ∀ x y, f (x * y) = f x * f y) :
+  ∀ n : ℚ, (n.denom : α) ≠ 0 → f n = n
+| ⟨n, d, h, c⟩ := λ (h₂ : ((d:ℤ):α) ≠ 0), show _ = (n / (d:ℤ) : α), begin
+  rw [num_denom', mk_eq_div, eq_div_iff_mul_eq _ _ h₂],
+  have : ∀ n : ℤ, f n = n, { apply int.eq_cast; simp [H1, Hadd] },
+  rw [← this, ← this, ← Hmul, div_mul_cancel],
+  exact int.cast_ne_zero.2 (int.coe_nat_ne_zero.2 $ ne_of_gt h),
+end
+
+theorem eq_cast [char_zero α] (f : ℚ → α) (H1 : f 1 = 1)
+  (Hadd : ∀ x y, f (x + y) = f x + f y)
+  (Hmul : ∀ x y, f (x * y) = f x * f y) (n : ℚ) : f n = n :=
+eq_cast_of_ne_zero _ H1 Hadd Hmul _ $
+  nat.cast_ne_zero.2 $ ne_of_gt n.pos
 
 end
 

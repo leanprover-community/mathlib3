@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import algebra.order
 
 universe u
 variables {α : Type u}
@@ -99,6 +100,9 @@ lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 
 @[simp] lemma abs_eq_zero : abs a = 0 ↔ a = 0 :=
 ⟨eq_zero_of_abs_eq_zero, λ e, e.symm ▸ abs_zero⟩
+
+lemma abs_pos_iff {a : α} : 0 < abs a ↔ a ≠ 0 :=
+⟨λ h, mt abs_eq_zero.2 (ne_of_gt h), abs_pos_of_ne_zero⟩
 
 end decidable_linear_ordered_comm_group
 

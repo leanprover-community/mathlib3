@@ -68,9 +68,18 @@ by simpa [-cast_le] using not_congr (@cast_le α _ n m)
 @[simp] theorem cast_pos [linear_ordered_ring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
 
-@[simp] theorem cast_id : ∀ n : ℕ, ↑n = n
-| 0     := rfl
-| (n+1) := congr_arg (+1) (cast_id n)
+theorem eq_cast [add_monoid α] [has_one α] (f : ℕ → α)
+  (H0 : f 0 = 0) (H1 : f 1 = 1)
+  (Hadd : ∀ x y, f (x + y) = f x + f y) : ∀ n : ℕ, f n = n
+| 0     := H0
+| (n+1) := by rw [Hadd, H1, eq_cast]; refl
+
+theorem eq_cast' [add_group α] [has_one α] (f : ℕ → α)
+  (H1 : f 1 = 1) (Hadd : ∀ x y, f (x + y) = f x + f y) : ∀ n : ℕ, f n = n :=
+eq_cast _ (by rw [← add_left_inj (f 0), add_zero, ← Hadd]) H1 Hadd
+
+@[simp] theorem cast_id (n : ℕ) : ↑n = n :=
+(eq_cast id rfl rfl (λ _ _, rfl) n).symm
 
 @[simp] theorem cast_min [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
@@ -80,8 +89,8 @@ by by_cases a ≤ b; simp [h, max]
 
 end nat
 
-/-- Typeclass for monoids with characteristic zero. (This is usually stated on fields
-  but it makes sense for any additive monoid with 1.) -/
+/-- Typeclass for monoids with characteristic zero.
+  (This is usually stated on fields but it makes sense for any additive monoid with 1.) -/
 class char_zero (α : Type*) [add_monoid α] [has_one α] : Prop :=
 (cast_inj : ∀ {m n : ℕ}, (m : α) = n ↔ m = n)
 

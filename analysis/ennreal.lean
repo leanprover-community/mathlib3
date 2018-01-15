@@ -893,7 +893,7 @@ le_antisymm
   (Inf_le $ by simp [*, inv_pos hr, mul_inv_cancel (ne_of_gt hr)])
   (le_Inf $ forall_ennreal.mpr ⟨λ p hp,
     by simp [*, show 0 ≤ r*p, from mul_nonneg r0 hp];
-       intro; rwa [inv_eq_one_div, div_le_iff_le_mul_of_pos hr, mul_comm],
+       intro; rwa [inv_eq_one_div, div_le_iff hr, mul_comm],
     λ h, le_top⟩)
 
 lemma inv_inv : ∀{a:ennreal}, (a⁻¹)⁻¹ = a :=

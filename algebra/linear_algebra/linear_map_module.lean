@@ -210,7 +210,7 @@ end linear_map
 
 namespace module
 variables [ring α] [module α β]
-include α
+include α β
 
 instance : has_one (linear_map β β) := ⟨⟨id, is_linear_map.id⟩⟩
 instance : has_mul (linear_map β β) := ⟨λf g, ⟨_, is_linear_map.comp f.2 g.2⟩⟩
@@ -227,6 +227,6 @@ by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
 
 /-- The group of invertible linear maps from `β` to itself -/
 def general_linear_group :=
-@units (linear_map β β) (@ring.to_semiring _ (endomorphism_ring α β))
+by have := endomorphism_ring α β; exact units (linear_map β β)
 
 end module

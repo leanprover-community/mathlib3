@@ -158,6 +158,8 @@ lemma lt_pred_of_succ_lt {n m : ℕ} : succ n < m → n < pred m :=
 protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0
 | nm := (eq_zero_of_mul_eq_zero nm).elim n0 m0
 
+attribute [simp] nat.div_self
+
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=
 by rw [← H2, nat.mul_div_cancel' H1]

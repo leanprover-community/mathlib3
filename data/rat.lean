@@ -552,10 +552,6 @@ end
 def floor : ℚ → ℤ
 | ⟨n, d, h, c⟩ := n / d
 
-/-- `ceil q` is the smallest integer `z` such that `q ≤ z` -/
-def ceil (r : ℚ) : ℤ :=
--(floor (-r))
-
 theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
 | ⟨n, d, h, c⟩ := begin
   simp [floor],
@@ -567,7 +563,7 @@ theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
 end
 
 theorem floor_lt {r : ℚ} {z : ℤ} : floor r < z ↔ r < z :=
-not_iff_not.1 $ by rw [not_lt, not_lt, le_floor]
+le_iff_le_iff_lt_iff_lt.1 le_floor
 
 theorem floor_le (r : ℚ) : (floor r : ℚ) ≤ r :=
 le_floor.1 (le_refl _)
@@ -582,13 +578,16 @@ theorem floor_mono {a b : ℚ} (h : a ≤ b) : floor a ≤ floor b :=
 le_floor.2 (le_trans (floor_le _) h)
 
 @[simp] theorem floor_add_int (r : ℚ) (z : ℤ) : floor (r + z) = floor r + z :=
-le_antisymm
-  (le_add_of_sub_right_le $ le_floor.2 $
-    by rw int.cast_sub; exact sub_right_le_of_le_add (floor_le _))
-  (le_floor.2 $ by rw [int.cast_add]; apply add_le_add_right (floor_le _))
+eq_of_forall_le_iff $ λ a, by rw [le_floor,
+  ← sub_right_le_iff_le_add, ← sub_right_le_iff_le_add,
+  le_floor, int.cast_sub]
 
 theorem floor_sub_int (r : ℚ) (z : ℤ) : floor (r - z) = floor r - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
+
+/-- `ceil q` is the smallest integer `z` such that `q ≤ z` -/
+def ceil (r : ℚ) : ℤ :=
+-(floor (-r))
 
 theorem ceil_le {z : ℤ} {r : ℚ} : ceil r ≤ z ↔ r ≤ z :=
 by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]

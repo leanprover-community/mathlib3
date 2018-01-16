@@ -567,7 +567,7 @@ lemma of_rat_mem_nonneg_iff {q : ℚ} : of_rat q ∈ nonneg ↔ 0 ≤ q :=
   of_rat_mem_nonneg⟩
 
 lemma of_rat_le {q₁ q₂ : ℚ} : of_rat q₁ ≤ of_rat q₂ ↔ q₁ ≤ q₂ :=
-by rw [le_def, of_rat_sub, of_rat_mem_nonneg_iff, le_sub_iff_add_le]; simp
+by rw [le_def, of_rat_sub, of_rat_mem_nonneg_iff, le_sub_right_iff_add_le]; simp
 
 lemma two_eq_of_rat_two : 2 = of_rat 2 := by simp [bit0, of_rat_add, of_rat_one]
 
@@ -764,7 +764,7 @@ have ∀a ∈ u ∩ of_rat '' {q : ℚ | 0 ≤ q}, a - of_rat i ∈ nonneg,
     have of_rat q ∈ v, from hiq q $ by simp [abs_of_nonneg hq, *],
     have of_rat q ∈ u ∩ v, from ⟨heq.symm ▸ hau, this⟩,
     by rwa [huv] at this,
-  heq ▸ by simp [of_rat_mem_nonneg_iff, -sub_eq_add_neg, le_sub_iff_add_le, this],
+  heq ▸ by simp [of_rat_mem_nonneg_iff, -sub_eq_add_neg, le_sub_right_iff_add_le, this],
 have r - of_rat i ∈ nonneg,
   from @mem_closure_of_continuous _ _ _ _ (λr, r - of_rat i) _ (u ∩ of_rat '' {q | 0 ≤ q}) _
     (continuous_sub continuous_id continuous_const) ‹r ∈ closure (u ∩ of_rat '' {q | 0 ≤ q})› this,

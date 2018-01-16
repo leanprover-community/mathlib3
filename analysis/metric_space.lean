@@ -150,7 +150,7 @@ have d : ∀p₁ p₂ q₁ q₂:α, dist p₁ q₁ - dist p₂ q₂ ≤ dist p�
     from calc dist p₁ q₁ ≤ dist p₁ p₂ + dist p₂ q₁ : dist_triangle _ _ _
       ... ≤ dist p₁ p₂ + (dist p₂ q₂ + dist q₂ q₁) : add_le_add_left (dist_triangle _ _ _) _
       ... = _ : by simp [dist_comm],
-  sub_le_iff_le_add.mpr this,
+  sub_right_le_iff_le_add.mpr this,
 have ∀{ε} {p₁ p₂ q₁ q₂ : α},
   ε > 0 → dist p₁ p₂ < ε / 2 → dist q₁ q₂ < ε / 2 → dist (dist p₁ q₁) (dist p₂ q₂) < ε,
   from assume ε p₁ p₂ q₁ q₂ hε h₁ h₂,

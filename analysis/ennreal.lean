@@ -824,17 +824,18 @@ top_unique $ le_Inf $ by simp [forall_ennreal, hr] {contextual := tt}; refl
 @[simp] lemma of_real_sub_of_real (hr : 0 ≤ r) : of_real p - of_real r = of_real (p - r) :=
 match le_total p r with
 | or.inr h :=
-  have 0 ≤ p - r, from le_sub_iff_add_le.mpr $ by simp [h],
+  have 0 ≤ p - r, from le_sub_right_iff_add_le.mpr $ by simp [h],
   have eq : r + (p - r) = p, by rw [add_comm, sub_add_cancel],
   le_antisymm
     (Inf_le $ by simp [-sub_eq_add_neg, this, hr, le_trans hr h, eq, le_refl])
     (le_Inf $
-      by simp [forall_ennreal, hr, le_trans hr h, add_nonneg, -sub_eq_add_neg, this]
+      by simp [forall_ennreal, hr, le_trans hr h, add_nonneg, -sub_eq_add_neg,
+        this, sub_right_le_iff_le_add]
         {contextual := tt})
 | or.inl h :=
   begin
     rw [sub_eq_zero_of_le, of_real_of_nonpos],
-    { rw [sub_le_iff_le_add], simp [h] },
+    { rw [sub_right_le_iff_le_add], simp [h] },
     { exact of_real_le_of_real h }
   end
 end

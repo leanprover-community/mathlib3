@@ -42,16 +42,11 @@ le_infi $ assume a, le_infi $ assume b, le_infi $ assume hab, le_infi $ assume h
 
 lemma lebesgue_length_Ico_le_lebesgue_length_Ico {a₁ b₁ a₂ b₂ : ℝ} (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) :
   lebesgue_length (Ico a₁ b₁) ≤ lebesgue_length (Ico a₂ b₂) :=
-by_cases
+(le_total b₁ a₁).elim
   (assume : b₁ ≤ a₁, by simp [Ico_eq_empty_iff.mpr this])
-  (assume : ¬ b₁ ≤ a₁,
-    have h₁ : a₁ ≤ b₁, from le_of_lt $ not_le.mp this,
+  (assume h₁ : a₁ ≤ b₁,
     have h₂ : a₂ ≤ b₂, from le_trans (le_trans ha h₁) hb,
-    have b₁ + a₂ ≤ a₁ + (b₂ - a₂) + a₂,
-      from calc b₁ + a₂ ≤ b₂ + a₁ : add_le_add hb ha
-        ... = a₁ + (b₂ - a₂) + a₂ : by rw [add_sub, sub_add_cancel, add_comm],
-    have b₁ ≤ a₁ + (b₂ - a₂), from le_of_add_le_add_right this,
-    by simp [h₁, h₂, -sub_eq_add_neg]; exact this)
+    by simp [h₁, h₂, -sub_eq_add_neg]; exact sub_le_sub hb ha)
 
 lemma lebesgue_length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
   (hab : a ≤ b) (hcd : ∀i, c i ≤ d i) (habcd : Ico a b ⊆ (⋃i, Ico (c i) (d i))) :
@@ -66,8 +61,8 @@ let ⟨x, hx⟩ := exists_supremum_real ‹a ∈ M› ‹b ∈ upper_bounds M›
 have h' : is_lub ((λx, of_real (x - a)) '' M) (of_real (x - a)),
   from is_lub_of_is_lub_of_tendsto
     (assume x ⟨hx, _, _⟩ y ⟨hy, _, _⟩ h,
-      have hx : 0 ≤ x - a, by rw [le_sub_iff_add_le]; simp [hx],
-      have hy : 0 ≤ y - a, by rw [le_sub_iff_add_le]; simp [hy],
+      have hx : 0 ≤ x - a, by rw [le_sub_right_iff_add_le]; simp [hx],
+      have hy : 0 ≤ y - a, by rw [le_sub_right_iff_add_le]; simp [hy],
       by rw [ennreal.of_real_le_of_real_iff hx hy]; from sub_le_sub h (le_refl a))
     hx
     (ne_empty_iff_exists_mem.mpr ⟨a, ‹_›⟩)
@@ -154,12 +149,12 @@ outer_measure.caratheodory_is_measurable $ assume t, by_cases
     begin
       cases le_total a c with hac hca; cases le_total b c with hbc hcb;
       simp [*, max_eq_right, max_eq_left, min_eq_left, min_eq_right, le_refl,
-        -sub_eq_add_neg, add_sub_cancel'_right, add_sub],
-      { show of_real (b + b - a - a) ≤ of_real (b - a),
-        rw [ennreal.of_real_of_nonpos],
-        { apply zero_le },
-        { have : b ≤ a, from le_trans hbc hca,
-          simpa using sub_nonpos.2 (add_le_add this this) } }
+        -sub_eq_add_neg, sub_add_sub_cancel'],
+      show of_real (b - a + (b - a)) ≤ of_real (b - a),
+      rw [ennreal.of_real_of_nonpos],
+      { apply zero_le },
+      { have : b - a ≤ 0, from sub_nonpos.2 (le_trans hbc hca),
+        simpa using add_le_add this this }
     end)
   (assume h, by simp at h; from le_lebesgue_length h)
 
@@ -208,8 +203,8 @@ have hsm : ∀i j, j ≤ i → s i ≤ s j,
     from assume j, nat.cast_pos.2 $ add_pos_of_nonneg_of_pos (nat.zero_le j) zero_lt_one,
   have h₂ : (↑(j + 1) : ℝ) ≤ ↑(i + 1), from nat.cast_le.2 $ add_le_add hij (le_refl _),
   add_le_add (le_refl _) $
-  mul_le_mul (le_refl _) (inv_le_inv _ _ (h₁ j) h₂) (le_of_lt $ inv_pos $ h₁ i) $
-    by simp [le_sub_iff_add_le, -sub_eq_add_neg, le_of_lt h],
+  mul_le_mul (le_refl _) (inv_le_inv_of_le (h₁ j) h₂) (le_of_lt $ inv_pos $ h₁ i) $
+    by simp [le_sub_right_iff_add_le, -sub_eq_add_neg, le_of_lt h],
 have has : ∀i, a < s i,
   from assume i,
   have (0:ℝ) < ↑(i + 1), from nat.cast_pos.2 $ lt_add_of_le_of_pos (nat.zero_le _) zero_lt_one,

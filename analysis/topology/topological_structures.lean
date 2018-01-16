@@ -691,7 +691,8 @@ begin
       exact lt_of_add_lt_add_right this } },
   { have h : {b | abs (a + -b) < r} = {b | a - r < b} ∩ {b | b < a + r},
       from set.ext (assume b,
-        by simp [abs_lt, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm, sub_lt, lt_sub_iff, and_comm]),
+        by simp [abs_lt, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm,
+          sub_lt, lt_sub_iff, and_comm, sub_left_lt_iff_lt_add]),
     rw [h, ← inf_principal],
     apply le_inf _ _,
     { exact infi_le_of_le {b : α | a - r < b} (infi_le_of_le (sub_lt_self a hr) $

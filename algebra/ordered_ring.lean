@@ -99,6 +99,9 @@ le_iff_le_iff_lt_iff_lt.1 (mul_le_mul_left_of_neg h)
 @[simp] lemma mul_lt_mul_right_of_neg {a b c : α} (h : c < 0) : a * c < b * c ↔ b < a :=
 le_iff_le_iff_lt_iff_lt.1 (mul_le_mul_right_of_neg h)
 
+lemma sub_one_lt (a : α) : a - 1 < a :=
+sub_lt_iff.2 (lt_add_one a)
+
 end linear_ordered_ring
 
 set_option old_structure_cmd true

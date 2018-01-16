@@ -32,6 +32,54 @@ by rw [← int.coe_nat_zero, coe_nat_inj']
 @[simp] theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
+/- succ and pred -/
+
+/-- Immediate successor of an integer: `succ n = n + 1` -/
+def succ (a : ℤ) := a + 1
+
+/-- Immediate predecessor of an integer: `pred n = n - 1` -/
+def pred (a : ℤ) := a - 1
+
+theorem nat_succ_eq_int_succ (n : ℕ) : (nat.succ n : ℤ) = int.succ n := rfl
+
+theorem pred_succ (a : ℤ) : pred (succ a) = a := add_sub_cancel _ _
+
+theorem succ_pred (a : ℤ) : succ (pred a) = a := sub_add_cancel _ _
+
+theorem neg_succ (a : ℤ) : -succ a = pred (-a) := neg_add _ _
+
+theorem succ_neg_succ (a : ℤ) : succ (-succ a) = -a :=
+by rw [neg_succ, succ_pred]
+
+theorem neg_pred (a : ℤ) : -pred a = succ (-a) :=
+by rw [eq_neg_of_eq_neg (neg_succ (-a)).symm, neg_neg]
+
+theorem pred_neg_pred (a : ℤ) : pred (-pred a) = -a :=
+by rw [neg_pred, pred_succ]
+
+theorem pred_nat_succ (n : ℕ) : pred (nat.succ n) = n := pred_succ n
+
+theorem neg_nat_succ (n : ℕ) : -(nat.succ n : ℤ) = pred (-n) := neg_succ n
+
+theorem succ_neg_nat_succ (n : ℕ) : succ (-nat.succ n) = -n := succ_neg_succ n
+
+theorem lt_succ_self (a : ℤ) : a < succ a :=
+lt_add_of_pos_right _ zero_lt_one
+
+theorem pred_self_lt (a : ℤ) : pred a < a :=
+sub_lt_self _ zero_lt_one
+
+theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
+
+theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
+@add_le_add_iff_right _ _ a b 1
+
+theorem sub_one_le_iff {a b : ℤ} : a - 1 < b ↔ a ≤ b :=
+sub_right_lt_iff_lt_add.trans lt_add_one_iff
+
+theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
+le_sub_right_iff_add_le
+
 /- /  -/
 
 theorem of_nat_div (m n : nat) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
@@ -509,19 +557,21 @@ int.div_eq_of_eq_mul_right H3 $
 by rw [← int.mul_div_assoc _ H2]; exact
 (int.div_eq_of_eq_mul_left H4 H5.symm).symm
 
-theorem of_nat_add_neg_succ_of_nat_of_lt {m n : ℕ} (h : m < succ n) : of_nat m + -[1+n] = -[1+ n - m] :=
+theorem of_nat_add_neg_succ_of_nat_of_lt {m n : ℕ}
+  (h : m < n.succ) : of_nat m + -[1+n] = -[1+ n - m] :=
 begin
  change sub_nat_nat _ _ = _,
- have h' : succ n - m = succ (n - m),
+ have h' : n.succ - m = (n - m).succ,
  apply succ_sub,
  apply le_of_lt_succ h,
  simp [*, sub_nat_nat]
 end
 
-theorem of_nat_add_neg_succ_of_nat_of_ge {m n : ℕ} (h : m ≥ succ n) : of_nat m + -[1+n] = of_nat (m - succ n) :=
+theorem of_nat_add_neg_succ_of_nat_of_ge {m n : ℕ}
+  (h : m ≥ n.succ) : of_nat m + -[1+n] = of_nat (m - n.succ) :=
 begin
  change sub_nat_nat _ _ = _,
- have h' : succ n - m = 0,
+ have h' : n.succ - m = 0,
  apply sub_eq_zero_of_le h,
  simp [*, sub_nat_nat]
 end
@@ -535,15 +585,15 @@ attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
   have, {
-    refine (λ a b, sub_nat_nat_elim a (succ b)
-      (λ m n i, n = succ b → nat_abs i ≤ succ (m + b)) _ _ rfl);
+    refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
+      (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ _ rfl);
     intros i n e,
     { subst e, rw [add_comm _ i, add_assoc],
-      exact nat.le_add_right i (succ (succ b + b)) },
+      exact nat.le_add_right i (b.succ + b).succ },
     { apply succ_le_succ,
       rw [← succ_inj e, ← add_assoc, add_comm],
       apply nat.le_add_right } },
-  cases a; cases b with b b; simp [nat_abs, succ_add];
+  cases a; cases b with b b; simp [nat_abs, nat.succ_add];
   try {refl}; [skip, rw add_comm a b]; apply this
 end
 
@@ -555,41 +605,6 @@ by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]
-
-/-- Immediate successor of an integer: `succ n = n + 1` -/
-def succ (a : ℤ) := a + 1
-
-/-- Immediate predecessor of an integer: `pred n = n - 1` -/
-def pred (a : ℤ) := a - 1
-
-theorem nat_succ_eq_int_succ (n : ℕ) : (nat.succ n : ℤ) = int.succ n := rfl
-
-theorem pred_succ (a : ℤ) : pred (succ a) = a := add_sub_cancel _ _
-
-theorem succ_pred (a : ℤ) : succ (pred a) = a := sub_add_cancel _ _
-
-theorem neg_succ (a : ℤ) : -succ a = pred (-a) := neg_add _ _
-
-theorem succ_neg_succ (a : ℤ) : succ (-succ a) = -a :=
-by rw [neg_succ, succ_pred]
-
-theorem neg_pred (a : ℤ) : -pred a = succ (-a) :=
-by rw [eq_neg_of_eq_neg (neg_succ (-a)).symm, neg_neg]
-
-theorem pred_neg_pred (a : ℤ) : pred (-pred a) = -a :=
-by rw [neg_pred, pred_succ]
-
-theorem pred_nat_succ (n : ℕ) : pred (nat.succ n) = n := pred_succ n
-
-theorem neg_nat_succ (n : ℕ) : -(nat.succ n : ℤ) = pred (-n) := neg_succ n
-
-theorem succ_neg_nat_succ (n : ℕ) : succ (-nat.succ n) = -n := succ_neg_succ n
-
-theorem lt_succ_self (a : ℤ) : a < succ a :=
-lt_add_of_pos_right _ zero_lt_one
-
-theorem pred_self_lt (a : ℤ) : pred a < a :=
-sub_lt_self _ zero_lt_one
 
 /- to_nat -/
 
@@ -823,6 +838,33 @@ congr_arg coe (nat.one_shiftl _)
 | -[1+ n] := congr_arg coe (nat.zero_shiftr _)
 
 @[simp] lemma zero_shiftr (n) : shiftr 0 n = 0 := zero_shiftl _
+
+/- Least upper bound property for integers -/
+
+theorem exists_least_of_bdd {P : ℤ → Prop} [HP : decidable_pred P]
+    (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → b ≤ z)
+        (Hinh : ∃ z : ℤ, P z) : ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
+let ⟨b, Hb⟩ := Hbdd in
+have EX : ∃ n : ℕ, P (b + n), from
+  let ⟨elt, Helt⟩ := Hinh in
+  match elt, le.dest (Hb _ Helt), Helt with
+  | ._, ⟨n, rfl⟩, Hn := ⟨n, Hn⟩
+  end,
+⟨b + (nat.find EX : ℤ), nat.find_spec EX, λ z h,
+  match z, le.dest (Hb _ h), h with
+  | ._, ⟨n, rfl⟩, h := add_le_add_left
+    (int.coe_nat_le.2 $ nat.find_min' _ h) _
+  end⟩
+
+theorem exists_greatest_of_bdd {P : ℤ → Prop} [HP : decidable_pred P]
+    (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b)
+        (Hinh : ∃ z : ℤ, P z) : ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
+have Hbdd' : ∃ (b : ℤ), ∀ (z : ℤ), P (-z) → b ≤ z, from
+let ⟨b, Hb⟩ := Hbdd in ⟨-b, λ z h, neg_le.1 (Hb _ h)⟩,
+have Hinh' : ∃ z : ℤ, P (-z), from
+let ⟨elt, Helt⟩ := Hinh in ⟨-elt, by rw [neg_neg]; exact Helt⟩,
+let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
+⟨-lb, Plb, λ z h, le_neg.1 $ al _ $ by rwa neg_neg⟩
 
 /- cast (injection into groups with one) -/
 

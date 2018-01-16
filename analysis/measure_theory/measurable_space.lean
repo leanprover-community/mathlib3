@@ -441,6 +441,7 @@ lemma of_measurable_space_le_of_measurable_space_iff {m₁ m₂ : measurable_spa
   of_measurable_space m₁ ≤ of_measurable_space m₂ ↔ m₁ ≤ m₂ :=
 iff.refl _
 
+/-- The least Dynkin system containing a collection of basic sets. -/
 inductive generate_has (s : set (set α)) : set α → Prop
 | basic : ∀t∈s, generate_has t
 | empty : generate_has ∅

@@ -403,21 +403,13 @@ section add_comm_group
   lemma sub_sub_swap (a b c : α) : a - b - c = a - c - b :=
   by simp
 
+  lemma sub_add_sub_cancel' (a b c : α) : (a - b) + (c - a) = c - b :=
+  by rw add_comm; apply sub_add_sub_cancel
+
   lemma sub_sub_sub_cancel_left (a b c : α) : (c - a) - (c - b) = b - a :=
   by simp
 
 end add_comm_group
-
-section ordered_comm_group
-variables [ordered_comm_group α]
-
-theorem le_sub_iff_add_le {a b c : α} : a ≤ b - c ↔ a + c ≤ b :=
-by rw [add_comm]; exact ⟨add_le_of_le_sub_left, le_sub_left_of_add_le⟩
-
-theorem sub_le_iff_le_add {a b c : α} : a - c ≤ b ↔ a ≤ b + c :=
-by rw [add_comm]; exact ⟨le_add_of_sub_left_le, sub_left_le_of_le_add⟩
-
-end ordered_comm_group
 
 variables {β : Type*} [group α] [group β] {a b : α}
 

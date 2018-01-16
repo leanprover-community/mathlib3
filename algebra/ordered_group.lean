@@ -275,14 +275,14 @@ by rwa sub_self at this
 have a - b < b - b ↔ a < b, from sub_lt_sub_iff_right b,
 by rwa sub_self at this
 
-@[simp] lemma le_neg_add_iff_add_le : b ≤ -a + c ↔ a + b ≤ c :=
+lemma le_neg_add_iff_add_le : b ≤ -a + c ↔ a + b ≤ c :=
 have -a + (a + b) ≤ -a + c ↔ a + b ≤ c, from add_le_add_iff_left _,
 by rwa neg_add_cancel_left at this
 
 lemma le_sub_left_iff_add_le : b ≤ c - a ↔ a + b ≤ c :=
 by rw [sub_eq_add_neg, add_comm, le_neg_add_iff_add_le]
 
-@[simp] lemma le_sub_right_iff_add_le : a ≤ c - b ↔ a + b ≤ c :=
+lemma le_sub_right_iff_add_le : a ≤ c - b ↔ a + b ≤ c :=
 by rw [le_sub_left_iff_add_le, add_comm]
 
 @[simp] lemma neg_add_le_iff_le_add : -b + a ≤ c ↔ a ≤ b + c :=
@@ -292,7 +292,7 @@ by rwa neg_add_cancel_left at this
 lemma sub_left_le_iff_le_add : a - b ≤ c ↔ a ≤ b + c :=
 by rw [sub_eq_add_neg, add_comm, neg_add_le_iff_le_add]
 
-@[simp] lemma sub_right_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
+lemma sub_right_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
 by rw [sub_left_le_iff_le_add, add_comm]
 
 lemma neg_add_le_iff_le_add_right : -c + a ≤ b ↔ a ≤ b + c :=
@@ -307,6 +307,9 @@ by rw [neg_le_sub_iff_le_add, add_comm]
 lemma sub_le : a - b ≤ c ↔ a - c ≤ b :=
 sub_left_le_iff_le_add.trans sub_right_le_iff_le_add.symm
 
+theorem le_sub : a ≤ b - c ↔ c ≤ b - a :=
+le_sub_left_iff_add_le.trans le_sub_right_iff_add_le.symm
+
 @[simp] lemma lt_neg_add_iff_add_lt : b < -a + c ↔ a + b < c :=
 have -a + (a + b) < -a + c ↔ a + b < c, from add_lt_add_iff_left _,
 by rwa neg_add_cancel_left at this
@@ -314,7 +317,7 @@ by rwa neg_add_cancel_left at this
 lemma lt_sub_left_iff_add_lt : b < c - a ↔ a + b < c :=
 by rw [sub_eq_add_neg, add_comm, lt_neg_add_iff_add_lt]
 
-@[simp] lemma lt_sub_right_iff_add_lt : a < c - b ↔ a + b < c :=
+lemma lt_sub_right_iff_add_lt : a < c - b ↔ a + b < c :=
 by rw [lt_sub_left_iff_add_lt, add_comm]
 
 @[simp] lemma neg_add_lt_iff_lt_add : -b + a < c ↔ a < b + c :=
@@ -324,7 +327,7 @@ by rwa neg_add_cancel_left at this
 lemma sub_left_lt_iff_lt_add : a - b < c ↔ a < b + c :=
 by rw [sub_eq_add_neg, add_comm, neg_add_lt_iff_lt_add]
 
-@[simp] lemma sub_right_lt_iff_lt_add : a - c < b ↔ a < b + c :=
+lemma sub_right_lt_iff_lt_add : a - c < b ↔ a < b + c :=
 by rw [sub_left_lt_iff_lt_add, add_comm]
 
 lemma neg_add_lt_iff_lt_add_right : -c + a < b ↔ a < b + c :=

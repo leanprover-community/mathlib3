@@ -8,6 +8,11 @@ import algebra.ordered_ring algebra.field
 section linear_ordered_field
 variables {α : Type*} [linear_ordered_field α] {a b c d : α}
 
+def div_pos := @div_pos_of_pos_of_pos
+
+lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
+by rw [inv_eq_one_div]; exact div_pos zero_lt_one
+
 lemma one_le_div_iff_le (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
 ⟨le_of_one_le_div a hb, one_le_div_of_le a hb⟩
 
@@ -38,20 +43,30 @@ le_iff_le_iff_lt_iff_lt.1 (le_div_iff hc)
 lemma div_lt_iff_of_neg (hc : c < 0) : b / c < a ↔ a * c < b :=
 ⟨mul_lt_of_gt_div_of_neg hc, div_lt_of_mul_gt_of_neg hc⟩
 
-lemma inv_le_inv' (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
+lemma inv_le_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by rw [inv_eq_one_div, div_le_iff ha,
        ← div_eq_inv_mul, one_le_div_iff_le hb]
 
+lemma inv_le (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
+by rw [← inv_le_inv hb (inv_pos ha), division_ring.inv_inv (ne_of_gt ha)]
+
+lemma le_inv (ha : 0 < a) (hb : 0 < b) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
+by rw [← inv_le_inv (inv_pos hb) ha, division_ring.inv_inv (ne_of_gt hb)]
+
 lemma one_div_le_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a ≤ 1 / b ↔ b ≤ a :=
-by simpa [one_div_eq_inv] using inv_le_inv' ha hb
+by simpa [one_div_eq_inv] using inv_le_inv ha hb
 
 lemma inv_lt_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b⁻¹ ↔ b < a :=
-le_iff_le_iff_lt_iff_lt.1 (inv_le_inv' hb ha)
+le_iff_le_iff_lt_iff_lt.1 (inv_le_inv hb ha)
+
+lemma inv_lt (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b ↔ b⁻¹ < a :=
+le_iff_le_iff_lt_iff_lt.1 (le_inv hb ha)
+
+lemma lt_inv (ha : 0 < a) (hb : 0 < b) : a < b⁻¹ ↔ b < a⁻¹ :=
+le_iff_le_iff_lt_iff_lt.1 (inv_le hb ha)
 
 lemma one_div_lt_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a < 1 / b ↔ b < a :=
 le_iff_le_iff_lt_iff_lt.1 (one_div_le_one_div hb ha)
-
-def div_pos := @div_pos_of_pos_of_pos
 
 def div_nonneg := @div_nonneg_of_nonneg_of_pos
 
@@ -96,7 +111,7 @@ calc (λx, x + c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x - c) ⁻¹' {r | a ≤
     congr_fun (set.image_eq_preimage_of_inverse
       (assume a, add_sub_cancel a c) (assume b, sub_add_cancel b c)) _
   ... = {r | a + c ≤ r ∧ r ≤ b + c} :
-    set.ext $ by simp [-sub_eq_add_neg, le_sub_iff_add_le, sub_le_iff_le_add]
+    set.ext $ by simp [-sub_eq_add_neg, le_sub_right_iff_add_le, sub_right_le_iff_le_add]
 
 lemma ivl_stretch (hc : 0 < c) : (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = {r | a * c ≤ r ∧ r ≤ b * c} :=
 calc (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x / c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :
@@ -119,9 +134,6 @@ instance linear_ordered_field.to_no_bot_order [linear_ordered_field α] : no_bot
 { no_bot := assume a, ⟨a + -1,
     add_lt_of_le_of_neg (le_refl _) (neg_lt_of_neg_lt $ by simp [zero_lt_one]) ⟩ }
 
-lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
-by rw [inv_eq_one_div]; exact div_pos_of_pos_of_pos zero_lt_one
-
 lemma inv_lt_one {a : α} (ha : 1 < a) : a⁻¹ < 1 :=
 by rw [inv_eq_one_div]; exact div_lt_of_mul_lt_of_pos (lt_trans zero_lt_one ha) (by simp *)
 
@@ -143,8 +155,7 @@ if h : a = 0
 then by simp [h, inv_zero]
 else by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
-lemma inv_le_inv (hb : 0 < b) (h : b ≤ a) :
-  a⁻¹ ≤ b⁻¹ :=
+lemma inv_le_inv_of_le {a b : α} (hb : 0 < b) (h : b ≤ a) : a⁻¹ ≤ b⁻¹ :=
 begin
   rw [inv_eq_one_div, inv_eq_one_div],
   exact one_div_le_one_div_of_le hb h

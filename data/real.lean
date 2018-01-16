@@ -335,6 +335,7 @@ def of_rat (x : ℚ) : ℝ := mk (of_rat x)
 
 instance : has_zero ℝ := ⟨of_rat 0⟩
 instance : has_one ℝ := ⟨of_rat 1⟩
+instance inhabited_real : inhabited ℝ := ⟨0⟩
 
 theorem of_rat_zero : of_rat 0 = 0 := rfl
 theorem of_rat_one : of_rat 1 = 1 := rfl
@@ -527,17 +528,29 @@ theorem mk_le_of_forall_le (f : cau_seq) (x : ℝ) :
 | ⟨i, H⟩ := by rw [← neg_le_neg_iff, mk_neg]; exact
   le_mk_of_forall_le _ _ ⟨i, λ j ij, by simp [H _ ij]⟩
 
-theorem archimedean (x : ℝ) : ∃ n : ℕ, x < n :=
+theorem exists_rat_gt (x : ℝ) : ∃ n : ℚ, x < n :=
 quotient.induction_on x $ λ f,
 let ⟨M, M0, H⟩ := f.bounded' 0 in
-⟨nat_ceil M + 1,
-  by rw [← cast_coe_nat, ← of_rat_eq_cast]; exact
-  ⟨1, zero_lt_one, 0, λ i _,
-    le_sub_left_iff_add_le.2 $ (add_le_add_iff_right _).2 $
-    le_trans (le_of_lt (abs_lt.1 (H _)).2) (le_nat_ceil _)⟩⟩
+⟨M + 1, by rw ← of_rat_eq_cast; exact
+  ⟨1, zero_lt_one, 0, λ i _, le_sub_left_iff_add_le.2 $
+    (add_le_add_iff_right _).2 $ le_of_lt (abs_lt.1 (H i)).2⟩⟩
+
+theorem exists_nat_gt (x : ℝ) : ∃ n : ℕ, x < n :=
+let ⟨q, h⟩ := exists_rat_gt x in
+⟨nat_ceil q, lt_of_lt_of_le h $ 
+   by simpa using (@rat.cast_le ℝ _ _ _).2 (le_nat_ceil _)⟩
+
+theorem exists_int_gt (x : ℝ) : ∃ n : ℤ, x < n :=
+let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by simp [h]⟩
+
+theorem exists_int_lt (x : ℝ) : ∃ n : ℤ, (n:ℝ) < x :=
+let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by simp [neg_lt.1 h]⟩
+
+theorem exists_rat_lt (x : ℝ) : ∃ n : ℚ, (n:ℝ) < x :=
+let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by simp [neg_lt.1 h]⟩
 
 theorem exists_pos_rat_lt {x : ℝ} (x0 : 0 < x) : ∃ q : ℚ, 0 < q ∧ (q:ℝ) < x :=
-let ⟨n, h⟩ := archimedean x⁻¹ in
+let ⟨n, h⟩ := exists_nat_gt x⁻¹ in
 ⟨n.succ⁻¹, inv_pos (nat.cast_pos.2 (nat.succ_pos n)), begin
   rw [rat.cast_inv, inv_eq_one_div,
       div_lt_iff, mul_comm, ← div_lt_iff x0, one_div_eq_inv],
@@ -574,10 +587,9 @@ end
 theorem exists_floor (x : ℝ) : ∃ (ub : ℤ), (ub:ℝ) ≤ x ∧ 
    ∀ (z : ℤ), (z:ℝ) ≤ x → z ≤ ub :=
 int.exists_greatest_of_bdd
-  (let ⟨n, hn⟩ := archimedean x in ⟨n, λ z h',
-    int.cast_le.1 $ le_trans h' $ le_of_lt $ by simpa⟩)
-  (let ⟨n, hn⟩ := archimedean (-x) in ⟨-n,
-    by simpa using neg_le.1 (le_of_lt hn)⟩)
+  (let ⟨n, hn⟩ := exists_int_gt x in ⟨n, λ z h',
+    int.cast_le.1 $ le_trans h' $ le_of_lt hn⟩)
+  (let ⟨n, hn⟩ := exists_int_lt x in ⟨n, le_of_lt hn⟩)
 
 /-- `floor x` is the largest integer `z` such that `z ≤ x` -/
 noncomputable def floor (x : ℝ) : ℤ := classical.some (exists_floor x)
@@ -652,7 +664,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
   have,
   { refine λ d : ℕ, @int.exists_greatest_of_bdd
       (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _ _,
-    { cases archimedean U with k hk,
+    { cases exists_int_gt U with k hk,
       refine ⟨k * d, λ z h, _⟩,
       rcases h with ⟨y, yS, hy⟩,
       refine int.cast_le.1 (le_trans hy _),
@@ -675,7 +687,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
   suffices hg, let g : cau_seq := ⟨λ n, f n / n, hg⟩,
   refine ⟨mk g, λ y, ⟨λ h x xS, le_trans _ h, λ h, _⟩⟩,
   { refine le_of_forall_ge_of_dense (λ z xz, _),
-    cases archimedean (x - z)⁻¹ with K hK,
+    cases exists_nat_gt (x - z)⁻¹ with K hK,
     refine le_mk_of_forall_le _ _ ⟨K, λ n nK, _⟩,
     replace xz := sub_pos.2 xz,
     replace hK := le_trans (le_of_lt hK) (nat.cast_le.2 nK),

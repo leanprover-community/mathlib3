@@ -9,6 +9,7 @@ We say two types are equivalent if they are isomorphic.
 Two equivalent types have the same cardinality.
 -/
 import data.prod data.nat.pairing logic.function tactic data.set.basic
+import algebra.group
 open function
 
 universes u v w
@@ -77,6 +78,9 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e�
     show g₁ x = g₂ x,           from injective_of_left_inverse l₁ this,
   by simp *
 
+lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
+eq_of_to_fun_eq (funext H)
+
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
 
 @[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
@@ -122,6 +126,14 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
   show f₁ x = y ↔ x = g₁ y; from
   ⟨λ e : f₁ x = y, e ▸ (l₁ x).symm,
    λ e : x = g₁ y, e.symm ▸ r₁ y⟩
+
+/- The group of permutations (self-equivalences) of a type `α` -/
+instance perm_group {α : Type*} : group (perm α) :=
+begin 
+  refine { mul := λ f g, equiv.trans g f, one := equiv.refl α, inv:= equiv.symm, ..};
+  intros; apply equiv.ext; try { apply trans_apply },
+  apply inverse_apply_apply
+end
 
 def equiv_empty (h : α → false) : α ≃ empty :=
 ⟨λ x, (h x).elim, λ e, e.rec _, λ x, (h x).elim, λ e, e.rec _⟩

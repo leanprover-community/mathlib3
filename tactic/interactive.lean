@@ -60,9 +60,10 @@ will simplify the hypothesis `e` using `rules`, then simplify the goal using `ru
 try to close the goal using `assumption`. If `e` is a term instead of a local constant,
 it is first added to the local context using `have`.
 -/
-meta def simpa (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
+meta def simpa (use_iota_eqn : parse $ (tk "!")?) (no_dflt : parse only_flag)
+  (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (tgt : parse (tk "using" *> texpr)?) (cfg : simp_config_ext := {}) : tactic unit :=
-let simp_at (lc) := simp no_dflt hs attr_names (loc.ns lc) cfg >> try (assumption <|> trivial) in
+let simp_at (lc) := simp use_iota_eqn no_dflt hs attr_names (loc.ns lc) cfg >> try (assumption <|> trivial) in
 match tgt with
 | none := get_local `this >> simp_at [some `this, none] <|> simp_at [none]
 | some e :=

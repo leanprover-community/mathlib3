@@ -128,7 +128,7 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
    λ e : x = g₁ y, e.symm ▸ r₁ y⟩
 
 /- The group of permutations (self-equivalences) of a type `α` -/
-instance perm_group {α : Type*} : group (perm α) :=
+instance perm_group {α : Type u} : group (perm α) :=
 begin 
   refine { mul := λ f g, equiv.trans g f, one := equiv.refl α, inv:= equiv.symm, ..};
   intros; apply equiv.ext; try { apply trans_apply },

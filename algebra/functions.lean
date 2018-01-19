@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.order
+import algebra.ordered_group
 
 universe u
 variables {α : Type u}
@@ -84,7 +84,7 @@ by rw [min_comm, min_max_distrib_left, min_comm, min_comm b]
 end
 
 section decidable_linear_ordered_comm_group
-variables [decidable_linear_ordered_comm_group α] {a b : α}
+variables [decidable_linear_ordered_comm_group α] {a b c : α}
 
 attribute [simp] abs_zero abs_neg
 
@@ -97,6 +97,17 @@ theorem abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 ⟨assume h, ⟨neg_lt_of_neg_lt $ lt_of_le_of_lt (neg_le_abs_self _) h, lt_of_le_of_lt (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_lt_of_lt_of_neg_lt h₂ $ neg_lt_of_neg_lt h₁⟩
+
+lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
+by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
+
+lemma abs_sub_lt_iff : abs (a - b) < c ↔ a - b < c ∧ b - a < c :=
+by rw [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ b, and_comm]
+
+def sub_abs_le_abs_sub := @abs_sub_abs_le_abs_sub
+
+lemma abs_abs_sub_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
+abs_sub_le_iff.2 ⟨sub_abs_le_abs_sub _ _, by rw abs_sub; apply sub_abs_le_abs_sub⟩
 
 @[simp] lemma abs_eq_zero : abs a = 0 ↔ a = 0 :=
 ⟨eq_zero_of_abs_eq_zero, λ e, e.symm ▸ abs_zero⟩

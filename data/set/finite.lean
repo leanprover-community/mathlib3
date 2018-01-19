@@ -175,6 +175,10 @@ theorem finite_of_finite_image {s : set α} {f : α → β}
 by have := classical.dec_eq β; exact
 ⟨fintype_of_fintype_image _ (partial_inv_of_injective I)⟩
 
+theorem finite_preimage {s : set β} {f : α → β}
+  (I : injective f) (h : finite s) : finite (f ⁻¹' s) :=
+finite_of_finite_image I (finite_subset h (image_preimage_subset f s))
+
 instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=
 fintype_of_finset (finset.univ.bind (λ i, (f i).to_finset)) $ by simp

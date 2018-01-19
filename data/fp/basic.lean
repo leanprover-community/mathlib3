@@ -73,22 +73,9 @@ theorem float.zero.valid : valid_finite emin 0 :=
   apply sub_nonneg_of_le,
   apply int.coe_nat_le_coe_nat_of_le,
   exact C.prec_pos
-end, begin
-  unfold emin,
-  simp, rw ← sub_eq_add_neg,
-  transitivity,
-  apply sub_left_le_of_le_add,
-  apply le_add_of_nonneg_left,
-  apply int.coe_zero_le,
-  apply int.coe_nat_le_coe_nat_of_le C.prec_max
-end, begin
-  rw max_eq_right,
-  change (nat.size 0 : ℤ) with 0,
-  simp, rw ← sub_eq_add_neg,
-  apply sub_left_le_of_le_add,
-  apply le_add_of_nonneg_left,
-  apply int.coe_zero_le
-end⟩
+end, by simpa [emin] using show (prec : ℤ) ≤ emax + float_cfg.emax,
+  from le_trans (int.coe_nat_le.2 C.prec_max) (le_add_of_nonneg_left (int.coe_zero_le _)),
+by rw max_eq_right; simp⟩
 
 def float.zero (s : bool) : float :=
 float.finite s emin 0 float.zero.valid

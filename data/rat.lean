@@ -579,8 +579,7 @@ le_floor.2 (le_trans (floor_le _) h)
 
 @[simp] theorem floor_add_int (r : ℚ) (z : ℤ) : floor (r + z) = floor r + z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor,
-  ← sub_right_le_iff_le_add, ← sub_right_le_iff_le_add,
-  le_floor, int.cast_sub]
+  ← sub_le_iff_le_add, ← sub_le_iff_le_add, le_floor, int.cast_sub]
 
 theorem floor_sub_int (r : ℚ) (z : ℤ) : floor (r - z) = floor r - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
@@ -738,6 +737,9 @@ by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn
     ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul,
     int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h
 end
+
+theorem cast_injective [char_zero α] : function.injective (coe : ℚ → α)
+| m n := cast_inj.1
 
 @[simp] theorem cast_eq_zero [char_zero α] {n : ℚ} : (n : α) = 0 ↔ n = 0 :=
 by rw [← cast_zero, cast_inj]

@@ -369,18 +369,16 @@ theorem subperm.exists_of_length_lt {l₁ l₂ : list α} :
   l₁ <+~ l₂ → length l₁ < length l₂ → ∃ a, a :: l₁ <+~ l₂
 | ⟨l, p, s⟩ h :=
   suffices length l < length l₂ → ∃ (a : α), a :: l <+~ l₂, from
-  exists_imp_exists (λ a, (skip a p).subperm_right.1) $
-    this $ perm_length p.symm ▸ h,
+  (this $ perm_length p.symm ▸ h).imp (λ a, (skip a p).subperm_right.1),
   begin
     clear subperm.exists_of_length_lt p h l₁, rename l₂ u,
     induction s with l₁ l₂ a s IH _ _ b s IH; intro h,
     { cases h },
     { cases lt_or_eq_of_le (nat.le_of_lt_succ h : length l₁ ≤ length l₂) with h h,
-      { refine exists_imp_exists _ (IH h),
-        exact λ a s, s.trans (subperm_of_sublist $ sublist_cons _ _) },
+      { exact (IH h).imp (λ a s, s.trans (subperm_of_sublist $ sublist_cons _ _)) },
       { exact ⟨a, eq_of_sublist_of_length_eq s h ▸ subperm.refl _⟩ } },
-    { refine exists_imp_exists _ (IH $ nat.lt_of_succ_lt_succ h),
-      exact λ a s, (swap _ _ _).subperm_right.1 ((subperm_cons _).2 s) }
+    { exact (IH $ nat.lt_of_succ_lt_succ h).imp
+        (λ a s, (swap _ _ _).subperm_right.1 $ (subperm_cons _).2 s) }
   end
 
 theorem subperm_of_subset_nodup

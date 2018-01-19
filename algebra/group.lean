@@ -338,6 +338,8 @@ section add_group
 
   local attribute [simp] sub_eq_add_neg
 
+  def sub_sub_cancel := @sub_sub_self
+
   @[simp] lemma sub_left_inj : a - b = a - c ↔ b = c :=
   (add_left_inj _).trans neg_inj'
 
@@ -400,7 +402,7 @@ section add_comm_group
   lemma add_sub_cancel'_right (a b : α) : a + (b - a) = b :=
   by rw [← add_sub_assoc, add_sub_cancel']
 
-  lemma sub_sub_swap (a b c : α) : a - b - c = a - c - b :=
+  lemma sub_right_comm (a b c : α) : a - b - c = a - c - b :=
   by simp
 
   lemma sub_add_sub_cancel' (a b c : α) : (a - b) + (c - a) = c - b :=

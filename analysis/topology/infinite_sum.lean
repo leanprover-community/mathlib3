@@ -80,7 +80,7 @@ have ∀x y, j x = j y → x = y,
 have (λs:finset γ, s.sum (f ∘ j)) = (λs:finset β, s.sum f) ∘ (λs:finset γ, s.image j),
   from funext $ assume s, (sum_image $ assume x _ y _, this x y).symm,
 show tendsto (λs:finset γ, s.sum (f ∘ j)) at_top (nhds a),
-   by rw [this]; apply tendsto_compose (tendsto_finset_image_at_top_at_top h₂) hf
+   by rw [this]; apply (tendsto_finset_image_at_top_at_top h₂).comp hf
 
 lemma is_sum_iff_is_sum_of_iso {j : γ → β} (i : β → γ)
   (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) :
@@ -97,22 +97,22 @@ lemma is_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ] [to
 have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
   from funext $ assume s, sum_hom g h₁ h₂,
 show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (nhds (g a)),
-  by rw [this]; exact tendsto_compose hf (continuous_iff_tendsto.mp h₃ a)
+  by rw [this]; exact hf.comp (continuous_iff_tendsto.mp h₃ a)
 
 lemma tendsto_sum_nat_of_is_sum {f : ℕ → α} (h : is_sum f a) :
   tendsto (λn:ℕ, (range n).sum f) at_top (nhds a) :=
 suffices map (λ (n : ℕ), sum (range n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
   from le_trans this h,
 assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top.sets),
-let ⟨t, ht⟩ := mem_at_top_iff.mp hs, ⟨n, hn⟩ := @exists_nat_subset_range t in
-mem_at_top_iff.mpr ⟨n, assume n' hn', ht _ $ finset.subset.trans hn $ range_subset.mpr hn'⟩
+let ⟨t, ht⟩ := mem_at_top_sets.mp hs, ⟨n, hn⟩ := @exists_nat_subset_range t in
+mem_at_top_sets.mpr ⟨n, assume n' hn', ht _ $ finset.subset.trans hn $ range_subset.mpr hn'⟩
 
 lemma is_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
   (hf : ∀b, is_sum (λc, f ⟨b, c⟩) (g b)) (ha : is_sum f a) : is_sum g a :=
 assume s' hs',
 let
   ⟨s, hs, hss', hsc⟩ := nhds_is_closed hs',
-  ⟨u, hu⟩ := mem_at_top_iff.mp $ ha $ hs,
+  ⟨u, hu⟩ := mem_at_top_sets.mp $ ha $ hs,
   fsts := u.image sigma.fst,
   snds := λb, u.bind (λp, (if h : p.1 = b then {cast (congr_arg γ h) p.2} else ∅ : finset (γ b)))
 in
@@ -121,7 +121,7 @@ have u_subset : u ⊆ fsts.sigma snds,
   have hb : b ∈ fsts, from finset.mem_image.mpr ⟨_, hu, rfl⟩,
   have hc : c ∈ snds b, from mem_bind.mpr ⟨_, hu, by simp; refl⟩,
   by simp [mem_sigma, hb, hc] ,
-mem_at_top_iff.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
+mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
   have h : ∀cs:(Πb, b ∈ bs → finset (γ b)),
       (⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
       (λp, bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩))) ⁻¹' s ≠ ∅,
@@ -137,11 +137,11 @@ mem_at_top_iff.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
   have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
       (⨅b (h : b ∈ bs), at_top.vmap (λp, p b)) (nhds (bs.sum g)),
     from tendsto_sum $
-      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_compose tendsto_vmap (hf c),
+      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_vmap.comp (hf c),
   have bs.sum g ∈ s,
     from mem_closure_of_tendsto this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
       by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,
-               filter.mem_infi_sets_finset, mem_vmap, skolem, mem_at_top_iff,
+               filter.mem_infi_sets_finset, mem_vmap_sets, skolem, mem_at_top_sets,
                and_comm];
       from
         assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
@@ -390,7 +390,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
   have cauchy (at_top.map (λs:finset β, s.sum f)),
     from cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hf,
   have ∃t, ∀u₁ u₂:finset β, t ⊆ u₁ → t ⊆ u₂ → (u₁.sum f, u₂.sum f) ∈ s,
-    by simp [cauchy_iff, mem_at_top_iff, and.assoc, and.left_comm, and.comm] at this;
+    by simp [cauchy_iff, mem_at_top_sets, and.assoc, and.left_comm, and.comm] at this;
     from let ⟨t, ht, u, hu⟩ := this s hs in
       ⟨u, assume u₁ u₂ h₁ h₂, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ h₁, hu _ h₂⟩⟩,
   let ⟨t, ht⟩ := this in

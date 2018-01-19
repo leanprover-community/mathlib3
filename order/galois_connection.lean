@@ -125,11 +125,11 @@ include gc
 
 lemma l_supr {f : ι → α} : l (supr f) = (⨆i, l (f i)) :=
 eq.symm $ is_lub_iff_supr_eq.mp $ show is_lub (range (l ∘ f)) (l (supr f)),
-  by rw [range_compose, ←Sup_range]; exact gc.is_lub_l_image is_lub_Sup
+  by rw [range_comp, ←Sup_range]; exact gc.is_lub_l_image is_lub_Sup
 
 lemma u_infi {f : ι → β} : u (infi f) = (⨅i, u (f i)) :=
 eq.symm $ is_glb_iff_infi_eq.mp $ show is_glb (range (u ∘ f)) (u (infi f)),
-  by rw [range_compose, ←Inf_range]; exact gc.is_glb_u_image is_glb_Inf
+  by rw [range_comp, ←Inf_range]; exact gc.is_glb_u_image is_glb_Inf
 
 end complete_lattice
 

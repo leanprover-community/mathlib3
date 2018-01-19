@@ -625,12 +625,12 @@ have hinf : ∀a, tendsto (λ(p : ennreal × ennreal), p.1 + p.2) ((nhds ∞).pr
 begin
   intro a,
   rw [nhds_top_orderable],
-  apply tendsto_infi _, intro b,
-  apply tendsto_infi _, intro hb,
-  apply tendsto_principal _,
+  apply tendsto_infi.2 _, intro b,
+  apply tendsto_infi.2 _, intro hb,
+  apply tendsto_principal.2 _,
   revert b,
   simp [forall_ennreal],
-  exact assume r hr hr', mem_prod_iff.mpr ⟨
+  exact assume r hr hr', mem_prod_sets.mpr ⟨
     {a | of_real r < a}, mem_nhds_sets (is_open_lt' _) hr',
     univ, univ_mem_sets, assume ⟨c, d⟩ ⟨hc, _⟩, lt_of_lt_of_le hc $ le_add_right $ le_refl _⟩
 end,
@@ -641,7 +641,7 @@ have h : ∀{p r : ℝ}, 0 ≤ p → 0 ≤ r → tendsto (λp:ennreal×ennreal, 
     rw [nhds_of_real_eq_map_of_real_nhds_nonneg hp, nhds_of_real_eq_map_of_real_nhds_nonneg hr,
       prod_map_map_eq, ←prod_inf_prod, prod_principal_principal, ←nhds_prod_eq],
     exact tendsto_map' (tendsto_cong
-      (tendsto_inf_left $ tendsto_compose tendsto_add' tendsto_of_real)
+      (tendsto_le_left inf_le_left $ tendsto_add'.comp tendsto_of_real)
       (mem_inf_sets_of_right $ mem_principal_sets.mpr $ by simp [subset_def, (∘)] {contextual:=tt}))
   end,
 have ∀{a₁ a₂ : ennreal}, tendsto (λp:ennreal×ennreal, p.1 + p.2) (nhds (a₁, a₂)) (nhds (a₁ + a₂)),
@@ -663,7 +663,7 @@ forall_ennreal.mpr $ and.intro
       have r ≠ 0, from assume h, by simp [h] at hr0; contradiction,
       have 0 < r, from lt_of_le_of_ne hr this.symm,
       have tendsto (λr, of_real (p * r)) (nhds r ⊓ principal {x : ℝ | 0 ≤ x}) (nhds (of_real (p * r))),
-        from tendsto_compose (tendsto_mul tendsto_const_nhds $ tendsto_id' inf_le_left) tendsto_of_real,
+        from tendsto.comp (tendsto_mul tendsto_const_nhds $ tendsto_id' inf_le_left) tendsto_of_real,
       begin
         rw [nhds_of_real_eq_map_of_real_nhds_nonneg hr, of_real_mul_of_real hp hr],
         apply tendsto_map' (tendsto_cong this $ mem_inf_sets_of_right $ mem_principal_sets.mpr _),
@@ -678,9 +678,9 @@ forall_ennreal.mpr $ and.intro
         have p_pos : 0 < p, from lt_of_le_of_ne hp p0.symm,
         suffices tendsto ((*) (of_real p)) (nhds ⊤) (nhds ⊤), { simpa [hp, p0] },
         by rw [nhds_top_orderable];
-        from (tendsto_infi $ assume l, tendsto_infi $ assume hl,
+        from (tendsto_infi.2 $ assume l, tendsto_infi.2 $ assume hl,
           let ⟨q, hq, hlq, _⟩ := ennreal.lt_iff_exists_of_real.mp hl in
-          tendsto_infi' (of_real (q / p)) $ tendsto_infi' of_real_lt_infty $ tendsto_principal_principal $
+          tendsto_infi' (of_real (q / p)) $ tendsto_infi' of_real_lt_infty $ tendsto_principal_principal.2 $
           forall_ennreal.mpr $ and.intro
             begin
               have : ∀r:ℝ, 0 < r → q / p < r → q < p * r ∧ 0 < p * r,
@@ -708,13 +708,13 @@ lemma supr_of_real {s : set ℝ} {a : ℝ} (h : is_lub s a) : (⨆a∈s, of_real
 suffices Sup (of_real '' s) = of_real a, by simpa [Sup_image],
 is_lub_iff_Sup_eq.mp $ is_lub_of_is_lub_of_tendsto
   (assume x _ y _, of_real_le_of_real) h (ne_empty_of_is_lub h)
-  (tendsto_compose (tendsto_id' inf_le_left) tendsto_of_real)
+  (tendsto.comp (tendsto_id' inf_le_left) tendsto_of_real)
 
 lemma infi_of_real {s : set ℝ} {a : ℝ} (h : is_glb s a) : (⨅a∈s, of_real a) = of_real a :=
 suffices Inf (of_real '' s) = of_real a, by simpa [Inf_image],
 is_glb_iff_Inf_eq.mp $ is_glb_of_is_glb_of_tendsto
   (assume x _ y _, of_real_le_of_real) h (ne_empty_of_is_glb h)
-  (tendsto_compose (tendsto_id' inf_le_left) tendsto_of_real)
+  (tendsto.comp (tendsto_id' inf_le_left) tendsto_of_real)
 
 lemma Inf_add {s : set ennreal} : Inf s + a = ⨅b∈s, b + a :=
 by_cases
@@ -741,12 +741,12 @@ lemma supr_add {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : supr s + a 
 let ⟨x⟩ := h in
 calc supr s + a = Sup (range s) + a : by simp [Sup_range]
   ... = (⨆b∈range s, b + a) : Sup_add $ ne_empty_iff_exists_mem.mpr ⟨s x, x, rfl⟩
-  ... = _ : by simp [supr_range]
+  ... = _ : by simp [supr_range, -mem_range]
 
 lemma infi_add {ι : Sort*} {s : ι → ennreal} {a : ennreal} : infi s + a = ⨅b, s b + a :=
 calc infi s + a = Inf (range s) + a : by simp [Inf_range]
   ... = (⨅b∈range s, b + a) : Inf_add
-  ... = _ : by simp [infi_range]
+  ... = _ : by simp [infi_range, -mem_range]
 
 lemma add_infi {ι : Sort*} {s : ι → ennreal} {a : ennreal} : a + infi s = ⨅b, a + s b :=
 by rw [add_comm, infi_add]; simp
@@ -824,18 +824,18 @@ top_unique $ le_Inf $ by simp [forall_ennreal, hr] {contextual := tt}; refl
 @[simp] lemma of_real_sub_of_real (hr : 0 ≤ r) : of_real p - of_real r = of_real (p - r) :=
 match le_total p r with
 | or.inr h :=
-  have 0 ≤ p - r, from le_sub_right_iff_add_le.mpr $ by simp [h],
+  have 0 ≤ p - r, from le_sub_iff_add_le.mpr $ by simp [h],
   have eq : r + (p - r) = p, by rw [add_comm, sub_add_cancel],
   le_antisymm
     (Inf_le $ by simp [-sub_eq_add_neg, this, hr, le_trans hr h, eq, le_refl])
     (le_Inf $
       by simp [forall_ennreal, hr, le_trans hr h, add_nonneg, -sub_eq_add_neg,
-        this, sub_right_le_iff_le_add]
+        this, sub_le_iff_le_add]
         {contextual := tt})
 | or.inl h :=
   begin
     rw [sub_eq_zero_of_le, of_real_of_nonpos],
-    { rw [sub_right_le_iff_le_add], simp [h] },
+    { rw [sub_le_iff_le_add], simp [h] },
     { exact of_real_le_of_real h }
   end
 end
@@ -850,13 +850,13 @@ by_cases
     suffices tendsto (λb, of_real r - b) (nhds b) (nhds ⊥),
       by simpa [le_of_lt h],
     by rw [nhds_bot_orderable];
-    from (tendsto_infi $ assume p, tendsto_infi $ assume hp : 0 < p, tendsto_principal $
+    from (tendsto_infi.2 $ assume p, tendsto_infi.2 $ assume hp : 0 < p, tendsto_principal.2 $
       (nhds b).upwards_sets (mem_nhds_sets (is_open_lt' (of_real r)) h) $
         by simp [forall_ennreal, hr, le_of_lt, hp] {contextual := tt}))
   (assume h : ¬ of_real r < b,
     let ⟨p, hp, hpr, eq⟩ := (le_of_real_iff hr).mp $ not_lt.1 h in
     have tendsto (λb, of_real ((r - b))) (nhds p ⊓ principal {x | 0 ≤ x}) (nhds (of_real (r - p))),
-      from tendsto_compose (tendsto_sub tendsto_const_nhds (tendsto_id' inf_le_left)) tendsto_of_real,
+      from tendsto.comp (tendsto_sub tendsto_const_nhds (tendsto_id' inf_le_left)) tendsto_of_real,
     have tendsto (λb, of_real r - b) (map of_real (nhds p ⊓ principal {x | 0 ≤ x}))
       (nhds (of_real (r - p))),
       from tendsto_map' $ tendsto_cong this $ mem_inf_sets_of_right $
@@ -872,8 +872,8 @@ have Inf ((λb, of_real r - b) '' range b) = of_real r - (⨆i, b i),
     (assume x _ y _, sub_le_sub (le_refl _))
     is_lub_supr
     (ne_empty_of_mem ⟨i, rfl⟩)
-    (tendsto_compose (tendsto_id' inf_le_left) (ennreal.tendsto_of_real_sub hr)),
-by rw [eq, ←this]; simp [Inf_image, infi_range]
+    (tendsto.comp (tendsto_id' inf_le_left) (ennreal.tendsto_of_real_sub hr)),
+by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]
 
 end sub
 
@@ -916,7 +916,7 @@ protected lemma is_sum : is_sum f (⨆s:finset α, s.sum f) :=
 tendsto_orderable
   (assume a' ha',
     let ⟨s, hs⟩ := lt_supr_iff.mp ha' in
-    mem_at_top_iff.mpr ⟨s, assume t ht, lt_of_lt_of_le hs $ finset.sum_le_sum_of_subset ht⟩)
+    mem_at_top_sets.mpr ⟨s, assume t ht, lt_of_lt_of_le hs $ finset.sum_le_sum_of_subset ht⟩)
   (assume a' ha',
     univ_mem_sets' $ assume s,
     have s.sum f ≤ ⨆(s : finset α), s.sum f,
@@ -945,7 +945,7 @@ protected lemma tsum_of_real {f : α → ℝ} (h : is_sum f r) (hf : ∀a, 0 ≤
 have (λs:finset α, s.sum (of_real ∘ f)) = of_real ∘ (λs:finset α, s.sum f),
   from funext $ assume s, sum_of_real $ assume a _, hf a,
 have tendsto (λs:finset α, s.sum (of_real ∘ f)) at_top (nhds (of_real r)),
-  by rw [this]; exact tendsto_compose h tendsto_of_real,
+  by rw [this]; exact h.comp tendsto_of_real,
 tsum_eq_is_sum this
 
 protected lemma tsum_comm {f : α → β → ennreal} : (∑a, ∑b, f a b) = (∑b, ∑a, f a b) :=
@@ -981,7 +981,7 @@ have sum_ne_0 : (∑i, f i) ≠ 0, from ne_of_gt $
 have tendsto (λs:finset α, s.sum ((*) a ∘ f)) at_top (nhds (a * (∑i, f i))),
   by rw [← show (*) a ∘ (λs:finset α, s.sum f) = λs, s.sum ((*) a ∘ f),
          from funext $ λ s, finset.mul_sum];
-  exact tendsto_compose (is_sum_tsum ennreal.has_sum) (ennreal.tendsto_mul sum_ne_0),
+  exact (is_sum_tsum ennreal.has_sum).comp (ennreal.tendsto_mul sum_ne_0),
 tsum_eq_is_sum this
 
 end tsum

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl
+Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
@@ -160,6 +160,14 @@ theorem bInter_subset_of_mem {s : set α} {t : α → set β} {x : α} (xs : x �
 show (⨅x ∈ s, t x) ≤ t x,
   from infi_le_of_le x $ infi_le _ xs
 
+theorem bUnion_subset_bUnion_left {s s' : set α} {t : α → set β}
+  (h : s ⊆ s') : (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s', t x) :=
+bUnion_subset (λ x xs, subset_bUnion_of_mem (h xs))
+
+theorem bInter_subset_bInter_left {s s' : set α} {t : α → set β}
+  (h : s' ⊆ s) : (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s', t x) :=
+subset_bInter (λ x xs, bInter_subset_of_mem (h xs))
+
 @[simp] theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
 show (⨅x ∈ (∅ : set α), u x) = ⊤, -- simplifier should be able to rewrite x ∈ ∅ to false.
   from infi_emptyset
@@ -303,11 +311,11 @@ theorem inter_empty_of_inter_sUnion_empty {s t : set α} {S : set (set α)} (hs 
 eq_empty_of_subset_empty
   begin rw ←h, apply inter_subset_inter_left, apply subset_sUnion_of_mem hs end
 
-theorem Union_eq_sUnion_image (s : α → set β) : (⋃ i, s i) = ⋃₀ (s '' univ) :=
-by simp
+theorem Union_eq_sUnion_image (s : α → set β) : (⋃ i, s i) = ⋃₀ (range s) :=
+by rw [← image_univ, sUnion_image]; simp
 
-theorem Inter_eq_sInter_image {α I : Type} (s : I → set α) : (⋂ i, s i) = ⋂₀ (s '' univ) :=
-by simp
+theorem Inter_eq_sInter_image {α I : Type} (s : I → set α) : (⋂ i, s i) = ⋂₀ (range s) :=
+by rw [← image_univ, sInter_image]; simp
 
 lemma sUnion_mono {s t : set (set α)} (h : s ⊆ t) : (⋃₀ s) ⊆ (⋃₀ t) :=
 sUnion_subset $ assume t' ht', subset_sUnion_of_mem $ h ht'
@@ -433,6 +441,14 @@ set.ext $ assume a,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
 end image
+
+section range
+
+lemma subtype_val_range {p : α → Prop} :
+  range (@subtype.val _ p) = {x | p x} :=
+by rw ← image_univ; simp [-image_univ, subtype_val_image]
+
+end range
 
 section preimage
 

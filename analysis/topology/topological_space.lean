@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Mario Carneiro
 
 Theory of topological spaces.
 
@@ -259,6 +259,13 @@ calc interior (- s) = - - interior (- s) : by simp
   ... = - closure (- (- s)) : by rw [closure_compl]
   ... = - closure s : by simp
 
+theorem mem_closure_iff {s : set α} {a : α} : a ∈ closure s ↔ ∀ o, is_open o → a ∈ o → o ∩ s ≠ ∅ :=
+⟨λ h o oo ao os,
+  have s ⊆ -o, from λ x xs xo, @ne_empty_of_mem α (o∩s) x ⟨xo, xs⟩ os,
+  closure_minimal this (is_closed_compl_iff.2 oo) h ao,
+λ H c ⟨h₁, h₂⟩, classical.by_contradiction $ λ nc,
+  let ⟨x, hc, hs⟩ := exists_mem_of_ne_empty (H _ h₁ nc) in hc (h₂ hs)⟩
+
 /-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s
 
@@ -314,7 +321,7 @@ assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr
 assume : nhds a = ⊥,
 have return a = (⊥ : filter α),
   from lattice.bot_unique $ this ▸ return_le_nhds a,
-return_neq_bot this
+pure_neq_bot this
 
 lemma interior_eq_nhds {s : set α} : interior s = {a | nhds a ≤ principal s} :=
 set.ext $ by simp [mem_interior, nhds_sets]
@@ -338,6 +345,13 @@ calc closure s = - interior (- s) : closure_eq_compl_interior_compl
     (inf_eq_bot_iff_le_compl
       (show principal s ⊔ principal (-s) = ⊤, by simp [principal_univ])
       (by simp)).symm
+
+theorem mem_closure_iff_nhds {s : set α} {a : α} : a ∈ closure s ↔ ∀ t ∈ (nhds a).sets, t ∩ s ≠ ∅ :=
+mem_closure_iff.trans
+⟨λ H t ht, subset_ne_empty
+  (inter_subset_inter_right _ interior_subset)
+  (H _ is_open_interior (mem_interior_iff_mem_nhds.2 ht)),
+ λ H o oo ao, H _ (mem_nhds_sets oo ao)⟩
 
 lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀a, nhds a ⊓ principal s ≠ ⊥ → a ∈ s :=
 calc is_closed s ↔ closure s = s : by rw [closure_eq_iff_is_closed]

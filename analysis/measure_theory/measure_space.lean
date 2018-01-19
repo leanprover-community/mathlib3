@@ -323,7 +323,7 @@ have eq₂ : ∀i, μ.measure (s 0) - (μ.measure (s 0) - μ.measure (s i)) = μ
   let ⟨r, hr, eqr, _⟩ := ennreal.lt_iff_exists_of_real.mp hfin in
   let ⟨p, hp, eqp, _⟩ := ennreal.lt_iff_exists_of_real.mp (lt_of_le_of_lt this hfin) in
   have 0 ≤ r - p,
-    by rw [le_sub_right_iff_add_le, zero_add, ←ennreal.of_real_le_of_real_iff hp hr, ←eqp, ←eqr];
+    by rw [le_sub_iff_add_le, zero_add, ←ennreal.of_real_le_of_real_iff hp hr, ←eqp, ←eqr];
     from this,
   by simp [eqr, eqp, hp, hr, this, -sub_eq_add_neg, sub_sub_self],
 calc μ.measure (⋂i, s i) = μ.measure (s 0 \ (⋃i, s 0 \ s i)) :

@@ -61,12 +61,12 @@ let ⟨x, hx⟩ := exists_supremum_real ‹a ∈ M› ‹b ∈ upper_bounds M›
 have h' : is_lub ((λx, of_real (x - a)) '' M) (of_real (x - a)),
   from is_lub_of_is_lub_of_tendsto
     (assume x ⟨hx, _, _⟩ y ⟨hy, _, _⟩ h,
-      have hx : 0 ≤ x - a, by rw [le_sub_right_iff_add_le]; simp [hx],
-      have hy : 0 ≤ y - a, by rw [le_sub_right_iff_add_le]; simp [hy],
+      have hx : 0 ≤ x - a, by rw [le_sub_iff_add_le]; simp [hx],
+      have hy : 0 ≤ y - a, by rw [le_sub_iff_add_le]; simp [hy],
       by rw [ennreal.of_real_le_of_real_iff hx hy]; from sub_le_sub h (le_refl a))
     hx
     (ne_empty_iff_exists_mem.mpr ⟨a, ‹_›⟩)
-    (tendsto_compose (tendsto_sub (tendsto_id' inf_le_left) tendsto_const_nhds) ennreal.tendsto_of_real),
+    (tendsto.comp (tendsto_sub (tendsto_id' inf_le_left) tendsto_const_nhds) ennreal.tendsto_of_real),
 have hax : a ≤ x, from hx.left a ‹a ∈ M›,
 have hxb : x ≤ b, from hx.right b ‹b ∈ upper_bounds M›,
 have hx_sx : of_real (x - a) ≤ s x,
@@ -170,9 +170,9 @@ lebesgue_outer.to_measure $
       measurable_space.generate_from_le $ by simp [lebesgue_outer_is_measurable_Iio] {contextual := tt}
 
 lemma tendsto_of_nat_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
-tendsto_infi $ assume r, tendsto_principal $
+tendsto_infi.2 $ assume r, tendsto_principal.2 $
 let ⟨n, hn⟩ := exists_lt_nat r in
-mem_at_top_iff.2 ⟨n, λ m h, le_trans (le_of_lt hn) (nat.cast_le.2 h)⟩
+mem_at_top_sets.2 ⟨n, λ m h, le_trans (le_of_lt hn) (nat.cast_le.2 h)⟩
 
 lemma lebesgue_Ico {a b : ℝ} : lebesgue.measure (Ico a b) = of_real (b - a) :=
 match le_total a b with
@@ -194,8 +194,8 @@ assume : ¬ b ≤ a,
 have h : a < b, from not_le.mp this,
 let s := λn:ℕ, a + (b - a) * (↑(n + 1))⁻¹ in
 have tendsto s at_top (nhds (a + (b - a) * 0)),
-  from tendsto_add tendsto_const_nhds $ tendsto_mul tendsto_const_nhds $ tendsto_compose
-   (tendsto_comp_succ_at_top_iff.mpr tendsto_of_nat_at_top_at_top) tendsto_inverse_at_top_nhds_0,
+  from tendsto_add tendsto_const_nhds $ tendsto_mul tendsto_const_nhds $
+   (tendsto_comp_succ_at_top_iff.mpr tendsto_of_nat_at_top_at_top).comp tendsto_inverse_at_top_nhds_0,
 have hs : tendsto s at_top (nhds a), by simpa,
 have hsm : ∀i j, j ≤ i → s i ≤ s j,
   from assume i j hij,
@@ -204,7 +204,7 @@ have hsm : ∀i j, j ≤ i → s i ≤ s j,
   have h₂ : (↑(j + 1) : ℝ) ≤ ↑(i + 1), from nat.cast_le.2 $ add_le_add hij (le_refl _),
   add_le_add (le_refl _) $
   mul_le_mul (le_refl _) (inv_le_inv_of_le (h₁ j) h₂) (le_of_lt $ inv_pos $ h₁ i) $
-    by simp [le_sub_right_iff_add_le, -sub_eq_add_neg, le_of_lt h],
+    by simp [le_sub_iff_add_le, -sub_eq_add_neg, le_of_lt h],
 have has : ∀i, a < s i,
   from assume i,
   have (0:ℝ) < ↑(i + 1), from nat.cast_pos.2 $ lt_add_of_le_of_pos (nat.zero_le _) zero_lt_one,
@@ -227,11 +227,11 @@ have (⨆i, of_real (b - s i)) = of_real (b - a),
     (assume x ⟨i, eq⟩, eq ▸ ennreal.of_real_le_of_real $ sub_le_sub (le_refl _) $ le_of_lt $ has _)
     begin
       show range (λi, of_real (b - s i)) ∈ (at_top.map (λi, of_real (b - s i))).sets,
-      rw [range_eq_image]; exact image_mem_map univ_mem_sets
+      rw [← image_univ]; exact image_mem_map univ_mem_sets
     end
     begin
       have : tendsto (λi, of_real (b - s i)) at_top (nhds (of_real (b - a))),
-        from tendsto_compose (tendsto_sub tendsto_const_nhds hs) ennreal.tendsto_of_real,
+        from (tendsto_sub tendsto_const_nhds hs).comp ennreal.tendsto_of_real,
       rw [inf_of_le_left this],
       exact map_ne_bot at_top_ne_bot
     end,

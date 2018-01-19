@@ -125,8 +125,7 @@ structure valid {n} (bkts : bucket_array α β n) (sz : nat) : Prop :=
 theorem valid.idx_enum {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
   {i l} (he : (i, l) ∈ bkts.to_list.enum) {a b} (hl : sigma.mk a b ∈ l) :
   ∃ h, mk_idx n (hash_fn a) = ⟨i, h⟩ :=
-by refine exists_imp_exists (λ h e, _) (bkts.mem_to_list_enum.1 he);
-   subst e; exact v.idx hl
+(bkts.mem_to_list_enum.1 he).imp (λ h e, by subst e; exact v.idx hl)
 
 theorem valid.idx_enum_1 {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
   {i l} (he : (i, l) ∈ bkts.to_list.enum) {a b} (hl : sigma.mk a b ∈ l) :

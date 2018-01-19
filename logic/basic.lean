@@ -293,17 +293,13 @@ end equality
 section quantifiers
 variables {α : Sort*} {p q : α → Prop} {b : Prop}
 
+def Exists.imp := @exists_imp_exists
+
 theorem forall_swap {α β} {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨function.swap, function.swap⟩
 
 theorem exists_swap {α β} {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
-
-theorem forall_of_forall (h : ∀ x, p x → q x) (h₁ : ∀ x, p x) : ∀ x, q x :=
-assume x, h x (h₁ x)
-
-theorem exists_of_exists (h : ∀ x, p x → q x) (h₁ : ∃ x, p x) : ∃ x, q x :=
-match h₁ with ⟨x, hpx⟩ := ⟨x, h x hpx⟩ end
 
 @[simp] theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
 ⟨λ h x hpx, h ⟨x, hpx⟩, λ h ⟨x, hpx⟩, h x hpx⟩

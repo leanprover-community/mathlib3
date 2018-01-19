@@ -2006,7 +2006,7 @@ theorem sublist_suffix_of_union : ∀ l₁ l₂ : list α, ∃ t, t <+ l₁ ∧ 
      [apply sublist_cons_of_sublist _ s, apply cons_sublist_cons _ s]
 
 theorem suffix_union_right (l₁ l₂ : list α) : l₂ <:+ l₁ ∪ l₂ :=
-exists_imp_exists (λ a, and.right) (sublist_suffix_of_union l₁ l₂)
+(sublist_suffix_of_union l₁ l₂).imp (λ a, and.right)
 
 theorem union_sublist_append (l₁ l₂ : list α) : l₁ ∪ l₂ <+ l₁ ++ l₂ :=
 let ⟨t, s, e⟩ := sublist_suffix_of_union l₁ l₂ in

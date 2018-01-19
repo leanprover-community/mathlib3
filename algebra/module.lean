@@ -195,7 +195,7 @@ instance image {f : β → γ} (hf : is_linear_map f) : is_submodule (f '' p) :=
   smul  := assume a c ⟨b, hb, eq⟩, ⟨a • b, smul a hb, by simp [hf.smul, eq]⟩ }
 
 instance range {f : β → γ} (hf : is_linear_map f) : is_submodule (set.range f) :=
-by rw [set.range_eq_image]; exact is_submodule.image hf
+by rw [← set.image_univ]; exact is_submodule.image hf
 
 instance preimage {f : γ → β} (hf : is_linear_map f) : is_submodule (f ⁻¹' p) :=
 by refine {..}; simp [hf.zero, hf.add, hf.smul, zero, add, smul] {contextual:=tt}

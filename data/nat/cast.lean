@@ -128,6 +128,9 @@ variables {α : Type*} [add_monoid α] [has_one α] [char_zero α]
 @[simp] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
 char_zero.cast_inj _
 
+theorem cast_injective : function.injective (coe : ℕ → α)
+| m n := cast_inj.1
+
 @[simp] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
 by rw [← cast_zero, cast_inj]
 

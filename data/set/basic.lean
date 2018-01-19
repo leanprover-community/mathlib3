@@ -737,7 +737,7 @@ theorem subset_preimage_image (f : α → β) (s : set α) :
   s ⊆ f ⁻¹' (f '' s) :=
 λ x, mem_image_of_mem f
 
-theorem preimage_image_eq {f : α → β} {s : set α}
+theorem preimage_image_eq {f : α → β} (s : set α)
   (h : function.injective f) : f ⁻¹' (f '' s) = s :=
 subset.antisymm
   (λ x ⟨y, hy, e⟩, h e ▸ hy)
@@ -748,12 +748,6 @@ theorem image_preimage_eq {f : α → β} {s : set β}
 subset.antisymm
   (image_preimage_subset f s)
   (λ x hx, let ⟨y, e⟩ := h x in ⟨y, (e.symm ▸ hx : f y ∈ s), e⟩)
-
-theorem image_preimage_eq_inter_rng {f : α → β} {t : set β} :
-  f '' preimage f t = t ∩ f '' univ :=
-set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_image_of_mem f trivial⟩,
-  assume ⟨hx, ⟨y, hy, h_eq⟩⟩, h_eq ▸ mem_image_of_mem f $
-    show y ∈ preimage f t, by simp [preimage, h_eq, hx]⟩
 
 theorem compl_image : image (@compl α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
@@ -774,9 +768,6 @@ theorem subset_image_union (f : α → β) (s : set α) (t : set β) :
   f '' (s ∪ f ⁻¹' t) ⊆ f '' s ∪ t :=
 image_subset_iff.2 (union_preimage_subset _ _ _)
 
-@[simp] theorem quot_mk_image_univ_eq [setoid α] : (λx : α, ⟦x⟧) '' univ = univ :=
-set.ext $ assume x, quotient.induction_on x $ assume a, ⟨by simp, assume _, ⟨a, trivial, rfl⟩⟩
-
 end image
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
@@ -792,7 +783,7 @@ This function is more flexible than `f '' univ`, as the image requires that the 
 and not an arbitrary Sort. -/
 def range (f : ι → α) : set α := {x | ∃y, f y = x}
 
-theorem mem_range {x : α} : x ∈ range f ↔ ∃ y, f y = x := iff.rfl
+@[simp] theorem mem_range {x : α} : x ∈ range f ↔ ∃ y, f y = x := iff.rfl
 
 theorem mem_range_self (i : ι) : f i ∈ range f := ⟨i, rfl⟩
 
@@ -804,13 +795,25 @@ eq_univ_iff_forall
 
 @[simp] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
 
-theorem range_eq_image {ι : Type*} {f : ι → β} : range f = f '' univ :=
+@[simp] theorem image_univ {ι : Type*} {f : ι → β} : f '' univ = range f :=
 set.ext $ by simp [image, range]
 
-theorem range_compose {g : α → β} : range (g ∘ f) = g '' range f :=
+theorem range_comp {g : α → β} : range (g ∘ f) = g '' range f :=
 subset.antisymm
   (forall_range_iff.mpr $ assume i, mem_image_of_mem g (mem_range_self _))
   (ball_image_iff.mpr $ forall_range_iff.mpr mem_range_self)
+
+theorem range_subset_iff {ι : Type*} {f : ι → β} {s : set β} : range f ⊆ s ↔ ∀ y, f y ∈ s :=
+forall_range_iff
+
+theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
+  f '' preimage f t = t ∩ range f :=
+set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_range_self _⟩,
+  assume ⟨hx, ⟨y, h_eq⟩⟩, h_eq ▸ mem_image_of_mem f $
+    show y ∈ preimage f t, by simp [preimage, h_eq, hx]⟩
+
+@[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
+range_iff_surjective.2 quot.exists_rep
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
@@ -873,6 +876,10 @@ image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
 theorem prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
   set.prod (image m₁ s) (image m₂ t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (set.prod s t) :=
 set.ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm, and.left_comm, and.assoc, and.comm]
+
+theorem prod_range_range_eq {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
+  set.prod (range m₁) (range m₂) = range (λp:α×β, (m₁ p.1, m₂ p.2)) :=
+set.ext $ by simp [range]
 
 @[simp] theorem prod_singleton_singleton {a : α} {b : β} :
   set.prod {a} {b} = ({(a, b)} : set (α×β)) :=

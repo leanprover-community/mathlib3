@@ -75,10 +75,10 @@ theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
 @add_le_add_iff_right _ _ a b 1
 
 theorem sub_one_le_iff {a b : ℤ} : a - 1 < b ↔ a ≤ b :=
-sub_right_lt_iff_lt_add.trans lt_add_one_iff
+sub_lt_iff_lt_add.trans lt_add_one_iff
 
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
-le_sub_right_iff_add_le
+le_sub_iff_add_le
 
 /- /  -/
 
@@ -940,6 +940,9 @@ end, λ h, by rw [h, cast_zero]⟩
 
 @[simp] theorem cast_inj [add_group α] [has_one α] [char_zero α] {m n : ℤ} : (m : α) = n ↔ m = n :=
 by rw [← sub_eq_zero, ← cast_sub, cast_eq_zero, sub_eq_zero]
+
+theorem cast_injective [add_group α] [has_one α] [char_zero α] : function.injective (coe : ℤ → α)
+| m n := cast_inj.1
 
 @[simp] theorem cast_ne_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero

@@ -28,7 +28,7 @@ have hε' : {p : ℝ × ℝ | dist p.1 p.2 < ε / 2} ∈ (@uniformity ℝ _).set
 have cauchy (at_top.map $ λn, f' (range n)),
   from cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hr,
 have ∃n, ∀{n'}, n ≤ n' → dist (f' (range n)) (f' (range n')) < ε / 2,
-  by simp [cauchy_iff, mem_at_top_iff] at this;
+  by simp [cauchy_iff, mem_at_top_sets] at this;
   from let ⟨t, ⟨u, hu⟩, ht⟩ := this _ hε' in
     ⟨u, assume n' hn, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ (le_refl _), hu _ hn⟩⟩,
 let ⟨n, hn⟩ := this in
@@ -55,7 +55,7 @@ have ∀{s t}, range n ⊆ s → range n ⊆ t → dist (s.sum f) (t.sum f) < ε
     ... < ε / 2 + ε / 2 : add_lt_add (this hs) (this ht)
     ... = ε : by rw [←add_div, add_self_div_two],
 ⟨(λs:finset ℕ, s.sum f) '' {s | range n ⊆ s}, image_mem_map $ mem_at_top (range n),
-  assume ⟨a, b⟩ ⟨⟨t, ht, ha⟩, ⟨s, hs, hb⟩⟩, by simp at ha hb; exact ha ▸ hb ▸ hsε _ _ (this ht hs)⟩
+  assume ⟨a, b⟩ ⟨⟨t, ht, ha⟩, ⟨s, hs, hb⟩⟩, by simp at ha hb; exact ha ▸ hb ▸ hsε (this ht hs)⟩
 
 lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} {r : ℝ} (hf : ∀n, 0 ≤ f n) :
   is_sum f r ↔ tendsto (λn, (range n).sum f) at_top (nhds r) :=
@@ -81,7 +81,7 @@ lemma mul_add_one_le_pow {r : ℝ} (hr : 0 ≤ r) : ∀{n:ℕ}, (n:ℝ) * r + 1 
       (add_nonneg (mul_nonneg h hr) zero_le_one) (add_nonneg hr zero_le_one)
 
 lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ, r ^ n) at_top at_top :=
-tendsto_infi $ assume p, tendsto_principal $
+tendsto_infi.2 $ assume p, tendsto_principal.2 $
   let ⟨n, hn⟩ := @exists_lt_nat (p / (r - 1)) in
   have hn_nn : (0:ℝ) ≤ n, from nat.cast_nonneg n,
   have r - 1 > 0, from sub_lt_iff.mp $ by simp; assumption,
@@ -92,11 +92,11 @@ tendsto_infi $ assume p, tendsto_principal $
       ... ≤ ((r - 1) + 1) ^ n : mul_add_one_le_pow $ le_of_lt this
       ... ≤ r ^ n : by simp; exact le_refl _,
   show {n | p ≤ r ^ n} ∈ at_top.sets,
-    from mem_at_top_iff.mpr ⟨n, assume m hnm, le_trans this (pow_le_pow (le_of_lt h) hnm)⟩
+    from mem_at_top_sets.mpr ⟨n, assume m hnm, le_trans this (pow_le_pow (le_of_lt h) hnm)⟩
 
 lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (nhds 0) :=
 tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
-  mem_at_top_iff.mpr ⟨u⁻¹ + 1, assume b hb,
+  mem_at_top_sets.mpr ⟨u⁻¹ + 1, assume b hb,
     have u⁻¹ < b, from lt_of_lt_of_le (lt_add_of_pos_right _ zero_lt_one) hb,
     ⟨lt_trans hl $ inv_pos $ lt_trans (inv_pos hu) this,
     lt_of_one_div_lt_one_div hu $
@@ -109,11 +109,11 @@ tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
 lemma map_succ_at_top_eq : map nat.succ at_top = at_top :=
 le_antisymm
   (assume s hs,
-    let ⟨b, hb⟩ := mem_at_top_iff.mp hs in
-    mem_at_top_iff.mpr ⟨b, assume c hc, hb (c + 1) $ le_trans hc $ nat.le_succ _⟩)
+    let ⟨b, hb⟩ := mem_at_top_sets.mp hs in
+    mem_at_top_sets.mpr ⟨b, assume c hc, hb (c + 1) $ le_trans hc $ nat.le_succ _⟩)
   (assume s hs,
-    let ⟨b, hb⟩ := mem_at_top_iff.mp hs in
-    mem_at_top_iff.mpr ⟨b + 1, assume c,
+    let ⟨b, hb⟩ := mem_at_top_sets.mp hs in
+    mem_at_top_sets.mpr ⟨b + 1, assume c,
     match c with
     | 0     := assume h,
       have 0 > 0, from lt_of_lt_of_le (lt_add_of_le_of_pos (nat.zero_le _) zero_lt_one) h,
@@ -132,8 +132,7 @@ by_cases
   (assume : r = 0, tendsto_comp_succ_at_top_iff.mp $ by simp [pow_succ, this, tendsto_const_nhds])
   (assume : r ≠ 0,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (nhds 0),
-      from tendsto_compose
-        (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂)
+      from (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂).comp
         tendsto_inverse_at_top_nhds_0,
     tendsto_cong this $ univ_mem_sets' $ by simp *)
 

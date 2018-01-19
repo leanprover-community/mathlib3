@@ -138,7 +138,7 @@ protected def vmap (m : α → β) {f : filter β} (F : f.realizer) : (vmap m f)
   inf          := F.F.inf,
   inf_le_left  := λ a b, preimage_mono (F.F.inf_le_left _ _),
   inf_le_right := λ a b, preimage_mono (F.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_vmap]; exact
+filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_vmap_sets]; exact
 ⟨λ ⟨s, h⟩, ⟨_, ⟨s, subset.refl _⟩, h⟩,
  λ ⟨y, ⟨s, h⟩, h₂⟩, ⟨s, subset.trans (preimage_mono h) h₂⟩⟩⟩
 

@@ -110,6 +110,9 @@ lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_in
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
 ⟨inv_fun f, left_inverse_inv_fun hf⟩
 
+lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=
+⟨injective.has_left_inverse, injective_of_has_left_inverse⟩
+
 end inv_fun
 
 theorem cantor_injective {α : Type*} (f : (α → Prop) → α) : ¬ function.injective f | h :=
@@ -128,8 +131,18 @@ lemma surj_inv_eq (h : surjective f) (b) : f (surj_inv h b) = b := classical.som
 lemma right_inverse_surj_inv (hf : surjective f) : right_inverse (surj_inv hf) f :=
 surj_inv_eq hf
 
+lemma left_inverse_surj_inv (hf : bijective f) : left_inverse (surj_inv hf.2) f :=
+right_inverse_of_injective_of_left_inverse hf.1 (right_inverse_surj_inv hf.2)
+
 lemma surjective.has_right_inverse (hf : surjective f) : has_right_inverse f :=
 ⟨_, right_inverse_surj_inv hf⟩
+
+lemma surjective_iff_has_right_inverse : surjective f ↔ has_right_inverse f :=
+⟨surjective.has_right_inverse, surjective_of_has_right_inverse⟩
+
+lemma bijective_iff_has_inverse : bijective f ↔ ∃ g, left_inverse g f ∧ right_inverse g f :=
+⟨λ hf, ⟨_, left_inverse_surj_inv hf, right_inverse_surj_inv hf.2⟩,
+ λ ⟨g, gl, gr⟩, ⟨injective_of_left_inverse gl, surjective_of_has_right_inverse ⟨_, gr⟩⟩⟩
 
 lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
 injective_of_has_left_inverse ⟨f, right_inverse_surj_inv h⟩

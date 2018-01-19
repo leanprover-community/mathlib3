@@ -521,21 +521,31 @@ protected noncomputable def image {α β} (f : α → β) (s : set α) (H : inje
 
 protected noncomputable def range {α β} (f : α → β) (H : injective f) :
   α ≃ range f :=
-(set.univ _).symm.trans $ (set.image f univ H).trans (equiv.cast $ by rw range_eq_image)
+(set.univ _).symm.trans $ (set.image f univ H).trans (equiv.cast $ by rw image_univ)
 
 @[simp] theorem range_apply {α β} (f : α → β) (H : injective f) (a) :
   set.range f H a = ⟨f a, set.mem_range_self _⟩ :=
 by dunfold equiv.set.range equiv.set.univ;
-   simp [set_coe_cast, range_eq_image]
+   simp [set_coe_cast, -image_univ, image_univ.symm]
 
 end set
 
 noncomputable def of_bijective {α β} {f : α → β} (hf : bijective f) : α ≃ β :=
-(set.range f hf.1).trans $ (equiv.cast (by rw set.range_iff_surjective.2 hf.2)).trans (set.univ _)
+begin
+  have hg := bijective_comp equiv.plift.symm.bijective
+    (bijective_comp hf equiv.plift.bijective),
+  refine equiv.plift.symm.trans (equiv.trans _ equiv.plift),
+  exact (set.range _ hg.1).trans
+    ((equiv.cast (by rw set.range_iff_surjective.2 hg.2)).trans (set.univ _))
+end
 
 @[simp] theorem of_bijective_to_fun {α β} {f : α → β} (hf : bijective f) : (of_bijective hf : α → β) = f :=
-by funext a; dunfold of_bijective equiv.set.univ;
-   simp [set.set_coe_cast, set.range_iff_surjective.2 hf.2]
+begin
+  funext a, dunfold of_bijective equiv.set.univ,
+  have hg := bijective_comp equiv.plift.symm.bijective
+    (bijective_comp hf equiv.plift.bijective),
+  simp [set.set_coe_cast, (∘), set.range_iff_surjective.2 hg.2],
+end
 
 section swap
 variable [decidable_eq α]

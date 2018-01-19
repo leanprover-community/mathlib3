@@ -9,7 +9,7 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import analysis.real
+import data.real analysis.topology.topological_structures
 open lattice set filter classical
 noncomputable theory
 
@@ -151,7 +151,7 @@ theorem ball_half_subset (y) (h : y ∈ ball x (ε / 2)) : ball y (ε / 2) ⊆ b
 ball_subset $ by rw sub_self_div_two; exact le_of_lt h
 
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
-⟨_, sub_pos.2 h, ball_subset $ by {rw sub_sub_self, exact le_refl _}⟩
+⟨_, sub_pos.2 h, ball_subset $ by rw sub_sub_self⟩
 
 theorem ball_eq_empty_iff_nonpos : ε ≤ 0 ↔ ball x ε = ∅ :=
 (eq_empty_iff_forall_not_mem.trans
@@ -268,18 +268,21 @@ instance : metric_space ℝ :=
   dist_self          := by simp [abs_zero],
   eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
   dist_comm          := assume x y, by rw [abs_sub],
-  dist_triangle      := assume x y z, abs_sub_le _ _ _,
-  uniformity_dist := le_antisymm 
-    (le_infi $ assume ε, le_infi $ assume hε, le_principal_iff.mpr $ mem_uniformity_real_iff.mpr $ 
-      let ⟨q, hq₁, hq₂⟩ := exists_pos_of_rat hε in 
-      ⟨q, hq₁, assume r₁ r₂ hr, lt_trans hr hq₂⟩) 
-    (assume s hs, 
-      let ⟨q, hq₁, hq₂⟩ := mem_uniformity_real_iff.mp hs in 
-      mem_infi_sets (of_rat q) $ mem_infi_sets (of_rat_lt.mpr hq₁) $ 
-      assume ⟨r₁, r₂⟩, hq₂ r₁ r₂), 
-  to_uniform_space := real.uniform_space }
+  dist_triangle      := assume x y z, abs_sub_le _ _ _ }
 
 theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
+
+instance : orderable_topology ℝ :=
+orderable_topology_of_nhds_abs $ λ x, begin
+  simp only [show ∀ r, {b : ℝ | abs (x - b) < r} = ball x r,
+    by simp [-sub_eq_add_neg, abs_sub, ball, real.dist_eq]],
+  apply le_antisymm,
+  { simp [le_infi_iff],
+    exact λ ε ε0, mem_nhds_sets (is_open_ball) (mem_ball_self ε0) },
+  { intros s h,
+    rcases mem_nhds_iff_metric.1 h with ⟨ε, ε0, ss⟩,
+    exact mem_infi_sets _ (mem_infi_sets ε0 (mem_principal_sets.2 ss)) },
+end
 
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
   (H : @uniformity _ U = @uniformity _ (metric_space.to_uniform_space α)) :

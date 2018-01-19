@@ -16,7 +16,7 @@ Unfortunately, this only holds if t₁ and t₂ are second-countable topologies.
 -/
 import analysis.measure_theory.measurable_space analysis.real
 
-open classical set lattice
+open classical set lattice real
 local attribute [instance] prop_decidable
 
 universes u v w x y
@@ -185,7 +185,7 @@ is_topological_basis_of_open_of_nhds
   (suffices ∀r, ∃(t : set ℝ), r ∈ t ∧ ∃a b : ℚ, t = Ioo a b ∧ a < b,
       by simpa [and_comm],
     assume r,
-    let ⟨a, ha⟩ := exists_rat_lt r, ⟨b, hb⟩ := exists_lt_rat r in
+    let ⟨a, ha⟩ := exists_rat_lt r, ⟨b, hb⟩ := exists_rat_gt r in
     ⟨Ioo a b, ⟨ha, hb⟩, a, b, rfl, rat.cast_lt.1 $ lt_trans ha hb⟩)
   begin simp [is_open_Ioo] {contextual:=tt} end
   (assume a v hav hv,
@@ -220,12 +220,12 @@ have ∀a b : ℚ, a < b → g.is_measurable (Ioo a b),
     from assume q, g.is_measurable_compl _ $ hg q,
   have (⋃c>a, - Iio (c:ℝ)) ∩ Iio b = Ioo a b,
     from set.ext $ assume x,
-    have h₁ : x < b → ∀p:ℚ, p > a → (p:ℝ) ≤ x → (a:ℝ) < x,
-      from assume hxb p hpa hpx, lt_of_lt_of_le (rat.cast_lt.2 hpa) hpx,
-    have h₂ : x < b → (a:ℝ) < x → (∃ (i : ℚ), i > a ∧ (i:ℝ) ≤ x),
+    have h₁ : x < b → ∀p:ℚ, (p:ℝ) ≤ x → p > a → (a:ℝ) < x,
+      from assume hxb p hpx hpa, lt_of_lt_of_le (rat.cast_lt.2 hpa) hpx,
+    have h₂ : x < b → (a:ℝ) < x → (∃ (i : ℚ), (i:ℝ) ≤ x ∧ i > a),
       from assume hxb hax,
       let ⟨c, hac, hcx⟩ := exists_rat_btwn hax in
-      ⟨c, rat.cast_lt.1 hac, le_of_lt hcx⟩,
+      ⟨c, le_of_lt hcx, rat.cast_lt.1 hac⟩,
     by simp [iff_def, Iio, Ioo, and_comm] {contextual := tt}; exact ⟨h₁, h₂⟩,
   this ▸ @is_measurable_inter _ g _ _
     (@is_measurable_bUnion _ _ g _ _ countable_encodable $ assume b hb, hgc b)

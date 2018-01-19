@@ -187,10 +187,10 @@ lemma is_closed_le [topological_space β] {f g : β → α} (hf : continuous f) 
   is_closed {b | f b ≤ g b} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ t.is_closed_le'
 
-lemma is_closed_le' {a : α} : is_closed {b | b ≤ a} :=
+lemma is_closed_le' (a : α) : is_closed {b | b ≤ a} :=
 is_closed_le continuous_id continuous_const
 
-lemma is_closed_ge' {a : α} : is_closed {b | a ≤ b} :=
+lemma is_closed_ge' (a : α) : is_closed {b | a ≤ b} :=
 is_closed_le continuous_const continuous_id
 
 lemma le_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)

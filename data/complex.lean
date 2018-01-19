@@ -7,7 +7,7 @@ The complex numbers, modelled as R^2 in the obvious way.
 
 TODO: Add topology, and prove that the complexes are a topological ring.
 -/
-import analysis.real
+import data.real
 noncomputable theory
 
 -- I am unclear about whether I should be proving that

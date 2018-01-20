@@ -396,7 +396,7 @@ def of_rat (x : ℚ) : ℝ := mk (const x)
 
 instance : has_zero ℝ := ⟨of_rat 0⟩
 instance : has_one ℝ := ⟨of_rat 1⟩
-instance inhabited_real : inhabited ℝ := ⟨0⟩
+instance : inhabited ℝ := ⟨0⟩
 
 theorem of_rat_zero : of_rat 0 = 0 := rfl
 theorem of_rat_one : of_rat 1 = 1 := rfl

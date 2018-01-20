@@ -7,14 +7,7 @@ The complex numbers, modelled as R^2 in the obvious way.
 
 TODO: Add topology, and prove that the complexes are a topological ring.
 -/
-import data.real
-noncomputable theory
-
--- I am unclear about whether I should be proving that
--- C is a field or a discrete field. As far as I am personally
--- concerned these structures are the same. 
-
-local attribute [instance] classical.decidable_inhabited classical.prop_decidable
+import data.real tactic.ring
 
 structure complex : Type :=
 (re : ℝ) (im : ℝ)
@@ -23,279 +16,150 @@ notation `ℂ` := complex
 
 namespace complex
 
-theorem eta (z : complex) : complex.mk z.re z.im = z :=
-cases_on z (λ _ _, rfl)
+@[simp] theorem eta : ∀ z : ℂ, complex.mk z.re z.im = z
+| ⟨a, b⟩ := rfl
 
-theorem eq_of_re_eq_and_im_eq : ∀ (z w : complex), z.re=w.re → z.im=w.im → z=w
+theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
 | ⟨zr, zi⟩ ⟨wr, wi⟩ rfl rfl := rfl
-
 
 -- simp version
 
-theorem eq_iff_re_eq_and_im_eq (z w : complex) : z=w ↔ z.re=w.re ∧ z.im=w.im :=
-⟨λ H, ⟨by rw [H],by rw [H]⟩,λ H, eq_of_re_eq_and_im_eq _ _ H.left H.right⟩
+theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
+⟨λ H, by simp [H], and.rec ext⟩
 
-lemma proj_re (r i : real) : (complex.mk r i).re = r := rfl
-lemma proj_im (r i : real) : (complex.mk r i).im = i := rfl
+def of_real (r : ℝ) : ℂ := ⟨r, 0⟩
+instance : has_coe ℝ ℂ := ⟨of_real⟩
+@[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
 
-local attribute [simp] eq_iff_re_eq_and_im_eq proj_re proj_im
+@[simp] lemma of_real_re (r : ℝ) : (r : ℂ).re = r := rfl
+@[simp] lemma of_real_im (r : ℝ) : (r : ℂ).im = 0 := rfl
 
-def of_real (r : ℝ) : ℂ := { re := r, im := 0 }
+@[simp] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
+⟨congr_arg re, congr_arg _⟩
 
-protected def zero := of_real 0
-protected def one := of_real 1
+instance : has_zero ℂ := ⟨(0 : ℝ)⟩
+instance : inhabited ℂ := ⟨0⟩
 
-instance coe_real_complex : has_coe ℝ ℂ := ⟨of_real⟩
-instance has_zero_complex : has_zero complex := ⟨of_real 0⟩
-instance has_one_complex : has_one complex := ⟨of_real 1⟩
-instance inhabited_complex : inhabited complex := ⟨complex.zero⟩ 
+@[simp] lemma zero_re : (0 : ℂ).re = 0 := rfl
+@[simp] lemma zero_im : (0 : ℂ).im = 0 := rfl
+lemma of_real_zero : ((0 : ℝ) : ℂ) = 0 := rfl
 
-@[simp] lemma coe_re (r:real) : ((↑r):complex).re = r := rfl
-@[simp] lemma coe_im (r:real) : ((↑r):complex).im = 0 := rfl
+@[simp] theorem of_real_eq_zero {z : ℝ} : (z : ℂ) = 0 ↔ z = 0 := of_real_inj
+@[simp] theorem of_real_ne_zero {z : ℝ} : (z : ℂ) ≠ 0 ↔ z ≠ 0 := not_congr of_real_eq_zero
 
-def I : complex := {re := 0, im := 1}
+instance : has_one ℂ := ⟨(1 : ℝ)⟩
 
-def conjugate (z : complex) : complex := {re := z.re, im := -(z.im)}
+@[simp] lemma one_re : (1 : ℂ).re = 1 := rfl
+@[simp] lemma one_im : (1 : ℂ).im = 0 := rfl
+@[simp] lemma of_real_one : ((1 : ℝ) : ℂ) = 1 := rfl
 
-def norm_squared (z : complex) : real := z.re*z.re+z.im*z.im
+def I : ℂ := ⟨0, 1⟩
 
-protected def inv : complex → complex :=
-λ z,  { re := z.re / norm_squared z,
-        im := -z.im / norm_squared z }
+@[simp] lemma I_re : I.re = 0 := rfl
+@[simp] lemma I_im : I.im = 1 := rfl
 
-instance : has_add complex := ⟨λ z w, { re :=z.re+w.re, im:=z.im+w.im}⟩
-instance : has_neg complex := ⟨λ z, { re := -z.re, im := -z.im}⟩
-instance : has_mul complex := ⟨λ z w, { re := z.re*w.re - z.im*w.im,
-                                        im := z.re*w.im + z.im*w.re}⟩ 
-instance : has_inv complex := ⟨λ z, { re := z.re / norm_squared z,
-                                      im := -z.im / norm_squared z }⟩
+instance : has_add ℂ := ⟨λ z w, ⟨z.re + w.re, z.im + w.im⟩⟩
 
-@[simp] lemma zero_re : (0:complex).re=0 := rfl
-@[simp] lemma zero_im : (0:complex).im=0 := rfl
-@[simp] lemma one_re : (1:complex).re=1 := rfl
-@[simp] lemma one_im : (1:complex).im=0 := rfl
-@[simp] lemma I_re : complex.I.re=0 := rfl
-@[simp] lemma I_im : complex.I.im=1 := rfl
-@[simp] lemma conj_re (z : complex) : (conjugate z).re = z.re := rfl
-@[simp] lemma conj_im (z : complex) : (conjugate z).im = -z.im := rfl
-@[simp] lemma add_re (z w: complex) : (z+w).re=z.re+w.re := rfl
-@[simp] lemma add_im (z w: complex) : (z+w).im=z.im+w.im := rfl
-@[simp] lemma neg_re (z: complex) : (-z).re=-z.re := rfl
-@[simp] lemma neg_im (z: complex) : (-z).im=-z.im := rfl
+@[simp] lemma add_re (z w : ℂ) : (z + w).re = z.re + w.re := rfl
+@[simp] lemma add_im (z w : ℂ) : (z + w).im = z.im + w.im := rfl
+@[simp] lemma of_real_add (r s : ℝ) : ((r + s : ℝ) : ℂ) = r + s := rfl
 
--- one size fits all tactic 
+instance : has_neg ℂ := ⟨λ z, ⟨-z.re, -z.im⟩⟩
 
-meta def crunch : tactic unit := do
-`[intros],
-`[rw [eq_iff_re_eq_and_im_eq]],
-`[split;simp [add_mul,mul_add,mul_assoc]]
+@[simp] lemma neg_re (z : ℂ) : (-z).re = -z.re := rfl
+@[simp] lemma neg_im (z : ℂ) : (-z).im = -z.im := rfl
+@[simp] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : ℂ) = -r := ext_iff.2 $ by simp
 
-meta def crunch' : tactic unit := do 
-`[simp [add_mul, mul_add, mul_comm, mul_assoc, eq_iff_re_eq_and_im_eq,add_comm_group.add] {contextual:=tt}]
+instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im + z.im * w.re⟩⟩
 
-instance : add_comm_group complex :=
-{ add_comm_group .
-  zero         := 0,
-  add          := (+),
-  neg          := has_neg.neg,
-  zero_add     := by crunch,
-  add_zero     := by crunch,
-  add_comm     := by crunch,
-  add_assoc    := by crunch,
-  add_left_neg := by crunch
-}
+@[simp] lemma mul_re (z w : ℂ) : (z * w).re = z.re * w.re - z.im * w.im := rfl
+@[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
+@[simp] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
-@[simp] lemma sub_re (z w : complex) : (z-w).re=z.re-w.re := rfl
-@[simp] lemma sub_im (z w : complex) : (z-w).im=z.im-w.im := rfl
-@[simp] lemma mul_re (z w: complex) : (z*w).re=z.re*w.re-z.im*w.im := rfl
-@[simp] lemma mul_im (z w: complex) : (z*w).im=z.re*w.im+z.im*w.re := rfl
+lemma mk_eq_add_mul_I (a b : ℝ) : complex.mk a b = a + b * I :=
+ext_iff.2 $ by simp
 
+def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 
-lemma norm_squared_pos_of_nonzero (z : complex) (H : z ≠ 0) : norm_squared z > 0 :=
-begin -- far more painful than it should be but I need it for inverses
-  suffices : z.re ≠ 0 ∨ z.im ≠ 0,
-  { apply lt_of_le_of_ne,
-    { exact add_nonneg (mul_self_nonneg _) (mul_self_nonneg _) },
-    intro H2,
-    cases this with Hre Him,
-    { exact Hre (eq_zero_of_mul_self_add_mul_self_eq_zero (eq.symm H2)) },
-    unfold norm_squared at H2,rw [add_comm] at H2,
-    exact Him (eq_zero_of_mul_self_add_mul_self_eq_zero (eq.symm H2)) },
-  have : ¬ (z.re = 0 ∧ z.im = 0),
-  { intro H2,
-    exact H (eq_of_re_eq_and_im_eq z 0 H2.left H2.right) },
-  by_cases z0 : (z.re = 0),-- with Hre_eq,-- Hre_ne,
-  { right,
-    intro H2,
-    apply this,
-    exact ⟨z0,H2⟩ },
-  { left,assumption }
+@[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
+@[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
+
+@[simp] lemma conj_of_real (r : ℝ) : conj r = r :=
+ext_iff.2 $ by simp
+
+def norm_sq (z : ℂ) : ℝ := z.re * z.re + z.im * z.im
+
+@[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
+by simp [norm_sq]
+
+lemma norm_sq_zero : norm_sq 0 = 0 := by simp [norm_sq]
+lemma norm_sq_one : norm_sq 1 = 1 := by simp [norm_sq]
+
+lemma norm_sq_nonneg (z : ℂ) : 0 ≤ norm_sq z :=
+add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
+
+@[simp] lemma norm_sq_eq_zero {z : ℂ} : norm_sq z = 0 ↔ z = 0 :=
+⟨λ h, ext
+  (eq_zero_of_mul_self_add_mul_self_eq_zero h)
+  (eq_zero_of_mul_self_add_mul_self_eq_zero $ (add_comm _ _).trans h),
+ λ h, h.symm ▸ norm_sq_zero⟩
+
+@[simp] lemma norm_sq_pos {z : ℂ} : 0 < norm_sq z ↔ z ≠ 0 :=
+by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [norm_sq_nonneg]
+
+theorem mul_conj (z : ℂ) : z * conj z = norm_sq z :=
+ext_iff.2 $ by simp [norm_sq, mul_comm]
+
+instance : comm_ring ℂ :=
+by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
+   { intros, apply ext_iff.2; split; simp; ring }
+
+@[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
+@[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
+@[simp] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : ℂ) = r - s := rfl
+
+noncomputable instance : has_inv ℂ := ⟨λ z, conj z * ((norm_sq z)⁻¹:ℝ)⟩
+
+theorem inv_def (z : ℂ) : z⁻¹ = conj z * ((norm_sq z)⁻¹:ℝ) := rfl
+@[simp] lemma inv_re (z : ℂ) : (z⁻¹).re = z.re / norm_sq z := by simp [inv_def, division_def]
+@[simp] lemma inv_im (z : ℂ) : (z⁻¹).im = -z.im / norm_sq z := by simp [inv_def, division_def]
+
+lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : ℂ) = r⁻¹ :=
+ext_iff.2 $ begin
+  simp,
+  by_cases r = 0, {simp [h]},
+  rw [← div_div_eq_div_mul, div_self h, one_div_eq_inv]
 end
 
-lemma of_real_injective : function.injective of_real :=
-begin
-intros x₁ x₂ H,
-exact congr_arg complex.re H,
-end
+lemma inv_zero : (0⁻¹ : ℂ) = 0 :=
+by rw [← of_real_zero, ← of_real_inv, inv_zero]
 
-lemma of_real_zero : of_real 0 = (0:complex) := rfl
-lemma of_real_one : of_real 1 = (1:complex) := rfl
-lemma of_real_eq_coe (r : real) : of_real r = ↑r := rfl
+theorem mul_inv_cancel {z : ℂ} (h : z ≠ 0) : z * z⁻¹ = 1 :=
+by rw [inv_def, ← mul_assoc, mul_conj, ← of_real_mul,
+  mul_inv_cancel (mt norm_sq_eq_zero.1 h), of_real_one]
 
-lemma of_real_neg (r : real) : -(r:complex) = ((-r:ℝ):complex) := by crunch
+noncomputable instance : discrete_field ℂ :=
+{ inv := has_inv.inv,
+  zero_ne_one := mt (congr_arg re) zero_ne_one,
+  mul_inv_cancel := @mul_inv_cancel,
+  inv_mul_cancel := λ z h, by rw [mul_comm, mul_inv_cancel h],
+  inv_zero := inv_zero,
+  has_decidable_eq := classical.dec_eq _,
+  ..complex.comm_ring }
 
-lemma of_real_add (r s: real) : (r:complex) + (s:complex) = ((r+s):complex) := rfl
+@[simp] theorem of_real_int_cast : ∀ n : ℤ, ((n : ℝ) : ℂ) = n :=
+int.eq_cast (λ n, ((n : ℝ) : ℂ)) rfl (by simp)
 
-lemma of_real_sub (r s:real) : (r:complex) - (s:complex) = ((r-s):complex) := rfl
+@[simp] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : ℂ) = n :=
+by rw [← int.cast_coe_nat, of_real_int_cast]; refl
 
-lemma of_real_mul (r s:real) : (r:complex) * (s:complex) = ((r*s):complex) := rfl
+instance char_zero_complex : char_zero ℂ :=
+add_group.char_zero_of_inj_zero $ λ n h,
+by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
-lemma of_real_inv (r:real) : (r:complex)⁻¹ = ((r⁻¹):complex) := rfl
+@[simp] theorem of_real_rat_cast : ∀ n : ℚ, ((n : ℝ) : ℂ) = n :=
+by apply rat.eq_cast (λ n, ((n : ℝ) : ℂ)); simp
 
-lemma of_real_abs_squared (r:real) : norm_squared (of_real r) = (abs r)*(abs r) :=
-by simp [abs_mul_abs_self, norm_squared,of_real_eq_coe]
-
-instance : field complex :=
-{ --field .
-  add              := (+), -- I need this!
-  zero             := 0, -- later crunch proofs won't work without these.
---  neg          := complex.neg,
---  zero_add     := by crunch,
---  add_zero     := by crunch,
---  add_comm     := by crunch,
---  add_assoc    := by crunch,
---  add_left_neg := by crunch,
-
-  one              := 1,
-  mul              := has_mul.mul,
-  inv              := has_inv.inv,
-  mul_one          := by crunch,
-  one_mul          := by crunch,
-  mul_comm         := by crunch',
-  mul_assoc        := by crunch,
-  left_distrib     := by crunch',
-  right_distrib    := by crunch',
-  zero_ne_one      := begin
-    intro H,
-    suffices : ((0:real):complex).re = ((1:real):complex).re,
-    { revert this,
-      apply zero_ne_one },
-    { show (0:complex).re = (1:complex).re,
-    rw [←H],refl},
-    end,
-  mul_inv_cancel   := begin
-    intros z H,
-    have H2 : norm_squared z ≠ 0 := ne_of_gt (norm_squared_pos_of_nonzero z H),
-    apply eq_of_re_eq_and_im_eq,
-    { unfold has_inv.inv complex.inv,
-      rw [mul_re],
-      show z.re * (z.re / norm_squared z) -
-      z.im * (-z.im / norm_squared z) =
-    (1:complex).re,
-      suffices : z.re*(z.re/norm_squared z) + -z.im*(-z.im/norm_squared z) = 1,
-        by simpa,
-      rw [←mul_div_assoc,←mul_div_assoc,neg_mul_neg,div_add_div_same],
-      unfold norm_squared at *,
-      exact div_self H2},
-    { suffices : z.im * (z.re / norm_squared z) + z.re * (-z.im / norm_squared z) = 0,
-      by simpa,
-    rw [←mul_div_assoc,←mul_div_assoc,div_add_div_same],
-    simp [zero_div,mul_comm],
-    }
-  end,
-  inv_mul_cancel   := begin
-    intros z H,
-    have H2 : norm_squared z ≠ 0 := ne_of_gt (norm_squared_pos_of_nonzero z H),
-    apply eq_of_re_eq_and_im_eq,
-    { unfold has_inv.inv complex.inv,
-     rw [mul_re],
-     show (z.re / norm_squared z) * z.re -
-      (-z.im / norm_squared z) * z.im =
-    (1:complex).re,
-      suffices : z.re*(z.re/norm_squared z) + -z.im*(-z.im/norm_squared z) = 1,
-        by simpa [mul_comm],
-      rw [←mul_div_assoc,←mul_div_assoc,neg_mul_neg,div_add_div_same],
-      unfold norm_squared at *,
-      exact div_self H2 },
-    unfold has_inv.inv complex.inv,
-    rw [mul_im],
-    show (z.re / norm_squared z) * z.im +
-      (-z.im / norm_squared z) * z.re =
-    (1:complex).im,
-    suffices : z.im * (z.re / norm_squared z) + z.re * (-z.im / norm_squared z) = 0,
-      by simpa [mul_comm],
-    rw [←mul_div_assoc,←mul_div_assoc,div_add_div_same],
-    simp [zero_div,mul_comm]
-  end,
-  /-
-  inv_zero         := begin
-  unfold has_inv.inv complex.inv add_comm_group.zero,
-  apply eq_of_re_eq_and_im_eq,
-  split;simp [zero_div],
-  end,
-  -/
---  has_decidable_eq := by apply_instance,
-  ..complex.add_comm_group,
-  }
-
-theorem im_eq_zero_of_complex_nat (n : ℕ) : (n:complex).im = 0 :=
-begin
-  induction n with d Hd,
-  { simp },
-  { simp [Hd] },
-end
-
-theorem of_real_nat_eq_complex_nat {n : ℕ} : ↑(n:ℝ) = (n:complex) :=
-begin
-  induction n with d Hd,refl,
-  show ↑↑(d+1) = ↑(d+1),
-  rw [nat.cast_add,nat.cast_add,←Hd],
-  simp
-end
-
-instance char_zero_complex : char_zero complex :=
-⟨begin
-  intros,
-  split,
-  { rw [←complex.of_real_nat_eq_complex_nat,←complex.of_real_nat_eq_complex_nat],
-    intro H,
-    have real_eq := of_real_injective H,
-    revert real_eq,
-    have H2 : char_zero ℝ := by apply_instance,
-    exact (char_zero.cast_inj ℝ).1 },
-  intro H,rw [H],
-end⟩
-
-theorem of_real_int_eq_complex_int {n : ℤ} : of_real (n:ℝ) = (n:complex) :=
-begin
-  cases n with nnat nneg,exact of_real_nat_eq_complex_nat,
-  rw [int.cast_neg_succ_of_nat,int.cast_neg_succ_of_nat],
-  rw [←nat.cast_one,←nat.cast_add],
-  rw [←@nat.cast_one complex,←nat.cast_add],
-  rw [of_real_eq_coe,←of_real_neg],
-  rw [of_real_nat_eq_complex_nat],
-end 
-
-/-
-
-I could never get this one working.
-
-theorem of_real_rat_eq_complex_rat {q : ℚ} : of_real (q:ℝ) = (q:complex) :=
-begin
-rw [rat.num_denom q], -- this line doesn't even work now. I don't even understand goal.
-rw [rat.cast_mk q.num ↑(q.denom)],
-rw [rat.cast_mk q.num ↑(q.denom)],
-rw [div_eq_mul_inv,div_eq_mul_inv,←of_real_mul],
-rw [of_real_int_eq_complex_int],
-rw [←@of_real_int_eq_complex_int ((q.denom):ℤ)],
-rw [of_real_inv],
-tactic.swap,
-apply_instance,
--- exact complex.char_zero_complex, -- times out
-admit,
-end
--/
--- TODO : instance : topological_ring complex := missing
+-- TODO : instance : topological_ring ℂ := missing
 
 end complex
-

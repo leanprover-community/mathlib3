@@ -393,7 +393,6 @@ lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
       trans_conv (simplify lemmas []) $
       simp_bottom_up' (λ e, norm_num e <|> pow_lemma.rewrite e)
     end e,
-    trace (e, new_e),
     guard (¬ new_e =ₐ e),
     return ((), new_e, some pr, ff))
    (λ _ _ _ _ _, failed) `eq e,

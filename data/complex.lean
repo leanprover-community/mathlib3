@@ -59,9 +59,6 @@ def conjugate (z : complex) : complex := {re := z.re, im := -(z.im)}
 
 def norm_squared (z : complex) : real := z.re*z.re+z.im*z.im
 
-protected def inv : complex → complex :=
-λ z,  { re := z.re / norm_squared z,
-        im := -z.im / norm_squared z }
 
 instance : has_add complex := ⟨λ z w, { re :=z.re+w.re, im:=z.im+w.im}⟩
 instance : has_neg complex := ⟨λ z, { re := -z.re, im := -z.im}⟩
@@ -110,7 +107,6 @@ instance : add_comm_group complex :=
 @[simp] lemma mul_re (z w: complex) : (z*w).re=z.re*w.re-z.im*w.im := rfl
 @[simp] lemma mul_im (z w: complex) : (z*w).im=z.re*w.im+z.im*w.re := rfl
 
-
 lemma norm_squared_pos_of_nonzero (z : complex) (H : z ≠ 0) : norm_squared z > 0 :=
 begin -- far more painful than it should be but I need it for inverses
   suffices : z.re ≠ 0 ∨ z.im ≠ 0,
@@ -138,6 +134,7 @@ intros x₁ x₂ H,
 exact congr_arg complex.re H,
 end
 
+
 lemma of_real_zero : of_real 0 = (0:complex) := rfl
 lemma of_real_one : of_real 1 = (1:complex) := rfl
 lemma of_real_eq_coe (r : real) : of_real r = ↑r := rfl
@@ -150,7 +147,13 @@ lemma of_real_sub (r s:real) : (r:complex) - (s:complex) = ((r-s):complex) := rf
 
 lemma of_real_mul (r s:real) : (r:complex) * (s:complex) = ((r*s):complex) := rfl
 
-lemma of_real_inv (r:real) : (r:complex)⁻¹ = ((r⁻¹):complex) := rfl
+lemma  of_real_inv (r : ℝ) :(↑r : ℂ)⁻¹ = (↑(r⁻¹) : ℂ) := begin
+  have : (↑r : ℂ)⁻¹ = {re := (↑r : ℂ).re / norm_squared ↑r, im := -(↑r : ℂ).im / norm_squared ↑r},unfold has_inv.inv,
+  rw this,unfold norm_squared,rw coe_im,simp,
+  cases classical.em (r=0),
+  rw h,simp,
+  rw div_mul_left _ h,simp,
+end
 
 lemma of_real_abs_squared (r:real) : norm_squared (of_real r) = (abs r)*(abs r) :=
 by simp [abs_mul_abs_self, norm_squared,of_real_eq_coe]
@@ -187,7 +190,7 @@ instance : field complex :=
     intros z H,
     have H2 : norm_squared z ≠ 0 := ne_of_gt (norm_squared_pos_of_nonzero z H),
     apply eq_of_re_eq_and_im_eq,
-    { unfold has_inv.inv complex.inv,
+    { unfold has_inv.inv,
       rw [mul_re],
       show z.re * (z.re / norm_squared z) -
       z.im * (-z.im / norm_squared z) =
@@ -207,7 +210,7 @@ instance : field complex :=
     intros z H,
     have H2 : norm_squared z ≠ 0 := ne_of_gt (norm_squared_pos_of_nonzero z H),
     apply eq_of_re_eq_and_im_eq,
-    { unfold has_inv.inv complex.inv,
+    { unfold has_inv.inv,
      rw [mul_re],
      show (z.re / norm_squared z) * z.re -
       (-z.im / norm_squared z) * z.im =
@@ -217,7 +220,7 @@ instance : field complex :=
       rw [←mul_div_assoc,←mul_div_assoc,neg_mul_neg,div_add_div_same],
       unfold norm_squared at *,
       exact div_self H2 },
-    unfold has_inv.inv complex.inv,
+    unfold has_inv.inv,
     rw [mul_im],
     show (z.re / norm_squared z) * z.im +
       (-z.im / norm_squared z) * z.re =
@@ -238,64 +241,38 @@ instance : field complex :=
   ..complex.add_comm_group,
   }
 
-theorem im_eq_zero_of_complex_nat (n : ℕ) : (n:complex).im = 0 :=
-begin
-  induction n with d Hd,
-  { simp },
-  { simp [Hd] },
+@[simp] lemma cast_nat_re (n : ℕ) : (↑n : ℂ).re = n := begin
+  induction n,simp,simpa,
+end
+@[simp] lemma cast_nat_im (n : ℕ) : (↑n : ℂ).im = 0 := begin
+  induction n,simp,simpa,
 end
 
-theorem of_real_nat_eq_complex_nat {n : ℕ} : ↑(n:ℝ) = (n:complex) :=
-begin
-  induction n with d Hd,refl,
-  show ↑↑(d+1) = ↑(d+1),
-  rw [nat.cast_add,nat.cast_add,←Hd],
-  simp
+@[simp] lemma cast_int_re (z : ℤ) : (z : ℂ).re = z := begin
+  cases z,simp,simp,
+end
+@[simp] lemma cast_int_im (z : ℤ) : (z : ℂ).im = 0 := begin
+  cases z,simp,simp,
 end
 
 instance char_zero_complex : char_zero complex :=
-⟨begin
-  intros,
-  split,
-  { rw [←complex.of_real_nat_eq_complex_nat,←complex.of_real_nat_eq_complex_nat],
-    intro H,
-    have real_eq := of_real_injective H,
-    revert real_eq,
-    have H2 : char_zero ℝ := by apply_instance,
-    exact (char_zero.cast_inj ℝ).1 },
-  intro H,rw [H],
-end⟩
+⟨begin intros,simp,end⟩
 
-theorem of_real_int_eq_complex_int {n : ℤ} : of_real (n:ℝ) = (n:complex) :=
-begin
-  cases n with nnat nneg,exact of_real_nat_eq_complex_nat,
-  rw [int.cast_neg_succ_of_nat,int.cast_neg_succ_of_nat],
-  rw [←nat.cast_one,←nat.cast_add],
-  rw [←@nat.cast_one complex,←nat.cast_add],
-  rw [of_real_eq_coe,←of_real_neg],
-  rw [of_real_nat_eq_complex_nat],
-end 
-
-/-
-
-I could never get this one working.
-
-theorem of_real_rat_eq_complex_rat {q : ℚ} : of_real (q:ℝ) = (q:complex) :=
-begin
-rw [rat.num_denom q], -- this line doesn't even work now. I don't even understand goal.
-rw [rat.cast_mk q.num ↑(q.denom)],
-rw [rat.cast_mk q.num ↑(q.denom)],
-rw [div_eq_mul_inv,div_eq_mul_inv,←of_real_mul],
-rw [of_real_int_eq_complex_int],
-rw [←@of_real_int_eq_complex_int ((q.denom):ℤ)],
-rw [of_real_inv],
-tactic.swap,
-apply_instance,
--- exact complex.char_zero_complex, -- times out
-admit,
+@[simp] lemma cast_rat_re (q : ℚ) : (q : ℂ).re = q := begin
+  rw [rat.num_denom q,rat.cast_mk,rat.cast_mk_of_ne_zero],
+  rw [div_eq_mul_inv,div_eq_mul_inv],simp,
+  have : ((q.denom : ℝ) : ℂ) = (q.denom : ℂ),simp,rw [←this,of_real_inv],simp,
+  simp,exact (ne_of_lt q.pos).symm,
 end
--/
--- TODO : instance : topological_ring complex := missing
+@[simp] lemma cast_rat_im (q : ℚ) : (q : ℂ).im = 0 := begin
+  rw [rat.num_denom q,rat.cast_mk_of_ne_zero],
+  rw [div_eq_mul_inv],simp,
+  have : ((q.denom : ℝ) : ℂ) = (q.denom : ℂ),simp,rw [←this,of_real_inv],simp,
+  simp,exact (ne_of_lt q.pos).symm,
+end
+
+
+-- TODO : instance : topological_ring complex := 
 
 end complex
 

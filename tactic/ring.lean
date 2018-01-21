@@ -35,12 +35,12 @@ meta def cache.cs_app (c : cache) (n : name) : list expr → expr :=
 (@expr.const tt n [c.univ] c.α c.comm_semiring_inst).mk_app
 
 meta inductive destruct_ty : Type
-| const : ℤ → destruct_ty
+| const : ℚ → destruct_ty
 | xadd : expr → expr → expr → ℕ → expr → destruct_ty
 open destruct_ty
 
 meta def destruct (e : expr) : option destruct_ty :=
-match expr.to_int e with
+match expr.to_rat e with
 | some n := some $ const n
 | none := match e with
   | `(horner %%a %%x %%n %%b) :=
@@ -80,9 +80,9 @@ meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
 
 meta def eval_horner (c : cache) (a x n b : expr) : tactic (expr × expr) :=
 do d ← destruct a, match d with
-| const 0 :=
-  return (b, c.cs_app ``zero_horner [x, n, b])
-| const _ := refl_conv $ c.cs_app ``horner [a, x, n, b]
+| const q := if q = 0 then
+    return (b, c.cs_app ``zero_horner [x, n, b])
+  else refl_conv $ c.cs_app ``horner [a, x, n, b]
 | xadd a₁ x₁ n₁ _ b₁ :=
   if x₁ = x ∧ b₁.to_nat = some 0 then do
     (n', h) ← mk_app ``has_add.add [n₁, n] >>= norm_num,
@@ -337,6 +337,13 @@ meta def eval (c : cache) : expr → tactic (expr × expr)
   (e', p') ← eval_mul c e₁' e₂',
   p ← mk_app ``norm_num.subst_into_prod [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
+| e@`(has_inv.inv %%_) := (do
+    (e', p) ← norm_num.derive e,
+    e'.to_rat,
+    return (e', p)) <|> eval_atom c e
+| e@`(%%e₁ / %%e₂) := do
+  e₂' ← mk_app ``has_inv.inv [e₂],
+  mk_app ``has_mul.mul [e₁, e₂'] >>= eval
 | e@`(%%e₁ ^ %%e₂) := do
   (e₂', p₂) ← eval e₂,
   match e₂'.to_nat with

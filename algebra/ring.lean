@@ -13,6 +13,9 @@ section
 
   theorem mul_two (n : α) : n * 2 = n + n :=
   (left_distrib n 1 1).trans (by simp)
+  
+  theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
+  (two_mul _).symm
 end
 
 section

@@ -56,6 +56,12 @@ theorem smul_succ' (a : β) (n : ℕ) : a•(n+1) = a•n + a :=
 by simp [smul_succ, smul_add_comm']
 attribute [to_additive smul_succ'] pow_succ'
 
+theorem pow_two (a : α) : a^2 = a * a :=
+by simp [pow_succ]
+theorem smul_two (a : β) : a•2 = a + a :=
+by simp [smul_succ]
+attribute [to_additive smul_two] pow_two
+
 @[to_additive add_monoid.smul_add]
 theorem pow_add (a : α) (m n : ℕ) : a^(m + n) = a^m * a^n :=
 by induction n; simp [*, pow_succ', nat.add_succ, mul_assoc]

@@ -13,6 +13,9 @@ def div_pos := @div_pos_of_pos_of_pos
 lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
 by rw [inv_eq_one_div]; exact div_pos zero_lt_one
 
+lemma inv_lt_zero {a : α} : a < 0 → a⁻¹ < 0 :=
+by rw [inv_eq_one_div]; exact div_neg_of_pos_of_neg zero_lt_one
+
 lemma one_le_div_iff_le (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
 ⟨le_of_one_le_div a hb, one_le_div_of_le a hb⟩
 
@@ -152,10 +155,26 @@ by rw [inv_eq_one_div]; exact div_lt_of_mul_lt_of_pos (lt_trans zero_lt_one ha) 
 lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
 by rw [inv_eq_one_div, lt_div_iff h₁]; simp [h₂]
 
+lemma mul_self_inj_of_nonneg {a b : α} (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = b * b ↔ a = b :=
+(mul_self_eq_mul_self_iff a b).trans $ or_iff_left_of_imp $
+λ h, by subst a; rw [le_antisymm (neg_nonneg.1 a0) b0, neg_zero]
+
 end linear_ordered_field
 
 section
 variables {α : Type*} [discrete_linear_ordered_field α] (a b c : α)
+
+lemma inv_pos' {a : α} : 0 < a⁻¹ ↔ 0 < a :=
+⟨by rw [inv_eq_one_div]; exact pos_of_one_div_pos, inv_pos⟩
+
+lemma inv_neg' {a : α} : a⁻¹ < 0 ↔ a < 0 :=
+⟨by rw [inv_eq_one_div]; exact neg_of_one_div_neg, inv_lt_zero⟩
+
+lemma inv_nonneg {a : α} : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
+le_iff_le_iff_lt_iff_lt.2 inv_neg'
+
+lemma inv_nonpos {a : α} : a⁻¹ ≤ 0 ↔ a ≤ 0 :=
+le_iff_le_iff_lt_iff_lt.2 inv_pos'
 
 lemma abs_inv : abs a⁻¹ = (abs a)⁻¹ :=
 have h : abs (1 / a) = 1 / abs a,
@@ -172,5 +191,8 @@ begin
   rw [inv_eq_one_div, inv_eq_one_div],
   exact one_div_le_one_div_of_le hb h
 end
+
+lemma div_nonneg' {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b :=
+(lt_or_eq_of_le hb).elim (div_nonneg ha) (λ h, by simp [h.symm])
 
 end

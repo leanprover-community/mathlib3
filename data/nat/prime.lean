@@ -239,7 +239,7 @@ theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
   (Hm : ¬ p ∣ m) (Hn : ¬ p ∣ n) : ¬ p ∣ m * n :=
 mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 
-theorem dvd_of_prime_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
+theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
     exact (pp.dvd_mul.1 h).elim IH id]

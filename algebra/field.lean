@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.ring logic.basic
 open set
@@ -99,7 +99,14 @@ by rw [← division_ring.inv_inj (inv_ne_zero ha) hb,
 lemma div_neg (a : α) (hb : b ≠ 0) : a / -b = -(a / b) :=
 by rw [← division_ring.neg_div_neg_eq _ (neg_ne_zero.2 hb), neg_neg, neg_div]
 
+lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
+⟨λ h, by rw [← h, div_mul_cancel _ hb],
+ λ h, by rw [← h, mul_div_cancel _ hb]⟩
+
 end division_ring
+
+instance field.to_integral_domain [F : field α] : integral_domain α :=
+{ ..F, ..division_ring.to_domain }
 
 section
 variables [field α] {a b c d : α}

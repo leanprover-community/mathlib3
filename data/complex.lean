@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kevin Buzzard
+Authors: Kevin Buzzard, Mario Carneiro
 
 The complex numbers, modelled as R^2 in the obvious way.
 
@@ -20,9 +20,7 @@ namespace complex
 | ⟨a, b⟩ := rfl
 
 theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
-| ⟨zr, zi⟩ ⟨wr, wi⟩ rfl rfl := rfl
-
--- simp version
+| ⟨zr, zi⟩ ⟨_, _⟩ rfl rfl := rfl
 
 theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
 ⟨λ H, by simp [H], and.rec ext⟩
@@ -64,6 +62,9 @@ instance : has_add ℂ := ⟨λ z w, ⟨z.re + w.re, z.im + w.im⟩⟩
 @[simp] lemma add_im (z w : ℂ) : (z + w).im = z.im + w.im := rfl
 @[simp] lemma of_real_add (r s : ℝ) : ((r + s : ℝ) : ℂ) = r + s := rfl
 
+@[simp] lemma of_real_bit0 (r : ℝ) : ((bit0 r : ℝ) : ℂ) = bit0 r := rfl
+@[simp] lemma of_real_bit1 (r : ℝ) : ((bit1 r : ℝ) : ℂ) = bit1 r := rfl
+
 instance : has_neg ℂ := ⟨λ z, ⟨-z.re, -z.im⟩⟩
 
 @[simp] lemma neg_re (z : ℂ) : (-z).re = -z.re := rfl
@@ -86,6 +87,10 @@ def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 
 @[simp] lemma conj_of_real (r : ℝ) : conj r = r :=
 ext_iff.2 $ by simp
+
+@[simp] lemma eq_conj_iff_real (z : ℂ) : conj z = z ↔ ∃ r : ℝ, z = r :=
+⟨λ h, ⟨z.re, ext rfl $ eq_zero_of_neg_eq (congr_arg im h)⟩,
+ λ ⟨h, e⟩, e.symm ▸ rfl⟩
 
 def norm_sq (z : ℂ) : ℝ := z.re * z.re + z.im * z.im
 
@@ -110,6 +115,9 @@ by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [norm_sq_nonneg]
 theorem mul_conj (z : ℂ) : z * conj z = norm_sq z :=
 ext_iff.2 $ by simp [norm_sq, mul_comm]
 
+theorem add_conj (z : ℂ) : z + conj z = (2 * z.re : ℝ) :=
+ext_iff.2 $ by simp [two_mul]
+
 instance : comm_ring ℂ :=
 by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
    { intros, apply ext_iff.2; split; simp; ring }
@@ -117,6 +125,9 @@ by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..}
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
 @[simp] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : ℂ) = r - s := rfl
+
+theorem sub_conj (z : ℂ) : z - conj z = (2 * z.im : ℝ) * I :=
+ext_iff.2 $ by simp [two_mul]
 
 noncomputable instance : has_inv ℂ := ⟨λ z, conj z * ((norm_sq z)⁻¹:ℝ)⟩
 
@@ -147,6 +158,9 @@ noncomputable instance : discrete_field ℂ :=
   has_decidable_eq := classical.dec_eq _,
   ..complex.comm_ring }
 
+@[simp] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
+by rw [division_def, of_real_mul, division_def, of_real_inv]
+
 @[simp] theorem of_real_int_cast : ∀ n : ℤ, ((n : ℝ) : ℂ) = n :=
 int.eq_cast (λ n, ((n : ℝ) : ℂ)) rfl (by simp)
 
@@ -159,6 +173,9 @@ by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 @[simp] theorem of_real_rat_cast : ∀ n : ℚ, ((n : ℝ) : ℂ) = n :=
 by apply rat.eq_cast (λ n, ((n : ℝ) : ℂ)); simp
+
+theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
+by rw [add_conj]; simp; rw [mul_div_cancel_left (z.re:ℂ) two_ne_zero']
 
 -- TODO : instance : topological_ring ℂ := missing
 

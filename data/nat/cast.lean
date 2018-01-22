@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
-import data.nat.basic algebra.ordered_group
+import tactic.interactive algebra.order algebra.ordered_group
 
 namespace nat
 variables {α : Type*}
@@ -86,55 +86,5 @@ by by_cases a ≤ b; simp [h, min]
 
 @[simp] theorem cast_max [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [h, max]
-
-end nat
-
-/-- Typeclass for monoids with characteristic zero.
-  (This is usually stated on fields but it makes sense for any additive monoid with 1.) -/
-class char_zero (α : Type*) [add_monoid α] [has_one α] : Prop :=
-(cast_inj : ∀ {m n : ℕ}, (m : α) = n ↔ m = n)
-
-theorem char_zero_of_inj_zero {α : Type*} [add_monoid α] [has_one α]
-  (add_left_cancel : ∀ a b c : α, a + b = a + c → b = c)
-  (H : ∀ n:ℕ, (n:α) = 0 → n = 0) : char_zero α :=
-⟨λ m n, ⟨suffices ∀ {m n : ℕ}, (m:α) = n → m ≤ n,
-  from λ h, le_antisymm (this h) (this h.symm),
-  λ m n h, (le_total m n).elim id $ λ h2, le_of_eq $ begin
-    cases nat.le.dest h2 with k e,
-    suffices : k = 0, {simp [this] at e, rw e},
-    apply H, apply add_left_cancel n,
-    rw [← nat.cast_add, e, add_zero, h]
-  end,
-congr_arg _⟩⟩
-
-theorem add_group.char_zero_of_inj_zero {α : Type*} [add_group α] [has_one α]
-  (H : ∀ n:ℕ, (n:α) = 0 → n = 0) : char_zero α :=
-char_zero_of_inj_zero (@add_left_cancel _ _) H
-
-theorem ordered_cancel_comm_monoid.char_zero_of_inj_zero {α : Type*}
-  [ordered_cancel_comm_monoid α] [has_one α]
-  (H : ∀ n:ℕ, (n:α) = 0 → n = 0) : char_zero α :=
-char_zero_of_inj_zero (@add_left_cancel _ _) H
-
-instance linear_ordered_semiring.to_char_zero {α : Type*}
-  [linear_ordered_semiring α] : char_zero α :=
-ordered_cancel_comm_monoid.char_zero_of_inj_zero $
-λ n h, nat.eq_zero_of_le_zero $
-  (@nat.cast_le α _ _ _).1 (by simp [h])
-
-namespace nat
-variables {α : Type*} [add_monoid α] [has_one α] [char_zero α]
-
-@[simp] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
-char_zero.cast_inj _
-
-theorem cast_injective : function.injective (coe : ℕ → α)
-| m n := cast_inj.1
-
-@[simp] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
-by rw [← cast_zero, cast_inj]
-
-@[simp] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
-not_congr cast_eq_zero
 
 end nat

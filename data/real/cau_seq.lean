@@ -56,6 +56,14 @@ by rw [division_def, abv_mul abv, abv_inv abv]; refl
 lemma abv_sub_le (a b c : β) : abv (a - c) ≤ abv (a - b) + abv (b - c) :=
 by simpa using abv_add abv (a - b) (b - c)
 
+lemma sub_abv_le_abv_sub (a b : β) : abv a - abv b ≤ abv (a - b) :=
+sub_le_iff_le_add.2 $ by simpa using abv_add abv (a - b) b
+
+lemma abs_abv_sub_le_abv_sub (a b : β) :
+  abs (abv a - abv b) ≤ abv (a - b) :=
+abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
+  by rw abv_sub abv; apply sub_abv_le_abv_sub abv⟩
+
 end is_absolute_value
 
 instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :

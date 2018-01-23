@@ -314,7 +314,6 @@ lemma abs_sub : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
 lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
 @[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
 @[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs
-
--- TODO : instance : topological_ring ℂ := missing
+lemma abs_abs_sub_le_abs_sub : ∀ z w, abs' (abs z - abs w) ≤ abs (z - w) := abs_abv_sub_le_abv_sub abs
 
 end complex

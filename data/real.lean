@@ -991,6 +991,15 @@ theorem sqrt_eq_iff_sqr_eq {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
   sqrt x = y ↔ y ^ 2 = x :=
 by rw [pow_two, sqrt_eq_iff_mul_self_eq hx hy]
 
+theorem sqrt_mul_self_eq_abs (x : ℝ) : sqrt (x * x) = abs x :=
+(le_total 0 x).elim
+  (λ h, (sqrt_mul_self h).trans (abs_of_nonneg h).symm)
+  (λ h, by rw [← neg_mul_neg,
+    sqrt_mul_self (neg_nonneg.2 h), abs_of_nonpos h])
+
+theorem sqrt_sqr_eq_abs (x : ℝ) : sqrt (x ^ 2) = abs x :=
+by rw [pow_two, sqrt_mul_self_eq_abs]
+
 @[simp] theorem sqrt_zero : sqrt 0 = 0 :=
 by simpa using sqrt_mul_self (le_refl _)
 

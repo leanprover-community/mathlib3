@@ -153,7 +153,7 @@ end
 section
 variables [discrete_field α] {a b c : α}
 
-attribute [simp] div_zero
+attribute [simp] inv_zero div_zero
 
 lemma inv_sub_inv_eq (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ - b⁻¹ = (b - a) / (a * b) :=
 have a * b ≠ 0, by simp [mul_eq_zero_iff_eq_zero_or_eq_zero, ha, hb],

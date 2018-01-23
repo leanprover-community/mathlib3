@@ -9,7 +9,7 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real analysis.topology.topological_structures
+import data.real.basic analysis.topology.topological_structures
 open lattice set filter classical
 noncomputable theory
 

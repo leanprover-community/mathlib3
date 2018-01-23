@@ -6,400 +6,21 @@ Authors: Mario Carneiro
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
-import data.rat algebra.ordered_field algebra.big_operators data.nat.prime
+import data.real.cau_seq algebra.big_operators data.nat.prime
 
-theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
-  (∃ i, ∀ j ≥ i, P j) → (∃ i, ∀ j ≥ i, Q j) →
-  ∃ i, ∀ j ≥ i, P j ∧ Q j
-| ⟨a, h₁⟩ ⟨b, h₂⟩ := let ⟨c, ac, bc⟩ := exists_ge_of_linear a b in
-  ⟨c, λ j hj, ⟨h₁ _ (le_trans ac hj), h₂ _ (le_trans bc hj)⟩⟩
-
-theorem rat_add_continuous_lemma {α} [discrete_linear_ordered_field α]
-  {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : α},
-  abs (a₁ - b₁) < δ → abs (a₂ - b₂) < δ → abs (a₁ + a₂ - (b₁ + b₂)) < ε :=
-⟨ε / 2, half_pos ε0, λ a₁ a₂ b₁ b₂ h₁ h₂, 
-  by simpa [add_halves] using lt_of_le_of_lt (abs_add _ _) (add_lt_add h₁ h₂)⟩
-
-theorem rat_mul_continuous_lemma {α} [discrete_linear_ordered_field α]
-  {ε K₁ K₂ : α} (ε0 : 0 < ε) (K₁0 : 0 < K₁) (K₂0 : 0 < K₂) :
-  ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : α}, abs a₁ < K₁ → abs b₂ < K₂ →
-  abs (a₁ - b₁) < δ → abs (a₂ - b₂) < δ → abs (a₁ * a₂ - b₁ * b₂) < ε :=
-begin
-  have K0 := lt_of_lt_of_le K₁0 (le_max_left _ K₂),
-  have εK := div_pos (half_pos ε0) K0,
-  refine ⟨_, εK, λ a₁ a₂ b₁ b₂ ha₁ hb₂ h₁ h₂, _⟩,
-  replace ha₁ := lt_of_lt_of_le ha₁ (le_max_left _ K₂),
-  replace hb₂ := lt_of_lt_of_le hb₂ (le_max_right K₁ _),
-  have := add_lt_add
-    (mul_lt_mul' (le_of_lt h₁) hb₂ (abs_nonneg _) εK)
-    (mul_lt_mul' (le_of_lt h₂) ha₁ (abs_nonneg _) εK),
-  rw [← abs_mul, div_mul_cancel _ (ne_of_gt K0), ← abs_mul, add_halves] at this,
-  simpa [mul_add, mul_comm] using lt_of_le_of_lt (abs_add _ _) this
-end
-
-theorem rat_inv_continuous_lemma {α} [discrete_linear_ordered_field α]
-  {ε K : α} (ε0 : 0 < ε) (K0 : 0 < K) :
-  ∃ δ > 0, ∀ {a b : α}, K ≤ abs a → K ≤ abs b →
-  abs (a - b) < δ → abs (a⁻¹ - b⁻¹) < ε :=
-begin
-  have KK := mul_pos K0 K0,
-  have εK := mul_pos ε0 KK,
-  refine ⟨_, εK, λ a b ha hb h, _⟩,
-  have a0 := lt_of_lt_of_le K0 ha,
-  have b0 := lt_of_lt_of_le K0 hb,  
-  rw [inv_sub_inv (abs_pos_iff.1 a0) (abs_pos_iff.1 b0),
-      abs_div, abs_mul, mul_comm, abs_sub,
-      ← mul_div_cancel ε (ne_of_gt KK)],
-  exact div_lt_div h
-    (mul_le_mul hb ha (le_of_lt K0) (abs_nonneg _))
-    (le_of_lt $ mul_pos ε0 KK) KK
-end
-
-def is_cau_seq {α : Type*} [discrete_linear_ordered_field α] (f : ℕ → α) := 
-∀ ε > 0, ∃ i, ∀ j ≥ i, abs (f j - f i) < ε
-
-namespace is_cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α] {f : ℕ → α}
-
-theorem cauchy₂ (hf : is_cau_seq f) {ε:α} (ε0 : ε > 0) :
-  ∃ i, ∀ j k ≥ i, abs (f j - f k) < ε :=
-begin
-  refine (hf _ (half_pos ε0)).imp (λ i hi j k ij ik, _),
-  rw ← add_halves ε,
-  refine lt_of_le_of_lt (abs_sub_le _ _ _) (add_lt_add (hi _ ij) _),
-  rw abs_sub, exact hi _ ik
-end
-
-theorem cauchy₃ (hf : is_cau_seq f) {ε:α} (ε0 : ε > 0) :
-  ∃ i, ∀ j ≥ i, ∀ k ≥ j, abs (f k - f j) < ε :=
-let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ _ (le_trans ij jk) ij⟩
-
-end is_cau_seq
-
-def cau_seq (α : Type*) [discrete_linear_ordered_field α] := {f : ℕ → α // is_cau_seq f}
-
-namespace cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α]
-
-instance : has_coe_to_fun (cau_seq α) := ⟨_, subtype.val⟩
-
-theorem ext {f g : cau_seq α} (h : ∀ i, f i = g i) : f = g :=
-subtype.eq (funext h)
-
-theorem cauchy (f : cau_seq α) :
-  ∀ {ε}, ε > 0 → ∃ i, ∀ j ≥ i, abs (f j - f i) < ε := f.2
-
-theorem cauchy₂ (f : cau_seq α) {ε:α} : ε > 0 →
-  ∃ i, ∀ j k ≥ i, abs (f j - f k) < ε := f.2.cauchy₂
-
-theorem cauchy₃ (f : cau_seq α) {ε:α} : ε > 0 →
-  ∃ i, ∀ j ≥ i, ∀ k ≥ j, abs (f k - f j) < ε := f.2.cauchy₃
-
-theorem bounded (f : cau_seq α) : ∃ r, ∀ i, abs (f i) < r :=
-begin
-  cases f.cauchy zero_lt_one with i h,
-  let R := (finset.range (i+1)).sum (λ j, abs (f j)),
-  have : ∀ j ≤ i, abs (f j) ≤ R,
-  { intros j ij, change (λ j, abs (f j)) j ≤ R,
-    apply finset.single_le_sum,
-    { intros, apply abs_nonneg },
-    { rwa [finset.mem_range, nat.lt_succ_iff] } },
-  refine ⟨R + 1, λ j, _⟩,
-  cases lt_or_le j i with ij ij,
-  { exact lt_of_le_of_lt (this _ (le_of_lt ij)) (lt_add_one _) },
-  { have := lt_of_le_of_lt (abs_add _ _)
-      (add_lt_add_of_le_of_lt (this _ (le_refl _)) (h _ ij)),
-    rw [add_sub, add_comm] at this, simpa }
-end
-
-theorem bounded' (f : cau_seq α) (x : α) : ∃ r > x, ∀ i, abs (f i) < r :=
-let ⟨r, h⟩ := f.bounded in
-⟨max r (x+1), lt_of_lt_of_le (lt_add_one _) (le_max_right _ _),
-  λ i, lt_of_lt_of_le (h i) (le_max_left _ _)⟩
-
-def of_eq (f : cau_seq α) (g : ℕ → α) (e : ∀ i, f i = g i) : cau_seq α :=
-⟨g, λ ε, by rw [show g = f, from (funext e).symm]; exact f.cauchy⟩
-
-instance : has_add (cau_seq α) :=
-⟨λ f g, ⟨λ i, f i + g i, λ ε ε0,
-  let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma ε0,
-      ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
-  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ (le_refl _) in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
-
-@[simp] theorem add_apply (f g : cau_seq α) (i : ℕ) : (f + g) i = f i + g i := rfl
-
-instance : has_mul (cau_seq α) :=
-⟨λ f g, ⟨λ i, f i * g i, λ ε ε0,
-  let ⟨F, F0, hF⟩ := f.bounded' 0, ⟨G, G0, hG⟩ := g.bounded' 0,
-      ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma ε0 F0 G0,
-      ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
-  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ (le_refl _) in
-    Hδ (hF j) (hG i) (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
-
-@[simp] theorem mul_apply (f g : cau_seq α) (i : ℕ) : (f * g) i = f i * g i := rfl
-
-def const (x : α) : cau_seq α :=
-⟨λ i, x, λ ε ε0, ⟨0, λ j ij, by simpa using ε0⟩⟩
-
-@[simp] theorem const_apply (x : α) (i : ℕ) : @const α _ x i = x := rfl
-
-theorem const_inj {x y : α} : const x = const y ↔ x = y :=
-⟨λ h, congr_arg (λ f:cau_seq α, f 0) h, congr_arg _⟩
-
-instance : has_zero (cau_seq α) := ⟨const 0⟩
-instance : has_one (cau_seq α) := ⟨const 1⟩
-
-@[simp] theorem zero_apply (i) : (0 : cau_seq α) i = 0 := rfl
-@[simp] theorem one_apply (i) : (1 : cau_seq α) i = 1 := rfl
-
-theorem const_add (x y : α) : const (x + y) = const x + const y :=
-ext $ λ i, rfl
-
-theorem const_mul (x y : α) : const (x * y) = const x * const y :=
-ext $ λ i, rfl
-
-instance : has_neg (cau_seq α) :=
-⟨λ f, of_eq (const (-1) * f) (λ x, -f x) (λ i, by simp)⟩
-
-@[simp] theorem neg_apply (f : cau_seq α) (i) : (-f) i = -f i := rfl
-
-theorem const_neg (x : α) : const (-x) = -const x :=
-ext $ λ i, rfl
-
-instance : comm_ring (cau_seq α) :=
-by refine {neg := has_neg.neg, add := (+), zero := 0, mul := (*), one := 1, ..};
-   { intros, apply ext, simp [mul_left_comm, mul_comm, mul_add] }
-
-theorem const_sub (x y : α) : const (x - y) = const x - const y :=
-by rw [sub_eq_add_neg, const_add, const_neg]; refl
-
-@[simp] theorem sub_apply (f g : cau_seq α) (i : ℕ) : (f - g) i = f i - g i := rfl
-
-def lim_zero (f : cau_seq α) := ∀ ε > 0, ∃ i, ∀ j ≥ i, abs (f j) < ε
-
-theorem add_lim_zero {f g : cau_seq α}
-  (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f + g)
-| ε ε0 := (exists_forall_ge_and 
-    (hf _ $ half_pos ε0) (hg _ $ half_pos ε0)).imp $
-  λ i H j ij, let ⟨H₁, H₂⟩ := H _ ij in
-    by simpa [add_halves ε] using lt_of_le_of_lt (abs_add _ _) (add_lt_add H₁ H₂)
-
-theorem mul_lim_zero (f : cau_seq α) {g}
-  (hg : lim_zero g) : lim_zero (f * g)
-| ε ε0 := let ⟨F, F0, hF⟩ := f.bounded' 0 in
-  (hg _ $ div_pos ε0 F0).imp $ λ i H j ij,
-  by have := mul_lt_mul' (le_of_lt $ hF j) (H _ ij) (abs_nonneg _) F0;
-     rwa [mul_comm F, div_mul_cancel _ (ne_of_gt F0), ← abs_mul] at this
-
-theorem neg_lim_zero {f : cau_seq α} (hf : lim_zero f) : lim_zero (-f) :=
-by rw ← neg_one_mul; exact mul_lim_zero _ hf
-
-theorem sub_lim_zero {f g : cau_seq α}
-  (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f - g) :=
-add_lim_zero hf (neg_lim_zero hg)
-
-theorem zero_lim_zero : @lim_zero α _ 0
-| ε ε0 := ⟨0, λ j ij, by simpa using ε0⟩
-
-theorem const_lim_zero {x : α} : lim_zero (const x) ↔ x = 0 :=
-⟨λ H, abs_eq_zero.1 $
-  eq_of_le_of_forall_le_of_dense (abs_nonneg _) $
-  λ ε ε0, let ⟨i, hi⟩ := H _ ε0 in le_of_lt $ hi _ (le_refl _),
-λ e, e.symm ▸ zero_lim_zero⟩
-
-instance equiv : setoid (cau_seq α) :=
-⟨λ f g, lim_zero (f - g),
-⟨λ f, by simp [zero_lim_zero],
- λ f g h, by simpa using neg_lim_zero h,
- λ f g h fg gh, by simpa using add_lim_zero fg gh⟩⟩
-
-theorem equiv_def₃ {f g : cau_seq α} (h : f ≈ g) {ε:α} (ε0 : 0 < ε) :
-  ∃ i, ∀ j ≥ i, ∀ k ≥ j, abs (f k - g j) < ε :=
-(exists_forall_ge_and (h _ $ half_pos ε0) (f.cauchy₃ $ half_pos ε0)).imp $
-λ i H j ij k jk, let ⟨h₁, h₂⟩ := H _ ij in
-by have := lt_of_le_of_lt (abs_add (f j - g j) _) (add_lt_add h₁ (h₂ _ jk));
-   rwa [sub_add_sub_cancel', add_halves] at this
-
-theorem lim_zero_congr {f g : cau_seq α} (h : f ≈ g) : lim_zero f ↔ lim_zero g :=
-⟨λ l, by simpa using add_lim_zero (setoid.symm h) l,
- λ l, by simpa using add_lim_zero h l⟩
-
-theorem abs_pos_of_not_lim_zero {f : cau_seq α} (hf : ¬ lim_zero f) :
-  ∃ K > 0, ∃ i, ∀ j ≥ i, K ≤ abs (f j) :=
-begin
-  have := classical.prop_decidable,
-  by_contra nk,
-  refine hf (λ ε ε0, _),
-  simp [not_forall] at nk,
-  cases f.cauchy₃ (half_pos ε0) with i hi,
-  rcases nk _ (half_pos ε0) i with ⟨j, ij, hj⟩,
-  refine ⟨j, λ k jk, _⟩,
-  have := lt_of_le_of_lt (abs_add _ _) (add_lt_add (hi j ij k jk) hj),
-  rwa [sub_add_cancel, add_halves] at this
-end
-
-theorem inv_aux {f : cau_seq α} (hf : ¬ lim_zero f) :
-  ∀ ε > 0, ∃ i, ∀ j ≥ i, abs ((f j)⁻¹ - (f i)⁻¹) < ε | ε ε0 :=
-let ⟨K, K0, HK⟩ := abs_pos_of_not_lim_zero hf,
-    ⟨δ, δ0, Hδ⟩ := rat_inv_continuous_lemma ε0 K0,
-    ⟨i, H⟩ := exists_forall_ge_and HK (f.cauchy₃ δ0) in
-⟨i, λ j ij, let ⟨iK, H'⟩ := H _ (le_refl _) in Hδ (H _ ij).1 iK (H' _ ij)⟩
-
-def inv (f) (hf : ¬ lim_zero f) : cau_seq α := ⟨_, inv_aux hf⟩
-
-@[simp] theorem inv_apply {f : cau_seq α} (hf i) : inv f hf i = (f i)⁻¹ := rfl
-
-theorem inv_mul_cancel {f : cau_seq α} (hf) : inv f hf * f ≈ 1 :=
-λ ε ε0, let ⟨K, K0, i, H⟩ := abs_pos_of_not_lim_zero hf in
-⟨i, λ j ij,
-  by simpa [abs_pos_iff.1 (lt_of_lt_of_le K0 (H _ ij))] using ε0⟩
-
-def pos (f : cau_seq α) : Prop := ∃ K > 0, ∃ i, ∀ j ≥ i, K ≤ f j
-
-theorem not_lim_zero_of_pos {f : cau_seq α} : pos f → ¬ lim_zero f
-| ⟨F, F0, hF⟩ H :=
-  let ⟨i, h⟩ := exists_forall_ge_and hF (H _ F0),
-      ⟨h₁, h₂⟩ := h _ (le_refl _) in
-  not_lt_of_le h₁ (abs_lt.1 h₂).2
-
-theorem const_pos {x : α} : pos (const x) ↔ 0 < x :=
-⟨λ ⟨K, K0, i, h⟩, lt_of_lt_of_le K0 (h _ (le_refl _)),
- λ h, ⟨x, h, 0, λ j _, le_refl _⟩⟩
-
-theorem add_pos {f g : cau_seq α} : pos f → pos g → pos (f + g)
-| ⟨F, F0, hF⟩ ⟨G, G0, hG⟩ :=
-  let ⟨i, h⟩ := exists_forall_ge_and hF hG in
-  ⟨_, _root_.add_pos F0 G0, i,
-    λ j ij, let ⟨h₁, h₂⟩ := h _ ij in add_le_add h₁ h₂⟩
-
-theorem pos_add_lim_zero {f g : cau_seq α} : pos f → lim_zero g → pos (f + g)
-| ⟨F, F0, hF⟩ H :=
-  let ⟨i, h⟩ := exists_forall_ge_and hF (H _ (half_pos F0)) in
-  ⟨_, half_pos F0, i, λ j ij, begin
-    cases h j ij with h₁ h₂,
-    have := add_le_add h₁ (le_of_lt (abs_lt.1 h₂).1),
-    rwa [← sub_eq_add_neg, sub_self_div_two] at this
-  end⟩
-
-theorem mul_pos {f g : cau_seq α} : pos f → pos g → pos (f * g)
-| ⟨F, F0, hF⟩ ⟨G, G0, hG⟩ :=
-  let ⟨i, h⟩ := exists_forall_ge_and hF hG in
-  ⟨_, _root_.mul_pos F0 G0, i,
-    λ j ij, let ⟨h₁, h₂⟩ := h _ ij in
-    mul_le_mul h₁ h₂ (le_of_lt G0) (le_trans (le_of_lt F0) h₁)⟩
-
-theorem trichotomy (f : cau_seq α) : pos f ∨ lim_zero f ∨ pos (-f) :=
-begin
-  cases classical.em (lim_zero f); simp *,
-  rcases abs_pos_of_not_lim_zero h with ⟨K, K0, hK⟩,
-  rcases exists_forall_ge_and hK (f.cauchy₃ K0) with ⟨i, hi⟩,
-  refine (le_total 0 (f i)).imp _ _;
-    refine (λ h, ⟨K, K0, i, λ j ij, _⟩);
-    have := (hi _ ij).1;
-    cases hi _ (le_refl _) with h₁ h₂,
-  { rwa abs_of_nonneg at this,
-    rw abs_of_nonneg h at h₁,
-    exact (le_add_iff_nonneg_right _).1
-      (le_trans h₁ $ neg_le_sub_iff_le_add'.1 $
-        le_of_lt (abs_lt.1 $ h₂ _ ij).1) },
-  { rwa abs_of_nonpos at this,
-    rw abs_of_nonpos h at h₁,
-    rw [← sub_le_sub_iff_right, zero_sub],
-    exact le_trans (le_of_lt (abs_lt.1 $ h₂ _ ij).2) h₁ }
-end
-
-instance : has_lt (cau_seq α) := ⟨λ f g, pos (g - f)⟩
-instance : has_le (cau_seq α) := ⟨λ f g, f < g ∨ f ≈ g⟩
-
-theorem lt_of_lt_of_eq {f g h : cau_seq α}
-  (fg : f < g) (gh : g ≈ h) : f < h :=
-by simpa using pos_add_lim_zero fg (neg_lim_zero gh)
-
-theorem lt_of_eq_of_lt {f g h : cau_seq α}
-  (fg : f ≈ g) (gh : g < h) : f < h :=
-by have := pos_add_lim_zero gh (neg_lim_zero fg);
-   rwa [← sub_eq_add_neg, sub_sub_sub_cancel_right] at this
-
-theorem lt_trans {f g h : cau_seq α} (fg : f < g) (gh : g < h) : f < h :=
-by simpa using add_pos fg gh
-
-theorem lt_irrefl {f : cau_seq α} : ¬ f < f
-| h := not_lim_zero_of_pos h (by simp [zero_lim_zero])
-
-instance : preorder (cau_seq α) :=
-{ lt := (<),
-  le := λ f g, f < g ∨ f ≈ g,
-  le_refl := λ f, or.inr (setoid.refl _),
-  le_trans := λ f g h fg, match fg with
-    | or.inl fg, or.inl gh := or.inl $ lt_trans fg gh
-    | or.inl fg, or.inr gh := or.inl $ lt_of_lt_of_eq fg gh
-    | or.inr fg, or.inl gh := or.inl $ lt_of_eq_of_lt fg gh
-    | or.inr fg, or.inr gh := or.inr $ setoid.trans fg gh
-    end,
-  lt_iff_le_not_le := λ f g,
-    ⟨λ h, ⟨or.inl h,
-      not_or (mt (lt_trans h) lt_irrefl) (not_lim_zero_of_pos h)⟩,
-    λ ⟨h₁, h₂⟩, h₁.resolve_right
-      (mt (λ h, or.inr (setoid.symm h)) h₂)⟩ }
-
-theorem le_antisymm {f g : cau_seq α} (fg : f ≤ g) (gf : g ≤ f) : f ≈ g :=
-fg.resolve_left (not_lt_of_le gf)
-
-theorem lt_total (f g : cau_seq α) : f < g ∨ f ≈ g ∨ g < f :=
-(trichotomy (g - f)).imp_right
-  (λ h, h.imp (λ h, setoid.symm h) (λ h, by rwa neg_sub at h))
-
-theorem le_total (f g : cau_seq α) : f ≤ g ∨ g ≤ f :=
-(or.assoc.2 (lt_total f g)).imp_right or.inl
-
-theorem const_lt {x y : α} : const x < const y ↔ x < y :=
-show pos _ ↔ _, by rw [← const_sub, const_pos, sub_pos]
-
-theorem const_equiv {x y : α} : const x ≈ const y ↔ x = y :=
-show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
-
-theorem const_le {x y : α} : const x ≤ const y ↔ x ≤ y :=
-by rw le_iff_lt_or_eq; exact or_congr const_lt const_equiv
-
-theorem exists_gt (f : cau_seq α) : ∃ a : α, f < const a :=
-let ⟨K, H⟩ := f.bounded in
-⟨K + 1, 1, zero_lt_one, 0, λ i _, begin
-  rw [sub_apply, const_apply, le_sub_iff_add_le', add_le_add_iff_right],
-  exact le_of_lt (abs_lt.1 (H _)).2
-end⟩
-
-theorem exists_lt (f : cau_seq α) : ∃ a : α, const a < f :=
-let ⟨a, h⟩ := (-f).exists_gt in ⟨-a, show pos _,
-  by rwa [const_neg, sub_neg_eq_add, add_comm, ← sub_neg_eq_add]⟩
-
-theorem of_near (f : ℕ → α) (g : cau_seq α)
-  (h : ∀ ε > 0, ∃ i, ∀ j ≥ i, abs (f j - g j) < ε) : is_cau_seq f
-| ε ε0 :=
-  let ⟨i, hi⟩ := exists_forall_ge_and
-    (h _ (half_pos $ half_pos ε0)) (g.cauchy₃ $ half_pos ε0) in
-  ⟨i, λ j ij, begin
-    cases hi _ (le_refl _) with h₁ h₂, rw abs_sub at h₁,
-    have := lt_of_le_of_lt (abs_add _ _) (add_lt_add (hi _ ij).1 h₁),
-    have := lt_of_le_of_lt (abs_add _ _) (add_lt_add this (h₂ _ ij)),
-    rwa [add_halves, add_halves, add_right_comm,
-         sub_add_sub_cancel, sub_add_sub_cancel] at this
-  end⟩
-
-end cau_seq
-
-def real := quotient (@cau_seq.equiv ℚ _)
+def real := quotient (@cau_seq.equiv ℚ _ _ _ abs _)
 notation `ℝ` := real
 
 namespace real
 open rat cau_seq
 
-def mk : cau_seq ℚ → ℝ := quotient.mk
+def mk : cau_seq ℚ abs → ℝ := quotient.mk
 
 @[simp] theorem mk_eq_mk (f) : @eq ℝ ⟦f⟧ (mk f) := rfl
 
 theorem mk_eq {f g} : mk f = mk g ↔ f ≈ g := quotient.eq
 
-def of_rat (x : ℚ) : ℝ := mk (const x)
+def of_rat (x : ℚ) : ℝ := mk (const abs x)
 
 instance : has_zero ℝ := ⟨of_rat 0⟩
 instance : has_one ℝ := ⟨of_rat 1⟩
@@ -417,14 +38,14 @@ instance : has_add ℝ :=
   λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
   by simpa [(≈), setoid.r] using add_lim_zero hf hg⟩
 
-@[simp] theorem mk_add (f g : cau_seq ℚ) : mk f + mk g = mk (f + g) := rfl 
+@[simp] theorem mk_add (f g : cau_seq ℚ abs) : mk f + mk g = mk (f + g) := rfl 
 
 instance : has_neg ℝ :=
 ⟨λ x, quotient.lift_on x (λ f, mk (-f)) $
   λ f₁ f₂ hf, quotient.sound $
   by simpa [(≈), setoid.r] using neg_lim_zero hf⟩
 
-@[simp] theorem mk_neg (f : cau_seq ℚ) : -mk f = mk (-f) := rfl 
+@[simp] theorem mk_neg (f : cau_seq ℚ abs) : -mk f = mk (-f) := rfl 
 
 instance : has_mul ℝ :=
 ⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f * g)) $
@@ -432,7 +53,7 @@ instance : has_mul ℝ :=
   by simpa [(≈), setoid.r, mul_add, mul_comm] using
     add_lim_zero (mul_lim_zero g₁ hf) (mul_lim_zero f₂ hg)⟩
 
-@[simp] theorem mk_mul (f g : cau_seq ℚ) : mk f * mk g = mk (f * g) := rfl 
+@[simp] theorem mk_mul (f g : cau_seq ℚ abs) : mk f * mk g = mk (f * g) := rfl 
 
 theorem of_rat_add (x y : ℚ) : of_rat (x + y) = of_rat x + of_rat y :=
 congr_arg mk (const_add _ _)
@@ -468,14 +89,14 @@ instance : has_lt ℝ :=
   ⟨λ h, lt_of_eq_of_lt (setoid.symm hf) (lt_of_lt_of_eq h hg),
    λ h, lt_of_eq_of_lt hf (lt_of_lt_of_eq h (setoid.symm hg))⟩⟩
 
-@[simp] theorem mk_lt {f g : cau_seq ℚ} : mk f < mk g ↔ f < g := iff.rfl
+@[simp] theorem mk_lt {f g : cau_seq ℚ abs} : mk f < mk g ↔ f < g := iff.rfl
 
-@[simp] theorem mk_pos {f : cau_seq ℚ} : 0 < mk f ↔ pos f :=
+@[simp] theorem mk_pos {f : cau_seq ℚ abs} : 0 < mk f ↔ pos f :=
 iff_of_eq (congr_arg pos (sub_zero f))
 
 instance : has_le ℝ := ⟨λ x y, x < y ∨ x = y⟩
 
-@[simp] theorem mk_le {f g : cau_seq ℚ} : mk f ≤ mk g ↔ f ≤ g :=
+@[simp] theorem mk_le {f g : cau_seq ℚ abs} : mk f ≤ mk g ↔ f ≤ g :=
 or_congr iff.rfl quotient.eq
 
 theorem add_lt_add_iff_left {a b : ℝ} (c : ℝ) : c + a < c + b ↔ a < b :=
@@ -575,7 +196,7 @@ noncomputable instance : division_ring ℝ          := by apply_instance
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
 eq_cast of_rat rfl of_rat_add of_rat_mul
 
-theorem le_mk_of_forall_le (x : ℝ) (f : cau_seq ℚ) :
+theorem le_mk_of_forall_le (x : ℝ) (f : cau_seq ℚ abs) :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=
 quotient.induction_on x $ λ g h, le_of_not_lt $
 λ ⟨K, K0, hK⟩,
@@ -590,12 +211,12 @@ begin
   rwa [← sub_eq_add_neg, sub_self_div_two, sub_apply, sub_add_sub_cancel] at this
 end
 
-theorem mk_le_of_forall_le (f : cau_seq ℚ) (x : ℝ) :
+theorem mk_le_of_forall_le (f : cau_seq ℚ abs) (x : ℝ) :
   (∃ i, ∀ j ≥ i, (f j : ℝ) ≤ x) → mk f ≤ x
 | ⟨i, H⟩ := by rw [← neg_le_neg_iff, mk_neg]; exact
   le_mk_of_forall_le _ _ ⟨i, λ j ij, by simp [H _ ij]⟩
 
-theorem mk_near_of_forall_near (f : cau_seq ℚ) (x : ℝ) {ε : ℝ}
+theorem mk_near_of_forall_near (f : cau_seq ℚ abs) (x : ℝ) {ε : ℝ}
   (H : ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) ≤ ε) : abs (mk f - x) ≤ ε :=
 abs_sub_le_iff.2
   ⟨sub_le_iff_le_add'.2 $ mk_le_of_forall_le _ _ $
@@ -659,7 +280,7 @@ let ⟨q, h⟩ := exists_rat_near (x + (y - x) / 2) (half_pos (sub_pos.2 h)),
   { rwa [neg_lt_sub_iff_lt_add, add_assoc, add_halves, add_sub_cancel'_right] at h₁ }
 end
 
-theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq f ↔ is_cau_seq (λ i, (f i : ℝ)) :=
+theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq abs (λ i, (f i : ℝ)) :=
 ⟨λ H ε ε0,
   let ⟨δ, δ0, δε⟩ := exists_pos_rat_lt ε0 in
   (H _ δ0).imp $ λ i hi j ij, lt_trans
@@ -670,7 +291,7 @@ theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq f ↔ is_cau_seq (λ 
 theorem of_near (f : ℕ → ℚ) (x : ℝ)
   (h : ∀ ε > 0, ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) < ε) :
   ∃ h', mk ⟨f, h'⟩ = x :=
-⟨is_cau_seq_iff_lift.2 (of_near _ (const x) h),
+⟨is_cau_seq_iff_lift.2 (of_near _ (const abs x) h),
  sub_eq_zero.1 $ abs_eq_zero.1 $
   eq_of_le_of_forall_le_of_dense (abs_nonneg _) $ λ ε ε0,
     mk_near_of_forall_near _ _ $
@@ -778,7 +399,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     simp [-sub_eq_add_neg],
     rwa [lt_div_iff (nat.cast_pos.2 n0), sub_mul, _root_.inv_mul_cancel],
     exact ne_of_gt (nat.cast_pos.2 n0) },
-  suffices hg, let g : cau_seq ℚ := ⟨λ n, f n / n, hg⟩,
+  suffices hg, let g : cau_seq ℚ abs := ⟨λ n, f n / n, hg⟩,
   refine ⟨mk g, λ y, ⟨λ h x xS, le_trans _ h, λ h, _⟩⟩,
   { refine le_of_forall_ge_of_dense (λ z xz, _),
     cases exists_nat_gt (x - z)⁻¹ with K hK,
@@ -848,11 +469,11 @@ theorem Inf_le (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y) {x} (xS : x �
 theorem lb_le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) {lb} (h₂ : ∀ y ∈ S, lb ≤ y) : lb ≤ Inf S :=
 (le_Inf S h₁ ⟨_, h₂⟩).2 h₂
 
-theorem cau_seq_converges (f : cau_seq ℝ) : ∃ x, f ≈ const x :=
+theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin
-  let S := {x : ℝ | const x < f},
+  let S := {x : ℝ | const abs x < f},
   have lb : ∃ x, x ∈ S := exists_lt f,
-  have ub' : ∀ x, f < const x → ∀ y ∈ S, y ≤ x :=
+  have ub' : ∀ x, f < const abs x → ∀ y ∈ S, y ≤ x :=
     λ x h y yS, le_of_lt $ const_lt.1 $ cau_seq.lt_trans yS h,
   have ub : ∃ x, ∀ y ∈ S, y ≤ x := (exists_gt f).imp ub',
   refine ⟨Sup S,
@@ -873,10 +494,10 @@ begin
     exact ih _ ij }
 end
 
-noncomputable def lim (f : cau_seq ℝ) : ℝ :=
+noncomputable def lim (f : cau_seq ℝ abs) : ℝ :=
 classical.some (cau_seq_converges f)
 
-theorem equiv_lim (f : cau_seq ℝ) : f ≈ const (lim f) :=
+theorem equiv_lim (f : cau_seq ℝ abs) : f ≈ const abs (lim f) :=
 classical.some_spec (cau_seq_converges f)
 
 theorem sqrt_exists : ∀ {x : ℝ}, 0 ≤ x → ∃ y, 0 ≤ y ∧ y * y = x :=
@@ -922,17 +543,17 @@ end,
       exact (le_add_iff_nonneg_left _).2 (le_of_lt two_pos) } }
 end
 
-def sqrt_aux (f : cau_seq ℚ) : ℕ → ℚ
+def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
 | 0       := rat.mk_nat (f 0).num.to_nat.sqrt (f 0).denom.sqrt 
 | (n + 1) := let s := sqrt_aux n in max 0 $ (s + f (n+1) / s) / 2
 
-theorem sqrt_aux_nonneg (f : cau_seq ℚ) : ∀ i : ℕ, 0 ≤ sqrt_aux f i
+theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) : ∀ i : ℕ, 0 ≤ sqrt_aux f i
 | 0       := by rw [sqrt_aux, mk_nat_eq, mk_eq_div];
   apply div_nonneg'; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
 | (n + 1) := le_max_left _ _
 
 /- TODO(Mario): finish the proof
-theorem sqrt_aux_converges (f : cau_seq ℚ) : ∃ h x, 0 ≤ x ∧ x * x = max 0 (mk f) ∧
+theorem sqrt_aux_converges (f : cau_seq ℚ abs) : ∃ h x, 0 ≤ x ∧ x * x = max 0 (mk f) ∧
   mk ⟨sqrt_aux f, h⟩ = x :=
 begin
   rcases sqrt_exists (le_max_left 0 (mk f)) with ⟨x, x0, hx⟩,
@@ -1050,26 +671,5 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 
 @[simp] theorem sqrt_div {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl
-
-def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
-
-theorem sqrt_two_irrational : irrational (sqrt 2)
-| ⟨⟨n, d, h, c⟩, e⟩ := begin
-  simp [num_denom', mk_eq_div] at e,
-  have := mul_self_sqrt (le_of_lt two_pos),
-  have d0 : (0:ℝ) < d := nat.cast_pos.2 h,
-  rw [e, div_mul_div, div_eq_iff_mul_eq (ne_of_gt $ mul_pos d0 d0),
-      ← int.cast_mul, ← int.nat_abs_mul_self] at this,
-  revert c this, generalize : n.nat_abs = a, intros,
-  have E : 2 * (d * d) = a * a := (@nat.cast_inj ℝ _ _ _ _ _).1 (by simpa),
-  have ae : 2 ∣ a,
-  { refine (or_self _).1 (nat.prime_two.dvd_mul.1 _),
-    rw ← E, apply dvd_mul_right },
-  have de : 2 ∣ d,
-  { have := mul_dvd_mul ae ae,
-    refine (or_self _).1 (nat.prime_two.dvd_mul.1 _),
-    rwa [← E, nat.mul_dvd_mul_iff_left (nat.succ_pos 1)] at this },
-  exact nat.not_coprime_of_dvd_of_dvd (nat.lt_succ_self _) ae de c
-end
 
 end real

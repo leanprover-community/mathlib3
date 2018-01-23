@@ -7,7 +7,7 @@ The complex numbers, modelled as R^2 in the obvious way.
 
 TODO: Add topology, and prove that the complexes are a topological ring.
 -/
-import data.real tactic.ring algebra.field
+import data.real.basic tactic.ring algebra.field
 
 structure complex : Type :=
 (re : ℝ) (im : ℝ)
@@ -253,6 +253,9 @@ by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : abs r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
 
+lemma mul_self_abs (z : ℂ) : abs z * abs z = norm_sq z :=
+real.mul_self_sqrt (norm_sq_nonneg _)
+
 @[simp] lemma abs_zero : abs 0 = 0 := by simp [abs]
 @[simp] lemma abs_one : abs 1 = 1 := by simp [abs]
 @[simp] lemma abs_I : abs I = 1 := by simp [abs]
@@ -260,29 +263,14 @@ lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : abs r = r :=
 lemma abs_nonneg (z : ℂ) : 0 ≤ abs z :=
 real.sqrt_nonneg _
 
-@[simp] lemma abs_abs (z : ℂ) : abs' (abs z) = abs z :=
-_root_.abs_of_nonneg (abs_nonneg _)
-
 @[simp] lemma abs_eq_zero {z : ℂ} : abs z = 0 ↔ z = 0 :=
 (real.sqrt_eq_zero $ norm_sq_nonneg _).trans norm_sq_eq_zero
-
-@[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 :=
-real.sqrt_pos.trans norm_sq_pos
-
-@[simp] lemma abs_neg (z : ℂ) : abs (-z) = abs z :=
-by simp [abs]
-
-lemma abs_sub (z w : ℂ) : abs (z - w) = abs (w - z) :=
-by rw [← neg_sub, abs_neg]
 
 @[simp] lemma abs_conj (z : ℂ) : abs (conj z) = abs z :=
 by simp [abs]
 
 @[simp] lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
-
-lemma mul_self_abs (z : ℂ) : abs z * abs z = norm_sq z :=
-real.mul_self_sqrt (norm_sq_nonneg _)
 
 lemma abs_re_le_abs (z : ℂ) : abs' z.re ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),
@@ -310,8 +298,22 @@ begin
   simpa [-mul_re] using re_le_abs (z * conj w)
 end
 
-lemma abs_sub_le (a b c : ℂ) : abs (a - c) ≤ abs (a - b) + abs (b - c) :=
-by simpa using abs_add (a - b) (b - c)
+instance : is_absolute_value abs :=
+{ abv_nonneg  := abs_nonneg,
+  abv_eq_zero := λ _, abs_eq_zero,
+  abv_add     := abs_add,
+  abv_mul     := abs_mul }
+open is_absolute_value
+
+@[simp] lemma abs_abs (z : ℂ) : abs' (abs z) = abs z :=
+_root_.abs_of_nonneg (abs_nonneg _)
+
+@[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 := abv_pos abs
+@[simp] lemma abs_neg : ∀ z, abs (-z) = abs z := abv_neg abs
+lemma abs_sub : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
+lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
+@[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
+@[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs
 
 -- TODO : instance : topological_ring ℂ := missing
 

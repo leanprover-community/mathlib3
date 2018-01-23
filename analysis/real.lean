@@ -65,7 +65,7 @@ theorem continuous_of_rat : continuous (coe : ℚ → ℝ) := uniform_continuous
 
 theorem real.uniform_continuous_add : uniform_continuous (λp : ℝ × ℝ, p.1 + p.2) :=
 uniform_continuous_of_metric.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma ε0 in
+let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
 ⟨δ, δ0, λ a b h, let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ h₁ h₂⟩
 
 -- TODO(Mario): Find a way to use rat_add_continuous_lemma
@@ -104,7 +104,7 @@ _ -/
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
   uniform_continuous (λp:s, p.1⁻¹) :=
 uniform_continuous_of_metric.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_inv_continuous_lemma ε0 r0 in
+let ⟨δ, δ0, Hδ⟩ := rat_inv_continuous_lemma abs ε0 r0 in
 ⟨δ, δ0, λ a b h, Hδ (H _ a.2) (H _ b.2) h⟩
 
 lemma real.uniform_continuous_abs : uniform_continuous (abs : ℝ → ℝ) :=
@@ -151,7 +151,7 @@ lemma real.uniform_continuous_mul (s : set (ℝ × ℝ))
   (H : ∀ x ∈ s, abs (x : ℝ × ℝ).1 < r₁ ∧ abs x.2 < r₂) :
   uniform_continuous (λp:s, p.1.1 * p.1.2) :=
 uniform_continuous_of_metric.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma ε0 r₁0 r₂0 in
+let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
@@ -259,7 +259,7 @@ instance : complete_space ℝ :=
   { refine λ n, classical.choice _,
     cases inhabited_of_mem_sets cf.1 (F n).1.2 with x xS,
     exact ⟨⟨x, xS⟩⟩ },
-  let c : cau_seq ℝ,
+  let c : cau_seq ℝ abs,
   { refine ⟨λ n, G n, λ ε ε0, _⟩,
     cases hg _ ε0 with n hn,
     refine ⟨n, λ j jn, _⟩,

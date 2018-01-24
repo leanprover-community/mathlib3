@@ -60,7 +60,7 @@ le_antisymm
   (λ r ur, let ⟨ε, ε0, h⟩ := (H _).1 ur in
     mem_infi_sets ε $ mem_infi_sets ε0 $ mem_principal_sets.2 $ λ ⟨a, b⟩, h)
 
-variables [metric_space α] [metric_space β]
+variables [metric_space α]
 
 /-- The distance function (given an ambient metric space on `α`), which returns
   a nonnegative real number `dist x y` given `x y : α`. -/
@@ -177,7 +177,7 @@ theorem dist_mem_uniformity {ε:ℝ} (ε0 : 0 < ε) :
   {p:α×α | dist p.1 p.2 < ε} ∈ (@uniformity α _).sets :=
 mem_uniformity_dist.2 ⟨ε, ε0, λ a b, id⟩
 
-theorem uniform_continuous_of_metric {f : α → β} :
+theorem uniform_continuous_of_metric [metric_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ ε > 0, ∃ δ > 0,
     ∀{a b:α}, dist a b < δ → dist (f a) (f b) < ε :=
 uniform_continuous_def.trans
@@ -186,7 +186,7 @@ uniform_continuous_def.trans
   let ⟨ε, ε0, hε⟩ := mem_uniformity_dist.1 ru, ⟨δ, δ0, hδ⟩ := H _ ε0 in
   mem_uniformity_dist.2 ⟨δ, δ0, λ a b h, hε (hδ h)⟩⟩
 
-theorem uniform_embedding_of_metric {f : α → β} :
+theorem uniform_embedding_of_metric [metric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, dist (f a) (f b) < ε → dist a b < δ :=
 uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
@@ -242,7 +242,7 @@ is_open_metric.2 $ λ y, exists_ball_subset_ball
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ (nhds x).sets :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
-theorem tendsto_nhds_of_metric {f : α → β} {a b} :
+theorem tendsto_nhds_of_metric [metric_space β] {f : α → β} {a b} :
   tendsto f (nhds a) (nhds b) ↔ ∀ ε > 0,
     ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 ⟨λ H ε ε0, mem_nhds_iff_metric.1 (H (ball_mem_nhds _ ε0)),
@@ -250,7 +250,7 @@ theorem tendsto_nhds_of_metric {f : α → β} {a b} :
   let ⟨ε, ε0, hε⟩ := mem_nhds_iff_metric.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
   mem_nhds_iff_metric.2 ⟨δ, δ0, λ x h, hε (hδ h)⟩⟩
 
-theorem continuous_of_metric {f : α → β} :
+theorem continuous_of_metric [metric_space β] {f : α → β} :
   continuous f ↔ ∀ {b} (ε > 0), ∃ δ > 0, ∀{a},
     dist a b < δ → dist (f a) (f b) < ε :=
 continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds_of_metric
@@ -327,7 +327,7 @@ metric_space.induced subtype.val (λ x y, subtype.eq) t
 theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :
   dist x y = dist x.1 y.1 := rfl
 
-instance prod.metric_space_max [metric_space α] [metric_space β] : metric_space (α × β) :=
+instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
 { dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
   dist_self := λ x, by simp,
   eq_of_dist_eq_zero := λ x y h, begin
@@ -376,7 +376,7 @@ theorem continuous_dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
 (hf.prod_mk hg).comp continuous_dist'
 
-theorem tendsto_dist {f g : β → α} {x : filter β} {a b : α}
+theorem tendsto_dist [topological_space β] {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
   tendsto (λx, dist (f x) (g x)) x (nhds (dist a b)) :=
 have tendsto (λp:α×α, dist p.1 p.2) (nhds (a, b)) (nhds (dist a b)),

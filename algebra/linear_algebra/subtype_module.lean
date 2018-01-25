@@ -25,8 +25,12 @@ instance : has_scalar α {x : β // x ∈ p} := ⟨λ c ⟨x, hx⟩, ⟨c • x,
 @[simp] lemma neg_val : (-x).val = -x.val := by cases x; refl
 @[simp] lemma smul_val : (r • x).val = r • x.val := by cases x; refl
 
+instance : add_comm_group {x : β // x ∈ p} :=
+by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
+  { intros, apply subtype.eq, simp }
+
 instance : module α {x : β // x ∈ p} :=
-by refine {add := (+), zero := 0, neg := has_neg.neg, smul := (•), ..};
+by refine {smul := (•), ..};
   { intros, apply subtype.eq,
     simp [smul_add, add_smul, mul_smul] }
 

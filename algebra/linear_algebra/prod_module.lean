@@ -209,7 +209,7 @@ instance : module α (β × γ) :=
   add_smul := assume a p₁ p₂, mk.inj_iff.mpr ⟨add_smul, add_smul⟩,
   mul_smul := assume a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul, mul_smul⟩,
   one_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul, one_smul⟩,
-  .. prod.add_comm_group, .. prod.has_scalar }
+  .. prod.has_scalar }
 
 lemma is_linear_map_prod_fst : is_linear_map (prod.fst : β × γ → β) :=
 ⟨assume x y, rfl, assume x y, rfl⟩

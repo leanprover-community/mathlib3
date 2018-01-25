@@ -54,18 +54,10 @@ instance quotient.has_neg : has_neg Q :=
   have - (a - b) ∈ s, from neg h,
   show (-a) - (-b) ∈ s, by simpa⟩
 
-instance quotient.has_scalar : has_scalar α Q :=
-⟨λa b, quotient.lift_on b (λb, ⟦a • b⟧) $ assume b₁ b₂ (h : b₁ - b₂ ∈ s),
-  quotient.sound $
-  have a • (b₁ - b₂) ∈ s, from is_submodule.smul a h,
-  show a • b₁ - a • b₂ ∈ s, by simpa [smul_add]⟩
-
-instance quotient.module : module α Q :=
-{ module .
-  zero := 0,
+instance quotient.add_comm_group : add_comm_group Q :=
+{ zero := 0,
   add  := (+),
   neg  := has_neg.neg,
-  smul := (•),
   add_assoc    := assume a b c, quotient.induction_on₃ a b c $ assume a b c, quotient.sound $
     by simp,
   add_comm     := assume a b, quotient.induction_on₂ a b $ assume a b, quotient.sound $
@@ -75,7 +67,16 @@ instance quotient.module : module α Q :=
   zero_add     := assume a, quotient.induction_on a $ assume a, quotient.sound $
     by simp,
   add_left_neg := assume a, quotient.induction_on a $ assume a, quotient.sound $
-    by simp,
+    by simp }
+
+instance quotient.has_scalar : has_scalar α Q :=
+⟨λa b, quotient.lift_on b (λb, ⟦a • b⟧) $ assume b₁ b₂ (h : b₁ - b₂ ∈ s),
+  quotient.sound $
+  have a • (b₁ - b₂) ∈ s, from is_submodule.smul a h,
+  show a • b₁ - a • b₂ ∈ s, by simpa [smul_add]⟩
+
+instance quotient.module : module α Q :=
+{ smul := (•),
   one_smul     := assume a, quotient.induction_on a $ assume a, quotient.sound $
     by simp,
   mul_smul     := assume a b c, quotient.induction_on c $ assume c, quotient.sound $

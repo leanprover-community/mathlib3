@@ -203,7 +203,7 @@ instance : has_scalar α (linear_map β γ) := ⟨λr f, ⟨λb, r • f b, f.2.
 variables (α β γ)
 
 instance : module α (linear_map β γ) :=
-by refine {smul := (•), ..linear_map.add_comm_group, ..};
+by refine {smul := (•), ..};
   { intros, apply ext, simp [smul_add, add_smul, mul_smul] }
 
 end linear_map

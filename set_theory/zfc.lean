@@ -553,7 +553,6 @@ def Class := set Set
 
 namespace Class
 
-instance has_mem_Set_Class : has_mem Set Class := ⟨set.mem⟩
 instance : has_subset Class     := ⟨set.subset⟩
 instance : has_sep Set Class    := ⟨set.sep⟩
 instance : has_emptyc Class     := ⟨λ a, false⟩
@@ -594,15 +593,15 @@ def Union (x : Class) : Class := set.sUnion (Class_to_Cong x)
 notation `⋃` := Union
 
 theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=
-Set.ext $ λz, by change z ∈ (x : Class.{u}) ↔ z ∈ (y : Class.{u}); simp [*]
+Set.ext $ λz, by change (x : Class.{u}) z ↔ (y : Class.{u}) z; simp [*]
 
 @[simp] theorem to_Set_of_Set (p : Set.{u} → Prop) (x : Set.{u}) : to_Set p x ↔ p x :=
 ⟨λ⟨y, yx, py⟩, by rwa of_Set.inj yx at py, λpx, ⟨x, rfl, px⟩⟩
 
-@[simp] theorem mem_hom_left (x : Set.{u}) (A : Class.{u}) : (x : Class.{u}) ∈ A ↔ x ∈ A :=
+@[simp] theorem mem_hom_left (x : Set.{u}) (A : Class.{u}) : (x : Class.{u}) ∈ A ↔ A x :=
 to_Set_of_Set _ _
 
-@[simp] theorem mem_hom_right (x y : Set.{u}) : x ∈ (y : Class.{u}) ↔ x ∈ y := iff.refl _
+@[simp] theorem mem_hom_right (x y : Set.{u}) : (y : Class.{u}) x ↔ x ∈ y := iff.refl _
 
 @[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.refl _
 
@@ -647,7 +646,7 @@ mem_univ.2 $ or.elim (classical.em $ ∃x, ∀y, p y ↔ y = x)
  (λhn, ⟨∅, by simp; exact set.ext (λz, ⟨false.rec _, λ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
 
 /-- Function value -/
-def fval (F A : Class.{u}) : Class.{u} := iota (λy, to_Set (λx, Set.pair x y ∈ F) A)
+def fval (F A : Class.{u}) : Class.{u} := iota (λy, to_Set (λx, F (Set.pair x y)) A)
 infixl `′`:100 := fval
 
 theorem fval_ex (F A : Class.{u}) : F ′ A ∈ univ.{u} := iota_ex _

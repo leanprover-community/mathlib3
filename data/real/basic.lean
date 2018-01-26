@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
-import data.real.cau_seq algebra.big_operators data.nat.prime
+import data.real.cau_seq algebra.big_operators algebra.archimedean
 
 def real := quotient (@cau_seq.equiv ℚ _ _ _ abs _)
 notation `ℝ` := real
@@ -71,6 +71,7 @@ by refine { neg := has_neg.neg,
     simp [show 0 = mk 0, from rfl, show 1 = mk 1, from rfl,
           mul_left_comm, mul_comm, mul_add] }
 
+/- Extra instances to short-circuit type class resolution -/
 instance : semigroup ℝ      := by apply_instance
 instance : monoid ℝ         := by apply_instance
 instance : comm_semigroup ℝ := by apply_instance
@@ -140,6 +141,7 @@ instance : linear_ordered_comm_ring ℝ :=
   add_lt_add_left := λ a b h c, (real.add_lt_add_iff_left c).2 h,
   ..real.comm_ring, ..real.linear_order }
 
+/- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
 instance : ordered_ring ℝ               := by apply_instance
 instance : ordered_comm_group ℝ         := by apply_instance
@@ -185,6 +187,7 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
   decidable_le   := by apply_instance,
   ..real.linear_ordered_comm_ring }
 
+/- Extra instances to short-circuit type class resolution -/
 noncomputable instance : linear_ordered_field ℝ   := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_ring ℝ  := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
@@ -196,7 +199,7 @@ noncomputable instance : division_ring ℝ          := by apply_instance
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
 eq_cast of_rat rfl of_rat_add of_rat_mul
 
-theorem le_mk_of_forall_le (x : ℝ) (f : cau_seq ℚ abs) :
+theorem le_mk_of_forall_le {x : ℝ} {f : cau_seq ℚ abs} :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=
 quotient.induction_on x $ λ g h, le_of_not_lt $
 λ ⟨K, K0, hK⟩,
@@ -211,74 +214,26 @@ begin
   rwa [← sub_eq_add_neg, sub_self_div_two, sub_apply, sub_add_sub_cancel] at this
 end
 
-theorem mk_le_of_forall_le (f : cau_seq ℚ abs) (x : ℝ) :
+theorem mk_le_of_forall_le {f : cau_seq ℚ abs} {x : ℝ} :
   (∃ i, ∀ j ≥ i, (f j : ℝ) ≤ x) → mk f ≤ x
 | ⟨i, H⟩ := by rw [← neg_le_neg_iff, mk_neg]; exact
-  le_mk_of_forall_le _ _ ⟨i, λ j ij, by simp [H _ ij]⟩
+  le_mk_of_forall_le ⟨i, λ j ij, by simp [H _ ij]⟩
 
-theorem mk_near_of_forall_near (f : cau_seq ℚ abs) (x : ℝ) {ε : ℝ}
+theorem mk_near_of_forall_near {f : cau_seq ℚ abs} {x : ℝ} {ε : ℝ}
   (H : ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) ≤ ε) : abs (mk f - x) ≤ ε :=
 abs_sub_le_iff.2
-  ⟨sub_le_iff_le_add'.2 $ mk_le_of_forall_le _ _ $
+  ⟨sub_le_iff_le_add'.2 $ mk_le_of_forall_le $
     H.imp $ λ i h j ij, sub_le_iff_le_add'.1 (abs_sub_le_iff.1 $ h j ij).1,
-  sub_le.1 $ le_mk_of_forall_le _ _ $
+  sub_le.1 $ le_mk_of_forall_le $
     H.imp $ λ i h j ij, sub_le.1 (abs_sub_le_iff.1 $ h j ij).2⟩
 
-theorem exists_rat_gt (x : ℝ) : ∃ n : ℚ, x < n :=
-quotient.induction_on x $ λ f,
+instance : archimedean ℝ :=
+archimedean_iff_rat_le.2 $ λ x, quotient.induction_on x $ λ f,
 let ⟨M, M0, H⟩ := f.bounded' 0 in
-⟨M + 1, by rw ← of_rat_eq_cast; exact
-  ⟨1, zero_lt_one, 0, λ i _, le_sub_iff_add_le'.2 $
-    (add_le_add_iff_right _).2 $ le_of_lt (abs_lt.1 (H i)).2⟩⟩
+⟨M, mk_le_of_forall_le ⟨0, λ i _,
+  rat.cast_le.2 $ le_of_lt (abs_lt.1 (H i)).2⟩⟩
 
-theorem exists_nat_gt (x : ℝ) : ∃ n : ℕ, x < n :=
-let ⟨q, h⟩ := exists_rat_gt x in
-⟨nat_ceil q, lt_of_lt_of_le h $ 
-   by simpa using (@rat.cast_le ℝ _ _ _).2 (le_nat_ceil _)⟩
-
-theorem exists_int_gt (x : ℝ) : ∃ n : ℤ, x < n :=
-let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by simp [h]⟩
-
-theorem exists_int_lt (x : ℝ) : ∃ n : ℤ, (n:ℝ) < x :=
-let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by simp [neg_lt.1 h]⟩
-
-theorem exists_rat_lt (x : ℝ) : ∃ n : ℚ, (n:ℝ) < x :=
-let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by simp [neg_lt.1 h]⟩
-
-theorem exists_pos_rat_lt {x : ℝ} (x0 : 0 < x) : ∃ q : ℚ, 0 < q ∧ (q:ℝ) < x :=
-let ⟨n, h⟩ := exists_nat_gt x⁻¹ in
-⟨n.succ⁻¹, inv_pos (nat.cast_pos.2 (nat.succ_pos n)), begin
-  rw [rat.cast_inv, inv_eq_one_div,
-      div_lt_iff, mul_comm, ← div_lt_iff x0, one_div_eq_inv],
-  { apply lt_trans h, simp [zero_lt_one] },
-  { simp [-nat.cast_succ, nat.succ_pos] }
-end⟩
-
-theorem exists_rat_near' (x : ℝ) {ε : ℚ} (ε0 : ε > 0) :
-  ∃ q : ℚ, abs (x - q) < ε :=
-quotient.induction_on x $ λ f,
-let ⟨i, hi⟩ := f.cauchy (half_pos ε0) in ⟨f i, begin
-  rw [← of_rat_eq_cast, ← of_rat_eq_cast],
-  refine abs_lt.2 ⟨_, _⟩;
-    refine mk_lt.2 ⟨_, half_pos ε0, i, λ j ij, _⟩; simp;
-    rw [← sub_le_iff_le_add', ← neg_sub, sub_self_div_two],
-  { exact le_of_lt (abs_lt.1 (hi _ ij)).1 },
-  { have := le_of_lt (abs_lt.1 (hi _ ij)).2,
-    rwa [← neg_sub, neg_le] at this }
-end⟩
-
-theorem exists_rat_near (x : ℝ) {ε : ℝ} (ε0 : ε > 0) :
-  ∃ q : ℚ, abs (x - q) < ε :=
-let ⟨δ, δ0, δε⟩ := exists_pos_rat_lt ε0,
-    ⟨q, h⟩ := exists_rat_near' x δ0 in ⟨q, lt_trans h δε⟩
-
-theorem exists_rat_btwn {x y : ℝ} (h : x < y) : ∃ q : ℚ, x < q ∧ (q:ℝ) < y :=
-let ⟨q, h⟩ := exists_rat_near (x + (y - x) / 2) (half_pos (sub_pos.2 h)),
-    ⟨h₁, h₂⟩ := abs_lt.1 h in begin
-  refine ⟨q, _, _⟩,
-  { rwa [sub_lt_iff_lt_add', add_lt_add_iff_right] at h₂ },
-  { rwa [neg_lt_sub_iff_lt_add, add_assoc, add_halves, add_sub_cancel'_right] at h₁ }
-end
+noncomputable instance : floor_ring ℝ := archimedean.floor_ring _
 
 theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq abs (λ i, (f i : ℝ)) :=
 ⟨λ H ε ε0,
@@ -294,7 +249,7 @@ theorem of_near (f : ℕ → ℚ) (x : ℝ)
 ⟨is_cau_seq_iff_lift.2 (of_near _ (const abs x) h),
  sub_eq_zero.1 $ abs_eq_zero.1 $
   eq_of_le_of_forall_le_of_dense (abs_nonneg _) $ λ ε ε0,
-    mk_near_of_forall_near _ _ $
+    mk_near_of_forall_near $
     (h _ ε0).imp (λ i h j ij, le_of_lt (h j ij))⟩
 
 theorem exists_floor (x : ℝ) : ∃ (ub : ℤ), (ub:ℝ) ≤ x ∧ 
@@ -303,75 +258,6 @@ int.exists_greatest_of_bdd
   (let ⟨n, hn⟩ := exists_int_gt x in ⟨n, λ z h',
     int.cast_le.1 $ le_trans h' $ le_of_lt hn⟩)
   (let ⟨n, hn⟩ := exists_int_lt x in ⟨n, le_of_lt hn⟩)
-
-/-- `floor x` is the largest integer `z` such that `z ≤ x` -/
-noncomputable def floor (x : ℝ) : ℤ := classical.some (exists_floor x)
-
-notation `⌊` x `⌋` := floor x
-
-theorem le_floor {z : ℤ} {x : ℝ} : z ≤ ⌊x⌋ ↔ (z : ℝ) ≤ x :=
-let ⟨h₁, h₂⟩ := classical.some_spec (exists_floor x) in
-⟨λ h, le_trans (int.cast_le.2 h) h₁, h₂ z⟩
-
-theorem floor_lt {x : ℝ} {z : ℤ} : ⌊x⌋ < z ↔ x < z :=
-le_iff_le_iff_lt_iff_lt.1 le_floor
-
-theorem floor_le (x : ℝ) : (⌊x⌋ : ℝ) ≤ x :=
-le_floor.1 (le_refl _)
-
-theorem floor_nonneg {x : ℝ} : 0 ≤ ⌊x⌋ ↔ 0 ≤ x :=
-by simpa using @le_floor 0 x
-
-theorem lt_succ_floor (x : ℝ) : x < ⌊x⌋.succ :=
-floor_lt.1 $ int.lt_succ_self _
-
-theorem lt_floor_add_one (x : ℝ) : x < ⌊x⌋ + 1 :=
-by simpa [int.succ] using lt_succ_floor x
-
-theorem sub_one_lt_floor (x : ℝ) : x - 1 < ⌊x⌋ :=
-sub_lt_iff_lt_add.2 (lt_floor_add_one x)
-
-@[simp] theorem floor_coe (z : ℤ) : ⌊z⌋ = z :=
-eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
-
-theorem floor_mono {a b : ℝ} (h : a ≤ b) : ⌊a⌋ ≤ ⌊b⌋ :=
-le_floor.2 (le_trans (floor_le _) h)
-
-@[simp] theorem floor_add_int (x : ℝ) (z : ℤ) : ⌊x + z⌋ = ⌊x⌋ + z :=
-eq_of_forall_le_iff $ λ a, by rw [le_floor,
-  ← sub_le_iff_le_add, ← sub_le_iff_le_add, le_floor, int.cast_sub]
-
-theorem floor_sub_int (x : ℝ) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
-
-/-- `ceil x` is the smallest integer `z` such that `x ≤ z` -/
-noncomputable def ceil (x : ℝ) : ℤ := -⌊-x⌋
-
-notation `⌈` x `⌉` := ceil x
-
-theorem ceil_le {z : ℤ} {x : ℝ} : ⌈x⌉ ≤ z ↔ x ≤ z :=
-by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
-
-theorem lt_ceil {x : ℝ} {z : ℤ} : z < ⌈x⌉ ↔ (z:ℝ) < x :=
-le_iff_le_iff_lt_iff_lt.1 ceil_le
-
-theorem le_ceil (x : ℝ) : x ≤ ⌈x⌉ :=
-ceil_le.1 (le_refl _)
-
-@[simp] theorem ceil_coe (z : ℤ) : ⌈z⌉ = z :=
-by rw [ceil, ← int.cast_neg, floor_coe, neg_neg]
-
-theorem ceil_mono {a b : ℝ} (h : a ≤ b) : ⌈a⌉ ≤ ⌈b⌉ :=
-ceil_le.2 (le_trans h (le_ceil _))
-
-@[simp] theorem ceil_add_int (x : ℝ) (z : ℤ) : ⌈x + z⌉ = ⌈x⌉ + z :=
-by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
-
-theorem ceil_sub_int (x : ℝ) (z : ℤ) : ⌈x - z⌉ = ⌈x⌉ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (ceil_add_int _ _)
-
-theorem ceil_lt_add_one (x : ℝ) : (⌈x⌉ : ℝ) < x + 1 :=
-by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one
 
 theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y ≤ x) →
   ∃ x, ∀ y, x ≤ y ↔ ∀ z ∈ S, z ≤ y
@@ -403,13 +289,13 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
   refine ⟨mk g, λ y, ⟨λ h x xS, le_trans _ h, λ h, _⟩⟩,
   { refine le_of_forall_ge_of_dense (λ z xz, _),
     cases exists_nat_gt (x - z)⁻¹ with K hK,
-    refine le_mk_of_forall_le _ _ ⟨K, λ n nK, _⟩,
+    refine le_mk_of_forall_le ⟨K, λ n nK, _⟩,
     replace xz := sub_pos.2 xz,
     replace hK := le_trans (le_of_lt hK) (nat.cast_le.2 nK),
     have n0 : 0 < n := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos xz) hK),
     refine le_trans _ (le_of_lt $ hf₂ _ n0 _ xS),
     rwa [le_sub, inv_le (nat.cast_pos.2 n0) xz] },
-  { exact mk_le_of_forall_le _ _ ⟨1, λ n n1,
+  { exact mk_le_of_forall_le ⟨1, λ n n1,
       let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h _ xS)⟩ },
   intros ε ε0,
   suffices : ∀ j k ≥ nat_ceil ε⁻¹, (f j / j - f k / k : ℚ) < ε,
@@ -494,11 +380,14 @@ begin
     exact ih _ ij }
 end
 
-noncomputable def lim (f : cau_seq ℝ abs) : ℝ :=
-classical.some (cau_seq_converges f)
+noncomputable def lim (f : ℕ → ℝ) : ℝ :=
+if hf : is_cau_seq abs f then
+  classical.some (cau_seq_converges ⟨f, hf⟩)
+else 0
 
 theorem equiv_lim (f : cau_seq ℝ abs) : f ≈ const abs (lim f) :=
-classical.some_spec (cau_seq_converges f)
+by simp [lim, f.is_cau]; cases f with f hf;
+   exact classical.some_spec (cau_seq_converges ⟨f, hf⟩)
 
 theorem sqrt_exists : ∀ {x : ℝ}, 0 ≤ x → ∃ y, 0 ≤ y ∧ y * y = x :=
 suffices H : ∀ {x : ℝ}, 0 < x → x ≤ 1 → ∃ y, 0 < y ∧ y * y = x, begin

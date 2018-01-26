@@ -163,8 +163,13 @@ variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
 
 instance : has_coe_to_fun (cau_seq β abv) := ⟨_, subtype.val⟩
 
+@[simp] theorem mk_to_fun (f) (hf : is_cau_seq abv f) :
+  @coe_fn (cau_seq β abv) _ ⟨f, hf⟩ = f := rfl
+
 theorem ext {f g : cau_seq β abv} (h : ∀ i, f i = g i) : f = g :=
 subtype.eq (funext h)
+
+theorem is_cau (f : cau_seq β abv) : is_cau_seq abv f := f.2
 
 theorem cauchy (f : cau_seq β abv) :
   ∀ {ε}, ε > 0 → ∃ i, ∀ j ≥ i, abv (f j - f i) < ε := f.2

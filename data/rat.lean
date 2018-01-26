@@ -629,6 +629,18 @@ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 @[simp] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
 by rw [coe_int_eq_of_int, cast_of_int]
 
+@[simp] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
+by rw coe_int_eq_of_int; refl
+
+@[simp] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
+by rw coe_int_eq_of_int; refl
+
+@[simp] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
+by rw [← int.cast_coe_nat, coe_int_num]
+
+@[simp] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
+by rw [← int.cast_coe_nat, coe_int_denom]
+
 @[simp] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n := cast_coe_int n
 
 @[simp] theorem cast_zero : ((0 : ℚ) : α) = 0 :=

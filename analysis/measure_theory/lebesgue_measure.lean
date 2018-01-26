@@ -171,7 +171,7 @@ lebesgue_outer.to_measure $
 
 lemma tendsto_of_nat_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
 tendsto_infi.2 $ assume r, tendsto_principal.2 $
-let ⟨n, hn⟩ := real.exists_nat_gt r in
+let ⟨n, hn⟩ := exists_nat_gt r in
 mem_at_top_sets.2 ⟨n, λ m h, le_trans (le_of_lt hn) (nat.cast_le.2 h)⟩
 
 lemma lebesgue_Ico {a b : ℝ} : lebesgue.measure (Ico a b) = of_real (b - a) :=

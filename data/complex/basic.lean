@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Mario Carneiro
 
 The complex numbers, modelled as R^2 in the obvious way.
-
-TODO: Add topology, and prove that the complexes are a topological ring.
 -/
 import data.real.basic tactic.ring algebra.field
 
@@ -78,6 +76,9 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 @[simp] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
 lemma mk_eq_add_mul_I (a b : ℝ) : complex.mk a b = a + b * I :=
+ext_iff.2 $ by simp
+
+@[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
 
 def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
@@ -315,5 +316,29 @@ lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_s
 @[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
 @[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs
 lemma abs_abs_sub_le_abs_sub : ∀ z w, abs' (abs z - abs w) ≤ abs (z - w) := abs_abv_sub_le_abv_sub abs
+
+lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ abs' z.re + abs' z.im :=
+by simpa [re_add_im] using abs_add z.re (z.im * I)
+
+noncomputable def lim (f : ℕ → ℂ) : ℂ :=
+⟨real.lim (λ n, (f n).re), real.lim (λ n, (f n).im)⟩
+
+theorem is_cau_seq_re (f : cau_seq ℂ abs) : is_cau_seq abs' (λ n, (f n).re) :=
+λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
+lt_of_le_of_lt (by simpa using abs_re_le_abs (f j - f i)) (H _ ij)
+
+theorem is_cau_seq_im (f : cau_seq ℂ abs) : is_cau_seq abs' (λ n, (f n).im) :=
+λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
+lt_of_le_of_lt (by simpa using abs_im_le_abs (f j - f i)) (H _ ij)
+
+theorem equiv_lim (f : cau_seq ℂ abs) : f ≈ cau_seq.const abs (lim f) :=
+λ ε ε0, (exists_forall_ge_and
+  (real.equiv_lim ⟨_, is_cau_seq_re f⟩ _ (half_pos ε0))
+  (real.equiv_lim ⟨_, is_cau_seq_im f⟩ _ (half_pos ε0))).imp $
+λ i H j ij, begin
+  cases H _ ij with H₁ H₂,
+  apply lt_of_le_of_lt (abs_le_abs_re_add_abs_im _),
+  simpa using add_lt_add H₁ H₂
+end
 
 end complex

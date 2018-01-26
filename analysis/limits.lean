@@ -82,7 +82,7 @@ lemma mul_add_one_le_pow {r : ℝ} (hr : 0 ≤ r) : ∀{n:ℕ}, (n:ℝ) * r + 1 
 
 lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ, r ^ n) at_top at_top :=
 tendsto_infi.2 $ assume p, tendsto_principal.2 $
-  let ⟨n, hn⟩ := real.exists_nat_gt (p / (r - 1)) in
+  let ⟨n, hn⟩ := exists_nat_gt (p / (r - 1)) in
   have hn_nn : (0:ℝ) ≤ n, from nat.cast_nonneg n,
   have r - 1 > 0, from sub_lt_iff.mp $ by simp; assumption,
   have p ≤ r ^ n,

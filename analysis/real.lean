@@ -56,7 +56,7 @@ theorem dense_embedding_of_rat : dense_embedding (coe : ℚ → ℝ) :=
 uniform_embedding_of_rat.dense_embedding $
 λ x, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε,ε0, hε⟩ := mem_nhds_iff_metric.1 ht in
-let ⟨q, h⟩ := real.exists_rat_near x ε0 in
+let ⟨q, h⟩ := exists_rat_near x ε0 in
 ne_empty_iff_exists_mem.2 ⟨_, hε (mem_ball'.2 h), q, rfl⟩
 
 theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_rat.embedding
@@ -92,7 +92,7 @@ instance : topological_add_group ℝ := by apply_instance
 instance : topological_add_group ℚ := by apply_instance
 
 instance : orderable_topology ℚ :=
-induced_orderable_topology _ (λ x y, rat.cast_lt) @real.exists_rat_btwn
+induced_orderable_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
@@ -193,24 +193,24 @@ by rw [real.ball_eq_Ioo, ← sub_div, add_comm, ← sub_add,
 
 lemma real.totally_bounded_Ioo (a b : ℝ) : totally_bounded (Ioo a b) :=
 totally_bounded_of_metric.2 $ λ ε ε0, begin
-  rcases real.exists_nat_gt ((b - a) / ε) with ⟨n, ba⟩,
+  rcases exists_nat_gt ((b - a) / ε) with ⟨n, ba⟩,
   rw [div_lt_iff' ε0, sub_lt_iff_lt_add'] at ba,
   let s := (λ i:ℕ, a + ε * i) '' {i:ℕ | i < n},
   refine ⟨s, finite_image _ ⟨set.fintype_lt_nat _⟩, λ x h, _⟩,
   rcases h with ⟨ax, xb⟩,
   let i : ℕ := ⌊(x - a) / ε⌋.to_nat,
   have : (i : ℤ) = ⌊(x - a) / ε⌋ :=
-    int.to_nat_of_nonneg (real.floor_nonneg.2 $ le_of_lt (div_pos (sub_pos.2 ax) ε0)),
+    int.to_nat_of_nonneg (floor_nonneg.2 $ le_of_lt (div_pos (sub_pos.2 ax) ε0)),
   simp, refine ⟨_, ⟨i, _, rfl⟩, _⟩,
   { rw [← int.coe_nat_lt, this],
-    refine int.cast_lt.1 (lt_of_le_of_lt (real.floor_le _) _),
+    refine int.cast_lt.1 (lt_of_le_of_lt (floor_le _) _),
     rw [int.cast_coe_nat, div_lt_iff' ε0, sub_lt_iff_lt_add'],
     exact lt_trans xb ba },
   { rw [real.dist_eq, ← int.cast_coe_nat, this, abs_of_nonneg,
         ← sub_sub, sub_lt_iff_lt_add'],
-    { have := real.lt_floor_add_one ((x - a) / ε),
+    { have := lt_floor_add_one ((x - a) / ε),
       rwa [div_lt_iff' ε0, mul_add, mul_one] at this },
-    { have := real.floor_le ((x - a) / ε),
+    { have := floor_le ((x - a) / ε),
       rwa [ge, sub_nonneg, ← le_sub_iff_add_le', ← le_div_iff' ε0] } }
 end
 
@@ -244,7 +244,7 @@ instance : complete_space ℝ :=
   let g : ℕ → {ε:ℝ//ε>0} := λ n, ⟨(n:ℕ+)⁻¹, inv_pos (nat.cast_pos.2 (n:ℕ+).pos)⟩,
   have hg : ∀ ε > 0, ∃ n, ∀ j ≥ n, (g j : ℝ) < ε,
   { intros ε ε0,
-    cases real.exists_nat_gt ε⁻¹ with n hn,
+    cases exists_nat_gt ε⁻¹ with n hn,
     refine ⟨n, λ j nj, _⟩,
     have hj := lt_of_lt_of_le hn (nat.cast_le.2 nj),
     have j0 := lt_trans (inv_pos ε0) hj,
@@ -315,7 +315,7 @@ subset.antisymm
     (image_subset_iff.2 $ λ p h, le_of_lt $ (@rat.cast_lt ℝ _ _ _).2 h)) $
 λ x hx, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε, ε0, hε⟩ := mem_nhds_iff_metric.1 ht in
-let ⟨p, h₁, h₂⟩ := real.exists_rat_btwn ((lt_add_iff_pos_right x).2 ε0) in
+let ⟨p, h₁, h₂⟩ := exists_rat_btwn ((lt_add_iff_pos_right x).2 ε0) in
 ne_empty_iff_exists_mem.2 ⟨_, hε (show abs _ < _,
     by rwa [abs_of_nonneg (le_of_lt $ sub_pos.2 h₁), sub_lt_iff_lt_add']),
   p, rat.cast_lt.1 (@lt_of_le_of_lt ℝ _ _ _ _ hx h₁), rfl⟩

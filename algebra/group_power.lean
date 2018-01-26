@@ -11,7 +11,7 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import data.nat.basic data.int.basic algebra.group algebra.field data.list.basic
+import algebra.char_zero data.int.basic algebra.group algebra.ordered_field data.list.basic
 
 universe u
 variable {α : Type u}
@@ -79,6 +79,9 @@ theorem add_monoid.smul_mul (a : β) (m : ℕ) : ∀ n, a•(m * n) = (a•m)•
 | 0     := by simp
 | (n+1) := by rw [nat.mul_succ, add_monoid.smul_add, smul_succ', add_monoid.smul_mul]
 attribute [to_additive add_monoid.smul_mul] pow_mul
+
+@[simp] theorem add_monoid.one_smul [has_one β] : ∀ n, (1 : β) • n = n :=
+nat.eq_cast _ (add_monoid.smul_zero _) (add_monoid.smul_one _) (add_monoid.smul_add _)
 
 @[to_additive smul_bit0]
 theorem pow_bit0 (a : α) (n : ℕ) : a ^ bit0 n = a^n * a^n := pow_add _ _ _
@@ -257,6 +260,32 @@ attribute [to_additive gsmul_bit1] gpow_bit1
 
 end group
 
+theorem add_monoid.smul_eq_mul [semiring α] (a : α) : ∀ n, a • n = a * n
+| 0 := by simp
+| (n+1) := by simp [add_monoid.smul_eq_mul n, mul_add, smul_succ']
+
+theorem add_monoid.smul_eq_mul' [semiring α] (a : α) (n) : a • n = n * a :=
+by rw [add_monoid.smul_eq_mul, nat.mul_cast_comm]
+
+theorem add_monoid.mul_smul_assoc [semiring α] (a b : α) (n) : (a * b) • n = a * b • n :=
+by rw [add_monoid.smul_eq_mul, add_monoid.smul_eq_mul, mul_assoc]
+
+theorem add_monoid.mul_smul_right [semiring α] (a b : α) (n) : (a * b) • n = a • n * b :=
+by rw [add_monoid.smul_eq_mul', add_monoid.smul_eq_mul', mul_assoc]
+
+theorem gsmul_eq_mul [ring α] (a : α) : ∀ n, gsmul a n = a * n
+| (n : ℕ) := by simp [add_monoid.smul_eq_mul]
+| -[1+ n] := by simp [add_monoid.smul_eq_mul, -add_comm, mul_add]
+
+theorem gsmul_eq_mul' [ring α] (a : α) (n) : gsmul a n = n * a :=
+by rw [gsmul_eq_mul, int.mul_cast_comm]
+
+theorem mul_gsmul_assoc [ring α] (a b : α) (n) : gsmul (a * b) n = a * gsmul b n :=
+by rw [gsmul_eq_mul, gsmul_eq_mul, mul_assoc]
+
+theorem mul_gsmul_right [ring α] (a b : α) (n) : gsmul (a * b) n = gsmul a n * b :=
+by rw [gsmul_eq_mul', gsmul_eq_mul', mul_assoc]
+
 theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 by induction n with n ih; simp [pow_succ, mul_eq_zero, *]
 
@@ -271,35 +300,55 @@ by simp [inv_eq_one_div, -one_div_eq_inv, ha]
 @[simp] theorem div_pow [field α] (a : α) {b : α} (hb : b ≠ 0) (n) : (a / b) ^ n = a ^ n / b ^ n :=
 by rw [div_eq_mul_one_div, mul_pow, one_div_pow hb, ← div_eq_mul_one_div]
 
-section ordered_ring
-variable [linear_ordered_ring α]
+theorem add_monoid.smul_nonneg [ordered_comm_monoid α] {a : α} (H : 0 ≤ a) : ∀ n, 0 ≤ a • n
+| 0     := le_refl _
+| (n+1) := add_nonneg' H (add_monoid.smul_nonneg n)
 
-theorem pow_pos {a : α} (H : a > 0) : ∀ (n : ℕ), a ^ n > 0
-| 0     := by simp; apply zero_lt_one
-| (n+1) := begin simp [_root_.pow_succ], apply mul_pos, assumption, apply pow_pos end
+section linear_ordered_semiring
+variable [linear_ordered_semiring α]
 
-theorem pow_nonneg {a : α} (H : a ≥ 0) : ∀ (n : ℕ), a ^ n ≥ 0
-| 0     := by simp; apply zero_le_one
-| (n+1) := begin simp [_root_.pow_succ], apply mul_nonneg, assumption, apply pow_nonneg end
+theorem pow_pos {a : α} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
+| 0     := by simp [zero_lt_one]
+| (n+1) := by simpa [pow_succ] using mul_pos H (pow_pos _)
 
-theorem pow_ge_one_of_ge_one {a : α} (H : a ≥ 1) : ∀ (n : ℕ), a ^ n ≥ 1
+theorem pow_nonneg {a : α} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
+| 0     := by simp [zero_le_one]
+| (n+1) := by simpa [pow_succ] using mul_nonneg H (pow_nonneg _)
+
+theorem one_le_pow_of_one_le {a : α} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | 0     := by simp; apply le_refl
 | (n+1) :=
   begin
-   simp [_root_.pow_succ], rw ←(one_mul (1 : α)),
+   simp [pow_succ], rw ← one_mul (1 : α),
    apply mul_le_mul,
    assumption,
-   apply pow_ge_one_of_ge_one,
+   apply one_le_pow_of_one_le,
    apply zero_le_one,
    transitivity, apply zero_le_one, assumption
   end
+
+theorem pow_ge_one_add_mul {a : α} (H : a ≥ 0) :
+  ∀ (n : ℕ), 1 + a • n ≤ (1 + a) ^ n
+| 0     := by simp
+| (n+1) := begin
+  rw [pow_succ', smul_succ'],
+  refine le_trans _ (mul_le_mul_of_nonneg_right
+    (pow_ge_one_add_mul n) (add_nonneg zero_le_one H)),
+  rw [mul_add, mul_one, ← add_assoc, add_le_add_iff_left],
+  simpa using mul_le_mul_of_nonneg_right
+    ((le_add_iff_nonneg_right 1).2 (add_monoid.smul_nonneg H n)) H
+end
 
 theorem pow_le_pow {a : α} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
 let ⟨k, hk⟩ := nat.le.dest h in
 calc a ^ n = a ^ n * 1 : by simp
   ... ≤ a ^ n * a ^ k : mul_le_mul_of_nonneg_left
-    (pow_ge_one_of_ge_one ha _)
+    (one_le_pow_of_one_le ha _)
     (pow_nonneg (le_trans zero_le_one ha) _)
   ... = a ^ m : by rw [←hk, pow_add]
 
-end ordered_ring
+end linear_ordered_semiring
+
+theorem pow_ge_one_add_sub_mul [linear_ordered_ring α]
+  {a : α} (H : a ≥ 1) (n : ℕ) : 1 + (a - 1) • n ≤ a ^ n :=
+by simpa using pow_ge_one_add_mul (sub_nonneg.2 H) n

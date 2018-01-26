@@ -405,7 +405,7 @@ protected lemma lt_iff_exists_rat_btwn :
   rcases lt_iff_exists_of_real.1 h with ⟨p, p0, rfl, _⟩;
   rcases dense h with ⟨c, pc, cb⟩;
   rcases lt_iff_exists_of_real.1 cb with ⟨r, r0, rfl, _⟩;
-  rcases real.exists_rat_btwn ((of_real_lt_of_real_iff p0 r0).1 pc) with ⟨q, pq, qr⟩;
+  rcases exists_rat_btwn ((of_real_lt_of_real_iff p0 r0).1 pc) with ⟨q, pq, qr⟩;
   have q0 := le_trans p0 (le_of_lt pq); exact
   ⟨q, rat.cast_nonneg.1 q0, (of_real_lt_of_real_iff p0 q0).2 pq,
     lt_trans ((of_real_lt_of_real_iff q0 r0).2 qr) cb⟩,

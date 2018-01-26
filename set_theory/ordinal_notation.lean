@@ -729,7 +729,7 @@ begin
     { rw [← nat_cast_succ, add_mul_succ],
       apply add_absorp Rl,
       rw [power_mul, power_succ],
-      apply mul_le_mul_left,
+      apply ordinal.mul_le_mul_left,
       simpa [α', repr] using omega_le_oadd a0 n a' } }
 end
 

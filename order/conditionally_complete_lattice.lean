@@ -24,9 +24,6 @@ bounded below.
 -/
 import order.lattice order.complete_lattice tactic.finish data.set.countable
 
-noncomputable theory
-local attribute [instance] classical.decidable_inhabited classical.prop_decidable
-
 set_option old_structure_cmd true
 
 open preorder set lattice

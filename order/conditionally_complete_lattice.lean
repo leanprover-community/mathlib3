@@ -6,9 +6,9 @@ Adapted from the corresponding theory for complete lattices.
 
 Theory of conditionally complete lattices.
 
-A conditionally complete lattice is a set with an order for which every set
-which is nonempty and bounded above has a supremum, and every set which
-is nonempty and bounded below has an infimum. Typical examples are real, nat, int
+A conditionally complete lattice is a lattice in which every non-empty bounded subset s
+has a least upper bound and a greatest lower bound, denoted below by Sup s and Inf s.
+Typical examples are real, nat, int with their usual orders.
 
 The theory is very comparable to the theory of complete lattices, except that suitable
 boundedness and non-emptyness assumptions have to be added to most statements.

@@ -362,19 +362,19 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
 { Sup := real.Sup,
   Inf := real.Inf,
   le_cSup :=
-    assume (s:set ℝ) (a:ℝ) (_:bdd_above s) (_: a ∈ s),
+    assume (s : set ℝ) (a : ℝ) (_ : bdd_above s) (_ : a ∈ s),
     show a ≤ Sup s,
       from le_Sup s ‹bdd_above s› ‹a ∈ s›,
   cSup_le :=
-    assume (s : set ℝ) (a : ℝ) (_: s ≠ ∅) (H: ∀b∈s, b ≤ a),
+    assume (s : set ℝ) (a : ℝ) (_ : s ≠ ∅) (H : ∀b∈s, b ≤ a),
     show Sup s ≤ a,
       from Sup_le_ub s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
   cInf_le :=
-    assume (s:set ℝ) (a:ℝ) (_:bdd_below s) (_: a ∈ s),
+    assume (s : set ℝ) (a : ℝ) (_ : bdd_below s) (_ : a ∈ s),
     show Inf s ≤ a,
       from Inf_le s ‹bdd_below s› ‹a ∈ s›,
   le_cInf :=
-    assume (s : set ℝ) (a : ℝ) (_: s ≠ ∅) (H: ∀b∈s, a ≤ b),
+    assume (s : set ℝ) (a : ℝ) (_ : s ≠ ∅) (H : ∀b∈s, a ≤ b),
     show a ≤ Inf s,
       from lb_le_Inf s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
  ..real.linear_order, ..real.lattice}

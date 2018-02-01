@@ -226,7 +226,7 @@ by finish [iff_def, subset_def]
 theorem union_subset_union {s₁ s₂ t₁ t₂ : set α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∪ s₂ ⊆ t₁ ∪ t₂ :=
 by finish [subset_def]
 
-@[simp] theorem union_empty_iff {s t: set α} : (s ∪ t = ∅ ) ↔ ((s = ∅) ∧ (t = ∅)) :=
+@[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
 ⟨by finish [set_eq_def], by finish [set_eq_def]⟩
 
 /- intersection -/

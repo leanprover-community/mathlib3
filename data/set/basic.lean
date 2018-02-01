@@ -387,19 +387,19 @@ by finish [iff_def]
 theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
 
 @[simp] theorem mem_singleton_iff (a b : α) : a ∈ ({b} : set α) ↔ a = b :=
-by finish [singleton_def]
+⟨λ h, or.cases_on h id false.elim, λ H, or.inl H⟩
 
 -- TODO: again, annotation needed
-@[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) := by finish
+@[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) := or.inl rfl
 
 theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : set α)) : x = y :=
-by finish
+or.cases_on h id false.elim
 
 @[simp] theorem singleton_eq_singleton_iff {x y : α} : {x} = ({y} : set α) ↔ x = y :=
 by finish [set_eq_def, iff_def]
 
 theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) :=
-by finish
+or.inl H
 
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s :=
 by finish [set_eq_def, or_comm]

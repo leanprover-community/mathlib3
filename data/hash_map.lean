@@ -123,12 +123,12 @@ structure valid {n} (bkts : bucket_array α β n) (sz : nat) : Prop :=
 (nodup : ∀i, ((array.read bkts i).map sigma.fst).nodup)
 
 theorem valid.idx_enum {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
-  {i l} (he : (i, l) ∈ bkts.to_list.enum) {a b} (hl : sigma.mk a b ∈ l) :
+  {i l} (he : (i, l) ∈ bkts.to_list.enum) {a} {b : β a} (hl : sigma.mk a b ∈ l) :
   ∃ h, mk_idx n (hash_fn a) = ⟨i, h⟩ :=
 (bkts.mem_to_list_enum.1 he).imp (λ h e, by subst e; exact v.idx hl)
 
 theorem valid.idx_enum_1 {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
-  {i l} (he : (i, l) ∈ bkts.to_list.enum) {a b} (hl : sigma.mk a b ∈ l) :
+  {i l} (he : (i, l) ∈ bkts.to_list.enum) {a} {b : β a} (hl : sigma.mk a b ∈ l) :
   (mk_idx n (hash_fn a)).1 = i :=
 let ⟨h, e⟩ := v.idx_enum _ he hl in by rw e; refl
 
@@ -448,7 +448,7 @@ let n'        : ℕ+ := ⟨n.1 * 2, mul_pos n.2 dec_trivial⟩,
   is_valid := insert_lemma _ valid' }
 
 theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
-  sigma.mk a' b' ∈ (m.insert a b).entries ↔
+  (sigma.mk a' b' : sigma β) ∈ (m.insert a b).entries ↔
   if a = a' then b == b' else sigma.mk a' b' ∈ m.entries
 | ⟨hash_fn, size, n, bkts, v⟩ a b a' b' := begin
   let bkt := bkts.read hash_fn a,
@@ -541,7 +541,7 @@ match m with ⟨hash_fn, size, n, buckets, v⟩ :=
 end
 
 theorem mem_erase : Π (m : hash_map α β) (a a' b'),
-  sigma.mk a' b' ∈ (m.erase a).entries ↔
+  (sigma.mk a' b' : sigma β) ∈ (m.erase a).entries ↔
   a ≠ a' ∧ sigma.mk a' b' ∈ m.entries
 | ⟨hash_fn, size, n, bkts, v⟩ a a' b' := begin
   let bkt := bkts.read hash_fn a,

@@ -214,7 +214,7 @@ induction_on o $ λ α r _, by exact
 let ⟨S, hS, e₁⟩ := ord_cof_eq r,
     ⟨T, hT, e₂⟩ := cof_eq (subrel r S) in begin
   rw e₁ at e₂, rw ← e₂,
-  refine le_trans (cof_type_le {a | ∃ h, subtype.mk a h ∈ T} (λ a, _)) ⟨⟨_, _⟩⟩,
+  refine le_trans (cof_type_le {a | ∃ h, (subtype.mk a h : S) ∈ T} (λ a, _)) ⟨⟨_, _⟩⟩,
   { rcases hS a with ⟨b, bS, br⟩,
     rcases hT ⟨b, bS⟩ with ⟨c, cT, cs⟩, cases c with c cS,
     exact ⟨c, ⟨cS, cT⟩, is_order_connected.neg_trans r cs br⟩ },

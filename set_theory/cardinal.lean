@@ -261,7 +261,7 @@ instance : order_bot cardinal.{u} :=
 theorem cantor (a : cardinal.{u}) : a < 2 ^ a :=
 by rw ← prop_eq_two; exact
 quot.induction_on a (λ α, ⟨⟨⟨λ a b, ⟨a = b⟩,
-  λ a b h, cast (ulift.up.inj (congr_fun h b)).symm rfl⟩⟩,
+  λ a b h, cast (ulift.up.inj (@congr_fun _ _ _ _ h b)).symm rfl⟩⟩,
 λ ⟨⟨f, hf⟩⟩, cantor_injective (λ s, f (λ a, ⟨s a⟩)) $
   λ s t h, by funext a; injection congr_fun (hf h) a⟩)
 

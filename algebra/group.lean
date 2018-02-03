@@ -229,12 +229,16 @@ section monoid
 
   @[simp] theorem divp_right_inj (u : units α) {a b : α} : a /ₚ u = b /ₚ u ↔ a = b :=
   units.mul_right_inj _
-  
+
   theorem divp_eq_one (a : α) (u : units α) : a /ₚ u = 1 ↔ a = u :=
   (units.mul_right_inj u).symm.trans $ by simp
 
   @[simp] theorem one_divp (u : units α) : 1 /ₚ u = ↑u⁻¹ :=
   by simp [divp]
+
+  class is_submonoid (S : set α) : Prop :=
+  (one_mem : (1:α) ∈ S)
+  (mul_mem : ∀ {s t}, s ∈ S → t ∈ S → s*t ∈ S)
 
 end monoid
 

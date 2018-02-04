@@ -1,16 +1,10 @@
-import algebra.ring data.set.basic tactic.ring data.quot
+import algebra.group algebra.ring data.set.basic tactic.ring data.quot
 
 universe u
 
 namespace loc
 
-variables (α : Type u) [comm_ring α] (S : set α)
-
-class is_submonoid : Prop :=
-(one_mem : (1:α) ∈ S)
-(mul_mem : ∀ {s t}, s ∈ S → t ∈ S → s*t ∈ S)
-
-variable [is_submonoid α S]
+variables (α : Type u) [comm_ring α] (S : set α) [is_submonoid α S] (x : α)
 
 def r : α × S → α × S → Prop :=
 λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, ∃ t ∈ S, t * (r₁ * s₂ - r₂ * s₁) = 0
@@ -102,7 +96,7 @@ by refine
 def of_comm_ring : α → loc α S :=
 λ r, ⟦⟨r, 1, is_submonoid.one_mem S⟩⟧
 
-instance : is_hom (of_comm_ring α S) :=
+instance : is_ring_hom (of_comm_ring α S) :=
 { map_add := λ x y, quotient.sound $ by simp,
   map_mul := λ x y, quotient.sound $ by simp,
   map_one := rfl }
@@ -111,13 +105,10 @@ local infix ^ := monoid.pow
 
 variable {α}
 
-def powers (x : α) : set α := {y | ∃ n, x^n = y}
+def away := loc α (powers x)
 
-instance powers.is_submonoid (x : α) : is_submonoid α (powers x) :=
-{ one_mem := ⟨0, by simp⟩,
-  mul_mem := λ x₁ x₂ ⟨n₁, hn₁⟩ ⟨n₂, hn₂⟩, ⟨n₁ + n₂, by simp [pow_add, *]⟩ }
-
-def away (x : α) := loc α (powers x)
+instance away.comm_ring : comm_ring (away x) :=
+loc.comm_ring α (powers x)
 
 section at_prime
 
@@ -132,8 +123,10 @@ instance prime.is_submonoid :
 
 def at_prime := loc α (set.compl P)
 
-instance at_prime.local_ring :
-  @local_ring (at_prime P) (loc.comm_ring α _) :=
+instance at_prime.comm_ring : comm_ring (at_prime P) :=
+loc.comm_ring α (set.compl P)
+
+instance at_prime.local_ring : local_ring (at_prime P) :=
 local_of_nonunits_ideal
   (λ hze, have _, from quotient.exact hze, let ⟨t, hts, ht⟩ := this in
      hts $ have htz : t = 0, by simpa using ht,
@@ -186,6 +179,9 @@ instance non_zero_divisors.is_submonoid : is_submonoid α (non_zero_divisors α)
     hx₂ z $ hx₁ (x₂ * z) this }
 
 def quotient_ring := loc α (non_zero_divisors α)
+
+instance quotient_ring.comm_ring : comm_ring (quotient_ring α) :=
+loc.comm_ring α (non_zero_divisors α)
 
 section quotient_ring
 

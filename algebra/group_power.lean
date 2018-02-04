@@ -104,6 +104,12 @@ by rw [←pow_add, ←pow_add, add_comm]
 | (n+1) := by simp [smul_succ, list.sum_repeat n]
 attribute [to_additive list.sum_repeat] list.prod_repeat
 
+def powers (x : α) : set α := {y | ∃ n, x^n = y}
+
+instance powers.is_submonoid (x : α) : is_submonoid α (powers x) :=
+{ one_mem := ⟨0, by simp⟩,
+  mul_mem := λ x₁ x₂ ⟨n₁, hn₁⟩ ⟨n₂, hn₂⟩, ⟨n₁ + n₂, by simp [pow_add, *]⟩ }
+
 end monoid
 
 theorem nat.pow_eq_pow (p q : ℕ) : nat.pow p q = p ^ q :=

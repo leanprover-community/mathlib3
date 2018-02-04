@@ -116,7 +116,7 @@ variables (P : set α) [is_prime_ideal P]
 
 instance prime.is_submonoid :
   is_submonoid α (set.compl P) :=
-{ one_mem := λ h, is_prime_ideal.ne_univ_ideal P $
+{ one_mem := λ h, is_prime_ideal.ne_univ P $
     is_ideal.univ_of_one_mem P h,
   mul_mem := λ x y hnx hny hxy, or.cases_on
     (is_prime_ideal.mem_or_mem_of_mul_mem hxy) hnx hny }
@@ -191,11 +191,9 @@ lemma ne_zero_of_mem_non_zero_divisors {x : β} :
   x ∈ loc.non_zero_divisors β → x ≠ 0 :=
 λ hm hz, have x * 1 = 0, by simp [hz], zero_ne_one (hm 1 this).symm
 
-lemma eq_zero_of_ne_zero_of_mul_eq_zero {x y : β} : x ≠ 0 → x * y = 0 → y = 0 :=
-λ hnx hxy, match eq_zero_or_eq_zero_of_mul_eq_zero hxy with
-| or.inl hx := false.elim $ hnx hx
-| or.inr hy := hy
-end
+lemma eq_zero_of_ne_zero_of_mul_eq_zero {x y : β} :
+  x ≠ 0 → x * y = 0 → y = 0 :=
+λ hnx hxy, or.resolve_left (eq_zero_or_eq_zero_of_mul_eq_zero hxy) hnx
 
 lemma mem_non_zero_divisors_of_ne_zero {x : β} :
   x ≠ 0 → x ∈ loc.non_zero_divisors β :=
@@ -231,12 +229,12 @@ end
 
 instance quotient_ring.field.of_integral_domain : field (quotient_ring β) :=
 by refine
-{ loc.comm_ring β _ with
-  inv := inv β,
+{ inv := inv β,
   zero_ne_one := λ hzo, let ⟨t, hts, ht⟩ := quotient.exact hzo in
     zero_ne_one (by simpa using hts _ ht : 0 = 1),
   mul_inv_cancel := quotient.ind _,
-  inv_mul_cancel := quotient.ind _ };
+  inv_mul_cancel := quotient.ind _,
+  ..loc.comm_ring β _ };
 { intros x hnx,
   cases x with x hx,
   cases hx with z hz,

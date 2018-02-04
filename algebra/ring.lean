@@ -70,19 +70,15 @@ namespace is_ring_hom
 variables {α : Type u} {β : Type v} [comm_ring α] [comm_ring β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
-attribute [simp] map_add
-attribute [simp] map_mul
-attribute [simp] map_one
-
-@[simp] lemma map_zero : f 0 = 0 :=
+lemma map_zero : f 0 = 0 :=
 calc f 0 = f (0 + 0) - f 0 : by rw [map_add f]; simp
      ... = 0 : by simp
 
-@[simp] lemma map_neg : f (-x) = -f x :=
+lemma map_neg : f (-x) = -f x :=
 calc f (-x) = f (-x + x) - f x : by rw [map_add f]; simp
         ... = -f x : by simp [map_zero f]
 
-@[simp] lemma map_sub : f (x - y) = f x - f y :=
+lemma map_sub : f (x - y) = f x - f y :=
 by simp [map_add f, map_neg f]
 
 end is_ring_hom
@@ -139,7 +135,7 @@ instance univ.is_ideal (α : Type u) [comm_ring α] : is_ideal α set.univ :=
 by refine {..}; intros; trivial
 
 theorem is_ideal.eq_univ_of_contains_unit {α : Type u} [comm_ring α] (S : set α) [is_ideal α S] :
-(∃ x:α, x ∈ S ∧ is_unit x) → S = set.univ :=
+(∃ x ∈ S, is_unit x) → S = set.univ :=
 λ ⟨x, hx, y, hy⟩, set.ext $ λ z, ⟨λ hz, trivial, λ hz, calc
    z = (x * y) * z : by simp [hy]
  ... = x * (y * z) : mul_assoc x y z

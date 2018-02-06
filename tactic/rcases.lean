@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist
+import data.dlist tactic.basic
 
 open lean lean.parser
 
@@ -12,8 +12,6 @@ namespace tactic
 inductive rcases_patt : Type
 | one : name → rcases_patt
 | many : list (list rcases_patt) → rcases_patt
-
-#print instances has_reflect
 
 instance rcases_patt.inhabited : inhabited rcases_patt :=
 ⟨rcases_patt.one `_⟩
@@ -25,7 +23,11 @@ def rcases_patt.name : rcases_patt → name
 meta instance rcases_patt.has_reflect : has_reflect rcases_patt
 | (rcases_patt.one n) := `(_)
 | (rcases_patt.many l) := `(λ l, rcases_patt.many l).subst $
-  by have := rcases_patt.has_reflect; exact list.reflect l
+  begin
+    have := rcases_patt.has_reflect,
+    tactic.reset_instance_cache, -- this combo will be `haveI` later
+    exact list.reflect l
+  end
 
 meta def rcases.process_constructor :
   nat → list rcases_patt → list name × list rcases_patt

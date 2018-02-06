@@ -37,7 +37,7 @@ theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
 instance : metric_space ℤ :=
 begin
-  let M := metric_space.induced coe int.cast_injective real.metric_space,
+  letI M := metric_space.induced coe int.cast_injective real.metric_space,
   refine @metric_space.replace_uniformity _ int.uniform_space M
     (le_antisymm refl_le_uniformity $ λ r ru,
       mem_uniformity_dist.2 ⟨1, zero_lt_one, λ a b h,

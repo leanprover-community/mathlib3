@@ -30,7 +30,7 @@ by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
   { intros, apply subtype.eq, simp }
 
 instance : module α {x : β // x ∈ p} :=
-by refine {smul := (•), ..};
+by refine {add := (+), smul := (•), ..subtype.add_comm_group, ..};
   { intros, apply subtype.eq,
     simp [smul_add, add_smul, mul_smul] }
 

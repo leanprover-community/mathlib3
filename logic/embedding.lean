@@ -116,7 +116,7 @@ Pi_congr_right (λ _, e)
 
 noncomputable def arrow_congr_right {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
   (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
-by have := classical.prop_decidable; exact
+by haveI := classical.prop_decidable; exact
 let f' : (α → γ) → (β → γ) := λf b, if h : ∃c, e c = b then f (classical.some h) else default γ in
 ⟨f', assume f₁ f₂ h, funext $ assume c,
   have ∃c', e c' = e c, from ⟨c, rfl⟩,

@@ -116,7 +116,7 @@ let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by simp [neg_lt.1 h]⟩
 theorem exists_floor (x : α) :
   ∃ (fl : ℤ), ∀ (z : ℤ), z ≤ fl ↔ (z : α) ≤ x :=
 begin
-  have := classical.prop_decidable,
+  haveI := classical.prop_decidable,
   have : ∃ (ub : ℤ), (ub:α) ≤ x ∧ ∀ (z : ℤ), (z:α) ≤ x → z ≤ ub :=
   int.exists_greatest_of_bdd
     (let ⟨n, hn⟩ := exists_int_gt x in ⟨n, λ z h',

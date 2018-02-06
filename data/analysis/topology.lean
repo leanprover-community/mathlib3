@@ -91,7 +91,7 @@ theorem is_closed_iff [topological_space α] (F : realizer α) {s : set α} :
   is_closed s ↔ ∀ a, (∀ b, a ∈ F.F b → ∃ z, z ∈ F.F b ∩ s) → a ∈ s :=
 F.is_open_iff.trans $ forall_congr $ λ a,
 show (a ∉ s → (∃ (b : F.σ), a ∈ F.F b ∧ ∀ z ∈ F.F b, z ∉ s)) ↔ _,
-by have := classical.prop_decidable; rw [not_imp_comm];
+by haveI := classical.prop_decidable; rw [not_imp_comm];
    simp [not_exists, not_and, not_forall, and_comm]
 
 theorem mem_interior_iff [topological_space α] (F : realizer α) {s : set α} {a : α} :

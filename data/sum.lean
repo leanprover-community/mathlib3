@@ -37,6 +37,8 @@ namespace sum
 section
   variables (ra : α → α → Prop) (rb : β → β → Prop)
 
+  /-- Lexicographic order for sum. Sort all the `inl a` before the `inr b`,
+    otherwise use the respective order on `α` or `β`. -/
   inductive lex : α ⊕ β → α ⊕ β → Prop
   | inl {a₁ a₂} (h : ra a₁ a₂) : lex (inl a₁) (inl a₂)
   | inr {b₁ b₂} (h : rb b₁ b₂) : lex (inr b₁) (inr b₂)

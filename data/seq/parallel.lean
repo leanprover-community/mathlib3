@@ -96,7 +96,7 @@ begin
     induction h : parallel.aux2 l with a l';
     have C : corec parallel.aux1 (l, S) = _,
     { apply destruct_eq_ret, simp [parallel.aux1], rw [h], simp [rmap] },
-    { rw C, apply_instance },
+    { rw C, resetI, apply_instance },
     { apply destruct_eq_think, simp [parallel.aux1], rw [h, H], simp [rmap] },
     { rw C, apply @computation.think_terminates _ _ _,
       apply terminates_parallel.aux _ T, simp } },
@@ -104,7 +104,7 @@ begin
     induction h : parallel.aux2 l with a l';
     have C : corec parallel.aux1 (l, S) = _,
     { apply destruct_eq_ret, simp [parallel.aux1], rw [h], simp [rmap] },
-    { rw C, apply_instance },
+    { rw C, resetI, apply_instance },
     { apply destruct_eq_think, simp [parallel.aux1], rw [h], simp [rmap] },
     { rw C, apply @computation.think_terminates _ _ _,
       have TT : ∀ l', terminates (corec parallel.aux1 (l', S.tail)),
@@ -182,7 +182,8 @@ begin
   intros c1 c2 h, exact match c1, c2, h with ._, ._, ⟨l, S, rfl, rfl⟩ := begin
     clear _match,
     have : parallel.aux2 (l.map (map f)) = lmap f (rmap (list.map (map f)) (parallel.aux2 l)),
-    { simp [parallel.aux2], induction l with c l IH; simp, rw [IH], dsimp [function.comp],
+    { simp [parallel.aux2],
+      induction l with c l IH; simp, rw [IH],
       cases list.foldr parallel.aux2._match_1 (sum.inr list.nil) l; simp [parallel.aux2],
       cases destruct c; simp },
     simp [parallel.aux1], rw this, cases parallel.aux2 l with a l'; simp,
@@ -209,7 +210,7 @@ begin
     funext c, dsimp [id, function.comp], rw [←map_comp], exact (map_id _).symm },
   have pe := congr_arg parallel this, rw ←map_parallel at pe,
   have h' := h, rw pe at h',
-  have : terminates (parallel T) := (terminates_map_iff _ _).1 ⟨_, h'⟩,
+  haveI : terminates (parallel T) := (terminates_map_iff _ _).1 ⟨_, h'⟩,
   induction e : get (parallel T) with a' c,
   have : a ∈ c ∧ c ∈ S,
   { cases exists_of_mem_map h' with d h, cases h with dT cd,
@@ -228,7 +229,7 @@ theorem parallel_promises {S : wseq (computation α)} {a}
 
 theorem mem_parallel {S : wseq (computation α)} {a}
   (H : ∀ s ∈ S, s ~> a) {c} (cs : c ∈ S) (ac : a ∈ c) : a ∈ parallel S :=
-by have := terminates_of_mem ac; have := terminates_parallel cs;
+by haveI := terminates_of_mem ac; have := terminates_parallel cs;
    exact mem_of_promises _ (parallel_promises H)
 
 theorem parallel_congr_lem {S T : wseq (computation α)} {a}

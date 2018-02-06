@@ -172,7 +172,7 @@ end
 
 theorem finite_of_finite_image {s : set α} {f : α → β}
   (I : injective f) : finite (f '' s) → finite s | ⟨hs⟩ :=
-by have := classical.dec_eq β; exact
+by haveI := classical.dec_eq β; exact
 ⟨fintype_of_fintype_image _ (partial_inv_of_injective I)⟩
 
 theorem finite_preimage {s : set β} {f : α → β}
@@ -187,7 +187,7 @@ theorem finite_Union {ι : Type*} [fintype ι] {f : ι → set α} (H : ∀i, fi
 ⟨@set.fintype_Union _ (classical.dec_eq α) _ _ _ (λ i, finite.fintype (H i))⟩
 
 theorem finite_sUnion {s : set (set α)} (h : finite s) (H : ∀t∈s, finite t) : finite (⋃₀ s) :=
-by rw sUnion_eq_Union'; have := finite.fintype h;
+by rw sUnion_eq_Union'; haveI := finite.fintype h;
    apply finite_Union; simpa using H
 
 instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=

@@ -128,7 +128,7 @@ theorem is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=
 ⟨λ a b c h₁ h₂, (trans h₂ h₁ : r c a)⟩
 
 theorem is_strict_order.swap (r) [is_strict_order α r] : is_strict_order α (swap r) :=
-⟨is_irrefl.swap r, is_trans.swap r⟩
+{..is_irrefl.swap r, ..is_trans.swap r}
 
 /-- Construct a partial order from a `is_strict_order` relation -/
 def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
@@ -169,18 +169,20 @@ def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
 
 /-- Construct a decidable linear order from a `is_strict_total_order'` relation -/
 def decidable_linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] : decidable_linear_order α :=
-by let := linear_order_of_STO' r; exact
+by letI LO := linear_order_of_STO' r; exact
 { decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
-  ..this }
+  ..LO }
 
 theorem is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (swap r) :=
 ⟨λ a b, by simpa [swap, or_comm, or.left_comm] using @trichotomous _ r _ a b⟩
 
 theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] : is_strict_total_order' α (swap r) :=
-⟨is_trichotomous.swap r, is_strict_order.swap r⟩
+{..is_trichotomous.swap r, ..is_strict_order.swap r}
 
 instance [linear_order α] : is_strict_total_order' α (<) :=
-⟨⟨lt_trichotomy⟩, ⟨lt_irrefl⟩, ⟨@lt_trans _ _⟩⟩
+{ trichotomous := lt_trichotomy,
+  irrefl       := lt_irrefl,
+  trans        := @lt_trans _ _ }
 
 /-- A connected order is one satisfying the condition `a < c → a < b ∨ b < c`.
   This is recognizable as an intuitionistic substitute for `a ≤ b ∨ b ≤ a` on
@@ -195,12 +197,13 @@ mt (is_order_connected.conn a b c) $ by simp [h₁, h₂]
 
 theorem is_strict_weak_order_of_is_order_connected [is_asymm α r] :
   ∀ [is_order_connected α r], is_strict_weak_order α r
-| ⟨H⟩ := ⟨⟨is_irrefl_of_is_asymm,
-  ⟨λ a b c h₁ h₂, (H _ c _ h₁).resolve_right (asymm h₂)⟩⟩,
-  ⟨λ a b c ⟨h₁, h₂⟩ ⟨h₃, h₄⟩,
+| ⟨H⟩ := {
+  trans := λ a b c h₁ h₂, (H _ c _ h₁).resolve_right (asymm h₂),
+  incomp_trans := λ a b c ⟨h₁, h₂⟩ ⟨h₃, h₄⟩,
     have H' : ∀ {a b c}, ¬ r a b → ¬ r b c → ¬ r a c,
     from λ a b c, by simpa [not_or_distrib] using mt (H a b c),
-    ⟨H' h₁ h₃, H' h₄ h₂⟩⟩⟩
+    ⟨H' h₁ h₃, H' h₄ h₂⟩,
+  ..@is_irrefl_of_is_asymm α r _ }
 
 instance is_order_connected_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_order_connected α r :=
@@ -209,7 +212,7 @@ instance is_order_connected_of_is_strict_total_order'
 
 instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
-⟨by apply_instance, is_strict_weak_order_of_is_order_connected⟩
+{..is_strict_weak_order_of_is_order_connected}
 
 /-- An extensional relation is one in which an element is determined by its set
   of predecessors. It is named for the `x ∈ y` relation in set theory, whose
@@ -228,21 +231,22 @@ instance is_extensional_of_is_strict_total_order'
 (wf : well_founded r)
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
-⟨⟨⟨λ a b, or.inr $ or.inl $ subsingleton.elim _ _⟩,
-  ⟨λ a, id⟩, ⟨λ a b c, false.elim⟩⟩,
-  ⟨λ a, ⟨_, λ y, false.elim⟩⟩⟩
+{ trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
+  irrefl       := λ a, id,
+  trans        := λ a b c, false.elim,
+  wf           := ⟨λ a, ⟨_, λ y, false.elim⟩⟩ }
 
-instance nat.lt.is_well_order : is_well_order ℕ (<) :=
-⟨by apply_instance, nat.lt_wf⟩
+instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
 
 instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
-⟨⟨⟨λ a b, by cases a; cases b; simp; apply trichotomous⟩,
-  ⟨λ a, by cases a; simp; apply irrefl⟩,
-  ⟨λ a b c, by cases a; cases b; simp; cases c; simp; apply trans⟩⟩,
-  sum.lex_wf (is_well_order.wf r) (is_well_order.wf s)⟩
+{ trichotomous := λ a b, by cases a; cases b; simp; apply trichotomous,
+  irrefl       := λ a, by cases a; simp; apply irrefl,
+  trans        := λ a b c, by cases a; cases b; simp; cases c; simp; apply trans,
+  wf           := sum.lex_wf (is_well_order.wf r) (is_well_order.wf s) }
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α × β) (prod.lex r s) :=
-⟨⟨⟨λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩, match @trichotomous _ r _ a₁ b₁ with
+{ trichotomous := λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
+    match @trichotomous _ r _ a₁ b₁ with
     | or.inl h₁ := or.inl $ prod.lex.left _ _ _ h₁
     | or.inr (or.inr h₁) := or.inr $ or.inr $ prod.lex.left _ _ _ h₁
     | or.inr (or.inl e) := e ▸  match @trichotomous _ s _ a₂ b₂ with
@@ -250,22 +254,22 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_w
       | or.inr (or.inr h) := or.inr $ or.inr $ prod.lex.right _ _ h
       | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
       end
-    end⟩,
-  ⟨λ ⟨a₁, a₂⟩ h, by cases h with _ _ _ _ h _ _ _ h;
-     [exact irrefl _ h, exact irrefl _ h]⟩,
-  ⟨λ a b c h₁ h₂, begin
+    end,
+  irrefl := λ ⟨a₁, a₂⟩ h, by cases h with _ _ _ _ h _ _ _ h;
+     [exact irrefl _ h, exact irrefl _ h],
+  trans := λ a b c h₁ h₂, begin
     cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
     cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
     { exact prod.lex.left _ _ _ (trans ab bc) },
     { exact prod.lex.left _ _ _ ab },
     { exact prod.lex.left _ _ _ bc },
     { exact prod.lex.right _ _ (trans ab bc) }
-  end⟩⟩,
-  prod.lex_wf (is_well_order.wf r) (is_well_order.wf s)⟩
+  end,
+  wf := prod.lex_wf (is_well_order.wf r) (is_well_order.wf s) }
 
 theorem well_founded.has_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) : p ≠ ∅ → ∃ a ∈ p, ∀ x ∈ p, ¬ r x a :=
-by have := classical.prop_decidable; exact
+by haveI := classical.prop_decidable; exact
 not_imp_comm.1 (λ he, set.eq_empty_iff_forall_not_mem.2 $ λ a,
 acc.rec_on (H.apply a) $ λ a H IH h,
 he ⟨_, h, λ y, imp_not_comm.1 (IH y)⟩)

@@ -26,16 +26,11 @@ infixr ` • `:73 := has_scalar.smul
   (where `r : α` and `x : β`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
 class module (α : out_param $ Type u) (β : Type v) [out_param $ ring α]
-  extends has_scalar α β :=
-[to_add_comm_group : add_comm_group β]
+  extends has_scalar α β, add_comm_group β :=
 (smul_add : ∀r (x y : β), r • (x + y) = r • x + r • y)
 (add_smul : ∀r s (x : β), (r + s) • x = r • x + s • x)
 (mul_smul : ∀r s (x : β), (r * s) • x = r • s • x)
 (one_smul : ∀x : β, (1 : α) • x = x)
-
-instance module.to_add_comm_group' {α : out_param $ Type u} (β : Type v)
-  {R : out_param $ ring α} [@module α β R] : add_comm_group β :=
-module.to_add_comm_group α β 
 
 section module
 variables [ring α] [module α β] {r s : α} {x y : β}
@@ -43,7 +38,7 @@ variables [ring α] [module α β] {r s : α} {x y : β}
 theorem smul_add : r • (x + y) = r • x + r • y := module.smul_add r x y
 theorem add_smul : (r + s) • x = r • x + s • x := module.add_smul r s x
 theorem mul_smul : (r * s) • x = r • s • x :=  module.mul_smul r s x
-@[simp] theorem one_smul : (1 : α) • x = x := module.one_smul _ x
+@[simp] theorem one_smul : (1 : α) • x = x := module.one_smul x
 
 @[simp] theorem zero_smul : (0 : α) • x = 0 :=
 have (0 : α) • x + 0 • x = 0 • x + 0, by rw ← add_smul; simp,

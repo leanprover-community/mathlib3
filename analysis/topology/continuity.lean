@@ -573,7 +573,7 @@ continuous_iff_is_closed.mpr $
     have : ∀ (x : α), f x ∈ s ↔ ∃ (i : γ), c i x ∧ f x ∈ s :=
       λ x, ⟨λ hx, let ⟨i, hi⟩ := h_cover x in ⟨i, hi, hx⟩,
             λ ⟨i, hi, hx⟩, hx⟩,
-    simp, simpa [(∘)]
+    simp [and.comm, and.left_comm], simpa [(∘)],
   end,
   by rwa [this]
 

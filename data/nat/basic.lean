@@ -241,7 +241,7 @@ le_antisymm_iff.trans (le_antisymm_iff.trans
 instance decidable_ball_lt (n : nat) (P : Π k < n, Prop)
   [H : ∀ n h, decidable (P n h)] : decidable (∀ n h, P n h) :=
 begin
-  induction n with n IH,
+  induction n with n IH; resetI,
   { exact is_true (λ n, dec_trivial) },
   cases IH (λ k h, P k (lt_succ_of_lt h)) with h,
   { refine is_false (mt _ h), intros hn k h, apply hn },

@@ -109,7 +109,7 @@ begin
 end
 
 theorem lift_cof (o) : (cof o).lift = cof o.lift :=
-induction_on o $ λ α r _, begin
+induction_on o $ begin introsI α r _,
   cases lift_type r with _ e, rw e,
   apply le_antisymm,
   { refine le_cof_type.2 (λ S H, _),
@@ -179,7 +179,7 @@ end
     { rcases hl x with ⟨a', aS, hn⟩,
       rw (_ : ↑a = a') at h, {exact absurd h hn},
       refine congr_arg subtype.val (_ : a = ⟨a', aS⟩),
-      have := le_one_iff_subsingleton.1 (le_of_eq e),
+      haveI := le_one_iff_subsingleton.1 (le_of_eq e),
       apply subsingleton.elim } }
 end, λ ⟨a, e⟩, by simp [e]⟩
 
@@ -259,13 +259,13 @@ theorem cof_sup_le_lift {ι} (f : ι → ordinal) (H : ∀ i, f i < sup f) :
   cof (sup f) ≤ (mk ι).lift :=
 begin
   generalize e : sup f = o,
-  refine ordinal.induction_on o _ e, intros α r _ e,
-  rw e at H,
+  refine ordinal.induction_on o _ e, introsI α r _ e',
+  rw e' at H,
   refine le_trans (cof_type_le (set.range (λ i, enum r _ (H i))) _)
     ⟨embedding.of_surjective _⟩,
   { intro a, by_contra h,
     apply not_le_of_lt (typein_lt_type r a),
-    rw [← e, sup_le],
+    rw [← e', sup_le],
     intro i,
     simp [set.range] at h,
     simpa using le_of_lt ((typein_lt_typein r).2 (h _ i rfl)) },
@@ -341,7 +341,7 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
 ⟨le_trans h (le_of_lt $ lt_succ_self _), begin
   refine le_antisymm (cof_ord_le _) (succ_le.2 _),
   cases quotient.exists_rep (succ c) with α αe, simp at αe,
-  rcases ord_eq α with ⟨r, wo, re⟩,
+  rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit (le_trans h $ le_of_lt $ lt_succ_self _),
   rw [← αe, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
@@ -383,7 +383,7 @@ is_inaccessible.mk
 
 theorem lt_power_cof {c : cardinal.{u}} : omega ≤ c → c < c ^ cof c.ord :=
 quotient.induction_on c $ λ α h, begin
-  rcases ord_eq α with ⟨r, wo, re⟩,
+  rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit h,
   rw [mk_def, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,

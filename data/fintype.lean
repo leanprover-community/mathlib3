@@ -70,7 +70,7 @@ quot.rec_on_subsingleton (@univ α _).1
   mem_univ_val univ.2
 
 theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
-by have := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin α)⟩
+by haveI := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin α)⟩
 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
@@ -117,16 +117,16 @@ theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β �
   refine quotient.induction_on₂ s s' (λ l₁ l₂
     (nd₁ : l₁.nodup) (nd₂ : l₂.nodup)
     (h₁ : ∀ x, x ∈ l₁) (h₂ : ∀ x, x ∈ l₂)
-    (e : l₁.length = l₂.length), _),
-  have := classical.dec_eq α,
+    (e' : l₁.length = l₂.length), _),
+  haveI := classical.dec_eq α,
   refine ⟨equiv.of_bijective ⟨_, _⟩⟩,
   { refine λ a, l₂.nth_le (l₁.index_of a) _,
-    rw ← e, exact list.index_of_lt_length.2 (h₁ a) },
+    rw ← e', exact list.index_of_lt_length.2 (h₁ a) },
   { intros a b h, simpa [h₁] using congr_arg l₁.nth
       (list.nodup_iff_nth_le_inj.1 nd₂ _ _ _ _ h) },
   { have := classical.dec_eq β,
     refine λ b, ⟨l₁.nth_le (l₂.index_of b) _, _⟩,
-    { rw e, exact list.index_of_lt_length.2 (h₂ b) },
+    { rw e', exact list.index_of_lt_length.2 (h₂ b) },
     { simp [nd₁] } }
 end end, λ ⟨f⟩, card_congr f⟩
 

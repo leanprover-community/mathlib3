@@ -715,12 +715,12 @@ ext.2 $ by simp [or_and_distrib_right, exists_or_distrib]
 
 theorem image_bind [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
   (s.image f).bind t = s.bind (λa, t (f a)) :=
-by have := classical.dec_eq α; exact
+by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp {contextual := tt})
 
 theorem bind_image [decidable_eq γ] {s : finset α} {t : α → finset β} {f : β → γ} :
   (s.bind t).image f = s.bind (λa, (t a).image f) :=
-by have := classical.dec_eq α; exact
+by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp [image_union] {contextual := tt})
 
 theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :
@@ -817,7 +817,7 @@ by unfold fold; rw [← fold_add op, ← map_add, union_val,
 
 @[simp] theorem fold_insert_idem [decidable_eq α] [hi : is_idempotent β op] :
   (insert a s).fold op b f = f a * s.fold op b f :=
-by have : decidable_eq β := (λ _ _, classical.prop_decidable _);
+by haveI := classical.prop_decidable;
    rw [fold, insert_val', ← fold_erase_dup_idem op, erase_dup_map_erase_dup_eq,
        fold_erase_dup_idem op]; simp [fold]
 

@@ -377,7 +377,7 @@ theorem induced_orderable_topology' {α : Type u} {β : Type v}
   (H₂ : ∀ {a x}, f a < x → ∃ b > a, f b ≤ x) :
   @orderable_topology _ (induced f ta) _ :=
 begin
-  let := induced f ta,
+  letI := induced f ta,
   refine ⟨eq_of_nhds_eq_nhds (λ a, _)⟩,
   rw [nhds_induced_eq_vmap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
   { rw [le_vmap_iff_map_le],

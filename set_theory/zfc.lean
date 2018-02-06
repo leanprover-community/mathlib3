@@ -247,7 +247,7 @@ noncomputable theorem all_definable : Π {n} (F : arity Set.{u} n), definable n 
     have I := λx, (all_definable (F x)),
     refine definable.eq_mk ⟨λx:pSet, (@definable.resp _ _ (I ⟦x⟧)).1, _⟩ _,
     { dsimp [arity.equiv],
-      intros x y h,
+      introsI x y h,
       rw @quotient.sound pSet _ _ _ h,
       exact (definable.resp (F ⟦y⟧)).2 },
     exact funext (λq, quotient.induction_on q $ λx,

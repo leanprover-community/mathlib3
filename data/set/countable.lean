@@ -118,7 +118,7 @@ lemma countable_insert {s : set α} {a : α} (h : countable s) : countable (inse
 by rw [set.insert_eq]; from countable_union countable_singleton h
 
 lemma countable_finite {s : set α} : finite s → countable s
-| ⟨h⟩ := by have := (trunc_encodable_of_fintype s).out; apply countable_encodable'
+| ⟨h⟩ := by haveI := (trunc_encodable_of_fintype s).out; apply countable_encodable'
 
 lemma countable_set_of_finite_subset {s : set α} (h : countable s) :
   countable {t | finite t ∧ t ⊆ s } :=
@@ -142,7 +142,7 @@ have {t | finite t ∧ t ⊆ s } ⊆
             exact assume hxs hxt', ⟨hxs, or.inr hxt'⟩,
           end⟩ }
   end,
-by have enc := h.to_encodable; exact
+by haveI enc := h.to_encodable; exact
 countable_subset this (countable_image countable_encodable)
 
 end set

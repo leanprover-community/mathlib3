@@ -43,14 +43,14 @@ Each metric space induces a canonical `uniform_space` and hence a canonical `top
 This is enforced in the type class definition, by extending the `uniform_space` structure. When
 instantiating a `metric_space` structure, the uniformity fields are not necessary, they will be
 filled in by default. -/
-class metric_space (α : Type u) extends uniform_space α : Type u :=
+class metric_space (α : Type u) : Type u :=
 (dist : α → α → ℝ)
 (dist_self : ∀ x : α, dist x x = 0)
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
 (dist_comm : ∀ x y : α, dist x y = dist y x)
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+(to_uniform_space : uniform_space α := metric_space.uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : uniformity = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
-(to_uniform_space := metric_space.uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 
 theorem uniformity_dist_of_mem_uniformity {U : filter (α × α)} (D : α → α → ℝ)
   (H : ∀ s, s ∈ U.sets ↔ ∃ε>0, ∀{a b:α}, D a b < ε → (a, b) ∈ s) :
@@ -61,6 +61,9 @@ le_antisymm
     mem_infi_sets ε $ mem_infi_sets ε0 $ mem_principal_sets.2 $ λ ⟨a, b⟩, h)
 
 variables [metric_space α]
+
+instance metric_space.to_uniform_space' : uniform_space α :=
+metric_space.to_uniform_space α
 
 /-- The distance function (given an ambient metric space on `α`), which returns
   a nonnegative real number `dist x y` given `x y : α`. -/
@@ -316,9 +319,9 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
 
 theorem metric_space.induced_uniform_embedding {α β} (f : α → β) (hf : function.injective f)
   (m : metric_space β) :
-  by have := metric_space.induced f hf m;
+  by haveI := metric_space.induced f hf m;
      exact uniform_embedding f :=
-by let := metric_space.induced f hf m; exact
+by let := metric_space.induced f hf m; exactI
 uniform_embedding_of_metric.2 ⟨hf, uniform_continuous_vmap, λ ε ε0, ⟨ε, ε0, λ a b, id⟩⟩
 
 instance {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=

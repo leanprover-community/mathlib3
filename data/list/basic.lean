@@ -2285,7 +2285,7 @@ end
 
 variable [decidable_rel R]
 instance decidable_pairwise (l : list α) : decidable (pairwise R l) :=
-by induction l; simp; apply_instance
+by induction l; simp; resetI; apply_instance
 
 /- pairwise reduct -/
 
@@ -2433,7 +2433,7 @@ theorem chain_iff_pairwise (tr : transitive R) {a : α} {l : list α} :
 end, chain_of_pairwise⟩
 
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
-by induction l generalizing a; simp; apply_instance
+by induction l generalizing a; simp; resetI; apply_instance
 
 end chain
 

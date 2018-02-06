@@ -76,7 +76,7 @@ lemma div_ne_zero_iff (hb : b ≠ 0) : a / b ≠ 0 ↔ a ≠ 0 :=
 ⟨mt (λ h, by simp [h]), λ ha, div_ne_zero ha hb⟩
 
 lemma div_eq_zero_iff (hb : b ≠ 0) : a / b = 0 ↔ a = 0 :=
-by have := classical.prop_decidable; exact
+by haveI := classical.prop_decidable; exact
 not_iff_not.1 (div_ne_zero_iff hb)
 
 lemma add_div (a b c : α) : (a + b) / c = a / c + b / c :=

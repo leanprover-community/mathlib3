@@ -64,7 +64,7 @@ by rw [←prod_union (sdiff_inter_self _ _), sdiff_union_of_subset h]
 @[to_additive finset.sum_bind]
 lemma prod_bind [decidable_eq α] {s : finset γ} {t : γ → finset α} :
   (∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
-by have := classical.dec_eq γ; exact
+by haveI := classical.dec_eq γ; exact
 finset.induction_on s (by simp)
   (assume x s hxs ih hd,
   have hd' : ∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅,
@@ -83,7 +83,7 @@ finset.induction_on s (by simp)
 lemma prod_product {s : finset γ} {t : finset α} {f : γ×α → β} :
   (s.product t).prod f = s.prod (λx, t.prod $ λy, f (x, y)) :=
 begin
-  have := classical.dec_eq α, have := classical.dec_eq γ,
+  haveI := classical.dec_eq α, haveI := classical.dec_eq γ,
   rw [product_eq_bind, prod_bind (λ x hx y hy h, ext.2 _)], {simp [prod_image]},
   simp [mem_image], intros, intro, refine h _, cc
 end
@@ -92,7 +92,7 @@ end
 lemma prod_sigma {σ : α → Type*}
   {s : finset α} {t : Πa, finset (σ a)} {f : sigma σ → β} :
   (s.sigma t).prod f = s.prod (λa, (t a).prod $ λs, f ⟨a, s⟩) :=
-by have := classical.dec_eq α; have := (λ a, classical.dec_eq (σ a)); exact
+by haveI := classical.dec_eq α; haveI := (λ a, classical.dec_eq (σ a)); exact
 have ∀a₁ a₂:α, ∀s₁ : finset (σ a₁), ∀s₂ : finset (σ a₂), a₁ ≠ a₂ →
     s₁.image (sigma.mk a₁) ∩ s₂.image (sigma.mk a₂) = ∅,
   from assume b₁ b₂ s₁ s₂ h, ext.2 $ assume ⟨b₃, c₃⟩,
@@ -120,7 +120,7 @@ eq.trans (by rw [h₁]; refl) (fold_hom h₂)
 
 @[to_additive finset.sum_subset]
 lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → f x = 1) : s₁.prod f = s₂.prod f :=
-by have := classical.dec_eq α; exact
+by haveI := classical.dec_eq α; exact
 have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr rfl begin simp [hf] {contextual := tt} end,
 by rw [←prod_sdiff h]; simp [this]
@@ -171,7 +171,7 @@ calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
 
 @[to_additive finset.exists_ne_zero_of_sum_ne_zero]
 lemma exists_ne_one_of_prod_ne_one : s.prod f ≠ 1 → ∃a∈s, f a ≠ 1 :=
-by have := classical.dec_eq α; exact
+by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (assume a s has ih h,
   classical.by_cases
     (assume ha : f a = 1,

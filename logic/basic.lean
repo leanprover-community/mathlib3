@@ -9,7 +9,7 @@ Classical versions are in the namespace "classical".
 Note: in the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
-import data.prod
+import data.prod tactic.interactive
 
 /-
     miscellany
@@ -324,7 +324,7 @@ theorem not_forall {p : α → Prop}
 
 @[simp] theorem not_forall_not [decidable (∃ x, p x)] :
   (¬ ∀ x, ¬ p x) ↔ ∃ x, p x :=
-by have := decidable_of_iff (¬ ∃ x, p x) not_exists;
+by haveI := decidable_of_iff (¬ ∃ x, p x) not_exists;
    exact not_iff_comm.1 not_exists
 
 @[simp] theorem not_exists_not [∀ x, decidable (p x)] :

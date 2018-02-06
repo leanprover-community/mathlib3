@@ -320,7 +320,7 @@ theorem lim_zero_congr {f g : cau_seq β abv} (h : f ≈ g) : lim_zero f ↔ lim
 theorem abv_pos_of_not_lim_zero {f : cau_seq β abv} (hf : ¬ lim_zero f) :
   ∃ K > 0, ∃ i, ∀ j ≥ i, K ≤ abv (f j) :=
 begin
-  have := classical.prop_decidable,
+  haveI := classical.prop_decidable,
   by_contra nk,
   refine hf (λ ε ε0, _),
   simp [not_forall] at nk,

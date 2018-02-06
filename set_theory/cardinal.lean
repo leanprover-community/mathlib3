@@ -298,8 +298,7 @@ protected theorem wf : @well_founded cardinal.{u} (<) :=
 
 instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
 
-instance wo : @is_well_order cardinal.{u} (<) :=
-⟨by apply_instance, cardinal.wf⟩
+instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
 /-- The successor cardinal - the smallest cardinal greater than
   `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
@@ -567,7 +566,7 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
   rcases lt_lift_iff.1 h with ⟨c, rfl, h'⟩,
   rcases le_mk_iff_exists_set.1 h'.1 with ⟨S, rfl⟩,
   suffices : finite S,
-  { cases this,
+  { cases this, resetI,
     existsi fintype.card S,
     rw [← lift_nat_cast.{0 u}, lift_inj, fintype_card S] },
   by_contra nf,
@@ -621,7 +620,7 @@ end
 /-- König's theorem -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
-  have : inhabited (Π (i : ι), (g i).out),
+  haveI : inhabited (Π (i : ι), (g i).out),
   { refine ⟨λ i, classical.choice $ ne_zero_iff_nonempty.1 _⟩,
     rw mk_out,
     exact ne_of_gt (lt_of_le_of_lt (zero_le _) (H i)) },

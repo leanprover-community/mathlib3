@@ -845,4 +845,25 @@ sort_eq _ _
 list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
 end sort
 
+/- not mem -/
+section not_mem
+variables {s s₁ s₂ : finset α} [decidable_eq α] {a b : α}
+
+theorem ne_of_mem_of_not_mem (h_mem : a ∈ s) (h_not_mem : b ∉ s) : a ≠ b :=
+ne_of_mem_erase (@@eq.substr _ (erase_insert h_not_mem) h_mem)
+
+theorem not_mem_singleton : a ∉ singleton b ↔ a ≠ b :=
+iff.intro
+  (λ h, ne.symm (ne_of_mem_of_not_mem (mem_singleton_self b) h))
+  (λ h₁ h₂, absurd (mem_singleton.mp h₂) h₁)
+
+theorem not_mem_union : a ∉ s₁ ∪ s₂ ↔ a ∉ s₁ ∧ a ∉ s₂ :=
+iff.intro
+  (λ h₁, and.intro (λ h₂, absurd (mem_union_left s₂ h₂) h₁)
+                   (λ h₂, absurd (mem_union_right s₁ h₂) h₁))
+  (λ h₁ h₂, absurd (mem_union.mp h₂)
+                   ((decidable.not_or_iff_and_not (a ∈ s₁) (a ∈ s₂)).mpr h₁))
+
+end not_mem
+
 end finset

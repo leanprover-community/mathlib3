@@ -118,6 +118,8 @@ local prefix `ι`:90 := singleton
 @[simp] theorem mem_singleton {a b : α} : b ∈ ι a ↔ b = a :=
 by simp [singleton]
 
+theorem not_mem_singleton {a b : α} : a ∉ ι b ↔ a ≠ b := by simp
+
 theorem mem_singleton_self (a : α) : a ∈ ι a := by simp
 
 theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
@@ -216,6 +218,9 @@ ndunion_eq_union s₁.2
 theorem mem_union_left {a : α} {s₁ : finset α} (s₂ : finset α) (h : a ∈ s₁) : a ∈ s₁ ∪ s₂ := by simp *
 
 theorem mem_union_right {a : α} {s₂ : finset α} (s₁ : finset α) (h : a ∈ s₂) : a ∈ s₁ ∪ s₂ := by simp *
+
+theorem not_mem_union {a : α} {s₁ s₂ : finset α} : a ∉ s₁ ∪ s₂ ↔ a ∉ s₁ ∧ a ∉ s₂ :=
+by simp [not_or_distrib]
 
 theorem union_subset {s₁ s₂ s₃ : finset α} (h₁ : s₁ ⊆ s₃) (h₂ : s₂ ⊆ s₃) : s₁ ∪ s₂ ⊆ s₃ :=
 val_le_iff.1 (ndunion_le.2 ⟨h₁, val_le_iff.2 h₂⟩)

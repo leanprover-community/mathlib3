@@ -284,6 +284,10 @@ variables {α : Sort*} {a b : α}
 @[simp] theorem heq_iff_eq : a == b ↔ a = b :=
 ⟨eq_of_heq, heq_of_eq⟩
 
+theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
+  (h : a ∈ s) : b ∉ s → a ≠ b :=
+mt $ λ e, e ▸ h
+
 end equality
 
 /-

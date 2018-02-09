@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
-import data.real.cau_seq algebra.big_operators algebra.archimedean
+import order.conditionally_complete_lattice data.real.cau_seq algebra.big_operators algebra.archimedean
 
 def real := quotient (@cau_seq.equiv ℚ _ _ _ abs _)
 notation `ℝ` := real
@@ -38,14 +38,14 @@ instance : has_add ℝ :=
   λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
   by simpa [(≈), setoid.r] using add_lim_zero hf hg⟩
 
-@[simp] theorem mk_add (f g : cau_seq ℚ abs) : mk f + mk g = mk (f + g) := rfl 
+@[simp] theorem mk_add (f g : cau_seq ℚ abs) : mk f + mk g = mk (f + g) := rfl
 
 instance : has_neg ℝ :=
 ⟨λ x, quotient.lift_on x (λ f, mk (-f)) $
   λ f₁ f₂ hf, quotient.sound $
   by simpa [(≈), setoid.r] using neg_lim_zero hf⟩
 
-@[simp] theorem mk_neg (f : cau_seq ℚ abs) : -mk f = mk (-f) := rfl 
+@[simp] theorem mk_neg (f : cau_seq ℚ abs) : -mk f = mk (-f) := rfl
 
 instance : has_mul ℝ :=
 ⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f * g)) $
@@ -53,7 +53,7 @@ instance : has_mul ℝ :=
   by simpa [(≈), setoid.r, mul_add, mul_comm] using
     add_lim_zero (mul_lim_zero g₁ hf) (mul_lim_zero f₂ hg)⟩
 
-@[simp] theorem mk_mul (f g : cau_seq ℚ abs) : mk f * mk g = mk (f * g) := rfl 
+@[simp] theorem mk_mul (f g : cau_seq ℚ abs) : mk f * mk g = mk (f * g) := rfl
 
 theorem of_rat_add (x y : ℚ) : of_rat (x + y) = of_rat x + of_rat y :=
 congr_arg mk (const_add _ _)
@@ -252,7 +252,7 @@ theorem of_near (f : ℕ → ℚ) (x : ℝ)
     mk_near_of_forall_near $
     (h _ ε0).imp (λ i h j ij, le_of_lt (h j ij))⟩
 
-theorem exists_floor (x : ℝ) : ∃ (ub : ℤ), (ub:ℝ) ≤ x ∧ 
+theorem exists_floor (x : ℝ) : ∃ (ub : ℤ), (ub:ℝ) ≤ x ∧
    ∀ (z : ℤ), (z:ℝ) ≤ x → z ≤ ub :=
 int.exists_greatest_of_bdd
   (let ⟨n, hn⟩ := exists_int_gt x in ⟨n, λ z h',
@@ -355,6 +355,30 @@ theorem Inf_le (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y) {x} (xS : x �
 theorem lb_le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) {lb} (h₂ : ∀ y ∈ S, lb ≤ y) : lb ≤ Inf S :=
 (le_Inf S h₁ ⟨_, h₂⟩).2 h₂
 
+open lattice
+noncomputable instance lattice : lattice ℝ := by apply_instance
+
+noncomputable instance : conditionally_complete_linear_order ℝ :=
+{ Sup := real.Sup,
+  Inf := real.Inf,
+  le_cSup :=
+    assume (s : set ℝ) (a : ℝ) (_ : bdd_above s) (_ : a ∈ s),
+    show a ≤ Sup s,
+      from le_Sup s ‹bdd_above s› ‹a ∈ s›,
+  cSup_le :=
+    assume (s : set ℝ) (a : ℝ) (_ : s ≠ ∅) (H : ∀b∈s, b ≤ a),
+    show Sup s ≤ a,
+      from Sup_le_ub s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
+  cInf_le :=
+    assume (s : set ℝ) (a : ℝ) (_ : bdd_below s) (_ : a ∈ s),
+    show Inf s ≤ a,
+      from Inf_le s ‹bdd_below s› ‹a ∈ s›,
+  le_cInf :=
+    assume (s : set ℝ) (a : ℝ) (_ : s ≠ ∅) (H : ∀b∈s, a ≤ b),
+    show a ≤ Inf s,
+      from lb_le_Inf s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
+ ..real.linear_order, ..real.lattice}
+
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin
   let S := {x : ℝ | const abs x < f},
@@ -433,7 +457,7 @@ end,
 end
 
 def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
-| 0       := rat.mk_nat (f 0).num.to_nat.sqrt (f 0).denom.sqrt 
+| 0       := rat.mk_nat (f 0).num.to_nat.sqrt (f 0).denom.sqrt
 | (n + 1) := let s := sqrt_aux n in max 0 $ (s + f (n+1) / s) / 2
 
 theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) : ∀ i : ℕ, 0 ≤ sqrt_aux f i

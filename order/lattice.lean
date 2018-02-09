@@ -111,13 +111,13 @@ class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 section semilattice_sup
 variables {α : Type u} [semilattice_sup α] {a b c d : α}
 
-theorem le_sup_left : a ≤ a ⊔ b :=
+@[simp] theorem le_sup_left : a ≤ a ⊔ b :=
 semilattice_sup.le_sup_left a b
 
 @[ematch] theorem le_sup_left' : a ≤ (: a ⊔ b :) :=
 semilattice_sup.le_sup_left a b
 
-theorem le_sup_right : b ≤ a ⊔ b :=
+@[simp] theorem le_sup_right : b ≤ a ⊔ b :=
 semilattice_sup.le_sup_right a b
 
 @[ematch] theorem le_sup_right' : b ≤ (: a ⊔ b :) :=
@@ -184,13 +184,13 @@ class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 section semilattice_inf
 variables {α : Type u} [semilattice_inf α] {a b c d : α}
 
-theorem inf_le_left : a ⊓ b ≤ a :=
+@[simp] theorem inf_le_left : a ⊓ b ≤ a :=
 semilattice_inf.inf_le_left a b
 
 @[ematch] theorem inf_le_left' : (: a ⊓ b :) ≤ a :=
 semilattice_inf.inf_le_left a b
 
-theorem inf_le_right : a ⊓ b ≤ b :=
+@[simp] theorem inf_le_right : a ⊓ b ≤ b :=
 semilattice_inf.inf_le_right a b
 
 @[ematch] theorem inf_le_right' : (: a ⊓ b :) ≤ b :=

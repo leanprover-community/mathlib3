@@ -213,18 +213,21 @@ by finish [subset_def, set_eq_def, iff_def]
 theorem union_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∪ t = s :=
 by finish [subset_def, set_eq_def, iff_def]
 
-theorem subset_union_left (s t : set α) : s ⊆ s ∪ t := λ x, or.inl
+@[simp] theorem subset_union_left (s t : set α) : s ⊆ s ∪ t := λ x, or.inl
 
-theorem subset_union_right (s t : set α) : t ⊆ s ∪ t := λ x, or.inr
+@[simp] theorem subset_union_right (s t : set α) : t ⊆ s ∪ t := λ x, or.inr
 
 theorem union_subset {s t r : set α} (sr : s ⊆ r) (tr : t ⊆ r) : s ∪ t ⊆ r :=
 by finish [subset_def, union_def]
 
-theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
+@[simp] theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
 by finish [iff_def, subset_def]
 
 theorem union_subset_union {s₁ s₂ t₁ t₂ : set α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∪ s₂ ⊆ t₁ ∪ t₂ :=
 by finish [subset_def]
+
+@[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
+⟨by finish [set_eq_def], by finish [set_eq_def]⟩
 
 /- intersection -/
 
@@ -281,10 +284,10 @@ by finish [subset_def, inter_def]
 ⟨λ h, ⟨subset.trans h (inter_subset_left _ _), subset.trans h (inter_subset_right _ _)⟩,
  λ ⟨h₁, h₂⟩, subset_inter h₁ h₂⟩
 
-theorem inter_univ (a : set α) : a ∩ univ = a :=
+@[simp] theorem inter_univ (a : set α) : a ∩ univ = a :=
 ext (assume x, and_true _)
 
-theorem univ_inter (a : set α) : univ ∩ a = a :=
+@[simp] theorem univ_inter (a : set α) : univ ∩ a = a :=
 ext (assume x, true_and _)
 
 theorem inter_subset_inter_right {s t : set α} (u : set α) (H : s ⊆ t) : s ∩ u ⊆ t ∩ u :=

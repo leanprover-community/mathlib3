@@ -62,12 +62,12 @@ variables {R : Type*} [decidable_linear_ordered_comm_ring R]
 lemma max_mul_nonneg {a : R} (b c : R) (a_nonneg : 0 ≤ a) : max (a*b) (a*c) = a*(max b c) :=
 max_monotone_fun (monotone_mul_nonneg a_nonneg) b c
 
-lemma max_mul_le_mul_max {a b c d  : R} (ha : 0 ≤ a) (hb : 0 ≤ b) (hd: 0 ≤ d) : 
-max (a*b) (c*d) ≤ (max a c) * (max b d) :=
-have hac : 0 ≤ max a c := le_trans ha (le_max_left a c),
-have AC : a * b ≤ max a c * max b d := mul_le_mul (le_max_left a c) (le_max_left b d) hb hac,
-have CD : c * d ≤ max a c * max b d := mul_le_mul (le_max_right a c) (le_max_right b d) hd hac,
-max_le AC CD
+lemma max_mul_le_mul_max {a d : R}  (ha : 0 ≤ a) (hd: 0 ≤ d) (b c : R) : 
+max (a*b) (d*c) ≤ (max a c) * (max d b) := 
+have BA : _ := mul_le_mul (le_max_right d b) (le_max_right c a) ha (le_trans hd (le_max_left d b)),
+have CD : _ := mul_le_mul (le_max_right a c) (le_max_right b d) hd (le_trans ha (le_max_left a c)),
+max_le (by simpa[mul_comm, max_comm] using BA) (by simpa[mul_comm, max_comm] using CD)
+
 
 lemma abs_le_max_abs_abs {γ : Type*} [decidable_linear_ordered_comm_group γ] {a b c : γ} :
 a ≤ b → b ≤ c → abs b ≤ max (abs a) (abs c) :=

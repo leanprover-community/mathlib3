@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn
 -/
 import algebra.group tactic data.set.basic
 
-universe u
+universes u v
 variable {α : Type u}
 
 section
@@ -67,7 +67,7 @@ class is_ring_hom {α : Type u} {β : Type v} [comm_ring α] [comm_ring β] (f :
 
 namespace is_ring_hom
 
-variables {α : Type u} {β : Type v} [comm_ring α] [comm_ring β]
+variables {β : Type v} [comm_ring α] [comm_ring β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
 lemma map_zero : f 0 = 0 :=
@@ -90,7 +90,7 @@ class is_ideal (α : Type u) [comm_ring α] (S : set α) : Prop :=
 
 namespace is_ideal
 
-variables {α : Type u} [comm_ring α] {S : set α} [is_ideal α S] {x y z : α}
+variables [comm_ring α] {S : set α} [is_ideal α S] {x y z : α}
 include S
 
 attribute [simp] zero_mem

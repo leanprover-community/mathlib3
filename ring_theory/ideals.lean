@@ -1,5 +1,7 @@
 import algebra.ring data.set.basic
 
+universe u
+
 class is_prime_ideal {α : Type u} [comm_ring α] (S : set α) extends is_ideal α S : Prop :=
 (ne_univ : S ≠ set.univ)
 (mem_or_mem_of_mul_mem : ∀ {x y : α}, x * y ∈ S → x ∈ S ∨ y ∈ S)

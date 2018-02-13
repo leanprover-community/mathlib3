@@ -235,7 +235,9 @@ section monoid
 
   @[simp] theorem one_divp (u : units α) : 1 /ₚ u = ↑u⁻¹ :=
   by simp [divp]
-
+  
+  variable α
+  
   class is_submonoid (S : set α) : Prop :=
   (one_mem : (1:α) ∈ S)
   (mul_mem : ∀ {s t}, s ∈ S → t ∈ S → s*t ∈ S)

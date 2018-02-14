@@ -795,10 +795,10 @@ theorem update_nth_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
   update_nth l n a = take n l ++ a :: drop (n+1) l :=
 by rw [update_nth_eq_modify_nth, modify_nth_eq_take_cons_drop _ h]
 
-@[simp] lemma update_nth_eq_nil {β} (l : list β) (n : ℕ) (a : β) : l.update_nth n a = [] ↔ l = [] :=
+@[simp] lemma update_nth_eq_nil {β} (l : list β) (n : ℕ) (b : β) : l.update_nth n b = [] ↔ l = [] :=
 begin
   split,
-  show list.update_nth l n a = [] → l = [], 
+  show list.update_nth l n b = [] → l = [], 
   {
     induction l,
     case list.nil {
@@ -810,7 +810,7 @@ begin
       all_goals { contradiction }
     }
   },
-  -- show l = [] → list.update_nth l n a = [], -- TODO this show mysteriously fails?
+  show l = [] → list.update_nth l n b = [],
   {
     intros, simp *, refl
   }

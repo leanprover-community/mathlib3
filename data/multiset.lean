@@ -1395,6 +1395,26 @@ disjoint_comm.trans $ by simp [disjoint_append_left]
   disjoint s (a::t) ↔ a ∉ s ∧ disjoint s t :=
 disjoint_comm.trans $ by simp [disjoint_cons_left]
 
+@[simp] theorem disjoint_union_left [decidable_eq α] {s t u : multiset α} :
+  disjoint (s ∪ t) u ↔ disjoint s u ∧ disjoint t u :=
+begin
+  simp [disjoint],
+  split,
+  begin
+    exact λ f, ⟨λ _ p q, f (or.inl p) q, λ _ p q, f (or.inr p) q⟩
+  end,
+  begin
+    intros f _ p q,
+    cases p with p p,
+    { exact f.1 p q },
+    { exact f.2 p q }
+  end
+end
+
+@[simp] theorem disjoint_union_right [decidable_eq α] {s t u : multiset α} :
+  disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
+disjoint_comm.trans $ by simp
+
 theorem inter_eq_zero_iff_disjoint [decidable_eq α] {s t : multiset α} : s ∩ t = 0 ↔ disjoint s t :=
 by rw ← subset_zero; simp [subset_iff, disjoint]
 

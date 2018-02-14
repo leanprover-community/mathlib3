@@ -797,23 +797,23 @@ by rw [update_nth_eq_modify_nth, modify_nth_eq_take_cons_drop _ h]
 
 @[simp] lemma update_nth_eq_nil {β} (l : list β) (n : ℕ) (a : β) : l.update_nth n a = [] ↔ l = [] :=
 begin
-split,
-show list.update_nth l n a = list.nil → l = list.nil, 
-{
-  induction l,
-  case list.nil {
-    intros,
-    assumption
+  split,
+  show list.update_nth l n a = [] → l = [], 
+  {
+    induction l,
+    case list.nil {
+      intros,
+      assumption
+    },
+    case list.cons {
+      induction n,
+      all_goals { contradiction }
+    }
   },
-  case list.cons {
-    induction n,
-    all_goals { contradiction }
+  -- show l = [] → list.update_nth l n a = [], -- TODO this show mysteriously fails?
+  {
+    intros, simp *, refl
   }
-},
--- show l = list.nil → list.update_nth l n a = list.nil,
-{
-  intros, simp *, refl
-}
 end
 
 /- take_while -/
@@ -1493,20 +1493,16 @@ theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: joi
 
 @[simp] lemma append_eq_nil {β} (p q : list β) : (p ++ q) = [] ↔ p = [] ∧ q = [] :=
 begin
-split,
-show (p ++ q) = [] → p = [] ∧ q = [],
-{
-  intro h,
   split,
-  apply eq_nil_of_prefix_nil, rw ← h, simp, 
-  apply eq_nil_of_suffix_nil, rw ← h, simp,
-},
-show p = [] ∧ q = [] → p ++ q = [],
-{
-  intros h,
-  rw [h.left, h.right],
-  refl,
-}
+  show (p ++ q) = [] → p = [] ∧ q = [],
+  {
+    intro h,
+    split, 
+    { apply eq_nil_of_prefix_nil, rw ← h, simp },
+    { apply eq_nil_of_suffix_nil, rw ← h, simp }
+  },
+  show p = [] ∧ q = [] → p ++ q = [],
+  simp {contextual:=tt}
 end
 
 /-- `inits l` is the list of initial segments of `l`.

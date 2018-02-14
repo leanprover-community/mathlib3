@@ -104,7 +104,7 @@ let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by simpa using h)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
 
-lemma pow_add_one_unbounded [linear_ordered_semiring α] [archimedean α] {x : α} (y : α) (hx0 : 0 < x) : ∃ n : ℕ, y < monoid.pow (1 + x) n := 
+lemma pow_one_add_unbounded [linear_ordered_semiring α] [archimedean α] {x : α} (y : α) (hx0 : 0 < x) : ∃ n : ℕ, y < monoid.pow (1 + x) n := 
 begin
   have arch := _inst_2.arch,
   cases arch y hx0 with n hn,

@@ -104,6 +104,16 @@ let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by simpa using h)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
 
+lemma pow_add_one_unbounded [linear_ordered_semiring α] [archimedean α] {x : α} (y : α) (hx0 : 0 < x) : ∃ n : ℕ, y < monoid.pow (1 + x) n := 
+begin
+  have arch := _inst_2.arch,
+  cases arch y hx0 with n hn,
+  have := pow_ge_one_add_mul (le_of_lt hx0) n,
+  existsi n,
+  rw add_comm at this,
+  exact lt_of_le_of_lt hn (lt_of_lt_of_le (lt_add_one _) this),
+end
+
 section linear_ordered_ring
 variables [linear_ordered_ring α] [archimedean α]
 
@@ -219,17 +229,6 @@ theorem exists_rat_near (x : α) {ε : α} (ε0 : ε > 0) :
 let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
   lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
 ⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
-
-lemma pow_unbounded_of_gt_one {x : α} (y : α) (hx1 : 1 < x) : ∃ n : ℕ, y < monoid.pow x n := 
-begin
-  have hx0 : 0 < x - 1 := by rwa [lt_sub_iff, zero_add],
-  cases exists_nat_gt (y / (x - 1)) with n hn,
-  have := pow_ge_one_add_mul (le_of_lt hx0) n,
-  existsi n,
-  rw [div_lt_iff hx0, mul_comm] at hn,
-  rw [add_monoid.smul_eq_mul, add_comm, add_sub_cancel'_right] at this,
-  exact lt_of_lt_of_le (lt_trans hn (lt_add_one _)) this
-end
 
 end
 

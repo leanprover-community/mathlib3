@@ -220,9 +220,8 @@ let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
   lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
 ⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
 
-lemma pow_unbounded_of_gt_one {x : α} (y : α) : 1 < x → ∃ n : ℕ, y < monoid.pow x n := 
+lemma pow_unbounded_of_gt_one {x : α} (y : α) (hx1 : 1 < x) : ∃ n : ℕ, y < monoid.pow x n := 
 begin
-  assume hx1,
   have hx0 : 0 < x - 1 := by rwa [lt_sub_iff, zero_add],
   cases exists_nat_gt (y / (x - 1)) with n hn,
   have := pow_ge_one_add_mul (le_of_lt hx0) n,

@@ -32,7 +32,7 @@ begin
     cases k with k',
       {exact absurd hk dec_trivial},
     unfold choose,
-    rw [@hi _ (lt_of_succ_lt_succ hk),@hi _ (lt_of_succ_lt hk)] }
+    rw [hi (lt_of_succ_lt_succ hk), hi (lt_of_succ_lt hk)] }
 end
 
 @[simp]

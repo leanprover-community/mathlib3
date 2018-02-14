@@ -307,15 +307,15 @@ theorem add_monoid.smul_nonneg [ordered_comm_monoid α] {a : α} (H : 0 ≤ a) :
 lemma pow_abs [decidable_linear_ordered_comm_ring α] (a : α) (n) : (abs a)^n = abs (a^n) := 
 begin 
   induction n with n hi,
-  { simp [monoid.pow]},
-  { unfold monoid.pow, rw [hi,abs_mul]}
+  { simp [monoid.pow] },
+  { unfold monoid.pow, rw [hi,abs_mul] }
 end
 
 lemma pow_inv [discrete_field α] (a : α) (n) : (a^n)⁻¹ = (a⁻¹)^n :=
 begin 
   induction n with n hi, 
-  { simp [monoid.pow]},
-  { unfold monoid.pow, rw[mul_inv',hi,mul_comm]}
+  { simp [monoid.pow] },
+  { unfold monoid.pow, rw[mul_inv',hi,mul_comm] }
 end
 
 section linear_ordered_semiring

@@ -1,4 +1,4 @@
-import algebra.group algebra.ring data.set.basic tactic.ring data.quot
+import algebra.group algebra.ring data.set.basic tactic.ring data.quot ring_theory.ideals
 
 universe u
 

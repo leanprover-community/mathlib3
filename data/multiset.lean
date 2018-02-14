@@ -1641,6 +1641,14 @@ theorem ndinsert_le {a : α} {s t : multiset α} : ndinsert a s ≤ t ↔ s ≤ 
    by rw [ndinsert_of_not_mem h, ← cons_erase m, cons_le_cons_iff,
           ← le_cons_of_not_mem h, cons_erase m]; exact l⟩
 
+@[simp] theorem disjoint_ndinsert_left {a : α} {s t : multiset α} :
+  disjoint (ndinsert a s) t ↔ a ∉ t ∧ disjoint s t :=
+iff.trans (by simp [disjoint]) disjoint_cons_left
+
+@[simp] theorem disjoint_ndinsert_right {a : α} {s t : multiset α} :
+  disjoint s (ndinsert a t) ↔ a ∉ s ∧ disjoint s t :=
+disjoint_comm.trans $ by simp
+
 /- finset union -/
 
 /-- `ndunion s t` is the lift of the list `union` operation. This operation

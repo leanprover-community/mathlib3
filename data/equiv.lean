@@ -412,7 +412,7 @@ calc (α × α) ≃ (ℕ × ℕ) : prod_congr e e
 
 end
 
-def list_equiv_of_equiv {α β : Type} : α ≃ β → list α ≃ list β
+def list_equiv_of_equiv {α β : Type*} : α ≃ β → list α ≃ list β
 | ⟨f, g, l, r⟩ :=
   by refine ⟨list.map f, list.map g, λ x, _, λ x, _⟩;
      simp [id_of_left_inverse l, id_of_right_inverse r]

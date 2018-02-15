@@ -1,12 +1,12 @@
-# Mathlib work in progress
+# Mathlib work in progress
 
 The following lists current ongoing effort to extend mathlib. Help is
 always welcome.
 
-* [Kenny Lau](https://github.com/kckennylau) is currently working on
+* [Kenny Lau](https://github.com/kckennylau) is working on
   [commutative algebra](https://github.com/leanprover/mathlib/pull/37), with a view toward algrebraic geometry.
 
-* [Scott Morrison](https://github.com/semorrison) is currently working
+* [Scott Morrison](https://github.com/semorrison) is working
   on merging his [category
   theory](https://github.com/semorrison/lean-category-theory) into
   mathlib.

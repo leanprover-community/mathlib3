@@ -1335,6 +1335,12 @@ instance : distrib_lattice (multiset α) :=
 { le_sup_inf := λ s t u, le_of_eq $ eq.symm $
     ext.2 $ λ a, by simp [max_min_distrib_left],
   ..multiset.lattice.lattice }
+
+instance : semilattice_sup_bot (multiset α) :=
+{ bot := 0,
+  bot_le := zero_le,
+  ..multiset.lattice.lattice }
+
 end
 
 /- disjoint -/
@@ -1397,6 +1403,14 @@ disjoint_comm.trans $ by simp [disjoint_cons_left]
 
 theorem inter_eq_zero_iff_disjoint [decidable_eq α] {s t : multiset α} : s ∩ t = 0 ↔ disjoint s t :=
 by rw ← subset_zero; simp [subset_iff, disjoint]
+
+@[simp] theorem disjoint_union_left [decidable_eq α] {s t u : multiset α} :
+  disjoint (s ∪ t) u ↔ disjoint s u ∧ disjoint t u :=
+by simp [disjoint, or_imp_distrib, forall_and_distrib]
+
+@[simp] theorem disjoint_union_right [decidable_eq α] {s t u : multiset α} :
+  disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
+by simp [disjoint, or_imp_distrib, forall_and_distrib]
 
 /- nodup -/
 

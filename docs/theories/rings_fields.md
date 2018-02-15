@@ -4,8 +4,7 @@ The `ring` typeclass is defined in the core library, in
 `init/algebra/ring`. Related typeclasses are also defined in the
 `init/algebra` directory.
 
-Basic typeclasses.
-------------------
+### Basic typeclasses.
 
 -   `ring` (note that in Lean a ring automatically has a 1)
 -   `comm_ring` (a commutative ring)
@@ -16,8 +15,7 @@ Basic typeclasses.
     `field` typeclass is a constructive mathematics version of
     `discrete_field`).
 
-Usage examples.
----------------
+### Usage examples.
 
 ```
     variable (R₁ : Type*)

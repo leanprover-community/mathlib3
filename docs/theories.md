@@ -11,12 +11,12 @@ are not documented here (for example red black trees and so on);  these
 missing definitions and theorems may well be of interest to computer
 scientists.
 
-[Groups](theories/groups.md)
-[Rings and fields](theories/rings_fields.md)
-[Partial and total orders](theories/orders.md)
-[Functions between types](theories/functions.md)
-[Relations on types](theories/relations.md)
-[Quotients and equivalence classes](theories/quotients.md)
-[Sets](theories/sets.md)
-[The natural numbers](theories/naturals.md)
-[The integers.](theories/integers.md)
+* [Groups](theories/groups.md)
+* [Rings and fields](theories/rings_fields.md)
+* [Partial and total orders](theories/orders.md)
+* [Functions between types](theories/functions.md)
+* [Relations on types](theories/relations.md)
+* [Quotients and equivalence classes](theories/quotients.md)
+* [Sets](theories/sets.md)
+* [The natural numbers](theories/naturals.md)
+* [The integers.](theories/integers.md)

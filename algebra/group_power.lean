@@ -304,6 +304,13 @@ theorem add_monoid.smul_nonneg [ordered_comm_monoid α] {a : α} (H : 0 ≤ a) :
 | 0     := le_refl _
 | (n+1) := add_nonneg' H (add_monoid.smul_nonneg n)
 
+lemma pow_abs [decidable_linear_ordered_comm_ring α] (a : α) (n) : (abs a)^n = abs (a^n) := 
+by induction n; simp [*, monoid.pow, abs_mul]
+
+lemma pow_inv [division_ring α] (a : α) : ∀ n, a ≠ 0 → (a^n)⁻¹ = (a⁻¹)^n
+| 0     ha := by simp [pow_zero]
+| (n+1) ha := by rw [pow_succ, pow_succ', mul_inv_eq (pow_ne_zero _ ha) ha, pow_inv _ ha]
+
 section linear_ordered_semiring
 variable [linear_ordered_semiring α]
 

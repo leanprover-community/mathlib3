@@ -1,4 +1,4 @@
-# Mathlib tactis #
+# Mathlib tactics #
 
 In addition to [core tactics](https://leanprover.github.io/reference/tactics.html), 
 mathlib provides a number of specific interactive tactics. Here we document

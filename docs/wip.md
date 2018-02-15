@@ -1,0 +1,23 @@
+# Mathlib work in progress
+
+The following lists current ongoing effort to extend mathlib. Help is
+always welcome.
+
+* [Kenny Lau](https://github.com/kckennylau) is currently working on
+  [commutative algebra](https://github.com/leanprover/mathlib/pull/37), with a view toward algrebraic geometry.
+
+* [Scott Morrison](https://github.com/semorrison) is currently working
+  on merging his [category
+  theory](https://github.com/semorrison/lean-category-theory) into
+  mathlib.
+
+* [Chris Hughes](https://github.com/dorhinj) is working on the
+  [exponential function](https://github.com/dorhinj/mathlib)
+
+* [Patrick Massot](https://github.com/PatrickMassot) is working on
+  [calculus](https://github.com/PatrickMassot/lean-differential-topology)
+  with a view toward differential topology.
+
+* [Kevin Buzzard](https://github.com/kbuzzard) is working on [sheaf
+  theory](https://github.com/kbuzzard/xena/blob/master/xenalib/scheme.lean)
+  with a view toward algebraic geometry.

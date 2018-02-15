@@ -1,4 +1,4 @@
-# Maths in Lean : the natural numbers {#maths-in-lean-the-naturalnumbers .entry-title}
+# Maths in Lean : the natural numbers
 
 
 The natural numbers begin with zero because that’s the way computer

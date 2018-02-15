@@ -1,4 +1,4 @@
-# Maths in Lean : integers {#maths-in-lean-integers .entry-title}
+# Maths in Lean : integers
 
 
 The integers `ℤ` (written `\Z` in VS Code) are an inductive type with

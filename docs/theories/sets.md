@@ -1,4 +1,4 @@
-# Maths in Lean : sets {#maths-in-lean-sets .entry-title}
+# Maths in Lean : sets
 
 
 The word `set` in Lean is best explained to a mathematician as meaning

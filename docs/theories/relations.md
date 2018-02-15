@@ -6,11 +6,12 @@ definitions of the basic relations on types such as `reflexive`,
 `equivalence`, and `total` (i.e. for all `x` and `y`,
 `x R y` or `y R x`).
 One key usage of equivalence relations is the construction of
-equivalence classes; this is well documented in Theorem Proving In Lean.
+equivalence classes; this is well documented in 
+[Theorem Proving In Lean](https://leanprover.github.io/theorem_proving_in_lean/).
 
 ### Examples.
 
-```
+```lean
 variable (X : Type*)
 
 -- equality is symmetric

@@ -5,12 +5,12 @@ The basic order typeclasses are in the core lean library in
 
 ### Basic typeclasses.
 
--  `partial_order`
--  `decidable_linear_order` (a total order)
+* `partial_order`
+* `decidable_linear_order` (a total order)
 
 ### Usage examples.
 
-```
+```lean
 variable (P₁ : Type*)
 variable [partial_order P₁]
 variables a b : P₁

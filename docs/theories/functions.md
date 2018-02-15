@@ -12,7 +12,7 @@ first.
 
 ### Usage examples.
 
-```
+```lean
 universes u variables (X Y Z : Type u)
 variables (f : X → Y) (g : Y → Z) (h : Y → X)
 

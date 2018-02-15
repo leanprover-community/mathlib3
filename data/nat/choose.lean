@@ -22,17 +22,13 @@ lemma choose_zero_succ (k : ℕ) : choose 0 (succ k) = 0 := rfl
 
 lemma choose_succ_succ (n k : ℕ) : choose (succ n) (succ k) = choose n k + choose n (succ k) := rfl
 
-lemma choose_eq_zero_of_lt {n : ℕ} : ∀ {k}, n < k → choose n k = 0 :=
-begin
-  induction n with n hi,
-  { assume k hk, cases k,
-    exact absurd hk dec_trivial,
-    exact choose_zero_succ _ },
-  { assume k hk,
-    cases k with k',
-    { exact absurd hk dec_trivial },
-    { rw [choose_succ_succ, hi (lt_of_succ_lt_succ hk), hi (lt_of_succ_lt hk)] } }
-end
+lemma choose_eq_zero_of_lt : ∀ {n k}, n < k → choose n k = 0
+| _               0 hk := absurd hk dec_trivial
+| 0        (succ k) hk := choose_zero_succ _
+| (succ n) (succ k) hk := 
+  have hnk : n < k, from lt_of_succ_lt_succ hk,
+  have hnk1 : n < k + 1, from lt_of_succ_lt hk,
+  by rw [choose_succ_succ, choose_eq_zero_of_lt hnk, choose_eq_zero_of_lt hnk1]
 
 @[simp]
 lemma choose_self (n : ℕ) : choose n n = 1 :=
@@ -45,50 +41,35 @@ lemma choose_succ_self (n : ℕ) : choose n (succ n) = 0 := choose_eq_zero_of_lt
 lemma choose_one_right (n : ℕ) : choose n 1 = n :=
 by induction n; simp [*, choose]
 
-lemma choose_pos {n : ℕ} : ∀ {k}, k ≤ n → 0 < choose n k :=
-begin
-  induction n with n' hi,
-  { simp [nat.le_zero_iff],
-    exact dec_trivial },
-  assume k hk,
-  cases k with k',
-  { simp, exact dec_trivial },
-  { rw choose_succ_succ,
-    exact add_pos_of_pos_of_nonneg (hi (le_of_succ_le_succ hk)) (zero_le _) }
-end
+lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
+| 0               _ hk := by rw [eq_zero_of_le_zero hk]; exact dec_trivial
+| (succ n)        0 hk := by simp; exact dec_trivial
+| (succ n) (succ k) hk := by rw choose_succ_succ;
+    exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (zero_le _)
 
-lemma succ_mul_choose_eq (n : ℕ) : ∀ k, succ n * choose n k = choose (succ n) (succ k) * succ k := 
-begin
-  induction n with n' hi,
-  { assume k,
-    rw [one_mul, choose_succ_succ, choose_zero_succ, add_zero],
-    cases k with k', 
-      simp,
-      rw [choose_zero_succ, zero_mul] },
-  assume k,
-  cases k with k',
-  { simp },
-  { rw [choose_succ_succ (succ n') (succ k'), add_mul, ←hi, mul_succ, ←hi, add_right_comm],
-    rw [←mul_add, ←choose_succ_succ, ←succ_mul] }
-end
 
-lemma choose_mul_fact_mul_fact {n : ℕ} : ∀ {k}, k ≤ n → choose n k * fact k * fact (n - k) = fact n :=
-begin
-  induction n with n' hi,
-  { assume k hnk,
-    rw eq_zero_of_le_zero hnk, simp },
-  { assume k hnk,
-    cases k with k', 
-    { simp },
-    { rw [choose_succ_succ, succ_sub_succ, add_mul, add_mul],
-      have : choose n' k' * fact (succ k') * fact (n' - k') = choose n' k' * fact k' * fact (n' - k') * succ k' := by
-      { unfold fact, simp[mul_comm, mul_assoc, mul_left_comm] },
-      rw [this, hi (le_of_succ_le_succ hnk)],
-      cases lt_or_eq_of_le hnk with hnk₁ hnk₁,
-      { have : n' - k' = succ (n' - succ k') := by rw [←succ_sub (le_of_succ_le_succ hnk₁), succ_sub_succ],
-        rw [this, fact_succ (n' - succ k'), mul_comm (succ (n' - succ k')), ←mul_assoc, hi (le_of_succ_le_succ hnk₁), ←mul_add],
-        rw [←succ_sub (le_of_succ_le_succ hnk₁), nat.add_sub_cancel' hnk, mul_comm, fact_succ] },
-      { rw [hnk₁, choose_succ_self, zero_mul, zero_mul, add_zero, fact_succ, mul_comm] } } }
+lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
+| 0               0 := dec_trivial
+| 0        (succ k) := by simp [choose]
+| (succ n)        0 := by simp
+| (succ n) (succ k) := by rw [choose_succ_succ (succ n) (succ k), add_mul, ←succ_mul_choose_eq, mul_succ,
+                              ←succ_mul_choose_eq, add_right_comm, ←mul_add, ←choose_succ_succ, ←succ_mul] 
+
+lemma choose_mul_fact_mul_fact : ∀ {n k}, k ≤ n → choose n k * fact k * fact (n - k) = fact n
+| 0               _ hk := by simp [eq_zero_of_le_zero hk]
+| (succ n)        0 hk := by simp
+| (succ n) (succ k) hk := 
+begin 
+  rw [choose_succ_succ, succ_sub_succ, add_mul, add_mul],
+  have : choose n k * fact (succ k) * fact (n - k) = choose n k * fact k * fact (n - k) * succ k :=
+    by unfold fact; simp[mul_comm, mul_assoc, mul_left_comm],
+    rw [this, choose_mul_fact_mul_fact (le_of_succ_le_succ hk)],
+    cases lt_or_eq_of_le hk with hk₁ hk₁,
+    { have : n - k = succ (n - succ k) := by rw [←succ_sub (le_of_succ_le_succ hk₁), succ_sub_succ],
+      rw [this, fact_succ (n - succ k), mul_comm (succ (n - succ k)), ←mul_assoc], 
+      rw [choose_mul_fact_mul_fact (le_of_succ_le_succ hk₁), ←mul_add],
+      rw [←succ_sub (le_of_succ_le_succ hk₁), nat.add_sub_cancel' hk, mul_comm, fact_succ] },
+    { rw [hk₁, choose_succ_self, zero_mul, zero_mul, add_zero, fact_succ, mul_comm] } 
 end
 
 theorem choose_def_alt {n k : ℕ} (hk : k ≤ n) : choose n k = fact n / (fact k * fact (n - k)) :=

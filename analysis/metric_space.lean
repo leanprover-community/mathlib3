@@ -379,7 +379,7 @@ theorem continuous_dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
 (hf.prod_mk hg).comp continuous_dist'
 
-theorem tendsto_dist [topological_space β] {f g : β → α} {x : filter β} {a b : α}
+theorem tendsto_dist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
   tendsto (λx, dist (f x) (g x)) x (nhds (dist a b)) :=
 have tendsto (λp:α×α, dist p.1 p.2) (nhds (a, b)) (nhds (dist a b)),

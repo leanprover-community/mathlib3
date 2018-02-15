@@ -512,11 +512,11 @@ filter_eq $ set.ext $ assume s,
   ⟨assume ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, subset.trans (preimage_mono hu) b,
     assume : preimage m t ⊆ s, ⟨t, subset.refl t, this⟩⟩
 
-lemma map_le_iff_vmap_le : map m f ≤ g ↔ f ≤ vmap m g :=
+lemma map_le_iff_le_vmap : map m f ≤ g ↔ f ≤ vmap m g :=
 ⟨assume h s ⟨t, ht, hts⟩, f.upwards_sets (h ht) hts, assume h s ht, h ⟨_, ht, subset.refl _⟩⟩
 
 lemma gc_map_vmap (m : α → β) : galois_connection (map m) (vmap m) :=
-assume f g, map_le_iff_vmap_le
+assume f g, map_le_iff_le_vmap
 
 lemma map_mono (h : f₁ ≤ f₂) : map m f₁ ≤ map m f₂ := (gc_map_vmap m).monotone_l h
 lemma monotone_map : monotone (map m) | a b := map_mono
@@ -605,11 +605,6 @@ vmap_neq_bot $ assume t ht,
     ⟨b, (hx : b ∈ t)⟩ := inhabited_of_mem_sets hf ht,
     ⟨a, (ha : m a = b)⟩ := hm b
   in ⟨a, ha.symm ▸ hx⟩
-
-lemma le_vmap_iff_map_le {f : filter α} {g : filter β} {m : α → β} :
-  f ≤ vmap m g ↔ map m f ≤ g :=
-⟨assume h, le_trans (map_mono h) map_vmap_le,
-  assume h, le_trans le_vmap_map (vmap_mono h)⟩
 
 @[simp] lemma map_eq_bot_iff : map m f = ⊥ ↔ f = ⊥ :=
 ⟨by rw [←empty_in_sets_eq_bot, ←empty_in_sets_eq_bot]; exact id,
@@ -751,7 +746,7 @@ lemma tendsto_def {f : α → β} {l₁ : filter α} {l₂ : filter β} :
 
 lemma tendsto_iff_vmap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.vmap f :=
-map_le_iff_vmap_le
+map_le_iff_le_vmap
 
 lemma tendsto_cong {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
   (h : tendsto f₁ l₁ l₂) (hl : {x | f₁ x = f₂ x} ∈ l₁.sets) : tendsto f₂ l₁ l₂ :=
@@ -785,9 +780,9 @@ by rwa [tendsto, map_map]
 lemma tendsto_vmap {f : α → β} {x : filter β} : tendsto f (vmap f x) x :=
 map_vmap_le
 
-lemma tendsto_vmap' {f : β → γ} {g : α → β} {x : filter α} {y : filter γ}
-  (h : tendsto (f ∘ g) x y) : tendsto g x (vmap f y) :=
-le_vmap_iff_map_le.mpr $ by rwa [map_map]
+lemma tendsto_vmap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} : 
+  tendsto f a (c.vmap g) ↔ tendsto (g ∘ f) a c :=
+⟨assume h, h.comp tendsto_vmap, assume h, map_le_iff_le_vmap.mp $ by rwa [map_map]⟩
 
 lemma tendsto_vmap'' {m : α → β} {f : filter α} {g : filter β} (s : set α)
   {i : γ → α} (hs : s ∈ f.sets) (hi : ∀a∈s, ∃c, i c = a)

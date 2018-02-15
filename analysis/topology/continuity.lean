@@ -511,7 +511,7 @@ variables [topological_space α] [topological_space β] [topological_space γ] {
 
 lemma embedding.tendsto_nhds_iff {f : α → β} {g : β → γ} {a : filter α} {b : β} (hg : embedding g) :
   tendsto f a (nhds b) ↔ tendsto (g ∘ f) a (nhds (g b)) :=
-by rw [tendsto, tendsto, hg.right, nhds_induced_eq_vmap, le_vmap_iff_map_le, map_map]
+by rw [tendsto, tendsto, hg.right, nhds_induced_eq_vmap, ← map_le_iff_le_vmap, map_map]
 
 lemma embedding.continuous_iff {f : α → β} {g : β → γ} (hg : embedding g) :
   continuous f ↔ continuous (g ∘ f) :=
@@ -602,7 +602,7 @@ begin
       show (λx:Πi:ι, α i, x i) ⁻¹' s i ∈ f.sets,
         from f.upwards_sets hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
     let ⟨a, ha⟩ := classical.axiom_of_choice this in
-    ⟨a, assume i, (ha i).left, assume i, le_vmap_iff_map_le.mpr $ (ha i).right⟩
+    ⟨a, assume i, (ha i).left, assume i, map_le_iff_le_vmap.mp $ (ha i).right⟩
 end
 
 end pi

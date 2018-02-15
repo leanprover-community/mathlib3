@@ -795,6 +795,27 @@ theorem update_nth_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
   update_nth l n a = take n l ++ a :: drop (n+1) l :=
 by rw [update_nth_eq_modify_nth, modify_nth_eq_take_cons_drop _ h]
 
+@[simp] lemma update_nth_eq_nil {β} (l : list β) (n : ℕ) (b : β) : l.update_nth n b = [] ↔ l = [] :=
+begin
+  split,
+  show list.update_nth l n b = [] → l = [], 
+  {
+    induction l,
+    case list.nil {
+      intros,
+      assumption
+    },
+    case list.cons {
+      induction n,
+      all_goals { contradiction }
+    }
+  },
+  show l = [] → list.update_nth l n b = [],
+  {
+    intros, simp *, refl
+  }
+end
+
 /- take_while -/
 
 /-- Get the longest initial segment of the list whose members all satisfy `p`.
@@ -1469,6 +1490,20 @@ theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: joi
 | (_  :: L) l (or.inl rfl) := infix_append [] _ _
 | (l' :: L) l (or.inr h)   :=
   is_infix.trans (infix_of_mem_join h) $ infix_of_suffix $ suffix_append _ _
+
+@[simp] lemma append_eq_nil {β} (p q : list β) : (p ++ q) = [] ↔ p = [] ∧ q = [] :=
+begin
+  split,
+  show (p ++ q) = [] → p = [] ∧ q = [],
+  {
+    intro h,
+    split, 
+    { apply eq_nil_of_prefix_nil, rw ← h, simp },
+    { apply eq_nil_of_suffix_nil, rw ← h, simp }
+  },
+  show p = [] ∧ q = [] → p ++ q = [],
+  simp {contextual:=tt}
+end
 
 /-- `inits l` is the list of initial segments of `l`.
   `inits [1, 2, 3] = [[], [1], [1, 2], [1, 2, 3]]` -/

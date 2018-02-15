@@ -104,16 +104,16 @@ let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by simpa using h)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
 
-lemma pow_unbounded_of_gt_one [linear_ordered_ring α] [archimedean α] (x : α) {y : α} 
+section linear_ordered_ring
+variables [linear_ordered_ring α] [archimedean α]
+
+lemma pow_unbounded_of_gt_one (x : α) {y : α} 
     (hy1 : 1 < y) : ∃ n : ℕ, x < monoid.pow y n :=
 have hy0 : 0 <  y - 1 := sub_pos_of_lt hy1,
 let ⟨n, h⟩ := archimedean.arch x hy0 in
 ⟨n, calc x ≤ (y - 1) • n     : h
        ... < 1 + (y - 1) • n : by rw add_comm; exact lt_add_one _
        ... ≤ monoid.pow y n  : pow_ge_one_add_sub_mul (le_of_lt hy1) _⟩
-
-section linear_ordered_ring
-variables [linear_ordered_ring α] [archimedean α]
 
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
 let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by simp [h]⟩

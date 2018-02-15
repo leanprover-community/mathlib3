@@ -26,55 +26,7 @@ theorem monotone_comp {f : α → β} {g : β → γ} (m_f : monotone f) (m_g : 
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
 
-lemma monotone_mul_nonneg {R : Type*} [decidable_linear_ordered_comm_ring R] {a : R} (a_nonneg : 0 ≤ a) : monotone (λ x, a*x) :=
-assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c a_nonneg
 end monotone
-
-section max
-variable [decidable_linear_order α] 
-
-lemma le_max_of_le_left {a b : α} ( c: α ) (H : a ≤ b ) : a ≤ max b c :=
-le_trans H (le_max_left b c)
-
-lemma le_max_of_le_right {a c : α} (b :α) (H : a ≤ c) : a ≤ max b c :=
-le_trans H (le_max_right b c)
-
-@[simp]
-lemma le_max_iff {a b c : α} : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
-⟨ assume h, if  H : b ≤ c then by { finish[max_eq_right H, h] } 
-    else by { rw [max_comm, max_eq_right (le_of_not_ge H)] at h, simp[h] },
-  assume h, or.elim h (λ H, le_max_of_le_left  _ H) (λ H, le_max_of_le_right _ H)⟩
-
-@[simp]
-lemma max_le_iff {a b c : α} : max a b ≤ c ↔ a ≤ c ∧ b ≤ c := 
-⟨ assume h, ⟨ le_trans (le_max_left a b) h, le_trans (le_max_right a b) h ⟩, 
-  assume ⟨h1, h2⟩, max_le h1 h2⟩
-
-lemma max_le_max  {a b c d  : α} (h1 : a ≤ b) (h2 : c ≤ d) : max a c ≤ max b d := 
-by simp only [le_max_iff]; min_tac a c
-
-lemma max_monotone_fun [decidable_linear_order β] {f : α → β} (H : monotone f) (a a' : α) :
-max (f a) (f a') =  f(max a a') :=
-if h : a ≤ a' then by { simp[max_eq_right (H h), max_eq_right h] } 
-else by { simp[le_of_not_ge h, H, max_eq_left, max_eq_left (H $ le_of_not_ge h)] }
-
-
-variables {R : Type*} [decidable_linear_ordered_comm_ring R]
-
-lemma max_mul_nonneg {a : R} (b c : R) (a_nonneg : 0 ≤ a) : max (a*b) (a*c) = a*(max b c) :=
-max_monotone_fun (monotone_mul_nonneg a_nonneg) b c
-
-lemma max_mul_le_mul_max {a d : R}  (ha : 0 ≤ a) (hd: 0 ≤ d) (b c : R) : 
-max (a*b) (d*c) ≤ (max a c) * (max d b) := 
-have BA : _ := mul_le_mul (le_max_right d b) (le_max_right c a) ha (le_trans hd (le_max_left d b)),
-have CD : _ := mul_le_mul (le_max_right a c) (le_max_right b d) hd (le_trans ha (le_max_left a c)),
-max_le (by simpa[mul_comm, max_comm] using BA) (by simpa[mul_comm, max_comm] using CD)
-
-lemma abs_le_max_abs_abs {γ : Type*} [decidable_linear_ordered_comm_group γ] {a b c : γ} 
-(hab : a ≤ b)  (hbc : b ≤ c) :  abs b ≤ max (abs a) (abs c) :=
-abs_le_of_le_of_neg_le (by simp[le_trans hbc (le_abs_self c)]) (by simp[ le_trans (neg_le_neg hab) (neg_le_abs_self a)])
-
-end max
 
 /- order instances -/
 

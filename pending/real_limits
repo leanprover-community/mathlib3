@@ -1,0 +1,88 @@
+/-
+Copyright (c) 2018 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
+
+import data.complex.basic tactic.ring
+local attribute [instance,priority 0] classical.prop_decidable
+open is_absolute_value
+
+
+universes u v
+variables {α β : Type u}
+
+namespace cau_seq
+variables [ring β] [discrete_linear_ordered_field α]
+
+def near (abv : β → α) [is_absolute_value abv]
+(f g : ℕ → β) := ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - g j) < ε
+
+lemma near.refl (f : ℕ → β) (abv : β → α) [is_absolute_value abv] : near abv f f := 
+λ ε ε0, exists.intro 0 (λ j hj, by rw [sub_self, abv_zero abv]; exact ε0)
+
+lemma near.symm {f g : ℕ → β} {abv : β → α} [is_absolute_value abv] (h : near abv f g) :
+    near abv g f := 
+by unfold near at *; simpa only [abv_sub abv]
+
+lemma near.trans {f g k : ℕ → β} {abv : β → α} [is_absolute_value abv] (hfg : near abv f g)
+    (hgk : near abv g k) : near abv f k :=
+λ ε ε0, let ⟨i, hi⟩ := exists_forall_ge_and (hfg (ε / 2) (half_pos ε0)) (hgk (ε / 2) (half_pos ε0)) in
+⟨i, assume j hji,
+calc abv (f j - k j) ≤ abv (f j - g j) + abv (g j - k j) : abv_sub_le abv _ _ _ 
+                 ... < ε : by rw ←add_halves ε; exact (add_lt_add (hi j hji).left (hi j hji).right)⟩
+
+variables {abv : β → α} [is_absolute_value abv]
+
+lemma equiv_of_near {f g : ℕ → β} (hg : is_cau_seq abv g) (hn : near abv f g) : 
+    @has_equiv.equiv (cau_seq β abv) _ ⟨f, cau_seq.of_near f ⟨g, hg⟩ hn⟩ ⟨g, hg⟩ := hn
+
+end cau_seq
+
+open cau_seq
+
+namespace real
+
+lemma eq_lim_of_const_near {f : ℕ → ℝ} {x : ℝ} : near abs f (λ n, x) → x = lim f := 
+λ h, cau_seq.const_equiv.mp (setoid.trans (setoid.symm $ equiv_of_near _ h)
+(equiv_lim ⟨f, cau_seq.of_near f (cau_seq.const abs x) h⟩))
+
+lemma lim_eq_of_near_const {f : ℕ → ℝ} {x : ℝ} : near abs (λ n, x) f → lim f = x :=
+λ h, (eq_lim_of_const_near h.symm).symm
+
+@[simp] lemma lim_const (x : ℝ) : lim (cau_seq.const abs x).1 = x :=
+lim_eq_of_near_const (λ ε ε0, ⟨0, λ j ji, by simp[cau_seq.const]; exact ε0⟩)
+
+lemma lim_add {f g : ℕ → ℝ} (hf : is_cau_seq abs f) (hg : is_cau_seq abs g) :
+    lim f + lim g = lim (λ x, f x + g x) := 
+eq_lim_of_const_near (assume ε ε0,
+let ⟨i, h⟩ := exists_forall_ge_and (equiv_lim ⟨f, hf⟩ (ε / 2) (half_pos ε0))
+    (equiv_lim ⟨g, hg⟩ (ε / 2) (half_pos ε0)) in
+⟨i, λ j hj, calc abs ((f j + g j) - (lim f + lim g))
+      = abs ((f j - lim f) + (g j - lim g)) : by rw add_sub_comm
+  ... ≤ abs (f j - lim f) + abs (g j - lim g) : abs_add _ _
+  ... < ε / 2 + ε / 2 : add_lt_add (h j hj).left (h j hj).right
+  ... = ε : add_halves _⟩)
+
+lemma lim_mul_lim {f g : ℕ → ℝ} (hf : is_cau_seq abs f) (hg : is_cau_seq abs g) :
+    lim f * lim g = lim (λ n, f n * g n) :=
+eq_lim_of_const_near (assume ε ε0,
+let ⟨G, hG⟩ := bounded ⟨_, hg⟩ in
+have hG0 : 0 < G := lt_of_le_of_lt (abs_nonneg _) (hG 0),
+have hGf : 0 < G + abs (lim f) := add_pos_of_pos_of_nonneg hG0 (abs_nonneg _),
+have hGε : 0 < ε / (G + abs (lim f)) := div_pos ε0 hGf,
+let ⟨i, hi⟩ := exists_forall_ge_and (equiv_lim ⟨f, hf⟩ _ hGε) (equiv_lim ⟨g, hg⟩ _ hGε) in 
+⟨i, λ j hj, calc abs (f j * g j - lim f * lim g)
+      = abs ((f j - lim f) * g j + lim f * (g j - lim g)) : by rw [mul_sub, sub_mul, sub_add_sub_cancel]
+  ... ≤ abs (f j - lim f) * abs (g j) + abs (lim f) * abs (g j - lim g) : 
+        by rw [←abs_mul, ←abs_mul]; exact abs_add _ _
+  ... < ε / (G + abs (lim f)) * G + abs (lim f) * (ε / (G + abs (lim f))) : add_lt_add_of_lt_of_le 
+    (calc abs (f j - lim f) * abs (g j) 
+        ≤ abs (f j - lim f) * G : mul_le_mul_of_nonneg_left (le_of_lt (hG j)) (abs_nonneg _)
+    ... < ε / (G + abs (lim f)) * G : mul_lt_mul_of_pos_right (hi j hj).left hG0)
+    (show abs (lim f) * abs (g j - lim g)
+        ≤ abs (lim f) * (ε / (G + abs (lim f))), from
+          mul_le_mul_of_nonneg_left (le_of_lt (hi j hj).right) (abs_nonneg _))
+  ... = ε : by rw [mul_comm _ G, ←add_mul, mul_div_cancel' _ (ne_of_lt hGf).symm] ⟩ )
+
+end real

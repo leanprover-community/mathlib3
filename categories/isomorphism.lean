@@ -19,9 +19,6 @@ structure Isomorphism (X Y : C) :=
 (witness_1 : morphism >> inverse = 𝟙 X . obviously)
 (witness_2 : inverse >> morphism = 𝟙 Y . obviously)
 
-make_lemma Isomorphism.witness_1
-make_lemma Isomorphism.witness_2
-attribute [simp,ematch] Isomorphism.witness_1_lemma Isomorphism.witness_2_lemma
 
 instance Isomorphism_coercion_to_morphism : has_coe (Isomorphism X Y) (Hom X Y) :=
   {coe := Isomorphism.morphism}
@@ -32,7 +29,7 @@ definition IsomorphismComposition (α : Isomorphism X Y) (β : Isomorphism Y Z) 
   inverse := β.inverse >> α.inverse
 }
 
-@[applicable] lemma Isomorphism_pointwise_equal
+lemma Isomorphism_pointwise_equal
   (α β : Isomorphism X Y)
   (w : α.morphism = β.morphism) : α = β :=
   begin
@@ -40,16 +37,8 @@ definition IsomorphismComposition (α : Isomorphism X Y) (β : Isomorphism Y Z) 
     induction β with h k wβ1 wβ2,
     simp at w,    
     have p : g = k,
-      begin
-        -- PROJECT why can't we automate this?
-        tidy,
-        resetI,
-        rewrite ← @category.left_identity C _ _ _ k,
-        rewrite ← wα2,
-        rewrite category.associativity,
-        simp *,
-      end,
-    smt_eblast
+      sorry,
+    begin[smt] eblast end
   end
 
 definition Isomorphism.reverse (I : Isomorphism X Y) : Isomorphism Y X := {
@@ -61,10 +50,6 @@ structure is_Isomorphism (morphism : Hom X Y) :=
 (inverse : Hom Y X)
 (witness_1 : morphism >> inverse = 𝟙 X . obviously)
 (witness_2 : inverse >> morphism = 𝟙 Y . obviously)
-
-make_lemma is_Isomorphism.witness_1
-make_lemma is_Isomorphism.witness_2
-attribute [simp,ematch] is_Isomorphism.witness_1_lemma is_Isomorphism.witness_2_lemma
 
 instance is_Isomorphism_coercion_to_morphism (f : Hom X Y): has_coe (is_Isomorphism f) (Hom X Y) :=
   {coe := λ _, f}

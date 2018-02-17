@@ -57,8 +57,7 @@ section comm_ring
   ⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
 end comm_ring
 
-def is_unit {α : Type u} [comm_ring α] (x : α) := ∃ y, x * y = 1
-def nonunits (α : Type u) [comm_ring α] : set α := { x | ¬∃ y, x * y = 1 }
+def nonunits (α : Type u) [comm_ring α] : set α := { x | ¬∃ y, y * x = 1 }
 
 class is_ring_hom {α : Type u} {β : Type v} [comm_ring α] [comm_ring β] (f : α → β) : Prop :=
 (map_add : ∀ {x y}, f (x + y) = f x + f y)
@@ -83,73 +82,16 @@ by simp [map_add f, map_neg f]
 
 end is_ring_hom
 
-class is_ideal (α : Type u) [comm_ring α] (S : set α) : Prop :=
-(zero_mem : (0 : α) ∈ S)
-(add_mem : ∀ {x y}, x ∈ S → y ∈ S → x + y ∈ S)
-(mul_mem : ∀ {x y}, x ∈ S → x * y ∈ S)
-
-namespace is_ideal
-
-variables [comm_ring α] {S : set α} [is_ideal α S] {x y z : α}
-include S
-
-attribute [simp] zero_mem
-
-lemma neg_mem : x ∈ S → -x ∈ S :=
-λ hx, have h : x * -1 ∈ S, from is_ideal.mul_mem hx, by simpa using h
-
-lemma sub_mem : x ∈ S → y ∈ S → x - y ∈ S :=
-λ hx hy, have h : x + -y ∈ S, from add_mem hx $ neg_mem hy, by simpa using h
-
-lemma mem_of_mem_of_add_mem : x ∈ S → x + y ∈ S → y ∈ S :=
-λ hx hxy, calc
-    y = y + x - x : eq.symm $ add_sub_cancel y x
-  ... = x + y - x : congr_arg (λ z, z - x) $ add_comm y x
-  ... ∈ S : sub_mem hxy hx
-
-lemma mem_of_mem_of_add_mem' : y ∈ S → x + y ∈ S → x ∈ S :=
-λ hy hxy, calc
-    x = x + y - y : eq.symm $ add_sub_cancel x y
-  ... ∈ S : sub_mem hxy hy
-
-lemma mem_of_mem_of_sub_mem : x ∈ S → x - y ∈ S → y ∈ S :=
-λ hx hxy, calc
-    y = x - (x - y) : eq.symm $ sub_sub_cancel x y
-  ... ∈ S : sub_mem hx hxy
-
-lemma mem_of_mem_of_sub_mem' : y ∈ S → x - y ∈ S → x ∈ S :=
-λ hy hxy, calc
-    x = x - y + y : eq.symm $ sub_add_cancel x y
-  ... ∈ S : add_mem hxy hy
-
-lemma mul_mem' : y ∈ S → x * y ∈ S :=
-λ hy, have h : y * x ∈ S, from mul_mem hy, by rwa [mul_comm]
-
-end is_ideal
-
-@[reducible] def zero_ideal (α : Type u) [comm_ring α] : set α := {(0:α)}
-instance zero_ideal.is_ideal (α : Type u) [comm_ring α] : is_ideal α $ zero_ideal α :=
-by refine {..}; intros; simp [set.mem_singleton_iff] at *; simp [*]
-
-instance univ.is_ideal (α : Type u) [comm_ring α] : is_ideal α set.univ :=
-by refine {..}; intros; trivial
-
-theorem is_ideal.eq_univ_of_contains_unit {α : Type u} [comm_ring α] (S : set α) [is_ideal α S] :
-(∃ x ∈ S, is_unit x) → S = set.univ :=
+theorem is_submodule.eq_univ_of_contains_unit {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
+(∃ x ∈ S, ∃ y, y * x = (1:α)) → S = set.univ :=
 λ ⟨x, hx, y, hy⟩, set.ext $ λ z, ⟨λ hz, trivial, λ hz, calc
-   z = (x * y) * z : by simp [hy]
- ... = x * (y * z) : mul_assoc x y z
- ... ∈ S : is_ideal.mul_mem hx⟩
+    z = z * (y * x) : by simp [hy]
+  ... = (z * y) * x : eq.symm $ mul_assoc z y x
+  ... ∈ S : is_submodule.smul (z * y) hx⟩
 
-theorem is_ideal.univ_of_one_mem {α : Type u} [comm_ring α] (S : set α) [is_ideal α S] :
+theorem is_submodule.univ_of_one_mem {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
 (1:α) ∈ S → S = set.univ :=
-λ h, set.ext $ λ z, ⟨λ hz, trivial, λ hz, by simpa using (is_ideal.mul_mem h : 1 * z ∈ S)⟩
-
-instance is_ideal.hom_preimage {α : Type u} {β : Type v} [comm_ring α] [comm_ring β]
-(f : α → β) [is_ring_hom f] (S : set β) [is_ideal β S] : is_ideal α (f ⁻¹' S) :=
-{ zero_mem := by simp [is_ring_hom.map_zero f],
-  add_mem  := λ x y (hx : f x ∈ S) hy, by simp [is_ring_hom.map_add f, is_ideal.add_mem hx hy],
-  mul_mem  := λ x y (hx : f x ∈ S), by simp [is_ring_hom.map_mul f, is_ideal.mul_mem hx] }
+λ h, set.ext $ λ z, ⟨λ hz, trivial, λ hz, by simpa using (is_submodule.smul z h : z * 1 ∈ S)⟩
 
 set_option old_structure_cmd true
 /-- A domain is a ring with no zero divisors, i.e. satisfying

@@ -8,6 +8,9 @@ from Cauchy sequences.
 -/
 import order.conditionally_complete_lattice data.real.cau_seq algebra.big_operators algebra.archimedean
 
+
+structure str (y : nat) := (x : nat)
+
 def real := quotient (@cau_seq.equiv ℚ _ _ _ abs _)
 notation `ℝ` := real
 
@@ -426,22 +429,28 @@ lemma lim_eq_of_equiv_const {f : cau_seq ℝ abs} {x : ℝ} (h : f ≈ cau_seq.c
 lemma lim_eq_lim_of_equiv {f g : cau_seq ℝ abs} (h : f ≈ g) : lim f = lim g := 
 lim_eq_of_equiv_const (setoid.trans h (equiv_lim g))
 
+@[simp] lemma lim_const (x : ℝ) : lim (const abs x) = x := 
+lim_eq_of_equiv_const (setoid.refl _)
+
 lemma lim_add (f g : cau_seq ℝ abs) : lim f + lim g = lim ⇑(f + g) := 
 eq_lim_of_const_equiv (show lim_zero (const abs (lim ⇑f + lim ⇑g) - (f + g)),
-from by rw [const_add, add_sub_comm];
-exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g)))
+  from by rw [const_add, add_sub_comm];
+  exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g)))
 
 lemma lim_mul_lim (f g : cau_seq ℝ abs) : lim f * lim g = lim ⇑(f * g) := 
 eq_lim_of_const_equiv (show lim_zero (const abs (lim ⇑f * lim ⇑g) - f * g),
-from have h : const abs (lim ⇑f * lim ⇑g) - f * g = g * (const abs (lim f) - f) 
-    + const abs (lim f) * (const abs (lim g) - g) := 
-  by simp [mul_sub, mul_comm, const_mul, mul_add],
-by rw h; exact add_lim_zero (mul_lim_zero _ (setoid.symm (equiv_lim f))) 
-    (mul_lim_zero _ (setoid.symm (equiv_lim g))))
+  from have h : const abs (lim ⇑f * lim ⇑g) - f * g = g * (const abs (lim f) - f) 
+      + const abs (lim f) * (const abs (lim g) - g) := 
+    by simp [mul_sub, mul_comm, const_mul, mul_add],
+  by rw h; exact add_lim_zero (mul_lim_zero _ (setoid.symm (equiv_lim f))) 
+      (mul_lim_zero _ (setoid.symm (equiv_lim g))))
+
+lemma lim_mul (f : cau_seq ℝ abs) (x : ℝ) : lim f * x = lim ⇑(f * const abs x) :=
+by rw [← lim_mul_lim, lim_const]
 
 lemma lim_neg (f : cau_seq ℝ abs) : lim ⇑(-f) = -lim f :=
 lim_eq_of_equiv_const (show lim_zero (-f - const abs (-lim ⇑f)),
-  from by rw [const_neg, sub_eq_add_neg, _root_.neg_neg, add_comm];
+  from by rw [const_neg, sub_neg_eq_add, add_comm];
   exact setoid.symm (equiv_lim f))
 
 lemma lim_eq_zero_iff (f : cau_seq ℝ abs) : lim f = 0 ↔ lim_zero f :=

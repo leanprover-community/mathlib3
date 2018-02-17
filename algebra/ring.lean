@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn
 -/
-import algebra.group algebra.module tactic data.set.basic
+import algebra.group tactic data.set.basic
 
 universes u v
 variable {α : Type u}
@@ -81,17 +81,6 @@ lemma map_sub : f (x - y) = f x - f y :=
 by simp [map_add f, map_neg f]
 
 end is_ring_hom
-
-theorem is_submodule.eq_univ_of_contains_unit {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
-(∃ x ∈ S, ∃ y, y * x = (1:α)) → S = set.univ :=
-λ ⟨x, hx, y, hy⟩, set.ext $ λ z, ⟨λ hz, trivial, λ hz, calc
-    z = z * (y * x) : by simp [hy]
-  ... = (z * y) * x : eq.symm $ mul_assoc z y x
-  ... ∈ S : is_submodule.smul (z * y) hx⟩
-
-theorem is_submodule.univ_of_one_mem {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
-(1:α) ∈ S → S = set.univ :=
-λ h, set.ext $ λ z, ⟨λ hz, trivial, λ hz, by simpa using (is_submodule.smul z h : z * 1 ∈ S)⟩
 
 set_option old_structure_cmd true
 /-- A domain is a ring with no zero divisors, i.e. satisfying

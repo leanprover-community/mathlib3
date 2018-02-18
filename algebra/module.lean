@@ -78,21 +78,6 @@ instance ring.to_module [r : ring α] : module α α :=
   mul_smul := mul_assoc,
   one_smul := one_mul, ..r }
 
-section comm_ring
-
-theorem is_submodule.eq_univ_of_contains_unit {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
-(∃ x ∈ S, ∃ y, y * x = (1:α)) → S = set.univ :=
-λ ⟨x, hx, y, hy⟩, set.ext $ λ z, ⟨λ hz, trivial, λ hz, calc
-    z = z * (y * x) : by simp [hy]
-  ... = (z * y) * x : eq.symm $ mul_assoc z y x
-  ... ∈ S : is_submodule.smul (z * y) hx⟩
-
-theorem is_submodule.univ_of_one_mem {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
-(1:α) ∈ S → S = set.univ :=
-λ h, set.ext $ λ z, ⟨λ hz, trivial, λ hz, by simpa using (is_submodule.smul z h : z * 1 ∈ S)⟩
-
-end comm_ring
-
 @[simp] lemma smul_eq_mul [ring α] {a a' : α} : a • a' = a * a' := rfl
 
 structure is_linear_map {α : Type u} {β : Type v} {γ : Type w} [ring α] [module α β] [module α γ]
@@ -247,6 +232,21 @@ suffices is_submodule (⋂₀ {p, p'} : set β), by simpa [set.inter_comm],
 end
 
 end is_submodule
+
+section comm_ring
+
+theorem is_submodule.eq_univ_of_contains_unit {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
+(∃ x ∈ S, ∃ y, y * x = (1:α)) → S = set.univ :=
+λ ⟨x, hx, y, hy⟩, set.ext $ λ z, ⟨λ hz, trivial, λ hz, calc
+    z = z * (y * x) : by simp [hy]
+  ... = (z * y) * x : eq.symm $ mul_assoc z y x
+  ... ∈ S : is_submodule.smul (z * y) hx⟩
+
+theorem is_submodule.univ_of_one_mem {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
+(1:α) ∈ S → S = set.univ :=
+λ h, set.ext $ λ z, ⟨λ hz, trivial, λ hz, by simpa using (is_submodule.smul z h : z * 1 ∈ S)⟩
+
+end comm_ring
 
 /-- A vector space is the same as a module, except the scalar ring is actually
   a field. (This adds commutativity of the multiplication and existence of inverses.)

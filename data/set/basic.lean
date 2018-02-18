@@ -220,7 +220,7 @@ ext $ λ z, or_iff_left_of_imp $ λ ht, h ht
 theorem union_subset {s t r : set α} (sr : s ⊆ r) (tr : t ⊆ r) : s ∪ t ⊆ r :=
 λ z hz, or.cases_on hz (λ hs, sr hs) (λ ht, tr ht)
 
-@[simp] theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
+theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
 ⟨λ hstu, ⟨λ z hs, hstu $ or.inl hs, λ z ht, hstu $ or.inr ht⟩, and.rec union_subset⟩
 
 theorem union_subset_union {s₁ s₂ t₁ t₂ : set α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∪ s₂ ⊆ t₁ ∪ t₂ :=
@@ -357,7 +357,7 @@ theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
 assume a', or.imp_right (@h a')
 
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
-⟨subset_insert a s, λ hs, h $ ((set_eq_def _ _).1 hs a).mpr $ or.inl rfl⟩
+⟨subset_insert a s, λ hs, h $ hs.symm ▸ mem_insert a s⟩
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ by simp [or.left_comm]
@@ -379,31 +379,30 @@ theorem forall_of_forall_insert {P : α → Prop} {a : α} {s : set α} (h : ∀
 
 theorem forall_insert_of_forall {P : α → Prop} {a : α} {s : set α} (h : ∀ x, x ∈ s → P x) (ha : P a) :
   ∀ x, x ∈ insert a s → P x :=
-λ x hx, or.cases_on hx (λ hx, hx.symm ▸ ha) (λ hx, h x hx)
+by simpa [or_imp_distrib, forall_and_distrib, ha, h]
 
 theorem ball_insert_iff {P : α → Prop} {a : α} {s : set α} :
   (∀ x ∈ insert a s, P x) ↔ P a ∧ (∀x ∈ s, P x) :=
-⟨λ h, ⟨h a $ mem_insert a s, λ x hx, h x $ mem_insert_of_mem a hx⟩, λ h x hx, or.cases_on hx (λ hxa, hxa.symm ▸ h.1) (λ hxs, h.2 x hxs)⟩
+by simp [or_imp_distrib, forall_and_distrib]
 
 /- singletons -/
 
 theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
 
--- TODO: again, annotation needed
-theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : set α)) : x = y :=
-or.cases_on h id false.elim
-
-@[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) :=
-or.inl rfl
-
-theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) :=
-or.inl H
-
 @[simp] theorem mem_singleton_iff (a b : α) : a ∈ ({b} : set α) ↔ a = b :=
-⟨eq_of_mem_singleton, mem_singleton_of_eq⟩
+or_false _
+
+-- TODO: again, annotation needed
+@[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) := or.inl rfl
+
+theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : set α)) : x = y :=
+(or_false _).1 h
 
 @[simp] theorem singleton_eq_singleton_iff {x y : α} : {x} = ({y} : set α) ↔ x = y :=
 ⟨λ h, by simpa [h] using mem_singleton x, λ h, by rw h⟩
+
+theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) :=
+or.inl H
 
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s :=
 ext $ by simp

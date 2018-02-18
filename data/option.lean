@@ -55,4 +55,8 @@ o.bind (guard p)
   option.guard p a = some b ↔ a = b ∧ p a :=
 by by_cases p a; simp [option.guard, h]; intro; contradiction
 
+def to_list {α} : option α → list α 
+| none     := []
+| (some a) := [a]
+
 end option

@@ -213,18 +213,21 @@ ext $ λ z, or_iff_right_of_imp $ λ hs, h hs
 theorem union_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∪ t = s :=
 ext $ λ z, or_iff_left_of_imp $ λ ht, h ht
 
-theorem subset_union_left (s t : set α) : s ⊆ s ∪ t := λ x, or.inl
+@[simp] theorem subset_union_left (s t : set α) : s ⊆ s ∪ t := λ x, or.inl
 
-theorem subset_union_right (s t : set α) : t ⊆ s ∪ t := λ x, or.inr
+@[simp] theorem subset_union_right (s t : set α) : t ⊆ s ∪ t := λ x, or.inr
 
 theorem union_subset {s t r : set α} (sr : s ⊆ r) (tr : t ⊆ r) : s ∪ t ⊆ r :=
 λ z hz, or.cases_on hz (λ hs, sr hs) (λ ht, tr ht)
 
-theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
+@[simp] theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
 ⟨λ hstu, ⟨λ z hs, hstu $ or.inl hs, λ z ht, hstu $ or.inr ht⟩, and.rec union_subset⟩
 
 theorem union_subset_union {s₁ s₂ t₁ t₂ : set α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∪ s₂ ⊆ t₁ ∪ t₂ :=
 λ z, or.imp (λ hs₁, h₁ hs₁) (λ hs₂, h₂ hs₂)
+
+@[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
+⟨λ h, by split; apply eq_empty_of_subset_empty; rw ← h; simp, λ ⟨hs, ht⟩, by simp [hs, ht]⟩
 
 /- intersection -/
 
@@ -281,10 +284,10 @@ theorem subset_inter {s t r : set α} (rs : r ⊆ s) (rt : r ⊆ t) : r ⊆ s �
 ⟨λ h, ⟨subset.trans h (inter_subset_left _ _), subset.trans h (inter_subset_right _ _)⟩,
  λ ⟨h₁, h₂⟩, subset_inter h₁ h₂⟩
 
-theorem inter_univ (a : set α) : a ∩ univ = a :=
+@[simp] theorem inter_univ (a : set α) : a ∩ univ = a :=
 ext (assume x, and_true _)
 
-theorem univ_inter (a : set α) : univ ∩ a = a :=
+@[simp] theorem univ_inter (a : set α) : univ ∩ a = a :=
 ext (assume x, true_and _)
 
 theorem inter_subset_inter_right {s t : set α} (u : set α) (H : s ⊆ t) : s ∩ u ⊆ t ∩ u :=

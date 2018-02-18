@@ -386,5 +386,26 @@ have tendsto (λp:α×α, dist p.1 p.2) (nhds (a, b)) (nhds (dist a b)),
   from continuous_iff_tendsto.mp continuous_dist' (a, b),
 (hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
 
+@[simp]
+lemma dist_dist_0 [metric_space β] {f : α → β} {x : α} {y : β}  :
+  dist (dist (f x) y) 0 = dist (f x) y :=
+calc dist (dist (f x) y) 0 = abs ((dist (f x) y) - 0) : rfl
+  ... = abs (dist (f x) y) : by simp
+  ... = dist (f x) y : abs_of_nonneg dist_nonneg
+
+lemma tendsto_iff_dist_tendsto_zero [metric_space β] {f : α → β} {x : α} {y : β} :
+  (tendsto f (nhds x) (nhds y)) ↔ (tendsto (λ x', dist (f x') y) (nhds x) (nhds 0)) :=
+begin
+  split,
+  { intro lim,
+    have := tendsto_dist lim tendsto_const_nhds, 
+    swap, 
+    exact y,
+    finish },
+  { intro lim_dist,
+    apply tendsto_nhds_of_metric.2,
+    simpa using tendsto_nhds_of_metric.1 lim_dist }
+end
+
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_dist continuous_id continuous_const) continuous_const

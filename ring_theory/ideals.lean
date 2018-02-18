@@ -1,4 +1,4 @@
-import algebra.ring data.set.basic
+import algebra.ring algebra.module data.set.basic
 
 universe u
 

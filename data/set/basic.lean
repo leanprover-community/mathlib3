@@ -220,7 +220,7 @@ ext $ λ z, or_iff_left_of_imp $ λ ht, h ht
 theorem union_subset {s t r : set α} (sr : s ⊆ r) (tr : t ⊆ r) : s ∪ t ⊆ r :=
 λ z hz, or.cases_on hz (λ hs, sr hs) (λ ht, tr ht)
 
-theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
+@[simp] theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
 ⟨λ hstu, ⟨λ z hs, hstu $ or.inl hs, λ z ht, hstu $ or.inr ht⟩, and.rec union_subset⟩
 
 theorem union_subset_union {s₁ s₂ t₁ t₂ : set α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∪ s₂ ⊆ t₁ ∪ t₂ :=

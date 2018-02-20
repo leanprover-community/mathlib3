@@ -324,6 +324,53 @@ le_antisymm (by finish) (by finish)
 
 end lattice
 
+variables {α : Type u} {x y z w : α}
+
+/-- A distributive lattice is a lattice that satisfies any of four
+  equivalent distribution properties (of sup over inf or inf over sup,
+  on the left or right). A classic example of a distributive lattice
+  is the lattice of subsets of a set, and in fact this example is
+  generic in the sense that every distributive lattice is realizable
+  as a sublattice of a powerset lattice. -/
+class distrib_lattice α extends lattice α :=
+(le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
+
+section distrib_lattice
+variables [distrib_lattice α]
+
+theorem le_sup_inf : ∀{x y z : α}, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z) :=
+distrib_lattice.le_sup_inf
+
+theorem sup_inf_left : x ⊔ (y ⊓ z) = (x ⊔ y) ⊓ (x ⊔ z) :=
+le_antisymm sup_inf_le le_sup_inf
+
+theorem sup_inf_right : (y ⊓ z) ⊔ x = (y ⊔ x) ⊓ (z ⊔ x) :=
+by simp [sup_inf_left, λy:α, @sup_comm α _ y x]
+
+theorem inf_sup_left : x ⊓ (y ⊔ z) = (x ⊓ y) ⊔ (x ⊓ z) :=
+calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_self]
+             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp [inf_assoc, sup_inf_right]
+             ... = (x ⊔ (x ⊓ y)) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_inf_self]
+             ... = ((x ⊓ y) ⊔ x) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_comm]
+             ... = (x ⊓ y) ⊔ (x ⊓ z)             : by rw [sup_inf_left]
+
+theorem inf_sup_right : (y ⊔ z) ⊓ x = (y ⊓ x) ⊔ (z ⊓ x) :=
+by simp [inf_sup_left, λy:α, @inf_comm α _ y x]
+
+lemma eq_of_sup_eq_inf_eq {α : Type u} [distrib_lattice α] {a b c : α}
+  (h₁ : b ⊓ a = c ⊓ a) (h₂ : b ⊔ a = c ⊔ a) : b = c :=
+le_antisymm
+  (calc b ≤ (c ⊓ a) ⊔ b     : le_sup_right
+    ... = (c ⊔ b) ⊓ (a ⊔ b) : sup_inf_right
+    ... = c ⊔ (c ⊓ a)       : by rw [←h₁, sup_inf_left, ←h₂]; simp [sup_comm]
+    ... = c                 : sup_inf_self)
+  (calc c ≤ (b ⊓ a) ⊔ c     : le_sup_right
+    ... = (b ⊔ c) ⊓ (a ⊔ c) : sup_inf_right
+    ... = b ⊔ (b ⊓ a)       : by rw [h₁, sup_inf_left, h₂]; simp [sup_comm]
+    ... = b                 : sup_inf_self)
+
+end distrib_lattice
+
 /- Lattices derived from linear orders -/
 
 instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : lattice α :=
@@ -337,5 +384,14 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
   inf_le_right := min_le_right,
   le_inf       := assume a b c, le_min,
   ..o }
+
+
+instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : distrib_lattice α :=
+{ le_sup_inf := assume a b c,
+    match le_total b c with
+    | or.inl h := inf_le_left_of_le $ sup_le_sup_left (le_inf (le_refl b) h) _
+    | or.inr h := inf_le_right_of_le $ sup_le_sup_left (le_inf h (le_refl c)) _
+    end,
+  ..lattice.lattice_of_decidable_linear_order }
 
 end lattice

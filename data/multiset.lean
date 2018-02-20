@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Multisets.
 -/
 import data.list.basic data.list.perm data.list.sort order.boolean_algebra
-       algebra.functions data.quot algebra.group_power algebra.ordered_group
+       algebra.order_functions data.quot algebra.group_power algebra.ordered_group
 open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}

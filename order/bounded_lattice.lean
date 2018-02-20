@@ -36,6 +36,20 @@ instance semilattice_sup_top_of_bounded_lattice (α : Type u) [bl : bounded_latt
 instance semilattice_sup_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_sup_bot α :=
 { bot_le := assume x, @bot_le α _ x, ..bl }
 
+/-- A bounded distributive lattice is exactly what it sounds like. -/
+class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
+
+lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c : α}
+  (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
+⟨assume : a ⊓ b = ⊥,
+  calc a ≤ a ⊓ (b ⊔ c) : by simp [h₁]
+    ... = (a ⊓ b) ⊔ (a ⊓ c) : by simp [inf_sup_left]
+    ... ≤ c : by simp [this, inf_le_right],
+  assume : a ≤ c,
+  bot_unique $
+    calc a ⊓ b ≤ b ⊓ c : by rw [inf_comm]; exact inf_le_inf (le_refl _) this
+      ... = ⊥ : h₂⟩
+
 /- Prop instance -/
 instance bounded_lattice_Prop : bounded_lattice Prop :=
 { lattice.bounded_lattice .

@@ -5,6 +5,6 @@ import
   algebra.order
   algebra.ordered_group
   algebra.ordered_ring
-  algebra.functions
+  algebra.order_functions
   algebra.group_power
   algebra.module

@@ -102,11 +102,35 @@ abs_sub_le_iff.2 ⟨sub_abs_le_abs_sub _ _, by rw abs_sub; apply sub_abs_le_abs_
 lemma abs_pos_iff {a : α} : 0 < abs a ↔ a ≠ 0 :=
 ⟨λ h, mt abs_eq_zero.2 (ne_of_gt h), abs_pos_of_ne_zero⟩
 
+lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
+abs_le_of_le_of_neg_le
+  (by simp [le_max_iff, le_trans hbc (le_abs_self c)])
+  (by simp [le_max_iff, le_trans (neg_le_neg hab) (neg_le_abs_self a)])
+
 end decidable_linear_ordered_comm_group
 
 section decidable_linear_ordered_comm_ring
-variables [decidable_linear_ordered_comm_ring α] {a b : α}
+variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
 
 @[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
+
+lemma monotone_mul_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
+assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
+
+lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
+max_distrib_of_monotone (monotone_mul_of_nonneg ha)
+
+lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
+min_distrib_of_monotone (monotone_mul_of_nonneg ha)
+
+lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
+  max (a * b) (d * c) ≤ max a c * max d b :=
+have ba : b * a ≤ max d b * max c a,
+  from mul_le_mul (le_max_right d b) (le_max_right c a) ha (le_trans hd (le_max_left d b)),
+have cd : c * d ≤ max a c * max b d,
+  from mul_le_mul (le_max_right a c) (le_max_right b d) hd (le_trans ha (le_max_left a c)),
+max_le
+  (by simpa [mul_comm, max_comm] using ba)
+  (by simpa [mul_comm, max_comm] using cd)
 
 end decidable_linear_ordered_comm_ring

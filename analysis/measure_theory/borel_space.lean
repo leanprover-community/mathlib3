@@ -169,24 +169,6 @@ open topological_space
 lemma is_topological_basis_Ioo_rat :
   @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_of_open_of_nhds
-  (assume t₁ t₂ ht₁ ht₂ x hx₁ hx₂,
-    have ∃a b:ℚ, a < b ∧ t₁ = Ioo a b, by simpa using ht₁,
-    let ⟨a₁, b₁, hab₁, eq₁⟩ := this in
-    have ∃a b:ℚ, a < b ∧ t₂ = Ioo a b, by simpa using ht₂,
-    let ⟨a₂, b₂, hab₂, eq₂⟩ := this in
-    have t₁₂ : t₁ ∩ t₂ = Ioo (max a₁ a₂) (min b₁ b₂),
-      by simp [eq₁, eq₂, Ioo_inter_Ioo],
-    have hx : x ∈ Ioo (max a₁ a₂:ℝ) (min b₁ b₂),
-      by rw ← t₁₂; exact ⟨hx₁, hx₂⟩,
-    have max a₁ a₂ < min b₁ b₂,
-      from (@rat.cast_lt ℝ _ _ _).1 $ by simpa using lt_trans hx.1 hx.2,
-    ⟨t₁ ∩ t₂, by simp [t₁₂]; exact ⟨max a₁ a₂, min b₁ b₂, this, by simp⟩,
-      ⟨hx₁, hx₂⟩, subset.refl _⟩)
-  (suffices ∀r, ∃(t : set ℝ), r ∈ t ∧ ∃a b : ℚ, t = Ioo a b ∧ a < b,
-      by simpa [and_comm],
-    assume r,
-    let ⟨a, ha⟩ := exists_rat_lt r, ⟨b, hb⟩ := exists_rat_gt r in
-    ⟨Ioo a b, ⟨ha, hb⟩, a, b, rfl, rat.cast_lt.1 $ lt_trans ha hb⟩)
   begin simp [is_open_Ioo] {contextual:=tt} end
   (assume a v hav hv,
     let

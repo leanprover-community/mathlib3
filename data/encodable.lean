@@ -259,7 +259,6 @@ have ∃ n, good p (decode α n), from
 let ⟨w, pw⟩ := h in ⟨encode w, by simp [good, encodek, pw]⟩,
 match _, nat.find_spec this : ∀ o, good p o → {a // p a} with
 | some a, h := ⟨a, h⟩
-| none,   h := h.elim
 end
 
 def choose (h : ∃ x, p x) : α := (choose_x h).1

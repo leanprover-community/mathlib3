@@ -207,3 +207,6 @@ instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 instance Prop.fintype : fintype Prop :=
 ⟨⟨true::false::0, by simp [true_ne_false]⟩,
  classical.cases (by simp) (by simp)⟩
+
+def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
+fintype.subtype (univ.filter (∈ s)) (by simp)

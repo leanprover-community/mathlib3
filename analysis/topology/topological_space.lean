@@ -938,20 +938,20 @@ let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f
   this ▸ hs⟩
 
 lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
-  (h_inter : ∀(u₁ u₂ : set α), u₁ ∈ s → u₂ ∈ s → ∀ x, x ∈ u₁ → x ∈ u₂ → ∃ u₃, u₃ ∈ s ∧ x ∈ u₃ ∧ u₃ ⊆ u₁ ∩ u₂)
-  (h_univ : ∀a:α, ∃u:set α, u ∈ s ∧ a ∈ u)
-  (h_open : ∀(u : set α), u ∈ s → _root_.is_open u)
-  (h_nhds : ∀(a:α) (u : set α), a ∈ u → _root_.is_open u → ∃v, v ∈ s ∧ a ∈ v ∧ v ⊆ u) :
+  (h_open : ∀ u ∈ s, _root_.is_open u)
+  (h_nhds : ∀(a:α) (u : set α), a ∈ u → _root_.is_open u → ∃v ∈ s, a ∈ v ∧ v ⊆ u) :
   is_topological_basis s :=
-have @is_topological_basis α (generate_from s) s,
-  from ⟨assume t₁ ht₁ t₂ ht₂, by simpa using h_inter t₁ t₂ ht₁ ht₂,
-    eq_univ_iff_forall.2 $ assume a, by simpa using h_univ a, rfl⟩,
-⟨this.1, this.2.1,
+⟨assume t₁ ht₁ t₂ ht₂ x ⟨xt₁, xt₂⟩,
+    h_nhds x (t₁ ∩ t₂) ⟨xt₁, xt₂⟩
+      (is_open_inter _ _ _ (h_open _ ht₁) (h_open _ ht₂)),
+  eq_univ_iff_forall.2 $ assume a,
+    let ⟨u, h₁, h₂, _⟩ := h_nhds a univ trivial (is_open_univ _) in
+    ⟨u, h₁, h₂⟩, 
   le_antisymm
     (assume u hu,
       (@is_open_iff_nhds α (generate_from _) _).mpr $ assume a hau,
         let ⟨v, hvs, hav, hvu⟩ := h_nhds a u hau hu in
-        by rw [nhds_generate_from]; exact (infi_le_of_le v $ infi_le_of_le ⟨hav, hvs⟩ $ by simp [hvu]))
+        by rw nhds_generate_from; exact (infi_le_of_le v $ infi_le_of_le ⟨hav, hvs⟩ $ by simp [hvu]))
     (generate_from_le h_open)⟩
 
 lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}

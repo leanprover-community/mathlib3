@@ -126,18 +126,18 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
 by rw [←prod_sdiff h]; simp [this]
 
 @[to_additive sum_attach]
-lemma prod_attach [decidable_eq α] {f : α → β} :
-  s.attach.prod (λx, f x.val) = s.prod f :=
+lemma prod_attach {f : α → β} : s.attach.prod (λx, f x.val) = s.prod f :=
+by haveI := classical.dec_eq α; exact
 calc s.attach.prod (λx, f x.val) = ((s.attach).image subtype.val).prod f :
     by rw [prod_image]; exact assume x _ y _, subtype.eq
   ... = _ : by rw [attach_image_val]
 
 @[to_additive finset.sum_bij]
-lemma prod_bij [decidable_eq α] [decidable_eq β] [decidable_eq γ]
-  {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
+lemma prod_bij {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Πa∈s, γ) (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
   (i_inj : ∀a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (i_surj : ∀b∈t, ∃a ha, b = i a ha) :
   s.prod f = t.prod g :=
+by haveI := classical.prop_decidable; exact
 calc s.prod f = s.attach.prod (λx, f x.val) : prod_attach.symm
   ... = s.attach.prod (λx, g (i x.1 x.2)) : prod_congr rfl $ assume x hx, h _ _
   ... = (s.attach.image $ λx:{x // x ∈ s}, i x.1 x.2).prod g :
@@ -149,13 +149,13 @@ calc s.prod f = s.attach.prod (λx, f x.val) : prod_attach.symm
           let ⟨a, ha, eq⟩ := i_surj b hb in by simp [eq]; exact ⟨_, _, rfl⟩)
 
 @[to_additive finset.sum_bij_ne_zero]
-lemma prod_bij_ne_one [decidable_eq α] [decidable_eq β] [decidable_eq γ]
-  {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
+lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Πa∈s, f a ≠ 1 → γ) (hi₁ : ∀a h₁ h₂, i a h₁ h₂ ∈ t) (hi₂ : ∀a h₁ h₂, g (i a h₁ h₂) ≠ 1)
   (hi₃ : ∀a₁ a₂ h₁₁ h₁₂ h₂₁ h₂₂, i a₁ h₁₁ h₁₂ = i a₂ h₂₁ h₂₂ → a₁ = a₂)
   (hi₄ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
   (h : ∀a h₁ h₂, f a = g (i a h₁ h₂)) :
   s.prod f = t.prod g :=
+by haveI := classical.prop_decidable; exact
 calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
     (prod_subset (filter_subset _) $ by simp {contextual:=tt}).symm
   ... = (t.filter $ λx, g x ≠ 1).prod g :

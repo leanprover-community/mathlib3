@@ -97,4 +97,25 @@ end instance_cache
 /-- Reset the instance cache for the main goal. -/
 meta def reset_instance_cache : tactic unit := unfreeze_local_instances
 
+meta def match_head (e : expr) : expr → tactic unit
+| e' :=
+    unify e e'
+<|> do `(_ → %%e') ← whnf e',
+       v ← mk_mvar,
+       match_head (e'.instantiate_var v)
+
+meta def find_matching_head : expr → list expr → tactic (list expr)
+| e []         := return []
+| e (H :: Hs) :=
+  do t ← infer_type H,
+     ((::) H <$ match_head e t <|> pure id) <*> find_matching_head e Hs
+
+meta def subst_locals (s : list (expr × expr)) (e : expr) : expr :=
+(e.abstract_locals (s.map (expr.local_uniq_name ∘ prod.fst)).reverse).instantiate_vars (s.map prod.snd)
+
+meta def set_binder : expr → list binder_info → expr
+ | e [] := e
+ | (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
+ | e _ := e
+
 end tactic

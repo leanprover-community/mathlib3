@@ -1,1 +1,1 @@
-import tactic.interactive tactic.alias tactic.finish
+import tactic.interactive tactic.alias tactic.finish tactic.tauto

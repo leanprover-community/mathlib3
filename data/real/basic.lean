@@ -418,36 +418,36 @@ by simp [lim, f.is_cau]; cases f with f hf;
    exact classical.some_spec (cau_seq_converges ⟨f, hf⟩)
 
 lemma eq_lim_of_const_equiv {f : cau_seq ℝ abs} {x : ℝ} (h : cau_seq.const abs x ≈ f) : x = lim f :=
-const_equiv.mp (setoid.trans h (equiv_lim f))
+const_equiv.mp $ setoid.trans h $ equiv_lim f
 
 lemma lim_eq_of_equiv_const {f : cau_seq ℝ abs} {x : ℝ} (h : f ≈ cau_seq.const abs x) : lim f = x :=
-(eq_lim_of_const_equiv (setoid.symm h)).symm
+(eq_lim_of_const_equiv $ setoid.symm h).symm
 
 lemma lim_eq_lim_of_equiv {f g : cau_seq ℝ abs} (h : f ≈ g) : lim f = lim g := 
-lim_eq_of_equiv_const (setoid.trans h (equiv_lim g))
+lim_eq_of_equiv_const $ setoid.trans h $ equiv_lim g
 
 @[simp] lemma lim_const (x : ℝ) : lim (const abs x) = x := 
-lim_eq_of_equiv_const (setoid.refl _)
+lim_eq_of_equiv_const $ setoid.refl _
 
 lemma lim_add (f g : cau_seq ℝ abs) : lim f + lim g = lim ⇑(f + g) := 
-eq_lim_of_const_equiv (show lim_zero (const abs (lim ⇑f + lim ⇑g) - (f + g)),
-  from by rw [const_add, add_sub_comm];
-  exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g)))
+eq_lim_of_const_equiv $ show lim_zero (const abs (lim ⇑f + lim ⇑g) - (f + g)),
+  by rw [const_add, add_sub_comm];
+  exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g))
 
 lemma lim_mul_lim (f g : cau_seq ℝ abs) : lim f * lim g = lim ⇑(f * g) := 
-eq_lim_of_const_equiv (show lim_zero (const abs (lim ⇑f * lim ⇑g) - f * g),
+eq_lim_of_const_equiv $ show lim_zero (const abs (lim ⇑f * lim ⇑g) - f * g),
   from have h : const abs (lim ⇑f * lim ⇑g) - f * g = g * (const abs (lim f) - f) 
       + const abs (lim f) * (const abs (lim g) - g) := 
     by simp [mul_sub, mul_comm, const_mul, mul_add],
   by rw h; exact add_lim_zero (mul_lim_zero _ (setoid.symm (equiv_lim f))) 
-      (mul_lim_zero _ (setoid.symm (equiv_lim g))))
+      (mul_lim_zero _ (setoid.symm (equiv_lim g)))
 
 lemma lim_mul (f : cau_seq ℝ abs) (x : ℝ) : lim f * x = lim ⇑(f * const abs x) :=
 by rw [← lim_mul_lim, lim_const]
 
 lemma lim_neg (f : cau_seq ℝ abs) : lim ⇑(-f) = -lim f :=
 lim_eq_of_equiv_const (show lim_zero (-f - const abs (-lim ⇑f)),
-  from by rw [const_neg, sub_neg_eq_add, add_comm];
+  by rw [const_neg, sub_neg_eq_add, add_comm];
   exact setoid.symm (equiv_lim f))
 
 lemma lim_eq_zero_iff (f : cau_seq ℝ abs) : lim f = 0 ↔ lim_zero f :=
@@ -461,7 +461,7 @@ assume h,
 
 lemma lim_inv {f : cau_seq ℝ abs} (hf : ¬ lim_zero f) : lim ⇑(inv f hf) = (lim f)⁻¹ :=
 have hl : lim f ≠ 0 := by rwa ← lim_eq_zero_iff at hf,
-lim_eq_of_equiv_const (show lim_zero (inv f hf - const abs (lim ⇑f)⁻¹),
+lim_eq_of_equiv_const $ show lim_zero (inv f hf - const abs (lim ⇑f)⁻¹),
   from have h₁ : ∀ (g f : cau_seq ℝ abs) (hf : ¬ lim_zero f), lim_zero (g - f * inv f hf * g) := 
     λ g f hf, by rw [← one_mul g, ← mul_assoc, ← sub_mul, mul_one, mul_comm, mul_comm f];
     exact mul_lim_zero _ (setoid.symm (cau_seq.inv_mul_cancel _)),
@@ -473,7 +473,7 @@ lim_eq_of_equiv_const (show lim_zero (inv f hf - const abs (lim ⇑f)⁻¹),
     from sub_lim_zero
       (by rw [← mul_assoc, mul_right_comm, const_inv hl]; exact h₁ _ _ _)
       (by rw [← mul_assoc]; exact h₁ _ _ _),
-  (lim_zero_congr h₂).mpr (by rw mul_comm; exact mul_lim_zero _ (setoid.symm (equiv_lim f))))
+  (lim_zero_congr h₂).mpr $ by rw mul_comm; exact mul_lim_zero _ (setoid.symm (equiv_lim f))
 
 end lim
 

@@ -19,8 +19,7 @@ mk' ::
 theorem is_maximal_ideal.mk {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
   (1:α) ∉ S → (∀ x (T : set α) [is_submodule T], S ⊆ T → x ∉ S → x ∈ T → (1:α) ∈ T) → is_maximal_ideal S :=
 λ h₁ h₂,
-{ _inst_2 with
-  ne_univ := λ hu, have (1:α) ∈ S, by rw hu; trivial, h₁ this,
+{ ne_univ := λ hu, have (1:α) ∈ S, by rw hu; trivial, h₁ this,
   eq_or_univ_of_subset := λ T ht hst, or.cases_on (classical.em $ ∃ x, x ∉ S ∧ x ∈ T)
     (λ ⟨x, hxns, hxt⟩, or.inr $ @@is_submodule.univ_of_one_mem _ T ht $ @@h₂ x T ht hst hxns hxt)
     (λ hnts, or.inl $ set.ext $ λ x,
@@ -28,14 +27,14 @@ theorem is_maximal_ideal.mk {α : Type u} [comm_ring α] (S : set α) [is_submod
         λ hxs, hst hxs⟩) }
 
 theorem not_unit_of_mem_maximal_ideal {α : Type u} [comm_ring α] (S : set α) [is_maximal_ideal S] : S ⊆ nonunits α :=
-λ x hx hxy, is_maximal_ideal.ne_univ S $ is_submodule.eq_univ_of_contains_unit S ⟨x, hx, hxy⟩
+λ x hx ⟨y, hxy⟩, is_maximal_ideal.ne_univ S $ is_submodule.eq_univ_of_contains_unit S x y hx hxy
 
 class local_ring (α : Type u) [comm_ring α] :=
 (S : set α)
 (max : is_maximal_ideal S)
 (unique : ∀ T [is_maximal_ideal T], S = T)
 
-instance local_of_nonunits_ideal {α : Type u} [comm_ring α] : (0:α) ≠ 1 →  (∀ x y ∈ nonunits α, x + y ∈ nonunits α) → local_ring α :=
+def local_of_nonunits_ideal {α : Type u} [comm_ring α] : (0:α) ≠ 1 → (∀ x y ∈ nonunits α, x + y ∈ nonunits α) → local_ring α :=
 λ hnze h, have hi : is_submodule (nonunits α), from
 { zero_ := λ ⟨y, hy⟩, hnze $ by simpa using hy,
   add_  := h,

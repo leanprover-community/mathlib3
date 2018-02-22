@@ -37,6 +37,9 @@ end expr
 
 namespace tactic
 
+meta definition mk_local (n : name) : expr :=
+expr.local_const n n binder_info.default (expr.const n [])
+
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
 
 meta def replace_at (tac : expr → tactic (expr × expr)) (hs : list expr) (tgt : bool) : tactic bool :=

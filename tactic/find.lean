@@ -3,6 +3,8 @@ Copyright (c) 2017 Sebastian Ullrich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sebastian Ullrich
 -/
+import tactic.basic
+
 open expr
 open interactive
 open lean.parser
@@ -22,7 +24,7 @@ private meta def match_exact : pexpr → expr → tactic (list expr)
 do (app p₁ p₂) ← pure p | match_expr p e,
    if pexpr.is_placeholder p₁ then
      -- `_ p` pattern ~> match `p` recursively
-     pexpr_to_pattern p₂ >>= λ p, match_subexpr p e
+     do p ← pexpr_to_pattern p₂, match_subexpr p e
    else
      match_expr p e
 
@@ -56,19 +58,15 @@ do (p_pis, p) ← p.get_uninst_pis,
 meta def find_cmd (_ : parse $ tk "#find") : lean.parser unit :=
 do pat ← lean.parser.pexpr 0,
    env ← get_env,
-   env.fold (pure ()) $ λ d acc, do
-      acc,
-      do {
-        declaration.thm n _ ty _ ← pure d,
-        match n with
-        | name.mk_string _ (name.mk_string "equations" _) := skip
-        | _ := do {
-          match_sig pat ty,
-          ty ← pp ty,
-          trace format!"{n}: {ty}"
-        }
-        end
-      } <|> skip.
+   env.fold (pure ()) $ λ d acc, acc >> (do
+     declaration.thm n _ ty _ ← pure d,
+     match n with
+     | name.mk_string _ (name.mk_string "equations" _) := skip
+     | _ := do
+       match_sig pat ty,
+       ty ← pp ty,
+       trace format!"{n}: {ty}"
+     end) <|> skip
 
 -- #find (_ : nat) + _ = _ + _
 -- #find _ + _ = _ + _

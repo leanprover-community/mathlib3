@@ -150,6 +150,11 @@ quotient.induction_on a $ assume α, quotient.sound ⟨
   equiv.trans equiv.arrow_empty_unit $
   equiv.ulift.symm⟩
 
+@[simp] theorem power_one {a : cardinal} : a ^ 1 = a :=
+quotient.induction_on a $ assume α, quotient.sound ⟨
+  equiv.trans (equiv.arrow_congr equiv.ulift (equiv.refl α)) $
+  equiv.unit_arrow_equiv α⟩
+
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 quotient.induction_on a $ assume α, quotient.sound ⟨
   equiv.trans (equiv.arrow_congr (equiv.refl α) equiv.ulift) $
@@ -179,7 +184,7 @@ theorem mul_power {a b c : cardinal} : (a * b) ^ c = a ^ c * b ^ c :=
 quotient.induction_on₃ a b c $ assume α β γ,
   quotient.sound ⟨equiv.arrow_prod_equiv_prod_arrow α β γ⟩
 
-theorem power_sum {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
+theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
 quotient.induction_on₃ a b c $ assume α β γ,
   quotient.sound ⟨equiv.sum_arrow_equiv_prod_arrow β γ α⟩
 
@@ -521,6 +526,9 @@ theorem fintype_card (α : Type u) [fintype α] : mk α = fintype.card α :=
 by rw [← lift_mk_fin.{u}, ← lift_id (mk α), lift_mk_eq.{u 0 u}];
    exact fintype.card_eq.1 (by simp)
 
+@[simp] theorem nat_cast_pow {m n : ℕ} : (nat.pow m n : cardinal) = m ^ n :=
+by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
+
 @[simp] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
 ⟨λ ⟨⟨f, hf⟩⟩, begin
@@ -615,6 +623,11 @@ end
 theorem mul_lt_omega {a b : cardinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_mul]; apply nat_lt_omega
+end
+
+theorem power_lt_omega {a b : cardinal} (ha : a < omega) (hb : b < omega) : a ^ b < omega :=
+match a, b, lt_omega.1 ha, lt_omega.1 hb with
+| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_pow]; apply nat_lt_omega
 end
 
 /-- König's theorem -/

@@ -255,9 +255,11 @@ theorem union_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃
 
 theorem insert_eq (a : α) (s : finset α) : insert a s = {a} ∪ s := by simp [ext, or_comm, or.left_comm]
 
-@[simp] theorem insert_union (a : α) (s t : finset α) : insert a s ∪ t = insert a (s ∪ t) := by simp [ext, or_comm, or.left_comm]
+@[simp] theorem insert_union (a : α) (s t : finset α) : insert a s ∪ t = insert a (s ∪ t) :=
+by simp [ext, or_comm, or.left_comm]
 
-@[simp] theorem union_insert (a : α) (s t : finset α) : s ∪ insert a t = insert a (s ∪ t) := by simp [ext, or.left_comm]
+@[simp] theorem union_insert (a : α) (s t : finset α) : s ∪ insert a t = insert a (s ∪ t) :=
+by simp [ext, or.left_comm]
 
 /- inter -/
 

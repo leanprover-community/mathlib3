@@ -261,6 +261,10 @@ by simp [ext, or_comm, or.left_comm]
 @[simp] theorem union_insert (a : α) (s t : finset α) : s ∪ insert a t = insert a (s ∪ t) :=
 by simp [ext, or.left_comm]
 
+theorem insert_union_distrib (a : α) (s t : finset α) : insert a (s ∪ t) = insert a s ∪ insert a t :=
+by simp [ext]
+
+
 /- inter -/
 
 /-- `s ∩ t` is the set such that `a ∈ s ∩ t` iff `a ∈ s` and `a ∈ t`. -/

@@ -458,6 +458,10 @@ by rw [add_comm, erase_add_right_neg s h, add_comm]
 theorem erase_le (a : α) (s : multiset α) : s.erase a ≤ s :=
 quot.induction_on s $ λ l, subperm_of_sublist (erase_sublist a l)
 
+@[simp] theorem erase_lt {a : α} {s : multiset α} : s.erase a < s ↔ a ∈ s :=
+⟨λ h, not_imp_comm.1 erase_of_not_mem (ne_of_lt h),
+ λ h, by simpa [h] using lt_cons_self (s.erase a) a⟩
+
 theorem erase_subset (a : α) (s : multiset α) : s.erase a ⊆ s :=
 subset_of_le (erase_le a s)
 

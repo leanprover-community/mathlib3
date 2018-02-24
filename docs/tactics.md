@@ -1,8 +1,8 @@
 # Mathlib tactics #
 
 In addition to [core tactics](https://leanprover.github.io/reference/tactics.html), 
-mathlib provides a number of specific interactive tactics. Here we document
-the mostly commonly used ones.
+mathlib provides a number of specific interactive tactics and commands.
+Here we document the mostly commonly used ones.
 
 ### rcases
 
@@ -80,3 +80,15 @@ Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www
 
 * `exactI`: Like `exact`, but uses all variables in the context
   for typeclass inference.
+
+### find
+
+The `find` command from `tactic.find` allows to find lemmas using
+pattern matching. For instance:
+
+```lean
+import tactic.find
+
+#find _ + _ = _ + _
+#find (_ : ℕ) + _ = _ + _
+```

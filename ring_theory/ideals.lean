@@ -45,7 +45,7 @@ def local_of_nonunits_ideal {α : Type u} [comm_ring α] : (0:α) ≠ 1 → (∀
 { S := nonunits α,
   max := @@is_maximal_ideal.mk _ (nonunits α) hi (λ ho, ho ⟨1, mul_one 1⟩) $
     λ x T ht hst hxns hxt, have hxu : _, from classical.by_contradiction hxns,
-    let ⟨y, hxy⟩ := hxu in by rw [← hxy]; exact is_submodule.smul y hxt,
+    let ⟨y, hxy⟩ := hxu in by rw [← hxy]; exact @@is_submodule.smul _ _ ht y hxt,
   unique := λ T hmt, or.cases_on (@@is_maximal_ideal.eq_or_univ_of_subset _ hmt (nonunits α) hi $
       λ z hz, @@not_unit_of_mem_maximal_ideal _ T hmt hz) id $
     (λ htu, false.elim $ ((set.set_eq_def _ _).1 htu 1).2 trivial ⟨1, mul_one 1⟩) }

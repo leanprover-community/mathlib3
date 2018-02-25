@@ -460,7 +460,7 @@ assume h,
   by rw h₁ at h; exact lim_eq_of_equiv_const h ⟩
 
 lemma lim_inv {f : cau_seq ℝ abs} (hf : ¬ lim_zero f) : lim ⇑(inv f hf) = (lim f)⁻¹ :=
-have hl : lim f ≠ 0 := by rwa ← lim_eq_zero_iff at hf,
+have hl : lim f ≠ 0 := by rwa ← lim_eq_zero_iff at hf, 
 lim_eq_of_equiv_const $ show lim_zero (inv f hf - const abs (lim ⇑f)⁻¹),
   from have h₁ : ∀ (g f : cau_seq ℝ abs) (hf : ¬ lim_zero f), lim_zero (g - f * inv f hf * g) := 
     λ g f hf, by rw [← one_mul g, ← mul_assoc, ← sub_mul, mul_one, mul_comm, mul_comm f];

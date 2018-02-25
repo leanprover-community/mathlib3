@@ -29,7 +29,7 @@ Anyone worried about computers taking over any time soon should take a look at h
 In case you didn't think simp knew enough lemmas, you can add new lemmas for yourself. For example in mathlib in `algebra/field.lean` we find the line
 
 ```lean
-:@[simp] theorem ne_zero (u : units α) : (u : α) ≠ 0
+@[simp] theorem ne_zero (u : units α) : (u : α) ≠ 0
 ```
 
 This lemma is then added to `simp`'s armoury. Note several things however.

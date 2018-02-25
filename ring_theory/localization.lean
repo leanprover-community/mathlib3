@@ -231,7 +231,7 @@ instance : has_inv (quotient_ring β) :=
      by simpa [mul_comm] using congr_arg (λ x, -x) hrs⟩ }
  end⟩
 
-instance quotient_ring.field.of_integral_domain : field (quotient_ring β) :=
+def quotient_ring.field.of_integral_domain : field (quotient_ring β) :=
 by refine
 { inv := has_inv.inv,
   zero_ne_one := λ hzo, let ⟨t, hts, ht⟩ := quotient.exact hzo in

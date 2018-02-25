@@ -92,3 +92,18 @@ import tactic.find
 #find _ + _ = _ + _
 #find (_ : ℕ) + _ = _ + _
 ```
+
+however this seems to fail:
+
+`#find (_ + _) / _  = _`
+
+```
+int.add_mul_div_right: ∀ (a b : ℤ) {c : ℤ}, c ≠ 0 → (a + b * c) / c = a / c + b
+add_self_div_two: ∀ {α : Type u} [_inst_1 : linear_ordered_field α] (a : α), (a + a) / 2 = a
+half_add_self: ∀ {α : Type u_1} [_inst_1 : division_ring α] [_inst_2 : char_zero α] (a : α), (a + a) / 2 = a
+nat.add_div_right: ∀ (x : ℕ) {z : ℕ}, z > 0 → (x + z) / z = succ (x / z)
+int.add_mul_div_left: ∀ (a : ℤ) {b : ℤ} (c : ℤ), b ≠ 0 → (a + b * c) / b = a / b + c
+induction.lean:39:0: error
+
+(deterministic) timeout
+```

@@ -29,6 +29,3 @@ theorem zero_add_induction_step (d : ℕ) (H : 0 + d = d) : 0 + succ d = succ d 
 calc 0 + succ d = succ (0 + d) : rfl
 ...             = succ d : by rw [H]
 ```
-
-
-

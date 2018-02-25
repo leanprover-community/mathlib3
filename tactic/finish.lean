@@ -43,11 +43,6 @@ meta def assertv_fresh (t : expr) (v : expr) : tactic expr :=
 do h ← get_unused_name `h none,
    assertv h t v
 
--- returns the number of hypotheses reverted
-meta def revert_all : tactic ℕ :=
-do ctx ← local_context,
-   revert_lst ctx
-
 namespace interactive
 
 meta def revert_all := tactic.revert_all

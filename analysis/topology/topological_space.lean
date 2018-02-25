@@ -29,13 +29,8 @@ section topological_space
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {a a₁ a₂ : α} {s s₁ s₂ : set α} {p p₁ p₂ : α → Prop}
 
-lemma topological_space_eq {f g : topological_space α} (h' : f.is_open = g.is_open) : f = g :=
-begin
-  cases f with a, cases g with b,
-  have h : a = b, assumption,
-  clear h',
-  subst h
-end
+lemma topological_space_eq : ∀ {f g : topological_space α}, f.is_open = g.is_open → f = g
+| ⟨a, _, _, _⟩ ⟨b, _, _, _⟩ rfl := rfl
 
 section
 variables [t : topological_space α]
@@ -951,7 +946,7 @@ lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
     (assume u hu,
       (@is_open_iff_nhds α (generate_from _) _).mpr $ assume a hau,
         let ⟨v, hvs, hav, hvu⟩ := h_nhds a u hau hu in
-        by rw nhds_generate_from; exact (infi_le_of_le v $ infi_le_of_le ⟨hav, hvs⟩ $ by simp [hvu]))
+        by rw nhds_generate_from; exact infi_le_of_le v (infi_le_of_le ⟨hav, hvs⟩ $ by simp [hvu]))
     (generate_from_le h_open)⟩
 
 lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}

@@ -69,14 +69,16 @@ Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www
 * `resetI`: Reset the instance cache. This allows any new instances
   added to the context to be used in typeclass inference.
 
+* `unfreezeI`: Unfreeze local instances, which allows us to revert
+  instances in the context
+
 * `introI`/`introsI`: Like `intro`/`intros`, but uses the introduced variable
   in typeclass inference. 
 
-* `haveI`: Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `have`.
-
-* `letI`: Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `let`. 
+* `haveI`/`letI`: Used to add typeclasses to the context so that they can
+  be used in typeclass inference. The syntax is the same as
+  `have`/`letI`, but the proof-omitted version of `have` is not supported
+  (for this one must write `have : t, { <proof> }, resetI, <proof>`).
 
 * `exactI`: Like `exact`, but uses all variables in the context
   for typeclass inference.

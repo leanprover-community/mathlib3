@@ -94,9 +94,7 @@ do d ← get_decl n,
 
 end instance_cache
 
-/-- Reset the instance cache for the main goal.
-  This is currently implemented by a hack (a side effect of
-  SMT state creation) to avoid modifying the C++ code. -/
-meta def reset_instance_cache : tactic unit := smt_state.mk {} >> skip
+/-- Reset the instance cache for the main goal. -/
+meta def reset_instance_cache : tactic unit := unfreeze_local_instances
 
 end tactic

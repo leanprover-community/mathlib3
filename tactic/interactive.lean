@@ -161,6 +161,10 @@ do let h := h.get_or_else `this,
   | some o, none   := swap >> tactic.clear o >> swap
   end
 
+/-- Unfreeze local instances, which allows us to revert
+  instances in the context. -/
+meta def unfreezeI := tactic.unfreeze_local_instances
+
 /-- Reset the instance cache. This allows any new instances
   added to the context to be used in typeclass inference. -/
 meta def resetI := reset_instance_cache
@@ -176,13 +180,15 @@ meta def introsI (p : parse ident_*) : tactic unit :=
 intros p >> reset_instance_cache
 
 /-- Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `have`. -/
-meta def haveI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
+  be used in typeclass inference. The syntax is the same as `have`,
+  but the proof-omitted version is not supported. For
+  this one must write `have : t, { <proof> }, resetI, <proof>`. -/
+meta def haveI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse (tk ":=" *> texpr)) : tactic unit :=
 do h ← match h with
   | none   := get_unused_name "_inst"
   | some a := return a
   end,
-  «have» (some h) q₁ q₂,
+  «have» (some h) q₁ (some q₂),
   match q₁ with
   | none    := swap >> reset_instance_cache >> swap
   | some p₂ := reset_instance_cache

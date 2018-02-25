@@ -238,10 +238,10 @@ theorem mul_self_inj {n m : ℕ} : n * n = m * m ↔ n = m :=
 le_antisymm_iff.trans (le_antisymm_iff.trans
   (and_congr mul_self_le_mul_self_iff mul_self_le_mul_self_iff)).symm
 
-instance decidable_ball_lt (n : nat) (P : Π k < n, Prop)
-  [H : ∀ n h, decidable (P n h)] : decidable (∀ n h, P n h) :=
+instance decidable_ball_lt (n : nat) (P : Π k < n, Prop) :
+  ∀ [H : ∀ n h, decidable (P n h)], decidable (∀ n h, P n h) :=
 begin
-  induction n with n IH; resetI,
+  induction n with n IH; intro; resetI,
   { exact is_true (λ n, dec_trivial) },
   cases IH (λ k h, P k (lt_succ_of_lt h)) with h,
   { refine is_false (mt _ h), intros hn k h, apply hn },

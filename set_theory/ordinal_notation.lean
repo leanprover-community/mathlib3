@@ -360,8 +360,7 @@ instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
 @[simp] theorem repr_add : ∀ o₁ o₂ [NF o₁] [NF o₂], repr (o₁ + o₂) = repr o₁ + repr o₂
 | 0            o h₁ h₂ := by simp
 | (oadd e n a) o h₁ h₂ := begin
-  have h' := @repr_add a o,
-  haveI := h₁.snd, replace h' := h',
+  haveI := h₁.snd, have h' := repr_add a o,
   conv at h' in (_+o) {simp [(+)]},
   have nf := onote.add_NF a o,
   conv at nf in (_+o) {simp [(+)]},
@@ -403,8 +402,7 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
 | 0            o h₁ h₂ := by cases o; exact (ordinal.zero_sub _).symm
 | (oadd e n a) 0 h₁ h₂ := (ordinal.sub_zero _).symm
 | (oadd e₁ n₁ a₁) (oadd e₂ n₂ a₂) h₁ h₂ := begin
-  have h' := @repr_sub a₁ a₂,
-  haveI := h₁.snd, haveI := h₂.snd, replace h' := h',
+  haveI := h₁.snd, haveI := h₂.snd, have h' := repr_sub a₁ a₂,
   conv at h' in (a₁-a₂) {simp [has_sub.sub]},
   have nf := onote.sub_NF a₁ a₂,
   conv at nf in (a₁-a₂) {simp [has_sub.sub]},
@@ -477,12 +475,11 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
   { apply add_absorp h₁.snd'.repr_lt,
     simpa using (mul_le_mul_iff_left $ power_pos _ omega_pos).2
       (nat_cast_le.2 n₁.2) },
-  by_cases e0 : e₂ = 0,
-  { simp [e0, mul],
-    cases nat.exists_eq_succ_of_ne_zero n₂.ne_zero with x xe,
+  by_cases e0 : e₂ = 0; simp [e0, mul],
+  { cases nat.exists_eq_succ_of_ne_zero n₂.ne_zero with x xe,
     simp [h₂.zero_of_zero e0, xe, -nat.cast_succ],
     rw [← nat_cast_succ x, add_mul_succ _ ao, mul_assoc] },
-  { simp [mul], rw if_neg e0, haveI := h₁.fst, haveI := h₂.fst,
+  { haveI := h₁.fst, haveI := h₂.fst,
     simp [IH, repr_add, power_add, ordinal.mul_add],
     rw ← mul_assoc, congr_n 2,
     have := mt repr_inj.1 e0,
@@ -541,9 +538,8 @@ theorem split_eq_scale_split' : ∀ {o o' m} [NF o], split' o = (o', m) → spli
   by_cases e0 : e = 0; simp [e0, split, split'] at p ⊢,
   { rcases p with ⟨rfl, rfl⟩, exact ⟨rfl, rfl⟩ },
   { revert p, cases h' : split' a with a' m',
-    have := @split_eq_scale_split' _ _ _ h.snd h',
     haveI := h.fst, haveI := h.snd,
-    simp [this, split, split'],
+    simp [split_eq_scale_split' h', split, split'],
     have : 1 + (e - 1) = e,
     { refine repr_inj.1 _, simp,
       have := mt repr_inj.1 e0,
@@ -558,8 +554,8 @@ theorem NF_repr_split' : ∀ {o o' m} [NF o], split' o = (o', m) → NF o' ∧ r
   { rcases p with ⟨rfl, rfl⟩,
     simp [h.zero_of_zero e0, NF.zero] },
   { revert p, cases h' : split' a with a' m',
-    cases @NF_repr_split' _ _ _ h.snd h' with IH₁ IH₂,
     haveI := h.fst, haveI := h.snd,
+    cases NF_repr_split' h' with IH₁ IH₂,
     simp [IH₂, split'],
     intros, substs o' m,
     have : ω ^ repr e = ω ^ 1 * ω ^ (repr e - 1),
@@ -577,10 +573,10 @@ theorem scale_eq_mul (x) [NF x] : ∀ o [NF o], scale x o = oadd x 1 0 * o
 | 0            h := rfl
 | (oadd e n a) h := begin
   simp [(*)], simp [mul, scale],
-  have IH := @scale_eq_mul _ h.snd,
+  haveI := h.snd,
   by_cases e0 : e = 0,
-  { rw IH, simp [e0, h.zero_of_zero, show x + 0 = x, from repr_inj.1 (by simp)] },
-  { simp [e0, IH, (*)] }
+  { rw scale_eq_mul, simp [e0, h.zero_of_zero, show x + 0 = x, from repr_inj.1 (by simp)] },
+  { simp [e0, scale_eq_mul, (*)] }
 end
 
 instance NF_scale (x) [NF x] (o) [NF o] : NF (scale x o) :=
@@ -639,7 +635,7 @@ begin
     { by_cases o₂ = 0; simp [power, e₁, h]; apply_instance },
     { by_cases m = 0; simp [power, e₁, e₂, h]; apply_instance } },
   { simp [power, e₁, e₂, split_eq_scale_split' e₂],
-    haveI := na.fst,
+    have := na.fst,
     cases k with k; simp [succ_eq_add_one, power]; apply_instance }
 end
 
@@ -772,7 +768,7 @@ end onote
 /-- The type of normal ordinal notations. (It would have been
   nicer to define this right in the inductive type, but `NF o`
   requires `repr` which requires `onote`, so all these things
-  would have to be ndefined at once, which messes up the VM
+  would have to be defined at once, which messes up the VM
   representation.) -/
 def nonote := {o : onote // o.NF}
 
@@ -816,6 +812,7 @@ cmp a.1 b.1
 
 theorem cmp_compares : ∀ a b : nonote, (cmp a b).compares a b
 | ⟨a, ha⟩ ⟨b, hb⟩ := begin
+  resetI,
   dsimp [cmp], have := onote.cmp_compares a b,
   cases onote.cmp a b; try {exact this},
   exact subtype.mk_eq_mk.2 this

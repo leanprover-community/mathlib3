@@ -1,0 +1,82 @@
+<h1>Mathlib tactics</h1>
+
+<p>In addition to <a href="https://leanprover.github.io/reference/tactics.html">core tactics</a>, 
+mathlib provides a number of specific interactive tactics. Here we document
+the mostly commonly used ones.</p>
+
+<h3>rcases</h3>
+
+<p>The <code>rcases</code> tactic is the same as <code>cases</code>, but with more flexibility in the
+<code>with</code> pattern syntax to allow for recursive case splitting. The pattern syntax
+uses the following recursive grammar:</p>
+
+<p><code>
+patt ::= (patt_list "|")* patt_list
+patt_list ::= id | "_" | "⟨" (patt ",")* patt "⟩"
+</code></p>
+
+<p>A pattern like <code>⟨a, b, c⟩ | ⟨d, e⟩</code> will do a split over the inductive
+datatype, naming the first three parameters of the first constructor as
+<code>a,b,c</code> and the first two of the second constructor <code>d,e</code>. If the list
+is not as long as the number of arguments to the constructor or the
+number of constructors, the remaining variables will be automatically
+named. If there are nested brackets such as <code>⟨⟨a⟩, b | c⟩ | d</code> then
+these will cause more case splits as necessary. If there are too many
+arguments, such as <code>⟨a, b, c⟩</code> for splitting on <code>∃ x, ∃ y, p x</code>, then it
+will be treated as <code>⟨a, ⟨b, c⟩⟩</code>, splitting the last parameter as
+necessary.</p>
+
+<h3>simpa</h3>
+
+<p>This is a "finishing" tactic modification of <code>simp</code>. The tactic <code>simpa
+[rules, ...] using e</code> will simplify the hypothesis <code>e</code> using <code>rules</code>,
+then simplify the goal using <code>rules</code>, and try to close the goal using
+<code>assumption</code>. If <code>e</code> is a term instead of a local constant, it is first
+added to the local context using <code>have</code>.</p>
+
+<h3>replace</h3>
+
+<p>Acts like <code>have</code>, but removes a hypothesis with the same name as
+this one. For example if the state is <code>h : p ⊢ goal</code> and <code>f : p → q</code>,
+then after <code>replace h := f h</code> the goal will be <code>h : q ⊢ goal</code>,
+where <code>have h := f h</code> would result in the state <code>h : p, h : q ⊢ goal</code>.
+This can be used to simulate the <code>specialize</code> and <code>apply at</code> tactics
+of Coq. </p>
+
+<h3>finish/clarify/safe</h3>
+
+<p>These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
+eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
+and congruence closure to try to finish off a goal at the end.</p>
+
+<p>The procedures <em>do</em> split on disjunctions and recreate the smt state for each terminal call, so
+they are only meant to be used on small, straightforward problems.</p>
+
+<ul>
+<li>finish:  solves the goal or fails</li>
+<li>clarify:  makes as much progress as possible while not leaving more than one goal</li>
+<li>safe:     splits freely, finishes off whatever subgoals it can, and leaves the rest</li>
+</ul>
+
+<p>All accept an optional list of simplifier rules, typically definitions that should be expanded.
+(The equations and identities should not refer to the local context.)</p>
+
+<h3>ring</h3>
+
+<p>Evaluate expressions in the language of (semi-)rings.
+Based on <a href="http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf">Proving Equalities in a Commutative Ring Done Right in Coq</a> by Benjamin Grégoire and Assia Mahboubi.</p>
+
+<h3>Instance cache tactics</h3>
+
+<ul>
+<li><p><code>resetI</code>: Reset the instance cache. This allows any new instances
+added to the context to be used in typeclass inference.</p></li>
+<li><p><code>introI</code>/<code>introsI</code>: Like <code>intro</code>/<code>intros</code>, but uses the introduced variable
+in typeclass inference. </p></li>
+<li><p><code>haveI</code>: Used to add typeclasses to the context so that they can
+be used in typeclass inference. The syntax is the same as <code>have</code>.</p></li>
+<li><p><code>letI</code>: Used to add typeclasses to the context so that they can
+be used in typeclass inference. The syntax is the same as <code>let</code>. </p></li>
+<li><p><code>exactI</code>: Like <code>exact</code>, but uses all variables in the context
+for typeclass inference.</p></li>
+</ul>

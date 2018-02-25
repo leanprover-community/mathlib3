@@ -1,0 +1,26 @@
+<h1>How to use calc</h1>
+
+<p><code>calc</code> appears to be something called an <code>environment</code>. I don't really
+know what an environment is. </p>
+
+<p>calc will work with any relation tagged [refl], and if they're also tagged
+[trans] then calc is a bit more powerful.</p>
+
+<p>Here's an example of a proof which uses <code>calc</code>. When I start it looks like this:</p>
+
+<p><code>
+open nat
+theorem zero_add_induction_step (d : ℕ) (H : 0 + d = d) : 0 + succ d = succ d :=
+calc 0 + succ d = _      : _
+--- ABOVE HERE write more ... lines
+...             = succ d : _
+</code></p>
+
+<p>When I have finished it looks like this:</p>
+
+<p><code>
+open nat
+theorem zero_add_induction_step (d : ℕ) (H : 0 + d = d) : 0 + succ d = succ d :=
+calc 0 + succ d = succ (0 + d) : rfl
+...             = succ d : by rw [H]
+</code></p>

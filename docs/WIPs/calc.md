@@ -28,7 +28,7 @@ ines under ...s because the error messages are hard for me to follow sometimes.
 
 When I've finished it might look something like this.
 
-```
+```lean
 open nat
 theorem zero_add_induction_step (d : ℕ) (H : 0 + d = d) : 0 + succ d = succ d :=
 calc 0 + succ d = succ (0 + d) : rfl

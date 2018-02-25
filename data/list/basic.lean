@@ -2352,7 +2352,8 @@ theorem forall_mem_pw_filter (neg_trans : ∀ {x y z}, R x z → R x y ∨ R y z
   { rw [pw_filter_cons_of_neg h],
     refine λ H, ⟨_, IH H⟩,
     cases e : find (λ y, ¬ R x y) (pw_filter R l) with k,
-    { exact h.elim (ball.imp_right (λ_ _, not_not.1) (find_eq_none.1 e)) },
+    { refine h.elim (ball.imp_right _ (find_eq_none.1 e)),
+      exact λ y _, not_not.1 },
     { have := find_some e,
       exact (neg_trans (H k (find_mem e))).resolve_right this } }
 end, ball.imp_left (pw_filter_subset l)⟩

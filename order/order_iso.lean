@@ -83,22 +83,22 @@ protected theorem is_total : ∀ (f : r ≼o s) [is_total β s], is_total α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o o).2 (H _ _)⟩
 
 protected theorem is_preorder : ∀ (f : r ≼o s) [is_preorder β s], is_preorder α r
-| f H := by exact {..f.is_refl, ..f.is_trans}
+| f H := by exactI {..f.is_refl, ..f.is_trans}
 
 protected theorem is_partial_order : ∀ (f : r ≼o s) [is_partial_order β s], is_partial_order α r
-| f H := by exact {..f.is_preorder, ..f.is_antisymm}
+| f H := by exactI {..f.is_preorder, ..f.is_antisymm}
 
 protected theorem is_linear_order : ∀ (f : r ≼o s) [is_linear_order β s], is_linear_order α r
-| f H := by exact {..f.is_partial_order, ..f.is_total}
+| f H := by exactI {..f.is_partial_order, ..f.is_total}
 
 protected theorem is_strict_order : ∀ (f : r ≼o s) [is_strict_order β s], is_strict_order α r
-| f H := by exact {..f.is_irrefl, ..f.is_trans}
+| f H := by exactI {..f.is_irrefl, ..f.is_trans}
 
 protected theorem is_trichotomous : ∀ (f : r ≼o s) [is_trichotomous β s], is_trichotomous α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o (or_congr f.inj'.eq_iff.symm o)).2 (H _ _)⟩
 
 protected theorem is_strict_total_order' : ∀ (f : r ≼o s) [is_strict_total_order' β s], is_strict_total_order' α r
-| f H := by exact {..f.is_trichotomous, ..f.is_strict_order}
+| f H := by exactI {..f.is_trichotomous, ..f.is_strict_order}
 
 protected theorem acc (f : r ≼o s) (a : α) : acc s (f a) → acc r a :=
 begin
@@ -111,7 +111,7 @@ protected theorem well_founded : ∀ (f : r ≼o s) (h : well_founded s), well_f
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
 protected theorem is_well_order : ∀ (f : r ≼o s) [is_well_order β s], is_well_order α r
-| f H := by exact {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
+| f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
 
 /-- It suffices to prove `f` is monotone between strict orders
   to show it is an order embedding. -/

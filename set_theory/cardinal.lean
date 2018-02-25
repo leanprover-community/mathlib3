@@ -610,7 +610,7 @@ lt_omega.trans ⟨λ ⟨n, e⟩, begin
   rw [← lift_mk_fin n] at e,
   cases quotient.exact e with f,
   exact ⟨fintype.of_equiv _ f.symm⟩
-end, λ ⟨_⟩, by exact ⟨_, fintype_card _⟩⟩
+end, λ ⟨_⟩, by exactI ⟨_, fintype_card _⟩⟩
 
 theorem lt_omega_iff_finite {α} {S : set α} : mk S < omega ↔ finite S :=
 lt_omega_iff_fintype
@@ -633,10 +633,10 @@ end
 /-- König's theorem -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
-  haveI : inhabited (Π (i : ι), (g i).out),
+  have : inhabited (Π (i : ι), (g i).out),
   { refine ⟨λ i, classical.choice $ ne_zero_iff_nonempty.1 _⟩,
     rw mk_out,
-    exact ne_of_gt (lt_of_le_of_lt (zero_le _) (H i)) },
+    exact ne_of_gt (lt_of_le_of_lt (zero_le _) (H i)) }, resetI,
   let G := inv_fun F,
   have sG : surjective G := inv_fun_surjective F.2,
   have : ∀ i, ¬ ∀ b, ∃ a, G ⟨i, a⟩ i = b,

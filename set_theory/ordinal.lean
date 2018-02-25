@@ -421,6 +421,7 @@ end
 
 theorem well_ordering_thm : ∃ r, is_well_order σ r :=
 let ⟨m, MM⟩ := zorn.zorn (λ c, chain_ub) (λ a b c, partial_wo.trans) in
+by haveI := m.2.2; exact
 suffices hf : ∀ a, a ∈ m.1, from
   let f : σ ≃ m.1 := ⟨λ a, ⟨a, hf a⟩, λ a, a.1, λ a, rfl, λ ⟨a, ha⟩, rfl⟩ in
   ⟨order.preimage f m.2.1,
@@ -515,7 +516,7 @@ theorem type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
 def lt (a b : ordinal) : Prop :=
 quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≺i s)) $
 λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-by exact propext ⟨
+by exactI propext ⟨
   λ ⟨h⟩, ⟨principal_seg.equiv_lt f.symm $
     h.lt_le (initial_seg.of_iso g)⟩,
   λ ⟨h⟩, ⟨principal_seg.equiv_lt f $
@@ -534,13 +535,13 @@ instance : partial_order ordinal :=
   le_trans := λ a b c, quotient.induction_on₃ a b c $
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
   lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
-    λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exact
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
       ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl _⟩,
       λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
        (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
   le_antisymm := λ x b, show x ≤ b → b ≤ x → x = b, from
     quotient.induction_on₂ x b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨h₁⟩ ⟨h₂⟩,
-    by exact quot.sound ⟨initial_seg.antisymm h₁ h₂⟩ }
+    by exactI quot.sound ⟨initial_seg.antisymm h₁ h₂⟩ }
 
 theorem typein_lt_type (r : α → α → Prop) [is_well_order α r]
   (a : α) : typein r a < type r :=
@@ -578,7 +579,7 @@ end, λ h, ⟨principal_seg.cod_restrict _
 
 theorem typein_surj (r : α → α → Prop) [is_well_order α r]
   {o} (h : o < type r) : ∃ a, typein r a = o :=
-induction_on o (λ β s _ ⟨f⟩, ⟨f.top, by simp⟩) h
+induction_on o (λ β s _ ⟨f⟩, by exactI ⟨f.top, by simp⟩) h
 
 theorem typein_inj (r : α → α → Prop) [is_well_order α r]
   {a b} : typein r a = typein r b ↔ a = b :=
@@ -593,7 +594,7 @@ congr_arg _⟩
 def enum (r : α → α → Prop) [is_well_order α r] (o) : o < type r → α :=
 quot.rec_on o (λ ⟨β, s, _⟩ h, (classical.choice h).top) $
 λ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨h⟩, begin
-  refine funext (λ (H₂ : type t < type r), _),
+  resetI, refine funext (λ (H₂ : type t < type r), _),
   have H₁ : type s < type r, {rwa type_eq.2 ⟨h⟩},
   have : ∀ {o e} (H : o < type r), @@eq.rec
    (λ (o : ordinal), o < type r → α)
@@ -625,7 +626,7 @@ theorem enum_lt {α β} {r : α → α → Prop} {s : β → β → Prop} {t : �
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
 
 theorem wf : @well_founded ordinal (<) :=
-⟨λ a, induction_on a $ λ α r wo, by exact
+⟨λ a, induction_on a $ λ α r wo, by exactI
 suffices ∀ a, acc (<) (typein r a), from
 ⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
 λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
@@ -676,7 +677,7 @@ quotient.sound ⟨⟨equiv.ulift, λ _ _, iff.rfl⟩⟩
 
 instance : has_add ordinal.{u} :=
 ⟨λo₁ o₂, quotient.lift_on₂ o₁ o₂
-  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exact sum.lex.is_well_order⟩⟧
+  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order⟩⟧
     : Well_order → Well_order → ordinal) $
 λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
 quot.sound ⟨order_iso.sum_lex_congr f g⟩⟩
@@ -693,7 +694,7 @@ theorem succ_eq_add_one (o) : succ o = o + 1 := rfl
 theorem lt_succ_self (o : ordinal.{u}) : o < succ o :=
 induction_on o $ λ α r _,
 ⟨begin
-  cases e : initial_seg.lt_or_eq
+  resetI, cases e : initial_seg.lt_or_eq
     (@initial_seg.le_add α (ulift.{u 0} unit) r empty_relation) with f f,
   { exact f },
   { have := (initial_seg.of_iso f).eq (initial_seg.le_add _ _) (f.symm (sum.inr ⟨()⟩)),
@@ -709,6 +710,7 @@ ne_of_gt $ succ_pos o
 theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _),
 induction_on a $ λ α r _, induction_on b $ λ β s _ ⟨⟨f, t, hf⟩⟩, begin
+  resetI,
   refine ⟨⟨order_embedding.of_monotone (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
   { exact f }, { exact λ _, t },
   { rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
@@ -773,6 +775,7 @@ by simpa using add_le_add_left (zero_le b) a
 
 theorem add_le_add_iff_left (a) {b c : ordinal} : a + b ≤ a + c ↔ b ≤ c :=
 ⟨induction_on a $ λ α r _, induction_on b $ λ β₁ s₁ _, induction_on c $ λ β₂ s₂ _ ⟨f⟩, ⟨
+  by exactI
   have fl : ∀ a, f (sum.inl a) = sum.inl a := λ a,
     by simpa using initial_seg.eq ((initial_seg.le_add r s₁).trans f) (initial_seg.le_add r s₂) a,
   have ∀ b, {b' // f (sum.inr b) = sum.inr b'}, begin
@@ -853,7 +856,7 @@ by haveI := @order_embedding.is_well_order _ _ (@equiv.ulift.{u (max v w)} α �
 
 @[simp] theorem lift_le {a b : ordinal} : lift.{u v} a ≤ lift b ↔ a ≤ b :=
 induction_on a $ λ α r _, induction_on b $ λ β s _,
-by rw ← lift_umax; exact lift_type_le
+by rw ← lift_umax; exactI lift_type_le
 
 @[simp] theorem lift_inj {a b : ordinal} : lift a = lift b ↔ a = b :=
 by simp [le_antisymm_iff]
@@ -891,7 +894,7 @@ theorem lift_down' {a : cardinal.{u}} {b : ordinal.{max u v}}
   (h : card b ≤ a.lift) : ∃ a', lift a' = b :=
 let ⟨c, e⟩ := cardinal.lift_down h in
 quotient.induction_on c (λ α, induction_on b $ λ β s _ e', begin
-  dsimp at e',
+  resetI, dsimp at e',
   rw [← cardinal.lift_id'.{(max u v) u} (mk β),
       ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
   cases e' with f,
@@ -930,7 +933,7 @@ theorem type_le' {α β} {r : α → α → Prop} {s : β → β → Prop}
 
 theorem add_le_add_right {a b : ordinal} : a ≤ b → ∀ c, a + c ≤ b + c :=
 induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
-induction_on c $ λ β s _, by exact type_le'.2
+induction_on c $ λ β s _, by exactI type_le'.2
 ⟨⟨embedding.sum_congr f (embedding.refl _),
   λ a b, by cases a with a a; cases b with b b; simp [fo]⟩⟩
 
@@ -943,6 +946,7 @@ match lt_or_eq_of_le (le_add_left b a), lt_or_eq_of_le (le_add_right a b) with
 | _, or.inr h := by rw h; exact or.inr (le_add_left _ _)
 | or.inl h₁, or.inl h₂ := induction_on a (λ α₁ r₁ _,
   induction_on b $ λ α₂ r₂ _ ⟨f⟩ ⟨g⟩, begin
+    resetI,
     rw [← typein_top f, ← typein_top g, le_iff_lt_or_eq,
         le_iff_lt_or_eq, typein_lt_typein, typein_lt_typein],
     rcases trichotomous_of (sum.lex r₁ r₂) g.top f.top with h|h|h; simp [h],
@@ -1212,6 +1216,7 @@ theorem add_le_of_limit {a b c : ordinal.{u}}
 ⟨λ h b' l, le_trans (add_le_add_left (le_of_lt l) _) h,
 λ H, le_of_not_lt $
 induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
+  resetI,
   suffices : ∀ x : β, sum.lex r s (sum.inr x) (enum _ _ l),
   { cases enum _ _ l with x x,
     { simpa using this (enum s 0 h.pos) },
@@ -1400,7 +1405,7 @@ by rw [← add_sub_cancel_of_le h, ← add_assoc, one_add_omega]
 
 instance : monoid ordinal.{u} :=
 { mul := λ a b, quotient.lift_on₂ a b
-      (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨β × α, prod.lex s r, by exact prod.lex.is_well_order⟩⟧
+      (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨β × α, prod.lex s r, by exactI prod.lex.is_well_order⟩⟧
         : Well_order → Well_order → ordinal) $
     λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
     quot.sound ⟨order_iso.prod_lex_congr g f⟩,
@@ -1434,11 +1439,11 @@ quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 mul_comm (mk β) (mk α)
 
 @[simp] theorem mul_zero (a : ordinal) : a * 0 = 0 :=
-induction_on a $ λ α _ _, by exact
+induction_on a $ λ α _ _, by exactI
 type_eq_zero_iff_empty.2 (λ ⟨⟨⟨e⟩, _⟩⟩, e.elim)
 
 @[simp] theorem zero_mul (a : ordinal) : 0 * a = 0 :=
-induction_on a $ λ α _ _, by exact
+induction_on a $ λ α _ _, by exactI
 type_eq_zero_iff_empty.2 (λ ⟨⟨_, ⟨e⟩⟩⟩, e.elim)
 
 theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
@@ -1455,6 +1460,7 @@ by simp [mul_add]
 
 theorem mul_le_mul_left {a b} (c : ordinal) : a ≤ b → c * a ≤ c * b :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
+  resetI,
   refine type_le'.2 ⟨order_embedding.of_monotone
     (λ a, (f a.1, a.2))
     (λ a b h, _)⟩, clear_,
@@ -1465,6 +1471,7 @@ end
 
 theorem mul_le_mul_right {a b} (c : ordinal) : a ≤ b → a * c ≤ b * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
+  resetI,
   refine type_le'.2 ⟨order_embedding.of_monotone
     (λ a, (a.1, f a.2))
     (λ a b h, _)⟩,
@@ -1481,6 +1488,7 @@ theorem mul_le_of_limit {a b c : ordinal.{u}}
 ⟨λ h b' l, le_trans (mul_le_mul_left _ (le_of_lt l)) h,
 λ H, le_of_not_lt $
 induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
+  resetI,
   suffices : ∀ a b, prod.lex s r (b, a) (enum _ _ l),
   { cases enum _ _ l with b a, exact irrefl _ (this _ _) },
   intros a b,
@@ -1748,7 +1756,7 @@ theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (mk α) 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
 quotient.induction_on c $ λ α, induction_on o $ λ β s _,
 let ⟨r, _, e⟩ := ord_eq α in begin
-  simp, split; intro h,
+  resetI, simp, split; intro h,
   { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
     have g := order_embedding.preimage f s,
@@ -1881,14 +1889,14 @@ by rw [sup_le, comp, H.le_set' (λ_:ι, true) g
   families in `Type u`.) -/
 def bsup (o : ordinal.{u}) : (Π a < o, ordinal.{max u v}) → ordinal.{max u v} :=
 match o, o.out, o.out_eq with
-| _, ⟨α, r, _⟩, rfl, f := by exact sup (λ a, f (typein r a) (typein_lt_type _ _))
+| _, ⟨α, r, _⟩, rfl, f := by exactI sup (λ a, f (typein r a) (typein_lt_type _ _))
 end
 
 theorem bsup_le {o f a} : bsup.{u v} o f ≤ a ↔ ∀ i h, f i h ≤ a :=
 match o, o.out, o.out_eq, f :
  ∀ o w (e : ⟦w⟧ = o) (f : Π (a : ordinal.{u}), a < o → ordinal.{(max u v)}),
    bsup._match_1 o w e f ≤ a ↔ ∀ i h, f i h ≤ a with
-| _, ⟨α, r, _⟩, rfl, f := by rw [bsup._match_1, sup_le]; exact
+| _, ⟨α, r, _⟩, rfl, f := by rw [bsup._match_1, sup_le]; exactI
   ⟨λ H i h, by simpa using H (enum r i h), λ H b, H _ _⟩
 end
 
@@ -1905,7 +1913,8 @@ theorem is_normal.bsup {f} (H : is_normal f)
   {o : ordinal} : ∀ (g : Π a < o, ordinal) (h : o ≠ 0),
   f (bsup o g) = bsup o (λ a h, f (g a h)) :=
 induction_on o $ λ α r _ g h,
-by rw [bsup_type, H.sup (type_ne_zero_iff_nonempty.1 h), bsup_type]
+by resetI; rw [bsup_type,
+     H.sup (type_ne_zero_iff_nonempty.1 h), bsup_type]
 
 /-- The ordinal exponential, defined by transfinite recursion. -/
 def power (a b : ordinal) : ordinal :=

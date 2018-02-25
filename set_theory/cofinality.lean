@@ -51,7 +51,7 @@ namespace ordinal
   interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
 quot.lift_on o (λ ⟨α, r, _⟩,
-  @order.cof α (λ x y, ¬ r y x) ⟨λ a, by apply irrefl⟩) $
+  @order.cof α (λ x y, ¬ r y x) ⟨λ a, by resetI; apply irrefl⟩) $
 λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩, begin
   show @order.cof α (λ x y, ¬ r y x) ⟨_⟩ = @order.cof β (λ x y, ¬ s y x) ⟨_⟩,
   refine cardinal.lift_inj.1 (@order_iso.cof _ _ _ _ ⟨_⟩ ⟨_⟩ _),
@@ -85,7 +85,7 @@ theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
 let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
     T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
 begin
-  suffices,
+  resetI, suffices,
   { refine ⟨T, this,
       le_antisymm _ (cardinal.ord_le.2 $ cof_type_le T this)⟩,
     rw [← e, e'],
@@ -129,6 +129,7 @@ end
 
 theorem cof_le_card (o) : cof o ≤ card o :=
 induction_on o $ λ α r _, begin
+  resetI,
   have : mk (@set.univ α) = card (type r) :=
     quotient.sound ⟨equiv.set.univ _⟩,
   rw ← this, exact cof_type_le set.univ (λ a, ⟨a, ⟨⟩, irrefl a⟩)
@@ -141,7 +142,7 @@ by simpa using cof_le_card c.ord
 le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 
 @[simp] theorem cof_eq_zero {o} : cof o = 0 ↔ o = 0 := 
-⟨induction_on o $ λ α r _ z, by exact
+⟨induction_on o $ λ α r _ z, by exactI
   let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_empty.2 $
   λ ⟨a⟩, let ⟨b, h, _⟩ := hl a in
   ne_zero_iff_nonempty.2 (by exact ⟨⟨_, h⟩⟩) (e.trans z),
@@ -163,6 +164,7 @@ end
 
 @[simp] theorem cof_eq_one_iff_is_succ {o} : cof.{u} o = 1 ↔ ∃ a, o = succ a := 
 ⟨induction_on o $ λ α r _ z, begin
+  resetI,
   rcases cof_eq r with ⟨S, hl, e⟩, rw z at e,
   cases ne_zero_iff_nonempty.1 (by rw e; exact one_ne_zero) with a,
   refine ⟨typein r a, eq.symm $ quotient.sound
@@ -185,6 +187,7 @@ end, λ ⟨a, e⟩, by simp [e]⟩
 
 @[simp] theorem cof_add (a b : ordinal) : b ≠ 0 → cof (a + b) = cof b :=
 induction_on a $ λ α r _, induction_on b $ λ β s _ b0, begin
+  resetI,
   change cof (type _) = _,
   refine eq_of_forall_le_iff (λ c, _),
   rw [le_cof_type, le_cof_type],
@@ -210,7 +213,7 @@ end
 
 @[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord = cof o :=
 le_antisymm (le_trans (cof_le_card _) (by simp)) $
-induction_on o $ λ α r _, by exact
+induction_on o $ λ α r _, by exactI
 let ⟨S, hS, e₁⟩ := ord_cof_eq r,
     ⟨T, hT, e₂⟩ := cof_eq (subrel r S) in begin
   rw e₁ at e₂, rw ← e₂,

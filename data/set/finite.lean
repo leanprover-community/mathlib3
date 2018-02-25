@@ -96,7 +96,7 @@ finset.ext.mpr $ by simp
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)
   (H0 : C ∅) (H1 : ∀ {a s}, a ∉ s → finite s → C s → C (insert a s)) : C s :=
-let ⟨t⟩ := h in by exact
+let ⟨t⟩ := h in by exactI
 match s.to_finset, @mem_to_finset _ s _ with
 | ⟨l, nd⟩, al := begin
     change ∀ a, a ∈ l ↔ a ∈ s at al,
@@ -202,7 +202,7 @@ instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintyp
 fintype_of_finset (s.to_finset.product t.to_finset) $ by simp
 
 lemma finite_prod {s : set α} {t : set β} : finite s → finite t → finite (set.prod s t)
-| ⟨hs⟩ ⟨ht⟩ := by exact ⟨set.fintype_prod s t⟩
+| ⟨hs⟩ ⟨ht⟩ := by exactI ⟨set.fintype_prod s t⟩
 
 end set
 

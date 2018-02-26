@@ -20,9 +20,9 @@ variables (β : α → Type v)
 
 local prefix `♯`:0 := cast (by simp [*] <|> cc <|> solve_by_elim)
 
-namespace coinduction.approx
-
 local attribute [instance, priority 0] classical.prop_decidable
+
+namespace coinduction.approx
 
 /-
 coinductive ind {α : Type u} (β : α → Type v) : Type (max u v)
@@ -133,12 +133,13 @@ def select' : ∀ {n : ℕ}, cofix_a β n → path' β → roption α
  | ._ (cofix_a.continue _) _ := roption.none
  | (succ _) (cofix_a.intro y' ch) [] := return y'
  | (succ _) (cofix_a.intro y' ch) (⟨y, i⟩ :: ys) :=
-roption.assert (β y = β y') (λ h, select' (ch $ cast h i) ys)
+assert (y = y') $ λ h,
+select' (ch $ ♯ i) ys
 
 def subtree' : ∀ {n : ℕ} (ps : path' β) (x : cofix_a β (n + ps.length)), roption (cofix_a β n)
  | n [] t := return t
  | n (⟨y, i⟩ :: ys) (cofix_a.intro y' ch) :=
-roption.assert (y = y') $ λ h,
+assert (y = y') $ λ h,
 subtree' ys (ch $ ♯i)
 
 open list
@@ -436,6 +437,11 @@ cofix.cases f x
 lemma head_mk (x : α) (ch : β x → cofix β)
 : head (cofix.mk x ch) = x :=
 rfl
+
+@[simp]
+lemma cases_mk {r : cofix β → Sort*} (x : α) (ch : β x → cofix β) (f : Π x (ch : β x → cofix β), r (cofix.mk x ch))
+: cofix.cases f (cofix.mk x ch) = f x ch :=
+sorry
 
 @[simp]
 lemma head_corec  (i : X)

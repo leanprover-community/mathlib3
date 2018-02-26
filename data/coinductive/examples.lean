@@ -61,6 +61,38 @@ def l_two_equiv (A : Type) : l_two_tree A ≃ l_two_tree_intl A :=
                     congr ; funext x ; cases x ; simp } }
 
 -- construct one infinite tree and print part of it
+def mk_tree : ℕ → l_two_tree_intl ℕ :=
+cofix.corec $ λ n,
+if n % 2 = 0 then
+⟨ cons₂ n , λ i : bool, if i then n+1 else n+2 ⟩
+else
+⟨ cons n , λ _, n+1 ⟩
+
+open nat
+def to_bin_tree : l_two_tree_intl ℕ → ℕ → bin_tree ℕ
+ | t (succ n) :=
+match of_intl t with
+ | l_two_tree.nil := bin_tree.empty
+ | (l_two_tree.cons x t') := bin_tree.node (bin_tree.leaf x) (to_bin_tree t' n)
+ | (l_two_tree.cons₂ x t₀ t₁) := bin_tree.node (bin_tree.leaf x)
+                                               (bin_tree.node (to_bin_tree t₀ n)
+                                                              (to_bin_tree t₁ n))
+end
+ | _ 0 := bin_tree.empty
+
+#reduce to_bin_tree (mk_tree 0) 3
+/-
+bin_tree.node (bin_tree.leaf 0)
+  (bin_tree.node
+     (bin_tree.node (bin_tree.leaf 1) (bin_tree.node (bin_tree.leaf 2) (bin_tree.node bin_tree.empty bin_tree.empty)))
+     (bin_tree.node (bin_tree.leaf 2)
+        (bin_tree.node (bin_tree.node (bin_tree.leaf 3) bin_tree.empty)
+           (bin_tree.node (bin_tree.leaf 4) (bin_tree.node bin_tree.empty bin_tree.empty)))))
+
+-/
+#eval bin_tree.to_list $ to_bin_tree (mk_tree 0) 3
+-- [0, 1, 2, 2, 3, 4]
+
 -- recursion
 
 end examples

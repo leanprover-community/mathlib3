@@ -58,9 +58,9 @@ def l_two_equiv (A : Type) : l_two_tree A ≃ l_two_tree_intl A :=
 , right_inv := by { assume x, apply cofix.cases _ x, intros,
                     dsimp [of_intl],
                     cases i ; simp [of_intl._match_1,to_intl] ;
-                    congr ; funext x ; cases x ; simp }
+                    congr ; funext x ; cases x ; simp } }
 
--- recursion
 -- construct one infinite tree and print part of it
+-- recursion
 
 end examples

@@ -643,3 +643,27 @@ lemma classical.nonempty_pi {α : Sort u} {β : α → Sort v} :
 iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
 
 end nonempty
+
+section hfunext
+universes u v
+variables {α : Sort u} {β : Sort u} {γ : Sort v}
+
+variables (f : α → γ) (g : β → γ)
+variables h₀ : α = β
+variables h₁ : ∀ (x : α) (y : β), x == y → f x = g y
+include h₀ h₁
+lemma hfunext : f == g :=
+begin
+  subst β,
+  apply heq_of_eq,
+  apply funext, intro i,
+  apply h₁,
+  refl,
+end
+
+end hfunext
+
+@[congr]
+lemma pi_congr_eq {a : Sort*} {p q : a → Sort*} (h : ∀ x, p x = q x)
+: (Π x, p x) = Π x, q x :=
+congr_arg (λ r : a → Sort*, ∀ x, r x) (funext h)

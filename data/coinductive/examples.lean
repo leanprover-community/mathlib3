@@ -33,48 +33,68 @@ def branch (A : Type) : l_two_tree_node A → Type
 
 def l_two_tree_intl (A : Type) := cofix (branch A)
 
-inductive l_two_tree' (A X : Type) : Type
+mutual inductive l_two_tree', l_leaf' (A X : Type)
+with l_two_tree' : Type
 | nil {}      : l_two_tree'
-| cons        : A → X → l_two_tree'
-| cons₂       : A → X → X → l_two_tree'
+| cons        : A → l_leaf' → l_two_tree'
+| cons₂       : A → l_leaf' → l_leaf' → l_two_tree'
+with l_leaf' : Type
+| hole {} : X → l_leaf'
+| more : l_two_tree' → l_leaf'
 
+@[reducible]
 def  l_two_tree (A : Type) := l_two_tree' A (l_two_tree_intl A)
+@[reducible]
+def l_leaf (A : Type) := l_leaf' A (l_two_tree_intl A)
 
-def to_intl {A : Type} : l_two_tree A → l_two_tree_intl A
+-- inductive tree (A :
+
+mutual def to_intl', to_intl {A : Type}
+with to_intl' : l_leaf A → l_two_tree_intl A
+| (l_leaf'.hole t) := t
+| (l_leaf'.more t) := to_intl t
+with to_intl : l_two_tree A → l_two_tree_intl A
 | l_two_tree'.nil := cofix.mk nil empty.elim
-| (l_two_tree'.cons x t) := cofix.mk (cons x) (λ _, t)
-| (l_two_tree'.cons₂ x t₀ t₁) := cofix.mk (cons₂ x) (λ i : bool, if i then t₀ else t₁)
+| (l_two_tree'.cons x t) := cofix.mk (cons x) (λ _, to_intl' t)
+| (l_two_tree'.cons₂ x t₀ t₁) := cofix.mk (cons₂ x) (λ i : bool, if i then to_intl' t₀ else to_intl' t₁)
 
 def of_intl {A : Type} : l_two_tree_intl A → l_two_tree A :=
 cofix.cases $ λ i,
 match i with
 | nil := λ ch, l_two_tree'.nil
-| (cons x) := λ ch, l_two_tree'.cons x (ch ())
-| (cons₂ x) := λ ch, l_two_tree'.cons₂ x (ch tt) (ch ff)
+| (cons x) := λ ch, l_two_tree'.cons x (l_leaf'.hole $ ch ())
+| (cons₂ x) := λ ch, l_two_tree'.cons₂ x (l_leaf'.hole $ ch tt) (l_leaf'.hole $ ch ff)
 end
 
-def l_two_equiv (A : Type) : l_two_tree A ≃ l_two_tree_intl A :=
-{ to_fun := to_intl
-, inv_fun := of_intl
-, left_inv := by { assume x, cases x ; simp [to_intl,of_intl], }
-, right_inv := by { assume x, apply cofix.cases _ x, intros,
-                    dsimp [of_intl],
-                    cases i ; simp [of_intl._match_1,to_intl] ;
-                    congr ; funext x ; cases x ; simp } }
+-- def l_two_equiv (A : Type) : l_two_tree A ≃ l_two_tree_intl A :=
+-- { to_fun := to_intl
+-- , inv_fun := of_intl
+-- , left_inv := by { assume x, cases x ; simp [to_intl,of_intl] ; admit }
+-- , right_inv := by { assume x, apply cofix.cases _ x, intros,
+--                     dsimp [of_intl],
+--                     cases i ; simp [of_intl._match_1,to_intl] ;
+--                     congr ; funext x ; cases x ; admit } }
 
 -- corecursion
-def l_two_tree.corec {A} {X : Sort*}
-  (f : Π z, X → (X → z) → l_two_tree' A z)
-  (x₀ : X)
-: l_two_tree A :=
-of_intl $
-  cofix.corec (λ x,
-    match f X x id with
+def corec_next_state {A X} : Π x : l_two_tree' A X, Σ n, branch A n → l_leaf' A X
      | l_two_tree'.nil := ⟨ nil, empty.elim ⟩
      | (l_two_tree'.cons x t) := ⟨ cons x, λ _, t ⟩
      | (l_two_tree'.cons₂ x t₀ t₁) := ⟨ cons₂ x, λ i : bool, if i then t₀ else t₁ ⟩
+
+def l_two_tree.corec {A} {X : Sort*}
+  (f : Π z, X → (X → l_leaf' A z) → l_two_tree' A z)
+  (x₀ : X)
+: l_two_tree A :=
+of_intl $
+  cofix.corec (λ x : l_leaf' A X,
+    match x with
+     | (l_leaf'.hole x') :=
+        corec_next_state $ f _ x' l_leaf'.hole
+     | (l_leaf'.more t) := corec_next_state t
     end)
-    x₀
+    (l_leaf'.hole x₀)
+
+open l_leaf' (more)
 
 def mk_tree : ℕ → l_two_tree ℕ :=
 l_two_tree.corec $ λ z n mk_tree,
@@ -85,60 +105,50 @@ else if n % 10 = 7 then
 else
   l_two_tree'.cons₂ n (mk_tree $ n+1) (mk_tree $ n+2)
 
-def l_two_tree.corec' {A} {X : Sort*}
-  (f : Π z, X → (X → z) → l_two_tree' A (l_two_tree' A z))
-  (s₀ : X)
-: l_two_tree A :=
-of_intl $
-  cofix.corec
-  (λ s : X ⊕ l_two_tree' A X,
-        match s with
-         | (sum.inl s') :=
-           match f X s' id with
-            | l_two_tree'.nil := ⟨ l_two_tree_node.nil, empty.elim ⟩
-            | (l_two_tree'.cons x t) := ⟨ l_two_tree_node.cons x, λ _, sum.inr t ⟩
-            | (l_two_tree'.cons₂ x t₀ t₁) := ⟨ l_two_tree_node.cons₂ x, λ b : bool, sum.inr (if b then t₀ else t₁) ⟩
-           end
-         | (sum.inr s) :=
-           match s with
-            | l_two_tree'.nil := ⟨ l_two_tree_node.nil, empty.elim ⟩
-            | (l_two_tree'.cons x t) := ⟨ l_two_tree_node.cons x, λ _, sum.inl t ⟩
-            | (l_two_tree'.cons₂ x t₀ t₁) := ⟨ l_two_tree_node.cons₂ x, λ b : bool, sum.inl (if b then t₀ else t₁) ⟩
-           end
-        end )
-  (sum.inl s₀ : X ⊕ l_two_tree' A X)
-
 def mk_tree' : ℕ → l_two_tree ℕ :=
-l_two_tree.corec' $ λ z n mk_tree,
-l_two_tree'.cons₂ n (l_two_tree'.cons (n+1) (mk_tree $ n+1)) (l_two_tree'.cons (n+2) (mk_tree $ n+2))
+l_two_tree.corec $ λ z n mk_tree,
+l_two_tree'.cons₂ n (more $ l_two_tree'.cons (n+1) (mk_tree $ n+1))
+                    (more $ l_two_tree'.cons (n+2) (mk_tree $ n+2))
 
 
 open nat
-def to_bin_tree_aux : l_two_tree_intl ℕ → ℕ → bin_tree ℕ
- | t (succ n) :=
-match of_intl t with
- | l_two_tree'.nil := bin_tree.empty
- | (l_two_tree'.cons x t') := bin_tree.node (bin_tree.leaf x) (to_bin_tree_aux t' n)
- | (l_two_tree'.cons₂ x t₀ t₁) := bin_tree.node (bin_tree.leaf x)
-                                               (bin_tree.node (to_bin_tree_aux t₀ n)
-                                                              (to_bin_tree_aux t₁ n))
+mutual def to_bin_tree_aux, to_bin_tree
+with to_bin_tree_aux : ℕ → l_leaf ℕ → bin_tree ℕ
+ | (succ n) :=
+λ t,
+match t with
+ | (more t) := to_bin_tree n t
+ | (l_leaf'.hole x) := to_bin_tree n (of_intl x)
 end
- | _ 0 := bin_tree.empty
+ | 0 := λ _, bin_tree.empty
+with to_bin_tree : ℕ → l_two_tree ℕ → bin_tree ℕ
+ | (succ n) :=
+λ t,
+match t with
+ | l_two_tree'.nil := bin_tree.empty
+ | (l_two_tree'.cons x t') := bin_tree.node (bin_tree.leaf x) (to_bin_tree_aux n t')
+ | (l_two_tree'.cons₂ x t₀ t₁) := bin_tree.node (bin_tree.leaf x)
+                                               (bin_tree.node (to_bin_tree_aux n t₀)
+                                                              (to_bin_tree_aux n t₁))
+end
+ | 0 := λ _, bin_tree.empty
 
-def to_bin_tree (t : l_two_tree ℕ) : ℕ → bin_tree ℕ :=
-to_bin_tree_aux (to_intl t)
+def bin_tree.repr {α} [has_repr α] : bin_tree α → string
+ | bin_tree.empty := "⊥"
+ | (bin_tree.leaf x) := repr x
+ | (bin_tree.node t₀ t₁) := "(node " ++ bin_tree.repr t₀ ++ " " ++ bin_tree.repr t₁ ++ ")"
 
-#reduce to_bin_tree (mk_tree 0) 3
+instance {α} [has_repr α] : has_repr (bin_tree α) :=
+{ repr := bin_tree.repr }
+
+#eval to_bin_tree 3 (mk_tree 0)
+/- (node 0 (node 1 (node ⊥ ⊥))) -/
+#eval to_bin_tree 5 (mk_tree 0)
+-- (node 0 (node 1 (node (node 2 (node ⊥ ⊥)) (node 3 (node ⊥ ⊥)))))
+
+#eval to_bin_tree 7 (mk_tree' 0)
 /-
-bin_tree.node (bin_tree.leaf 0)
-  (bin_tree.node (bin_tree.leaf 1)
-     (bin_tree.node (bin_tree.node (bin_tree.leaf 2) (bin_tree.node bin_tree.empty bin_tree.empty))
-        (bin_tree.node (bin_tree.leaf 3) (bin_tree.node bin_tree.empty bin_tree.empty))))
+(node 0 (node (node 1 (node 1 (node (node 2 ⊥) (node 3 ⊥))))
+              (node 2 (node 2 (node (node 3 ⊥) (node 4 ⊥))))))
 -/
-#eval bin_tree.to_list $ to_bin_tree (mk_tree 0) 5
--- [0, 1, 2, 3, 4, 5, 4, 5, 6, 3, 4, 5, 6, 5, 6]
-
-#eval bin_tree.to_list $ to_bin_tree (mk_tree' 0) 7
--- [0, 1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 4, 4, 5, 5, 2, 2, 3, 3, 4, 4, 5, 5, 4, 4, 5, 5, 6, 6]
-
 end examples

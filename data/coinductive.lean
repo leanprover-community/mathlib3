@@ -156,7 +156,7 @@ begin
   { cases ps_hd with y' i,
     cases x with n y ch,
     { dsimp [select'], refl },
-    by_cases (β y' = β y),
+    by_cases (y' = y),
     { simp [select',assert_if_pos,*],
       apply ps_ih, apply lt_of_succ_lt_succ Hg, },
     { simp [select',assert_if_neg,*], } },
@@ -484,7 +484,7 @@ begin
   simp [children',select'], intros,
   rw assert_if_pos,
   { congr, apply eq_of_heq, transitivity i, apply cast_heq, assumption, },
-  { congr, simp [head], rw [head_succ' _ (length p + 1) x_approx x_consistent],
+  { dsimp [head], rw [head_succ' _ (length p + 1) x_approx x_consistent],
     change head' (x_approx _) = _,
     rw H, refl },
 end

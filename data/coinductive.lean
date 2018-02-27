@@ -9,8 +9,6 @@ Work in progress
 -/
 import data.pfun
 
-import data.stream
-
 universes u v w
 
 open nat function roption list
@@ -127,16 +125,16 @@ begin
   apply n_ih,
 end
 
-abbreviation path' (β : α → Type v) := list (Σ i, β i)
+def path (β : α → Type v) := list (Σ i, β i)
 
-def select' : ∀ {n : ℕ}, cofix_a β n → path' β → roption α
+def select' : ∀ {n : ℕ}, cofix_a β n → path β → roption α
  | ._ (cofix_a.continue _) _ := roption.none
  | (succ _) (cofix_a.intro y' ch) [] := return y'
  | (succ _) (cofix_a.intro y' ch) (⟨y, i⟩ :: ys) :=
 assert (y = y') $ λ h,
 select' (ch $ ♯ i) ys
 
-def subtree' : ∀ {n : ℕ} (ps : path' β) (x : cofix_a β (n + ps.length)), roption (cofix_a β n)
+def subtree' : ∀ {n : ℕ} (ps : path β) (x : cofix_a β (n + ps.length)), roption (cofix_a β n)
  | n [] t := return t
  | n (⟨y, i⟩ :: ys) (cofix_a.intro y' ch) :=
 assert (y = y') $ λ h,
@@ -145,7 +143,7 @@ subtree' ys (ch $ ♯i)
 open list
 
 lemma select_of_lt_length' {n : ℕ}
-  {ps : path' β}
+  {ps : path β}
   {x : cofix_a β n}
   (Hg : n < ps.length)
 : @select' α β _ x ps = roption.none :=
@@ -164,20 +162,20 @@ end
 
 @[simp]
 lemma select_cons' {n : ℕ}
-  {ps : path' β}
+  {ps : path β}
   {y : α} {i : β y} {ch : β y → cofix_a β (n + length ps)}
 : select' (cofix_a.intro y ch) (⟨y,i⟩ :: ps) = select' (ch i) ps :=
 by simp [select',assert_if_pos,cast_eq]
 
 @[simp, priority 0]
 lemma subtree_cons {n : ℕ}
-  {ps : path' β}
+  {ps : path β}
   {y : α} {i : β y} {ch : β y → cofix_a β (n + length ps)}
 : subtree' (⟨y,i⟩ :: ps) (cofix_a.intro y ch) = subtree' ps (ch i) :=
 by simp [subtree',assert_if_pos,cast_eq]
 
 lemma subtree_cons_of_ne {n : ℕ}
-  {ps : path' β}
+  {ps : path β}
   {y y' : α} {i : β y} {ch : β y' → cofix_a β (n + length ps)}
   (Hne : y ≠ y')
 : subtree' (⟨y,i⟩ :: ps) (cofix_a.intro y' ch) = none :=
@@ -186,7 +184,7 @@ by { simp [*,subtree',assert_if_neg], refl }
 @[simp]
 lemma mem_subtree_cons_iff {n : ℕ}
   {x : cofix_a β n}
-  {ps : path' β}
+  {ps : path β}
   {y y' : α} {i : β y} {ch : β y' → cofix_a β (n + length ps)}
 : x ∈ subtree' (⟨y,i⟩ :: ps) (cofix_a.intro y' ch) ↔ ∃ h : y' = y, x ∈ subtree' ps (ch $ ♯i) :=
 begin
@@ -234,7 +232,7 @@ begin
     apply H, refl }
 end
 
-lemma agree_of_mem_subtree' (ps : path' β) {f g : Π n : ℕ, cofix_a β n}
+lemma agree_of_mem_subtree' (ps : path β) {f g : Π n : ℕ, cofix_a β n}
  (Hg : all_agree g)
  (Hsub : ∀ (x : ℕ), f x ∈ subtree' ps (g (x + list.length ps)))
 : all_agree f :=
@@ -292,7 +290,7 @@ rfl
 lemma ext_aux {n : ℕ} (x y : cofix_a β (succ n)) (z : cofix_a β n)
   (hx : agree z x)
   (hy : agree z y)
-  (hrec : ∀ (ps : path' β),
+  (hrec : ∀ (ps : path β),
              (select' x ps).dom →
              (select' y ps).dom →
              n = ps.length →
@@ -458,7 +456,7 @@ lemma children_cast_eq_of_eq {x} (y : cofix β) {i : β (head y)}
 : children x (♯ i) = children y i :=
 by { subst y, refl, }
 
-def select : ∀ (x : cofix β) (ps : path' β), roption α
+def select : ∀ (x : cofix β) (ps : path β), roption α
  | ⟨approx,H⟩ ps := select' (approx $ succ ps.length) ps
 
 @[simp]
@@ -493,13 +491,13 @@ lemma dom_select_cons (x : cofix β) (y i p)
 : (select x (⟨y,i⟩ :: p)).dom → y = head x :=
 sorry
 
-def subtree : Π (x : cofix β) (ps : path' β), roption (cofix β)
+def subtree : Π (x : cofix β) (ps : path β), roption (cofix β)
  | ⟨approx, consistent⟩ ps :=
 do ⟨f,Hf⟩ ← all_or_nothing (λ n, @subtree' α β _ ps (approx (n + ps.length))),
    return (⟨ f
    , assume _, agree_of_mem_subtree' _ consistent Hf _ ⟩ )
 
-def child (x : cofix β) (ps : path' β)
+def child (x : cofix β) (ps : path β)
           (H : (subtree x ps).dom) (i : β (head ((subtree x ps).get H)))
 : cofix β :=
 children ((subtree x ps).get H) i
@@ -548,7 +546,7 @@ lemma child_cons (x : cofix β) {y i p}
 sorry
 
 lemma ext (x y : cofix β)
-  (H : ∀ (ps : path' β), (select x ps).dom →
+  (H : ∀ (ps : path β), (select x ps).dom →
                          (select y ps).dom →
                          select x ps = select y ps)
 : x = y :=
@@ -575,7 +573,7 @@ section bisim
         (∀ i j : β (head _), i == j → children s₁ i ~ children s₂ j)
 
   theorem nth_of_bisim (bisim : is_bisimulation R) :
-     ∀ (s₁ s₂) (ps : path' β)
+     ∀ (s₁ s₂) (ps : path β)
        (H₁ : (select s₁ ps).dom)
        (H₂ : (select s₂ ps).dom),
        s₁ ~ s₂ →
@@ -648,14 +646,6 @@ begin
 end
 
 variables {β}
-
--- lemma coinduction {s₁ s₂ : cofix β}
---   (hh : head s₁ = head s₂)
---   (ht : ∀ {γ : Sort u} (fr : cofix β → γ),
---           fr s₁ = fr s₂ →
---           ∀ i j, i == j →
---                  fr (children s₁ i) = fr (children s₂ j))
--- : s₁ = s₂ :=
 
 lemma coinduction {s₁ s₂ : cofix β}
   (hh : head s₁ = head s₂)

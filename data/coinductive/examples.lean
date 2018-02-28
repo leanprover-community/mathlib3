@@ -151,4 +151,11 @@ instance {α} [has_repr α] : has_repr (bin_tree α) :=
 (node 0 (node (node 1 (node 1 (node (node 2 ⊥) (node 3 ⊥))))
               (node 2 (node 2 (node (node 3 ⊥) (node 4 ⊥))))))
 -/
+
+example {A} (p q : l_two_tree_intl A) : p = q :=
+begin
+  co_cases p,
+  admit
+end
+
 end examples

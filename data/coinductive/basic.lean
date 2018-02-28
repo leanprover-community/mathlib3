@@ -647,7 +647,7 @@ end
 
 variables {β}
 
-lemma coinduction {s₁ s₂ : cofix β}
+lemma coinduction (s₁ s₂ : cofix β)
   (hh : head s₁ = head s₂)
   (ht : ∀ (FR : cofix β → cofix β → Prop),
           reflexive FR →
@@ -679,7 +679,7 @@ def corec_on {X : Type*} (x₀ : X) (f : X → (Σ (y : α), β y → X)) : cofi
 cofix.corec f x₀
 
 theorem corec_eq {X : Type*} (f : X → (Σ (y : α), β y → X)) (x₀ : X)
-: cofix.corec f x₀ = sigma.rec_on (f x₀) (λ y ch, cofix.mk y (λ i, cofix.corec f (ch i))) :=
+: cofix.corec f x₀ = cofix.mk (f x₀).1 (λ i, cofix.corec f ((f x₀).2 i)) :=
 begin
   cases Hf : f x₀, simp,
   apply coinduction,

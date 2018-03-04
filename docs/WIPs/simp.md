@@ -1,6 +1,6 @@
 # Simp #
 
-The `simp` tactic works by using a prolog-like search to try and simplify the goal. You can actually watch what it's doing (which to me looks like a whole bunch of random stuff until it stumbles upon the answer) by writing `set_option trace.simplify true` in your code. If you do this in the below
+The `simp` tactic works by applying "a conditional term rewriting system" (it says here), to try and simplify the goal. You can actually watch what it's doing (which to me looks like a whole bunch of random stuff until it stumbles upon the answer) by writing `set_option trace.simplify true` in your code. If you do this in the below
 
 ```lean
 namespace xena

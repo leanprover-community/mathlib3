@@ -100,7 +100,7 @@ lemma uniform_space.core_eq : ∀{u₁ u₂ : uniform_space.core α}, u₁.unifo
   metric space. It consists of a filter on `α × α` called the "uniformity", which
   satisfies properties analogous to the reflexivity, symmetry, and triangle properties
   of a metric.
-  
+
   A metric space has a natural uniformity, and a uniform space has a natural topology.
   A topological group also has a natural uniformity, even when it is not metrizable. -/
 class uniform_space (α : Type u) extends topological_space α, uniform_space.core α :=
@@ -999,8 +999,7 @@ let ⟨s, hs, ss_t⟩ := comp_mem_uniformity_sets ht in
     ss_t ⟨b₂, show ((b₁, a₂).1, b₂) ∈ s, from hb, ba₂⟩⟩⟩
 
 lemma vmap_quotient_eq_uniformity : vmap (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) uniformity = uniformity :=
-le_antisymm vmap_quotient_le_uniformity
-  (assume s ⟨t, ht, hs⟩, uniformity.upwards_sets ht hs)
+le_antisymm vmap_quotient_le_uniformity le_vmap_map
 
 lemma complete_space_separation [h : complete_space α] :
   complete_space (quotient (separation_setoid α)) :=

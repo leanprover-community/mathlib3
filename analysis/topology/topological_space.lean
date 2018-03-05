@@ -384,7 +384,7 @@ is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
 
-/-- A family of sets in `set α` is locally finite if at every point `x:α`, 
+/-- A family of sets in `set α` is locally finite if at every point `x:α`,
   there is a neighborhood of `x` which meets only finitely many sets in the family -/
 def locally_finite (f : β → set α) :=
 ∀x:α, ∃t∈(nhds x).sets, finite {i | f i ∩ t ≠ ∅ }
@@ -412,7 +412,7 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   begin
     rw [le_principal_iff],
     apply @filter.inter_mem_sets _ (nhds a) _ _ h_sets,
-    apply @filter.Inter_mem_sets _ _ (nhds a) _ _ h_fin,
+    apply @filter.Inter_mem_sets _ (nhds a) _ _ _ h_fin,
     exact assume i h, this i
   end
   ... ≤ principal (- ⋃i, f i) :

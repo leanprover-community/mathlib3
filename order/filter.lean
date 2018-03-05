@@ -136,6 +136,11 @@ end filter
 namespace tactic.interactive
 open tactic interactive
 
+/-- `filter [t1, ⋯, tn]` replaces a goal of the form `s ∈ f.sets`
+and terms `h1 : t1 ∈ f.sets, ⋯, tn ∈ f.sets` with `∀x, x ∈ t1 → ⋯ → x ∈ tn → x ∈ s`.
+
+`filter [t1, ⋯, tn] e` is a short form for `{ filter [t1, ⋯, tn], exact e }`.
+-/
 meta def filter_upwards
   (s : parse types.pexpr_list)
   (e' : parse $ optional types.texpr) : tactic unit :=
@@ -425,7 +430,7 @@ begin
     simp only [ih, finset.forall_mem_insert, lattice.infi_insert_finset, mem_inf_sets,
       exists_prop, iff_iff_implies_and_implies, exists_imp_distrib, and_imp, and_assoc] {contextual := tt},
     split,
-    { intros t₁ ht₁ t₂ p hp ht₂ ht, 
+    { intros t₁ ht₁ t₂ p hp ht₂ ht,
       existsi function.update p a t₁,
       have : ∀a'∈s, function.update p a t₁ a' = p a',
         from assume a' ha',
@@ -836,7 +841,7 @@ by rwa [tendsto, map_map]
 lemma tendsto_vmap {f : α → β} {x : filter β} : tendsto f (vmap f x) x :=
 map_vmap_le
 
-lemma tendsto_vmap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} : 
+lemma tendsto_vmap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} :
   tendsto f a (c.vmap g) ↔ tendsto (g ∘ f) a c :=
 ⟨assume h, h.comp tendsto_vmap, assume h, map_le_iff_le_vmap.mp $ by rwa [map_map]⟩
 
@@ -922,7 +927,7 @@ lemma vmap_lift_eq {m : γ → β} (hg : monotone g) :
 have monotone (vmap m ∘ g),
   from monotone_comp hg monotone_vmap,
 filter_eq $ set.ext begin
-  simp only [hg, @mem_lift_sets _ _ f _ this, vmap, mem_lift_sets, mem_set_of_eq, exists_prop, 
+  simp only [hg, @mem_lift_sets _ _ f _ this, vmap, mem_lift_sets, mem_set_of_eq, exists_prop,
     function.comp_apply],
   exact λ s,
    ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩,

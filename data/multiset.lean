@@ -877,6 +877,8 @@ quot.induction_on s (λ l H, mem_pmap) H
   (s H) : card (pmap f s H) = card s :=
 quot.induction_on s (λ l H, length_pmap) H
 
+@[simp] theorem card_attach {m : multiset α} : card (attach m) = card m := card_pmap _ _ _
+
 @[simp] lemma attach_zero : (0 : multiset α).attach = 0 := rfl
 
 lemma attach_cons (a : α) (m : multiset α) :

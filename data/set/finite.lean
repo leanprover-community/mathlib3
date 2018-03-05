@@ -13,7 +13,6 @@ open set lattice function
 universes u v w
 variables {α : Type u} {β : Type v} {ι : Sort w}
 
-
 namespace set
 
 /-- A set is finite if the subtype is a fintype, i.e. there is a
@@ -262,3 +261,25 @@ by simp [set.set_eq_def]
 by simp [set.set_eq_def]
 
 end finset
+
+namespace set
+
+lemma infinite_univ_nat : infinite (univ : set ℕ) :=
+assume (h : finite (univ : set ℕ)),
+let ⟨n, hn⟩ := finset.exists_nat_subset_range h.to_finset in
+have n ∈ finset.range n, from finset.subset_iff.mpr hn $ by simp,
+by simp * at *
+
+lemma not_injective_nat_fintype [fintype α] [decidable_eq α] {f : ℕ → α} : ¬ injective f :=
+assume (h : injective f),
+have finite (f '' univ),
+  from finite_subset (finset.finite_to_set $ fintype.elems α) (assume a h, fintype.complete a),
+have finite (univ : set ℕ), from finite_of_finite_image h this,
+infinite_univ_nat this
+
+lemma not_injective_int_fintype [fintype α] [decidable_eq α] {f : ℤ → α} : ¬ injective f :=
+assume hf,
+have injective (f ∘ (coe : ℕ → ℤ)), from injective_comp hf $ assume i j, int.of_nat_inj,
+not_injective_nat_fintype this
+
+end set

@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import data.prod data.nat.pairing logic.function tactic data.set.basic
+import data.prod data.nat.pairing logic.function tactic data.set.lattice
 import algebra.group
 open function
 
@@ -476,6 +476,12 @@ def subtype_equiv_of_subtype {p : α → Prop} : Π (e : α ≃ β), {a : α // 
    assume p, by simp [map_comp, l.f_g_eq_id]; rw [map_id]; refl,
    assume p, by simp [map_comp, r.f_g_eq_id]; rw [map_id]; refl⟩
 
+def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
+  subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=
+⟨λ⟨⟨a, ha⟩, ha'⟩, ⟨a, ha, ha'⟩,
+  λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by cases ha; exact ha_h⟩,
+  assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
+
 end
 
 namespace set
@@ -502,7 +508,7 @@ protected def singleton {α} (a : α) : ({a} : set α) ≃ unit :=
 ⟨λ _, (), λ _, ⟨a, mem_singleton _⟩,
  λ ⟨x, h⟩, by simp at h; subst x,
  λ ⟨⟩, rfl⟩
- 
+
 protected def insert {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s) :
   (insert a s : set α) ≃ (s ⊕ unit) :=
 by rw ← union_singleton; exact
@@ -557,6 +563,29 @@ begin
   have hg := bijective_comp equiv.plift.symm.bijective
     (bijective_comp hf equiv.plift.bijective),
   simp [set.set_coe_cast, (∘), set.range_iff_surjective.2 hg.2],
+end
+
+section
+open set
+set_option eqn_compiler.zeta true
+
+noncomputable def set.bUnion_eq_sigma_of_disjoint {α β} {s : set α} {t : α → set β}
+  (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=
+let f : (Σi:s, t i.val) → (⋃i∈s, t i) := λ⟨⟨a, ha⟩, ⟨b, hb⟩⟩, ⟨b, mem_bUnion ha hb⟩ in
+have injective f,
+  from assume ⟨⟨a₁, ha₁⟩, ⟨b₁, hb₁⟩⟩ ⟨⟨a₂, ha₂⟩, ⟨b₂, hb₂⟩⟩ eq,
+  have b_eq : b₁ = b₂, from congr_arg subtype.val eq,
+  have a_eq : a₁ = a₂, from classical.by_contradiction $ assume ne,
+    have b₁ ∈ t a₁ ∩ t a₂, from ⟨hb₁, b_eq.symm ▸ hb₂⟩,
+    have t a₁ ∩ t a₂ ≠ ∅, from ne_empty_of_mem this,
+    this $ h _ ha₁ _ ha₂ ne,
+  sigma.eq (subtype.eq a_eq) (subtype.eq $ by subst b_eq; subst a_eq),
+have surjective f,
+  from assume ⟨b, hb⟩,
+  have ∃a∈s, b ∈ t a, by simpa using hb,
+  let ⟨a, ha, hb⟩ := this in ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩,
+(equiv.of_bijective ⟨‹injective f›, ‹surjective f›⟩).symm
+
 end
 
 section swap

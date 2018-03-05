@@ -668,6 +668,8 @@ theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s �
 
 theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
+theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
+
 theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
   (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
 by simp [card, image_val_of_inj_on H]
@@ -675,6 +677,24 @@ by simp [card, image_val_of_inj_on H]
 theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α)
   (H : function.injective f) : card (image f s) = card s :=
 card_image_of_inj_on $ λ x _ y _ h, H h
+
+lemma card_eq_of_bijective [decidable_eq α] {s : finset α} {n : ℕ}
+  (f : ∀i, i < n → α)
+  (hf : ∀a∈s, ∃i, ∃h:i<n, f i h = a) (hf' : ∀i (h : i < n), f i h ∈ s)
+  (f_inj : ∀i j (hi : i < n) (hj : j < n), f i hi = f j hj → i = j) :
+  card s = n :=
+have ∀ (a : α), a ∈ s ↔ ∃i (hi : i ∈ range n), f i (mem_range.1 hi) = a,
+  from assume a, ⟨assume ha, let ⟨i, hi, eq⟩ := hf a ha in ⟨i, mem_range.2 hi, eq⟩,
+    assume ⟨i, hi, eq⟩, eq ▸ hf' i (mem_range.1 hi)⟩,
+have s = ((range n).attach.image $ λi, f i.1 (mem_range.1 i.2)),
+  by simpa [ext],
+calc card s = card ((range n).attach.image $ λi, f i.1 (mem_range.1 i.2)) :
+    by rw [this]
+  ... = card ((range n).attach) :
+    card_image_of_injective _ $ assume ⟨i, hi⟩ ⟨j, hj⟩ eq,
+      subtype.eq $ f_inj i j (mem_range.1 hi) (mem_range.1 hj) eq
+  ... = card (range n) : card_attach
+  ... = n : card_range n
 
 lemma card_eq_succ [decidable_eq α] {s : finset α} {a : α} {n : ℕ} :
   s.card = n + 1 ↔ (∃a t, a ∉ t ∧ insert a t = s ∧ card t = n) :=
@@ -693,6 +713,20 @@ eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
 
 lemma card_lt_card [decidable_eq α] {s t : finset α} (h : s ⊂ t) : s.card < t.card :=
 card_lt_of_lt (val_lt_iff.2 h)
+
+lemma card_le_card_of_inj_on [decidable_eq α] [decidable_eq β] {s : finset α} {t : finset β}
+  (f : α → β) (hf : ∀a∈s, f a ∈ t) (f_inj : ∀a₁∈s, ∀a₂∈s, f a₁ = f a₂ → a₁ = a₂) :
+  card s ≤ card t :=
+calc card s = card (s.image f) : by rw [card_image_of_inj_on f_inj]
+  ... ≤ card t : card_le_of_subset $
+    assume x hx, match x, finset.mem_image.1 hx with _, ⟨a, ha, rfl⟩ := hf a ha end
+
+lemma card_le_of_inj_on [decidable_eq α] {n} {s : finset α}
+  (f : ℕ → α) (hf : ∀i<n, f i ∈ s) (f_inj : ∀i j, i<n → j<n → f i = f j → i = j) : n ≤ card s :=
+calc n = card (range n) : (card_range n).symm
+  ... ≤ card s : card_le_card_of_inj_on f
+    (by simp; assumption)
+    (by simp; exact assume a₁ h₁ a₂ h₂, f_inj a₁ a₂ h₁ h₂)
 
 @[elab_as_eliminator] lemma strong_induction_on {p : finset α → Sort*} :
   ∀ (s : finset α), (∀s, (∀t ⊂ s, p t) → p s) → p s

@@ -16,7 +16,7 @@ multiplication appearing. Some more more precise tool is needed: the
 converter mode.  The following code block show to current target after
 each line. Note that the target is prefixed by `|` where normal mode
 shows a goal prefixed by `⊢` (these targets are still called "goals"
-tough).
+though).
 
 ```lean
 example (a b c : ℕ) : a * (b * c) = a * (c * b) :=

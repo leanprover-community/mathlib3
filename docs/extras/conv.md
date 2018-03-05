@@ -1,6 +1,6 @@
-# The converter tactic mode
+# The conversion tactic mode
 
-Inside a tactic block, one can use the keyword `conv` to enter converter
+Inside a tactic block, one can use the keyword `conv` to enter conversion
 mode. This mode allows to travel inside assumptions and goals, even
 inside `λ` binders in them, to apply rewriting or simplifying steps.
 
@@ -13,7 +13,7 @@ are somewhat artificial since the `ring` tactic from
 to enter tactic mode and try `rw mul_comm`. But this transforms to goal
 into `b * c * a = a * (c * b)`, after commuting the very first
 multiplication appearing. Some more more precise tool is needed: the
-converter mode.  The following code block show to current target after
+conversion mode.  The following code block show to current target after
 each line. Note that the target is prefixed by `|` where normal mode
 shows a goal prefixed by `⊢` (these targets are still called "goals"
 though).
@@ -43,7 +43,7 @@ Note that Lean tries to solves the current goal if it became `x = x` (in
 the strict syntactical sense, definitional equality is not enough: one
 needs to conclude by `refl` or `trivial` in this case).
 
-The second main reason to use converter mode is to rewrite under
+The second main reason to use conversion mode is to rewrite under
 binders. Suppose we want to prove `example (λ x : ℕ, 0+x) = (λ x, x)`. 
 The naive first attempt is to enter tactic mode and try `rw zero_add`.
 But this fails with a frustrating 
@@ -92,7 +92,7 @@ end
 ```
 
 As usual, `begin` and `end` can be replaced by curly brackets to
-delimit converter mode and a single tactic invocation can be introduced
+delimit conversion mode and a single tactic invocation can be introduced
 by `by` to get the one liner: 
 
 ```lean
@@ -101,7 +101,7 @@ by conv in (b*c) { rw mul_comm }
 ```
 
 Beware that a well known bug makes Lean printing: "find converter
-failed, pattern was not found" when the tactics inside converter mode
+failed, pattern was not found" when the tactics inside conversion mode
 fail, even if the pattern was actually found.
 
 Of course wild-cards are allowed:
@@ -113,7 +113,7 @@ by conv in (_ * c) { rw mul_comm }
 
 In all those cases, only the first match is affected.
 A more sophisticated version of pattern matching is available inside
-converter mode using the `for` command. The following performs rewriting
+conversion mode using the `for` command. The following performs rewriting
 only for the second and third occurrences of `b * c`:
 
 ```lean
@@ -121,11 +121,11 @@ example (a b c : ℕ) : (b * c) * (b * c) * (b * c) = (b * c) * (c * b)  * (c * 
 by conv { for (b * c) [2, 3] { rw mul_comm } }
 ```
 
-### Other tactics inside converter mode
+### Other tactics inside conversion mode
 
 Besides rewriting using `rw`, one can use `simp`, `dsimp`, `change` and `whnf`.
 The later means "reduces to weak head normal form" and will eventually
 be explained in [Programming in Lean](https://leanprover.github.io/programming_in_lean/#08_Writing_Tactics.html) section 8.4.
 
-Soon, `norm_num` and `ring` will be available in converter mode, but not
+Soon, `norm_num` and `ring` will be available in conversion mode, but not
 yet.

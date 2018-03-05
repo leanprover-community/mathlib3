@@ -7,12 +7,15 @@ Miscellaneous function constructions and lemmas.
 -/
 import logic.basic data.option
 
-universes u v
+universes u v w
 
 namespace function
 
 section
 variables {α : Sort u} {β : Sort v} {f : α → β}
+
+lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : α → β) (a : α) :
+  (f ∘ g) a = f (g a) := rfl
 
 @[simp] theorem injective.eq_iff (I : injective f) {a b : α} :
   f a = f b ↔ a = b :=
@@ -148,5 +151,19 @@ lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
 injective_of_has_left_inverse ⟨f, right_inverse_surj_inv h⟩
 
 end surj_inv
+
+section update
+variables {α : Sort u} {β : α → Sort v} [decidable_eq α]
+
+def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
+if h : a = a' then eq.rec v h.symm else f a
+
+@[simp] lemma update_same {a : α} {v : β a} {f : Πa, β a} : update f a v a = v :=
+dif_pos rfl
+
+@[simp] lemma update_noteq {a a' : α} {v : β a'} {f : Πa, β a} (h : a ≠ a') : update f a' v a = f a :=
+dif_neg h
+
+end update
 
 end function

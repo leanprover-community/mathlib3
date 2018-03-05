@@ -107,9 +107,9 @@ by rw [is_closed, compl_inter]; exact is_open_union h₁ h₂
 
 lemma is_closed_Union {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
-finite.induction_on hs (by simp) $
-λ _ _ _ _ _, by simp; exact
-assume h, is_closed_union (h _ $ or.inl rfl) (by finish)
+finite.induction_on hs
+  (by simp)
+  (by simp [or_imp_distrib, is_closed_union, forall_and_distrib] {contextual := tt})
 
 lemma is_closed_imp [topological_space α] {p q : α → Prop}
   (hp : is_open {x | p x}) (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
@@ -410,17 +410,17 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
 
   calc nhds a ≤ principal (t ∩ (⋂ i∈{i | f i ∩ t ≠ ∅ }, - f i)) :
   begin
-    simp,
+    rw [le_principal_iff],
     apply @filter.inter_mem_sets _ (nhds a) _ _ h_sets,
     apply @filter.Inter_mem_sets _ _ (nhds a) _ _ h_fin,
     exact assume i h, this i
   end
   ... ≤ principal (- ⋃i, f i) :
   begin
-    simp,
-    intro x,
-    simp [not_eq_empty_iff_exists],
-    exact assume xt ht i xfi, ht i x xfi xt xfi
+    simp only [principal_mono, subset_def, mem_compl_eq, mem_inter_eq,
+      mem_Inter_eq, mem_set_of_eq, mem_Union_eq, and_imp, not_exists,
+      not_eq_empty_iff_exists, exists_imp_distrib, (≠)],
+    exact assume x xt ht i xfi, ht i x xfi xt xfi
   end
 
 end locally_finite
@@ -493,11 +493,13 @@ classical.by_contradiction $ assume h,
     ⟨a, ha, (h : f ⊓ nhds a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
     ⟨t, ht₁, (ht₂ : a ∈ t)⟩ := hc₂ ha
   in
-  have f ≤ principal (-t), from infi_le_of_le ⟨{t}, by simp [ht₁], finite_insert _ finite_empty⟩ $
-    principal_mono.mpr $ show s - ⋃₀{t} ⊆ - t, begin simp; exact assume x ⟨_, hnt⟩, hnt end,
+  have f ≤ principal (-t),
+    from infi_le_of_le ⟨{t}, by simp [ht₁], finite_insert _ finite_empty⟩ $
+      principal_mono.mpr $
+        show s - ⋃₀{t} ⊆ - t, begin simp; exact assume x ⟨_, hnt⟩, hnt end,
   have is_closed (- t), from is_open_compl_iff.mp $ by simp; exact hc₁ t ht₁,
   have a ∈ - t, from is_closed_iff_nhds.mp this _ $ neq_bot_of_le_neq_bot h $
-    le_inf inf_le_right (inf_le_left_of_le $ ‹f ≤ principal (- t)›),
+    le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- t)›),
   this ‹a ∈ t›
 
 lemma compact_elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}

@@ -33,6 +33,8 @@ by cases x; simp
 @[simp] lemma map_eq_some {x : option α} {f : α → β} {b : β} : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
+@[simp] lemma seq_some {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
+
 lemma is_some_iff_exists {x : option α} : is_some x ↔ ∃ a, x = some a :=
 by cases x; simp [is_some]; exact ⟨_, rfl⟩
 

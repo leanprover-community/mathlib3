@@ -324,7 +324,7 @@ section
 def arrow_prod_equiv_prod_arrow (α β γ : Type*) : (γ → α × β) ≃ ((γ → α) × (γ → β)) :=
 ⟨λ f, (λ c, (f c).1, λ c, (f c).2),
  λ p c, (p.1 c, p.2 c),
- λ f, funext $ λ c, prod.mk.eta _,
+ λ f, funext $ λ c, prod.mk.eta,
  λ p, by cases p; refl⟩
 
 def arrow_arrow_equiv_prod_arrow (α β γ : Sort*) : (α → β → γ) ≃ (α × β → γ) :=

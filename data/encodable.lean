@@ -123,9 +123,7 @@ private def decode_list : nat → option (list α)
 | (succ v) := match unpair v, unpair_le v with
   | (v₂, v₁), h :=
     have v₂ < succ v, from lt_succ_of_le h,
-    do a ← decode α v₁,
-       l ← decode_list v₂,
-       some (a :: l)
+    (::) <$> decode α v₁ <*> decode_list v₂
   end
 
 instance encodable_list : encodable (list α) :=

@@ -122,15 +122,15 @@ mem_join.1
 theorem mem_join_of_mem {a : α} {L : list (list α)} {l} (lL : l ∈ L) (al : a ∈ l) : a ∈ join L :=
 mem_join.2 ⟨l, lL, al⟩
 
-@[simp] theorem mem_bind {b : β} {l : list α} {f : α → list β} : b ∈ bind l f ↔ ∃ a ∈ l, b ∈ f a :=
+@[simp] theorem mem_bind {b : β} {l : list α} {f : α → list β} : b ∈ list.bind l f ↔ ∃ a ∈ l, b ∈ f a :=
 iff.trans mem_join
   ⟨λ ⟨l', h1, h2⟩, let ⟨a, al, fa⟩ := exists_of_mem_map h1 in ⟨a, al, fa.symm ▸ h2⟩,
   λ ⟨a, al, bfa⟩, ⟨f a, mem_map_of_mem _ al, bfa⟩⟩
 
-theorem exists_of_mem_bind {b : β} {l : list α} {f : α → list β} : b ∈ bind l f → ∃ a ∈ l, b ∈ f a :=
+theorem exists_of_mem_bind {b : β} {l : list α} {f : α → list β} : b ∈ list.bind l f → ∃ a ∈ l, b ∈ f a :=
 mem_bind.1
 
-theorem mem_bind_of_mem {b : β} {l : list α} {f : α → list β} {a} (al : a ∈ l) (h : b ∈ f a) : b ∈ bind l f :=
+theorem mem_bind_of_mem {b : β} {l : list α} {f : α → list β} {a} (al : a ∈ l) (h : b ∈ f a) : b ∈ list.bind l f :=
 mem_bind.2 ⟨a, al, h⟩
 
 /- list subset -/
@@ -959,8 +959,8 @@ by induction n; simp [*, nat.mul_succ]
 @[simp] theorem length_join (L : list (list α)) : length (join L) = sum (map length L) :=
 by induction L; simp *
 
-@[simp] theorem length_bind (l : list α) (f : α → list β) : length (bind l f) = sum (map (length ∘ f) l) :=
-by rw [bind, length_join, map_map]
+@[simp] theorem length_bind (l : list α) (f : α → list β) : length (list.bind l f) = sum (map (length ∘ f) l) :=
+by rw [list.bind, length_join, map_map]
 
 /- all & any, bounded quantifiers over lists -/
 
@@ -2583,7 +2583,7 @@ by simp [nodup, pairwise_join, disjoint_left.symm]
 
 theorem nodup_bind {l₁ : list α} {f : α → list β} : nodup (l₁.bind f) ↔
   (∀ x ∈ l₁, nodup (f x)) ∧ pairwise (λ (a b : α), disjoint (f a) (f b)) l₁ :=
-by simp [bind, nodup_join, pairwise_map, and_comm, and.left_comm];
+by simp [list.bind, nodup_join, pairwise_map, and_comm, and.left_comm];
    rw [show (∀ (l : list β) (x : α), f x = l → x ∈ l₁ → nodup l) ↔
             (∀ (x : α), x ∈ l₁ → nodup (f x)),
        from forall_swap.trans $ forall_congr $ λ_, by simp]

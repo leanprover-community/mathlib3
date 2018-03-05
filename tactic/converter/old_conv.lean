@@ -62,11 +62,16 @@ protected meta def map {α β : Type} (f : α → β) (c : old_conv α) : old_co
   return ⟨f a, e₁, pr⟩
 
 protected meta def bind {α β : Type} (c₁ : old_conv α) (c₂ : α → old_conv β) : old_conv β :=
-λ r e, do
+λ r e,
+  has_bind.bind (c₁ r e) (λ⟨a, e₁, pr₁⟩,
+  has_bind.bind (c₂ a r e₁) (λ⟨b, e₂, pr₂⟩,
+  has_bind.bind (join_proofs r pr₁ pr₂) (λpr, return ⟨b, e₂, pr⟩)))
+/- do -- wrong bind instance something with `name`?
   ⟨a, e₁, pr₁⟩ ← c₁ r e,
   ⟨b, e₂, pr₂⟩ ← c₂ a r e₁,
   pr           ← join_proofs r pr₁ pr₂,
   return ⟨b, e₂, pr⟩
+  -/
 
 meta instance : monad old_conv :=
 { map  := @old_conv.map,

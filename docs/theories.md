@@ -17,6 +17,6 @@ scientists.
 * [Functions between types](theories/functions.md)
 * [Relations on types](theories/relations.md)
 * [Quotients and equivalence classes](theories/quotients.md)
-* [Sets](theories/sets.md)
+* [Sets and set like objects](theories/sets.md)
 * [The natural numbers](theories/naturals.md)
 * [The integers.](theories/integers.md)

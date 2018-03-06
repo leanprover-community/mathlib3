@@ -786,6 +786,17 @@ ext.2 $ by simp [and.left_comm]
 
 end sigma
 
+section pi
+variables {δ : α → Type*} [decidable_eq α] [∀a, decidable_eq (δ a)]
+
+def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
+(s.1.pi (λa, (t a).1)).to_finset
+
+lemma mem_pi {s : finset α} {t : Πa, finset (δ a)} {f : (Πa∈s, δ a)} :
+  f ∈ s.pi t ↔ (∀a (h : a ∈ s), f a h ∈ t a) :=
+by rcases s; rw [pi, multiset.mem_to_finset, multiset.mem_pi]; refl
+end pi
+
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]
 local notation a * b := op a b

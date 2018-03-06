@@ -14,6 +14,23 @@ namespace function
 section
 variables {α : Sort u} {β : Sort v} {f : α → β}
 
+lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a} 
+  (hα : α = α') (h : ∀a a', a == a' → f a == f' a') : f == f' :=
+begin
+  subst hα,
+  have : ∀a, f a == f' a,
+  { intro a, exact h a a (heq.refl a) },
+  have : β = β',
+  { funext a, exact type_eq_of_heq (this a) },
+  subst this,
+  apply heq_of_eq,
+  funext a,
+  exact eq_of_heq (this a)
+end
+
+lemma funext_iff {β : α → Sort*} {f₁ f₂ : Π (x : α), β x} : f₁ = f₂ ↔ (∀a, f₁ a = f₂ a) :=
+iff.intro (assume h a, h ▸ rfl) funext
+
 lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : α → β) (a : α) :
   (f ∘ g) a = f (g a) := rfl
 

@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import data.list.basic data.list.perm data.list.sort order.boolean_algebra
+import logic.function data.list.basic data.list.perm data.list.sort order.boolean_algebra
        algebra.order_functions data.quot algebra.group_power algebra.ordered_group
 open list subtype nat lattice
 
@@ -126,7 +126,6 @@ quot.induction_on s $ assume l hl,
   end
 
 end mem
-
 
 /- subset -/
 section subset
@@ -806,6 +805,26 @@ quot.induction_on s (λ l H, mem_pmap) H
 @[simp] theorem card_pmap {p : α → Prop} (f : Π a, p a → β)
   (s H) : card (pmap f s H) = card s :=
 quot.induction_on s (λ l H, length_pmap) H
+
+section decidable_pi_multiset
+variables {m : multiset α}
+
+protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
+  decidable (∀a∈m, p a) :=
+quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a∈l, p a) $ by simp)
+
+instance decidable_dforall_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
+  decidable (∀a (h : a ∈ m), p a h) :=
+decidable_of_decidable_of_iff
+  (@multiset.decidable_forall_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
+  (iff.intro (assume h a ha, h ⟨a, ha⟩ (mem_attach _ _)) (assume h ⟨a, ha⟩ _, h _ _))
+
+/-- decidable equality for functions whose domain is bounded by multisets -/
+instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (β a)] :
+  decidable_eq (Πa∈m, β a) :=
+assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
+
+end decidable_pi_multiset
 
 /- subtraction -/
 section

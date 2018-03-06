@@ -282,6 +282,18 @@ perm_induction_on p
   (λ x y t₁ t₂ p r b, by simp; rw [lcomm, r b])
   (λ t₁ t₂ t₃ p₁ p₂ r₁ r₂ a, eq.trans (r₁ a) (r₂ a))
 
+lemma rec_heq_of_perm {β : list α → Sort*} {f : Πa l, β l → β (a::l)} {b : β []} {l l' : list α}
+  (hl : perm l l')
+  (f_congr : ∀{a l l' b b'}, perm l l' → b == b' → f a l b == f a l' b')
+  (f_swap : ∀{a a' l b}, f a (a'::l) (f a' l b) == f a' (a::l) (f a l b)) :
+  @list.rec α β b f l == @list.rec α β b f l' :=
+begin
+  induction hl,
+  case list.perm.nil { refl },
+  case list.perm.skip : a l l' h ih { exact f_congr h ih },
+  case list.perm.swap : a a' l { exact f_swap },
+  case list.perm.trans : l₁ l₂ l₃ h₁ h₂ ih₁ ih₂ { exact heq.trans ih₁ ih₂ }
+end
 
 section
 variables {op : α → α → α} [is_associative α op] [is_commutative α op]

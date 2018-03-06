@@ -89,6 +89,45 @@ multiset.induction h₁ h₂ s
 theorem cons_swap (a b : α) (s : multiset α) : a :: b :: s = b :: a :: s :=
 quot.induction_on s $ λ l, quotient.sound $ perm.swap _ _ _
 
+section rec
+variables {C : multiset α → Sort*}
+
+/-- Dependent recursor on multisets.
+
+TODO: should be @[recursor 6], but then the definition of `multiset.pi` failes with a stack
+overflow in `whnf`.
+-/
+protected def rec
+  (C_0 : C 0)
+  (C_cons : Πa m, C m → C (a::m))
+  (C_cons_heq : ∀a a' m b, C_cons a (a'::m) (C_cons a' m b) == C_cons a' (a::m) (C_cons a m b))
+  (m : multiset α) : C m :=
+quotient.hrec_on m (@list.rec α (λl, C ⟦l⟧) C_0 (λa l b, C_cons a ⟦l⟧ b)) $
+  assume l l' h,
+  list.rec_heq_of_perm h
+    (assume a l l' b b' hl, have ⟦l⟧ = ⟦l'⟧, from quot.sound hl, by cc)
+    (assume a a' l, C_cons_heq a a' ⟦l⟧)
+
+@[elab_as_eliminator]
+protected def rec_on (m : multiset α)
+  (C_0 : C 0)
+  (C_cons : Πa m, C m → C (a::m))
+  (C_cons_heq : ∀a a' m b, C_cons a (a'::m) (C_cons a' m b) == C_cons a' (a::m) (C_cons a m b)) :
+  C m :=
+multiset.rec C_0 C_cons C_cons_heq m
+
+variables {C_0 : C 0} {C_cons : Πa m, C m → C (a::m)}
+  {C_cons_heq : ∀a a' m b, C_cons a (a'::m) (C_cons a' m b) == C_cons a' (a::m) (C_cons a m b)}
+
+@[simp] lemma rec_on_0 : @multiset.rec_on α C (0:multiset α) C_0 C_cons C_cons_heq = C_0 :=
+rfl
+
+@[simp] lemma rec_on_cons (a : α) (m : multiset α) :
+  (a :: m).rec_on C_0 C_cons C_cons_heq = C_cons a m (m.rec_on C_0 C_cons C_cons_heq) :=
+quotient.induction_on m $ assume l, rfl
+
+end rec
+
 section mem
 
 /-- `a ∈ s` means that `a` has nonzero multiplicity in `s`. -/

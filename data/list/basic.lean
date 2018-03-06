@@ -2123,9 +2123,9 @@ variable (R : α → α → Prop)
 
 /-- `pairwise R l` means that all the elements with earlier indexes are
   `R`-related to all the elements with later indexes.
-  
+
      pairwise R [1, 2, 3] ↔ R 1 2 ∧ R 1 3 ∧ R 2 3
-  
+
   For example if `R = (≠)` then it asserts `l` has no duplicates,
   and if `R = (<)` then it asserts that `l` is (strictly) sorted. -/
 inductive pairwise : list α → Prop
@@ -2298,7 +2298,7 @@ by induction l; simp; resetI; apply_instance
 /-- `pw_filter R l` is a maximal sublist of `l` which is `pairwise R`.
   `pw_filter (≠)` is the erase duplicates function, and `pw_filter (<)` finds
   a maximal increasing subsequence in `l`. For example,
-  
+
      pw_filter (<) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 5, 6] -/
 def pw_filter (R : α → α → Prop) [decidable_rel R] : list α → list α
 | []        := []

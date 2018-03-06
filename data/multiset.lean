@@ -575,7 +575,7 @@ quot.induction_on s $ λ l, congr_arg coe $ map_const _ _
 @[congr] theorem map_congr {f g : α → β} {s : multiset α} : (∀ x ∈ s, f x = g x) → map f s = map g s :=
 quot.induction_on s $ λ l H, congr_arg coe $ map_congr H
 
-lemma map_hcongr {β' : Type*} {m : multiset α} {f : α → β} {f' : α → β'} 
+lemma map_hcongr {β' : Type*} {m : multiset α} {f : α → β} {f' : α → β'}
   (h : β = β') (hf : ∀a∈m, f a == f' a) : map f m == map f' m :=
 begin subst h, simp at hf, simp [map_congr hf] end
 
@@ -687,7 +687,7 @@ multiset.induction_on m (by simp) (assume a m ih, by simp [ih])
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
   operation, that is, the union of all the sets.
-  
+
      join {{1, 2}, {1, 2}, {0, 1}} = {0, 1, 1, 1, 2, 2} -/
 def join : multiset (multiset α) → multiset α := sum
 
@@ -740,7 +740,7 @@ by simp [bind]
 lemma bind_congr {f g : α → multiset β} {m : multiset α} : (∀a∈m, f a = g a) → bind m f = bind m g :=
 by simp [bind] {contextual := tt}
 
-lemma bind_hcongr {β' : Type*} {m : multiset α} {f : α → multiset β} {f' : α → multiset β'} 
+lemma bind_hcongr {β' : Type*} {m : multiset α} {f : α → multiset β} {f' : α → multiset β'}
   (h : β = β') (hf : ∀a∈m, f a == f' a) : bind m f == bind m f' :=
 begin subst h, simp at hf, simp [bind_congr hf] end
 
@@ -1431,7 +1431,7 @@ quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
 
-lemma bind_bind [decidable_eq γ] (m : multiset α) (n : multiset β) {f : α → β → multiset γ} : 
+lemma bind_bind [decidable_eq γ] (m : multiset α) (n : multiset β) {f : α → β → multiset γ} :
   (bind m $ λa, bind n $ λb, f a b) = (bind n $ λb, bind m $ λa, f a b) :=
 by simp [multiset.ext, count_bind, multiset.sum_map_sum_map m n]
 
@@ -1965,5 +1965,97 @@ quot.induction_on s $ λ l, sorted_merge_sort r to.total tr.trans _
 quot.induction_on s $ λ l, quot.sound $ perm_merge_sort _ _
 
 end sort
+
+section pi
+variables [decidable_eq α] {δ : α → Type*} [∀a, decidable_eq (δ a)]
+open function
+
+def pi.cons (m : multiset α) (a : α) (b : δ a) (f : Πa∈m, δ a) : Πa'∈a::m, δ a' :=
+λa' ha', if h : a' = a then eq.rec b h.symm else f a' $ (mem_cons.1 ha').resolve_left h
+
+def pi.empty (δ : α → Type*) : (Πa∈(0:multiset α), δ a) .
+
+lemma pi.cons_same {m : multiset α} {a : α} {b : δ a} {f : Πa∈m, δ a} (h : a ∈ a :: m) :
+  pi.cons m a b f a h = b :=
+dif_pos rfl
+
+lemma pi.cons_ne {m : multiset α} {a a' : α} {b : δ a} {f : Πa∈m, δ a} (h' : a' ∈ a :: m) (h : a' ≠ a) :
+  pi.cons m a b f a' h' = f a' ((mem_cons.1 h').resolve_left h) :=
+dif_neg h
+
+lemma pi.cons_swap {a a' : α} {b : δ a} {b' : δ a'} {m : multiset α} {f : Πa∈m, δ a} (h : a ≠ a') :
+  pi.cons (a' :: m) a b (pi.cons m a' b' f) == pi.cons (a :: m) a' b' (pi.cons m a b f) :=
+begin
+  apply hfunext, { refl }, intros a'' _ h, subst h,
+  apply hfunext, { rw [cons_swap] }, intros ha₁ ha₂ h,
+  by_cases h₁ : a'' = a; by_cases h₂ : a'' = a';
+    simp [*, pi.cons_same, pi.cons_ne] at *,
+  { subst h₁, rw [pi.cons_same, pi.cons_same] },
+  { subst h₂, rw [pi.cons_same, pi.cons_same] }
+end
+
+/-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/
+def pi (m : multiset α) (t : Πa, multiset (δ a)) : multiset (Πa∈m, δ a) :=
+m.rec_on { pi.empty δ } (λa m (p : multiset (Πa∈m, δ a)), (t a).bind $ λb, p.map $ pi.cons m a b)
+begin
+  intros a a' m n,
+  by_cases eq : a = a',
+  { subst eq },
+  { simp [map_bind, bind_bind (t a') (t a)],
+    apply bind_hcongr, { rw [cons_swap a a'] },
+    intros b hb,
+    apply bind_hcongr, { rw [cons_swap a a'] },
+    intros b' hb',
+    apply map_hcongr, { rw [cons_swap a a'] },
+    intros f hf,
+    exact pi.cons_swap eq }
+end
+
+@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = {pi.empty δ} :=
+rfl
+
+@[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
+  pi (a :: m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
+rec_on_cons a m
+
+lemma card_pi (m : multiset α) (t : Πa, multiset (δ a)) :
+  card (pi m t) = prod (m.map $ λa, card (t a)) :=
+multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
+
+lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
+  ∀f:Πa∈m, δ a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=
+multiset.induction_on m
+  begin
+    assume f,
+    have : f = pi.empty δ, { funext a ha, exact ha.elim },
+    subst this,
+    split,
+    { intros _ a ha, exact ha.elim },
+    { intros, simp, exact mem_cons_self _ 0 }
+  end
+  begin
+    assume a m ih f,
+    simp [iff_def],
+    split,
+    { intros b hb f' hf' eq a' ha',
+      subst eq,
+      rw [ih] at hf',
+      by_cases a' = a,
+      { subst h,
+        rw [pi.cons_same],
+        exact hb },
+      { rw [pi.cons_ne _ h],
+        exact hf' _ _ } },
+    { assume hf,
+      refine ⟨f a (mem_cons_self a _), hf a (mem_cons_self a _), (λa ha, f a (mem_cons_of_mem ha)), _, _⟩,
+      { rw [ih],
+        assume a' h', exact hf _ _ },
+      { funext a' h',
+        by_cases a' = a,
+        { subst h, rw [pi.cons_same] },
+        { rw [pi.cons_ne _ h] } } }
+  end
+
+end pi
 
 end multiset

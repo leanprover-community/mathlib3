@@ -105,6 +105,9 @@ quot.rec_on_subsingleton s $ list.decidable_mem a
 @[simp] theorem mem_cons {a b : α} {s : multiset α} : a ∈ b :: s ↔ a = b ∨ a ∈ s :=
 quot.induction_on s $ λ l, iff.rfl
 
+lemma mem_cons_of_mem {a b : α} {s : multiset α} (h : a ∈ s) : a ∈ b :: s :=
+mem_cons.2 $ or.inr h
+
 @[simp] theorem mem_cons_self (a : α) (s : multiset α) : a ∈ a :: s :=
 mem_cons.2 (or.inl rfl)
 
@@ -240,6 +243,10 @@ quot.lift_on s length $ λ l₁ l₂, perm_length
 
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a :: s) = card s + 1 :=
 quot.induction_on s $ λ l, rfl
+
+@[simp] theorem card_singleton (a : α) : card ({a} : multiset α) = 1 :=
+calc card ({a} : multiset α) = card (0 : multiset α) + 1 : multiset.card_cons a 0
+  ... = 1 : by simp
 
 theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
 le_induction_on h $ λ l₁ l₂, length_le_of_sublist
@@ -529,6 +536,10 @@ quot.induction_on s $ λ l, congr_arg coe $ map_const _ _
 @[congr] theorem map_congr {f g : α → β} {s : multiset α} : (∀ x ∈ s, f x = g x) → map f s = map g s :=
 quot.induction_on s $ λ l H, congr_arg coe $ map_congr H
 
+lemma map_hcongr {β' : Type*} {m : multiset α} {f : α → β} {f' : α → β'} 
+  (h : β = β') (hf : ∀a∈m, f a == f' a) : map f m == map f' m :=
+begin subst h, simp at hf, simp [map_congr hf] end
+
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) : b₁ = b₂ :=
 eq_of_mem_repeat $ by rwa map_const at h
 
@@ -623,6 +634,16 @@ quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = monoid.pow a n :=
 by simp [repeat, list.prod_repeat]
 
+@[simp, to_additive multiset.sum_map_add]
+lemma prod_map_mul [comm_monoid γ] {m : multiset α} {f g : α → γ} :
+  prod (m.map $ λa, f a * g a) = prod (m.map f) * prod (m.map g) :=
+multiset.induction_on m (by simp) (assume a m ih, by simp [ih]; cc)
+
+@[to_additive multiset.sum_map_sum_map]
+lemma prod_map_prod_map [comm_monoid γ] (m : multiset α) (n : multiset β) {f : α → β → γ} :
+  prod (m.map $ λa, prod $ n.map $ λb, f a b) = prod (n.map $ λb, prod $ m.map $ λa, f a b) :=
+multiset.induction_on m (by simp) (assume a m ih, by simp [ih])
+
 /- join -/
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
@@ -676,6 +697,17 @@ by simp [bind]; simp [-exists_and_distrib_right, exists_and_distrib_right.symm];
 
 @[simp] theorem card_bind (s) (f : α → multiset β) : card (bind s f) = sum (map (card ∘ f) s) :=
 by simp [bind]
+
+lemma bind_congr {f g : α → multiset β} {m : multiset α} : (∀a∈m, f a = g a) → bind m f = bind m g :=
+by simp [bind] {contextual := tt}
+
+lemma bind_hcongr {β' : Type*} {m : multiset α} {f : α → multiset β} {f' : α → multiset β'} 
+  (h : β = β') (hf : ∀a∈m, f a == f' a) : bind m f == bind m f' :=
+begin subst h, simp at hf, simp [bind_congr hf] end
+
+lemma map_bind [decidable_eq γ] (m : multiset α) (n : α → multiset β) (f : β → γ) :
+  map f (bind m n) = bind m (λa, map f (n a)) :=
+multiset.induction_on m (by simp) (by simp {contextual := tt})
 
 /- product -/
 
@@ -805,6 +837,13 @@ quot.induction_on s (λ l H, mem_pmap) H
 @[simp] theorem card_pmap {p : α → Prop} (f : Π a, p a → β)
   (s H) : card (pmap f s H) = card s :=
 quot.induction_on s (λ l H, length_pmap) H
+
+@[simp] lemma attach_zero : (0 : multiset α).attach = 0 := rfl
+
+lemma attach_cons (a : α) (m : multiset α) :
+  (a :: m).attach = ⟨a, mem_cons_self a m⟩ :: (m.attach.map $ λp, ⟨p.1, mem_cons_of_mem p.2⟩) :=
+quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
+  by rw [list.map_pmap]; exact list.pmap_congr _ (assume a' h₁ h₂, subtype.eq rfl)
 
 section decidable_pi_multiset
 variables {m : multiset α}
@@ -1343,11 +1382,19 @@ begin
   rw [← count_add, sub_add_inter, count_sub, sub_add_min],
 end
 
+lemma count_bind {m : multiset β} {f : β → multiset α} {a : α} :
+  count a (bind m f) = sum (m.map $ λb, count a $ f b) :=
+multiset.induction_on m (by simp) (by simp)
+
 theorem le_count_iff_repeat_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ repeat a n ≤ s :=
 quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
 
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
+
+lemma bind_bind [decidable_eq γ] (m : multiset α) (n : multiset β) {f : α → β → multiset γ} : 
+  (bind m $ λa, bind n $ λb, f a b) = (bind n $ λb, bind m $ λa, f a b) :=
+by simp [multiset.ext, count_bind, multiset.sum_map_sum_map m n]
 
 theorem le_iff_count {s t : multiset α} : s ≤ t ↔ ∀ a, count a s ≤ count a t :=
 ⟨λ h a, count_le_of_le a h, λ al,

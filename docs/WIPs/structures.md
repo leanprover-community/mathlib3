@@ -36,4 +36,32 @@ The reason we do not need to define `lt_iff_le_not_le` is different -- the defin
 
 ### That .. notation
 
-I always forget how this works. Put a simple example in here. My memory is that many commutative rings are constructed first as additive groups and then as rings. Perhaps because of diamonds. 
+I always forget how this works. Put a simple example in here. My memory is that many commutative rings are constructed first as additive groups and then as rings. Perhaps because of diamonds.
+
+### Creating "big" structures
+
+I had a very unwieldy object which took many lines to even display. I wanted to prove that it was a ring, right in the middle of something else, so I just launched in. But according to the CS guys this is a bad idea. They explained how to make things smaller and smaller, and ultimately I ended up with this:
+
+```lean
+definition thing_i_want_to_be_a_ring := [unwieldy thing]
+
+definition thing_has_add : has_add (thing_i_want_to_be_a_ring) :=
+⟨construction of addition here⟩
+```
+and so on and so on. When I finally want to give the ring structure I have
+
+
+```lean
+instance thing_is_ring : comm_ring (thing_i_want_to_be_a_ring) :=
+{ add := thing_has_add.has_add,
+...
+```
+
+### Too many axioms
+
+I wanted to prove that something was a commutative ring and noticed
+that I was being asked to prove too many things -- for example I was
+asked for a proof of `add_comm` and also `zero_add`, which is fine,
+but then I was also asked for a proof of `add_zero`, which is daft.
+Mario suggested creating a new constructor `comm_ring.mk'` which only
+asks for the things we need, and deduces the rest.

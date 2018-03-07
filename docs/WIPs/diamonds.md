@@ -27,3 +27,56 @@ Coercions are subtle. Often you want at most one coercion from one class to anot
 
 
 
+# To be tidied
+
+Mario example:
+
+```lean
+class has_a_nat (α : Type) := (Z : ℕ)
+class has_two_nats (α : Type) := (X Y : ℕ)
+open has_a_nat has_two_nats
+
+instance nat_of_two {α} [has_two_nats α] : has_a_nat α :=
+{ Z := X α + Y α }
+
+instance has_a_nat.prod {α β} [has_a_nat α] [has_a_nat β] : has_a_nat (α × β) :=
+{ Z := Z α + Z β }
+
+instance has_two_nats.prod {α β} [has_two_nats α] [has_two_nats β] : has_two_nats (α × β) :=
+{ X := X α + X β,
+  Y := Y α + Y β }
+
+example {α β} [has_two_nats α] [has_two_nats β] :
+  Z (α × β) = @Z (α × β) nat_of_two := rfl
+/-
+type mismatch, term
+  @rfl.{?l_1} ?m_2 ?m_3
+has type
+  @eq.{?l_1} ?m_2 ?m_3 ?m_3
+but is expected to have type
+  @eq.{1} nat
+    (@has_a_nat.Z (prod.{0 0} α β) (@has_a_nat.prod α β (@nat_of_two α _inst_1) (@nat_of_two β _inst_2)))
+    (@has_a_nat.Z (prod.{0 0} α β) (@nat_of_two (prod.{0 0} α β) (@has_two_nats.prod α β _inst_1 _inst_2)))
+-/
+```
+
+vs
+
+```
+class has_a_nat (α : Type) := (Z : ℕ)
+class has_two_nats (α : Type) extends has_a_nat α :=
+(X Y : ℕ)
+(agree : Z = X + Y)
+open has_a_nat has_two_nats
+
+instance has_a_nat.prod {α β} [has_a_nat α] [has_a_nat β] : has_a_nat (α × β) :=
+{ Z := Z α + Z β }
+
+instance has_two_nats.prod {α β} [has_two_nats α] [has_two_nats β] : has_two_nats (α × β) :=
+{ X := X α + X β,
+  Y := Y α + Y β,
+  agree := by simp [Z, agree] }
+
+example {α β} [has_two_nats α] [has_two_nats β] :
+  Z (α × β) = @Z (α × β) (has_two_nats.to_has_a_nat _) := rfl
+```

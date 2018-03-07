@@ -116,7 +116,7 @@ variables (P : set α) [is_prime_ideal P]
 
 instance prime.is_submonoid :
   is_submonoid α (set.compl P) :=
-{ one_mem := λ h, is_prime_ideal.ne_univ P $
+{ one_mem := λ h, is_proper_ideal.ne_univ P $
     is_submodule.univ_of_one_mem P h,
   mul_mem := λ x y hnx hny hxy, or.cases_on
     (is_prime_ideal.mem_or_mem_of_mul_mem hxy) hnx hny }
@@ -162,14 +162,18 @@ local_of_nonunits_ideal
 
 end at_prime
 
-def closure (S : set α) : set α := {y | ∃ (L:list α) (H:∀ x ∈ L, x ∈ S), L.prod = y }
+inductive in_closure (S : set α) : α → Prop
+| basic : ∀a∈S, in_closure a
+| one : in_closure 1
+| mul : ∀x y, in_closure x → in_closure y → in_closure (x * y)
+
+def closure (S : set α) : set α := {x | in_closure S x}
 
 instance closure.is_submonoid (S : set α) : is_submonoid α (closure S) :=
-{ one_mem := ⟨[], by simp⟩,
-  mul_mem := λ x₁ x₂ ⟨L₁, hLS₁, hL₁⟩ ⟨L₂, hLS₂, hL₂⟩,
-    ⟨L₁ ++ L₂,
-     λ x hx, or.cases_on (list.mem_append.1 hx) (hLS₁ x) (hLS₂ x),
-     by simp [list.prod_append, *]⟩ }
+{ one_mem := in_closure.one S, mul_mem := in_closure.mul }
+
+theorem subset_closure {S : set α} : S ⊆ closure S :=
+in_closure.basic
 
 variable α
 

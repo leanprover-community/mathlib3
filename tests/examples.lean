@@ -1,4 +1,5 @@
 import tactic data.stream.basic data.set.basic data.finset data.multiset
+       category.traversable.derive
 open tactic
 
 universe u
@@ -103,3 +104,46 @@ example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ 
 example (p q r : Prop) [decidable q] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ p) : q := by tauto
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : q) : ¬ p := by tauto
+
+/- traversable -/
+
+meta def check_defn (n : name) (e : pexpr) : tactic unit :=
+do (declaration.defn _ _ _ d _ _) ← get_decl n,
+   e' ← to_expr e,
+   guard (d =ₐ e') <|> trace d >> failed
+
+set_option trace.app_builder true
+
+@[derive traversable]
+structure my_struct (α : Type) :=
+  (y : ℤ)
+
+run_cmd do
+check_defn ``my_struct.traversable
+  ``( { traversable .
+        to_functor := my_struct.functor,
+        traverse := λ (m : Type → Type) (_inst : applicative m) (α β : Type) (f : α → m β) (x : my_struct α),
+               my_struct.rec (λ (x : ℤ), pure (λ (a : ulift ℤ), {y := a.down}) <*> pure {down := x}) x} )
+
+@[derive traversable]
+structure my_struct2 (α : Type u) : Type u :=
+  (x : α)
+  (y : ℤ)
+  (z : list α)
+  (k : list (list α))
+
+run_cmd do
+check_defn ``my_struct2.traversable
+  ``( { traversable .
+        to_functor := my_struct2.functor,
+        traverse := λ (m : Type u → Type u) (_inst : applicative m) (α β : Type u) (f : α → m β) (x : my_struct2 α),
+               my_struct2.rec
+                 (λ (x_x : α) (x_y : ℤ) (x_z : list α) (x_k : list (list α)),
+                    pure
+                              (λ (a : β) (a_1 : ulift ℤ) (a_2 : list β) (a_3 : list (list β)),
+                                 {x := a, y := a_1.down, z := a_2, k := a_3}) <*>
+                            f x_x <*>
+                          pure {down := x_y} <*>
+                        traverse f x_z <*>
+                      traverse (traverse f) x_k)
+                 x } )

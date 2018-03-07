@@ -25,12 +25,30 @@ run_cmd mk_simp_attr `functor_norm
 end functor
 
 section applicative
-variables {f : Type u → Type v} [applicative f] [is_lawful_applicative f]
+variables {f : Type u → Type v} [applicative f]
+
+def mmap₂
+  {α₁ α₂ φ : Type u}
+  (g : α₁ → α₂ → f φ) :
+  Π (ma₁ : list α₁) (ma₂: list α₂), f (list φ)
+| (x :: xs) (y :: ys) := (::) <$> g x y <*> mmap₂ xs ys
+| _ _ := pure []
+
+def mmap₂'  (g : α → β → f γ) : list α → list β → f punit
+| (x :: xs) (y :: ys) := g x y *> mmap₂' xs ys
+| [] _ := pure punit.star
+| _ [] := pure punit.star
+
+variables [is_lawful_applicative f]
 
 attribute [functor_norm] seq_assoc pure_seq_eq_map
 
 @[simp] theorem pure_id'_seq (x : f α) : pure (λx, x) <*> x = x :=
 pure_id_seq x
+
+variables  [is_lawful_applicative f]
+
+attribute [functor_norm] seq_assoc pure_seq_eq_map
 
 @[functor_norm] theorem seq_map_assoc (x : f (α → β)) (g : γ → α) (y : f γ) :
   (x <*> (g <$> y)) = (λ(m:α→β), m ∘ g) <$> x <*> y :=
@@ -51,7 +69,7 @@ section monad
 variables {m : Type u → Type v} [monad m] [is_lawful_monad m]
 
 lemma map_bind (x : m α) {g : α → m β} {f : β → γ} : f <$> (x >>= g) = (x >>= λa, f <$> g a) :=
-by simp [bind_assoc, (∘), (bind_pure_comp_eq_map _ _ _).symm]
+by rw [← bind_pure_comp_eq_map,bind_assoc]; simp [bind_pure_comp_eq_map]
 
 lemma seq_bind_eq (x : m α) {g : β → m γ} {f : α → β} : (f <$> x) >>= g = (x >>= g ∘ f) :=
 show bind (f <$> x) g = bind x (g ∘ f),
@@ -85,10 +103,3 @@ calc f <$> a <*> b = (λp:α×β, f p.1 p.2) <$> (prod.mk <$> a <*> b) :
   ... = (λb a, f a b) <$> b <*> a :
     by rw [is_comm_applicative.commutative_prod];
         simp [seq_map_assoc, map_seq, seq_assoc, seq_pure, map_map]
-
-def mmap₂
-  {α₁ α₂ φ : Type u} {m : Type u → Type*} [applicative m]
-  (f : α₁ → α₂ → m φ)
-: Π (ma₁ : list α₁) (ma₂: list α₂), m (list φ)
- | (x :: xs) (y :: ys) := (::) <$> f x y <*> mmap₂ xs ys
- | _ _ := pure []

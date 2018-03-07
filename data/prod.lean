@@ -6,6 +6,8 @@ Authors: Johannes Hölzl
 Extends theory on products
 -/
 
+import tactic.ext
+
 universes u v
 variables {α : Type u} {β : Type v}
 
@@ -23,6 +25,7 @@ namespace prod
 lemma ext_iff {p q : α × β} : p = q ↔ p.1 = q.1 ∧ p.2 = q.2 :=
 by rw [← @mk.eta _ _ p, ← @mk.eta _ _ q, mk.inj_iff]
 
+@[extensionality]
 lemma ext {α β} {p q : α × β} : p.1 = q.1 → p.2 = q.2 → p = q :=
 by rw [ext_iff] ; intros ; split ; assumption
 
@@ -60,4 +63,3 @@ theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
  end⟩
 
 end prod
-

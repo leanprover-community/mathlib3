@@ -913,15 +913,15 @@ section tsum
 variables {α : Type*} {β : Type*} {f g : α → ennreal}
 
 protected lemma is_sum : is_sum f (⨆s:finset α, s.sum f) :=
-tendsto_orderable
-  (assume a' ha',
+tendsto_orderable.2
+  ⟨assume a' ha',
     let ⟨s, hs⟩ := lt_supr_iff.mp ha' in
-    mem_at_top_sets.mpr ⟨s, assume t ht, lt_of_lt_of_le hs $ finset.sum_le_sum_of_subset ht⟩)
-  (assume a' ha',
+    mem_at_top_sets.mpr ⟨s, assume t ht, lt_of_lt_of_le hs $ finset.sum_le_sum_of_subset ht⟩,
+  assume a' ha',
     univ_mem_sets' $ assume s,
     have s.sum f ≤ ⨆(s : finset α), s.sum f,
       from le_supr (λ(s : finset α), s.sum f) s,
-    lt_of_le_of_lt this ha')
+    lt_of_le_of_lt this ha'⟩
 
 @[simp] protected lemma has_sum : has_sum f := ⟨_, ennreal.is_sum⟩
 

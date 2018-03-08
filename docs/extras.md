@@ -1,3 +1,3 @@
 # Extra Lean documentation
 
-* the [converter tactic mode](extras/conv.md)
+* the [conversion tactic mode](extras/conv.md)

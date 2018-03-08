@@ -4,11 +4,14 @@ Inside a tactic block, one can use the keyword `conv` to enter conversion
 mode. This mode allows to travel inside assumptions and goals, even
 inside `λ` binders in them, to apply rewriting or simplifying steps.
 
+This is similar to the conversion tacticals (tactic combinators) found in
+other theorem provers like HOL4, HOL Light or Isabelle.
+
 ### Basic navigation and rewriting
 
-As a first example, let us prove 
+As a first example, let us prove
 `example (a b c : ℕ) : a * (b * c) = a * (c * b)` (examples in this file
-are somewhat artificial since the `ring` tactic from 
+are somewhat artificial since the `ring` tactic from
 `tactic.ring` could finish them immediately). The naive first attempt is
 to enter tactic mode and try `rw mul_comm`. But this transforms to goal
 into `b * c * a = a * (c * b)`, after commuting the very first
@@ -21,7 +24,7 @@ though).
 ```lean
 example (a b c : ℕ) : a * (b * c) = a * (c * b) :=
 begin
-conv 
+conv
 begin          -- | a * (b * c) = a * (c * b)
   to_lhs,      -- | a * (b * c)
   congr,       -- 2 goals : | a and | b * c
@@ -44,12 +47,12 @@ the strict syntactical sense, definitional equality is not enough: one
 needs to conclude by `refl` or `trivial` in this case).
 
 The second main reason to use conversion mode is to rewrite under
-binders. Suppose we want to prove `example (λ x : ℕ, 0+x) = (λ x, x)`. 
+binders. Suppose we want to prove `example (λ x : ℕ, 0+x) = (λ x, x)`.
 The naive first attempt is to enter tactic mode and try `rw zero_add`.
-But this fails with a frustrating 
+But this fails with a frustrating
 ```
 rewrite tactic failed, did not find
-instance of the pattern in the target expression 0 + ?m_3 
+instance of the pattern in the target expression 0 + ?m_3
 state:
 ⊢ (λ (x : ℕ), 0 + x) = λ (x : ℕ), x
 ```
@@ -60,7 +63,7 @@ example : (λ x : ℕ, 0 + x) = (λ x, x) :=
 begin
   conv
   begin           -- | (λ (x : ℕ), 0 + x) = λ (x : ℕ), x
-    to_lhs,       -- | λ (x : ℕ), 0 + x 
+    to_lhs,       -- | λ (x : ℕ), 0 + x
     funext,       -- | 0 + x
     rw zero_add,  -- | x
   end
@@ -93,7 +96,7 @@ end
 
 As usual, `begin` and `end` can be replaced by curly brackets to
 delimit conversion mode and a single tactic invocation can be introduced
-by `by` to get the one liner: 
+by `by` to get the one liner:
 
 ```lean
 example (a b c : ℕ) : a * (b * c) = a * (c * b) :=

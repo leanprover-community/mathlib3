@@ -342,8 +342,8 @@ lemma tendsto_orderable {f : β → α} {a : α} {x : filter β} :
   tendsto f x (nhds a) ↔ (∀a'<a, {b | a' < f b} ∈ x.sets) ∧ (∀a'>a, {b | a' > f b} ∈ x.sets) :=
 by simp [@nhds_eq_orderable α _ _, tendsto_inf, tendsto_infi, tendsto_principal]
 
-/-- Also known as squeez or sandwich theorem. -/
-lemma tendsto_of_tendsto_of_tendsto_of_le_of_le {f g h : β → α} {b : filter β} {a : α} (hb : b ≠ ⊥)
+/-- Also known as squeeze or sandwich theorem. -/
+lemma tendsto_of_tendsto_of_tendsto_of_le_of_le {f g h : β → α} {b : filter β} {a : α}
   (hg : tendsto g b (nhds a)) (hh : tendsto h b (nhds a))
   (hgf : {b | g b ≤ f b} ∈ b.sets) (hfh : {b | f b ≤ h b} ∈ b.sets) :
   tendsto f b (nhds a) :=

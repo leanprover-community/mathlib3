@@ -36,7 +36,19 @@ The reason we do not need to define `lt_iff_le_not_le` is different -- the defin
 
 ### That .. notation
 
-I always forget how this works. Put a simple example in here. My memory is that many commutative rings are constructed first as additive groups and then as rings. Perhaps because of diamonds.
+Here's how it works.
+
+```lean
+variable G : Type
+variable HG : group G
+
+example : comm_group G :=
+{ 
+  mul_comm := sorry, -- apparently you can use things from HG in this
+                     -- proof even though HG is at the end.
+  ..HG -- this has to be at the end.
+}
+```
 
 ### Creating "big" structures
 

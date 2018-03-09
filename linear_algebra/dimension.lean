@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Dimension of modules and vector spaces.
 -/
-import algebra.linear_algebra.basic set_theory.cardinal
+import linear_algebra.basic set_theory.cardinal
 noncomputable theory
 
 local attribute [instance] classical.prop_decidable

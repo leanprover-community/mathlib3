@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Kenny Lau
 
 Subtype construction of sub modules.
 -/
-import algebra.linear_algebra.basic
+import linear_algebra.basic
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

@@ -6,7 +6,7 @@ Author: Johannes Hölzl
 Quotient construction on modules
 -/
 
-import algebra.linear_algebra.basic
+import linear_algebra.basic
 
 namespace is_submodule
 

@@ -5,10 +5,10 @@ Authors: Johannes Hölzl, Kenny Lau
 
 Type of linear functions
 -/
-import algebra.linear_algebra.basic
-  algebra.linear_algebra.prod_module
-  algebra.linear_algebra.quotient_module
-  algebra.linear_algebra.subtype_module
+import linear_algebra.basic
+  linear_algebra.prod_module
+  linear_algebra.quotient_module
+  linear_algebra.subtype_module
 noncomputable theory
 local attribute [instance] classical.prop_decidable
 

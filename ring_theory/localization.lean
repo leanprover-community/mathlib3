@@ -18,8 +18,13 @@ def r : α × S → α × S → Prop :=
 
 local infix ≈ := r α S
 
-theorem refl : ∀ (x : α × S), x ≈ x :=
-λ ⟨r₁, s₁, hs₁⟩, ⟨1, is_submonoid.one_mem S, by simp⟩
+section
+variables {α S}
+theorem r_of_eq : ∀{a₀ a₁ : α × S} (h : a₀.2.1 * a₁.1 = a₁.2.1 * a₀.1), a₀ ≈ a₁
+| ⟨r₀, s₀, hs₀⟩ ⟨r₁, s₁, hs₁⟩ h := ⟨1, is_submonoid.one_mem S, by simp [h] at h ⊢⟩
+end
+
+theorem refl (x : α × S) : x ≈ x := r_of_eq rfl
 
 theorem symm : ∀ (x y : α × S), x ≈ y → y ≈ x :=
 λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨t, hts, ht⟩, ⟨t, hts,
@@ -72,11 +77,13 @@ instance : has_mul (loc α S) :=
         by simp [mul_left_comm, mul_add, mul_comm]
       ... = 0 : by rw [ht₅, ht₆]; simp⟩⟩
 
+def of_comm_ring : α → loc α S := λ r, ⟦⟨r, 1, is_submonoid.one_mem S⟩⟧
+
 instance : comm_ring (loc α S) :=
 by refine
 { add            := has_add.add,
   add_assoc      := λ m n k, quotient.induction_on₃ m n k _,
-  zero           := ⟦⟨0, 1, is_submonoid.one_mem S⟩⟧,
+  zero           := of_comm_ring α S 0,
   zero_add       := quotient.ind _,
   add_zero       := quotient.ind _,
   neg            := has_neg.neg,
@@ -84,7 +91,7 @@ by refine
   add_comm       := quotient.ind₂ _,
   mul            := has_mul.mul,
   mul_assoc      := λ m n k, quotient.induction_on₃ m n k _,
-  one            := ⟦⟨1, 1, is_submonoid.one_mem S⟩⟧,
+  one            := of_comm_ring α S 1,
   one_mul        := quotient.ind _,
   mul_one        := quotient.ind _,
   left_distrib   := λ m n k, quotient.induction_on₃ m n k _,
@@ -94,13 +101,8 @@ by refine
   try {cases a with r₁ s₁, cases s₁ with s₁ hs₁},
   try {cases b with r₂ s₂, cases s₂ with s₂ hs₂},
   try {cases c with r₃ s₃, cases s₃ with s₃ hs₃},
-  apply quotient.sound,
-  existsi (1:α),
-  existsi is_submonoid.one_mem S,
+  refine (quotient.sound $ r_of_eq _),
   simp [mul_left_comm, mul_add, mul_comm] }
-
-def of_comm_ring : α → loc α S :=
-λ r, ⟦⟨r, 1, is_submonoid.one_mem S⟩⟧
 
 instance : is_ring_hom (of_comm_ring α S) :=
 { map_add := λ x y, quotient.sound $ by simp,
@@ -144,10 +146,10 @@ local_of_nonunits_ideal
     let ⟨t, hts, ht⟩ := this in
     have hr₁ : r₁ ∈ P,
       from classical.by_contradiction $ λ hnr₁, hx ⟨⟦⟨s₁, r₁, hnr₁⟩⟧,
-        by rw ←hrs₁; from quotient.sound ⟨1, is_submonoid.one_mem _, by simp [mul_comm]⟩⟩,
+        by rw ←hrs₁; from (quotient.sound $ r_of_eq $ by simp [mul_comm])⟩,
     have hr₂ : r₂ ∈ P,
       from classical.by_contradiction $ λ hnr₂, hy ⟨⟦⟨s₂, r₂, hnr₂⟩⟧,
-        by rw ←hrs₂; from quotient.sound ⟨1, is_submonoid.one_mem _, by simp [mul_comm]⟩⟩,
+        by rw ←hrs₂; from (quotient.sound $ r_of_eq $ by simp [mul_comm])⟩,
     have hr₃ : _ ,
       from or.resolve_right (mem_or_mem_of_mul_eq_zero P ht) hts,
     have h : s₃ * (s₁ * s₂) - r₃ * (s₁ * r₂ + s₂ * r₁) ∈ P,
@@ -221,21 +223,19 @@ instance : has_inv (quotient_ring β) :=
 ⟨quotient.lift (inv_aux β) $
   λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨t, hts, ht⟩,
   begin
-    have hrs : s₁ * r₂ - s₂ * r₁ = 0,
-      from hts _ ht,
+    have hrs : s₁ * r₂ = 0 + s₂ * r₁,
+      from sub_eq_iff_eq_add.1 (hts _ ht),
     by_cases hr₁ : r₁ = 0;
     by_cases hr₂ : r₂ = 0;
-    simp [inv_aux, hr₁, hr₂],
+    simp [hr₁, hr₂] at hrs; simp [inv_aux, hr₁, hr₂],
     { exfalso,
-      simp [hr₁] at hrs,
       exact ne_zero_of_mem_non_zero_divisors hs₁
         (eq_zero_of_ne_zero_of_mul_eq_zero hr₂ hrs) },
     { exfalso,
-      simp [hr₂] at hrs,
       exact ne_zero_of_mem_non_zero_divisors hs₂
-        (eq_zero_of_ne_zero_of_mul_eq_zero hr₁ hrs) },
-    { exact ⟨1, is_submonoid.one_mem _,
-      by simpa [mul_comm] using congr_arg (λ x, -x) hrs⟩ }
+        (eq_zero_of_ne_zero_of_mul_eq_zero hr₁ hrs.symm) },
+    { apply r_of_eq,
+      simpa [mul_comm] using hrs.symm }
   end⟩
 
 def quotient_ring.field.of_integral_domain : field (quotient_ring β) :=
@@ -250,20 +250,9 @@ by refine
 { intros x hnx,
   rcases x with ⟨x, z, hz⟩,
   have : x ≠ 0,
-  { intro hx,
-    apply hnx,
-    apply quotient.sound,
-    existsi (1:β),
-    existsi is_submonoid.one_mem _,
-    simp [hx],
-    exact non_zero_divisors.is_submonoid β },
-  simp [has_inv.inv, inv_aux, inv_aux._match_1],
-  rw dif_neg this,
-  apply quotient.sound,
-  existsi (1:β),
-  existsi is_submonoid.one_mem _,
-  ring,
-  exact non_zero_divisors.is_submonoid β }
+    from assume hx, hnx (quotient.sound $ r_of_eq $ by simp [hx]),
+  simp [has_inv.inv, inv_aux, inv_aux._match_1, this],
+  exact (quotient.sound $ r_of_eq $ by simp; ring) }
 
 end quotient_ring
 

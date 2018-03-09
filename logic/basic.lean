@@ -429,6 +429,12 @@ assume a, cases_on a h1 h2
 theorem or_not {p : Prop} : p ∨ ¬ p :=
 by_cases or.inl or.inr
 
+theorem or_iff_not_imp_left {p q : Prop} : p ∨ q ↔ (¬ p → q) :=
+or_iff_not_imp_left
+
+theorem or_iff_not_imp_right {p q : Prop} : q ∨ p ↔ (¬ p → q) :=
+or_iff_not_imp_right
+
 /- use shortened names to avoid conflict when classical namespace is open -/
 noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
 noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance

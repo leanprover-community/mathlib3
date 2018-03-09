@@ -105,7 +105,7 @@ begin
       { exact or.inl h } },
     { exact or.inr (subset.trans ih succ_increasing) } },
   case _root_.zorn.chain_closure.union : s hs ih {
-    refine (or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
+    refine (classical.or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
     apply (ih a ha).resolve_right,
     apply mt (λ h, _) hn,
     exact subset.trans h (subset_sUnion_of_mem ha) }

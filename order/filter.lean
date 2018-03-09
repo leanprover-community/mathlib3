@@ -1501,7 +1501,7 @@ le_of_inf_eq $ ultrafilter_unique hf h inf_le_left
 
 lemma mem_or_compl_mem_of_ultrafilter (hf : ultrafilter f) (s : set α) :
   s ∈ f.sets ∨ - s ∈ f.sets :=
-or_iff_not_imp_right.2 $ assume : - s ∉ f.sets,
+classical.or_iff_not_imp_right.2 $ assume : - s ∉ f.sets,
   have f ≤ principal s,
     from le_of_ultrafilter hf $ assume h, this $ mem_sets_of_neq_bot $ by simp [*],
   by simp at this; assumption

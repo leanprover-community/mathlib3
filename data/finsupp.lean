@@ -16,26 +16,35 @@ Functions with finite support provide the basis for the following concrete insta
 Most of the theory assumes that the range is a commutative monoid. This gives us the big sum
 operator as a powerful way to construct `finsupp` elements.
 
-A general adivice is to not use α →₀ β directly, as the type class setup might not be fitting.
+A general advice is to not use α →₀ β directly, as the type class setup might not be fitting.
 The best is to define a copy and select the instances best suited.
 
 -/
-
-import data.set.finite data.finset algebra.big_operators algebra.module
-noncomputable theory
-
-open classical set function
-local attribute [instance] decidable_inhabited prop_decidable
+import data.finset data.set.finite algebra.big_operators algebra.module
+open finset
 
 reserve infix ` →₀ `:25
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y
 
-/- Should we use finset instead of finite? -/
+namespace finset
+variables {α : Type u} [decidable_eq α]
+
+protected def subtype (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
+(s.filter p).attach.image $ λ⟨a, ha⟩, ⟨a, (mem_filter.1 ha).2⟩
+
+@[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
+  ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
+| ⟨a, ha⟩ := by simp [finset.subtype, ha]
+
+end finset
 
 /-- `finsupp α β`, denoted `α →₀ β`, is the type of functions `f : α → β` such that
   `f x = 0` for all but finitely many `x`. -/
-def finsupp (α : Type u) (β : Type v) [has_zero β] := {f : α → β // finite {a | f a ≠ 0}}
+structure finsupp (α : Type u) (β : Type v) [has_zero β] :=
+(support            : finset α)
+(to_fun             : α → β)
+(mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0)
 
 infix →₀ := finsupp
 
@@ -43,52 +52,72 @@ namespace finsupp
 variables {α : Type u} {β : Type v} {γ : Type w}
   {α₁ : Type u₁} {α₂ : Type u₂} {β₁ : Type v₁} {β₂ : Type v₂}
 
-section
+section basic
 variable [has_zero β]
 
-instance : has_coe_to_fun (α →₀ β) := ⟨λ_, α → β, subtype.val⟩
+instance : has_coe_to_fun (α →₀ β) := ⟨λ_, α → β, finsupp.to_fun⟩
 
-instance : has_zero (α →₀ β) := ⟨⟨(λ_, 0), by simp [finite_empty]⟩⟩
+instance : has_zero (α →₀ β) := ⟨⟨∅, (λ_, 0), by simp⟩⟩
+
 @[simp] lemma zero_apply {a : α} : (0 : α →₀ β) a = 0 := rfl
+
+@[simp] lemma support_zero : (0 : α →₀ β).support = ∅ := rfl
 
 instance : inhabited (α →₀ β) := ⟨0⟩
 
+@[simp] lemma mem_support_iff (f : α →₀ β) : ∀a:α, a ∈ f.support ↔ f a ≠ 0 :=
+f.mem_support_to_fun
+
 lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
-| ⟨f, _⟩ ⟨g, _⟩ h := subtype.eq $ funext $ h
+| ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
+  begin
+    have : f = g, { funext a, exact h a },
+    subst this,
+    have : s = t, { simp [finset.ext, hf, hg] },
+    subst this
+  end
 
-lemma finite_supp (f : α →₀ β) : finite {a | f a ≠ 0} :=
-f.property
+@[simp] lemma support_eq_empty [decidable_eq β] {f : α →₀ β} : f.support = ∅ ↔ f = 0 :=
+⟨assume h, ext $ assume a, by simp [finset.ext] at h; exact h a, by simp {contextual:=tt}⟩
 
-/-- `support f` is the finite set of values such that `f x ≠ 0`. -/
-def support (f : α →₀ β) : finset α := f.finite_supp.to_finset
+instance [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
+assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a))
+  ⟨assume ⟨h₁, h₂⟩, ext $ assume a,
+      if h : a ∈ f.support then h₂ a h else
+        have hf : f a = 0, by rwa [f.mem_support_iff, not_not] at h,
+        have hg : g a = 0, by rwa [h₁, g.mem_support_iff, not_not] at h,
+        by rw [hf, hg],
+    by intro h; subst h; simp⟩
 
-@[simp] lemma mem_support_iff (f : α →₀ β) {a : α} : a ∈ f.support ↔ f a ≠ 0 :=
-by simp [finsupp.support]
+lemma finite_supp (f : α →₀ β) : set.finite {a | f a ≠ 0} :=
+⟨set.fintype_of_finset f.support f.mem_support_iff⟩
 
-lemma support_subset_iff {s : set α} {f : α →₀ β} : ↑f.support ⊆ s ↔ (∀a∉s, f a = 0) :=
-by simp [set.subset_def]; exact forall_congr (assume a, not_imp_comm)
+lemma support_subset_iff {s : set α} {f : α →₀ β} [decidable_eq α] :
+  ↑f.support ⊆ s ↔ (∀a∉s, f a = 0) :=
+by simp [set.subset_def];
+   exact forall_congr (assume a, @not_imp_comm _ _ (classical.dec _) (classical.dec _))
 
-@[simp] lemma support_zero : (0 : α →₀ β).support = ∅ :=
-by simp [finset.ext]
+end basic
+
+section single
+variables [decidable_eq α] [decidable_eq β] [has_zero β] {a a' : α} {b : β}
 
 /-- `single a b` is the finitely supported function which has
   value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : β) : α →₀ β :=
-⟨λa', if a = a' then b else 0,
-  finite_subset (@finite_singleton α a) $ assume a', by by_cases h : a = a'; simp [h]⟩
+⟨(if b = 0 then ∅ else {a}), (λa', if a = a' then b else 0),
+  begin intro a', by_cases hb : b = 0; by_cases a = a'; simp [h, hb], simp [ne.symm h, h] end⟩
 
-lemma single_apply {a a' : α} {b : β} :
-  (single a b : α →₀ β) a' = (if a = a' then b else 0) := rfl
+lemma single_apply : (single a b : α →₀ β) a' = (if a = a' then b else 0) :=
+rfl
 
-@[simp] lemma single_eq_same {a : α} {b : β} :
-  (single a b : α →₀ β) a = b :=
+@[simp] lemma single_eq_same : (single a b : α →₀ β) a = b :=
 by simp [single_apply]
 
-@[simp] lemma single_eq_of_ne {a a' : α} {b : β} (h : a ≠ a') :
-  (single a b : α →₀ β) a' = 0 :=
+@[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ β) a' = 0 :=
 by simp [single_apply, h]
 
-@[simp] lemma single_zero {a : α} : (single a 0 : α →₀ β) = 0 :=
+@[simp] lemma single_zero : (single a 0 : α →₀ β) = 0 :=
 ext $ assume a',
 begin
   by_cases h : a = a',
@@ -96,73 +125,95 @@ begin
   { rw [single_eq_of_ne h, zero_apply] }
 end
 
-lemma support_single_subset {a : α} {b : β} : (single a b).support ⊆ {a} :=
-have ∀a', (if a = a' then b else 0) ≠ 0 → a' = a,
-  by intro a'; by_cases a = a'; simp [*],
-by simpa [finset.subset_iff, mem_support_iff, single_apply] using this
+lemma support_single_ne_zero (hb : b ≠ 0) : (single a b).support = {a} :=
+if_neg hb
 
-lemma support_single_ne_zero {a : α} {b : β} (hb : b ≠ 0) :
-  (single a b).support = {a} :=
-finset.subset.antisymm
-  support_single_subset
-  (finset.subset_iff.mpr $ by simp [mem_support_iff, hb])
+lemma support_single_subset : (single a b).support ⊆ {a} :=
+by by_cases b = 0; simp [support_single_ne_zero, h]
 
-end
+end single
+
+section on_finset
+variables [decidable_eq β] [has_zero β]
+
+/-- `on_finset s f hf` is the finsupp function representing `f` restricted to the set `s`.
+The function needs to be 0 outside of `s`. Use this when the set needs filtered anyway, otherwise
+often better set representation is available. -/
+def on_finset (s : finset α) (f : α → β) (hf : ∀a, f a ≠ 0 → a ∈ s) : α →₀ β :=
+⟨s.filter (λa, f a ≠ 0), f,
+  assume a, classical.by_cases
+    (assume h : f a = 0, by simp [h])
+    (assume h : f a ≠ 0, by simp [h, hf])⟩
+
+@[simp] lemma on_finset_apply {s : finset α} {f : α → β} {hf a} :
+  (on_finset s f hf : α →₀ β) a = f a :=
+rfl
+
+@[simp] lemma support_on_finset_subset {s : finset α} {f : α → β} {hf} :
+  (on_finset s f hf).support ⊆ s :=
+by simp [on_finset]
+
+end on_finset
+
+section map_range
+variables [has_zero β₁] [has_zero β₂] [decidable_eq β₂]
 
 /-- The composition of `f : β₁ → β₂` and `g : α →₀ β₁` is
   `map_range f hf g : α →₀ β₂`, well defined when `f 0 = 0`. -/
-def map_range [has_zero β₁] [has_zero β₂]
-  (f : β₁ → β₂) (hf : f 0 = 0) (g : α →₀ β₁) : α →₀ β₂ :=
-⟨f ∘ g, finite_subset g.finite_supp $
-  assume a, by simp [(∘), hf, not_imp_not] {contextual:=tt}⟩
+def map_range (f : β₁ → β₂) (hf : f 0 = 0) (g : α →₀ β₁) : α →₀ β₂ :=
+on_finset  g.support (f ∘ g) $
+  assume a, by rw [mem_support_iff, not_imp_not]; simp [hf] {contextual := tt}
 
-@[simp] lemma map_range_apply [has_zero β₁] [has_zero β₂]
-  {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {a : α} :
-  map_range f hf g a = f (g a) := rfl
+@[simp] lemma map_range_apply {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {a : α} :
+  map_range f hf g a = f (g a) :=
+rfl
 
-lemma support_map_range [has_zero β₁] [has_zero β₂]
-  {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} :
+lemma support_map_range {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} :
   (map_range f hf g).support ⊆ g.support :=
-by simp [finset.subset_iff, not_imp_not, hf] {contextual:=tt}
+support_on_finset_subset
+
+end map_range
+
+section zip_with
+variables [has_zero β] [has_zero β₁] [has_zero β₂] [decidable_eq α] [decidable_eq β]
 
 /-- `zip_with f hf g₁ g₂` is the finitely supported function satisfying
   `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, and well defined when `f 0 0 = 0`. -/
-def zip_with [has_zero β] [has_zero β₁] [has_zero β₂] (f : β₁ → β₂ → β) (hf : f 0 0 = 0)
-  (g₁ : α →₀ β₁) (g₂ : α →₀ β₂) : (α →₀ β) :=
-⟨λa, f (g₁ a) (g₂ a), finite_subset (finite_union g₁.finite_supp g₂.finite_supp) $
-  assume a hfa, not_and_distrib.mp $ assume ⟨ha₁, ha₂⟩, hfa $ by simp [ha₁, ha₂, hf]⟩
+def zip_with (f : β₁ → β₂ → β) (hf : f 0 0 = 0) (g₁ : α →₀ β₁) (g₂ : α →₀ β₂) : (α →₀ β) :=
+on_finset (g₁.support ∪ g₂.support) (λa, f (g₁ a) (g₂ a)) $
+  assume a, classical.by_cases
+    (assume h : g₁ a = 0, by simp [h]; rw [not_imp_not]; simp [hf] {contextual := tt})
+    (assume h : g₁ a ≠ 0, by simp [h])
 
-@[simp] lemma zip_with_apply [has_zero β] [has_zero β₁] [has_zero β₂]
+@[simp] lemma zip_with_apply
   {f : β₁ → β₂ → β} {hf : f 0 0 = 0} {g₁ : α →₀ β₁} {g₂ : α →₀ β₂} {a : α} :
-  zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a) := rfl
+  zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a) :=
+rfl
 
-lemma support_zip_with [has_zero β] [has_zero β₁] [has_zero β₂]
-  {f : β₁ → β₂ → β} {hf : f 0 0 = 0} {g₁ : α →₀ β₁} {g₂ : α →₀ β₂} :
+lemma support_zip_with {f : β₁ → β₂ → β} {hf : f 0 0 = 0} {g₁ : α →₀ β₁} {g₂ : α →₀ β₂} :
   (zip_with f hf g₁ g₂).support ⊆ g₁.support ∪ g₂.support :=
-begin
-  simp [finset.subset_iff, finset.mem_union, mem_support_iff],
-  intro x,
-  rw [←not_and_distrib, not_imp_not],
-  simp [hf] {contextual := tt}
-end
+support_on_finset_subset
 
-section filter
-variables [has_zero β] {p : α → Prop} {f : α →₀ β}
+end zip_with
 
-/-- `filter p f` is the function which is `f a` if `p a` is true and 0 otherwise. -/
-def filter (p : α → Prop) (f : α →₀ β) : α →₀ β :=
-⟨λa, if p a then f a else 0, finite_subset f.2 $ assume a, by by_cases p a; simp *; exact id⟩
+section erase
+variables [decidable_eq α] [decidable_eq β]
 
-@[simp] lemma filter_apply_pos {a : α} (h : p a) : f.filter p a = f a :=
-if_pos h
+def erase [has_zero β] (a : α) (f : α →₀ β) : α →₀ β :=
+⟨f.support.erase a, (λa', if a' = a then 0 else f a'),
+  assume a', by by_cases a' = a; simp [h]⟩
 
-@[simp] lemma filter_apply_neg {a : α} (h : ¬ p a) : f.filter p a = 0 :=
+@[simp] lemma support_erase [has_zero β] {a : α} {f : α →₀ β} :
+  (f.erase a).support = f.support.erase a :=
+rfl
+
+@[simp] lemma erase_same [has_zero β] {a : α} {f : α →₀ β} : (f.erase a) a = 0 :=
+if_pos rfl
+
+@[simp] lemma erase_ne [has_zero β] {a a' : α} {f : α →₀ β} (h : a' ≠ a) : (f.erase a) a' = f a' :=
 if_neg h
 
-@[simp] lemma support_filter : (f.filter p).support = f.support.filter p :=
-finset.ext.mpr $ assume a, by by_cases p a; simp *
-
-end filter
+end erase
 
 -- [to_additive finsupp.sum] for finsupp.prod doesn't work, the equation lemmas are not generated
 /-- `sum f g` is the sum of `g a (f a)` over the support of `f`. -/
@@ -176,7 +227,7 @@ f.support.prod (λa, g a (f a))
 attribute [to_additive finsupp.sum.equations._eqn_1] finsupp.prod.equations._eqn_1
 
 @[to_additive finsupp.sum_map_range_index]
-lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]
+lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ] [decidable_eq β₂]
   {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {h : α → β₂ → γ} (h0 : ∀a, h a 0 = 1) :
   (map_range f hf g).prod h = g.prod (λa b, h a (f b)) :=
 finset.prod_subset support_map_range $ by simp [h0] {contextual := tt}
@@ -186,27 +237,30 @@ lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → �
   (0 : α →₀ β).prod h = 1 :=
 by simp [finsupp.prod]
 
+section decidable
+variables [decidable_eq α] [decidable_eq β]
+
+section add_monoid
+variables [add_monoid β]
+
 @[to_additive finsupp.sum_single_index]
-lemma prod_single_index [add_comm_monoid β] [comm_monoid γ] {a : α} {b : β}
-  {h : α → β → γ} (h_zero : h a 0 = 1) : (single a b).prod h = h a b :=
+lemma prod_single_index [comm_monoid γ] {a : α} {b : β} {h : α → β → γ} (h_zero : h a 0 = 1) :
+  (single a b).prod h = h a b :=
 begin
   by_cases h : b = 0,
-  { simp [h, prod_zero_index, h_zero] },
+  { simp [h, prod_zero_index, h_zero], refl },
   { simp [finsupp.prod, support_single_ne_zero h] }
 end
 
-instance [add_monoid β] : has_add (α →₀ β) :=
-⟨zip_with (+) (add_zero 0)⟩
+instance : has_add (α →₀ β) := ⟨zip_with (+) (add_zero 0)⟩
 
-@[simp] lemma add_apply [add_monoid β] {g₁ g₂ : α →₀ β} {a : α} :
-  (g₁ + g₂) a = g₁ a + g₂ a := rfl
+@[simp] lemma add_apply {g₁ g₂ : α →₀ β} {a : α} : (g₁ + g₂) a = g₁ a + g₂ a :=
+rfl
 
-lemma support_add [add_monoid β] {g₁ g₂ : α →₀ β} :
-  (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
+lemma support_add {g₁ g₂ : α →₀ β} : (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
 support_zip_with
 
-@[simp] lemma single_add [add_monoid β] {a : α} {b₁ b₂ : β} :
-  single a (b₁ + b₂) = single a b₁ + single a b₂ :=
+@[simp] lemma single_add {a : α} {b₁ b₂ : β} : single a (b₁ + b₂) = single a b₁ + single a b₂ :=
 ext $ assume a',
 begin
   by_cases h : a = a',
@@ -214,30 +268,54 @@ begin
   { rw [add_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, zero_add] }
 end
 
-lemma filter_pos_add_filter_neg [add_monoid β] {f : α →₀ β} {p : α → Prop} :
-  f.filter p + f.filter (λa, ¬ p a) = f :=
-finsupp.ext $ assume a, by by_cases p a; simp *
-
-instance [add_monoid β] : add_monoid (α →₀ β) :=
+instance : add_monoid (α →₀ β) :=
 { add_monoid .
   zero      := 0,
   add       := (+),
-  add_assoc := assume ⟨f, hf⟩ ⟨g, hg⟩ ⟨h, hh⟩, ext $ assume a, add_assoc _ _ _,
-  zero_add  := assume ⟨f, hf⟩, ext $ assume a, zero_add _,
-  add_zero  := assume ⟨f, hf⟩, ext $ assume a, add_zero _ }
+  add_assoc := assume ⟨s, f, hf⟩ ⟨t, g, hg⟩ ⟨u, h, hh⟩, ext $ assume a, add_assoc _ _ _,
+  zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
+  add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
+
+lemma single_add_erase [add_monoid β] {a : α} {f : α →₀ β} : single a (f a) + (f.erase a) = f :=
+begin
+  refine ext _,
+  intro a',
+  by_cases h : a = a',
+  {subst h, simp },
+  { simp [ne.symm h, h] }
+end
+
+protected theorem induction {p : (α →₀ β) → Prop} (f : α →₀ β)
+  (h0 : p 0) (ha : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (single a b + f)) :
+  p f :=
+have ∀s (f : α →₀ β), f.support = s → p f, from
+  assume s, finset.induction_on s (by simp [h0] {contextual := tt}) $
+  assume a s has ih f hf,
+  suffices p (single a (f a) + (f.erase a)), by rwa [single_add_erase] at this,
+  begin
+    apply ha,
+    { simp },
+    { rw [← mem_support_iff _ a, hf], simp },
+    { apply ih _ _,
+      simp [hf, has, finset.erase_insert] }
+  end,
+this _ _ rfl
+
+end add_monoid
 
 instance [add_comm_monoid β] : add_comm_monoid (α →₀ β) :=
-{ add_comm := assume ⟨f, _⟩ ⟨g, _⟩, ext $ assume a, add_comm _ _,
+{ add_comm := assume ⟨s, f, _⟩ ⟨t, g, _⟩, ext $ assume a, add_comm _ _,
   .. finsupp.add_monoid }
 
 instance [add_group β] : add_group (α →₀ β) :=
 { neg          := map_range (has_neg.neg) neg_zero,
-  add_left_neg := assume ⟨f, _⟩, ext $ assume x, add_left_neg _,
+  add_left_neg := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
   .. finsupp.add_monoid }
 
 @[to_additive finsupp.sum_neg_index]
-lemma prod_neg_index [add_group β] [comm_monoid γ] {g : α →₀ β} {h : α → β → γ}
-  (h0 : ∀a, h a 0 = 1) : (-g).prod h = g.prod (λa b, h a (- b)) :=
+lemma prod_neg_index [add_group β] [comm_monoid γ]
+  {g : α →₀ β} {h : α → β → γ} (h0 : ∀a, h a 0 = 1) :
+  (-g).prod h = g.prod (λa b, h a (- b)) :=
 prod_map_range_index h0
 
 @[simp] lemma neg_apply [add_group β] {g : α →₀ β} {a : α} : (- g) a = - g a := rfl
@@ -253,19 +331,19 @@ finset.subset.antisymm
 instance [add_comm_group β] : add_comm_group (α →₀ β) :=
 { add_comm := add_comm, ..finsupp.add_group }
 
-@[simp] lemma sum_apply [has_zero β] [add_comm_monoid β₁]
-  {f : α₁ →₀ β} {g : α₁ → β → α₂ →₀ β₁} {a₂ : α₂} :
+@[simp] lemma sum_apply [has_zero β₁] [add_comm_monoid β]
+  {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β} {a₂ : α} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(finset.sum_hom (λf : α₂ →₀ β₁, f a₂) rfl (assume a b, rfl)).symm
+(finset.sum_hom (λf : α →₀ β, f a₂) rfl (assume a b, rfl)).symm
 
-lemma support_sum [has_zero β] [add_comm_monoid β₁]
-  {f : α →₀ β} {g : α → β → (α₁ →₀ β₁)} :
+lemma support_sum [has_zero β₁] [add_comm_monoid β]
+  {f : α₁ →₀ β₁} {g : α₁ → β₁ → (α →₀ β)} :
   (f.sum g).support ⊆ f.support.bind (λa, (g a (f a)).support) :=
-have ∀a₁ : α₁, f.sum (λ (a : α) (b : β), (g a b) a₁) ≠ 0 →
-    (∃ (a : α), f a ≠ 0 ∧ ¬ (g a (f a)) a₁ = 0),
+have ∀a₁ : α, f.sum (λ (a : α₁) (b : β₁), (g a b) a₁) ≠ 0 →
+    (∃ (a : α₁), f a ≠ 0 ∧ ¬ (g a (f a)) a₁ = 0),
   from assume a₁ h,
   let ⟨a, ha, ne⟩ := finset.exists_ne_zero_of_sum_ne_zero h in
-  ⟨a, f.mem_support_iff.mp ha, ne⟩,
+  ⟨a, (f.mem_support_iff a).mp ha, ne⟩,
 by simpa [finset.subset_iff, mem_support_iff, finset.mem_bind, sum_apply] using this
 
 @[simp] lemma sum_zero {γ : Type w} [add_comm_monoid β] [add_comm_monoid γ] {f : α →₀ β} :
@@ -288,7 +366,7 @@ have ∀a:α, f.sum (λa' b, ite (a' = a) b 0) =
 begin
   intro a,
   by_cases h : a ∈ f.support,
-  { have : {a} ⊆ f.support,
+  { have : (finset.singleton a : finset α) ⊆ f.support,
       { simp [finset.subset_iff, *] at * },
     refine (finset.sum_subset this _).symm,
     simp {contextual := tt} },
@@ -341,7 +419,8 @@ calc (f - g).sum h = (f + - g).sum h : by simp
   ... = _ : by simp
 
 @[to_additive finsupp.sum_finset_sum_index]
-lemma prod_finset_sum_index {γ : Type w} {ι : Type x} [add_comm_monoid β] [comm_monoid γ]
+lemma prod_finset_sum_index {γ : Type w} {ι : Type x}
+  [add_comm_monoid β] [comm_monoid γ] [decidable_eq ι]
   {s : finset ι} {g : ι → α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
   s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
@@ -350,14 +429,15 @@ finset.induction_on s
   (by simp [prod_add_index, h_zero, h_add] {contextual := tt})
 
 @[to_additive finsupp.sum_sum_index]
-lemma prod_sum_index {γ : Type w} [add_comm_monoid β₁] [add_comm_monoid β₂] [comm_monoid γ]
-  {f : α₁ →₀ β₁} {g : α₁ → β₁ → α₂ →₀ β₂}
-  {h : α₂ → β₂ → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
+lemma prod_sum_index {γ : Type w}
+  [decidable_eq α₁] [add_comm_monoid β₁] [add_comm_monoid β] [comm_monoid γ]
+  {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β}
+  {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
   (f.sum g).prod h = f.prod (λa b, (g a b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
 
 section map_domain
-variables [add_comm_monoid β] {v v₁ v₂ : α →₀ β}
+variables [decidable_eq α₁] [decidable_eq α₂] [add_comm_monoid β] {v v₁ v₂ : α →₀ β}
 
 /-- Given `f : α₁ → α₂` and `v : α₁ →₀ β`, `map_domain f v : α₂ →₀ β`
   is the finitely supported function whose value at `a : α₂` is the sum
@@ -385,7 +465,8 @@ finset.sum_congr rfl $ by simp [*] at * {contextual := tt}
 lemma map_domain_add {f : α → α₂} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
 sum_add_index (by simp) (by simp)
 
-lemma map_domain_finset_sum {ι : Type x} {f : α → α₂} {s : finset ι} {v : ι → α →₀ β} :
+lemma map_domain_finset_sum {ι : Type x} [decidable_eq ι]
+  {f : α → α₂} {s : finset ι} {v : ι → α →₀ β} :
   map_domain f (s.sum v) = s.sum (λi, map_domain f (v i)) :=
 by refine (sum_finset_sum_index _ _).symm; simp
 
@@ -424,78 +505,82 @@ instance [has_zero α] [has_zero β] [has_one β] : has_one (α →₀ β) :=
 
 lemma one_def [has_zero α] [has_zero β] [has_one β] : 1 = (single 0 1 : α →₀ β) := rfl
 
-section comap_domain
+section filter -- TODO: remove filter? build upon subtype_domain?
+section has_zero
+variables [has_zero β] {p : α → Prop} [decidable_pred p] {f : α →₀ β}
 
-variables {α' : Type u₁} {δ : Type y} [has_zero δ]
-  {f : α → α'} {hf : injective f} {p : α → Prop}
+/-- `filter p f` is the function which is `f a` if `p a` is true and 0 otherwise. -/
+def filter (p : α → Prop) [decidable_pred p] (f : α →₀ β) : α →₀ β :=
+on_finset f.support (λa, if p a then f a else 0) (assume a, by by_cases (p a); simp [h])
+
+@[simp] lemma filter_apply_pos {a : α} (h : p a) : f.filter p a = f a :=
+if_pos h
+
+@[simp] lemma filter_apply_neg {a : α} (h : ¬ p a) : f.filter p a = 0 :=
+if_neg h
+
+@[simp] lemma support_filter : (f.filter p).support = f.support.filter p :=
+finset.ext.mpr $ assume a, by by_cases p a; simp *
+
+end has_zero
+
+lemma filter_pos_add_filter_neg [add_monoid β] {f : α →₀ β} {p : α → Prop}
+  [decidable_pred p] [decidable_pred (λa, ¬ p a)] :
+  f.filter p + f.filter (λa, ¬ p a) = f :=
+finsupp.ext $ assume a, by by_cases p a; simp *
+
+end filter
+
+section subtype_domain
+
+variables {α' : Type u₁} {δ : Type y} [has_zero δ] {p : α → Prop} [decidable_pred p]
 
 section zero
 variables [has_zero β] {v v' : α' →₀ β}
 
-/-- The composition of `f : α → α'` and `v : α' →₀ β` is
-  `comap_domain f hf v : α →₀ β`, well defined when `f` is injective. -/
-def comap_domain (f : α → α') (hf : injective f) (v : α' →₀ β) : α →₀ β :=
-⟨λa, v (f a), finite_of_finite_image hf $ finite_subset v.2 $ image_subset_iff.mpr $ subset.refl _⟩
-
-@[simp] lemma comap_domain_apply {a : α} : (comap_domain f hf v) a = v (f a) := rfl
-
-@[simp] lemma comap_domain_zero : (0:α' →₀ β).comap_domain f hf  = 0 := rfl
-
-@[to_additive finsupp.sum_comap_domain_index]
-lemma prod_comap_domain_index [comm_monoid γ]
-  {h : α' → β → γ} (hvf : ∀a'∈v.support, ∃a, f a = a' ) :
-  (v.comap_domain f hf).prod (λa b, h (f a) b) = v.prod h :=
-begin
-  refine finset.prod_bij (assume a ha, f a) _ _ _ _; simp,
-  exact (assume a₁ a₂ _ _ eq, hf eq),
-  exact (assume a' ha',
-    have a' ∈ v.support, by simpa,
-    let ⟨a, eq⟩ := hvf _ this in ⟨a, eq.symm ▸ ha', eq.symm⟩)
-end
-
 /-- `subtype_domain p f` is the restriction of the finitely supported function
   `f` to the subtype `p`. -/
-def subtype_domain (p : α → Prop) : (α →₀ β) → (subtype p →₀ β) :=
-comap_domain subtype.val $ assume a₁ a₂, subtype.eq
+def subtype_domain (p : α → Prop) [decidable_pred p] (f : α →₀ β) : (subtype p →₀ β) :=
+⟨f.support.subtype p, f ∘ subtype.val, by simp⟩
+
+@[simp] lemma support_subtype_domain {f : α →₀ β} :
+  (subtype_domain p f).support = f.support.subtype p :=
+rfl
+
+@[simp] lemma subtype_domain_apply {a : subtype p} {v : α →₀ β} :
+  (subtype_domain p v) a = v (a.val) :=
+rfl
+
+@[simp] lemma subtype_domain_zero : subtype_domain p (0 : α →₀ β) = 0 :=
+rfl
 
 @[to_additive finsupp.sum_subtype_domain_index]
 lemma prod_subtype_domain_index [comm_monoid γ] {v : α →₀ β}
   {h : α → β → γ} (hp : ∀x∈v.support, p x) :
   (v.subtype_domain p).prod (λa b, h a.1 b) = v.prod h :=
-prod_comap_domain_index (assume a ha, ⟨⟨a, hp a ha⟩, rfl⟩)
-
-@[simp] lemma subtype_domain_apply {a : subtype p} {v : α →₀ β} :
-  (subtype_domain p v) a = v (a.val) := rfl
-
-@[simp] lemma subtype_domain_zero : subtype_domain p (0 : α →₀ β) = 0 := rfl
+prod_bij (λp _, p.val)
+  (by simp)
+  (by simp)
+  (assume ⟨a₀, ha₀⟩ ⟨a₁, ha₁⟩, by simp)
+  (begin simp; exact assume b hb, ⟨b, hp _ (by simp [hb]), by simp [hb]⟩ end)
 
 end zero
 
 section monoid
 variables [add_monoid β] {v v' : α' →₀ β}
 
-@[simp] lemma comap_domain_add :
-  (v + v').comap_domain f hf = v.comap_domain f hf + v'.comap_domain f hf := rfl
-
 @[simp] lemma subtype_domain_add {v v' : α →₀ β} :
-  (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p := rfl
+  (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
+ext $ by simp
 
 end monoid
 
 section comm_monoid
 variables [add_comm_monoid β]
 
-lemma comap_domain_sum {s : finset γ} {h : γ → α' →₀ β} :
-  (s.sum h).comap_domain f hf = s.sum (λc, (h c).comap_domain f hf) :=
-eq.symm (finset.sum_hom _ comap_domain_zero $ assume v v', comap_domain_add)
-
-lemma comap_domain_finsupp_sum {s : γ →₀ δ} {h : γ → δ → α' →₀ β} :
-  (s.sum h).comap_domain f hf = s.sum (λc d, (h c d).comap_domain f hf) :=
-comap_domain_sum
-
 lemma subtype_domain_sum {s : finset γ} {h : γ → α →₀ β} :
   (s.sum h).subtype_domain p = s.sum (λc, (h c).subtype_domain p) :=
-comap_domain_sum
+eq.symm (finset.sum_hom _ subtype_domain_zero $ assume v v', subtype_domain_add)
 
 lemma subtype_domain_finsupp_sum {s : γ →₀ δ} {h : γ → δ → α →₀ β} :
   (s.sum h).subtype_domain p = s.sum (λc d, (h c d).subtype_domain p) :=
@@ -506,20 +591,17 @@ end comm_monoid
 section group
 variables [add_group β] {v v' : α' →₀ β}
 
-@[simp] lemma comap_domain_neg : (- v).comap_domain f hf = - v.comap_domain f hf := rfl
-
-@[simp] lemma comap_domain_sub :
-  (v - v').comap_domain f hf = v.comap_domain f hf - v'.comap_domain f hf := rfl
-
 @[simp] lemma subtype_domain_neg {v : α →₀ β} :
-  (- v).subtype_domain p = - v.subtype_domain p := rfl
+  (- v).subtype_domain p = - v.subtype_domain p :=
+ext $ by simp
 
 @[simp] lemma subtype_domain_sub {v v' : α →₀ β} :
-  (v - v').subtype_domain p = v.subtype_domain p - v'.subtype_domain p := rfl
+  (v - v').subtype_domain p = v.subtype_domain p - v'.subtype_domain p :=
+ext $ by simp
 
 end group
 
-end comap_domain
+end subtype_domain
 
 section
 variables [add_monoid α] [semiring β]
@@ -573,10 +655,10 @@ lemma single_mul_single [has_add α] [semiring β] {a₁ a₂ : α} {b₁ b₂ :
   single a₁ b₁ * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
 by simp [mul_def, sum_single_index]
 
-lemma prod_single {ι : Type x} [add_comm_monoid α] [comm_semiring β] {s : finset ι}
-  {a : ι → α} {b : ι → β} :
+lemma prod_single {ι : Type x} [decidable_eq ι] [add_comm_monoid α] [comm_semiring β]
+  {s : finset ι} {a : ι → α} {b : ι → β} :
   s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
- finset.induction_on s (by simp [one_def]) (by simp [single_mul_single] {contextual := tt})
+finset.induction_on s (by simp [one_def]) (by simp [single_mul_single] {contextual := tt})
 
 def to_has_scalar [semiring β] : has_scalar β (α →₀ β) := ⟨λa v, v.map_range ((*) a) (mul_zero a)⟩
 local attribute [instance] to_has_scalar
@@ -596,5 +678,7 @@ def to_module [ring β] : module β (α →₀ β) :=
 lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} {h : α → β → γ}
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
 finsupp.sum_map_range_index h0
+
+end decidable
 
 end finsupp

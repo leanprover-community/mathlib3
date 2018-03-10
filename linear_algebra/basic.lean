@@ -501,7 +501,7 @@ def module_equiv_lc (hs : is_basis s) : β ≃ (s →₀ α) :=
   inv_fun   := assume v, v.sum $ λb a, a • b.1,
   left_inv  := assume b,
     calc ((hs.1.repr b).subtype_domain s).sum (λb a, a • b.1) = (hs.1.repr b).sum (λb a, a • b) :
-      @finsupp.sum_subtype_domain_index β _ _ (λx, x ∈ s) _ _ _ (λb a, a • b) (repr_support hs.1)
+      @finsupp.sum_subtype_domain_index β _ _ _ _ (λx, x ∈ s) _ _ _ _ (λb a, a • b) (repr_support hs.1)
       ... = _ : repr_sum_eq _ $ hs.2 _,
   right_inv := assume v, finsupp.ext $ assume ⟨b, hb⟩,
     have v.sum (λb' a, hs.1.repr (a • b'.val) b) = v ⟨b, hb⟩,

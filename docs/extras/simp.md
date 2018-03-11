@@ -1,6 +1,6 @@
 # Simp #
 
-The `simp` tactic works by applying "a conditional term rewriting system" (it says here), to try and simplify the goal. You can actually watch what it's doing (which to me looks like a whole bunch of random stuff until it stumbles upon the answer) by writing `set_option trace.simplify true` in your code. If you do this in the below
+The `simp` tactic works by applying "a conditional term rewriting system" (I don't really know what this means and would be interested to know more), to try and simplify the goal. You can actually watch what it's doing (which to the untrained eye looks like trying to apply lots of lemmas tagged with simp until it either makes progress or stops) by writing `set_option trace.simplify true` in your code. If you do this in the below
 
 ```lean
 namespace xena
@@ -20,15 +20,13 @@ end
 end xena
 ```
 
-you will discover that Lean seems to apply simp when you do an unfold as well. Who knew?
+you will discover that Lean seems to apply simp when you do an unfold as well (at least I am assuming that this is what's going on -- unfold is also underlined in green).
 
-Anyone worried about computers taking over any time soon should take a look at how they try to solve `a - a = m * 0` in `int` (by clicking on the `simp` in the code above) and then breathe a sigh of relief.
-
-However if you only want to see what worked rather than all the things that didn't, you could try `set_option trace.simplify.rewrite true`.
+If you only want to see what worked rather than all the things that didn't, you could try `set_option trace.simplify.rewrite true`.
 
 ### Simp lemmas
 
-In case you didn't think simp knew enough lemmas, you can add new lemmas for yourself. For example in mathlib in `algebra/field.lean` we find the line
+In case you want to train simp to use certain extra lemmas (for example because they're coming up again and again in your work) you can add new lemmas for yourself. For example in mathlib in `algebra/field.lean` we find the line
 
 ```lean
 @[simp] theorem ne_zero (u : units α) : (u : α) ≠ 0
@@ -53,9 +51,10 @@ Don't use simp in the middle of proofs. Use it to finish proofs. If you really n
 
 Conversely, if you ever manage to close a goal with simp, then take a look at the line before you ran simp. Could you have run simp one line earlier? How far back did simp start working? Even for goals where you didn't use simp at all -- could you have used simp for your last line? What about the last-but one? And so on.
 
+### Cutting edge simp facts
 
-### Other notes
+If you want to find out the most recent tweaks to simp, a very good place to look is [the changelog](https://github.com/leanprover/lean/blob/master/doc/changes.md) (search for simp). 
+
+### Something that could be added later on:
 
 "Re: documentation. If you mention congruence, you could show off simp's support for congruence relations. If you show reflexivity and transitivity for cong, and have congruence lemmas for +, etc., then you can rewrite with congruences as if they were equations."
-
-"If you want a cheap way to document stuff about simp not in TPIL you can also search for simp in https://github.com/leanprover/lean/blob/master/doc/changes.md"

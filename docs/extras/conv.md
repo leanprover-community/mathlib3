@@ -13,10 +13,11 @@ As a first example, let us prove
 `example (a b c : ℕ) : a * (b * c) = a * (c * b)` (examples in this file
 are somewhat artificial since the `ring` tactic from
 `tactic.ring` could finish them immediately). The naive first attempt is
-to enter tactic mode and try `rw mul_comm`. But this transforms to goal
+to enter tactic mode and try `rw mul_comm`. But this transforms the goal
 into `b * c * a = a * (c * b)`, after commuting the very first
-multiplication appearing. Some more more precise tool is needed: the
-conversion mode.  The following code block show to current target after
+multiplication appearing in the term. There are several ways to fix this
+issue, and one way is to use a more precise tool : the
+conversion mode.  The following code block shows the current target after
 each line. Note that the target is prefixed by `|` where normal mode
 shows a goal prefixed by `⊢` (these targets are still called "goals"
 though).
@@ -24,13 +25,13 @@ though).
 ```lean
 example (a b c : ℕ) : a * (b * c) = a * (c * b) :=
 begin
-conv
-begin          -- | a * (b * c) = a * (c * b)
-  to_lhs,      -- | a * (b * c)
-  congr,       -- 2 goals : | a and | b * c
-  skip,        -- | b * c
-  rw mul_comm, -- | c * b
-end
+  conv
+  begin          -- | a * (b * c) = a * (c * b)
+    to_lhs,      -- | a * (b * c)
+    congr,       -- 2 goals : | a and | b * c
+    skip,        -- | b * c
+    rw mul_comm, -- | c * b
+  end
 end
 ```
 
@@ -127,7 +128,9 @@ by conv { for (b * c) [2, 3] { rw mul_comm } }
 ### Other tactics inside conversion mode
 
 Besides rewriting using `rw`, one can use `simp`, `dsimp`, `change` and `whnf`.
-The later means "reduces to weak head normal form" and will eventually
+`change` is a useful tool -- it allows changing a term to something
+definitionally equal, rather like the `show` command in tactic mode.
+The `whnf` command means "reduces to weak head normal form" and will eventually
 be explained in [Programming in Lean](https://leanprover.github.io/programming_in_lean/#08_Writing_Tactics.html) section 8.4.
 
 Soon, `norm_num` and `ring` will be available in conversion mode, but not

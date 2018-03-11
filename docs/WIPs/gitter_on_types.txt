@@ -1,0 +1,80 @@
+
+Mario Carneiro
+@digama0
+Feb 24 06:56
+Another possibility is to add a type ascription at first use of the variable
+Andrew Ashworth
+@alashworth
+Feb 24 06:57
+i wonder if using the full match foo with bar syntax is too ugly or not
+because you can use type ascriptions there
+Mario Carneiro
+@digama0
+Feb 24 06:58
+I don't think the type ascriptions are actually honored though
+like the variable type might not be what you say in the ascription
+Andrew Ashworth
+@alashworth
+Feb 24 06:59
+ugh
+so that leaves writing out exists.elim or using french quotes
+Mario Carneiro
+@digama0
+Feb 24 07:00
+Dunno how reasonable you think this is, but one way to get a variable that really has the type you say is by have x : t, from x,
+Andrew Ashworth
+@alashworth
+Feb 24 07:01
+ugh
+that's inelegant, haha
+Mario Carneiro
+@digama0
+Feb 24 07:02
+of course, you can always use tactics
+Andrew Ashworth
+@alashworth
+Feb 24 07:03
+i have a general uneasiness around tactics unless they are really simple and straightforward
+Mario Carneiro
+@digama0
+Feb 24 07:03
+cases is no fancier than let match
+and change is easy to understand
+Andrew Ashworth
+@alashworth
+Feb 24 07:04
+actually i'm kinda surprised you can't have type ascriptions in match / let match - is there a modern functional language that doesn't let you do that
+in F# and OCaml i'm actually a little OCD about annotating my types
+sure, I guess. tactics are your own little DSL for writing proofs
+i'm allergic unless I really, really need it
+Mario Carneiro
+@digama0
+Feb 24 07:07
+It seems like a not-well-thought out syntax design, not a fundamental lacking of the language
+It's definitely on the list of things that I would not be surprised to see change
+as it is, there's just no place to put a type on those variables
+You could try to put type ascriptions like let <(x : t), y> := ... but that's just an expression with a type ascription in it. The parser would need to do something special to recognize this as a binder
+In a sense, the types are actually on the constructor itself
+Andrew Ashworth
+@alashworth
+Feb 24 07:12
+until 5 minutes ago I had no idea type ascriptions were just a suggestion to the compiler
+Mario Carneiro
+@digama0
+Feb 24 07:14
+A type ascription is an assertion "the term here should have type defeq to t". It is checked, but the "exterior" type of this ascribed term will be whatever type t' is naturally inferred, not t
+To actually change the exterior type, you need to use something like @id t p or show t, from p. This is what tactics do
+Andrew Ashworth
+@alashworth
+Feb 24 07:16
+the kernel reduces defeq expressions, iirc? so practically is it an issue?
+Mario Carneiro
+@digama0
+Feb 24 07:17
+sometimes. The kernel uses heuristics like f x =?= g x => f =?= g which sometimes are not a good idea
+And changing the way a term is written can affect this
+Also, it can have more severe consequences since defeq is not actually transitive (in some edge cases). If A == B == C but A != C, and p : C, then (p : A) does not typecheck but (@id B p : A) does
+Andrew Ashworth
+@alashworth
+Feb 24 07:20
+ouch

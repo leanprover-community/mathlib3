@@ -94,3 +94,7 @@ import tactic.find
 #find _ + _ = _ + _
 #find (_ : ℕ) + _ = _ + _
 ```
+
+### abstract
+
+@cipher1024 asked on gitter how to use this tactic. If anyone says anything helpful, I will hopefully remember to put it here.

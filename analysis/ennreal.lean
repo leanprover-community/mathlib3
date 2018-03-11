@@ -630,7 +630,7 @@ begin
   apply tendsto_principal.2 _,
   revert b,
   simp [forall_ennreal],
-  exact assume r hr hr', mem_prod_sets.mpr ⟨
+  exact assume r hr hr', mem_prod_iff.mpr ⟨
     {a | of_real r < a}, mem_nhds_sets (is_open_lt' _) hr',
     univ, univ_mem_sets, assume ⟨c, d⟩ ⟨hc, _⟩, lt_of_lt_of_le hc $ le_add_right $ le_refl _⟩
 end,

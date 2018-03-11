@@ -116,7 +116,7 @@ real.uniform_continuous_abs.continuous
 
 lemma rat.uniform_continuous_abs : uniform_continuous (abs : ℚ → ℚ) :=
 uniform_continuous_of_metric.2 $ λ ε ε0,
-  ⟨ε, ε0, λ a b h, lt_of_le_of_lt 
+  ⟨ε, ε0, λ a b h, lt_of_le_of_lt
     (by simpa [rat.dist_eq] using abs_abs_sub_abs_le_abs_sub _ _) h⟩
 
 lemma rat.continuous_abs : continuous (abs : ℚ → ℚ) :=
@@ -285,7 +285,7 @@ begin
     rcases Cauchy.mem_uniformity'.1 hs with ⟨t, tu, ts⟩,
     apply ts,
     rcases comp_mem_uniformity_sets tu with ⟨d, du, dt⟩,
-    refine mem_prod_sets.2
+    refine mem_prod_iff.2
       ⟨_, le_nhds_lim_of_cauchy f.2 (mem_nhds_right (lim f.1) du),
        _, le_nhds_lim_of_cauchy g.2 (mem_nhds_left (lim g.1) du), λ x h, _⟩,
     cases x with a b, cases h with h₁ h₂,
@@ -296,7 +296,7 @@ begin
     rcases mem_uniformity_is_closed tu with ⟨d, du, dc, dt⟩,
     refine H {p | (lim p.1.1, lim p.2.1) ∈ t}
       (Cauchy.mem_uniformity'.2 ⟨d, du, λ f g h, _⟩),
-    rcases mem_prod_sets.1 h with ⟨x, xf, y, yg, h⟩,
+    rcases mem_prod_iff.1 h with ⟨x, xf, y, yg, h⟩,
     have limc : ∀ (f : Cauchy ℝ) (x ∈ f.1.sets), lim f.1 ∈ closure x,
     { intros f x xf,
       rw closure_eq_nhds,

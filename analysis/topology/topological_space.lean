@@ -894,6 +894,12 @@ le_antisymm
       end)
   end
 
+lemma nhds_sup {t₁ t₂ : topological_space α} {a : α} :
+  @nhds α (t₁ ⊔ t₂) a = @nhds α t₁ a ⊓ @nhds α t₂ a :=
+calc @nhds α (t₁ ⊔ t₂) a = @nhds α (⨆b:bool, cond b t₁ t₂) a : by rw [supr_bool_eq]
+  ... = (⨅b, @nhds α (cond b t₁ t₂) a) : begin rw [nhds_supr] end
+  ... = @nhds α t₁ a ⊓ @nhds α t₂ a : by rw [infi_bool_eq]
+
 end
 
 end constructions
@@ -943,7 +949,7 @@ lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
       (is_open_inter _ _ _ (h_open _ ht₁) (h_open _ ht₂)),
   eq_univ_iff_forall.2 $ assume a,
     let ⟨u, h₁, h₂, _⟩ := h_nhds a univ trivial (is_open_univ _) in
-    ⟨u, h₁, h₂⟩, 
+    ⟨u, h₁, h₂⟩,
   le_antisymm
     (assume u hu,
       (@is_open_iff_nhds α (generate_from _) _).mpr $ assume a hau,

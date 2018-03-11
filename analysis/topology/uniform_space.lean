@@ -78,8 +78,10 @@ def uniform_space.core.mk' {α : Type u} (U : filter (α × α))
   (symm : ∀ r ∈ U.sets, {p | prod.swap p ∈ r} ∈ U.sets)
   (comp : ∀ r ∈ U.sets, ∃ t ∈ U.sets, comp_rel t t ⊆ r) : uniform_space.core α :=
 ⟨U, λ r ru, id_rel_subset.2 (refl _ ru), symm,
-  λ r ru, begin
-    rw [mem_lift'_sets], exact comp _ ru,
+  begin
+    intros r ru,
+    rw [mem_lift'_sets],
+    exact comp _ ru,
     apply monotone_comp_rel; exact monotone_id,
   end⟩
 
@@ -88,10 +90,10 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
   topological_space α :=
 { is_open        := λs, ∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ u.uniformity.sets,
   is_open_univ   := by simp; intro; exact univ_mem_sets,
-  is_open_inter  := assume s t hs ht x ⟨xs, xt⟩,
-    u.uniformity.upwards_sets (inter_mem_sets (hs x xs) (ht x xt)) $ assume p ⟨ps, pt⟩ h, ⟨ps h, pt h⟩,
-  is_open_sUnion := assume s hs x ⟨t, ts, xt⟩,
-    u.uniformity.upwards_sets (hs t ts x xt) $ assume p ph h, ⟨t, ts, ph h⟩ }
+  is_open_inter  :=
+    assume s t hs ht x ⟨xs, xt⟩, by filter_upwards [hs x xs, ht x xt]; simp {contextual := tt},
+  is_open_sUnion :=
+    assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] assume p ph h, ⟨t, ts, ph h⟩ }
 
 lemma uniform_space.core_eq : ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
 | ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := have u₁ = u₂, from h, by simp [*]
@@ -188,22 +190,19 @@ let ⟨t, ht₁, ht₂⟩ := comp_mem_uniformity_sets hs in
 let ⟨t', ht', ht'₁, ht'₂⟩ := symm_of_uniformity ht₁ in
 ⟨t', ht', ht'₁, subset.trans (monotone_comp_rel monotone_id monotone_id ht'₂) ht₂⟩
 
-lemma uniformity_le_symm : uniformity ≤ map (@prod.swap α α) uniformity :=
-calc uniformity = id <$> uniformity : (functor.id_map _).symm
-  ... = (@prod.swap α α ∘ prod.swap) <$> uniformity :
-    congr_arg (λf : (α×α)→(α×α), f <$> uniformity) (by funext x; cases x; refl)
-  ... = (map prod.swap ∘ map prod.swap) uniformity :
-    congr map_compose rfl
-  ... ≤ (@prod.swap α α) <$> uniformity : map_mono symm_le_uniformity
+lemma uniformity_le_symm : uniformity ≤ (@prod.swap α α) <$> uniformity :=
+by rw [map_swap_eq_vmap_swap];
+from map_le_iff_le_vmap.1 tendsto_swap_uniformity
 
 lemma uniformity_eq_symm : uniformity = (@prod.swap α α) <$> uniformity :=
 le_antisymm uniformity_le_symm symm_le_uniformity
 
 theorem uniformity_lift_le_swap {g : set (α×α) → filter β} {f : filter β} (hg : monotone g)
   (h : uniformity.lift (λs, g (preimage prod.swap s)) ≤ f) : uniformity.lift g ≤ f :=
-le_trans
-  (lift_mono uniformity_le_symm (le_refl _))
-  (by rw [map_lift_eq2 hg, image_swap_eq_preimage_swap]; exact h)
+calc uniformity.lift g ≤ (filter.map prod.swap (@uniformity α _)).lift g :
+    lift_mono uniformity_le_symm (le_refl _)
+  ... ≤ _ :
+    by rw [map_lift_eq2 hg, image_swap_eq_preimage_swap]; exact h
 
 lemma uniformity_lift_le_comp {f : set (α×α) → filter β} (h : monotone f):
   uniformity.lift (λs, f (comp_rel s s)) ≤ uniformity.lift f :=
@@ -238,25 +237,21 @@ lemma mem_nhds_uniformity_iff {x : α} {s : set α} :
   (s ∈ (nhds x).sets) ↔ ({p : α × α | p.1 = x → p.2 ∈ s} ∈ (@uniformity α _).sets) :=
 ⟨ begin
     simp [mem_nhds_sets_iff, is_open_uniformity],
-    exact assume t ts ht xt, uniformity.upwards_sets (ht x xt) $ assume ⟨x', y⟩ h eq, ts $ h eq
+    exact assume t ts ht xt, by filter_upwards [ht x xt] assume ⟨x', y⟩ h eq, ts $ h eq
   end,
 
   assume hs,
   mem_nhds_sets_iff.mpr ⟨{x | {p : α × α | p.1 = x → p.2 ∈ s} ∈ (@uniformity α _).sets},
-    assume x', assume hx' : {p : α × α | p.fst = x' → p.snd ∈ s} ∈ (@uniformity α _).sets,
-      refl_mem_uniformity hx' rfl,
+    assume x' hx', refl_mem_uniformity hx' rfl,
     is_open_uniformity.mpr $ assume x' hx',
       let ⟨t, ht, tr⟩ := comp_mem_uniformity_sets hx' in
-      uniformity.upwards_sets ht $
-      assume ⟨a, b⟩ hp' (eq : a = x'),
-      have hp : (x', b) ∈ t, from eq ▸ hp',
-      show {p : α × α | p.fst = b → p.snd ∈ s} ∈ (@uniformity α _).sets,
-        from uniformity.upwards_sets ht $
-          assume ⟨a, b'⟩ hp' (heq : a = b),
-          have (b, b') ∈ t, from heq ▸ hp',
-          have (x', b') ∈ comp_rel t t, from ⟨b, hp, this⟩,
-          show b' ∈ s,
-            from tr this rfl,
+      by filter_upwards [ht] assume ⟨a, b⟩ hp' (hax' : a = x'),
+      by filter_upwards [ht] assume ⟨a, b'⟩ hp'' (hab : a = b),
+      have hp : (x', b) ∈ t, from hax' ▸ hp',
+      have (b, b') ∈ t, from hab ▸ hp'',
+      have (x', b') ∈ comp_rel t t, from ⟨b, hp, this⟩,
+      show b' ∈ s,
+        from tr this rfl,
     hs⟩⟩
 
 lemma nhds_eq_vmap_uniformity {x : α} : nhds x = uniformity.vmap (prod.mk x) :=
@@ -314,8 +309,9 @@ lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
   filter.prod (nhds a) (nhds b) =
   uniformity.lift (λs:set (α×α), uniformity.lift' (λt:set (α×α),
     set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ t})) :=
-show (nhds a).lift (λs:set α, (nhds b).lift (λt:set α, principal (set.prod s t))) = _,
 begin
+  rw [prod_def],
+  show (nhds a).lift (λs:set α, (nhds b).lift (λt:set α, principal (set.prod s t))) = _,
   rw [lift_nhds_right],
   apply congr_arg, funext s,
   rw [lift_nhds_left],
@@ -387,7 +383,7 @@ calc (a, b) ∈ closure t ↔ (nhds (a, b) ⊓ principal t ≠ ⊥) : by simp [c
 
 lemma uniformity_eq_uniformity_closure : (@uniformity α _) = uniformity.lift' closure :=
 le_antisymm
-  (le_infi $ assume s, le_infi $ assume hs, by simp; exact uniformity.upwards_sets hs subset_closure)
+  (le_infi $ assume s, le_infi $ assume hs, by simp; filter_upwards [hs] subset_closure)
   (calc uniformity.lift' closure ≤ uniformity.lift' (λd, comp_rel d (comp_rel d d)) :
       lift'_mono' (by intros s hs; rw [closure_eq_inter_uniformity]; exact bInter_subset_of_mem hs)
     ... ≤ uniformity : comp_le_uniformity3)
@@ -402,8 +398,7 @@ le_antisymm
       calc s ⊆ t : hst
        ... ⊆ interior d : (subset_interior_iff_subset_of_open ht).mpr $
         assume x, assume : x ∈ t, let ⟨x, y, h₁, h₂, h₃⟩ := ht_comp this in hs_comp ⟨x, h₁, y, h₂, h₃⟩,
-    have interior d ∈ (@uniformity α _).sets,
-      from (@uniformity α _).upwards_sets hs $ this,
+    have interior d ∈ (@uniformity α _).sets, by filter_upwards [hs] this,
     by simp [this])
   (assume s hs, (uniformity.lift' interior).upwards_sets (mem_lift' hs) interior_subset)
 
@@ -1084,7 +1079,7 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ uniformity.sets,
     from is_open_iff_nhds.mp is_open_interior (x₁, x₂) hx_t,
   have interior t ∈ (filter.prod (nhds x₁) (nhds x₂)).sets,
     by rwa [nhds_prod_eq, le_principal_iff] at this,
-  let ⟨m₁, hm₁, m₂, hm₂, (hm : set.prod m₁ m₂ ⊆ interior t)⟩ := mem_prod_sets.mp this in
+  let ⟨m₁, hm₁, m₂, hm₂, (hm : set.prod m₁ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in
   let ⟨a, ha₁, _, ha₂⟩ := h_pnt hm₁ in
   let ⟨b, hb₁, hb₂, _⟩ := h_pnt hm₂ in
   have set.prod (preimage e m₁) (preimage e m₂) ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s,
@@ -1145,9 +1140,9 @@ private lemma comp_rel_gen_gen_subset_gen_comp_rel {s t : set (α×α)} : comp_r
   (gen (comp_rel s t) : set (Cauchy α × Cauchy α)) :=
 assume ⟨f, g⟩ ⟨h, h₁, h₂⟩,
 let ⟨t₁, (ht₁ : t₁ ∈ f.val.sets), t₂, (ht₂ : t₂ ∈ h.val.sets), (h₁ : set.prod t₁ t₂ ⊆ s)⟩ :=
-  mem_prod_sets.mp h₁ in
+  mem_prod_iff.mp h₁ in
 let ⟨t₃, (ht₃ : t₃ ∈ h.val.sets), t₄, (ht₄ : t₄ ∈ g.val.sets), (h₂ : set.prod t₃ t₄ ⊆ t)⟩ :=
-  mem_prod_sets.mp h₂ in
+  mem_prod_iff.mp h₂ in
 have t₂ ∩ t₃ ∈ h.val.sets,
   from inter_mem_sets ht₂ ht₃,
 let ⟨x, xt₂, xt₃⟩ :=
@@ -1225,7 +1220,7 @@ have h_ex : ∀s∈(@uniformity (Cauchy α) _).sets, ∃y:α, (f, pure_cauchy y)
   let ⟨t, ht, (h : set.prod t t ⊆ t')⟩ := mem_prod_same_iff.mp this in
   let ⟨x, (hx : x ∈ t)⟩ := inhabited_of_mem_sets f.property.left ht in
   have t'' ∈ (filter.prod f.val (pure x)).sets,
-    from mem_prod_sets.mpr ⟨t, ht, {y:α | (x, y) ∈ t'},
+    from mem_prod_iff.mpr ⟨t, ht, {y:α | (x, y) ∈ t'},
       assume y, begin simp, intro h, simp [h], exact refl_mem_uniformity ht'₁ end,
       assume ⟨a, b⟩ ⟨(h₁ : a ∈ t), (h₂ : (x, b) ∈ t')⟩,
         ht'₂ $ prod_mk_mem_comp_rel (@h (a, x) ⟨h₁, hx⟩) h₂⟩,
@@ -1551,7 +1546,7 @@ have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
   vmap (λp:(α×β)×(α×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))),
   from funext $ assume f, map_eq_vmap_of_inverse
     (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl) (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl),
-by rw [this, uniformity_prod, prod_def, vmap_inf, vmap_vmap_comp, vmap_vmap_comp]
+by rw [this, uniformity_prod, filter.prod, vmap_inf, vmap_vmap_comp, vmap_vmap_comp]
 
 lemma mem_uniform_prod [t₁ : uniform_space α] [t₂ : uniform_space β] {a : set (α × α)} {b : set (β × β)}
   (ha : a ∈ (@uniformity α _).sets) (hb : b ∈ (@uniformity β _).sets) :

@@ -228,6 +228,21 @@ end
 
 end is_submodule
 
+section comm_ring
+
+theorem is_submodule.eq_univ_of_contains_unit {α : Type u} [comm_ring α] (S : set α) [is_submodule S]
+  (x y : α) (hx : x ∈ S) (h : y * x = 1) : S = set.univ :=
+set.ext $ λ z, ⟨λ hz, trivial, λ hz, calc
+    z = z * (y * x) : by simp [h]
+  ... = (z * y) * x : eq.symm $ mul_assoc z y x
+  ... ∈ S : is_submodule.smul (z * y) hx⟩
+
+theorem is_submodule.univ_of_one_mem {α : Type u} [comm_ring α] (S : set α) [is_submodule S] :
+  (1:α) ∈ S → S = set.univ :=
+λ h, set.ext $ λ z, ⟨λ hz, trivial, λ hz, by simpa using (is_submodule.smul z h : z * 1 ∈ S)⟩
+
+end comm_ring
+
 /-- A vector space is the same as a module, except the scalar ring is actually
   a field. (This adds commutativity of the multiplication and existence of inverses.)
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural

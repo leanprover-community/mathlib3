@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Multivariate Polynomial
 -/
-import data.finsupp algebra.linear_algebra.basic
+import data.finsupp linear_algebra.basic
 noncomputable theory
 
 open classical set function finsupp lattice

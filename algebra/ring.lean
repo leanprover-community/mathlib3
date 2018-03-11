@@ -3,9 +3,9 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn
 -/
-import algebra.group tactic
+import algebra.group tactic data.set.basic
 
-universe u
+universes u v
 variable {α : Type u}
 
 section
@@ -56,6 +56,31 @@ section comm_ring
   @[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
   ⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
 end comm_ring
+
+def nonunits (α : Type u) [comm_ring α] : set α := { x | ¬∃ y, y * x = 1 }
+
+class is_ring_hom {α : Type u} {β : Type v} [comm_ring α] [comm_ring β] (f : α → β) : Prop :=
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_one : f 1 = 1)
+
+namespace is_ring_hom
+
+variables {β : Type v} [comm_ring α] [comm_ring β]
+variables (f : α → β) [is_ring_hom f] {x y : α}
+
+lemma map_zero : f 0 = 0 :=
+calc f 0 = f (0 + 0) - f 0 : by rw [map_add f]; simp
+     ... = 0 : by simp
+
+lemma map_neg : f (-x) = -f x :=
+calc f (-x) = f (-x + x) - f x : by rw [map_add f]; simp
+        ... = -f x : by simp [map_zero f]
+
+lemma map_sub : f (x - y) = f x - f y :=
+by simp [map_add f, map_neg f]
+
+end is_ring_hom
 
 set_option old_structure_cmd true
 /-- A domain is a ring with no zero divisors, i.e. satisfying

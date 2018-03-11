@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import data.list.basic data.list.perm data.list.sort order.boolean_algebra
+import logic.function data.list.basic data.list.perm data.list.sort order.boolean_algebra
        algebra.order_functions data.quot algebra.group_power algebra.ordered_group
 open list subtype nat lattice
 
@@ -89,6 +89,45 @@ multiset.induction h₁ h₂ s
 theorem cons_swap (a b : α) (s : multiset α) : a :: b :: s = b :: a :: s :=
 quot.induction_on s $ λ l, quotient.sound $ perm.swap _ _ _
 
+section rec
+variables {C : multiset α → Sort*}
+
+/-- Dependent recursor on multisets.
+
+TODO: should be @[recursor 6], but then the definition of `multiset.pi` failes with a stack
+overflow in `whnf`.
+-/
+protected def rec
+  (C_0 : C 0)
+  (C_cons : Πa m, C m → C (a::m))
+  (C_cons_heq : ∀a a' m b, C_cons a (a'::m) (C_cons a' m b) == C_cons a' (a::m) (C_cons a m b))
+  (m : multiset α) : C m :=
+quotient.hrec_on m (@list.rec α (λl, C ⟦l⟧) C_0 (λa l b, C_cons a ⟦l⟧ b)) $
+  assume l l' h,
+  list.rec_heq_of_perm h
+    (assume a l l' b b' hl, have ⟦l⟧ = ⟦l'⟧, from quot.sound hl, by cc)
+    (assume a a' l, C_cons_heq a a' ⟦l⟧)
+
+@[elab_as_eliminator]
+protected def rec_on (m : multiset α)
+  (C_0 : C 0)
+  (C_cons : Πa m, C m → C (a::m))
+  (C_cons_heq : ∀a a' m b, C_cons a (a'::m) (C_cons a' m b) == C_cons a' (a::m) (C_cons a m b)) :
+  C m :=
+multiset.rec C_0 C_cons C_cons_heq m
+
+variables {C_0 : C 0} {C_cons : Πa m, C m → C (a::m)}
+  {C_cons_heq : ∀a a' m b, C_cons a (a'::m) (C_cons a' m b) == C_cons a' (a::m) (C_cons a m b)}
+
+@[simp] lemma rec_on_0 : @multiset.rec_on α C (0:multiset α) C_0 C_cons C_cons_heq = C_0 :=
+rfl
+
+@[simp] lemma rec_on_cons (a : α) (m : multiset α) :
+  (a :: m).rec_on C_0 C_cons C_cons_heq = C_cons a m (m.rec_on C_0 C_cons C_cons_heq) :=
+quotient.induction_on m $ assume l, rfl
+
+end rec
+
 section mem
 
 /-- `a ∈ s` means that `a` has nonzero multiplicity in `s`. -/
@@ -104,6 +143,9 @@ quot.rec_on_subsingleton s $ list.decidable_mem a
 
 @[simp] theorem mem_cons {a b : α} {s : multiset α} : a ∈ b :: s ↔ a = b ∨ a ∈ s :=
 quot.induction_on s $ λ l, iff.rfl
+
+lemma mem_cons_of_mem {a b : α} {s : multiset α} (h : a ∈ s) : a ∈ b :: s :=
+mem_cons.2 $ or.inr h
 
 @[simp] theorem mem_cons_self (a : α) (s : multiset α) : a ∈ a :: s :=
 mem_cons.2 (or.inl rfl)
@@ -126,7 +168,6 @@ quot.induction_on s $ assume l hl,
   end
 
 end mem
-
 
 /- subset -/
 section subset
@@ -241,6 +282,10 @@ quot.lift_on s length $ λ l₁ l₂, perm_length
 
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a :: s) = card s + 1 :=
 quot.induction_on s $ λ l, rfl
+
+@[simp] theorem card_singleton (a : α) : card ({a} : multiset α) = 1 :=
+calc card ({a} : multiset α) = card (0 : multiset α) + 1 : multiset.card_cons a 0
+  ... = 1 : by simp
 
 theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
 le_induction_on h $ λ l₁ l₂, length_le_of_sublist
@@ -530,6 +575,10 @@ quot.induction_on s $ λ l, congr_arg coe $ map_const _ _
 @[congr] theorem map_congr {f g : α → β} {s : multiset α} : (∀ x ∈ s, f x = g x) → map f s = map g s :=
 quot.induction_on s $ λ l H, congr_arg coe $ map_congr H
 
+lemma map_hcongr {β' : Type*} {m : multiset α} {f : α → β} {f' : α → β'}
+  (h : β = β') (hf : ∀a∈m, f a == f' a) : map f m == map f' m :=
+begin subst h, simp at hf, simp [map_congr hf] end
+
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) : b₁ = b₂ :=
 eq_of_mem_repeat $ by rwa map_const at h
 
@@ -624,11 +673,21 @@ quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = monoid.pow a n :=
 by simp [repeat, list.prod_repeat]
 
+@[simp, to_additive multiset.sum_map_add]
+lemma prod_map_mul [comm_monoid γ] {m : multiset α} {f g : α → γ} :
+  prod (m.map $ λa, f a * g a) = prod (m.map f) * prod (m.map g) :=
+multiset.induction_on m (by simp) (assume a m ih, by simp [ih]; cc)
+
+@[to_additive multiset.sum_map_sum_map]
+lemma prod_map_prod_map [comm_monoid γ] (m : multiset α) (n : multiset β) {f : α → β → γ} :
+  prod (m.map $ λa, prod $ n.map $ λb, f a b) = prod (n.map $ λb, prod $ m.map $ λa, f a b) :=
+multiset.induction_on m (by simp) (assume a m ih, by simp [ih])
+
 /- join -/
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
   operation, that is, the union of all the sets.
-  
+
      join {{1, 2}, {1, 2}, {0, 1}} = {0, 1, 1, 1, 2, 2} -/
 def join : multiset (multiset α) → multiset α := sum
 
@@ -677,6 +736,17 @@ by simp [bind]; simp [-exists_and_distrib_right, exists_and_distrib_right.symm];
 
 @[simp] theorem card_bind (s) (f : α → multiset β) : card (bind s f) = sum (map (card ∘ f) s) :=
 by simp [bind]
+
+lemma bind_congr {f g : α → multiset β} {m : multiset α} : (∀a∈m, f a = g a) → bind m f = bind m g :=
+by simp [bind] {contextual := tt}
+
+lemma bind_hcongr {β' : Type*} {m : multiset α} {f : α → multiset β} {f' : α → multiset β'}
+  (h : β = β') (hf : ∀a∈m, f a == f' a) : bind m f == bind m f' :=
+begin subst h, simp at hf, simp [bind_congr hf] end
+
+lemma map_bind [decidable_eq γ] (m : multiset α) (n : α → multiset β) (f : β → γ) :
+  map f (bind m n) = bind m (λa, map f (n a)) :=
+multiset.induction_on m (by simp) (by simp {contextual := tt})
 
 /- product -/
 
@@ -806,6 +876,35 @@ quot.induction_on s (λ l H, mem_pmap) H
 @[simp] theorem card_pmap {p : α → Prop} (f : Π a, p a → β)
   (s H) : card (pmap f s H) = card s :=
 quot.induction_on s (λ l H, length_pmap) H
+
+@[simp] theorem card_attach {m : multiset α} : card (attach m) = card m := card_pmap _ _ _
+
+@[simp] lemma attach_zero : (0 : multiset α).attach = 0 := rfl
+
+lemma attach_cons (a : α) (m : multiset α) :
+  (a :: m).attach = ⟨a, mem_cons_self a m⟩ :: (m.attach.map $ λp, ⟨p.1, mem_cons_of_mem p.2⟩) :=
+quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
+  by rw [list.map_pmap]; exact list.pmap_congr _ (assume a' h₁ h₂, subtype.eq rfl)
+
+section decidable_pi_multiset
+variables {m : multiset α}
+
+protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
+  decidable (∀a∈m, p a) :=
+quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a∈l, p a) $ by simp)
+
+instance decidable_dforall_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
+  decidable (∀a (h : a ∈ m), p a h) :=
+decidable_of_decidable_of_iff
+  (@multiset.decidable_forall_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
+  (iff.intro (assume h a ha, h ⟨a, ha⟩ (mem_attach _ _)) (assume h ⟨a, ha⟩ _, h _ _))
+
+/-- decidable equality for functions whose domain is bounded by multisets -/
+instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (β a)] :
+  decidable_eq (Πa∈m, β a) :=
+assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
+
+end decidable_pi_multiset
 
 /- subtraction -/
 section
@@ -1324,11 +1423,19 @@ begin
   rw [← count_add, sub_add_inter, count_sub, sub_add_min],
 end
 
+lemma count_bind {m : multiset β} {f : β → multiset α} {a : α} :
+  count a (bind m f) = sum (m.map $ λb, count a $ f b) :=
+multiset.induction_on m (by simp) (by simp)
+
 theorem le_count_iff_repeat_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ repeat a n ≤ s :=
 quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
 
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
+
+lemma bind_bind [decidable_eq γ] (m : multiset α) (n : multiset β) {f : α → β → multiset γ} :
+  (bind m $ λa, bind n $ λb, f a b) = (bind n $ λb, bind m $ λa, f a b) :=
+by simp [multiset.ext, count_bind, multiset.sum_map_sum_map m n]
 
 theorem le_iff_count {s t : multiset α} : s ≤ t ↔ ∀ a, count a s ≤ count a t :=
 ⟨λ h a, count_le_of_le a h, λ al,
@@ -1860,5 +1967,97 @@ quot.induction_on s $ λ l, sorted_merge_sort r to.total tr.trans _
 quot.induction_on s $ λ l, quot.sound $ perm_merge_sort _ _
 
 end sort
+
+section pi
+variables [decidable_eq α] {δ : α → Type*} [∀a, decidable_eq (δ a)]
+open function
+
+def pi.cons (m : multiset α) (a : α) (b : δ a) (f : Πa∈m, δ a) : Πa'∈a::m, δ a' :=
+λa' ha', if h : a' = a then eq.rec b h.symm else f a' $ (mem_cons.1 ha').resolve_left h
+
+def pi.empty (δ : α → Type*) : (Πa∈(0:multiset α), δ a) .
+
+lemma pi.cons_same {m : multiset α} {a : α} {b : δ a} {f : Πa∈m, δ a} (h : a ∈ a :: m) :
+  pi.cons m a b f a h = b :=
+dif_pos rfl
+
+lemma pi.cons_ne {m : multiset α} {a a' : α} {b : δ a} {f : Πa∈m, δ a} (h' : a' ∈ a :: m) (h : a' ≠ a) :
+  pi.cons m a b f a' h' = f a' ((mem_cons.1 h').resolve_left h) :=
+dif_neg h
+
+lemma pi.cons_swap {a a' : α} {b : δ a} {b' : δ a'} {m : multiset α} {f : Πa∈m, δ a} (h : a ≠ a') :
+  pi.cons (a' :: m) a b (pi.cons m a' b' f) == pi.cons (a :: m) a' b' (pi.cons m a b f) :=
+begin
+  apply hfunext, { refl }, intros a'' _ h, subst h,
+  apply hfunext, { rw [cons_swap] }, intros ha₁ ha₂ h,
+  by_cases h₁ : a'' = a; by_cases h₂ : a'' = a';
+    simp [*, pi.cons_same, pi.cons_ne] at *,
+  { subst h₁, rw [pi.cons_same, pi.cons_same] },
+  { subst h₂, rw [pi.cons_same, pi.cons_same] }
+end
+
+/-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/
+def pi (m : multiset α) (t : Πa, multiset (δ a)) : multiset (Πa∈m, δ a) :=
+m.rec_on { pi.empty δ } (λa m (p : multiset (Πa∈m, δ a)), (t a).bind $ λb, p.map $ pi.cons m a b)
+begin
+  intros a a' m n,
+  by_cases eq : a = a',
+  { subst eq },
+  { simp [map_bind, bind_bind (t a') (t a)],
+    apply bind_hcongr, { rw [cons_swap a a'] },
+    intros b hb,
+    apply bind_hcongr, { rw [cons_swap a a'] },
+    intros b' hb',
+    apply map_hcongr, { rw [cons_swap a a'] },
+    intros f hf,
+    exact pi.cons_swap eq }
+end
+
+@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = {pi.empty δ} :=
+rfl
+
+@[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
+  pi (a :: m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
+rec_on_cons a m
+
+lemma card_pi (m : multiset α) (t : Πa, multiset (δ a)) :
+  card (pi m t) = prod (m.map $ λa, card (t a)) :=
+multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
+
+lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
+  ∀f:Πa∈m, δ a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=
+multiset.induction_on m
+  begin
+    assume f,
+    have : f = pi.empty δ, { funext a ha, exact ha.elim },
+    subst this,
+    split,
+    { intros _ a ha, exact ha.elim },
+    { intros, simp, exact mem_cons_self _ 0 }
+  end
+  begin
+    assume a m ih f,
+    simp [iff_def],
+    split,
+    { intros b hb f' hf' eq a' ha',
+      subst eq,
+      rw [ih] at hf',
+      by_cases a' = a,
+      { subst h,
+        rw [pi.cons_same],
+        exact hb },
+      { rw [pi.cons_ne _ h],
+        exact hf' _ _ } },
+    { assume hf,
+      refine ⟨f a (mem_cons_self a _), hf a (mem_cons_self a _), (λa ha, f a (mem_cons_of_mem ha)), _, _⟩,
+      { rw [ih],
+        assume a' h', exact hf _ _ },
+      { funext a' h',
+        by_cases a' = a,
+        { subst h, rw [pi.cons_same] },
+        { rw [pi.cons_ne _ h] } } }
+  end
+
+end pi
 
 end multiset

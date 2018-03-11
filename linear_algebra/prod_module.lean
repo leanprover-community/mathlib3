@@ -6,7 +6,7 @@ Author: Johannes Hölzl
 Semigroup, monoid, group and module structures on product spaces.
 -/
 
-import data.prod algebra.linear_algebra.basic
+import data.prod linear_algebra.basic
 open set function
 
 universes u v w x

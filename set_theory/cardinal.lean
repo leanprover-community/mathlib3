@@ -308,7 +308,7 @@ instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 /-- The successor cardinal - the smallest cardinal greater than
   `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
 def succ (c : cardinal) : cardinal :=
-@min {c' // c < c'} ⟨⟨_, cantor _⟩⟩ subtype.val 
+@min {c' // c < c'} ⟨⟨_, cantor _⟩⟩ subtype.val
 
 theorem lt_succ_self (c : cardinal) : c < succ c :=
 by cases min_eq _ _ with s e; rw [succ, e]; exact s.2
@@ -435,7 +435,7 @@ quotient.eq.trans
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
 
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
-quotient.induction_on₂ a b $ λ α β, 
+quotient.induction_on₂ a b $ λ α β,
 by rw ← lift_umax; exact lift_mk_le
 
 @[simp] theorem lift_inj {a b : cardinal} : lift a = lift b ↔ a = b :=
@@ -451,15 +451,15 @@ quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
 quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
 
 @[simp] theorem lift_add (a b) : lift (a + b) = lift a + lift b :=
-quotient.induction_on₂ a b $ λ α β, 
+quotient.induction_on₂ a b $ λ α β,
 quotient.sound ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm⟩
 
 @[simp] theorem lift_mul (a b) : lift (a * b) = lift a * lift b :=
-quotient.induction_on₂ a b $ λ α β, 
+quotient.induction_on₂ a b $ λ α β,
 quotient.sound ⟨equiv.ulift.trans (equiv.prod_congr equiv.ulift equiv.ulift).symm⟩
 
 @[simp] theorem lift_power (a b) : lift (a ^ b) = lift a ^ lift b :=
-quotient.induction_on₂ a b $ λ α β, 
+quotient.induction_on₂ a b $ λ α β,
 quotient.sound ⟨equiv.ulift.trans (equiv.arrow_congr equiv.ulift equiv.ulift).symm⟩
 
 @[simp] theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a :=

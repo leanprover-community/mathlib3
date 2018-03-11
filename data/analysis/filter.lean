@@ -210,7 +210,7 @@ F'.of_equiv $ show (Σ u:unit, Π (i : α), true → (F i).σ) ≃ Π i, (F i).�
 
 /-- Construct a realizer for the product of filters -/
 protected def prod {f g : filter α} (F : f.realizer) (G : g.realizer) : (f.prod g).realizer :=
-of_eq prod_def.symm $ (F.vmap _).inf (G.vmap _)
+(F.vmap _).inf (G.vmap _)
 
 theorem le_iff {f g : filter α} (F : f.realizer) (G : g.realizer) :
   f ≤ g ↔ ∀ b : G.σ, ∃ a : F.σ, F.F a ≤ G.F b :=

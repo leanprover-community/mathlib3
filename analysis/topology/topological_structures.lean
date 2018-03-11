@@ -17,7 +17,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 lemma dense_or_discrete [linear_order α] {a₁ a₂ : α} (h : a₁ < a₂) :
   (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
-or_iff_not_imp_left.2 $ assume h,
+classical.or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
@@ -338,13 +338,22 @@ from le_antisymm
     | _, h, (or.inr rfl) := inf_le_right_of_le $ infi_le_of_le b $ infi_le _ h
     end)
 
-lemma tendsto_orderable {f : β → α} {a : α} {x : filter β}
-  (h₁ : ∀a'<a, {b | a' < f b } ∈ x.sets) (h₂ : ∀a'>a, {b | a' > f b } ∈ x.sets) :
-  tendsto f x (nhds a) :=
-by rw [@nhds_eq_orderable α _ _];
-from tendsto_inf.2
-  ⟨tendsto_infi.2 $ assume b, tendsto_infi.2 $ assume hb, tendsto_principal.2 $ h₁ b hb,
-   tendsto_infi.2 $ assume b, tendsto_infi.2 $ assume hb, tendsto_principal.2 $ h₂ b hb⟩
+lemma tendsto_orderable {f : β → α} {a : α} {x : filter β} :
+  tendsto f x (nhds a) ↔ (∀a'<a, {b | a' < f b} ∈ x.sets) ∧ (∀a'>a, {b | a' > f b} ∈ x.sets) :=
+by simp [@nhds_eq_orderable α _ _, tendsto_inf, tendsto_infi, tendsto_principal]
+
+/-- Also known as squeeze or sandwich theorem. -/
+lemma tendsto_of_tendsto_of_tendsto_of_le_of_le {f g h : β → α} {b : filter β} {a : α}
+  (hg : tendsto g b (nhds a)) (hh : tendsto h b (nhds a))
+  (hgf : {b | g b ≤ f b} ∈ b.sets) (hfh : {b | f b ≤ h b} ∈ b.sets) :
+  tendsto f b (nhds a) :=
+tendsto_orderable.2
+  ⟨assume a' h',
+    have {b : β | a' < g b} ∈ b.sets, from (tendsto_orderable.1 hg).left a' h',
+    by filter_upwards [this, hgf] assume a, lt_of_lt_of_le,
+    assume a' h',
+    have {b : β | h b < a'} ∈ b.sets, from (tendsto_orderable.1 hh).right a' h',
+    by filter_upwards [this, hfh] assume a h₁ h₂, lt_of_le_of_lt h₂ h₁⟩
 
 lemma nhds_orderable_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   nhds a = (⨅l (h₂ : l < a) u (h₂ : a < u), principal {x | l < x ∧ x < u }) :=

@@ -41,6 +41,11 @@ open finset
 
 namespace fintype
 
+instance decidable_pi_fintype {α} {β : α → Type*} [fintype α] [∀a, decidable_eq (β a)] :
+  decidable_eq (Πa, β a) :=
+assume f g, decidable_of_iff (∀a∈(fintype.elems α).1, f a = g a)
+  (show (∀a∈(fintype.elems α), f a = g a) ↔ f = g, by simp [function.funext_iff, fintype.complete])
+
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
   (H : ∀ x : α, x ∈ s) : fintype α :=
@@ -174,6 +179,14 @@ instance (α β : Type*) [fintype α] [fintype β] : fintype (α × β) :=
   fintype.card (α × β) = fintype.card α * fintype.card β :=
 card_product _ _
 
+def fintype.fintype_prod_left {α β} [decidable_eq α] [fintype (α × β)] [nonempty β] : fintype α :=
+⟨(fintype.elems (α × β)).image prod.fst,
+  assume a, let ⟨b⟩ := ‹nonempty β› in by simp; exact ⟨b, fintype.complete _⟩⟩
+
+def fintype.fintype_prod_right {α β} [decidable_eq β] [fintype (α × β)] [nonempty α] : fintype β :=
+⟨(fintype.elems (α × β)).image prod.snd,
+  assume b, let ⟨a⟩ := ‹nonempty α› in by simp; exact ⟨a, fintype.complete _⟩⟩
+
 instance (α : Type*) [fintype α] : fintype (ulift α) :=
 fintype.of_equiv _ equiv.ulift.symm
 
@@ -210,3 +223,11 @@ instance Prop.fintype : fintype Prop :=
 
 def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
 fintype.subtype (univ.filter (∈ s)) (by simp)
+
+instance pi.fintype {α : Type*} {β : α → Type*}
+  [fintype α] [decidable_eq α] [∀a, fintype (β a)] [∀a, decidable_eq (β a)] : fintype (Πa, β a) :=
+let f : fintype (Πa∈(fintype.elems α).1, β a) :=
+  ⟨(univ.pi $ λa, univ), assume f, finset.mem_pi.2 $ assume a ha, mem_univ _⟩
+in @fintype.of_surjective (Πa∈(fintype.elems α).1, β a) _ f _
+  (λf a, f a (mem_univ a))
+  (assume f, ⟨(λa h, f a), rfl⟩)

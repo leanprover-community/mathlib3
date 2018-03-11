@@ -376,6 +376,9 @@ lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
+lemma nhds_prod_eq {a : α} {b : β} : nhds (a, b) = filter.prod (nhds a) (nhds b) :=
+by rw [filter.prod, prod.topological_space, nhds_sup, nhds_induced_eq_vmap, nhds_induced_eq_vmap]
+
 lemma prod_generate_from_generate_from_eq {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
   @prod.topological_space α β (generate_from s) (generate_from t) =
@@ -416,32 +419,11 @@ le_antisymm
       this ▸ (generate_open.basic _ ⟨univ, t, is_open_univ, ht, rfl⟩)))
   (generate_from_le $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ is_open_prod hs ht)
 
-lemma nhds_prod_eq {a : α} {b : β} : nhds (a, b) = filter.prod (nhds a) (nhds b) :=
-by rw [prod_eq_generate_from, nhds_generate_from];
-  exact le_antisymm
-    (le_infi $ assume s, le_infi $ assume hs, le_infi $ assume t, le_infi $ assume ht,
-      begin
-        simp [mem_nhds_sets_iff] at hs, simp [mem_nhds_sets_iff] at ht,
-        rcases hs with ⟨s', hs_sub, hs', as'⟩,
-        rcases ht with ⟨t', ht_sub, ht', at'⟩,
-        exact infi_le_of_le (set.prod s' t')
-          (infi_le_of_le ⟨⟨as', at'⟩, s', t', hs', ht', rfl⟩ $
-          principal_mono.mpr $ set.prod_mono hs_sub ht_sub)
-      end)
-    (le_infi $ assume s, le_infi $ assume ⟨hab, s', t', hs', ht', s_eq⟩,
-      begin
-        revert hab,
-        simp [s_eq],
-        exact assume ha hb, @prod_mem_prod α β s' t' (nhds a) (nhds b)
-          (mem_nhds_sets_iff.mpr ⟨s', subset.refl s', hs', ha⟩)
-          (mem_nhds_sets_iff.mpr ⟨t', subset.refl t', ht', hb⟩)
-      end)
-
 lemma is_open_prod_iff {s : set (α×β)} : is_open s ↔
   (∀a b, (a, b) ∈ s → ∃u v, is_open u ∧ is_open v ∧ a ∈ u ∧ b ∈ v ∧ set.prod u v ⊆ s) :=
 begin
   rw [is_open_iff_nhds],
-  simp [nhds_prod_eq, mem_prod_sets],
+  simp [nhds_prod_eq, mem_prod_iff],
   simp [mem_nhds_sets_iff],
   exact forall_congr (assume a, ball_congr $ assume b h,
     ⟨assume ⟨u', ⟨u, us, uo, au⟩, v', ⟨v, vs, vo, bv⟩, h⟩,

@@ -90,6 +90,11 @@ instance : has_ssubset (set α) := ⟨strict_subset⟩
 
 theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ s ≠ t) := rfl
 
+lemma exists_of_ssubset {α : Type u} {s t : set α} (h : s ⊂ t) : (∃x∈t, x ∉ s) :=
+classical.by_contradiction $ assume hn,
+  have t ⊆ s, from assume a hat, classical.by_contradiction $ assume has, hn ⟨a, hat, has⟩,
+  h.2 $ subset.antisymm h.1 this
+
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 

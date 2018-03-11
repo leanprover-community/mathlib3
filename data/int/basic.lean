@@ -80,6 +80,20 @@ sub_lt_iff_lt_add.trans lt_add_one_iff
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
+protected lemma induction_on {p : ℤ → Prop}
+  (i : ℤ) (hz : p 0) (hp : ∀i, p i → p (i + 1)) (hn : ∀i, p i → p (i - 1)) : p i :=
+begin
+  induction i,
+  { induction i,
+    { exact hz },
+    { exact hp _ i_ih } },
+  { have : ∀n:ℕ, p (- n),
+    { intro n, induction n,
+      { simp [hz] },
+      { have := hn _ n_ih, simpa } },
+    exact this (i + 1) }
+end
+
 /- /  -/
 
 theorem of_nat_div (m n : nat) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl

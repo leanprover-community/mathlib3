@@ -36,15 +36,14 @@ In case you didn't think simp knew enough lemmas, you can add new lemmas for you
 
 This lemma is then added to `simp`'s armoury. Note several things however.
 
-1) You can't just make a random theorem into a simp lemma. It has to be of a certain kind, the most important kinds being those of the form `A=B` and `A↔B`.
-
-2) If you are not careful you can add a bad simp lemma of the form `foo x y = [something mentioning foo]` and then `simp` will attempt to rewrite `foo` and then end up with another one, and attempt to rewrite that, and so on. This can be fixed by using `rw` instead of `simp`, or using the config option `{single_pass := tt}`.
-
-3) Note however that if you want to add `fact` to `simp`'s weaponry, you can prove
+1) You can't just make a random theorem into a simp lemma. It has to be of a certain kind, the most important kinds being those of the form `A=B` and `A↔B`. Note however that if you want to add `fact` to `simp`'s weaponry, you can prove
 
 ```lean
 @[simp] lemma my_lemma : fact <-> true
 ```
+
+2) If you are not careful you can add a bad simp lemma of the form `foo x y = [something mentioning foo]` and then `simp` will attempt to rewrite `foo` and then end up with another one, and attempt to rewrite that, and so on. This can be fixed by using `rw` instead of `simp`, or using the config option `{single_pass := tt}`.
+
 
 ### When not to use simp
 
@@ -58,3 +57,5 @@ Conversely, if you ever manage to close a goal with simp, then take a look at th
 ### Other notes
 
 "Re: documentation. If you mention congruence, you could show off simp's support for congruence relations. If you show reflexivity and transitivity for cong, and have congruence lemmas for +, etc., then you can rewrite with congruences as if they were equations."
+
+"If you want a cheap way to document stuff about simp not in TPIL you can also search for simp in https://github.com/leanprover/lean/blob/master/doc/changes.md"

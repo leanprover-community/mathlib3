@@ -159,9 +159,8 @@ begin
 end
 
 @[simp] lemma mod_self (a : α) : a % a = 0 :=
+let ⟨m, a_mul⟩ := dvd_mod_self a in 
 begin
-  have := quotient_mul_add_remainder_eq a a,
-  cases (dvd_mod_self a) with m a_mul,
   by_cases m = 0,
   {
     rw [h, mul_zero] at a_mul,

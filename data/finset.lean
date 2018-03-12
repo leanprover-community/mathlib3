@@ -203,6 +203,12 @@ finset.induction h₁ h₂ s
 @[simp] theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = ι a :=
 by simp [singleton]
 
+lemma insert_inj_of_not_mem {a : α} {s t : finset α} (has : a ∉ s) (hat : a ∉ t) 
+    (hst : insert a s = insert a t) : s = t := 
+ext.2 $ λ x, 
+⟨λ h, mem_of_mem_insert_of_ne (hst ▸ (mem_insert_of_mem h) : x ∈ insert a t) (λ ha, has (ha ▸ h)), 
+λ h, mem_of_mem_insert_of_ne (hst.symm ▸ (mem_insert_of_mem h) : x ∈ insert a s) (λ ha, hat (ha ▸ h))⟩
+
 /- union -/
 
 /-- `s ∪ t` is the set such that `a ∈ s ∪ t` iff `a ∈ s` or `a ∈ t`. -/
@@ -304,9 +310,6 @@ by simp [subset_iff] {contextual:=tt}; finish
 @[simp] theorem inter_empty (s : finset α) : s ∩ ∅ = ∅ := ext.2 $ by simp
 
 @[simp] theorem empty_inter (s : finset α) : ∅ ∩ s = ∅ := ext.2 $ by simp
-
-theorem inter_eq_empty_iff_disjoint {s₁ s₂ : finset α} : s₁ ∩ s₂ = ∅ ↔ s₁.1.disjoint s₂.1 :=
-by rw ← val_eq_zero; simp [inter_eq_zero_iff_disjoint]
 
 @[simp] theorem insert_inter_of_mem {s₁ s₂ : finset α} {a : α} (h : a ∈ s₂) :
   insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
@@ -728,6 +731,8 @@ calc n = card (range n) : (card_range n).symm
     (by simp; assumption)
     (by simp; exact assume a₁ h₁ a₂ h₂, f_inj a₁ a₂ h₁ h₂)
 
+@[simp] lemma singleton_card (a : α) : card (finset.singleton a) = 1 := rfl
+
 @[elab_as_eliminator] lemma strong_induction_on {p : finset α → Sort*} :
   ∀ (s : finset α), (∀s, (∀t ⊂ s, p t) → p s) → p s
 | ⟨s, nd⟩ ih := multiset.strong_induction_on s
@@ -899,6 +904,156 @@ sort_eq _ _
 
 @[simp] theorem sort_to_finset [decidable_eq α] (s : finset α) : (sort r s).to_finset = s :=
 list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
+
 end sort
+
+def disjoint (s t : finset α) : Prop := ∀ ⦃a⦄, a ∈ s → a ∈ t → false
+
+theorem disjoint.symm {s t : finset α} (d : disjoint s t) : disjoint t s
+| a i₂ i₁ := d i₁ i₂
+
+@[simp] theorem disjoint_comm {s t : finset α} : disjoint s t ↔ disjoint t s :=
+⟨disjoint.symm, disjoint.symm⟩
+
+theorem disjoint_left {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t := iff.rfl
+
+theorem disjoint_right {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
+disjoint_comm
+
+theorem disjoint_iff_ne {s t : finset α} : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
+by simp [disjoint_left, imp_not_comm]
+
+theorem disjoint_of_subset_left {s t u : finset α} (h : s ⊆ u) (d : disjoint u t) : disjoint s t
+| x m₁ := d (h m₁)
+
+theorem disjoint_of_subset_right {s t u : finset α} (h : t ⊆ u) (d : disjoint s u) : disjoint s t
+| x m m₁ := d m (h m₁)
+
+@[simp] theorem empty_disjoint (l : finset α) : disjoint ∅ l
+| a := (not_mem_empty a).elim
+
+@[simp] theorem singleton_disjoint [decidable_eq α] {l : finset α} {a : α} : disjoint (singleton a) l ↔ a ∉ l :=
+by simp [disjoint]; refl
+
+@[simp] theorem disjoint_singleton [decidable_eq α] {l : finset α} {a : α} : disjoint l (singleton a) ↔ a ∉ l :=
+by rw disjoint_comm; simp
+
+@[simp] theorem disjoint_insert_left [decidable_eq α] {a : α} {s t : finset α} :
+  disjoint (insert a s) t ↔ a ∉ t ∧ disjoint s t :=
+by simp [disjoint, or_imp_distrib, forall_and_distrib]; refl
+
+@[simp] theorem disjoint_insert_right [decidable_eq α] {a : α} {s t : finset α} :
+  disjoint s (insert a t) ↔ a ∉ s ∧ disjoint s t :=
+disjoint_comm.trans $ by simp [disjoint_insert_left]
+
+theorem inter_eq_empty_iff_disjoint [decidable_eq α] {s t : finset α} : s ∩ t = ∅ ↔ disjoint s t :=
+by simp [ext, mem_inter]; refl
+
+theorem inter_eq_zero_iff_disjoint [decidable_eq α] {s t : finset α} : s ∩ t = ∅ ↔ disjoint s t :=
+by rw ← subset_empty; simp [subset_iff, disjoint]
+
+@[simp] theorem disjoint_union_left [decidable_eq α] {s t u : finset α} :
+  disjoint (s ∪ t) u ↔ disjoint s u ∧ disjoint t u :=
+by simp [disjoint, or_imp_distrib, forall_and_distrib]
+
+@[simp] theorem disjoint_union_right [decidable_eq α] {s t u : finset α} :
+  disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
+by simp [disjoint, or_imp_distrib, forall_and_distrib]
+
+@[simp] theorem disjoint_val {s t : finset α} : multiset.disjoint s.1 t.1 ↔ disjoint s t :=
+by simp [disjoint, multiset.disjoint, mem_def]
+
+@[simp] theorem card_disjoint_union [decidable_eq α] {s t : finset α} :
+    disjoint s t → card (s ∪ t) = card s + card t :=
+finset.induction_on s (by simp) $ begin simp {contextual := tt} end
+
+end finset
+
+namespace list
+open finset
+variable [decidable_eq α]
+ 
+definition powerset : list α → finset (finset α)
+| []       := {∅}
+| (a :: l) := powerset l ∪ image (insert a) (powerset l)
+
+private theorem image_insert_comm (x y : α) (s : finset (finset α)) :
+  image (insert x) (image (insert y) s) = image (insert y) (image (insert x) s) := 
+finset.ext.2 $ λ c,
+have aux : ∀ x y : α, (∃ (a : finset α), (∃ (b : finset α), b ∈ s ∧ insert y b = a) ∧ insert x a = c) →
+    ∃ (a : finset α), (∃ (b : finset α), b ∈ s ∧ insert x b = a) ∧ insert y a = c := λ x y ⟨a, ⟨b, h₁⟩, h₂⟩,
+    ⟨insert x b, ⟨b, ⟨h₁.1, rfl⟩⟩, by rwa [insert.comm, h₁.2]⟩,
+by simp [iff.intro (aux x y) (aux y x)]
+
+theorem powerset_eq_powerset_of_perm {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+    powerset l₁ = powerset l₂ :=
+list.perm_induction_on p
+  rfl
+  (by simp [powerset] {contextual := tt})
+  (λ x y l₁ l₂ hp hs, 
+  by simp [powerset, image_insert_comm, hs, image_union,  union_left_comm])
+  $ λ l₁ l₂ l₃ h₁ h₂, eq.trans
+
+end list
+
+namespace multiset
+open finset
+variable [decidable_eq α]
+
+definition powerset (s : multiset α) : finset (finset α) :=
+quot.lift_on s
+  (λ l, list.powerset l)
+  (λ l₁ l₂ p, list.powerset_eq_powerset_of_perm p)
+
+theorem powerset_cons {a : α} : ∀ {s : multiset α}, a ∉ s → powerset (a :: s) = 
+    powerset s ∪ image (insert a) (powerset s) :=
+λ s, quot.induction_on s $ λ l h, rfl
+
+end multiset
+
+namespace finset
+variable [decidable_eq α]
+
+def powerset (s : finset α) : finset (finset α) :=
+multiset.powerset s.1
+
+@[simp] theorem powerset_empty : powerset (∅ : finset α) = {∅} := rfl
+
+theorem powerset_insert {a : α} : ∀ {s : finset α}, a ∉ s → powerset (insert a s) = 
+    powerset s ∪ image (insert a) (powerset s) :=
+λ s h, show multiset.powerset (multiset.ndinsert a (s.val)) = 
+multiset.powerset s.val ∪ image (insert a) (multiset.powerset s.val), from 
+(multiset.ndinsert_of_not_mem h).symm ▸ multiset.powerset_cons h
+
+@[simp] lemma mem_powerset {s : finset α} : ∀ {x}, x ∈ powerset s ↔ x ⊆ s :=
+finset.induction_on s (λ x, by split; simp [subset_empty] {contextual := tt}) 
+$ λ a s has hi t, by rw [powerset_insert has, mem_union, mem_image];
+exact ⟨λ h, or.cases_on h 
+  (λ h, subset.trans (hi.1 h) (subset_insert _ _))
+  (λ h, let ⟨u, hu, hau⟩ := h in
+  hau ▸ insert_subset_insert _ (hi.1 hu)),
+  λ h, have h :  erase t a ⊆ s := subset_insert_iff.1 h,
+or.cases_on (decidable.em (a ∈ t))
+  (λ h₁, or.inr ⟨erase t a, hi.2 h, insert_erase h₁⟩)
+  (λ h₁, or.inl (hi.2 ((erase_eq_of_not_mem h₁) ▸ h)))⟩
+
+theorem empty_mem_powerset (s : finset α) : ∅ ∈ powerset s :=
+mem_powerset.2 (empty_subset s)
+
+lemma card_powerset (s : finset α) : card (powerset s) = monoid.pow 2 (card s) := 
+finset.induction_on s (by simp) $ λ a s has hi,
+have h : finset.disjoint (powerset s) (image (insert a) (powerset s)) := λ t, begin
+  rw [mem_image, mem_powerset],
+  assume h h₁,
+  rcases h₁ with ⟨u, hus, hau⟩,
+  rw [← hau, insert_subset] at h,
+  exact has h.1,
+end,
+have h_inj : ∀ t ∈ powerset s, ∀ u ∈ powerset s,
+   insert a t = insert a u → t = u := λ t ht u hu h,
+by rw mem_powerset at *;
+  exact insert_inj_of_not_mem (λ ha, has (mem_of_subset ht ha)) (λ ha, has (mem_of_subset hu ha)) h,
+by rw [card_insert_of_not_mem has, pow_add, powerset_insert has, 
+    card_disjoint_union h, card_image_of_inj_on h_inj, hi, pow_one, mul_two]
 
 end finset

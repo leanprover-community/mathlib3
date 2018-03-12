@@ -984,6 +984,19 @@ have tendsto (λs:finset α, s.sum ((*) a ∘ f)) at_top (nhds (a * (∑i, f i))
   exact (is_sum_tsum ennreal.has_sum).comp (ennreal.tendsto_mul sum_ne_0),
 tsum_eq_is_sum this
 
+@[simp] lemma tsum_supr_eq {α : Type*} (a : α) {f : α → ennreal} :
+  (∑b:α, ⨆ (h : a = b), f b) = f a :=
+le_antisymm
+  (by rw [ennreal.tsum_eq_supr_sum]; exact supr_le (assume s,
+    calc s.sum (λb, ⨆ (h : a = b), f b) ≤ (finset.singleton a).sum (λb, ⨆ (h : a = b), f b) :
+        finset.sum_le_sum_of_ne_zero $ assume b _ hb,
+          suffices a = b, by simpa using this.symm,
+          classical.by_contradiction $ assume h,
+            by simp [h] at hb; exact hb rfl
+      ... = f a : by simp))
+  (calc f a ≤ (⨆ (h : a = a), f a) : le_supr (λh:a=a, f a) rfl
+    ... ≤ (∑b:α, ⨆ (h : a = b), f b) : ennreal.le_tsum)
+
 end tsum
 
 end ennreal

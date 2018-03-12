@@ -10,14 +10,14 @@ import tactic.ring
 
 universe u
 
-class euclidean_domain (α : Type u) extends integral_domain α :=
+class euclidean_domain (α : Type u) [decidable_eq α] extends integral_domain α :=
 (quotient : α → α → α)
 (remainder : α → α → α)
 (quotient_mul_add_remainder_eq : ∀ a b, (quotient a b) * b + (remainder a b) = a) -- This could be changed to the same order as int.mod_add_div. We normally write qb+r rather than r + qb though.
 (valuation : α → ℕ)
 (valuation_remainder_lt : ∀ a b, b ≠ 0 → valuation (remainder a b) <  valuation b)
 (le_valuation_mul : ∀ a b, b ≠ 0 → valuation a ≤ valuation (a*b))
-(decidable_eq : ∀ a b : α, decidable (a=b))
+
 /-
 le_valuation_mul is often not a required in definitions of a euclidean domain since given the other properties we can show there is a (noncomputable) euclidean domain α with the property le_valuation_mul.
 So potentially this definition could be split into two different ones (euclidean_domain_weak and euclidean_domain_strong) with a noncomputable function from weak to strong.
@@ -26,9 +26,7 @@ I've currently divided the lemmas into strong and weak depending on whether they
 
 namespace euclidean_domain
 variable {α : Type u}
-variables [euclidean_domain α]
-
-instance (a b : α) : decidable (a = b) := decidable_eq a b
+variables [decidable_eq α] [euclidean_domain α]
 
 instance : has_div α := ⟨quotient⟩
 

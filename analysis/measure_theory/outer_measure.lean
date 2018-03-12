@@ -24,31 +24,126 @@ structure outer_measure (α : Type*) :=
 (measure_of : set α → ennreal)
 (empty : measure_of ∅ = 0)
 (mono : ∀{s₁ s₂}, s₁ ⊆ s₂ → measure_of s₁ ≤ measure_of s₂)
-(Union_nat : ∀{s:ℕ → set α}, measure_of (⋃i, s i) ≤ (∑i, measure_of (s i)))
+(Union_nat : ∀(s:ℕ → set α), measure_of (⋃i, s i) ≤ (∑i, measure_of (s i)))
 
 namespace outer_measure
-section
-parameters {α : Type*} (m : outer_measure α)
-include m
 
-variables {s s₁ s₂ : set α}
+section basic
+variables {α : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
 
-local notation `μ` := m.measure_of
-
-lemma subadditive : μ (s₁ ∪ s₂) ≤ μ s₁ + μ s₂ :=
+lemma subadditive (m : outer_measure α) {s₁ s₂ : set α} :
+  m.measure_of (s₁ ∪ s₂) ≤ m.measure_of s₁ + m.measure_of s₂ :=
 let s := λi, ([s₁, s₂].nth i).get_or_else ∅ in
-calc μ (s₁ ∪ s₂) ≤ μ (⋃i, s i) :
+calc m.measure_of (s₁ ∪ s₂) ≤ m.measure_of (⋃i, s i) :
     m.mono $ union_subset (subset_Union s 0) (subset_Union s 1)
-  ... ≤ (∑i, μ (s i)) : @outer_measure.Union_nat α m s
-  ... = (insert 0 {1} : finset ℕ).sum (μ ∘ s) : tsum_eq_sum $ assume n h,
+  ... ≤ (∑i, m.measure_of (s i)) : m.Union_nat s
+  ... = (insert 0 {1} : finset ℕ).sum (m.measure_of ∘ s) : tsum_eq_sum $ assume n h,
     match n, h with
     | 0, h := by simp at h; contradiction
     | 1, h := by simp at h; contradiction
     | nat.succ (nat.succ n), h := m.empty
     end
-  ... = μ s₁ + μ s₂ : by simp [-add_comm]; refl
+  ... = m.measure_of s₁ + m.measure_of s₂ : by simp [-add_comm]; refl
 
+lemma outer_measure_eq : ∀{μ₁ μ₂ : outer_measure α},
+  (∀s, μ₁.measure_of s = μ₂.measure_of s) → μ₁ = μ₂
+| ⟨m₁, e₁, _, u₁⟩ ⟨m₂, e₂, _, u₂⟩ h :=
+  have m₁ = m₂, from funext $ assume s, h s,
+  by simp [this]
+
+instance : has_zero (outer_measure α) :=
+⟨{ measure_of := λ_, 0,
+   empty      := rfl,
+   mono       := assume _ _ _, le_refl 0,
+   Union_nat  := assume s, ennreal.zero_le }⟩
+
+instance : inhabited (outer_measure α) := ⟨0⟩
+
+instance : has_add (outer_measure α) :=
+⟨λm₁ m₂,
+  { measure_of := λs, m₁.measure_of s + m₂.measure_of s,
+    empty      := show m₁.measure_of ∅ + m₂.measure_of ∅ = 0, by simp [outer_measure.empty],
+    mono       := assume s₁ s₂ h, add_le_add' (m₁.mono h) (m₂.mono h),
+    Union_nat  := assume s,
+      calc m₁.measure_of (⋃i, s i) + m₂.measure_of (⋃i, s i) ≤
+          (∑i, m₁.measure_of (s i)) + (∑i, m₂.measure_of (s i)) :
+          add_le_add' (m₁.Union_nat s) (m₂.Union_nat s)
+        ... = _ : (tsum_add ennreal.has_sum ennreal.has_sum).symm}⟩
+
+instance : add_comm_monoid (outer_measure α) :=
+{ zero      := 0,
+  add       := (+),
+  add_comm  := assume a b, outer_measure_eq $ assume s, add_comm _ _,
+  add_assoc := assume a b c, outer_measure_eq $ assume s, add_assoc _ _ _,
+  add_zero  := assume a, outer_measure_eq $ assume s, add_zero _,
+  zero_add  := assume a, outer_measure_eq $ assume s, zero_add _ }
+
+instance : has_bot (outer_measure α) := ⟨0⟩
+
+instance outer_measure.order_bot : order_bot (outer_measure α) :=
+{ le          := λm₁ m₂, ∀s, m₁.measure_of s ≤ m₂.measure_of s,
+  bot         := 0,
+  le_refl     := assume a s, le_refl _,
+  le_trans    := assume a b c hab hbc s, le_trans (hab s) (hbc s),
+  le_antisymm := assume a b hab hba, outer_measure_eq $ assume s, le_antisymm (hab s) (hba s),
+  bot_le      := assume a s, ennreal.zero_le }
+
+section supremum
+
+private def sup (ms : set (outer_measure α)) (h : ms ≠ ∅) :=
+{ outer_measure .
+  measure_of := λs, ⨆m:ms, m.val.measure_of s,
+  empty      :=
+    let ⟨m, hm⟩ := set.exists_mem_of_ne_empty h in
+    have ms := ⟨m, hm⟩,
+    by simp [outer_measure.empty]; exact @supr_const _ _ _ _ ⟨this⟩,
+  mono       := assume s₁ s₂ hs, supr_le_supr $ assume ⟨m, hm⟩, m.mono hs,
+  Union_nat  := assume f, supr_le $ assume m,
+    calc m.val.measure_of (⋃i, f i) ≤ (∑ (i : ℕ), m.val.measure_of (f i)) : m.val.Union_nat _
+      ... ≤ (∑i, ⨆m:ms, m.val.measure_of (f i)) :
+        ennreal.tsum_le_tsum $ assume i, le_supr (λm:ms, m.val.measure_of (f i)) m }
+
+instance : has_Sup (outer_measure α) := ⟨λs, if h : s = ∅ then ⊥ else sup s h⟩
+
+private lemma le_Sup (hm : m ∈ ms) : m ≤ Sup ms :=
+show m ≤ (if h : ms = ∅ then ⊥ else sup ms h),
+  by rw [dif_neg (set.ne_empty_of_mem hm)];
+  exact assume s, le_supr (λm:ms, m.val.measure_of s) ⟨m, hm⟩
+
+private lemma Sup_le (hm : ∀m' ∈ ms, m' ≤ m) : Sup ms ≤ m :=
+show (if h : ms = ∅ then ⊥ else sup ms h) ≤ m,
+begin
+  by_cases ms = ∅,
+  { rw [dif_pos h], exact bot_le },
+  { rw [dif_neg h], exact assume s, (supr_le $ assume ⟨m', h'⟩, (hm m' h') s) }
 end
+
+instance : has_Inf (outer_measure α) := ⟨λs, Sup {m | ∀m'∈s, m ≤ m'}⟩
+private lemma Inf_le (hm : m ∈ ms) : Inf ms ≤ m := Sup_le $ assume m' h', h' _ hm
+private lemma le_Inf (hm : ∀m' ∈ ms, m ≤ m') : m ≤ Inf ms := le_Sup hm
+
+instance : complete_lattice (outer_measure α) :=
+{ top          := Sup univ,
+  le_top       := assume a, le_Sup (mem_univ a),
+  Sup          := Sup,
+  Sup_le       := assume s m, Sup_le,
+  le_Sup       := assume s m, le_Sup,
+  Inf          := Inf,
+  Inf_le       := assume s m, Inf_le,
+  le_Inf       := assume s m, le_Inf,
+  sup          := λa b, Sup {a, b},
+  le_sup_left  := assume a b, le_Sup $ by simp,
+  le_sup_right := assume a b, le_Sup $ by simp,
+  sup_le       := assume a b c ha hb, Sup_le $ by simp [or_imp_distrib, ha, hb] {contextual:=tt},
+  inf          := λa b, Inf {a, b},
+  inf_le_left  := assume a b, Inf_le $ by simp,
+  inf_le_right := assume a b, Inf_le $ by simp,
+  le_inf       := assume a b c ha hb, le_Inf $ by simp [or_imp_distrib, ha, hb] {contextual:=tt},
+  .. outer_measure.order_bot }
+
+end supremum
+
+end basic
 
 section of_function
 set_option eqn_compiler.zeta true
@@ -212,7 +307,7 @@ suffices μ t ≥ μ (t ∩ (⋃i, s i)) + μ (t \ (⋃i, s i)),
     this,
 have hp : μ (t ∩ ⋃i, s i) ≤ (⨆n, μ (t ∩ ⋃i<n, s i)),
   from calc μ (t ∩ ⋃i, s i) = μ (⋃i, t ∩ s i) : by rw [inter_distrib_Union_left]
-    ... ≤ ∑i, μ (t ∩ s i) : @outer_measure.Union_nat α m _
+    ... ≤ ∑i, μ (t ∩ s i) : m.Union_nat _
     ... = ⨆n, (finset.range n).sum (λi, μ (t ∩ s i)) : ennreal.tsum_eq_supr_nat
     ... = ⨆n, μ (t ∩ ⋃i<n, s i) : congr_arg _ $ funext $ assume n, C_sum h hd,
 have hn : ∀n, μ (t \ (⋃i<n, s i)) ≥ μ (t \ (⋃i, s i)),
@@ -236,7 +331,7 @@ have ∀n, (finset.range n).sum (λ (i : ℕ), μ (s i)) ≤ μ (⋃ (i : ℕ), 
       by rw [C_sum _ h hd, univ_inter]
     ... ≤ μ (⋃ (i : ℕ), s i) : m.mono $ bUnion_subset $ assume i _, le_supr s i,
 suffices μ (⋃i, s i) ≥ ∑i, μ (s i),
-  from le_antisymm (@outer_measure.Union_nat α m s) this,
+  from le_antisymm (m.Union_nat s) this,
 calc (∑i, μ (s i)) = (⨆n, (finset.range n).sum (λi, μ (s i))) : ennreal.tsum_eq_supr_nat
   ... ≤ _ : supr_le this
 

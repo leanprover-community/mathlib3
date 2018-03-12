@@ -183,7 +183,7 @@ measure_space_eq_of $ assume s hs,
 lemma measure_mono (h : s₁ ⊆ s₂) : μ.measure s₁ ≤ μ.measure s₂ := μ.to_outer_measure.mono h
 
 lemma measure_Union_le_tsum_nat {s : ℕ → set α} : μ.measure (⋃i, s i) ≤ (∑i, μ.measure (s i)) :=
-@outer_measure.Union_nat α μ.to_outer_measure s
+μ.to_outer_measure.Union_nat s
 
 lemma measure_union (hd : disjoint s₁ s₂) (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) :
   μ.measure (s₁ ∪ s₂) = μ.measure s₁ + μ.measure s₂ :=
@@ -380,6 +380,24 @@ def count : measure_space α :=
 
 instance : has_zero (measure_space α) :=
 ⟨{ measure_of := λs hs, 0, measure_of_empty := rfl, measure_of_Union := by simp }⟩
+
+instance measure_space.inhabited : inhabited (measure_space α) := ⟨0⟩
+
+instance : has_add (measure_space α) :=
+⟨λμ₁ μ₂, { measure_space .
+  measure_of := λs hs, μ₁.measure_of s hs + μ₂.measure_of s hs,
+  measure_of_empty := by simp [measure_space.measure_of_empty],
+  measure_of_Union := assume f hf hd,
+    by simp [measure_space.measure_of_Union, hf, hd, tsum_add] {contextual := tt} }⟩
+
+instance : add_comm_monoid (measure_space α) :=
+{ add_comm_monoid .
+  zero      := 0,
+  add       := (+),
+  add_assoc := assume a b c, measure_space_eq_of $ assume s hs, add_assoc _ _ _,
+  add_comm  := assume a b, measure_space_eq_of $ assume s hs, add_comm _ _,
+  zero_add  := assume a, measure_space_eq_of $ assume s hs, zero_add _,
+  add_zero  := assume a, measure_space_eq_of $ assume s hs, add_zero _ }
 
 instance : partial_order (measure_space α) :=
 { partial_order .

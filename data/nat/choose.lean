@@ -5,7 +5,7 @@ Authors: Chris Hughes
 Mostly based on Jeremy Avigad's choose file in lean 2
 -/
 
-import data.nat.basic
+import data.nat.basic data.finset
 
 open nat
 
@@ -40,8 +40,7 @@ by induction n; simp [*, choose]
 lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | 0             _ hk := by rw [eq_zero_of_le_zero hk]; exact dec_trivial
 | (n + 1)       0 hk := by simp; exact dec_trivial
-| (n + 1) (k + 1) hk := by rw choose_succ_succ;
-    exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (zero_le _)
+| (n + 1) (k + 1) hk := add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (zero_le _)
 
 
 lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
@@ -49,8 +48,8 @@ lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ 
 | 0       (k + 1) := by simp [choose]
 | (n + 1)       0 := by simp
 | (n + 1) (k + 1) := 
-  by rw [choose_succ_succ (succ n) (succ k), add_mul, ←succ_mul_choose_eq, mul_succ,
-  ←succ_mul_choose_eq, add_right_comm, ←mul_add, ←choose_succ_succ, ←succ_mul] 
+  by rw [choose_succ_succ (succ n) (succ k), add_mul, ← succ_mul_choose_eq, mul_succ,
+  ←succ_mul_choose_eq, add_right_comm, ←mul_add, ← choose_succ_succ, ← succ_mul] 
 
 lemma choose_mul_fact_mul_fact : ∀ {n k}, k ≤ n → choose n k * fact k * fact (n - k) = fact n
 | 0              _ hk := by simp [eq_zero_of_le_zero hk]
@@ -73,11 +72,62 @@ begin
 end
 
 theorem choose_eq_fact_div_fact {n k : ℕ} (hk : k ≤ n) : choose n k = fact n / (fact k * fact (n - k)) :=
-begin
-  have : fact n = choose n k * (fact k * fact (n - k)) :=
+have h : fact n = choose n k * (fact k * fact (n - k)) :=
     by rw ← mul_assoc; exact (choose_mul_fact_mul_fact hk).symm,
-  exact (nat.div_eq_of_eq_mul_left (mul_pos (fact_pos _) (fact_pos _)) this).symm
-end
+(nat.div_eq_of_eq_mul_left (mul_pos (fact_pos _) (fact_pos _)) h).symm
 
 theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
 by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
+
+open finset
+variables {α : Type*} [decidable_eq α]
+
+private theorem aux₀ (s : finset α) : filter (λ t, card t = 0) (powerset s) = {∅} :=
+ext.2 $ λ t, by split; simp {contextual := tt}
+
+private theorem aux₁ (k : ℕ) : filter (λ t, card t = nat.succ k) (powerset (∅ : finset α)) = ∅ :=
+ext.2 $ λ t, by simp [(nat.succ_ne_zero k).symm] {contextual := tt}
+
+private theorem aux₂ {a : α} {s t : finset α} (anins : a ∉ s) (tpows : t ∈ powerset s) : a ∉ t :=
+λ h, by rw mem_powerset at *; exact anins (mem_of_subset tpows h)
+
+private theorem aux₄ {a : α} {s : finset α} (anins : a ∉ s) (k : ℕ) :
+    filter (λ t, card t = nat.succ k) (powerset (insert a s)) =
+    filter (λ t, card t = nat.succ k) (powerset s) ∪ image (insert a) (filter (λ t, card t = k) (powerset s)) :=
+ext.2 $ λ x, 
+by rw [mem_filter, mem_union, mem_filter, mem_image, mem_powerset, mem_powerset]; exact
+⟨λ ⟨h, h₁⟩,
+  or.cases_on (decidable.em (a ∈ x)) 
+    (λ hax, or.inr ⟨erase x a, mem_filter.2 ⟨by rwa [mem_powerset, ← subset_insert_iff],
+       by rw [card_erase_of_mem hax, h₁, nat.pred_succ]⟩, insert_erase hax⟩ ) $
+  λ h₂, or.inl ⟨by rwa [subset_insert_iff, erase_eq_of_not_mem h₂] at h, h₁⟩, 
+λ h, 
+  or.cases_on h 
+    (λ ⟨h, h₁⟩, ⟨subset.trans h (subset_insert _ _), h₁⟩) $
+    λ ⟨t, ⟨ht₁, ht₂⟩⟩, begin 
+      rw mem_filter at ht₁,
+      rw [← ht₂, card_insert_of_not_mem (aux₂ anins ht₁.1), ht₁.2],
+      exact ⟨insert_subset_insert _ (mem_powerset.1 ht₁.1), rfl⟩
+    end⟩
+
+private theorem aux₅ {a : α} {s : finset α} (anins : a ∉ s) (k : ℕ) :
+disjoint (filter (λ t, card t = nat.succ k) (powerset s)) (image (insert a) (filter (λ t, card t = k) (powerset s))) :=
+λ t h₁ h₂, 
+let ⟨u, ⟨hu₁, hu₂⟩⟩ := mem_image.1 h₂ in
+by rw mem_filter at h₁;
+  exact (aux₂ anins h₁.1) (hu₂ ▸ mem_insert_self _ _)
+
+private theorem aux₆ {a : α} {s : finset α} (anins : a ∉ s) (k : ℕ) :
+  card (image (insert a) (filter (λ t, card t = k) (powerset s))) = card (filter (λ t, card t = k) (powerset s)) :=
+begin
+  rw card_image_of_inj_on,
+  assume x hx y hy hxy,
+  rw [mem_filter] at hx hy,
+  exact insert_inj_of_not_mem (aux₂ anins hx.1) (aux₂ anins hy.1) hxy,
+end
+
+theorem card_subsets_eq_choose (s : finset α) : ∀ k, card (filter (λ t, card t = k) (powerset s)) = choose (card s) k :=
+finset.induction_on s (λ k, nat.cases_on k (by rw aux₀; simp) (λ k, by rw aux₁; simp)) $ λ a s has hi k,
+nat.cases_on k (by rw aux₀; simp) $ λ k, by
+ rw [aux₄ has, card_disjoint_union (aux₅ has k), hi, aux₆ has, hi, 
+    card_insert_of_not_mem has, choose_succ_succ, add_comm]

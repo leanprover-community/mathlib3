@@ -1053,7 +1053,7 @@ have h_inj : ∀ t ∈ powerset s, ∀ u ∈ powerset s,
    insert a t = insert a u → t = u := λ t ht u hu h,
 by rw mem_powerset at *;
   exact insert_inj_of_not_mem (λ ha, has (mem_of_subset ht ha)) (λ ha, has (mem_of_subset hu ha)) h,
-by rw [card_insert_of_not_mem has, pow_add, powerset_insert has, 
-    card_disjoint_union h, card_image_of_inj_on h_inj, hi, pow_one, mul_two]
+by rw [card_insert_of_not_mem has, _root_.pow_add, powerset_insert has, 
+    card_disjoint_union h, card_image_of_inj_on h_inj, hi, _root_.pow_one, mul_two]
 
 end finset

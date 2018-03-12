@@ -1,9 +1,11 @@
 # Simp #
 
-The `simp` tactic works by applying "a conditional term rewriting system" (I don't really know what this means and would be interested to know more), to try and simplify the goal. You can actually watch what it's doing (which to the untrained eye looks like trying to apply lots of lemmas tagged with simp until it either makes progress or stops) by writing `set_option trace.simplify true` in your code. If you do this in the below
+The `simp` tactic works by applying a conditional term rewriting system to try and prove, or at least simplify, your goal. What this basically means is that `simp` is equipped with a list of lemmas (those tagged with the `simp` attribute), many of which are of the form `X = Y` or `X iff Y`, and attempts to match subterms of the goal with the left hand side of a rule, and then replaces the subterm with the right hand side. The system is conditional in the sense that lemmas are allowed to have preconditions (`P -> (X = Y)`) and in these cases it will try and prove the precondition using its simp lemmas before applying `X = Y`.
+
+You can watch simp in action by using `set_option trace.simplify true` in your code. For example
 
 ```lean
-namespace xena
+namespace hidden
 
 definition cong (a b m : ℤ) : Prop := ∃ n : ℤ, b - a = m * n
 
@@ -17,10 +19,10 @@ existsi (0:ℤ),
 simp
 end
 
-end xena
+end hidden
 ```
 
-you will discover that Lean seems to apply simp when you do an unfold as well (at least I am assuming that this is what's going on -- unfold is also underlined in green).
+If you do this exercise you will discover firstly that simp spends a lot of its time trying random lemmas and then giving up very shortly afterwards, and also that the `unfold` command is also underlined in green -- Lean seems to apply simp when you do an unfold as well (apparently unfold just asks simp to do its dirty work for it -- `unfold X` is close to `simp only [X]`).
 
 If you only want to see what worked rather than all the things that didn't, you could try `set_option trace.simplify.rewrite true`.
 
@@ -34,18 +36,20 @@ In case you want to train simp to use certain extra lemmas (for example because 
 
 This lemma is then added to `simp`'s armoury. Note several things however.
 
-1) You can't just make a random theorem into a simp lemma. It has to be of a certain kind, the most important kinds being those of the form `A=B` and `A↔B`. Note however that if you want to add `fact` to `simp`'s weaponry, you can prove
+1) It might not be wise to make a random theorem into a simp lemma. Ideally the result has to be of a certain kind, the most important kinds being those of the form `A=B` and `A↔B`. Note however that if you want to add `fact` to `simp`'s weaponry, you can prove
 
 ```lean
 @[simp] lemma my_lemma : fact <-> true
 ```
 
+(and in fact more recent versions of Lean do this automatically when you try to add random theorems to the simp dataset).
+
 2) If you are not careful you can add a bad simp lemma of the form `foo x y = [something mentioning foo]` and then `simp` will attempt to rewrite `foo` and then end up with another one, and attempt to rewrite that, and so on. This can be fixed by using `rw` instead of `simp`, or using the config option `{single_pass := tt}`.
 
 
-### When not to use simp
+### When it is unadvisable to use simp
 
-Don't use simp in the middle of proofs. Use it to finish proofs. If you really need to simplify a goal, use simp, and then cut and paste the goal into your code and write `suffices : (simplified thing), by simpa [this]` or some such thing. This is really important because the behaviour of simp changes sometimes, and if you put simp in the middle of proofs then your code might randomly stop compiling and it will be hard to figure out why if you didn't write down the exact thing which simp used to be doing.
+Using simp in the middle of proofs is a simp anti-pattern, which will produce brittle code. In other words, don't use simp in the middle of proofs. Use it to finish proofs. If you really need to simplify a goal in the middle of a proof, then use simp, but afterwards cut and paste the goal into your code and write `suffices : (simplified thing), by simpa [this]` or some such thing. This is really important because the behaviour of simp changes sometimes, and if you put simp in the middle of proofs then your code might randomly stop compiling and it will be hard to figure out why if you didn't write down the exact thing which simp used to be reducing your goal to.
 
 ### How to use simp better.
 

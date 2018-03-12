@@ -91,11 +91,14 @@ ext.2 $ λ t, by simp [(nat.succ_ne_zero k).symm] {contextual := tt}
 private theorem aux₂ {a : α} {s t : finset α} (anins : a ∉ s) (tpows : t ∈ powerset s) : a ∉ t :=
 λ h, by rw mem_powerset at *; exact anins (mem_of_subset tpows h)
 
-private theorem aux₄ {a : α} {s : finset α} (anins : a ∉ s) (k : ℕ) :
+private theorem aux₃ {a : α} {s : finset α} (anins : a ∉ s) (k : ℕ) :
     filter (λ t, card t = nat.succ k) (powerset (insert a s)) =
     filter (λ t, card t = nat.succ k) (powerset s) ∪ image (insert a) (filter (λ t, card t = k) (powerset s)) :=
 ext.2 $ λ x, 
-by rw [mem_filter, mem_union, mem_filter, mem_image, mem_powerset, mem_powerset]; exact
+by rw [mem_filter, mem_union, mem_filter, mem_image, mem_powerset, mem_powerset];
+exact show x ⊆ insert a s ∧ card x = succ k ↔ x ⊆ s ∧ card x = succ k ∨
+    ∃ (u : finset α) (H : u ∈ filter (λ (t : finset α), card t = k) (powerset s)), 
+    insert a u = x, from
 ⟨λ ⟨h, h₁⟩,
   or.cases_on (decidable.em (a ∈ x)) 
     (λ hax, or.inr ⟨erase x a, mem_filter.2 ⟨by rwa [mem_powerset, ← subset_insert_iff],
@@ -110,14 +113,14 @@ by rw [mem_filter, mem_union, mem_filter, mem_image, mem_powerset, mem_powerset]
       exact ⟨insert_subset_insert _ (mem_powerset.1 ht₁.1), rfl⟩
     end⟩
 
-private theorem aux₅ {a : α} {s : finset α} (anins : a ∉ s) (k : ℕ) :
+private theorem aux₄ {a : α} {s : finset α} (anins : a ∉ s) (k : ℕ) :
 disjoint (filter (λ t, card t = nat.succ k) (powerset s)) (image (insert a) (filter (λ t, card t = k) (powerset s))) :=
 λ t h₁ h₂, 
 let ⟨u, ⟨hu₁, hu₂⟩⟩ := mem_image.1 h₂ in
 by rw mem_filter at h₁;
   exact (aux₂ anins h₁.1) (hu₂ ▸ mem_insert_self _ _)
 
-private theorem aux₆ {a : α} {s : finset α} (anins : a ∉ s) (k : ℕ) :
+private theorem aux₅ {a : α} {s : finset α} (anins : a ∉ s) (k : ℕ) :
   card (image (insert a) (filter (λ t, card t = k) (powerset s))) = card (filter (λ t, card t = k) (powerset s)) :=
 begin
   rw card_image_of_inj_on,
@@ -129,5 +132,5 @@ end
 theorem card_subsets_eq_choose (s : finset α) : ∀ k, card (filter (λ t, card t = k) (powerset s)) = choose (card s) k :=
 finset.induction_on s (λ k, nat.cases_on k (by rw aux₀; simp) (λ k, by rw aux₁; simp)) $ λ a s has hi k,
 nat.cases_on k (by rw aux₀; simp) $ λ k, by
- rw [aux₄ has, card_disjoint_union (aux₅ has k), hi, aux₆ has, hi, 
+ rw [aux₃ has, card_disjoint_union (aux₄ has k), hi, aux₅ has, hi, 
     card_insert_of_not_mem has, choose_succ_succ, add_comm]

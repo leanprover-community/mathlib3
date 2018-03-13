@@ -843,7 +843,7 @@ topological_space.coinduced sum.inl t₁ ⊓ topological_space.coinduced sum.inr
 instance {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (sigma β) :=
 ⨅a, topological_space.coinduced (sigma.mk a) (t₂ a)
 
-instance topological_space_Pi {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (Πa, β a) :=
+instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (Πa, β a) :=
 ⨆a, topological_space.induced (λf, f a) (t₂ a)
 
 section

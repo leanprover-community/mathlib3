@@ -5,9 +5,8 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Basic properties of lists.
 -/
-import logic.basic data.nat.basic data.option data.bool data.prod
-       tactic.interactive algebra.group data.sigma
-       pending
+import tactic.interactive algebra.group logic.basic logic.function
+       data.nat.basic data.option data.bool data.prod data.sigma
 open function nat
 
 namespace list
@@ -53,6 +52,9 @@ assume ainbl binl, or.elim (eq_or_mem_of_mem_cons ainbl)
 
 theorem not_mem_append {a : α} {s t : list α} (h₁ : a ∉ s) (h₂ : a ∉ t) : a ∉ s ++ t :=
 mt mem_append.1 $ not_or_distrib.2 ⟨h₁, h₂⟩
+
+theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=
+⟨eq_nil_of_length_eq_zero, λ h, h.symm ▸ rfl⟩
 
 theorem length_pos_of_mem {a : α} : ∀ {l : list α}, a ∈ l → 0 < length l
 | (b::l) _ := zero_lt_succ _
@@ -135,15 +137,21 @@ mem_bind.2 ⟨a, al, h⟩
 
 /- list subset -/
 
+theorem subset_def {l₁ l₂ : list α} : l₁ ⊆ l₂ ↔ ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂ := iff.rfl
+
 theorem subset_app_of_subset_left (l l₁ l₂ : list α) : l ⊆ l₁ → l ⊆ l₁++l₂ :=
 λ s, subset.trans s $ subset_append_left _ _
 
 theorem subset_app_of_subset_right (l l₁ l₂ : list α) : l ⊆ l₂ → l ⊆ l₁++l₂ :=
 λ s, subset.trans s $ subset_append_right _ _
 
-theorem cons_subset_of_subset_of_mem {a : α} {l m : list α} (ainm : a ∈ m) (lsubm : l ⊆ m) :
-  a::l ⊆ m :=
-λ b, or_imp_distrib.2 ⟨λ e, e.symm ▸ ainm, @lsubm _⟩
+@[simp] theorem cons_subset {a : α} {l m : list α} :
+  a::l ⊆ m ↔ a ∈ m ∧ l ⊆ m :=
+by simp [subset_def, or_imp_distrib, forall_and_distrib]
+
+theorem cons_subset_of_subset_of_mem {a : α} {l m : list α}
+  (ainm : a ∈ m) (lsubm : l ⊆ m) : a::l ⊆ m :=
+cons_subset.2 ⟨ainm, lsubm⟩ 
 
 theorem app_subset_of_subset_of_subset {l₁ l₂ l : list α} (l₁subl : l₁ ⊆ l) (l₂subl : l₂ ⊆ l) :
   l₁ ++ l₂ ⊆ l :=
@@ -255,6 +263,11 @@ by induction l; simp [-add_comm, *]
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) : b₁ = b₂ :=
 by rw map_const at h; exact eq_of_mem_repeat h
 
+/- bind -/
+
+@[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :
+  l >>= f = l.bind f := rfl
+
 /- concat -/
 
 /-- Concatenate an element at the end of a list. `concat [a, b] c = [a, b, c]` -/
@@ -283,8 +296,7 @@ by induction l₂ with b l₂ ih; simp
 
 /- reverse -/
 
-@[simp] theorem reverse_nil : reverse (@nil α) = [] :=
-rfl
+@[simp] theorem reverse_nil : reverse (@nil α) = [] := rfl
 
 local attribute [simp] reverse_core
 
@@ -296,14 +308,19 @@ aux l nil
 theorem reverse_cons' (a : α) (l : list α) : reverse (a::l) = reverse l ++ [a] :=
 by simp
 
-@[simp] theorem reverse_singleton (a : α) : reverse [a] = [a] :=
-rfl
+@[simp] theorem reverse_singleton (a : α) : reverse [a] = [a] := rfl
 
 @[simp] theorem reverse_append (s t : list α) : reverse (s ++ t) = (reverse t) ++ (reverse s) :=
 by induction s; simp *
 
 @[simp] theorem reverse_reverse (l : list α) : reverse (reverse l) = l :=
 by induction l; simp *
+
+@[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
+(injective_of_left_inverse reverse_reverse).eq_iff
+
+@[simp] theorem reverse_eq_nil {l : list α} : reverse l = [] ↔ l = [] :=
+@reverse_inj _ l []
 
 theorem concat_eq_reverse_cons (a : α) (l : list α) : concat l a = reverse (a :: reverse l) :=
 by simp
@@ -316,6 +333,16 @@ by induction l; simp *
 
 @[simp] theorem mem_reverse {a : α} {l : list α} : a ∈ reverse l ↔ a ∈ l :=
 by induction l; simp [*, or_comm]
+
+@[elab_as_eliminator] theorem reverse_rec_on {C : list α → Sort*}
+  (l : list α) (H0 : C [])
+  (H1 : ∀ (l : list α) (a : α), C l → C (l ++ [a])) : C l :=
+begin
+  rw ← reverse_reverse l,
+  induction reverse l,
+  { exact H0 },
+  { simp, exact H1 _ _ ih }
+end
 
 /- last -/
 
@@ -391,6 +418,13 @@ eq_nil_of_length_eq_zero (begin rw [← length_map f l], simp [h] end)
 @[simp] theorem map_join (f : α → β) (L : list (list α)) :
   map f (join L) = join (map (map f) L) :=
 by induction L; simp *
+
+theorem bind_ret_eq_map {α β} (f : α → β) (l : list α) :
+  l.bind (list.ret ∘ f) = map f l :=
+by simp [list.bind]; induction l; simp [list.ret, join, *]
+
+@[simp] theorem map_eq_map {α β} (f : α → β) (l : list α) :
+  f <$> l = map f l := bind_ret_eq_map _ _
 
 /- map₂ -/
 
@@ -1523,49 +1557,125 @@ def sublists_aux : list α → (list α → list β → list β) → list β
 def sublists (l : list α) : list (list α) :=
 [] :: sublists_aux l cons
 
-theorem sublists_aux_eq_foldl : ∀ (l : list α) {β : Type u} (f : list α → list β → list β),
-  sublists_aux l f = foldr f [] (sublists_aux l cons)
-| []     β f := rfl
-| (a::l) β f := suffices ∀ t, foldr (λ ys r, f ys (f (a :: ys) r)) [] t =
-                         foldr f [] (t.foldr (λ ys r, ys :: (a :: ys) :: r) nil),
-by simp [sublists_aux]; rw [sublists_aux_eq_foldl l, sublists_aux_eq_foldl l (λ ys r, ys :: (a :: ys) :: r), this],
-λt, by induction t with _ _ ih; simp; simp [ih]
+@[simp] theorem sublists_nil : sublists (@nil α) = [[]] := rfl
+
+@[simp] theorem sublists_singleton (a : α) : sublists [a] = [[], [a]] := rfl
+
+def sublists_aux₁ : list α → (list α → list β) → list β
+| []     f := []
+| (a::l) f := f [a] ++ sublists_aux₁ l (λys, f ys ++ f (a :: ys))
+
+theorem sublists_aux₁_eq_sublists_aux : ∀ l (f : list α → list β),
+  sublists_aux₁ l f = sublists_aux l (λ ys r, f ys ++ r)
+| []     f := rfl
+| (a::l) f := by rw [sublists_aux₁, sublists_aux]; simp *
+
+theorem sublists_aux_cons_eq_sublists_aux₁ (l : list α) :
+  sublists_aux l cons = sublists_aux₁ l (λ x, [x]) :=
+by rw [sublists_aux₁_eq_sublists_aux]; refl
+
+theorem sublists_aux_eq_foldr.aux {a : α} {l : list α}
+  (IH₁ : ∀ (f : list α → list β → list β), sublists_aux l f = foldr f [] (sublists_aux l cons))
+  (IH₂ : ∀ (f : list α → list (list α) → list (list α)),
+      sublists_aux l f = foldr f [] (sublists_aux l cons))
+  (f : list α → list β → list β) : sublists_aux (a::l) f = foldr f [] (sublists_aux (a::l) cons) :=
+begin
+  simp [sublists_aux], rw [IH₂, IH₁], congr_n 1,
+  induction sublists_aux l cons with _ _ ih; simp *
+end
+
+theorem sublists_aux_eq_foldr (l : list α) : ∀ (f : list α → list β → list β),
+  sublists_aux l f = foldr f [] (sublists_aux l cons) :=
+suffices _ ∧ ∀ f : list α → list (list α) → list (list α),
+    sublists_aux l f = foldr f [] (sublists_aux l cons),
+  from this.1,
+begin
+  induction l with a l IH, {split; intro; refl},
+  exact ⟨sublists_aux_eq_foldr.aux IH.1 IH.2,
+         sublists_aux_eq_foldr.aux IH.2 IH.2⟩
+end
 
 theorem sublists_aux_cons_cons (l : list α) (a : α) :
   sublists_aux (a::l) cons = [a] :: foldr (λys r, ys :: (a :: ys) :: r) [] (sublists_aux l cons) :=
-by rw [← sublists_aux_eq_foldl]; refl
+by rw [← sublists_aux_eq_foldr]; refl
 
-@[simp] theorem mem_sublists (s t : list α) : s ∈ sublists t ↔ s <+ t :=
-by simp [sublists]; exact
-⟨λm, let good := λ (l : list (list α)), ∀ s ∈ l, s <+ t in
-  suffices ∀ l (f : list α → list (list α) → list (list α)),
-    (∀ {x y}, x <+ l → good y → good (f x y)) → l <+ t → good (sublists_aux l f), from
-    or.elim m (λe, by rw e; apply nil_sublist)
-      (this t cons (λ x y hx hy s m, by exact or.elim m (λe, by rw e; exact hx) (hy s)) (sublist.refl _) s),
-  begin
-    intro l; induction l with a l IH; intros f al sl x m,
-    exact false.elim m,
-    refine al (cons_sublist_cons a (nil_sublist _)) _ _ m,
-    exact λs hs, IH _ (λx y hx hy, al (sublist_cons_of_sublist _ hx) (al (cons_sublist_cons _ hx) hy))
-      (sublist_of_cons_sublist sl) _ hs
-  end,
-λsl, begin
-  have this : ∀ {a : α} {y t}, y ∈ t → y ∈ foldr (λ ys r, ys :: (a :: ys) :: r) nil t
-                                  ∧ a :: y ∈ foldr (λ ys r, ys :: (a :: ys) :: r) nil t,
-  { intros a y t yt, induction t with x t IH, exact absurd yt (not_mem_nil _),
-    simp, simp at yt, cases yt with yx yt,
-    { simp [yx] },
-    { cases IH yt with h1 h2,
-      exact ⟨or.inr $ or.inr h1, or.inr $ or.inr h2⟩ } },
-  induction sl with l₁ l₂ a sl IH l₁ l₂ a sl IH, exact or.inl rfl,
-  { refine or.imp_right (λh, _) IH,
-    rw sublists_aux_cons_cons,
-    exact mem_cons_of_mem _ (this h).left },
-  { refine or.inr _,
-    rw sublists_aux_cons_cons, simp,
-    refine or.imp (λ(h : l₁ = []), by rw h) (λh, _) IH,
-    exact (this h).right },
+theorem sublists_aux₁_append : ∀ (l₁ l₂ : list α) (f : list α → list β),
+  sublists_aux₁ (l₁ ++ l₂) f = sublists_aux₁ l₁ f ++
+    sublists_aux₁ l₂ (λ x, f x ++ sublists_aux₁ l₁ (f ∘ (++ x)))
+| []      l₂ f := by simp [sublists_aux₁]
+| (a::l₁) l₂ f := by simp [sublists_aux₁];
+  rw [sublists_aux₁_append]; simp
+
+theorem sublists_aux₁_concat (l : list α) (a : α) (f : list α → list β) :
+  sublists_aux₁ (l ++ [a]) f = sublists_aux₁ l f ++
+    f [a] ++ sublists_aux₁ l (λ x, f (x ++ [a])) :=
+by simp [sublists_aux₁_append, sublists_aux₁]
+
+theorem sublists_aux₁_bind : ∀ (l : list α)
+  (f : list α → list β) (g : β → list γ),
+  (sublists_aux₁ l f).bind g = sublists_aux₁ l (λ x, (f x).bind g)
+| []     f g := by simp [sublists_aux₁]
+| (a::l) f g := by simp [sublists_aux₁];
+  rw [sublists_aux₁_bind]; simp
+
+theorem sublists_aux_cons_append (l₁ l₂ : list α) :
+  sublists_aux (l₁ ++ l₂) cons = sublists_aux l₁ cons ++
+    (do x ← sublists_aux l₂ cons, (++ x) <$> sublists l₁) :=
+begin
+  simp [sublists, sublists_aux_cons_eq_sublists_aux₁],
+  rw [sublists_aux₁_append, sublists_aux₁_bind],
+  congr, funext x, simp,
+  rw [← bind_ret_eq_map, sublists_aux₁_bind], simp [list.ret]
+end
+
+theorem sublists_append (l₁ l₂ : list α) :
+  sublists (l₁ ++ l₂) = (do x ← sublists l₂, (++ x) <$> sublists l₁) :=
+by simp [sublists_aux_cons_append, sublists, map_id']
+
+@[simp] theorem sublists_concat (l : list α) (a : α) :
+  sublists (l ++ [a]) = sublists l ++ map (λ x, x ++ [a]) (sublists l) :=
+by simp [sublists_append];
+   rw [sublists, sublists_aux_cons_eq_sublists_aux₁];
+   simp [map_id', sublists_aux₁]
+
+theorem sublists_aux_ne_nil : ∀ (l : list α), [] ∉ sublists_aux l cons
+| [] := id
+| (a::l) := begin
+  rw [sublists_aux_cons_cons],
+  refine not_mem_cons_of_ne_of_not_mem (cons_ne_nil _ _).symm _,
+  have := sublists_aux_ne_nil l, revert this,
+  induction sublists_aux l cons; intro; simp [not_or_distrib],
+  exact ⟨ne_of_not_mem_cons this, ih (not_mem_of_not_mem_cons this)⟩
+end
+
+@[simp] theorem mem_sublists {s t : list α} : s ∈ sublists t ↔ s <+ t :=
+⟨begin
+  revert s, refine reverse_rec_on t _ (λ t a IH, _); intros s m,
+  { rw [sublists_nil, mem_singleton] at m, subst s },
+  { simp at m,
+    rcases m with m | ⟨s, m, rfl⟩,
+    { exact sublist_app_of_sublist_left (IH m) },
+    { exact (append_sublist_append_right _).2 (IH m) } }
+end, begin
+  suffices : ∀ s t : list α, s <+ t → reverse s ∈ sublists (reverse t),
+  { intro sl, simpa using this _ _ (reverse_sublist sl) },
+  intros s t sl,
+  induction sl with l₁ l₂ a sl IH l₁ l₂ a sl IH,
+  { exact or.inl rfl },
+  { simp [IH] },
+  { simp, exact or.inr ⟨_, IH, rfl⟩ }
 end⟩
+
+theorem length_sublists (l : list α) : length (sublists l) = 2 ^ length l :=
+reverse_rec_on l rfl $ λ l a IH,
+by simp [-add_comm, *]; rw [← two_mul, mul_comm]; refl
+
+theorem map_ret_sublist_sublists (l : list α) : map list.ret l <+ sublists l :=
+reverse_rec_on l (nil_sublist _) $
+λ l a IH, by simp; exact
+((append_sublist_append_left _).2
+  (singleton_sublist.2 $ mem_map.2 ⟨[], by simp [list.ret]⟩)).trans
+((append_sublist_append_right _).2 IH)
 
 instance decidable_prefix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <+: l₂)
 | []      l₂ := is_true ⟨l₂, rfl⟩
@@ -2289,6 +2399,61 @@ theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
     exact H _ _ (succ_lt_succ h) (succ_pos _) }
 end
 
+inductive lex (R : α → α → Prop) : list α → list α → Prop
+| nil {} (a l) : lex [] (a::l)
+| cons {} (a) {l l'} : lex l l' → lex (a::l) (a::l')
+| rel {a a'} (l l') : R a a' → lex (a::l) (a'::l')
+
+theorem lex_append_right (R : α → α → Prop) :
+  ∀ {s₁ s₂} t, lex R s₁ s₂ → lex R s₁ (s₂ ++ t)
+| _ _ t (lex.nil a l)   := lex.nil _ _
+| _ _ t (lex.cons a h)  := lex.cons _ (lex_append_right _ h)
+| _ _ t (lex.rel _ _ r) := lex.rel _ _ r
+
+theorem lex_append_left (R : α → α → Prop) {t₁ t₂} (h : lex R t₁ t₂) :
+  ∀ s, lex R (s ++ t₁) (s ++ t₂)
+| []      := h
+| (a::l) := lex.cons _ (lex_append_left l)
+
+theorem lex.imp {R S : α → α → Prop} (H : ∀ a b, R a b → S a b) :
+  ∀ l₁ l₂, lex R l₁ l₂ → lex S l₁ l₂
+| _ _ (lex.nil a l)   := lex.nil _ _
+| _ _ (lex.cons a h)  := lex.cons _ (lex.imp _ _ h)
+| _ _ (lex.rel _ _ r) := lex.rel _ _ (H _ _ r)
+
+theorem ne_of_lex_ne : ∀ {l₁ l₂ : list α}, lex (≠) l₁ l₂ → l₁ ≠ l₂
+| _ _ (lex.cons a h)  e := ne_of_lex_ne h (list.cons.inj e).2
+| _ _ (lex.rel _ _ r) e := r (list.cons.inj e).1
+
+theorem lex_ne_iff {l₁ l₂ : list α} (H : length l₁ ≤ length l₂) :
+  lex (≠) l₁ l₂ ↔ l₁ ≠ l₂ :=
+⟨ne_of_lex_ne, λ h, begin
+  induction l₁ with a l₁ IH generalizing l₂; cases l₂ with b l₂,
+  { contradiction },
+  { apply lex.nil },
+  { exact (not_lt_of_ge H).elim (succ_pos _) },
+  { cases classical.em (a = b) with ab ab,
+    { subst b, apply lex.cons,
+      exact IH (le_of_succ_le_succ H) (mt (congr_arg _) h) },
+    { exact lex.rel _ _ ab } }
+end⟩
+
+theorem pairwise_sublists {R} {l : list α} : pairwise R l →
+  pairwise (λ l₁ l₂, lex R (reverse l₁) (reverse l₂)) (sublists l) :=
+reverse_rec_on l
+  (λ H, pairwise_singleton _ _)
+  (λ l a IH H, begin
+    simp [pairwise_append, pairwise_map] at H ⊢,
+    specialize IH H.1,
+    refine ⟨IH, IH.imp (λ l₁ l₂, lex.cons _), _⟩,
+    intros l₁ sl₁ x l₂ sl₂ e, subst e,
+    simp,
+    have := reverse_sublist sl₁,
+    cases reverse l₁ with b r₁, {constructor},
+    exact lex.rel _ _ (H.2 _ $ mem_reverse.1 $
+      subset_of_sublist this $ mem_cons_self _ _),
+  end)
+
 variable [decidable_rel R]
 instance decidable_pairwise (l : list α) : decidable (pairwise R l) :=
 by induction l; simp; resetI; apply_instance
@@ -2628,6 +2793,10 @@ end
 
 theorem nodup_inter_of_nodup [decidable_eq α] {l₁ : list α} (l₂) : nodup l₁ → nodup (l₁ ∩ l₂) :=
 nodup_filter _
+
+@[simp] theorem nodup_sublists {l : list α} : nodup (sublists l) ↔ nodup l :=
+⟨λ h, nodup_of_nodup_map _ (nodup_of_sublist (map_ret_sublist_sublists _) h),
+ λ h, (pairwise_sublists h).imp (λ _ _ h, mt reverse_inj.2 (ne_of_lex_ne h))⟩
 
 end nodup
 

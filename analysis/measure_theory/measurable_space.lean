@@ -342,6 +342,18 @@ lemma measurable_generate_from [measurable_space α] {s : set (set β)} {f : α 
   (h : ∀t∈s, is_measurable (f ⁻¹' t)) : @measurable _ _ _ (generate_from s) f :=
 generate_from_le h
 
+lemma measurable_if [measurable_space α] [measurable_space β]
+  {p : α → Prop} [decidable_pred p] {f g : α → β}
+  (hp : is_measurable {a | p a}) (hf : measurable f) (hg : measurable g) :
+  measurable (λa, if p a then f a else g a) :=
+assume s hs,
+have {a | (if p a then f a else g a) ∈ s} = ({a | p a} ∩ f ⁻¹' s) ∪ (- {a | p a} ∩ g ⁻¹' s),
+  from ext $ assume a, by by_cases p a; simp [h],
+show is_measurable {a | (if p a then f a else g a) ∈ s},
+  by rw [this]; exact is_measurable_union
+    (is_measurable_inter hp $ hf s hs)
+    (is_measurable_inter (is_measurable_compl hp) $ hg s hs)
+
 end measurable_functions
 
 section constructions

@@ -59,13 +59,13 @@ Conversely, if you ever manage to close a goal with simp, then take a look at th
 
 The behaviour of `simp` can be tweaked by simp variants and also by passing options to the algorithm. A good place to start is to look at the docstring for simp (write simp in VS Code and hover your mouse over it to see the docstring). Here are some examples, some of which are covered by the docstring and some of whichare not.
 
-1) `simp only [H1,H2,H3]` uses only lemmas `H1`, `H2`, and `H3` rather than `simp`s full collection of lemmas. Whyever might one want to do this in practice? Because sometimes simp simplifies things too much -- it might unfold things that you wanted to keep folded, for example. 
+1) `simp only [H1, H2, H3]` uses only lemmas `H1`, `H2`, and `H3` rather than `simp`s full collection of lemmas. Whyever might one want to do this in practice? Because sometimes simp simplifies things too much -- it might unfold things that you wanted to keep folded, for example. 
 
-2) `simp [- X]` stops `simp` from using lemma `X`. One could imagine using this as another solution when one finds `simp` doing more than you would like. Recall from above that `set_option trace.simplify.rewrite true` shows you exactly which lemmas `simp` is using.
+2) `simp [-X]` stops `simp` from using lemma `X`. One could imagine using this as another solution when one finds `simp` doing more than you would like. Recall from above that `set_option trace.simplify.rewrite true` shows you exactly which lemmas `simp` is using.
 
 3) `simp * at *`. This simplifies everything in sight. Use if life is getting complicated.
 
-4) `simp {single_pass := tt}` -- this `single_pass` is a config option, one of around 16 at the time of writing. I guess it makes `simp` stop after it has managed to do one thing. As you can imagine, `simp only [h] single_pass := tt` here makes simp behave pretty much like `rw h`.
+4) `simp {single_pass := tt}` -- this `single_pass` is a config option, one of around 16 at the time of writing. One can use `single_pass` to avoid loops which would otherwise occur; for example `nat.gcd_def` is an equality with `gcd` on both the left and right hand side, so `simp [nat.gcd_def]` is risky behaviour whereas `simp [nat.gcd_def] {single_pass := tt}` is not. As you can imagine, `simp only [h] {single_pass := tt}` here makes simp behave pretty much like `rw h`.
 
 5) Search for `structure simp_config` in the file `init/meta/simp_tactic.lean` in core Lean to see the full list of config options. Others, many undocumented, are:
 ```

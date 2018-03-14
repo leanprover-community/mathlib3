@@ -53,8 +53,9 @@ by tauto
 end tauto₂
 
 example {x y : ℕ} :
-  x = 1 → false :=
+  true :=
 begin
+  suffices : x = 1 → false, trivial,
   intros a,
   wlog h : x = y,
   { guard_target x = y ∨ y = x,
@@ -65,8 +66,9 @@ begin
 end
 
 example {x y : ℕ} :
-  false :=
+  true :=
 begin
+  suffices : false, trivial,
   wlog h : x ≤ y,
   { guard_hyp h := x ≤ y,
     guard_target false,
@@ -74,8 +76,9 @@ begin
 end
 
 example {x y z : ℕ} :
-  false :=
+  true :=
 begin
+  suffices : false, trivial,
   wlog h : x ≤ y + z,
   { guard_target x ≤ y + z ∨ x ≤ z + y,
     admit },
@@ -85,8 +88,9 @@ begin
 end
 
 example {x y z : ℕ} :
-  false :=
+  true :=
 begin
+  suffices : false, trivial,
   wlog : x ≤ y + z using x y,
   { guard_target x ≤ y + z ∨ y ≤ x + z,
     admit },

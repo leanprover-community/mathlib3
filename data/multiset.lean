@@ -827,7 +827,7 @@ end
 
 /-- Lift of the list `pmap` operation. Map a partial function `f` over a multiset
   `s` whose elements are all in the domain of `f`. -/
-@[simp] def pmap {p : α → Prop} (f : Π a, p a → β) (s : multiset α) : (∀ a ∈ s, p a) → multiset β :=
+def pmap {p : α → Prop} (f : Π a, p a → β) (s : multiset α) : (∀ a ∈ s, p a) → multiset β :=
 quot.rec_on s (λ l H, ↑(pmap f l H)) $ λ l₁ l₂ (pp : l₁ ~ l₂),
 funext $ λ (H₂ : ∀ a ∈ l₂, p a),
 have H₁ : ∀ a ∈ l₁, p a, from λ a h, H₂ a ((mem_of_perm pp).1 h),
@@ -1308,6 +1308,81 @@ theorem filter_map_le_filter_map (f : α → option β) {s t : multiset α}
 le_induction_on h $ λ l₁ l₂ h,
 subperm_of_sublist $ filter_map_sublist_filter_map _ h
 
+/- powerset -/
+
+def powerset_aux (l : list α) : list (multiset α) :=
+0 :: sublists_aux l (λ x y, x :: y)
+
+theorem powerset_aux_eq_map_coe {l : list α} :
+  powerset_aux l = (sublists l).map coe :=
+by simp [powerset_aux, sublists];
+   rw [← show @sublists_aux₁ α (multiset α) l (λ x, [↑x]) =
+              sublists_aux l (λ x, list.cons ↑x),
+         from sublists_aux₁_eq_sublists_aux _ _,
+       sublists_aux_cons_eq_sublists_aux₁,
+       ← bind_ret_eq_map, sublists_aux₁_bind]; refl
+
+def powerset_aux' (l : list α) : list (multiset α) := (sublists' l).map coe
+
+theorem powerset_aux_perm_powerset_aux' {l : list α} :
+  powerset_aux l ~ powerset_aux' l :=
+by rw powerset_aux_eq_map_coe; exact
+perm_map _ (sublists_perm_sublists' _)
+
+@[simp] theorem powerset_aux'_nil : powerset_aux' (@nil α) = [0] := rfl
+
+@[simp] theorem powerset_aux'_cons (a : α) (l : list α) :
+  powerset_aux' (a::l) = powerset_aux' l ++ list.map (cons a) (powerset_aux' l) :=
+by simp [powerset_aux']; refl
+
+theorem powerset_aux'_perm {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+  powerset_aux' l₁ ~ powerset_aux' l₂ :=
+begin
+  induction p with a l₁ l₂ p IH a b l l₁ l₂ l₃ p₁ p₂ IH₁ IH₂, {simp},
+  { simp, exact perm_app IH (perm_map _ IH) },
+  { simp, apply perm_app_right,
+    rw [← append_assoc, ← append_assoc,
+        (by funext s; simp [cons_swap] : cons b ∘ cons a = cons a ∘ cons b)],
+    exact perm_app_left _ perm_app_comm },
+  { exact IH₁.trans IH₂ }
+end
+
+theorem powerset_aux_perm {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+  powerset_aux l₁ ~ powerset_aux l₂ :=
+powerset_aux_perm_powerset_aux'.trans $
+(powerset_aux'_perm p).trans powerset_aux_perm_powerset_aux'.symm
+
+def powerset (s : multiset α) : multiset (multiset α) :=
+quot.lift_on s
+  (λ l, (powerset_aux l : multiset (multiset α)))
+  (λ l₁ l₂ h, quot.sound (powerset_aux_perm h))
+
+theorem powerset_coe (l : list α) :
+  @powerset α l = ((sublists l).map coe : list (multiset α)) :=
+congr_arg coe powerset_aux_eq_map_coe
+
+@[simp] theorem powerset_coe' (l : list α) :
+  @powerset α l = ((sublists' l).map coe : list (multiset α)) :=
+quot.sound powerset_aux_perm_powerset_aux'
+
+@[simp] theorem mem_powerset {s t : multiset α} :
+  s ∈ powerset t ↔ s ≤ t :=
+quotient.induction_on₂ s t $ by simp [subperm, and.comm]
+
+theorem map_single_le_powerset (s : multiset α) :
+  s.map (λ a, a::0) ≤ powerset s :=
+quotient.induction_on s $ λ l, begin
+  simp [powerset_coe],
+  show l.map (coe ∘ list.ret) <+~ (sublists l).map coe,
+  rw ← list.map_map,
+  exact subperm_of_sublist
+    (map_sublist_map _ (map_ret_sublist_sublists _))
+end
+
+@[simp] theorem card_powerset (s : multiset α) :
+  card (powerset s) = 2 ^ card s :=
+quotient.induction_on s $ by simp
+
 /- countp -/
 
 /-- `countp p s` counts the number of elements of `s` (with multiplicity) that
@@ -1640,6 +1715,14 @@ nodup_of_le $ inter_le_right _ _
 ⟨λ h, ⟨nodup_of_le (le_union_left _ _) h, nodup_of_le (le_union_right _ _) h⟩,
  λ ⟨h₁, h₂⟩, nodup_iff_count_le_one.2 $ λ a, by rw [count_union]; exact
    max_le (nodup_iff_count_le_one.1 h₁ a) (nodup_iff_count_le_one.1 h₂ a)⟩
+
+@[simp] theorem nodup_powerset {s : multiset α} : nodup (powerset s) ↔ nodup s :=
+⟨λ h, nodup_of_nodup_map _ (nodup_of_le (map_single_le_powerset _) h),
+  quotient.induction_on s $ λ l h,
+  by simp; refine list.nodup_map_on _ (nodup_sublists'.2 h); exact
+  λ x sx y sy e,
+    (perm_ext_sublist_nodup h (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
+      (quotient.exact e)⟩
 
 theorem nodup_ext {s t : multiset α} : nodup s → nodup t → (s = t ↔ ∀ a, a ∈ s ↔ a ∈ t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, quotient.eq.trans $ perm_ext d₁ d₂

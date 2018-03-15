@@ -828,8 +828,34 @@ def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
 
 lemma mem_pi {s : finset α} {t : Πa, finset (δ a)} {f : (Πa∈s, δ a)} :
   f ∈ s.pi t ↔ (∀a (h : a ∈ s), f a h ∈ t a) :=
-by rcases s; rw [pi, multiset.mem_to_finset, multiset.mem_pi]; refl
+by cases s; rw [pi, multiset.mem_to_finset, multiset.mem_pi]; refl
 end pi
+
+section powerset
+def powerset (s : finset α) : finset (finset α) :=
+⟨s.1.powerset.pmap finset.mk
+  (λ t h, nodup_of_le (mem_powerset.1 h) s.2),
+ nodup_pmap (λ a ha b hb, congr_arg finset.val)
+   (nodup_powerset.2 s.2)⟩
+
+@[simp] theorem mem_powerset {s t : finset α} : s ∈ powerset t ↔ s ⊆ t :=
+by cases s; simp [powerset]; rw ← val_le_iff
+
+@[simp] theorem empty_mem_powerset (s : finset α) : ∅ ∈ powerset s :=
+mem_powerset.2 (empty_subset _)
+
+@[simp] theorem mem_powerset_self (s : finset α) : s ∈ powerset s :=
+mem_powerset.2 (subset.refl _)
+
+@[simp] theorem powerset_mono {s t : finset α} : powerset s ⊆ powerset t ↔ s ⊆ t :=
+⟨λ h, (mem_powerset.1 $ h $ mem_powerset_self _),
+ λ st u h, mem_powerset.2 $ subset.trans (mem_powerset.1 h) st⟩
+
+@[simp] theorem card_powerset (s : finset α) :
+  card (powerset s) = 2 ^ card s :=
+(card_pmap _ _ _).trans (card_powerset s.1)
+
+end powerset
 
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]

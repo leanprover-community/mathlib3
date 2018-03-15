@@ -316,8 +316,11 @@ by induction s; simp *
 @[simp] theorem reverse_reverse (l : list α) : reverse (reverse l) = l :=
 by induction l; simp *
 
+theorem reverse_injective : injective (@reverse α) :=
+injective_of_left_inverse reverse_reverse
+
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
-(injective_of_left_inverse reverse_reverse).eq_iff
+reverse_injective.eq_iff
 
 @[simp] theorem reverse_eq_nil {l : list α} : reverse l = [] ↔ l = [] :=
 @reverse_inj _ l []
@@ -1548,12 +1551,62 @@ theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: joi
   | s, t, ⟨b::l, he⟩ := list.no_confusion he (λab lt, or.inr ⟨l, lt⟩)
   end⟩
 
+/- sublists -/
+
+def sublists'_aux : list α → (list α → list β) → list (list β) → list (list β)
+| []     f r := f [] :: r
+| (a::l) f r := sublists'_aux l f (sublists'_aux l (f ∘ cons a) r)
+
+/-- `sublists' l` is the list of all (non-contiguous) sublists of `l`.
+  It differs from `sublists` only in the order of appearance of the sublists;
+  `sublists'` uses the first element of the list as the MSB,
+  `sublists` uses the first element of the list as the LSB.
+  `sublists' [1, 2, 3] = [[], [3], [2], [2, 3], [1], [1, 3], [1, 2], [1, 2, 3]]` -/
+def sublists' (l : list α) : list (list α) :=
+sublists'_aux l id []
+
+@[simp] theorem sublists'_nil : sublists' (@nil α) = [[]] := rfl
+
+@[simp] theorem sublists'_singleton (a : α) : sublists' [a] = [[], [a]] := rfl
+
+theorem map_sublists'_aux (g : list β → list γ) (l : list α) (f r) :
+  map g (sublists'_aux l f r) = sublists'_aux l (g ∘ f) (map g r) :=
+by induction l generalizing f r; simp! *
+
+theorem sublists'_aux_append (r' : list (list β)) (l : list α) (f r) :
+  sublists'_aux l f (r ++ r') = sublists'_aux l f r ++ r' :=
+by induction l generalizing f r; simp! *
+
+theorem sublists'_aux_eq_sublists' (l f r) :
+  @sublists'_aux α β l f r = map f (sublists' l) ++ r :=
+by rw [sublists', map_sublists'_aux, ← sublists'_aux_append]; refl
+
+@[simp] theorem sublists'_cons (a : α) (l : list α) :
+  sublists' (a :: l) = sublists' l ++ map (cons a) (sublists' l) :=
+by rw [sublists', sublists'_aux]; simp [sublists'_aux_eq_sublists']
+
+@[simp] theorem mem_sublists' {s t : list α} : s ∈ sublists' t ↔ s <+ t :=
+begin
+  induction t with a t IH generalizing s; simp,
+  { exact ⟨λ h, by rw h, eq_nil_of_sublist_nil⟩ },
+  split; intro h, rcases h with h | ⟨s, h, rfl⟩,
+  { exact sublist_cons_of_sublist _ (IH.1 h) },
+  { exact cons_sublist_cons _ (IH.1 h) },
+  { cases h with _ _ _ h s _ _ h,
+    { exact or.inl (IH.2 h) },
+    { exact or.inr ⟨s, IH.2 h, rfl⟩ } }
+end
+
+@[simp] theorem length_sublists' : ∀ l : list α, length (sublists' l) = 2 ^ length l
+| []     := rfl
+| (a::l) := by simp [-add_comm, *]; rw [← two_mul, mul_comm]; refl
+
 def sublists_aux : list α → (list α → list β → list β) → list β
 | []     f := []
 | (a::l) f := f [a] (sublists_aux l (λys r, f ys (f (a :: ys) r)))
 
 /-- `sublists l` is the list of all (non-contiguous) sublists of `l`.
-  `sublists [1, 3, 2] = [[], [1], [3], [1, 3], [2], [1, 2], [3, 2], [1, 3, 2]]` -/
+  `sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]` -/
 def sublists (l : list α) : list (list α) :=
 [] :: sublists_aux l cons
 
@@ -1638,6 +1691,18 @@ by simp [sublists_append];
    rw [sublists, sublists_aux_cons_eq_sublists_aux₁];
    simp [map_id', sublists_aux₁]
 
+theorem sublists_reverse (l : list α) : sublists (reverse l) = map reverse (sublists' l) :=
+by induction l; simp [(∘), *]
+
+theorem sublists_eq_sublists' (l : list α) : sublists l = map reverse (sublists' (reverse l)) :=
+by rw [← sublists_reverse, reverse_reverse]
+
+theorem sublists'_reverse (l : list α) : sublists' (reverse l) = map reverse (sublists l) :=
+by simp [sublists_eq_sublists', map_id']
+
+theorem sublists'_eq_sublists (l : list α) : sublists' l = map reverse (sublists (reverse l)) :=
+by rw [← sublists'_reverse, reverse_reverse]
+
 theorem sublists_aux_ne_nil : ∀ (l : list α), [] ∉ sublists_aux l cons
 | [] := id
 | (a::l) := begin
@@ -1649,26 +1714,11 @@ theorem sublists_aux_ne_nil : ∀ (l : list α), [] ∉ sublists_aux l cons
 end
 
 @[simp] theorem mem_sublists {s t : list α} : s ∈ sublists t ↔ s <+ t :=
-⟨begin
-  revert s, refine reverse_rec_on t _ (λ t a IH, _); intros s m,
-  { rw [sublists_nil, mem_singleton] at m, subst s },
-  { simp at m,
-    rcases m with m | ⟨s, m, rfl⟩,
-    { exact sublist_app_of_sublist_left (IH m) },
-    { exact (append_sublist_append_right _).2 (IH m) } }
-end, begin
-  suffices : ∀ s t : list α, s <+ t → reverse s ∈ sublists (reverse t),
-  { intro sl, simpa using this _ _ (reverse_sublist sl) },
-  intros s t sl,
-  induction sl with l₁ l₂ a sl IH l₁ l₂ a sl IH,
-  { exact or.inl rfl },
-  { simp [IH] },
-  { simp, exact or.inr ⟨_, IH, rfl⟩ }
-end⟩
+by rw [← reverse_sublist_iff, ← mem_sublists',
+       sublists'_reverse, mem_map_of_inj reverse_injective]
 
-theorem length_sublists (l : list α) : length (sublists l) = 2 ^ length l :=
-reverse_rec_on l rfl $ λ l a IH,
-by simp [-add_comm, *]; rw [← two_mul, mul_comm]; refl
+@[simp] theorem length_sublists (l : list α) : length (sublists l) = 2 ^ length l :=
+by simp [sublists_eq_sublists', length_sublists']
 
 theorem map_ret_sublist_sublists (l : list α) : map list.ret l <+ sublists l :=
 reverse_rec_on l (nil_sublist _) $
@@ -2438,21 +2488,23 @@ theorem lex_ne_iff {l₁ l₂ : list α} (H : length l₁ ≤ length l₂) :
     { exact lex.rel _ _ ab } }
 end⟩
 
-theorem pairwise_sublists {R} {l : list α} : pairwise R l →
-  pairwise (λ l₁ l₂, lex R (reverse l₁) (reverse l₂)) (sublists l) :=
-reverse_rec_on l
-  (λ H, pairwise_singleton _ _)
-  (λ l a IH H, begin
-    simp [pairwise_append, pairwise_map] at H ⊢,
-    specialize IH H.1,
+theorem pairwise_sublists' {R} : ∀ {l : list α}, pairwise R l →
+  pairwise (lex (swap R)) (sublists' l)
+| _ (pairwise.nil _) := pairwise_singleton _ _
+| _ (@pairwise.cons _ _ a l H₁ H₂) :=
+  begin
+    simp [pairwise_append, pairwise_map],
+    have IH := pairwise_sublists' H₂,
     refine ⟨IH, IH.imp (λ l₁ l₂, lex.cons _), _⟩,
     intros l₁ sl₁ x l₂ sl₂ e, subst e,
-    simp,
-    have := reverse_sublist sl₁,
-    cases reverse l₁ with b r₁, {constructor},
-    exact lex.rel _ _ (H.2 _ $ mem_reverse.1 $
-      subset_of_sublist this $ mem_cons_self _ _),
-  end)
+    cases l₁ with b l₁, {constructor},
+    exact lex.rel _ _ (H₁ _ $ subset_of_sublist sl₁ $ mem_cons_self _ _)
+  end
+
+theorem pairwise_sublists {R} {l : list α} (H : pairwise R l) :
+  pairwise (λ l₁ l₂, lex R (reverse l₁) (reverse l₂)) (sublists l) :=
+by have := pairwise_sublists' (pairwise_reverse.2 H);
+   rwa [sublists'_reverse, pairwise_map] at this
 
 variable [decidable_rel R]
 instance decidable_pairwise (l : list α) : decidable (pairwise R l) :=
@@ -2703,8 +2755,11 @@ theorem nodup_map_on {f : α → β} {l : list α} (H : ∀x∈l, ∀y∈l, f x 
   (d : nodup l) : nodup (map f l) :=
 pairwise_map_of_pairwise _ (by exact λ a b ⟨ma, mb, n⟩ e, n (H a ma b mb e)) (pairwise.and_mem.1 d)
 
-theorem nodup_map {f : α → β} {l : list α} (hf : injective f) (h : nodup l) : nodup (map f l) :=
-nodup_map_on (assume x _ y _ h, hf h) h
+theorem nodup_map {f : α → β} {l : list α} (hf : injective f) : nodup l → nodup (map f l) :=
+nodup_map_on (assume x _ y _ h, hf h)
+
+theorem nodup_map_iff {f : α → β} {l : list α} (hf : injective f) : nodup (map f l) ↔ nodup l :=
+⟨nodup_of_nodup_map _, nodup_map hf⟩
 
 @[simp] theorem nodup_attach {l : list α} : nodup (attach l) ↔ nodup l :=
 ⟨λ h, attach_map_val l ▸ nodup_map (λ a b, subtype.eq) h,
@@ -2797,6 +2852,10 @@ nodup_filter _
 @[simp] theorem nodup_sublists {l : list α} : nodup (sublists l) ↔ nodup l :=
 ⟨λ h, nodup_of_nodup_map _ (nodup_of_sublist (map_ret_sublist_sublists _) h),
  λ h, (pairwise_sublists h).imp (λ _ _ h, mt reverse_inj.2 (ne_of_lex_ne h))⟩
+
+@[simp] theorem nodup_sublists' {l : list α} : nodup (sublists' l) ↔ nodup l :=
+by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
+       nodup_sublists, nodup_reverse]
 
 end nodup
 

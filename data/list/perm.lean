@@ -421,6 +421,23 @@ theorem perm_ext {l₁ l₂ : list α} (d₁ : nodup l₁) (d₂ : nodup l₂) :
   (subperm_of_subset_nodup d₁ (λ a, (H a).1))
   (subperm_of_subset_nodup d₂ (λ a, (H a).2))⟩
 
+theorem perm_ext_sublist_nodup {l₁ l₂ l : list α} (d : nodup l)
+  (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) : l₁ ~ l₂ ↔ l₁ = l₂ :=
+⟨λ h, begin
+  induction s₂ with l₂ l a s₂ IH l₂ l a s₂ IH generalizing l₁,
+  { exact eq_nil_of_perm_nil h.symm },
+  { simp at d,
+    cases s₁ with _ _ _ s₁ l₁ _ _ s₁,
+    { exact IH d.2 s₁ h },
+    { apply d.1.elim,
+      exact subset_of_subperm ⟨_, h.symm, s₂⟩ (mem_cons_self _ _) } },
+  { simp at d,
+    cases s₁ with _ _ _ s₁ l₁ _ _ s₁,
+    { apply d.1.elim,
+      exact subset_of_subperm ⟨_, h, s₁⟩ (mem_cons_self _ _) },
+    { rw IH d.2 s₁ (perm_cons_inv h) } }
+end, λ h, by rw h⟩
+
 section
 variable [decidable_eq α]
 
@@ -574,6 +591,21 @@ perm_bind_right _ $ λ a, perm_map _ p
 @[congr] theorem perm_product {l₁ l₂ : list α} {t₁ t₂ : list β}
   (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : product l₁ t₁ ~ product l₂ t₂ :=
 trans (perm_product_left t₁ p₁) (perm_product_right l₂ p₂)
+
+theorem sublists_cons_perm_append (a : α) (l : list α) :
+  sublists (a :: l) ~ sublists l ++ map (cons a) (sublists l) :=
+begin
+  simp [sublists, sublists_aux_cons_cons],
+  refine skip _ ((skip _ _).trans perm_middle.symm),
+  induction sublists_aux l cons with b l IH; simp,
+  exact skip b ((skip _ IH).trans perm_middle.symm)
+end
+
+theorem sublists_perm_sublists' : ∀ l : list α, sublists l ~ sublists' l
+| []     := perm.refl _
+| (a::l) := let IH := sublists_perm_sublists' l in
+  by rw sublists'_cons; exact
+  (sublists_cons_perm_append _ _).trans (perm_app IH (perm_map _ IH))
 
 /- enumerating permutations -/
 

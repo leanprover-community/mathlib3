@@ -38,17 +38,13 @@ lemma gcd_decreasing (a b : α) (w : a ≠ 0) : has_well_founded.r (b % a) a := 
 
 def gcd : α → α → α
 | a b := if a_zero : a = 0 then b
-     else have h : has_well_founded.r (b % a) a := gcd_decreasing a b a_zero,
-        gcd (b%a) a
+  else have h : has_well_founded.r (b % a) a := gcd_decreasing a b a_zero,
+    gcd (b%a) a
 
 /- weak lemmas -/
 
-@[simp] lemma mod_zero (a : α) : a % 0 = a :=
-begin
-  have := euclidean_domain.quotient_mul_add_remainder_eq a 0,
-  simp at this,
-  exact this,
-end
+@[simp] lemma mod_zero (a : α) : a % 0 = a := by simpa using 
+quotient_mul_add_remainder_eq a 0
 
 lemma dvd_mod_self (a : α) : a ∣ a % a :=
 begin
@@ -66,14 +62,10 @@ lemma mod_lt  : ∀ (a : α) {b : α}, valuation b > valuation (0:α) →  valua
 begin
   intros a b h,
   by_cases b_zero : (b=0),
-  {
-    rw b_zero at h,
+  { rw b_zero at h,
     have := lt_irrefl (valuation (0:α)),
-    contradiction,
-  },
-  {
-    exact valuation_remainder_lt a b b_zero,
-  }
+    contradiction },
+  { exact valuation_remainder_lt a b b_zero }
 end
 
 lemma neq_zero_lt_mod_lt (a b : α) :  b ≠ 0 → valuation (a%b) < valuation b
@@ -97,26 +89,20 @@ lemma val_lt_one (a : α) : valuation a < valuation (1:α) → a = 0 :=
 begin
   intro a_lt,
   by_cases a = 0,
-  { exact h},
-  { 
-    have := le_valuation_mul (1:α) a h,
+  { exact h },
+  { have := le_valuation_mul (1:α) a h,
     simp at this,
     have := not_le_of_lt a_lt,
-    contradiction
-  }
+    contradiction }
 end
 
 lemma val_dvd_le : ∀ a b : α, b ∣ a → a ≠ 0 → valuation b ≤ valuation a
 | _ b ⟨d, rfl⟩ ha :=
 begin
   by_cases d = 0,
-  {
-    simp[h] at ha,
-    contradiction
-  },
-  {
-    exact le_valuation_mul b d h,
-  }
+  { simp[h] at ha,
+    contradiction },
+  { exact le_valuation_mul b d h }
 end
 
 @[simp] lemma mod_one (a : α) : a % 1 = 0 := 
@@ -129,23 +115,15 @@ begin
       remainder 0 b = quotient 0 b * b + remainder 0 b + b * (-quotient 0 b ) : by ring
       ...                       = b * (-quotient 0 b ) : by rw [quotient_mul_add_remainder_eq 0 b, zero_add],
   by_cases quotient_zero : (-quotient 0 b) = 0,
-  {
-    simp[quotient_zero] at h,
-    exact h
-  },
-  {
-    by_cases h'' : b = 0,
-    {
-      rw h'',
-      simp
-    },
-    {
-      have := not_le_of_lt (valuation_remainder_lt 0 b h''),
+  { simp[quotient_zero] at h,
+    exact h },
+  { by_cases h'' : b = 0,
+    { rw h'',
+      simp },
+    { have := not_le_of_lt (valuation_remainder_lt 0 b h''),
       rw h at this,
       have := le_valuation_mul b (-quotient 0 b) quotient_zero,
-      contradiction,
-    }
-  }
+      contradiction }}
 end
 
 @[simp] lemma zero_div (b : α) (hnb : b ≠ 0) : 0 / b = 0 :=
@@ -162,23 +140,15 @@ end
 let ⟨m, a_mul⟩ := dvd_mod_self a in 
 begin
   by_cases m = 0,
-  {
-    rw [h, mul_zero] at a_mul,
-    exact a_mul
-  },
-  {
-    by_cases a_zero : a = 0,
-    {
-      rw a_zero,
-      simp
-    },
-    {
-      have := le_valuation_mul a m h,
+  { rw [h, mul_zero] at a_mul,
+    exact a_mul },
+  { by_cases a_zero : a = 0,
+    { rw a_zero,
+      simp },
+    { have := le_valuation_mul a m h,
       rw ←a_mul at this,
       have := not_le_of_lt (valuation_remainder_lt a a a_zero),
-      contradiction
-    }
-  }
+      contradiction}}
 end 
 
 lemma div_self (a : α) : a ≠ 0 → a / a = (1:α) :=
@@ -211,14 +181,10 @@ theorem gcd.induction {P : α → α → Prop}
   begin
     intros c IH,
     by_cases c = 0,
-    {
-      rw h, 
-      exact H0,
-    },
-    {
-      intro b,
-      exact H1 c b (h) (IH (b%c) (neq_zero_lt_mod_lt b c h) c),
-    }
+    { rw h, 
+      exact H0 },
+    { intro b,
+      exact H1 c b (h) (IH (b%c) (neq_zero_lt_mod_lt b c h) c) }
   end
   b
 
@@ -232,11 +198,9 @@ gcd.induction a b
     induction h_dvd,
     split,
     { exact h_dvd_right },
-    {
-      conv {for b [2] {rw ←(quotient_mul_add_remainder_eq b a)}},
+    { conv {for b [2] {rw ←(quotient_mul_add_remainder_eq b a)}},
       have h_dvd_right_a:= dvd_mul_of_dvd_right h_dvd_right (b/a),
-      exact dvd_add h_dvd_right_a h_dvd_left
-    }
+      exact dvd_add h_dvd_right_a h_dvd_left }
   end
 
 theorem gcd_dvd_left (a b : α) : gcd a b ∣ a := (gcd_dvd a b).left
@@ -262,13 +226,9 @@ gcd.induction a b
 @[simp] theorem gcd_zero_right (a : α) : gcd a 0 = a :=
 begin
   by_cases (a=0),
-  {
-    simp[h],
-  },
-  {
-    rw gcd,
-    simp [h],
-  }
+  { simp[h] },
+  { rw gcd,
+    simp [h] }
 end
 
 @[simp] theorem gcd_one_left (a : α) : gcd 1 a = 1 := 
@@ -280,13 +240,9 @@ end
 theorem gcd_next (a b : α) : gcd a b = gcd (b % a) a :=
 begin
   by_cases (a=0),
-  {
-    simp [h],
-  },
-  {
-    rw gcd,
-    simp [h],
-  }
+  { simp [h] },
+  { rw gcd,
+    simp [h] }
 end
 
 @[simp] theorem gcd_self (a : α) : gcd a a = a :=

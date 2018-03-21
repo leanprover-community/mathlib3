@@ -417,9 +417,9 @@ variables {α : Sort*} {p : α → Prop}
 
 local attribute [instance] prop_decidable
 
-theorem not_forall : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := not_forall
+protected theorem not_forall : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := not_forall
 
-theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
+protected theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
 forall_or_distrib_left
 
@@ -429,10 +429,10 @@ assume a, cases_on a h1 h2
 theorem or_not {p : Prop} : p ∨ ¬ p :=
 by_cases or.inl or.inr
 
-theorem or_iff_not_imp_left {p q : Prop} : p ∨ q ↔ (¬ p → q) :=
+protected theorem or_iff_not_imp_left {p q : Prop} : p ∨ q ↔ (¬ p → q) :=
 or_iff_not_imp_left
 
-theorem or_iff_not_imp_right {p q : Prop} : q ∨ p ↔ (¬ p → q) :=
+protected theorem or_iff_not_imp_right {p q : Prop} : q ∨ p ↔ (¬ p → q) :=
 or_iff_not_imp_right
 
 /- use shortened names to avoid conflict when classical namespace is open -/

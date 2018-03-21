@@ -630,8 +630,10 @@ end
 instance : monad computation :=
 { map  := @map,
   pure := @return,
-  bind := @bind,
-  id_map := @map_id,
+  bind := @bind }
+
+instance : is_lawful_monad computation :=
+{ id_map := @map_id,
   bind_pure_comp_eq_map := @bind_ret,
   pure_bind := @ret_bind,
   bind_assoc := @bind_assoc }

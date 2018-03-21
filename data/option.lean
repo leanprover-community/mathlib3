@@ -21,7 +21,7 @@ lemma some_inj {a b : α} : some a = some b ↔ a = b := by simp
 @[simp] lemma some_bind (a : α) (f : α → option β) : some a >>= f = f a := rfl
 
 @[simp] lemma bind_some : ∀ x : option α, x >>= some = x :=
-@monad.bind_pure α option _
+@bind_pure α option _ _
 
 @[simp] lemma bind_eq_some {x : option α} {f : α → option β} {b : β} : x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
@@ -32,6 +32,8 @@ by cases x; simp
 
 @[simp] lemma map_eq_some {x : option α} {f : α → β} {b : β} : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
+
+@[simp] lemma map_id' : option.map (@id α) = id := map_id
 
 @[simp] lemma seq_some {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
 

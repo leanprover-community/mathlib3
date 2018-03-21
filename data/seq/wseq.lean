@@ -525,11 +525,11 @@ congr_arg head (dropn_tail _ _)
 
 @[simp] theorem join_think (S : wseq (wseq α)) :
   join (think S) = think (join S) :=
-by { simp [think, join], unfold has_map.map, simp [join, seq1.ret] }
+by { simp [think, join], unfold functor.map, simp [join, seq1.ret] }
 
 @[simp] theorem join_cons (s : wseq α) (S) :
   join (cons s S) = think (append s (join S)) :=
-by { simp [think, join], unfold has_map.map, simp [join, cons, append] }
+by { simp [think, join], unfold functor.map, simp [join, cons, append] }
 
 @[simp] theorem nil_append (s : wseq α) : append nil s = s := seq.nil_append _
 
@@ -551,10 +551,10 @@ by { simp [think, join], unfold has_map.map, simp [join, cons, append] }
 theorem destruct_tail (s : wseq α) :
   destruct (tail s) = destruct s >>= tail.aux :=
 begin
-  dsimp [tail], simp, rw [←monad.bind_pure_comp_eq_map, monad.bind_assoc],
+  dsimp [tail], simp, rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
   apply congr_arg, funext o,
   rcases o with _|⟨a, s⟩;
-  apply (monad.pure_bind _ _).trans _; simp
+  apply (@pure_bind computation _ _ _ _ _ _).trans _; simp
 end
 
 @[simp] def drop.aux : ℕ → option (α × wseq α) → computation (option (α × wseq α))
@@ -569,7 +569,8 @@ theorem drop.aux_none : ∀ n, @drop.aux α n none = return none
 theorem destruct_dropn :
   ∀ (s : wseq α) n, destruct (drop s n) = destruct s >>= drop.aux n
 | s 0     := (bind_ret' _).symm
-| s (n+1) := by rw [←dropn_tail, destruct_dropn _ n, destruct_tail, monad.bind_assoc]; refl
+| s (n+1) := by rw [← dropn_tail, destruct_dropn _ n,
+  destruct_tail, is_lawful_monad.bind_assoc]; refl
 
 theorem head_terminates_of_head_tail_terminates (s : wseq α) [T : terminates (head (tail s))] :
   terminates (head s) :=
@@ -577,14 +578,14 @@ theorem head_terminates_of_head_tail_terminates (s : wseq α) [T : terminates (h
   cases (head_terminates_iff _).1 T with a h,
   simp [tail] at h,
   cases exists_of_mem_bind h with s' h1, cases h1 with h1 h2,
-  unfold has_map.map at h1,
+  unfold functor.map at h1,
   exact let ⟨t, h3, h4⟩ := exists_of_mem_map h1 in terminates_of_mem h3
 end
 
 theorem destruct_some_of_destruct_tail_some {s : wseq α} {a}
   (h : some a ∈ destruct (tail s)) : ∃ a', some a' ∈ destruct s :=
 begin
-  unfold tail has_map.map at h, simp at h,
+  unfold tail functor.map at h, simp at h,
   cases exists_of_mem_bind h with t ht, cases ht with tm td, clear h,
   cases exists_of_mem_map tm with t' ht', cases ht' with ht' ht2, clear tm,
   cases t' with t'; rw ←ht2 at td; simp at td,
@@ -808,7 +809,7 @@ begin
   { cases b, cases dst },
   { cases a, cases dst },
   { cases a with a s', cases b with b t', rw dst.left,
-    exact @mem_map _ _ (@has_map.map _ _ (α × wseq α) _ prod.fst)
+    exact @mem_map _ _ (@functor.map _ _ (α × wseq α) _ prod.fst)
       _ (destruct t) dtm }
 end
 
@@ -836,7 +837,7 @@ theorem flatten_congr {c1 c2 : computation (wseq α)} :
 theorem tail_congr {s t : wseq α} (h : s ~ t) : tail s ~ tail t :=
 begin
   apply flatten_congr,
-  unfold has_map.map, rw [←bind_ret, ←bind_ret],
+  unfold functor.map, rw [←bind_ret, ←bind_ret],
   apply lift_rel_bind _ _ (destruct_congr h),
   intros a b h, simp,
   cases a with a; cases b with b,
@@ -946,7 +947,7 @@ destruct_eq_ret $ begin
   simp [of_seq, head, destruct, seq.destruct, seq.head],
   rw [show seq.nth (some <$> s) 0 = some <$> seq.nth s 0, by apply seq.map_nth],
   cases seq.nth s 0 with a, { refl },
-  unfold has_map.map,
+  unfold functor.map,
   simp [option.map, option.bind, destruct]
 end
 
@@ -1317,23 +1318,25 @@ end
 @[simp] theorem bind_assoc (s : wseq α) (f : α → wseq β) (g : β → wseq γ) :
   bind (bind s f) g ~ bind s (λ (x : α), bind (f x) g) :=
 begin
-  simp [bind], rw [←map_comp f (map g), map_comp (map g ∘ f) join],
+  simp [bind], rw [← map_comp f (map g), map_comp (map g ∘ f) join],
   apply join_join
 end
 
+instance : monad wseq :=
+{ map  := @map,
+  pure := @ret,
+  bind := @bind }
+
 /-
-  Unfortunately, wseq is not a monad, because it does not satisfy
+  Unfortunately, wseq is not a lawful monad, because it does not satisfy
   the monad laws exactly, only up to sequence equivalence.
   Furthermore, even quotienting by the equivalence is not sufficient,
   because the join operation involves lists of quotient elements,
   with a lifted equivalence relation, and pure quotients cannot handle
   this type of construction.
 
-instance : monad wseq :=
-{ map  := @map,
-  pure := @ret,
-  bind := @bind,
-  id_map := @map_id,
+instance : is_lawful_monad wseq :=
+{ id_map := @map_id,
   bind_pure_comp_eq_map := @bind_ret,
   pure_bind := @ret_bind,
   bind_assoc := @bind_assoc }

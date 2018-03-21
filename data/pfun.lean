@@ -101,8 +101,10 @@ roption.ext (⟨λ⟨⟨h1, h2⟩, h3⟩, ⟨h1, h2, h3⟩, λ⟨h1, h2, h3⟩, 
 instance : monad roption :=
 { pure := @roption.some,
   map := @roption.map,
-  bind := @roption.bind,
-  bind_pure_comp_eq_map := @bind_some_eq_map,
+  bind := @roption.bind }
+
+instance : is_lawful_monad roption :=
+{ bind_pure_comp_eq_map := @bind_some_eq_map,
   id_map := λβ f, by cases f; refl,
   pure_bind := @some_bind,
   bind_assoc := @bind_assoc }
@@ -217,9 +219,11 @@ protected def map (f : β → γ) (g : α →. β) : α →. γ :=
 instance : monad (pfun.{u v} α) :=
 { pure := @pfun.pure _,
   bind := @pfun.bind _,
-  map := @pfun.map _,
-  bind_pure_comp_eq_map := λβ γ f x, funext $ λ a, roption.bind_some_eq_map _ _,
-  id_map := λβ f, by funext a; dsimp [pfun.map]; cases f a; refl,
+  map := @pfun.map _ }
+
+instance : is_lawful_monad (pfun.{u v} α) :=
+{ bind_pure_comp_eq_map := λβ γ f x, funext $ λ a, roption.bind_some_eq_map _ _,
+  id_map := λβ f, by funext a; dsimp [functor.map, pfun.map]; cases f a; refl,
   pure_bind := λβ γ x f, funext $ λ a, roption.some_bind _ (f x),
   bind_assoc := λβ γ δ f g k,
     funext $ λ a, roption.bind_assoc (f a) (λ b, g b a) (λ b, k b a) }

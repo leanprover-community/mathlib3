@@ -85,7 +85,7 @@ begin
   dsimp [destruct],
   induction f0 : nth s 0 with a'; intro h,
   { contradiction },
-  { unfold has_map.map at h, dsimp [option.map, option.bind] at h,
+  { unfold functor.map at h, dsimp [option.map, option.bind] at h,
     cases s with f al,
     injections with _ h1 h2,
     rw ←h2, apply subtype.eq, dsimp [tail, cons],
@@ -97,7 +97,7 @@ end
 
 @[simp] theorem destruct_cons (a : α) : ∀ s, destruct (cons a s) = some (a, s)
 | ⟨f, al⟩ := begin
-  unfold cons destruct has_map.map,
+  unfold cons destruct functor.map,
   apply congr_arg (λ s, some (a, s)),
   apply subtype.eq, dsimp [tail], rw [stream.tail_cons]
 end
@@ -129,7 +129,7 @@ begin
   induction k with k IH generalizing s,
   { have TH : s = cons a (tail s),
     { apply destruct_eq_cons,
-      unfold destruct nth has_map.map, rw ←e, refl },
+      unfold destruct nth functor.map, rw ←e, refl },
     rw TH, apply h1 _ _ (or.inl rfl) },
   revert e, apply s.cases_on _ (λ b s', _); intro e,
   { injection e },
@@ -166,7 +166,7 @@ end
 begin
   dsimp [corec, destruct, nth],
   change stream.corec' (corec.F f) (some b) 0 with (corec.F f (some b)).1,
-  unfold has_map.map, dsimp [corec.F],
+  unfold functor.map, dsimp [corec.F],
   induction h : f b with s, { refl },
   cases s with a b', dsimp [corec.F, option.bind],
   apply congr_arg (λ b', some (a, b')),
@@ -447,8 +447,10 @@ end
 @[simp] theorem map_nth (f : α → β) : ∀ s n, nth (map f s) n = (nth s n).map f
 | ⟨s, al⟩ n := rfl
 
-instance : functor seq :=
-{ map := @map, id_map := @map_id, map_comp := @map_comp }
+instance : functor seq := {map := @map}
+
+instance : is_lawful_functor seq :=
+{ id_map := @map_id, comp_map := @map_comp }
 
 @[simp] theorem join_nil : join nil = (nil : seq α) := destruct_eq_nil rfl
 
@@ -688,8 +690,10 @@ end
 instance : monad seq1 :=
 { map  := @map,
   pure := @ret,
-  bind := @bind,
-  id_map := @map_id,
+  bind := @bind }
+
+instance : is_lawful_monad seq1 :=
+{ id_map := @map_id,
   bind_pure_comp_eq_map := @bind_ret,
   pure_bind := @ret_bind,
   bind_assoc := @bind_assoc }

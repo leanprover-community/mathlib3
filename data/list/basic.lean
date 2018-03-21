@@ -427,7 +427,7 @@ theorem bind_ret_eq_map {α β} (f : α → β) (l : list α) :
 by simp [list.bind]; induction l; simp [list.ret, join, *]
 
 @[simp] theorem map_eq_map {α β} (f : α → β) (l : list α) :
-  f <$> l = map f l := bind_ret_eq_map _ _
+  f <$> l = map f l := rfl
 
 /- map₂ -/
 

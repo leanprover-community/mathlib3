@@ -350,7 +350,7 @@ theorem psub_eq_sub {m n} (h : n ≤ m) : psub m n = some (m - n) :=
 psub_eq_some.2 $ nat.sub_add_cancel h
 
 theorem psub_add (m n k) : psub m (n + k) = do x ← psub m n, psub x k :=
-by induction k; simp [*, add_succ, monad.bind_assoc]
+by induction k; simp [*, add_succ, bind_assoc]
 
 /- pow -/
 

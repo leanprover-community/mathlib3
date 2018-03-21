@@ -13,11 +13,11 @@ open tactic monad
 meta instance : monad_fail old_conv :=
 { fail := λ α s, (λr e, tactic.fail (to_fmt s) : old_conv α), ..old_conv.monad }
 
-meta instance : monad.has_monad_lift tactic old_conv :=
+meta instance : has_monad_lift tactic old_conv :=
 ⟨λα, lift_tactic⟩
 
 meta instance (α : Type) : has_coe (tactic α) (old_conv α) :=
-⟨monad.monad_lift⟩
+⟨monad_lift⟩
 
 meta def current_relation : old_conv name := λr lhs, return ⟨r, lhs, none⟩
 

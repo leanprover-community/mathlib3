@@ -532,11 +532,13 @@ def cofinite : filter α :=
   in terms of `map` and `join`. -/
 def bind (f : filter α) (m : α → filter β) : filter β := join (map m f)
 
-instance monad_filter : monad filter :=
+instance : monad filter :=
 { bind       := @bind,
   pure       := λ(α : Type u) x, principal {x},
-  map        := @filter.map,
-  id_map     := assume α f, filter_eq rfl,
+  map        := @filter.map }
+
+instance : is_lawful_monad filter :=
+{ id_map     := assume α f, filter_eq rfl,
   pure_bind  := assume α β a f, by simp [bind, Sup_image],
   bind_assoc := assume α β γ f m₁ m₂, filter_eq rfl,
   bind_pure_comp_eq_map := assume α β f x, filter_eq $ by simp [bind, join, map, preimage, principal] }
@@ -552,8 +554,7 @@ by simp; exact id
 
 instance : alternative filter :=
 { failure := λα, ⊥,
-  orelse  := λα x y, x ⊔ y,
-  ..filter.monad_filter }
+  orelse  := λα x y, x ⊔ y }
 
 /- map and vmap equations -/
 section map

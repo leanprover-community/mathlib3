@@ -469,16 +469,17 @@ theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
 assume a b h, prod_mono (hf h) (hg h)
 
 instance : monad set :=
-{ monad .
-  pure       := λ(α : Type u) a, {a},
+{ pure       := λ(α : Type u) a, {a},
   bind       := λ(α β : Type u) s f, ⋃i∈s, f i,
-  map        := λ(α β : Type u), set.image,
-  pure_bind  := assume α β x f, by simp,
+  map        := λ(α β : Type u), set.image }
+
+instance : is_lawful_monad set :=
+{ pure_bind  := assume α β x f, by simp,
   bind_assoc := assume α β γ s f g, set.ext $ assume a,
     by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
              exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
        exact exists_swap,
-  id_map     := assume α, functor.id_map,
+  id_map     := assume α, id_map,
   bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm] }
 
 section monad

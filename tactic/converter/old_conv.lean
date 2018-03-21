@@ -76,9 +76,7 @@ protected meta def bind {α β : Type} (c₁ : old_conv α) (c₂ : α → old_c
 meta instance : monad old_conv :=
 { map  := @old_conv.map,
   pure := @old_conv.pure,
-  bind := @old_conv.bind,
-  id_map := undefined, pure_bind := undefined, bind_assoc := undefined,
-  bind_pure_comp_eq_map := undefined, bind_map_eq_seq := undefined }
+  bind := @old_conv.bind }
 
 meta instance : alternative old_conv :=
 { failure := @old_conv.failed,

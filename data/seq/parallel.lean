@@ -92,7 +92,7 @@ begin
   intro n, induction n with n IH; intros l S c o T,
   { cases o with a a, { exact terminates_parallel.aux a T },
     have H : seq.destruct S = some (some c, _),
-    { unfold seq.destruct has_map.map, rw ← a, simp [option.map, option.bind] },
+    { unfold seq.destruct functor.map, rw ← a, simp [option.map, option.bind] },
     induction h : parallel.aux2 l with a l';
     have C : corec parallel.aux1 (l, S) = _,
     { apply destruct_eq_ret, simp [parallel.aux1], rw [h], simp [rmap] },

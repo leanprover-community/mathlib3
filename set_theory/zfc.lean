@@ -88,17 +88,21 @@ theorem mem.congr_right : Π {x y : pSet.{u}}, equiv x y → (∀{w:pSet.{u}}, w
   ⟨λ⟨a, ha⟩, let ⟨b, hb⟩ := αβ a in ⟨b, equiv.trans ha hb⟩,
     λ⟨b, hb⟩, let ⟨a, ha⟩ := βα b in ⟨a, equiv.euc hb ha⟩⟩
 
+theorem equiv_iff_mem {x y : pSet.{u}} : equiv x y ↔ (∀{w:pSet.{u}}, w ∈ x ↔ w ∈ y) :=
+⟨mem.congr_right, match x, y with
+| ⟨α, A⟩, ⟨β, B⟩, h := ⟨λ a, h.1 (mem.mk A a), λ b,
+  let ⟨a, h⟩ := h.2 (mem.mk B b) in ⟨a, h.symm⟩⟩
+end⟩
+
 theorem mem.congr_left : Π {x y : pSet.{u}}, equiv x y → (∀{w : pSet.{u}}, x ∈ w ↔ y ∈ w)
 | x y h ⟨α, A⟩ := ⟨λ⟨a, ha⟩, ⟨a, equiv.trans (equiv.symm h) ha⟩, λ⟨a, ha⟩, ⟨a, equiv.trans h ha⟩⟩
 
 /-- Convert a pre-set to a `set` of pre-sets. -/
 def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
 
-/-- Equivalent pre-sets have the same members. The converse
-  is false because having the same members does not suffice
-  to get extensional equivalence, which is a hereditary notion. -/
-theorem equiv.eq {x y : pSet} (h : equiv x y) : to_set x = to_set y :=
-set.ext (λz, mem.congr_right h)
+/-- Two pre-sets are equivalent iff they have the same members. -/
+theorem equiv.eq {x y : pSet} : equiv x y ↔ to_set x = to_set y :=
+equiv_iff_mem.trans (set.set_eq_def _ _).symm
 
 instance : has_coe pSet (set pSet) := ⟨to_set⟩
 

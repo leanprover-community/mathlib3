@@ -528,7 +528,7 @@ section
   def dioph_fn (f : (α → ℕ) → ℕ) := dioph (λv : option α → ℕ, f (v ∘ some) = v none)
 
   theorem reindex_dioph_fn {f : (α → ℕ) → ℕ} (d : dioph_fn f) (g : α → β) : dioph_fn (λv, f (v ∘ g)) :=
-  reindex_dioph d (has_map.map g)
+  reindex_dioph d (functor.map g)
 
   theorem ex_dioph {S : set (α ⊕ β → ℕ)} : dioph S → dioph (λv, ∃x, S (v ⊗ x))
   | ⟨γ, p, pe⟩ := ⟨β ⊕ γ, p.remap ((inl ⊗ inr ∘ inl) ⊗ inr ∘ inr), λv,

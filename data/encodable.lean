@@ -19,6 +19,7 @@ class encodable (α : Type*) :=
 
 section encodable
 variables {α : Type*} {β : Type*}
+universe u
 open encodable
 
 section
@@ -29,7 +30,7 @@ theorem encode_injective : function.injective (@encode α _)
 
 /- lower priority of instance below because we don't want to use encodability
    to prove that e.g. equality of nat is decidable. Example of a problem:
-   
+
    lemma H (e : ℕ) : finset.range (nat.succ e) = insert e (finset.range e) :=
    begin
    exact finset.range_succ
@@ -38,7 +39,7 @@ theorem encode_injective : function.injective (@encode α _)
   fails with this priority not set to zero
 -/
 @[priority 0] instance decidable_eq_of_encodable : decidable_eq α
-| a b := decidable_of_iff _ encode_injective.eq_iff 
+| a b := decidable_of_iff _ encode_injective.eq_iff
 end
 
 def encodable_of_left_injection [h₁ : encodable α]
@@ -57,8 +58,8 @@ instance encodable_nat : encodable nat :=
 instance encodable_empty : encodable empty :=
 ⟨λ a, a.rec _, λ n, none, λ a, a.rec _⟩
 
-instance encodable_unit : encodable unit :=
-⟨λ_, 0, λn, if n = 0 then some () else none, λ⟨⟩, by simp⟩
+instance encodable_unit : encodable punit.{u+1} :=
+⟨λ_, 0, λn, if n = 0 then some punit.star else none, λ⟨⟩, by simp⟩
 
 instance encodable_option {α : Type*} [h : encodable α] : encodable (option α) :=
 ⟨λ o, match o with
@@ -92,6 +93,9 @@ instance encodable_sum : encodable (sum α β) :=
   by cases s; simp [encode_sum, decode_sum];
      rw [bodd_bit, div2_bit, decode_sum, encodek]; refl⟩
 end sum
+
+instance encodable_bool: encodable bool :=
+encodable_of_equiv (unit ⊕ unit) equiv.bool_equiv_unit_sum_unit
 
 section sigma
 variables {γ : α → Type*} [encodable α] [∀ a, encodable (γ a)]

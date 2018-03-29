@@ -621,7 +621,7 @@ by clear _let_match; subst e; simp
 theorem enum_lt {α β} {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
   [is_well_order α r] [is_well_order β s] [is_well_order γ t]
   (h₁ : type s < type r) (h₂ : type t < type r) :
-  r (enum r (type s) h₁) (enum r 
+  r (enum r (type s) h₁) (enum r
   (type t) h₂) ↔ type s < type t :=
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
 
@@ -879,7 +879,7 @@ theorem one_eq_lift_type_unit : 1 = lift.{0 u} (@type unit empty_relation _) :=
 by rw [← one_eq_type_unit, lift_one]
 
 @[simp] theorem lift_add (a b) : lift (a + b) = lift a + lift b :=
-quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩, 
+quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
  (order_iso.sum_lex_congr (order_iso.preimage equiv.ulift _)
    (order_iso.preimage equiv.ulift _)).symm⟩
@@ -1140,7 +1140,7 @@ by rw [limit_rec_on, well_founded.fix_eq,
 def is_normal (f : ordinal → ordinal) : Prop :=
 (∀ o, f o < f (succ o)) ∧ ∀ o, is_limit o → ∀ a, f o ≤ a ↔ ∀ b < o, f b ≤ a
 
-theorem is_normal.limit_le {f} (H : is_normal f) : ∀ {o}, is_limit o → 
+theorem is_normal.limit_le {f} (H : is_normal f) : ∀ {o}, is_limit o →
   ∀ {a}, f o ≤ a ↔ ∀ b < o, f b ≤ a := H.2
 
 theorem is_normal.limit_lt {f} (H : is_normal f) {o} (h : is_limit o) {a} :
@@ -1393,7 +1393,7 @@ theorem sub_is_limit {a b} (l : is_limit a) (h : b < a) : is_limit (a - b) :=
 begin
   refine le_antisymm _ (le_add_left _ _),
   rw [omega, one_eq_lift_type_unit, ← lift_add, lift_le, type_add],
-  have : is_well_order unit empty_relation := by apply_instance, 
+  have : is_well_order unit empty_relation := by apply_instance,
   refine ⟨order_embedding.collapse (order_embedding.of_monotone _ _)⟩,
   { apply sum.rec, exact λ _, 0, exact nat.succ },
   { intros a b, cases a; cases b;
@@ -1429,7 +1429,7 @@ instance : monoid ordinal.{u} :=
   [is_well_order α r] [is_well_order β s] : type r * type s = type (prod.lex s r) := rfl
 
 @[simp] theorem lift_mul (a b) : lift (a * b) = lift a * lift b :=
-quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩, 
+quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
  (order_iso.prod_lex_congr (order_iso.preimage equiv.ulift _)
    (order_iso.preimage equiv.ulift _)).symm⟩
@@ -1825,7 +1825,7 @@ by simpa [ord_le, succ_le] using le_of_lt
 
 theorem lift_lt_univ' (c : cardinal) : lift.{u (max (u+1) v)} c < univ.{u v} :=
 by simpa [univ_umax] using
-  lift_lt.{_ (max (u+1) v)}.2 (lift_lt_univ c) 
+  lift_lt.{_ (max (u+1) v)}.2 (lift_lt_univ c)
 
 @[simp] theorem ord_univ : ord univ.{u v} = ordinal.univ.{u v} :=
 le_antisymm (ord_card_le _) $ le_of_forall_lt $ λ o h,
@@ -2837,7 +2837,7 @@ begin
     { exact ⟨(set.embedding_of_subset this).trans
         ((equiv.set.prod _ _).trans (H.prod_congr H)).to_embedding⟩ },
     refine (equiv.set.insert _).trans
-      ((equiv.refl _).sum_congr equiv.ulift.symm),
+      ((equiv.refl _).sum_congr (equiv.punit_equiv_punit.trans equiv.ulift.symm)),
     apply @irrefl _ r },
   cases lt_or_ge (card (typein (<) (g p)).succ) omega with qo qo,
   { exact lt_of_lt_of_le (mul_lt_omega qo qo) ol },

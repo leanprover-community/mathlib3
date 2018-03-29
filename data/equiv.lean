@@ -129,7 +129,7 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
 
 /- The group of permutations (self-equivalences) of a type `α` -/
 instance perm_group {α : Type u} : group (perm α) :=
-begin 
+begin
   refine { mul := λ f g, equiv.trans g f, one := equiv.refl α, inv:= equiv.symm, ..};
   intros; apply equiv.ext; try { apply trans_apply },
   apply inverse_apply_apply
@@ -157,22 +157,25 @@ protected def plift : plift α ≃ α :=
    λ h, by funext a; dsimp; rw [l₁, l₂],
    λ h, by funext a; dsimp; rw [r₁, r₂]⟩
 
+def punit_equiv_punit : punit.{v} ≃ punit.{w} :=
+⟨λ _, punit.star, λ _, punit.star, λ u, by cases u; refl, λ u, by cases u; reflexivity⟩
+
 section
-@[simp] def arrow_unit_equiv_unit (α : Sort*) : (α → unit) ≃ unit :=
-⟨λ f, (), λ u f, (), λ f, by funext x; cases f x; refl, λ u, by cases u; reflexivity⟩
+@[simp] def arrow_unit_equiv_unit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
+⟨λ f, punit.star, λ u f, punit.star, λ f, by funext x; cases f x; refl, λ u, by cases u; reflexivity⟩
 
-@[simp] def unit_arrow_equiv (α : Sort*) : (unit → α) ≃ α :=
-⟨λ f, f (), λ a u, a, λ f, by funext x; cases x; refl, λ u, rfl⟩
+@[simp] def unit_arrow_equiv (α : Sort*) : (punit.{u} → α) ≃ α :=
+⟨λ f, f punit.star, λ a u, a, λ f, by funext x; cases x; refl, λ u, rfl⟩
 
-@[simp] def empty_arrow_equiv_unit (α : Sort*) : (empty → α) ≃ unit :=
-⟨λ f, (), λ u e, e.rec _, λ f, funext $ λ x, x.rec _, λ u, by cases u; refl⟩
+@[simp] def empty_arrow_equiv_unit (α : Sort*) : (empty → α) ≃ punit.{u} :=
+⟨λ f, punit.star, λ u e, e.rec _, λ f, funext $ λ x, x.rec _, λ u, by cases u; refl⟩
 
-@[simp] def false_arrow_equiv_unit (α : Sort*) : (false → α) ≃ unit :=
+@[simp] def false_arrow_equiv_unit (α : Sort*) : (false → α) ≃ punit.{u} :=
 calc (false → α) ≃ (empty → α) : arrow_congr false_equiv_empty (equiv.refl _)
-             ... ≃ unit        : empty_arrow_equiv_unit _
+             ... ≃ punit       : empty_arrow_equiv_unit _
 
-def arrow_empty_unit {α : Sort*} : (empty → α) ≃ unit :=
-⟨λf, (), λu e, e.rec_on _, assume f, funext $ assume e, e.rec_on _, assume u, unit_eq _ _⟩
+def arrow_empty_unit {α : Sort*} : (empty → α) ≃ punit.{u} :=
+⟨λf, punit.star, λu e, e.rec_on _, assume f, funext $ assume e, e.rec_on _, assume u, punit_eq _ _⟩
 
 end
 
@@ -196,16 +199,16 @@ by cases e₁; cases e₂; refl
   prod_assoc α β γ p = ⟨p.1.1, ⟨p.1.2, p.2⟩⟩ := rfl
 
 section
-@[simp] def prod_unit (α : Sort*) : (α × unit) ≃ α :=
-⟨λ p, p.1, λ a, (a, ()), λ ⟨_, ⟨⟩⟩, rfl, λ a, rfl⟩
+@[simp] def prod_unit (α : Sort*) : (α × punit.{u+1}) ≃ α :=
+⟨λ p, p.1, λ a, (a, punit.star), λ ⟨_, punit.star⟩, rfl, λ a, rfl⟩
 
-@[simp] theorem prod_unit_apply {α : Sort*} (a : α × unit) : prod_unit α a = a.1 := rfl
+@[simp] theorem prod_unit_apply {α : Sort*} (a : α × punit.{u+1}) : prod_unit α a = a.1 := rfl
 
-@[simp] def unit_prod (α : Sort*) : (unit × α) ≃ α :=
-calc (unit × α) ≃ (α × unit) : prod_comm _ _
-            ... ≃ α          : prod_unit _
+@[simp] def unit_prod (α : Sort*) : (punit.{u+1} × α) ≃ α :=
+calc (punit × α) ≃ (α × punit) : prod_comm _ _
+  ... ≃ α          : prod_unit _
 
-@[simp] theorem unit_prod_apply {α : Sort*} (a : unit × α) : unit_prod α a = a.2 := rfl
+@[simp] theorem unit_prod_apply {α : Sort*} (a : punit.{u+1} × α) : unit_prod α a = a.2 := rfl
 
 @[simp] def prod_empty (α : Sort*) : (α × empty) ≃ empty :=
 equiv_empty (λ ⟨_, e⟩, e.rec _)
@@ -237,8 +240,8 @@ by cases e₁; cases e₂; refl
   sum_congr e₁ e₂ (inr b) = inr (e₂ b) :=
 by cases e₁; cases e₂; refl
 
-def bool_equiv_unit_sum_unit : bool ≃ (unit ⊕ unit) :=
-⟨λ b, cond b inl inr (),
+def bool_equiv_unit_sum_unit : bool ≃ (punit.{u+1} ⊕ punit.{v+1}) :=
+⟨λ b, cond b (inl punit.star) (inr punit.star),
  λ s, sum.rec_on s (λ_, tt) (λ_, ff),
  λ b, by cases b; refl,
  λ s, by rcases s with ⟨⟨⟩⟩ | ⟨⟨⟩⟩; refl⟩
@@ -272,8 +275,8 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
 @[simp] def empty_sum (α : Sort*) : (empty ⊕ α) ≃ α :=
 (sum_comm _ _).trans $ sum_empty _
 
-@[simp] def option_equiv_sum_unit (α : Sort*) : option α ≃ (α ⊕ unit) :=
-⟨λ o, match o with none := inr () | some a := inl a end,
+@[simp] def option_equiv_sum_unit (α : Sort*) : option α ≃ (α ⊕ punit.{u+1}) :=
+⟨λ o, match o with none := inr punit.star | some a := inl a end,
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
@@ -370,13 +373,13 @@ end
 
 section
 open sum nat
-def nat_equiv_nat_sum_unit : ℕ ≃ (ℕ ⊕ unit) :=
-⟨λ n, match n with zero := inr () | succ a := inl a end,
- λ s, match s with inl n := succ n | inr () := zero end,
+def nat_equiv_nat_sum_unit : ℕ ≃ (ℕ ⊕ punit.{u+1}) :=
+⟨λ n, match n with zero := inr punit.star | succ a := inl a end,
+ λ s, match s with inl n := succ n | inr punit.star := zero end,
  λ n, begin cases n, repeat { refl } end,
  λ s, begin cases s with a u, { refl }, {cases u, { refl }} end⟩
 
-@[simp] def nat_sum_unit_equiv_nat : (ℕ ⊕ unit) ≃ ℕ :=
+@[simp] def nat_sum_unit_equiv_nat : (ℕ ⊕ punit.{u+1}) ≃ ℕ :=
 nat_equiv_nat_sum_unit.symm
 
 @[simp] def nat_prod_nat_equiv_nat : (ℕ × ℕ) ≃ ℕ :=
@@ -504,13 +507,13 @@ protected def union {α} {s t : set α} [decidable_pred s] (H : s ∩ t = ∅) :
  λ o, by rcases o with ⟨x, h⟩ | ⟨x, h⟩; simp [union._match_1, union._match_2, h];
    simp [show x ∉ s, from λ h', eq_empty_iff_forall_not_mem.1 H _ ⟨h', h⟩]⟩
 
-protected def singleton {α} (a : α) : ({a} : set α) ≃ unit :=
-⟨λ _, (), λ _, ⟨a, mem_singleton _⟩,
+protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
+⟨λ _, punit.star, λ _, ⟨a, mem_singleton _⟩,
  λ ⟨x, h⟩, by simp at h; subst x,
  λ ⟨⟩, rfl⟩
 
 protected def insert {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s) :
-  (insert a s : set α) ≃ (s ⊕ unit) :=
+  (insert a s : set α) ≃ (s ⊕ punit.{u+1}) :=
 by rw ← union_singleton; exact
 (set.union $ inter_singleton_eq_empty.2 H).trans
   (sum_congr (equiv.refl _) (set.singleton _))

@@ -1,20 +1,18 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Kenny Lau
 
 Fixed point construction on complete lattices.
 -/
-
 import order.complete_lattice
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
-λ h, h ▸ le_refl a
-
 namespace lattice
+
+def fixed_points (f : α → α) : set α := { x | f x = x }
 
 section fixedpoint
 variables [complete_lattice α] {f : α → α}
@@ -122,5 +120,92 @@ le_antisymm
   (le_gfp $ le_gfp $ le_of_eq $ gfp_eq $ assume a b h, m h h)
 
 end fixedpoint_eqn
+
+/- The complete lattice of fixed points of a function f -/
+namespace fixed_points
+variables [complete_lattice α] (f : α → α) (hf : monotone f)
+
+def prev (x : α) : α := gfp (λ z, x ⊓ f z)
+def next (x : α) : α := lfp (λ z, x ⊔ f z)
+
+variable {f}
+
+theorem prev_le {x : α} : prev f x ≤ x := gfp_le $ λ z hz, le_trans hz inf_le_left
+
+lemma prev_eq (hf : monotone f) {a : α} (h : f a ≤ a) : prev f a = f (prev f a) :=
+calc prev f a = a ⊓ f (prev f a) :
+    gfp_eq $ show monotone (λz, a ⊓ f z), from assume x y h, inf_le_inf (le_refl _) (hf h)
+  ... = f (prev f a) :
+    by rw [inf_of_le_right]; exact le_trans (hf prev_le) h
+
+def prev_fixed (hf : monotone f) (a : α) (h : f a ≤ a) : fixed_points f :=
+⟨prev f a, (prev_eq hf h).symm⟩
+
+theorem next_le {x : α} : x ≤ next f x := le_lfp $ λ z hz, le_trans le_sup_left hz
+
+lemma next_eq (hf : monotone f) {a : α} (h : a ≤ f a) : next f a = f (next f a) :=
+calc next f a = a ⊔ f (next f a):
+    lfp_eq $ show monotone (λz, a ⊔ f z), from assume x y h, sup_le_sup (le_refl _) (hf h)
+ ... = f (next f a):
+    by rw [sup_of_le_right]; exact le_trans h (hf next_le)
+
+def next_fixed (hf : monotone f) (a : α) (h : a ≤ f a) : fixed_points f :=
+⟨next f a, (next_eq hf h).symm⟩
+
+variable f
+
+theorem sup_le_f_of_fixed_points (x y : fixed_points f) : x.1 ⊔ y.1 ≤ f (x.1 ⊔ y.1) :=
+sup_le
+  (x.2 ▸ (hf $ show x.1 ≤ f x.1 ⊔ y.1, from x.2.symm ▸ le_sup_left))
+  (y.2 ▸ (hf $ show y.1 ≤ x.1 ⊔ f y.1, from y.2.symm ▸ le_sup_right))
+
+theorem f_le_inf_of_fixed_points (x y : fixed_points f) : f (x.1 ⊓ y.1) ≤ x.1 ⊓ y.1 :=
+le_inf
+  (x.2 ▸ (hf $ show f (x.1) ⊓ y.1 ≤ x.1, from x.2.symm ▸ inf_le_left))
+  (y.2 ▸ (hf $ show x.1 ⊓ f (y.1) ≤ y.1, from y.2.symm ▸ inf_le_right))
+
+theorem Sup_le_f_of_fixed_points (A : set α) (HA : A ⊆ fixed_points f) : Sup A ≤ f (Sup A) :=
+Sup_le $ λ x hxA, (HA hxA) ▸ (hf $ le_Sup hxA)
+
+theorem f_le_Inf_of_fixed_points (A : set α) (HA : A ⊆ fixed_points f) : f (Inf A) ≤ Inf A :=
+le_Inf $ λ x hxA, (HA hxA) ▸ (hf $ Inf_le hxA)
+
+instance : complete_lattice (fixed_points f) :=
+{ le           := λx y, x.1 ≤ y.1,
+  le_refl      := λ x, le_refl x,
+  le_trans     := λ x y z, le_trans,
+  le_antisymm  := λ x y hx hy, subtype.eq $ le_antisymm hx hy,
+
+  sup          := λ x y, next_fixed hf (x.1 ⊔ y.1) (sup_le_f_of_fixed_points f hf x y),
+  le_sup_left  := λ x y, show x.1 ≤ _, from le_trans le_sup_left next_le,
+  le_sup_right := λ x y, show y.1 ≤ _, from le_trans le_sup_right next_le,
+  sup_le       := λ x y z hxz hyz, lfp_le $ sup_le (sup_le hxz hyz) (z.2.symm ▸ le_refl z.1),
+
+  inf          := λ x y, prev_fixed hf (x.1 ⊓ y.1) (f_le_inf_of_fixed_points f hf x y),
+  inf_le_left  := λ x y, show _ ≤ x.1, from le_trans prev_le inf_le_left,
+  inf_le_right := λ x y, show _ ≤ y.1, from le_trans prev_le inf_le_right,
+  le_inf       := λ x y z hxy hxz, le_gfp $ le_inf (le_inf hxy hxz) (x.2.symm ▸ le_refl x),
+
+  top          := prev_fixed hf ⊤ le_top,
+  le_top       := λ ⟨x, H⟩, le_gfp $ le_inf le_top (H.symm ▸ le_refl x),
+
+  bot          := next_fixed hf ⊥ bot_le,
+  bot_le       := λ ⟨x, H⟩, lfp_le $ sup_le bot_le (H.symm ▸ le_refl x),
+
+  Sup          := λ A, next_fixed hf (Sup $ subtype.val '' A)
+    (Sup_le_f_of_fixed_points f hf (subtype.val '' A) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
+  le_Sup       := λ A x hxA, show x.1 ≤ _, from le_trans
+    (le_Sup $ show x.1 ∈ subtype.val '' A, from ⟨x, hxA, rfl⟩)
+    next_le,
+  Sup_le       := λ A x Hx, lfp_le $ sup_le (Sup_le $ λ z ⟨y, hyA, hyz⟩, hyz ▸ Hx y hyA) (x.2.symm ▸ le_refl x),
+
+  Inf          := λ A, prev_fixed hf (Inf $ subtype.val '' A)
+    (f_le_Inf_of_fixed_points f hf (subtype.val '' A) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
+  le_Inf       := λ A x Hx, le_gfp $ le_inf (le_Inf $ λ z ⟨y, hyA, hyz⟩, hyz ▸ Hx y hyA) (x.2.symm ▸ le_refl x.1),
+  Inf_le       := λ A x hxA, show _ ≤ x.1, from le_trans
+    prev_le
+    (Inf_le $ show x.1 ∈ subtype.val '' A, from ⟨x, hxA, rfl⟩) }
+
+end fixed_points
 
 end lattice

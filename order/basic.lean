@@ -11,6 +11,9 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
+λ h, h ▸ le_refl a
+
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
 

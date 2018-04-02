@@ -71,6 +71,10 @@ hx.symm ▸ h
 theorem subset.antisymm {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
 ext (λ x, iff.intro (λ ina, h₁ ina) (λ inb, h₂ inb))
 
+theorem subset.antisymm_iff {a b : set α} : a = b ↔ a ⊆ b ∧ b ⊆ a :=
+⟨λ e, e ▸ ⟨subset.refl _, subset.refl _⟩,
+ λ ⟨h₁, h₂⟩, subset.antisymm h₁ h₂⟩
+
 -- an alterantive name
 theorem eq_of_subset_of_subset {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
 subset.antisymm h₁ h₂
@@ -118,21 +122,22 @@ by { intro hs, rewrite hs at h, apply not_mem_empty _ h }
 @[simp] theorem empty_subset (s : set α) : ∅ ⊆ s :=
 assume x, assume h, false.elim h
 
-theorem eq_empty_of_subset_empty {s : set α} (h : s ⊆ ∅) : s = ∅ :=
-subset.antisymm h (empty_subset s)
+theorem subset_empty_iff {s : set α} : s ⊆ ∅ ↔ s = ∅ :=
+by simp [subset.antisymm_iff]
 
-theorem exists_mem_of_ne_empty {s : set α} (h : s ≠ ∅) : ∃ x, x ∈ s :=
-by finish [set_eq_def]
+theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ :=
+subset_empty_iff.1
 
 theorem ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s :=
-⟨exists_mem_of_ne_empty, assume ⟨x, hx⟩, ne_empty_of_mem hx⟩
+by haveI := classical.prop_decidable;
+   simp [eq_empty_iff_forall_not_mem]
+
+theorem exists_mem_of_ne_empty {s : set α} : s ≠ ∅ → ∃ x, x ∈ s :=
+ne_empty_iff_exists_mem.1
 
 -- TODO: remove when simplifier stops rewriting `a ≠ b` to `¬ a = b`
 theorem not_eq_empty_iff_exists {s : set α} : ¬ (s = ∅) ↔ ∃ x, x ∈ s :=
 ne_empty_iff_exists_mem
-
-theorem subset_empty_iff {s : set α} : s ⊆ ∅ ↔ s = ∅ :=
-by finish [set_eq_def]
 
 theorem subset_eq_empty {s t : set α} (h : t ⊆ s) (e : s = ∅) : t = ∅ :=
 subset_empty_iff.1 $ e ▸ h
@@ -142,28 +147,27 @@ mt (subset_eq_empty h)
 
 theorem ball_empty_iff {p : α → Prop} :
   (∀ x ∈ (∅ : set α), p x) ↔ true :=
-by finish [iff_def]
+by simp [iff_def]
 
 /- universal set -/
 
 theorem univ_def : @univ α = {x | true} := rfl
 
-theorem mem_univ (x : α) : x ∈ @univ α := trivial
-
-theorem mem_univ_iff (x : α) : x ∈ @univ α ↔ true := iff.rfl
-
-@[simp] theorem mem_univ_eq (x : α) : x ∈ @univ α = true := rfl
+@[simp] theorem mem_univ (x : α) : x ∈ @univ α := trivial
 
 theorem empty_ne_univ [h : inhabited α] : (∅ : set α) ≠ univ :=
-by finish [set_eq_def]
+by simp [set_eq_def]
 
 @[simp] theorem subset_univ (s : set α) : s ⊆ univ := λ x H, trivial
 
-theorem eq_univ_of_univ_subset {s : set α} (h : univ ⊆ s) : s = univ :=
-by finish [subset_def, set_eq_def]
+theorem univ_subset_iff {s : set α} : univ ⊆ s ↔ s = univ :=
+by simp [subset.antisymm_iff]
+
+theorem eq_univ_of_univ_subset {s : set α} : univ ⊆ s → s = univ :=
+univ_subset_iff.1
 
 theorem eq_univ_iff_forall {s : set α} : s = univ ↔ ∀ x, x ∈ s :=
-by finish [set_eq_def]
+by simp [set_eq_def]
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
@@ -490,17 +494,28 @@ by simp [compl_inter, compl_compl]
 theorem inter_eq_compl_compl_union_compl (s t : set α) : s ∩ t = -(-s ∪ -t) :=
 by simp [compl_compl]
 
-theorem union_compl_self (s : set α) : s ∪ -s = univ :=
+@[simp] theorem union_compl_self (s : set α) : s ∪ -s = univ :=
 by finish [set_eq_def]
 
-theorem compl_union_self (s : set α) : -s ∪ s = univ :=
+@[simp] theorem compl_union_self (s : set α) : -s ∪ s = univ :=
 by finish [set_eq_def]
 
 theorem compl_comp_compl : compl ∘ compl = @id (set α) :=
 funext compl_compl
 
-theorem compl_subset_of_compl_subset {α : Type u} {s t : set α} (h : -s ⊆ t) : -t ⊆ s :=
-assume x hx, classical.by_contradiction $ assume : x ∉ s, hx $ h $ this
+theorem compl_subset_comm {s t : set α} : -s ⊆ t ↔ -t ⊆ s :=
+by haveI := classical.prop_decidable; exact
+forall_congr (λ a, not_imp_comm)
+
+theorem compl_subset_iff_union {s t : set α} : -s ⊆ t ↔ s ∪ t = univ :=
+iff.symm $ eq_univ_iff_forall.trans $ forall_congr $ λ a,
+by haveI := classical.prop_decidable; exact or_iff_not_imp_left
+
+theorem subset_compl_comm {s t : set α} : s ⊆ -t ↔ t ⊆ -s :=
+forall_congr $ λ a, imp_not_comm
+
+theorem subset_compl_iff_disjoint {s t : set α} : s ⊆ -t ↔ s ∩ t = ∅ :=
+iff.trans (forall_congr $ λ a, and_imp.symm) subset_empty_iff
 
 /- set difference -/
 
@@ -671,7 +686,7 @@ theorem image_union (f : α → β) (s t : set α) :
   f '' (s ∪ t) = f '' s ∪ f '' t :=
 by finish [set_eq_def, iff_def, mem_image_eq]
 
-theorem image_empty (f : α → β) : f '' ∅ = ∅ :=
+@[simp] theorem image_empty (f : α → β) : f '' ∅ = ∅ :=
 by finish [set_eq_def, mem_image_eq]
 
 theorem image_inter_on {f : α → β} {s t : set α} (h : ∀x∈t, ∀y∈s, f x = f y → x = y) :
@@ -682,9 +697,12 @@ subset.antisymm
     ⟨a₁, ⟨ha₁, this ▸ ha₂⟩, h₁⟩)
   (subset_inter (mono_image $ inter_subset_left _ _) (mono_image $ inter_subset_right _ _))
 
-theorem image_inter {f : α → β} {s t : set α} (h : ∀ x y, f x = f y → x = y) :
+theorem image_inter {f : α → β} {s t : set α} (H : injective f) :
   f '' s ∩ f '' t = f '' (s ∩ t) :=
-image_inter_on (assume x _ y _, h x y)
+image_inter_on (assume x _ y _ h, H h)
+
+theorem image_univ_of_surjective {ι : Type*} {f : ι → β} (H : surjective f) : f '' univ = univ :=
+eq_univ_of_forall $ by simp [image]; exact H
 
 @[simp] theorem image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
 set.ext $ λ x, by simp [image]; rw eq_comm
@@ -692,7 +710,7 @@ set.ext $ λ x, by simp [image]; rw eq_comm
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t
-theorem mem_image_compl (t : set α) (S : set (set α)) :
+theorem mem_compl_image (t : set α) (S : set (set α)) :
   t ∈ compl '' S ↔ -t ∈ S :=
 begin
   suffices : ∀ x, -x = t ↔ -t = x, {simp [fix_set_compl, this]},
@@ -731,6 +749,16 @@ theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : s
   (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
   b ∈ f '' s ↔ g b ∈ s :=
 by rw image_eq_preimage_of_inverse h₁ h₂; refl
+
+theorem image_compl_subset {f : α → β} {s : set α} (H : injective f) : f '' -s ⊆ -(f '' s) :=
+subset_compl_iff_disjoint.2 $ by simp [image_inter H]
+
+theorem subset_image_compl {f : α → β} {s : set α} (H : surjective f) : -(f '' s) ⊆ f '' -s :=
+compl_subset_iff_union.2 $
+by rw ← image_union; simp [image_univ_of_surjective H]
+
+theorem image_compl_eq {f : α → β} {s : set α} (H : bijective f) : f '' -s = -(f '' s) :=
+subset.antisymm (image_compl_subset H.1) (subset_image_compl H.2)
 
 /- image and preimage are a Galois connection -/
 theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :

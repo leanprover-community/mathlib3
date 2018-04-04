@@ -170,11 +170,6 @@ section min_fac
   theorem min_fac_le {n : ℕ} (H : n > 0) : min_fac n ≤ n :=
   le_of_dvd H (min_fac_dvd n)
 
-  theorem div_min_fac_lt_self {n : ℕ} (h : 1 < n) : n / min_fac n < n :=
-  have n * 1 < n * min_fac n, from nat.mul_lt_mul_of_pos_left
-    (min_fac_prime (ne_of_lt (h)).symm).gt_one (lt_trans dec_trivial h),
-  (nat.div_lt_iff_lt_mul _ _ (min_fac_pos _)).2 $ by simpa
-
   theorem prime_def_min_fac {p : ℕ} : prime p ↔ p ≥ 2 ∧ min_fac p = p :=
   ⟨λ pp, ⟨pp.ge_two,
     let ⟨f2, fd, a⟩ := min_fac_has_prop $ ne_of_gt pp.gt_one in
@@ -223,7 +218,7 @@ def factors : ℕ → list ℕ
 | 1 := []
 | n@(k+2) := let m := min_fac n in
   have n / m < n, from
-    div_min_fac_lt_self dec_trivial,
+    div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one,
   m :: factors (n / m)
 
 lemma mem_factors : ∀ {n p}, p ∈ factors n → prime p
@@ -232,7 +227,7 @@ lemma mem_factors : ∀ {n p}, p ∈ factors n → prime p
 | n@(k+2) p h := 
 let m := min_fac n in
 have n / m < n, from
-  div_min_fac_lt_self dec_trivial,
+  div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one,
 have h₁ : p = m ∨ p ∈ (factors (n / m)) := 
   (list.mem_cons_iff _ _ _).1 h,
 or.cases_on h₁ (λ h₂, h₂.symm ▸ min_fac_prime dec_trivial)
@@ -245,7 +240,7 @@ lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
 | n@(k+2) h :=
 let m := min_fac n in
 have n / m < n, from
-  div_min_fac_lt_self dec_trivial,
+  div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one,
 show list.prod (m :: factors (n / m)) = n, from
 have h₁ : 0 < n / m := 
   nat.pos_of_ne_zero $ λ h,

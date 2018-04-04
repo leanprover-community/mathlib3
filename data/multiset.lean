@@ -11,8 +11,6 @@ open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-local infix ` • `:73 := add_monoid.smul
-
 instance list.perm.setoid (α : Type*) : setoid (list α) :=
 setoid.mk perm ⟨perm.refl, @perm.symm _, @perm.trans _⟩
 
@@ -669,19 +667,25 @@ foldr_cons _ _ _ _ _
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
-@[simp, to_additive multiset.sum_repeat]
-theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = monoid.pow a n :=
+@[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
+@[simp] theorem sum_repeat [add_comm_monoid α] : ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n • a :=
+@prod_repeat (multiplicative α) _
+attribute [to_additive multiset.sum_repeat] prod_repeat
 
 @[simp, to_additive multiset.sum_map_add]
 lemma prod_map_mul [comm_monoid γ] {m : multiset α} {f g : α → γ} :
   prod (m.map $ λa, f a * g a) = prod (m.map f) * prod (m.map g) :=
 multiset.induction_on m (by simp) (assume a m ih, by simp [ih]; cc)
 
-@[to_additive multiset.sum_map_sum_map]
 lemma prod_map_prod_map [comm_monoid γ] (m : multiset α) (n : multiset β) {f : α → β → γ} :
   prod (m.map $ λa, prod $ n.map $ λb, f a b) = prod (n.map $ λb, prod $ m.map $ λa, f a b) :=
 multiset.induction_on m (by simp) (assume a m ih, by simp [ih])
+
+lemma sum_map_sum_map [add_comm_monoid γ] : ∀ (m : multiset α) (n : multiset β) {f : α → β → γ},
+  sum (m.map $ λa, sum $ n.map $ λb, f a b) = sum (n.map $ λb, sum $ m.map $ λa, f a b) :=
+@prod_map_prod_map _ _ (multiplicative γ) _
+attribute [to_additive multiset.sum_map_sum_map] prod_map_prod_map
 
 /- join -/
 
@@ -780,7 +784,7 @@ multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
 | (a, b) := by simp [product, and.left_comm]
 
 @[simp] theorem card_product (s : multiset α) (t : multiset β) : card (product s t) = card s * card t :=
-by simp [product, (∘), mul_comm]
+by simp [product, repeat, (∘), mul_comm]
 
 /- sigma -/
 section
@@ -1450,8 +1454,8 @@ by simp
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
 countp_add
 
-@[simp] theorem count_smul (a : α) (s n) : count a (s • n) = count a s * n :=
-by induction n; simp [*, smul_succ', mul_succ]
+@[simp] theorem count_smul (a : α) (n s) : count a (n • s) = n * count a s :=
+by induction n; simp [*, succ_smul', succ_mul]
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]
@@ -2018,10 +2022,10 @@ end
 end fold
 
 theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
-  ∃ n : ℕ, s ≤ erase_dup s • n :=
+  ∃ n : ℕ, s ≤ n • erase_dup s :=
 ⟨(s.map (λ a, count a s)).fold max 0, le_iff_count.2 $ λ a, begin
   rw count_smul, by_cases a ∈ s,
-  { refine le_trans _ (mul_le_mul_right _ $ count_pos.2 $ mem_erase_dup.2 h),
+  { refine le_trans _ (mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),
     have : count a s ≤ fold max 0 (map (λ a, count a s) (a :: erase s a));
     [simp [le_max_left], simpa [cons_erase h]] },
   { simp [count_eq_zero.2 h, nat.zero_le] }

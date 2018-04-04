@@ -11,8 +11,6 @@ noncomputable theory
 open classical set finset function filter
 local attribute [instance] prop_decidable
 
-local infix ` ^ ` := monoid.pow
-
 section real
 
 lemma has_sum_of_absolute_convergence {f : ℕ → ℝ}

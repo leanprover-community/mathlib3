@@ -2178,7 +2178,7 @@ else by simp [b1, zero_le]
 by induction n with n IH; [simp, rw [nat.mul_succ,
   nat.cast_add, IH, nat.cast_succ, mul_add_one]]
 
-@[simp] theorem nat_cast_power {m n : ℕ} : ((nat.pow m n : ℕ) : ordinal) = m ^ n :=
+@[simp] theorem nat_cast_power {m n} : (@has_pow.pow ℕ ℕ _ m n : ordinal) = m ^ n :=
 by induction n with n IH; [simp, rw [nat.pow_succ,
   nat_cast_mul, IH, nat.cast_succ, ← succ_eq_add_one, power_succ]]
 

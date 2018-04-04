@@ -44,7 +44,6 @@ theorem bit0_zero [add_group α] : bit0 (0 : α) = 0 := add_zero _
 theorem bit1_zero [add_group α] [has_one α] : bit1 (0 : α) = 1 :=
 by rw [bit1, bit0_zero, zero_add]
 
-local infix ` ^ ` := monoid.pow
 lemma pow_bit0_helper [monoid α] (a t : α) (b : ℕ) (h : a ^ b = t) :
   a ^ bit0 b = t * t :=
 by simp [pow_bit0, h]

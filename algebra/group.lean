@@ -136,6 +136,33 @@ end pending_1857
 universe u
 variables {α : Type u}
 
+def additive (α : Type*) := α
+def multiplicative (α : Type*) := α
+
+instance [semigroup α] : add_semigroup (additive α) :=
+{ add := ((*) : α → α → α),
+  add_assoc := @mul_assoc _ _ }
+
+instance [add_semigroup α] : semigroup (multiplicative α) :=
+{ mul := ((+) : α → α → α),
+  mul_assoc := @add_assoc _ _ }
+
+instance [left_cancel_semigroup α] : add_left_cancel_semigroup (additive α) :=
+{ add_left_cancel := @mul_left_cancel _ _,
+  ..additive.add_semigroup }
+
+instance [add_left_cancel_semigroup α] : left_cancel_semigroup (multiplicative α) :=
+{ mul_left_cancel := @add_left_cancel _ _,
+  ..multiplicative.semigroup }
+
+instance [right_cancel_semigroup α] : add_right_cancel_semigroup (additive α) :=
+{ add_right_cancel := @mul_right_cancel _ _,
+  ..additive.add_semigroup }
+
+instance [add_right_cancel_semigroup α] : right_cancel_semigroup (multiplicative α) :=
+{ mul_right_cancel := @add_right_cancel _ _,
+  ..multiplicative.semigroup }
+
 @[simp, to_additive add_left_inj]
 theorem mul_left_inj [left_cancel_semigroup α] (a : α) {b c : α} : a * b = a * c ↔ b = c :=
 ⟨mul_left_cancel, congr_arg _⟩
@@ -204,6 +231,18 @@ namespace units
 
 end units
 
+instance [monoid α] : add_monoid (additive α) :=
+{ zero := (1 : α),
+  zero_add := @one_mul _ _,
+  add_zero := @mul_one _ _,
+  ..additive.add_semigroup }
+
+instance [add_monoid α] : monoid (multiplicative α) :=
+{ one := (0 : α),
+  one_mul := @zero_add _ _,
+  mul_one := @add_zero _ _,
+  ..multiplicative.semigroup }
+
 section monoid
   variables [monoid α] {a b c : α}
 
@@ -243,6 +282,24 @@ section monoid
   (mul_mem : ∀ {s t}, s ∈ S → t ∈ S → s*t ∈ S)
 
 end monoid
+
+instance [comm_monoid α] : add_comm_monoid (additive α) :=
+{ add_comm := @mul_comm α _,
+  ..additive.add_monoid }
+
+instance [add_comm_monoid α] : comm_monoid (multiplicative α) :=
+{ mul_comm := @add_comm α _,
+  ..multiplicative.monoid }
+
+instance [group α] : add_group (additive α) :=
+{ neg := @has_inv.inv α _,
+  add_left_neg := @mul_left_inv _ _,
+  ..additive.add_monoid }
+
+instance [add_group α] : group (multiplicative α) :=
+{ inv := @has_neg.neg α _,
+  mul_left_inv := @add_left_neg _ _,
+  ..multiplicative.monoid }
 
 section group
   variables [group α] {a b c : α}
@@ -331,6 +388,14 @@ section group
         ← mul_assoc, inv_mul_self, one_mul] at this; exact h
   end
 end group
+
+instance [comm_group α] : add_comm_group (additive α) :=
+{ add_comm := @mul_comm α _,
+  ..additive.add_group }
+
+instance [add_comm_group α] : comm_group (multiplicative α) :=
+{ mul_comm := @add_comm α _,
+  ..multiplicative.group }
 
 section add_monoid
   variables [add_monoid α] {a b c : α}

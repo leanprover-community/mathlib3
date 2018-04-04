@@ -513,8 +513,6 @@ theorem sqrt_eq_iff_mul_self_eq {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
 ⟨λ h, by rw [← h, mul_self_sqrt hx],
  λ h, by rw [← h, sqrt_mul_self hy]⟩
 
-local infix ` ^ ` := monoid.pow
-
 @[simp] theorem sqr_sqrt {x : ℝ} (h : 0 ≤ x) : sqrt x ^ 2 = x :=
 by rw [pow_two, mul_self_sqrt h]
 

@@ -653,7 +653,7 @@ have ∃t, is_open t ∧ -s' ⊆ t ∧ nhds a ⊓ principal t = ⊥,
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨-t,
   mem_sets_of_neq_bot $ by simp; exact ht₃,
-  subset.trans (compl_subset_of_compl_subset ht₂) h₁,
+  subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
 
 end regularity

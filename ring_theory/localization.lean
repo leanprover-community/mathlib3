@@ -5,8 +5,6 @@ Authors: Kenny Lau
 -/
 import tactic.ring data.quot ring_theory.ideals
 
-local infix ^ := monoid.pow
-
 universe u
 
 namespace localization

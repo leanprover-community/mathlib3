@@ -8,8 +8,6 @@ Tests for norm_num
 
 import analysis.real tactic.norm_num
 
-local infix ^ := monoid.pow
-
 example : 374 + (32 - (2 * 8123) : ℤ) - 61 * 50 = 86 + 32 * 32 - 4 * 5000
       ∧ 43 ≤ 74 + (33 : ℤ) := by norm_num
 

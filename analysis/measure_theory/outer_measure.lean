@@ -16,8 +16,6 @@ open set lattice finset function filter
 open ennreal (of_real)
 local attribute [instance] classical.prop_decidable
 
-local infix ` ^ ` := monoid.pow
-
 namespace measure_theory
 
 structure outer_measure (α : Type*) :=

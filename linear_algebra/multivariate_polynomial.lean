@@ -10,7 +10,6 @@ noncomputable theory
 
 open classical set function finsupp lattice
 local attribute [instance] classical.prop_decidable
-local infix ^ := monoid.pow
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

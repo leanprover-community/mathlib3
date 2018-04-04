@@ -11,8 +11,6 @@ import algebra.group_power tactic.norm_num
 universes u v w
 open tactic
 
-local infix ` ^ ` := monoid.pow
-
 def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + b
 
 namespace tactic
@@ -112,7 +110,7 @@ by simp [h₂.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
-by simp [h₃.symm, h₂.symm, h₁.symm, horner, mul_add, mul_comm]
+by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]
 
 meta def eval_add (c : cache) : expr → expr → tactic (expr × expr)
 | e₁ e₂ := do d₁ ← destruct e₁, d₂ ← destruct e₂,
@@ -453,3 +451,6 @@ do ns ← loc.get_locals,
 
 end interactive
 end tactic
+
+-- TODO(Mario): fix
+-- example (x : ℤ) : x^3 + x^2 + x = x^3 + (x^2 + x) := by ring

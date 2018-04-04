@@ -7,8 +7,6 @@ Archimedean groups and fields.
 -/
 import algebra.group_power data.rat data.int.order
 
-local infix ` • `:73 := add_monoid.smul
-
 variables {α : Type*}
 
 class floor_ring (α) extends linear_ordered_ring α :=
@@ -96,7 +94,7 @@ by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one
 end
 
 class archimedean (α) [ordered_comm_monoid α] : Prop :=
-(arch : ∀ (x : α) {y}, 0 < y → ∃ n, x ≤ y • n)
+(arch : ∀ (x : α) {y}, 0 < y → ∃ n, x ≤ n • y)
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
@@ -111,8 +109,8 @@ lemma pow_unbounded_of_gt_one (x : α) {y : α}
     (hy1 : 1 < y) : ∃ n : ℕ, x < monoid.pow y n :=
 have hy0 : 0 <  y - 1 := sub_pos_of_lt hy1,
 let ⟨n, h⟩ := archimedean.arch x hy0 in
-⟨n, calc x ≤ (y - 1) • n     : h
-       ... < 1 + (y - 1) • n : by rw add_comm; exact lt_add_one _
+⟨n, calc x ≤ n • (y - 1)     : h
+       ... < 1 + n • (y - 1) : by rw add_comm; exact lt_add_one _
        ... ≤ monoid.pow y n  : pow_ge_one_add_sub_mul (le_of_lt hy1) _⟩
 
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
@@ -138,13 +136,13 @@ end
 end linear_ordered_ring
 
 instance : archimedean ℕ :=
-⟨λ n m m0, ⟨n, by simpa using nat.mul_le_mul_right n m0⟩⟩
+⟨λ n m m0, ⟨n, by simpa using nat.mul_le_mul_left n m0⟩⟩
 
 instance : archimedean ℤ :=
 ⟨λ n m m0, ⟨n.to_nat, begin
   simp [add_monoid.smul_eq_mul],
   refine le_trans (int.le_to_nat _) _,
-  simpa using mul_le_mul_of_nonneg_right
+  simpa using mul_le_mul_of_nonneg_left
     (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat),
 end⟩⟩
 
@@ -161,7 +159,7 @@ theorem archimedean_iff_nat_lt :
   archimedean α ↔ ∀ x : α, ∃ n : ℕ, x < n :=
 ⟨@exists_nat_gt α _, λ H, ⟨λ x y y0,
   (H (x / y)).imp $ λ n h, le_of_lt $
-  by rwa [div_lt_iff y0, ← add_monoid.smul_eq_mul'] at h⟩⟩
+  by rwa [div_lt_iff y0, ← add_monoid.smul_eq_mul] at h⟩⟩
 
 theorem archimedean_iff_nat_le :
   archimedean α ↔ ∀ x : α, ∃ n : ℕ, x ≤ n :=

@@ -65,7 +65,11 @@ instance : comm_monoid ℕ+ :=
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
 
 /-- The power of a pnat and a nat is a pnat. -/
-@[simp] def pow (m : ℕ+) (n : ℕ) : ℕ+ :=
-⟨nat.pow m n, nat.pos_pow_of_pos _ m.pos⟩
+def pow (m : ℕ+) (n : ℕ) : ℕ+ :=
+⟨m ^ n, nat.pos_pow_of_pos _ m.pos⟩
+
+instance : has_pow ℕ+ ℕ := ⟨pow⟩
+
+@[simp] theorem pow_coe (m : ℕ+) (n) : ((m ^ n : ℕ+) : ℕ) = m ^ n := rfl
 
 end pnat

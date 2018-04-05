@@ -71,6 +71,14 @@ lemma int_mod_helper (a b q r : ℤ) (h : r + q * b = a) (h₁ : 0 ≤ r) (h₂ 
 by rw [← h, int.add_mul_mod_self, int.mod_eq_of_lt h₁ h₂]
 
 meta def eval_pow (simp : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
+| `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) :=
+  match m with
+  | `(nat.has_pow) :=
+    mk_app ``nat.pow [e₁, e₂] >>= eval_pow
+  | `(@monoid.has_pow %%α %%m) :=
+    mk_app ``monoid.pow [e₁, e₂] >>= eval_pow
+  | _ := failed
+  end
 | `(monoid.pow %%e₁ 0) := do
   p ← mk_app ``pow_zero [e₁],
   a ← infer_type e₁,

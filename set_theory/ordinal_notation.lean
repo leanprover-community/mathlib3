@@ -524,7 +524,8 @@ def power (o₁ o₂ : onote) : onote :=
 match split o₁ with
 | (0, 0) := if o₂ = 0 then 1 else 0
 | (0, 1) := 1
-| (0, m+1) := let (b', k) := split' o₂ in oadd b' (m.succ_pnat.pow k) 0
+| (0, m+1) := let (b', k) := split' o₂ in
+  oadd b' (@has_pow.pow ℕ+ _ _ m.succ_pnat k) 0
 | (a@(oadd a0 _ _), m) := match split o₂ with
   | (b, 0) := oadd (a0 * b) 1 0
   | (b, k+1) := let eb := a0*b in
@@ -673,8 +674,8 @@ theorem repr_power_aux₂ {a0 a'} [N0 : NF a0] [Na' : NF a'] (m : ℕ)
   (d : ω ∣ repr a')
   (e0 : repr a0 ≠ 0) (h : repr a' + m < ω ^ repr a0) (n : ℕ+) (k : ℕ) :
   let R := repr (power_aux 0 a0 (oadd a0 n a' * of_nat m) k m) in
-  (k ≠ 0 → R < ω ^ repr a0 ^ succ k) ∧
-  ω ^ repr a0 ^ k * (ω ^ repr a0 * (n:ℕ) + repr a') + R =
+  (k ≠ 0 → R < (ω ^ repr a0) ^ succ k) ∧
+  (ω ^ repr a0) ^ k * (ω ^ repr a0 * (n:ℕ) + repr a') + R =
     (ω ^ repr a0 * (n:ℕ) + repr a' + m) ^ succ k :=
 begin
   intro,

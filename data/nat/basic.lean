@@ -160,6 +160,17 @@ protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m 
 
 attribute [simp] nat.div_self
 
+protected theorem div_le_div {n m : ℕ} (h : n ≤ m) {k : ℕ} :
+  n/k ≤ m/k :=
+begin
+  cases lt_or_eq_of_le (nat.zero_le k) with hk hk,
+  rw [nat.le_div_iff_mul_le (n/k) m hk],
+  transitivity,
+  apply nat.div_mul_le_self,
+  exact h,
+  rw [← hk], simp
+end
+
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=
 by rw [← H2, nat.mul_div_cancel' H1]

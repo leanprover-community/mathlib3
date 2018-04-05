@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 Prime numbers.
 -/
-import data.nat.sqrt data.nat.gcd
+import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm
 open bool subtype
 
 namespace nat
@@ -218,10 +218,36 @@ def factors : ℕ → list ℕ
 | 1 := []
 | n@(k+2) := let m := min_fac n in
   have n / m < n, from
-    have n * 1 < n * min_fac n, from nat.mul_lt_mul_of_pos_left
-      (min_fac_prime dec_trivial).gt_one (succ_pos _),
-    (nat.div_lt_iff_lt_mul _ _ (min_fac_pos _)).2 $ by simpa,
+    div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one,
   m :: factors (n / m)
+
+lemma mem_factors : ∀ {n p}, p ∈ factors n → prime p
+| 0       p h := absurd h (list.not_mem_nil _)
+| 1       p h := absurd h (list.not_mem_nil _)
+| n@(k+2) p h := 
+let m := min_fac n in
+have n / m < n, from
+  div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one,
+have h₁ : p = m ∨ p ∈ (factors (n / m)) := 
+  (list.mem_cons_iff _ _ _).1 h,
+or.cases_on h₁ (λ h₂, h₂.symm ▸ min_fac_prime dec_trivial)
+  mem_factors
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf psigma.fst⟩]}
+
+lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n 
+| 0       h := absurd h dec_trivial
+| 1       h := rfl
+| n@(k+2) h :=
+let m := min_fac n in
+have n / m < n, from
+  div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one,
+show list.prod (m :: factors (n / m)) = n, from
+have h₁ : 0 < n / m := 
+  nat.pos_of_ne_zero $ λ h,
+  have n = 0 * m := (nat.div_eq_iff_eq_mul_left (min_fac_pos _) (min_fac_dvd _)).1 h,
+  by rw zero_mul at this; exact (show k + 2 ≠ 0, from dec_trivial) this,
+by rw [list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
+  using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf psigma.fst⟩]}
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
@@ -276,5 +302,56 @@ begin
     { rcases d with ⟨k, l, e⟩,
       rw e, exact pow_dvd_pow _ l } }
 end
+
+end nat
+
+namespace nat
+open list
+
+lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) : 
+    ∀ {l : list ℕ}, (∀ p ∈ l, prime p) → p ∣ prod l → p ∈ l
+| nil := λ h₁ h₂, absurd h₂ (prime.not_dvd_one hp)
+| (q :: l) := λ h₁ h₂,
+have h₃ : p ∣ q * prod l := @prod_cons _ _ l q ▸ h₂,
+have hq : prime q := h₁ q (mem_cons_self _ _),
+or.cases_on ((prime.dvd_mul hp).1 h₃) 
+  (λ h, by rw [prime.dvd_iff_not_coprime hp, coprime_primes hp hq, ne.def, not_not] at h;
+    exact h ▸ mem_cons_self _ _) 
+  (λ h, have hl : ∀ p ∈ l, prime p := λ p hlp, h₁ p ((mem_cons_iff _ _ _).2 (or.inr hlp)),
+  (mem_cons_iff _ _ _).2 (or.inr (mem_list_primes_of_dvd_prod hl h)))
+
+lemma mem_factors_of_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) (h : p ∣ n) : p ∈ factors n :=
+mem_list_primes_of_dvd_prod hp (@mem_factors n) ((prod_factors hn).symm ▸ h) 
+
+lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ → (∀ p ∈ l₁, prime p) →
+    (∀ p ∈ l₂, prime p) → l₁ ~ l₂
+| nil nil := λ _ _ _, perm.nil
+| nil (a :: l) := λ h₁ h₂ h₃,
+  have ha : a ∣ 1 := @prod_nil ℕ _ ▸ h₁.symm ▸ (@prod_cons _ _ l a).symm ▸ dvd_mul_right _ _,
+  absurd ha (prime.not_dvd_one (h₃ a (mem_cons_self _ _)))
+| (a :: l) nil := λ h₁ h₂ h₃,
+  have ha : a ∣ 1 := @prod_nil ℕ _ ▸ h₁ ▸ (@prod_cons _ _ l a).symm ▸ dvd_mul_right _ _,
+  absurd ha (prime.not_dvd_one (h₂ a (mem_cons_self _ _)))
+| (a :: l₁) (b :: l₂) := λ h hl₁ hl₂, 
+  have hl₁' : ∀ p ∈ l₁, prime p := λ p hp, hl₁ p (mem_cons_of_mem _ hp),
+  have hl₂' : ∀ p ∈ (b :: l₂).erase a, prime p := λ p hp, hl₂ p (mem_of_mem_erase hp),
+  have ha : a ∈ (b :: l₂) := mem_list_primes_of_dvd_prod (hl₁ a (mem_cons_self _ _)) hl₂ 
+    (h ▸ by rw prod_cons; exact dvd_mul_right _ _),
+  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_erase ha,
+  have hl : prod l₁ = prod ((b :: l₂).erase a) := 
+  (nat.mul_left_inj (prime.pos (hl₁ a (mem_cons_self _ _)))).1 $
+    by rwa [← prod_cons, ← prod_cons, ← prod_eq_of_perm hb],
+  perm.trans (perm.skip _ (perm_of_prod_eq_prod hl hl₁' hl₂')) hb.symm
+
+lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) : l ~ factors n :=
+have hn : 0 < n := nat.pos_of_ne_zero (λ h, begin
+    rw h at *, clear h,
+    induction l with a l hi,
+    { exact absurd h₁ dec_trivial },
+    { rw prod_cons at h₁,
+      exact nat.mul_ne_zero (ne_of_lt (prime.pos (h₂ a (mem_cons_self _ _)))).symm
+        (hi (λ p hp, h₂ p (mem_cons_of_mem _ hp))) h₁ }
+  end),
+perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@mem_factors _)
 
 end nat

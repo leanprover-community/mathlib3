@@ -1,7 +1,6 @@
 [package]
 name = "mathlib"
 version = "0.1"
-# TODO(Mario): reinstate when this actually works
-# lean_version = "nightly-2018-04-02"
+lean_version = "nightly-2018-04-02"
 
 [dependencies]

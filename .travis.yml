@@ -1,8 +1,10 @@
 language: generic
 
 install:
-  - curl https://leanprover.github.io/lean-nightly/build/lean-nightly-linux.tar.gz | tar xz -C ..
-  - export PATH=../lean-nightly-linux/bin:$PATH
+  - LEAN_VERSION="lean-3.3.1"
+  - NIGHTLY="nightly-2018-04-02"
+  - curl https://github.com/leanprover/lean-nightly/releases/download/$NIGHTLY/$LEAN_VERSION-$NIGHTLY-linux.tar.gz -L | tar xz -C ..
+  - export PATH=../$LEAN_VERSION-$NIGHTLY-linux/bin:$PATH
 
 script:
   - leanpkg test

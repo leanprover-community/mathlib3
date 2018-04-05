@@ -179,7 +179,7 @@ lemma subtree_cons_of_ne {n : ℕ}
   {y y' : α} {i : β y} {ch : β y' → cofix_a β (n + length ps)}
   (Hne : y ≠ y')
 : subtree' (⟨y,i⟩ :: ps) (cofix_a.intro y' ch) = none :=
-by { simp [*,subtree',assert_if_neg], refl }
+by simp [*,subtree',assert_if_neg]
 
 @[simp]
 lemma mem_subtree_cons_iff {n : ℕ}
@@ -417,7 +417,7 @@ begin
     { unfold head, rw [← h,head_succ' n _ x_approx x_consistent] },
     introv h',
     congr, rw h,
-    transitivity y, apply h',
+    transitivity a', apply h',
     symmetry, apply cast_heq, },
 end
 
@@ -515,7 +515,7 @@ sorry
 @[simp]
 lemma subtree_nil_get (x : cofix β)
 : (subtree x []).get (by simp) = x :=
-by simp
+by simp; refl
 
 @[simp]
 lemma subtree_cons' (x : cofix β) {y i p}
@@ -534,7 +534,7 @@ sorry
 @[simp]
 lemma child_nil (x : cofix β)
           (H : (subtree x []).dom) (i : β (head ((subtree x []).get H)))
-: child x [] H i = children x (cast (by simp) i) :=
+: child x [] H i = children x (cast (by simp;refl) i) :=
 sorry
 
 @[simp]

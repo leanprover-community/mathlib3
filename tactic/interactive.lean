@@ -591,5 +591,11 @@ do let (e,n) := arg,
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
 
+meta def clear_except (xs : parse ident *) : tactic unit :=
+do let ns := name_set.of_list xs,
+   local_context >>= mmap' (λ h : expr,
+     when (¬ ns.contains h.local_pp_name) $
+       try $ tactic.clear h) ∘ list.reverse
+
 end interactive
 end tactic

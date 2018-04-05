@@ -51,7 +51,7 @@ lemma countable_iff_exists_surjective [ne : inhabited α] {s : set α} :
     have := inv_fun_eq (hf hx), dsimp at this ⊢,
     simp [this, hx]
   end⟩⟩⟩
-  
+
 def countable.to_encodable {s : set α} : countable s → encodable s :=
 classical.choice
 

@@ -15,6 +15,7 @@ import logic.function algebra.big_operators data.set data.finset
 noncomputable theory
 open lattice finset filter function classical
 local attribute [instance] prop_decidable
+local attribute [-congr] pi_congr_eq
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 

@@ -115,6 +115,7 @@ open nat
 mutual def to_bin_tree_aux, to_bin_tree
 with to_bin_tree_aux : ℕ → l_leaf ℕ → bin_tree ℕ
  | (succ n) :=
+have n < succ n, from lt_succ_self _,
 λ t,
 match t with
  | (more t) := to_bin_tree n t
@@ -123,6 +124,7 @@ end
  | 0 := λ _, bin_tree.empty
 with to_bin_tree : ℕ → l_two_tree ℕ → bin_tree ℕ
  | (succ n) :=
+have n < succ n, from lt_succ_self _,
 λ t,
 match t with
  | l_two_tree'.nil := bin_tree.empty

@@ -160,6 +160,10 @@ protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m 
 
 attribute [simp] nat.div_self
 
+protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k ≤ m / k :=
+(nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
+(nat.le_div_iff_mul_le _ _ hk).2 $ le_trans (nat.div_mul_le_self _ _) h
+
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=
 by rw [← H2, nat.mul_div_cancel' H1]

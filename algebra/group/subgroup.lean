@@ -98,8 +98,8 @@ def kernel (f : G → H) [is_group_hom f] : set G := preimage f (trivial H)
 lemma one_iff_ker_inv (f : G → H) [is_group_hom f] (a b : G) : f a = f b ↔ f (a * b⁻¹) = 1 :=
     ⟨inv_ker_one, one_ker_inv⟩
 
-lemma inv_iff_ker (f : G → H) [is_group_hom f] (a b : G) : f a = f b ↔ a * b⁻¹ ∈ kernel f :=
-    ⟨inv_ker, ker_inv⟩
+lemma inv_iff_ker (f : G → H) [w : is_group_hom f] (a b : G) : f a = f b ↔ a * b⁻¹ ∈ kernel f :=
+    ⟨@inv_ker _ _ _ _ f w _ _, @ker_inv _ _ _ _ f w _ _⟩ -- TODO: I don't understand why I can't just write ⟨inv_ker, ker_inv⟩ here. (This gives typeclass errors; it can't find `w`.)
 
 instance image_in (f : G → H) [is_group_hom f] (S : set G) [subgroup S] : subgroup (f '' S) := {
     subgroup .
@@ -142,7 +142,7 @@ lemma trivial_kernel_of_inj {f : G → H} [is_group_hom f] (h : function.injecti
     { assume hx, simp [hx, one f] }
     end
 
-lemma inj_iff_trivial_kernel {f : G → H} [is_group_hom f] : function.injective f ↔ kernel f = trivial G :=
-    ⟨trivial_kernel_of_inj, inj_of_trivial_kernel⟩
+lemma inj_iff_trivial_kernel {f : G → H} [w : is_group_hom f] : function.injective f ↔ kernel f = trivial G :=
+    ⟨@trivial_kernel_of_inj _ _ _ _ f w, @inj_of_trivial_kernel _ _ _ _ f w⟩ -- TODO again, why can't it find w by itself?
 
 end is_group_hom

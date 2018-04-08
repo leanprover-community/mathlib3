@@ -85,11 +85,11 @@ def kernel (f : G → H) [is_group_hom f] : set G := preimage f (trivial H)
 
 @[simp] lemma mem_ker_one {f : G → H} [is_group_hom f] {x : G} (h : x ∈ kernel f) : f x = 1 := by simp [kernel] at h; simp [h]
 
-@[simp] lemma one_ker_inv {f : G → H} [is_group_hom f] {a b : G} (h : f (a * b⁻¹) = 1) : f a = f b := by rw ←inv_inv (f b); rw [hom_mul f, inv f] at h; exact eq_inv_of_mul_eq_one h
+@[simp] lemma one_ker_inv {f : G → H} [is_group_hom f] {a b : G} (h : f (a * b⁻¹) = 1) : f a = f b := by rw ←inv_inv (f b); rw [mul f, inv f] at h; exact eq_inv_of_mul_eq_one h
 
 @[simp] lemma inv_ker_one {f : G → H} [is_group_hom f] {a b : G} (h : f a = f b) : f (a * b⁻¹) = 1 :=
     have f a * (f b)⁻¹ = 1, by rw h; apply mul_right_inv,
-    by rw [←inv f, ←hom_mul f] at this; exact this
+    by rw [←inv f, ←mul f] at this; exact this
 
 @[simp] lemma ker_inv {f : G → H} [is_group_hom f] {a b : G} (h : a * b⁻¹ ∈ kernel f) : f a = f b := one_ker_inv $ mem_ker_one h
 
@@ -104,17 +104,17 @@ lemma inv_iff_ker (f : G → H) [is_group_hom f] (a b : G) : f a = f b ↔ a * b
 instance image_in (f : G → H) [is_group_hom f] (S : set G) [subgroup S] : subgroup (f '' S) := {
     subgroup .
     mul_mem := assume a₁ a₂ ⟨b₁, hb₁, eq₁⟩ ⟨b₂, hb₂, eq₂⟩,
-    ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, hom_mul f]⟩,
+    ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, mul f]⟩,
     one_mem := ⟨1, one_mem S, one f⟩,
     inv_mem := assume a ⟨b, hb, eq⟩,
     ⟨b⁻¹, inv_mem hb, by rw inv f; simp *⟩ 
 }
 
 instance preimage_in (f : G → H) [is_group_hom f] (S : set H) [subgroup S] : subgroup (f ⁻¹' S) :=
-    by refine {..}; simp [hom_mul f, one f, inv f] {contextual:=tt}
+    by refine {..}; simp [mul f, one f, inv f] {contextual:=tt}
 
 instance preimage_norm_in (f : G → H) [is_group_hom f] (S : set H) [normal_subgroup S] : normal_subgroup (f ⁻¹' S) :=
-    by refine {..}; simp [hom_mul f, one f, inv f] {contextual:=tt}
+    by refine {..}; simp [mul f, one f, inv f] {contextual:=tt}
 
 instance kernel_in (f : G → H) [is_group_hom f] : normal_subgroup (kernel f) := 
     is_group_hom.preimage_norm_in f (trivial H)

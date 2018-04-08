@@ -487,7 +487,8 @@ end add_comm_group
 variables  [group α] {β : Type*} [group β]
 
 /-- Predicate for group homomorphism. -/
-def is_group_hom (f : α → β) : Prop := ∀ a b : α, f (a * b) = f a * f b
+def is_group_hom (f : α → β) : Prop := 
+∀ a b : α, f (a * b) = f a * f b
 
 attribute [class] is_group_hom
 
@@ -506,8 +507,8 @@ eq.symm $ inv_eq_of_mul_eq_one $ by simp [(w a a⁻¹).symm, one f]
 variables {γ : Type*} [group γ] {g : β → γ} [is_group_hom g]
 
 instance comp : is_group_hom (g ∘ f) := λ x y,  calc
-    g (f (x * y)) = g (f x * f y)       : by rw mul f
-    ...           = g (f x) * g (f y)   : by rw mul g
+  g (f (x * y)) = g (f x * f y)       : by rw mul f
+  ...           = g (f x) * g (f y)   : by rw mul g
 
 end is_group_hom
 

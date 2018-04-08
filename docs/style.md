@@ -52,7 +52,7 @@ Use spaces around ":" and ":=". Put them before a line break rather
 than at the beginning of the next line.
 
 Use two spaces to indent. You can use an extra indent when a long line
-forces a break to suggest the the break is artificial rather than
+forces a break to suggest the break is artificial rather than
 structural, as in the statement of theorem:
 
 ```lean
@@ -169,6 +169,42 @@ nat.induction_on n
     IH H3)
 ```
 
+In a class or structure definition, we do not indent fields, as in:
+
+```lean
+structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ≼o s :=
+(top : β)
+(down : ∀ b, s b top ↔ ∃ a, to_order_embedding a = b)
+
+class module (α : out_param $ Type u) (β : Type v) [out_param $ ring α]
+  extends has_scalar α β, add_comm_group β :=
+(smul_add : ∀r (x y : β), r • (x + y) = r • x + r • y)
+(add_smul : ∀r s (x : β), (r + s) • x = r • x + s • x)
+(mul_smul : ∀r s (x : β), (r * s) • x = r • s • x)
+(one_smul : ∀x : β, (1 : α) • x = x)
+```
+
+When using a constructor taking several arguments in a definition,
+arguments line up, as in:
+
+```lean
+theorem sub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
+⟨λ h, by simpa [h] using le_add_sub a b,
+ λ h, by rwa [← le_zero, sub_le, add_zero]⟩
+```
+
+When defining instances, opening and closing braces are not alone on
+their line. The content is indented by two spaces and `:=` line up, as
+in:
+
+```lean
+instance : partial_order (topological_space α) :=
+{ le          := λt s, t.is_open ≤ s.is_open,
+  le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₁ h₂,
+  le_refl     := assume t, le_refl t.is_open,
+  le_trans    := assume a b c h₁ h₂, @le_trans _ _ a.is_open b.is_open c.is_open h₁ h₂ }
+```
+
 ### Binders ###
 
 Use a space after binders:
@@ -215,6 +251,61 @@ theorem reverse_reverse : ∀ (l : list α), reverse (reverse l) = l
       ... = reverse [a] ++ l                   : reverse_reverse
       ... = a :: l                             : rfl
 ```
+
+
+### Tactic mode ###
+
+When opening a tactic block, `begin` is not indented by everything
+inside is indented, as in:
+
+```lean
+lemma div_self (a : α) : a ≠ 0 → a / a = (1:α) :=
+begin
+  intro hna,
+  have wit_aa := quotient_mul_add_remainder_eq a a,
+  have a_mod_a := mod_self a, 
+  dsimp [(%)] at a_mod_a,
+  simp [a_mod_a] at wit_aa,
+  have h1 : 1 * a = a, from one_mul a,
+  conv at wit_aa {for a [4] {rw ←h1}},
+  exact eq_of_mul_eq_mul_right hna wit_aa
+end
+```
+
+A more complicated example, mixing term mode and tactic mode:
+```lean
+lemma nhds_supr {ι : Sort w} {t : ι → topological_space α} {a : α} :
+  @nhds α (supr t) a = (⨅i, @nhds α (t i) a) :=
+le_antisymm
+  (le_infi $ assume i, nhds_mono $ le_supr _ _)
+  begin
+    rw [supr_eq_generate_from, nhds_generate_from],
+    exact (le_infi $ assume s, le_infi $ assume ⟨hs, hi⟩,
+      begin
+        simp at hi, cases hi with i hi,
+        exact (infi_le_of_le i $ le_principal_iff.mpr $ @mem_nhds_sets α (t i) _ _ hi hs)
+      end)
+  end
+```
+
+When new goals arise as side conditions or steps, they are enclosed in
+focussing braces and indented. Braces are not alone on their line.
+
+```lean
+lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
+  (hb : is_topological_basis b) : s ∈ (nhds a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
+begin
+  rw [hb.2.2, nhds_generate_from, infi_sets_eq'],
+  { simpa [and_comm, and.left_comm] },
+  { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
+      have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
+      let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in
+      ⟨u, ⟨hu₂, hu₁⟩, by simpa using hu₃⟩ },
+  { suffices : a ∈ (⋃₀ b), { simpa [and_comm] },
+    { rw [hb.2.1], trivial } }
+end
+```
+
 
 ### Sections ###
 

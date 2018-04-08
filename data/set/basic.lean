@@ -398,7 +398,7 @@ by finish [iff_def]
 
 theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
 
-@[simp] theorem mem_singleton_iff (a b : α) : a ∈ ({b} : set α) ↔ a = b :=
+@[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b :=
 by finish [singleton_def]
 
 -- TODO: again, annotation needed

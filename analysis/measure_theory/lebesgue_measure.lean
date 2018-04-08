@@ -174,7 +174,7 @@ tendsto_infi.2 $ assume r, tendsto_principal.2 $
 let ⟨n, hn⟩ := exists_nat_gt r in
 mem_at_top_sets.2 ⟨n, λ m h, le_trans (le_of_lt hn) (nat.cast_le.2 h)⟩
 
-lemma lebesgue_Ico {a b : ℝ} : lebesgue.measure (Ico a b) = of_real (b - a) :=
+lemma lebesgue_Ico {a b : ℝ} : lebesgue (Ico a b) = of_real (b - a) :=
 match le_total a b with
 | or.inl h :=
   begin
@@ -188,7 +188,7 @@ match le_total a b with
   by simp [ennreal.of_real_of_nonpos, *] at *
 end
 
-lemma lebesgue_Ioo {a b : ℝ} : lebesgue.measure (Ioo a b) = of_real (b - a) :=
+lemma lebesgue_Ioo {a b : ℝ} : lebesgue (Ioo a b) = of_real (b - a) :=
 by_cases (assume h : b ≤ a, by simp [h, -sub_eq_add_neg, ennreal.of_real_of_nonpos]) $
 assume : ¬ b ≤ a,
 have h : a < b, from not_le.mp this,
@@ -235,7 +235,7 @@ have (⨆i, of_real (b - s i)) = of_real (b - a),
       rw [inf_of_le_left this],
       exact map_ne_bot at_top_ne_bot
     end,
-have eq₂ : (⨆i, lebesgue.measure (Ico (s i) b)) = of_real (b - a),
+have eq₂ : (⨆i, lebesgue (Ico (s i) b)) = of_real (b - a),
   by simp only [lebesgue_Ico, this],
 begin
   rw [eq₁, measure_Union_eq_supr_nat, eq₂],
@@ -244,7 +244,7 @@ begin
     from assume i j hij x hx, ⟨le_trans (hsm _ _ hij) hx.1, hx.2⟩
 end
 
-lemma lebesgue_singleton {a : ℝ} : lebesgue.measure {a} = 0 :=
+lemma lebesgue_singleton {a : ℝ} : lebesgue {a} = 0 :=
 have Ico a (a + 1) \ Ioo a (a + 1) = {a},
   from set.ext $ assume a',
   begin
@@ -254,9 +254,9 @@ have Ico a (a + 1) \ Ioo a (a + 1) = {a},
       ⟨assume eq, by rw [eq] at h₂; exact (lt_irrefl _ h₂).elim,
       assume h₃, (lt_irrefl a' $ lt_trans h₂ h₃).elim⟩
   end,
-calc lebesgue.measure {a} = lebesgue.measure (Ico a (a + 1) \ Ioo a (a + 1)) :
+calc lebesgue {a} = lebesgue (Ico a (a + 1) \ Ioo a (a + 1)) :
     congr_arg _ this.symm
-  ... = lebesgue.measure (Ico a (a + 1)) - lebesgue.measure (Ioo a (a + 1)) :
+  ... = lebesgue (Ico a (a + 1)) - lebesgue (Ioo a (a + 1)) :
     measure_sdiff (assume x, and.imp le_of_lt id) is_measurable_Ico is_measurable_Ioo $
       by simp [lebesgue_Ico]; exact ennreal.of_real_lt_infty
   ... = 0 : by simp [lebesgue_Ico, lebesgue_Ioo]

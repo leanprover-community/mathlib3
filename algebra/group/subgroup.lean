@@ -17,11 +17,6 @@ class normal_subgroup [group G] (S : set G) extends subgroup S : Prop :=
 namespace subgroup
 variable [group G]
 
-attribute [simp] subgroup.one_mem 
-                 subgroup.inv_mem 
-                 subgroup.mul_mem
-                 normal_subgroup.normal
-
 -- Subgroup is a group
 instance (S : set G) [subgroup S] : group S := { 
   mul := λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x * y, mul_mem hx hy⟩,
@@ -42,15 +37,15 @@ by simp at h; exact h
 @[simp]
 def trivial (G : Type u) [group G] : set G := {1}
 
-instance trivial_in : normal_subgroup (trivial G) :=
+instance trivial_normal : normal_subgroup (trivial G) :=
 by refine {..}; simp {contextual := tt}
 
-instance univ_in : subgroup (@univ G) :=
+instance univ_subgroup : subgroup (@univ G) :=
 by split; simp
 
 def center (G : Type u) [group G] : set G := {z | ∀ g, g * z = z * g}
 
-instance center_normal_in : normal_subgroup (center G) := {
+instance center_normal : normal_subgroup (center G) := {
   one_mem := by simp [center],
   mul_mem := begin
   intros a b ha hb g,
@@ -102,7 +97,7 @@ lemma one_iff_ker_inv (f : G → H) [is_group_hom f] (a b : G) : f a = f b ↔ f
 lemma inv_iff_ker (f : G → H) [w : is_group_hom f] (a b : G) : f a = f b ↔ a * b⁻¹ ∈ kernel f :=
 ⟨@inv_ker _ _ _ _ f w _ _, @ker_inv _ _ _ _ f w _ _⟩ -- TODO: I don't understand why I can't just write ⟨inv_ker, ker_inv⟩ here. (This gives typeclass errors; it can't find `w`.)
 
-instance image_in (f : G → H) [is_group_hom f] (S : set G) [subgroup S] : subgroup (f '' S) := {
+instance image_subgroup (f : G → H) [is_group_hom f] (S : set G) [subgroup S] : subgroup (f '' S) := {
   subgroup .
   mul_mem := assume a₁ a₂ ⟨b₁, hb₁, eq₁⟩ ⟨b₂, hb₂, eq₂⟩,
   ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, mul f]⟩,
@@ -111,14 +106,19 @@ instance image_in (f : G → H) [is_group_hom f] (S : set G) [subgroup S] : subg
   ⟨b⁻¹, inv_mem hb, by rw inv f; simp *⟩ 
 }
 
-instance preimage_in (f : G → H) [is_group_hom f] (S : set H) [subgroup S] : subgroup (f ⁻¹' S) :=
+local attribute [simp] subgroup.one_mem 
+                 subgroup.inv_mem 
+                 subgroup.mul_mem
+                 normal_subgroup.normal
+
+instance preimage (f : G → H) [is_group_hom f] (S : set H) [subgroup S] : subgroup (f ⁻¹' S) :=
 by refine {..}; simp [mul f, one f, inv f] {contextual:=tt}
 
-instance preimage_norm_in (f : G → H) [is_group_hom f] (S : set H) [normal_subgroup S] : normal_subgroup (f ⁻¹' S) :=
+instance preimage_normal (f : G → H) [is_group_hom f] (S : set H) [normal_subgroup S] : normal_subgroup (f ⁻¹' S) :=
 by refine {..}; simp [mul f, one f, inv f] {contextual:=tt}
 
-instance kernel_in (f : G → H) [is_group_hom f] : normal_subgroup (kernel f) := 
-is_group_hom.preimage_norm_in f (trivial H)
+instance kernel_normal (f : G → H) [is_group_hom f] : normal_subgroup (kernel f) := 
+is_group_hom.preimage_normal f (trivial H)
 
 lemma inj_of_trivial_kernel {f : G → H} [is_group_hom f] (h : kernel f = trivial G) : function.injective f :=
 begin

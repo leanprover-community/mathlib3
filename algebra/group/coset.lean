@@ -8,15 +8,10 @@ variable {G : Type u}
 def lcoset [has_mul G] (a : G) (S : set G) : set G := image (λ x, a * x) S
 def rcoset [has_mul G] (S : set G) (a : G) : set G := image (λ x, x * a) S
 
-namespace coset_notation
-
 infix ` *ₗ `:70 := lcoset
 infix ` *ᵣ `:70 := rcoset
 
-end coset_notation
-
 section coset_mul
-open coset_notation
 variable [has_mul G]
 
 lemma mem_lcoset {S : set G} {x : G} (a : G) (hxS : x ∈ S) : a * x ∈ a *ₗ S :=
@@ -33,7 +28,6 @@ mk_equivalence (lcoset_equiv S) (λ a, rfl) (λ a b, eq.symm) (λ a b c, eq.tran
 end coset_mul
 
 section coset_semigroup
-open coset_notation
 variable [semigroup G]
 
 lemma lcoset_assoc (S : set G) (a b : G) : a *ₗ (b *ₗ S) = (a * b) *ₗ S :=
@@ -66,7 +60,7 @@ lemma lcoset_rcoset (S : set G) (a b : G) : a *ₗ S *ᵣ  b = a *ₗ (S *ᵣ b)
 end coset_semigroup
 
 section coset_subgroup
-open subgroup coset_notation
+open subgroup
 variables [group G] (S : set G) [subgroup S]
 
 lemma lcoset_mem_lcoset {a : G} (ha : a ∈ S) : a *ₗ S = S := 

@@ -125,7 +125,7 @@ calc tendsto (f ∘ nat.succ) at_top x ↔ tendsto f (map nat.succ at_top) x : b
  ... ↔ _ : by rw [map_succ_at_top_eq]
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
-  tendsto (λn, r^n) at_top (nhds 0) :=
+  tendsto (λn:ℕ, r^n) at_top (nhds 0) :=
 by_cases
   (assume : r = 0, tendsto_comp_succ_at_top_iff.mp $ by simp [pow_succ, this, tendsto_const_nhds])
   (assume : r ≠ 0,
@@ -150,7 +150,7 @@ calc (range n).sum (λi, r ^ i) = (range n).sum (λi, ((r - 1) + 1) ^ i) :
     by simp
 
 lemma is_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
-  is_sum (λn, r ^ n) (1 / (1 - r)) :=
+  is_sum (λn:ℕ, r ^ n) (1 / (1 - r)) :=
 have r ≠ 1, from ne_of_lt h₂,
 have r + -1 ≠ 0,
   by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,

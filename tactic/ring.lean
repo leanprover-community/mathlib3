@@ -311,8 +311,8 @@ do α0 ← expr.of_nat c.α 0,
    return (c.cs_app ``horner [α1, e, n1, α0], c.cs_app ``horner_atom [e])
 
 lemma subst_into_pow {α} [monoid α] (l r tl tr t)
-  (prl : l = tl) (prr : r = tr) (prt : (tl : α) ^ tr = t) : l ^ r = t :=
-by simp [prl, prr, prt]
+  (prl : (l : α) = tl) (prr : (r : ℕ) = tr) (prt : tl ^ tr = t) : l ^ r = t :=
+by simp [prl, prr, prt] 
 
 meta def eval (c : cache) : expr → tactic (expr × expr)
 | `(%%e₁ + %%e₂) := do
@@ -363,10 +363,10 @@ by simp [horner, mul_comm]
 theorem mul_assoc_rev {α} [semigroup α] (a b c : α) : a * (b * c) = a * b * c :=
 by simp [mul_assoc]
 
-theorem pow_add_rev {α} [monoid α] (a b : α) (m n) : a ^ m * a ^ n = a ^ (m + n) :=
+theorem pow_add_rev {α} [monoid α] (a b : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
 by simp [pow_add]
 
-theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
+theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
 by simp [pow_add, mul_assoc]
 
 theorem add_neg_eq_sub {α : Type u} [add_group α] (a b : α) : a + -b = a - b := rfl

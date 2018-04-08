@@ -156,7 +156,7 @@ begin
   apply @finsupp.single_induction_on σ ℕ _ _ s,
   { show M (monomial 0 a), from h_C a, },
   { assume n e p hpn he ih,
-    have : ∀e, M (monomial p a * X n ^ e),
+    have : ∀e:ℕ, M (monomial p a * X n ^ e),
     { intro e,
       induction e,
       { simp [ih] },

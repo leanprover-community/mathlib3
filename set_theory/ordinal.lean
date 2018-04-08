@@ -1921,24 +1921,25 @@ def power (a b : ordinal) : ordinal :=
 if a = 0 then 1 - b else
 limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b)
 
-local infixr ` ^ ` := power
+instance : has_pow ordinal ordinal := ⟨power⟩
+local infixr ^ := @pow ordinal ordinal ordinal.has_pow
 
 theorem zero_power' (a : ordinal) : 0 ^ a = 1 - a :=
-by simp [power]
+by simp [pow, power]
 
 @[simp] theorem zero_power {a : ordinal} (a0 : a ≠ 0) : 0 ^ a = 0 :=
 by rwa [zero_power', sub_eq_zero_iff_le, one_le_iff_ne_zero]
 
 @[simp] theorem power_zero (a : ordinal) : a ^ 0 = 1 :=
-by by_cases a = 0; simp [power, h]
+by by_cases a = 0; simp [pow, power, h]
 
 @[simp] theorem power_succ (a b : ordinal) : a ^ succ b = a ^ b * a :=
 if h : a = 0 then by subst a; simp [succ_ne_zero]
-else by simp [power, h]
+else by simp [pow, power, h]
 
 theorem power_limit {a b : ordinal} (a0 : a ≠ 0) (h : is_limit b) :
   a ^ b = bsup.{u u} b (λ c _, a ^ c) :=
-by simp [power, a0]; rw limit_rec_on_limit _ _ _ _ h; refl
+by simp [pow, power, a0]; rw limit_rec_on_limit _ _ _ _ h; refl
 
 theorem power_le_of_limit {a b c : ordinal} (a0 : a ≠ 0) (h : is_limit b) :
   a ^ b ≤ c ↔ ∀ b' < b, a ^ b' ≤ c :=
@@ -1978,7 +1979,7 @@ pos_iff_ne_zero.1 $ power_pos b $ pos_iff_ne_zero.2 a0
 
 theorem power_is_normal {a : ordinal} (h : 1 < a) : is_normal ((^) a) :=
 have a0 : 0 < a, from lt_trans zero_lt_one h,
-⟨λ b, by rw power_succ; simpa using
+⟨λ b, by simpa using
   (mul_lt_mul_iff_left (power_pos b a0)).2 h,
  λ b l c, power_le_of_limit (ne_of_gt a0) l⟩
 
@@ -2178,7 +2179,7 @@ else by simp [b1, zero_le]
 by induction n with n IH; [simp, rw [nat.mul_succ,
   nat.cast_add, IH, nat.cast_succ, mul_add_one]]
 
-@[simp] theorem nat_cast_power {m n} : (@has_pow.pow ℕ ℕ _ m n : ordinal) = m ^ n :=
+@[simp] theorem nat_cast_power {m n : ℕ} : ((pow m n : ℕ) : ordinal) = m ^ n :=
 by induction n with n IH; [simp, rw [nat.pow_succ,
   nat_cast_mul, IH, nat.cast_succ, ← succ_eq_add_one, power_succ]]
 
@@ -2331,7 +2332,7 @@ begin
     intro e, simp [e] }
 end
 
-local infixr ` ^ ` := power
+local infixr ^ := @pow ordinal ordinal ordinal.has_pow
 
 theorem power_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a ^ b < omega :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
@@ -2438,11 +2439,11 @@ theorem mul_omega_dvd {a : ordinal}
   (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
 | _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
 
-theorem mul_omega_power_power {a b : ordinal} (a0 : 0 < a) (h : a < omega ^ (omega ^ b)) :
-  a * omega ^ (omega ^ b) = omega ^ (omega ^ b) :=
+theorem mul_omega_power_power {a b : ordinal} (a0 : 0 < a) (h : a < omega ^ omega ^ b) :
+  a * omega ^ omega ^ b = omega ^ omega ^ b :=
 begin
   by_cases b0 : b = 0, {simp [b0] at h ⊢, simp [mul_omega a0 h]},
-  refine le_antisymm _ (by simpa using mul_le_mul_right (omega^(omega^b)) (one_le_iff_pos.2 a0)),
+  refine le_antisymm _ (by simpa using mul_le_mul_right (omega^omega^b) (one_le_iff_pos.2 a0)),
   rcases (lt_power_of_limit omega_ne_zero (power_is_limit_left omega_is_limit b0)).1 h
     with ⟨x, xb, ax⟩,
   refine le_trans (mul_le_mul_right _ (le_of_lt ax)) _,

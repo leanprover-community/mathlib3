@@ -57,7 +57,7 @@ end
 
 private def is_sqrt (n q : ℕ) : Prop := q*q ≤ n ∧ n < (q+1)*(q+1)
 
-private lemma sqrt_aux_is_sqrt_lemma (m r n)
+private lemma sqrt_aux_is_sqrt_lemma (m r n : ℕ)
   (h₁ : r*r ≤ n)
   (m') (hm : shiftr (2^m * 2^m) 2 = m')
   (H1 : n < (r + 2^m) * (r + 2^m) →

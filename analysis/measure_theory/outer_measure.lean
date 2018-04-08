@@ -147,8 +147,8 @@ section of_function
 set_option eqn_compiler.zeta true
 
 -- TODO: if we move this proof into the definition of inf it does not terminate anymore
-private lemma aux {ε : ℝ} (hε : 0 < ε) : (∑i, of_real ((ε / 2) * 2⁻¹ ^ i)) = of_real ε :=
-let ε' := λi, (ε / 2) * 2⁻¹ ^ i in
+private lemma aux {ε : ℝ} (hε : 0 < ε) : (∑i:ℕ, of_real ((ε / 2) * 2⁻¹ ^ i)) = of_real ε :=
+let ε' := λi:ℕ, (ε / 2) * 2⁻¹ ^ i in
 have hε' : ∀i, 0 < ε' i,
   from assume i, mul_pos (div_pos_of_pos_of_pos hε two_pos) $ pow_pos (inv_pos two_pos) _,
 have is_sum (λi, 2⁻¹ ^ i : ℕ → ℝ) (1 / (1 - 2⁻¹)),
@@ -178,7 +178,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
     infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
   Union_nat := assume s, ennreal.le_of_forall_epsilon_le $
     assume ε hε (hb : (∑i, μ (s i)) < ⊤),
-    let ε' := λi, (ε / 2) * 2⁻¹ ^ i in
+    let ε' := λi:ℕ, (ε / 2) * 2⁻¹ ^ i in
     have hε' : ∀i, 0 < ε' i,
       from assume i, mul_pos (div_pos_of_pos_of_pos hε two_pos) $ pow_pos (inv_pos two_pos) _,
     have ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑i, m (f i)) < μ (s i) + of_real (ε' i),

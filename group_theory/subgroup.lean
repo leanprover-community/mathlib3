@@ -98,7 +98,7 @@ lemma group_equiv_cosets_times_subgroup (hs : is_subgroup s) : nonempty (α ≃ 
 
 end is_subgroup
 
-lemma is_subgroup_range_gpow : is_subgroup (range $ (^) a) :=
+lemma is_subgroup_range_gpow : is_subgroup (range ((^) a : ℤ → α)) :=
 ⟨⟨0, rfl⟩, assume a ⟨i, ha⟩ b ⟨j, hb⟩, ⟨i - j, by simp [gpow_add, gpow_neg, ha.symm, hb.symm]⟩⟩
 
 section finite_group
@@ -113,9 +113,7 @@ have a ^ (i - j) = 1,
   by simp [gpow_add, gpow_neg, a_eq],
 ⟨i - j, sub_ne_zero.mpr ne, this⟩
 
-local infixr `^m`:73 := @has_pow.pow α ℕ monoid.has_pow
-
-lemma exists_pow_eq_one (a : α) : ∃i≠0, a ^m i = 1 :=
+lemma exists_pow_eq_one (a : α) : ∃i≠0, a ^ i = 1 :=
 let ⟨i, hi, eq⟩ := exists_gpow_eq_one a in
 begin
   cases i,
@@ -126,37 +124,37 @@ end
 /-- `order_of a` is the order of the element, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` -/
 def order_of (a : α) : ℕ := nat.find (exists_pow_eq_one a)
 
-lemma pow_order_of_eq_one (a : α) : a ^m order_of a = 1 :=
+lemma pow_order_of_eq_one (a : α) : a ^ order_of a = 1 :=
 let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₂
 
 lemma order_of_ne_zero (a : α) : order_of a ≠ 0 :=
 let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₁
 
 private lemma pow_injective_aux {n m : ℕ} (a : α) (h : n ≤ m)
-  (hn : n < order_of a) (hm : m < order_of a) (eq : a ^m n = a ^m m) : n = m :=
+  (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 decidable.by_contradiction $ assume ne : n ≠ m,
   have h₁ : m - n ≠ 0, by simp [nat.sub_eq_iff_eq_add h, ne.symm],
-  have h₂ : a ^m (m - n) = 1, by simp [pow_sub _ h, eq],
+  have h₂ : a ^ (m - n) = 1, by simp [pow_sub _ h, eq],
   have le : order_of a ≤ m - n, from nat.find_min' (exists_pow_eq_one a) ⟨h₁, h₂⟩,
   have lt : m - n < order_of a,
     from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (lt_of_le_of_lt le lt)
 
 lemma pow_injective_of_lt_order_of {n m : ℕ} (a : α)
-  (hn : n < order_of a) (hm : m < order_of a) (eq : a ^m n = a ^m m) : n = m :=
+  (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 (le_total n m).elim
   (assume h, pow_injective_aux a h hn hm eq)
   (assume h, (pow_injective_aux a h hm hn eq.symm).symm)
 
 lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
-finset.card_le_of_inj_on ((^m) a)
+finset.card_le_of_inj_on ((^) a)
   (assume n _, fintype.complete _)
   (assume i j, pow_injective_of_lt_order_of a)
 
-lemma pow_eq_mod_order_of {n : ℕ} : a ^m n = a ^m (n % order_of a) :=
-calc a ^m n = a ^m (n % order_of a + order_of a * (n / order_of a)) :
+lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
+calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) :
     by rw [nat.mod_add_div]
-  ... = a ^m (n % order_of a) :
+  ... = a ^ (n % order_of a) :
     by simp [pow_add, pow_mul, pow_order_of_eq_one]
 
 lemma gpow_eq_mod_order_of {i : ℤ} : a ^ i = a ^ (i % order_of a) :=
@@ -166,20 +164,20 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
 lemma mem_range_gpow_iff_mem_range_order_of {a a' : α} :
-  a' ∈ range ((^) a) ↔ a' ∈ (finset.range (order_of a)).image ((^m) a) :=
+  a' ∈ range ((^) a : ℤ → α) ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq
   (nat.pos_iff_ne_zero.mpr (order_of_ne_zero a))
   (assume i, gpow_eq_mod_order_of.symm)
 
-instance decidable_range_gpow : decidable_pred (range ((^) a)) :=
-assume a', decidable_of_iff
-  (a' ∈ (finset.range (order_of a)).image ((^m) a))
-  mem_range_gpow_iff_mem_range_order_of.symm
+instance decidable_range_gpow : decidable_pred (range ((^) a : ℤ → α)) :=
+assume a', decidable_of_iff'
+  (a' ∈ (finset.range (order_of a)).image ((^) a))
+  mem_range_gpow_iff_mem_range_order_of
 
 section
 local attribute [instance] set_fintype
 
-lemma order_eq_card_range_gpow : order_of a = fintype.card (range ((^) a)) :=
+lemma order_eq_card_range_gpow : order_of a = fintype.card (range ((^) a : ℤ → α)) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
   { exact λn hn, ⟨gpow a n, mem_range_self n⟩ },

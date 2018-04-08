@@ -2,7 +2,7 @@ language: generic
 
 install:
   - LEAN_VERSION="lean-3.3.1"
-  - NIGHTLY="nightly-2018-04-02"
+  - NIGHTLY="nightly-2018-04-06"
   - curl https://github.com/leanprover/lean-nightly/releases/download/$NIGHTLY/$LEAN_VERSION-$NIGHTLY-linux.tar.gz -L | tar xz -C ..
   - export PATH=../$LEAN_VERSION-$NIGHTLY-linux/bin:$PATH
 

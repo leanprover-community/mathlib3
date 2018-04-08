@@ -830,14 +830,14 @@ section
   ... = y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) : by simp [mul_add]
 
   theorem x_sub_y_dvd_pow (y : ℕ) :
-    ∀ n, (2*a*y - y*y - 1 : ℤ) ∣ yz n * (a - y) + (y^n:ℕ) - xz n
+    ∀ n, (2*a*y - y*y - 1 : ℤ) ∣ yz n * (a - y) + ↑(y^n) - xz n
   | 0 := by simp [xz, yz, int.coe_nat_zero, int.coe_nat_one]
   | 1 := by simp [xz, yz, int.coe_nat_zero, int.coe_nat_one]
   | (n+2) :=
     have (2*a*y - y*y - 1 : ℤ) ∣ ↑(y^(n + 2)) - ↑(2 * a) * ↑(y^(n + 1)) + ↑(y^n), from
     ⟨-↑(y^n), by simp [nat.pow_succ, mul_add, int.coe_nat_mul,
         show ((2:ℕ):ℤ) = 2, from rfl, mul_comm, mul_left_comm]⟩,
-    by rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 (y^(n+2):ℕ) (y^(n+1):ℕ) (y^n:ℕ)]; exact
+    by rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 ↑(y^(n+2)) ↑(y^(n+1)) ↑(y^n)]; exact
     dvd_sub (dvd_add this $ dvd_mul_of_dvd_right (x_sub_y_dvd_pow (n+1)) _) (x_sub_y_dvd_pow n)
 
   theorem xn_modeq_x2n_add_lem (n j) : xn n ∣ d * yn n * (yn n * xn j) + xn j :=
@@ -1105,7 +1105,7 @@ a > 1 ∧ k ≤ y ∧
 end⟩⟩
 
 lemma eq_pow_of_pell_lem {a y k} (a1 : 1 < a) (ypos : y > 0) : k > 0 → a > y^k →
-  ((y^k:ℕ) : ℤ) < 2*a*y - y*y - 1 :=
+  (↑(y^k) : ℤ) < 2*a*y - y*y - 1 :=
 have y < a → 2*a*y ≥ a + (y*y + 1), begin
   intro ya, induction y with y IH, exact absurd ypos (lt_irrefl _),
   cases nat.eq_zero_or_pos y with y0 ypos,
@@ -1148,7 +1148,7 @@ k = 0 ∧ m = 1 ∨ k > 0 ∧
   let x := xn a1 k, y := yn a1 k in
   let ⟨z, ze⟩ := show w ∣ yn w1 w, from modeq.modeq_zero_iff.1 $
     modeq.trans (yn_modeq_a_sub_one w1 w) (modeq.modeq_zero_iff.2 $ dvd_refl _) in
-  have nt : ((n^k:ℕ) : ℤ) < 2 * a * n - n * n - 1, from
+  have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1, from
     eq_pow_of_pell_lem a1 npos kpos $ calc
       n^k ≤ n^w       : nat.pow_le_pow_of_le_right npos kw
       ... < (w + 1)^w : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) wpos
@@ -1198,7 +1198,7 @@ k = 0 ∧ m = 1 ∨ k > 0 ∧
   have wj : w ≤ j, from nat.le_of_dvd jpos $ modeq.modeq_zero_iff.1 $
     (yn_modeq_a_sub_one w1 j).symm.trans $
     modeq.modeq_zero_iff.2 ⟨z, yj.symm⟩,
-  have nt : ((n^k:ℕ) : ℤ) < 2 * a * n - n * n - 1, from
+  have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1, from
     eq_pow_of_pell_lem a1 npos kpos $ calc
       n^k ≤ n^j       : nat.pow_le_pow_of_le_right npos (le_trans kw wj)
       ... < (w + 1)^j : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) jpos

@@ -140,7 +140,8 @@ protected def power (a b : cardinal.{u}) : cardinal.{u} :=
 quotient.lift_on₂ a b (λα β, mk (β → α)) $ assume α₁ α₂ β₁ β₂ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.arrow_congr e₂ e₁⟩
 
-local notation a ^ b := cardinal.power a b
+instance : has_pow cardinal cardinal := ⟨cardinal.power⟩
+local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
 
 @[simp] theorem power_def (α β) : mk α ^ mk β = mk (β → α) := rfl
 
@@ -526,7 +527,7 @@ theorem fintype_card (α : Type u) [fintype α] : mk α = fintype.card α :=
 by rw [← lift_mk_fin.{u}, ← lift_id (mk α), lift_mk_eq.{u 0 u}];
    exact fintype.card_eq.1 (by simp)
 
-@[simp] theorem nat_cast_pow {m n : ℕ} : (@has_pow.pow _ _ _ m n : cardinal) = m ^ n :=
+@[simp] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
 by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
 
 @[simp] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=

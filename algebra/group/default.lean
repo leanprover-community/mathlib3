@@ -484,23 +484,31 @@ section add_comm_group
 
 end add_comm_group
 
-variables {β : Type*} [group α] [group β] {a b : α}
+variables  [group α] {β : Type*} [group β]
 
 /-- Predicate for group homomorphism. -/
-def is_group_hom (f : α → β) : Prop :=
-∀ a b : α, f (a * b) = f a * f b
+class is_group_hom (f : α → β) :=
+  (hom_mul : ∀ a b : α, f (a * b) = f a * f b)
 
 namespace is_group_hom
-variables {f : α → β} (H : is_group_hom f)
-include H
+variables (f : α → β) [w : is_group_hom f]
+include w
 
-theorem mul : ∀ a b : α, f (a * b) = f a * f b := H
+@[simp] theorem mul : ∀ a b : α, f (a * b) = f a * f b := w.hom_mul
 
-theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(H 1 1).symm]
+@[simp] theorem one : f 1 = 1 :=
+mul_self_iff_eq_one.1 $ by simp [(hom_mul f 1 1).symm]
 
-theorem inv (a : α) : (f a)⁻¹ = f a⁻¹ :=
-inv_eq_of_mul_eq_one $ by simp [(H a a⁻¹).symm, one H]
+@[simp] theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(hom_mul f a a⁻¹).symm, one f] -- why do we need to include `one`? isn't it a simp lemma?
+
+variables {γ : Type*} [group γ] {g : β → γ} [is_group_hom g]
+
+instance comp : is_group_hom (g ∘ f) := {
+  hom_mul := λ x y, calc
+    g (f (x * y)) = g (f x * f y)       : by rw mul f -- Why doesn't `simp` work here?
+    ...           = g (f x) * g (f y)   : by rw mul g
+}
 
 end is_group_hom
 
@@ -508,6 +516,8 @@ end is_group_hom
   into the opposite group. -/
 def is_group_anti_hom (f : α → β) : Prop :=
 ∀ a b : α, f (a * b) = f b * f a
+
+attribute [class] is_group_anti_hom
 
 namespace is_group_anti_hom
 variables {f : α → β} (H : is_group_anti_hom f)

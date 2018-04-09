@@ -255,7 +255,7 @@ theorem reverse_reverse : ∀ (l : list α), reverse (reverse l) = l
 
 ### Tactic mode ###
 
-When opening a tactic block, `begin` is not indented by everything
+When opening a tactic block, `begin` is not indented but everything
 inside is indented, as in:
 
 ```lean

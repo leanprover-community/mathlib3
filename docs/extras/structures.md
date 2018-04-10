@@ -56,8 +56,8 @@ def diff_x (α : Type) [has_sub α] (p q : point α) := p.x - q.x
 end point
 
 variables (α : Type) [has_add α] [has_sub α] (p : point α)
-#reduce p.sum      -- p.x + p.y
-#reduce p.diff_x   -- λ (q : point α), p.x - q.x
+#reduce p.sum α      -- p.x + p.y
+#reduce p.diff_x α   -- λ (q : point α), p.x - q.x
 ```
 
 Note that, in `p.diff_x`, `p` becomes the first argument of

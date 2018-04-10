@@ -3,13 +3,13 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import tactic.ring data.quot ring_theory.ideals
+import tactic.ring data.quot ring_theory.ideals group_theory.submonoid
 
 universe u
 
 namespace localization
 
-variables (α : Type u) [comm_ring α] (S : set α) [is_submonoid α S]
+variables (α : Type u) [comm_ring α] (S : set α) [is_submonoid S]
 
 def r : α × S → α × S → Prop :=
 λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, ∃ t ∈ S, (s₁ * r₂ - s₂ * r₁) * t = 0
@@ -119,7 +119,7 @@ section at_prime
 variables (P : set α) [is_prime_ideal P]
 
 instance prime.is_submonoid :
-  is_submonoid α (set.compl P) :=
+  is_submonoid (set.compl P) :=
 { one_mem := λ h, is_proper_ideal.ne_univ P $ is_submodule.univ_of_one_mem P h,
   mul_mem := λ x y hnx hny hxy, or.cases_on (is_prime_ideal.mem_or_mem_of_mul_mem hxy) hnx hny }
 
@@ -173,7 +173,7 @@ inductive in_closure (S : set α) : α → Prop
 
 def closure (S : set α) : set α := {x | in_closure S x}
 
-instance closure.is_submonoid (S : set α) : is_submonoid α (closure S) :=
+instance closure.is_submonoid (S : set α) : is_submonoid (closure S) :=
 { one_mem := in_closure.one S, mul_mem := in_closure.mul }
 
 theorem subset_closure {S : set α} : S ⊆ closure S :=
@@ -183,7 +183,7 @@ variable (α)
 
 def non_zero_divisors : set α := {x | ∀ z, z * x = 0 → z = 0}
 
-instance non_zero_divisors.is_submonoid : is_submonoid α (non_zero_divisors α) :=
+instance non_zero_divisors.is_submonoid : is_submonoid (non_zero_divisors α) :=
 { one_mem := λ z hz, by simpa using hz,
   mul_mem := λ x₁ x₂ hx₁ hx₂ z hz,
     have z * x₁ * x₂ = 0, by rwa mul_assoc,

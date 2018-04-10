@@ -118,12 +118,6 @@ attribute [to_additive smul_add_comm] pow_mul_comm
 @list.prod_repeat (multiplicative β) _
 attribute [to_additive list.sum_repeat] list.prod_repeat
 
-def powers (x : α) : set α := {y | ∃ n:ℕ, x^n = y}
-
-instance powers.is_submonoid (x : α) : is_submonoid α (powers x) :=
-{ one_mem := ⟨0, by simp⟩,
-  mul_mem := λ x₁ x₂ ⟨n₁, hn₁⟩ ⟨n₂, hn₂⟩, ⟨n₁ + n₂, by simp [pow_add, *]⟩ }
-
 end monoid
 
 @[simp] theorem nat.pow_eq_pow (p q : ℕ) :

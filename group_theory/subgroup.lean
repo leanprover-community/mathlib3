@@ -35,6 +35,11 @@ variable [group α]
 class is_subgroup [group α] (s : set α) extends is_submonoid s :=
 (inv_mem {a} : a ∈ s → a⁻¹ ∈ s)
 
+instance subtype.group {s : set α} [is_subgroup s] : group s :=
+{ inv          := λa, ⟨(a.1)⁻¹, is_subgroup.inv_mem a.2⟩,
+  mul_left_inv := assume ⟨a, _⟩, subtype.eq $ mul_left_inv _,
+  .. subtype.monoid }
+
 theorem is_subgroup.of_div [group α] (s : set α)
   (one_mem : (1:α) ∈ s) (div_mem : ∀{a b:α}, a ∈ s → b ∈ s → a * b⁻¹ ∈ s):
   is_subgroup s :=

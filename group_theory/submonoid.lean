@@ -25,3 +25,24 @@ lemma is_submonoid.pow_mem {a : α} {s : set α} [is_submonoid s] (h : a ∈ s) 
 | (n + 1) := is_submonoid.mul_mem h is_submonoid.pow_mem
 
 end powers
+
+instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
+{ mul       := λa b : s, ⟨a * b, is_submonoid.mul_mem a.2 b.2⟩,
+  one       := ⟨1, is_submonoid.one_mem s⟩,
+  mul_assoc := assume ⟨a, _⟩ ⟨b, _⟩ ⟨c, _⟩, subtype.eq $ mul_assoc _ _ _,
+  one_mul   := assume ⟨a, _⟩, subtype.eq $ one_mul _,
+  mul_one   := assume ⟨a, _⟩, subtype.eq $ mul_one _ }
+
+namespace monoid
+
+inductive in_closure (s : set α) : α → Prop
+| mem {a : α} : a ∈ s → in_closure a
+| one : in_closure 1
+| mul {a b : α} : in_closure a → in_closure b → in_closure (a * b)
+
+def closure (s : set α) : set α := {a | in_closure s a }
+
+lemma is_submonoid_closure (s : set α) : is_submonoid (closure s) :=
+{ one_mem := in_closure.one s, mul_mem := assume a b, in_closure.mul }
+
+end monoid

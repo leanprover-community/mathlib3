@@ -32,67 +32,67 @@ end finset
 variables [group α]
 
 /-- A subset of a group closed under the group operations. -/
-structure is_subgroup (s : set α) : Prop :=
+class is_subgroup (s : set α) : Prop :=
 (one_mem : (1:α) ∈ s)
 (mul_inv_mem : ∀a∈s, ∀b∈s, a * b⁻¹ ∈ s)
 
 def cosets (s : set α) : set (set α) := range (λa, (*) a '' s)
 
 namespace is_subgroup
-lemma inv_mem (hs : is_subgroup s) (h : a ∈ s) : a⁻¹ ∈ s :=
-have 1 * a⁻¹ ∈ s, from hs.mul_inv_mem _ hs.one_mem _ h,
+lemma inv_mem [hs : is_subgroup s] (h : a ∈ s) : a⁻¹ ∈ s :=
+have 1 * a⁻¹ ∈ s, from mul_inv_mem _ hs.one_mem _ h,
 by simpa
 
-lemma inv_mem_iff (hs : is_subgroup s) : a⁻¹ ∈ s ↔ a ∈ s :=
-iff.intro (assume h, have a⁻¹⁻¹ ∈ s, from hs.inv_mem h, by simpa) hs.inv_mem
+lemma inv_mem_iff [is_subgroup s] : a⁻¹ ∈ s ↔ a ∈ s :=
+iff.intro (assume h, have a⁻¹⁻¹ ∈ s, from inv_mem h, by simpa) inv_mem
 
-lemma mul_mem (hs : is_subgroup s) (h₁ : a₁ ∈ s) (h₂ : a₂ ∈ s) : a₁ * a₂ ∈ s :=
-have a₁ * a₂⁻¹⁻¹ ∈ s, from hs.mul_inv_mem _ h₁ _ (hs.inv_mem h₂),
+lemma mul_mem [is_subgroup s] (h₁ : a₁ ∈ s) (h₂ : a₂ ∈ s) : a₁ * a₂ ∈ s :=
+have a₁ * a₂⁻¹⁻¹ ∈ s, from mul_inv_mem _ h₁ _ (inv_mem h₂),
 by simpa
 
-lemma mul_image (hs : is_subgroup s) (a : α) (ha : a ∈ s) :
+lemma mul_image [is_subgroup s] (a : α) (ha : a ∈ s) :
   (*) a '' s = s :=
 ext $ assume a', iff.intro
-  (assume ⟨a'', ha'', eq⟩, eq ▸ hs.mul_mem ha ha'')
-  (assume ha', ⟨a⁻¹ * a', hs.mul_mem (hs.inv_mem ha) ha', by simp⟩)
+  (assume ⟨a'', ha'', eq⟩, eq ▸ mul_mem ha ha'')
+  (assume ha', ⟨a⁻¹ * a', mul_mem (inv_mem ha) ha', by simp⟩)
 
 lemma injective_mul {a : α} : injective ((*) a) :=
 assume a₁ a₂ h,
 have a⁻¹ * a * a₁ = a⁻¹ * a * a₂, by rw [mul_assoc, mul_assoc, h],
 by rwa [inv_mul_self, one_mul, one_mul] at this
 
-lemma subgroup_mem_cosets (hs : is_subgroup s) : s ∈ cosets s :=
-⟨1, hs.mul_image _ hs.one_mem⟩
+lemma subgroup_mem_cosets [is_subgroup s] : s ∈ cosets s :=
+⟨1, mul_image _ (one_mem s)⟩
 
-lemma cosets_disjoint (hs : is_subgroup s) :
+lemma cosets_disjoint [is_subgroup s] :
   ∀{s₁ s₂ : set α}, s₁ ∈ cosets s → s₂ ∈ cosets s → ∀{a}, a ∈ s₁ → a ∈ s₂ → s₁ = s₂
 | _ _ ⟨b₁, rfl⟩ ⟨b₂, rfl⟩ a ⟨c₁, hc₁, eq₁⟩ ⟨c₂, hc₂, eq₂⟩ :=
 have b_eq : b₁ = b₂ * c₂ * c₁⁻¹, by rw [eq_mul_inv_iff_mul_eq, eq₁, eq₂],
-have hc : c₂ * c₁⁻¹ ∈ s, from hs.mul_mem hc₂ (hs.inv_mem hc₁),
+have hc : c₂ * c₁⁻¹ ∈ s, from mul_mem hc₂ (inv_mem hc₁),
 calc (*) b₁ '' s = (*) b₂ '' ((*) (c₂ * c₁⁻¹) '' s) :
     by rw [←image_comp, (∘), b_eq]; apply image_congr _; simp [mul_assoc]
   ... = (*) b₂ '' s :
-    by rw [hs.mul_image _ hc]
+    by rw [mul_image _ hc]
 
-lemma pairwise_cosets_disjoint (hs : is_subgroup s) : pairwise_on (cosets s) disjoint :=
+lemma pairwise_cosets_disjoint [is_subgroup s] : pairwise_on (cosets s) disjoint :=
 assume s₁ h₁ s₂ h₂ ne, eq_empty_iff_forall_not_mem.mpr $ assume a ⟨ha₁, ha₂⟩,
-  ne $ hs.cosets_disjoint h₁ h₂ ha₁ ha₂
+  ne $ cosets_disjoint h₁ h₂ ha₁ ha₂
 
-lemma cosets_equiv_subgroup (hs : is_subgroup s) : ∀{t : set α}, t ∈ cosets s → nonempty (t ≃ s)
+lemma cosets_equiv_subgroup [is_subgroup s] : ∀{t : set α}, t ∈ cosets s → nonempty (t ≃ s)
 | _ ⟨a, rfl⟩ := ⟨(equiv.set.image ((*) a) s injective_mul).symm⟩
 
-lemma Union_cosets_eq_univ (hs : is_subgroup s) : ⋃₀ cosets s = univ :=
-eq_univ_of_forall $ assume a, ⟨(*) a '' s, mem_range_self _, ⟨1, hs.one_mem, mul_one _⟩⟩
+lemma Union_cosets_eq_univ [is_subgroup s] : ⋃₀ cosets s = univ :=
+eq_univ_of_forall $ assume a, ⟨(*) a '' s, mem_range_self _, ⟨1, one_mem s, mul_one _⟩⟩
 
-lemma group_equiv_cosets_times_subgroup (hs : is_subgroup s) : nonempty (α ≃ (cosets s × s)) :=
+lemma group_equiv_cosets_times_subgroup [is_subgroup s] : nonempty (α ≃ (cosets s × s)) :=
 ⟨calc α ≃ (@set.univ α) :
     (equiv.set.univ α).symm
   ... ≃ (⋃t∈cosets s, t) :
-    by rw [←hs.Union_cosets_eq_univ]; simp
+    by rw [← @Union_cosets_eq_univ _ s _ _]; simp -- TODO why is @ needed here?
   ... ≃ (Σt:cosets s, t) :
-    equiv.set.bUnion_eq_sigma_of_disjoint hs.pairwise_cosets_disjoint
+    equiv.set.bUnion_eq_sigma_of_disjoint pairwise_cosets_disjoint
   ... ≃ (Σt:cosets s, s) :
-    equiv.sigma_congr_right $ λ⟨t, ht⟩, classical.choice $ hs.cosets_equiv_subgroup ht
+    equiv.sigma_congr_right $ λ⟨t, ht⟩, classical.choice $ cosets_equiv_subgroup ht
   ... ≃ (cosets s × s) :
     equiv.sigma_equiv_prod _ _⟩
 
@@ -199,19 +199,19 @@ local attribute [instance] classical.prop_decidable
 -- TODO: use cardinal theory, or introduce `card : set α → ℕ`
 lemma order_of_dvd_card_univ : order_of a ∣ fintype.card α :=
 let s := range $ gpow a in
-have hs : is_subgroup s, from is_subgroup_range_gpow,
-let ⟨equiv⟩ := hs.group_equiv_cosets_times_subgroup in
+have hs : is_subgroup s, from is_subgroup_range_gpow, -- TODO sorry, I don't know how to make this an instance in term mode proofs.
+let ⟨equiv⟩ := @is_subgroup.group_equiv_cosets_times_subgroup _ _ _ hs in
 have ft_prod : fintype (cosets s × s),
   from fintype.of_equiv α equiv,
 have ft_s : fintype s,
-  from @fintype.fintype_prod_right _ _ _ ft_prod ⟨⟨s, hs.subgroup_mem_cosets⟩⟩,
+  from @fintype.fintype_prod_right _ _ _ ft_prod ⟨⟨s, @is_subgroup.subgroup_mem_cosets _ s _ hs⟩⟩,
 have ft_cosets : fintype (cosets s),
-  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, hs.one_mem⟩⟩,
+  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, @is_subgroup.one_mem _ _ s hs⟩⟩,
 have ft : fintype (cosets s × s),
   from @prod.fintype _ _ ft_cosets ft_s,
 have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
   from calc fintype.card α = @fintype.card _ ft_prod :
-      (@fintype.card_eq _ _ _ ft_prod).2 hs.group_equiv_cosets_times_subgroup
+      (@fintype.card_eq _ _ _ ft_prod).2 (@is_subgroup.group_equiv_cosets_times_subgroup _ _ _ hs)
     ... = @fintype.card _ (@prod.fintype _ _ ft_cosets ft_s) :
       congr_arg (@fintype.card _) $ subsingleton.elim _ _
     ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :

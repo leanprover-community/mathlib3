@@ -318,13 +318,13 @@ section group
 open list
 variables [group α] [group β]
 
-theorem is_group_hom.prod {f : α → β} (H : is_group_hom f) (l : list α) :
+theorem is_group_hom.prod {f : α → β} [is_group_hom f] (l : list α) :
   f (prod l) = prod (map f l) :=
-by induction l; simp [*, H.mul, H.one]
+by induction l; simp [*, is_group_hom.mul f, is_group_hom.one f]
 
-theorem is_group_anti_hom.prod {f : α → β} (H : is_group_anti_hom f) (l : list α) :
+theorem is_group_anti_hom.prod {f : α → β} [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
-by induction l; simp [*, H.mul, H.one]
+by induction l; simp [*, is_group_anti_hom.mul f, is_group_anti_hom.one f]
 
 theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) :=
 inv_is_group_anti_hom.prod

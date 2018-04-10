@@ -520,16 +520,16 @@ def is_group_anti_hom (f : α → β) : Prop :=
 attribute [class] is_group_anti_hom
 
 namespace is_group_anti_hom
-variables {f : α → β} (H : is_group_anti_hom f)
-include H
+variables (f : α → β) [w : is_group_anti_hom f]
+include w
 
-theorem mul : ∀ a b : α, f (a * b) = f b * f a := H
+theorem mul : ∀ a b : α, f (a * b) = f b * f a := w
 
 theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(H 1 1).symm]
+mul_self_iff_eq_one.1 $ by simp [(w 1 1).symm]
 
-theorem inv (a : α) : (f a)⁻¹ = f a⁻¹ :=
-inv_eq_of_mul_eq_one $ by simp [(H a⁻¹ a).symm, one H]
+theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(w a⁻¹ a).symm, one f]
 
 end is_group_anti_hom
 

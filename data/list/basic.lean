@@ -151,7 +151,7 @@ by simp [subset_def, or_imp_distrib, forall_and_distrib]
 
 theorem cons_subset_of_subset_of_mem {a : α} {l m : list α}
   (ainm : a ∈ m) (lsubm : l ⊆ m) : a::l ⊆ m :=
-cons_subset.2 ⟨ainm, lsubm⟩ 
+cons_subset.2 ⟨ainm, lsubm⟩
 
 theorem app_subset_of_subset_of_subset {l₁ l₂ l : list α} (l₁subl : l₁ ⊆ l) (l₂subl : l₂ ⊆ l) :
   l₁ ++ l₂ ⊆ l :=

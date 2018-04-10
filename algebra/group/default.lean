@@ -274,12 +274,6 @@ section monoid
 
   @[simp] theorem one_divp (u : units α) : 1 /ₚ u = ↑u⁻¹ :=
   by simp [divp]
-  
-  variable α
-  
-  class is_submonoid (S : set α) : Prop :=
-  (one_mem : (1:α) ∈ S)
-  (mul_mem : ∀ {s t}, s ∈ S → t ∈ S → s*t ∈ S)
 
 end monoid
 
@@ -387,6 +381,7 @@ section group
     rwa [mul_assoc, mul_assoc, mul_inv_self, mul_one,
         ← mul_assoc, inv_mul_self, one_mul] at this; exact h
   end
+
 end group
 
 instance [comm_group α] : add_comm_group (additive α) :=
@@ -514,7 +509,7 @@ end is_group_hom
 
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/
-def is_group_anti_hom (f : α → β) : Prop :=
+def is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
 ∀ a b : α, f (a * b) = f b * f a
 
 attribute [class] is_group_anti_hom
@@ -533,5 +528,5 @@ eq.symm $ inv_eq_of_mul_eq_one $ by simp [(w a⁻¹ a).symm, one f]
 
 end is_group_anti_hom
 
-theorem inv_is_group_anti_hom : is_group_anti_hom (λ x : α, x⁻¹) :=
+theorem inv_is_group_anti_hom [group α] : is_group_anti_hom (λ x : α, x⁻¹) :=
 mul_inv_rev

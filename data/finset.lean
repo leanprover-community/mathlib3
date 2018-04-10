@@ -183,7 +183,7 @@ iff.intro
 lemma ssubset_insert {s : finset α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
 ssubset_iff.mpr ⟨a, h, subset.refl _⟩
 
-@[recursor 6] protected theorem induction {p : finset α → Prop}
+@[recursor 6] protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s
 | ⟨s, nd⟩ := multiset.induction_on s (λ _, h₁) (λ a s IH nd, begin
     cases nodup_cons.1 nd with m nd',
@@ -192,8 +192,8 @@ ssubset_iff.mpr ⟨a, h, subset.refl _⟩
     { rw [insert_val, ndinsert_of_not_mem m] }
   end) nd
 
-@[elab_as_eliminator] protected theorem induction_on {p : finset α → Prop} (s : finset α)
-  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
+@[elab_as_eliminator] protected theorem induction_on {α : Type*} {p : finset α → Prop} [decidable_eq α]
+  (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
 @[simp] theorem singleton_eq_singleton (a : α) : _root_.singleton a = singleton a := rfl

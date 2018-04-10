@@ -11,6 +11,8 @@ open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+local infix ` • ` := add_monoid.smul
+
 instance list.perm.setoid (α : Type*) : setoid (list α) :=
 setoid.mk perm ⟨perm.refl, @perm.symm _, @perm.trans _⟩
 

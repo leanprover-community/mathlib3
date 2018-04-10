@@ -3,9 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
-import algebra.group_power
+import algebra.big_operators
 
-variables {α : Type*} [monoid α]
+variables {α : Type*} [monoid α] {s : set α}
 
 /-- `s` is a submonoid: a set containing 1 and closed under multiplication. -/
 class is_submonoid (s : set α) : Prop :=
@@ -19,12 +19,22 @@ instance powers.is_submonoid (x : α) : is_submonoid (powers x) :=
 { one_mem := ⟨0, by simp⟩,
   mul_mem := λ x₁ x₂ ⟨n₁, hn₁⟩ ⟨n₂, hn₂⟩, ⟨n₁ + n₂, by simp [pow_add, *]⟩ }
 
-lemma is_submonoid.pow_mem {a : α} {s : set α} [is_submonoid s] (h : a ∈ s) :
+lemma is_submonoid.pow_mem {a : α} [is_submonoid s] (h : a ∈ s) :
   ∀{n:ℕ}, a ^ n ∈ s
 | 0 := is_submonoid.one_mem s
 | (n + 1) := is_submonoid.mul_mem h is_submonoid.pow_mem
 
+lemma is_submonoid.power_subset {a : α} [is_submonoid s] (h : a ∈ s) : powers a ⊆ s :=
+assume x ⟨n, hx⟩, hx ▸ is_submonoid.pow_mem h
+
 end powers
+
+lemma is_submonoid.list_prod_mem [is_submonoid s] : ∀{l : list α}, (∀x∈l, x ∈ s) → l.prod ∈ s
+| []     h := is_submonoid.one_mem s
+| (a::l) h :=
+  suffices a * l.prod ∈ s, by simpa,
+  have a ∈ s ∧ (∀x∈l, x ∈ s), by simpa using h,
+  is_submonoid.mul_mem this.1 (is_submonoid.list_prod_mem this.2)
 
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
 { mul       := λa b : s, ⟨a * b, is_submonoid.mul_mem a.2 b.2⟩,
@@ -50,5 +60,20 @@ assume a, in_closure.basic
 
 theorem closure_subset {s t : set α} [is_submonoid t] (h : s ⊆ t) : closure s ⊆ t :=
 assume a ha, by induction ha; simp [h _, *, is_submonoid.one_mem, is_submonoid.mul_mem]
+
+theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
+  (∃l:list α, (∀x∈l, x ∈ s) ∧ l.prod = a) :=
+begin
+  induction h,
+  case in_closure.basic : a ha { existsi ([a]), simp [ha] },
+  case in_closure.one { existsi ([]), simp },
+  case in_closure.mul : a b _ _ ha hb {
+    rcases ha with ⟨la, ha, eqa⟩,
+    rcases hb with ⟨lb, hb, eqb⟩,
+    existsi (la ++ lb),
+    simp [eqa.symm, eqb.symm, or_imp_distrib],
+    exact assume a, ⟨ha a, hb a⟩
+  },
+end
 
 end monoid

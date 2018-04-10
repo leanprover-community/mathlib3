@@ -327,6 +327,6 @@ theorem is_group_anti_hom.prod {f : α → β} [is_group_anti_hom f] (l : list �
 by induction l; simp [*, is_group_anti_hom.mul f, is_group_anti_hom.one f]
 
 theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) :=
-inv_is_group_anti_hom.prod
+λ l, @is_group_anti_hom.prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
 
 end group

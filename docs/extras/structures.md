@@ -43,16 +43,16 @@ def p : point nat :=
 As explained in TPIL, "every structure declaration introduces a namespace with the same name" and, still using the `point` structure example, "Given p : point nat, the notation p.x is shorthand for point.x p. This provides a convenient way of accessing the fields of a structure".
 
 But actually this trick has a wider scope. For every function `f` in the
-`point` namespace, `p.f` is `f` where the first explicit argument is
-replaced by `p`. For instance:
+`point` namespace, `p.f` is `f` where the first explicit argument with
+type `point ...` is replaced by `p`. For instance:
 
 ```lean
 structure point (α : Type) := (x : α) (y : α)
 
 namespace point
-def sum {α : Type} [has_add α] (p : point α) := p.x + p.y
+def sum (α : Type) [has_add α] (p : point α) := p.x + p.y
 
-def diff_x {α : Type} [has_sub α] (p q : point α) := p.x - q.x
+def diff_x (α : Type) [has_sub α] (p q : point α) := p.x - q.x
 end point
 
 variables (α : Type) [has_add α] [has_sub α] (p : point α)
@@ -60,8 +60,7 @@ variables (α : Type) [has_add α] [has_sub α] (p : point α)
 #reduce p.diff_x   -- λ (q : point α), p.x - q.x
 ```
 
-Note that those example wouldn't work if `α` was an explicit argument.
-Also note that in `p.diff_x`, `p` becomes the first argument of
+Note that, in `p.diff_x`, `p` becomes the first argument of
 `point.diff_x`.
 
 

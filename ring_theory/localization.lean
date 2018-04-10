@@ -166,19 +166,6 @@ local_of_nonunits_ideal
 
 end at_prime
 
-inductive in_closure (S : set α) : α → Prop
-| basic : ∀a∈S, in_closure a
-| one : in_closure 1
-| mul : ∀x y, in_closure x → in_closure y → in_closure (x * y)
-
-def closure (S : set α) : set α := {x | in_closure S x}
-
-instance closure.is_submonoid (S : set α) : is_submonoid (closure S) :=
-{ one_mem := in_closure.one S, mul_mem := in_closure.mul }
-
-theorem subset_closure {S : set α} : S ⊆ closure S :=
-in_closure.basic
-
 variable (α)
 
 def non_zero_divisors : set α := {x | ∀ z, z * x = 0 → z = 0}

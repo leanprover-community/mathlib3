@@ -36,13 +36,19 @@ instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
 namespace monoid
 
 inductive in_closure (s : set α) : α → Prop
-| mem {a : α} : a ∈ s → in_closure a
+| basic {a : α} : a ∈ s → in_closure a
 | one : in_closure 1
 | mul {a b : α} : in_closure a → in_closure b → in_closure (a * b)
 
 def closure (s : set α) : set α := {a | in_closure s a }
 
-lemma is_submonoid_closure (s : set α) : is_submonoid (closure s) :=
+instance closure.is_submonoid (s : set α) : is_submonoid (closure s) :=
 { one_mem := in_closure.one s, mul_mem := assume a b, in_closure.mul }
+
+theorem subset_closure {s : set α} : s ⊆ closure s :=
+assume a, in_closure.basic
+
+theorem closure_subset {s t : set α} [is_submonoid t] (h : s ⊆ t) : closure s ⊆ t :=
+assume a ha, by induction ha; simp [h _, *, is_submonoid.one_mem, is_submonoid.mul_mem]
 
 end monoid

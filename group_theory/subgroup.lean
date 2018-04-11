@@ -50,6 +50,9 @@ lemma is_subgroup.gpow_mem {a : α} {s : set α} [is_subgroup s] (h : a ∈ s) :
 | (n : ℕ) := is_submonoid.pow_mem h
 | -[1+ n] := is_subgroup.inv_mem (is_submonoid.pow_mem h)
 
+lemma mem_gpowers {a : α} : a ∈ gpowers a :=
+⟨1, by simp⟩
+
 end group
 
 namespace is_subgroup
@@ -76,6 +79,38 @@ iff.intro
 
 end is_subgroup
 
+namespace group
+open is_submonoid is_subgroup
+
+variable [group α]
+
+inductive in_closure (s : set α) : α → Prop
+| basic {a : α} : a ∈ s → in_closure a
+| one : in_closure 1
+| inv {a : α} : in_closure a → in_closure a⁻¹
+| mul {a b : α} : in_closure a → in_closure b → in_closure (a * b)
+
+/-- `group.closure s` is the subgroup closed over `s`, i.e. the smallest subgroup containg s. -/
+def closure (s : set α) : set α := {a | in_closure s a }
+
+lemma mem_closure {a : α} : a ∈ s → a ∈ closure s := in_closure.basic
+
+instance closure.is_subgroup (s : set α) : is_subgroup (closure s) :=
+{ one_mem := in_closure.one s, mul_mem := assume a b, in_closure.mul, inv_mem := assume a, in_closure.inv }
+
+theorem subset_closure {s : set α} : s ⊆ closure s :=
+assume a, in_closure.basic
+
+theorem closure_subset {s t : set α} [is_subgroup t] (h : s ⊆ t) : closure s ⊆ t :=
+assume a ha, by induction ha; simp [h _, *, one_mem, mul_mem, inv_mem_iff]
+
+theorem gpowers_eq_closure {a : α} : gpowers a = closure {a} :=
+subset.antisymm
+  (assume x h, match x, h with _, ⟨i, rfl⟩ := gpow_mem (mem_closure $ by simp) end)
+  (closure_subset $ by  simp [mem_gpowers])
+
+end group
+
 class normal_subgroup [group α] (s : set α) extends is_subgroup s : Prop :=
 (normal : ∀ n ∈ s, ∀ g : α, g * n * g⁻¹ ∈ s)
 
@@ -90,7 +125,7 @@ by simp at h; exact h
 lemma mem_norm_comm_iff {a b : α} {s : set α} [normal_subgroup s] : a * b ∈ s ↔ b * a ∈ s :=
 iff.intro mem_norm_comm mem_norm_comm
 
--- Examples of subgroups
+/-- The trivial subgroup -/
 def trivial (α : Type*) [group α] : set α := {1}
 
 @[simp] lemma mem_trivial [group α] {g : α} : g ∈ trivial α ↔ g = 1 :=
@@ -98,6 +133,11 @@ by simp [trivial]
 
 instance trivial_normal : normal_subgroup (trivial α) :=
 by refine {..}; simp [trivial] {contextual := tt}
+
+lemma trivial_eq_closure : trivial α = group.closure {} :=
+subset.antisymm
+  (by simp [set.subset_def, is_submonoid.one_mem])
+  (group.closure_subset $ by simp)
 
 instance univ_subgroup : normal_subgroup (@univ α) :=
 by refine {..}; simp
@@ -194,4 +234,3 @@ lemma inj_iff_trivial_ker (f : α → β) [w : is_group_hom f] :
 ⟨@trivial_ker_of_inj _ _ _ _ f w, @inj_of_trivial_ker _ _ _ _ f w⟩
 
 end is_group_hom
-

@@ -73,7 +73,7 @@ begin
     existsi (la ++ lb),
     simp [eqa.symm, eqb.symm, or_imp_distrib],
     exact assume a, ⟨ha a, hb a⟩
-  },
+  }
 end
 
 end monoid

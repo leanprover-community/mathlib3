@@ -2,6 +2,7 @@ language: generic
 
 install:
   - curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+  - source ~/.elan/env
 
 script:
   - leanpkg test

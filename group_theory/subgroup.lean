@@ -311,26 +311,29 @@ def center (G : Type u) [group G] : set G := {z | ∀ g, g * z = z * g}
 
 instance center_normal : normal_subgroup (center G) := {
   one_mem := by simp [center],
-  mul_mem := begin
-  intros a b ha hb g,
-  rw [center, mem_set_of_eq] at *,
-  rw [←mul_assoc, ha g, mul_assoc, hb g, ←mul_assoc]
-  end,
-  inv_mem := begin
-  assume a ha g,
-  simp [center] at *,
-  calc
-    g * a⁻¹ = a⁻¹ * (g * a) * a⁻¹     : by simp [ha g]
-    ...     = a⁻¹ * g                 : by rw [←mul_assoc, mul_assoc]; simp
-  end,
-  normal := begin
-  simp [center, mem_set_of_eq],
-  intros n ha g h,
-  calc
-    h * (g * n * g⁻¹) = h * n               : by simp [ha g, mul_assoc]
-    ...               = g * g⁻¹ * n * h     : by rw ha h; simp
-    ...               = g * n * g⁻¹ * h     : by rw [mul_assoc g, ha g⁻¹, ←mul_assoc]
-  end
+  mul_mem := 
+    begin
+      intros a b ha hb g,
+      rw [center, mem_set_of_eq] at *,
+      rw [←mul_assoc, ha g, mul_assoc, hb g, ←mul_assoc]
+    end,
+  inv_mem := 
+    begin
+      assume a ha g,
+      simp [center] at *,
+      calc
+        g * a⁻¹ = a⁻¹ * (g * a) * a⁻¹     : by simp [ha g]
+        ...     = a⁻¹ * g                 : by rw [←mul_assoc, mul_assoc]; simp
+    end,
+  normal := 
+    begin
+      simp [center, mem_set_of_eq],
+      intros n ha g h,
+      calc
+        h * (g * n * g⁻¹) = h * n               : by simp [ha g, mul_assoc]
+        ...               = g * g⁻¹ * n * h     : by rw ha h; simp
+        ...               = g * n * g⁻¹ * h     : by rw [mul_assoc g, ha g⁻¹, ←mul_assoc]
+    end
 }
 
 end is_subgroup

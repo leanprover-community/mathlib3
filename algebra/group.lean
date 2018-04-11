@@ -479,7 +479,7 @@ section add_comm_group
 
 end add_comm_group
 
-variables  [group α] {β : Type*} [group β]
+variables {β : Type*} [group α] [group β]
 
 /-- Predicate for group homomorphism. -/
 def is_group_hom (f : α → β) : Prop := 

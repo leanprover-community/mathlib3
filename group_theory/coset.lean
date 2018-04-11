@@ -14,8 +14,8 @@ variable {G : Type u}
 def left_coset [has_mul G] (a : G) (S : set G) : set G := image (λ x, a * x) S
 def right_coset [has_mul G] (S : set G) (a : G) : set G := image (λ x, x * a) S
 
-infix ` *l `:70 := left_coset
-infix ` *r `:70 := right_coset
+local infix ` *l `:70 := left_coset
+local infix ` *r `:70 := right_coset
 
 section coset_mul
 variable [has_mul G]

@@ -479,22 +479,31 @@ section add_comm_group
 
 end add_comm_group
 
+variables {β : Type*} [group α] [group β]
 
 /-- Predicate for group homomorphism. -/
-def is_group_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
+def is_group_hom (f : α → β) : Prop := 
 ∀ a b : α, f (a * b) = f a * f b
 
-namespace is_group_hom
-variables {β : Type*} [group α] [group β] {a b : α} {f : α → β} (H : is_group_hom f)
-include H
+attribute [class] is_group_hom
 
-theorem mul : ∀ a b : α, f (a * b) = f a * f b := H
+namespace is_group_hom
+variables (f : α → β) [w : is_group_hom f]
+include w
+
+theorem mul : ∀ a b : α, f (a * b) = f a * f b := w
 
 theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(H 1 1).symm]
+mul_self_iff_eq_one.1 $ by simp [(w 1 1).symm]
 
-theorem inv (a : α) : (f a)⁻¹ = f a⁻¹ :=
-inv_eq_of_mul_eq_one $ by simp [(H a a⁻¹).symm, one H]
+theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(w a a⁻¹).symm, one f]
+
+variables {γ : Type*} [group γ] {g : β → γ} [is_group_hom g]
+
+instance comp : is_group_hom (g ∘ f) := λ x y,  calc
+  g (f (x * y)) = g (f x * f y)       : by rw mul f
+  ...           = g (f x) * g (f y)   : by rw mul g
 
 end is_group_hom
 
@@ -503,17 +512,19 @@ end is_group_hom
 def is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
 ∀ a b : α, f (a * b) = f b * f a
 
-namespace is_group_anti_hom
-variables {β : Type*} [group α] [group β] {f : α → β} (H : is_group_anti_hom f)
-include H
+attribute [class] is_group_anti_hom
 
-theorem mul : ∀ a b : α, f (a * b) = f b * f a := H
+namespace is_group_anti_hom
+variables (f : α → β) [w : is_group_anti_hom f]
+include w
+
+theorem mul : ∀ a b : α, f (a * b) = f b * f a := w
 
 theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(H 1 1).symm]
+mul_self_iff_eq_one.1 $ by simp [(w 1 1).symm]
 
-theorem inv (a : α) : (f a)⁻¹ = f a⁻¹ :=
-inv_eq_of_mul_eq_one $ by simp [(H a⁻¹ a).symm, one H]
+theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(w a⁻¹ a).symm, one f]
 
 end is_group_anti_hom
 

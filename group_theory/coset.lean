@@ -3,8 +3,7 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
-
-import group_theory.subgroup
+import group_theory.subgroup data.set.basic
 
 open set
 
@@ -35,89 +34,39 @@ end coset_mul
 section coset_semigroup
 variable [semigroup γ]
 
-lemma left_coset_assoc (s : set γ) (a b : γ) : a *l (b *l s) = (a * b) *l s :=
-have h : (λ x : γ, a * x) ∘ (λ x : γ, b * x) = (λ x : γ, (a * b) * x), from
-  funext (λ c : γ,
-    calc ((λ x : γ, a * x) ∘ (λ x : γ, b * x)) c = a * (b * c) : by simp
-    ... = (λ x : γ, (a * b) * x) c : by rw ← mul_assoc; simp ),
-calc a *l (b *l s) = image ((λ x : γ, a * x) ∘ (λ x : γ, b * x)) s :
-    by rw [left_coset, left_coset, ←image_comp]
-  ... = (a * b) *l s : by rw [left_coset, h]
+@[simp] lemma left_coset_assoc (s : set γ) (a b : γ) : a *l (b *l s) = (a * b) *l s :=
+by simp [left_coset, right_coset, (image_comp _ _ _).symm, function.comp, mul_assoc]
 
-lemma right_coset_assoc (s : set γ) (a b : γ) : s *r a *r b = s *r (a * b) :=
-have h : (λ x : γ, x * b) ∘ (λ x : γ, x * a) = (λ x : γ, x * (a * b)), from
-  funext (λ c : γ,
-    calc ((λ x : γ, x * b) ∘ (λ x : γ, x * a)) c = c * a * b :
-        by simp
-      ... = (λ x : γ, x * (a * b)) c :
-        by rw mul_assoc; simp),
-calc s *r a *r b  = image ((λ x : γ, x * b) ∘ (λ x : γ, x * a)) s :
-    by rw [right_coset, right_coset, ←image_comp]
-  ... = s *r (a * b) :
-    by rw [right_coset, h]
+@[simp] lemma right_coset_assoc (s : set γ) (a b : γ) : s *r a *r b = s *r (a * b) :=
+by simp [left_coset, right_coset, (image_comp _ _ _).symm, function.comp, mul_assoc]
 
-lemma left_coset_right_coset (s : set γ) (a b : γ) : a *l s *r  b = a *l (s *r b) :=
-have h : (λ x : γ, x * b) ∘ (λ x : γ, a * x) = (λ x : γ, a * (x * b)), from
-  funext (λ c : γ,
-    calc ((λ x : γ, x * b) ∘ (λ x : γ, a * x)) c = a * c * b : by simp
-      ... = (λ x : γ, a * (c * b)) c : by rw mul_assoc; simp),
-calc a *l s *r b   = image ((λ x : γ, x * b) ∘ (λ x : γ, a * x)) s :
-    by rw [right_coset, left_coset, ←image_comp]
-  ... = a *l (s *r b) :
-    by rw [right_coset, left_coset, ←image_comp, h]
+lemma left_coset_right_coset (s : set γ) (a b : γ) : a *l s *r b = a *l (s *r b) :=
+by simp [left_coset, right_coset, (image_comp _ _ _).symm, function.comp, mul_assoc]
 
 end coset_semigroup
 
-section coset_subgroup
+section coset_monoid
+variables [monoid γ] (s : set γ)
+
+@[simp] lemma one_left_coset : 1 *l s = s :=
+set.ext $ by simp [left_coset]
+
+@[simp] lemma right_coset_one : s *r 1 = s :=
+set.ext $ by simp [right_coset]
+
+end coset_monoid
+
+section coset_submonoid
 open is_submonoid
-open is_subgroup
-variables [group γ] (s : set γ) [is_subgroup s]
-
-lemma left_coset_mem_left_coset {a : γ} (ha : a ∈ s) : a *l s = s :=
-begin
-  simp [left_coset, image, set_eq_def, mem_set_of_eq],
-  intro b,
-  split,
-  { intro h,
-    cases h with x hx,
-    cases hx with hxl hxr,
-    rw [←hxr],
-    exact mul_mem ha hxl },
-  { intro h,
-    existsi a⁻¹ * b,
-    split,
-    have : a⁻¹ ∈ s, from inv_mem ha,
-    exact mul_mem this h,
-    simp }
-end
-
-lemma right_coset_mem_right_coset {a : γ} (ha : a ∈ s) : s *r a = s :=
-begin
-  simp [right_coset, image, set_eq_def, mem_set_of_eq],
-  intro b,
-  split,
-  { intro h,
-    cases h with x hx,
-    cases hx with hxl hxr,
-    rw [←hxr],
-    exact mul_mem hxl ha },
-  { intro h,
-    existsi b * a⁻¹,
-    split,
-    have : a⁻¹ ∈ s, from inv_mem ha,
-    exact mul_mem h this,
-    simp }
-end
-
-lemma one_left_coset : 1 *l s = s := left_coset_mem_left_coset s (one_mem s)
-
-lemma one_right_coset : s *r 1 = s := right_coset_mem_right_coset s (one_mem s)
+variables [monoid γ] (s : set γ) [is_submonoid s]
 
 lemma mem_own_left_coset (a : γ) : a ∈ a *l s :=
-by conv in a {rw ←mul_one a}; exact (mem_left_coset a (one_mem s))
+suffices a * 1 ∈ a *l s, by simpa,
+mem_left_coset a (one_mem s)
 
 lemma mem_own_right_coset (a : γ) : a ∈ s *r a :=
-by conv in a {rw ←one_mul a}; exact (mem_right_coset a (one_mem s))
+suffices 1 * a ∈ s *r a, by simpa,
+mem_right_coset a (one_mem s)
 
 lemma mem_left_coset_left_coset {a : γ} (ha : a *l s = s) : a ∈ s :=
 by rw [←ha]; exact mem_own_left_coset s a
@@ -125,40 +74,40 @@ by rw [←ha]; exact mem_own_left_coset s a
 lemma mem_right_coset_right_coset {a : γ} (ha : s *r a = s) : a ∈ s :=
 by rw [←ha]; exact mem_own_right_coset s a
 
-lemma mem_mem_left_coset {a x : γ} (hx : x ∈ s) (hax : a * x ∈ s) : a ∈ s :=
-begin
-  apply mem_left_coset_left_coset s,
-  conv in s { rw ←left_coset_mem_left_coset s hx },
-  rw [left_coset_assoc, left_coset_mem_left_coset s hax]
-end
+end coset_submonoid
 
-theorem normal_of_eq_cosets [normal_subgroup s] : ∀ g, g *l s = s *r g :=
-begin
-  intros g,
-  apply eq_of_subset_of_subset,
-  all_goals { simp [left_coset, right_coset, image], intros a n ha hn },
-  existsi g * n * g⁻¹, tactic.swap, existsi g⁻¹ * n * (g⁻¹)⁻¹,
-  all_goals {split, apply normal_subgroup.normal, assumption },
-  { rw inv_inv g, rw [←mul_assoc, ←mul_assoc], simp, assumption },
-  { simp, assumption }
-end
+section coset_group
+variables [group γ] {s : set γ} {x : γ}
 
-theorem eq_cosets_of_normal (h : ∀ g, g *l s = s *r g) : normal_subgroup s:=
-begin
-  split,
-  intros n hn g,
-  have hl : g * n ∈ g *l s, from mem_left_coset g hn,
-  rw h at hl,
-  simp [right_coset] at hl,
-  cases hl with x hx,
-  cases hx with hxl hxr,
-  have : g * n * g⁻¹ = x, { calc
-    g * n * g⁻¹ = x * g * g⁻¹ : by rw ←hxr
-    ...         = x           : by simp
-  },
-  rw this,
-  exact hxl
-end
+lemma mem_left_coset_iff (a : γ) : x ∈ a *l s ↔ a⁻¹ * x ∈ s :=
+iff.intro
+  (assume ⟨b, hb, eq⟩, by simp [eq.symm, hb])
+  (assume h, ⟨a⁻¹ * x, h, by simp⟩)
+
+lemma mem_right_coset_iff (a : γ) : x ∈ s *r a ↔ x * a⁻¹ ∈ s :=
+iff.intro
+  (assume ⟨b, hb, eq⟩, by simp [eq.symm, hb])
+  (assume h, ⟨x * a⁻¹, h, by simp⟩)
+
+end coset_group
+
+section coset_subgroup
+open is_submonoid
+open is_subgroup
+variables [group γ] (s : set γ) [is_subgroup s]
+
+lemma left_coset_mem_left_coset {a : γ} (ha : a ∈ s) : a *l s = s :=
+set.ext $ by simp [mem_left_coset_iff, mul_mem_cancel_right s (inv_mem ha)]
+
+lemma right_coset_mem_right_coset {a : γ} (ha : a ∈ s) : s *r a = s :=
+set.ext $ assume b, by simp [mem_right_coset_iff, mul_mem_cancel_left s (inv_mem ha)]
+
+theorem normal_of_eq_cosets [normal_subgroup s] (g : γ) : g *l s = s *r g :=
+set.ext $ assume a, by simp [mem_left_coset_iff, mem_right_coset_iff]; rw [mem_norm_comm_iff]
+
+theorem eq_cosets_of_normal (h : ∀ g, g *l s = s *r g) : normal_subgroup s :=
+⟨assume a ha g, show g * a * g⁻¹ ∈ s,
+  by rw [← mem_right_coset_iff, ← h]; exact mem_left_coset g ha⟩
 
 theorem normal_iff_eq_cosets : normal_subgroup s ↔ ∀ g, g *l s = s *r g :=
 ⟨@normal_of_eq_cosets _ _ s _, eq_cosets_of_normal s⟩

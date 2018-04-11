@@ -274,33 +274,25 @@ end
 
 end order_of
 
-class normal_subgroup [group α] (S : set α) extends is_subgroup S : Prop :=
-(normal : ∀ n ∈ S, ∀ g : α, g * n * g⁻¹ ∈ S)
+class normal_subgroup [group α] (s : set α) extends is_subgroup s : Prop :=
+(normal : ∀ n ∈ s, ∀ g : α, g * n * g⁻¹ ∈ s)
 
 namespace is_subgroup
 variable [group α]
 
 -- Normal subgroup properties
-lemma mem_norm_comm {a b : α} {S : set α} [normal_subgroup S] (hab : a * b ∈ S) : b * a ∈ S :=
-have h : a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ S, from normal_subgroup.normal (a * b) hab a⁻¹,
+lemma mem_norm_comm {a b : α} {s : set α} [normal_subgroup s] (hab : a * b ∈ s) : b * a ∈ s :=
+have h : a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ s, from normal_subgroup.normal (a * b) hab a⁻¹,
 by simp at h; exact h
+
+lemma mem_norm_comm_iff {a b : α} {s : set α} [normal_subgroup s] : a * b ∈ s ↔ b * a ∈ s :=
+iff.intro mem_norm_comm mem_norm_comm
 
 -- Examples of subgroups
 def trivial (α : Type*) [group α] : set α := {1}
 
-lemma eq_one_of_trivial_mem [group α] {g : α} (p : g ∈ trivial α) : g = 1 :=
-begin
-  cases p,
-  assumption,
-  cases p,
-end
-
-lemma trivial_mem_of_eq_one [group α] {g : α} (p : g = 1) : g ∈ trivial α :=
-begin
-  rw p,
-  unfold trivial,
-  simp,
-end
+@[simp] lemma mem_trivial [group α] {g : α} : g ∈ trivial α ↔ g = 1 :=
+by simp [trivial]
 
 instance trivial_normal : normal_subgroup (trivial α) :=
 by refine {..}; simp [trivial] {contextual := tt}
@@ -310,31 +302,22 @@ by refine {..}; simp
 
 def center (α : Type*) [group α] : set α := {z | ∀ g, g * z = z * g}
 
+lemma mem_center {a : α} : a ∈ center α ↔ (∀g, g * a = a * g) :=
+iff.refl _
+
 instance center_normal : normal_subgroup (center α) := {
   one_mem := by simp [center],
-  mul_mem :=
-    begin
-      intros a b ha hb g,
-      rw [center, mem_set_of_eq] at *,
-      rw [←mul_assoc, ha g, mul_assoc, hb g, ←mul_assoc]
-    end,
-  inv_mem :=
-    begin
-      assume a ha g,
-      simp [center] at *,
-      calc
-        g * a⁻¹ = a⁻¹ * (g * a) * a⁻¹     : by simp [ha g]
-        ...     = a⁻¹ * g                 : by rw [←mul_assoc, mul_assoc]; simp
-    end,
-  normal :=
-    begin
-      simp [center, mem_set_of_eq],
-      intros n ha g h,
-      calc
-        h * (g * n * g⁻¹) = h * n               : by simp [ha g, mul_assoc]
-        ...               = g * g⁻¹ * n * h     : by rw ha h; simp
-        ...               = g * n * g⁻¹ * h     : by rw [mul_assoc g, ha g⁻¹, ←mul_assoc]
-    end
+  mul_mem := assume a b ha hb g,
+    by rw [←mul_assoc, mem_center.2 ha g, mul_assoc, mem_center.2 hb g, ←mul_assoc],
+  inv_mem := assume a ha g,
+    calc
+      g * a⁻¹ = a⁻¹ * (g * a) * a⁻¹ : by simp [ha g]
+      ...     = a⁻¹ * g             : by rw [←mul_assoc, mul_assoc]; simp,
+  normal := assume n ha g h,
+    calc
+      h * (g * n * g⁻¹) = h * n           : by simp [ha g, mul_assoc]
+      ...               = g * g⁻¹ * n * h : by rw ha h; simp
+      ...               = g * n * g⁻¹ * h : by rw [mul_assoc g, ha g⁻¹, ←mul_assoc]
 }
 
 end is_subgroup
@@ -345,91 +328,68 @@ open is_submonoid
 open is_subgroup
 variables [group α] [group β]
 
-def kernel (f : α → β) [is_group_hom f] : set α := preimage f (trivial β)
+def ker (f : α → β) [is_group_hom f] : set α := preimage f (trivial β)
 
-lemma mem_ker_one (f : α → β) [is_group_hom f] {x : α} (h : x ∈ kernel f) : f x = 1 := eq_one_of_trivial_mem h
+lemma mem_ker (f : α → β) [is_group_hom f] {x : α} : x ∈ ker f ↔ f x = 1 :=
+mem_trivial
 
-lemma one_ker_inv (f : α → β) [is_group_hom f] {a b : α} (h : f (a * b⁻¹) = 1) : f a = f b := by rw ←inv_inv (f b); rw [mul f, inv f] at h; exact eq_inv_of_mul_eq_one h
+lemma one_ker_inv (f : α → β) [is_group_hom f] {a b : α} (h : f (a * b⁻¹) = 1) : f a = f b :=
+begin
+  rw [mul f, inv f] at h,
+  rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
+end
 
 lemma inv_ker_one (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : f (a * b⁻¹) = 1 :=
-have f a * (f b)⁻¹ = 1, by rw h; apply mul_right_inv,
-by rw [←inv f, ←mul f] at this; exact this
-
-lemma ker_inv (f : α → β) [is_group_hom f] {a b : α} (h : a * b⁻¹ ∈ kernel f) : f a = f b := one_ker_inv f $ mem_ker_one f h
-
-lemma inv_ker (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : a * b⁻¹ ∈ kernel f := by simp [kernel,mem_set_of_eq]; exact trivial_mem_of_eq_one (inv_ker_one f h)
+have f a * (f b)⁻¹ = 1, by rw [h, mul_right_inv],
+by rwa [←inv f, ←mul f] at this
 
 lemma one_iff_ker_inv (f : α → β) [is_group_hom f] (a b : α) : f a = f b ↔ f (a * b⁻¹) = 1 :=
 ⟨inv_ker_one f, one_ker_inv f⟩
 
-lemma inv_iff_ker (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a * b⁻¹ ∈ kernel f :=
-/- TODO: I don't understand why I can't just write
-    ⟨inv_ker f, ker_inv f⟩
-  here. This still gives typeclass errors; it can't find `w`. -/
-⟨@inv_ker _ _ _ _ f w _ _, @ker_inv _ _ _ _ f w _ _⟩
+lemma inv_iff_ker (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a * b⁻¹ ∈ ker f :=
+by rw [mem_ker]; exact one_iff_ker_inv _ _ _
 
-instance image_subgroup (f : α → β) [is_group_hom f] (S : set α) [is_subgroup S] : is_subgroup (f '' S) :=
+instance image_subgroup (f : α → β) [is_group_hom f] (s : set α) [is_subgroup s] :
+  is_subgroup (f '' s) :=
 { mul_mem := assume a₁ a₂ ⟨b₁, hb₁, eq₁⟩ ⟨b₂, hb₂, eq₂⟩,
              ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, mul f]⟩,
-  one_mem := ⟨1, one_mem S, one f⟩,
+  one_mem := ⟨1, one_mem s, one f⟩,
   inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw inv f; simp *⟩ }
 
 local attribute [simp] one_mem inv_mem mul_mem normal_subgroup.normal
 
-private lemma inv' (f : α → β) [is_group_hom f] (a : α) : (f a)⁻¹ = f a⁻¹ := by rw ←inv f
+instance preimage (f : α → β) [is_group_hom f] (s : set β) [is_subgroup s] :
+  is_subgroup (f ⁻¹' s) :=
+by refine {..}; simp [mul f, one f, inv f, @inv_mem β _ _ s] {contextual:=tt}
 
-instance preimage (f : α → β) [is_group_hom f] (S : set β) [is_subgroup S] : is_subgroup (f ⁻¹' S) :=
-begin
- refine {..};
- simp [mul f, one f, inv' f] {contextual:=tt},
- intros g w,
- rw inv f,
- exact (inv_mem_iff S).2 w,
-end
+instance preimage_normal (f : α → β) [is_group_hom f] (s : set β) [normal_subgroup s] :
+  normal_subgroup (f ⁻¹' s) :=
+{ normal := by simp [mul f, inv f] {contextual:=tt} }
 
-instance preimage_normal (f : α → β) [is_group_hom f] (S : set β) [normal_subgroup S] :
-  normal_subgroup (f ⁻¹' S) :=
-begin
- refine {..},
- { simp [one f] },
- { simp [mul f] {contextual:=tt} },
- { simp [inv' f],
-   intros g w,
-   rw inv f,
-   exact (inv_mem_iff S).2 w },
- { simp [mul f, inv f] {contextual:=tt} }
-end
-
-instance kernel_normal (f : α → β) [is_group_hom f] : normal_subgroup (kernel f) :=
+instance normal_subgroup_ker (f : α → β) [is_group_hom f] : normal_subgroup (ker f) :=
 is_group_hom.preimage_normal f (trivial β)
 
-lemma inj_of_trivial_kernel (f : α → β) [is_group_hom f] (h : kernel f = trivial α) :
+lemma inj_of_trivial_ker (f : α → β) [is_group_hom f] (h : ker f = trivial α) :
   function.injective f :=
 begin
   intros a₁ a₂ hfa,
-  simp [set_eq_def, kernel, is_subgroup.trivial] at h,
+  simp [set_eq_def, ker, is_subgroup.trivial] at h,
   have ha : a₁ * a₂⁻¹ = 1, by rw ←h; exact inv_ker_one f hfa,
   rw [eq_inv_of_mul_eq_one ha, inv_inv a₂]
 end
 
-lemma trivial_kernel_of_inj (f : α → β) [w : is_group_hom f] (h : function.injective f) :
-  kernel f = trivial α :=
-begin
-  apply set.ext,
-  intro,
-  split,
-  { assume hx,
-    have hi : f x = f 1,
-    { simp [one f]; rw (@mem_ker_one _ _ _ _ f w _ hx) }, -- TODO not finding the typeclass
-    apply trivial_mem_of_eq_one,
-    simp [h hi, one f] },
-  { assume hx, rw eq_one_of_trivial_mem hx, simp }
-end
+lemma trivial_ker_of_inj (f : α → β) [w : is_group_hom f] (h : function.injective f) :
+  ker f = trivial α :=
+set.ext $ assume x, iff.intro
+  (assume hx,
+    suffices f x = f 1, by simpa using h this,
+    by simp [one f]; rwa [mem_ker] at hx)
+  (by simp [mem_ker, is_group_hom.one f] {contextual := tt})
 
-lemma inj_iff_trivial_kernel (f : α → β) [w : is_group_hom f] :
-  function.injective f ↔ kernel f = trivial α :=
+lemma inj_iff_trivial_ker (f : α → β) [w : is_group_hom f] :
+  function.injective f ↔ ker f = trivial α :=
 -- TODO: still not finding the typeclass. ⟨trivial_kernel_of_inj f, inj_of_trivial_kernel f⟩
-⟨@trivial_kernel_of_inj _ _ _ _ f w, @inj_of_trivial_kernel _ _ _ _ f w⟩
+⟨@trivial_ker_of_inj _ _ _ _ f w, @inj_of_trivial_ker _ _ _ _ f w⟩
 
 end is_group_hom
 

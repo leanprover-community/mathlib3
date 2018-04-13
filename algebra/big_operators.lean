@@ -237,6 +237,33 @@ variables [comm_semiring β]
 lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : s.prod f = 0 :=
 calc s.prod f = (insert a (erase s a)).prod f : by simp [ha, insert_erase]
   ... = 0 : by simp [h]
+
+lemma prod_sum {δ : α → Type*} [∀a, decidable_eq (δ a)]
+  {s : finset α} {t : Πa, finset (δ a)} {f : Πa, δ a → β} :
+  s.prod (λa, (t a).sum (λb, f a b)) =
+    (s.pi t).sum (λp, s.attach.prod (λx, f x.1 (p x.1 x.2))) :=
+begin
+  induction s using finset.induction with a s ha ih,
+  { simp },
+  { have h₁ : ∀x ∈ t a, ∀y∈t a, ∀h : x ≠ y,
+        image (pi.cons s a x) (pi s t) ∩ image (pi.cons s a y) (pi s t) = ∅,
+    { assume x hx y hy h,
+      apply eq_empty_of_forall_not_mem,
+      simp,
+      assume p₁ p₂ hp eq p₃ hp₃ eq', subst eq',
+      have : pi.cons s a x p₂ a (mem_insert_self _ _) = pi.cons s a y p₃ a (mem_insert_self _ _),
+      { rw [eq] },
+      rw [pi.cons_same, pi.cons_same] at this,
+      exact h this },
+    have h₂ : ∀b:δ a, ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
+      assume b p₁ h₁ p₂ h₂ eq, injective_pi_cons ha eq,
+    have h₃ : ∀(v:{x // x ∈ s}) (b:δ a) (h : v.1 ∈ insert a s) (p : Πa, a ∈ s → δ a),
+        pi.cons s a b p v.1 h = p v.1 v.2, from
+      assume v b h p, pi.cons_ne $ assume eq, ha $ eq.symm ▸ v.2,
+    simp [ha, ih, sum_bind h₁, sum_image (h₂ _), sum_mul, h₃],
+    simp [mul_sum] }
+end
+
 end comm_semiring
 
 section integral_domain /- add integral_semi_domain to support nat and ennreal -/

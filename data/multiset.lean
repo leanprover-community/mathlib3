@@ -549,6 +549,8 @@ quot.lift_on s (λ l : list α, (l.map f : multiset β))
 @[simp] theorem map_cons (f : α → β) (a s) : map f (a::s) = f a :: map f s :=
 quot.induction_on s $ λ l, rfl
 
+@[simp] lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
+
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
@@ -568,6 +570,9 @@ quot.induction_on s $ λ l, mem_map_of_inj H
 
 @[simp] theorem map_map (g : β → γ) (f : α → β) (s : multiset α) : map g (map f s) = map (g ∘ f) s :=
 quot.induction_on s $ λ l, congr_arg coe $ map_map _ _ _
+
+@[simp] theorem map_id (s : multiset α) : map id s = s :=
+quot.induction_on s $ λ l, congr_arg coe $ map_id _
 
 @[simp] theorem map_const (s : multiset α) (b : β) : map (function.const α b) s = repeat b s.card :=
 quot.induction_on s $ λ l, congr_arg coe $ map_const _ _
@@ -754,6 +759,11 @@ lemma map_bind [decidable_eq γ] (m : multiset α) (n : α → multiset β) (f :
   map f (bind m n) = bind m (λa, map f (n a)) :=
 multiset.induction_on m (by simp) (by simp {contextual := tt})
 
+@[simp, to_additive multiset.sum_bind]
+lemma prod_bind [comm_monoid β] (s : multiset α) (t : α → multiset β) :
+  prod (bind s t) = prod (s.map $ λa, prod (t a)) :=
+multiset.induction_on s (by simp) (assume a s ih, by simp [ih, cons_bind])
+
 /- product -/
 
 /-- The multiplicity of `(a, b)` in `product s t` is
@@ -844,6 +854,14 @@ this.trans $ quot.sound $ perm_pmap f pp
 
 @[simp] theorem coe_pmap {p : α → Prop} (f : Π a, p a → β)
   (l : list α) (H : ∀ a ∈ l, p a) : pmap f l H = l.pmap f H := rfl
+
+@[simp] lemma pmap_zero {p : α → Prop} (f : Π a, p a → β) (h : ∀a∈(0:multiset α), p a) :
+  pmap f 0 h = 0 := rfl
+
+@[simp] lemma pmap_cons {p : α → Prop} (f : Π a, p a → β) (a : α) (m : multiset α) :
+  ∀(h : ∀b∈a::m, p b), pmap f (a :: m) h =
+    f a (h a (mem_cons_self a m)) :: pmap f m (λa ha, h a $ mem_cons_of_mem ha) :=
+quotient.induction_on m $ assume l h, rfl
 
 /-- "Attach" a proof that `a ∈ s` to each element `a` in `s` to produce
   a multiset on `{x // x ∈ s}`. -/
@@ -1604,6 +1622,25 @@ by simp [disjoint, or_imp_distrib, forall_and_distrib]
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 by simp [disjoint, or_imp_distrib, forall_and_distrib]
 
+lemma disjoint_map_map {f : α → γ} {g : β → γ} {s : multiset α} {t : multiset β} :
+  disjoint (s.map f) (t.map g) ↔ (∀a∈s, ∀b∈t, f a ≠ g b) :=
+begin
+  simp [disjoint],
+  split,
+  from assume h a ha b hb eq, h _ ha rfl _ hb eq.symm,
+  from assume h c a ha eq₁ b hb eq₂, h _ ha _ hb (eq₂.symm ▸ eq₁)
+end
+
+/-- `pairwise r m` states that there exists a list of the elements s.t. `r` holds pairwise on this list. -/
+def pairwise (r : α → α → Prop) (m : multiset α) : Prop :=
+∃l:list α, m = l ∧ l.pairwise r
+
+lemma pairwise_coe_iff_pairwise {r : α → α → Prop} (hr : symmetric r) {l : list α} :
+  multiset.pairwise r l ↔ l.pairwise r :=
+iff.intro
+  (assume ⟨l', eq, h⟩, (list.perm_pairwise hr (quotient.exact eq)).2 h)
+  (assume h, ⟨l, rfl, h⟩)
+
 /- nodup -/
 
 /-- `nodup s` means that `s` has no duplicates, i.e. the multiplicity of
@@ -1647,6 +1684,10 @@ quot.induction_on s $ λ l, nodup_iff_count_le_one
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {s : multiset α}
   (d : nodup s) (h : a ∈ s) : count a s = 1 :=
 le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
+
+lemma pairwise_of_nodup {r : α → α → Prop} {s : multiset α} :
+  (∀a∈s, ∀b∈s, a ≠ b → r a b) → nodup s → pairwise r s :=
+quotient.induction_on s $ assume l h hl, ⟨l, rfl, hl.imp_of_mem $ assume a b ha hb, h a ha b hb⟩
 
 theorem nodup_add {s t : multiset α} : nodup (s + t) ↔ nodup s ∧ nodup t ∧ disjoint s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append
@@ -1729,6 +1770,15 @@ nodup_of_le $ inter_le_right _ _
   λ x sx y sy e,
     (perm_ext_sublist_nodup h (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
       (quotient.exact e)⟩
+
+@[simp] lemma nodup_bind {s : multiset α} {t : α → multiset β} :
+  nodup (bind s t) ↔ ((∀a∈s, nodup (t a)) ∧ (s.pairwise (λa b, disjoint (t a) (t b)))) :=
+have h₁ : ∀a, ∃l:list β, t a = l, from
+  assume a, quot.induction_on (t a) $ assume l, ⟨l, rfl⟩,
+let ⟨t', h'⟩ := classical.axiom_of_choice h₁ in
+have t = λa, t' a, from funext h',
+have hd : symmetric (λa b, list.disjoint (t' a) (t' b)), from assume a b h, h.symm,
+quot.induction_on s $ by simp [this, list.nodup_bind, pairwise_coe_iff_pairwise hd]
 
 theorem nodup_ext {s t : multiset α} : nodup s → nodup t → (s = t ↔ ∀ a, a ∈ s ↔ a ∈ t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, quotient.eq.trans $ perm_ext d₁ d₂
@@ -1854,6 +1904,26 @@ theorem ndinsert_le {a : α} {s t : multiset α} : ndinsert a s ≤ t ↔ s ≤ 
  λ ⟨l, m⟩, if h : a ∈ s then by simp [h, l] else
    by rw [ndinsert_of_not_mem h, ← cons_erase m, cons_le_cons_iff,
           ← le_cons_of_not_mem h, cons_erase m]; exact l⟩
+
+lemma attach_ndinsert (a : α) (s : multiset α) :
+  (s.ndinsert a).attach =
+    ndinsert ⟨a, mem_ndinsert_self a s⟩ (s.attach.map $ λp, ⟨p.1, mem_ndinsert_of_mem p.2⟩) :=
+have eq : ∀h : ∀(p : {x // x ∈ s}), p.1 ∈ s,
+    (λ (p : {x // x ∈ s}), ⟨p.val, h p⟩ : {x // x ∈ s} → {x // x ∈ s}) = id, from
+  assume h, funext $ assume p, subtype.eq rfl,
+have ∀t (eq : s.ndinsert a = t), t.attach = ndinsert ⟨a, eq ▸ mem_ndinsert_self a s⟩
+  (s.attach.map $ λp, ⟨p.1, eq ▸ mem_ndinsert_of_mem p.2⟩),
+begin
+  intros t ht,
+  by_cases a ∈ s,
+  { rw [ndinsert_of_mem h] at ht,
+    subst ht,
+    rw [eq, map_id, ndinsert_of_mem (mem_attach _ _)] },
+  { rw [ndinsert_of_not_mem h] at ht,
+    subst ht,
+    simp [attach_cons, h] }
+end,
+this _ rfl
 
 @[simp] theorem disjoint_ndinsert_left {a : α} {s t : multiset α} :
   disjoint (ndinsert a s) t ↔ a ∉ t ∧ disjoint s t :=
@@ -2109,9 +2179,36 @@ rfl
   pi (a :: m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
 rec_on_cons a m
 
+lemma injective_pi_cons {a : α} {b : δ a} {s : multiset α} (hs : a ∉ s) :
+  function.injective (pi.cons s a b) :=
+assume f₁ f₂ eq, funext $ assume a', funext $ assume h',
+have ne : a ≠ a', from assume h, hs $ h.symm ▸ h',
+have a' ∈ a :: s, from mem_cons_of_mem h',
+calc f₁ a' h' = pi.cons s a b f₁ a' this : by rw [pi.cons_ne this ne.symm]
+  ... = pi.cons s a b f₂ a' this : by rw [eq]
+  ... = f₂ a' h' : by rw [pi.cons_ne this ne.symm]
+
 lemma card_pi (m : multiset α) (t : Πa, multiset (δ a)) :
   card (pi m t) = prod (m.map $ λa, card (t a)) :=
 multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
+
+lemma nodup_pi {s : multiset α} {t : Πa, multiset (δ a)} :
+  nodup s → (∀a∈s, nodup (t a)) → nodup (pi s t) :=
+multiset.induction_on s (assume _ _ , nodup_singleton _)
+begin
+  assume a s ih hs ht,
+  have has : a ∉ s, by simp at hs; exact hs.1,
+  have hs : nodup s, by simp at hs; exact hs.2,
+  simp,
+  split,
+  { assume b hb,
+    from nodup_map (injective_pi_cons has) (ih hs $ assume a' h', ht a' $ mem_cons_of_mem h') },
+  { apply pairwise_of_nodup _ (ht a $ mem_cons_self _ _),
+    from assume b₁ hb₁ b₂ hb₂ neb, disjoint_map_map.2 (assume f hf g hg eq,
+      have pi.cons s a b₁ f a (mem_cons_self _ _) = pi.cons s a b₂ g a (mem_cons_self _ _),
+        by rw [eq],
+      neb $ show b₁ = b₂, by rwa [pi.cons_same, pi.cons_same] at this) }
+end
 
 lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
   ∀f:Πa∈m, δ a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=

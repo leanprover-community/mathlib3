@@ -82,6 +82,8 @@ two axioms:
 
 Informally, one can think of `F` as the set of "big" subsets of `X`. For example, if `X` is a set and `F` is the set of subsets `Y` of `X` such that `X - Y` is finite, then `F` is a filter. This is called the _cofinite filter_ on `X`.
 
+Note that if `F` is a filter that contains the empty set, then it contains all subsets of `X` by the first axiom. Some references demand that the empty set is not allowed to be in a filter -- Lean does not have this restriction.
+
 If `X` is a topological space, and `x ∈ X`, then the _neighbourhood filter_ of `x` is the set of subsets `Y` of `X` such that `x` is in the interior of `Y`. One checks easily that this is a filter (technical point: to see that this is actually the definition of `nhds x` in mathlib, it helps to know that the set of all filters on a type is a complete lattice, partially ordered using `F ≤ G` iff `G ⊆ F`, so the definition, which involves an inf, is actually a union; also, the definition I give is not literally the definition in mathlib, but `lemma nhds_sets` says that their definition is the one here). 
 
 Why are we interested in these filters? Well, given a map `f` from `ℕ` to a topological space `X`, one can check that the resulting sequence `f 0`, `f 1`, `f 2`... tends to `x ∈ F` if and only if the pre-image of any element in the filter `nhds x` is in the cofinite filter on `ℕ` -- this is just a roundabout way of saying that given any open set `U` containing `x`, there exists `N` such that for all `n ≥ N`, `f n ∈ U`. So filters provide a way of thinking about limits. 

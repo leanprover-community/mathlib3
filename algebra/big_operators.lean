@@ -152,9 +152,9 @@ calc s.prod f = s.attach.prod (λx, f x.val) : prod_attach.symm
 
 @[to_additive finset.sum_bij_ne_zero]
 lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
-  (i : Πa∈s, f a ≠ 1 → γ) (hi₁ : ∀a h₁ h₂, i a h₁ h₂ ∈ t) (hi₂ : ∀a h₁ h₂, g (i a h₁ h₂) ≠ 1)
-  (hi₃ : ∀a₁ a₂ h₁₁ h₁₂ h₂₁ h₂₂, i a₁ h₁₁ h₁₂ = i a₂ h₂₁ h₂₂ → a₁ = a₂)
-  (hi₄ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
+  (i : Πa∈s, f a ≠ 1 → γ) (hi₁ : ∀a h₁ h₂, i a h₁ h₂ ∈ t) 
+  (hi₂ : ∀a₁ a₂ h₁₁ h₁₂ h₂₁ h₂₂, i a₁ h₁₁ h₁₂ = i a₂ h₂₁ h₂₂ → a₁ = a₂)
+  (hi₃ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
   (h : ∀a h₁ h₂, f a = g (i a h₁ h₂)) :
   s.prod f = t.prod g :=
 by haveI := classical.prop_decidable; exact
@@ -162,12 +162,13 @@ calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
     (prod_subset (filter_subset _) $ by simp {contextual:=tt}).symm
   ... = (t.filter $ λx, g x ≠ 1).prod g :
     prod_bij (assume a ha, i a (mem_filter.mp ha).1 (mem_filter.mp ha).2)
-      (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr ⟨hi₁ a h₁ h₂, hi₂ a h₁ h₂⟩)
+      (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr 
+        ⟨hi₁ a h₁ h₂, λ hg, h₂ (hg ▸ h a h₁ h₂)⟩)
       (assume a ha, (mem_filter.mp ha).elim $ h a)
       (assume a₁ a₂ ha₁ ha₂,
-        (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₃ a₁ a₂ _ _ _ _)
+        (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₂ a₁ a₂ _ _ _ _)
       (assume b hb, (mem_filter.mp hb).elim $ λh₁ h₂,
-        let ⟨a, ha₁, ha₂, eq⟩ := hi₄ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
+        let ⟨a, ha₁, ha₂, eq⟩ := hi₃ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
   ... = t.prod g :
     (prod_subset (filter_subset _) $ by simp {contextual:=tt})
 

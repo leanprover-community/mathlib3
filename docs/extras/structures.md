@@ -40,7 +40,7 @@ def p : point nat :=
 
 ### About the namespace shortcut ###
 
-As explained in TPIL, "every structure declaration introduces a namespace with the same name" and, still using the `point` structure example, "Given p : point nat, the notation p.x is shorthand for point.x p. This provides a convenient way of accessing the fields of a structure".
+As explained in TPIL, "every structure declaration introduces a namespace with the same name" and, still using the `point` structure example, "Given `p : point nat`, the notation `p.x` is shorthand for `point.x p`. This provides a convenient way of accessing the fields of a structure".
 
 But actually this trick has a wider scope. For every function `f` in the
 `point` namespace, `p.f` is `f` where the first explicit argument with
@@ -80,7 +80,7 @@ variable f : group_hom α β
 #check f.mul  -- f.mul : ∀ (a b : α), f.map (a * b) = f.map a * f.map b
 ```
 
-We see that `a` and `b` are explicit arguments to `f.mul`. The following 
+We see that `a` and `b` are explicit arguments to `f.mul` (of course we could have written `(mul : ∀ {a b : α}, map (a * b) = map a * map b)` but let's say we want both versions, for use in different situations). The following 
 is only restating that condition with different binders.
 
 ```lean

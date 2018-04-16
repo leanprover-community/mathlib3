@@ -125,23 +125,23 @@ def left_cosets.left_coset [group α] (s : set α) [is_subgroup s] (g : α) : {x
 set.ext $ λ z, by simp [eq_comm, mem_left_coset_iff]; refl
 
 namespace is_subgroup
-variable [group α]
+variables [group α] (s : set α) [is_subgroup s]
 
-def left_coset_equiv_subgroup (s : set α) [is_subgroup s] (g : α) : left_coset g s ≃ s :=
+def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
 ⟨λ x, ⟨g⁻¹ * x.1, (mem_left_coset_iff _).1 x.2⟩,
  λ x, ⟨g * x.1, x.1, x.2, rfl⟩,
  λ ⟨x, hx⟩, subtype.eq $ by simp,
  λ ⟨g, hg⟩, subtype.eq $ by simp⟩
 
-noncomputable def group_equiv_left_cosets_times_subgroup' (s : set α) [is_subgroup s] :
-  α ≃ (left_cosets' s × s) :=
-calc α ≃ Σ L : left_cosets' s, {x // ⟦x⟧ = L} :
+noncomputable def group_equiv_left_cosets_times_subgroup :
+  α ≃ (left_cosets s × s) :=
+calc α ≃ Σ L : left_cosets s, {x // ⟦x⟧ = L} :
   equiv.equiv_fib quotient.mk
-    ... ≃ Σ L : left_cosets' s, left_coset (quotient.out L) s :
+    ... ≃ Σ L : left_cosets s, left_coset (quotient.out L) s :
   equiv.sigma_congr_right (λ L, by rw ← left_cosets.left_coset; simp)
-    ... ≃ Σ L : left_cosets' s, s :
+    ... ≃ Σ L : left_cosets s, s :
   equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _ _)
-    ... ≃ (left_cosets' s × s) :
+    ... ≃ (left_cosets s × s) :
   equiv.sigma_equiv_prod _ _
 
 end is_subgroup

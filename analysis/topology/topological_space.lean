@@ -970,6 +970,16 @@ begin
     { rw [hb.2.1], trivial } }
 end
 
+lemma is_open_of_is_topological_basis {s : set α} {b : set (set α)}
+  (hb : is_topological_basis b) (hs : s ∈ b) : _root_.is_open s :=
+is_open_iff_mem_nhds.2 $ λ a as,
+(mem_nhds_of_is_topological_basis hb).2 ⟨s, hs, as, subset.refl _⟩
+
+lemma mem_basis_subset_of_mem_open {b : set (set α)}
+  (hb : is_topological_basis b) {a:α} (u : set α) (au : a ∈ u)
+  (ou : _root_.is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
+(mem_nhds_of_is_topological_basis hb).1 $ mem_nhds_sets ou au
+
 variables (α)
 
 /-- A separable space is one with a countable dense subset. -/

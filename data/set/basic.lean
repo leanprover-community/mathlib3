@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.finish data.sigma
+import tactic tactic.finish data.sigma
 open function
 
 namespace set
@@ -12,6 +12,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t 
 
 instance : inhabited (set α) := ⟨∅⟩
 
+@[extensionality]
 theorem ext {a b : set α} (h : ∀ x, x ∈ a ↔ x ∈ b) : a = b :=
 funext (assume x, propext (h x))
 

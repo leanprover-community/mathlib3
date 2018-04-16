@@ -118,4 +118,6 @@ meta def set_binder : expr → list binder_info → expr
  | (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
  | e _ := e
 
+
+
 end tactic

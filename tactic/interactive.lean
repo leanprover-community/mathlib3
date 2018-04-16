@@ -320,5 +320,21 @@ do p' ← to_expr p,
    ; intron (n-2) ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
    return ()
 
+@[user_attribute]
+meta def funext_attribte : user_attribute :=
+{ name := `extensionality,
+  descr := "lemmas usable by `funext` tactic" }
+
+attribute [extensionality] funext array.ext
+
+meta def ext1 (x : parse ident_ ?) : tactic unit :=
+do ls ← attribute.get_instances `extensionality,
+   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
+   interactive.intro x
+
+meta def ext : parse ident_ * → tactic unit
+ | [] := repeat (ext1 none)
+ | xs := xs.mmap' (ext1 ∘ some)
+
 end interactive
 end tactic

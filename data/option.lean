@@ -40,6 +40,22 @@ by cases x; simp
 lemma is_some_iff_exists {x : option α} : is_some x ↔ ∃ a, x = some a :=
 by cases x; simp [is_some]; exact ⟨_, rfl⟩
 
+lemma is_none_iff_eq_none {o : option α} : o.is_none ↔ o = none :=
+⟨option.eq_none_of_is_none, λ e, e.symm ▸ rfl⟩
+
+instance decidable_eq_none {o : option α} : decidable (o = none) :=
+decidable_of_bool _ is_none_iff_eq_none
+
+instance decidable_forall_mem {p : α → Prop} [decidable_pred p] :
+  ∀ o : option α, decidable (∀ a ∈ o, p a)
+| none     := is_true (by simp)
+| (some a) := decidable_of_iff (p a) (by simp)
+
+instance decidable_exists_mem {p : α → Prop} [decidable_pred p] :
+  ∀ o : option α, decidable (∃ a ∈ o, p a)
+| none     := is_false (by simp)
+| (some a) := decidable_of_iff (p a) (by simp)
+
 /-- inhabited `get` function. Returns `a` if the input is `some a`,
   otherwise returns `default`. -/
 @[reducible] def iget [inhabited α] : option α → α
@@ -59,7 +75,7 @@ o.bind (guard p)
   option.guard p a = some b ↔ a = b ∧ p a :=
 by by_cases p a; simp [option.guard, h]; intro; contradiction
 
-def to_list {α} : option α → list α 
+def to_list : option α → list α
 | none     := []
 | (some a) := [a]
 

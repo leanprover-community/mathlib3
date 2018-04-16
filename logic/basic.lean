@@ -248,6 +248,10 @@ decidable_of_decidable_of_iff D h
 def decidable_of_iff' (b : Prop) (h : a ↔ b) [D : decidable b] : decidable a :=
 decidable_of_decidable_of_iff D h.symm
 
+def decidable_of_bool : ∀ (b : bool) (h : b ↔ a), decidable a
+| tt h := is_true (h.1 rfl)
+| ff h := is_false (mt h.2 bool.ff_ne_tt)
+
 /- de morgan's laws -/
 
 theorem not_and_of_not_or_not (h : ¬ a ∨ ¬ b) : ¬ (a ∧ b) :=

@@ -125,10 +125,14 @@ instance left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
 
 def left_cosets [group α] (s : set α) [is_subgroup s] : Type* := quotient (left_rel s)
 
-instance left_cosets.inhabited [group α] (s : set α) [is_subgroup s] : inhabited (left_cosets s) := ⟨⟦1⟧⟩
+namespace left_cosets
 
-def left_cosets.left_coset [group α] (s : set α) [is_subgroup s] (g : α) : {x | ⟦x⟧ = ⟦g⟧} = left_coset g s :=
+instance [group α] (s : set α) [is_subgroup s] : inhabited (left_cosets s) := ⟨⟦1⟧⟩
+
+lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) : {x | ⟦x⟧ = ⟦g⟧} = left_coset g s :=
 set.ext $ λ z, by simp [eq_comm, mem_left_coset_iff]; refl
+
+end left_cosets
 
 namespace is_subgroup
 variables [group α] {s : set α}
@@ -144,7 +148,7 @@ noncomputable def group_equiv_left_cosets_times_subgroup (hs : is_subgroup s) :
 calc α ≃ Σ L : left_cosets s, {x // ⟦x⟧ = L} :
   equiv.equiv_fib quotient.mk
     ... ≃ Σ L : left_cosets s, left_coset (quotient.out L) s :
-  equiv.sigma_congr_right (λ L, by rw ← left_cosets.left_coset; simp)
+  equiv.sigma_congr_right (λ L, by rw ← left_cosets.eq_class_eq_left_coset; simp)
     ... ≃ Σ L : left_cosets s, s :
   equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _)
     ... ≃ (left_cosets s × s) :

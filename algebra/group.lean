@@ -482,7 +482,7 @@ end add_comm_group
 variables {β : Type*} [group α] [group β]
 
 /-- Predicate for group homomorphism. -/
-def is_group_hom (f : α → β) : Prop := 
+def is_group_hom (f : α → β) : Prop :=
 ∀ a b : α, f (a * b) = f a * f b
 
 attribute [class] is_group_hom

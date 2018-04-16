@@ -3029,3 +3029,6 @@ by simp [iota_eq_reverse_range', lt_succ_iff]
 by simp [enum, range_eq_range']
 
 end list
+
+theorem option.to_list_nodup {α} (o : option α) : o.to_list.nodup :=
+by cases o; simp [option.to_list]

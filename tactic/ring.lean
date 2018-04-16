@@ -312,7 +312,7 @@ do α0 ← expr.of_nat c.α 0,
 
 lemma subst_into_pow {α} [monoid α] (l r tl tr t)
   (prl : (l : α) = tl) (prr : (r : ℕ) = tr) (prt : tl ^ tr = t) : l ^ r = t :=
-by simp [prl, prr, prt] 
+by simp [prl, prr, prt]
 
 meta def eval (c : cache) : expr → tactic (expr × expr)
 | `(%%e₁ + %%e₂) := do

@@ -35,7 +35,7 @@ input theorem has the form A_iff_B or A_iff_B_left etc.
 import data.buffer.parser
 
 open lean.parser tactic interactive parser
-    
+
 namespace tactic.alias
 
 @[user_attribute] meta def alias_attr : user_attribute :=

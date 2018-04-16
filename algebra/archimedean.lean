@@ -107,7 +107,7 @@ let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 section linear_ordered_ring
 variables [linear_ordered_ring α] [archimedean α]
 
-lemma pow_unbounded_of_gt_one (x : α) {y : α} 
+lemma pow_unbounded_of_gt_one (x : α) {y : α}
     (hy1 : 1 < y) : ∃ n : ℕ, x < y ^ n :=
 have hy0 : 0 <  y - 1 := sub_pos_of_lt hy1,
 let ⟨n, h⟩ := archimedean.arch x hy0 in
@@ -178,7 +178,7 @@ theorem archimedean_iff_rat_lt :
 ⟨@exists_rat_gt α _,
   λ H, archimedean_iff_nat_lt.2 $ λ x,
   let ⟨q, h⟩ := H x in
-  ⟨rat.nat_ceil q, lt_of_lt_of_le h $ 
+  ⟨rat.nat_ceil q, lt_of_lt_of_le h $
     by simpa using (@rat.cast_le α _ _ _).2 (rat.le_nat_ceil _)⟩⟩
 
 theorem archimedean_iff_rat_le :

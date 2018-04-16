@@ -14,7 +14,7 @@ section old_structure_cmd
 
 set_option old_structure_cmd true
 
-/-- An ordered (additive) commutative monoid is a commutative monoid 
+/-- An ordered (additive) commutative monoid is a commutative monoid
   with a partial order such that addition is an order embedding, i.e.
   `a + b ≤ a + c ↔ b ≤ c`. These monoids are automatically cancellative. -/
 class ordered_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=

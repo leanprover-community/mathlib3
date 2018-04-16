@@ -20,7 +20,7 @@ coinductive wseq (α : Type u) : Type u
   involve an indeterminate amount of computation, including possibly
   an infinite loop. This is represented as a regular `seq` interspersed
   with `none` elements to indicate that computation is ongoing.
- 
+
   This model is appropriate for Haskell style lazy lists, and is closed
   under most interesting computation patterns on infinite lists,
   but conversely it is difficult to extract elements from it. -/

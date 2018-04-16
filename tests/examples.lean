@@ -26,7 +26,7 @@ end
 
 example (x y z : ℕ) (h'' : true) (h : 0 + y = x) (h' : 0 + y = z) : x = z + 0 :=
 begin
-  simp at *, 
+  simp at *,
   simp [h] at h',
   simp [*]
 end

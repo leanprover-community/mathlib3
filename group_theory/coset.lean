@@ -3,7 +3,7 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
-import group_theory.subgroup data.set.basic
+import group_theory.subgroup data.equiv data.quot
 open set function
 
 variable {α : Type*}
@@ -113,7 +113,7 @@ theorem normal_iff_eq_cosets : normal_subgroup s ↔ ∀ g, g *l s = s *r g :=
 
 end coset_subgroup
 
-instance left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
+def left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
 ⟨λ x y, x⁻¹ * y ∈ s,
   assume x, by simp [is_submonoid.one_mem],
   assume x y hxy,
@@ -126,6 +126,7 @@ instance left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
 def left_cosets [group α] (s : set α) [is_subgroup s] : Type* := quotient (left_rel s)
 
 namespace left_cosets
+local attribute [instance] left_rel
 
 instance [group α] (s : set α) [is_subgroup s] : inhabited (left_cosets s) := ⟨⟦1⟧⟩
 
@@ -142,6 +143,8 @@ def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
  λ x, ⟨g * x.1, x.1, x.2, rfl⟩,
  λ ⟨x, hx⟩, subtype.eq $ by simp,
  λ ⟨g, hg⟩, subtype.eq $ by simp⟩
+
+local attribute [instance] left_rel
 
 noncomputable def group_equiv_left_cosets_times_subgroup (hs : is_subgroup s) :
   α ≃ (left_cosets s × s) :=

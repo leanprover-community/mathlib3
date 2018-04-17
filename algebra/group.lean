@@ -482,35 +482,30 @@ end add_comm_group
 variables {β : Type*} [group α] [group β]
 
 /-- Predicate for group homomorphism. -/
-def is_group_hom (f : α → β) : Prop :=
-∀ a b : α, f (a * b) = f a * f b
-
-attribute [class] is_group_hom
+class is_group_hom (f : α → β) : Prop :=
+(mul : ∀ a b : α, f (a * b) = f a * f b)
 
 namespace is_group_hom
-variables (f : α → β) [w : is_group_hom f]
-include w
-
-theorem mul : ∀ a b : α, f (a * b) = f a * f b := w
+variables (f : α → β) [is_group_hom f]
 
 theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(w 1 1).symm]
+mul_self_iff_eq_one.1 $ by simp [(mul f 1 1).symm]
 
 theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq.symm $ inv_eq_of_mul_eq_one $ by simp [(w a a⁻¹).symm, one f]
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(mul f a a⁻¹).symm, one f]
 
 variables {γ : Type*} [group γ] {g : β → γ} [is_group_hom g]
 
-instance comp : is_group_hom (g ∘ f) := λ x y,  calc
+instance comp : is_group_hom (g ∘ f) := ⟨λ x y, calc
   g (f (x * y)) = g (f x * f y)       : by rw mul f
-  ...           = g (f x) * g (f y)   : by rw mul g
+  ...           = g (f x) * g (f y)   : by rw mul g⟩
 
 end is_group_hom
 
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/
-def is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
-∀ a b : α, f (a * b) = f b * f a
+class is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
+(mul : ∀ a b : α, f (a * b) = f b * f a)
 
 attribute [class] is_group_anti_hom
 
@@ -518,15 +513,13 @@ namespace is_group_anti_hom
 variables (f : α → β) [w : is_group_anti_hom f]
 include w
 
-theorem mul : ∀ a b : α, f (a * b) = f b * f a := w
-
 theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(w 1 1).symm]
+mul_self_iff_eq_one.1 $ by simp [(mul f 1 1).symm]
 
 theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq.symm $ inv_eq_of_mul_eq_one $ by simp [(w a⁻¹ a).symm, one f]
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(mul f a⁻¹ a).symm, one f]
 
 end is_group_anti_hom
 
 theorem inv_is_group_anti_hom [group α] : is_group_anti_hom (λ x : α, x⁻¹) :=
-mul_inv_rev
+⟨mul_inv_rev⟩

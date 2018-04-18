@@ -1449,6 +1449,10 @@ infix ` <:+: `:50 := is_infix
 
 @[simp] theorem infix_append (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ l₂ ++ l₃ := ⟨l₁, l₃, rfl⟩
 
+theorem nil_prefix (l : list α) : [] <+: l := ⟨l, rfl⟩
+
+theorem nil_suffix (l : list α) : [] <:+ l := ⟨l, append_nil _⟩
+
 @[refl] theorem prefix_refl (l : list α) : l <+: l := ⟨[], append_nil _⟩
 
 @[refl] theorem suffix_refl (l : list α) : l <:+ l := ⟨[], rfl⟩
@@ -1464,6 +1468,8 @@ theorem infix_of_suffix {l₁ l₂ : list α} : l₁ <:+ l₂ → l₁ <:+: l₂
 λ⟨t, h⟩, ⟨t, [], by simp [h]⟩
 
 @[refl] theorem infix_refl (l : list α) : l <:+: l := infix_of_prefix $ prefix_refl l
+
+theorem nil_infix (l : list α) : [] <:+: l := infix_of_prefix $ nil_prefix l
 
 @[trans] theorem is_prefix.trans : ∀ {l₁ l₂ l₃ : list α}, l₁ <+: l₂ → l₂ <+: l₃ → l₁ <+: l₃
 | l ._ ._ ⟨r₁, rfl⟩ ⟨r₂, rfl⟩ := ⟨r₁ ++ r₂, by simp⟩
@@ -1482,6 +1488,14 @@ sublist_of_infix ∘ infix_of_prefix
 
 theorem sublist_of_suffix {l₁ l₂ : list α} : l₁ <:+ l₂ → l₁ <+ l₂ :=
 sublist_of_infix ∘ infix_of_suffix
+
+theorem reverse_suffix {l₁ l₂ : list α} : reverse l₁ <:+ reverse l₂ ↔ l₁ <+: l₂ :=
+⟨λ ⟨r, e⟩, ⟨reverse r,
+  by rw [← reverse_reverse l₁, ← reverse_append, e, reverse_reverse]⟩,
+ λ ⟨r, e⟩, ⟨reverse r, by rw [← reverse_append, e]⟩⟩
+
+theorem reverse_prefix {l₁ l₂ : list α} : reverse l₁ <+: reverse l₂ ↔ l₁ <:+ l₂ :=
+by rw ← reverse_suffix; simp
 
 theorem length_le_of_infix {l₁ l₂ : list α} (s : l₁ <:+: l₂) : length l₁ ≤ length l₂ :=
 length_le_of_sublist $ sublist_of_infix s
@@ -1507,6 +1521,32 @@ eq_of_sublist_of_length_eq $ sublist_of_prefix s
 
 theorem eq_of_suffix_of_length_eq {l₁ l₂ : list α} (s : l₁ <:+ l₂) : length l₁ = length l₂ → l₁ = l₂ :=
 eq_of_sublist_of_length_eq $ sublist_of_suffix s
+
+theorem prefix_of_prefix_length_le : ∀ {l₁ l₂ l₃ : list α},
+ l₁ <+: l₃ → l₂ <+: l₃ → length l₁ ≤ length l₂ → l₁ <+: l₂
+| []      l₂ l₃ h₁ h₂ _ := nil_prefix _
+| (a::l₁) (b::l₂) _ ⟨r₁, rfl⟩ ⟨r₂, e⟩ ll := begin
+  injection e with _ e', subst b,
+  rcases prefix_of_prefix_length_le ⟨_, rfl⟩ ⟨_, e'⟩
+    (le_of_succ_le_succ ll) with ⟨r₃, rfl⟩,
+  exact ⟨r₃, rfl⟩
+end
+
+theorem prefix_or_prefix_of_prefix {l₁ l₂ l₃ : list α}
+ (h₁ : l₁ <+: l₃) (h₂ : l₂ <+: l₃) : l₁ <+: l₂ ∨ l₂ <+: l₁ :=
+(le_total (length l₁) (length l₂)).imp
+  (prefix_of_prefix_length_le h₁ h₂)
+  (prefix_of_prefix_length_le h₂ h₁)
+
+theorem suffix_of_suffix_length_le {l₁ l₂ l₃ : list α}
+ (h₁ : l₁ <:+ l₃) (h₂ : l₂ <:+ l₃) (ll : length l₁ ≤ length l₂) : l₁ <:+ l₂ :=
+reverse_prefix.1 $ prefix_of_prefix_length_le
+  (reverse_prefix.2 h₁) (reverse_prefix.2 h₂) (by simp [ll])
+
+theorem suffix_or_suffix_of_suffix {l₁ l₂ l₃ : list α}
+ (h₁ : l₁ <:+ l₃) (h₂ : l₂ <:+ l₃) : l₁ <:+ l₂ ∨ l₂ <:+ l₁ :=
+(prefix_or_prefix_of_prefix (reverse_prefix.2 h₁) (reverse_prefix.2 h₂)).imp
+  reverse_prefix.1 reverse_prefix.1
 
 theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: join L
 | (_  :: L) l (or.inl rfl) := infix_append [] _ _

@@ -511,7 +511,7 @@ def module_equiv_lc (hs : is_basis s) : β ≃ (s →₀ α) :=
               by dsimp; rw [repr_smul hs.1 (hs.2 _), repr_eq_single _ hb']; refl
         ... = ({⟨b, hb⟩} : finset s).sum (λb', v b' * (finsupp.single b'.val 1 : lc α β) b) :
           finset.sum_bij_ne_zero (λx hx x0, x)
-            (assume ⟨x, hx⟩, by by_cases x = b; simp [*]) (by simp) (by simp)
+            (assume ⟨x, hx⟩, by by_cases x = b; simp [*]) (by simp)
             (assume ⟨x, hx⟩, by simp; intro e; subst x;
                exact assume h, ⟨b, hb, assume h', by simp * at *, h, rfl⟩)
             (by simp)

@@ -152,9 +152,9 @@ calc s.prod f = s.attach.prod (λx, f x.val) : prod_attach.symm
 
 @[to_additive finset.sum_bij_ne_zero]
 lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
-  (i : Πa∈s, f a ≠ 1 → γ) (hi₁ : ∀a h₁ h₂, i a h₁ h₂ ∈ t) (hi₂ : ∀a h₁ h₂, g (i a h₁ h₂) ≠ 1)
-  (hi₃ : ∀a₁ a₂ h₁₁ h₁₂ h₂₁ h₂₂, i a₁ h₁₁ h₁₂ = i a₂ h₂₁ h₂₂ → a₁ = a₂)
-  (hi₄ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
+  (i : Πa∈s, f a ≠ 1 → γ) (hi₁ : ∀a h₁ h₂, i a h₁ h₂ ∈ t)
+  (hi₂ : ∀a₁ a₂ h₁₁ h₁₂ h₂₁ h₂₂, i a₁ h₁₁ h₁₂ = i a₂ h₂₁ h₂₂ → a₁ = a₂)
+  (hi₃ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
   (h : ∀a h₁ h₂, f a = g (i a h₁ h₂)) :
   s.prod f = t.prod g :=
 by haveI := classical.prop_decidable; exact
@@ -162,12 +162,13 @@ calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
     (prod_subset (filter_subset _) $ by simp {contextual:=tt}).symm
   ... = (t.filter $ λx, g x ≠ 1).prod g :
     prod_bij (assume a ha, i a (mem_filter.mp ha).1 (mem_filter.mp ha).2)
-      (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr ⟨hi₁ a h₁ h₂, hi₂ a h₁ h₂⟩)
+      (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr
+        ⟨hi₁ a h₁ h₂, λ hg, h₂ (hg ▸ h a h₁ h₂)⟩)
       (assume a ha, (mem_filter.mp ha).elim $ h a)
       (assume a₁ a₂ ha₁ ha₂,
-        (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₃ a₁ a₂ _ _ _ _)
+        (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₂ a₁ a₂ _ _ _ _)
       (assume b hb, (mem_filter.mp hb).elim $ λh₁ h₂,
-        let ⟨a, ha₁, ha₂, eq⟩ := hi₄ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
+        let ⟨a, ha₁, ha₂, eq⟩ := hi₃ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
   ... = t.prod g :
     (prod_subset (filter_subset _) $ by simp {contextual:=tt})
 
@@ -237,6 +238,33 @@ variables [comm_semiring β]
 lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : s.prod f = 0 :=
 calc s.prod f = (insert a (erase s a)).prod f : by simp [ha, insert_erase]
   ... = 0 : by simp [h]
+
+lemma prod_sum {δ : α → Type*} [∀a, decidable_eq (δ a)]
+  {s : finset α} {t : Πa, finset (δ a)} {f : Πa, δ a → β} :
+  s.prod (λa, (t a).sum (λb, f a b)) =
+    (s.pi t).sum (λp, s.attach.prod (λx, f x.1 (p x.1 x.2))) :=
+begin
+  induction s using finset.induction with a s ha ih,
+  { simp },
+  { have h₁ : ∀x ∈ t a, ∀y∈t a, ∀h : x ≠ y,
+        image (pi.cons s a x) (pi s t) ∩ image (pi.cons s a y) (pi s t) = ∅,
+    { assume x hx y hy h,
+      apply eq_empty_of_forall_not_mem,
+      simp,
+      assume p₁ p₂ hp eq p₃ hp₃ eq', subst eq',
+      have : pi.cons s a x p₂ a (mem_insert_self _ _) = pi.cons s a y p₃ a (mem_insert_self _ _),
+      { rw [eq] },
+      rw [pi.cons_same, pi.cons_same] at this,
+      exact h this },
+    have h₂ : ∀b:δ a, ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
+      assume b p₁ h₁ p₂ h₂ eq, injective_pi_cons ha eq,
+    have h₃ : ∀(v:{x // x ∈ s}) (b:δ a) (h : v.1 ∈ insert a s) (p : Πa, a ∈ s → δ a),
+        pi.cons s a b p v.1 h = p v.1 v.2, from
+      assume v b h p, pi.cons_ne $ assume eq, ha $ eq.symm ▸ v.2,
+    simp [ha, ih, sum_bind h₁, sum_image (h₂ _), sum_mul, h₃],
+    simp [mul_sum] }
+end
+
 end comm_semiring
 
 section integral_domain /- add integral_semi_domain to support nat and ennreal -/
@@ -318,15 +346,15 @@ section group
 open list
 variables [group α] [group β]
 
-theorem is_group_hom.prod {f : α → β} (H : is_group_hom f) (l : list α) :
+theorem is_group_hom.prod {f : α → β} [is_group_hom f] (l : list α) :
   f (prod l) = prod (map f l) :=
-by induction l; simp [*, H.mul, H.one]
+by induction l; simp [*, is_group_hom.mul f, is_group_hom.one f]
 
-theorem is_group_anti_hom.prod {f : α → β} (H : is_group_anti_hom f) (l : list α) :
+theorem is_group_anti_hom.prod {f : α → β} [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
-by induction l; simp [*, H.mul, H.one]
+by induction l; simp [*, is_group_anti_hom.mul f, is_group_anti_hom.one f]
 
 theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) :=
-inv_is_group_anti_hom.prod
+λ l, @is_group_anti_hom.prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
 
 end group

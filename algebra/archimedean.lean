@@ -7,6 +7,8 @@ Archimedean groups and fields.
 -/
 import algebra.group_power data.rat data.int.order
 
+local infix ` • ` := add_monoid.smul
+
 variables {α : Type*}
 
 class floor_ring (α) extends linear_ordered_ring α :=
@@ -94,7 +96,7 @@ by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one
 end
 
 class archimedean (α) [ordered_comm_monoid α] : Prop :=
-(arch : ∀ (x : α) {y}, 0 < y → ∃ n, x ≤ n • y)
+(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
@@ -105,13 +107,13 @@ let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 section linear_ordered_ring
 variables [linear_ordered_ring α] [archimedean α]
 
-lemma pow_unbounded_of_gt_one (x : α) {y : α} 
-    (hy1 : 1 < y) : ∃ n : ℕ, x < monoid.pow y n :=
+lemma pow_unbounded_of_gt_one (x : α) {y : α}
+    (hy1 : 1 < y) : ∃ n : ℕ, x < y ^ n :=
 have hy0 : 0 <  y - 1 := sub_pos_of_lt hy1,
 let ⟨n, h⟩ := archimedean.arch x hy0 in
 ⟨n, calc x ≤ n • (y - 1)     : h
        ... < 1 + n • (y - 1) : by rw add_comm; exact lt_add_one _
-       ... ≤ monoid.pow y n  : pow_ge_one_add_sub_mul (le_of_lt hy1) _⟩
+       ... ≤ y ^ n           : pow_ge_one_add_sub_mul (le_of_lt hy1) _⟩
 
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
 let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by simp [h]⟩
@@ -176,7 +178,7 @@ theorem archimedean_iff_rat_lt :
 ⟨@exists_rat_gt α _,
   λ H, archimedean_iff_nat_lt.2 $ λ x,
   let ⟨q, h⟩ := H x in
-  ⟨rat.nat_ceil q, lt_of_lt_of_le h $ 
+  ⟨rat.nat_ceil q, lt_of_lt_of_le h $
     by simpa using (@rat.cast_le α _ _ _).2 (rat.le_nat_ceil _)⟩⟩
 
 theorem archimedean_iff_rat_le :

@@ -151,7 +151,7 @@ by simp [subset_def, or_imp_distrib, forall_and_distrib]
 
 theorem cons_subset_of_subset_of_mem {a : α} {l m : list α}
   (ainm : a ∈ m) (lsubm : l ⊆ m) : a::l ⊆ m :=
-cons_subset.2 ⟨ainm, lsubm⟩ 
+cons_subset.2 ⟨ainm, lsubm⟩
 
 theorem app_subset_of_subset_of_subset {l₁ l₂ l : list α} (l₁subl : l₁ ⊆ l) (l₂subl : l₂ ⊆ l) :
   l₁ ++ l₂ ⊆ l :=
@@ -215,27 +215,33 @@ theorem append_inj : ∀ {s₁ s₂ t₁ t₂ : list α}, s₁ ++ t₁ = s₂ ++
   let ⟨e1, e2⟩ := @append_inj s₁ s₂ t₁ t₂ hap (succ.inj hl) in
   by rw [ab, e1, e2]; exact ⟨rfl, rfl⟩
 
-theorem append_inj_left {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : s₁ = s₂ :=
-(append_inj h hl).left
-
-theorem append_inj_right {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : t₁ = t₂ :=
+theorem append_inj_left {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : t₁ = t₂ :=
 (append_inj h hl).right
+
+theorem append_inj_right {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : s₁ = s₂ :=
+(append_inj h hl).left
 
 theorem append_inj' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : s₁ = s₂ ∧ t₁ = t₂ :=
 append_inj h $ @nat.add_right_cancel _ (length t₁) _ $
 let hap := congr_arg length h in by simp at hap; rwa [← hl] at hap
 
-theorem append_inj_left' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : s₁ = s₂ :=
-(append_inj' h hl).left
-
-theorem append_inj_right' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : t₁ = t₂ :=
+theorem append_inj_left' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : t₁ = t₂ :=
 (append_inj' h hl).right
 
-theorem append_left_cancel {s₁ s₂ t : list α} (h : s₁ ++ t = s₂ ++ t) : s₁ = s₂ :=
-append_inj_left' h rfl
+theorem append_inj_right' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : s₁ = s₂ :=
+(append_inj' h hl).left
 
-theorem append_right_cancel {s t₁ t₂ : list α} (h : s ++ t₁ = s ++ t₂) : t₁ = t₂ :=
-append_inj_right h rfl
+theorem append_left_cancel {s t₁ t₂ : list α} (h : s ++ t₁ = s ++ t₂) : t₁ = t₂ :=
+append_inj_left h rfl
+
+theorem append_right_cancel {s₁ s₂ t : list α} (h : s₁ ++ t = s₂ ++ t) : s₁ = s₂ :=
+append_inj_right' h rfl
+
+theorem append_left_inj {t₁ t₂ : list α} (s) : s ++ t₁ = s ++ t₂ ↔ t₁ = t₂ :=
+⟨append_left_cancel, congr_arg _⟩
+
+theorem append_right_inj {s₁ s₂ : list α} (t) : s₁ ++ t = s₂ ++ t ↔ s₁ = s₂ :=
+⟨append_right_cancel, congr_arg _⟩
 
 theorem eq_of_mem_repeat {a b : α} : ∀ {n}, b ∈ repeat a n → b = a
 | (n+1) h := or.elim h id $ @eq_of_mem_repeat _
@@ -1449,6 +1455,10 @@ infix ` <:+: `:50 := is_infix
 
 @[simp] theorem infix_append (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ l₂ ++ l₃ := ⟨l₁, l₃, rfl⟩
 
+theorem nil_prefix (l : list α) : [] <+: l := ⟨l, rfl⟩
+
+theorem nil_suffix (l : list α) : [] <:+ l := ⟨l, append_nil _⟩
+
 @[refl] theorem prefix_refl (l : list α) : l <+: l := ⟨[], append_nil _⟩
 
 @[refl] theorem suffix_refl (l : list α) : l <:+ l := ⟨[], rfl⟩
@@ -1464,6 +1474,8 @@ theorem infix_of_suffix {l₁ l₂ : list α} : l₁ <:+ l₂ → l₁ <:+: l₂
 λ⟨t, h⟩, ⟨t, [], by simp [h]⟩
 
 @[refl] theorem infix_refl (l : list α) : l <:+: l := infix_of_prefix $ prefix_refl l
+
+theorem nil_infix (l : list α) : [] <:+: l := infix_of_prefix $ nil_prefix l
 
 @[trans] theorem is_prefix.trans : ∀ {l₁ l₂ l₃ : list α}, l₁ <+: l₂ → l₂ <+: l₃ → l₁ <+: l₃
 | l ._ ._ ⟨r₁, rfl⟩ ⟨r₂, rfl⟩ := ⟨r₁ ++ r₂, by simp⟩
@@ -1482,6 +1494,14 @@ sublist_of_infix ∘ infix_of_prefix
 
 theorem sublist_of_suffix {l₁ l₂ : list α} : l₁ <:+ l₂ → l₁ <+ l₂ :=
 sublist_of_infix ∘ infix_of_suffix
+
+theorem reverse_suffix {l₁ l₂ : list α} : reverse l₁ <:+ reverse l₂ ↔ l₁ <+: l₂ :=
+⟨λ ⟨r, e⟩, ⟨reverse r,
+  by rw [← reverse_reverse l₁, ← reverse_append, e, reverse_reverse]⟩,
+ λ ⟨r, e⟩, ⟨reverse r, by rw [← reverse_append, e]⟩⟩
+
+theorem reverse_prefix {l₁ l₂ : list α} : reverse l₁ <+: reverse l₂ ↔ l₁ <:+ l₂ :=
+by rw ← reverse_suffix; simp
 
 theorem length_le_of_infix {l₁ l₂ : list α} (s : l₁ <:+: l₂) : length l₁ ≤ length l₂ :=
 length_le_of_sublist $ sublist_of_infix s
@@ -1508,10 +1528,88 @@ eq_of_sublist_of_length_eq $ sublist_of_prefix s
 theorem eq_of_suffix_of_length_eq {l₁ l₂ : list α} (s : l₁ <:+ l₂) : length l₁ = length l₂ → l₁ = l₂ :=
 eq_of_sublist_of_length_eq $ sublist_of_suffix s
 
+theorem prefix_of_prefix_length_le : ∀ {l₁ l₂ l₃ : list α},
+ l₁ <+: l₃ → l₂ <+: l₃ → length l₁ ≤ length l₂ → l₁ <+: l₂
+| []      l₂ l₃ h₁ h₂ _ := nil_prefix _
+| (a::l₁) (b::l₂) _ ⟨r₁, rfl⟩ ⟨r₂, e⟩ ll := begin
+  injection e with _ e', subst b,
+  rcases prefix_of_prefix_length_le ⟨_, rfl⟩ ⟨_, e'⟩
+    (le_of_succ_le_succ ll) with ⟨r₃, rfl⟩,
+  exact ⟨r₃, rfl⟩
+end
+
+theorem prefix_or_prefix_of_prefix {l₁ l₂ l₃ : list α}
+ (h₁ : l₁ <+: l₃) (h₂ : l₂ <+: l₃) : l₁ <+: l₂ ∨ l₂ <+: l₁ :=
+(le_total (length l₁) (length l₂)).imp
+  (prefix_of_prefix_length_le h₁ h₂)
+  (prefix_of_prefix_length_le h₂ h₁)
+
+theorem suffix_of_suffix_length_le {l₁ l₂ l₃ : list α}
+ (h₁ : l₁ <:+ l₃) (h₂ : l₂ <:+ l₃) (ll : length l₁ ≤ length l₂) : l₁ <:+ l₂ :=
+reverse_prefix.1 $ prefix_of_prefix_length_le
+  (reverse_prefix.2 h₁) (reverse_prefix.2 h₂) (by simp [ll])
+
+theorem suffix_or_suffix_of_suffix {l₁ l₂ l₃ : list α}
+ (h₁ : l₁ <:+ l₃) (h₂ : l₂ <:+ l₃) : l₁ <:+ l₂ ∨ l₂ <:+ l₁ :=
+(prefix_or_prefix_of_prefix (reverse_prefix.2 h₁) (reverse_prefix.2 h₂)).imp
+  reverse_prefix.1 reverse_prefix.1
+
 theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: join L
 | (_  :: L) l (or.inl rfl) := infix_append [] _ _
 | (l' :: L) l (or.inr h)   :=
   is_infix.trans (infix_of_mem_join h) $ infix_of_suffix $ suffix_append _ _
+
+theorem prefix_append_left_inj {l₁ l₂ : list α} (l) : l ++ l₁ <+: l ++ l₂ ↔ l₁ <+: l₂ :=
+exists_congr $ λ r, by rw [append_assoc, append_left_inj]
+
+theorem prefix_cons_inj {l₁ l₂ : list α} (a) : a :: l₁ <+: a :: l₂ ↔ l₁ <+: l₂ :=
+prefix_append_left_inj [a]
+
+theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop _ _⟩
+
+theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩
+
+theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
+⟨λ h, let ⟨r, e⟩ := h in begin
+  rwa append_inj_left ((take_append_drop (length l₁) l₂).trans e.symm) _,
+  simp [min_eq_left, length_le_of_sublist (sublist_of_prefix h)],
+end, λ e, ⟨_, e⟩⟩
+
+theorem suffix_iff_eq_append {l₁ l₂ : list α} : l₁ <:+ l₂ ↔ take (length l₂ - length l₁) l₂ ++ l₁ = l₂ :=
+⟨λ ⟨r, e⟩, begin
+  rwa append_inj_right ((take_append_drop (length l₂ - length l₁) l₂).trans e.symm) _,
+  simp [min_eq_left, nat.sub_le, e.symm],
+  apply nat.add_sub_cancel_left
+end, λ e, ⟨_, e⟩⟩
+
+theorem prefix_iff_eq_take {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ = take (length l₁) l₂ :=
+⟨λ h, append_right_cancel $
+  (prefix_iff_eq_append.1 h).trans (take_append_drop _ _).symm,
+ λ e, e.symm ▸ take_prefix _ _⟩
+
+theorem suffix_iff_eq_drop {l₁ l₂ : list α} : l₁ <:+ l₂ ↔ l₁ = drop (length l₂ - length l₁) l₂ :=
+⟨λ h, append_left_cancel $
+  (suffix_iff_eq_append.1 h).trans (take_append_drop _ _).symm,
+ λ e, e.symm ▸ drop_suffix _ _⟩
+
+instance decidable_prefix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <+: l₂)
+| []      l₂ := is_true ⟨l₂, rfl⟩
+| (a::l₁) [] := is_false $ λ ⟨t, te⟩, list.no_confusion te
+| (a::l₁) (b::l₂) :=
+  if h : a = b then
+    @decidable_of_iff _ _ (by rw [← h, prefix_cons_inj])
+      (decidable_prefix l₁ l₂)
+  else
+    is_false $ λ ⟨t, te⟩, h $ by injection te
+
+-- Alternatively, use mem_tails
+instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+ l₂)
+| []      l₂ := is_true ⟨l₂, append_nil _⟩
+| (a::l₁) [] := is_false $ mt (length_le_of_sublist ∘ sublist_of_suffix) dec_trivial
+| l₁      l₂ := let len1 := length l₁, len2 := length l₂ in
+  if hl : len1 ≤ len2 then
+    decidable_of_iff' (l₁ = drop (len2-len1) l₂) suffix_iff_eq_drop
+  else is_false $ λ h, hl $ length_le_of_sublist $ sublist_of_suffix h
 
 /-- `inits l` is the list of initial segments of `l`.
   `inits [1, 2, 3] = [[], [1], [1, 2], [1, 2, 3]]` -/
@@ -1550,6 +1648,14 @@ theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: joi
   | ._, t, ⟨[], rfl⟩ := or.inl rfl
   | s, t, ⟨b::l, he⟩ := list.no_confusion he (λab lt, or.inr ⟨l, lt⟩)
   end⟩
+
+instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
+| []      l₂ := is_true ⟨[], l₂, rfl⟩
+| (a::l₁) [] := is_false $ λ⟨s, t, te⟩, absurd te $ append_ne_nil_of_ne_nil_left _ _ $
+                append_ne_nil_of_ne_nil_right _ _ $ λh, list.no_confusion h
+| l₁      l₂ := decidable_of_decidable_of_iff (list.decidable_bex (λt, l₁ <+: t) (tails l₂)) $
+  by refine (exists_congr (λt, _)).trans (infix_iff_prefix_suffix _ _).symm;
+     exact ⟨λ⟨h1, h2⟩, ⟨h2, (mem_tails _ _).1 h1⟩, λ⟨h2, h1⟩, ⟨(mem_tails _ _).2 h1, h2⟩⟩
 
 /- sublists -/
 
@@ -1726,43 +1832,6 @@ reverse_rec_on l (nil_sublist _) $
 ((append_sublist_append_left _).2
   (singleton_sublist.2 $ mem_map.2 ⟨[], by simp [list.ret]⟩)).trans
 ((append_sublist_append_right _).2 IH)
-
-instance decidable_prefix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <+: l₂)
-| []      l₂ := is_true ⟨l₂, rfl⟩
-| (a::l₁) [] := is_false $ λ⟨t, te⟩, list.no_confusion te
-| (a::l₁) (b::l₂) :=
-  if h : a = b then
-    decidable_of_decidable_of_iff (decidable_prefix l₁ l₂) $ by rw [← h]; exact
-      ⟨λ⟨t, te⟩, ⟨t, by rw [← te]; refl⟩,
-       λ⟨t, te⟩, list.no_confusion te (λ_ te, ⟨t, te⟩)⟩
-  else
-    is_false $ λ⟨t, te⟩, list.no_confusion te $ λh', absurd h' h
-
--- Alternatively, use mem_tails
-instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+ l₂)
-| []      l₂ := is_true ⟨l₂, append_nil _⟩
-| (a::l₁) [] := is_false $ λ⟨t, te⟩, absurd te $
-                append_ne_nil_of_ne_nil_right _ _ $ λh, list.no_confusion h
-| l₁      l₂ := let len1 := length l₁, len2 := length l₂ in
-  if hl : len1 ≤ len2 then
-    if he : drop (len2 - len1) l₂ = l₁ then is_true $
-      ⟨take (len2 - len1) l₂, by rw [← he, take_append_drop]⟩
-    else is_false $
-      suffices length l₁ ≤ length l₂ → l₁ <:+ l₂ → drop (length l₂ - length l₁) l₂ = l₁,
-        from λsuf, he (this hl suf),
-      λ hl ⟨t, te⟩, append_inj_right'
-        ((take_append_drop (length l₂ - length l₁) l₂).trans te.symm)
-        (by simp; exact nat.sub_sub_self hl)
-  else is_false $ λ⟨t, te⟩, hl $
-    show length l₁ ≤ length l₂, by rw [← te, length_append]; apply nat.le_add_left
-
-instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
-| []      l₂ := is_true ⟨[], l₂, rfl⟩
-| (a::l₁) [] := is_false $ λ⟨s, t, te⟩, absurd te $ append_ne_nil_of_ne_nil_left _ _ $
-                append_ne_nil_of_ne_nil_right _ _ $ λh, list.no_confusion h
-| l₁      l₂ := decidable_of_decidable_of_iff (list.decidable_bex (λt, l₁ <+: t) (tails l₂)) $
-  by refine (exists_congr (λt, _)).trans (infix_iff_prefix_suffix _ _).symm;
-     exact ⟨λ⟨h1, h2⟩, ⟨h2, (mem_tails _ _).1 h1⟩, λ⟨h2, h1⟩, ⟨(mem_tails _ _).2 h1, h2⟩⟩
 
 /- transpose -/
 
@@ -3029,3 +3098,6 @@ by simp [iota_eq_reverse_range', lt_succ_iff]
 by simp [enum, range_eq_range']
 
 end list
+
+theorem option.to_list_nodup {α} (o : option α) : o.to_list.nodup :=
+by cases o; simp [option.to_list]

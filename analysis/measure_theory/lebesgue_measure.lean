@@ -18,7 +18,7 @@ Important: if `s` is not a interval [a, b) its value is `∞`. This is important
 Lebesgue measure. -/
 def lebesgue_length (s : set ℝ) : ennreal := ⨅a b (h₁ : a ≤ b) (h₂ : s = Ico a b), of_real (b - a)
 
-@[simp] lemma lebesgue_length_Ico {a b : ℝ} (h : a ≤ b) :
+lemma lebesgue_length_Ico' {a b : ℝ} (h : a ≤ b) :
   lebesgue_length (Ico a b) = of_real (b - a) :=
 le_antisymm
   (infi_le_of_le a $ infi_le_of_le b $ infi_le_of_le h $ infi_le_of_le rfl $ le_refl _)
@@ -32,25 +32,22 @@ le_antisymm
     end)
 
 @[simp] lemma lebesgue_length_empty : lebesgue_length ∅ = 0 :=
-have ∅ = Ico 0 (0:ℝ),
-  from set.ext $ by simp [Ico, not_le],
-by rw [this, lebesgue_length_Ico]; simp [le_refl]
+by rw [← (Ico_self : Ico 0 (0:ℝ) = ∅), lebesgue_length_Ico'];
+   simp [le_refl]
 
-lemma le_lebesgue_length {r : ennreal} {s : set ℝ } (h : ∀a b, a ≤ b → s ≠ Ico a b) :
+@[simp] lemma lebesgue_length_Ico {a b : ℝ} :
+  lebesgue_length (Ico a b) = of_real (b - a) :=
+(le_total a b).elim lebesgue_length_Ico' $ λ h,
+  by rw [ennreal.of_real_of_nonpos (sub_nonpos.2 h), Ico_eq_empty h]; simp
+
+lemma le_lebesgue_length {r : ennreal} {s : set ℝ} (h : ∀a b, a ≤ b → s ≠ Ico a b) :
   r ≤ lebesgue_length s :=
 le_infi $ assume a, le_infi $ assume b, le_infi $ assume hab, le_infi $ assume heq, (h a b hab heq).elim
 
-lemma lebesgue_length_Ico_le_lebesgue_length_Ico {a₁ b₁ a₂ b₂ : ℝ} (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) :
-  lebesgue_length (Ico a₁ b₁) ≤ lebesgue_length (Ico a₂ b₂) :=
-(le_total b₁ a₁).elim
-  (assume : b₁ ≤ a₁, by simp [Ico_eq_empty_iff.mpr this])
-  (assume h₁ : a₁ ≤ b₁,
-    have h₂ : a₂ ≤ b₂, from le_trans (le_trans ha h₁) hb,
-    by simp [h₁, h₂, -sub_eq_add_neg]; exact sub_le_sub hb ha)
-
 lemma lebesgue_length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
-  (hab : a ≤ b) (hcd : ∀i, c i ≤ d i) (habcd : Ico a b ⊆ (⋃i, Ico (c i) (d i))) :
+  (hcd : ∀i, c i ≤ d i) (habcd : Ico a b ⊆ (⋃i, Ico (c i) (d i))) :
   lebesgue_length (Ico a b) ≤ (∑i, lebesgue_length (Ico (c i) (d i))) :=
+(le_total b a).elim (λ h, by rw [Ico_eq_empty h]; simp) $ λ hab,
 let
   s := λx, ∑i, lebesgue_length (Ico (c i) (min (d i) x)),
   M := {x : ℝ | a ≤ x ∧ x ≤ b ∧ of_real (x - a) ≤ s x }
@@ -72,8 +69,8 @@ have hxb : x ≤ b, from hx.right b ‹b ∈ upper_bounds M›,
 have hx_sx : of_real (x - a) ≤ s x,
   from h'.right _ $ assume r ⟨y, hy, eq⟩,
     have ∀i, lebesgue_length (Ico (c i) (min (d i) y)) ≤ lebesgue_length (Ico (c i) (min (d i) x)),
-      from assume i,
-      lebesgue_length_Ico_le_lebesgue_length_Ico (le_refl _) (inf_le_inf (le_refl _) (hx.left _ hy)),
+      from assume i, by simp; exact
+      ennreal.of_real_le_of_real (add_le_add_right (inf_le_inf (le_refl _) (hx.left _ hy)) _),
     eq ▸ le_trans hy.2.2 $ ennreal.tsum_le_tsum this,
 have hxM : x ∈ M,
   from ⟨hax, hxb, hx_sx⟩,
@@ -101,37 +98,32 @@ have x = b,
             have h : c k ≤ y, from le_min (hcd _) (le_trans hxc $ le_of_lt hxb),
             have eq: y - x + (x - c k) = y - c k, by rw [add_sub, sub_add_cancel],
             by simp [h, hxy, hxc, eq, eq₁, eq₂, this, -sub_eq_add_neg, add_sub_cancel'_right, le_refl])
-          (assume h : i ≠ k, by simp [h, ennreal.bot_eq_zero];
-            from lebesgue_length_Ico_le_lebesgue_length_Ico (le_refl _) (inf_le_inf (le_refl _) hxy)),
+          (assume h : i ≠ k, by simp [h];
+            from ennreal.of_real_le_of_real (add_le_add_right (inf_le_inf (le_refl _) hxy) _)),
   have ¬ x < y, from not_lt.mpr $ hx.left y ⟨le_trans hax hxy, min_le_right _ _, this⟩,
   this hxy',
 have hbM : b ∈ M, from this ▸ hxM,
 calc lebesgue_length (Ico a b) ≤ s b : by simp [hab]; exact hbM.right.right
   ... ≤ ∑i, lebesgue_length (Ico (c i) (d i)) : ennreal.tsum_le_tsum $ assume a,
-    lebesgue_length_Ico_le_lebesgue_length_Ico (le_refl _) (min_le_left _ _)
+    by simp; exact ennreal.of_real_le_of_real (add_le_add_right (min_le_left _ _) _)
 
 /-- The Lebesgue outer measure, as an outer measure of ℝ. -/
 def lebesgue_outer : outer_measure ℝ :=
 outer_measure.of_function lebesgue_length lebesgue_length_empty
 
-lemma lebesgue_outer_Ico {a b : ℝ} (h : a ≤ b) :
+lemma lebesgue_outer_Ico {a b : ℝ} :
   lebesgue_outer.measure_of (Ico a b) = of_real (b - a) :=
 le_antisymm
-  (let f : ℕ → set ℝ := λi, nat.rec_on i (Ico a b) (λn s, ∅) in
-    infi_le_of_le f $ infi_le_of_le (subset_Union f 0) $
-    calc (∑i, lebesgue_length (f i)) = ({0} : finset ℕ).sum (λi, lebesgue_length (f i)) :
-        tsum_eq_sum $ by intro i; cases i; simp
-      ... = lebesgue_length (Ico a b) : by simp; refl
-      ... ≤ of_real (b - a) : by simp [h])
+  (by rw ← lebesgue_length_Ico; apply outer_measure.of_function_le)
   (le_infi $ assume f, le_infi $ assume hf, by_cases
     (assume : ∀i, ∃p:ℝ×ℝ, p.1 ≤ p.2 ∧ f i = Ico p.1 p.2,
       let ⟨cd, hcd⟩ := axiom_of_choice this in
       have hcd₁ : ∀i, (cd i).1 ≤ (cd i).2, from assume i, (hcd i).1,
       have hcd₂ : ∀i, f i = Ico (cd i).1 (cd i).2, from assume i, (hcd i).2,
       calc of_real (b - a) = lebesgue_length (Ico a b) :
-          by simp [h]
+          by simp
         ... ≤ (∑i, lebesgue_length (Ico (cd i).1 (cd i).2)) :
-          lebesgue_length_subadditive h hcd₁ (by simpa [hcd₂] using hf)
+          lebesgue_length_subadditive hcd₁ (by simpa [hcd₂] using hf)
         ... = _ :
           by simp [hcd₂])
     (assume h,
@@ -174,91 +166,26 @@ tendsto_infi.2 $ assume r, tendsto_principal.2 $
 let ⟨n, hn⟩ := exists_nat_gt r in
 mem_at_top_sets.2 ⟨n, λ m h, le_trans (le_of_lt hn) (nat.cast_le.2 h)⟩
 
-lemma lebesgue_Ico {a b : ℝ} : lebesgue.measure (Ico a b) = of_real (b - a) :=
-match le_total a b with
-| or.inl h :=
-  begin
-    rw [lebesgue.measure_eq is_measurable_Ico],
-    { exact lebesgue_outer_Ico h },
-    repeat {apply_instance}
-  end
-| or.inr h :=
-  have hba : b - a ≤ 0, by simp [-sub_eq_add_neg, h],
-  have eq : Ico a b = ∅, from Ico_eq_empty_iff.mpr h,
-  by simp [ennreal.of_real_of_nonpos, *] at *
-end
+@[simp] lemma lebesgue_Ico {a b : ℝ} : lebesgue (Ico a b) = of_real (b - a) :=
+by rw [lebesgue.measure_eq is_measurable_Ico]; exact lebesgue_outer_Ico
 
-lemma lebesgue_Ioo {a b : ℝ} : lebesgue.measure (Ioo a b) = of_real (b - a) :=
-by_cases (assume h : b ≤ a, by simp [h, -sub_eq_add_neg, ennreal.of_real_of_nonpos]) $
-assume : ¬ b ≤ a,
-have h : a < b, from not_le.mp this,
-let s := λn:ℕ, a + (b - a) * (↑(n + 1))⁻¹ in
-have tendsto s at_top (nhds (a + (b - a) * 0)),
-  from tendsto_add tendsto_const_nhds $ tendsto_mul tendsto_const_nhds $
-   (tendsto_comp_succ_at_top_iff.mpr tendsto_of_nat_at_top_at_top).comp tendsto_inverse_at_top_nhds_0,
-have hs : tendsto s at_top (nhds a), by simpa,
-have hsm : ∀i j, j ≤ i → s i ≤ s j,
-  from assume i j hij,
-  have h₁ : ∀j:ℕ, (0:ℝ) < (j + 1),
-    from assume j, nat.cast_pos.2 $ add_pos_of_nonneg_of_pos (nat.zero_le j) zero_lt_one,
-  have h₂ : (↑(j + 1) : ℝ) ≤ ↑(i + 1), from nat.cast_le.2 $ add_le_add hij (le_refl _),
-  add_le_add (le_refl _) $
-  mul_le_mul (le_refl _) (inv_le_inv_of_le (h₁ j) h₂) (le_of_lt $ inv_pos $ h₁ i) $
-    by simp [le_sub_iff_add_le, -sub_eq_add_neg, le_of_lt h],
-have has : ∀i, a < s i,
-  from assume i,
-  have (0:ℝ) < ↑(i + 1), from nat.cast_pos.2 $ lt_add_of_le_of_pos (nat.zero_le _) zero_lt_one,
-  (lt_add_iff_pos_right _).mpr $ mul_pos
-    (by simp [-sub_eq_add_neg, sub_lt_iff, (>), ‹a < b›]) (inv_pos this),
-have eq₁ : Ioo a b = (⋃n, Ico (s n) b),
-  from set.ext $ assume x,
-  begin
-    simp [iff_def, Ico, Ioo, -sub_eq_add_neg] {contextual := tt},
-    constructor,
-    exact assume hax hxb,
-      have {a | a < x } ∈ (nhds a).sets, from mem_nhds_sets (is_open_gt' _) hax,
-      have {n | s n < x} ∈ at_top.sets, from hs this,
-      let ⟨n, hn⟩ := inhabited_of_mem_sets at_top_ne_bot this in
-      ⟨n, le_of_lt hn⟩,
-    exact assume i hsx hxb, lt_of_lt_of_le (has i) hsx,
-  end,
-have (⨆i, of_real (b - s i)) = of_real (b - a),
-  from is_lub_iff_supr_eq.mp $ is_lub_of_mem_nhds
-    (assume x ⟨i, eq⟩, eq ▸ ennreal.of_real_le_of_real $ sub_le_sub (le_refl _) $ le_of_lt $ has _)
-    begin
-      show range (λi, of_real (b - s i)) ∈ (at_top.map (λi, of_real (b - s i))).sets,
-      rw [← image_univ]; exact image_mem_map univ_mem_sets
-    end
-    begin
-      have : tendsto (λi, of_real (b - s i)) at_top (nhds (of_real (b - a))),
-        from (tendsto_sub tendsto_const_nhds hs).comp ennreal.tendsto_of_real,
-      rw [inf_of_le_left this],
-      exact map_ne_bot at_top_ne_bot
-    end,
-have eq₂ : (⨆i, lebesgue.measure (Ico (s i) b)) = of_real (b - a),
-  by simp only [lebesgue_Ico, this],
+@[simp] lemma lebesgue_Ioo {a b : ℝ} : lebesgue (Ioo a b) = of_real (b - a) :=
 begin
-  rw [eq₁, measure_Union_eq_supr_nat, eq₂],
-  show ∀i, is_measurable (Ico (s i) b), from assume i, is_measurable_Ico,
-  show monotone (λi, Ico (s i) b),
-    from assume i j hij x hx, ⟨le_trans (hsm _ _ hij) hx.1, hx.2⟩
+  cases le_total b a with ba ab,
+  { rw ennreal.of_real_of_nonpos (sub_nonpos.2 ba), simp [ba] },
+  refine (eq_of_le_of_forall_ge_of_dense _ (λ r h, _)).symm,
+  { rw ← lebesgue_Ico,
+    exact measure_mono Ioo_subset_Ico_self },
+  rcases ennreal.lt_iff_exists_of_real.1 h with ⟨c, c0, rfl, _⟩,
+  replace h := (ennreal.of_real_lt_of_real_iff c0 (sub_nonneg.2 ab)).1 h,
+  rw ← show lebesgue (Ico (b - c) b) = of_real c,
+    by simp [-sub_eq_add_neg, sub_sub_cancel],
+  exact measure_mono (Ico_subset_Ioo_left $ lt_sub.1 h)
 end
 
-lemma lebesgue_singleton {a : ℝ} : lebesgue.measure {a} = 0 :=
-have Ico a (a + 1) \ Ioo a (a + 1) = {a},
-  from set.ext $ assume a',
-  begin
-    simp [iff_def, Ico, Ioo, lt_irrefl, le_refl, zero_lt_one,
-      le_iff_eq_or_lt, or_imp_distrib] {contextual := tt},
-    exact assume h₁ h₂,
-      ⟨assume eq, by rw [eq] at h₂; exact (lt_irrefl _ h₂).elim,
-      assume h₃, (lt_irrefl a' $ lt_trans h₂ h₃).elim⟩
-  end,
-calc lebesgue.measure {a} = lebesgue.measure (Ico a (a + 1) \ Ioo a (a + 1)) :
-    congr_arg _ this.symm
-  ... = lebesgue.measure (Ico a (a + 1)) - lebesgue.measure (Ioo a (a + 1)) :
-    measure_sdiff (assume x, and.imp le_of_lt id) is_measurable_Ico is_measurable_Ioo $
-      by simp [lebesgue_Ico]; exact ennreal.of_real_lt_infty
-  ... = 0 : by simp [lebesgue_Ico, lebesgue_Ioo]
+lemma lebesgue_singleton {a : ℝ} : lebesgue {a} = 0 :=
+by rw [← Ico_sdiff_Ioo_eq_singleton (lt_add_one a),
+       @measure_sdiff ℝ _ _ _ _ Ioo_subset_Ico_self is_measurable_Ico is_measurable_Ioo];
+   simp; exact ennreal.of_real_lt_infty
 
 end measure_theory

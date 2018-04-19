@@ -147,8 +147,8 @@ section of_function
 set_option eqn_compiler.zeta true
 
 -- TODO: if we move this proof into the definition of inf it does not terminate anymore
-private lemma aux {ε : ℝ} (hε : 0 < ε) : (∑i, of_real ((ε / 2) * 2⁻¹ ^ i)) = of_real ε :=
-let ε' := λi, (ε / 2) * 2⁻¹ ^ i in
+private lemma aux {ε : ℝ} (hε : 0 < ε) : (∑i:ℕ, of_real ((ε / 2) * 2⁻¹ ^ i)) = of_real ε :=
+let ε' := λi:ℕ, (ε / 2) * 2⁻¹ ^ i in
 have hε' : ∀i, 0 < ε' i,
   from assume i, mul_pos (div_pos_of_pos_of_pos hε two_pos) $ pow_pos (inv_pos two_pos) _,
 have is_sum (λi, 2⁻¹ ^ i : ℕ → ℝ) (1 / (1 - 2⁻¹)),
@@ -166,7 +166,7 @@ have is_sum (λi, ε' i) ε, begin rw [eq] at this, exact this end,
 ennreal.tsum_of_real this (assume i, le_of_lt $ hε' i)
 
 /-- Given any function `m` assigning measures to sets satisying `m ∅ = 0`, there is
-  a unique minimal outer measure `μ` satisfying `μ s ≥ m s` for all `s : set α`. -/
+  a unique maximal outer measure `μ` satisfying `μ s ≤ m s` for all `s : set α`. -/
 protected def of_function {α : Type*} (m : set α → ennreal) (m_empty : m ∅ = 0) :
   outer_measure α :=
 let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
@@ -178,7 +178,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
     infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
   Union_nat := assume s, ennreal.le_of_forall_epsilon_le $
     assume ε hε (hb : (∑i, μ (s i)) < ⊤),
-    let ε' := λi, (ε / 2) * 2⁻¹ ^ i in
+    let ε' := λi:ℕ, (ε / 2) * 2⁻¹ ^ i in
     have hε' : ∀i, 0 < ε' i,
       from assume i, mul_pos (div_pos_of_pos_of_pos hε two_pos) $ pow_pos (inv_pos two_pos) _,
     have ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑i, m (f i)) < μ (s i) + of_real (ε' i),
@@ -207,6 +207,14 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
         ... = (∑i, μ (s i)) + of_real ε : by rw [this],
     show μ (⋃ (i : ℕ), s i) ≤ (∑ (i : ℕ), μ (s i)) + of_real ε,
       from infi_le_of_le f' $ infi_le_of_le hf' $ this }
+
+theorem of_function_le {α : Type*} (m : set α → ennreal) (m_empty s) :
+  (outer_measure.of_function m m_empty).measure_of s ≤ m s :=
+let f : ℕ → set α := λi, nat.rec_on i s (λn s, ∅) in
+infi_le_of_le f $ infi_le_of_le (subset_Union f 0) $ le_of_eq $
+calc (∑i, m (f i)) = ({0} : finset ℕ).sum (λi, m (f i)) :
+    tsum_eq_sum $ by intro i; cases i; simp [m_empty]
+  ... = m s : by simp; refl
 
 end of_function
 

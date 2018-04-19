@@ -80,7 +80,7 @@ sub_lt_iff_lt_add.trans lt_add_one_iff
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
-protected lemma induction_on {p : ℤ → Prop}
+@[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀i, p i → p (i + 1)) (hn : ∀i, p i → p (i - 1)) : p i :=
 begin
   induction i,
@@ -833,11 +833,11 @@ lemma shiftr_add : ∀ (m : ℤ) (n k : ℕ), shiftr m (n + k) = shiftr (shiftr 
 | -[1+ m] n k := by rw [shiftr_neg_succ, shiftr_neg_succ,
                         ← int.coe_nat_add, shiftr_neg_succ, nat.shiftr_add]
 
-lemma shiftl_eq_mul_pow : ∀ (m : ℤ) (n : ℕ), shiftl m n = m * (2 ^ n : ℕ)
+lemma shiftl_eq_mul_pow : ∀ (m : ℤ) (n : ℕ), shiftl m n = m * ↑(2 ^ n)
 | (m : ℕ) n := congr_arg coe (nat.shiftl_eq_mul_pow _ _)
 | -[1+ m] n := @congr_arg ℕ ℤ _ _ (λi, -i) (nat.shiftl'_tt_eq_mul_pow _ _)
 
-lemma shiftr_eq_div_pow : ∀ (m : ℤ) (n : ℕ), shiftr m n = m / (2 ^ n : ℕ)
+lemma shiftr_eq_div_pow : ∀ (m : ℤ) (n : ℕ), shiftr m n = m / ↑(2 ^ n)
 | (m : ℕ) n := by rw shiftr_coe_nat; exact congr_arg coe (nat.shiftr_eq_div_pow _ _)
 | -[1+ m] n := begin
   rw [shiftr_neg_succ, neg_succ_of_nat_div, nat.shiftr_eq_div_pow], refl,

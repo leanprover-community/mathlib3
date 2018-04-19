@@ -6,10 +6,8 @@ Authors: Johannes Hölzl
 Multivariate Polynomial
 -/
 import data.finsupp linear_algebra.basic
-noncomputable theory
 
-open classical set function finsupp lattice
-local attribute [instance] classical.prop_decidable
+open set function finsupp lattice
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -17,7 +15,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 instance {α : Type u} [semilattice_sup α] : is_idempotent α (⊔) := ⟨assume a, sup_idem⟩
 
 namespace finset
-variables [semilattice_sup_bot α]
+variables [semilattice_sup_bot α] [decidable_eq α] [decidable_eq β]
 
 /-- Supremum of a finite set: `sup {a, b, c} f = f a ⊔ f b ⊔ f c` -/
 def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
@@ -59,13 +57,12 @@ by apply_instance
 instance nat.semilattice_sup_bot : semilattice_sup_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le , .. nat.distrib_lattice }
 
-
-@[simp] lemma finset.bind_singleton2 {a : α} {f : α → finset β} :
+@[simp] lemma finset.bind_singleton2 [decidable_eq α] [decidable_eq β] {a : α} {f : α → finset β} :
   (finset.singleton a).bind f = f a :=
 show (insert a ∅ : finset α).bind f = f a,
   by simp
 
-lemma finsupp.single_induction_on [add_monoid β] {p : (α →₀ β) → Prop} (f : α →₀ β)
+lemma finsupp.single_induction_on [decidable_eq α] [decidable_eq β] [add_monoid β] {p : (α →₀ β) → Prop} (f : α →₀ β)
   (h_zero : p 0) (h_add : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (f + single a b)) :
   p f :=
 have ∀(s : finset α) (f : α →₀ β), s = f.support → p f,
@@ -76,7 +73,7 @@ have ∀(s : finset α) (f : α →₀ β), s = f.support → p f,
     (assume a s has ih f eq,
       have a ∈ f.support, by rw [← eq]; simp,
       have f.filter (λa', a' ≠ a) + single a (f a) = f,
-        from finsupp.ext $ assume a', by_cases
+        from finsupp.ext $ assume a', decidable.by_cases
           (assume h : a' = a, by simp [h])
           (assume h : a' ≠ a, by simp [h, h.symm]),
       begin
@@ -97,6 +94,7 @@ def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := (σ →₀ ℕ
 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
+variables [decidable_eq σ] [decidable_eq α]
 
 section comm_semiring
 variables [comm_semiring α] {p q : mv_polynomial σ α}
@@ -139,24 +137,24 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
 begin
-  apply @finsupp.single_induction_on σ ℕ _ _ s,
+  apply @finsupp.single_induction_on σ ℕ _ _ _ _ s,
   { simp [C, prod_zero_index]; exact (mul_one _).symm },
   { assume n e s hns he ih,
     simp [prod_add_index, prod_single_index, pow_zero, pow_add, (mul_assoc _ _ _).symm, ih.symm,
       monomial_add_single] }
 end
 
-@[recursor 5]
+@[recursor 7]
 lemma induction_on {M : mv_polynomial σ α → Prop} (p : mv_polynomial σ α)
   (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
   M p :=
 have ∀s a, M (monomial s a),
 begin
   assume s a,
-  apply @finsupp.single_induction_on σ ℕ _ _ s,
+  apply @finsupp.single_induction_on σ ℕ _ _ _ _ s,
   { show M (monomial 0 a), from h_C a, },
   { assume n e p hpn he ih,
-    have : ∀e, M (monomial p a * X n ^ e),
+    have : ∀e:ℕ, M (monomial p a * X n ^ e),
     { intro e,
       induction e,
       { simp [ih] },
@@ -226,7 +224,7 @@ show (single s a : (σ →₀ ℕ) →₀ α).support.bind finsupp.support = s.s
   by simp [support_single_ne_zero, h]
 
 @[simp] lemma vars_C : (C a : mv_polynomial σ α).vars = ∅ :=
-by_cases
+decidable.by_cases
   (assume h : a = 0, by simp [h])
   (assume h : a ≠ 0, by simp [C, h])
 

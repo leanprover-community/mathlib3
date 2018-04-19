@@ -1,231 +1,232 @@
 /-
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
-
-
+Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison
 -/
-import data.finset algebra.big_operators data.equiv data.set data.nat.basic set_theory.cardinal
-open set function finset
+import group_theory.submonoid
+open set function
 
-universes u v w
-variables {α : Type u} {β : Type v} {s : set α} {a a₁ a₂ : α}
+variables {α : Type*} {β : Type*} {s : set α} {a a₁ a₂ b c: α}
 
-namespace finset
-open finset
-
-lemma mem_range_iff_mem_finset_range_of_mod_eq [decidable_eq α] {f : ℤ → α} {a : α} {n : ℕ}
-  (hn : 0 < n) (h : ∀i, f (i % n) = f i) :
-  a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i) :=
-suffices (∃i, f (i % n) = a) ↔ ∃i, i < n ∧ f ↑i = a, by simpa [h],
-have hn' : 0 < (n : ℤ), from int.coe_nat_lt.mpr hn,
-iff.intro
-  (assume ⟨i, hi⟩,
-    have 0 ≤ i % ↑n, from int.mod_nonneg _ (ne_of_gt hn'),
-    ⟨int.to_nat (i % n),
-      by rw [←int.coe_nat_lt, int.to_nat_of_nonneg this]; exact ⟨int.mod_lt_of_pos i hn', hi⟩⟩)
-  (assume ⟨i, hi, ha⟩,
-    ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
-
-end finset
-
-variables [group α]
-
-/-- A subset of a group closed under the group operations. -/
-structure is_subgroup (s : set α) : Prop :=
-(one_mem : (1:α) ∈ s)
-(mul_inv_mem : ∀a∈s, ∀b∈s, a * b⁻¹ ∈ s)
-
-def cosets (s : set α) : set (set α) := range (λa, (*) a '' s)
-
-namespace is_subgroup
-lemma inv_mem (hs : is_subgroup s) (h : a ∈ s) : a⁻¹ ∈ s :=
-have 1 * a⁻¹ ∈ s, from hs.mul_inv_mem _ hs.one_mem _ h,
-by simpa
-
-lemma inv_mem_iff (hs : is_subgroup s) : a⁻¹ ∈ s ↔ a ∈ s :=
-iff.intro (assume h, have a⁻¹⁻¹ ∈ s, from hs.inv_mem h, by simpa) hs.inv_mem
-
-lemma mul_mem (hs : is_subgroup s) (h₁ : a₁ ∈ s) (h₂ : a₂ ∈ s) : a₁ * a₂ ∈ s :=
-have a₁ * a₂⁻¹⁻¹ ∈ s, from hs.mul_inv_mem _ h₁ _ (hs.inv_mem h₂),
-by simpa
-
-lemma mul_image (hs : is_subgroup s) (a : α) (ha : a ∈ s) :
-  (*) a '' s = s :=
-ext $ assume a', iff.intro
-  (assume ⟨a'', ha'', eq⟩, eq ▸ hs.mul_mem ha ha'')
-  (assume ha', ⟨a⁻¹ * a', hs.mul_mem (hs.inv_mem ha) ha', by simp⟩)
+section group
+variable [group α]
 
 lemma injective_mul {a : α} : injective ((*) a) :=
 assume a₁ a₂ h,
 have a⁻¹ * a * a₁ = a⁻¹ * a * a₂, by rw [mul_assoc, mul_assoc, h],
 by rwa [inv_mul_self, one_mul, one_mul] at this
 
-lemma subgroup_mem_cosets (hs : is_subgroup s) : s ∈ cosets s :=
-⟨1, hs.mul_image _ hs.one_mem⟩
+/-- `s` is a subgroup: a set containing 1 and closed under multiplication and inverse. -/
+class is_subgroup [group α] (s : set α) extends is_submonoid s : Prop :=
+(inv_mem {a} : a ∈ s → a⁻¹ ∈ s)
 
-lemma cosets_disjoint (hs : is_subgroup s) :
-  ∀{s₁ s₂ : set α}, s₁ ∈ cosets s → s₂ ∈ cosets s → ∀{a}, a ∈ s₁ → a ∈ s₂ → s₁ = s₂
-| _ _ ⟨b₁, rfl⟩ ⟨b₂, rfl⟩ a ⟨c₁, hc₁, eq₁⟩ ⟨c₂, hc₂, eq₂⟩ :=
-have b_eq : b₁ = b₂ * c₂ * c₁⁻¹, by rw [eq_mul_inv_iff_mul_eq, eq₁, eq₂],
-have hc : c₂ * c₁⁻¹ ∈ s, from hs.mul_mem hc₂ (hs.inv_mem hc₁),
-calc (*) b₁ '' s = (*) b₂ '' ((*) (c₂ * c₁⁻¹) '' s) :
-    by rw [←image_comp, (∘), b_eq]; apply image_congr _; simp [mul_assoc]
-  ... = (*) b₂ '' s :
-    by rw [hs.mul_image _ hc]
+instance subtype.group {s : set α} [is_subgroup s] : group s :=
+{ inv          := λa, ⟨(a.1)⁻¹, is_subgroup.inv_mem a.2⟩,
+  mul_left_inv := assume ⟨a, _⟩, subtype.eq $ mul_left_inv _,
+  .. subtype.monoid }
 
-lemma pairwise_cosets_disjoint (hs : is_subgroup s) : pairwise_on (cosets s) disjoint :=
-assume s₁ h₁ s₂ h₂ ne, eq_empty_iff_forall_not_mem.mpr $ assume a ⟨ha₁, ha₂⟩,
-  ne $ hs.cosets_disjoint h₁ h₂ ha₁ ha₂
+theorem is_subgroup.of_div [group α] (s : set α)
+  (one_mem : (1:α) ∈ s) (div_mem : ∀{a b:α}, a ∈ s → b ∈ s → a * b⁻¹ ∈ s):
+  is_subgroup s :=
+have inv_mem : ∀a, a ∈ s → a⁻¹ ∈ s, from
+  assume a ha,
+  have 1 * a⁻¹ ∈ s, from div_mem one_mem ha,
+  by simpa,
+{ inv_mem := inv_mem,
+  mul_mem := assume a b ha hb,
+    have a * b⁻¹⁻¹ ∈ s, from div_mem ha (inv_mem b hb),
+    by simpa,
+  one_mem := one_mem }
 
-lemma cosets_equiv_subgroup (hs : is_subgroup s) : ∀{t : set α}, t ∈ cosets s → nonempty (t ≃ s)
-| _ ⟨a, rfl⟩ := ⟨(equiv.set.image ((*) a) s injective_mul).symm⟩
+def gpowers (x : α) : set α := {y | ∃i:ℤ, x^i = y}
 
-lemma Union_cosets_eq_univ (hs : is_subgroup s) : ⋃₀ cosets s = univ :=
-eq_univ_of_forall $ assume a, ⟨(*) a '' s, mem_range_self _, ⟨1, hs.one_mem, mul_one _⟩⟩
+instance gpowers.is_subgroup (x : α) : is_subgroup (gpowers x) :=
+{ one_mem := ⟨(0:ℤ), by simp⟩,
+  mul_mem := assume x₁ x₂ ⟨i₁, h₁⟩ ⟨i₂, h₂⟩, ⟨i₁ + i₂, by simp [gpow_add, *]⟩,
+  inv_mem := assume x₀ ⟨i, h⟩, ⟨-i, by simp [h.symm]⟩ }
 
-lemma group_equiv_cosets_times_subgroup (hs : is_subgroup s) : nonempty (α ≃ (cosets s × s)) :=
-⟨calc α ≃ (@set.univ α) :
-    (equiv.set.univ α).symm
-  ... ≃ (⋃t∈cosets s, t) :
-    by rw [←hs.Union_cosets_eq_univ]; simp
-  ... ≃ (Σt:cosets s, t) :
-    equiv.set.bUnion_eq_sigma_of_disjoint hs.pairwise_cosets_disjoint
-  ... ≃ (Σt:cosets s, s) :
-    equiv.sigma_congr_right $ λ⟨t, ht⟩, classical.choice $ hs.cosets_equiv_subgroup ht
-  ... ≃ (cosets s × s) :
-    equiv.sigma_equiv_prod _ _⟩
+lemma is_subgroup.gpow_mem {a : α} {s : set α} [is_subgroup s] (h : a ∈ s) : ∀{i:ℤ}, a ^ i ∈ s
+| (n : ℕ) := is_submonoid.pow_mem h
+| -[1+ n] := is_subgroup.inv_mem (is_submonoid.pow_mem h)
+
+lemma mem_gpowers {a : α} : a ∈ gpowers a :=
+⟨1, by simp⟩
+
+end group
+
+namespace is_subgroup
+open is_submonoid
+variable (s)
+variables [group α] [is_subgroup s]
+
+lemma inv_mem_iff : a⁻¹ ∈ s ↔ a ∈ s :=
+iff.intro (assume h, have a⁻¹⁻¹ ∈ s, from inv_mem h, by simpa) inv_mem
+
+lemma mul_mem_cancel_left (h : a ∈ s) : b * a ∈ s ↔ b ∈ s :=
+iff.intro
+  (assume hba,
+    have (b * a) * a⁻¹ ∈ s, from mul_mem hba (inv_mem h),
+    by simpa)
+  (assume hb, mul_mem hb h)
+
+lemma mul_mem_cancel_right (h : a ∈ s) : a * b ∈ s ↔ b ∈ s :=
+iff.intro
+  (assume hab,
+    have a⁻¹ * (a * b) ∈ s, from mul_mem (inv_mem h) hab,
+    by simpa)
+  (mul_mem h)
 
 end is_subgroup
 
-lemma is_subgroup_range_gpow : is_subgroup (range $ (^) a) :=
-⟨⟨0, rfl⟩, assume a ⟨i, ha⟩ b ⟨j, hb⟩, ⟨i - j, by simp [gpow_add, gpow_neg, ha.symm, hb.symm]⟩⟩
+namespace group
+open is_submonoid is_subgroup
 
-section finite_group
-variables [fintype α] [decidable_eq α]
+variable [group α]
 
-lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
-have ¬ injective (λi, a ^ i),
-  from not_injective_int_fintype,
-let ⟨i, j, a_eq, ne⟩ := show ∃(i j : ℤ), a ^ i = a ^ j ∧ i ≠ j,
-  by rw [injective] at this; simpa [classical.not_forall] in
-have a ^ (i - j) = 1,
-  by simp [gpow_add, gpow_neg, a_eq],
-⟨i - j, sub_ne_zero.mpr ne, this⟩
+inductive in_closure (s : set α) : α → Prop
+| basic {a : α} : a ∈ s → in_closure a
+| one : in_closure 1
+| inv {a : α} : in_closure a → in_closure a⁻¹
+| mul {a b : α} : in_closure a → in_closure b → in_closure (a * b)
 
-local infixr `^m`:73 := @has_pow.pow α ℕ monoid.has_pow
+/-- `group.closure s` is the subgroup closed over `s`, i.e. the smallest subgroup containg s. -/
+def closure (s : set α) : set α := {a | in_closure s a }
 
-lemma exists_pow_eq_one (a : α) : ∃i≠0, a ^m i = 1 :=
-let ⟨i, hi, eq⟩ := exists_gpow_eq_one a in
+lemma mem_closure {a : α} : a ∈ s → a ∈ closure s := in_closure.basic
+
+instance closure.is_subgroup (s : set α) : is_subgroup (closure s) :=
+{ one_mem := in_closure.one s, mul_mem := assume a b, in_closure.mul, inv_mem := assume a, in_closure.inv }
+
+theorem subset_closure {s : set α} : s ⊆ closure s :=
+assume a, in_closure.basic
+
+theorem closure_subset {s t : set α} [is_subgroup t] (h : s ⊆ t) : closure s ⊆ t :=
+assume a ha, by induction ha; simp [h _, *, one_mem, mul_mem, inv_mem_iff]
+
+theorem gpowers_eq_closure {a : α} : gpowers a = closure {a} :=
+subset.antisymm
+  (assume x h, match x, h with _, ⟨i, rfl⟩ := gpow_mem (mem_closure $ by simp) end)
+  (closure_subset $ by  simp [mem_gpowers])
+
+end group
+
+class normal_subgroup [group α] (s : set α) extends is_subgroup s : Prop :=
+(normal : ∀ n ∈ s, ∀ g : α, g * n * g⁻¹ ∈ s)
+
+namespace is_subgroup
+variable [group α]
+
+-- Normal subgroup properties
+lemma mem_norm_comm {a b : α} {s : set α} [normal_subgroup s] (hab : a * b ∈ s) : b * a ∈ s :=
+have h : a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ s, from normal_subgroup.normal (a * b) hab a⁻¹,
+by simp at h; exact h
+
+lemma mem_norm_comm_iff {a b : α} {s : set α} [normal_subgroup s] : a * b ∈ s ↔ b * a ∈ s :=
+iff.intro mem_norm_comm mem_norm_comm
+
+/-- The trivial subgroup -/
+def trivial (α : Type*) [group α] : set α := {1}
+
+@[simp] lemma mem_trivial [group α] {g : α} : g ∈ trivial α ↔ g = 1 :=
+by simp [trivial]
+
+instance trivial_normal : normal_subgroup (trivial α) :=
+by refine {..}; simp [trivial] {contextual := tt}
+
+lemma trivial_eq_closure : trivial α = group.closure ∅ :=
+subset.antisymm
+  (by simp [set.subset_def, is_submonoid.one_mem])
+  (group.closure_subset $ by simp)
+
+instance univ_subgroup : normal_subgroup (@univ α) :=
+by refine {..}; simp
+
+def center (α : Type*) [group α] : set α := {z | ∀ g, g * z = z * g}
+
+lemma mem_center {a : α} : a ∈ center α ↔ (∀g, g * a = a * g) :=
+iff.refl _
+
+instance center_normal : normal_subgroup (center α) :=
+{ one_mem := by simp [center],
+  mul_mem := assume a b ha hb g,
+    by rw [←mul_assoc, mem_center.2 ha g, mul_assoc, mem_center.2 hb g, ←mul_assoc],
+  inv_mem := assume a ha g,
+    calc
+      g * a⁻¹ = a⁻¹ * (g * a) * a⁻¹ : by simp [ha g]
+      ...     = a⁻¹ * g             : by rw [←mul_assoc, mul_assoc]; simp,
+  normal := assume n ha g h,
+    calc
+      h * (g * n * g⁻¹) = h * n           : by simp [ha g, mul_assoc]
+      ...               = g * g⁻¹ * n * h : by rw ha h; simp
+      ...               = g * n * g⁻¹ * h : by rw [mul_assoc g, ha g⁻¹, ←mul_assoc] }
+
+end is_subgroup
+
+-- Homomorphism subgroups
+namespace is_group_hom
+open is_submonoid is_subgroup
+variables [group α] [group β]
+
+def ker (f : α → β) [is_group_hom f] : set α := preimage f (trivial β)
+
+lemma mem_ker (f : α → β) [is_group_hom f] {x : α} : x ∈ ker f ↔ f x = 1 :=
+mem_trivial
+
+lemma one_ker_inv (f : α → β) [is_group_hom f] {a b : α} (h : f (a * b⁻¹) = 1) : f a = f b :=
 begin
-  cases i,
-  { exact ⟨i, by simp [int.of_nat_eq_coe, *] at *, eq⟩ },
-  { exact ⟨i + 1, dec_trivial, inv_eq_one.1 eq⟩ }
+  rw [mul f, inv f] at h,
+  rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
 end
 
-/-- `order_of a` is the order of the element, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` -/
-def order_of (a : α) : ℕ := nat.find (exists_pow_eq_one a)
+lemma inv_ker_one (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : f (a * b⁻¹) = 1 :=
+have f a * (f b)⁻¹ = 1, by rw [h, mul_right_inv],
+by rwa [←inv f, ←mul f] at this
 
-lemma pow_order_of_eq_one (a : α) : a ^m order_of a = 1 :=
-let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₂
+lemma one_iff_ker_inv (f : α → β) [is_group_hom f] (a b : α) : f a = f b ↔ f (a * b⁻¹) = 1 :=
+⟨inv_ker_one f, one_ker_inv f⟩
 
-lemma order_of_ne_zero (a : α) : order_of a ≠ 0 :=
-let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₁
+lemma inv_iff_ker (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a * b⁻¹ ∈ ker f :=
+by rw [mem_ker]; exact one_iff_ker_inv _ _ _
 
-private lemma pow_injective_aux {n m : ℕ} (a : α) (h : n ≤ m)
-  (hn : n < order_of a) (hm : m < order_of a) (eq : a ^m n = a ^m m) : n = m :=
-decidable.by_contradiction $ assume ne : n ≠ m,
-  have h₁ : m - n ≠ 0, by simp [nat.sub_eq_iff_eq_add h, ne.symm],
-  have h₂ : a ^m (m - n) = 1, by simp [pow_sub _ h, eq],
-  have le : order_of a ≤ m - n, from nat.find_min' (exists_pow_eq_one a) ⟨h₁, h₂⟩,
-  have lt : m - n < order_of a,
-    from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
-  lt_irrefl _ (lt_of_le_of_lt le lt)
+instance image_subgroup (f : α → β) [is_group_hom f] (s : set α) [is_subgroup s] :
+  is_subgroup (f '' s) :=
+{ mul_mem := assume a₁ a₂ ⟨b₁, hb₁, eq₁⟩ ⟨b₂, hb₂, eq₂⟩,
+             ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, mul f]⟩,
+  one_mem := ⟨1, one_mem s, one f⟩,
+  inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw inv f; simp *⟩ }
 
-lemma pow_injective_of_lt_order_of {n m : ℕ} (a : α)
-  (hn : n < order_of a) (hm : m < order_of a) (eq : a ^m n = a ^m m) : n = m :=
-(le_total n m).elim
-  (assume h, pow_injective_aux a h hn hm eq)
-  (assume h, (pow_injective_aux a h hm hn eq.symm).symm)
+local attribute [simp] one_mem inv_mem mul_mem normal_subgroup.normal
 
-lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
-finset.card_le_of_inj_on ((^m) a)
-  (assume n _, fintype.complete _)
-  (assume i j, pow_injective_of_lt_order_of a)
+instance preimage (f : α → β) [is_group_hom f] (s : set β) [is_subgroup s] :
+  is_subgroup (f ⁻¹' s) :=
+by refine {..}; simp [mul f, one f, inv f, @inv_mem β _ _ s] {contextual:=tt}
 
-lemma pow_eq_mod_order_of {n : ℕ} : a ^m n = a ^m (n % order_of a) :=
-calc a ^m n = a ^m (n % order_of a + order_of a * (n / order_of a)) :
-    by rw [nat.mod_add_div]
-  ... = a ^m (n % order_of a) :
-    by simp [pow_add, pow_mul, pow_order_of_eq_one]
+instance preimage_normal (f : α → β) [is_group_hom f] (s : set β) [normal_subgroup s] :
+  normal_subgroup (f ⁻¹' s) :=
+⟨by simp [mul f, inv f] {contextual:=tt}⟩
 
-lemma gpow_eq_mod_order_of {i : ℤ} : a ^ i = a ^ (i % order_of a) :=
-calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
-    by rw [int.mod_add_div]
-  ... = a ^ (i % order_of a) :
-    by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
+instance normal_subgroup_ker (f : α → β) [is_group_hom f] : normal_subgroup (ker f) :=
+is_group_hom.preimage_normal f (trivial β)
 
-lemma mem_range_gpow_iff_mem_range_order_of {a a' : α} :
-  a' ∈ range ((^) a) ↔ a' ∈ (finset.range (order_of a)).image ((^m) a) :=
-finset.mem_range_iff_mem_finset_range_of_mod_eq
-  (nat.pos_iff_ne_zero.mpr (order_of_ne_zero a))
-  (assume i, gpow_eq_mod_order_of.symm)
-
-instance decidable_range_gpow : decidable_pred (range ((^) a)) :=
-assume a', decidable_of_iff
-  (a' ∈ (finset.range (order_of a)).image ((^m) a))
-  mem_range_gpow_iff_mem_range_order_of.symm
-
-section
-local attribute [instance] set_fintype
-
-lemma order_eq_card_range_gpow : order_of a = fintype.card (range ((^) a)) :=
+lemma inj_of_trivial_ker (f : α → β) [is_group_hom f] (h : ker f = trivial α) :
+  function.injective f :=
 begin
-  refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨gpow a n, mem_range_self n⟩ },
-  { exact assume ⟨_, i, rfl⟩ _,
-      have pos: (0:int) < order_of a,
-        from int.coe_nat_lt.mpr $ nat.pos_iff_ne_zero.mpr $ order_of_ne_zero a,
-      have 0 ≤ i % (order_of a),
-        from int.mod_nonneg _ $ ne_of_gt pos,
-      ⟨int.to_nat (i % order_of a),
-        by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
-          exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
-  { intros, exact finset.mem_univ _ },
-  { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
+  intros a₁ a₂ hfa,
+  simp [set_eq_def, ker, is_subgroup.trivial] at h,
+  have ha : a₁ * a₂⁻¹ = 1, by rw ←h; exact inv_ker_one f hfa,
+  rw [eq_inv_of_mul_eq_one ha, inv_inv a₂]
 end
 
-section classical
-local attribute [instance] classical.prop_decidable
+lemma trivial_ker_of_inj (f : α → β) [is_group_hom f] (h : function.injective f) :
+  ker f = trivial α :=
+set.ext $ assume x, iff.intro
+  (assume hx,
+    suffices f x = f 1, by simpa using h this,
+    by simp [one f]; rwa [mem_ker] at hx)
+  (by simp [mem_ker, is_group_hom.one f] {contextual := tt})
 
--- TODO: use cardinal theory, or introduce `card : set α → ℕ`
-lemma order_of_dvd_card_univ : order_of a ∣ fintype.card α :=
-let s := range $ gpow a in
-have hs : is_subgroup s, from is_subgroup_range_gpow,
-let ⟨equiv⟩ := hs.group_equiv_cosets_times_subgroup in
-have ft_prod : fintype (cosets s × s),
-  from fintype.of_equiv α equiv,
-have ft_s : fintype s,
-  from @fintype.fintype_prod_right _ _ _ ft_prod ⟨⟨s, hs.subgroup_mem_cosets⟩⟩,
-have ft_cosets : fintype (cosets s),
-  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, hs.one_mem⟩⟩,
-have ft : fintype (cosets s × s),
-  from @prod.fintype _ _ ft_cosets ft_s,
-have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
-  from calc fintype.card α = @fintype.card _ ft_prod :
-      (@fintype.card_eq _ _ _ ft_prod).2 hs.group_equiv_cosets_times_subgroup
-    ... = @fintype.card _ (@prod.fintype _ _ ft_cosets ft_s) :
-      congr_arg (@fintype.card _) $ subsingleton.elim _ _
-    ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
-      @fintype.card_prod _ _ ft_cosets ft_s,
-have eq₂ : order_of a = @fintype.card _ ft_s,
-  from calc order_of a = _ : order_eq_card_range_gpow
-    ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
-dvd.intro (@fintype.card (cosets s) ft_cosets) $
-  by rw [eq₁, eq₂, mul_comm]
+lemma inj_iff_trivial_ker (f : α → β) [is_group_hom f] :
+  function.injective f ↔ ker f = trivial α :=
+⟨trivial_ker_of_inj f, inj_of_trivial_ker f⟩
 
-end classical
-
-end
-
-end finite_group
+end is_group_hom

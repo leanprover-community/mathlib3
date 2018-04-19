@@ -253,7 +253,7 @@ theorem prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
     intro h, cases h with _ _ _ _ h _ _ _ h,
     { subst e, left, exact hf.2 h },
     { have := f.bijective.1 e, subst b₁,
-      right, exact hg.2 h } }  
+      right, exact hg.2 h } }
 end⟩
 
 end order_iso
@@ -263,7 +263,7 @@ def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @s
 
 /-- `subrel r p` is the inherited relation on a subset. -/
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
-@subtype.val _ p ⁻¹'o r 
+@subtype.val _ p ⁻¹'o r
 
 @[simp] theorem subrel_val (r : α → α → Prop) (p : set α)
   {a b} : subrel r p a b ↔ r a.1 b.1 := iff.rfl

@@ -274,12 +274,6 @@ section monoid
 
   @[simp] theorem one_divp (u : units α) : 1 /ₚ u = ↑u⁻¹ :=
   by simp [divp]
-  
-  variable α
-  
-  class is_submonoid (S : set α) : Prop :=
-  (one_mem : (1:α) ∈ S)
-  (mul_mem : ∀ {s t}, s ∈ S → t ∈ S → s*t ∈ S)
 
 end monoid
 
@@ -387,6 +381,7 @@ section group
     rwa [mul_assoc, mul_assoc, mul_inv_self, mul_one,
         ← mul_assoc, inv_mul_self, one_mul] at this; exact h
   end
+
 end group
 
 instance [comm_group α] : add_comm_group (additive α) :=
@@ -484,44 +479,50 @@ section add_comm_group
 
 end add_comm_group
 
-variables {β : Type*} [group α] [group β] {a b : α}
+variables {β : Type*} [group α] [group β]
 
 /-- Predicate for group homomorphism. -/
-def is_group_hom (f : α → β) : Prop :=
-∀ a b : α, f (a * b) = f a * f b
+class is_group_hom (f : α → β) : Prop :=
+(mul : ∀ a b : α, f (a * b) = f a * f b)
 
 namespace is_group_hom
-variables {f : α → β} (H : is_group_hom f)
-include H
-
-theorem mul : ∀ a b : α, f (a * b) = f a * f b := H
+variables (f : α → β) [is_group_hom f]
 
 theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(H 1 1).symm]
+mul_self_iff_eq_one.1 $ by simp [(mul f 1 1).symm]
 
-theorem inv (a : α) : (f a)⁻¹ = f a⁻¹ :=
-inv_eq_of_mul_eq_one $ by simp [(H a a⁻¹).symm, one H]
+theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(mul f a a⁻¹).symm, one f]
+
+instance id : is_group_hom (@id α) :=
+⟨λ _ _, rfl⟩
+
+instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] :
+  is_group_hom (g ∘ f) :=
+⟨λ x y, calc
+  g (f (x * y)) = g (f x * f y)       : by rw mul f
+  ...           = g (f x) * g (f y)   : by rw mul g⟩
 
 end is_group_hom
 
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/
-def is_group_anti_hom (f : α → β) : Prop :=
-∀ a b : α, f (a * b) = f b * f a
+class is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
+(mul : ∀ a b : α, f (a * b) = f b * f a)
+
+attribute [class] is_group_anti_hom
 
 namespace is_group_anti_hom
-variables {f : α → β} (H : is_group_anti_hom f)
-include H
-
-theorem mul : ∀ a b : α, f (a * b) = f b * f a := H
+variables (f : α → β) [w : is_group_anti_hom f]
+include w
 
 theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(H 1 1).symm]
+mul_self_iff_eq_one.1 $ by simp [(mul f 1 1).symm]
 
-theorem inv (a : α) : (f a)⁻¹ = f a⁻¹ :=
-inv_eq_of_mul_eq_one $ by simp [(H a⁻¹ a).symm, one H]
+theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(mul f a⁻¹ a).symm, one f]
 
 end is_group_anti_hom
 
-theorem inv_is_group_anti_hom : is_group_anti_hom (λ x : α, x⁻¹) :=
-mul_inv_rev
+theorem inv_is_group_anti_hom [group α] : is_group_anti_hom (λ x : α, x⁻¹) :=
+⟨mul_inv_rev⟩

@@ -394,7 +394,7 @@ suffices ∀r, 0 ≤ r → of_real r > b → a ≤ of_real r,
 assume r hr hrb,
 let ⟨p, hp, b_eq, hpr⟩ := lt_iff_exists_of_real.mp hrb in
 have p < r, by simp [hp, hr] at hpr; assumption,
-have pos : 0 < r - p, from lt_sub_iff.mpr $ by simp [this],
+have pos : 0 < r - p, from lt_sub_iff_add_lt.mpr $ by simp [this],
 calc a ≤ b + of_real (r - p) : h _ pos (by simp [b_eq])
   ... = of_real r :
     by simp [-sub_eq_add_neg, le_of_lt pos, hp, hr, b_eq]; simp [sub_eq_add_neg]
@@ -493,8 +493,8 @@ instance : complete_linear_order ennreal :=
   Inf_le       := assume s a ha, ennreal.Sup_le $ assume b hb, hb _ ha,
   ..ennreal.decidable_linear_order }
 
-protected lemma bot_eq_zero : (⊥ : ennreal) = 0 := rfl
-protected lemma top_eq_infty : (⊤ : ennreal) = ∞ := rfl
+@[simp] protected lemma bot_eq_zero : (⊥ : ennreal) = 0 := rfl
+@[simp] protected lemma top_eq_infty : (⊤ : ennreal) = ∞ := rfl
 
 end complete_lattice
 
@@ -630,8 +630,8 @@ begin
   apply tendsto_principal.2 _,
   revert b,
   simp [forall_ennreal],
-  exact assume r hr hr', mem_prod_iff.mpr ⟨
-    {a | of_real r < a}, mem_nhds_sets (is_open_lt' _) hr',
+  exact assume r hr, mem_prod_iff.mpr ⟨
+    {a | of_real r < a}, mem_nhds_sets (is_open_lt' _) of_real_lt_infty,
     univ, univ_mem_sets, assume ⟨c, d⟩ ⟨hc, _⟩, lt_of_lt_of_le hc $ le_add_right $ le_refl _⟩
 end,
 have h : ∀{p r : ℝ}, 0 ≤ p → 0 ≤ r → tendsto (λp:ennreal×ennreal, p.1 + p.2)
@@ -992,7 +992,7 @@ le_antisymm
         finset.sum_le_sum_of_ne_zero $ assume b _ hb,
           suffices a = b, by simpa using this.symm,
           classical.by_contradiction $ assume h,
-            by simp [h] at hb; exact hb rfl
+            by simpa [h] using hb
       ... = f a : by simp))
   (calc f a ≤ (⨆ (h : a = a), f a) : le_supr (λh:a=a, f a) rfl
     ... ≤ (∑b:α, ⨆ (h : a = b), f b) : ennreal.le_tsum)

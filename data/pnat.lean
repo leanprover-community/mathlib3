@@ -70,6 +70,6 @@ def pow (m : ℕ+) (n : ℕ) : ℕ+ :=
 
 instance : has_pow ℕ+ ℕ := ⟨pow⟩
 
-@[simp] theorem pow_coe (m : ℕ+) (n) : ((m ^ n : ℕ+) : ℕ) = m ^ n := rfl
+@[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : (↑(m ^ n) : ℕ) = m ^ n := rfl
 
 end pnat

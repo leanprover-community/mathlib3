@@ -134,7 +134,9 @@ subadditivity for all sets.
 -/
 protected def measure (s : set α) : ennreal := μ.to_outer_measure.measure_of s
 
-protected lemma measure_eq (hs : is_measurable s) : μ.measure s = μ.measure_of s hs :=
+instance : has_coe_to_fun (measure_space α) := ⟨_, measure_space.measure⟩
+
+protected lemma measure_eq (hs : is_measurable s) : μ s = μ.measure_of s hs :=
 le_antisymm
   (infi_le_of_le (λn, ⋃h : n = 0, s) $
     infi_le_of_le begin simp [set.subset_def] end $
@@ -159,7 +161,7 @@ le_antisymm
         calc μ.measure_of s hs ≤ μ.measure' (f i) : le_infi $ assume hi', by contradiction
           ... ≤ ∑ (i : ℕ), μ.measure' (f i) : ennreal.le_tsum))
 
-protected lemma measure_eq_measure' (hs : is_measurable s) : μ.measure s = μ.measure' s :=
+protected lemma measure_eq_measure' (hs : is_measurable s) : μ s = μ.measure' s :=
 by rwa [μ.measure_eq, μ.measure'_eq]
 
 end measure_space
@@ -173,31 +175,31 @@ lemma measure_space_eq_of : ∀{μ₁ μ₂ : measure_space α},
   have m₁ = m₂, from funext $ assume s, funext $ assume hs, h s hs,
   by simp [this]
 
-lemma measure_space_eq (h : ∀s, is_measurable s → μ₁.measure s = μ₂.measure s) : μ₁ = μ₂ :=
+lemma measure_space_eq (h : ∀s, is_measurable s → μ₁ s = μ₂ s) : μ₁ = μ₂ :=
 measure_space_eq_of $ assume s hs,
-  have μ₁.measure s = μ₂.measure s, from h s hs,
+  have μ₁ s = μ₂ s, from h s hs,
   by simp [measure_space.measure_eq, hs] at this; assumption
 
-@[simp] lemma measure_empty : μ.measure ∅ = 0 := μ.to_outer_measure.empty
+@[simp] lemma measure_empty : μ ∅ = 0 := μ.to_outer_measure.empty
 
-lemma measure_mono (h : s₁ ⊆ s₂) : μ.measure s₁ ≤ μ.measure s₂ := μ.to_outer_measure.mono h
+lemma measure_mono (h : s₁ ⊆ s₂) : μ s₁ ≤ μ s₂ := μ.to_outer_measure.mono h
 
-lemma measure_Union_le_tsum_nat {s : ℕ → set α} : μ.measure (⋃i, s i) ≤ (∑i, μ.measure (s i)) :=
+lemma measure_Union_le_tsum_nat {s : ℕ → set α} : μ (⋃i, s i) ≤ (∑i, μ (s i)) :=
 μ.to_outer_measure.Union_nat s
 
 lemma measure_union (hd : disjoint s₁ s₂) (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) :
-  μ.measure (s₁ ∪ s₂) = μ.measure s₁ + μ.measure s₂ :=
+  μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
 by simp only [μ.measure_eq_measure', h₁, h₂, is_measurable_union];
 from μ.measure'_union hd h₁ h₂
 
 lemma measure_Union_nat {f : ℕ → set α}
   (hn : pairwise (disjoint on f)) (h : ∀i, is_measurable (f i)) :
-  μ.measure (⋃i, f i) = (∑i, μ.measure (f i)) :=
+  μ (⋃i, f i) = (∑i, μ (f i)) :=
 by simp [measure_space.measure_eq, h, is_measurable_Union h, μ.measure_of_Union h hn]
 
 lemma measure_bUnion {i : set β} {s : β → set α} (hi : countable i)
   (hd : pairwise_on i (disjoint on s)) (h : ∀b∈i, is_measurable (s b)) :
-  μ.measure (⋃b∈i, s b) = ∑p:{b // b ∈ i}, μ.measure (s p.val) :=
+  μ (⋃b∈i, s b) = ∑p:{b // b ∈ i}, μ (s p.val) :=
 let ⟨f, hf⟩ := hi in
 let g : ℕ → set α := λn, ⋃b (h : b ∈ i) (h : f b = n), s b in
 have h_gf : ∀b∈i, g (f b) = s b,
@@ -238,9 +240,9 @@ have hm : ∀n, is_measurable (g n),
       have g n = ∅, from set.eq_empty_of_subset_empty $
         bUnion_subset $ assume b hb, Union_subset $ assume h_eq, (this ⟨b, hb, h_eq⟩).elim,
       this.symm ▸ is_measurable_empty),
-calc μ.measure (⋃b∈i, s b) = μ.measure (⋃i, g i) : by rw [eq₁]
-  ... = (∑i, μ.measure (g i)) : measure_Union_nat hd hm
-  ... = (∑p:{b // b ∈ i}, μ.measure (s p.val)) : tsum_eq_tsum_of_ne_zero_bij
+calc μ (⋃b∈i, s b) = μ (⋃i, g i) : by rw [eq₁]
+  ... = (∑i, μ (g i)) : measure_Union_nat hd hm
+  ... = (∑p:{b // b ∈ i}, μ (s p.val)) : tsum_eq_tsum_of_ne_zero_bij
     (λb h, f b.val)
     (assume ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ _ _ h, subtype.eq $ show b₁ = b₂, from hf b₁ hb₁ b₂ hb₂ h)
     (assume n hn,
@@ -256,34 +258,34 @@ calc μ.measure (⋃b∈i, s b) = μ.measure (⋃i, g i) : by rw [eq₁]
 
 lemma measure_sUnion [encodable β] {s : β → set α}
   (hd : pairwise (disjoint on s)) (h : ∀b, is_measurable (s b)) :
-  μ.measure (⋃b, s b) = ∑b, μ.measure (s b) :=
-calc μ.measure (⋃b, s b) = μ.measure (⋃b∈(univ:set β), s b) :
-    congr_arg μ.measure $ set.ext $ by simp
-  ... = ∑p:{b:β // true}, μ.measure (s p.val) :
+  μ (⋃b, s b) = ∑b, μ (s b) :=
+calc μ (⋃b, s b) = μ (⋃b∈(univ:set β), s b) :
+    congr_arg μ $ set.ext $ by simp
+  ... = ∑p:{b:β // true}, μ (s p.val) :
     measure_bUnion countable_encodable (assume i _ j _, hd i j) (assume b _, h b)
-  ... = ∑b, μ.measure (s b) : @tsum_eq_tsum_of_iso _ _ _ _ _ _ _ (λb, μ.measure (s b)) subtype.val
+  ... = ∑b, μ (s b) : @tsum_eq_tsum_of_iso _ _ _ _ _ _ _ (λb, μ (s b)) subtype.val
     (λb, ⟨b, trivial⟩ : β → {b:β // true}) (λ⟨b, hb⟩, rfl) (λb, rfl)
 
 lemma measure_sdiff {s₁ s₂ : set α} (h : s₂ ⊆ s₁) (h₁ : is_measurable s₁) (h₂ : is_measurable s₂)
-  (h_fin : μ.measure s₁ < ⊤) : μ.measure (s₁ \ s₂) = μ.measure s₁ - μ.measure s₂ :=
+  (h_fin : μ s₁ < ⊤) : μ (s₁ \ s₂) = μ s₁ - μ s₂ :=
 have hd : disjoint (s₁ \ s₂) s₂, from sdiff_inter_same,
-have μ.measure s₂ < ⊤, from lt_of_le_of_lt (measure_mono h) h_fin,
-calc μ.measure (s₁ \ s₂) = (μ.measure (s₁ \ s₂) + μ.measure s₂) - μ.measure s₂ :
+have μ s₂ < ⊤, from lt_of_le_of_lt (measure_mono h) h_fin,
+calc μ (s₁ \ s₂) = (μ (s₁ \ s₂) + μ s₂) - μ s₂ :
     by rw [ennreal.add_sub_self this]
-  ... = μ.measure (s₁ \ s₂ ∪ s₂) - μ.measure s₂ :
+  ... = μ (s₁ \ s₂ ∪ s₂) - μ s₂ :
     by rw [measure_union hd]; simp [is_measurable_sdiff, h₁, h₂]
   ... = _ : by rw [sdiff_union_same, union_of_subset_right h]
 
 lemma measure_Union_eq_supr_nat {s : ℕ → set α} (h : ∀i, is_measurable (s i)) (hs : monotone s) :
-  μ.measure (⋃i, s i) = (⨆i, μ.measure (s i)) :=
+  μ (⋃i, s i) = (⨆i, μ (s i)) :=
 -- TODO: generalize and extract from this proof
-have ∀i, (range (i + 1)).sum (λi, μ.measure (disjointed s i)) = μ.measure (s i),
+have ∀i, (range (i + 1)).sum (λi, μ (disjointed s i)) = μ (s i),
 begin
   intro i, induction i,
   case nat.zero { simp [disjointed, nat.not_lt_zero, inter_univ] },
   case nat.succ : i ih {
     rw [range_succ, sum_insert, ih, ←measure_union],
-    { show μ.measure (disjointed s (i + 1) ∪ s i) = μ.measure (s (i + 1)),
+    { show μ (disjointed s (i + 1) ∪ s i) = μ (s (i + 1)),
       rw [disjointed_of_mono hs, sdiff_union_same, union_of_subset_right],
       exact hs (nat.le_succ _) },
     { show disjoint (disjointed s (i + 1)) (s i),
@@ -293,22 +295,22 @@ begin
     { exact h _ },
     { exact not_mem_range_self } }
 end,
-calc μ.measure (⋃i, s i) = μ.measure (⋃i, disjointed s i) :
+calc μ (⋃i, s i) = μ (⋃i, disjointed s i) :
     by rw [disjointed_Union]
-  ... = (∑i, μ.measure (disjointed s i)) :
+  ... = (∑i, μ (disjointed s i)) :
     measure_Union_nat (disjoint_disjointed) (assume i, is_measurable_disjointed h)
-  ... = (⨆i, (finset.range i).sum (λi, μ.measure (disjointed s i))) :
+  ... = (⨆i, (finset.range i).sum (λi, μ (disjointed s i))) :
     by rw [ennreal.tsum_eq_supr_nat]
-  ... = (⨆i, (range (i + 1)).sum (λi, μ.measure (disjointed s i))) :
+  ... = (⨆i, (range (i + 1)).sum (λi, μ (disjointed s i))) :
     le_antisymm
       (supr_le begin intro i, cases i with j, simp, exact le_supr_of_le j (le_refl _) end)
       (supr_le $ assume i, le_supr_of_le (i + 1) $ le_refl _)
-  ... = (⨆i, μ.measure (s i)) :
+  ... = (⨆i, μ (s i)) :
     congr_arg _ $ funext $ this
 
 lemma measure_Inter_eq_infi_nat {s : ℕ → set α}
-  (h : ∀i, is_measurable (s i)) (hs : ∀i j, i ≤ j → s j ⊆ s i) (hfin : μ.measure (s 0) < ⊤) :
-  μ.measure (⋂i, s i) = (⨅i, μ.measure (s i)) :=
+  (h : ∀i, is_measurable (s i)) (hs : ∀i j, i ≤ j → s j ⊆ s i) (hfin : μ (s 0) < ⊤) :
+  μ (⋂i, s i) = (⨅i, μ (s i)) :=
 have eq₁ : (⋂i, s i) = (s 0 \ (⋃i, s 0 \ s i)),
   from set.ext $ begin simp [iff_def], simp [imp_false] {contextual := tt} end,
 have sub : (⋃i, s 0 \ s i) ⊆ s 0,
@@ -317,24 +319,24 @@ have hd : ∀i, is_measurable (s 0 \ s i), from assume i, is_measurable_sdiff (h
 have hu : is_measurable (⋃i, s 0 \ s i), from is_measurable_Union hd,
 have hm : monotone (λ (i : ℕ), s 0 \ s i),
   from assume i j h, sdiff_subset_sdiff (subset.refl _) (hs i j h),
-have eq₂ : ∀i, μ.measure (s 0) - (μ.measure (s 0) - μ.measure (s i)) = μ.measure (s i),
+have eq₂ : ∀i, μ (s 0) - (μ (s 0) - μ (s i)) = μ (s i),
   from assume i,
-  have μ.measure (s i) ≤ μ.measure (s 0), from measure_mono (hs _ _ $ nat.zero_le _),
+  have μ (s i) ≤ μ (s 0), from measure_mono (hs _ _ $ nat.zero_le _),
   let ⟨r, hr, eqr, _⟩ := ennreal.lt_iff_exists_of_real.mp hfin in
   let ⟨p, hp, eqp, _⟩ := ennreal.lt_iff_exists_of_real.mp (lt_of_le_of_lt this hfin) in
   have 0 ≤ r - p,
     by rw [le_sub_iff_add_le, zero_add, ←ennreal.of_real_le_of_real_iff hp hr, ←eqp, ←eqr];
     from this,
   by simp [eqr, eqp, hp, hr, this, -sub_eq_add_neg, sub_sub_self],
-calc μ.measure (⋂i, s i) = μ.measure (s 0 \ (⋃i, s 0 \ s i)) :
+calc μ (⋂i, s i) = μ (s 0 \ (⋃i, s 0 \ s i)) :
     congr_arg _ eq₁
-  ... = μ.measure (s 0) - μ.measure (⋃i, s 0 \ s i) :
+  ... = μ (s 0) - μ (⋃i, s 0 \ s i) :
     by rw [measure_sdiff sub (h 0) hu hfin]
-  ... = μ.measure (s 0) - (⨆i, μ.measure (s 0 \ s i)) :
+  ... = μ (s 0) - (⨆i, μ (s 0 \ s i)) :
     by rw [measure_Union_eq_supr_nat hd hm]
-  ... = (⨅i, μ.measure (s 0) - μ.measure (s 0 \ s i)) :
+  ... = (⨅i, μ (s 0) - μ (s 0 \ s i)) :
     ennreal.sub_supr hfin
-  ... = (⨅i, μ.measure (s i)) :
+  ... = (⨅i, μ (s i)) :
     congr_arg _ $ funext $ assume i,
       by rw [measure_sdiff (hs _ _ (nat.zero_le _)) (h 0) (h i) hfin, eq₂]
 
@@ -399,7 +401,7 @@ instance : partial_order (measure_space α) :=
 
 def map (f : α → β) (μ : measure_space α) : measure_space β :=
 if hf : measurable f then
-  { measure_of := λs hs, μ.measure (f ⁻¹' s),
+  { measure_of := λs hs, μ (f ⁻¹' s),
     measure_of_empty := by simp,
     measure_of_Union := assume s hs h,
       have h' : pairwise (disjoint on λ (i : ℕ), f ⁻¹' s i),
@@ -412,7 +414,7 @@ else 0
 variables {μ : measure_space α}
 
 lemma map_measure {f : α → β} {s : set β} (hf : measurable f) (hs : is_measurable s) :
-  (μ.map f).measure s = μ.measure (f ⁻¹' s) :=
+  (μ.map f : measure_space β) s = μ (f ⁻¹' s) :=
 by rw [map, dif_pos hf, measure_space.measure_eq _ hs]
 
 lemma map_id : map id μ = μ :=
@@ -442,7 +444,7 @@ def dirac (a : α) : measure_space α :=
 
 /-- Sum of an indexed family of measures. -/
 def sum {ι : Type*} (f : ι → measure_space α) : measure_space α :=
-{ measure_of       := λs hs, ∑i, (f i).measure s,
+{ measure_of       := λs hs, ∑i, f i s,
   measure_of_empty := by simp,
   measure_of_Union := assume f hf h, by simp [measure_Union_nat h hf]; rw [ennreal.tsum_comm] }
 

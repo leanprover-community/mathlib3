@@ -1595,7 +1595,7 @@ begin
   apply limit_rec_on a,
   { simp [zero_le] },
   { intros, rw [succ_le, lt_div c0] },
-  { simp [mul_le_of_limit, limit_le] {contextual := tt} }
+  { simp [mul_le_of_limit, limit_le, -not_lt] {contextual := tt} }
 end
 
 theorem div_lt {a b c : ordinal} (b0 : b ≠ 0) :

@@ -1,6 +1,6 @@
 # Mathlib tactics #
 
-In addition to [core tactics](https://leanprover.github.io/reference/tactics.html), 
+In addition to [core tactics](https://leanprover.github.io/reference/tactics.html),
 mathlib provides a number of specific interactive tactics and commands.
 Here we document the mostly commonly used ones.
 
@@ -41,7 +41,7 @@ this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
 then after `replace h := f h` the goal will be `h : q ⊢ goal`,
 where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
-of Coq. 
+of Coq.
 
 ### finish/clarify/safe
 
@@ -73,7 +73,7 @@ Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www
   instances in the context
 
 * `introI`/`introsI`: Like `intro`/`intros`, but uses the introduced variable
-  in typeclass inference. 
+  in typeclass inference.
 
 * `haveI`/`letI`: Used to add typeclasses to the context so that they can
   be used in typeclass inference. The syntax is the same as
@@ -94,3 +94,35 @@ import tactic.find
 #find _ + _ = _ + _
 #find (_ : ℕ) + _ = _ + _
 ```
+
+### ext1 / ext
+
+ * `ext1 id` selects and apply one extensionality lemma (with
+    attribute `extensionality`), using `id`, if provided, to name a
+    local constant introduced by the lemma. If `id` is omitted, the
+    local constant is named automatically, as per `intro`.
+
+ * `ext` applies as many extensionality lemmas as possible;
+ * `ext ids`, with `ids` a list of identifiers, finds extentionality
+    and applies them until it runs out of identifiers in `ids` to name
+    the local constants.
+
+When trying to prove:
+
+  ```
+  α β : Type,
+  f g : α → set β
+  ⊢ f = g
+  ```
+
+applying `ext x y` yields:
+
+  ```
+  α β : Type,
+  f g : α → set β,
+  x : α,
+  y : β
+  ⊢ y ∈ f x ↔ y ∈ f x
+  ```
+
+by applying functional extensionality and set extensionality.

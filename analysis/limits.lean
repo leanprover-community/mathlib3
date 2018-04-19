@@ -82,7 +82,7 @@ lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ
 tendsto_infi.2 $ assume p, tendsto_principal.2 $
   let ⟨n, hn⟩ := exists_nat_gt (p / (r - 1)) in
   have hn_nn : (0:ℝ) ≤ n, from nat.cast_nonneg n,
-  have r - 1 > 0, from sub_lt_iff.mp $ by simp; assumption,
+  have r - 1 > 0, from sub_lt_iff_lt_add.mp $ by simp; assumption,
   have p ≤ r ^ n,
     from calc p = (p / (r - 1)) * (r - 1) : (div_mul_cancel _ $ ne_of_gt this).symm
       ... ≤ n * (r - 1) : mul_le_mul (le_of_lt hn) (le_refl _) (le_of_lt this) hn_nn

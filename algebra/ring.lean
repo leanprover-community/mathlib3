@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn
 -/
 import algebra.group tactic data.set.basic
 
-universes u v
+universes u v w
 variable {α : Type u}
 
 section
@@ -79,6 +79,17 @@ calc f (-x) = f (-x + x) - f x : by rw [map_add f]; simp
 
 lemma map_sub : f (x - y) = f x - f y :=
 by simp [map_add f, map_neg f]
+
+instance is_comm_ring_hom.id {α : Type u} [comm_ring α] : is_ring_hom (@id α) :=
+{map_add := λ _ _,rfl,map_mul := λ _ _,rfl,map_one := rfl}
+
+instance is_comm_ring_hom.comp {α : Type u} {β : Type v} {γ : Type w} [comm_ring α] [comm_ring β] [comm_ring γ]
+{f : α → β} {g : β → γ} [Hf : is_ring_hom f] [Hg : is_ring_hom g] : is_ring_hom (g ∘ f) :=
+{ map_add := λ x y,by simp [Hf.map_add,Hg.map_add],
+  map_mul := λ x y, by simp [Hf.map_mul,Hg.map_mul],
+  map_one := show g (f 1) = 1, by rw [Hf.map_one, Hg.map_one]
+}
+
 
 end is_ring_hom
 

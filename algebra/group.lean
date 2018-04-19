@@ -494,9 +494,12 @@ mul_self_iff_eq_one.1 $ by simp [(mul f 1 1).symm]
 theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
 eq.symm $ inv_eq_of_mul_eq_one $ by simp [(mul f a a⁻¹).symm, one f]
 
-variables {γ : Type*} [group γ] {g : β → γ} [is_group_hom g]
+instance id : is_group_hom (@id α) :=
+⟨λ _ _, rfl⟩
 
-instance comp : is_group_hom (g ∘ f) := ⟨λ x y, calc
+instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] :
+  is_group_hom (g ∘ f) :=
+⟨λ x y, calc
   g (f (x * y)) = g (f x * f y)       : by rw mul f
   ...           = g (f x) * g (f y)   : by rw mul g⟩
 

@@ -32,6 +32,8 @@ theorem is_maximal_ideal.mk {α : Type u} [comm_ring α] (S : set α) [is_submod
     let ⟨x, hxt, hxns⟩ := set.exists_of_ssubset ⟨hst, hnst.symm⟩ in
     @@is_submodule.univ_of_one_mem _ T ht $ @@h₂ x T ht hst hxns hxt}
 
+def nonunits (α : Type u) [monoid α] : set α := { x | ¬∃ y, y * x = 1 }
+
 theorem not_unit_of_mem_maximal_ideal {α : Type u} [comm_ring α] (S : set α) [is_maximal_ideal S] :
   S ⊆ nonunits α :=
 λ x hx ⟨y, hxy⟩, is_proper_ideal.ne_univ S $ is_submodule.eq_univ_of_contains_unit S x y hx hxy

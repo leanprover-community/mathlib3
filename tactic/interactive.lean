@@ -400,8 +400,12 @@ with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
 lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
-/-- like `generalize` but allows the user to list assumptions and omit the goal in  -/
-meta def generalize_a  (h : parse ident?) (_ : parse $ tk ":")
+/--
+  Like `generalize` but also considers assumptions
+  specified by the user. The user can also specify to
+  omit the goal.
+  -/
+meta def generalize_hyp  (h : parse ident?) (_ : parse $ tk ":")
   (p : parse generalize_arg_p)
   (l : parse location) :
   tactic unit :=

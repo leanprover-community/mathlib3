@@ -115,16 +115,32 @@ end
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
   have : m + n = q,
-  { generalize_a h' : m + n = x at h,
+  { generalize_hyp h' : m + n = x at h,
     guard_hyp h' := m + n = x,
     guard_hyp h := x = p,
     guard_target m + n = q,
     admit },
   have : m + n = q,
-  { generalize_a h' : m + n = x at h ⊢,
+  { generalize_hyp h' : m + n = x at h ⊢,
     guard_hyp h' := m + n = x,
     guard_hyp h := x = p,
     guard_target x = q,
     admit },
+  trivial
+end
+
+example (α : Sort*) (L₁ L₂ L₃ : list α)
+  (H : L₁ ++ L₂ = L₃) : true :=
+begin
+  have : L₁ ++ L₂ = L₂,
+  { generalize_a h : L₁ ++ L₂ = L at H,
+    induction L with hd tl ih,
+    case list.nil
+    { tactic.cleanup,
+      change list.nil = L₃ at H,
+      admit },
+    case list.cons
+    { change hd :: tl = L₃ at H,
+      admit } },
   trivial
 end

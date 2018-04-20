@@ -294,9 +294,10 @@ meta def tauto := tautology
   -/
 meta def wlog (h : parse ident?)
               (p : parse (tk ":" *> texpr))
-              (xy : parse (tk "using" *> monad.sequence [ident,ident])?)
-: tactic unit :=
+              (xy : parse (tk "using" *> monad.sequence [ident,ident])?) :
+  tactic unit :=
 do p' ← to_expr p,
+   h_asm ← get_unused_name (h.get_or_else `a),
    (x :: y :: _) ← xy.to_monad >>= mmap get_local <|> pure p'.list_local_const,
    n ← tactic.revert_lst [x,y],
    x ← intro1, y ← intro1,
@@ -306,22 +307,27 @@ do p' ← to_expr p,
      fail format!"{p} should reference {x} and {y}"),
    let p' := subst_locals [(x,y),(y,x)] p,
    t ← target,
-   let g := p.imp t,
-   g ← tactic.pis [x,y] g,
+   asm ← mk_local_def h_asm p,
+   g ← tactic.pis [x,y,asm] t,
 
-   (this,gs) ← local_proof `this (set_binder g [binder_info.default,binder_info.default])
+   h_this₀ ← get_unused_name `this,
+   (this,gs) ← local_proof h_this₀ (set_binder g [binder_info.default,binder_info.default])
          (do tactic.clear x, tactic.clear y,
              intron 2,
-             intro $ h.get_or_else `a,
+             intro $ h_asm,
              intron (n-2)),
    intron (n-2),
-   p_or_p' ← to_expr ``(%%p ∨ %%p'),
 
-   (h',gs') ← local_proof (h.get_or_else `this) p_or_p'
+   p_or_p' ← to_expr ``(%%p ∨ %%p'),
+   h_this ← get_unused_name `this,
+   (h',gs') ← local_proof h_this p_or_p'
      (do tactic.clear this,
          try $ assumption <|> `[exact le_total _ _]),
-   (() <$ tactic.cases h' [`h,`h])
-     ; [ specialize ```(%%this %%x %%y h), specialize ```(%%this %%y %%x h) ]
+   (() <$ tactic.cases h' [h_asm,h_asm])
+     ; [ (do h ← get_local h_asm,
+            specialize ```(%%this %%x %%y %%h) <|> fail "spec A"),
+         do h ← get_local h_asm,
+            specialize ```(%%this %%y %%x %%h) <|> fail "spec B" ]
      ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
    gs'' ← get_goals,
    set_goals $ gs' ++ gs'' ++ gs,

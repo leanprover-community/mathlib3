@@ -134,8 +134,8 @@ meta def set_binder : expr → list binder_info → expr
 -/
 meta def local_proof
   (h : name) (p : expr)
-  (tac₀ : tactic unit)
-: tactic (expr × list expr) :=
+  (tac₀ : tactic unit) :
+  tactic (expr × list expr) :=
 focus1 $
 do h' ← assert h p,
    [g₀,g₁] ← get_goals,

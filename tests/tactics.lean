@@ -111,3 +111,20 @@ begin
     guard_hyp h' := x ∈ S₀,
     admit }
 end
+
+example (m n p q : nat) (h : m + n = p) : true :=
+begin
+  have : m + n = q,
+  { generalize_a h' : m + n = x at h,
+    guard_hyp h' := m + n = x,
+    guard_hyp h := x = p,
+    guard_target m + n = q,
+    admit },
+  have : m + n = q,
+  { generalize_a h' : m + n = x at h ⊢,
+    guard_hyp h' := m + n = x,
+    guard_hyp h := x = p,
+    guard_target x = q,
+    admit },
+  trivial
+end

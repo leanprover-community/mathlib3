@@ -118,4 +118,30 @@ meta def set_binder : expr → list binder_info → expr
  | (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
  | e _ := e
 
+/-- variation on `assert` where a (possibly incomplete)
+    proof of the assertion is provided as a parameter.
+
+    ``(h,gs) ← local_proof `h p tac`` creates a local `h : p` and
+    use `tac` to (partially) construct a proof for it. `gs` is the
+    list of remaining goals in the proof of `h`.
+
+    The benefits over assert are:
+    - unlike with ``h ← assert `h p, tac`` , `h` cannot be used by `tac`;
+    - when `tac` does not complete the proof of `h`, returning the list
+      of goals allows one to write a tactic using `h` and with the confidence
+      that a proof will not boil over to goals left over from the proof of `h`,
+      unlike what would be the case when using `tactic.swap`.
+-/
+meta def local_proof
+  (h : name) (p : expr)
+  (tac₀ : tactic unit)
+: tactic (expr × list expr) :=
+focus1 $
+do h' ← assert h p,
+   [g₀,g₁] ← get_goals,
+   set_goals [g₀], tac₀,
+   gs ← get_goals,
+   set_goals [g₁],
+   return (h' , gs)
+
 end tactic

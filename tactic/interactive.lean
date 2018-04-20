@@ -280,6 +280,7 @@ done
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology
 
+
 /-- `wlog h : i ≤ j using i j`: without loss of generality, let us assume `h : i ≤ j`
     If `using i j` is omitted, the last two free variables found in `i ≤ j` will be used.
 
@@ -300,24 +301,30 @@ do p' ← to_expr p,
    n ← tactic.revert_lst [x,y],
    x ← intro1, y ← intro1,
    p ← to_expr p,
-   when (¬ x.occurs p ∨ ¬ x.occurs p) (do
+   when (¬ x.occurs p ∧ ¬ x.occurs p) (do
      p ← pp p,
      fail format!"{p} should reference {x} and {y}"),
    let p' := subst_locals [(x,y),(y,x)] p,
    t ← target,
    let g := p.imp t,
    g ← tactic.pis [x,y] g,
-   this ← assert `this (set_binder g [binder_info.default,binder_info.default]),
-   tactic.clear x, tactic.clear y,
-   intron 2,
-   intro $ h.get_or_else `a, intron (n-2), tactic.swap,
-   let h := h.get_or_else `this,
-   h' ← to_expr ``(%%p ∨ %%p') >>= assert h,
-   tactic.clear this,
-   assumption <|> `[exact le_total _ _] <|> tactic.swap,
+
+   (this,gs) ← local_proof `this (set_binder g [binder_info.default,binder_info.default])
+         (do tactic.clear x, tactic.clear y,
+             intron 2,
+             intro $ h.get_or_else `a,
+             intron (n-2)),
+   intron (n-2),
+   p_or_p' ← to_expr ``(%%p ∨ %%p'),
+
+   (h',gs') ← local_proof (h.get_or_else `this) p_or_p'
+     (do tactic.clear this,
+         try $ assumption <|> `[exact le_total _ _]),
    (() <$ tactic.cases h' [`h,`h])
-   ; specialize ```(%%this _ _ h)
-   ; intron (n-2) ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
+     ; [ specialize ```(%%this %%x %%y h), specialize ```(%%this %%y %%x h) ]
+     ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
+   gs'' ← get_goals,
+   set_goals $ gs' ++ gs'' ++ gs,
    return ()
 
 end interactive

@@ -648,3 +648,15 @@ end nonempty
 lemma pi_congr_eq {a : Sort*} {p q : a → Sort*} (h : ∀ x, p x = q x)
 : (Π x, p x) = Π x, q x :=
 congr_arg (λ r : a → Sort*, ∀ x, r x) (funext h)
+
+lemma cast_eq_of_heq  {α : Sort*} {β : Sort*} {x : α} {y : β}
+  (h : α = β)
+  (h' : x == y) :
+  cast h x = y :=
+by cc
+
+lemma heq_of_cast_eq {α β} {x : α} {y : β}
+  (h : α = β)
+  (h' : cast h x = y)
+: x == y :=
+by cc

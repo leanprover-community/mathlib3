@@ -280,6 +280,11 @@ theorem bind_defined {f : roption α} {g : α → roption β} :
 @[simp] theorem bind_dom {f : roption α} {g : α → roption β} :
   (f.bind g).dom ↔ ∃ h : f.dom, (g (f.get h)).dom := iff.rfl
 
+@[simp]
+lemma get_return {α} (x : α) (H)
+: get (return x) H = x :=
+rfl
+
 end roption
 
 /-- `pfun α β`, or `α →. β`, is the type of partial functions from

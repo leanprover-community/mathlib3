@@ -1,5 +1,5 @@
 import .basic
-#check @cofix.cases
+
 namespace tactic
 open lean.parser interactive interactive.types
 open tactic.interactive (generalize cases_arg_p)
@@ -30,6 +30,12 @@ do ls ← local_context,
    intron (2 - ns.length),
    target >>= head_beta >>= change,
    intron n
+
+lemma cast_eq_of_heq {α β} {x : α} {y : β}
+  (h : α = β)
+  (h' : cast h x = y)
+: x == y :=
+by { subst β, subst y, symmetry, simp [cast_heq] }
 
 run_cmd add_interactive [`co_cases]
 

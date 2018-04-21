@@ -21,9 +21,13 @@ local attribute [simp] list.append_eq_has_append
 
 namespace free_group
 
+/-- Predicate asserting that word `w₁` can be reduced
+to `w₂` in one step, i.e. there are words `w₃ w₄`
+and letter `x` such that `w₁ = w₃xx⁻¹w₄` and `w₂ = w₃w₄`  -/
 inductive red.step : list (α × bool) → list (α × bool) → Prop
 | bnot {L₁ L₂ x b} : red.step (L₁ ++ (x, b) :: (x, bnot b) :: L₂) (L₁ ++ L₂)
 
+/-- Reflexive-transitive closure of red.step -/
 inductive red : list (α × bool) → list (α × bool) → Prop
 | refl {L} : red L L
 | step_trans {L₁ L₂ L₃} (H : free_group.red.step L₁ L₂) :
@@ -184,6 +188,10 @@ theorem church_rosser_1 : ∀ {L₁ L₂ L₃ : list (α × bool)},
       end
   end
 
+/-- Church-Rosser theorem for word reduction:
+If `w1 w2 w3` are words such that `w1` reduces to
+`w2` and `w3` respectively, then there is a word
+`w4` such that `w2` and `w3` reduce to `w4` respectively. -/
 theorem church_rosser : ∀ {L₁ L₂ L₃ : list (α × bool)},
   red L₁ L₂ → red L₁ L₃ → ∃ L₄, red L₂ L₄ ∧ red L₃ L₄
 | _ _ _ red.refl H23 := ⟨_, H23, red.refl⟩
@@ -200,6 +208,9 @@ end free_group
 
 variable α
 
+/-- The free group over a type, i.e. the words formed
+by the elements of the type and their formal
+inverses, quotient by one step reduction. -/
 def free_group : Type u :=
 quot $ @free_group.red.step α
 
@@ -246,6 +257,9 @@ instance : group (free_group α) :=
 
 @[simp] lemma mul_mk : mk L₁ * mk L₂ = mk (L₁ ++ L₂) := rfl
 
+/-- The canonical injection from the type to the free
+group over that type by sending each element to
+the equivalence class of the letter that is the element. -/
 def of (x : α) : free_group α :=
 mk [(x, tt)]
 
@@ -274,6 +288,7 @@ theorem red.nil.aux : ∀ {L₁ L₂ : list (α × bool)},
 | _ _ red.refl                                        H := H.symm
 | _ _ (red.step_trans (@red.step.bnot _ [] _ _ _) H2) H := list.no_confusion H
 
+/-- The empty word `[]` only reduces to itself. -/
 theorem red.nil (H : red [] L) : [] = L :=
 red.nil.aux H rfl
 
@@ -285,9 +300,12 @@ theorem red.singleton.aux : ∀ {L₁ L₂ : list (α × bool)} {x},
 | _ _ _ (red.step_trans (@red.step.bnot _ [x] _ _ _) H2) H :=
   list.no_confusion (list.cons.inj H).2
 
+/-- A letter only reduces to itself. -/
 theorem red.singleton {x} (H : red [x] L₁) : [x] = L₁ :=
 red.singleton.aux H rfl
 
+/-- The canonical injection from the type to
+the free group is an injection. -/
 theorem of.inj {x y : α} (H : of x = of y) : x = y :=
 let ⟨L₁, hx, hy⟩ := red.step.exact H in
 have H1 : _ := (red.singleton hx).trans (red.singleton hy).symm,
@@ -296,6 +314,8 @@ by injections
 theorem red.step.sublist (H : red.step L₁ L₂) : L₂ <+ L₁ :=
 by cases H; simp; constructor; constructor; refl
 
+/-- If `w₁ w₂` are words such that `w₁` reduces to
+`w₂`, then `w₂` is a sublist of `w₁`. -/
 theorem red.sublist (H : red L₁ L₂) : L₂ <+ L₁ :=
 red.rec_on H list.sublist.refl $ λ _ _ _ H1 H2 ih,
 list.sublist.trans ih $ red.step.sublist H1
@@ -309,6 +329,8 @@ list.cases_on L6
   (λ ⟨x2, b2⟩ tl H45 ih L H7 H5, by injections; subst_vars;
      from red.step_trans red.step.bnot (ih rfl H5))
 
+/-- If `x` is a letter and `w` is a word such that `xw`
+reduces to the empty word, then `w` reduecs to `x⁻¹` -/
 theorem red.inv_of_red_nil {x b} (H : red ((x, b) :: L) []) :
   red L [(x, bnot b)] :=
 red.inv_of_red_nil.aux H rfl rfl
@@ -324,6 +346,8 @@ list.cases_on L8
   (λ ⟨x, b⟩ tl H67 ih L₃ H6 H7, by injections; subst_vars;
     from red.step_trans red.step.bnot (ih rfl H7))
 
+/-- If `x` and `y` are distinct letters and `w₁ w₂` are
+words such that `xw₁` reduces to `yw₂`, then `w₁` reduces to `x⁻¹yw₂`. -/
 theorem red.inv_of_red_of_ne {x1 b1 x2 b2}
   (H1 : (x1, b1) ≠ (x2, b2))
   (H2 : red ((x1, b1) :: L₁) ((x2, b2) :: L₂)) :
@@ -346,6 +370,9 @@ theorem red.to_group {f : α → β} (H : red L₁ L₂) :
 red.rec_on H (λ _, rfl) $ λ _ _ _ H1 H2 ih,
 eq.trans (by cases H1 with _ _ _ b; cases b; simp [to_group.aux]) ih
 
+/-- If `β` is a group, then any function from `α` to `β`
+extends uniquely to a group homomorphism from
+the free group over `α` to `β` -/
 def to_group : free_group α → β :=
 quot.lift (to_group.aux f) $ λ L₁ L₂ H, red.step.to_group H
 
@@ -407,10 +434,9 @@ variables {β : Type v} (f : α → β) {x y : free_group α}
 def map.aux (L : list (α × bool)) : list (β × bool) :=
 L.map $ λ x, (f x.1, x.2)
 
-theorem red.map (H : red L₁ L₂) : red (map.aux f L₁) (map.aux f L₂) :=
-red.rec_on H (λ _, red.refl) $ λ _ _ _ H1 H2 ih,
-red.step_trans (by cases H1; simp [map.aux]) ih
-
+/-- Any function from `α` to `β` extends uniquely
+to a group homomorphism from the free group
+ver `α` to the free group over `β`. -/
 def map (x : free_group α) : free_group β :=
 x.lift_on (λ L, mk $ map.aux f L) $
 λ L₁ L₂ H, quot.sound $ by cases H; simp [map.aux]
@@ -455,6 +481,7 @@ quot.induction_on x $ λ L, list.rec_on L (is_group_hom.one g) $
   (show g (of x * mk t) = map f (of x * mk t),
      by simp [is_group_hom.mul g, hg, ih])
 
+/-- Equivalent types give rise to equivalent free groups. -/
 def free_group_congr {α β} (e : α ≃ β) : free_group α ≃ free_group β :=
 ⟨map e, map e.symm,
  λ x, by simp [function.comp, map.comp],
@@ -469,6 +496,10 @@ section prod
 
 variables [group α] (x y : free_group α)
 
+/-- If `α` is a group, then any function from `α` to `α`
+extends uniquely to a homomorphism from the
+free group over `α` to `α`. This is the multiplicative
+version of `sum`. -/
 def prod : α :=
 to_group id x
 
@@ -493,6 +524,11 @@ to_group.one
 @[simp] lemma prod.inv : prod x⁻¹ = (prod x)⁻¹ :=
 to_group.inv
 
+lemma prod.unique (g : free_group α → α) [is_group_hom g]
+  (hg : ∀ x, g (of x) = x) {x} :
+  g x = prod x :=
+to_group.unique g hg
+
 end prod
 
 theorem to_group_eq_prod_map {β : Type v} [group β] {f : α → β} {x} :
@@ -503,6 +539,10 @@ section sum
 
 variables [add_group α] (x y : free_group α)
 
+/-- If `α` is a group, then any function from `α` to `α`
+extends uniquely to a homomorphism from the
+free group over `α` to `α`. This is the additive
+version of `prod`. -/
 def sum : α :=
 @prod (multiplicative _) _ x
 
@@ -549,6 +589,8 @@ section reduce
 
 variable [decidable_eq α]
 
+/-- The maximal reduction of a word. It is computable
+iff `α` has decidable equality. -/
 def reduce (L : list (α × bool)) : list (α × bool) :=
 list.rec_on L [] $ λ hd1 tl1 ih,
 list.cases_on ih [hd1] $ λ hd2 tl2,
@@ -560,6 +602,8 @@ else hd1 :: hd2 :: tl2
   if x.1 = hd.1 ∧ x.2 = bnot hd.2 then tl
   else x :: hd :: tl) := rfl
 
+/-- The first theorem that characterises the function
+`reduce`: a word reduces to its maximal reduction. -/
 theorem reduce.red : red L (reduce L) :=
 begin
   induction L with hd1 tl1 ih,
@@ -607,6 +651,9 @@ theorem reduce.not {p : Prop} : ∀ {L₁ L₂ L₃ : list (α × bool)} {x b}, 
     rw [r, H], refl }
 end
 
+/-- The second theorem that characterises the
+function `reduce`: the maximal reduction of a word
+only reduces to itself. -/
 theorem reduce.min (H : red (reduce L₁) L₂) : reduce L₁ = L₂ :=
 begin
   revert H,
@@ -620,6 +667,9 @@ begin
     exact reduce.not h1 }
 end
 
+/-- `reduce` is idempotent, i.e. the maximal reduction
+of the maximal reduction of a word is the maximal
+reduction of the word. -/
 theorem reduce.idem : reduce (reduce L) = reduce L :=
 eq.symm $ reduce.min reduce.red
 
@@ -627,23 +677,38 @@ theorem reduce.step.eq (H : red.step L₁ L₂) : reduce L₁ = reduce L₂ :=
 let ⟨L₃, HR13, HR23⟩ := church_rosser reduce.red (red.step_trans H reduce.red) in
 (reduce.min HR13).trans (reduce.min HR23).symm
 
+/-- If a word reduces to another word, then they have
+a common maximal reduction. -/
 theorem reduce.eq_of_red (H : red L₁ L₂) : reduce L₁ = reduce L₂ :=
 let ⟨L₃, HR13, HR23⟩ := church_rosser reduce.red (red.trans H reduce.red) in
 (reduce.min HR13).trans (reduce.min HR23).symm
 
+/-- If two words correspond to the same element in
+the free group, then they have a common maximal
+reduction. This is the proof that the function that
+sends an element of the free group to its maximal
+reduction is well-defined. -/
 theorem reduce.sound (H : mk L₁ = mk L₂) : reduce L₁ = reduce L₂ :=
 let ⟨L₃, H13, H23⟩ := red.step.exact H in
 (reduce.eq_of_red H13).trans (reduce.eq_of_red H23).symm
 
+/-- If two words have a common maximal reduction,
+then they correspond to the same element in the free group. -/
 theorem reduce.exact (H : reduce L₁ = reduce L₂) : mk L₁ = mk L₂ :=
 red.step.sound (reduce L₂) (H ▸ reduce.red) (reduce.red)
 
+/-- A word and its maximal reduction correspond to
+the same element of the free group. -/
 theorem reduce.self : mk (reduce L) = mk L :=
 reduce.exact reduce.idem
 
+/-- If words `w₁ w₂` are such that `w₁` reduces to `w₂`,
+then `w₂` reduces to the maximal reduction of `w₁`. -/
 theorem reduce.rev (H : red L₁ L₂) : red L₂ (reduce L₁) :=
 (reduce.eq_of_red H).symm ▸ reduce.red
 
+/-- The function that sends an element of the free
+group to its maximal reduction. -/
 def to_word : free_group α → list (α × bool) :=
 quot.lift reduce $ λ L₁ L₂ H, reduce.step.eq H
 
@@ -653,6 +718,7 @@ quot.induction_on x $ λ L₁, reduce.self
 def to_word.inj (x y : free_group α) : to_word x = to_word y → x = y :=
 quot.induction_on x $ λ L₁, quot.induction_on y $ λ L₂, reduce.exact
 
+/-- Constructive Church-Rosser theorem (compare `church_rosser`). -/
 def reduce.church_rosser (H12 : red L₁ L₂) (H13 : red L₁ L₃) :
   { L₄ // red L₂ L₄ ∧ red L₃ L₄ } :=
 ⟨reduce L₁, reduce.rev H12, reduce.rev H13⟩
@@ -667,10 +733,7 @@ instance red.decidable_rel : decidable_rel (@red α)
 | ((x,b)::tl) [] := match red.decidable_rel tl [(x, bnot b)] with
   | is_true H  := is_true $ red.trans (red.cons H) $
     red.of_step $ @red.step.bnot _ [] [] _ _
-  | is_false H := is_false $ λ H2,
-    have H3 : reduce ((x, bnot b) :: (x, b) :: tl) = [(x, bnot b)],
-      from reduce.eq_of_red (red.cons H2),
-    H $ H3 ▸ reduce.rev (red.cons_bnot_rev)
+  | is_false H := is_false $ λ H2, H $ red.inv_of_red_nil H2
   end
 | ((x1,b1)::tl1) ((x2,b2)::tl2) := if h : (x1, b1) = (x2, b2)
   then match red.decidable_rel tl1 tl2 with
@@ -682,6 +745,7 @@ instance red.decidable_rel : decidable_rel (@red α)
     | is_false H := is_false $ λ H2, H $ red.inv_of_red_of_ne h H2
     end
 
+/-- A list containing every word that `w₁` reduces to. -/
 def red.enum (L₁ : list (α × bool)) : list (list (α × bool)) :=
 list.filter (λ L₂, red L₁ L₂) (list.sublists L₁)
 

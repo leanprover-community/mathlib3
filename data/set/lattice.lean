@@ -171,6 +171,14 @@ theorem bInter_subset_bInter_left {s s' : set α} {t : α → set β}
   (h : s' ⊆ s) : (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s', t x) :=
 subset_bInter (λ x xs, bInter_subset_of_mem (h xs))
 
+theorem bUnion_subset_bUnion_right {s : set α} {t1 t2 : α → set β}
+  (h : ∀ x ∈ s, t1 x ⊆ t2 x) : (⋃ x ∈ s, t1 x) ⊆ (⋃ x ∈ s, t2 x) :=
+bUnion_subset (λ x xs, subset.trans (h x xs) (subset_bUnion_of_mem xs))
+
+theorem bInter_subset_bInter_right {s : set α} {t1 t2 : α → set β}
+  (h : ∀ x ∈ s, t1 x ⊆ t2 x) : (⋂ x ∈ s, t1 x) ⊆ (⋂ x ∈ s, t2 x) :=
+subset_bInter (λ x xs, subset.trans (bInter_subset_of_mem xs) (h x xs))
+
 @[simp] theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
 show (⨅x ∈ (∅ : set α), u x) = ⊤, -- simplifier should be able to rewrite x ∈ ∅ to false.
   from infi_emptyset
@@ -224,6 +232,14 @@ begin rw [insert_eq], simp [bUnion_union] end
 theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=
 by rw insert_of_has_insert; simp [union_comm]
+
+@[simp] -- complete_boolean_algebra
+theorem compl_bUnion (s : set α) (t : α → set β) : - (⋃ i ∈ s, t i) = (⋂ i ∈ s, - t i) :=
+ext (λ x, by simp)
+
+-- classical -- complete_boolean_algebra
+theorem compl_bInter (s : set α) (t : α → set β) : -(⋂ i ∈ s, t i) = (⋃ i ∈ s, - t i) :=
+ext (λ x, by simp [classical.not_forall])
 
 /-- Intersection of a set of sets. -/
 @[reducible] def sInter (S : set (set α)) : set α := Inf S

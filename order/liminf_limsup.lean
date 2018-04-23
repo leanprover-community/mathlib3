@@ -286,43 +286,43 @@ le_cLiminf_of_eventually_le (by simp) L
 /--In a complete lattice, the Limsup of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s`-/
 theorem Limsup_eq_Inf_Sup : Limsup f u = Inf ((λs, Sup (u '' s)) '' f.sets) :=
-  have ∀s ∈ f.sets, eventually (λn, u n ≤ Sup (u '' s)) f :=
-  begin
-    assume S Sf,
-    apply f.upwards_sets Sf,
-    assume x xS,
-    apply le_Sup (mem_image_of_mem _ xS)
-  end,
-  have A : Limsup f u ≤ Inf ((λs, Sup (u '' s)) '' f.sets) :=
-    Inf_le_Inf (by finish [subset_def]),
-  have ∀a, eventually (λn, u n ≤ a) f → Inf ((λs, Sup (u '' s)) '' f.sets) ≤ a :=
-    assume a Ha,
-    calc Inf ((λs, Sup (u '' s)) '' f.sets) ≤ (λs, Sup (u '' s)) {n | u n ≤ a} :
-                   by apply Inf_le; finish [eventually]
-         ... ≤ a : by finish,
-  have B : Inf ((λs, Sup (u '' s)) '' f.sets) ≤ Limsup f u :=
-    le_Inf (by assumption),
-  le_antisymm A B
+have ∀s ∈ f.sets, eventually (λn, u n ≤ Sup (u '' s)) f :=
+begin
+  assume S Sf,
+  apply f.upwards_sets Sf,
+  assume x xS,
+  apply le_Sup (mem_image_of_mem _ xS)
+end,
+have A : Limsup f u ≤ Inf ((λs, Sup (u '' s)) '' f.sets) :=
+  Inf_le_Inf (by finish [subset_def]),
+have ∀a, eventually (λn, u n ≤ a) f → Inf ((λs, Sup (u '' s)) '' f.sets) ≤ a :=
+  assume a Ha,
+  calc Inf ((λs, Sup (u '' s)) '' f.sets) ≤ (λs, Sup (u '' s)) {n | u n ≤ a} :
+                 by apply Inf_le; finish [eventually]
+       ... ≤ a : by finish,
+have B : Inf ((λs, Sup (u '' s)) '' f.sets) ≤ Limsup f u :=
+  le_Inf (by assumption),
+le_antisymm A B
 
 /--In a complete lattice, the Liminf of a function is the supremum over sets `s` in the filter
 of the infimum of the function over `s`-/
 theorem Liminf_eq_Sup_Inf : Liminf f u = Sup ((λs, Inf (u '' s)) '' f.sets) :=
-  have ∀s ∈ f.sets, eventually (λn, Inf (u '' s) ≤ u n) f :=
-  begin
-    assume S Sf,
-    apply f.upwards_sets Sf,
-    assume x xS,
-    apply Inf_le (mem_image_of_mem _ xS)
-  end,
-  have A : Sup ((λs, Inf (u '' s)) '' f.sets) ≤ Liminf f u :=
-    Sup_le_Sup (by finish [subset_def]),
-  have ∀a, eventually (λn, a ≤ u n) f → a ≤ Sup ((λs, Inf (u '' s)) '' f.sets) :=
-    assume a Ha,
-    calc a   ≤ (λs, Inf (u '' s)) {n | a ≤ u n}   : by finish
-         ... ≤ Sup ((λs, Inf (u '' s)) '' f.sets) : by apply le_Sup; finish [eventually],
-  have B : Liminf f u ≤ Sup ((λs, Inf (u '' s)) '' f.sets) :=
-    Sup_le (by assumption),
-  le_antisymm B A
+have ∀s ∈ f.sets, eventually (λn, Inf (u '' s) ≤ u n) f :=
+begin
+  assume S Sf,
+  apply f.upwards_sets Sf,
+  assume x xS,
+  apply Inf_le (mem_image_of_mem _ xS)
+end,
+have A : Sup ((λs, Inf (u '' s)) '' f.sets) ≤ Liminf f u :=
+  Sup_le_Sup (by finish [subset_def]),
+have ∀a, eventually (λn, a ≤ u n) f → a ≤ Sup ((λs, Inf (u '' s)) '' f.sets) :=
+  assume a Ha,
+  calc a   ≤ (λs, Inf (u '' s)) {n | a ≤ u n}   : by finish
+       ... ≤ Sup ((λs, Inf (u '' s)) '' f.sets) : by apply le_Sup; finish [eventually],
+have B : Liminf f u ≤ Sup ((λs, Inf (u '' s)) '' f.sets) :=
+  Sup_le (by assumption),
+le_antisymm B A
 
 /--In a complete lattice, the liminf is bounded by the limsup.-/
 theorem Liminf_le_Limsup (H : f ≠ ⊥) : Liminf f u ≤ Limsup f u :=

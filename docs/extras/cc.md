@@ -24,8 +24,9 @@ the vertices are terms and they are linked by edges if they are known to
 be equal. Once you've added all the equalities in your context, you take
 the transitive closure of the graph and, for each connected component
 (i.e. equivalence class) you can elect a term that will represent the
-whole class and replace every occurrence of every member of that class
-by that one representative.
+whole class and store proofs that the other elements are equal to it.
+You then take the transitive closure of these equalities under the
+congruence lemmas.
 
 The `cc` implementation in Lean does a few more tricks: for example it
 derives `a=b` from `nat.succ a = nat.succ b`, and `nat.succ a !=

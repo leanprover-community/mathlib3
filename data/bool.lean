@@ -24,6 +24,8 @@ show _ = to_bool false, by congr
 @[simp] lemma of_to_bool_iff {p : Prop} [decidable p] : to_bool p ↔ p :=
 ⟨of_to_bool_true, _root_.to_bool_true⟩
 
+lemma not_ff : ¬ ff := by simp
+
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
 by cases b; simp
 

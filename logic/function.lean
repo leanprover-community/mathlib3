@@ -14,7 +14,7 @@ namespace function
 section
 variables {α : Sort u} {β : Sort v} {f : α → β}
 
-lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a} 
+lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
   (hα : α = α') (h : ∀a a', a == a' → f a == f' a') : f == f' :=
 begin
   subst hα,

@@ -49,6 +49,8 @@ by rw ← not_lt; exact
 
 @[simp] lemma Ico_eq_empty : b ≤ a → Ico a b = ∅ := Ico_eq_empty_iff.mpr
 
+lemma Ico_self : Ico a a = ∅ := Ico_eq_empty $ le_refl _
+
 lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) : Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ (a₂ ≤ a₁ ∧ b₁ ≤ b₂) :=
 ⟨assume h,
   have h' : a₁ ∈ Ico a₂ b₂, from h ⟨le_refl _, h₁⟩,
@@ -57,6 +59,26 @@ lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) : Ico a₁ b₁ ⊆ Ico a₂ b₂ 
     lt_irrefl b₂ this.right,
   ⟨h'.left, not_lt.1 $ this⟩,
 assume ⟨h₁, h₂⟩ x ⟨hx₁, hx₂⟩, ⟨le_trans h₁ hx₁, lt_of_lt_of_le hx₂ h₂⟩⟩
+
+lemma Ico_subset_Ico_left (h₁ : a₁ ≤ a₂) : Ico a₂ b ⊆ Ico a₁ b :=
+λ c, and.imp_left $ le_trans h₁
+
+lemma Ico_subset_Ico_right (h₁ : b₁ ≤ b₂) : Ico a b₁ ⊆ Ico a b₂ :=
+λ c, and.imp_right $ λ h₂, lt_of_lt_of_le h₂ h₁
+
+lemma Ico_subset_Ioo_left (h₁ : a₁ < a₂) : Ico a₂ b ⊆ Ioo a₁ b :=
+λ c, and.imp_left $ lt_of_lt_of_le h₁
+
+lemma Ioo_subset_Ico_self : Ioo a b ⊆ Ico a b := λ c, and.imp_left le_of_lt
+
+lemma Ico_subset_Iio_self : Ioo a b ⊆ Iio b := λ c, and.right
+
+lemma Ioo_self : Ioo a a = ∅ := subset_eq_empty Ioo_subset_Ico_self Ico_self
+
+lemma Ico_sdiff_Ioo_eq_singleton (h : a < b) : Ico a b \ Ioo a b = {a} :=
+set.ext $ λ c, by simp [Ioo, Ico, -not_lt]; exact
+⟨λ ⟨⟨ac, cb⟩, h⟩, ((lt_or_eq_of_le ac).resolve_left $ λ hn, h hn cb).symm,
+ λ e, e.symm ▸ ⟨⟨le_refl _, h⟩, (lt_irrefl _).elim⟩⟩
 
 lemma Ico_eq_Ico_iff : Ico a₁ b₁ = Ico a₂ b₂ ↔ ((b₁ ≤ a₁ ∧ b₂ ≤ a₂) ∨ (a₁ = a₂ ∧ b₁ = b₂)) :=
 begin

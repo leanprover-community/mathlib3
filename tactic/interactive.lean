@@ -280,6 +280,7 @@ done
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology
 
+
 /-- `wlog h : i ≤ j using i j`: without loss of generality, let us assume `h : i ≤ j`
     If `using i j` is omitted, the last two free variables found in `i ≤ j` will be used.
 
@@ -293,31 +294,43 @@ meta def tauto := tautology
   -/
 meta def wlog (h : parse ident?)
               (p : parse (tk ":" *> texpr))
-              (xy : parse (tk "using" *> monad.sequence [ident,ident])?)
-: tactic unit :=
+              (xy : parse (tk "using" *> monad.sequence [ident,ident])?) :
+  tactic unit :=
 do p' ← to_expr p,
+   h_asm ← get_unused_name (h.get_or_else `a),
    (x :: y :: _) ← xy.to_monad >>= mmap get_local <|> pure p'.list_local_const,
    n ← tactic.revert_lst [x,y],
    x ← intro1, y ← intro1,
    p ← to_expr p,
-   when (¬ x.occurs p ∨ ¬ x.occurs p) (do
+   when (¬ x.occurs p ∧ ¬ x.occurs p) (do
      p ← pp p,
      fail format!"{p} should reference {x} and {y}"),
    let p' := subst_locals [(x,y),(y,x)] p,
    t ← target,
-   let g := p.imp t,
-   g ← tactic.pis [x,y] g,
-   this ← assert `this (set_binder g [binder_info.default,binder_info.default]),
-   tactic.clear x, tactic.clear y,
-   intron 2,
-   intro $ h.get_or_else `a, intron (n-2), tactic.swap,
-   let h := h.get_or_else `this,
-   h' ← to_expr ``(%%p ∨ %%p') >>= assert h,
-   tactic.clear this,
-   assumption <|> `[exact le_total _ _] <|> tactic.swap,
-   (() <$ tactic.cases h' [`h,`h])
-   ; specialize ```(%%this _ _ h)
-   ; intron (n-2) ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
+   asm ← mk_local_def h_asm p,
+   g ← tactic.pis [x,y,asm] t,
+
+   h_this₀ ← get_unused_name `this,
+   (this,gs) ← local_proof h_this₀ (set_binder g [binder_info.default,binder_info.default])
+         (do tactic.clear x, tactic.clear y,
+             intron 2,
+             intro $ h_asm,
+             intron (n-2)),
+   intron (n-2),
+
+   p_or_p' ← to_expr ``(%%p ∨ %%p'),
+   h_this ← get_unused_name `this,
+   (h',gs') ← local_proof h_this p_or_p'
+     (do tactic.clear this,
+         try $ assumption <|> `[exact le_total _ _]),
+   (() <$ tactic.cases h' [h_asm,h_asm])
+     ; [ (do h ← get_local h_asm,
+            specialize ```(%%this %%x %%y %%h) <|> fail "spec A"),
+         do h ← get_local h_asm,
+            specialize ```(%%this %%y %%x %%h) <|> fail "spec B" ]
+     ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
+   gs'' ← get_goals,
+   set_goals $ gs' ++ gs'' ++ gs,
    return ()
 
 /--

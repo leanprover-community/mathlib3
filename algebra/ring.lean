@@ -13,7 +13,7 @@ section
 
   theorem mul_two (n : α) : n * 2 = n + n :=
   (left_distrib n 1 1).trans (by simp)
-  
+
   theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
   (two_mul _).symm
 end
@@ -57,16 +57,14 @@ section comm_ring
   ⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
 end comm_ring
 
-def nonunits (α : Type u) [comm_ring α] : set α := { x | ¬∃ y, y * x = 1 }
-
-class is_ring_hom {α : Type u} {β : Type v} [comm_ring α] [comm_ring β] (f : α → β) : Prop :=
+class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
 (map_add : ∀ {x y}, f (x + y) = f x + f y)
 (map_mul : ∀ {x y}, f (x * y) = f x * f y)
 (map_one : f 1 = 1)
 
 namespace is_ring_hom
 
-variables {β : Type v} [comm_ring α] [comm_ring β]
+variables {β : Type v} [ring α] [ring β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
 lemma map_zero : f 0 = 0 :=
@@ -79,6 +77,14 @@ calc f (-x) = f (-x + x) - f x : by rw [map_add f]; simp
 
 lemma map_sub : f (x - y) = f x - f y :=
 by simp [map_add f, map_neg f]
+
+instance id : is_ring_hom (@id α) := by refine {..}; intros; refl
+
+instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
+  is_ring_hom (g ∘ f) :=
+{ map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
+  map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
+  map_one := by simp [map_one f]; exact map_one g }
 
 end is_ring_hom
 

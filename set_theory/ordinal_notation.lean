@@ -52,7 +52,7 @@ def to_string : onote → string
 def repr' : onote → string
 | zero := "0"
 | (oadd e n a) := "(oadd " ++ repr' e ++ " " ++ _root_.to_string (n:ℕ) ++ " " ++ repr' a ++ ")"
-  
+
 instance : has_to_string onote := ⟨to_string⟩
 instance : has_repr onote := ⟨repr'⟩
 
@@ -127,7 +127,7 @@ inductive NF_below : onote → ordinal.{0} → Prop
      ω ^ a₁ * n₁ + ω ^ a₂ * n₂ + ... ω ^ aₖ * nₖ
   where `a₁ > a₂ > ... > aₖ` and all the `aᵢ` are
   also in normal form.
-  
+
   We will essentially only be interested in normal form
   ordinal notations, but to avoid complicating the algorithms
   we define everything over general ordinal notations and
@@ -268,7 +268,7 @@ theorem NF.of_dvd_omega_power {b e n a} (h : NF (oadd e n a)) (d : ω ^ b ∣ re
   b ≤ repr e ∧ ω ^ b ∣ repr a :=
 begin
   have := mt repr_inj.1 (λ h, by injection h : oadd e n a ≠ 0),
-  have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),  
+  have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),
   simp at d,
   exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd _ $ power_dvd_power _ L).1 d⟩
 end
@@ -536,7 +536,7 @@ instance : has_pow onote onote := ⟨power⟩
 
 theorem power_def (o₁ o₂ : onote) : o₁ ^ o₂ = power._match_1 o₂ (split o₁) := rfl
 
-theorem split_eq_scale_split' : ∀ {o o' m} [NF o], split' o = (o', m) → split o = (scale 1 o', m)  
+theorem split_eq_scale_split' : ∀ {o o' m} [NF o], split' o = (o', m) → split o = (scale 1 o', m)
 | 0            o' m h p := by injection p; substs o' m; refl
 | (oadd e n a) o' m h p := begin
   by_cases e0 : e = 0; simp [e0, split, split'] at p ⊢,
@@ -817,7 +817,7 @@ def of_nat (n : ℕ) : nonote := ⟨of_nat n, _, NF_below_of_nat _⟩
 
 /-- Compare ordinal notations -/
 def cmp (a b : nonote) : ordering :=
-cmp a.1 b.1 
+cmp a.1 b.1
 
 theorem cmp_compares : ∀ a b : nonote, (cmp a b).compares a b
 | ⟨a, ha⟩ ⟨b, hb⟩ := begin

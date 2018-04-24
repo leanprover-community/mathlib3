@@ -389,6 +389,10 @@ meta def ext : parse ident_ * → tactic unit
  | [] := repeat (ext1 none)
  | xs := xs.mmap' (ext1 ∘ some)
 
+/--
+  Similar to `refine` but generates equality proof obligations
+  for every discrepancy between the goal and the type of the rule.
+  -/
 meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 do v ← mk_mvar,
    if sym.is_some

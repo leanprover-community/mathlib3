@@ -1532,6 +1532,10 @@ quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
 
+@[extensionality]
+theorem ext' {s t : multiset α} : (∀ a, count a s = count a t) → s = t :=
+ext.2
+
 lemma bind_bind [decidable_eq γ] (m : multiset α) (n : multiset β) {f : α → β → multiset γ} :
   (bind m $ λa, bind n $ λb, f a b) = (bind n $ λb, bind m $ λa, f a b) :=
 by simp [multiset.ext, count_bind, multiset.sum_map_sum_map m n]

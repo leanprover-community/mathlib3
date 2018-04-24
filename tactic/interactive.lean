@@ -333,5 +333,61 @@ do p' ← to_expr p,
    set_goals $ gs' ++ gs'' ++ gs,
    return ()
 
+/--
+ Tag lemmas of the form:
+
+ ```
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+ -/
+@[user_attribute]
+meta def extensional_attribute : user_attribute :=
+{ name := `extensionality,
+  descr := "lemmas usable by `ext` tactic" }
+
+attribute [extensionality] funext array.ext
+
+/--
+  `ext1 id` selects and apply one extensionality lemma (with attribute
+  `extensionality`), using `id`, if provided, to name a local constant
+  introduced by the lemma. If `id` is omitted, the local constant is
+  named automatically, as per `intro`.
+ -/
+meta def ext1 (x : parse ident_ ?) : tactic unit :=
+do ls ← attribute.get_instances `extensionality,
+   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
+   interactive.intro x
+
+/--
+  - `ext` applies as many extensionality lemmas as possible;
+  - `ext ids`, with `ids` a list of identifiers, finds extentionality and applies them
+    until it runs out of identifiers in `ids` to name the local constants.
+
+  When trying to prove:
+
+  ```
+  α β : Type,
+  f g : α → set β
+  ⊢ f = g
+  ```
+
+  applying `ext x y` yields:
+
+  ```
+  α β : Type,
+  f g : α → set β,
+  x : α,
+  y : β
+  ⊢ y ∈ f x ↔ y ∈ f x
+  ```
+
+  by applying functional extensionality and set extensionality.
+  -/
+meta def ext : parse ident_ * → tactic unit
+ | [] := repeat (ext1 none)
+ | xs := xs.mmap' (ext1 ∘ some)
+
 end interactive
 end tactic

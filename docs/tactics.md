@@ -64,19 +64,6 @@ All accept an optional list of simplifier rules, typically definitions that shou
 Evaluate expressions in the language of (semi-)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
 
-### pi_instance
-
-`pi_instance [inst1,inst2]` constructs an instance of 
-`my_class (Π i : I, f i)` where we know `Π i, my_class (f i)` and where all
-non-propositional fields are filled in by `inst1` and `inst2`. 
-
-Example:
-```lean
-instance semigroup [∀ i, semigroup $ f i] : semigroup (Π i : I, f i) :=
-by pi_instance [pi.has_mul]
-```
-
-
 ### Instance cache tactics
 
 * `resetI`: Reset the instance cache. This allows any new instances

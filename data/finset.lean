@@ -5,7 +5,7 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-import data.multiset order.boolean_algebra algebra.order_functions data.sigma.basic
+import tactic data.multiset order.boolean_algebra algebra.order_functions data.sigma.basic
 open multiset subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -48,6 +48,10 @@ multiset.decidable_mem _ _
 /- extensionality -/
 theorem ext {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
 val_inj.symm.trans $ nodup_ext s₁.2 s₂.2
+
+@[extensionality]
+theorem ext' {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
+ext.2
 
 /- subset -/
 

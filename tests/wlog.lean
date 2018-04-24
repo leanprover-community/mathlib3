@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import tactic
+import data.set.basic
 
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 begin
@@ -97,4 +98,16 @@ begin
   { guard_hyp a := x ≤ y + z,
     guard_target false,
     admit },
+end
+
+example {x : ℕ} (S₀ S₁ : set ℕ)
+  (P : ℕ → Prop)
+  (h : x ∈ S₀ ∪ S₁) :
+  true :=
+begin
+  suffices : false, trivial,
+  wlog h' : x ∈ S₀ using S₀ S₁,
+  { guard_hyp h  := x ∈ S₀ ∪ S₁,
+    guard_hyp h' := x ∈ S₀,
+    admit }
 end

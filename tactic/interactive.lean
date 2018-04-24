@@ -280,6 +280,7 @@ done
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology
 
+
 /-- `wlog h : i ≤ j using i j`: without loss of generality, let us assume `h : i ≤ j`
     If `using i j` is omitted, the last two free variables found in `i ≤ j` will be used.
 
@@ -293,32 +294,100 @@ meta def tauto := tautology
   -/
 meta def wlog (h : parse ident?)
               (p : parse (tk ":" *> texpr))
-              (xy : parse (tk "using" *> monad.sequence [ident,ident])?)
-: tactic unit :=
+              (xy : parse (tk "using" *> monad.sequence [ident,ident])?) :
+  tactic unit :=
 do p' ← to_expr p,
+   h_asm ← get_unused_name (h.get_or_else `a),
    (x :: y :: _) ← xy.to_monad >>= mmap get_local <|> pure p'.list_local_const,
    n ← tactic.revert_lst [x,y],
    x ← intro1, y ← intro1,
    p ← to_expr p,
-   when (¬ x.occurs p ∨ ¬ x.occurs p) (do
+   when (¬ x.occurs p ∧ ¬ x.occurs p) (do
      p ← pp p,
      fail format!"{p} should reference {x} and {y}"),
    let p' := subst_locals [(x,y),(y,x)] p,
    t ← target,
-   let g := p.imp t,
-   g ← tactic.pis [x,y] g,
-   this ← assert `this (set_binder g [binder_info.default,binder_info.default]),
-   tactic.clear x, tactic.clear y,
-   intron 2,
-   intro $ h.get_or_else `a, intron (n-2), tactic.swap,
-   let h := h.get_or_else `this,
-   h' ← to_expr ``(%%p ∨ %%p') >>= assert h,
-   tactic.clear this,
-   assumption <|> `[exact le_total _ _] <|> tactic.swap,
-   (() <$ tactic.cases h' [`h,`h])
-   ; specialize ```(%%this _ _ h)
-   ; intron (n-2) ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
+   asm ← mk_local_def h_asm p,
+   g ← tactic.pis [x,y,asm] t,
+
+   h_this₀ ← get_unused_name `this,
+   (this,gs) ← local_proof h_this₀ (set_binder g [binder_info.default,binder_info.default])
+         (do tactic.clear x, tactic.clear y,
+             intron 2,
+             intro $ h_asm,
+             intron (n-2)),
+   intron (n-2),
+
+   p_or_p' ← to_expr ``(%%p ∨ %%p'),
+   h_this ← get_unused_name `this,
+   (h',gs') ← local_proof h_this p_or_p'
+     (do tactic.clear this,
+         try $ assumption <|> `[exact le_total _ _]),
+   (() <$ tactic.cases h' [h_asm,h_asm])
+     ; [ (do h ← get_local h_asm,
+            specialize ```(%%this %%x %%y %%h) <|> fail "spec A"),
+         do h ← get_local h_asm,
+            specialize ```(%%this %%y %%x %%h) <|> fail "spec B" ]
+     ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
+   gs'' ← get_goals,
+   set_goals $ gs' ++ gs'' ++ gs,
    return ()
+
+/--
+ Tag lemmas of the form:
+
+ ```
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+ -/
+@[user_attribute]
+meta def extensional_attribute : user_attribute :=
+{ name := `extensionality,
+  descr := "lemmas usable by `ext` tactic" }
+
+attribute [extensionality] funext array.ext
+
+/--
+  `ext1 id` selects and apply one extensionality lemma (with attribute
+  `extensionality`), using `id`, if provided, to name a local constant
+  introduced by the lemma. If `id` is omitted, the local constant is
+  named automatically, as per `intro`.
+ -/
+meta def ext1 (x : parse ident_ ?) : tactic unit :=
+do ls ← attribute.get_instances `extensionality,
+   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
+   interactive.intro x
+
+/--
+  - `ext` applies as many extensionality lemmas as possible;
+  - `ext ids`, with `ids` a list of identifiers, finds extentionality and applies them
+    until it runs out of identifiers in `ids` to name the local constants.
+
+  When trying to prove:
+
+  ```
+  α β : Type,
+  f g : α → set β
+  ⊢ f = g
+  ```
+
+  applying `ext x y` yields:
+
+  ```
+  α β : Type,
+  f g : α → set β,
+  x : α,
+  y : β
+  ⊢ y ∈ f x ↔ y ∈ f x
+  ```
+
+  by applying functional extensionality and set extensionality.
+  -/
+meta def ext : parse ident_ * → tactic unit
+ | [] := repeat (ext1 none)
+ | xs := xs.mmap' (ext1 ∘ some)
 
 end interactive
 end tactic

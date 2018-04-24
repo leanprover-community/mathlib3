@@ -570,6 +570,28 @@ compact_of_finite_subcover $ assume c hc₁ hc₂,
   let ⟨i, hic, hai⟩ := (show ∃i ∈ c, a ∈ i, by simpa using hc₂) in
   ⟨{i}, by simp [hic], finite_singleton _, by simp [hai]⟩
 
+lemma compact_bUnion_of_compact {s : set β} {f : β → set α} (hs : finite s) :
+  (∀i ∈ s, compact (f i)) → compact (⋃i ∈ s, f i) :=
+assume hf, compact_of_finite_subcover $ assume c c_open c_cover,
+  have ∀i : subtype s, ∃c' ⊆ c, finite c' ∧ f i ⊆ ⋃₀ c', from
+    assume ⟨i, hi⟩, compact_elim_finite_subcover (hf i hi) c_open
+      (calc f i ⊆ ⋃i ∈ s, f i : subset_bUnion_of_mem hi
+            ... ⊆ ⋃₀ c        : c_cover),
+  let ⟨finite_subcovers, h⟩ := axiom_of_choice this in
+  let c' := ⋃i, finite_subcovers i in
+  have c' ⊆ c, from Union_subset (λi, (h i).fst),
+  have finite c', from @finite_Union _ _ hs.fintype _ (λi, (h i).snd.1),
+  have (⋃i ∈ s, f i) ⊆ ⋃₀ c', from bUnion_subset $ λi hi, calc
+    f i ⊆ ⋃₀ finite_subcovers ⟨i,hi⟩ : (h ⟨i,hi⟩).snd.2
+    ... ⊆ ⋃₀ c'                      : sUnion_mono (subset_Union _ _),
+  ⟨c', ‹c' ⊆ c›, ‹finite c'›, this⟩
+
+lemma compact_of_finite {s : set α} (hs : finite s) : compact s :=
+let s' : set α := ⋃i ∈ s, {i} in
+have e : s' = s, from ext $ λi, by simp,
+have compact s', from compact_bUnion_of_compact hs (λ_ _, compact_singleton),
+e ▸ this
+
 end compact
 
 /- separation axioms -/

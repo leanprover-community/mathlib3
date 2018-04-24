@@ -107,6 +107,14 @@ import tactic.find
 #find (_ : ℕ) + _ = _ + _
 ```
 
+### solve_by_elim
+
+The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this eventually discharges the main goal.
+```lean
+solve_by_elim `[cc]
+```
+also attempts to discharge the goal using congruence closure before each round of applying assumptions.
+
 ### ext1 / ext
 
  * `ext1 id` selects and apply one extensionality lemma (with

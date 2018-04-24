@@ -252,13 +252,13 @@ open nat
   `solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
 
   optional arguments:
+  - discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
   - asms: list of assumptions / rules to consider instead of local constants
   - depth: number of attempts at discharging generated sub-goals
   -/
-meta def solve_by_elim (asms : option (list expr) := none)  : opt_param ℕ 3 → tactic unit
+meta def solve_by_elim (discharger : tactic unit := done) (asms : option (list expr) := none)  : opt_param ℕ 3 → tactic unit
 | 0 := done
-| (succ n) :=
-apply_assumption asms $ solve_by_elim n
+| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim n)
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`

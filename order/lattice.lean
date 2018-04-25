@@ -394,4 +394,43 @@ instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_
     end,
   ..lattice.lattice_of_decidable_linear_order }
 
+local attribute [instance] classical.decidable_inhabited classical.prop_decidable
+lemma forall_le_or_exists_lt [semilattice_sup α] (a : α) :
+(∀b, b ≤ a) ∨ (∃b, a < b) :=
+have M : (∃b, ¬b ≤ a) → ∃c, a < c :=
+  assume ⟨b, Hb⟩,
+  have a ≠ a ⊔ b :=
+  begin
+    by_contradiction C,
+    simp at C,
+    rw [C] at Hb,
+    apply absurd le_sup_right Hb,
+  end,
+  ⟨a ⊔ b, lt_of_le_of_ne le_sup_left ‹a ≠ a ⊔ b›⟩,
+begin
+  cases (classical.em (∀b, b ≤ a)) with I J,
+  apply or.inl I,
+  simp [not_forall] at J,
+  apply or.inr (M J)
+end
+
+lemma forall_le_or_exists_lt' [semilattice_inf α] (a : α) :
+(∀b, a ≤ b) ∨ (∃b, b < a) :=
+have M : (∃b, ¬a ≤ b) → ∃c, c < a :=
+  assume ⟨b, Hb⟩,
+  have a ⊓ b ≠ a :=
+  begin
+    by_contradiction C,
+    simp at C,
+    rw [← C] at Hb,
+    apply absurd inf_le_right Hb,
+  end,
+  ⟨a ⊓ b, lt_of_le_of_ne inf_le_left ‹a ⊓ b ≠ a›⟩,
+begin
+  cases (classical.em (∀b, a ≤ b)) with I J,
+  apply or.inl I,
+  simp [not_forall, not_le] at J,
+  apply or.inr (M J)
+end
+
 end lattice

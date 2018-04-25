@@ -470,6 +470,27 @@ empty_in_sets_eq_bot.mp ⟨_, hs, s, mem_principal_self s, assume x ⟨h₁, h�
 
 end lattice
 
+section eventually
+
+/- `eventually` is a way to express properties about filters:
+`eventually P f` means that, eventually, the property `P` is satisfied along the
+filter `f` -- equivalently, `{x | P x} ∈ f`. This is in no way more powerful than
+the traditional syntax about filters (and it is in fact completely equivalent), but
+it is sometimes more convenient.-/
+
+def eventually (P : α → Prop) (f : filter α) := {x | P x} ∈ f.sets
+
+lemma eventually_of_eventually_of_imp {P Q : α → Prop} {f : filter α} (H : eventually P f) (I : ∀n, P n → Q n) :
+eventually Q f := upwards_sets f H I
+
+lemma eventually_and_of_eventually_of_eventually {P Q : α → Prop} {f : filter α} (Ha : eventually P f) (Hb: eventually Q f) :
+eventually (λn, P n ∧ Q n) f := inter_mem_sets Ha Hb
+
+lemma false_of_eventually_false {f : filter α} (H : f ≠ ⊥) (E : eventually (λn, false) f) : false :=
+let ⟨x, Hx⟩ := inhabited_of_mem_sets H E in by simp at Hx; apply Hx
+
+end eventually
+
 section map
 
 /-- The forward map of a filter -/

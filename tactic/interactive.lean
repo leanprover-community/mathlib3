@@ -389,6 +389,43 @@ meta def ext : parse ident_ * → tactic unit
  | [] := repeat (ext1 none)
  | xs := xs.mmap' (ext1 ∘ some)
 
+private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
+| (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)
+| _ := fail "parse error"
+
+
+private meta def generalize_arg_p : parser (pexpr × name) :=
+with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
+
+lemma {u} generalize_a_aux {α : Sort u}
+  (h : ∀ x : Sort u, (α → x) → x) : α := h α id
+
+/--
+  Like `generalize` but also considers assumptions
+  specified by the user. The user can also specify to
+  omit the goal.
+  -/
+meta def generalize_hyp  (h : parse ident?) (_ : parse $ tk ":")
+  (p : parse generalize_arg_p)
+  (l : parse location) :
+  tactic unit :=
+do h' ← get_unused_name `h,
+   x' ← get_unused_name `x,
+   g ← if ¬ l.include_goal then
+       do refine ``(generalize_a_aux _),
+          some <$> (prod.mk <$> tactic.intro x' <*> tactic.intro h')
+   else pure none,
+   n ← l.get_locals >>= tactic.revert_lst,
+   generalize h () p,
+   intron n,
+   match g with
+     | some (x',h') :=
+        do tactic.apply h',
+           tactic.clear h',
+           tactic.clear x'
+     | none := return ()
+   end
+
 /--
   Similar to `refine` but generates equality proof obligations
   for every discrepancy between the goal and the type of the rule.

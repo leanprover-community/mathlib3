@@ -3,8 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic
-import data.set
+import tactic data.set
 
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 begin
@@ -112,6 +111,40 @@ begin
     admit }
 end
 
+example (m n p q : nat) (h : m + n = p) : true :=
+begin
+  have : m + n = q,
+  { generalize_hyp h' : m + n = x at h,
+    guard_hyp h' := m + n = x,
+    guard_hyp h := x = p,
+    guard_target m + n = q,
+    admit },
+  have : m + n = q,
+  { generalize_hyp h' : m + n = x at h ⊢,
+    guard_hyp h' := m + n = x,
+    guard_hyp h := x = p,
+    guard_target x = q,
+    admit },
+  trivial
+end
+
+example (α : Sort*) (L₁ L₂ L₃ : list α)
+  (H : L₁ ++ L₂ = L₃) : true :=
+begin
+  have : L₁ ++ L₂ = L₂,
+  { generalize_a h : L₁ ++ L₂ = L at H,
+    induction L with hd tl ih,
+    case list.nil
+    { tactic.cleanup,
+      change list.nil = L₃ at H,
+      admit },
+    case list.cons
+    { change hd :: tl = L₃ at H,
+      admit } },
+  trivial
+end
+
+section
 open set
 
 variables {α β : Type}
@@ -126,3 +159,6 @@ begin
   convert preimage_empty,
   rw [←preimage_inter,this],
 end
+
+end
+

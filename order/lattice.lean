@@ -162,14 +162,21 @@ by apply le_antisymm; finish
 theorem sup_comm : a ⊔ b = b ⊔ a :=
 by apply le_antisymm; finish
 
-instance semilattice_sup_to_is_commutative [semilattice_sup α] : is_commutative α (⊔) :=
+instance semilattice_sup_to_is_commutative : is_commutative α (⊔) :=
 ⟨@sup_comm _ _⟩
 
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
 by apply le_antisymm; finish
 
-instance semilattice_sup_to_is_associative [semilattice_sup α] : is_associative α (⊔) :=
+instance semilattice_sup_to_is_associative : is_associative α (⊔) :=
 ⟨@sup_assoc _ _⟩
+
+lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
+suffices (∃b, ¬b ≤ a) → (∃b, a < b),
+  by rwa [classical.or_iff_not_imp_left, classical.not_forall],
+assume ⟨b, hb⟩,
+have a ≠ a ⊔ b, from assume eq, hb $ eq.symm ▸ le_sup_right,
+⟨a ⊔ b, lt_of_le_of_ne le_sup_left ‹a ≠ a ⊔ b›⟩
 
 end semilattice_sup
 
@@ -227,14 +234,21 @@ by apply le_antisymm; finish
 theorem inf_comm : a ⊓ b = b ⊓ a :=
 by apply le_antisymm; finish
 
-instance semilattice_inf_to_is_commutative [semilattice_inf α] : is_commutative α (⊓) :=
+instance semilattice_inf_to_is_commutative : is_commutative α (⊓) :=
 ⟨@inf_comm _ _⟩
 
 theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
 by apply le_antisymm; finish
 
-instance semilattice_inf_to_is_associative [semilattice_inf α] : is_associative α (⊓) :=
+instance semilattice_inf_to_is_associative : is_associative α (⊓) :=
 ⟨@inf_assoc _ _⟩
+
+lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
+suffices (∃b, ¬a ≤ b) → (∃b, b < a),
+  by rwa [classical.or_iff_not_imp_left, classical.not_forall],
+assume ⟨b, hb⟩,
+have a ⊓ b ≠ a, from assume eq, hb $ eq ▸ inf_le_right,
+⟨a ⊓ b, lt_of_le_of_ne inf_le_left ‹a ⊓ b ≠ a›⟩
 
 end semilattice_inf
 

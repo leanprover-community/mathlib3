@@ -280,18 +280,18 @@ done
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology
 
+/--
+  `wlog h : i ≤ j using i j`: without loss of generality, let us assume `h : i ≤ j`
+  If `using i j` is omitted, the last two free variables found in `i ≤ j` will be used.
 
-/-- `wlog h : i ≤ j using i j`: without loss of generality, let us assume `h : i ≤ j`
-    If `using i j` is omitted, the last two free variables found in `i ≤ j` will be used.
+  `wlog : R x y` (synonymous with `wlog : R x y using x y`) adds `R x y` to the
+  assumptions and the goal `⊢ R x y ∨ R y x`.
 
-    `wlog : R x y` (synonymous with `wlog : R x y using x y`) adds `R x y` to the
-    assumptions and the goal `⊢ R x y ∨ R y x`.
+  A special case is made for total order relations `≤` where `⊢ R x y ∨ R y x`
+  is discharged automatically.
 
-    A special case is made for total order relations `≤` where `⊢ R x y ∨ R y x`
-    is discharged automatically.
-
-    TODO(Simon): Generalize to multiple pairs of variables
-  -/
+  TODO(Simon): Generalize to multiple pairs of variables
+-/
 meta def wlog (h : parse ident?)
               (p : parse (tk ":" *> texpr))
               (xy : parse (tk "using" *> monad.sequence [ident,ident])?) :
@@ -440,6 +440,24 @@ do v ← mk_mvar,
    (option.cases_on n congr congr_n : tactic unit),
    gs' ← get_goals,
    set_goals $ gs' ++ gs
+
+meta def clean_ids : list name :=
+[``id, ``id_rhs, ``id_delta]
+
+/-- Remove identity functions from a term. These are normally
+  automatically generated with terms like `show t, from p` or
+  `(p : t)` which translate to some variant on `@id t p` in
+  order to retain the type. -/
+meta def clean (q : parse texpr) : tactic unit :=
+do tgt : expr ← target,
+   e ← i_to_expr_strict ``(%%q : %%tgt),
+   tactic.exact $ e.replace (λ e n,
+     match e with
+     | (app (app (const n _) _) e') :=
+       if n ∈ clean_ids then some e' else none
+     | (app (lam _ _ _ (var 0)) e') := some e'
+     | _ := none
+     end)
 
 end interactive
 end tactic

@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic data.set
+import tactic data.set.lattice
 
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 begin
@@ -52,11 +52,9 @@ by tauto
 
 end tauto₂
 
-example {x y : ℕ} :
-  true :=
+example {x y : ℕ} (a : x = 1) : true :=
 begin
-  suffices : x = 1 → false, trivial,
-  intros a,
+  suffices : false, trivial,
   wlog h : x = y,
   { guard_target x = y ∨ y = x,
     admit },
@@ -65,8 +63,7 @@ begin
     admit },
 end
 
-example {x y : ℕ} :
-  true :=
+example {x y : ℕ} : true :=
 begin
   suffices : false, trivial,
   wlog h : x ≤ y,
@@ -75,8 +72,7 @@ begin
     admit },
 end
 
-example {x y z : ℕ} :
-  true :=
+example {x y z : ℕ} : true :=
 begin
   suffices : false, trivial,
   wlog h : x ≤ y + z,
@@ -87,8 +83,7 @@ begin
     admit },
 end
 
-example {x y z : ℕ} :
-  true :=
+example {x y z : ℕ} : true :=
 begin
   suffices : false, trivial,
   wlog : x ≤ y + z using x y,
@@ -99,10 +94,8 @@ begin
     admit },
 end
 
-example {x : ℕ} (S₀ S₁ : set ℕ)
-  (P : ℕ → Prop)
-  (h : x ∈ S₀ ∪ S₁) :
-  true :=
+example {x : ℕ} (S₀ S₁ : set ℕ) (P : ℕ → Prop)
+  (h : x ∈ S₀ ∪ S₁) : true :=
 begin
   suffices : false, trivial,
   wlog h' : x ∈ S₀ using S₀ S₁,
@@ -132,7 +125,7 @@ example (α : Sort*) (L₁ L₂ L₃ : list α)
   (H : L₁ ++ L₂ = L₃) : true :=
 begin
   have : L₁ ++ L₂ = L₂,
-  { generalize_a h : L₁ ++ L₂ = L at H,
+  { generalize_hyp h : L₁ ++ L₂ = L at H,
     induction L with hd tl ih,
     case list.nil
     { tactic.cleanup,
@@ -144,7 +137,7 @@ begin
   trivial
 end
 
-section
+section convert
 open set
 
 variables {α β : Type}
@@ -160,5 +153,5 @@ begin
   rw [←preimage_inter,this],
 end
 
-end
+end convert
 

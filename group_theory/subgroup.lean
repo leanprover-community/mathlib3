@@ -195,6 +195,9 @@ instance image_subgroup (f : α → β) [is_group_hom f] (s : set α) [is_subgro
   one_mem := ⟨1, one_mem s, one f⟩,
   inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw inv f; simp *⟩ }
 
+instance range_subgroup (f : α → β) [is_group_hom f] : is_subgroup (set.range f) :=
+@set.image_univ _ _ f ▸ is_group_hom.image_subgroup f set.univ
+
 local attribute [simp] one_mem inv_mem mul_mem normal_subgroup.normal
 
 instance preimage (f : α → β) [is_group_hom f] (s : set β) [is_subgroup s] :

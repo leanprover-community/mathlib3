@@ -2,6 +2,8 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
+
+Free groups as a quotient over the reduction relation `a * x * x⁻¹ * b = a * b`.
 -/
 
 import algebra.group algebra.group_power
@@ -21,9 +23,8 @@ local attribute [simp] list.append_eq_has_append
 
 namespace free_group
 
-/-- Predicate asserting that word `w₁` can be reduced
-to `w₂` in one step, i.e. there are words `w₃ w₄`
-and letter `x` such that `w₁ = w₃xx⁻¹w₄` and `w₂ = w₃w₄`  -/
+/-- Predicate asserting that word `w₁` can be reduced to `w₂` in one step, i.e. there are words
+`w₃ w₄` and letter `x` such that `w₁ = w₃xx⁻¹w₄` and `w₂ = w₃w₄`  -/
 inductive red.step : list (α × bool) → list (α × bool) → Prop
 | bnot {L₁ L₂ x b} : red.step (L₁ ++ (x, b) :: (x, bnot b) :: L₂) (L₁ ++ L₂)
 
@@ -335,7 +336,7 @@ theorem red.inv_of_red_nil {x b} (H : red ((x, b) :: L) []) :
   red L [(x, bnot b)] :=
 red.inv_of_red_nil.aux H rfl rfl
 
-theorem red.inv_of_red_of_ne.aux {x1 b1 x2 b2} 
+theorem red.inv_of_red_of_ne.aux {x1 b1 x2 b2}
   (H1 : (x1, b1) ≠ (x2, b2)) (H2 : red L₁ L₂) :
   ∀ {L₃}, L₁ = (x1, b1) :: L₃ → L₂ = (x2, b2) :: L₄ →
   red L₃ ((x1, bnot b1) :: L₂) :=

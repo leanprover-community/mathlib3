@@ -292,6 +292,10 @@ theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
   (h : a ∈ s) : b ∉ s → a ≠ b :=
 mt $ λ e, e ▸ h
 
+theorem congr_arg₂ {α β γ : Type*} (f : α → β → γ) {x₁ x₂ : α} {y₁ y₂ : β}
+  (Hx : x₁ = x₂) (Hy : y₁ = y₂) : f x₁ y₁ = f x₂ y₂ :=
+eq.drec (eq.drec rfl Hy) Hx
+
 end equality
 
 /-

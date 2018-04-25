@@ -2,48 +2,30 @@ import algebra.ring order.lattice
 
 universes u v
 
-theorem congr_arg₂ {α β γ : Type*} (f : α → β → γ) {x₁ x₂ : α} {y₁ y₂ : β}
-  (Hx : x₁ = x₂) (Hy : y₁ = y₂) : f x₁ y₁ = f x₂ y₂ :=
-eq.drec (eq.drec rfl Hy) Hx
-
 open lattice
-
-def is_add_group_hom {α : Type*} {β : Type*} [add_group α] [add_group β] (f : α → β) : Prop :=
-@is_group_hom (multiplicative α) (multiplicative β) _ _ f
-
-attribute [class] is_add_group_hom
-
-namespace is_add_group_hom
-
-variables {α : Type*} {β : Type*} [add_group α] [add_group β] (f : α → β) [hf : is_add_group_hom f]
-
-theorem add (x y) : f (x + y) = f x + f y :=
-@is_group_hom.mul (multiplicative α) (multiplicative β) _ _ f hf x y
-
-theorem zero : f 0 = 0 :=
-@is_group_hom.one (multiplicative α) (multiplicative β) _ _ f hf
-
-theorem neg (x) : f (-x) = -f x :=
-@is_group_hom.inv (multiplicative α) (multiplicative β) _ _ f hf x
-
-end is_add_group_hom
 
 instance is_ring_hom.to_is_add_group_hom {α : Type*} {β : Type*} [ring α] [ring β]
   (f : α → β) [is_ring_hom f] : is_add_group_hom f :=
 ⟨λ _ _, is_ring_hom.map_add f⟩
 
-variables {ι : out_param (Type u)} [inhabited ι] [semilattice_sup ι] {G : ι → Type v}
+class directed_order (α : Type u) extends has_sup α, partial_order α :=
+(le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
+(le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
 
-section add_comm_group
+theorem le_sup_left {α : Type u} [directed_order α] {x y : α} : x ≤ x ⊔ y :=
+directed_order.le_sup_left x y
+
+theorem le_sup_right {α : Type u} [directed_order α] {x y : α} : y ≤ x ⊔ y :=
+directed_order.le_sup_right x y
+
+variables {ι : out_param (Type u)} [inhabited ι] [directed_order ι]
+variables {G : ι → Type v}
 
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
-(Hid : ∀ i x, f i i (le_refl i) x = x)
 (Hcomp : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
-variables [∀ i, add_comm_group (G i)] (f : Π i j, i ≤ j → G i → G j)
-variables [∀ i j h, is_add_group_hom (f i j h)] [directed_system f]
-
-instance direct_limit.setoid : setoid (sigma G) :=
+def direct_limit.setoid (f : Π i j, i ≤ j → G i → G j)
+  [directed_system f] : setoid (sigma G) :=
 ⟨λ i j, ∃ k (hik : i.1 ≤ k) (hjk : j.1 ≤ k), f i.1 k hik i.2 = f j.1 k hjk j.2,
  λ i, ⟨i.1, le_refl i.1, le_refl i.1, rfl⟩,
  λ i j ⟨k, hik, hjk, H⟩, ⟨k, hjk, hik, H.symm⟩,
@@ -57,219 +39,228 @@ instance direct_limit.setoid : setoid (sigma G) :=
     ... = f jk (ij ⊔ jk) _ (f k.1 jk _ k.2) : congr_arg _ hjk
     ... = f k.1 (ij ⊔ jk) _ k.2 : directed_system.Hcomp f _ _ _ _ _ _⟩⟩
 
-def direct_limit : Type (max u v) :=
+local attribute [instance] direct_limit.setoid
+
+def direct_limit (f : Π i j, i ≤ j → G i → G j)
+  [directed_system f] : Type (max u v) :=
 quotient (direct_limit.setoid f)
 
-instance direct_limit.add_comm_group' : add_comm_group (quotient (direct_limit.setoid f)) :=
-{ add := λ i j, quotient.lift_on₂ i j
-    (λ xi xj, ⟦⟨xi.1 ⊔ xj.1, f xi.1 (xi.1 ⊔ xj.1) le_sup_left xi.2 +
-      f xj.1 (xi.1 ⊔ xj.1) le_sup_right xj.2⟩⟧ : sigma G → sigma G → quotient (direct_limit.setoid f))
-    (λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨r, xr⟩ ⟨s, xs⟩ ⟨t, hpt, hrt, hprt⟩ ⟨u, hqu, hsu, hqsu⟩, quotient.sound $
-      ⟨t ⊔ u,
-       sup_le (le_trans hpt le_sup_left) (le_trans hqu le_sup_right),
-       sup_le (le_trans hrt le_sup_left) (le_trans hsu le_sup_right),
-       calc   f (p ⊔ q) (t ⊔ u) _
-                (f p (p ⊔ q) le_sup_left xp + f q (p ⊔ q) le_sup_right xq)
-          =   f (p ⊔ q) (t ⊔ u) _ (f p (p ⊔ q) le_sup_left xp)
-            + f (p ⊔ q) (t ⊔ u) _ (f q (p ⊔ q) le_sup_right xq) :
-        is_add_group_hom.add _ _ _
-      ... =   f p (t ⊔ u) _ xp + f q (t ⊔ u) _ xq :
-        congr_arg₂ (+) (directed_system.Hcomp f _ _ _ _ _ _) (directed_system.Hcomp f _ _ _ _ _ _)
-      ... =   f p (t ⊔ u) (le_trans hpt le_sup_left) xp + f q (t ⊔ u) (le_trans hqu le_sup_right) xq : rfl
-      ... =   f t (t ⊔ u) le_sup_left (f p t hpt xp) + f u (t ⊔ u) le_sup_right (f q u hqu xq) :
-        congr_arg₂ (+) (directed_system.Hcomp f _ _ _ _ _ _).symm (directed_system.Hcomp f _ _ _ _ _ _).symm
-      ... =   f t (t ⊔ u) le_sup_left (f r t hrt xr) + f u (t ⊔ u) le_sup_right (f s u hsu xs) :
-        congr_arg₂ (+) (congr_arg _ hprt) (congr_arg _ hqsu)
-      ... =   _ : congr_arg₂ (+) (directed_system.Hcomp f _ _ _ _ _ _) (directed_system.Hcomp f _ _ _ _ _ _)
-      ... =   f r (t ⊔ u) (le_trans le_sup_left (sup_le (le_trans hrt le_sup_left) (le_trans hsu le_sup_right))) xr
-            + f s (t ⊔ u) (le_trans le_sup_right (sup_le (le_trans hrt le_sup_left) (le_trans hsu le_sup_right))) xs : rfl
-      ... =   _ : congr_arg₂ (+) (directed_system.Hcomp f _ _ _ _ _ _).symm (directed_system.Hcomp f _ _ _ _ _ _).symm
-      ... =   f (r ⊔ s) (t ⊔ u) _ (f r (r ⊔ s) le_sup_left xr + f s (r ⊔ s) le_sup_right xs) :
-        (is_add_group_hom.add _ _ _).symm ⟩),
-  add_assoc := λ i j k, quotient.induction_on₃ i j k $ λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨r, xr⟩, quotient.sound
-    ⟨p ⊔ q ⊔ r, le_refl _, le_of_eq sup_assoc.symm, begin
-      dsimp,
-      rw is_add_group_hom.add (f (p ⊔ q) (p ⊔ q ⊔ r) le_sup_left),
-      rw is_add_group_hom.add (f (q ⊔ r) (p ⊔ (q ⊔ r)) le_sup_right),
-      rw is_add_group_hom.add (f (p ⊔ q ⊔ r) (p ⊔ q ⊔ r) (le_refl (p ⊔ q ⊔ r))),
-      rw is_add_group_hom.add (f (p ⊔ q ⊔ r) (p ⊔ q ⊔ r) (le_refl (p ⊔ q ⊔ r))),
-      rw is_add_group_hom.add (f (p ⊔ (q ⊔ r)) (p ⊔ q ⊔ r) (le_of_eq (eq.symm sup_assoc))),
-      rw is_add_group_hom.add (f (p ⊔ (q ⊔ r)) (p ⊔ q ⊔ r) (le_of_eq (eq.symm sup_assoc))),
-      repeat { rw directed_system.Hcomp f },
-      apply add_assoc
-    end⟩,
-  zero := ⟦⟨default _, 0⟩⟧,
-  zero_add := λ i, quotient.induction_on i $ λ ⟨p, xp⟩, quotient.sound
-    ⟨default _ ⊔ p, le_refl _, le_sup_right, begin
-      dsimp,
-      rw is_add_group_hom.add (f (default ι ⊔ p) (default ι ⊔ p) (le_refl (default ι ⊔ p))),
-      repeat { rw directed_system.Hcomp f },
-      rw is_add_group_hom.zero (f (default ι) (default ι ⊔ p) (le_trans le_sup_left (le_refl (default ι ⊔ p)))),
-      apply zero_add
-    end⟩,
-  add_zero := λ i, quotient.induction_on i $ λ ⟨p, xp⟩, quotient.sound
-    ⟨p ⊔ default ι, le_refl _, le_sup_left, begin
-      dsimp,
-      rw is_add_group_hom.add (f (p ⊔ default ι) (p ⊔ default ι) (le_refl (p ⊔ default ι))),
-      repeat { rw directed_system.Hcomp f },
-      rw is_add_group_hom.zero (f (default ι) (p ⊔ default ι) (le_trans le_sup_right (le_refl (p ⊔ default ι)))),
-      apply add_zero
-    end⟩,
-  neg := λ i, quotient.lift_on i (λ p, ⟦⟨p.1, -p.2⟩⟧ : sigma G → quotient (direct_limit.setoid f)) $
-    λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨t, hpt, hqt, hpqt⟩, quotient.sound $
-    ⟨t, hpt, hqt, by dsimp at hpqt ⊢; rw [is_add_group_hom.neg (f p t hpt), is_add_group_hom.neg (f q t hqt), hpqt]⟩,
-  add_left_neg := λ i, quotient.induction_on i $ λ ⟨p, xp⟩, quotient.sound $
-    ⟨(p ⊔ p) ⊔ default ι, le_sup_left, le_sup_right, begin
-      dsimp,
-      rw is_add_group_hom.add (f (p ⊔ p) (p ⊔ p ⊔ default ι) le_sup_left),
-      repeat { rw directed_system.Hcomp f },
-      rw is_add_group_hom.neg (f p (p ⊔ p ⊔ default ι) (le_trans le_sup_left le_sup_left)),
-      rw is_add_group_hom.zero (f (default ι) (p ⊔ p ⊔ default ι) le_sup_right),
-      apply add_left_neg
-    end⟩,
-  add_comm := λ i j, quotient.induction_on₂ i j $ λ ⟨p, xp⟩ ⟨q, xq⟩, quotient.sound
-    ⟨p ⊔ q, le_refl _, le_of_eq sup_comm, begin
-      dsimp,
-      rw is_add_group_hom.add (f (p ⊔ q) (p ⊔ q) (le_refl (p ⊔ q))),
-      rw is_add_group_hom.add (f (q ⊔ p) (p ⊔ q) (le_of_eq sup_comm)),
-      repeat { rw directed_system.Hcomp f },
-      apply add_comm
-    end⟩ }
+namespace direct_limit
 
-instance direct_limit.add_comm_group : add_comm_group (direct_limit f) :=
-direct_limit.add_comm_group' f
+variables (f : Π i j, i ≤ j → G i → G j) [directed_system f]
 
-def direct_limit.of (i) (x : G i) : direct_limit f :=
+def of (i x) : direct_limit f :=
 ⟦⟨i, x⟩⟧
 
-instance direct_limit.of.is_add_group_hom {i} : is_add_group_hom (direct_limit.of f i) :=
-⟨λ x y, quotient.sound ⟨i, le_refl _, sup_le (le_refl _) (le_refl _),
- begin
-   dsimp,
-   rw is_add_group_hom.add (f (i ⊔ i) i _),
-   repeat { rw directed_system.Hcomp f },
-   repeat { rw directed_system.Hid f },
-   refl,
-   apply_instance
-  end⟩⟩
+theorem of_f {i j hij x} : (of f j (f i j hij x)) = of f i x :=
+quotient.sound ⟨j, le_refl j, hij, directed_system.Hcomp f _ _ _ _ _ _⟩
 
-theorem direct_limit.of.zero_exact {i x} (H : direct_limit.of f i x = 0) :
-  ∃ p hp1, f i p hp1 x = (0 : G p) :=
-let ⟨p, hp1, hp2, hp3⟩ := quotient.exact H in
-⟨p, hp1, hp3.trans $ is_add_group_hom.zero _⟩
+variables {P : Type*} (g : Π i, G i → P)
+variable (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
 
-end add_comm_group
+def rec (x : direct_limit f) : P :=
+quotient.lift_on x (λ i, g i.1 i.2) $
+λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨t, hpt, hqt, hpqt⟩,
+calc  g p xp
+    = g t (f p t hpt xp) : eq.symm $ Hg p t hpt xp
+... = g t (f q t hqt xq) : congr_arg _ hpqt
+... = g q xq : Hg q t hqt xq
 
-section ring
+lemma rec_of {i} (x) : rec f g Hg (of f i x) = g i x := rfl
+
+end direct_limit
+
+namespace directed_system
+
+variables [∀ i, add_comm_group (G i)] (f : Π i j, i ≤ j → G i → G j)
+variables [∀ i j h, is_add_group_hom (f i j h)] [directed_system f]
+
+theorem map_add {i j k m xi xj hik hjk hkm} :
+  f k m hkm (f i k hik xi + f j k hjk xj) = f i m (le_trans hik hkm) xi + f j m (le_trans hjk hkm) xj :=
+(is_add_group_hom.add _ _ _).trans $
+congr_arg₂ (+) (directed_system.Hcomp f _ _ _ _ _ _) (directed_system.Hcomp f _ _ _ _ _ _)
+
+theorem add {i j hij x y} : f i j hij (x + y) = f i j hij x + f i j hij y :=
+is_add_group_hom.add _ _ _
+
+theorem zero {i j hij} : f i j hij 0 = 0 :=
+is_add_group_hom.zero _
+
+theorem neg {i j hij x} : f i j hij (-x) = -f i j hij x :=
+is_add_group_hom.neg _ _
+
+end directed_system
+
+namespace directed_system
 
 variables [∀ i, ring (G i)] (f : Π i j, i ≤ j → G i → G j)
 variables [∀ i j h, is_ring_hom (f i j h)] [directed_system f]
 
-instance direct_limit.ring' : ring (quotient (direct_limit.setoid f)) :=
+theorem map_mul {i j k m xi xj hik hjk hkm} :
+  f k m hkm (f i k hik xi * f j k hjk xj) = f i m (le_trans hik hkm) xi * f j m (le_trans hjk hkm) xj :=
+(is_ring_hom.map_mul _).trans $
+congr_arg₂ (*) (directed_system.Hcomp f _ _ _ _ _ _) (directed_system.Hcomp f _ _ _ _ _ _)
+
+theorem mul {i j hij x y} : f i j hij (x * y) = f i j hij x * f i j hij y :=
+is_ring_hom.map_mul _
+
+theorem one {i j hij} : f i j hij 1 = 1 :=
+is_ring_hom.map_one _
+
+end directed_system
+
+namespace direct_limit
+
+variables [∀ i, add_comm_group (G i)] (f : Π i j, i ≤ j → G i → G j)
+variables [∀ i j h, is_add_group_hom (f i j h)] [directed_system f]
+
+local attribute [instance] direct_limit.setoid
+
+instance add_comm_group' : add_comm_group (quotient (direct_limit.setoid f)) :=
+{ add := λ i j, quotient.lift_on₂ i j
+    (λ xi xj, ⟦⟨xi.1 ⊔ xj.1, f xi.1 (xi.1 ⊔ xj.1) le_sup_left xi.2 +
+      f xj.1 (xi.1 ⊔ xj.1) le_sup_right xj.2⟩⟧ : sigma G → sigma G → quotient (direct_limit.setoid f))
+    (λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨r, xr⟩ ⟨s, xs⟩ ⟨t, hpt, hrt, hprt⟩ ⟨u, hqu, hsu, hqsu⟩, quotient.sound $
+      ⟨(p ⊔ q) ⊔ (r ⊔ s) ⊔ (t ⊔ u),
+       le_trans le_sup_left le_sup_left,
+       le_trans le_sup_right le_sup_left,
+       calc   f (p ⊔ q) (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) (le_trans le_sup_left le_sup_left)
+                (f p (p ⊔ q) le_sup_left xp + f q (p ⊔ q) le_sup_right xq)
+          =   f p (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) (le_trans hpt (le_trans le_sup_left le_sup_right)) xp
+            + f q (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) (le_trans hqu (le_trans le_sup_right le_sup_right)) xq :
+        directed_system.map_add f
+      ... =   f t (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ (f p t hpt xp)
+            + f u (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ (f q u hqu xq) :
+        congr_arg₂ (+) (directed_system.Hcomp f _ _ _ _ _ _).symm (directed_system.Hcomp f _ _ _ _ _ _).symm
+      ... =   f t (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ (f r t hrt xr)
+            + f u (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ (f s u hsu xs) :
+        congr_arg₂ (+) (congr_arg _ hprt) (congr_arg _ hqsu)
+      ... =   f r (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ xr
+            + f s (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ xs :
+        congr_arg₂ (+) (directed_system.Hcomp f _ _ _ _ _ _) (directed_system.Hcomp f _ _ _ _ _ _)
+      ... =   f (r ⊔ s) (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) (le_trans le_sup_right le_sup_left)
+                (f r (r ⊔ s) le_sup_left xr + f s (r ⊔ s) le_sup_right xs) :
+        eq.symm $ directed_system.map_add f⟩),
+  add_assoc := λ i j k, quotient.induction_on₃ i j k $ λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨r, xr⟩, quotient.sound
+    ⟨((p ⊔ q) ⊔ r) ⊔ (p ⊔ (q ⊔ r)), le_sup_left, le_sup_right,
+     by dsimp; simp [directed_system.map_add f, directed_system.add f, directed_system.Hcomp f, -add_comm]⟩,
+  zero := ⟦⟨default _, 0⟩⟧,
+  zero_add := λ i, quotient.induction_on i $ λ ⟨p, xp⟩, quotient.sound
+    ⟨default _ ⊔ p, le_refl _, le_sup_right,
+     by dsimp; simp [directed_system.map_add f, directed_system.zero f, directed_system.Hcomp f]⟩,
+  add_zero := λ i, quotient.induction_on i $ λ ⟨p, xp⟩, quotient.sound
+    ⟨p ⊔ default ι, le_refl _, le_sup_left,
+     by dsimp; simp [directed_system.map_add f, directed_system.zero f, directed_system.Hcomp f]⟩,
+  neg := λ i, quotient.lift_on i (λ p, ⟦⟨p.1, -p.2⟩⟧ : sigma G → quotient (direct_limit.setoid f)) $
+    λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨t, hpt, hqt, hpqt⟩, quotient.sound $
+    ⟨t, hpt, hqt, by dsimp at hpqt ⊢; simp [directed_system.neg f, hpqt]⟩,
+  add_left_neg := λ i, quotient.induction_on i $ λ ⟨p, xp⟩, quotient.sound $
+    ⟨(p ⊔ p) ⊔ default ι, le_sup_left, le_sup_right,
+     by dsimp; simp [directed_system.map_add f, directed_system.neg f, directed_system.zero f]⟩,
+  add_comm := λ i j, quotient.induction_on₂ i j $ λ ⟨p, xp⟩ ⟨q, xq⟩, quotient.sound
+    ⟨(p ⊔ q) ⊔ (q ⊔ p), le_sup_left, le_sup_right,
+     by dsimp; simp [directed_system.map_add f]⟩ }
+
+instance : add_comm_group (direct_limit f) :=
+direct_limit.add_comm_group' f
+
+instance of.is_add_group_hom {i} : is_add_group_hom (direct_limit.of f i) :=
+is_add_group_hom.mk _ $ λ x y, quotient.sound
+⟨i ⊔ i, le_sup_left, le_refl _,
+ by dsimp; simp [directed_system.map_add f]; simp [directed_system.add f]⟩
+
+theorem of.zero_exact {i x} (H : of f i x = 0) :
+  ∃ p hp1, f i p hp1 x = (0 : G p) :=
+let ⟨p, hp1, hp2, hp3⟩ := quotient.exact H in
+⟨p, hp1, hp3.trans $ is_add_group_hom.zero _⟩
+
+variables {P : Type*} [add_comm_group P]
+variables (g : Π i, G i → P) (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
+variables [∀ i, is_add_group_hom (g i)]
+
+def rec.is_add_group_hom : is_add_group_hom (rec f g Hg) :=
+is_add_group_hom.mk _ $ λ i j, quotient.induction_on₂ i j $ λ ⟨p, xp⟩ ⟨q, xq⟩,
+calc  _ = _ : is_add_group_hom.add _ _ _
+    ... = _ : congr_arg₂ (+) (Hg _ _ _ _) (Hg _ _ _ _)
+
+end direct_limit
+
+namespace direct_limit
+
+variables [∀ i, ring (G i)] (f : Π i j, i ≤ j → G i → G j)
+variables [∀ i j h, is_ring_hom (f i j h)] [directed_system f]
+
+local attribute [instance] direct_limit.setoid
+
+instance ring' : ring (quotient (direct_limit.setoid f)) :=
 { mul := λ i j, quotient.lift_on₂ i j
     (λ xi xj, ⟦⟨xi.1 ⊔ xj.1, f xi.1 (xi.1 ⊔ xj.1) le_sup_left xi.2 *
       f xj.1 (xi.1 ⊔ xj.1) le_sup_right xj.2⟩⟧ : sigma G → sigma G → quotient (direct_limit.setoid f))
     (λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨r, xr⟩ ⟨s, xs⟩ ⟨t, hpt, hrt, hprt⟩ ⟨u, hqu, hsu, hqsu⟩, quotient.sound $
-      ⟨t ⊔ u,
-       sup_le (le_trans hpt le_sup_left) (le_trans hqu le_sup_right),
-       sup_le (le_trans hrt le_sup_left) (le_trans hsu le_sup_right),
-       calc   f (p ⊔ q) (t ⊔ u) _
+      ⟨(p ⊔ q) ⊔ (r ⊔ s) ⊔ (t ⊔ u),
+       le_trans le_sup_left le_sup_left,
+       le_trans le_sup_right le_sup_left,
+       calc   f (p ⊔ q) (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) (le_trans le_sup_left le_sup_left)
                 (f p (p ⊔ q) le_sup_left xp * f q (p ⊔ q) le_sup_right xq)
-          =   f (p ⊔ q) (t ⊔ u) _ (f p (p ⊔ q) le_sup_left xp)
-            * f (p ⊔ q) (t ⊔ u) _ (f q (p ⊔ q) le_sup_right xq) :
-        is_ring_hom.map_mul _
-      ... =   f p (t ⊔ u) _ xp * f q (t ⊔ u) _ xq :
-        congr_arg₂ (*) (directed_system.Hcomp f _ _ _ _ _ _) (directed_system.Hcomp f _ _ _ _ _ _)
-      ... =   f p (t ⊔ u) (le_trans hpt le_sup_left) xp * f q (t ⊔ u) (le_trans hqu le_sup_right) xq : rfl
-      ... =   f t (t ⊔ u) le_sup_left (f p t hpt xp) * f u (t ⊔ u) le_sup_right (f q u hqu xq) :
+          =   f p (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) (le_trans hpt (le_trans le_sup_left le_sup_right)) xp
+            * f q (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) (le_trans hqu (le_trans le_sup_right le_sup_right)) xq :
+        directed_system.map_mul f
+      ... =   f t (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ (f p t hpt xp)
+            * f u (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ (f q u hqu xq) :
         congr_arg₂ (*) (directed_system.Hcomp f _ _ _ _ _ _).symm (directed_system.Hcomp f _ _ _ _ _ _).symm
-      ... =   f t (t ⊔ u) le_sup_left (f r t hrt xr) * f u (t ⊔ u) le_sup_right (f s u hsu xs) :
+      ... =   f t (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ (f r t hrt xr)
+            * f u (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ (f s u hsu xs) :
         congr_arg₂ (*) (congr_arg _ hprt) (congr_arg _ hqsu)
-      ... =   _ : congr_arg₂ (*) (directed_system.Hcomp f _ _ _ _ _ _) (directed_system.Hcomp f _ _ _ _ _ _)
-      ... =   f r (t ⊔ u) (le_trans le_sup_left (sup_le (le_trans hrt le_sup_left) (le_trans hsu le_sup_right))) xr
-            * f s (t ⊔ u) (le_trans le_sup_right (sup_le (le_trans hrt le_sup_left) (le_trans hsu le_sup_right))) xs : rfl
-      ... =   _ : congr_arg₂ (*) (directed_system.Hcomp f _ _ _ _ _ _).symm (directed_system.Hcomp f _ _ _ _ _ _).symm
-      ... =   f (r ⊔ s) (t ⊔ u) _ (f r (r ⊔ s) le_sup_left xr * f s (r ⊔ s) le_sup_right xs) :
-        (is_ring_hom.map_mul _).symm ⟩),
+      ... =   f r (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ xr
+            * f s (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) _ xs :
+        congr_arg₂ (*) (directed_system.Hcomp f _ _ _ _ _ _) (directed_system.Hcomp f _ _ _ _ _ _)
+      ... =   f (r ⊔ s) (p ⊔ q ⊔ (r ⊔ s) ⊔ (t ⊔ u)) (le_trans le_sup_right le_sup_left)
+                (f r (r ⊔ s) le_sup_left xr * f s (r ⊔ s) le_sup_right xs) :
+        eq.symm $ directed_system.map_mul f⟩),
   mul_assoc := λ i j k, quotient.induction_on₃ i j k $ λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨r, xr⟩, quotient.sound
-    ⟨p ⊔ q ⊔ r, le_refl _, le_of_eq sup_assoc.symm, begin
-      dsimp,
-      rw is_ring_hom.map_mul (f (p ⊔ q) (p ⊔ q ⊔ r) le_sup_left),
-      rw is_ring_hom.map_mul (f (q ⊔ r) (p ⊔ (q ⊔ r)) le_sup_right),
-      rw is_ring_hom.map_mul (f (p ⊔ q ⊔ r) (p ⊔ q ⊔ r) (le_refl (p ⊔ q ⊔ r))),
-      rw is_ring_hom.map_mul (f (p ⊔ q ⊔ r) (p ⊔ q ⊔ r) (le_refl (p ⊔ q ⊔ r))),
-      rw is_ring_hom.map_mul (f (p ⊔ (q ⊔ r)) (p ⊔ q ⊔ r) (le_of_eq (eq.symm sup_assoc))),
-      rw is_ring_hom.map_mul (f (p ⊔ (q ⊔ r)) (p ⊔ q ⊔ r) (le_of_eq (eq.symm sup_assoc))),
-      repeat { rw directed_system.Hcomp f },
-      apply mul_assoc
-    end⟩,
+    ⟨((p ⊔ q) ⊔ r) ⊔ (p ⊔ (q ⊔ r)), le_sup_left, le_sup_right,
+     by dsimp; simp [directed_system.map_mul f, directed_system.mul f, directed_system.Hcomp f, mul_assoc]⟩,
   one := ⟦⟨default _, 1⟩⟧,
   one_mul := λ i, quotient.induction_on i $ λ ⟨p, xp⟩, quotient.sound
-    ⟨default _ ⊔ p, le_refl _, le_sup_right, begin
-      dsimp,
-      rw is_ring_hom.map_mul (f (default ι ⊔ p) (default ι ⊔ p) (le_refl (default ι ⊔ p))),
-      repeat { rw directed_system.Hcomp f },
-      rw is_ring_hom.map_one (f (default ι) (default ι ⊔ p) (le_trans le_sup_left (le_refl (default ι ⊔ p)))),
-      apply one_mul
-    end⟩,
+    ⟨default _ ⊔ p, le_refl _, le_sup_right,
+     by dsimp; simp [directed_system.map_mul f, directed_system.one f, directed_system.Hcomp f]⟩,
   mul_one := λ i, quotient.induction_on i $ λ ⟨p, xp⟩, quotient.sound
-    ⟨p ⊔ default ι, le_refl _, le_sup_left, begin
-      dsimp,
-      rw is_ring_hom.map_mul (f (p ⊔ default ι) (p ⊔ default ι) (le_refl (p ⊔ default ι))),
-      repeat { rw directed_system.Hcomp f },
-      rw is_ring_hom.map_one (f (default ι) (p ⊔ default ι) (le_trans le_sup_right (le_refl (p ⊔ default ι)))),
-      apply mul_one
-    end⟩,
+    ⟨p ⊔ default ι, le_refl _, le_sup_left,
+     by dsimp; simp [directed_system.map_mul f, directed_system.one f, directed_system.Hcomp f]⟩,
   left_distrib := λ i j k, quotient.induction_on₃ i j k $ λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨r, xr⟩, quotient.sound
-    ⟨p ⊔ (q ⊔ r) ⊔ (p ⊔ q ⊔ (p ⊔ r)), le_sup_left, le_sup_right, begin
-      dsimp,
-      rw is_ring_hom.map_mul (f (p ⊔ (q ⊔ r)) (p ⊔ (q ⊔ r) ⊔ (p ⊔ q ⊔ (p ⊔ r))) le_sup_left),
-      rw is_ring_hom.map_add (f (q ⊔ r) (p ⊔ (q ⊔ r)) le_sup_right),
-      rw is_ring_hom.map_add (f (p ⊔ (q ⊔ r)) (p ⊔ (q ⊔ r) ⊔ (p ⊔ q ⊔ (p ⊔ r))) le_sup_left),
-      rw is_ring_hom.map_mul (f (p ⊔ q) (p ⊔ q ⊔ (p ⊔ r)) _),
-      rw is_ring_hom.map_mul (f (p ⊔ r) (p ⊔ q ⊔ (p ⊔ r)) _),
-      rw is_ring_hom.map_add (f (p ⊔ q ⊔ (p ⊔ r)) (p ⊔ (q ⊔ r) ⊔ (p ⊔ q ⊔ (p ⊔ r))) le_sup_right),
-      rw is_ring_hom.map_mul (f (p ⊔ q ⊔ (p ⊔ r)) (p ⊔ (q ⊔ r) ⊔ (p ⊔ q ⊔ (p ⊔ r))) le_sup_right),
-      rw is_ring_hom.map_mul (f (p ⊔ q ⊔ (p ⊔ r)) (p ⊔ (q ⊔ r) ⊔ (p ⊔ q ⊔ (p ⊔ r))) le_sup_right),
-      rw left_distrib,
-      repeat { rw directed_system.Hcomp f },
-      repeat { apply_instance }
-    end⟩,
+    ⟨p ⊔ (q ⊔ r) ⊔ (p ⊔ q ⊔ (p ⊔ r)), le_sup_left, le_sup_right,
+     by dsimp; simp [directed_system.add f, directed_system.mul f, directed_system.Hcomp f, mul_add]⟩,
   right_distrib := λ i j k, quotient.induction_on₃ i j k $ λ ⟨p, xp⟩ ⟨q, xq⟩ ⟨r, xr⟩, quotient.sound
-    ⟨p ⊔ q ⊔ r ⊔ (p ⊔ r ⊔ (q ⊔ r)), le_sup_left, le_sup_right, begin
-      dsimp,
-      rw is_ring_hom.map_mul (f (p ⊔ q ⊔ r) (p ⊔ q ⊔ r ⊔ (p ⊔ r ⊔ (q ⊔ r))) le_sup_left),
-      rw is_ring_hom.map_add (f (p ⊔ q) (p ⊔ q ⊔ r) le_sup_left),
-      rw is_ring_hom.map_add (f (p ⊔ q ⊔ r) (p ⊔ q ⊔ r ⊔ (p ⊔ r ⊔ (q ⊔ r))) le_sup_left),
-      rw is_ring_hom.map_mul (f (p ⊔ r) (p ⊔ r ⊔ (q ⊔ r)) _),
-      rw is_ring_hom.map_mul (f (q ⊔ r) (p ⊔ r ⊔ (q ⊔ r)) _),
-      rw is_ring_hom.map_add (f (p ⊔ r ⊔ (q ⊔ r)) (p ⊔ q ⊔ r ⊔ (p ⊔ r ⊔ (q ⊔ r))) le_sup_right),
-      rw is_ring_hom.map_mul (f (p ⊔ r ⊔ (q ⊔ r)) (p ⊔ q ⊔ r ⊔ (p ⊔ r ⊔ (q ⊔ r))) le_sup_right),
-      rw is_ring_hom.map_mul (f (p ⊔ r ⊔ (q ⊔ r)) (p ⊔ q ⊔ r ⊔ (p ⊔ r ⊔ (q ⊔ r))) le_sup_right),
-      rw right_distrib,
-      repeat { rw directed_system.Hcomp f },
-      repeat { apply_instance }
-    end⟩,
+    ⟨p ⊔ q ⊔ r ⊔ (p ⊔ r ⊔ (q ⊔ r)), le_sup_left, le_sup_right,
+     by dsimp; simp [directed_system.add f, directed_system.mul f, directed_system.Hcomp f, add_mul]⟩,
   .. direct_limit.add_comm_group' f }
 
-instance direct_limit.ring : ring (direct_limit f) :=
+instance: ring (direct_limit f) :=
 direct_limit.ring' f
 
-instance direct_limit.of.is_ring_hom {i} : is_ring_hom (direct_limit.of f i) :=
+instance of.is_ring_hom {i} : is_ring_hom (direct_limit.of f i) :=
 { map_add := is_add_group_hom.add _,
-  map_mul := λ x y, quotient.sound ⟨i, le_refl _, sup_le (le_refl _) (le_refl _),
-    begin
-      dsimp,
-      rw is_ring_hom.map_mul (f (i ⊔ i) i _),
-      repeat { rw directed_system.Hcomp f },
-      repeat { rw directed_system.Hid f },
-      apply_instance
-     end⟩,
+  map_mul := λ x y, quotient.sound ⟨i ⊔ i, le_sup_left, le_refl _,
+    by dsimp; simp [directed_system.mul f, directed_system.Hcomp f]⟩,
   map_one := quotient.sound ⟨i ⊔ default _, le_sup_left, le_sup_right,
-    begin
-      dsimp,
-      rw is_ring_hom.map_one (f i (i ⊔ default ι) le_sup_left),
-      rw is_ring_hom.map_one (f (default ι) (i ⊔ default ι) le_sup_right)
-    end⟩ }
+    by dsimp; simp [directed_system.one f]⟩ }
 
-end ring
+theorem of.one_exact {i x} (H : of f i x = 1) :
+  ∃ p hp1, f i p hp1 x = (1 : G p) :=
+let ⟨p, hp1, hp2, hp3⟩ := quotient.exact H in
+⟨p, hp1, hp3.trans $ is_ring_hom.map_one _⟩
+
+variables {P : Type*} [ring P]
+variables (g : Π i, G i → P) (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
+variables [∀ i, is_ring_hom (g i)]
+
+local attribute [instance] rec.is_add_group_hom
+
+def rec.is_ring_hom : is_ring_hom (rec f g Hg) :=
+{ map_add := is_add_group_hom.add _,
+  map_mul := λ i j, quotient.induction_on₂ i j $ λ ⟨p, xp⟩ ⟨q, xq⟩,
+    calc  _ = _ : is_ring_hom.map_mul _
+        ... = _ : congr_arg₂ (*) (Hg _ _ _ _) (Hg _ _ _ _),
+  map_one := show g (default _) 1 = 1, from is_ring_hom.map_one _ }
+
+end direct_limit

@@ -178,7 +178,7 @@ by {induction s with b s H generalizing a, refl, simp [foldl], rw H _}
 theorem append_foldr (f : α → β → β) (a : β) (s t : list α) : foldr f a (s ++ t) = foldr f (foldr f a t) s :=
 by {induction s with b s H generalizing a, refl, simp [foldr], rw H _}
 
-@[simp] lemma append_eq_nil (p q : list α) : (p ++ q) = [] ↔ p = [] ∧ q = [] :=
+@[simp] lemma append_eq_nil {p q : list α} : (p ++ q) = [] ↔ p = [] ∧ q = [] :=
 by cases p; simp
 
 /- join -/

@@ -223,12 +223,16 @@ class conditionally_complete_linear_order (α : Type u)
 on the properties of Inf and Sup in a complete lattice.-/
 
 instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
-conditionally_complete_lattice α :=
-{le_cSup := by intros; apply le_Sup; assumption,
- cSup_le := by intros; apply Sup_le; assumption,
- cInf_le := by intros; apply Inf_le; assumption,
- le_cInf := by intros; apply le_Inf; assumption,
-..‹complete_lattice α›}
+  conditionally_complete_lattice α :=
+{ le_cSup := by intros; apply le_Sup; assumption,
+  cSup_le := by intros; apply Sup_le; assumption,
+  cInf_le := by intros; apply Inf_le; assumption,
+  le_cInf := by intros; apply le_Inf; assumption,
+  ..‹complete_lattice α›}
+
+instance conditionally_complete_linear_order_of_complete_linear_order [complete_linear_order α]:
+  conditionally_complete_linear_order α :=
+{ ..lattice.conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }
 
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}
@@ -437,6 +441,12 @@ calc Inf (insert a s)
         = Inf ({a} ∪ s)   : by rw [insert_eq]
     ... = Inf {a} ⊓ Inf s : by apply cInf_union _ _ ‹bdd_below s› ‹s ≠ ∅›; simp; simp
     ... = a ⊓ Inf s       : by simp
+
+@[simp] lemma cInf_interval [conditionally_complete_lattice α] : Inf {b | a ≤ b} = a :=
+cInf_of_in_of_le (by simp) (λw Hw, by simp at Hw; apply Hw)
+
+@[simp] lemma cSup_interval [conditionally_complete_lattice α] : Sup {b | b ≤ a} = a :=
+cSup_of_in_of_le (by simp) (λw Hw, by simp at Hw; apply Hw)
 
 end conditionally_complete_lattice
 

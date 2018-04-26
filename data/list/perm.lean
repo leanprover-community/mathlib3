@@ -639,8 +639,7 @@ theorem mem_permutations_aux2 {t : α} {ts : list α} {ys : list α} {l l' : lis
     ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l' = l ++ l₁ ++ t :: l₂ ++ ts :=
 begin
   induction ys with y ys ih generalizing l,
-  { simpa using λ (l₁ l₂ : list α) (n : ¬ l₂ = []) (e : [] = l₁ ++ l₂),
-     n.elim (eq_nil_of_sublist_nil $ e.symm ▸ sublist_append_right l₁ l₂) },
+  { simp {contextual := tt} },
   { rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
         by funext; simp, mem_cons_iff, ih], split; intro h,
     { rcases h with e | ⟨l₁, l₂, l0, ye, _⟩,

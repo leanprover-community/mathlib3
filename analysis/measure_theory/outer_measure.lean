@@ -12,7 +12,7 @@ import data.set order.galois_connection algebra.big_operators
 
 noncomputable theory
 
-open set lattice finset function filter
+open set lattice function filter
 open ennreal (of_real)
 local attribute [instance] classical.prop_decidable
 
@@ -266,7 +266,7 @@ private lemma C_Union_lt {s : ℕ → set α} : ∀{n:ℕ}, (∀i<n, C (s i)) �
 private lemma C_inter (h₁ : C s₁) (h₂ : C s₂) : C (s₁ ∩ s₂) :=
 by rw [←C_compl_iff, compl_inter]; from C_union _ (C_compl _ h₁) (C_compl _ h₂)
 
-private lemma C_sum {s : ℕ → set α} (h : ∀i, C (s i)) (hd : pairwise (disjoint on s)) {n} {t : set α} :
+private lemma C_sum {s : ℕ → set α} (h : ∀i, C (s i)) (hd : pairwise (_root_.disjoint on s)) {n} {t : set α} :
   (finset.range n).sum (λi, μ (t ∩ s i)) = μ (t ∩ ⋃i<n, s i) :=
 begin
   induction n,
@@ -295,8 +295,8 @@ begin
         ... = _ : by simp,
     have : C _ (⋃i<n, s i),
       from C_Union_lt m (assume i _, h i),
-    from calc (range (nat.succ n)).sum (λi, μ (t ∩ s i)) = μ (t ∩ s n) + μ (t ∩ ⋃i < n, s i) :
-        by simp [range_succ, sum_insert, lt_irrefl, ih]
+    from calc (finset.range (nat.succ n)).sum (λi, μ (t ∩ s i)) = μ (t ∩ s n) + μ (t ∩ ⋃i < n, s i) :
+        by simp [finset.range_succ, finset.sum_insert, lt_irrefl, ih]
       ... = μ ((t ∩ ⋃i<n+1, s i) ∩ ⋃i<n, s i) + μ ((t ∩ ⋃i<n+1, s i) \ ⋃i<n, s i) :
         by rw [e₁, e₂]; simp
       ... = μ (t ∩ ⋃i<n+1, s i) : (this $ t ∩ ⋃i<n+1, s i).symm }

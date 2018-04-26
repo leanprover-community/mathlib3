@@ -3,8 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison
 -/
-import data.finset algebra.big_operators data.equiv data.set data.nat.basic set_theory.cardinal
-  group_theory.submonoid
+import group_theory.submonoid
 open set function
 
 variables {α : Type*} {β : Type*} {s : set α} {a a₁ a₂ b c: α}
@@ -134,7 +133,7 @@ by simp [trivial]
 instance trivial_normal : normal_subgroup (trivial α) :=
 by refine {..}; simp [trivial] {contextual := tt}
 
-lemma trivial_eq_closure : trivial α = group.closure {} :=
+lemma trivial_eq_closure : trivial α = group.closure ∅ :=
 subset.antisymm
   (by simp [set.subset_def, is_submonoid.one_mem])
   (group.closure_subset $ by simp)
@@ -147,8 +146,8 @@ def center (α : Type*) [group α] : set α := {z | ∀ g, g * z = z * g}
 lemma mem_center {a : α} : a ∈ center α ↔ (∀g, g * a = a * g) :=
 iff.refl _
 
-instance center_normal : normal_subgroup (center α) := {
-  one_mem := by simp [center],
+instance center_normal : normal_subgroup (center α) :=
+{ one_mem := by simp [center],
   mul_mem := assume a b ha hb g,
     by rw [←mul_assoc, mem_center.2 ha g, mul_assoc, mem_center.2 hb g, ←mul_assoc],
   inv_mem := assume a ha g,
@@ -159,15 +158,13 @@ instance center_normal : normal_subgroup (center α) := {
     calc
       h * (g * n * g⁻¹) = h * n           : by simp [ha g, mul_assoc]
       ...               = g * g⁻¹ * n * h : by rw ha h; simp
-      ...               = g * n * g⁻¹ * h : by rw [mul_assoc g, ha g⁻¹, ←mul_assoc]
-}
+      ...               = g * n * g⁻¹ * h : by rw [mul_assoc g, ha g⁻¹, ←mul_assoc] }
 
 end is_subgroup
 
 -- Homomorphism subgroups
 namespace is_group_hom
-open is_submonoid
-open is_subgroup
+open is_submonoid is_subgroup
 variables [group α] [group β]
 
 def ker (f : α → β) [is_group_hom f] : set α := preimage f (trivial β)
@@ -198,6 +195,9 @@ instance image_subgroup (f : α → β) [is_group_hom f] (s : set α) [is_subgro
   one_mem := ⟨1, one_mem s, one f⟩,
   inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw inv f; simp *⟩ }
 
+instance range_subgroup (f : α → β) [is_group_hom f] : is_subgroup (set.range f) :=
+@set.image_univ _ _ f ▸ is_group_hom.image_subgroup f set.univ
+
 local attribute [simp] one_mem inv_mem mul_mem normal_subgroup.normal
 
 instance preimage (f : α → β) [is_group_hom f] (s : set β) [is_subgroup s] :
@@ -206,7 +206,7 @@ by refine {..}; simp [mul f, one f, inv f, @inv_mem β _ _ s] {contextual:=tt}
 
 instance preimage_normal (f : α → β) [is_group_hom f] (s : set β) [normal_subgroup s] :
   normal_subgroup (f ⁻¹' s) :=
-{ normal := by simp [mul f, inv f] {contextual:=tt} }
+⟨by simp [mul f, inv f] {contextual:=tt}⟩
 
 instance normal_subgroup_ker (f : α → β) [is_group_hom f] : normal_subgroup (ker f) :=
 is_group_hom.preimage_normal f (trivial β)
@@ -220,7 +220,7 @@ begin
   rw [eq_inv_of_mul_eq_one ha, inv_inv a₂]
 end
 
-lemma trivial_ker_of_inj (f : α → β) [w : is_group_hom f] (h : function.injective f) :
+lemma trivial_ker_of_inj (f : α → β) [is_group_hom f] (h : function.injective f) :
   ker f = trivial α :=
 set.ext $ assume x, iff.intro
   (assume hx,
@@ -228,9 +228,8 @@ set.ext $ assume x, iff.intro
     by simp [one f]; rwa [mem_ker] at hx)
   (by simp [mem_ker, is_group_hom.one f] {contextual := tt})
 
-lemma inj_iff_trivial_ker (f : α → β) [w : is_group_hom f] :
+lemma inj_iff_trivial_ker (f : α → β) [is_group_hom f] :
   function.injective f ↔ ker f = trivial α :=
--- TODO: still not finding the typeclass. ⟨trivial_kernel_of_inj f, inj_of_trivial_kernel f⟩
-⟨@trivial_ker_of_inj _ _ _ _ f w, @inj_of_trivial_ker _ _ _ _ f w⟩
+⟨trivial_ker_of_inj f, inj_of_trivial_ker f⟩
 
 end is_group_hom

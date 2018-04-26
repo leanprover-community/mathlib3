@@ -40,7 +40,7 @@ namespace norm_num
 variable {α : Type u}
 
 theorem bit0_zero [add_group α] : bit0 (0 : α) = 0 := add_zero _
- 
+
 theorem bit1_zero [add_group α] [has_one α] : bit1 (0 : α) = 1 :=
 by rw [bit1, bit0_zero, zero_add]
 

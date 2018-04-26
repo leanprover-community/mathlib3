@@ -76,7 +76,7 @@ instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_se
 
 instance linear_ordered_semiring.to_no_bot_order {α : Type*} [linear_ordered_ring α] :
   no_bot_order α :=
-⟨assume a, ⟨a - 1, sub_lt_iff.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
+⟨assume a, ⟨a - 1, sub_lt_iff_lt_add.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
 
 instance to_domain [s : linear_ordered_ring α] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := @linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero α s,
@@ -100,7 +100,7 @@ le_iff_le_iff_lt_iff_lt.1 (mul_le_mul_left_of_neg h)
 le_iff_le_iff_lt_iff_lt.1 (mul_le_mul_right_of_neg h)
 
 lemma sub_one_lt (a : α) : a - 1 < a :=
-sub_lt_iff.2 (lt_add_one a)
+sub_lt_iff_lt_add.2 (lt_add_one a)
 
 end linear_ordered_ring
 

@@ -1,4 +1,4 @@
-/- 
+/-
 Copyright (c) 2018 Louis Carlin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin
@@ -43,7 +43,7 @@ def gcd : α → α → α
 
 /- weak lemmas -/
 
-@[simp] lemma mod_zero (a : α) : a % 0 = a := by simpa using 
+@[simp] lemma mod_zero (a : α) : a % 0 = a := by simpa using
 quotient_mul_add_remainder_eq a 0
 
 lemma dvd_mod_self (a : α) : a ∣ a % a :=
@@ -75,10 +75,10 @@ lemma dvd_mod {a b c : α} : c ∣ a → c ∣ b → c ∣ a % b :=
 begin
   intros dvd_a dvd_b,
   have : remainder a b = a - quotient a b * b, from
-  calc 
+  calc
     a%b = quotient a b * b + a%b - quotient a b * b : by ring
     ... = a - quotient a b * b : by {dsimp[(%)]; rw (quotient_mul_add_remainder_eq a b)},
-  dsimp [(%)], 
+  dsimp [(%)],
   rw this,
   exact dvd_sub dvd_a (dvd_mul_of_dvd_right dvd_b (a/b)),
 end
@@ -105,7 +105,7 @@ begin
   { exact le_valuation_mul b d h }
 end
 
-@[simp] lemma mod_one (a : α) : a % 1 = 0 := 
+@[simp] lemma mod_one (a : α) : a % 1 = 0 :=
 val_lt_one _ (valuation_remainder_lt a 1 one_ne_zero)
 
 @[simp] lemma zero_mod (b : α) : 0 % b = 0 :=
@@ -137,7 +137,7 @@ begin
 end
 
 @[simp] lemma mod_self (a : α) : a % a = 0 :=
-let ⟨m, a_mul⟩ := dvd_mod_self a in 
+let ⟨m, a_mul⟩ := dvd_mod_self a in
 begin
   by_cases m = 0,
   { rw [h, mul_zero] at a_mul,
@@ -149,13 +149,13 @@ begin
       rw ←a_mul at this,
       have := not_le_of_lt (valuation_remainder_lt a a a_zero),
       contradiction}}
-end 
+end
 
 lemma div_self (a : α) : a ≠ 0 → a / a = (1:α) :=
 begin
   intro hna,
   have wit_aa := quotient_mul_add_remainder_eq a a,
-  have a_mod_a := mod_self a, 
+  have a_mod_a := mod_self a,
   dsimp [(%)] at a_mod_a,
   simp [a_mod_a] at wit_aa,
   have h1 : 1 * a = a, from one_mul a,
@@ -165,7 +165,7 @@ end
 
 /- weak gcd lemmas -/
 
-@[simp] theorem gcd_zero_left (a : α) : gcd 0 a = a := 
+@[simp] theorem gcd_zero_left (a : α) : gcd 0 a = a :=
 begin
   rw gcd,
   simp,
@@ -176,12 +176,12 @@ theorem gcd.induction {P : α → α → Prop}
   (a b : α)
   (H0 : ∀ x, P 0 x)
   (H1 : ∀ a b, a ≠ 0 → P (b%a) a → P a b) :
-  P a b := 
+  P a b :=
 @well_founded.induction _ _ (has_well_founded.wf α) (λa, ∀b, P a b) a
   begin
     intros c IH,
     by_cases c = 0,
-    { rw h, 
+    { rw h,
       exact H0 },
     { intro b,
       exact H1 c b (h) (IH (b%c) (neq_zero_lt_mod_lt b c h) c) }
@@ -193,7 +193,7 @@ gcd.induction a b
   (λ b, by simp)
   begin
     intros a b aneq h_dvd,
-    rw gcd, 
+    rw gcd,
     simp [aneq],
     induction h_dvd,
     split,
@@ -211,12 +211,12 @@ theorem dvd_gcd {a b c : α} : c ∣ a → c ∣ b → c ∣ gcd a b :=
 gcd.induction a b
   begin
     intros b dvd_0 dvd_b,
-    simp, 
+    simp,
     exact dvd_b
   end
   begin
     intros a b hna d dvd_a dvd_b,
-    rw gcd, 
+    rw gcd,
     simp [hna],
     exact d (dvd_mod dvd_b dvd_a) dvd_a,
   end
@@ -231,7 +231,7 @@ begin
     simp [h] }
 end
 
-@[simp] theorem gcd_one_left (a : α) : gcd 1 a = 1 := 
+@[simp] theorem gcd_one_left (a : α) : gcd 1 a = 1 :=
 begin
   rw [gcd],
   simp,

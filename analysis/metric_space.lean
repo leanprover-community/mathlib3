@@ -399,7 +399,7 @@ have h₁ : ∀ε, (λa', dist a' a) ⁻¹' ball 0 ε ⊆ ball a ε,
 have h₂ : tendsto (λa', dist a' a) (nhds a) (nhds (dist a a)),
   from tendsto_dist tendsto_id tendsto_const_nhds,
 le_antisymm
-  (by simp [h₁, nhds_eq_metric, infi_le_infi, principal_mono, 
+  (by simp [h₁, nhds_eq_metric, infi_le_infi, principal_mono,
       -le_principal_iff, -le_infi_iff])
   (by simpa [map_le_iff_le_vmap.symm, tendsto] using h₂)
 

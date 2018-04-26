@@ -287,6 +287,10 @@ def sum_equiv_sigma_bool (α β : Sort*) : (α ⊕ β) ≃ (Σ b: bool, cond b �
  λ s, by cases s; refl,
  λ s, by rcases s with ⟨_|_, _⟩; refl⟩
 
+def equiv_fib {α β : Type*} (f : α → β) :
+  α ≃ Σ y : β, {x // f x = y} :=
+⟨λ x, ⟨f x, x, rfl⟩, λ x, x.2.1, λ x, rfl, λ ⟨y, x, rfl⟩, rfl⟩
+
 end
 
 section

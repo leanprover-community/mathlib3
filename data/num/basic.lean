@@ -34,7 +34,7 @@ instance : has_one num := ⟨num.pos 1⟩
 instance : decidable_eq num := by tactic.mk_dec_eq_instance
 
 /-- Representation of integers using trichotomy around zero.
-     
+
      13 = 1101(base 2) = pos (bit1 (bit0 (bit1 one)))
      -13 = -1101(base 2) = neg (bit1 (bit0 (bit1 one))) -/
 inductive znum : Type
@@ -56,11 +56,11 @@ inductive nzsnum : Type
 
      13  = ..0001101(base 2) = nz (bit1 (bit0 (bit1 (msb tt))))
      -13 = ..1110011(base 2) = nz (bit1 (bit1 (bit0 (msb ff))))
-     
+
   As with `num`, a special case must be added for zero, which has no msb,
   but by two's complement symmetry there is a second special case for -1.
   Here the `bool` field indicates the sign of the number.
-  
+
      0  = ..0000000(base 2) = zero ff
      -1 = ..1111111(base 2) = zero tt -/
 inductive snum : Type
@@ -103,7 +103,7 @@ namespace pos_num
 
   def pred (a : pos_num) : pos_num :=
   num.cases_on (pred' a) 1 id
-  
+
   def size : pos_num → pos_num
   | 1        := 1
   | (bit0 n) := succ (size n)
@@ -252,7 +252,7 @@ namespace znum
   | 0       := 1
   | (pos n) := pos (pos_num.bit1 n)
   | (neg n) := neg (num.cases_on (pred' n) 1 pos_num.bit1)
-  
+
   protected def bitm1 : znum → znum
   | 0       := neg 1
   | (pos n) := pos (num.cases_on (pred' n) 1 pos_num.bit1)
@@ -314,7 +314,7 @@ namespace num
 
   def psub (a b : num) : option num :=
   of_znum' (sub' a b)
-  
+
   protected def sub (a b : num) : num :=
   of_znum (sub' a b)
 

@@ -49,6 +49,10 @@ multiset.decidable_mem _ _
 theorem ext {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
 val_inj.symm.trans $ nodup_ext s₁.2 s₂.2
 
+@[extensionality]
+theorem ext' {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
+ext.2
+
 /- subset -/
 
 instance : has_subset (finset α) := ⟨λ s₁ s₂, ∀ ⦃a⦄, a ∈ s₁ → a ∈ s₂⟩
@@ -142,6 +146,9 @@ theorem insert_def (a : α) (s : finset α) : insert a s = ⟨_, nodup_ndinsert 
 
 theorem insert_val' (a : α) (s : finset α) : (insert a s).1 = erase_dup (a :: s.1) :=
 by simp [erase_dup_cons]
+
+theorem insert_val_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : (insert a s).1 = a :: s.1 :=
+by rw [insert_val, ndinsert_of_not_mem h]
 
 @[simp] theorem mem_insert {a b : α} {s : finset α} : a ∈ insert b s ↔ a = b ∨ a ∈ s := mem_ndinsert
 
@@ -455,6 +462,8 @@ def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attac
 
 @[simp] theorem mem_attach (s : finset α) : ∀ x, x ∈ s.attach := mem_attach _
 
+@[simp] theorem attach_empty : attach (∅ : finset α) = ∅ := rfl
+
 /- filter -/
 section filter
 variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]
@@ -640,6 +649,19 @@ by simp [insert_eq, image_union]
 lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
 eq_of_veq $ by simp [multiset.attach_map_val]
 
+@[simp] lemma attach_insert [decidable_eq α] {a : α} {s : finset α} :
+  attach (insert a s) = insert (⟨a, mem_insert_self a s⟩ : {x // x ∈ insert a s})
+    ((attach s).image (λx, ⟨x.1, mem_insert_of_mem x.2⟩)) :=
+begin
+  apply eq_of_veq,
+  dsimp,
+  rw [attach_ndinsert, multiset.erase_dup_eq_self.2],
+  { refl },
+  apply nodup_map_on,
+  exact assume ⟨a', _⟩ _ ⟨b', _⟩ _ h, by simp at h; simp [h],
+  exact multiset.nodup_attach.2 s.2
+end
+
 end image
 
 /- card -/
@@ -824,11 +846,56 @@ section pi
 variables {δ : α → Type*} [decidable_eq α] [∀a, decidable_eq (δ a)]
 
 def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
-(s.1.pi (λa, (t a).1)).to_finset
+⟨s.1.pi (λ a, (t a).1), nodup_pi s.2 (λ a _, (t a).2)⟩
 
-lemma mem_pi {s : finset α} {t : Πa, finset (δ a)} {f : (Πa∈s, δ a)} :
+@[simp] lemma pi_val (s : finset α) (t : Πa, finset (δ a)) :
+  (s.pi t).1 = s.1.pi (λ a, (t a).1) := rfl
+
+@[simp] lemma mem_pi {s : finset α} {t : Πa, finset (δ a)} {f : Πa∈s, δ a} :
   f ∈ s.pi t ↔ (∀a (h : a ∈ s), f a h ∈ t a) :=
-by cases s; rw [pi, multiset.mem_to_finset, multiset.mem_pi]; refl
+mem_pi _ _ _
+
+def pi.empty (β : α → Sort*) [decidable_eq α] (a : α) (h : a ∈ (∅ : finset α)) : β a :=
+multiset.pi.empty β a h
+
+def pi.cons (s : finset α) (a : α) (b : δ a) (f : Πa, a ∈ s → δ a) (a' : α) (h : a' ∈ insert a s) : δ a' :=
+multiset.pi.cons s.1 a b f _ (multiset.mem_cons.2 $ mem_insert.symm.2 h)
+
+@[simp] lemma pi.cons_same (s : finset α) (a : α) (b : δ a) (f : Πa, a ∈ s → δ a) (h : a ∈ insert a s) :
+  pi.cons s a b f a h = b :=
+multiset.pi.cons_same _
+
+lemma pi.cons_ne {s : finset α} {a a' : α} {b : δ a} {f : Πa, a ∈ s → δ a} {h : a' ∈ insert a s} (ha : a ≠ a') :
+  pi.cons s a b f a' h = f a' ((mem_insert.1 h).resolve_left ha.symm) :=
+multiset.pi.cons_ne _ _
+
+lemma injective_pi_cons  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
+  function.injective (pi.cons s a b) :=
+assume e₁ e₂ eq,
+@multiset.injective_pi_cons α _ δ _ a b s.1 hs _ _ $
+  funext $ assume e, funext $ assume h,
+  have pi.cons s a b e₁ e (by simpa using h) = pi.cons s a b e₂ e (by simpa using h),
+    by rw [eq],
+  this
+
+@[simp] lemma pi_empty {t : Πa:α, finset (δ a)} : pi (∅ : finset α) t = singleton (pi.empty δ) :=
+rfl
+
+@[simp] lemma pi_insert {s : finset α} {t : Πa:α, finset (δ a)} {a : α} (ha : a ∉ s) :
+  pi (insert a s) t = (t a).bind (λb, (pi s t).image (pi.cons s a b)) :=
+begin
+  apply eq_of_veq,
+  rw ← multiset.erase_dup_eq_self.2 (pi (insert a s) t).2,
+  refine (λ s' (h : s' = a :: s.1), (_ : erase_dup (multiset.pi s' (λ a, (t a).1)) =
+    erase_dup ((t a).1.bind $ λ b,
+    erase_dup $ (multiset.pi s.1 (λ (a : α), (t a).val)).map $
+      λ f a' h', multiset.pi.cons s.1 a b f a' (h ▸ h')))) _ (insert_val_of_not_mem ha),
+  subst s', rw pi_cons,
+  congr, funext b,
+  rw multiset.erase_dup_eq_self.2,
+  exact multiset.nodup_map (multiset.injective_pi_cons ha) (pi s t).2,
+end
+
 end pi
 
 section powerset

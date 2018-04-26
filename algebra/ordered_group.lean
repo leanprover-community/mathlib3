@@ -14,7 +14,7 @@ section old_structure_cmd
 
 set_option old_structure_cmd true
 
-/-- An ordered (additive) commutative monoid is a commutative monoid 
+/-- An ordered (additive) commutative monoid is a commutative monoid
   with a partial order such that addition is an order embedding, i.e.
   `a + b ≤ a + c ↔ b ≤ c`. These monoids are automatically cancellative. -/
 class ordered_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
@@ -245,20 +245,6 @@ lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
 add_lt_add_iff_right _
 
-lemma sub_lt_iff {a b c : α} : (a - b < c) ↔ (a < c + b) :=
-iff.intro
-  lt_add_of_sub_right_lt
-  (assume h,
-    have a + - b < (c + b) + - b, from add_lt_add_right h _,
-    by simp * at *)
-
-lemma lt_sub_iff {a b c : α} : (a < b - c) ↔ (a + c < b) :=
-iff.intro
-  (assume h,
-    have a + c < (b - c) + c, from add_lt_add_right h _,
-    by simp * at *)
-  lt_sub_right_of_add_lt
-
 @[simp] lemma sub_nonneg : 0 ≤ a - b ↔ b ≤ a :=
 have a - a ≤ a - b ↔ b ≤ a, from sub_le_sub_iff_left a,
 by rwa sub_self at this
@@ -347,6 +333,9 @@ by rw [neg_lt_sub_iff_lt_add, add_comm]
 
 lemma sub_lt : a - b < c ↔ a - c < b :=
 sub_lt_iff_lt_add'.trans sub_lt_iff_lt_add.symm
+
+theorem lt_sub : a < b - c ↔ c < b - a :=
+lt_sub_iff_add_lt'.trans lt_sub_iff_add_lt.symm
 
 lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 0 ≤ b :=
 sub_le_iff_le_add'.trans (le_add_iff_nonneg_left _)

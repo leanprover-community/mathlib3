@@ -1014,10 +1014,10 @@ theorem disjoint_of_subset_left {s t u : finset α} (h : s ⊆ u) (d : disjoint 
 theorem disjoint_of_subset_right {s t u : finset α} (h : t ⊆ u) (d : disjoint s u) : disjoint s t
 | x m m₁ := d m (h m₁)
 
-@[simp] theorem empty_disjoint (s : finset α) : disjoint ∅ s
+@[simp] theorem disjoint_empty_left (s : finset α) : disjoint ∅ s
 | a := (not_mem_empty a).elim
 
-@[simp] theorem disjoint_empty (s : finset α) : disjoint s ∅ :=
+@[simp] theorem disjoint_empty_right (s : finset α) : disjoint s ∅ :=
 disjoint_comm.1 (empty_disjoint _)
 
 @[simp] theorem singleton_disjoint {s : finset α} {a : α} : disjoint (singleton a) s ↔ a ∉ s :=

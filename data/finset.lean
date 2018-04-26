@@ -588,6 +588,12 @@ multiset.to_finset_eq n
 @[simp] theorem mem_to_finset {a : α} {l : list α} : a ∈ l.to_finset ↔ a ∈ l :=
 mem_erase_dup
 
+@[simp] theorem to_finset_nil : to_finset (@nil α) = ∅ :=
+rfl
+
+@[simp] theorem to_finset_cons {a : α} {l : list α} : to_finset (a :: l) = insert a (to_finset l) :=
+finset.eq_of_veq $ by by_cases h : a ∈ l; simp [finset.insert_val', multiset.erase_dup_cons, h]
+
 end list
 
 namespace finset
@@ -995,3 +1001,20 @@ list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
 end sort
 
 end finset
+
+namespace list
+variable [decidable_eq α]
+
+theorem to_finset_card_of_nodup {l : list α} : l.nodup → l.to_finset.card = l.length :=
+begin
+  induction l,
+  case list.nil { simp },
+  case list.cons : _ _ ih {
+    intros nd,
+    simp at nd,
+    simp [finset.card_insert_of_not_mem ((not_iff_not_of_iff mem_to_finset).mpr nd.1),
+          ih nd.2]
+  }
+end
+
+end list

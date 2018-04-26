@@ -2629,6 +2629,10 @@ theorem pw_filter_eq_self {l : list α} : pw_filter R l = l ↔ pairwise R l :=
   rw [pw_filter_cons_of_pos (ball.imp_left (pw_filter_subset l) al), IH p],
 end⟩
 
+@[simp] theorem pw_filter_idempotent {l : list α} :
+  pw_filter R (pw_filter R l) = pw_filter R l :=
+pw_filter_eq_self.mpr (pairwise_pw_filter l)
+
 theorem forall_mem_pw_filter (neg_trans : ∀ {x y z}, R x z → R x y ∨ R y z)
   (a : α) (l : list α) : (∀ b ∈ pw_filter R l, R a b) ↔ (∀ b ∈ l, R a b) :=
 ⟨begin
@@ -2971,6 +2975,9 @@ theorem subset_erase_dup (l : list α) : l ⊆ erase_dup l :=
 theorem nodup_erase_dup : ∀ l : list α, nodup (erase_dup l) := pairwise_pw_filter
 
 theorem erase_dup_eq_self {l : list α} : erase_dup l = l ↔ nodup l := pw_filter_eq_self
+
+@[simp] theorem erase_dup_idempotent {l : list α} : erase_dup (erase_dup l) = erase_dup l :=
+pw_filter_idempotent
 
 theorem erase_dup_append (l₁ l₂ : list α) : erase_dup (l₁ ++ l₂) = l₁ ∪ erase_dup l₂ :=
 begin

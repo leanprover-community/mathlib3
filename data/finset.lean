@@ -1018,7 +1018,7 @@ theorem disjoint_of_subset_right {s t u : finset α} (h : t ⊆ u) (d : disjoint
 | a := (not_mem_empty a).elim
 
 @[simp] theorem disjoint_empty_right (s : finset α) : disjoint s ∅ :=
-disjoint_comm.1 (empty_disjoint _)
+disjoint_comm.1 (disjoint_empty_left _)
 
 @[simp] theorem singleton_disjoint {s : finset α} {a : α} : disjoint (singleton a) s ↔ a ∉ s :=
 by simp [disjoint]; refl

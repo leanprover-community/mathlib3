@@ -1022,23 +1022,23 @@ by simp [disjoint_left]; refl
 @[simp] theorem disjoint_singleton {s : finset α} {a : α} : disjoint s (singleton a) ↔ a ∉ s :=
 by rw _root_.disjoint_comm; simp
 
-@[simp] theorem disjoint_insert_left [decidable_eq α] {a : α} {s t : finset α} :
+@[simp] theorem disjoint_insert_left {a : α} {s t : finset α} :
   disjoint (insert a s) t ↔ a ∉ t ∧ disjoint s t :=
 by simp [disjoint_left, or_imp_distrib, forall_and_distrib]; refl
 
-@[simp] theorem disjoint_insert_right [decidable_eq α] {a : α} {s t : finset α} :
+@[simp] theorem disjoint_insert_right {a : α} {s t : finset α} :
   disjoint s (insert a t) ↔ a ∉ s ∧ disjoint s t :=
 _root_.disjoint_comm.trans $ by simp [disjoint_insert_left]
 
-@[simp] theorem disjoint_union_left [decidable_eq α] {s t u : finset α} :
+@[simp] theorem disjoint_union_left {s t u : finset α} :
   disjoint (s ∪ t) u ↔ disjoint s u ∧ disjoint t u :=
 by simp [disjoint_left, or_imp_distrib, forall_and_distrib]
 
-@[simp] theorem disjoint_union_right [decidable_eq α] {s t u : finset α} :
+@[simp] theorem disjoint_union_right {s t u : finset α} :
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 by simp [disjoint_right, or_imp_distrib, forall_and_distrib]
 
-@[simp] theorem card_disjoint_union [decidable_eq α] {s t : finset α} :
+@[simp] theorem card_disjoint_union {s t : finset α} :
     disjoint s t → card (s ∪ t) = card s + card t :=
 finset.induction_on s (by simp) $ by simp {contextual := tt}
 

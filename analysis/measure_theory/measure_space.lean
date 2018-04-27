@@ -21,7 +21,7 @@ import data.set order.galois_connection analysis.ennreal
 
 noncomputable theory
 
-open classical set lattice filter function
+open classical set lattice filter finset function
 local attribute [instance] prop_decidable
 
 universes u v w x
@@ -90,7 +90,7 @@ have hms : ∀n, is_measurable (s n),
 calc μ.measure' (s₁ ∪ s₂) = μ.measure' (⋃n, s n) : by rw [Un_s]
   ... = (∑n, μ.measure' (s n)) :
     measure_space.measure'_Union μ hd hms
-  ... = (finset.range (nat.succ (nat.succ 0))).sum (λn, μ.measure' (s n)) :
+  ... = (range (nat.succ (nat.succ 0))).sum (λn, μ.measure' (s n)) :
     tsum_eq_sum $ assume n hn,
     match n, hn with
     | 0,                     h := by simp at h; contradiction
@@ -98,13 +98,13 @@ calc μ.measure' (s₁ ∪ s₂) = μ.measure' (⋃n, s n) : by rw [Un_s]
     | nat.succ (nat.succ n), h := μ.measure'_empty
     end
   ... = μ.measure' s₁ + μ.measure' s₂ :
-    by simp [finset.sum_insert, s0, s1]
+    by simp [sum_insert, s0, s1]
 
 protected lemma measure'_mono (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) (hs : s₁ ⊆ s₂) :
   μ.measure' s₁ ≤ μ.measure' s₂ :=
-have hd : s₁ ∩ (s₂ \ s₁) = ∅, from set.ext $ by simp [finset.mem_sdiff] {contextual:=tt},
+have hd : s₁ ∩ (s₂ \ s₁) = ∅, from set.ext $ by simp [mem_sdiff] {contextual:=tt},
 have hu : s₁ ∪ (s₂ \ s₁) = s₂,
-  from set.ext $ assume x, by by_cases x ∈ s₁; simp [finset.mem_sdiff, h, @hs x] {contextual:=tt},
+  from set.ext $ assume x, by by_cases x ∈ s₁; simp [mem_sdiff, h, @hs x] {contextual:=tt},
 calc μ.measure' s₁ ≤ μ.measure' s₁ + μ.measure' (s₂ \ s₁) :
     le_add_of_nonneg_right' ennreal.zero_le
   ... = μ.measure' (s₁ ∪ (s₂ \ s₁)) :
@@ -279,12 +279,12 @@ calc μ (s₁ \ s₂) = (μ (s₁ \ s₂) + μ s₂) - μ s₂ :
 lemma measure_Union_eq_supr_nat {s : ℕ → set α} (h : ∀i, is_measurable (s i)) (hs : monotone s) :
   μ (⋃i, s i) = (⨆i, μ (s i)) :=
 -- TODO: generalize and extract from this proof
-have ∀i, (finset.range (i + 1)).sum (λi, μ (disjointed s i)) = μ (s i),
+have ∀i, (range (i + 1)).sum (λi, μ (disjointed s i)) = μ (s i),
 begin
   intro i, induction i,
   case nat.zero { simp [disjointed, nat.not_lt_zero, inter_univ] },
   case nat.succ : i ih {
-    rw [finset.range_succ, finset.sum_insert, ih, ←measure_union],
+    rw [range_succ, sum_insert, ih, ←measure_union],
     { show μ (disjointed s (i + 1) ∪ s i) = μ (s (i + 1)),
       rw [disjointed_of_mono hs, sdiff_union_same, union_of_subset_right],
       exact hs (nat.le_succ _) },
@@ -293,15 +293,15 @@ begin
       exact sdiff_inter_same },
     { exact is_measurable_disjointed h },
     { exact h _ },
-    { exact finset.not_mem_range_self } }
+    { exact not_mem_range_self } }
 end,
 calc μ (⋃i, s i) = μ (⋃i, disjointed s i) :
-    by rw [set.disjointed_Union]
-  ... = (∑i, μ (set.disjointed s i)) :
+    by rw [disjointed_Union]
+  ... = (∑i, μ (disjointed s i)) :
     measure_Union_nat (disjoint_disjointed) (assume i, is_measurable_disjointed h)
   ... = (⨆i, (finset.range i).sum (λi, μ (disjointed s i))) :
     by rw [ennreal.tsum_eq_supr_nat]
-  ... = (⨆i, (finset.range (i + 1)).sum (λi, μ (disjointed s i))) :
+  ... = (⨆i, (range (i + 1)).sum (λi, μ (disjointed s i))) :
     le_antisymm
       (supr_le begin intro i, cases i with j, simp, exact le_supr_of_le j (le_refl _) end)
       (supr_le $ assume i, le_supr_of_le (i + 1) $ le_refl _)

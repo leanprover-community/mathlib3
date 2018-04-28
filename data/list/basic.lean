@@ -166,6 +166,8 @@ show l = [] ↔ l ⊆ [], from ⟨λ e, e ▸ subset.refl _, eq_nil_of_subset_ni
 
 /- append -/
 
+lemma append_eq_has_append {L₁ L₂ : list α} : list.append L₁ L₂ = L₁ ++ L₂ := rfl
+
 theorem append_ne_nil_of_ne_nil_left (s t : list α) : s ≠ [] → s ++ t ≠ [] :=
 by induction s; intros; contradiction
 
@@ -180,6 +182,28 @@ by {induction s with b s H generalizing a, refl, simp [foldr], rw H _}
 
 @[simp] lemma append_eq_nil {p q : list α} : (p ++ q) = [] ↔ p = [] ∧ q = [] :=
 by cases p; simp
+
+@[simp] lemma nil_eq_append_iff {a b : list α} : [] = a ++ b ↔ a = [] ∧ b = [] :=
+by rw [eq_comm, append_eq_nil]
+
+lemma append_eq_cons_iff {a b c : list α} {x : α} :
+  a ++ b = x :: c ↔ (a = [] ∧ b = x :: c) ∨ (∃a', a = x :: a' ∧ c = a' ++ b) :=
+by cases a; simp [and_assoc, @eq_comm _ c]
+
+lemma cons_eq_append_iff {a b c : list α} {x : α} :
+  (x :: c : list α) = a ++ b ↔ (a = [] ∧ b = x :: c) ∨ (∃a', a = x :: a' ∧ c = a' ++ b) :=
+by rw [eq_comm, append_eq_cons_iff]
+
+lemma append_eq_append_iff {a b c d : list α} :
+  a ++ b = c ++ d ↔ (∃a', c = a ++ a' ∧ b = a' ++ d) ∨ (∃c', a = c ++ c' ∧ d = c' ++ b) :=
+begin
+  induction a generalizing c,
+  case nil { simp [nil_eq_append_iff, iff_def, or_imp_distrib] {contextual := tt} },
+  case cons : a as ih {
+    cases c,
+    { simp, exact eq_comm },
+    { simp [ih, @eq_comm _ a, and_assoc, and_or_distrib_left] } }
+end
 
 /- join -/
 
@@ -1477,6 +1501,9 @@ theorem infix_of_suffix {l₁ l₂ : list α} : l₁ <:+ l₂ → l₁ <:+: l₂
 @[refl] theorem infix_refl (l : list α) : l <:+: l := infix_of_prefix $ prefix_refl l
 
 theorem nil_infix (l : list α) : [] <:+: l := infix_of_prefix $ nil_prefix l
+
+theorem infix_cons {L₁ L₂ : list α} {x : α} : L₁ <:+: L₂ → L₁ <:+: x :: L₂ :=
+λ⟨LP, LS, H⟩, ⟨x :: LP, LS, H ▸ rfl⟩
 
 @[trans] theorem is_prefix.trans : ∀ {l₁ l₂ l₃ : list α}, l₁ <+: l₂ → l₂ <+: l₃ → l₁ <+: l₃
 | l ._ ._ ⟨r₁, rfl⟩ ⟨r₂, rfl⟩ := ⟨r₁ ++ r₂, by simp⟩

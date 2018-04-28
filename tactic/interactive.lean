@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
@@ -113,16 +113,46 @@ meta def unfold_coes (loc : parse location) : tactic unit :=
 unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_coe.coe,
         ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
+meta def metavariables : tactic (list expr) :=
+do r ← result,
+   pure (r.fold [] $ λ e _ l,
+     match e with
+     | expr.mvar _ _ _ := insert e l
+     | _ := l
+     end)
+
+/-- Succeeds only if the current goal is a proposition. -/
+meta def propositional_goal : tactic unit :=
+do goals ← get_goals,
+   let current_goal := goals.head,
+   current_goal_type ← infer_type current_goal,
+   p ← is_prop current_goal_type,
+   guard p
+
+/-- Succeeds only if we can construct an instance showing the 
+    current goal is a subsingleton type. -/
+meta def subsingleton_goal : tactic unit :=
+do goals ← get_goals,
+   let current_goal := goals.head,
+   current_goal_type ← infer_type current_goal >>= instantiate_mvars,
+   to_expr ``(subsingleton %%current_goal_type) >>= mk_instance >> skip
+
+/-- Succeeds only if the current goal is "terminal", in the sense 
+    that no other goals depend on it. -/
+meta def terminal_goal : tactic unit :=
+propositional_goal <|> subsingleton_goal <|> -- We can't merely test for subsingletons, as sometimes in the presence of metavariables `propositional_goal` succeeds while `subsingleton_goal` does not.
+do goals ← get_goals,
+   let current_goal := goals.head,
+   other_goals ← metavariables,
+   let other_goals := other_goals.erase current_goal,
+   other_goals.mmap' $ λ g, (do t ← infer_type g, t ← instantiate_mvars t, d ← kdepends_on t current_goal,
+                                monad.whenb d $ pp t >>= λ s, fail ("This is not a terminal goal: " ++ s.to_string ++ " depends on it."))
+
 /-- For debugging only. This tactic checks the current state for any
   missing dropped goals and restores them. Useful when there are no
   goals to solve but "result contains meta-variables". -/
 meta def recover : tactic unit :=
-do r ← tactic.result,
-   tactic.set_goals $ r.fold [] $ λ e _ l,
-     match e with
-     | expr.mvar _ _ _ := insert e l
-     | _ := l
-     end
+metavariables >>= tactic.set_goals 
 
 /-- Like `try { tac }`, but in the case of failure it continues
   from the failure state instead of reverting to the original state. -/

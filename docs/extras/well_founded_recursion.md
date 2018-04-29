@@ -107,6 +107,7 @@ lemma prod_factors : ∀ (n), 0 < n → list.prod (factors n) = n
     have n = 0 * m := (nat.div_eq_iff_eq_mul_left (min_fac_pos _) (min_fac_dvd _)).1 h,
     by rw zero_mul at this; exact (show k + 2 ≠ 0, from dec_trivial) this,
   by rw [list.prod_cons, prod_factors _ h₁, nat.mul_div_cancel' (min_fac_dvd _)]
+```
 
 This is because for some reason, in the first example, the equation compiler tries to use the always false relation. 
 

@@ -15,9 +15,12 @@ Because < is a well founded relation on naturals, and because `y % succ x < succ
 
 Whenever you use the equation compiler there will be a default well founded relation on the type being recursed on and the equation compiler will automatically attempt to prove the function is well founded.
 
-If the equation compiler fails, there are two main reasons for this. The first is that it has failed to prove the required inequality. The second is that it is not using the correct well founded relation. If we modify the gcd example above, by removing the `have`, we get an error.
+If the equation compiler fails, there are two main reasons for this. The first is that it has failed to prove the required inequality. The second is that it is not using the correct well founded relation.
 
 ### Proving required inequality ###
+
+If we modify the gcd example above, by removing the `have`, we get an error.
+
 ```lean
 def gcd : nat → nat → nat
 | 0        y := y

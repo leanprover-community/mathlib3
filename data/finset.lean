@@ -992,9 +992,10 @@ list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
 
 end sort
 
+section disjoint
 variable [decidable_eq α]
 
-theorem disjoint_iff_inter_eq_empty [decidable_eq α] {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
+theorem disjoint_iff_inter_eq_empty {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
 iff.rfl
 
 theorem disjoint_left {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
@@ -1042,4 +1043,5 @@ by simp [disjoint_right, or_imp_distrib, forall_and_distrib]
     disjoint s t → card (s ∪ t) = card s + card t :=
 finset.induction_on s (by simp) $ by simp {contextual := tt}
 
+end disjoint
 end finset

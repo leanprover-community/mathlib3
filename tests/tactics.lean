@@ -438,11 +438,11 @@ def test_terminal_goal_1 : C :=
  end     
 
  -- verifying that terminal_goal correctly considers all propositional goals as terminal
-structure foo :=
+structure terminal_goal_struct :=
 (x : ℕ)
 (p : x = 0)
 
-lemma test_terminal_goal_2 : ∃ F : foo, F = ⟨ 0, by refl ⟩ := 
+lemma test_terminal_goal_2 : ∃ F : terminal_goal_struct, F = ⟨ 0, by refl ⟩ := 
 begin
   split,
   swap,
@@ -455,11 +455,11 @@ begin
   refl,
 end
 
-structure D :=
+structure terminal_goal_struct' :=
  ( w : ℕ → Type )
  ( x : list (w 0) )
  
-def test_terminal_goal_3 : D :=
+def test_terminal_goal_3 : terminal_goal_struct' :=
 begin
   split,
   swap,

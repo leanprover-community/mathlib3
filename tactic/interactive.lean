@@ -242,6 +242,15 @@ do { exfalso,
 
 open nat
 
+meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
+| 0 := done
+| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+
+meta structure by_elim_opt :=
+  (discharger : tactic unit := done)
+  (restr_hyp_set : option (list expr) := none)
+  (max_rep : ℕ := 3)
+
 /--
   `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
   and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
@@ -256,9 +265,8 @@ open nat
   - asms: list of assumptions / rules to consider instead of local constants
   - depth: number of attempts at discharging generated sub-goals
   -/
-meta def solve_by_elim (discharger : tactic unit := done) (asms : option (list expr) := none)  : opt_param ℕ 3 → tactic unit
-| 0 := done
-| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim n)
+meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
+solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`

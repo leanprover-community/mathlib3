@@ -418,6 +418,8 @@ end
 end ext
 
 section terminal_goal
+open tactic 
+
 structure C :=
  ( w : Type )
  ( x : list w )

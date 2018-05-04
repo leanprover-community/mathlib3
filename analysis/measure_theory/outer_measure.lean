@@ -193,7 +193,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
     let f' := λi, f (nat.unpair i).1 (nat.unpair i).2 in
     have hf' : (⋃ (i : ℕ), s i) ⊆ (⋃i, f' i),
       from Union_subset $ assume i, subset.trans (hf i).left $ Union_subset_Union2 $ assume j,
-      ⟨nat.mkpair i j, begin simp [f'], simp [nat.unpair_mkpair], exact subset.refl _ end⟩,
+      ⟨nat.mkpair i j, begin simp [f'], simp [nat.unpair_mkpair] end⟩,
     have (∑i, of_real (ε' i)) = of_real ε, from aux hε,
     have (∑i, m (f' i)) ≤ (∑i, μ (s i)) + of_real ε,
       from calc (∑i, m (f' i)) = (∑p:ℕ×ℕ, m (f' (nat.mkpair p.1 p.2))) :

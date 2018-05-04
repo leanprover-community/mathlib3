@@ -17,14 +17,18 @@ inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop
 
 attribute [refl] refl_trans_gen.refl
 
+run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_trans_gen `relation.refl_trans_gen.cases_tail_iff
+
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
 inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
 | refl {} : refl_gen a
 | single {b} : r a b → refl_gen b
 
+run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_gen `relation.refl_gen_iff
+
 attribute [refl] refl_gen.refl
 
-lemma refl_gen.to_refl_trans_gen : ∀{a b}, refl_gen r a b →  refl_trans_gen r a b
+lemma refl_gen.to_refl_trans_gen : ∀{a b}, refl_gen r a b → refl_trans_gen r a b
 | a _ refl_gen.refl := by refl
 | a b (refl_gen.single h) := refl_trans_gen.tail _ refl_trans_gen.refl h
 
@@ -46,6 +50,9 @@ begin
   case refl_trans_gen.refl { exact refl.tail _ hab },
   case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail _ hcd }
 end
+
+lemma cases_tail : refl_trans_gen r a b → b = a ∨ (∃c, refl_trans_gen r a c ∧ r c b) :=
+(cases_tail_iff r a b).1
 
 lemma head_induction_on
   {P : ∀(a:α), refl_trans_gen r a b → Prop}
@@ -91,23 +98,6 @@ begin
     rcases h with rfl | ⟨c, hac, hcb⟩,
     { refl },
     { exact head hac hcb } }
-end
-
-lemma cases_tail (h : refl_trans_gen r a b) : a = b ∨ (∃c, refl_trans_gen r a c ∧ r c b) :=
-begin
-  induction h,
-  { left, refl },
-  { right, existsi _, split; assumption }
-end
-
-lemma cases_tail_iff : refl_trans_gen r a b ↔ a = b ∨ (∃c, refl_trans_gen r a c ∧ r c b) :=
-begin
-  split,
-  { exact cases_tail },
-  { assume h,
-    rcases h with rfl | ⟨c, hac, hcb⟩,
-    { refl },
-    { exact tail _ hac hcb } }
 end
 
 end refl_trans_gen

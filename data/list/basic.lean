@@ -5,8 +5,10 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Basic properties of lists.
 -/
-import tactic.interactive algebra.group logic.basic logic.function
-       data.nat.basic data.option data.bool data.prod data.sigma
+import tactic.interactive tactic.mk_iff_of_inductive_prop
+  logic.basic logic.function
+  algebra.group
+  data.nat.basic data.option data.bool data.prod data.sigma
 open function nat
 
 namespace list
@@ -2390,6 +2392,8 @@ inductive pairwise : list α → Prop
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 attribute [simp] pairwise.nil
 
+run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pariwise_iff
+
 variable {R}
 @[simp] theorem pairwise_cons {a : α} {l : list α} :
   pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ pairwise R l :=
@@ -2689,6 +2693,8 @@ inductive chain : α → list α → Prop
 | nil  (a : α) : chain a []
 | cons : ∀ {a b : α} {l : list α}, R a b → chain b l → chain a (b::l)
 attribute [simp] chain.nil
+
+run_cmd tactic.mk_iff_of_inductive_prop `list.chain `list.chain_iff
 
 variable {R}
 @[simp] theorem chain_cons {a b : α} {l : list α} :

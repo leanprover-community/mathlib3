@@ -61,7 +61,7 @@ subtype.exists
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
 
-theorem subset.refl (a : set α) : a ⊆ a := assume x, id
+@[refl] theorem subset.refl (a : set α) : a ⊆ a := assume x, id
 
 @[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c :=
 assume x h, bc (ab h)

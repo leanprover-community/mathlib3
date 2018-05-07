@@ -1043,6 +1043,94 @@ by haveI := classical.prop_decidable;
 
 end fold
 
+/- max and min of finite sets -/
+section max_min
+variables [decidable_linear_order α]
+
+protected def max : finset α → option α :=
+fold (option.lift_or_get max) none some
+
+@[simp] theorem max_empty : (∅ : finset α).max = none :=
+by simp [finset.max]
+
+@[simp] theorem max_insert {a : α} {s : finset α} :
+  (insert a s).max = option.lift_or_get max (some a) s.max :=
+by simp [finset.max, fold_insert_idem]
+
+@[simp] theorem max_singleton {a : α} : finset.max {a} = some a :=
+by simp [finset.max, option.lift_or_get]
+
+theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :=
+begin
+  rw [←insert_erase h, max_insert],
+  cases (erase s a).max,
+  case option.none { exact ⟨a, rfl⟩ },
+  case option.some : b { exact ⟨max a b, rfl⟩ }
+end
+
+theorem mem_of_max {s : finset α} : ∀ {a : α}, a ∈ s.max → a ∈ s :=
+finset.induction_on s (by simp) $
+  λ b s _ (ih : ∀ {a}, a ∈ s.max → a ∈ s) a (h : a ∈ (insert b s).max),
+  begin
+    by_cases p : b = a,
+    { induction p, exact mem_insert_self b s },
+    { cases option.lift_or_get_choice max_choice (some b) s.max with q q; simp [q] at h,
+      { exact absurd h p },
+      { exact mem_insert_of_mem (ih h) }
+    }
+  end
+
+theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : b ∈ s.max) : a ≤ b :=
+begin
+  rw [←insert_erase h₁, max_insert] at h₂,
+  cases (erase s a).max; simp [option.lift_or_get] at h₂; induction h₂,
+  { apply le_refl },
+  { apply le_max_left }
+end
+
+protected def min : finset α → option α :=
+fold (option.lift_or_get min) none some
+
+@[simp] theorem min_empty : (∅ : finset α).min = none :=
+by simp [finset.min]
+
+@[simp] theorem min_insert {a : α} {s : finset α} :
+  (insert a s).min = option.lift_or_get min (some a) s.min :=
+by simp [finset.min, fold_insert_idem]
+
+@[simp] theorem min_singleton {a : α} : finset.min {a} = some a :=
+by simp [finset.min, option.lift_or_get]
+
+theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
+begin
+  rw [←insert_erase h, min_insert],
+  cases (erase s a).min,
+  case option.none { exact ⟨a, rfl⟩ },
+  case option.some : b { exact ⟨min a b, rfl⟩ },
+end
+
+theorem mem_of_min {s : finset α} : ∀ {a : α}, a ∈ s.min → a ∈ s :=
+finset.induction_on s (by simp) $
+  λ b s _ (ih : ∀ {a}, a ∈ s.min → a ∈ s) a (h : a ∈ (insert b s).min),
+  begin
+    by_cases p : b = a,
+    { induction p, exact mem_insert_self b s },
+    { cases option.lift_or_get_choice min_choice (some b) s.min with q q; simp [q] at h,
+      { exact absurd h p },
+      { exact mem_insert_of_mem (ih h) }
+    }
+  end
+
+theorem le_min_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ s.min) : a ≤ b :=
+begin
+  rw [←insert_erase h₁, min_insert] at h₂,
+  cases (erase s b).min; simp [option.lift_or_get] at h₂; induction h₂,
+  { apply le_refl },
+  { apply min_le_left }
+end
+
+end max_min
+
 section sort
 variables (r : α → α → Prop) [decidable_rel r]
   [is_trans α r] [is_antisymm α r] [is_total α r]

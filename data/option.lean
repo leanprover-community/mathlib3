@@ -134,15 +134,18 @@ instance lift_or_get_comm (f : α → α → α) [h : is_commutative α f] :
 ⟨λ a b, by cases a; cases b; simp [lift_or_get, h.comm]⟩
 
 instance lift_or_get_assoc (f : α → α → α) [h : is_associative α f] :
-  is_associative (option α) (option.lift_or_get f) :=
+  is_associative (option α) (lift_or_get f) :=
 ⟨λ a b c, by cases a; cases b; cases c; simp [lift_or_get, h.assoc]⟩
 
-@[simp] theorem lift_or_get_is_some_left (f : α → α → α) (a : α) (o : option α) :
-  (lift_or_get f (some a) o).is_some :=
-by cases o; simp [lift_or_get, is_some]
+instance lift_or_get_idem (f : α → α → α) [h : is_idempotent α f] :
+  is_idempotent (option α) (lift_or_get f) :=
+⟨λ a, by cases a; simp [lift_or_get, h.idempotent]⟩
 
-@[simp] theorem lift_or_get_is_some_right (f : α → α → α) (a : α) (o : option α) :
-  (lift_or_get f o (some a)).is_some :=
-by cases o; simp [lift_or_get, is_some]
+theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f a b = b) :
+  ∀ o₁ o₂, lift_or_get f o₁ o₂ = o₁ ∨ lift_or_get f o₁ o₂ = o₂
+| none     none     := or.inl rfl
+| (some a) none     := or.inl rfl
+| none     (some b) := or.inr rfl
+| (some a) (some b) := by simpa [lift_or_get] using h a b
 
 end option

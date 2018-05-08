@@ -52,6 +52,8 @@ by tauto
 
 end tauto₂
 
+section wlog
+
 example {x y : ℕ} (a : x = 1) : true :=
 begin
   suffices : false, trivial,
@@ -60,7 +62,7 @@ begin
     admit },
   { guard_hyp h := x = y,
     guard_hyp a := x = 1,
-    admit },
+    admit }
 end
 
 example {x y : ℕ} : true :=
@@ -69,7 +71,7 @@ begin
   wlog h : x ≤ y,
   { guard_hyp h := x ≤ y,
     guard_target false,
-    admit },
+    admit }
 end
 
 example {x y z : ℕ} : true :=
@@ -80,7 +82,7 @@ begin
     admit },
   { guard_hyp h := x ≤ y + z,
     guard_target false,
-    admit },
+    admit }
 end
 
 example {x y z : ℕ} : true :=
@@ -89,7 +91,7 @@ begin
   wlog : x ≤ y + z using x y,
   { guard_target x ≤ y + z ∨ y ≤ x + z,
     admit },
-  { guard_hyp a := x ≤ y + z,
+  { guard_hyp case := x ≤ y + z,
     guard_target false,
     admit },
 end
@@ -99,10 +101,52 @@ example {x : ℕ} (S₀ S₁ : set ℕ) (P : ℕ → Prop)
 begin
   suffices : false, trivial,
   wlog h' : x ∈ S₀ using S₀ S₁,
+  { guard_target x ∈ S₀ ∨ x ∈ S₁,
+    admit },
   { guard_hyp h  := x ∈ S₀ ∪ S₁,
     guard_hyp h' := x ∈ S₀,
     admit }
 end
+
+example {n m i : ℕ} {p : ℕ → ℕ → ℕ → Prop} : true :=
+begin
+  suffices : false, trivial,
+  wlog : p n m i using [n m i, n i m, i n m],
+  { guard_target p n m i ∨ p n i m ∨ p i n m,
+    admit },
+  { guard_hyp case := p n m i,
+    admit }
+end
+
+example {n m i : ℕ} {p : ℕ → Prop} : true :=
+begin
+  suffices : false, trivial,
+  wlog : p n using [n m i, m n i, i n m],
+  { guard_target p n ∨ p m ∨ p i,
+    admit },
+  { guard_hyp case := p n,
+    admit }
+end
+
+example {n m i : ℕ} {p : ℕ → ℕ → Prop} {q : ℕ → ℕ → ℕ → Prop} : true :=
+begin
+  suffices : q n m i, trivial,
+  have h : p n i ∨ p i m ∨ p m i, from sorry,
+  wlog : p n i := h using n m i,
+  { guard_hyp h := p n i,
+    guard_target q n m i,
+    admit },
+  { guard_hyp h := p i m,
+    guard_hyp this := q i m n,
+    guard_target q n m i,
+    admit },
+  { guard_hyp h := p m i,
+    guard_hyp this := q m i n,
+    guard_target q n m i,
+    admit },
+end
+
+end wlog
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin

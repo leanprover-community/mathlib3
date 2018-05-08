@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Multivariate Polynomial
 -/
-import data.finsupp linear_algebra.basic
+import data.finsupp linear_algebra.basic algebra.ring
 
 open set function finsupp lattice
 
@@ -169,39 +169,36 @@ section eval
 variables {f : σ → α}
 
 /-- Evaluate a polynomial `p` given a valuation `f` of all the variables -/
-def eval (p : mv_polynomial σ α) (f : σ → α) : α :=
+def eval (f : σ → α) (p : mv_polynomial σ α) : α :=
 p.sum (λs a, a * s.prod (λn e, f n ^ e))
 
-@[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 :=
-finsupp.sum_zero_index
-
-lemma eval_add : (p + q).eval f = p.eval f + q.eval f :=
+lemma eval_add : eval f (p + q) = eval f p + eval f q :=
 finsupp.sum_add_index (by simp) (by simp [add_mul])
 
-lemma eval_monomial : (monomial s a).eval f = a * s.prod (λn e, f n ^ e) :=
+lemma eval_monomial : eval f (monomial s a) = a * s.prod (λn e, f n ^ e) :=
 finsupp.sum_single_index (zero_mul _)
 
-@[simp] lemma eval_C : (C a).eval f = a :=
+@[simp] lemma eval_C : eval f (C a) = a :=
 by simp [eval_monomial, C, prod_zero_index]
 
-@[simp] lemma eval_X : (X n).eval f = f n :=
+@[simp] lemma eval_X : eval f (X n) = f n :=
 by simp [eval_monomial, X, prod_single_index, pow_one]
 
 lemma eval_mul_monomial :
-  ∀{s a}, (p * monomial s a).eval f = p.eval f * a * s.prod (λn e, f n ^ e) :=
+  ∀{s a}, eval f (p * monomial s a) = eval f p * a * s.prod (λn e, f n ^ e) :=
 begin
   apply mv_polynomial.induction_on p,
   { assume a' s a, by simp [C_mul_monomial, eval_monomial] },
   { assume p q ih_p ih_q, simp [add_mul, eval_add, ih_p, ih_q] },
   { assume p n ih s a,
-    from calc eval (p * X n * monomial s a) f = eval (p * monomial (single n 1 + s) a) f :
+    from calc eval f (p * X n * monomial s a) = eval f (p * monomial (single n 1 + s) a) :
         by simp [monomial_single_add, -add_comm, pow_one, mul_assoc]
-      ... = eval (p * monomial (single n 1) 1) f * a * s.prod (λn e, f n ^ e) :
+      ... = eval f (p * monomial (single n 1) 1) * a * s.prod (λn e, f n ^ e) :
         by simp [ih, prod_single_index, prod_add_index, pow_one, pow_add, mul_assoc, mul_left_comm,
           -add_comm] }
 end
 
-lemma eval_mul : ∀{p}, (p * q).eval f = p.eval f * q.eval f :=
+lemma eval_mul : ∀{p}, eval f (p * q) = eval f p * eval f q :=
 begin
   apply mv_polynomial.induction_on q,
   { simp [C, eval_monomial, eval_mul_monomial, prod_zero_index] },
@@ -253,6 +250,16 @@ variable [comm_ring α]
 instance : ring (mv_polynomial σ α) := finsupp.to_ring
 instance : has_scalar α (mv_polynomial σ α) := finsupp.to_has_scalar
 instance : module α (mv_polynomial σ α) := finsupp.to_module
+
+-- evaluation is a ring homomorphism
+variables {f : σ → α}
+instance : is_ring_hom (eval f) := ⟨λ x y, eval_add, λ x y, eval_mul, eval_C⟩
+
+-- `mv_polynomial σ` is a functor (incomplete)
+variables {R: Type*} [decidable_eq R] [comm_ring R]
+open is_ring_hom
+definition functorial (i : α → R) [is_ring_hom i] : mv_polynomial σ α → mv_polynomial σ R :=
+λ p, map_range i (map_zero i) p
 
 end comm_ring
 

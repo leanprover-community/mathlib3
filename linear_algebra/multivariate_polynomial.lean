@@ -172,6 +172,9 @@ variables {f : σ → α}
 def eval (f : σ → α) (p : mv_polynomial σ α) : α :=
 p.sum (λs a, a * s.prod (λn e, f n ^ e))
 
+@[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 :=
+finsupp.sum_zero_index
+
 lemma eval_add : (p + q).eval f = p.eval f + q.eval f :=
 finsupp.sum_add_index (by simp) (by simp [add_mul])
 

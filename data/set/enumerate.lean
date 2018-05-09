@@ -54,30 +54,21 @@ lemma enumerate_mem (h_sel : ∀s a, sel s = some a → a ∈ s) :
         this.left }
   end
 
-lemma enumerate_inj {n₁ n₂ : ℕ} {a : α} {s : set α} (h_sel : ∀s a, sel s = some a → a ∈ s) :
-  enumerate s n₁ = some a → enumerate s n₂ = some a → n₁ = n₂ :=
-have ∀{n m s}, enumerate s n = some a → enumerate s (n + m) = some a → m = 0,
+lemma enumerate_inj {n₁ n₂ : ℕ} {a : α} {s : set α} (h_sel : ∀s a, sel s = some a → a ∈ s)
+  (h₁ : enumerate s n₁ = some a) (h₂ : enumerate s n₂ = some a) : n₁ = n₂ :=
 begin
-  intros n m, induction n,
-  case nat.zero {
-    cases m,
-    case nat.zero { simp [enumerate] },
-    case nat.succ : m {
-      simp [enumerate] {contextual := tt},
-      exact assume s _ h,
-        have a ∈ s \ {a}, from enumerate_mem _ h_sel h,
+  wlog hn : n₁ ≤ n₂,
+  { rcases nat.le.dest hn with ⟨m, rfl⟩, clear hn,
+    induction n₁ generalizing s,
+    case nat.zero {
+      cases m,
+      case nat.zero { refl },
+      case nat.succ : m {
+        have : enumerate sel (s - {a}) m = some a, { simp [enumerate, *] at * },
+        have : a ∈ s \ {a}, from enumerate_mem _ h_sel this,
         by simpa } },
-  case nat.succ : n ih {
-    intro s,
-    cases h : sel s,
-    case none { simp [enumerate, h] },
-    case some : a' {
-      simp [enumerate, h, nat.add_succ] {contextual := tt},
-      simpa using ih } }
-end,
-match le_total n₁ n₂ with
-| or.inl h := let ⟨m, hm⟩ := nat.le.dest h in hm ▸ assume h₁ h₂, by simp [this h₁ h₂]
-| or.inr h := let ⟨m, hm⟩ := nat.le.dest h in hm ▸ assume h₁ h₂, by simp [this h₂ h₁]
+    case nat.succ { cases h : sel s; simp [enumerate, nat.add_succ, *] at *; tauto } },
+  { intros, simp * at * }
 end
 
 end enumerate

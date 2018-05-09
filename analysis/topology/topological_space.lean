@@ -60,6 +60,10 @@ this ▸ is_open_sUnion $ show ∀(t : set α), t ∈ ({s₁, s₂} : set (set �
 lemma is_open_Union {f : ι → set α} (h : ∀i, is_open (f i)) : is_open (⋃i, f i) :=
 is_open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 
+lemma is_open_bUnion {s : set β} {f : β → set α} (h : ∀i∈s, is_open (f i)) :
+  is_open (⋃i∈s, f i) :=
+is_open_Union $ assume i, is_open_Union $ assume hi, h i hi
+
 @[simp] lemma is_open_empty : is_open (∅ : set α) :=
 have is_open (⋃₀ ∅ : set α), from is_open_sUnion (assume a, false.elim),
 by simp at this; assumption
@@ -69,6 +73,12 @@ finite.induction_on hs (by simp) $ λ a s has hs ih h, begin
   suffices : is_open (a ∩ ⋂₀ s), { simpa },
   exact is_open_inter (h _ $ mem_insert _ _) (ih $ assume t ht, h _ $ mem_insert_of_mem _ ht)
 end
+
+lemma is_open_bInter {s : set β} {f : β → set α} (hs : finite s) :
+  (∀i∈s, is_open (f i)) → is_open (⋂i∈s, f i) :=
+finite.induction_on hs
+  (by simp)
+  (by simp [or_imp_distrib, _root_.is_open_inter, forall_and_distrib] {contextual := tt})
 
 lemma is_open_const {p : Prop} : is_open {a : α | p} :=
 by_cases

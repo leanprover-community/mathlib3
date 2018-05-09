@@ -403,6 +403,9 @@ lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, prod.mk (f x) (g x)) :=
 continuous_sup_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
 
+lemma continuous_swap : continuous (prod.swap : α × β → β × α) :=
+continuous.prod_mk continuous_snd continuous_fst
+
 lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
@@ -475,6 +478,69 @@ lemma is_closed_prod [topological_space α] [topological_space β] {s₁ : set �
   (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (set.prod s₁ s₂) :=
 closure_eq_iff_is_closed.mp $ by simp [h₁, h₂, closure_prod_eq, closure_eq_of_is_closed]
 
+section tube_lemma
+
+def nhds_contain_boxes (s : set α) (t : set β) : Prop :=
+∀ (n : set (α × β)) (hn : is_open n) (hp : set.prod s t ⊆ n),
+∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n
+
+lemma nhds_contain_boxes.symm {s : set α} {t : set β} :
+  nhds_contain_boxes s t → nhds_contain_boxes t s :=
+assume H n hn hp,
+  let ⟨u, v, uo, vo, su, tv, p⟩ :=
+    H (prod.swap ⁻¹' n)
+      (continuous_swap n hn)
+      (by rwa [←image_subset_iff, prod.swap, image_swap_prod]) in
+  ⟨v, u, vo, uo, tv, su,
+    by rwa [←image_subset_iff, prod.swap, image_swap_prod] at p⟩
+
+lemma nhds_contain_boxes.comm {s : set α} {t : set β} :
+  nhds_contain_boxes s t ↔ nhds_contain_boxes t s :=
+iff.intro nhds_contain_boxes.symm nhds_contain_boxes.symm
+
+lemma nhds_contain_boxes_of_singleton {x : α} {y : β} :
+  nhds_contain_boxes ({x} : set α) ({y} : set β) :=
+assume n hn hp,
+  let ⟨u, v, uo, vo, xu, yv, hp'⟩ :=
+    is_open_prod_iff.mp hn x y (hp $ by simpa) in
+  ⟨u, v, uo, vo, by simpa, by simpa, hp'⟩
+
+lemma nhds_contain_boxes_of_compact {s : set α} (hs : compact s) (t : set β)
+  (H : ∀ x ∈ s, nhds_contain_boxes ({x} : set α) t) : nhds_contain_boxes s t :=
+assume n hn hp,
+have ∀x : subtype s, ∃uv : set α × set β,
+     is_open uv.1 ∧ is_open uv.2 ∧ {↑x} ⊆ uv.1 ∧ t ⊆ uv.2 ∧ set.prod uv.1 uv.2 ⊆ n,
+  from assume ⟨x, hx⟩,
+    have set.prod {x} t ⊆ n, from
+      subset.trans (prod_mono (by simpa) (subset.refl _)) hp,
+    let ⟨ux,vx,H1⟩ := H x hx n hn this in ⟨⟨ux,vx⟩,H1⟩,
+let ⟨uvs, h⟩ := classical.axiom_of_choice this in
+have us_cover : s ⊆ ⋃i, (uvs i).1, from
+  assume x hx, set.subset_Union _ ⟨x,hx⟩ (by simpa using (h ⟨x,hx⟩).2.2.1),
+let ⟨s0, _, s0_fin, s0_cover⟩ :=
+  compact_elim_finite_subcover_image hs (λi _, (h i).1) $
+    by rw bUnion_univ; exact us_cover in
+let u := ⋃(i ∈ s0), (uvs i).1 in
+let v := ⋂(i ∈ s0), (uvs i).2 in
+have is_open u, from is_open_bUnion (λi _, (h i).1),
+have is_open v, from is_open_bInter s0_fin (λi _, (h i).2.1),
+have t ⊆ v, from subset_bInter (λi _, (h i).2.2.2.1),
+have set.prod u v ⊆ n, from assume ⟨x',y'⟩ ⟨hx',hy'⟩,
+  have ∃i ∈ s0, x' ∈ (uvs i).1, by simpa using hx',
+  let ⟨i,is0,hi⟩ := this in
+  (h i).2.2.2.2 ⟨hi, (bInter_subset_of_mem is0 : v ⊆ (uvs i).2) hy'⟩,
+⟨u, v, ‹is_open u›, ‹is_open v›, s0_cover, ‹t ⊆ v›, ‹set.prod u v ⊆ n›⟩
+
+lemma generalized_tube_lemma {s : set α} (hs : compact s) {t : set β} (ht : compact t)
+  {n : set (α × β)} (hn : is_open n) (hp : set.prod s t ⊆ n) :
+  ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n :=
+have _, from
+  nhds_contain_boxes_of_compact hs t $ assume x _, nhds_contain_boxes.symm $
+    nhds_contain_boxes_of_compact ht {x} $ assume y _, nhds_contain_boxes_of_singleton,
+this n hn hp
+
+end tube_lemma
+
 lemma is_closed_diagonal [topological_space α] [t2_space α] : is_closed {p:α×α | p.1 = p.2} :=
 is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume : nhds a₁ ⊓ nhds a₂ = ⊥, h $
   let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
@@ -490,6 +556,31 @@ is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume 
 lemma is_closed_eq [topological_space α] [t2_space α] [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
+
+lemma diagonal_eq_range_diagonal_map : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
+ext $ assume p, iff.intro
+  (assume h, ⟨p.1, prod.ext.mpr ⟨rfl, h⟩⟩)
+  (assume ⟨x, hx⟩, show p.1 = p.2, by rw ←hx)
+
+lemma prod_subset_compl_diagonal_iff_disjoint {s t : set α} :
+  set.prod s t ⊆ - {p:α×α | p.1 = p.2} ↔ s ∩ t = ∅ :=
+by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
+       diagonal_eq_range_diagonal_map, range_subset_iff]; simp
+
+lemma compact_compact_separated [t2_space α] {s t : set α}
+  (hs : compact s) (ht : compact t) (hst : s ∩ t = ∅) :
+  ∃u v : set α, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ∩ v = ∅ :=
+by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
+   exact generalized_tube_lemma hs ht is_closed_diagonal hst
+
+lemma closed_of_compact [t2_space α] (s : set α) (hs : compact s) : is_closed s :=
+is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
+  let ⟨u, v, uo, vo, su, xv, uv⟩ :=
+    compact_compact_separated hs (compact_singleton : compact {x})
+      (by rwa [inter_comm, ←subset_compl_iff_disjoint, singleton_subset_iff]) in
+  have v ⊆ -s, from
+    subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
+⟨v, this, vo, by simpa using xv⟩
 
 /- TODO: more fine grained instances for first_countable_topology, separable_space, t2_space, ... -/
 instance [second_countable_topology α] [second_countable_topology β] :

@@ -1876,6 +1876,64 @@ def transpose : list (list α) → list (list α)
 | []      := []
 | (l::ls) := transpose_aux l (transpose ls)
 
+/- forall₂ -/
+
+inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
+| nil : forall₂ [] []
+| cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
+
+attribute [simp] forall₂.nil
+
+@[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
+  forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=
+⟨λ h, by cases h with h₁ h₂; simp *, λ ⟨h₁, h₂⟩, forall₂.cons h₁ h₂⟩
+
+@[simp] theorem forall₂_nil_left {R : α → β → Prop} {a l} : ¬ forall₂ R [] (a::l).
+
+@[simp] theorem forall₂_nil_right {R : α → β → Prop} {a l} : ¬ forall₂ R (a::l) [].
+
+theorem forall₂_length_eq {R : α → β → Prop} :
+  ∀ {l₁ l₂}, forall₂ R l₁ l₂ → length l₁ = length l₂
+| _ _ (forall₂.nil _) := rfl
+| _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂_length_eq h₂)
+
+theorem forall₂_zip {R : α → β → Prop} :
+  ∀ {l₁ l₂}, forall₂ R l₁ l₂ → ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b
+| _ _ (forall₂.cons h₁ h₂) x y (or.inl rfl) := h₁
+| _ _ (forall₂.cons h₁ h₂) x y (or.inr h₃) := forall₂_zip h₂ h₃
+
+theorem forall₂_iff_zip {R : α → β → Prop} {l₁ l₂} : forall₂ R l₁ l₂ ↔
+  length l₁ = length l₂ ∧ ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b :=
+⟨λ h, ⟨forall₂_length_eq h, @forall₂_zip _ _ _ _ _ h⟩,
+ λ h, begin
+  cases h with h₁ h₂,
+  induction l₁ with a l₁ IH generalizing l₂,
+  { simp [length_eq_zero.1 h₁.symm] },
+  { cases l₂ with b l₂; injection h₁ with h₁,
+    exact forall₂.cons (h₂ $ or.inl rfl) (IH h₁ $ λ a b h, h₂ $ or.inr h) }
+end⟩
+
+/- sections -/
+
+/-- List of all sections through a list of lists. A section
+  of `[L₁, L₂, ..., Lₙ]` is a list whose first element comes from
+  `L₁`, whose second element comes from `L₂`, and so on. -/
+def sections : list (list α) → list (list α)
+| []     := [[]]
+| (l::L) := bind (sections L) $ λ s, map (λ a, a::s) l
+
+theorem mem_sections {L : list (list α)} {f} : f ∈ sections L ↔ forall₂ (∈) f L :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { induction L generalizing f; simp [sections] at h;
+    casesm* [Exists _, _ ∧ _, _ = _]; simp * },
+  { induction h with a l f L al fL fs; simp [sections],
+    exact ⟨_, fs, _, al, rfl, rfl⟩ }
+end
+
+theorem mem_sections_length {L : list (list α)} {f} (h : f ∈ sections L) : length f = length L :=
+forall₂_length_eq (mem_sections.1 h)
+
 /- permutations -/
 
 section permutations

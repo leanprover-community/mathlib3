@@ -292,6 +292,9 @@ theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
   (h : a ∈ s) : b ∉ s → a ≠ b :=
 mt $ λ e, e ▸ h
 
+theorem eq_equivalence : equivalence (@eq α) :=
+⟨eq.refl, @eq.symm _, @eq.trans _⟩
+
 end equality
 
 /-
@@ -456,6 +459,10 @@ noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
 noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
 noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
 noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
+
+@[elab_as_eliminator]
+noncomputable def {u} rec_on {C : Sort u} (h : ∃ a, p a) (H : ∀ a, p a → C) : C :=
+H (classical.some h) (classical.some_spec h)
 
 end classical
 

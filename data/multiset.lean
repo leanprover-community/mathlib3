@@ -167,6 +167,32 @@ quot.induction_on s $ assume l hl,
   | (a :: l) := assume _, ⟨a, by simp⟩
   end
 
+@[simp] lemma zero_ne_cons {a : α} {m : multiset α} : 0 ≠ a :: m :=
+assume h, have a ∈ (0:multiset α), from h.symm ▸ mem_cons_self _ _, not_mem_zero _ this
+
+@[simp] lemma cons_ne_zero {a : α} {m : multiset α} : a :: m ≠ 0 := zero_ne_cons.symm
+
+lemma cons_eq_cons {a b : α} {as bs : multiset α} :
+  a :: as = b :: bs ↔ ((a = b ∧ as = bs) ∨ (a ≠ b ∧ ∃cs, as = b :: cs ∧ bs = a :: cs)) :=
+begin
+  haveI : decidable_eq α := classical.dec_eq α,
+  split,
+  { assume eq,
+    by_cases a = b,
+    { subst h, simp * at * },
+    { have : a ∈ b :: bs, from eq ▸ mem_cons_self _ _,
+      have : a ∈ bs, by simpa [h],
+      rcases exists_cons_of_mem this with ⟨cs, hcs⟩,
+      simp [h, hcs],
+      have : a :: as = b :: a :: cs, by simp [eq, hcs],
+      have : a :: as = a :: b :: cs, by rwa [cons_swap],
+      simpa using this } },
+  { assume h,
+    rcases h with ⟨eq₁, eq₂⟩ | ⟨h, cs, eq₁, eq₂⟩,
+    { simp * },
+    { simp [*, cons_swap a b] } }
+end
+
 end mem
 
 /- subset -/
@@ -1556,6 +1582,132 @@ instance : semilattice_sup_bot (multiset α) :=
   ..multiset.lattice.lattice }
 
 end
+
+/- relator -/
+
+section rel
+
+/-- `rel r s t` -- lift the relation `r` between two elements to a relation between `s` and `t`,
+s.t. there is a one-to-one mapping betweem elements in `s` and `t` following `r`. -/
+inductive rel (r : α → β → Prop) : multiset α → multiset β → Prop
+| zero {} : rel 0 0
+| cons {a b as bs} : r a b → rel as bs → rel (a :: as) (b :: bs)
+
+run_cmd tactic.mk_iff_of_inductive_prop `multiset.rel `multiset.rel_iff
+
+variables {δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}
+
+private lemma rel_flip_aux {s t} (h : rel r s t) : rel (flip r) t s :=
+rel.rec_on h rel.zero (assume _ _ _ _ h₀ h₁ ih, rel.cons h₀ ih)
+
+lemma rel_flip {s t} : rel (flip r) s t ↔ rel r t s :=
+⟨rel_flip_aux, rel_flip_aux⟩
+
+lemma rel_eq_refl {s : multiset α} : rel (=) s s :=
+multiset.induction_on s rel.zero (assume a s, rel.cons rfl)
+
+lemma rel_eq {s t : multiset α} : rel (=) s t ↔ s = t :=
+begin
+  split,
+  { assume h, induction h; simp * },
+  { assume h, subst h, exact rel_eq_refl }
+end
+
+lemma rel.mono {p : α → β → Prop} {s t} (h : ∀a b, r a b → p a b) (hst : rel r s t) : rel p s t :=
+begin
+  induction hst,
+  case rel.zero { exact rel.zero },
+  case rel.cons : a b s t hab hst ih { exact ih.cons (h a b hab) }
+end
+
+lemma rel.add {s t u v} (hst : rel r s t) (huv : rel r u v) : rel r (s + u) (t + v) :=
+begin
+  induction hst,
+  case rel.zero { simpa using huv },
+  case rel.cons : a b s t hab hst ih { simpa using ih.cons hab }
+end
+
+lemma rel_flip_eq  {s t : multiset α} : rel (λa b, b = a) s t ↔ s = t :=
+show rel (flip (=)) s t ↔ s = t, by rw [rel_flip, rel_eq, eq_comm]
+
+@[simp] lemma rel_zero_left {b : multiset β} : rel r 0 b ↔ b = 0 :=
+by rw [rel_iff]; simp
+
+@[simp] lemma rel_zero_right {a : multiset α} : rel r a 0 ↔ a = 0 :=
+by rw [rel_iff]; simp
+
+lemma rel_cons_left {a as bs} :
+  rel r (a :: as) bs ↔ (∃b bs', r a b ∧ rel r as bs' ∧ bs = b :: bs') :=
+begin
+  split,
+  { generalize hm : a :: as = m,
+    assume h,
+    induction h generalizing as,
+    case rel.zero { simp at hm, contradiction },
+    case rel.cons : a' b as' bs ha'b h ih {
+      rcases cons_eq_cons.1 hm with ⟨eq₁, eq₂⟩ | ⟨h, cs, eq₁, eq₂⟩,
+      { subst eq₁, subst eq₂, exact ⟨b, bs, ha'b, h, rfl⟩ },
+      { rcases ih eq₂.symm with ⟨b', bs', h₁, h₂, eq⟩,
+        exact ⟨b', b::bs', h₁, eq₁.symm ▸ rel.cons ha'b h₂, eq.symm ▸ cons_swap _ _ _⟩  }
+    } },
+  { exact assume ⟨b, bs', hab, h, eq⟩, eq.symm ▸ rel.cons hab h }
+end
+
+lemma rel_cons_right {as b bs} :
+  rel r as (b :: bs) ↔ (∃a as', r a b ∧ rel r as' bs ∧ as = a :: as') :=
+begin
+  rw [← rel_flip, rel_cons_left],
+  apply exists_congr, assume a,
+  apply exists_congr, assume as',
+  rw [rel_flip, flip]
+end
+
+lemma rel_add_left {as₀ as₁} :
+  ∀{bs}, rel r (as₀ + as₁) bs ↔ (∃bs₀ bs₁, rel r as₀ bs₀ ∧ rel r as₁ bs₁ ∧ bs = bs₀ + bs₁) :=
+multiset.induction_on as₀ (by simp)
+  begin
+    assume a s ih bs,
+    simp only [ih, cons_add, rel_cons_left],
+    split,
+    { assume h,
+      rcases h with ⟨b, bs', hab, h, rfl⟩,
+      rcases h with ⟨bs₀, bs₁, h₀, h₁, rfl⟩,
+      exact ⟨b :: bs₀, bs₁, ⟨b, bs₀, hab, h₀, rfl⟩, h₁, by simp⟩ },
+    { assume h,
+      rcases h with ⟨bs₀, bs₁, h, h₁, rfl⟩,
+      rcases h with ⟨b, bs, hab, h₀, rfl⟩,
+      exact ⟨b, bs + bs₁, hab, ⟨bs, bs₁, h₀, h₁, rfl⟩, by simp⟩ }
+  end
+
+lemma rel_add_right {as bs₀ bs₁} :
+  rel r as (bs₀ + bs₁) ↔ (∃as₀ as₁, rel r as₀ bs₀ ∧ rel r as₁ bs₁ ∧ as = as₀ + as₁) :=
+by rw [← rel_flip, rel_add_left]; simp [rel_flip]
+
+lemma rel_map_left {s : multiset γ} {f : γ → α} :
+  ∀{t}, rel r (s.map f) t ↔ rel (λa b, r (f a) b) s t :=
+multiset.induction_on s (by simp) (by simp [rel_cons_left] {contextual := tt})
+
+lemma rel_map_right {s : multiset α} {t : multiset γ} {f : γ → β} :
+  rel r s (t.map f) ↔ rel (λa b, r a (f b)) s t :=
+by rw [← rel_flip, rel_map_left, ← rel_flip]; refl
+
+lemma rel_join {s t} (h : rel (rel r) s t) : rel r s.join t.join :=
+begin
+  induction h,
+  case rel.zero { simp },
+  case rel.cons : a b s t hab hst ih { simpa using hab.add ih }
+end
+
+lemma rel_map {p : γ → δ → Prop} {s t} {f : α → γ} {g : β → δ} (h : (r ⇒ p) f g) (hst : rel r s t) :
+  rel p (s.map f) (t.map g) :=
+by rw [rel_map_left, rel_map_right]; exact hst.mono (assume a b, h)
+
+lemma card_eq_card_of_rel {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
+  card s = card t :=
+by induction h; simp [*]
+
+end rel
+
 
 /- disjoint -/
 

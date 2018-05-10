@@ -4,13 +4,6 @@ import data.list data.list.perm data.multiset
 
 run_cmd tactic.mk_iff_of_inductive_prop `list.chain `test.chain_iff
 
-inductive multiset.rel {α : Type*} {β : Type*} (r : α → β → Prop) :
-  Π(s : multiset α) (t : multiset β), Prop
-| zero {} : multiset.rel 0 0
-| cons {a b as bs} : r a b → multiset.rel as bs → multiset.rel (a :: as) (b :: bs)
-
-run_cmd tactic.mk_iff_of_inductive_prop `multiset.rel `multiset.rel_iff
-
 run_cmd tactic.mk_iff_of_inductive_prop `false    `test.false_iff
 
 run_cmd tactic.mk_iff_of_inductive_prop `true     `test.true_iff

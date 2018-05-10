@@ -137,6 +137,11 @@ mem_bind.1
 theorem mem_bind_of_mem {b : β} {l : list α} {f : α → list β} {a} (al : a ∈ l) (h : b ∈ f a) : b ∈ list.bind l f :=
 mem_bind.2 ⟨a, al, h⟩
 
+lemma bind_map {g : α → list β} {f : β → γ} :
+  ∀(l : list α), list.map f (l.bind g) = l.bind (λa, (g a).map f)
+| [] := rfl
+| (a::l) := by simp [bind_map l]
+
 /- list subset -/
 
 theorem subset_def {l₁ l₂ : list α} : l₁ ⊆ l₂ ↔ ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂ := iff.rfl

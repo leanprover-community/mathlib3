@@ -844,6 +844,18 @@ iff.intro
   (assume h s hs, show tα.is_open (f ⁻¹' s), from h _ ⟨s, hs, rfl⟩)
   (assume h s ⟨t, ht, hst⟩, hst.symm ▸ h _ ht)
 
+lemma gc_induced_coinduced (f : α → β) :
+  galois_connection (topological_space.induced f) (topological_space.coinduced f) :=
+assume f g, induced_le_iff_le_coinduced
+
+lemma induced_mono {t₁ t₂ : topological_space α} {f : β → α} (h : t₁ ≤ t₂) :
+  t₁.induced f ≤ t₂.induced f :=
+(gc_induced_coinduced f).monotone_l h
+
+lemma induced_sup (t₁ : topological_space β) (t₂ : topological_space β) {f : α → β} :
+  (t₁ ⊔ t₂).induced f = t₁.induced f ⊔ t₂.induced f :=
+(gc_induced_coinduced f).l_sup
+
 instance : topological_space empty := ⊤
 instance : topological_space unit := ⊤
 instance : topological_space bool := ⊤

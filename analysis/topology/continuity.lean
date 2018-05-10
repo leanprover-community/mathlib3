@@ -226,16 +226,6 @@ end constructions
 
 section embedding
 
-lemma induced_mono {t₁ t₂ : topological_space α} {f : β → α} (h : t₁ ≤ t₂) :
-  t₁.induced f ≤ t₂.induced f :=
-continuous_iff_induced_le.mp $
-  show @continuous β α (@topological_space.induced β α f t₂) t₁ (id ∘ f),
-  begin
-    apply continuous.comp,
-    exact continuous_induced_dom,
-    exact assume s hs, h _ hs
-  end
-
 lemma induced_id [t : topological_space α] : t.induced id = t :=
 topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', hs, h⟩, h.symm ▸ hs, assume hs, ⟨s, hs, rfl⟩⟩
@@ -245,14 +235,6 @@ lemma induced_compose [tβ : topological_space β] [tγ : topological_space γ]
 topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁.symm ▸ h₂.symm ▸ ⟨s, hs, rfl⟩,
     assume ⟨s, hs, h⟩, ⟨preimage g s, ⟨s, hs, rfl⟩, h ▸ rfl⟩⟩
-
-lemma induced_sup (t₁ : topological_space β) (t₂ : topological_space β) {f : α → β} :
-  (t₁ ⊔ t₂).induced f = t₁.induced f ⊔ t₂.induced f :=
-le_antisymm
-  (continuous_iff_induced_le.mp $ continuous_sup_rng
-    (continuous_sup_dom_left continuous_induced_dom)
-    (continuous_sup_dom_right continuous_induced_dom))
-  (sup_le (induced_mono le_sup_left) (induced_mono le_sup_right))
 
 /-- A function between topological spaces is an embedding if it is injective,
   and for all `s : set α`, `s` is open iff it is the preimage of an open set. -/

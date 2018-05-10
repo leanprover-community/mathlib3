@@ -49,6 +49,10 @@ multiset.decidable_mem _ _
 theorem ext {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
 val_inj.symm.trans $ nodup_ext s₁.2 s₂.2
 
+@[extensionality]
+theorem ext' {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
+ext.2
+
 /- subset -/
 
 instance : has_subset (finset α) := ⟨λ s₁ s₂, ∀ ⦃a⦄, a ∈ s₁ → a ∈ s₂⟩
@@ -142,6 +146,9 @@ theorem insert_def (a : α) (s : finset α) : insert a s = ⟨_, nodup_ndinsert 
 
 theorem insert_val' (a : α) (s : finset α) : (insert a s).1 = erase_dup (a :: s.1) :=
 by simp [erase_dup_cons]
+
+theorem insert_val_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : (insert a s).1 = a :: s.1 :=
+by rw [insert_val, ndinsert_of_not_mem h]
 
 @[simp] theorem mem_insert {a b : α} {s : finset α} : a ∈ insert b s ↔ a = b ∨ a ∈ s := mem_ndinsert
 
@@ -581,6 +588,12 @@ multiset.to_finset_eq n
 @[simp] theorem mem_to_finset {a : α} {l : list α} : a ∈ l.to_finset ↔ a ∈ l :=
 mem_erase_dup
 
+@[simp] theorem to_finset_nil : to_finset (@nil α) = ∅ :=
+rfl
+
+@[simp] theorem to_finset_cons {a : α} {l : list α} : to_finset (a :: l) = insert a (to_finset l) :=
+finset.eq_of_veq $ by by_cases h : a ∈ l; simp [finset.insert_val', multiset.erase_dup_cons, h]
+
 end list
 
 namespace finset
@@ -839,13 +852,16 @@ section pi
 variables {δ : α → Type*} [decidable_eq α] [∀a, decidable_eq (δ a)]
 
 def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
-(s.1.pi (λa, (t a).1)).to_finset
+⟨s.1.pi (λ a, (t a).1), nodup_pi s.2 (λ a _, (t a).2)⟩
 
-lemma mem_pi {s : finset α} {t : Πa, finset (δ a)} {f : (Πa∈s, δ a)} :
+@[simp] lemma pi_val (s : finset α) (t : Πa, finset (δ a)) :
+  (s.pi t).1 = s.1.pi (λ a, (t a).1) := rfl
+
+@[simp] lemma mem_pi {s : finset α} {t : Πa, finset (δ a)} {f : Πa∈s, δ a} :
   f ∈ s.pi t ↔ (∀a (h : a ∈ s), f a h ∈ t a) :=
-by cases s; rw [pi, multiset.mem_to_finset, multiset.mem_pi]; refl
+mem_pi _ _ _
 
-def pi.empty (β : α → Type*) [decidable_eq α] (a : α) (h : a ∈ (∅ : finset α)) : β a :=
+def pi.empty (β : α → Sort*) [decidable_eq α] (a : α) (h : a ∈ (∅ : finset α)) : β a :=
 multiset.pi.empty β a h
 
 def pi.cons (s : finset α) (a : α) (b : δ a) (f : Πa, a ∈ s → δ a) (a' : α) (h : a' ∈ insert a s) : δ a' :=
@@ -873,20 +889,17 @@ rfl
 
 @[simp] lemma pi_insert {s : finset α} {t : Πa:α, finset (δ a)} {a : α} (ha : a ∉ s) :
   pi (insert a s) t = (t a).bind (λb, (pi s t).image (pi.cons s a b)) :=
-have pi_cons_eq : ∀{s s' : multiset α} {t : Πa, multiset (δ a)} (h : a ∉ s) (h : s' = a :: s),
-  multiset.pi s' t = (t a).bind (λb, (multiset.pi s t).map (λp a' h', multiset.pi.cons s a b p _ (h ▸ h'))) :=
-  by intros s s' t _ h; subst h; exact multiset.pi_cons _ _ _,
 begin
-  apply congr_arg multiset.to_finset,
-  rw [pi_cons_eq ha],
-  { congr,
-    funext,
-    dsimp [finset.pi],
-    rw [multiset.erase_dup_eq_self.2, multiset.erase_dup_eq_self.2],
-    { refl },
-    exact multiset.nodup_pi s.2 (assume a _, (t a).2),
-    exact multiset.nodup_map (injective_pi_cons ha) (multiset.nodup_erase_dup _) },
-  exact multiset.ndinsert_of_not_mem ha
+  apply eq_of_veq,
+  rw ← multiset.erase_dup_eq_self.2 (pi (insert a s) t).2,
+  refine (λ s' (h : s' = a :: s.1), (_ : erase_dup (multiset.pi s' (λ a, (t a).1)) =
+    erase_dup ((t a).1.bind $ λ b,
+    erase_dup $ (multiset.pi s.1 (λ (a : α), (t a).val)).map $
+      λ f a' h', multiset.pi.cons s.1 a b f a' (h ▸ h')))) _ (insert_val_of_not_mem ha),
+  subst s', rw pi_cons,
+  congr, funext b,
+  rw multiset.erase_dup_eq_self.2,
+  exact multiset.nodup_map (multiset.injective_pi_cons ha) (pi s t).2,
 end
 
 end pi
@@ -988,3 +1001,20 @@ list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
 end sort
 
 end finset
+
+namespace list
+variable [decidable_eq α]
+
+theorem to_finset_card_of_nodup {l : list α} : l.nodup → l.to_finset.card = l.length :=
+begin
+  induction l,
+  case list.nil { simp },
+  case list.cons : _ _ ih {
+    intros nd,
+    simp at nd,
+    simp [finset.card_insert_of_not_mem ((not_iff_not_of_iff mem_to_finset).mpr nd.1),
+          ih nd.2]
+  }
+end
+
+end list

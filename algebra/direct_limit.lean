@@ -68,6 +68,11 @@ calc  g p xp
 
 lemma rec_of {i} (x) : rec f g Hg (of f i x) = g i x := rfl
 
+theorem rec_unique (F : direct_limit f → P)
+  (HF : ∀ i x, F (of f i x) = g i x) (x) :
+  F x = rec f g Hg x :=
+quotient.induction_on x $ λ ⟨i, x⟩, HF i x
+
 end direct_limit
 
 namespace directed_system

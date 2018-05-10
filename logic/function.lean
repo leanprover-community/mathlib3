@@ -45,6 +45,12 @@ theorem cantor_surjective {α} (f : α → α → Prop) : ¬ function.surjective
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
 
+theorem cantor_injective {α : Type*} (f : (α → Prop) → α) :
+  ¬ function.injective f | i :=
+cantor_surjective (λ a b, ∀ U, a = f U → U b) $
+surjective_of_has_right_inverse ⟨f, λ U, funext $
+  λ a, propext ⟨λ h, h U rfl, λ h' U' e, i e ▸ h'⟩⟩
+
 /-- `g` is a partial inverse to `f` (an injective but not necessarily
   surjective function) if `g y = some x` implies `f x = y`, and `g y = none`
   implies that `y` is not in the range of `f`. -/
@@ -134,10 +140,6 @@ lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=
 ⟨injective.has_left_inverse, injective_of_has_left_inverse⟩
 
 end inv_fun
-
-theorem cantor_injective {α : Type*} (f : (α → Prop) → α) : ¬ function.injective f | h :=
-cantor_surjective (inv_fun f) $
-surjective_of_has_right_inverse ⟨f, left_inverse_inv_fun h⟩
 
 section surj_inv
 variables {α : Sort u} {β : Sort v} {f : α → β}

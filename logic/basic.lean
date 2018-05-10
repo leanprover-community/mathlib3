@@ -292,6 +292,9 @@ theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
   (h : a ∈ s) : b ∉ s → a ≠ b :=
 mt $ λ e, e ▸ h
 
+theorem eq_equivalence : equivalence (@eq α) :=
+⟨eq.refl, @eq.symm _, @eq.trans _⟩
+
 theorem congr_arg₂ {α β γ : Type*} (f : α → β → γ) {x₁ x₂ : α} {y₁ y₂ : β}
   (Hx : x₁ = x₂) (Hy : y₁ = y₂) : f x₁ y₁ = f x₂ y₂ :=
 eq.drec (eq.drec rfl Hy) Hx
@@ -461,6 +464,10 @@ noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_
 noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
 noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
 
+@[elab_as_eliminator]
+noncomputable def {u} rec_on {C : Sort u} (h : ∃ a, p a) (H : ∀ a, p a → C) : C :=
+H (classical.some h) (classical.some_spec h)
+
 end classical
 
 /-
@@ -553,6 +560,9 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : α → Type w}
 
 attribute [simp] nonempty_of_inhabited
+
+lemma exists_true_iff_nonempty {α : Sort*} : (∃a:α, true) ↔ nonempty α :=
+iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
 
 @[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
 iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)

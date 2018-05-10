@@ -570,6 +570,28 @@ compact_of_finite_subcover $ assume c hc₁ hc₂,
   let ⟨i, hic, hai⟩ := (show ∃i ∈ c, a ∈ i, by simpa using hc₂) in
   ⟨{i}, by simp [hic], finite_singleton _, by simp [hai]⟩
 
+lemma compact_bUnion_of_compact {s : set β} {f : β → set α} (hs : finite s) :
+  (∀i ∈ s, compact (f i)) → compact (⋃i ∈ s, f i) :=
+assume hf, compact_of_finite_subcover $ assume c c_open c_cover,
+  have ∀i : subtype s, ∃c' ⊆ c, finite c' ∧ f i ⊆ ⋃₀ c', from
+    assume ⟨i, hi⟩, compact_elim_finite_subcover (hf i hi) c_open
+      (calc f i ⊆ ⋃i ∈ s, f i : subset_bUnion_of_mem hi
+            ... ⊆ ⋃₀ c        : c_cover),
+  let ⟨finite_subcovers, h⟩ := axiom_of_choice this in
+  let c' := ⋃i, finite_subcovers i in
+  have c' ⊆ c, from Union_subset (λi, (h i).fst),
+  have finite c', from @finite_Union _ _ hs.fintype _ (λi, (h i).snd.1),
+  have (⋃i ∈ s, f i) ⊆ ⋃₀ c', from bUnion_subset $ λi hi, calc
+    f i ⊆ ⋃₀ finite_subcovers ⟨i,hi⟩ : (h ⟨i,hi⟩).snd.2
+    ... ⊆ ⋃₀ c'                      : sUnion_mono (subset_Union _ _),
+  ⟨c', ‹c' ⊆ c›, ‹finite c'›, this⟩
+
+lemma compact_of_finite {s : set α} (hs : finite s) : compact s :=
+let s' : set α := ⋃i ∈ s, {i} in
+have e : s' = s, from ext $ λi, by simp,
+have compact s', from compact_bUnion_of_compact hs (λ_ _, compact_singleton),
+e ▸ this
+
 end compact
 
 /- separation axioms -/
@@ -899,6 +921,31 @@ lemma nhds_sup {t₁ t₂ : topological_space α} {a : α} :
 calc @nhds α (t₁ ⊔ t₂) a = @nhds α (⨆b:bool, cond b t₁ t₂) a : by rw [supr_bool_eq]
   ... = (⨅b, @nhds α (cond b t₁ t₂) a) : begin rw [nhds_supr] end
   ... = @nhds α t₁ a ⊓ @nhds α t₂ a : by rw [infi_bool_eq]
+
+private lemma separated_by_f
+  [tα : topological_space α] [tβ : topological_space β] [t2_space β]
+  (f : α → β) (hf : induced f tβ ≤ tα) {x y : α} (h : f x ≠ f y) :
+  ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
+let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
+⟨f ⁻¹' u, f ⁻¹' v, hf _ ⟨u, uo, rfl⟩, hf _ ⟨v, vo, rfl⟩, xu, yv,
+  by rw [←preimage_inter, uv, preimage_empty]⟩
+
+instance {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (subtype p) :=
+⟨assume x y h,
+  separated_by_f subtype.val (le_refl _) (mt subtype.eq h)⟩
+
+instance [t₁ : topological_space α] [t2_space α] [t₂ : topological_space β] [t2_space β] :
+  t2_space (α × β) :=
+⟨assume ⟨x₁,x₂⟩ ⟨y₁,y₂⟩ h,
+  or.elim (not_and_distrib.mp (mt prod.ext.mpr h))
+    (λ h₁, separated_by_f prod.fst le_sup_left h₁)
+    (λ h₂, separated_by_f prod.snd le_sup_right h₂)⟩
+
+instance Pi.t2_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
+  t2_space (Πa, β a) :=
+⟨assume x y h,
+  let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
+  separated_by_f (λz, z i) (le_supr _ i) hi⟩
 
 end
 

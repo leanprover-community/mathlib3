@@ -7,7 +7,8 @@ Theory of topological monoids, groups and rings.
 -/
 
 import algebra.big_operators
-  analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
+import order.liminf_limsup
+import analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable
@@ -739,6 +740,121 @@ and.intro
       mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
 
 end order_topology
+
+section liminf_limsup
+
+section ordered_topology
+variables [semilattice_sup α] [topological_space α] [orderable_topology α]
+
+lemma is_bounded_le_nhds (a : α) : (nhds a).is_bounded (≤) :=
+match forall_le_or_exists_lt_sup a with
+| or.inl h := ⟨a, univ_mem_sets' h⟩
+| or.inr ⟨b, hb⟩ := ⟨b, ge_mem_nhds hb⟩
+end
+
+lemma is_bounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
+  (h : tendsto u f (nhds a)) : f.is_bounded_under (≤) u :=
+is_bounded_of_le h (is_bounded_le_nhds a)
+
+lemma is_cobounded_ge_nhds (a : α) : (nhds a).is_cobounded (≥) :=
+is_cobounded_of_is_bounded nhds_neq_bot (is_bounded_le_nhds a)
+
+lemma is_cobounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
+  (hf : f ≠ ⊥) (h : tendsto u f (nhds a)) : f.is_cobounded_under (≥) u :=
+is_cobounded_of_is_bounded (map_ne_bot hf) (is_bounded_under_le_of_tendsto h)
+
+end ordered_topology
+
+section ordered_topology
+variables [semilattice_inf α] [topological_space α] [orderable_topology α]
+
+lemma is_bounded_ge_nhds (a : α) : (nhds a).is_bounded (≥) :=
+match forall_le_or_exists_lt_inf a with
+| or.inl h := ⟨a, univ_mem_sets' h⟩
+| or.inr ⟨b, hb⟩ := ⟨b, le_mem_nhds hb⟩
+end
+
+lemma is_bounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
+  (h : tendsto u f (nhds a)) : f.is_bounded_under (≥) u :=
+is_bounded_of_le h (is_bounded_ge_nhds a)
+
+lemma is_cobounded_le_nhds (a : α) : (nhds a).is_cobounded (≤) :=
+is_cobounded_of_is_bounded nhds_neq_bot (is_bounded_ge_nhds a)
+
+lemma is_cobounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
+  (hf : f ≠ ⊥) (h : tendsto u f (nhds a)) : f.is_cobounded_under (≤) u :=
+is_cobounded_of_is_bounded (map_ne_bot hf) (is_bounded_under_ge_of_tendsto h)
+
+end ordered_topology
+
+section conditionally_complete_linear_order
+variables [conditionally_complete_linear_order α] [topological_space α] [orderable_topology α]
+
+theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l : f.Limsup < b) :
+  {a | a < b} ∈ f.sets :=
+let ⟨c, (h : {a : α | a ≤ c} ∈ f.sets), hcb⟩ :=
+  exists_lt_of_cInf_lt (ne_empty_iff_exists_mem.2 h) l in
+f.upwards_sets h $ assume a hac, lt_of_le_of_lt hac hcb
+
+theorem gt_mem_sets_of_Liminf_gt {f : filter α} {b} (h : f.is_bounded (≥)) (l : f.Liminf > b) :
+  {a | a > b} ∈ f.sets :=
+let ⟨c, (h : {a : α | c ≤ a} ∈ f.sets), hbc⟩ :=
+  exists_lt_of_lt_cSup (ne_empty_iff_exists_mem.2 h) l in
+f.upwards_sets h $ assume a hca, lt_of_lt_of_le hbc hca
+
+/-- If the liminf and the limsup of a filter coincide, then this filter converges to
+their common value, at least if the filter is eventually bounded above and below. -/
+theorem le_nhds_of_Limsup_eq_Liminf {f : filter α} {a : α}
+  (hl : f.is_bounded (≤)) (hg : f.is_bounded (≥)) (hs : f.Limsup = a) (hi : f.Liminf = a) :
+  f ≤ nhds a :=
+tendsto_orderable.2 $ and.intro
+  (assume b hb, gt_mem_sets_of_Liminf_gt hg $ hi.symm ▸ hb)
+  (assume b hb, lt_mem_sets_of_Limsup_lt hl $ hs.symm ▸ hb)
+
+theorem Limsup_nhds (a : α) : Limsup (nhds a) = a :=
+cInf_intro (ne_empty_iff_exists_mem.2 $ is_bounded_le_nhds a)
+  (assume a' (h : {n : α | n ≤ a'} ∈ (nhds a).sets), show a ≤ a', from @mem_of_nhds α _ a _ h)
+  (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ (nhds a).sets), c < b, from
+    match dense_or_discrete hba with
+    | or.inl ⟨c, hac, hcb⟩ := ⟨c, ge_mem_nhds hac, hcb⟩
+    | or.inr ⟨_, h⟩        := ⟨a, (nhds a).upwards_sets (gt_mem_nhds hba) h, hba⟩
+    end)
+
+theorem Liminf_nhds (a : α) : Liminf (nhds a) = a :=
+cSup_intro (ne_empty_iff_exists_mem.2 $ is_bounded_ge_nhds a)
+  (assume a' (h : {n : α | a' ≤ n} ∈ (nhds a).sets), show a' ≤ a, from mem_of_nhds h)
+  (assume b (hba : b < a), show ∃c (h : {n : α | c ≤ n} ∈ (nhds a).sets), b < c, from
+    match dense_or_discrete hba with
+    | or.inl ⟨c, hbc, hca⟩ := ⟨c, le_mem_nhds hca, hbc⟩
+    | or.inr ⟨h, _⟩        := ⟨a, (nhds a).upwards_sets (lt_mem_nhds hba) h, hba⟩
+    end)
+
+/-- If a filter is converging, its limsup coincides with its limit. -/
+theorem Liminf_eq_of_le_nhds {f : filter α} {a : α} (hf : f ≠ ⊥) (h : f ≤ nhds a) : f.Liminf = a :=
+have hb_ge : is_bounded (≥) f, from is_bounded_of_le h (is_bounded_ge_nhds a),
+have hb_le : is_bounded (≤) f, from is_bounded_of_le h (is_bounded_le_nhds a),
+le_antisymm
+  (calc f.Liminf ≤ f.Limsup : Liminf_le_Limsup hf hb_le hb_ge
+    ... ≤ (nhds a).Limsup :
+      Limsup_le_Limsup_of_le h (is_cobounded_of_is_bounded hf hb_ge) (is_bounded_le_nhds a)
+    ... = a : Limsup_nhds a)
+  (calc a = (nhds a).Liminf : (Liminf_nhds a).symm
+    ... ≤ f.Liminf :
+      Liminf_le_Liminf_of_le h (is_bounded_ge_nhds a) (is_cobounded_of_is_bounded hf hb_le))
+
+/-- If a filter is converging, its liminf coincides with its limit. -/
+theorem Limsup_eq_of_le_nhds {f : filter α} {a : α} (hf : f ≠ ⊥) (h : f ≤ nhds a) : f.Limsup = a :=
+have hb_ge : is_bounded (≥) f, from is_bounded_of_le h (is_bounded_ge_nhds a),
+le_antisymm
+  (calc f.Limsup ≤ (nhds a).Limsup :
+    Limsup_le_Limsup_of_le h (is_cobounded_of_is_bounded hf hb_ge) (is_bounded_le_nhds a)
+    ... = a : Limsup_nhds a)
+  (calc a = f.Liminf : (Liminf_eq_of_le_nhds hf h).symm
+    ... ≤ f.Limsup : Liminf_le_Limsup hf (is_bounded_of_le h (is_bounded_le_nhds a)) hb_ge)
+
+end conditionally_complete_linear_order
+
+end liminf_limsup
 
 end orderable_topology
 

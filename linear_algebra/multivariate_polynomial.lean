@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Multivariate Polynomial
 -/
-import data.finsupp linear_algebra.basic
+import data.finsupp linear_algebra.basic algebra.ring
 
 open set function finsupp lattice
 
@@ -169,7 +169,7 @@ section eval
 variables {f : σ → α}
 
 /-- Evaluate a polynomial `p` given a valuation `f` of all the variables -/
-def eval (p : mv_polynomial σ α) (f : σ → α) : α :=
+def eval (f : σ → α) (p : mv_polynomial σ α) : α :=
 p.sum (λs a, a * s.prod (λn e, f n ^ e))
 
 @[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 :=
@@ -194,9 +194,9 @@ begin
   { assume a' s a, by simp [C_mul_monomial, eval_monomial] },
   { assume p q ih_p ih_q, simp [add_mul, eval_add, ih_p, ih_q] },
   { assume p n ih s a,
-    from calc eval (p * X n * monomial s a) f = eval (p * monomial (single n 1 + s) a) f :
+    from calc (p * X n * monomial s a).eval f = (p * monomial (single n 1 + s) a).eval f :
         by simp [monomial_single_add, -add_comm, pow_one, mul_assoc]
-      ... = eval (p * monomial (single n 1) 1) f * a * s.prod (λn e, f n ^ e) :
+      ... = (p * monomial (single n 1) 1).eval f * a * s.prod (λn e, f n ^ e) :
         by simp [ih, prod_single_index, prod_add_index, pow_one, pow_add, mul_assoc, mul_left_comm,
           -add_comm] }
 end
@@ -253,6 +253,13 @@ variable [comm_ring α]
 instance : ring (mv_polynomial σ α) := finsupp.to_ring
 instance : has_scalar α (mv_polynomial σ α) := finsupp.to_has_scalar
 instance : module α (mv_polynomial σ α) := finsupp.to_module
+
+instance {f : σ → α} : is_ring_hom (eval f) := ⟨λ x y, eval_add, λ x y, eval_mul, eval_C⟩
+
+-- `mv_polynomial σ` is a functor (incomplete)
+definition functorial [decidable_eq β] [comm_ring β] (i : α → β) [is_ring_hom i] :
+  mv_polynomial σ α → mv_polynomial σ β :=
+map_range i (is_ring_hom.map_zero i)
 
 end comm_ring
 

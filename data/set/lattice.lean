@@ -126,6 +126,12 @@ set.ext $ assume x, by simp [classical.forall_or_distrib_left]
 
 /- bounded unions and intersections -/
 
+theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
+  y ∈ (⋃ x ∈ s, t x) ↔ ∃ x, x ∈ s ∧ y ∈ t x := by simp
+
+theorem mem_bInter_iff {s : set α} {t : α → set β} {y : β} :
+  y ∈ (⋂ x ∈ s, t x) ↔ ∀ x ∈ s, y ∈ t x := by simp
+
 theorem mem_bUnion {s : set α} {t : α → set β} {x : α} {y : β} (xs : x ∈ s) (ytx : y ∈ t x) :
   y ∈ ⋃ x ∈ s, t x :=
 by simp; exact ⟨x, ⟨xs, ytx⟩⟩

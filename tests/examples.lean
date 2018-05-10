@@ -1,3 +1,4 @@
+import tactic data.stream.basic data.set.basic data.finset data.multiset
 open tactic
 
 universe u
@@ -59,4 +60,35 @@ begin
   dsimp [subset_def, inter_def] at *,
   intros x h,
   split; back_chaining_using_hs
+end
+
+/- extensionality -/
+
+example : true :=
+begin
+  have : ∀ (s₀ s₁ : set ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target x ∈ s₀ ↔ x ∈ s₁,
+    admit },
+  have : ∀ (s₀ s₁ : finset ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target a ∈ s₀ ↔ a ∈ s₁,
+    admit },
+  have : ∀ (s₀ s₁ : multiset ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target multiset.count a s₀ = multiset.count a s₁,
+    admit },
+  have : ∀ (s₀ s₁ : list ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target list.nth s₀ n = list.nth s₁ n,
+    admit },
+  have : ∀ (s₀ s₁ : stream ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target stream.nth n s₀ = stream.nth n s₁,
+    admit },
+  have : ∀ n (s₀ s₁ : array n ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target array.read s₀ i = array.read s₁ i,
+    admit },
+  trivial
 end

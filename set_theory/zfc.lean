@@ -219,7 +219,7 @@ def eval_aux : Π {n}, { f : resp n → arity Set.{u} n // ∀ (a b : resp n), r
 /-- An equivalence-respecting function yields an n-ary Set function. -/
 def eval (n) : resp n → arity Set.{u} n := eval_aux.1
 
-@[simp] def eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
+@[simp] theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
 
 end resp
 

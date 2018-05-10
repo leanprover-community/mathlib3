@@ -223,12 +223,16 @@ class conditionally_complete_linear_order (α : Type u)
 on the properties of Inf and Sup in a complete lattice.-/
 
 instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
-conditionally_complete_lattice α :=
-{le_cSup := by intros; apply le_Sup; assumption,
- cSup_le := by intros; apply Sup_le; assumption,
- cInf_le := by intros; apply Inf_le; assumption,
- le_cInf := by intros; apply le_Inf; assumption,
-..‹complete_lattice α›}
+  conditionally_complete_lattice α :=
+{ le_cSup := by intros; apply le_Sup; assumption,
+  cSup_le := by intros; apply Sup_le; assumption,
+  cInf_le := by intros; apply Inf_le; assumption,
+  le_cInf := by intros; apply le_Inf; assumption,
+  ..‹complete_lattice α›}
+
+instance conditionally_complete_linear_order_of_complete_linear_order [complete_linear_order α]:
+  conditionally_complete_linear_order α :=
+{ ..lattice.conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }
 
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}
@@ -266,6 +270,20 @@ theorem le_cInf_iff (_ : bdd_below s) (_ : s ≠ ∅) : a ≤ Inf s ↔ (∀b �
 ⟨assume (_ : a ≤ Inf s) (b) (_ : b ∈ s),
   le_trans ‹a ≤ Inf s› (cInf_le ‹bdd_below s› ‹b ∈ s›),
   le_cInf ‹s ≠ ∅›⟩
+
+lemma cSup_upper_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s ≠ ∅) :
+  Sup {a | ∀x∈s, a ≤ x} = Inf s :=
+let ⟨b, hb⟩ := h, ⟨a, ha⟩ := ne_empty_iff_exists_mem.1 hs in
+le_antisymm
+  (cSup_le (ne_empty_iff_exists_mem.2 ⟨b, hb⟩) $ assume a ha, le_cInf hs ha)
+  (le_cSup ⟨a, assume y hy, hy a ha⟩ $ assume x hx, cInf_le h hx)
+
+lemma cInf_lower_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s ≠ ∅) :
+  Inf {a | ∀x∈s, x ≤ a} = Sup s :=
+let ⟨b, hb⟩ := h, ⟨a, ha⟩ := ne_empty_iff_exists_mem.1 hs in
+le_antisymm
+  (cInf_le ⟨a, assume y hy, hy a ha⟩ $ assume x hx, le_cSup h hx)
+  (le_cInf (ne_empty_iff_exists_mem.2 ⟨b, hb⟩) $ assume a ha, cSup_le hs ha)
 
 /--Introduction rule to prove that b is the supremum of s: it suffices to check that b
 is larger than all elements of s, and that this is not the case of any w<b.-/
@@ -423,6 +441,12 @@ calc Inf (insert a s)
         = Inf ({a} ∪ s)   : by rw [insert_eq]
     ... = Inf {a} ⊓ Inf s : by apply cInf_union _ _ ‹bdd_below s› ‹s ≠ ∅›; simp; simp
     ... = a ⊓ Inf s       : by simp
+
+@[simp] lemma cInf_interval [conditionally_complete_lattice α] : Inf {b | a ≤ b} = a :=
+cInf_of_in_of_le (by simp) (λw Hw, by simp at Hw; apply Hw)
+
+@[simp] lemma cSup_interval [conditionally_complete_lattice α] : Sup {b | b ≤ a} = a :=
+cSup_of_in_of_le (by simp) (λw Hw, by simp at Hw; apply Hw)
 
 end conditionally_complete_lattice
 

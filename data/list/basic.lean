@@ -5,8 +5,10 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Basic properties of lists.
 -/
-import tactic.interactive algebra.group logic.basic logic.function
-       data.nat.basic data.option data.bool data.prod data.sigma
+import tactic.interactive tactic.mk_iff_of_inductive_prop
+  logic.basic logic.function
+  algebra.group
+  data.nat.basic data.option data.bool data.prod data.sigma
 open function nat
 
 namespace list
@@ -135,6 +137,11 @@ mem_bind.1
 theorem mem_bind_of_mem {b : β} {l : list α} {f : α → list β} {a} (al : a ∈ l) (h : b ∈ f a) : b ∈ list.bind l f :=
 mem_bind.2 ⟨a, al, h⟩
 
+lemma bind_map {g : α → list β} {f : β → γ} :
+  ∀(l : list α), list.map f (l.bind g) = l.bind (λa, (g a).map f)
+| [] := rfl
+| (a::l) := by simp [bind_map l]
+
 /- list subset -/
 
 theorem subset_def {l₁ l₂ : list α} : l₁ ⊆ l₂ ↔ ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂ := iff.rfl
@@ -166,6 +173,8 @@ show l = [] ↔ l ⊆ [], from ⟨λ e, e ▸ subset.refl _, eq_nil_of_subset_ni
 
 /- append -/
 
+lemma append_eq_has_append {L₁ L₂ : list α} : list.append L₁ L₂ = L₁ ++ L₂ := rfl
+
 theorem append_ne_nil_of_ne_nil_left (s t : list α) : s ≠ [] → s ++ t ≠ [] :=
 by induction s; intros; contradiction
 
@@ -178,8 +187,30 @@ by {induction s with b s H generalizing a, refl, simp [foldl], rw H _}
 theorem append_foldr (f : α → β → β) (a : β) (s t : list α) : foldr f a (s ++ t) = foldr f (foldr f a t) s :=
 by {induction s with b s H generalizing a, refl, simp [foldr], rw H _}
 
-@[simp] lemma append_eq_nil (p q : list α) : (p ++ q) = [] ↔ p = [] ∧ q = [] :=
+@[simp] lemma append_eq_nil {p q : list α} : (p ++ q) = [] ↔ p = [] ∧ q = [] :=
 by cases p; simp
+
+@[simp] lemma nil_eq_append_iff {a b : list α} : [] = a ++ b ↔ a = [] ∧ b = [] :=
+by rw [eq_comm, append_eq_nil]
+
+lemma append_eq_cons_iff {a b c : list α} {x : α} :
+  a ++ b = x :: c ↔ (a = [] ∧ b = x :: c) ∨ (∃a', a = x :: a' ∧ c = a' ++ b) :=
+by cases a; simp [and_assoc, @eq_comm _ c]
+
+lemma cons_eq_append_iff {a b c : list α} {x : α} :
+  (x :: c : list α) = a ++ b ↔ (a = [] ∧ b = x :: c) ∨ (∃a', a = x :: a' ∧ c = a' ++ b) :=
+by rw [eq_comm, append_eq_cons_iff]
+
+lemma append_eq_append_iff {a b c d : list α} :
+  a ++ b = c ++ d ↔ (∃a', c = a ++ a' ∧ b = a' ++ d) ∨ (∃c', a = c ++ c' ∧ d = c' ++ b) :=
+begin
+  induction a generalizing c,
+  case nil { simp [nil_eq_append_iff, iff_def, or_imp_distrib] {contextual := tt} },
+  case cons : a as ih {
+    cases c,
+    { simp, exact eq_comm },
+    { simp [ih, @eq_comm _ a, and_assoc, and_or_distrib_left] } }
+end
 
 /- join -/
 
@@ -658,6 +689,7 @@ theorem mem_iff_nth_le {a} {l : list α} : a ∈ l ↔ ∃ n h, nth_le l n h = a
 theorem mem_iff_nth {a} {l : list α} : a ∈ l ↔ ∃ n, nth l n = some a :=
 mem_iff_nth_le.trans $ exists_congr $ λ n, nth_eq_some.symm
 
+@[extensionality]
 theorem ext : ∀ {l₁ l₂ : list α}, (∀n, nth l₁ n = nth l₂ n) → l₁ = l₂
 | []      []       h := rfl
 | (a::l₁) []       h := by have h0 := h 0; contradiction
@@ -1477,6 +1509,9 @@ theorem infix_of_suffix {l₁ l₂ : list α} : l₁ <:+ l₂ → l₁ <:+: l₂
 
 theorem nil_infix (l : list α) : [] <:+: l := infix_of_prefix $ nil_prefix l
 
+theorem infix_cons {L₁ L₂ : list α} {x : α} : L₁ <:+: L₂ → L₁ <:+: x :: L₂ :=
+λ⟨LP, LS, H⟩, ⟨x :: LP, LS, H ▸ rfl⟩
+
 @[trans] theorem is_prefix.trans : ∀ {l₁ l₂ l₃ : list α}, l₁ <+: l₂ → l₂ <+: l₃ → l₁ <+: l₃
 | l ._ ._ ⟨r₁, rfl⟩ ⟨r₂, rfl⟩ := ⟨r₁ ++ r₂, by simp⟩
 
@@ -1845,6 +1880,64 @@ def transpose_aux : list α → list (list α) → list (list α)
 def transpose : list (list α) → list (list α)
 | []      := []
 | (l::ls) := transpose_aux l (transpose ls)
+
+/- forall₂ -/
+
+inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
+| nil : forall₂ [] []
+| cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
+
+attribute [simp] forall₂.nil
+
+@[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
+  forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=
+⟨λ h, by cases h with h₁ h₂; simp *, λ ⟨h₁, h₂⟩, forall₂.cons h₁ h₂⟩
+
+@[simp] theorem forall₂_nil_left {R : α → β → Prop} {a l} : ¬ forall₂ R [] (a::l).
+
+@[simp] theorem forall₂_nil_right {R : α → β → Prop} {a l} : ¬ forall₂ R (a::l) [].
+
+theorem forall₂_length_eq {R : α → β → Prop} :
+  ∀ {l₁ l₂}, forall₂ R l₁ l₂ → length l₁ = length l₂
+| _ _ (forall₂.nil _) := rfl
+| _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂_length_eq h₂)
+
+theorem forall₂_zip {R : α → β → Prop} :
+  ∀ {l₁ l₂}, forall₂ R l₁ l₂ → ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b
+| _ _ (forall₂.cons h₁ h₂) x y (or.inl rfl) := h₁
+| _ _ (forall₂.cons h₁ h₂) x y (or.inr h₃) := forall₂_zip h₂ h₃
+
+theorem forall₂_iff_zip {R : α → β → Prop} {l₁ l₂} : forall₂ R l₁ l₂ ↔
+  length l₁ = length l₂ ∧ ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b :=
+⟨λ h, ⟨forall₂_length_eq h, @forall₂_zip _ _ _ _ _ h⟩,
+ λ h, begin
+  cases h with h₁ h₂,
+  induction l₁ with a l₁ IH generalizing l₂,
+  { simp [length_eq_zero.1 h₁.symm] },
+  { cases l₂ with b l₂; injection h₁ with h₁,
+    exact forall₂.cons (h₂ $ or.inl rfl) (IH h₁ $ λ a b h, h₂ $ or.inr h) }
+end⟩
+
+/- sections -/
+
+/-- List of all sections through a list of lists. A section
+  of `[L₁, L₂, ..., Lₙ]` is a list whose first element comes from
+  `L₁`, whose second element comes from `L₂`, and so on. -/
+def sections : list (list α) → list (list α)
+| []     := [[]]
+| (l::L) := bind (sections L) $ λ s, map (λ a, a::s) l
+
+theorem mem_sections {L : list (list α)} {f} : f ∈ sections L ↔ forall₂ (∈) f L :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { induction L generalizing f; simp [sections] at h;
+    casesm* [Exists _, _ ∧ _, _ = _]; simp * },
+  { induction h with a l f L al fL fs; simp [sections],
+    exact ⟨_, fs, _, al, rfl, rfl⟩ }
+end
+
+theorem mem_sections_length {L : list (list α)} {f} (h : f ∈ sections L) : length f = length L :=
+forall₂_length_eq (mem_sections.1 h)
 
 /- permutations -/
 
@@ -2362,6 +2455,8 @@ inductive pairwise : list α → Prop
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 attribute [simp] pairwise.nil
 
+run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pariwise_iff
+
 variable {R}
 @[simp] theorem pairwise_cons {a : α} {l : list α} :
   pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ pairwise R l :=
@@ -2628,6 +2723,10 @@ theorem pw_filter_eq_self {l : list α} : pw_filter R l = l ↔ pairwise R l :=
   rw [pw_filter_cons_of_pos (ball.imp_left (pw_filter_subset l) al), IH p],
 end⟩
 
+@[simp] theorem pw_filter_idempotent {l : list α} :
+  pw_filter R (pw_filter R l) = pw_filter R l :=
+pw_filter_eq_self.mpr (pairwise_pw_filter l)
+
 theorem forall_mem_pw_filter (neg_trans : ∀ {x y z}, R x z → R x y ∨ R y z)
   (a : α) (l : list α) : (∀ b ∈ pw_filter R l, R a b) ↔ (∀ b ∈ l, R a b) :=
 ⟨begin
@@ -2657,6 +2756,8 @@ inductive chain : α → list α → Prop
 | nil  (a : α) : chain a []
 | cons : ∀ {a b : α} {l : list α}, R a b → chain b l → chain a (b::l)
 attribute [simp] chain.nil
+
+run_cmd tactic.mk_iff_of_inductive_prop `list.chain `list.chain_iff
 
 variable {R}
 @[simp] theorem chain_cons {a b : α} {l : list α} :
@@ -2970,6 +3071,9 @@ theorem subset_erase_dup (l : list α) : l ⊆ erase_dup l :=
 theorem nodup_erase_dup : ∀ l : list α, nodup (erase_dup l) := pairwise_pw_filter
 
 theorem erase_dup_eq_self {l : list α} : erase_dup l = l ↔ nodup l := pw_filter_eq_self
+
+@[simp] theorem erase_dup_idempotent {l : list α} : erase_dup (erase_dup l) = erase_dup l :=
+pw_filter_idempotent
 
 theorem erase_dup_append (l₁ l₂ : list α) : erase_dup (l₁ ++ l₂) = l₁ ∪ erase_dup l₂ :=
 begin

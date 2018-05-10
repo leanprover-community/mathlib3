@@ -48,6 +48,9 @@ quotient.exact (quotient.out_eq _)
   maintain computability. -/
 def {u} trunc (α : Sort u) : Sort u := @quot α (λ _ _, true)
 
+theorem true_equivalence : @equivalence α (λ _ _, true) :=
+⟨λ _, trivial, λ _ _ _, trivial, λ _ _ _ _ _, trivial⟩
+
 namespace trunc
 
 /-- Constructor for `trunc α` -/
@@ -80,6 +83,20 @@ protected theorem eq (a b : trunc α) : a = b :=
 trunc.induction_on₂ a b (λ x y, quot.sound trivial)
 
 instance : subsingleton (trunc α) := ⟨trunc.eq⟩
+
+def bind (q : trunc α) (f : α → trunc β) : trunc β :=
+trunc.lift_on q f (λ a b, trunc.eq _ _)
+
+def map (f : α → β) (q : trunc α) : trunc β := bind q (trunc.mk ∘ f)
+
+instance : monad trunc :=
+{ pure := @trunc.mk,
+  bind := @trunc.bind }
+
+instance : is_lawful_monad trunc :=
+{ id_map := λ α q, trunc.eq _ _,
+  pure_bind := λ α β q f, rfl,
+  bind_assoc := λ α β γ x f g, trunc.eq _ _ }
 
 variable {C : trunc α → Sort*}
 

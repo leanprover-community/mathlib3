@@ -1,6 +1,6 @@
 [package]
 name = "mathlib"
 version = "0.1"
-lean_version = "nightly-2018-04-06"
+lean_version = "nightly-2018-04-20"
 
 [dependencies]

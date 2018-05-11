@@ -278,6 +278,40 @@ h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
 
 end embedding
 
+section quotient_map
+
+lemma coinduced_id [t : topological_space α] : t.coinduced id = t :=
+topological_space_eq rfl
+
+lemma coinduced_compose [tα : topological_space α]
+  {f : α → β} {g : β → γ} : (tα.coinduced f).coinduced g = tα.coinduced (g ∘ f) :=
+topological_space_eq rfl
+
+/-- A function between topological spaces is a quotient map if it is surjective,
+  and for all `s : set β`, `s` is open iff its preimage is an open set. -/
+def quotient_map [tα : topological_space α] [tβ : topological_space β] (f : α → β) : Prop :=
+function.surjective f ∧ tβ = tα.coinduced f
+
+variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
+
+lemma quotient_map_id : quotient_map (@id α) :=
+⟨assume a, ⟨a, rfl⟩, coinduced_id.symm⟩
+
+lemma quotient_map_compose {f : α → β} {g : β → γ} (hf : quotient_map f) (hg : quotient_map g) :
+  quotient_map (g ∘ f) :=
+⟨function.surjective_comp hg.left hf.left, by rw [hg.right, hf.right, coinduced_compose]⟩
+
+lemma quotient_map_of_quotient_map_compose {f : α → β} {g : β → γ}
+  (hf : continuous f) (hg : continuous g)
+  (hgf : quotient_map (g ∘ f)) : quotient_map g :=
+⟨assume b, let ⟨a, h⟩ := hgf.left b in ⟨f a, h⟩,
+  le_antisymm
+    (by rwa ← continuous_iff_le_coinduced)
+    (by rw [hgf.right, ← continuous_iff_le_coinduced];
+        apply hf.comp continuous_coinduced_rng)⟩
+
+end quotient_map
+
 section sierpinski
 variables [topological_space α]
 
@@ -561,6 +595,36 @@ lemma closure_subtype {p : α → Prop} {x : {a // p a}} {s : set {a // p a}}:
 closure_induced $ assume x y, subtype.eq
 
 end subtype
+
+section quotient
+variables [topological_space α] [topological_space β] [topological_space γ]
+variables {r : α → α → Prop} {s : setoid α}
+
+lemma quotient_map.continuous_iff {f : α → β} {g : β → γ} (hf : quotient_map f) :
+  continuous g ↔ continuous (g ∘ f) :=
+by rw [continuous_iff_le_coinduced, continuous_iff_le_coinduced, hf.right, coinduced_compose]
+
+lemma quotient_map_quot_mk : quotient_map (@quot.mk α r) :=
+⟨quot.exists_rep, rfl⟩
+
+lemma continuous_quot_mk : continuous (@quot.mk α r) :=
+continuous_coinduced_rng
+
+lemma continuous_quot_lift {f : α → β} (hr : ∀ a b, r a b → f a = f b)
+  (h : continuous f) : continuous (quot.lift f hr : quot r → β) :=
+continuous_coinduced_dom h
+
+lemma quotient_map_quotient_mk : quotient_map (@quotient.mk α s) :=
+quotient_map_quot_mk
+
+lemma continuous_quotient_mk : continuous (@quotient.mk α s) :=
+continuous_coinduced_rng
+
+lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
+  (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
+continuous_coinduced_dom h
+
+end quotient
 
 section pi
 variables {ι : Type*} {π : ι → Type*}

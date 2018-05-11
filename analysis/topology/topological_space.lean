@@ -900,6 +900,12 @@ generate_from {{true}}
 instance {p : α → Prop} [t : topological_space α] : topological_space (subtype p) :=
 induced subtype.val t
 
+instance {r : α → α → Prop} [t : topological_space α] : topological_space (quot r) :=
+coinduced (quot.mk r) t
+
+instance {s : setoid α} [t : topological_space α] : topological_space (quotient s) :=
+coinduced quotient.mk t
+
 instance [t₁ : topological_space α] [t₂ : topological_space β] : topological_space (α × β) :=
 induced prod.fst t₁ ⊔ induced prod.snd t₂
 

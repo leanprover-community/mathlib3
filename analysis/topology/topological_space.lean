@@ -847,13 +847,31 @@ lemma gc_induced_coinduced (f : α → β) :
   galois_connection (topological_space.induced f) (topological_space.coinduced f) :=
 assume f g, induced_le_iff_le_coinduced
 
-lemma induced_mono {t₁ t₂ : topological_space α} {f : β → α} (h : t₁ ≤ t₂) :
-  t₁.induced f ≤ t₂.induced f :=
-(gc_induced_coinduced f).monotone_l h
+lemma induced_mono (h : t₁ ≤ t₂) : t₁.induced g ≤ t₂.induced g :=
+(gc_induced_coinduced g).monotone_l h
 
-lemma induced_sup (t₁ : topological_space β) (t₂ : topological_space β) {f : α → β} :
-  (t₁ ⊔ t₂).induced f = t₁.induced f ⊔ t₂.induced f :=
-(gc_induced_coinduced f).l_sup
+lemma coinduced_mono (h : t₁ ≤ t₂) : t₁.coinduced f ≤ t₂.coinduced f :=
+(gc_induced_coinduced f).monotone_u h
+
+@[simp] lemma induced_bot : (⊥ : topological_space α).induced g = ⊥ :=
+(gc_induced_coinduced g).l_bot
+
+@[simp] lemma induced_sup : (t₁ ⊔ t₂).induced g = t₁.induced g ⊔ t₂.induced g :=
+(gc_induced_coinduced g).l_sup
+
+@[simp] lemma induced_supr {ι : Sort w} {t : ι → topological_space α} :
+  (⨆i, t i).induced g = (⨆i, (t i).induced g) :=
+(gc_induced_coinduced g).l_supr
+
+@[simp] lemma coinduced_top : (⊤ : topological_space α).coinduced f = ⊤ :=
+(gc_induced_coinduced f).u_top
+
+@[simp] lemma coinduced_inf : (t₁ ⊓ t₂).coinduced f = t₁.coinduced f ⊓ t₂.coinduced f :=
+(gc_induced_coinduced f).u_inf
+
+@[simp] lemma coinduced_infi {ι : Sort w} {t : ι → topological_space α} :
+  (⨅i, t i).coinduced f = (⨅i, (t i).coinduced f) :=
+(gc_induced_coinduced f).u_infi
 
 end galois_connection
 

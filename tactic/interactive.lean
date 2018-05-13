@@ -23,7 +23,7 @@ list.cons <$> p <*> (tk "|" *> p)*
 
 meta def rcases_parse.invert : list rcases_patt → list (list rcases_patt) :=
 let invert' (l : list rcases_patt) : rcases_patt := match l with
-| [k] := k
+| [rcases_patt.one n] := rcases_patt.one n
 | _ := rcases_patt.many (rcases_parse.invert l)
 end in
 list.map $ λ p, match p with

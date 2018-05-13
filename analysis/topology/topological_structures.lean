@@ -484,7 +484,7 @@ iff.intro
   (assume hs, by rw [this] at hs; from infi_sets_induct hs
     ⟨l, u, hl', hu', by simp⟩
     begin
-      intro p, cases p with p₁ p₂, cases p₁ with l hl, cases p₂ with u hu,
+      intro p, rcases p with ⟨⟨l, hl⟩, ⟨u, hu⟩⟩,
       simp [set.subset_def],
       intros s₁ s₂ hs₁ l' hl' u' hu' hs₂,
       refine ⟨max l l', _, min u u', _⟩;

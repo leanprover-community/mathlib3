@@ -241,7 +241,7 @@ theorem coinduction2 (s) (f g : seq α → seq β)
   : f s = g s :=
 begin
   refine eq_of_bisim (λ s1 s2, ∃ s, s1 = f s ∧ s2 = g s) _ ⟨s, rfl, rfl⟩,
-  intros s1 s2 h, cases h with s h, cases h with h1 h2,
+  intros s1 s2 h, rcases h with ⟨s, h1, h2⟩,
   rw [h1, h2], apply H
 end
 
@@ -680,8 +680,7 @@ begin
   change (λ x, join (map g (f x))) with (join ∘ ((map g) ∘ f)),
   rw [map_comp _ join],
   generalize : seq.map (map g ∘ f) s = SS,
-  cases map g (f a) with s S,
-  cases s with a s,
+  rcases map g (f a) with ⟨⟨a, s⟩, S⟩,
   apply cases_on s; intros; apply cases_on S; intros; simp,
   { cases x with x t, apply cases_on t; intros; simp },
   { cases x_1 with y t; simp }

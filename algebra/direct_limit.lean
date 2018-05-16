@@ -269,3 +269,22 @@ def rec.is_ring_hom : is_ring_hom (rec f g Hg) :=
   map_one := show g (default _) 1 = 1, from is_ring_hom.map_one _ }
 
 end direct_limit
+
+namespace direct_limit
+
+variables [∀ i, comm_ring (G i)] (f : Π i j, i ≤ j → G i → G j)
+variables [∀ i j h, is_ring_hom (f i j h)] [directed_system f]
+
+local attribute [instance] direct_limit.setoid
+
+instance comm_ring' : comm_ring (quotient (direct_limit.setoid f)) :=
+{
+  mul_comm := λ i j, quotient.induction_on₂ i j $ λ ⟨p, xp⟩ ⟨q, xq⟩, quotient.sound
+    ⟨(p ⊔ q) ⊔ (q ⊔ p), le_sup_left, le_sup_right,
+     by dsimp; simp [directed_system.map_mul f, directed_system.mul f, directed_system.Hcomp f, mul_comm]⟩
+  .. direct_limit.ring' f }
+
+instance: comm_ring (direct_limit f) :=
+direct_limit.comm_ring' f
+
+end direct_limit

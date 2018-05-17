@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs meta.expr
+import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs
+  tactic.split_ifs meta.expr
 
 open lean
 open lean.parser

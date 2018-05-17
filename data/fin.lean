@@ -8,8 +8,6 @@ variable {n : ℕ}
 
 def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
 
-def lower (k : fin (n + 1)) (h : k.val < n) : fin n := ⟨k.val, h⟩
-
 @[simp]
 lemma succ_val (j : fin n) : j.succ.val = j.val.succ := by cases j; simp [fin.succ]
 

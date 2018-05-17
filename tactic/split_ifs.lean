@@ -65,13 +65,14 @@ using_new_ref names (split_ifs_core at_)
 namespace interactive
 open interactive interactive.types expr lean.parser
 
-/-- Split if-then-else-expressions into multiple goals.
+/-- Splits all if-then-else-expressions into multiple goals.
 
 Given a goal of the form `g (if p then x else y)`, `split_ifs` will produce
 two goals: `p ⊢ g x` and `¬p ⊢ g y`.
 
-If there are multiple ite-expressions, then `split_ifs` picks a top-most
-one whose condition does not contain another ite-expression.
+If there are multiple ite-expressions, then `split_ifs` will split them all,
+starting with a top-most one whose condition does not contain another
+ite-expression.
 
 `split_ifs at *` splits all ite-expressions in all hypotheses as well as the goal.
 

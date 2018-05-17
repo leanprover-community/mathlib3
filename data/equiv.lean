@@ -127,6 +127,8 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
   ⟨λ e : f₁ x = y, e ▸ (l₁ x).symm,
    λ e : x = g₁ y, e.symm ▸ r₁ y⟩
 
+@[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
+
 /- The group of permutations (self-equivalences) of a type `α` -/
 instance perm_group {α : Type u} : group (perm α) :=
 begin
@@ -241,8 +243,8 @@ by cases e₁; cases e₂; refl
 by cases e₁; cases e₂; refl
 
 def bool_equiv_unit_sum_unit : bool ≃ (punit.{u+1} ⊕ punit.{v+1}) :=
-⟨λ b, cond b (inl punit.star) (inr punit.star),
- λ s, sum.rec_on s (λ_, tt) (λ_, ff),
+⟨λ b, cond b (inr punit.star) (inl punit.star),
+ λ s, sum.rec_on s (λ_, ff) (λ_, tt),
  λ b, by cases b; refl,
  λ s, by rcases s with ⟨⟨⟩⟩ | ⟨⟨⟩⟩; refl⟩
 

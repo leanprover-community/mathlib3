@@ -689,6 +689,18 @@ theorem mem_iff_nth_le {a} {l : list α} : a ∈ l ↔ ∃ n h, nth_le l n h = a
 theorem mem_iff_nth {a} {l : list α} : a ∈ l ↔ ∃ n, nth l n = some a :=
 mem_iff_nth_le.trans $ exists_congr $ λ n, nth_eq_some.symm
 
+@[simp] theorem nth_map (f : α → β) : ∀ l n, nth (map f l) n = (nth l n).map f
+| []       n     := rfl
+| (a :: l) 0     := rfl
+| (a :: l) (n+1) := nth_map l n
+
+theorem nth_le_map (f : α → β) {l n} (H1 H2) : nth_le (map f l) n H1 = f (nth_le l n H2) :=
+option.some.inj $ by rw [← nth_le_nth, nth_map, nth_le_nth]; refl
+
+@[simp] theorem nth_le_map' (f : α → β) {l n} (H) :
+  nth_le (map f l) n H = f (nth_le l n (length_map f l ▸ H)) :=
+nth_le_map f _ _
+
 @[extensionality]
 theorem ext : ∀ {l₁ l₂ : list α}, (∀n, nth l₁ n = nth l₂ n) → l₁ = l₂
 | []      []       h := rfl
@@ -885,6 +897,16 @@ def take_while (p : α → Prop) [decidable_pred p] : list α → list α
 | (a::l) := if p a then a :: take_while l else []
 
 /- foldl, foldr, scanl, scanr -/
+
+lemma foldl_ext (f g : α → β → α) (a : α)
+  {l : list β} (H : ∀ a : α, ∀ b ∈ l, f a b = g a b) :
+  foldl f a l = foldl g a l :=
+by induction l generalizing a; simp * {contextual := tt}
+
+lemma foldr_ext (f g : α → β → β) (b : β)
+  {l : list α} (H : ∀ a ∈ l, ∀ b : β, f a b = g a b) :
+  foldr f b l = foldr g b l :=
+by induction l; simp * {contextual := tt}
 
 @[simp] theorem foldl_nil (f : α → β → α) (a : α) : foldl f a [] = a := rfl
 
@@ -1316,6 +1338,13 @@ by rw ← filter_map_eq_map; exact filter_map_sublist_filter_map _ s
 
 section filter
 variables {p : α → Prop} [decidable_pred p]
+
+lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+  : ∀ {l : list α}, (∀ x ∈ l, p x ↔ q x) → filter p l = filter q l
+| [] _     := rfl
+| (a::l) h := by simp at h; by_cases pa : p a;
+  [simp [pa, h.1.1 pa, filter_congr h.2],
+   simp [pa, mt h.1.2 pa, filter_congr h.2]]
 
 @[simp] theorem filter_subset (l : list α) : filter p l ⊆ l :=
 subset_of_sublist $ filter_sublist l
@@ -2484,6 +2513,19 @@ theorem pairwise.imp {S : α → α → Prop}
   (H : ∀ a b, R a b → S a b) {l : list α} : pairwise R l → pairwise S l :=
 pairwise.imp_of_mem (λ a b _ _, H a b)
 
+theorem pairwise.and {S : α → α → Prop} {l : list α} :
+  pairwise (λ a b, R a b ∧ S a b) l ↔ pairwise R l ∧ pairwise S l :=
+⟨λ h, ⟨h.imp (λ a b h, h.1), h.imp (λ a b h, h.2)⟩,
+ λ ⟨hR, hS⟩, begin
+  clear_, induction hR with a l R1 R2 IH; simp at *,
+  exact ⟨λ b bl, ⟨R1 b bl, hS.1 b bl⟩, IH hS.2⟩
+ end⟩
+
+theorem pairwise.imp₂ {S : α → α → Prop} {T : α → α → Prop}
+  (H : ∀ a b, R a b → S a b → T a b) {l : list α}
+  (hR : pairwise R l) (hS : pairwise S l) : pairwise T l :=
+(pairwise.and.2 ⟨hR, hS⟩).imp $ λ a b, and.rec (H a b)
+
 theorem pairwise.iff_of_mem {S : α → α → Prop} {l : list α}
   (H : ∀ {a b}, a ∈ l → b ∈ l → (R a b ↔ S a b)) : pairwise R l ↔ pairwise S l :=
 ⟨pairwise.imp_of_mem (λ a b m m', (H m m').1),
@@ -3107,6 +3149,10 @@ end erase_dup
     by simpa [eq_comm] using (@le_iff_eq_or_lt _ _ s m).symm,
   by simp [@mem_range' (s+1) n, or_and_distrib_left, or_iff_right_of_imp this, l]
 
+theorem map_add_range' (a) : ∀ s n : ℕ, map ((+) a) (range' s n) = range' (a + s) n
+| s 0     := rfl
+| s (n+1) := congr_arg (cons _) (map_add_range' (s+1) n)
+
 theorem chain_succ_range' : ∀ s n : ℕ, chain (λ a b, b = succ a) s (range' (s+1) n)
 | s 0     := chain.nil _ _
 | s (n+1) := (chain_succ_range' (s+1) n).cons rfl
@@ -3148,6 +3194,14 @@ theorem range_core_range' : ∀ s n : ℕ, range_core s (range' s n) = range' 0 
 
 theorem range_eq_range' (n : ℕ) : range n = range' 0 n :=
 (range_core_range' n 0).trans $ by rw zero_add
+
+theorem range_succ_eq_map (n : ℕ) : range (n + 1) = 0 :: map succ (range n) :=
+by rw [range_eq_range', range_eq_range', range',
+       add_comm, ← map_add_range'];
+   congr; exact funext one_add
+
+theorem range'_eq_map_range (s n : ℕ) : range' s n = map ((+) s) (range n) :=
+by rw [range_eq_range', map_add_range']; refl
 
 @[simp] theorem length_range (n : ℕ) : length (range n) = n :=
 by simp [range_eq_range']
@@ -3191,6 +3245,15 @@ by simp [iota_eq_reverse_range', nodup_range']
 
 theorem mem_iota {m n : ℕ} : m ∈ iota n ↔ 1 ≤ m ∧ m ≤ n :=
 by simp [iota_eq_reverse_range', lt_succ_iff]
+
+theorem reverse_range' : ∀ s n : ℕ,
+  reverse (range' s n) = map (λ i, s + n - 1 - i) (range n)
+| s 0     := rfl
+| s (n+1) := by rw [range'_concat, reverse_append, range_succ_eq_map];
+  simpa [show s + (n + 1) - 1 = s + n, from rfl, (∘),
+    λ a i, show a - 1 - i = a - succ i,
+    by rw [nat.sub_sub, add_comm]; refl]
+  using reverse_range' s n
 
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),
   map prod.fst (enum_from n l) = range' n l.length

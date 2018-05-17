@@ -948,7 +948,7 @@ destruct_eq_ret $ begin
   rw [show seq.nth (some <$> s) 0 = some <$> seq.nth s 0, by apply seq.map_nth],
   cases seq.nth s 0 with a, { refl },
   unfold functor.map,
-  simp [option.map, option.bind, destruct]
+  simp [destruct]
 end
 
 @[simp] theorem head_of_seq (s : seq α) : head (of_seq s) = return s.head :=

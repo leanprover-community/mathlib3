@@ -19,7 +19,7 @@ def unpair (n : nat) : nat × nat :=
 let s := sqrt n in
 if n - s*s < s then (n - s*s, s) else (s, n - s*s - s)
 
-theorem mkpair_unpair (n : nat) : mkpair (unpair n).1 (unpair n).2 = n :=
+@[simp] theorem mkpair_unpair (n : nat) : mkpair (unpair n).1 (unpair n).2 = n :=
 let s := sqrt n in begin
   dsimp [unpair], change sqrt n with s,
   have sm : s * s + (n - s * s) = n := nat.add_sub_cancel' (sqrt_le _),
@@ -35,7 +35,7 @@ end
 theorem mkpair_unpair' {n a b} (H : unpair n = (a, b)) : mkpair a b = n :=
 by simpa [H] using mkpair_unpair n
 
-theorem unpair_mkpair (a b : nat) : unpair (mkpair a b) = (a, b) :=
+@[simp] theorem unpair_mkpair (a b : nat) : unpair (mkpair a b) = (a, b) :=
 begin
   by_cases a < b; simp [h, mkpair],
   { show unpair (a + b * b) = (a, b),

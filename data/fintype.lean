@@ -56,6 +56,12 @@ def of_list [decidable_eq α] (l : list α)
   (H : ∀ x : α, x ∈ l) : fintype α :=
 ⟨l.to_finset, by simpa using H⟩
 
+theorem exists_univ_list (α) [fintype α] :
+  ∃ l : list α, l.nodup ∧ ∀ x : α, x ∈ l :=
+let ⟨l, e⟩ := quotient.exists_rep (@univ α _).1 in
+by have := and.intro univ.2 mem_univ_val;
+   exact ⟨_, by rwa ← e at this⟩
+
 /-- `card α` is the number of elements in `α`, defined when `α` is a fintype. -/
 def card (α) [fintype α] : ℕ := (@univ α _).card
 

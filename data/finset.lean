@@ -5,7 +5,8 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-import data.multiset order.boolean_algebra algebra.order_functions data.sigma.basic
+import data.multiset order.boolean_algebra algebra.order_functions
+       data.sigma.basic logic.embedding
 open multiset subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -598,6 +599,67 @@ end list
 
 namespace finset
 
+section map
+open function
+
+def map (f : α ↪ β) (s : finset α) : finset β :=
+⟨s.1.map f, nodup_map f.2 s.2⟩
+
+@[simp] theorem map_val (f : α ↪ β) (s : finset α) : (map f s).1 = s.1.map f := rfl
+
+@[simp] theorem map_empty (f : α ↪ β) (s : finset α) : (∅ : finset α).map f = ∅ := rfl
+
+variables {f : α ↪ β} {s : finset α}
+
+@[simp] theorem mem_map {b : β} : b ∈ s.map f ↔ ∃ a ∈ s, f a = b := by simp [mem_def]
+
+@[simp] theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.map f :=
+mem_map.2 ⟨_, h, rfl⟩
+
+theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
+  s.to_finset.map f = (s.map f).to_finset := ext.2 $ by simp
+
+theorem map_refl : s.map (embedding.refl _) = s := ext.2 $ by simp [embedding.refl]
+
+theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
+eq_of_veq $ by simp [erase_dup_map_erase_dup_eq]
+
+theorem map_subset_map {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.map f ⊆ s₂.map f :=
+by simp [subset_def, map_subset_map h]
+
+theorem map_filter {p : β → Prop} [decidable_pred p] :
+  (s.map f).filter p = (s.filter (p ∘ f)).map f :=
+ext.2 $ λ b, by simp; rw ← exists_and_distrib_right;
+  refine exists_congr (λ a, (and_congr_right $ λ e, _).trans and.right_comm);
+  simp [e.2.symm]
+
+theorem map_union [decidable_eq α] [decidable_eq β]
+  {f : α ↪ β} (s₁ s₂ : finset α) : (s₁ ∪ s₂).map f = s₁.map f ∪ s₂.map f :=
+ext.2 $ by simp [mem_map, or_and_distrib_right, exists_or_distrib]
+
+theorem map_inter [decidable_eq α] [decidable_eq β]
+  {f : α ↪ β} (s₁ s₂ : finset α) : (s₁ ∩ s₂).map f = s₁.map f ∩ s₂.map f :=
+ext.2 $ by simp [mem_map]; exact λ b,
+⟨λ ⟨a, ⟨m₁, m₂⟩, e⟩, ⟨⟨a, m₁, e⟩, ⟨a, m₂, e⟩⟩,
+ λ ⟨⟨a, m₁, e₁⟩, ⟨a', m₂, e₂⟩⟩, ⟨a, ⟨m₁, f.2 (e₂.trans e₁.symm) ▸ m₂⟩, e₁⟩⟩.
+
+@[simp] theorem map_singleton (f : α ↪ β) (a : α) : (singleton a).map f = singleton (f a) :=
+ext.2 $ by simp [mem_map, eq_comm]
+
+@[simp] theorem map_insert [decidable_eq α] [decidable_eq β]
+  (f : α ↪ β) (a : α) (s : finset α) :
+  (insert a s).map f = insert (f a) (s.map f) :=
+by simp [insert_eq, map_union]
+
+@[simp] theorem map_eq_empty : s.map f = ∅ ↔ s = ∅ :=
+⟨λ h, eq_empty_of_forall_not_mem $
+ λ a m, ne_empty_of_mem (mem_map_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
+
+lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
+eq_of_veq $ by simp [embedding.subtype]; rw attach_val; simp [multiset.attach_map_val]
+
+end map
+
 section image
 variables [decidable_eq β]
 
@@ -626,7 +688,7 @@ theorem image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.
 eq_of_veq $ by simp [erase_dup_map_erase_dup_eq]
 
 theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.image f ⊆ s₂.image f :=
-by simp [subset_def, map_subset_map h]
+by simp [subset_def, multiset.map_subset_map h]
 
 theorem image_filter {p : β → Prop} [decidable_pred p] :
   (s.image f).filter p = (s.filter (p ∘ f)).image f :=
@@ -667,6 +729,9 @@ begin
   exact assume ⟨a', _⟩ _ ⟨b', _⟩ _ h, by simp at h; simp [h],
   exact multiset.nodup_attach.2 s.2
 end
+
+theorem map_eq_image (f : α ↪ β) (s : finset α) : s.map f = s.image f :=
+eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
 
 end image
 
@@ -963,7 +1028,7 @@ by simp [fold, fold_distrib]
 theorem fold_hom {op' : γ → γ → γ} [is_commutative γ op'] [is_associative γ op']
   {m : β → γ} (hm : ∀x y, m (op x y) = op' (m x) (m y)) :
   s.fold op' (m b) (λx, m (f x)) = m (s.fold op b f) :=
-by rw [fold, fold, ← fold_hom op hm, map_map]
+by rw [fold, fold, ← fold_hom op hm, multiset.map_map]
 
 theorem fold_union_inter [decidable_eq α] {s₁ s₂ : finset α} {b₁ b₂ : β} :
   (s₁ ∪ s₂).fold op b₁ f * (s₁ ∩ s₂).fold op b₂ f = s₁.fold op b₂ f * s₂.fold op b₁ f :=
@@ -980,8 +1045,7 @@ end fold
 
 section sort
 variables (r : α → α → Prop) [decidable_rel r]
-  [tr : is_trans α r] [an : is_antisymm α r] [to : is_total α r]
-include tr an to
+  [is_trans α r] [is_antisymm α r] [is_total α r]
 
 /-- `sort s` constructs a sorted list from the unordered set `s`.
   (Uses merge sort algorithm.) -/
@@ -999,6 +1063,10 @@ sort_eq _ _
 @[simp] theorem sort_to_finset [decidable_eq α] (s : finset α) : (sort r s).to_finset = s :=
 list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
 end sort
+
+theorem sort_sorted_lt [decidable_linear_order α] (s : finset α) :
+  list.sorted (<) (sort (≤) s) :=
+(sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
 
 end finset
 

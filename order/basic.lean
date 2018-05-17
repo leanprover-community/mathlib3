@@ -14,6 +14,21 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
 λ h, h ▸ le_refl a
 
+/- Convert algebraic structure style to explicit relation style typeclasses -/
+instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
+instance [preorder α] : is_trans α (≤) := ⟨@le_trans _ _⟩
+instance [preorder α] : is_preorder α (≤) := {}
+instance [preorder α] : is_irrefl α (<) := ⟨lt_irrefl⟩
+instance [preorder α] : is_trans α (<) := ⟨@lt_trans _ _⟩
+instance [preorder α] : is_strict_order α (<) := {}
+instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
+instance [partial_order α] : is_asymm α (<) := ⟨@lt_asymm _ _⟩
+instance [partial_order α] : is_partial_order α (≤) := {}
+instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
+instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) := {}
+instance [linear_order α] : is_linear_order α (≤) := {}
+instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
+
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
 
@@ -182,10 +197,7 @@ theorem is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (sw
 theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] : is_strict_total_order' α (swap r) :=
 {..is_trichotomous.swap r, ..is_strict_order.swap r}
 
-instance [linear_order α] : is_strict_total_order' α (<) :=
-{ trichotomous := lt_trichotomy,
-  irrefl       := lt_irrefl,
-  trans        := @lt_trans _ _ }
+instance [linear_order α] : is_strict_total_order' α (<) := {}
 
 /-- A connected order is one satisfying the condition `a < c → a < b ∨ b < c`.
   This is recognizable as an intuitionistic substitute for `a ≤ b ∨ b ≤ a` on
@@ -216,6 +228,11 @@ instance is_order_connected_of_is_strict_total_order'
 instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
 {..is_strict_weak_order_of_is_order_connected}
+
+instance [linear_order α] : is_strict_total_order α (<) := by apply_instance
+instance [linear_order α] : is_order_connected α (<) := by apply_instance
+instance [linear_order α] : is_incomp_trans α (<) := by apply_instance
+instance [linear_order α] : is_strict_weak_order α (<) := by apply_instance
 
 /-- An extensional relation is one in which an element is determined by its set
   of predecessors. It is named for the `x ∈ y` relation in set theory, whose
@@ -291,3 +308,4 @@ theorem well_founded.not_lt_min {α} {r : α → α → Prop} (H : well_founded 
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
 end
+

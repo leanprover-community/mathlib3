@@ -121,7 +121,7 @@ le_antisymm
 
 lemma tendsto_comp_succ_at_top_iff {α : Type*} {f : ℕ → α} {x : filter α} :
   tendsto (λn, f (nat.succ n)) at_top x ↔ tendsto f at_top x :=
-calc tendsto (f ∘ nat.succ) at_top x ↔ tendsto f (map nat.succ at_top) x : by simp [tendsto, map_map]
+calc tendsto (f ∘ nat.succ) at_top x ↔ tendsto f (map nat.succ at_top) x : by simp [tendsto, filter.map_map]
  ... ↔ _ : by rw [map_succ_at_top_eq]
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :

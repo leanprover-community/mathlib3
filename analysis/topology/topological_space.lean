@@ -1023,9 +1023,23 @@ is_open_iff_mem_nhds.2 $ λ a as,
 (mem_nhds_of_is_topological_basis hb).2 ⟨s, hs, as, subset.refl _⟩
 
 lemma mem_basis_subset_of_mem_open {b : set (set α)}
-  (hb : is_topological_basis b) {a:α} (u : set α) (au : a ∈ u)
+  (hb : is_topological_basis b) {a:α} {u : set α} (au : a ∈ u)
   (ou : _root_.is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
 (mem_nhds_of_is_topological_basis hb).1 $ mem_nhds_sets ou au
+
+lemma sUnion_basis_of_is_open {B : set (set α)}
+  (hB : is_topological_basis B) {u : set α} (ou : _root_.is_open u) :
+  ∃ S ⊆ B, u = ⋃₀ S :=
+⟨{s ∈ B | s ⊆ u}, λ s h, h.1, set.ext $ λ a,
+  ⟨λ ha, let ⟨b, hb, ab, bu⟩ := mem_basis_subset_of_mem_open hB ha ou in
+         ⟨b, ⟨hb, bu⟩, ab⟩,
+   λ ⟨b, ⟨hb, bu⟩, ab⟩, bu ab⟩⟩
+
+lemma Union_basis_of_is_open {B : set (set α)}
+  (hB : is_topological_basis B) {u : set α} (ou : _root_.is_open u) :
+  ∃ (β : Type u) (f : β → set α), u = (⋃ i, f i) ∧ ∀ i, f i ∈ B :=
+let ⟨S, sb, su⟩ := sUnion_basis_of_is_open hB ou in
+⟨S, subtype.val, su.trans set.sUnion_eq_Union', λ ⟨b, h⟩, sb h⟩
 
 variables (α)
 

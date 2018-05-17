@@ -85,7 +85,7 @@ begin
   dsimp [destruct],
   induction f0 : nth s 0 with a'; intro h,
   { contradiction },
-  { unfold functor.map at h, dsimp [option.map, option.bind] at h,
+  { unfold functor.map at h, dsimp at h,
     cases s with f al,
     injections with _ h1 h2,
     rw ←h2, apply subtype.eq, dsimp [tail, cons],

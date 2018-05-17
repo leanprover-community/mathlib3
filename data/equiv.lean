@@ -568,33 +568,13 @@ else if r = b then a
 else r
 
 theorem swap_core_self (r a : α) : swap_core a a r = r :=
-by by_cases r = a; simp [swap_core, *]
+by unfold swap_core; split_ifs; cc
 
 theorem swap_core_swap_core (r a b : α) : swap_core a b (swap_core a b r) = r :=
-begin
-  by_cases hb : r = b,
-  { by_cases ha : r = a,
-    { simp [hb.symm, ha.symm, swap_core_self] },
-    { have : b ≠ a, by rwa [hb] at ha,
-      simp [swap_core, *] } },
-  { by_cases ha : r = a,
-    { have : b ≠ a, begin rw [ha] at hb, exact ne.symm hb end,
-      simp [swap_core, *] },
-    simp [swap_core, *] }
-end
+by unfold swap_core; split_ifs; cc
 
 theorem swap_core_comm (r a b : α) : swap_core a b r = swap_core b a r :=
-begin
-  by_cases hb : r = b,
-  { by_cases ha : r = a,
-    { simp [hb.symm, ha.symm, swap_core_self] },
-    { have : b ≠ a, by rwa [hb] at ha,
-      simp [swap_core, *] } },
-  { by_cases ha : r = a,
-    { have : a ≠ b, by rwa [ha] at hb,
-      simp [swap_core, *] },
-    simp [swap_core, *] }
-end
+by unfold swap_core; split_ifs; cc
 
 /-- `swap a b` is the permutation that swaps `a` and `b` and
   leaves other values as is. -/

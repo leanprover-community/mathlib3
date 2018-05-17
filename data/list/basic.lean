@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Basic properties of lists.
 -/
-import tactic.interactive tactic.mk_iff_of_inductive_prop
+import tactic.interactive tactic.mk_iff_of_inductive_prop tactic.split_ifs
   logic.basic logic.function
   algebra.group
   data.nat.basic data.option data.bool data.prod data.sigma
@@ -1448,10 +1448,7 @@ theorem count_cons (a b : α) (l : list α) :
 
 theorem count_cons' (a b : α) (l : list α) :
   count a (b :: l) = count a l + (if a = b then 1 else 0) :=
-decidable.by_cases
-  (assume : a = b, begin rw [count_cons, if_pos this, if_pos this] end)
-  (assume : a ≠ b, begin rw [count_cons, if_neg this, if_neg this], reflexivity end)
-
+begin rw count_cons, split_ifs; refl end
 
 @[simp] theorem count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) :=
 if_pos rfl

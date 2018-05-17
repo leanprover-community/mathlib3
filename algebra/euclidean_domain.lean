@@ -225,10 +225,8 @@ gcd.induction a b
 
 @[simp] theorem gcd_zero_right (a : α) : gcd a 0 = a :=
 begin
-  by_cases (a=0),
-  { simp[h] },
-  { rw gcd,
-    simp [h] }
+  unfold1 gcd,
+  split_ifs; simp *
 end
 
 @[simp] theorem gcd_one_left (a : α) : gcd 1 a = 1 :=

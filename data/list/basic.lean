@@ -862,6 +862,10 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 | (succ n)  (succ m) nil    := by simp
 | (succ n)  (succ m) (a::l) := by simp [min_succ_succ, take_take]
 
+@[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
+| 0     := rfl
+| (n+1) := rfl
+
 theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
   drop n l = nth_le l n h :: drop (n+1) l
 | 0     (a::l) h := rfl

@@ -373,19 +373,23 @@ by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
 @[simp] theorem bodd_div2_eq (n : ℕ) : bodd_div2 n = (bodd n, div2 n) :=
 by unfold bodd div2; cases bodd_div2 n; refl
 
-/- foldl & foldr -/
+/- iterate -/
 
-/-- `foldl op n a` is the `n`-times iterate of `op` on `a`. -/
-@[simp] def foldl {α : Sort*} (op : α → α) : ℕ → α → α
- | 0        a := a
- | (succ k) a := foldl k (op a)
+section
+variables {α : Sort*} (op : α → α)
 
-/-- `foldr op n a` is the `n`-times iterate of `op` on `a`.
-  It is provably the same as `foldl` but has different
-  definitional equalities. -/
-@[simp] def foldr {α : Sort*} (op : α → α) (a : α) : ℕ → α
- | 0        := a
- | (succ k) := op (foldr k)
+@[simp] theorem iterate_zero (a : α) : op^[0] a = a := rfl
+
+@[simp] theorem iterate_succ (n : ℕ) (a : α) : op^[succ n] a = (op^[n]) (op a) := rfl
+
+theorem iterate_add : ∀ (m n : ℕ) (a : α), op^[m + n] a = (op^[m]) (op^[n] a)
+| m 0 a := rfl
+| m (succ n) a := iterate_add m n _
+
+theorem iterate_succ' (n : ℕ) (a : α) : op^[succ n] a = op (op^[n] a) :=
+by rw [← one_add, iterate_add]; refl
+
+end
 
 /- size and shift -/
 

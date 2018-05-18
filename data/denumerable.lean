@@ -117,6 +117,19 @@ end
 
 instance denumerable_list : denumerable (list α) := ⟨denumerable_list_aux⟩
 
+@[simp] theorem list_of_nat_zero : of_nat (list α) 0 = [] := rfl
+
+@[simp] theorem list_of_nat_succ (v : ℕ) :
+  of_nat (list α) (succ v) =
+  of_nat α v.unpair.2 :: of_nat (list α) v.unpair.1 :=
+of_nat_of_decode $ show decode_list (succ v) = _,
+begin
+  cases e : unpair v with v₂ v₁,
+  simp [decode_list, e],
+  rw [show decode_list v₂ = decode (list α) v₂,
+      from rfl, decode_eq_of_nat]; refl
+end
+
 section multiset
 
 def lower : list ℕ → ℕ → list ℕ

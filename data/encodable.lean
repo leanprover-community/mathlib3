@@ -93,6 +93,14 @@ instance sum : encodable (α ⊕ β) :=
 ⟨encode_sum, decode_sum, λ s,
   by cases s; simp [encode_sum, decode_sum];
      rw [bodd_bit, div2_bit, decode_sum, encodek]; refl⟩
+
+@[simp] theorem encode_inl (a : α) :
+  @encode (α ⊕ β) _ (sum.inl a) = bit ff (encode a) := rfl
+@[simp] theorem encode_inr (b : β) :
+  @encode (α ⊕ β) _ (sum.inr b) = bit tt (encode b) := rfl
+@[simp] theorem decode_sum_val (n : ℕ) :
+  decode (α ⊕ β) n = decode_sum n := rfl
+
 end sum
 
 instance bool : encodable bool :=
@@ -173,6 +181,26 @@ def decode_list : ℕ → option (list α)
 instance list : encodable (list α) :=
 ⟨encode_list, decode_list, λ l,
   by induction l with a l IH; simp [encode_list, decode_list, unpair_mkpair, encodek, *]⟩
+
+@[simp] theorem encode_list_nil : encode (@nil α) = 0 := rfl
+@[simp] theorem encode_list_cons (a : α) (l : list α) :
+  encode (a :: l) = succ (mkpair (encode l) (encode a)) := rfl
+
+@[simp] theorem decode_list_zero : decode (list α) 0 = some [] := rfl
+
+@[simp] theorem decode_list_succ (v : ℕ) :
+  decode (list α) (succ v) =
+  (::) <$> decode α v.unpair.2 <*> decode (list α) v.unpair.1 :=
+show decode_list (succ v) = _, begin
+  cases e : unpair v with v₂ v₁,
+  simp [decode_list, e], refl
+end
+
+theorem length_le_encode : ∀ (l : list α), length l ≤ encode l
+| [] := zero_le _
+| (a :: l) := succ_le_succ $
+  le_trans (length_le_encode l) (le_mkpair_left _ _)
+
 end list
 
 section finset

@@ -154,7 +154,8 @@ theorem well_founded_iff_no_descending_seq [is_strict_order α r] : well_founded
     show ∀ x : {a // ¬ acc r a}, ∃ y : {a // ¬ acc r a}, r y.1 x.1,
     from λ ⟨x, h⟩, classical.by_contradiction $ λ hn, h $
       ⟨_, λ y h, classical.by_contradiction $ λ na, hn ⟨⟨y, na⟩, h⟩⟩ in
-  N ⟨nat_gt (λ n, (n.foldr f ⟨a, na⟩).1) $ λ n, h _⟩⟩⟩
+  N ⟨nat_gt (λ n, (f^[n] ⟨a, na⟩).1) $ λ n,
+    by rw nat.iterate_succ'; apply h⟩⟩⟩
 
 end order_embedding
 

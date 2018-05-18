@@ -19,10 +19,6 @@ import data.denumerable tactic.basic
 
 open denumerable encodable
 
-local notation `-(` n `, ` m `)-` := nat.mkpair n m
-local postfix `ₗ`:80 := λ n, (nat.unpair n).1
-local postfix `ᵣ`:80 := λ n, (nat.unpair n).2
-
 namespace nat
 
 def elim {C : Sort*} : C → (ℕ → C → C) → ℕ → C := @nat.rec (λ _, C)
@@ -36,18 +32,19 @@ def cases {C : Sort*} (a : C) (f : ℕ → C) : ℕ → C := nat.elim a (λ n _,
 @[simp] theorem cases_zero {C} (a f) : @nat.cases C a f 0 = a := rfl
 @[simp] theorem cases_succ {C} (a f n) : @nat.cases C a f (succ n) = f n := rfl
 
-@[simp, reducible] def unpaired {α} (f : ℕ → ℕ → α) (n : ℕ) : α := f (n ₗ) (n ᵣ)
+@[simp, reducible] def unpaired {α} (f : ℕ → ℕ → α) (n : ℕ) : α :=
+f n.unpair.1 n.unpair.2
 
 /-- The primitive recursive functions `ℕ → ℕ`. -/
 inductive primrec : (ℕ → ℕ) → Prop
 | zero : primrec (λ n, 0)
 | succ : primrec succ
-| left : primrec (λ n, n ₗ)
-| right : primrec (λ n, n ᵣ)
-| pair {f g} : primrec f → primrec g → primrec (λ n, -(f n, g n)-)
+| left : primrec (λ n, n.unpair.1)
+| right : primrec (λ n, n.unpair.2)
+| pair {f g} : primrec f → primrec g → primrec (λ n, mkpair (f n) (g n))
 | comp {f g} : primrec f → primrec g → primrec (f ∘ g)
 | prec {f g} : primrec f → primrec g → primrec (unpaired (λ z n,
-   n.elim (f z) (λ y IH, g -(z, -(y, IH)-)-)))
+   n.elim (f z) (λ y IH, g $ mkpair z $ mkpair y IH)))
 
 namespace primrec
 
@@ -62,7 +59,7 @@ protected theorem id : primrec id :=
 (left.pair right).of_eq $ λ n, by simp
 
 theorem prec1 {f} (m : ℕ) (hf : primrec f) : primrec (λ n,
-   n.elim m (λ y IH, f -(y, IH)-)) :=
+   n.elim m (λ y IH, f $ mkpair y IH)) :=
 ((prec (const m) (hf.comp right)).comp 
   (zero.pair primrec.id)).of_eq $
 λ n, by simp; dsimp; rw [unpair_mkpair]
@@ -71,7 +68,7 @@ theorem cases1 {f} (m : ℕ) (hf : primrec f) : primrec (nat.cases m f) :=
 (prec1 m (hf.comp left)).of_eq $ by simp [cases]
 
 theorem cases {f g} (hf : primrec f) (hg : primrec g) :
-  primrec (unpaired (λ z n, n.cases (f z) (λ y, g -(z, y)-))) :=
+  primrec (unpaired (λ z n, n.cases (f z) (λ y, g $ mkpair z y))) :=
 (prec hf (hg.comp (pair left (left.comp right)))).of_eq $ by simp [cases]
 
 protected theorem swap : primrec (unpaired (function.swap mkpair)) :=
@@ -270,8 +267,8 @@ theorem pair {α β γ} [primcodable α] [primcodable β] [primcodable γ]
 λ n, by simp; cases decode α n; simp [encodek]; refl
 
 theorem unpair : primrec nat.unpair :=
-suffices primrec (λ n, (n ₗ, n ᵣ)), by simpa,
-pair (nat_iff.2 nat.primrec.left) (nat_iff.2 nat.primrec.right)
+(pair (nat_iff.2 nat.primrec.left) (nat_iff.2 nat.primrec.right)).of_eq $
+λ n, by simp
 
 theorem list_nth₁ : ∀ (l : list α), primrec l.nth
 | []     := dom_denumerable.2 zero
@@ -790,7 +787,7 @@ nat_iff.1 $ (encode_iff.2 this).of_eq $ λ n, begin
   from this _ _ (IH _ (nat.unpair_le n)),
   intros o p IH,
   cases o; cases p; injection IH with h,
-  exact congr_arg (λ k, -(k, encode a)-.succ.succ) h
+  exact congr_arg (λ k, (nat.mkpair k (encode a)).succ.succ) h
 end⟩
 
 end primcodable

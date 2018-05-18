@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import data.set data.set.basic
+import data.set data.set.basic data.option
 
 universes u v w
 
@@ -22,47 +22,11 @@ def to_option (o : roption α) [decidable o.dom] : option α :=
 if h : dom o then some (o.get h) else none
 
 /-- `roption` extensionality -/
-protected def ext : Π {o p : roption α}
+def ext' : Π {o p : roption α}
   (H1 : o.dom ↔ p.dom)
-  (H2 : ∀h1 h2, o.get h1 = p.get h2), o = p
+  (H2 : ∀h₁ h₂, o.get h₁ = p.get h₂), o = p
 | ⟨od, o⟩ ⟨pd, p⟩ H1 H2 := have t : od = pd, from propext H1,
   by cases t; rw [show o = p, from funext $ λp, H2 p p]
-
-/-- The `none` value in `roption` has a `false` domain and an empty function. -/
-protected def none : roption α := ⟨false, false.rec _⟩
-
-/-- The `some a` value in `roption` has a `true` domain and the
-  function returns `a`. -/
-protected def some (a : α) : roption α := ⟨true, λ_, a⟩
-
-instance none_decidable : decidable (@roption.none α).dom := decidable.false
-instance some_decidable (a : α) : decidable (roption.some a).dom := decidable.true
-
-/-- Convert an `option α` into an `roption α` -/
-def of_option : option α → roption α
-| none := roption.none
-| (some a) := roption.some a
-
-instance : has_coe (option α) (roption α) := ⟨of_option⟩
-
-instance of_option_decidable : ∀ o : option α, decidable (of_option o).dom
-| none := roption.none_decidable
-| (some a) := roption.some_decidable a
-
-theorem to_of_option (o : option α) : to_option (of_option o) = o :=
-by cases o; refl
-
-theorem of_to_option (o : roption α) [decidable o.dom] : of_option (to_option o) = o :=
-begin
-  unfold to_option,
-  by_cases o.dom; {
-    simp [h, dif_pos, dif_neg, of_option],
-    apply roption.ext,
-    simp [roption.some, roption.none, h],
-    intros h1 h2,
-    simp [roption.some, roption.none, h];
-    contradiction }
-end
 
 /-- `a ∈ o` means that `o` is defined and equal to `a` -/
 protected def mem (a : α) (o : roption α) : Prop := ∃ h, o.get h = a
@@ -70,7 +34,65 @@ protected def mem (a : α) (o : roption α) : Prop := ∃ h, o.get h = a
 instance : has_mem α (roption α) := ⟨roption.mem⟩
 
 theorem dom_iff_mem : ∀ (o : roption α), o.dom ↔ ∃y, y ∈ o
-| ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨._, h, rfl⟩, h⟩
+| ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨_, h, rfl⟩, h⟩
+
+/-- `roption` extensionality -/
+def ext {o p : roption α} (H : ∀ a, a ∈ o ↔ a ∈ p) : o = p :=
+ext' ⟨λ h, ((H _).1 ⟨h, rfl⟩).fst,
+     λ h, ((H _).2 ⟨h, rfl⟩).fst⟩ $
+λ a b, ((H _).2 ⟨_, rfl⟩).snd
+
+/-- The `none` value in `roption` has a `false` domain and an empty function. -/
+def none : roption α := ⟨false, false.rec _⟩
+
+/-- The `some a` value in `roption` has a `true` domain and the
+  function returns `a`. -/
+def some (a : α) : roption α := ⟨true, λ_, a⟩
+
+theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
+| _ ⟨p, f⟩ _ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
+
+theorem mem_some (a : α) : a ∈ some a := ⟨trivial, rfl⟩
+
+@[simp] theorem mem_some_iff {a b} : b ∈ (some a : roption α) ↔ b = a :=
+⟨λ⟨h, e⟩, e.symm, λ e, ⟨trivial, e.symm⟩⟩
+
+theorem eq_some_of_mem : ∀ {a : α} {o : roption α}, a ∈ o → o = some a
+| _ o ⟨h, rfl⟩ := ext' (iff_true_intro h) (λ _ _, rfl)
+
+instance none_decidable : decidable (@none α).dom := decidable.false
+instance some_decidable (a : α) : decidable (some a).dom := decidable.true
+
+@[simp] theorem mem_to_option {o : roption α} [decidable o.dom] {a : α} :
+  a ∈ to_option o ↔ a ∈ o :=
+begin
+  unfold to_option,
+  by_cases h : o.dom; simp [h],
+  { exact ⟨λ h, ⟨_, h⟩, λ ⟨_, h⟩, h⟩ },
+  { exact mt Exists.fst h }
+end
+
+/-- Convert an `option α` into an `roption α` -/
+def of_option : option α → roption α
+| option.none     := none
+| (option.some a) := some a
+
+@[simp] theorem mem_of_option {a : α} : ∀ {o : option α}, a ∈ of_option o ↔ a ∈ o
+| option.none     := ⟨λ h, h.fst.elim, λ h, option.no_confusion h⟩
+| (option.some b) := ⟨λ h, congr_arg option.some h.snd,
+  λ h, ⟨trivial, option.some.inj h⟩⟩
+
+instance : has_coe (option α) (roption α) := ⟨of_option⟩
+
+instance of_option_decidable : ∀ o : option α, decidable (of_option o).dom
+| option.none     := roption.none_decidable
+| (option.some a) := roption.some_decidable a
+
+@[simp] theorem to_of_option (o : option α) : to_option (of_option o) = o :=
+by cases o; refl
+
+@[simp] theorem of_to_option (o : roption α) [decidable o.dom] : of_option (to_option o) = o :=
+ext $ λ a, mem_of_option.trans mem_to_option
 
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/
@@ -79,38 +101,68 @@ def assert (p : Prop) (f : p → roption α) : roption α :=
 
 /-- The bind operation has value `g (f.get)`, and is defined when all the
   parts are defined. -/
-protected def bind (f : roption α) (g : α → roption β) : roption β :=
+def bind (f : roption α) (g : α → roption β) : roption β :=
 assert (dom f) (λb, g (f.get b))
 
 /-- The map operation for `roption` just maps the value and maintains the same domain. -/
-protected def map (f : α → β) (o : roption α) : roption β :=
+def map (f : α → β) (o : roption α) : roption β :=
 ⟨o.dom, f ∘ o.get⟩
 
-theorem bind_some_eq_map (f : α → β) (x) :
-  roption.bind x (roption.some ∘ f) = roption.map f x :=
-roption.ext ⟨λ⟨h, _⟩, h, λh, ⟨h, trivial⟩⟩ (λ_ _, rfl)
+theorem mem_map (f : α → β) {o : roption α} :
+  ∀ {a}, a ∈ o → f a ∈ map f o
+| _ ⟨h, rfl⟩ := ⟨_, rfl⟩
 
-theorem some_bind (x : α) (f : α → roption β) :
-  roption.bind (roption.some x) f = f x :=
-roption.ext ⟨λ⟨_, h⟩, h, λh, ⟨trivial, h⟩⟩ (λ_ _, rfl)
+@[simp] theorem mem_map_iff (f : α → β) {o : roption α} {b} :
+  b ∈ map f o ↔ ∃ a ∈ o, f a = b :=
+⟨match b with _, ⟨h, rfl⟩ := ⟨_, ⟨_, rfl⟩, rfl⟩ end,
+ λ ⟨a, h₁, h₂⟩, h₂ ▸ mem_map f h₁⟩
+
+@[simp] theorem map_some (f : α → β) (a : α) : map f (some a) = some (f a) :=
+eq_some_of_mem $ mem_map f $ mem_some _
+
+theorem mem_bind {f : roption α} {g : α → roption β} :
+  ∀ {a b}, a ∈ f → b ∈ g a → b ∈ bind f g
+| _ _ ⟨h, rfl⟩ ⟨h₂, rfl⟩ := ⟨⟨_, _⟩, rfl⟩
+
+@[simp] theorem mem_bind_iff {f : roption α} {g : α → roption β} {b} :
+  b ∈ bind f g ↔ ∃ a ∈ f, b ∈ g a :=
+⟨match b with _, ⟨⟨h₁, h₂⟩, rfl⟩ := ⟨_, ⟨_, rfl⟩, ⟨_, rfl⟩⟩ end,
+ λ ⟨a, h₁, h₂⟩, mem_bind h₁ h₂⟩
+
+@[simp] theorem bind_some (a : α) (f : α → roption β) :
+  bind (some a) f = f a := ext $ by simp
+
+theorem bind_some_eq_map (f : α → β) (x) :
+  bind x (some ∘ f) = map f x :=
+ext $ by simp [eq_comm]
 
 theorem bind_assoc {γ} (f : roption α) (g : α → roption β) (k : β → roption γ) :
-  roption.bind (roption.bind f g) k = roption.bind f (λ x, roption.bind (g x) k) :=
-roption.ext (⟨λ⟨⟨h1, h2⟩, h3⟩, ⟨h1, h2, h3⟩, λ⟨h1, h2, h3⟩, ⟨⟨h1, h2⟩, h3⟩⟩) (λ_ _, rfl)
+  bind (bind f g) k = bind f (λ x, bind (g x) k) :=
+ext $ λ a, by simp; exact
+ ⟨λ ⟨_, ⟨_, h₁, h₂⟩, h₃⟩, ⟨_, h₁, _, h₂, h₃⟩,
+  λ ⟨_, h₁, _, h₂, h₃⟩, ⟨_, ⟨_, h₁, h₂⟩, h₃⟩⟩
 
 instance : monad roption :=
-{ pure := @roption.some,
-  map := @roption.map,
-  bind := @roption.bind }
+{ pure := @some,
+  map := @map,
+  bind := @bind }
 
 instance : is_lawful_monad roption :=
 { bind_pure_comp_eq_map := @bind_some_eq_map,
   id_map := λβ f, by cases f; refl,
-  pure_bind := @some_bind,
+  pure_bind := @bind_some,
   bind_assoc := @bind_assoc }
 
+@[simp] theorem ret_eq_some (a : α) : return a = some a := rfl
+
+@[simp] theorem map_eq_map {α β} (f : α → β) (o : roption α) :
+  f <$> o = map f o := rfl
+
+@[simp] theorem bind_eq_bind {α β} (f : roption α) (g : α → roption β) :
+  f >>= g = bind f g := rfl
+
 instance : monad_fail roption :=
-{ fail := λ_ _, roption.none, ..roption.monad }
+{ fail := λ_ _, none, ..roption.monad }
 
 /- `restrict p o h` replaces the domain of `o` with `p`, and is well defined when
   `p` implies `o` is defined. -/
@@ -121,36 +173,11 @@ def restrict (p : Prop) : ∀ (o : roption α), (p → o.dom) → roption α
   (This function is unsound.) -/
 meta def unwrap (o : roption α) : α := o.get undefined
 
-theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
-| ._ ⟨p, f⟩ ._ ⟨h1, rfl⟩ ⟨h2, rfl⟩ := rfl
-
-theorem mem_some (a : α) : a ∈ roption.some a := ⟨trivial, rfl⟩
-
-theorem mem_ret (a) : a ∈ (return a : roption α) := mem_some a
-
-@[simp] theorem mem_ret_iff (a b) : b ∈ (return a : roption α) ↔ b = a :=
-⟨λ⟨h, e⟩, e.symm, λ e, ⟨trivial, e.symm⟩⟩
-
-theorem eq_ret_of_mem : ∀ {a : α} {o : roption α}, a ∈ o → o = return a
-| ._ ⟨p, f⟩ ⟨h, rfl⟩ := begin
-  apply roption.ext,
-  exact iff_true_intro h,
-  intros, refl
-end
-
-theorem mem_bind {f : roption α} {g : α → roption β} :
-  ∀ {a b}, a ∈ f → b ∈ g a → b ∈ roption.bind f g
-| ._ ._ ⟨h, rfl⟩ ⟨h2, rfl⟩ := ⟨⟨_, _⟩, rfl⟩
-
-theorem exists_of_mem_bind {f : roption α} {g : α → roption β} :
-  ∀ {b}, b ∈ roption.bind f g → ∃ a ∈ f, b ∈ g a
-| ._ ⟨⟨h1, h2⟩, rfl⟩ := ⟨_, ⟨_, rfl⟩, ⟨_, rfl⟩⟩
-
 theorem assert_defined {p : Prop} {f : p → roption α} :
-  ∀ (h : p), (f h).dom → (roption.assert p f).dom := exists.intro
+  ∀ (h : p), (f h).dom → (assert p f).dom := exists.intro
 
 theorem bind_defined {f : roption α} {g : α → roption β} :
-  ∀ (h : f.dom), (g (f.get h)).dom → (roption.bind f g).dom := assert_defined
+  ∀ (h : f.dom), (g (f.get h)).dom → (bind f g).dom := assert_defined
 
 end roption
 
@@ -174,10 +201,13 @@ def eval_opt (f : α →. β) [D : decidable_pred (dom f)] (x : α) : option β 
 @roption.to_option _ _ (D x)
 
 /-- Partial function extensionality -/
-protected def ext {f g : α →. β}
-  (H1 : ∀x, x ∈ dom f ↔ x ∈ dom g)
-  (H2 : ∀x p q, f.fn x p = g.fn x q) : f = g :=
-funext $ λx, roption.ext (H1 x) (H2 x)
+def ext' {f g : α →. β}
+  (H1 : ∀ a, a ∈ dom f ↔ a ∈ dom g)
+  (H2 : ∀ a p q, f.fn a p = g.fn a q) : f = g :=
+funext $ λ a, roption.ext' (H1 a) (H2 a)
+
+def ext {f g : α →. β} (H : ∀ a b, b ∈ f a ↔ b ∈ g a) : f = g :=
+funext $ λ a, roption.ext (H a)
 
 /-- Turn a partial function into a function out of a subtype -/
 def as_subtype (f : α →. β) (s : {x // f.dom x}) : β := f.fn s.1 s.2
@@ -186,6 +216,11 @@ def as_subtype (f : α →. β) (s : {x // f.dom x}) : β := f.fn s.1 s.2
 protected def lift (f : α → β) : α →. β := λ a, roption.some (f a)
 
 instance : has_coe (α → β) (α →. β) := ⟨pfun.lift⟩
+
+@[simp] theorem lift_eq_coe (f : α → β) : pfun.lift f = f := rfl
+
+@[simp] theorem coe_val (f : α → β) (a : α) :
+  (f : α →. β) a = roption.some (f a) := rfl
 
 /-- The graph of a partial function is the set of pairs
   `(x, f x)` where `x` is in the domain of `f`. -/
@@ -209,11 +244,11 @@ show (∃ (h : true), f a = b) ↔ f a = b, by simp
 protected def pure (x : β) : α →. β := λ_, roption.some x
 
 /-- The monad `bind` function, pointwise `roption.bind` -/
-protected def bind (f : α →. β) (g : β → α →. γ) : α →. γ :=
+def bind (f : α →. β) (g : β → α →. γ) : α →. γ :=
 λa, roption.bind (f a) (λb, g b a)
 
 /-- The monad `map` function, pointwise `roption.map` -/
-protected def map (f : β → γ) (g : α →. β) : α →. γ :=
+def map (f : β → γ) (g : α →. β) : α →. γ :=
 λa, roption.map f (g a)
 
 instance : monad (pfun.{u v} α) :=
@@ -222,10 +257,10 @@ instance : monad (pfun.{u v} α) :=
   map := @pfun.map _ }
 
 instance : is_lawful_monad (pfun.{u v} α) :=
-{ bind_pure_comp_eq_map := λβ γ f x, funext $ λ a, roption.bind_some_eq_map _ _,
-  id_map := λβ f, by funext a; dsimp [functor.map, pfun.map]; cases f a; refl,
-  pure_bind := λβ γ x f, funext $ λ a, roption.some_bind _ (f x),
-  bind_assoc := λβ γ δ f g k,
+{ bind_pure_comp_eq_map := λ β γ f x, funext $ λ a, roption.bind_some_eq_map _ _,
+  id_map := λ β f, by funext a; dsimp [functor.map, pfun.map]; cases f a; refl,
+  pure_bind := λ β γ x f, funext $ λ a, roption.bind_some _ (f x),
+  bind_assoc := λ β γ δ f g k,
     funext $ λ a, roption.bind_assoc (f a) (λ b, g b a) (λ b, k b a) }
 
 theorem pure_defined (p : set α) (x : β) : p ⊆ (@pfun.pure α _ x).dom := set.subset_univ p

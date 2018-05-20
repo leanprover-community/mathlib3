@@ -373,6 +373,12 @@ by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
 @[simp] theorem bodd_div2_eq (n : ℕ) : bodd_div2 n = (bodd n, div2 n) :=
 by unfold bodd div2; cases bodd_div2 n; refl
 
+@[simp] lemma bodd_bit0 (n) : bodd (bit0 n) = ff := bodd_bit ff n
+@[simp] lemma bodd_bit1 (n) : bodd (bit1 n) = tt := bodd_bit tt n
+
+@[simp] lemma div2_bit0 (n) : div2 (bit0 n) = n := div2_bit ff n
+@[simp] lemma div2_bit1 (n) : div2 (bit1 n) = n := div2_bit tt n
+
 /- iterate -/
 
 section

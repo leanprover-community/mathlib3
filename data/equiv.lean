@@ -426,51 +426,12 @@ def list_equiv_of_equiv {α β : Type*} : α ≃ β → list α ≃ list β
   by refine ⟨list.map f, list.map g, λ x, _, λ x, _⟩;
      simp [id_of_left_inverse l, id_of_right_inverse r]
 
-section
-open nat list
-private def list.to_nat : list ℕ → ℕ
-| []     := 0
-| (a::l) := succ (mkpair l.to_nat a)
-
-private def list.of_nat : ℕ → list ℕ
-| 0        := []
-| (succ v) := match unpair v, unpair_le v with
-  | (v₂, v₁), h :=
-    have v₂ < succ v, from lt_succ_of_le h,
-    v₁ :: list.of_nat v₂
-  end
-
-private theorem list.of_nat_to_nat : ∀ l : list ℕ, list.of_nat (list.to_nat l) = l
-| []     := rfl
-| (a::l) := by simp [list.to_nat, list.of_nat, unpair_mkpair, *]
-
-private theorem list.to_nat_of_nat : ∀ n : ℕ, list.to_nat (list.of_nat n) = n
-| 0        := rfl
-| (succ v) := begin
-  cases e : unpair v with v₁ v₂,
-  have := lt_succ_of_le (unpair_le v),
-  have IH := have v₁ < succ v, by rwa e at this, list.to_nat_of_nat v₁,
-  simp [list.of_nat, e, list.to_nat, IH, mkpair_unpair' e]
-end
-
-
-def list_nat_equiv_nat : list ℕ ≃ ℕ :=
-⟨list.to_nat, list.of_nat, list.of_nat_to_nat, list.to_nat_of_nat⟩
-
-def list_equiv_self_of_equiv_nat {α : Type} (e : α ≃ ℕ) : list α ≃ α :=
-calc list α ≃ list ℕ : list_equiv_of_equiv e
-        ... ≃ ℕ      : list_nat_equiv_nat
-        ... ≃ α      : e.symm
-end
-
-section
 def decidable_eq_of_equiv [h : decidable_eq α] : α ≃ β → decidable_eq β
 | ⟨f, g, l, r⟩ b₁ b₂ :=
   match h (g b₁) (g b₂) with
   | (is_true he) := is_true $ have f (g b₁) = f (g b₂), from congr_arg f he, by rwa [r, r] at this
   | (is_false hn) := is_false $ λeq, hn.elim $ by rw [eq]
   end
-end
 
 def inhabited_of_equiv [inhabited α] : α ≃ β → inhabited β
 | ⟨f, g, l, r⟩ := ⟨f (default _)⟩

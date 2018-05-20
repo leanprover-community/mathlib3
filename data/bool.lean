@@ -24,6 +24,12 @@ show _ = to_bool false, by congr
 @[simp] lemma of_to_bool_iff {p : Prop} [decidable p] : to_bool p ↔ p :=
 ⟨of_to_bool_true, _root_.to_bool_true⟩
 
+@[simp] lemma tt_eq_to_bool_iff {p : Prop} [decidable p] : tt = to_bool p ↔ p :=
+eq_comm.trans of_to_bool_iff
+
+@[simp] lemma ff_eq_to_bool_iff {p : Prop} [decidable p] : ff = to_bool p ↔ ¬ p :=
+eq_comm.trans (to_bool_ff_iff _)
+
 @[simp] theorem to_bool_not (p : Prop) [decidable p] : to_bool (¬ p) = bnot (to_bool p) :=
 by by_cases p; simp *
 

@@ -74,7 +74,7 @@ instance sum : denumerable (α ⊕ β) :=
 ⟨λ n, begin
   suffices : ∃ a ∈ @decode_sum α β _ _ n,
     encode_sum a = bit (bodd n) (div2 n), {simpa [bit_decomp]},
-  simp [decode_sum]; cases bodd n; simp [decode_sum],
+  simp [decode_sum]; cases bodd n; simp [decode_sum, bit],
   { refine or.inl ⟨_, rfl, _⟩, simp [encode_sum] },
   { refine or.inr ⟨_, rfl, _⟩, simp [encode_sum] }
 end⟩
@@ -106,8 +106,8 @@ theorem denumerable_list_aux : ∀ n : ℕ,
   ∃ a ∈ @decode_list α _ n, encode_list a = n
 | 0        := ⟨_, rfl, rfl⟩
 | (succ v) := begin
-  cases e : unpair v with v₂ v₁,
-  have h := unpair_le v,
+  cases e : unpair v with v₁ v₂,
+  have h := unpair_le_right v,
   rw e at h,
   rcases have v₂ < succ v, from lt_succ_of_le h,
     denumerable_list_aux v₂ with ⟨a, h₁, h₂⟩,
@@ -121,10 +121,10 @@ instance denumerable_list : denumerable (list α) := ⟨denumerable_list_aux⟩
 
 @[simp] theorem list_of_nat_succ (v : ℕ) :
   of_nat (list α) (succ v) =
-  of_nat α v.unpair.2 :: of_nat (list α) v.unpair.1 :=
+  of_nat α v.unpair.1 :: of_nat (list α) v.unpair.2 :=
 of_nat_of_decode $ show decode_list (succ v) = _,
 begin
-  cases e : unpair v with v₂ v₁,
+  cases e : unpair v with v₁ v₂,
   simp [decode_list, e],
   rw [show decode_list v₂ = decode (list α) v₂,
       from rfl, decode_eq_of_nat]; refl
@@ -226,3 +226,13 @@ def pair : (α × α) ≃ α := equiv₂ _ _
 
 end
 end denumerable
+
+namespace equiv
+
+def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _
+
+def list_equiv_self_of_equiv_nat {α : Type} (e : α ≃ ℕ) : list α ≃ α :=
+calc list α ≃ list ℕ : list_equiv_of_equiv e
+        ... ≃ ℕ      : list_nat_equiv_nat
+        ... ≃ α      : e.symm
+end equiv

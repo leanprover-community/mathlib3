@@ -42,14 +42,14 @@ inductive primrec : (ℕ → ℕ) → Prop
 | left : primrec (λ n, n.unpair.1)
 | right : primrec (λ n, n.unpair.2)
 | pair {f g} : primrec f → primrec g → primrec (λ n, mkpair (f n) (g n))
-| comp {f g} : primrec f → primrec g → primrec (f ∘ g)
+| comp {f g} : primrec f → primrec g → primrec (λ n, f (g n))
 | prec {f g} : primrec f → primrec g → primrec (unpaired (λ z n,
    n.elim (f z) (λ y IH, g $ mkpair z $ mkpair y IH)))
 
 namespace primrec
 
-theorem of_eq {f g : ℕ → ℕ} (hg : primrec g) (H : ∀ n, f n = g n) : primrec f :=
-(funext H : f = g).symm ▸ hg
+theorem of_eq {f g : ℕ → ℕ} (hf : primrec f) (H : ∀ n, f n = g n) : primrec g :=
+(funext H : f = g) ▸ hf
 
 theorem const : ∀ (n : ℕ), primrec (λ _, n)
 | 0 := zero
@@ -113,8 +113,9 @@ open nat.primrec
 
 def of_equiv (α) {β} [primcodable α] (e : β ≃ α) : primcodable β :=
 { prim := (primcodable.prim α).of_eq $ λ n,
-    show (option.cases_on (option.map e.symm (decode α n))
-      0 (λ a, nat.succ (encode (e a))) : ℕ) = encode (decode α n),
+    show encode (decode α n) =
+      (option.cases_on (option.map e.symm (decode α n))
+        0 (λ a, nat.succ (encode (e a))) : ℕ),
     by cases decode α n; dsimp [option.map, option.bind]; simp,
   ..encodable.of_equiv α e }
 
@@ -167,27 +168,25 @@ nat_iff.2 (primcodable.prim α)
 
 theorem option_some : primrec (@some α) :=
 ((cases1 0 (succ.comp succ)).comp (primcodable.prim α)).of_eq $
-λ n, by dsimp; cases decode α n; simp
+λ n, by cases decode α n; simp
 
-theorem of_eq {f g : α → σ} (hg : primrec g) (H : ∀ n, f n = g n) : primrec f :=
-(funext H : f = g).symm ▸ hg
+theorem of_eq {f g : α → σ} (hf : primrec f) (H : ∀ n, f n = g n) : primrec g :=
+(funext H : f = g) ▸ hf
 
 theorem const (x : σ) : primrec (λ a : α, x) :=
 ((cases1 0 (const (encode x).succ)).comp (primcodable.prim α)).of_eq $
-λ n, by simp; cases decode α n; refl
+λ n, by cases decode α n; refl
 
 protected theorem id : primrec (@id α) :=
 (primcodable.prim α).of_eq $ by simp
 
-theorem comp {α β γ} [primcodable α] [primcodable β] [primcodable γ]
-  {f : β → γ} {g : α → β} (hf : primrec f) (hg : primrec g) :
-  primrec (λ a, f (g a)) :=
+theorem comp {f : β → σ} {g : α → β}
+  (hf : primrec f) (hg : primrec g) : primrec (λ a, f (g a)) :=
 ((cases1 0 (hf.comp $ pred.comp hg)).comp (primcodable.prim α)).of_eq $
 λ n, begin
-  simp; cases decode α n, {refl},
-  change _ = encode _,
+  cases decode α n, {refl},
   simp [encodek],
-  change _ = encode (option.map f (decode β (encode _))),
+  change encode (option.map f (decode β (encode _))) = _,
   simp [encodek], refl
 end
 
@@ -264,7 +263,7 @@ theorem pair {α β γ} [primcodable α] [primcodable β] [primcodable γ]
 ((cases1 0 (nat.primrec.succ.comp $
   pair (nat.primrec.pred.comp hf) (nat.primrec.pred.comp hg))).comp
   (primcodable.prim α)).of_eq $
-λ n, by simp; cases decode α n; simp [encodek]; refl
+λ n, by cases decode α n; simp [encodek]; refl
 
 theorem unpair : primrec nat.unpair :=
 (pair (nat_iff.2 nat.primrec.left) (nat_iff.2 nat.primrec.right)).of_eq $
@@ -302,8 +301,8 @@ namespace primrec₂
 variables {α : Type*} {β : Type*} {σ : Type*}
 variables [primcodable α] [primcodable β] [primcodable σ]
 
-theorem of_eq {f g : α → β → σ} (hg : primrec₂ g) (H : ∀ a b, f a b = g a b) : primrec₂ f :=
-(by funext a b; apply H : f = g).symm ▸ hg
+theorem of_eq {f g : α → β → σ} (hg : primrec₂ f) (H : ∀ a b, f a b = g a b) : primrec₂ g :=
+(by funext a b; apply H : f = g) ▸ hg
 
 theorem const (x : σ) : primrec₂ (λ (a : α) (b : β), x) := primrec.const _
 
@@ -356,14 +355,12 @@ theorem primrec.comp₂ {f : γ → σ} {g : α → β → γ}
 theorem primrec₂.comp
   {f : β → γ → σ} {g : α → β} {h : α → γ}
   (hf : primrec₂ f) (hg : primrec g) (hh : primrec h) :
-  primrec (λ a, f (g a) (h a)) :=
-primrec.comp hf (primrec.pair hg hh)
+  primrec (λ a, f (g a) (h a)) := hf.comp (hg.pair hh)
 
 theorem primrec₂.comp₂
   {f : γ → δ → σ} {g : α → β → γ} {h : α → β → δ}
   (hf : primrec₂ f) (hg : primrec₂ g) (hh : primrec₂ h) :
-  primrec₂ (λ a b, f (g a b) (h a b)) :=
-primrec.comp hf (primrec.pair hg hh)
+  primrec₂ (λ a b, f (g a b) (h a b)) := hf.comp hg hh
 
 theorem primrec_pred.comp
   {p : β → Prop} [decidable_pred p] {f : α → β} :
@@ -384,13 +381,13 @@ end comp
 
 theorem primrec_pred.of_eq {α} [primcodable α]
   {p q : α → Prop} [decidable_pred p] [decidable_pred q]
-  (hq : primrec_pred q) (H : ∀ a, p a ↔ q a) : primrec_pred p :=
-primrec.of_eq hq (λ a, to_bool_congr (H a))
+  (hp : primrec_pred p) (H : ∀ a, p a ↔ q a) : primrec_pred q :=
+primrec.of_eq hp (λ a, to_bool_congr (H a))
 
 theorem primrec_rel.of_eq {α β} [primcodable α] [primcodable β]
   {r s : α → β → Prop} [∀ a b, decidable (r a b)] [∀ a b, decidable (s a b)]
-  (hs : primrec_rel s) (H : ∀ a b, r a b ↔ s a b) : primrec_rel r :=
-primrec₂.of_eq hs (λ a b, to_bool_congr (H a b))
+  (hr : primrec_rel r) (H : ∀ a b, r a b ↔ s a b) : primrec_rel s :=
+primrec₂.of_eq hr (λ a b, to_bool_congr (H a b))
 
 namespace primrec₂
 variables {α : Type*} {β : Type*} {σ : Type*}
@@ -437,7 +434,6 @@ primrec₂.nat_iff.2 $ ((nat.primrec.cases nat.primrec.zero $
   simp,
   cases decode α n.unpair.1 with a, {refl},
   simp [encodek, option.map, option.bind],
-  symmetry,
   induction n.unpair.2 with m; simp [encodek, option.bind],
   simp [ih],
   repeat {simp [encodek, option.map, option.bind]}
@@ -584,7 +580,7 @@ have primrec_rel (λ a b : ℕ, a = b), from
 (this.comp₂
   (primrec.encode.comp₂ primrec₂.left)
   (primrec.encode.comp₂ primrec₂.right)).of_eq $
-λ a b, encode_injective.eq_iff.symm
+λ a b, encode_injective.eq_iff
 
 theorem list_find_index₁ {p : α → β → Prop}
   [∀ a b, decidable (p a b)] (hp : primrec_rel p) :
@@ -612,7 +608,7 @@ theorem nat_bodd_div2 : primrec nat.bodd_div2 :=
       (pair (const ff) (succ.comp snd))
       (pair (const tt) snd)).comp snd).comp snd).to₂).of_eq $
 λ n, begin
-  simp [-nat.bodd_div2_eq], symmetry,
+  simp [-nat.bodd_div2_eq],
   induction n with n IH, {refl},
   simp [-nat.bodd_div2_eq, nat.bodd_div2, *],
   rcases nat.bodd_div2 n with ⟨_|_, m⟩; simp [nat.bodd_div2]
@@ -690,12 +686,11 @@ private lemma list_cases'
   @primrec _ σ _ _ (λ a, list.cases_on (f a) (g a) (λ b l, h a (b, l))) :=
 by letI := prim H; exact
 have @primrec _ (option σ) _ _ (λ a,
-  (decode (option (list β × β)) (encode (f a))).map
-  (λ o, option.cases_on o (g a) (λ p, h a (p.2, p.1)))), from
-((@map_decode_iff _ (option (list β × β)) _ _ _ _ _).2 $
+  (decode (option (β × list β)) (encode (f a))).map
+  (λ o, option.cases_on o (g a) (h a))), from
+((@map_decode_iff _ (option (β × list β)) _ _ _ _ _).2 $
     to₂ $ option_cases snd (hg.comp fst)
-  (hh.comp₂ (fst.comp₂ primrec₂.left)
-    (primrec.comp₂ (pair snd fst) primrec₂.right)))
+  (hh.comp₂ (fst.comp₂ primrec₂.left) primrec₂.right))
     .comp primrec.id (encode_iff.2 hf),
 option_some_iff.1 $ this.of_eq $
 λ a, by cases f a with b l; simp [encodek]; refl
@@ -729,15 +724,14 @@ end
 private lemma list_cons' : by haveI := prim H; exact primrec₂ (@list.cons β) :=
 by letI := prim H; exact
 encode_iff.1 (succ.comp $
-primrec₂.mkpair.comp (encode_iff.2 snd) (encode_iff.2 fst))
+primrec₂.mkpair.comp (encode_iff.2 fst) (encode_iff.2 snd))
 
 private lemma list_reverse' : by haveI := prim H; exact
   primrec (@list.reverse β) :=
 by letI := prim H; exact
 (list_foldl' H primrec.id (const []) $ to₂ $
    ((list_cons' H).comp snd fst).comp snd).of_eq
-(suffices ∀ l r, list.reverse_core l r =
-  list.foldl (λ (s : list β) (b : β), b :: s) r l,
+(suffices ∀ l r, list.foldl (λ (s : list β) (b : β), b :: s) r l = list.reverse_core l r,
 from λ l, this l [],
 λ l, by induction l; simp [*, list.reverse_core])
 
@@ -755,7 +749,7 @@ instance sum : primcodable (α ⊕ β) :=
      nat_bit.comp (const tt) (primrec.encode.comp snd))
   (((@primrec.decode α _).comp nat_div2).option_map $ to₂ $
      nat_bit.comp (const ff) (primrec.encode.comp snd)))).of_eq $
-λ n, show encode (decode_sum n) = _, begin
+λ n, show _ = encode (decode_sum n), begin
   simp [decode_sum],
   cases nat.bodd n; simp [decode_sum],
   { cases decode α n.div2; refl },
@@ -779,15 +773,15 @@ nat_iff.1 $ (encode_iff.2 this).of_eq $ λ n, begin
   rw list.foldl_reverse,
   apply nat.case_strong_induction_on n, {refl},
   intros n IH, simp,
-  cases decode α n.unpair.2 with a, {refl},
+  cases decode α n.unpair.1 with a, {refl},
   simp [option.bind, has_seq.seq],
-  suffices : ∀ o (p : option (list ℕ)) (_ : encode o = encode p),
-    encode (option.map (list.cons a) o) =
-    encode (option.map (list.cons (encode a)) p),
-  from this _ _ (IH _ (nat.unpair_le n)),
+  suffices : ∀ (o : option (list ℕ)) p (_ : encode o = encode p),
+    encode (option.map (list.cons (encode a)) o) =
+    encode (option.map (list.cons a) p),
+  from this _ _ (IH _ (nat.unpair_le_right n)),
   intros o p IH,
   cases o; cases p; injection IH with h,
-  exact congr_arg (λ k, (nat.mkpair k (encode a)).succ.succ) h
+  exact congr_arg (λ k, (nat.mkpair (encode a) k).succ.succ) h
 end⟩
 
 end primcodable
@@ -887,6 +881,9 @@ theorem list_append : primrec₂ ((++) : list α → list α → list α) :=
 (list_foldr fst snd $ to₂ $ comp (@list_cons α _) snd).to₂.of_eq $
 λ l₁ l₂, by induction l₁; simp *
 
+theorem list_concat : primrec₂ (λ l (a:α), l ++ [a]) :=
+list_append.comp fst (list_cons.comp snd (const []))
+
 theorem list_map
   {f : α → list β} {g : α → β → σ}
   (hf : primrec f) (hg : primrec₂ g) :
@@ -917,5 +914,23 @@ theorem list_find_index {f : α → list β} {p : α → β → Prop}
 
 theorem list_index_of [decidable_eq α] : primrec₂ (@list.index_of α _) :=
 to₂ $ list_find_index snd $ primrec.eq.comp₂ (fst.comp fst).to₂ snd.to₂
+
+theorem nat_strong_rec
+  (f : α → ℕ → σ) {g : α → list σ → option σ} (hg : primrec₂ g)
+  (H : ∀ a n, g a ((list.range n).map (f a)) = some (f a n)) : primrec₂ f :=
+suffices primrec₂ (λ a n, (list.range n).map (f a)), from
+  primrec₂.option_some_iff.1 $
+  (list_nth.comp (this.comp fst (succ.comp snd)) snd).to₂.of_eq $
+  λ a n, by simp [list.nth_range (nat.lt_succ_self n)]; refl,
+primrec₂.option_some_iff.1 $
+(nat_elim (const (some [])) (to₂ $
+  option_bind (snd.comp snd) $ to₂ $
+  option_map
+    (hg.comp (fst.comp fst) snd)
+    (to₂ $ list_concat.comp (snd.comp fst) snd))).of_eq $
+λ a n, begin
+  simp, induction n with n IH, {refl},
+  simp [IH, H, list.range_concat, option.bind]
+end
 
 end primrec

@@ -36,6 +36,10 @@ by cases x; simp
 
 @[simp] theorem map_some {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
 
+@[simp] theorem map_none' {f : α → β} : option.map f none = none := rfl
+
+@[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
+
 @[simp] theorem map_eq_some {x : option α} {f : α → β} {b : β} : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 

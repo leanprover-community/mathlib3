@@ -382,7 +382,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
   begin
     have h : {p:(α×α)×(α×α)| (p.1.1 - p.1.2, p.2.1 - p.2.2) ∈ s'} ∈ (@uniformity (α × α) _).sets,
       from uniform_continuous_sub' hs',
-    rw [uniformity_prod_eq_prod, mem_map, mem_prod_same_iff] at h,
+    rw [uniformity_prod_eq_prod, filter.mem_map, mem_prod_same_iff] at h,
     rcases h with ⟨t, ht, h⟩,
     exact ⟨t, ht, assume a₁ a₂ a₃ a₄ h₁ h₂, @h ((a₁, a₂), (a₃, a₄)) ⟨h₁, h₂⟩⟩
   end,

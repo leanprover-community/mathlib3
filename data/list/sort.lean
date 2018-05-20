@@ -33,7 +33,7 @@ rel_of_pairwise_cons
   sorted r (a :: l) ↔ (∀ b ∈ l, r a b) ∧ sorted r l :=
 pairwise_cons
 
-theorem eq_of_sorted_of_perm (tr : transitive r) (anti : anti_symmetric r)
+theorem eq_of_sorted_of_perm [is_antisymm α r]
   {l₁ l₂ : list α} (p : l₁ ~ l₂) (s₁ : sorted r l₁) (s₂ : sorted r l₂) : l₁ = l₂ :=
 begin
   induction s₁ with a l₁ h₁ s₁ IH generalizing l₂,
@@ -44,7 +44,7 @@ begin
     have := IH p' (pairwise_of_sublist (by simp) s₂), subst l₁,
     change a::u₂ ++ v₂ = u₂ ++ ([a] ++ v₂), rw ← append_assoc, congr,
     have : ∀ (x : α) (h : x ∈ u₂), x = a := λ x m,
-      anti ((pairwise_append.1 s₂).2.2 _ m a (mem_cons_self _ _))
+      antisymm ((pairwise_append.1 s₂).2.2 _ m a (mem_cons_self _ _))
         (h₁ _ (by simp [m])),
     rw [(@eq_repeat _ a (length u₂ + 1) (a::u₂)).2,
         (@eq_repeat _ a (length u₂ + 1) (u₂++[a])).2];
@@ -92,26 +92,25 @@ theorem perm_insertion_sort : ∀ l : list α, insertion_sort l ~ l
   (perm_ordered_insert _ _ _).trans (perm.skip b (perm_insertion_sort l))
 
 section total_and_transitive
-variables (totr : total r) (transr : transitive r)
-include totr transr
+variables [is_total α r] [is_trans α r]
 
 theorem sorted_ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered_insert a l)
 | []       h := sorted_singleton a
 | (b :: l) h := begin
   by_cases h' : a ≼ b,
-  { simpa [ordered_insert, h', h] using λ b' bm, transr h' (rel_of_sorted_cons h _ bm) },
+  { simpa [ordered_insert, h', h] using λ b' bm, trans h' (rel_of_sorted_cons h _ bm) },
   { suffices : ∀ (b' : α), b' ∈ ordered_insert r a l → r b b',
     { simpa [ordered_insert, h', sorted_ordered_insert l (sorted_of_sorted_cons h)] },
     intros b' bm,
     cases (show b' = a ∨ b' ∈ l, by simpa using
       perm_subset (perm_ordered_insert _ _ _) bm) with be bm,
-    { subst b', exact (totr _ _).resolve_left h' },
+    { subst b', exact (total_of r _ _).resolve_left h' },
     { exact rel_of_sorted_cons h _ bm } }
 end
 
 theorem sorted_insertion_sort : ∀ l, sorted r (insertion_sort l)
 | []       := sorted_nil
-| (a :: l) := sorted_ordered_insert totr transr a _ (sorted_insertion_sort l)
+| (a :: l) := sorted_ordered_insert a _ (sorted_insertion_sort l)
 
 end total_and_transitive
 end correctness
@@ -223,8 +222,7 @@ using_well_founded {
   dec_tac := tactic.assumption }
 
 section total_and_transitive
-variables (totr : total r) (transr : transitive r)
-include totr transr
+variables [is_total α r] [is_trans α r]
 
 theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge l l')
 | []       []        h₁ h₂ := sorted_nil
@@ -239,15 +237,15 @@ theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
       perm_subset (perm_merge _ _ _) bm) with be | bl | bl',
     { subst b', assumption },
     { exact rel_of_sorted_cons h₁ _ bl },
-    { exact transr h (rel_of_sorted_cons h₂ _ bl') } },
+    { exact trans h (rel_of_sorted_cons h₂ _ bl') } },
   { suffices : ∀ (b' : α) (_ : b' ∈ merge r (a :: l) l'), r b b',
     { simpa [merge, h, sorted_merge h₁ (sorted_of_sorted_cons h₂)] },
     intros b' bm,
-    have ba : b ≼ a := (totr _ _).resolve_left h,
+    have ba : b ≼ a := (total_of r _ _).resolve_left h,
     rcases (show b' = a ∨ b' ∈ l ∨ b' ∈ l', by simpa using
       perm_subset (perm_merge _ _ _) bm) with be | bl | bl',
     { subst b', assumption },
-    { exact transr ba (rel_of_sorted_cons h₁ _ bl) },
+    { exact trans ba (rel_of_sorted_cons h₁ _ bl) },
     { exact rel_of_sorted_cons h₂ _ bl' } }
 end
 
@@ -258,11 +256,14 @@ theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort l)
   cases e : split (a::b::l) with l₁ l₂,
   cases length_split_lt e with h₁ h₂,
   rw [merge_sort_cons_cons r e],
-  exact sorted_merge r totr transr (sorted_merge_sort l₁) (sorted_merge_sort l₂)
+  exact sorted_merge r (sorted_merge_sort l₁) (sorted_merge_sort l₂)
 end
 using_well_founded {
   rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
+
+theorem merge_sort_eq_self [is_antisymm α r] {l : list α} : sorted r l → merge_sort l = l :=
+eq_of_sorted_of_perm (perm_merge_sort _) (sorted_merge_sort _)
 
 end total_and_transitive
 end correctness

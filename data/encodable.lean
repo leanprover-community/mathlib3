@@ -7,7 +7,7 @@ Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
 import data.fintype data.list data.list.perm data.list.sort
-       data.equiv data.nat.basic logic.function
+       data.equiv data.nat.basic order.order_iso
 open option list nat function
 
 /-- An encodable type is a "constructively countable" type. This is where
@@ -17,167 +17,216 @@ open option list nat function
 class encodable (α : Type*) :=
 (encode : α → nat) (decode : nat → option α) (encodek : ∀ a, decode (encode a) = some a)
 
-section encodable
+namespace encodable
 variables {α : Type*} {β : Type*}
 universe u
 open encodable
 
-section
-variables [encodable α]
-
-theorem encode_injective : function.injective (@encode α _)
+theorem encode_injective [encodable α] : function.injective (@encode α _)
 | x y e := option.some.inj $ by rw [← encodek, e, encodek]
 
-/- lower priority of instance below because we don't want to use encodability
-   to prove that e.g. equality of nat is decidable. Example of a problem:
-
-   lemma H (e : ℕ) : finset.range (nat.succ e) = insert e (finset.range e) :=
-   begin
-   exact finset.range_succ
-   end
-
-  fails with this priority not set to zero
--/
-@[priority 0] instance decidable_eq_of_encodable : decidable_eq α
+/- This is not set as an instance because this is usually not the best way
+  to infer decidability. -/
+def decidable_eq_of_encodable (α) [encodable α] : decidable_eq α
 | a b := decidable_of_iff _ encode_injective.eq_iff
-end
 
-def encodable_of_left_injection [h₁ : encodable α]
+def of_left_injection [encodable α]
   (f : β → α) (finv : α → option β) (linv : ∀ b, finv (f b) = some b) : encodable β :=
 ⟨λ b, encode (f b),
  λ n, (decode α n).bind finv,
  λ b, by simp [encodable.encodek, option.bind, linv]⟩
 
-def encodable_of_equiv (α) [h : encodable α] : β ≃ α → encodable β
-| ⟨f, g, l, r⟩ :=
-  encodable_of_left_injection f (λ b, some (g b)) (λ b, by rw l; refl)
+def of_left_inverse [encodable α]
+  (f : β → α) (finv : α → β) (linv : ∀ b, finv (f b) = b) : encodable β :=
+of_left_injection f (some ∘ finv) (λ b, congr_arg some (linv b))
 
-instance encodable_nat : encodable nat :=
+def of_equiv (α) [encodable α] (e : β ≃ α) : encodable β :=
+of_left_inverse e e.symm e.left_inv
+
+@[simp] theorem encode_of_equiv {α β} [encodable α] (e : β ≃ α) (b : β) :
+  @encode _ (of_equiv _ e) b = encode (e b) := rfl
+
+@[simp] theorem decode_of_equiv {α β} [encodable α] (e : β ≃ α) (n : ℕ) :
+  @decode _ (of_equiv _ e) n = (decode α n).map e.symm := rfl
+
+instance nat : encodable nat :=
 ⟨id, some, λ a, rfl⟩
 
-instance encodable_empty : encodable empty :=
+@[simp] theorem encode_nat (n : ℕ) : encode n = n := rfl
+@[simp] theorem decode_nat (n : ℕ) : decode ℕ n = some n := rfl
+
+instance empty : encodable empty :=
 ⟨λ a, a.rec _, λ n, none, λ a, a.rec _⟩
 
-instance encodable_unit : encodable punit.{u+1} :=
-⟨λ_, 0, λn, if n = 0 then some punit.star else none, λ⟨⟩, by simp⟩
+instance unit : encodable punit :=
+⟨λ_, zero, λn, nat.cases_on n (some punit.star) (λ _, none), λ⟨⟩, by simp⟩
 
-instance encodable_option {α : Type*} [h : encodable α] : encodable (option α) :=
-⟨λ o, match o with
-      | some a := succ (encode a)
-      | none := 0
-      end,
- λ n, if n = 0 then some none else some (decode α (pred n)),
- λ o, by cases o; simp [encodable_option._match_1, encodek, nat.succ_ne_zero]⟩
+@[simp] theorem encode_star : encode punit.star = 0 := rfl
+
+@[simp] theorem decode_unit_zero : decode punit 0 = some punit.star := rfl
+@[simp] theorem decode_unit_succ (n) : decode punit (succ n) = none := rfl
+
+instance option {α : Type*} [h : encodable α] : encodable (option α) :=
+⟨λ o, option.cases_on o nat.zero (λ a, succ (encode a)),
+ λ n, nat.cases_on n (some none) (λ m, (decode α m).map some),
+ λ o, by cases o; dsimp; simp [encodek, nat.succ_ne_zero]⟩
+
+@[simp] theorem encode_none [encodable α] : encode (@none α) = 0 := rfl
+@[simp] theorem encode_some [encodable α] (a : α) :
+  encode (some a) = succ (encode a) := rfl
+
+@[simp] theorem decode_option_zero [encodable α] : decode (option α) 0 = some none := rfl
+@[simp] theorem decode_option_succ [encodable α] (n) :
+  decode (option α) (succ n) = (decode α n).map some := rfl
 
 section sum
 variables [encodable α] [encodable β]
 
-private def encode_sum : sum α β → nat
-| (sum.inl a) := bit ff $ encode a
-| (sum.inr b) := bit tt $ encode b
+def encode_sum : α ⊕ β → nat
+| (sum.inl a) := bit0 $ encode a
+| (sum.inr b) := bit1 $ encode b
 
-private def decode_sum (n : nat) : option (sum α β) :=
+def decode_sum (n : nat) : option (α ⊕ β) :=
 match bodd_div2 n with
-| (ff, m) := match decode α m with
-  | some a := some (sum.inl a)
-  | none   := none
-  end
-| (tt, m) := match decode β m with
-  | some b := some (sum.inr b)
-  | none   := none
-  end
+| (ff, m) := (decode α m).map sum.inl
+| (tt, m) := (decode β m).map sum.inr
 end
 
-instance encodable_sum : encodable (sum α β) :=
+instance sum : encodable (α ⊕ β) :=
 ⟨encode_sum, decode_sum, λ s,
-  by cases s; simp [encode_sum, decode_sum];
-     rw [bodd_bit, div2_bit, decode_sum, encodek]; refl⟩
+  by cases s; simp [encode_sum, decode_sum, encodek]; refl⟩
+
+@[simp] theorem encode_inl (a : α) :
+  @encode (α ⊕ β) _ (sum.inl a) = bit0 (encode a) := rfl
+@[simp] theorem encode_inr (b : β) :
+  @encode (α ⊕ β) _ (sum.inr b) = bit1 (encode b) := rfl
+@[simp] theorem decode_sum_val (n : ℕ) :
+  decode (α ⊕ β) n = decode_sum n := rfl
+
 end sum
 
-instance encodable_bool: encodable bool :=
-encodable_of_equiv (unit ⊕ unit) equiv.bool_equiv_unit_sum_unit
+instance bool : encodable bool :=
+of_equiv (unit ⊕ unit) equiv.bool_equiv_unit_sum_unit
+
+@[simp] theorem encode_tt : encode tt = 1 := rfl
+@[simp] theorem encode_ff : encode ff = 0 := rfl
+
+@[simp] theorem decode_zero : decode bool 0 = some ff := rfl
+@[simp] theorem decode_one : decode bool 1 = some tt := rfl
+
+theorem decode_ge_two (n) (h : 2 ≤ n) : decode bool n = none :=
+begin
+  suffices : decode_sum n = none,
+  { change (decode_sum n).map _ = none, rw this, refl },
+  have : 1 ≤ div2 n,
+  { rw [div2_val, nat.le_div_iff_mul_le],
+    exacts [h, dec_trivial] },
+  cases exists_eq_succ_of_ne_zero (ne_of_gt this) with m e,
+  simp [decode_sum]; cases bodd n; simp [decode_sum]; rw e; refl
+end
 
 section sigma
 variables {γ : α → Type*} [encodable α] [∀ a, encodable (γ a)]
 
-private def encode_sigma : sigma γ → nat
+def encode_sigma : sigma γ → ℕ
 | ⟨a, b⟩ := mkpair (encode a) (encode b)
 
-private def decode_sigma (n : nat) : option (sigma γ) :=
+def decode_sigma (n : ℕ) : option (sigma γ) :=
 let (n₁, n₂) := unpair n in
 (decode α n₁).bind $ λ a, (decode (γ a) n₂).map $ sigma.mk a
 
-instance encodable_sigma : encodable (sigma γ) :=
+instance sigma : encodable (sigma γ) :=
 ⟨encode_sigma, decode_sigma, λ ⟨a, b⟩,
   by simp [encode_sigma, decode_sigma, option.bind, option.map, unpair_mkpair, encodek]⟩
+
+@[simp] theorem decode_sigma_val (n : ℕ) : decode (sigma γ) n =
+  (decode α n.unpair.1).bind (λ a, (decode (γ a) n.unpair.2).map $ sigma.mk a) :=
+show decode_sigma._match_1 _ = _, by cases n.unpair; refl
+
+@[simp] theorem encode_sigma_val (a b) : @encode (sigma γ) _ ⟨a, b⟩ =
+  mkpair (encode a) (encode b) := rfl
+
 end sigma
 
-instance encodable_product [encodable α] [encodable β] : encodable (α × β) :=
-encodable_of_equiv _ (equiv.sigma_equiv_prod α β).symm
+section prod
+variables [encodable α] [encodable β]
+
+instance prod : encodable (α × β) :=
+of_equiv _ (equiv.sigma_equiv_prod α β).symm
+
+@[simp] theorem decode_prod_val (n : ℕ) : decode (α × β) n =
+  (decode α n.unpair.1).bind (λ a, (decode β n.unpair.2).map $ prod.mk a) :=
+show (decode (sigma (λ _, β)) n).map (equiv.sigma_equiv_prod α β) = _,
+by simp; cases decode α n.unpair.1; simp [option.bind];
+   cases decode β n.unpair.2; refl
+
+@[simp] theorem encode_prod_val (a b) : @encode (α × β) _ (a, b) =
+  mkpair (encode a) (encode b) := rfl
+
+end prod
 
 section list
 variable [encodable α]
 
-private def encode_list : list α → nat
+def encode_list : list α → ℕ
 | []     := 0
-| (a::l) := succ (mkpair (encode_list l) (encode a))
+| (a::l) := succ (mkpair (encode a) (encode_list l))
 
-private def decode_list : nat → option (list α)
+def decode_list : ℕ → option (list α)
 | 0        := some []
-| (succ v) := match unpair v, unpair_le v with
-  | (v₂, v₁), h :=
+| (succ v) := match unpair v, unpair_le_right v with
+  | (v₁, v₂), h :=
     have v₂ < succ v, from lt_succ_of_le h,
     (::) <$> decode α v₁ <*> decode_list v₂
   end
 
-instance encodable_list : encodable (list α) :=
+instance list : encodable (list α) :=
 ⟨encode_list, decode_list, λ l,
   by induction l with a l IH; simp [encode_list, decode_list, unpair_mkpair, encodek, *]⟩
+
+@[simp] theorem encode_list_nil : encode (@nil α) = 0 := rfl
+@[simp] theorem encode_list_cons (a : α) (l : list α) :
+  encode (a :: l) = succ (mkpair (encode a) (encode l)) := rfl
+
+@[simp] theorem decode_list_zero : decode (list α) 0 = some [] := rfl
+
+@[simp] theorem decode_list_succ (v : ℕ) :
+  decode (list α) (succ v) =
+  (::) <$> decode α v.unpair.1 <*> decode (list α) v.unpair.2 :=
+show decode_list (succ v) = _, begin
+  cases e : unpair v with v₁ v₂,
+  simp [decode_list, e], refl
+end
+
+theorem length_le_encode : ∀ (l : list α), length l ≤ encode l
+| [] := zero_le _
+| (a :: l) := succ_le_succ $
+  le_trans (length_le_encode l) (le_mkpair_right _ _)
+
 end list
 
 section finset
 variables [encodable α]
 
-private def enle (a b : α) : Prop := encode a ≤ encode b
+private def enle : α → α → Prop := encode ⁻¹'o (≤)
 
-private lemma enle.refl (a : α) : enle a a := le_refl _
-
-private lemma enle.trans (a b c : α) : enle a b → enle b c → enle a c := le_trans
-
-private lemma enle.total (a b : α) : enle a b ∨ enle b a := le_total _ _
-
-private lemma enle.antisymm (a b : α) (h₁ : enle a b) (h₂ : enle b a) : a = b :=
-encode_injective (le_antisymm h₁ h₂)
+private lemma enle.is_linear_order : is_linear_order α enle :=
+(order_embedding.preimage ⟨encode, encode_injective⟩ (≤)).is_linear_order
 
 private def decidable_enle (a b : α) : decidable (enle a b) :=
-by unfold enle; apply_instance
+by unfold enle order.preimage; apply_instance
 
-local attribute [instance] decidable_enle
+local attribute [instance] enle.is_linear_order decidable_enle
 
-private def ensort (l : list α) : list α :=
-insertion_sort enle l
+def encode_multiset (s : multiset α) : ℕ :=
+encode (s.sort enle)
 
-open subtype list.perm
-
-private lemma sorted_eq_of_perm {l₁ l₂ : list α} (h : l₁ ~ l₂) : ensort l₁ = ensort l₂ :=
-eq_of_sorted_of_perm enle.trans enle.antisymm
-  (perm.trans (perm_insertion_sort _ _) $ perm.trans h (perm_insertion_sort _ _).symm)
-  (sorted_insertion_sort _ enle.total enle.trans _)
-  (sorted_insertion_sort _ enle.total enle.trans _)
-
-private def encode_multiset (s : multiset α) : nat :=
-encode $ quot.lift_on s
-  (λ l, ensort l)
-  (λ l₁ l₂ p, sorted_eq_of_perm p)
-
-private def decode_multiset (n : nat) : option (multiset α) :=
+def decode_multiset (n : ℕ) : option (multiset α) :=
 coe <$> decode (list α) n
 
-instance encodable_multiset : encodable (multiset α) :=
-⟨encode_multiset, decode_multiset, λ s, quot.induction_on s $ λ l,
-show coe <$> decode (list α) (encode (ensort l)) = some ↑l,
-by rw [encodek, ← show (ensort l:multiset α) = l,
-       from quotient.sound (perm_insertion_sort _ _)]; refl⟩
+instance multiset : encodable (multiset α) :=
+⟨encode_multiset, decode_multiset,
+ λ s, by simp [encode_multiset, decode_multiset, encodek]⟩
 
 end finset
 
@@ -198,38 +247,37 @@ variable [encA : encodable α]
 variable [decP : decidable_pred P]
 
 include encA
-private def encode_subtype : {a : α // P a} → nat
+def encode_subtype : {a : α // P a} → nat
 | ⟨v, h⟩ := encode v
 
 include decP
-private def decode_subtype (v : nat) : option {a : α // P a} :=
+def decode_subtype (v : nat) : option {a : α // P a} :=
 match decode α v with
 | some a := if h : P a then some ⟨a, h⟩ else none
 | none   := none
 end
 
-instance encodable_subtype : encodable {a : α // P a} :=
+instance subtype : encodable {a : α // P a} :=
 ⟨encode_subtype, decode_subtype,
  λ ⟨v, h⟩, by simp [encode_subtype, decode_subtype, encodek, h]⟩
 end subtype
 
-instance bool.encodable : encodable bool := encodable_of_equiv _ equiv.bool_equiv_unit_sum_unit
+instance int : encodable ℤ :=
+of_equiv _ equiv.int_equiv_nat
 
-instance int.encodable : encodable ℤ :=
-encodable_of_equiv _ equiv.int_equiv_nat
-
-instance encodable_finset [encodable α] : encodable (finset α) :=
-encodable_of_equiv {s : multiset α // s.nodup}
+instance finset [encodable α] : encodable (finset α) :=
+by haveI := decidable_eq_of_encodable α; exact
+ of_equiv {s : multiset α // s.nodup}
   ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
 
-instance encodable_ulift [encodable α] : encodable (ulift α) :=
-encodable_of_equiv _ equiv.ulift
+instance ulift [encodable α] : encodable (ulift α) :=
+of_equiv _ equiv.ulift
 
-instance encodable_plift [encodable α] : encodable (plift α) :=
-encodable_of_equiv _ equiv.plift
+instance plift [encodable α] : encodable (plift α) :=
+of_equiv _ equiv.plift
 
-noncomputable def encodable_of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
-encodable_of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 rfl)
+noncomputable def of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
+of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 rfl)
 
 end encodable
 

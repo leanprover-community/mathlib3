@@ -2556,20 +2556,20 @@ by rw [list.sorted, list.pairwise_map]; exact CNF_pairwise b o
 /-- The next fixed point function, the least fixed point of the
   normal function `f` above `a`. -/
 def nfp (f : ordinal → ordinal) (a : ordinal) :=
-sup (λ n : ℕ, n.foldr f a)
+sup (λ n : ℕ, f^[n] a)
 
-theorem foldr_le_nfp (f a n) : nat.foldr f a n ≤ nfp f a :=
+theorem iterate_le_nfp (f a n) : f^[n] a ≤ nfp f a :=
 le_sup _ n
 
 theorem le_nfp_self (f a) : a ≤ nfp f a :=
-foldr_le_nfp f a 0
+iterate_le_nfp f a 0
 
 theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} :
   f b < nfp f a ↔ b < nfp f a :=
 lt_sup.trans $ iff.trans
   (by exact
    ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.le_self _) h⟩,
-    λ ⟨n, h⟩, ⟨n+1, H.lt_iff.2 h⟩⟩)
+    λ ⟨n, h⟩, ⟨n+1, by rw nat.iterate_succ'; exact H.lt_iff.2 h⟩⟩)
   lt_sup.symm
 
 theorem is_normal.nfp_le {f} (H : is_normal f) {a b} :
@@ -2579,8 +2579,8 @@ le_iff_le_iff_lt_iff_lt.2 H.lt_nfp
 theorem is_normal.nfp_le_fp {f} (H : is_normal f) {a b}
   (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
 sup_le.2 $ λ i, begin
-  induction i with i IH, {exact ab},
-  exact le_trans (H.le_iff.2 IH) h
+  induction i with i IH generalizing a, {exact ab},
+  exact IH (le_trans (H.le_iff.2 ab) h),
 end
 
 theorem is_normal.nfp_fp {f} (H : is_normal f) (a) : f (nfp f a) = nfp f a :=
@@ -2589,13 +2589,13 @@ begin
   cases le_or_lt (f a) a with aa aa,
   { rwa le_antisymm (H.nfp_le_fp (le_refl _) aa) (le_nfp_self _ _) },
   rcases zero_or_succ_or_limit (nfp f a) with e|⟨b, e⟩|l,
-  { refine @le_trans _ _ _ (f a) _ (H.le_iff.2 _) (foldr_le_nfp f a 1),
+  { refine @le_trans _ _ _ (f a) _ (H.le_iff.2 _) (iterate_le_nfp f a 1),
     simp [e, zero_le] },
   { have : f b < nfp f a := H.lt_nfp.2 (by simp [e, lt_succ_self]),
     rw [e, lt_succ] at this,
     have ab : a ≤ b,
     { rw [← lt_succ, ← e],
-      exact lt_of_lt_of_le aa (foldr_le_nfp f a 1) },
+      exact lt_of_lt_of_le aa (iterate_le_nfp f a 1) },
     refine le_trans (H.le_iff.2 (H.nfp_le_fp ab this))
       (le_trans this (le_of_lt _)),
     simp [e, lt_succ_self] },

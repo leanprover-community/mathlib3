@@ -127,6 +127,8 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
   ⟨λ e : f₁ x = y, e ▸ (l₁ x).symm,
    λ e : x = g₁ y, e.symm ▸ r₁ y⟩
 
+@[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
+
 /- The group of permutations (self-equivalences) of a type `α` -/
 instance perm_group {α : Type u} : group (perm α) :=
 begin
@@ -241,8 +243,8 @@ by cases e₁; cases e₂; refl
 by cases e₁; cases e₂; refl
 
 def bool_equiv_unit_sum_unit : bool ≃ (punit.{u+1} ⊕ punit.{v+1}) :=
-⟨λ b, cond b (inl punit.star) (inr punit.star),
- λ s, sum.rec_on s (λ_, tt) (λ_, ff),
+⟨λ b, cond b (inr punit.star) (inl punit.star),
+ λ s, sum.rec_on s (λ_, ff) (λ_, tt),
  λ b, by cases b; refl,
  λ s, by rcases s with ⟨⟨⟩⟩ | ⟨⟨⟩⟩; refl⟩
 
@@ -424,51 +426,12 @@ def list_equiv_of_equiv {α β : Type*} : α ≃ β → list α ≃ list β
   by refine ⟨list.map f, list.map g, λ x, _, λ x, _⟩;
      simp [id_of_left_inverse l, id_of_right_inverse r]
 
-section
-open nat list
-private def list.to_nat : list ℕ → ℕ
-| []     := 0
-| (a::l) := succ (mkpair l.to_nat a)
-
-private def list.of_nat : ℕ → list ℕ
-| 0        := []
-| (succ v) := match unpair v, unpair_le v with
-  | (v₂, v₁), h :=
-    have v₂ < succ v, from lt_succ_of_le h,
-    v₁ :: list.of_nat v₂
-  end
-
-private theorem list.of_nat_to_nat : ∀ l : list ℕ, list.of_nat (list.to_nat l) = l
-| []     := rfl
-| (a::l) := by simp [list.to_nat, list.of_nat, unpair_mkpair, *]
-
-private theorem list.to_nat_of_nat : ∀ n : ℕ, list.to_nat (list.of_nat n) = n
-| 0        := rfl
-| (succ v) := begin
-  cases e : unpair v with v₁ v₂,
-  have := lt_succ_of_le (unpair_le v),
-  have IH := have v₁ < succ v, by rwa e at this, list.to_nat_of_nat v₁,
-  simp [list.of_nat, e, list.to_nat, IH, mkpair_unpair' e]
-end
-
-
-def list_nat_equiv_nat : list ℕ ≃ ℕ :=
-⟨list.to_nat, list.of_nat, list.of_nat_to_nat, list.to_nat_of_nat⟩
-
-def list_equiv_self_of_equiv_nat {α : Type} (e : α ≃ ℕ) : list α ≃ α :=
-calc list α ≃ list ℕ : list_equiv_of_equiv e
-        ... ≃ ℕ      : list_nat_equiv_nat
-        ... ≃ α      : e.symm
-end
-
-section
 def decidable_eq_of_equiv [h : decidable_eq α] : α ≃ β → decidable_eq β
 | ⟨f, g, l, r⟩ b₁ b₂ :=
   match h (g b₁) (g b₂) with
   | (is_true he) := is_true $ have f (g b₁) = f (g b₂), from congr_arg f he, by rwa [r, r] at this
   | (is_false hn) := is_false $ λeq, hn.elim $ by rw [eq]
   end
-end
 
 def inhabited_of_equiv [inhabited α] : α ≃ β → inhabited β
 | ⟨f, g, l, r⟩ := ⟨f (default _)⟩

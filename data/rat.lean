@@ -34,7 +34,7 @@ instance : has_repr ℚ := ⟨rat.repr⟩
 instance : has_to_string ℚ := ⟨rat.repr⟩
 meta instance : has_to_format ℚ := ⟨coe ∘ rat.repr⟩
 
-instance : encodable ℚ := encodable_of_equiv (Σ n : ℤ, {d : ℕ // d > 0 ∧ n.nat_abs.coprime d})
+instance : encodable ℚ := encodable.of_equiv (Σ n : ℤ, {d : ℕ // d > 0 ∧ n.nat_abs.coprime d})
   ⟨λ ⟨a, b, c, d⟩, ⟨a, b, c, d⟩, λ⟨a, b, c, d⟩, ⟨a, b, c, d⟩,
    λ ⟨a, b, c, d⟩, rfl, λ⟨a, b, c, d⟩, rfl⟩
 

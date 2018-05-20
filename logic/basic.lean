@@ -132,6 +132,12 @@ and.imp h id
 theorem and.imp_right (h : a → b) : c ∧ a → c ∧ b :=
 and.imp id h
 
+lemma and.right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b :=
+by simp [and.left_comm, and.comm]
+
+lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
+by simp [and.left_comm, and.comm]
+
 theorem and_not_self_iff (a : Prop) : a ∧ ¬ a ↔ false :=
 iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
 

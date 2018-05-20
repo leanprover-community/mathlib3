@@ -103,6 +103,9 @@ set.mem_singleton_iff
 theorem mem_pure_self (a : α) : a ∈ (pure a : semiquot α) :=
 set.mem_singleton a
 
+@[simp] theorem pure_inj {a b : α} : (pure a : semiquot α) = pure b ↔ a = b :=
+ext_s.trans set.singleton_eq_singleton_iff
+
 instance : is_lawful_monad semiquot :=
 { pure_bind  := λ α β x f, ext.2 $ by simp,
   bind_assoc := λ α β γ s f g, ext.2 $ by simp; exact
@@ -114,7 +117,7 @@ instance : is_lawful_monad semiquot :=
 instance : has_le (semiquot α) := ⟨λ s t, s.s ⊆ t.s⟩
 
 instance : partial_order (semiquot α) :=
-{ le := λ s t, s.s ⊆ t.s,
+{ le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
   le_refl := λ s, set.subset.refl _,
   le_trans := λ s t u, set.subset.trans,
   le_antisymm := λ s t h₁ h₂, ext_s.2 (set.subset.antisymm h₁ h₂) }
@@ -143,6 +146,18 @@ ext.2 $ λ a, by simp; exact
 
 @[simp] theorem pure_is_pure (a : α) : is_pure (pure a)
 | b c ab ac := by simp at *; cc
+
+theorem is_pure_iff {s : semiquot α} : is_pure s ↔ ∃ a, s = pure a :=
+⟨λ h, ⟨_, eq_pure h⟩, λ ⟨a, e⟩, e.symm ▸ pure_is_pure _⟩
+
+theorem is_pure.mono {s t : semiquot α}
+  (st : s ≤ t) (h : is_pure t) : is_pure s
+| a b as bs := h _ _ (st as) (st bs)
+
+theorem is_pure.min {s t : semiquot α} (h : is_pure t) : s ≤ t ↔ s = t :=
+⟨λ st, le_antisymm st $ by rw [eq_pure h, eq_pure (h.mono st)]; simp;
+   exact h _ _ (get_mem _) (st $ get_mem _),
+ le_of_eq⟩
 
 theorem is_pure_of_subsingleton [subsingleton α] (q : semiquot α) : is_pure q
 | a b aq bq := subsingleton.elim _ _

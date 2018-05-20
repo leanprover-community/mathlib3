@@ -11,15 +11,15 @@ open prod decidable
 namespace nat
 
 /-- Pairing function for the natural numbers. -/
-def mkpair (a b : nat) : nat :=
+def mkpair (a b : ℕ) : ℕ :=
 if a < b then b*b + a else a*a + a + b
 
 /-- Unpairing function for the natural numbers. -/
-def unpair (n : nat) : nat × nat :=
+def unpair (n : ℕ) : ℕ × ℕ :=
 let s := sqrt n in
 if n - s*s < s then (n - s*s, s) else (s, n - s*s - s)
 
-theorem mkpair_unpair (n : nat) : mkpair (unpair n).1 (unpair n).2 = n :=
+@[simp] theorem mkpair_unpair (n : ℕ) : mkpair (unpair n).1 (unpair n).2 = n :=
 let s := sqrt n in begin
   dsimp [unpair], change sqrt n with s,
   have sm : s * s + (n - s * s) = n := nat.add_sub_cancel' (sqrt_le _),
@@ -35,7 +35,7 @@ end
 theorem mkpair_unpair' {n a b} (H : unpair n = (a, b)) : mkpair a b = n :=
 by simpa [H] using mkpair_unpair n
 
-theorem unpair_mkpair (a b : nat) : unpair (mkpair a b) = (a, b) :=
+@[simp] theorem unpair_mkpair (a b : ℕ) : unpair (mkpair a b) = (a, b) :=
 begin
   by_cases a < b; simp [h, mkpair],
   { show unpair (a + b * b) = (a, b),
@@ -55,7 +55,7 @@ begin
         nat.add_sub_cancel, nat.add_sub_cancel_left] }
 end
 
-theorem unpair_lt {n : nat} (n1 : n ≥ 1) : (unpair n).1 < n :=
+theorem unpair_lt {n : ℕ} (n1 : n ≥ 1) : (unpair n).1 < n :=
 let s := sqrt n in begin
   simp [unpair], change sqrt n with s,
   by_cases h : n - s * s < s; simp [h],
@@ -65,8 +65,19 @@ let s := sqrt n in begin
     exact lt_of_le_of_lt h (nat.sub_lt_self n1 (mul_pos s0 s0)) }
 end
 
-theorem unpair_le : ∀ (n : nat), (unpair n).1 ≤ n
+theorem unpair_le_left : ∀ (n : ℕ), (unpair n).1 ≤ n
 | 0     := dec_trivial
 | (n+1) := le_of_lt (unpair_lt (nat.succ_pos _))
+
+theorem le_mkpair_left (a b : ℕ) : a ≤ mkpair a b :=
+by simpa using unpair_le_left (mkpair a b)
+
+theorem le_mkpair_right (a b : ℕ) : b ≤ mkpair a b :=
+by by_cases h : a < b; simp [mkpair, h];
+   [exact le_trans (le_mul_self _) (le_add_left _ _),
+    exact le_trans (le_add_right _ _) (le_add_left _ _)]
+
+theorem unpair_le_right (n : ℕ) : (unpair n).2 ≤ n :=
+by simpa using le_mkpair_right n.unpair.1 n.unpair.2
 
 end nat

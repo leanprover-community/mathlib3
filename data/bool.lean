@@ -24,14 +24,35 @@ show _ = to_bool false, by congr
 @[simp] lemma of_to_bool_iff {p : Prop} [decidable p] : to_bool p ↔ p :=
 ⟨of_to_bool_true, _root_.to_bool_true⟩
 
+@[simp] lemma tt_eq_to_bool_iff {p : Prop} [decidable p] : tt = to_bool p ↔ p :=
+eq_comm.trans of_to_bool_iff
+
+@[simp] lemma ff_eq_to_bool_iff {p : Prop} [decidable p] : ff = to_bool p ↔ ¬ p :=
+eq_comm.trans (to_bool_ff_iff _)
+
+@[simp] theorem to_bool_not (p : Prop) [decidable p] : to_bool (¬ p) = bnot (to_bool p) :=
+by by_cases p; simp *
+
+@[simp] theorem to_bool_and (p q : Prop) [decidable p] [decidable q] :
+  to_bool (p ∧ q) = p && q :=
+by by_cases p; by_cases q; simp *
+
+@[simp] theorem to_bool_or (p q : Prop) [decidable p] [decidable q] :
+  to_bool (p ∨ q) = p || q :=
+by by_cases p; by_cases q; simp *
+
 lemma not_ff : ¬ ff := by simp
 
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
 by cases b; simp
 
-@[simp] theorem cond_ff {A : Type} (t e : A) : cond ff t e = e := rfl
+@[simp] theorem cond_ff {α} (t e : α) : cond ff t e = e := rfl
 
-@[simp] theorem cond_tt {A : Type} (t e : A) : cond tt t e = t := rfl
+@[simp] theorem cond_tt {α} (t e : α) : cond tt t e = t := rfl
+
+@[simp] theorem cond_to_bool {α} (p : Prop) [decidable p] (t e : α) :
+  cond (to_bool p) t e = if p then t else e :=
+by by_cases p; simp *
 
 theorem eq_tt_of_ne_ff {a : bool} : a ≠ ff → a = tt :=
 by cases a; simp

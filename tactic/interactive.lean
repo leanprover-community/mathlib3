@@ -15,15 +15,26 @@ namespace tactic
 namespace interactive
 open interactive interactive.types expr
 
-meta def rcases_parse : parser (list rcases_patt) :=
+local notation `listΣ` := list_Sigma
+local notation `listΠ` := list_Pi
+
+/--
+This parser uses the "inverted" meaning for the `many` constructor:
+rather than representing a sum of products, here it represents a
+product of sums. We fix this by applying `invert`, defined below, to
+the result.
+-/
+@[reducible] def rcases_patt_inverted := rcases_patt
+
+meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
 with_desc "patt" $ let p :=
   (rcases_patt.one <$> ident_) <|>
   (rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse)) in
 list.cons <$> p <*> (tk "|" *> p)*
 
-meta def rcases_parse.invert : list rcases_patt → list (list rcases_patt) :=
-let invert' (l : list rcases_patt) : rcases_patt := match l with
-| [k] := k
+meta def rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt) :=
+let invert' (l : listΣ rcases_patt_inverted) : rcases_patt := match l with
+| [rcases_patt.one n] := rcases_patt.one n
 | _ := rcases_patt.many (rcases_parse.invert l)
 end in
 list.map $ λ p, match p with

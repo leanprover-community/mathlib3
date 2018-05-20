@@ -372,7 +372,7 @@ private lemma R_ex {s : partial_wo} (sc : s ∈ c)
   | or.inl hr@⟨f, hf⟩ := begin
       rw [← show (f ⟨b, hb⟩) = ⟨(subtype.mk b bu).val, bt⟩, from
         subtype.eq (hf _)] at h,
-      rcases f.init_iff.1 h with ⟨a', e, h'⟩, cases a' with a' ha,
+      rcases f.init_iff.1 h with ⟨⟨a', ha⟩, e, h'⟩,
       have : a' = a,
       { have := congr_arg subtype.val e, rwa hf at this },
       subst a', exact ⟨_, h'⟩
@@ -1412,8 +1412,8 @@ instance : monoid ordinal.{u} :=
   one := 1,
   mul_assoc := λ a b c, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
     eq.symm $ quotient.sound ⟨⟨equiv.prod_assoc _ _ _, λ a b, begin
-      cases a with a a₃, cases a with a₁ a₂,
-      cases b with b b₃, cases b with b₁ b₂,
+      rcases a with ⟨⟨a₁, a₂⟩, a₃⟩,
+      rcases b with ⟨⟨b₁, b₂⟩, b₃⟩,
       simp [prod.lex_def, and_or_distrib_left, or_assoc, and_assoc]
     end⟩⟩,
   mul_one := λ a, induction_on a $ λ α r _, by exact quotient.sound
@@ -1499,7 +1499,7 @@ induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
     (typein_lt_type _ a)) this,
   refine lt_of_le_of_lt (type_le'.2
     ⟨order_embedding.of_monotone (λ a, _) (λ a b, _)⟩) this,
-  { rcases a with ⟨a, h⟩, cases a with b' a',
+  { rcases a with ⟨⟨b', a'⟩, h⟩,
     by_cases e : b = b',
     { refine sum.inr ⟨a', _⟩,
       subst e, cases h with _ _ _ _ h _ _ _ h,
@@ -1508,8 +1508,8 @@ induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
     { refine sum.inl (⟨b', _⟩, a'),
       cases h with _ _ _ _ h _ _ _ h,
       { exact h }, { exact (e rfl).elim } } },
-  { rcases a with ⟨a, h₁⟩, cases a with b₁ a₁,
-    rcases b with ⟨b, h₂⟩, cases b with b₂ a₂,
+  { rcases a with ⟨⟨b₁, a₁⟩, h₁⟩,
+    rcases b with ⟨⟨b₂, a₂⟩, h₂⟩,
     intro h, by_cases e₁ : b = b₁; by_cases e₂ : b = b₂,
     { substs b₁ b₂, simpa [prod.lex_def, @irrefl _ s _ b] using h },
     { subst b₁, simp [e₂, prod.lex_def] at h ⊢,

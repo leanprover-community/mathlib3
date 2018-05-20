@@ -71,7 +71,7 @@ theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = 
 begin
   induction l with b l ih; simp at h; cases h with h h,
   { subst h, exact ⟨[], l, rfl⟩ },
-  { cases ih h with s e, cases e with t e,
+  { rcases ih h with ⟨s, t, e⟩,
     subst l, exact ⟨b::s, t, rfl⟩ }
 end
 
@@ -105,7 +105,7 @@ begin
   {simp at h, contradiction},
   {cases (eq_or_mem_of_mem_cons h) with h h,
     {existsi c, simp [h]},
-    {cases ih h with a ha, cases ha with ha₁ ha₂,
+    {rcases ih h with ⟨a, ha₁, ha₂⟩,
       existsi a, simp * }}
 end
 
@@ -1173,7 +1173,7 @@ by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _).trans (map_id l)
 
 @[simp] theorem mem_attach (l : list α) : ∀ x, x ∈ l.attach | ⟨a, h⟩ :=
 by have := mem_map.1 (by rw [attach_map_val]; exact h);
-   { rcases this with ⟨a, m, rfl⟩, cases a, exact m }
+   { rcases this with ⟨⟨_, _⟩, m, rfl⟩, exact m }
 
 @[simp] theorem mem_pmap {p : α → Prop} {f : Π a, p a → β}
   {l H b} : b ∈ pmap f l H ↔ ∃ a (h : a ∈ l), f a (H a h) = b :=

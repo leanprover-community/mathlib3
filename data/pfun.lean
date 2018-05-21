@@ -89,6 +89,9 @@ def of_option : option α → roption α
 
 instance : has_coe (option α) (roption α) := ⟨of_option⟩
 
+@[simp] theorem mem_coe {a : α} {o : option α} :
+  a ∈ (o : roption α) ↔ a ∈ o := mem_of_option
+
 @[simp] theorem coe_none : (@option.none α : roption α) = none := rfl
 @[simp] theorem coe_some (a : α) : (option.some a : roption α) = some a := rfl
 
@@ -217,6 +220,9 @@ theorem assert_defined {p : Prop} {f : p → roption α} :
 theorem bind_defined {f : roption α} {g : α → roption β} :
   ∀ (h : f.dom), (g (f.get h)).dom → (f.bind g).dom := assert_defined
 
+@[simp] theorem bind_dom {f : roption α} {g : α → roption β} :
+  (f.bind g).dom ↔ ∃ h : f.dom, (g (f.get h)).dom := iff.rfl
+
 end roption
 
 /-- `pfun α β`, or `α →. β`, is the type of partial functions from
@@ -320,7 +326,7 @@ theorem dom_of_mem_fix {f : α →. β ⊕ α} {a : α} {b : β}
 let ⟨h₁, h₂⟩ := roption.mem_assert_iff.1 h in
 by rw well_founded.fix_F_eq at h₂; exact h₂.fst.fst
 
-theorem mem_fix_iff (f : α →. β ⊕ α) (a : α) {b : β} :
+theorem mem_fix_iff {f : α →. β ⊕ α} {a : α} {b : β} :
   b ∈ fix f a ↔ sum.inl b ∈ f a ∨ ∃ a', sum.inr a' ∈ f a ∧ b ∈ fix f a' :=
 ⟨λ h, let ⟨h₁, h₂⟩ := roption.mem_assert_iff.1 h in
   begin
@@ -344,5 +350,19 @@ theorem mem_fix_iff (f : α →. β ⊕ α) (a : α) {b : β} :
     { cases h with h₁ h₂,
       rw well_founded.fix_F_eq, simp [h₁, h₂, h₄] } }
 end⟩
+
+theorem fix_induction {f : α →. β ⊕ α} {b : β}
+  {C : α → Sort*} {a : α} (h : b ∈ fix f a)
+  (H : ∀ a, b ∈ fix f a →
+    (∀ a', b ∈ fix f a' → sum.inr a' ∈ f a → C a') → C a) : C a :=
+begin
+  replace h := roption.mem_assert_iff.1 h,
+  have := h.snd, revert this,
+  induction h.fst with a ha IH, intro h₂,
+  refine H a (roption.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩)
+    (λ a' ha' fa', _),
+  have := (roption.mem_assert_iff.1 ha').snd,
+  exact IH _ fa' ⟨ha _ fa', this⟩ this
+end
 
 end pfun

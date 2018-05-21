@@ -478,9 +478,7 @@ encode_iff.1 $
   (primrec₂.nat_iff'.1 hg).comp₂
     ((@primrec.encode α _).comp fst).to₂
     primrec₂.right).of_eq $
-λ a, begin
-  cases o a with b; simp [encodek]; refl
-end
+λ a, by cases o a with b; simp [encodek]; refl
 
 theorem option_bind {f : α → option β} {g : α → β → option σ}
   (hf : primrec f) (hg : primrec₂ g) :
@@ -501,6 +499,10 @@ option_map primrec.id (hf.comp snd).to₂
 
 theorem option_iget [inhabited α] : primrec (@option.iget α _) :=
 (option_cases primrec.id (const $ default α) primrec₂.right).of_eq $
+λ o, by cases o; refl
+
+theorem option_is_some [inhabited α] : primrec (@option.is_some α) :=
+(option_cases primrec.id (const ff) (const tt).to₂).of_eq $
 λ o, by cases o; refl
 
 theorem bind_decode_iff {f : α → β → option σ} : primrec₂ (λ a n,
@@ -542,6 +544,9 @@ theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
   { simp [nat.sub_eq_zero_iff_le.1 e] },
   { simp [not_le.2 (nat.lt_of_sub_eq_succ e)] }
 end
+
+theorem nat_min : primrec₂ (@min ℕ _) := ite nat_le fst snd
+theorem nat_max : primrec₂ (@max ℕ _) := ite nat_le snd fst
 
 theorem dom_bool (f : bool → α) : primrec f :=
 (cond primrec.id (const (f tt)) (const (f ff))).of_eq $
@@ -891,6 +896,11 @@ theorem list_map
 (list_foldr hf (const []) $ to₂ $ list_cons.comp
   (hg.comp fst (fst.comp snd)) (snd.comp snd)).of_eq $
 λ a, by induction f a; simp *
+
+theorem list_range : primrec list.range :=
+(nat_elim' primrec.id (const [])
+  ((list_concat.comp snd fst).comp snd).to₂).of_eq $
+λ n, by simp; induction n; simp [*, list.range_concat]; refl
 
 theorem list_join : primrec (@list.join α) :=
 (list_foldr primrec.id (const []) $ to₂ $

@@ -26,10 +26,17 @@ theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
 @[simp] theorem some_bind (a : α) (f : α → option β) : some a >>= f = f a := rfl
 
+@[simp] theorem none_bind' (f : α → option β) : none.bind f = none := rfl
+
+@[simp] theorem some_bind' (a : α) (f : α → option β) : (some a).bind f = f a := rfl
+
 @[simp] theorem bind_some : ∀ x : option α, x >>= some = x :=
 @bind_pure α option _ _
 
 @[simp] theorem bind_eq_some {x : option α} {f : α → option β} {b : β} : x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
+by cases x; simp
+
+@[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
 @[simp] theorem map_none {f : α → β} : f <$> none = none := rfl
@@ -41,6 +48,9 @@ by cases x; simp
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
 
 @[simp] theorem map_eq_some {x : option α} {f : α → β} {b : β} : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
+by cases x; simp
+
+@[simp] theorem map_eq_some' {x : option α} {f : α → β} {b : β} : x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
 @[simp] theorem map_id' : option.map (@id α) = id := map_id
@@ -80,6 +90,10 @@ theorem iget_mem [inhabited α] : ∀ {o : option α}, is_some o → o.iget ∈ 
 theorem iget_of_mem [inhabited α] {a : α} : ∀ {o : option α}, a ∈ o → o.iget = a
 | _ rfl := rfl
 
+@[simp] theorem guard_eq_some' {p : Prop} [decidable p] :
+  ∀ u, guard p = some u ↔ p
+| () := by by_cases p; simp [guard, h, pure]; intro; contradiction
+
 /-- `guard p a` returns `some a` if `p a` holds, otherwise `none`. -/
 def guard (p : α → Prop) [decidable_pred p] (a : α) : option α :=
 if p a then some a else none
@@ -90,7 +104,7 @@ def filter (p : α → Prop) [decidable_pred p] (o : option α) : option α :=
 o.bind (guard p)
 
 @[simp] theorem guard_eq_some {p : α → Prop} [decidable_pred p] {a b : α} :
-  option.guard p a = some b ↔ a = b ∧ p a :=
+  guard p a = some b ↔ a = b ∧ p a :=
 by by_cases p a; simp [option.guard, h]; intro; contradiction
 
 def to_list : option α → list α

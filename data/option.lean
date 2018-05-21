@@ -123,4 +123,26 @@ def to_list : option α → list α
 @[simp] theorem mem_to_list {a : α} {o : option α} : a ∈ to_list o ↔ a ∈ o :=
 by cases o; simp [to_list, eq_comm]
 
+def lift_or_get (f : α → α → α) : option α → option α → option α
+| none     none     := none
+| (some a) none     := some a       -- get a
+| none     (some b) := some b       -- get b
+| (some a) (some b) := some (f a b) -- lift f
+
+instance lift_or_get_comm (f : α → α → α) [h : is_commutative α f] :
+  is_commutative (option α) (lift_or_get f) :=
+⟨λ a b, by cases a; cases b; simp [lift_or_get, h.comm]⟩
+
+instance lift_or_get_assoc (f : α → α → α) [h : is_associative α f] :
+  is_associative (option α) (option.lift_or_get f) :=
+⟨λ a b c, by cases a; cases b; cases c; simp [lift_or_get, h.assoc]⟩
+
+@[simp] theorem lift_or_get_is_some_left (f : α → α → α) (a : α) (o : option α) :
+  (lift_or_get f (some a) o).is_some :=
+by cases o; simp [lift_or_get, is_some]
+
+@[simp] theorem lift_or_get_is_some_right (f : α → α → α) (a : α) (o : option α) :
+  (lift_or_get f o (some a)).is_some :=
+by cases o; simp [lift_or_get, is_some]
+
 end option

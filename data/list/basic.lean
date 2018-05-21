@@ -2149,6 +2149,15 @@ end
 else by simp [hb, mt mem_of_mem_erase hb]
 else by simp [ha, mt mem_of_mem_erase ha]
 
+theorem map_erase [decidable_eq β] {f : α → β} (finj : injective f) {a : α} :
+  ∀ (l : list α), map f (l.erase a) = (map f l).erase (f a)
+| []     := by simp [list.erase]
+| (b::l) := if h : f b = f a then by simp [h, finj h] else by simp [h, mt (congr_arg f) h, map_erase l]
+
+theorem map_foldl_erase [decidable_eq β] {f : α → β} (finj : injective f) {l₁ l₂ : list α} :
+  map f (foldl list.erase l₁ l₂) = foldl (λ l a, l.erase (f a)) (map f l₁) l₂ :=
+by induction l₂ generalizing l₁; simp [map_erase finj, *]
+
 end erase
 
 /- diff -/
@@ -2166,6 +2175,11 @@ theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.e
 
 @[simp] theorem diff_append (l₁ l₂ l₃ : list α) : l₁.diff (l₂ ++ l₃) = (l₁.diff l₂).diff l₃ :=
 by simp [diff_eq_foldl]
+
+@[simp] theorem map_diff [decidable_eq β] {f : α → β} (finj : injective f) {l₁ l₂ : list α} :
+  map f (l₁.diff l₂) = (map f l₁).diff (map f l₂) :=
+by simp [diff_eq_foldl, map_foldl_erase finj]
+
 
 end diff
 

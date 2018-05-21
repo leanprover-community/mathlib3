@@ -1047,65 +1047,47 @@ end fold
 section max_min
 variables [decidable_linear_order α]
 
-def max (a : α) : finset α → α :=
-fold _root_.max a id
+protected def max : finset α → option α :=
+fold (option.lift_or_get max) none some
 
-@[simp] theorem max_empty {a : α} : max a (∅ : finset α) = a :=
-by simp [max]
+@[simp] theorem max_empty : (∅ : finset α).max = none :=
+by simp [finset.max]
 
-@[simp] theorem max_insert {a b : α} {s : finset α} (h : a ∉ s) :
-  max b (insert a s) = _root_.max a (max b s) :=
-by simp [max, fold_insert h]
+@[simp] theorem max_insert {a : α} {s : finset α} (h : a ∉ s) :
+  (insert a s).max = option.lift_or_get max (some a) s.max :=
+by simp [finset.max, fold_insert h]
 
-@[simp] theorem max_singleton {a b : α} : max b {a} = _root_.max a b :=
-by simp [max]
+@[simp] theorem max_singleton {a : α} : finset.max {a} = some a :=
+by simp [finset.max, option.lift_or_get]
 
-theorem le_max_left (a : α) (s : finset α) : a ≤ max a s :=
-finset.induction_on s
-  (by rw max_empty)
-  (λ b s (hnm : b ∉ s) (ih : a ≤ max a s),
-   by rw max_insert hnm; exact le_trans ih (le_max_right b (max a s)))
+theorem le_max_of_mem {s : finset α} : ∀ {a : α}, a ∈ s → ∃ b, a ≤ b :=
+finset.induction_on s (by simp) $
+  λ c s _ (ih : ∀ {a : α}, a ∈ s → ∃ b, a ≤ b) a (h : a ∈ insert c s),
+    match mem_insert.mp h with
+    | or.inl p := ⟨c, by clear _match; induction p; exact le_refl a⟩
+    | or.inr p := ih p
+    end
 
-theorem le_max_of_mem {a b : α} {s : finset α} (h : a ≤ b) : a ∈ s → a ≤ max b s :=
-finset.induction_on s
-  (λ _, by simp only [max_empty, h])
-  (λ c s (hnm : c ∉ s) (ih : a ∈ s → a ≤ max b s) (hins : a ∈ insert c s),
-   begin
-     rw max_insert hnm,
-     cases mem_insert.mp hins,
-     case or.inl : p { simp only [p, _root_.le_max_left] },
-     case or.inr : p { exact le_trans (ih p) (le_max_right c (max b s)) }
-   end)
+protected def min : finset α → option α :=
+fold (option.lift_or_get min) none some
 
-def min (a : α) : finset α → α :=
-fold _root_.min a id
+@[simp] theorem min_empty : (∅ : finset α).min = none :=
+by simp [finset.min]
 
-@[simp] theorem min_empty {a : α} : min a (∅ : finset α) = a :=
-by simp [min]
+@[simp] theorem min_insert {a : α} {s : finset α} (h : a ∉ s) :
+  (insert a s).min = option.lift_or_get min (some a) s.min :=
+by simp [finset.min, fold_insert h]
 
-@[simp] theorem min_insert {a b : α} {s : finset α} (h : a ∉ s) :
-  min b (insert a s) = _root_.min a (min b s) :=
-by simp [min, fold_insert h]
+@[simp] theorem min_singleton {a : α} : finset.min {a} = some a :=
+by simp [finset.min, option.lift_or_get]
 
-@[simp] theorem min_singleton {a b : α} : min b {a} = _root_.min a b :=
-by simp [min]
-
-theorem min_le_left (a : α) (s : finset α) : min a s ≤ a :=
-finset.induction_on s
-  (by rw min_empty)
-  (λ b s (hnm : b ∉ s) (ih : min a s ≤ a),
-   by rw min_insert hnm; exact le_trans (min_le_right b (min a s)) ih)
-
-theorem min_le_of_mem {a b : α} {s : finset α} (h : a ≤ b) : b ∈ s → min a s ≤ b :=
-finset.induction_on s
-  (λ _, by simp only [min_empty, h])
-  (λ c s (hnm : c ∉ s) (ih : b ∈ s → min a s ≤ b) (hins : b ∈ insert c s),
-   begin
-     rw min_insert hnm,
-     cases mem_insert.mp hins,
-     case or.inl : p { simp only [p, _root_.min_le_left] },
-     case or.inr : p { exact le_trans (min_le_right c (min a s)) (ih p) }
-   end)
+theorem min_le_of_mem {s : finset α} : ∀ {b : α}, b ∈ s → ∃ a, a ≤ b :=
+finset.induction_on s (by simp) $
+  λ c s _ (ih : ∀ {b : α}, b ∈ s → ∃ a, a ≤ b) b (h : b ∈ insert c s),
+    match mem_insert.mp h with
+    | or.inl p := ⟨c, by clear _match; induction p; exact le_refl b⟩
+    | or.inr p := ih p
+    end
 
 end max_min
 

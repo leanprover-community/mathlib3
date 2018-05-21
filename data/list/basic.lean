@@ -1807,7 +1807,7 @@ theorem sublists_aux_eq_foldr.aux {a : α} {l : list α}
       sublists_aux l f = foldr f [] (sublists_aux l cons))
   (f : list α → list β → list β) : sublists_aux (a::l) f = foldr f [] (sublists_aux (a::l) cons) :=
 begin
-  simp [sublists_aux], rw [IH₂, IH₁], congr_n 1,
+  simp [sublists_aux], rw [IH₂, IH₁], congr' 1,
   induction sublists_aux l cons with _ _ ih; simp *
 end
 

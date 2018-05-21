@@ -146,15 +146,15 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
-/-- Same as the `congr` tactic, but only works up to depth `n`. This
-  is useful when the `congr` tactic is too aggressive in breaking
-  down the goal. For example, given `⊢ f (g (x + y)) = f (g (y + x))`,
-  `congr` produces the goals `⊢ x = y` and `⊢ y = x`, while
-  `congr_n 2` produces the intended `⊢ x + y = y + x`. -/
-meta def congr_n : nat → tactic unit
-| 0     := failed
-| (n+1) := focus1 (try assumption >> congr_core >>
-  all_goals (try reflexivity >> try (congr_n n)))
+/-- Same as the `congr` tactic, but takes an optional argument which gives
+  the depth of recursive applications. This is useful when `congr`
+  is too aggressive in breaking down the goal. For example, given
+  `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
+  and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
+meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
+| (some 0) := failed
+| o        := focus1 (assumption <|> (congr_core >>
+  all_goals (reflexivity <|> try (congr' (nat.pred <$> o)))))
 
 /-- Acts like `have`, but removes a hypothesis with the same name as
   this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
@@ -403,7 +403,7 @@ do v ← mk_mvar,
      else refine ``(eq.mpr %%v %%r),
    gs ← get_goals,
    set_goals [v],
-   (option.cases_on n congr congr_n : tactic unit),
+   congr' n,
    gs' ← get_goals,
    set_goals $ gs' ++ gs
 

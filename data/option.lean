@@ -160,5 +160,12 @@ theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f 
 | (some a) none     := or.inl rfl
 | none     (some b) := or.inr rfl
 | (some a) (some b) := by simpa [lift_or_get] using h a b
+section rel
+
+inductive rel {α : Type*} {β : Type*} (r : α → β → Prop) : option α → option β → Prop
+| some {a b} : r a b → rel (some a) (some b)
+| none {}    : rel none none
+
+end rel
 
 end option

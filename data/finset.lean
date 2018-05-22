@@ -1053,20 +1053,20 @@ fold (option.lift_or_get max) none some
 @[simp] theorem max_empty : (∅ : finset α).max = none :=
 by simp [finset.max]
 
-@[simp] theorem max_insert {a : α} {s : finset α} (h : a ∉ s) :
+@[simp] theorem max_insert {a : α} {s : finset α} :
   (insert a s).max = option.lift_or_get max (some a) s.max :=
-by simp [finset.max, fold_insert h]
+by simp [finset.max, fold_insert_idem]
 
 @[simp] theorem max_singleton {a : α} : finset.max {a} = some a :=
 by simp [finset.max, option.lift_or_get]
 
-theorem le_max_of_mem {s : finset α} : ∀ {a : α}, a ∈ s → ∃ b, a ≤ b :=
-finset.induction_on s (by simp) $
-  λ c s _ (ih : ∀ {a : α}, a ∈ s → ∃ b, a ≤ b) a (h : a ∈ insert c s),
-    match mem_insert.mp h with
-    | or.inl p := ⟨c, by clear _match; induction p; exact le_refl a⟩
-    | or.inr p := ih p
-    end
+theorem le_max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b ∈ s.max, a ≤ b :=
+begin
+  rw [←insert_erase h, max_insert],
+  cases (erase s a).max,
+  case option.none { exact ⟨a, rfl, le_refl a⟩ },
+  case option.some : b { exact ⟨max a b, rfl, le_max_left a b⟩ },
+end
 
 protected def min : finset α → option α :=
 fold (option.lift_or_get min) none some
@@ -1074,20 +1074,20 @@ fold (option.lift_or_get min) none some
 @[simp] theorem min_empty : (∅ : finset α).min = none :=
 by simp [finset.min]
 
-@[simp] theorem min_insert {a : α} {s : finset α} (h : a ∉ s) :
+@[simp] theorem min_insert {a : α} {s : finset α} :
   (insert a s).min = option.lift_or_get min (some a) s.min :=
-by simp [finset.min, fold_insert h]
+by simp [finset.min, fold_insert_idem]
 
 @[simp] theorem min_singleton {a : α} : finset.min {a} = some a :=
 by simp [finset.min, option.lift_or_get]
 
-theorem min_le_of_mem {s : finset α} : ∀ {b : α}, b ∈ s → ∃ a, a ≤ b :=
-finset.induction_on s (by simp) $
-  λ c s _ (ih : ∀ {b : α}, b ∈ s → ∃ a, a ≤ b) b (h : b ∈ insert c s),
-    match mem_insert.mp h with
-    | or.inl p := ⟨c, by clear _match; induction p; exact le_refl b⟩
-    | or.inr p := ih p
-    end
+theorem min_le_of_mem {s : finset α} {b : α} (h : b ∈ s) : ∃ a ∈ s.min, a ≤ b :=
+begin
+  rw [←insert_erase h, min_insert],
+  cases (erase s b).min,
+  case option.none { exact ⟨b, rfl, le_refl b⟩ },
+  case option.some : a { exact ⟨min b a, rfl, min_comm a b ▸ min_le_right a b⟩ },
+end
 
 end max_min
 

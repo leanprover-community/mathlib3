@@ -111,15 +111,11 @@ instance lift_or_get_comm (f : α → α → α) [h : is_commutative α f] :
 ⟨λ a b, by cases a; cases b; simp [lift_or_get, h.comm]⟩
 
 instance lift_or_get_assoc (f : α → α → α) [h : is_associative α f] :
-  is_associative (option α) (option.lift_or_get f) :=
+  is_associative (option α) (lift_or_get f) :=
 ⟨λ a b c, by cases a; cases b; cases c; simp [lift_or_get, h.assoc]⟩
 
-@[simp] theorem lift_or_get_is_some_left (f : α → α → α) (a : α) (o : option α) :
-  (lift_or_get f (some a) o).is_some :=
-by cases o; simp [lift_or_get, is_some]
-
-@[simp] theorem lift_or_get_is_some_right (f : α → α → α) (a : α) (o : option α) :
-  (lift_or_get f o (some a)).is_some :=
-by cases o; simp [lift_or_get, is_some]
+instance lift_or_get_idem (f : α → α → α) [h : is_idempotent α f] :
+  is_idempotent (option α) (lift_or_get f) :=
+⟨λ a, by cases a; simp [lift_or_get, h.idempotent]⟩
 
 end option

@@ -399,7 +399,6 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
   le_inf       := assume a b c, le_min,
   ..o }
 
-
 instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
@@ -409,3 +408,11 @@ instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_
   ..lattice.lattice_of_decidable_linear_order }
 
 end lattice
+
+section max_min_idem
+variables {α : Type*} [decidable_linear_order α]
+
+instance max_idem : is_idempotent α max := ⟨λ a, lattice.sup_idem⟩
+instance min_idem : is_idempotent α min := ⟨λ a, lattice.inf_idem⟩
+
+end max_min_idem

@@ -34,6 +34,8 @@ instance : has_mem α (roption α) := ⟨roption.mem⟩
 theorem dom_iff_mem : ∀ {o : roption α}, o.dom ↔ ∃y, y ∈ o
 | ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨_, h, rfl⟩, h⟩
 
+theorem get_mem {o : roption α} (h) : get o h ∈ o := ⟨_, rfl⟩
+
 /-- `roption` extensionality -/
 def ext {o p : roption α} (H : ∀ a, a ∈ o ↔ a ∈ p) : o = p :=
 ext' ⟨λ h, ((H _).1 ⟨h, rfl⟩).fst,
@@ -52,6 +54,9 @@ def some (a : α) : roption α := ⟨true, λ_, a⟩
 theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
 | _ ⟨p, f⟩ _ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
+theorem get_eq_of_mem {o : roption α} {a} (h : a ∈ o) (h') : get o h' = a :=
+mem_unique ⟨_, rfl⟩ h
+
 theorem mem_some (a : α) : a ∈ some a := ⟨trivial, rfl⟩
 
 @[simp] theorem mem_some_iff {a b} : b ∈ (some a : roption α) ↔ b = a :=
@@ -64,6 +69,9 @@ theorem eq_some_iff {a : α} {o : roption α} : o = some a ↔ a ∈ o :=
 theorem eq_none_iff {o : roption α} : o = none ↔ ∀ a, a ∉ o :=
 ⟨λ e, e.symm ▸ not_mem_none,
  λ h, ext (by simpa [not_mem_none])⟩
+
+theorem eq_none_iff' {o : roption α} : o = none ↔ ¬ o.dom :=
+⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
 
 instance none_decidable : decidable (@none α).dom := decidable.false
 instance some_decidable (a : α) : decidable (some a).dom := decidable.true
@@ -193,6 +201,9 @@ instance : is_lawful_monad roption :=
 
 theorem map_id' {f : α → α} (H : ∀ (x : α), f x = x) (o) : map f o = o :=
 by rw [show f = id, from funext H]; exact id_map o
+
+@[simp] theorem bind_some_right (x : roption α) : x.bind some = x :=
+by rw [bind_some_eq_map]; simp [map_id']
 
 @[simp] theorem ret_eq_some (a : α) : return a = some a := rfl
 

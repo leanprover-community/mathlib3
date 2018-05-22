@@ -45,6 +45,15 @@ namespace nat.partrec.code
 open nat (mkpair unpair)
 open nat.partrec (code)
 
+protected def const : ℕ → code
+| 0     := zero
+| (n+1) := comp succ (const n)
+
+protected def id : code := pair left right
+
+def curry (c : code) (n : ℕ) : code :=
+comp c (pair (code.const n) code.id)
+
 def encode_code : code → ℕ
 | zero         := 0
 | succ         := 1
@@ -482,6 +491,24 @@ def eval : code → ℕ →. ℕ
 
 instance : has_mem (ℕ →. ℕ) code := ⟨λ f c, eval c = f⟩
 
+@[simp] theorem eval_const : ∀ n m, eval (code.const n) m = roption.some n
+| 0     m := rfl
+| (n+1) m := by simp! *
+
+@[simp] theorem eval_id (n) : eval code.id n = roption.some n := by simp! [(<*>)]
+
+@[simp] theorem eval_curry (c n x) : eval (curry c n) x = eval c (mkpair n x) :=
+by simp! [(<*>)]
+
+theorem const_prim : primrec code.const :=
+(primrec.id.nat_iterate (primrec.const zero)
+  (comp_prim.comp (primrec.const succ) primrec.snd).to₂).of_eq $
+λ n, by simp; induction n; simp [*, code.const, nat.iterate_succ']
+
+theorem curry_prim : primrec₂ curry :=
+comp_prim.comp primrec.fst $
+pair_prim.comp (const_prim.comp primrec.snd) (primrec.const code.id)
+
 theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c = f :=
 ⟨λ h, begin
   induction h,
@@ -500,7 +527,7 @@ theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c 
     exact ⟨prec cf cg, rfl⟩ },
   case nat.partrec.rfind : f pf hf {
     rcases hf with ⟨cf, rfl⟩,
-    refine ⟨comp (rfind' cf) (pair (pair left right) zero), _⟩,
+    refine ⟨comp (rfind' cf) (pair code.id zero), _⟩,
     simp [eval, (<*>), pure, pfun.pure, roption.map_id'] },
 end, λ h, begin
   rcases h with ⟨c, rfl⟩, induction c,
@@ -671,29 +698,6 @@ end, λ ⟨k, h⟩, evaln_sound h⟩
 
 section
 open primrec
-
-/-
-def evaln : ∀ k : ℕ, code → ℕ → option ℕ
-| 0     _            := λ m, option.none
-| (k+1) zero         := λ n, guard (n ≤ k) >> pure 0
-| (k+1) succ         := λ n, guard (n ≤ k) >> pure (nat.succ n)
-| (k+1) left         := λ n, guard (n ≤ k) >> pure n.unpair.1
-| (k+1) right        := λ n, guard (n ≤ k) >> pure n.unpair.2
-| (k+1) (pair cf cg) := λ n, guard (n ≤ k) >>
-  mkpair <$> evaln (k+1) cf n <*> evaln (k+1) cg n
-| (k+1) (comp cf cg) := λ n, guard (n ≤ k) >>
-  do x ← evaln (k+1) cg n, evaln (k+1) cf x
-| (k+1) (prec cf cg) := λ n, guard (n ≤ k) >>
-  n.unpaired (λ a n,
-  n.cases (evaln (k+1) cf a) $ λ y, do
-    i ← evaln k (prec cf cg) (mkpair a y),
-    evaln (k+1) cg (mkpair a (mkpair y i)))
-| (k+1) (rfind' cf)  := λ n, guard (n ≤ k) >>
-  n.unpaired (λ a m, do
-  x ← evaln (k+1) cf (mkpair a m),
-  if x = 0 then pure m else
-  evaln k (rfind' cf) (mkpair a (m+1)))
--/
 
 private def lup (L : list (list (option ℕ))) (p : ℕ × code) (n : ℕ) :=
 do l ← L.nth (encode p), o ← l.nth n, o
@@ -874,26 +878,36 @@ section
 open partrec computable
 
 theorem eval_part : partrec₂ eval :=
-begin
-  have := (evaln_prim.to_comp.comp
-    ((snd.pair (fst.comp fst)).pair (snd.comp fst))).to₂,
-  have : partrec (λ a : code × ℕ,
-    (nat.rfind (λ k, (evaln k a.1 a.2).is_some)).bind
-      (λ k, evaln k a.1 a.2)) :=
-    (rfind (primrec.option_is_some.to_comp.comp₂ this).part).bind
-      (of_option this),
-  refine this.of_eq (λ a,
-    roption.ext (λ x, iff.trans _ evaln_complete.symm)),
+(rfind_opt (evaln_prim.to_comp.comp
+  ((snd.pair (fst.comp fst)).pair (snd.comp fst))).to₂).of_eq $
+λ a, roption.ext $ λ x, begin
   simp,
-  refine ⟨λ ⟨k, _, h⟩, ⟨k, h⟩, λ h, _⟩,
-  existsi nat.find h,
-  have hf := nat.find_spec h,
-  simp [hf, option.is_some],
-  intros m hm,
-  cases e : evaln m a.1 a.2 with y, {refl},
-  exact (nat.find_min h hm).elim
-    (e.trans $ (evaln_mono (le_of_lt hm) e).symm.trans hf)
+  refine (nat.rfind_opt_mono _).trans evaln_complete.symm,
+  intros a m n hl, apply evaln_mono hl,
 end
+
+theorem fixed_point
+  {f : code → code} (hf : computable f) : ∃ c : code, eval (f c) = eval c :=
+begin
+  let g : ℕ → ℕ →. ℕ := λ x y,
+    roption.bind (eval (of_nat code x) x) (λ b, eval (of_nat code b) y),
+  have : partrec₂ g :=
+    (eval_part.comp ((computable.of_nat _).comp fst) fst).bind
+    (eval_part.comp ((computable.of_nat _).comp snd) (snd.comp fst)).to₂,
+  rcases exists_code.1 this with ⟨cg, eg⟩,
+  have := hf.comp (curry_prim.comp (primrec.const cg) primrec.id).to_comp,
+  rcases exists_code.1 this with ⟨cF, eF⟩,
+  refine ⟨curry cg (encode cF), funext $ λ n, _⟩,
+  have := congr_fun eF (encode cF), simp at this,
+  simp [eg, this, roption.map_id', g]
+end
+
+theorem fixed_point₂
+  {f : code → ℕ →. ℕ} (hf : partrec₂ f) : ∃ c : code, eval c = f c :=
+let ⟨cf, ef⟩ := exists_code.1 hf in
+(fixed_point (curry_prim.comp
+  (primrec.const cf) primrec.encode).to_comp).imp $
+λ c e, funext $ λ n, by simp [e.symm, ef, roption.map_id']
 
 end
 

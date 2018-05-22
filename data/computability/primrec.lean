@@ -501,7 +501,7 @@ theorem option_iget [inhabited α] : primrec (@option.iget α _) :=
 (option_cases primrec.id (const $ default α) primrec₂.right).of_eq $
 λ o, by cases o; refl
 
-theorem option_is_some [inhabited α] : primrec (@option.is_some α) :=
+theorem option_is_some : primrec (@option.is_some α) :=
 (option_cases primrec.id (const ff) (const tt).to₂).of_eq $
 λ o, by cases o; refl
 
@@ -586,6 +586,22 @@ have primrec_rel (λ a b : ℕ, a = b), from
   (primrec.encode.comp₂ primrec₂.left)
   (primrec.encode.comp₂ primrec₂.right)).of_eq $
 λ a b, encode_injective.eq_iff
+
+theorem option_guard {p : α → β → Prop}
+  [∀ a b, decidable (p a b)] (hp : primrec_rel p)
+  {f : α → β} (hf : primrec f) :
+  primrec (λ a, option.guard (p a) (f a)) :=
+ite (hp.comp primrec.id hf) (option_some_iff.2 hf) (const none)
+
+theorem option_orelse :
+  primrec₂ ((<|>) : option α → option α → option α) :=
+(option_cases fst snd (fst.comp fst).to₂).of_eq $
+λ ⟨o₁, o₂⟩, by cases o₁; cases o₂; refl
+
+protected theorem decode2 : primrec (decode2 α) :=
+option_bind primrec.decode $
+option_guard ((@primrec.eq _ _ nat.decidable_eq).comp
+  (encode_iff.2 snd) (fst.comp fst)) snd
 
 theorem list_find_index₁ {p : α → β → Prop}
   [∀ a b, decidable (p a b)] (hp : primrec_rel p) :

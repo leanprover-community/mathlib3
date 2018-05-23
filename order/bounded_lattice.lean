@@ -17,6 +17,132 @@ variable {α : Type u}
 
 namespace lattice
 
+/-- Typeclass for the `⊤` (`\top`) notation -/
+class has_top (α : Type u) := (top : α)
+/-- Typeclass for the `⊥` (`\bot`) notation -/
+class has_bot (α : Type u) := (bot : α)
+
+notation `⊤` := has_top.top _
+notation `⊥` := has_bot.bot _
+
+/-- An `order_top` is a partial order with a maximal element.
+  (We could state this on preorders, but then it wouldn't be unique
+  so distinguishing one would seem odd.) -/
+class order_top (α : Type u) extends has_top α, partial_order α :=
+(le_top : ∀ a : α, a ≤ ⊤)
+
+section order_top
+variables [order_top α] {a : α}
+
+@[simp] theorem le_top : a ≤ ⊤ :=
+order_top.le_top a
+
+theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
+le_antisymm le_top h
+
+-- TODO: delete in favor of the next?
+theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
+⟨assume eq, eq.symm ▸ le_refl ⊤, top_unique⟩
+
+@[simp] theorem top_le_iff : ⊤ ≤ a ↔ a = ⊤ :=
+⟨top_unique, λ h, h.symm ▸ le_refl ⊤⟩
+
+@[simp] theorem not_top_lt : ¬ ⊤ < a :=
+assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
+
+end order_top
+
+/-- An `order_bot` is a partial order with a minimal element.
+  (We could state this on preorders, but then it wouldn't be unique
+  so distinguishing one would seem odd.) -/
+class order_bot (α : Type u) extends has_bot α, partial_order α :=
+(bot_le : ∀ a : α, ⊥ ≤ a)
+
+section order_bot
+variables [order_bot α] {a : α}
+
+@[simp] theorem bot_le : ⊥ ≤ a := order_bot.bot_le a
+
+theorem bot_unique (h : a ≤ ⊥) : a = ⊥ :=
+le_antisymm h bot_le
+
+-- TODO: delete?
+theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
+⟨assume eq, eq.symm ▸ le_refl ⊥, bot_unique⟩
+
+@[simp] theorem le_bot_iff : a ≤ ⊥ ↔ a = ⊥ :=
+⟨bot_unique, assume h, h.symm ▸ le_refl ⊥⟩
+
+@[simp] theorem not_lt_bot : ¬ a < ⊥ :=
+assume h, lt_irrefl a (lt_of_lt_of_le h bot_le)
+
+theorem neq_bot_of_le_neq_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
+assume ha, hb $ bot_unique $ ha ▸ hab
+
+end order_bot
+
+/-- A `semilattice_sup_top` is a semilattice with top and join. -/
+class semilattice_sup_top (α : Type u) extends order_top α, semilattice_sup α
+
+section semilattice_sup_top
+variables [semilattice_sup_top α] {a : α}
+
+@[simp] theorem top_sup_eq : ⊤ ⊔ a = ⊤ :=
+sup_of_le_left le_top
+
+@[simp] theorem sup_top_eq : a ⊔ ⊤ = ⊤ :=
+sup_of_le_right le_top
+
+end semilattice_sup_top
+
+/-- A `semilattice_sup_bot` is a semilattice with bottom and join. -/
+class semilattice_sup_bot (α : Type u) extends order_bot α, semilattice_sup α
+
+section semilattice_sup_bot
+variables [semilattice_sup_bot α] {a b : α}
+
+@[simp] theorem bot_sup_eq : ⊥ ⊔ a = a :=
+sup_of_le_right bot_le
+
+@[simp] theorem sup_bot_eq : a ⊔ ⊥ = a :=
+sup_of_le_left bot_le
+
+@[simp] theorem sup_eq_bot_iff : a ⊔ b = ⊥ ↔ (a = ⊥ ∧ b = ⊥) :=
+by rw [eq_bot_iff, sup_le_iff]; simp
+
+end semilattice_sup_bot
+
+/-- A `semilattice_inf_top` is a semilattice with top and meet. -/
+class semilattice_inf_top (α : Type u) extends order_top α, semilattice_inf α
+
+section semilattice_inf_top
+variables [semilattice_inf_top α] {a b : α}
+
+@[simp] theorem top_inf_eq : ⊤ ⊓ a = a :=
+inf_of_le_right le_top
+
+@[simp] theorem inf_top_eq : a ⊓ ⊤ = a :=
+inf_of_le_left le_top
+
+@[simp] theorem inf_eq_top_iff : a ⊓ b = ⊤ ↔ (a = ⊤ ∧ b = ⊤) :=
+by rw [eq_top_iff, le_inf_iff]; simp
+
+end semilattice_inf_top
+
+/-- A `semilattice_inf_bot` is a semilattice with bottom and meet. -/
+class semilattice_inf_bot (α : Type u) extends order_bot α, semilattice_inf α
+
+section semilattice_inf_bot
+variables [semilattice_inf_bot α] {a : α}
+
+@[simp] theorem bot_inf_eq : ⊥ ⊓ a = ⊥ :=
+inf_of_le_left bot_le
+
+@[simp] theorem inf_bot_eq : a ⊓ ⊥ = ⊥ :=
+inf_of_le_right bot_le
+
+end semilattice_inf_bot
+
 /- Bounded lattices -/
 
 /-- A bounded lattice is a lattice with a top and bottom element,

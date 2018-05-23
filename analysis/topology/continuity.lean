@@ -187,6 +187,24 @@ lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β}
   {i : ι} (h : cont t₁ (t₂ i) f) : cont t₁ (infi t₂) f :=
 continuous_Inf_rng ⟨i, rfl⟩ h
 
+lemma continuous_Sup_dom {t₁ : set (tspace α)} {t₂ : tspace β}
+  {t : tspace α} (h₁ : t ∈ t₁) : cont t t₂ f → cont (Sup t₁) t₂ f :=
+continuous_le_dom (le_Sup h₁)
+
+lemma continuous_Sup_rng {t₁ : tspace α} {t₂ : set (tspace β)}
+  (h : ∀t∈t₂, cont t₁ t f) : cont t₁ (Sup t₂) f :=
+continuous_Inf_rng
+  (λ t ht, show t ≤ coinduced f t₁, from h t ht)
+  continuous_coinduced_rng
+
+lemma continuous_supr_dom {t₁ : ι → tspace α} {t₂ : tspace β}
+  {i : ι} : cont (t₁ i) t₂ f → cont (supr t₁) t₂ f :=
+continuous_Sup_dom ⟨i, rfl⟩
+
+lemma continuous_supr_rng {t₁ : tspace α} {t₂ : ι → tspace β}
+  (h : ∀i, cont t₁ (t₂ i) f) : cont t₁ (supr t₂) f :=
+continuous_Sup_rng $ assume t ⟨i, (t_eq : t = t₂ i)⟩, t_eq.symm ▸ h i
+
 lemma continuous_top {t : tspace β} : cont ⊤ t f :=
 assume s h, trivial
 

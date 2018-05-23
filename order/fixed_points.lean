@@ -174,7 +174,7 @@ instance : complete_lattice (fixed_points f) :=
 { le           := λx y, x.1 ≤ y.1,
   le_refl      := λ x, le_refl x,
   le_trans     := λ x y z, le_trans,
-  le_antisymm  := λ x y hx hy, subtype.eq $ le_antisymm hx hy,
+  le_antisymm  := λ x y hx hy, .eq $ le_antisymm hx hy,
 
   sup          := λ x y, next_fixed hf (x.1 ⊔ y.1) (sup_le_f_of_fixed_points f hf x y),
   le_sup_left  := λ x y, show x.1 ≤ _, from le_trans le_sup_left next_le,

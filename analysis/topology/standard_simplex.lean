@@ -1,4 +1,4 @@
-import analysis.topology.topological_space analysis.real data.finsupp data.fin order.basic algebra.big_operators data.finset data.fintype
+import analysis.topology.topological_space analysis.real data.finsupp data.fin order.basic algebra.big_operators data.finset data.fintype analysis.topology.nnreal
 noncomputable theory
 
 open classical
@@ -118,86 +118,186 @@ end
 
 end simplex_category
 
+namespace nnrealpown
+definition type_pow : Type* → ℕ → Type* := λ α n, fin n → α
+
+instance type_pow_instance : has_pow Type* ℕ := ⟨type_pow⟩
+
+instance {n : ℕ} : topological_space (ℝ≥0^n)
+:= by show topological_space (fin n → ℝ≥0); apply_instance
+
+end nnrealpown
+
 
 
 namespace standard_simplex
 
 open finset
 
-definition type_pow : Type* → ℕ → Type* := λ α n, fin n → α
-
-instance type_pow_instance : has_pow Type* ℕ := ⟨type_pow⟩
- 
-definition topology_Rn : Π (n : ℕ), topological_space (ℝ^n) :=
-begin
-intros n, show topological_space (fin n → ℝ), apply_instance,
-end
-
-definition standard_simplex (n : ℕ) : set (ℝ^(n+1)) :=
- λ x : fin (n+1) → ℝ, (∀ i, 0 ≤ x i) ∧ (sum univ x = 1)
+definition standard_simplex (n : ℕ) : set (ℝ≥0^(n+1)) :=
+ λ x : fin (n+1) → ℝ≥0, sum univ x = 1
 
 variable {n : ℕ}
 
-instance : topological_space (standard_simplex n)
- := topological_space.induced subtype.val (@topology_Rn (n+1))
+definition induced_map {m n : ℕ} (f : fin (m+1) → fin (n+1))
+: standard_simplex m → standard_simplex n := λ x, ⟨λ j, sum (univ.filter (λ i, f i = j)) x.val,begin
+    show sum univ (λ (j : fin (n + 1)), sum (univ.filter (λ i, f i = j)) (x.val)) = 1,
+    rw ←finset.sum_bind,
+    {
+        have H : finset.bind univ (λ (x : fin (n + 1)), filter (λ (i : fin (m + 1)), f i = x) univ) = univ
+        := begin
+            apply ext.2,
+            simp,
+            intro i,
+            exact exists.intro (f i) (eq.refl (f i)),
+        end,
+        rw H,
+        exact x.property,
+    },
+    {
+        intros x hx y hy xney,
+        apply ext.2, simp,
+        intros i hfi,
+        rw hfi,
+        exact xney
+    }
+ end⟩
 
-definition finvj {m n : ℕ} (f : fin m → fin n) (j : fin n) : finset (fin m) := univ.filter (λ i, f i = j)
+definition sum_map {m n : ℕ} (f : fin m → fin n) : (ℝ≥0^m) → (ℝ≥0^n)
+:= λ x j, sum (univ.filter (λ i, f i = j)) x
 
--- definition induced_map {m n : ℕ} (f : fin (m+1) → fin (n+1))
---  : standard_simplex m → standard_simplex n := begin
---  intro x,
---  unfold standard_simplex, let y_val : ℝ^(n+1) := begin
---     show fin (n+1) → ℝ,
---     intro j,
---     exact sum (finvj f j) x.val
---  end,
---  split, show fin (n+1) → ℝ,
---  exact y_val,
---  split,
---  {
---      dsimp [y_val],
---      intro i,
---      admit
---  },
---  {
---      dsimp [y_val], admit
---  }
---  end
+lemma commuting_square {m n : ℕ} (f : fin (m+1) → fin (n+1))
+: subtype.val ∘ (induced_map f) = (sum_map f) ∘ subtype.val
+:= rfl
+
+lemma continuous.pi_mk {X I : Type*} {Y : I → Type*}
+[t₁ : topological_space X] [t₂ : Πi, topological_space (Y i)] (f : Πi, X → (Y i)) (H : Πi, continuous (f i))
+: continuous (λ x i, f i x) :=
+begin
+let YY := (Πi, Y i),
+apply continuous_Sup_rng,
+intros t ht,
+cases ht with i hi,
+simp at *,
+rw hi,
+apply continuous_induced_rng,
+unfold function.comp,
+exact H i,
+end
+
+lemma continuous.pi_proj {I : Type*} {Y : I → Type*} [Πi, topological_space (Y i)]
+(i : I) : continuous (λ y : Πj, Y j, y i) :=
+begin
+apply continuous_Sup_dom _ continuous_induced_dom,
+existsi i,
+simp
+end
+
+lemma continuous_sums {α : Type*} [decidable_eq α] {s : finset α} : continuous (λ x : (α → ℝ≥0), s.sum x) :=
+begin
+apply finset.induction_on s,
+{
+    have triv : (λ (x : α → ℝ≥0), sum ∅ x) = λ (x : α → ℝ≥0), (0 : ℝ≥0)
+    := begin apply funext, intro x, apply finset.sum_empty end,
+    rw triv,
+    apply @continuous_const _ _ _ _ _,
+},
+{
+    intros a s ha hs,
+    have triv : (λ (x : α → ℝ≥0), sum (insert a s) x) =
+    ((λ (p : ℝ≥0 × ℝ≥0), p.fst + p.snd) ∘ (λ x, (x a, sum s x)))
+    := begin apply funext, intro x, apply finset.sum_insert ha end,
+    rw triv,
+    apply continuous.comp _ nnreal.continuous_add,
+    apply continuous.prod_mk _ hs,
+    apply continuous.pi_proj a,
+}
+end
+
+lemma continuous_sum_map {m n : ℕ} (f : fin m → fin n)
+: continuous (sum_map f)
+:= begin
+unfold sum_map,
+apply @continuous.pi_mk (ℝ≥0^m) (fin n) _ _ _ _ _,
+intro j,
+simp,
+apply continuous_sums,
+end
+
+theorem continuous_induced_map {m n : ℕ} (f : fin (m+1) → fin (n+1))
+: continuous (induced_map f)
+:= begin
+rw continuous_iff_induced_le,
+unfold subtype.topological_space,
+have triv : topological_space.induced (induced_map f) (topological_space.induced subtype.val (nnrealpown.topological_space))
+ = ((topological_space.induced (induced_map f)) ∘ (topological_space.induced subtype.val)) (nnrealpown.topological_space)
+:= begin
+unfold function.comp,
+end,
+rw triv,
+rw ←induced_comp,
+rw commuting_square,
+rw ←continuous_iff_induced_le,
+apply continuous.comp continuous_induced_dom (continuous_sum_map f)
+end
+
+definition δ {n : ℕ} (i : fin (n + 1 + 1))
+: standard_simplex n → standard_simplex n.succ := induced_map (simplex_category.δ i)
+
+lemma continuous_δ {n : ℕ} (i : fin (n + 1 + 1)) : continuous (δ i)
+:= continuous_induced_map (simplex_category.δ i)
 
 end standard_simplex
 
+namespace simplicial_set
 
--- namespace simplicial_complex
+class simplicial_set := sorry
 
--- definition C (n : ℕ) (X : Type*) [topological_space X] :=
---  {f : standard_simplex n → X // continuous f} →₀ ℤ
+end simplicial_set
 
--- instance (n : ℕ) (X : Type*) [topological_space X]
---  : decidable_eq {f : standard_simplex n → X // continuous f} := sorry
+namespace singular_set
 
--- instance (n : ℕ) (X : Type*) [topological_space X] : add_comm_group (C n X)
---  := finsupp.add_comm_group
+open simplicial_set
 
--- definition induced_map {X G : Type*} [add_comm_group G] (b : X → G) (f : X →₀ ℤ) : G
---  := f.support.sum (λ x, gsmul (f x) (b x))
+variables {X: Type*} [topological_space X]
 
--- definition δ_on_singular_complexes (n : ℕ) (X : Type*) [topological_space X]
---  : {f : standard_simplex (nat.succ n) → X // continuous f} → C n X
---  :=
--- begin
--- intro f, admit
--- -- exact Sum_{i = 0}^n single (f ∘ (face i)) (-1)^i
--- end
+definition S : simplicial_set := sorry
 
--- definition δ {n : ℕ} {X : Type*} [topological_space X] : C (n+1) X → C n X :=
--- induced_map (δ_on_singular_complexes n X)
+end singular_set
 
--- lemma δδis0 (n : ℕ) (X : Type*) [topological_space X] (γ : C (n+2) X) : δ (δ γ) = (_ : C n X)
--- begin
--- admit
--- end
+namespace simplicial_complex
 
--- end simplicial_complex
+open finset standard_simplex
+
+definition C (n : ℕ) (X : Type*) [topological_space X] :=
+ {f : standard_simplex n → X // continuous f} →₀ ℤ
+
+instance (n : ℕ) (X : Type*) [topological_space X]
+ : decidable_eq {f : standard_simplex n → X // continuous f} := sorry
+
+instance (n : ℕ) (X : Type*) [topological_space X] : add_comm_group (C n X)
+ := finsupp.add_comm_group
+
+definition induced_map {X G : Type*} [add_comm_group G] (b : X → G) (f : X →₀ ℤ) : G
+ := f.support.sum (λ x, gsmul (f x) (b x))
+
+definition δ_on_singular_complexes (n : ℕ) (X : Type*) [topological_space X]
+ : {f : standard_simplex (n.succ) → X // continuous f} → C n X
+ :=
+begin
+intro f,
+exact sum univ (λ i : fin (n.succ), finsupp.single (f ∘ (δ i)) (-1)^i)
+end
+
+definition δ {n : ℕ} {X : Type*} [topological_space X] : C (n+1) X → C n X :=
+induced_map (δ_on_singular_complexes n X)
+
+lemma δδis0 (n : ℕ) (X : Type*) [topological_space X] (γ : C (n+2) X) : δ (δ γ) = (_ : C n X)
+begin
+admit
+end
+
+end simplicial_complex
 
 -- begin singular_homology
 

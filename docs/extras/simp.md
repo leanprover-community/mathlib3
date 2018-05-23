@@ -49,11 +49,13 @@ This lemma is then added to `simp`'s armoury. Note several things however.
 
 ### When it is unadvisable to use simp
 
-Using simp in the middle of proofs is a simp anti-pattern, which will produce brittle code. In other words, don't use simp in the middle of proofs. Use it to finish proofs. If you really need to simplify a goal in the middle of a proof, then use simp, but afterwards cut and paste the goal into your code and write `suffices : (simplified thing), by simpa [this]` or some such thing. This is really important because the behaviour of simp changes sometimes, and if you put simp in the middle of proofs then your code might randomly stop compiling and it will be hard to figure out why if you didn't write down the exact thing which simp used to be reducing your goal to.
+Using `simp` in the middle of proofs is a `simp` anti-pattern, which will produce brittle code. In other words, don't use `simp` in the middle of proofs. Use it to finish proofs. If you really need to simplify a goal in the middle of a proof, then use `simp`, but afterwards cut and paste the goal into your code and write `suffices : (simplified thing), by simpa using this`. This is really important because the behaviour of `simp` changes sometimes, and if you put `simp` in the middle of proofs then your code might randomly stop compiling and it will be hard to figure out why if you didn't write down the exact thing which `simp` used to be reducing your goal to.
 
 ### How to use simp better.
 
-Conversely, if you ever manage to close a goal with simp, then take a look at the line before you ran simp. Could you have run simp one line earlier? How far back did simp start working? Even for goals where you didn't use simp at all -- could you have used simp for your last line? What about the last-but one? And so on.
+Conversely, if you ever manage to close a goal with `simp`, then take a look at the line before you ran `simp`. Could you have run simp one line earlier? How far back did simp start working? Even for goals where you didn't use simp at all -- could you have used `simp` for your last line? What about the last-but one? And so on.
+
+Recall that `simp` lemmas are almost all of the form `X = Y` or `X ↔ Y`. Hence `simp` might work well for such goals. However what about goals of the form `X → Y`? You could try assuming `h : X` and then running either `simpa using h` or `simp {contextual := tt}` to see if Lean can deduce `Y`.
 
 ### Simp options.
 

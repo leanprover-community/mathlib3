@@ -1074,7 +1074,7 @@ finset.induction_on s (by simp) $
   begin
     by_cases p : b = a,
     { induction p, exact mem_insert_self b s },
-    { cases choice (option.lift_or_get max) (some b) s.max with q q; simp [q] at h,
+    { cases option.lift_or_get_choice max_choice (some b) s.max with q q; simp [q] at h,
       { exact absurd h p },
       { exact mem_insert_of_mem (ih h) }
     }
@@ -1115,7 +1115,7 @@ finset.induction_on s (by simp) $
   begin
     by_cases p : b = a,
     { induction p, exact mem_insert_self b s },
-    { cases choice (option.lift_or_get min) (some b) s.min with q q; simp [q] at h,
+    { cases option.lift_or_get_choice min_choice (some b) s.min with q q; simp [q] at h,
       { exact absurd h p },
       { exact mem_insert_of_mem (ih h) }
     }

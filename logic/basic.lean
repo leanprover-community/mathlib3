@@ -625,17 +625,3 @@ lemma classical.nonempty_pi {α : Sort u} {β : α → Sort v} :
 iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
 
 end nonempty
-
-/- binary choice functions -/
-
-theorem if_choice {α : Sort*} (c : Prop) [decidable c] (a b : α) :
-  ite c a b = a ∨ ite c a b = b :=
-by by_cases h : c; simp [h]
-
-theorem min_choice {α : Type*} [decidable_linear_order α] (a b : α) :
-  min a b = a ∨ min a b = b :=
-by by_cases h : a ≤ b; simp [min, h]
-
-theorem max_choice {α : Type*} [decidable_linear_order α] (a b : α) :
-  max a b = a ∨ max a b = b :=
-by by_cases h : a ≤ b; simp [max, h]

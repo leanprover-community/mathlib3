@@ -159,17 +159,17 @@ by finish
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; finish
 
+instance sup_is_idempotent : is_idempotent α (⊔) := ⟨@sup_idem _ _⟩
+
 theorem sup_comm : a ⊔ b = b ⊔ a :=
 by apply le_antisymm; finish
 
-instance semilattice_sup_to_is_commutative : is_commutative α (⊔) :=
-⟨@sup_comm _ _⟩
+instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
 by apply le_antisymm; finish
 
-instance semilattice_sup_to_is_associative : is_associative α (⊔) :=
-⟨@sup_assoc _ _⟩
+instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
@@ -231,17 +231,17 @@ by finish
 @[simp] theorem inf_idem : a ⊓ a = a :=
 by apply le_antisymm; finish
 
+instance inf_is_idempotent : is_idempotent α (⊓) := ⟨@inf_idem _ _⟩
+
 theorem inf_comm : a ⊓ b = b ⊓ a :=
 by apply le_antisymm; finish
 
-instance semilattice_inf_to_is_commutative : is_commutative α (⊓) :=
-⟨@inf_comm _ _⟩
+instance inf_is_commutative : is_commutative α (⊓) := ⟨@inf_comm _ _⟩
 
 theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
 by apply le_antisymm; finish
 
-instance semilattice_inf_to_is_associative : is_associative α (⊓) :=
-⟨@inf_assoc _ _⟩
+instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 suffices (∃b, ¬a ≤ b) → (∃b, b < a),
@@ -408,11 +408,3 @@ instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_
   ..lattice.lattice_of_decidable_linear_order }
 
 end lattice
-
-section max_min_idem
-variables {α : Type*} [decidable_linear_order α]
-
-instance max_idem : is_idempotent α max := ⟨λ a, lattice.sup_idem⟩
-instance min_idem : is_idempotent α min := ⟨λ a, lattice.inf_idem⟩
-
-end max_min_idem

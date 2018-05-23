@@ -118,4 +118,12 @@ instance lift_or_get_idem (f : α → α → α) [h : is_idempotent α f] :
   is_idempotent (option α) (lift_or_get f) :=
 ⟨λ a, by cases a; simp [lift_or_get, h.idempotent]⟩
 
+instance lift_or_get_choice (f : α → α → α) [has_choice f] : has_choice (lift_or_get f) :=
+⟨λ o₁ o₂, match o₁, o₂ with
+| none  , none   := or.inl rfl
+| some a, none   := or.inl rfl
+| none  , some b := or.inr rfl
+| some a, some b := by simpa [lift_or_get] using choice f a b
+end⟩
+
 end option

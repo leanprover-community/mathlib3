@@ -143,6 +143,11 @@ canonically_ordered_monoid.le_iff_exists_add a b
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
 add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg' (zero_le _) (zero_le _)
 
+@[simp] lemma le_zero_iff_eq : a ≤ 0 ↔ a = 0 :=
+iff.intro
+  (assume h, le_antisymm h (zero_le a))
+  (assume h, h ▸ le_refl a)
+
 end canonically_ordered_monoid
 
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid

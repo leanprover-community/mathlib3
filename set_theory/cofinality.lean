@@ -229,7 +229,7 @@ end
 theorem omega_le_cof {o} : cardinal.omega ≤ cof o ↔ is_limit o :=
 begin
   rcases zero_or_succ_or_limit o with rfl|⟨o,rfl⟩|l,
-  { simp [not_zero_is_limit, cardinal.omega_pos] },
+  { simp [not_zero_is_limit, cardinal.omega_ne_zero] },
   { simp [not_succ_is_limit, cardinal.one_lt_omega] },
   { simp [l], refine le_of_not_lt (λ h, _),
     cases cardinal.lt_omega.1 h with n e,

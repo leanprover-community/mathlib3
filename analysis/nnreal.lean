@@ -8,119 +8,128 @@ Nonnegative real numbers.
 
 import analysis.real
 noncomputable theory
+open lattice
 
 definition nnreal := {r : ℝ // 0 ≤ r}
 local notation ` ℝ≥0 ` := nnreal
 
 namespace nnreal
 
-instance : has_zero ℝ≥0  := ⟨⟨0,le_refl 0⟩⟩
-instance : has_one ℝ≥0   := ⟨⟨1,zero_le_one⟩⟩
+instance : has_coe ℝ≥0 ℝ := ⟨subtype.val⟩
+
+protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.eq
+protected lemma eq_iff {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) ↔ n = m :=
+iff.intro nnreal.eq (congr_arg coe)
+
+instance : has_zero ℝ≥0  := ⟨⟨0, le_refl 0⟩⟩
+instance : has_one ℝ≥0   := ⟨⟨1, zero_le_one⟩⟩
+instance : has_add ℝ≥0   := ⟨λa b, ⟨a + b, add_nonneg a.2 b.2⟩⟩
+instance : has_mul ℝ≥0   := ⟨λa b, ⟨a * b, mul_nonneg a.2 b.2⟩⟩
+instance : has_le ℝ≥0    := ⟨λ r s, (r:ℝ) ≤ s⟩
+instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
 
-@[simp] lemma val_zero : (0 : ℝ≥0).val = 0 := rfl
-@[simp] lemma val_one  : (1 : ℝ≥0).val = 1 := rfl
-
-variables {r s: ℝ}
-
-section semiring
-
-instance : has_add ℝ≥0 := ⟨λa b, ⟨a.1 + b.1, add_nonneg a.2 b.2⟩⟩
-instance : has_mul ℝ≥0 := ⟨λa b, ⟨a.1 * b.1, mul_nonneg a.2 b.2⟩⟩
-
-@[simp] lemma add_val (r₁ r₂ : ℝ≥0) : (r₁ + r₂).val = r₁.val + r₂.val := rfl
-@[simp] lemma mul_val (r₁ r₂ : ℝ≥0) : (r₁ * r₂).val = r₁.val * r₂.val := rfl
-
-instance : add_comm_monoid ℝ≥0 :=
-by refine { zero := 0, add := (+), .. }; { intros; apply subtype.eq; simp }
+@[simp] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
+@[simp] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
+@[simp] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
+@[simp] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
 
 instance : comm_semiring ℝ≥0 :=
-by refine
-{ one := 1,
-  mul := (*),
-  mul_zero := λ r, begin apply subtype.eq; simp, show r.val * 0 = 0, simp, end,
-  ..nnreal.add_comm_monoid,
-  ..};
-  { intros; apply subtype.eq;
+begin
+  refine { zero := 0, add := (+), one := 1, mul := (*), ..};
+  { intros;
+    apply nnreal.eq;
     simp [mul_comm, mul_assoc, add_comm_monoid.add, left_distrib, right_distrib,
-          add_comm_monoid.zero] }
-
-end semiring
-
-section order
-
-instance : has_le ℝ≥0 := ⟨λ r s, r.val ≤ s.val⟩
+          add_comm_monoid.zero],  }
+end
 
 instance : decidable_linear_order ℝ≥0 :=
-{ le           := (≤),
-  le_refl      := begin intro r, show r.val ≤ r.val, apply le_refl end,
-  le_trans     :=
-  begin
-    intros r s t,
-    show r.val ≤ s.val → s.val ≤ t.val → r.val ≤ t.val,
-    apply le_trans
-  end,
-  le_antisymm  :=
-  begin
-    intros r s,
-    show r.val ≤ s.val → s.val ≤ r.val → r = s,
-    intros h1 h2,
-    apply subtype.eq,
-    apply le_antisymm h1 h2
-  end,
-  le_total     := begin intros r s, show r.val ≤ s.val ∨ s.val ≤ r.val, apply le_total end,
-  decidable_le :=
-  begin
-    unfold decidable_rel,
-    intros r s,
-    show decidable (preorder.le r.val s.val),
-    apply_instance,
-  end}
+{ le               := (≤),
+  lt               := λa b, (a : ℝ) < b,
+  lt_iff_le_not_le := assume a b, @lt_iff_le_not_le ℝ _ a b,
+  le_refl          := assume a, le_refl (a : ℝ),
+  le_trans         := assume a b c, @le_trans ℝ _ a b c,
+  le_antisymm      := assume a b hab hba, nnreal.eq $ le_antisymm hab hba,
+  le_total         := assume a b, le_total (a : ℝ) b,
+  decidable_le     := λa b, by apply_instance }
 
-@[simp] lemma le_zero_iff_eq {r : ℝ≥0} : r ≤ 0 ↔ r = 0 :=
-⟨assume h, le_antisymm h r.property, assume h, h ▸ le_refl r⟩
-
-instance : ordered_comm_monoid ℝ≥0 :=
-{ add_le_add_left       :=
-  λ r s h t,
-  begin
-    show t.val + r.val ≤ t.val + s.val,
-    apply add_le_add_left,
-    exact h,
-  end,
-  lt_of_add_lt_add_left :=
-  λ r s t h,
-  have H : r.val + s.val < r.val + t.val :=
-  begin apply lt_of_not_ge, show ¬ r + s ≥ r + t, simp, exact h end,
-  begin
-    apply lt_of_not_ge,
-    show ¬s.val ≥ t.val,
-    simp,
-    apply lt_of_add_lt_add_left H,
-  end,
-  ..nnreal.add_comm_monoid,
+instance : canonically_ordered_monoid ℝ≥0 :=
+{ add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
+  lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ _ a b c,
+  le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
+    iff.intro
+      (assume h : a ≤ b,
+        ⟨⟨b - a, le_sub_iff_add_le.2 $ by simp [h]⟩,
+          nnreal.eq $ show b = a + (b - a), by rw [add_sub_cancel'_right]⟩)
+      (assume ⟨⟨c, hc⟩, eq⟩, eq.symm ▸ show a ≤ a + c, from (le_add_iff_nonneg_right a).2 hc),
+  ..nnreal.comm_semiring,
   ..nnreal.decidable_linear_order}
 
-end order
+instance : order_bot ℝ≥0 :=
+{ bot := ⊥, bot_le := zero_le, .. nnreal.decidable_linear_order }
 
-section topology
+instance : distrib_lattice ℝ≥0 := by apply_instance
+
+instance : semilattice_inf_bot ℝ≥0 :=
+{ .. nnreal.lattice.order_bot, .. nnreal.lattice.distrib_lattice }
+
+instance : semilattice_sup_bot ℝ≥0 :=
+{ .. nnreal.lattice.order_bot, .. nnreal.lattice.distrib_lattice }
+
+instance : linear_ordered_semiring ℝ≥0 :=
+{ add_left_cancel            := assume a b c h, nnreal.eq $ @add_left_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
+  add_right_cancel           := assume a b c h, nnreal.eq $ @add_right_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
+  le_of_add_le_add_left      := assume a b c, @le_of_add_le_add_left ℝ _ a b c,
+  mul_le_mul_of_nonneg_left  := assume a b c, @mul_le_mul_of_nonneg_left ℝ _ a b c,
+  mul_le_mul_of_nonneg_right := assume a b c, @mul_le_mul_of_nonneg_right ℝ _ a b c,
+  mul_lt_mul_of_pos_left     := assume a b c, @mul_lt_mul_of_pos_left ℝ _ a b c,
+  mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
+  zero_lt_one                := @zero_lt_one ℝ _,
+  .. nnreal.decidable_linear_order,
+  .. nnreal.canonically_ordered_monoid,
+  .. nnreal.comm_semiring }
 
 instance : topological_space ℝ≥0 := subtype.topological_space
 
-instance : topological_monoid ℝ≥0 :=
-{ continuous_mul :=
-by apply continuous_subtype_mk _
-        (continuous_mul (continuous.comp continuous_fst continuous_induced_dom)
-                        (continuous.comp continuous_snd continuous_induced_dom));
-apply_instance}
-
 instance : topological_semiring ℝ≥0 :=
-{ continuous_add :=
-by apply continuous_subtype_mk _
-        (continuous_add (continuous.comp continuous_fst continuous_induced_dom)
-                        (continuous.comp continuous_snd continuous_induced_dom));
-apply_instance}
+{ continuous_mul :=
+   continuous_subtype_mk _
+        (continuous_mul (continuous.comp continuous_fst continuous_subtype_val)
+                        (continuous.comp continuous_snd continuous_subtype_val)),
+  continuous_add :=
+    continuous_subtype_mk _
+          (continuous_add (continuous.comp continuous_fst continuous_subtype_val)
+                          (continuous.comp continuous_snd continuous_subtype_val)) }
 
-end topology
+instance : orderable_topology ℝ≥0 :=
+⟨ le_antisymm
+    begin
+      apply induced_le_iff_le_coinduced.2,
+      rw [orderable_topology.topology_eq_generate_intervals ℝ],
+      apply generate_from_le,
+      assume s hs,
+      rcases hs with ⟨a, rfl | rfl⟩,
+      { show topological_space.generate_open _ {b : ℝ≥0 | a < b },
+        by_cases ha : 0 ≤ a,
+        { exact topological_space.generate_open.basic _ ⟨⟨a, ha⟩, or.inl rfl⟩ },
+        { have : a < 0, from lt_of_not_ge ha,
+          have : {b : ℝ≥0 | a < b } = set.univ,
+            from (set.eq_univ_iff_forall.2 $ assume b, lt_of_lt_of_le this b.2),
+          rw [this],
+          exact topological_space.generate_open.univ _ } },
+      { show (topological_space.generate_from _).is_open {b : ℝ≥0 | a > b },
+        by_cases ha : 0 ≤ a,
+        { exact topological_space.generate_open.basic _ ⟨⟨a, ha⟩, or.inr rfl⟩ },
+        { have : {b : ℝ≥0 | a > b } = ∅,
+            from (set.eq_empty_iff_forall_not_mem.2 $ assume b hb, ha $
+              show 0 ≤ a, from le_trans b.2 (le_of_lt hb)),
+          rw [this],
+          apply @is_open_empty } },
+    end
+    (generate_from_le $ assume s hs,
+    match s, hs with
+    | _, ⟨⟨a, ha⟩, or.inl rfl⟩ := ⟨{b : ℝ | a < b}, is_open_lt' a, rfl⟩
+    | _, ⟨⟨a, ha⟩, or.inr rfl⟩ := ⟨{b : ℝ | b < a}, is_open_gt' a, set.ext $ assume b, iff.refl _⟩
+    end) ⟩
 
 end nnreal

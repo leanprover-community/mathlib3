@@ -1,10 +1,10 @@
-import order.bounds algebra.ordered_group analysis.real analysis.topology.infinite_sum analysis.topology.topological_space
+import analysis.real
 noncomputable theory
 
 
 
 definition nnreal := {r : ℝ // 0 ≤ r}
-notation ` ℝ≥0 ` := nnreal
+local notation ` ℝ≥0 ` := nnreal
 
 namespace nnreal
 
@@ -21,65 +21,27 @@ instance : inhabited ℝ≥0 := ⟨0⟩
 
 variables {r s: ℝ}
 
--- instance : zero_ne_one_class ℝ≥0 :=
--- { zero := 0, one := 1, zero_ne_one := begin simp, congr_arg subtype.val, end }
-
 section semiring
 
-protected def add : ℝ≥0 → ℝ≥0 → ℝ≥0 :=
-λ r s, ⟨r.val + s.val,have h : (r.val ≤ r.val + s.val) :=
-                      by rw le_add_iff_nonneg_right; exact s.property,
-        le_trans r.property h⟩
-
-protected def mul : ℝ≥0 → ℝ≥0 → ℝ≥0 :=
-λ r s, ⟨r.val * s.val,begin
-                      have h := mul_le_mul_of_nonneg_right r.2 s.2,
-                      simp at h,
-                      exact h
-                      end⟩
-
-instance : has_add ℝ≥0 := ⟨nnreal.add⟩
-instance : has_mul ℝ≥0 := ⟨nnreal.mul⟩
+instance : has_add ℝ≥0 := ⟨λa b, ⟨a.1 + b.1, add_nonneg a.2 b.2⟩⟩
+instance : has_mul ℝ≥0 := ⟨λa b, ⟨a.1 * b.1, mul_nonneg a.2 b.2⟩⟩
 
 @[simp] lemma add_val (r₁ r₂ : ℝ≥0) : (r₁ + r₂).val = r₁.val + r₂.val := rfl
 @[simp] lemma mul_val (r₁ r₂ : ℝ≥0) : (r₁ * r₂).val = r₁.val * r₂.val := rfl
 
 instance : add_comm_monoid ℝ≥0 :=
-{ zero      := 0,
-  add       := (+),
-  add_zero  := λ _, by apply subtype.eq; simp,
-  zero_add  := λ _, by apply subtype.eq; simp,
-  add_comm  := λ _ _, by apply subtype.eq; simp,
-  add_assoc := λ _ _ _, by apply subtype.eq; simp
-}
+by refine { zero := 0, add := (+), .. }; { intros; apply subtype.eq; simp }
 
 instance : comm_semiring ℝ≥0 :=
+by refine
 { one := 1,
   mul := (*),
-  mul_zero  := λ r, begin apply subtype.eq; simp, show r.val * 0 = 0, simp, end,
-  zero_mul  := λ r, begin apply subtype.eq; simp, show 0 * r.val = 0, simp, end,
-  one_mul   := λ _, by apply subtype.eq; simp,
-  mul_one   := λ _, by apply subtype.eq; simp,
-  mul_comm  := λ _ _, by apply subtype.eq; simp; rw mul_comm,
-  mul_assoc := λ _ _ _, by apply subtype.eq; simp; rw mul_assoc,
-  left_distrib :=
-  λ r s t,
-  begin
-    apply subtype.eq,
-    show r.val * (s+t).val = (r*s + r*t).val,
-    simp,
-    rw left_distrib,
-  end,
-  right_distrib :=
-  λ r s t,
-  begin
-    apply subtype.eq,
-    show (r+s).val * t.val = (r*t + s*t).val,
-    simp,
-    rw right_distrib,
-  end,
-  ..nnreal.add_comm_monoid
-}
+  mul_zero := λ r, begin apply subtype.eq; simp, show r.val * 0 = 0, simp, end,
+  ..nnreal.add_comm_monoid,
+  ..};
+  { intros; apply subtype.eq;
+    simp [mul_comm, mul_assoc, add_comm_monoid.add, left_distrib, right_distrib,
+          add_comm_monoid.zero] }
 
 end semiring
 
@@ -141,42 +103,21 @@ end order
 
 section topology
 
-definition real_topology : topological_space ℝ := by apply_instance
-instance : topological_space ℝ≥0 := topological_space.induced subtype.val real_topology
+instance : topological_space ℝ≥0 := subtype.topological_space
 
-lemma prod_subtype {α : Type*} {p : α → Prop} [t : topological_space α] :
-continuous (λ x : (subtype p) × (subtype p), (x.fst.val, x.snd.val)) :=
-continuous.prod_mk (continuous.comp continuous_fst continuous_induced_dom)
-                   (continuous.comp continuous_snd continuous_induced_dom)
+instance : topological_monoid ℝ≥0 :=
+{ continuous_mul :=
+by apply continuous_subtype_mk _
+        (continuous_mul (continuous.comp continuous_fst continuous_induced_dom)
+                        (continuous.comp continuous_snd continuous_induced_dom));
+apply_instance}
 
-lemma continuous_add : continuous (λ (p : ℝ≥0 × ℝ≥0), p.fst + p.snd) :=
-begin
-rw continuous_iff_induced_le,
-unfold nnreal.topological_space,
-have triv : topological_space.induced (λ (p : ℝ≥0 × ℝ≥0), p.fst + p.snd)
-              (topological_space.induced subtype.val real_topology) = 
-            ((topological_space.induced (λ (p : ℝ≥0 × ℝ≥0), p.fst + p.snd)) ∘
-              (topological_space.induced subtype.val)) real_topology :=
-by unfold function.comp,
-rw triv,
-rw ←induced_comp,
-unfold function.comp,
-simp,
-rw ←continuous_iff_induced_le,
-have comp : (λ (x : ℝ≥0 × ℝ≥0), (x.fst).val + (x.snd).val) =
-              (λ (x : ℝ × ℝ), x.fst + x.snd) ∘ (λ (x : ℝ≥0 × ℝ≥0), (x.fst.val, x.snd.val)) :=
-begin
-  apply funext,
-  intro x,
-  unfold function.comp
-end,
-rw comp,
-apply continuous.comp prod_subtype _,
-have helpme : topological_add_monoid ℝ := by apply_instance,
-exact helpme.continuous_add
-end
-
-instance : topological_add_monoid ℝ≥0 := {continuous_add := continuous_add}
+instance : topological_semiring ℝ≥0 :=
+{ continuous_add :=
+by apply continuous_subtype_mk _
+        (continuous_add (continuous.comp continuous_fst continuous_induced_dom)
+                        (continuous.comp continuous_snd continuous_induced_dom));
+apply_instance}
 
 end topology
 

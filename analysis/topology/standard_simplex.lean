@@ -1,4 +1,4 @@
-import analysis.topology.topological_space analysis.real data.finsupp data.fin order.basic algebra.big_operators data.finset data.fintype analysis.topology.nnreal
+import analysis.topology.topological_space analysis.real data.finsupp data.fin order.basic algebra.big_operators data.finset data.fintype analysis.topology.nnreal algebra.group
 noncomputable theory
 
 open classical
@@ -36,7 +36,7 @@ unfold monotone,
 intros a b H,
 unfold δ,
 by_cases ha : (i.val ≤ a.val),
-    { rw [dif_pos ha], 
+    { rw [dif_pos ha],
     have hb : i.val ≤ b.val := nat.le_trans ha H,
     rw [dif_pos hb], show a.succ.val ≤ b.succ.val,
     simp, exact nat.succ_le_succ H,
@@ -163,6 +163,32 @@ definition induced_map {m n : ℕ} (f : fin (m+1) → fin (n+1))
     }
  end⟩
 
+lemma induced_map_comp {l m n : ℕ} (f : fin (l+1) → fin (m+1)) (g : fin (m+1) → fin (n+1))
+: induced_map (g ∘ f) = (induced_map g) ∘ (induced_map f)
+:= begin
+unfold induced_map,
+apply funext,
+intro x,
+simp,
+apply funext,
+intro j,
+rw ←finset.sum_bind,
+{
+    have H : finset.bind (filter (λ (i : fin (m + 1)), g i = j) univ)
+         (λ (x : fin (m + 1)), filter (λ (i : fin (l + 1)), f i = x) univ) = filter (λ (i : fin (l + 1)), g (f i) = j) univ
+         := begin
+         apply ext.2, simp
+         end,
+    rw H
+},
+{
+    intros i hi k hk inek,
+    apply ext.2, simp,
+    intros x hx,
+    rw hx, exact inek
+}
+end
+
 definition sum_map {m n : ℕ} (f : fin m → fin n) : (ℝ≥0^m) → (ℝ≥0^n)
 := λ x j, sum (univ.filter (λ i, f i = j)) x
 
@@ -251,9 +277,52 @@ end standard_simplex
 
 namespace simplicial_set
 
-class simplicial_set := sorry
+class simplicial_set :=
+(objs : Π n : ℕ, Type*)
+(maps {m n : ℕ} {f : fin m → fin n} (hf : monotone f) : objs n → objs m)
+(comp {l m n : ℕ} {f : fin l → fin m} {g : fin m → fin n} (hf : monotone f) (hg : monotone g)
+: (maps hf) ∘ (maps hg) = (maps (monotone_comp hf hg)))
+
+definition δ {X : simplicial_set} (n : ℕ) (i : fin (n + 1))
+:= simplicial_set.maps (simplex_category.δ_monotone i)
 
 end simplicial_set
+
+namespace simplicial_complex
+
+open finset finsupp simplicial_set group
+
+definition C (n : ℕ) (X : simplicial_set) := (@simplicial_set.objs X n) →₀ ℤ
+
+instance (n : ℕ) (X : simplicial_set) : decidable_eq (@simplicial_set.objs X n) := sorry
+
+instance (n : ℕ) (X : simplicial_set) : add_comm_group (C n X)
+ := finsupp.add_comm_group
+
+definition induced_map {X G : Type*} [add_comm_group G] (b : X → G) (f : X →₀ ℤ) : G
+ := f.support.sum (λ x, gsmul (f x) (b x))
+
+definition boundary (n : ℕ) (X : simplicial_set) : C (n+1) X → C n X
+ :=
+begin
+apply induced_map,
+intro x,
+exact sum univ (λ i : fin (n.succ), finsupp.single ((simplicial_set.δ n i) x) ((-1 : ℤ)^i.val))
+end
+
+instance (n : ℕ) (X : simplicial_set) : is_add_group_hom (boundary n X)
+:= begin
+sorry
+end
+
+lemma C_is_a_complex (n : ℕ) (X : simplicial_set)
+: (boundary n X) ∘ (boundary (n+1) X) = (λ γ x, (@has_zero.zero (C n X) _))
+begin
+
+sorry
+end
+
+end simplicial_complex
 
 namespace singular_set
 
@@ -261,43 +330,19 @@ open simplicial_set
 
 variables {X: Type*} [topological_space X]
 
-definition S : simplicial_set := sorry
+definition S : simplicial_set :=
+{
+    objs := λ n, {φ : standard_simplex.standard_simplex n → X // continuous φ},
+    maps := λ m n f hf φ, ⟨φ.val ∘ standard_simplex.induced_map f,
+     continuous.comp (standard_simplex.continuous_induced_map f) φ.property⟩,
+    comp := λ l m n f g hf hg, funext $ assume φ, begin
+    simp,
+    rw function.comp.assoc,
+    rw ←standard_simplex.induced_map_comp
+    end
+}
 
 end singular_set
-
-namespace simplicial_complex
-
-open finset standard_simplex
-
-definition C (n : ℕ) (X : Type*) [topological_space X] :=
- {f : standard_simplex n → X // continuous f} →₀ ℤ
-
-instance (n : ℕ) (X : Type*) [topological_space X]
- : decidable_eq {f : standard_simplex n → X // continuous f} := sorry
-
-instance (n : ℕ) (X : Type*) [topological_space X] : add_comm_group (C n X)
- := finsupp.add_comm_group
-
-definition induced_map {X G : Type*} [add_comm_group G] (b : X → G) (f : X →₀ ℤ) : G
- := f.support.sum (λ x, gsmul (f x) (b x))
-
-definition δ_on_singular_complexes (n : ℕ) (X : Type*) [topological_space X]
- : {f : standard_simplex (n.succ) → X // continuous f} → C n X
- :=
-begin
-intro f,
-exact sum univ (λ i : fin (n.succ), finsupp.single (f ∘ (δ i)) (-1)^i)
-end
-
-definition δ {n : ℕ} {X : Type*} [topological_space X] : C (n+1) X → C n X :=
-induced_map (δ_on_singular_complexes n X)
-
-lemma δδis0 (n : ℕ) (X : Type*) [topological_space X] (γ : C (n+2) X) : δ (δ γ) = (_ : C n X)
-begin
-admit
-end
-
-end simplicial_complex
 
 -- begin singular_homology
 

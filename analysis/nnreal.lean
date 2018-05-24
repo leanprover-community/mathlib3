@@ -1,16 +1,18 @@
+/-
+Copyright (c) 2018 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin
+
+Nonnegative real numbers.
+-/
+
 import analysis.real
 noncomputable theory
-
-
 
 definition nnreal := {r : ℝ // 0 ≤ r}
 local notation ` ℝ≥0 ` := nnreal
 
 namespace nnreal
-
-section projections
-
-end projections
 
 instance : has_zero ℝ≥0  := ⟨⟨0,le_refl 0⟩⟩
 instance : has_one ℝ≥0   := ⟨⟨1,zero_le_one⟩⟩

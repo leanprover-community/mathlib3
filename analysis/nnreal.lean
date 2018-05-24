@@ -12,8 +12,8 @@ section projections
 
 end projections
 
-instance : has_zero ℝ≥0  := {zero := ⟨0,le_refl 0⟩}
-instance : has_one ℝ≥0   := {one := ⟨1,zero_le_one⟩}
+instance : has_zero ℝ≥0  := ⟨⟨0,le_refl 0⟩⟩
+instance : has_one ℝ≥0   := ⟨⟨1,zero_le_one⟩⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
 
 @[simp] lemma val_zero : (0 : ℝ≥0).val = 0 := rfl

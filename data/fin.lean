@@ -2,8 +2,20 @@ import data.nat.basic
 
 open fin nat
 
+namespace fin
+
+variable {n : ℕ}
+
 /-- Embedding of `fin n` in `fin (n+1)` -/
-def raise_fin {n : ℕ} (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
+def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
+
+@[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
+by cases j; simp [fin.succ]
+
+@[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
+by cases j; simp [fin.pred]
+
+end fin
 
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,

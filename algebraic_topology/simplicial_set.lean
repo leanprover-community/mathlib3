@@ -1,4 +1,4 @@
-import order.basic algebraic_topology.simplex_category data.finset data.finsupp
+import order.basic .simplex_category data.finset data.finsupp
 
 local notation ` [`n`] ` := fin (n+1)
 
@@ -32,7 +32,7 @@ definition boundary (n : ℕ) (X : simplicial_set) : C (n+1) X → C n X
 begin
 apply induced_map,
 intro x,
-exact sum univ (λ i : fin (n.succ), finsupp.single ((simplicial_set.δ n i) x) ((-1 : ℤ)^i.val))
+exact sum univ (λ i : [n+1], finsupp.single ((simplicial_set.δ n i) x) ((-1 : ℤ)^i.val))
 end
 
 instance (n : ℕ) (X : simplicial_set) : is_add_group_hom (boundary n X)

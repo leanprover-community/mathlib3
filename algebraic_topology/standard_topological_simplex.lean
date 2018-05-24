@@ -1,6 +1,8 @@
-import algebraic_topology.simplex_category analysis.topology.topological_space analysis.nnreal
+import .simplex_category analysis.topology.topological_space analysis.nnreal
 noncomputable theory
 open finset
+
+local notation `ℝ≥0` := nnreal
 
 /- Powers of types -/
 section typepown
@@ -120,7 +122,8 @@ apply finset.induction_on s,
     apply finset.sum_insert ha
   end,
   rw triv,
-  apply continuous.comp (continuous.prod_mk (continuous.pi_proj a) hs) nnreal.continuous_add}
+  apply continuous.comp (continuous.prod_mk (continuous.pi_proj a) hs)
+                        (@topological_add_monoid.continuous_add ℝ≥0 _ _ _)}
 end
 
 lemma continuous_sum_map {m n : ℕ} (f : fin m → fin n) : continuous (sum_map f):=

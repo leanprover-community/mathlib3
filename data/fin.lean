@@ -6,6 +6,7 @@ namespace fin
 
 variable {n : ℕ}
 
+/-- Embedding of `fin n` in `fin (n+1)` -/
 def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
 
 @[simp]

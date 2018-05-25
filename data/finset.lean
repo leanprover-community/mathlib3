@@ -69,7 +69,7 @@ theorem mem_of_subset {s₁ s₂ : finset α} {a : α} : s₁ ⊆ s₂ → a ∈
 theorem subset.antisymm {s₁ s₂ : finset α} (H₁ : s₁ ⊆ s₂) (H₂ : s₂ ⊆ s₁) : s₁ = s₂ :=
 ext.2 $ λ a, ⟨@H₁ a, @H₂ a⟩
 
-theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ (∀x, x ∈ s₁ → x ∈ s₂) := iff.rfl
+theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ ∀ ⦃x⦄, x ∈ s₁ → x ∈ s₂ := iff.rfl
 
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
 
@@ -851,6 +851,9 @@ by simp [mem_def]
 @[simp] theorem bind_insert [decidable_eq α] {a : α} : (insert a s).bind t = t a ∪ s.bind t :=
 ext.2 $ by simp [or_and_distrib_right, exists_or_distrib]
 
+@[simp] lemma singleton_bind [decidable_eq α] {a : α} : (singleton a).bind t = t a :=
+show (insert a ∅ : finset α).bind t = t a, by simp
+
 theorem image_bind [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
   (s.image f).bind t = s.bind (λa, t (f a)) :=
 by haveI := classical.dec_eq α; exact
@@ -1043,12 +1046,89 @@ by haveI := classical.prop_decidable;
 
 end fold
 
+section sup
+variables [semilattice_sup_bot α] [decidable_eq α] [decidable_eq β]
+
+/-- Supremum of a finite set: `sup {a, b, c} f = f a ⊔ f b ⊔ f c` -/
+def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
+
+variables {s s₁ s₂ : finset β} {f : β → α}
+
+@[simp] lemma sup_empty : (∅ : finset β).sup f = ⊥ :=
+fold_empty
+
+@[simp] lemma sup_insert {b : β} : (insert b s : finset β).sup f = f b ⊔ s.sup f :=
+fold_insert_idem
+
+@[simp] lemma sup_singleton {b : β} : ({b} : finset β).sup f = f b :=
+calc _ = f b ⊔ (∅:finset β).sup f : sup_insert
+  ... = f b : by simp
+
+lemma sup_union : (s₁ ∪ s₂).sup f = s₁.sup f ⊔ s₂.sup f :=
+finset.induction_on s₁ (by simp) (by simp {contextual := tt}; cc)
+
+lemma sup_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.sup f ≤ s.sup g :=
+finset.induction_on s (by simp) (by simp [-sup_le_iff, sup_le_sup] {contextual := tt})
+
+lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
+calc f b ≤ f b ⊔ s.sup f : le_sup_left
+  ... = (insert b s).sup f : by simp
+  ... = s.sup f : by simp [hb]
+
+lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
+finset.induction_on s (by simp) (by simp {contextual := tt})
+
+lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
+sup_le $ assume b hb, le_sup (h hb)
+
+end sup
+
+section inf
+variables [semilattice_inf_top α] [decidable_eq α] [decidable_eq β]
+
+/-- Infimum of a finite set: `inf {a, b, c} f = f a ⊓ f b ⊓ f c` -/
+def inf (s : finset β) (f : β → α) : α := s.fold (⊓) ⊤ f
+
+variables {s s₁ s₂ : finset β} {f : β → α}
+
+@[simp] lemma inf_empty : (∅ : finset β).inf f = ⊤ :=
+fold_empty
+
+@[simp] lemma inf_insert {b : β} : (insert b s : finset β).inf f = f b ⊓ s.inf f :=
+fold_insert_idem
+
+@[simp] lemma inf_singleton {b : β} : ({b} : finset β).inf f = f b :=
+calc _ = f b ⊓ (∅:finset β).inf f : inf_insert
+  ... = f b : by simp
+
+lemma inf_union : (s₁ ∪ s₂).inf f = s₁.inf f ⊓ s₂.inf f :=
+finset.induction_on s₁ (by simp) (by simp {contextual := tt}; cc)
+
+lemma inf_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.inf f ≤ s.inf g :=
+finset.induction_on s (by simp) (by simp [inf_le_inf] {contextual := tt})
+
+lemma inf_le {b : β} (hb : b ∈ s) : s.inf f ≤ f b :=
+calc f b ≥ f b ⊓ s.inf f : inf_le_left
+  ... = (insert b s).inf f : by simp
+  ... = s.inf f : by simp [hb]
+
+lemma le_inf {a : α} : (∀b ∈ s, a ≤ f b) → a ≤ s.inf f :=
+finset.induction_on s (by simp) (by simp {contextual := tt})
+
+lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
+le_inf $ assume b hb, inf_le (h hb)
+
+end inf
+
 /- max and min of finite sets -/
 section max_min
 variables [decidable_linear_order α]
 
 protected def max : finset α → option α :=
 fold (option.lift_or_get max) none some
+
+theorem max_eq_sup_with_bot (s : finset α) :
+  s.max = @sup (with_bot α) α _ _ _ s some := rfl
 
 @[simp] theorem max_empty : (∅ : finset α).max = none :=
 by simp [finset.max]
@@ -1061,12 +1141,7 @@ by simp [finset.max, fold_insert_idem]
 by simp [finset.max, option.lift_or_get]
 
 theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :=
-begin
-  rw [←insert_erase h, max_insert],
-  cases (erase s a).max,
-  case option.none { exact ⟨a, rfl⟩ },
-  case option.some : b { exact ⟨max a b, rfl⟩ }
-end
+(@le_sup (with_bot α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
 theorem mem_of_max {s : finset α} : ∀ {a : α}, a ∈ s.max → a ∈ s :=
 finset.induction_on s (by simp) $
@@ -1076,20 +1151,18 @@ finset.induction_on s (by simp) $
     { induction p, exact mem_insert_self b s },
     { cases option.lift_or_get_choice max_choice (some b) s.max with q q; simp [q] at h,
       { exact absurd h p },
-      { exact mem_insert_of_mem (ih h) }
-    }
+      { exact mem_insert_of_mem (ih h) } }
   end
 
 theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : b ∈ s.max) : a ≤ b :=
-begin
-  rw [←insert_erase h₁, max_insert] at h₂,
-  cases (erase s a).max; simp [option.lift_or_get] at h₂; induction h₂,
-  { apply le_refl },
-  { apply le_max_left }
-end
+by rcases @le_sup (with_bot α) _ _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
+   cases h₂.symm.trans hb; assumption
 
 protected def min : finset α → option α :=
 fold (option.lift_or_get min) none some
+
+theorem max_eq_inf_with_top (s : finset α) :
+  s.min = @inf (with_top α) α _ _ _ s some := rfl
 
 @[simp] theorem min_empty : (∅ : finset α).min = none :=
 by simp [finset.min]
@@ -1102,12 +1175,7 @@ by simp [finset.min, fold_insert_idem]
 by simp [finset.min, option.lift_or_get]
 
 theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
-begin
-  rw [←insert_erase h, min_insert],
-  cases (erase s a).min,
-  case option.none { exact ⟨a, rfl⟩ },
-  case option.some : b { exact ⟨min a b, rfl⟩ },
-end
+(@inf_le (with_top α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
 theorem mem_of_min {s : finset α} : ∀ {a : α}, a ∈ s.min → a ∈ s :=
 finset.induction_on s (by simp) $
@@ -1122,12 +1190,8 @@ finset.induction_on s (by simp) $
   end
 
 theorem le_min_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ s.min) : a ≤ b :=
-begin
-  rw [←insert_erase h₁, min_insert] at h₂,
-  cases (erase s b).min; simp [option.lift_or_get] at h₂; induction h₂,
-  { apply le_refl },
-  { apply min_le_left }
-end
+by rcases @inf_le (with_top α) _ _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
+   cases h₂.symm.trans hb; assumption
 
 end max_min
 

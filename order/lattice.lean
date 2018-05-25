@@ -283,4 +283,7 @@ instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_
     end,
   ..lattice.lattice_of_decidable_linear_order }
 
+instance nat.distrib_lattice : distrib_lattice ℕ :=
+by apply_instance
+
 end lattice

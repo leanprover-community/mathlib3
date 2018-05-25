@@ -22,6 +22,11 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
+theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
+| none     none     H := rfl
+| (some a) o        H := ((H _).1 rfl).symm
+| o        (some b) H := (H _).2 rfl
+
 @[simp] theorem none_bind (f : α → option β) : none >>= f = none := rfl
 
 @[simp] theorem some_bind (a : α) (f : α → option β) : some a >>= f = f a := rfl

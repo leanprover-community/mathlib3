@@ -12,56 +12,6 @@ open set function finsupp lattice
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-instance {α : Type u} [semilattice_sup α] : is_idempotent α (⊔) := ⟨assume a, sup_idem⟩
-
-namespace finset
-variables [semilattice_sup_bot α] [decidable_eq α] [decidable_eq β]
-
-/-- Supremum of a finite set: `sup {a, b, c} f = f a ⊔ f b ⊔ f c` -/
-def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
-
-variables {s s₁ s₂ : finset β} {f : β → α}
-
-@[simp] lemma sup_empty : (∅ : finset β).sup f = ⊥ :=
-fold_empty
-
-@[simp] lemma sup_insert {b : β} : (insert b s : finset β).sup f = f b ⊔ s.sup f :=
-fold_insert_idem
-
-@[simp] lemma sup_singleton {b : β} : ({b} : finset β).sup f = f b :=
-calc _ = f b ⊔ (∅:finset β).sup f : sup_insert
-  ... = f b : by simp
-
-lemma sup_union : (s₁ ∪ s₂).sup f = s₁.sup f ⊔ s₂.sup f :=
-finset.induction_on s₁ (by simp) (by simp {contextual := tt}; cc)
-
-lemma sup_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.sup f ≤ s.sup g :=
-finset.induction_on s (by simp) (by simp [-sup_le_iff, sup_le_sup] {contextual := tt})
-
-lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
-calc f b ≤ f b ⊔ s.sup f : le_sup_left
-  ... = (insert b s).sup f : by simp
-  ... = s.sup f : by simp [hb]
-
-lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
-finset.induction_on s (by simp) (by simp {contextual := tt})
-
-lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
-sup_le $ assume b hb, le_sup (subset_iff.mpr h hb)
-
-end finset
-
-instance nat.distrib_lattice : distrib_lattice ℕ :=
-by apply_instance
-
-instance nat.semilattice_sup_bot : semilattice_sup_bot ℕ :=
-{ bot := 0, bot_le := nat.zero_le , .. nat.distrib_lattice }
-
-@[simp] lemma finset.bind_singleton2 [decidable_eq α] [decidable_eq β] {a : α} {f : α → finset β} :
-  (finset.singleton a).bind f = f a :=
-show (insert a ∅ : finset α).bind f = f a,
-  by simp
-
 lemma finsupp.single_induction_on [decidable_eq α] [decidable_eq β] [add_monoid β] {p : (α →₀ β) → Prop} (f : α →₀ β)
   (h_zero : p 0) (h_add : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (f + single a b)) :
   p f :=

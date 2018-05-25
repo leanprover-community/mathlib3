@@ -8,7 +8,7 @@ Defines bounded lattice type class hierarchy.
 Includes the Prop and fun instances.
 -/
 
-import order.lattice
+import order.lattice data.option
 
 set_option old_structure_cmd true
 
@@ -111,6 +111,9 @@ sup_of_le_left bot_le
 by rw [eq_bot_iff, sup_le_iff]; simp
 
 end semilattice_sup_bot
+
+instance nat.semilattice_sup_bot : semilattice_sup_bot ℕ :=
+{ bot := 0, bot_le := nat.zero_le, .. nat.distrib_lattice }
 
 /-- A `semilattice_inf_top` is a semilattice with top and meet. -/
 class semilattice_inf_top (α : Type u) extends order_top α, semilattice_inf α
@@ -237,5 +240,184 @@ instance bounded_lattice_fun {α : Type u} {β : Type v} [bounded_lattice β] :
   bot          := λa, ⊥,
   bot_le       := assume f a, bot_le,
   ..partial_order_fun }
+
+def with_bot (α : Type*) := option α
+
+namespace with_bot
+
+instance partial_order [partial_order α] : partial_order (with_bot α) :=
+{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
+  le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
+  le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
+    let ⟨b, hb, ab⟩ := h₁ a ha, ⟨c, hc, bc⟩ := h₂ b hb in
+    ⟨c, hc, le_trans ab bc⟩,
+  le_antisymm := λ o₁ o₂ h₁ h₂, begin
+    cases o₁ with a,
+    { cases o₂ with b, {refl},
+      rcases h₂ b rfl with ⟨_, ⟨⟩, _⟩ },
+    { rcases h₁ a rfl with ⟨b, ⟨⟩, h₁'⟩,
+      rcases h₂ b rfl with ⟨_, ⟨⟩, h₂'⟩,
+      rw le_antisymm h₁' h₂' }
+  end }
+
+instance order_bot [partial_order α] : order_bot (with_bot α) :=
+{ bot := none,
+  bot_le := λ a a' h, option.no_confusion h,
+  ..with_bot.partial_order }
+
+@[simp] theorem some_le_some [partial_order α] {a b : α} :
+  @has_le.le (with_bot α) _ (some a) (some b) ↔ a ≤ b :=
+⟨λ h, by rcases h a rfl with ⟨_, ⟨⟩, h⟩; exact h,
+ λ h a' e, option.some_inj.1 e ▸ ⟨b, rfl, h⟩⟩
+
+theorem some_le [partial_order α] {a b : α} :
+  ∀ {o : option α}, b ∈ o →
+  (@has_le.le (with_bot α) _ (some a) o ↔ a ≤ b)
+| _ rfl := some_le_some
+
+instance linear_order [linear_order α] : linear_order (with_bot α) :=
+{ le_total := λ o₁ o₂, begin
+    cases o₁ with a, {exact or.inl bot_le},
+    cases o₂ with b, {exact or.inr bot_le},
+    simp [le_total]
+  end,
+  ..with_bot.partial_order }
+
+instance semilattice_sup [semilattice_sup α] : semilattice_sup_bot (with_bot α) :=
+{ sup          := option.lift_or_get (⊔),
+  le_sup_left  := λ o₁ o₂ a ha,
+    by cases ha; cases o₂; simp [option.lift_or_get],
+  le_sup_right := λ o₁ o₂ a ha,
+    by cases ha; cases o₁; simp [option.lift_or_get],
+  sup_le       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
+    cases o₁ with b; cases o₂ with c; cases ha,
+    { exact h₂ a rfl },
+    { exact h₁ a rfl },
+    { rcases h₁ b rfl with ⟨d, ⟨⟩, h₁'⟩,
+      simp at h₂,
+      exact ⟨d, rfl, sup_le h₁' h₂⟩ }
+  end,
+  ..with_bot.order_bot }
+
+instance semilattice_inf [semilattice_inf α] : semilattice_inf_bot (with_bot α) :=
+{ inf          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊓ b)),
+  inf_le_left  := λ o₁ o₂ a ha, begin
+    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    exact ⟨_, rfl, inf_le_left⟩
+  end,
+  inf_le_right := λ o₁ o₂ a ha, begin
+    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    exact ⟨_, rfl, inf_le_right⟩
+  end,
+  le_inf       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
+    cases ha,
+    rcases h₁ a rfl with ⟨b, ⟨⟩, ab⟩,
+    rcases h₂ a rfl with ⟨c, ⟨⟩, ac⟩,
+    exact ⟨_, rfl, le_inf ab ac⟩
+  end,
+  ..with_bot.order_bot }
+
+instance lattice [lattice α] : lattice (with_bot α) :=
+{ ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
+
+instance order_top [order_top α] : order_top (with_bot α) :=
+{ top := some ⊤,
+  le_top := λ o a ha, by cases ha; exact ⟨_, rfl, le_top⟩,
+  ..with_bot.partial_order }
+
+instance bounded_lattice [bounded_lattice α] : bounded_lattice (with_bot α) :=
+{ ..with_bot.lattice, ..with_bot.order_top, ..with_bot.order_bot }
+
+end with_bot
+
+--TODO(Mario): Construct using order dual on with_bot
+def with_top (α : Type*) := option α
+
+namespace with_top
+
+instance partial_order [partial_order α] : partial_order (with_top α) :=
+{ le          := λ o₁ o₂ : option α, ∀ b ∈ o₂, ∃ a ∈ o₁, a ≤ b,
+  le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
+  le_trans    := λ o₁ o₂ o₃ h₁ h₂ c hc,
+    let ⟨b, hb, bc⟩ := h₂ c hc, ⟨a, ha, ab⟩ := h₁ b hb in
+    ⟨a, ha, le_trans ab bc⟩,
+  le_antisymm := λ o₁ o₂ h₁ h₂, begin
+    cases o₂ with b,
+    { cases o₁ with a, {refl},
+      rcases h₂ a rfl with ⟨_, ⟨⟩, _⟩ },
+    { rcases h₁ b rfl with ⟨a, ⟨⟩, h₁'⟩,
+      rcases h₂ a rfl with ⟨_, ⟨⟩, h₂'⟩,
+      rw le_antisymm h₁' h₂' }
+  end }
+
+instance order_top [partial_order α] : order_top (with_top α) :=
+{ top := none,
+  le_top := λ a a' h, option.no_confusion h,
+  ..with_top.partial_order }
+
+@[simp] theorem some_le_some [partial_order α] {a b : α} :
+  @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b :=
+⟨λ h, by rcases h b rfl with ⟨_, ⟨⟩, h⟩; exact h,
+ λ h a' e, option.some_inj.1 e ▸ ⟨a, rfl, h⟩⟩
+
+theorem le_some [partial_order α] {a b : α} :
+  ∀ {o : option α}, a ∈ o →
+  (@has_le.le (with_top α) _ o (some b) ↔ a ≤ b)
+| _ rfl := some_le_some
+
+instance linear_order [linear_order α] : linear_order (with_top α) :=
+{ le_total := λ o₁ o₂, begin
+    cases o₁ with a, {exact or.inr le_top},
+    cases o₂ with b, {exact or.inl le_top},
+    simp [le_total]
+  end,
+  ..with_top.partial_order }
+
+instance semilattice_inf [semilattice_inf α] : semilattice_inf_top (with_top α) :=
+{ inf          := option.lift_or_get (⊓),
+  inf_le_left  := λ o₁ o₂ a ha,
+    by cases ha; cases o₂; simp [option.lift_or_get],
+  inf_le_right := λ o₁ o₂ a ha,
+    by cases ha; cases o₁; simp [option.lift_or_get],
+  le_inf       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
+    cases o₂ with b; cases o₃ with c; cases ha,
+    { exact h₂ a rfl },
+    { exact h₁ a rfl },
+    { rcases h₁ b rfl with ⟨d, ⟨⟩, h₁'⟩,
+      simp at h₂,
+      exact ⟨d, rfl, le_inf h₁' h₂⟩ }
+  end,
+  ..with_top.order_top }
+
+instance semilattice_sup [semilattice_sup α] : semilattice_sup_top (with_top α) :=
+{ sup          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊔ b)),
+  le_sup_left  := λ o₁ o₂ a ha, begin
+    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    exact ⟨_, rfl, le_sup_left⟩
+  end,
+  le_sup_right := λ o₁ o₂ a ha, begin
+    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    exact ⟨_, rfl, le_sup_right⟩
+  end,
+  sup_le       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
+    cases ha,
+    rcases h₁ a rfl with ⟨b, ⟨⟩, ab⟩,
+    rcases h₂ a rfl with ⟨c, ⟨⟩, ac⟩,
+    exact ⟨_, rfl, sup_le ab ac⟩
+  end,
+  ..with_top.order_top }
+
+instance lattice [lattice α] : lattice (with_top α) :=
+{ ..with_top.semilattice_sup, ..with_top.semilattice_inf }
+
+instance order_bot [order_bot α] : order_bot (with_top α) :=
+{ bot := some ⊥,
+  bot_le := λ o a ha, by cases ha; exact ⟨_, rfl, bot_le⟩,
+  ..with_top.partial_order }
+
+instance bounded_lattice [bounded_lattice α] : bounded_lattice (with_top α) :=
+{ ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
+
+end with_top
 
 end lattice

@@ -146,6 +146,14 @@ instance lift_or_get_idem (f : α → α → α) [h : is_idempotent α f] :
   is_idempotent (option α) (lift_or_get f) :=
 ⟨λ a, by cases a; simp [lift_or_get, h.idempotent]⟩
 
+instance lift_or_get_is_left_id (f : α → α → α) :
+  is_left_id (option α) (lift_or_get f) none :=
+⟨λ a, by cases a; simp [lift_or_get]⟩
+
+instance lift_or_get_is_right_id (f : α → α → α) :
+  is_right_id (option α) (lift_or_get f) none :=
+⟨λ a, by cases a; simp [lift_or_get]⟩
+
 theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f a b = b) :
   ∀ o₁ o₂, lift_or_get f o₁ o₂ = o₁ ∨ lift_or_get f o₁ o₂ = o₂
 | none     none     := or.inl rfl

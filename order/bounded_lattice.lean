@@ -241,9 +241,14 @@ instance bounded_lattice_fun {α : Type u} {β : Type v} [bounded_lattice β] :
   bot_le       := assume f a, bot_le,
   ..partial_order_fun }
 
+end lattice
+
 def with_bot (α : Type*) := option α
 
 namespace with_bot
+open lattice
+
+instance : has_coe_t α (with_bot α) := ⟨some⟩
 
 instance partial_order [partial_order α] : partial_order (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
@@ -265,15 +270,22 @@ instance order_bot [partial_order α] : order_bot (with_bot α) :=
   bot_le := λ a a' h, option.no_confusion h,
   ..with_bot.partial_order }
 
-@[simp] theorem some_le_some [partial_order α] {a b : α} :
-  @has_le.le (with_bot α) _ (some a) (some b) ↔ a ≤ b :=
+@[simp] theorem coe_le_coe [partial_order α] {a b : α} :
+  (a : with_bot α) ≤ b ↔ a ≤ b :=
 ⟨λ h, by rcases h a rfl with ⟨_, ⟨⟩, h⟩; exact h,
  λ h a' e, option.some_inj.1 e ▸ ⟨b, rfl, h⟩⟩
 
-theorem some_le [partial_order α] {a b : α} :
-  ∀ {o : option α}, b ∈ o →
-  (@has_le.le (with_bot α) _ (some a) o ↔ a ≤ b)
-| _ rfl := some_le_some
+@[simp] theorem some_le_some [partial_order α] {a b : α} :
+  @has_le.le (with_bot α) _ (some a) (some b) ↔ a ≤ b := coe_le_coe
+
+theorem coe_le [partial_order α] {a b : α} :
+  ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b)
+| _ rfl := coe_le_coe
+
+@[simp] theorem some_lt_some [partial_order α] {a b : α} :
+  @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
+(and_congr some_le_some (not_congr some_le_some))
+  .trans lt_iff_le_not_le.symm
 
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
 { le_total := λ o₁ o₂, begin
@@ -282,6 +294,16 @@ instance linear_order [linear_order α] : linear_order (with_bot α) :=
     simp [le_total]
   end,
   ..with_bot.partial_order }
+
+instance decidable_linear_order [decidable_linear_order α] : decidable_linear_order (with_bot α) :=
+{ decidable_le := λ a b, begin
+    cases a with a,
+    { exact is_true bot_le },
+    cases b with b,
+    { exact is_false (mt (le_antisymm bot_le) (by simp)) },
+    { exact decidable_of_iff _ some_le_some }
+  end,
+  ..with_bot.linear_order }
 
 instance semilattice_sup [semilattice_sup α] : semilattice_sup_bot (with_bot α) :=
 { sup          := option.lift_or_get (⊔),
@@ -334,6 +356,9 @@ end with_bot
 def with_top (α : Type*) := option α
 
 namespace with_top
+open lattice
+
+instance : has_coe_t α (with_top α) := ⟨some⟩
 
 instance partial_order [partial_order α] : partial_order (with_top α) :=
 { le          := λ o₁ o₂ : option α, ∀ b ∈ o₂, ∃ a ∈ o₁, a ≤ b,
@@ -355,15 +380,23 @@ instance order_top [partial_order α] : order_top (with_top α) :=
   le_top := λ a a' h, option.no_confusion h,
   ..with_top.partial_order }
 
-@[simp] theorem some_le_some [partial_order α] {a b : α} :
-  @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b :=
+@[simp] theorem coe_le_coe [partial_order α] {a b : α} :
+  (a : with_top α) ≤ b ↔ a ≤ b :=
 ⟨λ h, by rcases h b rfl with ⟨_, ⟨⟩, h⟩; exact h,
  λ h a' e, option.some_inj.1 e ▸ ⟨a, rfl, h⟩⟩
 
-theorem le_some [partial_order α] {a b : α} :
+@[simp] theorem some_le_some [partial_order α] {a b : α} :
+  @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b := coe_le_coe
+
+theorem le_coe [partial_order α] {a b : α} :
   ∀ {o : option α}, a ∈ o →
-  (@has_le.le (with_top α) _ o (some b) ↔ a ≤ b)
-| _ rfl := some_le_some
+  (@has_le.le (with_top α) _ o b ↔ a ≤ b)
+| _ rfl := coe_le_coe
+
+@[simp] theorem some_lt_some [partial_order α] {a b : α} :
+  @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
+(and_congr some_le_some (not_congr some_le_some))
+  .trans lt_iff_le_not_le.symm
 
 instance linear_order [linear_order α] : linear_order (with_top α) :=
 { le_total := λ o₁ o₂, begin
@@ -372,6 +405,16 @@ instance linear_order [linear_order α] : linear_order (with_top α) :=
     simp [le_total]
   end,
   ..with_top.partial_order }
+
+instance decidable_linear_order [decidable_linear_order α] : decidable_linear_order (with_top α) :=
+{ decidable_le := λ a b, begin
+    cases b with b,
+    { exact is_true le_top },
+    cases a with a,
+    { exact is_false (mt (le_antisymm le_top) (by simp)) },
+    { exact decidable_of_iff _ some_le_some }
+  end,
+  ..with_top.linear_order }
 
 instance semilattice_inf [semilattice_inf α] : semilattice_inf_top (with_top α) :=
 { inf          := option.lift_or_get (⊓),
@@ -419,5 +462,3 @@ instance bounded_lattice [bounded_lattice α] : bounded_lattice (with_top α) :=
 { ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
 
 end with_top
-
-end lattice

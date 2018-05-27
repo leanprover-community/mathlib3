@@ -18,6 +18,22 @@ section
   (two_mul _).symm
 end
 
+instance [semiring α] : semiring (with_zero α) :=
+{ left_distrib := λ a b c, begin
+    cases a with a, {refl},
+    cases b with b; cases c with c; try {refl},
+    exact congr_arg some (left_distrib _ _ _)
+  end,
+  right_distrib := λ a b c, begin
+    cases c with c,
+    { change (a + b) * 0 = a * 0 + b * 0, simp },
+    cases a with a; cases b with b; try {refl},
+    exact congr_arg some (right_distrib _ _ _)
+  end,
+  ..with_zero.add_comm_monoid,
+  ..with_zero.mul_zero_class,
+  ..with_zero.monoid }
+
 section
   variables [ring α] (a b c d e : α)
 

@@ -315,8 +315,9 @@ do ns ← loc.get_locals,
 /-- Normalize numerical expressions. Supports the operations
   `+` `-` `*` `/` `^` `<` `≤` over ordered fields (or other
   appropriate classes), as well as `-` `/` `%` over `ℤ` and `ℕ`. -/
-meta def norm_num (loc : parse location) : tactic unit :=
-let t := orelse' (norm_num1 loc) $ simp_core {} failed ff [] [] loc in
+meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
+let t := orelse' (norm_num1 l) $
+  simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l in
 t >> repeat t
 
 meta def apply_normed (x : parse texpr) : tactic unit :=

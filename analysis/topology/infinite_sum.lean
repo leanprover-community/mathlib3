@@ -13,7 +13,7 @@ import logic.function algebra.big_operators data.set data.finset
        analysis.metric_space analysis.topology.topological_structures
 
 noncomputable theory
-open set lattice finset filter function classical
+open lattice finset filter function classical
 local attribute [instance] prop_decidable
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -392,7 +392,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
   have ∃t, ∀u₁ u₂:finset β, t ⊆ u₁ → t ⊆ u₂ → (u₁.sum f, u₂.sum f) ∈ s,
     by simp [cauchy_iff, mem_at_top_sets, and.assoc, and.left_comm, and.comm] at this;
     from let ⟨t, ht, u, hu⟩ := this s hs in
-      ⟨u, assume u₁ u₂ h₁ h₂, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ h₁, hu _ h₂⟩⟩,
+      ⟨u, assume u₁ u₂ h₁ h₂, ht $ set.prod_mk_mem_set_prod_eq.mpr ⟨hu _ h₁, hu _ h₂⟩⟩,
   let ⟨t, ht⟩ := this in
   let d := (t.filter (λb, f' b = 0)).sum f in
   have eq : ∀{u}, t ⊆ u → (t ∪ u.filter (λb, f' b ≠ 0)).sum f - d = u.sum f',

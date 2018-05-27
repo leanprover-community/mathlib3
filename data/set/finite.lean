@@ -64,7 +64,11 @@ decidable_of_iff _ mem_to_finset
 instance fintype_empty : fintype (∅ : set α) :=
 fintype_of_finset ∅ $ by simp
 
-@[simp] theorem empty_card : fintype.card (∅ : set α) = 0 := rfl
+theorem empty_card : fintype.card (∅ : set α) = 0 := rfl
+
+@[simp] theorem empty_card' {h : fintype.{u} (∅ : set α)} :
+  @fintype.card (∅ : set α) h = 0 :=
+eq.trans (by congr) empty_card
 
 @[simp] theorem finite_empty : @finite α ∅ := ⟨set.fintype_empty⟩
 
@@ -77,13 +81,14 @@ theorem card_fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) :
 by rw [fintype_insert', card_fintype_of_finset];
    simp [finset.card, to_finset]; refl
 
+@[simp] theorem card_insert {a : α} (s : set α)
+  [fintype s] (h : a ∉ s) {d : fintype.{u} (insert a s : set α)} :
+  @fintype.card _ d = fintype.card s + 1 :=
+by rw ← card_fintype_insert' s h; congr
+
 instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] : fintype (insert a s : set α) :=
 if h : a ∈ s then by rwa [insert_eq, union_eq_self_of_subset_left (singleton_subset_iff.2 h)]
 else fintype_insert' _ h
-
-@[simp] theorem card_insert [decidable_eq α] {a : α} (s : set α) [fintype s] (h : a ∉ s) :
-  fintype.card (insert a s : set α) = fintype.card s + 1 :=
-by rw ← card_fintype_insert' s h; congr
 
 @[simp] theorem finite_insert (a : α) {s : set α} : finite s → finite (insert a s)
 | ⟨h⟩ := ⟨@set.fintype_insert _ (classical.dec_eq α) _ _ h⟩

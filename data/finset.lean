@@ -1161,7 +1161,7 @@ by rcases @le_sup (with_bot α) _ _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
 protected def min : finset α → option α :=
 fold (option.lift_or_get min) none some
 
-theorem max_eq_inf_with_top (s : finset α) :
+theorem min_eq_inf_with_top (s : finset α) :
   s.min = @inf (with_top α) α _ _ _ s some := rfl
 
 @[simp] theorem min_empty : (∅ : finset α).min = none :=
@@ -1185,8 +1185,7 @@ finset.induction_on s (by simp) $
     { induction p, exact mem_insert_self b s },
     { cases option.lift_or_get_choice min_choice (some b) s.min with q q; simp [q] at h,
       { exact absurd h p },
-      { exact mem_insert_of_mem (ih h) }
-    }
+      { exact mem_insert_of_mem (ih h) } }
   end
 
 theorem le_min_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ s.min) : a ≤ b :=

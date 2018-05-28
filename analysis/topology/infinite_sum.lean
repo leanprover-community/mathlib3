@@ -122,7 +122,7 @@ have u_subset : u ⊆ fsts.sigma snds,
   have hc : c ∈ snds b, from mem_bind.mpr ⟨_, hu, by simp; refl⟩,
   by simp [mem_sigma, hb, hc] ,
 mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
-  have h : ∀cs:(Πb, b ∈ bs → finset (γ b)),
+  have h : ∀cs : Π b ∈ bs, finset (γ b),
       (⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
       (λp, bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩))) ⁻¹' s ≠ ∅,
     from assume cs,
@@ -132,7 +132,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     have (bs.sigma cs').sum f ∈ s,
       from hu _ $ finset.subset.trans u_subset $ sigma_mono hbs $
         assume b, @finset.subset_union_right (γ b) _ _ _,
-    ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
+    set.ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
     by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_right] },
   have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
       (⨅b (h : b ∈ bs), at_top.vmap (λp, p b)) (nhds (bs.sum g)),
@@ -147,8 +147,8 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
         assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
         have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
           from infi_le_infi $ assume b, infi_le_infi $ assume hb,
-            le_trans (preimage_mono $ hp' b hb) (hp b hb),
-        neq_bot_of_le_neq_bot (h _) (le_trans (inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
+            le_trans (set.preimage_mono $ hp' b hb) (hp b hb),
+        neq_bot_of_le_neq_bot (h _) (le_trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
   hss' this
 
 lemma has_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
@@ -168,7 +168,7 @@ suffices at_top.map (λs:finset β, s.sum f) ≤ at_top.map (λs:finset γ, s.su
   from le_trans this hf,
 by rw [map_at_top_eq, map_at_top_eq];
 from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
-  by simp [image_subset_iff]; exact hv)
+  by simp [set.image_subset_iff]; exact hv)
 
 lemma is_sum_iff_is_sum
   (h₁ : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ u'.sum g = v'.sum f)

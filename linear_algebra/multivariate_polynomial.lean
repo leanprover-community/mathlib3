@@ -12,32 +12,6 @@ open set function finsupp lattice
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-lemma finsupp.single_induction_on [decidable_eq α] [decidable_eq β] [add_monoid β] {p : (α →₀ β) → Prop} (f : α →₀ β)
-  (h_zero : p 0) (h_add : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (f + single a b)) :
-  p f :=
-have ∀(s : finset α) (f : α →₀ β), s = f.support → p f,
-  from assume s, finset.induction_on s
-    (assume f eq,
-      have 0 = f, from finsupp.ext $ by simp [finset.ext, *] at * {contextual := tt},
-      this ▸ h_zero)
-    (assume a s has ih f eq,
-      have a ∈ f.support, by rw [← eq]; simp,
-      have f.filter (λa', a' ≠ a) + single a (f a) = f,
-        from finsupp.ext $ assume a', decidable.by_cases
-          (assume h : a' = a, by simp [h])
-          (assume h : a' ≠ a, by simp [h, h.symm]),
-      begin
-        rw ← this,
-        apply h_add,
-        { simp },
-        { have : a ∈ f.support, { rw [← eq], simp },
-          simpa using this },
-        apply ih,
-        { rw finset.ext, intro a',
-          by_cases a' = a; simp [h, has, -finsupp.mem_support_iff, eq.symm, support_filter] }
-      end),
-this _ _ rfl
-
 /-- Multivariate polynomial, where `σ` is the index set of the variables and
   `α` is the coefficient ring -/
 def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := (σ →₀ ℕ) →₀ α
@@ -87,7 +61,7 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
 begin
-  apply @finsupp.single_induction_on σ ℕ _ _ _ _ s,
+  apply @finsupp.induction σ ℕ _ _ _ _ s,
   { simp [C, prod_zero_index]; exact (mul_one _).symm },
   { assume n e s hns he ih,
     simp [prod_add_index, prod_single_index, pow_zero, pow_add, (mul_assoc _ _ _).symm, ih.symm,
@@ -101,7 +75,7 @@ lemma induction_on {M : mv_polynomial σ α → Prop} (p : mv_polynomial σ α)
 have ∀s a, M (monomial s a),
 begin
   assume s a,
-  apply @finsupp.single_induction_on σ ℕ _ _ _ _ s,
+  apply @finsupp.induction σ ℕ _ _ _ _ s,
   { show M (monomial 0 a), from h_C a, },
   { assume n e p hpn he ih,
     have : ∀e:ℕ, M (monomial p a * X n ^ e),
@@ -111,9 +85,9 @@ begin
       { simp [ih, pow_succ', (mul_assoc _ _ _).symm, h_X, e_ih] } },
     simp [monomial_add_single, this] }
 end,
-finsupp.single_induction_on p
+finsupp.induction p
   (by have : M (C 0) := h_C 0; rwa [C_0] at this)
-  (assume s a p hsp ha hp, h_add _ _ hp (this s a))
+  (assume s a p hsp ha hp, h_add _ _ (this s a) hp)
 
 section eval
 variables {f : σ → α}

@@ -1,4 +1,4 @@
-import .simplex_category analysis.topology.topological_space analysis.nnreal
+import .simplex_category .simplicial_set analysis.topology.topological_space analysis.nnreal
 noncomputable theory
 open finset
 
@@ -17,10 +17,10 @@ end typepown
 definition standard_topological_simplex (n : ℕ) : set (ℝ≥0^(n+1)) :=
  λ x : fin (n+1) → ℝ≥0, sum univ x = 1
 
-namespace standard_topological_simplex
-
 local notation ` Δ `   := standard_topological_simplex
 local notation ` [`n`] ` := fin (n+1)
+
+namespace standard_topological_simplex
 
 variable {n : ℕ}
 
@@ -158,23 +158,20 @@ lemma continuous_δ {n : ℕ} (i : [n+1]) : continuous (δ i)
 
 end standard_topological_simplex
 
-
 namespace singular_set
 
-open simplicial_set
+open simplicial_set standard_topological_simplex
 
-variables {X: Type*} [topological_space X]
-
-definition S : simplicial_set :=
-{
-    objs := λ n, {φ : standard_simplex.standard_simplex n → X // continuous φ},
-    maps := λ m n f hf φ, ⟨φ.val ∘ standard_simplex.induced_map f,
-     continuous.comp (standard_simplex.continuous_induced_map f) φ.property⟩,
-    comp := λ l m n f g hf hg, funext $ assume φ, begin
+definition S {X: Type*} [topological_space X] : simplicial_set :=
+{ objs := λ n, {φ : Δ n → X // continuous φ},
+  maps :=
+  λ m n f hf φ, ⟨φ.val ∘ induced_map f, continuous.comp (continuous_induced_map f) φ.property⟩,
+  comp :=
+  λ l m n f g hf hg, funext $ assume φ,
+  begin
     simp,
     rw function.comp.assoc,
-    rw ←standard_simplex.induced_map_comp
-    end
-}
+    rw ←induced_map_comp
+  end}
 
 end singular_set

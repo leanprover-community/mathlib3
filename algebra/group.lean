@@ -526,3 +526,49 @@ end is_group_anti_hom
 
 theorem inv_is_group_anti_hom [group α] : is_group_anti_hom (λ x : α, x⁻¹) :=
 ⟨mul_inv_rev⟩
+
+/-- Predicate for additive group homomorphism. -/
+def is_add_group_hom {α β : Type*} [add_group α] [add_group β] (f : α → β) : Prop :=
+@is_group_hom (multiplicative α) (multiplicative β) _ _ f
+
+attribute [class] is_add_group_hom
+
+namespace is_add_group_hom
+
+-- variables {α β : Type*} [add_group α] [add_group β] (f : α → β) [hf : is_add_group_hom f]
+
+theorem mk {α β : Type*} [add_group α] [add_group β] (f : α → β) [hf : is_add_group_hom f]
+(H : ∀ x y, f (x + y) = f x + f y) : is_add_group_hom f := ⟨H⟩
+
+theorem add {α β : Type*} [add_group α] [add_group β] (f : α → β) [hf : is_add_group_hom f]
+(x y) : f (x + y) = f x + f y :=
+@is_group_hom.mul (multiplicative α) (multiplicative β) _ _ f hf x y
+
+-- instance ring_hom_is_add_group_hom [ring α] [ring β] (f : α → β) [is_ring_hom f] : is_add_group_hom f :=
+-- ⟨λ _ _, is_ring_hom.map_add f⟩
+
+theorem zero {α β : Type*} [add_group α] [add_group β] (f : α → β) [hf : is_add_group_hom f] :
+f 0 = 0 :=
+@is_group_hom.one (multiplicative α) (multiplicative β) _ _ f hf
+
+theorem neg {α β : Type*} [add_group α] [add_group β] (f : α → β) [hf : is_add_group_hom f] (x) :
+f (-x) = -f x :=
+@is_group_hom.inv (multiplicative α) (multiplicative β) _ _ f hf x
+
+def ker {α β : Type*} [add_group α] [add_group β] (f : α → β) [hf : is_add_group_hom f] :
+set α :=
+{ x | f x = 0 }
+
+-- instance Pi_lift {γ : Type u} {F : γ → Type u} {G : γ → Type u} [∀ i, add_group (F i)]
+-- [∀ i, add_group (G i)] (H : ∀ i : γ, F i → G i) [∀ i, is_add_group_hom (H i)] :
+--  is_add_group_hom (Pi_lift_map₁ H) := ⟨λ a b, funext $ λ i,
+-- show H i ((a i) + (b i)) = H i (a i) + H i (b i),
+-- by rw (add (H i))⟩
+
+-- instance equiv.Pi_congr_right {γ : Type u} {F : γ → Type u} {G : γ → Type u} [∀ i, add_group (F i)]
+-- [∀ i, add_group (G i)] (H : ∀ i : γ, F i ≃ G i) [∀ i, is_add_group_hom (H i)] :
+--  is_add_group_hom (equiv.Pi_congr_right H) := 
+-- -- is_add_group_hom.Pi_lift H
+--  is_add_group_hom.Pi_lift (λ i, H i)
+
+end is_add_group_hom

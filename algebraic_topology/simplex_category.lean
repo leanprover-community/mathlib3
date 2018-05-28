@@ -16,18 +16,19 @@ instance : linear_order (fin n) :=
 end fin
 
 namespace simplex_category
+local notation ` [`n`] ` := fin (n+1)
 
-def δ (i : fin (n + 1)) (a : fin n) : fin (n + 1) :=
+def δ (i : [n+1]) (a : [n]) : [n+1] :=
 if h : i.val ≤ a.val then a.succ else a.raise
 
-def σ (i : fin n) (a : fin (n+1)) : fin n :=
+def σ (i : [n]) (a : [n+1]) : [n] :=
 if h : a.val ≤ i.val
 then ⟨a.val, lt_of_le_of_lt h i.is_lt⟩
 else ⟨a.val.pred,
   (nat.sub_lt_right_iff_lt_add (lt_of_le_of_lt i.val.zero_le (not_le.mp h))).mpr a.is_lt⟩
   --a.pred sorry
 
-lemma δ_monotone (i : fin (n+1)) : monotone (δ i) :=
+lemma δ_monotone (i : [n+1]) : monotone (δ i) :=
 begin
 unfold monotone,
 intros a b H,
@@ -49,7 +50,7 @@ by_cases ha : (i.val ≤ a.val),
     exact H }}
 end
 
-lemma σ_monotone (i : fin n) : monotone (σ i) :=
+lemma σ_monotone (i : [n]) : monotone (σ i) :=
 begin
 unfold monotone,
 intros a b H,
@@ -76,7 +77,7 @@ by_cases ha : (a.val ≤ i.val),
   exact nat.pred_le_pred H}
 end
 
-lemma simplicial_identity₁ (i j : fin (n + 1)) (H : i ≤ j) : δ j.succ ∘ δ i = δ i.raise ∘ δ j :=
+lemma simplicial_identity₁ (i j : [n+1]) (H : i ≤ j) : δ j.succ ∘ δ i = δ i.raise ∘ δ j :=
 begin
 apply funext,
 intro a,

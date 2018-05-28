@@ -13,13 +13,7 @@ def δ {X : simplicial_set} {n : ℕ} (i : [n+1]) :=
 maps (simplex_category.δ_monotone i)
 
 lemma simplicial_identity₁ {X : simplicial_set} {n : ℕ} (i j : [n + 1]) (H : i ≤ j) :
-(@δ X n) i ∘ δ j.succ = δ j ∘ δ i.raise :=
-begin
-unfold δ,
-rw comp,
-rw comp,
-sorry
-end
+(@δ X n) i ∘ δ j.succ = δ j ∘ δ i.raise := by finish [δ, comp, simplex_category.simplicial_identity₁]
 
 end simplicial_set
 

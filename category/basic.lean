@@ -23,3 +23,14 @@ lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x))
 (bind_map_eq_seq m f x).symm
 
 end monad
+
+section alternative
+variables {f : Type → Type v} [alternative f]
+
+@[simp] theorem guard_true {h : decidable true} :
+  (@guard f _ true h) = pure () := by simp [guard]
+
+@[simp] theorem guard_false {h : decidable false} :
+  (@guard f _ false h) = failure := by simp [guard]
+
+end alternative

@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs meta.expr
+import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs
+  tactic.split_ifs meta.expr
 
 open lean
 open lean.parser
@@ -15,15 +16,26 @@ namespace tactic
 namespace interactive
 open interactive interactive.types expr
 
-meta def rcases_parse : parser (list rcases_patt) :=
+local notation `listΣ` := list_Sigma
+local notation `listΠ` := list_Pi
+
+/--
+This parser uses the "inverted" meaning for the `many` constructor:
+rather than representing a sum of products, here it represents a
+product of sums. We fix this by applying `invert`, defined below, to
+the result.
+-/
+@[reducible] def rcases_patt_inverted := rcases_patt
+
+meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
 with_desc "patt" $ let p :=
   (rcases_patt.one <$> ident_) <|>
   (rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse)) in
 list.cons <$> p <*> (tk "|" *> p)*
 
-meta def rcases_parse.invert : list rcases_patt → list (list rcases_patt) :=
-let invert' (l : list rcases_patt) : rcases_patt := match l with
-| [k] := k
+meta def rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt) :=
+let invert' (l : listΣ rcases_patt_inverted) : rcases_patt := match l with
+| [rcases_patt.one n] := rcases_patt.one n
 | _ := rcases_patt.many (rcases_parse.invert l)
 end in
 list.map $ λ p, match p with
@@ -135,15 +147,15 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
-/-- Same as the `congr` tactic, but only works up to depth `n`. This
-  is useful when the `congr` tactic is too aggressive in breaking
-  down the goal. For example, given `⊢ f (g (x + y)) = f (g (y + x))`,
-  `congr` produces the goals `⊢ x = y` and `⊢ y = x`, while
-  `congr_n 2` produces the intended `⊢ x + y = y + x`. -/
-meta def congr_n : nat → tactic unit
-| 0     := failed
-| (n+1) := focus1 (try assumption >> congr_core >>
-  all_goals (try reflexivity >> try (congr_n n)))
+/-- Same as the `congr` tactic, but takes an optional argument which gives
+  the depth of recursive applications. This is useful when `congr`
+  is too aggressive in breaking down the goal. For example, given
+  `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
+  and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
+meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
+| (some 0) := failed
+| o        := focus1 (assumption <|> (congr_core >>
+  all_goals (reflexivity <|> try (congr' (nat.pred <$> o)))))
 
 /-- Acts like `have`, but removes a hypothesis with the same name as
   this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
@@ -392,7 +404,7 @@ do v ← mk_mvar,
      else refine ``(eq.mpr %%v %%r),
    gs ← get_goals,
    set_goals [v],
-   (option.cases_on n congr congr_n : tactic unit),
+   congr' n,
    gs' ← get_goals,
    set_goals $ gs' ++ gs
 

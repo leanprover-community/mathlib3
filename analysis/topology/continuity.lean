@@ -16,8 +16,7 @@ noncomputable theory
 open set filter lattice
 local attribute [instance] classical.prop_decidable
 
-universes u v w x y
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Sort x}
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 section
 variables [topological_space α] [topological_space β] [topological_space γ]
@@ -120,7 +119,7 @@ local notation `cont` := @continuous _ _
 local notation `tspace` := topological_space
 open topological_space
 
-variable {f : α → β}
+variables {f : α → β} {ι : Sort*}
 
 lemma continuous_iff_induced_le {t₁ : tspace α} {t₂ : tspace β} :
   cont t₁ t₂ f ↔ induced f t₂ ≤ t₁ :=
@@ -175,47 +174,23 @@ lemma continuous_Inf_dom {t₁ : set (tspace α)} {t₂ : tspace β}
   (h : ∀t∈t₁, cont t t₂ f) : cont (Inf t₁) t₂ f :=
 assume s hs t ht, h t ht s hs
 
-lemma continuous_Inf_rng {t₁ : tspace α} {t₂ : set (tspace β)}
-  {t : tspace β} (h₁ : t ∈ t₂) (hf : cont t₁ t f) : cont t₁ (Inf t₂) f :=
+lemma continuous_Inf_rng {t₁ : tspace α} {t₂ : set (tspace β)} {t : tspace β}
+  (h₁ : t ∈ t₂) (hf : cont t₁ t f) : cont t₁ (Inf t₂) f :=
 assume s hs, hf s $ hs t h₁
 
 lemma continuous_infi_dom {t₁ : ι → tspace α} {t₂ : tspace β}
   (h : ∀i, cont (t₁ i) t₂ f) : cont (infi t₁) t₂ f :=
 continuous_Inf_dom $ assume t ⟨i, (t_eq : t = t₁ i)⟩, t_eq.symm ▸ h i
 
-lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β}
-  {i : ι} (h : cont t₁ (t₂ i) f) : cont t₁ (infi t₂) f :=
+lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β} {i : ι}
+  (h : cont t₁ (t₂ i) f) : cont t₁ (infi t₂) f :=
 continuous_Inf_rng ⟨i, rfl⟩ h
-
-lemma continuous_Sup_dom {t₁ : set (tspace α)} {t₂ : tspace β}
-  {t : tspace α} (h₁ : t ∈ t₁) : cont t t₂ f → cont (Sup t₁) t₂ f :=
-continuous_le_dom (le_Sup h₁)
-
-lemma continuous_Sup_rng {t₁ : tspace α} {t₂ : set (tspace β)}
-  (h : ∀t∈t₂, cont t₁ t f) : cont t₁ (Sup t₂) f :=
-continuous_Inf_rng
-  (λ t ht, show t ≤ coinduced f t₁, from h t ht)
-  continuous_coinduced_rng
-
-lemma continuous_supr_dom {t₁ : ι → tspace α} {t₂ : tspace β}
-  {i : ι} : cont (t₁ i) t₂ f → cont (supr t₁) t₂ f :=
-continuous_Sup_dom ⟨i, rfl⟩
-
-lemma continuous_supr_rng {t₁ : tspace α} {t₂ : ι → tspace β}
-  (h : ∀i, cont t₁ (t₂ i) f) : cont t₁ (supr t₂) f :=
-continuous_Sup_rng $ assume t ⟨i, (t_eq : t = t₂ i)⟩, t_eq.symm ▸ h i
-
-lemma continuous_top {t : tspace β} : cont ⊤ t f :=
-assume s h, trivial
-
-lemma continuous_bot {t : tspace α} : cont t ⊥ f :=
-continuous_Inf_rng (mem_univ $ coinduced f t) continuous_coinduced_rng
 
 lemma continuous_sup_rng {t₁ : tspace α} {t₂ t₃ : tspace β}
   (h₁ : cont t₁ t₂ f) (h₂ : cont t₁ t₃ f) : cont t₁ (t₂ ⊔ t₃) f :=
-continuous_Inf_rng
-  (show t₂ ≤ coinduced f t₁ ∧ t₃ ≤ coinduced f t₁, from ⟨h₁, h₂⟩)
-  continuous_coinduced_rng
+continuous_iff_le_coinduced.2 $ sup_le
+  (continuous_iff_le_coinduced.1 h₁)
+  (continuous_iff_le_coinduced.1 h₂)
 
 lemma continuous_sup_dom_left {t₁ t₂ : tspace α} {t₃ : tspace β} :
   cont t₁ t₃ f → cont (t₁ ⊔ t₂) t₃ f :=
@@ -224,6 +199,28 @@ continuous_le_dom le_sup_left
 lemma continuous_sup_dom_right {t₁ t₂ : tspace α} {t₃ : tspace β} :
   cont t₂ t₃ f → cont (t₁ ⊔ t₂) t₃ f :=
 continuous_le_dom le_sup_right
+
+lemma continuous_Sup_dom {t₁ : set (tspace α)} {t₂ : tspace β} {t : tspace α} (h₁ : t ∈ t₁) :
+  cont t t₂ f → cont (Sup t₁) t₂ f :=
+continuous_le_dom $ le_Sup h₁
+
+lemma continuous_Sup_rng {t₁ : tspace α} {t₂ : set (tspace β)}
+  (h : ∀t∈t₂, cont t₁ t f) : cont t₁ (Sup t₂) f :=
+continuous_iff_le_coinduced.2 $ Sup_le $ assume b hb, continuous_iff_le_coinduced.1 $ h b hb
+
+lemma continuous_supr_dom {t₁ : ι → tspace α} {t₂ : tspace β} {i : ι} :
+  cont (t₁ i) t₂ f → cont (supr t₁) t₂ f :=
+continuous_le_dom $ le_supr _ _
+
+lemma continuous_supr_rng {t₁ : tspace α} {t₂ : ι → tspace β}
+  (h : ∀i, cont t₁ (t₂ i) f) : cont t₁ (supr t₂) f :=
+continuous_iff_le_coinduced.2 $ supr_le $ assume i, continuous_iff_le_coinduced.1 $ h i
+
+lemma continuous_top {t : tspace β} : cont ⊤ t f :=
+assume s h, trivial
+
+lemma continuous_bot {t : tspace α} : cont t ⊥ f :=
+continuous_Inf_rng (mem_univ $ coinduced f t) continuous_coinduced_rng
 
 end constructions
 
@@ -538,7 +535,7 @@ lemma nhds_subtype_eq_vmap {a : α} {h : p a} :
   nhds (⟨a, h⟩ : subtype p) = vmap subtype.val (nhds a) :=
 nhds_induced_eq_vmap
 
-lemma continuous_subtype_nhds_cover {f : α → β} {c : ι → α → Prop}
+lemma continuous_subtype_nhds_cover {ι : Sort*} {f : α → β} {c : ι → α → Prop}
   (c_cover : ∀x:α, ∃i, {x | c i x} ∈ (nhds x).sets)
   (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x.val)) :
   continuous f :=
@@ -584,22 +581,31 @@ closure_induced $ assume x y, subtype.eq
 end subtype
 
 section pi
+variables {ι : Type*} {π : ι → Type*}
 
-lemma nhds_pi {ι : Type u} {α : ι → Type v} [t : ∀i, topological_space (α i)] {a : Πi, α i} :
+lemma continuous_pi [topological_space α] [∀i, topological_space (π i)] {f : α → Πi:ι, π i}
+  (h : ∀i, continuous (λa, f a i)) : continuous f :=
+continuous_supr_rng $ assume i, continuous_induced_rng $ h i
+
+lemma continuous_apply [topological_space α] [∀i, topological_space (π i)] (i : ι) :
+  continuous (λp:Πi, π i, p i) :=
+continuous_supr_dom continuous_induced_dom
+
+lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   nhds a = (⨅i, vmap (λx, x i) (nhds (a i))) :=
-calc nhds a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, α i, x i) (t i)) a) : nhds_supr
+calc nhds a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_supr
   ... = (⨅i, vmap (λx, x i) (nhds (a i))) : by simp [nhds_induced_eq_vmap]
 
 /-- Tychonoff's theorem -/
-lemma compact_pi_infinite {ι : Type v} {α : ι → Type u} [∀i:ι, topological_space (α i)]
-  {s : Πi:ι, set (α i)} : (∀i, compact (s i)) → compact {x : Πi:ι, α i | ∀i, x i ∈ s i} :=
+lemma compact_pi_infinite [∀i, topological_space (π i)] {s : Πi:ι, set (π i)} :
+  (∀i, compact (s i)) → compact {x : Πi:ι, π i | ∀i, x i ∈ s i} :=
 begin
   simp [compact_iff_ultrafilter_le_nhds, nhds_pi],
   exact assume h f hf hfs,
-    let p : Πi:ι, filter (α i) := λi, map (λx:Πi:ι, α i, x i) f in
+    let p : Πi:ι, filter (π i) := λi, map (λx:Πi:ι, π i, x i) f in
     have ∀i:ι, ∃a, a∈s i ∧ p i ≤ nhds a,
       from assume i, h i (p i) (ultrafilter_map hf) $
-      show (λx:Πi:ι, α i, x i) ⁻¹' s i ∈ f.sets,
+      show (λx:Πi:ι, π i, x i) ⁻¹' s i ∈ f.sets,
         from f.upwards_sets hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
     let ⟨a, ha⟩ := classical.axiom_of_choice this in
     ⟨a, assume i, (ha i).left, assume i, map_le_iff_le_vmap.mp $ (ha i).right⟩

@@ -6,13 +6,14 @@ namespace fin
 
 variable {n : ℕ}
 
+/-- Embedding of `fin n` in `fin (n+1)` -/
 def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
 
-@[simp]
-lemma succ_val (j : fin n) : j.succ.val = j.val.succ := by cases j; simp [fin.succ]
+@[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
+by cases j; simp [fin.succ]
 
-@[simp]
-lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred := by cases j; simp [fin.pred]
+@[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
+by cases j; simp [fin.pred]
 
 end fin
 

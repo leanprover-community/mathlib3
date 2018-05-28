@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Basic properties of lists.
 -/
-import tactic.interactive tactic.mk_iff_of_inductive_prop
+import tactic.interactive tactic.mk_iff_of_inductive_prop tactic.split_ifs
   logic.basic logic.function
   algebra.group
   data.nat.basic data.option data.bool data.prod data.sigma
@@ -71,7 +71,7 @@ theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = 
 begin
   induction l with b l ih; simp at h; cases h with h h,
   { subst h, exact ⟨[], l, rfl⟩ },
-  { cases ih h with s e, cases e with t e,
+  { rcases ih h with ⟨s, t, e⟩,
     subst l, exact ⟨b::s, t, rfl⟩ }
 end
 
@@ -105,7 +105,7 @@ begin
   {simp at h, contradiction},
   {cases (eq_or_mem_of_mem_cons h) with h h,
     {existsi c, simp [h]},
-    {cases ih h with a ha, cases ha with ha₁ ha₂,
+    {rcases ih h with ⟨a, ha₁, ha₂⟩,
       existsi a, simp * }}
 end
 
@@ -862,6 +862,10 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 | (succ n)  (succ m) nil    := by simp
 | (succ n)  (succ m) (a::l) := by simp [min_succ_succ, take_take]
 
+@[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
+| 0     := rfl
+| (n+1) := rfl
+
 theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
   drop n l = nth_le l n h :: drop (n+1) l
 | 0     (a::l) h := rfl
@@ -1169,7 +1173,7 @@ by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _).trans (map_id l)
 
 @[simp] theorem mem_attach (l : list α) : ∀ x, x ∈ l.attach | ⟨a, h⟩ :=
 by have := mem_map.1 (by rw [attach_map_val]; exact h);
-   { rcases this with ⟨a, m, rfl⟩, cases a, exact m }
+   { rcases this with ⟨⟨_, _⟩, m, rfl⟩, exact m }
 
 @[simp] theorem mem_pmap {p : α → Prop} {f : Π a, p a → β}
   {l H b} : b ∈ pmap f l H ↔ ∃ a (h : a ∈ l), f a (H a h) = b :=
@@ -1444,10 +1448,7 @@ theorem count_cons (a b : α) (l : list α) :
 
 theorem count_cons' (a b : α) (l : list α) :
   count a (b :: l) = count a l + (if a = b then 1 else 0) :=
-decidable.by_cases
-  (assume : a = b, begin rw [count_cons, if_pos this, if_pos this] end)
-  (assume : a ≠ b, begin rw [count_cons, if_neg this, if_neg this], reflexivity end)
-
+begin rw count_cons, split_ifs; refl end
 
 @[simp] theorem count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) :=
 if_pos rfl
@@ -1803,7 +1804,7 @@ theorem sublists_aux_eq_foldr.aux {a : α} {l : list α}
       sublists_aux l f = foldr f [] (sublists_aux l cons))
   (f : list α → list β → list β) : sublists_aux (a::l) f = foldr f [] (sublists_aux (a::l) cons) :=
 begin
-  simp [sublists_aux], rw [IH₂, IH₁], congr_n 1,
+  simp [sublists_aux], rw [IH₂, IH₁], congr' 1,
   induction sublists_aux l cons with _ _ ih; simp *
 end
 
@@ -2246,7 +2247,7 @@ variable {σ : α → Type*}
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 
      sigma [1, 2] (λ_, [5, 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)] -/
-def sigma (l₁ : list α) (l₂ : Π a, list (σ a)) : list (Σ a, σ a) :=
+protected def sigma (l₁ : list α) (l₂ : Π a, list (σ a)) : list (Σ a, σ a) :=
 l₁.bind $ λ a, (l₂ a).map $ sigma.mk a
 
 @[simp] theorem nil_sigma (l : Π a, list (σ a)) : (@nil α).sigma l = [] := rfl
@@ -2260,10 +2261,10 @@ l₁.bind $ λ a, (l₂ a).map $ sigma.mk a
 
 @[simp] theorem mem_sigma {l₁ : list α} {l₂ : Π a, list (σ a)} {a : α} {b : σ a} :
   sigma.mk a b ∈ l₁.sigma l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ a :=
-by simp [sigma, and.left_comm]
+by simp [list.sigma, and.left_comm]
 
 theorem length_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
-  length (sigma l₁ l₂) = (l₁.map (λ a, length (l₂ a))).sum :=
+  length (l₁.sigma l₂) = (l₁.map (λ a, length (l₂ a))).sum :=
 by induction l₁ with x l₁ IH; simp *
 end
 
@@ -3029,7 +3030,7 @@ theorem nodup_product {l₁ : list α} {l₂ : list β} (d₁ : nodup l₁) (d�
     λ b₁ mb₁ e b₂ mb₂ e', by subst e'; injection e; contradiction)⟩
 
 theorem nodup_sigma {σ : α → Type*} {l₁ : list α} {l₂ : Π a, list (σ a)}
-  (d₁ : nodup l₁) (d₂ : ∀ a, nodup (l₂ a)) : nodup (sigma l₁ l₂) :=
+  (d₁ : nodup l₁) (d₂ : ∀ a, nodup (l₂ a)) : nodup (l₁.sigma l₂) :=
  nodup_bind.2
   ⟨λ a ma, nodup_map (λ b b' h, by injection h with _ h; exact eq_of_heq h) (d₂ a),
   d₁.imp (λ a₁ a₂ n x,

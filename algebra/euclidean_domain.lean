@@ -1,207 +1,133 @@
 /-
 Copyright (c) 2018 Louis Carlin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Louis Carlin
+Authors: Louis Carlin, Mario Carneiro
 
 Euclidean domains and Euclidean algorithm (extended to come)
 A lot is based on pre-existing code in mathlib for natural number gcds
 -/
-import tactic.ring
+import algebra.group algebra.order
 
 universe u
 
-class euclidean_domain (α : Type u) [decidable_eq α] extends integral_domain α :=
+class euclidean_domain (α : Type u) extends integral_domain α :=
 (quotient : α → α → α)
 (remainder : α → α → α)
-(quotient_mul_add_remainder_eq : ∀ a b, (quotient a b) * b + (remainder a b) = a) -- This could be changed to the same order as int.mod_add_div. We normally write qb+r rather than r + qb though.
+ -- This could be changed to the same order as int.mod_add_div.
+ -- We normally write qb+r rather than r + qb though.
+(quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
 (valuation : α → ℕ)
-(valuation_remainder_lt : ∀ a b, b ≠ 0 → valuation (remainder a b) <  valuation b)
-(le_valuation_mul : ∀ a b, b ≠ 0 → valuation a ≤ valuation (a*b))
-
-/-
-le_valuation_mul is often not a required in definitions of a euclidean domain since given the other properties we can show there is a (noncomputable) euclidean domain α with the property le_valuation_mul.
-So potentially this definition could be split into two different ones (euclidean_domain_weak and euclidean_domain_strong) with a noncomputable function from weak to strong.
-I've currently divided the lemmas into strong and weak depending on whether they require le_valuation_mul or not.
--/
+(val_remainder_lt : ∀ a {b}, b ≠ 0 → valuation (remainder a b) < valuation b)
+/- le_valuation_mul is often not a required in definitions of a euclidean
+  domain since given the other properties we can show there is a
+  (noncomputable) euclidean domain α with the property le_valuation_mul.
+  So potentially this definition could be split into two different ones
+  (euclidean_domain_weak and euclidean_domain_strong) with a noncomputable
+  function from weak to strong. I've currently divided the lemmas into
+  strong and weak depending on whether they require le_valuation_mul or not. -/
+(val_le_mul_left : ∀ a {b}, b ≠ 0 → valuation a ≤ valuation (a * b))
 
 namespace euclidean_domain
 variable {α : Type u}
-variables [decidable_eq α] [euclidean_domain α]
+variables [euclidean_domain α]
 
 instance : has_div α := ⟨quotient⟩
 
 instance : has_mod α := ⟨remainder⟩
 
-instance : has_sizeof α := ⟨valuation⟩
+theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
+quotient_mul_add_remainder_eq _ _
 
-lemma gcd_decreasing (a b : α) (w : a ≠ 0) : has_well_founded.r (b % a) a := valuation_remainder_lt b a w
+theorem val_mod_lt : ∀ a {b : α}, b ≠ 0 → valuation (a % b) < valuation b :=
+val_remainder_lt
 
-def gcd : α → α → α
-| a b := if a_zero : a = 0 then b
-  else have h : has_well_founded.r (b % a) a := gcd_decreasing a b a_zero,
-    gcd (b%a) a
+theorem val_le_mul_right {a : α} (b) (h : a ≠ 0) : valuation b ≤ valuation (a * b) :=
+by rw mul_comm; exact val_le_mul_left b h
 
-/- weak lemmas -/
-
-@[simp] lemma mod_zero (a : α) : a % 0 = a := by simpa using
-quotient_mul_add_remainder_eq a 0
-
-lemma dvd_mod_self (a : α) : a ∣ a % a :=
+lemma mul_div_cancel_left {a : α} (b) (a0 : a ≠ 0) : a * b / a = b :=
+eq.symm $ eq_of_sub_eq_zero $ classical.by_contradiction $ λ h,
 begin
-  let d := (a/a)*a, -- ring tactic can't solve things without this
-  have : a%a = a - (a/a)*a, from
-    calc
-      a%a = d + a%a  - d : by ring
-      ... = (a/a)*a + a%a - (a/a)*a : by dsimp [d]; refl
-      ... = a - (a/a)*a : by simp [(%), (/), quotient_mul_add_remainder_eq a a],
-  rw this,
-  exact dvd_sub (dvd_refl a) (dvd_mul_left a (a/a)),
+  have := val_le_mul_left a h,
+  rw [mul_sub, sub_eq_iff_eq_add'.2 (div_add_mod (a*b) a).symm] at this,
+  exact not_lt_of_le this (val_mod_lt _ a0)
 end
 
-lemma mod_lt  : ∀ (a : α) {b : α}, valuation b > valuation (0:α) →  valuation (a%b) < valuation b :=
-begin
-  intros a b h,
-  by_cases b_zero : (b=0),
-  { rw b_zero at h,
-    have := lt_irrefl (valuation (0:α)),
-    contradiction },
-  { exact valuation_remainder_lt a b b_zero }
-end
+lemma mul_div_cancel (a) {b : α} (b0 : b ≠ 0) : a * b / b = a :=
+by rw mul_comm; exact mul_div_cancel_left a b0
 
-lemma neq_zero_lt_mod_lt (a b : α) :  b ≠ 0 → valuation (a%b) < valuation b
-| hnb := valuation_remainder_lt a b hnb
+@[simp] lemma mod_zero (a : α) : a % 0 = a :=
+by simpa using div_add_mod a 0
 
-lemma dvd_mod {a b c : α} : c ∣ a → c ∣ b → c ∣ a % b :=
-begin
-  intros dvd_a dvd_b,
-  have : remainder a b = a - quotient a b * b, from
-  calc
-    a%b = quotient a b * b + a%b - quotient a b * b : by ring
-    ... = a - quotient a b * b : by {dsimp[(%)]; rw (quotient_mul_add_remainder_eq a b)},
-  dsimp [(%)],
-  rw this,
-  exact dvd_sub dvd_a (dvd_mul_of_dvd_right dvd_b (a/b)),
-end
-
-/- strong lemmas -/
-
-lemma val_lt_one (a : α) : valuation a < valuation (1:α) → a = 0 :=
-begin
-  intro a_lt,
-  by_cases a = 0,
-  { exact h },
-  { have := le_valuation_mul (1:α) a h,
-    simp at this,
-    have := not_le_of_lt a_lt,
-    contradiction }
-end
-
-lemma val_dvd_le : ∀ a b : α, b ∣ a → a ≠ 0 → valuation b ≤ valuation a
-| _ b ⟨d, rfl⟩ ha :=
-begin
-  by_cases d = 0,
-  { simp[h] at ha,
-    contradiction },
-  { exact le_valuation_mul b d h }
-end
-
-@[simp] lemma mod_one (a : α) : a % 1 = 0 :=
-val_lt_one _ (valuation_remainder_lt a 1 one_ne_zero)
-
-@[simp] lemma zero_mod (b : α) : 0 % b = 0 :=
-begin
-  have h : remainder 0 b = b * (-quotient 0 b ), from
-    calc
-      remainder 0 b = quotient 0 b * b + remainder 0 b + b * (-quotient 0 b ) : by ring
-      ...                       = b * (-quotient 0 b ) : by rw [quotient_mul_add_remainder_eq 0 b, zero_add],
-  by_cases quotient_zero : (-quotient 0 b) = 0,
-  { simp[quotient_zero] at h,
-    exact h },
-  { by_cases h'' : b = 0,
-    { rw h'',
-      simp },
-    { have := not_le_of_lt (valuation_remainder_lt 0 b h''),
-      rw h at this,
-      have := le_valuation_mul b (-quotient 0 b) quotient_zero,
-      contradiction }}
-end
-
-@[simp] lemma zero_div (b : α) (hnb : b ≠ 0) : 0 / b = 0 :=
-begin
-  have h1 : remainder 0 b = 0, from zero_mod b,
-  have h2 := quotient_mul_add_remainder_eq 0 b,
-  simp[h1] at h2,
-  cases eq_zero_or_eq_zero_of_mul_eq_zero h2,
-  { exact h },
-  { contradiction }
-end
+@[simp] lemma mod_eq_zero {a b : α} : a % b = 0 ↔ b ∣ a :=
+⟨λ h, by rw [← div_add_mod a b]; simp [h],
+ λ ⟨c, e⟩, begin
+  rw [e, ← add_left_cancel_iff, div_add_mod, add_zero],
+  haveI := classical.dec,
+  by_cases b0 : b = 0; simp [b0, mul_div_cancel_left],
+ end⟩
 
 @[simp] lemma mod_self (a : α) : a % a = 0 :=
-let ⟨m, a_mul⟩ := dvd_mod_self a in
-begin
-  by_cases m = 0,
-  { rw [h, mul_zero] at a_mul,
-    exact a_mul },
-  { by_cases a_zero : a = 0,
-    { rw a_zero,
-      simp },
-    { have := le_valuation_mul a m h,
-      rw ←a_mul at this,
-      have := not_le_of_lt (valuation_remainder_lt a a a_zero),
-      contradiction}}
-end
+mod_eq_zero.2 (dvd_refl _)
 
-lemma div_self (a : α) : a ≠ 0 → a / a = (1:α) :=
-begin
-  intro hna,
-  have wit_aa := quotient_mul_add_remainder_eq a a,
-  have a_mod_a := mod_self a,
-  dsimp [(%)] at a_mod_a,
-  simp [a_mod_a] at wit_aa,
-  have h1 : 1 * a = a, from one_mul a,
-  conv at wit_aa {for a [4] {rw ←h1}},
-  exact eq_of_mul_eq_mul_right hna wit_aa
-end
+lemma dvd_mod_iff {a b c : α} (h : c ∣ b) : c ∣ a % b ↔ c ∣ a :=
+by rw [dvd_add_iff_right (dvd_mul_of_dvd_left h _), div_add_mod]
 
-/- weak gcd lemmas -/
+lemma val_lt_one (a : α) : valuation a < valuation (1:α) → a = 0 :=
+by haveI := classical.dec; exact
+not_imp_not.1 (λ h, by simpa using val_le_mul_left 1 h)
+
+lemma val_dvd_le : ∀ a b : α, b ∣ a → a ≠ 0 → valuation b ≤ valuation a
+| _ b ⟨d, rfl⟩ ha := val_le_mul_left b $
+  mt (by intro h; simp [h]) ha
+
+@[simp] lemma mod_one (a : α) : a % 1 = 0 :=
+mod_eq_zero.2 (one_dvd _)
+
+@[simp] lemma zero_mod (b : α) : 0 % b = 0 :=
+mod_eq_zero.2 (dvd_zero _)
+
+@[simp] lemma zero_div {a : α} (a0 : a ≠ 0) : 0 / a = 0 :=
+by simpa using mul_div_cancel 0 a0
+
+@[simp] lemma div_self {a : α} (a0 : a ≠ 0) : a / a = 1 :=
+by simpa using mul_div_cancel 1 a0
+
+section gcd
+variable [decidable_eq α]
+
+def gcd : α → α → α
+| a := λ b, if a0 : a = 0 then b else
+  have h:_ := val_mod_lt b a0,
+  gcd (b%a) a
+using_well_founded {rel_tac :=
+  λ _ _, `[exact ⟨_, measure_wf valuation⟩]}
 
 @[simp] theorem gcd_zero_left (a : α) : gcd 0 a = a :=
-begin
-  rw gcd,
-  simp,
-end
+by rw gcd; simp
+
+@[simp] theorem gcd_zero_right (a : α) : gcd a 0 = a :=
+by rw gcd; by_cases a0 : a = 0; simp [a0]
+
+theorem gcd_val (a b : α) : gcd a b = gcd (b % a) a :=
+by rw gcd; by_cases a0 : a = 0; simp [a0]
 
 @[elab_as_eliminator]
-theorem gcd.induction {P : α → α → Prop}
-  (a b : α)
-  (H0 : ∀ x, P 0 x)
-  (H1 : ∀ a b, a ≠ 0 → P (b%a) a → P a b) :
-  P a b :=
-@well_founded.induction _ _ (has_well_founded.wf α) (λa, ∀b, P a b) a
-  begin
-    intros c IH,
-    by_cases c = 0,
-    { rw h,
-      exact H0 },
-    { intro b,
-      exact H1 c b (h) (IH (b%c) (neq_zero_lt_mod_lt b c h) c) }
-  end
-  b
+theorem gcd.induction {P : α → α → Prop} : ∀ a b : α,
+  (∀ x, P 0 x) →
+  (∀ a b, a ≠ 0 → P (b % a) a → P a b) →
+  P a b
+| a := λ b H0 H1, if a0 : a = 0 then by simp [a0, H0] else
+  have h:_ := val_mod_lt b a0,
+  H1 _ _ a0 (gcd.induction (b%a) a H0 H1)
+using_well_founded {rel_tac :=
+  λ _ _, `[exact ⟨_, measure_wf valuation⟩]}
 
-theorem gcd_dvd (a b : α) : (gcd a b ∣ a) ∧ (gcd a b ∣ b) :=
+theorem gcd_dvd (a b : α) : gcd a b ∣ a ∧ gcd a b ∣ b :=
 gcd.induction a b
   (λ b, by simp)
-  begin
-    intros a b aneq h_dvd,
-    rw gcd,
-    simp [aneq],
-    induction h_dvd,
-    split,
-    { exact h_dvd_right },
-    { conv {for b [2] {rw ←(quotient_mul_add_remainder_eq b a)}},
-      have h_dvd_right_a:= dvd_mul_of_dvd_right h_dvd_right (b/a),
-      exact dvd_add h_dvd_right_a h_dvd_left }
-  end
+  (λ a b aneq ⟨IH₁, IH₂⟩,
+    by rw gcd_val; exact
+    ⟨IH₂, (dvd_mod_iff IH₂).1 IH₁⟩)
 
 theorem gcd_dvd_left (a b : α) : gcd a b ∣ a := (gcd_dvd a b).left
 
@@ -209,43 +135,21 @@ theorem gcd_dvd_right (a b : α) : gcd a b ∣ b := (gcd_dvd a b).right
 
 theorem dvd_gcd {a b c : α} : c ∣ a → c ∣ b → c ∣ gcd a b :=
 gcd.induction a b
-  begin
-    intros b dvd_0 dvd_b,
-    simp,
-    exact dvd_b
-  end
-  begin
-    intros a b hna d dvd_a dvd_b,
-    rw gcd,
-    simp [hna],
-    exact d (dvd_mod dvd_b dvd_a) dvd_a,
-  end
+  (by simp {contextual := tt})
+  (λ a b a0 IH ca cb,
+    by rw gcd_val; exact
+    IH ((dvd_mod_iff ca).2 cb) ca)
 
-/- strong gcd lemmas -/
-
-@[simp] theorem gcd_zero_right (a : α) : gcd a 0 = a :=
-begin
-  by_cases (a=0),
-  { simp[h] },
-  { rw gcd,
-    simp [h] }
-end
+theorem gcd_eq_left {a b : α} : gcd a b = a ↔ a ∣ b :=
+⟨λ h, by rw ← h; apply gcd_dvd_right,
+ λ h, by rw [gcd_val, mod_eq_zero.2 h, gcd_zero_left]⟩
 
 @[simp] theorem gcd_one_left (a : α) : gcd 1 a = 1 :=
-begin
-  rw [gcd],
-  simp,
-end
-
-theorem gcd_next (a b : α) : gcd a b = gcd (b % a) a :=
-begin
-  by_cases (a=0),
-  { simp [h] },
-  { rw gcd,
-    simp [h] }
-end
+gcd_eq_left.2 (one_dvd _)
 
 @[simp] theorem gcd_self (a : α) : gcd a a = a :=
-by rw [gcd_next a a, mod_self a, gcd_zero_left]
+gcd_eq_left.2 (dvd_refl _)
+
+end gcd
 
 end euclidean_domain

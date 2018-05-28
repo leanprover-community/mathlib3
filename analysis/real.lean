@@ -241,7 +241,8 @@ instance : complete_space ℝ :=
   let S : ∀ ε:{ε:ℝ//ε>0}, {t : f.sets // ∀ x y ∈ t.1, dist x y < ε} :=
     λ ε, classical.choice
       (let ⟨t, tf, h⟩ := (cauchy_of_metric.1 cf).2 ε ε.2 in ⟨⟨⟨t, tf⟩, h⟩⟩),
-  let g : ℕ → {ε:ℝ//ε>0} := λ n, ⟨(n:ℕ+)⁻¹, inv_pos (nat.cast_pos.2 (n:ℕ+).pos)⟩,
+  let g : ℕ → {ε:ℝ//ε>0} := λ n,
+    ⟨n.to_pnat'⁻¹, inv_pos (nat.cast_pos.2 n.to_pnat'.pos)⟩,
   have hg : ∀ ε > 0, ∃ n, ∀ j ≥ n, (g j : ℝ) < ε,
   { intros ε ε0,
     cases exists_nat_gt ε⁻¹ with n hn,
@@ -249,7 +250,7 @@ instance : complete_space ℝ :=
     have hj := lt_of_lt_of_le hn (nat.cast_le.2 nj),
     have j0 := lt_trans (inv_pos ε0) hj,
     have jε := (inv_lt j0 ε0).2 hj,
-    rwa ← pnat.nat_coe_coe (nat.cast_pos.1 j0) at jε },
+    rwa ← pnat.to_pnat'_coe (nat.cast_pos.1 j0) at jε },
   let F : ∀ n : ℕ, {t : f.sets // ∀ x y ∈ t.1, dist x y < g n},
   { refine λ n, ⟨⟨_, Inter_mem_sets (finite_le_nat n) (λ i _, (S (g i)).1.2)⟩, _⟩,
     have : (⋂ i ∈ {i : ℕ | i ≤ n}, (S (g i)).1.1) ⊆ S (g n) :=

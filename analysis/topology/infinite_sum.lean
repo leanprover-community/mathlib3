@@ -13,7 +13,7 @@ import logic.function algebra.big_operators data.set data.finset
        analysis.metric_space analysis.topology.topological_structures
 
 noncomputable theory
-open set lattice finset filter function classical
+open lattice finset filter function classical
 local attribute [instance] prop_decidable
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -122,7 +122,7 @@ have u_subset : u ⊆ fsts.sigma snds,
   have hc : c ∈ snds b, from mem_bind.mpr ⟨_, hu, by simp; refl⟩,
   by simp [mem_sigma, hb, hc] ,
 mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
-  have h : ∀cs:(Πb, b ∈ bs → finset (γ b)),
+  have h : ∀cs : Π b ∈ bs, finset (γ b),
       (⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
       (λp, bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩))) ⁻¹' s ≠ ∅,
     from assume cs,
@@ -132,11 +132,11 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     have (bs.sigma cs').sum f ∈ s,
       from hu _ $ finset.subset.trans u_subset $ sigma_mono hbs $
         assume b, @finset.subset_union_right (γ b) _ _ _,
-    ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
+    set.ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
     by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_right] },
   have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
       (⨅b (h : b ∈ bs), at_top.vmap (λp, p b)) (nhds (bs.sum g)),
-    from tendsto_sum $
+    from tendsto_finset_sum bs $
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_vmap.comp (hf c),
   have bs.sum g ∈ s,
     from mem_closure_of_tendsto this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
@@ -147,8 +147,8 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
         assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
         have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
           from infi_le_infi $ assume b, infi_le_infi $ assume hb,
-            le_trans (preimage_mono $ hp' b hb) (hp b hb),
-        neq_bot_of_le_neq_bot (h _) (le_trans (inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
+            le_trans (set.preimage_mono $ hp' b hb) (hp b hb),
+        neq_bot_of_le_neq_bot (h _) (le_trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
   hss' this
 
 lemma has_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
@@ -168,7 +168,7 @@ suffices at_top.map (λs:finset β, s.sum f) ≤ at_top.map (λs:finset γ, s.su
   from le_trans this hf,
 by rw [map_at_top_eq, map_at_top_eq];
 from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
-  by simp [image_subset_iff]; exact hv)
+  by simp [set.image_subset_iff]; exact hv)
 
 lemma is_sum_iff_is_sum
   (h₁ : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ u'.sum g = v'.sum f)
@@ -383,7 +383,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
     have h : {p:(α×α)×(α×α)| (p.1.1 - p.1.2, p.2.1 - p.2.2) ∈ s'} ∈ (@uniformity (α × α) _).sets,
       from uniform_continuous_sub' hs',
     rw [uniformity_prod_eq_prod, filter.mem_map, mem_prod_same_iff] at h,
-    cases h with t ht, cases ht with ht h,
+    rcases h with ⟨t, ht, h⟩,
     exact ⟨t, ht, assume a₁ a₂ a₃ a₄ h₁ h₂, @h ((a₁, a₂), (a₃, a₄)) ⟨h₁, h₂⟩⟩
   end,
   let ⟨s, hs, hss'⟩ := this in
@@ -392,7 +392,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
   have ∃t, ∀u₁ u₂:finset β, t ⊆ u₁ → t ⊆ u₂ → (u₁.sum f, u₂.sum f) ∈ s,
     by simp [cauchy_iff, mem_at_top_sets, and.assoc, and.left_comm, and.comm] at this;
     from let ⟨t, ht, u, hu⟩ := this s hs in
-      ⟨u, assume u₁ u₂ h₁ h₂, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ h₁, hu _ h₂⟩⟩,
+      ⟨u, assume u₁ u₂ h₁ h₂, ht $ set.prod_mk_mem_set_prod_eq.mpr ⟨hu _ h₁, hu _ h₂⟩⟩,
   let ⟨t, ht⟩ := this in
   let d := (t.filter (λb, f' b = 0)).sum f in
   have eq : ∀{u}, t ⊆ u → (t ∪ u.filter (λb, f' b ≠ 0)).sum f - d = u.sum f',

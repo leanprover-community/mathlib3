@@ -133,16 +133,16 @@ theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_in
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
 
-lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s := 
+protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s := 
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 
-lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) : t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
+protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) : t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
 by rw [set.image_subset_iff, e.image_eq_preimage]
 
 lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
 by rw [←set.image_comp]; simpa using set.image_id s
 
-lemma image_compl {α β} (f : equiv α β) (s : set α) :
+protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' -s = -(f '' s) :=
 set.image_compl_eq f.bijective
 

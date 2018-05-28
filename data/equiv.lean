@@ -129,6 +129,24 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
 
 @[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
 
+theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_inv
+
+theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
+
+protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s := 
+set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
+
+protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) : t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
+by rw [set.image_subset_iff, e.image_eq_preimage]
+
+lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
+by rw [←set.image_comp]; simpa using set.image_id s
+
+protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
+  f '' -s = -(f '' s) :=
+set.image_compl_eq f.bijective
+
+
 /- The group of permutations (self-equivalences) of a type `α` -/
 instance perm_group {α : Type u} : group (perm α) :=
 begin
@@ -136,6 +154,11 @@ begin
   intros; apply equiv.ext; try { apply trans_apply },
   apply inverse_apply_apply
 end
+
+@[simp] theorem perm.mul_val {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
+equiv.trans_apply _ _ _
+
+@[simp] theorem perm.one_val {α : Type u} (x) : (1 : perm α) x = x := rfl
 
 def equiv_empty (h : α → false) : α ≃ empty :=
 ⟨λ x, (h x).elim, λ e, e.rec _, λ x, (h x).elim, λ e, e.rec _⟩

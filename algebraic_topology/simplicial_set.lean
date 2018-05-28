@@ -2,6 +2,7 @@ import order.basic .simplex_category data.finset data.finsupp algebra.group
 
 local notation ` [`n`] ` := fin (n+1)
 
+/-- Simplicial set -/
 class simplicial_set :=
 (objs : Π n : ℕ, Type*)
 (maps {m n : ℕ} {f : [m] → [n]} (hf : monotone f) : objs n → objs m)
@@ -9,10 +10,12 @@ class simplicial_set :=
   (maps hf) ∘ (maps hg) = (maps (monotone_comp hf hg)))
 
 namespace simplicial_set
+
+/-- The i-th face map of a simplicial set -/
 def δ {X : simplicial_set} {n : ℕ} (i : [n+1]) :=
 maps (simplex_category.δ_monotone i)
 
-lemma simplicial_identity₁ {X : simplicial_set} {n : ℕ} (i j : [n + 1]) (H : i ≤ j) :
+lemma simplicial_identity₁ {X : simplicial_set} {n : ℕ} {i j : [n + 1]} (H : i ≤ j) :
 (@δ X n) i ∘ δ j.succ = δ j ∘ δ i.raise := by finish [δ, comp, simplex_category.simplicial_identity₁]
 
 end simplicial_set
@@ -22,17 +25,24 @@ noncomputable theory
 local attribute [instance] classical.prop_decidable
 open finset finsupp simplicial_set group
 
-variables {A : Type*} [module ℤ A] (X : simplicial_set) (n : ℕ)
+variables (A : Type*) [module ℤ A] (X : simplicial_set) (n : ℕ)
+-- We actually want to be more general:
+-- variables {R : Type*} [ring R] (A : Type*) [module R A] (X : simplicial_set) (n : ℕ)
+-- However, to make this work we need to do some work on modules:
+-- - finsupp.to_module needs to be generalised (as suggested in a comment above it)
+-- - is_linear_map should be a class so that we can have type class inference
 
+/-- The simplicial complex associated with a simplicial set -/
 def C := (@objs X n) →₀ A
 
-instance : add_comm_group (@C A _ X n) := finsupp.add_comm_group
+instance : add_comm_group (C A X n) := finsupp.add_comm_group
 
-definition boundary : @C A _ X (n+1) → C X n :=
+/-- The boundary morphism of the simplicial complex -/
+definition boundary : C A X (n+1) → C A X n :=
 λ f, f.sum (λ x a,
   (sum univ (λ i : [n+1], finsupp.single ((δ i) x) (((-1 : ℤ)^i.val) • a))))
 
-instance: is_add_group_hom (@boundary A _ X n) :=
+instance: is_add_group_hom (boundary A X n) :=
 ⟨λ f g, begin
 apply finsupp.sum_add_index,
 { intro x, simp, refl },
@@ -46,13 +56,13 @@ apply finsupp.sum_add_index,
   apply smul_add }
 end⟩
 
-lemma C_is_a_complex (γ : @C A _ X (n+2)) : (@boundary A _ X n) ((@boundary A _ X (n+1)) γ) = 0 :=
+lemma C_is_a_complex (γ : C A X (n+2)) : (boundary A X n) ((boundary A X (n+1)) γ) = 0 :=
 begin
 apply finsupp.induction γ,
 { apply is_add_group_hom.zero },
 { intros x a f xni ane h,
-  rw is_add_group_hom.add (@boundary A _ X (n + 1)),
-  rw is_add_group_hom.add (@boundary A _ X n),
+  rw is_add_group_hom.add (boundary A X (n + 1)),
+  rw is_add_group_hom.add (boundary A X n),
   rw h,
   rw add_zero,
   unfold boundary,
@@ -209,14 +219,12 @@ apply finsupp.induction γ,
       rw ←single_add,
       congr,
       apply smul_add }},
-  { rw ←@finset.sum_const_zero (fin (n+1+1+1)) (C X _) univ _,
+  { rw ←@finset.sum_const_zero (fin (n+1+1+1)) (C _ X _) univ _,
     apply finset.sum_congr,
     refl,
     intros i hi,
     simp,
     refl }}
 end
-
-#check @finset.sum_bij
 
 end simplicial_complex

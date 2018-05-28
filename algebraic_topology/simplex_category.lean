@@ -18,9 +18,11 @@ end fin
 namespace simplex_category
 local notation ` [`n`] ` := fin (n+1)
 
+/-- The i-th face map from [n] to [n+1] -/
 def δ (i : [n+1]) (a : [n]) : [n+1] :=
 if h : i.val ≤ a.val then a.succ else a.raise
 
+/-- The i-th degeneracy map from [n+1] to [n] -/
 def σ (i : [n]) (a : [n+1]) : [n] :=
 if h : a.val ≤ i.val
 then ⟨a.val, lt_of_le_of_lt h i.is_lt⟩
@@ -77,7 +79,7 @@ by_cases ha : (a.val ≤ i.val),
   exact nat.pred_le_pred H}
 end
 
-lemma simplicial_identity₁ (i j : [n+1]) (H : i ≤ j) : δ j.succ ∘ δ i = δ i.raise ∘ δ j :=
+lemma simplicial_identity₁ {i j : [n+1]} (H : i ≤ j) : δ j.succ ∘ δ i = δ i.raise ∘ δ j :=
 begin
 apply funext,
 intro a,

@@ -14,6 +14,7 @@ by show topological_space (fin n → ℝ≥0); apply_instance
 
 end typepown
 
+/-- The n-th standard topological simplex: Δ_n = { x ∈ ℝ^{n+1} | ∀ i, x_i ≥ 0, and ∑ x_i = 1 } -/
 definition standard_topological_simplex (n : ℕ) : set (ℝ≥0^(n+1)) :=
  λ x : fin (n+1) → ℝ≥0, sum univ x = 1
 
@@ -24,6 +25,10 @@ namespace standard_topological_simplex
 
 variable {n : ℕ}
 
+-- definition induced_map {m n : ℕ} (f : [m] → [n]): Δ m → Δ n :=
+-- λ x, ⟨finsupp.map_domain f x.val, sorry⟩
+
+-- this looks like finsupp.map_domain
 definition induced_map {m n : ℕ} (f : [m] → [n]): Δ m → Δ n :=
 λ x, ⟨λ j, sum (univ.filter (λ i, f i = j)) x.val,
 begin
@@ -151,6 +156,7 @@ rw ←continuous_iff_induced_le,
 apply continuous.comp continuous_induced_dom (continuous_sum_map f)
 end
 
+/-- The i-th face map from Δ_n to Δ_{n+1} -/
 def δ {n : ℕ} (i : [n+1]) : Δ n → Δ n.succ := induced_map (simplex_category.δ i)
 
 lemma continuous_δ {n : ℕ} (i : [n+1]) : continuous (δ i)
@@ -162,6 +168,7 @@ namespace singular_set
 
 open simplicial_set standard_topological_simplex
 
+/-- The singular set associated with a topological space X: its n-simplices are the continuous maps from Δ_n to X -/
 definition S {X: Type*} [topological_space X] : simplicial_set :=
 { objs := λ n, {φ : Δ n → X // continuous φ},
   maps :=

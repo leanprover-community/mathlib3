@@ -573,6 +573,10 @@ finset.val_inj.1 (erase_dup_eq_self.2 n).symm
 @[simp] theorem mem_to_finset {a : α} {s : multiset α} : a ∈ s.to_finset ↔ a ∈ s :=
 mem_erase_dup
 
+@[simp] lemma to_finset_cons (a : α) (s : multiset α) :
+  to_finset (a :: s) = insert a (to_finset s) :=
+finset.eq_of_veq erase_dup_cons
+
 end multiset
 
 namespace list

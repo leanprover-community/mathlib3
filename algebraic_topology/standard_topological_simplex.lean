@@ -42,12 +42,12 @@ begin
       exact exists.intro (f i) (eq.refl (f i)),
     end,
     exact x.property },
-  { intros x hx y hy xney,
+  { intros i hi k hk inek,
     apply ext.2,
     simp,
-    intros i hfi,
-    rw hfi,
-    exact xney}
+    intros x hx,
+    rw hx,
+    exact inek}
 end⟩
 
 @[simp] lemma induced_map_id {n : ℕ} : induced_map (@id [n]) = id :=
@@ -68,14 +68,13 @@ begin
   simp [induced_map],
   funext j,
   rw ←finset.sum_bind,
-  { have H :
+  { rw show
     finset.bind (filter (λ (i : [m]), g i = j) univ)
       (λ (x : [m]), filter (λ (i : [l]), f i = x) univ) =
-    filter (λ (i : [l]), g (f i) = j) univ :=
+    filter (λ (i : [l]), g (f i) = j) univ,
     begin
       apply ext.2, simp
-    end,
-    rw H},
+    end },
   { intros i hi k hk inek,
     apply ext.2,
     simp,
@@ -90,69 +89,37 @@ definition sum_map {m n : ℕ} (f : fin m → fin n) : (ℝ≥0^m) → (ℝ≥0^
 lemma commuting_square {m n : ℕ} (f : [m] → [n]) :
 subtype.val ∘ (induced_map f) = (sum_map f) ∘ subtype.val := rfl
 
-lemma continuous.pi_mk {X I : Type*} {Y : I → Type*}
-[t₁ : topological_space X] [t₂ : Πi, topological_space (Y i)] (f : Πi, X → (Y i)) (H : Πi, continuous (f i))
-: continuous (λ x i, f i x) :=
-begin
-let YY := (Πi, Y i),
-apply continuous_Sup_rng,
-intros t ht,
-cases ht with i hi,
-simp at *,
-rw hi,
-apply continuous_induced_rng,
-unfold function.comp,
-exact H i,
-end
-
-lemma continuous.pi_proj {I : Type*} {Y : I → Type*} [Πi, topological_space (Y i)]
-(i : I) : continuous (λ y : Πj, Y j, y i) :=
-begin
-apply continuous_Sup_dom _ continuous_induced_dom,
-existsi i,
-simp
-end
-
 lemma continuous_sums {α : Type*} [decidable_eq α] {s : finset α} : continuous (λ x : (α → ℝ≥0), s.sum x) :=
 begin
-apply finset.induction_on s,
-{ have triv : (λ (x : α → ℝ≥0), sum ∅ x) = λ (x : α → ℝ≥0), (0 : ℝ≥0) :=
-  begin
-    apply funext,
-    intro x,
-    apply finset.sum_empty
-  end,
-  rw triv,
-  apply @continuous_const _ _ _ _ _},
-{ intros a s ha hs,
-  have triv : (λ (x : α → ℝ≥0), sum (insert a s) x) =
-              ((λ (p : ℝ≥0 × ℝ≥0), p.fst + p.snd) ∘ (λ x, (x a, sum s x))) :=
-  begin
-    apply funext,
-    intro x,
-    apply finset.sum_insert ha
-  end,
-  rw triv,
-  apply continuous.comp (continuous.prod_mk (continuous.pi_proj a) hs)
-                        (@topological_add_monoid.continuous_add ℝ≥0 _ _ _)}
+  apply finset.induction_on s,
+  { rw show (λ (x : α → ℝ≥0), sum ∅ x) = λ (x : α → ℝ≥0), (0 : ℝ≥0),
+    begin
+      funext x,
+      apply finset.sum_empty
+    end,
+    apply @continuous_const _ _ _ _ _},
+  { intros a s ha hs,
+    rw show (λ (x : α → ℝ≥0), sum (insert a s) x) =
+                ((λ (p : ℝ≥0 × ℝ≥0), p.fst + p.snd) ∘ (λ x, (x a, sum s x))),
+    begin
+      funext x,
+      apply finset.sum_insert ha
+    end,
+    apply continuous.comp (continuous.prod_mk (@continuous_apply (ℝ≥0 × ℝ≥0) _ _ _ _ a) hs)
+                          (@topological_add_monoid.continuous_add ℝ≥0 _ _ _)}
 end
 
-lemma continuous_sum_map {m n : ℕ} (f : fin m → fin n) : continuous (sum_map f):=
-begin
-apply @continuous.pi_mk (ℝ≥0^m) (fin n) _ _ _ _ _,
-intro j,
-simp,
-apply continuous_sums,
-end
+lemma continuous_sum_map {m n : ℕ} (f : fin m → fin n) : continuous (sum_map f) :=
+@continuous_pi _ _ _ _ _ (sum_map f) $ λ j, continuous_sums
 
 theorem continuous_induced_map {m n : ℕ} (f : [m] → [n]) : continuous (induced_map f):=
 begin
-rw continuous_iff_induced_le,
-unfold subtype.topological_space,
-rw show topological_space.induced (induced_map f) (topological_space.induced subtype.val Rge0pown_topology) =
-  ((topological_space.induced (induced_map f)) ∘ (topological_space.induced subtype.val)) Rge0pown_topology, by unfold function.comp,
-rw [←induced_comp, commuting_square, ←continuous_iff_induced_le],
-apply continuous.comp continuous_induced_dom (continuous_sum_map f)
+  rw continuous_iff_induced_le,
+  unfold subtype.topological_space,
+  rw show topological_space.induced (induced_map f) (topological_space.induced subtype.val Rge0pown_topology) =
+    ((topological_space.induced (induced_map f)) ∘ (topological_space.induced subtype.val)) Rge0pown_topology, by unfold function.comp,
+  rw [←induced_comp, commuting_square, ←continuous_iff_induced_le],
+  apply continuous.comp continuous_induced_dom (continuous_sum_map f)
 end
 
 /-- The i-th face map from Δ_n to Δ_{n+1} -/
@@ -175,8 +142,7 @@ definition S {X: Type*} [topological_space X] : simplicial_set :=
   comp := λ l m n f g hf hg, funext $ assume φ,
   begin
     simp,
-    rw function.comp.assoc,
-    rw ←induced_map_comp
+    rw [function.comp.assoc, ←induced_map_comp]
   end}
 
 end singular_set

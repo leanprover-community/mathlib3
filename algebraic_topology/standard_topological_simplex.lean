@@ -1,4 +1,4 @@
-import .simplex_category .simplicial_set analysis.topology.topological_space analysis.nnreal
+import algebraic_topology.simplex_category algebraic_topology.simplicial_set analysis.topology.topological_space analysis.nnreal
 noncomputable theory
 open finset
 
@@ -34,16 +34,14 @@ definition induced_map {m n : ℕ} (f : [m] → [n]): Δ m → Δ n :=
 begin
   show sum univ (λ (j : [n]), sum (univ.filter (λ i, f i = j)) (x.val)) = 1,
   rw ←finset.sum_bind,
-  { have H :
-    finset.bind univ (λ (x : [n]), filter (λ (i : [m]), f i = x) univ) = univ :=
+  { rw show finset.bind univ (λ (x : [n]), filter (λ (i : [m]), f i = x) univ) = univ,
     begin
       apply ext.2,
       simp,
       intro i,
       exact exists.intro (f i) (eq.refl (f i)),
     end,
-    rw H,
-    exact x.property},
+    exact x.property },
   { intros x hx y hy xney,
     apply ext.2,
     simp,
@@ -52,34 +50,42 @@ begin
     exact xney}
 end⟩
 
-lemma induced_map_comp {l m n : ℕ} (f : [l] → [m]) (g : [m] → [n])
-: induced_map (g ∘ f) = (induced_map g) ∘ (induced_map f)
-:= begin
-unfold induced_map,
-apply funext,
-intro x,
-simp,
-apply funext,
-intro j,
-rw ←finset.sum_bind,
-{ have H :
-  finset.bind (filter (λ (i : [m]), g i = j) univ)
-    (λ (x : [m]), filter (λ (i : [l]), f i = x) univ) =
-  filter (λ (i : [l]), g (f i) = j) univ :=
-  begin
-    apply ext.2, simp
-  end,
-  rw H},
-{ intros i hi k hk inek,
-  apply ext.2,
+@[simp] lemma induced_map_id {n : ℕ} : induced_map (@id [n]) = id :=
+begin
+  funext x,
+  simp [induced_map],
+  apply subtype.eq,
+  funext j,
   simp,
-  intros x hx,
-  rw hx,
-  exact inek}
+  rw show filter (λ (i : [n]), i = j) univ = (finset.singleton j), by ext; split; finish,
+  apply finset.sum_singleton
+end
+
+lemma induced_map_comp {l m n : ℕ} (f : [l] → [m]) (g : [m] → [n]) :
+induced_map (g ∘ f) = (induced_map g) ∘ (induced_map f) :=
+begin
+  funext x,
+  simp [induced_map],
+  funext j,
+  rw ←finset.sum_bind,
+  { have H :
+    finset.bind (filter (λ (i : [m]), g i = j) univ)
+      (λ (x : [m]), filter (λ (i : [l]), f i = x) univ) =
+    filter (λ (i : [l]), g (f i) = j) univ :=
+    begin
+      apply ext.2, simp
+    end,
+    rw H},
+  { intros i hi k hk inek,
+    apply ext.2,
+    simp,
+    intros x hx,
+    rw hx,
+    exact inek}
 end
 
 definition sum_map {m n : ℕ} (f : fin m → fin n) : (ℝ≥0^m) → (ℝ≥0^n) :=
- λ x j, sum (univ.filter (λ i, f i = j)) x
+λ x j, sum (univ.filter (λ i, f i = j)) x
 
 lemma commuting_square {m n : ℕ} (f : [m] → [n]) :
 subtype.val ∘ (induced_map f) = (sum_map f) ∘ subtype.val := rfl
@@ -133,7 +139,6 @@ end
 
 lemma continuous_sum_map {m n : ℕ} (f : fin m → fin n) : continuous (sum_map f):=
 begin
-unfold sum_map,
 apply @continuous.pi_mk (ℝ≥0^m) (fin n) _ _ _ _ _,
 intro j,
 simp,
@@ -144,15 +149,9 @@ theorem continuous_induced_map {m n : ℕ} (f : [m] → [n]) : continuous (induc
 begin
 rw continuous_iff_induced_le,
 unfold subtype.topological_space,
-have triv :
-  topological_space.induced (induced_map f)
-    (topological_space.induced subtype.val Rge0pown_topology) =
-  ((topological_space.induced (induced_map f)) ∘ (topological_space.induced subtype.val))
-  Rge0pown_topology := by unfold function.comp,
-rw triv,
-rw ←induced_comp,
-rw commuting_square,
-rw ←continuous_iff_induced_le,
+rw show topological_space.induced (induced_map f) (topological_space.induced subtype.val Rge0pown_topology) =
+  ((topological_space.induced (induced_map f)) ∘ (topological_space.induced subtype.val)) Rge0pown_topology, by unfold function.comp,
+rw [←induced_comp, commuting_square, ←continuous_iff_induced_le],
 apply continuous.comp continuous_induced_dom (continuous_sum_map f)
 end
 
@@ -171,10 +170,9 @@ open simplicial_set standard_topological_simplex
 /-- The singular set associated with a topological space X: its n-simplices are the continuous maps from Δ_n to X -/
 definition S {X: Type*} [topological_space X] : simplicial_set :=
 { objs := λ n, {φ : Δ n → X // continuous φ},
-  maps :=
-  λ m n f hf φ, ⟨φ.val ∘ induced_map f, continuous.comp (continuous_induced_map f) φ.property⟩,
-  comp :=
-  λ l m n f g hf hg, funext $ assume φ,
+  maps := λ m n f hf φ, ⟨φ.val ∘ induced_map f, continuous.comp (continuous_induced_map f) φ.property⟩,
+  id := λ n, funext $ assume φ, by simp,
+  comp := λ l m n f g hf hg, funext $ assume φ,
   begin
     simp,
     rw function.comp.assoc,

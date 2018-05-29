@@ -65,7 +65,7 @@ protected def of_not_nonempty {α : Sort u} {β : Sort v} (hα : ¬ nonempty α)
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
 
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
-⟨subtype.val, λ a b, subtype.eq⟩
+⟨subtype.val, λ _ _, subtype.eq'⟩
 
 /-- Restrict the codomain of an embedding. -/
 def cod_restrict {α β} (p : set β) (f : α ↪ β) (H : ∀ a, f a ∈ p) : α ↪ p :=

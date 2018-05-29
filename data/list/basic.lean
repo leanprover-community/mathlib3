@@ -8,7 +8,7 @@ Basic properties of lists.
 import tactic.interactive tactic.mk_iff_of_inductive_prop tactic.split_ifs
   logic.basic logic.function
   algebra.group
-  data.nat.basic data.option data.bool data.prod data.sigma
+  data.nat.basic data.option data.bool data.prod data.sigma data.fin
 open function nat
 
 namespace list
@@ -411,16 +411,23 @@ by subst l₁
 
 /- head and tail -/
 
-@[simp] theorem head_cons [h : inhabited α] (a : α) (l : list α) : head (a::l) = a := rfl
+@[simp] def head' : list α → option α
+| []       := none
+| (a :: l) := some a
+
+theorem head_eq_head' [inhabited α] (l : list α) : head l = (head' l).iget :=
+by cases l; refl
+
+@[simp] theorem head_cons [inhabited α] (a : α) (l : list α) : head (a::l) = a := rfl
 
 @[simp] theorem tail_nil : tail (@nil α) = [] := rfl
 
 @[simp] theorem tail_cons (a : α) (l : list α) : tail (a::l) = l := rfl
 
-@[simp] theorem head_append [h : inhabited α] (t : list α) {s : list α} (h : s ≠ []) : head (s ++ t) = head s :=
+@[simp] theorem head_append [inhabited α] (t : list α) {s : list α} (h : s ≠ []) : head (s ++ t) = head s :=
 by {induction s, contradiction, simp}
 
-theorem cons_head_tail [h : inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
+theorem cons_head_tail [inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
 by {induction l, contradiction, simp}
 
 /- map -/
@@ -2288,6 +2295,69 @@ theorem length_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
   length (l₁.sigma l₂) = (l₁.map (λ a, length (l₂ a))).sum :=
 by induction l₁ with x l₁ IH; simp *
 end
+
+/- of_fn -/
+def of_fn_aux {n} (f : fin n → α) : ∀ m, m ≤ n → list α → list α
+| 0        h l := l
+| (succ m) h l := of_fn_aux m (le_of_lt h) (f ⟨m, h⟩ :: l)
+
+def of_fn {n} (f : fin n → α) : list α :=
+of_fn_aux f n (le_refl _) []
+
+theorem length_of_fn_aux {n} (f : fin n → α) :
+  ∀ m h l, length (of_fn_aux f m h l) = length l + m
+| 0        h l := rfl
+| (succ m) h l := (length_of_fn_aux m _ _).trans (succ_add _ _)
+
+theorem length_of_fn {n} (f : fin n → α) : length (of_fn f) = n :=
+(length_of_fn_aux f _ _ _).trans (zero_add _)
+
+def of_fn_nth_val {n} (f : fin n → α) (i : ℕ) : option α :=
+if h : _ then some (f ⟨i, h⟩) else none
+
+theorem nth_of_fn_aux {n} (f : fin n → α) (i) :
+  ∀ m h l,
+    (∀ i, nth l i = of_fn_nth_val f (i + m)) →
+     nth (of_fn_aux f m h l) i = of_fn_nth_val f i
+| 0        h l H := H i
+| (succ m) h l H := nth_of_fn_aux m _ _ begin
+  intro j, cases j with j,
+  { simp [of_fn_nth_val, show m < n, from h], refl },
+  { simp [H, succ_add, -add_comm] }
+end
+
+@[simp] theorem nth_of_fn {n} (f : fin n → α) (i) :
+  nth (of_fn f) i = of_fn_nth_val f i :=
+nth_of_fn_aux f _ _ _ _ $ λ i,
+by simp [of_fn_nth_val, not_lt.2 (le_add_right n i)]
+
+theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
+  nth_le (of_fn f) i.1 ((length_of_fn f).symm ▸ i.2) = f i :=
+option.some.inj $ by rw [← nth_le_nth];
+  simp [of_fn_nth_val, i.2]; cases i; refl
+
+theorem array_eq_of_fn {n} (a : array n α) : a.to_list = of_fn a.read :=
+suffices ∀ {m h l}, d_array.rev_iterate_aux a
+  (λ i, cons) m h l = of_fn_aux (d_array.read a) m h l, from this,
+begin
+  intros, induction m with m IH generalizing l, {refl},
+  simp [d_array.rev_iterate_aux, of_fn_aux, IH]
+end
+
+theorem of_fn_zero (f : fin 0 → α) : of_fn f = [] := rfl
+
+theorem of_fn_succ {n} (f : fin (succ n) → α) :
+  of_fn f = f 0 :: of_fn (λ i, f i.succ) :=
+suffices ∀ {m h l}, of_fn_aux f (succ m) (succ_le_succ h) l =
+  f 0 :: of_fn_aux (λ i, f i.succ) m h l, from this,
+begin
+  intros, induction m with m IH generalizing l, {refl},
+  rw [of_fn_aux, IH], refl
+end
+
+theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i.1 i.2) = l
+| [] := rfl
+| (a::l) := by rw of_fn_succ; congr; simp; exact of_fn_nth_le l
 
 /- disjoint -/
 section disjoint

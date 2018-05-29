@@ -1081,6 +1081,13 @@ theorem forall_mem_of_forall_mem_cons {p : α → Prop} {a : α} {l : list α}
   ∀ x ∈ l, p x :=
 (forall_mem_cons.1 h).2
 
+theorem forall_mem_singleton {p : α → Prop} {a : α} : (∀ x ∈ [a], p x) ↔ p a :=
+by simp
+
+theorem forall_mem_append {p : α → Prop} {l₁ l₂ : list α} :
+  (∀ x ∈ l₁ ++ l₂, p x) ↔ (∀ x ∈ l₁, p x) ∧ (∀ x ∈ l₂, p x) :=
+by simp [or_imp_distrib, forall_and_distrib]
+
 theorem not_exists_mem_nil (p : α → Prop) : ¬ ∃ x ∈ @nil α, p x :=
 by simp
 

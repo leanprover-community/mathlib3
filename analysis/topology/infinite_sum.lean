@@ -71,6 +71,14 @@ tendsto_infi' s $ tendsto_cong tendsto_const_nhds $
 lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f :=
 has_sum_spec $ is_sum_sum_of_ne_finset_zero hf
 
+lemma is_sum_ite (b : β) (a : α) : is_sum (λb', if b' = b then a else 0) a :=
+suffices
+  is_sum (λb', if b' = b then a else 0) (({b} : finset β).sum (λb', if b' = b then a else 0)), from
+  by simpa,
+is_sum_sum_of_ne_finset_zero $ assume b' hb,
+  have b' ≠ b, by simpa using hb,
+  by rw [if_neg this]
+
 lemma is_sum_of_iso {j : γ → β} {i : β → γ}
   (hf : is_sum f a) (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) : is_sum (f ∘ j) a :=
 have ∀x y, j x = j y → x = y,
@@ -228,6 +236,9 @@ lemma is_sum_unique : is_sum f a₁ → is_sum f a₂ → a₁ = a₂ := tendsto
 
 lemma tsum_eq_is_sum (ha : is_sum f a) : (∑b, f b) = a := is_sum_unique (is_sum_tsum ⟨a, ha⟩) ha
 
+lemma is_sum_iff_of_has_sum (h : has_sum f) : is_sum f a ↔ (∑b, f b) = a :=
+iff.intro tsum_eq_is_sum (assume eq, eq ▸ is_sum_tsum h)
+
 @[simp] lemma tsum_zero : (∑b:β, 0:α) = 0 := tsum_eq_is_sum is_sum_zero
 
 lemma tsum_add (hf : has_sum f) (hg : has_sum g) : (∑b, f b + g b) = (∑b, f b) + (∑b, g b) :=
@@ -249,6 +260,9 @@ calc (∑b, f b) = (finset.singleton b).sum f : tsum_eq_sum $ by simp [hf] {cont
 lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (h₁ : ∀b, has_sum (λc, f ⟨b, c⟩)) (h₂ : has_sum f) : (∑p, f p) = (∑b c, f ⟨b, c⟩):=
 (tsum_eq_is_sum $ is_sum_sigma (assume b, is_sum_tsum $ h₁ b) $ is_sum_tsum h₂).symm
+
+@[simp] lemma tsum_ite (b : β) (a : α) : (∑b', if b' = b then a else 0) = a :=
+tsum_eq_is_sum (is_sum_ite b a)
 
 lemma tsum_eq_tsum_of_is_sum_iff_is_sum {f : β → α} {g : γ → α}
   (h : ∀{a}, is_sum f a ↔ is_sum g a) : (∑b, f b) = (∑c, g c) :=

@@ -146,6 +146,46 @@ begin
     admit },
 end
 
+example (X : Type) (A B C : set X) : A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C) :=
+begin
+  ext x,
+  split,
+  { intro hyp,
+    cases hyp,
+    wlog x_in : x ∈ B using B C,
+    { assumption },
+    { exact or.inl ⟨hyp_left, x_in⟩ } },
+  { intro hyp,
+    wlog x_in : x ∈ A ∩ B using B C,
+    { assumption },
+    { exact ⟨x_in.left, or.inl x_in.right⟩ } }
+end
+
+example (X : Type) (A B C : set X) : A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C) :=
+begin
+  ext x,
+  split,
+  { intro hyp,
+    wlog x_in : x ∈ B := hyp.2 using B C,
+    { exact or.inl ⟨hyp.1, x_in⟩ } },
+  { intro hyp,
+    wlog x_in : x ∈ A ∩ B := hyp using B C,
+    { exact ⟨x_in.left, or.inl x_in.right⟩ } }
+end
+
+example (X : Type) (A B C : set X) : A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C) :=
+begin
+  ext x,
+  split,
+  { intro hyp,
+    cases hyp,
+    wlog x_in : x ∈ B := hyp_right using B C,
+    { exact or.inl ⟨hyp_left, x_in⟩ }, },
+  { intro hyp,
+    wlog x_in : x ∈ A ∩ B := hyp using B C,
+    { exact ⟨x_in.left, or.inl x_in.right⟩ } }
+end
+
 end wlog
 
 example (m n p q : nat) (h : m + n = p) : true :=

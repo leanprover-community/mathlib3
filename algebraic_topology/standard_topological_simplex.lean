@@ -112,7 +112,7 @@ end
 lemma continuous_sum_map {m n : ℕ} (f : fin m → fin n) : continuous (sum_map f) :=
 @continuous_pi _ _ _ _ _ (sum_map f) $ λ j, continuous_sums
 
-theorem continuous_induced_map {m n : ℕ} (f : [m] → [n]) : continuous (induced_map f):=
+theorem continuous_induced_map {m n : ℕ} (f : [m] → [n]) : continuous (induced_map f) :=
 begin
   rw continuous_iff_induced_le,
   unfold subtype.topological_space,
@@ -125,8 +125,7 @@ end
 /-- The i-th face map from Δ_n to Δ_{n+1} -/
 def δ {n : ℕ} (i : [n+1]) : Δ n → Δ n.succ := induced_map (simplex_category.δ i)
 
-lemma continuous_δ {n : ℕ} (i : [n+1]) : continuous (δ i)
-:= continuous_induced_map (simplex_category.δ i)
+lemma continuous_δ {n : ℕ} (i : [n+1]) : continuous (δ i) := continuous_induced_map (simplex_category.δ i)
 
 end standard_topological_simplex
 

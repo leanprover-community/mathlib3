@@ -22,9 +22,12 @@ protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.
 protected lemma eq_iff {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) ↔ n = m :=
 iff.intro nnreal.eq (congr_arg coe)
 
+protected def of_real (r : ℝ) : ℝ≥0 := ⟨max r 0, le_max_right _ _⟩
+
 instance : has_zero ℝ≥0  := ⟨⟨0, le_refl 0⟩⟩
 instance : has_one ℝ≥0   := ⟨⟨1, zero_le_one⟩⟩
 instance : has_add ℝ≥0   := ⟨λa b, ⟨a + b, add_nonneg a.2 b.2⟩⟩
+instance : has_sub ℝ≥0   := ⟨λa b, nnreal.of_real (a - b)⟩
 instance : has_mul ℝ≥0   := ⟨λa b, ⟨a * b, mul_nonneg a.2 b.2⟩⟩
 instance : has_div ℝ≥0   := ⟨λa b, ⟨a.1 / b.1, div_nonneg' a.2 b.2⟩⟩
 instance : has_le ℝ≥0    := ⟨λ r s, (r:ℝ) ≤ s⟩
@@ -36,6 +39,9 @@ instance : inhabited ℝ≥0 := ⟨0⟩
 @[simp] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
 @[simp] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
 @[simp] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
+
+@[simp] protected lemma coe_sub (r₁ r₂ : ℝ≥0) (h : r₂ ≤ r₁) : ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
+max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 
 -- TODO: setup semifield!
 @[simp] protected lemma zero_div (r : nnreal) : 0 / r = 0 :=

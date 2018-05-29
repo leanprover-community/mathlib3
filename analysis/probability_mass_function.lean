@@ -113,4 +113,10 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
     simp {contextual := tt},
   end⟩
 
+def of_fintype [fintype α] (f : α → nnreal) (h : finset.univ.sum f = 1) : pmf α :=
+⟨f, h ▸ is_sum_sum_of_ne_finset_zero (by simp)⟩
+
+def bernoulli (p : nnreal) (h : p ≤ 1) : pmf bool :=
+of_fintype (λb, cond b p (1 - p)) (nnreal.eq $ by simp [h])
+
 end pmf

@@ -1105,6 +1105,11 @@ by rw ← eq_union_left h₂; exact union_le_union_right h₁ t
 ⟨λ h, (mem_add.1 h).imp_left (mem_of_le $ sub_le_self _ _),
  or.rec (mem_of_le $ le_union_left _ _) (mem_of_le $ le_union_right _ _)⟩
 
+@[simp] theorem map_union [decidable_eq β] {f : α → β} (finj : function.injective f) {s t : multiset α} :
+  map f (s ∪ t) = map f s ∪ map f t :=
+quotient.induction_on₂ s t $ λ l₁ l₂,
+congr_arg coe (by rw [list.map_append f, list.map_diff finj])
+
 /- inter -/
 
 /-- `s ∩ t` is the lattice meet operation with respect to the

@@ -239,7 +239,7 @@ in @fintype.of_surjective (Πa∈(fintype.elems α).1, β a) _ f _
   (assume f, ⟨(λa h, f a), rfl⟩)
   
 instance quotient.fintype [fintype α] (s : setoid α)
-  [decidable_eq (quotient s)] : fintype (quotient s) :=
+  [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=
 fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rfl⟩))
 
 instance finset.fintype [fintype α] : fintype (finset α) :=

@@ -17,27 +17,9 @@ local notation ` Δ ` := standard_topological_simplex
 
 namespace standard_topological_simplex
 
-variable {n : ℕ}
+variables {m n : ℕ}
 
 instance : topological_space (Δ n) := by unfold standard_topological_simplex; apply_instance
-
-definition induced_map {m n : ℕ} (f : [m] → [n]): Δ m → Δ n := pmf.map f
-
-@[simp] lemma induced_map_id {n : ℕ} : induced_map (@id [n]) = id :=
-begin
-  funext x,
-  simp [induced_map],
-  exact pmf.map_id x
-end
-
-lemma induced_map_comp {l m n : ℕ} (f : [l] → [m]) (g : [m] → [n]) :
-induced_map (g ∘ f) = (induced_map g) ∘ (induced_map f) :=
-begin
-  funext x,
-  simp [induced_map],
-  apply eq.symm,
-  exact pmf.map_comp _ f g,
-end
 
 namespace nnreal
 local attribute [instance] classical.prop_decidable
@@ -47,83 +29,37 @@ def pure {X : Type*} (x : X) : (X → nnreal) :=
 
 end nnreal
 
-variables  {α : Type*} [decidable_eq α] [fintype α] {s : finset α}
-
-definition sum_map (f : α → fin n) (x : α → nnreal) : (fin n → nnreal) :=
-λj, (∑i, x i * ((nnreal.pure ∘ f) i j))
-
-lemma commuting_square {m : ℕ} (f : [m] → [n]) :
-subtype.val ∘ (pmf.map f) = (sum_map f) ∘ subtype.val := rfl
-
-lemma continuous_sums
-{f : α → fin n} {j : fin n} : continuous (λ (x : α → nnreal), sum_map f x j) :=
-begin
-  unfold sum_map,
-  rw show (λ (x : α → nnreal), ∑ (i : α), x i * (nnreal.pure ∘ f) i j) =
-    λ (x : α → nnreal), univ.sum (λ i, x i * (nnreal.pure ∘ f) i j),
-  begin
-    funext x,
-    apply tsum_eq_sum,
-    intros a ani,
-    exfalso,
-    exact ani (mem_univ a)
-  end,
-  generalize : univ = s,
-  apply finset.induction_on s,
-  { rw show (λ (x : α → nnreal), sum ∅ (λ (i : α), x i * (nnreal.pure ∘ f) i j)) = λ (x : α → nnreal), (0 : nnreal),
+theorem continuous_pmf_map (f : [m] → [n]) : continuous (pmf.map f) :=
+continuous_subtype_mk _ $ continuous_pi $ assume j,
+  show continuous (λ x : Δ m, ∑ i : [m], x.val i * (pmf.pure ∘ f) i j), from
     begin
-      funext x,
-      apply finset.sum_empty
-    end,
-    apply @continuous_const _ _ _ _ _ },
-  { intros a s ha hs,
-    rw show (λ (x : α → nnreal), sum (insert a s) (λ (i : α), x i * (nnreal.pure ∘ f) i j)) =
-                ((λ (p : nnreal × nnreal), p.fst + p.snd) ∘
-                (λ x, ((x a * (nnreal.pure ∘ f) a j), sum s (λ (i : α), x i * (nnreal.pure ∘ f) i j)))),
-    begin
-      funext x,
-      simp,
-      apply finset.sum_insert ha
-    end,
-    refine continuous.comp (continuous.prod_mk _ hs) (@topological_add_monoid.continuous_add nnreal _ _ _),
-    rw show (λ (x : α → nnreal), x a * (nnreal.pure ∘ f) a j) =
-      ((λ (p : nnreal × nnreal), p.fst * p.snd) ∘ (λ x : α → nnreal, (x a, (nnreal.pure ∘ f) a j))),
-    begin
-      simp
-    end,
-    refine continuous.comp (continuous.prod_mk (@continuous_apply nnreal _ _ _ _ a) _)
-                           (@topological_monoid.continuous_mul nnreal _ _ _),
-    rw show (λ (x : α → nnreal), (nnreal.pure ∘ f) a j) = (λ (x : α → nnreal), ite (j = f a) 1 0),
-    begin
-      funext x,
-      simp [function.comp, nnreal.pure],
-      split_ifs; refl
-    end,
-    split_ifs; apply @continuous_const _ _ _ _ _ }
-end
-
-lemma continuous_sum_map {m n : ℕ} (f : fin m → fin n) : continuous (sum_map f) :=
-begin
-  apply @continuous_pi _ _ _ _ _ (sum_map f),
-  intro j,
-  exact continuous_sums
-end
-
-theorem continuous_pmf_map {m n : ℕ} (f : [m] → [n]) : continuous (pmf.map f : Δ m → Δ n) :=
-begin
-  rw continuous_iff_induced_le,
-  unfold pmf.topological_space,
-  unfold subtype.topological_space,
-  rw show topological_space.induced (pmf.map f) (topological_space.induced subtype.val Pi.topological_space) =
-    ((topological_space.induced (pmf.map f)) ∘ (topological_space.induced subtype.val)) Pi.topological_space, by unfold function.comp,
-  rw [←induced_comp, commuting_square, ←continuous_iff_induced_le],
-  apply continuous.comp continuous_induced_dom (continuous_sum_map f)
-end
+      rw show (λ x : Δ m, ∑ i : [m], x.val i * (pmf.pure ∘ f) i j) =
+        λ (x : Δ m), univ.sum (λ i, x.val i * (nnreal.pure ∘ f) i j),
+      begin
+        funext x,
+        apply tsum_eq_sum,
+        intros a ani,
+        exfalso,
+        exact ani (mem_univ a)
+      end,
+      apply continuous_finset_sum,
+      intros i hin,
+      rw show (λ (x : Δ m), x.val i * (nnreal.pure ∘ f) i j) =
+        ((λ (p : nnreal × nnreal), p.fst * p.snd) ∘ (λ x : Δ m, (x.val i, ite (j = f i) 1 0))),
+      begin
+        funext x,
+        simp [function.comp, nnreal.pure],
+        split_ifs; simp
+      end,
+      refine continuous.comp (continuous.prod_mk (continuous.comp continuous_induced_dom (continuous_apply i)) _)
+                            (@topological_monoid.continuous_mul nnreal _ _ _),
+      split_ifs; apply @continuous_const (Δ m) nnreal _ _ _
+    end
 
 /-- The i-th face map from Δ_n to Δ_{n+1} -/
-def δ {n : ℕ} (i : [n+1]) : Δ n → Δ n.succ := induced_map (simplex_category.δ i)
+def δ (i : [n+1]) : Δ n → Δ n.succ := pmf.map (simplex_category.δ i)
 
-lemma continuous_δ {n : ℕ} (i : [n+1]) : continuous (δ i) := continuous_pmf_map (simplex_category.δ i)
+lemma continuous_δ (i : [n+1]) : continuous (δ i) := continuous_pmf_map (simplex_category.δ i)
 
 end standard_topological_simplex
 

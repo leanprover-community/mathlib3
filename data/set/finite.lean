@@ -289,7 +289,7 @@ assume hf,
 have injective (f ∘ (coe : ℕ → ℤ)), from injective_comp hf $ assume i j, int.of_nat_inj,
 not_injective_nat_fintype this
 
-instance set.fintype (α : Type u) [fintype α] : fintype (set α) :=
+instance (α : Type u) [fintype α] : fintype (set α) :=
 fintype.of_bijective finset.to_set
 ⟨λ _ _, finset.coe_eq_coe.1,
 λ x, by haveI := classical.prop_decidable;

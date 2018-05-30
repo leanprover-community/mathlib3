@@ -238,7 +238,7 @@ in @fintype.of_surjective (Πa∈(fintype.elems α).1, β a) _ f _
   (λf a, f a (mem_univ a))
   (assume f, ⟨(λa h, f a), rfl⟩)
   
-instance quotient.fintype (α : Type*) [fintype α] [s : setoid α] 
+instance quotient.fintype [fintype α] (s : setoid α)
   [decidable_eq (quotient s)] : fintype (quotient s) :=
 fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rfl⟩))
 

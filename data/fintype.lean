@@ -237,3 +237,13 @@ let f : fintype (Πa∈(fintype.elems α).1, β a) :=
 in @fintype.of_surjective (Πa∈(fintype.elems α).1, β a) _ f _
   (λf a, f a (mem_univ a))
   (assume f, ⟨(λa h, f a), rfl⟩)
+  
+instance quotient.fintype (α : Type*) [fintype α] [s : setoid α] 
+  [decidable_eq (quotient s)] : fintype (quotient s) :=
+fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rfl⟩))
+
+instance finset.fintype [fintype α] : fintype (finset α) :=
+⟨finset.univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
+
+def subtype_fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
+set_fintype _

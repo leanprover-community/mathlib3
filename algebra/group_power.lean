@@ -391,6 +391,9 @@ calc a ^ n = a ^ n * 1 : by simp
 
 end linear_ordered_semiring
 
+theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=
+by rw pow_two; exact mul_self_nonneg _
+
 theorem pow_ge_one_add_sub_mul [linear_ordered_ring α]
   {a : α} (H : a ≥ 1) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
 by simpa using pow_ge_one_add_mul (sub_nonneg.2 H) n

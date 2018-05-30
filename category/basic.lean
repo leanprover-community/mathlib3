@@ -9,6 +9,8 @@ Extends the theory on functors, applicatives and monads.
 universes u v w x y
 variables {α β γ : Type u}
 
+notation a ` $< `:1 f:1 := f a
+
 section monad
 variables {m : Type u → Type v} [monad m] [is_lawful_monad m]
 
@@ -28,9 +30,9 @@ section alternative
 variables {f : Type → Type v} [alternative f]
 
 @[simp] theorem guard_true {h : decidable true} :
-  (@guard f _ true h) = pure () := by simp [guard]
+  @guard f _ true h = pure () := by simp [guard]
 
 @[simp] theorem guard_false {h : decidable false} :
-  (@guard f _ false h) = failure := by simp [guard]
+  @guard f _ false h = failure := by simp [guard]
 
 end alternative

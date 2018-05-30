@@ -267,15 +267,25 @@ def encode_subtype : {a : α // P a} → nat
 
 include decP
 def decode_subtype (v : nat) : option {a : α // P a} :=
-match decode α v with
-| some a := if h : P a then some ⟨a, h⟩ else none
-| none   := none
-end
+(decode α v).bind $ λ a,
+if h : P a then some ⟨a, h⟩ else none
 
 instance subtype : encodable {a : α // P a} :=
 ⟨encode_subtype, decode_subtype,
  λ ⟨v, h⟩, by simp [encode_subtype, decode_subtype, encodek, h]⟩
 end subtype
+
+instance fin (n) : encodable (fin n) :=
+of_equiv _ (equiv.fin_equiv_subtype _)
+
+instance vector [encodable α] {n} : encodable (vector α n) :=
+encodable.subtype
+
+instance fin_arrow [encodable α] {n} : encodable (fin n → α) :=
+of_equiv _ (equiv.vector_equiv_fin _ _).symm
+
+instance array [encodable α] {n} : encodable (array n α) :=
+of_equiv _ (equiv.array_equiv_fin _ _)
 
 instance int : encodable ℤ :=
 of_equiv _ equiv.int_equiv_nat

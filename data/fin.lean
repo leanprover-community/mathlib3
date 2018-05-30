@@ -51,3 +51,18 @@ i.succ_rec H0 Hs
   {C : ∀ n, fin n → Sort*} {H0 Hs} {n} (i : fin n) :
   @fin.succ_rec_on (succ n) i.succ C H0 Hs = Hs n i (fin.succ_rec_on i H0 Hs) :=
 by cases i; refl
+
+@[elab_as_eliminator] def fin.cases {n} {C : fin (succ n) → Sort*}
+  (H0 : C 0) (Hs : ∀ i : fin n, C (i.succ)) :
+  ∀ (i : fin (succ n)), C i
+| ⟨0, h⟩ := H0
+| ⟨succ i, h⟩ := Hs ⟨i, lt_of_succ_lt_succ h⟩
+
+@[simp] theorem fin.cases_zero
+  {n} {C : fin (succ n) → Sort*} {H0 Hs} :
+  @fin.cases n C H0 Hs 0 = H0 := rfl
+
+@[simp] theorem fin.cases_succ
+  {n} {C : fin (succ n) → Sort*} {H0 Hs} (i : fin n) :
+  @fin.cases n C H0 Hs i.succ = Hs i :=
+by cases i; refl

@@ -8,8 +8,8 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import data.prod data.nat.pairing logic.function tactic data.set.lattice
-import algebra.group
+import data.prod data.nat.pairing logic.function tactic.basic
+import data.set.lattice algebra.group data.vector2
 open function
 
 universes u v w
@@ -448,6 +448,21 @@ def list_equiv_of_equiv {α β : Type*} : α ≃ β → list α ≃ list β
 | ⟨f, g, l, r⟩ :=
   by refine ⟨list.map f, list.map g, λ x, _, λ x, _⟩;
      simp [id_of_left_inverse l, id_of_right_inverse r]
+
+def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
+⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨x.1, x.2⟩, λ ⟨a, b⟩, rfl,λ ⟨a, b⟩, rfl⟩
+
+def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
+⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
+
+def d_array_equiv_fin (n : ℕ) (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
+⟨d_array.read, d_array.mk, λ ⟨f⟩, rfl, λ f, rfl⟩
+
+def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
+d_array_equiv_fin _ _
+
+def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
+(vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
 
 def decidable_eq_of_equiv [h : decidable_eq α] : α ≃ β → decidable_eq β
 | ⟨f, g, l, r⟩ b₁ b₂ :=

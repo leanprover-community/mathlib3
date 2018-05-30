@@ -249,10 +249,10 @@ by simp [set.set_eq_def]
 
 variable [decidable_eq α]
 
-@[simp] lemma coe_insert [decidable_eq α] : ↑(insert a s) = (insert a ↑s : set α) :=
+@[simp] lemma coe_insert : ↑(insert a s) = (insert a ↑s : set α) :=
 by simp [set.set_eq_def]
 
-@[simp] lemma coe_erase [decidable_eq α] : ↑(erase s a) = (↑s \ {a} : set α) :=
+@[simp] lemma coe_erase : ↑(erase s a) = (↑s \ {a} : set α) :=
 by simp [set.set_eq_def, and_comm]
 
 @[simp] lemma coe_sdiff : ↑(s \ t) = (↑s \ ↑t : set α) :=

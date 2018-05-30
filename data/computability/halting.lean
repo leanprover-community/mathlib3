@@ -176,3 +176,143 @@ theorem halting_problem (n) : ¬ computable_pred (λ c, (eval c n).dom)
 | h := rice {f | (f n).dom} h nat.partrec.zero nat.partrec.none trivial
 
 end computable_pred
+
+namespace nat
+open vector roption
+
+/-- A simplified basis for `partrec`. -/
+inductive partrec' : ∀ {n}, (vector ℕ n →. ℕ) → Prop
+| prim {n f} : @primrec' n f → @partrec' n f
+| comp {m n f} (g : fin n → vector ℕ m →. ℕ) :
+  partrec' f → (∀ i, partrec' (g i)) →
+  partrec' (λ v, m_of_fn (λ i, g i v) >>= f)
+| rfind {n} {f : vector ℕ (n+1) → ℕ} : @partrec' (n+1) f →
+  partrec' (λ v, rfind (λ n, some (f (n :: v) = 0)))
+
+end nat
+
+namespace nat.partrec'
+open vector partrec computable nat (partrec') nat.partrec'
+
+theorem to_part {n f} (pf : @partrec' n f) : partrec f :=
+begin
+  induction pf,
+  case nat.partrec'.prim : n f hf { exact hf.to_prim.to_comp },
+  case nat.partrec'.comp : m n f g _ _ hf hg {
+    exact (vector_m_of_fn (λ i, hg i)).bind (hf.comp snd) },
+  case nat.partrec'.rfind : n f _ hf {
+    have := ((primrec.eq.comp primrec.id (primrec.const 0)).to_comp.comp
+      (hf.comp (vector_cons.comp snd fst))).to₂.part,
+    exact this.rfind },
+end
+
+theorem of_eq {n} {f g : vector ℕ n →. ℕ}
+  (hf : partrec' f) (H : ∀ i, f i = g i) : partrec' g :=
+(funext H : f = g) ▸ hf
+
+theorem of_prim {n} {f : vector ℕ n → ℕ} (hf : primrec f) : @partrec' n f :=
+prim (nat.primrec'.of_prim hf)
+
+theorem head {n : ℕ} : @partrec' n.succ (@head ℕ n) :=
+prim nat.primrec'.head
+
+theorem tail {n f} (hf : @partrec' n f) : @partrec' n.succ (λ v, f v.tail) :=
+(hf.comp _ (λ i, @prim _ _ $ nat.primrec'.nth i.succ)).of_eq $
+λ v, by simp; rw [← of_fn_nth v.tail]; congr; funext i; simp
+
+protected theorem bind {n f g}
+  (hf : @partrec' n f) (hg : @partrec' (n+1) g) :
+  @partrec' n (λ v, (f v).bind (λ a, g (a :: v))) :=
+(@comp n (n+1) g
+  (λ i, fin.cases f (λ i v, some (v.nth i)) i) hg
+  (λ i, begin
+    refine fin.cases _ (λ i, _) i; simp *,
+    exact prim (nat.primrec'.nth _)
+  end)).of_eq $
+λ v, by simp [m_of_fn, roption.bind_assoc, pure]
+
+protected theorem map {n f} {g : vector ℕ (n+1) → ℕ}
+  (hf : @partrec' n f) (hg : @partrec' (n+1) g) :
+  @partrec' n (λ v, (f v).map (λ a, g (a :: v))) :=
+by simp [(roption.bind_some_eq_map _ _).symm];
+   exact hf.bind hg
+
+def vec {n m} (f : vector ℕ n → vector ℕ m) :=
+∀ i, partrec' (λ v, (f v).nth i)
+
+theorem vec.prim {n m f} (hf : @nat.primrec'.vec n m f) : vec f :=
+λ i, prim $ hf i
+
+protected theorem nil {n} : @vec n 0 (λ _, nil) := λ i, i.elim0
+
+protected theorem cons {n m} {f : vector ℕ n → ℕ} {g}
+  (hf : @partrec' n f) (hg : @vec n m g) :
+  vec (λ v, f v :: g v) :=
+λ i, fin.cases (by simp *) (λ i, by simp [hg i]) i
+
+theorem idv {n} : @vec n n id := vec.prim nat.primrec'.idv
+
+theorem comp' {n m f g} (hf : @partrec' m f) (hg : @vec n m g) :
+  partrec' (λ v, f (g v)) :=
+(hf.comp _ hg).of_eq $ λ v, by simp
+
+theorem comp₁ {n} (f : ℕ →. ℕ) {g : vector ℕ n → ℕ}
+  (hf : @partrec' 1 (λ v, f v.head)) (hg : @partrec' n g) :
+  @partrec' n (λ v, f (g v)) :=
+by simpa using hf.comp' (partrec'.cons hg partrec'.nil)
+
+theorem rfind_opt {n} {f : vector ℕ (n+1) → ℕ}
+  (hf : @partrec' (n+1) f) :
+  @partrec' n (λ v, nat.rfind_opt (λ a, of_nat (option ℕ) (f (a :: v)))) :=
+((rfind $ (of_prim (primrec.nat_sub.comp (primrec.const 1) primrec.vector_head))
+   .comp₁ (λ n, roption.some (1 - n)) hf)
+   .bind ((prim nat.primrec'.pred).comp₁ nat.pred hf)).of_eq $
+λ v, roption.ext $ λ b, begin
+  simp [nat.rfind_opt, -nat.mem_rfind],
+  refine exists_congr (λ a,
+    (and_congr (iff_of_eq _) iff.rfl).trans (and_congr_right (λ h, _))),
+  { congr; funext n,
+    simp, cases f (n :: v); simp [nat.succ_ne_zero]; refl },
+  { have := nat.rfind_spec h,
+    simp at this,
+    cases f (a :: v) with c, {cases this},
+    rw [← option.some_inj, eq_comm], refl }
+end
+
+open nat.partrec.code
+theorem of_part : ∀ {n f}, partrec f → @partrec' n f :=
+suffices ∀ f, nat.partrec f → @partrec' 1 (λ v, f v.head), from
+λ n f hf, begin
+  let g, swap,
+  exact (comp₁ g (this g hf) (prim nat.primrec'.encode)).of_eq
+    (λ i, by dsimp [g]; simp [encodek, roption.map_id']),
+end,
+λ f hf, begin
+  rcases exists_code.1 hf with ⟨c, rfl⟩,
+  simpa [eval_eq_rfind_opt] using
+    (rfind_opt $ of_prim $ primrec.encode_iff.2 $ evaln_prim.comp $
+      (primrec.vector_head.pair (primrec.const c)).pair $
+      primrec.vector_head.comp primrec.vector_tail)
+end
+
+theorem part_iff {n f} : @partrec' n f ↔ partrec f := ⟨to_part, of_part⟩
+
+theorem part_iff₁ {f : ℕ →. ℕ} :
+  @partrec' 1 (λ v, f v.head) ↔ partrec f :=
+part_iff.trans ⟨
+  λ h, (h.comp $ (primrec.vector_of_fn $
+    λ i, primrec.id).to_comp).of_eq (λ v, by simp),
+  λ h, h.comp vector_head⟩
+
+theorem part_iff₂ {f : ℕ → ℕ →. ℕ} :
+  @partrec' 2 (λ v, f v.head v.tail.head) ↔ partrec₂ f :=
+part_iff.trans ⟨
+  λ h, (h.comp $ vector_cons.comp fst $
+    vector_cons.comp snd (const nil)).of_eq (λ v, by simp),
+  λ h, h.comp vector_head (vector_head.comp vector_tail)⟩
+
+theorem vec_iff {m n f} : @vec m n f ↔ computable f :=
+⟨λ h, by simpa using vector_of_fn (λ i, to_part (h i)),
+ λ h i, of_prim $ vector_nth.comp h (primrec.const i)⟩
+
+end nat.primrec'

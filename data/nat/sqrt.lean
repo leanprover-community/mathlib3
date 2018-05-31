@@ -150,6 +150,10 @@ theorem sqrt_eq_zero {n : ℕ} : sqrt n = 0 ↔ n = 0 :=
   by rw [h]; exact dec_trivial,
  λ e, e.symm ▸ rfl⟩
 
+theorem eq_sqrt {n q} : q = sqrt n ↔ q*q ≤ n ∧ n < (q+1)*(q+1) :=
+⟨λ e, e.symm ▸ sqrt_is_sqrt n,
+ λ ⟨h₁, h₂⟩, le_antisymm (le_sqrt.2 h₁) (le_of_lt_succ $ sqrt_lt.2 h₂)⟩
+
 theorem le_three_of_sqrt_eq_one {n : ℕ} (h : sqrt n = 1) : n ≤ 3 :=
 le_of_lt_succ $ (@sqrt_lt n 2).1 $
 by rw [h]; exact dec_trivial
@@ -169,5 +173,11 @@ le_antisymm
 
 theorem sqrt_eq (n : ℕ) : sqrt (n*n) = n :=
 sqrt_add_eq n (zero_le _)
+
+theorem sqrt_succ_le_succ_sqrt (n : ℕ) : sqrt n.succ ≤ n.sqrt.succ :=
+le_of_lt_succ $ sqrt_lt.2 $ lt_succ_of_le $ succ_le_succ $
+le_trans (sqrt_le_add n) $ add_le_add_right
+  (by refine add_le_add
+    (mul_le_mul_right _ _) _; exact le_add_right _ 2) _
 
 end nat

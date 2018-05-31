@@ -642,6 +642,11 @@ assume a has ⟨b, ⟨hbs, hb⟩, h⟩,
 have b = a, from hm _ hbs _ has h,
 this ▸ hb
 
+lemma le_of_map_le_map_inj_iff {f g : filter α} {m : α → β} {s : set α}
+  (hsf : s ∈ f.sets) (hsg : s ∈ g.sets) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y) :
+  map m f ≤ map m g ↔ f ≤ g :=
+iff.intro (le_of_map_le_map_inj' hsf hsg hm) map_mono
+
 lemma eq_of_map_eq_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f.sets) (hsg : s ∈ g.sets) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y)
   (h : map m f = map m g) : f = g :=

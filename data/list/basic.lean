@@ -5,10 +5,10 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Basic properties of lists.
 -/
-import tactic.interactive tactic.mk_iff_of_inductive_prop
+import tactic.interactive tactic.mk_iff_of_inductive_prop tactic.split_ifs
   logic.basic logic.function
   algebra.group
-  data.nat.basic data.option data.bool data.prod data.sigma
+  data.nat.basic data.option data.bool data.prod data.sigma data.fin
 open function nat
 
 namespace list
@@ -411,16 +411,23 @@ by subst l₁
 
 /- head and tail -/
 
-@[simp] theorem head_cons [h : inhabited α] (a : α) (l : list α) : head (a::l) = a := rfl
+@[simp] def head' : list α → option α
+| []       := none
+| (a :: l) := some a
+
+theorem head_eq_head' [inhabited α] (l : list α) : head l = (head' l).iget :=
+by cases l; refl
+
+@[simp] theorem head_cons [inhabited α] (a : α) (l : list α) : head (a::l) = a := rfl
 
 @[simp] theorem tail_nil : tail (@nil α) = [] := rfl
 
 @[simp] theorem tail_cons (a : α) (l : list α) : tail (a::l) = l := rfl
 
-@[simp] theorem head_append [h : inhabited α] (t : list α) {s : list α} (h : s ≠ []) : head (s ++ t) = head s :=
+@[simp] theorem head_append [inhabited α] (t : list α) {s : list α} (h : s ≠ []) : head (s ++ t) = head s :=
 by {induction s, contradiction, simp}
 
-theorem cons_head_tail [h : inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
+theorem cons_head_tail [inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
 by {induction l, contradiction, simp}
 
 /- map -/
@@ -1081,6 +1088,13 @@ theorem forall_mem_of_forall_mem_cons {p : α → Prop} {a : α} {l : list α}
   ∀ x ∈ l, p x :=
 (forall_mem_cons.1 h).2
 
+theorem forall_mem_singleton {p : α → Prop} {a : α} : (∀ x ∈ [a], p x) ↔ p a :=
+by simp
+
+theorem forall_mem_append {p : α → Prop} {l₁ l₂ : list α} :
+  (∀ x ∈ l₁ ++ l₂, p x) ↔ (∀ x ∈ l₁, p x) ∧ (∀ x ∈ l₂, p x) :=
+by simp [or_imp_distrib, forall_and_distrib]
+
 theorem not_exists_mem_nil (p : α → Prop) : ¬ ∃ x ∈ @nil α, p x :=
 by simp
 
@@ -1444,10 +1458,7 @@ theorem count_cons (a b : α) (l : list α) :
 
 theorem count_cons' (a b : α) (l : list α) :
   count a (b :: l) = count a l + (if a = b then 1 else 0) :=
-decidable.by_cases
-  (assume : a = b, begin rw [count_cons, if_pos this, if_pos this] end)
-  (assume : a ≠ b, begin rw [count_cons, if_neg this, if_neg this], reflexivity end)
-
+begin rw count_cons, split_ifs; refl end
 
 @[simp] theorem count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) :=
 if_pos rfl
@@ -1803,7 +1814,7 @@ theorem sublists_aux_eq_foldr.aux {a : α} {l : list α}
       sublists_aux l f = foldr f [] (sublists_aux l cons))
   (f : list α → list β → list β) : sublists_aux (a::l) f = foldr f [] (sublists_aux (a::l) cons) :=
 begin
-  simp [sublists_aux], rw [IH₂, IH₁], congr_n 1,
+  simp [sublists_aux], rw [IH₂, IH₁], congr' 1,
   induction sublists_aux l cons with _ _ ih; simp *
 end
 
@@ -2145,6 +2156,15 @@ end
 else by simp [hb, mt mem_of_mem_erase hb]
 else by simp [ha, mt mem_of_mem_erase ha]
 
+theorem map_erase [decidable_eq β] {f : α → β} (finj : injective f) {a : α} :
+  ∀ (l : list α), map f (l.erase a) = (map f l).erase (f a)
+| []     := by simp [list.erase]
+| (b::l) := if h : f b = f a then by simp [h, finj h] else by simp [h, mt (congr_arg f) h, map_erase l]
+
+theorem map_foldl_erase [decidable_eq β] {f : α → β} (finj : injective f) {l₁ l₂ : list α} :
+  map f (foldl list.erase l₁ l₂) = foldl (λ l a, l.erase (f a)) (map f l₁) l₂ :=
+by induction l₂ generalizing l₁; simp [map_erase finj, *]
+
 end erase
 
 /- diff -/
@@ -2162,6 +2182,11 @@ theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.e
 
 @[simp] theorem diff_append (l₁ l₂ l₃ : list α) : l₁.diff (l₂ ++ l₃) = (l₁.diff l₂).diff l₃ :=
 by simp [diff_eq_foldl]
+
+@[simp] theorem map_diff [decidable_eq β] {f : α → β} (finj : injective f) {l₁ l₂ : list α} :
+  map f (l₁.diff l₂) = (map f l₁).diff (map f l₂) :=
+by simp [diff_eq_foldl, map_foldl_erase finj]
+
 
 end diff
 
@@ -2246,7 +2271,7 @@ variable {σ : α → Type*}
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 
      sigma [1, 2] (λ_, [5, 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)] -/
-def sigma (l₁ : list α) (l₂ : Π a, list (σ a)) : list (Σ a, σ a) :=
+protected def sigma (l₁ : list α) (l₂ : Π a, list (σ a)) : list (Σ a, σ a) :=
 l₁.bind $ λ a, (l₂ a).map $ sigma.mk a
 
 @[simp] theorem nil_sigma (l : Π a, list (σ a)) : (@nil α).sigma l = [] := rfl
@@ -2260,12 +2285,75 @@ l₁.bind $ λ a, (l₂ a).map $ sigma.mk a
 
 @[simp] theorem mem_sigma {l₁ : list α} {l₂ : Π a, list (σ a)} {a : α} {b : σ a} :
   sigma.mk a b ∈ l₁.sigma l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ a :=
-by simp [sigma, and.left_comm]
+by simp [list.sigma, and.left_comm]
 
 theorem length_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
-  length (sigma l₁ l₂) = (l₁.map (λ a, length (l₂ a))).sum :=
+  length (l₁.sigma l₂) = (l₁.map (λ a, length (l₂ a))).sum :=
 by induction l₁ with x l₁ IH; simp *
 end
+
+/- of_fn -/
+def of_fn_aux {n} (f : fin n → α) : ∀ m, m ≤ n → list α → list α
+| 0        h l := l
+| (succ m) h l := of_fn_aux m (le_of_lt h) (f ⟨m, h⟩ :: l)
+
+def of_fn {n} (f : fin n → α) : list α :=
+of_fn_aux f n (le_refl _) []
+
+theorem length_of_fn_aux {n} (f : fin n → α) :
+  ∀ m h l, length (of_fn_aux f m h l) = length l + m
+| 0        h l := rfl
+| (succ m) h l := (length_of_fn_aux m _ _).trans (succ_add _ _)
+
+theorem length_of_fn {n} (f : fin n → α) : length (of_fn f) = n :=
+(length_of_fn_aux f _ _ _).trans (zero_add _)
+
+def of_fn_nth_val {n} (f : fin n → α) (i : ℕ) : option α :=
+if h : _ then some (f ⟨i, h⟩) else none
+
+theorem nth_of_fn_aux {n} (f : fin n → α) (i) :
+  ∀ m h l,
+    (∀ i, nth l i = of_fn_nth_val f (i + m)) →
+     nth (of_fn_aux f m h l) i = of_fn_nth_val f i
+| 0        h l H := H i
+| (succ m) h l H := nth_of_fn_aux m _ _ begin
+  intro j, cases j with j,
+  { simp [of_fn_nth_val, show m < n, from h], refl },
+  { simp [H, succ_add, -add_comm] }
+end
+
+@[simp] theorem nth_of_fn {n} (f : fin n → α) (i) :
+  nth (of_fn f) i = of_fn_nth_val f i :=
+nth_of_fn_aux f _ _ _ _ $ λ i,
+by simp [of_fn_nth_val, not_lt.2 (le_add_right n i)]
+
+theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
+  nth_le (of_fn f) i.1 ((length_of_fn f).symm ▸ i.2) = f i :=
+option.some.inj $ by rw [← nth_le_nth];
+  simp [of_fn_nth_val, i.2]; cases i; refl
+
+theorem array_eq_of_fn {n} (a : array n α) : a.to_list = of_fn a.read :=
+suffices ∀ {m h l}, d_array.rev_iterate_aux a
+  (λ i, cons) m h l = of_fn_aux (d_array.read a) m h l, from this,
+begin
+  intros, induction m with m IH generalizing l, {refl},
+  simp [d_array.rev_iterate_aux, of_fn_aux, IH]
+end
+
+theorem of_fn_zero (f : fin 0 → α) : of_fn f = [] := rfl
+
+theorem of_fn_succ {n} (f : fin (succ n) → α) :
+  of_fn f = f 0 :: of_fn (λ i, f i.succ) :=
+suffices ∀ {m h l}, of_fn_aux f (succ m) (succ_le_succ h) l =
+  f 0 :: of_fn_aux (λ i, f i.succ) m h l, from this,
+begin
+  intros, induction m with m IH generalizing l, {refl},
+  rw [of_fn_aux, IH], refl
+end
+
+theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i.1 i.2) = l
+| [] := rfl
+| (a::l) := by rw of_fn_succ; congr; simp; exact of_fn_nth_le l
 
 /- disjoint -/
 section disjoint
@@ -3029,7 +3117,7 @@ theorem nodup_product {l₁ : list α} {l₂ : list β} (d₁ : nodup l₁) (d�
     λ b₁ mb₁ e b₂ mb₂ e', by subst e'; injection e; contradiction)⟩
 
 theorem nodup_sigma {σ : α → Type*} {l₁ : list α} {l₂ : Π a, list (σ a)}
-  (d₁ : nodup l₁) (d₂ : ∀ a, nodup (l₂ a)) : nodup (sigma l₁ l₂) :=
+  (d₁ : nodup l₁) (d₂ : ∀ a, nodup (l₂ a)) : nodup (l₁.sigma l₂) :=
  nodup_bind.2
   ⟨λ a ma, nodup_map (λ b b' h, by injection h with _ h; exact eq_of_heq h) (d₂ a),
   d₁.imp (λ a₁ a₂ n x,

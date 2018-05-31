@@ -8,7 +8,7 @@ from Cauchy sequences.
 -/
 import order.conditionally_complete_lattice data.real.cau_seq algebra.big_operators algebra.archimedean
 
-def real := quotient (@cau_seq.equiv ℚ _ _ _ abs _)
+def real := @quotient (cau_seq ℚ abs) cau_seq.equiv
 notation `ℝ` := real
 
 namespace real
@@ -489,7 +489,7 @@ classical.some (sqrt_exists (le_max_left 0 x))
     rcases sqrt_aux_converges g with ⟨hg, y, y0, yg, ys⟩,
     refine xs.trans (eq.trans _ ys.symm),
     rw [← @mul_self_inj_of_nonneg ℝ _ x y x0 y0, xf, yg],
-    congr_n 1, exact quotient.sound e
+    congr' 1, exact quotient.sound e
   end)-/
 
 theorem sqrt_prop (x : ℝ) : 0 ≤ sqrt x ∧ sqrt x * sqrt x = max 0 x :=

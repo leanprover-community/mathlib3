@@ -8,7 +8,7 @@ A collection of limit properties.
 import algebra.big_operators algebra.group_power
   analysis.real analysis.topology.infinite_sum
 noncomputable theory
-open classical set finset function filter
+open classical finset function filter
 local attribute [instance] prop_decidable
 
 section real
@@ -28,7 +28,7 @@ have cauchy (at_top.map $ λn, f' (range n)),
 have ∃n, ∀{n'}, n ≤ n' → dist (f' (range n)) (f' (range n')) < ε / 2,
   by simp [cauchy_iff, mem_at_top_sets] at this;
   from let ⟨t, ⟨u, hu⟩, ht⟩ := this _ hε' in
-    ⟨u, assume n' hn, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ (le_refl _), hu _ hn⟩⟩,
+    ⟨u, assume n' hn, ht $ set.prod_mk_mem_set_prod_eq.mpr ⟨hu _ (le_refl _), hu _ hn⟩⟩,
 let ⟨n, hn⟩ := this in
 have ∀{s}, range n ⊆ s → abs ((s \ range n).sum f) < ε / 2,
   from assume s hs,

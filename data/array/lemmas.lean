@@ -8,12 +8,17 @@ import data.list.basic data.buffer
 universes u w
 
 namespace d_array
-variables {n : nat} {α : nat → Type u} {β : Type w}
+variables {n : nat} {α : fin n → Type u} {β : Type w}
+
+instance [∀ i, inhabited (α i)] : inhabited (d_array n α) :=
+⟨⟨λ _, default _⟩⟩
 
 end d_array
 
 namespace array
 variables {n : nat} {α : Type u} {β : Type w}
+
+instance [inhabited α] : inhabited (array n α) := d_array.inhabited
 
 theorem rev_list_foldr_aux (a : array n α) (b : β) (f : α → β → β) :
   Π (i : nat) (h : i ≤ n), (d_array.iterate_aux a (λ _ v l, v :: l) i h []).foldr f b = d_array.iterate_aux a (λ _, f) i h b

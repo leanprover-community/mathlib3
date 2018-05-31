@@ -12,82 +12,6 @@ open set function finsupp lattice
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-instance {α : Type u} [semilattice_sup α] : is_idempotent α (⊔) := ⟨assume a, sup_idem⟩
-
-namespace finset
-variables [semilattice_sup_bot α] [decidable_eq α] [decidable_eq β]
-
-/-- Supremum of a finite set: `sup {a, b, c} f = f a ⊔ f b ⊔ f c` -/
-def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
-
-variables {s s₁ s₂ : finset β} {f : β → α}
-
-@[simp] lemma sup_empty : (∅ : finset β).sup f = ⊥ :=
-fold_empty
-
-@[simp] lemma sup_insert {b : β} : (insert b s : finset β).sup f = f b ⊔ s.sup f :=
-fold_insert_idem
-
-@[simp] lemma sup_singleton {b : β} : ({b} : finset β).sup f = f b :=
-calc _ = f b ⊔ (∅:finset β).sup f : sup_insert
-  ... = f b : by simp
-
-lemma sup_union : (s₁ ∪ s₂).sup f = s₁.sup f ⊔ s₂.sup f :=
-finset.induction_on s₁ (by simp) (by simp {contextual := tt}; cc)
-
-lemma sup_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.sup f ≤ s.sup g :=
-finset.induction_on s (by simp) (by simp [-sup_le_iff, sup_le_sup] {contextual := tt})
-
-lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
-calc f b ≤ f b ⊔ s.sup f : le_sup_left
-  ... = (insert b s).sup f : by simp
-  ... = s.sup f : by simp [hb]
-
-lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
-finset.induction_on s (by simp) (by simp {contextual := tt})
-
-lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
-sup_le $ assume b hb, le_sup (subset_iff.mpr h hb)
-
-end finset
-
-instance nat.distrib_lattice : distrib_lattice ℕ :=
-by apply_instance
-
-instance nat.semilattice_sup_bot : semilattice_sup_bot ℕ :=
-{ bot := 0, bot_le := nat.zero_le , .. nat.distrib_lattice }
-
-@[simp] lemma finset.bind_singleton2 [decidable_eq α] [decidable_eq β] {a : α} {f : α → finset β} :
-  (finset.singleton a).bind f = f a :=
-show (insert a ∅ : finset α).bind f = f a,
-  by simp
-
-lemma finsupp.single_induction_on [decidable_eq α] [decidable_eq β] [add_monoid β] {p : (α →₀ β) → Prop} (f : α →₀ β)
-  (h_zero : p 0) (h_add : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (f + single a b)) :
-  p f :=
-have ∀(s : finset α) (f : α →₀ β), s = f.support → p f,
-  from assume s, finset.induction_on s
-    (assume f eq,
-      have 0 = f, from finsupp.ext $ by simp [finset.ext, *] at * {contextual := tt},
-      this ▸ h_zero)
-    (assume a s has ih f eq,
-      have a ∈ f.support, by rw [← eq]; simp,
-      have f.filter (λa', a' ≠ a) + single a (f a) = f,
-        from finsupp.ext $ assume a', decidable.by_cases
-          (assume h : a' = a, by simp [h])
-          (assume h : a' ≠ a, by simp [h, h.symm]),
-      begin
-        rw ← this,
-        apply h_add,
-        { simp },
-        { have : a ∈ f.support, { rw [← eq], simp },
-          simpa using this },
-        apply ih,
-        { rw finset.ext, intro a',
-          by_cases a' = a; simp [h, has, -finsupp.mem_support_iff, eq.symm, support_filter] }
-      end),
-this _ _ rfl
-
 /-- Multivariate polynomial, where `σ` is the index set of the variables and
   `α` is the coefficient ring -/
 def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := (σ →₀ ℕ) →₀ α
@@ -137,7 +61,7 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
 begin
-  apply @finsupp.single_induction_on σ ℕ _ _ _ _ s,
+  apply @finsupp.induction σ ℕ _ _ _ _ s,
   { simp [C, prod_zero_index]; exact (mul_one _).symm },
   { assume n e s hns he ih,
     simp [prod_add_index, prod_single_index, pow_zero, pow_add, (mul_assoc _ _ _).symm, ih.symm,
@@ -151,7 +75,7 @@ lemma induction_on {M : mv_polynomial σ α → Prop} (p : mv_polynomial σ α)
 have ∀s a, M (monomial s a),
 begin
   assume s a,
-  apply @finsupp.single_induction_on σ ℕ _ _ _ _ s,
+  apply @finsupp.induction σ ℕ _ _ _ _ s,
   { show M (monomial 0 a), from h_C a, },
   { assume n e p hpn he ih,
     have : ∀e:ℕ, M (monomial p a * X n ^ e),
@@ -161,9 +85,9 @@ begin
       { simp [ih, pow_succ', (mul_assoc _ _ _).symm, h_X, e_ih] } },
     simp [monomial_add_single, this] }
 end,
-finsupp.single_induction_on p
+finsupp.induction p
   (by have : M (C 0) := h_C 0; rwa [C_0] at this)
-  (assume s a p hsp ha hp, h_add _ _ hp (this s a))
+  (assume s a p hsp ha hp, h_add _ _ (this s a) hp)
 
 section eval
 variables {f : σ → α}

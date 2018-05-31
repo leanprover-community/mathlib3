@@ -27,6 +27,9 @@ lemma max_min_distrib_right : max (min a b) c = min (max a c) (max b c) := sup_i
 lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_sup_left
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
 
+instance max_idem : is_idempotent α max := by apply_instance
+instance min_idem : is_idempotent α min := by apply_instance
+
 lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
 have a ≤ b → (a ≤ c ∨ b ≤ c ↔ a ≤ c),
   from assume h, or_iff_left_of_imp $ le_trans h,
@@ -67,6 +70,12 @@ by cases le_total a b; simp [max_eq_right, max_eq_left, h, hf h]
 
 lemma min_distrib_of_monotone (hf : monotone f) : f (min a b) = min (f a) (f b) :=
 by cases le_total a b; simp [min_eq_right, min_eq_left, h, hf h]
+
+theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
+by by_cases h : a ≤ b; simp [min, h]
+
+theorem max_choice (a b : α) : max a b = a ∨ max a b = b :=
+by by_cases h : a ≤ b; simp [max, h]
 
 end
 

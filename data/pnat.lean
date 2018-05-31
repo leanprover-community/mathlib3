@@ -30,8 +30,6 @@ def to_pnat' (n : ℕ) : ℕ+ := succ_pnat (pred n)
 
 end nat
 
-instance coe_nat_pnat : has_coe ℕ ℕ+ := ⟨nat.to_pnat'⟩
-
 namespace pnat
 
 open nat
@@ -47,10 +45,9 @@ instance : has_add ℕ+ := ⟨λ m n, ⟨m + n, add_pos m.2 n.2⟩⟩
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := ne_of_gt n.2
 
-@[simp] theorem nat_coe_coe  {n : ℕ} : n > 0 → ((n : ℕ+) : ℕ) = n := succ_pred_eq_of_pos
 @[simp] theorem to_pnat'_coe {n : ℕ} : n > 0 → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 
-@[simp] theorem coe_nat_coe (n : ℕ+) : ((n : ℕ) : ℕ+) = n := eq (nat_coe_coe n.pos)
+@[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
 
 instance : comm_monoid ℕ+ :=
 { mul       := λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩,

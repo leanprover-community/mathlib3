@@ -18,24 +18,33 @@ private meta def update_pp_name : expr → name → expr
 | (local_const n _ bi d) pp := local_const n pp bi d
 | e n := e
 
-private meta def elim_cases (pat : pattern) : expr → tactic (list expr) | h := do
-  t ← infer_type h,
-  ((match_pattern pat t >> return [h]) <|>
+private meta def elim_or : ℕ → expr → tactic (list expr)
+| 0       h := fail "zero cases"
+| 1       h := return [h]
+| (n + 1) h := do
+  [(_, [hl], []), (_, [hr], [])] ← induction h, -- there should be no dependent terms
+  [gl, gr] ← get_goals,
+  set_goals [gr],
+  hsr ← elim_or n hr,
+  gsr ← get_goals,
+  set_goals (gl :: gsr),
+  return (hl :: hsr)
+
+private meta def dest_or : expr → tactic (list expr) | e := do
+  `(%%a ∨ %%b) ← whnf e | return [e],
+  lb ← dest_or b,
+  return (a :: lb)
+
+private meta def match_perms (pat : pattern) : expr → tactic (list $ list expr) | t :=
   (do
-    `(_ ∨ _) ← infer_type h | fail "cases is not a disjunction of the same pattern",
-    [(_, [hl], []), (_, [hr], [])] ← induction h, -- there should be no dependent terms
-    [gl, gr] ← get_goals,
-
-    set_goals [gl],
-    hsl ← elim_cases hl,
-    gsl ← get_goals,
-
-    set_goals [gr],
-    hsr ← elim_cases hr,
-    gsr ← get_goals,
-
-    set_goals (gsl ++ gsr),
-    return (hsl ++ hsr)))
+    m ← match_pattern pat t,
+    guard (m.2.all expr.is_local_constant),
+    return [m.2]) <|>
+  (do
+    `(%%l ∨ %%r) ← whnf t,
+    m ← match_pattern pat l,
+    rs ← match_perms r,
+    return (m.2 :: rs))
 
 private meta def update_type : expr → expr → expr
 | (local_const n pp bi d) t := local_const n pp bi t
@@ -48,22 +57,8 @@ private meta def intron' : ℕ → tactic (list expr)
   ls ← intron' i,
   return (n :: ls)
 
-private meta def dest_or : expr → list expr
-| `(%%a ∨ %%b) := dest_or a ++ dest_or b
-| e            := [e]
-
-private meta def match_perms (pat : pattern) : expr → tactic (list $ list expr) | t :=
-  (do m ← match_pattern pat t, return [m.2]) <|>
-  (do
-    `(%%l ∨ %%r) ← return t,
-    ls ← match_perms l,
-    rs ← match_perms r,
-    return (ls ++ rs))
-
-
 meta def wlog (vars' : list expr) (h_cases fst_case : expr) (perms : list (list expr)) :
   tactic unit := do
-  case_pat ← mk_pattern [] (vars'.filter $ λv, v.occurs fst_case) fst_case [] [],
   guard h_cases.is_local_constant,
 
   -- reorder s.t. context is Γ ⬝ vars ⬝ cases ⊢ ∀deps, …
@@ -86,10 +81,9 @@ meta def wlog (vars' : list expr) (h_cases fst_case : expr) (perms : list (list 
     vars.mmap clear,
     intron nr),
 
-  h₀ :: hs ← elim_cases case_pat h_cases,
+  h₀ :: hs ← elim_or perms.length h_cases,
 
   solve1 (do
-    ctxt ← local_context,
     exact (h.mk_app $ vars ++ [h₀])),
 
   focus ((hs.zip perms.tail).map $ λ⟨h_case, perm⟩, do
@@ -104,6 +98,14 @@ meta def wlog (vars' : list expr) (h_cases fst_case : expr) (perms : list (list 
 namespace interactive
 open interactive interactive.types expr
 
+private meta def parse_permutations : option (list (list name)) → tactic (list (list expr))
+| none                    := return []
+| (some [])               := return []
+| (some perms@(p₀ :: ps)) := do
+  (guard (perms.all $ λp, p.length = p₀.length) <|>
+    fail "The permutations `xs_i` in `using [xs_1, …, xs_n]` must have same number of variables."),
+  perms.mmap (λp, p.mmap get_local)
+
 /-- Without loss of generality: reduces to one goal under variables permutations.
 
 Given a goal of the form `g xs`, a predicate `p` over a set of variables, as well as variable
@@ -117,7 +119,8 @@ The invariant goals, i.e. `g` is invariant under `xs_i`:
   `(h : p xs_i) (this : g xs_0) ⊢ gs xs_i`
 
 Either the permutation is provided, or a proof of the disjunction is provided to compute the
-permtation. In many cases the invariant goals can be solved by AC rewriting using `cc` etc.
+permutation. The disjunction need to be in assoc normal form, e.g. `p₀ ∨ (p₁ ∨ p₂)`. In many cases
+the invariant goals can be solved by AC rewriting using `cc` etc.
 
 Example:
   On a state `(n m : ℕ) ⊢ p n m` the tactic `wlog h : n ≤ m using [n m, m n]` produces the following
@@ -151,97 +154,92 @@ meta def wlog
   (cases : parse (tk ":=" *> texpr)?)
   (perms : parse (tk "using" *> (list_of (ident*) <|> (λx, [x]) <$> ident*))?)
   (discharger : tactic unit :=
-    (solve_by_elim <|> tauto <|> using_smt smt_tactic.solve_goals)) :
+    (solve_by_elim <|> tauto <|> using_smt (smt_tactic.intros >> smt_tactic.solve_goals))) :
   tactic unit := do
-  perms ← (perms.get_or_else []).mmap (λp, p.mmap get_local),
-  match perms with
-  | [] := skip
-  | p₀ :: perms := guard (perms.all $ λp, p.length = p₀.length) <|>
-    fail "The permutations `xs_i` in `using [xs_1, …, xs_n]` must have same number of variables."
-  end,
-  (pat, cases_pr, cases_goal, vars, perms) ← (match cases with
-  | some r := do
-    vars::_ ← return perms |
-      fail "At least one set of variables expected, i.e. `using x y` or `using [x y, y x]`.",
-    cases_pr ← to_expr r,
-    cases_pr ← (if cases_pr.is_local_constant
-      then return $ match h with some n := update_pp_name cases_pr n | none := cases_pr end
-      else do
-        note (h.get_or_else `case) none cases_pr),
-    cases ← infer_type cases_pr,
-    (pat, perms') ← match pat with
-    | some pat := do
-      pat ← to_expr pat,
-      let vars' := vars.filter $ λv, v.occurs pat,
-      case_pat ← mk_pattern [] vars' pat [] vars',
-      perms' ← match_perms case_pat cases,
-      return (pat, perms')
-    | none := do
-      (p :: ps) ← return $ dest_or cases,
-      let vars' := vars.filter $ λv, v.occurs p,
-      case_pat ← mk_pattern [] vars' p [] vars',
-      perms' ← (p :: ps).mmap (λp, do m ← match_pattern case_pat p, return m.2),
-      return (p, perms')
-    end,
-    let vars_name := vars.map local_uniq_name,
-    guard (perms'.all $ λp, p.all $ λv, v.is_local_constant ∧ v.local_uniq_name ∈ vars_name) <|>
-      fail "Cases contains variables not declared in `using x y z`",
-    perms ← (if perms.length = 1
-      then do
-        return (perms'.map $ λp, p ++ vars.filter (λv, p.all (λv', v'.local_uniq_name ≠ v.local_uniq_name)))
-      else do
-        guard (perms.length = perms'.length) <|>
-          fail "The provided permutation list has a different length then the provided cases.",
-        return perms),
-    return (pat, cases_pr, @none expr, vars, perms)
-
-  | none   := do
-    let name_h := h.get_or_else `case,
-    some pat ← return pat | fail "Either specify cases or a pattern with permutations",
+perms ← parse_permutations perms,
+(pat, cases_pr, cases_goal, vars, perms) ← (match cases with
+| some r := do
+  vars::_ ← return perms |
+    fail "At least one set of variables expected, i.e. `using x y` or `using [x y, y x]`.",
+  cases_pr ← to_expr r,
+  cases_pr ← (if cases_pr.is_local_constant
+    then return $ match h with some n := update_pp_name cases_pr n | none := cases_pr end
+    else do
+      note (h.get_or_else `case) none cases_pr),
+  cases ← infer_type cases_pr,
+  (pat, perms') ← match pat with
+  | some pat := do
     pat ← to_expr pat,
+    let vars' := vars.filter $ λv, v.occurs pat,
+    case_pat ← mk_pattern [] vars' pat [] vars',
+    perms' ← match_perms case_pat cases,
+    return (pat, perms')
+  | none := do
+    (p :: ps) ← dest_or cases,
+    let vars' := vars.filter $ λv, v.occurs p,
+    case_pat ← mk_pattern [] vars' p [] vars',
+    perms' ← (p :: ps).mmap (λp, do m ← match_pattern case_pat p, return m.2),
+    return (p, perms')
+  end,
+  let vars_name := vars.map local_uniq_name,
+  guard (perms'.all $ λp, p.all $ λv, v.is_local_constant ∧ v.local_uniq_name ∈ vars_name) <|>
+    fail "Cases contains variables not declared in `using x y z`",
+  perms ← (if perms.length = 1
+    then do
+      return (perms'.map $ λp, p ++ vars.filter (λv, p.all (λv', v'.local_uniq_name ≠ v.local_uniq_name)))
+    else do
+      guard (perms.length = perms'.length) <|>
+        fail "The provided permutation list has a different length then the provided cases.",
+      return perms),
+  return (pat, cases_pr, @none expr, vars, perms)
+
+| none   := do
+  let name_h := h.get_or_else `case,
+  some pat ← return pat | fail "Either specify cases or a pattern with permutations",
+  pat ← to_expr pat,
+  (do
+    (x, y) ← match perms with
+    | []       := do
+      (x :: y :: _) ← return pat.list_local_const,
+      return (x, y)
+    | [[x, y]] := return (x, y)
+    | _        := fail ""
+    end,
+    let cases := mk_or_lst [pat, pat.instantiate_locals [(x.local_uniq_name, y), (y.local_uniq_name, x)]],
     (do
-      (x, y) ← match perms with
-      | []       := do
-        (x :: y :: _) ← return pat.list_local_const,
-        return (x, y)
-      | [[x, y]] := return (x, y)
-      | _        := fail ""
-      end,
-      let cases := mk_or_lst [pat, pat.instantiate_locals [(x.local_uniq_name, y), (y.local_uniq_name, x)]],
-      (do
-        `(%%x ≤ %%y) ← return pat,
-        (cases_pr, []) ← local_proof name_h cases (exact ``(le_total %%x %%y)),
-        return (pat, cases_pr, none, [x, y], [[x, y], [y, x]]))
-      <|>
-      (do
-        (cases_pr, [g]) ← local_proof name_h cases skip,
-        return (pat, cases_pr, some g, [x, y], [[x, y], [y, x]]))) <|>
+      `(%%x ≤ %%y) ← return pat,
+      (cases_pr, []) ← local_proof name_h cases (exact ``(le_total %%x %%y)),
+      return (pat, cases_pr, none, [x, y], [[x, y], [y, x]]))
+    <|>
     (do
-      guard (perms.length ≥ 2) <|>
-        fail ("To generate cases at least two permutations are required, i.e. `using [x y, y x]`" ++
-          " or exactly 0 or 2 variables"),
-      (vars :: perms') ← return perms,
-      let names := vars.map local_uniq_name,
-      let cases := mk_or_lst (pat :: perms'.map (λp, pat.instantiate_locals (names.zip p))),
       (cases_pr, [g]) ← local_proof name_h cases skip,
-      return (pat, cases_pr, some g, vars, perms))
-  end),
-  let name_fn :=
-    (if perms.length = 2 then λi, `invariant else λi, mk_simple_name ("invariant_" ++ to_string (i + 1))),
-  with_enable_tags $ tactic.focus1 $ do
-    t ← get_main_tag,
-    tactic.wlog vars cases_pr pat perms,
-    tactic.focus (set_main_tag (mk_num_name `_case 0 :: `main :: t) ::
-      (list.range (perms.length - 1)).map (λi, do
-        set_main_tag (mk_num_name `_case 0 :: name_fn i :: t),
-        try discharger)),
-    match cases_goal with
-    | some g := do
-      set_tag g (mk_num_name `_case 0 :: `cases :: t),
-      gs ← get_goals,
-      set_goals (g :: gs)
-    | none := skip
-    end
+      return (pat, cases_pr, some g, [x, y], [[x, y], [y, x]]))) <|>
+  (do
+    guard (perms.length ≥ 2) <|>
+      fail ("To generate cases at least two permutations are required, i.e. `using [x y, y x]`" ++
+        " or exactly 0 or 2 variables"),
+    (vars :: perms') ← return perms,
+    let names := vars.map local_uniq_name,
+    let cases := mk_or_lst (pat :: perms'.map (λp, pat.instantiate_locals (names.zip p))),
+    (cases_pr, [g]) ← local_proof name_h cases skip,
+    return (pat, cases_pr, some g, vars, perms))
+end),
+let name_fn :=
+  (if perms.length = 2 then λi, `invariant else λi, mk_simple_name ("invariant_" ++ to_string (i + 1))),
+with_enable_tags $ tactic.focus1 $ do
+  t ← get_main_tag,
+  tactic.wlog vars cases_pr pat perms,
+  tactic.focus (set_main_tag (mk_num_name `_case 0 :: `main :: t) ::
+    (list.range (perms.length - 1)).map (λi, do
+      set_main_tag (mk_num_name `_case 0 :: name_fn i :: t),
+      try discharger)),
+  match cases_goal with
+  | some g := do
+    set_tag g (mk_num_name `_case 0 :: `cases :: t),
+    gs ← get_goals,
+    set_goals (g :: gs)
+  | none := skip
+  end
 
 end interactive
 

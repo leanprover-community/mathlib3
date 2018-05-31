@@ -201,6 +201,11 @@ exists_congr $ λ d, by rw [mul_assoc, nat.mul_left_inj ha]
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : c > 0) : a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, nat.mul_right_inj hc]
 
+@[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
+(eq_zero_or_pos n).elim
+  (λ n0, by simp [n0])
+  (λ npos, mod_eq_of_lt (mod_lt _ npos))
+
 theorem add_pos_left {m : ℕ} (h : m > 0) (n : ℕ) : m + n > 0 :=
 calc
   m + n > 0 + n : nat.add_lt_add_right h n

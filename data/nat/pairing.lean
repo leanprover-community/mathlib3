@@ -80,4 +80,27 @@ by by_cases h : a < b; simp [mkpair, h];
 theorem unpair_le_right (n : ℕ) : (unpair n).2 ≤ n :=
 by simpa using le_mkpair_right n.unpair.1 n.unpair.2
 
+theorem mkpair_lt_mkpair_left {a₁ a₂} (b) (h : a₁ < a₂) : mkpair a₁ b < mkpair a₂ b :=
+begin
+  by_cases h₁ : a₁ < b; simp [mkpair, h₁],
+  { by_cases h₂ : a₂ < b; simp [mkpair, h₂, h],
+    simp at h₂,
+    exact add_lt_add_of_lt_of_le (lt_of_lt_of_le h₁ h₂)
+      (le_trans (mul_self_le_mul_self h₂) (le_add_left _ _)) },
+  { simp at h₁,
+    simp [not_lt_of_gt (lt_of_le_of_lt h₁ h)],
+    exact add_lt_add h (add_lt_add_left (mul_self_lt_mul_self h) _) }
+end
+
+theorem mkpair_lt_mkpair_right (a) {b₁ b₂} (h : b₁ < b₂) : mkpair a b₁ < mkpair a b₂ :=
+begin
+  by_cases h₁ : a < b₁; simp [mkpair, h₁],
+  { simp [mkpair, lt_trans h₁ h, h],
+    exact mul_self_lt_mul_self h },
+  { by_cases h₂ : a < b₂; simp [mkpair, h₂, h],
+    simp at h₁,
+    rwa [add_comm, ← sqrt_lt, sqrt_add_eq],
+    exact le_trans h₁ (le_add_left _ _) }
+end
+
 end nat

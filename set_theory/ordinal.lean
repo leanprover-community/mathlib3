@@ -205,7 +205,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
   { refine @is_extensional.ext _ s _ _ _ (λ x, _),
     simp [f.down, g.down, ef] },
   cases f, cases g, simp at ef et,
-  congr; [apply order_embedding.eq_of_to_fun_eq, skip]; assumption
+  have := order_embedding.eq_of_to_fun_eq ef; congr'
 end⟩
 
 theorem top_eq [is_well_order β s] [is_well_order γ t]

@@ -411,7 +411,7 @@ section
   /-- A nonsquare is a natural number that is not equal to the square of an
     integer. This is implemented as a typeclass because it's a necessary condition
     for much of the Pell equation theory. -/
-  class nonsquare (x : ℕ) := (ns : ∀n : ℕ, x ≠ n*n)
+  class nonsquare (x : ℕ) : Prop := (ns : ∀n : ℕ, x ≠ n*n)
 
   parameter [dnsq : nonsquare d]
   include dnsq

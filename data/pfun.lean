@@ -34,6 +34,8 @@ instance : has_mem α (roption α) := ⟨roption.mem⟩
 theorem dom_iff_mem : ∀ {o : roption α}, o.dom ↔ ∃y, y ∈ o
 | ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨_, h, rfl⟩, h⟩
 
+theorem get_mem {o : roption α} (h) : get o h ∈ o := ⟨_, rfl⟩
+
 /-- `roption` extensionality -/
 def ext {o p : roption α} (H : ∀ a, a ∈ o ↔ a ∈ p) : o = p :=
 ext' ⟨λ h, ((H _).1 ⟨h, rfl⟩).fst,
@@ -52,6 +54,9 @@ def some (a : α) : roption α := ⟨true, λ_, a⟩
 theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
 | _ ⟨p, f⟩ _ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
+theorem get_eq_of_mem {o : roption α} {a} (h : a ∈ o) (h') : get o h' = a :=
+mem_unique ⟨_, rfl⟩ h
+
 theorem mem_some (a : α) : a ∈ some a := ⟨trivial, rfl⟩
 
 @[simp] theorem mem_some_iff {a b} : b ∈ (some a : roption α) ↔ b = a :=
@@ -64,6 +69,9 @@ theorem eq_some_iff {a : α} {o : roption α} : o = some a ↔ a ∈ o :=
 theorem eq_none_iff {o : roption α} : o = none ↔ ∀ a, a ∉ o :=
 ⟨λ e, e.symm ▸ not_mem_none,
  λ h, ext (by simpa [not_mem_none])⟩
+
+theorem eq_none_iff' {o : roption α} : o = none ↔ ¬ o.dom :=
+⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
 
 instance none_decidable : decidable (@none α).dom := decidable.false
 instance some_decidable (a : α) : decidable (some a).dom := decidable.true
@@ -88,6 +96,9 @@ def of_option : option α → roption α
   λ h, ⟨trivial, option.some.inj h⟩⟩
 
 instance : has_coe (option α) (roption α) := ⟨of_option⟩
+
+@[simp] theorem mem_coe {a : α} {o : option α} :
+  a ∈ (o : roption α) ↔ a ∈ o := mem_of_option
 
 @[simp] theorem coe_none : (@option.none α : roption α) = none := rfl
 @[simp] theorem coe_some (a : α) : (option.some a : roption α) = some a := rfl
@@ -191,6 +202,9 @@ instance : is_lawful_monad roption :=
 theorem map_id' {f : α → α} (H : ∀ (x : α), f x = x) (o) : map f o = o :=
 by rw [show f = id, from funext H]; exact id_map o
 
+@[simp] theorem bind_some_right (x : roption α) : x.bind some = x :=
+by rw [bind_some_eq_map]; simp [map_id']
+
 @[simp] theorem ret_eq_some (a : α) : return a = some a := rfl
 
 @[simp] theorem map_eq_map {α β} (f : α → β) (o : roption α) :
@@ -216,6 +230,9 @@ theorem assert_defined {p : Prop} {f : p → roption α} :
 
 theorem bind_defined {f : roption α} {g : α → roption β} :
   ∀ (h : f.dom), (g (f.get h)).dom → (f.bind g).dom := assert_defined
+
+@[simp] theorem bind_dom {f : roption α} {g : α → roption β} :
+  (f.bind g).dom ↔ ∃ h : f.dom, (g (f.get h)).dom := iff.rfl
 
 end roption
 
@@ -320,7 +337,7 @@ theorem dom_of_mem_fix {f : α →. β ⊕ α} {a : α} {b : β}
 let ⟨h₁, h₂⟩ := roption.mem_assert_iff.1 h in
 by rw well_founded.fix_F_eq at h₂; exact h₂.fst.fst
 
-theorem mem_fix_iff (f : α →. β ⊕ α) (a : α) {b : β} :
+theorem mem_fix_iff {f : α →. β ⊕ α} {a : α} {b : β} :
   b ∈ fix f a ↔ sum.inl b ∈ f a ∨ ∃ a', sum.inr a' ∈ f a ∧ b ∈ fix f a' :=
 ⟨λ h, let ⟨h₁, h₂⟩ := roption.mem_assert_iff.1 h in
   begin
@@ -344,5 +361,19 @@ theorem mem_fix_iff (f : α →. β ⊕ α) (a : α) {b : β} :
     { cases h with h₁ h₂,
       rw well_founded.fix_F_eq, simp [h₁, h₂, h₄] } }
 end⟩
+
+theorem fix_induction {f : α →. β ⊕ α} {b : β}
+  {C : α → Sort*} {a : α} (h : b ∈ fix f a)
+  (H : ∀ a, b ∈ fix f a →
+    (∀ a', b ∈ fix f a' → sum.inr a' ∈ f a → C a') → C a) : C a :=
+begin
+  replace h := roption.mem_assert_iff.1 h,
+  have := h.snd, revert this,
+  induction h.fst with a ha IH, intro h₂,
+  refine H a (roption.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩)
+    (λ a' ha' fa', _),
+  have := (roption.mem_assert_iff.1 ha').snd,
+  exact IH _ fa' ⟨ha _ fa', this⟩ this
+end
 
 end pfun

@@ -8,7 +8,7 @@ from Cauchy sequences.
 -/
 import order.conditionally_complete_lattice data.real.cau_seq algebra.big_operators algebra.archimedean
 
-def real := quotient (@cau_seq.equiv ℚ _ _ _ abs _)
+def real := @quotient (cau_seq ℚ abs) cau_seq.equiv
 notation `ℝ` := real
 
 namespace real

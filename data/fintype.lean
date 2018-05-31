@@ -43,8 +43,8 @@ namespace fintype
 
 instance decidable_pi_fintype {α} {β : α → Type*} [fintype α] [∀a, decidable_eq (β a)] :
   decidable_eq (Πa, β a) :=
-assume f g, decidable_of_iff (∀a∈(fintype.elems α).1, f a = g a)
-  (show (∀a∈(fintype.elems α), f a = g a) ↔ f = g, by simp [function.funext_iff, fintype.complete])
+assume f g, decidable_of_iff (∀ a ∈ fintype.elems α, f a = g a)
+  (by simp [function.funext_iff, fintype.complete])
 
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)

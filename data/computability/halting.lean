@@ -313,6 +313,6 @@ part_iff.trans ⟨
 
 theorem vec_iff {m n f} : @vec m n f ↔ computable f :=
 ⟨λ h, by simpa using vector_of_fn (λ i, to_part (h i)),
- λ h i, of_prim $ vector_nth.comp h (primrec.const i)⟩
+ λ h i, of_part $ vector_nth.comp h (const i)⟩
 
-end nat.primrec'
+end nat.partrec'

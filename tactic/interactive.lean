@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist data.prod
+import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs meta.expr
 
@@ -434,6 +434,80 @@ do tgt : expr ← target,
      | (app (lam _ _ _ (var 0)) e') := some e'
      | _ := none
      end)
+
+/-- `refine_struct { .. }` acts like `refine` but works only with structure instance
+    literals. It creates a goal for each missing field and tags it with the name of the
+    field so that `have_field` can be used to generically refer to the field currently
+    being refined.
+
+    As an example, we can use `refine_struct` to automate the construction semigroup
+    instances:
+    ```
+    refine_struct ( { .. } : semigroup α ),
+    -- case semigroup, mul
+    -- α : Type u,
+    -- ⊢ α → α → α
+
+    -- case semigroup, mul_assoc
+    -- α : Type u,
+    -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
+    ```
+-/
+meta def refine_struct (e : parse texpr) : tactic unit :=
+do    str ← e.get_structure_instance_info,
+      tgt ← target,
+      let struct_n : name := tgt.get_app_fn.const_name,
+      exp_fields ← expanded_field_list struct_n,
+      let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),
+      let provided  := exp_fields.filter (λ f, (f.2 : name) ∈ str.field_names),
+      vs ← mk_mvar_list missing_f.length,
+      e' ← to_expr $ pexpr.mk_structure_instance
+          { struct := some struct_n
+          , field_names  := str.field_names ++ missing_f.map prod.snd
+          , field_values := str.field_values ++ vs.map to_pexpr },
+      tactic.exact e',
+      gs ← with_enable_tags (
+        mmap₂ (λ (n : name × name) v, do
+           set_goals [v],
+           try (interactive.unfold (provided.map $ λ ⟨s,f⟩, f.update_prefix s) (loc.ns [none])),
+           apply_auto_param
+             <|> apply_opt_param
+             <|> (set_main_tag [`_field,n.2,n.1]),
+           get_goals)
+        missing_f vs),
+      set_goals gs.join,
+      return ()
+
+meta def get_current_field : tactic name :=
+do [_,field,str] ← get_main_tag,
+   expr.const_name <$> resolve_name (field.update_prefix str)
+
+/-- `have_field`, used after `refine_struct _` poses `field` as a local constant
+    with the type of the field of the current goal:
+
+    ```
+    refine_struct ({ .. } : semigroup α),
+    { have_field, ... },
+    { have_field, ... },
+    ```
+    behaves like
+    ```
+    refine_struct ({ .. } : semigroup α),
+    { have field := @semigroup.mul, ... },
+    { have field := @semigroup.mul_assoc, ... },
+    ```
+-/
+meta def have_field : tactic unit :=
+propagate_tags $
+get_current_field
+>>= mk_const
+>>= note `field none
+>>  return ()
+
+/-- `apply_field` functions as `have_field, apply field, clear field` -/
+meta def apply_field : tactic unit :=
+propagate_tags $
+get_current_field >>= applyc
 
 end interactive
 end tactic

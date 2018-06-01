@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
+import data.dlist.basic
+
 namespace expr
 open tactic
 
@@ -159,5 +161,37 @@ do ls ← attribute.get_instances `extensionality,
 meta def ext : list name → option ℕ → tactic unit
  | _ (some 0) := return ()
  | xs n := focus1 (do ys ← ext1 xs, ext ys (nat.pred <$> n) <|> return ())
+
+meta def var_names : expr → list name
+ | (expr.pi n _ _ b) := n :: var_names b
+ | _ := []
+
+meta def drop_binders : expr → tactic expr
+ | (expr.pi n bi t b) := b.instantiate_var <$> mk_local' n bi t >>= drop_binders
+ | e := pure e
+
+meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
+do env ← get_env,
+   [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
+   vs  ← var_names <$> (mk_const c >>= infer_type),
+   fields ← env.structure_fields struct_n,
+   return $ fields.partition (λ fn, ↑("_" ++ fn.to_string) ∈ vs)
+
+meta def expanded_field_list' : name → tactic (dlist $ name × name) | struct_n :=
+do (so,fs) ← subobject_names struct_n,
+   ts ← so.mmap (λ n, do
+     e ← mk_const (n.update_prefix struct_n) >>= infer_type >>= drop_binders,
+     expanded_field_list' $ e.get_app_fn.const_name),
+   return $ dlist.join ts ++ dlist.of_list (fs.map $ prod.mk struct_n)
+open functor function
+
+meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
+dlist.to_list <$> expanded_field_list' struct_n
+
+open nat
+
+meta def mk_mvar_list : ℕ → tactic (list expr)
+ | 0 := pure []
+ | (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
 
 end tactic

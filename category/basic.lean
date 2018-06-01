@@ -85,3 +85,10 @@ calc f <$> a <*> b = (λp:α×β, f p.1 p.2) <$> (prod.mk <$> a <*> b) :
   ... = (λb a, f a b) <$> b <*> a :
     by rw [is_comm_applicative.commutative_prod];
         simp [seq_map_assoc, map_seq, seq_assoc, seq_pure, map_map]
+
+def mmap₂
+  {α₁ α₂ φ : Type u} {m : Type u → Type*} [applicative m]
+  (f : α₁ → α₂ → m φ)
+: Π (ma₁ : list α₁) (ma₂: list α₂), m (list φ)
+ | (x :: xs) (y :: ys) := (::) <$> f x y <*> mmap₂ xs ys
+ | _ _ := pure []

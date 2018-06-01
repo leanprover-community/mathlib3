@@ -40,8 +40,7 @@ instance : add_comm_group (C A X n) := finsupp.add_comm_group
 
 /-- The boundary morphism of the simplicial complex -/
 definition boundary : C A X (n+1) → C A X n :=
-λ f, f.sum (λ x a,
-  (sum univ (λ i : [n+1], finsupp.single ((δ i) x) (((-1 : ℤ)^i.val) • a))))
+λ f, f.sum (λ x a, (sum univ (λ i : [n+1], finsupp.single ((δ i) x) (((-1 : ℤ)^i.val) • a))))
 
 instance: is_add_group_hom (boundary A X n) :=
 ⟨λ f g,
@@ -58,19 +57,30 @@ begin
     unfold boundary,
     rw finsupp.sum_single_index,
     { rw ←finsupp.sum_finset_sum_index,
-      { rw show sum univ (λ (i : [n+1+1]), sum (single (δ i x) ((-1 : ℤ) ^ i.val • a)) (λ (y : objs (n + 1)) (b : A), sum univ (λ (i : [n+1]), single (δ i y) ((-1 : ℤ)^i.val • b)))) =
-                    sum univ (λ (i : [n+1+1]), (λ (y : objs (n + 1)) (b : A), sum univ (λ (i : [n+1]), single (δ i y) ((-1 : ℤ)^i.val • b))) (δ i x) ((-1 : ℤ)^i.val • a)),
+      { rw show sum univ (λ (i : [n+1+1]),
+                  sum (single (δ i x) ((-1 : ℤ) ^ i.val • a))
+                    (λ (y : objs (n + 1)) (b : A),
+                      sum univ (λ (i : [n+1]), single (δ i y) ((-1 : ℤ)^i.val • b)))) =
+                sum univ (λ (i : [n+1+1]),
+                  (λ (y : objs (n + 1)) (b : A),
+                    sum univ (λ (i : [n+1]),
+                      single (δ i y) ((-1 : ℤ)^i.val • b))) (δ i x) ((-1 : ℤ)^i.val • a)),
         by finish [finset.sum_congr rfl, finsupp.sum_single_index],
         rw show sum univ (λ (j : [n+1+1]), sum univ (λ (i : [n+1]),
-                      single (δ i (δ j x)) ((-1 : ℤ) ^ i.val • ((-1 : ℤ) ^ j.val • a)))) =
-                    sum univ (λ (j : [n+1+1]), sum univ (λ (i : [n+1]),
-                      single (((δ i) ∘ (δ j)) x) ((-1 : ℤ) ^ i.val • ((-1 : ℤ) ^ j.val • a)))), by unfold function.comp,
-        rw [←@finset.sum_product _ _ _ _ _ _ (λ (p : [n+1+1] × [n+1]), single ((δ p.snd ∘ δ p.fst) x) ((-1 : ℤ)^p.snd.val • ((-1 : ℤ)^p.fst.val • a))),
+                  single (δ i (δ j x)) ((-1 : ℤ) ^ i.val • ((-1 : ℤ) ^ j.val • a)))) =
+                sum univ (λ (j : [n+1+1]), sum univ (λ (i : [n+1]),
+                  single (((δ i) ∘ (δ j)) x) ((-1 : ℤ) ^ i.val • ((-1 : ℤ) ^ j.val • a)))),
+        by unfold function.comp,
+        rw [←@finset.sum_product _ _ _ _ _ _ 
+                (λ (p : [n+1+1] × [n+1]),
+                  single ((δ p.snd ∘ δ p.fst) x) ((-1 : ℤ)^p.snd.val • ((-1 : ℤ)^p.fst.val • a))),
             ←@finset.sum_sdiff ([n+1+1] × [n+1]) _ (univ.filter (λ p : [n+1+1] × [n+1], p.fst.val ≤ p.snd.val))],
         { rw [←eq_neg_iff_add_eq_zero, ←finset.sum_neg_distrib],
           apply eq.symm,
-          apply @finset.sum_bij ([n+1+1] × [n+1]) _ ([n+1+1] × [n+1]) _ (univ.filter (λ p : [n+1+1] × [n+1], p.fst.val ≤ p.snd.val)) _ _ _
-          (λ (p : [n+1+1] × [n+1]) hp, (p.snd.succ, ⟨p.fst.val,lt_of_le_of_lt (mem_filter.mp hp).2 p.snd.is_lt⟩)),
+          apply @finset.sum_bij ([n+1+1] × [n+1]) _ ([n+1+1] × [n+1]) _
+                                (univ.filter (λ p : [n+1+1] × [n+1], p.fst.val ≤ p.snd.val)) _ _ _
+                                (λ (p : [n+1+1] × [n+1]) hp,
+                                (p.snd.succ, ⟨p.fst.val,lt_of_le_of_lt (mem_filter.mp hp).2 p.snd.is_lt⟩)),
           { intros p hp,
             simp,
             apply nat.succ_le_succ,
@@ -82,7 +92,7 @@ begin
             show -single (δ i (δ j x)) ((-1:ℤ)^i.val • ((-1:ℤ)^j.val • a)) =
                   single (δ ⟨j.val, _⟩ (δ i.succ x))((-1:ℤ)^j.val • ((-1:ℤ)^nat.succ (i.val) • a)),
             rw show -single (δ i (δ j x)) ((-1:ℤ)^i.val • (-1:ℤ)^j.val • a) =
-                        single (δ i (δ j x)) (-((-1:ℤ)^i.val • (-1:ℤ)^j.val • a)),
+                      single (δ i (δ j x)) (-((-1:ℤ)^i.val • (-1:ℤ)^j.val • a)),
             begin
             apply finsupp.ext,
             intro γ,

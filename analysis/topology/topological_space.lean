@@ -775,35 +775,6 @@ lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → 
 ⟨assume ⟨t, ht, heq⟩, ⟨-t, by simp; assumption, by simp [preimage_compl, heq.symm]⟩,
   assume ⟨t, ht, heq⟩, ⟨-t, ht, by simp [preimage_compl, heq.symm]⟩⟩
 
-lemma induced_comp {α β γ : Type*} (f : α → β) (g : β → γ) :
-topological_space.induced (g ∘ f) = (topological_space.induced f) ∘ (topological_space.induced g) :=
-begin
-  funext T,
-  rw show (topological_space.induced f ∘ topological_space.induced g) T =
-          (topological_space.induced f) (topological_space.induced g T),
-  by unfold function.comp,
-  simp [topological_space.induced],
-  ext U,
-  split,
-  { intro H,
-    cases H with W HW,
-    existsi (g ⁻¹' W),
-    split,
-    { existsi W,
-      exact ⟨HW.1, refl _⟩ },
-    { rw ←set.preimage_comp,
-      unfold function.comp,
-      exact HW.2 } },
-  { intro H,
-    cases H with V HV,
-    cases HV.1 with W HW,
-    existsi W,
-    split,
-    { exact HW.1 },
-    { rw [set.preimage_comp, ←HW.2],
-      exact HV.2 } }
-end
-
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
   such that `s:set β` is open if the preimage of `s` is open. This is the finest topology that
   makes `f` continuous. -/

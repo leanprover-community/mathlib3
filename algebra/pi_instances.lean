@@ -132,4 +132,5 @@ by pi_instance [pi.has_scalar]
 
 instance vector_space (α : Type*) [field α] [∀ i, vector_space α $ f i] : vector_space α (Π i : I, f i) :=
 { ..pi.module }
+
 end pi

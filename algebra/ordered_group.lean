@@ -207,7 +207,7 @@ begin
     { exact (not_le_of_lt h).elim le_top },
     { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left' $
         with_top.some_lt_some.1 h)⟩ } },
-  { intros a b h c ca h₂,
+  { intros a b h c cb h₂,
     cases c with c, {cases h₂},
     cases b with b; cases h₂,
     cases a with a, {cases le_antisymm h le_top},
@@ -216,6 +216,38 @@ begin
 end
 
 end with_top
+
+namespace with_bot
+open lattice
+
+instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigroup
+instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
+instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
+instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
+
+instance [ordered_comm_monoid α] : ordered_comm_monoid (with_bot α) :=
+begin
+  suffices, refine {
+    add_le_add_left := this,
+    ..with_bot.partial_order,
+    ..with_bot.add_comm_monoid, ..},
+  { intros a b c h,
+    refine ⟨λ b h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    cases h₂, cases a with a,
+    { exact (not_le_of_lt h).elim bot_le },
+    cases c with c,
+    { exact (not_le_of_lt h).elim bot_le },
+    { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left' $
+        with_bot.some_lt_some.1 h)⟩ } },
+  { intros a b h c ca h₂,
+    cases c with c, {cases h₂},
+    cases a with a; cases h₂,
+    cases b with b, {cases le_antisymm h bot_le},
+    simp at h,
+    exact ⟨_, rfl, add_le_add_left' h⟩, }
+end
+
+end with_bot
 
 section canonically_ordered_monoid
 variables [canonically_ordered_monoid α] {a b c d : α}

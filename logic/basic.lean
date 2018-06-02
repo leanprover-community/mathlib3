@@ -390,16 +390,18 @@ by simp [and_comm]
 @[simp] theorem forall_eq {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
 ⟨λ h, h a' rfl, λ h a e, e.symm ▸ h⟩
 
-@[simp] theorem exists_eq {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
+@[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
+
+@[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩
 
 @[simp] theorem exists_eq_right {a' : α} : (∃ a, p a ∧ a = a') ↔ p a' :=
-(exists_congr $ by exact λ a, and.comm).trans exists_eq
+(exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
-@[simp] theorem exists_eq' {a' : α} : (∃ a, a' = a ∧ p a) ↔ p a' :=
+@[simp] theorem exists_eq_left' {a' : α} : (∃ a, a' = a ∧ p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
 @[simp] theorem exists_eq_right' {a' : α} : (∃ a, p a ∧ a' = a) ↔ p a' :=

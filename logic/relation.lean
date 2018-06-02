@@ -10,7 +10,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {r : α → α → Prop} {a b c
 
 namespace relation
 
-/-- `refl_trans_gen r`: reflexive closure of `r` -/
+/-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
 inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop
 | refl {} : refl_trans_gen a
 | tail (b) {c} : refl_trans_gen b → r b c → refl_trans_gen c
@@ -19,7 +19,7 @@ attribute [refl] refl_trans_gen.refl
 
 run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_trans_gen `relation.refl_trans_gen.cases_tail_iff
 
-/-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
+/-- `refl_gen r`: reflexive closure of `r` -/
 inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
 | refl {} : refl_gen a
 | single {b} : r a b → refl_gen b
@@ -116,18 +116,31 @@ lemma refl_trans_gen_mono {p : α → α → Prop} :
   (∀a b, r a b → p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
 refl_trans_gen_lift id
 
-lemma refl_trans_gen_refl_trans_gen :
-  refl_trans_gen (refl_trans_gen r) = refl_trans_gen r :=
-funext $ assume a, funext $ assume b, propext $
-iff.intro
-  (assume h, begin induction h, { refl }, { transitivity; assumption } end)
-  (refl_trans_gen_mono (assume a b, single))
+lemma refl_trans_gen_eq_self (refl : reflexive r) (trans : transitive r) :
+  refl_trans_gen r = r :=
+funext $ λ a, funext $ λ b, propext $
+⟨λ h, begin
+  induction h with b c h₁ h₂ IH, {apply refl},
+  exact trans IH h₂,
+end, single⟩
 
 lemma reflexive_refl_trans_gen : reflexive (refl_trans_gen r) :=
 assume a, refl
 
 lemma transitive_refl_trans_gen : transitive (refl_trans_gen r) :=
 assume a b c, trans
+
+lemma refl_trans_gen_idem :
+  refl_trans_gen (refl_trans_gen r) = refl_trans_gen r :=
+refl_trans_gen_eq_self reflexive_refl_trans_gen transitive_refl_trans_gen
+
+lemma refl_trans_gen_lift' {p : β → β → Prop} {a b : α} (f : α → β)
+  (h : ∀a b, r a b → refl_trans_gen p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
+by simpa [refl_trans_gen_idem] using refl_trans_gen_lift f h hab
+
+lemma refl_trans_gen_closed {p : α → α → Prop} :
+  (∀ a b, r a b → refl_trans_gen p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
+refl_trans_gen_lift' id
 
 end refl_trans_gen
 

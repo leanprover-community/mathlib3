@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Godel numbering for partial recursive functions.
 -/
-import data.computability.partrec
+import computability.partrec
 
 open encodable denumerable
 

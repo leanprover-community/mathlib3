@@ -8,7 +8,7 @@ recursive functions, but now all functions are partial, implemented
 using the `roption` monad, and there is an additional operation, called
 μ-recursion, which performs unbounded minimization.
 -/
-import data.computability.primrec data.pfun
+import computability.primrec data.pfun
 
 open encodable denumerable roption
 

@@ -6,7 +6,7 @@ Author: Mario Carneiro
 More partial recursive functions using a universal program;
 Rice's theorem and the halting problem.
 -/
-import data.computability.partrec_code
+import computability.partrec_code
 
 open encodable denumerable
 

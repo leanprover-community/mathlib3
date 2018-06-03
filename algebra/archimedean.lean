@@ -54,6 +54,11 @@ sub_lt_iff_lt_add.2 (lt_floor_add_one x)
 @[simp] theorem floor_coe (z : ℤ) : ⌊(z:α)⌋ = z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
 
+@[simp] theorem floor_zero : ⌊(0:α)⌋ = 0 := floor_coe 0
+
+@[simp] theorem floor_one : ⌊(1:α)⌋ = 1 :=
+by rw [← int.cast_one, floor_coe]
+
 theorem floor_mono {a b : α} (h : a ≤ b) : ⌊a⌋ ≤ ⌊b⌋ :=
 le_floor.2 (le_trans (floor_le _) h)
 
@@ -149,10 +154,9 @@ instance : archimedean ℤ :=
 end⟩⟩
 
 noncomputable def archimedean.floor_ring (α)
-  [R : linear_ordered_ring α] [archimedean α] : floor_ring α :=
+  [linear_ordered_ring α] [archimedean α] : floor_ring α :=
 { floor := λ x, classical.some (exists_floor x),
-  le_floor := λ z x, classical.some_spec (exists_floor x) z,
-  ..R }
+  le_floor := λ z x, classical.some_spec (exists_floor x) z }
 
 section linear_ordered_field
 variables [linear_ordered_field α]
@@ -215,6 +219,18 @@ begin
   refine lt_of_le_of_lt (add_le_add_right ((zh _).1 (le_refl _)) _) _,
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
        ← div_lt_iff' (sub_pos.2 h), one_div_eq_inv]
+end
+
+include α
+@[simp] theorem rat.cast_floor (x : ℚ) :
+  by haveI := archimedean.floor_ring α; exact ⌊(x:α)⌋ = ⌊x⌋ :=
+begin
+  haveI := archimedean.floor_ring α,
+  apply le_antisymm,
+  { rw [le_floor, ← @rat.cast_le α, rat.cast_coe_int],
+    apply floor_le },
+  { rw [le_floor, ← rat.cast_coe_int, rat.cast_le],
+    apply floor_le }
 end
 
 end linear_ordered_field

@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Godel numbering for partial recursive functions.
 -/
-import data.computability.partrec
+import computability.partrec
 
 open encodable denumerable
 
@@ -877,14 +877,17 @@ end
 section
 open partrec computable
 
+theorem eval_eq_rfind_opt (c n) :
+  eval c n = nat.rfind_opt (λ k, evaln k c n) :=
+roption.ext $ λ x, begin
+  refine evaln_complete.trans (nat.rfind_opt_mono _).symm,
+  intros a m n hl, apply evaln_mono hl,
+end
+
 theorem eval_part : partrec₂ eval :=
 (rfind_opt (evaln_prim.to_comp.comp
   ((snd.pair (fst.comp fst)).pair (snd.comp fst))).to₂).of_eq $
-λ a, roption.ext $ λ x, begin
-  simp,
-  refine (nat.rfind_opt_mono _).trans evaln_complete.symm,
-  intros a m n hl, apply evaln_mono hl,
-end
+λ a, by simp [eval_eq_rfind_opt]
 
 theorem fixed_point
   {f : code → code} (hf : computable f) : ∃ c : code, eval (f c) = eval c :=

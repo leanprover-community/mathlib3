@@ -1187,20 +1187,20 @@ theorem tail {n f} (hf : @primrec' n f) : @primrec' n.succ (λ v, f v.tail) :=
 (hf.comp _ (λ i, @nth _ i.succ)).of_eq $
 λ v, by rw [← of_fn_nth v.tail]; congr; funext i; simp
 
-def primvec {n m} (f : vector ℕ n → vector ℕ m) :=
+def vec {n m} (f : vector ℕ n → vector ℕ m) :=
 ∀ i, primrec' (λ v, (f v).nth i)
 
-protected theorem nil {n} : @primvec n 0 (λ _, nil) := λ i, i.elim0
+protected theorem nil {n} : @vec n 0 (λ _, nil) := λ i, i.elim0
 
 protected theorem cons {n m f g}
-  (hf : @primrec' n f) (hg : @primvec n m g) :
-  primvec (λ v, f v :: g v) :=
+  (hf : @primrec' n f) (hg : @vec n m g) :
+  vec (λ v, f v :: g v) :=
 λ i, fin.cases (by simp *) (λ i, by simp [hg i]) i
 
-theorem idv {n} : @primvec n n id := nth
+theorem idv {n} : @vec n n id := nth
 
 theorem comp' {n m f g}
-  (hf : @primrec' m f) (hg : @primvec n m g) :
+  (hf : @primrec' m f) (hg : @vec n m g) :
   primrec' (λ v, f (g v)) :=
 (hf.comp _ hg).of_eq $ λ v, by simp
 
@@ -1337,8 +1337,8 @@ prim_iff.trans ⟨
     vector_cons.comp snd (primrec.const nil)).of_eq (λ v, by simp),
   λ h, h.comp vector_head (vector_head.comp vector_tail)⟩
 
-theorem primvec_iff {m n f} :
-  @primvec m n f ↔ primrec f :=
+theorem vec_iff {m n f} :
+  @vec m n f ↔ primrec f :=
 ⟨λ h, by simpa using vector_of_fn (λ i, to_prim (h i)),
  λ h i, of_prim $ vector_nth.comp h (primrec.const i)⟩
 

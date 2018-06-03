@@ -69,4 +69,26 @@ by simp [nth_zero]
   (a : α) (v : vector α n) (i : fin n) : nth (a :: v) i.succ = nth v i :=
 by rw [← nth_tail, tail_cons]
 
+def {u} m_of_fn {m} [monad m] {α : Type u} : ∀ {n}, (fin n → m α) → m (vector α n)
+| 0     f := pure nil
+| (n+1) f := do a ← f 0, v ← m_of_fn (λi, f i.succ), pure (a :: v)
+
+theorem m_of_fn_pure {m} [monad m] [is_lawful_monad m] {α} :
+  ∀ {n} (f : fin n → α), @m_of_fn m _ _ _ (λ i, pure (f i)) = pure (of_fn f)
+| 0     f := rfl
+| (n+1) f := by simp [m_of_fn, @m_of_fn_pure n, of_fn]
+
+def {u} mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
+  ∀ {n}, vector α n → m (vector β n)
+| _ ⟨[], rfl⟩   := pure nil
+| _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' :: t')
+
+@[simp] theorem mmap_nil {m} [monad m] {α β} (f : α → m β) :
+  mmap f nil = pure nil := rfl
+
+@[simp] theorem mmap_cons {m} [monad m] {α β} (f : α → m β) (a) :
+  ∀ {n} (v : vector α n), mmap f (a::v) =
+  do h' ← f a, t' ← mmap f v, pure (h' :: t')
+| _ ⟨l, rfl⟩ := rfl
+
 end vector

@@ -5,12 +5,8 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-<<<<<<< HEAD
-import data.multiset order.boolean_algebra algebra.order_functions data.sigma.basic data.set.lattice
-=======
 import data.multiset order.boolean_algebra algebra.order_functions
        data.sigma.basic logic.embedding
->>>>>>> 21967c45a49342a67d1094f4a5d404e6a05c8f6f
 open multiset subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}

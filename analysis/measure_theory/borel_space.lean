@@ -144,9 +144,9 @@ lemma measurable_sub
 measurable_of_continuous2 continuous_sub'
 
 lemma measurable_mul
-  [semiring α] [topological_semiring α] [second_countable_topology α] [measurable_space β]
+  [monoid α] [topological_monoid α] [second_countable_topology α] [measurable_space β]
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
-measurable_of_continuous2 (topological_semiring.continuous_mul _)
+measurable_of_continuous2 continuous_mul'
 
 section ordered_topology
 variables [linear_order α] [topological_space α] [ordered_topology α] {a b c : α}

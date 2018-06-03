@@ -180,6 +180,12 @@ protected theorem eq_mul_of_div_eq_left {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b
   a = c * b :=
 by rw [mul_comm, nat.eq_mul_of_div_eq_right H1 H2]
 
+protected theorem div_mod_unique {n k m d : ℕ} (h : 0 < k) :
+  n / k = d ∧ n % k = m ↔ m + k * d = n ∧ m < k :=
+⟨λ ⟨e₁, e₂⟩, e₁ ▸ e₂ ▸ ⟨mod_add_div _ _, mod_lt _ h⟩,
+ λ ⟨h₁, h₂⟩, h₁ ▸ by rw [add_mul_div_left _ _ h, add_mul_mod_self_left];
+   simp [div_eq_of_lt, mod_eq_of_lt, h₂]⟩
+
 protected theorem mul_right_inj {a b c : ℕ} (ha : a > 0) : b * a = c * a ↔ b = c :=
 ⟨nat.eq_of_mul_eq_mul_right ha, λ e, e ▸ rfl⟩
 
@@ -194,6 +200,11 @@ exists_congr $ λ d, by rw [mul_assoc, nat.mul_left_inj ha]
 
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : c > 0) : a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, nat.mul_right_inj hc]
+
+@[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
+(eq_zero_or_pos n).elim
+  (λ n0, by simp [n0])
+  (λ npos, mod_eq_of_lt (mod_lt _ npos))
 
 theorem add_pos_left {m : ℕ} (h : m > 0) (n : ℕ) : m + n > 0 :=
 calc
@@ -367,19 +378,29 @@ by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
 @[simp] theorem bodd_div2_eq (n : ℕ) : bodd_div2 n = (bodd n, div2 n) :=
 by unfold bodd div2; cases bodd_div2 n; refl
 
-/- foldl & foldr -/
+@[simp] lemma bodd_bit0 (n) : bodd (bit0 n) = ff := bodd_bit ff n
+@[simp] lemma bodd_bit1 (n) : bodd (bit1 n) = tt := bodd_bit tt n
 
-/-- `foldl op n a` is the `n`-times iterate of `op` on `a`. -/
-@[simp] def foldl {α : Sort*} (op : α → α) : ℕ → α → α
- | 0        a := a
- | (succ k) a := foldl k (op a)
+@[simp] lemma div2_bit0 (n) : div2 (bit0 n) = n := div2_bit ff n
+@[simp] lemma div2_bit1 (n) : div2 (bit1 n) = n := div2_bit tt n
 
-/-- `foldr op n a` is the `n`-times iterate of `op` on `a`.
-  It is provably the same as `foldl` but has different
-  definitional equalities. -/
-@[simp] def foldr {α : Sort*} (op : α → α) (a : α) : ℕ → α
- | 0        := a
- | (succ k) := op (foldr k)
+/- iterate -/
+
+section
+variables {α : Sort*} (op : α → α)
+
+@[simp] theorem iterate_zero (a : α) : op^[0] a = a := rfl
+
+@[simp] theorem iterate_succ (n : ℕ) (a : α) : op^[succ n] a = (op^[n]) (op a) := rfl
+
+theorem iterate_add : ∀ (m n : ℕ) (a : α), op^[m + n] a = (op^[m]) (op^[n] a)
+| m 0 a := rfl
+| m (succ n) a := iterate_add m n _
+
+theorem iterate_succ' (n : ℕ) (a : α) : op^[succ n] a = op (op^[n] a) :=
+by rw [← one_add, iterate_add]; refl
+
+end
 
 /- size and shift -/
 

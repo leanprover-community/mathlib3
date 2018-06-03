@@ -76,8 +76,7 @@ begin
   split,
   { generalize hL : ((a, b) :: L₁ : list _) = L,
     assume h,
-    cases h with s e a' b',
-    cases s with p s',
+    rcases h with ⟨_ | ⟨p, s'⟩, e, a', b'⟩,
     { simp at hL, simp [*] },
     { simp at hL,
       rcases hL with ⟨rfl, rfl⟩,
@@ -224,8 +223,7 @@ theorem inv_of_red_of_ne {x1 b1 x2 b2}
   red L₁ ((x1, bnot b1) :: (x2, b2) :: L₂) :=
 begin
   have : red ((x1, b1) :: L₁) ([(x2, b2)] ++ L₂), from H2,
-  rcases to_append_iff.1 this with ⟨L₃, L₄, eq, h₁, h₂⟩,
-  cases L₃ with p L₃,
+  rcases to_append_iff.1 this with ⟨_ | ⟨p, L₃⟩, L₄, eq, h₁, h₂⟩,
   { simp [nil_iff] at h₁, contradiction },
   { cases eq,
     show red (L₃ ++ L₄) ([(x1, bnot b1), (x2, b2)] ++ L₂),

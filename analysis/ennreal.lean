@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 
 Extended non-negative reals
+
+TODO: base ennreal on nnreal!
 -/
-import order.bounds algebra.ordered_group analysis.real analysis.topology.infinite_sum
+import order.bounds algebra.ordered_group analysis.nnreal analysis.topology.infinite_sum
 noncomputable theory
 open classical set lattice filter
 local attribute [instance] prop_decidable
-
-universes u v w
+variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
@@ -910,7 +911,7 @@ end inv
 
 section tsum
 
-variables {α : Type*} {β : Type*} {f g : α → ennreal}
+variables {f g : α → ennreal}
 
 protected lemma is_sum : is_sum f (⨆s:finset α, s.sum f) :=
 tendsto_orderable.2
@@ -984,6 +985,9 @@ have tendsto (λs:finset α, s.sum ((*) a ∘ f)) at_top (nhds (a * (∑i, f i))
   exact (is_sum_tsum ennreal.has_sum).comp (ennreal.tendsto_mul sum_ne_0),
 tsum_eq_is_sum this
 
+protected lemma tsum_mul : (∑i, f i * a) = (∑i, f i) * a :=
+by simp [mul_comm, ennreal.mul_tsum]
+
 @[simp] lemma tsum_supr_eq {α : Type*} (a : α) {f : α → ennreal} :
   (∑b:α, ⨆ (h : a = b), f b) = f a :=
 le_antisymm
@@ -999,4 +1003,64 @@ le_antisymm
 
 end tsum
 
+section nnreal
+-- TODO: use nnreal to define ennreal
+
+instance : has_coe nnreal ennreal := ⟨ennreal.of_real ∘ coe⟩
+
+lemma tendsto_of_real_iff {f : filter α} {m : α → ℝ} {r : ℝ} (hm : ∀a, 0 ≤ m a) (hr : 0 ≤ r) :
+  tendsto (λx, of_real (m x)) f (nhds (of_real r)) ↔ tendsto m f (nhds r) :=
+iff.intro
+  (assume h,
+    have tendsto (λ (x : α), of_ennreal (of_real (m x))) f (nhds r), from
+      h.comp (tendsto_of_ennreal hr),
+    by simpa [hm])
+  (assume h, h.comp tendsto_of_real)
+
+lemma tendsto_coe_iff {f : filter α} {m : α → nnreal} {r : nnreal} :
+  tendsto (λx, (m x : ennreal)) f (nhds r) ↔ tendsto m f (nhds r) :=
+iff.trans (tendsto_of_real_iff (assume a, (m a).2) r.2) nnreal.tendsto_coe
+
+protected lemma is_sum_of_real_iff {f : α → ℝ} {r : ℝ} (hf : ∀a, 0 ≤ f a) (hr : 0 ≤ r) :
+  is_sum (λa, of_real (f a)) (of_real r) ↔ is_sum f r :=
+by simp [is_sum, sum_of_real, hf];
+  exact tendsto_of_real_iff (assume s, finset.zero_le_sum $ assume a ha, hf a) hr
+
+protected lemma is_sum_coe_iff {f : α → nnreal} {r : nnreal} :
+  is_sum (λa, (f a : ennreal)) r ↔ is_sum f r :=
+iff.trans (ennreal.is_sum_of_real_iff (assume a, (f a).2) r.2) nnreal.is_sum_coe
+
+protected lemma coe_tsum {f : α → nnreal} (h : has_sum f) : ↑(∑a, f a) = (∑a, f a : ennreal) :=
+eq.symm (tsum_eq_is_sum $ ennreal.is_sum_coe_iff.2 $ is_sum_tsum h)
+
+@[simp] lemma coe_mul (a b : nnreal) : ↑(a * b) = (a * b : ennreal) :=
+(ennreal.of_real_mul_of_real a.2 b.2).symm
+
+@[simp] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
+
+@[simp] lemma coe_eq_coe {n m : nnreal} : (↑n : ennreal) = m ↔ n = m :=
+iff.trans (of_real_eq_of_real_of n.2 m.2) (iff.intro subtype.eq $ assume eq, eq ▸ rfl)
+
+end nnreal
+
 end ennreal
+
+lemma has_sum_of_nonneg_of_le {f g : β → ℝ} (hg : ∀b, 0 ≤ g b) (hgf : ∀b, g b ≤ f b) :
+  has_sum f → has_sum g
+| ⟨r, hfr⟩ :=
+  have hf : ∀a, 0 ≤ f a, from assume a, le_trans (hg a) (hgf a),
+  have hr : 0 ≤ r, from is_sum_le hf is_sum_zero hfr,
+  have is_sum (λa, ennreal.of_real (f a)) (ennreal.of_real r), from
+    (ennreal.is_sum_of_real_iff hf hr).2 hfr,
+  have (∑b, ennreal.of_real (g b)) ≤ ennreal.of_real r,
+  begin
+    refine is_sum_le (assume b, _) (is_sum_tsum ennreal.has_sum) this,
+    exact ennreal.of_real_le_of_real (hgf _)
+  end,
+  let ⟨p, hp, hpr, eq⟩ := (ennreal.le_of_real_iff hr).1 this in
+  have is_sum g p, from
+    (ennreal.is_sum_of_real_iff hg hp).1 (eq ▸ is_sum_tsum ennreal.has_sum),
+  has_sum_spec this
+
+lemma nnreal.has_sum_of_le {f g : β → nnreal} (hgf : ∀b, g b ≤ f b) (hf : has_sum f) : has_sum g :=
+nnreal.has_sum_coe.1 $ has_sum_of_nonneg_of_le (assume b, (g b).2) hgf $ nnreal.has_sum_coe.2 hf

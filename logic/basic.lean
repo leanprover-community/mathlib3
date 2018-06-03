@@ -132,6 +132,12 @@ and.imp h id
 theorem and.imp_right (h : a → b) : c ∧ a → c ∧ b :=
 and.imp id h
 
+lemma and.right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b :=
+by simp [and.left_comm, and.comm]
+
+lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
+by simp [and.left_comm, and.comm]
+
 theorem and_not_self_iff (a : Prop) : a ∧ ¬ a ↔ false :=
 iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
 
@@ -288,9 +294,15 @@ variables {α : Sort*} {a b : α}
 @[simp] theorem heq_iff_eq : a == b ↔ a = b :=
 ⟨eq_of_heq, heq_of_eq⟩
 
+theorem proof_irrel_heq {p q : Prop} (e : p = q) (hp : p) (hq : q) : hp == hq :=
+by subst q; refl
+
 theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
   (h : a ∈ s) : b ∉ s → a ≠ b :=
 mt $ λ e, e ▸ h
+
+theorem eq_equivalence : equivalence (@eq α) :=
+⟨eq.refl, @eq.symm _, @eq.trans _⟩
 
 end equality
 
@@ -456,6 +468,10 @@ noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
 noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
 noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
 noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
+
+@[elab_as_eliminator]
+noncomputable def {u} rec_on {C : Sort u} (h : ∃ a, p a) (H : ∀ a, p a → C) : C :=
+H (classical.some h) (classical.some_spec h)
 
 end classical
 

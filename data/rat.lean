@@ -34,7 +34,7 @@ instance : has_repr ℚ := ⟨rat.repr⟩
 instance : has_to_string ℚ := ⟨rat.repr⟩
 meta instance : has_to_format ℚ := ⟨coe ∘ rat.repr⟩
 
-instance : encodable ℚ := encodable_of_equiv (Σ n : ℤ, {d : ℕ // d > 0 ∧ n.nat_abs.coprime d})
+instance : encodable ℚ := encodable.of_equiv (Σ n : ℤ, {d : ℕ // d > 0 ∧ n.nat_abs.coprime d})
   ⟨λ ⟨a, b, c, d⟩, ⟨a, b, c, d⟩, λ⟨a, b, c, d⟩, ⟨a, b, c, d⟩,
    λ ⟨a, b, c, d⟩, rfl, λ⟨a, b, c, d⟩, rfl⟩
 
@@ -502,6 +502,9 @@ instance : decidable_linear_order ℚ :=
 theorem nonneg_iff_zero_le {a} : rat.nonneg a ↔ 0 ≤ a :=
 show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
 
+theorem num_nonneg_iff_zero_le : ∀ {a : ℚ}, 0 ≤ a.num ↔ 0 ≤ a
+| ⟨n, d, h, c⟩ := @nonneg_iff_zero_le ⟨n, d, h, c⟩
+
 theorem mk_le {a b c d : ℤ} (h₁ : b > 0) (h₂ : d > 0) :
   a /. b ≤ c /. d ↔ a * d ≤ c * b :=
 by conv in (_ ≤ _) {
@@ -525,6 +528,11 @@ instance : discrete_linear_ordered_field ℚ :=
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
   ..rat.field_rat, ..rat.decidable_linear_order }
+
+theorem num_pos_iff_pos {a : ℚ} : 0 < a.num ↔ 0 < a :=
+le_iff_le_iff_lt_iff_lt.1 $
+by simpa [(by cases a; refl : (-a).num = -a.num)]
+   using @num_nonneg_iff_zero_le (-a)
 
 theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom' _ _ _ _
 

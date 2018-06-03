@@ -276,30 +276,45 @@ instance : add_monoid (α →₀ β) :=
   zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
-lemma single_add_erase [add_monoid β] {a : α} {f : α →₀ β} : single a (f a) + (f.erase a) = f :=
-begin
-  refine ext _,
-  intro a',
-  by_cases h : a = a',
-  {subst h, simp },
-  { simp [ne.symm h, h] }
-end
+lemma single_add_erase {a : α} {f : α →₀ β} : single a (f a) + f.erase a = f :=
+ext $ λ a',
+if h : a = a' then by subst h; simp
+else by simp [ne.symm h, h]
+
+lemma erase_add_single {a : α} {f : α →₀ β} : f.erase a + single a (f a) = f :=
+ext $ λ a',
+if h : a = a' then by subst h; simp
+else by simp [ne.symm h, h]
 
 protected theorem induction {p : (α →₀ β) → Prop} (f : α →₀ β)
   (h0 : p 0) (ha : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (single a b + f)) :
   p f :=
-have ∀s (f : α →₀ β), f.support = s → p f, from
-  assume s, finset.induction_on s (by simp [h0] {contextual := tt}) $
-  assume a s has ih f hf,
-  suffices p (single a (f a) + (f.erase a)), by rwa [single_add_erase] at this,
-  begin
-    apply ha,
-    { simp },
-    { rw [← mem_support_iff _ a, hf], simp },
-    { apply ih _ _,
-      simp [hf, has, finset.erase_insert] }
-  end,
-this _ _ rfl
+suffices ∀s (f : α →₀ β), f.support = s → p f, from this _ _ rfl,
+assume s, finset.induction_on s (by simp [h0] {contextual := tt}) $
+assume a s has ih f hf,
+suffices p (single a (f a) + f.erase a), by rwa [single_add_erase] at this,
+begin
+  apply ha,
+  { simp },
+  { rw [← mem_support_iff _ a, hf], simp },
+  { apply ih _ _,
+    simp [hf, has, finset.erase_insert] }
+end
+
+lemma induction₂ {p : (α →₀ β) → Prop} (f : α →₀ β)
+  (h0 : p 0) (ha : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (f + single a b)) :
+  p f :=
+suffices ∀s (f : α →₀ β), f.support = s → p f, from this _ _ rfl,
+assume s, finset.induction_on s (by simp [h0] {contextual := tt}) $
+assume a s has ih f hf,
+suffices p (f.erase a + single a (f a)), by rwa [erase_add_single] at this,
+begin
+  apply ha,
+  { simp },
+  { rw [← mem_support_iff _ a, hf], simp },
+  { apply ih _ _,
+    simp [hf, has, finset.erase_insert] }
+end
 
 end add_monoid
 

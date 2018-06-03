@@ -64,7 +64,11 @@ decidable_of_iff _ mem_to_finset
 instance fintype_empty : fintype (∅ : set α) :=
 fintype_of_finset ∅ $ by simp
 
-@[simp] theorem empty_card : fintype.card (∅ : set α) = 0 := rfl
+theorem empty_card : fintype.card (∅ : set α) = 0 := rfl
+
+@[simp] theorem empty_card' {h : fintype.{u} (∅ : set α)} :
+  @fintype.card (∅ : set α) h = 0 :=
+eq.trans (by congr) empty_card
 
 @[simp] theorem finite_empty : @finite α ∅ := ⟨set.fintype_empty⟩
 
@@ -77,13 +81,14 @@ theorem card_fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) :
 by rw [fintype_insert', card_fintype_of_finset];
    simp [finset.card, to_finset]; refl
 
+@[simp] theorem card_insert {a : α} (s : set α)
+  [fintype s] (h : a ∉ s) {d : fintype.{u} (insert a s : set α)} :
+  @fintype.card _ d = fintype.card s + 1 :=
+by rw ← card_fintype_insert' s h; congr
+
 instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] : fintype (insert a s : set α) :=
 if h : a ∈ s then by rwa [insert_eq, union_eq_self_of_subset_left (singleton_subset_iff.2 h)]
 else fintype_insert' _ h
-
-@[simp] theorem card_insert [decidable_eq α] {a : α} (s : set α) [fintype s] (h : a ∉ s) :
-  fintype.card (insert a s : set α) = fintype.card s + 1 :=
-by rw ← card_fintype_insert' s h; congr
 
 @[simp] theorem finite_insert (a : α) {s : set α} : finite s → finite (insert a s)
 | ⟨h⟩ := ⟨@set.fintype_insert _ (classical.dec_eq α) _ _ h⟩
@@ -206,7 +211,7 @@ lemma finite_prod {s : set α} {t : set β} : finite s → finite t → finite (
 end set
 
 namespace finset
-variables [decidable_eq α] [decidable_eq β]
+variables [decidable_eq β]
 variables {s t u : finset α} {f : α → β} {a : α}
 
 /-- Convert a finset to a set in the natural way. -/
@@ -229,6 +234,21 @@ by simp [finset.subset_iff, set.subset_def]
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) :=
 by simp [set.set_eq_def]
 
+@[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_filter {p : α → Prop} [decidable_pred p] :
+  ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
+by simp [set.set_eq_def]
+
+variable [decidable_eq α]
+
 @[simp] lemma coe_insert : ↑(insert a s) = (insert a ↑s : set α) :=
 by simp [set.set_eq_def]
 
@@ -245,19 +265,6 @@ by simp [set.set_eq_def]
 by simp [set.set_eq_def]
 
 @[simp] lemma coe_inter : ↑(s ∩ t) = (↑s ∩ ↑t : set α) :=
-by simp [set.set_eq_def]
-
-@[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
-by simp [set.set_eq_def]
-
-@[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
-by simp [set.set_eq_def]
-
-@[simp] lemma coe_filter {p : α → Prop} [decidable_pred p] :
-  ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
-by simp [set.set_eq_def]
-
-@[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
 by simp [set.set_eq_def]
 
 end finset

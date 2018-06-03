@@ -96,9 +96,9 @@ by refine
   right_distrib  := λ m n k, quotient.induction_on₃ m n k _,
   mul_comm       := quotient.ind₂ _ };
 { intros,
-  try {cases a with r₁ s₁, cases s₁ with s₁ hs₁},
-  try {cases b with r₂ s₂, cases s₂ with s₂ hs₂},
-  try {cases c with r₃ s₃, cases s₃ with s₃ hs₃},
+  try {rcases a with ⟨r₁, s₁, hs₁⟩},
+  try {rcases b with ⟨r₂, s₂, hs₂⟩},
+  try {rcases c with ⟨r₃, s₃, hs₃⟩},
   refine (quotient.sound $ r_of_eq _),
   simp [mul_left_comm, mul_add, mul_comm] }
 

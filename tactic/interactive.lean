@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs meta.expr
+import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs
+  tactic.split_ifs meta.expr
 
 open lean
 open lean.parser
@@ -15,15 +16,26 @@ namespace tactic
 namespace interactive
 open interactive interactive.types expr
 
-meta def rcases_parse : parser (list rcases_patt) :=
+local notation `listΣ` := list_Sigma
+local notation `listΠ` := list_Pi
+
+/--
+This parser uses the "inverted" meaning for the `many` constructor:
+rather than representing a sum of products, here it represents a
+product of sums. We fix this by applying `invert`, defined below, to
+the result.
+-/
+@[reducible] def rcases_patt_inverted := rcases_patt
+
+meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
 with_desc "patt" $ let p :=
   (rcases_patt.one <$> ident_) <|>
   (rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse)) in
 list.cons <$> p <*> (tk "|" *> p)*
 
-meta def rcases_parse.invert : list rcases_patt → list (list rcases_patt) :=
-let invert' (l : list rcases_patt) : rcases_patt := match l with
-| [k] := k
+meta def rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt) :=
+let invert' (l : listΣ rcases_patt_inverted) : rcases_patt := match l with
+| [rcases_patt.one n] := rcases_patt.one n
 | _ := rcases_patt.many (rcases_parse.invert l)
 end in
 list.map $ λ p, match p with
@@ -135,15 +147,15 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
-/-- Same as the `congr` tactic, but only works up to depth `n`. This
-  is useful when the `congr` tactic is too aggressive in breaking
-  down the goal. For example, given `⊢ f (g (x + y)) = f (g (y + x))`,
-  `congr` produces the goals `⊢ x = y` and `⊢ y = x`, while
-  `congr_n 2` produces the intended `⊢ x + y = y + x`. -/
-meta def congr_n : nat → tactic unit
-| 0     := failed
-| (n+1) := focus1 (try assumption >> congr_core >>
-  all_goals (try reflexivity >> try (congr_n n)))
+/-- Same as the `congr` tactic, but takes an optional argument which gives
+  the depth of recursive applications. This is useful when `congr`
+  is too aggressive in breaking down the goal. For example, given
+  `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
+  and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
+meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
+| (some 0) := failed
+| o        := focus1 (assumption <|> (congr_core >>
+  all_goals (reflexivity <|> try (congr' (nat.pred <$> o)))))
 
 /-- Acts like `have`, but removes a hypothesis with the same name as
   this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
@@ -242,6 +254,15 @@ do { exfalso,
 
 open nat
 
+meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
+| 0 := done
+| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+
+meta structure by_elim_opt :=
+  (discharger : tactic unit := done)
+  (restr_hyp_set : option (list expr) := none)
+  (max_rep : ℕ := 3)
+
 /--
   `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
   and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
@@ -256,9 +277,8 @@ open nat
   - asms: list of assumptions / rules to consider instead of local constants
   - depth: number of attempts at discharging generated sub-goals
   -/
-meta def solve_by_elim (discharger : tactic unit := done) (asms : option (list expr) := none)  : opt_param ℕ 3 → tactic unit
-| 0 := done
-| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim n)
+meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
+solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -279,59 +299,6 @@ done
 
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology
-
-/--
-  `wlog h : i ≤ j using i j`: without loss of generality, let us assume `h : i ≤ j`
-  If `using i j` is omitted, the last two free variables found in `i ≤ j` will be used.
-
-  `wlog : R x y` (synonymous with `wlog : R x y using x y`) adds `R x y` to the
-  assumptions and the goal `⊢ R x y ∨ R y x`.
-
-  A special case is made for total order relations `≤` where `⊢ R x y ∨ R y x`
-  is discharged automatically.
-
-  TODO(Simon): Generalize to multiple pairs of variables
--/
-meta def wlog (h : parse ident?)
-              (p : parse (tk ":" *> texpr))
-              (xy : parse (tk "using" *> monad.sequence [ident,ident])?) :
-  tactic unit :=
-do p' ← to_expr p,
-   h_asm ← get_unused_name (h.get_or_else `a),
-   (x :: y :: _) ← xy.to_monad >>= mmap get_local <|> pure p'.list_local_const,
-   n ← tactic.revert_lst [x,y],
-   x ← intro1, y ← intro1,
-   p ← to_expr p,
-   when (¬ x.occurs p ∧ ¬ x.occurs p) (do
-     p ← pp p,
-     fail format!"{p} should reference {x} and {y}"),
-   let p' := subst_locals [(x,y),(y,x)] p,
-   t ← target,
-   asm ← mk_local_def h_asm p,
-   g ← tactic.pis [x,y,asm] t,
-
-   h_this₀ ← get_unused_name `this,
-   (this,gs) ← local_proof h_this₀ (set_binder g [binder_info.default,binder_info.default])
-         (do tactic.clear x, tactic.clear y,
-             intron 2,
-             intro $ h_asm,
-             intron (n-2)),
-   intron (n-2),
-
-   p_or_p' ← to_expr ``(%%p ∨ %%p'),
-   h_this ← get_unused_name `this,
-   (h',gs') ← local_proof h_this p_or_p'
-     (do tactic.clear this,
-         try $ assumption <|> `[exact le_total _ _]),
-   (() <$ tactic.cases h' [h_asm,h_asm])
-     ; [ (do h ← get_local h_asm,
-            specialize ```(%%this %%x %%y %%h) <|> fail "spec A"),
-         do h ← get_local h_asm,
-            specialize ```(%%this %%y %%x %%h) <|> fail "spec B" ]
-     ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
-   gs'' ← get_goals,
-   set_goals $ gs' ++ gs'' ++ gs,
-   return ()
 
 /--
  Tag lemmas of the form:
@@ -437,7 +404,7 @@ do v ← mk_mvar,
      else refine ``(eq.mpr %%v %%r),
    gs ← get_goals,
    set_goals [v],
-   (option.cases_on n congr congr_n : tactic unit),
+   congr' n,
    gs' ← get_goals,
    set_goals $ gs' ++ gs
 

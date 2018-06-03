@@ -480,7 +480,7 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
     rw [← nat_cast_succ x, add_mul_succ _ ao, mul_assoc] },
   { haveI := h₁.fst, haveI := h₂.fst,
     simp [IH, repr_add, power_add, ordinal.mul_add],
-    rw ← mul_assoc, congr_n 2,
+    rw ← mul_assoc, congr' 2,
     have := mt repr_inj.1 e0,
     rw [add_mul_limit ao (power_is_limit_left omega_is_limit this),
         mul_assoc, mul_omega_dvd (nat_cast_pos.2 n₁.pos) (nat_lt_omega _)],
@@ -720,7 +720,7 @@ begin
       = ω0 ^ succ k * α' + (ω0 ^ k * α' * m + R) : by rw [nat_cast_succ, RR, ← mul_assoc]
   ... = (ω0 ^ k * α' + R) * α' + (ω0 ^ k * α' + R) * m : _
   ... = (α' + m) ^ succ k.succ : by rw [← ordinal.mul_add, ← nat_cast_succ, power_succ, IH.2],
-  congr_n 1,
+  congr' 1,
   { have αd : ω ∣ α' := dvd_add (dvd_mul_of_dvd _
       (by simpa using power_dvd_power ω (one_le_iff_ne_zero.2 e0))) d,
     rw [ordinal.mul_add (ω0 ^ k), add_assoc, ← mul_assoc, ← power_succ,
@@ -767,7 +767,7 @@ begin
     { simp [power, r₂, power_mul, repr_power_aux₁ a00 al aa] },
     { simp [succ_eq_add_one, power, r₂, power_add, power_mul, mul_assoc],
       rw [repr_power_aux₁ a00 al aa, scale_power_aux], simp [power_mul],
-      rw [← ordinal.mul_add, ← add_assoc (ω ^ repr a0 * (n:ℕ))], congr_n 1,
+      rw [← ordinal.mul_add, ← add_assoc (ω ^ repr a0 * (n:ℕ))], congr' 1,
       rw [← power_succ],
       exact (repr_power_aux₂ _ ad a00 al _ _).2 } }
 end

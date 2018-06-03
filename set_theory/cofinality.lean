@@ -219,7 +219,7 @@ let ⟨S, hS, e₁⟩ := ord_cof_eq r,
   rw e₁ at e₂, rw ← e₂,
   refine le_trans (cof_type_le {a | ∃ h, (subtype.mk a h : S) ∈ T} (λ a, _)) ⟨⟨_, _⟩⟩,
   { rcases hS a with ⟨b, bS, br⟩,
-    rcases hT ⟨b, bS⟩ with ⟨c, cT, cs⟩, cases c with c cS,
+    rcases hT ⟨b, bS⟩ with ⟨⟨c, cS⟩, cT, cs⟩,
     exact ⟨c, ⟨cS, cT⟩, is_order_connected.neg_trans r cs br⟩ },
   { exact λ ⟨a, h⟩, ⟨⟨a, h.fst⟩, h.snd⟩ },
   { exact λ ⟨a, ha⟩ ⟨b, hb⟩ h,
@@ -229,7 +229,7 @@ end
 theorem omega_le_cof {o} : cardinal.omega ≤ cof o ↔ is_limit o :=
 begin
   rcases zero_or_succ_or_limit o with rfl|⟨o,rfl⟩|l,
-  { simp [not_zero_is_limit, cardinal.omega_pos] },
+  { simp [not_zero_is_limit, cardinal.omega_ne_zero] },
   { simp [not_succ_is_limit, cardinal.one_lt_omega] },
   { simp [l], refine le_of_not_lt (λ h, _),
     cases cardinal.lt_omega.1 h with n e,

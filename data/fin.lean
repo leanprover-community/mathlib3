@@ -2,8 +2,20 @@ import data.nat.basic
 
 open fin nat
 
+namespace fin
+
+variable {n : ℕ}
+
 /-- Embedding of `fin n` in `fin (n+1)` -/
-def raise_fin {n : ℕ} (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
+def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
+
+@[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
+by cases j; simp [fin.succ]
+
+@[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
+by cases j; simp [fin.pred]
+
+end fin
 
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,
@@ -38,4 +50,19 @@ i.succ_rec H0 Hs
 @[simp] theorem fin.succ_rec_on_succ
   {C : ∀ n, fin n → Sort*} {H0 Hs} {n} (i : fin n) :
   @fin.succ_rec_on (succ n) i.succ C H0 Hs = Hs n i (fin.succ_rec_on i H0 Hs) :=
+by cases i; refl
+
+@[elab_as_eliminator] def fin.cases {n} {C : fin (succ n) → Sort*}
+  (H0 : C 0) (Hs : ∀ i : fin n, C (i.succ)) :
+  ∀ (i : fin (succ n)), C i
+| ⟨0, h⟩ := H0
+| ⟨succ i, h⟩ := Hs ⟨i, lt_of_succ_lt_succ h⟩
+
+@[simp] theorem fin.cases_zero
+  {n} {C : fin (succ n) → Sort*} {H0 Hs} :
+  @fin.cases n C H0 Hs 0 = H0 := rfl
+
+@[simp] theorem fin.cases_succ
+  {n} {C : fin (succ n) → Sort*} {H0 Hs} (i : fin n) :
+  @fin.cases n C H0 Hs i.succ = Hs i :=
 by cases i; refl

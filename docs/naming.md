@@ -145,11 +145,11 @@ describing their conclusions.
 
 ### Names for symbols ###
 
-- `implies` : implication
+- `imp`: implication
 - `forall`
 - `exists`
-- `bforall` : bounded forall
-- `bexists` : bounded exists
+- `ball`: bounded forall
+- `bex`: bounded exists
 
 
 ## Identifiers and theorem names ##

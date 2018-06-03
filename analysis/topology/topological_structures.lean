@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 
 Theory of topological monoids, groups and rings.
+
+TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups, or add a type class
+`topological_operator α (*)`.
 -/
 
 import algebra.big_operators
@@ -22,6 +25,76 @@ classical.or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
+section topological_monoid
+
+/-- A topological monoid is a monoid in which the multiplication is continuous as a function
+`α × α → α`. -/
+class topological_monoid (α : Type u) [topological_space α] [monoid α] : Prop :=
+(continuous_mul : continuous (λp:α×α, p.1 * p.2))
+
+section
+variables [topological_space α] [monoid α] [topological_monoid α]
+
+lemma continuous_mul' : continuous (λp:α×α, p.1 * p.2) :=
+topological_monoid.continuous_mul α
+
+lemma continuous_mul [topological_space β] {f : β → α} {g : β → α}
+  (hf : continuous f) (hg : continuous g) :
+  continuous (λx, f x * g x) :=
+(hf.prod_mk hg).comp continuous_mul'
+
+lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)) :=
+continuous_iff_tendsto.mp (topological_monoid.continuous_mul α) (a, b)
+
+lemma tendsto_mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
+  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
+  tendsto (λx, f x * g x) x (nhds (a * b)) :=
+(hf.prod_mk hg).comp (by rw [←nhds_prod_eq]; exact tendsto_mul')
+
+lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
+  ∀l:list γ, (∀c∈l, tendsto (f c) x (nhds (a c))) →
+    tendsto (λb, (l.map (λc, f c b)).prod) x (nhds ((l.map a).prod))
+| []       _ := by simp [tendsto_const_nhds]
+| (f :: l) h :=
+  begin
+    simp,
+    exact tendsto_mul
+      (h f (list.mem_cons_self _ _))
+      (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
+  end
+
+lemma continuous_list_prod [topological_space β] {f : γ → β → α} (l : list γ)
+  (h : ∀c∈l, continuous (f c)) :
+  continuous (λa, (l.map (λc, f c a)).prod) :=
+continuous_iff_tendsto.2 $ assume x, tendsto_list_prod l $ assume c hc,
+  continuous_iff_tendsto.1 (h c hc) x
+
+end
+
+section
+variables [topological_space α] [comm_monoid α] [topological_monoid α]
+
+lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
+  (∀c∈s, tendsto (f c) x (nhds (a c))) →
+    tendsto (λb, (s.map (λc, f c b)).prod) x (nhds ((s.map a).prod)) :=
+quot.induction_on s $ by simp; exact tendsto_list_prod
+
+lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
+  (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.prod (λc, f c b)) x (nhds (s.prod a)) :=
+tendsto_multiset_prod _
+
+lemma continuous_multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :
+  (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).prod) :=
+quot.induction_on s $ by simp; exact continuous_list_prod
+
+lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
+  (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
+continuous_multiset_prod _
+
+end
+
+end topological_monoid
+
 section topological_add_monoid
 
 /-- A topological (additive) monoid is a monoid in which the addition is
@@ -30,34 +103,63 @@ class topological_add_monoid (α : Type u) [topological_space α] [add_monoid α
 (continuous_add : continuous (λp:α×α, p.1 + p.2))
 
 section
-variables [topological_space α] [add_monoid α]
+variables [topological_space α] [add_monoid α] [topological_add_monoid α]
 
-lemma continuous_add' [topological_add_monoid α] : continuous (λp:α×α, p.1 + p.2) :=
+lemma continuous_add' : continuous (λp:α×α, p.1 + p.2) :=
 topological_add_monoid.continuous_add α
 
-lemma continuous_add [topological_add_monoid α] [topological_space β] {f : β → α} {g : β → α}
+lemma continuous_add [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x + g x) :=
 (hf.prod_mk hg).comp continuous_add'
 
-lemma tendsto_add' [topological_add_monoid α] {a b : α} :
-  tendsto (λp:α×α, p.fst + p.snd) (nhds (a, b)) (nhds (a + b)) :=
+lemma tendsto_add' {a b : α} : tendsto (λp:α×α, p.fst + p.snd) (nhds (a, b)) (nhds (a + b)) :=
 continuous_iff_tendsto.mp (topological_add_monoid.continuous_add α) (a, b)
 
-lemma tendsto_add [topological_add_monoid α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x + g x) x (nhds (a + b)) :=
+lemma tendsto_add {f : β → α} {g : β → α} {x : filter β} {a b : α}
+  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
+  tendsto (λx, f x + g x) x (nhds (a + b)) :=
 (hf.prod_mk hg).comp (by rw [←nhds_prod_eq]; exact tendsto_add')
+
+lemma tendsto_list_sum {f : γ → β → α} {x : filter β} {a : γ → α} :
+  ∀l:list γ, (∀c∈l, tendsto (f c) x (nhds (a c))) →
+    tendsto (λb, (l.map (λc, f c b)).sum) x (nhds ((l.map a).sum))
+| []       _ := by simp [tendsto_const_nhds]
+| (f :: l) h :=
+  begin
+    simp,
+    exact tendsto_add
+      (h f (list.mem_cons_self _ _))
+      (tendsto_list_sum l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
+  end
+
+lemma continuous_list_sum [topological_space β] {f : γ → β → α} (l : list γ)
+  (h : ∀c∈l, continuous (f c)) : continuous (λa, (l.map (λc, f c a)).sum) :=
+continuous_iff_tendsto.2 $ assume x, tendsto_list_sum l $ assume c hc,
+  continuous_iff_tendsto.1 (h c hc) x
+
 end
 
 section
-variables [topological_space α] [add_comm_monoid α]
+variables [topological_space α] [add_comm_monoid α] [topological_add_monoid α]
 
-lemma tendsto_sum [topological_add_monoid α] {f : γ → β → α} {x : filter β} {a : γ → α} {s : finset γ} :
+lemma tendsto_multiset_sum {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
+  (∀c∈s, tendsto (f c) x (nhds (a c))) →
+    tendsto (λb, (s.map (λc, f c b)).sum) x (nhds ((s.map a).sum)) :=
+quot.induction_on s $ by simp; exact tendsto_list_sum
+
+lemma tendsto_finset_sum {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.sum (λc, f c b)) x (nhds (s.sum a)) :=
-finset.induction_on s (by simp; exact tendsto_const_nhds) $ assume b s,
-  by simp [or_imp_distrib, forall_and_distrib, tendsto_add] {contextual := tt}
+tendsto_multiset_sum _
+
+lemma continuous_multiset_sum [topological_space β] {f : γ → β → α} (s : multiset γ) :
+  (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).sum) :=
+quot.induction_on s $ by simp; exact continuous_list_sum
+
+lemma continuous_finset_sum [topological_space β] {f : γ → β → α} (s : finset γ) :
+  (∀c∈s, continuous (f c)) → continuous (λa, s.sum (λc, f c a)) :=
+continuous_multiset_sum _
 
 end
-
 end topological_add_monoid
 
 section topological_add_group
@@ -137,30 +239,13 @@ instance uniform_add_group.to_topological_add_group [uniform_add_group α] : top
 
 end uniform_add_group
 
-section topological_semiring
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
 class topological_semiring (α : Type u) [topological_space α] [semiring α]
-  extends topological_add_monoid α : Prop :=
-(continuous_mul : continuous (λp:α×α, p.1 * p.2))
-
-variables [topological_space α] [semiring α]
-
-lemma continuous_mul [topological_semiring α] [topological_space β] {f : β → α} {g : β → α}
-  (hf : continuous f) (hg : continuous g) : continuous (λx, f x * g x) :=
-(hf.prod_mk hg).comp (topological_semiring.continuous_mul α)
-
-lemma tendsto_mul [topological_semiring α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x * g x) x (nhds (a * b)) :=
-have tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)),
-  from continuous_iff_tendsto.mp (topological_semiring.continuous_mul α) (a, b),
-(hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
-
-end topological_semiring
+  extends topological_add_monoid α, topological_monoid α : Prop
 
 /-- A topological ring is a ring where the ring operations are continuous. -/
 class topological_ring (α : Type u) [topological_space α] [ring α]
-  extends topological_add_monoid α : Prop :=
-(continuous_mul : continuous (λp:α×α, p.1 * p.2))
+  extends topological_add_monoid α, topological_monoid α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
 instance topological_ring.to_topological_semiring
@@ -484,7 +569,7 @@ iff.intro
   (assume hs, by rw [this] at hs; from infi_sets_induct hs
     ⟨l, u, hl', hu', by simp⟩
     begin
-      intro p, cases p with p₁ p₂, cases p₁ with l hl, cases p₂ with u hu,
+      intro p, rcases p with ⟨⟨l, hl⟩, ⟨u, hu⟩⟩,
       simp [set.subset_def],
       intros s₁ s₂ hs₁ l' hl' u' hu' hs₂,
       refine ⟨max l l', _, min u u', _⟩;

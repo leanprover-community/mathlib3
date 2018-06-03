@@ -38,7 +38,7 @@ lemma countable.to_encodable {s : set α} (h : countable s) : encodable s :=
 let f := classical.some h in
 have hf : ∀x∈s, ∀y∈s, f x = f y → x = y, from classical.some_spec h,
 let f' : {a // a ∈ s} → ℕ := f ∘ subtype.val in
-encodable_of_inj f' $ assume ⟨a, ha⟩ ⟨b, hb⟩ (h : f a = f b), subtype.eq $ hf a ha b hb h
+encodable.of_inj f' $ assume ⟨a, ha⟩ ⟨b, hb⟩ (h : f a = f b), subtype.eq $ hf a ha b hb h
 
 lemma countable_encodable' (s : set α) [encodable s] : countable s :=
 ⟨λx, if h : x ∈ s then @encode s _ ⟨x, h⟩ else 0, assume x hx y hy h,
@@ -65,7 +65,7 @@ lemma countable_subset {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : countable s₂
 lemma countable_image {s : set α} {f : α → β} (hs : countable s) : countable (f '' s) :=
 let f' : s → f '' s := λ⟨a, ha⟩, ⟨f a, mem_image_of_mem f ha⟩ in
 have hf' : surjective f', from assume ⟨b, a, ha, hab⟩, ⟨⟨a, ha⟩, subtype.eq hab⟩,
-@countable_encodable' _ _ $ @encodable_of_inj _ _ hs.to_encodable (surj_inv hf') (injective_surj_inv hf')
+@countable_encodable' _ _ $ @encodable.of_inj _ _ hs.to_encodable (surj_inv hf') (injective_surj_inv hf')
 
 lemma countable_sUnion {s : set (set α)} (hs : countable s) (h : ∀a∈s, countable a) :
   countable (⋃₀ s) :=

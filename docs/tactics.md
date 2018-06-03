@@ -64,13 +64,13 @@ All accept an optional list of simplifier rules, typically definitions that shou
 Evaluate expressions in the language of (semi-)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
 
-### congr_n
+### congr'
 
-Same as the `congr` tactic, but only works up to depth `n`. This is
-useful when the `congr` tactic is too aggressive in breaking down the
-goal. For example, given `⊢ f (g (x + y)) = f (g (y + x))`, `congr`
-produces the goals `⊢ x = y` and `⊢ y = x`, while `congr_n 2` produces
-the intended `⊢ x + y = y + x`.
+Same as the `congr` tactic, but takes an optional argument which gives
+the depth of recursive applications. This is useful when `congr`
+is too aggressive in breaking down the goal. For example, given
+`⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
+and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
 
 ### unfold_coes
 

@@ -61,7 +61,7 @@ subtype.exists
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
 
-theorem subset.refl (a : set α) : a ⊆ a := assume x, id
+@[refl] theorem subset.refl (a : set α) : a ⊆ a := assume x, id
 
 @[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c :=
 assume x h, bc (ab h)
@@ -687,8 +687,7 @@ theorem image_union (f : α → β) (s t : set α) :
   f '' (s ∪ t) = f '' s ∪ f '' t :=
 by finish [set_eq_def, iff_def, mem_image_eq]
 
-@[simp] theorem image_empty (f : α → β) : f '' ∅ = ∅ :=
-by finish [set_eq_def, mem_image_eq]
+@[simp] theorem image_empty (f : α → β) : f '' ∅ = ∅ := ext $ by simp
 
 theorem image_inter_on {f : α → β} {s t : set α} (h : ∀x∈t, ∀y∈s, f x = f y → x = y) :
   f '' s ∩ f '' t = f '' (s ∩ t) :=
@@ -718,8 +717,7 @@ begin
   intro x, split; { intro e, subst e, simp }
 end
 
-theorem image_id (s : set α) : id '' s = s :=
-by finish [set_eq_def, iff_def, mem_image_eq]
+@[simp] theorem image_id (s : set α) : id '' s = s := ext $ by simp
 
 theorem compl_compl_image (S : set (set α)) :
   compl '' (compl '' S) = S :=

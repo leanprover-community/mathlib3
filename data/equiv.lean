@@ -8,8 +8,8 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import data.prod data.nat.pairing logic.function tactic data.set.lattice
-import algebra.group
+import data.prod data.nat.pairing logic.function tactic.basic
+import data.set.lattice algebra.group data.vector2
 open function
 
 universes u v w
@@ -127,6 +127,26 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
   ⟨λ e : f₁ x = y, e ▸ (l₁ x).symm,
    λ e : x = g₁ y, e.symm ▸ r₁ y⟩
 
+@[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
+
+theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_inv
+
+theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
+
+protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s := 
+set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
+
+protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) : t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
+by rw [set.image_subset_iff, e.image_eq_preimage]
+
+lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
+by rw [←set.image_comp]; simpa using set.image_id s
+
+protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
+  f '' -s = -(f '' s) :=
+set.image_compl_eq f.bijective
+
+
 /- The group of permutations (self-equivalences) of a type `α` -/
 instance perm_group {α : Type u} : group (perm α) :=
 begin
@@ -134,6 +154,11 @@ begin
   intros; apply equiv.ext; try { apply trans_apply },
   apply inverse_apply_apply
 end
+
+@[simp] theorem perm.mul_val {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
+equiv.trans_apply _ _ _
+
+@[simp] theorem perm.one_val {α : Type u} (x) : (1 : perm α) x = x := rfl
 
 def equiv_empty (h : α → false) : α ≃ empty :=
 ⟨λ x, (h x).elim, λ e, e.rec _, λ x, (h x).elim, λ e, e.rec _⟩
@@ -241,8 +266,8 @@ by cases e₁; cases e₂; refl
 by cases e₁; cases e₂; refl
 
 def bool_equiv_unit_sum_unit : bool ≃ (punit.{u+1} ⊕ punit.{v+1}) :=
-⟨λ b, cond b (inl punit.star) (inr punit.star),
- λ s, sum.rec_on s (λ_, tt) (λ_, ff),
+⟨λ b, cond b (inr punit.star) (inl punit.star),
+ λ s, sum.rec_on s (λ_, ff) (λ_, tt),
  λ b, by cases b; refl,
  λ s, by rcases s with ⟨⟨⟩⟩ | ⟨⟨⟩⟩; refl⟩
 
@@ -424,51 +449,27 @@ def list_equiv_of_equiv {α β : Type*} : α ≃ β → list α ≃ list β
   by refine ⟨list.map f, list.map g, λ x, _, λ x, _⟩;
      simp [id_of_left_inverse l, id_of_right_inverse r]
 
-section
-open nat list
-private def list.to_nat : list ℕ → ℕ
-| []     := 0
-| (a::l) := succ (mkpair l.to_nat a)
+def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
+⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨x.1, x.2⟩, λ ⟨a, b⟩, rfl,λ ⟨a, b⟩, rfl⟩
 
-private def list.of_nat : ℕ → list ℕ
-| 0        := []
-| (succ v) := match unpair v, unpair_le v with
-  | (v₂, v₁), h :=
-    have v₂ < succ v, from lt_succ_of_le h,
-    v₁ :: list.of_nat v₂
-  end
+def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
+⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
 
-private theorem list.of_nat_to_nat : ∀ l : list ℕ, list.of_nat (list.to_nat l) = l
-| []     := rfl
-| (a::l) := by simp [list.to_nat, list.of_nat, unpair_mkpair, *]
+def d_array_equiv_fin (n : ℕ) (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
+⟨d_array.read, d_array.mk, λ ⟨f⟩, rfl, λ f, rfl⟩
 
-private theorem list.to_nat_of_nat : ∀ n : ℕ, list.to_nat (list.of_nat n) = n
-| 0        := rfl
-| (succ v) := begin
-  cases e : unpair v with v₁ v₂,
-  have := lt_succ_of_le (unpair_le v),
-  have IH := have v₁ < succ v, by rwa e at this, list.to_nat_of_nat v₁,
-  simp [list.of_nat, e, list.to_nat, IH, mkpair_unpair' e]
-end
+def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
+d_array_equiv_fin _ _
 
+def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
+(vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
 
-def list_nat_equiv_nat : list ℕ ≃ ℕ :=
-⟨list.to_nat, list.of_nat, list.of_nat_to_nat, list.to_nat_of_nat⟩
-
-def list_equiv_self_of_equiv_nat {α : Type} (e : α ≃ ℕ) : list α ≃ α :=
-calc list α ≃ list ℕ : list_equiv_of_equiv e
-        ... ≃ ℕ      : list_nat_equiv_nat
-        ... ≃ α      : e.symm
-end
-
-section
 def decidable_eq_of_equiv [h : decidable_eq α] : α ≃ β → decidable_eq β
 | ⟨f, g, l, r⟩ b₁ b₂ :=
   match h (g b₁) (g b₂) with
   | (is_true he) := is_true $ have f (g b₁) = f (g b₂), from congr_arg f he, by rwa [r, r] at this
   | (is_false hn) := is_false $ λeq, hn.elim $ by rw [eq]
   end
-end
 
 def inhabited_of_equiv [inhabited α] : α ≃ β → inhabited β
 | ⟨f, g, l, r⟩ := ⟨f (default _)⟩
@@ -605,33 +606,13 @@ else if r = b then a
 else r
 
 theorem swap_core_self (r a : α) : swap_core a a r = r :=
-by by_cases r = a; simp [swap_core, *]
+by unfold swap_core; split_ifs; cc
 
 theorem swap_core_swap_core (r a b : α) : swap_core a b (swap_core a b r) = r :=
-begin
-  by_cases hb : r = b,
-  { by_cases ha : r = a,
-    { simp [hb.symm, ha.symm, swap_core_self] },
-    { have : b ≠ a, by rwa [hb] at ha,
-      simp [swap_core, *] } },
-  { by_cases ha : r = a,
-    { have : b ≠ a, begin rw [ha] at hb, exact ne.symm hb end,
-      simp [swap_core, *] },
-    simp [swap_core, *] }
-end
+by unfold swap_core; split_ifs; cc
 
 theorem swap_core_comm (r a b : α) : swap_core a b r = swap_core b a r :=
-begin
-  by_cases hb : r = b,
-  { by_cases ha : r = a,
-    { simp [hb.symm, ha.symm, swap_core_self] },
-    { have : b ≠ a, by rwa [hb] at ha,
-      simp [swap_core, *] } },
-  { by_cases ha : r = a,
-    { have : a ≠ b, by rwa [ha] at hb,
-      simp [swap_core, *] },
-    simp [swap_core, *] }
-end
+by unfold swap_core; split_ifs; cc
 
 /-- `swap a b` is the permutation that swaps `a` and `b` and
   leaves other values as is. -/

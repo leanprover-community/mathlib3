@@ -36,6 +36,8 @@ by rw [modeq, eq_comm, ← int.coe_nat_inj'];
 theorem modeq_of_dvd : (n:ℤ) ∣ b - a → a ≡ b [MOD n] := modeq_iff_dvd.2
 theorem dvd_of_modeq : a ≡ b [MOD n] → (n:ℤ) ∣ b - a := modeq_iff_dvd.1
 
+theorem mod_modeq (a n) : a % n ≡ a [MOD n] := nat.mod_mod _ _
+
 theorem modeq_of_dvd_of_modeq (d : m ∣ n) (h : a ≡ b [MOD n]) : a ≡ b [MOD m] :=
 modeq_of_dvd $ dvd_trans (int.coe_nat_dvd.2 d) (dvd_of_modeq h)
 

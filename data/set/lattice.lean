@@ -516,9 +516,6 @@ def disjoint (a b : α) : Prop := a ⊓ b = ⊥
 theorem disjoint_symm {a b : α} : disjoint a b → disjoint b a :=
 assume : a ⊓ b = ⊥, show b ⊓ a = ⊥, from this ▸ inf_comm
 
-@[simp] lemma disjoint_comm {a b : α} : disjoint a b ↔ disjoint b a :=
-⟨disjoint_symm, disjoint_symm⟩
-
 theorem disjoint_bot_left {a : α} : disjoint ⊥ a := bot_inf_eq
 theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_bot_eq
 

@@ -255,7 +255,6 @@ d_array.fintype
 
 instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
 fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm
-<<<<<<< HEAD
 
 instance quotient.fintype [fintype α] (s : setoid α)
   [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=
@@ -269,5 +268,3 @@ set_fintype _
 
 instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
 pi.fintype
-=======
->>>>>>> upstream/master

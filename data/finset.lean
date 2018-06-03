@@ -313,6 +313,9 @@ by simp [subset_iff] {contextual:=tt}; finish
 
 @[simp] theorem empty_inter (s : finset α) : ∅ ∩ s = ∅ := ext.2 $ by simp
 
+theorem inter_eq_empty_iff_disjoint {s₁ s₂ : finset α} : s₁ ∩ s₂ = ∅ ↔ s₁.1.disjoint s₂.1 :=
+by rw ← val_eq_zero; simp [inter_eq_zero_iff_disjoint]
+
 @[simp] theorem insert_inter_of_mem {s₁ s₂ : finset α} {a : α} (h : a ∈ s₂) :
   insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
 ext.2 $ by simp; intro x; constructor; finish
@@ -918,7 +921,7 @@ ext.2 $ by simp [and.left_comm]
 end sigma
 
 section pi
-variables {δ : α → Type*} [decidable_eq α] [∀a, decidable_eq (δ a)]
+variables {δ : α → Type*} [decidable_eq α]
 
 def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
 ⟨s.1.pi (λ a, (t a).1), nodup_pi s.2 (λ a _, (t a).2)⟩
@@ -947,7 +950,7 @@ multiset.pi.cons_ne _ _
 lemma injective_pi_cons  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
   function.injective (pi.cons s a b) :=
 assume e₁ e₂ eq,
-@multiset.injective_pi_cons α _ δ _ a b s.1 hs _ _ $
+@multiset.injective_pi_cons α _ δ a b s.1 hs _ _ $
   funext $ assume e, funext $ assume h,
   have pi.cons s a b e₁ e (by simpa using h) = pi.cons s a b e₂ e (by simpa using h),
     by rw [eq],
@@ -956,7 +959,8 @@ assume e₁ e₂ eq,
 @[simp] lemma pi_empty {t : Πa:α, finset (δ a)} : pi (∅ : finset α) t = singleton (pi.empty δ) :=
 rfl
 
-@[simp] lemma pi_insert {s : finset α} {t : Πa:α, finset (δ a)} {a : α} (ha : a ∉ s) :
+@[simp] lemma pi_insert [∀a, decidable_eq (δ a)]
+  {s : finset α} {t : Πa:α, finset (δ a)} {a : α} (ha : a ∉ s) :
   pi (insert a s) t = (t a).bind (λb, (pi s t).image (pi.cons s a b)) :=
 begin
   apply eq_of_veq,
@@ -1214,7 +1218,6 @@ sort_eq _ _
 
 @[simp] theorem sort_to_finset [decidable_eq α] (s : finset α) : (sort r s).to_finset = s :=
 list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
-
 end sort
 
 theorem sort_sorted_lt [decidable_linear_order α] (s : finset α) :

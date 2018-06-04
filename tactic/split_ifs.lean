@@ -50,7 +50,7 @@ lctx ← local_context, lctx ← lctx.mmap infer_type,
 return $ c ∈ lctx ∨ `(¬%%c) ∈ lctx
 
 private meta def split_ifs_core (at_ : loc) (names : ref (list name)) : tactic unit := do
-some cond ← find_if_cond_at at_ | skip,
+some cond ← find_if_cond_at at_ | fail "no if-then-else expressions to split",
 let cond := match cond with `(¬%%p) := p | p := p end,
 no_split ← value_known cond,
 if no_split then

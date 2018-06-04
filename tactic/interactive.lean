@@ -328,7 +328,7 @@ do ls ← attribute.get_instances `extensionality,
    interactive.intro x
 
 /--
-  - `ext` applies as many extensionality lemmas as possible;
+  - `ext` applies as many extensionality lemmas as possible, failing if none apply;
   - `ext ids`, with `ids` a list of identifiers, finds extentionality and applies them
     until it runs out of identifiers in `ids` to name the local constants.
 
@@ -353,7 +353,7 @@ do ls ← attribute.get_instances `extensionality,
   by applying functional extensionality and set extensionality.
   -/
 meta def ext : parse ident_ * → tactic unit
- | [] := repeat (ext1 none)
+ | [] := repeat_at_least_once (ext1 none)
  | xs := xs.mmap' (ext1 ∘ some)
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)

@@ -144,4 +144,12 @@ do h' ← assert h p,
    set_goals [g₁],
    return (h' , gs)
 
+meta def repeat_at_least_once ( t : tactic unit ) : tactic unit := t >> repeat t
+
+namespace interactive
+
+meta def repeat_at_least_once : itactic → tactic unit :=
+tactic.repeat_at_least_once
+
+end interactive
 end tactic

@@ -627,3 +627,30 @@ lemma classical.nonempty_pi {α : Sort u} {β : α → Sort v} :
 iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
 
 end nonempty
+
+section transport
+/- We now define some simplification lemmas for recursors. These all express that transport through trivial type families is the identity. -/
+universes u₁ u₂
+
+@[simp] lemma eq.rec.constant {α : Sort u₁} {a b : α} {β : Sort u₂} (p : a = b) (x : β) : @eq.rec α a (λ _, β) x b p = x :=
+begin
+  induction p,
+  simp,
+end
+
+@[simp] lemma plift.rec.constant {α : Sort u₁} {β : Sort u₂} (b : β) : @plift.rec α (λ _, β) (λ _, b) = λ _, b :=
+begin
+  apply funext,
+  intros,
+  cases x,
+  refl,
+end
+
+@[simp] lemma ulift.rec.constant {α : Type u₁} {β : Sort u₂} (b : β) : @ulift.rec α (λ _, β) (λ _, b) = λ _, b :=
+begin
+  apply funext,
+  intros,
+  cases x,
+  refl,
+end
+end transport

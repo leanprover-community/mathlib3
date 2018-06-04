@@ -38,8 +38,7 @@ include 𝒞 𝒟
 
 ## Notation
 
-Categories
----
+### Categories
 
 We use the `⟶` (`\hom`) arrow to denote sets of morphisms, as in `X ⟶ Y`.
 This leaves the actual category implicit; it is inferred from the type of X and Y but typeclass inference.
@@ -49,12 +48,10 @@ We use `𝟙` (`\b1`) to denote identity morphisms, as in `𝟙 X`.
 We use `≫` (`\gg`) to denote composition of morphisms, as in `f ≫ g`, which means "`f` followed by `g`".
 This is the opposite order than the usual convention (which is lame).  
 
-Isomorphisms
----
+### Isomorphisms
 We use `≅` for isomorphisms.
 
-Functors
----
+### Functors
 We use `↝` (`\leadsto` or `\lea` or `\r~`) to denote functors, as in `C ↝ D` for the type of functors from `C` to `D`.
 Unfortunately Johannes reserved `⇒` (`\functor` or `\func`) in core: https://github.com/leanprover/lean/blob/master/library/init/relator.lean, so we can't use that here.
 Perhaps this is unnecessary, and it's better to just write `Functor C D`.
@@ -69,8 +66,7 @@ We use `&>` to denote the action of a functor on a morphism, as in `F &> f`.
 
 Functor composition can be written as `F ⋙ G`.
 
-Natural transformations
----
+### Natural transformations
 We use `⟹` (`\nattrans` or `\==>`) to denote the type of natural transformations, e.g. `F ⟹ G`.
 We use `⇔` (`\<=>`) to denote the type of natural isomorphisms.
 

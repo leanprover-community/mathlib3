@@ -11,7 +11,6 @@ namespace categories.natural_transformation
 
 universes u₁ v₁ u₂ v₂ u₃ v₃
 
-section
 variable {C : Type u₁}
 variable [𝒞 : category.{u₁ v₁} C]
 variable {D : Type u₂}
@@ -39,6 +38,15 @@ definition IdentityNaturalTransformation (F : C ↝ D) : F ⟹ F :=
 
 variables {F G H : C ↝ D}
 
+-- We'll want to be able to prove that two natural transformations are equal if they are componentwise equal.
+@[extensionality] lemma NaturalTransformations_componentwise_equal (α β : F ⟹ G) (w : ∀ X : C, α.components X = β.components X) : α = β :=
+begin
+  induction α with α_components α_naturality,
+  induction β with β_components β_naturality,
+  have hc : α_components = β_components := funext w,
+  subst hc
+end
+
 definition vertical_composition_of_NaturalTransformations (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H := 
 { components := λ X, (α.components X) ≫ (β.components X),
   naturality := begin
@@ -52,26 +60,9 @@ notation α `⊟` β:80 := vertical_composition_of_NaturalTransformations α β
 
 @[simp,ematch] lemma vertical_composition_of_NaturalTransformations.components (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β).components X = (α.components X) ≫ (β.components X) := by refl
 
--- We'll want to be able to prove that two natural transformations are equal if they are componentwise equal.
-@[extensionality] lemma NaturalTransformations_componentwise_equal (α β : F ⟹ G) (w : ∀ X : C, α.components X = β.components X) : α = β :=
-begin
-  induction α with α_components α_naturality,
-  induction β with β_components β_naturality,
-  have hc : α_components = β_components := funext w,
-  subst hc
-end
-
-end
-
-section
-variable {C : Type u₁}
-variable [𝒞 : category.{u₁ v₁} C]
-variable {D : Type u₂}
-variable [𝒟 : category.{u₂ v₂} D]
 variable {E : Type u₃}
 variable [ℰ : category.{u₃ v₃} E]
-include 𝒞 𝒟 ℰ
-variables {F G H : C ↝ D}
+include ℰ
 
 instance (F : C ↝ D) : has_one (F ⟹ F) := 
 { one := IdentityNaturalTransformation F }
@@ -105,7 +96,6 @@ begin
   conv {to_lhs, congr, skip, rw [←category.associativity_lemma] },
   rw [←NaturalTransformation.naturality_lemma],
   rw [category.associativity_lemma],
-end
 end
 
 end categories.natural_transformation

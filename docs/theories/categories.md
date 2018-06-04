@@ -41,7 +41,7 @@ include 𝒞 𝒟
 ### Categories
 
 We use the `⟶` (`\hom`) arrow to denote sets of morphisms, as in `X ⟶ Y`.
-This leaves the actual category implicit; it is inferred from the type of X and Y but typeclass inference.
+This leaves the actual category implicit; it is inferred from the type of X and Y by typeclass inference.
 
 We use `𝟙` (`\b1`) to denote identity morphisms, as in `𝟙 X`.
 
@@ -75,4 +75,4 @@ this requires coercions to function types, which I don't like.
 
 For now we just write out `τ.components X`.
 
-For vertical and horiztonal composition of natural transformations we "cutely" use `⊟` (`\boxminus`) and `◫` (currently untypeable, but we could ask for `\boxbar`).
+For vertical and horiztonal composition of natural transformations we "cutely" use `⊟` (`\boxminus`) and `◫` (currently untypeable, but we could ask for `\boxvert`).

@@ -418,7 +418,7 @@ end
 end ext
 
 section terminal_goal
-open tactic 
+open tactic   
 
 structure C :=
  ( w : Type )

@@ -36,7 +36,6 @@ make_lemma category.right_identity
 make_lemma category.associativity
 -- We tag some lemmas with the attribute `@[ematch]`, for later automation. (I'd be happy to change this to e.g. `@[search]`.)
 attribute [simp,ematch] category.left_identity_lemma category.right_identity_lemma category.associativity_lemma 
-attribute [ematch] category.associativity_lemma 
 
 abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u+1 u} C
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C

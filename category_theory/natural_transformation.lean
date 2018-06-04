@@ -36,6 +36,10 @@ definition IdentityNaturalTransformation (F : C ↝ D) : F ⟹ F :=
 
 @[simp] lemma IdentityNaturalTransformation.components (F : C ↝ D) (X : C) : (IdentityNaturalTransformation F).components X = 𝟙 (F +> X) := by refl
 
+instance (F : C ↝ D) : has_one (F ⟹ F) := 
+{ one := IdentityNaturalTransformation F }
+
+section
 variables {F G H : C ↝ D}
 
 -- We'll want to be able to prove that two natural transformations are equal if they are componentwise equal.
@@ -59,13 +63,11 @@ definition vertical_composition_of_NaturalTransformations (α : F ⟹ G) (β : G
 notation α `⊟` β:80 := vertical_composition_of_NaturalTransformations α β    
 
 @[simp,ematch] lemma vertical_composition_of_NaturalTransformations.components (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β).components X = (α.components X) ≫ (β.components X) := by refl
+end
 
 variable {E : Type u₃}
 variable [ℰ : category.{u₃ v₃} E]
 include ℰ
-
-instance (F : C ↝ D) : has_one (F ⟹ F) := 
-{ one := IdentityNaturalTransformation F }
 
 definition horizontal_composition_of_NaturalTransformations {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) : (F ⋙ H) ⟹ (G ⋙ I) :=
 { components := λ X : C, (β.components (F +> X)) ≫ (I &> (α.components X)), 

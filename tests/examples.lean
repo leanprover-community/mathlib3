@@ -90,5 +90,10 @@ begin
   { intros, ext1,
     guard_target array.read s₀ i = array.read s₁ i,
     admit },
+  have : ∀ n m (s₀ s₁ : array n (array m ℕ)), s₀ = s₁, -- check that `ext` applies multiple extensionality lemmas if available
+  { intros, ext i j, 
+    guard_target array.read (array.read s₀ i) j = array.read (array.read s₁ i) j,
+    admit },
+  success_if_fail { ext }, -- verify `ext` fails if there are no extensionality lemmas to apply
   trivial
 end

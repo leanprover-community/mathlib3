@@ -72,6 +72,9 @@ by pi_instance
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by pi_instance
 
+instance has_add [∀ i, has_add $ f i] : has_add (Π i : I, f i) :=
+⟨λ x y, λ i, x i + y i⟩
+
 @[simp] lemma add_apply [∀ i, has_add $ f i] : (x + y) i = x i + y i := rfl
 
 instance add_semigroup [∀ i, add_semigroup $ f i] : add_semigroup (Π i : I, f i) :=
@@ -101,6 +104,9 @@ by pi_instance
 
 instance comm_ring [∀ i, comm_ring $ f i] : comm_ring (Π i : I, f i) :=
 by pi_instance
+
+instance has_scalar {α : Type*} [∀ i, has_scalar α $ f i] : has_scalar α (Π i : I, f i) :=
+⟨λ s x, λ i, s • (x i)⟩
 
 @[simp] lemma smul_apply {α : Type*} [∀ i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
 

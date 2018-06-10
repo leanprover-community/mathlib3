@@ -435,6 +435,14 @@ do tgt : expr ← target,
      | _ := none
      end)
 
+meta def source_fields (missing : list (name × name)) (e : pexpr) : tactic (list (name × pexpr)) :=
+do e ← to_expr e,
+   t ← infer_type e,
+   let struct_n : name := t.get_app_fn.const_name,
+   exp_fields ← (∩ missing) <$> expanded_field_list struct_n,
+   exp_fields.mmap $ λ ⟨p,n⟩,
+     (prod.mk n ∘ to_pexpr) <$> mk_mapp (n.update_prefix p) [none,some e]
+
 /-- `refine_struct { .. }` acts like `refine` but works only with structure instance
     literals. It creates a goal for each missing field and tags it with the name of the
     field so that `have_field` can be used to generically refer to the field currently
@@ -459,12 +467,14 @@ do    str ← e.get_structure_instance_info,
       let struct_n : name := tgt.get_app_fn.const_name,
       exp_fields ← expanded_field_list struct_n,
       let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),
+      (src_field_names,src_field_vals) ← (@list.unzip name _ ∘ list.join) <$> str.sources.mmap (source_fields missing_f),
       let provided  := exp_fields.filter (λ f, (f.2 : name) ∈ str.field_names),
-      vs ← mk_mvar_list missing_f.length,
+      let missing_f' := missing_f.filter (λ x, x.2 ∉ src_field_names),
+      vs ← mk_mvar_list missing_f'.length,
       e' ← to_expr $ pexpr.mk_structure_instance
           { struct := some struct_n
-          , field_names  := str.field_names ++ missing_f.map prod.snd
-          , field_values := str.field_values ++ vs.map to_pexpr },
+          , field_names  := str.field_names  ++ missing_f'.map prod.snd ++ src_field_names
+          , field_values := str.field_values ++ vs.map to_pexpr         ++ src_field_vals },
       tactic.exact e',
       gs ← with_enable_tags (
         mmap₂ (λ (n : name × name) v, do
@@ -474,7 +484,7 @@ do    str ← e.get_structure_instance_info,
              <|> apply_opt_param
              <|> (set_main_tag [`_field,n.2,n.1]),
            get_goals)
-        missing_f vs),
+        missing_f' vs),
       set_goals gs.join,
       return ()
 

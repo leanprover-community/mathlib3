@@ -595,7 +595,7 @@ mem_map.2 ⟨_, h, rfl⟩
 quot.induction_on s $ λ l, mem_map_of_inj H
 
 @[simp] theorem map_map (g : β → γ) (f : α → β) (s : multiset α) : map g (map f s) = map (g ∘ f) s :=
-quot.induction_on s $ λ l, congr_arg coe $ map_map _ _ _
+quot.induction_on s $ λ l, congr_arg coe $ list.map_map _ _ _
 
 @[simp] theorem map_id (s : multiset α) : map id s = s :=
 quot.induction_on s $ λ l, congr_arg coe $ map_id _

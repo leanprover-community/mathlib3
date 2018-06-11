@@ -11,6 +11,9 @@ import algebra.group_power tactic.norm_num
 universes u v w
 open tactic
 
+/-- this function is crucial to an efficient representation of polynomials -/
+-- if you're not interested in making ring work _efficiently_ then you 
+-- might be able to ignore this bit
 def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + b
 
 namespace tactic
@@ -57,17 +60,21 @@ meta def normal_form_to_string : expr → string
   | none := to_string e
   end
 
+/-- 0 * x ^ n + b = b  -/
 theorem zero_horner {α} [comm_semiring α] (x n b) :
   @horner α _ 0 x n b = b :=
 by simp [horner]
 
+/-- (a1*x^n1)*x^n2+b=a1*x^(n1+n2)+b -/
 theorem horner_horner {α} [comm_semiring α] (a₁ x n₁ n₂ b n')
   (h : n₁ + n₂ = n') :
   @horner α _ (horner a₁ x n₁ 0) x n₂ b = horner a₁ x n' b :=
 by simp [h.symm, horner, pow_add, mul_assoc]
 
+/-- seems to send e to (e,proof that e = e) -/
 meta def refl_conv (e : expr) : tactic (expr × expr) :=
 do p ← mk_eq_refl e, return (e, p)
+
 
 meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
   tactic (expr × expr) :=

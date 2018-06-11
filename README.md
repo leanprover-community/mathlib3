@@ -12,6 +12,7 @@ Besides [Lean's general documentation](https://leanprover.github.io/documentatio
 * a [style guide](docs/style.md) for contributors
 * a tentative list of [work in progress](docs/wip.md) to make sure
   efforts are not duplicated without collaboration
+* a [guide](docs/elan.md) on installing Lean and mathlib with elan.
 
 This repository also contains [extra Lean documentation](docs/extras.md)
 not specific to mathlib.

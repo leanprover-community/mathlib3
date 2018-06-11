@@ -80,7 +80,7 @@ sub_lt_iff_lt_add.trans lt_add_one_iff
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
-protected lemma induction_on {p : ℤ → Prop}
+@[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀i, p i → p (i + 1)) (hn : ∀i, p i → p (i - 1)) : p i :=
 begin
   induction i,

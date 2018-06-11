@@ -132,6 +132,12 @@ and.imp h id
 theorem and.imp_right (h : a → b) : c ∧ a → c ∧ b :=
 and.imp id h
 
+lemma and.right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b :=
+by simp [and.left_comm, and.comm]
+
+lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
+by simp [and.left_comm, and.comm]
+
 theorem and_not_self_iff (a : Prop) : a ∧ ¬ a ↔ false :=
 iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
 
@@ -219,14 +225,14 @@ by simp [imp_iff_not_or, or.comm, or.left_comm]
 theorem imp_or_distrib' [decidable b] : (a → b ∨ c) ↔ (a → b) ∨ (a → c) :=
 by by_cases b; simp [h, or_iff_right_of_imp ((∘) false.elim)]
 
-theorem not_imp_of_and_not (h : a ∧ ¬ b) : ¬ (a → b) :=
-assume h₁, and.right h (h₁ (and.left h))
+theorem not_imp_of_and_not : a ∧ ¬ b → ¬ (a → b)
+| ⟨ha, hb⟩ h := hb $ h ha
 
 @[simp] theorem not_imp [decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
 ⟨λ h, ⟨of_not_imp h, not_of_not_imp h⟩, not_imp_of_and_not⟩
 
 theorem peirce (a b : Prop) [decidable a] : ((a → b) → a) → a :=
-if ha : a then λ h, ha else λ h, h (λ h', absurd h' ha)
+if ha : a then λ h, ha else λ h, h ha.elim
 
 theorem peirce' {a : Prop} (H : ∀ b : Prop, (a → b) → a) : a := H _ id
 
@@ -239,19 +245,23 @@ by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr not_imp_comm imp_not_c
 theorem iff_not_comm [decidable a] [decidable b] : (a ↔ ¬ b) ↔ (b ↔ ¬ a) :=
 by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm
 
-@[simp] theorem not_and_not_right [decidable a] [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
-not_iff_comm.1 not_imp
+@[simp] theorem not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
+⟨λ h ha, h.imp_symm $ and.intro ha, λ h ⟨ha, hb⟩, hb $ h ha⟩
 
-def decidable_of_iff (a : Prop) (h : a ↔ b) [D : decidable a] : decidable b :=
+@[inline] def decidable_of_iff (a : Prop) (h : a ↔ b) [D : decidable a] : decidable b :=
 decidable_of_decidable_of_iff D h
 
-def decidable_of_iff' (b : Prop) (h : a ↔ b) [D : decidable b] : decidable a :=
+@[inline] def decidable_of_iff' (b : Prop) (h : a ↔ b) [D : decidable b] : decidable a :=
 decidable_of_decidable_of_iff D h.symm
+
+def decidable_of_bool : ∀ (b : bool) (h : b ↔ a), decidable a
+| tt h := is_true (h.1 rfl)
+| ff h := is_false (mt h.2 bool.ff_ne_tt)
 
 /- de morgan's laws -/
 
-theorem not_and_of_not_or_not (h : ¬ a ∨ ¬ b) : ¬ (a ∧ b) :=
-λ ⟨ha, hb⟩, or.elim h (absurd ha) (absurd hb)
+theorem not_and_of_not_or_not (h : ¬ a ∨ ¬ b) : ¬ (a ∧ b)
+| ⟨ha, hb⟩ := or.elim h (absurd ha) (absurd hb)
 
 theorem not_and_distrib [decidable a] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 ⟨λ h, if ha : a then or.inr (λ hb, h ⟨ha, hb⟩) else or.inl ha, not_and_of_not_or_not⟩
@@ -284,9 +294,15 @@ variables {α : Sort*} {a b : α}
 @[simp] theorem heq_iff_eq : a == b ↔ a = b :=
 ⟨eq_of_heq, heq_of_eq⟩
 
+theorem proof_irrel_heq {p q : Prop} (e : p = q) (hp : p) (hq : q) : hp == hq :=
+by subst q; refl
+
 theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
   (h : a ∈ s) : b ∉ s → a ≠ b :=
 mt $ λ e, e ▸ h
+
+theorem eq_equivalence : equivalence (@eq α) :=
+⟨eq.refl, @eq.symm _, @eq.trans _⟩
 
 end equality
 
@@ -374,16 +390,18 @@ by simp [and_comm]
 @[simp] theorem forall_eq {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
 ⟨λ h, h a' rfl, λ h a e, e.symm ▸ h⟩
 
-@[simp] theorem exists_eq {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
+@[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
+
+@[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩
 
 @[simp] theorem exists_eq_right {a' : α} : (∃ a, p a ∧ a = a') ↔ p a' :=
-(exists_congr $ by exact λ a, and.comm).trans exists_eq
+(exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
-@[simp] theorem exists_eq' {a' : α} : (∃ a, a' = a ∧ p a) ↔ p a' :=
+@[simp] theorem exists_eq_left' {a' : α} : (∃ a, a' = a ∧ p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
 @[simp] theorem exists_eq_right' {a' : α} : (∃ a, p a ∧ a' = a) ↔ p a' :=
@@ -407,6 +425,18 @@ theorem Exists.fst {p : b → Prop} : Exists p → b
 
 theorem Exists.snd {p : b → Prop} : ∀ h : Exists p, p h.fst
 | ⟨_, h⟩ := h
+
+@[simp] theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q h') ↔ q h :=
+@forall_const (q h) p ⟨h⟩
+
+@[simp] theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
+@exists_const (q h) p ⟨h⟩
+
+@[simp] theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) : (∀ h' : p, q h') ↔ true :=
+iff_true_intro $ λ h, hn.elim h
+
+@[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
+mt Exists.fst
 
 end quantifiers
 
@@ -440,6 +470,10 @@ noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
 noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
 noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
 noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
+
+@[elab_as_eliminator]
+noncomputable def {u} rec_on {C : Sort u} (h : ∃ a, p a) (H : ∀ a, p a → C) : C :=
+H (classical.some h) (classical.some_spec h)
 
 end classical
 
@@ -534,8 +568,14 @@ variables {α : Type u} {β : Type v} {γ : α → Type w}
 
 attribute [simp] nonempty_of_inhabited
 
+lemma exists_true_iff_nonempty {α : Sort*} : (∃a:α, true) ↔ nonempty α :=
+iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
+
 @[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
 iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)
+
+lemma not_nonempty_iff_imp_false {p : Prop} : ¬ nonempty α ↔ α → false :=
+⟨λ h a, h ⟨a⟩, λ h ⟨a⟩, h a⟩
 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=
 iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)

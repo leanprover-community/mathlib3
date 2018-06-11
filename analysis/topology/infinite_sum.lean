@@ -13,7 +13,7 @@ import logic.function algebra.big_operators data.set data.finset
        analysis.metric_space analysis.topology.topological_structures
 
 noncomputable theory
-open set lattice finset filter function classical
+open lattice finset filter function classical
 local attribute [instance] prop_decidable
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -71,6 +71,14 @@ tendsto_infi' s $ tendsto_cong tendsto_const_nhds $
 lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f :=
 has_sum_spec $ is_sum_sum_of_ne_finset_zero hf
 
+lemma is_sum_ite (b : β) (a : α) : is_sum (λb', if b' = b then a else 0) a :=
+suffices
+  is_sum (λb', if b' = b then a else 0) (({b} : finset β).sum (λb', if b' = b then a else 0)), from
+  by simpa,
+is_sum_sum_of_ne_finset_zero $ assume b' hb,
+  have b' ≠ b, by simpa using hb,
+  by rw [if_neg this]
+
 lemma is_sum_of_iso {j : γ → β} {i : β → γ}
   (hf : is_sum f a) (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) : is_sum (f ∘ j) a :=
 have ∀x y, j x = j y → x = y,
@@ -122,7 +130,7 @@ have u_subset : u ⊆ fsts.sigma snds,
   have hc : c ∈ snds b, from mem_bind.mpr ⟨_, hu, by simp; refl⟩,
   by simp [mem_sigma, hb, hc] ,
 mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
-  have h : ∀cs:(Πb, b ∈ bs → finset (γ b)),
+  have h : ∀cs : Π b ∈ bs, finset (γ b),
       (⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
       (λp, bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩))) ⁻¹' s ≠ ∅,
     from assume cs,
@@ -132,11 +140,11 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     have (bs.sigma cs').sum f ∈ s,
       from hu _ $ finset.subset.trans u_subset $ sigma_mono hbs $
         assume b, @finset.subset_union_right (γ b) _ _ _,
-    ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
+    set.ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
     by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_right] },
   have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
       (⨅b (h : b ∈ bs), at_top.vmap (λp, p b)) (nhds (bs.sum g)),
-    from tendsto_sum $
+    from tendsto_finset_sum bs $
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_vmap.comp (hf c),
   have bs.sum g ∈ s,
     from mem_closure_of_tendsto this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
@@ -147,8 +155,8 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
         assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
         have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
           from infi_le_infi $ assume b, infi_le_infi $ assume hb,
-            le_trans (preimage_mono $ hp' b hb) (hp b hb),
-        neq_bot_of_le_neq_bot (h _) (le_trans (inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
+            le_trans (set.preimage_mono $ hp' b hb) (hp b hb),
+        neq_bot_of_le_neq_bot (h _) (le_trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
   hss' this
 
 lemma has_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
@@ -168,7 +176,7 @@ suffices at_top.map (λs:finset β, s.sum f) ≤ at_top.map (λs:finset γ, s.su
   from le_trans this hf,
 by rw [map_at_top_eq, map_at_top_eq];
 from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
-  by simp [image_subset_iff]; exact hv)
+  by simp [set.image_subset_iff]; exact hv)
 
 lemma is_sum_iff_is_sum
   (h₁ : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ u'.sum g = v'.sum f)
@@ -228,6 +236,9 @@ lemma is_sum_unique : is_sum f a₁ → is_sum f a₂ → a₁ = a₂ := tendsto
 
 lemma tsum_eq_is_sum (ha : is_sum f a) : (∑b, f b) = a := is_sum_unique (is_sum_tsum ⟨a, ha⟩) ha
 
+lemma is_sum_iff_of_has_sum (h : has_sum f) : is_sum f a ↔ (∑b, f b) = a :=
+iff.intro tsum_eq_is_sum (assume eq, eq ▸ is_sum_tsum h)
+
 @[simp] lemma tsum_zero : (∑b:β, 0:α) = 0 := tsum_eq_is_sum is_sum_zero
 
 lemma tsum_add (hf : has_sum f) (hg : has_sum g) : (∑b, f b + g b) = (∑b, f b) + (∑b, g b) :=
@@ -249,6 +260,9 @@ calc (∑b, f b) = (finset.singleton b).sum f : tsum_eq_sum $ by simp [hf] {cont
 lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (h₁ : ∀b, has_sum (λc, f ⟨b, c⟩)) (h₂ : has_sum f) : (∑p, f p) = (∑b c, f ⟨b, c⟩):=
 (tsum_eq_is_sum $ is_sum_sigma (assume b, is_sum_tsum $ h₁ b) $ is_sum_tsum h₂).symm
+
+@[simp] lemma tsum_ite (b : β) (a : α) : (∑b', if b' = b then a else 0) = a :=
+tsum_eq_is_sum (is_sum_ite b a)
 
 lemma tsum_eq_tsum_of_is_sum_iff_is_sum {f : β → α} {g : γ → α}
   (h : ∀{a}, is_sum f a ↔ is_sum g a) : (∑b, f b) = (∑c, g c) :=
@@ -382,8 +396,8 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
   begin
     have h : {p:(α×α)×(α×α)| (p.1.1 - p.1.2, p.2.1 - p.2.2) ∈ s'} ∈ (@uniformity (α × α) _).sets,
       from uniform_continuous_sub' hs',
-    rw [uniformity_prod_eq_prod, mem_map, mem_prod_same_iff] at h,
-    cases h with t ht, cases ht with ht h,
+    rw [uniformity_prod_eq_prod, filter.mem_map, mem_prod_same_iff] at h,
+    rcases h with ⟨t, ht, h⟩,
     exact ⟨t, ht, assume a₁ a₂ a₃ a₄ h₁ h₂, @h ((a₁, a₂), (a₃, a₄)) ⟨h₁, h₂⟩⟩
   end,
   let ⟨s, hs, hss'⟩ := this in
@@ -392,7 +406,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
   have ∃t, ∀u₁ u₂:finset β, t ⊆ u₁ → t ⊆ u₂ → (u₁.sum f, u₂.sum f) ∈ s,
     by simp [cauchy_iff, mem_at_top_sets, and.assoc, and.left_comm, and.comm] at this;
     from let ⟨t, ht, u, hu⟩ := this s hs in
-      ⟨u, assume u₁ u₂ h₁ h₂, ht $ prod_mk_mem_set_prod_eq.mpr ⟨hu _ h₁, hu _ h₂⟩⟩,
+      ⟨u, assume u₁ u₂ h₁ h₂, ht $ set.prod_mk_mem_set_prod_eq.mpr ⟨hu _ h₁, hu _ h₂⟩⟩,
   let ⟨t, ht⟩ := this in
   let d := (t.filter (λb, f' b = 0)).sum f in
   have eq : ∀{u}, t ⊆ u → (t ∪ u.filter (λb, f' b ≠ 0)).sum f - d = u.sum f',

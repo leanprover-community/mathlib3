@@ -120,6 +120,10 @@ lemma prod_hom [comm_monoid γ] (g : β → γ)
   (h₁ : g 1 = 1) (h₂ : ∀x y, g (x * y) = g x * g y) : s.prod (λx, g (f x)) = g (s.prod f) :=
 eq.trans (by rw [h₁]; refl) (fold_hom h₂)
 
+lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
+  ↑(s.sum f) = s.sum (λa, f a : α → β) :=
+(sum_hom _ nat.cast_zero nat.cast_add).symm
+
 @[to_additive finset.sum_subset]
 lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → f x = 1) : s₁.prod f = s₂.prod f :=
 by haveI := classical.dec_eq α; exact
@@ -152,9 +156,9 @@ calc s.prod f = s.attach.prod (λx, f x.val) : prod_attach.symm
 
 @[to_additive finset.sum_bij_ne_zero]
 lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
-  (i : Πa∈s, f a ≠ 1 → γ) (hi₁ : ∀a h₁ h₂, i a h₁ h₂ ∈ t) (hi₂ : ∀a h₁ h₂, g (i a h₁ h₂) ≠ 1)
-  (hi₃ : ∀a₁ a₂ h₁₁ h₁₂ h₂₁ h₂₂, i a₁ h₁₁ h₁₂ = i a₂ h₂₁ h₂₂ → a₁ = a₂)
-  (hi₄ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
+  (i : Πa∈s, f a ≠ 1 → γ) (hi₁ : ∀a h₁ h₂, i a h₁ h₂ ∈ t)
+  (hi₂ : ∀a₁ a₂ h₁₁ h₁₂ h₂₁ h₂₂, i a₁ h₁₁ h₁₂ = i a₂ h₂₁ h₂₂ → a₁ = a₂)
+  (hi₃ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
   (h : ∀a h₁ h₂, f a = g (i a h₁ h₂)) :
   s.prod f = t.prod g :=
 by haveI := classical.prop_decidable; exact
@@ -162,12 +166,13 @@ calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
     (prod_subset (filter_subset _) $ by simp {contextual:=tt}).symm
   ... = (t.filter $ λx, g x ≠ 1).prod g :
     prod_bij (assume a ha, i a (mem_filter.mp ha).1 (mem_filter.mp ha).2)
-      (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr ⟨hi₁ a h₁ h₂, hi₂ a h₁ h₂⟩)
+      (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr
+        ⟨hi₁ a h₁ h₂, λ hg, h₂ (hg ▸ h a h₁ h₂)⟩)
       (assume a ha, (mem_filter.mp ha).elim $ h a)
       (assume a₁ a₂ ha₁ ha₂,
-        (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₃ a₁ a₂ _ _ _ _)
+        (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₂ a₁ a₂ _ _ _ _)
       (assume b hb, (mem_filter.mp hb).elim $ λh₁ h₂,
-        let ⟨a, ha₁, ha₂, eq⟩ := hi₄ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
+        let ⟨a, ha₁, ha₂, eq⟩ := hi₃ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
   ... = t.prod g :
     (prod_subset (filter_subset _) $ by simp {contextual:=tt})
 
@@ -357,3 +362,29 @@ theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (re
 λ l, @is_group_anti_hom.prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
 
 end group
+
+namespace multiset
+variables [decidable_eq α]
+
+@[simp] lemma to_finset_sum_count_eq (s : multiset α) :
+  s.to_finset.sum (λa, s.count a) = s.card :=
+multiset.induction_on s (by simp)
+  (assume a s ih,
+    calc (to_finset (a :: s)).sum (λx, count x (a :: s)) =
+      (to_finset (a :: s)).sum (λx, (if x = a then 1 else 0) + count x s) :
+        by congr; funext x; split_ifs; simp [h, nat.one_add]
+      ... = card (a :: s) :
+      begin
+        by_cases a ∈ s.to_finset,
+        { have : (to_finset s).sum (λx, ite (x = a) 1 0) = ({a}:finset α).sum (λx, ite (x = a) 1 0),
+          { apply (finset.sum_subset _ _).symm,
+            { simp [finset.subset_iff, *] at * },
+            { simp [if_neg] {contextual := tt} } },
+          simp [h, ih, this, finset.sum_add_distrib] },
+        { have : a ∉ s, by simp * at *,
+          have : (to_finset s).sum (λx, ite (x = a) 1 0) = (to_finset s).sum (λx, 0), from
+            finset.sum_congr rfl begin assume a ha, split_ifs; simp [*] at * end,
+          simp [*, finset.sum_add_distrib], }
+      end)
+
+end multiset

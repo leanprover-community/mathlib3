@@ -1,6 +1,6 @@
 # Mathlib tactics #
 
-In addition to [core tactics](https://leanprover.github.io/reference/tactics.html), 
+In addition to [core tactics](https://leanprover.github.io/reference/tactics.html),
 mathlib provides a number of specific interactive tactics and commands.
 Here we document the mostly commonly used ones.
 
@@ -41,7 +41,7 @@ this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
 then after `replace h := f h` the goal will be `h : q ⊢ goal`,
 where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
-of Coq. 
+of Coq.
 
 ### finish/clarify/safe
 
@@ -64,6 +64,18 @@ All accept an optional list of simplifier rules, typically definitions that shou
 Evaluate expressions in the language of (semi-)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
 
+### congr'
+
+Same as the `congr` tactic, but takes an optional argument which gives
+the depth of recursive applications. This is useful when `congr`
+is too aggressive in breaking down the goal. For example, given
+`⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
+and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
+
+### unfold_coes
+
+Unfold coercion-related definitions
+
 ### Instance cache tactics
 
 * `resetI`: Reset the instance cache. This allows any new instances
@@ -73,7 +85,7 @@ Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www
   instances in the context
 
 * `introI`/`introsI`: Like `intro`/`intros`, but uses the introduced variable
-  in typeclass inference. 
+  in typeclass inference.
 
 * `haveI`/`letI`: Used to add typeclasses to the context so that they can
   be used in typeclass inference. The syntax is the same as
@@ -94,3 +106,43 @@ import tactic.find
 #find _ + _ = _ + _
 #find (_ : ℕ) + _ = _ + _
 ```
+
+### solve_by_elim
+
+The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this eventually discharges the main goal.
+```lean
+solve_by_elim `[cc]
+```
+also attempts to discharge the goal using congruence closure before each round of applying assumptions.
+
+### ext1 / ext
+
+ * `ext1 id` selects and apply one extensionality lemma (with
+    attribute `extensionality`), using `id`, if provided, to name a
+    local constant introduced by the lemma. If `id` is omitted, the
+    local constant is named automatically, as per `intro`.
+
+ * `ext` applies as many extensionality lemmas as possible;
+ * `ext ids`, with `ids` a list of identifiers, finds extentionality
+    and applies them until it runs out of identifiers in `ids` to name
+    the local constants.
+
+When trying to prove:
+
+  ```
+  α β : Type,
+  f g : α → set β
+  ⊢ f = g
+  ```
+
+applying `ext x y` yields:
+
+  ```
+  α β : Type,
+  f g : α → set β,
+  x : α,
+  y : β
+  ⊢ y ∈ f x ↔ y ∈ f x
+  ```
+
+by applying functional extensionality and set extensionality.

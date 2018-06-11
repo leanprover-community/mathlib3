@@ -3,7 +3,7 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
-import group_theory.subgroup data.set.basic
+import group_theory.subgroup data.equiv data.quot
 open set function
 
 variable {α : Type*}
@@ -113,47 +113,48 @@ theorem normal_iff_eq_cosets : normal_subgroup s ↔ ∀ g, g *l s = s *r g :=
 
 end coset_subgroup
 
-def left_cosets [group α] (s : set α) : set (set α) := range (λa, a *l s)
+def left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
+⟨λ x y, x⁻¹ * y ∈ s,
+  assume x, by simp [is_submonoid.one_mem],
+  assume x y hxy,
+  have (x⁻¹ * y)⁻¹ ∈ s, from is_subgroup.inv_mem hxy,
+  by simpa using this,
+  assume x y z hxy hyz,
+  have x⁻¹ * y * (y⁻¹ * z) ∈ s, from is_submonoid.mul_mem hxy hyz,
+  by simpa [mul_assoc] using this⟩
+
+def left_cosets [group α] (s : set α) [is_subgroup s] : Type* := quotient (left_rel s)
+
+namespace left_cosets
+local attribute [instance] left_rel
+
+instance [group α] (s : set α) [is_subgroup s] : inhabited (left_cosets s) := ⟨⟦1⟧⟩
+
+lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) : {x | ⟦x⟧ = ⟦g⟧} = left_coset g s :=
+set.ext $ λ z, by simp [eq_comm, mem_left_coset_iff]; refl
+
+end left_cosets
 
 namespace is_subgroup
-open is_submonoid
-variable [group α]
+variables [group α] {s : set α}
 
-lemma subgroup_mem_left_cosets (s : set α) [is_subgroup s] : s ∈ left_cosets s :=
-⟨1, by simp⟩
+def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
+⟨λ x, ⟨g⁻¹ * x.1, (mem_left_coset_iff _).1 x.2⟩,
+ λ x, ⟨g * x.1, x.1, x.2, rfl⟩,
+ λ ⟨x, hx⟩, subtype.eq $ by simp,
+ λ ⟨g, hg⟩, subtype.eq $ by simp⟩
 
-lemma left_cosets_disjoint {s : set α} [is_subgroup s] :
-  ∀{s₁ s₂ : set α}, s₁ ∈ left_cosets s → s₂ ∈ left_cosets s → ∀{a}, a ∈ s₁ → a ∈ s₂ → s₁ = s₂
-| _ _ ⟨a₁, rfl⟩ ⟨a₂, rfl⟩ a h₁ h₂ :=
-  have h₁ : a₁⁻¹ * a ∈ s, by simpa [mem_left_coset_iff] using h₁,
-  have h₂ : a₂⁻¹ * a ∈ s, by simpa [mem_left_coset_iff] using h₂,
-  have a₁⁻¹ * a₂ ∈ s, by simpa [mul_assoc] using mul_mem h₁ (inv_mem h₂),
-  have a₁ *l s = a₁ *l ((a₁⁻¹ * a₂) *l s), by rw [left_coset_mem_left_coset _ this],
-  by simpa
+local attribute [instance] left_rel
 
-lemma pairwise_left_cosets_disjoint {s : set α} (hs : is_subgroup s) :
-  pairwise_on (left_cosets s) disjoint :=
-assume s₁ h₁ s₂ h₂ ne, eq_empty_iff_forall_not_mem.mpr $ assume a ⟨ha₁, ha₂⟩,
-  ne $ left_cosets_disjoint h₁ h₂ ha₁ ha₂
-
-lemma left_cosets_equiv_subgroup {s : set α} (hs : is_subgroup s) :
-  ∀{t : set α}, t ∈ left_cosets s → nonempty (t ≃ s)
-| _ ⟨a, rfl⟩ := ⟨(equiv.set.image ((*) a) s injective_mul).symm⟩
-
-lemma Union_left_cosets_eq_univ {s : set α} (hs : is_subgroup s) : ⋃₀ left_cosets s = univ :=
-eq_univ_of_forall $ assume a, ⟨(*) a '' s, mem_range_self _, ⟨1, hs.one_mem, mul_one _⟩⟩
-
-lemma group_equiv_left_cosets_times_subgroup {s : set α} (hs : is_subgroup s) :
-  nonempty (α ≃ (left_cosets s × s)) :=
-⟨calc α ≃ (@set.univ α) :
-    (equiv.set.univ α).symm
-  ... ≃ (⋃t∈left_cosets s, t) :
-    by rw [←hs.Union_left_cosets_eq_univ]; simp
-  ... ≃ (Σt:left_cosets s, t) :
-    equiv.set.bUnion_eq_sigma_of_disjoint hs.pairwise_left_cosets_disjoint
-  ... ≃ (Σt:left_cosets s, s) :
-    equiv.sigma_congr_right $ λ⟨t, ht⟩, classical.choice $ hs.left_cosets_equiv_subgroup ht
-  ... ≃ (left_cosets s × s) :
-    equiv.sigma_equiv_prod _ _⟩
+noncomputable def group_equiv_left_cosets_times_subgroup (hs : is_subgroup s) :
+  α ≃ (left_cosets s × s) :=
+calc α ≃ Σ L : left_cosets s, {x // ⟦x⟧ = L} :
+  equiv.equiv_fib quotient.mk
+    ... ≃ Σ L : left_cosets s, left_coset (quotient.out L) s :
+  equiv.sigma_congr_right (λ L, by rw ← left_cosets.eq_class_eq_left_coset; simp)
+    ... ≃ Σ L : left_cosets s, s :
+  equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _)
+    ... ≃ (left_cosets s × s) :
+  equiv.sigma_equiv_prod _ _
 
 end is_subgroup

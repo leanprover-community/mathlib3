@@ -20,7 +20,7 @@ coinductive wseq (α : Type u) : Type u
   involve an indeterminate amount of computation, including possibly
   an infinite loop. This is represented as a regular `seq` interspersed
   with `none` elements to indicate that computation is ongoing.
- 
+
   This model is appropriate for Haskell style lazy lists, and is closed
   under most interesting computation patterns on infinite lists,
   but conversely it is difficult to extract elements from it. -/
@@ -411,13 +411,13 @@ by rwa [lift_rel.swap, show function.swap R = R, from
 theorem lift_rel.trans (R : α → α → Prop) (H : transitive R) : transitive (lift_rel R) :=
 λ s t u h1 h2, begin
   refine ⟨λ s u, ∃ t, lift_rel R s t ∧ lift_rel R t u, ⟨t, h1, h2⟩, λ s u h, _⟩,
-  cases h with t h, cases h with h1 h2,
+  rcases h with ⟨t, h1, h2⟩,
   have h1 := lift_rel_destruct h1,
   have h2 := lift_rel_destruct h2,
   refine computation.lift_rel_def.2
     ⟨(computation.terminates_of_lift_rel h1).trans
      (computation.terminates_of_lift_rel h2), λ a c ha hc, _⟩,
-  cases h1.left ha with b hb, cases hb with hb t1,
+  rcases h1.left ha with ⟨b, hb, t1⟩,
   have t2 := computation.rel_of_lift_rel h2 hb hc,
   cases a with a; cases c with c,
   { trivial },
@@ -577,7 +577,7 @@ theorem head_terminates_of_head_tail_terminates (s : wseq α) [T : terminates (h
 (head_terminates_iff _).2 $ begin
   cases (head_terminates_iff _).1 T with a h,
   simp [tail] at h,
-  cases exists_of_mem_bind h with s' h1, cases h1 with h1 h2,
+  rcases exists_of_mem_bind h with ⟨s', h1, h2⟩,
   unfold functor.map at h1,
   exact let ⟨t, h3, h4⟩ := exists_of_mem_map h1 in terminates_of_mem h3
 end
@@ -586,8 +586,8 @@ theorem destruct_some_of_destruct_tail_some {s : wseq α} {a}
   (h : some a ∈ destruct (tail s)) : ∃ a', some a' ∈ destruct s :=
 begin
   unfold tail functor.map at h, simp at h,
-  cases exists_of_mem_bind h with t ht, cases ht with tm td, clear h,
-  cases exists_of_mem_map tm with t' ht', cases ht' with ht' ht2, clear tm,
+  rcases exists_of_mem_bind h with ⟨t, tm, td⟩, clear h,
+  rcases exists_of_mem_map tm with ⟨t', ht', ht2⟩, clear tm,
   cases t' with t'; rw ←ht2 at td; simp at td,
   { have := mem_unique td (ret_mem _), contradiction },
   { exact ⟨_, ht'⟩ }
@@ -597,7 +597,7 @@ theorem head_some_of_head_tail_some {s : wseq α} {a}
   (h : some a ∈ head (tail s)) : ∃ a', some a' ∈ head s :=
 begin
   unfold head at h,
-  cases exists_of_mem_map h with o ho, cases ho with md e, clear h,
+  rcases exists_of_mem_map h with ⟨o, md, e⟩, clear h,
   cases o with o; injection e with h', clear e h',
   cases destruct_some_of_destruct_tail_some md with a am,
   exact ⟨_, mem_map ((<$>) (@prod.fst α (wseq α))) am⟩
@@ -704,7 +704,7 @@ theorem mem_of_mem_dropn {s : wseq α} {a} : ∀ {n}, a ∈ drop s n → a ∈ s
 theorem nth_mem {s : wseq α} {a n} : some a ∈ nth s n → a ∈ s :=
 begin
   revert s, induction n with n IH; intros s h,
-  { cases exists_of_mem_map h with o h, cases h with h1 h2,
+  { rcases exists_of_mem_map h with ⟨o, h1, h2⟩,
     cases o with o; injection h2 with h',
     cases o with a' s',
     exact (eq_or_mem_iff_mem h1).2 (or.inl h'.symm) },
@@ -800,10 +800,10 @@ suffices ∀ {s t : wseq α}, s ~ t → ∀ {o}, o ∈ head s → o ∈ head t, 
 λ s t h o, ⟨this h, this h.symm⟩,
 begin
   intros s t h o ho,
-  cases @computation.exists_of_mem_map _ _ _ _ (destruct s) ho with ds dsm,
-  cases dsm with dsm dse, rw ←dse,
+  rcases @computation.exists_of_mem_map _ _ _ _ (destruct s) ho with ⟨ds, dsm, dse⟩,
+  rw ←dse,
   cases destruct_congr h with l r,
-  cases l dsm with dt dtm, cases dtm with dtm dst,
+  rcases l dsm with ⟨dt, dtm, dst⟩,
   cases ds with a; cases dt with b,
   { apply mem_map _ dtm },
   { cases b, cases dst },
@@ -887,7 +887,7 @@ begin
       c1 = corec length._match_2 (l.length, s) ∧
       c2 = computation.map list.length (corec to_list._match_2 (l, s)))
     _ ⟨[], s, rfl, rfl⟩,
-  intros s1 s2 h, cases h with l h, cases h with s h, rw [h.left, h.right],
+  intros s1 s2 h, rcases h with ⟨l, s, h⟩, rw [h.left, h.right],
   apply s.cases_on _ (λ a s, _) (λ s, _);
     repeat {simp [to_list, nil, cons, think, length]},
   { refine ⟨a::l, s, _, _⟩; simp },
@@ -924,7 +924,7 @@ begin
       c1 = corec to_list._match_2 (l' ++ l, s) ∧
       c2 = computation.map ((++) l.reverse) (corec to_list._match_2 (l', s)))
     _ ⟨[], s, rfl, rfl⟩,
-  intros s1 s2 h, cases h with l' h, cases h with s h, rw [h.left, h.right],
+  intros s1 s2 h, rcases h with ⟨l', s, h⟩, rw [h.left, h.right],
   apply s.cases_on _ (λ a s, _) (λ s, _);
     repeat {simp [to_list, nil, cons, think, length]},
   { refine ⟨a::l', s, _, _⟩; simp },
@@ -948,7 +948,7 @@ destruct_eq_ret $ begin
   rw [show seq.nth (some <$> s) 0 = some <$> seq.nth s 0, by apply seq.map_nth],
   cases seq.nth s 0 with a, { refl },
   unfold functor.map,
-  simp [option.map, option.bind, destruct]
+  simp [destruct]
 end
 
 @[simp] theorem head_of_seq (s : seq α) : head (of_seq s) = return s.head :=
@@ -1083,7 +1083,7 @@ theorem destruct_append (s t : wseq α) :
 begin
   apply eq_of_bisim (λ c1 c2, ∃ s t, c1 = destruct (append s t) ∧
     c2 = (destruct s).bind (destruct_append.aux t)) _ ⟨s, t, rfl, rfl⟩,
-  intros c1 c2 h, cases h with s h, cases h with t h, rw [h.left, h.right],
+  intros c1 c2 h, rcases h with ⟨s, t, h⟩, rw [h.left, h.right],
   apply s.cases_on _ (λ a s, _) (λ s, _); simp; simp,
   { apply t.cases_on _ (λ b t, _) (λ t, _); simp; simp,
     { refine ⟨nil, t, _, _⟩; simp } },

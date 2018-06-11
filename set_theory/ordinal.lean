@@ -205,7 +205,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
   { refine @is_extensional.ext _ s _ _ _ (λ x, _),
     simp [f.down, g.down, ef] },
   cases f, cases g, simp at ef et,
-  congr; [apply order_embedding.eq_of_to_fun_eq, skip]; assumption
+  have := order_embedding.eq_of_to_fun_eq ef; congr'
 end⟩
 
 theorem top_eq [is_well_order β s] [is_well_order γ t]
@@ -372,7 +372,7 @@ private lemma R_ex {s : partial_wo} (sc : s ∈ c)
   | or.inl hr@⟨f, hf⟩ := begin
       rw [← show (f ⟨b, hb⟩) = ⟨(subtype.mk b bu).val, bt⟩, from
         subtype.eq (hf _)] at h,
-      rcases f.init_iff.1 h with ⟨a', e, h'⟩, cases a' with a' ha,
+      rcases f.init_iff.1 h with ⟨⟨a', ha⟩, e, h'⟩,
       have : a' = a,
       { have := congr_arg subtype.val e, rwa hf at this },
       subst a', exact ⟨_, h'⟩
@@ -1412,8 +1412,8 @@ instance : monoid ordinal.{u} :=
   one := 1,
   mul_assoc := λ a b c, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
     eq.symm $ quotient.sound ⟨⟨equiv.prod_assoc _ _ _, λ a b, begin
-      cases a with a a₃, cases a with a₁ a₂,
-      cases b with b b₃, cases b with b₁ b₂,
+      rcases a with ⟨⟨a₁, a₂⟩, a₃⟩,
+      rcases b with ⟨⟨b₁, b₂⟩, b₃⟩,
       simp [prod.lex_def, and_or_distrib_left, or_assoc, and_assoc]
     end⟩⟩,
   mul_one := λ a, induction_on a $ λ α r _, by exact quotient.sound
@@ -1499,7 +1499,7 @@ induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
     (typein_lt_type _ a)) this,
   refine lt_of_le_of_lt (type_le'.2
     ⟨order_embedding.of_monotone (λ a, _) (λ a b, _)⟩) this,
-  { rcases a with ⟨a, h⟩, cases a with b' a',
+  { rcases a with ⟨⟨b', a'⟩, h⟩,
     by_cases e : b = b',
     { refine sum.inr ⟨a', _⟩,
       subst e, cases h with _ _ _ _ h _ _ _ h,
@@ -1508,8 +1508,8 @@ induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
     { refine sum.inl (⟨b', _⟩, a'),
       cases h with _ _ _ _ h _ _ _ h,
       { exact h }, { exact (e rfl).elim } } },
-  { rcases a with ⟨a, h₁⟩, cases a with b₁ a₁,
-    rcases b with ⟨b, h₂⟩, cases b with b₂ a₂,
+  { rcases a with ⟨⟨b₁, a₁⟩, h₁⟩,
+    rcases b with ⟨⟨b₂, a₂⟩, h₂⟩,
     intro h, by_cases e₁ : b = b₁; by_cases e₂ : b = b₂,
     { substs b₁ b₂, simpa [prod.lex_def, @irrefl _ s _ b] using h },
     { subst b₁, simp [e₂, prod.lex_def] at h ⊢,
@@ -1595,7 +1595,7 @@ begin
   apply limit_rec_on a,
   { simp [zero_le] },
   { intros, rw [succ_le, lt_div c0] },
-  { simp [mul_le_of_limit, limit_le] {contextual := tt} }
+  { simp [mul_le_of_limit, limit_le, -not_lt] {contextual := tt} }
 end
 
 theorem div_lt {a b c : ordinal} (b0 : b ≠ 0) :
@@ -2556,20 +2556,20 @@ by rw [list.sorted, list.pairwise_map]; exact CNF_pairwise b o
 /-- The next fixed point function, the least fixed point of the
   normal function `f` above `a`. -/
 def nfp (f : ordinal → ordinal) (a : ordinal) :=
-sup (λ n : ℕ, n.foldr f a)
+sup (λ n : ℕ, f^[n] a)
 
-theorem foldr_le_nfp (f a n) : nat.foldr f a n ≤ nfp f a :=
+theorem iterate_le_nfp (f a n) : f^[n] a ≤ nfp f a :=
 le_sup _ n
 
 theorem le_nfp_self (f a) : a ≤ nfp f a :=
-foldr_le_nfp f a 0
+iterate_le_nfp f a 0
 
 theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} :
   f b < nfp f a ↔ b < nfp f a :=
 lt_sup.trans $ iff.trans
   (by exact
    ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.le_self _) h⟩,
-    λ ⟨n, h⟩, ⟨n+1, H.lt_iff.2 h⟩⟩)
+    λ ⟨n, h⟩, ⟨n+1, by rw nat.iterate_succ'; exact H.lt_iff.2 h⟩⟩)
   lt_sup.symm
 
 theorem is_normal.nfp_le {f} (H : is_normal f) {a b} :
@@ -2579,8 +2579,8 @@ le_iff_le_iff_lt_iff_lt.2 H.lt_nfp
 theorem is_normal.nfp_le_fp {f} (H : is_normal f) {a b}
   (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
 sup_le.2 $ λ i, begin
-  induction i with i IH, {exact ab},
-  exact le_trans (H.le_iff.2 IH) h
+  induction i with i IH generalizing a, {exact ab},
+  exact IH (le_trans (H.le_iff.2 ab) h),
 end
 
 theorem is_normal.nfp_fp {f} (H : is_normal f) (a) : f (nfp f a) = nfp f a :=
@@ -2589,13 +2589,13 @@ begin
   cases le_or_lt (f a) a with aa aa,
   { rwa le_antisymm (H.nfp_le_fp (le_refl _) aa) (le_nfp_self _ _) },
   rcases zero_or_succ_or_limit (nfp f a) with e|⟨b, e⟩|l,
-  { refine @le_trans _ _ _ (f a) _ (H.le_iff.2 _) (foldr_le_nfp f a 1),
+  { refine @le_trans _ _ _ (f a) _ (H.le_iff.2 _) (iterate_le_nfp f a 1),
     simp [e, zero_le] },
   { have : f b < nfp f a := H.lt_nfp.2 (by simp [e, lt_succ_self]),
     rw [e, lt_succ] at this,
     have ab : a ≤ b,
     { rw [← lt_succ, ← e],
-      exact lt_of_lt_of_le aa (foldr_le_nfp f a 1) },
+      exact lt_of_lt_of_le aa (iterate_le_nfp f a 1) },
     refine le_trans (H.le_iff.2 (H.nfp_le_fp ab this))
       (le_trans this (le_of_lt _)),
     simp [e, lt_succ_self] },

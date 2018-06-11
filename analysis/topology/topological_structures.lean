@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 
 Theory of topological monoids, groups and rings.
+
+TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups, or add a type class
+`topological_operator α (*)`.
 -/
 
 import algebra.big_operators
-  analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
+import order.liminf_limsup
+import analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable
@@ -21,6 +25,76 @@ classical.or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
+section topological_monoid
+
+/-- A topological monoid is a monoid in which the multiplication is continuous as a function
+`α × α → α`. -/
+class topological_monoid (α : Type u) [topological_space α] [monoid α] : Prop :=
+(continuous_mul : continuous (λp:α×α, p.1 * p.2))
+
+section
+variables [topological_space α] [monoid α] [topological_monoid α]
+
+lemma continuous_mul' : continuous (λp:α×α, p.1 * p.2) :=
+topological_monoid.continuous_mul α
+
+lemma continuous_mul [topological_space β] {f : β → α} {g : β → α}
+  (hf : continuous f) (hg : continuous g) :
+  continuous (λx, f x * g x) :=
+(hf.prod_mk hg).comp continuous_mul'
+
+lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)) :=
+continuous_iff_tendsto.mp (topological_monoid.continuous_mul α) (a, b)
+
+lemma tendsto_mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
+  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
+  tendsto (λx, f x * g x) x (nhds (a * b)) :=
+(hf.prod_mk hg).comp (by rw [←nhds_prod_eq]; exact tendsto_mul')
+
+lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
+  ∀l:list γ, (∀c∈l, tendsto (f c) x (nhds (a c))) →
+    tendsto (λb, (l.map (λc, f c b)).prod) x (nhds ((l.map a).prod))
+| []       _ := by simp [tendsto_const_nhds]
+| (f :: l) h :=
+  begin
+    simp,
+    exact tendsto_mul
+      (h f (list.mem_cons_self _ _))
+      (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
+  end
+
+lemma continuous_list_prod [topological_space β] {f : γ → β → α} (l : list γ)
+  (h : ∀c∈l, continuous (f c)) :
+  continuous (λa, (l.map (λc, f c a)).prod) :=
+continuous_iff_tendsto.2 $ assume x, tendsto_list_prod l $ assume c hc,
+  continuous_iff_tendsto.1 (h c hc) x
+
+end
+
+section
+variables [topological_space α] [comm_monoid α] [topological_monoid α]
+
+lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
+  (∀c∈s, tendsto (f c) x (nhds (a c))) →
+    tendsto (λb, (s.map (λc, f c b)).prod) x (nhds ((s.map a).prod)) :=
+quot.induction_on s $ by simp; exact tendsto_list_prod
+
+lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
+  (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.prod (λc, f c b)) x (nhds (s.prod a)) :=
+tendsto_multiset_prod _
+
+lemma continuous_multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :
+  (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).prod) :=
+quot.induction_on s $ by simp; exact continuous_list_prod
+
+lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
+  (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
+continuous_multiset_prod _
+
+end
+
+end topological_monoid
+
 section topological_add_monoid
 
 /-- A topological (additive) monoid is a monoid in which the addition is
@@ -29,34 +103,63 @@ class topological_add_monoid (α : Type u) [topological_space α] [add_monoid α
 (continuous_add : continuous (λp:α×α, p.1 + p.2))
 
 section
-variables [topological_space α] [add_monoid α]
+variables [topological_space α] [add_monoid α] [topological_add_monoid α]
 
-lemma continuous_add' [topological_add_monoid α] : continuous (λp:α×α, p.1 + p.2) :=
+lemma continuous_add' : continuous (λp:α×α, p.1 + p.2) :=
 topological_add_monoid.continuous_add α
 
-lemma continuous_add [topological_add_monoid α] [topological_space β] {f : β → α} {g : β → α}
+lemma continuous_add [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x + g x) :=
 (hf.prod_mk hg).comp continuous_add'
 
-lemma tendsto_add' [topological_add_monoid α] {a b : α} :
-  tendsto (λp:α×α, p.fst + p.snd) (nhds (a, b)) (nhds (a + b)) :=
+lemma tendsto_add' {a b : α} : tendsto (λp:α×α, p.fst + p.snd) (nhds (a, b)) (nhds (a + b)) :=
 continuous_iff_tendsto.mp (topological_add_monoid.continuous_add α) (a, b)
 
-lemma tendsto_add [topological_add_monoid α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x + g x) x (nhds (a + b)) :=
+lemma tendsto_add {f : β → α} {g : β → α} {x : filter β} {a b : α}
+  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
+  tendsto (λx, f x + g x) x (nhds (a + b)) :=
 (hf.prod_mk hg).comp (by rw [←nhds_prod_eq]; exact tendsto_add')
+
+lemma tendsto_list_sum {f : γ → β → α} {x : filter β} {a : γ → α} :
+  ∀l:list γ, (∀c∈l, tendsto (f c) x (nhds (a c))) →
+    tendsto (λb, (l.map (λc, f c b)).sum) x (nhds ((l.map a).sum))
+| []       _ := by simp [tendsto_const_nhds]
+| (f :: l) h :=
+  begin
+    simp,
+    exact tendsto_add
+      (h f (list.mem_cons_self _ _))
+      (tendsto_list_sum l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
+  end
+
+lemma continuous_list_sum [topological_space β] {f : γ → β → α} (l : list γ)
+  (h : ∀c∈l, continuous (f c)) : continuous (λa, (l.map (λc, f c a)).sum) :=
+continuous_iff_tendsto.2 $ assume x, tendsto_list_sum l $ assume c hc,
+  continuous_iff_tendsto.1 (h c hc) x
+
 end
 
 section
-variables [topological_space α] [add_comm_monoid α]
+variables [topological_space α] [add_comm_monoid α] [topological_add_monoid α]
 
-lemma tendsto_sum [topological_add_monoid α] {f : γ → β → α} {x : filter β} {a : γ → α} {s : finset γ} :
+lemma tendsto_multiset_sum {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
+  (∀c∈s, tendsto (f c) x (nhds (a c))) →
+    tendsto (λb, (s.map (λc, f c b)).sum) x (nhds ((s.map a).sum)) :=
+quot.induction_on s $ by simp; exact tendsto_list_sum
+
+lemma tendsto_finset_sum {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.sum (λc, f c b)) x (nhds (s.sum a)) :=
-finset.induction_on s (by simp; exact tendsto_const_nhds) $ assume b s,
-  by simp [or_imp_distrib, forall_and_distrib, tendsto_add] {contextual := tt}
+tendsto_multiset_sum _
+
+lemma continuous_multiset_sum [topological_space β] {f : γ → β → α} (s : multiset γ) :
+  (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).sum) :=
+quot.induction_on s $ by simp; exact continuous_list_sum
+
+lemma continuous_finset_sum [topological_space β] {f : γ → β → α} (s : finset γ) :
+  (∀c∈s, continuous (f c)) → continuous (λa, s.sum (λc, f c a)) :=
+continuous_multiset_sum _
 
 end
-
 end topological_add_monoid
 
 section topological_add_group
@@ -136,30 +239,13 @@ instance uniform_add_group.to_topological_add_group [uniform_add_group α] : top
 
 end uniform_add_group
 
-section topological_semiring
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
 class topological_semiring (α : Type u) [topological_space α] [semiring α]
-  extends topological_add_monoid α : Prop :=
-(continuous_mul : continuous (λp:α×α, p.1 * p.2))
-
-variables [topological_space α] [semiring α]
-
-lemma continuous_mul [topological_semiring α] [topological_space β] {f : β → α} {g : β → α}
-  (hf : continuous f) (hg : continuous g) : continuous (λx, f x * g x) :=
-(hf.prod_mk hg).comp (topological_semiring.continuous_mul α)
-
-lemma tendsto_mul [topological_semiring α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x * g x) x (nhds (a * b)) :=
-have tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)),
-  from continuous_iff_tendsto.mp (topological_semiring.continuous_mul α) (a, b),
-(hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
-
-end topological_semiring
+  extends topological_add_monoid α, topological_monoid α : Prop
 
 /-- A topological ring is a ring where the ring operations are continuous. -/
 class topological_ring (α : Type u) [topological_space α] [ring α]
-  extends topological_add_monoid α : Prop :=
-(continuous_mul : continuous (λp:α×α, p.1 * p.2))
+  extends topological_add_monoid α, topological_monoid α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
 instance topological_ring.to_topological_semiring
@@ -483,7 +569,7 @@ iff.intro
   (assume hs, by rw [this] at hs; from infi_sets_induct hs
     ⟨l, u, hl', hu', by simp⟩
     begin
-      intro p, cases p with p₁ p₂, cases p₁ with l hl, cases p₂ with u hu,
+      intro p, rcases p with ⟨⟨l, hl⟩, ⟨u, hu⟩⟩,
       simp [set.subset_def],
       intros s₁ s₂ hs₁ l' hl' u' hu' hs₂,
       refine ⟨max l l', _, min u u', _⟩;
@@ -740,6 +826,121 @@ and.intro
 
 end order_topology
 
+section liminf_limsup
+
+section ordered_topology
+variables [semilattice_sup α] [topological_space α] [orderable_topology α]
+
+lemma is_bounded_le_nhds (a : α) : (nhds a).is_bounded (≤) :=
+match forall_le_or_exists_lt_sup a with
+| or.inl h := ⟨a, univ_mem_sets' h⟩
+| or.inr ⟨b, hb⟩ := ⟨b, ge_mem_nhds hb⟩
+end
+
+lemma is_bounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
+  (h : tendsto u f (nhds a)) : f.is_bounded_under (≤) u :=
+is_bounded_of_le h (is_bounded_le_nhds a)
+
+lemma is_cobounded_ge_nhds (a : α) : (nhds a).is_cobounded (≥) :=
+is_cobounded_of_is_bounded nhds_neq_bot (is_bounded_le_nhds a)
+
+lemma is_cobounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
+  (hf : f ≠ ⊥) (h : tendsto u f (nhds a)) : f.is_cobounded_under (≥) u :=
+is_cobounded_of_is_bounded (map_ne_bot hf) (is_bounded_under_le_of_tendsto h)
+
+end ordered_topology
+
+section ordered_topology
+variables [semilattice_inf α] [topological_space α] [orderable_topology α]
+
+lemma is_bounded_ge_nhds (a : α) : (nhds a).is_bounded (≥) :=
+match forall_le_or_exists_lt_inf a with
+| or.inl h := ⟨a, univ_mem_sets' h⟩
+| or.inr ⟨b, hb⟩ := ⟨b, le_mem_nhds hb⟩
+end
+
+lemma is_bounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
+  (h : tendsto u f (nhds a)) : f.is_bounded_under (≥) u :=
+is_bounded_of_le h (is_bounded_ge_nhds a)
+
+lemma is_cobounded_le_nhds (a : α) : (nhds a).is_cobounded (≤) :=
+is_cobounded_of_is_bounded nhds_neq_bot (is_bounded_ge_nhds a)
+
+lemma is_cobounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
+  (hf : f ≠ ⊥) (h : tendsto u f (nhds a)) : f.is_cobounded_under (≤) u :=
+is_cobounded_of_is_bounded (map_ne_bot hf) (is_bounded_under_ge_of_tendsto h)
+
+end ordered_topology
+
+section conditionally_complete_linear_order
+variables [conditionally_complete_linear_order α] [topological_space α] [orderable_topology α]
+
+theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l : f.Limsup < b) :
+  {a | a < b} ∈ f.sets :=
+let ⟨c, (h : {a : α | a ≤ c} ∈ f.sets), hcb⟩ :=
+  exists_lt_of_cInf_lt (ne_empty_iff_exists_mem.2 h) l in
+f.upwards_sets h $ assume a hac, lt_of_le_of_lt hac hcb
+
+theorem gt_mem_sets_of_Liminf_gt {f : filter α} {b} (h : f.is_bounded (≥)) (l : f.Liminf > b) :
+  {a | a > b} ∈ f.sets :=
+let ⟨c, (h : {a : α | c ≤ a} ∈ f.sets), hbc⟩ :=
+  exists_lt_of_lt_cSup (ne_empty_iff_exists_mem.2 h) l in
+f.upwards_sets h $ assume a hca, lt_of_lt_of_le hbc hca
+
+/-- If the liminf and the limsup of a filter coincide, then this filter converges to
+their common value, at least if the filter is eventually bounded above and below. -/
+theorem le_nhds_of_Limsup_eq_Liminf {f : filter α} {a : α}
+  (hl : f.is_bounded (≤)) (hg : f.is_bounded (≥)) (hs : f.Limsup = a) (hi : f.Liminf = a) :
+  f ≤ nhds a :=
+tendsto_orderable.2 $ and.intro
+  (assume b hb, gt_mem_sets_of_Liminf_gt hg $ hi.symm ▸ hb)
+  (assume b hb, lt_mem_sets_of_Limsup_lt hl $ hs.symm ▸ hb)
+
+theorem Limsup_nhds (a : α) : Limsup (nhds a) = a :=
+cInf_intro (ne_empty_iff_exists_mem.2 $ is_bounded_le_nhds a)
+  (assume a' (h : {n : α | n ≤ a'} ∈ (nhds a).sets), show a ≤ a', from @mem_of_nhds α _ a _ h)
+  (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ (nhds a).sets), c < b, from
+    match dense_or_discrete hba with
+    | or.inl ⟨c, hac, hcb⟩ := ⟨c, ge_mem_nhds hac, hcb⟩
+    | or.inr ⟨_, h⟩        := ⟨a, (nhds a).upwards_sets (gt_mem_nhds hba) h, hba⟩
+    end)
+
+theorem Liminf_nhds (a : α) : Liminf (nhds a) = a :=
+cSup_intro (ne_empty_iff_exists_mem.2 $ is_bounded_ge_nhds a)
+  (assume a' (h : {n : α | a' ≤ n} ∈ (nhds a).sets), show a' ≤ a, from mem_of_nhds h)
+  (assume b (hba : b < a), show ∃c (h : {n : α | c ≤ n} ∈ (nhds a).sets), b < c, from
+    match dense_or_discrete hba with
+    | or.inl ⟨c, hbc, hca⟩ := ⟨c, le_mem_nhds hca, hbc⟩
+    | or.inr ⟨h, _⟩        := ⟨a, (nhds a).upwards_sets (lt_mem_nhds hba) h, hba⟩
+    end)
+
+/-- If a filter is converging, its limsup coincides with its limit. -/
+theorem Liminf_eq_of_le_nhds {f : filter α} {a : α} (hf : f ≠ ⊥) (h : f ≤ nhds a) : f.Liminf = a :=
+have hb_ge : is_bounded (≥) f, from is_bounded_of_le h (is_bounded_ge_nhds a),
+have hb_le : is_bounded (≤) f, from is_bounded_of_le h (is_bounded_le_nhds a),
+le_antisymm
+  (calc f.Liminf ≤ f.Limsup : Liminf_le_Limsup hf hb_le hb_ge
+    ... ≤ (nhds a).Limsup :
+      Limsup_le_Limsup_of_le h (is_cobounded_of_is_bounded hf hb_ge) (is_bounded_le_nhds a)
+    ... = a : Limsup_nhds a)
+  (calc a = (nhds a).Liminf : (Liminf_nhds a).symm
+    ... ≤ f.Liminf :
+      Liminf_le_Liminf_of_le h (is_bounded_ge_nhds a) (is_cobounded_of_is_bounded hf hb_le))
+
+/-- If a filter is converging, its liminf coincides with its limit. -/
+theorem Limsup_eq_of_le_nhds {f : filter α} {a : α} (hf : f ≠ ⊥) (h : f ≤ nhds a) : f.Limsup = a :=
+have hb_ge : is_bounded (≥) f, from is_bounded_of_le h (is_bounded_ge_nhds a),
+le_antisymm
+  (calc f.Limsup ≤ (nhds a).Limsup :
+    Limsup_le_Limsup_of_le h (is_cobounded_of_is_bounded hf hb_ge) (is_bounded_le_nhds a)
+    ... = a : Limsup_nhds a)
+  (calc a = f.Liminf : (Liminf_eq_of_le_nhds hf h).symm
+    ... ≤ f.Limsup : Liminf_le_Limsup hf (is_bounded_of_le h (is_bounded_le_nhds a)) hb_ge)
+
+end conditionally_complete_linear_order
+
+end liminf_limsup
+
 end orderable_topology
 
 lemma orderable_topology_of_nhds_abs
@@ -765,7 +966,7 @@ begin
   { have h : {b | abs (a + -b) < r} = {b | a - r < b} ∩ {b | b < a + r},
       from set.ext (assume b,
         by simp [abs_lt, -sub_eq_add_neg, (sub_eq_add_neg _ _).symm,
-          sub_lt, lt_sub_iff, and_comm, sub_lt_iff_lt_add']),
+          sub_lt, lt_sub_iff_add_lt, and_comm, sub_lt_iff_lt_add']),
     rw [h, ← inf_principal],
     apply le_inf _ _,
     { exact infi_le_of_le {b : α | a - r < b} (infi_le_of_le (sub_lt_self a hr) $

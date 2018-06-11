@@ -52,7 +52,7 @@ def to_string : onote → string
 def repr' : onote → string
 | zero := "0"
 | (oadd e n a) := "(oadd " ++ repr' e ++ " " ++ _root_.to_string (n:ℕ) ++ " " ++ repr' a ++ ")"
-  
+
 instance : has_to_string onote := ⟨to_string⟩
 instance : has_repr onote := ⟨repr'⟩
 
@@ -127,7 +127,7 @@ inductive NF_below : onote → ordinal.{0} → Prop
      ω ^ a₁ * n₁ + ω ^ a₂ * n₂ + ... ω ^ aₖ * nₖ
   where `a₁ > a₂ > ... > aₖ` and all the `aᵢ` are
   also in normal form.
-  
+
   We will essentially only be interested in normal form
   ordinal notations, but to avoid complicating the algorithms
   we define everything over general ordinal notations and
@@ -268,7 +268,7 @@ theorem NF.of_dvd_omega_power {b e n a} (h : NF (oadd e n a)) (d : ω ^ b ∣ re
   b ≤ repr e ∧ ω ^ b ∣ repr a :=
 begin
   have := mt repr_inj.1 (λ h, by injection h : oadd e n a ≠ 0),
-  have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),  
+  have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),
   simp at d,
   exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd _ $ power_dvd_power _ L).1 d⟩
 end
@@ -480,7 +480,7 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
     rw [← nat_cast_succ x, add_mul_succ _ ao, mul_assoc] },
   { haveI := h₁.fst, haveI := h₂.fst,
     simp [IH, repr_add, power_add, ordinal.mul_add],
-    rw ← mul_assoc, congr_n 2,
+    rw ← mul_assoc, congr' 2,
     have := mt repr_inj.1 e0,
     rw [add_mul_limit ao (power_is_limit_left omega_is_limit this),
         mul_assoc, mul_omega_dvd (nat_cast_pos.2 n₁.pos) (nat_lt_omega _)],
@@ -536,7 +536,7 @@ instance : has_pow onote onote := ⟨power⟩
 
 theorem power_def (o₁ o₂ : onote) : o₁ ^ o₂ = power._match_1 o₂ (split o₁) := rfl
 
-theorem split_eq_scale_split' : ∀ {o o' m} [NF o], split' o = (o', m) → split o = (scale 1 o', m)  
+theorem split_eq_scale_split' : ∀ {o o' m} [NF o], split' o = (o', m) → split o = (scale 1 o', m)
 | 0            o' m h p := by injection p; substs o' m; refl
 | (oadd e n a) o' m h p := begin
   by_cases e0 : e = 0; simp [e0, split, split'] at p ⊢,
@@ -720,7 +720,7 @@ begin
       = ω0 ^ succ k * α' + (ω0 ^ k * α' * m + R) : by rw [nat_cast_succ, RR, ← mul_assoc]
   ... = (ω0 ^ k * α' + R) * α' + (ω0 ^ k * α' + R) * m : _
   ... = (α' + m) ^ succ k.succ : by rw [← ordinal.mul_add, ← nat_cast_succ, power_succ, IH.2],
-  congr_n 1,
+  congr' 1,
   { have αd : ω ∣ α' := dvd_add (dvd_mul_of_dvd _
       (by simpa using power_dvd_power ω (one_le_iff_ne_zero.2 e0))) d,
     rw [ordinal.mul_add (ω0 ^ k), add_assoc, ← mul_assoc, ← power_succ,
@@ -767,7 +767,7 @@ begin
     { simp [power, r₂, power_mul, repr_power_aux₁ a00 al aa] },
     { simp [succ_eq_add_one, power, r₂, power_add, power_mul, mul_assoc],
       rw [repr_power_aux₁ a00 al aa, scale_power_aux], simp [power_mul],
-      rw [← ordinal.mul_add, ← add_assoc (ω ^ repr a0 * (n:ℕ))], congr_n 1,
+      rw [← ordinal.mul_add, ← add_assoc (ω ^ repr a0 * (n:ℕ))], congr' 1,
       rw [← power_succ],
       exact (repr_power_aux₂ _ ad a00 al _ _).2 } }
 end
@@ -817,7 +817,7 @@ def of_nat (n : ℕ) : nonote := ⟨of_nat n, _, NF_below_of_nat _⟩
 
 /-- Compare ordinal notations -/
 def cmp (a b : nonote) : ordering :=
-cmp a.1 b.1 
+cmp a.1 b.1
 
 theorem cmp_compares : ∀ a b : nonote, (cmp a b).compares a b
 | ⟨a, ha⟩ ⟨b, hb⟩ := begin

@@ -143,9 +143,6 @@ have P_refl : ∀ l, P l l, from
   list.rec_on l h₁ (λ x xs ih, h₂ x xs xs (perm.refl xs) ih),
 perm.rec_on p h₁ h₂ (λ x y l, h₃ x y l l (perm.refl l) (P_refl l)) h₄
 
-theorem xswap {l₁ l₂ : list α} (x y : α) (p : l₁ ~ l₂) : x::y::l₁ ~ y::x::l₂ :=
-(swap y x l₁).trans $ skip y $ skip x p
-
 @[congr] theorem perm_filter_map (f : α → option β) {l₁ l₂ : list α} (p : l₁ ~ l₂) :
   filter_map f l₁ ~ filter_map f l₂ :=
 begin
@@ -639,8 +636,7 @@ theorem mem_permutations_aux2 {t : α} {ts : list α} {ys : list α} {l l' : lis
     ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l' = l ++ l₁ ++ t :: l₂ ++ ts :=
 begin
   induction ys with y ys ih generalizing l,
-  { simpa using λ (l₁ l₂ : list α) (n : ¬ l₂ = []) (e : [] = l₁ ++ l₂),
-     n.elim (eq_nil_of_sublist_nil $ e.symm ▸ sublist_append_right l₁ l₂) },
+  { simp {contextual := tt} },
   { rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
         by funext; simp, mem_cons_iff, ih], split; intro h,
     { rcases h with e | ⟨l₁, l₂, l0, ye, _⟩,
@@ -688,10 +684,6 @@ begin
   induction L with l L ih, {simp},
   simp [ih (λ l m, H l (mem_cons_of_mem _ m)), H l (mem_cons_self _ _), mul_add]
 end
-
-private def meas : (Σ'_:list α, list α) → ℕ × ℕ | ⟨l, i⟩ := (length l + length i, length l)
-
-local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 
 theorem perm_of_mem_permutations_aux :
   ∀ {ts is l : list α}, l ∈ permutations_aux ts is → l ~ ts ++ is :=

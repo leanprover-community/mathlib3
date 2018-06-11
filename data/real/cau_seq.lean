@@ -29,7 +29,7 @@ by rw [← abv_mul abv, mul_one, mul_one]
 theorem abv_one
   {β : Type*} [domain β] (abv : β → α) [is_absolute_value abv] :
   abv 1 = 1 := abv_one' abv one_ne_zero
-  
+
 theorem abv_pos {a : β} : 0 < abv a ↔ a ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [abv_eq_zero abv, abv_nonneg abv]
 
@@ -88,7 +88,7 @@ variables {α : Type*} [discrete_linear_ordered_field α]
 theorem rat_add_continuous_lemma
   {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β},
   abv (a₁ - b₁) < δ → abv (a₂ - b₂) < δ → abv (a₁ + a₂ - (b₁ + b₂)) < ε :=
-⟨ε / 2, half_pos ε0, λ a₁ a₂ b₁ b₂ h₁ h₂, 
+⟨ε / 2, half_pos ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
   by simpa [add_halves] using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
 
 theorem rat_mul_continuous_lemma
@@ -118,7 +118,7 @@ begin
   have εK := mul_pos ε0 KK,
   refine ⟨_, εK, λ a b ha hb h, _⟩,
   have a0 := lt_of_lt_of_le K0 ha,
-  have b0 := lt_of_lt_of_le K0 hb,  
+  have b0 := lt_of_lt_of_le K0 hb,
   rw [inv_sub_inv ((abv_pos abv).1 a0) ((abv_pos abv).1 b0),
       abv_div abv, abv_mul abv, mul_comm, abv_sub abv,
       ← mul_div_cancel ε (ne_of_gt KK)],
@@ -129,7 +129,7 @@ end
 end
 
 def is_cau_seq {α : Type*} [discrete_linear_ordered_field α]
-  {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv] (f : ℕ → β) := 
+  {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv] (f : ℕ → β) :=
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
 
 namespace is_cau_seq
@@ -272,7 +272,7 @@ def lim_zero (f : cau_seq β abv) := ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j) <
 
 theorem add_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f + g)
-| ε ε0 := (exists_forall_ge_and 
+| ε ε0 := (exists_forall_ge_and
     (hf _ $ half_pos ε0) (hg _ $ half_pos ε0)).imp $
   λ i H j ij, let ⟨H₁, H₂⟩ := H _ ij in
     by simpa [add_halves ε] using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add H₁ H₂)

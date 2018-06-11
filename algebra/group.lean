@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura
 
 Various multiplicative and additive structures.
 -/
-import tactic.interactive
+import tactic.interactive data.option
 
 section pending_1857
 
@@ -68,6 +68,9 @@ attribute [to_additive add_monoid] monoid
 attribute [to_additive add_monoid.mk] monoid.mk
 attribute [to_additive add_monoid.to_has_zero] monoid.to_has_one
 attribute [to_additive add_monoid.to_add_semigroup] monoid.to_semigroup
+attribute [to_additive add_monoid.add] monoid.mul
+attribute [to_additive add_monoid.add_assoc] monoid.mul_assoc
+attribute [to_additive add_monoid.zero] monoid.one
 attribute [to_additive add_monoid.zero_add] monoid.one_mul
 attribute [to_additive add_monoid.add_zero] monoid.mul_one
 
@@ -146,6 +149,14 @@ instance [semigroup α] : add_semigroup (additive α) :=
 instance [add_semigroup α] : semigroup (multiplicative α) :=
 { mul := ((+) : α → α → α),
   mul_assoc := @add_assoc _ _ }
+
+instance [comm_semigroup α] : add_comm_semigroup (additive α) :=
+{ add_comm := @mul_comm _ _,
+  ..additive.add_semigroup }
+
+instance [add_comm_semigroup α] : comm_semigroup (multiplicative α) :=
+{ mul_comm := @add_comm _ _,
+  ..multiplicative.semigroup }
 
 instance [left_cancel_semigroup α] : add_left_cancel_semigroup (additive α) :=
 { add_left_cancel := @mul_left_cancel _ _,
@@ -231,14 +242,66 @@ namespace units
 
 end units
 
+@[to_additive with_zero]
+def with_one (α) := option α
+
+@[to_additive with_zero.has_coe_t]
+instance : has_coe_t α (with_one α) := ⟨some⟩
+
+instance [semigroup α] : monoid (with_one α) :=
+{ one       := none,
+  mul       := option.lift_or_get (*),
+  mul_assoc := (option.lift_or_get_assoc _).1,
+  one_mul   := (option.lift_or_get_is_left_id _).1,
+  mul_one   := (option.lift_or_get_is_right_id _).1 }
+
+attribute [to_additive with_zero.add_monoid._proof_1] with_one.monoid._proof_1
+attribute [to_additive with_zero.add_monoid._proof_2] with_one.monoid._proof_2
+attribute [to_additive with_zero.add_monoid._proof_3] with_one.monoid._proof_3
+attribute [to_additive with_zero.add_monoid] with_one.monoid
+
+instance [semigroup α] : mul_zero_class (with_zero α) :=
+{ zero      := none,
+  mul       := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a * b)),
+  zero_mul  := by simp,
+  mul_zero  := λ a, by cases a; simp,
+  ..with_zero.add_monoid }
+
+instance [semigroup α] : semigroup (with_zero α) :=
+{ mul_assoc := λ a b c, begin
+    cases a with a, {refl},
+    cases b with b, {refl},
+    cases c with c, {refl},
+    simp [mul_assoc]
+  end,
+  ..with_zero.mul_zero_class }
+
+instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
+{ mul_comm := λ a b, begin
+    cases a with a; cases b with b; try {refl},
+    exact congr_arg some (mul_comm _ _)
+  end,
+  ..with_zero.semigroup }
+
+instance [monoid α] : monoid (with_zero α) :=
+{ one := some 1,
+  one_mul := λ a, by cases a;
+    [refl, exact congr_arg some (one_mul a)],
+  mul_one := λ a, by cases a;
+    [refl, exact congr_arg some (mul_one a)],
+  ..with_zero.semigroup }
+
+instance [comm_monoid α] : comm_monoid (with_zero α) :=
+{ ..with_zero.monoid, ..with_zero.comm_semigroup }
+
 instance [monoid α] : add_monoid (additive α) :=
-{ zero := (1 : α),
+{ zero     := (1 : α),
   zero_add := @one_mul _ _,
   add_zero := @mul_one _ _,
   ..additive.add_semigroup }
 
 instance [add_monoid α] : monoid (multiplicative α) :=
-{ one := (0 : α),
+{ one     := (0 : α),
   one_mul := @zero_add _ _,
   mul_one := @add_zero _ _,
   ..multiplicative.semigroup }
@@ -276,6 +339,15 @@ section monoid
   by simp [divp]
 
 end monoid
+
+instance [comm_semigroup α] : comm_monoid (with_one α) :=
+{ mul_comm := (option.lift_or_get_comm _).1,
+  ..with_one.monoid }
+
+instance [add_comm_semigroup α] : add_comm_monoid (with_zero α) :=
+{ add_comm := (option.lift_or_get_comm _).1,
+  ..with_zero.add_monoid }
+attribute [to_additive with_zero.add_comm_monoid] with_one.comm_monoid
 
 instance [comm_monoid α] : add_comm_monoid (additive α) :=
 { add_comm := @mul_comm α _,
@@ -482,35 +554,33 @@ end add_comm_group
 variables {β : Type*} [group α] [group β]
 
 /-- Predicate for group homomorphism. -/
-def is_group_hom (f : α → β) : Prop := 
-∀ a b : α, f (a * b) = f a * f b
-
-attribute [class] is_group_hom
+class is_group_hom (f : α → β) : Prop :=
+(mul : ∀ a b : α, f (a * b) = f a * f b)
 
 namespace is_group_hom
-variables (f : α → β) [w : is_group_hom f]
-include w
-
-theorem mul : ∀ a b : α, f (a * b) = f a * f b := w
+variables (f : α → β) [is_group_hom f]
 
 theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(w 1 1).symm]
+mul_self_iff_eq_one.1 $ by simp [(mul f 1 1).symm]
 
 theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq.symm $ inv_eq_of_mul_eq_one $ by simp [(w a a⁻¹).symm, one f]
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(mul f a a⁻¹).symm, one f]
 
-variables {γ : Type*} [group γ] {g : β → γ} [is_group_hom g]
+instance id : is_group_hom (@id α) :=
+⟨λ _ _, rfl⟩
 
-instance comp : is_group_hom (g ∘ f) := λ x y,  calc
+instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] :
+  is_group_hom (g ∘ f) :=
+⟨λ x y, calc
   g (f (x * y)) = g (f x * f y)       : by rw mul f
-  ...           = g (f x) * g (f y)   : by rw mul g
+  ...           = g (f x) * g (f y)   : by rw mul g⟩
 
 end is_group_hom
 
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/
-def is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
-∀ a b : α, f (a * b) = f b * f a
+class is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
+(mul : ∀ a b : α, f (a * b) = f b * f a)
 
 attribute [class] is_group_anti_hom
 
@@ -518,15 +588,13 @@ namespace is_group_anti_hom
 variables (f : α → β) [w : is_group_anti_hom f]
 include w
 
-theorem mul : ∀ a b : α, f (a * b) = f b * f a := w
-
 theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by simp [(w 1 1).symm]
+mul_self_iff_eq_one.1 $ by simp [(mul f 1 1).symm]
 
 theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq.symm $ inv_eq_of_mul_eq_one $ by simp [(w a⁻¹ a).symm, one f]
+eq.symm $ inv_eq_of_mul_eq_one $ by simp [(mul f a⁻¹ a).symm, one f]
 
 end is_group_anti_hom
 
 theorem inv_is_group_anti_hom [group α] : is_group_anti_hom (λ x : α, x⁻¹) :=
-mul_inv_rev
+⟨mul_inv_rev⟩

@@ -623,7 +623,7 @@ let ⟨k, h⟩ := exists_results_of_mem h,
 theorem bind_promises {s : computation α} {f : α → computation β} {a b}
   (h1 : s ~> a) (h2 : f a ~> b) : bind s f ~> b :=
 λ b' bB, begin
-  cases exists_of_mem_bind bB with a' a's, cases a's with a's ba',
+  rcases exists_of_mem_bind bB with ⟨a', a's, ba'⟩,
   rw ←h1 a's at ba', exact h2 ba'
 end
 

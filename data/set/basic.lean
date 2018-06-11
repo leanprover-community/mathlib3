@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.finish data.sigma
+import tactic tactic.finish data.sigma
 open function
 
 namespace set
@@ -12,6 +12,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t 
 
 instance : inhabited (set α) := ⟨∅⟩
 
+@[extensionality]
 theorem ext {a b : set α} (h : ∀ x, x ∈ a ↔ x ∈ b) : a = b :=
 funext (assume x, propext (h x))
 
@@ -60,7 +61,7 @@ subtype.exists
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
 
-theorem subset.refl (a : set α) : a ⊆ a := assume x, id
+@[refl] theorem subset.refl (a : set α) : a ⊆ a := assume x, id
 
 @[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c :=
 assume x h, bc (ab h)
@@ -686,8 +687,7 @@ theorem image_union (f : α → β) (s t : set α) :
   f '' (s ∪ t) = f '' s ∪ f '' t :=
 by finish [set_eq_def, iff_def, mem_image_eq]
 
-@[simp] theorem image_empty (f : α → β) : f '' ∅ = ∅ :=
-by finish [set_eq_def, mem_image_eq]
+@[simp] theorem image_empty (f : α → β) : f '' ∅ = ∅ := ext $ by simp
 
 theorem image_inter_on {f : α → β} {s t : set α} (h : ∀x∈t, ∀y∈s, f x = f y → x = y) :
   f '' s ∩ f '' t = f '' (s ∩ t) :=
@@ -717,8 +717,7 @@ begin
   intro x, split; { intro e, subst e, simp }
 end
 
-theorem image_id (s : set α) : id '' s = s :=
-by finish [set_eq_def, iff_def, mem_image_eq]
+@[simp] theorem image_id (s : set α) : id '' s = s := ext $ by simp
 
 theorem compl_compl_image (S : set (set α)) :
   compl '' (compl '' S) = S :=
@@ -729,24 +728,22 @@ theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
 ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm, or_comm, and_comm]
 
 theorem image_subset_preimage_of_inverse {f : α → β} {g : β → α}
-  (I : function.left_inverse g f) (s : set α) :
-  f '' s ⊆ g ⁻¹' s :=
+  (I : left_inverse g f) (s : set α) : f '' s ⊆ g ⁻¹' s :=
 λ b ⟨a, h, e⟩, e ▸ ((I a).symm ▸ h : g (f a) ∈ s)
 
 theorem preimage_subset_image_of_inverse {f : α → β} {g : β → α}
-  (I : function.left_inverse g f) (s : set β) :
-  f ⁻¹' s ⊆ g '' s :=
+  (I : left_inverse g f) (s : set β) : f ⁻¹' s ⊆ g '' s :=
 λ b h, ⟨f b, h, I b⟩
 
 theorem image_eq_preimage_of_inverse {f : α → β} {g : β → α}
-  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  (h₁ : left_inverse g f) (h₂ : right_inverse g f) :
   image f = preimage g :=
 funext $ λ s, subset.antisymm
   (image_subset_preimage_of_inverse h₁ s)
   (preimage_subset_image_of_inverse h₂ s)
 
 theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : set α}
-  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  (h₁ : left_inverse g f) (h₂ : right_inverse g f) :
   b ∈ f '' s ↔ g b ∈ s :=
 by rw image_eq_preimage_of_inverse h₁ h₂; refl
 
@@ -773,14 +770,12 @@ theorem subset_preimage_image (f : α → β) (s : set α) :
   s ⊆ f ⁻¹' (f '' s) :=
 λ x, mem_image_of_mem f
 
-theorem preimage_image_eq {f : α → β} (s : set α)
-  (h : function.injective f) : f ⁻¹' (f '' s) = s :=
+theorem preimage_image_eq {f : α → β} (s : set α) (h : injective f) : f ⁻¹' (f '' s) = s :=
 subset.antisymm
   (λ x ⟨y, hy, e⟩, h e ▸ hy)
   (subset_preimage_image f s)
 
-theorem image_preimage_eq {f : α → β} {s : set β}
-  (h : function.surjective f) : f '' (f ⁻¹' s) = s :=
+theorem image_preimage_eq {f : α → β} {s : set β} (h : surjective f) : f '' (f ⁻¹' s) = s :=
 subset.antisymm
   (image_preimage_subset f s)
   (λ x hx, let ⟨y, e⟩ := h x in ⟨y, (e.symm ▸ hx : f y ∈ s), e⟩)

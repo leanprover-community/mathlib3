@@ -32,7 +32,7 @@ theorem maps_to_univ (f : α → β) (a) : maps_to f a univ :=
 theorem image_subset_of_maps_to_of_subset {f : α → β} {a c : set α} {b : set β} (h₁ : maps_to f a b)
   (h₂ : c ⊆ a) :
   f '' c ⊆ b :=
-λ y hy, let ⟨x, hx, heq⟩ := hy in 
+λ y hy, let ⟨x, hx, heq⟩ := hy in
 by rw [←heq]; apply h₁; apply h₂; assumption
 
 theorem image_subset_of_maps_to {f : α → β} {a : set α} {b : set β} (h : maps_to f a b) :
@@ -56,7 +56,7 @@ theorem inj_on_of_eq_on {f1 f2 : α → β} {a : set α} (h₁ : eq_on f1 f2 a)
 theorem inj_on_comp {g : β → γ} {f : α → β} {a : set α} {b : set β}
     (h₁ : maps_to f a b) (h₂ : inj_on g b) (h₃: inj_on f a) :
   inj_on (g ∘ f) a :=
-λ _ _ h₁' h₂' heq, 
+λ _ _ h₁' h₂' heq,
 by apply h₃ h₁' h₂'; apply h₂; repeat {apply h₁, assumption}; assumption
 
 theorem inj_on_of_inj_on_of_subset {f : α → β} {a b : set α} (h₁ : inj_on f b) (h₂ : a ⊆ b) :
@@ -74,7 +74,7 @@ iff.intro (λ h _ _ _ _ heq, h heq) (λ h _ _ heq, h trivial trivial heq)
 theorem surj_on_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
     (h₂ : surj_on f1 a b) :
   surj_on f2 a b :=
-λ _ h, let ⟨x, hx⟩ := h₂ h in 
+λ _ h, let ⟨x, hx⟩ := h₂ h in
 ⟨x, hx.left, by rw [←h₁ _ hx.left]; exact hx.right⟩
 
 theorem surj_on_comp {g : β → γ} {f : α → β} {a : set α} {b : set β} {c : set γ}
@@ -117,7 +117,7 @@ lemma bij_on.mk {f : α → β} {a : set α} {b : set β}
 
 theorem bij_on_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
      (h₂ : bij_on f1 a b) : bij_on f2 a b :=
-let ⟨map, inj, surj⟩ := h₂ in 
+let ⟨map, inj, surj⟩ := h₂ in
 ⟨maps_to_of_eq_on h₁ map, inj_on_of_eq_on h₁ inj, surj_on_of_eq_on h₁ surj⟩
 
 lemma image_eq_of_bij_on {f : α → β} {a : set α} {b : set β} (h : bij_on f a b) :
@@ -131,10 +131,10 @@ let ⟨gmap, ginj, gsurj⟩ := h₁, ⟨fmap, finj, fsurj⟩ := h₂ in
 ⟨maps_to_comp gmap fmap, inj_on_comp fmap ginj finj, surj_on_comp gsurj fsurj⟩
 
 lemma bijective_iff_bij_on_univ {f : α → β} : bijective f ↔ bij_on f univ univ :=
-iff.intro 
-(λ h, let ⟨inj, surj⟩ := h in 
+iff.intro
+(λ h, let ⟨inj, surj⟩ := h in
 ⟨maps_to_univ f _, iff.mp injective_iff_inj_on_univ inj, iff.mp surjective_iff_surj_on_univ surj⟩)
-(λ h, let ⟨map, inj, surj⟩ := h in 
+(λ h, let ⟨map, inj, surj⟩ := h in
 ⟨iff.mpr injective_iff_inj_on_univ inj, iff.mpr surjective_iff_surj_on_univ surj⟩)
 
 /- left inverse -/
@@ -152,14 +152,14 @@ calc
 
 theorem left_inv_on_of_eq_on_right {g : β → α} {f1 f2 : α → β} {a : set α}
   (h₁ : eq_on f1 f2 a) (h₂ : left_inv_on g f1 a) : left_inv_on g f2 a :=
-λ x h, 
+λ x h,
 calc
   g (f2 x) = g (f1 x) : congr_arg g (h₁ _ h).symm
        ... = x        : h₂ _ h
 
 theorem inj_on_of_left_inv_on {g : β → α} {f : α → β} {a : set α} (h : left_inv_on g f a) :
   inj_on f a :=
-λ x₁ x₂ h₁ h₂ heq, 
+λ x₁ x₂ h₁ h₂ heq,
 calc
   x₁    = g (f x₁) : eq.symm $ h _ h₁
   ...   = g (f x₂) : congr_arg g heq
@@ -204,10 +204,10 @@ theorem right_inv_on_of_inj_on_of_left_inv_on {f : α → β} {g : β → α} {a
 
 theorem eq_on_of_left_inv_of_right_inv {g₁ g₂ : β → α} {f : α → β} {a : set α} {b : set β}
   (h₁ : maps_to g₂ b a) (h₂ : left_inv_on g₁ f a) (h₃ : right_inv_on g₂ f b) : eq_on g₁ g₂ b :=
-λ y h, 
+λ y h,
 calc
   g₁ y = (g₁ ∘ f ∘ g₂) y : congr_arg g₁ (h₃ _ h).symm
-  ...  = g₂ y            : h₂ _ (h₁ h) 
+  ...  = g₂ y            : h₂ _ (h₁ h)
 
 theorem left_inv_on_of_surj_on_right_inv_on {f : α → β} {g : β → α} {a : set α} {b : set β}
     (h₁ : surj_on f a b) (h₂ : right_inv_on f g a) :

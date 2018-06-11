@@ -6,8 +6,7 @@ Authors: Johannes Hölzl
 Defines the inf/sup (semi)-lattice with optionally top/bot type class hierarchy.
 -/
 
-import order.basic tactic.finish
-open auto
+import order.basic
 
 set_option old_structure_cmd true
 
@@ -30,10 +29,6 @@ namespace lattice
 reserve infixl ` ⊓ `:70
 reserve infixl ` ⊔ `:65
 
-/-- Typeclass for the `⊤` (`\top`) notation -/
-class has_top (α : Type u) := (top : α)
-/-- Typeclass for the `⊥` (`\bot`) notation -/
-class has_bot (α : Type u) := (bot : α)
 /-- Typeclass for the `⊔` (`\lub`) notation -/
 class has_sup (α : Type u) := (sup : α → α → α)
 /-- Typeclass for the `⊓` (`\glb`) notation -/
@@ -41,64 +36,6 @@ class has_inf (α : Type u) := (inf : α → α → α)
 
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
-notation `⊤` := has_top.top _
-notation `⊥` := has_bot.bot _
-
-/-- An `order_top` is a partial order with a maximal element.
-  (We could state this on preorders, but then it wouldn't be unique
-  so distinguishing one would seem odd.) -/
-class order_top (α : Type u) extends has_top α, partial_order α :=
-(le_top : ∀ a : α, a ≤ ⊤)
-
-section order_top
-variables {α : Type u} [order_top α] {a : α}
-
-@[simp] theorem le_top : a ≤ ⊤ :=
-order_top.le_top a
-
-theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
-le_antisymm le_top h
-
--- TODO: delete in favor of the next?
-theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
-⟨assume eq, eq.symm ▸ le_refl ⊤, top_unique⟩
-
-@[simp] theorem top_le_iff : ⊤ ≤ a ↔ a = ⊤ :=
-⟨top_unique, λ h, h.symm ▸ le_refl ⊤⟩
-
-@[simp] theorem not_top_lt : ¬ ⊤ < a :=
-assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
-
-end order_top
-
-/-- An `order_bot` is a partial order with a minimal element.
-  (We could state this on preorders, but then it wouldn't be unique
-  so distinguishing one would seem odd.) -/
-class order_bot (α : Type u) extends has_bot α, partial_order α :=
-(bot_le : ∀ a : α, ⊥ ≤ a)
-
-section order_bot
-variables {α : Type u} [order_bot α] {a : α}
-
-@[simp] theorem bot_le : ⊥ ≤ a := order_bot.bot_le a
-
-theorem bot_unique (h : a ≤ ⊥) : a = ⊥ :=
-le_antisymm h bot_le
-
--- TODO: delete?
-theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
-⟨assume eq, eq.symm ▸ le_refl ⊥, bot_unique⟩
-
-@[simp] theorem le_bot_iff : a ≤ ⊥ ↔ a = ⊥ :=
-⟨bot_unique, assume h, h.symm ▸ le_refl ⊥⟩
-
-@[simp] theorem not_lt_bot : ¬ a < ⊥ :=
-assume h, lt_irrefl a (lt_of_lt_of_le h bot_le)
-
-theorem neq_bot_of_le_neq_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
-assume ha, hb $ bot_unique $ ha ▸ hab
-
-end order_bot
 
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
@@ -159,17 +96,24 @@ by finish
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; finish
 
+instance sup_is_idempotent : is_idempotent α (⊔) := ⟨@sup_idem _ _⟩
+
 theorem sup_comm : a ⊔ b = b ⊔ a :=
 by apply le_antisymm; finish
 
-instance semilattice_sup_to_is_commutative [semilattice_sup α] : is_commutative α (⊔) :=
-⟨@sup_comm _ _⟩
+instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
 by apply le_antisymm; finish
 
-instance semilattice_sup_to_is_associative [semilattice_sup α] : is_associative α (⊔) :=
-⟨@sup_assoc _ _⟩
+instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
+
+lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
+suffices (∃b, ¬b ≤ a) → (∃b, a < b),
+  by rwa [classical.or_iff_not_imp_left, classical.not_forall],
+assume ⟨b, hb⟩,
+have a ≠ a ⊔ b, from assume eq, hb $ eq.symm ▸ le_sup_right,
+⟨a ⊔ b, lt_of_le_of_ne le_sup_left ‹a ≠ a ⊔ b›⟩
 
 end semilattice_sup
 
@@ -224,81 +168,26 @@ by finish
 @[simp] theorem inf_idem : a ⊓ a = a :=
 by apply le_antisymm; finish
 
+instance inf_is_idempotent : is_idempotent α (⊓) := ⟨@inf_idem _ _⟩
+
 theorem inf_comm : a ⊓ b = b ⊓ a :=
 by apply le_antisymm; finish
 
-instance semilattice_inf_to_is_commutative [semilattice_inf α] : is_commutative α (⊓) :=
-⟨@inf_comm _ _⟩
+instance inf_is_commutative : is_commutative α (⊓) := ⟨@inf_comm _ _⟩
 
 theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
 by apply le_antisymm; finish
 
-instance semilattice_inf_to_is_associative [semilattice_inf α] : is_associative α (⊓) :=
-⟨@inf_assoc _ _⟩
+instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
+
+lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
+suffices (∃b, ¬a ≤ b) → (∃b, b < a),
+  by rwa [classical.or_iff_not_imp_left, classical.not_forall],
+assume ⟨b, hb⟩,
+have a ⊓ b ≠ a, from assume eq, hb $ eq ▸ inf_le_right,
+⟨a ⊓ b, lt_of_le_of_ne inf_le_left ‹a ⊓ b ≠ a›⟩
 
 end semilattice_inf
-
-/-- A `semilattice_sup_top` is a semilattice with top and join. -/
-class semilattice_sup_top (α : Type u) extends order_top α, semilattice_sup α
-
-section semilattice_sup_top
-variables {α : Type u} [semilattice_sup_top α] {a : α}
-
-@[simp] theorem top_sup_eq : ⊤ ⊔ a = ⊤ :=
-sup_of_le_left le_top
-
-@[simp] theorem sup_top_eq : a ⊔ ⊤ = ⊤ :=
-sup_of_le_right le_top
-
-end semilattice_sup_top
-
-/-- A `semilattice_sup_bot` is a semilattice with bottom and join. -/
-class semilattice_sup_bot (α : Type u) extends order_bot α, semilattice_sup α
-
-section semilattice_sup_bot
-variables {α : Type u} [semilattice_sup_bot α] {a b : α}
-
-@[simp] theorem bot_sup_eq : ⊥ ⊔ a = a :=
-sup_of_le_right bot_le
-
-@[simp] theorem sup_bot_eq : a ⊔ ⊥ = a :=
-sup_of_le_left bot_le
-
-@[simp] theorem sup_eq_bot_iff : a ⊔ b = ⊥ ↔ (a = ⊥ ∧ b = ⊥) :=
-by rw [eq_bot_iff, sup_le_iff]; simp
-
-end semilattice_sup_bot
-
-/-- A `semilattice_inf_top` is a semilattice with top and meet. -/
-class semilattice_inf_top (α : Type u) extends order_top α, semilattice_inf α
-
-section semilattice_inf_top
-variables {α : Type u} [semilattice_inf_top α] {a b : α}
-
-@[simp] theorem top_inf_eq : ⊤ ⊓ a = a :=
-inf_of_le_right le_top
-
-@[simp] theorem inf_top_eq : a ⊓ ⊤ = a :=
-inf_of_le_left le_top
-
-@[simp] theorem inf_eq_top_iff : a ⊓ b = ⊤ ↔ (a = ⊤ ∧ b = ⊤) :=
-by rw [eq_top_iff, le_inf_iff]; simp
-
-end semilattice_inf_top
-
-/-- A `semilattice_inf_bot` is a semilattice with bottom and meet. -/
-class semilattice_inf_bot (α : Type u) extends order_bot α, semilattice_inf α
-
-section semilattice_inf_bot
-variables {α : Type u} [semilattice_inf_bot α] {a : α}
-
-@[simp] theorem bot_inf_eq : ⊥ ⊓ a = ⊥ :=
-inf_of_le_left bot_le
-
-@[simp] theorem inf_bot_eq : a ⊓ ⊥ = ⊥ :=
-inf_of_le_right bot_le
-
-end semilattice_inf_bot
 
 /- Lattices -/
 
@@ -385,7 +274,6 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
   le_inf       := assume a b c, le_min,
   ..o }
 
-
 instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
@@ -393,5 +281,8 @@ instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_
     | or.inr h := inf_le_right_of_le $ sup_le_sup_left (le_inf h (le_refl c)) _
     end,
   ..lattice.lattice_of_decidable_linear_order }
+
+instance nat.distrib_lattice : distrib_lattice ℕ :=
+by apply_instance
 
 end lattice

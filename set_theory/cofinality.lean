@@ -138,17 +138,17 @@ end
 theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
 by simpa using cof_le_card c.ord
 
-@[simp] theorem cof_zero : cof 0 = 0 := 
+@[simp] theorem cof_zero : cof 0 = 0 :=
 le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 
-@[simp] theorem cof_eq_zero {o} : cof o = 0 ↔ o = 0 := 
+@[simp] theorem cof_eq_zero {o} : cof o = 0 ↔ o = 0 :=
 ⟨induction_on o $ λ α r _ z, by exactI
   let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_empty.2 $
   λ ⟨a⟩, let ⟨b, h, _⟩ := hl a in
   ne_zero_iff_nonempty.2 (by exact ⟨⟨_, h⟩⟩) (e.trans z),
 λ e, by simp [e]⟩
 
-@[simp] theorem cof_succ (o) : cof (succ o) = 1 := 
+@[simp] theorem cof_succ (o) : cof (succ o) = 1 :=
 begin
   apply le_antisymm,
   { refine induction_on o (λ α r _, _),
@@ -162,7 +162,7 @@ begin
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
 end
 
-@[simp] theorem cof_eq_one_iff_is_succ {o} : cof.{u} o = 1 ↔ ∃ a, o = succ a := 
+@[simp] theorem cof_eq_one_iff_is_succ {o} : cof.{u} o = 1 ↔ ∃ a, o = succ a :=
 ⟨induction_on o $ λ α r _ z, begin
   resetI,
   rcases cof_eq r with ⟨S, hl, e⟩, rw z at e,
@@ -219,7 +219,7 @@ let ⟨S, hS, e₁⟩ := ord_cof_eq r,
   rw e₁ at e₂, rw ← e₂,
   refine le_trans (cof_type_le {a | ∃ h, (subtype.mk a h : S) ∈ T} (λ a, _)) ⟨⟨_, _⟩⟩,
   { rcases hS a with ⟨b, bS, br⟩,
-    rcases hT ⟨b, bS⟩ with ⟨c, cT, cs⟩, cases c with c cS,
+    rcases hT ⟨b, bS⟩ with ⟨⟨c, cS⟩, cT, cs⟩,
     exact ⟨c, ⟨cS, cT⟩, is_order_connected.neg_trans r cs br⟩ },
   { exact λ ⟨a, h⟩, ⟨⟨a, h.fst⟩, h.snd⟩ },
   { exact λ ⟨a, ha⟩ ⟨b, hb⟩ h,
@@ -229,7 +229,7 @@ end
 theorem omega_le_cof {o} : cardinal.omega ≤ cof o ↔ is_limit o :=
 begin
   rcases zero_or_succ_or_limit o with rfl|⟨o,rfl⟩|l,
-  { simp [not_zero_is_limit, cardinal.omega_pos] },
+  { simp [not_zero_is_limit, cardinal.omega_ne_zero] },
   { simp [not_succ_is_limit, cardinal.one_lt_omega] },
   { simp [l], refine le_of_not_lt (λ h, _),
     cases cardinal.lt_omega.1 h with n e,

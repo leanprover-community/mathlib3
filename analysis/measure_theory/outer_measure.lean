@@ -166,7 +166,7 @@ have is_sum (λi, ε' i) ε, begin rw [eq] at this, exact this end,
 ennreal.tsum_of_real this (assume i, le_of_lt $ hε' i)
 
 /-- Given any function `m` assigning measures to sets satisying `m ∅ = 0`, there is
-  a unique minimal outer measure `μ` satisfying `μ s ≥ m s` for all `s : set α`. -/
+  a unique maximal outer measure `μ` satisfying `μ s ≤ m s` for all `s : set α`. -/
 protected def of_function {α : Type*} (m : set α → ennreal) (m_empty : m ∅ = 0) :
   outer_measure α :=
 let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
@@ -193,7 +193,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
     let f' := λi, f (nat.unpair i).1 (nat.unpair i).2 in
     have hf' : (⋃ (i : ℕ), s i) ⊆ (⋃i, f' i),
       from Union_subset $ assume i, subset.trans (hf i).left $ Union_subset_Union2 $ assume j,
-      ⟨nat.mkpair i j, begin simp [f'], simp [nat.unpair_mkpair], exact subset.refl _ end⟩,
+      ⟨nat.mkpair i j, begin simp [f'], simp [nat.unpair_mkpair] end⟩,
     have (∑i, of_real (ε' i)) = of_real ε, from aux hε,
     have (∑i, m (f' i)) ≤ (∑i, μ (s i)) + of_real ε,
       from calc (∑i, m (f' i)) = (∑p:ℕ×ℕ, m (f' (nat.mkpair p.1 p.2))) :
@@ -207,6 +207,14 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
         ... = (∑i, μ (s i)) + of_real ε : by rw [this],
     show μ (⋃ (i : ℕ), s i) ≤ (∑ (i : ℕ), μ (s i)) + of_real ε,
       from infi_le_of_le f' $ infi_le_of_le hf' $ this }
+
+theorem of_function_le {α : Type*} (m : set α → ennreal) (m_empty s) :
+  (outer_measure.of_function m m_empty).measure_of s ≤ m s :=
+let f : ℕ → set α := λi, nat.rec_on i s (λn s, ∅) in
+infi_le_of_le f $ infi_le_of_le (subset_Union f 0) $ le_of_eq $
+calc (∑i, m (f i)) = ({0} : finset ℕ).sum (λi, m (f i)) :
+    tsum_eq_sum $ by intro i; cases i; simp [m_empty]
+  ... = m s : by simp; refl
 
 end of_function
 

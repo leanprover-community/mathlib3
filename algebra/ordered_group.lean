@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Johannes Hölzl
 
 Ordered monoids and groups.
 -/
-import algebra.group tactic
+import algebra.group order.bounded_lattice tactic.basic
 
 universe u
 variable {α : Type u}
@@ -14,7 +14,7 @@ section old_structure_cmd
 
 set_option old_structure_cmd true
 
-/-- An ordered (additive) commutative monoid is a commutative monoid 
+/-- An ordered (additive) commutative monoid is a commutative monoid
   with a partial order such that addition is an order embedding, i.e.
   `a + b ≤ a + c ↔ b ≤ c`. These monoids are automatically cancellative. -/
 class ordered_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
@@ -130,7 +130,124 @@ iff.intro
    and.intro ‹a = 0› ‹b = 0›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', add_zero])
 
+lemma bit0_pos {a : α} (h : 0 < a) : 0 < bit0 a :=
+add_pos' h h
+
 end ordered_comm_monoid
+
+namespace with_zero
+open lattice
+
+instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
+instance [partial_order α] : order_bot (with_zero α) := with_bot.order_bot
+instance [lattice α] : lattice (with_zero α) := with_bot.lattice
+instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
+instance [decidable_linear_order α] :
+ decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
+
+def ordered_comm_monoid [ordered_comm_monoid α]
+  (zero_le : ∀ a : α, 0 ≤ a) : ordered_comm_monoid (with_zero α) :=
+begin
+  suffices, refine {
+    add_le_add_left := this,
+    ..with_zero.partial_order,
+    ..with_zero.add_comm_monoid, ..},
+  { intros a b c h,
+    refine ⟨λ b h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    cases h₂, cases c with c,
+    { cases h.2 (this _ _ bot_le a) },
+    { refine ⟨_, rfl, _⟩,
+      cases a with a,
+      { exact with_bot.some_le_some.1 h.1 },
+      { exact le_of_lt (lt_of_add_lt_add_left' $
+          with_bot.some_lt_some.1 h), } } },
+  { intros a b h c ca h₂,
+    cases b with b,
+    { rw le_antisymm h bot_le at h₂,
+      exact ⟨_, h₂, le_refl _⟩ },
+    cases a with a,
+    { change c + 0 = some ca at h₂,
+      simp at h₂, simp [h₂],
+      exact ⟨_, rfl, by simpa using add_le_add_left' (zero_le b)⟩ },
+    { simp at h,
+      cases c with c; change some _ = _ at h₂;
+        simp [-add_comm] at h₂; subst ca; refine ⟨_, rfl, _⟩,
+      { exact h },
+      { exact add_le_add_left' h } } }
+end
+
+end with_zero
+
+namespace with_top
+open lattice
+
+instance [add_semigroup α] : add_semigroup (with_top α) :=
+@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _
+
+instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
+@additive.add_comm_semigroup _ $ @with_zero.comm_semigroup (multiplicative α) _
+
+instance [add_monoid α] : add_monoid (with_top α) :=
+@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _
+
+instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
+@additive.add_comm_monoid _ $ @with_zero.comm_monoid (multiplicative α) _
+
+instance [ordered_comm_monoid α] : ordered_comm_monoid (with_top α) :=
+begin
+  suffices, refine {
+    add_le_add_left := this,
+    ..with_top.partial_order,
+    ..with_top.add_comm_monoid, ..},
+  { intros a b c h,
+    refine ⟨λ c h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    cases h₂, cases a with a,
+    { exact (not_le_of_lt h).elim le_top },
+    cases b with b,
+    { exact (not_le_of_lt h).elim le_top },
+    { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left' $
+        with_top.some_lt_some.1 h)⟩ } },
+  { intros a b h c cb h₂,
+    cases c with c, {cases h₂},
+    cases b with b; cases h₂,
+    cases a with a, {cases le_antisymm h le_top},
+    simp at h,
+    exact ⟨_, rfl, add_le_add_left' h⟩, }
+end
+
+end with_top
+
+namespace with_bot
+open lattice
+
+instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigroup
+instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
+instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
+instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
+
+instance [ordered_comm_monoid α] : ordered_comm_monoid (with_bot α) :=
+begin
+  suffices, refine {
+    add_le_add_left := this,
+    ..with_bot.partial_order,
+    ..with_bot.add_comm_monoid, ..},
+  { intros a b c h,
+    refine ⟨λ b h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    cases h₂, cases a with a,
+    { exact (not_le_of_lt h).elim bot_le },
+    cases c with c,
+    { exact (not_le_of_lt h).elim bot_le },
+    { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left' $
+        with_bot.some_lt_some.1 h)⟩ } },
+  { intros a b h c ca h₂,
+    cases c with c, {cases h₂},
+    cases a with a; cases h₂,
+    cases b with b, {cases le_antisymm h bot_le},
+    simp at h,
+    exact ⟨_, rfl, add_le_add_left' h⟩, }
+end
+
+end with_bot
 
 section canonically_ordered_monoid
 variables [canonically_ordered_monoid α] {a b c d : α}
@@ -142,6 +259,29 @@ canonically_ordered_monoid.le_iff_exists_add a b
 
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
 add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg' (zero_le _) (zero_le _)
+
+@[simp] lemma le_zero_iff_eq : a ≤ 0 ↔ a = 0 :=
+iff.intro
+  (assume h, le_antisymm h (zero_le a))
+  (assume h, h ▸ le_refl a)
+
+instance with_zero.canonically_ordered_monoid :
+  canonically_ordered_monoid (with_zero α) :=
+{ le_iff_exists_add := λ a b, begin
+    cases a with a,
+    { exact iff_of_true lattice.bot_le ⟨b, (zero_add b).symm⟩ },
+    cases b with b,
+    { exact iff_of_false
+        (mt (le_antisymm lattice.bot_le) (by simp))
+        (λ ⟨c, h⟩, by cases c; cases h) },
+    { simp [le_iff_exists_add, -add_comm],
+      split; intro h; rcases h with ⟨c, h⟩,
+      { exact ⟨some c, congr_arg some h⟩ },
+      { cases c; cases h,
+        { exact ⟨_, (add_zero _).symm⟩ },
+        { exact ⟨_, rfl⟩ } } }
+  end,
+  ..with_zero.ordered_comm_monoid zero_le }
 
 end canonically_ordered_monoid
 
@@ -184,9 +324,6 @@ lemma add_eq_zero_iff_eq_zero_of_nonneg
 by split; apply le_antisymm; try {assumption};
    rw ← hab; simp [ha, hb],
 λ ⟨ha', hb'⟩, by rw [ha', hb', add_zero]⟩
-
-lemma bit0_pos {a : α} (h : 0 < a) : 0 < bit0 a :=
-add_pos h h
 
 end ordered_cancel_comm_monoid
 
@@ -244,20 +381,6 @@ lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
 
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
 add_lt_add_iff_right _
-
-lemma sub_lt_iff {a b c : α} : (a - b < c) ↔ (a < c + b) :=
-iff.intro
-  lt_add_of_sub_right_lt
-  (assume h,
-    have a + - b < (c + b) + - b, from add_lt_add_right h _,
-    by simp * at *)
-
-lemma lt_sub_iff {a b c : α} : (a < b - c) ↔ (a + c < b) :=
-iff.intro
-  (assume h,
-    have a + c < (b - c) + c, from add_lt_add_right h _,
-    by simp * at *)
-  lt_sub_right_of_add_lt
 
 @[simp] lemma sub_nonneg : 0 ≤ a - b ↔ b ≤ a :=
 have a - a ≤ a - b ↔ b ≤ a, from sub_le_sub_iff_left a,
@@ -347,6 +470,9 @@ by rw [neg_lt_sub_iff_lt_add, add_comm]
 
 lemma sub_lt : a - b < c ↔ a - c < b :=
 sub_lt_iff_lt_add'.trans sub_lt_iff_lt_add.symm
+
+theorem lt_sub : a < b - c ↔ c < b - a :=
+lt_sub_iff_add_lt'.trans lt_sub_iff_add_lt.symm
 
 lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 0 ≤ b :=
 sub_le_iff_le_add'.trans (le_add_iff_nonneg_left _)

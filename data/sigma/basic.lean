@@ -72,6 +72,15 @@ end psigma
 section subtype
 variables {α : Sort*} {β : α → Prop}
 
+protected lemma subtype.eq' : ∀ {a1 a2 : {x // β x}}, a1.val = a2.val → a1 = a2
+| ⟨x, h1⟩ ⟨.(x), h2⟩ rfl := rfl
+
+lemma subtype.ext {a1 a2 : {x // β x}} : a1 = a2 ↔ a1.val = a2.val :=
+⟨congr_arg _, subtype.eq'⟩
+
+theorem subtype.val_injective : function.injective (@subtype.val _ β) :=
+λ a b, subtype.eq'
+
 @[simp] theorem subtype.coe_eta {α : Type*} {β : α → Prop}
  (a : {a // β a}) (h : β a) : subtype.mk ↑a h = a := subtype.eta _ _
 

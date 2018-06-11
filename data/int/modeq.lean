@@ -37,9 +37,9 @@ theorem modeq_of_dvd_of_modeq (d : m ∣ n) (h : a ≡ b [ZMOD n]) : a ≡ b [ZM
 modeq_iff_dvd.2 $ dvd_trans d (modeq_iff_dvd.1 h)
 
 theorem modeq_mul_left' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD (c * n)] :=
-or.cases_on (lt_or_eq_of_le hc) (λ hc, 
+or.cases_on (lt_or_eq_of_le hc) (λ hc,
   by unfold modeq;
-  simp [mul_mod_mul_of_pos _ _ hc, (show _ = _, from h)] ) 
+  simp [mul_mod_mul_of_pos _ _ hc, (show _ = _, from h)] )
 (λ hc, by simp [hc.symm])
 
 theorem modeq_mul_right' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD (n * c)] :=
@@ -56,17 +56,17 @@ modeq_iff_dvd.2 $ by rwa add_neg_cancel_left at this
 theorem modeq_add_cancel_right (h₁ : c ≡ d [ZMOD n]) (h₂ : a + c ≡ b + d [ZMOD n]) : a ≡ b [ZMOD n] :=
 by rw [add_comm a, add_comm b] at h₂; exact modeq_add_cancel_left h₁ h₂
 
-theorem modeq_neg (h : a ≡ b [ZMOD n]) : -a ≡ -b [ZMOD n] := 
+theorem modeq_neg (h : a ≡ b [ZMOD n]) : -a ≡ -b [ZMOD n] :=
 modeq_add_cancel_left h (by simp)
 
 theorem modeq_sub (h₁ : a ≡ b [ZMOD n]) (h₂ : c ≡ d [ZMOD n]) : a - c ≡ b - d [ZMOD n] :=
 by rw [sub_eq_add_neg, sub_eq_add_neg]; exact modeq_add h₁ (modeq_neg h₂)
 
 theorem modeq_mul_left (c : ℤ) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD n] :=
-or.cases_on (le_total 0 c) 
+or.cases_on (le_total 0 c)
 (λ hc, modeq_of_dvd_of_modeq (dvd_mul_left _ _) (modeq_mul_left' hc h))
 (λ hc, by rw [← neg_neg c, ← neg_mul_eq_neg_mul, ← neg_mul_eq_neg_mul _ b];
-    exact modeq_neg (modeq_of_dvd_of_modeq (dvd_mul_left _ _) 
+    exact modeq_neg (modeq_of_dvd_of_modeq (dvd_mul_left _ _)
     (modeq_mul_left' (neg_nonneg.2 hc) h)))
 
 theorem modeq_mul_right (c : ℤ) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD n] :=

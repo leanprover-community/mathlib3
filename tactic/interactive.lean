@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs meta.expr
+import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs
+  tactic.split_ifs meta.expr
 
 open lean
 open lean.parser
@@ -15,15 +16,26 @@ namespace tactic
 namespace interactive
 open interactive interactive.types expr
 
-meta def rcases_parse : parser (list rcases_patt) :=
+local notation `listΣ` := list_Sigma
+local notation `listΠ` := list_Pi
+
+/--
+This parser uses the "inverted" meaning for the `many` constructor:
+rather than representing a sum of products, here it represents a
+product of sums. We fix this by applying `invert`, defined below, to
+the result.
+-/
+@[reducible] def rcases_patt_inverted := rcases_patt
+
+meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
 with_desc "patt" $ let p :=
   (rcases_patt.one <$> ident_) <|>
   (rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse)) in
 list.cons <$> p <*> (tk "|" *> p)*
 
-meta def rcases_parse.invert : list rcases_patt → list (list rcases_patt) :=
-let invert' (l : list rcases_patt) : rcases_patt := match l with
-| [k] := k
+meta def rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt) :=
+let invert' (l : listΣ rcases_patt_inverted) : rcases_patt := match l with
+| [rcases_patt.one n] := rcases_patt.one n
 | _ := rcases_patt.many (rcases_parse.invert l)
 end in
 list.map $ λ p, match p with
@@ -135,15 +147,15 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
-/-- Same as the `congr` tactic, but only works up to depth `n`. This
-  is useful when the `congr` tactic is too aggressive in breaking
-  down the goal. For example, given `⊢ f (g (x + y)) = f (g (y + x))`,
-  `congr` produces the goals `⊢ x = y` and `⊢ y = x`, while
-  `congr_n 2` produces the intended `⊢ x + y = y + x`. -/
-meta def congr_n : nat → tactic unit
-| 0     := failed
-| (n+1) := focus1 (try assumption >> congr_core >>
-  all_goals (try reflexivity >> try (congr_n n)))
+/-- Same as the `congr` tactic, but takes an optional argument which gives
+  the depth of recursive applications. This is useful when `congr`
+  is too aggressive in breaking down the goal. For example, given
+  `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
+  and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
+meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
+| (some 0) := failed
+| o        := focus1 (assumption <|> (congr_core >>
+  all_goals (reflexivity <|> try (congr' (nat.pred <$> o)))))
 
 /-- Acts like `have`, but removes a hypothesis with the same name as
   this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
@@ -242,6 +254,15 @@ do { exfalso,
 
 open nat
 
+meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
+| 0 := done
+| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+
+meta structure by_elim_opt :=
+  (discharger : tactic unit := done)
+  (restr_hyp_set : option (list expr) := none)
+  (max_rep : ℕ := 3)
+
 /--
   `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
   and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
@@ -252,13 +273,12 @@ open nat
   `solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
 
   optional arguments:
+  - discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
   - asms: list of assumptions / rules to consider instead of local constants
   - depth: number of attempts at discharging generated sub-goals
   -/
-meta def solve_by_elim (asms : option (list expr) := none)  : opt_param ℕ 3 → tactic unit
-| 0 := done
-| (succ n) :=
-apply_assumption asms $ solve_by_elim n
+meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
+solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -280,45 +300,131 @@ done
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology
 
-/-- `wlog h : i ≤ j using i j`: without loss of generality, let us assume `h : i ≤ j`
-    If `using i j` is omitted, the last two free variables found in `i ≤ j` will be used.
+/--
+ Tag lemmas of the form:
 
-    `wlog : R x y` (synonymous with `wlog : R x y using x y`) adds `R x y` to the
-    assumptions and the goal `⊢ R x y ∨ R y x`.
+ ```
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+ -/
+@[user_attribute]
+meta def extensional_attribute : user_attribute :=
+{ name := `extensionality,
+  descr := "lemmas usable by `ext` tactic" }
 
-    A special case is made for total order relations `≤` where `⊢ R x y ∨ R y x`
-    is discharged automatically.
+attribute [extensionality] funext array.ext
 
-    TODO(Simon): Generalize to multiple pairs of variables
+/--
+  `ext1 id` selects and apply one extensionality lemma (with attribute
+  `extensionality`), using `id`, if provided, to name a local constant
+  introduced by the lemma. If `id` is omitted, the local constant is
+  named automatically, as per `intro`.
+ -/
+meta def ext1 (x : parse ident_ ?) : tactic unit :=
+do ls ← attribute.get_instances `extensionality,
+   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
+   interactive.intro x
+
+/--
+  - `ext` applies as many extensionality lemmas as possible;
+  - `ext ids`, with `ids` a list of identifiers, finds extentionality and applies them
+    until it runs out of identifiers in `ids` to name the local constants.
+
+  When trying to prove:
+
+  ```
+  α β : Type,
+  f g : α → set β
+  ⊢ f = g
+  ```
+
+  applying `ext x y` yields:
+
+  ```
+  α β : Type,
+  f g : α → set β,
+  x : α,
+  y : β
+  ⊢ y ∈ f x ↔ y ∈ f x
+  ```
+
+  by applying functional extensionality and set extensionality.
   -/
-meta def wlog (h : parse ident?)
-              (p : parse (tk ":" *> texpr))
-              (xy : parse (tk "using" *> monad.sequence [ident,ident])?)
-: tactic unit :=
-do p' ← to_expr p,
-   (x :: y :: _) ← xy.to_monad >>= mmap get_local <|> pure p'.list_local_const,
-   n ← tactic.revert_lst [x,y],
-   x ← intro1, y ← intro1,
-   p ← to_expr p,
-   when (¬ x.occurs p ∨ ¬ x.occurs p) (do
-     p ← pp p,
-     fail format!"{p} should reference {x} and {y}"),
-   let p' := subst_locals [(x,y),(y,x)] p,
-   t ← target,
-   let g := p.imp t,
-   g ← tactic.pis [x,y] g,
-   this ← assert `this (set_binder g [binder_info.default,binder_info.default]),
-   tactic.clear x, tactic.clear y,
-   intron 2,
-   intro $ h.get_or_else `a, intron (n-2), tactic.swap,
-   let h := h.get_or_else `this,
-   h' ← to_expr ``(%%p ∨ %%p') >>= assert h,
-   tactic.clear this,
-   assumption <|> `[exact le_total _ _] <|> tactic.swap,
-   (() <$ tactic.cases h' [`h,`h])
-   ; specialize ```(%%this _ _ h)
-   ; intron (n-2) ; try (solve_by_elim <|> tauto <|> (tactic.intros >> cc)),
-   return ()
+meta def ext : parse ident_ * → tactic unit
+ | [] := repeat (ext1 none)
+ | xs := xs.mmap' (ext1 ∘ some)
+
+private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
+| (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)
+| _ := fail "parse error"
+
+
+private meta def generalize_arg_p : parser (pexpr × name) :=
+with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
+
+lemma {u} generalize_a_aux {α : Sort u}
+  (h : ∀ x : Sort u, (α → x) → x) : α := h α id
+
+/--
+  Like `generalize` but also considers assumptions
+  specified by the user. The user can also specify to
+  omit the goal.
+  -/
+meta def generalize_hyp  (h : parse ident?) (_ : parse $ tk ":")
+  (p : parse generalize_arg_p)
+  (l : parse location) :
+  tactic unit :=
+do h' ← get_unused_name `h,
+   x' ← get_unused_name `x,
+   g ← if ¬ l.include_goal then
+       do refine ``(generalize_a_aux _),
+          some <$> (prod.mk <$> tactic.intro x' <*> tactic.intro h')
+   else pure none,
+   n ← l.get_locals >>= tactic.revert_lst,
+   generalize h () p,
+   intron n,
+   match g with
+     | some (x',h') :=
+        do tactic.apply h',
+           tactic.clear h',
+           tactic.clear x'
+     | none := return ()
+   end
+
+/--
+  Similar to `refine` but generates equality proof obligations
+  for every discrepancy between the goal and the type of the rule.
+  -/
+meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
+do v ← mk_mvar,
+   if sym.is_some
+     then refine ``(eq.mp %%v %%r)
+     else refine ``(eq.mpr %%v %%r),
+   gs ← get_goals,
+   set_goals [v],
+   congr' n,
+   gs' ← get_goals,
+   set_goals $ gs' ++ gs
+
+meta def clean_ids : list name :=
+[``id, ``id_rhs, ``id_delta]
+
+/-- Remove identity functions from a term. These are normally
+  automatically generated with terms like `show t, from p` or
+  `(p : t)` which translate to some variant on `@id t p` in
+  order to retain the type. -/
+meta def clean (q : parse texpr) : tactic unit :=
+do tgt : expr ← target,
+   e ← i_to_expr_strict ``(%%q : %%tgt),
+   tactic.exact $ e.replace (λ e n,
+     match e with
+     | (app (app (const n _) _) e') :=
+       if n ∈ clean_ids then some e' else none
+     | (app (lam _ _ _ (var 0)) e') := some e'
+     | _ := none
+     end)
 
 end interactive
 end tactic

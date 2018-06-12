@@ -5,6 +5,8 @@ Authors: Mario Carneiro
 
 Evaluate expressions in the language of (semi-)rings.
 Based on http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf .
+
+(Non-expert) comments added by Kevin Buzzard.
 -/
 import algebra.group_power tactic.norm_num
 
@@ -32,7 +34,8 @@ def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + 
    running norm_num 10,000 times. So polynomials will be implemented by 
    recurring applications of horner, which is fine until you have to e.g. add them up.
    For some reason, the implementation of the polynomial ring type is all done
-   in untrusted mode with exprs.
+   in untrusted mode with exprs. Is this necessary? I (KB) don't understand
+   things well enough to know.
 -/
 
 namespace tactic
@@ -466,6 +469,7 @@ open tactic.ring
 
 local postfix `?`:9001 := optional
 
+-- MC comment
 /-- Tactic for solving equations in the language of rings.
   This version of `ring` fails if the target is not an equality
   that is provable by the axioms of commutative (semi)rings. -/
@@ -488,6 +492,7 @@ do mode ← ident?, match mode with
 | _            := failed
 end
 
+-- MC comment
 /-- Tactic for solving equations in the language of rings.
   Attempts to prove the goal outright if there is no `at`
   specifier and the target is an equality, but if this
@@ -509,3 +514,5 @@ end tactic
 
 -- TODO(Mario): fix
 -- example (x : ℤ) : x^3 + x^2 + x = x^3 + (x^2 + x) := by ring
+
+example (d : ℕ) : d^2+2*d+1=(d+1)^2 := by ring 

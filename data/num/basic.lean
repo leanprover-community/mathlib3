@@ -16,36 +16,37 @@ import data.pnat data.bool data.vector data.bitvec
 /-- The type of positive binary numbers.
 
      13 = 1101(base 2) = bit1 (bit0 (bit1 one)) -/
+@[derive has_reflect, derive decidable_eq]
 inductive pos_num : Type
 | one  : pos_num
 | bit1 : pos_num → pos_num
 | bit0 : pos_num → pos_num
 instance : has_one pos_num := ⟨pos_num.one⟩
-instance : decidable_eq pos_num := by tactic.mk_dec_eq_instance
 
 /-- The type of nonnegative binary numbers, using `pos_num`.
 
      13 = 1101(base 2) = pos (bit1 (bit0 (bit1 one))) -/
+@[derive has_reflect, derive decidable_eq]
 inductive num : Type
 | zero  : num
 | pos   : pos_num → num
 instance : has_zero num := ⟨num.zero⟩
 instance : has_one num := ⟨num.pos 1⟩
-instance : decidable_eq num := by tactic.mk_dec_eq_instance
 
 /-- Representation of integers using trichotomy around zero.
 
      13 = 1101(base 2) = pos (bit1 (bit0 (bit1 one)))
      -13 = -1101(base 2) = neg (bit1 (bit0 (bit1 one))) -/
+@[derive has_reflect, derive decidable_eq]
 inductive znum : Type
 | zero : znum
 | pos  : pos_num → znum
 | neg  : pos_num → znum
 instance : has_zero znum := ⟨znum.zero⟩
 instance : has_one znum := ⟨znum.pos 1⟩
-instance : decidable_eq znum := by tactic.mk_dec_eq_instance
 
 /-- See `snum`. -/
+@[derive has_reflect, derive decidable_eq]
 inductive nzsnum : Type
 | msb : bool → nzsnum
 | bit : bool → nzsnum → nzsnum
@@ -63,6 +64,7 @@ inductive nzsnum : Type
 
      0  = ..0000000(base 2) = zero ff
      -1 = ..1111111(base 2) = zero tt -/
+@[derive has_reflect, derive decidable_eq]
 inductive snum : Type
 | zero : bool → snum
 | nz : nzsnum → snum
@@ -70,8 +72,6 @@ instance : has_coe nzsnum snum := ⟨snum.nz⟩
 instance : has_zero snum := ⟨snum.zero ff⟩
 instance : has_one nzsnum := ⟨nzsnum.msb tt⟩
 instance : has_one snum := ⟨snum.nz 1⟩
-instance : decidable_eq nzsnum := by tactic.mk_dec_eq_instance
-instance : decidable_eq snum := by tactic.mk_dec_eq_instance
 
 namespace pos_num
 
@@ -233,6 +233,9 @@ namespace num
   | 0       := 0
   | (pos a) := znum.neg a
 
+  def of_nat' : ℕ → num :=
+  nat.binary_rec 0 (λ b n, cond b num.bit1 num.bit0)
+
 end num
 
 namespace znum
@@ -274,6 +277,10 @@ namespace znum
   | 0       := neg 1
   | (pos n) := pos (num.cases_on (pred' n) 1 pos_num.bit1)
   | (neg n) := neg (pos_num.bit1 n)
+
+  def of_int' : ℤ → znum
+  | (n : ℕ) := num.to_znum (num.of_nat' n)
+  | -[1+ n] := num.to_znum_neg (num.of_nat' (n+1))
 
 end znum
 

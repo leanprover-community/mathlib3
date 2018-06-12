@@ -12,6 +12,7 @@ namespace pos_num
   variables {α : Type*}
 
   @[simp] theorem cast_one [has_zero α] [has_one α] [has_add α] : ((1 : pos_num) : α) = 1 := rfl  theorem one_add (n : pos_num) : 1 + n = succ n := by cases n; refl
+  @[simp] theorem cast_one' [has_zero α] [has_one α] [has_add α] : (pos_num.one : α) = 1 := rfl  theorem one_add (n : pos_num) : 1 + n = succ n := by cases n; refl
   @[simp] theorem cast_bit0 [has_zero α] [has_one α] [has_add α] (n : pos_num) : (n.bit0 : α) = _root_.bit0 n := rfl
   @[simp] theorem cast_bit1 [has_zero α] [has_one α] [has_add α] (n : pos_num) : (n.bit1 : α) = _root_.bit1 n := rfl
 
@@ -160,6 +161,9 @@ namespace num
   @[simp] theorem cast_zero [has_zero α] [has_one α] [has_add α] :
     ((0 : num) : α) = 0 := rfl
 
+  @[simp] theorem cast_zero' [has_zero α] [has_one α] [has_add α] :
+    (num.zero : α) = 0 := rfl
+
   @[simp] theorem cast_one [has_zero α] [has_one α] [has_add α] :
     ((1 : num) : α) = 1 := rfl
 
@@ -185,6 +189,9 @@ namespace num
   @[simp] theorem to_of_nat : Π (n : ℕ), ((n : num) : ℕ) = n
   | 0     := rfl
   | (n+1) := by rw [nat.cast_add_one, add_one, succ_to_nat, to_of_nat]
+
+  @[simp] theorem of_nat_cast [add_monoid α] [has_one α] (n : ℕ) : ((n : num) : α) = n :=
+  by rw [← cast_to_nat, to_of_nat]
 
   theorem of_nat_inj {m n : ℕ} : (m : num) = n ↔ m = n :=
   ⟨λ h, function.injective_of_left_inverse to_of_nat h, congr_arg _⟩
@@ -442,6 +449,14 @@ namespace num
   theorem nat_size_to_nat (n) : nat_size n = nat.size n :=
   by rw [← size_eq_nat_size, size_to_nat]
 
+  @[simp] theorem of_nat'_eq : ∀ n, num.of_nat' n = n :=
+  nat.binary_rec rfl $ λ b n IH, begin
+    rw of_nat' at IH ⊢,
+    rw [nat.binary_rec_eq, IH],
+    { cases b; simp [nat.bit, bit0_of_bit0, bit1_of_bit1] },
+    { refl }
+  end
+
   theorem zneg_to_znum (n : num) : -n.to_znum = n.to_znum_neg := by cases n; refl
   theorem zneg_to_znum_neg (n : num) : -n.to_znum_neg = n.to_znum := by cases n; refl
 
@@ -638,6 +653,9 @@ namespace znum
 
   @[simp] theorem cast_zero [has_zero α] [has_one α] [has_add α] [has_neg α] :
     ((0 : znum) : α) = 0 := rfl
+
+  @[simp] theorem cast_zero' [has_zero α] [has_one α] [has_add α] [has_neg α] :
+    (znum.zero : α) = 0 := rfl
 
   @[simp] theorem cast_one [has_zero α] [has_one α] [has_add α] [has_neg α] :
     ((1 : znum) : α) = 1 := rfl
@@ -872,6 +890,16 @@ namespace znum
 
   theorem to_int_inj {m n : znum} : (m : ℤ) = n ↔ m = n :=
   ⟨λ h, function.injective_of_left_inverse of_to_int h, congr_arg _⟩
+
+  @[simp] theorem of_int_cast [add_group α] [has_one α] (n : ℤ) : ((n : znum) : α) = n :=
+  by rw [← cast_to_int, to_of_int]
+
+  @[simp] theorem of_nat_cast [add_group α] [has_one α] (n : ℕ) : ((n : znum) : α) = n :=
+  of_int_cast n
+
+  @[simp] theorem of_int'_eq : ∀ n, znum.of_int' n = n
+  | (n : ℕ) := to_int_inj.1 $ by simp [znum.of_int']
+  | -[1+ n] := to_int_inj.1 $ by simp [znum.of_int']
 
   theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = n) ((m:ℤ) > n) : Prop)
   | 0       0       := rfl

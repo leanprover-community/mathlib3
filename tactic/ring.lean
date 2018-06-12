@@ -11,19 +11,21 @@ import algebra.group_power tactic.norm_num
 universes u v w
 open tactic
 
-/-- this function is crucial to an efficient representation of polynomials -/
 -- if you're not interested in making ring work _efficiently_ then you 
 -- might be able to ignore this bit
+/-- this function is crucial to an efficient representation of polynomials -/
 def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + b
 
 namespace tactic
 namespace ring
 
+/-- expr version of type α; contains data α : Sort univ and [semiring α] -/
 meta structure cache :=
 (α : expr)
 (univ : level)
 (comm_semiring_inst : expr)
 
+/-- Takes an expr representing (a : α) and returns the expr version of α -/
 meta def mk_cache (e : expr) : tactic cache :=
 do α ← infer_type e,
    c ← mk_app ``comm_semiring [α] >>= mk_instance,
@@ -32,14 +34,20 @@ do α ← infer_type e,
    u ← get_univ_assignment u,
    return ⟨α, u, c⟩
 
+/-- given an untrusted function name n and our untrusted α, this returns an untrusted n α H
+    with H a proof of semiring α. -/
 meta def cache.cs_app (c : cache) (n : name) : list expr → expr :=
 (@expr.const tt n [c.univ] c.α c.comm_semiring_inst).mk_app
 
+/-- Our polynomials are either (rational?!) constants, or horner of some exprs a x m m b.
+    Note that m is passed twice, once as an expr and once as a nat -/
 meta inductive destruct_ty : Type
 | const : ℚ → destruct_ty
 | xadd : expr → expr → expr → ℕ → expr → destruct_ty
 open destruct_ty
 
+/-- This attempts to turn an expr into a destruct_ty. It can fail. It first tries to interpret
+    it as a rational, and then as horner of something. -/
 meta def destruct (e : expr) : option destruct_ty :=
 match expr.to_rat e with
 | some n := some $ const n
@@ -51,6 +59,7 @@ match expr.to_rat e with
   end
 end
 
+/-- presumably just for debugging purposes? -/
 meta def normal_form_to_string : expr → string
 | e := match destruct e with
   | some (const n) := to_string n
@@ -65,17 +74,18 @@ theorem zero_horner {α} [comm_semiring α] (x n b) :
   @horner α _ 0 x n b = b :=
 by simp [horner]
 
-/-- (a1*x^n1)*x^n2+b=a1*x^(n1+n2)+b -/
+/-- (a1*x^n1+0)*x^n2+b=a1*x^(n1+n2)+b -/
 theorem horner_horner {α} [comm_semiring α] (a₁ x n₁ n₂ b n')
   (h : n₁ + n₂ = n') :
   @horner α _ (horner a₁ x n₁ 0) x n₂ b = horner a₁ x n' b :=
 by simp [h.symm, horner, pow_add, mul_assoc]
 
-/-- seems to send e to (e,proof that e = e) -/
+/-- sends e to unsafe (e,proof that e = e) -/
 meta def refl_conv (e : expr) : tactic (expr × expr) :=
 do p ← mk_eq_refl e, return (e, p)
 
-
+/-- if t1 e = (f,proof that e = f) and t2 f is (g,proof that f=g) then 
+    return (g,proof that e=g) else do your best to return anything -/
 meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
   tactic (expr × expr) :=
 (do (e₁, p₁) ← t₁ e,
@@ -83,6 +93,7 @@ meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
     p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
   return (e₁, p₁)) <|> t₂ e
 
+/-- -/
 meta def eval_horner (c : cache) (a x n b : expr) : tactic (expr × expr) :=
 do d ← destruct a, match d with
 | const q := if q = 0 then

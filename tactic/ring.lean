@@ -19,11 +19,13 @@ def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + 
 namespace tactic
 namespace ring
 
+/-- expr way of storing {α : Type univ} [comm_semiring α] -/
 meta structure cache :=
 (α : expr)
 (univ : level)
 (comm_semiring_inst : expr)
 
+/-- Given an expr representing a : α, this returns the expr version of the comm_semiring α -/
 meta def mk_cache (e : expr) : tactic cache :=
 do α ← infer_type e,
    c ← mk_app ``comm_semiring [α] >>= mk_instance,
@@ -83,6 +85,8 @@ meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
     p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
   return (e₁, p₁)) <|> t₂ e
 
+/-- This takes as input untrusted alpha and a x n b, and returns the pair
+    (e,proof that e = a*x^n+b) . Note that a is allowed to be of the form a₁ * x₁ ^ n₁ + b₁ -/
 meta def eval_horner (c : cache) (a x n b : expr) : tactic (expr × expr) :=
 do d ← destruct a, match d with
 | const q := if q = 0 then
@@ -96,24 +100,29 @@ do d ← destruct a, match d with
   else refl_conv $ c.cs_app ``horner [a, x, n, b]
 end
 
+/-- This non-meta theorem just says k + ax^n+b = ax^n+(k+b) -/
 theorem const_add_horner {α} [comm_semiring α] (k a x n b b') (h : k + b = b') :
   k + @horner α _ a x n b = horner a x n b' :=
 by simp [h.symm, horner]
 
+/-- This non-meta theorem just says ax^n+b + k = ax^n+(b+k) -/
 theorem horner_add_const {α} [comm_semiring α] (a x n b k b') (h : b + k = b') :
   @horner α _ a x n b + k = horner a x n b' :=
 by simp [h.symm, horner]
 
+/-- This non-meta theorem just says a₁x^n₁+b₁+a₂x^(n₁+k)+b₂=(a₂x^k+a₁)x^n₁+(b₁+b₂) -/
 theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k b')
   (h₁ : n₁ + k = n₂) (h₂ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner (horner a₂ x k a₁) x n₁ b' :=
 by simp [h₂.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
+-- some boring non-meta theorem
 theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k b')
   (h₁ : n₂ + k = n₁) (h₂ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner (horner a₁ x k a₂) x n₂ b' :=
 by simp [h₂.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
+-- some boring non-meta theorem
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=

@@ -11,8 +11,8 @@ import data.num.basic data.num.bitwise algebra.ordered_ring
 namespace pos_num
   variables {α : Type*}
 
-  @[simp] theorem cast_one [has_zero α] [has_one α] [has_add α] : ((1 : pos_num) : α) = 1 := rfl  theorem one_add (n : pos_num) : 1 + n = succ n := by cases n; refl
-  @[simp] theorem cast_one' [has_zero α] [has_one α] [has_add α] : (pos_num.one : α) = 1 := rfl  theorem one_add (n : pos_num) : 1 + n = succ n := by cases n; refl
+  @[simp] theorem cast_one [has_zero α] [has_one α] [has_add α] : ((1 : pos_num) : α) = 1 := rfl
+  @[simp] theorem cast_one' [has_zero α] [has_one α] [has_add α] : (pos_num.one : α) = 1 := rfl
   @[simp] theorem cast_bit0 [has_zero α] [has_one α] [has_add α] (n : pos_num) : (n.bit0 : α) = _root_.bit0 n := rfl
   @[simp] theorem cast_bit1 [has_zero α] [has_one α] [has_add α] (n : pos_num) : (n.bit1 : α) = _root_.bit1 n := rfl
 
@@ -32,7 +32,8 @@ namespace pos_num
   | (bit0 p) := rfl
   | (bit1 p) := (congr_arg _root_.bit0 (succ_to_nat p)).trans $
     show ↑p + 1 + ↑p + 1 = ↑p + ↑p + 1 + 1, by simp
-
+  
+  theorem one_add (n : pos_num) : 1 + n = succ n := by cases n; refl
   theorem add_one (n : pos_num) : n + 1 = succ n := by cases n; refl
 
   @[simp] theorem add_to_nat : ∀ m n, ((m + n : pos_num) : ℕ) = m + n

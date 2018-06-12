@@ -5,10 +5,58 @@ Authors: Johannes Hölzl
 
 Transitive reflexive as well as reflexive closure of relations.
 -/
-import tactic
-variables {α : Type*} {β : Type*} {γ : Type*} {r : α → α → Prop} {a b c d : α}
+import tactic logic.relator
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace relation
+
+section comp
+variables {r : α → β → Prop} {p : β → γ → Prop} {q : γ → δ → Prop}
+
+def comp (r : α → β → Prop) (p : β → γ → Prop) (a : α) (c : γ) : Prop := ∃b, r a b ∧ p b c
+
+local infixr ` ∘r ` : 80 := relation.comp
+
+lemma comp_eq : r ∘r (=) = r :=
+funext $ assume a, funext $ assume b, propext $ iff.intro
+  (assume ⟨c, h, eq⟩, eq ▸ h)
+  (assume h, ⟨b, h, rfl⟩)
+
+lemma eq_comp : (=) ∘r r = r :=
+funext $ assume a, funext $ assume b, propext $ iff.intro
+  (assume ⟨c, eq, h⟩, eq.symm ▸ h)
+  (assume h, ⟨a, rfl, h⟩)
+
+lemma iff_comp {r : Prop → α → Prop} : (↔) ∘r r = r :=
+have (↔) = (=), by funext a b; exact iff_eq_eq,
+by rw [this, eq_comp]
+
+lemma comp_iff {r : α → Prop → Prop} : r ∘r (↔) = r :=
+have (↔) = (=), by funext a b; exact iff_eq_eq,
+by rw [this, comp_eq]
+
+lemma comp_assoc : (r ∘r p) ∘r q = r ∘r p ∘r q :=
+begin
+  funext a d, apply propext,
+  split,
+  exact assume ⟨c, ⟨b, hab, hbc⟩, hcd⟩, ⟨b, hab, c, hbc, hcd⟩,
+  exact assume ⟨b, hab, c, hbc, hcd⟩, ⟨c, ⟨b, hab, hbc⟩, hcd⟩
+end
+
+lemma flip_comp : flip (r ∘r p) = (flip p) ∘r (flip r) :=
+begin
+  funext c a, apply propext,
+  split,
+  exact assume ⟨b, hab, hbc⟩, ⟨b, hbc, hab⟩,
+  exact assume ⟨b, hbc, hab⟩, ⟨b, hab, hbc⟩
+end
+
+end comp
+
+protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ → δ → Prop :=
+λc d, ∃a b, r a b ∧ f a = c ∧ g b = d
+
+variables {r : α → α → Prop} {a b c d : α}
 
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
 inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop

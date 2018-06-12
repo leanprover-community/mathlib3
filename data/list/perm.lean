@@ -189,6 +189,68 @@ begin
           ⟨r₁, pr.trans pm, sr⟩ }
 end
 
+section rel
+open relator
+variables {γ : Type*} {δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}
+
+local infixr ` ∘r ` : 80 := relation.comp
+
+lemma perm_comp_perm : (perm ∘r perm : list α → list α → Prop) = perm :=
+begin
+  funext a c, apply propext,
+  split,
+  { exact assume ⟨b, hab, hba⟩, perm.trans hab hba },
+  { exact assume h, ⟨a, perm.refl a, h⟩ }
+end
+
+lemma perm_comp_forall₂ {l u v} (hlu : perm l u) (huv : forall₂ r u v) : (forall₂ r ∘r perm) l v :=
+begin
+  induction hlu generalizing v,
+  case perm.nil { cases huv, exact ⟨[], forall₂.nil, perm.nil⟩ },
+  case perm.skip : a l u hlu ih {
+    cases huv with _ b _ v hab huv',
+    rcases ih huv' with ⟨l₂, h₁₂, h₂₃⟩,
+    exact ⟨b::l₂, forall₂.cons hab h₁₂, perm.skip _ h₂₃⟩
+  },
+  case perm.swap : a₁ a₂ l₁ l₂ h₂₃ {
+    cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
+    cases hr_₂₃ with _ b₂ _ l₂ h₂ h₁₂,
+    exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩
+  },
+  case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂ {
+    rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
+    rcases ih₁ hab₂ with ⟨lb₁, hab₁, h₁₂⟩,
+    exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩
+  }
+end
+
+lemma forall₂_comp_perm_eq_perm_comp_forall₂ : forall₂ r ∘r perm = perm ∘r forall₂ r :=
+begin
+  funext l₁ l₃, apply propext,
+  split,
+  { assume h, rcases h with ⟨l₂, h₁₂, h₂₃⟩,
+    have : forall₂ (flip r) l₂ l₁, from forall₂_flip h₁₂,
+    rcases perm_comp_forall₂ h₂₃.symm this with ⟨l', h₁, h₂⟩,
+    exact ⟨l', h₂.symm, forall₂_flip h₁⟩ },
+  { exact assume ⟨l₂, h₁₂, h₂₃⟩, perm_comp_forall₂ h₁₂ h₂₃ }
+end
+
+lemma rel_perm_imp (hr : right_unique r) : (forall₂ r ⇒ forall₂ r ⇒ implies) perm perm :=
+assume a b h₁ c d h₂ h,
+have (flip (forall₂ r) ∘r (perm ∘r forall₂ r)) b d, from ⟨a, h₁, c, h, h₂⟩,
+have ((flip (forall₂ r) ∘r forall₂ r) ∘r perm) b d,
+  by rwa [← forall₂_comp_perm_eq_perm_comp_forall₂, ← relation.comp_assoc] at this,
+let ⟨b', ⟨c', hbc, hcb⟩, hbd⟩ := this in
+have b' = b, from right_unique_forall₂ @hr hcb hbc,
+this ▸ hbd
+
+lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
+assume a b hab c d hcd, iff.intro
+  (rel_perm_imp hr.2 hab hcd)
+  (rel_perm_imp (assume a b c, left_unique_flip hr.1) (forall₂_flip hab) (forall₂_flip hcd))
+
+end rel
+
 section subperm
 
 /-- `subperm l₁ l₂`, denoted `l₁ <+~ l₂`, means that `l₁` is a sublist of

@@ -151,16 +151,16 @@ theorem horner_add_const {α} [comm_semiring α] (a x n b k b') (h : b + k = b')
 by simp [h.symm, horner]
 
 /-- This non-meta theorem just says a₁x^n₁+b₁+a₂x^(n₁+k)+b₂=(a₂x^k+a₁)x^n₁+(b₁+b₂) -/
-theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k b')
-  (h₁ : n₁ + k = n₂) (h₂ : b₁ + b₂ = b') :
-  @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner (horner a₂ x k a₁) x n₁ b' :=
-by simp [h₂.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
+theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
+  (h₁ : n₁ + k = n₂) (h₂ : (a₁ + horner a₂ x k 0 : α) = a') (h₃ : b₁ + b₂ = b') :
+  @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₁ b' :=
+by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
 /-- This non-meta theorem just says a₁x^(n₂+k)+b₁+a₂x^n₂+b₂=(a₁x^k+a₂)x^n₂+(b₁+b₂) -/
-theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k b')
-  (h₁ : n₂ + k = n₁) (h₂ : b₁ + b₂ = b') :
-  @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner (horner a₁ x k a₂) x n₂ b' :=
-by simp [h₂.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
+theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
+  (h₁ : n₂ + k = n₁) (h₂ : (horner a₁ x k 0 + a₂ : α) = a') (h₃ : b₁ + b₂ = b') :
+  @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₂ b' :=
+by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
 /-- This non-meta theorem just says a₁x^n+b₁+a₂x^n+b₂=(a₁+a₂)x^n+(b₁+b₂) -/
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
@@ -201,15 +201,19 @@ match d₁, d₂ with
   else if n₁ < n₂ then do
     k ← expr.of_nat (expr.const `nat []) (n₂ - n₁),
     (_, h₁) ← mk_app ``has_add.add [en₁, k] >>= norm_num,
-    (b', h₂) ← eval_add b₁ b₂,
-    return (c.cs_app ``horner [c.cs_app ``horner [a₂, x₁, k, a₁], x₁, en₁, b'],
-      c.cs_app ``horner_add_horner_lt [a₁, x₁, en₁, b₁, a₂, en₂, b₂, k, b', h₁, h₂])
+    α0 ← expr.of_nat c.α 0,
+    (a', h₂) ← eval_add a₁ (c.cs_app ``horner [a₂, x₁, k, α0]),
+    (b', h₃) ← eval_add b₁ b₂,
+    return (c.cs_app ``horner [a', x₁, en₁, b'],
+      c.cs_app ``horner_add_horner_lt [a₁, x₁, en₁, b₁, a₂, en₂, b₂, k, a', b', h₁, h₂, h₃])
   else if n₁ ≠ n₂ then do
     k ← expr.of_nat (expr.const `nat []) (n₁ - n₂),
     (_, h₁) ← mk_app ``has_add.add [en₂, k] >>= norm_num,
-    (b', h₂) ← eval_add b₁ b₂,
-    return (c.cs_app ``horner [c.cs_app ``horner [a₁, x₁, k, a₂], x₁, en₂, b'],
-      c.cs_app ``horner_add_horner_gt [a₁, x₁, en₁, b₁, a₂, en₂, b₂, k, b', h₁, h₂])
+    α0 ← expr.of_nat c.α 0,
+    (a', h₂) ← eval_add (c.cs_app ``horner [a₁, x₁, k, α0]) a₂,
+    (b', h₃) ← eval_add b₁ b₂,
+    return (c.cs_app ``horner [a', x₁, en₂, b'],
+      c.cs_app ``horner_add_horner_gt [a₁, x₁, en₁, b₁, a₂, en₂, b₂, k, a', b', h₁, h₂, h₃])
   else do
     (a', h₁) ← eval_add a₁ a₂,
     (b', h₂) ← eval_add b₁ b₂,
@@ -400,15 +404,22 @@ meta def eval (c : cache) : expr → tactic (expr × expr)
 | e@`(%%e₁ / %%e₂) := do
   e₂' ← mk_app ``has_inv.inv [e₂],
   mk_app ``has_mul.mul [e₁, e₂'] >>= eval
-| e@`(%%e₁ ^ %%e₂) := do
+| e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
   (e₂', p₂) ← eval e₂,
-  match e₂'.to_nat with
-  | none := eval_atom c e
-  | some k := do
+  match e₂'.to_nat, P with
+  | some k, `(monoid.has_pow) := do
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow c e₁' k,
     p ← mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
     return (e', p)
+  | some k, `(nat.has_pow) := do
+    (e₁', p₁) ← eval e₁,
+    (e', p') ← eval_pow c e₁' k,
+    p₃ ← mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+    p₄ ← mk_app ``nat.pow_eq_pow [e₁, e₂] >>= mk_eq_symm,
+    p ← mk_eq_trans p₄ p₃,
+    return (e', p)
+  | _, _ := eval_atom c e
   end
 | e := match e.to_nat with
   | some _ := refl_conv e
@@ -512,7 +523,4 @@ do ns ← loc.get_locals,
 end interactive
 end tactic
 
--- TODO(Mario): fix
--- example (x : ℤ) : x^3 + x^2 + x = x^3 + (x^2 + x) := by ring
-
-example (d : ℕ) : d^2+2*d+1=(d+1)^2 := by ring 
+-- example (d : ℕ) : d^2+2*d+1=(d+1)^2 := by ring 

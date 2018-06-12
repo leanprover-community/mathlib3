@@ -11,15 +11,37 @@ import algebra.group_power tactic.norm_num
 universes u v w
 open tactic
 
--- if you're not interested in making ring work _efficiently_ then you 
--- might be able to ignore this bit
-/-- this function is crucial to an efficient representation of polynomials -/
+/- This tactic proves ring identities using the obvious strategy:
+   to prove that, for example, if (d : ℤ) then (d+1)^2=d^2+2*d+1, it
+   first proves an identity (X+1)^2=X^2+2*X+1 in ℤ[X] and then
+   deduces the result for d by specialization. To do this we have to
+   construct some sort of untrusted polynomial ring ℤ[X] (and more
+   generally α[X₁,X₂,...,X_n] for a comm_semiring α) plus a proof
+   that evaluation is a ring homomorphism.
+
+   A CS technicality here is that polynomials are not represented
+   by the obvious naive methods (lists of coefficients, for example),
+   but by iterating the "horner" function ax^n+b:
+-/
+
 def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + b
+
+/- For example x^3+4x+5 = (x^2+4)*x+5=(1*x^2+4)*x^1+5. 
+   This is important for the CS people because then polynomials such as x^100
+   aren't lists of size 100, and x^100 * x^100 isn't going to involve
+   running norm_num 10,000 times. So polynomials will be implemented by 
+   recurring applications of horner, which is fine until you have to e.g. add them up.
+   For some reason, the implementation of the polynomial ring type is all done
+   in untrusted mode with exprs.
+-/
 
 namespace tactic
 namespace ring
 
-/-- expr version of type α; contains data α : Sort univ and [semiring α] -/
+-- For some reason we make our polynomial ring in untrusted mode (i.e. using exprs), 
+-- so we need to get untrusted versions of our underlying commutative ring.
+
+/-- expr (untrusted) version of type α; contains data α : Sort univ and [semiring α] -/
 meta structure cache :=
 (α : expr)
 (univ : level)
@@ -46,6 +68,9 @@ meta inductive destruct_ty : Type
 | xadd : expr → expr → expr → ℕ → expr → destruct_ty
 open destruct_ty
 
+
+-- todo -- what does `ty` stand for? And why `destruct` ?
+
 /-- This attempts to turn an expr into a destruct_ty. It can fail. It first tries to interpret
     it as a rational, and then as horner of something. -/
 meta def destruct (e : expr) : option destruct_ty :=
@@ -69,12 +94,12 @@ meta def normal_form_to_string : expr → string
   | none := to_string e
   end
 
-/-- 0 * x ^ n + b = b  -/
+/-- This non-meta theorem is just a proof that 0 * x ^ n + b = b  -/
 theorem zero_horner {α} [comm_semiring α] (x n b) :
   @horner α _ 0 x n b = b :=
 by simp [horner]
 
-/-- (a1*x^n1+0)*x^n2+b=a1*x^(n1+n2)+b -/
+/-- This non-meta theorem is a proof that (a1*x^n1+0)*x^n2+b=a1*x^(n1+n2)+b -/
 theorem horner_horner {α} [comm_semiring α] (a₁ x n₁ n₂ b n')
   (h : n₁ + n₂ = n') :
   @horner α _ (horner a₁ x n₁ 0) x n₂ b = horner a₁ x n' b :=
@@ -85,7 +110,7 @@ meta def refl_conv (e : expr) : tactic (expr × expr) :=
 do p ← mk_eq_refl e, return (e, p)
 
 /-- if t1 e = (f,proof that e = f) and t2 f is (g,proof that f=g) then 
-    return (g,proof that e=g) else do your best to return anything -/
+    return (g,proof that e=g) else do your best to return anything helpful -/
 meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
   tactic (expr × expr) :=
 (do (e₁, p₁) ← t₁ e,
@@ -93,7 +118,9 @@ meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
     p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
   return (e₁, p₁)) <|> t₂ e
 
-/-- -/
+/-- This takes as input untrusted alpha and a x n b, and returns the untrusted pair
+    (e,proof that e = a*x^n+b) . Note that a is allowed to be of the form a₁ * x₁ ^ n₁ + b₁,
+    -- which it could well be in practice.  -/
 meta def eval_horner (c : cache) (a x n b : expr) : tactic (expr × expr) :=
 do d ← destruct a, match d with
 | const q := if q = 0 then
@@ -107,29 +134,39 @@ do d ← destruct a, match d with
   else refl_conv $ c.cs_app ``horner [a, x, n, b]
 end
 
+-- The next five (non-meta) theorems write the sum of two polynomials in "horner form"
+-- as a polynomial in horner form.
+
+/-- This non-meta theorem just says k + ax^n+b = ax^n+(k+b) -/
 theorem const_add_horner {α} [comm_semiring α] (k a x n b b') (h : k + b = b') :
   k + @horner α _ a x n b = horner a x n b' :=
 by simp [h.symm, horner]
 
+/-- This non-meta theorem just says ax^n+b + k = ax^n+(b+k) -/
 theorem horner_add_const {α} [comm_semiring α] (a x n b k b') (h : b + k = b') :
   @horner α _ a x n b + k = horner a x n b' :=
 by simp [h.symm, horner]
 
+/-- This non-meta theorem just says a₁x^n₁+b₁+a₂x^(n₁+k)+b₂=(a₂x^k+a₁)x^n₁+(b₁+b₂) -/
 theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k b')
   (h₁ : n₁ + k = n₂) (h₂ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner (horner a₂ x k a₁) x n₁ b' :=
 by simp [h₂.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
+/-- This non-meta theorem just says a₁x^(n₂+k)+b₁+a₂x^n₂+b₂=(a₁x^k+a₂)x^n₂+(b₁+b₂) -/
 theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k b')
   (h₁ : n₂ + k = n₁) (h₂ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner (horner a₁ x k a₂) x n₂ b' :=
 by simp [h₂.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
+/-- This non-meta theorem just says a₁x^n+b₁+a₂x^n+b₂=(a₁+a₂)x^n+(b₁+b₂) -/
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
 by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]
 
+/-- This is a crucial definition; given two exprs representing polynomials in horner form
+    (so either constants or of the form ax^n+b) it produces -/
 meta def eval_add (c : cache) : expr → expr → tactic (expr × expr)
 | e₁ e₂ := do d₁ ← destruct e₁, d₂ ← destruct e₂,
 match d₁, d₂ with

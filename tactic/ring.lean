@@ -23,12 +23,14 @@ open tactic
 
    A CS technicality here is that polynomials are not represented
    by the obvious naive methods (lists of coefficients, for example),
-   but by iterating the "horner" function ax^n+b:
+   but by iterating the "horner" function λ x, ax^n+b.
 -/
 
 def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + b
 
-/- For example x^3+4x+5 = (x^2+4)*x+5=(1*x^2+4)*x^1+5. 
+/- For example x^3+4x+5 = (x^2+4)*x+5=(1*x^2+4)*x^1+5, and
+               x^2+y^2  = 1*x^2+(1*y^2+0).
+
    This is important for the CS people because then polynomials such as x^100
    aren't lists of size 100, and x^100 * x^100 isn't going to involve
    running norm_num 10,000 times. So polynomials will be implemented by 
@@ -169,7 +171,8 @@ theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a'
 by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]
 
 /-- This is a crucial definition; given two exprs representing polynomials in horner form
-    (so either constants or of the form ax^n+b) it produces -/
+    (so either constants or of the form ax^n+b) it produces a pair (val,pf) where val is
+    the sum and pf is a proof that the sum is the val -/
 meta def eval_add (c : cache) : expr → expr → tactic (expr × expr)
 | e₁ e₂ := do d₁ ← destruct e₁, d₂ ← destruct e₂,
 match d₁, d₂ with
@@ -523,4 +526,5 @@ do ns ← loc.get_locals,
 end interactive
 end tactic
 
--- example (d : ℕ) : d^2+2*d+1=(d+1)^2 := by ring 
+example (d : ℕ) : d^2+2*d+1=(d+1)^2 := by ring1
+example (a b : ℤ) : (a+b)^3=a^3+3*a^2*b+3*a*b^2+b^3 := by ring1

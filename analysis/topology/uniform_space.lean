@@ -458,7 +458,7 @@ lemma uniform_embedding.uniform_continuous [uniform_space β] {f : α → β}
 
 lemma uniform_embedding.uniform_continuous_iff [uniform_space β] [uniform_space γ] {f : α → β}
   {g : β → γ} (hg : uniform_embedding g) : uniform_continuous f ↔ uniform_continuous (g ∘ f) :=
-by simp [uniform_continuous, tendsto]; rw [← hg.2, ← map_le_iff_le_vmap, map_map]
+by simp [uniform_continuous, tendsto]; rw [← hg.2, ← map_le_iff_le_vmap, filter.map_map]
 
 lemma uniform_embedding.dense_embedding [uniform_space β] {f : α → β}
   (h : uniform_embedding f) (hd : ∀x, x ∈ closure (range f)) : dense_embedding f :=

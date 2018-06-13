@@ -11,6 +11,42 @@ variables {α β γ : Type u}
 
 notation a ` $< `:1 f:1 := f a
 
+section functor
+variables {f : Type u → Type v} [functor f] [is_lawful_functor f]
+
+run_cmd mk_simp_attr `functor_norm
+
+@[functor_norm] theorem map_map (m : α → β) (g : β → γ) (x : f α) :
+  g <$> (m <$> x) = (g ∘ m) <$> x :=
+(comp_map _ _ _).symm
+
+@[simp] theorem id_map' (x : f α) : (λa, a) <$> x = x := id_map _
+
+end functor
+
+section applicative
+variables {f : Type u → Type v} [applicative f] [is_lawful_applicative f]
+
+attribute [functor_norm] seq_assoc pure_seq_eq_map
+
+@[simp] theorem pure_id'_seq (x : f α) : pure (λx, x) <*> x = x :=
+pure_id_seq x
+
+@[functor_norm] theorem seq_map_assoc (x : f (α → β)) (g : γ → α) (y : f γ) :
+  (x <*> (g <$> y)) = (λ(m:α→β), m ∘ g) <$> x <*> y :=
+begin
+  simp [(pure_seq_eq_map _ _).symm],
+  simp [seq_assoc, (comp_map _ _ _).symm, (∘)],
+  simp [pure_seq_eq_map]
+end
+
+@[functor_norm] theorem map_seq (g : β → γ) (x : f (α → β)) (y : f α) :
+  (g <$> (x <*> y)) = ((∘) g) <$> x <*> y :=
+by simp [(pure_seq_eq_map _ _).symm]; simp [seq_assoc]
+
+end applicative
+
+-- TODO: setup `functor_norm` for `monad` laws
 section monad
 variables {m : Type u → Type v} [monad m] [is_lawful_monad m]
 
@@ -36,3 +72,16 @@ variables {f : Type → Type v} [alternative f]
   @guard f _ false h = failure := by simp [guard]
 
 end alternative
+
+class is_comm_applicative (m : Type* → Type*) [applicative m] extends is_lawful_applicative m : Prop :=
+(commutative_prod : ∀{α β} (a : m α) (b : m β), prod.mk <$> a <*> b = (λb a, (a, b)) <$> b <*> a)
+
+lemma is_comm_applicative.commutative_map
+  {m : Type* → Type*} [applicative m] [is_comm_applicative m]
+  {α β γ} (a : m α) (b : m β) {f : α → β → γ} :
+  f <$> a <*> b = flip f <$> b <*> a :=
+calc f <$> a <*> b = (λp:α×β, f p.1 p.2) <$> (prod.mk <$> a <*> b) :
+    by simp [seq_map_assoc, map_seq, seq_assoc, seq_pure, map_map]
+  ... = (λb a, f a b) <$> b <*> a :
+    by rw [is_comm_applicative.commutative_prod];
+        simp [seq_map_assoc, map_seq, seq_assoc, seq_pure, map_map]

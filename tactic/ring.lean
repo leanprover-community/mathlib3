@@ -5,22 +5,54 @@ Authors: Mario Carneiro
 
 Evaluate expressions in the language of (semi-)rings.
 Based on http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf .
+
+(Non-expert) comments added by Kevin Buzzard.
 -/
 import algebra.group_power tactic.norm_num
 
 universes u v w
 open tactic
 
+/- This tactic proves ring identities using the obvious strategy:
+   to prove that, for example, if (d : ℤ) then (d+1)^2=d^2+2*d+1, it
+   first proves an identity (X+1)^2=X^2+2*X+1 in ℤ[X] and then
+   deduces the result for d by specialization. To do this we have to
+   construct some sort of untrusted polynomial ring ℤ[X] (and more
+   generally α[X₁,X₂,...,X_n] for a comm_semiring α) plus a proof
+   that evaluation is a ring homomorphism.
+
+   A CS technicality here is that polynomials are not represented
+   by the obvious naive methods (lists of coefficients, for example),
+   but by iterating the "horner" function λ x, ax^n+b.
+-/
+
 def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + b
+
+/- For example x^3+4x+5 = (x^2+4)*x+5=(1*x^2+4)*x^1+5, and
+               x^2+y^2  = 1*x^2+(1*y^2+0).
+
+   This is important for the CS people because then polynomials such as x^100
+   aren't lists of size 100, and x^100 * x^100 isn't going to involve
+   running norm_num 10,000 times. So polynomials will be implemented by 
+   recurring applications of horner, which is fine until you have to e.g. add them up.
+   For some reason, the implementation of the polynomial ring type is all done
+   in untrusted mode with exprs. Is this necessary? I (KB) don't understand
+   things well enough to know.
+-/
 
 namespace tactic
 namespace ring
 
+-- For some reason we make our polynomial ring in untrusted mode (i.e. using exprs), 
+-- so we need to get untrusted versions of our underlying commutative ring.
+
+/-- expr (untrusted) version of type α; contains data α : Sort univ and [semiring α] -/
 meta structure cache :=
 (α : expr)
 (univ : level)
 (comm_semiring_inst : expr)
 
+/-- Takes an expr representing (a : α) and returns the expr version of α -/
 meta def mk_cache (e : expr) : tactic cache :=
 do α ← infer_type e,
    c ← mk_app ``comm_semiring [α] >>= mk_instance,
@@ -29,14 +61,23 @@ do α ← infer_type e,
    u ← get_univ_assignment u,
    return ⟨α, u, c⟩
 
+/-- given an untrusted function name n and our untrusted α, this returns an untrusted n α H
+    with H a proof of semiring α. -/
 meta def cache.cs_app (c : cache) (n : name) : list expr → expr :=
 (@expr.const tt n [c.univ] c.α c.comm_semiring_inst).mk_app
 
+/-- Our polynomials are either (rational?!) constants, or horner of some exprs a x m m b.
+    Note that m is passed twice, once as an expr and once as a nat -/
 meta inductive destruct_ty : Type
 | const : ℚ → destruct_ty
 | xadd : expr → expr → expr → ℕ → expr → destruct_ty
 open destruct_ty
 
+
+-- todo -- what does `ty` stand for? And why `destruct` ?
+
+/-- This attempts to turn an expr into a destruct_ty. It can fail. It first tries to interpret
+    it as a rational, and then as horner of something. -/
 meta def destruct (e : expr) : option destruct_ty :=
 match expr.to_rat e with
 | some n := some $ const n
@@ -48,6 +89,7 @@ match expr.to_rat e with
   end
 end
 
+/-- presumably just for debugging purposes? -/
 meta def normal_form_to_string : expr → string
 | e := match destruct e with
   | some (const n) := to_string n
@@ -57,18 +99,23 @@ meta def normal_form_to_string : expr → string
   | none := to_string e
   end
 
+/-- This non-meta theorem is just a proof that 0 * x ^ n + b = b  -/
 theorem zero_horner {α} [comm_semiring α] (x n b) :
   @horner α _ 0 x n b = b :=
 by simp [horner]
 
+/-- This non-meta theorem is a proof that (a1*x^n1+0)*x^n2+b=a1*x^(n1+n2)+b -/
 theorem horner_horner {α} [comm_semiring α] (a₁ x n₁ n₂ b n')
   (h : n₁ + n₂ = n') :
   @horner α _ (horner a₁ x n₁ 0) x n₂ b = horner a₁ x n' b :=
 by simp [h.symm, horner, pow_add, mul_assoc]
 
+/-- sends e to unsafe (e,proof that e = e) -/
 meta def refl_conv (e : expr) : tactic (expr × expr) :=
 do p ← mk_eq_refl e, return (e, p)
 
+/-- if t1 e = (f,proof that e = f) and t2 f is (g,proof that f=g) then 
+    return (g,proof that e=g) else do your best to return anything helpful -/
 meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
   tactic (expr × expr) :=
 (do (e₁, p₁) ← t₁ e,
@@ -76,6 +123,9 @@ meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
     p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
   return (e₁, p₁)) <|> t₂ e
 
+/-- This takes as input untrusted alpha and a x n b, and returns the untrusted pair
+    (e,proof that e = a*x^n+b) . Note that a is allowed to be of the form a₁ * x₁ ^ n₁ + b₁,
+    -- which it could well be in practice.  -/
 meta def eval_horner (c : cache) (a x n b : expr) : tactic (expr × expr) :=
 do d ← destruct a, match d with
 | const q := if q = 0 then
@@ -89,29 +139,40 @@ do d ← destruct a, match d with
   else refl_conv $ c.cs_app ``horner [a, x, n, b]
 end
 
+-- The next five (non-meta) theorems write the sum of two polynomials in "horner form"
+-- as a polynomial in horner form.
+
+/-- This non-meta theorem just says k + ax^n+b = ax^n+(k+b) -/
 theorem const_add_horner {α} [comm_semiring α] (k a x n b b') (h : k + b = b') :
   k + @horner α _ a x n b = horner a x n b' :=
 by simp [h.symm, horner]
 
+/-- This non-meta theorem just says ax^n+b + k = ax^n+(b+k) -/
 theorem horner_add_const {α} [comm_semiring α] (a x n b k b') (h : b + k = b') :
   @horner α _ a x n b + k = horner a x n b' :=
 by simp [h.symm, horner]
 
+/-- This non-meta theorem just says a₁x^n₁+b₁+a₂x^(n₁+k)+b₂=(a₂x^k+a₁)x^n₁+(b₁+b₂) -/
 theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₁ + k = n₂) (h₂ : (a₁ + horner a₂ x k 0 : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₁ b' :=
 by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
+/-- This non-meta theorem just says a₁x^(n₂+k)+b₁+a₂x^n₂+b₂=(a₁x^k+a₂)x^n₂+(b₁+b₂) -/
 theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₂ + k = n₁) (h₂ : (horner a₁ x k 0 + a₂ : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₂ b' :=
 by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
+/-- This non-meta theorem just says a₁x^n+b₁+a₂x^n+b₂=(a₁+a₂)x^n+(b₁+b₂) -/
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
 by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]
 
+/-- This is a crucial definition; given two exprs representing polynomials in horner form
+    (so either constants or of the form ax^n+b) it produces a pair (val,pf) where val is
+    the sum and pf is a proof that the sum is the val -/
 meta def eval_add (c : cache) : expr → expr → tactic (expr × expr)
 | e₁ e₂ := do d₁ ← destruct e₁, d₂ ← destruct e₂,
 match d₁, d₂ with
@@ -422,6 +483,7 @@ open tactic.ring
 
 local postfix `?`:9001 := optional
 
+-- MC comment
 /-- Tactic for solving equations in the language of rings.
   This version of `ring` fails if the target is not an equality
   that is provable by the axioms of commutative (semi)rings. -/
@@ -444,6 +506,7 @@ do mode ← ident?, match mode with
 | _            := failed
 end
 
+-- MC comment
 /-- Tactic for solving equations in the language of rings.
   Attempts to prove the goal outright if there is no `at`
   specifier and the target is an equality, but if this
@@ -462,3 +525,6 @@ do ns ← loc.get_locals,
 
 end interactive
 end tactic
+
+example (d : ℕ) : d^2+2*d+1=(d+1)^2 := by ring1
+example (a b : ℤ) : (a+b)^3=a^3+3*a^2*b+3*a*b^2+b^3 := by ring1

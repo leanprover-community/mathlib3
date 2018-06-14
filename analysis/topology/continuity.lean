@@ -587,7 +587,7 @@ lemma continuous_pi [topological_space α] [∀i, topological_space (π i)] {f :
   (h : ∀i, continuous (λa, f a i)) : continuous f :=
 continuous_supr_rng $ assume i, continuous_induced_rng $ h i
 
-lemma continuous_apply [topological_space α] [∀i, topological_space (π i)] (i : ι) :
+lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_supr_dom continuous_induced_dom
 

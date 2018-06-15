@@ -27,6 +27,7 @@ class category (Obj : Type u) : Type (max u (v+1)) :=
   (associativity  : ∀ {W X Y Z : Obj} (f : Hom W X) (g : Hom X Y) (h : Hom Y Z), compose (compose f g) h = compose f (compose g h) . obviously)
 
 notation `𝟙` := category.identity     -- type as \b1
+notation f ` ⊚ `:80 g:80 := category.compose g f    -- type as \oo
 infixr ` ≫ `:80 := category.compose   -- type as \gg
 infixr ` ⟶ `:10  := category.Hom     -- type as \h
 

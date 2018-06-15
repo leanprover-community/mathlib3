@@ -41,12 +41,12 @@ include 𝒞 𝒟
 ### Categories
 
 We use the `⟶` (`\hom`) arrow to denote sets of morphisms, as in `X ⟶ Y`.
-This leaves the actual category implicit; it is inferred from the type of X and Y by typeclass inference.
+This leaves the actual category implicit; it is inferred from the type of `X` and `Y` by typeclass inference.
 
 We use `𝟙` (`\b1`) to denote identity morphisms, as in `𝟙 X`.
 
 We use `≫` (`\gg`) to denote composition of morphisms, as in `f ≫ g`, which means "`f` followed by `g`".
-This is the opposite order than the usual convention (which is lame).  
+You can also write composition in the usual convention, using `⊚` (`\oo` or `\circledcirc`), as in `f ⊚ g` which means "`g` followed by `f`".
 
 ### Isomorphisms
 We use `≅` for isomorphisms.

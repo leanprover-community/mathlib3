@@ -73,6 +73,6 @@ We use `⇔` (`\<=>`) to denote the type of natural isomorphisms.
 Unfortunately, while we'd like to write components of natural transformations via function application (e.g. `τ X`),
 this requires coercions to function types, which I don't like.
 
-For now we just write out `τ.components X`.
+For now we use the notation `τ @> X` for `τ.components X`.
 
 For vertical and horiztonal composition of natural transformations we "cutely" use `⊟` (`\boxminus`) and `◫` (currently untypeable, but we could ask for `\boxvert`).

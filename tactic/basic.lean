@@ -144,4 +144,20 @@ do h' ← assert h p,
    set_goals [g₁],
    return (h' , gs)
 
+meta def try_intros : list name → tactic (list name)
+ | [] := do
+   tgt ← target >>= instantiate_mvars,
+   if tgt.is_pi then failed
+                else return []
+ | (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
+
+meta def ext1 (xs : list name) : tactic (list name) :=
+do ls ← attribute.get_instances `extensionality,
+   ls.any_of (λ l, applyc l),
+   try_intros xs
+
+meta def ext : list name → option ℕ → tactic unit
+ | _ (some 0) := return ()
+ | xs n := focus1 (do ys ← ext1 xs, ext ys (nat.pred <$> n) <|> return ())
+
 end tactic

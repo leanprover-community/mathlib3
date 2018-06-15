@@ -937,7 +937,7 @@ instance {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (
 instance [t₁ : topological_space α] [t2_space α] [t₂ : topological_space β] [t2_space β] :
   t2_space (α × β) :=
 ⟨assume ⟨x₁,x₂⟩ ⟨y₁,y₂⟩ h,
-  or.elim (not_and_distrib.mp (mt prod.ext.mpr h))
+  or.elim (not_and_distrib.mp (mt prod.ext_iff.mpr h))
     (λ h₁, separated_by_f prod.fst le_sup_left h₁)
     (λ h₂, separated_by_f prod.snd le_sup_right h₂)⟩
 

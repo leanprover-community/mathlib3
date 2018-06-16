@@ -113,7 +113,7 @@ attribute [to_additive smul_add_comm] pow_mul_comm
 
 @[simp] theorem list.prod_repeat (a : α) : ∀ (n : ℕ), (list.repeat a n).prod = a ^ n
 | 0 := rfl
-| (n+1) := by simp [pow_succ, list.prod_repeat n]
+| (n+1) := by simp [pow_succ', list.prod_repeat n]
 @[simp] theorem list.sum_repeat : ∀ (a : β) (n : ℕ), (list.repeat a n).sum = n • a :=
 @list.prod_repeat (multiplicative β) _
 attribute [to_additive list.sum_repeat] list.prod_repeat

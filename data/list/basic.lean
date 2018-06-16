@@ -275,6 +275,17 @@ theorem append_left_inj {t₁ t₂ : list α} (s) : s ++ t₁ = s ++ t₂ ↔ t�
 theorem append_right_inj {s₁ s₂ : list α} (t) : s₁ ++ t = s₂ ++ t ↔ s₁ = s₂ :=
 ⟨append_right_cancel, congr_arg _⟩
 
+theorem map_eq_append_split {f : α → β} {l : list α} {s₁ s₂ : list β}
+  (h : map f l = s₁ ++ s₂) : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ map f l₁ = s₁ ∧ map f l₂ = s₂ :=
+begin
+  have := h, rw [← take_append_drop (length s₁) l] at this ⊢,
+  rw map_append at this,
+  refine ⟨_, _, rfl, append_inj this _⟩,
+  rw [length_map, length_take, min_eq_left],
+  rw [← length_map f l, h, length_append],
+  apply le_add_right
+end
+
 theorem eq_of_mem_repeat {a b : α} : ∀ {n}, b ∈ repeat a n → b = a
 | (n+1) h := or.elim h id $ @eq_of_mem_repeat _
 
@@ -292,11 +303,14 @@ theorem eq_repeat {a : α} {n} {l : list α} : l = repeat a n ↔ length l = n �
 ⟨λ h, h.symm ▸ ⟨length_repeat _ _, λ b, eq_of_mem_repeat⟩,
  λ ⟨e, al⟩, e ▸ eq_repeat_of_mem al⟩
 
+@[simp] theorem repeat_add (a : α) (m n) : repeat a (m + n) = repeat a m ++ repeat a n :=
+by induction m; simp [*, repeat, nat.succ_add, -add_comm]
+
 theorem repeat_subset_singleton (a : α) (n) : repeat a n ⊆ [a] :=
 λ b h, mem_singleton.2 (eq_of_mem_repeat h)
 
 @[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
-by induction l; simp [-add_comm, *]
+by induction l; simp [repeat, -add_comm, *]
 
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) : b₁ = b₂ :=
 by rw map_const at h; exact eq_of_mem_repeat h

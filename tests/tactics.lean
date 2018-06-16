@@ -299,6 +299,17 @@ end rcases
 
 section ext
 
+example (x y : ℕ) : true :=
+begin
+  have : x = y,
+  { ext <|> admit },
+  have : x = y,
+  { ext i <|> admit },
+  have : x = y,
+  { ext 1 <|> admit },
+  trivial
+end
+
 example (X Y : ℕ × ℕ)  (h : X.1 = Y.1) (h : X.2 = Y.2) : X = Y :=
 begin
   ext ; assumption

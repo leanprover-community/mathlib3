@@ -361,8 +361,8 @@ prod.mk <$> (some <$> small_nat)
   A maximum depth can be provided with `ext 3 with x y z`.
   -/
 meta def ext : parse ext_arg → tactic unit
- | (some n, []) := iterate_at_most n (ext1 none)
- | (none,   []) := repeat (ext1 none)
+ | (some n, []) := ext1 none >> iterate_at_most (pred n) (ext1 none)
+ | (none,   []) := ext1 none >> repeat (ext1 none)
  | (n, xs) := tactic.ext xs n
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)

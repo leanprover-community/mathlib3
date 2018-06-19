@@ -1215,11 +1215,11 @@ by induction l; simp *
 /- find -/
 
 section find
-variables (p : α → Prop) [decidable_pred p]
+variables {p : α → Prop} [decidable_pred p] {l : list α} {a : α}
 
 /-- `find p l` is the first element of `l` satisfying `p`, or `none` if no such
   element exists. -/
-def find : list α → option α
+def find (p : α → Prop) [decidable_pred p] : list α → option α
 | []     := none
 | (a::l) := if p a then some a else find l
 
@@ -1231,25 +1231,22 @@ def find_indexes_aux (p : α → Prop) [decidable_pred p] : list α → nat → 
 def find_indexes (p : α → Prop) [decidable_pred p] (l : list α) : list nat :=
 find_indexes_aux p l 0
 
-@[simp] theorem find_nil : find p [] = none := rfl
+@[simp] theorem find_nil (p : α → Prop) [decidable_pred p] : find p [] = none :=
+rfl
 
-@[simp] theorem find_cons_of_pos {p : α → Prop} [h : decidable_pred p] {a : α}
-  (l) (h : p a) : find p (a::l) = some a :=
+@[simp] theorem find_cons_of_pos (l) (h : p a) : find p (a::l) = some a :=
 if_pos h
 
-@[simp] theorem find_cons_of_neg {p : α → Prop} [h : decidable_pred p] {a : α}
-  (l) (h : ¬ p a) : find p (a::l) = find p l :=
+@[simp] theorem find_cons_of_neg (l) (h : ¬ p a) : find p (a::l) = find p l :=
 if_neg h
 
-@[simp] theorem find_eq_none {p : α → Prop} [h : decidable_pred p] {l : list α} :
-  find p l = none ↔ ∀ x ∈ l, ¬ p x :=
+@[simp] theorem find_eq_none : find p l = none ↔ ∀ x ∈ l, ¬ p x :=
 begin
   induction l with a l IH, {simp},
   by_cases p a; simp [h, IH]
 end
 
-@[simp] theorem find_some {p : α → Prop} [h : decidable_pred p] {l : list α} {a : α}
-  (H : find p l = some a) : p a :=
+@[simp] theorem find_some (H : find p l = some a) : p a :=
 begin
   induction l with b l IH, {contradiction},
   by_cases p b; simp [h] at H,
@@ -1257,8 +1254,7 @@ begin
   { exact IH H }
 end
 
-@[simp] theorem find_mem {p : α → Prop} [h : decidable_pred p] {l : list α} {a : α}
-  (H : find p l = some a) : a ∈ l :=
+@[simp] theorem find_mem (H : find p l = some a) : a ∈ l :=
 begin
   induction l with b l IH, {contradiction},
   by_cases p b; simp [h] at H,

@@ -296,3 +296,45 @@ begin
 end
 
 end rcases
+
+section ext
+
+example (x y : ℕ) : true :=
+begin
+  have : x = y,
+  { ext <|> admit },
+  have : x = y,
+  { ext i <|> admit },
+  have : x = y,
+  { ext 1 <|> admit },
+  trivial
+end
+
+example (X Y : ℕ × ℕ)  (h : X.1 = Y.1) (h : X.2 = Y.2) : X = Y :=
+begin
+  ext ; assumption
+end
+
+example (X Y : (ℕ → ℕ) × ℕ)  (h : ∀ i, X.1 i = Y.1 i) (h : X.2 = Y.2) : X = Y :=
+begin
+  ext x ; solve_by_elim,
+end
+
+example (X Y : ℕ → ℕ × ℕ)  (h : ∀ i, X i = Y i) : true :=
+begin
+  have : X = Y,
+  { ext 1 with i,
+    guard_target X i = Y i,
+    admit },
+  have : X = Y,
+  { ext i,
+    guard_target (X i).fst = (Y i).fst, admit,
+    guard_target (X i).snd = (Y i).snd, admit, },
+  have : X = Y,
+  { ext 1,
+    guard_target X x = Y x,
+    admit },
+  trivial,
+end
+
+end ext

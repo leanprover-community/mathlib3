@@ -93,7 +93,7 @@ def contains_aux (a : α) (l : list Σ a, β a) : bool :=
 theorem contains_aux_iff {a : α} {l : list Σ a, β a} (nd : (l.map sigma.fst).nodup) : contains_aux a l ↔ a ∈ l.map sigma.fst :=
 begin
   unfold contains_aux,
-  cases h : find_aux a l with b; simp [option.is_some],
+  cases h : find_aux a l with b; simp,
   { assume (b : β a) (m : sigma.mk a b ∈ l),
     rw (find_aux_iff nd).2 m at h,
     contradiction },

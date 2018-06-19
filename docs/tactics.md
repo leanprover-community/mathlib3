@@ -146,3 +146,5 @@ applying `ext x y` yields:
   ```
 
 by applying functional extensionality and set extensionality.
+
+A maximum depth can be provided with `ext 3 with x y z`.

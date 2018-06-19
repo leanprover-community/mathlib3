@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs
+import data.dlist data.prod
+  tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs meta.expr
 
 open lean
@@ -314,7 +315,7 @@ meta def extensional_attribute : user_attribute :=
 { name := `extensionality,
   descr := "lemmas usable by `ext` tactic" }
 
-attribute [extensionality] funext array.ext
+attribute [extensionality] _root_.funext array.ext prod.ext
 
 /--
   `ext1 id` selects and apply one extensionality lemma (with attribute
@@ -325,7 +326,12 @@ attribute [extensionality] funext array.ext
 meta def ext1 (x : parse ident_ ?) : tactic unit :=
 do ls ← attribute.get_instances `extensionality,
    ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
-   interactive.intro x
+   try ( interactive.intro x )
+
+meta def ext_arg :=
+prod.mk <$> (some <$> small_nat)
+        <*> (tk "with" *> ident_* <|> pure [])
+<|> prod.mk none <$> (ident_*)
 
 /--
   - `ext` applies as many extensionality lemmas as possible;
@@ -351,10 +357,13 @@ do ls ← attribute.get_instances `extensionality,
   ```
 
   by applying functional extensionality and set extensionality.
+
+  A maximum depth can be provided with `ext 3 with x y z`.
   -/
-meta def ext : parse ident_ * → tactic unit
- | [] := repeat (ext1 none)
- | xs := xs.mmap' (ext1 ∘ some)
+meta def ext : parse ext_arg → tactic unit
+ | (some n, []) := ext1 none >> iterate_at_most (pred n) (ext1 none)
+ | (none,   []) := ext1 none >> repeat (ext1 none)
+ | (n, xs) := tactic.ext xs n
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)

@@ -20,8 +20,11 @@ namespace prod
 @[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩
 
-lemma ext {p q : α × β} : p = q ↔ p.1 = q.1 ∧ p.2 = q.2 :=
+lemma ext_iff {p q : α × β} : p = q ↔ p.1 = q.1 ∧ p.2 = q.2 :=
 by rw [← @mk.eta _ _ p, ← @mk.eta _ _ q, mk.inj_iff]
+
+lemma ext {α β} {p q : α × β} : p.1 = q.1 → p.2 = q.2 → p = q :=
+by rw [ext_iff] ; intros ; split ; assumption
 
 /-- Swap the factors of a product. `swap (a, b) = (b, a)` -/
 def swap : α × β → β × α := λp, (p.2, p.1)

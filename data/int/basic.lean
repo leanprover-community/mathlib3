@@ -96,9 +96,11 @@ end
 
 /- /  -/
 
-theorem of_nat_div (m n : nat) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
+@[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
 
-theorem neg_succ_of_nat_div (m : nat) {b : ℤ} (H : b > 0) :
+@[simp] theorem coe_nat_div (m n : ℕ) : ((m / n : ℕ) : ℤ) = m / n := rfl
+
+theorem neg_succ_of_nat_div (m : ℕ) {b : ℤ} (H : b > 0) :
   -[1+m] / b = -(m / b + 1) :=
 match b, eq_succ_of_zero_lt H with ._, ⟨n, rfl⟩ := rfl end
 
@@ -637,6 +639,14 @@ by rw [to_nat_eq_max]; apply le_max_left
 @[simp] theorem to_nat_le (a : ℤ) (n : ℕ) : to_nat a ≤ n ↔ a ≤ n :=
 by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
    exact and_iff_left (coe_zero_le _)
+
+def to_nat' : ℤ → option ℕ
+| (n : ℕ) := some n
+| -[1+ n] := none
+
+theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
+| (m : ℕ) n := option.some_inj.trans coe_nat_inj'.symm
+| -[1+ m] n := by split; intro h; cases h
 
 /- bitwise ops -/
 

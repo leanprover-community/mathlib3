@@ -15,23 +15,6 @@ open function
 universes u v w
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
-namespace subtype
-
-/-- Restriction of a function to a function on subtypes. -/
-def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
-  subtype p → subtype q
-| ⟨v, hv⟩ := ⟨f v, h v hv⟩
-
-theorem map_comp {p : α → Prop} {q : β → Prop} {r : γ → Prop} {x : subtype p}
-  (f : α → β) (h : ∀a, p a → q (f a)) (g : β → γ) (l : ∀a, q a → r (g a)) :
-  map g l (map f h x) = map (g ∘ f) (assume a ha, l (f a) $ h a ha) x :=
-by cases x with v h; refl
-
-theorem map_id {p : α → Prop} {h : ∀a, p a → p (id a)} : map (@id α) h = id :=
-funext $ assume ⟨v, h⟩, rfl
-
-end subtype
-
 namespace function
 
 theorem left_inverse.f_g_eq_id {f : α → β} {g : β → α} (h : left_inverse f g) : f ∘ g = id :=
@@ -455,24 +438,20 @@ def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
 def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
 ⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
 
-def d_array_equiv_fin (n : ℕ) (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
+def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
 ⟨d_array.read, d_array.mk, λ ⟨f⟩, rfl, λ f, rfl⟩
 
 def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
-d_array_equiv_fin _ _
+d_array_equiv_fin _
 
 def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
 (vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
 
-def decidable_eq_of_equiv [h : decidable_eq α] : α ≃ β → decidable_eq β
-| ⟨f, g, l, r⟩ b₁ b₂ :=
-  match h (g b₁) (g b₂) with
-  | (is_true he) := is_true $ have f (g b₁) = f (g b₂), from congr_arg f he, by rwa [r, r] at this
-  | (is_false hn) := is_false $ λeq, hn.elim $ by rw [eq]
-  end
+def decidable_eq_of_equiv [decidable_eq β] (e : α ≃ β) : decidable_eq α
+| a₁ a₂ := decidable_of_iff (e a₁ = e a₂) e.bijective.1.eq_iff
 
-def inhabited_of_equiv [inhabited α] : α ≃ β → inhabited β
-| ⟨f, g, l, r⟩ := ⟨f (default _)⟩
+def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
+⟨e.symm (default _)⟩
 
 section
 open subtype

@@ -10,6 +10,8 @@ universes u v
 variables {α : Type u} {β : Type v}
 open sum
 
+attribute [derive decidable_eq] sum
+
 @[simp] theorem sum.forall {p : α ⊕ β → Prop} : (∀ x, p x) ↔ (∀ a, p (inl a)) ∧ (∀ b, p (inr b)) :=
 ⟨λ h, ⟨λ a, h _, λ b, h _⟩, λ ⟨h₁, h₂⟩, sum.rec h₁ h₂⟩
 

@@ -2379,7 +2379,7 @@ multiset.induction_on s (by simp)
 end sections
 
 section pi
-variables [decidable_eq α] {δ : α → Type*} [∀a, decidable_eq (δ a)]
+variables [decidable_eq α] {δ : α → Type*}
 open function
 
 def pi.cons (m : multiset α) (a : α) (b : δ a) (f : Πa∈m, δ a) : Πa'∈a::m, δ a' :=

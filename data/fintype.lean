@@ -43,8 +43,8 @@ namespace fintype
 
 instance decidable_pi_fintype {α} {β : α → Type*} [fintype α] [∀a, decidable_eq (β a)] :
   decidable_eq (Πa, β a) :=
-assume f g, decidable_of_iff (∀a∈(fintype.elems α).1, f a = g a)
-  (show (∀a∈(fintype.elems α), f a = g a) ↔ f = g, by simp [function.funext_iff, fintype.complete])
+assume f g, decidable_of_iff (∀ a ∈ fintype.elems α, f a = g a)
+  (by simp [function.funext_iff, fintype.complete])
 
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
@@ -104,8 +104,8 @@ by rw ← subtype_card s H; congr
 
 /-- If `f : α → β` is a bijection and `α` is a fintype, then `β` is also a fintype. -/
 def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : fintype β :=
-⟨⟨univ.1.map f, multiset.nodup_map H.1 univ.2⟩,
-λ b, let ⟨a, e⟩ := H.2 b in e ▸ multiset.mem_map_of_mem _ (mem_univ _)⟩
+⟨univ.map ⟨f, H.1⟩,
+λ b, let ⟨a, e⟩ := H.2 b in e ▸ mem_map_of_mem _ (mem_univ _)⟩
 
 /-- If `f : α → β` is a surjection and `α` is a fintype, then `β` is also a fintype. -/
 def of_surjective [fintype α] [decidable_eq β] (f : α → β) (H : function.surjective f) : fintype β :=
@@ -169,6 +169,15 @@ instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp�
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
+instance {α : Type*} [fintype α] : fintype (option α) :=
+⟨⟨none :: univ.1.map some, multiset.nodup_cons.2
+  ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) univ.2⟩⟩,
+λ a, by cases a; simp⟩
+
+@[simp] theorem fintype.card_option {α : Type*} [fintype α] :
+  fintype.card (option α) = fintype.card α + 1 :=
+(multiset.card_cons _ _).trans (by rw multiset.card_map; refl)
+
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=
 ⟨univ.sigma (λ _, univ), λ ⟨a, b⟩, by simp⟩
@@ -231,9 +240,18 @@ def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
 fintype.subtype (univ.filter (∈ s)) (by simp)
 
 instance pi.fintype {α : Type*} {β : α → Type*}
-  [fintype α] [decidable_eq α] [∀a, fintype (β a)] [∀a, decidable_eq (β a)] : fintype (Πa, β a) :=
-let f : fintype (Πa∈(fintype.elems α).1, β a) :=
-  ⟨(univ.pi $ λa, univ), assume f, finset.mem_pi.2 $ assume a ha, mem_univ _⟩
-in @fintype.of_surjective (Πa∈(fintype.elems α).1, β a) _ f _
-  (λf a, f a (mem_univ a))
-  (assume f, ⟨(λa h, f a), rfl⟩)
+  [fintype α] [decidable_eq α] [∀a, fintype (β a)] : fintype (Πa, β a) :=
+@fintype.of_equiv _ _
+  ⟨univ.pi $ λa:α, @univ (β a) _,
+    λ f, finset.mem_pi.2 $ λ a ha, mem_univ _⟩
+  ⟨λ f a, f a (mem_univ _), λ f a _, f a, λ f, rfl, λ f, rfl⟩
+
+instance d_array.fintype {n : ℕ} {α : fin n → Type*}
+  [∀n, fintype (α n)] : fintype (d_array n α) :=
+fintype.of_equiv _ (equiv.d_array_equiv_fin _).symm
+
+instance array.fintype {n : ℕ} {α : Type*} [fintype α] : fintype (array n α) :=
+d_array.fintype
+
+instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
+fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm

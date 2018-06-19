@@ -16,36 +16,37 @@ import data.pnat data.bool data.vector data.bitvec
 /-- The type of positive binary numbers.
 
      13 = 1101(base 2) = bit1 (bit0 (bit1 one)) -/
+@[derive has_reflect, derive decidable_eq]
 inductive pos_num : Type
 | one  : pos_num
 | bit1 : pos_num → pos_num
 | bit0 : pos_num → pos_num
 instance : has_one pos_num := ⟨pos_num.one⟩
-instance : decidable_eq pos_num := by tactic.mk_dec_eq_instance
 
 /-- The type of nonnegative binary numbers, using `pos_num`.
 
      13 = 1101(base 2) = pos (bit1 (bit0 (bit1 one))) -/
+@[derive has_reflect, derive decidable_eq]
 inductive num : Type
 | zero  : num
 | pos   : pos_num → num
 instance : has_zero num := ⟨num.zero⟩
 instance : has_one num := ⟨num.pos 1⟩
-instance : decidable_eq num := by tactic.mk_dec_eq_instance
 
 /-- Representation of integers using trichotomy around zero.
 
      13 = 1101(base 2) = pos (bit1 (bit0 (bit1 one)))
      -13 = -1101(base 2) = neg (bit1 (bit0 (bit1 one))) -/
+@[derive has_reflect, derive decidable_eq]
 inductive znum : Type
 | zero : znum
 | pos  : pos_num → znum
 | neg  : pos_num → znum
 instance : has_zero znum := ⟨znum.zero⟩
 instance : has_one znum := ⟨znum.pos 1⟩
-instance : decidable_eq znum := by tactic.mk_dec_eq_instance
 
 /-- See `snum`. -/
+@[derive has_reflect, derive decidable_eq]
 inductive nzsnum : Type
 | msb : bool → nzsnum
 | bit : bool → nzsnum → nzsnum
@@ -63,6 +64,7 @@ inductive nzsnum : Type
 
      0  = ..0000000(base 2) = zero ff
      -1 = ..1111111(base 2) = zero tt -/
+@[derive has_reflect, derive decidable_eq]
 inductive snum : Type
 | zero : bool → snum
 | nz : nzsnum → snum
@@ -70,8 +72,6 @@ instance : has_coe nzsnum snum := ⟨snum.nz⟩
 instance : has_zero snum := ⟨snum.zero ff⟩
 instance : has_one nzsnum := ⟨nzsnum.msb tt⟩
 instance : has_one snum := ⟨snum.nz 1⟩
-instance : decidable_eq nzsnum := by tactic.mk_dec_eq_instance
-instance : decidable_eq snum := by tactic.mk_dec_eq_instance
 
 namespace pos_num
 
@@ -108,6 +108,11 @@ namespace pos_num
   | 1        := 1
   | (bit0 n) := succ (size n)
   | (bit1 n) := succ (size n)
+
+  def nat_size : pos_num → nat
+  | 1        := 1
+  | (bit0 n) := nat.succ (nat_size n)
+  | (bit1 n) := nat.succ (nat_size n)
 
   protected def mul (a : pos_num) : pos_num → pos_num
   | 1        := a
@@ -158,6 +163,9 @@ section
   @[priority 0] instance pos_num_coe : has_coe pos_num α := ⟨cast_pos_num⟩
 
   @[priority 0] instance num_nat_coe : has_coe num α := ⟨cast_num⟩
+
+  instance : has_repr pos_num := ⟨λ n, repr (n : ℕ)⟩
+  instance : has_repr num := ⟨λ n, repr (n : ℕ)⟩
 end
 
 namespace num
@@ -190,6 +198,10 @@ namespace num
   | 0       := 0
   | (pos n) := pos (pos_num.size n)
 
+  def nat_size : num → nat
+  | 0       := 0
+  | (pos n) := pos_num.nat_size n
+
   protected def mul : num → num → num
   | 0       _       := 0
   | _       0       := 0
@@ -221,6 +233,9 @@ namespace num
   | 0       := 0
   | (pos a) := znum.neg a
 
+  def of_nat' : ℕ → num :=
+  nat.binary_rec 0 (λ b n, cond b num.bit1 num.bit0)
+
 end num
 
 namespace znum
@@ -232,6 +247,11 @@ namespace znum
   | (neg a) := pos a
 
   instance : has_neg znum := ⟨zneg⟩
+
+  def abs : znum → num
+  | 0       := 0
+  | (pos a) := num.pos a
+  | (neg a) := num.pos a
 
   def succ : znum → znum
   | 0       := 1
@@ -257,6 +277,10 @@ namespace znum
   | 0       := neg 1
   | (pos n) := pos (num.cases_on (pred' n) 1 pos_num.bit1)
   | (neg n) := neg (pos_num.bit1 n)
+
+  def of_int' : ℤ → znum
+  | (n : ℕ) := num.to_znum (num.of_nat' n)
+  | -[1+ n] := num.to_znum_neg (num.of_nat' (n+1))
 
 end znum
 
@@ -296,6 +320,12 @@ namespace num
   def pred : num → num
   | 0       := 0
   | (pos p) := p.pred'
+
+  def div2 : num → num
+  | 0 := 0
+  | 1 := 0
+  | (pos (pos_num.bit0 p)) := pos p
+  | (pos (pos_num.bit1 p)) := pos p
 
   def of_znum' : znum → option num
   | 0            := some 0
@@ -365,6 +395,107 @@ namespace znum
 
 end znum
 
+namespace pos_num
+  
+  def divmod_aux (d : pos_num) (q r : num) : num × num :=
+  match num.of_znum' (num.sub' r (num.pos d)) with
+  | some r' := (num.bit1 q, r')
+  | none    := (num.bit0 q, r)
+  end
+  
+  def divmod (d : pos_num) : pos_num → num × num
+  | (bit0 n) := let (q, r₁) := divmod n in
+    divmod_aux d q (num.bit0 r₁)
+  | (bit1 n) := let (q, r₁) := divmod n in
+    divmod_aux d q (num.bit1 r₁)
+  | 1        := divmod_aux d 0 1
+
+  def div' (n d : pos_num) : num := (divmod d n).1
+
+  def mod' (n d : pos_num) : num := (divmod d n).2
+
+  def sqrt_aux1 (b : pos_num) (r n : num) : num × num :=
+  match num.of_znum' (n.sub' (r + num.pos b)) with
+  | some n' := (r.div2 + num.pos b, n')
+  | none := (r.div2, n)
+  end
+    
+  def sqrt_aux : pos_num → num → num → num
+  | b@(bit0 b') r n := let (r', n') := sqrt_aux1 b r n in sqrt_aux b' r' n'
+  | b@(bit1 b') r n := let (r', n') := sqrt_aux1 b r n in sqrt_aux b' r' n'
+  | 1           r n := (sqrt_aux1 1 r n).1
+/-
+
+def sqrt_aux : ℕ → ℕ → ℕ → ℕ
+| b r n := if b0 : b = 0 then r else
+  let b' := shiftr b 2 in
+  have b' < b, from sqrt_aux_dec b0,
+  match (n - (r + b : ℕ) : ℤ) with
+  | (n' : ℕ) := sqrt_aux b' (div2 r + b) n'
+  | _ := sqrt_aux b' (div2 r) n
+  end
+
+/-- `sqrt n` is the square root of a natural number `n`. If `n` is not a
+  perfect square, it returns the largest `k:ℕ` such that `k*k ≤ n`. -/
+def sqrt (n : ℕ) : ℕ :=
+match size n with
+| 0      := 0
+| succ s := sqrt_aux (shiftl 1 (bit0 (div2 s))) 0 n
+end
+-/
+
+end pos_num
+
+namespace num
+
+  def div : num → num → num
+  | 0       _       := 0
+  | _       0       := 0
+  | (pos n) (pos d) := pos_num.div' n d
+
+  def mod : num → num → num
+  | 0       _       := 0
+  | n       0       := n
+  | (pos n) (pos d) := pos_num.mod' n d
+
+  instance : has_div num := ⟨num.div⟩
+  instance : has_mod num := ⟨num.mod⟩
+
+  def gcd_aux : nat → num → num → num
+  | 0            a b := b
+  | (nat.succ n) 0 b := b
+  | (nat.succ n) a b := gcd_aux n (b % a) a
+
+  def gcd (a b : num) : num :=
+  if a ≤ b then
+    gcd_aux (a.nat_size + b.nat_size) a b
+  else
+    gcd_aux (b.nat_size + a.nat_size) b a
+
+end num
+
+namespace znum
+
+  def div : znum → znum → znum
+  | 0       _       := 0
+  | _       0       := 0
+  | (pos n) (pos d) := num.to_znum (pos_num.div' n d)
+  | (pos n) (neg d) := num.to_znum_neg (pos_num.div' n d)
+  | (neg n) (pos d) := neg (pos_num.pred' n / num.pos d).succ'
+  | (neg n) (neg d) := pos (pos_num.pred' n / num.pos d).succ'
+
+  def mod : znum → znum → znum
+  | 0       d := 0
+  | (pos n) d := num.to_znum (num.pos n % d.abs)
+  | (neg n) d := d.abs.sub' (pos_num.pred' n % d.abs).succ
+
+  instance : has_div znum := ⟨znum.div⟩
+  instance : has_mod znum := ⟨znum.mod⟩
+
+  def gcd (a b : znum) : num := a.abs.gcd b.abs
+
+end znum
+
 section
   variables {α : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
 
@@ -374,6 +505,8 @@ section
   | (znum.neg p) := -p
 
   @[priority 0] instance znum_coe : has_coe znum α := ⟨cast_znum⟩
+
+  instance : has_repr znum := ⟨λ n, repr (n : ℤ)⟩
 end
 
 /- The snum representation uses a bit string, essentially a list of 0 (ff) and 1 (tt) bits,

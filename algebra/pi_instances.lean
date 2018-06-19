@@ -57,9 +57,12 @@ namespace pi
 universes u v
 variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equiped with instances
+variables (x y : Π i, f i) (i : I)
 
 instance has_mul [∀ i, has_mul $ f i] : has_mul (Π i : I, f i) :=
 ⟨λ x y, λ i, x i * y i⟩
+
+@[simp] lemma mul_apply [∀ i, has_mul $ f i] : (x * y) i = x i * y i := rfl
 
 instance semigroup [∀ i, semigroup $ f i] : semigroup (Π i : I, f i) :=
 by pi_instance [pi.has_mul]
@@ -70,8 +73,12 @@ by pi_instance [pi.has_mul]
 instance has_one [∀ i, has_one $ f i] : has_one (Π i : I, f i) :=
 ⟨λ i, 1⟩
 
+@[simp] lemma one_apply [∀ i, has_one $ f i] : (1 : Π i, f i) i = 1 := rfl
+
 instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) :=
 ⟨λ x, λ i, (x i)⁻¹⟩
+
+@[simp] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
 
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by pi_instance [pi.has_one, pi.semigroup]
@@ -85,14 +92,20 @@ by pi_instance [pi.has_inv, pi.monoid]
 instance has_add [∀ i, has_add $ f i] : has_add (Π i : I, f i) :=
 ⟨λ x y, λ i, x i + y i⟩
 
+@[simp] lemma add_apply [∀ i, has_add $ f i] : (x + y) i = x i + y i := rfl
+
 instance add_semigroup [∀ i, add_semigroup $ f i] : add_semigroup (Π i : I, f i) :=
 by pi_instance [pi.has_add]
 
 instance has_zero [∀ i, has_zero $ f i] : has_zero (Π i : I, f i) :=
 ⟨λ i, 0⟩
 
+@[simp] lemma zero_apply [∀ i, has_zero $ f i] : (0 : Π i, f i) i = 0 := rfl
+
 instance has_neg [∀ i, has_neg $ f i] : has_neg (Π i : I, f i) :=
 ⟨λ x, λ i, -(x i)⟩
+
+@[simp] lemma neg_apply [∀ i, has_neg $ f i] : (-x) i = -x i := rfl
 
 instance add_group [∀ i, add_group $ f i] : add_group (Π i : I, f i) :=
 by pi_instance [pi.has_zero, pi.has_neg, pi.add_semigroup]
@@ -112,9 +125,12 @@ by pi_instance [pi.comm_semigroup, pi.ring]
 instance has_scalar {α : Type*} [∀ i, has_scalar α $ f i] : has_scalar α (Π i : I, f i) :=
 ⟨λ s x, λ i, s • (x i)⟩
 
+@[simp] lemma smul_apply {α : Type*} [∀ i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
+
 instance module {α : Type*} [ring α] [∀ i, module α $ f i] : module α (Π i : I, f i) :=
 by pi_instance [pi.has_scalar]
 
 instance vector_space (α : Type*) [field α] [∀ i, vector_space α $ f i] : vector_space α (Π i : I, f i) :=
 { ..pi.module }
+
 end pi

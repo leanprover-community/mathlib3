@@ -726,8 +726,7 @@ le_antisymm
 
 end topological_space
 
-/- constructions using the complete lattice structure -/
-section constructions
+section lattice
 
 variables {α : Type u} {β : Type v}
 
@@ -750,6 +749,55 @@ assume s hs, hs t h
 private lemma le_Inf {tt : set (topological_space α)} {t : topological_space α} (h : ∀t'∈tt, t ≤ t') :
   t ≤ Inf tt :=
 assume s hs t' ht', h t' ht' s hs
+
+instance : has_inf (topological_space α) := ⟨λ t₁ t₂,
+{ is_open        := λs, t₁.is_open s ∧ t₂.is_open s,
+  is_open_univ   := ⟨t₁.is_open_univ, t₂.is_open_univ⟩,
+  is_open_inter  := assume s₁ s₂ ⟨h₁₁, h₁₂⟩ ⟨h₂₁, h₂₂⟩, ⟨t₁.is_open_inter s₁ s₂ h₁₁ h₂₁, t₂.is_open_inter s₁ s₂ h₁₂ h₂₂⟩,
+  is_open_sUnion := assume s h, ⟨t₁.is_open_sUnion _ $ assume t ht, (h t ht).left, t₂.is_open_sUnion _ $ assume t ht, (h t ht).right⟩ }⟩
+
+instance : has_top (topological_space α) :=
+⟨{is_open        := λs, true,
+  is_open_univ   := trivial,
+  is_open_inter  := assume a b ha hb, trivial,
+  is_open_sUnion := assume s h, trivial }⟩
+
+instance {α : Type u} : complete_lattice (topological_space α) :=
+{ sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
+  le_sup_left   := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.left,
+  le_sup_right  := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.right,
+  sup_le        := assume a b c h₁ h₂, Inf_le $ show c ∈ {x | a ≤ x ∧ b ≤ x}, from ⟨h₁, h₂⟩,
+  inf           := (⊓),
+  le_inf        := assume a b h h₁ h₂ s hs, ⟨h₁ s hs, h₂ s hs⟩,
+  inf_le_left   := assume a b s ⟨h₁, h₂⟩, h₁,
+  inf_le_right  := assume a b s ⟨h₁, h₂⟩, h₂,
+  top           := ⊤,
+  le_top        := assume a t ht, trivial,
+  bot           := Inf univ,
+  bot_le        := assume a, Inf_le $ mem_univ a,
+  Sup           := λtt, Inf {t | ∀t'∈tt, t' ≤ t},
+  le_Sup        := assume s f h, le_Inf $ assume t ht, ht _ h,
+  Sup_le        := assume s f h, Inf_le $ assume t ht, h _ ht,
+  Inf           := Inf,
+  le_Inf        := assume s a, le_Inf,
+  Inf_le        := assume s a, Inf_le,
+  ..topological_space.partial_order }
+
+lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x ≤ @nhds α t₁ x) :
+  t₁ ≤ t₂ :=
+assume s, show @is_open α t₁ s → @is_open α t₂ s,
+  begin simp [is_open_iff_nhds]; exact assume hs a ha, h _ $ hs _ ha end
+
+lemma eq_of_nhds_eq_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x = @nhds α t₁ x) :
+  t₁ = t₂ :=
+le_antisymm
+  (le_of_nhds_le_nhds $ assume x, le_of_eq $ h x)
+  (le_of_nhds_le_nhds $ assume x, le_of_eq $ (h x).symm)
+
+end lattice
+
+section galois_connection
+variables {α : Type u} {β : Type v}
 
 /-- Given `f : α → β` and a topology on `β`, the induced topology on `α` is the collection of
   sets that are preimages of some open set in `β`. This is the coarsest topology that
@@ -787,38 +835,51 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
     show is_open (⋃ (H : i ∈ s), f ⁻¹' i), from
       @is_open_Union _ _ t _ $ assume hi, h i hi) }
 
-instance : has_inf (topological_space α) := ⟨λ t₁ t₂,
-{ is_open        := λs, t₁.is_open s ∧ t₂.is_open s,
-  is_open_univ   := ⟨t₁.is_open_univ, t₂.is_open_univ⟩,
-  is_open_inter  := assume s₁ s₂ ⟨h₁₁, h₁₂⟩ ⟨h₂₁, h₂₂⟩, ⟨t₁.is_open_inter s₁ s₂ h₁₁ h₂₁, t₂.is_open_inter s₁ s₂ h₁₂ h₂₂⟩,
-  is_open_sUnion := assume s h, ⟨t₁.is_open_sUnion _ $ assume t ht, (h t ht).left, t₂.is_open_sUnion _ $ assume t ht, (h t ht).right⟩ }⟩
+variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 
-instance : has_top (topological_space α) :=
-⟨{is_open        := λs, true,
-  is_open_univ   := trivial,
-  is_open_inter  := assume a b ha hb, trivial,
-  is_open_sUnion := assume s h, trivial }⟩
+lemma induced_le_iff_le_coinduced {f : α → β } {tα : topological_space α} {tβ : topological_space β} :
+  tβ.induced f ≤ tα ↔ tβ ≤ tα.coinduced f :=
+iff.intro
+  (assume h s hs, show tα.is_open (f ⁻¹' s), from h _ ⟨s, hs, rfl⟩)
+  (assume h s ⟨t, ht, hst⟩, hst.symm ▸ h _ ht)
 
-instance {α : Type u} : complete_lattice (topological_space α) :=
-{ sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
-  le_sup_left   := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.left,
-  le_sup_right  := assume a b, le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.right,
-  sup_le        := assume a b c h₁ h₂, Inf_le $ show c ∈ {x | a ≤ x ∧ b ≤ x}, from ⟨h₁, h₂⟩,
-  inf           := (⊓),
-  le_inf        := assume a b h h₁ h₂ s hs, ⟨h₁ s hs, h₂ s hs⟩,
-  inf_le_left   := assume a b s ⟨h₁, h₂⟩, h₁,
-  inf_le_right  := assume a b s ⟨h₁, h₂⟩, h₂,
-  top           := ⊤,
-  le_top        := assume a t ht, trivial,
-  bot           := Inf univ,
-  bot_le        := assume a, Inf_le $ mem_univ a,
-  Sup           := λtt, Inf {t | ∀t'∈tt, t' ≤ t},
-  le_Sup        := assume s f h, le_Inf $ assume t ht, ht _ h,
-  Sup_le        := assume s f h, Inf_le $ assume t ht, h _ ht,
-  Inf           := Inf,
-  le_Inf        := assume s a, le_Inf,
-  Inf_le        := assume s a, Inf_le,
-  ..topological_space.partial_order }
+lemma gc_induced_coinduced (f : α → β) :
+  galois_connection (topological_space.induced f) (topological_space.coinduced f) :=
+assume f g, induced_le_iff_le_coinduced
+
+lemma induced_mono (h : t₁ ≤ t₂) : t₁.induced g ≤ t₂.induced g :=
+(gc_induced_coinduced g).monotone_l h
+
+lemma coinduced_mono (h : t₁ ≤ t₂) : t₁.coinduced f ≤ t₂.coinduced f :=
+(gc_induced_coinduced f).monotone_u h
+
+@[simp] lemma induced_bot : (⊥ : topological_space α).induced g = ⊥ :=
+(gc_induced_coinduced g).l_bot
+
+@[simp] lemma induced_sup : (t₁ ⊔ t₂).induced g = t₁.induced g ⊔ t₂.induced g :=
+(gc_induced_coinduced g).l_sup
+
+@[simp] lemma induced_supr {ι : Sort w} {t : ι → topological_space α} :
+  (⨆i, t i).induced g = (⨆i, (t i).induced g) :=
+(gc_induced_coinduced g).l_supr
+
+@[simp] lemma coinduced_top : (⊤ : topological_space α).coinduced f = ⊤ :=
+(gc_induced_coinduced f).u_top
+
+@[simp] lemma coinduced_inf : (t₁ ⊓ t₂).coinduced f = t₁.coinduced f ⊓ t₂.coinduced f :=
+(gc_induced_coinduced f).u_inf
+
+@[simp] lemma coinduced_infi {ι : Sort w} {t : ι → topological_space α} :
+  (⨅i, t i).coinduced f = (⨅i, (t i).coinduced f) :=
+(gc_induced_coinduced f).u_infi
+
+end galois_connection
+
+/- constructions using the complete lattice structure -/
+section constructions
+open topological_space
+
+variables {α : Type u} {β : Type v}
 
 instance inhabited_topological_space {α : Type u} : inhabited (topological_space α) :=
 ⟨⊤⟩
@@ -827,23 +888,6 @@ lemma t2_space_top : @t2_space α ⊤ :=
 { t2 := assume x y hxy, ⟨{x}, {y}, trivial, trivial, mem_insert _ _, mem_insert _ _,
   eq_empty_iff_forall_not_mem.2 $ by intros z hz; simp at hz; cc⟩ }
 
-lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x ≤ @nhds α t₁ x) :
-  t₁ ≤ t₂ :=
-assume s, show @is_open α t₁ s → @is_open α t₂ s,
-  begin simp [is_open_iff_nhds]; exact assume hs a ha, h _ $ hs _ ha end
-
-lemma eq_of_nhds_eq_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x = @nhds α t₁ x) :
-  t₁ = t₂ :=
-le_antisymm
-  (le_of_nhds_le_nhds $ assume x, le_of_eq $ h x)
-  (le_of_nhds_le_nhds $ assume x, le_of_eq $ (h x).symm)
-
-lemma induced_le_iff_le_coinduced {f : α → β } {tα : topological_space α} {tβ : topological_space β} :
-  tβ.induced f ≤ tα ↔ tβ ≤ tα.coinduced f :=
-iff.intro
-  (assume h s hs, show tα.is_open (f ⁻¹' s), from h _ ⟨s, hs, rfl⟩)
-  (assume h s ⟨t, ht, hst⟩, hst.symm ▸ h _ ht)
-
 instance : topological_space empty := ⊤
 instance : topological_space unit := ⊤
 instance : topological_space bool := ⊤
@@ -851,25 +895,28 @@ instance : topological_space ℕ := ⊤
 instance : topological_space ℤ := ⊤
 
 instance sierpinski_space : topological_space Prop :=
-topological_space.generate_from {{true}}
+generate_from {{true}}
 
 instance {p : α → Prop} [t : topological_space α] : topological_space (subtype p) :=
-topological_space.induced subtype.val t
+induced subtype.val t
+
+instance {r : α → α → Prop} [t : topological_space α] : topological_space (quot r) :=
+coinduced (quot.mk r) t
+
+instance {s : setoid α} [t : topological_space α] : topological_space (quotient s) :=
+coinduced quotient.mk t
 
 instance [t₁ : topological_space α] [t₂ : topological_space β] : topological_space (α × β) :=
-topological_space.induced prod.fst t₁ ⊔ topological_space.induced prod.snd t₂
+induced prod.fst t₁ ⊔ induced prod.snd t₂
 
 instance [t₁ : topological_space α] [t₂ : topological_space β] : topological_space (α ⊕ β) :=
-topological_space.coinduced sum.inl t₁ ⊓ topological_space.coinduced sum.inr t₂
+coinduced sum.inl t₁ ⊓ coinduced sum.inr t₂
 
 instance {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (sigma β) :=
-⨅a, topological_space.coinduced (sigma.mk a) (t₂ a)
+⨅a, coinduced (sigma.mk a) (t₂ a)
 
 instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (Πa, β a) :=
-⨆a, topological_space.induced (λf, f a) (t₂ a)
-
-section
-open topological_space
+⨆a, induced (λf, f a) (t₂ a)
 
 lemma generate_from_le {t : topological_space α} { g : set (set α) } (h : ∀s∈g, is_open s) :
   generate_from g ≤ t :=
@@ -937,7 +984,7 @@ instance {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (
 instance [t₁ : topological_space α] [t2_space α] [t₂ : topological_space β] [t2_space β] :
   t2_space (α × β) :=
 ⟨assume ⟨x₁,x₂⟩ ⟨y₁,y₂⟩ h,
-  or.elim (not_and_distrib.mp (mt prod.ext.mpr h))
+  or.elim (not_and_distrib.mp (mt prod.ext_iff.mpr h))
     (λ h₁, separated_by_f prod.fst le_sup_left h₁)
     (λ h₂, separated_by_f prod.snd le_sup_right h₂)⟩
 
@@ -946,8 +993,6 @@ instance Pi.t2_space {β : α → Type v} [t₂ : Πa, topological_space (β a)]
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
   separated_by_f (λz, z i) (le_supr _ i) hi⟩
-
-end
 
 end constructions
 

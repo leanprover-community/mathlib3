@@ -34,6 +34,8 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.mul_zero_class,
   ..with_zero.monoid }
 
+attribute [trans] dvd.trans
+
 section
   variables [ring α] (a b c d e : α)
 

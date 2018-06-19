@@ -100,3 +100,21 @@ theorem subtype.val_injective : function.injective (@subtype.val _ β) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
 end subtype
+
+namespace subtype
+variables {α : Sort*} {β : Sort*} {γ : Sort*}
+
+/-- Restriction of a function to a function on subtypes. -/
+def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
+  subtype p → subtype q
+| ⟨v, hv⟩ := ⟨f v, h v hv⟩
+
+theorem map_comp {p : α → Prop} {q : β → Prop} {r : γ → Prop} {x : subtype p}
+  (f : α → β) (h : ∀a, p a → q (f a)) (g : β → γ) (l : ∀a, q a → r (g a)) :
+  map g l (map f h x) = map (g ∘ f) (assume a ha, l (f a) $ h a ha) x :=
+by cases x with v h; refl
+
+theorem map_id {p : α → Prop} {h : ∀a, p a → p (id a)} : map (@id α) h = id :=
+funext $ assume ⟨v, h⟩, rfl
+
+end subtype

@@ -63,7 +63,7 @@ begin
       rw [nat.mod_eq_of_lt h, one_mul, nat.mod_eq_of_lt ha] } }
 end)
 
-lemma left_distrib_aux (n : ℕ) : ∀ a b c : Zmod n, a * (b + c) = a * b + a * c :=
+private lemma left_distrib_aux (n : ℕ) : ∀ a b c : Zmod n, a * (b + c) = a * b + a * c :=
 λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
 (calc a * ((b + c) % n) ≡ a * (b + c) [MOD n] : modeq_mul rfl (nat.mod_mod _ _)
   ... ≡ a * b + a * c [MOD n] : by rw mul_add

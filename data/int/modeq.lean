@@ -21,7 +21,7 @@ variables {n m a b c d : ℤ}
 
 @[trans] protected theorem trans : a ≡ b [ZMOD n] → b ≡ c [ZMOD n] → a ≡ c [ZMOD n] := eq.trans
 
-lemma coe_nat_modeq_iff (a b n : ℕ) : a ≡ b [ZMOD n] ↔ a ≡ b [MOD n] :=
+lemma coe_nat_modeq_iff {a b n : ℕ} : a ≡ b [ZMOD n] ↔ a ≡ b [MOD n] :=
 by unfold modeq nat.modeq; rw ← int.coe_nat_eq_coe_nat_iff; simp [int.coe_nat_mod]
 
 instance : decidable (a ≡ b [ZMOD n]) := by unfold modeq; apply_instance

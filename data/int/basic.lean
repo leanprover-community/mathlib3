@@ -32,6 +32,12 @@ by rw [← int.coe_nat_zero, coe_nat_inj']
 @[simp] theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
+lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (zero_le _)
+
+lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
+⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
+λ h, (ne_of_lt (coe_nat_lt.2 h)).symm⟩
+
 /- succ and pred -/
 
 /-- Immediate successor of an integer: `succ n = n + 1` -/
@@ -334,6 +340,9 @@ by rw [mul_comm, mul_mod_left]
 
 @[simp] theorem mod_self {a : ℤ} : a % a = 0 :=
 by have := mul_mod_left 1 a; rwa one_mul at this
+
+@[simp] lemma mod_mod (a b : ℤ) : a % b % b = a % b :=
+by conv {to_rhs, rw [← mod_add_div a b, add_mul_mod_self_left]}
 
 /- properties of / and % -/
 

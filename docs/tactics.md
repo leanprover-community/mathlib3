@@ -146,3 +146,41 @@ applying `ext x y` yields:
   ```
 
 by applying functional extensionality and set extensionality.
+
+A maximum depth can be provided with `ext 3 with x y z`.
+
+### refine_struct
+
+`refine_struct { .. }` acts like `refine` but works only with structure instance
+literals. It creates a goal for each missing field and tags it with the name of the
+field so that `have_field` can be used to generically refer to the field currently
+being refined.
+
+As an example, we can use `refine_struct` to automate the construction semigroup
+instances:
+
+```
+refine_struct ( { .. } : semigroup α ),
+-- case semigroup, mul
+-- α : Type u,
+-- ⊢ α → α → α
+
+-- case semigroup, mul_assoc
+-- α : Type u,
+-- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
+```
+
+`have_field`, used after `refine_struct _` poses `field` as a local constant
+with the type of the field of the current goal:
+
+```
+refine_struct ({ .. } : semigroup α),
+{ have_field, ... },
+{ have_field, ... },
+```
+behaves like
+```
+refine_struct ({ .. } : semigroup α),
+{ have field := @semigroup.mul, ... },
+{ have field := @semigroup.mul_assoc, ... },
+```

@@ -360,7 +360,7 @@ theorem nat_elim
   simp [option.map, option.bind, encodek]
 end
 
-theorem comp {f : β →. σ} {g : α → β} 
+theorem comp {f : β →. σ} {g : α → β}
   (hf : partrec f) (hg : computable g) : partrec (λ a, f (g a)) :=
 (hf.comp hg).of_eq $
 λ n, by simp; cases e : decode α n with a;
@@ -442,7 +442,7 @@ theorem rfind {p : α → ℕ →. bool} (hp : partrec₂ p) :
   cases e : decode α n with a;
     simp [e, option.bind, option.map, nat.rfind_zero_none, map_id'],
   congr, funext n,
-  simp [map_map, (∘)],
+  simp [roption.map_map, (∘)],
   apply map_id' (λ b, _),
   cases b; refl
 end
@@ -610,7 +610,7 @@ theorem option_some_iff {f : α →. σ} :
 theorem option_cases_right {o : α → option β} {f : α → σ} {g : α → β →. σ}
   (ho : computable o) (hf : computable f) (hg : partrec₂ g) :
   @partrec _ σ _ _ (λ a, option.cases_on (o a) (some (f a)) (g a)) :=
-have partrec (λ (a : α), nat.cases (roption.some (f a)) 
+have partrec (λ (a : α), nat.cases (roption.some (f a))
   (λ n, roption.bind (decode β n) (g a)) (encode (o a))) :=
 nat_cases_right (encode_iff.2 ho) hf.part $
   ((@computable.decode β _).comp snd).of_option.bind

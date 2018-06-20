@@ -71,8 +71,16 @@ by cases x; refl
 
 @[simp] theorem orelse_none (x : option α) : (none <|> x) = x := orelse_none' x
 
+@[simp] theorem is_some_none : @is_some α none = ff := rfl
+
+@[simp] theorem is_some_some {a : α} : is_some (some a) = tt := rfl
+
 theorem is_some_iff_exists {x : option α} : is_some x ↔ ∃ a, x = some a :=
 by cases x; simp [is_some]; exact ⟨_, rfl⟩
+
+@[simp] theorem is_none_none : @is_none α none = tt := rfl
+
+@[simp] theorem is_none_some {a : α} : is_none (some a) = ff := rfl
 
 theorem is_none_iff_eq_none {o : option α} : o.is_none ↔ o = none :=
 ⟨option.eq_none_of_is_none, λ e, e.symm ▸ rfl⟩
@@ -160,5 +168,12 @@ theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f 
 | (some a) none     := or.inl rfl
 | none     (some b) := or.inr rfl
 | (some a) (some b) := by simpa [lift_or_get] using h a b
+section rel
+
+inductive rel {α : Type*} {β : Type*} (r : α → β → Prop) : option α → option β → Prop
+| some {a b} : r a b → rel (some a) (some b)
+| none {}    : rel none none
+
+end rel
 
 end option

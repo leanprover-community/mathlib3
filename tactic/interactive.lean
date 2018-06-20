@@ -443,27 +443,15 @@ do e ← to_expr e,
    exp_fields.mmap $ λ ⟨p,n⟩,
      (prod.mk n ∘ to_pexpr) <$> mk_mapp (n.update_prefix p) [none,some e]
 
-/-- `refine_struct { .. }` acts like `refine` but works only with structure instance
-    literals. It creates a goal for each missing field and tags it with the name of the
-    field so that `have_field` can be used to generically refer to the field currently
-    being refined.
+meta def collect_struct : pexpr → state_t (list $ expr×structure_instance_info) tactic pexpr | e :=
+do some str ← pure (e.get_structure_instance_info)
+       | e.traverse collect_struct,
+   v ← monad_lift mk_mvar,
+   modify (list.cons (v,str)),
+   pure $ to_pexpr v
 
-    As an example, we can use `refine_struct` to automate the construction semigroup
-    instances:
-    ```
-    refine_struct ( { .. } : semigroup α ),
-    -- case semigroup, mul
-    -- α : Type u,
-    -- ⊢ α → α → α
-
-    -- case semigroup, mul_assoc
-    -- α : Type u,
-    -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
-    ```
--/
-meta def refine_struct (e : parse texpr) : tactic unit :=
-do    str ← e.get_structure_instance_info,
-      tgt ← target,
+meta def refine_one (str : structure_instance_info) : tactic unit :=
+do    tgt ← target,
       let struct_n : name := tgt.get_app_fn.const_name,
       exp_fields ← expanded_field_list struct_n,
       let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),
@@ -487,6 +475,38 @@ do    str ← e.get_structure_instance_info,
         missing_f' vs),
       set_goals gs.join,
       return ()
+
+/-- `refine_struct { .. }` acts like `refine` but works only with structure instance
+    literals. It creates a goal for each missing field and tags it with the name of the
+    field so that `have_field` can be used to generically refer to the field currently
+    being refined.
+
+    As an example, we can use `refine_struct` to automate the construction semigroup
+    instances:
+    ```
+    refine_struct ( { .. } : semigroup α ),
+    -- case semigroup, mul
+    -- α : Type u,
+    -- ⊢ α → α → α
+
+    -- case semigroup, mul_assoc
+    -- α : Type u,
+    -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
+    ```
+-/
+meta def refine_struct (e : parse texpr) : tactic unit :=
+do (x,xs) ← (collect_struct e).run [],
+   refine x,
+   gs ← get_goals,
+   xs' ← xs.mmap (λ ⟨v,str⟩, do
+     set_goals [v],
+     refine_one str,
+     get_goals ),
+   set_goals (xs'.reverse.join ++ gs)
+
+meta def guard_tags (tags : parse ident*) : tactic unit :=
+do (t : list name) ← get_main_tag,
+   guard (t = tags)
 
 meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,

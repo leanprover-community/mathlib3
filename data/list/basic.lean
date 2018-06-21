@@ -8,7 +8,7 @@ Basic properties of lists.
 import
   tactic.interactive tactic.mk_iff_of_inductive_prop tactic.split_ifs
   logic.basic logic.function logic.relation
-  algebra.group
+  algebra.group order.basic
   data.nat.basic data.option data.bool data.prod data.sigma data.fin
 open function nat
 
@@ -352,12 +352,12 @@ by induction l₂ with b l₂ ih; simp
 
 local attribute [simp] reverse_core
 
-@[simp] theorem reverse_cons (a : α) (l : list α) : reverse (a::l) = concat (reverse l) a :=
-have aux : ∀ l₁ l₂, reverse_core l₁ (concat l₂ a) = concat (reverse_core l₁ l₂) a,
-  by intros l₁; induction l₁; intros; rsimp,
-aux l nil
+@[simp] theorem reverse_cons (a : α) (l : list α) : reverse (a::l) = reverse l ++ [a] :=
+have aux : ∀ l₁ l₂, reverse_core l₁ l₂ ++ [a] = reverse_core l₁ (l₂ ++ [a]),
+by intro l₁; induction l₁; simp *,
+(aux l nil).symm
 
-theorem reverse_cons' (a : α) (l : list α) : reverse (a::l) = reverse l ++ [a] :=
+theorem reverse_cons' (a : α) (l : list α) : reverse (a::l) = concat (reverse l) a :=
 by simp
 
 @[simp] theorem reverse_singleton (a : α) : reverse [a] = [a] := rfl
@@ -1084,6 +1084,133 @@ by induction L; simp *
 
 @[simp] theorem length_bind (l : list α) (f : α → list β) : length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
+
+/- lexicographic ordering -/
+
+inductive lex (r : α → α → Prop) : list α → list α → Prop
+| nil {} {a l} : lex [] (a :: l)
+| cons {a l₁ l₂} (h : lex l₁ l₂) : lex (a :: l₁) (a :: l₂)
+| rel {a₁ l₁ a₂ l₂} (h : r a₁ a₂) : lex (a₁ :: l₁) (a₂ :: l₂)
+
+namespace lex
+theorem cons_iff {r : α → α → Prop} [is_irrefl α r] {a l₁ l₂} :
+  lex r (a :: l₁) (a :: l₂) ↔ lex r l₁ l₂ :=
+⟨λ h, by cases h with _ _ _ _ _ h _ _ _ _ h;
+  [exact h, exact (irrefl_of r a h).elim], lex.cons⟩
+
+instance is_order_connected (r : α → α → Prop)
+  [is_order_connected α r] [is_trichotomous α r] :
+  is_order_connected (list α) (lex r) :=
+⟨λ l₁, match l₁ with
+| _,     [],    c::l₃, nil    := or.inr nil
+| _,     [],    c::l₃, rel _ := or.inr nil
+| _,     [],    c::l₃, cons _ := or.inr nil
+| _,     b::l₂, c::l₃, nil := or.inl nil
+| a::l₁, b::l₂, c::l₃, rel h :=
+  (is_order_connected.conn _ b _ h).imp rel rel
+| a::l₁, b::l₂, _::l₃, cons h := begin
+    rcases trichotomous_of r a b with ab | rfl | ab,
+    { exact or.inl (rel ab) },
+    { exact (_match _ l₂ _ h).imp cons cons },
+    { exact or.inr (rel ab) }
+  end
+end⟩
+
+instance is_trichotomous (r : α → α → Prop) [is_trichotomous α r] :
+  is_trichotomous (list α) (lex r) :=
+⟨λ l₁, match l₁ with
+| [], [] := or.inr (or.inl rfl)
+| [], b::l₂ := or.inl nil
+| a::l₁, [] := or.inr (or.inr nil)
+| a::l₁, b::l₂ := begin
+    rcases trichotomous_of r a b with ab | rfl | ab,
+    { exact or.inl (rel ab) },
+    { exact (_match l₁ l₂).imp cons
+      (or.imp (congr_arg _) cons) },
+    { exact or.inr (or.inr (rel ab)) }
+  end
+end⟩
+
+instance is_asymm (r : α → α → Prop)
+  [is_asymm α r] : is_asymm (list α) (lex r) :=
+⟨λ l₁, match l₁ with
+| a::l₁, b::l₂, lex.rel h₁, lex.rel h₂ := asymm h₁ h₂
+| a::l₁, b::l₂, lex.rel h₁, lex.cons h₂ := asymm h₁ h₁
+| a::l₁, b::l₂, lex.cons h₁, lex.rel h₂ := asymm h₂ h₂
+| a::l₁, b::l₂, lex.cons h₁, lex.cons h₂ :=
+  by exact _match _ _ h₁ h₂
+end⟩
+
+instance is_strict_total_order (r : α → α → Prop)
+  [is_strict_total_order' α r] : is_strict_total_order' (list α) (lex r) :=
+{..is_strict_weak_order_of_is_order_connected}
+
+instance decidable_rel [decidable_eq α] (r : α → α → Prop)
+  [decidable_rel r] : decidable_rel (lex r)
+| l₁ [] := is_false $ λ h, by cases h
+| [] (b::l₂) := is_true lex.nil
+| (a::l₁) (b::l₂) := begin
+  haveI := decidable_rel l₁ l₂,
+  refine decidable_of_iff (r a b ∨ a = b ∧ lex r l₁ l₂) ⟨λ h, _, λ h, _⟩,
+  { rcases h with h | ⟨rfl, h⟩,
+    { exact lex.rel h },
+    { exact lex.cons h } },
+  { rcases h with _|⟨_,_,_,h⟩|⟨_,_,_,_,h⟩,
+    { exact or.inr ⟨rfl, h⟩ },
+    { exact or.inl h } }
+end
+
+theorem append_right (r : α → α → Prop) :
+  ∀ {s₁ s₂} t, lex r s₁ s₂ → lex r s₁ (s₂ ++ t)
+| _ _ t nil      := nil
+| _ _ t (cons h) := cons (append_right _ h)
+| _ _ t (rel r)  := rel r
+
+theorem append_left (R : α → α → Prop) {t₁ t₂} (h : lex R t₁ t₂) :
+  ∀ s, lex R (s ++ t₁) (s ++ t₂)
+| []      := h
+| (a::l) := cons (append_left l)
+
+theorem imp {r s : α → α → Prop} (H : ∀ a b, r a b → s a b) :
+  ∀ l₁ l₂, lex r l₁ l₂ → lex s l₁ l₂
+| _ _ nil      := nil
+| _ _ (cons h) := cons (imp _ _ h)
+| _ _ (rel r)  := rel (H _ _ r)
+
+theorem to_ne : ∀ {l₁ l₂ : list α}, lex (≠) l₁ l₂ → l₁ ≠ l₂
+| _ _ (cons h) e := to_ne h (list.cons.inj e).2
+| _ _ (rel r)  e := r (list.cons.inj e).1
+
+theorem ne_iff {l₁ l₂ : list α} (H : length l₁ ≤ length l₂) :
+  lex (≠) l₁ l₂ ↔ l₁ ≠ l₂ :=
+⟨to_ne, λ h, begin
+  induction l₁ with a l₁ IH generalizing l₂; cases l₂ with b l₂,
+  { contradiction },
+  { apply nil },
+  { exact (not_lt_of_ge H).elim (succ_pos _) },
+  { cases classical.em (a = b) with ab ab,
+    { subst b, apply cons,
+      exact IH (le_of_succ_le_succ H) (mt (congr_arg _) h) },
+    { exact rel ab } }
+end⟩
+
+end lex
+
+--Note: this overrides an instance in core lean
+instance has_lt' [has_lt α] : has_lt (list α) := ⟨lex (<)⟩
+
+theorem nil_lt_cons [has_lt α] (a : α) (l : list α) : [] < a :: l :=
+lex.nil 
+
+instance [linear_order α] : linear_order (list α) :=
+linear_order_of_STO' (lex (<))
+
+--Note: this overrides an instance in core lean
+instance has_le' [linear_order α] : has_le (list α) :=
+preorder.to_has_le _
+
+instance [decidable_linear_order α] : decidable_linear_order (list α) :=
+decidable_linear_order_of_STO' (lex (<))
 
 /- all & any, bounded quantifiers over lists -/
 
@@ -2892,45 +3019,6 @@ theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
     exact H _ _ (succ_lt_succ h) (succ_pos _) }
 end
 
-inductive lex (R : α → α → Prop) : list α → list α → Prop
-| nil {} (a l) : lex [] (a::l)
-| cons {} (a) {l l'} : lex l l' → lex (a::l) (a::l')
-| rel {a a'} (l l') : R a a' → lex (a::l) (a'::l')
-
-theorem lex_append_right (R : α → α → Prop) :
-  ∀ {s₁ s₂} t, lex R s₁ s₂ → lex R s₁ (s₂ ++ t)
-| _ _ t (lex.nil a l)   := lex.nil _ _
-| _ _ t (lex.cons a h)  := lex.cons _ (lex_append_right _ h)
-| _ _ t (lex.rel _ _ r) := lex.rel _ _ r
-
-theorem lex_append_left (R : α → α → Prop) {t₁ t₂} (h : lex R t₁ t₂) :
-  ∀ s, lex R (s ++ t₁) (s ++ t₂)
-| []      := h
-| (a::l) := lex.cons _ (lex_append_left l)
-
-theorem lex.imp {R S : α → α → Prop} (H : ∀ a b, R a b → S a b) :
-  ∀ l₁ l₂, lex R l₁ l₂ → lex S l₁ l₂
-| _ _ (lex.nil a l)   := lex.nil _ _
-| _ _ (lex.cons a h)  := lex.cons _ (lex.imp _ _ h)
-| _ _ (lex.rel _ _ r) := lex.rel _ _ (H _ _ r)
-
-theorem ne_of_lex_ne : ∀ {l₁ l₂ : list α}, lex (≠) l₁ l₂ → l₁ ≠ l₂
-| _ _ (lex.cons a h)  e := ne_of_lex_ne h (list.cons.inj e).2
-| _ _ (lex.rel _ _ r) e := r (list.cons.inj e).1
-
-theorem lex_ne_iff {l₁ l₂ : list α} (H : length l₁ ≤ length l₂) :
-  lex (≠) l₁ l₂ ↔ l₁ ≠ l₂ :=
-⟨ne_of_lex_ne, λ h, begin
-  induction l₁ with a l₁ IH generalizing l₂; cases l₂ with b l₂,
-  { contradiction },
-  { apply lex.nil },
-  { exact (not_lt_of_ge H).elim (succ_pos _) },
-  { cases classical.em (a = b) with ab ab,
-    { subst b, apply lex.cons,
-      exact IH (le_of_succ_le_succ H) (mt (congr_arg _) h) },
-    { exact lex.rel _ _ ab } }
-end⟩
-
 theorem pairwise_sublists' {R} : ∀ {l : list α}, pairwise R l →
   pairwise (lex (swap R)) (sublists' l)
 | _ (pairwise.nil _) := pairwise_singleton _ _
@@ -2938,10 +3026,10 @@ theorem pairwise_sublists' {R} : ∀ {l : list α}, pairwise R l →
   begin
     simp [pairwise_append, pairwise_map],
     have IH := pairwise_sublists' H₂,
-    refine ⟨IH, IH.imp (λ l₁ l₂, lex.cons _), _⟩,
+    refine ⟨IH, IH.imp (λ l₁ l₂, lex.cons), _⟩,
     intros l₁ sl₁ x l₂ sl₂ e, subst e,
     cases l₁ with b l₁, {constructor},
-    exact lex.rel _ _ (H₁ _ $ subset_of_sublist sl₁ $ mem_cons_self _ _)
+    exact lex.rel (H₁ _ $ subset_of_sublist sl₁ $ mem_cons_self _ _)
   end
 
 theorem pairwise_sublists {R} {l : list α} (H : pairwise R l) :
@@ -3305,7 +3393,7 @@ nodup_filter _
 
 @[simp] theorem nodup_sublists {l : list α} : nodup (sublists l) ↔ nodup l :=
 ⟨λ h, nodup_of_nodup_map _ (nodup_of_sublist (map_ret_sublist_sublists _) h),
- λ h, (pairwise_sublists h).imp (λ _ _ h, mt reverse_inj.2 (ne_of_lex_ne h))⟩
+ λ h, (pairwise_sublists h).imp (λ _ _ h, mt reverse_inj.2 h.to_ne)⟩
 
 @[simp] theorem nodup_sublists' {l : list α} : nodup (sublists' l) ↔ nodup l :=
 by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,

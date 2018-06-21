@@ -115,7 +115,7 @@ end
 
 @[simp] theorem reverse_perm : ∀ (l : list α), reverse l ~ l
 | []     := perm.nil
-| (a::l) := by rw reverse_cons'; exact
+| (a::l) := by rw reverse_cons; exact
   (perm_cons_app _ _).trans (skip a $ reverse_perm l)
 
 theorem perm_cons_app_cons {l l₁ l₂ : list α} (a : α) (p : l ~ l₁++l₂) : a::l ~ l₁++(a::l₂) :=

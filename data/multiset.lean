@@ -5,8 +5,10 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import logic.function data.list.basic data.list.perm data.list.sort order.boolean_algebra
-       algebra.order_functions data.quot algebra.group_power algebra.ordered_group
+import logic.function order.boolean_algebra
+  data.list.basic data.list.perm data.list.sort data.quot data.string
+  algebra.order_functions algebra.group_power algebra.ordered_group
+
 open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -2332,6 +2334,9 @@ quot.induction_on s $ λ l, sorted_merge_sort r _
 quot.induction_on s $ λ l, quot.sound $ perm_merge_sort _ _
 
 end sort
+
+instance [has_repr α] : has_repr (multiset α) :=
+⟨λ s, "{" ++ string.intercalate ", " ((s.map repr).sort (≤)) ++ "}"⟩
 
 section sections
 

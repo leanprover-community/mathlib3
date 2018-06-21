@@ -1224,6 +1224,8 @@ theorem sort_sorted_lt [decidable_linear_order α] (s : finset α) :
   list.sorted (<) (sort (≤) s) :=
 (sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
 
+instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
+
 end finset
 
 namespace list

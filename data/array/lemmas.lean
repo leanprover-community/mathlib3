@@ -155,7 +155,7 @@ end
 @[simp] theorem push_back_to_list (a : array n α) (v : α) :
   (a.push_back v).to_list = a.to_list ++ [v] :=
 by rw [← rev_list_reverse, ← rev_list_reverse, push_back_rev_list,
-       list.reverse_cons, list.concat_eq_append]
+       list.reverse_cons]
 
 theorem read_foreach_aux (f : fin n → α → α) (ai : array n α) :
   ∀ i h (a : array n α) (j : fin n), j.1 < i →

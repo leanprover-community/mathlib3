@@ -117,7 +117,7 @@ have a ≠ a ⊔ b, from assume eq, hb $ eq.symm ▸ le_sup_right,
 
 end semilattice_sup
 
-/-- A `semilattice_sup` is a meet-semilattice, that is, a partial order
+/-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
 class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=

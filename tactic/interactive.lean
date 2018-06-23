@@ -225,6 +225,9 @@ do h ← match h with
 meta def exactI (q : parse texpr) : tactic unit :=
 reset_instance_cache >> exact q
 
+meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
+tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
+
 /--
   `apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
   where `head` matches the current goal.
@@ -243,14 +246,10 @@ meta def apply_assumption
   (asms : option (list expr) := none)
   (tac : tactic unit := return ()) : tactic unit :=
 do { ctx ← asms.to_monad <|> local_context,
-     t   ← target,
-     hs   ← find_matching_head t ctx,
-     hs.any_of (λ H, () <$ tactic.apply H ; tac) } <|>
+     ctx.any_of (λ H, () <$ symm_apply H ; tac) } <|>
 do { exfalso,
      ctx ← asms.to_monad <|> local_context,
-     t   ← target,
-     hs   ← find_matching_head t ctx,
-     hs.any_of (λ H, () <$ tactic.apply H ; tac) }
+     ctx.any_of (λ H, () <$ symm_apply H ; tac) }
 <|> fail "assumption tactic failed"
 
 open nat

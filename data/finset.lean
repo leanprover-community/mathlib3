@@ -6,7 +6,7 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 Finite sets.
 -/
 import data.multiset order.boolean_algebra algebra.order_functions
-       data.sigma.basic logic.embedding
+       data.sigma.basic logic.embedding algebra.big_operators
 open multiset subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -974,6 +974,9 @@ begin
   rw multiset.erase_dup_eq_self.2,
   exact multiset.nodup_map (multiset.injective_pi_cons ha) (pi s t).2,
 end
+
+lemma card_pi (s : finset α) (t : Π a, finset (δ a)) : (s.pi t).card = s.prod (λ a, card (t a)) :=
+multiset.card_pi _ _
 
 end pi
 

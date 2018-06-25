@@ -405,12 +405,7 @@ end
 by {induction l; intros, contradiction, simp *, reflexivity}
 
 @[simp] theorem last_append {a : α} (l : list α) (h : l ++ [a] ≠ []) : last (l ++ [a]) h = a :=
-begin
-  induction l with hd tl ih; rsimp,
-  have haux : tl ++ [a] ≠ [],
-    {apply append_ne_nil_of_ne_nil_right, contradiction},
-  simp *
-end
+by induction l; [refl, simp *]
 
 theorem last_concat {a : α} (l : list α) (h : concat l a ≠ []) : last (concat l a) h = a :=
 by simp *

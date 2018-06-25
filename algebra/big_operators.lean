@@ -188,10 +188,11 @@ finset.induction_on s (by simp) (assume a s has ih h,
     (assume hna : f a ≠ 1,
       ⟨a, mem_insert_self _ _, hna⟩))
 
-@[simp] lemma prod_const (b : β) [decidable_eq α] : s.prod (λ a, b) = b ^ s.card :=
+@[simp] lemma prod_const [decidable_eq α] (b : β) : s.prod (λ a, b) = b ^ s.card :=
 finset.induction_on s rfl (by simp [pow_add, mul_comm] {contextual := tt})
 
-@[simp] lemma sum_const [add_comm_monoid β] (b : β) [decidable_eq α] : s.sum (λ a, b) = add_monoid.smul s.card b :=
+@[simp] lemma sum_const [add_comm_monoid β] [decidable_eq α] (b : β) :
+  s.sum (λ a, b) = add_monoid.smul s.card b :=
 finset.induction_on s rfl (by simp [add_monoid.add_smul] {contextual := tt})
 
 end comm_monoid

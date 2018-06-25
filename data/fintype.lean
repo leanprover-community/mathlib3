@@ -312,6 +312,6 @@ exact calc fintype.card (Π a, β a) = fintype.card (Π a ∈ univ, β a) : fint
   ⟨λ f a ha, f a, λ f a, f a (mem_univ a), λ _, rfl, λ _, rfl⟩ 
 ... = univ.prod (λ a, fintype.card (β a)) : finset.card_pi _ _
 
-lemma card_fun [fintype α] [decidable_eq α] [fintype β] :
+lemma fintype.card_fun [fintype α] [decidable_eq α] [fintype β] :
   fintype.card (α → β) = fintype.card β ^ fintype.card α :=
 by rw [fintype.card_pi, finset.prod_const, nat.pow_eq_pow]; refl

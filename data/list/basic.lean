@@ -172,6 +172,9 @@ theorem eq_nil_of_subset_nil : ∀ {l : list α}, l ⊆ [] → l = []
 theorem eq_nil_iff_forall_not_mem {l : list α} : l = [] ↔ ∀ a, a ∉ l :=
 show l = [] ↔ l ⊆ [], from ⟨λ e, e ▸ subset.refl _, eq_nil_of_subset_nil⟩
 
+theorem map_subset {l₁ l₂ : list α} (f : α → β) (H : l₁ ⊆ l₂) : map f l₁ ⊆ map f l₂ :=
+λ x, by simp [mem_map]; exact λ a h e, ⟨a, H h, e⟩
+
 /- append -/
 
 lemma append_eq_has_append {L₁ L₂ : list α} : list.append L₁ L₂ = L₁ ++ L₂ := rfl

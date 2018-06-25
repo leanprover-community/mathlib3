@@ -242,7 +242,7 @@ lemma fintype.card_pos_iff [fintype α] : 0 < fintype.card α ↔ nonempty α :=
   lt_irrefl 0 $ by rwa this at h), 
 λ ⟨a⟩, nat.pos_of_ne_zero (mt fintype.card_eq_zero_iff.1 (λ h, h a))⟩
 
-lemma card_le_one_iff [fintype α] : fintype.card α ≤ 1 ↔ (∀ a b : α, a = b) :=
+lemma fintype.card_le_one_iff [fintype α] : fintype.card α ≤ 1 ↔ (∀ a b : α, a = b) :=
 let n := fintype.card α in
 have hn : n = fintype.card α := rfl,
 match n, hn with

@@ -5,6 +5,7 @@ Authors: Simon Hudon
 -/
 import tactic data.set.lattice
 
+section solve_by_elim
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 begin
   apply_assumption,
@@ -14,10 +15,14 @@ end
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 by solve_by_elim
 
+example {α : Type} {a b : α → Prop} (h₀ : ∀ x : α, b x = a x) (y : α) : a y = b y :=
+by solve_by_elim
+
 example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
 begin
   apply_assumption,
 end
+end solve_by_elim
 
 section tauto₀
 variables p q r : Prop

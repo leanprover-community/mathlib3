@@ -193,7 +193,8 @@ finset.induction_on s rfl (by simp [pow_add, mul_comm] {contextual := tt})
 
 @[simp] lemma sum_const [add_comm_monoid β] [decidable_eq α] (b : β) :
   s.sum (λ a, b) = add_monoid.smul s.card b :=
-finset.induction_on s rfl (by simp [add_monoid.add_smul] {contextual := tt})
+@prod_const _ (multiplicative β) _ _ _ _
+attribute [to_additive finset.sum_const] prod_const
 
 end comm_monoid
 

@@ -6,7 +6,7 @@ Authors: Chris Hughes
 Theory of univariate polynomials, represented as finsupps, ℕ →₀ α, with α a comm_semiring
 -/
 
-import linear_algebra.multivariate_polynomial algebra.euclidean_domain
+import data.finsupp algebra.euclidean_domain
 open finsupp finset lattice
 
 set_option old_structure_cmd true
@@ -590,6 +590,7 @@ end comm_ring
 
 section nonzero_comm_ring
 variables [nonzero_comm_ring α] {p q : polynomial α}
+
 instance : nonzero_comm_ring (polynomial α) :=
 { zero_ne_one := λ (h : (0 : polynomial α) = 1),
     @zero_ne_one α _ $ 
@@ -798,7 +799,7 @@ instance : euclidean_domain (polynomial α) :=
         unfold euclid_val_poly,
         rw [if_pos hp],
         exact nat.zero_le _
-      end 
+      end
     else begin
         unfold euclid_val_poly,
         rw [if_neg hp, if_neg (mul_ne_zero hp hq), degree_mul_eq hp hq],

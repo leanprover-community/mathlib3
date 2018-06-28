@@ -634,6 +634,42 @@ lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
+lemma embedding_inl : embedding (@sum.inl α β) :=
+⟨λ _ _, sum.inl.inj_iff.mp,
+  begin
+    unfold sum.topological_space,
+    apply le_antisymm,
+    { intros u hu, existsi (sum.inl '' u),
+      change
+        (is_open (sum.inl ⁻¹' (@sum.inl α β '' u)) ∧
+         is_open (sum.inr ⁻¹' (@sum.inl α β '' u))) ∧
+        u = sum.inl ⁻¹' (sum.inl '' u),
+      have : sum.inl ⁻¹' (@sum.inl α β '' u) = u :=
+        preimage_image_eq u (λ _ _, sum.inl.inj_iff.mp), rw this,
+      have : sum.inr ⁻¹' (@sum.inl α β '' u) = ∅ :=
+        eq_empty_iff_forall_not_mem.mpr (assume a ⟨b, _, h⟩, sum.inl_ne_inr h), rw this,
+      exact ⟨⟨hu, is_open_empty⟩, rfl⟩ },
+    { rw induced_le_iff_le_coinduced, exact lattice.inf_le_left }
+  end⟩
+
+lemma embedding_inr : embedding (@sum.inr α β) :=
+⟨λ _ _, sum.inr.inj_iff.mp,
+  begin
+    unfold sum.topological_space,
+    apply le_antisymm,
+    { intros u hu, existsi (sum.inr '' u),
+      change
+        (is_open (sum.inl ⁻¹' (@sum.inr α β '' u)) ∧
+         is_open (sum.inr ⁻¹' (@sum.inr α β '' u))) ∧
+        u = sum.inr ⁻¹' (sum.inr '' u),
+      have : sum.inl ⁻¹' (@sum.inr α β '' u) = ∅ :=
+        eq_empty_iff_forall_not_mem.mpr (assume b ⟨a, _, h⟩, sum.inr_ne_inl h), rw this,
+      have : sum.inr ⁻¹' (@sum.inr α β '' u) = u :=
+        preimage_image_eq u (λ _ _, sum.inr.inj_iff.mp), rw this,
+      exact ⟨⟨is_open_empty, hu⟩, rfl⟩ },
+    { rw induced_le_iff_le_coinduced, exact lattice.inf_le_right }
+  end⟩
+
 lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ (nhds a).sets) :
   map (@subtype.val α p) (nhds ⟨a, ha⟩) = nhds a :=
 map_nhds_induced_eq (by simp [subtype_val_image, h])

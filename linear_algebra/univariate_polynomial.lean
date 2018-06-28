@@ -709,6 +709,7 @@ else
   ⟨∅, nat.zero_le _, by clear exists_finset_roots; finish⟩
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf degree⟩]}
 
+/-- `roots p` noncomputably gives a finset containing all the roots of `p` -/
 noncomputable def roots (p : polynomial α) : finset α := 
 if h : p = 0 then ∅ else classical.some (exists_finset_roots h)
 
@@ -747,10 +748,6 @@ C (leading_coeff q)⁻¹ * div_by_monic p (q * C (leading_coeff q)⁻¹)
 
 def mod_aux (p q : polynomial α) :=
 mod_by_monic p (q * C (leading_coeff q)⁻¹)
-
-instance : has_div (polynomial α) := ⟨div_aux⟩
-
-instance : has_mod (polynomial α) := ⟨mod_aux⟩
 
 private lemma quotient_mul_add_remainder_eq_aux (p q : polynomial α) :
   q * div_aux p q + mod_aux p q = p :=
@@ -797,16 +794,16 @@ instance : euclidean_domain (polynomial α) :=
   valuation := euclid_val_poly,
   val_remainder_lt := λ p q hq, val_remainder_lt_aux _ hq,
   val_le_mul_left := λ p q hq, 
-  if hp : p = 0 then begin 
-      unfold euclid_val_poly,
-      rw [if_pos hp],
-      exact nat.zero_le _
-    end 
-  else begin
-      unfold euclid_val_poly,
-      rw [if_neg hp, if_neg (mul_ne_zero hp hq), degree_mul_eq hp hq],
-      exact nat.succ_le_succ (nat.le_add_right _ _),
-    end }
+    if hp : p = 0 then begin 
+        unfold euclid_val_poly,
+        rw [if_pos hp],
+        exact nat.zero_le _
+      end 
+    else begin
+        unfold euclid_val_poly,
+        rw [if_neg hp, if_neg (mul_ne_zero hp hq), degree_mul_eq hp hq],
+        exact nat.succ_le_succ (nat.le_add_right _ _),
+      end }
 
 end field
 

@@ -347,18 +347,15 @@ by rw [inter_comm, singleton_inter_of_not_mem h]
 /- lattice laws -/
 
 instance : lattice (finset α) :=
-{ le           := (⊆),
-  le_refl      := subset.refl,
-  le_trans     := assume a b c, subset.trans,
-  le_antisymm  := assume a b, subset.antisymm,
-  sup          := (∪),
+{ sup          := (∪),
   sup_le       := assume a b c, union_subset,
   le_sup_left  := assume a b, subset_union_left,
   le_sup_right := assume a b, subset_union_right,
   inf          := (∩),
   le_inf       := assume a b c, subset_inter,
   inf_le_left  := assume a b, inter_subset_left,
-  inf_le_right := assume a b, inter_subset_right }
+  inf_le_right := assume a b, inter_subset_right,
+  ..finset.partial_order }
 
 instance : semilattice_inf_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset, ..finset.lattice.lattice }

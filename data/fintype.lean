@@ -169,10 +169,20 @@ instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp�
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
+def finset.insert_none (s : finset α) : finset (option α) :=
+⟨none :: s.1.map some, multiset.nodup_cons.2
+  ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) s.2⟩⟩
+
+@[simp] theorem finset.mem_insert_none {s : finset α} : ∀ {o : option α},
+  o ∈ s.insert_none ↔ ∀ a ∈ o, a ∈ s
+| none     := iff_of_true (multiset.mem_cons_self _ _) (λ a h, by cases h)
+| (some a) := multiset.mem_cons.trans $ by simp; refl
+
+theorem finset.some_mem_insert_none {s : finset α} {a : α} :
+  some a ∈ s.insert_none ↔ a ∈ s := by simp
+
 instance {α : Type*} [fintype α] : fintype (option α) :=
-⟨⟨none :: univ.1.map some, multiset.nodup_cons.2
-  ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) univ.2⟩⟩,
-λ a, by cases a; simp⟩
+⟨univ.insert_none, λ a, by simp⟩
 
 @[simp] theorem fintype.card_option {α : Type*} [fintype α] :
   fintype.card (option α) = fintype.card α + 1 :=

@@ -362,8 +362,8 @@ theorem mem_fix_iff {f : α →. β ⊕ α} {a : α} {b : β} :
       rw well_founded.fix_F_eq, simp [h₁, h₂, h₄] } }
 end⟩
 
-theorem fix_induction {f : α →. β ⊕ α} {b : β}
-  {C : α → Sort*} {a : α} (h : b ∈ fix f a)
+@[elab_as_eliminator] theorem fix_induction
+  {f : α →. β ⊕ α} {b : β} {C : α → Sort*} {a : α} (h : b ∈ fix f a)
   (H : ∀ a, b ∈ fix f a →
     (∀ a', b ∈ fix f a' → sum.inr a' ∈ f a → C a') → C a) : C a :=
 begin

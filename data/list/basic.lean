@@ -216,15 +216,6 @@ begin
     { simp [ih, @eq_comm _ a, and_assoc, and_or_distrib_left] } }
 end
 
-/- join -/
-
-attribute [simp] join
-
-@[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
-by induction L₁; simp *
-
-/- repeat take drop -/
-
 /-- Split a list at an index. `split 2 [a, b, c] = ([a, b], [c])` -/
 def split_at : ℕ → list α → list α × list α
 | 0        a         := ([], a)
@@ -289,6 +280,17 @@ begin
   apply le_add_right
 end
 
+/- join -/
+
+attribute [simp] join
+
+@[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
+by induction L₁; simp *
+
+/- repeat take drop -/
+
+@[simp] theorem repeat_succ (a : α) (n) : repeat a (n + 1) = a :: repeat a n := rfl
+
 theorem eq_of_mem_repeat {a b : α} : ∀ {n}, b ∈ repeat a n → b = a
 | (n+1) h := or.elim h id $ @eq_of_mem_repeat _
 
@@ -306,7 +308,7 @@ theorem eq_repeat {a : α} {n} {l : list α} : l = repeat a n ↔ length l = n �
 ⟨λ h, h.symm ▸ ⟨length_repeat _ _, λ b, eq_of_mem_repeat⟩,
  λ ⟨e, al⟩, e ▸ eq_repeat_of_mem al⟩
 
-@[simp] theorem repeat_add (a : α) (m n) : repeat a (m + n) = repeat a m ++ repeat a n :=
+theorem repeat_add (a : α) (m n) : repeat a (m + n) = repeat a m ++ repeat a n :=
 by induction m; simp [*, repeat, nat.succ_add, -add_comm]
 
 theorem repeat_subset_singleton (a : α) (n) : repeat a n ⊆ [a] :=
@@ -317,6 +319,12 @@ by induction l; simp [repeat, -add_comm, *]
 
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) : b₁ = b₂ :=
 by rw map_const at h; exact eq_of_mem_repeat h
+
+@[simp] theorem map_repeat (f : α → β) (a : α) (n) : map f (repeat a n) = repeat (f a) n :=
+by induction n; simp *
+
+@[simp] theorem tail_repeat (a : α) (n) : tail (repeat a n) = repeat a n.pred :=
+by cases n; refl
 
 /- bind -/
 
@@ -360,6 +368,9 @@ have aux : ∀ l₁ l₂, reverse_core l₁ l₂ ++ [a] = reverse_core l₁ (l�
 by intro l₁; induction l₁; simp *,
 (aux l nil).symm
 
+theorem reverse_core_eq (l₁ l₂ : list α) : reverse_core l₁ l₂ = reverse l₁ ++ l₂ :=
+by induction l₁ generalizing l₂; simp *
+
 theorem reverse_cons' (a : α) (l : list α) : reverse (a::l) = concat (reverse l) a :=
 by simp
 
@@ -388,6 +399,10 @@ by induction l; simp *
 
 @[simp] theorem map_reverse (f : α → β) (l : list α) : map f (reverse l) = reverse (map f l) :=
 by induction l; simp *
+
+theorem map_reverse_core (f : α → β) (l₁ l₂ : list α) :
+  map f (reverse_core l₁ l₂) = reverse_core (map f l₁) (map f l₂) :=
+by simp [reverse_core_eq]
 
 @[simp] theorem mem_reverse {a : α} {l : list α} : a ∈ reverse l ↔ a ∈ l :=
 by induction l; simp [*, or_comm]
@@ -485,6 +500,9 @@ by simp [list.bind]; induction l; simp [list.ret, join, *]
 
 @[simp] theorem map_eq_map {α β} (f : α → β) (l : list α) :
   f <$> l = map f l := rfl
+
+@[simp] theorem map_tail (f : α → β) (l) : map f (tail l) = tail (map f l) :=
+by cases l; refl
 
 /- map₂ -/
 

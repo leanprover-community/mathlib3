@@ -1,32 +1,13 @@
-language: c
-
-sudo: false
-
-os:
-    - linux
-
-cache:
-  directories:
-    - $TRAVIS_BUILD_DIR/*/
+language: generic
 
 install:
   - curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
   - source ~/.elan/env
 
-jobs:
-  include:
-    - stage: Pre-build
-      script:
-        - rm mathlib.txt || true
-        - timeout 2400 leanpkg test || echo timed out
-        - find . -name "*.lean" -delete
-
-    - stage: Test
-      script:
-        - leanpkg test
-        - lean --recursive --export=mathlib.txt
-        - leanchecker mathlib.txt
-        - find . -name "*.lean" -delete
+script:
+  - leanpkg test
+  - lean --recursive --export=mathlib.txt
+  - leanchecker mathlib.txt
 
 notifications:
   webhooks:

@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import data.vector data.list.basic data.sigma
+import data.vector data.list.basic data.sigma data.array.lemmas
 
 namespace vector
 variables {α : Type*} {n : ℕ}
@@ -92,3 +92,13 @@ def {u} mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 | _ ⟨l, rfl⟩ := rfl
 
 end vector
+
+namespace equiv
+
+def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
+⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
+
+def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
+(vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
+
+end equiv

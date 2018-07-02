@@ -559,7 +559,7 @@ continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
 
 lemma diagonal_eq_range_diagonal_map : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
 ext $ assume p, iff.intro
-  (assume h, ⟨p.1, prod.ext.mpr ⟨rfl, h⟩⟩)
+  (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
   (assume ⟨x, hx⟩, show p.1 = p.2, by rw ←hx)
 
 lemma prod_subset_compl_diagonal_iff_disjoint {s t : set α} :

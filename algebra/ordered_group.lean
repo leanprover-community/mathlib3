@@ -182,16 +182,20 @@ namespace with_top
 open lattice
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
-@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _
+{ add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
+  ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
-@additive.add_comm_semigroup _ $ @with_zero.comm_semigroup (multiplicative α) _
+{ ..@additive.add_comm_semigroup _ $
+    @with_zero.comm_semigroup (multiplicative α) _ }
 
 instance [add_monoid α] : add_monoid (with_top α) :=
-@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _
+{ zero := some 0,
+  ..@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _ }
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
-@additive.add_comm_monoid _ $ @with_zero.comm_monoid (multiplicative α) _
+{ ..@additive.add_comm_monoid _ $
+    @with_zero.comm_monoid (multiplicative α) _ }
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_top α) :=
 begin

@@ -1,13 +1,20 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tim Baumann, Stephen Morgan, Scott Morrison
+
+Defines natural transformations between functors.
+
+Introduces notations
+  `F ⟹ G` for the type of natural transformations between functors `F` and `G`,
+  `τ @> X` for the components of natural transformations,
+  `σ ⊟ τ` for vertical compositions, and
+  `σ ◫ τ` for horizontal compositions.
+-/
 
 import .functor
 
-open categories
-open categories.functor
-
-namespace categories.natural_transformation
+namespace category_theory
 
 universes u₁ v₁ u₂ v₂ u₃ v₃
 
@@ -27,7 +34,7 @@ attribute [ematch] NaturalTransformation.naturality_lemma
 infixr ` ⟹ `:50  := NaturalTransformation             -- type as \==> or ⟹
 notation α ` @> `:90 X:90 := α.components X
 
-definition IdentityNaturalTransformation (F : C ↝ D) : F ⟹ F := 
+definition identity_natural_transformation (F : C ↝ D) : F ⟹ F := 
 { components := λ X, 𝟙 (F +> X),
   naturality := begin
                   -- `obviously'` says:
@@ -35,10 +42,10 @@ definition IdentityNaturalTransformation (F : C ↝ D) : F ⟹ F :=
                   simp
                 end }
 
-@[simp] lemma IdentityNaturalTransformation.components (F : C ↝ D) (X : C) : (IdentityNaturalTransformation F) @> X = 𝟙 (F +> X) := by refl
+@[simp] lemma identity_natural_transformation.components (F : C ↝ D) (X : C) : (identity_natural_transformation F) @> X = 𝟙 (F +> X) := by refl
 
-instance (F : C ↝ D) : has_one (F ⟹ F) := 
-{ one := IdentityNaturalTransformation F }
+instance NaturalTransform_has_one (F : C ↝ D) : has_one (F ⟹ F) := 
+{ one := identity_natural_transformation F }
 
 section
 variables {F G H : C ↝ D}
@@ -92,7 +99,7 @@ notation α `◫` β:80 := horizontal_composition_of_NaturalTransformations α �
 @[ematch] lemma NaturalTransformation.exchange {F G H : C ↝ D} {I J K : D ↝ E} (α : F ⟹ G) (β : G ⟹ H) (γ : I ⟹ J) (δ : J ⟹ K) : ((α ⊟ β) ◫ (γ ⊟ δ)) = ((α ◫ γ) ⊟ (β ◫ δ)) := 
 begin
   -- `obviously'` says:
-  apply categories.natural_transformation.NaturalTransformations_componentwise_equal,
+  apply category_theory.NaturalTransformations_componentwise_equal,
   intros,
   simp,
   -- again, this isn't actually what obviously says, but it achieves the same effect.
@@ -101,4 +108,4 @@ begin
   rw [category.associativity_lemma],
 end
 
-end categories.natural_transformation
+end category_theory

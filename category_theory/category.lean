@@ -1,11 +1,19 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Stephen Morgan, Scott Morrison
+
+Defines a category, as a typeclass parametrised by the type of objects.
+Introduces notations
+  `X ⟶ Y` for the morphism spaces,
+  `f ⊚ g` for composition in the standard convention, and
+  `f ≫ g` for composition in the 'arrows' convention.
+-/
 
 import tactic.make_lemma
 import tactic.interactive
 
-namespace categories
+namespace category_theory
 
 universes u v
 
@@ -41,4 +49,4 @@ attribute [simp,ematch] category.left_identity_lemma category.right_identity_lem
 abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u+1 u} C
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
 
-end categories
+end category_theory

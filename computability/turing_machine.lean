@@ -23,12 +23,12 @@ def tape (Γ) := Γ × list Γ × list Γ
 def tape.mk {Γ} [inhabited Γ] (l : list Γ) : tape Γ :=
 (l.head, [], l.tail)
 
+def tape.mk' {Γ} [inhabited Γ] (L R : list Γ) : tape Γ :=
+(R.head, L, R.tail)
+
 def tape.move {Γ} [inhabited Γ] : dir → tape Γ → tape Γ
 | dir.left (a, L, R) := (L.head, L.tail, a :: R)
 | dir.right (a, L, R) := (R.head, a :: L, R.tail)
-
-def tape.write {Γ} (b : Γ) : tape Γ → tape Γ
-| (a, LR) := (b, LR)
 
 def tape.nth {Γ} [inhabited Γ] : tape Γ → ℤ → Γ
 | (a, L, R) 0 := a
@@ -54,6 +54,9 @@ def tape.nth {Γ} [inhabited Γ] : tape Γ → ℤ → Γ
 | (a, L, R) -[1+ n+1] := show _ = tape.nth _ (-[1+ n] - 1 + 1),
   by rw sub_add_cancel; refl
 
+def tape.write {Γ} (b : Γ) : tape Γ → tape Γ
+| (a, LR) := (b, LR)
+
 @[simp] theorem tape.write_self {Γ} : ∀ (T : tape Γ), T.write T.1 = T
 | (a, LR) := rfl
 
@@ -62,6 +65,33 @@ def tape.nth {Γ} [inhabited Γ] : tape Γ → ℤ → Γ
 | (a, L, R) 0       := rfl
 | (a, L, R) (n+1:ℕ) := rfl
 | (a, L, R) -[1+ n] := rfl
+
+def tape.map {Γ Γ'} (f : Γ → Γ') : tape Γ → tape Γ'
+| (a, L, R) := (f a, L.map f, R.map f)
+
+@[simp] theorem tape.map_fst {Γ Γ'} (f : Γ → Γ') : ∀ (T : tape Γ), (T.map f).1 = f T.1
+| (a, L, R) := rfl
+
+@[simp] theorem tape.map_write {Γ Γ'} (f : Γ → Γ') (b : Γ) :
+  ∀ (T : tape Γ), (T.write b).map f = (T.map f).write (f b)
+| (a, L, R) := rfl
+
+@[class] def pointed_map {Γ Γ'} [inhabited Γ] [inhabited Γ'] (f : Γ → Γ') :=
+f (default _) = default _
+
+theorem tape.map_move {Γ Γ'} [inhabited Γ] [inhabited Γ']
+  (f : Γ → Γ') [pointed_map f] :
+  ∀ (T : tape Γ) d, (T.move d).map f = (T.map f).move d
+| (a, [],   R) dir.left  := by simpa!
+| (a, b::L, R) dir.left  := by simp!
+| (a, L, [])   dir.right := by simpa!
+| (a, L, b::R) dir.right := by simp!
+
+theorem tape.map_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']
+  (f : Γ → Γ') [f0 : pointed_map f] :
+  ∀ (l : list Γ), (tape.mk l).map f = tape.mk (l.map f)
+| []     := by simpa! [tape.mk]
+| (a::l) := rfl
 
 def eval {σ} (f : σ → option σ) : σ → roption σ :=
 pfun.fix (λ s, roption.some $
@@ -81,6 +111,51 @@ theorem reaches_total {σ} {f : σ → option σ}
   {a b c} : reaches f a b → reaches f a c →
   reaches f b c ∨ reaches f c b :=
 refl_trans_gen.total_of_right_unique $ λ _ _ _, option.mem_unique
+
+theorem reaches₁_fwd {σ} {f : σ → option σ}
+  {a b c} (h₁ : reaches₁ f a c) (h₂ : b ∈ f a) : reaches f b c :=
+begin
+  rcases trans_gen.head'_iff.1 h₁ with ⟨b', hab, hbc⟩,
+  cases option.mem_unique hab h₂, exact hbc
+end
+
+def reaches₀ {σ} (f : σ → option σ) (a b : σ) : Prop :=
+∀ c, reaches₁ f b c → reaches₁ f a c
+
+theorem reaches₀.trans {σ} {f : σ → option σ} {a b c : σ}
+  (h₁ : reaches₀ f a b) (h₂ : reaches₀ f b c) : reaches₀ f a c
+| d h₃ := h₁ _ (h₂ _ h₃)
+
+@[refl] theorem reaches₀.refl {σ} {f : σ → option σ} (a : σ) : reaches₀ f a a
+| b h := h
+
+theorem reaches₀.single {σ} {f : σ → option σ} {a b : σ}
+  (h : b ∈ f a) : reaches₀ f a b
+| c h₂ := h₂.head h
+
+theorem reaches₀.head {σ} {f : σ → option σ} {a b c : σ}
+  (h : b ∈ f a) (h₂ : reaches₀ f b c) : reaches₀ f a c :=
+(reaches₀.single h).trans h₂
+
+theorem reaches₀.tail {σ} {f : σ → option σ} {a b c : σ}
+  (h₁ : reaches₀ f a b) (h : c ∈ f b) : reaches₀ f a c :=
+h₁.trans (reaches₀.single h)
+
+theorem reaches₀_eq {σ} {f : σ → option σ} {a b}
+  (e : f a = f b) : reaches₀ f a b
+| d h := (reaches₁_eq e).2 h
+
+theorem reaches₁.to₀ {σ} {f : σ → option σ} {a b : σ}
+  (h : reaches₁ f a b) : reaches₀ f a b
+| c h₂ := h.trans h₂
+
+theorem reaches.to₀ {σ} {f : σ → option σ} {a b : σ}
+  (h : reaches f a b) : reaches₀ f a b
+| c h₂ := h₂.trans_right h
+
+theorem reaches₀.tail' {σ} {f : σ → option σ} {a b c : σ}
+  (h : reaches₀ f a b) (h₂ : c ∈ f b) : reaches₁ f a c :=
+h _ (trans_gen.single h₂)
 
 theorem mem_eval {σ} {f : σ → option σ} {a b} :
   b ∈ eval f a ↔ reaches f a b ∧ f b = none :=
@@ -292,30 +367,84 @@ def reaches (M : machine) : cfg → cfg → Prop :=
 refl_trans_gen (λ a b, b ∈ step M a)
 
 /-- The initial configuration. -/
-def init (M : machine) (l : list Γ) : cfg :=
+def init (l : list Γ) : cfg :=
 ⟨default Λ, tape.mk l⟩
 
 /-- Evaluate a Turing machine on initial input to a final state,
   if it terminates. -/
 def eval (M : machine) (l : list Γ) : roption (list Γ) :=
-(eval (step M) ⟨default Λ, tape.mk l⟩).map (λ c, c.tape.2.2)
+(eval (step M) (init l)).map (λ c, c.tape.2.2)
 
 /-- The raw definition of a Turing machine does not require that
   `Γ` and `Λ` are finite, and in practice we will be interested
   in the infinite `Λ` case. We recover instead a notion of
   "effectively finite" Turing machines, which only make use of a
-  finite subset of their states. We say that a finset `S ⊆ Λ`
+  finite subset of their states. We say that a set `S ⊆ Λ`
   supports a Turing machine `M` if `S` is closed under the
   transition function and contains the initial state. -/
-def supports [fintype Γ] (M : machine) (S : finset Λ) :=
+def supports (M : machine) (S : set Λ) :=
 default Λ ∈ S ∧ ∀ {q a q' s}, (q', s) ∈ M q a → q ∈ S → q' ∈ S
 
-theorem step_supports [fintype Γ] (M : machine) {S}
+theorem step_supports (M : machine) {S}
   (ss : supports M S) : ∀ {c c' : cfg},
   c' ∈ step M c → c.q ∈ S → c'.q ∈ S
 | ⟨q, T⟩ c' h₁ h₂ := begin
   rcases option.map_eq_some'.1 h₁ with ⟨⟨q', a⟩, h, rfl⟩,
   exact ss.2 h h₂,
+end
+
+theorem univ_supports (M : machine) : supports M set.univ :=
+⟨trivial, λ q a q' s h₁ h₂, trivial⟩
+
+end
+
+section
+variables {Γ : Type*} [inhabited Γ]
+variables {Γ' : Type*} [inhabited Γ']
+variables {Λ : Type*} [inhabited Λ]
+variables {Λ' : Type*} [inhabited Λ']
+
+def stmt.map (f : Γ → Γ') : stmt Γ → stmt Γ'
+| (stmt.move d)  := stmt.move d
+| (stmt.write a) := stmt.write (f a)
+
+def cfg.map (f : Γ → Γ') (g : Λ → Λ') : cfg Γ Λ → cfg Γ' Λ'
+| ⟨q, T⟩ := ⟨g q, T.map f⟩
+
+variables (M : machine Γ Λ)
+  (f₁ : Γ → Γ') (f₂ : Γ' → Γ) (g₁ : Λ → Λ') (g₂ : Λ' → Λ)
+
+def machine.map : machine Γ' Λ'
+| q l := (M (g₂ q) (f₂ l)).map (prod.map g₁ (stmt.map f₁))
+
+theorem machine.map_step {S} (ss : supports M S)
+  [pointed_map f₁] (f₂₁ : function.right_inverse f₁ f₂)
+  (g₂₁ : ∀ q ∈ S, g₂ (g₁ q) = q) :
+  ∀ c : cfg Γ Λ, c.q ∈ S → 
+    (step M c).map (cfg.map f₁ g₁) =
+    step (M.map f₁ f₂ g₁ g₂) (cfg.map f₁ g₁ c)
+| ⟨q, T⟩ h := begin
+  simp! [g₂₁ q h, f₂₁ _],
+  rcases M q T.1 with _|⟨q', d|a⟩, {refl},
+  { simp! [option.map, tape.map_move f₁] },
+  { simp! [option.map] }
+end
+
+theorem map_init [pointed_map f₁] [g0 : pointed_map g₁] (l : list Γ) :
+  (init l).map f₁ g₁ = init (l.map f₁) :=
+by simp [init, cfg.map]; exact ⟨g0, tape.map_mk _ _⟩
+
+theorem machine.map_respects {S} (ss : supports M S)
+  [pointed_map f₁] [pointed_map g₁]
+  (f₂₁ : function.right_inverse f₁ f₂)
+  (g₂₁ : ∀ q ∈ S, g₂ (g₁ q) = q) :
+  respects (step M) (step (M.map f₁ f₂ g₁ g₂))
+    (λ a b, a.q ∈ S ∧ cfg.map f₁ g₁ a = b)
+| c _ ⟨cs, rfl⟩ := begin
+  cases e : step M c with c'; simp!,
+  { rw [← M.map_step f₁ f₂ g₁ g₂ ss f₂₁ g₂₁ _ cs, e], refl },
+  { refine ⟨_, ⟨step_supports M ss e cs, rfl⟩, trans_gen.single _⟩,
+    rw [← M.map_step f₁ f₂ g₁ g₂ ss f₂₁ g₂₁ _ cs, e], exact rfl }
 end
 
 end
@@ -353,31 +482,31 @@ open stmt
 /-- The configuration of a TM1 machine is given by the currently
   evaluating statement, the variable store value, and the tape. -/
 structure cfg :=
-(q : option stmt)
+(l : option Λ)
 (var : σ)
 (tape : tape Γ)
 
 parameters {Γ Λ σ}
 /-- The semantics of TM1 evaluation. -/
-def step_aux (M : Λ → stmt) : stmt → σ → tape Γ → cfg
+def step_aux : stmt → σ → tape Γ → cfg
 | (move d q)       v T := step_aux q v (T.move d)
 | (write a q)      v T := step_aux q v (T.write (a T.1 v))
 | (load s q)       v T := step_aux q (s T.1 v) T
 | (branch p q₁ q₂) v T :=
   cond (p T.1 v) (step_aux q₁ v T) (step_aux q₂ v T)
-| (goto l)         v T := ⟨some (M (l T.1 v)), v, T⟩
+| (goto l)         v T := ⟨some (l T.1 v), v, T⟩
 | halt             v T := ⟨none, v, T⟩
 
 def step (M : Λ → stmt) : cfg → option cfg
 | ⟨none,   v, T⟩ := none
-| ⟨some q, v, T⟩ := some (step_aux M q v T)
+| ⟨some l, v, T⟩ := some (step_aux (M l) v T)
 
 variables [inhabited Λ] [inhabited σ]
-def init (M : Λ → stmt) (l : list Γ) : cfg :=
-⟨some (M (default _)), default _, tape.mk l⟩
+def init (l : list Γ) : cfg :=
+⟨some (default _), default _, tape.mk l⟩
 
 def eval (M : Λ → stmt) (l : list Γ) : roption (list Γ) :=
-(eval (step M) (init M l)).map (λ c, c.tape.2.2)
+(eval (step M) (init l)).map (λ c, c.tape.2.2)
 
 variables [fintype Γ]
 def supports_stmt (S : finset Λ) : stmt → Prop
@@ -450,42 +579,22 @@ theorem stmts_supports_stmt {M : Λ → stmt} {S q}
 by simp [stmts]; exact
 λ l ls h, stmts₁_supports_stmt_mono h (ss.2 _ ls)
 
+local attribute [-simp] finset.mem_insert_none
 theorem step_supports (M : Λ → stmt) {S}
   (ss : supports M S) : ∀ {c c' : cfg},
-  c' ∈ step M c → c.q ∈ stmts M S → c'.q ∈ stmts M S
-| ⟨some q₁, v, T⟩ c' h₁ h₂ := begin
-  rcases finset.mem_bind.1 (finset.some_mem_insert_none.1 h₂) with ⟨l, hl, h⟩,
-  simp [step] at h₁ h₂, subst c',
-  suffices : q₁ ∈ stmts₁ (M l) → supports_stmt S (M l) →
-    (∃ q, (step_aux M q₁ v T).q = some q ∧ q ∈ stmts₁ (M l)) ∨
-    (step_aux M q₁ v T).q ∈ stmts M S,
-  from (or_iff_right_of_imp (by exact λ ⟨q, h₁, h₂⟩,
-    h₁.symm ▸ finset.some_mem_insert_none.2
-      (finset.mem_bind.2 ⟨_, hl, h₂⟩))).1 (this h (ss.2 _ hl)),
-  clear h h₂, induction M l with _ q IH _ q IH _ q IH generalizing q₁ v T;
-    intros h hs; simp [stmts₁] at h ⊢,
-  iterate 3 {
-    rcases h with rfl | h,
-    { exact (IH q _ _ stmts₁_self hs).imp_left
-      (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr h₂⟩) },
-    { exact (IH q₁ _ _ h hs).imp_left
-      (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr h₂⟩) } },
+  c' ∈ step M c → c.l ∈ S.insert_none → c'.l ∈ S.insert_none
+| ⟨some l₁, v, T⟩ c' h₁ h₂ := begin
+  replace h₂ := ss.2 _ (finset.some_mem_insert_none.1 h₂),
+  simp [step] at h₁, subst c',
+  revert h₂, induction M l₁ with _ q IH _ q IH _ q IH generalizing v T;
+    intro hs,
+  iterate 3 { exact IH _ _ hs },
   case TM1.stmt.branch : p q₁' q₂' IH₁ IH₂ {
-    rcases h with rfl | h | h,
-    { simp [step_aux], cases p T.1 v,
-      { exact (IH₂ _ _ _ stmts₁_self hs.2).imp_left
-        (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr (or.inr h₂)⟩) },
-      { exact (IH₁ _ _ _ stmts₁_self hs.1).imp_left
-        (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr (or.inl h₂)⟩) } },
-    { exact (IH₁ _ _ _ h hs.1).imp_left
-      (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr (or.inl h₂)⟩) },
-    { exact (IH₂ _ _ _ h hs.2).imp_left
-      (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr (or.inr h₂)⟩) } },
-  case TM1.stmt.goto : l { subst h,
-    exact or.inr (finset.some_mem_insert_none.2 $
-      finset.mem_bind.2 ⟨_, hs _ _, stmts₁_self⟩) },
-  case TM1.stmt.halt { subst h,
-    exact or.inr (multiset.mem_cons_self _ _) }
+    simp [step_aux], cases p T.1 v,
+    { exact IH₂ _ _ hs.2 },
+    { exact IH₁ _ _ hs.1 } },
+  case TM1.stmt.goto { exact finset.some_mem_insert_none.2 (hs _ _) },
+  case TM1.stmt.halt { apply multiset.mem_cons_self }
 end
 
 end
@@ -525,14 +634,15 @@ def tr : TM0.machine Γ Λ'
 | (none,   v) s := none
 | (some q, v) s := some (tr_aux s q v)
 
-def tr_cfg : cfg₁ → cfg₀ | ⟨q, v, T⟩ := ⟨(q, v), T⟩
+def tr_cfg : cfg₁ → cfg₀
+| ⟨l, v, T⟩ := ⟨(l.map M, v), T⟩
 
 theorem tr_respects : respects (TM1.step M) (TM0.step tr)
   (λ c₁ c₂, tr_cfg c₁ = c₂) :=
-fun_respects.2 $ λ ⟨q₁, v, T⟩, begin
-  cases q₁ with q₁, {exact rfl},
-  simp [tr_cfg, TM1.step, frespects],
-  induction q₁ with _ q IH _ q IH _ q IH generalizing v T,
+fun_respects.2 $ λ ⟨l₁, v, T⟩, begin
+  cases l₁ with l₁, {exact rfl},
+  simp! [option.map],
+  induction M l₁ with _ q IH _ q IH _ q IH generalizing v T,
   case TM1.stmt.move  : d q IH { exact trans_gen.head rfl (IH _ _) },
   case TM1.stmt.write : a q IH { exact trans_gen.head rfl (IH _ _) },
   case TM1.stmt.load : a q IH { exact (reaches₁_eq (by refl)).2 (IH _ _) },
@@ -540,8 +650,8 @@ fun_respects.2 $ λ ⟨q₁, v, T⟩, begin
     simp [TM1.step_aux], cases e : p T.1 v,
     { exact (reaches₁_eq (by simp! [e])).2 (IH₂ _ _) },
     { exact (reaches₁_eq (by simp! [e])).2 (IH₁ _ _) } },
-  case TM1.stmt.goto : l { apply trans_gen.single, simp! },
-  case TM1.stmt.halt     { apply trans_gen.single, simp! }
+  case TM1.stmt.goto : l { apply trans_gen.single, simp!, refl },
+  case TM1.stmt.halt     { apply trans_gen.single, simp!, refl }
 end
 
 variables [fintype Γ] [fintype σ]
@@ -550,7 +660,8 @@ noncomputable def tr_stmts (S : finset Λ) : finset Λ' :=
 
 local attribute [instance] classical.dec
 local attribute [simp] TM1.stmts₁_self
-theorem tr_supports {S} (ss : TM1.supports M S) : TM0.supports tr (tr_stmts S) :=
+theorem tr_supports {S : finset Λ} (ss : TM1.supports M S) :
+  TM0.supports tr (↑(tr_stmts S)) :=
 ⟨by simp [tr_stmts]; exact finset.some_mem_insert_none.2
   (finset.mem_bind.2 ⟨_, ss.1, TM1.stmts₁_self⟩),
  λ q a q' s h₁ h₂, begin
@@ -577,7 +688,7 @@ theorem tr_supports {S} (ss : TM1.supports M S) : TM0.supports tr (tr_stmts S) :
 end⟩
 
 theorem tr_eval (l : list Γ) : TM0.eval tr l = TM1.eval M l :=
-(congr_arg _ (tr_eval' _ _ _ tr_respects ⟨_, _, _⟩)).trans begin
+(congr_arg _ (tr_eval' _ _ _ tr_respects ⟨some _, _, _⟩)).trans begin
   simp [tr_cfg],
   rw [roption.map_map, TM1.eval],
   congr', exact funext (λ ⟨_, _, _⟩, rfl)
@@ -586,11 +697,414 @@ end
 end
 end TM1to0
 
+/- Reduce an n-symbol Turing machine to a 2-symbol Turing machine -/
+namespace TM1to1
+open TM1
+
+section
+parameters {Γ : Type*} [inhabited Γ]
+
+theorem exists_enc_dec [fintype Γ] :
+  ∃ n (enc : Γ → vector bool n) (dec : vector bool n → Γ),
+    enc (default _) = vector.repeat ff n ∧ ∀ a, dec (enc a) = a :=
+begin
+  rcases fintype.exists_equiv_fin Γ with ⟨n, ⟨F⟩⟩,
+  let G : fin n ↪ fin n → bool := ⟨λ a b, a = b,
+    λ a b h, by simpa using congr_fun h b⟩,
+  let H := (F.to_embedding.trans G).trans
+    (equiv.vector_equiv_fin _ _).symm.to_embedding,
+  let enc := H.set_value (default _) (vector.repeat ff n),
+  exact ⟨_, enc, function.inv_fun enc,
+    H.set_value_eq _ _, function.left_inverse_inv_fun enc.2⟩
+end
+
+parameters {Λ : Type*} [inhabited Λ]
+parameters {σ : Type*} [inhabited σ]
+
+local notation `stmt₁` := stmt Γ Λ σ
+local notation `cfg₁` := cfg Γ Λ σ
+
+inductive Λ' : Type (max u_1 u_2 u_3)
+| normal : Λ → Λ'
+| write : Γ → stmt₁ → Λ'
+instance : inhabited Λ' := ⟨Λ'.normal (default _)⟩
+
+local notation `stmt'` := stmt bool Λ' σ
+local notation `cfg'` := cfg bool Λ' σ
+
+def read_aux : ∀ n, (vector bool n → stmt') → stmt'
+| 0     f := f vector.nil
+| (i+1) f := stmt.branch (λ a s, a)
+    (stmt.move dir.right $ read_aux i (λ v, f (tt :: v)))
+    (stmt.move dir.right $ read_aux i (λ v, f (ff :: v)))
+
+parameters {n : ℕ} (enc : Γ → vector bool n) (dec : vector bool n → Γ)
+
+def move (d : dir) (q : stmt') : stmt' := (stmt.move d)^[n] q
+
+def read (f : Γ → stmt') : stmt' :=
+read_aux n (λ v, move dir.left $ f (dec v))
+
+def write : list bool → stmt' → stmt'
+| []       q := q
+| (a :: l) q := stmt.write (λ _ _, a) $ stmt.move dir.right $ write l q
+
+def tr_normal : stmt₁ → stmt'
+| (stmt.move dir.left q)  := move dir.right $ (move dir.left)^[2] $ tr_normal q
+| (stmt.move dir.right q) := move dir.right $ tr_normal q
+| (stmt.write f q)        := read $ λ a, stmt.goto $ λ _ s, Λ'.write (f a s) q
+| (stmt.load f q)         := read $ λ a, stmt.load (λ _ s, f a s) $ tr_normal q
+| (stmt.branch p q₁ q₂)   := read $ λ a,
+  stmt.branch (λ _ s, p a s) (tr_normal q₁) (tr_normal q₂)
+| (stmt.goto l)           := read $ λ a,
+  stmt.goto (λ _ s, Λ'.normal (l a s))
+| stmt.halt               := move dir.right $ move dir.left $ stmt.halt
+
+def tr_tape' (L R : list Γ) : tape bool :=
+tape.mk'
+  (L.bind (λ x, (enc x).to_list.reverse))
+  (R.bind (λ x, (enc x).to_list) ++ [default _])
+
+def tr_tape : tape Γ → tape bool
+| (a, L, R) := tr_tape' L (a :: R)
+
+theorem tr_tape_drop_right : ∀ R : list Γ,
+  list.drop n (R.bind (λ x, (enc x).to_list)) =
+  R.tail.bind (λ x, (enc x).to_list)
+| []     := list.drop_nil _
+| (a::R) := by simp; exact list.drop_left' (enc a).2
+
+parameters (enc0 : enc (default _) = vector.repeat ff n)
+
+section
+include enc0
+theorem tr_tape_take_right : ∀ R : list Γ,
+  list.take' n (R.bind (λ x, (enc x).to_list)) =
+  (enc R.head).to_list
+| []     := by simp; exact (congr_arg vector.to_list enc0).symm
+| (a::R) := by simp; exact list.take'_left' (enc a).2
+end
+
+parameters (M : Λ → stmt₁)
+
+def tr : Λ' → stmt'
+| (Λ'.normal l)  := tr_normal (M l)
+| (Λ'.write a q) := write (enc a).to_list $ move dir.left $ tr_normal q
+
+def tr_cfg : cfg₁ → cfg'
+| ⟨l, v, T⟩ := ⟨l.map Λ'.normal, v, tr_tape T⟩
+
+include enc0
+
+theorem tr_tape'_move_left (L R) :
+  (tape.move dir.left)^[n] (tr_tape' L R) =
+  (tr_tape' L.tail (L.head :: R)) :=
+begin
+  cases L with a L,
+  { simp [enc0, vector.repeat, tr_tape'],
+    suffices : ∀ i R', default _ ∈ R' →
+      (tape.move dir.left^[i]) (tape.mk' [] R') =
+      tape.mk' [] (list.repeat ff i ++ R'),
+    from this n _ (by simp),
+    intros i R' hR, induction i with i IH, {refl},
+    rw [nat.iterate_succ', IH],
+    simp [tape.mk', tape.move],
+    exact list.cons_head_tail
+      (list.ne_nil_of_mem $ list.mem_append_right _ hR) },
+  { simp [tr_tape'],
+    suffices : ∀ L' R' l₁ l₂
+      (hR : default _ ∈ R')
+      (e : vector.to_list (enc a) = list.reverse_core l₁ l₂),
+      (tape.move dir.left^[l₁.length]) (tape.mk' (l₁ ++ L') (l₂ ++ R')) =
+      tape.mk' L' (vector.to_list (enc a) ++ R'),
+    { simpa using this _ _ _ _ _ (list.reverse_reverse _).symm,
+      simp },
+    intros, induction l₁ with b l₁ IH generalizing l₂,
+    { cases e, refl },
+    simp [nat.iterate_succ, -add_comm],
+    convert IH _ e,
+    simp [tape.move, tape.mk'],
+    exact list.cons_head_tail
+      (list.ne_nil_of_mem $ list.mem_append_right _ hR) }
+end
+
+theorem tr_tape'_move_right (L R) :
+  (tape.move dir.right)^[n] (tr_tape' L R) =
+  (tr_tape' (R.head :: L) R.tail) :=
+begin
+  cases R with a R,
+  { simp [enc0, vector.repeat, tr_tape'],
+    suffices : ∀ i L',
+      (tape.move dir.right^[i]) (ff, L', []) =
+      (ff, list.repeat ff i ++ L', []),
+    from this n _,
+    intros, induction i;
+      simp [nat.iterate_succ', tape.move, *]; refl },
+  { simp [tr_tape'],
+    suffices : ∀ L' R' l₁ l₂ : list bool,
+      (tape.move dir.right^[l₂.length]) (tape.mk' (l₁ ++ L') (l₂ ++ R')) =
+      tape.mk' (list.reverse_core l₂ l₁ ++ L') R',
+    { simpa using this _ _ [] (enc a).to_list },
+    intros, induction l₂ with b l₂ IH generalizing l₁, {refl},
+    simp [-add_comm, nat.iterate_succ],
+    exact IH (b::l₁) }
+end
+
+theorem step_aux_move (d q v T) :
+  step_aux (move d q) v T =
+  step_aux q v ((tape.move d)^[n] T) :=
+begin
+  simp [move],
+  suffices : ∀ i,
+    step_aux (stmt.move d^[i] q) v T =
+    step_aux q v (tape.move d^[i] T), from this n,
+  intro, induction i with i IH generalizing T, {refl},
+  rw [nat.iterate_succ', step_aux, IH, ← nat.iterate_succ]
+end
+
+parameters (encdec : ∀ a, dec (enc a) = a)
+include encdec
+
+theorem step_aux_read (f v L R) :
+  step_aux (read f) v (tr_tape' L R) =
+  step_aux (f R.head) v (tr_tape' L (R.head :: R.tail)) :=
+begin
+  suffices : ∀ f,
+    step_aux (read_aux n f) v (tr_tape' enc L R) =
+    step_aux (f (enc R.head)) v
+      (tr_tape' enc (R.head :: L) R.tail),
+  { rw [read, this, step_aux_move enc enc0, encdec,
+      tr_tape'_move_left enc enc0], refl },
+  cases R with a R,
+  { suffices : ∀ i f L',
+      step_aux (read_aux i f) v (ff, L', []) =
+      step_aux (f (vector.repeat ff i)) v
+        (ff, list.repeat ff i ++ L', []),
+    { intro f, convert this n f _,
+      simp [tr_tape', tape.mk', enc0, vector.repeat] },
+    clear f L, intros, induction i with i IH generalizing L', {refl},
+    simp [read_aux, step_aux, tape.mk', tape.move],
+    rw [IH], congr',
+    simpa using congr_arg (++ L') (list.repeat_add ff i 1).symm },
+  { simp [tr_tape'],
+    suffices : ∀ i f L' R' l₁ l₂ h,
+      step_aux (read_aux i f) v
+        (tape.mk' (l₁ ++ L') (l₂ ++ R')) =
+      step_aux (f ⟨l₂, h⟩) v
+        (tape.mk' (l₂.reverse_core l₁ ++ L') R'),
+    { intro f, convert this n f _ _ _ _ (enc a).2; simp },
+    clear f L a R, intros, subst i,
+    induction l₂ with a l₂ IH generalizing l₁, {refl},
+    dsimp [read_aux, step_aux],
+    change (tape.mk' (l₁ ++ L') (a :: (l₂ ++ R'))).1 with a,
+    transitivity step_aux
+      (read_aux l₂.length (λ v, f (a :: v))) v
+      (tape.mk' (a :: l₁ ++ L') (l₂ ++ R')),
+    { cases a; refl },
+    rw IH, refl }
+end
+
+theorem step_aux_write (q v a b L R) :
+  step_aux (write (enc a).to_list q) v (tr_tape' L (b :: R)) =
+  step_aux q v (tr_tape' (a :: L) R) :=
+begin
+  simp [tr_tape'],
+  suffices : ∀ {L' R'} (l₁ l₂ l₂' : list bool)
+    (e : l₂'.length = l₂.length),
+    step_aux (write l₂ q) v (tape.mk' (l₁ ++ L') (l₂' ++ R')) =
+    step_aux q v (tape.mk' (list.reverse_core l₂ l₁ ++ L') R'),
+  from this [] _ _ ((enc b).2.trans (enc a).2.symm),
+  clear a b L R, intros,
+  induction l₂ with a l₂ IH generalizing l₁ l₂',
+  { cases list.length_eq_zero.1 e, refl },
+  cases l₂' with b l₂'; injection e with e,
+  simp [write, step_aux],
+  convert IH _ _ e, refl
+end
+
+theorem tr_respects : respects (step M) (step tr)
+  (λ c₁ c₂, tr_cfg c₁ = c₂) :=
+fun_respects.2 $ λ ⟨l₁, v, (a, L, R)⟩, begin
+  cases l₁ with l₁, {exact rfl},
+  suffices : ∀ q R, reaches (step (tr enc dec M))
+    (step_aux (tr_normal dec q) v (tr_tape' enc L R))
+    (tr_cfg enc (step_aux q v (tape.mk' L R))),
+  { refine trans_gen.head' rfl (this _ (a::R)) },
+  clear R l₁, intros,
+  induction q with _ q IH _ q IH _ q IH generalizing v L R,
+  case TM1.stmt.move : d q IH {
+    cases d; simp [tr_normal, step_aux_move enc enc0, step_aux,
+      tr_tape'_move_left enc enc0, tr_tape'_move_right enc enc0];
+      apply IH },
+  case TM1.stmt.write : a q IH {
+    simp [tr_normal, step_aux_read enc dec enc0 encdec, step_aux],
+    refine refl_trans_gen.head rfl _,
+    simp [tr, tr_normal, step_aux,
+      step_aux_write enc dec enc0 encdec,
+      step_aux_move enc enc0, tr_tape'_move_left enc enc0],
+    apply IH },
+  case TM1.stmt.load : a q IH {
+    simp [tr_normal, step_aux_read enc dec enc0 encdec],
+    apply IH },
+  case TM1.stmt.branch : p q₁ q₂ IH₁ IH₂ {
+    simp [tr_normal, step_aux_read enc dec enc0 encdec, step_aux],
+    change (tape.mk' L R).1 with R.head,
+    cases p R.head v; [apply IH₂, apply IH₁] },
+  case TM1.stmt.goto : l {
+    simp [tr_normal, step_aux_read enc dec enc0 encdec, step_aux], 
+    apply refl_trans_gen.refl },
+  case TM1.stmt.halt {
+    simp [tr_normal, step_aux, tr_cfg, step_aux_move enc enc0,
+      tr_tape'_move_left enc enc0, tr_tape'_move_right enc enc0],
+    apply refl_trans_gen.refl }
+end
+
+omit enc0 encdec
+local attribute [instance] classical.dec
+parameters [fintype Γ]
+noncomputable def writes : stmt₁ → finset Λ'
+| (stmt.move d q)       := writes q
+| (stmt.write f q)      := finset.univ.image (λ a, Λ'.write a q) ∪ writes q
+| (stmt.load f q)       := writes q
+| (stmt.branch p q₁ q₂) := writes q₁ ∪ writes q₂
+| (stmt.goto l)         := ∅
+| stmt.halt             := ∅
+
+noncomputable def tr_supp (S : finset Λ) : finset Λ' :=
+S.bind (λ l, insert (Λ'.normal l) (writes (M l)))
+
+theorem supports_stmt_move {S d q} :
+  supports_stmt S (move d q) = supports_stmt S q :=
+suffices ∀ {i}, supports_stmt S (stmt.move d^[i] q) = _, from this,
+by intro; induction i generalizing q; simp [*, supports_stmt]
+
+theorem supports_stmt_write {S l q} :
+  supports_stmt S (write l q) = supports_stmt S q :=
+by induction l with a l IH; simp [write, supports_stmt, *]
+
+local attribute [simp] supports_stmt_move supports_stmt_write
+
+theorem supports_stmt_read {S} : ∀ {f : Γ → stmt'},
+  (∀ a, supports_stmt S (f a)) → supports_stmt S (read f) :=
+suffices ∀ i (f : vector bool i → stmt'),
+  (∀ v, supports_stmt S (f v)) → supports_stmt S (read_aux i f),
+from λ f hf, this n _ (by simp [hf]),
+λ i f hf, begin
+  induction i with i IH, {exact hf _},
+  split; simp [supports_stmt]; apply IH; simp [hf],
+end
+
+theorem tr_supports {S} (ss : supports M S) :
+  supports tr (tr_supp S) :=
+⟨by simp [tr_supp]; exact ⟨_, ss.1, or.inl rfl⟩, λ q h, begin
+  simp [tr_supp] at h,
+  suffices : ∀ q, supports_stmt S q →
+    (∀ q' ∈ writes q, q' ∈ tr_supp M S) →
+    supports_stmt (tr_supp M S) (tr_normal dec q) ∧
+    ∀ q' ∈ writes q, supports_stmt (tr_supp M S) (tr enc dec M q'),
+  { rcases h with ⟨l, hl, h⟩,
+    have := this _ (ss.2 _ hl) (λ q' hq,
+      by simp [tr_supp]; exact ⟨_, hl, or.inr hq⟩),
+    rcases h with rfl | h,
+    exacts [this.1, this.2 _ h] },
+  intros q hs hw, induction q,
+  case TM1.stmt.move : d q IH {
+    dsimp [writes] at hw ⊢,
+    replace IH := IH hs hw, refine ⟨_, IH.2⟩,
+    cases d; simp [tr_normal, IH] },
+  case TM1.stmt.write : f q IH {
+    simp [writes] at hw ⊢,
+    replace IH := IH hs (λ q hq, hw q (or.inl hq)),
+    refine ⟨supports_stmt_read _ $ λ a _ s,
+      hw _ (or.inr ⟨_, rfl⟩), λ q' hq, _⟩,
+    rcases hq with hq | ⟨a, q₂, rfl⟩,
+    { exact IH.2 _ hq }, { simp [tr, IH.1] } },
+  case TM1.stmt.load : a q IH {
+    dsimp [writes] at hw ⊢,
+    replace IH := IH hs hw,
+    refine ⟨supports_stmt_read _ (λ a, _), IH.2⟩,
+    simp [tr_normal, supports_stmt, IH.1] },
+  case TM1.stmt.branch : p q₁ q₂ IH₁ IH₂ {
+    simp [writes] at hw ⊢,
+    replace IH₁ := IH₁ hs.1 (λ q hq, hw q (or.inl hq)),
+    replace IH₂ := IH₂ hs.2 (λ q hq, hw q (or.inr hq)),
+    exact ⟨supports_stmt_read _ (λ a, ⟨IH₁.1, IH₂.1⟩),
+      λ q, or.rec (IH₁.2 _) (IH₂.2 _)⟩ },
+  case TM1.stmt.goto : l {
+    simp [writes],
+    refine supports_stmt_read _ (λ a _ s, _),
+    simp [tr_supp], exact ⟨_, hs _ _, or.inl rfl⟩ },
+  case TM1.stmt.halt {
+    simp [supports_stmt, writes, tr_normal] }
+end⟩
+
+end
+
+end TM1to1
+
+namespace TM0to1
+
+section
+parameters {Γ : Type*} [inhabited Γ]
+parameters {Λ : Type*} [inhabited Λ]
+
+inductive Λ'
+| normal : Λ → Λ'
+| act : TM0.stmt Γ → Λ → Λ'
+instance : inhabited Λ' := ⟨Λ'.normal (default _)⟩
+
+local notation `cfg₀` := TM0.cfg Γ Λ
+local notation `stmt₁` := TM1.stmt Γ Λ' unit
+local notation `cfg₁` := TM1.cfg Γ Λ' unit
+
+parameters (M : TM0.machine Γ Λ)
+
+open TM1.stmt
+
+def tr : Λ' → stmt₁
+| (Λ'.normal q) :=
+  branch (λ a _, (M q a).is_none) halt $
+  goto (λ a _, match M q a with
+  | none := default _
+  | some (q', s) := Λ'.act s q'
+  end)
+| (Λ'.act (TM0.stmt.move d) q) :=
+  move d $ goto (λ _ _, Λ'.normal q)
+| (Λ'.act (TM0.stmt.write a) q) :=
+  write (λ _ _, a) $ goto (λ _ _, Λ'.normal q)
+
+def tr_cfg : cfg₀ → cfg₁
+| ⟨q, T⟩ := ⟨cond (M q T.1).is_some
+  (some (Λ'.normal q)) none, (), T⟩
+
+theorem tr_respects : respects (TM0.step M) (TM1.step tr)
+  (λ a b, tr_cfg a = b) :=
+fun_respects.2 $ λ ⟨q, T⟩, begin
+  simp [TM0.step],
+  cases e : M q T.1,
+  { simp [frespects, TM1.step, tr_cfg, e] },
+  cases val with q' s,
+  simp [frespects, TM0.step, tr_cfg, e],
+  have : TM1.step (tr M) ⟨some (Λ'.act s q'), (), T⟩ =
+    some ⟨some (Λ'.normal q'), (), TM0.step._match_1 T s⟩,
+  { cases s with d a; refl },
+  refine trans_gen.head _ (trans_gen.head' this _);
+  simp [TM1.step, TM1.step_aux, tr, e, TM0.step],
+  cases e' : M q' (TM0.step._match_1 T s).1,
+  { apply refl_trans_gen.single,
+    simp [TM1.step, e', tr, TM1.step_aux] },
+  { refl }
+end
+
+end
+
+end TM0to1
+
 namespace TM2
 
 section
 parameters {K : Type*} [decidable_eq K] -- Index type of stacks
-parameters (Γ : K → Type*) [∀ k, inhabited (Γ k)] -- Type of stack elements
+parameters (Γ : K → Type*) -- Type of stack elements
 parameters (Λ : Type*) -- Type of function labels
 parameters (σ : Type*) -- Type of variable settings
 
@@ -611,35 +1125,34 @@ inductive stmt
 open stmt
 
 structure cfg :=
-(q : option stmt)
+(l : option Λ)
 (var : σ)
 (stk : ∀ k, list (Γ k))
 
 parameters {Γ Λ σ K}
-def step_aux (M : Λ → stmt) :
-  stmt → σ → (∀ k, list (Γ k)) → cfg
+def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
 | (push k f q)     v S := step_aux q v (dwrite S k (f v :: S k))
 | (peek k f q)     v S := step_aux q (f v (S k).head') S
 | (pop k f q)      v S := step_aux q (f v (S k).head') (dwrite S k (S k).tail)
 | (load a q)       v S := step_aux q (a v) S
 | (branch f q₁ q₂) v S :=
   cond (f v) (step_aux q₁ v S) (step_aux q₂ v S)
-| (goto f)         v S := ⟨some (M (f v)), v, S⟩
+| (goto f)         v S := ⟨some (f v), v, S⟩
 | halt             v S := ⟨none, v, S⟩
 
 def step (M : Λ → stmt) : cfg → option cfg
 | ⟨none,   v, S⟩ := none
-| ⟨some q, v, S⟩ := some (step_aux M q v S)
+| ⟨some l, v, S⟩ := some (step_aux (M l) v S)
 
 def reaches (M : Λ → stmt) : cfg → cfg → Prop :=
 refl_trans_gen (λ a b, b ∈ step M a)
 
 variables [inhabited Λ] [inhabited σ]
-def init (M : Λ → stmt) (k) (L : list (Γ k)) : cfg :=
-⟨some (M (default _)), default _, dwrite (λ _, []) k L⟩
+def init (k) (L : list (Γ k)) : cfg :=
+⟨some (default _), default _, dwrite (λ _, []) k L⟩
 
 def eval (M : Λ → stmt) (k) (L : list (Γ k)) : roption (list (Γ k)) :=
-(eval (step M) (init M k L)).map $ λ c, c.stk k
+(eval (step M) (init k L)).map $ λ c, c.stk k
 
 variables [fintype K] [∀ k, fintype (Γ k)] [fintype σ]
 def supports_stmt (S : finset Λ) : stmt → Prop
@@ -712,42 +1225,22 @@ theorem stmts_supports_stmt {M : Λ → stmt} {S q}
 by simp [stmts]; exact
 λ l ls h, stmts₁_supports_stmt_mono h (ss.2 _ ls)
 
+local attribute [-simp] finset.mem_insert_none
 theorem step_supports (M : Λ → stmt) {S}
   (ss : supports M S) : ∀ {c c' : cfg},
-  c' ∈ step M c → c.q ∈ stmts M S → c'.q ∈ stmts M S
-| ⟨some q₁, v, T⟩ c' h₁ h₂ := begin
-  rcases finset.mem_bind.1 (finset.some_mem_insert_none.1 h₂) with ⟨l, hl, h⟩,
+  c' ∈ step M c → c.l ∈ S.insert_none → c'.l ∈ S.insert_none
+| ⟨some l₁, v, T⟩ c' h₁ h₂ := begin
+  replace h₂ := ss.2 _ (finset.some_mem_insert_none.1 h₂),
   simp [step] at h₁, subst c',
-  suffices : q₁ ∈ stmts₁ (M l) → supports_stmt S (M l) →
-    (∃ q, (step_aux M q₁ v T).q = some q ∧ q ∈ stmts₁ (M l)) ∨
-    (step_aux M q₁ v T).q ∈ stmts M S,
-  from (or_iff_right_of_imp (by exact λ ⟨q, h₁, h₂⟩,
-    h₁.symm ▸ finset.some_mem_insert_none.2
-      (finset.mem_bind.2 ⟨_, hl, h₂⟩))).1 (this h (ss.2 _ hl)),
-  clear h h₂, induction M l with _ _ q IH _ _ q IH _ _ q IH _ q IH generalizing q₁ v T;
-    intros h hs; simp [stmts₁] at h ⊢,
-  iterate 4 {
-    rcases h with rfl | h,
-    { exact (IH q _ _ stmts₁_self hs).imp_left
-      (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr h₂⟩) },
-    { exact (IH q₁ _ _ h hs).imp_left
-      (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr h₂⟩) } },
+  revert h₂, induction M l₁ with _ _ q IH _ _ q IH _ _ q IH _ q IH generalizing v T;
+    intro hs,
+  iterate 4 { exact IH _ _ hs },
   case TM2.stmt.branch : p q₁' q₂' IH₁ IH₂ {
-    rcases h with rfl | h | h,
-    { simp [step_aux], cases p v,
-      { exact (IH₂ _ _ _ stmts₁_self hs.2).imp_left
-        (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr (or.inr h₂)⟩) },
-      { exact (IH₁ _ _ _ stmts₁_self hs.1).imp_left
-        (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr (or.inl h₂)⟩) } },
-    { exact (IH₁ _ _ _ h hs.1).imp_left
-      (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr (or.inl h₂)⟩) },
-    { exact (IH₂ _ _ _ h hs.2).imp_left
-      (λ ⟨q', h₁, h₂⟩, ⟨q', h₁, or.inr (or.inr h₂)⟩) } },
-  case TM2.stmt.goto : l { subst h,
-    exact or.inr (finset.some_mem_insert_none.2 $
-      finset.mem_bind.2 ⟨_, hs _, stmts₁_self⟩) },
-  case TM2.stmt.halt { subst h,
-    exact or.inr (multiset.mem_cons_self _ _) }
+    simp [step_aux], cases p v,
+    { exact IH₂ _ _ hs.2 },
+    { exact IH₁ _ _ hs.1 } },
+  case TM2.stmt.goto { exact finset.some_mem_insert_none.2 (hs _) },
+  case TM2.stmt.halt { apply multiset.mem_cons_self }
 end
 
 end
@@ -758,7 +1251,7 @@ namespace TM2to1
 
 section
 parameters {K : Type*} [decidable_eq K]
-parameters {Γ : K → Type*} [∀ k, inhabited (Γ k)]
+parameters {Γ : K → Type*}
 parameters {Λ : Type*} [inhabited Λ]
 parameters {σ : Type*} [inhabited σ]
 
@@ -771,7 +1264,7 @@ inductive stackel (k : K)
 | top : stackel
 
 instance stackel.inhabited (k) : inhabited (stackel k) :=
-⟨stackel.val (default _)⟩
+⟨stackel.top _⟩
 
 def stackel.is_bottom {k} : stackel k → bool
 | (stackel.bottom _) := tt
@@ -853,10 +1346,11 @@ by rcases s with _|_|_; refl
 end
 
 inductive Λ' : Type (max u_1 u_2 u_3 u_4)
-| normal {} : stmt₂ → Λ'
+| normal {} : Λ → Λ'
 | go (k) : st_act k → stmt₂ → Λ'
 | ret {} : K → stmt₂ → Λ'
 open Λ'
+instance : inhabited Λ' := ⟨normal (default _)⟩
 
 local notation `stmt₁` := TM1.stmt Γ' Λ' σ
 local notation `cfg₁` := TM1.cfg Γ' Λ' σ
@@ -887,17 +1381,12 @@ stackel.bottom :: match L.reverse with
   (L'.map stackel.val ++ [stackel.top k]).map (dwrite (default _) k)
 end
 
-parameters (M : Λ → stmt₂)
-include M
-
 theorem step_run {k : K} (q v S) : ∀ s : st_act k,
-  TM2.step_aux M (st_run s q) v S =
-  TM2.step_aux M q (st_var v (S k) s) (dwrite S k (st_write v (S k) s))
+  TM2.step_aux (st_run s q) v S =
+  TM2.step_aux q (st_var v (S k) s) (dwrite S k (st_write v (S k) s))
 | (st_act.push f) := rfl
 | (st_act.pop ff f) := by simp!
 | (st_act.pop tt f) := rfl
-
-def Λ'_inh : inhabited Λ' := ⟨normal (M (default _))⟩
 
 def tr_normal : stmt₂ → stmt₁
 | (TM2.stmt.push k f q)     := goto (λ _ _, go k (st_act.push f) q)
@@ -905,15 +1394,18 @@ def tr_normal : stmt₂ → stmt₁
 | (TM2.stmt.pop k f q)      := goto (λ _ _, go k (st_act.pop tt f) q)
 | (TM2.stmt.load a q)       := load (λ _, a) (tr_normal q)
 | (TM2.stmt.branch f q₁ q₂) := branch (λ a, f) (tr_normal q₁) (tr_normal q₂)
-| (TM2.stmt.goto l)         := goto (λ a s, normal (M (l s)))
+| (TM2.stmt.goto l)         := goto (λ a s, normal (l s))
 | TM2.stmt.halt             := halt
 
 theorem tr_normal_run {k} (s q) :
   tr_normal (st_run s q) = goto (λ _ _, go k s q) :=
 by rcases s with _|_|_; refl
 
+parameters (M : Λ → stmt₂)
+include M
+
 def tr : Λ' → stmt₁
-| (normal q) := tr_normal q
+| (normal q) := tr_normal (M q)
 | (go k s q) :=
   branch (λ a s, (a k).is_top) (tr_st_act (goto (λ _ _, ret k q)) s)
     (move dir.right $ goto (λ _ _, go k s q))
@@ -928,7 +1420,7 @@ local attribute [pp_using_anonymous_constructor] turing.TM1.cfg
 inductive tr_cfg : cfg₂ → cfg₁ → Prop
 | mk {q v} {S : ∀ k, list (Γ k)} {L : list Γ'} :
   (∀ k, tr_stk (S k) (L.map (λ a, a k))) →
-  tr_cfg ⟨q, v, S⟩ ⟨tr_normal <$> q, v, (stackel.bottom, [], L)⟩
+  tr_cfg ⟨q, v, S⟩ ⟨q.map normal, v, (stackel.bottom, [], L)⟩
 
 theorem tr_respects_aux₁ {k} (o q v) : ∀ S₁ {s S₂} {T : list Γ'},
   T.map (λ (a : Γ'), a k) = (list.map stackel.val S₁).reverse_core (s :: S₂) →
@@ -937,18 +1429,15 @@ theorem tr_respects_aux₁ {k} (o q v) : ∀ S₁ {s S₂} {T : list Γ'},
     a k = s ∧
     T₁.map (λ (a : Γ'), a k) = S₁.map stackel.val ∧
     T₂.map (λ (a : Γ'), a k) = S₂ ∧
-    ∀ {b},
-      reaches₁ (TM1.step tr) ⟨some (goto (λ _ _, go k o q)), v,
-        (a, T₁ ++ [stackel.bottom], T₂)⟩ b →
-      reaches₁ (TM1.step tr) ⟨some (goto (λ _ _, go k o q)), v,
-        (stackel.bottom, [], T)⟩ b
+    reaches₀ (TM1.step tr)
+      ⟨some (go k o q), v, (stackel.bottom, [], T)⟩
+      ⟨some (go k o q), v, (a, T₁ ++ [stackel.bottom], T₂)⟩
 | [] s S₂ (a :: T) hT := by injection hT with es e₂; exact
-  ⟨a, [], _, rfl, es, rfl, e₂, λ b rb, trans_gen.head rfl ((reaches₁_eq (by refl)).1 rb)⟩
+  ⟨a, [], _, rfl, es, rfl, e₂, reaches₀.single rfl⟩
 | (s' :: S₁) s S₂ T hT :=
   let ⟨a, T₁, b'::T₂, e, es', e₁, e₂, H⟩ := tr_respects_aux₁ S₁ hT in
   by injection e₂ with es e₂; exact
-  ⟨b', a::T₁, T₂, e, es, by simpa [es'], e₂,
-      λ b rb, H (trans_gen.head rfl ((reaches₁_eq (by simp! [es'])).1 rb))⟩
+  ⟨b', a::T₁, T₂, e, es, by simpa [es'], e₂, H.tail (by simp! [es'])⟩
 
 local attribute [simp] TM1.step TM1.step_aux tr tr_st_act st_var st_write
   tape.move tape.write list.reverse_core stackel.get stackel.is_bottom
@@ -965,8 +1454,8 @@ theorem tr_respects_aux₂
     (∀ (k' : K), tr_stk (S' k') ((T₁'.reverse_core (b :: T₂')).map (λ (a : Γ'), a k'))) ∧
     T₁'.map (λ a, a k) = Sk'.map stackel.val ∧
     b k = stackel.top k ∧
-    TM1.step tr ⟨some (tr_st_act q o), v, (a, T₁ ++ [stackel.bottom], T₂)⟩ =
-    TM1.step tr ⟨some q, v', (b, T₁' ++ [stackel.bottom], T₂')⟩ :=
+    TM1.step_aux (tr_st_act q o) v (a, T₁ ++ [stackel.bottom], T₂) =
+    TM1.step_aux q v' (b, T₁' ++ [stackel.bottom], T₂') :=
 begin
   dsimp, cases o with f b f,
   { -- push
@@ -1008,23 +1497,20 @@ begin
     { existsi n, simpa [h, list.map_reverse_core] using e } },
 end
 
-theorem tr_respects_aux₃ {k b q v}
+theorem tr_respects_aux₃ {k q v}
   {S : Π k, list (Γ k)} {T : list Γ'}
-  (hT : ∀ k, tr_stk (S k) (T.map (λ (a : Γ'), a k)))
-  (rb : reaches₁ (TM1.step tr)
-    ⟨some (goto (λ _ _, ret k q)), v, (stackel.bottom, [], T)⟩ b) :
+  (hT : ∀ k, tr_stk (S k) (T.map (λ (a : Γ'), a k))) :
   ∀ (T₁ : list Γ') {T₂ : list Γ'} {a : Γ'} {S₁}
     (e : T = T₁.reverse_core (a :: T₂))
     (ha : (a k).is_bottom = ff)
     (e₁ : T₁.map (λ (a : Γ'), a k) = list.map stackel.val S₁),
-    reaches₁ (TM1.step tr) ⟨some (goto (λ _ _, ret k q)), v,
-      (a, T₁ ++ [stackel.bottom], T₂)⟩ b
-| [] T₂ a S₁ e ha e₁ :=
-  trans_gen.head rfl ((reaches₁_eq (by simp [ha, e])).1 rb)
+    reaches₀ (TM1.step tr)
+      ⟨some (ret k q), v, (a, T₁ ++ [stackel.bottom], T₂)⟩
+      ⟨some (ret k q), v, (stackel.bottom, [], T)⟩
+| [] T₂ a S₁ e ha e₁ := reaches₀.single (by simp [ha, e])
 | (b :: T₁) T₂ a (s :: S₁) e ha e₁ := begin
     injection e₁ with es e₁, dsimp at es,
-    refine trans_gen.head rfl ((reaches₁_eq _).1
-      (tr_respects_aux₃ T₁ e (by simp [es]) e₁)),
+    refine reaches₀.head _ (tr_respects_aux₃ T₁ e (by simp [es]) e₁),
     simp [ha]
   end
 
@@ -1033,45 +1519,43 @@ theorem tr_respects_aux {q v T k} {S : Π k, list (Γ k)}
   (o : st_act k)
   (IH : ∀ {v : σ} {S : Π (k : K), list (Γ k)} {T : list Γ'},
     (∀ (k : K), tr_stk (S k) (list.map (λ (a : Γ'), a k) T)) →
-    (∃ b, tr_cfg (TM2.step_aux M q v S) b ∧
-         reaches₁ (TM1.step tr) ⟨some (tr_normal q), v, (stackel.bottom, [], T)⟩ b)) :
-  ∃ b, tr_cfg (TM2.step_aux M (st_run o q) v S) b ∧
-    reaches₁ (TM1.step tr) ⟨some (tr_normal (st_run o q)),
-      v, (stackel.bottom, [], T)⟩ b :=
+    (∃ b, tr_cfg (TM2.step_aux q v S) b ∧
+      reaches (TM1.step tr) (TM1.step_aux (tr_normal q) v (stackel.bottom, [], T)) b)) :
+  ∃ b, tr_cfg (TM2.step_aux (st_run o q) v S) b ∧
+    reaches (TM1.step tr) (TM1.step_aux (tr_normal (st_run o q))
+      v (stackel.bottom, [], T)) b :=
 begin
   rcases hT k with ⟨n, hTk⟩,
   simp [tr_normal_run],
   rcases tr_respects_aux₁ M o q v _ hTk with ⟨a, T₁, T₂, rfl, ea, e₁, e₂, hgo⟩,
   rcases tr_respects_aux₂ M hT e₁ ea _ with ⟨b, T₁', T₂', hT', e₁', eb, hrun⟩,
+  have hret := tr_respects_aux₃ M hT' _ rfl (by simp [eb]) e₁',
+  have := hgo.tail' rfl,
+  simp [ea, tr] at this, rw [hrun, TM1.step_aux] at this,
   rcases IH hT' with ⟨c, gc, rc⟩,
   simp [step_run],
-  refine ⟨c, gc, hgo (trans_gen.head rfl ((reaches₁_eq (by simp [ea]; exact hrun)).2 _))⟩,
-  exact tr_respects_aux₃ M hT'
-    (trans_gen.head rfl ((reaches₁_eq (by refl)).2 rc)) _ rfl (by simp [eb]) e₁'
+  refine ⟨c, gc, (this.to₀.trans hret _ (trans_gen.head' rfl rc)).to_refl⟩
 end
 
 local attribute [simp] respects TM2.step TM2.step_aux tr_normal
 
 theorem tr_respects : respects (TM2.step M) (TM1.step tr) tr_cfg :=
 λ c₁ c₂ h, begin
-  cases h with q v S L hT, clear h,
-  cases q; simp,
-  revert v S L hT, refine stmt_st_rec _ _ _ _ _ q; clear q; intros,
+  cases h with l v S L hT, clear h,
+  cases l; simp! [option.map],
+  suffices : ∃ b, _ ∧ reaches (TM1.step (tr M)) _ _,
+  from let ⟨b, c, r⟩ := this in ⟨b, c, trans_gen.head' rfl r⟩,
+  rw [tr],
+  revert v S L hT, refine stmt_st_rec _ _ _ _ _ (M l); intros,
   { exact tr_respects_aux M hT s @IH },
-  { exact let ⟨b, c, r⟩ := IH hT in
-      ⟨b, c, (reaches₁_eq (by simp)).1 r⟩ },
-  { simp, cases e : p v,
-    { rcases IH₂ hT with ⟨b, c, r⟩,
-      refine ⟨b, c, (reaches₁_eq _).1 r⟩, simp [e] },
-    { rcases IH₁ hT with ⟨b, c, r⟩,
-      refine ⟨b, c, (reaches₁_eq _).1 r⟩, simp [e] } },
-  { exact ⟨_, ⟨hT⟩, trans_gen.single rfl⟩ },
-  { exact ⟨_, ⟨hT⟩, trans_gen.single rfl⟩ }
+  { simp [IH hT] },
+  { simp, cases p v; [exact IH₂ hT, exact IH₁ hT] },
+  { exact ⟨_, ⟨hT⟩, refl_trans_gen.refl⟩ },
+  { exact ⟨_, ⟨hT⟩, refl_trans_gen.refl⟩ }
 end
 
 theorem tr_cfg_init (k) (L : list (Γ k)) :
-  by haveI := Λ'_inh M; exact
-  tr_cfg (TM2.init M k L) (TM1.init (tr M) (tr_init k L)) :=
+  tr_cfg (TM2.init k L) (TM1.init (tr_init k L)) :=
 ⟨λ k', begin
   simp [tr_init, (∘)],
   cases e : L.reverse with a L'; simp [tr_init],
@@ -1086,13 +1570,11 @@ theorem tr_cfg_init (k) (L : list (Γ k)) :
 end⟩
 
 theorem tr_eval_dom (k) (L : list (Γ k)) :
-  by haveI := Λ'_inh M; exact
-  (TM1.eval (tr M) (tr_init k L)).dom ↔ (TM2.eval M k L).dom :=
+  (TM1.eval tr (tr_init k L)).dom ↔ (TM2.eval M k L).dom :=
 tr_eval_dom tr_respects (tr_cfg_init _ _)
 
 theorem tr_eval (k) (L : list (Γ k)) {L₁ L₂}
-  (H₁ : by haveI := Λ'_inh M; exact
-        L₁ ∈ TM1.eval (tr M) (tr_init k L))
+  (H₁ : L₁ ∈ TM1.eval tr (tr_init k L))
   (H₂ : L₂ ∈ TM2.eval M k L) :
   ∃ S : ∀ k, list (Γ k),
     (∀ k', tr_stk (S k') (L₁.map (λ a, a k'))) ∧ S k = L₂ :=
@@ -1121,55 +1603,50 @@ theorem tr_stmts₁_run {k s q} : tr_stmts₁ (st_run s q) = {go k s q, ret k q}
 by rcases s with _|_|_; dsimp [tr_stmts₁, st_run]; congr
 
 noncomputable def tr_supp (S : finset Λ) : finset Λ' :=
-S.bind (λ l, insert (normal (M l)) (tr_stmts₁ (M l)))
+S.bind (λ l, insert (normal l) (tr_stmts₁ (M l)))
 
 local attribute [simp] tr_stmts₁ tr_stmts₁_run supports_run
   tr_normal_run TM1.supports_stmt TM2.supports_stmt
 
 theorem tr_supports {S} (ss : TM2.supports M S) :
-  by haveI := Λ'_inh M; exact
-  TM1.supports (tr M) (tr_supp M S) :=
+  TM1.supports tr (tr_supp S) :=
 ⟨finset.mem_bind.2 ⟨_, ss.1, finset.mem_insert.2 $ or.inl rfl⟩,
 λ l' h, begin
-  letI := Λ'_inh M,
-  suffices : ∀ q l' (ss' : TM2.supports_stmt S q)
-    (h : l' = turing.TM2to1.Λ'.normal q ∨ l' ∈ tr_stmts₁ M q)
+  suffices : ∀ q (ss' : TM2.supports_stmt S q)
     (sub : ∀ x ∈ tr_stmts₁ M q, x ∈ tr_supp M S),
-    TM1.supports_stmt (tr_supp M S) (tr M l'),
+    TM1.supports_stmt (tr_supp M S) (tr_normal q) ∧
+    (∀ l' ∈ tr_stmts₁ M q, TM1.supports_stmt (tr_supp M S) (tr M l')),
   { simp [tr_supp] at h,
     rcases h with ⟨l, lS, h⟩,
-    exact this _ _ (ss.2 l lS) h (λ x hx,
-      finset.mem_bind.2 ⟨_, lS, finset.mem_insert_of_mem hx⟩) },
+    have := this _ (ss.2 l lS) (λ x hx,
+      finset.mem_bind.2 ⟨_, lS, finset.mem_insert_of_mem hx⟩),
+    rcases h with rfl | h; [exact this.1, exact this.2 _ h] },
   refine stmt_st_rec _ _ _ _ _; clear h l'; intros,
   { -- stack op
-    simp at h sub ss',
+    simp at sub ss',
     have hgo := sub _ (or.inr $ or.inr rfl),
     have hret := sub _ (or.inl rfl),
-    rcases h with rfl | rfl | h | rfl,
-    { simp [hgo] },
-    { simp [hret],
-      exact IH (normal q) ss' (or.inl rfl)
-        (λ x hx, sub x $ or.inr $ or.inl hx) },
-    { exact IH _ ss' (or.inr h)
-        (λ x hx, sub x $ or.inr $ or.inl hx) },
+    cases IH ss' (λ x hx, sub x $ or.inr $ or.inl hx) with IH₁ IH₂,
+    refine ⟨by simp [hgo], λ l h, _⟩,
+    rw [tr_stmts₁_run] at h, simp at h,
+    rcases h with rfl | h | rfl,
+    { simp [hret], exact IH₁ },
+    { exact IH₂ _ h },
     { simp [hgo],
       rcases s with _|_|_; simp! [hret] } },
   { -- load
-    dsimp at h sub, rcases h with rfl | h,
-    { exact IH _ ss' (or.inl rfl) sub },
-    { exact IH _ ss' (or.inr h) sub } },
+    dsimp at sub ⊢, exact IH ss' sub },
   { -- branch
-    simp at h sub, rcases h with rfl | h | h,
-    { exact ⟨
-        IH₁ _ ss'.1 (or.inl rfl) (λ x hx, sub x $ or.inl hx),
-        IH₂ _ ss'.2 (or.inl rfl) (λ x hx, sub x $ or.inr hx)⟩ },
-    { exact IH₁ _ ss'.1 (or.inr h) (λ x hx, sub x $ or.inl hx) },
-    { exact IH₂ _ ss'.2 (or.inr h) (λ x hx, sub x $ or.inr hx) } },
+    simp at sub,
+    cases IH₁ ss'.1 (λ x hx, sub x $ or.inl hx) with IH₁₁ IH₁₂,
+    cases IH₂ ss'.2 (λ x hx, sub x $ or.inr hx) with IH₂₁ IH₂₂,
+    refine ⟨⟨IH₁₁, IH₂₁⟩, λ l h, _⟩,
+    rw [tr_stmts₁] at h, simp at h,
+    rcases h with h | h; [exact IH₁₂ _ h, exact IH₂₂ _ h] },
   { -- goto
-    simp at h, subst h,
-    exact λ a s, finset.mem_bind.2 ⟨_, ss' s, by simp⟩ },
-  { -- halt
-    simp at h, subst h, trivial }
+    rw tr_stmts₁, simp [tr_normal],
+    exact λ v, finset.mem_bind.2 ⟨_, ss' v, by simp⟩ },
+  { simp } -- halt
 end⟩
 
 end

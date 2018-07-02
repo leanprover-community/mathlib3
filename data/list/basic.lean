@@ -56,6 +56,9 @@ assume ainbl binl, or.elim (eq_or_mem_of_mem_cons ainbl)
 theorem not_mem_append {a : α} {s t : list α} (h₁ : a ∉ s) (h₂ : a ∉ t) : a ∉ s ++ t :=
 mt mem_append.1 $ not_or_distrib.2 ⟨h₁, h₂⟩
 
+theorem ne_nil_of_mem {a : α} {l : list α} (h : a ∈ l) : l ≠ [] :=
+by intro e; rw e at h; cases h
+
 theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=
 ⟨eq_nil_of_length_eq_zero, λ h, h.symm ▸ rfl⟩
 
@@ -287,7 +290,7 @@ attribute [simp] join
 @[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; simp *
 
-/- repeat take drop -/
+/- repeat -/
 
 @[simp] theorem repeat_succ (a : α) (n) : repeat a (n + 1) = a :: repeat a n := rfl
 
@@ -330,6 +333,10 @@ by cases n; refl
 
 @[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :
   l >>= f = l.bind f := rfl
+
+@[simp] theorem bind_append {α β} (f : α → list β) (l₁ l₂ : list α) :
+  (l₁ ++ l₂).bind f = l₁.bind f ++ l₂.bind f :=
+by simp [bind]
 
 /- concat -/
 
@@ -406,6 +413,9 @@ by simp [reverse_core_eq]
 
 @[simp] theorem mem_reverse {a : α} {l : list α} : a ∈ reverse l ↔ a ∈ l :=
 by induction l; simp [*, or_comm]
+
+@[simp] theorem reverse_repeat (a : α) (n) : reverse (repeat a n) = repeat a n :=
+eq_repeat.2 ⟨by simp, λ b h, eq_of_mem_repeat (mem_reverse.1 h)⟩
 
 @[elab_as_eliminator] theorem reverse_rec_on {C : list α → Sort*}
   (l : list α) (H0 : C [])
@@ -894,6 +904,14 @@ theorem take_all_of_ge : ∀ {n} {l : list α}, n ≥ length l → take n l = l
     rw [take_all_of_ge (le_of_succ_le_succ h)]
   end
 
+@[simp] theorem take_left : ∀ l₁ l₂ : list α, take (length l₁) (l₁ ++ l₂) = l₁
+| []      l₂ := rfl
+| (a::l₁) l₂ := congr_arg (cons a) (take_left l₁ l₂)
+
+theorem take_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
+  take n (l₁ ++ l₂) = l₁ :=
+by rw ← h; apply take_left
+
 theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) l
 | n         0        l      := by rw [min_zero, take_zero, take_nil]
 | 0         m        l      := by simp
@@ -903,6 +921,23 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 @[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
 | 0     := rfl
 | (n+1) := rfl
+
+@[simp] theorem drop_one : ∀ l : list α, drop 1 l = tail l
+| []       := rfl
+| (a :: l) := rfl
+
+theorem drop_add : ∀ m n (l : list α), drop (m + n) l = drop m (drop n l)
+| m 0     l      := rfl
+| m (n+1) []     := (drop_nil _).symm
+| m (n+1) (a::l) := drop_add m n _
+
+@[simp] theorem drop_left : ∀ l₁ l₂ : list α, drop (length l₁) (l₁ ++ l₂) = l₂
+| []      l₂ := rfl
+| (a::l₁) l₂ := drop_left l₁ l₂
+
+theorem drop_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
+  drop n (l₁ ++ l₂) = l₂ :=
+by rw ← h; apply drop_left
 
 theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
   drop n l = nth_le l n h :: drop (n+1) l
@@ -929,6 +964,36 @@ by rw [update_nth_eq_modify_nth, modify_nth_eq_take_cons_drop _ h]
 
 @[simp] lemma update_nth_eq_nil (l : list α) (n : ℕ) (a : α) : l.update_nth n a = [] ↔ l = [] :=
 by cases l; cases n; simp [update_nth]
+
+section take'
+variable [inhabited α]
+
+def take' : ∀ n, list α → list α
+| 0     l := []
+| (n+1) l := l.head :: take' n l.tail
+
+@[simp] theorem take'_length : ∀ n l, length (@take' α _ n l) = n
+| 0     l := rfl
+| (n+1) l := congr_arg succ (take'_length _ _)
+
+@[simp] theorem take'_nil : ∀ n, take' n (@nil α) = repeat (default _) n
+| 0     := rfl
+| (n+1) := congr_arg (cons _) (take'_nil _)
+
+theorem take'_eq_take : ∀ {n} {l : list α}, 
+  n ≤ length l → take' n l = take n l
+| 0     l      h := rfl
+| (n+1) (a::l) h := congr_arg (cons _) $
+  take'_eq_take $ le_of_succ_le_succ h
+
+@[simp] theorem take'_left (l₁ l₂ : list α) : take' (length l₁) (l₁ ++ l₂) = l₁ :=
+(take'_eq_take (by simp [le_add_right])).trans (take_left _ _)
+
+theorem take'_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
+  take' n (l₁ ++ l₂) = l₁ :=
+by rw ← h; apply take'_left
+
+end take'
 
 /- take_while -/
 

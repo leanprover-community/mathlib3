@@ -22,7 +22,7 @@ subtype.val_injective
 | 0     f := rfl
 | (n+1) f := by rw [of_fn, list.of_fn_succ, to_list_cons, to_list_of_fn]
 
-theorem mk_to_list :
+@[simp] theorem mk_to_list :
   ∀ (v : vector α n) h, (⟨to_list v, h⟩ : vector α n) = v
 | ⟨l, h₁⟩ h₂ := rfl
 
@@ -53,6 +53,9 @@ end
 theorem head'_to_list : ∀ (v : vector α n.succ),
   (to_list v).head' = some (head v)
 | ⟨a::l, e⟩ := rfl
+
+def reverse (v : vector α n) : vector α n :=
+⟨v.to_list.reverse, by simp⟩
 
 @[simp] theorem nth_zero : ∀ (v : vector α n.succ), nth v 0 = head v
 | ⟨a::l, e⟩ := rfl

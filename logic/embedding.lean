@@ -53,16 +53,39 @@ protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
   (e₁ : α ≃ β) (e₂ : γ ≃ δ) (f : α ↪ γ) : (β ↪ δ) :=
 (equiv.to_embedding e₁.symm).trans (f.trans e₂.to_embedding)
 
-protected noncomputable def of_surjective {α : Type u} {β : Type v} {f : β → α} (hf : surjective f) :
+protected noncomputable def of_surjective {α β} {f : β → α} (hf : surjective f) :
   α ↪ β :=
 ⟨surj_inv hf, injective_surj_inv _⟩
 
-protected noncomputable def equiv_of_surjective {α : Type u} {β : Type v} (f : α ↪ β) (hf : surjective f) :
+protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : surjective f) :
   α ≃ β :=
 equiv.of_bijective ⟨f.inj, hf⟩
 
-protected def of_not_nonempty {α : Sort u} {β : Sort v} (hα : ¬ nonempty α) : α ↪ β :=
+protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
+
+noncomputable def set_value {α β} (f : α ↪ β) (a : α) (b : β) : α ↪ β :=
+by haveI := classical.dec; exact
+if h : ∃ a', f a' = b then
+  (equiv.swap a (classical.some h)).to_embedding.trans f
+else
+  ⟨λ a', if a' = a then b else f a',
+   λ a₁ a₂ e, begin
+    simp at e, split_ifs at e with h₁ h₂,
+    { cc },
+    { cases h ⟨_, e.symm⟩ },
+    { cases h ⟨_, e⟩ },
+    { exact f.2 e }
+   end⟩
+
+theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) : set_value f a b a = b :=
+begin
+  rw [set_value],
+  cases classical.dec (∃ a', f a' = b);
+    dsimp [dite], {simp},
+  simp [equiv.swap_apply_left],
+  apply classical.some_spec h
+end
 
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨subtype.val, λ _ _, subtype.eq'⟩

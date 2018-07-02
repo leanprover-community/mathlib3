@@ -86,7 +86,7 @@ by haveI := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
 
-instance subtype {p : α → Prop} (s : finset α)
+protected def subtype {p : α → Prop} (s : finset α)
   (H : ∀ x : α, x ∈ s ↔ p x) : fintype {x // p x} :=
 ⟨⟨multiset.pmap subtype.mk s.1 (λ x, (H x).1),
   multiset.nodup_pmap (λ a _ b _, congr_arg subtype.val) s.2⟩,

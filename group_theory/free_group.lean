@@ -15,7 +15,7 @@ Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
 import logic.relation
 import algebra.group algebra.group_power
-import data.equiv data.fintype data.list.basic data.quot
+import data.fintype data.list.basic data.quot
 import group_theory.subgroup
 open relation
 variables {α : Type*}

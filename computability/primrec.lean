@@ -15,7 +15,7 @@ we need that the composition of encode with decode yields a
 primitive recursive function, so we have the `primcodable` type class
 for this.)
 -/
-import data.denumerable tactic.basic
+import data.equiv.list
 
 open denumerable encodable
 

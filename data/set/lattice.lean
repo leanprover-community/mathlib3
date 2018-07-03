@@ -5,7 +5,7 @@ Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
-import logic.basic data.set.basic tactic
+import logic.basic data.set.basic data.equiv.basic tactic
 import order.complete_boolean_algebra category.basic
 import tactic.finish
 
@@ -171,6 +171,14 @@ theorem bInter_subset_bInter_left {s s' : set α} {t : α → set β}
   (h : s' ⊆ s) : (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s', t x) :=
 subset_bInter (λ x xs, bInter_subset_of_mem (h xs))
 
+theorem bUnion_subset_bUnion_right {s : set α} {t1 t2 : α → set β}
+  (h : ∀ x ∈ s, t1 x ⊆ t2 x) : (⋃ x ∈ s, t1 x) ⊆ (⋃ x ∈ s, t2 x) :=
+bUnion_subset (λ x xs, subset.trans (h x xs) (subset_bUnion_of_mem xs))
+
+theorem bInter_subset_bInter_right {s : set α} {t1 t2 : α → set β}
+  (h : ∀ x ∈ s, t1 x ⊆ t2 x) : (⋂ x ∈ s, t1 x) ⊆ (⋂ x ∈ s, t2 x) :=
+subset_bInter (λ x xs, subset.trans (bInter_subset_of_mem xs) (h x xs))
+
 @[simp] theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
 show (⨅x ∈ (∅ : set α), u x) = ⊤, -- simplifier should be able to rewrite x ∈ ∅ to false.
   from infi_emptyset
@@ -224,6 +232,14 @@ begin rw [insert_eq], simp [bUnion_union] end
 theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=
 by rw insert_of_has_insert; simp [union_comm]
+
+@[simp] -- complete_boolean_algebra
+theorem compl_bUnion (s : set α) (t : α → set β) : - (⋃ i ∈ s, t i) = (⋂ i ∈ s, - t i) :=
+ext (λ x, by simp)
+
+-- classical -- complete_boolean_algebra
+theorem compl_bInter (s : set α) (t : α → set β) : -(⋂ i ∈ s, t i) = (⋃ i ∈ s, - t i) :=
+ext (λ x, by simp [classical.not_forall])
 
 /-- Intersection of a set of sets. -/
 @[reducible] def sInter (S : set (set α)) : set α := Inf S
@@ -421,12 +437,6 @@ end
 
 section image
 
-@[congr]
-lemma image_congr {f g : α → β} {s : set α} (h : ∀a∈s, f a = g a) : f '' s = g '' s :=
-set.ext $ assume x, ⟨
-  assume ⟨a, ha, eq⟩, ⟨a, ha, eq ▸ (h _ ha).symm⟩,
-  assume ⟨a, ha, eq⟩, ⟨a, ha, eq ▸ h _ ha⟩⟩
-
 lemma image_Union {f : α → β} {s : ι → set α} : f '' (⋃ i, s i) = (⋃i, f '' s i) :=
 begin
   apply set.ext, intro x,
@@ -437,21 +447,7 @@ end
 lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
 set.ext $ assume ⟨x, h⟩, by simp [h]
 
-lemma subtype_val_image {p : α → Prop} {s : set (subtype p)} :
-  subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
-set.ext $ assume a,
-⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
-  assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
-
 end image
-
-section range
-
-lemma subtype_val_range {p : α → Prop} :
-  range (@subtype.val _ p) = {x | p x} :=
-by rw ← image_univ; simp [-image_univ, subtype_val_image]
-
-end range
 
 section preimage
 
@@ -520,3 +516,26 @@ theorem disjoint_bot_left {a : α} : disjoint ⊥ a := bot_inf_eq
 theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_bot_eq
 
 end disjoint
+
+section
+open set
+set_option eqn_compiler.zeta true
+
+noncomputable def set.bUnion_eq_sigma_of_disjoint {α β} {s : set α} {t : α → set β}
+  (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=
+let f : (Σi:s, t i.val) → (⋃i∈s, t i) := λ⟨⟨a, ha⟩, ⟨b, hb⟩⟩, ⟨b, mem_bUnion ha hb⟩ in
+have injective f,
+  from assume ⟨⟨a₁, ha₁⟩, ⟨b₁, hb₁⟩⟩ ⟨⟨a₂, ha₂⟩, ⟨b₂, hb₂⟩⟩ eq,
+  have b_eq : b₁ = b₂, from congr_arg subtype.val eq,
+  have a_eq : a₁ = a₂, from classical.by_contradiction $ assume ne,
+    have b₁ ∈ t a₁ ∩ t a₂, from ⟨hb₁, b_eq.symm ▸ hb₂⟩,
+    have t a₁ ∩ t a₂ ≠ ∅, from ne_empty_of_mem this,
+    this $ h _ ha₁ _ ha₂ ne,
+  sigma.eq (subtype.eq a_eq) (subtype.eq $ by subst b_eq; subst a_eq),
+have surjective f,
+  from assume ⟨b, hb⟩,
+  have ∃a∈s, b ∈ t a, by simpa using hb,
+  let ⟨a, ha, hb⟩ := this in ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩,
+(equiv.of_bijective ⟨‹injective f›, ‹surjective f›⟩).symm
+
+end

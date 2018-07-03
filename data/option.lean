@@ -20,12 +20,19 @@ iff.rfl
 theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → option.get h = a
 | _ _ rfl := rfl
 
+theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
+option.some.inj $ ha.symm.trans hb
+
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
 theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl
 | (some a) o        H := ((H _).1 rfl).symm
 | o        (some b) H := (H _).2 rfl
+
+theorem eq_none_iff_forall_not_mem {o : option α} :
+  o = none ↔ (∀ a, a ∉ o) :=
+⟨λ e a h, by rw e at h; cases h, λ h, ext $ by simpa⟩
 
 @[simp] theorem none_bind (f : α → option β) : none >>= f = none := rfl
 

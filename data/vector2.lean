@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import data.vector data.list.basic data.sigma
+import data.vector data.list.basic data.sigma data.array.lemmas
 
 namespace vector
 variables {α : Type*} {n : ℕ}
@@ -22,7 +22,7 @@ subtype.val_injective
 | 0     f := rfl
 | (n+1) f := by rw [of_fn, list.of_fn_succ, to_list_cons, to_list_of_fn]
 
-theorem mk_to_list :
+@[simp] theorem mk_to_list :
   ∀ (v : vector α n) h, (⟨to_list v, h⟩ : vector α n) = v
 | ⟨l, h₁⟩ h₂ := rfl
 
@@ -53,6 +53,9 @@ end
 theorem head'_to_list : ∀ (v : vector α n.succ),
   (to_list v).head' = some (head v)
 | ⟨a::l, e⟩ := rfl
+
+def reverse (v : vector α n) : vector α n :=
+⟨v.to_list.reverse, by simp⟩
 
 @[simp] theorem nth_zero : ∀ (v : vector α n.succ), nth v 0 = head v
 | ⟨a::l, e⟩ := rfl
@@ -92,3 +95,13 @@ def {u} mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 | _ ⟨l, rfl⟩ := rfl
 
 end vector
+
+namespace equiv
+
+def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
+⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
+
+def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
+(vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
+
+end equiv

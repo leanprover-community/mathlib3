@@ -769,7 +769,7 @@ lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
 have s ⊆ span ↑(ht.to_finset), by simp; assumption,
 let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
 have finite s, from finite_subset u.finite_to_set hsu,
-⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subseteq_coe.mp $ by simp [hsu])⟩
+⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
 lemma exists_left_inverse_linear_map_of_injective {f : β → γ}
   (hf : is_linear_map f) (hf_inj : injective f) : ∃g:γ → β, is_linear_map g ∧ g ∘ f = id :=

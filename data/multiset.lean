@@ -9,6 +9,7 @@ import logic.function order.boolean_algebra
   data.list.basic data.list.perm data.list.sort data.quot data.string
   algebra.order_functions algebra.group_power algebra.ordered_group
   tactic.interactive
+  category.traversable.instances category.basic
 
 open list subtype nat lattice
 
@@ -2502,5 +2503,128 @@ multiset.induction_on m
   end
 
 end pi
+end multiset
+
+namespace multiset
+
+instance : functor multiset :=
+{ map := @map }
+
+instance : is_lawful_functor multiset :=
+by refine { .. }; intros; simp
+
+open is_lawful_traversable is_comm_applicative
+
+variables {F : Type u_1 → Type u_1} [applicative F] [is_comm_applicative F]
+variables {α' β' : Type u_1} (f : α' → F β')
+
+lemma coe_append_eq_add_coe :
+  ((∘) (coe : list β' → multiset β') ∘ append) = (λ x y, x + coe y) ∘ coe :=
+by ext; simp
+
+lemma coe_list_cons_eq_cons_coe :
+  flip ((∘) (coe : list β' → multiset β') ∘ @list.cons β') = flip multiset.cons ∘ (coe) :=
+by ext; simp! [flip]
+
+lemma coe_traverse_cons (x : α') (xs : list α') :
+  (coe : list β' → multiset β') <$> traverse f (x :: xs) =
+  coe <$> traverse f (xs ++ [x]) :=
+begin
+  symmetry, simp! [traverse],
+  induction xs, refl,
+  simp! [traverse] with norm,
+  rw [commutative_map,coe_list_cons_eq_cons_coe,comp_map,xs_ih],
+  rw [commutative_map], symmetry, rw [commutative_map],
+  simp with norm, congr,
+  ext, simp! [flip], constructor
+end
+
+lemma coe_traverse_cons_swap (x x' : α') (xs : list α') :
+  (coe : list β' → multiset β') <$> traverse f (x :: x' :: xs) =
+  coe <$> traverse f (x' :: x :: xs : list α') :=
+begin
+  simp! [traverse] with norm,
+  rw commutative_map,
+  congr, ext, simp! [flip],
+  constructor
+end
+
+def traverse :
+  multiset α' → F (multiset β') :=
+quotient.lift (functor.map coe ∘ traversable.traverse f)
+-- quot.lift (functor.map coe ∘ traversable.traverse f)
+begin
+  introv p, unfold function.comp,
+  induction p, refl,
+  { simp! [coe_traverse_cons,traverse_append] with norm,
+    rw [coe_append_eq_add_coe,comp_map,p_ih],
+    simp! with norm },
+  { rw coe_traverse_cons_swap },
+  { simp [*] }
+end
+
+open functor
+
+@[simp]
+lemma lift_beta {α β : Type*} (x : list α) (f : list α → β)
+  (h : ∀ a b : list α, a ≈ b → f a = f b) :
+  quotient.lift f h (x : multiset α) = f x :=
+quotient.lift_beta _ _ _
+
+@[simp]
+lemma map_comp_coe {α β} (h : α → β) :
+  functor.map h ∘ coe = (coe ∘ functor.map h : list α → multiset β) :=
+by funext; simp [functor.map]
+
+lemma id_traverse {α : Type*} (x : multiset α) :
+  traverse id.mk x = x :=
+quotient.induction_on x
+(by { intro,
+      rw [traverse,quotient.lift_beta,function.comp],
+      simp, congr, rw [is_lawful_traversable.id_traverse], })
+
+lemma comp_traverse {G H : Type* → Type*}
+               [applicative G] [applicative H]
+               [is_comm_applicative G] [is_comm_applicative H]
+               {α β γ : Type*}
+               (g : α → G β) (h : β → H γ) (x : multiset α) :
+  traverse (comp.mk ∘ functor.map h ∘ g) x =
+  comp.mk (functor.map (traverse h) (traverse g x)) :=
+quotient.induction_on x
+(by intro ;
+    simp [traverse,is_lawful_traversable.comp_traverse] ;
+    simp! [functor.map_map,function.comp,functor.map,functor.map_map] )
+
+lemma map_traverse {G : Type* → Type*}
+               [applicative G] [is_comm_applicative G]
+               {α β γ : Type*}
+               (g : α → G β) (h : β → γ)
+               (x : multiset α) :
+  functor.map (functor.map h) (traverse g x) =
+  traverse (functor.map h ∘ g) x :=
+quotient.induction_on x
+(by intro; simp [traverse,functor.map_map];
+    rw [comp_map,is_lawful_traversable.map_traverse] )
+
+lemma traverse_map {G : Type* → Type*}
+               [applicative G] [is_comm_applicative G]
+               {α β γ : Type*}
+               (g : α → β) (h : β → G γ)
+               (x : multiset α) :
+  traverse h (map g x) =
+  traverse (h ∘ g) x :=
+quotient.induction_on x
+(by intro; simp [traverse,functor.map_map];
+    rw [← is_lawful_traversable.traverse_map g h];
+    [ refl, apply_instance ] )
+
+lemma naturality {G H : Type* → Type*}
+                [applicative G] [applicative H]
+                [is_comm_applicative G] [is_comm_applicative H]
+                (eta : applicative_transformation G H)
+                {α β : Type*} (f : α → G β) (x : multiset α) :
+  eta (traverse f x) = traverse (@eta _ ∘ f) x :=
+quotient.induction_on x
+(by intro; simp [traverse,is_lawful_traversable.naturality] with norm )
 
 end multiset

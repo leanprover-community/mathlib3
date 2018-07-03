@@ -32,6 +32,9 @@ instance : applicative id :=
 instance : is_lawful_applicative id :=
 by refine { .. }; intros; refl
 
+instance : is_comm_applicative id :=
+by refine { .. }; intros; refl
+
 namespace comp
 
 open function (hiding comp)
@@ -100,6 +103,17 @@ instance {f : Type u → Type u'} {g : Type v → Type u}
   map_pure := @comp.map_pure f g _ _ _ _,
   seq_pure := @comp.seq_pure f g _ _ _ _,
   seq_assoc := @comp.seq_assoc f g _ _ _ _ }
+
+open is_comm_applicative
+
+instance {f : Type u → Type u'} {g : Type v → Type u}
+  [applicative f] [applicative g]
+  [is_comm_applicative f] [is_comm_applicative g] :
+  is_comm_applicative (comp f g) :=
+by { refine { .. @comp.is_lawful_applicative f g _ _ _ _, .. },
+     intros, casesm* comp _ _ _, simp! [map,has_seq.seq] with norm,
+     rw [commutative_map,function.comp], congr, funext,
+     rw [commutative_map], congr }
 
 end comp
 open functor

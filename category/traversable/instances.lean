@@ -7,9 +7,9 @@ Instances of `traversable` for types from the core library
 -/
 
 import category.traversable.basic
-import category.basic
-import category.functor
-import category.applicative
+       category.basic
+       category.functor
+       category.applicative
 
 universe variables w u v w' u' v'
 
@@ -177,8 +177,6 @@ lemma list.naturality {α β : Type u} (g : α → f β) (x : list α) :
 by induction x; simp! [*] with norm
 open nat
 
-end list
-
 instance : traversable list :=
 { traverse := @list.traverse }
 
@@ -188,6 +186,19 @@ instance : is_lawful_traversable list :=
   map_traverse := @list.map_traverse,
   traverse_map := @list.traverse_map,
   naturality := @list.naturality }
+
+lemma traverse_append (g : α → f β) (xs ys : list α) :
+  traverse g (xs ++ ys) = (++) <$> traverse g xs <*> traverse g ys :=
+begin
+  simp! [traverse],
+  induction xs,
+  { have : append (@list.nil β) = id,
+    { funext, simp },
+    simp! [this] },
+  { simp! [traverse,xs_ih] with norm, refl }
+end
+
+end list
 
 namespace sum
 

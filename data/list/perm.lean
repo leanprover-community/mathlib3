@@ -815,4 +815,37 @@ end
 
 end permutations
 
+section subtype_perm
+variables {p : list α → Prop}
+
+/-- Subtype permutation: two list subtypes are permutations if the underlying
+lists are permutations -/
+def subtype_perm (l₁ l₂ : subtype p) : Prop :=
+l₁.val ~ l₂.val
+
+local infix ` s~ `:40 := subtype_perm
+
+@[refl] protected theorem subtype_perm.refl (l : subtype p) : l s~ l :=
+perm.refl l.val
+
+variables {l₁ l₂ l₃ : subtype p}
+
+@[symm] protected theorem subtype_perm.symm (s : l₁ s~ l₂) : l₂ s~ l₁ :=
+perm.symm s
+
+@[trans] protected theorem subtype_perm.trans (s₁₂ : l₁ s~ l₂) (s₂₃ : l₂ s~ l₃) : l₁ s~ l₃ :=
+perm.trans s₁₂ s₂₃
+
+instance decidable_subtype_perm [decidable_eq α] (l₁ l₂ : subtype p) : decidable (l₁ s~ l₂) :=
+list.decidable_perm l₁.val l₂.val
+
+theorem subtype_perm.equivalence (p : list α → Prop) : equivalence (@subtype_perm _ p) :=
+mk_equivalence (@subtype_perm _ p) (@subtype_perm.refl _ p)
+  (@subtype_perm.symm _ p) (@subtype_perm.trans _ p)
+
+instance subtype_setoid (p : list α → Prop) : setoid (subtype p) :=
+setoid.mk (@subtype_perm _ p) (subtype_perm.equivalence p)
+
+end subtype_perm
+
 end list

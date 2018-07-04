@@ -92,3 +92,9 @@ begin
     admit },
   trivial
 end
+
+/- tauto -/
+
+example (p : Prop) : p ∧ true ↔ p := by tauto
+
+example (p : Prop) : p ∨ false → p := by tauto

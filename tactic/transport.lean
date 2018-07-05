@@ -1,4 +1,4 @@
--- import data.list.basic
+import data.list.basic
 import data.equiv.basic
 import tactic.interactive
 -- import meta.expr
@@ -138,7 +138,7 @@ do env  ← get_env,
          eqv_symm ← to_expr ``(@coe_fn _ equiv.has_coe_to_fun (%%eq_).symm),
          x ← tactic.intro `x,
          [v] ← get_goals,
-         refine_struct ``( { .. } ),
+         refine_struct (some ()) ``( { .. } ),
          let unfold_more := [`has_one.one,`has_zero.zero,`has_mul.mul,`has_add.add
                             ,`semigroup.mul,`group.mul],
          fs ← all_field_names >>= mmap resolve_name ∘ list.append unfold_more,
@@ -423,19 +423,19 @@ meta def instance_derive_handler' (univ_poly := tt)
 λ p n, do
 let cls := `transportable,
 if p.is_constant_of cls then
-do decl ← get_decl n,
-   cls_decl ← get_decl cls,
-   env ← get_env,
+do -- decl ← get_decl n,
+   -- cls_decl ← get_decl cls,
+   -- env ← get_env,
    -- guard (env.is_inductive n) <|> fail format!"failed to derive '{cls}', '{n}' is not an inductive type",
-   let ls := decl.univ_params.map $ λ n, if univ_poly then level.param n else level.zero,
+   -- let ls := decl.univ_params.map $ λ n, if univ_poly then level.param n else level.zero,
    -- incrementally build up target expression `Π (hp : p) [cls hp] ..., cls (n.{ls} hp ...)`
    -- where `p ...` are the inductive parameter types of `n`
-   let tgt : expr := expr.const n ls,
-   ⟨params, _⟩ ← mk_local_pis (decl.type.instantiate_univ_params (decl.univ_params.zip ls)),
-   (type,tgt) ← params.inits.any_of (λ param, do
-     let tgt := tgt.mk_app param,
-     prod.mk tgt <$> mk_app cls [tgt]),
-   tgt ← modify_target n [] tgt,
+   -- let tgt : expr := expr.const n ls,
+   -- ⟨params, _⟩ ← mk_local_pis (decl.type.instantiate_univ_params (decl.univ_params.zip ls)),
+   -- (type,tgt) ← params.inits.any_of (λ param, do
+   --   let tgt := tgt.mk_app param,
+   --   prod.mk tgt <$> mk_app cls [tgt]),
+   -- tgt ← modify_target n [] tgt,
    -- tgt ← params.enum.mfoldr (λ ⟨i, param⟩ tgt,
    -- do -- add typeclass hypothesis for each inductive parameter
    --    tgt ← do {

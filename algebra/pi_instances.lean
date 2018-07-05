@@ -30,7 +30,7 @@ do b ← target >>= is_prop,
     filled in by `inst1` and `inst2`
  -/
 meta def pi_instance : tactic unit :=
-refine_struct ``( { .. } ) ; try derive_field
+refine_struct none ``( { .. } ) ; try derive_field
 
 run_cmd add_interactive [`pi_instance]
 

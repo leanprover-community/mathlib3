@@ -106,14 +106,21 @@ open tactic tactic.interactive
 
 -- set_option profiler true
 
--- run_cmd do
---  mk_transportable_instance `group
--- run_cmd do
---  mk_transportable_instance `monoid
--- run_cmd do
---  mk_transportable_instance `ring
+-- 7s
+run_cmd do
+ mk_transportable_instance `group
+-- 3s
+run_cmd do
+ mk_transportable_instance `monoid
+-- 18s
+run_cmd do
+ mk_transportable_instance `ring
 -- run_cmd do
 --  mk_transportable_instance `field
+
+#check (by apply_instance : transportable group)
+#check (by apply_instance : transportable monoid)
+#check (by apply_instance : transportable ring)
 
 -- run_cmd do
 --  mk_to_fun `group
@@ -121,12 +128,12 @@ open tactic tactic.interactive
 --  mk_to_fun `monoid
 
 -- set_option pp.notation false
-set_option trace.app_builder true
+-- set_option trace.app_builder true
 
 -- run_cmd do
 --  mk_to_fun `ring
-run_cmd do
- mk_to_fun `field
+-- run_cmd do
+--  mk_to_fun `field
 
 -- run_cmd do
 --  mk_to_fun `group >>= mk_on_equiv `group

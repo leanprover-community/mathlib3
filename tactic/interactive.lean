@@ -452,7 +452,7 @@ do some str ← pure (e.get_structure_instance_info)
 meta def collect_struct (e : pexpr) : tactic $ pexpr × list (expr×structure_instance_info) :=
 prod.map id list.reverse <$> (collect_struct' e).run []
 
-meta def refine_one (str : structure_instance_info) :
+meta def refine_one (use_dunfold : bool) (str : structure_instance_info) :
   tactic $ list (expr×structure_instance_info) :=
 do    tgt ← target,
       let struct_n : name := tgt.get_app_fn.const_name,
@@ -471,8 +471,11 @@ do    tgt ← target,
       gs ← with_enable_tags (
         mmap₂ (λ (n : name × name) v, do
            set_goals [v],
-           try (interactive.dunfold (provided.map $ λ ⟨s,f⟩, f.update_prefix s) (loc.ns [none])),
-           -- try (interactive.unfold (provided.map $ λ ⟨s,f⟩, f.update_prefix s) (loc.ns [none])),
+           is_p ← target >>= is_prop,
+           let l := loc.ns [none],
+           if use_dunfold
+             then try (interactive.dunfold (provided.map $ λ ⟨s,f⟩, f.update_prefix s) l)
+             else try (interactive.unfold (provided.map $ λ ⟨s,f⟩, f.update_prefix s) l),
            apply_auto_param
              <|> apply_opt_param
              <|> (set_main_tag [`_field,n.2,n.1]),
@@ -481,9 +484,9 @@ do    tgt ← target,
       set_goals gs.join,
       return new_goals.join
 
-meta def refine_recursively : expr × structure_instance_info → tactic (list expr) | (e,str) :=
+meta def refine_recursively (use_dunfold : bool) : expr × structure_instance_info → tactic (list expr) | (e,str) :=
 do set_goals [e],
-   rs ← refine_one str,
+   rs ← refine_one use_dunfold str,
    gs ← get_goals,
    gs' ← rs.mmap refine_recursively,
    return $ gs'.join ++ gs
@@ -507,11 +510,11 @@ do set_goals [e],
     -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
     ```
 -/
-meta def refine_struct : parse texpr → tactic unit | e :=
+meta def refine_struct (use_dunfold : parse (tk "!")?) : parse texpr → tactic unit | e :=
 do (x,xs) ← collect_struct e,
    refine x,
    gs ← get_goals,
-   xs' ← xs.mmap refine_recursively,
+   xs' ← xs.mmap (refine_recursively use_dunfold.is_some),
    set_goals (xs'.join ++ gs)
 
 meta def guard_tags (tags : parse ident*) : tactic unit :=

@@ -1184,6 +1184,13 @@ by simp [finset.max, option.lift_or_get]
 theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :=
 (@le_sup (with_bot α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
+theorem max_eq_none {s : finset α} : s.max = none ↔ s = ∅ :=
+⟨λ h, by_contradiction 
+  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in 
+  let ⟨b, hb⟩ := max_of_mem ha in
+  by simpa [h] using hb),
+λ h, h.symm ▸ max_empty⟩
+
 theorem mem_of_max {s : finset α} : ∀ {a : α}, a ∈ s.max → a ∈ s :=
 finset.induction_on s (by simp) $
   λ b s _ (ih : ∀ {a}, a ∈ s.max → a ∈ s) a (h : a ∈ (insert b s).max),
@@ -1217,6 +1224,13 @@ by simp [finset.min, option.lift_or_get]
 
 theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
 (@inf_le (with_top α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
+
+theorem min_eq_none {s : finset α} : s.min = none ↔ s = ∅ :=
+⟨λ h, by_contradiction 
+  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in 
+  let ⟨b, hb⟩ := min_of_mem ha in
+  by simpa [h] using hb),
+λ h, h.symm ▸ min_empty⟩
 
 theorem mem_of_min {s : finset α} : ∀ {a : α}, a ∈ s.min → a ∈ s :=
 finset.induction_on s (by simp) $

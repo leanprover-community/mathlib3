@@ -350,6 +350,20 @@ instance order_top [order_top α] : order_top (with_bot α) :=
 instance bounded_lattice [bounded_lattice α] : bounded_lattice (with_bot α) :=
 { ..with_bot.lattice, ..with_bot.order_top, ..with_bot.order_bot }
 
+@[simp] lemma sup_eq_max [decidable_linear_order α] (a b : with_bot α) : a ⊔ b = max a b :=
+le_antisymm (sup_le (le_max_left a b) (le_max_right a b)) (max_le le_sup_left le_sup_right)
+
+lemma well_founded_lt [partial_order α] (h : well_founded ((<) : α → α → Prop)) :
+  well_founded ((<) : with_bot α → with_bot α → Prop) :=
+have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
+  acc.intro _ (λ b h, (not_le_of_gt h lattice.bot_le).elim),
+⟨λ a, option.rec_on a acc_bot
+  (λ a, acc.intro _ (well_founded.induction h a
+    (show ∀ b, (∀ c, c < b → ∀ (d : with_bot α), d < some c → acc (<) d) →
+      ∀ c : with_bot α, c < some b → acc (<) c,
+    from λ b ih c, option.rec_on c (λ hc, acc_bot)
+      (λ c hc, acc.intro _ (ih _ (with_bot.some_lt_some.1 hc))))))⟩
+
 end with_bot
 
 --TODO(Mario): Construct using order dual on with_bot
@@ -460,5 +474,8 @@ instance order_bot [order_bot α] : order_bot (with_top α) :=
 
 instance bounded_lattice [bounded_lattice α] : bounded_lattice (with_top α) :=
 { ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
+
+@[simp] lemma inf_eq_max [decidable_linear_order α] (a b : with_top α) : a ⊓ b = min a b :=
+le_antisymm (le_min inf_le_left inf_le_right) (le_inf (min_le_left a b) (min_le_right a b))
 
 end with_top

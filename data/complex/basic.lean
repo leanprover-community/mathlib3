@@ -175,7 +175,7 @@ instance : comm_ring ℂ :=
 by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
    { intros, apply ext_iff.2; split; simp; ring }
 
-lemma sub_def (a b c d : ℝ) : (⟨a, b⟩ : ℂ) - ⟨c, d⟩ = ⟨a - c, b - d⟩ := rfl
+@[simp] lemma sub_def (a b c d : ℝ) : (⟨a, b⟩ : ℂ) - ⟨c, d⟩ = ⟨a - c, b - d⟩ := rfl
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
 @[simp] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : ℂ) = r - s := rfl

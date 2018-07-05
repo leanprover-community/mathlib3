@@ -280,6 +280,46 @@ meta structure by_elim_opt :=
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
+theorem or_iff_not_imp_left {a b} [decidable a] : a ∨ b ↔ (¬ a → b) :=
+⟨or.resolve_left, λ h, dite _ or.inl (or.inr ∘ h)⟩
+
+theorem or_iff_not_imp_right {a b} [decidable b] : a ∨ b ↔ (¬ b → a) :=
+or.comm.trans or_iff_not_imp_left
+
+@[trans]
+lemma iff.trans {a b c} (h₁ : a ↔ b) (h₂ : b ↔ c) : a ↔ c :=
+iff.intro
+  (assume ha, iff.mp h₂ (iff.mp h₁ ha))
+  (assume hc, iff.mpr h₁ (iff.mpr h₂ hc))
+
+theorem imp.swap {a b c : Prop} : (a → b → c) ↔ (b → a → c) :=
+⟨function.swap, function.swap⟩
+
+theorem imp_not_comm {a b} : (a → ¬b) ↔ (b → ¬a) :=
+imp.swap
+
+theorem not_and_of_not_or_not {a b} (h : ¬ a ∨ ¬ b) : ¬ (a ∧ b)
+| ⟨ha, hb⟩ := or.elim h (absurd ha) (absurd hb)
+
+theorem not_and_distrib {a b} [decidable a] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
+⟨λ h, if ha : a then or.inr (λ hb, h ⟨ha, hb⟩) else or.inl ha, not_and_of_not_or_not⟩
+
+theorem not_and_distrib' {a b} [decidable b] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
+⟨λ h, if hb : b then or.inl (λ ha, h ⟨ha, hb⟩) else or.inr hb, not_and_of_not_or_not⟩
+
+theorem not_or_distrib {a b} : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
+⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,
+ λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩
+
+
+meta def de_morgan_hyps : tactic unit :=
+do hs ← local_context,
+   hs.for_each $ λ h,
+     replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h) <|>
+     skip
+
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
   and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
@@ -289,12 +329,16 @@ meta def tautology : tactic unit :=
 repeat (do
   gs ← get_goals,
   () <$ tactic.intros;
+  de_morgan_hyps,
   casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
   constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)],
+  try (refine ``( or_iff_not_imp_left.mpr _)),
+  try (refine ``( or_iff_not_imp_right.mpr _)),
   gs' ← get_goals,
   guard (gs ≠ gs') ) ;
 repeat
-(reflexivity <|> solve_by_elim <|> constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)]) ;
+(reflexivity <|> solve_by_elim <|>
+ constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)] ) ;
 done
 
 /-- Shorter name for the tactic `tautology`. -/

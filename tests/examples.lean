@@ -97,4 +97,7 @@ end
 
 example (p : Prop) : p ∧ true ↔ p := by tauto
 
-example (p : Prop) : p ∨ false → p := by tauto
+example (p : Prop) : p ∨ false ↔ p := by tauto
+-- local attribute [instance] classical.prop_decidable
+example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+example (p q r : Prop) [decidable q] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto

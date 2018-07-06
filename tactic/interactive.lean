@@ -254,16 +254,26 @@ solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
   find all assumptions of the shape `¬ (p ∧ q)` or `¬ (p ∨ q)` and
   replace them using de Morgan's law.
 -/
-meta def de_morgan_hyps : tactic unit :=
+meta def distrib_not : tactic unit :=
 do hs ← local_context,
-   hs.for_each $ λ h,
-     replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(of_not_not %%h) <|>
-     replace (some h.local_pp_name) none ``(not_imp.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(not_iff.mp %%h) <|>
-     skip
+   p ← pexpr_to_pattern ``(¬ _),
+   hs.for_each $ λ h, do
+     try $ replace (some h.local_pp_name) none ``(mt iff.to_eq %%h),
+     try $ replace (some h.local_pp_name) none ``(eq.to_iff %%h),
+     h ← get_local h.local_pp_name,
+     e ← infer_type h,
+     try $ match e with
+           | `(¬ (_ ∧ _))  := replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
+                              replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h)
+           | `(¬ (_ ∨ _))  := replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h)
+           | `(¬ ¬ _)      := replace (some h.local_pp_name) none ``(of_not_not %%h)
+           | `(¬ (_ → (_ : Prop))) := replace (some h.local_pp_name) none ``(not_imp.mp %%h)
+           | `(¬ (_ ↔ _)) := replace (some h.local_pp_name) none ``(not_iff.mp %%h)
+           | `(_ → _)     := replace (some h.local_pp_name) none ``(not_or_of_imp %%h)
+           | _ := skip
+           end
+
+-- meta def find_contradiction
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -274,16 +284,19 @@ meta def tautology : tactic unit :=
 repeat (do
   gs ← get_goals,
   () <$ tactic.intros;
-  de_morgan_hyps,
+  distrib_not;
   casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(_ ↔ _),``(Exists _),``(false)];
-  constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)],
-  try (refine ``( or_iff_not_imp_left.mpr _)),
-  try (refine ``( or_iff_not_imp_right.mpr _)),
+  try contradiction;
+  try (refine ``( or_iff_not_imp_left.mpr _));
+  try (refine ``( or_iff_not_imp_right.mpr _));
+  () <$ tactic.intros;
+  constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
+  try assumption,
   gs' ← get_goals,
   guard (gs ≠ gs') ) ;
 repeat
 (reflexivity <|> solve_by_elim <|>
- constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)] ) ;
+ constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)] ) ;
 done
 
 /-- Shorter name for the tactic `tautology`. -/

@@ -26,6 +26,14 @@ arguments, such as `⟨a, b, c⟩` for splitting on `∃ x, ∃ y, p x`, then it
 will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last parameter as
 necessary.
 
+### rintro
+
+The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
+allow for destructuring patterns while introducing variables. See `rcases` for
+a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
+will introduce two variables, and then do case splits on both of them producing
+two subgoals, one with variables `a d e` and the other with `b c d e`.
+
 ### simpa
 
 This is a "finishing" tactic modification of `simp`. The tactic `simpa

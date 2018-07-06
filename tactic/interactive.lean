@@ -28,21 +28,27 @@ the result.
 -/
 @[reducible] def rcases_patt_inverted := rcases_patt
 
-meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
-with_desc "patt" $ let p :=
-  (rcases_patt.one <$> ident_) <|>
-  (rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse)) in
-list.cons <$> p <*> (tk "|" *> p)*
+meta def rcases_parse1 (rcases_parse : parser (listΣ rcases_patt_inverted)) :
+  parser rcases_patt_inverted | x :=
+((rcases_patt.one <$> ident_) <|>
+(rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse))) x
 
-meta def rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt) :=
-let invert' (l : listΣ rcases_patt_inverted) : rcases_patt := match l with
-| [rcases_patt.one n] := rcases_patt.one n
-| _ := rcases_patt.many (rcases_parse.invert l)
-end in
-list.map $ λ p, match p with
+meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
+with_desc "patt" $
+list.cons <$> rcases_parse1 rcases_parse <*> (tk "|" *> rcases_parse1 rcases_parse)*
+
+meta def rcases_parse_single : parser rcases_patt_inverted :=
+with_desc "patt_list" $ rcases_parse1 rcases_parse
+
+meta mutual def rcases_parse.invert, rcases_parse.invert'
+with rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt)
+| l := l.map $ λ p, match p with
 | rcases_patt.one n := [rcases_patt.one n]
-| rcases_patt.many l := invert' <$> l
+| rcases_patt.many l := rcases_parse.invert' <$> l
 end
+with rcases_parse.invert' : listΣ rcases_patt_inverted → rcases_patt
+| [rcases_patt.one n] := rcases_patt.one n
+| l := rcases_patt.many (rcases_parse.invert l)
 
 /--
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
@@ -66,6 +72,21 @@ parameter as necessary.
 -/
 meta def rcases (p : parse texpr) (ids : parse (tk "with" *> rcases_parse)?) : tactic unit :=
 tactic.rcases p $ rcases_parse.invert $ ids.get_or_else [default _]
+
+meta def rintro_parse : parser rcases_patt :=
+rcases_parse.invert' <$> (brackets "(" ")" rcases_parse <|>
+  (λ x, [x]) <$> rcases_parse_single)
+
+/--
+The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
+allow for destructuring patterns while introducing variables. See `rcases` for
+a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
+will introduce two variables, and then do case splits on both of them producing
+two subgoals, one with variables `a d e` and the other with `b c d e`.
+-/
+meta def rintro : parse rintro_parse* → tactic unit
+| [] := intros []
+| l  := tactic.rintro l
 
 /--
 This is a "finishing" tactic modification of `simp`. The tactic `simpa [rules, ...] using e`

@@ -106,22 +106,8 @@ private meta def get_local_and_type (e : expr) : tactic (expr × expr) :=
     e ← get_local e.local_pp_name,
     t ← infer_type e, pure (t, e))
 
-meta def rcases.continue
-  (rcases_core : listΣ (listΠ rcases_patt) → expr → tactic goals) :
-  listΠ (rcases_patt × expr) → tactic goals
-| [] := get_goals
-| ((rcases_patt.many ids, e) :: l) := do
-  gs ← rcases_core ids e,
-  list.join <$> gs.mmap (λ g, set_goals [g] >> rcases.continue l)
-| ((rcases_patt.one `rfl, e) :: l) := do
-  (t, e) ← get_local_and_type e,
-  subst e,
-  rcases.continue l
--- If the pattern is any other name, we already bound the name in the
--- top-level `cases` tactic, so there is no more work to do for it.
-| (_ :: l) := rcases.continue l
-
-meta def rcases_core : listΣ (listΠ rcases_patt) → expr → tactic goals
+meta mutual def rcases_core, rcases.continue
+with rcases_core : listΣ (listΠ rcases_patt) → expr → tactic goals
 | ids e := do
   (t, e) ← get_local_and_type e,
   t ← whnf t,
@@ -140,7 +126,20 @@ meta def rcases_core : listΣ (listΠ rcases_patt) → expr → tactic goals
   -- by constructor name.
   list.join <$> (align (λ (a : name × _) (b : _ × name × _), a.1 = b.2.1) r (gs.zip l)).mmap
     (λ⟨⟨_, ps⟩, g, _, hs, _⟩,
-      set_goals [g] >> rcases.continue rcases_core (ps.zip hs))
+      set_goals [g] >> rcases.continue (ps.zip hs))
+
+with rcases.continue : listΠ (rcases_patt × expr) → tactic goals
+| [] := get_goals
+| ((rcases_patt.many ids, e) :: l) := do
+  gs ← rcases_core ids e,
+  list.join <$> gs.mmap (λ g, set_goals [g] >> rcases.continue l)
+| ((rcases_patt.one `rfl, e) :: l) := do
+  (t, e) ← get_local_and_type e,
+  subst e,
+  rcases.continue l
+-- If the pattern is any other name, we already bound the name in the
+-- top-level `cases` tactic, so there is no more work to do for it.
+| (_ :: l) := rcases.continue l
 
 meta def rcases (p : pexpr) (ids : list (list rcases_patt)) : tactic unit :=
 do e ← i_to_expr p,
@@ -157,5 +156,11 @@ do e ← i_to_expr p,
         return ()),
     h ← tactic.intro1,
     focus1 (rcases_core ids h >>= set_goals)
+
+meta def rintro (ids : list rcases_patt) : tactic unit :=
+do l ← ids.mmap (λ id, do
+    e ← intro id.name,
+    return (id, e)),
+  focus1 (rcases.continue l >>= set_goals)
 
 end tactic

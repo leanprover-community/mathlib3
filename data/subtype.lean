@@ -53,3 +53,32 @@ theorem map_id {p : α → Prop} {h : ∀a, p a → p (id a)} : map (@id α) h =
 funext $ assume ⟨v, h⟩, rfl
 
 end subtype
+
+namespace subtype
+variables {α : Sort*}
+
+instance [has_equiv α] (p : α → Prop) : has_equiv (subtype p) :=
+⟨λ s t, s.val ≈ t.val⟩
+
+theorem equiv_iff [has_equiv α] {p : α → Prop} {s t : subtype p} :
+  s ≈ t ↔ s.val ≈ t.val :=
+iff.rfl
+
+variables [setoid α] {p : α → Prop}
+
+protected theorem refl (s : subtype p) : s ≈ s :=
+setoid.refl s.val
+
+protected theorem symm {s t : subtype p} (h : s ≈ t) : t ≈ s :=
+setoid.symm h
+
+protected theorem trans {s t u : subtype p} (h₁ : s ≈ t) (h₂ : t ≈ u) : s ≈ u :=
+setoid.trans h₁ h₂
+
+theorem equivalence (p : α → Prop) : equivalence (@has_equiv.equiv (subtype p) _) :=
+mk_equivalence _ subtype.refl (@subtype.symm _ _ p) (@subtype.trans _ _ p)
+
+instance (p : α → Prop) : setoid (subtype p) :=
+setoid.mk (≈) (equivalence p)
+
+end subtype

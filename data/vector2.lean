@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import data.vector data.list.basic data.sigma data.array.lemmas
+import data.vector data.list.basic data.array.lemmas
 
 namespace vector
 variables {α : Type*} {n : ℕ}

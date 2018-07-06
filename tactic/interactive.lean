@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
-  tactic.split_ifs meta.expr
+  tactic.split_ifs meta.expr logic.basic
 
 open lean
 open lean.parser
@@ -195,57 +195,6 @@ do let h := h.get_or_else `this,
   | some o, none   := swap >> tactic.clear o >> swap
   end
 
-/-- Unfreeze local instances, which allows us to revert
-  instances in the context. -/
-meta def unfreezeI := tactic.unfreeze_local_instances
-
-/-- Reset the instance cache. This allows any new instances
-  added to the context to be used in typeclass inference. -/
-meta def resetI := reset_instance_cache
-
-/-- Like `intro`, but uses the introduced variable
-  in typeclass inference. -/
-meta def introI (p : parse ident_?) : tactic unit :=
-intro p >> reset_instance_cache
-
-/-- Like `intros`, but uses the introduced variable(s)
-  in typeclass inference. -/
-meta def introsI (p : parse ident_*) : tactic unit :=
-intros p >> reset_instance_cache
-
-/-- Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `have`,
-  but the proof-omitted version is not supported. For
-  this one must write `have : t, { <proof> }, resetI, <proof>`. -/
-meta def haveI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse (tk ":=" *> texpr)) : tactic unit :=
-do h ← match h with
-  | none   := get_unused_name "_inst"
-  | some a := return a
-  end,
-  «have» (some h) q₁ (some q₂),
-  match q₁ with
-  | none    := swap >> reset_instance_cache >> swap
-  | some p₂ := reset_instance_cache
-  end
-
-/-- Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `let`. -/
-meta def letI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
-do h ← match h with
-  | none   := get_unused_name "_inst"
-  | some a := return a
-  end,
-  «let» (some h) q₁ q₂,
-  match q₁ with
-  | none    := swap >> reset_instance_cache >> swap
-  | some p₂ := reset_instance_cache
-  end
-
-/-- Like `exact`, but uses all variables in the context
-  for typeclass inference. -/
-meta def exactI (q : parse texpr) : tactic unit :=
-reset_instance_cache >> exact q
-
 meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
 tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
@@ -301,44 +250,19 @@ meta structure by_elim_opt :=
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
-theorem or_iff_not_imp_left {a b} [decidable a] : a ∨ b ↔ (¬ a → b) :=
-⟨or.resolve_left, λ h, dite _ or.inl (or.inr ∘ h)⟩
-
-theorem or_iff_not_imp_right {a b} [decidable b] : a ∨ b ↔ (¬ b → a) :=
-or.comm.trans or_iff_not_imp_left
-
-@[trans]
-lemma iff.trans {a b c} (h₁ : a ↔ b) (h₂ : b ↔ c) : a ↔ c :=
-iff.intro
-  (assume ha, iff.mp h₂ (iff.mp h₁ ha))
-  (assume hc, iff.mpr h₁ (iff.mpr h₂ hc))
-
-theorem imp.swap {a b c : Prop} : (a → b → c) ↔ (b → a → c) :=
-⟨function.swap, function.swap⟩
-
-theorem imp_not_comm {a b} : (a → ¬b) ↔ (b → ¬a) :=
-imp.swap
-
-theorem not_and_of_not_or_not {a b} (h : ¬ a ∨ ¬ b) : ¬ (a ∧ b)
-| ⟨ha, hb⟩ := or.elim h (absurd ha) (absurd hb)
-
-theorem not_and_distrib {a b} [decidable a] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
-⟨λ h, if ha : a then or.inr (λ hb, h ⟨ha, hb⟩) else or.inl ha, not_and_of_not_or_not⟩
-
-theorem not_and_distrib' {a b} [decidable b] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
-⟨λ h, if hb : b then or.inl (λ ha, h ⟨ha, hb⟩) else or.inr hb, not_and_of_not_or_not⟩
-
-theorem not_or_distrib {a b} : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
-⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,
- λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩
-
-
+/--
+  find all assumptions of the shape `¬ (p ∧ q)` or `¬ (p ∨ q)` and
+  replace them using de Morgan's law.
+-/
 meta def de_morgan_hyps : tactic unit :=
 do hs ← local_context,
    hs.for_each $ λ h,
      replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
      replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h) <|>
      replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(of_not_not %%h) <|>
+     replace (some h.local_pp_name) none ``(not_imp.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(not_iff.mp %%h) <|>
      skip
 
 /--
@@ -351,7 +275,7 @@ repeat (do
   gs ← get_goals,
   () <$ tactic.intros;
   de_morgan_hyps,
-  casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
+  casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(_ ↔ _),``(Exists _),``(false)];
   constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)],
   try (refine ``( or_iff_not_imp_left.mpr _)),
   try (refine ``( or_iff_not_imp_right.mpr _)),

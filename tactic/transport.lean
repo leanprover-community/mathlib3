@@ -1,6 +1,7 @@
 import data.list.basic
 import data.equiv.basic
 import tactic.interactive
+-- import system.io
 -- import meta.expr
 -- import tactic.refine
 
@@ -226,6 +227,19 @@ do f ← resolve_name n,
             `[ simp only [equiv.inverse_apply_apply,equiv.apply_inverse_apply,id] ],
             return ()))
 
+/-  For profiling: select versions
+ -/
+-- run_cmd
+-- do r ← tactic.unsafe_run_io
+--          (do h ← io.mk_file_handle "profile_config.txt" io.mode.read_write ff,
+--              r ← buffer.to_string <$> io.fs.get_line h,
+--              io.put_str_ln "read_file",
+--              -- io.put_str_ln $ r ++ "\"",
+--              io.fs.close h,
+--              return (r = "version A\n" : bool)),
+--    -- trace r,
+--    add_decl $ mk_definition `use_opti [] `(bool) (reflect r)
+
 meta def mk_transportable_instance  (n : name) : tactic unit :=
 do d ← decl_name,
    -- let to_fun := d ++ `group.transport.to_fun,
@@ -255,7 +269,7 @@ do d ← decl_name,
          -- num_goals >>= trace,
            -- done,
            try congr; tactic.funext; cases (none,```(x)) [];
-           dunfold [`id,to_fun] goal;refl ),
+           refl ),
          abstract (some $ n ++ `on_trans) (do
            intro1,
            fs' ← fs.mmap (resolve_name ∘ uncurry (flip name.update_prefix)),
@@ -268,7 +282,7 @@ do d ← decl_name,
          -- num_goals >>= trace,
            intron 4,
            try congr; tactic.funext; cases (none,```(x)) [];
-           dunfold [`id,to_fun] goal;refl ),
+           refl ),
          -- num_goals >>= trace,
          -- dunfold [`id,to_fun] goal,
          -- num_goals >>= trace,

@@ -104,19 +104,24 @@ example (p : Prop) : p ∨ false → p := by tauto
 /- transport -/
 open tactic tactic.interactive
 
+/- for profiling -/
+-- run_cmd if use_opti then
+--   tactic.trace "version A"
+--   else
+--   tactic.trace "version B"
+
 -- set_option profiler true
 
--- 7s
 run_cmd do
  mk_transportable_instance `group
--- 3s
 run_cmd do
  mk_transportable_instance `monoid
--- 18s
 run_cmd do
  mk_transportable_instance `ring
 -- run_cmd do
 --  mk_transportable_instance `field
+
+-- set_option profiler false
 
 #check (by apply_instance : transportable group)
 #check (by apply_instance : transportable monoid)
@@ -126,12 +131,12 @@ run_cmd do
 --  mk_to_fun `group
 -- run_cmd do
 --  mk_to_fun `monoid
+-- run_cmd do
+--  mk_to_fun `ring
 
 -- set_option pp.notation false
 -- set_option trace.app_builder true
 
--- run_cmd do
---  mk_to_fun `ring
 -- run_cmd do
 --  mk_to_fun `field
 

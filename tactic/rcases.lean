@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.basic
+import data.dlist tactic.cache
 
 open lean lean.parser
 
@@ -46,11 +46,7 @@ def rcases_patt.name : rcases_patt → name
 meta instance rcases_patt.has_reflect : has_reflect rcases_patt
 | (rcases_patt.one n) := `(_)
 | (rcases_patt.many l) := `(λ l, rcases_patt.many l).subst $
-  begin
-    have := rcases_patt.has_reflect,
-    tactic.reset_instance_cache, -- this combo will be `haveI` later
-    exact list.reflect l
-  end
+  by haveI := rcases_patt.has_reflect; exact list.reflect l
 
 /--
 Takes the number of fields of a single constructor and patterns to

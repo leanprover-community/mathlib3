@@ -9,7 +9,7 @@ Classical versions are in the namespace "classical".
 Note: in the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
-import data.prod tactic.interactive
+import data.prod tactic.cache
 
 /-
     miscellany
@@ -241,6 +241,10 @@ by rw [@iff_def (¬ a), @iff_def' a]; exact and_congr not_imp_not not_imp_not
 
 theorem not_iff_comm [decidable a] [decidable b] : (¬ a ↔ b) ↔ (¬ b ↔ a) :=
 by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr not_imp_comm imp_not_comm
+
+theorem not_iff [decidable a] [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
+by split; intro h; [split, skip]; intro h'; [by_contradiction,intro,skip];
+   try { refine h _; simp [*] }; rw [h',not_iff_self] at h; exact h
 
 theorem iff_not_comm [decidable a] [decidable b] : (a ↔ ¬ b) ↔ (b ↔ ¬ a) :=
 by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm

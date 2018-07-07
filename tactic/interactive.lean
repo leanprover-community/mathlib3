@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
-  tactic.split_ifs meta.expr
+  tactic.split_ifs meta.expr logic.basic
 
 open lean
 open lean.parser
@@ -28,21 +28,27 @@ the result.
 -/
 @[reducible] def rcases_patt_inverted := rcases_patt
 
-meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
-with_desc "patt" $ let p :=
-  (rcases_patt.one <$> ident_) <|>
-  (rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse)) in
-list.cons <$> p <*> (tk "|" *> p)*
+meta def rcases_parse1 (rcases_parse : parser (listΣ rcases_patt_inverted)) :
+  parser rcases_patt_inverted | x :=
+((rcases_patt.one <$> ident_) <|>
+(rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse))) x
 
-meta def rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt) :=
-let invert' (l : listΣ rcases_patt_inverted) : rcases_patt := match l with
-| [rcases_patt.one n] := rcases_patt.one n
-| _ := rcases_patt.many (rcases_parse.invert l)
-end in
-list.map $ λ p, match p with
+meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
+with_desc "patt" $
+list.cons <$> rcases_parse1 rcases_parse <*> (tk "|" *> rcases_parse1 rcases_parse)*
+
+meta def rcases_parse_single : parser rcases_patt_inverted :=
+with_desc "patt_list" $ rcases_parse1 rcases_parse
+
+meta mutual def rcases_parse.invert, rcases_parse.invert'
+with rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt)
+| l := l.map $ λ p, match p with
 | rcases_patt.one n := [rcases_patt.one n]
-| rcases_patt.many l := invert' <$> l
+| rcases_patt.many l := rcases_parse.invert' <$> l
 end
+with rcases_parse.invert' : listΣ rcases_patt_inverted → rcases_patt
+| [rcases_patt.one n] := rcases_patt.one n
+| l := rcases_patt.many (rcases_parse.invert l)
 
 /--
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
@@ -66,6 +72,21 @@ parameter as necessary.
 -/
 meta def rcases (p : parse texpr) (ids : parse (tk "with" *> rcases_parse)?) : tactic unit :=
 tactic.rcases p $ rcases_parse.invert $ ids.get_or_else [default _]
+
+meta def rintro_parse : parser rcases_patt :=
+rcases_parse.invert' <$> (brackets "(" ")" rcases_parse <|>
+  (λ x, [x]) <$> rcases_parse_single)
+
+/--
+The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
+allow for destructuring patterns while introducing variables. See `rcases` for
+a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
+will introduce two variables, and then do case splits on both of them producing
+two subgoals, one with variables `a d e` and the other with `b c d e`.
+-/
+meta def rintro : parse rintro_parse* → tactic unit
+| [] := intros []
+| l  := tactic.rintro l
 
 /--
 This is a "finishing" tactic modification of `simp`. The tactic `simpa [rules, ...] using e`
@@ -174,57 +195,6 @@ do let h := h.get_or_else `this,
   | some o, none   := swap >> tactic.clear o >> swap
   end
 
-/-- Unfreeze local instances, which allows us to revert
-  instances in the context. -/
-meta def unfreezeI := tactic.unfreeze_local_instances
-
-/-- Reset the instance cache. This allows any new instances
-  added to the context to be used in typeclass inference. -/
-meta def resetI := reset_instance_cache
-
-/-- Like `intro`, but uses the introduced variable
-  in typeclass inference. -/
-meta def introI (p : parse ident_?) : tactic unit :=
-intro p >> reset_instance_cache
-
-/-- Like `intros`, but uses the introduced variable(s)
-  in typeclass inference. -/
-meta def introsI (p : parse ident_*) : tactic unit :=
-intros p >> reset_instance_cache
-
-/-- Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `have`,
-  but the proof-omitted version is not supported. For
-  this one must write `have : t, { <proof> }, resetI, <proof>`. -/
-meta def haveI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse (tk ":=" *> texpr)) : tactic unit :=
-do h ← match h with
-  | none   := get_unused_name "_inst"
-  | some a := return a
-  end,
-  «have» (some h) q₁ (some q₂),
-  match q₁ with
-  | none    := swap >> reset_instance_cache >> swap
-  | some p₂ := reset_instance_cache
-  end
-
-/-- Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `let`. -/
-meta def letI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
-do h ← match h with
-  | none   := get_unused_name "_inst"
-  | some a := return a
-  end,
-  «let» (some h) q₁ q₂,
-  match q₁ with
-  | none    := swap >> reset_instance_cache >> swap
-  | some p₂ := reset_instance_cache
-  end
-
-/-- Like `exact`, but uses all variables in the context
-  for typeclass inference. -/
-meta def exactI (q : parse texpr) : tactic unit :=
-reset_instance_cache >> exact q
-
 meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
 tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
@@ -281,6 +251,21 @@ meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
 /--
+  find all assumptions of the shape `¬ (p ∧ q)` or `¬ (p ∨ q)` and
+  replace them using de Morgan's law.
+-/
+meta def de_morgan_hyps : tactic unit :=
+do hs ← local_context,
+   hs.for_each $ λ h,
+     replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(of_not_not %%h) <|>
+     replace (some h.local_pp_name) none ``(not_imp.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(not_iff.mp %%h) <|>
+     skip
+
+/--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
   and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
   using `reflexivity` or `solve_by_elim`
@@ -288,13 +273,17 @@ solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 meta def tautology : tactic unit :=
 repeat (do
   gs ← get_goals,
-  () <$ tactic.intros ;
-  casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _)] ;
-  constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _)],
+  () <$ tactic.intros;
+  de_morgan_hyps,
+  casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(_ ↔ _),``(Exists _),``(false)];
+  constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)],
+  try (refine ``( or_iff_not_imp_left.mpr _)),
+  try (refine ``( or_iff_not_imp_right.mpr _)),
   gs' ← get_goals,
   guard (gs ≠ gs') ) ;
 repeat
-(reflexivity <|> solve_by_elim <|> constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)]) ;
+(reflexivity <|> solve_by_elim <|>
+ constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)] ) ;
 done
 
 /-- Shorter name for the tactic `tautology`. -/

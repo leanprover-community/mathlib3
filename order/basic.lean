@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import tactic.interactive logic.basic data.sigma data.sum data.set.basic algebra.order
+import tactic.interactive logic.basic data.sum data.set.basic algebra.order
 open function
 
 /- TODO: automatic construction of dual definitions / theorems -/
@@ -28,6 +28,26 @@ instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
 instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
+
+theorem preorder.ext {α} {A B : preorder α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  resetI, cases A, cases B, congr,
+  { funext x y, exact propext (H x y) },
+  { funext x y,
+    dsimp [(≤)] at A_lt_iff_le_not_le B_lt_iff_le_not_le H,
+    simp [A_lt_iff_le_not_le, B_lt_iff_le_not_le, H] },
+end
+
+theorem partial_order.ext {α} {A B : partial_order α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+by haveI this := preorder.ext H;
+   cases A; cases B; injection this; congr'
+
+theorem linear_order.ext {α} {A B : linear_order α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+by haveI this := partial_order.ext H;
+   cases A; cases B; injection this; congr'
 
 section monotone
 variables [preorder α] [preorder β] [preorder γ]

@@ -273,7 +273,93 @@ do hs ← local_context,
            | _ := skip
            end
 
--- meta def find_contradiction
+meta def symm_closure := expr_map (expr × expr)
+meta def symm_closure.mk : symm_closure := expr_map.mk (expr × expr)
+
+meta def symm_add_refl (r : ref symm_closure) (e : expr) : tactic (expr × expr) :=
+do m ← read_ref r,
+   p ← mk_mapp `rfl [none,e],
+   write_ref r $ m.insert e (e,p),
+   return (e,p)
+
+meta def symm_add_proof (r : ref symm_closure) (e : expr) : tactic (expr × expr) :=
+do m ← read_ref r,
+   env ← get_env,
+   let rel := e.get_app_fn.const_name,
+   some symm ← pure $ environment.symm_for env rel
+     | symm_add_refl r e,
+   (do e' ← mk_meta_var `(Prop),
+       iff_t ← to_expr ``(%%e = %%e'),
+       (_,p) ← solve_aux iff_t
+         (applyc `iff.to_eq ; split ; applyc symm),
+       e' ← instantiate_mvars e',
+       write_ref r $ m.insert e (e',p),
+       symm_add_refl r e',
+       return (e',p) )
+   <|> symm_add_refl r e
+
+meta def symm_congr (r : ref symm_closure) : expr → tactic (expr × expr) | e :=
+do m ← read_ref r,
+   let s_congr_add (e : expr) : tactic (expr × expr) :=
+       match e with
+       | `(¬ %%e') :=
+          do (e',p') ← symm_congr e',
+             e' ← mk_app `not [e'],
+             p' ← to_expr ``(congr_arg not %%p'),
+             write_ref r $ m.insert e (e',p'),
+             return (e',p')
+       | `(%%e₀ ∧ %%e₁) :=
+          do (e₀,p₀) ← symm_congr e₀,
+             (e₁,p₁) ← symm_congr e₁,
+             e' ← mk_app `and [e₀,e₁],
+             p' ← to_expr ``(_root_.congr (congr_arg and %%p₀) %%p₁),
+             write_ref r $ m.insert e (e',p'),
+             return (e',p')
+       | `(%%e₀ ∨ %%e₁) :=
+          do (e₀,p₀) ← symm_congr e₀,
+             (e₁,p₁) ← symm_congr e₁,
+             e' ← mk_app `or [e₀,e₁],
+             p' ← to_expr ``(_root_.congr (congr_arg or %%p₀) %%p₁),
+             write_ref r $ m.insert e (e',p'),
+             return (e',p')
+       | `(%%e₀ ↔ %%e₁) :=
+          do (e₀,p₀) ← symm_congr e₀,
+             (e₁,p₁) ← symm_congr e₁,
+             e' ← to_expr ``(%%e₀ ↔ %%e₁),
+             p' ← to_expr ``(_root_.congr (congr_arg iff %%p₀) %%p₁),
+             write_ref r $ m.insert e (e',p'),
+             return (e',p')
+       | `(%%e₀ → %%e₁) :=
+          if ¬ e₁.has_var then
+           do (e₀,p₀) ← symm_congr e₀,
+              (e₁,p₁) ← symm_congr e₁,
+              let e' := e₀.imp e₁,
+              p' ← to_expr ``(_root_.congr (congr_arg implies %%p₀) %%p₁),
+              write_ref r $ m.insert e (e',p'),
+              return (e',p')
+          else symm_add_proof r e
+        | _ := symm_add_proof r e
+        end,
+   some x ← pure $ m.find e | s_congr_add e,
+   pure x
+
+meta def symm_congr_hyp (r : ref symm_closure) : tactic unit :=
+do ls ← local_context,
+   ls.for_each $ λ h, do
+     t ← infer_type h,
+     b ← is_prop t,
+     when b $ do
+       t ← instantiate_mvars t,
+       (t',p) ← symm_congr r t,
+       when (t ≠ t') $ replace h.local_pp_name (some $ to_pexpr t') ``((%%p).mp %%h)
+
+meta def symm_congr_goal (r : ref symm_closure) : tactic unit :=
+do   tgt ← target,
+     b ← is_prop tgt,
+     when b $ do
+       tgt ← instantiate_mvars tgt,
+       (t',p) ← symm_congr r tgt,
+       when (tgt ≠ t') $ refine ``((%%p).mpr _ : %%tgt)
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -281,23 +367,26 @@ do hs ← local_context,
   using `reflexivity` or `solve_by_elim`
 -/
 meta def tautology : tactic unit :=
-repeat (do
-  gs ← get_goals,
-  () <$ tactic.intros;
-  distrib_not;
-  casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(_ ↔ _),``(Exists _),``(false)];
-  try contradiction;
-  try (refine ``( or_iff_not_imp_left.mpr _));
-  try (refine ``( or_iff_not_imp_right.mpr _));
-  () <$ tactic.intros;
-  constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
-  try assumption,
-  gs' ← get_goals,
-  guard (gs ≠ gs') ) ;
-repeat
-(reflexivity <|> solve_by_elim <|>
- constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)] ) ;
-done
+using_new_ref symm_closure.mk $ λ r,
+do symm_congr_hyp r,
+   symm_congr_goal r,
+   repeat (do
+     gs ← get_goals,
+     () <$ tactic.intros;
+     distrib_not;
+     casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(_ ↔ _),``(Exists _),``(false)];
+     try contradiction;
+     try (refine ``( or_iff_not_imp_left.mpr _));
+     try (refine ``( or_iff_not_imp_right.mpr _));
+     () <$ tactic.intros;
+     constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
+     try assumption,
+     gs' ← get_goals,
+     guard (gs ≠ gs') ) ;
+   repeat
+   (reflexivity <|> solve_by_elim <|>
+    constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)] ) ;
+   done
 
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology

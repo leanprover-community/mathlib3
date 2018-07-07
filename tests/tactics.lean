@@ -57,6 +57,53 @@ by tauto
 
 end tauto₂
 
+section tauto₃
+
+-- 260ms -- 82ms -- 214ms -- 38ms -- 30ms
+example (p : Prop) : p ∧ true ↔ p := by tauto
+-- 380ms -- 127ms -- 214ms -- 54ms -- 60ms
+example (p : Prop) : p ∨ false ↔ p := by tauto
+-- 1.66s -- 455ms -- 204ms -- 78ms -- 100ms
+example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+-- 1.67s -- 485ms -- 135ms -- 90ms -- 76ms
+example (p q r : Prop) [decidable q] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+-- 1.63s -- 547ms -- 138ms -- 76ms -- 80ms
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ p) : q := by tauto
+-- 1.55s -- 419ms -- 248ms -- 118ms -- 85ms
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : p) : ¬ q := by tauto
+-- 1.62s -- 441ms -- 171ms -- 103ms -- 119ms
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : q) : ¬ p := by tauto
+-- 2.41s -- 597ms -- 230ms -- 129ms -- 125ms
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) : p := by tauto
+-- 5.38s -- 1.56s -- 1.18s -- 639ms -- 524ms
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) (h'' : ¬ p) : false := by tauto
+-- 5.38s -- 1.61s -- 643ms -- 314ms -- 505ms
+example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) (h'' : ¬ r) : ¬ p := by tauto
+-- 3.7s -- 965ms -- 613ms -- 661ms -- 298ms
+example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) : p ↔ r := by tauto
+-- 7.27s -- 1.9s -- 1.32s -- 332ms -- 305ms
+example (p q r : Prop) [decidable p] [decidable q] [decidable r] (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto
+
+section modulo_symmetry
+variables {p q r : Prop} {α : Type} {x y : α}
+variables [decidable p] [decidable q] [decidable r]
+variables (h : x = y)
+-- variables (h'' : true)
+variables (h'' : (p ∧ q ↔ q ∨ r) ↔ (r ∧ p ↔ r ∨ q))
+include h  h''
+-- 4.25s -- 74ms
+example (h' : ¬ y = x) : p ∧ q := by tauto
+-- 4.25s -- 63ms
+example : y = x := by tauto
+-- 19ms -- 52ms
+example (h' : ¬ x = y) : p ∧ q := by tauto
+-- 19ms -- 43ms
+example : x = y := by tauto
+
+end modulo_symmetry
+
+end tauto₃
+
 section wlog
 
 example {x y : ℕ} (a : x = 1) : true :=

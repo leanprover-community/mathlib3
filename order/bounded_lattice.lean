@@ -401,13 +401,14 @@ instance bounded_lattice [bounded_lattice α] : bounded_lattice (with_bot α) :=
 lemma well_founded_lt [partial_order α] (h : well_founded ((<) : α → α → Prop)) :
   well_founded ((<) : with_bot α → with_bot α → Prop) :=
 have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
-  acc.intro _ (λ b h, (not_le_of_gt h lattice.bot_le).elim),
-⟨λ a, option.rec_on a acc_bot
-  (λ a, acc.intro _ (well_founded.induction h a
-    (show ∀ b, (∀ c, c < b → ∀ (d : with_bot α), d < some c → acc (<) d) →
-      ∀ c : with_bot α, c < some b → acc (<) c,
-    from λ b ih c, option.rec_on c (λ hc, acc_bot)
-      (λ c hc, acc.intro _ (ih _ (with_bot.some_lt_some.1 hc))))))⟩
+  acc.intro _ (λ a ha, (not_le_of_gt ha bot_le).elim),
+⟨λ a, option.rec_on a acc_bot (λ a, acc.intro _ (λ b, option.rec_on b (λ _, acc_bot)
+(λ b, well_founded.induction h b 
+  (show ∀ b : α, (∀ c, c < b → (c : with_bot α) < a → 
+      acc ((<) : with_bot α → with_bot α → Prop) c) → (b : with_bot α) < a → 
+        acc ((<) : with_bot α → with_bot α → Prop) b,
+  from λ b ih hba, acc.intro _ (λ c, option.rec_on c (λ _, acc_bot) 
+    (λ c hc, ih _ (some_lt_some.1 hc) (lt_trans hc hba)))))))⟩
 
 end with_bot
 
@@ -529,5 +530,16 @@ instance order_bot [order_bot α] : order_bot (with_top α) :=
 
 instance bounded_lattice [bounded_lattice α] : bounded_lattice (with_top α) :=
 { ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
+
+lemma well_founded_lt {α : Type*} [partial_order α] (h : well_founded ((<) : α → α → Prop)) :
+  well_founded ((<) : with_top α → with_top α → Prop) :=
+have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (some a) :=
+λ a, acc.intro _ (well_founded.induction h a
+  (show ∀ b, (∀ c, c < b → ∀ d : with_top α, d < some c → acc (<) d) →
+    ∀ y : with_top α, y < some b → acc (<) y,
+  from λ b ih c, option.rec_on c (λ hc, (not_lt_of_ge lattice.le_top hc).elim)
+    (λ c hc, acc.intro _ (ih _ (some_lt_some.1 hc))))),
+⟨λ a, option.rec_on a (acc.intro _ (λ y, option.rec_on y (λ h, (lt_irrefl _ h).elim)
+  (λ _ _, acc_some _))) acc_some⟩
 
 end with_top

@@ -115,6 +115,20 @@ assume ⟨b, hb⟩,
 have a ≠ a ⊔ b, from assume eq, hb $ eq.symm ▸ le_sup_right,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left ‹a ≠ a ⊔ b›⟩
 
+theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
+  (x y : α) : (by haveI := A; exact (x ⊔ y)) = x ⊔ y :=
+eq_of_forall_ge_iff $ λ c,
+by simp; rw [← H, @sup_le_iff α A, H, H]
+
+theorem semilattice_sup.ext {α} {A B : semilattice_sup α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  haveI this := partial_order.ext H,
+  have ss := funext (λ x, funext $ semilattice_sup.ext_sup H x),
+  cases A; cases B; injection this; congr'
+end
+
 end semilattice_sup
 
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
@@ -187,6 +201,20 @@ assume ⟨b, hb⟩,
 have a ⊓ b ≠ a, from assume eq, hb $ eq ▸ inf_le_right,
 ⟨a ⊓ b, lt_of_le_of_ne inf_le_left ‹a ⊓ b ≠ a›⟩
 
+theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
+  (x y : α) : (by haveI := A; exact (x ⊓ y)) = x ⊓ y :=
+eq_of_forall_le_iff $ λ c,
+by simp; rw [← H, @le_inf_iff α A, H, H]
+
+theorem semilattice_inf.ext {α} {A B : semilattice_inf α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  haveI this := partial_order.ext H,
+  have ss := funext (λ x, funext $ semilattice_inf.ext_inf H x),
+  cases A; cases B; injection this; congr'
+end
+
 end semilattice_inf
 
 /- Lattices -/
@@ -210,6 +238,15 @@ le_antisymm (by finish) (by finish)
 
 theorem sup_inf_self : a ⊔ (a ⊓ b) = a :=
 le_antisymm (by finish) (by finish)
+
+theorem lattice.ext {α} {A B : lattice α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  have SS : @lattice.to_semilattice_sup α A =
+            @lattice.to_semilattice_sup α B := semilattice_sup.ext H,
+  have II := semilattice_inf.ext H,
+  resetI, cases A; cases B; injection SS; injection II; congr'
+end
 
 end lattice
 
@@ -273,6 +310,9 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
   inf_le_right := min_le_right,
   le_inf       := assume a b c, le_min,
   ..o }
+
+theorem sup_eq_max [decidable_linear_order α] : x ⊔ y = max x y := rfl
+theorem inf_eq_min [decidable_linear_order α] : x ⊓ y = min x y := rfl
 
 instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : distrib_lattice α :=
 { le_sup_inf := assume a b c,

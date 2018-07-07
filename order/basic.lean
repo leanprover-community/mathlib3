@@ -29,6 +29,26 @@ instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α
 instance [linear_order α] : is_linear_order α (≤) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
 
+theorem preorder.ext {α} {A B : preorder α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  resetI, cases A, cases B, congr,
+  { funext x y, exact propext (H x y) },
+  { funext x y,
+    dsimp [(≤)] at A_lt_iff_le_not_le B_lt_iff_le_not_le H,
+    simp [A_lt_iff_le_not_le, B_lt_iff_le_not_le, H] },
+end
+
+theorem partial_order.ext {α} {A B : partial_order α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+by haveI this := preorder.ext H;
+   cases A; cases B; injection this; congr'
+
+theorem linear_order.ext {α} {A B : linear_order α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+by haveI this := partial_order.ext H;
+   cases A; cases B; injection this; congr'
+
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
 

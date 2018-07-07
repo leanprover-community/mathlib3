@@ -52,6 +52,19 @@ assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
 
 end order_top
 
+theorem order_top.ext_top {α} {A B : order_top α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :
+  (by haveI := A; exact ⊤ : α) = ⊤ :=
+top_unique $ by rw ← H; apply le_top
+
+theorem order_top.ext {α} {A B : order_top α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  haveI this := partial_order.ext H,
+  have tt := order_top.ext_top H,
+  cases A; cases B; injection this; congr'
+end
+
 /-- An `order_bot` is a partial order with a minimal element.
   (We could state this on preorders, but then it wouldn't be unique
   so distinguishing one would seem odd.) -/
@@ -80,6 +93,19 @@ theorem neq_bot_of_le_neq_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a �
 assume ha, hb $ bot_unique $ ha ▸ hab
 
 end order_bot
+
+theorem order_bot.ext_bot {α} {A B : order_bot α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :
+  (by haveI := A; exact ⊥ : α) = ⊥ :=
+bot_unique $ by rw ← H; apply bot_le
+
+theorem order_bot.ext {α} {A B : order_bot α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  haveI this := partial_order.ext H,
+  have tt := order_bot.ext_bot H,
+  cases A; cases B; injection this; congr'
+end
 
 /-- A `semilattice_sup_top` is a semilattice with top and join. -/
 class semilattice_sup_top (α : Type u) extends order_top α, semilattice_sup α
@@ -164,6 +190,18 @@ instance semilattice_sup_top_of_bounded_lattice (α : Type u) [bl : bounded_latt
 
 instance semilattice_sup_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_sup_bot α :=
 { bot_le := assume x, @bot_le α _ x, ..bl }
+
+theorem bounded_lattice.ext {α} {A B : bounded_lattice α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  haveI H1 : @bounded_lattice.to_lattice α A =
+             @bounded_lattice.to_lattice α B := lattice.ext H,
+  haveI H2 := order_bot.ext H,
+  haveI H3 : @bounded_lattice.to_order_top α A =
+             @bounded_lattice.to_order_top α B := order_top.ext H,
+  have tt := order_bot.ext_bot H,
+  cases A; cases B; injection H1; injection H2; injection H3; congr'
+end
 
 /-- A bounded distributive lattice is exactly what it sounds like. -/
 class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
@@ -342,6 +380,16 @@ instance semilattice_inf [semilattice_inf α] : semilattice_inf_bot (with_bot α
 instance lattice [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
 
+theorem lattice_eq_DLO [decidable_linear_order α] :
+  lattice.lattice_of_decidable_linear_order = @with_bot.lattice α _ :=
+lattice.ext $ λ x y, iff.rfl
+
+theorem sup_eq_max [decidable_linear_order α] (x y : with_bot α) : x ⊔ y = max x y :=
+by rw [← sup_eq_max, lattice_eq_DLO]
+
+theorem inf_eq_min [decidable_linear_order α] (x y : with_bot α) : x ⊓ y = min x y :=
+by rw [← inf_eq_min, lattice_eq_DLO]
+
 instance order_top [order_top α] : order_top (with_bot α) :=
 { top := some ⊤,
   le_top := λ o a ha, by cases ha; exact ⟨_, rfl, le_top⟩,
@@ -452,6 +500,16 @@ instance semilattice_sup [semilattice_sup α] : semilattice_sup_top (with_top α
 
 instance lattice [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
+
+theorem lattice_eq_DLO [decidable_linear_order α] :
+  lattice.lattice_of_decidable_linear_order = @with_top.lattice α _ :=
+lattice.ext $ λ x y, iff.rfl
+
+theorem sup_eq_max [decidable_linear_order α] (x y : with_top α) : x ⊔ y = max x y :=
+by rw [← sup_eq_max, lattice_eq_DLO]
+
+theorem inf_eq_min [decidable_linear_order α] (x y : with_top α) : x ⊓ y = min x y :=
+by rw [← inf_eq_min, lattice_eq_DLO]
 
 instance order_bot [order_bot α] : order_bot (with_top α) :=
 { bot := some ⊥,

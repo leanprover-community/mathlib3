@@ -273,93 +273,96 @@ do hs ← local_context,
            | _ := skip
            end
 
-meta def symm_closure := expr_map (expr × expr)
-meta def symm_closure.mk : symm_closure := expr_map.mk (expr × expr)
+@[reducible]
+meta def symm := state_t (expr_map (expr × expr)) tactic
+meta def symm.run {α : Type} (tac : symm α) : tactic α :=
+prod.fst <$> state_t.run tac (expr_map.mk _)
 
-meta def symm_add_refl (r : ref symm_closure) (e : expr) : tactic (expr × expr) :=
-do m ← read_ref r,
-   p ← mk_mapp `rfl [none,e],
-   write_ref r $ m.insert e (e,p),
+open state_t
+
+meta def symm_add_refl (e : expr) : symm (expr × expr) :=
+do p ← monad_lift $ mk_mapp `rfl [none,e],
+   modify $ λ m, m.insert e (e,p),
    return (e,p)
 
-meta def symm_add_proof (r : ref symm_closure) (e : expr) : tactic (expr × expr) :=
-do m ← read_ref r,
-   env ← get_env,
+meta def symm_add_proof (e : expr) : symm (expr × expr) :=
+do env ← monad_lift get_env,
    let rel := e.get_app_fn.const_name,
    some symm ← pure $ environment.symm_for env rel
-     | symm_add_refl r e,
-   (do e' ← mk_meta_var `(Prop),
-       iff_t ← to_expr ``(%%e = %%e'),
-       (_,p) ← solve_aux iff_t
+     | symm_add_refl e,
+   (do e' ← monad_lift $ mk_meta_var `(Prop),
+       iff_t ← monad_lift $ to_expr ``(%%e = %%e'),
+       (_,p) ← monad_lift $ solve_aux iff_t
          (applyc `iff.to_eq ; split ; applyc symm),
-       e' ← instantiate_mvars e',
-       write_ref r $ m.insert e (e',p),
-       symm_add_refl r e',
+       e' ← monad_lift $ instantiate_mvars e',
+       modify $ λ m, m.insert e (e',p),
+       symm_add_refl e',
        return (e',p) )
-   <|> symm_add_refl r e
+   <|> symm_add_refl e
 
-meta def symm_congr (r : ref symm_closure) : expr → tactic (expr × expr) | e :=
-do m ← read_ref r,
-   let s_congr_add (e : expr) : tactic (expr × expr) :=
+meta def symm_congr : expr → symm (expr × expr) | e :=
+do let s_congr_add (e : expr) : symm (expr × expr) :=
        match e with
        | `(¬ %%e') :=
           do (e',p') ← symm_congr e',
-             e' ← mk_app `not [e'],
-             p' ← to_expr ``(congr_arg not %%p'),
-             write_ref r $ m.insert e (e',p'),
+             e' ← monad_lift $ mk_app `not [e'],
+             p' ← monad_lift $ to_expr ``(congr_arg not %%p'),
+             modify $ λ m, m.insert e (e',p'),
              return (e',p')
        | `(%%e₀ ∧ %%e₁) :=
           do (e₀,p₀) ← symm_congr e₀,
              (e₁,p₁) ← symm_congr e₁,
-             e' ← mk_app `and [e₀,e₁],
-             p' ← to_expr ``(_root_.congr (congr_arg and %%p₀) %%p₁),
-             write_ref r $ m.insert e (e',p'),
+             e' ← monad_lift $ mk_app `and [e₀,e₁],
+             p' ← monad_lift $ to_expr ``(_root_.congr (congr_arg and %%p₀) %%p₁),
+             modify $ λ m, m.insert e (e',p'),
              return (e',p')
        | `(%%e₀ ∨ %%e₁) :=
           do (e₀,p₀) ← symm_congr e₀,
              (e₁,p₁) ← symm_congr e₁,
-             e' ← mk_app `or [e₀,e₁],
-             p' ← to_expr ``(_root_.congr (congr_arg or %%p₀) %%p₁),
-             write_ref r $ m.insert e (e',p'),
+             e' ← monad_lift $ mk_app `or [e₀,e₁],
+             p' ← monad_lift $ to_expr ``(_root_.congr (congr_arg or %%p₀) %%p₁),
+             modify $ λ m, m.insert e (e',p'),
              return (e',p')
        | `(%%e₀ ↔ %%e₁) :=
           do (e₀,p₀) ← symm_congr e₀,
              (e₁,p₁) ← symm_congr e₁,
-             e' ← to_expr ``(%%e₀ ↔ %%e₁),
-             p' ← to_expr ``(_root_.congr (congr_arg iff %%p₀) %%p₁),
-             write_ref r $ m.insert e (e',p'),
+             e' ← monad_lift $ to_expr ``(%%e₀ ↔ %%e₁),
+             p' ← monad_lift $ to_expr ``(_root_.congr (congr_arg iff %%p₀) %%p₁),
+             modify $ λ m, m.insert e (e',p'),
              return (e',p')
        | `(%%e₀ → %%e₁) :=
           if ¬ e₁.has_var then
            do (e₀,p₀) ← symm_congr e₀,
               (e₁,p₁) ← symm_congr e₁,
               let e' := e₀.imp e₁,
-              p' ← to_expr ``(_root_.congr (congr_arg implies %%p₀) %%p₁),
-              write_ref r $ m.insert e (e',p'),
+              p' ← monad_lift $ to_expr ``(_root_.congr (congr_arg implies %%p₀) %%p₁),
+              modify $ λ m, m.insert e (e',p'),
               return (e',p')
-          else symm_add_proof r e
-        | _ := symm_add_proof r e
+          else symm_add_proof e
+        | _ := symm_add_proof e
         end,
+   m ← get,
    some x ← pure $ m.find e | s_congr_add e,
    pure x
 
-meta def symm_congr_hyp (r : ref symm_closure) : tactic unit :=
-do ls ← local_context,
-   ls.for_each $ λ h, do
-     t ← infer_type h,
-     b ← is_prop t,
+meta def symm_congr_hyp : symm unit :=
+do ls ← monad_lift $ local_context,
+   ls.mmap' $ λ h, do
+     t ← monad_lift $ infer_type h,
+     b ← monad_lift $ is_prop t,
      when b $ do
-       t ← instantiate_mvars t,
-       (t',p) ← symm_congr r t,
-       when (t ≠ t') $ replace h.local_pp_name (some $ to_pexpr t') ``((%%p).mp %%h)
+       t ← monad_lift $ instantiate_mvars t,
+       (t',p) ← symm_congr t,
+       monad_lift $ when (t ≠ t') $
+         replace h.local_pp_name (some $ to_pexpr t') ``((%%p).mp %%h)
 
-meta def symm_congr_goal (r : ref symm_closure) : tactic unit :=
-do   tgt ← target,
-     b ← is_prop tgt,
+meta def symm_congr_goal : symm unit :=
+do   tgt ← monad_lift $ target,
+     b ← monad_lift $ is_prop tgt,
      when b $ do
-       tgt ← instantiate_mvars tgt,
-       (t',p) ← symm_congr r tgt,
-       when (tgt ≠ t') $ refine ``((%%p).mpr _ : %%tgt)
+       tgt ← monad_lift $ instantiate_mvars tgt,
+       (t',p) ← symm_congr tgt,
+       monad_lift $ when (tgt ≠ t') $ refine ``((%%p).mpr _ : %%tgt)
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -367,9 +370,7 @@ do   tgt ← target,
   using `reflexivity` or `solve_by_elim`
 -/
 meta def tautology : tactic unit :=
-using_new_ref symm_closure.mk $ λ r,
-do symm_congr_hyp r,
-   symm_congr_goal r,
+do (symm_congr_hyp >> symm_congr_goal).run,
    repeat (do
      gs ← get_goals,
      () <$ tactic.intros;

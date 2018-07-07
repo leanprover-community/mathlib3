@@ -13,6 +13,9 @@ protected lemma subtype.eq' : ∀ {a1 a2 : {x // β x}}, a1.val = a2.val → a1 
 lemma subtype.ext {a1 a2 : {x // β x}} : a1 = a2 ↔ a1.val = a2.val :=
 ⟨congr_arg _, subtype.eq'⟩
 
+instance subtype.has_decidable_eq [h : decidable_eq α] (p : α → Prop) : decidable_eq (subtype p)
+| s₁ s₂ := decidable_of_decidable_of_iff (@h s₁.val s₂.val) subtype.ext.symm
+
 theorem subtype.val_injective : function.injective (@subtype.val _ β) :=
 λ a b, subtype.eq'
 

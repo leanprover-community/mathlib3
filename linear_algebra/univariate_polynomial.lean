@@ -17,7 +17,14 @@ class nonzero_comm_ring (α : Type*) extends zero_ne_one_class α, comm_ring α
 instance integral_domain.to_nonzero_comm_ring (α : Type*) [hd : integral_domain α] : nonzero_comm_ring α :=
 { ..hd }
 
-lemma with_bot.coe_add {α : Type*} [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
+@[simp] lemma with_bot.coe_add {α : Type*} [add_semigroup α] (a b : α) : 
+  ((a + b : α) : with_bot α) = a + b := rfl
+
+@[simp] lemma with_bot.bot_add {α : Type*} [ordered_comm_monoid α]
+  (a : with_bot α) : ⊥ + a = ⊥ := rfl
+
+@[simp] lemma with_bot.add_bot {α : Type*} [ordered_comm_monoid α]
+  (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
 
 lemma with_bot.coe_lt_coe {a b : ℕ} : (a : with_bot ℕ) < b ↔ a < b :=
 with_bot.some_lt_some
@@ -349,7 +356,13 @@ calc _ ≤ sup (p.support)
         else by rw [degree_monomial _ hpq, with_bot.coe_add];
           exact add_le_add' (le_degree_of_ne_zero ((mem_support_iff _ _).1 ha)) 
             (le_degree_of_ne_zero ((mem_support_iff _ _).1 hb))))
- 
+
+lemma degree_pow_le (p : polynomial α) : ∀ n, degree (p ^ n) ≤ add_monoid.smul n (degree p)
+| 0     := by rw [pow_zero, add_monoid.zero_smul]; exact degree_monomial_le _ _
+| (n+1) := calc degree (p ^ (n + 1)) ≤ degree p + degree (p ^ n) : 
+    by rw pow_succ; exact degree_mul_le _ _
+  ... ≤ _ : by rw succ_smul; exact add_le_add' (le_refl _) (degree_pow_le _)
+
 @[simp] lemma leading_coeff_monomial (a : α) (n : ℕ) : leading_coeff (monomial n a) = a :=
 begin 
   by_cases ha : a = 0,
@@ -467,6 +480,27 @@ begin
   rw [nat_degree_mul_eq' h, mul_apply_degree_add_degree],
   refl
 end
+
+lemma leading_coeff_pow' : leading_coeff p ^ n ≠ 0 →
+  leading_coeff (p ^ n) = leading_coeff p ^ n :=
+nat.rec_on n (by simp) $
+λ n ih h,
+have h₁ : leading_coeff p ^ n ≠ 0 := 
+  λ h₁, by simpa [h₁, pow_succ] using h,
+have h₂ : leading_coeff p * leading_coeff (p ^ n) ≠ 0 :=
+  by rwa [pow_succ, ← ih h₁] at h,
+by rw [pow_succ, pow_succ, leading_coeff_mul' h₂, ih h₁]
+
+lemma degree_pow_eq' : ∀ {n}, leading_coeff p ^ n ≠ 0 →
+  degree (p ^ n) = add_monoid.smul n (degree p)
+| 0     := λ h, by rw [pow_zero, ← C_1] at *;
+  rw [degree_C h, add_monoid.zero_smul]
+| (n+1) := λ h,
+have h₁ : leading_coeff p ^ n ≠ 0 := λ h₁,
+  by simpa [h₁, pow_succ] using h,
+have h₂ : leading_coeff p * leading_coeff (p ^ n) ≠ 0 :=
+  by rwa [pow_succ, ← leading_coeff_pow' h₁] at h,
+by rw [pow_succ, degree_mul_eq' h₂, succ_smul, degree_pow_eq' h₁]
 
 end comm_semiring
 
@@ -803,9 +837,15 @@ end nonzero_comm_ring
 section integral_domain
 variables [integral_domain α] {p q : polynomial α}
 
-lemma degree_mul_eq (hp : p ≠ 0) (hq : q ≠ 0) : degree (p * q) = degree p + degree q :=
-degree_mul_eq' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp) 
-    (mt leading_coeff_eq_zero.1 hq)
+@[simp] lemma degree_mul_eq : degree (p * q) = degree p + degree q :=
+if hp0 : p = 0 then by simp [hp0]
+else if hq0 : q = 0 then  by simp [hq0]
+else degree_mul_eq' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0) 
+    (mt leading_coeff_eq_zero.1 hq0)
+
+@[simp] lemma degree_pow_eq (p : polynomial α) (n : ℕ) : 
+  degree (p ^ n) = add_monoid.smul n (degree p) :=
+by induction n; simp [*, pow_succ, succ_smul]
 
 @[simp] lemma leading_coeff_mul (p q : polynomial α) : leading_coeff (p * q) = 
   leading_coeff p * leading_coeff q :=
@@ -817,6 +857,10 @@ begin
     { rw [leading_coeff_mul'],
       exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
 end
+
+@[simp] lemma leading_coeff_pow (p : polynomial α) (n : ℕ) :
+  leading_coeff (p ^ n) = leading_coeff p ^ n :=
+by induction n; simp [*, pow_succ]
 
 instance : integral_domain (polynomial α) := 
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin
@@ -840,7 +884,7 @@ lt_of_not_ge $ λ hlt, begin
       (with_bot.coe_lt_coe.2 (nat.succ_pos _)))))),
 end
 
-lemma exists_finset_roots : Π {p : polynomial α} (hp : p ≠ 0),
+lemma exists_finset_roots : ∀ {p : polynomial α} (hp : p ≠ 0),
   ∃ s : finset α, (s.card : with_bot ℕ) ≤ degree p ∧ ∀ x, x ∈ s ↔ is_root p x
 | p := λ hp, by haveI := classical.prop_decidable (∃ x, is_root p x); exact
 if h : ∃ x, is_root p x
@@ -910,9 +954,7 @@ lemma degree_mul_leading_coeff_inv (h : p ≠ 0) :
   degree (p * C (leading_coeff p)⁻¹) = degree p :=
 have h₁ : (leading_coeff p)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
-have C (leading_coeff p)⁻¹ ≠ 0 := mt leading_coeff_eq_zero.2
-  $ by rwa [leading_coeff_C],
-by rw [degree_mul_eq h this, degree_C h₁, add_zero]
+by rw [degree_mul_eq, degree_C h₁, add_zero]
 
 def div (p q : polynomial α) := 
 C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹))

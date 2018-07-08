@@ -59,45 +59,49 @@ end tauto₂
 
 section tauto₃
 
--- 260ms -- 82ms -- 214ms -- 38ms -- 30ms
+
+-- 260ms -- 82ms -- 214ms -- 38ms -- 30ms -- 19ms -- 14ms -- 10ms -- 6ms
 example (p : Prop) : p ∧ true ↔ p := by tauto
--- 380ms -- 127ms -- 214ms -- 54ms -- 60ms
+-- 380ms -- 127ms -- 214ms -- 54ms -- 60ms -- 24ms -- 21ms -- 15ms -- 10ms
 example (p : Prop) : p ∨ false ↔ p := by tauto
--- 1.66s -- 455ms -- 204ms -- 78ms -- 100ms
+-- 1.66s -- 455ms -- 204ms -- 78ms -- 100ms -- 59ms -- 24ms -- 19ms -- 14ms
 example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
--- 1.67s -- 485ms -- 135ms -- 90ms -- 76ms
+-- 1.67s -- 485ms -- 135ms -- 90ms -- 76ms -- 56ms -- 11ms -- 14ms -- 10ms
 example (p q r : Prop) [decidable q] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
--- 1.63s -- 547ms -- 138ms -- 76ms -- 80ms
+-- 1.63s -- 547ms -- 138ms -- 76ms -- 80ms -- 62ms -- 12ms -- 13ms -- 13ms
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ p) : q := by tauto
--- 1.55s -- 419ms -- 248ms -- 118ms -- 85ms
+-- 1.55s -- 419ms -- 248ms -- 118ms -- 85ms -- 87ms -- 30ms -- 16ms -- 28ms
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : p) : ¬ q := by tauto
--- 1.62s -- 441ms -- 171ms -- 103ms -- 119ms
+-- 1.62s -- 441ms -- 171ms -- 103ms -- 119ms -- 66ms -- 17ms -- 33ms -- 19ms
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : q) : ¬ p := by tauto
--- 2.41s -- 597ms -- 230ms -- 129ms -- 125ms
+-- 2.41s -- 597ms -- 230ms -- 129ms -- 125ms -- 89ms -- 41ms -- 32ms -- 37ms
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) : p := by tauto
--- 5.38s -- 1.56s -- 1.18s -- 639ms -- 524ms
+-- 5.38s -- 1.56s -- 1.18s -- 639ms -- 524ms -- 318ms -- 70ms -- 68ms -- 49ms
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) (h'' : ¬ p) : false := by tauto
--- 5.38s -- 1.61s -- 643ms -- 314ms -- 505ms
+-- 5.38s -- 1.61s -- 643ms -- 314ms -- 505ms -- 243ms -- 136ms -- 132ms -- 98ms
 example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) (h'' : ¬ r) : ¬ p := by tauto
--- 3.7s -- 965ms -- 613ms -- 661ms -- 298ms
-example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) : p ↔ r := by tauto
--- 7.27s -- 1.9s -- 1.32s -- 332ms -- 305ms
+-- 3.7s -- 965ms -- 613ms -- 661ms -- 298ms -- 347ms -- 87ms -- 69ms -- 66ms
+example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
+by tauto
+-- 7.27s -- 1.9s -- 1.32s -- 332ms -- 305ms -- 274ms -- 177ms -- 149ms -- 127ms
 example (p q r : Prop) [decidable p] [decidable q] [decidable r] (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto
 
 section modulo_symmetry
-variables {p q r : Prop} {α : Type} {x y : α}
+variables {p q r : Prop} {α : Type} {x y : α} [decidable_eq α]
 variables [decidable p] [decidable q] [decidable r]
 variables (h : x = y)
--- variables (h'' : true)
 variables (h'' : (p ∧ q ↔ q ∨ r) ↔ (r ∧ p ↔ r ∨ q))
-include h  h''
--- 4.25s -- 74ms
+include h
+include h''
+-- 4.25s -- 74ms -- 5ms   -- 4ms  -- 10ms
 example (h' : ¬ y = x) : p ∧ q := by tauto
--- 4.25s -- 63ms
+-- 4.25s -- 74ms -- 36ms  -- 41ms -- 297ms
+example (h' : p ∧ ¬ y = x) : p ∧ q := by tauto
+-- 4.25s -- 63ms -- 3.9ms -- 2ms  -- 2ms
 example : y = x := by tauto
--- 19ms -- 52ms
+-- 19ms -- 52ms -- 1ms    -- 1ms  -- 2ms
 example (h' : ¬ x = y) : p ∧ q := by tauto
--- 19ms -- 43ms
+-- 19ms -- 43ms -- 2ms    -- 3ms  -- 3ms
 example : x = y := by tauto
 
 end modulo_symmetry

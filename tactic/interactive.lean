@@ -256,113 +256,169 @@ solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 -/
 meta def distrib_not : tactic unit :=
 do hs ← local_context,
-   p ← pexpr_to_pattern ``(¬ _),
-   hs.for_each $ λ h, do
-     try $ replace (some h.local_pp_name) none ``(mt iff.to_eq %%h),
-     try $ replace (some h.local_pp_name) none ``(eq.to_iff %%h),
-     h ← get_local h.local_pp_name,
-     e ← infer_type h,
-     try $ match e with
-           | `(¬ (_ ∧ _))  := replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
-                              replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h)
-           | `(¬ (_ ∨ _))  := replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h)
-           | `(¬ ¬ _)      := replace (some h.local_pp_name) none ``(of_not_not %%h)
-           | `(¬ (_ → (_ : Prop))) := replace (some h.local_pp_name) none ``(not_imp.mp %%h)
-           | `(¬ (_ ↔ _)) := replace (some h.local_pp_name) none ``(not_iff.mp %%h)
-           | `(_ → _)     := replace (some h.local_pp_name) none ``(not_or_of_imp %%h)
-           | _ := skip
-           end
+   hs.for_each $ λ h,
+    all_goals $
+    iterate_at_most 3 $
+      do h ← get_local h.local_pp_name,
+         e ← infer_type h,
+         match e with
+         | `(¬ _ = _) := replace (some h.local_pp_name) none ``(mt iff.to_eq %%h)
+         | `(_ ≠ _)   := replace (some h.local_pp_name) none ``(mt iff.to_eq %%h)
+         | `(_ = _)   := replace (some h.local_pp_name) none ``(eq.to_iff %%h)
+         | `(¬ (_ ∧ _))  := replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
+                            replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h)
+         | `(¬ (_ ∨ _))  := replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h)
+         | `(¬ ¬ _)      := replace (some h.local_pp_name) none ``(of_not_not %%h)
+         | `(¬ (_ → (_ : Prop))) := replace (some h.local_pp_name) none ``(not_imp.mp %%h)
+         | `(¬ (_ ↔ _)) := replace (some h.local_pp_name) none ``(not_iff.mp %%h)
+         | `(_ ↔ _) := replace (some h.local_pp_name) none ``(iff_iff_and_or_not_and_not.mp %%h) <|>
+                       replace (some h.local_pp_name) none ``(iff_iff_and_or_not_and_not.mp (%%h).symm) <|>
+                       () <$ tactic.cases h
+         | `(_ → _)     := replace (some h.local_pp_name) none ``(not_or_of_imp %%h)
+         | _ := failed
+         end
 
-@[reducible]
-meta def symm := state_t (expr_map (expr × expr)) tactic
-meta def symm.run {α : Type} (tac : symm α) : tactic α :=
-prod.fst <$> state_t.run tac (expr_map.mk _)
+meta def tauto_state := ref $ expr_map (option (expr × expr))
 
-open state_t
+meta def modify_ref {α : Type} (r : ref α) (f : α → α) :=
+read_ref r >>= write_ref r ∘ f
 
-meta def symm_add_refl (e : expr) : symm (expr × expr) :=
-do p ← monad_lift $ mk_mapp `rfl [none,e],
-   modify $ λ m, m.insert e (e,p),
+meta def add_refl (r : tauto_state) (e : expr) : tactic (expr × expr) :=
+do m ← read_ref r,
+   p ← mk_mapp `rfl [none,e],
+   write_ref r $ m.insert e none,
    return (e,p)
 
-meta def symm_add_proof (e : expr) : symm (expr × expr) :=
-do env ← monad_lift get_env,
+meta def add_symm_proof (r : tauto_state) (e : expr) : tactic (expr × expr) :=
+do env ← get_env,
    let rel := e.get_app_fn.const_name,
    some symm ← pure $ environment.symm_for env rel
-     | symm_add_refl e,
-   (do e' ← monad_lift $ mk_meta_var `(Prop),
-       iff_t ← monad_lift $ to_expr ``(%%e = %%e'),
-       (_,p) ← monad_lift $ solve_aux iff_t
+     | add_refl r e,
+   (do e' ← mk_meta_var `(Prop),
+       iff_t ← to_expr ``(%%e = %%e'),
+       (_,p) ← solve_aux iff_t
          (applyc `iff.to_eq ; split ; applyc symm),
-       e' ← monad_lift $ instantiate_mvars e',
-       modify $ λ m, m.insert e (e',p),
-       symm_add_refl e',
+       e' ← instantiate_mvars e',
+       m ← read_ref r,
+       write_ref r $ (m.insert e (e',p)).insert e' none,
        return (e',p) )
-   <|> symm_add_refl e
+   <|> add_refl r e
 
-meta def symm_congr : expr → symm (expr × expr) | e :=
-do let s_congr_add (e : expr) : symm (expr × expr) :=
+meta def add_edge (r : tauto_state) (x y p : expr) : tactic unit :=
+modify_ref r $ λ m, m.insert x (y,p)
+
+meta def root (r : tauto_state) : expr → tactic (expr × expr) | e :=
+do m ← read_ref r,
+   let record_e : tactic (expr × expr) :=
        match e with
-       | `(¬ %%e') :=
-          do (e',p') ← symm_congr e',
-             e' ← monad_lift $ mk_app `not [e'],
-             p' ← monad_lift $ to_expr ``(congr_arg not %%p'),
-             modify $ λ m, m.insert e (e',p'),
-             return (e',p')
-       | `(%%e₀ ∧ %%e₁) :=
-          do (e₀,p₀) ← symm_congr e₀,
-             (e₁,p₁) ← symm_congr e₁,
-             e' ← monad_lift $ mk_app `and [e₀,e₁],
-             p' ← monad_lift $ to_expr ``(_root_.congr (congr_arg and %%p₀) %%p₁),
-             modify $ λ m, m.insert e (e',p'),
-             return (e',p')
-       | `(%%e₀ ∨ %%e₁) :=
-          do (e₀,p₀) ← symm_congr e₀,
-             (e₁,p₁) ← symm_congr e₁,
-             e' ← monad_lift $ mk_app `or [e₀,e₁],
-             p' ← monad_lift $ to_expr ``(_root_.congr (congr_arg or %%p₀) %%p₁),
-             modify $ λ m, m.insert e (e',p'),
-             return (e',p')
-       | `(%%e₀ ↔ %%e₁) :=
-          do (e₀,p₀) ← symm_congr e₀,
-             (e₁,p₁) ← symm_congr e₁,
-             e' ← monad_lift $ to_expr ``(%%e₀ ↔ %%e₁),
-             p' ← monad_lift $ to_expr ``(_root_.congr (congr_arg iff %%p₀) %%p₁),
-             modify $ λ m, m.insert e (e',p'),
-             return (e',p')
-       | `(%%e₀ → %%e₁) :=
-          if ¬ e₁.has_var then
-           do (e₀,p₀) ← symm_congr e₀,
-              (e₁,p₁) ← symm_congr e₁,
-              let e' := e₀.imp e₁,
-              p' ← monad_lift $ to_expr ``(_root_.congr (congr_arg implies %%p₀) %%p₁),
-              modify $ λ m, m.insert e (e',p'),
-              return (e',p')
-          else symm_add_proof e
-        | _ := symm_add_proof e
-        end,
-   m ← get,
-   some x ← pure $ m.find e | s_congr_add e,
-   pure x
+       | v@(expr.mvar _ _ _) :=
+         (do (e,p) ← get_assignment v >>= root,
+             add_edge r v e p,
+             return (e,p)) <|>
+         add_refl r e
+       | _ := add_refl r e
+       end,
+   some e' ← pure $ m.find e | record_e,
+   match e' with
+   | (some (e',p')) :=
+     do (e'',p'') ← root e',
+        p'' ← mk_app `eq.trans [p',p''],
+        add_edge r e e'' p'',
+        pure (e'',p'')
+   | none := prod.mk e <$> mk_mapp `rfl [none,some e]
+   end
 
-meta def symm_congr_hyp : symm unit :=
-do ls ← monad_lift $ local_context,
-   ls.mmap' $ λ h, do
-     t ← monad_lift $ infer_type h,
-     b ← monad_lift $ is_prop t,
-     when b $ do
-       t ← monad_lift $ instantiate_mvars t,
-       (t',p) ← symm_congr t,
-       monad_lift $ when (t ≠ t') $
-         replace h.local_pp_name (some $ to_pexpr t') ``((%%p).mp %%h)
+meta def symm_eq (r : tauto_state) : expr → expr → tactic expr | a b :=
+do m ← read_ref r,
+   (a',pa) ← root r a,
+   (b',pb) ← root r b,
+   (unify a' b' >> add_refl r a' *> mk_mapp `rfl [none,a]) <|>
+    do p ← match (a', b') with
+           | (`(¬ %%a₀), `(¬ %%b₀)) :=
+             do p  ← symm_eq a₀ b₀,
+                p' ← mk_app `congr_arg [`(not),p],
+                add_edge r a' b' p',
+                return p'
+           | (`(%%a₀ ∧ %%a₁), `(%%b₀ ∧ %%b₁)) :=
+             do p₀ ← symm_eq a₀ b₀,
+                p₁ ← symm_eq a₁ b₁,
+                p' ← to_expr ``(congr (congr_arg and %%p₀) %%p₁),
+                add_edge r a' b' p',
+                return p'
+           | (`(%%a₀ ∨ %%a₁), `(%%b₀ ∨ %%b₁)) :=
+             do p₀ ← symm_eq a₀ b₀,
+                p₁ ← symm_eq a₁ b₁,
+                p' ← to_expr ``(congr (congr_arg or %%p₀) %%p₁),
+                add_edge r a' b' p',
+                return p'
+           | (`(%%a₀ ↔ %%a₁), `(%%b₀ ↔ %%b₁)) :=
+             (do p₀ ← symm_eq a₀ b₀,
+                 p₁ ← symm_eq a₁ b₁,
+                 p' ← to_expr ``(congr (congr_arg iff %%p₀) %%p₁),
+                 add_edge r a' b' p',
+                 return p') <|>
+             do p₀ ← symm_eq a₀ b₁,
+                p₁ ← symm_eq a₁ b₀,
+                p' ← to_expr ``(eq.trans (congr (congr_arg iff %%p₀) %%p₁)
+                                         (iff.to_eq iff.comm ) ),
+                add_edge r a' b' p',
+                return p'
+           | (`(%%a₀ → %%a₁), `(%%b₀ → %%b₁)) :=
+             if ¬ a₁.has_var ∧ ¬ b₁.has_var then
+             do p₀ ← symm_eq a₀ b₀,
+                p₁ ← symm_eq a₁ b₁,
+                p' ← mk_app `congr_arg [`(implies),p₀,p₁],
+                add_edge r a' b' p',
+                return p'
+             else unify a' b' >> add_refl r a' *> mk_mapp `rfl [none,a]
+           | (_, _) :=
+             (do guard $ a'.get_app_fn.is_constant ∧
+                         a'.get_app_fn.const_name = b'.get_app_fn.const_name,
+                 (a'',pa') ← add_symm_proof r a',
+                 guard $ a'' =ₐ b',
+                 pure pa' )
+           end,
+           p' ← mk_eq_trans pa p,
+           add_edge r a' b' p',
+           mk_eq_symm pb >>= mk_eq_trans p'
 
-meta def symm_congr_goal : symm unit :=
-do   tgt ← monad_lift $ target,
-     b ← monad_lift $ is_prop tgt,
-     when b $ do
-       tgt ← monad_lift $ instantiate_mvars tgt,
-       (t',p) ← symm_congr tgt,
-       monad_lift $ when (tgt ≠ t') $ refine ``((%%p).mpr _ : %%tgt)
+meta def find_same_type (r : tauto_state) : expr → list expr → tactic (expr × expr)
+| e []         := failed
+| e (H :: Hs) :=
+  do t  ← infer_type H,
+     t' ← infer_type e,
+     (prod.mk H <$> symm_eq r e t) <|> find_same_type e Hs
+
+private meta def contra_p_not_p (r : tauto_state) : list expr → list expr → tactic unit
+| []         Hs := failed
+| (H1 :: Rs) Hs :=
+  do t ← (extract_opt_auto_param <$> infer_type H1) >>= whnf,
+     (do a   ← match_not t,
+         (H2,p)  ← find_same_type r a Hs,
+         H2 ← to_expr ``( (%%p).mpr %%H2 ),
+         tgt ← target,
+         pr  ← mk_app `absurd [tgt, H2, H1],
+         tactic.exact pr)
+     <|> contra_p_not_p Rs Hs
+
+meta def contradiction_with (r : tauto_state) : tactic unit :=
+contradiction <|>
+do tactic.try intro1,
+   ctx ← local_context,
+   contra_p_not_p r ctx ctx
+
+meta def contradiction_symm :=
+using_new_ref (native.rb_map.mk _ _) contradiction_with
+
+meta def assumption_with (r : tauto_state) : tactic unit :=
+do { ctx ← local_context,
+     t   ← target,
+     (H,p) ← find_same_type r t ctx,
+     mk_eq_mpr p H >>= tactic.exact }
+<|> fail "assumption tactic failed"
+
+meta def assumption_symm :=
+using_new_ref (native.rb_map.mk _ _) assumption_with
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -370,18 +426,20 @@ do   tgt ← monad_lift $ target,
   using `reflexivity` or `solve_by_elim`
 -/
 meta def tautology : tactic unit :=
-do (symm_congr_hyp >> symm_congr_goal).run,
+using_new_ref (expr_map.mk _) $ λ r,
+do try (contradiction_with r);
+   try (assumption_with r);
    repeat (do
      gs ← get_goals,
      () <$ tactic.intros;
      distrib_not;
-     casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(_ ↔ _),``(Exists _),``(false)];
-     try contradiction;
-     try (refine ``( or_iff_not_imp_left.mpr _));
-     try (refine ``( or_iff_not_imp_right.mpr _));
+     casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
+     try (contradiction_with r);
+     try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
+     try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
      () <$ tactic.intros;
      constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
-     try assumption,
+     try (assumption_with r),
      gs' ← get_goals,
      guard (gs ≠ gs') ) ;
    repeat

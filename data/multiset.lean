@@ -336,7 +336,7 @@ pos_iff_ne_zero.trans $ not_congr card_eq_zero
 theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
 quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
-@[elab_as_eliminator] lemma strong_induction_on {p : multiset α → Sort*} :
+@[elab_as_eliminator] definition strong_induction_on {p : multiset α → Sort*} :
   ∀ (s : multiset α), (∀ s, (∀t < s, p t) → p s) → p s
 | s := λ ih, ih s $ λ t h,
   have card t < card s, from card_lt_of_lt h,

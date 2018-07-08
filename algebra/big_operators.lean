@@ -191,12 +191,12 @@ finset.induction_on s (by simp) (assume a s has ih h,
 @[simp] lemma prod_const [decidable_eq α] (b : β) : s.prod (λ a, b) = b ^ s.card :=
 finset.induction_on s rfl (by simp [pow_add, mul_comm] {contextual := tt})
 
+end comm_monoid
+
 @[simp] lemma sum_const [add_comm_monoid β] [decidable_eq α] (b : β) :
   s.sum (λ a, b) = add_monoid.smul s.card b :=
 @prod_const _ (multiplicative β) _ _ _ _
 attribute [to_additive finset.sum_const] prod_const
-
-end comm_monoid
 
 section comm_group
 variables [comm_group β]

@@ -239,6 +239,9 @@ fintype.of_multiset s.attach s.mem_attach
 instance finset.subtype.fintype (s : finset α) : fintype {x // x ∈ s} :=
 ⟨s.attach, s.mem_attach⟩
 
+instance finset_coe.fintype (s : finset α) : fintype (↑s : set α) :=
+finset.subtype.fintype s
+
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then finset.singleton ⟨h⟩ else ∅, λ ⟨h⟩, by simp [h]⟩
 

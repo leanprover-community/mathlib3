@@ -30,7 +30,8 @@ instance with_bot.has_one : has_one (with_bot ℕ) := ⟨(1 : ℕ)⟩
 def polynomial (α : Type*) [comm_semiring α] := ℕ →₀ α
 
 namespace polynomial
-variables {α : Type*} {a b : α} {m n : ℕ} 
+universe u
+variables {α : Type u} {a b : α} {m n : ℕ} 
 variables [decidable_eq α]
 
 section comm_semiring
@@ -55,9 +56,9 @@ def C (a : α) : polynomial α := monomial 0 a
 /-- `X` is the polynomial whose evaluation is the identity funtion -/
 def X : polynomial α := monomial 1 1
 
-@[simp] lemma C_0 : C 0 = (0 : polynomial α) := by simp [C, monomial]; refl
+@[simp] lemma C_0 : C (0 : α) = 0 := by simp [C, monomial]; refl
 
-@[simp] lemma C_1 : C 1 = (1 : polynomial α) := rfl
+@[simp] lemma C_1 : C (1 : α) = 1 := rfl
 
 @[simp] lemma C_mul_monomial : C a * monomial n b = monomial n (a * b) :=
 by simp [C, monomial, single_mul_single]
@@ -74,10 +75,10 @@ finsupp.ext $ λ a, show ite _ _ _ = (0 : α), by split_ifs; simp
 lemma X_pow_eq_monomial : (X : polynomial α) ^ n = monomial n (1 : α) :=
 by induction n; simp [X, C_1.symm, -C_1, C, pow_succ, *] at *
 
-lemma monomial_add_right : monomial (n + m) a = (monomial n a * X ^ m):=
+lemma monomial_add_right : monomial (n + m) a = (monomial n a * X ^ m) :=
 by rw [X_pow_eq_monomial, monomial, monomial, monomial, single_mul_single]; simp
 
-lemma monomial_add_left : monomial (m + n) a = (X ^ m * monomial n a):=
+lemma monomial_add_left : monomial (m + n) a = (X ^ m * monomial n a) :=
 by rw [X_pow_eq_monomial, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma monomial_eq : monomial n a = C a * X ^ n :=
@@ -192,10 +193,12 @@ instance : decidable (is_root p a) := by unfold is_root; apply_instance
 
 @[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
 
-lemma root_mul_left_of_is_root (q : polynomial α) : is_root p a → is_root (q * p) a :=
+lemma root_mul_left_of_is_root (p : polynomial α) {q : polynomial α} :
+  is_root q a → is_root (p * q) a :=
 by simp [is_root.def, eval_mul] {contextual := tt}
 
-lemma root_mul_right_of_is_root (q : polynomial α) : is_root p a → is_root (p * q) a :=
+lemma root_mul_right_of_is_root {p : polynomial α} (q : polynomial α) :
+  is_root p a → is_root (p * q) a :=
 by simp [is_root.def, eval_mul] {contextual := tt}
 
 end eval
@@ -501,7 +504,7 @@ calc degree (p - q) = degree (erase (nat_degree q) p + -erase (nat_degree q) q) 
 ... < degree p : max_lt_iff.2 ⟨hd' ▸ degree_erase_lt hp0, hd.symm ▸ degree_erase_lt hq0⟩
 
 def degree_lt_wf : well_founded (λ p q : polynomial α, degree p < degree q) :=
-inv_image.wf degree (with_bot.well_founded_lt (nat.lt_wf))
+inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 
 lemma ne_zero_of_ne_zero_of_monic (hp : p ≠ 0) (hq : monic q) : q ≠ 0 
 | h := begin 
@@ -537,8 +540,7 @@ have wf : _ := div_wf_lemma h hq,
 let dm := div_mod_by_monic_aux (p - z * q) hq in
 ⟨z + dm.1, dm.2⟩
 else ⟨0, p⟩
-using_well_founded {dec_tac := tactic.assumption, 
-  rel_tac := λ _ _, `[exact ⟨_, degree_lt_wf⟩]}
+using_well_founded {dec_tac := tactic.assumption, rel_tac := λ _ _, `[exact ⟨_, degree_lt_wf⟩]}
 
 /-- `div_by_monic` gives the quotient of `p` by a monic polynomial `q`. -/
 def div_by_monic (p q : polynomial α) : polynomial α :=
@@ -581,8 +583,7 @@ else
     exact lt_of_le_of_ne bot_le
       (ne.symm (mt degree_eq_bot.1 hq0)),
   end
-using_well_founded {dec_tac := tactic.assumption, 
-  rel_tac := λ _ _, `[exact ⟨_, degree_lt_wf⟩]}
+using_well_founded {dec_tac := tactic.assumption, rel_tac := λ _ _, `[exact ⟨_, degree_lt_wf⟩]}
 
 lemma mod_by_monic_eq_sub_mul_div : ∀ (p : polynomial α) {q : polynomial α} (hq : monic q),
   mod_by_monic p q = p - q * div_by_monic p q
@@ -602,10 +603,10 @@ else begin
   rw [dif_pos hq, if_neg h, dif_pos hq, if_neg h],
   simp
 end
-using_well_founded {dec_tac := tactic.assumption, 
-  rel_tac := λ _ _, `[exact ⟨_, degree_lt_wf⟩]}
+using_well_founded {dec_tac := tactic.assumption, rel_tac := λ _ _, `[exact ⟨_, degree_lt_wf⟩]}
 
-lemma subsingleton_of_monic_zero (h : monic (0 : polynomial α)) : (∀ p q : polynomial α, p = q) ∧ (∀ a b : α, a = b) :=
+lemma subsingleton_of_monic_zero (h : monic (0 : polynomial α)) : 
+  (∀ p q : polynomial α, p = q) ∧ (∀ a b : α, a = b) :=
 by rw [monic.def, leading_coeff_zero] at h;
   exact ⟨λ p q, by rw [← mul_one p, ← mul_one q, ← C_1, ← h, C_0, mul_zero, mul_zero],
     λ a b, by rw [← mul_one a, ← mul_one b, ← h, mul_zero, mul_zero]⟩
@@ -756,7 +757,7 @@ begin
   refl
 end
 
-lemma degree_X_sub_C (a : α) : degree (X - C a) = 1 :=
+@[simp] lemma degree_X_sub_C (a : α) : degree (X - C a) = 1 :=
 begin 
   rw [sub_eq_add_neg, add_comm, ← @degree_X α],
   by_cases ha : a = 0,
@@ -773,7 +774,7 @@ by unfold monic;
 lemma root_X_sub_C : is_root (X - C a) b ↔ a = b := 
 by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 
-lemma mod_by_monic_X_sub_C_eq_C_eval (p : polynomial α) (a : α) : p %ₘ (X - C a) = C (p.eval a) :=
+@[simp] lemma mod_by_monic_X_sub_C_eq_C_eval (p : polynomial α) (a : α) : p %ₘ (X - C a) = C (p.eval a) :=
 have h : (p %ₘ (X - C a)).eval a = p.eval a :=
   by rw [mod_by_monic_eq_sub_mul_div _ (monic_X_sub_C a), eval_sub, eval_mul, 
     eval_sub, eval_X, eval_C, sub_self, zero_mul, sub_zero],
@@ -791,7 +792,7 @@ begin
   rw [eq_C_of_degree_le_zero this, h]
 end
 
-lemma mul_div_eq_iff_is_root : (X - C a) * div_by_monic p (X - C a) = p ↔ is_root p a := 
+lemma mul_div_by_monic_eq_iff_is_root : (X - C a) * (p /ₘ (X - C a)) = p ↔ is_root p a := 
 ⟨λ h, by rw [← h, is_root.def, eval_mul, eval_sub, eval_X, eval_C, sub_self, zero_mul],
 λ h : p.eval a = 0, 
   by conv {to_rhs, rw ← mod_by_monic_add_div p (monic_X_sub_C a)};
@@ -847,7 +848,7 @@ then
   let ⟨x, hx⟩ := h in
   have hpd : 0 < degree p := degree_pos_of_root hp hx,
   have hd0 : div_by_monic p (X - C x) ≠ 0 :=
-    λ h, by have := mul_div_eq_iff_is_root.2 hx;
+    λ h, by have := mul_div_by_monic_eq_iff_is_root.2 hx;
       simp * at *,
   have wf : degree (div_by_monic p _) < degree p :=
     degree_div_by_monic_lt _ (monic_X_sub_C x) hp
@@ -869,7 +870,7 @@ then
   begin
     assume y,
     rw [mem_insert, htr, eq_comm, ← root_X_sub_C],
-    conv {to_rhs, rw ← mul_div_eq_iff_is_root.2 hx},
+    conv {to_rhs, rw ← mul_div_by_monic_eq_iff_is_root.2 hx},
     exact ⟨λ h, or.cases_on h (root_mul_right_of_is_root _) (root_mul_left_of_is_root _),
       root_or_root_of_root_mul⟩
   end⟩
@@ -890,7 +891,7 @@ begin
   exact (classical.some_spec (exists_finset_roots hp0)).1
 end
 
-lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
+@[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by unfold roots; rw dif_neg hp; exact (classical.some_spec (exists_finset_roots hp)).2 _
 
 end integral_domain
@@ -933,6 +934,23 @@ degree_mul_leading_coeff_inv hq ▸
   degree_mod_by_monic_lt p (monic_mul_leading_coeff_inv hq)
     (mul_ne_zero hq (mt leading_coeff_eq_zero.2 (by rw leading_coeff_C;
       exact inv_ne_zero (mt leading_coeff_eq_zero.1 hq))))
+
+instance : has_div (polynomial α) := ⟨div⟩
+
+instance : has_mod (polynomial α) := ⟨mod⟩
+
+lemma mod_by_monic_eq_mod (p : polynomial α) (hq : monic q) : p %ₘ q = p % q :=
+show p %ₘ q = p %ₘ (q * C (leading_coeff q)⁻¹), by simp [monic.def.1 hq]
+
+lemma div_by_monic_eq_div (p : polynomial α) (hq : monic q) : p /ₘ q = p / q :=
+show p /ₘ q = C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹)),
+by simp [monic.def.1 hq]
+
+lemma mod_X_sub_C_eq_C_eval (p : polynomial α) (a : α) : p % (X - C a) = C (p.eval a) :=
+mod_by_monic_eq_mod p (monic_X_sub_C a) ▸ mod_by_monic_X_sub_C_eq_C_eval _ _
+
+lemma mul_div_eq_iff_is_root : (X - C a) * (p / (X - C a)) = p ↔ is_root p a :=
+div_by_monic_eq_div p (monic_X_sub_C a) ▸ mul_div_by_monic_eq_iff_is_root
 
 -- instance : euclidean_domain (polynomial α) :=
 -- { quotient := div_aux, 

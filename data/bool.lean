@@ -41,7 +41,13 @@ by by_cases p; by_cases q; simp *
   to_bool (p ∨ q) = p || q :=
 by by_cases p; by_cases q; simp *
 
+@[simp] theorem to_bool_eq {p q : Prop} [decidable p] [decidable q] :
+  to_bool p = to_bool q ↔ (p ↔ q) :=
+⟨λ h, (coe_to_bool p).symm.trans $ by simp [h], to_bool_congr⟩
+
 lemma not_ff : ¬ ff := by simp
+
+@[simp] theorem default_bool : default bool = ff := rfl
 
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
 by cases b; simp

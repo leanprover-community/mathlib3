@@ -41,6 +41,21 @@ noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 theorem quotient.mk_out [s : setoid α] (a : α) : ⟦a⟧.out ≈ a :=
 quotient.exact (quotient.out_eq _)
 
+instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
+{ r := λ a b, ∀ i, a i ≈ b i,
+  iseqv := ⟨
+    λ a i, setoid.refl _,
+    λ a b h i, setoid.symm (h _),
+    λ a b c h₁ h₂ i, setoid.trans (h₁ _) (h₂ _)⟩ }
+
+noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : ∀ i, setoid (α i)]
+  (f : ∀ i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=
+⟦λ i, (f i).out⟧
+
+theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [∀ i, setoid (α i)]
+  (f : ∀ i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
+quotient.sound $ λ i, quotient.mk_out _
+
 /-- `trunc α` is the quotient of `α` by the always-true relation. This
   is related to the propositional truncation in HoTT, and is similar
   in effect to `nonempty α`, but unlike `nonempty α`, `trunc α` is data,

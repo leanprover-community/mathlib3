@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic tactic.finish data.sigma
+import tactic tactic.finish data.subtype
 open function
 
 namespace set
@@ -664,9 +664,13 @@ theorem mem_image_elim_on {f : α → β} {s : set α} {C : β → Prop} {y : β
   (h : ∀ (x : α), x ∈ s → C (f x)) : C y :=
 mem_image_elim h h_y
 
+@[congr] lemma image_congr {f g : α → β} {s : set α}
+  (h : ∀a∈s, f a = g a) : f '' s = g '' s :=
+by safe [set_eq_def, iff_def]
+
 theorem image_eq_image_of_eq_on {f₁ f₂ : α → β} {s : set α} (heq : eq_on f₁ f₂ s) :
   f₁ '' s = f₂ '' s :=
-by safe [set_eq_def, iff_def, mem_image, eq_on]
+image_congr heq
 
 theorem image_comp (f : β → γ) (g : α → β) (a : set α) : (f ∘ g) '' a = f '' (g '' a) :=
 subset.antisymm
@@ -799,6 +803,12 @@ theorem subset_image_union (f : α → β) (s : set α) (t : set β) :
   f '' (s ∪ f ⁻¹' t) ⊆ f '' s ∪ t :=
 image_subset_iff.2 (union_preimage_subset _ _ _)
 
+lemma subtype_val_image {p : α → Prop} {s : set (subtype p)} :
+  subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
+set.ext $ assume a,
+⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
+  assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
+
 end image
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
@@ -846,6 +856,10 @@ set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_range_self _�
 @[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_iff_surjective.2 quot.exists_rep
 end range
+
+lemma subtype_val_range {p : α → Prop} :
+  range (@subtype.val _ p) = {x | p x} :=
+by rw ← image_univ; simp [-image_univ, subtype_val_image]
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y

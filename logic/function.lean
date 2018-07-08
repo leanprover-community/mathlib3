@@ -64,6 +64,20 @@ theorem injective_of_partial_inv_right {α β} {f : α → β} {g} (H : is_parti
  (x y b) (h₁ : b ∈ g x) (h₂ : b ∈ g y) : x = y :=
 ((H _ _).1 h₁).symm.trans ((H _ _).1 h₂)
 
+theorem left_inverse.comp_eq_id {f : α → β} {g : β → α} (h : left_inverse f g) : f ∘ g = id :=
+funext h
+
+theorem right_inverse.comp_eq_id {f : α → β} {g : β → α} (h : right_inverse f g) : g ∘ f = id :=
+funext h
+
+theorem left_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+  (hf : left_inverse f g) (hh : left_inverse h i) : left_inverse (h ∘ f) (g ∘ i) :=
+assume a, show h (f (g (i a))) = a, by rw [hf (i a), hh a]
+
+theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+  (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
+left_inverse.comp hh hf
+
 local attribute [instance] classical.prop_decidable
 
 /-- We can use choice to construct explicitly a partial inverse for

@@ -316,6 +316,10 @@ mt $ λ e, e ▸ h
 theorem eq_equivalence : equivalence (@eq α) :=
 ⟨eq.refl, @eq.symm _, @eq.trans _⟩
 
+lemma heq_of_eq_mp :
+  ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
+| α ._ a a' rfl h := eq.rec_on h (heq.refl _)
+
 end equality
 
 /-

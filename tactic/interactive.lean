@@ -474,31 +474,34 @@ by apply_rules mono_rules
 meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
 tactic.apply_rules hs n
 
-meta def return_cast (f : option expr) (t : option (expr × expr)) (es : list expr) (e x x' : expr) :
-  tactic (option (expr × expr) × list expr) :=
+meta def return_cast (f : option expr) (t : option (expr × expr))
+  (es : list (expr × expr × expr))
+  (e x x' eq_h : expr) :
+  tactic (option (expr × expr) × list (expr × expr × expr)) :=
 (do guard (¬ e.has_var),
     unify x x',
     u ← mk_meta_univ,
     f ← f <|> to_expr ``(@id %%(expr.sort u : expr)),
     t' ← infer_type e,
-    some (f',t) ← pure t | return (some (f,t'), e :: es),
+    some (f',t) ← pure t | return (some (f,t'), (e,x',eq_h) :: es),
     infer_type e >>= is_def_eq t,
     unify f f',
-    return (some (f,t), e :: es)) <|>
+    return (some (f,t), (e,x',eq_h) :: es)) <|>
 return (t, es)
 
-meta def list_cast_of_aux (x : expr) (t : option (expr × expr)) (es : list expr) :
-  expr → tactic (option (expr × expr) × list expr)
-| e@`(cast _ %%x') := return_cast none t es e x x'
-| e@`(eq.mp _ %%x') := return_cast none t es e x x'
-| e@`(eq.mpr _ %%x') := return_cast none t es e x x'
-| e@`(@eq.subst %%α %%p %%a %%b _ %%x') := return_cast p t es e x x'
-| e@`(@eq.substr %%α %%p %%a %%b _ %%x') := return_cast p t es e x x'
-| e@`(@eq.rec %%α %%a %%f %%x' _ _) := return_cast f t es e x x'
-| e@`(@eq.rec_on %%α %%a %%f %%b _ %%x') := return_cast f t es e x x'
+meta def list_cast_of_aux (x : expr) (t : option (expr × expr))
+  (es : list (expr × expr × expr)) :
+  expr → tactic (option (expr × expr) × list (expr × expr × expr))
+| e@`(cast %%eq_h %%x') := return_cast none t es e x x' eq_h
+| e@`(eq.mp %%eq_h %%x') := return_cast none t es e x x' eq_h
+| e@`(eq.mpr %%eq_h %%x') := mk_eq_symm eq_h >>= return_cast none t es e x x'
+| e@`(@eq.subst %%α %%p %%a %%b  %%eq_h %%x') := return_cast p t es e x x' eq_h
+| e@`(@eq.substr %%α %%p %%a %%b %%eq_h %%x') := mk_eq_symm eq_h >>= return_cast p t es e x x'
+| e@`(@eq.rec %%α %%a %%f %%x' _  %%eq_h) := return_cast f t es e x x' eq_h
+| e@`(@eq.rec_on %%α %%a %%f %%b  %%eq_h %%x') := return_cast f t es e x x' eq_h
 | e := return (t,es)
 
-meta def list_cast_of (x tgt : expr) : tactic (list expr) :=
+meta def list_cast_of (x tgt : expr) : tactic (list (expr × expr × expr)) :=
 (list.reverse ∘ prod.snd) <$> tgt.mfold (none, []) (λ e i es, list_cast_of_aux x es.1 es.2 e)
 
 private meta def h_generalize_arg_p_aux : pexpr → parser (pexpr × name)
@@ -534,22 +537,23 @@ do let (e,n) := arg,
    h' ← (h' : tactic name) <|> get_unused_name ("h" ++ n.to_string : string),
    e ← to_expr e,
    tgt ← target,
-   (e::es) ← list_cast_of e tgt | fail "no cast found",
+   ((e,x,eq_h)::es) ← list_cast_of e tgt | fail "no cast found",
    interactive.generalize h' () (to_pexpr e, n),
    asm ← get_local h',
    v ← get_local n,
-   hs ← es.mmap (λ e, mk_app `eq [e,v]),
+   hs ← es.mmap (λ ⟨e,_⟩, mk_app `eq [e,v]),
    (eqs_h.zip [e]).mmap' (λ ⟨h,e⟩, do
         h ← if h ≠ `_ then pure h else get_unused_name `h,
-        p ← mk_mvar, a ← mk_mvar, b ← mk_mvar, c ← mk_mvar,
-        to_expr ``(@eq.rec %%a %%b %%c _ _ %%p) >>= unify e,
-        () <$ note h none p ),
+        () <$ note h none eq_h ),
    hs.mmap' (λ h,
      do h' ← assert `h h,
         tactic.exact asm,
         try (rewrite_target h'),
         tactic.clear h' ),
-   when h.is_some $ to_expr ``(heq_of_eq_rec_left _ %%asm) >>= note h' none >> pure (),
+   when h.is_some (do
+     (to_expr ``(heq_of_eq_rec_left %%eq_h %%asm)
+       <|> to_expr ``(heq_of_eq_mp %%eq_h %%asm))
+     >>= note h' none >> pure ()),
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
 

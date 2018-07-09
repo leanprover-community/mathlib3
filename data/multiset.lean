@@ -8,6 +8,7 @@ Multisets.
 import logic.function order.boolean_algebra
   data.list.basic data.list.perm data.list.sort data.quot data.string
   algebra.order_functions algebra.group_power algebra.ordered_group
+  tactic.interactive
 
 open list subtype nat lattice
 

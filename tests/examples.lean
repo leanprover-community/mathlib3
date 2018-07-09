@@ -1,4 +1,5 @@
 import tactic data.stream.basic data.set.basic data.finset data.multiset
+       category.traversable.derive
 open tactic
 
 universe u
@@ -109,3 +110,38 @@ begin
 end
 
 end refine_struct
+
+/- traversable -/
+
+@[derive traversable]
+structure my_struct (α : Type) :=
+  (y : ℤ)
+
+run_cmd do
+check_defn ``my_struct.traversable
+  ``( { traversable .
+        to_functor := my_struct.functor,
+        traverse := λ (m : Type → Type) (_inst : applicative m) (α β : Type) (f : α → m β) (x : my_struct α),
+               my_struct.rec (λ (x : ℤ), pure (λ (a : ulift ℤ), {y := a.down}) <*> pure {down := x}) x} )
+
+@[derive traversable]
+structure my_struct2 (α : Type u) : Type u :=
+  (x : α)
+  (y : ℤ)
+  (z : list α)
+  (k : list (list α))
+
+run_cmd do
+check_defn ``my_struct2.traversable
+  ``( { traversable .
+        to_functor := my_struct2.functor,
+        traverse := λ (m : Type u → Type u) (_inst : applicative m) (α β : Type u) (f : α → m β) (x : my_struct2 α),
+               my_struct2.rec
+                 (λ (x : α) (y : ℤ) (z : list α) (k : list (list α)),
+                    pure (λ (x' : β) (y' : ulift ℤ) (z' : list β) (k' : list (list β)),
+                                 {x := x', y := y'.down, z := z', k := k'}) <*>
+                    f x <*>
+                    pure (ulift.up y) <*>
+                    traverse f z <*>
+                    traverse (traverse f) k)
+                 x } )

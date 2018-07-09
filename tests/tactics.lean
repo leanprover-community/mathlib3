@@ -352,12 +352,12 @@ end
 
 example (X Y : ℕ × ℕ)  (h : X.1 = Y.1) (h : X.2 = Y.2) : X = Y :=
 begin
-  ext ; assumption
+  ext; assumption
 end
 
 example (X Y : (ℕ → ℕ) × ℕ)  (h : ∀ i, X.1 i = Y.1 i) (h : X.2 = Y.2) : X = Y :=
 begin
-  ext x ; solve_by_elim,
+  ext x; solve_by_elim,
 end
 
 example (X Y : ℕ → ℕ × ℕ)  (h : ∀ i, X i = Y i) : true :=

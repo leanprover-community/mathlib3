@@ -101,6 +101,11 @@ namespace tactic
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
 
+meta def check_defn (n : name) (e : pexpr) : tactic unit :=
+do (declaration.defn _ _ _ d _ _) ← get_decl n,
+   e' ← to_expr e,
+   guard (d =ₐ e') <|> trace d >> failed
+
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
 
 /-- Runs a tactic for a result, reverting the state after completion -/

@@ -480,3 +480,24 @@ a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
 by apply_rules mono_rules
 
 end apply_rules
+
+section elim_cast
+
+variables {α β γ φ ψ : Type} (f : α → α → α → φ → γ)
+          (x y : α) (a b : β) (z : φ)
+          (h₀ : β = α) (h₁ : β = α) (h₂ : φ = β)
+          (hx : x == a) (hy : y == b) (hz : z == a)
+include f x y z a b hx hy hz
+
+example : f x y x z = f (eq.rec_on h₀ a) (cast h₀ b) (eq.mp h₁ a) (eq.mpr h₂ a) :=
+begin
+  elim_cast a with p,
+  guard_target f x y x z = f p (cast h₀ b) p (eq.mpr h₂ a),
+  elim_cast _ with q,
+  guard_target f x y x z = f p q p (eq.mpr h₂ a),
+  elim_cast _ with r,
+  guard_target f x y x z = f p q p r,
+  casesm* [_ == _, _ = _], refl
+end
+
+end elim_cast

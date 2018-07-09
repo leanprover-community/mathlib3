@@ -458,5 +458,51 @@ by apply_rules mono_rules
 meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
 tactic.apply_rules hs n
 
+meta def return_cast (t : option expr) (es : list expr) (e x x' : expr) : tactic (option expr × list expr) :=
+(do guard (¬ e.has_var),
+    unify x x',
+    t' ← infer_type e,
+    some t ← pure t | return (some t', e :: es),
+    infer_type e >>= is_def_eq t,
+    return (some t, e :: es)) <|>
+return (t, es)
+
+meta def list_cast_of_aux (x : expr) (t : option expr) (es : list expr) : expr → tactic (option expr × list expr)
+| e@`(cast _ %%x') := return_cast t es e x x'
+| e@`(eq.mp _ %%x') := return_cast t es e x x'
+| e@`(eq.mpr _ %%x') := return_cast t es e x x'
+| e@`(@eq.subst %%α %%p %%a %%b _ %%x') := return_cast t es e x x'
+| e@`(@eq.substr %%α %%p %%a %%b _ %%x') := return_cast t es e x x'
+| e@`(@eq.rec %%α %%p %%a %%x' _ _) := return_cast t es e x x'
+| e@`(@eq.rec_on %%α %%p %%a %%b _ %%x') := return_cast t es e x x'
+| e := return (t,es)
+
+meta def list_cast_of (x tgt : expr) : tactic (list expr) :=
+(list.reverse ∘ prod.snd) <$> tgt.mfold (none, []) (λ e i es, list_cast_of_aux x es.1 es.2 e)
+
+/-- `elim_cast e with x` matches on `cast _ e` in the goal and replaces it with
+    `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
+    times (not necessarily with the same proof), they are all replaced by `x`.
+
+    `elim_cast! e with x` acts similarly but reverts `Hx`.
+-/
+meta def elim_cast (rev : parse (tk "!")?) (e : parse texpr) (n : parse (tk "with" *> ident)) : tactic unit :=
+do h ← get_unused_name ("H" ++ n.to_string : string),
+   e ← to_expr e,
+   tgt ← target,
+   (e::es) ← list_cast_of e tgt | fail "no cast found",
+   interactive.generalize h () (to_pexpr e, n),
+   asm ← get_local h,
+   v ← get_local n,
+   hs ← es.mmap (λ e, mk_app `eq [e,v]),
+   hs.mmap' (λ h,
+     do h' ← assert `h h,
+        tactic.exact asm,
+        try (rewrite_target h'),
+        tactic.clear h' ),
+   to_expr ``(heq_of_eq_rec_left _ %%asm) >>= note h none,
+   tactic.clear asm,
+   when rev.is_some (interactive.revert [n])
+
 end interactive
 end tactic

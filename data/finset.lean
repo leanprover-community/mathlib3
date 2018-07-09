@@ -13,17 +13,16 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 
 /-- `finset α` is the type of finite sets of elements of `α`. It is implemented
   as a multiset (a list up to permutation) which has no duplicate elements. -/
-structure finset (α : Type*) :=
-(val : multiset α)
-(nodup : nodup val)
+def {u} finset (α : Type u) : Type u :=
+{s : multiset α // s.nodup}
 
 namespace finset
 
-theorem eq_of_veq : ∀ {s t : finset α}, s.1 = t.1 → s = t
-| ⟨s, _⟩ ⟨t, _⟩ h := by congr; assumption
+theorem eq_of_veq {s t : finset α} : s.1 = t.1 → s = t :=
+subtype.eq'
 
 @[simp] theorem val_inj {s t : finset α} : s.1 = t.1 ↔ s = t :=
-⟨eq_of_veq, congr_arg _⟩
+subtype.ext.symm
 
 @[simp] theorem erase_dup_eq_self [decidable_eq α] (s : finset α) : erase_dup s.1 = s.1 :=
 erase_dup_eq_self.2 s.2
@@ -32,8 +31,8 @@ end finset
 
 namespace finset
 
-instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α)
-| s₁ s₂ := decidable_of_iff _ val_inj
+instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α) :=
+by apply_instance
 
 /- membership -/
 
@@ -41,7 +40,8 @@ instance : has_mem α (finset α) := ⟨λ a s, a ∈ s.1⟩
 
 theorem mem_def {a : α} {s : finset α} : a ∈ s ↔ a ∈ s.1 := iff.rfl
 
-@[simp] theorem mem_mk {a : α} {s nd} : a ∈ @finset.mk α s nd ↔ a ∈ s := iff.rfl
+@[simp] theorem mem_mk {a : α} {s : multiset α} {nd : s.nodup} :
+  @has_mem.mem _ (finset α) _ a (subtype.mk s nd) ↔ a ∈ s := iff.rfl
 
 instance decidable_mem [h : decidable_eq α] (a : α) (s : finset α) : decidable (a ∈ s) :=
 multiset.decidable_mem _ _
@@ -219,7 +219,7 @@ ssubset_iff.mpr ⟨a, h, subset.refl _⟩
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s
 | ⟨s, nd⟩ := multiset.induction_on s (λ _, h₁) (λ a s IH nd, begin
     cases nodup_cons.1 nd with m nd',
-    rw [← (eq_of_veq _ : insert a (finset.mk s _) = ⟨a::s, nd⟩)],
+    rw (eq_of_veq _ : subtype.mk (a::s) nd = @insert _ (finset α) _ a (subtype.mk s nd')),
     { exact h₂ (by exact m) (IH nd') },
     { rw [insert_val, ndinsert_of_not_mem m] }
   end) nd
@@ -601,7 +601,7 @@ def to_finset (s : multiset α) : finset α := ⟨_, nodup_erase_dup s⟩
 
 @[simp] theorem to_finset_val (s : multiset α) : s.to_finset.1 = s.erase_dup := rfl
 
-theorem to_finset_eq {s : multiset α} (n : nodup s) : finset.mk s n = s.to_finset :=
+theorem to_finset_eq {s : multiset α} (n : nodup s) : subtype.mk s n = s.to_finset :=
 finset.val_inj.1 (erase_dup_eq_self.2 n).symm
 
 @[simp] theorem mem_to_finset {a : α} {s : multiset α} : a ∈ s.to_finset ↔ a ∈ s :=
@@ -621,7 +621,7 @@ def to_finset (l : list α) : finset α := multiset.to_finset l
 
 @[simp] theorem to_finset_val (l : list α) : l.to_finset.1 = (l.erase_dup : multiset α) := rfl
 
-theorem to_finset_eq {l : list α} (n : nodup l) : @finset.mk α l n = l.to_finset :=
+theorem to_finset_eq {l : list α} (n : nodup l) : subtype.mk (l : multiset α) (by exact n) = l.to_finset :=
 multiset.to_finset_eq n
 
 @[simp] theorem mem_to_finset {a : α} {l : list α} : a ∈ l.to_finset ↔ a ∈ l :=
@@ -1015,9 +1015,9 @@ end pi
 
 section powerset
 def powerset (s : finset α) : finset (finset α) :=
-⟨s.1.powerset.pmap finset.mk
+⟨s.1.powerset.pmap subtype.mk
   (λ t h, nodup_of_le (mem_powerset.1 h) s.2),
- nodup_pmap (λ a ha b hb, congr_arg finset.val)
+ nodup_pmap (λ a ha b hb, congr_arg subtype.val)
    (nodup_powerset.2 s.2)⟩
 
 @[simp] theorem mem_powerset {s t : finset α} : s ∈ powerset t ↔ s ⊆ t :=

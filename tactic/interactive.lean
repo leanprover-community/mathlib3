@@ -561,7 +561,7 @@ by apply_rules mono_rules
 ```
 -/
 meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
-  tactic.apply_rules hs n
+tactic.apply_rules hs n
 
 end interactive
 end tactic

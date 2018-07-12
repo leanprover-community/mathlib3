@@ -496,6 +496,24 @@ def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attac
 
 @[simp] theorem attach_empty : attach (∅ : finset α) = ∅ := rfl
 
+section decidable_pi_exists
+variables {s : finset α}
+
+instance decidable_dforall_finset {p : Πa∈s, Prop} [hp : ∀a (h : a ∈ s), decidable (p a h)] :
+  decidable (∀a (h : a ∈ s), p a h) :=
+multiset.decidable_dforall_multiset
+
+/-- decidable equality for functions whose domain is bounded by finsets -/
+instance decidable_eq_pi_finset {β : α → Type*} [h : ∀a, decidable_eq (β a)] :
+  decidable_eq (Πa∈s, β a) :=
+multiset.decidable_eq_pi_multiset
+
+instance decidable_dexists_finset {p : Πa∈s, Prop} [hp : ∀a (h : a ∈ s), decidable (p a h)] :
+  decidable (∃a (h : a ∈ s), p a h) :=
+multiset.decidable_dexists_multiset
+
+end decidable_pi_exists
+
 /- filter -/
 section filter
 variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]

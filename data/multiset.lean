@@ -983,7 +983,7 @@ lemma attach_cons (a : α) (m : multiset α) :
 quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
   by rw [list.map_pmap]; exact list.pmap_congr _ (assume a' h₁ h₂, subtype.eq rfl)
 
-section decidable_pi_multiset
+section decidable_pi_exists
 variables {m : multiset α}
 
 protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
@@ -1001,7 +1001,18 @@ instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (�
   decidable_eq (Πa∈m, β a) :=
 assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
 
-end decidable_pi_multiset
+def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
+  decidable (∃ x ∈ m, p x) :=
+quotient.rec_on_subsingleton m list.decidable_exists_mem
+
+instance decidable_dexists_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
+  decidable (∃a (h : a ∈ m), p a h) :=
+decidable_of_decidable_of_iff
+  (@multiset.decidable_exists_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
+  (iff.intro (λ ⟨⟨a, ha₁⟩, _, ha₂⟩, ⟨a, ha₁, ha₂⟩) 
+    (λ ⟨a, ha₁, ha₂⟩, ⟨⟨a, ha₁⟩, mem_attach _ _, ha₂⟩))
+
+end decidable_pi_exists
 
 /- subtraction -/
 section

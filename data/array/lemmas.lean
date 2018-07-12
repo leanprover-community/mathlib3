@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.list.basic data.buffer
+import data.list.basic data.buffer data.equiv.basic
 
 universes u w
 
@@ -155,7 +155,7 @@ end
 @[simp] theorem push_back_to_list (a : array n α) (v : α) :
   (a.push_back v).to_list = a.to_list ++ [v] :=
 by rw [← rev_list_reverse, ← rev_list_reverse, push_back_rev_list,
-       list.reverse_cons, list.concat_eq_append]
+       list.reverse_cons]
 
 theorem read_foreach_aux (f : fin n → α → α) (ai : array n α) :
   ∀ i h (a : array n α) (j : fin n), j.1 < i →
@@ -186,3 +186,13 @@ end array
 
 instance (α) [decidable_eq α] : decidable_eq (buffer α) :=
 by tactic.mk_dec_eq_instance
+
+namespace equiv
+
+def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
+⟨d_array.read, d_array.mk, λ ⟨f⟩, rfl, λ f, rfl⟩
+
+def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
+d_array_equiv_fin _
+
+end equiv

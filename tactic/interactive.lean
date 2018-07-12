@@ -3,8 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.basic tactic.rcases tactic.generalize_proofs
-  tactic.split_ifs meta.expr
+import data.dlist data.dlist.basic data.prod category.basic
+  tactic.basic tactic.rcases tactic.generalize_proofs
+  tactic.split_ifs meta.expr logic.basic
 
 open lean
 open lean.parser
@@ -27,21 +28,27 @@ the result.
 -/
 @[reducible] def rcases_patt_inverted := rcases_patt
 
-meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
-with_desc "patt" $ let p :=
-  (rcases_patt.one <$> ident_) <|>
-  (rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse)) in
-list.cons <$> p <*> (tk "|" *> p)*
+meta def rcases_parse1 (rcases_parse : parser (listΣ rcases_patt_inverted)) :
+  parser rcases_patt_inverted | x :=
+((rcases_patt.one <$> ident_) <|>
+(rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse))) x
 
-meta def rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt) :=
-let invert' (l : listΣ rcases_patt_inverted) : rcases_patt := match l with
-| [rcases_patt.one n] := rcases_patt.one n
-| _ := rcases_patt.many (rcases_parse.invert l)
-end in
-list.map $ λ p, match p with
+meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
+with_desc "patt" $
+list.cons <$> rcases_parse1 rcases_parse <*> (tk "|" *> rcases_parse1 rcases_parse)*
+
+meta def rcases_parse_single : parser rcases_patt_inverted :=
+with_desc "patt_list" $ rcases_parse1 rcases_parse
+
+meta mutual def rcases_parse.invert, rcases_parse.invert'
+with rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt)
+| l := l.map $ λ p, match p with
 | rcases_patt.one n := [rcases_patt.one n]
-| rcases_patt.many l := invert' <$> l
+| rcases_patt.many l := rcases_parse.invert' <$> l
 end
+with rcases_parse.invert' : listΣ rcases_patt_inverted → rcases_patt
+| [rcases_patt.one n] := rcases_patt.one n
+| l := rcases_patt.many (rcases_parse.invert l)
 
 /--
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
@@ -65,6 +72,21 @@ parameter as necessary.
 -/
 meta def rcases (p : parse texpr) (ids : parse (tk "with" *> rcases_parse)?) : tactic unit :=
 tactic.rcases p $ rcases_parse.invert $ ids.get_or_else [default _]
+
+meta def rintro_parse : parser rcases_patt :=
+rcases_parse.invert' <$> (brackets "(" ")" rcases_parse <|>
+  (λ x, [x]) <$> rcases_parse_single)
+
+/--
+The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
+allow for destructuring patterns while introducing variables. See `rcases` for
+a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
+will introduce two variables, and then do case splits on both of them producing
+two subgoals, one with variables `a d e` and the other with `b c d e`.
+-/
+meta def rintro : parse rintro_parse* → tactic unit
+| [] := intros []
+| l  := tactic.rintro l
 
 /--
 This is a "finishing" tactic modification of `simp`. The tactic `simpa [rules, ...] using e`
@@ -173,56 +195,8 @@ do let h := h.get_or_else `this,
   | some o, none   := swap >> tactic.clear o >> swap
   end
 
-/-- Unfreeze local instances, which allows us to revert
-  instances in the context. -/
-meta def unfreezeI := tactic.unfreeze_local_instances
-
-/-- Reset the instance cache. This allows any new instances
-  added to the context to be used in typeclass inference. -/
-meta def resetI := reset_instance_cache
-
-/-- Like `intro`, but uses the introduced variable
-  in typeclass inference. -/
-meta def introI (p : parse ident_?) : tactic unit :=
-intro p >> reset_instance_cache
-
-/-- Like `intros`, but uses the introduced variable(s)
-  in typeclass inference. -/
-meta def introsI (p : parse ident_*) : tactic unit :=
-intros p >> reset_instance_cache
-
-/-- Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `have`,
-  but the proof-omitted version is not supported. For
-  this one must write `have : t, { <proof> }, resetI, <proof>`. -/
-meta def haveI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse (tk ":=" *> texpr)) : tactic unit :=
-do h ← match h with
-  | none   := get_unused_name "_inst"
-  | some a := return a
-  end,
-  «have» (some h) q₁ (some q₂),
-  match q₁ with
-  | none    := swap >> reset_instance_cache >> swap
-  | some p₂ := reset_instance_cache
-  end
-
-/-- Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `let`. -/
-meta def letI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
-do h ← match h with
-  | none   := get_unused_name "_inst"
-  | some a := return a
-  end,
-  «let» (some h) q₁ q₂,
-  match q₁ with
-  | none    := swap >> reset_instance_cache >> swap
-  | some p₂ := reset_instance_cache
-  end
-
-/-- Like `exact`, but uses all variables in the context
-  for typeclass inference. -/
-meta def exactI (q : parse texpr) : tactic unit :=
-reset_instance_cache >> exact q
+meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
+tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
 /--
   `apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
@@ -242,14 +216,10 @@ meta def apply_assumption
   (asms : option (list expr) := none)
   (tac : tactic unit := return ()) : tactic unit :=
 do { ctx ← asms.to_monad <|> local_context,
-     t   ← target,
-     hs   ← find_matching_head t ctx,
-     hs.any_of (λ H, () <$ tactic.apply H ; tac) } <|>
+     ctx.any_of (λ H, () <$ symm_apply H ; tac) } <|>
 do { exfalso,
      ctx ← asms.to_monad <|> local_context,
-     t   ← target,
-     hs   ← find_matching_head t ctx,
-     hs.any_of (λ H, () <$ tactic.apply H ; tac) }
+     ctx.any_of (λ H, () <$ symm_apply H ; tac) }
 <|> fail "assumption tactic failed"
 
 open nat
@@ -281,6 +251,21 @@ meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
 /--
+  find all assumptions of the shape `¬ (p ∧ q)` or `¬ (p ∨ q)` and
+  replace them using de Morgan's law.
+-/
+meta def de_morgan_hyps : tactic unit :=
+do hs ← local_context,
+   hs.for_each $ λ h,
+     replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(of_not_not %%h) <|>
+     replace (some h.local_pp_name) none ``(not_imp.mp %%h) <|>
+     replace (some h.local_pp_name) none ``(not_iff.mp %%h) <|>
+     skip
+
+/--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
   and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
   using `reflexivity` or `solve_by_elim`
@@ -288,13 +273,17 @@ solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 meta def tautology : tactic unit :=
 repeat (do
   gs ← get_goals,
-  () <$ tactic.intros ;
-  casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _)] ;
-  constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _)],
+  () <$ tactic.intros;
+  de_morgan_hyps,
+  casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(_ ↔ _),``(Exists _),``(false)];
+  constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)],
+  try (refine ``( or_iff_not_imp_left.mpr _)),
+  try (refine ``( or_iff_not_imp_right.mpr _)),
   gs' ← get_goals,
   guard (gs ≠ gs') ) ;
 repeat
-(reflexivity <|> solve_by_elim <|> constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)]) ;
+(reflexivity <|> solve_by_elim <|>
+ constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)] ) ;
 done
 
 /-- Shorter name for the tactic `tautology`. -/
@@ -314,7 +303,7 @@ meta def extensional_attribute : user_attribute :=
 { name := `extensionality,
   descr := "lemmas usable by `ext` tactic" }
 
-attribute [extensionality] funext array.ext
+attribute [extensionality] _root_.funext array.ext prod.ext
 
 /--
   `ext1 id` selects and apply one extensionality lemma (with attribute
@@ -325,7 +314,12 @@ attribute [extensionality] funext array.ext
 meta def ext1 (x : parse ident_ ?) : tactic unit :=
 do ls ← attribute.get_instances `extensionality,
    ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
-   interactive.intro x
+   try ( interactive.intro x )
+
+meta def ext_arg :=
+prod.mk <$> (some <$> small_nat)
+        <*> (tk "with" *> ident_* <|> pure [])
+<|> prod.mk none <$> (ident_*)
 
 /--
   - `ext` applies as many extensionality lemmas as possible;
@@ -351,10 +345,13 @@ do ls ← attribute.get_instances `extensionality,
   ```
 
   by applying functional extensionality and set extensionality.
+
+  A maximum depth can be provided with `ext 3 with x y z`.
   -/
-meta def ext : parse ident_ * → tactic unit
- | [] := repeat (ext1 none)
- | xs := xs.mmap' (ext1 ∘ some)
+meta def ext : parse ext_arg → tactic unit
+ | (some n, []) := ext1 none >> iterate_at_most (pred n) (ext1 none)
+ | (none,   []) := ext1 none >> repeat (ext1 none)
+ | (n, xs) := tactic.ext xs n
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)
@@ -425,6 +422,120 @@ do tgt : expr ← target,
      | (app (lam _ _ _ (var 0)) e') := some e'
      | _ := none
      end)
+
+meta def source_fields (missing : list (name × name)) (e : pexpr) : tactic (list (name × pexpr)) :=
+do e ← to_expr e,
+   t ← infer_type e,
+   let struct_n : name := t.get_app_fn.const_name,
+   exp_fields ← (∩ missing) <$> expanded_field_list struct_n,
+   exp_fields.mmap $ λ ⟨p,n⟩,
+     (prod.mk n ∘ to_pexpr) <$> mk_mapp (n.update_prefix p) [none,some e]
+
+meta def collect_struct' : pexpr → state_t (list $ expr×structure_instance_info) tactic pexpr | e :=
+do some str ← pure (e.get_structure_instance_info)
+       | e.traverse collect_struct',
+   v ← monad_lift mk_mvar,
+   modify (list.cons (v,str)),
+   pure $ to_pexpr v
+
+meta def collect_struct (e : pexpr) : tactic $ pexpr × list (expr×structure_instance_info) :=
+prod.map id list.reverse <$> (collect_struct' e).run []
+
+meta def refine_one (str : structure_instance_info) :
+  tactic $ list (expr×structure_instance_info) :=
+do    tgt ← target,
+      let struct_n : name := tgt.get_app_fn.const_name,
+      exp_fields ← expanded_field_list struct_n,
+      let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),
+      (src_field_names,src_field_vals) ← (@list.unzip name _ ∘ list.join) <$> str.sources.mmap (source_fields missing_f),
+      let provided  := exp_fields.filter (λ f, (f.2 : name) ∈ str.field_names),
+      let missing_f' := missing_f.filter (λ x, x.2 ∉ src_field_names),
+      vs ← mk_mvar_list missing_f'.length,
+      (field_values,new_goals) ← list.unzip <$> (str.field_values.mmap collect_struct : tactic _),
+      e' ← to_expr $ pexpr.mk_structure_instance
+          { struct := some struct_n
+          , field_names  := str.field_names  ++ missing_f'.map prod.snd ++ src_field_names
+          , field_values := field_values ++ vs.map to_pexpr         ++ src_field_vals },
+      tactic.exact e',
+      gs ← with_enable_tags (
+        mmap₂ (λ (n : name × name) v, do
+           set_goals [v],
+           try (interactive.unfold (provided.map $ λ ⟨s,f⟩, f.update_prefix s) (loc.ns [none])),
+           apply_auto_param
+             <|> apply_opt_param
+             <|> (set_main_tag [`_field,n.2,n.1]),
+           get_goals)
+        missing_f' vs),
+      set_goals gs.join,
+      return new_goals.join
+
+meta def refine_recursively : expr × structure_instance_info → tactic (list expr) | (e,str) :=
+do set_goals [e],
+   rs ← refine_one str,
+   gs ← get_goals,
+   gs' ← rs.mmap refine_recursively,
+   return $ gs'.join ++ gs
+
+
+/-- `refine_struct { .. }` acts like `refine` but works only with structure instance
+    literals. It creates a goal for each missing field and tags it with the name of the
+    field so that `have_field` can be used to generically refer to the field currently
+    being refined.
+
+    As an example, we can use `refine_struct` to automate the construction semigroup
+    instances:
+    ```
+    refine_struct ( { .. } : semigroup α ),
+    -- case semigroup, mul
+    -- α : Type u,
+    -- ⊢ α → α → α
+
+    -- case semigroup, mul_assoc
+    -- α : Type u,
+    -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
+    ```
+-/
+meta def refine_struct : parse texpr → tactic unit | e :=
+do (x,xs) ← collect_struct e,
+   refine x,
+   gs ← get_goals,
+   xs' ← xs.mmap refine_recursively,
+   set_goals (xs'.join ++ gs)
+
+meta def guard_tags (tags : parse ident*) : tactic unit :=
+do (t : list name) ← get_main_tag,
+   guard (t = tags)
+
+meta def get_current_field : tactic name :=
+do [_,field,str] ← get_main_tag,
+   expr.const_name <$> resolve_name (field.update_prefix str)
+
+/-- `have_field`, used after `refine_struct _` poses `field` as a local constant
+    with the type of the field of the current goal:
+
+    ```
+    refine_struct ({ .. } : semigroup α),
+    { have_field, ... },
+    { have_field, ... },
+    ```
+    behaves like
+    ```
+    refine_struct ({ .. } : semigroup α),
+    { have field := @semigroup.mul, ... },
+    { have field := @semigroup.mul_assoc, ... },
+    ```
+-/
+meta def have_field : tactic unit :=
+propagate_tags $
+get_current_field
+>>= mk_const
+>>= note `field none
+>>  return ()
+
+/-- `apply_field` functions as `have_field, apply field, clear field` -/
+meta def apply_field : tactic unit :=
+propagate_tags $
+get_current_field >>= applyc
 
 end interactive
 end tactic

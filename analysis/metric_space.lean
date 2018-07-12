@@ -341,7 +341,7 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
   dist_self := λ x, by simp,
   eq_of_dist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
-    exact prod.ext.2 ⟨dist_le_zero.1 h₁, dist_le_zero.1 h₂⟩
+    exact prod.ext_iff.2 ⟨dist_le_zero.1 h₁, dist_le_zero.1 h₂⟩
   end,
   dist_comm := λ x y, by simp [dist_comm],
   dist_triangle := λ x y z, max_le

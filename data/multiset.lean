@@ -5,8 +5,10 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import logic.function data.list.basic data.list.perm data.list.sort order.boolean_algebra
-       algebra.order_functions data.quot algebra.group_power algebra.ordered_group
+import logic.function order.boolean_algebra
+  data.list.basic data.list.perm data.list.sort data.quot data.string
+  algebra.order_functions algebra.group_power algebra.ordered_group
+
 open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -336,7 +338,7 @@ pos_iff_ne_zero.trans $ not_congr card_eq_zero
 theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
 quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
-@[elab_as_eliminator] lemma strong_induction_on {p : multiset α → Sort*} :
+@[elab_as_eliminator] def strong_induction_on {p : multiset α → Sort*} :
   ∀ (s : multiset α), (∀ s, (∀t < s, p t) → p s) → p s
 | s := λ ih, ih s $ λ t h,
   have card t < card s, from card_lt_of_lt h,
@@ -595,7 +597,7 @@ mem_map.2 ⟨_, h, rfl⟩
 quot.induction_on s $ λ l, mem_map_of_inj H
 
 @[simp] theorem map_map (g : β → γ) (f : α → β) (s : multiset α) : map g (map f s) = map (g ∘ f) s :=
-quot.induction_on s $ λ l, congr_arg coe $ map_map _ _ _
+quot.induction_on s $ λ l, congr_arg coe $ list.map_map _ _ _
 
 @[simp] theorem map_id (s : multiset α) : map id s = s :=
 quot.induction_on s $ λ l, congr_arg coe $ map_id _
@@ -981,7 +983,7 @@ lemma attach_cons (a : α) (m : multiset α) :
 quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
   by rw [list.map_pmap]; exact list.pmap_congr _ (assume a' h₁ h₂, subtype.eq rfl)
 
-section decidable_pi_multiset
+section decidable_pi_exists
 variables {m : multiset α}
 
 protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
@@ -999,7 +1001,18 @@ instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (�
   decidable_eq (Πa∈m, β a) :=
 assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
 
-end decidable_pi_multiset
+def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
+  decidable (∃ x ∈ m, p x) :=
+quotient.rec_on_subsingleton m list.decidable_exists_mem
+
+instance decidable_dexists_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
+  decidable (∃a (h : a ∈ m), p a h) :=
+decidable_of_decidable_of_iff
+  (@multiset.decidable_exists_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
+  (iff.intro (λ ⟨⟨a, ha₁⟩, _, ha₂⟩, ⟨a, ha₁, ha₂⟩) 
+    (λ ⟨a, ha₁, ha₂⟩, ⟨⟨a, ha₁⟩, mem_attach _ _, ha₂⟩))
+
+end decidable_pi_exists
 
 /- subtraction -/
 section
@@ -2332,6 +2345,9 @@ quot.induction_on s $ λ l, sorted_merge_sort r _
 quot.induction_on s $ λ l, quot.sound $ perm_merge_sort _ _
 
 end sort
+
+instance [has_repr α] : has_repr (multiset α) :=
+⟨λ s, "{" ++ string.intercalate ", " ((s.map repr).sort (≤)) ++ "}"⟩
 
 section sections
 

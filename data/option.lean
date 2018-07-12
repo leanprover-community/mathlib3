@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import logic.basic data.bool init.data.option.instances
+       tactic.interactive
 
 namespace option
 universe u
@@ -20,12 +21,19 @@ iff.rfl
 theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → option.get h = a
 | _ _ rfl := rfl
 
+theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
+option.some.inj $ ha.symm.trans hb
+
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
 theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl
 | (some a) o        H := ((H _).1 rfl).symm
 | o        (some b) H := (H _).2 rfl
+
+theorem eq_none_iff_forall_not_mem {o : option α} :
+  o = none ↔ (∀ a, a ∉ o) :=
+⟨λ e a h, by rw e at h; cases h, λ h, ext $ by simpa⟩
 
 @[simp] theorem none_bind (f : α → option β) : none >>= f = none := rfl
 
@@ -71,8 +79,16 @@ by cases x; refl
 
 @[simp] theorem orelse_none (x : option α) : (none <|> x) = x := orelse_none' x
 
+@[simp] theorem is_some_none : @is_some α none = ff := rfl
+
+@[simp] theorem is_some_some {a : α} : is_some (some a) = tt := rfl
+
 theorem is_some_iff_exists {x : option α} : is_some x ↔ ∃ a, x = some a :=
 by cases x; simp [is_some]; exact ⟨_, rfl⟩
+
+@[simp] theorem is_none_none : @is_none α none = tt := rfl
+
+@[simp] theorem is_none_some {a : α} : is_none (some a) = ff := rfl
 
 theorem is_none_iff_eq_none {o : option α} : o.is_none ↔ o = none :=
 ⟨option.eq_none_of_is_none, λ e, e.symm ▸ rfl⟩

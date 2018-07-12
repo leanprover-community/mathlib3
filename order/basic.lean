@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import tactic.interactive logic.basic data.sigma data.sum data.set.basic algebra.order
+import tactic.interactive logic.basic data.sum data.set.basic algebra.order
 open function
 
 /- TODO: automatic construction of dual definitions / theorems -/
@@ -28,6 +28,26 @@ instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
 instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
+
+theorem preorder.ext {α} {A B : preorder α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  resetI, cases A, cases B, congr,
+  { funext x y, exact propext (H x y) },
+  { funext x y,
+    dsimp [(≤)] at A_lt_iff_le_not_le B_lt_iff_le_not_le H,
+    simp [A_lt_iff_le_not_le, B_lt_iff_le_not_le, H] },
+end
+
+theorem partial_order.ext {α} {A B : partial_order α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+by haveI this := preorder.ext H;
+   cases A; cases B; injection this; congr'
+
+theorem linear_order.ext {α} {A B : linear_order α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+by haveI this := partial_order.ext H;
+   cases A; cases B; injection this; congr'
 
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
@@ -206,18 +226,15 @@ instance [linear_order α] : is_strict_total_order' α (<) := {}
 @[algebra] class is_order_connected (α : Type u) (lt : α → α → Prop) : Prop :=
 (conn : ∀ a b c, lt a c → lt a b ∨ lt b c)
 
-theorem is_order_connected.neg_trans (r : α → α → Prop) [is_order_connected α r]
+theorem is_order_connected.neg_trans {r : α → α → Prop} [is_order_connected α r]
   {a b c} (h₁ : ¬ r a b) (h₂ : ¬ r b c) : ¬ r a c :=
 mt (is_order_connected.conn a b c) $ by simp [h₁, h₂]
 
-theorem is_strict_weak_order_of_is_order_connected [is_asymm α r] :
-  ∀ [is_order_connected α r], is_strict_weak_order α r
-| ⟨H⟩ := {
-  trans := λ a b c h₁ h₂, (H _ c _ h₁).resolve_right (asymm h₂),
+theorem is_strict_weak_order_of_is_order_connected [is_asymm α r]
+  [is_order_connected α r] : is_strict_weak_order α r :=
+{ trans := λ a b c h₁ h₂, (is_order_connected.conn _ c _ h₁).resolve_right (asymm h₂),
   incomp_trans := λ a b c ⟨h₁, h₂⟩ ⟨h₃, h₄⟩,
-    have H' : ∀ {a b c}, ¬ r a b → ¬ r b c → ¬ r a c,
-    from λ a b c, by simpa [not_or_distrib] using mt (H a b c),
-    ⟨H' h₁ h₃, H' h₄ h₂⟩,
+    ⟨is_order_connected.neg_trans h₁ h₃, is_order_connected.neg_trans h₄ h₂⟩,
   ..@is_irrefl_of_is_asymm α r _ }
 
 instance is_order_connected_of_is_strict_total_order'

@@ -1,13 +1,36 @@
-language: generic
+language: c
+sudo: false
+os:
+    - linux
+
+cache:
+  directories:
+    - $TRAVIS_BUILD_DIR/*/
+    - $HOME/.elan
 
 install:
-  - curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+  - |
+    if [ ! -d "$HOME/.elan/toolchains/" ]; then
+      curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+    fi
   - source ~/.elan/env
 
-script:
-  - leanpkg test
-  - lean --recursive --export=mathlib.txt
-  - leanchecker mathlib.txt
+jobs:
+  include:
+    - stage: Pre-build
+      script:
+        - git status | grep  -e "Changes not staged for commit:"; [ $? -ne 0 ] || git checkout -f HEAD
+        - rm mathlib.txt || true
+        - timeout 2400 leanpkg test || echo timed out
+
+    - stage: Test
+      script:
+        - git status | grep  -e "Changes not staged for commit:"; [ $? -ne 0 ]
+        - leanpkg test
+        - lean --recursive --export=mathlib.txt
+        - leanchecker mathlib.txt
+        - find . -name "*.lean" -delete
+
 
 notifications:
   webhooks:

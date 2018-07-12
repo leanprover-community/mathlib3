@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset data.equiv algebra.big_operators
+import data.finset algebra.big_operators data.array.lemmas data.vector2
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -45,6 +45,14 @@ instance decidable_pi_fintype {α} {β : α → Type*} [fintype α] [∀a, decid
   decidable_eq (Πa, β a) :=
 assume f g, decidable_of_iff (∀ a ∈ fintype.elems α, f a = g a)
   (by simp [function.funext_iff, fintype.complete])
+
+instance decidable_forall_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
+  decidable (∀ a, p a) :=
+decidable_of_iff (∀ a ∈ @univ α _, p a) (by simp)
+
+instance decidable_exists_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
+  decidable (∃ a, p a) :=
+decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
@@ -86,7 +94,7 @@ by haveI := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
 
-instance subtype {p : α → Prop} (s : finset α)
+protected def subtype {p : α → Prop} (s : finset α)
   (H : ∀ x : α, x ∈ s ↔ p x) : fintype {x // p x} :=
 ⟨⟨multiset.pmap subtype.mk s.1 (λ x, (H x).1),
   multiset.nodup_pmap (λ a _ b _, congr_arg subtype.val) s.2⟩,
@@ -169,10 +177,20 @@ instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp�
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
+def finset.insert_none (s : finset α) : finset (option α) :=
+⟨none :: s.1.map some, multiset.nodup_cons.2
+  ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) s.2⟩⟩
+
+@[simp] theorem finset.mem_insert_none {s : finset α} : ∀ {o : option α},
+  o ∈ s.insert_none ↔ ∀ a ∈ o, a ∈ s
+| none     := iff_of_true (multiset.mem_cons_self _ _) (λ a h, by cases h)
+| (some a) := multiset.mem_cons.trans $ by simp; refl
+
+theorem finset.some_mem_insert_none {s : finset α} {a : α} :
+  some a ∈ s.insert_none ↔ a ∈ s := by simp
+
 instance {α : Type*} [fintype α] : fintype (option α) :=
-⟨⟨none :: univ.1.map some, multiset.nodup_cons.2
-  ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) univ.2⟩⟩,
-λ a, by cases a; simp⟩
+⟨univ.insert_none, λ a, by simp⟩
 
 @[simp] theorem fintype.card_option {α : Type*} [fintype α] :
   fintype.card (option α) = fintype.card α + 1 :=
@@ -229,6 +247,9 @@ fintype.of_multiset s.attach s.mem_attach
 instance finset.subtype.fintype (s : finset α) : fintype {x // x ∈ s} :=
 ⟨s.attach, s.mem_attach⟩
 
+instance finset_coe.fintype (s : finset α) : fintype (↑s : set α) :=
+finset.subtype.fintype s
+
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then finset.singleton ⟨h⟩ else ∅, λ ⟨h⟩, by simp [h]⟩
 
@@ -255,3 +276,75 @@ d_array.fintype
 
 instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
 fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm
+
+instance quotient.fintype [fintype α] (s : setoid α)
+  [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=
+fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rfl⟩))
+
+instance finset.fintype [fintype α] : fintype (finset α) :=
+⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
+
+instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
+set_fintype _
+
+instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
+pi.fintype
+
+def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]
+  {α : ι → Type*} [S : ∀ i, setoid (α i)] :
+  ∀ (l : list ι), (∀ i ∈ l, quotient (S i)) → @quotient (Π i ∈ l, α i) (by apply_instance)
+| []     f := ⟦λ i, false.elim⟧
+| (i::l) f := begin
+  refine quotient.lift_on₂ (f i (list.mem_cons_self _ _))
+    (quotient.fin_choice_aux l (λ j h, f j (list.mem_cons_of_mem _ h)))
+    _ _,
+  exact λ a l, ⟦λ j h,
+    if e : j = i then by rw e; exact a else
+    l _ (h.resolve_left e)⟧,
+  refine λ a₁ l₁ a₂ l₂ h₁ h₂, quotient.sound (λ j h, _),
+  by_cases e : j = i; simp [e],
+  { subst j, exact h₁ },
+  { exact h₂ _ _ }
+end
+
+theorem quotient.fin_choice_aux_eq {ι : Type*} [decidable_eq ι]
+  {α : ι → Type*} [S : ∀ i, setoid (α i)] :
+  ∀ (l : list ι) (f : ∀ i ∈ l, α i), quotient.fin_choice_aux l (λ i h, ⟦f i h⟧) = ⟦f⟧
+| []     f := quotient.sound (λ i h, h.elim)
+| (i::l) f := begin
+  simp [quotient.fin_choice_aux, quotient.fin_choice_aux_eq l],
+  refine quotient.sound (λ j h, _),
+  by_cases e : j = i; simp [e],
+  subst j, refl
+end
+
+def quotient.fin_choice {ι : Type*} [fintype ι] [decidable_eq ι]
+  {α : ι → Type*} [S : ∀ i, setoid (α i)]
+  (f : ∀ i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=
+quotient.lift_on (@quotient.rec_on _ _ (λ l : multiset ι,
+    @quotient (Π i ∈ l, α i) (by apply_instance))
+    finset.univ.1
+    (λ l, quotient.fin_choice_aux l (λ i _, f i))
+    (λ a b h, begin
+      have := λ a, quotient.fin_choice_aux_eq a (λ i h, quotient.out (f i)),
+      simp [quotient.out_eq] at this,
+      simp [this],
+      let g := λ a:multiset ι, ⟦λ (i : ι) (h : i ∈ a), quotient.out (f i)⟧,
+      refine eq_of_heq ((eq_rec_heq _ _).trans (_ : g a == g b)),
+      congr' 1, exact quotient.sound h,
+    end))
+  (λ f, ⟦λ i, f i (finset.mem_univ _)⟧)
+  (λ a b h, quotient.sound $ λ i, h _ _)
+
+
+theorem quotient.fin_choice_eq {ι : Type*} [fintype ι] [decidable_eq ι]
+  {α : ι → Type*} [∀ i, setoid (α i)]
+  (f : ∀ i, α i) : quotient.fin_choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
+begin
+  let q, swap, change quotient.lift_on q _ _ = _,
+  have : q = ⟦λ i h, f i⟧,
+  { dsimp [q],
+    exact quotient.induction_on
+      (@finset.univ ι _).1 (λ l, quotient.fin_choice_aux_eq _ _) },
+  simp [this], exact setoid.refl _
+end

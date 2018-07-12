@@ -8,30 +8,12 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import data.prod data.nat.pairing logic.function tactic.basic
-import data.set.lattice algebra.group data.vector2
+import logic.function data.set.basic
+
 open function
 
 universes u v w
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
-
-namespace function
-
-theorem left_inverse.f_g_eq_id {f : α → β} {g : β → α} (h : left_inverse f g) : f ∘ g = id :=
-funext $ h
-
-theorem right_inverse.g_f_eq_id {f : α → β} {g : β → α} (h : right_inverse f g) : g ∘ f = id :=
-funext $ h
-
-theorem left_inverse.comp {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
-  (hf : left_inverse f g) (hh : left_inverse h i) : left_inverse (h ∘ f) (g ∘ i) :=
-assume a, show h (f (g (i a))) = a, by rw [hf (i a), hh a]
-
-theorem right_inverse.comp {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
-  (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
-left_inverse.comp hh hf
-
-end function
 
 /-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
 structure equiv (α : Sort*) (β : Sort*) :=
@@ -123,12 +105,11 @@ protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
 by rw [set.image_subset_iff, e.image_eq_preimage]
 
 lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
-by rw [←set.image_comp]; simpa using set.image_id s
+by rw [← set.image_comp]; simpa using set.image_id s
 
 protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' -s = -(f '' s) :=
 set.image_compl_eq f.bijective
-
 
 /- The group of permutations (self-equivalences) of a type `α` -/
 instance perm_group {α : Type u} : group (perm α) :=
@@ -394,36 +375,8 @@ def nat_equiv_nat_sum_unit : ℕ ≃ (ℕ ⊕ punit.{u+1}) :=
 @[simp] def nat_sum_unit_equiv_nat : (ℕ ⊕ punit.{u+1}) ≃ ℕ :=
 nat_equiv_nat_sum_unit.symm
 
-@[simp] def nat_prod_nat_equiv_nat : (ℕ × ℕ) ≃ ℕ :=
-⟨λ p, nat.mkpair p.1 p.2,
- nat.unpair,
- λ p, begin cases p, apply nat.unpair_mkpair end,
- nat.mkpair_unpair⟩
-
-@[simp] def nat_sum_bool_equiv_nat : (ℕ ⊕ bool) ≃ ℕ :=
-calc (ℕ ⊕ bool) ≃ (ℕ ⊕ (unit ⊕ unit)) : sum_congr (equiv.refl _) bool_equiv_unit_sum_unit
-           ...  ≃ ((ℕ ⊕ unit) ⊕ unit) : (sum_assoc ℕ unit unit).symm
-           ...  ≃ (ℕ ⊕ unit)          : sum_congr nat_sum_unit_equiv_nat (equiv.refl _)
-           ...  ≃ ℕ                   : nat_sum_unit_equiv_nat
-
-@[simp] def bool_prod_nat_equiv_nat : (bool × ℕ) ≃ ℕ :=
-⟨λ ⟨b, n⟩, bit b n, bodd_div2,
- λ ⟨b, n⟩, by simp [bool_prod_nat_equiv_nat._match_1, bodd_bit, div2_bit],
- λ n, by simp [bool_prod_nat_equiv_nat._match_1, bit_decomp]⟩
-
-@[simp] def nat_sum_nat_equiv_nat : (ℕ ⊕ ℕ) ≃ ℕ :=
-(bool_prod_equiv_sum ℕ).symm.trans bool_prod_nat_equiv_nat
-
 def int_equiv_nat_sum_nat : ℤ ≃ (ℕ ⊕ ℕ) :=
 by refine ⟨_, _, _, _⟩; intro z; {cases z; [left, right]; assumption} <|> {cases z; refl}
-
-def int_equiv_nat : ℤ ≃ ℕ :=
-int_equiv_nat_sum_nat.trans nat_sum_nat_equiv_nat
-
-def prod_equiv_of_equiv_nat {α : Sort*} (e : α ≃ ℕ) : (α × α) ≃ α :=
-calc (α × α) ≃ (ℕ × ℕ) : prod_congr e e
-        ...  ≃ ℕ       : nat_prod_nat_equiv_nat
-        ...  ≃ α       : e.symm
 
 end
 
@@ -434,18 +387,6 @@ def list_equiv_of_equiv {α β : Type*} : α ≃ β → list α ≃ list β
 
 def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
 ⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨x.1, x.2⟩, λ ⟨a, b⟩, rfl,λ ⟨a, b⟩, rfl⟩
-
-def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
-⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
-
-def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
-⟨d_array.read, d_array.mk, λ ⟨f⟩, rfl, λ f, rfl⟩
-
-def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
-d_array_equiv_fin _
-
-def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
-(vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
 
 def decidable_eq_of_equiv [decidable_eq β] (e : α ≃ β) : decidable_eq α
 | a₁ a₂ := decidable_of_iff (e a₁ = e a₂) e.bijective.1.eq_iff
@@ -460,8 +401,8 @@ def subtype_equiv_of_subtype {p : α → Prop} : Π (e : α ≃ β), {a : α // 
 | ⟨f, g, l, r⟩ :=
   ⟨subtype.map f $ assume a ha, show p (g (f a)), by rwa [l],
    subtype.map g $ assume a ha, ha,
-   assume p, by simp [map_comp, l.f_g_eq_id]; rw [map_id]; refl,
-   assume p, by simp [map_comp, r.f_g_eq_id]; rw [map_id]; refl⟩
+   assume p, by simp [map_comp, l.comp_eq_id]; rw [map_id]; refl,
+   assume p, by simp [map_comp, r.comp_eq_id]; rw [map_id]; refl⟩
 
 def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
   subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=
@@ -552,29 +493,6 @@ begin
   simp [set.set_coe_cast, (∘), set.range_iff_surjective.2 hg.2],
 end
 
-section
-open set
-set_option eqn_compiler.zeta true
-
-noncomputable def set.bUnion_eq_sigma_of_disjoint {α β} {s : set α} {t : α → set β}
-  (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=
-let f : (Σi:s, t i.val) → (⋃i∈s, t i) := λ⟨⟨a, ha⟩, ⟨b, hb⟩⟩, ⟨b, mem_bUnion ha hb⟩ in
-have injective f,
-  from assume ⟨⟨a₁, ha₁⟩, ⟨b₁, hb₁⟩⟩ ⟨⟨a₂, ha₂⟩, ⟨b₂, hb₂⟩⟩ eq,
-  have b_eq : b₁ = b₂, from congr_arg subtype.val eq,
-  have a_eq : a₁ = a₂, from classical.by_contradiction $ assume ne,
-    have b₁ ∈ t a₁ ∩ t a₂, from ⟨hb₁, b_eq.symm ▸ hb₂⟩,
-    have t a₁ ∩ t a₂ ≠ ∅, from ne_empty_of_mem this,
-    this $ h _ ha₁ _ ha₂ ne,
-  sigma.eq (subtype.eq a_eq) (subtype.eq $ by subst b_eq; subst a_eq),
-have surjective f,
-  from assume ⟨b, hb⟩,
-  have ∃a∈s, b ∈ t a, by simpa using hb,
-  let ⟨a, ha, hb⟩ := this in ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩,
-(equiv.of_bijective ⟨‹injective f›, ‹surjective f›⟩).symm
-
-end
-
 section swap
 variable [decidable_eq α]
 open decidable
@@ -622,6 +540,13 @@ eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
 theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by cases π; refl
+
+/-- Augment an equivalence with a prescribed mapping `f a = b` -/
+def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
+(swap a (f.symm b)).trans f
+
+@[simp] theorem set_value_eq (f : α ≃ β) (a : α) (b : β) : set_value f a b a = b :=
+by dsimp [set_value]; simp [swap_apply_left]
 
 end swap
 end equiv

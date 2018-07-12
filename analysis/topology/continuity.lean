@@ -690,7 +690,7 @@ continuous_iff_tendsto.mpr $ assume x,
     ... = map (λx:subtype (c i), f x.val) (nhds x') : rfl
     ... ≤ nhds (f x) : continuous_iff_tendsto.mp (f_cont i) x'
 
-lemma continuous_subtype_is_closed_cover {f : α → β} (c : γ → α → Prop)
+lemma continuous_subtype_is_closed_cover {ι : Sort*} {f : α → β} (c : ι → α → Prop)
   (h_lf : locally_finite (λi, {x | c i x}))
   (h_is_closed : ∀i, is_closed {x | c i x})
   (h_cover : ∀x, ∃i, c i x)
@@ -710,7 +710,7 @@ continuous_iff_is_closed.mpr $
   have f ⁻¹' s = (⋃i, @subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
   begin
     apply set.ext,
-    have : ∀ (x : α), f x ∈ s ↔ ∃ (i : γ), c i x ∧ f x ∈ s :=
+    have : ∀ (x : α), f x ∈ s ↔ ∃ (i : ι), c i x ∧ f x ∈ s :=
       λ x, ⟨λ hx, let ⟨i, hi⟩ := h_cover x in ⟨i, hi, hx⟩,
             λ ⟨i, hi, hx⟩, hx⟩,
     simp [and.comm, and.left_comm], simpa [(∘)],

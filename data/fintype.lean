@@ -46,11 +46,11 @@ instance decidable_pi_fintype {α} {β : α → Type*} [fintype α] [∀a, decid
 assume f g, decidable_of_iff (∀ a ∈ fintype.elems α, f a = g a)
   (by simp [function.funext_iff, fintype.complete])
 
-instance decidable_forall_fintype {α : Type*} [fintype α] {p : α → Prop} [decidable_pred p] :
+instance decidable_forall_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
   decidable (∀ a, p a) :=
 decidable_of_iff (∀ a ∈ @univ α _, p a) (by simp)
 
-instance decidable_exists_fintype {α : Type*} [fintype α] {p : α → Prop} [decidable_pred p] :
+instance decidable_exists_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
   decidable (∃ a, p a) :=
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 

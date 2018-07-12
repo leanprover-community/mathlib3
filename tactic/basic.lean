@@ -194,4 +194,37 @@ meta def mk_mvar_list : ℕ → tactic (list expr)
  | 0 := pure []
  | (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
 
+meta def replace (h : name) (p : pexpr) : tactic unit :=
+do h' ← get_local h,
+   p ← to_expr p,
+   note h none p,
+   clear h'
+
+meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
+tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
+
+meta def apply_assumption
+  (asms : option (list expr) := none)
+  (tac : tactic unit := return ()) : tactic unit :=
+do { ctx ← asms.to_monad <|> local_context,
+     ctx.any_of (λ H, () <$ symm_apply H ; tac) } <|>
+do { exfalso,
+     ctx ← asms.to_monad <|> local_context,
+     ctx.any_of (λ H, () <$ symm_apply H ; tac) }
+<|> fail "assumption tactic failed"
+
+open nat
+
+meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
+| 0 := done
+| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+
+meta structure by_elim_opt :=
+  (discharger : tactic unit := done)
+  (restr_hyp_set : option (list expr) := none)
+  (max_rep : ℕ := 3)
+
+meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
+solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
+
 end tactic

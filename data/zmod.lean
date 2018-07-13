@@ -9,7 +9,9 @@ class pos_nat (n : ℕ) := (pos : 0 < n)
 
 attribute [class] nat.prime
 
-instance pos_nat_of_prime (p : ℕ) [hp : nat.prime p] : pos_nat p := ⟨hp.pos⟩
+instance pos_nat.prime (p : ℕ) [hp : nat.prime p] : pos_nat p := ⟨hp.pos⟩
+
+instance pos_nat.succ (n : ℕ) : pos_nat (nat.succ n) := ⟨nat.succ_pos n⟩
 
 open nat nat.modeq int
 

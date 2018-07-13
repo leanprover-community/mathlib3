@@ -176,11 +176,6 @@ do { ctx ← local_context,
 meta def assumption_symm :=
 using_new_ref (native.rb_map.mk _ _) assumption_with
 
-/--
-  `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
-  and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
-  using `reflexivity` or `solve_by_elim`
--/
 meta def tautology : tactic unit :=
 using_new_ref (expr_map.mk _) $ λ r,
 do try (contradiction_with r);

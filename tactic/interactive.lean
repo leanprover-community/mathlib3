@@ -544,7 +544,6 @@ attribute are added to the list of rules.
 
 example, with or without user attribute:
 ```
-import analysis.real
 @[user_attribute]
 meta def mono_rules : user_attribute :=
 { name := `mono_rules,
@@ -552,9 +551,10 @@ meta def mono_rules : user_attribute :=
 
 attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
 
-lemma my_test {a b c d e : real} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) : 
-  a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
+lemma my_test {a b c d e : real} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
+a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
 by apply_rules mono_rules
+-- any of the following lines would also work:
 -- add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
 -- by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
 -- by apply_rules [mono_rules]

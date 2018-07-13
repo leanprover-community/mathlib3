@@ -192,3 +192,30 @@ refine_struct ({ .. } : semigroup α),
 { have field := @semigroup.mul, ... },
 { have field := @semigroup.mul_assoc, ... },
 ```
+
+### apply_rules
+
+`apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
+first goal and the resulting subgoals, iteratively, at most `n` times.
+`n` is optional, equal to 50 by default.
+`hs` can contain user attributes: in this case all theorems with this
+attribute are added to the list of rules.
+
+For instance:
+
+```
+@[user_attribute]
+meta def mono_rules : user_attribute :=
+{ name := `mono_rules,
+  descr := "lemmas usable to prove monotonicity" }
+
+attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
+
+lemma my_test {a b c d e : real} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
+a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
+-- any of the following lines solve the goal:
+add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
+by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
+by apply_rules [mono_rules]
+by apply_rules mono_rules
+```

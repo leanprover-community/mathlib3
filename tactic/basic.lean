@@ -197,14 +197,14 @@ meta def mk_mvar_list : ℕ → tactic (list expr)
 /--`iterate_at_most_on_all_goals n t`: repeat the given tactic at most `n` times on all goals,
 or until it fails. Always succeeds. -/
 meta def iterate_at_most_on_all_goals : nat → tactic unit → tactic unit
-| 0        tac := do trace "maximal iterations reached", failed
+| 0        tac := trace "maximal iterations reached"
 | (succ n) tac := tactic.all_goals $ (do tac, iterate_at_most_on_all_goals n tac) <|> skip
 
 /--`iterate_at_most_on_subgoals n t`: repeat the tactic `t` at most `n` times on the first
 goal and on all subgoals thus produced, or until it fails. Fails iff `t` fails on
 current goal. -/
 meta def iterate_at_most_on_subgoals : nat → tactic unit → tactic unit
-| 0        tac := do trace "maximal iterations reached", failed
+| 0        tac := trace "maximal iterations reached"
 | (succ n) tac := focus1 (do tac, iterate_at_most_on_all_goals n tac)
 
 /--`apply_list l`: try to apply the tactics in the list `l` on the first goal, and

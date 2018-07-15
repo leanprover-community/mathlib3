@@ -1,6 +1,7 @@
 
 import tactic.basic
 
+open lean
 open lean.parser
 
 local postfix `?`:9001 := optional
@@ -8,7 +9,7 @@ local postfix *:9001 := many
 
 namespace tactic
 namespace interactive
-open interactive interactive.types
+open interactive interactive.types expr
 
 /-- Unfreeze local instances, which allows us to revert
   instances in the context. -/

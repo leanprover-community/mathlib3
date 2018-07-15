@@ -5,7 +5,8 @@ Authors: Mario Carneiro
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
-  tactic.split_ifs meta.expr logic.basic
+  tactic.split_ifs meta.expr tactic.ext
+  logic.basic
 
 open lean
 open lean.parser
@@ -197,7 +198,6 @@ do let h := h.get_or_else `this,
 
 meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
 tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
-
 /--
   `apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
   where `head` matches the current goal.
@@ -280,7 +280,7 @@ repeat (do
   try (refine ``( or_iff_not_imp_left.mpr _)),
   try (refine ``( or_iff_not_imp_right.mpr _)),
   gs' ← get_goals,
-  guard (gs ≠ gs') ) ;
+  guard (gs ≠ gs') );
 repeat
 (reflexivity <|> solve_by_elim <|>
  constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)] ) ;
@@ -288,22 +288,6 @@ done
 
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology
-
-/--
- Tag lemmas of the form:
-
- ```
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
- -/
-@[user_attribute]
-meta def extensional_attribute : user_attribute :=
-{ name := `extensionality,
-  descr := "lemmas usable by `ext` tactic" }
-
-attribute [extensionality] _root_.funext array.ext prod.ext
 
 /--
   `ext1 id` selects and apply one extensionality lemma (with attribute
@@ -536,6 +520,19 @@ get_current_field
 meta def apply_field : tactic unit :=
 propagate_tags $
 get_current_field >>= applyc
+
+/-- `elim_cast e with x` matches on `cast _ e` in the goal and replaces it with
+    `x`. It also adds `Hx : e == x` as an assumption.
+
+    `elim_cast! e with x` acts similarly but reverts `Hx`.
+-/
+meta def elim_cast (rev : parse (tk "!")?) (e : parse texpr) (n : parse (tk "with" *> ident)) : tactic unit :=
+do h ← get_unused_name ("H" ++ n.to_string : string),
+   interactive.generalize h () (``(cast _ %%e), n),
+   asm ← get_local h,
+   to_expr ``(heq_of_cast_eq _ %%asm) >>= note h none,
+   tactic.clear asm,
+   when rev.is_some (interactive.revert [n])
 
 end interactive
 end tactic

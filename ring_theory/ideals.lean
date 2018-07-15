@@ -74,7 +74,7 @@ instance is_maximal_ideal.is_prime_ideal (S : set α) [hS : is_maximal_ideal S] 
 
 def nonunits (α : Type u) [monoid α] : set α := { x | ¬∃ y, y * x = 1 }
 
-theorem not_unit_of_mem_maximal_ideal {α : Type u} [comm_ring α] (S : set α) [is_maximal_ideal S] :
+theorem not_unit_of_mem_proper_ideal {α : Type u} [comm_ring α] (S : set α) [is_proper_ideal S] :
   S ⊆ nonunits α :=
 λ x hx ⟨y, hxy⟩, is_proper_ideal.ne_univ S $ is_submodule.eq_univ_of_contains_unit S x y hx hxy
 
@@ -96,7 +96,7 @@ have hi : is_submodule (nonunits α), from
     by rw [← hxy]; exact @@is_submodule.smul _ _ ht y hxt,
   unique := λ T hmt, or.cases_on
     (@@is_maximal_ideal.eq_or_univ_of_subset _ hmt (nonunits α) hi $
-      λ z hz, @@not_unit_of_mem_maximal_ideal _ T hmt hz)
+      λ z hz, @@not_unit_of_mem_proper_ideal _ T (by resetI; apply_instance) hz)
     id
     (λ htu, false.elim $ ((set.set_eq_def _ _).1 htu 1).2 trivial ⟨1, mul_one 1⟩) }
 
@@ -163,7 +163,6 @@ exact have span (set.insert a S) = S :=
     or.resolve_right (is_maximal_ideal.eq_or_univ_of_subset (span (set.insert a S))
     (subset.trans (subset_insert _ _) subset_span)) (is_proper_ideal.ne_univ _),
   haS (this ▸ subset_span (mem_insert _ _))
-
 
 /-- quotient by maximal ideal is a field. A definition rather than an instance, since
 it is noncomputable, and users may have a computable inverse in some applications-/

@@ -7,6 +7,34 @@ Quotients -- extends the core library
 -/
 variables {α : Sort*} {β : Sort*}
 
+namespace quot
+variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
+local notation `⟦`:max a `⟧` := quot.mk _ a
+
+protected def hrec_on₂ (qa : quot ra) (qb : quot rb)
+  (refla : reflexive ra) (reflb : reflexive rb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
+  (c : ∀ a₁ b₁ a₂ b₂, ra a₁ a₂ → rb b₁ b₂ → f a₁ b₁ == f a₂ b₂) : φ qa qb :=
+have ca : ∀ {b a₁ a₂}, ra a₁ a₂ → f a₁ b == f a₂ b := λ b _ _ p, c _ _ _ _ p (reflb b),
+have cb : ∀ {a b₁ b₂}, rb b₁ b₂ → f a b₁ == f a b₂ := λ a _ _ p, c _ _ _ _ (refla a) p,
+quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁ a₂ pa,
+  quot.induction_on qb $ λ b,
+    calc @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₁) (@cb _)
+          == f a₁ b                                     : by simp
+      ... == f a₂ b                                     : ca pa
+      ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp
+
+end quot
+
+namespace quotient
+variables [sa : setoid α] [sb : setoid β]
+variables {φ : quotient sa → quotient sb → Sort*}
+
+protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
+  (c : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ == f a₂ b₂) : φ qa qb :=
+quot.hrec_on₂ qa qb setoid.refl setoid.refl f c
+
+end quotient
+
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=
 ⟨quotient.exact, quotient.sound⟩
 

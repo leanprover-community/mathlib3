@@ -68,6 +68,7 @@ instance : inhabited (α →₀ β) := ⟨0⟩
 @[simp] lemma mem_support_iff (f : α →₀ β) : ∀a:α, a ∈ f.support ↔ f a ≠ 0 :=
 f.mem_support_to_fun
 
+@[extensionality]
 lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin

@@ -5,8 +5,9 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-import data.multiset order.boolean_algebra algebra.order_functions
-       data.sigma.basic logic.embedding
+import logic.embedding order.boolean_algebra algebra.order_functions
+  data.multiset data.sigma.basic data.set.lattice
+
 open multiset subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -341,9 +342,6 @@ by simp [subset_iff] {contextual:=tt}; finish
 
 @[simp] theorem empty_inter (s : finset α) : ∅ ∩ s = ∅ := ext.2 $ by simp
 
-theorem inter_eq_empty_iff_disjoint {s₁ s₂ : finset α} : s₁ ∩ s₂ = ∅ ↔ s₁.1.disjoint s₂.1 :=
-by rw ← val_eq_zero; simp [inter_eq_zero_iff_disjoint]
-
 @[simp] theorem insert_inter_of_mem {s₁ s₂ : finset α} {a : α} (h : a ∈ s₂) :
   insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
 ext.2 $ by simp; intro x; constructor; finish
@@ -495,6 +493,24 @@ def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attac
 @[simp] theorem mem_attach (s : finset α) : ∀ x, x ∈ s.attach := mem_attach _
 
 @[simp] theorem attach_empty : attach (∅ : finset α) = ∅ := rfl
+
+section decidable_pi_exists
+variables {s : finset α}
+
+instance decidable_dforall_finset {p : Πa∈s, Prop} [hp : ∀a (h : a ∈ s), decidable (p a h)] :
+  decidable (∀a (h : a ∈ s), p a h) :=
+multiset.decidable_dforall_multiset
+
+/-- decidable equality for functions whose domain is bounded by finsets -/
+instance decidable_eq_pi_finset {β : α → Type*} [h : ∀a, decidable_eq (β a)] :
+  decidable_eq (Πa∈s, β a) :=
+multiset.decidable_eq_pi_multiset
+
+instance decidable_dexists_finset {p : Πa∈s, Prop} [hp : ∀a (h : a ∈ s), decidable (p a h)] :
+  decidable (∃a (h : a ∈ s), p a h) :=
+multiset.decidable_dexists_multiset
+
+end decidable_pi_exists
 
 /- filter -/
 section filter
@@ -1254,7 +1270,61 @@ sort_eq _ _
 
 @[simp] theorem sort_to_finset [decidable_eq α] (s : finset α) : (sort r s).to_finset = s :=
 list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
+
 end sort
+
+section disjoint
+variable [decidable_eq α]
+
+theorem disjoint_iff_inter_eq_empty {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
+iff.rfl
+
+theorem disjoint_left {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
+by simp [disjoint_iff_inter_eq_empty, ext, mem_inter]
+
+theorem disjoint_right {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
+by rw [_root_.disjoint_comm, disjoint_left]
+
+theorem disjoint_iff_ne {s t : finset α} : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
+by simp [disjoint_left, imp_not_comm]
+
+theorem disjoint_of_subset_left {s t u : finset α} (h : s ⊆ u) (d : disjoint u t) : disjoint s t :=
+disjoint_left.2 (λ x m₁, (disjoint_left.1 d) (h m₁))
+
+theorem disjoint_of_subset_right {s t u : finset α} (h : t ⊆ u) (d : disjoint s u) : disjoint s t :=
+disjoint_right.2 (λ x m₁, (disjoint_right.1 d) (h m₁))
+
+@[simp] theorem disjoint_empty_left (s : finset α) : disjoint ∅ s := bot_inf_eq
+
+@[simp] theorem disjoint_empty_right (s : finset α) : disjoint s ∅ := inf_bot_eq
+
+@[simp] theorem singleton_disjoint {s : finset α} {a : α} : disjoint (singleton a) s ↔ a ∉ s :=
+by simp [disjoint_left]; refl
+
+@[simp] theorem disjoint_singleton {s : finset α} {a : α} : disjoint s (singleton a) ↔ a ∉ s :=
+by rw _root_.disjoint_comm; simp
+
+@[simp] theorem disjoint_insert_left {a : α} {s t : finset α} :
+  disjoint (insert a s) t ↔ a ∉ t ∧ disjoint s t :=
+by simp [disjoint_left, or_imp_distrib, forall_and_distrib]; refl
+
+@[simp] theorem disjoint_insert_right {a : α} {s t : finset α} :
+  disjoint s (insert a t) ↔ a ∉ s ∧ disjoint s t :=
+_root_.disjoint_comm.trans $ by simp [disjoint_insert_left]
+
+@[simp] theorem disjoint_union_left {s t u : finset α} :
+  disjoint (s ∪ t) u ↔ disjoint s u ∧ disjoint t u :=
+by simp [disjoint_left, or_imp_distrib, forall_and_distrib]
+
+@[simp] theorem disjoint_union_right {s t u : finset α} :
+  disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
+by simp [disjoint_right, or_imp_distrib, forall_and_distrib]
+
+@[simp] theorem card_disjoint_union {s t : finset α} :
+    disjoint s t → card (s ∪ t) = card s + card t :=
+finset.induction_on s (by simp) $ by simp {contextual := tt}
+
+end disjoint
 
 theorem sort_sorted_lt [decidable_linear_order α] (s : finset α) :
   list.sorted (<) (sort (≤) s) :=

@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic tactic.finish data.subtype
+import tactic.ext tactic.finish data.subtype
 open function
 
 namespace set
@@ -559,6 +559,13 @@ set.ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
 
 theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
 set.ext $ by simp [not_or_distrib, and.comm, and.left_comm]
+
+lemma diff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=
+⟨assume h x xs, classical.by_cases or.inl (assume nxt, or.inr (h ⟨xs, nxt⟩)),
+ assume h x ⟨xs, nxt⟩, or.resolve_left (h xs) nxt⟩
+
+lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
+by rw [diff_subset_iff, diff_subset_iff, union_comm]
 
 @[simp] theorem insert_sdiff (h : a ∈ t) : insert a s \ t = s \ t :=
 set.ext $ by intro; constructor; simp [or_imp_distrib, h] {contextual := tt}

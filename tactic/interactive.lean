@@ -89,6 +89,9 @@ meta def rintro : parse rintro_parse* → tactic unit
 | [] := intros []
 | l  := tactic.rintro l
 
+/-- Alias for `rintro`. -/
+meta def rintros := rintro
+
 /--
 This is a "finishing" tactic modification of `simp`. The tactic `simpa [rules, ...] using e`
 will simplify the hypothesis `e` using `rules`, then simplify the goal using `rules`, and

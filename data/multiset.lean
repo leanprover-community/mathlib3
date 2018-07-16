@@ -366,6 +366,11 @@ ne_of_gt (lt_cons_self _ _)
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
+theorem card_one_iff_singleton {s : multiset α} : card s = 1 ↔ ∃ a, s = a::0 :=
+⟨λ h,begin cases (@card_pos_iff_exists_mem _ s).1 (h.symm ▸ zero_lt_one) with a Ha,
+   exact ⟨a,(eq_of_le_of_card_le (singleton_le.2 Ha) $ le_of_eq h).symm⟩ end,
+ λ ⟨a,h⟩,h.symm ▸ card_singleton a⟩
+
 /- add -/
 
 /-- The sum of two multisets is the lift of the list append operation.

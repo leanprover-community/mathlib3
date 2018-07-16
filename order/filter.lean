@@ -101,7 +101,7 @@ lemma filter_eq_iff : f = g ↔ f.sets = g.sets :=
 ⟨congr_arg _, filter_eq⟩
 
 lemma filter.ext : f = g ↔ ∀ s, s ∈ f.sets ↔ s ∈ g.sets :=
-by rw [filter_eq_iff, set_eq_def]
+by rw [filter_eq_iff, ext_iff]
 
 lemma univ_mem_sets' (h : ∀ a, a ∈ s): s ∈ f.sets :=
 let ⟨x, x_in_s⟩ := f.exists_mem_sets in f.upwards_sets x_in_s (assume x _, h x)

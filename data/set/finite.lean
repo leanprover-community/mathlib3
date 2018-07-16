@@ -218,10 +218,10 @@ lemma finite_to_set (s : finset α) : set.finite (↑s : set α) :=
 set.finite_mem_finset s
 
 @[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
-by simp [set.set_eq_def]
+by simp [set.ext_iff]
 
 @[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
-by simp [set.set_eq_def]
+by simp [set.ext_iff]
 
 end finset
 

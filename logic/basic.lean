@@ -150,6 +150,9 @@ iff.intro and.left (λ ha, ⟨ha, h ha⟩)
 theorem and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
 iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 
+lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
+⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
+
 /- or -/
 
 theorem or_of_or_of_imp_of_imp (h₁ : a ∨ b) (h₂ : a → c) (h₃ : b → d) : c ∨ d :=

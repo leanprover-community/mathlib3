@@ -252,6 +252,11 @@ by split; intro h; [split, skip]; intro h'; [by_contradiction,intro,skip];
 theorem iff_not_comm [decidable a] [decidable b] : (a ↔ ¬ b) ↔ (b ↔ ¬ a) :=
 by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm
 
+theorem iff_iff_and_or_not_and_not [decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬ a ∧ ¬ b) :=
+by { split; intro h,
+     { rw h; by_cases b; [left,right]; split; assumption },
+     { cases h with h h; cases h; split; intro; { contradiction <|> assumption } } }
+
 @[simp] theorem not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
 ⟨λ h ha, h.imp_symm $ and.intro ha, λ h ⟨ha, hb⟩, hb $ h ha⟩
 

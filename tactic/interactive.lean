@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs meta.expr logic.basic
-  tactic.ext
+  tactic.ext tactic.tauto
 
 open lean
 open lean.parser
@@ -199,9 +199,6 @@ do let h := h.get_or_else `this,
   | some o, none   := swap >> tactic.clear o >> swap
   end
 
-meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
-tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
-
 /--
   `apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
   where `head` matches the current goal.
@@ -219,23 +216,9 @@ tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 meta def apply_assumption
   (asms : option (list expr) := none)
   (tac : tactic unit := return ()) : tactic unit :=
-do { ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H ; tac) } <|>
-do { exfalso,
-     ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H ; tac) }
-<|> fail "assumption tactic failed"
+tactic.apply_assumption asms tac
 
 open nat
-
-meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
-| 0 := done
-| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
-
-meta structure by_elim_opt :=
-  (discharger : tactic unit := done)
-  (restr_hyp_set : option (list expr) := none)
-  (max_rep : ℕ := 3)
 
 /--
   `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
@@ -252,43 +235,14 @@ meta structure by_elim_opt :=
   - depth: number of attempts at discharging generated sub-goals
   -/
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
-
-/--
-  find all assumptions of the shape `¬ (p ∧ q)` or `¬ (p ∨ q)` and
-  replace them using de Morgan's law.
--/
-meta def de_morgan_hyps : tactic unit :=
-do hs ← local_context,
-   hs.for_each $ λ h,
-     replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(of_not_not %%h) <|>
-     replace (some h.local_pp_name) none ``(not_imp.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(not_iff.mp %%h) <|>
-     skip
+tactic.solve_by_elim opt
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
   and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
   using `reflexivity` or `solve_by_elim`
 -/
-meta def tautology : tactic unit :=
-repeat (do
-  gs ← get_goals,
-  () <$ tactic.intros;
-  de_morgan_hyps,
-  casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(_ ↔ _),``(Exists _),``(false)];
-  constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)],
-  try (refine ``( or_iff_not_imp_left.mpr _)),
-  try (refine ``( or_iff_not_imp_right.mpr _)),
-  gs' ← get_goals,
-  guard (gs ≠ gs') ) ;
-repeat
-(reflexivity <|> solve_by_elim <|>
- constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)] ) ;
-done
+meta def tautology := tactic.tautology
 
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology

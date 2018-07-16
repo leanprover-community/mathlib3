@@ -431,5 +431,31 @@ meta def apply_field : tactic unit :=
 propagate_tags $
 get_current_field >>= applyc
 
+/--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
+first goal and the resulting subgoals, iteratively, at most `n` times.
+`n` is 50 by default. `hs` can contain user attributes: in this case all theorems with this
+attribute are added to the list of rules.
+
+example, with or without user attribute:
+```
+@[user_attribute]
+meta def mono_rules : user_attribute :=
+{ name := `mono_rules,
+  descr := "lemmas usable to prove monotonicity" }
+
+attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
+
+lemma my_test {a b c d e : real} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
+a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
+by apply_rules mono_rules
+-- any of the following lines would also work:
+-- add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
+-- by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
+-- by apply_rules [mono_rules]
+```
+-/
+meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
+tactic.apply_rules hs n
+
 end interactive
 end tactic

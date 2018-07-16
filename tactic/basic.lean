@@ -116,9 +116,9 @@ meta def subst_locals (s : list (expr × expr)) (e : expr) : expr :=
 (e.abstract_locals (s.map (expr.local_uniq_name ∘ prod.fst)).reverse).instantiate_vars (s.map prod.snd)
 
 meta def set_binder : expr → list binder_info → expr
- | e [] := e
- | (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
- | e _ := e
+| e [] := e
+| (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
+| e _ := e
 
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
@@ -147,11 +147,11 @@ do h' ← assert h p,
    return (h' , gs)
 
 meta def try_intros : list name → tactic (list name)
- | [] := do
-   tgt ← target >>= instantiate_mvars,
-   if tgt.is_pi then failed
-                else return []
- | (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
+| [] := do
+  tgt ← target >>= instantiate_mvars,
+  if tgt.is_pi then failed
+               else return []
+| (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
 
 meta def ext1 (xs : list name) : tactic (list name) :=
 do ls ← attribute.get_instances `extensionality,
@@ -159,16 +159,16 @@ do ls ← attribute.get_instances `extensionality,
    try_intros xs
 
 meta def ext : list name → option ℕ → tactic unit
- | _ (some 0) := return ()
- | xs n := focus1 (do ys ← ext1 xs, ext ys (nat.pred <$> n) <|> return ())
+| _ (some 0) := return ()
+| xs n := focus1 (do ys ← ext1 xs, ext ys (nat.pred <$> n) <|> return ())
 
 meta def var_names : expr → list name
- | (expr.pi n _ _ b) := n :: var_names b
- | _ := []
+| (expr.pi n _ _ b) := n :: var_names b
+| _ := []
 
 meta def drop_binders : expr → tactic expr
- | (expr.pi n bi t b) := b.instantiate_var <$> mk_local' n bi t >>= drop_binders
- | e := pure e
+| (expr.pi n bi t b) := b.instantiate_var <$> mk_local' n bi t >>= drop_binders
+| e := pure e
 
 meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
@@ -191,8 +191,47 @@ dlist.to_list <$> expanded_field_list' struct_n
 open nat
 
 meta def mk_mvar_list : ℕ → tactic (list expr)
- | 0 := pure []
- | (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
+| 0 := pure []
+| (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
+
+/--`iterate_at_most_on_all_goals n t`: repeat the given tactic at most `n` times on all goals,
+or until it fails. Always succeeds. -/
+meta def iterate_at_most_on_all_goals : nat → tactic unit → tactic unit
+| 0        tac := trace "maximal iterations reached"
+| (succ n) tac := tactic.all_goals $ (do tac, iterate_at_most_on_all_goals n tac) <|> skip
+
+/--`iterate_at_most_on_subgoals n t`: repeat the tactic `t` at most `n` times on the first
+goal and on all subgoals thus produced, or until it fails. Fails iff `t` fails on
+current goal. -/
+meta def iterate_at_most_on_subgoals : nat → tactic unit → tactic unit
+| 0        tac := trace "maximal iterations reached"
+| (succ n) tac := focus1 (do tac, iterate_at_most_on_all_goals n tac)
+
+/--`apply_list l`: try to apply the tactics in the list `l` on the first goal, and
+fail if none succeeds -/
+meta def apply_list_expr : list expr → tactic unit
+| []     := fail "no matching rule"
+| (h::t) := do interactive.concat_tags (apply h) <|> apply_list_expr t
+
+/-- constructs a list of expressions given a list of p-expressions, as follows:
+- if the p-expression is the name of a theorem, use `i_to_expr_for_apply` on it
+- if the p-expression is a user attribute, add all the theorems with this attribute
+  to the list.-/
+meta def build_list_expr_for_apply : list pexpr → tactic (list expr)
+| [] := return []
+| (h::t) := do
+  tail ← build_list_expr_for_apply t,
+  a ← i_to_expr_for_apply h,
+  (do l ← attribute.get_instances (expr.const_name a),
+      m ← list.mmap mk_const l,
+      return (m.append tail))
+  <|> return (a::tail)
+
+/--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
+first goal and the resulting subgoals, iteratively, at most `n` times -/
+meta def apply_rules (hs : list pexpr) (n : nat) : tactic unit :=
+do l ← build_list_expr_for_apply hs,
+   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr l)
 
 meta def replace (h : name) (p : pexpr) : tactic unit :=
 do h' ← get_local h,

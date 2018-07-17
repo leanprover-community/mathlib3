@@ -15,13 +15,13 @@ class is_ideal {α : Type u} [comm_ring α] (S : set α) extends is_submodule S 
 
 namespace is_ideal
 
-lemma zero (S : set α) [is_ideal S] : (0 : α) ∈ S := is_submodule.zero_ α S
+protected lemma zero (S : set α) [is_ideal S] : (0 : α) ∈ S := is_submodule.zero_ α S
 
-lemma add {S : set α} [is_ideal S] : a ∈ S → b ∈ S → a + b ∈ S := is_submodule.add_ α
+protected lemma add {S : set α} [is_ideal S] : a ∈ S → b ∈ S → a + b ∈ S := is_submodule.add_ α
 
 lemma neg_iff {S : set α} [is_ideal S] : a ∈ S ↔ -a ∈ S := ⟨is_submodule.neg, λ h, neg_neg a ▸ is_submodule.neg h⟩
 
-lemma sub {S : set α} [is_ideal S] : a ∈ S → b ∈ S → a - b ∈ S := is_submodule.sub
+protected lemma sub {S : set α} [is_ideal S] : a ∈ S → b ∈ S → a - b ∈ S := is_submodule.sub
 
 lemma mul_left {S : set α} [is_ideal S] : b ∈ S → a * b ∈ S := @is_submodule.smul α α _ _ _ _ a _
 

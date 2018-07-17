@@ -60,12 +60,12 @@ lemma is_measurable_bUnion {f : β → set α} {s : set β} (hs : countable s)
   (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋃b∈s, f b) :=
 have ⋃₀ (f '' s) = (⋃a∈s, f a), from lattice.Sup_image,
 by rw [←this];
-from (is_measurable_sUnion (countable_image hs) $ assume a ⟨s', hs', eq⟩, eq ▸ h s' hs')
+from (is_measurable_sUnion (countable_image _ hs) $ assume a ⟨s', hs', eq⟩, eq ▸ h s' hs')
 
 lemma is_measurable_Union [encodable β] {f : β → set α} (h : ∀b, is_measurable (f b)) :
   is_measurable (⋃b, f b) :=
 have is_measurable (⋃b∈(univ : set β), f b),
-  from is_measurable_bUnion countable_encodable $ assume b _, h b,
+  from is_measurable_bUnion (countable_encodable _) $ assume b _, h b,
 by simp [*] at *
 
 lemma is_measurable_sInter {s : set (set α)} (hs : countable s) (h : ∀t∈s, is_measurable t) :
@@ -77,7 +77,7 @@ lemma is_measurable_bInter {f : β → set α} {s : set β} (hs : countable s)
   (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋂b∈s, f b) :=
 have ⋂₀ (f '' s) = (⋂a∈s, f a), from lattice.Inf_image,
 by rw [←this];
-from (is_measurable_sInter (countable_image hs) $ assume a ⟨s', hs', eq⟩, eq ▸ h s' hs')
+from (is_measurable_sInter (countable_image _ hs) $ assume a ⟨s', hs', eq⟩, eq ▸ h s' hs')
 
 lemma is_measurable_Inter [encodable β] {f : β → set α} (h : ∀b, is_measurable (f b)) :
   is_measurable (⋂b, f b) :=
@@ -88,7 +88,7 @@ lemma is_measurable_union {s₁ s₂ : set α}
   (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) : is_measurable (s₁ ∪ s₂) :=
 have s₁ ∪ s₂ = (⨆b ∈ ({tt, ff} : set bool), bool.cases_on b s₁ s₂),
   by simp [lattice.supr_or, lattice.supr_sup_eq]; refl,
-by rw [this]; from is_measurable_bUnion countable_encodable (assume b,
+by rw [this]; from is_measurable_bUnion (countable_encodable _) (assume b,
   match b with
   | tt := by simp [h₂]
   | ff := by simp [h₁]

@@ -210,7 +210,7 @@ have ∀a b : ℚ, a < b → g.is_measurable (Ioo a b),
       ⟨c, rat.cast_lt.1 hac, le_of_lt hcx⟩,
     by simp [iff_def, Iio, Ioo] {contextual := tt}; exact ⟨h₁, h₂⟩,
   this ▸ @is_measurable_inter _ g _ _
-    (@is_measurable_bUnion _ _ g _ _ countable_encodable $ assume b hb, hgc b)
+    (@is_measurable_bUnion _ _ g _ _ (countable_encodable _) $ assume b hb, hgc b)
     (hg b),
 le_antisymm
   (borel_eq_generate_from_Ioo_rat.symm ▸ generate_from_le

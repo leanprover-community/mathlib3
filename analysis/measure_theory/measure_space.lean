@@ -198,13 +198,13 @@ by simp [measure_space.measure_eq, h, is_measurable_Union h, μ.measure_of_Union
 lemma measure_bUnion {i : set β} {s : β → set α} (hi : countable i)
   (hd : pairwise_on i (disjoint on s)) (h : ∀b∈i, is_measurable (s b)) :
   μ (⋃b∈i, s b) = ∑p:{b // b ∈ i}, μ (s p.val) :=
-let ⟨f, hf⟩ := hi in
+let ⟨f, hf⟩ := countable_iff_exists_inj_on.1 hi in
 let g : ℕ → set α := λn, ⋃b (h : b ∈ i) (h : f b = n), s b in
 have h_gf : ∀b∈i, g (f b) = s b,
   from assume b hb, le_antisymm
     (supr_le $ assume b', supr_le $ assume hb', supr_le $ assume hbn,
       have f b = f b', by simp [hbn],
-      have b = b', from hf _ hb _ hb' this,
+      have b = b', from hf hb hb' this,
       by simp [this]; exact le_refl _)
     (le_supr_of_le b $ le_supr_of_le hb $ le_supr_of_le rfl $ le_refl _),
 have eq₁ : (⋃b∈i, s b) = (⋃i, g i),
@@ -258,7 +258,7 @@ lemma measure_sUnion [encodable β] {s : β → set α}
 calc μ (⋃b, s b) = μ (⋃b∈(univ:set β), s b) :
     congr_arg μ $ set.ext $ by simp
   ... = ∑p:{b:β // true}, μ (s p.val) :
-    measure_bUnion countable_encodable (assume i _ j _, hd i j) (assume b _, h b)
+    measure_bUnion (countable_encodable _) (assume i _ j _, hd i j) (assume b _, h b)
   ... = ∑b, μ (s b) : @tsum_eq_tsum_of_iso _ _ _ _ _ _ _ (λb, μ (s b)) subtype.val
     (λb, ⟨b, trivial⟩ : β → {b:β // true}) (λ⟨b, hb⟩, rfl) (λb, rfl)
 

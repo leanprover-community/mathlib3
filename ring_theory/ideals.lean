@@ -115,7 +115,7 @@ instance (S : set α) [is_ideal S] : comm_ring (quotient S) :=
     (show a₁ * a₂ - b₁ * b₂ ∈ S, from
     have h : a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁ =
       a₁ * a₂ - b₁ * b₂, by ring,
-    h ▸ add (mul_left h₁) (mul_right h₂))),
+    h ▸ is_ideal.add (mul_left h₁) (mul_right h₂))),
   mul_assoc := λ a b c, quotient.induction_on₃ a b c $ 
     λ a b c, show ⟦_⟧ = ⟦_⟧, by rw mul_assoc,
   mul_comm := λ a b, quotient.induction_on₂ a b $

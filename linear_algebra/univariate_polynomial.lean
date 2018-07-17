@@ -10,29 +10,7 @@ import data.finsupp algebra.euclidean_domain
 
 open finsupp finset lattice
 
-set_option old_structure_cmd true
-
-class nonzero_comm_ring (α : Type*) extends zero_ne_one_class α, comm_ring α
-
-instance integral_domain.to_nonzero_comm_ring (α : Type*) [hd : integral_domain α] : nonzero_comm_ring α :=
-{ ..hd }
-
-@[simp] lemma with_bot.coe_add {α : Type*} [add_semigroup α] (a b : α) : 
-  ((a + b : α) : with_bot α) = a + b := rfl
-
-@[simp] lemma with_bot.bot_add {α : Type*} [ordered_comm_monoid α]
-  (a : with_bot α) : ⊥ + a = ⊥ := rfl
-
-@[simp] lemma with_bot.add_bot {α : Type*} [ordered_comm_monoid α]
-  (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
-
-lemma with_bot.coe_lt_coe {a b : ℕ} : (a : with_bot ℕ) < b ↔ a < b :=
-with_bot.some_lt_some
-
-lemma with_bot.bot_lt_some (a : ℕ) : (⊥ : with_bot ℕ) < some a :=
-lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
-
-instance with_bot.has_one : has_one (with_bot ℕ) := ⟨(1 : ℕ)⟩
+instance with_bot.nat.has_one : has_one (with_bot ℕ) := ⟨(1 : ℕ)⟩
 
 def polynomial (α : Type*) [comm_semiring α] := ℕ →₀ α
 
@@ -537,7 +515,7 @@ calc degree (p - q) = degree (erase (nat_degree q) p + -erase (nat_degree q) q) 
   : degree_neg (erase (nat_degree q) q) ▸ degree_add_le _ _
 ... < degree p : max_lt_iff.2 ⟨hd' ▸ degree_erase_lt hp0, hd.symm ▸ degree_erase_lt hq0⟩
 
-def degree_lt_wf : well_founded (λ p q : polynomial α, degree p < degree q) :=
+lemma degree_lt_wf : well_founded (λ p q : polynomial α, degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 
 instance : has_well_founded (polynomial α) := ⟨_, degree_lt_wf⟩
@@ -734,7 +712,7 @@ have hq0 : q ≠ 0 := ne_zero_of_ne_zero_of_monic hp0 hq,
 if hpq : degree p < degree q 
 then begin
   rw [(div_by_monic_eq_zero_iff hq hq0).2 hpq, degree_eq_nat_degree hp0],
-  exact with_bot.bot_lt_some _
+  exact with_bot.bot_lt
 end
 else begin
   rw [← degree_add_div_by_monic hq (not_lt.1 hpq), degree_eq_nat_degree hq0,

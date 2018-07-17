@@ -325,6 +325,13 @@ theorem coe_le [partial_order α] {a b : α} :
 (and_congr some_le_some (not_congr some_le_some))
   .trans lt_iff_le_not_le.symm
 
+@[simp] theorem coe_lt_coe [partial_order α] {a b : α} :
+  (a : with_bot α) < b ↔ a < b := some_lt_some
+
+theorem bot_lt [partial_order α] {a : α} :
+  (⊥ : with_bot α) < a :=
+lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
+
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
 { le_total := λ o₁ o₂, begin
     cases o₁ with a, {exact or.inl bot_le},
@@ -457,6 +464,13 @@ theorem le_coe [partial_order α] {a b : α} :
   @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
 (and_congr some_le_some (not_congr some_le_some))
   .trans lt_iff_le_not_le.symm
+
+@[simp] theorem coe_lt_coe [partial_order α] {a b : α} :
+  (a : with_top α) < b ↔ a < b := some_lt_some
+
+theorem lt_top [partial_order α] {a : α} :
+  (a : with_top α) < ⊤ :=
+lt_of_le_of_ne le_top (λ h, option.no_confusion h)
 
 instance linear_order [linear_order α] : linear_order (with_top α) :=
 { le_total := λ o₁ o₂, begin

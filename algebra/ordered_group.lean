@@ -219,6 +219,15 @@ begin
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
 
+@[simp] lemma coe_add [add_semigroup α] (a b : α) : 
+  ((a + b : α) : with_top α) = a + b := rfl
+
+@[simp] lemma top_add [ordered_comm_monoid α]
+  (a : with_top α) : ⊤ + a = ⊤ := rfl
+
+@[simp] lemma add_bot [ordered_comm_monoid α]
+  (a : with_top α) : a + ⊤ = ⊤ := by cases a; refl
+
 end with_top
 
 namespace with_bot
@@ -250,6 +259,15 @@ begin
     simp at h,
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
+
+@[simp] lemma coe_add [add_semigroup α] (a b : α) : 
+  ((a + b : α) : with_bot α) = a + b := rfl
+
+@[simp] lemma bot_add [ordered_comm_monoid α]
+  (a : with_bot α) : ⊥ + a = ⊥ := rfl
+
+@[simp] lemma add_bot [ordered_comm_monoid α]
+  (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
 
 end with_bot
 

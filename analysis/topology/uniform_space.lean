@@ -1032,13 +1032,12 @@ variables
   (h_dense : ∀x, x ∈ closure (range e))
   {f : β → γ}
   (h_f : uniform_continuous f)
-  [inhabited γ]
 
-local notation `ψ` := (h_e.dense_embedding h_dense).ext f
+local notation `ψ` := (h_e.dense_embedding h_dense).extend f
 
 lemma uniformly_extend_of_emb [cγ : complete_space γ] [sγ : separated γ] {b : β} :
   ψ (e b) = f b :=
-dense_embedding.ext_e_eq _ $ continuous_iff_tendsto.mp h_f.continuous b
+dense_embedding.extend_e_eq _ $ continuous_iff_tendsto.mp h_f.continuous b
 
 lemma uniformly_extend_exists [complete_space γ] [sγ : separated γ] {a : α} :
   ∃c, tendsto f (vmap e (nhds a)) (nhds c) :=
@@ -1052,7 +1051,7 @@ complete_space.complete this
 
 lemma uniformly_extend_spec [complete_space γ] [sγ : separated γ] {a : α} :
   tendsto f (vmap e (nhds a)) (nhds (ψ a)) :=
-lim_spec $ uniformly_extend_exists h_e h_dense h_f
+@lim_spec _ (id _) _ _ $ uniformly_extend_exists h_e h_dense h_f
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] [sγ : separated γ] :
   uniform_continuous ψ :=

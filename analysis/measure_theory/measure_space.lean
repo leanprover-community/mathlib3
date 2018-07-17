@@ -240,7 +240,7 @@ calc μ (⋃b∈i, s b) = μ (⋃i, g i) : by rw [eq₁]
   ... = (∑i, μ (g i)) : measure_Union_nat hd hm
   ... = (∑p:{b // b ∈ i}, μ (s p.val)) : tsum_eq_tsum_of_ne_zero_bij
     (λb h, f b.val)
-    (assume ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ _ _ h, subtype.eq $ show b₁ = b₂, from hf b₁ hb₁ b₂ hb₂ h)
+    (assume ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ _ _ h, subtype.eq $ show b₁ = b₂, from hf hb₁ hb₂ h)
     (assume n hn,
       have g n ≠ ∅, from assume h, by simp [h] at hn; assumption,
       have ∃b∈i, f b = n,

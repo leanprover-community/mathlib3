@@ -32,7 +32,8 @@ jobs:
 
     - stage: Test
       script:
-        - (git status | grep  -e "Changes not staged for commit:"); test $? -ne 0
+        # - (git status | grep  -e "Changes not staged for commit:"); test $? -ne 0
+        - (git status | grep  -e "Changes not staged for commit:"); (test $? -ne 0 || git checkout HEAD -f)
         - leanpkg test
         - lean --recursive --export=mathlib.txt
         - leanchecker mathlib.txt

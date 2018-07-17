@@ -98,7 +98,7 @@ have hi : is_submodule (nonunits α), from
     (@@is_maximal_ideal.eq_or_univ_of_subset _ hmt (nonunits α) hi $
       λ z hz, @@not_unit_of_mem_proper_ideal _ T (by resetI; apply_instance) hz)
     id
-    (λ htu, false.elim $ ((set.set_eq_def _ _).1 htu 1).2 trivial ⟨1, mul_one 1⟩) }
+    (λ htu, false.elim $ ((set.ext_iff _ _).1 htu 1).2 trivial ⟨1, mul_one 1⟩) }
 
 namespace is_ideal
 

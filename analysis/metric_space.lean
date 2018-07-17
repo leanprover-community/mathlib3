@@ -352,7 +352,7 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
     simp [uniformity_dist, vmap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
-    simp [inf_principal, set_eq_def, max_lt_iff]
+    simp [inf_principal, ext_iff, max_lt_iff]
   end,
   to_uniform_space := prod.uniform_space }
 

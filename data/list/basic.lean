@@ -71,6 +71,9 @@ theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a 
 theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=
 ⟨exists_mem_of_length_pos, λ ⟨a, h⟩, length_pos_of_mem h⟩
 
+theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
+⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
+
 theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = s ++ a :: t :=
 begin
   induction l with b l ih; simp at h; cases h with h h,

@@ -49,6 +49,7 @@ instance : has_emptyc (multiset α) := ⟨0⟩
 instance : inhabited (multiset α)  := ⟨0⟩
 
 @[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
+@[simp] theorem empty_eq_zero : (∅ : multiset α) = 0 := rfl
 
 /- cons -/
 
@@ -345,6 +346,11 @@ quot.induction_on s $ λ l, length_pos_iff_exists_mem
   strong_induction_on t ih
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
 
+theorem strong_induction_eq {p : multiset α → Sort*}
+  (s : multiset α) (H) : @strong_induction_on _ p s H =
+    H s (λ t h, @strong_induction_on _ p t H) :=
+by rw [strong_induction_on]
+
 @[elab_as_eliminator] lemma case_strong_induction_on {p : multiset α → Prop}
   (s : multiset α) (h₀ : p 0) (h₁ : ∀ a s, (∀t ≤ s, p t) → p (a :: s)) : p s :=
 multiset.strong_induction_on s $ assume s,
@@ -365,6 +371,11 @@ ne_of_gt (lt_cons_self _ _)
 @[simp] theorem singleton_le {a : α} {s : multiset α} : a::0 ≤ s ↔ a ∈ s :=
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
+
+theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = a::0 :=
+⟨quot.induction_on s $ λ l h,
+  (list.length_eq_one.1 h).imp $ λ a, congr_arg coe,
+ λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
 /- add -/
 

@@ -166,7 +166,7 @@ exact have span (set.insert a S) = S :=
 
 /- quotient by maximal ideal is a field. def rather than instance, since users will have
 computable inverses in some applications -/
-noncomputable def field (S : set α) [is_maximal_ideal S] : field (quotient S) :=
+protected noncomputable def field (S : set α) [is_maximal_ideal S] : field (quotient S) :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (exists_inv ha),
   mul_inv_cancel := λ a (ha : a ≠ 0), show a * dite _ _ _ = _, 
     by rw dif_neg ha;

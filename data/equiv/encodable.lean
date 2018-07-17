@@ -81,17 +81,24 @@ instance option {α : Type*} [h : encodable α] : encodable (option α) :=
 def decode2 (α) [encodable α] (n : ℕ) : option α :=
 (decode α n).bind (option.guard (λ a, encode a = n))
 
-theorem mem_decode2 [encodable α] {n : ℕ} {a : α} :
+theorem mem_decode2' [encodable α] {n : ℕ} {a : α} :
   a ∈ decode2 α n ↔ a ∈ decode α n ∧ encode a = n :=
 by simp [decode2]; exact
 ⟨λ ⟨_, h₁, rfl, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨_, h₁, rfl, h₂⟩⟩
 
+theorem mem_decode2 [encodable α] {n : ℕ} {a : α} :
+  a ∈ decode2 α n ↔ encode a = n :=
+mem_decode2'.trans (and_iff_right_of_imp $ λ e, e ▸ encodek _)
+
+theorem decode2_is_partial_inv [encodable α] : is_partial_inv encode (decode2 α) :=
+λ a n, mem_decode2
+
 theorem decode2_inj [encodable α] {n : ℕ} {a₁ a₂ : α}
   (h₁ : a₁ ∈ decode2 α n) (h₂ : a₂ ∈ decode2 α n) : a₁ = a₂ :=
-encode_injective $ (mem_decode2.1 h₁).2.trans (mem_decode2.1 h₂).2.symm
+encode_injective $ (mem_decode2.1 h₁).trans (mem_decode2.1 h₂).symm
 
 theorem encodek2 [encodable α] (a : α) : decode2 α (encode a) = some a :=
-mem_decode2.2 ⟨encodek _, rfl⟩
+mem_decode2.2 rfl
 
 section sum
 variables [encodable α] [encodable β]

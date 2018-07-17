@@ -230,9 +230,9 @@ variables {s s₁ s₂ : set α}
 
 private def C (s : set α) := ∀t, μ t = μ (t ∩ s) + μ (t \ s)
 
-@[simp] private lemma C_empty : C ∅ := by simp [C, m.empty, sdiff_empty]
+@[simp] private lemma C_empty : C ∅ := by simp [C, m.empty, diff_empty]
 
-private lemma C_compl : C s₁ → C (- s₁) := by simp [C, sdiff_eq]
+private lemma C_compl : C s₁ → C (- s₁) := by simp [C, diff_eq]
 
 @[simp] private lemma C_compl_iff : C (- s) ↔ C s :=
 ⟨assume h, let h' := C_compl h in by simp at h'; assumption, C_compl⟩
@@ -244,15 +244,15 @@ have e₁ : (s₁ ∪ s₂) ∩ s₁ ∩ s₂ = s₁ ∩ s₂,
 have e₂ : (s₁ ∪ s₂) ∩ s₁ ∩ -s₂ = s₁ ∩ -s₂,
   from set.ext $ assume x, by simp [iff_def] {contextual := tt},
 calc μ t = μ (t ∩ s₁ ∩ s₂) + μ (t ∩ s₁ ∩ -s₂) + μ (t ∩ -s₁ ∩ s₂) + μ (t ∩ -s₁ ∩ -s₂) :
-    by rw [h₁ t, h₂ (t ∩ s₁), h₂ (t \ s₁)]; simp [sdiff_eq]
+    by rw [h₁ t, h₂ (t ∩ s₁), h₂ (t \ s₁)]; simp [diff_eq]
   ... = μ (t ∩ ((s₁ ∪ s₂) ∩ s₁ ∩ s₂)) + μ (t ∩ ((s₁ ∪ s₂) ∩ s₁ ∩ -s₂)) +
       μ (t ∩ s₂ ∩ -s₁) + μ (t ∩ -s₁ ∩ -s₂) :
     by rw [e₁, e₂]; simp
   ... = ((μ (t ∩ (s₁ ∪ s₂) ∩ s₁ ∩ s₂) + μ ((t ∩ (s₁ ∪ s₂) ∩ s₁) \ s₂)) +
       μ (t ∩ ((s₁ ∪ s₂) \ s₁))) + μ (t \ (s₁ ∪ s₂)) :
-    by rw [union_sdiff_right]; simp [sdiff_eq]
+    by rw [union_diff_left]; simp [diff_eq]; simp
   ... = μ (t ∩ (s₁ ∪ s₂)) + μ (t \ (s₁ ∪ s₂)) :
-    by rw [h₁ (t ∩ (s₁ ∪ s₂)), h₂ ((t ∩ (s₁ ∪ s₂)) ∩ s₁)]; simp [sdiff_eq]
+    by rw [h₁ (t ∩ (s₁ ∪ s₂)), h₂ ((t ∩ (s₁ ∪ s₂)) ∩ s₁)]; simp [diff_eq]
 
 private lemma C_Union_lt {s : ℕ → set α} : ∀{n:ℕ}, (∀i<n, C (s i)) → C (⋃i<n, s i)
 | 0       h := by simp [nat.not_lt_zero]
@@ -275,8 +275,8 @@ begin
     have disj : ∀x i, x ∈ s n → i < n → x ∉ s i,
       from assume x i hn h hi,
       have hx : x ∈ s i ∩ s n, from ⟨hi, hn⟩,
-      have s i ∩ s n = ∅, from hd _ _ (ne_of_lt h),
-      by rwa [this] at hx,
+      have s i ∩ s n ⊆ ∅, from hd _ _ (ne_of_lt h),
+      this hx,
     have : (⋃i<n+1, s i) \ (⋃i<n, s i) = s n,
     { apply set.ext, intro x, simp,
       constructor,
@@ -286,7 +286,7 @@ begin
       from assume hx, ⟨⟨n, nat.lt_succ_self _, hx⟩, assume i, disj x i hx⟩ },
     have e₁ : t ∩ s n = (t ∩ ⋃i<n+1, s i) \ ⋃i<n, s i,
       from calc t ∩ s n = t ∩ ((⋃i<n+1, s i) \ (⋃i<n, s i)) : by rw [this]
-        ... = (t ∩ ⋃i<n+1, s i) \ ⋃i<n, s i : by simp [sdiff_eq],
+        ... = (t ∩ ⋃i<n+1, s i) \ ⋃i<n, s i : by simp [diff_eq],
     have : (⋃i<n+1, s i) ∩ (⋃i<n, s i) = (⋃i<n, s i),
       from (inf_of_le_right $ supr_le_supr $ assume i, supr_le_supr_const $
         assume hin, lt_trans hin (nat.lt_succ_self n)),
@@ -295,7 +295,7 @@ begin
         ... = _ : by simp,
     have : C _ (⋃i<n, s i),
       from C_Union_lt m (assume i _, h i),
-    from calc (range (nat.succ n)).sum (λi, μ (t ∩ s i)) = μ (t ∩ s n) + μ (t ∩ ⋃i < n, s i) :
+    from calc (finset.range (nat.succ n)).sum (λi, μ (t ∩ s i)) = μ (t ∩ s n) + μ (t ∩ ⋃i < n, s i) :
         by simp [range_succ, sum_insert, lt_irrefl, ih]
       ... = μ ((t ∩ ⋃i<n+1, s i) ∩ ⋃i<n, s i) + μ ((t ∩ ⋃i<n+1, s i) \ ⋃i<n, s i) :
         by rw [e₁, e₂]; simp
@@ -312,13 +312,13 @@ suffices μ t ≥ μ (t ∩ (⋃i, s i)) + μ (t \ (⋃i, s i)),
       ... ≤ μ (t ∩ (⋃i, s i)) + μ (t \ (⋃i, s i)) : m.subadditive)
     this,
 have hp : μ (t ∩ ⋃i, s i) ≤ (⨆n, μ (t ∩ ⋃i<n, s i)),
-  from calc μ (t ∩ ⋃i, s i) = μ (⋃i, t ∩ s i) : by rw [inter_distrib_Union_left]
+  from calc μ (t ∩ ⋃i, s i) = μ (⋃i, t ∩ s i) : by rw [inter_Union_left]
     ... ≤ ∑i, μ (t ∩ s i) : m.Union_nat _
     ... = ⨆n, (finset.range n).sum (λi, μ (t ∩ s i)) : ennreal.tsum_eq_supr_nat
     ... = ⨆n, μ (t ∩ ⋃i<n, s i) : congr_arg _ $ funext $ assume n, C_sum h hd,
 have hn : ∀n, μ (t \ (⋃i<n, s i)) ≥ μ (t \ (⋃i, s i)),
   from assume n,
-    m.mono $ sdiff_subset_sdiff (subset.refl t) $ bUnion_subset $ assume i _, le_supr s i,
+    m.mono $ diff_subset_diff (subset.refl t) $ bUnion_subset $ assume i _, le_supr s i,
 calc μ (t ∩ (⋃i, s i)) + μ (t \ (⋃i, s i)) ≤ (⨆n, μ (t ∩ ⋃i<n, s i)) + μ (t \ (⋃i, s i)) :
     add_le_add' hp (le_refl _)
   ... = (⨆n, μ (t ∩ ⋃i<n, s i) + μ (t \ (⋃i, s i))) :
@@ -373,9 +373,9 @@ le_antisymm
       o.subadditive)
   (le_infi $ assume f, le_infi $ assume hf,
     have h₁ : t ∩ s ⊆ ⋃i, f i ∩ s,
-      by rw [←inter_distrib_Union_right]; from inter_subset_inter hf (subset.refl s),
+      by rw [← inter_Union_right]; from inter_subset_inter hf (subset.refl s),
     have h₂ : t \ s ⊆ ⋃i, f i \ s,
-      from subset.trans (sdiff_subset_sdiff hf (subset.refl s)) $
+      from subset.trans (diff_subset_diff hf (subset.refl s)) $
         by simp [set.subset_def] {contextual := tt},
     calc om (t ∩ s) + om (t \ s) ≤ (∑i, m (f i ∩ s)) + (∑i, m (f i \ s)) :
         add_le_add'

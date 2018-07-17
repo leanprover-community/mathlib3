@@ -308,6 +308,10 @@ by rw [add_monoid.smul_eq_mul', add_monoid.smul_eq_mul', mul_assoc]
 theorem add_monoid.mul_smul_assoc [semiring α] (a b : α) (n : ℕ) : n • (a * b) = n • a * b :=
 by rw [add_monoid.smul_eq_mul, add_monoid.smul_eq_mul, mul_assoc]
 
+theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
+| 0     := by simp
+| (n+1) := by cases neg_one_pow_eq_or n; simp [pow_succ, h]
+
 theorem gsmul_eq_mul [ring α] (a : α) : ∀ n, n •ℤ a = n * a
 | (n : ℕ) := by simp [add_monoid.smul_eq_mul]
 | -[1+ n] := by simp [add_monoid.smul_eq_mul, -add_comm, add_mul]

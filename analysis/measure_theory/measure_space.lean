@@ -66,12 +66,10 @@ have hd : pairwise (disjoint on s),
   match i, j, h with
   | 0, 0, h := (h rfl).elim
   | 0, (nat.succ 0), h := hd
-  | (nat.succ 0), 0, h := show s₂ ⊓ s₁ = ⊥, by rw [inf_comm]; assumption
+  | (nat.succ 0), 0, h := hd.symm
   | (nat.succ 0), (nat.succ 0), h := (h rfl).elim
-  | (nat.succ (nat.succ i)), j, h :=
-    begin simp [s, disjoint, (on), option.get_or_else]; exact set.empty_inter _ end
-  | i, (nat.succ (nat.succ j)), h :=
-    begin simp [s, disjoint, (on), option.get_or_else]; exact set.inter_empty _ end
+  | (nat.succ (nat.succ i)), j, h := disjoint_bot_left
+  | i, (nat.succ (nat.succ j)), h := disjoint_bot_right
   end,
 have Un_s : (⋃n, s n) = s₁ ∪ s₂,
   from subset.antisymm
@@ -90,7 +88,7 @@ have hms : ∀n, is_measurable (s n),
 calc μ.measure' (s₁ ∪ s₂) = μ.measure' (⋃n, s n) : by rw [Un_s]
   ... = (∑n, μ.measure' (s n)) :
     measure_space.measure'_Union μ hd hms
-  ... = (range (nat.succ (nat.succ 0))).sum (λn, μ.measure' (s n)) :
+  ... = (finset.range (nat.succ (nat.succ 0))).sum (λn, μ.measure' (s n)) :
     tsum_eq_sum $ assume n hn,
     match n, hn with
     | 0,                     h := by simp at h; contradiction
@@ -102,7 +100,7 @@ calc μ.measure' (s₁ ∪ s₂) = μ.measure' (⋃n, s n) : by rw [Un_s]
 
 protected lemma measure'_mono (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) (hs : s₁ ⊆ s₂) :
   μ.measure' s₁ ≤ μ.measure' s₂ :=
-have hd : s₁ ∩ (s₂ \ s₁) = ∅, from set.ext $ by simp [mem_sdiff] {contextual:=tt},
+have hd : s₁ ∩ (s₂ \ s₁) ⊆ ∅, by simp [set.subset_def, mem_sdiff] {contextual:=tt},
 have hu : s₁ ∪ (s₂ \ s₁) = s₂,
   from set.ext $ assume x, by by_cases x ∈ s₁; simp [mem_sdiff, h, @hs x] {contextual:=tt},
 calc μ.measure' s₁ ≤ μ.measure' s₁ + μ.measure' (s₂ \ s₁) :
@@ -200,13 +198,13 @@ by simp [measure_space.measure_eq, h, is_measurable_Union h, μ.measure_of_Union
 lemma measure_bUnion {i : set β} {s : β → set α} (hi : countable i)
   (hd : pairwise_on i (disjoint on s)) (h : ∀b∈i, is_measurable (s b)) :
   μ (⋃b∈i, s b) = ∑p:{b // b ∈ i}, μ (s p.val) :=
-let ⟨f, hf⟩ := hi in
+let ⟨f, hf⟩ := countable_iff_exists_inj_on.1 hi in
 let g : ℕ → set α := λn, ⋃b (h : b ∈ i) (h : f b = n), s b in
 have h_gf : ∀b∈i, g (f b) = s b,
   from assume b hb, le_antisymm
     (supr_le $ assume b', supr_le $ assume hb', supr_le $ assume hbn,
       have f b = f b', by simp [hbn],
-      have b = b', from hf _ hb _ hb' this,
+      have b = b', from hf hb hb' this,
       by simp [this]; exact le_refl _)
     (le_supr_of_le b $ le_supr_of_le hb $ le_supr_of_le rfl $ le_refl _),
 have eq₁ : (⋃b∈i, s b) = (⋃i, g i),
@@ -217,9 +215,9 @@ have eq₁ : (⋃b∈i, s b) = (⋃i, g i),
       subset_bUnion_of_mem hb),
 have hd : pairwise (disjoint on g),
   from assume n m h,
-  set.eq_empty_of_subset_empty $ calc g n ∩ g m =
+  calc g n ∩ g m =
       (⋃b (h : b ∈ i) (h : f b = n) b' (h : b' ∈ i) (h : f b' = m), s b ∩ s b') :
-        by simp [g, inter_distrib_Union_left, inter_distrib_Union_right]
+        by simp [g, inter_Union_left, inter_Union_right]
       ... ⊆ ∅ :
         bUnion_subset $ assume b hb, Union_subset $ assume hbn,
         bUnion_subset $ assume b' hb', Union_subset $ assume hbm,
@@ -227,9 +225,7 @@ have hd : pairwise (disjoint on g),
           from assume h_eq,
           have f b = f b', from congr_arg f h_eq,
           by simp [hbm, hbn, h] at this; assumption,
-        have s b ∩ s b' = ∅,
-          from hd b hb b' hb' this,
-        by rw [this]; exact subset.refl _,
+        hd b hb b' hb' this,
 have hm : ∀n, is_measurable (g n),
   from assume n,
   by_cases
@@ -244,7 +240,7 @@ calc μ (⋃b∈i, s b) = μ (⋃i, g i) : by rw [eq₁]
   ... = (∑i, μ (g i)) : measure_Union_nat hd hm
   ... = (∑p:{b // b ∈ i}, μ (s p.val)) : tsum_eq_tsum_of_ne_zero_bij
     (λb h, f b.val)
-    (assume ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ _ _ h, subtype.eq $ show b₁ = b₂, from hf b₁ hb₁ b₂ hb₂ h)
+    (assume ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ _ _ h, subtype.eq $ show b₁ = b₂, from hf hb₁ hb₂ h)
     (assume n hn,
       have g n ≠ ∅, from assume h, by simp [h] at hn; assumption,
       have ∃b∈i, f b = n,
@@ -262,19 +258,19 @@ lemma measure_sUnion [encodable β] {s : β → set α}
 calc μ (⋃b, s b) = μ (⋃b∈(univ:set β), s b) :
     congr_arg μ $ set.ext $ by simp
   ... = ∑p:{b:β // true}, μ (s p.val) :
-    measure_bUnion countable_encodable (assume i _ j _, hd i j) (assume b _, h b)
+    measure_bUnion (countable_encodable _) (assume i _ j _, hd i j) (assume b _, h b)
   ... = ∑b, μ (s b) : @tsum_eq_tsum_of_iso _ _ _ _ _ _ _ (λb, μ (s b)) subtype.val
     (λb, ⟨b, trivial⟩ : β → {b:β // true}) (λ⟨b, hb⟩, rfl) (λb, rfl)
 
 lemma measure_sdiff {s₁ s₂ : set α} (h : s₂ ⊆ s₁) (h₁ : is_measurable s₁) (h₂ : is_measurable s₂)
   (h_fin : μ s₁ < ⊤) : μ (s₁ \ s₂) = μ s₁ - μ s₂ :=
-have hd : disjoint (s₁ \ s₂) s₂, from sdiff_inter_same,
+have hd : disjoint (s₁ \ s₂) s₂, from disjoint_diff.symm,
 have μ s₂ < ⊤, from lt_of_le_of_lt (measure_mono h) h_fin,
 calc μ (s₁ \ s₂) = (μ (s₁ \ s₂) + μ s₂) - μ s₂ :
     by rw [ennreal.add_sub_self this]
   ... = μ (s₁ \ s₂ ∪ s₂) - μ s₂ :
     by rw [measure_union hd]; simp [is_measurable_sdiff, h₁, h₂]
-  ... = _ : by rw [sdiff_union_same, union_of_subset_right h]
+  ... = _ : by rw [diff_union_self, union_eq_self_of_subset_right h]
 
 lemma measure_Union_eq_supr_nat {s : ℕ → set α} (h : ∀i, is_measurable (s i)) (hs : monotone s) :
   μ (⋃i, s i) = (⨆i, μ (s i)) :=
@@ -286,11 +282,11 @@ begin
   case nat.succ : i ih {
     rw [range_succ, sum_insert, ih, ←measure_union],
     { show μ (disjointed s (i + 1) ∪ s i) = μ (s (i + 1)),
-      rw [disjointed_of_mono hs, sdiff_union_same, union_of_subset_right],
+      rw [disjointed_of_mono hs, diff_union_self, union_eq_self_of_subset_right],
       exact hs (nat.le_succ _) },
     { show disjoint (disjointed s (i + 1)) (s i),
       simp [disjoint, disjointed_of_mono hs],
-      exact sdiff_inter_same },
+      exact diff_inter_self },
     { exact is_measurable_disjointed h },
     { exact h _ },
     { exact not_mem_range_self } }
@@ -318,7 +314,7 @@ have sub : (⋃i, s 0 \ s i) ⊆ s 0,
 have hd : ∀i, is_measurable (s 0 \ s i), from assume i, is_measurable_sdiff (h 0) (h i),
 have hu : is_measurable (⋃i, s 0 \ s i), from is_measurable_Union hd,
 have hm : monotone (λ (i : ℕ), s 0 \ s i),
-  from assume i j h, sdiff_subset_sdiff (subset.refl _) (hs i j h),
+  from assume i j h, diff_subset_diff (subset.refl _) (hs i j h),
 have eq₂ : ∀i, μ (s 0) - (μ (s 0) - μ (s i)) = μ (s i),
   from assume i,
   have μ (s i) ≤ μ (s 0), from measure_mono (hs _ _ $ nat.zero_le _),
@@ -356,7 +352,7 @@ assume s hs, outer_measure.caratheodory_is_measurable $ assume t, by_cases
     have hst₁ : is_measurable (t ∩ s), from is_measurable_inter this hs,
     have hst₂ : is_measurable (t \ s), from is_measurable_sdiff this hs,
     have t_eq : (t ∩ s) ∪ (t \ s) = t, from set.ext $ assume x, by by_cases x∈s; simp [h],
-    have h : (t ∩ s) ∩ (t \ s) = ∅, from set.ext $ by simp {contextual:=tt},
+    have h : (t ∩ s) ∩ (t \ s) ⊆ ∅, by simp [set.subset_def] {contextual:=tt},
     by rw [← μ.measure_eq_measure' this, ← μ.measure_eq_measure' hst₁, ← μ.measure_eq_measure' hst₂,
            ← measure_union h hst₁ hst₂, t_eq])
   (assume : ¬ is_measurable t, le_infi $ assume h, false.elim $ this h)
@@ -406,8 +402,8 @@ if hf : measurable f then
     measure_of_Union := assume s hs h,
       have h' : pairwise (disjoint on λ (i : ℕ), f ⁻¹' s i),
         from assume i j hij,
-        have s i ∩ s j = ∅, from h i j hij,
-        show f ⁻¹' s i ∩ f ⁻¹' s j = ∅, by rw [← preimage_inter, this, preimage_empty],
+        have s i ∩ s j = ∅, from subset_empty_iff.1 (h i j hij),
+        show f ⁻¹' s i ∩ f ⁻¹' s j ⊆ ∅, by rw [← preimage_inter, this, preimage_empty],
       by rw [preimage_Union]; exact measure_Union_nat h' (assume i, hf (s i) (hs i)) }
 else 0
 
@@ -435,9 +431,7 @@ def dirac (a : α) : measure_space α :=
       let ⟨i, hi⟩ := this in
       have ∀j, (a ∈ f j) ↔ (i = j), from
         assume j, ⟨assume hj, classical.by_contradiction $ assume hij,
-            have eq: f i ∩ f j = ∅, from h i j hij,
-            have a ∈ f i ∩ f j, from ⟨hi, hj⟩,
-            (mem_empty_eq a).mp $ by rwa [← eq],
+            h i j hij ⟨hi, hj⟩,
           assume h, h ▸ hi⟩,
       by simp [this])
     (by simp [ennreal.bot_eq_zero] {contextual := tt}) }

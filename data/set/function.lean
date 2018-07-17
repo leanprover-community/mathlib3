@@ -66,6 +66,10 @@ theorem inj_on_of_inj_on_of_subset {f : α → β} {a b : set α} (h₁ : inj_on
 lemma injective_iff_inj_on_univ {f : α → β} : injective f ↔ inj_on f univ :=
 iff.intro (λ h _ _ _ _ heq, h heq) (λ h _ _ heq, h trivial trivial heq)
 
+lemma inj_on_iff_injective {f : α → β} {s : set α} : inj_on f s ↔ injective (λ x:s, f x.1) :=
+⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
+ λ H a b as bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
+
 /- surjectivity -/
 
 /-- `f` is surjective from `a` to `b` if `b` is contained in the image of `a`. -/
@@ -86,6 +90,10 @@ theorem surj_on_comp {g : β → γ} {f : α → β} {a : set α} {b : set β} {
 
 lemma surjective_iff_surj_on_univ {f : α → β} : surjective f ↔ surj_on f univ univ :=
 by simp [surjective, surj_on, subset_def]
+
+lemma surj_on_iff_surjective {f : α → β} {s : set α} : surj_on f s univ ↔ surjective (λ x:s, f x.1) :=
+⟨λ H b, let ⟨a, as, e⟩ := @H b trivial in ⟨⟨a, as⟩, e⟩,
+ λ H b _, let ⟨⟨a, as⟩, e⟩ := H b in ⟨a, as, e⟩⟩
 
 lemma image_eq_of_maps_to_of_surj_on {f : α → β} {a : set α} {b : set β}
     (h₁ : maps_to f a b) (h₂ : surj_on f a b) :

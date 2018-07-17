@@ -541,6 +541,13 @@ theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by cases π; refl
 
+/-- Augment an equivalence with a prescribed mapping `f a = b` -/
+def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
+(swap a (f.symm b)).trans f
+
+@[simp] theorem set_value_eq (f : α ≃ β) (a : α) (b : β) : set_value f a b a = b :=
+by dsimp [set_value]; simp [swap_apply_left]
+
 end swap
 end equiv
 

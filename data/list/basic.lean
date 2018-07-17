@@ -71,6 +71,9 @@ theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a 
 theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=
 ⟨exists_mem_of_length_pos, λ ⟨a, h⟩, length_pos_of_mem h⟩
 
+theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
+⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
+
 theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = s ++ a :: t :=
 begin
   induction l with b l ih; simp at h; cases h with h h,
@@ -1629,6 +1632,9 @@ by simp [-and.comm, eq_nil_iff_forall_not_mem, mem_filter]
 
 theorem filter_sublist_filter {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ :=
 by rw ← filter_map_eq_filter; exact filter_map_sublist_filter_map _ s
+
+theorem filter_of_map (f : β → α) (l) : filter p (map f l) = map f (filter (p ∘ f) l) :=
+by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl

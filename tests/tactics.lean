@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic data.set.lattice
+import tactic data.set.lattice data.prod
 
 section solve_by_elim
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
@@ -56,6 +56,40 @@ example : ∃ x, r x :=
 by tauto
 
 end tauto₂
+
+section tauto₃
+
+
+example (p : Prop) : p ∧ true ↔ p := by tauto
+example (p : Prop) : p ∨ false ↔ p := by tauto
+example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+example (p q r : Prop) [decidable q] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ p) : q := by tauto
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : p) : ¬ q := by tauto
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : q) : ¬ p := by tauto
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) : p := by tauto
+example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) (h'' : ¬ p) : false := by tauto
+example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) (h'' : ¬ r) : ¬ p := by tauto
+example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
+by tauto
+example (p q r : Prop) [decidable p] [decidable q] [decidable r] (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto
+
+section modulo_symmetry
+variables {p q r : Prop} {α : Type} {x y : α} [decidable_eq α]
+variables [decidable p] [decidable q] [decidable r]
+variables (h : x = y)
+variables (h'' : (p ∧ q ↔ q ∨ r) ↔ (r ∧ p ↔ r ∨ q))
+include h
+include h''
+example (h' : ¬ y = x) : p ∧ q := by tauto
+example (h' : p ∧ ¬ y = x) : p ∧ q := by tauto
+example : y = x := by tauto
+example (h' : ¬ x = y) : p ∧ q := by tauto
+example : x = y := by tauto
+
+end modulo_symmetry
+
+end tauto₃
 
 section wlog
 
@@ -420,3 +454,29 @@ begin
 end
 
 end ext
+
+section apply_rules
+
+example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
+a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
+add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
+
+example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
+a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
+by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
+
+@[user_attribute]
+meta def mono_rules : user_attribute :=
+{ name := `mono_rules,
+  descr := "lemmas usable to prove monotonicity" }
+attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
+
+example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
+a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
+by apply_rules [mono_rules]
+
+example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
+a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
+by apply_rules mono_rules
+
+end apply_rules

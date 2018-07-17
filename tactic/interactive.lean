@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs meta.expr logic.basic
+  tactic.ext tactic.tauto
 
 open lean
 open lean.parser
@@ -87,6 +88,9 @@ two subgoals, one with variables `a d e` and the other with `b c d e`.
 meta def rintro : parse rintro_parse* → tactic unit
 | [] := intros []
 | l  := tactic.rintro l
+
+/-- Alias for `rintro`. -/
+meta def rintros := rintro
 
 /--
 This is a "finishing" tactic modification of `simp`. The tactic `simpa [rules, ...] using e`
@@ -195,9 +199,6 @@ do let h := h.get_or_else `this,
   | some o, none   := swap >> tactic.clear o >> swap
   end
 
-meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
-tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
-
 /--
   `apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
   where `head` matches the current goal.
@@ -215,23 +216,9 @@ tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 meta def apply_assumption
   (asms : option (list expr) := none)
   (tac : tactic unit := return ()) : tactic unit :=
-do { ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H ; tac) } <|>
-do { exfalso,
-     ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H ; tac) }
-<|> fail "assumption tactic failed"
+tactic.apply_assumption asms tac
 
 open nat
-
-meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
-| 0 := done
-| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
-
-meta structure by_elim_opt :=
-  (discharger : tactic unit := done)
-  (restr_hyp_set : option (list expr) := none)
-  (max_rep : ℕ := 3)
 
 /--
   `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
@@ -248,110 +235,17 @@ meta structure by_elim_opt :=
   - depth: number of attempts at discharging generated sub-goals
   -/
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
-
-/--
-  find all assumptions of the shape `¬ (p ∧ q)` or `¬ (p ∨ q)` and
-  replace them using de Morgan's law.
--/
-meta def de_morgan_hyps : tactic unit :=
-do hs ← local_context,
-   hs.for_each $ λ h,
-     replace (some h.local_pp_name) none ``(not_and_distrib'.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(not_and_distrib.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(not_or_distrib.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(of_not_not %%h) <|>
-     replace (some h.local_pp_name) none ``(not_imp.mp %%h) <|>
-     replace (some h.local_pp_name) none ``(not_iff.mp %%h) <|>
-     skip
+tactic.solve_by_elim opt
 
 /--
   `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
   and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
   using `reflexivity` or `solve_by_elim`
 -/
-meta def tautology : tactic unit :=
-repeat (do
-  gs ← get_goals,
-  () <$ tactic.intros;
-  de_morgan_hyps,
-  casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(_ ↔ _),``(Exists _),``(false)];
-  constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)],
-  try (refine ``( or_iff_not_imp_left.mpr _)),
-  try (refine ``( or_iff_not_imp_right.mpr _)),
-  gs' ← get_goals,
-  guard (gs ≠ gs') ) ;
-repeat
-(reflexivity <|> solve_by_elim <|>
- constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _)] ) ;
-done
+meta def tautology := tactic.tautology
 
 /-- Shorter name for the tactic `tautology`. -/
 meta def tauto := tautology
-
-/--
- Tag lemmas of the form:
-
- ```
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
- -/
-@[user_attribute]
-meta def extensional_attribute : user_attribute :=
-{ name := `extensionality,
-  descr := "lemmas usable by `ext` tactic" }
-
-attribute [extensionality] _root_.funext array.ext prod.ext
-
-/--
-  `ext1 id` selects and apply one extensionality lemma (with attribute
-  `extensionality`), using `id`, if provided, to name a local constant
-  introduced by the lemma. If `id` is omitted, the local constant is
-  named automatically, as per `intro`.
- -/
-meta def ext1 (x : parse ident_ ?) : tactic unit :=
-do ls ← attribute.get_instances `extensionality,
-   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
-   try ( interactive.intro x )
-
-meta def ext_arg :=
-prod.mk <$> (some <$> small_nat)
-        <*> (tk "with" *> ident_* <|> pure [])
-<|> prod.mk none <$> (ident_*)
-
-/--
-  - `ext` applies as many extensionality lemmas as possible;
-  - `ext ids`, with `ids` a list of identifiers, finds extentionality and applies them
-    until it runs out of identifiers in `ids` to name the local constants.
-
-  When trying to prove:
-
-  ```
-  α β : Type,
-  f g : α → set β
-  ⊢ f = g
-  ```
-
-  applying `ext x y` yields:
-
-  ```
-  α β : Type,
-  f g : α → set β,
-  x : α,
-  y : β
-  ⊢ y ∈ f x ↔ y ∈ f x
-  ```
-
-  by applying functional extensionality and set extensionality.
-
-  A maximum depth can be provided with `ext 3 with x y z`.
-  -/
-meta def ext : parse ext_arg → tactic unit
- | (some n, []) := ext1 none >> iterate_at_most (pred n) (ext1 none)
- | (none,   []) := ext1 none >> repeat (ext1 none)
- | (n, xs) := tactic.ext xs n
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)
@@ -458,7 +352,7 @@ do    tgt ← target,
           , field_values := field_values ++ vs.map to_pexpr         ++ src_field_vals },
       tactic.exact e',
       gs ← with_enable_tags (
-        mmap₂ (λ (n : name × name) v, do
+        mzip_with (λ (n : name × name) v, do
            set_goals [v],
            try (interactive.unfold (provided.map $ λ ⟨s,f⟩, f.update_prefix s) (loc.ns [none])),
            apply_auto_param
@@ -536,6 +430,32 @@ get_current_field
 meta def apply_field : tactic unit :=
 propagate_tags $
 get_current_field >>= applyc
+
+/--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
+first goal and the resulting subgoals, iteratively, at most `n` times.
+`n` is 50 by default. `hs` can contain user attributes: in this case all theorems with this
+attribute are added to the list of rules.
+
+example, with or without user attribute:
+```
+@[user_attribute]
+meta def mono_rules : user_attribute :=
+{ name := `mono_rules,
+  descr := "lemmas usable to prove monotonicity" }
+
+attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
+
+lemma my_test {a b c d e : real} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
+a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
+by apply_rules mono_rules
+-- any of the following lines would also work:
+-- add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
+-- by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
+-- by apply_rules [mono_rules]
+```
+-/
+meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
+tactic.apply_rules hs n
 
 end interactive
 end tactic

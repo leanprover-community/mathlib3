@@ -49,6 +49,7 @@ instance : has_emptyc (multiset α) := ⟨0⟩
 instance : inhabited (multiset α)  := ⟨0⟩
 
 @[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
+@[simp] theorem empty_eq_zero : (∅ : multiset α) = 0 := rfl
 
 /- cons -/
 
@@ -338,12 +339,17 @@ pos_iff_ne_zero.trans $ not_congr card_eq_zero
 theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
 quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
-@[elab_as_eliminator] lemma strong_induction_on {p : multiset α → Sort*} :
+@[elab_as_eliminator] def strong_induction_on {p : multiset α → Sort*} :
   ∀ (s : multiset α), (∀ s, (∀t < s, p t) → p s) → p s
 | s := λ ih, ih s $ λ t h,
   have card t < card s, from card_lt_of_lt h,
   strong_induction_on t ih
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
+
+theorem strong_induction_eq {p : multiset α → Sort*}
+  (s : multiset α) (H) : @strong_induction_on _ p s H =
+    H s (λ t h, @strong_induction_on _ p t H) :=
+by rw [strong_induction_on]
 
 @[elab_as_eliminator] lemma case_strong_induction_on {p : multiset α → Prop}
   (s : multiset α) (h₀ : p 0) (h₁ : ∀ a s, (∀t ≤ s, p t) → p (a :: s)) : p s :=
@@ -365,6 +371,11 @@ ne_of_gt (lt_cons_self _ _)
 @[simp] theorem singleton_le {a : α} {s : multiset α} : a::0 ≤ s ↔ a ∈ s :=
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
+
+theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = a::0 :=
+⟨quot.induction_on s $ λ l h,
+  (list.length_eq_one.1 h).imp $ λ a, congr_arg coe,
+ λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
 /- add -/
 
@@ -983,7 +994,7 @@ lemma attach_cons (a : α) (m : multiset α) :
 quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
   by rw [list.map_pmap]; exact list.pmap_congr _ (assume a' h₁ h₂, subtype.eq rfl)
 
-section decidable_pi_multiset
+section decidable_pi_exists
 variables {m : multiset α}
 
 protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
@@ -1001,7 +1012,18 @@ instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (�
   decidable_eq (Πa∈m, β a) :=
 assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
 
-end decidable_pi_multiset
+def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
+  decidable (∃ x ∈ m, p x) :=
+quotient.rec_on_subsingleton m list.decidable_exists_mem
+
+instance decidable_dexists_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
+  decidable (∃a (h : a ∈ m), p a h) :=
+decidable_of_decidable_of_iff
+  (@multiset.decidable_exists_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
+  (iff.intro (λ ⟨⟨a, ha₁⟩, _, ha₂⟩, ⟨a, ha₁, ha₂⟩) 
+    (λ ⟨a, ha₁, ha₂⟩, ⟨⟨a, ha₁⟩, mem_attach _ _, ha₂⟩))
+
+end decidable_pi_exists
 
 /- subtraction -/
 section

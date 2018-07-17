@@ -46,6 +46,14 @@ instance decidable_pi_fintype {α} {β : α → Type*} [fintype α] [∀a, decid
 assume f g, decidable_of_iff (∀ a ∈ fintype.elems α, f a = g a)
   (by simp [function.funext_iff, fintype.complete])
 
+instance decidable_forall_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
+  decidable (∀ a, p a) :=
+decidable_of_iff (∀ a ∈ @univ α _, p a) (by simp)
+
+instance decidable_exists_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
+  decidable (∃ a, p a) :=
+decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
+
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
   (H : ∀ x : α, x ∈ s) : fintype α :=
@@ -238,6 +246,9 @@ fintype.of_multiset s.attach s.mem_attach
 
 instance finset.subtype.fintype (s : finset α) : fintype {x // x ∈ s} :=
 ⟨s.attach, s.mem_attach⟩
+
+instance finset_coe.fintype (s : finset α) : fintype (↑s : set α) :=
+finset.subtype.fintype s
 
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then finset.singleton ⟨h⟩ else ∅, λ ⟨h⟩, by simp [h]⟩

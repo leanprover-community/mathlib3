@@ -1121,7 +1121,7 @@ lemma is_open_generated_countable_inter [second_countable_topology α] :
 let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
 let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ ⋂₀ s ≠ ∅} in
 ⟨b',
-  countable_image _ $ countable_subset (by simp {contextual:=tt}) (countable_set_of_finite_subset hb₁),
+  countable_image $ countable_subset (by simp {contextual:=tt}) (countable_set_of_finite_subset hb₁),
   assume ⟨s, ⟨_, _, hn⟩, hp⟩, hn hp,
   is_topological_basis_of_subbasis hb₂⟩
 

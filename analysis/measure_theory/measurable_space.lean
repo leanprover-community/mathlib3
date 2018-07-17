@@ -458,7 +458,7 @@ inductive generate_has (s : set (set α)) : set α → Prop
 | basic : ∀t∈s, generate_has t
 | empty : generate_has ∅
 | compl : ∀{a}, generate_has a → generate_has (-a)
-| Union : ∀{f:ℕ → set α}, (∀i j, i ≠ j → f i ∩ f j = ∅) →
+| Union : ∀{f:ℕ → set α}, (∀i j, i ≠ j → f i ∩ f j ⊆ ∅) →
     (∀i, generate_has (f i)) → generate_has (⋃i, f i)
 
 def generate (s : set (set α)) : dynkin_system α :=
@@ -479,7 +479,7 @@ let f := [s₁, s₂].inth in
 have hf0 : f 0 = s₁, from rfl,
 have hf1 : f 1 = s₂, from rfl,
 have hf2 : ∀n:ℕ, f n.succ.succ = ∅, from assume n, rfl,
-have (∀i j, i ≠ j → f i ∩ f j = ∅),
+have (∀i j, i ≠ j → f i ∩ f j ⊆ ∅),
   from assume i, i.two_step_induction
     (assume j, j.two_step_induction (by simp) (by simp [hf0, hf1, h]) (by simp [hf2]))
     (assume j, j.two_step_induction (by simp [hf0, hf1, h, inter_comm]) (by simp) (by simp [hf2]))
@@ -532,15 +532,15 @@ def restrict_on {s : set δ} (h : d.has s) : dynkin_system δ :=
     have -t ∩ s = (- (t ∩ s)) \ -s,
       from set.ext $ assume x, by by_cases x ∈ s; simp [h],
     by rw [this]; from d.has_sdiff (d.has_compl hts) (d.has_compl h)
-      (compl_subset_compl_iff_subset.mpr $ inter_subset_right _ _),
+      (compl_subset_compl.mpr $ inter_subset_right _ _),
   has_Union := assume f hd hf,
     begin
-      rw [inter_comm, inter_distrib_Union_left],
+      rw [inter_comm, inter_Union_left],
       apply d.has_Union,
       exact assume i j h,
-        have f i ∩ f j = ∅, from hd i j h,
+        have f i ∩ f j = ∅, from subset_empty_iff.1 (hd i j h),
         calc s ∩ f i ∩ (s ∩ f j) = s ∩ s ∩ (f i ∩ f j) : by cc
-          ... = ∅ : by rw [this]; simp,
+          ... ⊆ ∅ : by rw [this]; simp,
       intro i, rw [inter_comm], exact hf i
     end }
 
@@ -581,7 +581,7 @@ lemma induction_on_inter {C : set α → Prop} {s : set (set α)} {m : measurabl
   (h_eq : m = generate_from s)
   (h_inter : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s)
   (h_empty : C ∅) (h_basic : ∀t∈s, C t) (h_compl : ∀t, m.is_measurable t → C t → C (- t))
-  (h_union : ∀f:ℕ → set α, (∀i j, i ≠ j → f i ∩ f j = ∅) →
+  (h_union : ∀f:ℕ → set α, (∀i j, i ≠ j → f i ∩ f j ⊆ ∅) →
     (∀i, m.is_measurable (f i)) → (∀i, C (f i)) → C (⋃i, f i)) :
   ∀{t}, m.is_measurable t → C t :=
 have eq : m.is_measurable = dynkin_system.generate_has s,

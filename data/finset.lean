@@ -383,6 +383,9 @@ instance : lattice (finset α) :=
   inf_le_right := assume a b, inter_subset_right,
   ..finset.partial_order }
 
+@[simp] theorem sup_eq_union (s t : finset α) : s ⊔ t = s ∪ t := rfl
+@[simp] theorem inf_eq_inter (s t : finset α) : s ⊓ t = s ∩ t := rfl
+
 instance : semilattice_inf_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset, ..finset.lattice.lattice }
 
@@ -1276,14 +1279,14 @@ end sort
 section disjoint
 variable [decidable_eq α]
 
-theorem disjoint_iff_inter_eq_empty {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
-iff.rfl
-
 theorem disjoint_left {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
-by simp [disjoint_iff_inter_eq_empty, ext, mem_inter]
+by simp [_root_.disjoint, subset_iff]; refl
+
+theorem disjoint_iff_inter_eq_empty {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
+disjoint_iff
 
 theorem disjoint_right {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
-by rw [_root_.disjoint_comm, disjoint_left]
+by rw [disjoint.comm, disjoint_left]
 
 theorem disjoint_iff_ne {s t : finset α} : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
 by simp [disjoint_left, imp_not_comm]
@@ -1294,15 +1297,15 @@ disjoint_left.2 (λ x m₁, (disjoint_left.1 d) (h m₁))
 theorem disjoint_of_subset_right {s t u : finset α} (h : t ⊆ u) (d : disjoint s u) : disjoint s t :=
 disjoint_right.2 (λ x m₁, (disjoint_right.1 d) (h m₁))
 
-@[simp] theorem disjoint_empty_left (s : finset α) : disjoint ∅ s := bot_inf_eq
+@[simp] theorem disjoint_empty_left (s : finset α) : disjoint ∅ s := disjoint_bot_left
 
-@[simp] theorem disjoint_empty_right (s : finset α) : disjoint s ∅ := inf_bot_eq
+@[simp] theorem disjoint_empty_right (s : finset α) : disjoint s ∅ := disjoint_bot_right
 
 @[simp] theorem singleton_disjoint {s : finset α} {a : α} : disjoint (singleton a) s ↔ a ∉ s :=
 by simp [disjoint_left]; refl
 
 @[simp] theorem disjoint_singleton {s : finset α} {a : α} : disjoint s (singleton a) ↔ a ∉ s :=
-by rw _root_.disjoint_comm; simp
+by rw disjoint.comm; simp
 
 @[simp] theorem disjoint_insert_left {a : α} {s t : finset α} :
   disjoint (insert a s) t ↔ a ∉ t ∧ disjoint s t :=
@@ -1310,7 +1313,7 @@ by simp [disjoint_left, or_imp_distrib, forall_and_distrib]; refl
 
 @[simp] theorem disjoint_insert_right {a : α} {s t : finset α} :
   disjoint s (insert a t) ↔ a ∉ s ∧ disjoint s t :=
-_root_.disjoint_comm.trans $ by simp [disjoint_insert_left]
+disjoint.comm.trans $ by rw [disjoint_insert_left, disjoint.comm]
 
 @[simp] theorem disjoint_union_left {s t u : finset α} :
   disjoint (s ∪ t) u ↔ disjoint s u ∧ disjoint t u :=

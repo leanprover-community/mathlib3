@@ -41,15 +41,23 @@ subset.antisymm (Union_subset_Union $ assume i, inter_subset_left _ _) $
 lemma disjointed_induct {f : ℕ → set α} {n : ℕ} {p : set α → Prop}
   (h₁ : p (f n)) (h₂ : ∀t i, p t → p (t \ f i)) :
   p (disjointed f n) :=
+have ∀n t, p t → p (t ∩ (⋂i<n, - f i)),
 begin
-  rw disjointed,
-  generalize_hyp : f n = t at h₁ ⊢,
-  induction n,
-  case nat.zero { simp [nat.not_lt_zero, h₁] },
+  intro n, induction n,
+  case nat.zero {
+    have h : (⋂ (i : ℕ) (H : i < 0), -f i) = univ,
+      { apply eq_univ_of_forall,
+        simp [mem_Inter, nat.not_lt_zero] },
+    simp [h, inter_univ] },
   case nat.succ : n ih {
-    rw [Inter_lt_succ, inter_comm (-f n), ← inter_assoc],
-    exact h₂ _ n ih }
-end
+    intro t,
+    have h : (⨅i (H : i < n.succ), -f i) = (⨅i (H : i < n), -f i) ⊓ - f n,
+      by simp [nat.lt_succ_iff_lt_or_eq, infi_or, infi_inf_eq, inf_comm],
+    change (⋂ (i : ℕ) (H : i < n.succ), -f i) = (⋂ (i : ℕ) (H : i < n), -f i) ∩ - f n at h,
+    rw [h, ←inter_assoc],
+    exact assume ht, h₂ _ _ (ih _ ht) }
+end,
+this _ _ h₁
 
 lemma disjointed_of_mono {f : ℕ → set α} {n : ℕ} (hf : monotone f) :
   disjointed f (n + 1) = f (n + 1) \ f n :=

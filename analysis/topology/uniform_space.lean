@@ -794,11 +794,11 @@ lemma totally_bounded_iff_filter {s : set α} :
   have f ≠ ⊥,
     from infi_neq_bot_of_directed ⟨a⟩
       (assume ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩, ⟨⟨t₁ ∪ t₂, finite_union ht₁ ht₂⟩,
-        principal_mono.mpr $ diff_right_antimono $ Union_subset_Union $
+        principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inl,
-        principal_mono.mpr $ diff_right_antimono $ Union_subset_Union $
+        principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inr⟩)
-      (assume ⟨t, ht⟩, by simp [diff_neq_empty]; exact hd_cover ht),
+      (assume ⟨t, ht⟩, by simp [diff_eq_empty]; exact hd_cover ht),
   have f ≤ principal s, from infi_le_of_le ⟨∅, finite_empty⟩ $ by simp; exact subset.refl s,
   let
     ⟨c, (hc₁ : c ≤ f), (hc₂ : cauchy c)⟩ := h f ‹f ≠ ⊥› this,

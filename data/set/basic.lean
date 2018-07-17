@@ -233,8 +233,14 @@ by finish [subset_def, union_def]
 @[simp] theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
 by finish [iff_def, subset_def]
 
-theorem union_subset_union {s₁ s₂ t₁ t₂ : set α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∪ s₂ ⊆ t₁ ∪ t₂ :=
+theorem union_subset_union {s₁ s₂ t₁ t₂ : set α} (h₁ : s₁ ⊆ s₂) (h₂ : t₁ ⊆ t₂) : s₁ ∪ t₁ ⊆ s₂ ∪ t₂ :=
 by finish [subset_def]
+
+theorem union_subset_union_left {s₁ s₂ : set α} (t) (h : s₁ ⊆ s₂) : s₁ ∪ t ⊆ s₂ ∪ t :=
+union_subset_union h (by refl)
+
+theorem union_subset_union_right (s) {t₁ t₂ : set α} (h : t₁ ⊆ t₂) : s ∪ t₁ ⊆ s ∪ t₂ :=
+union_subset_union (by refl) h
 
 @[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
 ⟨by finish [ext_iff], by finish [ext_iff]⟩
@@ -300,10 +306,10 @@ ext (assume x, and_true _)
 @[simp] theorem univ_inter (a : set α) : univ ∩ a = a :=
 ext (assume x, true_and _)
 
-theorem inter_subset_inter_right {s t : set α} (u : set α) (H : s ⊆ t) : s ∩ u ⊆ t ∩ u :=
+theorem inter_subset_inter_left {s t : set α} (u : set α) (H : s ⊆ t) : s ∩ u ⊆ t ∩ u :=
 by finish [subset_def]
 
-theorem inter_subset_inter_left {s t : set α} (u : set α) (H : s ⊆ t) : u ∩ s ⊆ u ∩ t :=
+theorem inter_subset_inter_right {s t : set α} (u : set α) (H : s ⊆ t) : u ∩ s ⊆ u ∩ t :=
 by finish [subset_def]
 
 theorem inter_subset_inter {s₁ s₂ t₁ t₂ : set α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∩ s₂ ⊆ t₁ ∩ t₂ :=
@@ -314,6 +320,12 @@ by finish [subset_def, ext_iff, iff_def]
 
 theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t :=
 by finish [subset_def, ext_iff, iff_def]
+
+theorem union_inter_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) ∩ s = s :=
+by finish [ext_iff, iff_def]
+
+theorem union_inter_cancel_right {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) ∩ t = t :=
+by finish [ext_iff, iff_def]
 
 -- TODO(Mario): remove?
 theorem nonempty_of_inter_nonempty_right {s t : set α} (h : s ∩ t ≠ ∅) : t ≠ ∅ :=
@@ -508,6 +520,9 @@ theorem compl_subset_comm {s t : set α} : -s ⊆ t ↔ -t ⊆ s :=
 by haveI := classical.prop_decidable; exact
 forall_congr (λ a, not_imp_comm)
 
+lemma compl_subset_compl {s t : set α} : -s ⊆ -t ↔ t ⊆ s :=
+by rw [compl_subset_comm, compl_compl]
+
 theorem compl_subset_iff_union {s t : set α} : -s ⊆ t ↔ s ∪ t = univ :=
 iff.symm $ eq_univ_iff_forall.trans $ forall_congr $ λ a,
 by haveI := classical.prop_decidable; exact or_iff_not_imp_left
@@ -538,19 +553,43 @@ theorem mem_diff_iff (s t : set α) (x : α) : x ∈ s \ t ↔ x ∈ s ∧ x ∉
 theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
 by finish [ext_iff, iff_def, subset_def]
 
+theorem union_diff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
+by finish [ext_iff, iff_def, subset_def]
+
+theorem union_diff_cancel_right {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ t = s :=
+by finish [ext_iff, iff_def, subset_def]
+
+theorem union_diff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
+by finish [ext_iff, iff_def]
+
+theorem union_diff_right {s t : set α} : (s ∪ t) \ t = s \ t :=
+by finish [ext_iff, iff_def]
+
+theorem inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
+inter_assoc _ _ _
+
+theorem inter_diff_self (a b : set α) : a ∩ (b \ a) = ∅ :=
+by finish [ext_iff]
+
+theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
+by finish [ext_iff, iff_def]
+
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]
 
 theorem diff_subset_diff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
 by finish [subset_def]
 
-theorem diff_right_antimono {s t u : set α} (h : t ⊆ u) : s \ u ⊆ s \ t :=
+theorem diff_subset_diff_left {s₁ s₂ t : set α} (h : s₁ ⊆ s₂) : s₁ \ t ⊆ s₂ \ t :=
+diff_subset_diff h (by refl)
+
+theorem diff_subset_diff_right {s t u : set α} (h : t ⊆ u) : s \ u ⊆ s \ t :=
 diff_subset_diff (subset.refl s) h
 
 theorem compl_eq_univ_diff (s : set α) : -s = univ \ s :=
 by finish [ext_iff]
 
-theorem diff_neq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
+theorem diff_eq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
 ⟨assume h x hx, classical.by_contradiction $ assume : x ∉ t, show x ∈ (∅ : set α), from h ▸ ⟨hx, this⟩,
   assume h, eq_empty_of_subset_empty $ assume x ⟨hx, hnx⟩, hnx $ h hx⟩
 
@@ -567,8 +606,27 @@ lemma diff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=
 lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
 by rw [diff_subset_iff, diff_subset_iff, union_comm]
 
-@[simp] theorem insert_sdiff (h : a ∈ t) : insert a s \ t = s \ t :=
+@[simp] theorem insert_diff (h : a ∈ t) : insert a s \ t = s \ t :=
 set.ext $ by intro; constructor; simp [or_imp_distrib, h] {contextual := tt}
+
+theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
+by finish [ext_iff, iff_def]
+
+theorem diff_union_self {s t : set α} : (s \ t) ∪ t = s ∪ t :=
+by rw [union_comm, union_diff_self, union_comm]
+
+theorem diff_inter_self {a b : set α} : (b \ a) ∩ a = ∅ :=
+set.ext $ by simp [iff_def] {contextual:=tt}
+
+theorem diff_eq_self {s t : set α} : s \ t = s ↔ t ∩ s ⊆ ∅ :=
+by finish [ext_iff, iff_def, subset_def]
+
+@[simp] theorem diff_singleton_eq_self {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
+diff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
+
+@[simp] theorem insert_diff_singleton {a : α} {s : set α} :
+  insert a (s \ {a}) = insert a s :=
+by simp [insert_eq, union_diff_self]
 
 /- powerset -/
 

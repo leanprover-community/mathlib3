@@ -23,7 +23,6 @@ jobs:
   include:
     - stage: Pre-build
       script:
-        - git checkout -- "*.lean"
         - (git status | grep  -e "Changes not staged for commit:"); RESULT=$?
         - if [ $RESULT -eq 0 ]; then git checkout -f HEAD ; fi
         - rm mathlib.txt || true
@@ -32,7 +31,8 @@ jobs:
 
     - stage: Test
       script:
-        - (git status | grep  -e "Changes not staged for commit:"); test $? -ne 0
+        - (git status | grep  -e "Changes not staged for commit:"); RESULT=$?
+        - if [ $RESULT -eq 0 ]; then git checkout -f HEAD ; fi
         - leanpkg test
         - lean --recursive --export=mathlib.txt
         - leanchecker mathlib.txt

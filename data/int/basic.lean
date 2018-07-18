@@ -619,6 +619,14 @@ by cases n; refl
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
 by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
 
+theorem nat_abs_dvd_abs {i j : ℤ} (H : i ∣ j) : (nat_abs i ∣ nat_abs j) := 
+begin 
+  unfold has_dvd.dvd,
+  cases H with k Hk,
+  apply exists.intro (nat_abs k),
+  rw [Hk, nat_abs_mul]
+end
+
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]
 

@@ -14,7 +14,6 @@ class is_monoid_action [monoid α] (f : α → β → β) : Prop :=
 
 namespace is_monoid_action
 
-section monoid
 variables [monoid α] (f : α → β → β) [is_monoid_action f] 
 
 def orbit (a : β) := set.range (λ x : α, f x a)
@@ -51,10 +50,11 @@ lemma mem_fixed_points' {f : α → β → β} [is_monoid_action f] {a : β} : a
 ⟨λ h b h₁, let ⟨x, hx⟩ := mem_orbit_iff.1 h₁ in hx ▸ h x,
 λ h b, mem_stabilizer_iff.2 (h _ (mem_orbit _ _ _))⟩
 
-end monoid
+end is_monoid_action
 
-section group
+namespace is_group_action
 variables [group α] (f : α → β → β)
+open is_monoid_action
 
 class is_group_action extends is_monoid_action f
 
@@ -87,7 +87,7 @@ by letI := left_rel (stabilizer f a); exact
 equiv.symm (@equiv.of_bijective _ _ 
   (λ x : left_cosets (stabilizer f a), quotient.lift_on x 
     (λ x, (⟨f x a, mem_orbit _ _ _⟩ : orbit f a)) 
-    (λ g h (H : _ = _), subtype.eq $ (is_monoid_action.bijective f (g⁻¹)).1
+    (λ g h (H : _ = _), subtype.eq $ (is_group_action.bijective f (g⁻¹)).1
       $ show f g⁻¹ (f g a) = f g⁻¹ (f h a),
       by rw [← is_monoid_action.mul f, ← is_monoid_action.mul f, 
         H, inv_mul_self, is_monoid_action.one f])) 
@@ -98,6 +98,4 @@ equiv.symm (@equiv.of_bijective _ _
     is_monoid_action.one f]),
   λ ⟨b, ⟨g, hgb⟩⟩, ⟨⟦g⟧, subtype.eq hgb⟩⟩)
 
-end group
-
-end is_monoid_action
+end is_group_action

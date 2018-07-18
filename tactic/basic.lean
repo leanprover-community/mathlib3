@@ -37,6 +37,13 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
 
 end expr
 
+namespace environment
+
+meta def in_current_file' (env : environment) (n : name) : bool :=
+env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
+
+end environment
+
 namespace tactic
 
 meta definition mk_local (n : name) : expr :=

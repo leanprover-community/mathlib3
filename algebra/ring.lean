@@ -107,6 +107,13 @@ instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
 end is_ring_hom
 
 set_option old_structure_cmd true
+
+class nonzero_comm_ring (α : Type*) extends zero_ne_one_class α, comm_ring α
+
+instance integral_domain.to_nonzero_comm_ring (α : Type*) [id : integral_domain α] :
+  nonzero_comm_ring α :=
+{ ..id }
+
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/

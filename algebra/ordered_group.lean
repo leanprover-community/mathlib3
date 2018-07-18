@@ -260,6 +260,7 @@ begin
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
 
+<<<<<<< HEAD
 @[simp] lemma coe_add [add_semigroup α] (a b : α) : 
   ((a + b : α) : with_bot α) = a + b := rfl
 
@@ -268,6 +269,20 @@ end
 
 @[simp] lemma add_bot [ordered_comm_monoid α]
   (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
+=======
+@[simp] lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
+
+@[simp] lemma bot_add [ordered_comm_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
+
+@[simp] lemma add_bot [ordered_comm_monoid α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
+
+lemma coe_lt_coe {a b : ℕ} : (a : with_bot ℕ) < b ↔ a < b := with_bot.some_lt_some
+
+lemma bot_lt_some (a : ℕ) : (⊥ : with_bot ℕ) < some a :=
+lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
+
+instance has_one : has_one (with_bot ℕ) := ⟨(1 : ℕ)⟩
+>>>>>>> upstream/master
 
 end with_bot
 

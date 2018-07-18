@@ -206,13 +206,13 @@ multiset.card_sigma _ _
 end finset
 
 namespace finset
-variables [decidable_eq α] {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
+variables {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] : s.sum (λx, f x - g x) = s.sum f - s.sum g :=
 by simp [sum_add_distrib]
 
 section ordered_cancel_comm_monoid
-variables [ordered_cancel_comm_monoid β]
+variables [decidable_eq α] [ordered_cancel_comm_monoid β]
 
 lemma sum_le_sum : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
 finset.induction_on s (by simp) $ assume a s ha ih h,
@@ -237,7 +237,7 @@ lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 end semiring
 
 section comm_semiring
-variables [comm_semiring β]
+variables [decidable_eq α] [comm_semiring β]
 
 lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : s.prod f = 0 :=
 calc s.prod f = (insert a (erase s a)).prod f : by simp [ha, insert_erase]
@@ -272,7 +272,7 @@ end
 end comm_semiring
 
 section integral_domain /- add integral_semi_domain to support nat and ennreal -/
-variables [integral_domain β]
+variables [decidable_eq α] [integral_domain β]
 
 lemma prod_eq_zero_iff : s.prod f = 0 ↔ (∃a∈s, f a = 0) :=
 finset.induction_on s (by simp)
@@ -285,7 +285,7 @@ end
 end integral_domain
 
 section ordered_comm_monoid
-variables [ordered_comm_monoid β]
+variables [decidable_eq α] [ordered_comm_monoid β]
 
 lemma sum_le_sum' : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
 finset.induction_on s (by simp; refl) $ assume a s ha ih h,
@@ -316,7 +316,7 @@ from sum_le_sum_of_subset_of_nonneg
 end ordered_comm_monoid
 
 section canonically_ordered_monoid
-variables [canonically_ordered_monoid β] [@decidable_rel β (≤)]
+variables [decidable_eq α] [canonically_ordered_monoid β] [@decidable_rel β (≤)]
 
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : s₁.sum f ≤ s₂.sum f :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _

@@ -7,58 +7,13 @@ Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a 
 -/
 import data.finsupp algebra.euclidean_domain
 
-namespace finsupp
-variables {α : Type*} {β : Type*}{γ : Type*} [semiring β] [semiring γ]
-
-lemma sum_mul (b : γ) (s : α →₀ β) {f : α → β → γ} :
-  (s.sum f) * b = s.sum (λ a c, (f a (s a)) * b) :=
-by simp [finsupp.sum, finset.sum_mul]
-
-lemma mul_sum [semiring β] [semiring γ] (b : γ) (s : α →₀ β) {f : α → β → γ} :
-  b * (s.sum f) = s.sum (λ a c, b * (f a (s a))) :=
-by simp [finsupp.sum, finset.mul_sum]
-
-end finsupp
-
-open finsupp finset lattice
-
-section
-set_option old_structure_cmd true
-
-class nonzero_comm_ring (α : Type*) extends zero_ne_one_class α, comm_ring α
-
-instance integral_domain.to_nonzero_comm_ring (α : Type*) [id : integral_domain α] :
-  nonzero_comm_ring α :=
-{ ..id }
-
-end
-
-section with_bot
-
-@[simp] lemma with_bot.coe_add {α : Type*} [add_semigroup α] (a b : α) :
-  ((a + b : α) : with_bot α) = a + b := rfl
-
-@[simp] lemma with_bot.bot_add {α : Type*} [ordered_comm_monoid α]
-  (a : with_bot α) : ⊥ + a = ⊥ := rfl
-
-@[simp] lemma with_bot.add_bot {α : Type*} [ordered_comm_monoid α]
-  (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
-
-lemma with_bot.coe_lt_coe {a b : ℕ} : (a : with_bot ℕ) < b ↔ a < b :=
-with_bot.some_lt_some
-
-lemma with_bot.bot_lt_some (a : ℕ) : (⊥ : with_bot ℕ) < some a :=
-lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
-
-instance with_bot.has_one : has_one (with_bot ℕ) := ⟨(1 : ℕ)⟩
-
-end with_bot
-
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
 Polynomials should be seen as (semi-)rings with the additional the constructor `X`. `C` is the
 embedding from `α`. -/
 def polynomial (α : Type*) [comm_semiring α] := ℕ →₀ α
+
+open finsupp finset lattice
 
 namespace polynomial
 universe u

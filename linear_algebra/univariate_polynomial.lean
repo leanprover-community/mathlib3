@@ -213,7 +213,7 @@ by rw [if_neg ha]; refl
  
 lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
 ⟨λ h, by rw [degree, ← max_eq_sup_with_bot] at h;
-  exact support_eq_empty.1 (max_eq_none.1 h),
+  exact support_eq_empty.1 (finset.max_eq_none.1 h),
 λ h, h.symm ▸ rfl⟩
 
 lemma degree_eq_nat_degree (hp : p ≠ 0) : degree p = (nat_degree p : with_bot ℕ) :=

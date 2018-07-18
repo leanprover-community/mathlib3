@@ -511,7 +511,7 @@ instance : t2_space ennreal := by apply_instance
 
 instance : second_countable_topology ennreal :=
 ⟨⟨⋃q ≥ (0:ℚ), {{a : ennreal | a < of_real q}, {a : ennreal | of_real ↑q < a}},
-  countable_bUnion (countable_encodable _) $ assume a ha, countable_insert countable_singleton,
+  countable_bUnion (countable_encodable _) $ assume a ha, countable_insert (countable_singleton _),
   le_antisymm
     (generate_from_le $ λ s h, begin
       rcases h with ⟨a, hs | hs⟩;

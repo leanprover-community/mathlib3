@@ -317,11 +317,12 @@ do tgt : expr ← target,
      | _ := none
      end)
 
-meta def source_fields (missing : list (name × name)) (e : pexpr) : tactic (list (name × pexpr)) :=
+meta def source_fields (missing : list name) (e : pexpr) : tactic (list (name × pexpr)) :=
 do e ← to_expr e,
    t ← infer_type e,
    let struct_n : name := t.get_app_fn.const_name,
-   exp_fields ← (∩ missing) <$> expanded_field_list struct_n,
+   fields ← expanded_field_list struct_n,
+   let exp_fields := fields.filter (λ x, x.2 ∈ missing),
    exp_fields.mmap $ λ ⟨p,n⟩,
      (prod.mk n ∘ to_pexpr) <$> mk_mapp (n.update_prefix p) [none,some e]
 
@@ -341,7 +342,7 @@ do    tgt ← target,
       let struct_n : name := tgt.get_app_fn.const_name,
       exp_fields ← expanded_field_list struct_n,
       let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),
-      (src_field_names,src_field_vals) ← (@list.unzip name _ ∘ list.join) <$> str.sources.mmap (source_fields missing_f),
+      (src_field_names,src_field_vals) ← (@list.unzip name _ ∘ list.join) <$> str.sources.mmap (source_fields $ missing_f.map prod.snd),
       let provided  := exp_fields.filter (λ f, (f.2 : name) ∈ str.field_names),
       let missing_f' := missing_f.filter (λ x, x.2 ∉ src_field_names),
       vs ← mk_mvar_list missing_f'.length,

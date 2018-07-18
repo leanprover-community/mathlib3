@@ -31,7 +31,7 @@ iff.rfl
 ⟨1, show f 1 a = a, by simp [is_monoid_action.one f]⟩
 
 instance orbit_fintype (a : β) [fintype α] [decidable_eq β] :
-fintype (orbit f a) := set.fintype_range _
+  fintype (orbit f a) := set.fintype_range _
 
 def stabilizer (a : β) : set α :=
 {x : α | f x a = a}

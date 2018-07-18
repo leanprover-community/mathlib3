@@ -70,6 +70,9 @@ lemma single_eq_C_mul_X : ∀{n}, single n a = C a * X^n
     ... = (C a * X^n) * X : by rw [single_eq_C_mul_X]
     ... = C a * X^(n+1) : by simp [pow_add, mul_assoc]
 
+lemma sum_C_mul_X_eq (p : polynomial α) : p.sum (λn a, C a * X^n) = p :=
+eq.trans (sum_congr rfl $ assume n hn, single_eq_C_mul_X.symm) finsupp.sum_single
+
 @[elab_as_eliminator] protected lemma induction_on {M : polynomial α → Prop} (p : polynomial α)
   (h_C : ∀a, M (C a))
   (h_add : ∀p q, M p → M q → M (p + q))
@@ -1145,5 +1148,78 @@ by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
     degree_add_eq_of_degree_lt this, degree_mul_eq]}
 
 end field
+
+section derivative
+variables [comm_semiring α] {β : Type*}
+
+/-- `derivative p` formal derivative of the polynomial `p` -/
+def derivative (p : polynomial α) : polynomial α := p.sum (λn a, C (a * n) * X^(n - 1))
+
+@[simp] lemma derivative_zero : derivative (0 : polynomial α) = 0 :=
+finsupp.sum_zero_index
+
+lemma derivative_monomial (a : α) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
+by rw [← single_eq_C_mul_X, ← single_eq_C_mul_X, derivative, sum_single_index, single_eq_C_mul_X];
+  simp; refl
+
+@[simp] lemma derivative_C {a : α} : derivative (C a) = 0 :=
+suffices derivative (C a * X^0) = C (a * 0:α) * X ^ 0, by simpa,
+derivative_monomial a 0
+
+@[simp] lemma derivative_X : derivative (X : polynomial α) = 1 :=
+suffices derivative (C (1:α) * X^1) = C (1 * (1:ℕ)) * X ^ (1 - 1), by simpa,
+derivative_monomial 1 1
+
+@[simp] lemma derivative_one : derivative (1 : polynomial α) = 0 :=
+derivative_C
+
+@[simp] lemma derivative_add {f g : polynomial α} :
+  derivative (f + g) = derivative f + derivative g :=
+by refine finsupp.sum_add_index _ _; simp [add_mul]
+
+@[simp] lemma derivative_sum {s : finset β} {f : β → polynomial α} :
+  derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
+begin
+  apply (finset.sum_hom derivative _ _).symm,
+  exact derivative_zero,
+  exact assume x y, derivative_add
+end
+
+@[simp] lemma derivative_mul {f g : polynomial α} :
+  derivative (f * g) = derivative f * g + f * derivative g :=
+calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)) * X^((n + m) - 1))) :
+  begin
+    transitivity, exact derivative_sum,
+    transitivity, { apply finset.sum_congr rfl, assume x hx, exact derivative_sum },
+    apply finset.sum_congr rfl, assume n hn, apply finset.sum_congr rfl, assume m hm,
+    dsimp,
+    transitivity,
+    { apply congr_arg, exact single_eq_C_mul_X },
+    exact derivative_monomial _ _
+  end
+  ... = f.sum (λn a, g.sum (λm b,
+      (C (a * n) * X^(n - 1)) * (C b * X^m) + (C (b * m) * X^(m - 1)) * (C a * X^n))) :
+    sum_congr rfl $ assume n hn, sum_congr rfl $ assume m hm,
+      by cases n; cases m; simp [mul_add, add_mul, mul_assoc, mul_comm, mul_left_comm,
+          add_assoc, add_comm, add_left_comm, pow_add, pow_succ]
+  ... = derivative f * g + f * derivative g :
+    begin
+      simp [finsupp.sum_add],
+      conv {
+        to_rhs,
+        congr,
+        { rw [← sum_C_mul_X_eq f, derivative] },
+        { rw [← sum_C_mul_X_eq g, derivative] },
+      },
+      simp [finsupp.mul_sum, finsupp.sum_mul],
+      simp [finsupp.sum, mul_assoc, mul_comm, mul_left_comm]
+    end
+
+/-
+@[simp] lemma degree_derivative (p : polynomial α) (hp : 0 < nat_degree p) :
+  nat_degree (derivative p) = nat_degree p - 1 :=
+_
+-/
+end derivative
 
 end polynomial

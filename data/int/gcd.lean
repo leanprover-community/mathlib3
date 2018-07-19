@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Guy Leroy. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Guy Leroy
+Authors: Sangwoo Jo, Guy Leroy
 
 Lemmas and extended definitions and properties of gcd and lcm for integers.
 -/
@@ -16,8 +16,7 @@ namespace int
 theorem gcd_mod (i j : ℕ) : gcd i j = gcd (j % i) i := by simp [gcd]
 
 @[simp] theorem gcd_succ (i j : ℤ) : gcd (succ i) j = gcd (j % succ i) (succ i) :=
-sorry
---by simp [gcd]
+by simp [gcd]
 -/
 
 @[simp] theorem gcd_self (i : ℤ) : gcd i i = nat_abs i :=
@@ -30,8 +29,7 @@ by cases i; simp [gcd]
 
 /-
 theorem gcd_rec (i j : ℤ) : gcd i j = gcd (j % i) i :=
-sorry
---by cases i; simp [gcd]
+by cases i; simp [gcd]
 
 @[elab_as_eliminator]
 theorem gcd.induction {P : ℕ → ℕ → Prop}
@@ -46,39 +44,26 @@ theorem gcd.induction {P : ℕ → ℕ → Prop}
 -/
 
 theorem gcd_dvd_left (i j : ℤ) : (gcd i j : ℤ) ∣ i := 
-begin 
-  unfold gcd,
-  exact dvd_nat_abs.mp (coe_nat_dvd.mpr (nat.gcd_dvd_left (nat_abs i) (nat_abs j))),
-end
+by unfold gcd; exact dvd_nat_abs.mp (coe_nat_dvd.mpr (nat.gcd_dvd_left (nat_abs i) (nat_abs j)))
+
 
 theorem gcd_dvd_right (i j : ℤ) : (gcd i j : ℤ) ∣ j :=
-begin 
-  unfold gcd,
-  exact dvd_nat_abs.mp (coe_nat_dvd.mpr (nat.gcd_dvd_right (nat_abs i) (nat_abs j))),
-end
+by unfold gcd; exact dvd_nat_abs.mp (coe_nat_dvd.mpr (nat.gcd_dvd_right (nat_abs i) (nat_abs j)))
 
-theorem gcd_dvd (i j : ℤ) : ((gcd i j : ℤ) ∣ i) ∧ ((gcd i j : ℤ) ∣ j) := ⟨gcd_dvd_left i j, gcd_dvd_right i j⟩
+
+theorem gcd_dvd (i j : ℤ) : ((gcd i j : ℤ) ∣ i) ∧ ((gcd i j : ℤ) ∣ j) := 
+⟨gcd_dvd_left i j, gcd_dvd_right i j⟩
 
 theorem dvd_gcd {i j k : ℤ} : k ∣ i → k ∣ j → k ∣ gcd i j :=
-begin
-  unfold gcd,
-  assume H1 H2,
-  exact nat_abs_dvd.mp (coe_nat_dvd.mpr (nat.dvd_gcd  (nat_abs_dvd_nat_abs.mpr H1) (nat_abs_dvd_nat_abs.mpr H2))),
-end
+by unfold gcd; intros H1 H2; 
+exact nat_abs_dvd.mp (coe_nat_dvd.mpr (nat.dvd_gcd (nat_abs_dvd_nat_abs.mpr H1) 
+                                                   (nat_abs_dvd_nat_abs.mpr H2)))
 
 theorem gcd_comm (i j : ℤ) : gcd i j = gcd j i := 
 by unfold gcd; exact nat.gcd_comm (nat_abs i) (nat_abs j)
 
-/-
 theorem gcd_assoc (i j k : ℤ) : gcd (gcd i j) k = gcd i (gcd j k) :=
-dvd_antisymm
-  (dvd_gcd
-    (dvd.trans (gcd_dvd_left (gcd i j) k) (gcd_dvd_left i j))
-    (dvd_gcd (dvd.trans (gcd_dvd_left (gcd i j) k) (gcd_dvd_right i j)) (gcd_dvd_right (gcd i j) k)))
-  (dvd_gcd
-    (dvd_gcd (gcd_dvd_left i (gcd j k)) (dvd.trans (gcd_dvd_right i (gcd j k)) (gcd_dvd_left j k)))
-    (dvd.trans (gcd_dvd_right i (gcd j k)) (gcd_dvd_right j k)))
--/
+by unfold gcd; exact nat.gcd_assoc (nat_abs i) (nat_abs j) (nat_abs k)
 
 @[simp] theorem gcd_one_left (i : ℤ) : gcd 1 i = 1 := nat.gcd_one_left _
 
@@ -86,21 +71,24 @@ dvd_antisymm
 eq.trans (gcd_comm i 1) $ gcd_one_left i
 
 theorem gcd_mul_left (i j k : ℤ) : gcd (i * j) (i * k) = nat_abs i * gcd j k :=
-begin
-  unfold gcd,
-  rw [nat_abs_mul, nat_abs_mul],
-  exact nat.gcd_mul_left (nat_abs i) (nat_abs j) (nat_abs k),
-end
+by unfold gcd; rw [nat_abs_mul, nat_abs_mul]; 
+exact nat.gcd_mul_left (nat_abs i) (nat_abs j) (nat_abs k)
 
-/-
-theorem gcd_mul_right (i j k : ℤ) : (gcd (i * j) (k * j) : ℤ) = (gcd i k : ℤ) * j :=
-by rw [mul_comm i j, mul_comm k j, mul_comm (gcd i k) j, gcd_mul_left]
-
+theorem gcd_mul_right (i j k : ℤ) : gcd (i * j) (k * j) = gcd i k * nat_abs j := 
+by unfold gcd; rw [nat_abs_mul, nat_abs_mul]; 
+exact nat.gcd_mul_right (nat_abs i) (nat_abs j) (nat_abs k)
 
 theorem gcd_pos_of_non_zero_left {i : ℤ} (j : ℤ) (i_non_zero : i ≠ 0) : gcd i j > 0 :=
--- exists only for naturals
-pos_of_dvd_of_pos (gcd_dvd_left m n) mpos
+begin
+  unfold gcd,
+  have H : nat_abs i ≠ 0, sorry,
+  have H2 : nat_abs i > 0, sorry,--from nat.pos_iff_ne_zero.mp (i_non_zero (nat_abs i)),
+  exact nat.gcd_pos_of_pos_left (nat_abs j) H2,
 
+end
+#check nat.pos_iff_ne_zero.mpr
+
+/--/
 theorem gcd_pos_of_non_zero_right (i : ℤ) {j : ℤ} (j_non_zero : j ≠ 0) : gcd i j > 0 :=
 -- exists only for naturals
 pos_of_dvd_of_pos (gcd_dvd_right i j) j_non_zero
@@ -141,10 +129,9 @@ gcd_dvd_gcd_of_dvd_right _ (dvd_mul_right _ _)
 -/
 
 theorem gcd_eq_left {i j : ℤ} (H : i ∣ j) : gcd i j = nat_abs i :=
-begin
-exact nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _) 
-                       (by unfold gcd; exact nat.dvd_gcd (dvd_refl _) (nat_abs_dvd_abs H)),
-end
+nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
+                 (by unfold gcd; exact nat.dvd_gcd (dvd_refl _) (nat_abs_dvd_abs H))
+
 
 theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
 by rw [gcd_comm, gcd_eq_left H]
@@ -157,10 +144,7 @@ theorem lcm_comm (i j : ℤ) : lcm i j = lcm j i :=
 by delta lcm; rw [mul_comm, gcd_comm]
 
 theorem lcm_zero_left (i : ℤ) : lcm 0 i = 0 :=
-begin 
-  delta lcm, rw [zero_mul, gcd_zero_left], 
-  by simp, 
-end
+by delta lcm; rw [zero_mul, gcd_zero_left]; by simp
 
 theorem lcm_zero_right (i : ℤ) : lcm i 0 = 0 := lcm_comm 0 i ▸ lcm_zero_left i
 

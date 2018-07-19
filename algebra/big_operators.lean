@@ -351,7 +351,8 @@ finset.induction_on s (by simp [abs_zero]) $
 
 end discrete_linear_ordered_field
 
-@[simp] lemma card_pi {δ : α → Type*} (s : finset α) (t : Π a, finset (δ a)) : 
+@[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
+  (s : finset α) (t : Π a, finset (δ a)) : 
   (s.pi t).card = s.prod (λ a, card (t a)) :=
 multiset.card_pi _ _
 

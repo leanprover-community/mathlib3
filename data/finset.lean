@@ -229,9 +229,9 @@ ssubset_iff.mpr ⟨a, h, subset.refl _⟩
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
-@[simp] theorem singleton_eq_singleton (a : α) : _root_.singleton a = singleton a := rfl
+@[simp] theorem singleton_eq_singleton (a : α) : _root_.singleton a = ι a := rfl
 
-@[simp] theorem insert_empty_eq_singleton (a : α) : {a} = singleton a := rfl
+@[simp] theorem insert_empty_eq_singleton (a : α) : {a} = ι a := rfl
 
 @[simp] theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = ι a :=
 by simp [singleton]
@@ -816,6 +816,8 @@ by simpa [card] using congr_arg multiset.card (ndinsert_of_not_mem h)
 theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert a s) ≤ card s + 1 :=
 by by_cases a ∈ s; simp [h, nat.le_add_right]
 
+@[simp] theorem card_singleton (a : α) : card (singleton a) = 1 := card_singleton _
+
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
 theorem card_range (n : ℕ) : card (range n) = n := card_range n
@@ -1011,8 +1013,8 @@ assume e₁ e₂ eq,
     by rw [eq],
   this
 
-@[simp] lemma pi_empty {t : Πa:α, finset (δ a)} : pi (∅ : finset α) t = singleton (pi.empty δ) :=
-rfl
+@[simp] lemma pi_empty {t : Πa:α, finset (δ a)} :
+  pi (∅ : finset α) t = singleton (pi.empty δ) := rfl
 
 @[simp] lemma pi_insert [∀a, decidable_eq (δ a)]
   {s : finset α} {t : Πa:α, finset (δ a)} {a : α} (ha : a ∉ s) :

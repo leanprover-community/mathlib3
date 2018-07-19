@@ -312,9 +312,7 @@ quot.lift_on s length $ λ l₁ l₂, perm_length
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a :: s) = card s + 1 :=
 quot.induction_on s $ λ l, rfl
 
-@[simp] theorem card_singleton (a : α) : card ({a} : multiset α) = 1 :=
-calc card ({a} : multiset α) = card (0 : multiset α) + 1 : multiset.card_cons a 0
-  ... = 1 : by simp
+@[simp] theorem card_singleton (a : α) : card (a::0) = 1 := by simp
 
 theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
 le_induction_on h $ λ l₁ l₂, length_le_of_sublist
@@ -2450,8 +2448,7 @@ begin
     exact pi.cons_swap eq }
 end
 
-@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = {pi.empty δ} :=
-rfl
+@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = {pi.empty δ} := rfl
 
 @[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
   pi (a :: m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=

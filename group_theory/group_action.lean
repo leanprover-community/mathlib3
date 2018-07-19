@@ -18,7 +18,7 @@ variables [monoid α] (f : α → β → β) [is_monoid_action f]
 
 def orbit (a : β) := set.range (λ x : α, f x a)
 
-lemma mem_orbit_iff {f : α → β → β} [is_monoid_action f] {a b : β} :
+@[simp] lemma mem_orbit_iff {f : α → β → β} [is_monoid_action f] {a b : β} :
   b ∈ orbit f a ↔ ∃ x : α, f x a = b :=
 iff.rfl
 
@@ -36,13 +36,13 @@ instance orbit_fintype (a : β) [fintype α] [decidable_eq β] :
 def stabilizer (a : β) : set α :=
 {x : α | f x a = a}
 
-lemma mem_stabilizer_iff {f : α → β → β} [is_monoid_action f] {a : β} {x : α} :
+@[simp] lemma mem_stabilizer_iff {f : α → β → β} [is_monoid_action f] {a : β} {x : α} :
   x ∈ stabilizer f a ↔ f x a = a :=
 iff.rfl
 
 def fixed_points : set β := {a : β | ∀ x, x ∈ stabilizer f a}
 
-lemma mem_fixed_points {f : α → β → β} [is_monoid_action f] {a : β} :
+@[simp] lemma mem_fixed_points {f : α → β → β} [is_monoid_action f] {a : β} :
   a ∈ fixed_points f ↔ ∀ x : α, f x a = a := iff.rfl
 
 lemma mem_fixed_points' {f : α → β → β} [is_monoid_action f] {a : β} : a ∈ fixed_points f ↔
@@ -73,13 +73,14 @@ lemma bijective (g : α) : function.bijective (f g) :=
 (to_perm f g).bijective
 
 lemma orbit_eq_iff {f : α → β → β} [is_monoid_action f] {a b : β} : 
-  a ∈ orbit f b ↔ orbit f a = orbit f b :=
-⟨λ ⟨x, (hx : f x b = a)⟩, set.ext (λ c, ⟨λ ⟨y, (hy : f y a = c)⟩, ⟨y * x,
+   orbit f a = orbit f b ↔ a ∈ orbit f b:=
+⟨λ h, h ▸ mem_orbit_self _ _,
+λ ⟨x, (hx : f x b = a)⟩, set.ext (λ c, ⟨λ ⟨y, (hy : f y a = c)⟩, ⟨y * x,
   show f (y * x) b = c, by rwa [is_monoid_action.mul f, hx]⟩,
-λ ⟨y, (hy : f y b = c)⟩, ⟨y * x⁻¹,
-  show f (y * x⁻¹) a = c, by
-    conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
-      is_monoid_action.mul f, hx]}⟩⟩), λ h, h ▸ mem_orbit_self _ _⟩
+  λ ⟨y, (hy : f y b = c)⟩, ⟨y * x⁻¹,
+    show f (y * x⁻¹) a = c, by
+      conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
+        is_monoid_action.mul f, hx]}⟩⟩)⟩
 
 instance (a : β) : is_subgroup (stabilizer f a) :=
 { one_mem := is_monoid_action.one _ _,

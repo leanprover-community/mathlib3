@@ -188,7 +188,15 @@ finset.induction_on s (by simp) (assume a s has ih h,
     (assume hna : f a ≠ 1,
       ⟨a, mem_insert_self _ _, hna⟩))
 
+@[simp] lemma prod_const [decidable_eq α] (b : β) : s.prod (λ a, b) = b ^ s.card :=
+finset.induction_on s rfl (by simp [pow_add, mul_comm] {contextual := tt})
+
 end comm_monoid
+
+@[simp] lemma sum_const [add_comm_monoid β] [decidable_eq α] (b : β) :
+  s.sum (λ a, b) = add_monoid.smul s.card b :=
+@prod_const _ (multiplicative β) _ _ _ _
+attribute [to_additive finset.sum_const] prod_const
 
 section comm_group
 variables [comm_group β]
@@ -342,6 +350,10 @@ finset.induction_on s (by simp [abs_zero]) $
     ... ≤ sum (insert a s) (λ (a : β), abs (f a)) : by simp [has]
 
 end discrete_linear_ordered_field
+
+@[simp] lemma card_pi {δ : α → Type*} (s : finset α) (t : Π a, finset (δ a)) : 
+  (s.pi t).card = s.prod (λ a, card (t a)) :=
+multiset.card_pi _ _
 
 end finset
 

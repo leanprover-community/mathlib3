@@ -537,7 +537,9 @@ iff.trans (forall_congr $ λ a, and_imp.symm) subset_empty_iff
 
 theorem diff_eq (s t : set α) : s \ t = s ∩ -t := rfl
 
-theorem mem_diff {s t : set α} {x : α} (h1 : x ∈ s) (h2 : x ∉ t) : x ∈ s \ t :=
+@[simp] theorem mem_diff {s t : set α} (x : α) : x ∈ s \ t ↔ x ∈ s ∧ x ∉ t := iff.rfl
+
+theorem mem_diff_of_mem {s t : set α} {x : α} (h1 : x ∈ s) (h2 : x ∉ t) : x ∈ s \ t :=
 ⟨h1, h2⟩
 
 theorem mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∈ s :=
@@ -545,10 +547,6 @@ h.left
 
 theorem not_mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∉ t :=
 h.right
-
-theorem mem_diff_iff (s t : set α) (x : α) : x ∈ s \ t ↔ x ∈ s ∧ x ∉ t := iff.rfl
-
-@[simp] theorem mem_diff_eq (s t : set α) (x : α) : x ∈ s \ t = (x ∈ s ∧ x ∉ t) := rfl
 
 theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
 by finish [ext_iff, iff_def, subset_def]
@@ -564,6 +562,9 @@ by finish [ext_iff, iff_def]
 
 theorem union_diff_right {s t : set α} : (s ∪ t) \ t = s \ t :=
 by finish [ext_iff, iff_def]
+
+theorem union_diff_distrib {s t u : set α} : (s ∪ t) \ u = s \ u ∪ t \ u :=
+inter_distrib_right _ _ _
 
 theorem inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
 inter_assoc _ _ _

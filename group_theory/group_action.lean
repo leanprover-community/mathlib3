@@ -67,7 +67,7 @@ def to_perm (g : α) : equiv.perm β :=
   right_inv := λ a, by rw [← is_monoid_action.mul f, mul_inv_self, is_monoid_action.one f] }
 
 instance : is_group_hom (to_perm f) :=
-{ mul := λ x y, equiv.ext _ _ (λ a, mul f x y a) }
+{ mul := λ x y, equiv.ext _ _ (λ a, is_monoid_action.mul f x y a) }
 
 lemma bijective (g : α) : function.bijective (f g) :=
 (to_perm f g).bijective

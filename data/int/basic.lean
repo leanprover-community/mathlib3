@@ -429,10 +429,6 @@ theorem nat_abs_dvd {a b : ℤ} : (a.nat_abs : ℤ) ∣ b ↔ a ∣ b :=
 theorem dvd_nat_abs {a b : ℤ} : a ∣ b.nat_abs ↔ a ∣ b :=
 (nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg_iff_dvd, ← e])
 
-theorem nat_abs_dvd_nat_abs {a b : ℤ} : a.nat_abs ∣ b.nat_abs ↔ a ∣ b :=
-⟨assume (H : a.nat_abs ∣ b.nat_abs), dvd_nat_abs.mp (nat_abs_dvd.mp (coe_nat_dvd.mpr H)), 
-assume H : (a ∣ b), coe_nat_dvd.mp (dvd_nat_abs.mpr (nat_abs_dvd.mpr H))⟩
-
 instance decidable_dvd : @decidable_rel ℤ (∣) :=
 assume a n, decidable_of_decidable_of_iff (by apply_instance) (dvd_iff_mod_eq_zero _ _).symm
 
@@ -623,6 +619,22 @@ by cases n; refl
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
 by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
 
+theorem nat_abs_div (a b : ℤ) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=
+begin
+  cases a,
+  cases b,
+  {
+    sorry,
+  },
+  {
+
+    sorry,
+  },
+  {
+    sorry
+  }
+end
+
 theorem nat_abs_dvd_abs {i j : ℤ} (H : i ∣ j) : (nat_abs i ∣ nat_abs j) := 
 begin 
   unfold has_dvd.dvd,
@@ -630,6 +642,10 @@ begin
   apply exists.intro (nat_abs k),
   rw [Hk, nat_abs_mul]
 end
+
+theorem nat_abs_dvd_abs_iff {i j : ℤ} : i.nat_abs ∣ j.nat_abs ↔ i ∣ j :=
+⟨assume (H : i.nat_abs ∣ j.nat_abs), dvd_nat_abs.mp (nat_abs_dvd.mp (coe_nat_dvd.mpr H)), 
+assume H : (i ∣ j), coe_nat_dvd.mp (dvd_nat_abs.mpr (nat_abs_dvd.mpr H))⟩
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]

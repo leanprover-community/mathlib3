@@ -356,8 +356,9 @@ multiset.induction_on s (λ _, h₀) $ λ a s _ ih, h₁ _ _ $
 λ t h, ih _ $ lt_of_le_of_lt h $ lt_cons_self _ _
 
 /- singleton -/
-@[simp] theorem mem_singleton {a b : α} : b ∈ a::0 ↔ b = a :=
-by simp
+@[simp] theorem singleton_eq_singleton (a : α) : singleton a = a::0 := rfl
+
+@[simp] theorem mem_singleton {a b : α} : b ∈ a::0 ↔ b = a := by simp
 
 theorem mem_singleton_self (a : α) : a ∈ (a::0 : multiset α) := mem_cons_self _ _
 
@@ -2433,7 +2434,7 @@ end
 
 /-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/
 def pi (m : multiset α) (t : Πa, multiset (δ a)) : multiset (Πa∈m, δ a) :=
-m.rec_on { pi.empty δ } (λa m (p : multiset (Πa∈m, δ a)), (t a).bind $ λb, p.map $ pi.cons m a b)
+m.rec_on {pi.empty δ} (λa m (p : multiset (Πa∈m, δ a)), (t a).bind $ λb, p.map $ pi.cons m a b)
 begin
   intros a a' m n,
   by_cases eq : a = a',
@@ -2448,7 +2449,7 @@ begin
     exact pi.cons_swap eq }
 end
 
-@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = {pi.empty δ} := rfl
+@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = pi.empty δ :: 0 := rfl
 
 @[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
   pi (a :: m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
@@ -2469,7 +2470,7 @@ multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
 
 lemma nodup_pi {s : multiset α} {t : Πa, multiset (δ a)} :
   nodup s → (∀a∈s, nodup (t a)) → nodup (pi s t) :=
-multiset.induction_on s (assume _ _ , nodup_singleton _)
+multiset.induction_on s (assume _ _, nodup_singleton _)
 begin
   assume a s ih hs ht,
   have has : a ∉ s, by simp at hs; exact hs.1,
@@ -2487,37 +2488,23 @@ end
 
 lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
   ∀f:Πa∈m, δ a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=
-multiset.induction_on m
-  begin
-    assume f,
-    have : f = pi.empty δ, { funext a ha, exact ha.elim },
-    subst this,
-    split,
-    { intros _ a ha, exact ha.elim },
-    { intros, simp, exact mem_cons_self _ 0 }
-  end
-  begin
-    assume a m ih f,
-    simp [iff_def],
-    split,
-    { intros b hb f' hf' eq a' ha',
-      subst eq,
-      rw [ih] at hf',
-      by_cases a' = a,
-      { subst h,
-        rw [pi.cons_same],
-        exact hb },
-      { rw [pi.cons_ne _ h],
-        exact hf' _ _ } },
-    { assume hf,
-      refine ⟨f a (mem_cons_self a _), hf a (mem_cons_self a _), (λa ha, f a (mem_cons_of_mem ha)), _, _⟩,
-      { rw [ih],
-        assume a' h', exact hf _ _ },
-      { funext a' h',
-        by_cases a' = a,
-        { subst h, rw [pi.cons_same] },
-        { rw [pi.cons_ne _ h] } } }
-  end
+begin
+  refine multiset.induction_on m (λ f, _) (λ a m ih f, _),
+  { simpa using show f = pi.empty δ, by funext a ha; exact ha.elim },
+  simp, split,
+  { rintro ⟨b, hb, f', hf', rfl⟩ a' ha',
+    rw [ih] at hf',
+    by_cases a' = a,
+    { subst h, rwa [pi.cons_same] },
+    { rw [pi.cons_ne _ h], apply hf' } },
+  { intro hf,
+    refine ⟨_, hf a (mem_cons_self a _), λa ha, f a (mem_cons_of_mem ha),
+      (ih _).2 (λ a' h', hf _ _), _⟩,
+    funext a' h',
+    by_cases a' = a,
+    { subst h, rw [pi.cons_same] },
+    { rw [pi.cons_ne _ h] } }
+end
 
 end pi
 

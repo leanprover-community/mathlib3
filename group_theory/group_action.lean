@@ -52,13 +52,11 @@ lemma mem_fixed_points' {f : α → β → β} [is_monoid_action f] {a : β} : a
 
 end is_monoid_action
 
+class is_group_action [group α] (f : α → β → β) extends is_monoid_action f
+
 namespace is_group_action
-variables [group α] (f : α → β → β)
+variables [group α] (f : α → β → β) [is_group_action f]
 open is_monoid_action
-
-class is_group_action extends is_monoid_action f
-
-variable [is_group_action f]
 
 def to_perm (g : α) : equiv.perm β :=
 { to_fun := f g,

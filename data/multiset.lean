@@ -710,6 +710,9 @@ theorem prod_zero [comm_monoid α] : @prod α _ 0 = 1 := rfl
 theorem prod_cons [comm_monoid α] (a : α) (s) : prod (a :: s) = a * prod s :=
 foldr_cons _ _ _ _ _
 
+@[to_additive multiset.sum_singleton]
+theorem prod_singleton [comm_monoid α] (a : α) : prod (a :: 0) = a := by simp
+
 @[simp, to_additive multiset.sum_add]
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
@@ -2332,6 +2335,100 @@ theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
     [simp [le_max_left], simpa [cons_erase h]] },
   { simp [count_eq_zero.2 h, nat.zero_le] }
 end⟩
+
+section sup
+variables [semilattice_sup_bot α]
+
+/-- Supremum of a multiset: `sup {a, b, c} = a ⊔ b ⊔ c` -/
+def sup (s : multiset α) : α := s.fold (⊔) ⊥
+
+@[simp] lemma sup_zero : (0 : multiset α).sup = ⊥ :=
+fold_zero _ _
+
+@[simp] lemma sup_cons (a : α) (s : multiset α) :
+  (a :: s).sup = a ⊔ s.sup :=
+fold_cons_left _ _ _ _
+
+@[simp] lemma sup_singleton {a : α} : (a::0).sup = a := by simp
+
+@[simp] lemma sup_add (s₁ s₂ : multiset α) : (s₁ + s₂).sup = s₁.sup ⊔ s₂.sup :=
+eq.trans (by simp [sup]) (fold_add _ _ _ _ _)
+
+variables [decidable_eq α]
+
+@[simp] lemma sup_erase_dup (s : multiset α) : (erase_dup s).sup = s.sup :=
+fold_erase_dup_idem _ _ _
+
+@[simp] lemma sup_ndunion (s₁ s₂ : multiset α) :
+  (ndunion s₁ s₂).sup = s₁.sup ⊔ s₂.sup :=
+by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
+
+@[simp] lemma sup_union (s₁ s₂ : multiset α) :
+  (s₁ ∪ s₂).sup = s₁.sup ⊔ s₂.sup :=
+by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
+
+@[simp] lemma sup_ndinsert (a : α) (s : multiset α) :
+  (ndinsert a s).sup = a ⊔ s.sup :=
+by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_cons]; simp
+
+lemma sup_le {s : multiset α} {a : α} : s.sup ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+multiset.induction_on s (by simp)
+  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
+
+lemma le_sup {s : multiset α} {a : α} (h : a ∈ s) : a ≤ s.sup :=
+sup_le.1 (le_refl _) _ h
+
+lemma sup_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.sup ≤ s₂.sup :=
+sup_le.2 $ assume b hb, le_sup (h hb)
+
+end sup
+
+section inf
+variables [semilattice_inf_top α]
+
+/-- Infimum of a multiset: `inf {a, b, c} = a ⊓ b ⊓ c` -/
+def inf (s : multiset α) : α := s.fold (⊓) ⊤
+
+@[simp] lemma inf_zero : (0 : multiset α).inf = ⊤ :=
+fold_zero _ _
+
+@[simp] lemma inf_cons (a : α) (s : multiset α) :
+  (a :: s).inf = a ⊓ s.inf :=
+fold_cons_left _ _ _ _
+
+@[simp] lemma inf_singleton {a : α} : (a::0).inf = a := by simp
+
+@[simp] lemma inf_add (s₁ s₂ : multiset α) : (s₁ + s₂).inf = s₁.inf ⊓ s₂.inf :=
+eq.trans (by simp [inf]) (fold_add _ _ _ _ _)
+
+variables [decidable_eq α]
+
+@[simp] lemma inf_erase_dup (s : multiset α) : (erase_dup s).inf = s.inf :=
+fold_erase_dup_idem _ _ _
+
+@[simp] lemma inf_ndunion (s₁ s₂ : multiset α) :
+  (ndunion s₁ s₂).inf = s₁.inf ⊓ s₂.inf :=
+by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_add]; simp
+
+@[simp] lemma inf_union (s₁ s₂ : multiset α) :
+  (s₁ ∪ s₂).inf = s₁.inf ⊓ s₂.inf :=
+by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_add]; simp
+
+@[simp] lemma inf_ndinsert (a : α) (s : multiset α) :
+  (ndinsert a s).inf = a ⊓ s.inf :=
+by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_cons]; simp
+
+lemma le_inf {s : multiset α} {a : α} : a ≤ s.inf ↔ (∀b ∈ s, a ≤ b) :=
+multiset.induction_on s (by simp)
+  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
+
+lemma inf_le {s : multiset α} {a : α} (h : a ∈ s) : s.inf ≤ a :=
+le_inf.1 (le_refl _) _ h
+
+lemma inf_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.inf ≤ s₁.inf :=
+le_inf.2 $ assume b hb, inf_le (h hb)
+
+end inf
 
 section sort
 variables (r : α → α → Prop) [decidable_rel r]

@@ -711,6 +711,10 @@ theorem prod_zero [comm_monoid α] : @prod α _ 0 = 1 := rfl
 theorem prod_cons [comm_monoid α] (a : α) (s) : prod (a :: s) = a * prod s :=
 foldr_cons _ _ _ _ _
 
+@[simp, to_additive multiset.sum_singleton]
+theorem prod_singleton [comm_monoid α] (a : α) : prod (a :: 0) = a :=
+by rw [prod_cons,prod_zero,mul_one]
+
 @[simp, to_additive multiset.sum_add]
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
@@ -946,6 +950,41 @@ this.trans $ quot.sound $ perm_pmap f pp
   ∀(h : ∀b∈a::m, p b), pmap f (a :: m) h =
     f a (h a (mem_cons_self a m)) :: pmap f m (λa ha, h a $ mem_cons_of_mem ha) :=
 quotient.induction_on m $ assume l h, rfl
+
+lemma pmap_card {α : Type*} {β : Type*} {p : α → Prop} {H : ∀ a, p a → β} {s : multiset α} 
+{H2 : ∀ a, a ∈ s → p a} : card (multiset.pmap H s H2) = card s :=
+begin
+  revert H2,
+  apply multiset.induction_on s,finish, -- base case
+  intros a s IH H3,
+  rw [pmap_cons,card_cons,card_cons,IH] 
+end 
+
+lemma pmap_mem {α : Type*} {β : Type*} {p : α → Prop} {H : ∀ a, p a → β} {s : multiset α} 
+{H2 : ∀ a, a ∈ s → p a} {b : β} (Hb : b ∈ pmap H s H2) : ∃ a : α, ∃ Ha : a ∈ s, b = H a (H2 a Ha) :=
+begin
+  revert Hb,
+  revert H2,
+  apply multiset.induction_on s,finish,
+  intros a s IH H2 Hb,
+  rw pmap_cons at Hb,
+  rw mem_cons at Hb,
+  cases Hb,
+  { existsi a,
+    existsi mem_cons_self a s,
+    exact Hb},
+  have H2' : ∀ (a : α), a ∈ s → p a,
+  { intros a' Ha',
+    apply H2 a',
+    rw mem_cons,right,exact Ha' },
+  cases (@IH H2' Hb) with a' Ha',
+  existsi a',
+  cases Ha' with H3 H4,
+  have H5 : a' ∈ a :: s,
+    rw mem_cons,right,exact H3,
+  existsi H5,
+  exact H4
+end 
 
 /-- "Attach" a proof that `a ∈ s` to each element `a` in `s` to produce
   a multiset on `{x // x ∈ s}`. -/

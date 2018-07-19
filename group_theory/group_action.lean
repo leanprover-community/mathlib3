@@ -60,10 +60,17 @@ class is_group_action extends is_monoid_action f
 
 variable [is_group_action f]
 
+def to_perm (g : α) : equiv.perm β :=
+{ to_fun := f g,
+  inv_fun := f g⁻¹,
+  left_inv := λ a, by rw [← is_monoid_action.mul f, inv_mul_self, is_monoid_action.one f],
+  right_inv := λ a, by rw [← is_monoid_action.mul f, mul_inv_self, is_monoid_action.one f] }
+
+instance : is_group_hom (to_perm f) :=
+{ mul := λ x y, equiv.ext _ _ (λ a, mul f x y a) }
+
 lemma bijective (g : α) : function.bijective (f g) :=
-function.bijective_iff_has_inverse.2 ⟨f (g⁻¹), 
-  λ a, by rw [← is_monoid_action.mul f, inv_mul_self, is_monoid_action.one f],
-  λ a, by rw [← is_monoid_action.mul f, mul_inv_self, is_monoid_action.one f]⟩ 
+(to_perm f g).bijective
 
 lemma orbit_eq_iff {f : α → β → β} [is_monoid_action f] {a b : β} : 
   a ∈ orbit f b ↔ orbit f a = orbit f b :=

@@ -1302,6 +1302,9 @@ variable [decidable_eq α]
 theorem disjoint_left {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 by simp [_root_.disjoint, subset_iff]; refl
 
+theorem disjoint_val {s t : finset α} : disjoint s t ↔ s.1.disjoint t.1 :=
+disjoint_left
+
 theorem disjoint_iff_inter_eq_empty {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
 disjoint_iff
 

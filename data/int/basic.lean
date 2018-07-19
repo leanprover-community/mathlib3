@@ -423,11 +423,14 @@ theorem mod_eq_zero_of_dvd : ∀ {a b : ℤ}, a ∣ b → b % a = 0
 theorem dvd_iff_mod_eq_zero (a b : ℤ) : a ∣ b ↔ b % a = 0 :=
 ⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
 
-theorem nat_abs_dvd {a b : ℤ} : (a.nat_abs : ℤ) ∣ b ↔ a ∣ b :=
+theorem nat_abs_dvd {a b : ℤ} : (a.nat_abs : ℤ) ∣ b ↔ a ∣ b :=  
 (nat_abs_eq a).elim (λ e, by rw ← e) (λ e, by rw [← neg_dvd_iff_dvd, ← e])
 
 theorem dvd_nat_abs {a b : ℤ} : a ∣ b.nat_abs ↔ a ∣ b :=
 (nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg_iff_dvd, ← e])
+
+theorem nat_abs_dvd_nat_abs {a b : ℤ} : a.nat_abs ∣ b.nat_abs ↔ a ∣ b :=
+⟨assume (H : a.nat_abs ∣ b.nat_abs), dvd_nat_abs.mp (nat_abs_dvd.mp (coe_nat_dvd.mpr H)), assume H : (a ∣ b), coe_nat_dvd.mp (dvd_nat_abs.mpr (nat_abs_dvd.mpr H))⟩
 
 instance decidable_dvd : @decidable_rel ℤ (∣) :=
 assume a n, decidable_of_decidable_of_iff (by apply_instance) (dvd_iff_mod_eq_zero _ _).symm

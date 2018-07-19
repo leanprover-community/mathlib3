@@ -43,21 +43,28 @@ theorem gcd.induction {P : ℕ → ℕ → Prop}
   by {induction k with k ih, exact H0,
       exact λn, H1 _ _ (succ_pos _) (IH _ (mod_lt _ (succ_pos _)) _)}) n
       
+-/
 
-theorem gcd_dvd (i j : ℤ) : ((gcd i j : ℤ) ∣ i) ∧ ((gcd i j : ℤ) ∣ j) :=
-gcd.induction i j
-  (λj, by rw gcd_zero_left; exact ⟨dvd_zero j, dvd_refl j⟩)
-  (λi j npos, by rw ←gcd_rec; exact λ ⟨IH₁, IH₂⟩, ⟨IH₂, (dvd_mod_iff IH₂).1 IH₁⟩)
+theorem gcd_dvd_left (i j : ℤ) : (gcd i j : ℤ) ∣ i := 
+begin 
+  unfold gcd,
+  exact dvd_nat_abs.mp (coe_nat_dvd.mpr (nat.gcd_dvd_left (nat_abs i) (nat_abs j))),
+end
 
+theorem gcd_dvd_right (i j : ℤ) : (gcd i j : ℤ) ∣ j :=
+begin 
+  unfold gcd,
+  exact dvd_nat_abs.mp (coe_nat_dvd.mpr (nat.gcd_dvd_right (nat_abs i) (nat_abs j))),
+end
 
-theorem gcd_dvd_left (i j : ℤ) : (gcd i j : ℤ) ∣ i := (gcd_dvd i j).left
-
-theorem gcd_dvd_right (i j : ℤ) : (gcd i j : ℤ) ∣ j := (gcd_dvd i j).right
+theorem gcd_dvd (i j : ℤ) : ((gcd i j : ℤ) ∣ i) ∧ ((gcd i j : ℤ) ∣ j) := ⟨gcd_dvd_left i j, gcd_dvd_right i j⟩
 
 theorem dvd_gcd {i j k : ℤ} : k ∣ i → k ∣ j → k ∣ gcd i j :=
-gcd.induction i j (λn _ kn, by rw gcd_zero_left; exact kn)
-  (λn m mpos IH H1 H2, by rw gcd_rec; exact IH ((dvd_mod_iff H1).2 H2) H1)
--/
+begin
+  unfold gcd,
+  assume H1 H2,
+  exact nat_abs_dvd.mp (coe_nat_dvd.mpr (nat.dvd_gcd  (nat_abs_dvd_nat_abs.mpr H1) (nat_abs_dvd_nat_abs.mpr H2))),
+end
 
 theorem gcd_comm (i j : ℤ) : gcd i j = gcd j i := 
 by unfold gcd; exact nat.gcd_comm (nat_abs i) (nat_abs j)
@@ -78,17 +85,18 @@ dvd_antisymm
 @[simp] theorem gcd_one_right (i : ℤ) : gcd i 1 = 1 :=
 eq.trans (gcd_comm i 1) $ gcd_one_left i
 
-/-
-theorem gcd_mul_left (i j k : ℤ) : (gcd (i * j) (i * k) : ℤ) = i * (gcd j k : ℤ) :=
-gcd.induction j k
-  (λk, by repeat {rw mul_zero <|> rw gcd_zero_left})
-  (λk n H IH, by rwa [←mul_mod_mul_left, ←gcd_rec, ←gcd_rec] at IH)
--/
+theorem gcd_mul_left (i j k : ℤ) : gcd (i * j) (i * k) = nat_abs i * gcd j k :=
+begin
+  unfold gcd,
+  rw [nat_abs_mul, nat_abs_mul],
+  exact nat.gcd_mul_left (nat_abs i) (nat_abs j) (nat_abs k),
+end
 
+/-
 theorem gcd_mul_right (i j k : ℤ) : (gcd (i * j) (k * j) : ℤ) = (gcd i k : ℤ) * j :=
 by rw [mul_comm i j, mul_comm k j, mul_comm (gcd i k) j, gcd_mul_left]
 
-/-
+
 theorem gcd_pos_of_non_zero_left {i : ℤ} (j : ℤ) (i_non_zero : i ≠ 0) : gcd i j > 0 :=
 -- exists only for naturals
 pos_of_dvd_of_pos (gcd_dvd_left m n) mpos

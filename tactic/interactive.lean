@@ -487,12 +487,21 @@ meta def list_cast_of (x tgt : expr) : tactic (list expr) :=
 
 /-
   - [x] rename to `h_generalize`
-  - [ ] use notation `h_generalize h : e == x`
-  - [ ] in `h_generalize h : e == x`, omitting `h` means that we don't add `h : e == x` to the assumptions
+  - [x] use notation `h_generalize h : e == x`
+  - [x] in `h_generalize h : e == x`, omitting `h` means that we don't add `h : e == x` to the assumptions
   - [x] list?
     - https://leanprover.zulipchat.com/#narrow/pm-with/di.2Egama.40gmail.2Ecom.2Csimon.2Ehudon.40gmail.2Ecom/near/129910959
   - [ ] with * (for automatic naming)
+  - [ ] documentation (including `tactics.md`)
 -/
+
+private meta def h_generalize_arg_p_aux : pexpr → parser (pexpr × name)
+| (app (app (macro _ [const `heq _ ]) h) (local_const x _ _ _)) := pure (h, x)
+| _ := fail "parse error"
+
+private meta def h_generalize_arg_p : parser (pexpr × name) :=
+with_desc "expr == id" $ parser.pexpr 0 >>= h_generalize_arg_p_aux
+
 
 /-- `elim_cast e with x` matches on `cast _ e` in the goal and replaces it with
     `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
@@ -500,13 +509,19 @@ meta def list_cast_of (x tgt : expr) : tactic (list expr) :=
 
     `elim_cast! e with x` acts similarly but reverts `Hx`.
 -/
-meta def h_generalize (rev : parse (tk "!")?) (e : parse texpr) (n : parse (tk "with" *> ident)) : tactic unit :=
-do h ← get_unused_name ("H" ++ n.to_string : string),
+meta def h_generalize (rev : parse (tk "!")?)
+  (h : parse ident_?)
+  (_ : parse (tk ":"))
+  (arg : parse h_generalize_arg_p) :
+  tactic unit :=
+do let (e,n) := arg,
+   let h' := if h = `_ then none else h,
+   h' ← (h' : tactic name) <|> get_unused_name ("H" ++ n.to_string : string),
    e ← to_expr e,
    tgt ← target,
    (e::es) ← list_cast_of e tgt | fail "no cast found",
-   interactive.generalize h () (to_pexpr e, n),
-   asm ← get_local h,
+   interactive.generalize h' () (to_pexpr e, n),
+   asm ← get_local h',
    v ← get_local n,
    hs ← es.mmap (λ e, mk_app `eq [e,v]),
    hs.mmap' (λ h,
@@ -514,7 +529,7 @@ do h ← get_unused_name ("H" ++ n.to_string : string),
         tactic.exact asm,
         try (rewrite_target h'),
         tactic.clear h' ),
-   to_expr ``(heq_of_eq_rec_left _ %%asm) >>= note h none,
+   when h.is_some $ to_expr ``(heq_of_eq_rec_left _ %%asm) >>= note h' none >> pure (),
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
 

@@ -491,11 +491,11 @@ include f x y z a b hx hy hz
 
 example : f x y x z = f (eq.rec_on h₀ a) (cast h₀ b) (eq.mpr h₁.symm a) (eq.mpr h₂ a) :=
 begin
-  h_generalize a with p,
+  h_generalize hp : a == p,
   guard_target f x y x z = f p (cast h₀ b) p (eq.mpr h₂ a),
-  h_generalize _ with q,
+  h_generalize hq : _ == q,
   guard_target f x y x z = f p q p (eq.mpr h₂ a),
-  h_generalize _ with r,
+  h_generalize _ : _ == r,
   guard_target f x y x z = f p q p r,
   casesm* [_ == _, _ = _], refl
 end
@@ -508,14 +508,19 @@ variables {α β γ φ ψ : Type} (f : list α → list α → γ)
           (x : list α) (a : list β) (z : φ)
           (h₀ : β = α) (h₁ : list β = list α)
           (hx : x == a)
-include f x z a hx
+include f x z a hx h₀ h₁
 
-example : f x x = f (eq.rec_on h₀ a) (cast h₁ a) :=
+example : true :=
 begin
-  h_generalize a with p,
-  guard_target f x x = f p (cast h₁ a),
-  h_generalize a with p,
-  casesm* [_ == _, _ = _], refl
+  have : f x x = f (eq.rec_on h₀ a) (cast h₁ a),
+  { h_generalize : a == p,
+    guard_target f x x = f p (cast h₁ a),
+    h_generalize! : a == q,
+    guard_target ∀ q, f x x = f p q,
+    casesm* [_ == _, _ = _],
+    success_if_fail { refl },
+    admit },
+  trivial
 end
 
 end h_generalize

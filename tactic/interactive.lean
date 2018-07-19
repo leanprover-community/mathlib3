@@ -458,27 +458,41 @@ by apply_rules mono_rules
 meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
 tactic.apply_rules hs n
 
-meta def return_cast (t : option expr) (es : list expr) (e x x' : expr) : tactic (option expr × list expr) :=
+meta def return_cast (f : option expr) (t : option (expr × expr)) (es : list expr) (e x x' : expr) :
+  tactic (option (expr × expr) × list expr) :=
 (do guard (¬ e.has_var),
     unify x x',
+    u ← mk_meta_univ,
+    f ← f <|> to_expr ``(@id %%(expr.sort u : expr)),
     t' ← infer_type e,
-    some t ← pure t | return (some t', e :: es),
+    some (f',t) ← pure t | return (some (f,t'), e :: es),
     infer_type e >>= is_def_eq t,
-    return (some t, e :: es)) <|>
+    unify f f',
+    return (some (f,t), e :: es)) <|>
 return (t, es)
 
-meta def list_cast_of_aux (x : expr) (t : option expr) (es : list expr) : expr → tactic (option expr × list expr)
-| e@`(cast _ %%x') := return_cast t es e x x'
-| e@`(eq.mp _ %%x') := return_cast t es e x x'
-| e@`(eq.mpr _ %%x') := return_cast t es e x x'
-| e@`(@eq.subst %%α %%p %%a %%b _ %%x') := return_cast t es e x x'
-| e@`(@eq.substr %%α %%p %%a %%b _ %%x') := return_cast t es e x x'
-| e@`(@eq.rec %%α %%p %%a %%x' _ _) := return_cast t es e x x'
-| e@`(@eq.rec_on %%α %%p %%a %%b _ %%x') := return_cast t es e x x'
+meta def list_cast_of_aux (x : expr) (t : option (expr × expr)) (es : list expr) :
+  expr → tactic (option (expr × expr) × list expr)
+| e@`(cast _ %%x') := return_cast none t es e x x'
+| e@`(eq.mp _ %%x') := return_cast none t es e x x'
+| e@`(eq.mpr _ %%x') := return_cast none t es e x x'
+| e@`(@eq.subst %%α %%p %%a %%b _ %%x') := return_cast p t es e x x'
+| e@`(@eq.substr %%α %%p %%a %%b _ %%x') := return_cast p t es e x x'
+| e@`(@eq.rec %%α %%a %%f %%x' _ _) := return_cast f t es e x x'
+| e@`(@eq.rec_on %%α %%a %%f %%b _ %%x') := return_cast f t es e x x'
 | e := return (t,es)
 
 meta def list_cast_of (x tgt : expr) : tactic (list expr) :=
 (list.reverse ∘ prod.snd) <$> tgt.mfold (none, []) (λ e i es, list_cast_of_aux x es.1 es.2 e)
+
+/-
+  - [x] rename to `h_generalize`
+  - [ ] use notation `h_generalize h : e == x`
+  - [ ] in `h_generalize h : e == x`, omitting `h` means that we don't add `h : e == x` to the assumptions
+  - [x] list?
+    - https://leanprover.zulipchat.com/#narrow/pm-with/di.2Egama.40gmail.2Ecom.2Csimon.2Ehudon.40gmail.2Ecom/near/129910959
+  - [ ] with * (for automatic naming)
+-/
 
 /-- `elim_cast e with x` matches on `cast _ e` in the goal and replaces it with
     `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
@@ -486,7 +500,7 @@ meta def list_cast_of (x tgt : expr) : tactic (list expr) :=
 
     `elim_cast! e with x` acts similarly but reverts `Hx`.
 -/
-meta def elim_cast (rev : parse (tk "!")?) (e : parse texpr) (n : parse (tk "with" *> ident)) : tactic unit :=
+meta def h_generalize (rev : parse (tk "!")?) (e : parse texpr) (n : parse (tk "with" *> ident)) : tactic unit :=
 do h ← get_unused_name ("H" ++ n.to_string : string),
    e ← to_expr e,
    tgt ← target,

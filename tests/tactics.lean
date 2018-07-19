@@ -481,7 +481,7 @@ by apply_rules mono_rules
 
 end apply_rules
 
-section elim_cast
+section h_generalize
 
 variables {α β γ φ ψ : Type} (f : α → α → α → φ → γ)
           (x y : α) (a b : β) (z : φ)
@@ -489,15 +489,33 @@ variables {α β γ φ ψ : Type} (f : α → α → α → φ → γ)
           (hx : x == a) (hy : y == b) (hz : z == a)
 include f x y z a b hx hy hz
 
-example : f x y x z = f (eq.rec_on h₀ a) (cast h₀ b) (eq.mp h₁ a) (eq.mpr h₂ a) :=
+example : f x y x z = f (eq.rec_on h₀ a) (cast h₀ b) (eq.mpr h₁.symm a) (eq.mpr h₂ a) :=
 begin
-  elim_cast a with p,
+  h_generalize a with p,
   guard_target f x y x z = f p (cast h₀ b) p (eq.mpr h₂ a),
-  elim_cast _ with q,
+  h_generalize _ with q,
   guard_target f x y x z = f p q p (eq.mpr h₂ a),
-  elim_cast _ with r,
+  h_generalize _ with r,
   guard_target f x y x z = f p q p r,
   casesm* [_ == _, _ = _], refl
 end
 
-end elim_cast
+end h_generalize
+
+section h_generalize
+
+variables {α β γ φ ψ : Type} (f : list α → list α → γ)
+          (x : list α) (a : list β) (z : φ)
+          (h₀ : β = α) (h₁ : list β = list α)
+          (hx : x == a)
+include f x z a hx
+
+example : f x x = f (eq.rec_on h₀ a) (cast h₁ a) :=
+begin
+  h_generalize a with p,
+  guard_target f x x = f p (cast h₁ a),
+  h_generalize a with p,
+  casesm* [_ == _, _ = _], refl
+end
+
+end h_generalize

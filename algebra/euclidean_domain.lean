@@ -6,7 +6,7 @@ Authors: Louis Carlin, Mario Carneiro
 Euclidean domains and Euclidean algorithm (extended to come)
 A lot is based on pre-existing code in mathlib for natural number gcds
 -/
-import algebra.group algebra.order
+import data.int.basic
 
 universe u
 
@@ -41,7 +41,7 @@ instance : has_mod α := ⟨remainder⟩
 theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
 quotient_mul_add_remainder_eq _ _
 
-theorem mod_lt : ∀ a {b : α}, b ≠ 0 → r (a % b) b :=
+theorem mod_lt : ∀ a {b : α}, b ≠ 0 → (a % b) ≺ b :=
 remainder_lt
 
 theorem mul_right_not_lt {a : α} (b) (h : a ≠ 0) : ¬(a * b) ≺ b :=
@@ -153,5 +153,18 @@ gcd_eq_left.2 (one_dvd _)
 gcd_eq_left.2 (dvd_refl _)
 
 end gcd
+
+instance : euclidean_domain ℤ :=
+{ quotient := (/),
+  remainder := (%),
+  quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
+  r := λ a b, a.nat_abs < b.nat_abs,
+  r_well_founded := measure_wf (λ a, int.nat_abs a),
+  remainder_lt := λ a b b0, int.coe_nat_lt.1 $
+    by rw [int.nat_abs_of_nonneg (int.mod_nonneg _ b0), ← int.abs_eq_nat_abs];
+    exact int.mod_lt _ b0,
+  mul_left_not_lt := λ a b b0, not_lt_of_ge $  
+    by rw [← mul_one a.nat_abs, int.nat_abs_mul];
+    exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
 
 end euclidean_domain

@@ -972,7 +972,7 @@ instance : euclidean_domain (polynomial α) :=
   r_well_founded := degree_lt_wf,
   quotient_mul_add_remainder_eq := quotient_mul_add_remainder_eq_aux,
   remainder_lt := λ p q hq, remainder_lt_aux _ hq,
-  mul_left_not_lt := λ p q hq, not_lt_of_ge (degree_le_mul_left _ hq), }
+  mul_left_not_lt := λ p q hq, not_lt_of_ge (degree_le_mul_left _ hq) }
 
 lemma mod_eq_self_iff (hq0 : q ≠ 0) : p % q = p ↔ degree p < degree q :=
 ⟨λ h, h ▸ euclidean_domain.mod_lt _ hq0, 

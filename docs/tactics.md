@@ -219,3 +219,17 @@ by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
 by apply_rules [mono_rules]
 by apply_rules mono_rules
 ```
+
+### h_generalize
+
+`h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
+`x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
+times (not necessarily with the same proof), they are all replaced by `x`. `cast`
+`eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
+as casts.
+
+ - `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`;
+ - `h_generalize Hx : e == x with _` chooses automatically chooses the name of
+    assumption `α = β`;
+  - `h_generalize! Hx : e == x` reverts `Hx`;
+  - when `Hx` is omitted, assumption `Hx : e == x` is not added.

@@ -16,8 +16,9 @@ class euclidean_domain (α : Type u) extends integral_domain α :=
  -- This could be changed to the same order as int.mod_add_div.
  -- We normally write qb+r rather than r + qb though.
 (quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
-(valuation : α → ℕ)
-(val_remainder_lt : ∀ a {b}, b ≠ 0 → valuation (remainder a b) < valuation b)
+(r : α → α → Prop)
+(r_well_founded : well_founded r)
+(remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
 /- `val_le_mul_left` is often not a required in definitions of a euclidean
   domain since given the other properties we can show there is a
   (noncomputable) euclidean domain α with the property `val_le_mul_left`.
@@ -25,11 +26,13 @@ class euclidean_domain (α : Type u) extends integral_domain α :=
   (euclidean_domain_weak and euclidean_domain_strong) with a noncomputable
   function from weak to strong. I've currently divided the lemmas into
   strong and weak depending on whether they require `val_le_mul_left` or not. -/
-(val_le_mul_left : ∀ a {b}, b ≠ 0 → valuation a ≤ valuation (a * b))
+(mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 
 namespace euclidean_domain
 variable {α : Type u}
 variables [euclidean_domain α]
+
+local infix ` ≺ `:50 := euclidean_domain.r
 
 instance : has_div α := ⟨quotient⟩
 
@@ -38,18 +41,18 @@ instance : has_mod α := ⟨remainder⟩
 theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
 quotient_mul_add_remainder_eq _ _
 
-theorem val_mod_lt : ∀ a {b : α}, b ≠ 0 → valuation (a % b) < valuation b :=
-val_remainder_lt
+theorem mod_lt : ∀ a {b : α}, b ≠ 0 → r (a % b) b :=
+remainder_lt
 
-theorem val_le_mul_right {a : α} (b) (h : a ≠ 0) : valuation b ≤ valuation (a * b) :=
-by rw mul_comm; exact val_le_mul_left b h
+theorem mul_right_not_lt {a : α} (b) (h : a ≠ 0) : ¬(a * b) ≺ b :=
+by rw mul_comm; exact mul_left_not_lt b h
 
 lemma mul_div_cancel_left {a : α} (b) (a0 : a ≠ 0) : a * b / a = b :=
 eq.symm $ eq_of_sub_eq_zero $ classical.by_contradiction $ λ h,
 begin
-  have := val_le_mul_left a h,
+  have := mul_left_not_lt a h,
   rw [mul_sub, sub_eq_iff_eq_add'.2 (div_add_mod (a*b) a).symm] at this,
-  exact not_lt_of_le this (val_mod_lt _ a0)
+  exact this (mod_lt _ a0)
 end
 
 lemma mul_div_cancel (a) {b : α} (b0 : b ≠ 0) : a * b / b = a :=
@@ -72,13 +75,12 @@ mod_eq_zero.2 (dvd_refl _)
 lemma dvd_mod_iff {a b c : α} (h : c ∣ b) : c ∣ a % b ↔ c ∣ a :=
 by rw [dvd_add_iff_right (dvd_mul_of_dvd_left h _), div_add_mod]
 
-lemma val_lt_one (a : α) : valuation a < valuation (1:α) → a = 0 :=
+lemma lt_one (a : α) : a ≺ (1:α) → a = 0 :=
 by haveI := classical.dec; exact
-not_imp_not.1 (λ h, by simpa using val_le_mul_left 1 h)
+not_imp_not.1 (λ h, by simpa using mul_left_not_lt 1 h)
 
-lemma val_dvd_le : ∀ a b : α, b ∣ a → a ≠ 0 → valuation b ≤ valuation a
-| _ b ⟨d, rfl⟩ ha := val_le_mul_left b $
-  mt (by intro h; simp [h]) ha
+lemma val_dvd_le : ∀ a b : α, b ∣ a → a ≠ 0 → ¬a ≺ b
+| _ b ⟨d, rfl⟩ ha := mul_left_not_lt b (λ h, by simpa [h] using ha)
 
 @[simp] lemma mod_one (a : α) : a % 1 = 0 :=
 mod_eq_zero.2 (one_dvd _)
@@ -97,10 +99,10 @@ variable [decidable_eq α]
 
 def gcd : α → α → α
 | a := λ b, if a0 : a = 0 then b else
-  have h:_ := val_mod_lt b a0,
+  have h:_ := mod_lt b a0,
   gcd (b%a) a
-using_well_founded {rel_tac :=
-  λ _ _, `[exact ⟨_, measure_wf valuation⟩]}
+using_well_founded {dec_tac := tactic.assumption, 
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
 
 @[simp] theorem gcd_zero_left (a : α) : gcd 0 a = a :=
 by rw gcd; simp
@@ -117,10 +119,10 @@ theorem gcd.induction {P : α → α → Prop} : ∀ a b : α,
   (∀ a b, a ≠ 0 → P (b % a) a → P a b) →
   P a b
 | a := λ b H0 H1, if a0 : a = 0 then by simp [a0, H0] else
-  have h:_ := val_mod_lt b a0,
+  have h:_ := mod_lt b a0,
   H1 _ _ a0 (gcd.induction (b%a) a H0 H1)
-using_well_founded {rel_tac :=
-  λ _ _, `[exact ⟨_, measure_wf valuation⟩]}
+using_well_founded {dec_tac := tactic.assumption, 
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
 
 theorem gcd_dvd (a b : α) : gcd a b ∣ a ∧ gcd a b ∣ b :=
 gcd.induction a b

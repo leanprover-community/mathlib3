@@ -397,6 +397,18 @@ do (x,xs) ← collect_struct e,
    xs' ← xs.mmap refine_recursively,
    set_goals (xs'.join ++ gs)
 
+/--
+`guard_hyp h := t` fails if the hypothesis `h` does not have type `t`.
+We use this tactic for writing tests.
+Fixes `guard_hyp` by instantiating meta variables
+-/
+meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
+
+meta def guard_hyp_nums (n : ℕ) : tactic unit :=
+do k ← local_context,
+   guard (n = k.length) <|> fail format!"{k.length} hypotheses found"
+
 meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
    guard (t = tags)
@@ -485,16 +497,6 @@ meta def list_cast_of_aux (x : expr) (t : option (expr × expr)) (es : list expr
 meta def list_cast_of (x tgt : expr) : tactic (list expr) :=
 (list.reverse ∘ prod.snd) <$> tgt.mfold (none, []) (λ e i es, list_cast_of_aux x es.1 es.2 e)
 
-/-
-  - [x] rename to `h_generalize`
-  - [x] use notation `h_generalize h : e == x`
-  - [x] in `h_generalize h : e == x`, omitting `h` means that we don't add `h : e == x` to the assumptions
-  - [x] list?
-    - https://leanprover.zulipchat.com/#narrow/pm-with/di.2Egama.40gmail.2Ecom.2Csimon.2Ehudon.40gmail.2Ecom/near/129910959
-  - [ ] with * (for automatic naming)
-  - [ ] documentation (including `tactics.md`)
--/
-
 private meta def h_generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `heq _ ]) h) (local_const x _ _ _)) := pure (h, x)
 | _ := fail "parse error"
@@ -502,21 +504,30 @@ private meta def h_generalize_arg_p_aux : pexpr → parser (pexpr × name)
 private meta def h_generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr == id" $ parser.pexpr 0 >>= h_generalize_arg_p_aux
 
-
-/-- `elim_cast e with x` matches on `cast _ e` in the goal and replaces it with
+/-- `h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
     `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
-    times (not necessarily with the same proof), they are all replaced by `x`.
+    times (not necessarily with the same proof), they are all replaced by `x`. `cast`
+    `eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
+    as casts.
 
-    `elim_cast! e with x` acts similarly but reverts `Hx`.
+    `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`.
+
+    `h_generalize Hx : e == x with _` chooses automatically chooses the name of
+    assumption `α = β`.
+
+    `h_generalize! Hx : e == x` reverts `Hx`.
+
+    when `Hx` is omitted, assumption `Hx : e == x` is not added.
 -/
 meta def h_generalize (rev : parse (tk "!")?)
-  (h : parse ident_?)
-  (_ : parse (tk ":"))
-  (arg : parse h_generalize_arg_p) :
+     (h : parse ident_?)
+     (_ : parse (tk ":"))
+     (arg : parse h_generalize_arg_p)
+     (eqs_h : parse ( (tk "with" >> pure <$> ident_) <|> pure [])) :
   tactic unit :=
 do let (e,n) := arg,
    let h' := if h = `_ then none else h,
-   h' ← (h' : tactic name) <|> get_unused_name ("H" ++ n.to_string : string),
+   h' ← (h' : tactic name) <|> get_unused_name ("h" ++ n.to_string : string),
    e ← to_expr e,
    tgt ← target,
    (e::es) ← list_cast_of e tgt | fail "no cast found",
@@ -524,6 +535,11 @@ do let (e,n) := arg,
    asm ← get_local h',
    v ← get_local n,
    hs ← es.mmap (λ e, mk_app `eq [e,v]),
+   (eqs_h.zip [e]).mmap' (λ ⟨h,e⟩, do
+        h ← if h ≠ `_ then pure h else get_unused_name `h,
+        p ← mk_mvar, a ← mk_mvar, b ← mk_mvar, c ← mk_mvar,
+        to_expr ``(@eq.rec %%a %%b %%c _ _ %%p) >>= unify e,
+        () <$ note h none p ),
    hs.mmap' (λ h,
      do h' ← assert `h h,
         tactic.exact asm,

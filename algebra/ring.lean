@@ -177,3 +177,12 @@ section
   exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]
 
 end
+
+class nonzero_comm_ring (α : Type*) extends comm_ring α :=
+(zero_ne_one : (0 : α) ≠ 1)
+
+instance nonzero_comm_ring.to_zero_ne_one_class (α : Type*) [I : nonzero_comm_ring α] : 
+  zero_ne_one_class α := {..I}
+
+instance integral_domain.to_nonzero_comm_ring (α : Type*) [I : integral_domain α] :
+  nonzero_comm_ring α := {..I}

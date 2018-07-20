@@ -6,6 +6,44 @@ Authors: Mitchell Rowett, Scott Morrison
 import group_theory.subgroup data.equiv.basic data.quot
 open set function
 
+section quotients
+variables {α : Sort*} {β : Type*} {γ : Type*} {φ : Type*} 
+  {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
+
+@[elab_as_eliminator, reducible]
+def quotient.lift_on' (q : quotient s₁) (f : α → φ) 
+  (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) : φ := quotient.lift_on q f h
+
+@[elab_as_eliminator, reducible]
+def quotient.lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → γ)
+  (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂) : γ :=
+quotient.lift_on₂ q₁ q₂ f  
+
+@[elab_as_eliminator]
+lemma quot.induction_on₃' {r₁ : α → α → Prop} {r₂ : β → β → Prop} 
+  {r₃ : γ → γ → Prop} {p : quot r₁ → quot r₂ → quot r₃ → Prop} (q₁ : quot r₁) 
+  (q₂ : quot r₂) (q₃ : quot r₃) (h : ∀ a₁ a₂ a₃, 
+    p (quot.mk r₁ a₁) (quot.mk r₂ a₂) (quot.mk r₃ a₃)) : p q₁ q₂ q₃ :=
+quot.induction_on q₁ $ λ a₁, quot.induction_on q₂ $ λ a₂, quot.induction_on
+q₃ $ λ a₃, h a₁ a₂ a₃
+
+@[elab_as_eliminator]
+lemma quotient.induction_on' {p : quotient s₁ → Prop} (q : quotient s₁)
+  (h : ∀ a, p (quot.mk s₁.1 a)) : p q := quotient.induction_on q h
+
+@[elab_as_eliminator]
+lemma quotient.induction_on₂' {p : quotient s₁ → quotient s₂ → Prop} (q₁ : quotient s₁)
+  (q₂ : quotient s₂) (h : ∀ a₁ a₂, p (quot.mk s₁.1 a₁) (@quotient.mk β s₂ a₂)) : p q₁ q₂ :=
+quotient.induction_on₂ q₁ q₂ h
+
+@[elab_as_eliminator]
+lemma quotient.induction_on₃' {p : quotient s₁ → quotient s₂ → quotient s₃ → Prop} 
+  (q₁ : quotient s₁) (q₂ : quotient s₂) (q₃ : quotient s₃) 
+  (h : ∀ a₁ a₂ a₃, p (quot.mk s₁.1 a₁) (quot.mk s₂.1 a₂) (quot.mk s₃.1 a₃)) : p q₁ q₂ q₃ :=
+quotient.induction_on₃ q₁ q₂ q₃ h
+
+end quotients
+
 variable {α : Type*}
 
 def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
@@ -160,32 +198,36 @@ calc α ≃ Σ L : left_cosets s, {x // ⟦x⟧ = L} :
 end is_subgroup
 
 section quotient_group
+variable [group α]
 
-local attribute [instance] left_rel normal_subgroup.to_is_subgroup
+def thing {s : set α} [is_subgroup s] (a : α) : left_cosets s := 
+quot.mk (left_rel s).1 a
 
-instance [group α] (s : set α) [normal_subgroup s] : group (left_cosets s) :=
-{ one := ⟦1⟧,
-  mul := λ a b, quotient.lift_on₂ a b
-  (λ a b, ⟦a * b⟧)
-  (λ a₁ a₂ b₁ b₂ hab₁ hab₂,
-    quotient.sound
-    ((is_subgroup.mul_mem_cancel_left s (is_subgroup.inv_mem hab₂)).1
+instance (s : set α) [is_subgroup s] : has_coe α (left_cosets s) := ⟨thing⟩
+
+instance (s : set α) [normal_subgroup s] : group (left_cosets s) :=
+{ one := (1 : α),
+  mul := λ a b, quotient.lift_on₂' a b
+    (λ a b, ((a * b : α) : left_cosets s))
+    (λ a₁ a₂ b₁ b₂ hab₁ hab₂,
+      quot.sound
+      ((is_subgroup.mul_mem_cancel_left s (is_subgroup.inv_mem hab₂)).1
         (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
           mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
           exact normal_subgroup.normal _ hab₁ _))),
-  mul_assoc := λ a b c, quotient.induction_on₃
-    a b c (λ a b c, show ⟦_⟧ = ⟦_⟧, by rw mul_assoc),
-  one_mul := λ a, quotient.induction_on a
-    (λ a, show ⟦_⟧ = ⟦_⟧, by rw one_mul),
-  mul_one := λ a, quotient.induction_on a
-    (λ a, show ⟦_⟧ = ⟦_⟧, by rw mul_one),
-  inv := λ a, quotient.lift_on a (λ a, ⟦a⁻¹⟧)
-    (λ a b hab, quotient.sound begin
+  mul_assoc := λ a b c, quot.induction_on₃' a b c 
+    (λ a b c, congr_arg thing (mul_assoc a b c)), 
+  one_mul := λ a, quotient.induction_on' a
+    (λ a, congr_arg (quot.mk _) (one_mul a)),
+  mul_one := λ a, quot.induction_on a
+    (λ a, congr_arg (quot.mk _) (mul_one a)),
+  inv := λ a, quotient.lift_on' a (λ a, ((a⁻¹ : α) : left_cosets s))
+    (λ a b hab, quot.sound begin
       show a⁻¹⁻¹ * b⁻¹ ∈ s,
       rw ← mul_inv_rev,
       exact is_subgroup.inv_mem (is_subgroup.mem_norm_comm hab)
     end),
-  mul_left_inv := λ a, quotient.induction_on a
-    (λ a, show ⟦_⟧ = ⟦_⟧, by rw inv_mul_self) }
+  mul_left_inv := λ a, quotient.induction_on' a
+    (λ a, show quot.mk _ _ = quot.mk _ _, by rw inv_mul_self) }
 
 end quotient_group

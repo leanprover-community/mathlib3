@@ -636,7 +636,6 @@ theorem list_find_index₁ {p : α → β → Prop}
 theorem list_index_of₁ [decidable_eq α] (l : list α) :
   primrec (λ a, l.index_of a) := list_find_index₁ primrec.eq l
 
-set_option trace.simplify.rewrite true
 theorem dom_fintype [fintype α] (f : α → σ) : primrec f :=
 let ⟨l, nd, m⟩ := fintype.exists_univ_list α in
 option_some_iff.1 $ begin

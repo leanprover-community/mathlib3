@@ -7,7 +7,7 @@ Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import logic.basic data.set.basic data.equiv.basic tactic
 import order.complete_boolean_algebra category.basic
-import tactic.finish data.sigma.basic
+import tactic.finish data.sigma.basic order.galois_connection
 
 open function tactic set lattice auto
 
@@ -55,6 +55,21 @@ instance : distrib_lattice (set α) :=
 
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
+
+section galois_connection
+variables {f : α → β}
+
+protected lemma image_preimage : galois_connection (image f) (preimage f) :=
+assume a b, image_subset_iff
+
+def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
+
+protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=
+assume a b,
+⟨ assume h x hx y hy, have f y ∈ a, from hy.symm ▸ hx, h this,
+  assume h x (hx : f x ∈ a), h hx x rfl⟩
+
+end galois_connection
 
 /- union and intersection over a family of sets indexed by a type -/
 

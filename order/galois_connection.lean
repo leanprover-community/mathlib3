@@ -160,22 +160,6 @@ end constructions
 
 end galois_connection
 
-namespace set
-variables {f : α → β}
-
-protected lemma image_preimage : galois_connection (image f) (preimage f) :=
-assume a b, image_subset_iff
-
-/- Move to set? -/
-def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
-
-protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=
-assume a b,
-⟨ assume h x hx y hy, have f y ∈ a, from hy.symm ▸ hx, h this,
-  assume h x (hx : f x ∈ a), h hx x rfl⟩
-
-end set
-
 namespace nat
 
 lemma galois_connection_mul_div {k : ℕ} (h : k > 0) : galois_connection (λn, n * k) (λn, n / k) :=

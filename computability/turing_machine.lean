@@ -426,8 +426,8 @@ theorem machine.map_step {S} (ss : supports M S)
 | ⟨q, T⟩ h := begin
   simp! [g₂₁ q h, f₂₁ _],
   rcases M q T.1 with _|⟨q', d|a⟩, {refl},
-  { simp! [option.map, tape.map_move f₁] },
-  { simp! [option.map] }
+  { simp! [tape.map_move f₁] },
+  { simp! }
 end
 
 theorem map_init [pointed_map f₁] [g0 : pointed_map g₁] (l : list Γ) :
@@ -641,7 +641,7 @@ theorem tr_respects : respects (TM1.step M) (TM0.step tr)
   (λ c₁ c₂, tr_cfg c₁ = c₂) :=
 fun_respects.2 $ λ ⟨l₁, v, T⟩, begin
   cases l₁ with l₁, {exact rfl},
-  simp! [option.map],
+  simp!,
   induction M l₁ with _ q IH _ q IH _ q IH generalizing v T,
   case TM1.stmt.move  : d q IH { exact trans_gen.head rfl (IH _ _) },
   case TM1.stmt.write : a q IH { exact trans_gen.head rfl (IH _ _) },
@@ -1542,7 +1542,7 @@ local attribute [simp] respects TM2.step TM2.step_aux tr_normal
 theorem tr_respects : respects (TM2.step M) (TM1.step tr) tr_cfg :=
 λ c₁ c₂ h, begin
   cases h with l v S L hT, clear h,
-  cases l; simp! [option.map],
+  cases l; simp!,
   suffices : ∃ b, _ ∧ reaches (TM1.step (tr M)) _ _,
   from let ⟨b, c, r⟩ := this in ⟨b, c, trans_gen.head' rfl r⟩,
   rw [tr],

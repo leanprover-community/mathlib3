@@ -7,8 +7,7 @@ import logic.basic data.bool init.data.option.instances
        tactic.interactive
 
 namespace option
-universe u
-variables {α β : Type u}
+variables {α : Type*} {β : Type*}
 
 instance has_mem : has_mem α (option α) := ⟨λ a b, b = some a⟩
 
@@ -35,9 +34,9 @@ theorem eq_none_iff_forall_not_mem {o : option α} :
   o = none ↔ (∀ a, a ∉ o) :=
 ⟨λ e a h, by rw e at h; cases h, λ h, ext $ by simpa⟩
 
-@[simp] theorem none_bind (f : α → option β) : none >>= f = none := rfl
+@[simp] theorem none_bind {α β} (f : α → option β) : none >>= f = none := rfl
 
-@[simp] theorem some_bind (a : α) (f : α → option β) : some a >>= f = f a := rfl
+@[simp] theorem some_bind {α β} (a : α) (f : α → option β) : some a >>= f = f a := rfl
 
 @[simp] theorem none_bind' (f : α → option β) : none.bind f = none := rfl
 
@@ -46,21 +45,21 @@ theorem eq_none_iff_forall_not_mem {o : option α} :
 @[simp] theorem bind_some : ∀ x : option α, x >>= some = x :=
 @bind_pure α option _ _
 
-@[simp] theorem bind_eq_some {x : option α} {f : α → option β} {b : β} : x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
+@[simp] theorem bind_eq_some {α β} {x : option α} {f : α → option β} {b : β} : x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
 @[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
-@[simp] theorem map_none {f : α → β} : f <$> none = none := rfl
+@[simp] theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 
-@[simp] theorem map_some {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
+@[simp] theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
 
 @[simp] theorem map_none' {f : α → β} : option.map f none = none := rfl
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
 
-@[simp] theorem map_eq_some {x : option α} {f : α → β} {b : β} : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
+@[simp] theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
 @[simp] theorem map_eq_some' {x : option α} {f : α → β} {b : β} : x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
@@ -68,7 +67,7 @@ by cases x; simp
 
 @[simp] theorem map_id' : option.map (@id α) = id := map_id
 
-@[simp] theorem seq_some {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
+@[simp] theorem seq_some {α β} {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
 
 @[simp] theorem orelse_some' (a : α) (x : option α) : (some a).orelse x = some a := rfl
 
@@ -178,7 +177,7 @@ theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f 
 | (some a) (some b) := by simpa [lift_or_get] using h a b
 section rel
 
-inductive rel {α : Type*} {β : Type*} (r : α → β → Prop) : option α → option β → Prop
+inductive rel (r : α → β → Prop) : option α → option β → Prop
 | some {a b} : r a b → rel (some a) (some b)
 | none {}    : rel none none
 

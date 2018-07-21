@@ -650,8 +650,8 @@ fun_respects.2 $ λ ⟨l₁, v, T⟩, begin
     simp [TM1.step_aux], cases e : p T.1 v,
     { exact (reaches₁_eq (by simp! [e])).2 (IH₂ _ _) },
     { exact (reaches₁_eq (by simp! [e])).2 (IH₁ _ _) } },
-  case TM1.stmt.goto : l { apply trans_gen.single, simp!, refl },
-  case TM1.stmt.halt     { apply trans_gen.single, simp!, refl }
+  case TM1.stmt.goto : l { apply trans_gen.single, simp! },
+  case TM1.stmt.halt     { apply trans_gen.single, simp! }
 end
 
 variables [fintype Γ] [fintype σ]

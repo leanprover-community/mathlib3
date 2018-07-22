@@ -5,64 +5,6 @@ Authors: Mitchell Rowett, Scott Morrison
 -/
 import group_theory.subgroup data.equiv.basic data.quot
 open set function
-
-section quotients
-variables {α : Sort*} {β : Type*} {γ : Type*} {φ : Type*} 
-  {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
-
-def quotient.mk' (a : α) : quotient s₁ := quot.mk s₁.1 a
-
-@[elab_as_eliminator, reducible]
-def quotient.lift_on' (q : quotient s₁) (f : α → φ) 
-  (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) : φ := quotient.lift_on q f h
-
-@[elab_as_eliminator, reducible]
-def quotient.lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → γ)
-  (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂) : γ :=
-quotient.lift_on₂ q₁ q₂ f h
-
-@[elab_as_eliminator]
-lemma quot.induction_on₃' {r₁ : α → α → Prop} {r₂ : β → β → Prop} 
-  {r₃ : γ → γ → Prop} {p : quot r₁ → quot r₂ → quot r₃ → Prop} (q₁ : quot r₁) 
-  (q₂ : quot r₂) (q₃ : quot r₃) (h : ∀ a₁ a₂ a₃, 
-    p (quot.mk r₁ a₁) (quot.mk r₂ a₂) (quot.mk r₃ a₃)) : p q₁ q₂ q₃ :=
-quot.induction_on q₁ $ λ a₁, quot.induction_on q₂ $ λ a₂, quot.induction_on
-q₃ $ λ a₃, h a₁ a₂ a₃
-
-@[elab_as_eliminator]
-lemma quotient.induction_on' {p : quotient s₁ → Prop} (q : quotient s₁)
-  (h : ∀ a, p (quot.mk s₁.1 a)) : p q := quotient.induction_on q h
-
-@[elab_as_eliminator]
-lemma quotient.induction_on₂' {p : quotient s₁ → quotient s₂ → Prop} (q₁ : quotient s₁)
-  (q₂ : quotient s₂) (h : ∀ a₁ a₂, p (quot.mk s₁.1 a₁) (@quotient.mk β s₂ a₂)) : p q₁ q₂ :=
-quotient.induction_on₂ q₁ q₂ h
-
-@[elab_as_eliminator]
-lemma quotient.induction_on₃' {p : quotient s₁ → quotient s₂ → quotient s₃ → Prop} 
-  (q₁ : quotient s₁) (q₂ : quotient s₂) (q₃ : quotient s₃) 
-  (h : ∀ a₁ a₂ a₃, p (quot.mk s₁.1 a₁) (quot.mk s₂.1 a₂) (quot.mk s₃.1 a₃)) : p q₁ q₂ q₃ :=
-quotient.induction_on₃ q₁ q₂ q₃ h
-
-lemma quotient.exact' {a b : α} : 
-  (quotient.mk' a : quotient s₁) = quotient.mk' b → @setoid.r _ s₁ a b :=
-quotient.exact
-
-lemma quotient.sound' {a b : α} : @setoid.r _ s₁ a b → @quotient.mk' α s₁ a = quotient.mk' b :=
-quotient.sound
-
-@[simp] lemma quotient.eq' {a b : α} : @quotient.mk' α s₁ a = quotient.mk' b ↔ @setoid.r _ s₁ a b :=
-quotient.eq
-
-noncomputable def quotient.out' (a : quotient s₁) : α := quotient.out a
-
-@[simp] theorem quotient.out_eq' (q : quotient s₁) : quotient.mk' q.out' = q := q.out_eq
-
-theorem quotient.mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a).out a :=
-quotient.exact (quotient.out_eq _) 
-
-end quotients
-
 variable {α : Type*}
 
 def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
@@ -218,11 +160,11 @@ noncomputable def group_equiv_left_cosets_times_subgroup (hs : is_subgroup s) :
   α ≃ (left_cosets s × s) :=
 calc α ≃ Σ L : left_cosets s, {x : α // (x : left_cosets s)= L} :
   equiv.equiv_fib left_cosets.mk
-    ... ≃ Σ L : left_cosets s, left_coset (quotient.out L) s :
+    ... ≃ Σ L : left_cosets s, left_coset (quotient.out' L) s :
   equiv.sigma_congr_right (λ L, 
     begin rw ← left_cosets.eq_class_eq_left_coset, 
-      show {x // quotient.mk _ = _} ≃ {x : α // quotient.mk _ = quotient.mk _},
-      simp
+      show {x // quotient.mk' x = L} ≃ {x : α // quotient.mk' x = quotient.mk' _},
+      simp [-quotient.eq']
     end)
     ... ≃ Σ L : left_cosets s, s :
   equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _)
@@ -233,7 +175,7 @@ end is_subgroup
 
 namespace left_cosets
 
-instance [group α](s : set α) [normal_subgroup s] : group (left_cosets s) :=
+instance [group α] (s : set α) [normal_subgroup s] : group (left_cosets s) :=
 { one := (1 : α),
   mul := λ a b, quotient.lift_on₂' a b
     (λ a b, ((a * b : α) : left_cosets s))

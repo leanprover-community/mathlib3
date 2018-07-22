@@ -99,60 +99,83 @@ have hi : is_submodule (nonunits α), from
     id
     (λ htu, false.elim $ ((set.ext_iff _ _).1 htu 1).2 trivial ⟨1, mul_one 1⟩) }
 
-namespace is_ideal
+namespace quotient_ring
+open is_ideal
 
 def quotient_rel (S : set α) [is_ideal S] := is_submodule.quotient_rel S
 
-local attribute [instance] quotient_rel
-
 def quotient (S : set α) [is_ideal S] := quotient (quotient_rel S)
 
+def mk {S : set α} [is_ideal S] (a : α) : quotient S :=
+quotient.mk' a
+
+instance {S : set α} [is_ideal S] : has_coe α (quotient S) := ⟨mk⟩
+
 instance (S : set α) [is_ideal S] : comm_ring (quotient S) :=
-{ mul := λ a b, quotient.lift_on₂ a b (λ a b, ⟦a * b⟧) 
+{ mul := λ a b, quotient.lift_on₂' a b (λ a b, ((a * b : α) : quotient S))
   (λ a₁ a₂ b₁ b₂ (h₁ : a₁ - b₁ ∈ S) (h₂ : a₂ - b₂ ∈ S), 
-    quotient.sound
+    quotient.sound'
     (show a₁ * a₂ - b₁ * b₂ ∈ S, from
     have h : a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁ =
       a₁ * a₂ - b₁ * b₂, by ring,
     h ▸ is_ideal.add (mul_left h₁) (mul_right h₂))),
-  mul_assoc := λ a b c, quotient.induction_on₃ a b c $ 
-    λ a b c, show ⟦_⟧ = ⟦_⟧, by rw mul_assoc,
-  mul_comm := λ a b, quotient.induction_on₂ a b $
-    λ a b, show ⟦_⟧ = ⟦_⟧, by rw mul_comm,
-  one := ⟦1⟧,
-  one_mul := λ a, quotient.induction_on a $
-    λ a, show ⟦_⟧ = ⟦_⟧, by rw one_mul,
-  mul_one := λ a, quotient.induction_on a $
-    λ a, show ⟦_⟧ = ⟦_⟧, by rw mul_one,
-  left_distrib := λ a b c, quotient.induction_on₃ a b c $ 
-    λ a b c, show ⟦_⟧ = ⟦_⟧, by rw mul_add,
-  right_distrib := λ a b c, quotient.induction_on₃ a b c $ 
-    λ a b c, show ⟦_⟧ = ⟦_⟧, by rw add_mul,
+  mul_assoc := λ a b c, quotient.induction_on₃' a b c $ 
+    λ a b c, congr_arg mk (mul_assoc a b c),
+  mul_comm := λ a b, quotient.induction_on₂' a b $
+    λ a b, congr_arg mk (mul_comm a b),
+  one := (1 : α),
+  one_mul := λ a, quotient.induction_on' a $
+    λ a, congr_arg mk (one_mul a),
+  mul_one := λ a, quotient.induction_on' a $
+    λ a, congr_arg mk (mul_one a),
+  left_distrib := λ a b c, quotient.induction_on₃' a b c $ 
+    λ a b c, congr_arg mk (left_distrib a b c),
+  right_distrib := λ a b c, quotient.induction_on₃' a b c $ 
+    λ a b c, congr_arg mk (right_distrib a b c),
   ..is_submodule.quotient.add_comm_group S }
 
-lemma quotient_eq_zero_iff_mem {S : set α} [is_ideal S] : ⟦a⟧ = (0 : quotient S) ↔ a ∈ S :=
-by conv {to_rhs, rw ← sub_zero a }; exact quotient.eq
+instance is_ring_hom_mk (S : set α) [is_ideal S] : 
+  @is_ring_hom _ (quotient S) _ _ mk :=
+by refine {..}; intros; refl
+
+@[simp] lemma coe_zero (S : set α) [is_ideal S] : ((0 : α) : quotient S) = 0 := rfl
+@[simp] lemma coe_one (S : set α) [is_ideal S] : ((1 : α) : quotient S) = 1 := rfl
+@[simp] lemma coe_add (S : set α) [is_ideal S] (a b : α) : ((a + b : α) : quotient S) = a + b := rfl
+@[simp] lemma coe_mul (S : set α) [is_ideal S] (a b : α) : ((a * b : α) : quotient S) = a * b := rfl
+@[simp] lemma coe_neg (S : set α) [is_ideal S] (a : α) : ((-a : α) : quotient S) = -a := rfl
+@[simp] lemma coe_sub (S : set α) [is_ideal S] (a b : α) : ((a - b : α) : quotient S) = a - b := rfl
+@[simp] lemma coe_bit0 (S : set α) [is_ideal S] (a : α) : ((bit0 a : α) : quotient S) = bit0 a := rfl
+@[simp] lemma coe_bit1 (S : set α) [is_ideal S] (a : α) : ((bit1 a : α) : quotient S) = bit1 a := rfl
+@[simp] lemma coe_pow (S : set α) [is_ideal S] (a : α) (n : ℕ) : ((a ^ n : α) : quotient S) = a ^ n :=
+by induction n; simp [*, pow_succ]
+
+lemma eq_zero_iff_mem {S : set α} [is_ideal S] : 
+  (a : quotient S) = 0 ↔ a ∈ S :=
+by conv {to_rhs, rw ← sub_zero a }; exact quotient.eq'
+
+instance (S : set α) [is_proper_ideal S] : nonzero_comm_ring (quotient S) :=
+{ zero_ne_one := ne.symm $ mt eq_zero_iff_mem.1 
+    (is_proper_ideal_iff_one_not_mem.1 (by apply_instance)),
+  ..quotient_ring.comm_ring S }
 
 instance (S : set α) [is_prime_ideal S] : integral_domain (quotient S) :=
-{ zero_ne_one := ne.symm $ mt quotient_eq_zero_iff_mem.1 
-    (is_proper_ideal_iff_one_not_mem.1 (by apply_instance)),
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
-    quotient.induction_on₂ a b $ λ a b hab,
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
+    quotient.induction_on₂' a b $ λ a b hab,
       (is_prime_ideal.mem_or_mem_of_mul_mem 
-        (quotient_eq_zero_iff_mem.1 hab)).elim
-      (or.inl ∘ quotient_eq_zero_iff_mem.2)
-      (or.inr ∘ quotient_eq_zero_iff_mem.2),
-  ..is_ideal.comm_ring S }
+        (eq_zero_iff_mem.1 hab)).elim
+      (or.inl ∘ eq_zero_iff_mem.2)
+      (or.inr ∘ eq_zero_iff_mem.2),
+  ..quotient_ring.nonzero_comm_ring S }
 
 lemma exists_inv {S : set α} [is_maximal_ideal S] {a : quotient S} : a ≠ 0 →
   ∃ b : quotient S, a * b = 1 :=
-quotient.induction_on a $ λ a ha,
+quotient.induction_on' a $ λ a ha,
 classical.by_contradiction $ λ h,
-have haS : a ∉ S := mt quotient_eq_zero_iff_mem.2 ha,
+have haS : a ∉ S := mt eq_zero_iff_mem.2 ha,
 by haveI hS : is_proper_ideal (span (set.insert a S)) :=
   is_proper_ideal_iff_one_not_mem.2
   (mt mem_span_insert.1 $ λ ⟨b, hb⟩,
-  h ⟨-⟦b⟧, quotient.sound (show a * -b - 1 ∈ S,
+  h ⟨-b, quotient.sound' (show a * -b - 1 ∈ S,
     from neg_iff.2 (begin
       rw [neg_sub, mul_neg_eq_neg_mul_symm, sub_eq_add_neg, neg_neg, mul_comm],
       rw span_eq_of_is_submodule (show is_submodule S, by apply_instance) at hb,
@@ -173,10 +196,6 @@ protected noncomputable def field (S : set α) [is_maximal_ideal S] : field (quo
   inv_mul_cancel := λ a (ha : a ≠ 0), show dite _ _ _ * a = _, 
     by rw [mul_comm, dif_neg ha];
     exact classical.some_spec (exists_inv ha),
-  ..is_ideal.integral_domain S }
+  ..quotient_ring.integral_domain S }
 
-instance is_ring_hom_quotient_mk (S : set α) [is_ideal S] : 
-  @is_ring_hom _ (quotient S) _ _ quotient.mk :=
-by refine {..}; intros; refl
-
-end is_ideal
+end quotient_ring

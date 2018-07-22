@@ -293,6 +293,17 @@ attribute [to_additive bit1_gsmul] gpow_bit1
 
 end group
 
+namespace is_group_hom
+variables {β : Type v} [group α] [group β] (f : α → β) [is_group_hom f]
+
+theorem pow (a : α) (n : ℕ) : f (a ^ n) = f a ^ n :=
+by induction n; simp [*, pow_succ, is_group_hom.mul f, is_group_hom.one f]
+
+theorem gpow (a : α) (n : ℤ) : f (a ^ n) = f a ^ n :=
+by cases n; simp [is_group_hom.pow f, is_group_hom.inv f]
+
+end is_group_hom
+
 local infix ` •ℤ `:70 := gsmul
 
 theorem add_monoid.smul_eq_mul' [semiring α] (a : α) : ∀ n : ℕ, n • a = a * n

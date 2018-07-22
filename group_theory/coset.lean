@@ -140,7 +140,7 @@ instance [group α] (s : set α) [is_subgroup s] : inhabited (left_cosets s) :=
 quotient.eq'
 
 lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) : 
-{x : α | (x : left_cosets s) = g} = left_coset g s :=
+  {x : α | (x : left_cosets s) = g} = left_coset g s :=
 set.ext $ λ z, by simp [eq_comm, mem_left_coset_iff]; refl
 
 end left_cosets

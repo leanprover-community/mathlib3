@@ -69,7 +69,7 @@ instance is_maximal_ideal.is_prime_ideal (S : set α) [hS : is_maximal_ideal S] 
   have hy : y * (1 + a • x) - a * (x * y) = y := by rw smul_eq_mul; ring,
   hy ▸ is_ideal.sub (is_ideal.mul_left (span_eq_of_is_submodule (show is_submodule S, by apply_instance) 
     ▸ ha)) (is_ideal.mul_left hxy)),
-  ..hS } 
+  ..hS }
 
 def nonunits (α : Type u) [monoid α] : set α := { x | ¬∃ y, y * x = 1 }
 
@@ -99,6 +99,24 @@ have hi : is_submodule (nonunits α), from
     id
     (λ htu, false.elim $ ((set.ext_iff _ _).1 htu 1).2 trivial ⟨1, mul_one 1⟩) }
 
+instance is_ideal.preimage [comm_ring β] (S : set β) (f : α → β) 
+  [is_ring_hom f] [is_ideal S] : is_ideal (f ⁻¹' S) :=
+{ to_is_submodule := { zero_ := show f 0 ∈ S, by rw is_ring_hom.map_zero f; exact is_ideal.zero _,
+  add_ := λ x y hx hy, show f (x + y) ∈ S, by rw is_ring_hom.map_add f; exact is_ideal.add hx hy,
+  smul := λ c x hx, show f (c * x) ∈ S, by rw is_ring_hom.map_mul f; exact is_ideal.mul_left hx } }
+
+instance is_proper_ideal.preimage [comm_ring β] (S : set β) (f : α → β) [is_ring_hom f] 
+  [hT : is_proper_ideal S] : is_proper_ideal (f ⁻¹' S) :=
+{ ne_univ := mt eq_univ_iff_forall.1 (λ h, is_proper_ideal_iff_one_not_mem.1 hT
+    (is_ring_hom.map_one f ▸ h _)),
+  ..is_ideal.preimage S f }
+
+instance is_prime_ideal.preimage [comm_ring β] (S : set β) (f : α → β) [is_ring_hom f] 
+  [is_prime_ideal S] : is_prime_ideal (f ⁻¹' S) := 
+{ mem_or_mem_of_mul_mem := λ x y (hxy : f (x * y) ∈ S), show f x ∈ S ∨ f y ∈ S,
+    from is_prime_ideal.mem_or_mem_of_mul_mem (by rwa ← is_ring_hom.map_mul f), 
+  ..is_proper_ideal.preimage S f }
+
 namespace quotient_ring
 open is_ideal
 
@@ -110,6 +128,9 @@ def mk {S : set α} [is_ideal S] (a : α) : quotient S :=
 quotient.mk' a
 
 instance {S : set α} [is_ideal S] : has_coe α (quotient S) := ⟨mk⟩
+
+protected lemma eq {S : set α} [is_ideal S] {a b : α} : 
+  (a : quotient S) = b ↔ a - b ∈ S := quotient.eq'
 
 instance (S : set α) [is_ideal S] : comm_ring (quotient S) :=
 { mul := λ a b, quotient.lift_on₂' a b (λ a b, ((a * b : α) : quotient S))
@@ -136,7 +157,13 @@ instance (S : set α) [is_ideal S] : comm_ring (quotient S) :=
 
 instance is_ring_hom_mk (S : set α) [is_ideal S] : 
   @is_ring_hom _ (quotient S) _ _ mk :=
-⟨λ _ _, rfl, λ _ _, rfl, rfl⟩ 
+⟨λ _ _, rfl, λ _ _, rfl, rfl⟩
+
+instance (S T : set α) [is_ideal S] [is_ideal T] : 
+  is_ideal (mk '' S : set (quotient T)) :=
+{ to_is_submodule := { zero_ := ⟨0, is_ideal.zero _, rfl⟩,
+  add_ := λ x y ⟨a, ha⟩ ⟨b, hb⟩, ⟨a + b, is_ideal.add ha.1 hb.1, ha.2 ▸ hb.2 ▸ rfl⟩,
+  smul := λ c x ⟨a, ha⟩, quotient.induction_on' c (λ c, ⟨c * a, mul_left ha.1, ha.2 ▸ rfl⟩) } }
 
 @[simp] lemma coe_zero (S : set α) [is_ideal S] : ((0 : α) : quotient S) = 0 := rfl
 @[simp] lemma coe_one (S : set α) [is_ideal S] : ((1 : α) : quotient S) = 1 := rfl
@@ -144,8 +171,6 @@ instance is_ring_hom_mk (S : set α) [is_ideal S] :
 @[simp] lemma coe_mul (S : set α) [is_ideal S] (a b : α) : ((a * b : α) : quotient S) = a * b := rfl
 @[simp] lemma coe_neg (S : set α) [is_ideal S] (a : α) : ((-a : α) : quotient S) = -a := rfl
 @[simp] lemma coe_sub (S : set α) [is_ideal S] (a b : α) : ((a - b : α) : quotient S) = a - b := rfl
-@[simp] lemma coe_bit0 (S : set α) [is_ideal S] (a : α) : ((bit0 a : α) : quotient S) = bit0 a := rfl
-@[simp] lemma coe_bit1 (S : set α) [is_ideal S] (a : α) : ((bit1 a : α) : quotient S) = bit1 a := rfl
 @[simp] lemma coe_pow (S : set α) [is_ideal S] (a : α) (n : ℕ) : ((a ^ n : α) : quotient S) = a ^ n :=
 by induction n; simp [*, pow_succ]
 
@@ -163,8 +188,8 @@ instance (S : set α) [is_prime_ideal S] : integral_domain (quotient S) :=
     quotient.induction_on₂' a b $ λ a b hab,
       (is_prime_ideal.mem_or_mem_of_mul_mem 
         (eq_zero_iff_mem.1 hab)).elim
-          (or.inl ∘ eq_zero_iff_mem.2)
-          (or.inr ∘ eq_zero_iff_mem.2),
+      (or.inl ∘ eq_zero_iff_mem.2)
+      (or.inr ∘ eq_zero_iff_mem.2),
   ..quotient_ring.nonzero_comm_ring S }
 
 lemma exists_inv {S : set α} [is_maximal_ideal S] {a : quotient S} : a ≠ 0 →
@@ -175,8 +200,8 @@ have haS : a ∉ S := mt eq_zero_iff_mem.2 ha,
 by haveI hS : is_proper_ideal (span (set.insert a S)) :=
   is_proper_ideal_iff_one_not_mem.2
   (mt mem_span_insert.1 $ λ ⟨b, hb⟩,
-  h ⟨-b, quotient.sound' (show a * -b - 1 ∈ S,
-    from neg_iff.2 (begin
+  h ⟨-b, quotient_ring.eq.2
+    (neg_iff.2 (begin
       rw [neg_sub, mul_neg_eq_neg_mul_symm, sub_eq_add_neg, neg_neg, mul_comm],
       rw span_eq_of_is_submodule (show is_submodule S, by apply_instance) at hb,
       exact hb

@@ -217,7 +217,7 @@ exact have span (set.insert a S) = S :=
     (subset.trans (subset_insert _ _) subset_span)) (is_proper_ideal.ne_univ _),
   haS (this ▸ subset_span (mem_insert _ _))
 
-/- quotient by maximal ideal is a field. def rather than instance, since users will have
+/-- quotient by maximal ideal is a field. def rather than instance, since users will have
 computable inverses in some applications -/
 protected noncomputable def field (S : set α) [is_maximal_ideal S] : field (quotient S) :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (exists_inv ha),

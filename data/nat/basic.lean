@@ -375,6 +375,10 @@ by induction n; simp [*, pow_succ, mul_assoc]
 theorem pow_dvd_pow (a : ℕ) {m n : ℕ} (h : m ≤ n) : a^m ∣ a^n :=
 by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
 
+theorem pow_dvd_pow_of_dvd {a b : ℕ} (h : a ∣ b) : ∀ n:ℕ, a^n ∣ b^n
+| 0     := dvd_refl _
+| (n+1) := mul_dvd_mul (pow_dvd_pow_of_dvd n) h
+
 theorem mul_pow (a b n : ℕ) : (a * b) ^ n = a ^ n * b ^ n := 
 by induction n; simp [*, nat.pow_succ, mul_comm, mul_assoc, mul_left_comm]
 

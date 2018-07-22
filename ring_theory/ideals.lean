@@ -27,9 +27,15 @@ lemma mul_left {S : set α} [is_ideal S] : b ∈ S → a * b ∈ S := @is_submod
 
 lemma mul_right {S : set α} [is_ideal S] : a ∈ S → a * b ∈ S := mul_comm b a ▸ mul_left
 
-end is_ideal
+def trivial (α : Type*) [comm_ring α] : set α := {0}
 
-instance (S : set α) : is_ideal (span S) := {}
+instance : is_ideal (trivial α) := by refine {..}; simp [trivial] {contextual := tt}
+
+instance univ : is_ideal (@univ α) := {}
+
+instance span (S : set α) : is_ideal (span S) := {}
+
+end is_ideal
 
 class is_proper_ideal {α : Type u} [comm_ring α] (S : set α) extends is_ideal S : Prop :=
 (ne_univ : S ≠ set.univ)

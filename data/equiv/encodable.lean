@@ -33,7 +33,7 @@ def of_left_injection [encodable α]
   (f : β → α) (finv : α → option β) (linv : ∀ b, finv (f b) = some b) : encodable β :=
 ⟨λ b, encode (f b),
  λ n, (decode α n).bind finv,
- λ b, by simp [encodable.encodek, option.bind, linv]⟩
+ λ b, by simp [encodable.encodek, linv]⟩
 
 def of_left_inverse [encodable α]
   (f : β → α) (finv : α → β) (linv : ∀ b, finv (f b) = b) : encodable β :=
@@ -158,7 +158,7 @@ let (n₁, n₂) := unpair n in
 
 instance sigma : encodable (sigma γ) :=
 ⟨encode_sigma, decode_sigma, λ ⟨a, b⟩,
-  by simp [encode_sigma, decode_sigma, option.bind, option.map, unpair_mkpair, encodek]⟩
+  by simp [encode_sigma, decode_sigma, unpair_mkpair, encodek]⟩
 
 @[simp] theorem decode_sigma_val (n : ℕ) : decode (sigma γ) n =
   (decode α n.unpair.1).bind (λ a, (decode (γ a) n.unpair.2).map $ sigma.mk a) :=
@@ -178,7 +178,7 @@ of_equiv _ (equiv.sigma_equiv_prod α β).symm
 @[simp] theorem decode_prod_val (n : ℕ) : decode (α × β) n =
   (decode α n.unpair.1).bind (λ a, (decode β n.unpair.2).map $ prod.mk a) :=
 show (decode (sigma (λ _, β)) n).map (equiv.sigma_equiv_prod α β) = _,
-by simp; cases decode α n.unpair.1; simp [option.bind];
+by simp; cases decode α n.unpair.1; simp;
    cases decode β n.unpair.2; refl
 
 @[simp] theorem encode_prod_val (a b) : @encode (α × β) _ (a, b) =

@@ -158,7 +158,11 @@ meta def continue (tac : itactic) : tactic unit :=
 
 /-- Move goal `n` to the front. -/
 meta def swap (n := 2) : tactic unit :=
-if n = 2 then tactic.swap else tactic.rotate (n-1)
+do gs ← get_goals,
+   match gs.nth (n-1) with
+   | (some g) := set_goals (g :: gs.remove_nth (n-1))
+   | _        := skip
+   end
 
 /-- Generalize proofs in the goal, naming them with the provided list. -/
 meta def generalize_proofs : parse ident_* → tactic unit :=

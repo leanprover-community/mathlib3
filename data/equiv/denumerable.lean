@@ -55,12 +55,12 @@ def mk' {α} (e : α ≃ ℕ) : denumerable α :=
   decode_inv := λ n, ⟨_, rfl, e.apply_inverse_apply _⟩ }
 
 def of_equiv (α) {β} [denumerable α] (e : β ≃ α) : denumerable β :=
-{ decode_inv := λ n, by simp [option.bind],
+{ decode_inv := λ n, by simp,
   ..encodable.of_equiv _ e }
 
 @[simp] theorem of_equiv_of_nat (α) {β} [denumerable α] (e : β ≃ α)
   (n) : @of_nat β (of_equiv _ e) n = e.symm (of_nat α n) :=
-by apply of_nat_of_decode; show option.map _ _ = _; simp; refl
+by apply of_nat_of_decode; show option.map _ _ = _; simp
 
 def equiv₂ (α β) [denumerable α] [denumerable β] : α ≃ β := (eqv α).trans (eqv β).symm
 
@@ -74,16 +74,14 @@ instance sum : denumerable (α ⊕ β) :=
 ⟨λ n, begin
   suffices : ∃ a ∈ @decode_sum α β _ _ n,
     encode_sum a = bit (bodd n) (div2 n), {simpa [bit_decomp]},
-  simp [decode_sum]; cases bodd n; simp [decode_sum, bit],
-  { refine or.inl ⟨_, rfl, _⟩, simp [encode_sum] },
-  { refine or.inr ⟨_, rfl, _⟩, simp [encode_sum] }
+  simp [decode_sum]; cases bodd n; simp [decode_sum, bit, encode_sum]
 end⟩
 
 section sigma
 variables {γ : α → Type*} [∀ a, denumerable (γ a)]
 
 instance sigma : denumerable (sigma γ) :=
-⟨λ n, by simp [decode_sigma]; exact ⟨_, _, rfl, by simp⟩⟩
+⟨λ n, by simp [decode_sigma]; exact ⟨_, _, ⟨rfl, heq.rfl⟩, by simp⟩⟩
 
 @[simp] theorem sigma_of_nat_val (n : ℕ) :
   of_nat (sigma γ) n = ⟨of_nat α (unpair n).1, of_nat (γ _) (unpair n).2⟩ :=

@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 (Least / Greatest) upper / lower bounds
 -/
-import order.complete_lattice data.set
+import order.complete_lattice
 open set lattice
 
 universes u v w x

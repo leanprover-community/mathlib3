@@ -118,7 +118,7 @@ theorem eq_empty_iff_forall_not_mem {s : set α} : s = ∅ ↔ ∀ x, x ∉ s :=
 by simp [ext_iff]
 
 theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
-by { intro hs, rewrite hs at h, apply not_mem_empty _ h }
+by { intro hs, rw hs at h, apply not_mem_empty _ h }
 
 @[simp] theorem empty_subset (s : set α) : ∅ ⊆ s :=
 assume x, assume h, false.elim h

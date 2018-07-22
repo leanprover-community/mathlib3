@@ -301,4 +301,32 @@ or.elim (eq_zero_or_pos (gcd k m))
     dvd_of_mul_dvd_mul_left gpos $ by rw [←hd, ←gcd_mul_right]; exact
       dvd_gcd (dvd_mul_right _ _) H⟩)
 
+lemma dvd_of_pow_dvd_pow : ∀ {a b n : ℕ}, 0 < n → a ^ n ∣ b ^ n → a ∣ b
+| a 0     := λ n hn h, dvd_zero _
+| a (b+1) := λ n hn h,
+let d := nat.gcd a (b + 1) in
+have hd : nat.gcd a (b + 1) = d := rfl,
+  match d, hd with
+  | 0 := λ hd, (eq_zero_of_gcd_eq_zero_right hd).symm ▸ dvd_zero _
+  | 1 := λ hd,
+    begin
+      have h₁ : a ^ n = 1 := coprime.eq_one_of_dvd (coprime.pow n n hd) h,
+      have := pow_dvd_pow a hn,
+      rw [nat.pow_one, h₁] at this,
+      exact dvd.trans this (one_dvd _),
+    end
+  | (d+2) := λ hd,
+    have (b+1) / (d+2) < (b+1) := div_lt_self dec_trivial dec_trivial,
+    have ha : a = (d+2) * (a / (d+2)) :=
+      by rw [← hd, nat.mul_div_cancel' (gcd_dvd_left _ _)],
+    have hb : (b+1) = (d+2) * ((b+1) / (d+2)) :=
+      by rw [← hd, nat.mul_div_cancel' (gcd_dvd_right _ _)],
+    have a / (d+2) ∣ (b+1) / (d+2) := dvd_of_pow_dvd_pow hn $ dvd_of_mul_dvd_mul_left
+      (show (d + 2) ^ n > 0, from pos_pow_of_pos _ dec_trivial)
+      (by rwa [← nat.mul_pow, ← nat.mul_pow, ← ha, ← hb]),
+    by rw [ha, hb];
+    exact mul_dvd_mul_left _ this
+  end
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf psigma.snd⟩]}
+
 end nat

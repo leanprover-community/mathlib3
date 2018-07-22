@@ -136,7 +136,7 @@ instance (S : set α) [is_ideal S] : comm_ring (quotient S) :=
 
 instance is_ring_hom_mk (S : set α) [is_ideal S] : 
   @is_ring_hom _ (quotient S) _ _ mk :=
-by refine {..}; intros; refl
+⟨λ _ _, rfl, λ _ _, rfl, rfl⟩ 
 
 @[simp] lemma coe_zero (S : set α) [is_ideal S] : ((0 : α) : quotient S) = 0 := rfl
 @[simp] lemma coe_one (S : set α) [is_ideal S] : ((1 : α) : quotient S) = 1 := rfl
@@ -163,8 +163,8 @@ instance (S : set α) [is_prime_ideal S] : integral_domain (quotient S) :=
     quotient.induction_on₂' a b $ λ a b hab,
       (is_prime_ideal.mem_or_mem_of_mul_mem 
         (eq_zero_iff_mem.1 hab)).elim
-      (or.inl ∘ eq_zero_iff_mem.2)
-      (or.inr ∘ eq_zero_iff_mem.2),
+          (or.inl ∘ eq_zero_iff_mem.2)
+          (or.inr ∘ eq_zero_iff_mem.2),
   ..quotient_ring.nonzero_comm_ring S }
 
 lemma exists_inv {S : set α} [is_maximal_ideal S] {a : quotient S} : a ≠ 0 →

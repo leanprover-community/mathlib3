@@ -299,8 +299,8 @@ theorem add_pow (x y : β) : ∀ n : ℕ,
     (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m)
 | 0        := by simp
 | (succ n) :=
-have h₁ : x * (x ^ n * y ^ (n - n) * choose n n) = x ^ succ n * y ^ (succ n - succ n)
-    * choose (succ n) (succ n),
+have h₁ : x * (x ^ n * y ^ (n - n) * choose n n) = 
+    x ^ succ n * y ^ (succ n - succ n) * choose (succ n) (succ n),
   by simp [_root_.pow_succ, mul_assoc, mul_comm, mul_left_comm],
 have  h₂ : y * (x^0 * y^(n - 0) * choose n 0) = x^0 * y^(succ n - 0) * choose (succ n) 0,
   by simp [_root_.pow_succ, mul_assoc, mul_comm, mul_left_comm],

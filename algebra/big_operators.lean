@@ -188,11 +188,10 @@ finset.induction_on s (by simp) (assume a s has ih h,
     (assume hna : f a ≠ 1,
       ⟨a, mem_insert_self _ _, hna⟩))
 
+set_option trace.simplify.rewrite true
 @[to_additive finset.sum_range_succ]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
-  (range (nat.succ n)).prod f = f n * (range n).prod f :=
-have h : n ∉ finset.range n := by rw finset.mem_range; exact lt_irrefl _,
-by rw [finset.range_succ, finset.prod_insert h]
+  (range (nat.succ n)).prod f = f n * (range n).prod f := by simp
 
 lemma prod_range_succ' (f : ℕ → β) :
   ∀ n : ℕ, (range (nat.succ n)).prod f = (range n).prod (f ∘ nat.succ) * f 0

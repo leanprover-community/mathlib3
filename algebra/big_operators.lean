@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Some big operators for lists and finite sets.
 -/
 import data.list.basic data.list.perm data.finset
-  algebra.group algebra.ordered_group algebra.group_power
+  algebra.group algebra.ordered_group algebra.group_power data.nat.choose
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -188,6 +188,18 @@ finset.induction_on s (by simp) (assume a s has ih h,
     (assume hna : f a ≠ 1,
       ⟨a, mem_insert_self _ _, hna⟩))
 
+@[to_additive finset.sum_range_succ]
+lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
+  (range (nat.succ n)).prod f = f n * (range n).prod f :=
+have h : n ∉ finset.range n := by rw finset.mem_range; exact lt_irrefl _,
+by rw [finset.range_succ, finset.prod_insert h]
+
+lemma prod_range_succ' (f : ℕ → β) :
+  ∀ n : ℕ, (range (nat.succ n)).prod f = (range n).prod (f ∘ nat.succ) * f 0
+| 0       := by simp
+| (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
+                 exact prod_range_succ _ _
+
 @[simp] lemma prod_const [decidable_eq α] (b : β) : s.prod (λ a, b) = b ^ s.card :=
 finset.induction_on s rfl (by simp [pow_add, mul_comm] {contextual := tt})
 
@@ -197,6 +209,11 @@ end comm_monoid
   s.sum (λ a, b) = add_monoid.smul s.card b :=
 @prod_const _ (multiplicative β) _ _ _ _
 attribute [to_additive finset.sum_const] prod_const
+
+lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
+  ∀ n : ℕ, (range (nat.succ n)).sum f = (range n).sum (f ∘ nat.succ) + f 0 :=
+@prod_range_succ' (multiplicative β) _ _
+attribute [to_additive finset.sum_range_succc'] sum_range_succ'
 
 section comm_group
 variables [comm_group β]
@@ -276,6 +293,30 @@ begin
     simp [ha, ih, sum_bind h₁, sum_image (h₂ _), sum_mul, h₃],
     simp [mul_sum] }
 end
+
+open nat
+/-- The binomial theorem -/
+theorem add_pow (x y : β) : ∀ n : ℕ,
+    (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m)
+| 0        := by simp
+| (succ n) :=
+have h₁ : x * (x ^ n * y ^ (n - n) * choose n n) = x ^ succ n * y ^ (succ n - succ n)
+    * choose (succ n) (succ n),
+  by simp [_root_.pow_succ, mul_assoc, mul_comm, mul_left_comm],
+have  h₂ : y * (x^0 * y^(n - 0) * choose n 0) = x^0 * y^(succ n - 0) * choose (succ n) 0,
+  by simp [_root_.pow_succ, mul_assoc, mul_comm, mul_left_comm],
+have h₃ : (range n).sum (λ m, x * (x ^ m * y ^ (n - m) * choose n m) + y *
+    (x ^ succ m * y ^ (n - succ m) * choose n (succ m)))
+    = (range n).sum (λ m, x ^ succ m * y ^ (succ n - succ m) * ↑(choose (succ n) (succ m))),
+  from finset.sum_congr rfl $ λ m hm,
+    begin
+      simp only [mul_assoc, mul_left_comm y, mul_left_comm (y ^ (n - succ m)), mul_comm y],
+      rw [← _root_.pow_succ', add_one, ← succ_sub (mem_range.1 hm)],
+      simp [choose_succ_succ, mul_comm, mul_assoc, mul_left_comm, add_mul, mul_add, _root_.pow_succ]
+    end,
+by rw [_root_.pow_succ, add_pow, add_mul, finset.mul_sum, finset.mul_sum, sum_range_succ, sum_range_succ',
+    sum_range_succ, sum_range_succ', add_assoc, ← add_assoc ((range n).sum _), 
+    ← finset.sum_add_distrib, h₁, h₂, h₃]
 
 end comm_semiring
 

@@ -34,6 +34,7 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.mul_zero_class,
   ..with_zero.monoid }
 
+attribute [refl] dvd_refl
 attribute [trans] dvd.trans
 
 section
@@ -54,7 +55,7 @@ section
   assume h,
   calc
     (a - b) * e + c = (a * e + c) - b * e : begin simp [@sub_eq_add_neg α, @right_distrib α] end
-                ... = d                   : begin rewrite h, simp [@add_sub_cancel α] end
+                ... = d                   : begin rw h, simp [@add_sub_cancel α] end
 
   theorem ne_zero_and_ne_zero_of_mul_ne_zero {a b : α} (h : a * b ≠ 0) : a ≠ 0 ∧ b ≠ 0 :=
   begin
@@ -107,6 +108,13 @@ instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
 end is_ring_hom
 
 set_option old_structure_cmd true
+
+class nonzero_comm_ring (α : Type*) extends zero_ne_one_class α, comm_ring α
+
+instance integral_domain.to_nonzero_comm_ring (α : Type*) [id : integral_domain α] :
+  nonzero_comm_ring α :=
+{ ..id }
+
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -153,13 +161,13 @@ section
 
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
   have b * a - c * a = 0, by simp [h],
-  have (b - c) * a = 0, by rewrite [mul_sub_right_distrib, this],
+  have (b - c) * a = 0, by rw [mul_sub_right_distrib, this],
   have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right ha,
   eq_of_sub_eq_zero this
 
   theorem eq_of_mul_eq_mul_left_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
   have a * b - a * c = 0, by simp [h],
-  have a * (b - c) = 0, by rewrite [mul_sub_left_distrib, this],
+  have a * (b - c) = 0, by rw [mul_sub_left_distrib, this],
   have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_left ha,
   eq_of_sub_eq_zero this
 

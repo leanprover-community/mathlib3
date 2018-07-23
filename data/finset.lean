@@ -229,9 +229,9 @@ ssubset_iff.mpr ⟨a, h, subset.refl _⟩
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
-@[simp] theorem singleton_eq_singleton (a : α) : _root_.singleton a = singleton a := rfl
+@[simp] theorem singleton_eq_singleton (a : α) : _root_.singleton a = ι a := rfl
 
-@[simp] theorem insert_empty_eq_singleton (a : α) : {a} = singleton a := rfl
+@[simp] theorem insert_empty_eq_singleton (a : α) : {a} = ι a := rfl
 
 @[simp] theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = ι a :=
 by simp [singleton]
@@ -816,6 +816,8 @@ by simpa [card] using congr_arg multiset.card (ndinsert_of_not_mem h)
 theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert a s) ≤ card s + 1 :=
 by by_cases a ∈ s; simp [h, nat.le_add_right]
 
+@[simp] theorem card_singleton (a : α) : card (singleton a) = 1 := card_singleton _
+
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
 theorem card_range (n : ℕ) : card (range n) = n := card_range n
@@ -1011,8 +1013,8 @@ assume e₁ e₂ eq,
     by rw [eq],
   this
 
-@[simp] lemma pi_empty {t : Πa:α, finset (δ a)} : pi (∅ : finset α) t = singleton (pi.empty δ) :=
-rfl
+@[simp] lemma pi_empty {t : Πa:α, finset (δ a)} :
+  pi (∅ : finset α) t = singleton (pi.empty δ) := rfl
 
 @[simp] lemma pi_insert [∀a, decidable_eq (δ a)]
   {s : finset α} {t : Πa:α, finset (δ a)} {a : α} (ha : a ∉ s) :
@@ -1114,6 +1116,8 @@ def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
 
 variables {s s₁ s₂ : finset β} {f : β → α}
 
+lemma sup_val : s.sup f = (s.1.map f).sup := rfl
+
 @[simp] lemma sup_empty : (∅ : finset β).sup f = ⊥ :=
 fold_empty
 
@@ -1150,6 +1154,8 @@ variables [semilattice_inf_top α] [decidable_eq α] [decidable_eq β]
 def inf (s : finset β) (f : β → α) : α := s.fold (⊓) ⊤ f
 
 variables {s s₁ s₂ : finset β} {f : β → α}
+
+lemma inf_val : s.inf f = (s.1.map f).inf := rfl
 
 @[simp] lemma inf_empty : (∅ : finset β).inf f = ⊤ :=
 fold_empty
@@ -1203,6 +1209,13 @@ by simp [finset.max, option.lift_or_get]
 theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :=
 (@le_sup (with_bot α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
+theorem max_eq_none {s : finset α} : s.max = none ↔ s = ∅ :=
+⟨λ h, by_contradiction 
+  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in 
+  let ⟨b, hb⟩ := max_of_mem ha in
+  by simpa [h] using hb),
+λ h, h.symm ▸ max_empty⟩
+
 theorem mem_of_max {s : finset α} : ∀ {a : α}, a ∈ s.max → a ∈ s :=
 finset.induction_on s (by simp) $
   λ b s _ (ih : ∀ {a}, a ∈ s.max → a ∈ s) a (h : a ∈ (insert b s).max),
@@ -1236,6 +1249,13 @@ by simp [finset.min, option.lift_or_get]
 
 theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
 (@inf_le (with_top α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
+
+theorem min_eq_none {s : finset α} : s.min = none ↔ s = ∅ :=
+⟨λ h, by_contradiction 
+  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in 
+  let ⟨b, hb⟩ := min_of_mem ha in
+  by simpa [h] using hb),
+λ h, h.symm ▸ min_empty⟩
 
 theorem mem_of_min {s : finset α} : ∀ {a : α}, a ∈ s.min → a ∈ s :=
 finset.induction_on s (by simp) $
@@ -1281,6 +1301,9 @@ variable [decidable_eq α]
 
 theorem disjoint_left {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 by simp [_root_.disjoint, subset_iff]; refl
+
+theorem disjoint_val {s t : finset α} : disjoint s t ↔ s.1.disjoint t.1 :=
+disjoint_left
 
 theorem disjoint_iff_inter_eq_empty {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
 disjoint_iff

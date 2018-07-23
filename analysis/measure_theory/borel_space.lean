@@ -25,13 +25,12 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort y} 
 namespace measure_theory
 open measurable_space topological_space
 
-instance borel (α : Type u) [topological_space α] : measurable_space α :=
+@[instance] def borel (α : Type u) [topological_space α] : measurable_space α :=
 generate_from {s : set α | is_open s}
 
 lemma borel_eq_generate_from_of_subbasis {s : set (set α)}
   [t : topological_space α] [second_countable_topology α] (hs : t = generate_from s) :
-  measure_theory.borel α = generate_from s :=
-let ⟨b, hb₁, hb₂, hb₃⟩ := is_open_generated_countable_inter α in
+  borel α = generate_from s :=
 le_antisymm
   (generate_from_le $ assume u (hu : t.is_open u),
     begin
@@ -42,41 +41,24 @@ le_antisymm
       case generate_open.univ
       { exact @is_measurable_univ α (generate_from s) },
       case generate_open.inter : s₁ s₂ _ _ hs₁ hs₂
-      { exact @is_measurable_inter α (generate_from s) _ _ hs₁ hs₂ },
+      { exact @is_measurable.inter α (generate_from s) _ _ hs₁ hs₂ },
       case generate_open.sUnion : f hf ih {
-        have ht' : ∀u∈f, t.is_open u, { rwa [hs] },
-        let b' := {u ∈ b | u ⊆ (⋃₀ f) ∧ ∃v, v ∈ f ∧ u ⊆ v },
-        have : ∀u∈b', ∃v, v ∈ f ∧ u ⊆ v,
-        { simp [b'] {contextual:=tt} },
-        have : ∃v:(∀u∈b', set α), ∀u (h : u ∈ b'), v u h ∈ f ∧ u ⊆ v u h,
-        { simp only [skolem] at this, exact this },
-        cases this with v hv,
-        have : (⋃₀ f) = (⋃u : {u // u ∈ b'}, v u.val u.property),
-          from subset.antisymm
-            (assume a ⟨u, hu, hau⟩,
-              have u ∈ (nhds a).sets, from mem_nhds_sets (ht' _ hu) hau,
-              let ⟨u', hu', hau', hu'u⟩ := (mem_nhds_of_is_topological_basis hb₃).1 this in
-              have u' ∈ b', from ⟨hu', subset.trans hu'u (subset_sUnion_of_mem hu), u, hu, hu'u⟩,
-              by simp; exact ⟨u', this, (hv u' this).right hau'⟩)
-            (Union_subset $ assume ⟨u', hu'⟩, subset_sUnion_of_mem $ (hv u' hu').left),
-        have h_encode : encodable {u // u ∈ b'},
-          from (countable.to_encodable $ countable_subset (by simp [subset_def] {contextual := tt}) hb₁),
-        rw [this],
-        exact (@_root_.is_measurable_Union _ _ (measurable_space.generate_from s) h_encode
-          (λb, v b.val b.property)
-          (assume b, ih _ $ (hv _ _).left)) }
+        rcases is_open_sUnion_countable _ f (by rwa hs) with ⟨v, hv, vf, vu⟩,
+        rw ← vu,
+        exact @is_measurable.sUnion α (generate_from s) _ hv
+          (λ x xv, ih _ (vf xv)) }
     end)
   (generate_from_le $ assume u hu, generate_measurable.basic _ $
     show t.is_open u, by rw [hs]; exact generate_open.basic _ hu)
 
 lemma borel_comap {f : α → β} {t : topological_space β} :
-  @measure_theory.borel α (t.induced f) = (@measure_theory.borel β t).comap f :=
-calc @measure_theory.borel α (t.induced f) =
+  @borel α (t.induced f) = (@borel β t).comap f :=
+calc @borel α (t.induced f) =
     measurable_space.generate_from (preimage f '' {s | is_open s }) :
       congr_arg measurable_space.generate_from $ set.ext $ assume s : set α,
       show (t.induced f).is_open s ↔ s ∈ preimage f '' {s | is_open s},
         by simp [topological_space.induced, set.image, eq_comm]; refl
-  ... = (@measure_theory.borel β t).comap f : comap_generate_from.symm
+  ... = (@borel β t).comap f : comap_generate_from.symm
 
 section
 variables [topological_space α]
@@ -87,8 +69,7 @@ lemma is_measurable_interior : is_measurable (interior s) :=
 is_measurable_of_is_open is_open_interior
 
 lemma is_measurable_of_is_closed (h : is_closed s) : is_measurable s :=
-suffices is_measurable (- - s), by simpa,
-is_measurable_compl $ is_measurable_of_is_open $ is_open_compl_iff.mpr h
+is_measurable.compl_iff.1 $ is_measurable_of_is_open h
 
 lemma is_measurable_closure : is_measurable (closure s) :=
 is_measurable_of_is_closed is_closed_closure
@@ -96,15 +77,17 @@ is_measurable_of_is_closed is_closed_closure
 lemma measurable_of_continuous [topological_space β] {f : α → β} (h : continuous f) : measurable f :=
 measurable_generate_from $ assume t ht, is_measurable_of_is_open $ h t ht
 
+lemma borel_prod_le [topological_space β] :
+  prod.measurable_space ≤ borel (α × β) :=
+sup_le
+  (comap_le_iff_le_map.mpr $ measurable_of_continuous continuous_fst)
+  (comap_le_iff_le_map.mpr $ measurable_of_continuous continuous_snd)
+
 lemma borel_prod [second_countable_topology α] [topological_space β] [second_countable_topology β] :
-  prod.measurable_space = measure_theory.borel (α × β) :=
+  prod.measurable_space = borel (α × β) :=
 let ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩ := @is_open_generated_countable_inter α _ _ in
 let ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩ := @is_open_generated_countable_inter β _ _ in
-le_antisymm
-  (sup_le
-    (comap_le_iff_le_map.mpr $ measurable_of_continuous continuous_fst)
-    (comap_le_iff_le_map.mpr $ measurable_of_continuous continuous_snd))
-  begin
+le_antisymm borel_prod_le begin
     have : prod.topological_space = generate_from {g | ∃u∈a, ∃v∈b, g = set.prod u v},
     { rw [ha₅, hb₅], exact prod_generate_from_generate_from_eq ha₄ hb₄ },
     rw [borel_eq_generate_from_of_subbasis this],
@@ -112,7 +95,7 @@ le_antisymm
       have hu : is_open u, by rw [ha₅]; exact generate_open.basic _ hu,
       have hv : is_open v, by rw [hb₅]; exact generate_open.basic _ hv,
       eq.symm ▸ is_measurable_set_prod (is_measurable_of_is_open hu) (is_measurable_of_is_open hv))
-  end
+end
 
 lemma measurable_of_continuous2
   [topological_space α] [second_countable_topology α]
@@ -122,8 +105,8 @@ lemma measurable_of_continuous2
   measurable (λa, c (f a) (g a)) :=
 show measurable ((λp:α×β, c p.1 p.2) ∘ (λa, (f a, g a))),
 begin
-  apply measurable_comp,
-  { rw [←borel_prod],
+  apply measurable.comp,
+  { rw ← borel_prod,
     exact measurable_prod_mk hf hg },
   { exact measurable_of_continuous h }
 end
@@ -136,7 +119,7 @@ measurable_of_continuous2 continuous_add'
 lemma measurable_neg
   [add_group α] [topological_add_group α] [measurable_space β] {f : β → α}
   (hf : measurable f) : measurable (λa, - f a) :=
-measurable_comp hf (measurable_of_continuous continuous_neg')
+hf.comp (measurable_of_continuous continuous_neg')
 
 lemma measurable_sub
   [add_group α] [topological_add_group α] [second_countable_topology α] [measurable_space β]
@@ -156,69 +139,44 @@ lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_measurable_of_is_open is
 lemma is_measurable_Iio : is_measurable (Iio a) := is_measurable_of_is_open is_open_Iio
 
 lemma is_measurable_Ico : is_measurable (Ico a b) :=
-is_measurable_inter (is_measurable_of_is_closed $ is_closed_le continuous_const continuous_id)
+(is_measurable_of_is_closed $ is_closed_le continuous_const continuous_id).inter
   is_measurable_Iio
 
 end ordered_topology
 
 end
 
-section real
-open topological_space
+end measure_theory
 
-lemma is_topological_basis_Ioo_rat :
-  @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
-is_topological_basis_of_open_of_nhds
-  begin simp [is_open_Ioo] {contextual:=tt} end
-  (assume a v hav hv,
-    let
-      ⟨l, u, hl, hu, h⟩ := (mem_nhds_unbounded (no_top _) (no_bot _)).mp (mem_nhds_sets hv hav),
-      ⟨q, hlq, hqa⟩ := exists_rat_btwn hl,
-      ⟨p, hap, hpu⟩ := exists_rat_btwn hu
-    in
-    ⟨Ioo q p,
-      begin simp; exact ⟨q, p, rat.cast_lt.1 $ lt_trans hqa hap, rfl⟩ end,
-      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h _ (lt_trans hlq hqa') (lt_trans ha'p hpu)⟩)
-
-instance : second_countable_topology ℝ :=
-⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),
-  by simp [countable_Union, countable_Union_Prop],
-  is_topological_basis_Ioo_rat.2.2⟩⟩
-
+namespace real
 open measure_theory measurable_space
 
 lemma borel_eq_generate_from_Ioo_rat :
-  measure_theory.borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
+  borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_rat.2.2
 
 lemma borel_eq_generate_from_Iio_rat :
-  measure_theory.borel ℝ = generate_from (⋃a:ℚ, {Iio a}) :=
-let g := measurable_space.generate_from (⋃a:ℚ, {Iio a} : set (set ℝ)) in
-have ∀a b : ℚ, a < b → g.is_measurable (Ioo a b),
-  from assume a b h,
-  have hg : ∀q:ℚ, g.is_measurable (Iio q),
-    from assume q, generate_measurable.basic _ $ by simp; exact ⟨_, rfl⟩,
-  have hgc : ∀q:ℚ, g.is_measurable (- Iio q),
-    from assume q, g.is_measurable_compl _ $ hg q,
-  have (⋃c>a, - Iio (c:ℝ)) ∩ Iio b = Ioo a b,
-    from set.ext $ assume x,
-    have h₁ : ∀p:ℚ, p > a → (p:ℝ) ≤ x → x < b → (a:ℝ) < x,
-      from assume p hpa hpx hxb, lt_of_lt_of_le (rat.cast_lt.2 hpa) hpx,
-    have h₂ : (a:ℝ) < x → x < b → (∃ (i : ℚ), i > a ∧ (i:ℝ) ≤ x),
-      from assume hax hxb,
-      let ⟨c, hac, hcx⟩ := exists_rat_btwn hax in
-      ⟨c, rat.cast_lt.1 hac, le_of_lt hcx⟩,
-    by simp [iff_def, Iio, Ioo] {contextual := tt}; exact ⟨h₁, h₂⟩,
-  this ▸ @is_measurable_inter _ g _ _
-    (@is_measurable_bUnion _ _ g _ _ (countable_encodable _) $ assume b hb, hgc b)
-    (hg b),
-le_antisymm
-  (borel_eq_generate_from_Ioo_rat.symm ▸ generate_from_le
-    (by simp [this] {contextual:=tt}))
-  (generate_from_le $ assume t,
-    have ∀r:ℝ, is_measurable (Iio r), from assume r, generate_measurable.basic _ $ is_open_gt' _,
-    by simp {contextual:=tt}; exact assume h _, this _)
+  borel ℝ = generate_from (⋃a:ℚ, {Iio a}) :=
+begin
+  let g, swap,
+  apply le_antisymm (_ : _ ≤ g) (measurable_space.generate_from_le (λ t, _)),
+  { rw borel_eq_generate_from_Ioo_rat,
+    refine generate_from_le (λ t, _),
+    simp only [mem_Union], rintro ⟨a, b, h, rfl|⟨⟨⟩⟩⟩,
+    rw (set.ext (λ x, _) : Ioo (a:ℝ) b = (⋃c>a, - Iio c) ∩ Iio b),
+    { have hg : ∀q:ℚ, g.is_measurable (Iio q) :=
+        λ q, generate_measurable.basic _ (by simp; exact ⟨_, rfl⟩),
+      refine @is_measurable.inter _ g _ _ _ (hg _),
+      refine @is_measurable.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
+      exact @is_measurable.compl _ _ g (hg _) },
+    { simp [Ioo, Iio],
+      refine and_congr _ iff.rfl,
+      exact ⟨λ h,
+        let ⟨c, ac, cx⟩ := exists_rat_btwn h in
+        ⟨c, rat.cast_lt.1 ac, le_of_lt cx⟩,
+       λ ⟨c, ac, cx⟩, lt_of_lt_of_le (rat.cast_lt.2 ac) cx⟩ } },
+  { simp, rintro r rfl,
+    exact is_measurable_of_is_open (is_open_gt' _) }
+end
 
 end real
-
-end measure_theory

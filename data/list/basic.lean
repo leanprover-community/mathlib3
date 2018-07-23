@@ -1513,12 +1513,12 @@ begin
   induction l with a l IH, {refl},
   cases h : f a with b,
   { rw [filter_map_cons_none _ _ h, filter_map_cons_none, IH],
-    simp [h, option.bind] },
+    simp [h] },
   rw filter_map_cons_some _ _ _ h,
   cases h' : g b with c;
   [ rw [filter_map_cons_none _ _ h', filter_map_cons_none, IH],
     rw [filter_map_cons_some _ _ _ h', filter_map_cons_some, IH] ];
-  simp [h, h', option.bind]
+  simp [h, h']
 end
 
 theorem map_filter_map (f : α → option β) (g : β → γ) (l : list α) :
@@ -1539,7 +1539,7 @@ begin
   rw [← filter_map_eq_filter, filter_map_filter_map], congr,
   funext x,
   show (option.guard p x).bind f = ite (p x) (f x) none,
-  by_cases p x; simp [h, option.guard, option.bind]
+  by_cases p x; simp [h, option.guard]
 end
 
 @[simp] theorem filter_map_some (l : list α) : filter_map some l = l :=

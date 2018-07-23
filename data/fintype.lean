@@ -238,6 +238,41 @@ instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
 by rw [sum.fintype, fintype.of_equiv_card]; simp
 
+lemma fintype.card_le_of_injective [fintype α] [fintype β] (f : α → β) 
+  (hf : function.injective f) : fintype.card α ≤ fintype.card β :=
+by haveI := classical.prop_decidable; exact
+finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
+
+lemma fintype.card_eq_one_iff [fintype α] : fintype.card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
+by rw [← fintype.card_unit, fintype.card_eq]; 
+exact ⟨λ ⟨a⟩, ⟨a.symm unit.star, λ y, a.bijective.1 (subsingleton.elim _ _)⟩, 
+λ ⟨x, hx⟩, ⟨⟨λ _, unit.star, λ _, x, λ _, (hx _).trans (hx _).symm, 
+    λ _, subsingleton.elim _ _⟩⟩⟩
+
+lemma fintype.card_eq_zero_iff [fintype α] : fintype.card α = 0 ↔ (α → false) :=
+⟨λ h a, have e : α ≃ empty := classical.choice (fintype.card_eq.1 (by simp [h])), (e a).elim, 
+λ h, have e : α ≃ empty := ⟨λ a, (h a).elim, λ a, a.elim, λ a, (h a).elim, λ a, a.elim⟩, 
+  by simp [fintype.card_congr e]⟩
+
+lemma fintype.card_pos_iff [fintype α] : 0 < fintype.card α ↔ nonempty α :=
+⟨λ h, classical.by_contradiction (λ h₁, 
+  have fintype.card α = 0 := fintype.card_eq_zero_iff.2 (λ a, h₁ ⟨a⟩),
+  lt_irrefl 0 $ by rwa this at h), 
+λ ⟨a⟩, nat.pos_of_ne_zero (mt fintype.card_eq_zero_iff.1 (λ h, h a))⟩
+
+lemma fintype.card_le_one_iff [fintype α] : fintype.card α ≤ 1 ↔ (∀ a b : α, a = b) :=
+let n := fintype.card α in
+have hn : n = fintype.card α := rfl,
+match n, hn with
+| 0 := λ ha, ⟨λ h, λ a, (fintype.card_eq_zero_iff.1 ha.symm a).elim, λ _, ha ▸ nat.le_succ _⟩
+| 1 := λ ha, ⟨λ h, λ a b, let ⟨x, hx⟩ := fintype.card_eq_one_iff.1 ha.symm in
+  by rw [hx a, hx b],
+    λ _, ha ▸ le_refl _⟩
+| (n+2) := λ ha, ⟨λ h, by rw ← ha at h; exact absurd h dec_trivial, 
+  (λ h, fintype.card_unit ▸ fintype.card_le_of_injective (λ _, ())
+    (λ _ _ _, h _ _))⟩
+end
+
 instance list.subtype.fintype [decidable_eq α] (l : list α) : fintype {x // x ∈ l} :=
 fintype.of_list l.attach l.mem_attach
 
@@ -266,6 +301,18 @@ instance pi.fintype {α : Type*} {β : α → Type*}
   ⟨univ.pi $ λa:α, @univ (β a) _,
     λ f, finset.mem_pi.2 $ λ a ha, mem_univ _⟩
   ⟨λ f a, f a (mem_univ _), λ f a _, f a, λ f, rfl, λ f, rfl⟩
+
+@[simp] lemma fintype.card_pi {β : α → Type*} [fintype α] [decidable_eq α]
+  [f : Π a, fintype (β a)] : fintype.card (Π a, β a) = univ.prod (λ a, fintype.card (β a)) :=
+by letI f' : fintype (Πa∈univ, β a) :=
+  ⟨(univ.pi $ λa, univ), assume f, finset.mem_pi.2 $ assume a ha, mem_univ _⟩;
+exact calc fintype.card (Π a, β a) = fintype.card (Π a ∈ univ, β a) : fintype.card_congr
+  ⟨λ f a ha, f a, λ f a, f a (mem_univ a), λ _, rfl, λ _, rfl⟩ 
+... = univ.prod (λ a, fintype.card (β a)) : finset.card_pi _ _
+
+@[simp] lemma fintype.card_fun [fintype α] [decidable_eq α] [fintype β] :
+  fintype.card (α → β) = fintype.card β ^ fintype.card α :=
+by rw [fintype.card_pi, finset.prod_const, nat.pow_eq_pow]; refl
 
 instance d_array.fintype {n : ℕ} {α : fin n → Type*}
   [∀n, fintype (α n)] : fintype (d_array n α) :=

@@ -312,9 +312,7 @@ quot.lift_on s length $ λ l₁ l₂, perm_length
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a :: s) = card s + 1 :=
 quot.induction_on s $ λ l, rfl
 
-@[simp] theorem card_singleton (a : α) : card ({a} : multiset α) = 1 :=
-calc card ({a} : multiset α) = card (0 : multiset α) + 1 : multiset.card_cons a 0
-  ... = 1 : by simp
+@[simp] theorem card_singleton (a : α) : card (a::0) = 1 := by simp
 
 theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
 le_induction_on h $ λ l₁ l₂, length_le_of_sublist
@@ -358,8 +356,9 @@ multiset.induction_on s (λ _, h₀) $ λ a s _ ih, h₁ _ _ $
 λ t h, ih _ $ lt_of_le_of_lt h $ lt_cons_self _ _
 
 /- singleton -/
-@[simp] theorem mem_singleton {a b : α} : b ∈ a::0 ↔ b = a :=
-by simp
+@[simp] theorem singleton_eq_singleton (a : α) : singleton a = a::0 := rfl
+
+@[simp] theorem mem_singleton {a b : α} : b ∈ a::0 ↔ b = a := by simp
 
 theorem mem_singleton_self (a : α) : a ∈ (a::0 : multiset α) := mem_cons_self _ _
 
@@ -710,6 +709,9 @@ theorem prod_zero [comm_monoid α] : @prod α _ 0 = 1 := rfl
 @[simp, to_additive multiset.sum_cons]
 theorem prod_cons [comm_monoid α] (a : α) (s) : prod (a :: s) = a * prod s :=
 foldr_cons _ _ _ _ _
+
+@[to_additive multiset.sum_singleton]
+theorem prod_singleton [comm_monoid α] (a : α) : prod (a :: 0) = a := by simp
 
 @[simp, to_additive multiset.sum_add]
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
@@ -2334,6 +2336,100 @@ theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
   { simp [count_eq_zero.2 h, nat.zero_le] }
 end⟩
 
+section sup
+variables [semilattice_sup_bot α]
+
+/-- Supremum of a multiset: `sup {a, b, c} = a ⊔ b ⊔ c` -/
+def sup (s : multiset α) : α := s.fold (⊔) ⊥
+
+@[simp] lemma sup_zero : (0 : multiset α).sup = ⊥ :=
+fold_zero _ _
+
+@[simp] lemma sup_cons (a : α) (s : multiset α) :
+  (a :: s).sup = a ⊔ s.sup :=
+fold_cons_left _ _ _ _
+
+@[simp] lemma sup_singleton {a : α} : (a::0).sup = a := by simp
+
+@[simp] lemma sup_add (s₁ s₂ : multiset α) : (s₁ + s₂).sup = s₁.sup ⊔ s₂.sup :=
+eq.trans (by simp [sup]) (fold_add _ _ _ _ _)
+
+variables [decidable_eq α]
+
+@[simp] lemma sup_erase_dup (s : multiset α) : (erase_dup s).sup = s.sup :=
+fold_erase_dup_idem _ _ _
+
+@[simp] lemma sup_ndunion (s₁ s₂ : multiset α) :
+  (ndunion s₁ s₂).sup = s₁.sup ⊔ s₂.sup :=
+by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
+
+@[simp] lemma sup_union (s₁ s₂ : multiset α) :
+  (s₁ ∪ s₂).sup = s₁.sup ⊔ s₂.sup :=
+by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
+
+@[simp] lemma sup_ndinsert (a : α) (s : multiset α) :
+  (ndinsert a s).sup = a ⊔ s.sup :=
+by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_cons]; simp
+
+lemma sup_le {s : multiset α} {a : α} : s.sup ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+multiset.induction_on s (by simp)
+  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
+
+lemma le_sup {s : multiset α} {a : α} (h : a ∈ s) : a ≤ s.sup :=
+sup_le.1 (le_refl _) _ h
+
+lemma sup_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.sup ≤ s₂.sup :=
+sup_le.2 $ assume b hb, le_sup (h hb)
+
+end sup
+
+section inf
+variables [semilattice_inf_top α]
+
+/-- Infimum of a multiset: `inf {a, b, c} = a ⊓ b ⊓ c` -/
+def inf (s : multiset α) : α := s.fold (⊓) ⊤
+
+@[simp] lemma inf_zero : (0 : multiset α).inf = ⊤ :=
+fold_zero _ _
+
+@[simp] lemma inf_cons (a : α) (s : multiset α) :
+  (a :: s).inf = a ⊓ s.inf :=
+fold_cons_left _ _ _ _
+
+@[simp] lemma inf_singleton {a : α} : (a::0).inf = a := by simp
+
+@[simp] lemma inf_add (s₁ s₂ : multiset α) : (s₁ + s₂).inf = s₁.inf ⊓ s₂.inf :=
+eq.trans (by simp [inf]) (fold_add _ _ _ _ _)
+
+variables [decidable_eq α]
+
+@[simp] lemma inf_erase_dup (s : multiset α) : (erase_dup s).inf = s.inf :=
+fold_erase_dup_idem _ _ _
+
+@[simp] lemma inf_ndunion (s₁ s₂ : multiset α) :
+  (ndunion s₁ s₂).inf = s₁.inf ⊓ s₂.inf :=
+by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_add]; simp
+
+@[simp] lemma inf_union (s₁ s₂ : multiset α) :
+  (s₁ ∪ s₂).inf = s₁.inf ⊓ s₂.inf :=
+by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_add]; simp
+
+@[simp] lemma inf_ndinsert (a : α) (s : multiset α) :
+  (ndinsert a s).inf = a ⊓ s.inf :=
+by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_cons]; simp
+
+lemma le_inf {s : multiset α} {a : α} : a ≤ s.inf ↔ (∀b ∈ s, a ≤ b) :=
+multiset.induction_on s (by simp)
+  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
+
+lemma inf_le {s : multiset α} {a : α} (h : a ∈ s) : s.inf ≤ a :=
+le_inf.1 (le_refl _) _ h
+
+lemma inf_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.inf ≤ s₁.inf :=
+le_inf.2 $ assume b hb, inf_le (h hb)
+
+end inf
+
 section sort
 variables (r : α → α → Prop) [decidable_rel r]
   [is_trans α r] [is_antisymm α r] [is_total α r]
@@ -2435,7 +2531,7 @@ end
 
 /-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/
 def pi (m : multiset α) (t : Πa, multiset (δ a)) : multiset (Πa∈m, δ a) :=
-m.rec_on { pi.empty δ } (λa m (p : multiset (Πa∈m, δ a)), (t a).bind $ λb, p.map $ pi.cons m a b)
+m.rec_on {pi.empty δ} (λa m (p : multiset (Πa∈m, δ a)), (t a).bind $ λb, p.map $ pi.cons m a b)
 begin
   intros a a' m n,
   by_cases eq : a = a',
@@ -2450,8 +2546,7 @@ begin
     exact pi.cons_swap eq }
 end
 
-@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = {pi.empty δ} :=
-rfl
+@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = pi.empty δ :: 0 := rfl
 
 @[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
   pi (a :: m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
@@ -2472,7 +2567,7 @@ multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
 
 lemma nodup_pi {s : multiset α} {t : Πa, multiset (δ a)} :
   nodup s → (∀a∈s, nodup (t a)) → nodup (pi s t) :=
-multiset.induction_on s (assume _ _ , nodup_singleton _)
+multiset.induction_on s (assume _ _, nodup_singleton _)
 begin
   assume a s ih hs ht,
   have has : a ∉ s, by simp at hs; exact hs.1,
@@ -2490,37 +2585,23 @@ end
 
 lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
   ∀f:Πa∈m, δ a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=
-multiset.induction_on m
-  begin
-    assume f,
-    have : f = pi.empty δ, { funext a ha, exact ha.elim },
-    subst this,
-    split,
-    { intros _ a ha, exact ha.elim },
-    { intros, simp, exact mem_cons_self _ 0 }
-  end
-  begin
-    assume a m ih f,
-    simp [iff_def],
-    split,
-    { intros b hb f' hf' eq a' ha',
-      subst eq,
-      rw [ih] at hf',
-      by_cases a' = a,
-      { subst h,
-        rw [pi.cons_same],
-        exact hb },
-      { rw [pi.cons_ne _ h],
-        exact hf' _ _ } },
-    { assume hf,
-      refine ⟨f a (mem_cons_self a _), hf a (mem_cons_self a _), (λa ha, f a (mem_cons_of_mem ha)), _, _⟩,
-      { rw [ih],
-        assume a' h', exact hf _ _ },
-      { funext a' h',
-        by_cases a' = a,
-        { subst h, rw [pi.cons_same] },
-        { rw [pi.cons_ne _ h] } } }
-  end
+begin
+  refine multiset.induction_on m (λ f, _) (λ a m ih f, _),
+  { simpa using show f = pi.empty δ, by funext a ha; exact ha.elim },
+  simp, split,
+  { rintro ⟨b, hb, f', hf', rfl⟩ a' ha',
+    rw [ih] at hf',
+    by_cases a' = a,
+    { subst h, rwa [pi.cons_same] },
+    { rw [pi.cons_ne _ h], apply hf' } },
+  { intro hf,
+    refine ⟨_, hf a (mem_cons_self a _), λa ha, f a (mem_cons_of_mem ha),
+      (ih _).2 (λ a' h', hf _ _), _⟩,
+    funext a' h',
+    by_cases a' = a,
+    { subst h, rw [pi.cons_same] },
+    { rw [pi.cons_ne _ h] } }
+end
 
 end pi
 

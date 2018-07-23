@@ -301,4 +301,18 @@ or.elim (eq_zero_or_pos (gcd k m))
     dvd_of_mul_dvd_mul_left gpos $ by rw [←hd, ←gcd_mul_right]; exact
       dvd_gcd (dvd_mul_right _ _) H⟩)
 
+theorem pow_dvd_pow_iff {a b n : ℕ} (n0 : 0 < n) : a ^ n ∣ b ^ n ↔ a ∣ b :=
+begin
+  refine ⟨λ h, _, λ h, pow_dvd_pow_of_dvd h _⟩,
+  cases eq_zero_or_pos (gcd a b) with g0 g0,
+  { simp [eq_zero_of_gcd_eq_zero_right g0, dvd_zero] },
+  rcases exists_coprime g0 with ⟨a', b', co, h₁, h₂⟩,
+  generalize_hyp : gcd a b = g at g0 h₁ h₂, substs a b,
+  rw [mul_pow, mul_pow] at h,
+  replace h := dvd_of_mul_dvd_mul_right (pos_pow_of_pos _ g0) h,
+  have := pow_dvd_pow a' n0,
+  rw [pow_one, (co.pow n n).eq_one_of_dvd h] at this,
+  simp [eq_one_of_dvd_one this]
+end
+
 end nat

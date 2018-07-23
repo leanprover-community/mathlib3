@@ -110,7 +110,7 @@ lemma countable_finite {s : set α} : finite s → countable s
 | ⟨h⟩ := nonempty_of_trunc (by exactI trunc_encodable_of_fintype s)
 
 lemma countable_set_of_finite_subset {s : set α} : countable s →
-  countable {t | finite t ∧ t ⊆ s } | ⟨h⟩ :=
+  countable {t | finite t ∧ t ⊆ s} | ⟨h⟩ :=
 begin
   resetI,
   refine countable_subset _ (countable_range

@@ -480,3 +480,56 @@ a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
 by apply_rules mono_rules
 
 end apply_rules
+
+section h_generalize
+
+variables {α β γ φ ψ : Type} (f : α → α → α → φ → γ)
+          (x y : α) (a b : β) (z : φ)
+          (h₀ : β = α) (h₁ : β = α) (h₂ : φ = β)
+          (hx : x == a) (hy : y == b) (hz : z == a)
+include f x y z a b hx hy hz
+
+example : f x y x z = f (eq.rec_on h₀ a) (cast h₀ b) (eq.mpr h₁.symm a) (eq.mpr h₂ a) :=
+begin
+  guard_hyp_nums 16,
+  h_generalize hp : a == p with hh,
+  guard_hyp_nums 19,
+  guard_hyp' hh := β = α,
+  guard_target f x y x z = f p (cast h₀ b) p (eq.mpr h₂ a),
+  h_generalize hq : _ == q,
+  guard_hyp_nums 21,
+  guard_target f x y x z = f p q p (eq.mpr h₂ a),
+  h_generalize _ : _ == r,
+  guard_hyp_nums 23,
+  guard_target f x y x z = f p q p r,
+  casesm* [_ == _, _ = _], refl
+end
+
+end h_generalize
+
+section h_generalize
+
+variables {α β γ φ ψ : Type} (f : list α → list α → γ)
+          (x : list α) (a : list β) (z : φ)
+          (h₀ : β = α) (h₁ : list β = list α)
+          (hx : x == a)
+include f x z a hx h₀ h₁
+
+example : true :=
+begin
+  have : f x x = f (eq.rec_on h₀ a) (cast h₁ a),
+  { guard_hyp_nums 11,
+    h_generalize : a == p with _,
+    guard_hyp_nums 13,
+    guard_hyp' h := β = α,
+    guard_target f x x = f p (cast h₁ a),
+    h_generalize! : a == q ,
+    guard_hyp_nums 13,
+    guard_target ∀ q, f x x = f p q,
+    casesm* [_ == _, _ = _],
+    success_if_fail { refl },
+    admit },
+  trivial
+end
+
+end h_generalize

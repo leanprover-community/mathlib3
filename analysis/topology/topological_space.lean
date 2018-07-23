@@ -1154,6 +1154,23 @@ let ⟨f, hf⟩ := this in
         from ne_empty_of_mem ⟨hf _ hs, mem_bUnion hs $ mem_Union.mpr ⟨hs, by simp⟩⟩,
       by simp [this]) ⟩⟩
 
+lemma is_open_sUnion_countable [second_countable_topology α]
+  (S : set (set α)) (H : ∀ s ∈ S, _root_.is_open s) :
+  ∃ T : set (set α), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
+let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
+begin
+  let B' := {b ∈ B | ∃ s ∈ S, b ⊆ s},
+  rcases axiom_of_choice (λ b:B', b.2.2) with ⟨f, hf⟩,
+  change B' → set α at f,
+  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable, 
+  have : range f ⊆ S := range_subset_iff.2 (λ x, (hf x).fst),
+  exact ⟨_, countable_range f, this,
+    subset.antisymm (sUnion_subset_sUnion this) $
+    sUnion_subset $ λ s hs x xs,
+      let ⟨b, hb, xb, bs⟩ := mem_basis_subset_of_mem_open bB xs (H _ hs) in
+      ⟨_, ⟨⟨_, hb, _, hs, bs⟩, rfl⟩, (hf _).snd xb⟩⟩
+end
+
 end topological_space
 
 section limit

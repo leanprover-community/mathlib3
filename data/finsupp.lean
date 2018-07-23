@@ -68,6 +68,7 @@ instance : inhabited (α →₀ β) := ⟨0⟩
 @[simp] lemma mem_support_iff (f : α →₀ β) : ∀a:α, a ∈ f.support ↔ f a ≠ 0 :=
 f.mem_support_to_fun
 
+@[extensionality]
 lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin
@@ -695,5 +696,18 @@ lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} 
 finsupp.sum_map_range_index h0
 
 end decidable
+
+section
+variables [semiring β] [semiring γ]
+
+lemma sum_mul (b : γ) (s : α →₀ β) {f : α → β → γ} :
+  (s.sum f) * b = s.sum (λ a c, (f a (s a)) * b) :=
+by simp [finsupp.sum, finset.sum_mul]
+
+lemma mul_sum [semiring β] [semiring γ] (b : γ) (s : α →₀ β) {f : α → β → γ} :
+  b * (s.sum f) = s.sum (λ a c, b * (f a (s a))) :=
+by simp [finsupp.sum, finset.mul_sum]
+
+end
 
 end finsupp

@@ -158,7 +158,11 @@ meta def continue (tac : itactic) : tactic unit :=
 
 /-- Move goal `n` to the front. -/
 meta def swap (n := 2) : tactic unit :=
-if n = 2 then tactic.swap else tactic.rotate (n-1)
+do gs ← get_goals,
+   match gs.nth (n-1) with
+   | (some g) := set_goals (g :: gs.remove_nth (n-1))
+   | _        := skip
+   end
 
 /-- Generalize proofs in the goal, naming them with the provided list. -/
 meta def generalize_proofs : parse ident_* → tactic unit :=
@@ -317,11 +321,12 @@ do tgt : expr ← target,
      | _ := none
      end)
 
-meta def source_fields (missing : list (name × name)) (e : pexpr) : tactic (list (name × pexpr)) :=
+meta def source_fields (missing : list name) (e : pexpr) : tactic (list (name × pexpr)) :=
 do e ← to_expr e,
    t ← infer_type e,
    let struct_n : name := t.get_app_fn.const_name,
-   exp_fields ← (∩ missing) <$> expanded_field_list struct_n,
+   fields ← expanded_field_list struct_n,
+   let exp_fields := fields.filter (λ x, x.2 ∈ missing),
    exp_fields.mmap $ λ ⟨p,n⟩,
      (prod.mk n ∘ to_pexpr) <$> mk_mapp (n.update_prefix p) [none,some e]
 
@@ -341,7 +346,7 @@ do    tgt ← target,
       let struct_n : name := tgt.get_app_fn.const_name,
       exp_fields ← expanded_field_list struct_n,
       let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),
-      (src_field_names,src_field_vals) ← (@list.unzip name _ ∘ list.join) <$> str.sources.mmap (source_fields missing_f),
+      (src_field_names,src_field_vals) ← (@list.unzip name _ ∘ list.join) <$> str.sources.mmap (source_fields $ missing_f.map prod.snd),
       let provided  := exp_fields.filter (λ f, (f.2 : name) ∈ str.field_names),
       let missing_f' := missing_f.filter (λ x, x.2 ∉ src_field_names),
       vs ← mk_mvar_list missing_f'.length,
@@ -395,6 +400,18 @@ do (x,xs) ← collect_struct e,
    gs ← get_goals,
    xs' ← xs.mmap refine_recursively,
    set_goals (xs'.join ++ gs)
+
+/--
+`guard_hyp h := t` fails if the hypothesis `h` does not have type `t`.
+We use this tactic for writing tests.
+Fixes `guard_hyp` by instantiating meta variables
+-/
+meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
+
+meta def guard_hyp_nums (n : ℕ) : tactic unit :=
+do k ← local_context,
+   guard (n = k.length) <|> fail format!"{k.length} hypotheses found"
 
 meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
@@ -456,6 +473,85 @@ by apply_rules mono_rules
 -/
 meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
 tactic.apply_rules hs n
+
+meta def return_cast (f : option expr) (t : option (expr × expr)) (es : list expr) (e x x' : expr) :
+  tactic (option (expr × expr) × list expr) :=
+(do guard (¬ e.has_var),
+    unify x x',
+    u ← mk_meta_univ,
+    f ← f <|> to_expr ``(@id %%(expr.sort u : expr)),
+    t' ← infer_type e,
+    some (f',t) ← pure t | return (some (f,t'), e :: es),
+    infer_type e >>= is_def_eq t,
+    unify f f',
+    return (some (f,t), e :: es)) <|>
+return (t, es)
+
+meta def list_cast_of_aux (x : expr) (t : option (expr × expr)) (es : list expr) :
+  expr → tactic (option (expr × expr) × list expr)
+| e@`(cast _ %%x') := return_cast none t es e x x'
+| e@`(eq.mp _ %%x') := return_cast none t es e x x'
+| e@`(eq.mpr _ %%x') := return_cast none t es e x x'
+| e@`(@eq.subst %%α %%p %%a %%b _ %%x') := return_cast p t es e x x'
+| e@`(@eq.substr %%α %%p %%a %%b _ %%x') := return_cast p t es e x x'
+| e@`(@eq.rec %%α %%a %%f %%x' _ _) := return_cast f t es e x x'
+| e@`(@eq.rec_on %%α %%a %%f %%b _ %%x') := return_cast f t es e x x'
+| e := return (t,es)
+
+meta def list_cast_of (x tgt : expr) : tactic (list expr) :=
+(list.reverse ∘ prod.snd) <$> tgt.mfold (none, []) (λ e i es, list_cast_of_aux x es.1 es.2 e)
+
+private meta def h_generalize_arg_p_aux : pexpr → parser (pexpr × name)
+| (app (app (macro _ [const `heq _ ]) h) (local_const x _ _ _)) := pure (h, x)
+| _ := fail "parse error"
+
+private meta def h_generalize_arg_p : parser (pexpr × name) :=
+with_desc "expr == id" $ parser.pexpr 0 >>= h_generalize_arg_p_aux
+
+/-- `h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
+    `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
+    times (not necessarily with the same proof), they are all replaced by `x`. `cast`
+    `eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
+    as casts.
+
+    `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`.
+
+    `h_generalize Hx : e == x with _` chooses automatically chooses the name of
+    assumption `α = β`.
+
+    `h_generalize! Hx : e == x` reverts `Hx`.
+
+    when `Hx` is omitted, assumption `Hx : e == x` is not added.
+-/
+meta def h_generalize (rev : parse (tk "!")?)
+     (h : parse ident_?)
+     (_ : parse (tk ":"))
+     (arg : parse h_generalize_arg_p)
+     (eqs_h : parse ( (tk "with" >> pure <$> ident_) <|> pure [])) :
+  tactic unit :=
+do let (e,n) := arg,
+   let h' := if h = `_ then none else h,
+   h' ← (h' : tactic name) <|> get_unused_name ("h" ++ n.to_string : string),
+   e ← to_expr e,
+   tgt ← target,
+   (e::es) ← list_cast_of e tgt | fail "no cast found",
+   interactive.generalize h' () (to_pexpr e, n),
+   asm ← get_local h',
+   v ← get_local n,
+   hs ← es.mmap (λ e, mk_app `eq [e,v]),
+   (eqs_h.zip [e]).mmap' (λ ⟨h,e⟩, do
+        h ← if h ≠ `_ then pure h else get_unused_name `h,
+        p ← mk_mvar, a ← mk_mvar, b ← mk_mvar, c ← mk_mvar,
+        to_expr ``(@eq.rec %%a %%b %%c _ _ %%p) >>= unify e,
+        () <$ note h none p ),
+   hs.mmap' (λ h,
+     do h' ← assert `h h,
+        tactic.exact asm,
+        try (rewrite_target h'),
+        tactic.clear h' ),
+   when h.is_some $ to_expr ``(heq_of_eq_rec_left _ %%asm) >>= note h' none >> pure (),
+   tactic.clear asm,
+   when rev.is_some (interactive.revert [n])
 
 end interactive
 end tactic

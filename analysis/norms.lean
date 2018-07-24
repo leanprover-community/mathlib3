@@ -4,8 +4,8 @@ import algebra.pi_instances
 import analysis.metric_space_fintype_pi
 
 noncomputable theory
-
-local notation f `→_{`:50 a `}`:0 b := filter.tendsto f (nhds a) (nhds b)
+open filter
+local notation f `→_{`:50 a `}`:0 b := tendsto f (nhds a) (nhds b)
 
 class normed_group (α : Type*) extends add_comm_group α, metric_space α :=
 (norm : α → ℝ)
@@ -93,7 +93,7 @@ instance fintype.normed_group {ι : Type*} {α : ι → Type*} [fintype ι] [∀
 { norm := λf, finset.maxi finset.univ (λ b, ∥f b∥),
   dist_eq := assume x y, by finish [norm_dist'] }
 
-lemma tendsto_iff_norm_tendsto_zero {f : G → H} {a : G} {b : H} : (f →_{a} b) ↔ ((λ e, ∥ f e - b ∥) →_{a} 0) :=
+lemma tendsto_iff_norm_tendsto_zero {α : Type*}{f : α → H} {a : filter α} {b : H} : tendsto f a (nhds b) ↔ tendsto (λ e, ∥ f e - b ∥) a (nhds 0) :=
 by rw tendsto_iff_dist_tendsto_zero ; simp only [norm_dist'.symm]  
 
 lemma lim_norm (x: G) : ((λ g, ∥g-x∥) : G → ℝ) →_{x} 0 :=
@@ -102,8 +102,8 @@ lemma lim_norm (x: G) : ((λ g, ∥g-x∥) : G → ℝ) →_{x} 0 :=
 lemma lim_norm_zero  : ((λ g, ∥g∥) : G → ℝ) →_{0} 0 :=
 by simpa using lim_norm (0:G)
 
-lemma squeeze_zero {T : Type*} [metric_space T] {f g : T → ℝ} {t₀ : T} : 
-(∀ t : T, 0 ≤ f t) → (∀ t : T, f t ≤ g t) → (g →_{t₀} 0) → (f →_{t₀} 0) :=
+lemma squeeze_zero {T : Type*} {f g : T → ℝ} {t₀ : filter T} : 
+(∀ t : T, 0 ≤ f t) → (∀ t : T, f t ≤ g t) → tendsto g t₀ (nhds 0) → tendsto f t₀ (nhds 0) :=
 begin
   intros _ _ g0,
   apply tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds) g0;
@@ -112,11 +112,10 @@ end
 
 lemma norm_continuous {G : Type*} [normed_group G]: continuous ((λ g, ∥g∥) : G → ℝ) := 
 begin
-  apply continuous_iff_tendsto.2,
+  rw continuous_iff_tendsto,
   intro x,
-  have : (λ (g : G), dist ∥g∥ ∥x∥) →_{x} 0 := 
-    squeeze_zero (λ t, abs_nonneg _) (λ t, norm_triangle' _ _) (lim_norm x),
-  exact tendsto_iff_dist_tendsto_zero.2 this
+  rw tendsto_iff_dist_tendsto_zero,
+  exact squeeze_zero (λ t, abs_nonneg _) (λ t, norm_triangle' _ _) (lim_norm x)
 end
 
 
@@ -124,28 +123,28 @@ instance normed_top_monoid  : topological_add_monoid G  :=
 ⟨begin 
   apply continuous_iff_tendsto.2 _,
   intro x,
-  apply tendsto_iff_norm_tendsto_zero.2,
+  rw tendsto_iff_norm_tendsto_zero,
   
   have ineq := λ e: G × G, calc
   ∥e.fst + e.snd - (x.fst + x.snd)∥ = ∥(e.fst-x.fst) + (e.snd - x.snd)∥ : by simp
   ... ≤ ∥e.fst - x.fst∥ + ∥ e.snd - x.snd ∥  : norm_triangle (e.fst-x.fst) (e.snd - x.snd),
 
-  apply squeeze_zero (by simp) ineq,
-  
   have ineq1 : ∀ e : G × G, ∥ e.fst - x.fst∥ ≤ ∥e - x∥ := assume e, norm_proj1_le (e-x),
   have lim1 : (λ e : G × G, ∥ e.fst - x.fst∥) →_{x} 0 := squeeze_zero (by simp) ineq1 (lim_norm x), 
   
   have ineq2 : ∀ e : G × G, ∥ e.snd - x.snd∥ ≤ ∥e - x∥ := assume e, norm_proj2_le (e-x),
   have lim2 : (λ e : G × G, ∥ e.snd - x.snd∥) →_{x} 0 := squeeze_zero (by simp) ineq2 (lim_norm x), 
   
-  simpa using tendsto_add lim1 lim2
+  have := tendsto_add lim1 lim2,
+  rw add_zero at this,
+  exact squeeze_zero (by simp) ineq this
 end⟩
 
 instance normed_top_group  : topological_add_group G  := 
 { continuous_neg := begin
     apply continuous_iff_tendsto.2,
     intro x,
-    apply tendsto_iff_norm_tendsto_zero.2,
+    rw tendsto_iff_norm_tendsto_zero,
 
     have lim_negx : (λ (e : G), -x ) →_{x} -x := tendsto_const_nhds,
     have lim_e : (λ (e : G), e) →_{x} x := continuous_iff_tendsto.1 continuous_id x,
@@ -240,12 +239,12 @@ normed_space.norm_smul _ _
 
 variables {E : Type*} {F : Type*} [normed_space α E] [normed_space α F]
 
-lemma tendsto_smul {f : E → α} { g : E → F} {e : E} {s : α} {b : F} :
-(f →_{e} s) → (g →_{e} b) → ((λ e, (f e) • (g e)) →_{e} s • b) := 
+lemma tendsto_smul {γ : Type*} {f : γ → α} { g : γ → F} {e : filter γ} {s : α} {b : F} :
+(tendsto f e (nhds s)) → (tendsto g e (nhds b)) → tendsto (λ x, (f x) • (g x)) e (nhds (s • b)) := 
 begin
   intros limf limg,
-  apply tendsto_iff_norm_tendsto_zero.2,
-  have ineq := λ x : E, calc 
+  rw tendsto_iff_norm_tendsto_zero,
+  have ineq := λ x : γ, calc 
       ∥f x • g x - s • b∥ = ∥(f x • g x - s • g x) + (s • g x - s • b)∥ : by simp[add_assoc]
                       ... ≤ ∥f x • g x - s • g x∥ + ∥s • g x - s • b∥ : norm_triangle (f x • g x - s • g x) (s • g x - s • b)
                       ... ≤ ∥f x - s∥*∥g x∥ + ∥s∥*∥g x - b∥ : by { rw [←smul_sub, ←sub_smul, norm_smul, norm_smul] },
@@ -254,13 +253,13 @@ begin
   { exact ineq },
   { clear ineq,
     
-    have limf': (λ (x : E), ∥f x - s∥)→_{e}0 := tendsto_iff_norm_tendsto_zero.1 limf,
-    have limg' : (λ (x : E), ∥g x∥) →_{e} ∥b∥ := filter.tendsto.comp limg (continuous_iff_tendsto.1 norm_continuous _),
+    have limf': tendsto (λ x, ∥f x - s∥) e (nhds 0) := tendsto_iff_norm_tendsto_zero.1 limf,
+    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp limg (continuous_iff_tendsto.1 norm_continuous _),
     
-    have lim1 : (λ (x : E), ∥f x - s∥ * ∥g x∥)→_{e}0, 
+    have lim1 : tendsto (λ x, ∥f x - s∥ * ∥g x∥) e (nhds 0), 
       by simpa using tendsto_mul limf' limg',
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
-    have lim2 : (λ (x : E), ∥s∥ * ∥g x - b∥) →_{e} 0, 
+    have lim2 : tendsto (λ x, ∥s∥ * ∥g x - b∥) e (nhds 0), 
       by simpa using tendsto_mul tendsto_const_nhds limg3,
         
     rw [show (0:ℝ) = 0 + 0, by simp],

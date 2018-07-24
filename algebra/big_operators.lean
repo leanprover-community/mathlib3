@@ -211,7 +211,7 @@ attribute [to_additive finset.sum_const] prod_const
 lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (range (nat.succ n)).sum f = (range n).sum (f ∘ nat.succ) + f 0 :=
 @prod_range_succ' (multiplicative β) _ _
-attribute [to_additive finset.sum_range_succc'] sum_range_succ'
+attribute [to_additive finset.sum_range_succ'] sum_range_succ'
 
 section comm_group
 variables [comm_group β]

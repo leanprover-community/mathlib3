@@ -260,7 +260,7 @@ end logic
  * build up the lattice hierarchy for `fun`-functor piecewise. semilattic_*, bounded_lattice, lattice ...
  * can this be generalized to the dependent function space?
 -/
-instance bounded_lattice_fun {α : Type u} {β : Type v} [bounded_lattice β] :
+instance pi.bounded_lattice {α : Type u} {β : Type v} [bounded_lattice β] :
   bounded_lattice (α → β) :=
 { sup          := λf g a, f a ⊔ g a,
   le_sup_left  := assume f g a, le_sup_left,
@@ -277,7 +277,7 @@ instance bounded_lattice_fun {α : Type u} {β : Type v} [bounded_lattice β] :
 
   bot          := λa, ⊥,
   bot_le       := assume f a, bot_le,
-  ..partial_order_fun }
+  ..pi.partial_order }
 
 end lattice
 

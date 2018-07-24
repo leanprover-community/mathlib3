@@ -74,14 +74,14 @@ def preorder.dual (o : preorder α) : preorder α :=
   le_refl  := le_refl,
   le_trans := assume a b c h₁ h₂, le_trans h₂ h₁ }
 
-instance preorder_fun {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] : preorder (Πi, α i) :=
+instance pi.preorder {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] : preorder (Πi, α i) :=
 { le       := λx y, ∀i, x i ≤ y i,
   le_refl  := assume a i, le_refl (a i),
   le_trans := assume a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
 
-instance partial_order_fun {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] : partial_order (Πi, α i) :=
+instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] : partial_order (Πi, α i) :=
 { le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),
-  ..preorder_fun }
+  ..pi.preorder }
 
 /-- Order dual of a partial order -/
 def partial_order.dual (wo : partial_order α) : partial_order α :=

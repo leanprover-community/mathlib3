@@ -620,7 +620,7 @@ instance complete_lattice_Prop : complete_lattice Prop :=
   le_Inf := assume s a h p b hb, h b hb p,
   ..lattice.bounded_lattice_Prop }
 
-instance complete_lattice_fun {α : Type u} {β : Type v} [complete_lattice β] :
+instance pi.complete_lattice {α : Type u} {β : Type v} [complete_lattice β] :
   complete_lattice (α → β) :=
 { Sup    := λs a, Sup (set.image (λf : α → β, f a) s),
   le_Sup := assume s f h a, le_Sup ⟨f, h, rfl⟩,
@@ -628,7 +628,7 @@ instance complete_lattice_fun {α : Type u} {β : Type v} [complete_lattice β] 
   Inf    := λs a, Inf (set.image (λf : α → β, f a) s),
   Inf_le := assume s f h a, Inf_le ⟨f, h, rfl⟩,
   le_Inf := assume s f h a, le_Inf $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a,
-  ..lattice.bounded_lattice_fun }
+  ..lattice.pi.bounded_lattice }
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]

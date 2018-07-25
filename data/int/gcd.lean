@@ -90,7 +90,7 @@ gcd_dvd_gcd_of_dvd_right _ (dvd_mul_right _ _)
 
 theorem gcd_eq_left {i j : ℤ} (H : i ∣ j) : gcd i j = nat_abs i :=
 nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
-                 (by unfold gcd; exact nat.dvd_gcd (dvd_refl _) (nat_abs_dvd_abs H))
+                 (by unfold gcd; exact nat.dvd_gcd (dvd_refl _) (nat_abs_dvd_abs_iff.mpr H))
 
 theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
 by rw [gcd_comm, gcd_eq_left H]

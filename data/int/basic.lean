@@ -632,14 +632,6 @@ begin
     ... = nat_abs a / nat_abs b : by rw int.div_mul_cancel H,
 end
 
-theorem nat_abs_dvd_abs {i j : ℤ} (H : i ∣ j) : (nat_abs i ∣ nat_abs j) := 
-begin 
-  unfold has_dvd.dvd,
-  cases H with k Hk,
-  apply exists.intro (nat_abs k),
-  rw [Hk, nat_abs_mul]
-end
-
 theorem nat_abs_dvd_abs_iff {i j : ℤ} : i.nat_abs ∣ j.nat_abs ↔ i ∣ j :=
 ⟨assume (H : i.nat_abs ∣ j.nat_abs), dvd_nat_abs.mp (nat_abs_dvd.mp (coe_nat_dvd.mpr H)), 
 assume H : (i ∣ j), coe_nat_dvd.mp (dvd_nat_abs.mpr (nat_abs_dvd.mpr H))⟩

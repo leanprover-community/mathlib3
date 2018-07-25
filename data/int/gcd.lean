@@ -67,12 +67,8 @@ eq_zero_of_nat_abs_eq_zero (nat.eq_zero_of_gcd_eq_zero_right H)
 
 theorem gcd_div {i j k : ℤ} (H1 : k ∣ i) (H2 : k ∣ j) :
   gcd (i / k) (j / k) = gcd i j / nat_abs k :=
-begin
-  unfold gcd,
-  
-  have H3 : nat.gcd (nat_abs i / nat_abs k) (nat_abs j / nat_abs k) = gcd i j / nat_abs k, from nat.gcd_div (nat_abs_dvd_nat_abs.mpr H1) (nat_abs_dvd_nat_abs.mpr H2),
-  sorry,
-end
+by rw [gcd, nat_abs_div i k H1, nat_abs_div j k H2];
+exact nat.gcd_div (nat_abs_dvd_abs_iff.mpr H1) (nat_abs_dvd_abs_iff.mpr H2)
 
 theorem gcd_dvd_gcd_of_dvd_left {i k : ℤ} (j : ℤ) (H : i ∣ k) : gcd i j ∣ gcd k j :=
 int.coe_nat_dvd.1 $ dvd_gcd (dvd.trans (gcd_dvd_left i j) H) (gcd_dvd_right i j)
@@ -95,7 +91,6 @@ gcd_dvd_gcd_of_dvd_right _ (dvd_mul_right _ _)
 theorem gcd_eq_left {i j : ℤ} (H : i ∣ j) : gcd i j = nat_abs i :=
 nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
                  (by unfold gcd; exact nat.dvd_gcd (dvd_refl _) (nat_abs_dvd_abs H))
-
 
 theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
 by rw [gcd_comm, gcd_eq_left H]
@@ -132,35 +127,21 @@ nat_abs_dvd.mp (coe_nat_dvd.mpr (eq.subst (eq.symm (lcm_def i j))
 theorem dvd_lcm_right (i j : ℤ) : j ∣ lcm i j :=
 lcm_comm j i ▸ dvd_lcm_left j i
 
-/-
 theorem gcd_mul_lcm (i j : ℤ) : gcd i j * lcm i j = nat_abs (i * j) :=
 begin
-  rw lcm,
-  rw mul_comm,
-  rw nat.div_mul_cancel,
-  have H : (gcd i j : ℤ) ∣ i, from gcd_dvd_left i j,
-  have H2 : gcd i j ∣ nat_abs i, by simp,
+  rw [lcm, mul_comm, nat.div_mul_cancel],
+  exact eq.subst (eq.symm (nat_abs_mul i j)) 
+                 (dvd_mul_of_dvd_left (coe_nat_dvd.mp (dvd_nat_abs.mpr (gcd_dvd_left i j))) _),
 end
 
-
-
 theorem lcm_dvd {i j k : ℤ} (H1 : i ∣ k) (H2 : j ∣ k) : (lcm i j : ℤ) ∣ k :=
-or.elim (eq_zero_or_pos k)
-  (λh, by rw h; exact dvd_zero _)
-  (λkpos, dvd_of_mul_dvd_mul_left (gcd_pos_of_pos_left j (pos_of_dvd_of_pos H1 kpos)) $
-    by rw [gcd_mul_lcm, ←gcd_mul_right, mul_comm j k];
-       exact dvd_gcd (mul_dvd_mul_left _ H2) (mul_dvd_mul_right H1 _))
+dvd_nat_abs.mp (coe_nat_dvd.mpr (eq.subst (eq.symm (lcm_def i j)) 
+                                          (nat.lcm_dvd (nat_abs_dvd_abs_iff.mpr H1)
+                                                       (nat_abs_dvd_abs_iff.mpr H2))))
 
 theorem lcm_assoc (i j k : ℤ) : lcm (lcm i j) k = lcm i (lcm j k) :=
-dvd_antisymm
-  (lcm_dvd
-    (lcm_dvd (dvd_lcm_left i (lcm j k)) (dvd.trans (dvd_lcm_left j k) (dvd_lcm_right i (lcm j k))))
-    (dvd.trans (dvd_lcm_right j k) (dvd_lcm_right i (lcm j k))))
-  (lcm_dvd
-    (dvd.trans (dvd_lcm_left i j) (dvd_lcm_left (lcm i j) k))
-    (lcm_dvd (dvd.trans (dvd_lcm_right i j) (dvd_lcm_left (lcm i j) k)) (dvd_lcm_right (lcm i j) k)))
-
--/
+by rw [lcm_def, lcm_def, lcm_def, lcm_def];
+exact nat.lcm_assoc (nat_abs i) (nat_abs j) (nat_abs k)
 
 /- lemmas -/
 

@@ -2935,7 +2935,7 @@ inductive pairwise : list α → Prop
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 attribute [simp] pairwise.nil
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pariwise_iff
+run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pairwise_iff
 
 variable {R}
 @[simp] theorem pairwise_cons {a : α} {l : list α} :

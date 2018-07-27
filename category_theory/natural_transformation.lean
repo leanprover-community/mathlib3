@@ -25,8 +25,8 @@ variable [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
 structure NaturalTransformation (F G : C ↝ D) : Type (max u₁ v₂) :=
-  (components: Π X : C, (F +> X) ⟶ (G +> X))
-  (naturality: ∀ {X Y : C} (f : X ⟶ Y), (F &> f) ≫ (components Y) = (components X) ≫ (G &> f) . obviously)
+(components: Π X : C, (F +> X) ⟶ (G +> X))
+(naturality: ∀ {X Y : C} (f : X ⟶ Y), (F &> f) ≫ (components Y) = (components X) ≫ (G &> f) . obviously)
 
 make_lemma NaturalTransformation.naturality
 attribute [ematch] NaturalTransformation.naturality_lemma

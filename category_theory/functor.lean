@@ -21,10 +21,10 @@ namespace category_theory
 universes u₁ v₁ u₂ v₂ u₃ v₃
 
 structure Functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
-  (on_objects     : C → D)
-  (on_morphisms   : Π {X Y : C}, (X ⟶ Y) → ((on_objects X) ⟶ (on_objects Y)))
-  (identities    : ∀ (X : C), on_morphisms (𝟙 X) = 𝟙 (on_objects X) . obviously)
-  (functoriality : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), on_morphisms (f ≫ g) = (on_morphisms f) ≫ (on_morphisms g) . obviously)
+(on_objects     : C → D)
+(on_morphisms   : Π {X Y : C}, (X ⟶ Y) → ((on_objects X) ⟶ (on_objects Y)))
+(identities    : ∀ (X : C), on_morphisms (𝟙 X) = 𝟙 (on_objects X) . obviously)
+(functoriality : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), on_morphisms (f ≫ g) = (on_morphisms f) ≫ (on_morphisms g) . obviously)
 
 make_lemma Functor.identities
 make_lemma Functor.functoriality

@@ -14,7 +14,7 @@ Introduces notations
   `C ↝ D` for the type of all functors from `C` to `D`. (I would like a better notation here.)
 -/
 
-import ..category
+import .category
 
 namespace category_theory
  

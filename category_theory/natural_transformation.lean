@@ -44,7 +44,7 @@ definition identity_natural_transformation (F : C ↝ D) : F ⟹ F :=
 
 @[simp] lemma identity_natural_transformation.components (F : C ↝ D) (X : C) : (identity_natural_transformation F) @> X = 𝟙 (F +> X) := by refl
 
-instance NaturalTransform_has_one (F : C ↝ D) : has_one (F ⟹ F) := 
+instance NaturalTransform.has_one (F : C ↝ D) : has_one (F ⟹ F) := 
 { one := identity_natural_transformation F }
 
 section

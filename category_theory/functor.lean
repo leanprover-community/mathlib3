@@ -48,7 +48,7 @@ definition identity_functor (C : Type u₁) [category.{u₁ v₁} C] : C ↝ C :
                      refl
                    end }
 
-instance (C) [category C] : has_one (C ↝ C) :=
+instance Functor.has_one (C) [category C] : has_one (C ↝ C) :=
 { one := identity_functor C }
 
 variable {C : Type u₁}

@@ -80,6 +80,10 @@ theorem dvd_prime_ge_two {p m : ℕ} (pp : prime p) (H : m ≥ 2) : m ∣ p ↔ 
 theorem prime.not_dvd_one {p : ℕ} (pp : prime p) : ¬ p ∣ 1
 | d := (not_le_of_gt pp.gt_one) $ le_of_dvd dec_trivial d
 
+theorem not_prime_mul {a b : ℕ} (a1 : 1 < a) (b1 : 1 < b) : ¬ prime (a * b) :=
+λ h, ne_of_lt (nat.mul_lt_mul_of_pos_left b1 (lt_of_succ_lt a1)) $
+by simpa using (dvd_prime_ge_two h a1).1 (dvd_mul_right _ _)
+
 section min_fac
   private lemma min_fac_lemma (n k : ℕ) (h : ¬ k * k > n) :
     sqrt n - k < sqrt n + 2 - k :=
@@ -103,11 +107,13 @@ section min_fac
   @[simp] theorem min_fac_zero : min_fac 0 = 2 := rfl
   @[simp] theorem min_fac_one : min_fac 1 = 1 := rfl
 
-  theorem min_fac_eq : ∀ {n : ℕ} (n2 : n ≥ 2),
-    min_fac n = if 2 ∣ n then 2 else min_fac_aux n 3
-  | 1     h := (dec_trivial : ¬ _).elim h
-  | (n+2) h := by by_cases 2 ∣ n;
-    simp [min_fac, (nat.dvd_add_iff_left (dvd_refl 2)).symm, h]
+  theorem min_fac_eq : ∀ n, min_fac n = if 2 ∣ n then 2 else min_fac_aux n 3
+  | 0     := rfl
+  | 1     := by simp [show 2≠1, from dec_trivial]; rw min_fac_aux; refl
+  | (n+2) :=
+    have 2 ∣ n + 2 ↔ 2 ∣ n, from
+      (nat.dvd_add_iff_left (by refl)).symm,
+    by simp [min_fac, this]; congr
 
   private def min_fac_prop (n k : ℕ) :=
     k ≥ 2 ∧ k ∣ n ∧ ∀ m ≥ 2, m ∣ n → k ≤ m
@@ -142,7 +148,7 @@ section min_fac
   begin
     by_cases n0 : n = 0, {simp [n0, min_fac_prop, ge]},
     have n2 : 2 ≤ n, { revert n0 n1, rcases n with _|_|_; exact dec_trivial },
-    simp [min_fac_eq n2],
+    simp [min_fac_eq],
     by_cases d2 : 2 ∣ n; simp [d2],
     { exact ⟨le_refl _, d2, λ k k2 d, k2⟩ },
     { refine min_fac_aux_has_prop n2 d2 3 0 rfl
@@ -158,7 +164,7 @@ section min_fac
   let ⟨f2, fd, a⟩ := min_fac_has_prop n1 in
   prime_def_lt'.2 ⟨f2, λ m m2 l d, not_le_of_gt l (a m m2 (dvd_trans d fd))⟩
 
-  theorem min_fac_le_of_dvd (n : ℕ) : ∀ (m : ℕ), m ≥ 2 → m ∣ n → min_fac n ≤ m :=
+  theorem min_fac_le_of_dvd {n : ℕ} : ∀ {m : ℕ}, m ≥ 2 → m ∣ n → min_fac n ≤ m :=
   by by_cases n1 : n = 1;
     [exact λ m m2 d, n1.symm ▸ le_trans dec_trivial m2,
      exact (min_fac_has_prop n1).2.2]

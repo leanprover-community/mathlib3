@@ -66,16 +66,6 @@ theorem horner_horner {α} [comm_semiring α] (a₁ x n₁ n₂ b n')
   @horner α _ (horner a₁ x n₁ 0) x n₂ b = horner a₁ x n' b :=
 by simp [h.symm, horner, pow_add, mul_assoc]
 
-meta def refl_conv (e : expr) : tactic (expr × expr) :=
-do p ← mk_eq_refl e, return (e, p)
-
-meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
-  tactic (expr × expr) :=
-(do (e₁, p₁) ← t₁ e,
-  (do (e₂, p₂) ← t₂ e₁,
-    p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
-  return (e₁, p₁)) <|> t₂ e
-
 meta def eval_horner (c : cache) (a x n b : expr) : tactic (expr × expr) :=
 do d ← destruct a, match d with
 | const q := if q = 0 then

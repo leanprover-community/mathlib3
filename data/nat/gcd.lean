@@ -245,10 +245,14 @@ theorem not_coprime_of_dvd_of_dvd {m n d : ℕ} (dgt1 : d > 1) (Hm : d ∣ m) (H
 not_lt_of_ge (le_of_dvd zero_lt_one $ by rw ←co; exact dvd_gcd Hm Hn) dgt1
 
 theorem exists_coprime {m n : ℕ} (H : gcd m n > 0) :
-  exists m' n', coprime m' n' ∧ m = m' * gcd m n ∧ n = n' * gcd m n :=
+  ∃ m' n', coprime m' n' ∧ m = m' * gcd m n ∧ n = n' * gcd m n :=
 ⟨_, _, coprime_div_gcd_div_gcd H,
   (nat.div_mul_cancel (gcd_dvd_left m n)).symm,
   (nat.div_mul_cancel (gcd_dvd_right m n)).symm⟩
+
+theorem exists_coprime' {m n : ℕ} (H : gcd m n > 0) :
+  ∃ g m' n', 0 < g ∧ coprime m' n' ∧ m = m' * g ∧ n = n' * g :=
+let ⟨m', n', h⟩ := exists_coprime H in ⟨_, m', n', H, h⟩
 
 theorem coprime.mul {m n k : ℕ} (H1 : coprime m k) (H2 : coprime n k) : coprime (m * n) k :=
 (H1.gcd_mul_left_cancel n).trans H2
@@ -290,7 +294,7 @@ theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m)
 theorem coprime.eq_one_of_dvd {k m : ℕ} (H : coprime k m) (d : k ∣ m) : k = 1 :=
 by rw [← H.gcd_eq_one, gcd_eq_left d]
 
-theorem exists_eq_prod_and_dvd_and_dvd {m n k : nat} (H : k ∣ m * n) :
+theorem exists_eq_prod_and_dvd_and_dvd {m n k : ℕ} (H : k ∣ m * n) :
   ∃ m' n', k = m' * n' ∧ m' ∣ m ∧ n' ∣ n :=
 or.elim (eq_zero_or_pos (gcd k m))
   (λg0, ⟨0, n,
@@ -305,11 +309,10 @@ theorem pow_dvd_pow_iff {a b n : ℕ} (n0 : 0 < n) : a ^ n ∣ b ^ n ↔ a ∣ b
 begin
   refine ⟨λ h, _, λ h, pow_dvd_pow_of_dvd h _⟩,
   cases eq_zero_or_pos (gcd a b) with g0 g0,
-  { simp [eq_zero_of_gcd_eq_zero_right g0, dvd_zero] },
-  rcases exists_coprime g0 with ⟨a', b', co, h₁, h₂⟩,
-  generalize_hyp : gcd a b = g at g0 h₁ h₂, substs a b,
+  { simp [eq_zero_of_gcd_eq_zero_right g0] },
+  rcases exists_coprime' g0 with ⟨g, a', b', g0', co, rfl, rfl⟩,
   rw [mul_pow, mul_pow] at h,
-  replace h := dvd_of_mul_dvd_mul_right (pos_pow_of_pos _ g0) h,
+  replace h := dvd_of_mul_dvd_mul_right (pos_pow_of_pos _ g0') h,
   have := pow_dvd_pow a' n0,
   rw [pow_one, (co.pow n n).eq_one_of_dvd h] at this,
   simp [eq_one_of_dvd_one this]

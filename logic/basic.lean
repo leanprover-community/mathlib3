@@ -639,3 +639,19 @@ lemma classical.nonempty_pi {α : Sort u} {β : α → Sort v} :
 iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
 
 end nonempty
+
+@[simp] lemma if_ne_neg {α : Sort*} {p : Prop} [decidable p] {a b : α} :
+  (if p then a else b) ≠ b ↔ p ∧ a ≠ b :=
+(decidable.em p).elim (λ hp, by simp [hp]) (λ hp, by simp [hp])
+
+@[simp] lemma if_ne_pos {α : Sort*} {p : Prop} [decidable p] {a b : α} :
+  (if p then a else b) ≠ a ↔ ¬p ∧ b ≠ a :=
+(decidable.em p).elim (λ hp, by simp [hp]) (λ hp, by simp [hp])
+
+@[simp] lemma dif_ne_neg {α : Sort*} {p : Prop} [decidable p] {a : p → α} {b : α} :
+  (if hp : p then a hp else b) ≠ b ↔ ∃ hp : p, a hp ≠ b :=
+(decidable.em p).elim (λ hp, by simp [hp]) (λ hp, by simp [hp])
+
+@[simp] lemma dif_ne_pos {α : Sort*} {p : Prop} [decidable p] {a : α} {b : ¬p → α} :
+  (if hp : p then a else b hp) ≠ a ↔ ∃ hp : ¬p, b hp ≠ a :=
+(decidable.em p).elim (λ hp, by simp [hp]) (λ hp, by simp [hp])

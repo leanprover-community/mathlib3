@@ -641,17 +641,13 @@ iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice
 end nonempty
 
 @[simp] lemma if_ne_neg {α : Sort*} {p : Prop} [decidable p] {a b : α} :
-  (if p then a else b) ≠ b ↔ p ∧ a ≠ b :=
-(decidable.em p).elim (λ hp, by simp [hp]) (λ hp, by simp [hp])
+  (if p then a else b) ≠ b ↔ p ∧ a ≠ b := by by_cases p; simp *
 
 @[simp] lemma if_ne_pos {α : Sort*} {p : Prop} [decidable p] {a b : α} :
-  (if p then a else b) ≠ a ↔ ¬p ∧ b ≠ a :=
-(decidable.em p).elim (λ hp, by simp [hp]) (λ hp, by simp [hp])
+  (if p then a else b) ≠ a ↔ ¬p ∧ b ≠ a := by by_cases p; simp *
 
 @[simp] lemma dif_ne_neg {α : Sort*} {p : Prop} [decidable p] {a : p → α} {b : α} :
-  (if hp : p then a hp else b) ≠ b ↔ ∃ hp : p, a hp ≠ b :=
-(decidable.em p).elim (λ hp, by simp [hp]) (λ hp, by simp [hp])
+  (if hp : p then a hp else b) ≠ b ↔ ∃ hp : p, a hp ≠ b := by by_cases p; simp *
 
 @[simp] lemma dif_ne_pos {α : Sort*} {p : Prop} [decidable p] {a : α} {b : ¬p → α} :
-  (if hp : p then a else b hp) ≠ a ↔ ∃ hp : ¬p, b hp ≠ a :=
-(decidable.em p).elim (λ hp, by simp [hp]) (λ hp, by simp [hp])
+  (if hp : p then a else b hp) ≠ a ↔ ∃ hp : ¬p, b hp ≠ a := by by_cases p; simp *

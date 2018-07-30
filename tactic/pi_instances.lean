@@ -41,10 +41,12 @@ do b ← target >>= is_prop,
      xs.mmap' (λ h, try $ () <$ (apply (h x) <|> apply h) <|> refine ``(set.image ($ %%x) %%h)) <|> fail "args",
      return ()
 
-/-- `pi_instance [inst1,inst2]` constructs an instance of `my_class (Π i : I, f i)`
-    where we know `Π i, my_class (f i)` and where all non-propositional fields are
-    filled in by `inst1` and `inst2`
- -/
+/--
+`pi_instance` constructs an instance of `my_class (Π i : I, f i)`
+where we know `Π i, my_class (f i)`. If an order relation is required,
+it defaults to `pi.partial_order`. Any field of the instance that
+`pi_instance` cannot construct is left untouched and generated as a new goal.
+-/
 meta def pi_instance : tactic unit :=
 refine_struct ``( {  ..pi.partial_order, .. } );
   propagate_tags (try (derive_field ; done))

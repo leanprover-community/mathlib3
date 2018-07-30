@@ -53,6 +53,9 @@ assume ainbl binl, or.elim (eq_or_mem_of_mem_cons ainbl)
   (assume : a = b, begin subst a, exact binl end)
   (assume : a ∈ l, this)
 
+theorem eq_or_ne_mem_of_mem {a b : α} {l : list α} (h : a ∈ b :: l) : a = b ∨ (a ≠ b ∧ a ∈ l) :=
+classical.by_cases or.inl $ assume : a ≠ b, h.elim or.inl $ assume h, or.inr ⟨this, h⟩
+
 theorem not_mem_append {a : α} {s t : list α} (h₁ : a ∉ s) (h₂ : a ∉ t) : a ∉ s ++ t :=
 mt mem_append.1 $ not_or_distrib.2 ⟨h₁, h₂⟩
 
@@ -983,7 +986,7 @@ def take' : ∀ n, list α → list α
 | 0     := rfl
 | (n+1) := congr_arg (cons _) (take'_nil _)
 
-theorem take'_eq_take : ∀ {n} {l : list α}, 
+theorem take'_eq_take : ∀ {n} {l : list α},
   n ≤ length l → take' n l = take n l
 | 0     l      h := rfl
 | (n+1) (a::l) h := congr_arg (cons _) $
@@ -1160,6 +1163,16 @@ by induction l; simp [list.join, *] at *
 
 end monoid
 
+@[simp, to_additive list.sum_erase]
+theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
+  Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
+| (b::l) h :=
+  begin
+    rcases eq_or_ne_mem_of_mem h with rfl | ⟨ne, h⟩,
+    { simp [list.erase] },
+    { simp [ne.symm, list.erase, prod_erase h, mul_left_comm a b] }
+  end
+
 @[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; simp [*, nat.mul_succ]
 
@@ -1284,7 +1297,7 @@ end lex
 instance has_lt' [has_lt α] : has_lt (list α) := ⟨lex (<)⟩
 
 theorem nil_lt_cons [has_lt α] (a : α) (l : list α) : [] < a :: l :=
-lex.nil 
+lex.nil
 
 instance [linear_order α] : linear_order (list α) :=
 linear_order_of_STO' (lex (<))
@@ -1590,7 +1603,6 @@ lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
 subset_of_sublist $ filter_sublist l
 
 theorem of_mem_filter {a : α} : ∀ {l}, a ∈ filter p l → p a
-| []     ain := absurd ain (not_mem_nil a)
 | (b::l) ain :=
   if pb : p b then
     have a ∈ b :: filter p l, begin simp [pb] at ain, assumption end,
@@ -1604,16 +1616,8 @@ theorem mem_of_mem_filter {a : α} {l} (h : a ∈ filter p l) : a ∈ l :=
 filter_subset l h
 
 theorem mem_filter_of_mem {a : α} : ∀ {l}, a ∈ l → p a → a ∈ filter p l
-| []     ain pa := absurd ain (not_mem_nil a)
-| (b::l) ain pa :=
-  if pb : p b then
-    or.elim (eq_or_mem_of_mem_cons ain)
-      (assume : a = b, by simp [pb, this])
-      (assume : a ∈ l, begin simp [pb], exact (mem_cons_of_mem _ (mem_filter_of_mem this pa)) end)
-  else
-    or.elim (eq_or_mem_of_mem_cons ain)
-      (assume : a = b, begin simp [this] at pa, contradiction end) --absurd (this ▸ pa) pb)
-      (assume : a ∈ l, by simp [pa, pb, mem_filter_of_mem this])
+| (_::l) (or.inl rfl) pa := by simp [pa]
+| (b::l) (or.inr ain) pa := by by_cases pb : p b; simp [pb, mem_filter_of_mem ain pa]
 
 @[simp] theorem mem_filter {a : α} {l} : a ∈ filter p l ↔ a ∈ l ∧ p a :=
 ⟨λ h, ⟨mem_of_mem_filter h, of_mem_filter h⟩, λ ⟨h₁, h₂⟩, mem_filter_of_mem h₁ h₂⟩

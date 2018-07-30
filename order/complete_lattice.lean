@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of complete lattices.
 -/
-import order.bounded_lattice data.set.basic
+import order.bounded_lattice data.set.basic tactic.pi_instances
 
 set_option old_structure_cmd true
 
@@ -620,15 +620,13 @@ instance complete_lattice_Prop : complete_lattice Prop :=
   le_Inf := assume s a h p b hb, h b hb p,
   ..lattice.bounded_lattice_Prop }
 
-instance pi.complete_lattice {α : Type u} {β : Type v} [complete_lattice β] :
-  complete_lattice (α → β) :=
-{ Sup    := λs a, Sup (set.image (λf : α → β, f a) s),
-  le_Sup := assume s f h a, le_Sup ⟨f, h, rfl⟩,
-  Sup_le := assume s f h a, Sup_le $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a,
-  Inf    := λs a, Inf (set.image (λf : α → β, f a) s),
-  Inf_le := assume s f h a, Inf_le ⟨f, h, rfl⟩,
-  le_Inf := assume s f h a, le_Inf $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a,
-  ..lattice.pi.bounded_lattice }
+instance pi.complete_lattice {α : Type u} {β : α → Type v} [∀ i, complete_lattice (β i)] :
+  complete_lattice (Π i, β i) :=
+by { pi_instance;
+     { intros, intro,
+       apply_field, intros,
+       simp at H, rcases H with ⟨ x, H₀, H₁ ⟩,
+       subst b, apply a_1 _ H₀ i, } }
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]

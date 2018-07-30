@@ -1160,6 +1160,21 @@ by induction l; simp [list.join, *] at *
 
 end monoid
 
+@[simp, to_additive list.sum_erase]
+theorem prod_erase [decidable_eq α] [comm_monoid α] {a} : 
+  Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
+| []       h   := absurd h $ not_mem_nil _
+| (hd::tl) h   := 
+begin
+  by_cases eq : a = hd,
+  { simp [eq, list.erase] },
+  { dsimp [list.erase], rw [if_neg, prod_cons], 
+    have : a * prod (list.erase tl a) = prod tl,
+    { apply prod_erase, cases h, contradiction, assumption },
+    rw [mul_left_comm], simpa [this], 
+    intro h', rw h' at eq, contradiction }
+end
+
 @[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; simp [*, nat.mul_succ]
 

@@ -5,7 +5,10 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import data.vector data.list.basic data.array.lemmas
+import data.vector data.list.basic data.sigma data.equiv.basic
+       category.traversable
+
+attribute [extensionality] vector.eq
 
 namespace vector
 variables {α : Type*} {n : ℕ}
@@ -96,12 +99,131 @@ def {u} mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 
 end vector
 
-namespace equiv
+namespace vector
 
-def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
-⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
+universes u
+variables {n : ℕ}
 
-def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
-(vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
+section traverse
 
-end equiv
+variables {f f' : Type u → Type u}
+variables [applicative f] [applicative f']
+
+open applicative functor
+open list (cons) nat
+
+private def traverse_aux {α β : Type u} (g : α → f β) :
+  Π (x : list α), f (vector β x.length)
+| [] := pure vector.nil
+| (x::xs) := vector.cons <$> g x <*> traverse_aux xs
+
+protected def traverse {α β : Type u} (g : α → f β) :
+  vector α n → f (vector β n)
+ | ⟨v,Hv⟩ := cast (by rw Hv) $ traverse_aux g v
+
+protected def to_array {α : Type u} {n} : vector α n → array n α
+ | ⟨xs,h⟩ := cast (by rw h) xs.to_array
+
+variables [is_lawful_applicative f] [is_lawful_applicative f']
+variables {α β η : Type u}
+
+@[simp]
+protected lemma traverse_def (g : α → f β) (x : α) (xs : vector α n) :
+  vector.traverse g (x :: xs) = cons <$> g x <*> vector.traverse g xs :=
+begin
+  cases xs, simp!,
+  h_generalize _ : _ == i,
+  h_generalize _ : _ == j, subst n,
+  simp at *, subst i, subst j
+end
+
+protected lemma id_traverse (x : vector α n) :
+  vector.traverse id.mk x = x :=
+begin
+  cases x with x, subst n,
+  dsimp [vector.traverse,cast],
+  induction x with x xs, refl,
+  simp! [x_ih], refl
+end
+
+open function
+
+protected lemma comp_traverse (g : α → f β) (h : β → f' η) (x : vector α n) :
+  vector.traverse (comp.mk ∘ functor.map h ∘ g) x =
+  comp.mk (vector.traverse h <$> vector.traverse g x) :=
+begin
+  cases x with x,
+  dunfold vector.traverse, subst n, dsimp [cast],
+  induction x with x xs; simp! [cast,*] with functor_norm, refl,
+  congr' 2, ext, simp [function.comp,flip]
+end
+
+protected lemma map_traverse
+   (g : α → f' β) (f : β → η)
+   (x : vector α n) :
+  map f <$> vector.traverse g x = vector.traverse (functor.map f ∘ g) x :=
+begin
+  symmetry,
+  cases x with x,
+  subst n, unfold vector.traverse cast,
+  induction x; simp! [*,cast,map,flip,function.comp,vector.map] with functor_norm,
+  { refl },
+  { congr' 2, ext, cases x_1, refl }
+end
+
+protected lemma traverse_map
+   (g : α → β) (f : β → f' η)
+   (x : vector α n) :
+  vector.traverse f (map g x) = vector.traverse (f ∘ g) x :=
+begin
+  symmetry,
+  cases x with x, subst n,
+  induction x; simp! [*,map,flip,vector.map] with norm,
+  { refl },
+  { congr' 1, simp, simp,
+    congr' 1, simp, simp,
+    { dsimp [list.length],
+      rw list.length_map },
+    simp [vector.traverse,map] at x_ih,
+    transitivity, apply heq_of_eq, apply x_ih,
+    apply cast_heq }
+end
+
+variable (eta : applicative_transformation f f')
+
+protected lemma naturality {α β : Type*}
+  (F : α → f β) (x : vector α n) :
+  eta (vector.traverse F x) = vector.traverse (@eta _ ∘ F) x :=
+begin
+  cases x;
+  simp! [vector.traverse] with norm,
+  induction x_val with x xs generalizing n,
+  { h_generalize Hi : _ == i,
+    h_generalize Hj : _ == j,
+    simp! at Hi Hj; subst n; cases Hi; cases Hj,
+    simp [*] with functor_norm },
+  { specialize x_val_ih rfl, subst n,
+    revert x_val_ih,
+    h_generalize Hi : _ == i, h_generalize _ : _ == j,
+    h_generalize _  : _ == k, h_generalize _ : _ == h,
+    intros, simp! at *,
+    subst k, subst h, simp with functor_norm,
+    subst i, subst j, rw [x_val_ih] }
+end
+
+end traverse
+
+instance : traversable.{u} (flip vector n) :=
+{ traverse := @vector.traverse n
+, map := λ α β, @vector.map.{u u} α β n }
+
+instance : is_lawful_traversable.{u} (flip vector n) :=
+{ id_traverse := @vector.id_traverse n,
+  comp_traverse := @vector.comp_traverse n,
+  map_traverse := @vector.map_traverse.{u} n,
+  traverse_map := @vector.traverse_map n,
+  naturality := @vector.naturality.{u} n,
+  id_map := by intros; cases x; simp! [functor.map],
+  comp_map := by intros; cases x; simp! [functor.map] }
+
+end vector

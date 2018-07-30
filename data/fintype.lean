@@ -54,6 +54,10 @@ instance decidable_exists_fintype [fintype α] {p : α → Prop} [decidable_pred
   decidable (∃ a, p a) :=
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
+instance decidable_eq_equiv_fintype [fintype α] [decidable_eq β] :
+  decidable_eq (α ≃ β) :=
+λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext _ _ (congr_fun h), congr_arg _⟩
+
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
   (H : ∀ x : α, x ∈ s) : fintype α :=

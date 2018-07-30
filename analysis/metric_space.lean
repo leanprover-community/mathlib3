@@ -348,7 +348,7 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
     (le_trans (dist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
     (le_trans (dist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
   uniformity_dist := begin
-    refine prod_uniformity.trans _,
+    refine uniformity_prod.trans _,
     simp [uniformity_dist, vmap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,

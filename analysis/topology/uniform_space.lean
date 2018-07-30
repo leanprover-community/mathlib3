@@ -1479,7 +1479,7 @@ uniform_space.of_core_eq
       by rw [to_topological_space_sup, to_topological_space_vmap, to_topological_space_vmap]; refl
     ... = _ : by rw [uniform_space.to_core_to_topological_space])
 
-theorem prod_uniformity [uniform_space α] [uniform_space β] : @uniformity (α × β) _ =
+theorem uniformity_prod [uniform_space α] [uniform_space β] : @uniformity (α × β) _ =
   uniformity.vmap (λp:(α × β) × α × β, (p.1.1, p.2.1)) ⊓
   uniformity.vmap (λp:(α × β) × α × β, (p.1.2, p.2.2)) :=
 sup_uniformity
@@ -1531,12 +1531,6 @@ end
 
 /- a similar product space is possible on the function space (uniformity of pointwise convergence),
   but we want to have the uniformity of uniform convergence on function spaces -/
-
-lemma uniformity_prod [uniform_space α] [uniform_space β] :
-  @uniformity (α×β) _ =
-    vmap (λp:(α×β)×(α×β), (p.1.1, p.2.1)) uniformity ⊓
-    vmap (λp:(α×β)×(α×β), (p.1.2, p.2.2)) uniformity :=
-by rw [prod.uniform_space, uniform_space.of_core_eq_to_core, uniformity, sup_uniformity]; refl
 
 lemma uniformity_prod_eq_prod [uniform_space α] [uniform_space β] :
   @uniformity (α×β) _ =

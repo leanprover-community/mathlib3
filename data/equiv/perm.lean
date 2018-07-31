@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2014 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
 import data.mu2
 
 universes u v
@@ -67,7 +72,8 @@ then ⟨f a.1, f a.2⟩
 else ⟨f a.2, f a.1⟩
 
 lemma sign_bij_aux_inj {n : ℕ} {f : perm (fin n)} : ∀ a b : Σ a : fin n, fin n,
-   a ∈ fin_pairs_lt n → b ∈ fin_pairs_lt n → sign_bij_aux f a = sign_bij_aux f b → a = b :=
+   a ∈ fin_pairs_lt n → b ∈ fin_pairs_lt n → 
+   sign_bij_aux f a = sign_bij_aux f b → a = b :=
 λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ha hb h, begin
   unfold sign_bij_aux at h,
   rw mem_fin_pairs_lt at *,
@@ -160,7 +166,8 @@ begin
   cases a with a₁ a₂,
   have : ¬ one ≤ zero := dec_trivial,
   have : ∀ a : fin n, ¬a < zero := λ a, nat.not_lt_zero a.1,
-  have : a₂ < one → a₂ = zero := λ h, fin.eq_of_veq (nat.le_zero_iff.1 (nat.le_of_lt_succ h)),
+  have : a₂ < one → a₂ = zero := λ h, fin.eq_of_veq 
+    (nat.le_zero_iff.1 (nat.le_of_lt_succ h)),
   have : a₁ ≤ one → a₁ = zero ∨ a₁ = one := fin.cases_on a₁ 
     (λ a, nat.cases_on a (λ _ _, or.inl dec_trivial) 
     (λ a, nat.cases_on a (λ _ _, or.inr dec_trivial)

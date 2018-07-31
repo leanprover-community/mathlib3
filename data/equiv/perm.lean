@@ -18,7 +18,8 @@ trunc.lift (λ e : α ≃ fin (card α), f ((e.symm.trans a).trans e))
 
 instance lift_fin.is_group_hom [fintype α] [group β] 
   (f : perm (fin (card α)) → β) [is_group_hom f]
-  (h : ∀ a b : perm (fin (card α)), are_conj a b → f a = f b) : is_group_hom (lift_fin f h) :=
+  (h : ∀ a b : perm (fin (card α)), are_conj a b → f a = f b) :
+  is_group_hom (lift_fin f h) :=
 ⟨begin
   assume a b,
   unfold lift_fin,

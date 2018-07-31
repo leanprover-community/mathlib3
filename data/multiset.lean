@@ -2452,6 +2452,9 @@ quot.induction_on s $ λ l, sorted_merge_sort r _
 @[simp] theorem sort_eq (s : multiset α) : ↑(sort r s) = s :=
 quot.induction_on s $ λ l, quot.sound $ perm_merge_sort _ _
 
+@[simp] theorem mem_sort {s : multiset α} {a : α} : a ∈ sort r s ↔ a ∈ s :=
+by conv in (a ∈ s) {rw ← sort_eq r s}; simp [-sort_eq]
+
 end sort
 
 instance [has_repr α] : has_repr (multiset α) :=

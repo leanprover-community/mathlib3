@@ -553,6 +553,19 @@ end add_comm_group
 
 variables {β : Type*} [group α] [group β]
 
+def are_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
+
+@[refl] lemma are_conj_refl (a : α) : are_conj a a := ⟨1, by simp⟩ 
+
+@[symm] lemma are_conj_symm (a b : α) : are_conj a b → are_conj b a
+| ⟨c, hc⟩ := ⟨c⁻¹, by simp [hc.symm, mul_assoc]⟩
+
+@[trans] lemma are_conj_trans (a b c : α) : are_conj a b → are_conj b c → are_conj a c
+| ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, by simp [hc₁.symm, hc₂.symm, mul_assoc]⟩
+
+@[simp] lemma are_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : are_conj a b ↔ a = b :=
+⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩ 
+
 /-- Predicate for group homomorphism. -/
 class is_group_hom (f : α → β) : Prop :=
 (mul : ∀ a b : α, f (a * b) = f a * f b)
@@ -575,7 +588,11 @@ instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] :
   g (f (x * y)) = g (f x * f y)       : by rw mul f
   ...           = g (f x) * g (f y)   : by rw mul g⟩
 
+lemma are_conj (f : α → β) [is_group_hom f] {a b : α} : are_conj a b → are_conj (f a) (f b)
+| ⟨c, hc⟩ := ⟨f c, by rw [← is_group_hom.mul f, ← is_group_hom.inv f, ← is_group_hom.mul f, hc]⟩
+
 end is_group_hom
+
 
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/

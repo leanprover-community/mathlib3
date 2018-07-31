@@ -562,6 +562,18 @@ theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by cases π; refl
 
+@[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) : 
+  (swap x y)⁻¹ = swap x y := rfl
+
+@[simp] lemma symm_trans_swap_trans [decidable_eq α] [decidable_eq β] (a b : α)
+  (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
+equiv.ext _ _ (λ x, begin
+  have : ∀ a, e.symm x = a ↔ x = e a :=
+    λ a, by rw @eq_comm _ (e.symm x); split; intros; simp * at *,
+  simp [swap_apply_def, this],
+  split_ifs; simp
+end)
+
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 (swap a (f.symm b)).trans f

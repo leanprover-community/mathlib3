@@ -588,7 +588,7 @@ instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] :
   g (f (x * y)) = g (f x * f y)       : by rw mul f
   ...           = g (f x) * g (f y)   : by rw mul g⟩
 
-lemma are_conj (f : α → β) [is_group_hom f] {a b : α} : are_conj a b → are_conj (f a) (f b)
+protected lemma are_conj (f : α → β) [is_group_hom f] {a b : α} : are_conj a b → are_conj (f a) (f b)
 | ⟨c, hc⟩ := ⟨f c, by rw [← is_group_hom.mul f, ← is_group_hom.inv f, ← is_group_hom.mul f, hc]⟩
 
 end is_group_hom

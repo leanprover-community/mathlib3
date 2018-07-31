@@ -593,7 +593,6 @@ protected lemma are_conj (f : α → β) [is_group_hom f] {a b : α} : are_conj 
 
 end is_group_hom
 
-
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/
 class is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=

@@ -308,6 +308,10 @@ by rw [add_monoid.smul_eq_mul', add_monoid.smul_eq_mul', mul_assoc]
 theorem add_monoid.mul_smul_assoc [semiring α] (a b : α) (n : ℕ) : n • (a * b) = n • a * b :=
 by rw [add_monoid.smul_eq_mul, add_monoid.smul_eq_mul, mul_assoc]
 
+theorem nat.cast_pow [semiring α] (n : ℕ) : ∀ m : ℕ, (n : α) ^ m = (n ^ m : ℕ)
+| 0 := nat.cast_one.symm 
+| (d+1) := show ↑n * ↑n ^ d = ↑(n ^ d * n), by rw [nat.cast_pow d,mul_comm,nat.cast_mul]
+
 theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := by simp
 | (n+1) := by cases neg_one_pow_eq_or n; simp [pow_succ, h]

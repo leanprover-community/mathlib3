@@ -372,6 +372,8 @@ by induction k; simp [*, add_succ, bind_assoc]
 theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
 by induction n; simp [*, pow_succ, mul_assoc]
 
+theorem pow_two (a : ℕ) : a ^ 2 = a * a := show (1 * a) * a = _, by rw one_mul
+
 theorem pow_dvd_pow (a : ℕ) {m n : ℕ} (h : m ≤ n) : a^m ∣ a^n :=
 by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
 

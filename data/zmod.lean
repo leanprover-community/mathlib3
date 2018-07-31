@@ -71,12 +71,6 @@ private lemma left_distrib_aux (n : ℕ) : ∀ a b c : zmod n, a * (b + c) = a *
   ... ≡ a * b + a * c [MOD n] : by rw mul_add
   ... ≡ (a * b) % n + (a * c) % n [MOD n] : modeq_add (nat.mod_mod _ _).symm (nat.mod_mod _ _).symm)
 
-instance (n : ℕ) : distrib (zmod n) :=
-{ left_distrib := left_distrib_aux n,
-  right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
-  ..zmod.add_comm_semigroup n,
-  ..zmod.comm_semigroup n }
-
 instance (n : ℕ) [h0 : pos_nat n] : comm_ring (zmod n) :=
 { zero_add := λ ⟨a, ha⟩, fin.eq_of_veq (show (0 + a) % n = a, by rw zero_add; exact nat.mod_eq_of_lt ha),
   add_zero := λ ⟨a, ha⟩, fin.eq_of_veq (nat.mod_eq_of_lt ha),
@@ -90,10 +84,11 @@ instance (n : ℕ) [h0 : pos_nat n] : comm_ring (zmod n) :=
       end),
   one_mul := one_mul_aux n,
   mul_one := λ a, by rw mul_comm; exact one_mul_aux n a,
+  left_distrib := left_distrib_aux n,
+  right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
   ..zmod.has_zero n,
   ..zmod.has_one n,
   ..zmod.has_neg,
-  ..zmod.distrib n,
   ..zmod.add_comm_semigroup n,
   ..zmod.comm_semigroup n }
 

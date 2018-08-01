@@ -97,7 +97,7 @@ def {u} mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 
 @[extensionality] theorem ext : ∀ {v w : vector α n}
   (h : ∀ m : fin n, vector.nth v m = vector.nth w m), v = w
-| ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw]) 
+| ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
   (λ m hm hn, h ⟨m, hv ▸ hm⟩))
 
 end vector

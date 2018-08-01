@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.mu2
+import group_theory.mu2
 
 universes u v
 open equiv function finset fintype
@@ -33,15 +33,20 @@ instance lift_fin.is_group_hom [fintype α] [group β]
   exact congr_arg f (equiv.ext _ _ (λ x, by simp))
 end⟩
 
-lemma swap_conj {a b x y : α} 
-  (hab : a ≠ b) (hxy : x ≠ y) : is_conj (swap x y) (swap a b) :=
-⟨swap x a * swap y (swap x a b),
-equiv.ext _ _ $ λ n,
-begin
-  rw [mul_inv_rev, swap_inv, swap_inv],
-  simp only [mul_apply, swap_apply_def],
-  split_ifs; cc
-end⟩
+lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) : 
+  swap y z * swap x y * swap y z = swap z x :=
+equiv.ext _ _ $ λ n, by simp only [swap_apply_def, mul_apply]; split_ifs; cc
+
+lemma swap_conj {w x y z : α} (hwx : w ≠ x) (hyz : y ≠ z) : is_conj (swap w x) (swap y z) :=
+have h : ∀ {y z : α}, y ≠ z → w ≠ z →
+    (swap w y * swap x z) * swap w x * (swap w y * swap x z)⁻¹ = swap y z :=
+  λ y z hyz hwz, by rw [mul_inv_rev, swap_inv, swap_inv, mul_assoc (swap w y), 
+    mul_assoc (swap w y),  ← mul_assoc _ (swap x z), swap_mul_swap_mul_swap hwx hwz,
+    ← mul_assoc, swap_mul_swap_mul_swap hwz.symm hyz.symm],
+if hwz : w = z
+then have hwy : w ≠ y, by cc,
+  ⟨swap w z * swap x y, by rw [swap_comm y z, h hyz.symm hwy]⟩
+else ⟨swap w y * swap x z, h hyz hwz⟩
 
 /-- set of all pairs (⟨a, b⟩ : Σ a : fin n, fin n) such that b < a -/
 def fin_pairs_lt (n : ℕ) : finset (Σ a : fin n, fin n) :=
@@ -183,8 +188,8 @@ lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),
 | 0 := dec_trivial
 | 1 := dec_trivial
 | (n+2) := λ x y hxy, 
-let ⟨f, hf⟩ := swap_conj hxy (show (⟨0, dec_trivial⟩ : fin (n + 2)) ≠
-  ⟨1, dec_trivial⟩, from dec_trivial) in
+let ⟨f, hf⟩ := swap_conj (show (⟨0, dec_trivial⟩ : fin (n + 2)) ≠
+  ⟨1, dec_trivial⟩, from dec_trivial) hxy in
 have h2n : 2 ≤ n + 2 := dec_trivial,
 by rw [← hf, sign_aux_mul, sign_aux_mul, sign_aux_swap_zero_one h2n,
   mul_right_comm, ← sign_aux_mul, mul_inv_self, sign_aux_one, one_mul]
@@ -234,12 +239,12 @@ end
 
 def swap_factors_aux [fintype α] : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
   l.nodup → {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g}
-| []       := λ f h _, ⟨[], equiv.ext _ _ $ λ x, by rw [list.prod_nil]; 
+| []       := λ f h _, ⟨[], equiv.ext _ _ $ λ x, by rw [list.prod_nil];
     exact eq.symm (not_not.1 (mt h (list.not_mem_nil _))),
   by simp⟩
 | (x :: l) := λ f h hnd,
 let m := swap_factors_aux l (swap x (f x) * f)
-  (λ y hy, have f y ≠ y ∧ y ≠ x, from support_swap_mul  hy,
+  (λ y hy, have f y ≠ y ∧ y ≠ x, from support_swap_mul hy,
   list.mem_of_ne_of_mem this.2 (h this.1))
   (list.nodup_of_nodup_cons hnd) in
 ⟨if x = f x then m.1 else swap x (f x) :: m.1,
@@ -276,7 +281,7 @@ have ∀ {f}, is_swap f → s f = -1 :=
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
       is_conj_iff_eq.1 begin
       rw [← mu2.ne_neg_one_iff.1 h, hab'],
-      exact is_group_hom.is_conj _ (swap_conj hxy hab),
+      exact is_group_hom.is_conj _ (swap_conj hab hxy),
     end,
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := trunc.out (trunc_swap_factors g) in

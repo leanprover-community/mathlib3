@@ -12,7 +12,7 @@ variables {α : Type u} {β : Type v} [decidable_eq α]
 namespace equiv.perm
 
 def lift_fin [fintype α] (f : perm (fin (card α)) → β) 
-  (h : ∀ a b : perm (fin (card α)), are_conj a b → f a = f b) (a : perm α) : β :=
+  (h : ∀ a b : perm (fin (card α)), is_conj a b → f a = f b) (a : perm α) : β :=
 trunc.lift (λ e : α ≃ fin (card α), f ((e.symm.trans a).trans e)) 
 (λ d e, h _ _ ⟨d.symm.trans e, begin
     refine equiv.ext _ _ (λ x, _),
@@ -23,7 +23,7 @@ trunc.lift (λ e : α ≃ fin (card α), f ((e.symm.trans a).trans e))
 
 instance lift_fin.is_group_hom [fintype α] [group β] 
   (f : perm (fin (card α)) → β) [is_group_hom f]
-  (h : ∀ a b : perm (fin (card α)), are_conj a b → f a = f b) :
+  (h : ∀ a b : perm (fin (card α)), is_conj a b → f a = f b) :
   is_group_hom (lift_fin f h) :=
 ⟨begin
   assume a b,
@@ -34,7 +34,7 @@ instance lift_fin.is_group_hom [fintype α] [group β]
 end⟩
 
 lemma swap_conj {a b x y : α} 
-  (hab : a ≠ b) (hxy : x ≠ y) : are_conj (swap x y) (swap a b) :=
+  (hab : a ≠ b) (hxy : x ≠ y) : is_conj (swap x y) (swap a b) :=
 ⟨swap x a * swap y (swap x a b),
 equiv.ext _ _ $ λ n,
 begin
@@ -192,7 +192,7 @@ by rw [← hf, sign_aux_mul, sign_aux_mul, sign_aux_swap_zero_one h2n,
 /-- `sign` of a permutation returns the signature or parity of a permutation, `1` for e
 It is the unique surjective group homomorphism from `perm α` to the group with two elements.-/
 def sign [fintype α] (f : perm α) : mu2 :=
-lift_fin sign_aux (λ a b h, are_conj_iff_eq.1 (is_group_hom.are_conj sign_aux h)) f
+lift_fin sign_aux (λ a b h, is_conj_iff_eq.1 (is_group_hom.is_conj sign_aux h)) f
 
 instance sign.is_group_hom [fintype α] :is_group_hom (sign : perm α → mu2) :=
 lift_fin.is_group_hom _ _
@@ -274,9 +274,9 @@ lemma eq_sign_of_surjective_hom [fintype α] {s : perm α → mu2}
 have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ classical.by_contradiction (λ h, 
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
-      are_conj_iff_eq.1 begin
+      is_conj_iff_eq.1 begin
       rw [← mu2.ne_neg_one_iff.1 h, hab'],
-      exact is_group_hom.are_conj _ (swap_conj hxy hab),
+      exact is_group_hom.is_conj _ (swap_conj hxy hab),
     end,
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := trunc.out (trunc_swap_factors g) in

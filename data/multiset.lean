@@ -473,6 +473,9 @@ theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ a::0 := repeat_
 theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p.symm).symm ▸ s, subperm_of_sublist⟩
 
+theorem repeat_one {a : α} : repeat a 1 = a :: 0 :=
+(eq_repeat'.2 (λ b,mem_singleton.1 : ∀ b ∈ a :: 0, b = a)).symm
+
 /- range -/
 
 /-- `range n` is the multiset lifted from the list `range n`,
@@ -2054,6 +2057,9 @@ quot.induction_on s $ λ l m, @congr_arg _ _ _ _ coe $ erase_dup_cons_of_mem m
 @[simp] theorem erase_dup_cons_of_not_mem {a : α} {s : multiset α} : a ∉ s →
   erase_dup (a::s) = a :: erase_dup s :=
 quot.induction_on s $ λ l m, congr_arg coe $ erase_dup_cons_of_not_mem m
+
+@[simp] theorem erase_dup_singleton {a : α} : erase_dup (a :: 0) = a :: 0 :=
+  erase_dup_cons_of_not_mem $ not_mem_zero a
 
 theorem erase_dup_le (s : multiset α) : erase_dup s ≤ s :=
 quot.induction_on s $ λ l, subperm_of_sublist $ erase_dup_sublist _

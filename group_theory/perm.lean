@@ -228,7 +228,7 @@ def support [fintype α] (f : perm α) :=
 ⟨λ h, equiv.ext _ _ (by simpa [finset.eq_empty_iff_forall_not_mem] using h), 
   λ h, by simp [h, finset.eq_empty_iff_forall_not_mem]⟩
 
-lemma support_swap_mul [fintype α] {f : perm α} {x : α}
+lemma support_swap_mul {f : perm α} {x : α}
   {y : α} (hy : (swap x (f x) * f) y ≠ y) : f y ≠ y ∧ y ≠ x :=
 begin
   simp only [swap_apply_def, mul_apply, injective.eq_iff f.bijective.1] at *,
@@ -237,7 +237,7 @@ begin
   { split_ifs at hy; cc }
 end
 
-def swap_factors_aux [fintype α] : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
+def swap_factors_aux : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
   l.nodup → {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g}
 | []       := λ f h _, ⟨[], equiv.ext _ _ $ λ x, by rw [list.prod_nil];
     exact eq.symm (not_not.1 (mt h (list.not_mem_nil _))),
@@ -262,7 +262,7 @@ end⟩
 /-- `swap_factors` represents a permutation as a product of a list of transpositions. 
 The representation is non unique and depends on the order. For types without linear order
 `trunc_swap_factors` can be used -/
-def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
+def swap_factors [decidable_linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 (sort_nodup _ _)

@@ -115,7 +115,7 @@ end
 
 @[simp] theorem reverse_perm : ∀ (l : list α), reverse l ~ l
 | []     := perm.nil
-| (a::l) := by rw reverse_cons'; exact
+| (a::l) := by rw reverse_cons; exact
   (perm_cons_app _ _).trans (skip a $ reverse_perm l)
 
 theorem perm_cons_app_cons {l l₁ l₂ : list α} (a : α) (p : l ~ l₁++l₂) : a::l ~ l₁++(a::l₂) :=
@@ -188,6 +188,68 @@ begin
   { exact let ⟨m₁, pm, sm⟩ := IH₁ s, ⟨r₁, pr, sr⟩ := IH₂ sm in
           ⟨r₁, pr.trans pm, sr⟩ }
 end
+
+section rel
+open relator
+variables {γ : Type*} {δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}
+
+local infixr ` ∘r ` : 80 := relation.comp
+
+lemma perm_comp_perm : (perm ∘r perm : list α → list α → Prop) = perm :=
+begin
+  funext a c, apply propext,
+  split,
+  { exact assume ⟨b, hab, hba⟩, perm.trans hab hba },
+  { exact assume h, ⟨a, perm.refl a, h⟩ }
+end
+
+lemma perm_comp_forall₂ {l u v} (hlu : perm l u) (huv : forall₂ r u v) : (forall₂ r ∘r perm) l v :=
+begin
+  induction hlu generalizing v,
+  case perm.nil { cases huv, exact ⟨[], forall₂.nil, perm.nil⟩ },
+  case perm.skip : a l u hlu ih {
+    cases huv with _ b _ v hab huv',
+    rcases ih huv' with ⟨l₂, h₁₂, h₂₃⟩,
+    exact ⟨b::l₂, forall₂.cons hab h₁₂, perm.skip _ h₂₃⟩
+  },
+  case perm.swap : a₁ a₂ l₁ l₂ h₂₃ {
+    cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
+    cases hr_₂₃ with _ b₂ _ l₂ h₂ h₁₂,
+    exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩
+  },
+  case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂ {
+    rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
+    rcases ih₁ hab₂ with ⟨lb₁, hab₁, h₁₂⟩,
+    exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩
+  }
+end
+
+lemma forall₂_comp_perm_eq_perm_comp_forall₂ : forall₂ r ∘r perm = perm ∘r forall₂ r :=
+begin
+  funext l₁ l₃, apply propext,
+  split,
+  { assume h, rcases h with ⟨l₂, h₁₂, h₂₃⟩,
+    have : forall₂ (flip r) l₂ l₁, from forall₂_flip h₁₂,
+    rcases perm_comp_forall₂ h₂₃.symm this with ⟨l', h₁, h₂⟩,
+    exact ⟨l', h₂.symm, forall₂_flip h₁⟩ },
+  { exact assume ⟨l₂, h₁₂, h₂₃⟩, perm_comp_forall₂ h₁₂ h₂₃ }
+end
+
+lemma rel_perm_imp (hr : right_unique r) : (forall₂ r ⇒ forall₂ r ⇒ implies) perm perm :=
+assume a b h₁ c d h₂ h,
+have (flip (forall₂ r) ∘r (perm ∘r forall₂ r)) b d, from ⟨a, h₁, c, h, h₂⟩,
+have ((flip (forall₂ r) ∘r forall₂ r) ∘r perm) b d,
+  by rwa [← forall₂_comp_perm_eq_perm_comp_forall₂, ← relation.comp_assoc] at this,
+let ⟨b', ⟨c', hbc, hcb⟩, hbd⟩ := this in
+have b' = b, from right_unique_forall₂ @hr hcb hbc,
+this ▸ hbd
+
+lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
+assume a b hab c d hcd, iff.intro
+  (rel_perm_imp hr.2 hab hcd)
+  (rel_perm_imp (assume a b c, left_unique_flip hr.1) (forall₂_flip hab) (forall₂_flip hcd))
+
+end rel
 
 section subperm
 
@@ -367,6 +429,28 @@ theorem subperm_cons (a : α) {l₁ l₂ : list α} : a::l₁ <+~ a::l₂ ↔ l�
   { exact ⟨u, perm_cons_inv p, s'⟩ }
 end, λ ⟨l, p, s⟩, ⟨a::l, skip a p, s.cons2 _ _ _⟩⟩
 
+theorem cons_subperm_of_mem {a : α} {l₁ l₂ : list α} (d₁ : nodup l₁) (h₁ : a ∉ l₁) (h₂ : a ∈ l₂)
+ (s : l₁ <+~ l₂) : a :: l₁ <+~ l₂ :=
+begin
+  rcases s with ⟨l, p, s⟩,
+  induction s generalizing l₁,
+  case list.sublist.slnil { cases h₂ },
+  case list.sublist.cons : r₁ r₂ b s' ih {
+    simp at h₂,
+    cases h₂ with e m,
+    { subst b, exact ⟨a::r₁, skip a p, s'.cons2 _ _ _⟩ },
+    { rcases ih m d₁ h₁ p with ⟨t, p', s'⟩, exact ⟨t, p', s'.cons _ _ _⟩ } },
+  case list.sublist.cons2 : r₁ r₂ b s' ih {
+    have bm : b ∈ l₁ := (perm_subset p $ mem_cons_self _ _),
+    have am : a ∈ r₂ := h₂.resolve_left (λ e, h₁ $ e.symm ▸ bm),
+    rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
+    have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,
+    rcases ih am (nodup_of_sublist st d₁)
+      (mt (λ x, subset_of_sublist st x) h₁)
+      (perm_cons_inv $ p.trans perm_middle) with ⟨t, p', s'⟩,
+    exact ⟨b::t, (skip b p').trans $ (swap _ _ _).trans (skip a perm_middle.symm), s'.cons2 _ _ _⟩ }
+end
+
 theorem subperm_app_left {l₁ l₂ : list α} : ∀ l, l++l₁ <+~ l++l₂ ↔ l₁ <+~ l₂
 | []     := iff.rfl
 | (a::l) := (subperm_cons a).trans (subperm_app_left l)
@@ -395,22 +479,9 @@ theorem subperm_of_subset_nodup
 begin
   induction d with a l₁' h d IH,
   { exact ⟨nil, perm.nil, nil_sublist _⟩ },
-  { cases forall_mem_cons.1 H with H₁ H₂, simp at h,
-    rcases IH H₂ with ⟨l₂', p, s⟩, clear IH H H₂ l₁,
-    induction s with r₁ r₂ b s' IH r₁ r₂ b s' IH generalizing l₁',
-    { cases H₁ },
-    { simp at H₁, cases H₁ with e m,
-      { subst b, exact ⟨a::r₁, skip a p, s'.cons2 _ _ _⟩ },
-      { exact let ⟨t, p', s'⟩ := IH m d h p in ⟨t, p', s'.cons _ _ _⟩ } },
-    { have bm : b ∈ l₁' := (perm_subset p $ mem_cons_self _ _),
-      have am : a ∈ r₂ := H₁.resolve_left (λ e, h $ e.symm ▸ bm),
-      rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
-      have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,
-      rcases IH am (nodup_of_sublist st d)
-        (mt (λ x, subset_of_sublist st x) h)
-        (perm_cons_inv $ p.trans perm_middle) with ⟨t, p', s'⟩,
-      exact ⟨b::t, (skip b p').trans $
-        (swap _ _ _).trans (skip a perm_middle.symm), s'.cons2 _ _ _⟩ } }
+  { cases forall_mem_cons.1 H with H₁ H₂,
+    simp at h,
+    exact cons_subperm_of_mem d h H₁ (IH H₂) }
 end
 
 theorem perm_ext {l₁ l₂ : list α} (d₁ : nodup l₁) (d₂ : nodup l₂) : l₁ ~ l₂ ↔ ∀a, a ∈ l₁ ↔ a ∈ l₂ :=

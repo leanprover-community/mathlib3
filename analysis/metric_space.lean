@@ -341,18 +341,18 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
   dist_self := λ x, by simp,
   eq_of_dist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
-    exact prod.ext.2 ⟨dist_le_zero.1 h₁, dist_le_zero.1 h₂⟩
+    exact prod.ext_iff.2 ⟨dist_le_zero.1 h₁, dist_le_zero.1 h₂⟩
   end,
   dist_comm := λ x y, by simp [dist_comm],
   dist_triangle := λ x y z, max_le
     (le_trans (dist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
     (le_trans (dist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
   uniformity_dist := begin
-    refine prod_uniformity.trans _,
+    refine uniformity_prod.trans _,
     simp [uniformity_dist, vmap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
-    simp [inf_principal, set_eq_def, max_lt_iff]
+    simp [inf_principal, ext_iff, max_lt_iff]
   end,
   to_uniform_space := prod.uniform_space }
 

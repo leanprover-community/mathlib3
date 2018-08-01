@@ -59,12 +59,12 @@ abs.by_cases rfl !nat_abs_neg
 
 theorem lt_of_add_one_le {a b : ℤ} (H : a + 1 ≤ b) : a < b :=
 obtain (n : nat) (H1 : a + 1 + n = b), from le.dest H,
-have a + succ n = b, by rewrite [←H1, add.assoc, add.comm 1],
+have a + succ n = b, by rw [← H1, add.assoc, add.comm 1],
 lt.intro this
 
 theorem add_one_le_of_lt {a b : ℤ} (H : a < b) : a + 1 ≤ b :=
 obtain (n : nat) (H1 : a + succ n = b), from lt.elim H,
-have a + 1 + n = b, by rewrite [←H1, add.assoc, add.comm 1],
+have a + 1 + n = b, by rw [← H1, add.assoc, add.comm 1],
 le.intro this
 
 theorem lt_add_one_of_le {a b : ℤ} (H : a ≤ b) : a < b + 1 :=
@@ -75,13 +75,13 @@ have H1 : a + 1 ≤ b + 1, from add_one_le_of_lt H,
 le_of_add_le_add_right H1
 
 theorem sub_one_le_of_lt {a b : ℤ} (H : a ≤ b) : a - 1 < b :=
-lt_of_add_one_le (begin rewrite sub_add_cancel, exact H end)
+lt_of_add_one_le (begin rw sub_add_cancel, exact H end)
 
 theorem lt_of_sub_one_le {a b : ℤ} (H : a - 1 < b) : a ≤ b :=
 !sub_add_cancel ▸ add_one_le_of_lt H
 
 theorem le_sub_one_of_lt {a b : ℤ} (H : a < b) : a ≤ b - 1 :=
-le_of_lt_add_one begin rewrite sub_add_cancel, exact H end
+le_of_lt_add_one begin rw sub_add_cancel, exact H end
 
 theorem lt_of_le_sub_one {a b : ℤ} (H : a ≤ b - 1) : a < b :=
 !sub_add_cancel ▸ (lt_add_one_of_le H)
@@ -95,7 +95,7 @@ int.cases_on a
   (assume (m : nat) H, exists.intro m rfl)
 
 theorem eq_one_of_mul_eq_one_right {a b : ℤ} (H : a ≥ 0) (H' : a * b = 1) : a = 1 :=
-have a * b > 0, by rewrite H'; apply trivial,
+have a * b > 0, by rw H'; apply trivial,
 have b > 0, from pos_of_mul_pos_left this H,
 have a > 0, from pos_of_mul_pos_right `a * b > 0` (le_of_lt `b > 0`),
 or.elim (le_or_gt a 1)
@@ -104,7 +104,7 @@ or.elim (le_or_gt a 1)
   (assume : a > 1,
     have a * b ≥ 2 * 1,
       from mul_le_mul (add_one_le_of_lt `a > 1`) (add_one_le_of_lt `b > 0`) trivial H,
-    have false, by rewrite [H' at this]; exact this,
+    have false, by rw H' at this; exact this,
     false.elim this)
 
 theorem eq_one_of_mul_eq_one_left {a b : ℤ} (H : b ≥ 0) (H' : a * b = 1) : b = 1 :=
@@ -135,7 +135,7 @@ theorem exists_least_of_bdd {P : ℤ → Prop} [HP : decidable_pred P]
       apply (Hb _ Hge) Helt
     end,
     have H' : P (b + coe_nat (nat_abs (elt - b))), begin
-      rewrite [coe_nat_nat_abs_of_nonneg (int.le_of_lt (iff.mpr !sub_pos_iff_lt Heltb)),
+      rw [coe_nat_nat_abs_of_nonneg (int.le_of_lt (iff.mpr !sub_pos_iff_lt Heltb)),
               add.comm, sub_add_cancel],
       apply Helt
     end,
@@ -147,14 +147,14 @@ theorem exists_least_of_bdd {P : ℤ → Prop} [HP : decidable_pred P]
     let Hzb' := lt_of_not_ge Hzb,
     let Hpos := iff.mpr !sub_pos_iff_lt Hzb',
     have Hzbk : z = b + coe_nat (nat_abs (z - b)),
-      by rewrite [coe_nat_nat_abs_of_nonneg (int.le_of_lt Hpos), int.add_comm, sub_add_cancel],
+      by rw [coe_nat_nat_abs_of_nonneg (int.le_of_lt Hpos), int.add_comm, sub_add_cancel],
     have Hk : nat_abs (z - b) < least (λ n, P (b + ↑n)) (nat.succ (nat_abs (elt - b))), begin
      have Hz' := iff.mp !lt_add_iff_sub_lt_left Hz,
-     rewrite [←coe_nat_nat_abs_of_nonneg (int.le_of_lt Hpos) at Hz'],
+     rw [←coe_nat_nat_abs_of_nonneg (int.le_of_lt Hpos) at Hz'],
      apply lt_of_coe_nat_lt_coe_nat Hz'
     end,
     let Hk' := not_le_of_gt Hk,
-    rewrite Hzbk,
+    rw Hzbk,
     apply λ p, mt (ge_least_of_lt _ p) Hk',
     apply nat.lt_trans Hk,
     apply least_lt _ !lt_succ_self H'
@@ -173,7 +173,7 @@ theorem exists_greatest_of_bdd {P : ℤ → Prop} [HP : decidable_pred P]
       apply (Hb _ Hge) Helt
     end,
     have H' : P (b - coe_nat (nat_abs (b - elt))), begin
-      rewrite [coe_nat_nat_abs_of_nonneg (int.le_of_lt (iff.mpr !sub_pos_iff_lt Heltb)),
+      rw [coe_nat_nat_abs_of_nonneg (int.le_of_lt (iff.mpr !sub_pos_iff_lt Heltb)),
               sub_sub_self],
       apply Helt
     end,
@@ -185,14 +185,14 @@ theorem exists_greatest_of_bdd {P : ℤ → Prop} [HP : decidable_pred P]
     let Hzb' := lt_of_not_ge Hzb,
     let Hpos := iff.mpr !sub_pos_iff_lt Hzb',
     have Hzbk : z = b - coe_nat (nat_abs (b - z)),
-      by rewrite [coe_nat_nat_abs_of_nonneg (int.le_of_lt Hpos), sub_sub_self],
+      by rw [coe_nat_nat_abs_of_nonneg (int.le_of_lt Hpos), sub_sub_self],
     have Hk : nat_abs (b - z) < least (λ n, P (b - ↑n)) (nat.succ (nat_abs (b - elt))), begin
       have Hz' := iff.mp !lt_add_iff_sub_lt_left (iff.mpr !lt_add_iff_sub_lt_right Hz),
-      rewrite [←coe_nat_nat_abs_of_nonneg (int.le_of_lt Hpos) at Hz'],
+      rw [←coe_nat_nat_abs_of_nonneg (int.le_of_lt Hpos) at Hz'],
       apply lt_of_coe_nat_lt_coe_nat Hz'
     end,
     let Hk' := not_le_of_gt Hk,
-    rewrite Hzbk,
+    rw Hzbk,
     apply λ p, mt (ge_least_of_lt _ p) Hk',
     apply nat.lt_trans Hk,
     apply least_lt _ !lt_succ_self H'

@@ -7,6 +7,33 @@ Quotients -- extends the core library
 -/
 variables {α : Sort*} {β : Sort*}
 
+namespace quot
+variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
+local notation `⟦`:max a `⟧` := quot.mk _ a
+
+protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
+  (ca : ∀ {b a₁ a₂}, ra a₁ a₂ → f a₁ b == f a₂ b)
+  (cb : ∀ {a b₁ b₂}, rb b₁ b₂ → f a b₁ == f a b₂) : φ qa qb :=
+quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁ a₂ pa,
+  quot.induction_on qb $ λ b,
+    calc @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₁) (@cb _)
+          == f a₁ b                                     : by simp
+      ... == f a₂ b                                     : ca pa
+      ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp
+
+end quot
+
+namespace quotient
+variables [sa : setoid α] [sb : setoid β]
+variables {φ : quotient sa → quotient sb → Sort*}
+
+protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
+  (c : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ == f a₂ b₂) : φ qa qb :=
+quot.hrec_on₂ qa qb f
+  (λ _ _ _ p, c _ _ _ _ p (setoid.refl _))
+  (λ _ _ _ p, c _ _ _ _ (setoid.refl _) p)
+end quotient
+
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=
 ⟨quotient.exact, quotient.sound⟩
 
@@ -40,6 +67,21 @@ noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 
 theorem quotient.mk_out [s : setoid α] (a : α) : ⟦a⟧.out ≈ a :=
 quotient.exact (quotient.out_eq _)
+
+instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
+{ r := λ a b, ∀ i, a i ≈ b i,
+  iseqv := ⟨
+    λ a i, setoid.refl _,
+    λ a b h i, setoid.symm (h _),
+    λ a b c h₁ h₂ i, setoid.trans (h₁ _) (h₂ _)⟩ }
+
+noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : ∀ i, setoid (α i)]
+  (f : ∀ i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=
+⟦λ i, (f i).out⟧
+
+theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [∀ i, setoid (α i)]
+  (f : ∀ i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
+quotient.sound $ λ i, quotient.mk_out _
 
 /-- `trunc α` is the quotient of `α` by the always-true relation. This
   is related to the propositional truncation in HoTT, and is similar

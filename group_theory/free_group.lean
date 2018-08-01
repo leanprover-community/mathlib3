@@ -15,7 +15,7 @@ Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
 import logic.relation
 import algebra.group algebra.group_power
-import data.equiv data.fintype data.list.basic data.quot
+import data.fintype data.list.basic data.quot
 import group_theory.subgroup
 open relation
 variables {α : Type*}
@@ -151,7 +151,7 @@ iff.intro
       rw [step.cons_left_iff] at h₁₂,
       rcases h₁₂ with ⟨L, h₁₂, rfl⟩ | rfl,
       { exact (ih rfl rfl).head h₁₂ },
-      { exact (cons_cons h).tail _ step.cons_bnot_rev } }
+      { exact (cons_cons h).tail step.cons_bnot_rev } }
   end
   cons_cons
 
@@ -175,11 +175,11 @@ iff.intro
       { have : L₁ ++ (s' ++ ((a, b) :: (a, bnot b) :: e)) = (L₁ ++ s') ++ ((a, b) :: (a, bnot b) :: e),
         { simp },
         rcases ih this with ⟨w₁, w₂, rfl, h₁, h₂⟩,
-        exact ⟨w₁, w₂, rfl, h₁, h₂.tail _ step.bnot⟩ },
+        exact ⟨w₁, w₂, rfl, h₁, h₂.tail step.bnot⟩ },
       { have : (s ++ ((a, b) :: (a, bnot b) :: e')) ++ L₂ = s ++ ((a, b) :: (a, bnot b) :: (e' ++ L₂)),
         { simp },
         rcases ih this with ⟨w₁, w₂, rfl, h₁, h₂⟩,
-        exact ⟨w₁, w₂, rfl, h₁.tail _ step.bnot, h₂⟩ }, }
+        exact ⟨w₁, w₂, rfl, h₁.tail step.bnot, h₂⟩ }, }
   end
   (assume ⟨L₃, L₄, eq, h₃, h₄⟩, eq.symm ▸ append_append h₃ h₄)
 
@@ -200,7 +200,7 @@ iff.intro
     have h₂ : red ((x, bnot b) :: (x, b) :: L) L, from refl_trans_gen.single step.cons_bnot_rev,
     let ⟨L', h₁, h₂⟩ := church_rosser h₁ h₂ in
     by rw [singleton_iff] at h₁; subst L'; assumption)
-  (assume h, (cons_cons h).tail _ step.cons_bnot)
+  (assume h, (cons_cons h).tail step.cons_bnot)
 
 theorem red_iff_irreducible {x1 b1 x2 b2} (h : (x1, b1) ≠ (x2, b2)) :
   red [(x1, bnot b1), (x2, b2)] L ↔ L = [(x1, bnot b1), (x2, b2)] :=
@@ -738,7 +738,7 @@ instance red.decidable_rel : decidable_rel (@red α)
     | is_false H := is_false $ λ H2, H $ h ▸ (red.cons_cons_iff _).1 $ H2
     end
   else match red.decidable_rel tl1 ((x1,bnot b1)::(x2,b2)::tl2) with
-    | is_true H  := is_true $ (red.cons_cons H).tail _ red.step.cons_bnot
+    | is_true H  := is_true $ (red.cons_cons H).tail red.step.cons_bnot
     | is_false H := is_false $ λ H2, H $ red.inv_of_red_of_ne h H2
     end
 

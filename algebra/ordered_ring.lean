@@ -27,6 +27,13 @@ variable [linear_ordered_semiring α]
 @[simp] lemma mul_lt_mul_right {a b c : α} (h : 0 < c) : a * c < b * c ↔ a < b :=
 ⟨λ h', lt_of_mul_lt_mul_right h' (le_of_lt h), λ h', mul_lt_mul_of_pos_right h' h⟩
 
+lemma mul_lt_mul'' {a b c d : α} (h1 : a < c) (h2 : b < d) (h3 : 0 ≤ a) (h4 : 0 ≤ b) :
+       a * b < c * d :=
+(lt_or_eq_of_le h4).elim
+  (λ b0, mul_lt_mul h1 (le_of_lt h2) b0 (le_trans h3 (le_of_lt h1)))
+  (λ b0, by rw [← b0, mul_zero]; exact
+    mul_pos (lt_of_le_of_lt h3 h1) (lt_of_le_of_lt h4 h2))
+
 lemma le_mul_iff_one_le_left {a b : α} (hb : b > 0) : b ≤ a * b ↔ 1 ≤ a :=
 suffices 1 * b ≤ a * b ↔ 1 ≤ a, by rwa one_mul at this,
 mul_le_mul_right hb

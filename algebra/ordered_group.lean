@@ -182,16 +182,20 @@ namespace with_top
 open lattice
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
-@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _
+{ add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
+  ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
-@additive.add_comm_semigroup _ $ @with_zero.comm_semigroup (multiplicative α) _
+{ ..@additive.add_comm_semigroup _ $
+    @with_zero.comm_semigroup (multiplicative α) _ }
 
 instance [add_monoid α] : add_monoid (with_top α) :=
-@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _
+{ zero := some 0,
+  ..@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _ }
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
-@additive.add_comm_monoid _ $ @with_zero.comm_monoid (multiplicative α) _
+{ ..@additive.add_comm_monoid _ $
+    @with_zero.comm_monoid (multiplicative α) _ }
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_top α) :=
 begin
@@ -246,6 +250,19 @@ begin
     simp at h,
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
+
+@[simp] lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
+
+@[simp] lemma bot_add [ordered_comm_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
+
+@[simp] lemma add_bot [ordered_comm_monoid α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
+
+lemma coe_lt_coe {a b : ℕ} : (a : with_bot ℕ) < b ↔ a < b := with_bot.some_lt_some
+
+lemma bot_lt_some (a : ℕ) : (⊥ : with_bot ℕ) < some a :=
+lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
+
+instance has_one : has_one (with_bot ℕ) := ⟨(1 : ℕ)⟩
 
 end with_bot
 

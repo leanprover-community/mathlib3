@@ -97,7 +97,7 @@ instance (n : ℕ) [h0 : pos_nat n] : comm_ring (zmod n) :=
 lemma add_val {n : ℕ} : ∀ a b : zmod n, (a + b).val = (a.val + b.val) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-lemma mul_val {n : ℕ} :  ∀ a b : zmod n, (a + b).val = (a.val + b.val) % n
+lemma mul_val {n : ℕ} :  ∀ a b : zmod n, (a * b).val = (a.val * b.val) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
 lemma cast_val_nat {n : ℕ} [pos_nat n] (a : ℕ) : (a : zmod n).val = a % n :=

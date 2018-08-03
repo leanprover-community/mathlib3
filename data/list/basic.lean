@@ -423,7 +423,7 @@ by induction l; simp [*, or_comm]
 @[simp] theorem reverse_repeat (a : α) (n) : reverse (repeat a n) = repeat a n :=
 eq_repeat.2 ⟨by simp, λ b h, eq_of_mem_repeat (mem_reverse.1 h)⟩
 
-@[elab_as_eliminator] theorem reverse_rec_on {C : list α → Sort*}
+@[elab_as_eliminator] def reverse_rec_on {C : list α → Sort*}
   (l : list α) (H0 : C [])
   (H1 : ∀ (l : list α) (a : α), C l → C (l ++ [a])) : C l :=
 begin
@@ -2543,6 +2543,8 @@ variable [decidable_eq α]
 @[simp] theorem diff_cons (l₁ l₂ : list α) (a : α) : l₁.diff (a::l₂) = (l₁.erase a).diff l₂ :=
 by by_cases a ∈ l₁; simp [list.diff, h]
 
+@[simp] theorem nil_diff (l : list α) : [].diff l = [] := by induction l; simp *
+
 theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.erase l₁ l₂
 | l₁ []      := rfl
 | l₁ (a::l₂) := (diff_cons l₁ l₂ a).trans (diff_eq_foldl _ _)
@@ -2554,6 +2556,11 @@ by simp [diff_eq_foldl]
   map f (l₁.diff l₂) = (map f l₁).diff (map f l₂) :=
 by simp [diff_eq_foldl, map_foldl_erase finj]
 
+theorem diff_sublist : ∀ l₁ l₂ : list α, l₁.diff l₂ <+ l₁
+| l₁ []      := by simp
+| l₁ (a::l₂) := calc l₁.diff (a :: l₂) = (l₁.erase a).diff l₂ : diff_cons _ _ _
+  ... <+ l₁.erase a : diff_sublist _ _
+  ... <+ l₁ : list.erase_sublist _ _
 
 end diff
 

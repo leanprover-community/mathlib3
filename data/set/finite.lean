@@ -211,7 +211,7 @@ lemma finite_prod {s : set α} {t : set β} : finite s → finite t → finite (
 end set
 
 namespace finset
-variables [decidable_eq α] [decidable_eq β]
+variables [decidable_eq β]
 variables {s t u : finset α} {f : α → β} {a : α}
 
 /-- Convert a finset to a set in the natural way. -/
@@ -234,6 +234,21 @@ by simp [finset.subset_iff, set.subset_def]
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) :=
 by simp [set.set_eq_def]
 
+@[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_filter {p : α → Prop} [decidable_pred p] :
+  ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
+by simp [set.set_eq_def]
+
+@[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
+by simp [set.set_eq_def]
+
+variable [decidable_eq α]
+
 @[simp] lemma coe_insert : ↑(insert a s) = (insert a ↑s : set α) :=
 by simp [set.set_eq_def]
 
@@ -250,19 +265,6 @@ by simp [set.set_eq_def]
 by simp [set.set_eq_def]
 
 @[simp] lemma coe_inter : ↑(s ∩ t) = (↑s ∩ ↑t : set α) :=
-by simp [set.set_eq_def]
-
-@[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
-by simp [set.set_eq_def]
-
-@[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
-by simp [set.set_eq_def]
-
-@[simp] lemma coe_filter {p : α → Prop} [decidable_pred p] :
-  ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
-by simp [set.set_eq_def]
-
-@[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
 by simp [set.set_eq_def]
 
 end finset

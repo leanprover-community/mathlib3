@@ -69,4 +69,6 @@ instance : has_pow ℕ+ ℕ := ⟨pow⟩
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : (↑(m ^ n) : ℕ) = m ^ n := rfl
 
+instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
+
 end pnat

@@ -18,13 +18,13 @@ class euclidean_domain (α : Type u) extends integral_domain α :=
 (quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
 (valuation : α → ℕ)
 (val_remainder_lt : ∀ a {b}, b ≠ 0 → valuation (remainder a b) < valuation b)
-/- le_valuation_mul is often not a required in definitions of a euclidean
+/- `val_le_mul_left` is often not a required in definitions of a euclidean
   domain since given the other properties we can show there is a
-  (noncomputable) euclidean domain α with the property le_valuation_mul.
+  (noncomputable) euclidean domain α with the property `val_le_mul_left`.
   So potentially this definition could be split into two different ones
   (euclidean_domain_weak and euclidean_domain_strong) with a noncomputable
   function from weak to strong. I've currently divided the lemmas into
-  strong and weak depending on whether they require le_valuation_mul or not. -/
+  strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (val_le_mul_left : ∀ a {b}, b ≠ 0 → valuation a ≤ valuation (a * b))
 
 namespace euclidean_domain

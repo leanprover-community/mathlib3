@@ -206,18 +206,15 @@ instance [linear_order α] : is_strict_total_order' α (<) := {}
 @[algebra] class is_order_connected (α : Type u) (lt : α → α → Prop) : Prop :=
 (conn : ∀ a b c, lt a c → lt a b ∨ lt b c)
 
-theorem is_order_connected.neg_trans (r : α → α → Prop) [is_order_connected α r]
+theorem is_order_connected.neg_trans {r : α → α → Prop} [is_order_connected α r]
   {a b c} (h₁ : ¬ r a b) (h₂ : ¬ r b c) : ¬ r a c :=
 mt (is_order_connected.conn a b c) $ by simp [h₁, h₂]
 
-theorem is_strict_weak_order_of_is_order_connected [is_asymm α r] :
-  ∀ [is_order_connected α r], is_strict_weak_order α r
-| ⟨H⟩ := {
-  trans := λ a b c h₁ h₂, (H _ c _ h₁).resolve_right (asymm h₂),
+theorem is_strict_weak_order_of_is_order_connected [is_asymm α r]
+  [is_order_connected α r] : is_strict_weak_order α r :=
+{ trans := λ a b c h₁ h₂, (is_order_connected.conn _ c _ h₁).resolve_right (asymm h₂),
   incomp_trans := λ a b c ⟨h₁, h₂⟩ ⟨h₃, h₄⟩,
-    have H' : ∀ {a b c}, ¬ r a b → ¬ r b c → ¬ r a c,
-    from λ a b c, by simpa [not_or_distrib] using mt (H a b c),
-    ⟨H' h₁ h₃, H' h₄ h₂⟩,
+    ⟨is_order_connected.neg_trans h₁ h₃, is_order_connected.neg_trans h₄ h₂⟩,
   ..@is_irrefl_of_is_asymm α r _ }
 
 instance is_order_connected_of_is_strict_total_order'

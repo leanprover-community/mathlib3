@@ -255,3 +255,16 @@ d_array.fintype
 
 instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
 fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm
+
+instance quotient.fintype [fintype α] (s : setoid α)
+  [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=
+fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rfl⟩))
+
+instance finset.fintype [fintype α] : fintype (finset α) :=
+⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
+
+instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
+set_fintype _
+
+instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
+pi.fintype

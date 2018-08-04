@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2018 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Mario Carneiro
+
+A model of ZFC in Lean.
+-/
 import data.set.basic
 
 universes u v
@@ -37,7 +44,7 @@ theorem equiv.refl (x) : equiv x x :=
 pSet.rec_on x $ λα A IH, ⟨λa, ⟨a, IH a⟩, λa, ⟨a, IH a⟩⟩
 
 theorem equiv.euc {x} : Π {y z}, equiv x y → equiv z y → equiv x z :=
-pSet.rec_on x $ λα A IH y, pSet.rec_on y $ λβ B _ ⟨γ, Γ⟩ ⟨αβ, βα⟩ ⟨γβ, βγ⟩,
+pSet.rec_on x $ λα A IH y, pSet.cases_on y $ λβ B ⟨γ, Γ⟩ ⟨αβ, βα⟩ ⟨γβ, βγ⟩,
 ⟨λa, let ⟨b, ab⟩ := αβ a, ⟨c, bc⟩ := βγ b in ⟨c, IH a ab bc⟩,
   λc, let ⟨b, cb⟩ := γβ c, ⟨a, ba⟩ := βα b in ⟨a, IH a ba cb⟩⟩
 

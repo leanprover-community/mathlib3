@@ -6,7 +6,7 @@ Author: Simon Hudon
 Automation to construct `traversable` instances
 -/
 
-import category.traversable.basic category.traversable.instances category.basic
+import category.traversable.basic category.traversable.instances category.basic data.list.basic
 import tactic.basic tactic.cache
 
 namespace tactic.interactive
@@ -44,23 +44,25 @@ do t ← instantiate_mvars t,
           else fail format!"type {t} is not a functor with respect to variable {v}")
 
 /-- similar to `traverse_field` but for `functor` -/
-meta def map_field (n : name) (cl f v e : expr) : tactic expr :=
+meta def map_field (n : name) (cl f α β e : expr) : tactic expr :=
 do t ← infer_type e >>= whnf,
    if t.get_app_fn.const_name = n
-   then fail "recursive types not supported"
-   else if v.occurs t
-   then do f' ← nested_map f v t,
+   then trace (β.instantiate_local α.local_uniq_name t) >> trace_state >> fail "recursive types not supported"
+   else if α.occurs t
+   then do f' ← nested_map f α t,
            pure $ f' e
    else
          (is_def_eq t.app_fn cl >> mk_app ``comp.mk [e])
      <|> pure e
 
 /-- similar to `traverse_constructor` but for `functor` -/
-meta def map_constructor (c n : name) (f v : expr) (args : list expr) : tactic unit :=
+meta def map_constructor (c n : name) (f α β : expr) (args : list expr) : tactic unit :=
 do g ← target,
-   args' ← mmap (map_field n g.app_fn f v) args,
+   (args,rec_call) ← args.mpartition $ λ e, (bnot ∘ β.occurs) <$> infer_type e,
+   let args₀ := args.take $ args.length - rec_call.length,
+   args' ← mmap (map_field n g.app_fn f α β) args₀,
    constr ← fill_implicit_arg c,
-   let r := constr.mk_app args',
+   let r := constr.mk_app (args' ++ rec_call),
    () <$ tactic.exact r
 
 /-- derive the `map` definition of a `functor` -/
@@ -70,7 +72,7 @@ do [α,β,f,x] ← tactic.intro_lst [`α,`β,`f,`x],
    xs ← tactic.induction x,
    () <$ mzip_with'
       (λ (c : name) (x : name × list expr × list (name × expr)),
-      solve1 (map_constructor c type f α x.2.1))
+      solve1 (map_constructor c type f α β x.2.1))
       cs xs
 
 /-- `seq_apply_constructor [x,y,z] f` synthesizes `f <*> x <*> y <*> z` -/
@@ -95,7 +97,7 @@ do t ← instantiate_mvars t,
           else fail format!"type {t} is not traversable with respect to variable {v}")
 
 /--
-For a sum type `inductive foo (α : Type) | foo1 : list α → β → foo | ...`
+For a sum type `inductive foo (α : Type) | foo1 : list α → ℕ → foo | ...`
 ``traverse_field `foo appl_inst f `α `(x : list α)`` synthesizes
 `traverse f x` as part of traversing `foo1`. -/
 meta def traverse_field (n : name) (appl_inst cl f v e : expr) : tactic expr :=
@@ -110,16 +112,18 @@ do t ← infer_type e >>= whnf,
      <|> to_expr ``(@pure _ (%%appl_inst).to_has_pure _ (ulift.up %%e))
 
 /--
-For a sum type `inductive foo (α : Type) | foo1 : list α → β → foo | ...`
-``traverse_constructor `foo1 `foo appl_inst f `α [`(x : list α), `(y : β)]``
+For a sum type `inductive foo (α : Type) | foo1 : list α → ℕ → foo | ...`
+``traverse_constructor `foo1 `foo appl_inst f `α `β [`(x : list α), `(y : ℕ)]``
 synthesizes `foo1 <$> traverse f x <*> pure y.` -/
-meta def traverse_constructor (c n : name) (appl_inst f v : expr) (args : list expr) : tactic unit :=
+meta def traverse_constructor (c n : name) (appl_inst f α β : expr) (args : list expr) : tactic unit :=
 do g ← target,
-   args' ← mmap (traverse_field n appl_inst g.app_fn f v) args,
+   (args,rec_call) ← args.mpartition $ λ e, (bnot ∘ β.occurs) <$> infer_type e,
+   let args₀ := args.take $ args.length - rec_call.length,
+   args' ← mmap (traverse_field n appl_inst g.app_fn f α) args₀,
    constr ← fill_implicit_arg c,
    v ← mk_mvar,
    constr' ← to_expr ``(@pure %%(g.app_fn) (%%appl_inst).to_has_pure _ %%v),
-   r ← seq_apply_constructor args' constr',
+   r ← seq_apply_constructor (args' ++ rec_call) constr',
    gs ← get_goals,
    set_goals [v],
    vs ← tactic.intros >>= mmap mk_down,
@@ -135,7 +139,7 @@ do [m,appl_inst,α,β,f,x] ← tactic.intro_lst [`m,`appl_inst,`α,`β,`f,`x],
    xs ← tactic.induction x,
    () <$ mzip_with'
       (λ (c : name) (x : name × list expr × list (name × expr)),
-      solve1 (traverse_constructor c type appl_inst f α x.2.1))
+      solve1 (traverse_constructor c type appl_inst f α β x.2.1))
       cs xs
 
 open applicative

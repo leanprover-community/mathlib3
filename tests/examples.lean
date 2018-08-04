@@ -145,3 +145,30 @@ check_defn ``my_struct2.traversable
                     traverse f z <*>
                     traverse (traverse f) k)
                  x } )
+
+@[derive traversable]
+inductive rec_data3 (α : Type u) : Type u
+| nil : rec_data3
+| cons : ℕ → α → rec_data3 → rec_data3 → rec_data3
+
+/-
+inductive rec_data3 (α : Type u) : Type u
+| nil : rec_data3
+| cons : ℕ → α → list rec_data3 → rec_data3 → rec_data3 -- not supported
+-/
+
+run_cmd do
+check_defn ``rec_data3.traversable
+  ``( { traversable .
+        to_functor := rec_data3.functor,
+        traverse := λ (m : Type u → Type u) (_inst : applicative m) (α β : Type u) (f : α → m β) (x : rec_data3 α),
+               rec_data3.rec
+                 (pure (rec_data3.nil β))
+                 (λ (n : ℕ) (x : α) (left right : rec_data3 α) (rec_left rec_right : m (rec_data3 β)),
+                    pure (λ (n' : ulift ℕ) (x' : β) (left' right' : rec_data3 β),
+                                 rec_data3.cons n'.down x' left' right' ) <*>
+                    pure (ulift.up n) <*>
+                    f x <*>
+                    rec_left <*> -- good to know that we don't traverse the same subtree twice
+                    rec_right )
+                 x } )

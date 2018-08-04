@@ -76,6 +76,15 @@ end applicative
 section monad
 variables {m : Type u → Type v} [monad m] [is_lawful_monad m]
 
+open list
+
+def list.mpartition {f : Type → Type} [monad f] {α : Type} (p : α → f bool) :
+  list α → f (list α × list α)
+| [] := pure ([],[])
+| (x :: xs) :=
+mcond (p x) (prod.map (cons x) id <$> list.mpartition xs)
+            (prod.map id (cons x) <$> list.mpartition xs)
+
 lemma map_bind (x : m α) {g : α → m β} {f : β → γ} : f <$> (x >>= g) = (x >>= λa, f <$> g a) :=
 by rw [← bind_pure_comp_eq_map,bind_assoc]; simp [bind_pure_comp_eq_map]
 

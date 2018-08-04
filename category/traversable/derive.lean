@@ -13,58 +13,6 @@ namespace tactic.interactive
 
 open tactic list monad functor
 
-meta def nested_map (f v : expr) : expr → tactic expr
-| t :=
-do t ← instantiate_mvars t,
-   mcond (succeeds $ is_def_eq t v)
-      (pure f)
-      (if ¬ v.occurs (t.app_fn)
-          then do
-            cl ← mk_app ``functor [t.app_fn],
-            _inst ← mk_instance cl,
-            f' ← nested_map t.app_arg,
-            mk_mapp ``functor.map [t.app_fn,_inst,none,none,f']
-          else fail format!"type {t} is not a functor with respect to variable {v}")
-
-meta def map_field (n : name) (cl f v e : expr) : tactic expr :=
-do t ← infer_type e >>= whnf,
-   if t.get_app_fn.const_name = n
-   then fail "recursive types not supported"
-   else if v.occurs t
-   then do f' ← nested_map f v t,
-           pure $ f' e
-   else
-         (is_def_eq t.app_fn cl >> mk_app ``comp.mk [e])
-     <|> pure e
-
-meta def nested_traverse (f v : expr) : expr → tactic expr
-| t :=
-do t ← instantiate_mvars t,
-   mcond (succeeds $ is_def_eq t v)
-      (pure f)
-      (if ¬ v.occurs (t.app_fn)
-          then do
-            cl ← mk_app ``traversable [t.app_fn],
-            _inst ← mk_instance cl,
-            f' ← nested_traverse t.app_arg,
-            mk_mapp ``traversable.traverse [t.app_fn,_inst,none,none,none,none,f']
-          else fail format!"type {t} is not traversable with respect to variable {v}")
-
-meta def traverse_field (n : name) (inst cl f v e : expr) : tactic expr :=
-do t ← infer_type e >>= whnf,
-   if t.get_app_fn.const_name = n
-   then fail "recursive types not supported"
-   else if v.occurs t
-   then do f' ← nested_traverse f v t,
-           pure $ f' e
-   else
-         (is_def_eq t.app_fn cl >> mk_app ``comp.mk [e])
-     <|> to_expr ``(@pure _ (%%inst).to_has_pure _ (ulift.up %%e))
-
-meta def seq_apply_constructor : list expr → expr → tactic expr
-| (x :: xs) e := to_expr ``(%%e <*> %%x) >>= seq_apply_constructor xs
-| [] e := return e
-
 meta def fill_implicit_arg' : expr → expr → tactic expr
 | f (expr.pi n bi d b) :=
 if b.has_var then
@@ -81,6 +29,33 @@ do c ← mk_const n,
 meta def mk_down (e : expr) : tactic expr :=
 mk_app ``ulift.down [e] <|> pure e
 
+/-- similar to `nested_traverse` but for `functor` -/
+meta def nested_map (f v : expr) : expr → tactic expr
+| t :=
+do t ← instantiate_mvars t,
+   mcond (succeeds $ is_def_eq t v)
+      (pure f)
+      (if ¬ v.occurs (t.app_fn)
+          then do
+            cl ← mk_app ``functor [t.app_fn],
+            _inst ← mk_instance cl,
+            f' ← nested_map t.app_arg,
+            mk_mapp ``functor.map [t.app_fn,_inst,none,none,f']
+          else fail format!"type {t} is not a functor with respect to variable {v}")
+
+/-- similar to `traverse_field` but for `functor` -/
+meta def map_field (n : name) (cl f v e : expr) : tactic expr :=
+do t ← infer_type e >>= whnf,
+   if t.get_app_fn.const_name = n
+   then fail "recursive types not supported"
+   else if v.occurs t
+   then do f' ← nested_map f v t,
+           pure $ f' e
+   else
+         (is_def_eq t.app_fn cl >> mk_app ``comp.mk [e])
+     <|> pure e
+
+/-- similar to `traverse_constructor` but for `functor` -/
 meta def map_constructor (c n : name) (f v : expr) (args : list expr) : tactic unit :=
 do g ← target,
    args' ← mmap (map_field n g.app_fn f v) args,
@@ -98,12 +73,52 @@ do [α,β,f,x] ← tactic.intro_lst [`α,`β,`f,`x],
       solve1 (map_constructor c type f α x.2.1))
       cs xs
 
-meta def traverse_constructor (c n : name) (_inst f v : expr) (args : list expr) : tactic unit :=
+/-- `seq_apply_constructor [x,y,z] f` synthesizes `f <*> x <*> y <*> z` -/
+meta def seq_apply_constructor : list expr → expr → tactic expr
+| (x :: xs) e := to_expr ``(%%e <*> %%x) >>= seq_apply_constructor xs
+| [] e := return e
+
+/-- ``nested_traverse f α (list (array n (list α)))`` synthesizes the expression
+`traverse (traverse (traverse f))`. `nested_traverse` assumes that `α` appears in
+`(list (array n (list α)))` -/
+meta def nested_traverse (f v : expr) : expr → tactic expr
+| t :=
+do t ← instantiate_mvars t,
+   mcond (succeeds $ is_def_eq t v)
+      (pure f)
+      (if ¬ v.occurs (t.app_fn)
+          then do
+            cl ← mk_app ``traversable [t.app_fn],
+            _inst ← mk_instance cl,
+            f' ← nested_traverse t.app_arg,
+            mk_mapp ``traversable.traverse [t.app_fn,_inst,none,none,none,none,f']
+          else fail format!"type {t} is not traversable with respect to variable {v}")
+
+/--
+For a sum type `inductive foo (α : Type) | foo1 : list α → β → foo | ...`
+``traverse_field `foo appl_inst f `α `(x : list α)`` synthesizes
+`traverse f x` as part of traversing `foo1`. -/
+meta def traverse_field (n : name) (appl_inst cl f v e : expr) : tactic expr :=
+do t ← infer_type e >>= whnf,
+   if t.get_app_fn.const_name = n
+   then fail "recursive types not supported"
+   else if v.occurs t
+   then do f' ← nested_traverse f v t,
+           pure $ f' e
+   else
+         (is_def_eq t.app_fn cl >> mk_app ``comp.mk [e])
+     <|> to_expr ``(@pure _ (%%appl_inst).to_has_pure _ (ulift.up %%e))
+
+/--
+For a sum type `inductive foo (α : Type) | foo1 : list α → β → foo | ...`
+``traverse_constructor `foo1 `foo appl_inst f `α [`(x : list α), `(y : β)]``
+synthesizes `foo1 <$> traverse f x <*> pure y.` -/
+meta def traverse_constructor (c n : name) (appl_inst f v : expr) (args : list expr) : tactic unit :=
 do g ← target,
-   args' ← mmap (traverse_field n _inst g.app_fn f v) args,
+   args' ← mmap (traverse_field n appl_inst g.app_fn f v) args,
    constr ← fill_implicit_arg c,
    v ← mk_mvar,
-   constr' ← to_expr ``(@pure %%(g.app_fn) (%%_inst).to_has_pure _ %%v),
+   constr' ← to_expr ``(@pure %%(g.app_fn) (%%appl_inst).to_has_pure _ %%v),
    r ← seq_apply_constructor args' constr',
    gs ← get_goals,
    set_goals [v],

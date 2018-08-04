@@ -37,6 +37,27 @@ instance [semiring α] : semiring (with_zero α) :=
 attribute [refl] dvd_refl
 attribute [trans] dvd.trans
 
+class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f : α → β) : Prop :=
+(map_zero : f 0 = 0)
+(map_one : f 1 = 1)
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+
+namespace is_semiring_hom
+variables {β : Type v} [semiring α] [semiring β]
+variables (f : α → β) [is_semiring_hom f] {x y : α}
+
+instance id : is_semiring_hom (@id α) := by refine {..}; intros; refl
+
+instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
+  is_semiring_hom (g ∘ f) :=
+{ map_zero := by simp [map_zero f]; exact map_zero g,
+  map_one := by simp [map_one f]; exact map_one g,
+  map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
+  map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl }
+
+end is_semiring_hom
+
 section
   variables [ring α] (a b c d e : α)
 
@@ -82,8 +103,10 @@ class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β
 (map_one : f 1 = 1)
 
 namespace is_ring_hom
-
 variables {β : Type v} [ring α] [ring β]
+
+def of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
+
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
 lemma map_zero : f 0 = 0 :=
@@ -104,6 +127,9 @@ instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
 { map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
   map_one := by simp [map_one f]; exact map_one g }
+
+instance : is_semiring_hom f :=
+{ map_zero := map_zero f, ..‹is_ring_hom f› }
 
 end is_ring_hom
 

@@ -9,14 +9,39 @@ universes u v
 variable {α : Type u}
 
 section
-  variable [semiring α]
+variable [semiring α]
 
-  theorem mul_two (n : α) : n * 2 = n + n :=
-  (left_distrib n 1 1).trans (by simp)
+theorem mul_two (n : α) : n * 2 = n + n :=
+(left_distrib n 1 1).trans (by simp)
 
-  theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
-  (two_mul _).symm
+theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
+(two_mul _).symm
 end
+
+namespace units
+variables [ring α] {a b : α}
+
+instance : has_neg (units α) :=
+⟨λ u, ⟨-u.val, -u.inv, by simp [u.val_inv], by simp [u.inv_val]⟩⟩
+
+@[simp] protected theorem coe_neg (u : units α) : (↑-u : α) = -u := rfl
+
+@[simp] protected theorem neg_inv (u : units α) : (-u)⁻¹ = -u⁻¹ := rfl
+
+@[simp] protected theorem neg_neg (u : units α) : - -u = u :=
+units.ext $ neg_neg _
+
+@[simp] protected theorem neg_mul (u₁ u₂ : units α) : -u₁ * u₂ = -(u₁ * u₂) :=
+units.ext $ neg_mul_eq_neg_mul_symm _ _
+
+@[simp] protected theorem mul_neg (u₁ u₂ : units α) : u₁ * -u₂ = -(u₁ * u₂) :=
+units.ext $ (neg_mul_eq_mul_neg _ _).symm
+
+@[simp] protected theorem neg_mul_neg (u₁ u₂ : units α) : -u₁ * -u₂ = u₁ * u₂ := by simp
+
+protected theorem neg_eq_neg_one_mul (u : units α) : -u = -1 * u := by simp
+
+end units
 
 instance [semiring α] : semiring (with_zero α) :=
 { left_distrib := λ a b c, begin

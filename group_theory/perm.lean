@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.mu2
+import data.fintype
 
 universes u v
 open equiv function finset fintype
@@ -11,27 +11,53 @@ variables {α : Type u} {β : Type v} [decidable_eq α]
 
 namespace equiv.perm
 
-def lift_fin [fintype α] (f : perm (fin (card α)) → β)
-  (h : ∀ a b : perm (fin (card α)), is_conj a b → f a = f b) (a : perm α) : β :=
-trunc.lift (λ e : α ≃ fin (card α), f ((e.symm.trans a).trans e))
-(λ d e, h _ _ ⟨d.symm.trans e, begin
-    refine equiv.ext _ _ (λ x, _),
-    rw inv_def,
-    simp,
-  end⟩)
-(equiv_fin α)
+def is_swap (f : perm α) := ∃ x y, x ≠ y ∧ f = swap x y
 
-instance lift_fin.is_group_hom [fintype α] [group β]
-  (f : perm (fin (card α)) → β) [is_group_hom f]
-  (h : ∀ a b : perm (fin (card α)), is_conj a b → f a = f b) :
-  is_group_hom (lift_fin f h) :=
-⟨begin
-  assume a b,
-  unfold lift_fin,
-  refine trunc.induction_on (equiv_fin α) (λ e, _),
-  rw [trunc.lift_beta, trunc.lift_beta, trunc.lift_beta, ← is_group_hom.mul f],
-  exact congr_arg f (equiv.ext _ _ (λ x, by simp))
+lemma support_swap_mul {f : perm α} {x : α}
+  {y : α} (hy : (swap x (f x) * f) y ≠ y) : f y ≠ y ∧ y ≠ x :=
+begin
+  simp only [swap_apply_def, mul_apply, injective.eq_iff f.bijective.1] at *,
+  by_cases h : f y = x,
+  { split; intro; simp * at * },
+  { split_ifs at hy; cc }
+end
+
+def swap_factors_aux : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
+  l.nodup → {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g}
+| []       := λ f h _, ⟨[], equiv.ext _ _ $ λ x, by rw [list.prod_nil];
+    exact eq.symm (not_not.1 (mt h (list.not_mem_nil _))),
+  by simp⟩
+| (x :: l) := λ f h hnd,
+let m := swap_factors_aux l (swap x (f x) * f)
+  (λ y hy, have f y ≠ y ∧ y ≠ x, from support_swap_mul hy,
+  list.mem_of_ne_of_mem this.2 (h this.1))
+  (list.nodup_of_nodup_cons hnd) in
+⟨if x = f x then m.1 else swap x (f x) :: m.1,
+if hxfx : x = f x
+  then by have := m.2.1;
+    rw [if_pos hxfx, this, ← hxfx, swap_self, ← one_def, one_mul]
+  else by rw [if_neg hxfx, list.prod_cons, m.2.1, ← mul_assoc,
+    mul_def (swap x (f x)), swap_swap, ← one_def, one_mul],
+λ g hg, begin
+  split_ifs at hg with hx hx,
+  { exact m.2.2 _ hg },
+  { exact ((list.mem_cons_iff _ _ _).1 hg).elim (λ hgx, ⟨x, f x, hx, hgx⟩) (m.2.2 _) }
 end⟩
+
+/-- `swap_factors` represents a permutation as a product of a list of transpositions.
+The representation is non unique and depends on the order. For types without linear order
+`trunc_swap_factors` can be used -/
+def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
+  {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
+swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
+(sort_nodup _ _)
+
+def trunc_swap_factors [fintype α] (f : perm α) :
+  trunc {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
+quotient.rec_on_subsingleton (@univ α _).1
+(λ l h, trunc.mk (swap_factors_aux l f h.2 h.1))
+(show (@univ α _).1.nodup ∧ ∀ {x}, f x ≠ x → x ∈ (@univ α _).1,
+  from ⟨(@univ α _).2, λ _ _, mem_univ _⟩)
 
 lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) :
   swap y z * swap x y * swap y z = swap z x :=
@@ -57,14 +83,14 @@ lemma mem_fin_pairs_lt {n : ℕ} {a : Σ a : fin n, fin n} :
   a ∈ fin_pairs_lt n ↔ a.2 < a.1 :=
 by simp [fin_pairs_lt, fin.lt_def]
 
-def sign_aux {n : ℕ} (a : perm (fin n)) : mu2 :=
+def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
 (fin_pairs_lt n).prod
 (λ x, if a x.1 ≤ a x.2 then -1 else 1)
 
 @[simp] lemma sign_aux_one (n : ℕ) : sign_aux (1 : perm (fin n)) = 1 :=
 begin
   unfold sign_aux,
-  conv { to_rhs, rw ← @finset.prod_const_one _ mu2
+  conv { to_rhs, rw ← @finset.prod_const_one _ (units ℤ)
     (fin_pairs_lt n) },
   exact finset.prod_congr rfl (λ a ha, if_neg
     (not_le_of_gt (mem_fin_pairs_lt.1 ha)))
@@ -157,30 +183,21 @@ private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
 let zero : fin n := ⟨0, lt_of_lt_of_le dec_trivial hn⟩ in
 let one : fin n := ⟨1, lt_of_lt_of_le dec_trivial hn⟩ in
 have hzo : zero < one := dec_trivial,
-show sign_aux (swap zero one) = sign_aux (swap
-  (⟨0, dec_trivial⟩ : fin 2) ⟨1, dec_trivial⟩),
+show _ = (finset.singleton (⟨one, zero⟩ : Σ a : fin n, fin n)).prod
+  (λ x : Σ a : fin n, fin n, if (equiv.swap zero one) x.1
+  ≤ swap zero one x.2 then (-1 : units ℤ) else 1),
 begin
-  refine eq.symm (prod_bij_ne_one (λ _ _ _, ⟨one, zero⟩)
-    (λ _ _ _, mem_fin_pairs_lt.2 hzo) dec_trivial
-    (λ a ha₁ ha₂, ⟨⟨⟨1, dec_trivial⟩, ⟨0, dec_trivial⟩⟩, dec_trivial, dec_trivial, _⟩)
-    dec_trivial),
-  replace ha₂ : ite (a.fst = zero) one (ite (a.fst = one) zero (a.fst)) ≤
-      ite (a.snd = zero) one (ite (a.snd = one) zero (a.snd)) :=
-    by_contradiction (λ h, ha₂ (if_neg h)),
-  replace ha₁ := mem_fin_pairs_lt.1 ha₁,
-  cases a with a₁ a₂,
-  have : ¬ one ≤ zero := dec_trivial,
-  have : ∀ a : fin n, ¬a < zero := λ a, nat.not_lt_zero a.1,
-  have : a₂ < one → a₂ = zero := λ h, fin.eq_of_veq
-    (nat.le_zero_iff.1 (nat.le_of_lt_succ h)),
-  have : a₁ ≤ one → a₁ = zero ∨ a₁ = one := fin.cases_on a₁
-    (λ a, nat.cases_on a (λ _ _, or.inl rfl)
-    (λ a, nat.cases_on a (λ _ _, or.inr rfl)
-    (λ _ _ h, absurd h dec_trivial))),
-  have : a₁ ≤ zero → a₁ = zero := fin.eq_of_veq ∘ nat.le_zero_iff.1,
-  have : a₁ ≤ a₂ → a₂ < a₁ → false := not_lt_of_ge,
-  split_ifs at ha₂;
-  simp [*, lt_irrefl, -not_lt] at *
+  refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩, by simp [mem_fin_pairs_lt, hzo] {contextual := tt})
+    (λ a ha₁ ha₂, _)),
+  rcases a with ⟨⟨a₁, ha₁⟩, ⟨a₂, ha₂⟩⟩,
+  replace ha₁ : a₂ < a₁ := mem_fin_pairs_lt.1 ha₁,
+  simp only [swap_apply_def],
+  have : ¬ 1 ≤ a₂ → a₂ = 0, from λ h, nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge h)),
+  have : a₁ ≤ 1 → a₁ = 0 ∨ a₁ = 1, from nat.cases_on a₁ (λ _, or.inl rfl)
+    (λ a₁, nat.cases_on a₁ (λ _, or.inr rfl) (λ _ h, absurd h dec_trivial)),
+  split_ifs;
+  simp [*, lt_irrefl, -not_lt, not_le.symm, -not_le, le_refl, fin.lt_def, fin.le_def, nat.zero_le,
+    zero, one, iff.intro fin.veq_of_eq fin.eq_of_veq, nat.le_zero_iff] at *,
 end
 
 lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),
@@ -192,87 +209,77 @@ have h2n : 2 ≤ n + 2 := dec_trivial,
 by rw [← is_conj_iff_eq, ← sign_aux_swap_zero_one h2n];
   exact is_group_hom.is_conj _ (is_conj_swap hxy dec_trivial)
 
-/-- `sign` of a permutation returns the signature or parity of a permutation, `1` for e
-It is the unique surjective group homomorphism from `perm α` to the group with two elements.-/
-def sign [fintype α] (f : perm α) : mu2 :=
-lift_fin sign_aux (λ a b h, is_conj_iff_eq.1 (is_group_hom.is_conj sign_aux h)) f
+def sign_aux2 : list α → perm α → units ℤ
+| []     f := 1
+| (x::l) f := if f x = x then sign_aux2 l f else -sign_aux2 l (swap x (f x) * f)
 
-instance sign.is_group_hom [fintype α] : is_group_hom (sign : perm α → mu2) :=
-lift_fin.is_group_hom _ _
-
-lemma sign_swap [fintype α] {x y : α} (h : x ≠ y) :
-  sign (swap x y) = -1 :=
-begin
-  unfold sign lift_fin,
-  refine trunc.induction_on (fintype.equiv_fin α) (λ f, _),
-  rw [trunc.lift_beta, symm_trans_swap_trans,
-    sign_aux_swap (mt (injective.eq_iff f.bijective.1).1 h)]
+lemma sign_aux_eq_sign_aux2 {n : ℕ} : ∀ (l : list α) (f : perm α) (e : α ≃ fin n)
+  (h : ∀ x, f x ≠ x → x ∈ l),
+  sign_aux ((e.symm.trans f).trans e) = sign_aux2 l f
+| []     f e h := have f = 1, from equiv.ext _ _ $
+  λ y, not_not.1 (mt (h y) (list.not_mem_nil _)),
+by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
+  sign_aux_one, sign_aux2]
+| (x::l) f e h := begin
+  rw sign_aux2,
+  by_cases hfx : f x = x,
+  { rw if_pos hfx,
+    exact sign_aux_eq_sign_aux2 l f _ (λ y (hy : f y ≠ y), list.mem_of_ne_of_mem
+      (λ h : y = x, by simpa [h, hfx] using hy) (h y hy) ) },
+  { have hy : ∀ y : α, (swap x (f x) * f) y ≠ y → y ∈ l,
+      from λ y hy, have f y ≠ y ∧ y ≠ x, from support_swap_mul hy,
+      list.mem_of_ne_of_mem this.2 (h _ this.1),
+    have : (e.symm.trans (swap x (f x) * f)).trans e =
+      (swap (e x) (e (f x))) * (e.symm.trans f).trans e,
+      from equiv.ext _ _ (λ z, by rw ← equiv.symm_trans_swap_trans; simp [mul_def]),
+    have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.bijective.1).1 (ne.symm hfx),
+    rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
+    simp }
 end
 
-def is_swap (f : perm α) := ∃ x y, x ≠ y ∧ f = swap x y
+/-- `sign` of a permutation returns the signature or parity of a permutation, `1` for e
+It is the unique surjective group homomorphism from `perm α` to the group with two elements.-/
+def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) → units ℤ :=
+quotient.hrec_on s (λ l h, sign_aux2 l f)
+  (trunc.induction_on (equiv_fin α)
+    (λ e l₁ l₂ h, function.hfunext
+      (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp [list.mem_of_perm h])
+      (λ h₁ h₂ _, by rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₁ _),
+        ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₂ _)])))
+
+lemma sign_aux3_mul_and_swap [fintype α] (f g : perm α) (s : multiset α) (hs : ∀ x, x ∈ s) :
+  sign_aux3 (f * g) hs = sign_aux3 f hs * sign_aux3 g hs ∧ ∀ x y, x ≠ y → sign_aux3 (swap x y) hs = -1 :=
+let ⟨l, hl⟩ := quotient.exists_rep s in
+let ⟨e, _⟩ := trunc.exists_rep (equiv_fin α) in
+begin
+  clear _let_match _let_match,
+  subst hl,
+  show sign_aux2 l (f * g) = sign_aux2 l f * sign_aux2 l g ∧ ∀ x y, x ≠ y → sign_aux2 l (swap x y) = -1,
+  have hfg : (e.symm.trans (f * g)).trans e = ((e.symm.trans f).trans e) * ((e.symm.trans g).trans e),
+    from equiv.ext _ _ (λ h, by simp [mul_apply]),
+  split,
+  { rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _),
+    ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), hfg, sign_aux_mul] },
+  { assume x y hxy,
+    have hexy : e x ≠ e y, from mt (injective.eq_iff e.bijective.1).1 hxy,
+    rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), equiv.symm_trans_swap_trans, sign_aux_swap hexy] }
+end
+
+/-- `sign` of a permutation returns the signature or parity of a permutation, `1` for e
+It is the unique surjective group homomorphism from `perm α` to the group with two elements.-/
+def sign [fintype α] (f : perm α) := sign_aux3 f mem_univ
+
+instance sign.is_group_hom [fintype α] : is_group_hom (@sign α _ _) :=
+⟨λ f g, (sign_aux3_mul_and_swap f g _ mem_univ).1⟩
+
+lemma sign_swap [fintype α] {x y : α} (h : x ≠ y) : sign (swap x y) = -1 :=
+(sign_aux3_mul_and_swap 1 1 _ mem_univ).2 x y h
 
 lemma sign_eq_of_is_swap [fintype α] {f : perm α} (h : is_swap f) :
   sign f = -1 :=
 let ⟨x, y, hxy⟩ := h in hxy.2.symm ▸ sign_swap hxy.1
 
-def support [fintype α] (f : perm α) :=
-(@univ α _).filter (λ x, f x ≠ x)
-
-@[simp] lemma mem_support_iff [fintype α] {f : perm α} {a : α} :
-  a ∈ f.support ↔ f a ≠ a := by simp [support]
-
-@[simp] lemma support_eq_empty [fintype α] {f : perm α} :
-  f.support = ∅ ↔ f = 1 :=
-⟨λ h, equiv.ext _ _ (by simpa [finset.eq_empty_iff_forall_not_mem] using h),
-  λ h, by simp [h, finset.eq_empty_iff_forall_not_mem]⟩
-
-lemma support_swap_mul {f : perm α} {x : α}
-  {y : α} (hy : (swap x (f x) * f) y ≠ y) : f y ≠ y ∧ y ≠ x :=
-begin
-  simp only [swap_apply_def, mul_apply, injective.eq_iff f.bijective.1] at *,
-  by_cases h : f y = x,
-  { split; intro; simp * at * },
-  { split_ifs at hy; cc }
-end
-
-def swap_factors_aux : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
-  l.nodup → {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g}
-| []       := λ f h _, ⟨[], equiv.ext _ _ $ λ x, by rw [list.prod_nil];
-    exact eq.symm (not_not.1 (mt h (list.not_mem_nil _))),
-  by simp⟩
-| (x :: l) := λ f h hnd,
-let m := swap_factors_aux l (swap x (f x) * f)
-  (λ y hy, have f y ≠ y ∧ y ≠ x, from support_swap_mul hy,
-  list.mem_of_ne_of_mem this.2 (h this.1))
-  (list.nodup_of_nodup_cons hnd) in
-⟨if x = f x then m.1 else swap x (f x) :: m.1,
-if hxfx : x = f x
-  then by have := m.2.1;
-    rw [if_pos hxfx, this, ← hxfx, swap_self, ← one_def, one_mul]
-  else by rw [if_neg hxfx, list.prod_cons, m.2.1, ← mul_assoc,
-    mul_def (swap x (f x)), swap_swap, ← one_def, one_mul],
-λ g hg, begin
-  split_ifs at hg with hx hx,
-  { exact m.2.2 _ hg },
-  { exact ((list.mem_cons_iff _ _ _).1 hg).elim (λ hgx, ⟨x, f x, hx, hgx⟩) (m.2.2 _) }
-end⟩
-
-/-- `swap_factors` represents a permutation as a product of a list of transpositions.
-The representation is non unique and depends on the order. For types without linear order
-`trunc_swap_factors` can be used -/
-def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
-  {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
-swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
-(sort_nodup _ _)
-
-def trunc_swap_factors [fintype α] (f : perm α) :
-  trunc {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
-quotient.rec_on_subsingleton (@univ α _).1
-(λ l h, trunc.mk (swap_factors_aux l f h.2 h.1))
-(show (@univ α _).1.nodup ∧ ∀ {x}, f x ≠ x → x ∈ (@univ α _).1,
-  from ⟨(@univ α _).2, λ _ _, mem_univ _⟩)
-
-lemma eq_sign_of_surjective_hom [fintype α] {s : perm α → mu2}
+lemma eq_sign_of_surjective_hom [fintype α] {s : perm α → units ℤ}
   [is_group_hom s] (hs : surjective s) : s = sign :=
 have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
@@ -283,7 +290,7 @@ have ∀ {f}, is_swap f → s f = -1 :=
     end,
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := trunc.out (trunc_swap_factors g) in
-  have ∀ a ∈ l.map s, a = (1 : mu2) := λ a ha,
+  have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,
     let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸ this _ (hl.2 _ hg.1),
   have s l.prod = 1,
     by rw [is_group_hom.prod s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
@@ -291,9 +298,9 @@ have ∀ {f}, is_swap f → s f = -1 :=
     contradiction),
 funext $ λ f,
 let ⟨l, hl₁, hl₂⟩ := trunc.out (trunc_swap_factors f) in
-have hsl : ∀ a ∈ l.map s, a = (-1 : mu2) := λ a ha,
+have hsl : ∀ a ∈ l.map s, a = (-1 : units ℤ) := λ a ha,
   let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸  this (hl₂ _ hg.1),
-have hsignl :  ∀ a ∈ l.map sign, a = (-1 : mu2) := λ a ha,
+have hsignl :  ∀ a ∈ l.map sign, a = (-1 : units ℤ) := λ a ha,
   let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸ sign_eq_of_is_swap (hl₂ _ hg.1),
 by rw [← hl₁, is_group_hom.prod s, is_group_hom.prod (@sign α _ _),
   list.eq_repeat'.2 hsl, list.eq_repeat'.2 hsignl, list.length_map, list.length_map]

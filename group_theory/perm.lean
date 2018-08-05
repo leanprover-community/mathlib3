@@ -23,26 +23,20 @@ begin
 end
 
 def swap_factors_aux : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
-  l.nodup → {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g}
-| []       := λ f h _, ⟨[], equiv.ext _ _ $ λ x, by rw [list.prod_nil];
-    exact eq.symm (not_not.1 (mt h (list.not_mem_nil _))),
-  by simp⟩
-| (x :: l) := λ f h hnd,
-let m := swap_factors_aux l (swap x (f x) * f)
-  (λ y hy, have f y ≠ y ∧ y ≠ x, from support_swap_mul hy,
-  list.mem_of_ne_of_mem this.2 (h this.1))
-  (list.nodup_of_nodup_cons hnd) in
-⟨if x = f x then m.1 else swap x (f x) :: m.1,
-if hxfx : x = f x
-  then by have := m.2.1;
-    rw [if_pos hxfx, this, ← hxfx, swap_self, ← one_def, one_mul]
-  else by rw [if_neg hxfx, list.prod_cons, m.2.1, ← mul_assoc,
+  {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g}
+| []       := λ f h, ⟨[], equiv.ext _ _ $ λ x, by rw [list.prod_nil];
+    exact eq.symm (not_not.1 (mt h (list.not_mem_nil _))), by simp⟩
+| (x :: l) := λ f h,
+if hfx : x = f x
+then swap_factors_aux l f
+  (λ y hy, list.mem_of_ne_of_mem (λ h : y = x, by simpa [h, hfx.symm] using hy) (h hy))
+else let m := swap_factors_aux l (swap x (f x) * f)
+      (λ y hy, have f y ≠ y ∧ y ≠ x, from support_swap_mul hy,
+        list.mem_of_ne_of_mem this.2 (h this.1)) in
+  ⟨swap x (f x) :: m.1,
+  by rw [list.prod_cons, m.2.1, ← mul_assoc,
     mul_def (swap x (f x)), swap_swap, ← one_def, one_mul],
-λ g hg, begin
-  split_ifs at hg with hx hx,
-  { exact m.2.2 _ hg },
-  { exact ((list.mem_cons_iff _ _ _).1 hg).elim (λ hgx, ⟨x, f x, hx, hgx⟩) (m.2.2 _) }
-end⟩
+  λ g hg, ((list.mem_cons_iff _ _ _).1 hg).elim (λ h, ⟨x, f x, hfx, h⟩) (m.2.2 _)⟩
 
 /-- `swap_factors` represents a permutation as a product of a list of transpositions.
 The representation is non unique and depends on the linear order structure.
@@ -50,14 +44,12 @@ For types without linear order `trunc_swap_factors` can be used -/
 def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
-(sort_nodup _ _)
 
 def trunc_swap_factors [fintype α] (f : perm α) :
   trunc {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 quotient.rec_on_subsingleton (@univ α _).1
-(λ l h, trunc.mk (swap_factors_aux l f h.2 h.1))
-(show (@univ α _).1.nodup ∧ ∀ {x}, f x ≠ x → x ∈ (@univ α _).1,
-  from ⟨(@univ α _).2, λ _ _, mem_univ _⟩)
+(λ l h, trunc.mk (swap_factors_aux l f h))
+(show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
 
 lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) :
   swap y z * swap x y * swap y z = swap z x :=
@@ -97,9 +89,7 @@ end
 
 def sign_bij_aux {n : ℕ} (f : perm (fin n)) (a : Σ a : fin n, fin n) :
   Σ a : fin n, fin n :=
-if hxa : f a.2 < f a.1
-then ⟨f a.1, f a.2⟩
-else ⟨f a.2, f a.1⟩
+if hxa : f a.2 < f a.1 then ⟨f a.1, f a.2⟩ else ⟨f a.2, f a.1⟩
 
 lemma sign_bij_aux_inj {n : ℕ} {f : perm (fin n)} : ∀ a b : Σ a : fin n, fin n,
    a ∈ fin_pairs_lt n → b ∈ fin_pairs_lt n →
@@ -210,7 +200,7 @@ by rw [← is_conj_iff_eq, ← sign_aux_swap_zero_one h2n];
 
 def sign_aux2 : list α → perm α → units ℤ
 | []     f := 1
-| (x::l) f := if f x = x then sign_aux2 l f else -sign_aux2 l (swap x (f x) * f)
+| (x::l) f := if x = f x then sign_aux2 l f else -sign_aux2 l (swap x (f x) * f)
 
 lemma sign_aux_eq_sign_aux2 {n : ℕ} : ∀ (l : list α) (f : perm α) (e : α ≃ fin n)
   (h : ∀ x, f x ≠ x → x ∈ l), sign_aux ((e.symm.trans f).trans e) = sign_aux2 l f
@@ -220,17 +210,17 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
   sign_aux_one, sign_aux2]
 | (x::l) f e h := begin
   rw sign_aux2,
-  by_cases hfx : f x = x,
+  by_cases hfx : x = f x,
   { rw if_pos hfx,
     exact sign_aux_eq_sign_aux2 l f _ (λ y (hy : f y ≠ y), list.mem_of_ne_of_mem
-      (λ h : y = x, by simpa [h, hfx] using hy) (h y hy) ) },
+      (λ h : y = x, by simpa [h, hfx.symm] using hy) (h y hy) ) },
   { have hy : ∀ y : α, (swap x (f x) * f) y ≠ y → y ∈ l,
       from λ y hy, have f y ≠ y ∧ y ≠ x, from support_swap_mul hy,
       list.mem_of_ne_of_mem this.2 (h _ this.1),
     have : (e.symm.trans (swap x (f x) * f)).trans e =
       (swap (e x) (e (f x))) * (e.symm.trans f).trans e,
       from equiv.ext _ _ (λ z, by rw ← equiv.symm_trans_swap_trans; simp [mul_def]),
-    have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.bijective.1).1 (ne.symm hfx),
+    have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.bijective.1).1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
     simp }
 end

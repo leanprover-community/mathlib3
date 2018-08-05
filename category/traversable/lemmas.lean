@@ -86,4 +86,31 @@ lemma naturality' (η : applicative_transformation F G) (x : t (F α)) :
   η (sequence x) = sequence (@η _ <$> x) :=
 by simp [sequence, naturality, traverse_map]
 
+@[functor_norm]
+lemma traverse_id :
+  traverse id.mk = (id.mk : t α → id (t α)) :=
+by ext; simp [id_traverse]; refl
+
+@[functor_norm]
+lemma traverse_comp (g : α → F β) (h : β → G γ) :
+  traverse (comp.mk ∘ map h ∘ g) =
+  (comp.mk ∘ map (traverse h) ∘ traverse g : t α → comp F G (t γ)) :=
+by ext; simp [comp_traverse]
+
+-- @[functor_norm]
+lemma map_traverse' (g : α → G β) (h : β → γ) :
+  traverse (map h ∘ g) =
+  (map (map h) ∘ traverse g : t α → G (t γ)) :=
+by ext; simp [map_traverse]
+
+-- @[functor_norm]
+lemma traverse_map' (g : α → β) (h : β → G γ) :
+  traverse (h ∘ g) =
+  (traverse h ∘ map g : t α → G (t γ)) :=
+by ext; simp [traverse_map]
+
+lemma naturality_pf (η : applicative_transformation F G) (f : α → F β) :
+  traverse (@η _ ∘ f) = @η _ ∘ (traverse f : t α → F (t β)) :=
+by ext; simp [naturality]
+
 end traversable

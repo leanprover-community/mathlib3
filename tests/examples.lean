@@ -112,63 +112,33 @@ end
 end refine_struct
 
 /- traversable -/
+open tactic.interactive
+run_cmd do
+e ← get_env,
+f ← derive_attr.after_set,
+lawful_traversable_derive_handler ``(is_lawful_traversable) ``list,
+set_env e
 
-@[derive traversable]
+-- attribute [derive [traversable, is_lawful_traversable]] list option
+-- do not put in instances because they are not universe polymorphic
+
+@[derive [traversable, is_lawful_traversable]]
 structure my_struct (α : Type) :=
   (y : ℤ)
 
-run_cmd do
-check_defn ``my_struct.traversable
-  ``( { traversable .
-        to_functor := my_struct.functor,
-        traverse := λ (m : Type → Type) (_inst : applicative m) (α β : Type) (f : α → m β) (x : my_struct α),
-               my_struct.rec (λ (x : ℤ), pure (λ (a : ulift ℤ), {y := a.down}) <*> pure {down := x}) x} )
+@[derive [traversable, is_lawful_traversable]]
+inductive either (α : Type u)
+| left : α → ℤ → either
+| right : α → either
 
-@[derive traversable]
+@[derive [traversable, is_lawful_traversable]]
 structure my_struct2 (α : Type u) : Type u :=
   (x : α)
   (y : ℤ)
   (z : list α)
   (k : list (list α))
 
-run_cmd do
-check_defn ``my_struct2.traversable
-  ``( { traversable .
-        to_functor := my_struct2.functor,
-        traverse := λ (m : Type u → Type u) (_inst : applicative m) (α β : Type u) (f : α → m β) (x : my_struct2 α),
-               my_struct2.rec
-                 (λ (x : α) (y : ℤ) (z : list α) (k : list (list α)),
-                    pure (λ (x' : β) (y' : ulift ℤ) (z' : list β) (k' : list (list β)),
-                                 {x := x', y := y'.down, z := z', k := k'}) <*>
-                    f x <*>
-                    pure (ulift.up y) <*>
-                    traverse f z <*>
-                    traverse (traverse f) k)
-                 x } )
-
-@[derive traversable]
+@[derive [traversable, is_lawful_traversable]]
 inductive rec_data3 (α : Type u) : Type u
 | nil : rec_data3
 | cons : ℕ → α → rec_data3 → rec_data3 → rec_data3
-
-/-
-inductive rec_data3 (α : Type u) : Type u
-| nil : rec_data3
-| cons : ℕ → α → list rec_data3 → rec_data3 → rec_data3 -- not supported
--/
-
-run_cmd do
-check_defn ``rec_data3.traversable
-  ``( { traversable .
-        to_functor := rec_data3.functor,
-        traverse := λ (m : Type u → Type u) (_inst : applicative m) (α β : Type u) (f : α → m β) (x : rec_data3 α),
-               rec_data3.rec
-                 (pure (rec_data3.nil β))
-                 (λ (n : ℕ) (x : α) (left right : rec_data3 α) (rec_left rec_right : m (rec_data3 β)),
-                    pure (λ (n' : ulift ℕ) (x' : β) (left' right' : rec_data3 β),
-                                 rec_data3.cons n'.down x' left' right' ) <*>
-                    pure (ulift.up n) <*>
-                    f x <*>
-                    rec_left <*> -- good to know that we don't traverse the same subtree twice
-                    rec_right )
-                 x } )

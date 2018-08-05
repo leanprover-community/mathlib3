@@ -233,3 +233,11 @@ as casts.
     assumption `α = β`;
   - `h_generalize! Hx : e == x` reverts `Hx`;
   - when `Hx` is omitted, assumption `Hx : e == x` is not added.
+
+### pi_instance
+
+`pi_instance` constructs an instance of `my_class (Π i : I, f i)`
+where we know `Π i, my_class (f i)`. If an order relation is required,
+it defaults to `pi.partial_order`. Any field of the instance that
+`pi_instance` cannot construct is left untouched and generated as a
+new goal.

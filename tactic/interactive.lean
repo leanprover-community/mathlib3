@@ -123,7 +123,7 @@ match tgt with
 end
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
-  Never fails. Useful for debugging. -/
+Never fails. Useful for debugging. -/
 meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
    tactic.try_for max tac <|>
@@ -139,8 +139,8 @@ unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_c
         ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
 /-- For debugging only. This tactic checks the current state for any
-  missing dropped goals and restores them. Useful when there are no
-  goals to solve but "result contains meta-variables". -/
+missing dropped goals and restores them. Useful when there are no
+goals to solve but "result contains meta-variables". -/
 meta def recover : tactic unit :=
 do r ← tactic.result,
    tactic.set_goals $ r.fold [] $ λ e _ l,
@@ -150,7 +150,7 @@ do r ← tactic.result,
      end
 
 /-- Like `try { tac }`, but in the case of failure it continues
-  from the failure state instead of reverting to the original state. -/
+from the failure state instead of reverting to the original state. -/
 meta def continue (tac : itactic) : tactic unit :=
 λ s, result.cases_on (tac s)
  (λ a, result.success ())
@@ -177,22 +177,24 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
-/-- Same as the `congr` tactic, but takes an optional argument which gives
-  the depth of recursive applications. This is useful when `congr`
-  is too aggressive in breaking down the goal. For example, given
-  `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
-  and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
+/--
+Same as the `congr` tactic, but takes an optional argument which gives
+the depth of recursive applications. This is useful when `congr`
+is too aggressive in breaking down the goal. For example, given
+`⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
+and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
 | o        := focus1 (assumption <|> (congr_core >>
   all_goals (reflexivity <|> try (congr' (nat.pred <$> o)))))
 
-/-- Acts like `have`, but removes a hypothesis with the same name as
-  this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
-  then after `replace h := f h` the goal will be `h : q ⊢ goal`,
-  where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
-  This can be used to simulate the `specialize` and `apply at` tactics
-  of Coq. -/
+/--
+Acts like `have`, but removes a hypothesis with the same name as
+this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
+then after `replace h := f h` the goal will be `h : q ⊢ goal`,
+where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
+This can be used to simulate the `specialize` and `apply at` tactics
+of Coq. -/
 meta def replace (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
 do let h := h.get_or_else `this,
   old ← try_core (get_local h),
@@ -204,19 +206,19 @@ do let h := h.get_or_else `this,
   end
 
 /--
-  `apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
-  where `head` matches the current goal.
+`apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
+where `head` matches the current goal.
 
-  alternatively, when encountering an assumption of the form `sg₀ → ¬ sg₁`,
-  after the main approach failed, the goal is dismissed and `sg₀` and `sg₁`
-  are made into the new goal.
+alternatively, when encountering an assumption of the form `sg₀ → ¬ sg₁`,
+after the main approach failed, the goal is dismissed and `sg₀` and `sg₁`
+are made into the new goal.
 
-  optional arguments:
-  - asms: list of rules to consider instead of the local constants
-  - tac:  a tactic to run on each subgoals after applying an assumption; if
-          this tactic fails, the corresponding assumption will be rejected and
-          the next one will be attempted.
- -/
+optional arguments:
+- asms: list of rules to consider instead of the local constants
+- tac:  a tactic to run on each subgoals after applying an assumption; if
+        this tactic fails, the corresponding assumption will be rejected and
+        the next one will be attempted.
+-/
 meta def apply_assumption
   (asms : option (list expr) := none)
   (tac : tactic unit := return ()) : tactic unit :=
@@ -225,26 +227,26 @@ tactic.apply_assumption asms tac
 open nat
 
 /--
-  `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
-  and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
-  or up to `depth` times.
+`solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
+and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
+or up to `depth` times.
 
-  `solve_by_elim` discharges the current goal or fails
+`solve_by_elim` discharges the current goal or fails
 
-  `solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
+`solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
 
-  optional arguments:
-  - discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
-  - asms: list of assumptions / rules to consider instead of local constants
-  - depth: number of attempts at discharging generated sub-goals
-  -/
+optional arguments:
+- discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
+- asms: list of assumptions / rules to consider instead of local constants
+- depth: number of attempts at discharging generated sub-goals
+-/
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 tactic.solve_by_elim opt
 
 /--
-  `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
-  and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
-  using `reflexivity` or `solve_by_elim`
+`tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`
 -/
 meta def tautology := tactic.tautology
 
@@ -263,10 +265,10 @@ lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
 /--
-  Like `generalize` but also considers assumptions
-  specified by the user. The user can also specify to
-  omit the goal.
-  -/
+Like `generalize` but also considers assumptions
+specified by the user. The user can also specify to
+omit the goal.
+-/
 meta def generalize_hyp  (h : parse ident?) (_ : parse $ tk ":")
   (p : parse generalize_arg_p)
   (l : parse location) :
@@ -289,9 +291,9 @@ do h' ← get_unused_name `h,
    end
 
 /--
-  Similar to `refine` but generates equality proof obligations
-  for every discrepancy between the goal and the type of the rule.
-  -/
+Similar to `refine` but generates equality proof obligations
+for every discrepancy between the goal and the type of the rule.
+-/
 meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 do v ← mk_mvar,
    if sym.is_some
@@ -306,10 +308,11 @@ do v ← mk_mvar,
 meta def clean_ids : list name :=
 [``id, ``id_rhs, ``id_delta]
 
-/-- Remove identity functions from a term. These are normally
-  automatically generated with terms like `show t, from p` or
-  `(p : t)` which translate to some variant on `@id t p` in
-  order to retain the type. -/
+/--
+Remove identity functions from a term. These are normally
+automatically generated with terms like `show t, from p` or
+`(p : t)` which translate to some variant on `@id t p` in
+order to retain the type. -/
 meta def clean (q : parse texpr) : tactic unit :=
 do tgt : expr ← target,
    e ← i_to_expr_strict ``(%%q : %%tgt),
@@ -376,23 +379,24 @@ do set_goals [e],
    return $ gs'.join ++ gs
 
 
-/-- `refine_struct { .. }` acts like `refine` but works only with structure instance
-    literals. It creates a goal for each missing field and tags it with the name of the
-    field so that `have_field` can be used to generically refer to the field currently
-    being refined.
+/--
+`refine_struct { .. }` acts like `refine` but works only with structure instance
+literals. It creates a goal for each missing field and tags it with the name of the
+field so that `have_field` can be used to generically refer to the field currently
+being refined.
 
-    As an example, we can use `refine_struct` to automate the construction semigroup
-    instances:
-    ```
-    refine_struct ( { .. } : semigroup α ),
-    -- case semigroup, mul
-    -- α : Type u,
-    -- ⊢ α → α → α
+As an example, we can use `refine_struct` to automate the construction semigroup
+instances:
+```
+refine_struct ( { .. } : semigroup α ),
+-- case semigroup, mul
+-- α : Type u,
+-- ⊢ α → α → α
 
-    -- case semigroup, mul_assoc
-    -- α : Type u,
-    -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
-    ```
+-- case semigroup, mul_assoc
+-- α : Type u,
+-- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
+```
 -/
 meta def refine_struct : parse texpr → tactic unit | e :=
 do (x,xs) ← collect_struct e,
@@ -429,20 +433,21 @@ do gs ← get_goals,
    tac, done,
    set_goals $ gs'.map prod.fst
 
-/-- `have_field`, used after `refine_struct _` poses `field` as a local constant
-    with the type of the field of the current goal:
+/--
+`have_field`, used after `refine_struct _` poses `field` as a local constant
+with the type of the field of the current goal:
 
-    ```
-    refine_struct ({ .. } : semigroup α),
-    { have_field, ... },
-    { have_field, ... },
-    ```
-    behaves like
-    ```
-    refine_struct ({ .. } : semigroup α),
-    { have field := @semigroup.mul, ... },
-    { have field := @semigroup.mul_assoc, ... },
-    ```
+```
+refine_struct ({ .. } : semigroup α),
+{ have_field, ... },
+{ have_field, ... },
+```
+behaves like
+```
+refine_struct ({ .. } : semigroup α),
+{ have field := @semigroup.mul, ... },
+{ have field := @semigroup.mul_assoc, ... },
+```
 -/
 meta def have_field : tactic unit :=
 propagate_tags $
@@ -519,20 +524,21 @@ private meta def h_generalize_arg_p_aux : pexpr → parser (pexpr × name)
 private meta def h_generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr == id" $ parser.pexpr 0 >>= h_generalize_arg_p_aux
 
-/-- `h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
-    `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
-    times (not necessarily with the same proof), they are all replaced by `x`. `cast`
-    `eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
-    as casts.
+/--
+`h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
+`x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
+times (not necessarily with the same proof), they are all replaced by `x`. `cast`
+`eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
+as casts.
 
-    `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`.
+`h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`.
 
-    `h_generalize Hx : e == x with _` chooses automatically chooses the name of
-    assumption `α = β`.
+`h_generalize Hx : e == x with _` chooses automatically chooses the name of
+assumption `α = β`.
 
-    `h_generalize! Hx : e == x` reverts `Hx`.
+`h_generalize! Hx : e == x` reverts `Hx`.
 
-    when `Hx` is omitted, assumption `Hx : e == x` is not added.
+when `Hx` is omitted, assumption `Hx : e == x` is not added.
 -/
 meta def h_generalize (rev : parse (tk "!")?)
      (h : parse ident_?)

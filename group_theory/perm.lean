@@ -45,8 +45,8 @@ if hxfx : x = f x
 end⟩
 
 /-- `swap_factors` represents a permutation as a product of a list of transpositions.
-The representation is non unique and depends on the order. For types without linear order
-`trunc_swap_factors` can be used -/
+The representation is non unique and depends on the linear order structure.
+For types without linear order `trunc_swap_factors` can be used -/
 def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
@@ -214,8 +214,7 @@ def sign_aux2 : list α → perm α → units ℤ
 | (x::l) f := if f x = x then sign_aux2 l f else -sign_aux2 l (swap x (f x) * f)
 
 lemma sign_aux_eq_sign_aux2 {n : ℕ} : ∀ (l : list α) (f : perm α) (e : α ≃ fin n)
-  (h : ∀ x, f x ≠ x → x ∈ l),
-  sign_aux ((e.symm.trans f).trans e) = sign_aux2 l f
+  (h : ∀ x, f x ≠ x → x ∈ l), sign_aux ((e.symm.trans f).trans e) = sign_aux2 l f
 | []     f e h := have f = 1, from equiv.ext _ _ $
   λ y, not_not.1 (mt (h y) (list.not_mem_nil _)),
 by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
@@ -237,8 +236,6 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
     simp }
 end
 
-/-- `sign` of a permutation returns the signature or parity of a permutation, `1` for e
-It is the unique surjective group homomorphism from `perm α` to the group with two elements.-/
 def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) → units ℤ :=
 quotient.hrec_on s (λ l h, sign_aux2 l f)
   (trunc.induction_on (equiv_fin α)
@@ -248,25 +245,28 @@ quotient.hrec_on s (λ l h, sign_aux2 l f)
         ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₂ _)])))
 
 lemma sign_aux3_mul_and_swap [fintype α] (f g : perm α) (s : multiset α) (hs : ∀ x, x ∈ s) :
-  sign_aux3 (f * g) hs = sign_aux3 f hs * sign_aux3 g hs ∧ ∀ x y, x ≠ y → sign_aux3 (swap x y) hs = -1 :=
+  sign_aux3 (f * g) hs = sign_aux3 f hs * sign_aux3 g hs ∧ ∀ x y, x ≠ y →
+  sign_aux3 (swap x y) hs = -1 :=
 let ⟨l, hl⟩ := quotient.exists_rep s in
 let ⟨e, _⟩ := trunc.exists_rep (equiv_fin α) in
 begin
   clear _let_match _let_match,
   subst hl,
-  show sign_aux2 l (f * g) = sign_aux2 l f * sign_aux2 l g ∧ ∀ x y, x ≠ y → sign_aux2 l (swap x y) = -1,
-  have hfg : (e.symm.trans (f * g)).trans e = ((e.symm.trans f).trans e) * ((e.symm.trans g).trans e),
+  show sign_aux2 l (f * g) = sign_aux2 l f * sign_aux2 l g ∧
+    ∀ x y, x ≠ y → sign_aux2 l (swap x y) = -1,
+  have hfg : (e.symm.trans (f * g)).trans e = (e.symm.trans f).trans e * (e.symm.trans g).trans e,
     from equiv.ext _ _ (λ h, by simp [mul_apply]),
   split,
   { rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _),
-    ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), hfg, sign_aux_mul] },
+      ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), hfg, sign_aux_mul] },
   { assume x y hxy,
     have hexy : e x ≠ e y, from mt (injective.eq_iff e.bijective.1).1 hxy,
     rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), equiv.symm_trans_swap_trans, sign_aux_swap hexy] }
 end
 
-/-- `sign` of a permutation returns the signature or parity of a permutation, `1` for e
-It is the unique surjective group homomorphism from `perm α` to the group with two elements.-/
+/-- `sign` of a permutation returns the signature or parity of a permutation, `1` for even
+permutations, `-1` for odd permutations. It is the unique surjective group homomorphism from
+`perm α` to the group with two elements.-/
 def sign [fintype α] (f : perm α) := sign_aux3 f mem_univ
 
 instance sign.is_group_hom [fintype α] : is_group_hom (@sign α _ _) :=
@@ -275,8 +275,7 @@ instance sign.is_group_hom [fintype α] : is_group_hom (@sign α _ _) :=
 lemma sign_swap [fintype α] {x y : α} (h : x ≠ y) : sign (swap x y) = -1 :=
 (sign_aux3_mul_and_swap 1 1 _ mem_univ).2 x y h
 
-lemma sign_eq_of_is_swap [fintype α] {f : perm α} (h : is_swap f) :
-  sign f = -1 :=
+lemma sign_eq_of_is_swap [fintype α] {f : perm α} (h : is_swap f) : sign f = -1 :=
 let ⟨x, y, hxy⟩ := h in hxy.2.symm ▸ sign_swap hxy.1
 
 lemma eq_sign_of_surjective_hom [fintype α] {s : perm α → units ℤ}
@@ -284,18 +283,16 @@ lemma eq_sign_of_surjective_hom [fintype α] {s : perm α → units ℤ}
 have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
-      is_conj_iff_eq.1 begin
-      rw [← mu2.ne_neg_one_iff.1 h, hab'],
-      exact is_group_hom.is_conj _ (is_conj_swap hab hxy),
-    end,
+      by rw [← is_conj_iff_eq, ← or.resolve_right (int.units_eq_one_or _) h, hab'];
+        exact is_group_hom.is_conj _ (is_conj_swap hab hxy),
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := trunc.out (trunc_swap_factors g) in
   have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,
     let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸ this _ (hl.2 _ hg.1),
   have s l.prod = 1,
     by rw [is_group_hom.prod s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
-  by simp [hl.1.symm, this] at hg;
-    contradiction),
+  by rw [hl.1, hg] at this;
+    exact absurd this dec_trivial),
 funext $ λ f,
 let ⟨l, hl₁, hl₂⟩ := trunc.out (trunc_swap_factors f) in
 have hsl : ∀ a ∈ l.map s, a = (-1 : units ℤ) := λ a ha,

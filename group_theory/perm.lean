@@ -84,8 +84,7 @@ lemma mem_fin_pairs_lt {n : ℕ} {a : Σ a : fin n, fin n} :
 by simp [fin_pairs_lt, fin.lt_def]
 
 def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
-(fin_pairs_lt n).prod
-(λ x, if a x.1 ≤ a x.2 then -1 else 1)
+(fin_pairs_lt n).prod (λ x, if a x.1 ≤ a x.2 then -1 else 1)
 
 @[simp] lemma sign_aux_one (n : ℕ) : sign_aux (1 : perm (fin n)) = 1 :=
 begin

@@ -409,3 +409,11 @@ by rw [← nhds_vmap_dist a, tendsto_vmap_iff]
 
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_dist continuous_id continuous_const) continuous_const
+
+lemma lebesgue_number_lemma {s : set α} {c : set (set α)} (hs : compact s)
+  (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
+  ∃ δ > 0, ∀ x ∈ s, ∃ t ∈ c, ball x δ ⊆ t :=
+let ⟨n, en, hn⟩ := lebesgue_entourage_lemma hs hc₁ hc₂,
+    ⟨δ, δ0, hδ⟩ := mem_uniformity_dist.mp en in
+⟨δ, δ0, assume x hx, let ⟨t, tc, ht⟩ := hn x hx in
+ ⟨t, tc, assume y hy, ht y (hδ (mem_ball'.mp hy))⟩⟩

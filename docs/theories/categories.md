@@ -4,7 +4,7 @@ The `category` typeclass is defined in [category_theory/category.lean](https://g
 It depends on the type of the objects, so for example we might write `category (Type u)` if we're talking about a category whose objects are types (in universe `u`).
 Some care is needed with universes (see the section [Universes](##markdown-header-universes)), and end users may often prefer the abbreviations `small_category` and `large_category`.
 
-Functors (which are a structure, not a typeclass) are defined in [category_theory/functor/default.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/functor/default.lean),
+Functors (which are a structure, not a typeclass) are defined in [category_theory/functor.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/functor/default.lean),
 along with identity functors and functor composition.
 
 Natural transformations, and their compositions, are defined in [category_theory/natural_transformation.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/natural_transformation.lean).
@@ -46,7 +46,10 @@ This leaves the actual category implicit; it is inferred from the type of `X` an
 We use `𝟙` (`\b1`) to denote identity morphisms, as in `𝟙 X`.
 
 We use `≫` (`\gg`) to denote composition of morphisms, as in `f ≫ g`, which means "`f` followed by `g`".
-You can also write composition in the usual convention, using `⊚` (`\oo` or `\circledcirc`), as in `f ⊚ g` which means "`g` followed by `f`".
+You may prefer write composition in the usual convention, using `⊚` (`\oo` or `\circledcirc`), as in `f ⊚ g` which means "`g` followed by `f`". To do so you'll need to add this notation locally, via 
+```
+local notation f ` ⊚ `:80 g:80 := category.comp g f
+```
 
 ### Isomorphisms
 We use `≅` for isomorphisms.
@@ -56,13 +59,8 @@ We use `↝` (`\leadsto` or `\lea` or `\r~`) to denote functors, as in `C ↝ D`
 Unfortunately Johannes reserved `⇒` (`\functor` or `\func`) in core: https://github.com/leanprover/lean/blob/master/library/init/relator.lean, so we can't use that here.
 Perhaps this is unnecessary, and it's better to just write `Functor C D`.
 
-Unfortunately, writing application of functors on objects and morphisms merely by function application is problematic.
-To do either, we need to use a coercion to a function type, and we aren't allowed to do both this way.
-Even doing one (probably application to objects) causes some serious problems to automation. I'll have one more go at this,
-but in the meantime:
-
-We use `+>` to denote the action of a functor on an object, as in `F +> X`.
-We use `&>` to denote the action of a functor on a morphism, as in `F &> f`.
+We use `F X` to denote the action of a functor on an object.
+We use `F.map f` to denote the action of a functor on a morphism`.
 
 Functor composition can be written as `F ⋙ G`.
 
@@ -70,9 +68,6 @@ Functor composition can be written as `F ⋙ G`.
 We use `⟹` (`\nattrans` or `\==>`) to denote the type of natural transformations, e.g. `F ⟹ G`.
 We use `⇔` (`\<=>`) to denote the type of natural isomorphisms.
 
-Unfortunately, while we'd like to write components of natural transformations via function application (e.g. `τ X`),
-this requires coercions to function types, which I don't like.
-
-For now we use the notation `τ @> X` for `τ.components X`.
+We can use `τ X` for `τ.components X`.
 
 For vertical and horiztonal composition of natural transformations we "cutely" use `⊟` (`\boxminus`) and `◫` (currently untypeable, but we could ask for `\boxvert`).

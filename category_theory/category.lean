@@ -6,8 +6,12 @@ Authors: Stephen Morgan, Scott Morrison
 Defines a category, as a typeclass parametrised by the type of objects.
 Introduces notations
   `X ⟶ Y` for the morphism spaces,
-  `f ⊚ g` for composition in the standard convention, and
   `f ≫ g` for composition in the 'arrows' convention.
+
+Users may like to add `f ⊚ g` for composition in the standard convention, using
+```
+local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
+```
 -/
 
 import tactic.make_lemma
@@ -27,24 +31,23 @@ and discharged by an auto_param), are all marked with a comment "-- obviously sa
 -/
 
 class category (Obj : Type u) : Type (max u (v+1)) :=
-(Hom : Obj → Obj → Type v)
-(identity : Π X : Obj, Hom X X)
-(compose  : Π {X Y Z : Obj}, Hom X Y → Hom Y Z → Hom X Z)
-(left_identity  : ∀ {X Y : Obj} (f : Hom X Y), compose (identity X) f = f . obviously)
-(right_identity : ∀ {X Y : Obj} (f : Hom X Y), compose f (identity Y) = f . obviously)
-(associativity  : ∀ {W X Y Z : Obj} (f : Hom W X) (g : Hom X Y) (h : Hom Y Z), compose (compose f g) h = compose f (compose g h) . obviously)
+(Hom     : Obj → Obj → Type v)
+(id      : Π X : Obj, Hom X X)
+(comp    : Π {X Y Z : Obj}, Hom X Y → Hom Y Z → Hom X Z)
+(id_comp : ∀ {X Y : Obj} (f : Hom X Y), comp (id X) f = f . obviously)
+(comp_id : ∀ {X Y : Obj} (f : Hom X Y), comp f (id Y) = f . obviously)
+(assoc   : ∀ {W X Y Z : Obj} (f : Hom W X) (g : Hom X Y) (h : Hom Y Z), comp (comp f g) h = comp f (comp g h) . obviously)
 
-notation `𝟙` := category.identity     -- type as \b1
-notation f ` ⊚ `:80 g:80 := category.compose g f    -- type as \oo
-infixr ` ≫ `:80 := category.compose   -- type as \gg
-infixr ` ⟶ `:10  := category.Hom     -- type as \h
+notation `𝟙` := category.id -- type as \b1
+infixr ` ≫ `:80 := category.comp -- type as \gg
+infixr ` ⟶ `:10 := category.Hom -- type as \h
 
 -- make_lemma is a command that creates a lemma from a structure field, discarding all auto_param wrappers from the type.
-make_lemma category.left_identity
-make_lemma category.right_identity
-make_lemma category.associativity
+make_lemma category.id_comp
+make_lemma category.comp_id
+make_lemma category.assoc
 -- We tag some lemmas with the attribute `@[ematch]`, for later automation. (I'd be happy to change this to e.g. `@[search]`.)
-attribute [simp,ematch] category.left_identity_lemma category.right_identity_lemma category.associativity_lemma 
+attribute [simp,ematch] category.id_comp_lemma category.comp_id_lemma category.assoc_lemma 
 
 abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u+1 u} C
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C

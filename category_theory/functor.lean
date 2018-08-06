@@ -9,9 +9,8 @@ Defines a functor between categories.
 by the underlying function on objects, the name is capitalised.)
 
 Introduces notations
-  `F +> X` for the action on objects
-  `F &> f` for the action on morphisms, and
-  `C ↝ D` for the type of all functors from `C` to `D`. (I would like a better notation here.)
+  `C ↝ D` for the type of all functors from `C` to `D`. (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
+  `F X` (a coercion) for a functor `F` acting on an object `X`.
 -/
 
 import .category
@@ -21,65 +20,64 @@ namespace category_theory
 universes u₁ v₁ u₂ v₂ u₃ v₃
 
 structure Functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
-(on_objects     : C → D)
-(on_morphisms   : Π {X Y : C}, (X ⟶ Y) → ((on_objects X) ⟶ (on_objects Y)))
-(identities    : ∀ (X : C), on_morphisms (𝟙 X) = 𝟙 (on_objects X) . obviously)
-(functoriality : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), on_morphisms (f ≫ g) = (on_morphisms f) ≫ (on_morphisms g) . obviously)
+(obj           : C → D)
+(map           : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
+(map_id        : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
+(functoriality : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
 
-make_lemma Functor.identities
+make_lemma Functor.map_id
 make_lemma Functor.functoriality
-attribute [simp,ematch] Functor.functoriality_lemma Functor.identities_lemma
+attribute [simp,ematch] Functor.map_id_lemma Functor.functoriality_lemma
 
-infixr ` +> `:70 := Functor.on_objects
-infixr ` &> `:70 := Functor.on_morphisms -- switch to ▹?
-infixr ` ↝ `:70 := Functor              -- type as \lea 
+infixr ` ↝ `:70 := Functor       -- type as \lea -- 
 
-definition identity_functor (C : Type u₁) [category.{u₁ v₁} C] : C ↝ C := 
-{ on_objects     := id,
-  on_morphisms   := λ _ _ f, f,
-  identities    := begin 
-                     -- `obviously'` says:
-                     intros,
-                     refl 
-                   end,
-  functoriality := begin
-                     -- `obviously'` says:
-                     intros,
-                     refl
-                   end }
+namespace Functor
 
-instance Functor.has_one (C) [category C] : has_one (C ↝ C) :=
-{ one := identity_functor C }
+section
+variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+include 𝒞 𝒟
 
-variable {C : Type u₁}
-variable [𝒞 : category.{u₁ v₁} C]
+instance : has_coe_to_fun (C ↝ D) :=
+{ F   := λ F, C → D,
+  coe := λ F, F.obj }
+
+@[simp] lemma unfold_obj_coercion (F : C ↝ D) (X : C) : F X = F.obj X := rfl
+end
+
+section
+variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
 include 𝒞
 
-@[simp] lemma identity_functor.on_objects (X : C) : (identity_functor C) +> X = X := by refl
-@[simp] lemma identity_functor.on_morphisms {X Y : C} (f : X ⟶ Y) : (identity_functor C) &> f = f := by refl
+definition id : C ↝ C := 
+{ obj     := id,
+  map     := λ _ _ f, f,
+  map_id  := begin /- `obviously'` says: -/ intros, refl end,
+  functoriality := begin /- `obviously'` says: -/ intros, refl end }
 
-variable {D : Type u₂}
-variable [𝒟 : category.{u₂ v₂} D]
-variable {E : Type u₃}
-variable [ℰ : category.{u₃ v₃} E]
-include 𝒟 ℰ
+instance has_one : has_one (C ↝ C) :=
+{ one := id C }
 
-definition functor_composition (F : C ↝ D) (G : D ↝ E) : C ↝ E := 
-{ on_objects     := λ X, G +> (F +> X),
-  on_morphisms   := λ _ _ f, G &> (F &> f),
-  identities    := begin 
-                     -- `obviously'` says:
-                     intros,
-                     simp,
-                   end,
-  functoriality := begin
-                     -- `obviously'` says:
-                     intros,
-                     simp
-                   end }
-infixr ` ⋙ `:80 := functor_composition
+variable {C}
 
-@[simp] lemma functor_composition.on_objects (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G) +> X = G +> (F +> X) := by refl
-@[simp] lemma functor_composition.on_morphisms (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : (F ⋙ G) &> f = G.on_morphisms (F &> f) := by refl
+@[simp] lemma id.on_objects (X : C) : (id C).obj X = X := rfl
+@[simp] lemma id.on_morphisms {X Y : C} (f : X ⟶ Y) : (id C).map f = f := rfl
+end
 
+section
+variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ : category.{u₃ v₃} E]
+include 𝒞 𝒟 ℰ
+
+definition comp (F : C ↝ D) (G : D ↝ E) : C ↝ E := 
+{ obj    := λ X, G.obj (F.obj X),
+  map    := λ _ _ f, G.map (F.map f),
+  map_id := begin /- `obviously'` says: -/ intros, simp end,
+  functoriality := begin /- `obviously'` says: -/ intros, simp end }
+
+infixr ` ⋙ `:80 := comp
+
+@[simp] lemma comp.on_objects (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
+@[simp] lemma comp.on_morphisms (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : (F ⋙ G).map f = G.map (F.map f) := rfl
+end
+
+end Functor
 end category_theory

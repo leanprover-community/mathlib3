@@ -7,7 +7,7 @@ Defines natural transformations between functors.
 
 Introduces notations
   `F ⟹ G` for the type of natural transformations between functors `F` and `G`,
-  `τ @> X` for the components of natural transformations,
+  `τ X` (a coercion) for the components of natural transformations,
   `σ ⊟ τ` for vertical compositions, and
   `σ ◫ τ` for horizontal compositions.
 -/
@@ -25,29 +25,32 @@ variable [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
 structure NaturalTransformation (F G : C ↝ D) : Type (max u₁ v₂) :=
-(components: Π X : C, (F +> X) ⟶ (G +> X))
-(naturality: ∀ {X Y : C} (f : X ⟶ Y), (F &> f) ≫ (components Y) = (components X) ≫ (G &> f) . obviously)
+(components : Π X : C, (F X) ⟶ (G X))
+(naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (components Y) = (components X) ≫ (G.map f) . obviously)
 
 make_lemma NaturalTransformation.naturality
 attribute [ematch] NaturalTransformation.naturality_lemma
 
 infixr ` ⟹ `:50  := NaturalTransformation             -- type as \==> or ⟹
 
-instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
-{ F   := λ α, Π X : C, (F +> X) ⟶ (G +> X),
-  coe := λ α, α.components }
-
 namespace NaturalTransformation
 
+instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
+{ F   := λ α, Π X : C, (F X) ⟶ (G X),
+  coe := λ α, α.components }
+
+@[simp] lemma unfold_components_coercion {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.components X := rfl
+
 definition id (F : C ↝ D) : F ⟹ F := 
-{ components := λ X, 𝟙 (F +> X),
+{ components := λ X, 𝟙 (F X),
   naturality := begin
                   -- `obviously'` says:
                   intros,
+                  dsimp,
                   simp
                 end }
 
-@[simp] lemma id.components (F : C ↝ D) (X : C) : (id F) X = 𝟙 (F +> X) := by refl
+@[simp] lemma id.components (F : C ↝ D) (X : C) : (id F) X = 𝟙 (F X) := rfl
 
 instance has_one (F : C ↝ D) : has_one (F ⟹ F) := 
 { one := id F }
@@ -70,13 +73,12 @@ definition vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H :=
                   -- `obviously'` says:
                   intros,
                   simp,
-                  erw [←category.associativity_lemma, NaturalTransformation.naturality_lemma, category.associativity_lemma, ←NaturalTransformation.naturality_lemma],
-                  refl,
+                  rw [←category.assoc_lemma, NaturalTransformation.naturality_lemma, category.assoc_lemma, ←NaturalTransformation.naturality_lemma],
                 end }
 
 notation α `⊟` β:80 := vcomp α β    
 
-@[simp] lemma vcomp.components (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β) X = (α X) ≫ (β X) := by refl
+@[simp] lemma vcomp.components (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β) X = (α X) ≫ (β X) := rfl
 end
 
 variable {E : Type u₃}
@@ -84,16 +86,16 @@ variable [ℰ : category.{u₃ v₃} E]
 include ℰ
 
 definition hcomp {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) : (F ⋙ H) ⟹ (G ⋙ I) :=
-{ components := λ X : C, (β (F +> X)) ≫ (I &> (α X)), 
+{ components := λ X : C, (β (F X)) ≫ (I.map (α X)), 
   naturality := begin
                   -- `obviously'` says:
                   intros,
-                  simp at *,
-                  unfold_coes,
+                  dsimp,
+                  simp,
                   -- Actually, obviously doesn't use exactly this sequence of rewrites, but achieves the same result
-                  rw [← category.associativity_lemma],
+                  rw [← category.assoc_lemma],
                   rw [NaturalTransformation.naturality_lemma],
-                  rw [category.associativity_lemma],
+                  rw [category.assoc_lemma],
                   conv { to_rhs, rw [← Functor.functoriality_lemma] },
                   rw [← α.naturality_lemma],
                   rw [Functor.functoriality_lemma],
@@ -101,19 +103,19 @@ definition hcomp {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) :
 
 notation α `◫` β:80 := hcomp α β
 
-@[simp] lemma hcomp.components {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) : (α ◫ β) X = (β (F +> X)) ≫ (I &> (α X)) := by refl
+@[simp] lemma hcomp.components {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) : (α ◫ β) X = (β (F X)) ≫ (I.map (α X)) := rfl
 
 @[ematch] lemma exchange {F G H : C ↝ D} {I J K : D ↝ E} (α : F ⟹ G) (β : G ⟹ H) (γ : I ⟹ J) (δ : J ⟹ K) : ((α ⊟ β) ◫ (γ ⊟ δ)) = ((α ◫ γ) ⊟ (β ◫ δ)) := 
 begin
   -- `obviously'` says:
   apply componentwise_equal,
   intros,
-  simp at *,
-  unfold_coes,
+  dsimp,
+  simp,
   -- again, this isn't actually what obviously says, but it achieves the same effect.
-  conv {to_lhs, congr, skip, rw [←category.associativity_lemma] },
+  conv {to_lhs, congr, skip, rw [←category.assoc_lemma] },
   rw [←NaturalTransformation.naturality_lemma],
-  rw [category.associativity_lemma],
+  rw [category.assoc_lemma],
 end
 
 end NaturalTransformation

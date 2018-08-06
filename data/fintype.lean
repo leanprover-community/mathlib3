@@ -341,14 +341,14 @@ set_fintype _
 instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
 pi.fintype
 
-instance decidable_eq_pfun_fintype (P : Prop) [decidable P] (α : P → Type*) [Π hp : P, fintype (α hp)]
-  [Π hp : P, decidable_eq (α hp)] : decidable_eq (Π hp : P, α hp)
-| f g := if hp : P then decidable_of_iff (f hp = g hp) (⟨λ h, funext $ λ _, h, λ h, congr_fun h _⟩)
+instance decidable_eq_pfun_fintype (p : Prop) [decidable p] (α : p → Type*) [Π hp, fintype (α hp)]
+  [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
+| f g := if hp : p then decidable_of_iff (f hp = g hp) (⟨λ h, funext $ λ _, h, λ h, congr_fun h _⟩)
 else is_true (funext (λ h, (hp h).elim))
 
-instance pfun_fintype (P : Prop) [decidable P] (α : P → Type*) [Π hp : P, fintype (α hp)]
-  [Π hp : P, decidable_eq (α hp)] : fintype (Π hp : P, α hp) :=
-if hp : P then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩
+instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*) [Π hp, fintype (α hp)]
+  [Π hp : p, decidable_eq (α hp)] : fintype (Π hp : p, α hp) :=
+if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩
 else ⟨finset.singleton (λ h, (hp h).elim), by simp [hp, function.funext_iff]⟩
 
 def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]

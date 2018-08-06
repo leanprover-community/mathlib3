@@ -1049,7 +1049,7 @@ begin
     c2 = computation.map (option.map (prod.map f (map f))) (destruct s)),
   { intros c1 c2 h, cases h with s h, rw [h.left, h.right],
     apply s.cases_on _ (λ a s, _) (λ s, _); simp; simp,
-    { refl }, { exact ⟨s, rfl, rfl⟩ } },
+    exact ⟨s, rfl, rfl⟩ },
   { exact ⟨s, rfl, rfl⟩ }
 end
 

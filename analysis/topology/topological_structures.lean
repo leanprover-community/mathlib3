@@ -515,7 +515,7 @@ by rw [@nhds_eq_orderable α _ _]; simp
 
 section linear_order
 
-variables [topological_space α] [ord : decidable_linear_order α] [t : orderable_topology α]
+variables [topological_space α] [linear_order α] [t : orderable_topology α]
 include t
 
 lemma mem_nhds_orderable_dest {a : α} {s : set α} (hs : s ∈ (nhds a).sets) :
@@ -530,6 +530,7 @@ have ht₁ : ((∃l, l<a) → ∃l, l < a ∧ ∀b, l < b → b ∈ t₁) ∧ (�
       begin
         by_cases a' < a,
         { simp [h] at hs₁,
+          letI := classical.DLO α,
           exact ⟨assume hx, let ⟨u, hu₁, hu₂⟩ := hs₂ hx in
             ⟨max u a', max_lt hu₁ h, assume b hb,
               ⟨hs₁ $ lt_of_le_of_lt (le_max_right _ _) hb,
@@ -548,6 +549,7 @@ have ht₂ : ((∃u, u>a) → ∃u, a < u ∧ ∀b, b < u → b ∈ t₂) ∧ (�
       begin
         by_cases a' > a,
         { simp [h] at hs₁,
+          letI := classical.DLO α,
           exact ⟨assume hx, let ⟨u, hu₁, hu₂⟩ := hs₂ hx in
             ⟨min u a', lt_min hu₁ h, assume b hb,
               ⟨hs₁ $ lt_of_lt_of_le hb (min_le_right _ _),
@@ -575,6 +577,7 @@ iff.intro
       intro p, rcases p with ⟨⟨l, hl⟩, ⟨u, hu⟩⟩,
       simp [set.subset_def],
       intros s₁ s₂ hs₁ l' hl' u' hu' hs₂,
+      letI := classical.DLO α,
       refine ⟨max l l', _, min u u', _⟩;
       simp [*, lt_min_iff, max_lt_iff] {contextual := tt}
     end

@@ -211,6 +211,9 @@ by letI LO := linear_order_of_STO' r; exact
 { decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
   ..LO }
 
+noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
+{ decidable_le := classical.dec_rel _, ..LO }
+
 theorem is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (swap r) :=
 ⟨λ a b, by simpa [swap, or_comm, or.left_comm] using @trichotomous _ r _ a b⟩
 

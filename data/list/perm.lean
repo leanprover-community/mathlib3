@@ -675,6 +675,37 @@ theorem sublists_perm_sublists' : ∀ l : list α, sublists l ~ sublists' l
   by rw sublists'_cons; exact
   (sublists_cons_perm_append _ _).trans (perm_app IH (perm_map _ IH))
 
+theorem revzip_sublists (l : list α) :
+  ∀ l₁ l₂, (l₁, l₂) ∈ revzip l.sublists → l₁ ++ l₂ ~ l :=
+begin
+  rw revzip,
+  apply list.reverse_rec_on l,
+  { intros l₁ l₂ h, simp at h, simp [h] },
+  { intros l a IH l₁ l₂ h,
+    rw [sublists_concat, reverse_append, zip_append, ← map_reverse,
+        zip_map_right, zip_map_left] at h; [simp at h, simp],
+    rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', l₂, h, rfl, rfl⟩,
+    { rw ← append_assoc,
+      exact perm_app_left _ (IH _ _ h) },
+    { rw append_assoc,
+      apply (perm_app_right _ perm_app_comm).trans,
+      rw ← append_assoc,
+      exact perm_app_left _ (IH _ _ h) } }
+end
+
+theorem revzip_sublists' (l : list α) :
+  ∀ l₁ l₂, (l₁, l₂) ∈ revzip l.sublists' → l₁ ++ l₂ ~ l :=
+begin
+  rw revzip,
+  induction l with a l IH; intros l₁ l₂ h,
+  { simp at h, simp [h] },
+  { rw [sublists'_cons, reverse_append, zip_append, ← map_reverse,
+        zip_map_right, zip_map_left] at h; [simp at h, simp],
+    rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', l₂, h, rfl, rfl⟩,
+    { exact perm_middle.trans (skip _ (IH _ _ h)) },
+    { exact skip _ (IH _ _ h) } }
+end
+
 /- enumerating permutations -/
 
 section permutations

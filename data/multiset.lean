@@ -34,7 +34,7 @@ instance : has_coe (list α) (multiset α) := ⟨quot.mk _⟩
 
 @[simp] theorem quot_mk_to_coe'' (l : list α) : @eq (multiset α) (quot.mk setoid.r l) l := rfl
 
-@[simp] theorem coe_eq_coe (l₁ l₂ : list α) : (l₁ : multiset α) = l₂ ↔ l₁ ~ l₂ := quotient.eq
+@[simp] theorem coe_eq_coe {l₁ l₂ : list α} : (l₁ : multiset α) = l₂ ↔ l₁ ~ l₂ := quotient.eq
 
 instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 | s₁ s₂ := quotient.rec_on_subsingleton₂ s₁ s₂ $ λ l₁ l₂,
@@ -1449,6 +1449,11 @@ by simp [powerset_aux, sublists];
        sublists_aux_cons_eq_sublists_aux₁,
        ← bind_ret_eq_map, sublists_aux₁_bind]; refl
 
+@[simp] theorem mem_powerset_aux {l : list α} {s} :
+  s ∈ powerset_aux l ↔ s ≤ ↑l :=
+quotient.induction_on s $
+by simp [powerset_aux_eq_map_coe, subperm, and.comm]
+
 def powerset_aux' (l : list α) : list (multiset α) := (sublists' l).map coe
 
 theorem powerset_aux_perm_powerset_aux' {l : list α} :
@@ -1509,6 +1514,67 @@ end
 @[simp] theorem card_powerset (s : multiset α) :
   card (powerset s) = 2 ^ card s :=
 quotient.induction_on s $ by simp
+
+/- diagonal -/
+
+theorem revzip_powerset_aux {l : list α} {s t}
+  (h : (s, t) ∈ revzip (powerset_aux l)) : s + t = ↑l :=
+begin
+  rw [revzip, powerset_aux_eq_map_coe, ← map_reverse, zip_map, ← revzip] at h,
+  simp at h, rcases h with ⟨l₁, l₂, h, rfl, rfl⟩,
+  exact quot.sound (revzip_sublists _ _ _ h)
+end
+
+theorem revzip_powerset_aux_eq_map [decidable_eq α] (l : list α) :
+  revzip (powerset_aux l) = (powerset_aux l).map (λ x, (x, l - x)) :=
+begin
+  have : forall₂ (λ (p : multiset α×multiset α) (s:multiset α), p = (s, ↑l - s))
+    (revzip (powerset_aux l)) ((revzip (powerset_aux l)).map prod.fst),
+  { rw forall₂_map_right_iff,
+    apply forall₂_same, rintro ⟨s, t⟩ h,
+    dsimp, rw [← revzip_powerset_aux h, add_sub_cancel_left] },
+  rw [← forall₂_eq_eq_eq, forall₂_map_right_iff], simpa
+end
+
+theorem revzip_powerset_aux_perm {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+  revzip (powerset_aux l₁) ~ revzip (powerset_aux l₂) :=
+begin
+  haveI := classical.dec_eq α,
+  simp [revzip_powerset_aux_eq_map, coe_eq_coe.2 p],
+  exact perm_map _ (powerset_aux_perm p)
+end
+
+def diagonal (s : multiset α) : multiset (multiset α × multiset α) :=
+quot.lift_on s
+  (λ l, (revzip (powerset_aux l) : multiset (multiset α × multiset α)))
+  (λ l₁ l₂ h, quot.sound (revzip_powerset_aux_perm h))
+
+@[simp] theorem diagonal_coe (l : list α) :
+  @diagonal α l = revzip (powerset_aux l) := rfl
+
+@[simp] theorem mem_diagonal {s₁ s₂ t : multiset α} :
+  (s₁, s₂) ∈ diagonal t ↔ s₁ + s₂ = t :=
+quotient.induction_on t $ λ l, begin
+  simp, refine ⟨revzip_powerset_aux, λ h, _⟩,
+  haveI := classical.dec_eq α,
+  simp [revzip_powerset_aux_eq_map, h.symm],
+  exact ⟨_, le_add_right _ _, rfl, add_sub_cancel_left _ _⟩
+end
+
+@[simp] theorem diagonal_map_fst (s : multiset α) :
+  (diagonal s).map prod.fst = powerset s :=
+quotient.induction_on s $ λ l,
+by simp [powerset_coe, powerset_aux_eq_map_coe]
+
+@[simp] theorem diagonal_map_snd (s : multiset α) :
+  (diagonal s).map prod.snd = powerset s :=
+quotient.induction_on s $ λ l,
+by simp [powerset_coe, powerset_aux_eq_map_coe]
+
+@[simp] theorem card_diagonal (s : multiset α) :
+  card (diagonal s) = 2 ^ card s :=
+by have := card_powerset s;
+   rwa [← diagonal_map_fst, card_map] at this
 
 /- countp -/
 

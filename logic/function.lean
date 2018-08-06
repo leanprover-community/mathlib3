@@ -41,6 +41,11 @@ lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : 
 def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 | a b := decidable_of_iff _ I.eq_iff
 
+instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
+  [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
+| f g := if hp : p then decidable_of_iff (f hp = g hp) (⟨λ h, funext $ λ _, h, λ h, congr_fun h _⟩)
+                   else is_true (funext (λ h, (hp h).elim))
+
 theorem cantor_surjective {α} (f : α → α → Prop) : ¬ function.surjective f | h :=
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)

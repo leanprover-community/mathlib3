@@ -2172,6 +2172,11 @@ attribute [simp] forall₂.nil
   forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=
 ⟨λ h, by cases h with h₁ h₂; simp *, λ ⟨h₁, h₂⟩, forall₂.cons h₁ h₂⟩
 
+theorem forall₂.imp {R S : α → β → Prop}
+  (H : ∀ a b, R a b → S a b) {l₁ l₂}
+  (h : forall₂ R l₁ l₂) : forall₂ S l₁ l₂ :=
+by induction h; simp *
+
 lemma forall₂_flip : ∀{a b}, forall₂ (flip r) b a → forall₂ r a b
 | _ _                 forall₂.nil          := forall₂.nil
 | (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := forall₂.cons h₁ (forall₂_flip h₂)
@@ -2567,15 +2572,105 @@ end diff
 @[simp] theorem zip_nil_right (l : list α) : zip l ([] : list β) = [] :=
 by cases l; refl
 
+@[simp] theorem zip_swap : ∀ (l₁ : list α) (l₂ : list β),
+  (zip l₁ l₂).map prod.swap = zip l₂ l₁
+| []      l₂      := by simp
+| l₁      []      := by simp
+| (a::l₁) (b::l₂) := by simp *
+
+@[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
+   length (zip l₁ l₂) = min (length l₁) (length l₂)
+| []      l₂      := by simp
+| l₁      []      := by simp
+| (a::l₁) (b::l₂) := by simp [*, min_add_add_left]
+
+theorem zip_append : ∀ {l₁ l₂ r₁ r₂ : list α} (h : length l₁ = length l₂),
+   zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
+| []      l₂      r₁ r₂ h := by simp [eq_nil_of_length_eq_zero h.symm]
+| l₁      []      r₁ r₂ h := by simp [eq_nil_of_length_eq_zero h]
+| (a::l₁) (b::l₂) r₁ r₂ h := by simp [zip_append (succ_inj h)]
+
+theorem zip_map (f : α → γ) (g : β → δ) : ∀ (l₁ : list α) (l₂ : list β),
+   zip (l₁.map f) (l₂.map g) = (zip l₁ l₂).map (prod.map f g)
+| []      l₂      := by simp
+| l₁      []      := by simp
+| (a::l₁) (b::l₂) := by simp [zip_map l₁ l₂]
+
+theorem zip_map_left (f : α → γ) (l₁ : list α) (l₂ : list β) :
+   zip (l₁.map f) l₂ = (zip l₁ l₂).map (prod.map f id) :=
+by rw [← zip_map, map_id]
+
+theorem zip_map_right (f : β → γ) (l₁ : list α) (l₂ : list β) :
+   zip l₁ (l₂.map f) = (zip l₁ l₂).map (prod.map id f) :=
+by rw [← zip_map, map_id]
+
+theorem zip_map' (f : α → β) (g : α → γ) : ∀ (l : list α),
+   zip (l.map f) (l.map g) = l.map (λ a, (f a, g a))
+| []     := rfl
+| (a::l) := by simp [zip_map' l]
+
+theorem mem_zip {a b} : ∀ {l₁ : list α} {l₂ : list β},
+   (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
+| (_::l₁) (_::l₂) (or.inl rfl) := ⟨or.inl rfl, or.inl rfl⟩
+| (a'::l₁) (b'::l₂) (or.inr h) := by simp [mem_zip h]
+
 @[simp] theorem unzip_nil : unzip (@nil (α × β)) = ([], []) := rfl
 
 @[simp] theorem unzip_cons (a : α) (b : β) (l : list (α × β)) :
    unzip ((a, b) :: l) = (a :: (unzip l).1, b :: (unzip l).2) :=
 by rw unzip; cases unzip l; refl
 
+theorem unzip_eq_map : ∀ (l : list (α × β)), unzip l = (l.map prod.fst, l.map prod.snd)
+| []            := rfl
+| ((a, b) :: l) := by simp [unzip_eq_map l]
+
+theorem unzip_left (l : list (α × β)) : (unzip l).1 = l.map prod.fst :=
+by simp [unzip_eq_map]
+
+theorem unzip_right (l : list (α × β)) : (unzip l).2 = l.map prod.snd :=
+by simp [unzip_eq_map]
+
+theorem unzip_swap (l : list (α × β)) : unzip (l.map prod.swap) = (unzip l).swap :=
+by simp [unzip_eq_map]; split; refl
+
 theorem zip_unzip : ∀ (l : list (α × β)), zip (unzip l).1 (unzip l).2 = l
 | []            := rfl
 | ((a, b) :: l) := by simp [zip_unzip l]
+
+theorem unzip_zip_left : ∀ {l₁ : list α} {l₂ : list β}, length l₁ ≤ length l₂ →
+  (unzip (zip l₁ l₂)).1 = l₁
+| []      l₂      h := rfl
+| l₁      []      h := by rw eq_nil_of_length_eq_zero (eq_zero_of_le_zero h); refl
+| (a::l₁) (b::l₂) h := by simp [unzip_zip_left (le_of_succ_le_succ h)]
+
+theorem unzip_zip_right {l₁ : list α} {l₂ : list β} (h : length l₂ ≤ length l₁) :
+  (unzip (zip l₁ l₂)).2 = l₂ :=
+by rw [← zip_swap, unzip_swap]; exact unzip_zip_left h
+
+theorem unzip_zip {l₁ : list α} {l₂ : list β} (h : length l₁ = length l₂) :
+  unzip (zip l₁ l₂) = (l₁, l₂) :=
+by rw [← @prod.mk.eta _ _ (unzip (zip l₁ l₂)),
+  unzip_zip_left (le_of_eq h), unzip_zip_right (ge_of_eq h)]
+
+def revzip (l : list α) : list (α × α) := zip l l.reverse
+
+@[simp] theorem length_revzip (l : list α) : length (revzip l) = length l :=
+by simp [revzip, length_zip]
+
+@[simp] theorem unzip_revzip (l : list α) : (revzip l).unzip = (l, l.reverse) :=
+by simp [revzip, unzip_zip]
+
+@[simp] theorem revzip_map_fst (l : list α) : (revzip l).map prod.fst = l :=
+by rw [← unzip_left, unzip_revzip]
+
+@[simp] theorem revzip_map_snd (l : list α) : (revzip l).map prod.snd = l.reverse :=
+by rw [← unzip_right, unzip_revzip]
+
+theorem reverse_revzip (l : list α) : reverse l.revzip = revzip l.reverse :=
+by rw [← zip_unzip.{u u} (revzip l).reverse, unzip_eq_map]; simp; simp [revzip]
+
+theorem revzip_swap (l : list α) : (revzip l).map prod.swap = revzip l.reverse :=
+by simp [revzip]
 
 /- enum -/
 

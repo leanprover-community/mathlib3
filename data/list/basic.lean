@@ -53,8 +53,14 @@ assume ainbl binl, or.elim (eq_or_mem_of_mem_cons ainbl)
   (assume : a = b, begin subst a, exact binl end)
   (assume : a ∈ l, this)
 
+theorem eq_or_ne_mem_of_mem {a b : α} {l : list α} (h : a ∈ b :: l) : a = b ∨ (a ≠ b ∧ a ∈ l) :=
+classical.by_cases or.inl $ assume : a ≠ b, h.elim or.inl $ assume h, or.inr ⟨this, h⟩
+
 theorem not_mem_append {a : α} {s t : list α} (h₁ : a ∉ s) (h₂ : a ∉ t) : a ∉ s ++ t :=
 mt mem_append.1 $ not_or_distrib.2 ⟨h₁, h₂⟩
+
+theorem ne_nil_of_mem {a : α} {l : list α} (h : a ∈ l) : l ≠ [] :=
+by intro e; rw e at h; cases h
 
 theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=
 ⟨eq_nil_of_length_eq_zero, λ h, h.symm ▸ rfl⟩
@@ -67,6 +73,9 @@ theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a 
 
 theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=
 ⟨exists_mem_of_length_pos, λ ⟨a, h⟩, length_pos_of_mem h⟩
+
+theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
+⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
 theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = s ++ a :: t :=
 begin
@@ -216,15 +225,6 @@ begin
     { simp [ih, @eq_comm _ a, and_assoc, and_or_distrib_left] } }
 end
 
-/- join -/
-
-attribute [simp] join
-
-@[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
-by induction L₁; simp *
-
-/- repeat take drop -/
-
 /-- Split a list at an index. `split 2 [a, b, c] = ([a, b], [c])` -/
 def split_at : ℕ → list α → list α × list α
 | 0        a         := ([], a)
@@ -289,6 +289,17 @@ begin
   apply le_add_right
 end
 
+/- join -/
+
+attribute [simp] join
+
+@[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
+by induction L₁; simp *
+
+/- repeat -/
+
+@[simp] theorem repeat_succ (a : α) (n) : repeat a (n + 1) = a :: repeat a n := rfl
+
 theorem eq_of_mem_repeat {a b : α} : ∀ {n}, b ∈ repeat a n → b = a
 | (n+1) h := or.elim h id $ @eq_of_mem_repeat _
 
@@ -306,7 +317,7 @@ theorem eq_repeat {a : α} {n} {l : list α} : l = repeat a n ↔ length l = n �
 ⟨λ h, h.symm ▸ ⟨length_repeat _ _, λ b, eq_of_mem_repeat⟩,
  λ ⟨e, al⟩, e ▸ eq_repeat_of_mem al⟩
 
-@[simp] theorem repeat_add (a : α) (m n) : repeat a (m + n) = repeat a m ++ repeat a n :=
+theorem repeat_add (a : α) (m n) : repeat a (m + n) = repeat a m ++ repeat a n :=
 by induction m; simp [*, repeat, nat.succ_add, -add_comm]
 
 theorem repeat_subset_singleton (a : α) (n) : repeat a n ⊆ [a] :=
@@ -318,10 +329,20 @@ by induction l; simp [repeat, -add_comm, *]
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) : b₁ = b₂ :=
 by rw map_const at h; exact eq_of_mem_repeat h
 
+@[simp] theorem map_repeat (f : α → β) (a : α) (n) : map f (repeat a n) = repeat (f a) n :=
+by induction n; simp *
+
+@[simp] theorem tail_repeat (a : α) (n) : tail (repeat a n) = repeat a n.pred :=
+by cases n; refl
+
 /- bind -/
 
 @[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :
   l >>= f = l.bind f := rfl
+
+@[simp] theorem bind_append {α β} (f : α → list β) (l₁ l₂ : list α) :
+  (l₁ ++ l₂).bind f = l₁.bind f ++ l₂.bind f :=
+by simp [bind]
 
 /- concat -/
 
@@ -360,6 +381,9 @@ have aux : ∀ l₁ l₂, reverse_core l₁ l₂ ++ [a] = reverse_core l₁ (l�
 by intro l₁; induction l₁; simp *,
 (aux l nil).symm
 
+theorem reverse_core_eq (l₁ l₂ : list α) : reverse_core l₁ l₂ = reverse l₁ ++ l₂ :=
+by induction l₁ generalizing l₂; simp *
+
 theorem reverse_cons' (a : α) (l : list α) : reverse (a::l) = concat (reverse l) a :=
 by simp
 
@@ -389,8 +413,15 @@ by induction l; simp *
 @[simp] theorem map_reverse (f : α → β) (l : list α) : map f (reverse l) = reverse (map f l) :=
 by induction l; simp *
 
+theorem map_reverse_core (f : α → β) (l₁ l₂ : list α) :
+  map f (reverse_core l₁ l₂) = reverse_core (map f l₁) (map f l₂) :=
+by simp [reverse_core_eq]
+
 @[simp] theorem mem_reverse {a : α} {l : list α} : a ∈ reverse l ↔ a ∈ l :=
 by induction l; simp [*, or_comm]
+
+@[simp] theorem reverse_repeat (a : α) (n) : reverse (repeat a n) = repeat a n :=
+eq_repeat.2 ⟨by simp, λ b h, eq_of_mem_repeat (mem_reverse.1 h)⟩
 
 @[elab_as_eliminator] theorem reverse_rec_on {C : list α → Sort*}
   (l : list α) (H0 : C [])
@@ -485,6 +516,9 @@ by simp [list.bind]; induction l; simp [list.ret, join, *]
 
 @[simp] theorem map_eq_map {α β} (f : α → β) (l : list α) :
   f <$> l = map f l := rfl
+
+@[simp] theorem map_tail (f : α → β) (l) : map f (tail l) = tail (map f l) :=
+by cases l; refl
 
 /- map₂ -/
 
@@ -876,6 +910,14 @@ theorem take_all_of_ge : ∀ {n} {l : list α}, n ≥ length l → take n l = l
     rw [take_all_of_ge (le_of_succ_le_succ h)]
   end
 
+@[simp] theorem take_left : ∀ l₁ l₂ : list α, take (length l₁) (l₁ ++ l₂) = l₁
+| []      l₂ := rfl
+| (a::l₁) l₂ := congr_arg (cons a) (take_left l₁ l₂)
+
+theorem take_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
+  take n (l₁ ++ l₂) = l₁ :=
+by rw ← h; apply take_left
+
 theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) l
 | n         0        l      := by rw [min_zero, take_zero, take_nil]
 | 0         m        l      := by simp
@@ -885,6 +927,23 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 @[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
 | 0     := rfl
 | (n+1) := rfl
+
+@[simp] theorem drop_one : ∀ l : list α, drop 1 l = tail l
+| []       := rfl
+| (a :: l) := rfl
+
+theorem drop_add : ∀ m n (l : list α), drop (m + n) l = drop m (drop n l)
+| m 0     l      := rfl
+| m (n+1) []     := (drop_nil _).symm
+| m (n+1) (a::l) := drop_add m n _
+
+@[simp] theorem drop_left : ∀ l₁ l₂ : list α, drop (length l₁) (l₁ ++ l₂) = l₂
+| []      l₂ := rfl
+| (a::l₁) l₂ := drop_left l₁ l₂
+
+theorem drop_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
+  drop n (l₁ ++ l₂) = l₂ :=
+by rw ← h; apply drop_left
 
 theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
   drop n l = nth_le l n h :: drop (n+1) l
@@ -911,6 +970,36 @@ by rw [update_nth_eq_modify_nth, modify_nth_eq_take_cons_drop _ h]
 
 @[simp] lemma update_nth_eq_nil (l : list α) (n : ℕ) (a : α) : l.update_nth n a = [] ↔ l = [] :=
 by cases l; cases n; simp [update_nth]
+
+section take'
+variable [inhabited α]
+
+def take' : ∀ n, list α → list α
+| 0     l := []
+| (n+1) l := l.head :: take' n l.tail
+
+@[simp] theorem take'_length : ∀ n l, length (@take' α _ n l) = n
+| 0     l := rfl
+| (n+1) l := congr_arg succ (take'_length _ _)
+
+@[simp] theorem take'_nil : ∀ n, take' n (@nil α) = repeat (default _) n
+| 0     := rfl
+| (n+1) := congr_arg (cons _) (take'_nil _)
+
+theorem take'_eq_take : ∀ {n} {l : list α},
+  n ≤ length l → take' n l = take n l
+| 0     l      h := rfl
+| (n+1) (a::l) h := congr_arg (cons _) $
+  take'_eq_take $ le_of_succ_le_succ h
+
+@[simp] theorem take'_left (l₁ l₂ : list α) : take' (length l₁) (l₁ ++ l₂) = l₁ :=
+(take'_eq_take (by simp [le_add_right])).trans (take_left _ _)
+
+theorem take'_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
+  take' n (l₁ ++ l₂) = l₁ :=
+by rw ← h; apply take'_left
+
+end take'
 
 /- take_while -/
 
@@ -1074,6 +1163,16 @@ by induction l; simp [list.join, *] at *
 
 end monoid
 
+@[simp, to_additive list.sum_erase]
+theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
+  Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
+| (b::l) h :=
+  begin
+    rcases eq_or_ne_mem_of_mem h with rfl | ⟨ne, h⟩,
+    { simp [list.erase] },
+    { simp [ne.symm, list.erase, prod_erase h, mul_left_comm a b] }
+  end
+
 @[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; simp [*, nat.mul_succ]
 
@@ -1198,7 +1297,7 @@ end lex
 instance has_lt' [has_lt α] : has_lt (list α) := ⟨lex (<)⟩
 
 theorem nil_lt_cons [has_lt α] (a : α) (l : list α) : [] < a :: l :=
-lex.nil 
+lex.nil
 
 instance [linear_order α] : linear_order (list α) :=
 linear_order_of_STO' (lex (<))
@@ -1427,12 +1526,12 @@ begin
   induction l with a l IH, {refl},
   cases h : f a with b,
   { rw [filter_map_cons_none _ _ h, filter_map_cons_none, IH],
-    simp [h, option.bind] },
+    simp [h] },
   rw filter_map_cons_some _ _ _ h,
   cases h' : g b with c;
   [ rw [filter_map_cons_none _ _ h', filter_map_cons_none, IH],
     rw [filter_map_cons_some _ _ _ h', filter_map_cons_some, IH] ];
-  simp [h, h', option.bind]
+  simp [h, h']
 end
 
 theorem map_filter_map (f : α → option β) (g : β → γ) (l : list α) :
@@ -1453,7 +1552,7 @@ begin
   rw [← filter_map_eq_filter, filter_map_filter_map], congr,
   funext x,
   show (option.guard p x).bind f = ite (p x) (f x) none,
-  by_cases p x; simp [h, option.guard, option.bind]
+  by_cases p x; simp [h, option.guard]
 end
 
 @[simp] theorem filter_map_some (l : list α) : filter_map some l = l :=
@@ -1504,7 +1603,6 @@ lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
 subset_of_sublist $ filter_sublist l
 
 theorem of_mem_filter {a : α} : ∀ {l}, a ∈ filter p l → p a
-| []     ain := absurd ain (not_mem_nil a)
 | (b::l) ain :=
   if pb : p b then
     have a ∈ b :: filter p l, begin simp [pb] at ain, assumption end,
@@ -1518,16 +1616,8 @@ theorem mem_of_mem_filter {a : α} {l} (h : a ∈ filter p l) : a ∈ l :=
 filter_subset l h
 
 theorem mem_filter_of_mem {a : α} : ∀ {l}, a ∈ l → p a → a ∈ filter p l
-| []     ain pa := absurd ain (not_mem_nil a)
-| (b::l) ain pa :=
-  if pb : p b then
-    or.elim (eq_or_mem_of_mem_cons ain)
-      (assume : a = b, by simp [pb, this])
-      (assume : a ∈ l, begin simp [pb], exact (mem_cons_of_mem _ (mem_filter_of_mem this pa)) end)
-  else
-    or.elim (eq_or_mem_of_mem_cons ain)
-      (assume : a = b, begin simp [this] at pa, contradiction end) --absurd (this ▸ pa) pb)
-      (assume : a ∈ l, by simp [pa, pb, mem_filter_of_mem this])
+| (_::l) (or.inl rfl) pa := by simp [pa]
+| (b::l) (or.inr ain) pa := by by_cases pb : p b; simp [pb, mem_filter_of_mem ain pa]
 
 @[simp] theorem mem_filter {a : α} {l} : a ∈ filter p l ↔ a ∈ l ∧ p a :=
 ⟨λ h, ⟨mem_of_mem_filter h, of_mem_filter h⟩, λ ⟨h₁, h₂⟩, mem_filter_of_mem h₁ h₂⟩
@@ -1546,6 +1636,9 @@ by simp [-and.comm, eq_nil_iff_forall_not_mem, mem_filter]
 
 theorem filter_sublist_filter {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ :=
 by rw ← filter_map_eq_filter; exact filter_map_sublist_filter_map _ s
+
+theorem filter_of_map (f : β → α) (l) : filter p (map f l) = map f (filter (p ∘ f) l) :=
+by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
@@ -2846,7 +2939,7 @@ inductive pairwise : list α → Prop
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 attribute [simp] pairwise.nil
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pariwise_iff
+run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pairwise_iff
 
 variable {R}
 @[simp] theorem pairwise_cons {a : α} {l : list α} :

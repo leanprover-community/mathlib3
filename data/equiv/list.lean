@@ -3,104 +3,112 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 
-Denumerable (countably infinite) types, as a typeclass extending
-encodable. This is used to provide explicit encode/decode functions
-from nat, where the functions are known inverses of each other.
+Additional equiv and encodable instances for lists and finsets.
 -/
-import data.encodable order.basic
-open nat
+import data.equiv.denumerable data.nat.pairing order.order_iso
+  data.vector2 data.array.lemmas data.fintype
 
-/-- A denumerable type is one which is (constructively) bijective with ℕ.
-  Although we already have a name for this property, namely `α ≃ ℕ`,
-  we are here interested in using it as a typeclass. -/
-class denumerable (α : Type*) extends encodable α :=
-(decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
+open nat list
+
+namespace encodable
+variables {α : Type*}
+
+section list
+variable [encodable α]
+
+def encode_list : list α → ℕ
+| []     := 0
+| (a::l) := succ (mkpair (encode a) (encode_list l))
+
+def decode_list : ℕ → option (list α)
+| 0        := some []
+| (succ v) := match unpair v, unpair_le_right v with
+  | (v₁, v₂), h :=
+    have v₂ < succ v, from lt_succ_of_le h,
+    (::) <$> decode α v₁ <*> decode_list v₂
+  end
+
+instance list : encodable (list α) :=
+⟨encode_list, decode_list, λ l,
+  by induction l with a l IH; simp [encode_list, decode_list, unpair_mkpair, encodek, *]⟩
+
+@[simp] theorem encode_list_nil : encode (@nil α) = 0 := rfl
+@[simp] theorem encode_list_cons (a : α) (l : list α) :
+  encode (a :: l) = succ (mkpair (encode a) (encode l)) := rfl
+
+@[simp] theorem decode_list_zero : decode (list α) 0 = some [] := rfl
+
+@[simp] theorem decode_list_succ (v : ℕ) :
+  decode (list α) (succ v) =
+  (::) <$> decode α v.unpair.1 <*> decode (list α) v.unpair.2 :=
+show decode_list (succ v) = _, begin
+  cases e : unpair v with v₁ v₂,
+  simp [decode_list, e], refl
+end
+
+theorem length_le_encode : ∀ (l : list α), length l ≤ encode l
+| [] := zero_le _
+| (a :: l) := succ_le_succ $
+  le_trans (length_le_encode l) (le_mkpair_right _ _)
+
+end list
+
+section finset
+variables [encodable α]
+
+private def enle : α → α → Prop := encode ⁻¹'o (≤)
+
+private lemma enle.is_linear_order : is_linear_order α enle :=
+(order_embedding.preimage ⟨encode, encode_injective⟩ (≤)).is_linear_order
+
+private def decidable_enle (a b : α) : decidable (enle a b) :=
+by unfold enle order.preimage; apply_instance
+
+local attribute [instance] enle.is_linear_order decidable_enle
+
+def encode_multiset (s : multiset α) : ℕ :=
+encode (s.sort enle)
+
+def decode_multiset (n : ℕ) : option (multiset α) :=
+coe <$> decode (list α) n
+
+instance multiset : encodable (multiset α) :=
+⟨encode_multiset, decode_multiset,
+ λ s, by simp [encode_multiset, decode_multiset, encodek]⟩
+
+end finset
+
+def encodable_of_list [decidable_eq α] (l : list α) (H : ∀ x, x ∈ l) : encodable α :=
+⟨λ a, index_of a l, l.nth, λ a, index_of_nth (H _)⟩
+
+def trunc_encodable_of_fintype (α : Type*) [decidable_eq α] [fintype α] : trunc (encodable α) :=
+@@quot.rec_on_subsingleton _
+  (λ s : multiset α, (∀ x:α, x ∈ s) → trunc (encodable α)) _
+  finset.univ.1
+  (λ l H, trunc.mk $ encodable_of_list l H)
+  finset.mem_univ
+
+instance vector [encodable α] {n} : encodable (vector α n) :=
+encodable.subtype
+
+instance fin_arrow [encodable α] {n} : encodable (fin n → α) :=
+of_equiv _ (equiv.vector_equiv_fin _ _).symm
+
+instance array [encodable α] {n} : encodable (array n α) :=
+of_equiv _ (equiv.array_equiv_fin _ _)
+
+instance finset [encodable α] : encodable (finset α) :=
+by haveI := decidable_eq_of_encodable α; exact
+ of_equiv {s : multiset α // s.nodup}
+  ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
+
+end encodable
 
 namespace denumerable
-
-section
 variables {α : Type*} {β : Type*} [denumerable α] [denumerable β]
 open encodable
 
-@[simp] theorem decode_is_some (α) [denumerable α] (n : ℕ) :
-  (decode α n).is_some :=
-option.is_some_iff_exists.2 $
-(decode_inv α n).imp $ λ a, Exists.fst
-
-def of_nat (α) [f : denumerable α] (n : ℕ) : α :=
-option.get (decode_is_some α n)
-
-@[simp] theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
-  decode α n = some (of_nat α n) :=
-option.eq_some_of_is_some _
-
-@[simp] theorem of_nat_of_decode {n b}
-  (h : decode α n = some b) : of_nat α n = b :=
-option.some.inj $ (decode_eq_of_nat _ _).symm.trans h
-
-@[simp] theorem encode_of_nat (n) : encode (of_nat α n) = n :=
-let ⟨a, h, e⟩ := decode_inv α n in
-by rwa [of_nat_of_decode h]
-
-@[simp] theorem of_nat_encode (a) : of_nat α (encode a) = a :=
-of_nat_of_decode (encodek _)
-
-def eqv (α) [denumerable α] : α ≃ ℕ :=
-⟨encode, of_nat α, of_nat_encode, encode_of_nat⟩
-
-def mk' {α} (e : α ≃ ℕ) : denumerable α :=
-{ encode := e,
-  decode := some ∘ e.symm,
-  encodek := λ a, congr_arg some (e.inverse_apply_apply _),
-  decode_inv := λ n, ⟨_, rfl, e.apply_inverse_apply _⟩ }
-
-def of_equiv (α) {β} [denumerable α] (e : β ≃ α) : denumerable β :=
-{ decode_inv := λ n, by simp [option.bind],
-  ..encodable.of_equiv _ e }
-
-@[simp] theorem of_equiv_of_nat (α) {β} [denumerable α] (e : β ≃ α)
-  (n) : @of_nat β (of_equiv _ e) n = e.symm (of_nat α n) :=
-by apply of_nat_of_decode; show option.map _ _ = _; simp; refl
-
-def equiv₂ (α β) [denumerable α] [denumerable β] : α ≃ β := (eqv α).trans (eqv β).symm
-
-instance nat : denumerable nat := ⟨λ n, ⟨_, rfl, rfl⟩⟩
-
-@[simp] theorem of_nat_nat (n) : of_nat ℕ n = n := rfl
-
-instance option : denumerable (option α) := ⟨λ n, by cases n; simp⟩
-
-instance sum : denumerable (α ⊕ β) :=
-⟨λ n, begin
-  suffices : ∃ a ∈ @decode_sum α β _ _ n,
-    encode_sum a = bit (bodd n) (div2 n), {simpa [bit_decomp]},
-  simp [decode_sum]; cases bodd n; simp [decode_sum, bit],
-  { refine or.inl ⟨_, rfl, _⟩, simp [encode_sum] },
-  { refine or.inr ⟨_, rfl, _⟩, simp [encode_sum] }
-end⟩
-
-section sigma
-variables {γ : α → Type*} [∀ a, denumerable (γ a)]
-
-instance sigma : denumerable (sigma γ) :=
-⟨λ n, by simp [decode_sigma]; exact ⟨_, _, rfl, by simp⟩⟩
-
-@[simp] theorem sigma_of_nat_val (n : ℕ) :
-  of_nat (sigma γ) n = ⟨of_nat α (unpair n).1, of_nat (γ _) (unpair n).2⟩ :=
-option.some.inj $
-by rw [← decode_eq_of_nat, decode_sigma_val]; simp; refl
-
-end sigma
-
-instance prod : denumerable (α × β) :=
-of_equiv _ (equiv.sigma_equiv_prod α β).symm
-
-@[simp] theorem prod_of_nat_val (n : ℕ) :
-  of_nat (α × β) n = (of_nat α (unpair n).1, of_nat β (unpair n).2) :=
-by simp; refl
-
-@[simp] theorem prod_nat_of_nat : of_nat (ℕ × ℕ) = unpair :=
-by funext; simp
+section list
 
 theorem denumerable_list_aux : ∀ n : ℕ,
   ∃ a ∈ @decode_list α _ n, encode_list a = n
@@ -129,6 +137,8 @@ begin
   rw [show decode_list v₂ = decode (list α) v₂,
       from rfl, decode_eq_of_nat]; refl
 end
+
+end list
 
 section multiset
 
@@ -216,15 +226,6 @@ instance finset : denumerable (finset α) := mk' ⟨
 
 end finset
 
-instance int : denumerable ℤ := of_equiv _ equiv.int_equiv_nat
-
-instance ulift : denumerable (ulift α) := of_equiv _ equiv.ulift
-
-instance plift : denumerable (plift α) := of_equiv _ equiv.plift
-
-def pair : (α × α) ≃ α := equiv₂ _ _
-
-end
 end denumerable
 
 namespace equiv

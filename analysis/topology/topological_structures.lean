@@ -279,6 +279,9 @@ is_closed_le continuous_id continuous_const
 lemma is_closed_ge' (a : α) : is_closed {b | a ≤ b} :=
 is_closed_le continuous_const continuous_id
 
+lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
+is_closed_inter (is_closed_ge' a) (is_closed_le' b)
+
 lemma le_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
   (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) (h : {b | f b ≤ g b} ∈ b.sets) :
   a₁ ≤ a₂ :=
@@ -287,13 +290,13 @@ have tendsto (λb, (f b, g b)) b (nhds (a₁, a₂)),
 show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
   from mem_of_closed_of_tendsto hb this t.is_closed_le' h
 
-private lemma is_closed_eq : is_closed {p : α × α | p.1 = p.2 } :=
+private lemma is_closed_eq : is_closed {p : α × α | p.1 = p.2} :=
 by simp [le_antisymm_iff];
    exact is_closed_inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
 
 instance ordered_topology.to_t2_space : t2_space α :=
 { t2 :=
-  have is_open {p : α × α | p.1 ≠ p.2 }, from is_closed_eq,
+  have is_open {p : α × α | p.1 ≠ p.2}, from is_closed_eq,
   assume a b h,
   let ⟨u, v, hu, hv, ha, hb, h⟩ := is_open_prod_iff.mp this a b h in
   ⟨u, v, hu, hv, ha, hb,
@@ -301,7 +304,7 @@ instance ordered_topology.to_t2_space : t2_space α :=
     have a ≠ a, from @h (a, a) ⟨h₁, h₂⟩,
     this rfl⟩ }
 
-@[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g):
+@[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   closure {b | f b ≤ g b} = {b | f b ≤ g b} :=
 closure_eq_iff_is_closed.mpr $ is_closed_le hf hg
 end partial_order

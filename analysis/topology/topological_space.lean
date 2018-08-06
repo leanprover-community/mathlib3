@@ -60,6 +60,10 @@ this ▸ is_open_sUnion $ show ∀(t : set α), t ∈ ({s₁, s₂} : set (set �
 lemma is_open_Union {f : ι → set α} (h : ∀i, is_open (f i)) : is_open (⋃i, f i) :=
 is_open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 
+lemma is_open_bUnion {s : set β} {f : β → set α} (h : ∀i∈s, is_open (f i)) :
+  is_open (⋃i∈s, f i) :=
+is_open_Union $ assume i, is_open_Union $ assume hi, h i hi
+
 @[simp] lemma is_open_empty : is_open (∅ : set α) :=
 have is_open (⋃₀ ∅ : set α), from is_open_sUnion (assume a, false.elim),
 by simp at this; assumption
@@ -69,6 +73,12 @@ finite.induction_on hs (by simp) $ λ a s has hs ih h, begin
   suffices : is_open (a ∩ ⋂₀ s), { simpa },
   exact is_open_inter (h _ $ mem_insert _ _) (ih $ assume t ht, h _ $ mem_insert_of_mem _ ht)
 end
+
+lemma is_open_bInter {s : set β} {f : β → set α} (hs : finite s) :
+  (∀i∈s, is_open (f i)) → is_open (⋂i∈s, f i) :=
+finite.induction_on hs
+  (by simp)
+  (by simp [or_imp_distrib, _root_.is_open_inter, forall_and_distrib] {contextual := tt})
 
 lemma is_open_const {p : Prop} : is_open {a : α | p} :=
 by_cases
@@ -99,7 +109,7 @@ is_closed_sInter $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
 @[simp] lemma is_closed_compl_iff {s : set α} : is_closed (-s) ↔ is_open s :=
 by rw [←is_open_compl_iff, compl_compl]
 
-lemma is_open_diff {s t : set α} (h₁ : is_open s) (h₂ : is_closed t) : is_open (s - t) :=
+lemma is_open_diff {s t : set α} (h₁ : is_open s) (h₂ : is_closed t) : is_open (s \ t) :=
 is_open_inter h₁ $ is_open_compl_iff.mpr h₂
 
 lemma is_closed_inter (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (s₁ ∩ s₂) :=
@@ -170,11 +180,11 @@ lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_close
 have interior (s ∪ t) ⊆ s, from
   assume x ⟨u, ⟨(hu₁ : is_open u), (hu₂ : u ⊆ s ∪ t)⟩, (hx₁ : x ∈ u)⟩,
   classical.by_contradiction $ assume hx₂ : x ∉ s,
-    have u - s ⊆ t,
+    have u \ s ⊆ t,
       from assume x ⟨h₁, h₂⟩, or.resolve_left (hu₂ h₁) h₂,
-    have u - s ⊆ interior t,
+    have u \ s ⊆ interior t,
       by simp [subset_interior_iff_subset_of_open, this, is_open_diff hu₁ h₁],
-    have u - s ⊆ ∅,
+    have u \ s ⊆ ∅,
       by rw [h₂] at this; assumption,
     this ⟨hx₁, hx₂⟩,
 subset.antisymm
@@ -230,7 +240,7 @@ lemma closure_eq_compl_interior_compl {s : set α} : closure s = - interior (- s
 begin
   simp [interior, closure],
   rw [compl_sUnion, compl_image_set_of],
-  simp [compl_subset_compl_iff_subset]
+  simp [compl_subset_compl]
 end
 
 @[simp] lemma interior_compl_eq {s : set α} : interior (- s) = - closure s :=
@@ -241,10 +251,9 @@ by simp [closure_eq_compl_interior_compl]
 
 lemma closure_compl {s : set α} : closure (-s) = - interior s :=
 subset.antisymm
-  (by simp [closure_subset_iff_subset_of_is_closed, compl_subset_compl_iff_subset, subset.refl])
+  (by simp [closure_subset_iff_subset_of_is_closed, compl_subset_compl, subset.refl])
   begin
-    rw [←compl_subset_compl_iff_subset, compl_compl, subset_interior_iff_subset_of_open,
-      ←compl_subset_compl_iff_subset, compl_compl],
+    rw [compl_subset_comm, subset_interior_iff_subset_of_open, compl_subset_comm],
     exact subset_closure,
     exact is_open_compl_iff.mpr is_closed_closure
   end
@@ -266,7 +275,7 @@ def frontier (s : set α) : set α := closure s \ interior s
 
 lemma frontier_eq_closure_inter_closure {s : set α} :
   frontier s = closure s ∩ closure (- s) :=
-by rw [closure_compl, frontier, sdiff_eq]
+by rw [closure_compl, frontier, diff_eq]
 
 /-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
@@ -344,7 +353,7 @@ calc closure s = - interior (- s) : closure_eq_compl_interior_compl
 theorem mem_closure_iff_nhds {s : set α} {a : α} : a ∈ closure s ↔ ∀ t ∈ (nhds a).sets, t ∩ s ≠ ∅ :=
 mem_closure_iff.trans
 ⟨λ H t ht, subset_ne_empty
-  (inter_subset_inter_right _ interior_subset)
+  (inter_subset_inter_left _ interior_subset)
   (H _ is_open_interior (mem_interior_iff_mem_nhds.2 ht)),
  λ H o oo ao, H _ (mem_nhds_sets oo ao)⟩
 
@@ -418,7 +427,7 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   ... ≤ principal (- ⋃i, f i) :
   begin
     simp only [principal_mono, subset_def, mem_compl_eq, mem_inter_eq,
-      mem_Inter_eq, mem_set_of_eq, mem_Union_eq, and_imp, not_exists,
+      mem_Inter, mem_set_of_eq, mem_Union, and_imp, not_exists,
       not_eq_empty_iff_exists, exists_imp_distrib, (≠)],
     exact assume x xt ht i xfi, ht i x xfi xt xfi
   end
@@ -484,9 +493,9 @@ classical.by_contradiction $ assume h,
   in
   have f ≠ ⊥, from infi_neq_bot_of_directed ⟨a⟩
     (assume ⟨c₁, hc₁, hc'₁⟩ ⟨c₂, hc₂, hc'₂⟩, ⟨⟨c₁ ∪ c₂, union_subset hc₁ hc₂, finite_union hc'₁ hc'₂⟩,
-      principal_mono.mpr $ diff_right_antimono $ sUnion_mono $ subset_union_left _ _,
-      principal_mono.mpr $ diff_right_antimono $ sUnion_mono $ subset_union_right _ _⟩)
-    (assume ⟨c', hc'₁, hc'₂⟩, show principal (s \ _) ≠ ⊥, by simp [diff_neq_empty]; exact h hc'₁ hc'₂),
+      principal_mono.mpr $ diff_subset_diff_right $ sUnion_mono $ subset_union_left _ _,
+      principal_mono.mpr $ diff_subset_diff_right $ sUnion_mono $ subset_union_right _ _⟩)
+    (assume ⟨c', hc'₁, hc'₂⟩, show principal (s \ _) ≠ ⊥, by simp [diff_eq_empty]; exact h hc'₁ hc'₂),
   have f ≤ principal s, from infi_le_of_le ⟨∅, empty_subset _, finite_empty⟩ $
     show principal (s \ ⋃₀∅) ≤ principal s, by simp; exact subset.refl s,
   let
@@ -813,7 +822,7 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
     simp [classical.skolem] at h,
     cases h with f hf,
     apply exists.intro (⋃(x : set α) (h : x ∈ s), f x h),
-    simp [sUnion_eq_Union, (λx h, (hf x h).right.symm)],
+    simp [sUnion_eq_bUnion, (λx h, (hf x h).right.symm)],
     exact (@is_open_Union β _ t _ $ assume i,
       show is_open (⋃h, f i h), from @is_open_Union β _ t _ $ assume h, (hf i h).left)
   end }
@@ -1084,7 +1093,7 @@ lemma Union_basis_of_is_open {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : _root_.is_open u) :
   ∃ (β : Type u) (f : β → set α), u = (⋃ i, f i) ∧ ∀ i, f i ∈ B :=
 let ⟨S, sb, su⟩ := sUnion_basis_of_is_open hB ou in
-⟨S, subtype.val, su.trans set.sUnion_eq_Union', λ ⟨b, h⟩, sb h⟩
+⟨S, subtype.val, su.trans set.sUnion_eq_Union, λ ⟨b, h⟩, sb h⟩
 
 variables (α)
 
@@ -1112,7 +1121,7 @@ lemma is_open_generated_countable_inter [second_countable_topology α] :
 let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
 let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ ⋂₀ s ≠ ∅} in
 ⟨b',
-  countable_image $ countable_subset (by simp {contextual:=tt}) (countable_set_of_finite_subset hb₁),
+  countable_image _ $ countable_subset (by simp {contextual:=tt}) (countable_set_of_finite_subset hb₁),
   assume ⟨s, ⟨_, _, hn⟩, hp⟩, hn hp,
   is_topological_basis_of_subbasis hb₂⟩
 
@@ -1138,12 +1147,29 @@ let ⟨f, hf⟩ := this in
       let ⟨s₃, hs₃, has₃, hs⟩ := hb₃ _ hs₁ _ hs₂ _ this in
       ⟨⟨s₃, has₃, hs₃⟩, begin
         simp only [le_principal_iff, mem_principal_sets],
-        simp at hs, split; apply inter_subset_inter_right; simp [hs]
+        simp at hs, split; apply inter_subset_inter_left; simp [hs]
       end⟩)
     (assume ⟨s, has, hs⟩,
       have s ∩ (⋃ (s : set α) (H h : s ∈ b), {f s h}) ≠ ∅,
-        from ne_empty_of_mem ⟨hf _ hs, mem_bUnion hs $ (mem_Union_eq _ _).mpr ⟨hs, by simp⟩⟩,
+        from ne_empty_of_mem ⟨hf _ hs, mem_bUnion hs $ mem_Union.mpr ⟨hs, by simp⟩⟩,
       by simp [this]) ⟩⟩
+
+lemma is_open_sUnion_countable [second_countable_topology α]
+  (S : set (set α)) (H : ∀ s ∈ S, _root_.is_open s) :
+  ∃ T : set (set α), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
+let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
+begin
+  let B' := {b ∈ B | ∃ s ∈ S, b ⊆ s},
+  rcases axiom_of_choice (λ b:B', b.2.2) with ⟨f, hf⟩,
+  change B' → set α at f,
+  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable, 
+  have : range f ⊆ S := range_subset_iff.2 (λ x, (hf x).fst),
+  exact ⟨_, countable_range f, this,
+    subset.antisymm (sUnion_subset_sUnion this) $
+    sUnion_subset $ λ s hs x xs,
+      let ⟨b, hb, xb, bs⟩ := mem_basis_subset_of_mem_open bB xs (H _ hs) in
+      ⟨_, ⟨⟨_, hb, _, hs, bs⟩, rfl⟩, (hf _).snd xb⟩⟩
+end
 
 end topological_space
 

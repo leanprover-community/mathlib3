@@ -178,7 +178,7 @@ theorem locally_finite_iff_exists_realizer [topological_space α]
        let ⟨h, h'⟩ := h₁ x in F.mem_nhds.1 h) in
   ⟨⟨λ x, ⟨g₂ x, (h₂ x).1⟩, λ x, finite.fintype $
     let ⟨h, h'⟩ := h₁ x in finite_subset h' $ λ i,
-    subset_ne_empty (inter_subset_inter_left _ (h₂ x).2)⟩⟩,
+    subset_ne_empty (inter_subset_inter_right _ (h₂ x).2)⟩⟩,
  λ ⟨R⟩, R.to_locally_finite⟩
 
 def compact.realizer [topological_space α] (R : realizer α) (s : set α) :=

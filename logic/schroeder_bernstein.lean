@@ -23,8 +23,8 @@ theorem schroeder_bernstein {f : α → β} {g : β → α}
 let s : set α := lfp $ λs, - (g '' - (f '' s)) in
 have hs : s = - (g '' - (f '' s)),
   from lfp_eq $ assume s t h,
-    compl_subset_compl_iff_subset.mpr $ image_subset _ $
-    compl_subset_compl_iff_subset.mpr $ image_subset _ h,
+    compl_subset_compl.mpr $ image_subset _ $
+    compl_subset_compl.mpr $ image_subset _ h,
 
 have hns : - s = g '' - (f '' s),
   from lattice.neg_eq_neg_of_eq $ by simp [hs.symm],

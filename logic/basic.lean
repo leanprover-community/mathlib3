@@ -9,7 +9,7 @@ Classical versions are in the namespace "classical".
 Note: in the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
-import data.prod tactic.interactive
+import data.prod tactic.cache
 
 /-
     miscellany
@@ -150,6 +150,9 @@ iff.intro and.left (λ ha, ⟨ha, h ha⟩)
 theorem and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
 iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 
+lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
+⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
+
 /- or -/
 
 theorem or_of_or_of_imp_of_imp (h₁ : a ∨ b) (h₂ : a → c) (h₃ : b → d) : c ∨ d :=
@@ -242,8 +245,17 @@ by rw [@iff_def (¬ a), @iff_def' a]; exact and_congr not_imp_not not_imp_not
 theorem not_iff_comm [decidable a] [decidable b] : (¬ a ↔ b) ↔ (¬ b ↔ a) :=
 by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr not_imp_comm imp_not_comm
 
+theorem not_iff [decidable a] [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
+by split; intro h; [split, skip]; intro h'; [by_contradiction,intro,skip];
+   try { refine h _; simp [*] }; rw [h',not_iff_self] at h; exact h
+
 theorem iff_not_comm [decidable a] [decidable b] : (a ↔ ¬ b) ↔ (b ↔ ¬ a) :=
 by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm
+
+theorem iff_iff_and_or_not_and_not [decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬ a ∧ ¬ b) :=
+by { split; intro h,
+     { rw h; by_cases b; [left,right]; split; assumption },
+     { cases h with h h; cases h; split; intro; { contradiction <|> assumption } } }
 
 @[simp] theorem not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
 ⟨λ h ha, h.imp_symm $ and.intro ha, λ h ⟨ha, hb⟩, hb $ h ha⟩
@@ -303,6 +315,10 @@ mt $ λ e, e ▸ h
 
 theorem eq_equivalence : equivalence (@eq α) :=
 ⟨eq.refl, @eq.symm _, @eq.trans _⟩
+
+lemma heq_of_eq_mp :
+  ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
+| α ._ a a' rfl h := eq.rec_on h (heq.refl _)
 
 end equality
 

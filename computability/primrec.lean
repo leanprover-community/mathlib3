@@ -15,7 +15,7 @@ we need that the composition of encode with decode yields a
 primitive recursive function, so we have the `primcodable` type class
 for this.)
 -/
-import data.denumerable tactic.basic
+import data.equiv.list
 
 open denumerable encodable
 
@@ -116,7 +116,7 @@ def of_equiv (α) {β} [primcodable α] (e : β ≃ α) : primcodable β :=
     show encode (decode α n) =
       (option.cases_on (option.map e.symm (decode α n))
         0 (λ a, nat.succ (encode (e a))) : ℕ),
-    by cases decode α n; dsimp [option.map, option.bind]; simp,
+    by cases decode α n; dsimp; simp,
   ..encodable.of_equiv α e }
 
 instance empty : primcodable empty :=
@@ -185,9 +185,7 @@ theorem comp {f : β → σ} {g : α → β}
 ((cases1 0 (hf.comp $ pred.comp hg)).comp (primcodable.prim α)).of_eq $
 λ n, begin
   cases decode α n, {refl},
-  simp [encodek],
-  change encode (option.map f (decode β (encode _))) = _,
-  simp [encodek], refl
+  simp [encodek]
 end
 
 theorem succ : primrec nat.succ := nat_iff.2 nat.primrec.succ
@@ -213,7 +211,7 @@ theorem of_equiv {β} {e : β ≃ α} :
   primrec e :=
 (primcodable.prim α).of_eq $ λ n,
 show _ = encode (option.map e (option.map _ _)),
-by cases decode α n; simp [option.map, option.bind]
+by cases decode α n; simp
 
 theorem of_equiv_symm {β} {e : β ≃ α} :
   by haveI := primcodable.of_equiv α e; exact
@@ -248,7 +246,6 @@ instance prod {α β} [primcodable α] [primcodable β] : primcodable (α × β)
 λ n, begin
   simp [nat.unpaired],
   cases decode α n.unpair.1; simp, {refl},
-  dsimp [option.bind],
   cases decode β n.unpair.2; simp, {refl},
   refl
 end⟩
@@ -266,10 +263,8 @@ theorem fst {α β} [primcodable α] [primcodable β] :
   (pair right ((primcodable.prim α).comp left))).of_eq $
 λ n, begin
   simp,
-  cases decode α n.unpair.1; simp, {refl},
-  dsimp [option.bind],
-  cases decode β n.unpair.2; simp, {refl},
-  refl
+  cases decode α n.unpair.1; simp,
+  cases decode β n.unpair.2; simp
 end
 
 theorem snd {α β} [primcodable α] [primcodable β] :
@@ -279,10 +274,8 @@ theorem snd {α β} [primcodable α] [primcodable β] :
   (pair right ((primcodable.prim α).comp left))).of_eq $
 λ n, begin
   simp,
-  cases decode α n.unpair.1; simp, {refl},
-  dsimp [option.bind],
-  cases decode β n.unpair.2; simp, {refl},
-  refl
+  cases decode α n.unpair.1; simp,
+  cases decode β n.unpair.2; simp
 end
 
 theorem pair {α β γ} [primcodable α] [primcodable β] [primcodable γ]
@@ -342,7 +335,7 @@ theorem left : primrec₂ (λ (a : α) (b : β), a) := primrec.fst
 theorem right : primrec₂ (λ (a : α) (b : β), b) := primrec.snd
 
 theorem mkpair : primrec₂ nat.mkpair :=
-by simp [primrec₂, primrec, option.bind]; constructor
+by simp [primrec₂, primrec]; constructor
 
 theorem unpaired {f : ℕ → ℕ → α} : primrec (nat.unpaired f) ↔ primrec₂ f :=
 ⟨λ h, by simpa using h.comp mkpair,
@@ -461,10 +454,9 @@ primrec₂.nat_iff.2 $ ((nat.primrec.cases nat.primrec.zero $
 λ n, begin
   simp,
   cases decode α n.unpair.1 with a, {refl},
-  simp [encodek, option.map, option.bind],
-  induction n.unpair.2 with m; simp [encodek, option.bind],
-  simp [ih],
-  repeat {simp [encodek, option.map, option.bind]}
+  simp [encodek],
+  induction n.unpair.2 with m; simp [encodek],
+  simp [ih, encodek]
 end
 
 theorem nat_elim' {f : α → ℕ} {g : α → β} {h : α → ℕ × β → β}
@@ -649,8 +641,7 @@ let ⟨l, nd, m⟩ := fintype.exists_univ_list α in
 option_some_iff.1 $ begin
   haveI := decidable_eq_of_encodable α,
   refine ((list_nth₁ (l.map f)).comp (list_index_of₁ l)).of_eq (λ a, _),
-  simp,
-  rw [list.nth_le_nth (list.index_of_lt_length.2 (m _)),
+  rw [list.nth_map, list.nth_le_nth (list.index_of_lt_length.2 (m _)),
       list.index_of_nth_le]; refl
 end
 
@@ -826,7 +817,7 @@ nat_iff.1 $ (encode_iff.2 this).of_eq $ λ n, begin
   apply nat.case_strong_induction_on n, {refl},
   intros n IH, simp,
   cases decode α n.unpair.1 with a, {refl},
-  simp [option.bind, has_seq.seq],
+  simp,
   suffices : ∀ (o : option (list ℕ)) p (_ : encode o = encode p),
     encode (option.map (list.cons (encode a)) o) =
     encode (option.map (list.cons a) p),
@@ -1000,7 +991,7 @@ primrec₂.option_some_iff.1 $
     (to₂ $ list_concat.comp (snd.comp fst) snd))).of_eq $
 λ a n, begin
   simp, induction n with n IH, {refl},
-  simp [IH, H, list.range_concat, option.bind]
+  simp [IH, H, list.range_concat]
 end
 
 end primrec
@@ -1060,8 +1051,7 @@ begin
   refine ⟨λ h, _, λ hf, subtype_val.comp hf⟩,
   refine nat.primrec.of_eq h (λ n, _),
   cases decode α n with a, {refl},
-  simp [option.bind, option.map],
-  cases f a; refl
+  simp, cases f a; refl
 end
 
 theorem fin_val_iff {n} {f : α → fin n} :

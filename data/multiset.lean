@@ -2125,7 +2125,7 @@ quot.induction_on s $ λ l m, @congr_arg _ _ _ _ coe $ erase_dup_cons_of_mem m
 quot.induction_on s $ λ l m, congr_arg coe $ erase_dup_cons_of_not_mem m
 
 @[simp] theorem erase_dup_singleton {a : α} : erase_dup (a :: 0) = a :: 0 :=
-  erase_dup_cons_of_not_mem $ not_mem_zero a
+erase_dup_cons_of_not_mem $ not_mem_zero a
 
 theorem erase_dup_le (s : multiset α) : erase_dup s ≤ s :=
 quot.induction_on s $ λ l, subperm_of_sublist $ erase_dup_sublist _

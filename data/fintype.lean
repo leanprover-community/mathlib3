@@ -248,10 +248,10 @@ by haveI := classical.prop_decidable; exact
 finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 
 lemma fintype.card_eq_one_iff [fintype α] : fintype.card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
-by rw [← fintype.card_unit, fintype.card_eq];
-  exact ⟨λ ⟨a⟩, ⟨a.symm unit.star, λ y, a.bijective.1 (subsingleton.elim _ _)⟩,
-          λ ⟨x, hx⟩, ⟨⟨λ _, unit.star, λ _, x, λ _, (hx _).trans (hx _).symm,
-            λ _, subsingleton.elim _ _⟩⟩⟩
+by rw [← fintype.card_unit, fintype.card_eq]; exact
+⟨λ ⟨a⟩, ⟨a.symm unit.star, λ y, a.bijective.1 (subsingleton.elim _ _)⟩,
+  λ ⟨x, hx⟩, ⟨⟨λ _, unit.star, λ _, x, λ _, (hx _).trans (hx _).symm,
+    λ _, subsingleton.elim _ _⟩⟩⟩
 
 lemma fintype.card_eq_zero_iff [fintype α] : fintype.card α = 0 ↔ (α → false) :=
 ⟨λ h a, have e : α ≃ empty := classical.choice (fintype.card_eq.1 (by simp [h])), (e a).elim,

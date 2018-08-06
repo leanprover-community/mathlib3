@@ -78,11 +78,12 @@ begin
       simp [e.symm, encodek] } },
   { intros x h', simp [k'] at h',
     rcases h' with ⟨n, hn, hx⟩,
-    have := (H _).1 _ hn, simp [mem_decode2] at this,
+    have := (H _).1 _ hn,
+    simp [mem_decode2, encode_injective.eq_iff] at this,
     cases this with h h;
-    { rcases h with ⟨a', ⟨ha₁, ha₂⟩, y, hy, rfl⟩,
-      rw encodek at hx ha₁, simp at hx ha₁, substs y a',
-      simp [hy] } },
+    { rcases h with ⟨a', ha, rfl⟩,
+      simp [encodek] at hx, subst a',
+      simp [ha] } },
 end
 
 theorem merge {f g : α →. σ}

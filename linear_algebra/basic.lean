@@ -178,7 +178,7 @@ span_eq is_submodule_span (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mon
 lemma span_insert : span (insert b s) = {z | ∃a, ∃x∈span s, z = a • b + x } :=
 set.ext $ assume b',
 begin
-  apply iff.intro; simp [insert_eq, span_union, span_singleton, set.set_eq_def, range, -add_comm],
+  split; simp [insert_eq, span_union, span_singleton, set.ext_iff, range, -add_comm],
   exact (assume y a eq_y x hx eq, ⟨a, x, hx, by simp [eq_y, eq]⟩),
   exact (assume a b₂ hb₂ eq, ⟨a • b, ⟨a, rfl⟩, b₂, hb₂, eq⟩)
 end
@@ -759,7 +759,7 @@ assume t, finset.induction_on t
 have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,
   from finset.ext.mpr $ assume x, by by_cases x ∈ s; simp *,
 let ⟨u, h₁, h₂, h⟩ := this (t.filter (λx, x ∉ s)) (t.filter (λx, x ∈ s))
-  (by simp [set.subset_def]) (by simp [set.set_eq_def] {contextual := tt}) (by rwa [eq]) in
+  (by simp [set.subset_def]) (by simp [set.ext_iff] {contextual := tt}) (by rwa [eq]) in
 ⟨u, subset.trans h₁ (by simp [subset_def, and_imp, or_imp_distrib] {contextual:=tt}),
   h₂, by rwa [eq] at h⟩
 
@@ -769,7 +769,7 @@ lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
 have s ⊆ span ↑(ht.to_finset), by simp; assumption,
 let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
 have finite s, from finite_subset u.finite_to_set hsu,
-⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subseteq_coe.mp $ by simp [hsu])⟩
+⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
 lemma exists_left_inverse_linear_map_of_injective {f : β → γ}
   (hf : is_linear_map f) (hf_inj : injective f) : ∃g:γ → β, is_linear_map g ∧ g ∘ f = id :=

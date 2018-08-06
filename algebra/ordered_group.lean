@@ -135,6 +135,43 @@ add_pos' h h
 
 end ordered_comm_monoid
 
+namespace units
+
+instance [monoid α] [preorder α] : preorder (units α) :=
+{ le := λ a b, (a:α) ≤ b,
+  lt := λ a b, (a:α) < b,
+  le_refl := λ a, @le_refl α _ _,
+  le_trans := λ a b c, @le_trans α _ _ _ _,
+  lt_iff_le_not_le := λ a b, @lt_iff_le_not_le α _ _ _ }
+
+@[simp] theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
+  (a : α) ≤ b ↔ a ≤ b := iff.rfl
+
+@[simp] theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
+  (a : α) < b ↔ a < b := iff.rfl
+
+instance [monoid α] [partial_order α] : partial_order (units α) :=
+{ le_antisymm := λ a b h₁ h₂, ext $ le_antisymm h₁ h₂, ..units.preorder }
+
+instance [monoid α] [linear_order α] : linear_order (units α) :=
+{ le_total := λ a b, @le_total α _ _ _, ..units.partial_order }
+
+instance [monoid α] [decidable_linear_order α] : decidable_linear_order (units α) :=
+{ decidable_le := by apply_instance,
+  decidable_lt := by apply_instance,
+  decidable_eq := by apply_instance,
+  ..units.linear_order }
+
+theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
+  (↑(max a b) : α) = max a b :=
+by by_cases a ≤ b; simp [max, h]
+
+theorem min_coe [monoid α] [decidable_linear_order α] {a b : units α} :
+  (↑(min a b) : α) = min a b :=
+by by_cases a ≤ b; simp [min, h]
+
+end units
+
 namespace with_zero
 open lattice
 
@@ -182,16 +219,20 @@ namespace with_top
 open lattice
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
-@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _
+{ add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
+  ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
-@additive.add_comm_semigroup _ $ @with_zero.comm_semigroup (multiplicative α) _
+{ ..@additive.add_comm_semigroup _ $
+    @with_zero.comm_semigroup (multiplicative α) _ }
 
 instance [add_monoid α] : add_monoid (with_top α) :=
-@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _
+{ zero := some 0,
+  ..@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _ }
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
-@additive.add_comm_monoid _ $ @with_zero.comm_monoid (multiplicative α) _
+{ ..@additive.add_comm_monoid _ $
+    @with_zero.comm_monoid (multiplicative α) _ }
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_top α) :=
 begin
@@ -246,6 +287,19 @@ begin
     simp at h,
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
+
+@[simp] lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
+
+@[simp] lemma bot_add [ordered_comm_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
+
+@[simp] lemma add_bot [ordered_comm_monoid α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
+
+lemma coe_lt_coe {a b : ℕ} : (a : with_bot ℕ) < b ↔ a < b := with_bot.some_lt_some
+
+lemma bot_lt_some (a : ℕ) : (⊥ : with_bot ℕ) < some a :=
+lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
+
+instance has_one : has_one (with_bot ℕ) := ⟨(1 : ℕ)⟩
 
 end with_bot
 

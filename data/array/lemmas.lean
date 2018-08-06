@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.list.basic data.buffer
+import data.list.basic data.buffer category.traversable.equiv data.vector2
 
 universes u w
 
@@ -16,7 +16,7 @@ instance [∀ i, inhabited (α i)] : inhabited (d_array n α) :=
 end d_array
 
 namespace array
-variables {n : nat} {α : Type u} {β : Type w}
+variables {n m : nat} {α : Type u} {β : Type w}
 
 instance [inhabited α] : inhabited (array n α) := d_array.inhabited
 
@@ -130,6 +130,12 @@ heq_of_heq_of_eq
 @[simp] theorem to_array_to_list (l : list α) : l.to_array.to_list = l :=
 list.ext_le (to_list_length _) $ λn h1 h2, to_list_nth_le _ _ _ _
 
+theorem to_list_of_heq {a₀ : array n α} {a₁ : array m α}
+  (h  : n = m)
+  (h' : a₀ == a₁) :
+  a₀.to_list = a₁.to_list :=
+by congr; assumption
+
 lemma push_back_rev_list_core (a : array n α) (v : α) :
   ∀ i h h',
     d_array.iterate_aux (a.push_back v) (λ_, list.cons) i h [] =
@@ -155,7 +161,7 @@ end
 @[simp] theorem push_back_to_list (a : array n α) (v : α) :
   (a.push_back v).to_list = a.to_list ++ [v] :=
 by rw [← rev_list_reverse, ← rev_list_reverse, push_back_rev_list,
-       list.reverse_cons, list.concat_eq_append]
+       list.reverse_cons]
 
 theorem read_foreach_aux (f : fin n → α → α) (ai : array n α) :
   ∀ i h (a : array n α) (j : fin n), j.1 < i →
@@ -186,3 +192,32 @@ end array
 
 instance (α) [decidable_eq α] : decidable_eq (buffer α) :=
 by tactic.mk_dec_eq_instance
+
+namespace equiv
+
+def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
+⟨d_array.read, d_array.mk, λ ⟨f⟩, rfl, λ f, rfl⟩
+
+def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
+d_array_equiv_fin _
+
+def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
+⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
+
+def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
+(vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
+
+end equiv
+
+namespace array
+open function
+
+variable {n : ℕ}
+
+instance : traversable.{u} (array n) :=
+@equiv.traversable (flip vector n) _ (λ α, equiv.vector_equiv_array α n) _
+
+instance : is_lawful_traversable.{u} (array n) :=
+@equiv.is_lawful_traversable (flip vector n) _ (λ α, equiv.vector_equiv_array α n) _ _
+
+end array

@@ -40,11 +40,11 @@ theorem sub_eq : x - y = x ⊓ - y :=
 boolean_algebra.sub_eq x y
 
 theorem neg_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : - x = y :=
-have (- x ⊓ x) ⊔ (- x ⊓ y) = (y ⊓ x) ⊔ (y ⊓ - x),
-  by rsimp,
-have - x ⊓ (x ⊔ y) = y ⊓ (x ⊔ - x),
-  begin [smt] eblast_using inf_sup_left end,
-by rsimp
+calc -x = -x ⊓ (x ⊔ y)    : by simp [s]
+    ... = -x ⊓ x ⊔ -x ⊓ y : inf_sup_left
+    ... = y ⊓ x ⊔ y ⊓ -x  : by simp [i, inf_comm]
+    ... = y ⊓ (x ⊔ -x)    : inf_sup_left.symm
+    ... = y               : by simp
 
 @[simp] theorem neg_top : - ⊤ = (⊥:α) :=
 neg_unique (by simp) (by simp)

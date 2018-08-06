@@ -56,8 +56,7 @@ include 𝒞 𝒟
 @[simp,ematch] lemma comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) : f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
 end
 
-section
--- Here we provide an addition instance when both factors have the same universe levels. This helps typeclass resolution.
+section -- Here we provide an addition instance when both factors have the same universe levels. This helps typeclass resolution.
 variable (C : Type u₁)
 variable [𝒞 : category.{u₁ v₁} C]
 variable (D : Type u₁)
@@ -66,6 +65,8 @@ include 𝒞 𝒟
 
 instance ProductCategory.uniform : category.{u₁ v₁} (C × D) := category_theory.ProductCategory C D
 end
+
+-- Next we define the natural functors into and out of product categories. For now this doesn't address the universal properties.
 
 definition RightInjectionAt (C : Type u₁) [category.{u₁ v₁} C] {D : Type u₁} [category.{u₁ v₁} D] (Z : D) : C ↝ (C × D) := 
 { obj := λ X, (X, Z),

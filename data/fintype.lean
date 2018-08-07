@@ -292,10 +292,10 @@ from λ f hinj x,
 lemma fintype.injective_iff_surjective_of_equiv [fintype α] {f : α → β} (e : α ≃ β) :
   injective f ↔ surjective f :=
 have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from fintype.injective_iff_surjective,
-⟨λ hinj, by have := surjective_comp e.bijective.2 (this.1 (injective_comp e.symm.bijective.1 hinj));
-  simpa [function.comp] using this,
-λ hsurj, by have := injective_comp e.bijective.1 (this.2 (surjective_comp e.symm.bijective.2 hsurj));
-  simpa [function.comp] using this⟩
+⟨λ hinj, by simpa [function.comp] using
+  surjective_comp e.bijective.2 (this.1 (injective_comp e.symm.bijective.1 hinj)),
+λ hsurj, by simpa [function.comp] using
+  injective_comp e.bijective.1 (this.2 (surjective_comp e.symm.bijective.2 hsurj))⟩
 
 instance list.subtype.fintype [decidable_eq α] (l : list α) : fintype {x // x ∈ l} :=
 fintype.of_list l.attach l.mem_attach

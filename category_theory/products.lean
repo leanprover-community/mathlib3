@@ -91,6 +91,10 @@ definition product {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I)
   naturality := begin /- `obviously'` says: -/ intros, cases f, cases Y, cases X, dsimp at *, simp, split, rw NaturalTransformation.naturality_lemma, rw NaturalTransformation.naturality_lemma end }
 
 notation α `×` β := product α β
+
+namespace product
+@[simp,ematch] lemma components {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (α × β) (a, c) = (α a, β c) := rfl
+end product
 end natural_transformation
 
 end category_theory

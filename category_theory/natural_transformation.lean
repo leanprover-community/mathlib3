@@ -21,16 +21,16 @@ universes u₁ v₁ u₂ v₂ u₃ v₃
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
-structure natural_transformation (F G : C ↝ D) : Type (max u₁ v₂) :=
+structure nat_trans (F G : C ↝ D) : Type (max u₁ v₂) :=
 (components : Π X : C, (F X) ⟶ (G X))
 (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (components Y) = (components X) ≫ (G.map f) . obviously)
 
-make_lemma natural_transformation.naturality
-attribute [ematch] natural_transformation.naturality_lemma
+make_lemma nat_trans.naturality
+attribute [ematch] nat_trans.naturality_lemma
 
-infixr ` ⟹ `:50  := natural_transformation             -- type as \==> or ⟹
+infixr ` ⟹ `:50  := nat_trans             -- type as \==> or ⟹
 
-namespace natural_transformation
+namespace nat_trans
 
 instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 { F   := λ α, Π X : C, (F X) ⟶ (G X),
@@ -38,7 +38,7 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 
 @[simp] lemma coe_def {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.components X := rfl
 
-end natural_transformation
+end nat_trans
 
 namespace functor
 definition identity (F : C ↝ D) : F ⟹ F := 
@@ -54,7 +54,7 @@ instance has_one (F : C ↝ D) : has_one (F ⟹ F) :=
 
 end functor
 
-namespace natural_transformation
+namespace nat_trans
 
 open category
 open category_theory.functor
@@ -111,5 +111,5 @@ begin
   conv { to_lhs, congr, skip, rw [←assoc_lemma, ←naturality_lemma, assoc_lemma] }
 end
 
-end natural_transformation
+end nat_trans
 end category_theory

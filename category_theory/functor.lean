@@ -19,6 +19,14 @@ namespace category_theory
  
 universes u₁ v₁ u₂ v₂ u₃ v₃
 
+/--
+`functor C D` represents a functor between categories `C` and `D`. 
+
+To apply a functor `F` to an object use `F X`, and to a morphism use `F.map f`.
+ 
+The axiom `map_id_lemma` expresses preservation of identities, and
+`map_comp_lemma` expresses functoriality.
+-/
 structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
 (obj      : C → D)
 (map      : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
@@ -49,21 +57,21 @@ namespace category
 variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
 include 𝒞
 
-definition identity : C ↝ C := 
+protected definition identity : C ↝ C := 
 { obj      := λ X, X,
   map      := λ _ _ f, f,
   map_id   := begin /- `obviously'` says: -/ intros, refl end,
   map_comp := begin /- `obviously'` says: -/ intros, refl end }
 
 instance has_one : has_one (C ↝ C) :=
-{ one := identity C }
+{ one := category.identity C }
 
 variable {C}
 
-@[simp] lemma identity_to_has_one : (identity C) = 1 := rfl
+@[simp] protected lemma identity_to_has_one : (category.identity C) = 1 := rfl
 
-@[simp] lemma has_one.on_objects (X : C) : (1 : C ↝ C) X = X := rfl
-@[simp] lemma has_one.on_morphisms {X Y : C} (f : X ⟶ Y) : (1 : C ↝ C).map f = f := rfl
+@[simp] protected lemma has_one.on_objects (X : C) : (1 : C ↝ C) X = X := rfl
+@[simp] protected lemma has_one.on_morphisms {X Y : C} (f : X ⟶ Y) : (1 : C ↝ C).map f = f := rfl
 
 end category
 
@@ -72,6 +80,9 @@ namespace functor
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include 𝒞 𝒟 ℰ
 
+/--
+`F ⋙ G` is the composition of a functor `F` and a functor `G` (`F` first, then `G`).
+-/
 definition comp (F : C ↝ D) (G : D ↝ E) : C ↝ E := 
 { obj      := λ X, G.obj (F.obj X),
   map      := λ _ _ f, G.map (F.map f),

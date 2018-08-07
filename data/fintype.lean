@@ -285,9 +285,10 @@ from λ f hinj x,
     ((card_image_of_injective univ hinj).symm ▸ le_refl _),
   have h₂ : x ∈ image f univ := h₁.symm ▸ mem_univ _,
   exists_of_bex (mem_image.1 h₂),
-⟨this, λ hsurj, injective_of_has_left_inverse ⟨surj_inv hsurj,
-    left_inverse_of_surjective_of_right_inverse (this (injective_surj_inv hsurj))
-      (right_inverse_surj_inv hsurj)⟩⟩
+⟨this,
+  λ hsurj, injective_of_has_left_inverse
+    ⟨surj_inv hsurj, left_inverse_of_surjective_of_right_inverse
+      (this (injective_surj_inv _)) (right_inverse_surj_inv _)⟩⟩
 
 lemma fintype.injective_iff_surjective_of_equiv [fintype α] {f : α → β} (e : α ≃ β) :
   injective f ↔ surjective f :=

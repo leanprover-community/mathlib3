@@ -10,7 +10,7 @@ universes u₁ v₁ u₂ v₂ u₃ v₃
 
 instance functor_category (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (C ↝ D) := 
 { Hom     := λ F G, F ⟹ G,
-  id      := λ F, NaturalTransformation.id F,
+  id      := λ F, F.identity,
   comp    := λ _ _ _ α β, α ⊟ β,
   id_comp := begin /- `obviously'` says: -/ intros, apply NaturalTransformation.componentwise_equal, intros, dsimp, simp end,
   comp_id := begin /- `obviously'` says: -/ intros, apply NaturalTransformation.componentwise_equal, intros, dsimp, simp end,

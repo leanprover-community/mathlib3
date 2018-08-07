@@ -25,7 +25,7 @@ structure nat_trans (F G : C ↝ D) : Type (max u₁ v₂) :=
 (components : Π X : C, (F X) ⟶ (G X))
 (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (components Y) = (components X) ≫ (G.map f) . obviously)
 
-make_lemma nat_trans.naturality
+restate_axiom nat_trans.naturality
 attribute [ematch] nat_trans.naturality_lemma
 
 infixr ` ⟹ `:50  := nat_trans             -- type as \==> or ⟹

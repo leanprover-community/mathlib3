@@ -25,8 +25,8 @@ structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [cate
 (map_id   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
 (map_comp : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
 
-make_lemma functor.map_id
-make_lemma functor.map_comp
+restate_axiom functor.map_id
+restate_axiom functor.map_comp
 attribute [simp,ematch] functor.map_id_lemma functor.map_comp_lemma
 
 infixr ` ↝ `:70 := functor       -- type as \lea -- 

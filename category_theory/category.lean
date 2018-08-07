@@ -43,9 +43,9 @@ infixr ` ≫ `:80 := category.comp -- type as \gg
 infixr ` ⟶ `:10 := category.Hom -- type as \h
 
 -- make_lemma is a command that creates a lemma from a structure field, discarding all auto_param wrappers from the type.
-make_lemma category.id_comp
-make_lemma category.comp_id
-make_lemma category.assoc
+restate_axiom category.id_comp
+restate_axiom category.comp_id
+restate_axiom category.assoc
 -- We tag some lemmas with the attribute `@[ematch]`, for later automation. (I'd be happy to change this to e.g. `@[search]`.)
 attribute [simp,ematch] category.id_comp_lemma category.comp_id_lemma category.assoc_lemma 
 

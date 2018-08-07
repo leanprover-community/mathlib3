@@ -276,8 +276,7 @@ begin
     (nat.succ_le_succ (nat.le_add_right _ _)),
   have m1 : m.unpair.1 < n + 4, from lt_of_le_of_lt m.unpair_le_left hm,
   have m2 : m.unpair.2 < n + 4, from lt_of_le_of_lt m.unpair_le_right hm,
-  simp [G₁], simp [list.nth_map, list.nth_range,
-    hm, m1, m2, option.map, option.bind],
+  simp [G₁], simp [list.nth_map, list.nth_range, hm, m1, m2],
   change of_nat code (n+4) with of_nat_code (n+4),
   simp [of_nat_code],
   cases n.bodd; cases n.div2.bodd; refl
@@ -370,8 +369,7 @@ begin
     (nat.succ_le_succ (nat.le_add_right _ _)),
   have m1 : m.unpair.1 < n + 4, from lt_of_le_of_lt m.unpair_le_left hm,
   have m2 : m.unpair.2 < n + 4, from lt_of_le_of_lt m.unpair_le_right hm,
-  simp [G₁], simp [list.nth_map, list.nth_range,
-    hm, m1, m2, option.map, option.bind],
+  simp [G₁], simp [list.nth_map, list.nth_range, hm, m1, m2],
   change of_nat code (n+4) with of_nat_code (n+4),
   simp [of_nat_code],
   cases n.bodd; cases n.div2.bodd; refl
@@ -467,8 +465,7 @@ begin
     (nat.succ_le_succ (nat.le_add_right _ _)),
   have m1 : m.unpair.1 < n + 4, from lt_of_le_of_lt m.unpair_le_left hm,
   have m2 : m.unpair.2 < n + 4, from lt_of_le_of_lt m.unpair_le_right hm,
-  simp [G₁], simp [list.nth_map, list.nth_range,
-    hm, m1, m2, option.map, option.bind],
+  simp [G₁], simp [list.nth_map, list.nth_range, hm, m1, m2],
   change of_nat code (n+4) with of_nat_code (n+4),
   simp [of_nat_code],
   cases n.bodd; cases n.div2.bodd; refl

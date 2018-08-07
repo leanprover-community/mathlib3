@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 A collection of limit properties.
 -/
-import algebra.big_operators algebra.group_power
+import algebra.big_operators algebra.group_power tactic.norm_num
   analysis.real analysis.topology.infinite_sum
 noncomputable theory
 open classical finset function filter
@@ -159,3 +159,43 @@ have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (nhds ((0 - 1) * (r - 1)�
     (tendsto_sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
 (is_sum_iff_tendsto_nat_of_nonneg $ pow_nonneg h₁).mpr $
   by simp [neg_inv, sum_geometric, div_eq_mul_inv, *] at *
+
+lemma is_sum_geometric_two (a : ℝ) : is_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
+begin
+  convert is_sum_mul_left (a / 2) (is_sum_geometric
+    (le_of_lt one_half_pos) one_half_lt_one),
+  { funext n, simp,
+    rw ← pow_inv; [refl, exact two_ne_zero] },
+  { norm_num, rw div_mul_cancel _ two_ne_zero }
+end
+
+def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
+  (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, is_sum ε' c ∧ c ≤ ε} :=
+begin
+  let f := λ n, (ε / 2) / 2 ^ n,
+  have hf : is_sum f ε := is_sum_geometric_two _,
+  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
+  refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
+  let g : ℕ → ℝ := λ n, option.cases_on (encodable.decode2 ι n) 0 (f ∘ encodable.encode),
+  have : ∀ n, g n = 0 ∨ g n = f n,
+  { intro n, dsimp [g], cases e : encodable.decode2 ι n with a,
+    { exact or.inl rfl },
+    { simp [encodable.mem_decode2.1 e] } },
+  cases has_sum_of_has_sum_of_sub ⟨_, hf⟩ this with c hg,
+  have cε : c ≤ ε,
+  { refine is_sum_le (λ n, _) hg hf,
+    cases this n; rw h, exact le_of_lt (f0 _) },
+  have hs : ∀ n, g n ≠ 0 → (encodable.decode2 ι n).is_some,
+  { intros n h, dsimp [g] at h,
+    cases encodable.decode2 ι n,
+    exact (h rfl).elim, exact rfl },
+  refine ⟨c, _, cε⟩,
+  refine is_sum_of_is_sum_ne_zero
+    (λ n h, option.get (hs n h)) (λ n _, ne_of_gt (f0 _))
+    (λ i _, encodable.encode i) (λ n h, ne_of_gt _)
+    (λ n h, _) (λ i _, _) (λ i _, _) hg,
+  { dsimp [g], rw encodable.encodek2, exact f0 _ },
+  { exact encodable.mem_decode2.1 (option.get_mem _) },
+  { exact option.get_of_mem _ (encodable.encodek2 _) },
+  { dsimp [g], rw encodable.encodek2 }
+end

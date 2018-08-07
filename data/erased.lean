@@ -6,7 +6,7 @@ Author: Mario Carneiro
 A type for VM-erased data.
 -/
 
-import data.set.basic data.equiv
+import data.set.basic data.equiv.basic
 
 /-- `erased α` is the same as `α`, except that the elements
   of `erased α` are erased in the VM in the same way as types

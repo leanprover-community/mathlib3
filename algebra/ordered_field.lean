@@ -119,7 +119,11 @@ lemma div_lt_div' (hac : a ≤ c) (hbd : d < b) (c0 : 0 < c) (d0 : 0 < d) :
 
 lemma half_pos {a : α} (h : 0 < a) : 0 < a / 2 := div_pos h two_pos
 
+lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one
+
 def half_lt_self := @div_two_lt_of_pos
+
+lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
 lemma ivl_translate : (λx, x + c) '' {r:α | a ≤ r ∧ r ≤ b } = {r:α | a + c ≤ r ∧ r ≤ b + c} :=
 calc (λx, x + c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x - c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :

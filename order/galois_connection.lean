@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Galois connections - order theoretic adjoints.
 -/
-import order data.set
+import order.bounds
 open function set lattice
 
 universes u v w x
@@ -125,11 +125,11 @@ include gc
 
 lemma l_supr {f : ι → α} : l (supr f) = (⨆i, l (f i)) :=
 eq.symm $ is_lub_iff_supr_eq.mp $ show is_lub (range (l ∘ f)) (l (supr f)),
-  by rw [range_comp, ←Sup_range]; exact gc.is_lub_l_image is_lub_Sup
+  by rw [range_comp, ← Sup_range]; exact gc.is_lub_l_image is_lub_Sup
 
 lemma u_infi {f : ι → β} : u (infi f) = (⨅i, u (f i)) :=
 eq.symm $ is_glb_iff_infi_eq.mp $ show is_glb (range (u ∘ f)) (u (infi f)),
-  by rw [range_comp, ←Inf_range]; exact gc.is_glb_u_image is_glb_Inf
+  by rw [range_comp, ← Inf_range]; exact gc.is_glb_u_image is_glb_Inf
 
 end complete_lattice
 
@@ -143,7 +143,7 @@ protected lemma compose [preorder α] [preorder β] [preorder γ]
   (l1 : α → β) (u1 : β → α) (l2 : β → γ) (u2 : γ → β)
   (gc1 : galois_connection l1 u1) (gc2 : galois_connection l2 u2) :
   galois_connection (l2 ∘ l1) (u1 ∘ u2) :=
-by intros a b; rewrite gc2; rewrite gc1
+by intros a b; rw [gc2, gc1]
 
 protected lemma dual [pα : preorder α] [pβ : preorder β]
   (l : α → β) (u : β → α) (gc : galois_connection l u) :
@@ -159,22 +159,6 @@ assume a b, forall_congr $ assume i, gc i (a i) (b i)
 end constructions
 
 end galois_connection
-
-namespace set
-variables {f : α → β}
-
-protected lemma image_preimage : galois_connection (image f) (preimage f) :=
-assume a b, image_subset_iff
-
-/- Move to set? -/
-def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
-
-protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=
-assume a b,
-⟨ assume h x hx y hy, have f y ∈ a, from hy.symm ▸ hx, h this,
-  assume h x (hx : f x ∈ a), h hx x rfl⟩
-
-end set
 
 namespace nat
 

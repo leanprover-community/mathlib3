@@ -168,7 +168,7 @@ begin
   change stream.corec' (corec.F f) (some b) 0 with (corec.F f (some b)).1,
   unfold functor.map, dsimp [corec.F],
   induction h : f b with s, { refl },
-  cases s with a b', dsimp [corec.F, option.bind],
+  cases s with a b', dsimp [corec.F],
   apply congr_arg (λ b', some (a, b')),
   apply subtype.eq,
   dsimp [corec, tail],

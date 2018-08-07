@@ -21,3 +21,6 @@ always welcome.
 * [Kevin Buzzard](https://github.com/kbuzzard) is working on [sheaf
   theory](https://github.com/kbuzzard/xena/blob/master/xenalib/scheme.lean)
   with a view toward algebraic geometry.
+
+* [Sean Leather](https://github.com/spl) is working on a
+  [finite map](https://github.com/spl/lean-finmap) for mathlib.

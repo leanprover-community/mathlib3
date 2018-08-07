@@ -7,7 +7,7 @@ Introduces the rational numbers as discrete, linear ordered field.
 -/
 
 import
-  data.nat.gcd data.pnat data.int.basic data.encodable order.basic
+  data.nat.gcd data.pnat data.int.basic data.equiv.encodable order.basic
   algebra.ordered_field
 
 /- rational numbers -/

@@ -113,13 +113,11 @@ end refine_struct
 
 /- traversable -/
 open tactic.interactive
-run_cmd do
-e ← get_env,
-f ← derive_attr.after_set,
-lawful_traversable_derive_handler ``(is_lawful_traversable) ``list,
-set_env e
 
--- attribute [derive [traversable, is_lawful_traversable]] list option
+run_cmd do
+lawful_traversable_derive_handler' `test ``(is_lawful_traversable) ``list
+-- the above creates local instances of `traversable` and `is_lawful_traversable`
+-- for `list`
 -- do not put in instances because they are not universe polymorphic
 
 @[derive [traversable, is_lawful_traversable]]

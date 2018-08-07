@@ -15,6 +15,10 @@ namespace tactic.interactive
 
 open tactic list monad functor
 
+meta def with_prefix : option name → name → name
+| none n := n
+| (some p) n := p ++ n
+
 /-- similar to `nested_traverse` but for `functor` -/
 meta def nested_map (f v : expr) : expr → tactic expr
 | t :=
@@ -75,7 +79,7 @@ do t ← infer_type fn >>= whnf,
    mk_mapp_aux' fn t args
 
 /-- derive the equations for a specific `map` definition -/
-meta def derive_map_equations (n : name) (vs : list expr) (tgt : expr) : tactic unit :=
+meta def derive_map_equations (pre : option name) (n : name) (vs : list expr) (tgt : expr) : tactic unit :=
 do e ← get_env,
    ((e.constructors_of n).enum_from 1).mmap' $ λ ⟨i,c⟩,
    do { mk_meta_var tgt >>= set_goals ∘ pure,
@@ -88,7 +92,7 @@ do e ← get_env,
         vs' ← tactic.intros,
         c' ← mk_mapp c $ vs.map some ++ [α],
         arg ← mk_mapp' c' vs',
-        n_map ← mk_const (n <.> "map"),
+        n_map ← mk_const (with_prefix pre n <.> "map"),
         let call_map := λ x, mk_mapp' n_map (vs ++ [α,β,f,x]),
         lhs ← call_map arg,
         (args,rec_call) ← vs'.mpartition $
@@ -101,14 +105,14 @@ do e ← get_env,
         eqn ← pis ws.reverse eqn,
         eqn ← instantiate_mvars eqn,
         (_,pr) ← solve_aux eqn (tactic.intros >> refine ``(rfl)),
-        let eqn_n := n <.> "map" <.> "equations" <.> to_string format!"_eqn_{i}",
+        let eqn_n := (with_prefix pre n <.> "map" <.> "equations" <.> "_eqn").append_after i,
         pr ← instantiate_mvars pr,
         add_decl $ declaration.thm eqn_n eqn.collect_univ_params eqn (pure pr),
         return () },
    set_goals [],
    return ()
 
-meta def derive_functor : tactic unit :=
+meta def derive_functor (pre : option name) : tactic unit :=
 do vs ← local_context,
    `(functor %%f) ← target,
    env ← get_env,
@@ -116,9 +120,9 @@ do vs ← local_context,
    let cs := env.constructors_of n,
    refine ``( { functor . map := _ , .. } ),
    tgt ← target,
-   extract_def (n <.> "map") $ mk_map n cs,
+   extract_def (with_prefix pre n <.> "map") $ mk_map n cs,
    tgt ← pis vs tgt,
-   derive_map_equations n vs tgt
+   derive_map_equations pre n vs tgt
 
 /-- `seq_apply_constructor f [x,y,z]` synthesizes `f <*> x <*> y <*> z` -/
 private meta def seq_apply_constructor : expr → list (expr ⊕ expr) → tactic (list (tactic expr) × expr)
@@ -193,7 +197,7 @@ do ls ← local_context,
 open applicative
 
 /-- derive the equations for a specific `traverse` definition -/
-meta def derive_traverse_equations (n : name) (vs : list expr) (tgt : expr) : tactic unit :=
+meta def derive_traverse_equations (pre : option name) (n : name) (vs : list expr) (tgt : expr) : tactic unit :=
 do e ← get_env,
    ((e.constructors_of n).enum_from 1).mmap' $ λ ⟨i,c⟩,
    do { mk_meta_var tgt >>= set_goals ∘ pure,
@@ -206,7 +210,7 @@ do e ← get_env,
         c' ← mk_mapp c $ vs.map some ++ [α],
         vs' ← tactic.intros,
         arg ← mk_mapp' c' vs',
-        n_map ← mk_const (n <.> "traverse"),
+        n_map ← mk_const (with_prefix pre n <.> "traverse"),
         let call_traverse := λ x, mk_mapp' n_map (vs ++ [m,appl_inst,α,β,f,x]),
         lhs ← call_traverse arg,
         (args,rec_call) ← vs'.mpartition $
@@ -219,14 +223,14 @@ do e ← get_env,
         eqn ← pis ws.reverse eqn,
         eqn ← instantiate_mvars eqn,
         (_,pr) ← solve_aux eqn (tactic.intros >> refine ``(rfl)),
-        let eqn_n := n <.> "traverse" <.> "equations" <.> to_string format!"_eqn_{i}",
+        let eqn_n := (with_prefix pre n <.> "traverse" <.> "equations" <.> "_eqn").append_after i,
         pr ← instantiate_mvars pr,
         add_decl $ declaration.thm eqn_n eqn.collect_univ_params eqn (pure pr),
         return () },
    set_goals [],
    return ()
 
-meta def derive_traverse : tactic unit :=
+meta def derive_traverse (pre : option name) : tactic unit :=
 do vs ← local_context,
    `(traversable %%f) ← target,
    env ← get_env,
@@ -234,15 +238,16 @@ do vs ← local_context,
    let cs := env.constructors_of n,
    constructor,
    tgt ← target,
-   extract_def (n <.> "traverse") $ mk_traverse n cs,
+   extract_def (with_prefix pre n <.> "traverse") $ mk_traverse n cs,
    tgt ← pis vs tgt,
-   derive_traverse_equations n vs tgt,
+   derive_traverse_equations pre n vs tgt,
    pure ()
 
 meta def mk_one_instance
   (n : name)
   (cls : name)
   (tac : tactic unit)
+  (namesp : option name)
   (mk_inst : name → expr → tactic expr := λ n arg, mk_app n [arg]) :
   tactic unit :=
 do decl ← get_decl n,
@@ -271,10 +276,11 @@ do decl ← get_decl n,
        tactic.intros >> tac),
      val ← instantiate_mvars val,
      let trusted := decl.is_trusted ∧ cls_decl.is_trusted,
-     add_decl (declaration.defn (n ++ cls)
+     let inst_n := with_prefix namesp n ++ cls,
+     add_decl (declaration.defn inst_n
                decl.univ_params
                tgt val reducibility_hints.abbrev trusted),
-     set_basic_attribute `instance (n ++ cls) tt
+     set_basic_attribute `instance inst_n namesp.is_none
 
 open interactive
 
@@ -285,30 +291,30 @@ do e ← get_env,
    let x := e.fold [] $ λ d xs, if pre.is_prefix_of d.to_name then d.to_name :: xs else xs,
    x.mmap resolve_name
 
-meta def derive_lawful_functor : tactic unit :=
+meta def derive_lawful_functor (pre : option name) : tactic unit :=
 do `(@is_lawful_functor %%f %%d) ← target,
    refine ``( { .. } ),
    let n := f.get_app_fn.const_name,
    solve1 (do
      vs ← tactic.intros,
      try $ dunfold [``functor.map] (loc.ns [none]),
-     dunfold [n <.> "map",``id] (loc.ns [none]),
+     dunfold [with_prefix pre n <.> "map",``id] (loc.ns [none]),
      () <$ tactic.induction vs.ilast; `[simp [functor.map_id,*]]),
    focus1 (do
      vs ← tactic.intros,
      try $ dunfold [``functor.map] (loc.ns [none]),
-     dunfold [n <.> "map",``id] (loc.ns [none]),
+     dunfold [with_prefix pre n <.> "map",``id] (loc.ns [none]),
      () <$ tactic.induction vs.ilast; `[simp [functor.map_comp_map,*]]),
    return ()
 
 meta def simp_functor (rs : list simp_arg_type := []) : tactic unit :=
 simp none ff rs [`functor_norm] (loc.ns [none])
 
-meta def derive_lawful_traversable : tactic unit :=
+meta def derive_lawful_traversable (pre : option name) : tactic unit :=
 do `(@is_lawful_traversable %%f %%d) ← target,
    let n := f.get_app_fn.const_name,
-   eqns  ← get_equations_of (n <.> "traverse"),
-   eqns' ← get_equations_of (n <.> "map"),
+   eqns  ← get_equations_of (with_prefix pre n <.> "traverse"),
+   eqns' ← get_equations_of (with_prefix pre n <.> "map"),
    let rs := eqns.map simp_arg_type.expr ++
              eqns'.map simp_arg_type.expr ++
              [simp_arg_type.all_hyps
@@ -338,51 +344,61 @@ do `(@is_lawful_traversable %%f %%d) ← target,
 
 open function
 
+meta def guard_class (cls : name) (hdl : derive_handler) : derive_handler :=
+λ p n,
+if p.is_constant_of cls then
+  hdl p n
+else
+  pure ff
+
 meta def higher_order_derive_handler
   (cls : name)
   (tac : tactic unit)
   (deps : list derive_handler := [])
-  (mk_inst : name → expr → tactic expr := λ n arg, mk_app n [arg])
-  (enable_checks : bool) :
+  (namesp : option name)
+  (mk_inst : name → expr → tactic expr := λ n arg, mk_app n [arg]) :
   derive_handler :=
 λ p n,
-if p.is_constant_of cls ∨ ¬ enable_checks then
 do mmap' (λ f : derive_handler, f p n) deps,
-   mk_one_instance n cls tac mk_inst,
+   mk_one_instance n cls tac namesp mk_inst,
    pure tt
-else pure ff
 
-meta def functor_derive_handler' : bool → derive_handler :=
-higher_order_derive_handler ``functor derive_functor
+meta def functor_derive_handler' (nspace : option name := none) : derive_handler :=
+higher_order_derive_handler ``functor (derive_functor nspace) [] nspace
 
 @[derive_handler]
 meta def functor_derive_handler : derive_handler :=
-functor_derive_handler' tt
+guard_class ``functor functor_derive_handler'
 
-meta def traversable_derive_handler' : bool → derive_handler :=
-higher_order_derive_handler ``traversable derive_traverse [functor_derive_handler' ff]
+meta def traversable_derive_handler' (nspace : option name := none) : derive_handler :=
+higher_order_derive_handler ``traversable (derive_traverse nspace)
+  [functor_derive_handler' nspace] nspace
 
 @[derive_handler]
 meta def traversable_derive_handler : derive_handler :=
-traversable_derive_handler' tt
+guard_class  ``traversable traversable_derive_handler'
 
-meta def lawful_functor_derive_handler' : bool → derive_handler :=
+meta def lawful_functor_derive_handler'  (nspace : option name := none) : derive_handler :=
 higher_order_derive_handler
-  ``is_lawful_functor derive_lawful_functor
-  [traversable_derive_handler' ff]
+  ``is_lawful_functor (derive_lawful_functor nspace)
+  [traversable_derive_handler' nspace]
+  nspace
   (λ n arg, mk_mapp n [arg,none])
 
 @[derive_handler]
 meta def lawful_functor_derive_handler : derive_handler :=
-lawful_functor_derive_handler' tt
+guard_class  ``is_lawful_functor lawful_functor_derive_handler'
+
+meta def lawful_traversable_derive_handler' (nspace : option name := none) : derive_handler :=
+higher_order_derive_handler
+  ``is_lawful_traversable (derive_lawful_traversable nspace)
+  [traversable_derive_handler' nspace,
+   lawful_functor_derive_handler' nspace]
+  nspace
+  (λ n arg, mk_mapp n [arg,none])
 
 @[derive_handler]
 meta def lawful_traversable_derive_handler : derive_handler :=
-higher_order_derive_handler
-  ``is_lawful_traversable derive_lawful_traversable
-  [traversable_derive_handler' ff,
-   lawful_functor_derive_handler' ff]
-  (λ n arg, mk_mapp n [arg,none])
-  tt
+guard_class ``is_lawful_traversable lawful_traversable_derive_handler'
 
 end tactic.interactive

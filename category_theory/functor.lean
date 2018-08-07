@@ -60,8 +60,8 @@ instance has_one : has_one (C ↝ C) :=
 
 variable {C}
 
-@[simp] lemma identity.on_objects (X : C) : (identity C) X = X := rfl
-@[simp] lemma identity.on_morphisms {X Y : C} (f : X ⟶ Y) : (identity C).map f = f := rfl
+@[simp] lemma identity_to_has_one : (identity C) = 1 := rfl
+
 @[simp] lemma has_one.on_objects (X : C) : (1 : C ↝ C) X = X := rfl
 @[simp] lemma has_one.on_morphisms {X Y : C} (f : X ⟶ Y) : (1 : C ↝ C).map f = f := rfl
 

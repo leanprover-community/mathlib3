@@ -48,7 +48,8 @@ definition identity (F : C ↝ D) : F ⟹ F :=
 instance has_one (F : C ↝ D) : has_one (F ⟹ F) := 
 { one := identity F }
 
-@[simp] lemma identity.components (F : C ↝ D) (X : C) : (identity F) X = 𝟙 (F X) := rfl
+@[simp] lemma identity_to_has_one (F : C ↝ D) : identity F = 1 := rfl
+
 @[simp] lemma has_one.components (F : C ↝ D) (X : C) : (1 : F ⟹ F) X = 𝟙 (F X) := rfl
 
 end functor

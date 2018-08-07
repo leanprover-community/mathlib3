@@ -87,10 +87,8 @@ definition product (F : A ↝ B) (G : C ↝ D) : (A × C) ↝ (B × D) :=
 
 notation F `×` G := product F G
 
-namespace product
-@[simp,ematch] lemma obj   (F : A ↝ B) (G : C ↝ D) (a : A) (c : C) : (F × G) (a, c) = (F a, G c) := rfl
-@[simp,ematch] lemma map (F : A ↝ B) (G : C ↝ D) {a a' : A} {c c' : C} (f : (a, c) ⟶ (a', c')) : (F × G).map f = (F.map f.1, G.map f.2) := rfl
-end product
+@[simp,ematch] lemma product_obj   (F : A ↝ B) (G : C ↝ D) (a : A) (c : C) : (F × G) (a, c) = (F a, G c) := rfl
+@[simp,ematch] lemma product_map (F : A ↝ B) (G : C ↝ D) {a a' : A} {c c' : C} (f : (a, c) ⟶ (a', c')) : (F × G).map f = (F.map f.1, G.map f.2) := rfl
 end functor
 
 namespace nat_trans
@@ -102,9 +100,7 @@ definition product {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I)
 
 notation α `×` β := product α β
 
-namespace product
-@[simp,ematch] lemma app {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (α × β) (a, c) = (α a, β c) := rfl
-end product
+@[simp,ematch] lemma product_app {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (α × β) (a, c) = (α a, β c) := rfl
 end nat_trans
 
 end category_theory

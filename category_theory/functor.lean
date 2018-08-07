@@ -65,8 +65,8 @@ protected definition id : C ↝ C :=
 
 variable {C}
 
-@[simp] lemma id.on_objects (X : C) : (functor.id C) X = X := rfl
-@[simp] lemma id.on_morphisms {X Y : C} (f : X ⟶ Y) : (functor.id C).map f = f := rfl
+@[simp] lemma id_obj (X : C) : (functor.id C) X = X := rfl
+@[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (functor.id C).map f = f := rfl
 end
 
 section
@@ -84,8 +84,8 @@ definition comp (F : C ↝ D) (G : D ↝ E) : C ↝ E :=
 
 infixr ` ⋙ `:80 := comp
 
-@[simp] lemma comp.on_objects (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
-@[simp] lemma comp.on_morphisms (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : (F ⋙ G).map f = G.map (F.map f) := rfl
+@[simp] lemma comp_obj (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
+@[simp] lemma comp_map (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : (F ⋙ G).map f = G.map (F.map f) := rfl
 end
 
 end functor

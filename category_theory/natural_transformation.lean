@@ -16,7 +16,7 @@ import .functor
 
 namespace category_theory
 
-universes u₁ v₁ u₂ v₂ u₃ v₃
+universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
 
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
@@ -51,7 +51,7 @@ protected definition id (F : C ↝ D) : F ⟹ F :=
 { app        := λ X, 𝟙 (F X),
   naturality := begin /- `obviously'` says: -/ intros, dsimp, simp end }
 
-@[simp] lemma id.app (F : C ↝ D) (X : C) : (nat_trans.id F) X = 𝟙 (F X) := rfl
+@[simp] lemma id_app (F : C ↝ D) (X : C) : (nat_trans.id F) X = 𝟙 (F X) := rfl
 
 open category
 open category_theory.functor
@@ -75,8 +75,8 @@ definition vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H :=
 
 notation α `⊟` β:80 := vcomp α β    
 
-@[simp] lemma vcomp.components (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β) X = (α X) ≫ (β X) := rfl
-@[ematch] lemma vcomp.assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := begin ext, intros, dsimp, rw [assoc] end
+@[simp] lemma vcomp_app (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β) X = (α X) ≫ (β X) := rfl
+@[ematch] lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := begin ext, intros, dsimp, rw [assoc] end
 end
 
 variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
@@ -97,9 +97,9 @@ definition hcomp {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) :
 
 notation α `◫` β:80 := hcomp α β
 
-@[simp] lemma hcomp.components {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) : (α ◫ β) X = (β (F X)) ≫ (I.map (α X)) := rfl
+@[simp] lemma hcomp_app {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) : (α ◫ β) X = (β (F X)) ≫ (I.map (α X)) := rfl
 
--- Note that we don't yet prove a `hcomp.assoc` lemma here: stating it would require the unitor transformations for functors.
+-- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we need to use associativity of functor composition
 
 @[ematch] lemma exchange {F G H : C ↝ D} {I J K : D ↝ E} (α : F ⟹ G) (β : G ⟹ H) (γ : I ⟹ J) (δ : J ⟹ K) : ((α ⊟ β) ◫ (γ ⊟ δ)) = ((α ◫ γ) ⊟ (β ◫ δ)) := 
 begin

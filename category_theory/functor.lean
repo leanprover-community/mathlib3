@@ -31,6 +31,27 @@ attribute [simp,ematch] Functor.map_id_lemma Functor.functoriality_lemma
 
 infixr ` ↝ `:70 := Functor       -- type as \lea -- 
 
+namespace category
+
+variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
+include 𝒞
+
+definition identity : C ↝ C := 
+{ obj     := λ X, X,
+  map     := λ _ _ f, f,
+  map_id  := begin /- `obviously'` says: -/ intros, refl end,
+  functoriality := begin /- `obviously'` says: -/ intros, refl end }
+
+instance has_one : has_one (C ↝ C) :=
+{ one := identity C }
+
+variable {C}
+
+@[simp] lemma identity.on_objects (X : C) : (identity C).obj X = X := rfl
+@[simp] lemma identity.on_morphisms {X Y : C} (f : X ⟶ Y) : (identity C).map f = f := rfl
+
+end category
+
 namespace Functor
 
 section
@@ -42,30 +63,9 @@ instance : has_coe_to_fun (C ↝ D) :=
   coe := λ F, F.obj }
 
 @[simp] lemma unfold_obj_coercion (F : C ↝ D) (X : C) : F X = F.obj X := rfl
-end
 
-section
-variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
-include 𝒞
-
-definition id : C ↝ C := 
-{ obj     := id,
-  map     := λ _ _ f, f,
-  map_id  := begin /- `obviously'` says: -/ intros, refl end,
-  functoriality := begin /- `obviously'` says: -/ intros, refl end }
-
-instance has_one : has_one (C ↝ C) :=
-{ one := id C }
-
-variable {C}
-
-@[simp] lemma id.on_objects (X : C) : (id C).obj X = X := rfl
-@[simp] lemma id.on_morphisms {X Y : C} (f : X ⟶ Y) : (id C).map f = f := rfl
-end
-
-section
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ : category.{u₃ v₃} E]
-include 𝒞 𝒟 ℰ
+variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
+include ℰ
 
 definition comp (F : C ↝ D) (G : D ↝ E) : C ↝ E := 
 { obj    := λ X, G.obj (F.obj X),

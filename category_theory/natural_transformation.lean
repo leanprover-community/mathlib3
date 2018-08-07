@@ -41,19 +41,20 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 
 @[simp] lemma unfold_components_coercion {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.components X := rfl
 
-definition id (F : C ↝ D) : F ⟹ F := 
-{ components := λ X, 𝟙 (F X),
-  naturality := begin
-                  -- `obviously'` says:
-                  intros,
-                  dsimp,
-                  simp
-                end }
+end NaturalTransformation
 
-@[simp] lemma id.components (F : C ↝ D) (X : C) : (id F) X = 𝟙 (F X) := rfl
+namespace Functor
+definition identity (F : C ↝ D) : F ⟹ F := 
+{ components := λ X, 𝟙 (F X),
+  naturality := begin /- `obviously'` says: -/ intros, dsimp, simp end }
+
+@[simp] lemma identity.components (F : C ↝ D) (X : C) : (identity F) X = 𝟙 (F X) := rfl
 
 instance has_one (F : C ↝ D) : has_one (F ⟹ F) := 
-{ one := id F }
+{ one := identity F }
+end Functor
+
+namespace NaturalTransformation
 
 section
 variables {F G H : C ↝ D}

@@ -333,7 +333,7 @@ theorem le_Sup (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x) {x} (xS : x �
 theorem Sup_le_ub (S : set ℝ) (h₁ : ∃ x, x ∈ S) {ub} (h₂ : ∀ y ∈ S, y ≤ ub) : Sup S ≤ ub :=
 (Sup_le S h₁ ⟨_, h₂⟩).2 h₂
 
-lemma Sup_is_lub {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ upper_bounds s) :
+protected lemma is_lub_Sup {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ upper_bounds s) :
   is_lub s (Sup s) :=
 ⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs, 
  λ u h, real.Sup_le_ub _ ⟨_, ha⟩ h⟩

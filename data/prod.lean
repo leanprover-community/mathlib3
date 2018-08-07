@@ -18,6 +18,8 @@ variables {α : Type u} {β : Type v}
 
 namespace prod
 
+attribute [simp] prod.map
+
 @[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩
 

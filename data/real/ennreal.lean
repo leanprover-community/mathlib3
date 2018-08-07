@@ -457,7 +457,7 @@ by_cases (assume h : s = ∅, ⟨0, by simp [h, is_lub, is_least, lower_bounds, 
           assume ⟨r, ⟨hr₁, hr₂⟩, hr₃⟩, hr₃ ▸ hr₁⟩,
       have x ∈ of_real '' s', from s_eq ▸ hx,
       let ⟨x', hx', hx'_eq⟩ := this in
-      have is_lub s' (Sup s'), from real.Sup_is_lub ‹x' ∈ s'› $
+      have is_lub s' (Sup s'), from real.is_lub_Sup ‹x' ∈ s'› $
         (of_real_mem_upper_bounds s'_nn hr).mp $ s_eq ▸ hb,
       have 0 ≤ Sup s', from le_trans hx'.right $ this.left _ hx',
       ⟨of_real (Sup s'), by rwa [s_eq, is_lub_of_real s'_nn this]; exact ne_empty_of_mem hx'⟩)

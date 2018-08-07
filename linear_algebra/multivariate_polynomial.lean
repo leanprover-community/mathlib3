@@ -45,9 +45,9 @@ def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
 @[simp] lemma C_mul_monomial : C a * monomial s a' = monomial s (a * a') :=
 by simp [C, monomial, single_mul_single]
 
-lemma C_add : (C (a + a') : mv_polynomial σ α) = C a + C a' := single_add
+@[simp] lemma C_add : (C (a + a') : mv_polynomial σ α) = C a + C a' := single_add
 
-lemma C_mul : (C (a * a') : mv_polynomial σ α) = C a * C a' := C_mul_monomial.symm
+@[simp] lemma C_mul : (C (a * a') : mv_polynomial σ α) = C a * C a' := C_mul_monomial.symm
 
 instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
 { map_zero := C_0,
@@ -111,12 +111,12 @@ p.sum (λs a, g a * s.prod (λn e, f n ^ e))
 @[simp] lemma map₂_zero : (0 : mv_polynomial σ α).map₂ f g = 0 :=
 finsupp.sum_zero_index
 
-lemma map₂_add : (p + q).map₂ f g = p.map₂ f g + q.map₂ f g :=
+@[simp] lemma map₂_add : (p + q).map₂ f g = p.map₂ f g + q.map₂ f g :=
 finsupp.sum_add_index
   (by simp [is_semiring_hom.map_zero g])
   (by simp [add_mul, is_semiring_hom.map_add g])
 
-lemma map₂_monomial : (monomial s a).map₂ f g = g a * s.prod (λn e, f n ^ e) :=
+@[simp] lemma map₂_monomial : (monomial s a).map₂ f g = g a * s.prod (λn e, f n ^ e) :=
 finsupp.sum_single_index (by simp [is_semiring_hom.map_zero g])
 
 @[simp] lemma map₂_C : (C a).map₂ f g = g a :=
@@ -129,7 +129,7 @@ by simp [map₂_monomial, C, prod_zero_index]
 by simp [map₂_monomial,
   is_semiring_hom.map_one g, X, prod_single_index, pow_one]
 
-lemma map₂_mul_monomial :
+@[simp] lemma map₂_mul_monomial :
   ∀{s a}, (p * monomial s a).map₂ f g = p.map₂ f g * g a * s.prod (λn e, f n ^ e) :=
 begin
   apply mv_polynomial.induction_on p,
@@ -168,16 +168,16 @@ def eval (f : σ → α) : mv_polynomial σ α → α := map₂ f id
 
 @[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 := map₂_zero _ _
 
-lemma eval_add : (p + q).eval f = p.eval f + q.eval f := map₂_add _ _
+@[simp] lemma eval_add : (p + q).eval f = p.eval f + q.eval f := map₂_add _ _
 
-lemma eval_monomial : (monomial s a).eval f = a * s.prod (λn e, f n ^ e) :=
+@[simp] lemma eval_monomial : (monomial s a).eval f = a * s.prod (λn e, f n ^ e) :=
 map₂_monomial _ _
 
 @[simp] lemma eval_C : (C a).eval f = a := map₂_C _ _
 
 @[simp] lemma eval_X : (X n).eval f = f n := map₂_X _ _
 
-lemma eval_mul : (p * q).eval f = p.eval f * q.eval f := map₂_mul _ _
+@[simp] lemma eval_mul : (p * q).eval f = p.eval f * q.eval f := map₂_mul _ _
 
 instance eval.is_semiring_hom : is_semiring_hom (eval f) :=
 map₂.is_semiring_hom _ _
@@ -267,12 +267,38 @@ instance map.is_ring_hom [decidable_eq β] [comm_ring β]
 map₂.is_ring_hom _ _
 
 variables {p q : mv_polynomial σ α}
+
+section map₂
+
 variables [comm_ring β] [decidable_eq β]
 variables (f : σ → β) (g : α → β) [is_ring_hom g]
 
-lemma map₂_sub : (p - q).map₂ f g = p.map₂ f g - q.map₂ f g := is_ring_hom.map_sub _
+@[simp] lemma map₂_sub : (p - q).map₂ f g = p.map₂ f g - q.map₂ f g := is_ring_hom.map_sub _
 
-lemma map₂_neg : (-q).map₂ f g = -(q.map₂ f g) := is_ring_hom.map_neg _
+@[simp] lemma map₂_neg : (-p).map₂ f g = -(p.map₂ f g) := is_ring_hom.map_neg _
+
+end map₂
+
+section map
+
+variables [comm_ring β] [decidable_eq β]
+variables (f : α → β) [is_ring_hom f]
+
+@[simp] lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
+
+@[simp] lemma map_neg : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
+
+end map
+
+variables (f : σ → α)
+
+@[simp] lemma eval_sub : (p - q).eval f = p.eval f - q.eval f := is_ring_hom.map_sub _
+
+@[simp] lemma eval_neg : (-p).eval f = -(p.eval f) := is_ring_hom.map_neg _
+
+@[simp] lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map_sub _
+
+@[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
 
 end comm_ring
 

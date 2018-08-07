@@ -22,8 +22,8 @@ variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 
 include 𝒞 𝒟
 
 structure nat_trans (F G : C ↝ D) : Type (max u₁ v₂) :=
-(components : Π X : C, (F X) ⟶ (G X))
-(naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (components Y) = (components X) ≫ (G.map f) . obviously)
+(app : Π X : C, (F X) ⟶ (G X))
+(naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 
 restate_axiom nat_trans.naturality
 attribute [ematch] nat_trans.naturality_lemma
@@ -34,15 +34,15 @@ namespace nat_trans
 
 instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 { F   := λ α, Π X : C, (F X) ⟶ (G X),
-  coe := λ α, α.components }
+  coe := λ α, α.app }
 
-@[simp] lemma coe_def {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.components X := rfl
+@[simp] lemma coe_def {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.app X := rfl
 
 end nat_trans
 
 namespace functor
 definition identity (F : C ↝ D) : F ⟹ F := 
-{ components := λ X, 𝟙 (F X),
+{ app        := λ X, 𝟙 (F X),
   naturality := begin /- `obviously'` says: -/ intros, dsimp, simp end }
 
 instance has_one (F : C ↝ D) : has_one (F ⟹ F) := 
@@ -50,7 +50,7 @@ instance has_one (F : C ↝ D) : has_one (F ⟹ F) :=
 
 @[simp] lemma identity_to_has_one (F : C ↝ D) : identity F = 1 := rfl
 
-@[simp] lemma has_one.components (F : C ↝ D) (X : C) : (1 : F ⟹ F) X = 𝟙 (F X) := rfl
+@[simp] lemma has_one.app (F : C ↝ D) (X : C) : (1 : F ⟹ F) X = 𝟙 (F X) := rfl
 
 end functor
 
@@ -72,7 +72,7 @@ begin
 end
 
 definition vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H := 
-{ components := λ X, (α X) ≫ (β X),
+{ app        := λ X, (α X) ≫ (β X),
   naturality := begin /- `obviously'` says: -/ intros, simp, rw [←assoc_lemma, naturality_lemma, assoc_lemma, ←naturality_lemma], end }
 
 notation α `⊟` β:80 := vcomp α β    
@@ -85,7 +85,7 @@ variable [ℰ : category.{u₃ v₃} E]
 include ℰ
 
 definition hcomp {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) : (F ⋙ H) ⟹ (G ⋙ I) :=
-{ components := λ X : C, (β (F X)) ≫ (I.map (α X)), 
+{ app        := λ X : C, (β (F X)) ≫ (I.map (α X)), 
   naturality := begin 
                   /- `obviously'` says: -/
                   intros,

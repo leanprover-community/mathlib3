@@ -40,7 +40,7 @@ instance : has_coe_to_fun (C ↝ D) :=
 { F   := λ F, C → D,
   coe := λ F, F.obj }
 
-@[simp] lemma unfold_obj_coercion (F : C ↝ D) (X : C) : F X = F.obj X := rfl
+@[simp] lemma coe_def (F : C ↝ D) (X : C) : F X = F.obj X := rfl
 
 end functor
 

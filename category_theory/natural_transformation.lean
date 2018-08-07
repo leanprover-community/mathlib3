@@ -36,7 +36,7 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 { F   := λ α, Π X : C, (F X) ⟶ (G X),
   coe := λ α, α.components }
 
-@[simp] lemma unfold_components_coercion {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.components X := rfl
+@[simp] lemma coe_def {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.components X := rfl
 
 end natural_transformation
 

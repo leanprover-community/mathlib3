@@ -58,6 +58,8 @@ end Functor
 
 namespace NaturalTransformation
 
+open category Functor
+
 section
 variables {F G H : C ↝ D}
 
@@ -72,12 +74,7 @@ end
 
 definition vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H := 
 { components := λ X, (α X) ≫ (β X),
-  naturality := begin
-                  -- `obviously'` says:
-                  intros,
-                  simp,
-                  rw [←category.assoc_lemma, NaturalTransformation.naturality_lemma, category.assoc_lemma, ←NaturalTransformation.naturality_lemma],
-                end }
+  naturality := begin /- `obviously'` says: -/ intros, simp, rw [←assoc_lemma, naturality_lemma, assoc_lemma, ←naturality_lemma], end }
 
 notation α `⊟` β:80 := vcomp α β    
 
@@ -90,18 +87,14 @@ include ℰ
 
 definition hcomp {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) : (F ⋙ H) ⟹ (G ⋙ I) :=
 { components := λ X : C, (β (F X)) ≫ (I.map (α X)), 
-  naturality := begin
-                  -- `obviously'` says:
+  naturality := begin 
+                  /- `obviously'` says: -/
                   intros,
                   dsimp,
                   simp,
                   -- Actually, obviously doesn't use exactly this sequence of rewrites, but achieves the same result
-                  rw [← category.assoc_lemma],
-                  rw [NaturalTransformation.naturality_lemma],
-                  rw [category.assoc_lemma],
-                  conv { to_rhs, rw [← Functor.functoriality_lemma] },
-                  rw [← α.naturality_lemma],
-                  rw [Functor.functoriality_lemma],
+                  rw [← assoc_lemma, naturality_lemma, assoc_lemma],
+                  conv { to_rhs, rw [← functoriality_lemma, ← α.naturality_lemma, functoriality_lemma] }
                 end }
 
 notation α `◫` β:80 := hcomp α β
@@ -116,9 +109,7 @@ begin
   dsimp,
   simp,
   -- again, this isn't actually what obviously says, but it achieves the same effect.
-  conv {to_lhs, congr, skip, rw [←category.assoc_lemma] },
-  rw [←NaturalTransformation.naturality_lemma],
-  rw [category.assoc_lemma],
+  conv { to_lhs, congr, skip, rw [←assoc_lemma, ←naturality_lemma, assoc_lemma] }
 end
 
 end NaturalTransformation

@@ -92,7 +92,7 @@ definition hcomp {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) :
                   simp,
                   -- Actually, obviously doesn't use exactly this sequence of rewrites, but achieves the same result
                   rw [← assoc_lemma, naturality_lemma, assoc_lemma],
-                  conv { to_rhs, rw [← functoriality_lemma, ← α.naturality_lemma, functoriality_lemma] }
+                  conv { to_rhs, rw [← map_comp_lemma, ← α.naturality_lemma, map_comp_lemma] }
                 end }
 
 notation α `◫` β:80 := hcomp α β

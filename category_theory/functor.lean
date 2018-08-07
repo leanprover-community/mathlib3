@@ -20,14 +20,14 @@ namespace category_theory
 universes u₁ v₁ u₂ v₂ u₃ v₃
 
 structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
-(obj           : C → D)
-(map           : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
-(map_id        : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
-(functoriality : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
+(obj      : C → D)
+(map      : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
+(map_id   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
+(map_comp : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
 
 make_lemma functor.map_id
-make_lemma functor.functoriality
-attribute [simp,ematch] functor.map_id_lemma functor.functoriality_lemma
+make_lemma functor.map_comp
+attribute [simp,ematch] functor.map_id_lemma functor.map_comp_lemma
 
 infixr ` ↝ `:70 := functor       -- type as \lea -- 
 
@@ -50,10 +50,10 @@ variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
 include 𝒞
 
 definition identity : C ↝ C := 
-{ obj     := λ X, X,
-  map     := λ _ _ f, f,
-  map_id  := begin /- `obviously'` says: -/ intros, refl end,
-  functoriality := begin /- `obviously'` says: -/ intros, refl end }
+{ obj      := λ X, X,
+  map      := λ _ _ f, f,
+  map_id   := begin /- `obviously'` says: -/ intros, refl end,
+  map_comp := begin /- `obviously'` says: -/ intros, refl end }
 
 instance has_one : has_one (C ↝ C) :=
 { one := identity C }
@@ -73,10 +73,10 @@ variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 
 include 𝒞 𝒟 ℰ
 
 definition comp (F : C ↝ D) (G : D ↝ E) : C ↝ E := 
-{ obj    := λ X, G.obj (F.obj X),
-  map    := λ _ _ f, G.map (F.map f),
-  map_id := begin /- `obviously'` says: -/ intros, simp end,
-  functoriality := begin /- `obviously'` says: -/ intros, simp end }
+{ obj      := λ X, G.obj (F.obj X),
+  map      := λ _ _ f, G.map (F.map f),
+  map_id   := begin /- `obviously'` says: -/ intros, simp end,
+  map_comp := begin /- `obviously'` says: -/ intros, simp end }
 
 infixr ` ⋙ `:80 := comp
 

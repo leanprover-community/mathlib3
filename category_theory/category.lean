@@ -14,7 +14,7 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
 
-import tactic.make_lemma
+import tactic.restate_axiom
 import tactic.interactive
 
 namespace category_theory

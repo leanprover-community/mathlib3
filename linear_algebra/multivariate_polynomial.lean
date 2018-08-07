@@ -266,6 +266,14 @@ instance map.is_ring_hom [decidable_eq β] [comm_ring β]
   is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 map₂.is_ring_hom _ _
 
+variables {p q : mv_polynomial σ α}
+variables [comm_ring β] [decidable_eq β]
+variables (f : σ → β) (g : α → β) [is_ring_hom g]
+
+lemma map₂_sub : (p - q).map₂ f g = p.map₂ f g - q.map₂ f g := is_ring_hom.map_sub _
+
+lemma map₂_neg : (-q).map₂ f g = -(q.map₂ f g) := is_ring_hom.map_neg _
+
 end comm_ring
 
 end mv_polynomial

@@ -49,6 +49,7 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 end nat_trans
 
 namespace functor
+
 protected definition identity (F : C ↝ D) : F ⟹ F := 
 { app        := λ X, 𝟙 (F X),
   naturality := begin /- `obviously'` says: -/ intros, dsimp, simp end }
@@ -122,4 +123,5 @@ begin
 end
 
 end nat_trans
+
 end category_theory

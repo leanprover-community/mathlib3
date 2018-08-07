@@ -95,4 +95,5 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp.on_morphisms (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : (F ⋙ G).map f = G.map (F.map f) := rfl
 
 end functor
+
 end category_theory

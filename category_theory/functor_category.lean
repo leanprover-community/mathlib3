@@ -8,35 +8,15 @@ namespace category_theory
 
 universes u₁ v₁ u₂ v₂ u₃ v₃
 
-instance FunctorCategory (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (C ↝ D) := 
-{ Hom      := λ F G, F ⟹ G,
-  id       := λ F, NaturalTransformation.id F,
-  comp     := λ _ _ _ α β, α ⊟ β,
-  id_comp  := begin
-                      -- `obviously'` says:
-                      intros,
-                      apply NaturalTransformation.componentwise_equal,
-                      intros,
-                      dsimp,
-                      simp
-                    end,
-  comp_id := begin
-                      -- `obviously'` says:
-                      intros,
-                      apply NaturalTransformation.componentwise_equal,
-                      intros,
-                      dsimp,
-                      simp
-                    end,
-  assoc  := begin
-                      -- `obviously'` says:
-                      intros,
-                      apply NaturalTransformation.componentwise_equal,
-                      intros,
-                      simp
-                    end }
+instance functor_category (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (C ↝ D) := 
+{ Hom     := λ F G, F ⟹ G,
+  id      := λ F, NaturalTransformation.id F,
+  comp    := λ _ _ _ α β, α ⊟ β,
+  id_comp := begin /- `obviously'` says: -/ intros, apply NaturalTransformation.componentwise_equal, intros, dsimp, simp end,
+  comp_id := begin /- `obviously'` says: -/ intros, apply NaturalTransformation.componentwise_equal, intros, dsimp, simp end,
+  assoc   := begin /- `obviously'` says: -/ intros, apply NaturalTransformation.componentwise_equal, intros, simp end }
 
-namespace FunctorCategory
+namespace functor_category
 
 section
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
@@ -52,20 +32,11 @@ namespace NaturalTransformation
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include 𝒞 𝒟 ℰ 
 
-@[ematch] lemma components_naturality {F G : C ↝ (D ↝ E)} (T : F ⟹ G) (X : C) {Y Z : D} (f : Y ⟶ Z) : ((F X).map f) ≫ ((T X) Z) = ((T X) Y) ≫ ((G X).map f) :=
-begin
-  exact (T.components _).naturality _
-end
+@[ematch] lemma components_naturality {F G : C ↝ (D ↝ E)} (T : F ⟹ G) (X : C) {Y Z : D} (f : Y ⟶ Z) : ((F X).map f) ≫ ((T X) Z) = ((T X) Y) ≫ ((G X).map f) := (T.components X).naturality f
 
-@[ematch] lemma naturality_components {F G : C ↝ (D ↝ E)} (T : F ⟹ G) (Z : D) {X Y : C} (f : X ⟶ Y) : ((F.map f) Z) ≫ ((T Y) Z) = ((T X) Z) ≫ ((G.map f) Z) :=
-begin
-  have p := (T.naturality f),
-  -- obviously' does something equivalent to:
-  injection p, clear p, dsimp at h_1,
-  have h_2 := congr_fun h_1 Z,
-  solve_by_elim
-end
+@[ematch] lemma naturality_components {F G : C ↝ (D ↝ E)} (T : F ⟹ G) (Z : D) {X Y : C} (f : X ⟶ Y) : ((F.map f) Z) ≫ ((T Y) Z) = ((T X) Z) ≫ ((G.map f) Z) := congr_fun (congr_arg NaturalTransformation.components (T.naturality f)) Z
+
 end NaturalTransformation
 
-end FunctorCategory
+end functor_category
 end category_theory

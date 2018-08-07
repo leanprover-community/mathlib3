@@ -8,11 +8,10 @@ import data.buffer.parser
 
 open lean.parser tactic interactive parser
 
-@[user_attribute] meta def field_lemma_attr : user_attribute :=
-{ name := `field_lemma, descr := "This definition was automatically generated from a structure field by `restate_axiom`." }
-
-/- Make lemma takes a structure field, and makes a new, definitionally simplified copy of it, appending `_lemma` to the name.
-   The main application is to provide clean versions of structure fields that have been tagged with an auto_param. -/
+/-- 
+`restate_axiom` takes a structure field, and makes a new, definitionally simplified copy of it, appending `_lemma` to the name.
+The main application is to provide clean versions of structure fields that have been tagged with an auto_param.
+-/
 meta def restate_axiom (d : declaration) (new_name : name) : tactic unit :=
 do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition with
   | declaration.defn name levels type value reducibility trusted :=
@@ -21,8 +20,7 @@ do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition 
   end),
   (s, u) ← mk_simp_set ff [] [],
   new_type ← (s.dsimplify [] type) <|> pure (type),
-  updateex_env $ λ env, env.add (declaration.defn new_name levels new_type value reducibility trusted),
-  field_lemma_attr.set new_name () tt
+  updateex_env $ λ env, env.add (declaration.defn new_name levels new_type value reducibility trusted)
 
 private meta def name_lemma (n : name) :=
 match n.components.reverse with

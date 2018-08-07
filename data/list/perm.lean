@@ -115,7 +115,7 @@ end
 
 @[simp] theorem reverse_perm : ∀ (l : list α), reverse l ~ l
 | []     := perm.nil
-| (a::l) := by rw reverse_cons'; exact
+| (a::l) := by rw reverse_cons; exact
   (perm_cons_app _ _).trans (skip a $ reverse_perm l)
 
 theorem perm_cons_app_cons {l l₁ l₂ : list α} (a : α) (p : l ~ l₁++l₂) : a::l ~ l₁++(a::l₂) :=
@@ -429,6 +429,28 @@ theorem subperm_cons (a : α) {l₁ l₂ : list α} : a::l₁ <+~ a::l₂ ↔ l�
   { exact ⟨u, perm_cons_inv p, s'⟩ }
 end, λ ⟨l, p, s⟩, ⟨a::l, skip a p, s.cons2 _ _ _⟩⟩
 
+theorem cons_subperm_of_mem {a : α} {l₁ l₂ : list α} (d₁ : nodup l₁) (h₁ : a ∉ l₁) (h₂ : a ∈ l₂)
+ (s : l₁ <+~ l₂) : a :: l₁ <+~ l₂ :=
+begin
+  rcases s with ⟨l, p, s⟩,
+  induction s generalizing l₁,
+  case list.sublist.slnil { cases h₂ },
+  case list.sublist.cons : r₁ r₂ b s' ih {
+    simp at h₂,
+    cases h₂ with e m,
+    { subst b, exact ⟨a::r₁, skip a p, s'.cons2 _ _ _⟩ },
+    { rcases ih m d₁ h₁ p with ⟨t, p', s'⟩, exact ⟨t, p', s'.cons _ _ _⟩ } },
+  case list.sublist.cons2 : r₁ r₂ b s' ih {
+    have bm : b ∈ l₁ := (perm_subset p $ mem_cons_self _ _),
+    have am : a ∈ r₂ := h₂.resolve_left (λ e, h₁ $ e.symm ▸ bm),
+    rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
+    have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,
+    rcases ih am (nodup_of_sublist st d₁)
+      (mt (λ x, subset_of_sublist st x) h₁)
+      (perm_cons_inv $ p.trans perm_middle) with ⟨t, p', s'⟩,
+    exact ⟨b::t, (skip b p').trans $ (swap _ _ _).trans (skip a perm_middle.symm), s'.cons2 _ _ _⟩ }
+end
+
 theorem subperm_app_left {l₁ l₂ : list α} : ∀ l, l++l₁ <+~ l++l₂ ↔ l₁ <+~ l₂
 | []     := iff.rfl
 | (a::l) := (subperm_cons a).trans (subperm_app_left l)
@@ -457,22 +479,9 @@ theorem subperm_of_subset_nodup
 begin
   induction d with a l₁' h d IH,
   { exact ⟨nil, perm.nil, nil_sublist _⟩ },
-  { cases forall_mem_cons.1 H with H₁ H₂, simp at h,
-    rcases IH H₂ with ⟨l₂', p, s⟩, clear IH H H₂ l₁,
-    induction s with r₁ r₂ b s' IH r₁ r₂ b s' IH generalizing l₁',
-    { cases H₁ },
-    { simp at H₁, cases H₁ with e m,
-      { subst b, exact ⟨a::r₁, skip a p, s'.cons2 _ _ _⟩ },
-      { exact let ⟨t, p', s'⟩ := IH m d h p in ⟨t, p', s'.cons _ _ _⟩ } },
-    { have bm : b ∈ l₁' := (perm_subset p $ mem_cons_self _ _),
-      have am : a ∈ r₂ := H₁.resolve_left (λ e, h $ e.symm ▸ bm),
-      rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
-      have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,
-      rcases IH am (nodup_of_sublist st d)
-        (mt (λ x, subset_of_sublist st x) h)
-        (perm_cons_inv $ p.trans perm_middle) with ⟨t, p', s'⟩,
-      exact ⟨b::t, (skip b p').trans $
-        (swap _ _ _).trans (skip a perm_middle.symm), s'.cons2 _ _ _⟩ } }
+  { cases forall_mem_cons.1 H with H₁ H₂,
+    simp at h,
+    exact cons_subperm_of_mem d h H₁ (IH H₂) }
 end
 
 theorem perm_ext {l₁ l₂ : list α} (d₁ : nodup l₁) (d₂ : nodup l₂) : l₁ ~ l₂ ↔ ∀a, a ∈ l₁ ↔ a ∈ l₂ :=

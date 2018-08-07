@@ -461,6 +461,9 @@ namespace num
   theorem zneg_to_znum (n : num) : -n.to_znum = n.to_znum_neg := by cases n; refl
   theorem zneg_to_znum_neg (n : num) : -n.to_znum_neg = n.to_znum := by cases n; refl
 
+  theorem to_znum_inj {m n : num} : m.to_znum = n.to_znum ↔ m = n :=
+  ⟨λ h, by cases m; cases n; cases h; refl, congr_arg _⟩
+
   @[simp] theorem cast_to_znum [has_zero α] [has_one α] [has_add α] [has_neg α] :
     ∀ n : num, (n.to_znum : α) = n
   | 0           := rfl
@@ -696,6 +699,10 @@ namespace znum
   | (neg p) := show int.nat_abs ((p:ℕ):ℤ) = int.nat_abs (- p),
     by rw [p.to_nat_to_int, int.nat_abs_neg]
 
+  @[simp] theorem abs_to_znum : ∀ n : num, abs n.to_znum = n
+  | 0           := rfl
+  | (num.pos p) := rfl
+
   @[simp] theorem cast_to_int [add_group α] [has_one α] : ∀ n : znum, ((n : ℤ) : α) = n
   | 0       := rfl
   | (pos p) := by rw [cast_pos, cast_pos, pos_num.cast_to_int]
@@ -801,7 +808,7 @@ end pos_num
 namespace num
   variables {α : Type*}
 
-  theorem cast_sub' [add_group α] [has_one α] : ∀ m n : num, (sub' m n : α) = m - n
+  @[simp] theorem cast_sub' [add_group α] [has_one α] : ∀ m n : num, (sub' m n : α) = m - n
   | 0       0       := (sub_zero _).symm
   | (pos a) 0       := (sub_zero _).symm
   | 0       (pos b) := (zero_sub _).symm

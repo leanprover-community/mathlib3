@@ -24,7 +24,7 @@ generalizations:
 import logic.function analysis.metric_space
 
 noncomputable theory
-open classical set lattice filter
+open classical set lattice filter topological_space
 local attribute [instance] prop_decidable
 
 universes u v w
@@ -93,6 +93,23 @@ instance : topological_add_group ℚ := by apply_instance
 
 instance : orderable_topology ℚ :=
 induced_orderable_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
+
+lemma real.is_topological_basis_Ioo_rat :
+  @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
+is_topological_basis_of_open_of_nhds
+  (by simp [is_open_Ioo] {contextual:=tt})
+  (assume a v hav hv,
+    let ⟨l, u, hl, hu, h⟩ := (mem_nhds_unbounded (no_top _) (no_bot _)).mp (mem_nhds_sets hv hav),
+        ⟨q, hlq, hqa⟩ := exists_rat_btwn hl,
+        ⟨p, hap, hpu⟩ := exists_rat_btwn hu in
+    ⟨Ioo q p,
+      by simp; exact ⟨q, p, rat.cast_lt.1 $ lt_trans hqa hap, rfl⟩,
+      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h _ (lt_trans hlq hqa') (lt_trans ha'p hpu)⟩)
+
+instance : second_countable_topology ℝ :=
+⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),
+  by simp [countable_Union, countable_Union_Prop],
+  real.is_topological_basis_Ioo_rat.2.2⟩⟩
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
@@ -222,16 +239,15 @@ let ⟨c, ac⟩ := no_bot a in totally_bounded_subset
   (by exact λ x ⟨h₁, h₂⟩, ⟨lt_of_lt_of_le ac h₁, h₂⟩)
   (real.totally_bounded_Ioo c b)
 
-lemma real.totally_bounded_Icc (a b : ℝ) : totally_bounded {q:ℝ | a ≤ q ∧ q ≤ b} :=
+lemma real.totally_bounded_Icc (a b : ℝ) : totally_bounded (Icc a b) :=
 let ⟨c, bc⟩ := no_top b in totally_bounded_subset
   (by exact λ x ⟨h₁, h₂⟩, ⟨h₁, lt_of_le_of_lt h₂ bc⟩)
   (real.totally_bounded_Ico a c)
 
-lemma rat.totally_bounded_Icc (a b : ℚ) : totally_bounded {q:ℚ | a ≤ q ∧ q ≤ b} :=
+lemma rat.totally_bounded_Icc (a b : ℚ) : totally_bounded (Icc a b) :=
 begin
   have := totally_bounded_preimage uniform_embedding_of_rat (real.totally_bounded_Icc a b),
-  rwa (set.ext (λ q, _) : set_of _ = _),
-  dsimp, rw ← @rat.cast_le ℝ _ q b, simp
+  rwa (set.ext (λ q, _) : Icc _ _ = _), simp
 end
 
 -- TODO(Mario): Generalize to first-countable uniform spaces?
@@ -308,6 +324,11 @@ begin
     refine dt (this ⟨_, _⟩); dsimp; apply limc; assumption }
 end
 
+lemma tendsto_of_nat_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
+tendsto_infi.2 $ assume r, tendsto_principal.2 $
+let ⟨n, hn⟩ := exists_nat_gt r in
+mem_at_top_sets.2 ⟨n, λ m h, le_trans (le_of_lt hn) (nat.cast_le.2 h)⟩
+
 section
 
 lemma closure_of_rat_image_lt {q : ℚ} : closure ((coe:ℚ → ℝ) '' {x | q < x}) = {r | ↑q ≤ r} :=
@@ -329,7 +350,7 @@ lemma closure_of_rat_image_le_le_eq {a b : ℚ} (hab : a ≤ b) :
   closure (of_rat '' {q:ℚ | a ≤ q ∧ q ≤ b}) = {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} :=
 _-/
 
-lemma compact_ivl {a b : ℝ} : compact {r:ℝ | a ≤ r ∧ r ≤ b} :=
+lemma compact_Icc {a b : ℝ} : compact (Icc a b) :=
 compact_of_totally_bounded_is_closed
   (real.totally_bounded_Icc a b)
   (is_closed_inter (is_closed_ge' a) (is_closed_le' b))

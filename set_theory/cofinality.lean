@@ -105,7 +105,7 @@ begin
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
     rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
     exact (is_well_order.wf s).not_lt_min _ this
-      (is_order_connected.neg_trans r h ba) }
+      (is_order_connected.neg_trans h ba) }
 end
 
 theorem lift_cof (o) : (cof o).lift = cof o.lift :=
@@ -220,7 +220,7 @@ let ⟨S, hS, e₁⟩ := ord_cof_eq r,
   refine le_trans (cof_type_le {a | ∃ h, (subtype.mk a h : S) ∈ T} (λ a, _)) ⟨⟨_, _⟩⟩,
   { rcases hS a with ⟨b, bS, br⟩,
     rcases hT ⟨b, bS⟩ with ⟨⟨c, cS⟩, cT, cs⟩,
-    exact ⟨c, ⟨cS, cT⟩, is_order_connected.neg_trans r cs br⟩ },
+    exact ⟨c, ⟨cS, cT⟩, is_order_connected.neg_trans cs br⟩ },
   { exact λ ⟨a, h⟩, ⟨⟨a, h.fst⟩, h.snd⟩ },
   { exact λ ⟨a, ha⟩ ⟨b, hb⟩ h,
       by injection h with h; congr; injection h },

@@ -21,16 +21,16 @@ universes u₁ v₁ u₂ v₂ u₃ v₃
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
-structure NaturalTransformation (F G : C ↝ D) : Type (max u₁ v₂) :=
+structure natural_transformation (F G : C ↝ D) : Type (max u₁ v₂) :=
 (components : Π X : C, (F X) ⟶ (G X))
 (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (components Y) = (components X) ≫ (G.map f) . obviously)
 
-make_lemma NaturalTransformation.naturality
-attribute [ematch] NaturalTransformation.naturality_lemma
+make_lemma natural_transformation.naturality
+attribute [ematch] natural_transformation.naturality_lemma
 
-infixr ` ⟹ `:50  := NaturalTransformation             -- type as \==> or ⟹
+infixr ` ⟹ `:50  := natural_transformation             -- type as \==> or ⟹
 
-namespace NaturalTransformation
+namespace natural_transformation
 
 instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 { F   := λ α, Π X : C, (F X) ⟶ (G X),
@@ -38,9 +38,9 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 
 @[simp] lemma unfold_components_coercion {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.components X := rfl
 
-end NaturalTransformation
+end natural_transformation
 
-namespace Functor
+namespace functor
 definition identity (F : C ↝ D) : F ⟹ F := 
 { components := λ X, 𝟙 (F X),
   naturality := begin /- `obviously'` says: -/ intros, dsimp, simp end }
@@ -51,11 +51,12 @@ instance has_one (F : C ↝ D) : has_one (F ⟹ F) :=
 @[simp] lemma identity.components (F : C ↝ D) (X : C) : (identity F) X = 𝟙 (F X) := rfl
 @[simp] lemma has_one.components (F : C ↝ D) (X : C) : (1 : F ⟹ F) X = 𝟙 (F X) := rfl
 
-end Functor
+end functor
 
-namespace NaturalTransformation
+namespace natural_transformation
 
-open category Functor
+open category
+open category_theory.functor
 
 section
 variables {F G H : C ↝ D}
@@ -109,5 +110,5 @@ begin
   conv { to_lhs, congr, skip, rw [←assoc_lemma, ←naturality_lemma, assoc_lemma] }
 end
 
-end NaturalTransformation
+end natural_transformation
 end category_theory

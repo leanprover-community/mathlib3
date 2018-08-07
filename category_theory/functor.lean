@@ -19,19 +19,19 @@ namespace category_theory
  
 universes u₁ v₁ u₂ v₂ u₃ v₃
 
-structure Functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
+structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
 (obj           : C → D)
 (map           : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
 (map_id        : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
 (functoriality : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
 
-make_lemma Functor.map_id
-make_lemma Functor.functoriality
-attribute [simp,ematch] Functor.map_id_lemma Functor.functoriality_lemma
+make_lemma functor.map_id
+make_lemma functor.functoriality
+attribute [simp,ematch] functor.map_id_lemma functor.functoriality_lemma
 
-infixr ` ↝ `:70 := Functor       -- type as \lea -- 
+infixr ` ↝ `:70 := functor       -- type as \lea -- 
 
-namespace Functor
+namespace functor
 
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
@@ -42,7 +42,7 @@ instance : has_coe_to_fun (C ↝ D) :=
 
 @[simp] lemma unfold_obj_coercion (F : C ↝ D) (X : C) : F X = F.obj X := rfl
 
-end Functor
+end functor
 
 namespace category
 
@@ -67,7 +67,7 @@ variable {C}
 
 end category
 
-namespace Functor
+namespace functor
 
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include 𝒞 𝒟 ℰ
@@ -83,5 +83,5 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp.on_objects (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
 @[simp] lemma comp.on_morphisms (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : (F ⋙ G).map f = G.map (F.map f) := rfl
 
-end Functor
+end functor
 end category_theory

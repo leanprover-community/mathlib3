@@ -63,7 +63,7 @@ section
 variables {F G H : C ↝ D}
 
 -- We'll want to be able to prove that two natural transformations are equal if they are componentwise equal.
-@[extensionality] lemma componentwise_equal (α β : F ⟹ G) (w : ∀ X : C, α X = β X) : α = β :=
+@[extensionality] lemma ext (α β : F ⟹ G) (w : ∀ X : C, α X = β X) : α = β :=
 begin
   induction α with α_components α_naturality,
   induction β with β_components β_naturality,
@@ -103,7 +103,7 @@ notation α `◫` β:80 := hcomp α β
 @[ematch] lemma exchange {F G H : C ↝ D} {I J K : D ↝ E} (α : F ⟹ G) (β : G ⟹ H) (γ : I ⟹ J) (δ : J ⟹ K) : ((α ⊟ β) ◫ (γ ⊟ δ)) = ((α ◫ γ) ⊟ (β ◫ δ)) := 
 begin
   -- `obviously'` says:
-  apply componentwise_equal,
+  ext,
   intros,
   dsimp,
   simp,

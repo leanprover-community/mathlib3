@@ -48,10 +48,12 @@ definition identity (F : C ↝ D) : F ⟹ F :=
 { components := λ X, 𝟙 (F X),
   naturality := begin /- `obviously'` says: -/ intros, dsimp, simp end }
 
-@[simp] lemma identity.components (F : C ↝ D) (X : C) : (identity F) X = 𝟙 (F X) := rfl
-
 instance has_one (F : C ↝ D) : has_one (F ⟹ F) := 
 { one := identity F }
+
+@[simp] lemma identity.components (F : C ↝ D) (X : C) : (identity F) X = 𝟙 (F X) := rfl
+@[simp] lemma has_one.components (F : C ↝ D) (X : C) : (1 : F ⟹ F) X = 𝟙 (F X) := rfl
+
 end Functor
 
 namespace NaturalTransformation

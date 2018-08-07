@@ -46,30 +46,18 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 
 @[simp] lemma coe_def {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.app X := rfl
 
-end nat_trans
-
-namespace functor
-
-protected definition identity (F : C ↝ D) : F ⟹ F := 
+/-- `nat_trans.id F` is the identity natural transformation on a functor `F`. -/
+protected definition id (F : C ↝ D) : F ⟹ F := 
 { app        := λ X, 𝟙 (F X),
   naturality := begin /- `obviously'` says: -/ intros, dsimp, simp end }
 
-instance has_one (F : C ↝ D) : has_one (F ⟹ F) := 
-{ one := functor.identity F }
-
-@[simp] protected lemma identity_to_has_one (F : C ↝ D) : functor.identity F = 1 := rfl
-
-@[simp] protected lemma has_one.app (F : C ↝ D) (X : C) : (1 : F ⟹ F) X = 𝟙 (F X) := rfl
-
-end functor
-
-namespace nat_trans
+@[simp] lemma id.app (F : C ↝ D) (X : C) : (nat_trans.id F) X = 𝟙 (F X) := rfl
 
 open category
 open category_theory.functor
 
 section
-variables {F G H : C ↝ D}
+variables {F G H I : C ↝ D}
 
 -- We'll want to be able to prove that two natural transformations are equal if they are componentwise equal.
 @[extensionality] lemma ext (α β : F ⟹ G) (w : ∀ X : C, α X = β X) : α = β :=
@@ -88,10 +76,10 @@ definition vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H :=
 notation α `⊟` β:80 := vcomp α β    
 
 @[simp] lemma vcomp.components (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β) X = (α X) ≫ (β X) := rfl
+@[ematch] lemma vcomp.assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := begin ext, intros, dsimp, rw [assoc] end
 end
 
-variable {E : Type u₃}
-variable [ℰ : category.{u₃ v₃} E]
+variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include ℰ
 
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/
@@ -110,6 +98,8 @@ definition hcomp {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) :
 notation α `◫` β:80 := hcomp α β
 
 @[simp] lemma hcomp.components {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) : (α ◫ β) X = (β (F X)) ≫ (I.map (α X)) := rfl
+
+-- Note that we don't yet prove a `hcomp.assoc` lemma here: stating it would require the unitor transformations for functors.
 
 @[ematch] lemma exchange {F G H : C ↝ D} {I J K : D ↝ E} (α : F ⟹ G) (β : G ⟹ H) (γ : I ⟹ J) (δ : J ⟹ K) : ((α ⊟ β) ◫ (γ ⊟ δ)) = ((α ◫ γ) ⊟ (β ◫ δ)) := 
 begin

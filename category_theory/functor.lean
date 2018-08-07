@@ -41,6 +41,7 @@ infixr ` ↝ `:70 := functor       -- type as \lea --
 
 namespace functor
 
+section
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
@@ -49,34 +50,26 @@ instance : has_coe_to_fun (C ↝ D) :=
   coe := λ F, F.obj }
 
 @[simp] lemma coe_def (F : C ↝ D) (X : C) : F X = F.obj X := rfl
+end
 
-end functor
-
-namespace category
-
+section
 variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
 include 𝒞
 
-protected definition identity : C ↝ C := 
+/-- `functor.id C` is the identity functor on a category `C`. -/
+protected definition id : C ↝ C := 
 { obj      := λ X, X,
   map      := λ _ _ f, f,
   map_id   := begin /- `obviously'` says: -/ intros, refl end,
   map_comp := begin /- `obviously'` says: -/ intros, refl end }
 
-instance has_one : has_one (C ↝ C) :=
-{ one := category.identity C }
-
 variable {C}
 
-@[simp] protected lemma identity_to_has_one : (category.identity C) = 1 := rfl
+@[simp] lemma id.on_objects (X : C) : (functor.id C) X = X := rfl
+@[simp] lemma id.on_morphisms {X Y : C} (f : X ⟶ Y) : (functor.id C).map f = f := rfl
+end
 
-@[simp] protected lemma has_one.on_objects (X : C) : (1 : C ↝ C) X = X := rfl
-@[simp] protected lemma has_one.on_morphisms {X Y : C} (f : X ⟶ Y) : (1 : C ↝ C).map f = f := rfl
-
-end category
-
-namespace functor
-
+section
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include 𝒞 𝒟 ℰ
 
@@ -93,7 +86,7 @@ infixr ` ⋙ `:80 := comp
 
 @[simp] lemma comp.on_objects (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
 @[simp] lemma comp.on_morphisms (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : (F ⋙ G).map f = G.map (F.map f) := rfl
+end
 
 end functor
-
 end category_theory

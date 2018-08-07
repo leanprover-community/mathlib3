@@ -453,6 +453,12 @@ instance : canonically_ordered_monoid (multiset α) :=
 /-- `repeat a n` is the multiset containing only `a` with multiplicity `n`. -/
 def repeat (a : α) (n : ℕ) : multiset α := repeat a n
 
+@[simp] lemma repeat_zero (a : α) : repeat a 0 = 0 := rfl
+
+@[simp] lemma repeat_succ (a : α) (n) : repeat a (n+1) = a :: repeat a n := by simp [repeat]
+
+@[simp] lemma repeat_one (a : α) : repeat a 1 = a :: 0 := by simp
+
 @[simp] lemma card_repeat : ∀ (a : α) n, card (repeat a n) = n := length_repeat
 
 theorem eq_of_mem_repeat {a b : α} {n} : b ∈ repeat a n → b = a := eq_of_mem_repeat
@@ -1023,7 +1029,7 @@ instance decidable_dexists_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m)
   decidable (∃a (h : a ∈ m), p a h) :=
 decidable_of_decidable_of_iff
   (@multiset.decidable_exists_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
-  (iff.intro (λ ⟨⟨a, ha₁⟩, _, ha₂⟩, ⟨a, ha₁, ha₂⟩) 
+  (iff.intro (λ ⟨⟨a, ha₁⟩, _, ha₂⟩, ⟨a, ha₁, ha₂⟩)
     (λ ⟨a, ha₁, ha₂⟩, ⟨⟨a, ha₁⟩, mem_attach _ _, ha₂⟩))
 
 end decidable_pi_exists
@@ -1496,6 +1502,12 @@ congr_arg coe powerset_aux_eq_map_coe
 @[simp] theorem powerset_coe' (l : list α) :
   @powerset α l = ((sublists' l).map coe : list (multiset α)) :=
 quot.sound powerset_aux_perm_powerset_aux'
+
+@[simp] theorem powerset_zero : @powerset α 0 = 0::0 := rfl
+
+@[simp] theorem powerset_cons (a : α) (s) :
+  powerset (a::s) = powerset s + map (cons a) (powerset s) :=
+quotient.induction_on s $ λ l, by simp; refl
 
 @[simp] theorem mem_powerset {s t : multiset α} :
   s ∈ powerset t ↔ s ≤ t :=
@@ -2142,6 +2154,9 @@ quot.induction_on s nodup_erase_dup
 theorem erase_dup_eq_self {s : multiset α} : erase_dup s = s ↔ nodup s :=
 ⟨λ e, e ▸ nodup_erase_dup s,
  quot.induction_on s $ λ l h, congr_arg coe $ erase_dup_eq_self.2 h⟩
+
+@[simp] theorem erase_dup_singleton {a : α} : erase_dup (a :: 0) = a :: 0 :=
+erase_dup_eq_self.2 $ nodup_singleton _
 
 theorem le_erase_dup {s t : multiset α} : s ≤ erase_dup t ↔ s ≤ t ∧ nodup s :=
 ⟨λ h, ⟨le_trans h (erase_dup_le _), nodup_of_le h (nodup_erase_dup _)⟩,

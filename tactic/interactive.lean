@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
@@ -142,12 +142,7 @@ unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_c
 missing dropped goals and restores them. Useful when there are no
 goals to solve but "result contains meta-variables". -/
 meta def recover : tactic unit :=
-do r ← tactic.result,
-   tactic.set_goals $ r.fold [] $ λ e _ l,
-     match e with
-     | expr.mvar _ _ _ := insert e l
-     | _ := l
-     end
+metavariables >>= tactic.set_goals 
 
 /-- Like `try { tac }`, but in the case of failure it continues
 from the failure state instead of reverting to the original state. -/

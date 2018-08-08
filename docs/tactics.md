@@ -34,6 +34,20 @@ a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d
 will introduce two variables, and then do case splits on both of them producing
 two subgoals, one with variables `a d e` and the other with `b c d e`.
 
+### rcases_hint
+
+`rcases_hint e` will perform case splits on `e` in the same way as `rcases e`,
+but rather than accepting a pattern, it does a maximal cases and prints the
+pattern that would produce this case splitting. The default maximum depth is 5,
+but this can be modified with `rcases_hint e {depth := n}`.
+
+### rintro_hint
+
+`rintro_hint` will introduce and case split on variables in the same way as
+`rintro`, but will also print the `rintro` invocation that would have the same
+result. Like `rcases_hint`, `rintro_hint {depth := n}` allows for modifying the
+depth of splitting; the default is 5.
+
 ### simpa
 
 This is a "finishing" tactic modification of `simp`. The tactic `simpa

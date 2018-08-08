@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs meta.expr logic.basic
-  tactic.ext tactic.tauto
+  tactic.ext tactic.tauto tactic.replacer
 
 open lean
 open lean.parser

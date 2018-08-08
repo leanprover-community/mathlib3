@@ -295,51 +295,52 @@ meta def derive_lawful_functor (pre : option name) : tactic unit :=
 do `(@is_lawful_functor %%f %%d) ← target,
    refine ``( { .. } ),
    let n := f.get_app_fn.const_name,
+   let rules := λ r, [simp_arg_type.expr r, simp_arg_type.all_hyps],
+   let goal := loc.ns [none],
    solve1 (do
      vs ← tactic.intros,
      try $ dunfold [``functor.map] (loc.ns [none]),
      dunfold [with_prefix pre n <.> "map",``id] (loc.ns [none]),
-     () <$ tactic.induction vs.ilast; `[simp [functor.map_id,*]]),
+     () <$ tactic.induction vs.ilast;
+       simp none ff (rules ``(functor.map_id)) [] goal),
    focus1 (do
      vs ← tactic.intros,
      try $ dunfold [``functor.map] (loc.ns [none]),
      dunfold [with_prefix pre n <.> "map",``id] (loc.ns [none]),
-     () <$ tactic.induction vs.ilast; `[simp [functor.map_comp_map,*]]),
+     () <$ tactic.induction vs.ilast;
+       simp none ff (rules ``(functor.map_comp_map)) [] goal),
    return ()
 
 meta def simp_functor (rs : list simp_arg_type := []) : tactic unit :=
 simp none ff rs [`functor_norm] (loc.ns [none])
+
+meta def traversable_law_starter (rs : list simp_arg_type) :=
+do vs ← tactic.intros,
+   resetI,
+   dunfold [``traversable.traverse,``functor.map] (loc.ns [none]),
+   () <$ tactic.induction vs.ilast;
+     simp_functor rs
 
 meta def derive_lawful_traversable (pre : option name) : tactic unit :=
 do `(@is_lawful_traversable %%f %%d) ← target,
    let n := f.get_app_fn.const_name,
    eqns  ← get_equations_of (with_prefix pre n <.> "traverse"),
    eqns' ← get_equations_of (with_prefix pre n <.> "map"),
-   let rs := eqns.map simp_arg_type.expr ++
-             eqns'.map simp_arg_type.expr ++
-             [simp_arg_type.all_hyps
-             ],
-   let rs₀ := [ simp_arg_type.expr ``(traversable.map_traverse') ],
-   let rs₁ := [ simp_arg_type.expr ``(traversable.traverse_map') ],
-   let rs₂ := [ simp_arg_type.expr ``(function.comp) ],
-   constructor,
-   gs ← get_goals,
-   gs ← mzip_with (λ g tac,
-    do set_goals [g],
-       vs ← tactic.intros,
-       resetI,
-       dunfold [``traversable.traverse,``functor.map] (loc.ns [none]),
-       () <$ tactic.induction vs.ilast;
-         simp_functor rs;
-         (refl <|> tac),
-       get_goals ) gs
-      [ refl,
-        simp_functor (rs ++ rs₂),
-        (simp_functor (rs ++ rs₀) ; refl),
-        `[ simp [traversable.traverse_map' g,traversable.traverse_map' ((<$>) g)] ],
-        `[ simp only [traversable.naturality_pf η] ],
-        skip, skip, skip, skip, skip ],
-   set_goals gs.join,
+   let def_eqns := eqns.map simp_arg_type.expr ++
+                   eqns'.map simp_arg_type.expr ++
+                  [simp_arg_type.all_hyps],
+   let comp_def := [ simp_arg_type.expr ``(function.comp) ],
+   let map_tr   := [ simp_arg_type.expr ``(traversable.map_traverse') ],
+   let tr_map := list.map simp_arg_type.expr [```(traversable.traverse_map' g),```(traversable.traverse_map' ((<$>) g))],
+   let natur  := [simp_arg_type.expr ```(traversable.naturality_pf η)],
+   let goal := loc.ns [none],
+   constructor;
+     [ traversable_law_starter def_eqns; refl,
+       traversable_law_starter def_eqns; (refl <|> simp_functor (def_eqns ++ comp_def)),
+       traversable_law_starter def_eqns; (refl <|> simp_functor (def_eqns ++ map_tr)),
+       traversable_law_starter def_eqns; (refl <|> simp none tt tr_map [] goal ),
+       traversable_law_starter def_eqns; (refl <|> simp none tt natur  [] goal) ];
+   refl,
    return ()
 
 open function

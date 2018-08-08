@@ -46,7 +46,7 @@ end environment
 
 namespace tactic
 
-meta definition mk_local (n : name) : expr :=
+meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
 
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]

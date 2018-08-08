@@ -55,16 +55,15 @@ do g ← target,
    return r
 
 /-- derive the `map` definition of a `functor` -/
-meta def mk_map (type : name) (cs : list name) :=
+meta def mk_map (type : name)  :=
 do ls ← local_context,
    [α,β,f,x] ← tactic.intro_lst [`α,`β,`f,`x],
    xs ← tactic.induction x,
-   () <$ mzip_with' (λ (c : name) (x : name × list expr × list (name × expr)),
-      do let args := x.2.1,
+   xs.mmap' (λ (x : name × list expr × list (name × expr)),
+      do let (c,args,_) := x,
          (args,rec_call) ← args.mpartition $ λ e, (bnot ∘ β.occurs) <$> infer_type e,
          let args₀ := args.take $ args.length - rec_call.length,
          map_constructor c type f α β (ls ++ β :: args₀) rec_call >>= tactic.exact)
-      cs xs
 
 meta def mk_mapp_aux' : expr → expr → list expr → tactic expr
 | fn (expr.pi n bi d b) (a::as) :=
@@ -117,12 +116,13 @@ do vs ← local_context,
    `(functor %%f) ← target,
    env ← get_env,
    let n := f.get_app_fn.const_name,
-   let cs := env.constructors_of n,
+   d ← get_decl n,
    refine ``( { functor . map := _ , .. } ),
    tgt ← target,
-   extract_def (with_prefix pre n <.> "map") $ mk_map n cs,
-   tgt ← pis vs tgt,
-   derive_map_equations pre n vs tgt
+   extract_def (with_prefix pre n <.> "map") d.is_trusted $ mk_map n,
+   when (d.is_trusted) $ do
+     tgt ← pis vs tgt,
+     derive_map_equations pre n vs tgt
 
 /-- `seq_apply_constructor f [x,y,z]` synthesizes `f <*> x <*> y <*> z` -/
 private meta def seq_apply_constructor : expr → list (expr ⊕ expr) → tactic (list (tactic expr) × expr)
@@ -181,18 +181,17 @@ do g ← target,
    return r
 
 /-- derive the `traverse` definition of a `traversable` instance -/
-meta def mk_traverse (type : name) (cs : list name) := do
+meta def mk_traverse (type : name) := do
 do ls ← local_context,
    [m,appl_inst,α,β,f,x] ← tactic.intro_lst [`m,`appl_inst,`α,`β,`f,`x],
    reset_instance_cache,
    xs ← tactic.induction x,
-   () <$ mzip_with'
-      (λ (c : name) (x : name × list expr × list (name × expr)),
-      do let args := x.2.1,
+   xs.mmap'
+      (λ (x : name × list expr × list (name × expr)),
+      do let (c,args,_) := x,
          (args,rec_call) ← args.mpartition $ λ e, (bnot ∘ β.occurs) <$> infer_type e,
          let args₀ := args.take $ args.length - rec_call.length,
          traverse_constructor c type appl_inst f α β (ls ++ β :: args₀) rec_call >>= tactic.exact)
-      cs xs
 
 open applicative
 
@@ -235,13 +234,13 @@ do vs ← local_context,
    `(traversable %%f) ← target,
    env ← get_env,
    let n := f.get_app_fn.const_name,
-   let cs := env.constructors_of n,
+   d ← get_decl n,
    constructor,
    tgt ← target,
-   extract_def (with_prefix pre n <.> "traverse") $ mk_traverse n cs,
-   tgt ← pis vs tgt,
-   derive_traverse_equations pre n vs tgt,
-   pure ()
+   extract_def (with_prefix pre n <.> "traverse") d.is_trusted $ mk_traverse n,
+   when (d.is_trusted) $ do
+      tgt ← pis vs tgt,
+      derive_traverse_equations pre n vs tgt
 
 meta def mk_one_instance
   (n : name)

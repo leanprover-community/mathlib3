@@ -132,7 +132,7 @@ meta def to_implicit : expr → expr
 | (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
 | e := e
 
-meta def extract_def (n : name) (elab_def : tactic unit) : tactic unit :=
+meta def extract_def (n : name) (trusted : bool) (elab_def : tactic unit) : tactic unit :=
 do cxt ← list.map to_implicit <$> local_context,
    t ← target,
    (eqns,d) ← solve_aux t elab_def,
@@ -140,7 +140,7 @@ do cxt ← list.map to_implicit <$> local_context,
    t' ← pis cxt t,
    d' ← lambdas cxt d,
    let univ := t'.collect_univ_params,
-   add_decl $ mk_definition n univ t' d',
+   add_decl $ declaration.defn n univ t' d' (reducibility_hints.regular 1 tt) trusted,
    applyc n
 
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]

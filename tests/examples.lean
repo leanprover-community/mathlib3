@@ -140,3 +140,11 @@ structure my_struct2 (α : Type u) : Type u :=
 inductive rec_data3 (α : Type u) : Type u
 | nil : rec_data3
 | cons : ℕ → α → rec_data3 → rec_data3 → rec_data3
+
+@[derive traversable]
+meta structure meta_struct (α : Type u) : Type u :=
+  (x : α)
+  (y : ℤ)
+  (z : list α)
+  (k : list (list α))
+  (w : expr)

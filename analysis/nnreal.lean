@@ -11,7 +11,7 @@ noncomputable theory
 open lattice filter
 variables {α : Type*}
 
-definition nnreal := {r : ℝ // 0 ≤ r}
+def nnreal := {r : ℝ // 0 ≤ r}
 local notation ` ℝ≥0 ` := nnreal
 
 namespace nnreal

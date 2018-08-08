@@ -37,7 +37,7 @@ by simp [ext]
 
 end finset
 
-open finset
+open finset function
 
 namespace fintype
 
@@ -276,6 +276,27 @@ match n, hn with
   (λ h, fintype.card_unit ▸ fintype.card_le_of_injective (λ _, ())
     (λ _ _ _, h _ _))⟩
 end
+
+lemma fintype.injective_iff_surjective [fintype α] {f : α → α} : injective f ↔ surjective f :=
+by haveI := classical.prop_decidable; exact
+have ∀ {f : α → α}, injective f → surjective f,
+from λ f hinj x,
+  have h₁ : image f univ = univ := eq_of_subset_of_card_le (subset_univ _)
+    ((card_image_of_injective univ hinj).symm ▸ le_refl _),
+  have h₂ : x ∈ image f univ := h₁.symm ▸ mem_univ _,
+  exists_of_bex (mem_image.1 h₂),
+⟨this,
+  λ hsurj, injective_of_has_left_inverse
+    ⟨surj_inv hsurj, left_inverse_of_surjective_of_right_inverse
+      (this (injective_surj_inv _)) (right_inverse_surj_inv _)⟩⟩
+
+lemma fintype.injective_iff_surjective_of_equiv [fintype α] {f : α → β} (e : α ≃ β) :
+  injective f ↔ surjective f :=
+have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from fintype.injective_iff_surjective,
+⟨λ hinj, by simpa [function.comp] using
+  surjective_comp e.bijective.2 (this.1 (injective_comp e.symm.bijective.1 hinj)),
+λ hsurj, by simpa [function.comp] using
+  injective_comp e.bijective.1 (this.2 (surjective_comp e.symm.bijective.2 hsurj))⟩
 
 instance list.subtype.fintype [decidable_eq α] (l : list α) : fintype {x // x ∈ l} :=
 fintype.of_list l.attach l.mem_attach

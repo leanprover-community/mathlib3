@@ -23,6 +23,7 @@ variables [decidable_eq σ] [decidable_eq α]
 section comm_semiring
 variables [comm_semiring α] {p q : mv_polynomial σ α}
 
+instance : decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
 instance : has_zero (mv_polynomial σ α) := finsupp.has_zero
 instance : has_one (mv_polynomial σ α) := finsupp.has_one
 instance : has_add (mv_polynomial σ α) := finsupp.has_add
@@ -42,12 +43,12 @@ def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
 
 @[simp] lemma C_1 : C 1 = (1 : mv_polynomial σ α) := rfl
 
-@[simp] lemma C_mul_monomial : C a * monomial s a' = monomial s (a * a') :=
+lemma C_mul_monomial : C a * monomial s a' = monomial s (a * a') :=
 by simp [C, monomial, single_mul_single]
 
-lemma C_add : (C (a + a') : mv_polynomial σ α) = C a + C a' := single_add
+@[simp] lemma C_add : (C (a + a') : mv_polynomial σ α) = C a + C a' := single_add
 
-lemma C_mul : (C (a * a') : mv_polynomial σ α) = C a * C a' := C_mul_monomial.symm
+@[simp] lemma C_mul : (C (a * a') : mv_polynomial σ α) = C a * C a' := C_mul_monomial.symm
 
 instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
 { map_zero := C_0,
@@ -111,12 +112,12 @@ p.sum (λs a, f a * s.prod (λn e, g n ^ e))
 @[simp] lemma eval₂_zero : (0 : mv_polynomial σ α).eval₂ f g = 0 :=
 finsupp.sum_zero_index
 
-lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
+@[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
 finsupp.sum_add_index
   (by simp [is_semiring_hom.map_zero f])
   (by simp [add_mul, is_semiring_hom.map_add f])
 
-lemma eval₂_monomial : (monomial s a).eval₂ f g = f a * s.prod (λn e, g n ^ e) :=
+@[simp] lemma eval₂_monomial : (monomial s a).eval₂ f g = f a * s.prod (λn e, g n ^ e) :=
 finsupp.sum_single_index (by simp [is_semiring_hom.map_zero f])
 
 @[simp] lemma eval₂_C (a) : (C a).eval₂ f g = f a :=
@@ -180,7 +181,7 @@ def eval (f : σ → α) : mv_polynomial σ α → α := eval₂ id f
 
 @[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 := eval₂_zero _ _
 
-lemma eval_add : (p + q).eval f = p.eval f + q.eval f := eval₂_add _ _
+@[simp] lemma eval_add : (p + q).eval f = p.eval f + q.eval f := eval₂_add _ _
 
 lemma eval_monomial : (monomial s a).eval f = a * s.prod (λn e, f n ^ e) :=
 eval₂_monomial _ _
@@ -189,7 +190,7 @@ eval₂_monomial _ _
 
 @[simp] lemma eval_X : ∀ n, (X n).eval f = f n := eval₂_X _ _
 
-lemma eval_mul : (p * q).eval f = p.eval f * q.eval f := eval₂_mul _ _
+@[simp] lemma eval_mul : (p * q).eval f = p.eval f * q.eval f := eval₂_mul _ _
 
 instance eval.is_semiring_hom : is_semiring_hom (eval f) :=
 eval₂.is_semiring_hom _ _
@@ -289,6 +290,8 @@ end comm_semiring
 
 section comm_ring
 variable [comm_ring α]
+variables {p q : mv_polynomial σ α}
+
 instance : ring (mv_polynomial σ α) := finsupp.to_ring
 instance : comm_ring (mv_polynomial σ α) := finsupp.to_comm_ring
 instance : has_scalar α (mv_polynomial σ α) := finsupp.to_has_scalar
@@ -297,16 +300,49 @@ instance : module α (mv_polynomial σ α) := finsupp.to_module
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring
 
-instance eval₂.is_ring_hom [decidable_eq β] [comm_ring β]
-  (f : α → β) [is_ring_hom f] (g : σ → β) : is_ring_hom (eval₂ f g) :=
+lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map_sub _
+
+@[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
+
+section eval₂
+
+variables [decidable_eq β] [comm_ring β]
+variables (f : α → β) [is_ring_hom f] (g : σ → β)
+
+instance eval₂.is_ring_hom : is_ring_hom (eval₂ f g) :=
 by apply is_ring_hom.of_semiring
 
-instance eval.is_ring_hom (f : σ → α) : is_ring_hom (eval f) := eval₂.is_ring_hom _ _
+lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ring_hom.map_sub _
 
-instance map.is_ring_hom [decidable_eq β] [comm_ring β]
-  (f : α → β) [is_ring_hom f] :
-  is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
+@[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := is_ring_hom.map_neg _
+
+end eval₂
+
+section eval
+
+variables (f : σ → α)
+
+instance eval.is_ring_hom : is_ring_hom (eval f) := eval₂.is_ring_hom _ _
+
+lemma eval_sub : (p - q).eval f = p.eval f - q.eval f := is_ring_hom.map_sub _
+
+@[simp] lemma eval_neg : (-p).eval f = -(p.eval f) := is_ring_hom.map_neg _
+
+end eval
+
+section map
+
+variables [decidable_eq β] [comm_ring β]
+variables (f : α → β) [is_ring_hom f]
+
+instance map.is_ring_hom : is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 eval₂.is_ring_hom _ _
+
+lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
+
+@[simp] lemma map_neg : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
+
+end map
 
 end comm_ring
 

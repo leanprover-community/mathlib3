@@ -93,13 +93,19 @@ begin
   trivial
 end
 
-/- tauto -/
+/- refine_struct -/
+section refine_struct
 
-example (p : Prop) : p ∧ true ↔ p := by tauto
+variables {α} [_inst : monoid α]
+include _inst
 
-example (p : Prop) : p ∨ false ↔ p := by tauto
--- local attribute [instance] classical.prop_decidable
-example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
-example (p q r : Prop) [decidable q] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
-example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ p) : q := by tauto
-example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : q) : ¬ p := by tauto
+example : true :=
+begin
+  have : group α,
+  { refine_struct { .._inst },
+    guard_tags _field inv group, admit,
+    guard_tags _field mul_left_inv group, admit, },
+  trivial
+end
+
+end refine_struct

@@ -14,23 +14,28 @@ install:
       curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
     fi
   - source ~/.elan/env
+  - mkdir $HOME/scripts || echo ""
+  - export PATH="$HOME/scripts:$PATH"
+  - cp travis_long.sh $HOME/scripts/travis_long
+  - chmod +x $HOME/scripts/travis_long
 
 jobs:
   include:
     - stage: Pre-build
       script:
-        - git status | grep  -e "Changes not staged for commit:"; [ $? -ne 0 ] || git checkout -f HEAD
+        - (git status | grep  -e "Changes not staged for commit:"); RESULT=$?
+        - if [ $RESULT -eq 0 ]; then git checkout -f HEAD ; fi
         - rm mathlib.txt || true
-        - timeout 2400 leanpkg test || echo timed out
+        - travis_long "timeout 2400 leanpkg test" | awk 'BEGIN{e=0;c=-1}c&&--c;/error/{if (!e) {c=30;e=1}};{if (!c) {exit 1}}'
+
 
     - stage: Test
       script:
-        - git status | grep  -e "Changes not staged for commit:"; [ $? -ne 0 ]
+        - (git status | grep  -e "Changes not staged for commit:"); RESULT=$?
+        - if [ $RESULT -eq 0 ]; then git checkout -f HEAD ; fi
         - leanpkg test
         - lean --recursive --export=mathlib.txt
         - leanchecker mathlib.txt
-        - find . -name "*.lean" -delete
-
 
 notifications:
   webhooks:

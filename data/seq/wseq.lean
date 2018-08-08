@@ -1049,7 +1049,7 @@ begin
     c2 = computation.map (option.map (prod.map f (map f))) (destruct s)),
   { intros c1 c2 h, cases h with s h, rw [h.left, h.right],
     apply s.cases_on _ (λ a s, _) (λ s, _); simp; simp,
-    { refl }, { refl }, { exact ⟨s, rfl, rfl⟩ } },
+    exact ⟨s, rfl, rfl⟩ },
   { exact ⟨s, rfl, rfl⟩ }
 end
 
@@ -1063,7 +1063,7 @@ theorem lift_rel_map {δ} (R : α → β → Prop) (S : γ → δ → Prop)
 λ s1 s2 h, match s1, s2, h with ._, ._, ⟨s, t, rfl, rfl, h⟩ := begin
   simp [destruct_map], apply computation.lift_rel_map _ _ (lift_rel_destruct h),
   intros o p h,
-  cases o with a; cases p with b; simp [option.map, option.bind],
+  cases o with a; cases p with b; simp,
   { cases b; cases h },
   { cases a; cases h },
   { cases a with a s; cases b with b t, cases h with r h,

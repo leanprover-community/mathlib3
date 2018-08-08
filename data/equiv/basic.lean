@@ -23,6 +23,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (right_inv : right_inverse inv_fun to_fun)
 
 namespace equiv
+
 /-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
 
@@ -81,6 +82,9 @@ rfl
 @[simp] theorem inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm (e x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw l₁
 
+@[simp] lemma inverse_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) : 
+  (f.trans g).symm a = f.symm (g.symm a) := rfl
+
 @[simp] theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
 | ⟨f₁, g₁, l₁, r₁⟩ x y := (injective_of_left_inverse l₁).eq_iff
 
@@ -98,7 +102,7 @@ theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_in
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
 
-protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s := 
+protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 
 protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) : t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
@@ -112,6 +116,9 @@ protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
 set.image_compl_eq f.bijective
 
 /- The group of permutations (self-equivalences) of a type `α` -/
+
+namespace perm
+
 instance perm_group {α : Type u} : group (perm α) :=
 begin
   refine { mul := λ f g, equiv.trans g f, one := equiv.refl α, inv:= equiv.symm, ..};
@@ -119,10 +126,24 @@ begin
   apply inverse_apply_apply
 end
 
-@[simp] theorem perm.mul_val {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
+@[simp] theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
 
-@[simp] theorem perm.one_val {α : Type u} (x) : (1 : perm α) x = x := rfl
+@[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
+
+@[simp] lemma inv_apply_self {α : Type u} (f : perm α) (x) :
+  f⁻¹ (f x) = x := equiv.inverse_apply_apply _ _
+
+@[simp] lemma apply_inv_self {α : Type u} (f : perm α) (x) :
+  f (f⁻¹ x) = x := equiv.apply_inverse_apply _ _
+
+lemma one_def {α : Type u} : (1 : perm α) = equiv.refl α := rfl
+
+lemma mul_def {α : Type u} (f g : perm α) : f * g = g.trans f := rfl
+
+lemma inv_def {α : Type u} (f : perm α) : f⁻¹ = f.symm := rfl
+
+end perm
 
 def equiv_empty (h : α → false) : α ≃ empty :=
 ⟨λ x, (h x).elim, λ e, e.rec _, λ x, (h x).elim, λ e, e.rec _⟩

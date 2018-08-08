@@ -657,6 +657,16 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 | (m : ℕ) n := option.some_inj.trans coe_nat_inj'.symm
 | -[1+ m] n := by split; intro h; cases h
 
+/- units -/
+
+@[simp] theorem units_nat_abs (u : units ℤ) : nat_abs u = 1 :=
+units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
+  by rw [← nat_abs_mul, units.mul_inv]; refl,
+  by rw [← nat_abs_mul, units.inv_mul]; refl⟩
+
+theorem units_eq_one_or (u : units ℤ) : u = 1 ∨ u = -1 :=
+by simpa [units.ext_iff, units_nat_abs] using nat_abs_eq u
+
 /- bitwise ops -/
 
 @[simp] lemma bodd_zero : bodd 0 = ff := rfl

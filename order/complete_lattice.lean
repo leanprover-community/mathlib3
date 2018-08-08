@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of complete lattices.
 -/
-import order.bounded_lattice data.set.basic
+import order.bounded_lattice data.set.basic tactic.pi_instances
 
 set_option old_structure_cmd true
 
@@ -414,12 +414,12 @@ le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
 
-theorem infi_and {p q : Prop} {s : p ∧ q → α} : infi s = (⨅ h₁ : p, ⨅ h₂ : q, s ⟨h₁, h₂⟩) :=
+theorem infi_and {p q : Prop} {s : p ∧ q → α} : infi s = (⨅ h₁ h₂, s ⟨h₁, h₂⟩) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume j, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
-theorem supr_and {p q : Prop} {s : p ∧ q → α} : supr s = (⨆ h₁ : p, ⨆ h₂ : q, s ⟨h₁, h₂⟩) :=
+theorem supr_and {p q : Prop} {s : p ∧ q → α} : supr s = (⨆ h₁ h₂, s ⟨h₁, h₂⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λj, s ⟨i, j⟩) _)
   (supr_le $ assume i, supr_le $ assume j, le_supr _ _)
@@ -555,32 +555,32 @@ le_antisymm
   (le_inf (infi_le _ _) (infi_le _ _))
   (le_infi $ assume b, match b with tt := inf_le_left | ff := inf_le_right end)
 
-theorem infi_subtype {p : ι → Prop} {f : subtype p → α} : (⨅ x, f x) = (⨅ i, ⨅ h:p i, f ⟨i, h⟩) :=
+theorem infi_subtype {p : ι → Prop} {f : subtype p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
-theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i, ⨆ h:p i, f ⟨i, h⟩) :=
+theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
 
-theorem infi_sigma {p : β → Type w} {f : sigma p → α} : (⨅ x, f x) = (⨅ i, ⨅ h:p i, f ⟨i, h⟩) :=
+theorem infi_sigma {p : β → Type w} {f : sigma p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
-theorem supr_sigma {p : β → Type w} {f : sigma p → α} : (⨆ x, f x) = (⨆ i, ⨆ h:p i, f ⟨i, h⟩) :=
+theorem supr_sigma {p : β → Type w} {f : sigma p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
 
-theorem infi_prod {γ : Type w} {f : β × γ → α} : (⨅ x, f x) = (⨅ i, ⨅ j, f (i, j)) :=
+theorem infi_prod {γ : Type w} {f : β × γ → α} : (⨅ x, f x) = (⨅ i j, f (i, j)) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume j, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
-theorem supr_prod {γ : Type w} {f : β × γ → α} : (⨆ x, f x) = (⨆ i, ⨆ j, f (i, j)) :=
+theorem supr_prod {γ : Type w} {f : β × γ → α} : (⨆ x, f x) = (⨆ i j, f (i, j)) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λj, f ⟨i, j⟩) _)
   (supr_le $ assume i, supr_le $ assume j, le_supr _ _)
@@ -620,15 +620,13 @@ instance complete_lattice_Prop : complete_lattice Prop :=
   le_Inf := assume s a h p b hb, h b hb p,
   ..lattice.bounded_lattice_Prop }
 
-instance complete_lattice_fun {α : Type u} {β : Type v} [complete_lattice β] :
-  complete_lattice (α → β) :=
-{ Sup    := λs a, Sup (set.image (λf : α → β, f a) s),
-  le_Sup := assume s f h a, le_Sup ⟨f, h, rfl⟩,
-  Sup_le := assume s f h a, Sup_le $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a,
-  Inf    := λs a, Inf (set.image (λf : α → β, f a) s),
-  Inf_le := assume s f h a, Inf_le ⟨f, h, rfl⟩,
-  le_Inf := assume s f h a, le_Inf $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a,
-  ..lattice.bounded_lattice_fun }
+instance pi.complete_lattice {α : Type u} {β : α → Type v} [∀ i, complete_lattice (β i)] :
+  complete_lattice (Π i, β i) :=
+by { pi_instance;
+     { intros, intro,
+       apply_field, intros,
+       simp at H, rcases H with ⟨ x, H₀, H₁ ⟩,
+       subst b, apply a_1 _ H₀ i, } }
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]

@@ -105,6 +105,15 @@ def sub_abs_le_abs_sub := @abs_sub_abs_le_abs_sub
 lemma abs_abs_sub_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
 abs_sub_le_iff.2 ⟨sub_abs_le_abs_sub _ _, by rw abs_sub; apply sub_abs_le_abs_sub⟩
 
+lemma abs_eq (hb : b ≥ 0) : abs a = b ↔ a = b ∨ a = -b :=
+iff.intro
+  begin
+    cases le_total a 0 with a_nonpos a_nonneg,
+    { rw [abs_of_nonpos a_nonpos, neg_eq_iff_neg_eq, eq_comm], exact or.inr },
+    { rw [abs_of_nonneg a_nonneg, eq_comm], exact or.inl }
+  end
+  (by intro h; cases h; subst h; try { rw abs_neg }; exact abs_of_nonneg hb)
+
 @[simp] lemma abs_eq_zero : abs a = 0 ↔ a = 0 :=
 ⟨eq_zero_of_abs_eq_zero, λ e, e.symm ▸ abs_zero⟩
 

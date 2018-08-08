@@ -215,7 +215,7 @@ lemma inj_of_trivial_ker (f : α → β) [is_group_hom f] (h : ker f = trivial �
   function.injective f :=
 begin
   intros a₁ a₂ hfa,
-  simp [set_eq_def, ker, is_subgroup.trivial] at h,
+  simp [ext_iff, ker, is_subgroup.trivial] at h,
   have ha : a₁ * a₂⁻¹ = 1, by rw ←h; exact inv_ker_one f hfa,
   rw [eq_inv_of_mul_eq_one ha, inv_inv a₂]
 end

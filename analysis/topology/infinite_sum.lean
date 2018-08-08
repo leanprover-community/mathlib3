@@ -252,6 +252,9 @@ lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   (∑b, f b) = s.sum f :=
 tsum_eq_is_sum $ is_sum_sum_of_ne_finset_zero hf
 
+lemma tsum_fintype [fintype β] (f : β → α) : (∑b, f b) = finset.univ.sum f :=
+tsum_eq_sum $ λ a h, h.elim (mem_univ _)
+
 lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   (∑b, f b) = f b :=
 calc (∑b, f b) = (finset.singleton b).sum f : tsum_eq_sum $ by simp [hf] {contextual := tt}
@@ -307,6 +310,9 @@ lemma tsum_eq_tsum_of_iso (j : γ → β) (i : β → γ)
   (∑c, f (j c)) = (∑b, f b) :=
 tsum_eq_tsum_of_is_sum_iff_is_sum $ assume a, is_sum_iff_is_sum_of_iso i h₁ h₂
 
+lemma tsum_equiv (j : γ ≃ β) : (∑c, f (j c)) = (∑b, f b) :=
+tsum_eq_tsum_of_iso j j.symm (by simp) (by simp)
+
 end tsum
 
 section topological_group
@@ -342,27 +348,27 @@ section topological_semiring
 variables [semiring α] [topological_space α] [topological_semiring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
-lemma is_sum_mul_left : is_sum f a₁ → is_sum (λb, a₂ * f b) (a₂ * a₁) :=
+lemma is_sum_mul_left (a₂) : is_sum f a₁ → is_sum (λb, a₂ * f b) (a₂ * a₁) :=
 is_sum_hom _ (by simp) (by simp [mul_add]) (continuous_mul continuous_const continuous_id)
 
-lemma is_sum_mul_right (hf : is_sum f a₁) : is_sum (λb, f b * a₂) (a₁ * a₂) :=
+lemma is_sum_mul_right (a₂) (hf : is_sum f a₁) : is_sum (λb, f b * a₂) (a₁ * a₂) :=
 @is_sum_hom _ _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _
   (by simp) (by simp [add_mul]) (continuous_mul continuous_id continuous_const) hf
 
-lemma has_sum_mul_left (hf : has_sum f) : has_sum (λb, a * f b) :=
-has_sum_spec $ is_sum_mul_left $ is_sum_tsum hf
+lemma has_sum_mul_left (a) (hf : has_sum f) : has_sum (λb, a * f b) :=
+has_sum_spec $ is_sum_mul_left _ $ is_sum_tsum hf
 
-lemma has_sum_mul_right (hf : has_sum f) : has_sum (λb, f b * a) :=
-has_sum_spec $ is_sum_mul_right $ is_sum_tsum hf
+lemma has_sum_mul_right (a) (hf : has_sum f) : has_sum (λb, f b * a) :=
+has_sum_spec $ is_sum_mul_right _ $ is_sum_tsum hf
 
 section tsum
 variables [t2_space α]
 
-lemma tsum_mul_left (hf : has_sum f) : (∑b, a * f b) = a * (∑b, f b) :=
-tsum_eq_is_sum $ is_sum_mul_left $ is_sum_tsum hf
+lemma tsum_mul_left (a) (hf : has_sum f) : (∑b, a * f b) = a * (∑b, f b) :=
+tsum_eq_is_sum $ is_sum_mul_left _ $ is_sum_tsum hf
 
-lemma tsum_mul_right (hf : has_sum f) : (∑b, f b * a) = (∑b, f b) * a :=
-tsum_eq_is_sum $ is_sum_mul_right $ is_sum_tsum hf
+lemma tsum_mul_right (a) (hf : has_sum f) : (∑b, f b * a) = (∑b, f b) * a :=
+tsum_eq_is_sum $ is_sum_mul_right _ $ is_sum_tsum hf
 
 end tsum
 

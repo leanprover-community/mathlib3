@@ -49,18 +49,19 @@ private meta def value_known (c : expr) : tactic bool := do
 lctx ← local_context, lctx ← lctx.mmap infer_type,
 return $ c ∈ lctx ∨ `(¬%%c) ∈ lctx
 
-private meta def split_ifs_core (at_ : loc) (names : ref (list name)) : tactic unit := do
+private meta def split_ifs_core (at_ : loc) (names : ref (list name)) : list expr → tactic unit | done := do
 some cond ← find_if_cond_at at_ | fail "no if-then-else expressions to split",
 let cond := match cond with `(¬%%p) := p | p := p end,
+if cond ∈ done then skip else do
 no_split ← value_known cond,
 if no_split then
-    reduce_ifs_at at_; try split_ifs_core
+    reduce_ifs_at at_; try (split_ifs_core (cond :: done))
 else do
     n ← get_next_name names,
-    split_if1 cond n at_; try split_ifs_core
+    split_if1 cond n at_; try (split_ifs_core (cond :: done))
 
 meta def split_ifs (names : list name) (at_ : loc := loc.ns [none]) :=
-using_new_ref names (split_ifs_core at_)
+using_new_ref names $ λ names, split_ifs_core at_ names []
 
 namespace interactive
 open interactive interactive.types expr lean.parser

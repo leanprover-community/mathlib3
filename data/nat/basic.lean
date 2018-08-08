@@ -180,6 +180,9 @@ protected theorem eq_mul_of_div_eq_left {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b
   a = c * b :=
 by rw [mul_comm, nat.eq_mul_of_div_eq_right H1 H2]
 
+protected theorem mul_div_cancel_left' {a b : ℕ} (Hd :  a ∣ b) : a * (b / a) = b :=
+by rw [mul_comm,nat.div_mul_cancel Hd] 
+
 protected theorem div_mod_unique {n k m d : ℕ} (h : 0 < k) :
   n / k = d ∧ n % k = m ↔ m + k * d = n ∧ m < k :=
 ⟨λ ⟨e₁, e₂⟩, e₁ ▸ e₂ ▸ ⟨mod_add_div _ _, mod_lt _ h⟩,
@@ -372,8 +375,20 @@ by induction k; simp [*, add_succ, bind_assoc]
 theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
 by induction n; simp [*, pow_succ, mul_assoc]
 
+theorem pow_two (a : ℕ) : a ^ 2 = a * a := show (1 * a) * a = _, by rw one_mul
+
 theorem pow_dvd_pow (a : ℕ) {m n : ℕ} (h : m ≤ n) : a^m ∣ a^n :=
 by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
+
+theorem pow_dvd_pow_of_dvd {a b : ℕ} (h : a ∣ b) : ∀ n:ℕ, a^n ∣ b^n
+| 0     := dvd_refl _
+| (n+1) := mul_dvd_mul (pow_dvd_pow_of_dvd n) h
+
+theorem mul_pow (a b n : ℕ) : (a * b) ^ n = a ^ n * b ^ n := 
+by induction n; simp [*, nat.pow_succ, mul_comm, mul_assoc, mul_left_comm]
+
+protected theorem pow_mul (a b n : ℕ) : n ^ (a * b) = (n ^ a) ^ b :=
+by induction b; simp [*, nat.succ_eq_add_one, nat.pow_add, mul_add, mul_comm]
 
 @[simp] theorem bodd_div2_eq (n : ℕ) : bodd_div2 n = (bodd n, div2 n) :=
 by unfold bodd div2; cases bodd_div2 n; refl

@@ -53,6 +53,9 @@ assume ainbl binl, or.elim (eq_or_mem_of_mem_cons ainbl)
   (assume : a = b, begin subst a, exact binl end)
   (assume : a ∈ l, this)
 
+theorem eq_or_ne_mem_of_mem {a b : α} {l : list α} (h : a ∈ b :: l) : a = b ∨ (a ≠ b ∧ a ∈ l) :=
+classical.by_cases or.inl $ assume : a ≠ b, h.elim or.inl $ assume h, or.inr ⟨this, h⟩
+
 theorem not_mem_append {a : α} {s t : list α} (h₁ : a ∉ s) (h₂ : a ∉ t) : a ∉ s ++ t :=
 mt mem_append.1 $ not_or_distrib.2 ⟨h₁, h₂⟩
 
@@ -70,6 +73,9 @@ theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a 
 
 theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=
 ⟨exists_mem_of_length_pos, λ ⟨a, h⟩, length_pos_of_mem h⟩
+
+theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
+⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
 theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = s ++ a :: t :=
 begin
@@ -980,7 +986,7 @@ def take' : ∀ n, list α → list α
 | 0     := rfl
 | (n+1) := congr_arg (cons _) (take'_nil _)
 
-theorem take'_eq_take : ∀ {n} {l : list α}, 
+theorem take'_eq_take : ∀ {n} {l : list α},
   n ≤ length l → take' n l = take n l
 | 0     l      h := rfl
 | (n+1) (a::l) h := congr_arg (cons _) $
@@ -1157,6 +1163,16 @@ by induction l; simp [list.join, *] at *
 
 end monoid
 
+@[simp, to_additive list.sum_erase]
+theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
+  Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
+| (b::l) h :=
+  begin
+    rcases eq_or_ne_mem_of_mem h with rfl | ⟨ne, h⟩,
+    { simp [list.erase] },
+    { simp [ne.symm, list.erase, prod_erase h, mul_left_comm a b] }
+  end
+
 @[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; simp [*, nat.mul_succ]
 
@@ -1281,7 +1297,7 @@ end lex
 instance has_lt' [has_lt α] : has_lt (list α) := ⟨lex (<)⟩
 
 theorem nil_lt_cons [has_lt α] (a : α) (l : list α) : [] < a :: l :=
-lex.nil 
+lex.nil
 
 instance [linear_order α] : linear_order (list α) :=
 linear_order_of_STO' (lex (<))
@@ -1510,12 +1526,12 @@ begin
   induction l with a l IH, {refl},
   cases h : f a with b,
   { rw [filter_map_cons_none _ _ h, filter_map_cons_none, IH],
-    simp [h, option.bind] },
+    simp [h] },
   rw filter_map_cons_some _ _ _ h,
   cases h' : g b with c;
   [ rw [filter_map_cons_none _ _ h', filter_map_cons_none, IH],
     rw [filter_map_cons_some _ _ _ h', filter_map_cons_some, IH] ];
-  simp [h, h', option.bind]
+  simp [h, h']
 end
 
 theorem map_filter_map (f : α → option β) (g : β → γ) (l : list α) :
@@ -1536,7 +1552,7 @@ begin
   rw [← filter_map_eq_filter, filter_map_filter_map], congr,
   funext x,
   show (option.guard p x).bind f = ite (p x) (f x) none,
-  by_cases p x; simp [h, option.guard, option.bind]
+  by_cases p x; simp [h, option.guard]
 end
 
 @[simp] theorem filter_map_some (l : list α) : filter_map some l = l :=
@@ -1587,7 +1603,6 @@ lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
 subset_of_sublist $ filter_sublist l
 
 theorem of_mem_filter {a : α} : ∀ {l}, a ∈ filter p l → p a
-| []     ain := absurd ain (not_mem_nil a)
 | (b::l) ain :=
   if pb : p b then
     have a ∈ b :: filter p l, begin simp [pb] at ain, assumption end,
@@ -1601,16 +1616,8 @@ theorem mem_of_mem_filter {a : α} {l} (h : a ∈ filter p l) : a ∈ l :=
 filter_subset l h
 
 theorem mem_filter_of_mem {a : α} : ∀ {l}, a ∈ l → p a → a ∈ filter p l
-| []     ain pa := absurd ain (not_mem_nil a)
-| (b::l) ain pa :=
-  if pb : p b then
-    or.elim (eq_or_mem_of_mem_cons ain)
-      (assume : a = b, by simp [pb, this])
-      (assume : a ∈ l, begin simp [pb], exact (mem_cons_of_mem _ (mem_filter_of_mem this pa)) end)
-  else
-    or.elim (eq_or_mem_of_mem_cons ain)
-      (assume : a = b, begin simp [this] at pa, contradiction end) --absurd (this ▸ pa) pb)
-      (assume : a ∈ l, by simp [pa, pb, mem_filter_of_mem this])
+| (_::l) (or.inl rfl) pa := by simp [pa]
+| (b::l) (or.inr ain) pa := by by_cases pb : p b; simp [pb, mem_filter_of_mem ain pa]
 
 @[simp] theorem mem_filter {a : α} {l} : a ∈ filter p l ↔ a ∈ l ∧ p a :=
 ⟨λ h, ⟨mem_of_mem_filter h, of_mem_filter h⟩, λ ⟨h₁, h₂⟩, mem_filter_of_mem h₁ h₂⟩
@@ -2165,6 +2172,11 @@ attribute [simp] forall₂.nil
   forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=
 ⟨λ h, by cases h with h₁ h₂; simp *, λ ⟨h₁, h₂⟩, forall₂.cons h₁ h₂⟩
 
+theorem forall₂.imp {R S : α → β → Prop}
+  (H : ∀ a b, R a b → S a b) {l₁ l₂}
+  (h : forall₂ R l₁ l₂) : forall₂ S l₁ l₂ :=
+by induction h; simp *
+
 lemma forall₂_flip : ∀{a b}, forall₂ (flip r) b a → forall₂ r a b
 | _ _                 forall₂.nil          := forall₂.nil
 | (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := forall₂.cons h₁ (forall₂_flip h₂)
@@ -2560,15 +2572,105 @@ end diff
 @[simp] theorem zip_nil_right (l : list α) : zip l ([] : list β) = [] :=
 by cases l; refl
 
+@[simp] theorem zip_swap : ∀ (l₁ : list α) (l₂ : list β),
+  (zip l₁ l₂).map prod.swap = zip l₂ l₁
+| []      l₂      := by simp
+| l₁      []      := by simp
+| (a::l₁) (b::l₂) := by simp *
+
+@[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
+   length (zip l₁ l₂) = min (length l₁) (length l₂)
+| []      l₂      := by simp
+| l₁      []      := by simp
+| (a::l₁) (b::l₂) := by simp [*, min_add_add_left]
+
+theorem zip_append : ∀ {l₁ l₂ r₁ r₂ : list α} (h : length l₁ = length l₂),
+   zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
+| []      l₂      r₁ r₂ h := by simp [eq_nil_of_length_eq_zero h.symm]
+| l₁      []      r₁ r₂ h := by simp [eq_nil_of_length_eq_zero h]
+| (a::l₁) (b::l₂) r₁ r₂ h := by simp [zip_append (succ_inj h)]
+
+theorem zip_map (f : α → γ) (g : β → δ) : ∀ (l₁ : list α) (l₂ : list β),
+   zip (l₁.map f) (l₂.map g) = (zip l₁ l₂).map (prod.map f g)
+| []      l₂      := by simp
+| l₁      []      := by simp
+| (a::l₁) (b::l₂) := by simp [zip_map l₁ l₂]
+
+theorem zip_map_left (f : α → γ) (l₁ : list α) (l₂ : list β) :
+   zip (l₁.map f) l₂ = (zip l₁ l₂).map (prod.map f id) :=
+by rw [← zip_map, map_id]
+
+theorem zip_map_right (f : β → γ) (l₁ : list α) (l₂ : list β) :
+   zip l₁ (l₂.map f) = (zip l₁ l₂).map (prod.map id f) :=
+by rw [← zip_map, map_id]
+
+theorem zip_map' (f : α → β) (g : α → γ) : ∀ (l : list α),
+   zip (l.map f) (l.map g) = l.map (λ a, (f a, g a))
+| []     := rfl
+| (a::l) := by simp [zip_map' l]
+
+theorem mem_zip {a b} : ∀ {l₁ : list α} {l₂ : list β},
+   (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
+| (_::l₁) (_::l₂) (or.inl rfl) := ⟨or.inl rfl, or.inl rfl⟩
+| (a'::l₁) (b'::l₂) (or.inr h) := by simp [mem_zip h]
+
 @[simp] theorem unzip_nil : unzip (@nil (α × β)) = ([], []) := rfl
 
 @[simp] theorem unzip_cons (a : α) (b : β) (l : list (α × β)) :
    unzip ((a, b) :: l) = (a :: (unzip l).1, b :: (unzip l).2) :=
 by rw unzip; cases unzip l; refl
 
+theorem unzip_eq_map : ∀ (l : list (α × β)), unzip l = (l.map prod.fst, l.map prod.snd)
+| []            := rfl
+| ((a, b) :: l) := by simp [unzip_eq_map l]
+
+theorem unzip_left (l : list (α × β)) : (unzip l).1 = l.map prod.fst :=
+by simp [unzip_eq_map]
+
+theorem unzip_right (l : list (α × β)) : (unzip l).2 = l.map prod.snd :=
+by simp [unzip_eq_map]
+
+theorem unzip_swap (l : list (α × β)) : unzip (l.map prod.swap) = (unzip l).swap :=
+by simp [unzip_eq_map]; split; refl
+
 theorem zip_unzip : ∀ (l : list (α × β)), zip (unzip l).1 (unzip l).2 = l
 | []            := rfl
 | ((a, b) :: l) := by simp [zip_unzip l]
+
+theorem unzip_zip_left : ∀ {l₁ : list α} {l₂ : list β}, length l₁ ≤ length l₂ →
+  (unzip (zip l₁ l₂)).1 = l₁
+| []      l₂      h := rfl
+| l₁      []      h := by rw eq_nil_of_length_eq_zero (eq_zero_of_le_zero h); refl
+| (a::l₁) (b::l₂) h := by simp [unzip_zip_left (le_of_succ_le_succ h)]
+
+theorem unzip_zip_right {l₁ : list α} {l₂ : list β} (h : length l₂ ≤ length l₁) :
+  (unzip (zip l₁ l₂)).2 = l₂ :=
+by rw [← zip_swap, unzip_swap]; exact unzip_zip_left h
+
+theorem unzip_zip {l₁ : list α} {l₂ : list β} (h : length l₁ = length l₂) :
+  unzip (zip l₁ l₂) = (l₁, l₂) :=
+by rw [← @prod.mk.eta _ _ (unzip (zip l₁ l₂)),
+  unzip_zip_left (le_of_eq h), unzip_zip_right (ge_of_eq h)]
+
+def revzip (l : list α) : list (α × α) := zip l l.reverse
+
+@[simp] theorem length_revzip (l : list α) : length (revzip l) = length l :=
+by simp [revzip, length_zip]
+
+@[simp] theorem unzip_revzip (l : list α) : (revzip l).unzip = (l, l.reverse) :=
+by simp [revzip, unzip_zip]
+
+@[simp] theorem revzip_map_fst (l : list α) : (revzip l).map prod.fst = l :=
+by rw [← unzip_left, unzip_revzip]
+
+@[simp] theorem revzip_map_snd (l : list α) : (revzip l).map prod.snd = l.reverse :=
+by rw [← unzip_right, unzip_revzip]
+
+theorem reverse_revzip (l : list α) : reverse l.revzip = revzip l.reverse :=
+by rw [← zip_unzip.{u u} (revzip l).reverse, unzip_eq_map]; simp; simp [revzip]
+
+theorem revzip_swap (l : list α) : (revzip l).map prod.swap = revzip l.reverse :=
+by simp [revzip]
 
 /- enum -/
 
@@ -2932,7 +3034,7 @@ inductive pairwise : list α → Prop
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 attribute [simp] pairwise.nil
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pariwise_iff
+run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pairwise_iff
 
 variable {R}
 @[simp] theorem pairwise_cons {a : α} {l : list α} :

@@ -12,9 +12,6 @@ open function
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
-lemma set.sInter_eq_Inter {s : set (set α)} : (⋂₀ s) = (⋂i ∈ s, i) :=
-set.ext $ by simp
-
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
 class has_scalar (α : out_param $ Type u) (γ : Type v) := (smul : α → γ → γ)
 
@@ -217,7 +214,7 @@ instance Inter_submodule' {ι : Sort w} {s : ι → set β} [h : ∀i, is_submod
 Inter_submodule h
 
 instance sInter_submodule {s : set (set β)} [hs : ∀t∈s, is_submodule t] : is_submodule (⋂₀ s) :=
-by rw [set.sInter_eq_Inter]; exact Inter_submodule (assume t, Inter_submodule $ hs t)
+by rw set.sInter_eq_bInter; exact Inter_submodule (assume t, Inter_submodule $ hs t)
 
 instance inter_submodule : is_submodule (p ∩ p') :=
 suffices is_submodule (⋂₀ {p, p'} : set β), by simpa [set.inter_comm],

@@ -57,6 +57,9 @@ surjective_of_has_right_inverse ⟨f, λ U, funext $
 def is_partial_inv {α β} (f : α → β) (g : β → option α) : Prop :=
 ∀ x y, g y = some x ↔ f x = y
 
+theorem is_partial_inv_left {α β} {f : α → β} {g} (H : is_partial_inv f g) (x) : g (f x) = some x :=
+(H _ _).2 rfl
+
 theorem injective_of_partial_inv {α β} {f : α → β} {g} (H : is_partial_inv f g) : injective f :=
 λ a b h, option.some.inj $ ((H _ _).2 h).symm.trans ((H _ _).2 rfl)
 
@@ -94,6 +97,9 @@ theorem partial_inv_of_injective {α β} {f : α → β} (I : injective f) :
   end else by rw [partial_inv, dif_neg h'] at h; contradiction,
  λ e, e ▸ have h : ∃ a', f a' = f a, from ⟨_, rfl⟩,
    (dif_pos h).trans (congr_arg _ (I $ classical.some_spec h))⟩
+
+theorem partial_inv_left {α β} {f : α → β} (I : injective f) : ∀ x, partial_inv f (f x) = some x :=
+is_partial_inv_left (partial_inv_of_injective I)
 
 end
 

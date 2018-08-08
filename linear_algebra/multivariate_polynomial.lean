@@ -23,6 +23,7 @@ variables [decidable_eq σ] [decidable_eq α]
 section comm_semiring
 variables [comm_semiring α] {p q : mv_polynomial σ α}
 
+instance : decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
 instance : has_zero (mv_polynomial σ α) := finsupp.has_zero
 instance : has_one (mv_polynomial σ α) := finsupp.has_one
 instance : has_add (mv_polynomial σ α) := finsupp.has_add
@@ -42,7 +43,7 @@ def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
 
 @[simp] lemma C_1 : C 1 = (1 : mv_polynomial σ α) := rfl
 
-@[simp] lemma C_mul_monomial : C a * monomial s a' = monomial s (a * a') :=
+lemma C_mul_monomial : C a * monomial s a' = monomial s (a * a') :=
 by simp [C, monomial, single_mul_single]
 
 @[simp] lemma C_add : (C (a + a') : mv_polynomial σ α) = C a + C a' := single_add
@@ -129,7 +130,7 @@ by simp [eval₂_monomial, C, prod_zero_index]
 by simp [eval₂_monomial,
   is_semiring_hom.map_one f, X, prod_single_index, pow_one]
 
-@[simp] lemma eval₂_mul_monomial :
+lemma eval₂_mul_monomial :
   ∀{s a}, (p * monomial s a).eval₂ f g = p.eval₂ f g * f a * s.prod (λn e, g n ^ e) :=
 begin
   apply mv_polynomial.induction_on p,
@@ -182,7 +183,7 @@ def eval (f : σ → α) : mv_polynomial σ α → α := eval₂ id f
 
 @[simp] lemma eval_add : (p + q).eval f = p.eval f + q.eval f := eval₂_add _ _
 
-@[simp] lemma eval_monomial : (monomial s a).eval f = a * s.prod (λn e, f n ^ e) :=
+lemma eval_monomial : (monomial s a).eval f = a * s.prod (λn e, f n ^ e) :=
 eval₂_monomial _ _
 
 @[simp] lemma eval_C : ∀ a, (C a).eval f = a := eval₂_C _ _

@@ -15,13 +15,12 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 -/
 
 import tactic.restate_axiom
+import tactic.replacer
 import tactic.interactive
 
 namespace category_theory
 
 universes u v
-
-meta def obviously := `[skip]  
 
 /- 
 The propositional fields of `category` are annotated with the auto_param `obviously`, which is just a synonym for `skip`.
@@ -29,6 +28,7 @@ Actually, there is a tactic called `obviously` which is not part of this pull re
 discharges a great many of these goals. For now, proofs which could be provided entirely by `obviously` (and hence omitted entirely
 and discharged by an auto_param), are all marked with a comment "-- obviously says:".
 -/
+def_replacer obviously
 
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.

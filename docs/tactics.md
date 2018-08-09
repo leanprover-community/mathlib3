@@ -251,3 +251,14 @@ where we know `Π i, my_class (f i)`. If an order relation is required,
 it defaults to `pi.partial_order`. Any field of the instance that
 `pi_instance` cannot construct is left untouched and generated as a
 new goal.
+
+## def_replacer
+
+`def_replacer foo` sets up a stub definition `foo : tactic unit`, which can 
+effectively be defined and re-defined later, by tagging definitions with `@[foo]`.
+
+- `@[foo] meta def foo_1 : tactic unit := ...` replaces the current definition of `foo`.
+- `@[foo] meta def foo_2 (old : tactic unit) : tactic unit := ...` replaces the current 
+  definition of `foo`, and provides access to the previous definition via `old`. 
+  (The argument can also be an `option (tactic unit)`, which is provided as `none` if 
+  this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.) 

@@ -4,7 +4,7 @@ open tactic
 
 def_replacer sneaky
 
-example : true := 
+example : true :=
 begin
   success_if_fail { sneaky },
   trivial

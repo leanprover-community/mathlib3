@@ -17,21 +17,20 @@ meta def replacer_attr (ntac : name) : user_attribute :=
   "can optionally have an argument of type `tactic unit` or " ++
   "`option (tactic unit)` which refers to the previous definition, if any.",
   after_set := some $ λ n _ _, do d ← get_decl n,
-    when (d.type ∉ [
-      (`(tactic unit) : expr),
-      `(tactic unit → tactic unit),
-      `(option (tactic unit) → tactic unit)]) $
+    monad.unlessb (d.type =ₐ `(tactic unit) ∨
+      d.type =ₐ `(tactic unit → tactic unit) ∨
+      d.type =ₐ `(option (tactic unit) → tactic unit)) $
     fail format!"incorrect type for @[{ntac}]" }
 
 meta def replacer_core (ntac : name) : list name → tactic unit
 | [] := fail ("no implementation defined for " ++ to_string ntac)
 | (n::ns) := do d ← get_decl n, let t := d.type,
-  if t = `(tactic unit) then
+  if t =ₐ `(tactic unit) then
     monad.join (mk_const n >>= eval_expr (tactic unit))
-  else if t = `(tactic unit → tactic unit) then
+  else if t =ₐ `(tactic unit → tactic unit) then
     do tac ← mk_const n >>= eval_expr (tactic unit → tactic unit),
        tac (replacer_core ns)
-  else if t = `(option (tactic unit) → tactic unit) then
+  else if t =ₐ `(option (tactic unit) → tactic unit) then
     do tac ← mk_const n >>= eval_expr (option (tactic unit) → tactic unit),
        tac (guard (ns ≠ []) >> some (replacer_core ns))
   else failed

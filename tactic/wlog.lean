@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Without loss of generality tactic.
 -/
-import tactic.basic tactic.interactive
+import tactic.basic tactic.interactive data.list.perm
 
 open expr tactic lean lean.parser
 
@@ -102,8 +102,10 @@ private meta def parse_permutations : option (list (list name)) → tactic (list
 | none                    := return []
 | (some [])               := return []
 | (some perms@(p₀ :: ps)) := do
-  (guard (perms.all $ λp, p.length = p₀.length) <|>
-    fail "The permutations `xs_i` in `using [xs_1, …, xs_n]` must have same number of variables."),
+  (guard p₀.nodup <|>
+    fail "No permutation `xs_i` in `using [xs_1, …, xs_n]` should contain the same variable twice."),
+  (guard (perms.all $ λp, p.perm p₀) <|>
+    fail "The permutations `xs_i` in `using [xs_1, …, xs_n]` must be permutations of the same variables."),
   perms.mmap (λp, p.mmap get_local)
 
 /-- Without loss of generality: reduces to one goal under variables permutations.

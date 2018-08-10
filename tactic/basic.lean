@@ -102,6 +102,10 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
+meta def is_mvar : expr → bool
+| (mvar _ _ _) := tt
+| _            := ff
+
 end expr
 
 namespace environment

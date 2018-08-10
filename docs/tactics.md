@@ -252,6 +252,12 @@ it defaults to `pi.partial_order`. Any field of the instance that
 `pi_instance` cannot construct is left untouched and generated as a
 new goal.
 
+### assoc_rewrite
+
+`assoc_rewrite [h₀, ← h₁] at ⊢ h₂` behaves like
+`rewrite [h₀, ← h₁] at ⊢ h₂` with the exception that associativity is
+used implicitly to make rewriting possible.
+
 ## def_replacer
 
 `def_replacer foo` sets up a stub definition `foo : tactic unit`, which can 

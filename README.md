@@ -5,14 +5,15 @@
 Lean standard library
 
 Besides [Lean's general documentation](https://leanprover.github.io/documentation/), the documentation of mathlib consists of:
-* a description of [currently covered theories](docs/theories.md)
-* an explanation of [naming conventions](docs/naming.md) that is useful
+
+- a description of [currently covered theories](docs/theories.md)
+- an explanation of [naming conventions](docs/naming.md) that is useful
   to find or contribute definitions and lemmas
-* a description of [tactics](docs/tactics.md) introduced in mathlib
-* a [style guide](docs/style.md) for contributors
-* a tentative list of [work in progress](docs/wip.md) to make sure
+- a description of [tactics](docs/tactics.md) introduced in mathlib
+- a [style guide](docs/style.md) for contributors
+- a tentative list of [work in progress](docs/wip.md) to make sure
   efforts are not duplicated without collaboration
-* a [guide](docs/elan.md) on installing Lean and mathlib with elan.
+- a [guide](docs/elan.md) on installing Lean and mathlib with elan.
 
 This repository also contains [extra Lean documentation](docs/extras.md)
 not specific to mathlib.

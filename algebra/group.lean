@@ -41,7 +41,7 @@ attribute [to_additive has_neg] has_inv
 /- map constructors -/
 attribute [to_additive has_add.mk] has_mul.mk
 attribute [to_additive has_zero.mk] has_one.mk
-attribute [to_additive has_neg.mk] has_neg.mk
+attribute [to_additive has_neg.mk] has_inv.mk
 
 /- map structures -/
 attribute [to_additive add_semigroup] semigroup
@@ -189,58 +189,81 @@ structure units (α : Type u) [monoid α] :=
 (inv_val : inv * val = 1)
 
 namespace units
-  variables [monoid α] {a b c : units α}
+variables [monoid α] {a b c : units α}
 
-  instance : has_coe (units α) α := ⟨val⟩
+instance : has_coe (units α) α := ⟨val⟩
 
-  theorem ext : ∀ {a b : units α}, (a : α) = b → a = b
-  | ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=
-    by change v = v' at e; subst v'; congr;
-       simpa [iv₂, vi₁] using mul_assoc i₂ v i₁
+@[extensionality] theorem ext : ∀ {a b : units α}, (a : α) = b → a = b
+| ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=
+  by change v = v' at e; subst v'; congr;
+      simpa [iv₂, vi₁] using mul_assoc i₂ v i₁
 
-  protected def mul : units α → units α → units α
-  | ⟨v₁, i₁, vi₁, iv₁⟩ ⟨v₂, i₂, vi₂, iv₂⟩ := ⟨v₁ * v₂, i₂ * i₁,
-    have v₁ * (v₂ * i₂) * i₁ = 1, by rw [vi₂]; simp [vi₁], by simpa [mul_comm, mul_assoc],
-    have i₂ * (i₁ * v₁) * v₂ = 1, by rw [iv₁]; simp [iv₂], by simpa [mul_comm, mul_assoc]⟩
+theorem ext_iff {a b : units α} : a = b ↔ (a : α) = b :=
+⟨congr_arg _, ext⟩
 
-  protected def inv' : units α → units α
-  | ⟨v, i, vi, iv⟩ := ⟨i, v, iv, vi⟩
+instance [decidable_eq α] : decidable_eq (units α)
+| a b := decidable_of_iff' _ ext_iff
 
-  instance : has_mul (units α) := ⟨units.mul⟩
-  instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
-  instance : has_inv (units α) := ⟨units.inv'⟩
+protected def mul (u₁ u₂ : units α) : units α :=
+⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
+  have u₁.val * (u₂.val * u₂.inv) * u₁.inv = 1,
+    by rw [u₂.val_inv]; simp [u₁.val_inv],
+  by simpa [mul_comm, mul_assoc],
+  have u₂.inv * (u₁.inv * u₁.val) * u₂.val = 1,
+    by rw [u₁.inv_val]; simp [u₂.inv_val],
+  by simpa [mul_comm, mul_assoc]⟩
 
-  variables (a b)
-  @[simp] lemma mul_coe : (↑(a * b) : α) = a * b := by cases a; cases b; refl
-  @[simp] lemma one_coe : ((1 : units α) : α) = 1 := rfl
-  lemma val_coe : (↑a : α) = a.val := rfl
-  lemma inv_coe : ((a⁻¹ : units α) : α) = a.inv := by cases a; refl
-  @[simp] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := by simp [val_coe, inv_coe, inv_val]
-  @[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := by simp [val_coe, inv_coe, val_inv]
+protected def inv' (u : units α) : units α :=
+⟨u.inv, u.val, u.inv_val, u.val_inv⟩
 
-  @[simp] lemma mul_inv_cancel_left (a : units α) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
-  by rw [← mul_assoc, mul_inv, one_mul]
+instance : has_mul (units α) := ⟨units.mul⟩
+instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
+instance : has_inv (units α) := ⟨units.inv'⟩
 
-  @[simp] lemma inv_mul_cancel_left (a : units α) (b : α) : (↑a⁻¹:α) * (a * b) = b :=
-  by rw [← mul_assoc, inv_mul, one_mul]
+variables (a b)
+@[simp] lemma mul_coe : (↑(a * b) : α) = a * b := rfl
+@[simp] lemma one_coe : ((1 : units α) : α) = 1 := rfl
+lemma val_coe : (↑a : α) = a.val := rfl
+lemma inv_coe : ((a⁻¹ : units α) : α) = a.inv := rfl
+@[simp] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
+@[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 
-  @[simp] lemma mul_inv_cancel_right (a : α) (b : units α) : a * b * ↑b⁻¹ = a :=
-  by rw [mul_assoc, mul_inv, mul_one]
+@[simp] lemma mul_inv_cancel_left (a : units α) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
+by rw [← mul_assoc, mul_inv, one_mul]
 
-  @[simp] lemma inv_mul_cancel_right (a : α) (b : units α) : a * ↑b⁻¹ * b = a :=
-  by rw [mul_assoc, inv_mul, mul_one]
+@[simp] lemma inv_mul_cancel_left (a : units α) (b : α) : (↑a⁻¹:α) * (a * b) = b :=
+by rw [← mul_assoc, inv_mul, one_mul]
 
-  instance : group (units α) :=
-  by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
-    { intros, apply ext, simp [mul_assoc] }
+@[simp] lemma mul_inv_cancel_right (a : α) (b : units α) : a * b * ↑b⁻¹ = a :=
+by rw [mul_assoc, mul_inv, mul_one]
 
-  @[simp] theorem mul_left_inj (a : units α) {b c : α} : (a:α) * b = a * c ↔ b = c :=
-  ⟨λ h, by simpa using congr_arg ((*) ↑(a⁻¹ : units α)) h, congr_arg _⟩
+@[simp] lemma inv_mul_cancel_right (a : α) (b : units α) : a * ↑b⁻¹ * b = a :=
+by rw [mul_assoc, inv_mul, mul_one]
 
-  @[simp] theorem mul_right_inj (a : units α) {b c : α} : b * a = c * a ↔ b = c :=
-  ⟨λ h, by simpa using congr_arg (* ↑(a⁻¹ : units α)) h, congr_arg _⟩
+instance : group (units α) :=
+by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
+  { intros, apply ext, simp [mul_assoc] }
+
+instance {α} [comm_monoid α] : comm_group (units α) :=
+{ mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
+
+@[simp] theorem mul_left_inj (a : units α) {b c : α} : (a:α) * b = a * c ↔ b = c :=
+⟨λ h, by simpa using congr_arg ((*) ↑(a⁻¹ : units α)) h, congr_arg _⟩
+
+@[simp] theorem mul_right_inj (a : units α) {b c : α} : b * a = c * a ↔ b = c :=
+⟨λ h, by simpa using congr_arg (* ↑(a⁻¹ : units α)) h, congr_arg _⟩
 
 end units
+
+theorem nat.units_eq_one (u : units ℕ) : u = 1 :=
+units.ext begin
+  cases nat.eq_zero_or_pos u with h h,
+  { simpa [h] using u.inv_mul },
+  cases nat.eq_zero_or_pos ↑u⁻¹ with h' h',
+  { simpa [h'] using u.inv_mul },
+  refine le_antisymm _ h,
+  simpa using nat.mul_le_mul_left u h'
+end
 
 @[to_additive with_zero]
 def with_one (α) := option α

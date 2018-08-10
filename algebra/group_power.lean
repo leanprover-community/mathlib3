@@ -319,6 +319,12 @@ by rw [add_monoid.smul_eq_mul', add_monoid.smul_eq_mul', mul_assoc]
 theorem add_monoid.mul_smul_assoc [semiring α] (a b : α) (n : ℕ) : n • (a * b) = n • a * b :=
 by rw [add_monoid.smul_eq_mul, add_monoid.smul_eq_mul, mul_assoc]
 
+@[simp] theorem nat.cast_pow [semiring α] (n m : ℕ) : (↑(n ^ m) : α) = ↑n ^ m :=
+by induction m; simp [*, nat.succ_eq_add_one, nat.pow_add, pow_add]
+
+@[simp] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ)  = n ^ m := 
+by induction m; simp [*, pow_succ', nat.pow_succ]
+
 theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := by simp
 | (n+1) := by cases neg_one_pow_eq_or n; simp [pow_succ, h]
@@ -335,6 +341,9 @@ by rw [gsmul_eq_mul', gsmul_eq_mul', mul_assoc]
 
 theorem mul_gsmul_assoc [ring α] (a b : α) (n : ℤ) : n •ℤ (a * b) = n •ℤ a * b :=
 by rw [gsmul_eq_mul, gsmul_eq_mul, mul_assoc]
+
+@[simp] theorem int.cast_pow [ring α] (n : ℤ) (m : ℕ) : (↑(n ^ m) : α) = ↑n ^ m :=
+by induction m; simp [*, nat.succ_eq_add_one,pow_add]
 
 theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 by induction n with n ih; simp [pow_succ, mul_eq_zero, *]

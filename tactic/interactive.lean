@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs meta.expr logic.basic
-  tactic.ext tactic.tauto
+  tactic.ext tactic.tauto tactic.replacer
 
 open lean
 open lean.parser
@@ -21,35 +21,33 @@ open interactive interactive.types expr
 local notation `listΣ` := list_Sigma
 local notation `listΠ` := list_Pi
 
-/--
-This parser uses the "inverted" meaning for the `many` constructor:
-rather than representing a sum of products, here it represents a
-product of sums. We fix this by applying `invert`, defined below, to
-the result.
--/
-@[reducible] def rcases_patt_inverted := rcases_patt
-
-meta def rcases_parse1 (rcases_parse : parser (listΣ rcases_patt_inverted)) :
+meta def rcases_patt_parse_core
+  (rcases_patt_parse_list : parser (listΣ rcases_patt_inverted)) :
   parser rcases_patt_inverted | x :=
-((rcases_patt.one <$> ident_) <|>
-(rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse))) x
+((rcases_patt_inverted.one <$> ident_) <|>
+(rcases_patt_inverted.many <$> brackets "⟨" "⟩"
+  (sep_by (tk ",") rcases_patt_parse_list))) x
 
-meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
+meta def rcases_patt_parse_list : parser (listΣ rcases_patt_inverted) :=
 with_desc "patt" $
-list.cons <$> rcases_parse1 rcases_parse <*> (tk "|" *> rcases_parse1 rcases_parse)*
+list.cons <$> rcases_patt_parse_core rcases_patt_parse_list <*>
+  (tk "|" *> rcases_patt_parse_core rcases_patt_parse_list)*
 
-meta def rcases_parse_single : parser rcases_patt_inverted :=
-with_desc "patt_list" $ rcases_parse1 rcases_parse
+meta def rcases_patt_parse : parser rcases_patt_inverted :=
+with_desc "patt_list" $ rcases_patt_parse_core rcases_patt_parse_list
 
-meta mutual def rcases_parse.invert, rcases_parse.invert'
-with rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt)
-| l := l.map $ λ p, match p with
-| rcases_patt.one n := [rcases_patt.one n]
-| rcases_patt.many l := rcases_parse.invert' <$> l
-end
-with rcases_parse.invert' : listΣ rcases_patt_inverted → rcases_patt
-| [rcases_patt.one n] := rcases_patt.one n
-| l := rcases_patt.many (rcases_parse.invert l)
+meta def rcases_parse_depth : parser nat :=
+do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
+
+meta def rcases_parse : parser (pexpr × (listΣ (listΠ rcases_patt) ⊕ nat)) :=
+do hint ← (tk "?")?,
+  p ← texpr,
+  match hint with
+  | none := do
+    ids ← (tk "with" *> rcases_patt_parse_list)?,
+    pure (p, sum.inl $ rcases_patt_inverted.invert_list (ids.get_or_else [default _]))
+  | some _ := do depth ← rcases_parse_depth, pure (p, sum.inr depth)
+  end
 
 /--
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
@@ -70,13 +68,24 @@ such as `⟨⟨a⟩, b | c⟩ | d` then these will cause more case splits as nec
 If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
 `∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
 parameter as necessary.
--/
-meta def rcases (p : parse texpr) (ids : parse (tk "with" *> rcases_parse)?) : tactic unit :=
-tactic.rcases p $ rcases_parse.invert $ ids.get_or_else [default _]
 
-meta def rintro_parse : parser rcases_patt :=
-rcases_parse.invert' <$> (brackets "(" ")" rcases_parse <|>
-  (λ x, [x]) <$> rcases_parse_single)
+`rcases? e` will perform case splits on `e` in the same way as `rcases e`,
+but rather than accepting a pattern, it does a maximal cases and prints the
+pattern that would produce this case splitting. The default maximum depth is 5,
+but this can be modified with `rcases? e : n`.
+-/
+meta def rcases : parse rcases_parse → tactic unit
+| (p, sum.inl ids) := tactic.rcases p ids
+| (p, sum.inr depth) := do
+  patt ← tactic.rcases_hint p depth,
+  pe ← pp p,
+  trace $ ↑"snippet: rcases " ++ pe ++ " with " ++ to_fmt patt
+
+meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
+(tk "?" >> sum.inr <$> rcases_parse_depth) <|>
+sum.inl <$> (rcases_patt_inverted.invert <$>
+  (brackets "(" ")" rcases_patt_parse_list <|>
+  (λ x, [x]) <$> rcases_patt_parse))*
 
 /--
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
@@ -84,10 +93,19 @@ allow for destructuring patterns while introducing variables. See `rcases` for
 a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
 will introduce two variables, and then do case splits on both of them producing
 two subgoals, one with variables `a d e` and the other with `b c d e`.
+
+`rintro?` will introduce and case split on variables in the same way as
+`rintro`, but will also print the `rintro` invocation that would have the same
+result. Like `rcases?`, `rintro? : n` allows for modifying the
+depth of splitting; the default is 5.
 -/
-meta def rintro : parse rintro_parse* → tactic unit
-| [] := intros []
-| l  := tactic.rintro l
+meta def rintro : parse rintro_parse → tactic unit
+| (sum.inl []) := intros []
+| (sum.inl l)  := tactic.rintro l
+| (sum.inr depth) := do
+  ps ← tactic.rintro_hint depth,
+  trace $ ↑"snippet: rintro" ++ format.join (ps.map $ λ p,
+    format.space ++ format.group (p.format tt))
 
 /-- Alias for `rintro`. -/
 meta def rintros := rintro
@@ -123,11 +141,13 @@ match tgt with
 end
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
-  Never fails. Useful for debugging. -/
+Never fails. Useful for debugging. -/
 meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
-   tactic.try_for max tac <|>
-     (tactic.trace "try_for timeout, using sorry" >> admit)
+  λ s, match _root_.try_for max (tac s) with
+  | some r := r
+  | none   := (tactic.trace "try_for timeout, using sorry" >> admit) s
+  end
 
 /-- Multiple subst. `substs x y z` is the same as `subst x, subst y, subst z`. -/
 meta def substs (l : parse ident*) : tactic unit :=
@@ -139,8 +159,8 @@ unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_c
         ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
 /-- For debugging only. This tactic checks the current state for any
-  missing dropped goals and restores them. Useful when there are no
-  goals to solve but "result contains meta-variables". -/
+missing dropped goals and restores them. Useful when there are no
+goals to solve but "result contains meta-variables". -/
 meta def recover : tactic unit :=
 do r ← tactic.result,
    tactic.set_goals $ r.fold [] $ λ e _ l,
@@ -150,7 +170,7 @@ do r ← tactic.result,
      end
 
 /-- Like `try { tac }`, but in the case of failure it continues
-  from the failure state instead of reverting to the original state. -/
+from the failure state instead of reverting to the original state. -/
 meta def continue (tac : itactic) : tactic unit :=
 λ s, result.cases_on (tac s)
  (λ a, result.success ())
@@ -177,22 +197,24 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
-/-- Same as the `congr` tactic, but takes an optional argument which gives
-  the depth of recursive applications. This is useful when `congr`
-  is too aggressive in breaking down the goal. For example, given
-  `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
-  and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
+/--
+Same as the `congr` tactic, but takes an optional argument which gives
+the depth of recursive applications. This is useful when `congr`
+is too aggressive in breaking down the goal. For example, given
+`⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
+and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
 | o        := focus1 (assumption <|> (congr_core >>
   all_goals (reflexivity <|> try (congr' (nat.pred <$> o)))))
 
-/-- Acts like `have`, but removes a hypothesis with the same name as
-  this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
-  then after `replace h := f h` the goal will be `h : q ⊢ goal`,
-  where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
-  This can be used to simulate the `specialize` and `apply at` tactics
-  of Coq. -/
+/--
+Acts like `have`, but removes a hypothesis with the same name as
+this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
+then after `replace h := f h` the goal will be `h : q ⊢ goal`,
+where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
+This can be used to simulate the `specialize` and `apply at` tactics
+of Coq. -/
 meta def replace (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
 do let h := h.get_or_else `this,
   old ← try_core (get_local h),
@@ -204,19 +226,19 @@ do let h := h.get_or_else `this,
   end
 
 /--
-  `apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
-  where `head` matches the current goal.
+`apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
+where `head` matches the current goal.
 
-  alternatively, when encountering an assumption of the form `sg₀ → ¬ sg₁`,
-  after the main approach failed, the goal is dismissed and `sg₀` and `sg₁`
-  are made into the new goal.
+alternatively, when encountering an assumption of the form `sg₀ → ¬ sg₁`,
+after the main approach failed, the goal is dismissed and `sg₀` and `sg₁`
+are made into the new goal.
 
-  optional arguments:
-  - asms: list of rules to consider instead of the local constants
-  - tac:  a tactic to run on each subgoals after applying an assumption; if
-          this tactic fails, the corresponding assumption will be rejected and
-          the next one will be attempted.
- -/
+optional arguments:
+- asms: list of rules to consider instead of the local constants
+- tac:  a tactic to run on each subgoals after applying an assumption; if
+        this tactic fails, the corresponding assumption will be rejected and
+        the next one will be attempted.
+-/
 meta def apply_assumption
   (asms : option (list expr) := none)
   (tac : tactic unit := return ()) : tactic unit :=
@@ -225,26 +247,26 @@ tactic.apply_assumption asms tac
 open nat
 
 /--
-  `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
-  and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
-  or up to `depth` times.
+`solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
+and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
+or up to `depth` times.
 
-  `solve_by_elim` discharges the current goal or fails
+`solve_by_elim` discharges the current goal or fails
 
-  `solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
+`solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
 
-  optional arguments:
-  - discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
-  - asms: list of assumptions / rules to consider instead of local constants
-  - depth: number of attempts at discharging generated sub-goals
-  -/
+optional arguments:
+- discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
+- asms: list of assumptions / rules to consider instead of local constants
+- depth: number of attempts at discharging generated sub-goals
+-/
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 tactic.solve_by_elim opt
 
 /--
-  `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
-  and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
-  using `reflexivity` or `solve_by_elim`
+`tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`
 -/
 meta def tautology := tactic.tautology
 
@@ -263,10 +285,10 @@ lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
 /--
-  Like `generalize` but also considers assumptions
-  specified by the user. The user can also specify to
-  omit the goal.
-  -/
+Like `generalize` but also considers assumptions
+specified by the user. The user can also specify to
+omit the goal.
+-/
 meta def generalize_hyp  (h : parse ident?) (_ : parse $ tk ":")
   (p : parse generalize_arg_p)
   (l : parse location) :
@@ -289,9 +311,9 @@ do h' ← get_unused_name `h,
    end
 
 /--
-  Similar to `refine` but generates equality proof obligations
-  for every discrepancy between the goal and the type of the rule.
-  -/
+Similar to `refine` but generates equality proof obligations
+for every discrepancy between the goal and the type of the rule.
+-/
 meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 do v ← mk_mvar,
    if sym.is_some
@@ -306,10 +328,11 @@ do v ← mk_mvar,
 meta def clean_ids : list name :=
 [``id, ``id_rhs, ``id_delta]
 
-/-- Remove identity functions from a term. These are normally
-  automatically generated with terms like `show t, from p` or
-  `(p : t)` which translate to some variant on `@id t p` in
-  order to retain the type. -/
+/--
+Remove identity functions from a term. These are normally
+automatically generated with terms like `show t, from p` or
+`(p : t)` which translate to some variant on `@id t p` in
+order to retain the type. -/
 meta def clean (q : parse texpr) : tactic unit :=
 do tgt : expr ← target,
    e ← i_to_expr_strict ``(%%q : %%tgt),
@@ -376,23 +399,24 @@ do set_goals [e],
    return $ gs'.join ++ gs
 
 
-/-- `refine_struct { .. }` acts like `refine` but works only with structure instance
-    literals. It creates a goal for each missing field and tags it with the name of the
-    field so that `have_field` can be used to generically refer to the field currently
-    being refined.
+/--
+`refine_struct { .. }` acts like `refine` but works only with structure instance
+literals. It creates a goal for each missing field and tags it with the name of the
+field so that `have_field` can be used to generically refer to the field currently
+being refined.
 
-    As an example, we can use `refine_struct` to automate the construction semigroup
-    instances:
-    ```
-    refine_struct ( { .. } : semigroup α ),
-    -- case semigroup, mul
-    -- α : Type u,
-    -- ⊢ α → α → α
+As an example, we can use `refine_struct` to automate the construction semigroup
+instances:
+```
+refine_struct ( { .. } : semigroup α ),
+-- case semigroup, mul
+-- α : Type u,
+-- ⊢ α → α → α
 
-    -- case semigroup, mul_assoc
-    -- α : Type u,
-    -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
-    ```
+-- case semigroup, mul_assoc
+-- α : Type u,
+-- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
+```
 -/
 meta def refine_struct : parse texpr → tactic unit | e :=
 do (x,xs) ← collect_struct e,
@@ -421,20 +445,29 @@ meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,
    expr.const_name <$> resolve_name (field.update_prefix str)
 
-/-- `have_field`, used after `refine_struct _` poses `field` as a local constant
-    with the type of the field of the current goal:
+meta def field (n : parse ident) (tac : itactic) : tactic unit :=
+do gs ← get_goals,
+   ts ← gs.mmap get_tag,
+   ([g],gs') ← pure $ (list.zip gs ts).partition (λ x, x.snd.nth 1 = some n),
+   set_goals [g.1],
+   tac, done,
+   set_goals $ gs'.map prod.fst
 
-    ```
-    refine_struct ({ .. } : semigroup α),
-    { have_field, ... },
-    { have_field, ... },
-    ```
-    behaves like
-    ```
-    refine_struct ({ .. } : semigroup α),
-    { have field := @semigroup.mul, ... },
-    { have field := @semigroup.mul_assoc, ... },
-    ```
+/--
+`have_field`, used after `refine_struct _` poses `field` as a local constant
+with the type of the field of the current goal:
+
+```
+refine_struct ({ .. } : semigroup α),
+{ have_field, ... },
+{ have_field, ... },
+```
+behaves like
+```
+refine_struct ({ .. } : semigroup α),
+{ have field := @semigroup.mul, ... },
+{ have field := @semigroup.mul_assoc, ... },
+```
 -/
 meta def have_field : tactic unit :=
 propagate_tags $
@@ -474,31 +507,34 @@ by apply_rules mono_rules
 meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
 tactic.apply_rules hs n
 
-meta def return_cast (f : option expr) (t : option (expr × expr)) (es : list expr) (e x x' : expr) :
-  tactic (option (expr × expr) × list expr) :=
+meta def return_cast (f : option expr) (t : option (expr × expr))
+  (es : list (expr × expr × expr))
+  (e x x' eq_h : expr) :
+  tactic (option (expr × expr) × list (expr × expr × expr)) :=
 (do guard (¬ e.has_var),
     unify x x',
     u ← mk_meta_univ,
     f ← f <|> to_expr ``(@id %%(expr.sort u : expr)),
     t' ← infer_type e,
-    some (f',t) ← pure t | return (some (f,t'), e :: es),
+    some (f',t) ← pure t | return (some (f,t'), (e,x',eq_h) :: es),
     infer_type e >>= is_def_eq t,
     unify f f',
-    return (some (f,t), e :: es)) <|>
+    return (some (f,t), (e,x',eq_h) :: es)) <|>
 return (t, es)
 
-meta def list_cast_of_aux (x : expr) (t : option (expr × expr)) (es : list expr) :
-  expr → tactic (option (expr × expr) × list expr)
-| e@`(cast _ %%x') := return_cast none t es e x x'
-| e@`(eq.mp _ %%x') := return_cast none t es e x x'
-| e@`(eq.mpr _ %%x') := return_cast none t es e x x'
-| e@`(@eq.subst %%α %%p %%a %%b _ %%x') := return_cast p t es e x x'
-| e@`(@eq.substr %%α %%p %%a %%b _ %%x') := return_cast p t es e x x'
-| e@`(@eq.rec %%α %%a %%f %%x' _ _) := return_cast f t es e x x'
-| e@`(@eq.rec_on %%α %%a %%f %%b _ %%x') := return_cast f t es e x x'
+meta def list_cast_of_aux (x : expr) (t : option (expr × expr))
+  (es : list (expr × expr × expr)) :
+  expr → tactic (option (expr × expr) × list (expr × expr × expr))
+| e@`(cast %%eq_h %%x') := return_cast none t es e x x' eq_h
+| e@`(eq.mp %%eq_h %%x') := return_cast none t es e x x' eq_h
+| e@`(eq.mpr %%eq_h %%x') := mk_eq_symm eq_h >>= return_cast none t es e x x'
+| e@`(@eq.subst %%α %%p %%a %%b  %%eq_h %%x') := return_cast p t es e x x' eq_h
+| e@`(@eq.substr %%α %%p %%a %%b %%eq_h %%x') := mk_eq_symm eq_h >>= return_cast p t es e x x'
+| e@`(@eq.rec %%α %%a %%f %%x' _  %%eq_h) := return_cast f t es e x x' eq_h
+| e@`(@eq.rec_on %%α %%a %%f %%b  %%eq_h %%x') := return_cast f t es e x x' eq_h
 | e := return (t,es)
 
-meta def list_cast_of (x tgt : expr) : tactic (list expr) :=
+meta def list_cast_of (x tgt : expr) : tactic (list (expr × expr × expr)) :=
 (list.reverse ∘ prod.snd) <$> tgt.mfold (none, []) (λ e i es, list_cast_of_aux x es.1 es.2 e)
 
 private meta def h_generalize_arg_p_aux : pexpr → parser (pexpr × name)
@@ -508,20 +544,21 @@ private meta def h_generalize_arg_p_aux : pexpr → parser (pexpr × name)
 private meta def h_generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr == id" $ parser.pexpr 0 >>= h_generalize_arg_p_aux
 
-/-- `h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
-    `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
-    times (not necessarily with the same proof), they are all replaced by `x`. `cast`
-    `eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
-    as casts.
+/--
+`h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
+`x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
+times (not necessarily with the same proof), they are all replaced by `x`. `cast`
+`eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
+as casts.
 
-    `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`.
+`h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`.
 
-    `h_generalize Hx : e == x with _` chooses automatically chooses the name of
-    assumption `α = β`.
+`h_generalize Hx : e == x with _` chooses automatically chooses the name of
+assumption `α = β`.
 
-    `h_generalize! Hx : e == x` reverts `Hx`.
+`h_generalize! Hx : e == x` reverts `Hx`.
 
-    when `Hx` is omitted, assumption `Hx : e == x` is not added.
+when `Hx` is omitted, assumption `Hx : e == x` is not added.
 -/
 meta def h_generalize (rev : parse (tk "!")?)
      (h : parse ident_?)
@@ -534,22 +571,23 @@ do let (e,n) := arg,
    h' ← (h' : tactic name) <|> get_unused_name ("h" ++ n.to_string : string),
    e ← to_expr e,
    tgt ← target,
-   (e::es) ← list_cast_of e tgt | fail "no cast found",
+   ((e,x,eq_h)::es) ← list_cast_of e tgt | fail "no cast found",
    interactive.generalize h' () (to_pexpr e, n),
    asm ← get_local h',
    v ← get_local n,
-   hs ← es.mmap (λ e, mk_app `eq [e,v]),
+   hs ← es.mmap (λ ⟨e,_⟩, mk_app `eq [e,v]),
    (eqs_h.zip [e]).mmap' (λ ⟨h,e⟩, do
         h ← if h ≠ `_ then pure h else get_unused_name `h,
-        p ← mk_mvar, a ← mk_mvar, b ← mk_mvar, c ← mk_mvar,
-        to_expr ``(@eq.rec %%a %%b %%c _ _ %%p) >>= unify e,
-        () <$ note h none p ),
+        () <$ note h none eq_h ),
    hs.mmap' (λ h,
      do h' ← assert `h h,
         tactic.exact asm,
         try (rewrite_target h'),
         tactic.clear h' ),
-   when h.is_some $ to_expr ``(heq_of_eq_rec_left _ %%asm) >>= note h' none >> pure (),
+   when h.is_some (do
+     (to_expr ``(heq_of_eq_rec_left %%eq_h %%asm)
+       <|> to_expr ``(heq_of_eq_mp %%eq_h %%asm))
+     >>= note h' none >> pure ()),
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
 

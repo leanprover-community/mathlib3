@@ -26,6 +26,11 @@ arguments, such as `⟨a, b, c⟩` for splitting on `∃ x, ∃ y, p x`, then it
 will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last parameter as
 necessary.
 
+`rcases? e` will perform case splits on `e` in the same way as `rcases e`,
+but rather than accepting a pattern, it does a maximal cases and prints the
+pattern that would produce this case splitting. The default maximum depth is 5,
+but this can be modified with `rcases? e : n`.
+
 ### rintro
 
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
@@ -33,6 +38,11 @@ allow for destructuring patterns while introducing variables. See `rcases` for
 a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
 will introduce two variables, and then do case splits on both of them producing
 two subgoals, one with variables `a d e` and the other with `b c d e`.
+
+`rintro?` will introduce and case split on variables in the same way as
+`rintro`, but will also print the `rintro` invocation that would have the same
+result. Like `rcases?`, `rintro? : n` allows for modifying the
+depth of splitting; the default is 5.
 
 ### simpa
 
@@ -233,3 +243,22 @@ as casts.
     assumption `α = β`;
   - `h_generalize! Hx : e == x` reverts `Hx`;
   - when `Hx` is omitted, assumption `Hx : e == x` is not added.
+
+### pi_instance
+
+`pi_instance` constructs an instance of `my_class (Π i : I, f i)`
+where we know `Π i, my_class (f i)`. If an order relation is required,
+it defaults to `pi.partial_order`. Any field of the instance that
+`pi_instance` cannot construct is left untouched and generated as a
+new goal.
+
+## def_replacer
+
+`def_replacer foo` sets up a stub definition `foo : tactic unit`, which can 
+effectively be defined and re-defined later, by tagging definitions with `@[foo]`.
+
+- `@[foo] meta def foo_1 : tactic unit := ...` replaces the current definition of `foo`.
+- `@[foo] meta def foo_2 (old : tactic unit) : tactic unit := ...` replaces the current 
+  definition of `foo`, and provides access to the previous definition via `old`. 
+  (The argument can also be an `option (tactic unit)`, which is provided as `none` if 
+  this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.) 

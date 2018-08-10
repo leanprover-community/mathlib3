@@ -162,7 +162,7 @@ variables [has_zero β₁] [has_zero β₂] [decidable_eq β₂]
 /-- The composition of `f : β₁ → β₂` and `g : α →₀ β₁` is
   `map_range f hf g : α →₀ β₂`, well defined when `f 0 = 0`. -/
 def map_range (f : β₁ → β₂) (hf : f 0 = 0) (g : α →₀ β₁) : α →₀ β₂ :=
-on_finset  g.support (f ∘ g) $
+on_finset g.support (f ∘ g) $
   assume a, by rw [mem_support_iff, not_imp_not]; simp [hf] {contextual := tt}
 
 @[simp] lemma map_range_apply {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {a : α} :
@@ -172,6 +172,11 @@ rfl
 lemma support_map_range {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} :
   (map_range f hf g).support ⊆ g.support :=
 support_on_finset_subset
+
+variables [decidable_eq α] [decidable_eq β₁]
+@[simp] lemma map_range_single {f : β₁ → β₂} {hf : f 0 = 0} {a : α} {b : β₁} :
+  map_range f hf (single a b) = single a (f b) :=
+finsupp.ext $ λ a', by by_cases a = a'; [{subst a', simp}, simp [h, hf]]
 
 end map_range
 

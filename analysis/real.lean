@@ -355,10 +355,4 @@ compact_of_totally_bounded_is_closed
   (real.totally_bounded_Icc a b)
   (is_closed_inter (is_closed_ge' a) (is_closed_le' b))
 
-lemma exists_supremum_real {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ upper_bounds s) :
-  ∃x, is_lub s x :=
-⟨real.Sup s,
-  λ x xs, real.le_Sup s ⟨_, hb⟩ xs,
-  λ u h, real.Sup_le_ub _ ⟨_, ha⟩ h⟩
-
 end

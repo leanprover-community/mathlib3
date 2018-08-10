@@ -5,6 +5,7 @@ Authors: Mitchell Rowett, Scott Morrison
 -/
 import group_theory.subgroup data.equiv.basic data.quot
 open set function
+
 variable {α : Type*}
 
 def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
@@ -179,9 +180,9 @@ instance [group α] (s : set α) [normal_subgroup s] : group (left_cosets s) :=
 { one := (1 : α),
   mul := λ a b, quotient.lift_on₂' a b
     (λ a b, ((a * b : α) : left_cosets s))
-    (λ a₁ a₂ b₁ b₂ hab₁ hab₂,
+  (λ a₁ a₂ b₁ b₂ hab₁ hab₂,
       quot.sound
-      ((is_subgroup.mul_mem_cancel_left s (is_subgroup.inv_mem hab₂)).1
+    ((is_subgroup.mul_mem_cancel_left s (is_subgroup.inv_mem hab₂)).1
         (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
           mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
           exact normal_subgroup.normal _ hab₁ _))),

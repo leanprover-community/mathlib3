@@ -42,32 +42,25 @@ instance : setoid (α × S) :=
 
 def loc := quotient $ localization.setoid α S
 
-private def add_aux : α × S → α × S → loc α S :=
-λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, ⟦⟨s₁ * r₂ + s₂ * r₁, s₁ * s₂, is_submonoid.mul_mem hs₁ hs₂⟩⟧
-
 instance : has_add (loc α S) :=
-⟨quotient.lift₂ (add_aux α S) $
+⟨quotient.lift₂
+  (λ x y : α × S, (⟦⟨x.2 * y.1 + y.2 * x.1, _, is_submonoid.mul_mem x.2.2 y.2.2⟩⟧ : loc α S)) $
   λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨r₄, s₄, hs₄⟩ ⟨t₅, hts₅, ht₅⟩ ⟨t₆, hts₆, ht₆⟩,
   quotient.sound ⟨t₆ * t₅, is_submonoid.mul_mem hts₆ hts₅,
     calc (s₁ * s₂ * (s₃ * r₄ + s₄ * r₃) - s₃ * s₄ * (s₁ * r₂ + s₂ * r₁)) * (t₆ * t₅) =
       s₁ * s₃ * ((s₂ * r₄ - s₄ * r₂) * t₆) * t₅ + s₂ * s₄ * ((s₁ * r₃ - s₃ * r₁) * t₅) * t₆ : by ring
       ... = 0 : by rw [ht₆, ht₅]; simp⟩⟩
 
-private def neg_aux : α × S → loc α S :=
-λ ⟨r, s, hs⟩, ⟦⟨-r, s, hs⟩⟧
-
 instance : has_neg (loc α S) :=
-⟨quotient.lift (neg_aux α S) $
+⟨quotient.lift (λ x : α × S, (⟦⟨-x.1, x.2⟩⟧ : loc α S)) $
   λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨t, hts, ht⟩,
   quotient.sound ⟨t, hts,
     calc (s₁ * -r₂ - s₂ * -r₁) * t = -((s₁ * r₂ - s₂ * r₁) * t) : by ring
       ... = 0 : by rw ht; simp⟩⟩
 
-private def mul_aux : α × S → α × S → loc α S :=
-λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, ⟦⟨r₁ * r₂, s₁ * s₂, is_submonoid.mul_mem hs₁ hs₂⟩⟧
-
 instance : has_mul (loc α S) :=
-⟨quotient.lift₂ (mul_aux α S) $
+⟨quotient.lift₂
+  (λ x y : α × S, (⟦⟨x.1 * y.1, _, is_submonoid.mul_mem x.2.2 y.2.2⟩⟧ : loc α S)) $
   λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨r₄, s₄, hs₄⟩ ⟨t₅, hts₅, ht₅⟩ ⟨t₆, hts₆, ht₆⟩,
   quotient.sound ⟨t₆ * t₅, is_submonoid.mul_mem hts₆ hts₅,
     calc ((s₁ * s₂) * (r₃ * r₄) - (s₃ * s₄) * (r₁ * r₂)) * (t₆ * t₅) =
@@ -201,7 +194,7 @@ lemma mem_non_zero_divisors_of_ne_zero {x : β} :
 
 variable (β)
 
-private def inv_aux : β × (non_zero_divisors β) → quotient_ring β :=
+def inv_aux : β × (non_zero_divisors β) → quotient_ring β :=
 λ ⟨r, s, hs⟩, if h : r = 0 then 0 else ⟦⟨s, r, mem_non_zero_divisors_of_ne_zero h⟩⟧
 
 instance : has_inv (quotient_ring β) :=

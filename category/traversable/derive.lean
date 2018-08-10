@@ -329,16 +329,18 @@ do `(@is_lawful_traversable %%f %%d) ← target,
                    eqns'.map simp_arg_type.expr ++
                   [simp_arg_type.all_hyps],
    let comp_def := [ simp_arg_type.expr ``(function.comp) ],
-   let map_tr   := [ simp_arg_type.expr ``(traversable.map_traverse') ],
-   let tr_map := list.map simp_arg_type.expr [```(traversable.traverse_map' g),```(traversable.traverse_map' ((<$>) g))],
-   let natur  := [simp_arg_type.expr ```(traversable.naturality_pf η)],
+   let tr_map := list.map simp_arg_type.expr [``(traversable.traverse_eq_map_id')],
+   let natur  := λ (η : expr), [simp_arg_type.expr ``(traversable.naturality_pf %%η)],
    let goal := loc.ns [none],
    constructor;
      [ traversable_law_starter def_eqns; refl,
        traversable_law_starter def_eqns; (refl <|> simp_functor (def_eqns ++ comp_def)),
-       traversable_law_starter def_eqns; (refl <|> simp_functor (def_eqns ++ map_tr)),
        traversable_law_starter def_eqns; (refl <|> simp none tt tr_map [] goal ),
-       traversable_law_starter def_eqns; (refl <|> simp none tt natur  [] goal) ];
+       traversable_law_starter def_eqns; (refl <|> do
+         η ← get_local `η <|> do {
+           t ← mk_const ``is_lawful_traversable.naturality >>= infer_type >>= pp,
+           fail format!"expecting an `applicative_transformation` called `η` in\nnaturality : {t}"},
+         simp none tt (natur η) [] goal) ];
    refl,
    return ()
 

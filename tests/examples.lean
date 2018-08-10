@@ -133,7 +133,7 @@ inductive either (α : Type u)
 structure my_struct2 (α : Type u) : Type u :=
   (x : α)
   (y : ℤ)
-  (z : list α)
+  (η : list α)
   (k : list (list α))
 
 @[derive [traversable, is_lawful_traversable]]

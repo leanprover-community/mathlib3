@@ -97,11 +97,10 @@ lemma traverse_comp (g : α → F β) (h : β → G γ) :
   (comp.mk ∘ map (traverse h) ∘ traverse g : t α → comp F G (t γ)) :=
 by ext; simp [comp_traverse]
 
--- @[functor_norm]
-lemma map_traverse' (g : α → G β) (h : β → γ) :
-  traverse (map h ∘ g) =
-  (map (map h) ∘ traverse g : t α → G (t γ)) :=
-by ext; simp [map_traverse]
+lemma traverse_eq_map_id' (f : β → γ) :
+  traverse (id.mk ∘ f) =
+  id.mk ∘ (map f : t β → t γ) :=
+by ext;rw traverse_eq_map_id
 
 -- @[functor_norm]
 lemma traverse_map' (g : α → β) (h : β → G γ) :

@@ -167,3 +167,56 @@ end trunc
 
 theorem nonempty_of_trunc (q : trunc α) : nonempty α :=
 let ⟨a, _⟩ := q.exists_rep in ⟨a⟩
+
+namespace quotient
+variables {γ : Sort*} {φ : Sort*} 
+  {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
+
+/- Versions of quotient definitions and lemmas ending in `'` use unification instead
+of typeclass inference for inferring the `setoid` argument. This is useful when there are
+several different quotient relations on a type, for example quotient groups, rings and modules -/
+
+protected def mk' (a : α) : quotient s₁ := quot.mk s₁.1 a
+
+@[elab_as_eliminator, reducible]
+protected def lift_on' (q : quotient s₁) (f : α → φ) 
+  (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) : φ := quotient.lift_on q f h
+
+@[elab_as_eliminator, reducible]
+protected def lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → γ)
+  (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂) : γ :=
+quotient.lift_on₂ q₁ q₂ f h
+
+@[elab_as_eliminator]
+protected lemma induction_on' {p : quotient s₁ → Prop} (q : quotient s₁)
+  (h : ∀ a, p (quotient.mk' a)) : p q := quotient.induction_on q h
+
+@[elab_as_eliminator]
+protected lemma induction_on₂' {p : quotient s₁ → quotient s₂ → Prop} (q₁ : quotient s₁)
+  (q₂ : quotient s₂) (h : ∀ a₁ a₂, p (quotient.mk' a₁) (quotient.mk' a₂)) : p q₁ q₂ :=
+quotient.induction_on₂ q₁ q₂ h
+
+@[elab_as_eliminator]
+protected lemma induction_on₃' {p : quotient s₁ → quotient s₂ → quotient s₃ → Prop} 
+  (q₁ : quotient s₁) (q₂ : quotient s₂) (q₃ : quotient s₃) 
+  (h : ∀ a₁ a₂ a₃, p (quotient.mk' a₁) (quotient.mk' a₂) (quotient.mk' a₃)) : p q₁ q₂ q₃ :=
+quotient.induction_on₃ q₁ q₂ q₃ h
+
+lemma exact' {a b : α} : 
+  (quotient.mk' a : quotient s₁) = quotient.mk' b → @setoid.r _ s₁ a b :=
+quotient.exact
+
+lemma sound' {a b : α} : @setoid.r _ s₁ a b → @quotient.mk' α s₁ a = quotient.mk' b :=
+quotient.sound
+
+@[simp] protected lemma eq' {a b : α} : @quotient.mk' α s₁ a = quotient.mk' b ↔ @setoid.r _ s₁ a b :=
+quotient.eq
+
+noncomputable def out' (a : quotient s₁) : α := quotient.out a
+
+@[simp] theorem out_eq' (q : quotient s₁) : quotient.mk' q.out' = q := q.out_eq
+
+theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a).out a :=
+quotient.exact (quotient.out_eq _) 
+
+end quotient

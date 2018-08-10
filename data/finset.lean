@@ -101,6 +101,10 @@ instance : partial_order (finset α) :=
 @[simp] theorem le_iff_subset {s₁ s₂ : finset α} : s₁ ≤ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 @[simp] theorem lt_iff_ssubset {s₁ s₂ : finset α} : s₁ < s₂ ↔ s₁ ⊂ s₂ := iff.rfl
 
+@[simp] lemma coe_ssubset {s₁ s₂ : finset α} : (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊂ s₂ :=
+show (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
+  by simp [set.ssubset_iff_subset_not_subset] {contextual := tt}
+
 @[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
 and_congr val_le_iff $ not_congr val_le_iff
 
@@ -1210,8 +1214,8 @@ theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :
 (@le_sup (with_bot α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
 theorem max_eq_none {s : finset α} : s.max = none ↔ s = ∅ :=
-⟨λ h, by_contradiction 
-  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in 
+⟨λ h, by_contradiction
+  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in
   let ⟨b, hb⟩ := max_of_mem ha in
   by simpa [h] using hb),
 λ h, h.symm ▸ max_empty⟩
@@ -1251,8 +1255,8 @@ theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :
 (@inf_le (with_top α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
 theorem min_eq_none {s : finset α} : s.min = none ↔ s = ∅ :=
-⟨λ h, by_contradiction 
-  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in 
+⟨λ h, by_contradiction
+  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in
   let ⟨b, hb⟩ := min_of_mem ha in
   by simpa [h] using hb),
 λ h, h.symm ▸ min_empty⟩

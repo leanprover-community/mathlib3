@@ -25,49 +25,49 @@ run_cmd mk_simp_attr `functor_norm
 end functor
 
 section applicative
-variables {f : Type u → Type v} [applicative f]
+variables {F : Type u → Type v} [applicative F]
 
 def mzip_with
   {α₁ α₂ φ : Type u}
-  (g : α₁ → α₂ → f φ) :
-  Π (ma₁ : list α₁) (ma₂: list α₂), f (list φ)
-| (x :: xs) (y :: ys) := (::) <$> g x y <*> mzip_with xs ys
+  (f : α₁ → α₂ → F φ) :
+  Π (ma₁ : list α₁) (ma₂: list α₂), F (list φ)
+| (x :: xs) (y :: ys) := (::) <$> f x y <*> mzip_with xs ys
 | _ _ := pure []
 
-def mzip_with'  (g : α → β → f γ) : list α → list β → f punit
-| (x :: xs) (y :: ys) := g x y *> mzip_with' xs ys
+def mzip_with'  (f : α → β → F γ) : list α → list β → F punit
+| (x :: xs) (y :: ys) := f x y *> mzip_with' xs ys
 | [] _ := pure punit.star
 | _ [] := pure punit.star
 
-protected def option.traverse {α β : Type*} (g : α → f β) : option α → f (option β)
+protected def option.traverse {α β : Type*} (f : α → F β) : option α → F (option β)
 | none := pure none
-| (some x) := some <$> g x
+| (some x) := some <$> f x
 
-protected def list.traverse {α β : Type*} (g : α → f β) : list α → f (list β)
+protected def list.traverse {α β : Type*} (f : α → F β) : list α → F (list β)
 | [] := pure []
-| (x :: xs) := list.cons <$> g x <*> list.traverse xs
+| (x :: xs) := list.cons <$> f x <*> list.traverse xs
 
-variables [is_lawful_applicative f]
+variables [is_lawful_applicative F]
 
 attribute [functor_norm] seq_assoc pure_seq_eq_map
 
-@[simp] theorem pure_id'_seq (x : f α) : pure (λx, x) <*> x = x :=
+@[simp] theorem pure_id'_seq (x : F α) : pure (λx, x) <*> x = x :=
 pure_id_seq x
 
-variables  [is_lawful_applicative f]
+variables  [is_lawful_applicative F]
 
 attribute [functor_norm] seq_assoc pure_seq_eq_map
 
-@[functor_norm] theorem seq_map_assoc (x : f (α → β)) (g : γ → α) (y : f γ) :
-  (x <*> (g <$> y)) = (λ(m:α→β), m ∘ g) <$> x <*> y :=
+@[functor_norm] theorem seq_map_assoc (x : F (α → β)) (f : γ → α) (y : F γ) :
+  (x <*> (f <$> y)) = (λ(m:α→β), m ∘ f) <$> x <*> y :=
 begin
   simp [(pure_seq_eq_map _ _).symm],
   simp [seq_assoc, (comp_map _ _ _).symm, (∘)],
   simp [pure_seq_eq_map]
 end
 
-@[functor_norm] theorem map_seq (g : β → γ) (x : f (α → β)) (y : f α) :
-  (g <$> (x <*> y)) = ((∘) g) <$> x <*> y :=
+@[functor_norm] theorem map_seq (f : β → γ) (x : F (α → β)) (y : F α) :
+  (f <$> (x <*> y)) = ((∘) f) <$> x <*> y :=
 by simp [(pure_seq_eq_map _ _).symm]; simp [seq_assoc]
 
 end applicative
@@ -89,17 +89,17 @@ lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x))
 end monad
 
 section alternative
-variables {f : Type → Type v} [alternative f]
+variables {F : Type → Type v} [alternative F]
 
-def succeeds {α} (x : f α) : f bool := (x $> tt) <|> pure ff
+def succeeds {α} (x : F α) : F bool := (x $> tt) <|> pure ff
 
-def mtry {α} (x : f α) : f unit := (x $> ()) <|> pure ()
+def mtry {α} (x : F α) : F unit := (x $> ()) <|> pure ()
 
 @[simp] theorem guard_true {h : decidable true} :
-  @guard f _ true h = pure () := by simp [guard]
+  @guard F _ true h = pure () := by simp [guard]
 
 @[simp] theorem guard_false {h : decidable false} :
-  @guard f _ false h = failure := by simp [guard]
+  @guard F _ false h = failure := by simp [guard]
 
 end alternative
 

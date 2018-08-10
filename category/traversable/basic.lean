@@ -76,14 +76,14 @@ end functions
 class is_lawful_traversable (t : Type u → Type u) [traversable t]
   extends is_lawful_functor t : Type (u+1) :=
 (id_traverse : ∀ {α} (x : t α), traverse id.mk x = x )
-(comp_traverse : ∀ {G H} [applicative G] [applicative H]
-    [is_lawful_applicative G] [is_lawful_applicative H]
-    {α β γ} (f : β → H γ) (g : α → G β) (x : t α),
+(comp_traverse : ∀ {F G} [applicative F] [applicative G]
+    [is_lawful_applicative F] [is_lawful_applicative G]
+    {α β γ} (f : β → F γ) (g : α → G β) (x : t α),
   traverse (comp.mk ∘ map f ∘ g) x =
   comp.mk (map (traverse f) (traverse g x)))
 (traverse_eq_map_id : ∀ {α β} (f : α → β) (x : t α),
   traverse (id.mk ∘ f) x = id.mk (f <$> x))
-(naturality : ∀ {G H} [applicative G] [applicative H]
-    [is_lawful_applicative G] [is_lawful_applicative H]
-    (η : applicative_transformation G H) {α β} (f : α → G β) (x : t α),
+(naturality : ∀ {F G} [applicative F] [applicative G]
+    [is_lawful_applicative F] [is_lawful_applicative G]
+    (η : applicative_transformation F G) {α β} (f : α → F β) (x : t α),
   η (traverse f x) = traverse (@η _ ∘ f) x)

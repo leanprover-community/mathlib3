@@ -21,12 +21,13 @@ by cases j; simp [fin.pred]
 @[simp] protected lemma eta (a : fin n) (h : a.1 < n) : (⟨a.1, h⟩ : fin n) = a :=
 by cases a; refl
 
-instance {n : ℕ} : linear_order (fin n) :=
+instance {n : ℕ} : decidable_linear_order (fin n) :=
 { le_refl := λ a, @le_refl ℕ _ _,
   le_trans := λ a b c, @le_trans ℕ _ _ _ _,
   le_antisymm := λ a b ha hb, fin.eq_of_veq $ le_antisymm ha hb,
   le_total := λ a b, @le_total ℕ _ _ _,
   lt_iff_le_not_le := λ a b, @lt_iff_le_not_le ℕ _ _ _,
+  decidable_le := fin.decidable_le,
   ..fin.has_le,
   ..fin.has_lt }
 

@@ -179,6 +179,11 @@ instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp�
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {ff, tt} := rfl
 
+instance units_int.fintype : fintype (units ℤ) :=
+⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
+
+@[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
+
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
 def finset.insert_none (s : finset α) : finset (option α) :=

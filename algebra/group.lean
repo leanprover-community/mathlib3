@@ -247,6 +247,8 @@ by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
 instance {α} [comm_monoid α] : comm_group (units α) :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
 
+instance [has_repr α] : has_repr (units α) := ⟨repr ∘ val⟩
+
 @[simp] theorem mul_left_inj (a : units α) {b c : α} : (a:α) * b = a * c ↔ b = c :=
 ⟨λ h, by simpa using congr_arg ((*) ↑(a⁻¹ : units α)) h, congr_arg _⟩
 
@@ -576,6 +578,19 @@ end add_comm_group
 
 variables {β : Type*} [group α] [group β]
 
+def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
+
+@[refl] lemma is_conj_refl (a : α) : is_conj a a := ⟨1, by simp⟩
+
+@[symm] lemma is_conj_symm (a b : α) : is_conj a b → is_conj b a
+| ⟨c, hc⟩ := ⟨c⁻¹, by simp [hc.symm, mul_assoc]⟩
+
+@[trans] lemma is_conj_trans (a b c : α) : is_conj a b → is_conj b c → is_conj a c
+| ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, by simp [hc₁.symm, hc₂.symm, mul_assoc]⟩
+
+@[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
+⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩
+
 /-- Predicate for group homomorphism. -/
 class is_group_hom (f : α → β) : Prop :=
 (mul : ∀ a b : α, f (a * b) = f a * f b)
@@ -597,6 +612,9 @@ instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] :
 ⟨λ x y, calc
   g (f (x * y)) = g (f x * f y)       : by rw mul f
   ...           = g (f x) * g (f y)   : by rw mul g⟩
+
+protected lemma is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a b → is_conj (f a) (f b)
+| ⟨c, hc⟩ := ⟨f c, by rw [← is_group_hom.mul f, ← is_group_hom.inv f, ← is_group_hom.mul f, hc]⟩
 
 end is_group_hom
 

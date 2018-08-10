@@ -41,7 +41,7 @@ attribute [to_additive has_neg] has_inv
 /- map constructors -/
 attribute [to_additive has_add.mk] has_mul.mk
 attribute [to_additive has_zero.mk] has_one.mk
-attribute [to_additive has_neg.mk] has_neg.mk
+attribute [to_additive has_neg.mk] has_inv.mk
 
 /- map structures -/
 attribute [to_additive add_semigroup] semigroup

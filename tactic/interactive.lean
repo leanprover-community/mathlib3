@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs meta.expr logic.basic
-  tactic.ext tactic.tauto
+  tactic.ext tactic.tauto tactic.replacer
 
 open lean
 open lean.parser
@@ -21,35 +21,33 @@ open interactive interactive.types expr
 local notation `listΣ` := list_Sigma
 local notation `listΠ` := list_Pi
 
-/--
-This parser uses the "inverted" meaning for the `many` constructor:
-rather than representing a sum of products, here it represents a
-product of sums. We fix this by applying `invert`, defined below, to
-the result.
--/
-@[reducible] def rcases_patt_inverted := rcases_patt
-
-meta def rcases_parse1 (rcases_parse : parser (listΣ rcases_patt_inverted)) :
+meta def rcases_patt_parse_core
+  (rcases_patt_parse_list : parser (listΣ rcases_patt_inverted)) :
   parser rcases_patt_inverted | x :=
-((rcases_patt.one <$> ident_) <|>
-(rcases_patt.many <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_parse))) x
+((rcases_patt_inverted.one <$> ident_) <|>
+(rcases_patt_inverted.many <$> brackets "⟨" "⟩"
+  (sep_by (tk ",") rcases_patt_parse_list))) x
 
-meta def rcases_parse : parser (listΣ rcases_patt_inverted) :=
+meta def rcases_patt_parse_list : parser (listΣ rcases_patt_inverted) :=
 with_desc "patt" $
-list.cons <$> rcases_parse1 rcases_parse <*> (tk "|" *> rcases_parse1 rcases_parse)*
+list.cons <$> rcases_patt_parse_core rcases_patt_parse_list <*>
+  (tk "|" *> rcases_patt_parse_core rcases_patt_parse_list)*
 
-meta def rcases_parse_single : parser rcases_patt_inverted :=
-with_desc "patt_list" $ rcases_parse1 rcases_parse
+meta def rcases_patt_parse : parser rcases_patt_inverted :=
+with_desc "patt_list" $ rcases_patt_parse_core rcases_patt_parse_list
 
-meta mutual def rcases_parse.invert, rcases_parse.invert'
-with rcases_parse.invert : listΣ rcases_patt_inverted → listΣ (listΠ rcases_patt)
-| l := l.map $ λ p, match p with
-| rcases_patt.one n := [rcases_patt.one n]
-| rcases_patt.many l := rcases_parse.invert' <$> l
-end
-with rcases_parse.invert' : listΣ rcases_patt_inverted → rcases_patt
-| [rcases_patt.one n] := rcases_patt.one n
-| l := rcases_patt.many (rcases_parse.invert l)
+meta def rcases_parse_depth : parser nat :=
+do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
+
+meta def rcases_parse : parser (pexpr × (listΣ (listΠ rcases_patt) ⊕ nat)) :=
+do hint ← (tk "?")?,
+  p ← texpr,
+  match hint with
+  | none := do
+    ids ← (tk "with" *> rcases_patt_parse_list)?,
+    pure (p, sum.inl $ rcases_patt_inverted.invert_list (ids.get_or_else [default _]))
+  | some _ := do depth ← rcases_parse_depth, pure (p, sum.inr depth)
+  end
 
 /--
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
@@ -70,13 +68,24 @@ such as `⟨⟨a⟩, b | c⟩ | d` then these will cause more case splits as nec
 If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
 `∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
 parameter as necessary.
--/
-meta def rcases (p : parse texpr) (ids : parse (tk "with" *> rcases_parse)?) : tactic unit :=
-tactic.rcases p $ rcases_parse.invert $ ids.get_or_else [default _]
 
-meta def rintro_parse : parser rcases_patt :=
-rcases_parse.invert' <$> (brackets "(" ")" rcases_parse <|>
-  (λ x, [x]) <$> rcases_parse_single)
+`rcases? e` will perform case splits on `e` in the same way as `rcases e`,
+but rather than accepting a pattern, it does a maximal cases and prints the
+pattern that would produce this case splitting. The default maximum depth is 5,
+but this can be modified with `rcases? e : n`.
+-/
+meta def rcases : parse rcases_parse → tactic unit
+| (p, sum.inl ids) := tactic.rcases p ids
+| (p, sum.inr depth) := do
+  patt ← tactic.rcases_hint p depth,
+  pe ← pp p,
+  trace $ ↑"snippet: rcases " ++ pe ++ " with " ++ to_fmt patt
+
+meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
+(tk "?" >> sum.inr <$> rcases_parse_depth) <|>
+sum.inl <$> (rcases_patt_inverted.invert <$>
+  (brackets "(" ")" rcases_patt_parse_list <|>
+  (λ x, [x]) <$> rcases_patt_parse))*
 
 /--
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
@@ -84,10 +93,19 @@ allow for destructuring patterns while introducing variables. See `rcases` for
 a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
 will introduce two variables, and then do case splits on both of them producing
 two subgoals, one with variables `a d e` and the other with `b c d e`.
+
+`rintro?` will introduce and case split on variables in the same way as
+`rintro`, but will also print the `rintro` invocation that would have the same
+result. Like `rcases?`, `rintro? : n` allows for modifying the
+depth of splitting; the default is 5.
 -/
-meta def rintro : parse rintro_parse* → tactic unit
-| [] := intros []
-| l  := tactic.rintro l
+meta def rintro : parse rintro_parse → tactic unit
+| (sum.inl []) := intros []
+| (sum.inl l)  := tactic.rintro l
+| (sum.inr depth) := do
+  ps ← tactic.rintro_hint depth,
+  trace $ ↑"snippet: rintro" ++ format.join (ps.map $ λ p,
+    format.space ++ format.group (p.format tt))
 
 /-- Alias for `rintro`. -/
 meta def rintros := rintro
@@ -126,8 +144,10 @@ end
 Never fails. Useful for debugging. -/
 meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
-   tactic.try_for max tac <|>
-     (tactic.trace "try_for timeout, using sorry" >> admit)
+  λ s, match _root_.try_for max (tac s) with
+  | some r := r
+  | none   := (tactic.trace "try_for timeout, using sorry" >> admit) s
+  end
 
 /-- Multiple subst. `substs x y z` is the same as `subst x, subst y, subst z`. -/
 meta def substs (l : parse ident*) : tactic unit :=

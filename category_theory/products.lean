@@ -7,7 +7,6 @@ namespace category_theory
 
 universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
 
-namespace category
 section
 variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
@@ -26,13 +25,19 @@ instance prod : category.{(max u₁ u₂) (max v₁ v₂)} (C × D) :=
 -- rfl lemmas for category.prod
 @[simp, ematch] lemma prod_id (X : C) (Y : D) : 𝟙 (X, Y) = (𝟙 X, 𝟙 Y) := rfl
 @[simp, ematch] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) : f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
+end
 
+section
+variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₁) [𝒟 : category.{u₁ v₁} D]
+include 𝒞 𝒟 
 /--
 `prod.category.uniform C D` is an additional instance specialised so both factors have the same universe levels. This helps typeclass resolution.
 -/
-instance uniform : category (C × D) := category.prod C D
+instance uniform_prod : category (C × D) := category_theory.prod C D
 end
 -- Next we define the natural functors into and out of product categories. For now this doesn't address the universal properties.
+
+namespace prod
 
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
 def inl (C : Type u₁) [category.{u₁ v₁} C] {D : Type u₁} [category.{u₁ v₁} D] (Z : D) : C ↝ (C × D) :=
@@ -62,7 +67,7 @@ def snd (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [catego
   map_id   := begin /- `obviously'` says: -/ intros, refl end,
   map_comp := begin /- `obviously'` says: -/ intros, refl end }
 
-end category
+end prod
 
 variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A] {B : Type u₂} [ℬ : category.{u₂ v₂} B] {C : Type u₃} [𝒞 : category.{u₃ v₃} C] {D : Type u₄} [𝒟 : category.{u₄ v₄} D]
 include 𝒜 ℬ 𝒞 𝒟

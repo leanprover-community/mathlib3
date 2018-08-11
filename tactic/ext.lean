@@ -1,6 +1,8 @@
 
 import tactic.basic
 
+universes u₁ u₂
+
 /--
  Tag lemmas of the form:
 
@@ -16,6 +18,13 @@ meta def extensional_attribute : user_attribute :=
   descr := "lemmas usable by `ext` tactic" }
 
 attribute [extensionality] _root_.funext array.ext
+
+namespace ulift
+@[extensionality] lemma ext {α : Type u₁} (X Y : ulift.{u₂} α) (w : X.down = Y.down) : X = Y :=
+begin
+  cases X, cases Y, dsimp at w, rw w,
+end
+end ulift
 
 namespace tactic
 open interactive interactive.types

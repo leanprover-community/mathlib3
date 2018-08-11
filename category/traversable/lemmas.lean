@@ -56,7 +56,7 @@ theorem map_traverse (x : t α) :
   map f <$> traverse g x = traverse (map f ∘ g) x :=
 begin
   rw @map_eq_traverse_id t _ _ _ _ f,
-  refine (comp_traverse (id.mk ∘ f) g x).symm.trans _,
+  refine (comp_traverse (id.mk ∘ f) g x).trans _,
   congr, apply comp.applicative_comp_id
 end
 
@@ -64,7 +64,7 @@ theorem traverse_map (f : β → F γ) (g : α → β) (x : t α) :
   traverse f (g <$> x) = traverse (f ∘ g) x :=
 begin
   rw @map_eq_traverse_id t _ _ _ _ g,
-  refine (comp_traverse f (id.mk ∘ g) x).symm.trans _,
+  refine (comp_traverse f (id.mk ∘ g) x).trans _,
   congr, apply comp.applicative_id_comp
 end
 
@@ -80,7 +80,7 @@ by simp [sequence, traverse_map, id_traverse]; refl
 
 lemma comp_sequence (x : t (F (G α))) :
   sequence (comp.mk <$> x) = comp.mk (sequence <$> sequence x) :=
-by simp [sequence, traverse_map]; rw ← comp_traverse; simp [map_id]
+by { simp [sequence], simp [sequence, traverse_map,comp_traverse,map_id], }
 
 lemma naturality' (η : applicative_transformation F G) (x : t (F α)) :
   η (sequence x) = sequence (@η _ <$> x) :=

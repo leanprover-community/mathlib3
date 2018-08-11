@@ -313,9 +313,10 @@ do `(@is_lawful_functor %%f %%d) ← target,
 meta def simp_functor (rs : list simp_arg_type := []) : tactic unit :=
 simp none ff rs [`functor_norm] (loc.ns [none])
 
-meta def traversable_law_starter (rs : list simp_arg_type) :=
+meta def traversable_law_starter (rs : list simp_arg_type) (sym := ff) :=
 do vs ← tactic.intros,
    resetI,
+   when sym $ symmetry,
    dunfold [``traversable.traverse,``functor.map] (loc.ns [none]),
    () <$ tactic.induction vs.ilast;
      simp_functor rs
@@ -334,7 +335,7 @@ do `(@is_lawful_traversable %%f %%d) ← target,
    let goal := loc.ns [none],
    constructor;
      [ traversable_law_starter def_eqns; refl,
-       traversable_law_starter def_eqns; (refl <|> simp_functor (def_eqns ++ comp_def)),
+       traversable_law_starter def_eqns tt; (refl <|> simp_functor (def_eqns ++ comp_def)),
        traversable_law_starter def_eqns; (refl <|> simp none tt tr_map [] goal ),
        traversable_law_starter def_eqns; (refl <|> do
          η ← get_local `η <|> do {
@@ -344,6 +345,7 @@ do `(@is_lawful_traversable %%f %%d) ← target,
    refl,
    return ()
 
+open interactive
 open function
 
 meta def guard_class (cls : name) (hdl : derive_handler) : derive_handler :=

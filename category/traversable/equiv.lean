@@ -83,7 +83,7 @@ variables [is_lawful_applicative F] [is_lawful_applicative G]
 variables (η : applicative_transformation F G)
 variables {α β γ : Type u}
 
-open is_lawful_traversable functor
+open traversable is_lawful_traversable functor
 
 protected lemma id_traverse (x : t' α) :
   equiv.traverse eqv id.mk x = x :=
@@ -94,9 +94,10 @@ protected lemma traverse_eq_map_id (f : α → β) (x : t' α) :
 by simp [equiv.traverse, traverse_eq_map_id] with functor_norm; refl
 
 protected lemma comp_traverse (f : β → F γ) (g : α → G β) (x : t' α) :
-  equiv.traverse eqv (comp.mk ∘ functor.map f ∘ g) x =
-  comp.mk (equiv.traverse eqv f <$> equiv.traverse eqv g x) :=
-by simp [equiv.traverse,comp_traverse] with functor_norm; congr; ext; simp
+  comp.mk (equiv.traverse eqv f <$> equiv.traverse eqv g x) =
+  equiv.traverse eqv (comp.mk ∘ functor.map f ∘ g) x :=
+by simp [equiv.traverse] with functor_norm;
+   congr' 2; ext; simp [equiv.traverse,comp_traverse]
 
 protected lemma naturality (f : α → F β) (x : t' α) :
   η (equiv.traverse eqv f x) = equiv.traverse eqv (@η _ ∘ f) x :=
@@ -125,8 +126,7 @@ begin
   refine {to_is_lawful_functor :=
     equiv.is_lawful_functor' eqv @h₀ @h₁, ..}; intros; resetI,
   { rw [h₂, equiv.id_traverse], apply_instance },
-  { rw [h₂, equiv.comp_traverse f g x, h₂], congr,
-    rw [h₂], all_goals { apply_instance } },
+  { simp [h₂, equiv.comp_traverse f g x, h₂] },
   { rw [h₂, equiv.traverse_eq_map_id, h₀]; apply_instance },
   { rw [h₂, equiv.naturality, h₂]; apply_instance }
 end

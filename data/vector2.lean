@@ -144,11 +144,11 @@ end
 open function
 
 protected lemma comp_traverse (f : β → F γ) (g : α → G β) : ∀ (x : vector α n),
-  vector.traverse (comp.mk ∘ functor.map f ∘ g) x =
-  comp.mk (vector.traverse f <$> vector.traverse g x) :=
-by rintro ⟨x, rfl⟩; dsimp [vector.traverse, cast];
+  comp.mk (vector.traverse f <$> vector.traverse g x) =
+  vector.traverse (comp.mk ∘ functor.map f ∘ g) x :=
+by{  rintro ⟨x, rfl⟩; dsimp [vector.traverse, cast]; symmetry;
    induction x with x xs; simp! [cast, *] with functor_norm;
-   [refl, simp [(∘)]]
+   [refl, simp [(∘)]] }
 
 protected lemma traverse_eq_map_id {α β} (f : α → β) : ∀ (x : vector α n),
   x.traverse (id.mk ∘ f) = id.mk (map f x) :=

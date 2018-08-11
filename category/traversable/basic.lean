@@ -79,8 +79,8 @@ class is_lawful_traversable (t : Type u → Type u) [traversable t]
 (comp_traverse : ∀ {F G} [applicative F] [applicative G]
     [is_lawful_applicative F] [is_lawful_applicative G]
     {α β γ} (f : β → F γ) (g : α → G β) (x : t α),
-  traverse (comp.mk ∘ map f ∘ g) x =
-  comp.mk (map (traverse f) (traverse g x)))
+  comp.mk (traverse f <$> traverse g x) =
+  traverse (comp.mk ∘ map f ∘ g) x)
 (traverse_eq_map_id : ∀ {α β} (f : α → β) (x : t α),
   traverse (id.mk ∘ f) x = id.mk (f <$> x))
 (naturality : ∀ {F G} [applicative F] [applicative G]

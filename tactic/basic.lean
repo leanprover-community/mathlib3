@@ -549,4 +549,65 @@ meta def choice : expr → list name → tactic unit
   v ← get_unused_name >>= choice1 h n,
   choice v ns
 
+open expr
+
+meta def add_prime : name → name
+| (name.mk_string s p) := name.mk_string (s ++ "'") p
+| n := (name.mk_string "x'" n)
+
+meta def mk_comp (v : expr) : expr → tactic expr
+| (app f e) :=
+  if e = v then pure f
+  else do
+    guard (¬ v.occurs f) <|> fail "bad guard",
+    e' ← mk_comp e >>= instantiate_mvars,
+    f ← instantiate_mvars f,
+    mk_mapp ``function.comp [none,none,none,f,e']
+| e :=
+  do guard (e = v),
+     t ← infer_type e,
+     mk_mapp ``id [t]
+
+meta def mk_higher_order_type : expr → tactic expr
+| (pi n bi d b@(pi _ _ _ _)) :=
+  do v ← mk_local_def n d,
+     let b' := (b.instantiate_var v),
+     (pi n bi d ∘ flip abstract_local v.local_uniq_name) <$> mk_higher_order_type b'
+| (pi n bi d b) :=
+  do v ← mk_local_def n d,
+     let b' := (b.instantiate_var v),
+     (l,r) ← match_eq b' <|> fail format!"not an equality {b'}",
+     l' ← mk_comp v l,
+     r' ← mk_comp v r,
+     mk_app ``eq [l',r']
+ | e := failed
+
+open lean.parser interactive.types
+
+@[user_attribute]
+meta def higher_order_attr : user_attribute unit (option name) :=
+{ name := `higher_order,
+  parser := optional ident,
+  descr :=
+"From a lemma of the shape `f (g x) = h x` derive an auxiliary lemma of the
+form `f ∘ g = h` for reasoning about higher-order functions.",
+  after_set := some $ λ lmm _ _,
+    do env  ← get_env,
+       decl ← env.get lmm,
+       let num := decl.univ_params.length,
+       let lvls := (list.iota num).map (`l).append_after,
+       let l : expr := expr.const lmm $ lvls.map level.param,
+       t ← infer_type l >>= instantiate_mvars,
+       t' ← mk_higher_order_type t,
+       (_,pr) ← solve_aux t' $ do {
+         intros, applyc ``_root_.funext, intro1, applyc lmm; assumption },
+       pr ← instantiate_mvars pr,
+       lmm' ← higher_order_attr.get_param lmm,
+       lmm' ← (flip name.update_prefix lmm.get_prefix <$> lmm') <|> pure (add_prime lmm),
+       add_decl $ declaration.thm lmm' lvls t' (pure pr),
+       copy_attribute `simp lmm tt lmm',
+       copy_attribute `functor_norm lmm tt lmm' }
+
+attribute [higher_order map_comp_pure] map_pure
+
 end tactic

@@ -11,14 +11,12 @@ import data.list.basic data.set.lattice
 
 universes u v
 
-open function
-
 instance : traversable id := ⟨λ _ _ _ _, id⟩
 instance : is_lawful_traversable id := by refine {..}; intros; refl
 
 section option
 
-open function functor
+open functor
 
 section inst
 
@@ -36,8 +34,8 @@ lemma option.id_traverse {α} (x : option α) : option.traverse id.mk x = x :=
 by cases x; refl
 
 lemma option.comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : option α) :
-  option.traverse (comp.mk ∘ (<$>) f ∘ g) x =
-  comp.mk (option.traverse f <$> option.traverse g x) :=
+  comp.mk (option.traverse f <$> option.traverse g x) =
+  option.traverse (comp.mk ∘ (<$>) f ∘ g) x :=
 by cases x; simp! with functor_norm; refl
 
 lemma option.traverse_eq_map_id {α β} (f : α → β) (x : option α) :
@@ -64,17 +62,17 @@ variables {F G : Type u → Type u}
 variables [applicative F] [applicative G]
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
-open applicative functor
+open applicative functor is_lawful_traversable
 open list (cons)
 
 protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=
 by induction xs; simp! * with functor_norm; refl
 
-protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
-  list.traverse (comp.mk ∘ (<$>) f ∘ g) x =
-  comp.mk (list.traverse f <$> list.traverse g x) :=
-by induction x; simp! * with functor_norm; refl
+lemma list.comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
+  comp.mk (list.traverse f <$> list.traverse g x) =
+  list.traverse (comp.mk ∘ (<$>) f ∘ g) x :=
+by symmetry; induction x; simp! [*,comp_traverse] with functor_norm; refl
 
 protected lemma traverse_eq_map_id {α β} (f : α → β) (x : list α) :
   list.traverse (id.mk ∘ f) x = id.mk (f <$> x) :=
@@ -148,8 +146,8 @@ protected lemma id_traverse {σ α} (x : σ ⊕ α) : sum.traverse id.mk x = x :
 by cases x; refl
 
 protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : σ ⊕ α) :
-  sum.traverse (comp.mk ∘ (<$>) f ∘ g) x =
-  comp.mk (sum.traverse f <$> sum.traverse g x) :=
+  comp.mk (sum.traverse f <$> sum.traverse g x : G (F (σ ⊕ γ))) =
+  sum.traverse (comp.mk ∘ (<$>) f ∘ g) x :=
 by cases x; simp! [sum.traverse,map_id] with functor_norm; refl
 
 protected lemma traverse_eq_map_id {α β} (f : α → β) (x : σ ⊕ α) :

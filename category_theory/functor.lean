@@ -84,7 +84,7 @@ def comp (F : C ↝ D) (G : D ↝ E) : C ↝ E :=
 
 infixr ` ⋙ `:80 := comp
 
-@[simp] lemma comp_obj (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
+@[simp] lemma comp_obj (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G) X = G (F X) := rfl
 @[simp] lemma comp_map (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : (F ⋙ G).map f = G.map (F.map f) := rfl
 end
 

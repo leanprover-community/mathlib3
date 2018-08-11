@@ -73,15 +73,15 @@ variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A] {B : Type u₂} [ℬ :
 include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor
-/-- The cartesion product of two functors. -/
+/-- The cartesian product of two functors. -/
 def prod (F : A ↝ B) (G : C ↝ D) : (A × C) ↝ (B × D) :=
 { obj := λ X, (F X.1, G X.2),
   map := λ _ _ f, (F.map f.1, G.map f.2),
   map_id   := begin /- `obviously'` says: -/ intros, cases X, dsimp, rw map_id_lemma, rw map_id_lemma end,
   map_comp := begin /- `obviously'` says: -/ intros, cases Z, cases Y, cases X, cases f, cases g, dsimp at *, rw map_comp_lemma, rw map_comp_lemma end }
 
-@[simp, ematch] lemma prod_obj (F : A ↝ B) (G : C ↝ D) (a : A) (c : C) : F.prod G (a, c) = (F a, G c) := rfl
-@[simp, ematch] lemma prod_map (F : A ↝ B) (G : C ↝ D) {a a' : A} {c c' : C} (f : (a, c) ⟶ (a', c')) : (F.prod G).map f = (F.map f.1, G.map f.2) := rfl
+@[simp, ematch] lemma prod_obj  (F : A ↝ B) (G : C ↝ D) (a : A) (c : C) : (functor.prod F G)     (a, c) = (F a, G c) := rfl
+@[simp, ematch] lemma prod_map  (F : A ↝ B) (G : C ↝ D) {a a' : A} {c c' : C} (f : (a, c) ⟶ (a', c')) : (functor.prod F G).map f = (F.map f.1, G.map f.2) := rfl
 end functor
 
 namespace nat_trans
@@ -91,7 +91,7 @@ def prod {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) : F.prod 
 { app        := λ X, (α X.1, β X.2),
   naturality := begin /- `obviously'` says: -/ intros, cases f, cases Y, cases X, dsimp at *, simp, split, rw naturality_lemma, rw naturality_lemma end }
 
-@[simp, ematch] lemma prod_app {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : α.prod β (a, c) = (α a, β c) := rfl
+@[simp, ematch] lemma prod_app  {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (nat_trans.prod α β)     (a, c) = (α a, β c) := rfl
 end nat_trans
 
 end category_theory

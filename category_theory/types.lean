@@ -45,7 +45,7 @@ end functor_to_types
 definition type_lift : (Type u) ↝ (Type (max u v)) := 
 { obj      := λ X, ulift.{v} X,
   map      := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down),
-  map_id   := begin /- `obviously'` says: -/ intros, apply funext, intros, ext, refl end,
+  map_id   := begin /- `obviously'` says: -/ intros, ext, refl end,
   map_comp := begin /- `obviously'` says: -/ intros, refl end }
 
 end category_theory

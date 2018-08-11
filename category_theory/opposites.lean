@@ -46,8 +46,8 @@ variable (C)
 definition hom_pairing : (Cᵒᵖ × C) ↝ (Type v₁) := 
 { obj      := λ p, @category.Hom C _ p.1 p.2,
   map      := λ X Y f, λ h, f.1 ≫ h ≫ f.2,
-  map_id   := begin /- `obviously'` says: -/ intros, apply funext, intros, cases X, dsimp at *, simp, erw [category.id_comp_lemma] end,
-  map_comp := begin /- `obviously'` says: -/ intros, apply funext, intros, cases f, cases g, cases X, cases Y, cases Z, dsimp at *, simp, erw [category.assoc] end }
+  map_id   := begin /- `obviously'` says: -/ intros, ext, intros, cases X, dsimp at *, simp, erw [category.id_comp_lemma] end,
+  map_comp := begin /- `obviously'` says: -/ intros, ext, intros, cases f, cases g, cases X, cases Y, cases Z, dsimp at *, simp, erw [category.assoc] end }
 
 @[simp] lemma hom_pairing_obj (X : Cᵒᵖ × C) : (hom_pairing C) X = @category.Hom C _ X.1 X.2 := rfl
 @[simp] lemma hom_pairing_map {X Y : Cᵒᵖ × C} (f : X ⟶ Y) : (hom_pairing C).map f = λ h, f.1 ≫ h ≫ f.2 := rfl

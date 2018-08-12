@@ -2570,15 +2570,10 @@ theorem diff_sublist : ∀ l₁ l₂ : list α, l₁.diff l₂ <+ l₁
 theorem diff_subset (l₁ l₂ : list α) : l₁.diff l₂ ⊆ l₁ :=
 subset_of_sublist $ diff_sublist _ _
 
-theorem mem_diff_of_mem : ∀ (l₁ l₂ : list α) (a : α) , a ∈ l₁ → a ∉ l₂ → a ∈ l₁.diff l₂
-| l₁ []      a h₁ h₂    := by simp [h₁]
-| l₁ (b::l₂) a h₁ h₂    :=
-begin
-  dsimp [list.diff]; split_ifs,
-  { apply mem_diff_of_mem _ _ _ _ (not_mem_of_not_mem_cons h₂),
-    simp [mem_erase_of_ne (ne_of_not_mem_cons h₂), h₁] },
-  { apply mem_diff_of_mem _ _ _ h₁ (not_mem_of_not_mem_cons h₂) }
-end
+theorem mem_diff_of_mem {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁ → a ∉ l₂ → a ∈ l₁.diff l₂
+| l₁ []      h₁ h₂ := h₁
+| l₁ (b::l₂) h₁ h₂ := by rw diff_cons; exact
+  mem_diff_of_mem ((mem_erase_of_ne (ne_of_not_mem_cons h₂)).2 h₁) (not_mem_of_not_mem_cons h₂)
 
 end diff
 

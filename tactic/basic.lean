@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import data.dlist.basic
+import data.dlist.basic category.basic
 
 namespace expr
 open tactic
@@ -21,7 +21,7 @@ protected meta def to_nat : expr → option ℕ
 
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
-| e                  := do n ← e.to_nat, return n
+| e                  := coe <$> e.to_nat
 
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
 nat.binary_rec
@@ -57,20 +57,30 @@ meta def retrieve {α} (tac : tactic α) : tactic α :=
  (λ a s', result.success a s)
  result.exception
 
+/-- Repeat a tactic at least once, calling it recursively on all subgoals,
+  until it fails. This tactic fails if the first invocation fails. -/
+meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t
+
+/-- `iterate_range m n t`: Repeat the given tactic at least `m` times and
+  at most `n` times or until `t` fails. Fails if `t` does not run at least m times. -/
+meta def iterate_range : ℕ → ℕ → tactic unit → tactic unit
+| 0 0     t := skip
+| 0 (n+1) t := try (t >> iterate_range 0 n t)
+| (m+1) n t := t >> iterate_range m (n-1) t
+
 meta def replace_at (tac : expr → tactic (expr × expr)) (hs : list expr) (tgt : bool) : tactic bool :=
 do to_remove ← hs.mfilter $ λ h, do {
-         h_type ← infer_type h,
-         (do (new_h_type, pr) ← tac h_type,
-             assert h.local_pp_name new_h_type,
-             mk_eq_mp pr h >>= tactic.exact >> return tt)
-         <|>
-         (return ff) },
-   goal_simplified ← if tgt then (do
-     (new_t, pr) ← target >>= tac,
-     replace_target new_t pr,
-     return tt) <|> return ff else return ff,
-   to_remove.mmap' (λ h, try (clear h)),
-   return (¬ to_remove.empty ∨ goal_simplified)
+    h_type ← infer_type h,
+    succeeds $ do
+      (new_h_type, pr) ← tac h_type,
+      assert h.local_pp_name new_h_type,
+      mk_eq_mp pr h >>= tactic.exact },
+  goal_simplified ← succeeds $ do {
+    guard tgt,
+    (new_t, pr) ← target >>= tac,
+    replace_target new_t pr },
+  to_remove.mmap' (λ h, try (clear h)),
+  return (¬ to_remove.empty ∨ goal_simplified)
 
 meta def simp_bottom_up' (post : expr → tactic (expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (expr × expr) :=
 prod.snd <$> simplify_bottom_up () (λ _, (<$>) (prod.mk ()) ∘ post) e cfg
@@ -157,7 +167,7 @@ do h' ← assert h p,
    set_goals [g₀], tac₀,
    gs ← get_goals,
    set_goals [g₁],
-   return (h' , gs)
+   return (h', gs)
 
 meta def try_intros : list name → tactic (list name)
 | [] := do
@@ -168,12 +178,13 @@ meta def try_intros : list name → tactic (list name)
 
 meta def ext1 (xs : list name) : tactic (list name) :=
 do ls ← attribute.get_instances `extensionality,
-   ls.any_of (λ l, applyc l),
+   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
    try_intros xs
 
 meta def ext : list name → option ℕ → tactic unit
-| _ (some 0) := return ()
-| xs n := focus1 (do ys ← ext1 xs, ext ys (nat.pred <$> n) <|> return ())
+| _  (some 0) := skip
+| xs n        := focus1 $ do
+  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
 
 meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
@@ -257,12 +268,12 @@ tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
 meta def apply_assumption
   (asms : option (list expr) := none)
-  (tac : tactic unit := return ()) : tactic unit :=
+  (tac : tactic unit := skip) : tactic unit :=
 do { ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H ; tac) } <|>
+     ctx.any_of (λ H, () <$ symm_apply H; tac) } <|>
 do { exfalso,
      ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H ; tac) }
+     ctx.any_of (λ H, () <$ symm_apply H; tac) }
 <|> fail "assumption tactic failed"
 
 open nat

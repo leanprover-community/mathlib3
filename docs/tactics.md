@@ -165,7 +165,7 @@ applying `ext x y` yields:
 
 by applying functional extensionality and set extensionality.
 
-A maximum depth can be provided with `ext 3 with x y z`.
+A maximum depth can be provided with `ext x y z : 3`.
 
 ### refine_struct
 
@@ -260,11 +260,11 @@ used implicitly to make rewriting possible.
 
 ## def_replacer
 
-`def_replacer foo` sets up a stub definition `foo : tactic unit`, which can 
+`def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
 effectively be defined and re-defined later, by tagging definitions with `@[foo]`.
 
 - `@[foo] meta def foo_1 : tactic unit := ...` replaces the current definition of `foo`.
-- `@[foo] meta def foo_2 (old : tactic unit) : tactic unit := ...` replaces the current 
-  definition of `foo`, and provides access to the previous definition via `old`. 
-  (The argument can also be an `option (tactic unit)`, which is provided as `none` if 
-  this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.) 
+- `@[foo] meta def foo_2 (old : tactic unit) : tactic unit := ...` replaces the current
+  definition of `foo`, and provides access to the previous definition via `old`.
+  (The argument can also be an `option (tactic unit)`, which is provided as `none` if
+  this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.)

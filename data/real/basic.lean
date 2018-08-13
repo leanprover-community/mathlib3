@@ -335,7 +335,7 @@ theorem Sup_le_ub (S : set ℝ) (h₁ : ∃ x, x ∈ S) {ub} (h₂ : ∀ y ∈ S
 
 protected lemma is_lub_Sup {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ upper_bounds s) :
   is_lub s (Sup s) :=
-⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs, 
+⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs,
  λ u h, real.Sup_le_ub _ ⟨_, ha⟩ h⟩
 
 noncomputable def Inf (S : set ℝ) : ℝ := -Sup {x | -x ∈ S}

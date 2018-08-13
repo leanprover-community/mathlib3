@@ -83,6 +83,10 @@ end monad
 section alternative
 variables {f : Type → Type v} [alternative f]
 
+def succeeds {α} (x : f α) : f bool := (x $> tt) <|> pure ff
+
+def try {α} (x : f α) : f unit := x <|> pure ()
+
 @[simp] theorem guard_true {h : decidable true} :
   @guard f _ true h = pure () := by simp [guard]
 

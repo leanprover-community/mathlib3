@@ -399,8 +399,10 @@ lemma fixed_points_mul_left_cosets_equiv_cosets (H : set G) [is_subgroup H] [fin
 
 local attribute [instance] set_fintype
 
+set_option class.instance_max_depth 2000
+
 lemma exists_subgroup_card_pow_prime [fintype G] {p : ℕ} : ∀ {n : ℕ} (hp : nat.prime p)
-  (hdvd : p ^ n ∣ card G), ∃ H : set G, is_subgroup H ∧ card H = p ^ n
+  (hdvd : p ^ n ∣ card G), ∃ H : set G, is_subgroup H ∧ fintype.card H = p ^ n
 | 0 := λ _ _, ⟨trivial G, by apply_instance, by simp [-set.set_coe_eq_subtype]⟩
 | (n+1) := λ hp hdvd,
 let ⟨H, ⟨hH1, hH2⟩⟩ := exists_subgroup_card_pow_prime hp
@@ -419,23 +421,15 @@ have hm' : p ∣ card (left_cosets {x : normalizer H | ↑x ∈ H}) :=
 let ⟨x, hx⟩ := exists_prime_order_of_dvd_card hp hm' in
 have hxcard : ∀ {f : fintype (gpowers x)}, card (gpowers x) = p,
   from λ f, by rw [← hx, order_eq_card_gpowers]; congr,
-let S : set ↥(normalizer H) := set.preimage left_cosets.mk
-      (@gpowers (left_cosets {x : ↥(normalizer H) | ↑x ∈ H}) _ x) in
-have is_subgroup S := @is_group_hom.preimage _
-  (left_cosets {x : ↥(normalizer H) | ↑x ∈ H}) _ _ _ _ _ _,
-let fS : fintype S := by apply_instance in
-let hequiv : {x : ↥(normalizer H) | ↑x ∈ H} ≃ H :=
-  { to_fun := λ ⟨x, hx⟩, ⟨x, hx⟩,
-    inv_fun := λ ⟨x, hx⟩, ⟨⟨x, subset_normalizer _ hx⟩, hx⟩,
-    left_inv := λ ⟨⟨_, _⟩, _⟩, rfl,
-    right_inv := λ ⟨_, _⟩, rfl } in
-⟨subtype.val '' S, by apply_instance,
-begin
-  dsimp only [S],
-  rw [set.card_image_of_injective _ subtype.val_injective, nat.pow_succ,
-    @card_congr _ _ fS _ (preimage_left_cosets_mk_equiv_subgroup_times_set _ _),
-    card_prod, hxcard, ← hH2, card_congr hequiv]
-end⟩
+have is_subgroup (left_cosets.mk ⁻¹' gpowers x),
+  from is_group_hom.preimage _ _,
+have hequiv : H ≃ {x : normalizer H | ↑x ∈ H }:=
+  ⟨λ a, ⟨⟨a.1, subset_normalizer _ a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
+    λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
+⟨subtype.val '' (left_cosets.mk ⁻¹' gpowers x), by apply_instance,
+  by rw [set.card_image_of_injective _ subtype.val_injective, nat.pow_succ,
+    card_congr (preimage_left_cosets_mk_equiv_subgroup_times_set _ _),
+      card_prod, hxcard, ← hH2, card_congr hequiv]; apply_instance⟩
 
 def conjugate_set (x : G) (H : set G) : set G :=
 (λ n, x⁻¹ * n * x) ⁻¹' H

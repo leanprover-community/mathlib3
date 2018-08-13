@@ -82,7 +82,7 @@ rfl
 @[simp] theorem inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm (e x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw l₁
 
-@[simp] lemma inverse_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) : 
+@[simp] lemma inverse_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
   (f.trans g).symm a = f.symm (g.symm a) := rfl
 
 @[simp] theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
@@ -97,6 +97,14 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
    λ e : x = g₁ y, e.symm ▸ r₁ y⟩
 
 @[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
+
+@[simp] theorem trans_refl (e : α ≃ β) : e.trans (equiv.refl β) = e := by cases e; refl
+
+@[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by cases e; refl
+
+@[simp] theorem symm_trans (e : α ≃ β) : e.symm.trans e = equiv.refl β :=  ext _ _ (by simp)
+
+@[simp] theorem trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext _ _ (by simp)
 
 theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_inv
 
@@ -150,6 +158,9 @@ def equiv_empty (h : α → false) : α ≃ empty :=
 
 def false_equiv_empty : false ≃ empty :=
 equiv_empty _root_.id
+
+def equiv_univ (α : Type u) : α ≃ (set.univ : set α) :=
+⟨λ a, ⟨a, set.mem_univ _⟩, λ a, a.1, λ a, rfl, λ ⟨a, ha⟩, rfl⟩
 
 def empty_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : α ≃ empty :=
 ⟨assume a, (h ⟨a⟩).elim, assume e, e.rec_on _, assume a, (h ⟨a⟩).elim, assume e, e.rec_on _⟩
@@ -561,6 +572,18 @@ eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
 theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by cases π; refl
+
+@[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
+  (swap x y)⁻¹ = swap x y := rfl
+
+@[simp] lemma symm_trans_swap_trans [decidable_eq α] [decidable_eq β] (a b : α)
+  (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
+equiv.ext _ _ (λ x, begin
+  have : ∀ a, e.symm x = a ↔ x = e a :=
+    λ a, by rw @eq_comm _ (e.symm x); split; intros; simp * at *,
+  simp [swap_apply_def, this],
+  split_ifs; simp
+end)
 
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=

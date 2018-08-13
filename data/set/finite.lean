@@ -86,6 +86,20 @@ by rw [fintype_insert', card_fintype_of_finset];
   @fintype.card _ d = fintype.card s + 1 :=
 by rw ← card_fintype_insert' s h; congr
 
+lemma card_image_of_inj_on {s : set α} [fintype s]
+  {f : α → β} [fintype (f '' s)] (H : ∀x∈s, ∀y∈s, f x = f y → x = y) :
+  fintype.card (f '' s) = fintype.card s :=
+by haveI := classical.prop_decidable; exact
+calc fintype.card (f '' s) = (s.to_finset.image f).card : card_fintype_of_finset' _ (by simp)
+... = s.to_finset.card : finset.card_image_of_inj_on
+    (λ x hx y hy hxy, H x (mem_to_finset.1 hx) y (mem_to_finset.1 hy) hxy)
+... = fintype.card s : (card_fintype_of_finset' _ (λ a, mem_to_finset)).symm
+
+lemma card_image_of_injective (s : set α) [fintype s]
+  {f : α → β} [fintype (f '' s)] (H : function.injective f) :
+  fintype.card (f '' s) = fintype.card s :=
+card_image_of_inj_on $ λ _ _ _ _ h, H h
+
 instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] : fintype (insert a s : set α) :=
 if h : a ∈ s then by rwa [insert_eq, union_eq_self_of_subset_left (singleton_subset_iff.2 h)]
 else fintype_insert' _ h
@@ -223,6 +237,9 @@ by simp [set.ext_iff]
 @[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
 by simp [set.ext_iff]
 
+@[simp] lemma coe_to_finset' [decidable_eq α] (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
+by ext; simp
+
 end finset
 
 namespace set
@@ -244,5 +261,32 @@ lemma not_injective_int_fintype [fintype α] [decidable_eq α] {f : ℤ → α} 
 assume hf,
 have injective (f ∘ (coe : ℕ → ℤ)), from injective_comp hf $ assume i j, int.of_nat_inj,
 not_injective_nat_fintype this
+
+lemma card_lt_card {s t : set α} [fintype s] [fintype t] (h : s ⊂ t) :
+  fintype.card s < fintype.card t :=
+begin
+  haveI := classical.prop_decidable,
+  rw [← finset.coe_to_finset' s, ← finset.coe_to_finset' t, finset.coe_ssubset] at h,
+  rw [card_fintype_of_finset' _ (λ x, mem_to_finset),
+      card_fintype_of_finset' _ (λ x, mem_to_finset)],
+  exact finset.card_lt_card h,
+end
+
+lemma card_le_of_subset {s t : set α} [fintype s] [fintype t] (hsub : s ⊆ t) :
+  fintype.card s ≤ fintype.card t :=
+calc fintype.card s = s.to_finset.card : card_fintype_of_finset' _ (by simp)
+... ≤ t.to_finset.card : finset.card_le_of_subset (λ x hx, by simp [set.subset_def, *] at *)
+... = fintype.card t : eq.symm (card_fintype_of_finset' _ (by simp))
+
+lemma eq_of_card_le_of_subset {s t : set α} [fintype s] [fintype t]
+  (hcard : fintype.card t ≤ fintype.card s) (hsub : s ⊆ t) : s = t :=
+classical.by_contradiction (λ h, lt_irrefl (fintype.card t)
+  (have fintype.card s < fintype.card t := set.card_lt_card ⟨hsub, h⟩,
+    by rwa [le_antisymm (card_le_of_subset hsub) hcard] at this))
+
+lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
+  [fintype (range f)] : fintype.card (range f) = fintype.card α :=
+eq.symm $ fintype.card_congr (@equiv.of_bijective  _ _ (λ a : α, show range f, from ⟨f a, a, rfl⟩)
+  ⟨λ x y h, hf $ subtype.mk.inj h, λ b, let ⟨a, ha⟩ := b.2 in ⟨a, by simp *⟩⟩)
 
 end set

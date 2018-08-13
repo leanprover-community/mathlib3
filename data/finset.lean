@@ -101,6 +101,10 @@ instance : partial_order (finset α) :=
 @[simp] theorem le_iff_subset {s₁ s₂ : finset α} : s₁ ≤ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 @[simp] theorem lt_iff_ssubset {s₁ s₂ : finset α} : s₁ < s₂ ↔ s₁ ⊂ s₂ := iff.rfl
 
+@[simp] lemma coe_ssubset {s₁ s₂ : finset α} : (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊂ s₂ :=
+show (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
+  by simp [set.ssubset_iff_subset_not_subset] {contextual := tt}
+
 @[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
 and_congr val_le_iff $ not_congr val_le_iff
 
@@ -122,6 +126,9 @@ instance : inhabited (finset α) := ⟨∅⟩
 
 theorem eq_empty_of_forall_not_mem {s : finset α} (H : ∀x, x ∉ s) : s = ∅ :=
 eq_of_veq (eq_zero_of_forall_not_mem H)
+
+lemma eq_empty_iff_forall_not_mem {s : finset α} : s = ∅ ↔ ∀ x, x ∉ s :=
+⟨λ h, by simp [h], λ h, eq_empty_of_forall_not_mem h⟩
 
 @[simp] theorem val_eq_zero {s : finset α} : s.1 = 0 ↔ s = ∅ := @val_inj _ s ∅
 
@@ -1210,8 +1217,8 @@ theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :
 (@le_sup (with_bot α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
 theorem max_eq_none {s : finset α} : s.max = none ↔ s = ∅ :=
-⟨λ h, by_contradiction 
-  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in 
+⟨λ h, by_contradiction
+  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in
   let ⟨b, hb⟩ := max_of_mem ha in
   by simpa [h] using hb),
 λ h, h.symm ▸ max_empty⟩
@@ -1251,8 +1258,8 @@ theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :
 (@inf_le (with_top α) _ _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
 theorem min_eq_none {s : finset α} : s.min = none ↔ s = ∅ :=
-⟨λ h, by_contradiction 
-  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in 
+⟨λ h, by_contradiction
+  (λ hs, let ⟨a, ha⟩ := exists_mem_of_ne_empty hs in
   let ⟨b, hb⟩ := min_of_mem ha in
   by simpa [h] using hb),
 λ h, h.symm ▸ min_empty⟩
@@ -1293,6 +1300,9 @@ sort_eq _ _
 
 @[simp] theorem sort_to_finset [decidable_eq α] (s : finset α) : (sort r s).to_finset = s :=
 list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
+
+@[simp] theorem mem_sort {s : finset α} {a : α} : a ∈ sort r s ↔ a ∈ s :=
+multiset.mem_sort _
 
 end sort
 
@@ -1357,6 +1367,17 @@ theorem sort_sorted_lt [decidable_linear_order α] (s : finset α) :
 (sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
 
 instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
+
+def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin n) :=
+⟨s.1.pmap (λ a ha, ⟨a, ha⟩) h, multiset.nodup_pmap (λ _ _ _ _, fin.mk.inj) s.2⟩
+
+@[simp] lemma mem_attach_fin {n : ℕ} {s : finset ℕ} (h : ∀ m ∈ s, m < n) {a : fin n} :
+  a ∈ s.attach_fin h ↔ a.1 ∈ s :=
+⟨λ h, let ⟨b, hb₁, hb₂⟩ := multiset.mem_pmap.1 h in hb₂ ▸ hb₁,
+λ h, multiset.mem_pmap.2 ⟨a.1, h, fin.eta _ _⟩⟩
+
+@[simp] lemma card_attach_fin {n : ℕ} (s : finset ℕ) (h : ∀ m ∈ s, m < n) :
+  (s.attach_fin h).card = s.card := multiset.card_pmap _ _ _
 
 end finset
 

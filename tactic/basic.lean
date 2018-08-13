@@ -51,6 +51,12 @@ expr.local_const n n binder_info.default (expr.const n [])
 
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
 
+/-- Runs a tactic for a result, reverting the state after completion -/
+meta def retrieve {α} (tac : tactic α) : tactic α :=
+λ s, result.cases_on (tac s)
+ (λ a s', result.success a s)
+ result.exception
+
 meta def replace_at (tac : expr → tactic (expr × expr)) (hs : list expr) (tgt : bool) : tactic bool :=
 do to_remove ← hs.mfilter $ λ h, do {
          h_type ← infer_type h,

@@ -66,7 +66,7 @@ end
 
 example : true :=
 begin
-  have : ∀ (s₀ s₁ : set ℕ), s₀ = s₁,
+  have : ∀ (s₀ s₁ : set ℤ), s₀ = s₁,
   { intros, ext1,
     guard_target x ∈ s₀ ↔ x ∈ s₁,
     admit },

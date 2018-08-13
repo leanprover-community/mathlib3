@@ -188,6 +188,16 @@ finset.induction_on s (by simp) (assume a s has ih h,
     (assume hna : f a ≠ 1,
       ⟨a, mem_insert_self _ _, hna⟩))
 
+@[to_additive finset.sum_range_succ]
+lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
+  (range (nat.succ n)).prod f = f n * (range n).prod f := by simp
+
+lemma prod_range_succ' (f : ℕ → β) :
+  ∀ n : ℕ, (range (nat.succ n)).prod f = (range n).prod (f ∘ nat.succ) * f 0
+| 0       := by simp
+| (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
+                 exact prod_range_succ _ _
+
 @[simp] lemma prod_const [decidable_eq α] (b : β) : s.prod (λ a, b) = b ^ s.card :=
 finset.induction_on s rfl (by simp [pow_add, mul_comm] {contextual := tt})
 
@@ -197,6 +207,11 @@ end comm_monoid
   s.sum (λ a, b) = add_monoid.smul s.card b :=
 @prod_const _ (multiplicative β) _ _ _ _
 attribute [to_additive finset.sum_const] prod_const
+
+lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
+  ∀ n : ℕ, (range (nat.succ n)).sum f = (range n).sum (f ∘ nat.succ) + f 0 :=
+@prod_range_succ' (multiplicative β) _ _
+attribute [to_additive finset.sum_range_succ'] prod_range_succ'
 
 section comm_group
 variables [comm_group β]
@@ -363,11 +378,11 @@ section group
 open list
 variables [group α] [group β]
 
-theorem is_group_hom.prod {f : α → β} [is_group_hom f] (l : list α) :
+theorem is_group_hom.prod (f : α → β) [is_group_hom f] (l : list α) :
   f (prod l) = prod (map f l) :=
 by induction l; simp [*, is_group_hom.mul f, is_group_hom.one f]
 
-theorem is_group_anti_hom.prod {f : α → β} [is_group_anti_hom f] (l : list α) :
+theorem is_group_anti_hom.prod (f : α → β) [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
 by induction l; simp [*, is_group_anti_hom.mul f, is_group_anti_hom.one f]
 

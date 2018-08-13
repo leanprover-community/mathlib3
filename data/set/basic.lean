@@ -100,6 +100,9 @@ classical.by_contradiction $ assume hn,
   have t ⊆ s, from assume a hat, classical.by_contradiction $ assume has, hn ⟨a, hat, has⟩,
   h.2 $ subset.antisymm h.1 this
 
+lemma ssubset_iff_subset_not_subset {s t : set α} : s ⊂ t ↔ s ⊆ t ∧ ¬ t ⊆ s :=
+by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual := tt}
+
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 

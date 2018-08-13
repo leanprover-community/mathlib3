@@ -170,10 +170,7 @@ do h' ← assert h p,
    return (h', gs)
 
 meta def try_intros : list name → tactic (list name)
-| [] := do
-  tgt ← target >>= instantiate_mvars,
-  if tgt.is_pi then failed
-               else return []
+| [] := intros $> []
 | (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
 
 meta def ext1 (xs : list name) : tactic (list name) :=

@@ -192,8 +192,8 @@ meta def congr_core (c_f c_a : old_conv unit) : old_conv unit :=
   (expr.app f a) ← return lhs,
   f_type ← infer_type f >>= tactic.whnf,
   guard (f_type.is_arrow),
-  ⟨(), new_f, of⟩ ← try c_f r f,
-  ⟨(), new_a, oa⟩ ← try c_a r a,
+  ⟨(), new_f, of⟩ ← mtry c_f r f,
+  ⟨(), new_a, oa⟩ ← mtry c_a r a,
   rhs ← return $ new_f new_a,
   match of, oa with
   | none, none      :=

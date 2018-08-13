@@ -26,7 +26,7 @@ by simp [flip] with functor_norm
 
 lemma applicative.pure_seq_eq_map' (g : α → β) :
   (<*>) (pure g : f (α → β)) = (<$>) g :=
-by ext; simp with functor_norm
+by funext; simp with functor_norm
 
 end lemmas
 

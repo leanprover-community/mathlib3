@@ -30,14 +30,14 @@ namespace functor
 variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒟
 
-definition opposite (F : C ↝ D) : (Cᵒᵖ) ↝ (Dᵒᵖ) := 
+protected definition op (F : C ↝ D) : (Cᵒᵖ) ↝ (Dᵒᵖ) := 
 { obj      := λ X, F X,
   map      := λ X Y f, F.map f,
   map_id   := begin /- `obviously'` says: -/ intros, erw [map_id], refl, end,
   map_comp := begin /- `obviously'` says: -/ intros, erw [map_comp], refl end }
 
-@[simp] lemma opposite_obj (F : C ↝ D) (X : C) : (F.opposite) X = F X := rfl
-@[simp] lemma opposite_map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F.opposite).map f = F.map f := rfl
+@[simp] lemma opposite_obj (F : C ↝ D) (X : C) : (F.op) X = F X := rfl
+@[simp] lemma opposite_map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F.op).map f = F.map f := rfl
                    
 end functor
 

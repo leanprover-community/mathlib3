@@ -140,7 +140,7 @@ instance [group α] (s : set α) [is_subgroup s] : inhabited (left_cosets s) :=
 @[simp] protected lemma eq {a b : α} : (a : left_cosets s) = b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
 
-lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) : 
+lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) :
   {x : α | (x : left_cosets s) = g} = left_coset g s :=
 set.ext $ λ z, by simp [eq_comm, mem_left_coset_iff]; refl
 
@@ -162,8 +162,8 @@ noncomputable def group_equiv_left_cosets_times_subgroup (hs : is_subgroup s) :
 calc α ≃ Σ L : left_cosets s, {x : α // (x : left_cosets s)= L} :
   equiv.equiv_fib left_cosets.mk
     ... ≃ Σ L : left_cosets s, left_coset (quotient.out' L) s :
-  equiv.sigma_congr_right (λ L, 
-    begin rw ← left_cosets.eq_class_eq_left_coset, 
+  equiv.sigma_congr_right (λ L,
+    begin rw ← left_cosets.eq_class_eq_left_coset,
       show {x // quotient.mk' x = L} ≃ {x : α // quotient.mk' x = quotient.mk' _},
       simp [-quotient.eq']
     end)
@@ -186,8 +186,8 @@ instance [group α] (s : set α) [normal_subgroup s] : group (left_cosets s) :=
         (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
           mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
           exact normal_subgroup.normal _ hab₁ _))),
-  mul_assoc := λ a b c, quotient.induction_on₃' a b c 
-    (λ a b c, congr_arg mk (mul_assoc a b c)), 
+  mul_assoc := λ a b c, quotient.induction_on₃' a b c
+    (λ a b c, congr_arg mk (mul_assoc a b c)),
   one_mul := λ a, quotient.induction_on' a
     (λ a, congr_arg mk (one_mul a)),
   mul_one := λ a, quotient.induction_on' a
@@ -205,11 +205,11 @@ instance [group α] (s : set α) [normal_subgroup s] :
   is_group_hom (mk : α → left_cosets s) := ⟨λ _ _, rfl⟩
 
 instance [comm_group α] (s : set α) [normal_subgroup s] : comm_group (left_cosets s) :=
-{ mul_comm := λ a b, quotient.induction_on₂' a b 
+{ mul_comm := λ a b, quotient.induction_on₂' a b
     (λ a b, congr_arg mk (mul_comm a b)),
   ..left_cosets.group s }
 
-@[simp] lemma coe_one [group α] (s : set α) [normal_subgroup s] : 
+@[simp] lemma coe_one [group α] (s : set α) [normal_subgroup s] :
   ((1 : α) : left_cosets s) = 1 := rfl
 
 @[simp] lemma coe_mul [group α] (s : set α) [normal_subgroup s] (a b : α) :

@@ -159,6 +159,9 @@ def equiv_empty (h : α → false) : α ≃ empty :=
 def false_equiv_empty : false ≃ empty :=
 equiv_empty _root_.id
 
+def equiv_univ (α : Type u) : α ≃ (set.univ : set α) :=
+⟨λ a, ⟨a, set.mem_univ _⟩, λ a, a.1, λ a, rfl, λ ⟨a, ha⟩, rfl⟩
+
 def empty_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : α ≃ empty :=
 ⟨assume a, (h ⟨a⟩).elim, assume e, e.rec_on _, assume a, (h ⟨a⟩).elim, assume e, e.rec_on _⟩
 

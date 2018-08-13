@@ -30,6 +30,23 @@ end finset
 section order_of
 variables [group α] [fintype α] [decidable_eq α]
 
+instance (s : set α) [is_subgroup s] [d : decidable_pred s] :
+  fintype (left_cosets s) :=
+@quotient.fintype _ _ (left_rel s) (λ _ _, d _)
+
+lemma card_eq_card_cosets_mul_card_subgroup (s : set α) [hs : is_subgroup s] [fintype s]
+  [decidable_pred s] : fintype.card α = fintype.card (left_cosets s) * fintype.card s :=
+by rw ← fintype.card_prod;
+  exact fintype.card_congr (is_subgroup.group_equiv_left_cosets_times_subgroup hs)
+
+lemma card_subgroup_dvd_card (s : set α) [is_subgroup s] [fintype s] :
+  fintype.card s ∣ fintype.card α :=
+by haveI := classical.prop_decidable; simp [card_eq_card_cosets_mul_card_subgroup s]
+
+lemma card_left_cosets_dvd_card (s : set α) [is_subgroup s] [decidable_pred s] [fintype s] :
+  fintype.card (left_cosets s) ∣ fintype.card α :=
+by simp [card_eq_card_cosets_mul_card_subgroup s]
+
 lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
 have ¬ injective (λi, a ^ i),
   from not_injective_int_fintype,
@@ -89,35 +106,48 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
   ... = a ^ (i % order_of a) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
-lemma mem_range_gpow_iff_mem_range_order_of {a a' : α} :
-  a' ∈ range ((^) a : ℤ → α) ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
+lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
+  a' ∈ gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq
   (nat.pos_iff_ne_zero.mpr (order_of_ne_zero a))
   (assume i, gpow_eq_mod_order_of.symm)
 
-instance decidable_range_gpow : decidable_pred (range ((^) a : ℤ → α)) :=
+instance decidable_range_gpow : decidable_pred (gpowers a) :=
 assume a', decidable_of_iff'
   (a' ∈ (finset.range (order_of a)).image ((^) a))
-  mem_range_gpow_iff_mem_range_order_of
+  mem_gpowers_iff_mem_range_order_of
 
 section
 local attribute [instance] set_fintype
 
-lemma order_eq_card_range_gpow : order_of a = fintype.card (range ((^) a : ℤ → α)) :=
+lemma order_eq_card_gpowers : order_of a = fintype.card (gpowers a) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨gpow a n, mem_range_self n⟩ },
+  { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
   { exact assume ⟨_, i, rfl⟩ _,
-      have pos: (0:int) < order_of a,
-        from int.coe_nat_lt.mpr $ nat.pos_iff_ne_zero.mpr $ order_of_ne_zero a,
-      have 0 ≤ i % (order_of a),
-        from int.mod_nonneg _ $ ne_of_gt pos,
-      ⟨int.to_nat (i % order_of a),
-        by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
-          exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
+    have pos: (0:int) < order_of a,
+      from int.coe_nat_lt.mpr $ nat.pos_iff_ne_zero.mpr $ order_of_ne_zero a,
+    have 0 ≤ i % (order_of a),
+      from int.mod_nonneg _ $ ne_of_gt pos,
+    ⟨int.to_nat (i % order_of a),
+      by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
+        exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
   { intros, exact finset.mem_univ _ },
   { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
 end
+
+@[simp] lemma order_of_one : order_of (1 : α) = 1 :=
+by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
+  exact ⟨⟨1, 0, rfl⟩, λ ⟨a, i, ha⟩, by simp [ha.symm]⟩
+
+lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
+by_contradiction
+(λ h₁, nat.find_min _ (show n % order_of a < order_of a,
+  from nat.mod_lt _ (nat.pos_of_ne_zero (order_of_ne_zero _)))
+    ⟨mt nat.dvd_of_mod_eq_zero h₁, by rwa ← pow_eq_mod_order_of⟩)
+
+lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
+⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp[h]⟩
 
 section classical
 local attribute [instance] classical.prop_decidable
@@ -144,6 +174,7 @@ have eq₂ : order_of a = @fintype.card _ ft_s,
     ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
 dvd.intro (@fintype.card (left_cosets (gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
+
 
 end classical
 

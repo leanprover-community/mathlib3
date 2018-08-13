@@ -77,8 +77,8 @@ theorem is_add_subgroup.of_sub (s : set β)
 multiplicative.is_subgroup_iff.1 $
 @is_subgroup.of_div (multiplicative β) _ _ zero_mem @sub_mem
 
-def gpowers (x : α) : set α := {y | ∃i:ℤ, x^i = y}
-def gmultiples (x : β) : set β := {y | ∃i:ℤ, gsmul i x = y}
+def gpowers (x : α) : set α := set.range ((^) x : ℤ → α)
+def gmultiples (x : β) : set β := set.range (λ i, gsmul i x)
 attribute [to_additive gmultiples] gpowers
 
 instance gpowers.is_subgroup (x : α) : is_subgroup (gpowers x) :=
@@ -106,6 +106,10 @@ end group
 namespace is_subgroup
 open is_submonoid
 variables [group α] (s : set α) [is_subgroup s]
+
+@[to_additive is_add_subgroup.coe_neg, simp]
+lemma coe_inv {s : set α} [is_subgroup s] (a : s) : ((a⁻¹ : s) : α) = a⁻¹ := rfl
+attribute [simp] is_add_subgroup.coe_neg
 
 @[to_additive is_add_subgroup.neg_mem_iff]
 lemma inv_mem_iff : a⁻¹ ∈ s ↔ a ∈ s :=

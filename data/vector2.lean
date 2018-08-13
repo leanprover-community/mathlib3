@@ -100,6 +100,9 @@ def {u} mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 | ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
   (λ m hm hn, h ⟨m, hv ▸ hm⟩))
 
+instance zero_subsingleton : subsingleton (vector α 0) :=
+⟨λ _ _, vector.ext (λ m, fin.elim0 m)⟩
+
 end vector
 
 namespace vector

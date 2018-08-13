@@ -92,6 +92,18 @@ attribute [to_additive subtype.add_monoid._proof_3] subtype.monoid._proof_3
 attribute [to_additive subtype.add_monoid._proof_4] subtype.monoid._proof_4
 attribute [to_additive subtype.add_monoid] subtype.monoid
 
+namespace is_submonoid
+
+@[to_additive is_add_submonoid.coe_zero, simp]
+lemma coe_one (s : set α) [is_submonoid s] : ((1 : s) : α) = 1 := rfl
+
+@[to_additive is_add_submonoid.coe_add, simp]
+lemma coe_add {s : set α} [is_submonoid s] (a b : s) : ((a * b : s) : α) = a * b := rfl
+
+attribute [simp] is_add_submonoid.coe_zero is_add_submonoid.coe_add
+
+end is_submonoid
+
 namespace monoid
 
 inductive in_closure (s : set α) : α → Prop

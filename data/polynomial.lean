@@ -375,8 +375,8 @@ begin
       p.sum (λ a b, sum q (λ a₂ b₂, C (p a * b₂) * X^(a + a₂))) (nat_degree p + nat_degree q) :
     begin
       apply congr_fun _ _,
-      congr, ext i a,
-      congr, ext j b,
+      congr, ext i a : 2,
+      congr, ext j b : 2,
       apply single_eq_C_mul_X
     end
     ... = sum (finset.singleton (nat_degree p))
@@ -847,8 +847,8 @@ lt_of_not_ge $ λ hlt, begin
 end
 
 lemma degree_le_mul_left (p : polynomial α) (hq : q ≠ 0) : degree p ≤ degree (p * q) :=
-if hp : p = 0 then by simp [hp] 
-else by rw [degree_mul_eq, degree_eq_nat_degree hp, 
+if hp : p = 0 then by simp [hp]
+else by rw [degree_mul_eq, degree_eq_nat_degree hp,
     degree_eq_nat_degree hq];
   exact with_bot.coe_le_coe.2 (nat.le_add_right _ _)
 
@@ -975,14 +975,14 @@ instance : euclidean_domain (polynomial α) :=
   mul_left_not_lt := λ p q hq, not_lt_of_ge (degree_le_mul_left _ hq) }
 
 lemma mod_eq_self_iff (hq0 : q ≠ 0) : p % q = p ↔ degree p < degree q :=
-⟨λ h, h ▸ euclidean_domain.mod_lt _ hq0, 
-λ h, have ¬degree (q * C (leading_coeff q)⁻¹) ≤ degree p := 
+⟨λ h, h ▸ euclidean_domain.mod_lt _ hq0,
+λ h, have ¬degree (q * C (leading_coeff q)⁻¹) ≤ degree p :=
   not_le_of_gt $ by rwa degree_mul_leading_coeff_inv hq0,
-begin 
+begin
   rw [mod_def, mod_by_monic, dif_pos (monic_mul_leading_coeff_inv hq0)],
   unfold div_mod_by_monic_aux,
   simp [this]
-end⟩ 
+end⟩
 
 lemma div_eq_zero_iff (hq0 : q ≠ 0) : p / q = 0 ↔ degree p < degree q :=
 ⟨λ h, by have := euclidean_domain.div_add_mod p q;
@@ -994,7 +994,7 @@ lemma div_eq_zero_iff (hq0 : q ≠ 0) : p / q = 0 ↔ degree p < degree q :=
 
 lemma degree_add_div (hq0 : q ≠ 0) (hpq : degree q ≤ degree p) :
   degree q + degree (p / q) = degree p :=
-have degree (p % q) < degree (q * (p / q)) := 
+have degree (p % q) < degree (q * (p / q)) :=
   calc degree (p % q) < degree q : euclidean_domain.mod_lt _ hq0
   ... ≤ _ : degree_le_mul_left _ (mt (div_eq_zero_iff hq0).1 (not_lt_of_ge hpq)),
 by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,

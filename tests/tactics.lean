@@ -346,7 +346,7 @@ begin
   have : x = y,
   { ext i <|> admit },
   have : x = y,
-  { ext 1 <|> admit },
+  { ext : 1 <|> admit },
   trivial
 end
 
@@ -363,7 +363,7 @@ end
 example (X Y : ℕ → ℕ × ℕ)  (h : ∀ i, X i = Y i) : true :=
 begin
   have : X = Y,
-  { ext 1 with i,
+  { ext i : 1,
     guard_target X i = Y i,
     admit },
   have : X = Y,
@@ -371,7 +371,7 @@ begin
     guard_target (X i).fst = (Y i).fst, admit,
     guard_target (X i).snd = (Y i).snd, admit, },
   have : X = Y,
-  { ext 1,
+  { ext : 1,
     guard_target X x = Y x,
     admit },
   trivial,

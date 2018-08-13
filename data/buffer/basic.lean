@@ -42,7 +42,7 @@ by induction xs generalizing buf; simp! [*];
 @[simp]
 lemma append_list_mk_buffer  :
   append_list mk_buffer xs = array.to_buffer (list.to_array xs) :=
-by ext 1 with x; simp [array.to_buffer,to_list,to_list_append_list];
+by ext x : 1; simp [array.to_buffer,to_list,to_list_append_list];
    induction xs; [refl,skip]; simp [to_array]; refl
 
 def list_equiv_buffer (α : Type*) : list α ≃ buffer α :=

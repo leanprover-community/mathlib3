@@ -2575,6 +2575,11 @@ theorem mem_diff_of_mem {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁ → a �
 | l₁ (b::l₂) h₁ h₂ := by rw diff_cons; exact
   mem_diff_of_mem ((mem_erase_of_ne (ne_of_not_mem_cons h₂)).2 h₁) (not_mem_of_not_mem_cons h₂)
 
+theorem diff_sublist_of_sublist : ∀ {l₁ l₂ l₃: list α}, l₁ <+ l₂ → l₁.diff l₃ <+ l₂.diff l₃
+| l₁ l₂ [] h      := h
+| l₁ l₂ (a::l₃) h := by simp
+  [diff_cons, diff_sublist_of_sublist (erase_sublist_erase _ h)]
+
 end diff
 
 /- zip & unzip -/

@@ -1402,10 +1402,7 @@ bot_unique $ assume s hs, classical.by_cases
   (assume : s = ∅, this.symm ▸ @is_open_empty _ ⊥)
   (assume : s ≠ ∅,
     let ⟨x, hx⟩ := exists_mem_of_ne_empty this in
-    have univ ⊆ _,
-      from hs x hx,
-    have s = univ,
-      from top_unique $ assume y hy, @this (x, y) ⟨⟩ rfl,
+    have s = univ, from top_unique $ assume y hy, hs x hx (x, y) rfl,
     this.symm ▸ @is_open_univ _ ⊥)
 
 lemma to_topological_space_supr {ι : Sort*} {u : ι → uniform_space α} :
@@ -1596,7 +1593,7 @@ begin
   { refine λ n hn, is_open_uniformity.2 _,
     rintro x ⟨i, m, hm, h⟩,
     rcases comp_mem_uniformity_sets hm with ⟨m', hm', mm'⟩,
-    apply uniformity.upwards_sets hm',
+    apply uniformity.sets_of_superset hm',
     rintros ⟨x, y⟩ hp rfl,
     refine ⟨i, m', hm', λ z hz, h (monotone_comp_rel monotone_id monotone_const mm' _)⟩,
     dsimp at hz ⊢, rw comp_rel_assoc,

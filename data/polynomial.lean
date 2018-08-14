@@ -94,8 +94,10 @@ lemma C_apply : (C a : ℕ → α) n = ite (0 = n) a 0 := rfl
 
 @[simp] lemma C_1 : C (1 : α) = 1 := rfl
 
-@[simp] lemma C_mul_C : C a * C b = C (a * b) :=
+@[simp] lemma C_mul_C : C (a * b) = C a * C b :=
 by simp [C, single_mul_single]
+
+@[simp] lemma C_add : C (a + b) = C a + C b := finsupp.single_add
 
 @[simp] lemma C_mul_apply (p : polynomial α) : (C a * p) n = a * p n :=
 begin
@@ -141,6 +143,9 @@ begin
   simp [finsupp.mul_sum _ q, sum_sum_index, sum_single_index, add_mul, pow_add],
   exact sum_congr rfl (assume i hi, sum_congr rfl $ assume j hj, by ac_refl)
 end
+
+lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n :=
+by induction n; simp [pow_succ, eval_mul, *]
 
 /-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
 def is_root (p : polynomial α) (a : α) : Prop := p.eval a = 0
@@ -292,7 +297,7 @@ finset.induction_on s (by simp [finsupp.support_zero]) $
 
 lemma degree_mul_le (p q : polynomial α) : degree (p * q) ≤ degree p + degree q :=
 calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (p i * a) * X ^ (i + j)))) :
-    by simp [single_eq_C_mul_X.symm]; exact degree_sum_le _ _
+    by simp only [single_eq_C_mul_X.symm]; exact degree_sum_le _ _
   ... ≤ p.support.sup (λi, q.support.sup (λj, degree (C (p i * q j) * X ^ (i + j)))) :
     finset.sup_mono_fun (assume i hi,  degree_sum_le _ _)
   ... ≤ degree p + degree q :
@@ -473,6 +478,9 @@ instance : comm_ring (polynomial α) := finsupp.to_comm_ring
 instance : has_scalar α (polynomial α) := finsupp.to_has_scalar
 instance : module α (polynomial α) := finsupp.to_module
 instance {x : α} : is_ring_hom (eval x) := ⟨λ x y, eval_add, λ x y, eval_mul, eval_C⟩
+
+instance C.is_ring_hom : is_ring_hom (@C α _ _) :=
+⟨λ _ _, C_add, λ _ _, C_mul_C, C_1⟩
 
 @[simp] lemma degree_neg (p : polynomial α) : degree (-p) = degree p :=
 by unfold degree; rw support_neg
@@ -755,6 +763,35 @@ begin
   exact degree_add_eq_of_degree_lt (by rw [degree_X, degree_neg, degree_C ha]; exact dec_trivial)
 end
 
+@[simp] lemma leading_coeff_X_pow : ∀ n : ℕ, leading_coeff ((X : polynomial α) ^ n) = 1
+| 0 := by simp
+| (n+1) :=
+have h : leading_coeff (X : polynomial α) * leading_coeff (X ^ n) ≠ 0,
+  by rw [leading_coeff_X, leading_coeff_X_pow n, one_mul];
+    exact zero_ne_one.symm,
+by rw [pow_succ, leading_coeff_mul' h, leading_coeff_X, leading_coeff_X_pow, one_mul]
+
+@[simp] lemma degree_X_pow : ∀ (n : ℕ), degree ((X : polynomial α) ^ n) = n
+| 0 := by simp; refl
+| (n+1) :=
+have h : leading_coeff (X : polynomial α) * leading_coeff (X ^ n) ≠ 0,
+  by rw [leading_coeff_X, leading_coeff_X_pow n, one_mul];
+    exact zero_ne_one.symm,
+by rw [pow_succ, degree_mul_eq' h, degree_X, degree_X_pow, add_comm]; refl
+
+lemma degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : α) :
+  degree ((X : polynomial α) ^ n - C a) = n :=
+have degree (-C a) < degree ((X : polynomial α) ^ n),
+  from calc degree (-C a) ≤ 0 : by rw degree_neg; exact degree_C_le
+  ... < degree ((X : polynomial α) ^ n) : by rwa [degree_X_pow];
+    exact with_bot.coe_lt_coe.2 hn,
+by rw [sub_eq_add_neg, add_comm, degree_add_eq_of_degree_lt this, degree_X_pow]
+
+lemma X_pow_sub_C_ne_zero {n : ℕ} (hn : 0 < n) (a : α) :
+  (X : polynomial α) ^ n - C a ≠ 0 :=
+mt degree_eq_bot.2 (show degree ((X : polynomial α) ^ n - C a) ≠ ⊥,
+  by rw degree_X_pow_sub_C hn; exact dec_trivial)
+
 @[simp] lemma not_monic_zero : ¬monic (0 : polynomial α) :=
 by simp [monic, zero_ne_one]
 
@@ -904,6 +941,36 @@ end
 
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by unfold roots; rw dif_neg hp; exact (classical.some_spec (exists_finset_roots hp)).2 _
+
+lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : α) :
+  (roots ((X : polynomial α) ^ n - C a)).card ≤ n :=
+with_bot.coe_le_coe.1 $
+calc ((roots ((X : polynomial α) ^ n - C a)).card : with_bot ℕ)
+      ≤ degree ((X : polynomial α) ^ n - C a) : card_roots (X_pow_sub_C_ne_zero hn a)
+  ... = n : degree_X_pow_sub_C hn a
+
+/-- `nth_roots n a` noncomputably returns the solutions to `x ^ n = a`-/
+noncomputable def nth_roots {α : Type*} [integral_domain α] (n : ℕ) (a : α) : finset α :=
+by letI := classical.prop_decidable; exact
+roots ((X : polynomial α) ^ n - C a)
+
+@[simp] lemma mem_nth_roots {α : Type*} [integral_domain α] {n : ℕ} (hn : 0 < n) {a x : α} :
+  x ∈ nth_roots n a ↔ x ^ n = a :=
+by letI := classical.prop_decidable;
+rw [nth_roots, mem_roots (X_pow_sub_C_ne_zero hn a),
+  is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero_iff_eq]
+
+lemma card_nth_roots {α : Type*} [integral_domain α] (n : ℕ) (a : α) :
+  (nth_roots n a).card ≤ n :=
+by letI := classical.prop_decidable; exact
+if hn : n = 0
+then if h : (X : polynomial α) ^ n - C a = 0
+  then by simp [nat.zero_le, nth_roots, roots, h]
+  else with_bot.coe_le_coe.1 (le_trans (card_roots h)
+    (by rw [hn, pow_zero, ← @C_1 α _, ← is_ring_hom.map_sub (@C α _ _)];
+      exact degree_C_le))
+else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
+  exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
 
 end integral_domain
 

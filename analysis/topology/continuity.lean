@@ -340,7 +340,7 @@ lemma nhds_induced_eq_vmap {a : α} : @nhds α (induced f t) a = vmap f (nhds (f
 le_antisymm
   (assume s ⟨s', hs', (h_s : f ⁻¹' s' ⊆ s)⟩,
     let ⟨t', hsub, ht', hin⟩ := mem_nhds_sets_iff.1 hs' in
-    (@nhds α (induced f t) a).upwards_sets
+    (@nhds α (induced f t) a).sets_of_superset
       begin
         simp [mem_nhds_sets_iff],
         exact ⟨preimage f t', preimage_mono hsub, is_open_induced ht', hin⟩
@@ -547,7 +547,7 @@ is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume 
     by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
   begin
     rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
-    apply filter.upwards_sets,
+    apply filter.sets_of_superset,
     apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
     exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
       show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
@@ -779,7 +779,7 @@ begin
     have ∀i:ι, ∃a, a∈s i ∧ p i ≤ nhds a,
       from assume i, h i (p i) (ultrafilter_map hf) $
       show (λx:Πi:ι, π i, x i) ⁻¹' s i ∈ f.sets,
-        from f.upwards_sets hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
+        from mem_sets_of_superset hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
     let ⟨a, ha⟩ := classical.axiom_of_choice this in
     ⟨a, assume i, (ha i).left, assume i, map_le_iff_le_vmap.mp $ (ha i).right⟩
 end
@@ -859,7 +859,7 @@ lemma tendsto_extend [regular_space γ] {b : β} {f : α → γ} (de : dense_emb
   tendsto (de.extend f) (nhds b) (nhds (de.extend f b)) :=
 let φ := {b | tendsto f (vmap e $ nhds b) (nhds $ de.extend f b)} in
 have hφ : φ ∈ (nhds b).sets,
-  from (nhds b).upwards_sets hf $ assume b ⟨c, hc⟩,
+  from (nhds b).sets_of_superset hf $ assume b ⟨c, hc⟩,
     show tendsto f (vmap e (nhds b)) (nhds (de.extend f b)), from (de.extend_eq hc).symm ▸ hc,
 assume s hs,
 let ⟨s'', hs''₁, hs''₂, hs''₃⟩ := nhds_is_closed hs in
@@ -883,7 +883,7 @@ have h₂ : t ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' t)), from
     simp,
     exact de.vmap_nhds_neq_bot
   end,
-(nhds b).upwards_sets
+(nhds b).sets_of_superset
   (show t ∈ (nhds b).sets, from mem_nhds_sets ht₂ ht₃)
   (calc t ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' t)) : h₂
     ... ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' s')) :

@@ -288,7 +288,7 @@ instance : complete_space ℝ :=
   cases exists_forall_ge_and (hg _ $ half_pos ε0)
     (real.equiv_lim c _ $ half_pos ε0) with n hn,
   cases hn _ (le_refl _) with h₁ h₂,
-  refine upwards_sets _ (F n).1.2 (subset.trans _ $
+  refine sets_of_superset _ (F n).1.2 (subset.trans _ $
     subset.trans (ball_half_subset (G n) h₂) hε),
   exact λ x h, lt_trans ((F n).2 x (G n) h (G n).2) h₁
 end⟩

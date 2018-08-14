@@ -544,7 +544,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
     have ∅ ∈ (nhds x ⊓ f).sets, by rw [empty_in_sets_eq_bot, hf x hxs],
     let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_sets] at this; exact this in
     have ∅ ∈ (nhds x ⊓ principal t₂).sets,
-      from (nhds x ⊓ principal t₂).upwards_sets (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
+      from (nhds x ⊓ principal t₂).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
     have nhds x ⊓ principal t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
     by simp [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
@@ -559,7 +559,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
   have s ∩ (⋂s∈c', if h : s ∈ c' then b ⟨s, h⟩ else univ) ∈ f.sets,
     from inter_mem_sets (by simp at hfs; assumption) this,
   have ∅ ∈ f.sets,
-    from f.upwards_sets this $ assume x ⟨hxs, hxi⟩,
+    from mem_sets_of_superset this $ assume x ⟨hxs, hxi⟩,
     let ⟨t, htc', hxt⟩ := (show ∃t ∈ c', x ∈ t, by simpa using hsc' hxs) in
     have -closure (b ⟨t, htc'⟩) = t, from (hb _).right,
     have x ∈ - t,

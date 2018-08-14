@@ -71,7 +71,7 @@ by_cases
     have {x | x < of_real u} ∈ (nhds (of_real r)).sets,
       by rw [this];
       from mem_infi_sets (of_real u) (mem_infi_sets (by simp *) (subset.refl _)),
-    ((nhds (of_real r)).upwards_sets this $ forall_ennreal.mpr $
+    ((nhds (of_real r)).sets_of_superset this $ forall_ennreal.mpr $
         by simp [le_of_lt, hu, hl] {contextual := tt}; exact assume p hp _, lt_of_lt_of_le hl hp))
   (assume hr_ne : r ≠ 0,
     have hu0 : 0 < u, from lt_of_le_of_lt hr hu,
@@ -111,7 +111,7 @@ le_antisymm
     (assume : r ≠ 0,
       have hr' : 0 < r, from lt_of_le_of_ne hr this.symm,
       have h' : map (of_ennreal ∘ of_real) (nhds r) = map id (nhds r),
-        from map_cong $ (nhds r).upwards_sets (mem_nhds_sets (is_open_lt' 0) hr') $
+        from map_cong $ (nhds r).sets_of_superset (mem_nhds_sets (is_open_lt' 0) hr') $
           assume r hr, by simp [le_of_lt hr, (∘)],
       le_of_map_le_map_inj' h₁ h₂ h $ le_trans (tendsto_of_ennreal hr) $ by simp [h']))
   tendsto_of_real
@@ -125,7 +125,7 @@ from by_cases
       (assume s (hs : {a | of_real a ∈ s} ∈ (nhds r ⊓ principal {x | 0 ≤ x}).sets),
         let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := mem_inf_sets.mp hs in
         show {a | of_real a ∈ s} ∈ (nhds r).sets,
-          from (nhds r).upwards_sets ht₁ $ assume a ha,
+          from (nhds r).sets_of_superset ht₁ $ assume a ha,
           match le_total 0 a with
           | or.inl h := have a ∈ t₂, from ht₂ h, ht ⟨ha, this⟩
           | or.inr h :=
@@ -192,7 +192,7 @@ forall_ennreal.mpr $ and.intro
     (assume _, by_cases
       (assume : p = 0,
         tendsto_cong tendsto_const_nhds $
-        (nhds ∞).upwards_sets (mem_nhds_sets (is_open_lt' _) (@of_real_lt_infty 1)) $
+        (nhds ∞).sets_of_superset (mem_nhds_sets (is_open_lt' _) (@of_real_lt_infty 1)) $
         by simp [this])
       (assume p0 : p ≠ 0,
         have p_pos : 0 < p, from lt_of_le_of_ne hp p0.symm,
@@ -218,7 +218,7 @@ forall_ennreal.mpr $ and.intro
     have : 0 < b, from lt_of_le_of_ne ennreal.zero_le hb0.symm,
     suffices : tendsto ((*) ∞) (nhds b) (nhds ∞), { simpa [hb0] },
     apply (tendsto_cong tendsto_const_nhds $
-      (nhds b).upwards_sets (mem_nhds_sets (is_open_lt' _) this) _),
+      (nhds b).sets_of_superset (mem_nhds_sets (is_open_lt' _) this) _),
     { assume c hc,
       have : c ≠ 0, from assume h, by simp [h] at hc; contradiction,
       simp [this] }
@@ -313,7 +313,7 @@ by_cases
       by simpa [le_of_lt h],
     by rw [nhds_bot_orderable];
     from (tendsto_infi.2 $ assume p, tendsto_infi.2 $ assume hp : 0 < p, tendsto_principal.2 $
-      (nhds b).upwards_sets (mem_nhds_sets (is_open_lt' (of_real r)) h) $
+      (nhds b).sets_of_superset (mem_nhds_sets (is_open_lt' (of_real r)) h) $
         by simp [forall_ennreal, hr, le_of_lt, hp] {contextual := tt}))
   (assume h : ¬ of_real r < b,
     let ⟨p, hp, hpr, eq⟩ := (le_of_real_iff hr).mp $ not_lt.1 h in

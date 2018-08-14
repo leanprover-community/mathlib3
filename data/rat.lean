@@ -410,6 +410,7 @@ instance : discrete_field ℚ :=
 instance : field ℚ              := by apply_instance
 instance : division_ring ℚ      := by apply_instance
 instance : integral_domain ℚ    := by apply_instance
+-- TODO(Mario): this instance slows down data.real.basic
 --instance : domain ℚ           := by apply_instance
 instance : nonzero_comm_ring ℚ  := by apply_instance
 instance : comm_ring ℚ          := by apply_instance

@@ -172,6 +172,21 @@ calc α ≃ Σ L : left_cosets s, {x : α // (x : left_cosets s)= L} :
     ... ≃ (left_cosets s × s) :
   equiv.sigma_equiv_prod _ _
 
+noncomputable lemma preimage_left_cosets_mk_equiv_subgroup_times_set
+  (s : set α) [is_subgroup s] (t : set (left_cosets s)) : left_cosets.mk ⁻¹' t ≃ (s × t) :=
+have h : ∀ {x : left_cosets s} {a : α}, x ∈ t → a ∈ s →
+  (quotient.mk' (quotient.out' x * a) : left_cosets s) = quotient.mk' (quotient.out' x) :=
+    λ x a hx ha, quotient.sound' (show (quotient.out' x * a)⁻¹ * quotient.out' x ∈ s,
+      from (is_subgroup.inv_mem_iff _).1 $
+        by rwa [mul_inv_rev, inv_inv, ← mul_assoc, inv_mul_self, one_mul]),
+{ to_fun := λ ⟨a, ha⟩, ⟨⟨(quotient.out' (quotient.mk' a))⁻¹ * a,
+    @quotient.exact' _ (left_rel s) _ _ $ (quotient.out_eq' _)⟩,
+      ⟨quotient.mk' a, ha⟩⟩,
+  inv_fun := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, ⟨quotient.out' x * a, show quotient.mk' _ ∈ t,
+    by simp [h hx ha, hx]⟩,
+  left_inv := λ ⟨a, ha⟩, by simp,
+  right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, by simp [h hx ha] }
+
 end is_subgroup
 
 namespace left_cosets

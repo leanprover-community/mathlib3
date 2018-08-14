@@ -159,9 +159,6 @@ def equiv_empty (h : α → false) : α ≃ empty :=
 def false_equiv_empty : false ≃ empty :=
 equiv_empty _root_.id
 
-def equiv_univ (α : Type u) : α ≃ (set.univ : set α) :=
-⟨λ a, ⟨a, set.mem_univ _⟩, λ a, a.1, λ a, rfl, λ ⟨a, ha⟩, rfl⟩
-
 def empty_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : α ≃ empty :=
 ⟨assume a, (h ⟨a⟩).elim, assume e, e.rec_on _, assume a, (h ⟨a⟩).elim, assume e, e.rec_on _⟩
 
@@ -524,6 +521,18 @@ begin
     (bijective_comp hf equiv.plift.bijective),
   simp [set.set_coe_cast, (∘), set.range_iff_surjective.2 hg.2],
 end
+
+lemma subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
+  {x // p₂ x} ≃ quotient s₂ :=
+{ to_fun := λ a, quotient.hrec_on a.1 (λ a h, ⟦⟨a, (hp₂ _).2 h⟩⟧)
+    (λ a b hab, hfunext (by rw quotient.sound hab)
+    (λ h₁ h₂ _, heq_of_eq (quotient.sound ((h _ _).2 hab)))) a.2,
+  inv_fun := λ a, quotient.lift_on a (λ a, (⟨⟦a.1⟧, (hp₂ _).1 a.2⟩ : {x // p₂ x}))
+    (λ a b hab, subtype.eq' (quotient.sound ((h _ _).1 hab))),
+  left_inv := λ ⟨a, ha⟩, quotient.induction_on a (λ a ha, rfl) ha,
+  right_inv := λ a, quotient.induction_on a (λ ⟨a, ha⟩, rfl) }
 
 section swap
 variable [decidable_eq α]

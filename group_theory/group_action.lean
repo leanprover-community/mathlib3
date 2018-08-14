@@ -14,7 +14,7 @@ class is_monoid_action [monoid α] (f : α → β → β) : Prop :=
 
 namespace is_monoid_action
 
-variables [monoid α] (f : α → β → β) [is_monoid_action f] 
+variables [monoid α] (f : α → β → β) [is_monoid_action f]
 
 def orbit (a : β) := set.range (λ x : α, f x a)
 
@@ -70,7 +70,7 @@ instance : is_group_hom (to_perm f) :=
 lemma bijective (g : α) : function.bijective (f g) :=
 (to_perm f g).bijective
 
-lemma orbit_eq_iff {f : α → β → β} [is_monoid_action f] {a b : β} : 
+lemma orbit_eq_iff {f : α → β → β} [is_monoid_action f] {a b : β} :
    orbit f a = orbit f b ↔ a ∈ orbit f b:=
 ⟨λ h, h ▸ mem_orbit_self _ _,
 λ ⟨x, (hx : f x b = a)⟩, set.ext (λ c, ⟨λ ⟨y, (hy : f y a = c)⟩, ⟨y * x,
@@ -87,18 +87,23 @@ instance (a : β) : is_subgroup (stabilizer f a) :=
   inv_mem := λ x (hx : f x a = a), show f x⁻¹ a = a,
     by rw [← hx, ← is_monoid_action.mul f, inv_mul_self, is_monoid_action.one f, hx] }
 
+def orbit_rel : setoid β :=
+{ r := λ a b, a ∈ orbit f b,
+  iseqv := ⟨mem_orbit_self f, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
+    λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
+
 noncomputable lemma orbit_equiv_left_cosets (a : β) :
   orbit f a ≃ left_cosets (stabilizer f a) :=
 by letI := left_rel (stabilizer f a); exact
-equiv.symm (@equiv.of_bijective _ _ 
-  (λ x : left_cosets (stabilizer f a), quotient.lift_on x 
-    (λ x, (⟨f x a, mem_orbit _ _ _⟩ : orbit f a)) 
+equiv.symm (@equiv.of_bijective _ _
+  (λ x : left_cosets (stabilizer f a), quotient.lift_on x
+    (λ x, (⟨f x a, mem_orbit _ _ _⟩ : orbit f a))
     (λ g h (H : _ = _), subtype.eq $ (is_group_action.bijective f (g⁻¹)).1
       $ show f g⁻¹ (f g a) = f g⁻¹ (f h a),
-      by rw [← is_monoid_action.mul f, ← is_monoid_action.mul f, 
-        H, inv_mul_self, is_monoid_action.one f])) 
+      by rw [← is_monoid_action.mul f, ← is_monoid_action.mul f,
+        H, inv_mul_self, is_monoid_action.one f]))
 ⟨λ g h, quotient.induction_on₂ g h (λ g h H, quotient.sound $
-  have H : f g a = f h a := subtype.mk.inj H, 
+  have H : f g a = f h a := subtype.mk.inj H,
   show f (g⁻¹ * h) a = a,
   by rw [is_monoid_action.mul f, ← H, ← is_monoid_action.mul f, inv_mul_self,
     is_monoid_action.one f]),

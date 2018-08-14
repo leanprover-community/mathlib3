@@ -27,6 +27,19 @@ iff.intro
 
 end finset
 
+lemma conj_inj [group α] {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
+λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
+
+lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
+  (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ is_subgroup.normalizer s :=
+by haveI := classical.prop_decidable;
+haveI := set.fintype_image s (λ n, x * n * x⁻¹); exact
+λ n, ⟨h n, λ h₁,
+have heq : (λ n, x * n * x⁻¹) '' s = s := set.eq_of_card_le_of_subset
+  (by rw set.card_image_of_injective s conj_inj) (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1),
+have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' s := heq.symm ▸ h₁,
+let ⟨y, hy⟩ := this in conj_inj hy.2 ▸ hy.1⟩
+
 section order_of
 variables [group α] [fintype α] [decidable_eq α]
 
@@ -46,6 +59,11 @@ by haveI := classical.prop_decidable; simp [card_eq_card_cosets_mul_card_subgrou
 lemma card_left_cosets_dvd_card (s : set α) [is_subgroup s] [decidable_pred s] [fintype s] :
   fintype.card (left_cosets s) ∣ fintype.card α :=
 by simp [card_eq_card_cosets_mul_card_subgroup s]
+
+@[simp] lemma card_trivial [fintype (is_subgroup.trivial α)] :
+  fintype.card (is_subgroup.trivial α) = 1 :=
+fintype.card_eq_one_iff.2
+  ⟨⟨(1 : α), by simp⟩, λ ⟨y, hy⟩, subtype.eq $ is_subgroup.mem_trivial.1 hy⟩
 
 lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
 have ¬ injective (λi, a ^ i),
@@ -147,7 +165,7 @@ by_contradiction
     ⟨mt nat.dvd_of_mod_eq_zero h₁, by rwa ← pow_eq_mod_order_of⟩)
 
 lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
-⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp[h]⟩
+⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
 section classical
 local attribute [instance] classical.prop_decidable
@@ -170,7 +188,7 @@ have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
     ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
       @fintype.card_prod _ _ ft_cosets ft_s,
 have eq₂ : order_of a = @fintype.card _ ft_s,
-  from calc order_of a = _ : order_eq_card_range_gpow
+  from calc order_of a = _ : order_eq_card_gpowers
     ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
 dvd.intro (@fintype.card (left_cosets (gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]

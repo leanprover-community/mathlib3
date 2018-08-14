@@ -37,6 +37,10 @@ instance : decidable_eq empty := λa, a.elim
 @[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
   (a : α) : (a : γ) = (a : β) := rfl
 
+instance has_zero.to_nonempty [has_zero α] : nonempty α := ⟨0⟩
+
+instance has_one.to_nonempty [has_one α] : nonempty α := ⟨1⟩
+
 end miscellany
 
 /-

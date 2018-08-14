@@ -1,90 +1,52 @@
 import group_theory.order_of_element data.zmod algebra.pi_instances group_theory.group_action
-
-open equiv fintype finset is_group_action is_monoid_action function equiv.perm
+#exit
+open equiv fintype finset is_group_action is_monoid_action function equiv.perm is_subgroup list
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
-
-lemma subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
-  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a : α, p₁ a ↔ p₂ ⟦a⟧)
-  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
-  { x : quotient s₁ // p₂ x } ≃ quotient s₂ :=
-{ to_fun := λ a, quotient.hrec_on a.1 (λ a h, ⟦⟨a, (hp₂ _).2 h⟩⟧)
-    (λ a b hab, hfunext (by rw quotient.sound hab)
-    (λ h₁ h₂ _, heq_of_eq (quotient.sound ((h _ _).2 hab)))) a.2,
-  inv_fun := λ a, quotient.lift_on a (λ a, (⟨⟦a.1⟧, (hp₂ _).1 a.2⟩ : {x // p₂ x}))
-    (λ a b hab, subtype.eq (quotient.sound ((h _ _).1 hab))),
-  left_inv := λ ⟨a, ha⟩, quotient.induction_on a (λ a ha, rfl) ha,
-  right_inv := λ a, quotient.induction_on a (λ ⟨a, ha⟩, rfl) }
 
 local attribute [instance, priority 0] subtype.fintype set_fintype classical.prop_decidable
 
 section should_be_in_group_theory
 
-@[simp] lemma card_trivial [fintype (is_subgroup.trivial G)] :
-  fintype.card (is_subgroup.trivial G) = 1 :=
-fintype.card_eq_one_iff.2
-  ⟨⟨(1 : G), by simp⟩, λ ⟨y, hy⟩, subtype.eq $ is_subgroup.mem_trivial.1 hy⟩
-
 local attribute [instance] left_rel normal_subgroup.to_is_subgroup
 
-instance subtype.val.is_group_hom (H : set G) [is_subgroup H] : is_group_hom (subtype.val : H → G) :=
-⟨λ _ _, rfl⟩
-
-def normalizer (H : set G) : set G :=
-{ g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H }
-
-instance (H : set G) [is_subgroup H] : is_subgroup (normalizer H) :=
-{ one_mem := by simp [normalizer],
-  mul_mem := λ a b (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H)
-    (hb : ∀ n, n ∈ H ↔ b * n * b⁻¹ ∈ H) n,
-    by rw [mul_inv_rev, ← mul_assoc, mul_assoc a, mul_assoc a, ← ha, ← hb],
-  inv_mem := λ a (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) n,
-    by rw [ha (a⁻¹ * n * a⁻¹⁻¹)];
-    simp [mul_assoc] }
-
-lemma subset_normalizer (H : set G) [is_subgroup H] : H ⊆ normalizer H :=
-λ g hg n, by rw [is_subgroup.mul_mem_cancel_left _ ((is_subgroup.inv_mem_iff _).2 hg),
-  is_subgroup.mul_mem_cancel_right _ hg]
-
-instance (H : set G) [is_subgroup H] : normal_subgroup { x : normalizer H | ↑x ∈ H } :=
-{ one_mem := show (1 : G) ∈ H, from is_submonoid.one_mem _,
-  mul_mem := λ a b ha hb, show (a * b : G) ∈ H, from is_submonoid.mul_mem ha hb,
-  inv_mem := λ a ha, show (a⁻¹ : G) ∈ H, from is_subgroup.inv_mem ha,
-  normal := λ a ha ⟨m, hm⟩, (hm a).1 ha }
-
-lemma conj_inj_left {x : G} : function.injective (λ (n : G), x * n * x⁻¹) :=
+lemma conj_inj {x : G} : function.injective (λ (n : G), x * n * x⁻¹) :=
 λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
 
 lemma mem_normalizer_fintype {H : set G} [fintype H] {x : G} :
   (∀ n, n ∈ H → x * n * x⁻¹ ∈ H) → x ∈ normalizer H :=
 λ h n, ⟨h n, λ h₁,
 have heq : (λ n, x * n * x⁻¹) '' H = H := set.eq_of_card_le_of_subset
-  (by rw set.card_image_of_injective H conj_inj_left) (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1),
+  (by rw set.card_image_of_injective H conj_inj) (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1),
 have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' H := heq.symm ▸ h₁,
-let ⟨y, hy⟩ := this in conj_inj_left hy.2 ▸ hy.1⟩
+let ⟨y, hy⟩ := this in conj_inj hy.2 ▸ hy.1⟩
 
 noncomputable lemma preimage_left_cosets_mk_equiv_subgroup_times_set
   (H : set G) [is_subgroup H] (s : set (left_cosets H)) : left_cosets.mk ⁻¹' s ≃ (H × s) :=
 have h : ∀ {x : left_cosets H} {a : G}, x ∈ s → a ∈ H →
   (quotient.mk' (quotient.out' x * a) : left_cosets H) = quotient.mk' (quotient.out' x) :=
-    λ x a hx ha, quotient.sound (show (quotient.out x * a)⁻¹ * quotient.out x ∈ H,
+    λ x a hx ha, quotient.sound' (show (quotient.out' x * a)⁻¹ * quotient.out' x ∈ H,
       from (is_subgroup.inv_mem_iff _).1 $
         by rwa [mul_inv_rev, inv_inv, ← mul_assoc, inv_mul_self, one_mul]),
 { to_fun := λ ⟨a, ha⟩, ⟨⟨(quotient.out' (quotient.mk' a))⁻¹ * a,
     @quotient.exact' _ (left_rel H) _ _ $ (quotient.out_eq' _)⟩,
       ⟨quotient.mk' a, ha⟩⟩,
-  inv_fun := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, ⟨(quotient.out' x) * a, show quotient.mk' _ ∈ s,
+  inv_fun := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, ⟨quotient.out' x * a, show quotient.mk' _ ∈ s,
     by simp [h hx ha, hx]⟩,
   left_inv := λ ⟨a, ha⟩, by simp,
   right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, by simp [h hx ha] }
+
+lemma card_preimage_left_cosets_mk [fintype G] (H : set G) [is_subgroup H]
+  (s : set (left_cosets H)) : card (left_cosets.mk ⁻¹' s) = card H * card s :=
+by rw [← card_prod, card_congr (preimage_left_cosets_mk_equiv_subgroup_times_set _ _)]
 
 end should_be_in_group_theory
 
 section group_action
 variables (f : G → α → α) [is_group_action f]
 
-lemma mem_fixed_points_iff_card_orbit {f : G → α → α} [is_group_action f] {a : α} [fintype (orbit f a)] :
-  a ∈ fixed_points f ↔ card (orbit f a) = 1 :=
+lemma mem_fixed_points_iff_card_orbit {f : G → α → α} [is_group_action f] {a : α}
+  [fintype (orbit f a)] : a ∈ fixed_points f ↔ card (orbit f a) = 1 :=
 begin
   rw [fintype.card_eq_one_iff, mem_fixed_points],
   split,
@@ -162,69 +124,6 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
   λ ⟨w, hw⟩, by rw [mem_vectors_prod_eq_one, ← hw, mk_vector_prod_eq_one,
     vector.to_list_cons, list.prod_cons, inv_mul_self]⟩
 
-def list.rotate : list α → ℕ → list α
-| []     n     := []
-| l      0     := l
-| (a::l) (n+1) := (l ++ [a]).rotate n
-
-@[simp] lemma rotate_nil (n : ℕ) : ([] : list α).rotate n = [] := by cases n; refl
-
-@[simp] lemma rotate_zero (l : list α) : l.rotate 0 = l := by cases l; refl
-
-lemma rotate_succ_cons (l : list α) (a : α ) (n : ℕ) :
-  (a :: l : list α).rotate n.succ = (l ++ [a]).rotate n := rfl
-
-@[simp] lemma length_rotate : ∀ (l : list α) (n : ℕ), (l.rotate n).length = l.length
-| []     n     := rfl
-| (a::l) 0     := rfl
-| (a::l) (n+1) := by rw [list.rotate, length_rotate (l ++ [a]) n]; simp
-
-lemma drop_append : ∀ {l₁ l₂ : list α} {n : ℕ}, n ≤ l₁.length →
-  (l₁ ++ l₂).drop n = l₁.drop n ++ l₂
-| l₁      l₂ 0     hn := by simp
-| []      l₂ (n+1) hn := absurd hn dec_trivial
-| (a::l₁) l₂ (n+1) hn :=
-by rw [list.drop, list.cons_append, list.drop, drop_append (nat.le_of_succ_le_succ hn)]
-
-lemma take_append : ∀ {l₁ l₂ : list α} {n : ℕ}, n ≤ l₁.length → (l₁ ++ l₂).take n = l₁.take n
-| l₁      l₂ 0     hn := by simp
-| []      l₂ (n+1) hn := absurd hn dec_trivial
-| (a::l₁) l₂ (n+1) hn :=
-by rw [list.take, list.cons_append, list.take, take_append (nat.le_of_succ_le_succ hn)]
-
-lemma rotate_eq_take_append_drop : ∀ {l : list α} {n : ℕ}, n < l.length → l.rotate n = l.drop n ++ l.take n
-| []     n     h := by simp [drop_append h]
-| l      0     h := by simp [take_append h]
-| (a::l) (n+1) h :=
-have hnl : n ≤ l.length := le_of_lt (nat.lt_of_succ_lt_succ h),
-have hnl' : n < (l ++ [a]).length, by rw [list.length_append, list.length_cons, list.length, zero_add];
-  exact (nat.lt_succ_of_le hnl),
-by rw [rotate_succ_cons, rotate_eq_take_append_drop hnl', list.drop, list.take, drop_append hnl,
-  take_append hnl]; simp
-
-@[simp] lemma list.nth_le_singleton (a : α) {n : ℕ} (hn : n < 1) :
-  list.nth_le [a] n hn = a :=
-have hn0 : n = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ hn),
-by subst hn0; refl
-
-lemma list.nth_le_append : ∀ {l₁ l₂ : list α} {n : ℕ} (hn : n < l₁.length),
-  (l₁ ++ l₂).nth_le n (lt_of_lt_of_le hn (by rw [list.length_append]; exact nat.le_add_right _ _)) =
-  l₁.nth_le n hn
-| []     _ n     hn := (nat.not_lt_zero _ hn).elim
-| (a::l) _ 0     hn := rfl
-| (a::l) _ (n+1) hn := by simp only [list.nth_le, list.cons_append];
-                         exact list.nth_le_append _
-
-lemma list.nth_append  {l₁ l₂ : list α} {n : ℕ} (hn : n < l₁.length) :
-  (l₁ ++ l₂).nth n = l₁.nth n :=
-have hn' : n < (l₁ ++ l₂).length := lt_of_lt_of_le hn
-  (by rw [list.length_append]; exact nat.le_add_right _ _),
-by rw [list.nth_le_nth hn, list.nth_le_nth hn', list.nth_le_append]
-
-@[simp] lemma list.nth_concat_length: ∀ (l : list α) (a : α), (l ++ [a]).nth l.length = a
-| []     a := rfl
-| (b::l) a := by rw [list.cons_append, list.length_cons, list.nth, list.nth_concat_length]
-
 lemma nth_rotate : ∀ {l : list α} {n m : ℕ} (hml : m < l.length),
   (l.rotate n).nth m = l.nth ((m + n) % l.length)
 | []     n     m hml := (nat.not_lt_zero _ hml).elim
@@ -252,15 +151,6 @@ have h₃ : m < list.length (l ++ [a]), by simpa using hml,
   by rw [list.length, list.rotate, nth_rotate h₃, list.length_append,
     list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)
 
-lemma rotate_rotate : ∀ (l : list α) (n m : ℕ), (l.rotate n).rotate m = l.rotate (n + m)
-| (a::l) 0     m := by simp
-| []     n     m := by simp
-| (a::l) (n+1) m := by rw [rotate_succ_cons, rotate_rotate, add_right_comm, rotate_succ_cons]
-
-@[simp] lemma nth_le_repeat (a : α) {n m : ℕ} (h : m < n) :
-  (list.repeat a n).nth_le m (by rwa list.length_repeat) = a :=
-list.eq_of_mem_repeat (list.nth_le_mem _ _ _)
-
 lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
   (∀ n, l.rotate n = l) ↔ ∃ a, l = list.repeat a l.length
 | []     := ⟨λ h, nonempty.elim hα (λ a, ⟨a, by simp⟩), by simp⟩
@@ -279,22 +169,11 @@ lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
       by rw [nth_le_repeat, ← option.some_inj, ← list.nth_le_nth, nth_rotate h, list.nth_le_nth,
         nth_le_repeat]; simp * at *)⟩
 
-lemma rotate_mod (l : list α) (m : ℕ) : l.rotate (m % l.length) = l.rotate m :=
-list.ext_le (by simp) $ λ n hn h,
-have h₁ : (n + m % list.length l) % list.length l = (n + m) % l.length :=
-  nat.modeq.modeq_add rfl (nat.mod_mod _ _),
-have h₂ : n < l.length, by rwa length_rotate at h,
-by rw [← option.some_inj, ← list.nth_le_nth, nth_rotate h₂, ← list.nth_le_nth,
-    nth_rotate h₂, h₁]
-
-def vector.rotate {n : ℕ} (v : vector α n) (m : ℕ) : vector α n :=
-⟨v.to_list.rotate m, by simp⟩
-
 lemma prod_rotate_eq_one_of_prod_eq_one : ∀ {l : list G} (hl : l.prod = 1) (n : ℕ),
   (l.rotate n).prod = 1
 | []     _  _ := by simp
 | (a::l) hl n :=
-have n % list.length (a :: l) < list.length (a :: l), from nat.mod_lt _ dec_trivial,
+have n % list.length (a :: l) ≤ list.length (a :: l), from le_of_lt (nat.mod_lt _ dec_trivial),
 by rw ← list.take_append_drop (n % list.length (a :: l)) (a :: l) at hl;
   rw [← rotate_mod, rotate_eq_take_append_drop this, list.prod_append, mul_eq_one_iff_inv_eq,
     ← one_mul (list.prod _)⁻¹, ← hl, list.prod_append, mul_assoc, mul_inv_self, mul_one]
@@ -321,10 +200,6 @@ by haveI : nonempty G := ⟨1⟩; exact
 rotate_eq_self_iff_eq_repeat.2 ⟨(1 : G),
   show list.repeat (1 : G) n = list.repeat 1 (list.repeat (1 : G) n).length, by simp⟩ _
 
-instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
-
-instance group.nonempty : nonempty G := ⟨1⟩
-
 lemma exists_prime_order_of_dvd_card [fintype G] {p : ℕ} (hp : nat.prime p)
   (hdvd : p ∣ card G) : ∃ x : G, order_of x = p :=
 let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.gt_one⟩ in
@@ -346,10 +221,10 @@ have hdvdcard₂ : p ∣ card (fixed_points (rotate_vectors_prod_eq_one G p')) :
 have hcard_pos : 0 < card (fixed_points (rotate_vectors_prod_eq_one G p')) :=
   fintype.card_pos_iff.2 ⟨⟨⟨vector.repeat 1 p', one_mem_vectors_prod_eq_one _⟩,
     one_mem_fixed_points_rotate _⟩⟩,
-have hle : 1 < card (fixed_points (rotate_vectors_prod_eq_one G p')) :=
+have hlt : 1 < card (fixed_points (rotate_vectors_prod_eq_one G p')) :=
   calc (1 : ℕ) < p' : hp.gt_one
   ... ≤ _ : nat.le_of_dvd hcard_pos hdvdcard₂,
-let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_card_gt_one hle
+let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_card_gt_one hlt
   ⟨_, one_mem_fixed_points_rotate p'⟩ in
 have hx : x ≠ list.repeat (1 : G) p', from λ h, by simpa [h, vector.repeat] using hx₄,
 have ∃ a, x = list.repeat a x.length := rotate_eq_self_iff_eq_repeat.1 (λ n,
@@ -394,12 +269,12 @@ mem_fixed_points'.2 $ λ y, quotient.induction_on' y $ λ y hy, left_cosets.eq.2
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
-lemma fixed_points_mul_left_cosets_equiv_cosets (H : set G) [is_subgroup H] [fintype H] :
-  fixed_points (mul_left_cosets H H) ≃ left_cosets {x : normalizer H | ↑x ∈ H} := sorry
+lemma fixed_points_mul_left_cosets_equiv_left_cosets (H : set G) [is_subgroup H] [fintype H] :
+  fixed_points (mul_left_cosets H H) ≃ left_cosets {x : normalizer H | ↑x ∈ H} :=
+@subtype_quotient_equiv_quotient_subtype G (normalizer H) (id _) (id _) (fixed_points (mul_left_cosets H H))
+  (λ a, mem_fixed_points_mul_left_cosets_iff_mem_normalizer.symm) (by intros; refl)
 
 local attribute [instance] set_fintype
-
-set_option class.instance_max_depth 2000
 
 lemma exists_subgroup_card_pow_prime [fintype G] {p : ℕ} : ∀ {n : ℕ} (hp : nat.prime p)
   (hdvd : p ^ n ∣ card G), ∃ H : set G, is_subgroup H ∧ fintype.card H = p ^ n
@@ -410,10 +285,12 @@ let ⟨H, ⟨hH1, hH2⟩⟩ := exists_subgroup_card_pow_prime hp
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 by exactI
 have hcard : card (left_cosets H) = s * p :=
-  (nat.mul_right_inj (show card H > 0, from fintype.card_pos_iff.2 ⟨⟨1, is_submonoid.one_mem H⟩⟩)).1
-    (by rwa [← card_eq_card_cosets_mul_card_subgroup, hH2, hs, nat.pow_succ, mul_assoc, mul_comm p]),
+  (nat.mul_right_inj (show card H > 0, from fintype.card_pos_iff.2
+      ⟨⟨1, is_submonoid.one_mem H⟩⟩)).1
+    (by rwa [← card_eq_card_cosets_mul_card_subgroup, hH2, hs,
+      nat.pow_succ, mul_assoc, mul_comm p]),
 have hm : s * p % p = card (left_cosets {x : normalizer H | ↑x ∈ H}) % p :=
-  card_congr (fixed_points_mul_left_cosets_equiv_cosets H) ▸ hcard ▸
+  card_congr (fixed_points_mul_left_cosets_equiv_left_cosets H) ▸ hcard ▸
     card_modeq_card_fixed_points _ hp hH2,
 have hm' : p ∣ card (left_cosets {x : normalizer H | ↑x ∈ H}) :=
   nat.dvd_of_mod_eq_zero
@@ -428,8 +305,7 @@ have hequiv : H ≃ {x : normalizer H | ↑x ∈ H }:=
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
 ⟨subtype.val '' (left_cosets.mk ⁻¹' gpowers x), by apply_instance,
   by rw [set.card_image_of_injective _ subtype.val_injective, nat.pow_succ,
-    card_congr (preimage_left_cosets_mk_equiv_subgroup_times_set _ _),
-      card_prod, hxcard, ← hH2, card_congr hequiv]; apply_instance⟩
+    card_preimage_left_cosets_mk, hxcard, ← hH2, card_congr hequiv]; congr⟩
 
 def conjugate_set (x : G) (H : set G) : set G :=
 (λ n, x⁻¹ * n * x) ⁻¹' H

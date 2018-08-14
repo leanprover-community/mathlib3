@@ -49,11 +49,17 @@ There is very little here beyond APIs for naturals, integers and rationals, beca
 
 ### Other mathematical theories and objects.
 
-The `order/` directory contains the theories of lattices and complete lattices, boolean algebras, filters and Galois connections, which are not often run into in a mathematics degree, although they are the sorts of things which need to be developed if one is to develop mathematics a la Bourbaki.
+Basic propositional logic is in `logic/`.
+
+The `order/` directory contains the theories of lattices and complete lattices, boolean algebras, filters and Galois connections, which are not often run into in a mathematics degree, although they are the sorts of things which need to be developed if one is to develop mathematics a la Bourbaki. Ordinals and cardinals, as well as a model of ZFC inside Lean, are in `set_theory/`.
+
+`computability/` is stuff like the halting problem. 
 
 
-### Programming and computer science
+### Programming
 
-`computability/` is stuff like the halting problem. `category/` is monad stuff, `logic` is also more for the CS people. `meta/` and `tactic/` is tactics. `set_theory/` is stuff like ordinals and cardinals, and also a complete model of ZFC in Lean, that is, the definition of, and basic API for, a type called `Set` which satisfies the axioms of ZFC set theory.
+The directory `data/equiv/` contains an API for the concept of two objects being in bijection with one another. The directories `data/list/`, `data/set` and `data/sigma` contain more advanced APIs for lists, sets and sigma types than are given in core Lean. Also in `data/` is more advanced APIs for booleans, characters, finite sets, multisets (that is, finite sets where elements can appear with multiplicity greater than one) and subtype, amongst many other things which form part of the general programming framework. These are not necessary immediately upon getting started, but become useful when building more complicated proofs, definitions, or tactics. There is also `category/`, with a few extras on monads and category theory as used in functional programming.
 
-The directory `data/equiv/` contains an API for the concept of two objects being in bijection with one another. The directories `data/list/`, `data/set` and `data/sigma` contain more advanced APIs for lists, sets and sigma types than are given in core Lean. Also in `data/` is more advanced APIs for booleans, characters, finite sets, multisets (that is, finite sets where elements can appear with multiplicity greater than one) and subtype, amongst many other things which form part of the general programming framework and which mathematicians may not need to know too much about.
+### Tactics
+`meta/` and `tactic/` contain new tactics defined in mathlib, and are beyond the scope of this overview. See the [documentation](https://github.com/leanprover/mathlib/blob/master/docs/tactics.md) and [test cases](https://github.com/leanprover/mathlib/tree/master/tests).
+

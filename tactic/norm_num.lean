@@ -487,9 +487,8 @@ do ns ← loc.get_locals,
   `+` `-` `*` `/` `^` `<` `≤` over ordered fields (or other
   appropriate classes), as well as `-` `/` `%` over `ℤ` and `ℕ`. -/
 meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
-let t := orelse' (norm_num1 l) $
-  simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l in
-t >> repeat t
+repeat1 $ orelse' (norm_num1 l) $
+simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l
 
 meta def apply_normed (x : parse texpr) : tactic unit :=
 do x₁ ← to_expr x,

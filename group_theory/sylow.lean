@@ -1,46 +1,10 @@
 import group_theory.order_of_element data.zmod algebra.pi_instances group_theory.group_action
-#exit
+
 open equiv fintype finset is_group_action is_monoid_action function equiv.perm is_subgroup list
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
 
 local attribute [instance, priority 0] subtype.fintype set_fintype classical.prop_decidable
-
-section should_be_in_group_theory
-
-local attribute [instance] left_rel normal_subgroup.to_is_subgroup
-
-lemma conj_inj {x : G} : function.injective (λ (n : G), x * n * x⁻¹) :=
-λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
-
-lemma mem_normalizer_fintype {H : set G} [fintype H] {x : G} :
-  (∀ n, n ∈ H → x * n * x⁻¹ ∈ H) → x ∈ normalizer H :=
-λ h n, ⟨h n, λ h₁,
-have heq : (λ n, x * n * x⁻¹) '' H = H := set.eq_of_card_le_of_subset
-  (by rw set.card_image_of_injective H conj_inj) (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1),
-have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' H := heq.symm ▸ h₁,
-let ⟨y, hy⟩ := this in conj_inj hy.2 ▸ hy.1⟩
-
-noncomputable lemma preimage_left_cosets_mk_equiv_subgroup_times_set
-  (H : set G) [is_subgroup H] (s : set (left_cosets H)) : left_cosets.mk ⁻¹' s ≃ (H × s) :=
-have h : ∀ {x : left_cosets H} {a : G}, x ∈ s → a ∈ H →
-  (quotient.mk' (quotient.out' x * a) : left_cosets H) = quotient.mk' (quotient.out' x) :=
-    λ x a hx ha, quotient.sound' (show (quotient.out' x * a)⁻¹ * quotient.out' x ∈ H,
-      from (is_subgroup.inv_mem_iff _).1 $
-        by rwa [mul_inv_rev, inv_inv, ← mul_assoc, inv_mul_self, one_mul]),
-{ to_fun := λ ⟨a, ha⟩, ⟨⟨(quotient.out' (quotient.mk' a))⁻¹ * a,
-    @quotient.exact' _ (left_rel H) _ _ $ (quotient.out_eq' _)⟩,
-      ⟨quotient.mk' a, ha⟩⟩,
-  inv_fun := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, ⟨quotient.out' x * a, show quotient.mk' _ ∈ s,
-    by simp [h hx ha, hx]⟩,
-  left_inv := λ ⟨a, ha⟩, by simp,
-  right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, by simp [h hx ha] }
-
-lemma card_preimage_left_cosets_mk [fintype G] (H : set G) [is_subgroup H]
-  (s : set (left_cosets H)) : card (left_cosets.mk ⁻¹' s) = card H * card s :=
-by rw [← card_prod, card_congr (preimage_left_cosets_mk_equiv_subgroup_times_set _ _)]
-
-end should_be_in_group_theory
 
 section group_action
 variables (f : G → α → α) [is_group_action f]
@@ -56,11 +20,6 @@ begin
     exact calc f x a = z : subtype.mk.inj (hz₁ ⟨f x a, mem_orbit _ _ _⟩)
       ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _ _⟩)).symm }
 end
-
-def orbit_rel : setoid α :=
-{ r := λ a b, a ∈ orbit f b,
-  iseqv := ⟨mem_orbit_self f, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
-    λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points f)]
   {p n : ℕ} (hp : nat.prime p) (h : card G = p ^ n) : card α ≡ card (fixed_points f) [MOD p] :=
@@ -94,15 +53,17 @@ end
 
 end group_action
 
+lemma card_preimage_left_cosets_mk [fintype G] (s : set G) [is_subgroup s]
+  (t : set (left_cosets s)) : fintype.card (left_cosets.mk ⁻¹' t) = 
+  fintype.card s * fintype.card t :=
+by rw [← fintype.card_prod, fintype.card_congr
+  (is_subgroup.preimage_left_cosets_mk_equiv_subgroup_times_set _ _)]
+
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
 
 lemma mk_vector_prod_eq_one_inj (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
 λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
-
-lemma card_vector [fintype α] (n : ℕ) :
-  fintype.card (vector α n) = fintype.card α ^ n :=
-by rw fintype.of_equiv_card; simp
 
 def vectors_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (vector G n) :=
 {v | v.to_list.prod = 1}
@@ -237,7 +198,7 @@ let ⟨a, ha⟩ := this in
   have a ^ p = 1, by rwa [ha, list.prod_repeat, hx₁] at hx1,
   (hp.2 _ (order_of_dvd_of_pow_eq_one this)).resolve_left
     (λ h, ha1 (order_of_eq_one_iff.1 h))⟩
-
+#exit
 open is_subgroup is_submonoid is_group_hom
 
 def mul_left_cosets (L₁ L₂ : set G) [is_subgroup L₂] [is_subgroup L₁]
@@ -300,6 +261,7 @@ have hxcard : ∀ {f : fintype (gpowers x)}, card (gpowers x) = p,
   from λ f, by rw [← hx, order_eq_card_gpowers]; congr,
 have is_subgroup (left_cosets.mk ⁻¹' gpowers x),
   from is_group_hom.preimage _ _,
+have fintype (left_cosets.mk ⁻¹' gpowers x), by apply_instance,
 have hequiv : H ≃ {x : normalizer H | ↑x ∈ H }:=
   ⟨λ a, ⟨⟨a.1, subset_normalizer _ a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
@@ -474,7 +436,7 @@ begin
   revert hx,
   refine quotient.induction_on' x
     (λ x hx, ⟨x, set.eq_of_card_le_of_subset _ _⟩),
-  { rw [conjugate_set_eq_image, set.card_image_of_injective _ conj_inj_left,
+  { rw [conjugate_set_eq_image, set.card_image_of_injective _ conj_inj,
     card_sylow K hp, card_sylow H hp] },
   { assume y hy,
     have : (y⁻¹ * x)⁻¹ * x ∈ K := quotient.exact'
@@ -487,9 +449,9 @@ def conj_on_sylow [fintype G] {p : ℕ} (hp : nat.prime p)
 λ x ⟨H, hH⟩, ⟨conjugate_set x H, by exactI
 have h : is_subgroup (conjugate_set x H) := @is_subgroup_conj _ _ _ _ _,
 { card_eq := by exactI by
-  rw [← card_sylow H hp, conjugate_set_eq_image, set.card_image_of_injective _ conj_inj_left],
+  rw [← card_sylow H hp, conjugate_set_eq_image, set.card_image_of_injective _ conj_inj],
   ..h }⟩
-
+#exit
 instance conj_on_sylow.is_group_action [fintype G] {p : ℕ} (hp : nat.prime p) :
   is_group_action (@conj_on_sylow G _ _ _ hp) :=
 { one := λ ⟨H, hH⟩, by simp [conj_on_sylow, conjugate_set_eq_preimage, set.preimage],
@@ -503,13 +465,15 @@ have h : orbit (conj_on_sylow hp) ⟨H, hH⟩ = set.univ :=
   set.eq_univ_iff_forall.2 (λ S, mem_orbit_iff.2 $
   let ⟨x, (hx : S.val = _)⟩ := @sylow_conjugate _ _ _ _ hp S.1 H S.2 hH in
   ⟨x, subtype.eq (hx.symm ▸ rfl)⟩),
-have is_subgroup (stabilizer (conj_on_sylow hp) ⟨H, hH⟩) := by apply_instance,
+have h' : card (orbit (conj_on_sylow hp) ⟨H, hH⟩) = card {H : set G // is_sylow H hp} :=
+  := by rw [h, card_congr (equiv.set.univ _)],
+have is_subgroup (stabilizer (conj_on_sylow hp) ⟨H, hH⟩), by apply_instance,
 by exactI
 have orbit_equiv : card (orbit (conj_on_sylow hp) ⟨H, hH⟩) =
   fintype.card (left_cosets (stabilizer (conj_on_sylow hp) ⟨H, hH⟩)) :=
    card_congr (orbit_equiv_left_cosets (conj_on_sylow hp) (⟨H, hH⟩ : {H : set G // is_sylow H hp})),
-by exactI begin
-  rw [h, ← card_congr (equiv_univ _)] at orbit_equiv,
+begin
+  rw [h, ← card_congr (equiv.set.univ _)] at orbit_equiv,
   rw [orbit_equiv, card_congr (@group_equiv_left_cosets_times_subgroup _ _
     (stabilizer (conj_on_sylow hp) ⟨H, hH⟩) (by apply_instance)), card_prod],
   exact dvd_mul_right _ _

@@ -189,6 +189,12 @@ attribute [to_additive normal_add_subgroup.to_is_add_subgroup] normal_subgroup.t
 attribute [to_additive normal_add_subgroup.normal] normal_subgroup.normal
 attribute [to_additive normal_add_subgroup.mk] normal_subgroup.mk
 
+@[to_additive normal_add_subgroup_of_add_comm_group]
+lemma normal_subgroup_of_comm_group [comm_group α] (s : set α) [hs : is_subgroup s] :
+  normal_subgroup s :=
+{ normal := λ n hn g, by rwa [mul_right_comm, mul_right_inv, one_mul],
+  ..hs }
+
 instance additive.normal_add_subgroup [group α]
   (s : set α) [normal_subgroup s] : @normal_add_subgroup (additive α) _ s :=
 ⟨@normal_subgroup.normal _ _ _ _⟩

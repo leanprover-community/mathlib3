@@ -157,9 +157,7 @@ meta def set_binder : expr → list binder_info → expr
       that a proof will not boil over to goals left over from the proof of `h`,
       unlike what would be the case when using `tactic.swap`.
 -/
-meta def local_proof
-  (h : name) (p : expr)
-  (tac₀ : tactic unit) :
+meta def local_proof (h : name) (p : expr) (tac₀ : tactic unit) :
   tactic (expr × list expr) :=
 focus1 $
 do h' ← assert h p,
@@ -208,6 +206,10 @@ open functor function
 
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
+
+meta def get_classes (e : expr) : tactic (list name) :=
+attribute.get_instances `class >>= list.mfilter (λ n,
+  succeeds $ mk_app n [e] >>= mk_instance)
 
 open nat
 

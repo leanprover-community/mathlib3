@@ -599,8 +599,8 @@ lemma monotone_vmap : monotone (vmap m) | a b := vmap_mono
 @[simp] lemma vmap_infi {f : ι → filter β} : vmap m (⨅i, f i) = (⨅i, vmap m (f i)) :=
 (gc_map_vmap m).u_infi
 
-lemma map_vmap_le : map m (vmap m g) ≤ g := (gc_map_vmap m).decreasing_l_u _
-lemma le_vmap_map : f ≤ vmap m (map m f) := (gc_map_vmap m).increasing_u_l _
+lemma map_vmap_le : map m (vmap m g) ≤ g := (gc_map_vmap m).l_u_le _
+lemma le_vmap_map : f ≤ vmap m (map m f) := (gc_map_vmap m).le_u_l _
 
 @[simp] lemma vmap_bot : vmap m ⊥ = ⊥ :=
 bot_unique $ assume s _, ⟨∅, by simp, by simp⟩

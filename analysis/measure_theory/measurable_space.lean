@@ -293,8 +293,8 @@ lemma monotone_comap : monotone (measurable_space.comap g) := assume a b h, coma
 @[simp] lemma map_infi {m : ι → measurable_space α} : (⨅i, m i).map f = (⨅i, (m i).map f) :=
 (gc_comap_map f).u_infi
 
-lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).decreasing_l_u _
-lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).increasing_u_l _
+lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).l_u_le _
+lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
 end functors
 

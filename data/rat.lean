@@ -227,6 +227,8 @@ protected def add : ℚ → ℚ → ℚ
 
 instance : has_add ℚ := ⟨rat.add⟩
 
+instance : inhabited ℚ := ⟨37⟩
+
 theorem lift_binop_eq (f : ℚ → ℚ → ℚ) (f₁ : ℤ → ℤ → ℤ → ℤ → ℤ) (f₂ : ℤ → ℤ → ℤ → ℤ → ℤ)
   (fv : ∀ {n₁ d₁ h₁ c₁ n₂ d₂ h₂ c₂},
     f ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ = f₁ n₁ d₁ n₂ d₂ /. f₂ n₁ d₁ n₂ d₂)

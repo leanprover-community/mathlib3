@@ -506,21 +506,10 @@ by dunfold equiv.set.range equiv.set.univ;
 end set
 
 noncomputable def of_bijective {α β} {f : α → β} (hf : bijective f) : α ≃ β :=
-begin
-  have hg := bijective_comp equiv.plift.symm.bijective
-    (bijective_comp hf equiv.plift.bijective),
-  refine equiv.plift.symm.trans (equiv.trans _ equiv.plift),
-  exact (set.range _ hg.1).trans
-    ((equiv.cast (by rw set.range_iff_surjective.2 hg.2)).trans (set.univ _))
-end
+⟨f, λ x, classical.some (hf.2 x), λ x, hf.1 (classical.some_spec (hf.2 (f x))),
+  λ x, classical.some_spec (hf.2 x)⟩
 
-@[simp] theorem of_bijective_to_fun {α β} {f : α → β} (hf : bijective f) : (of_bijective hf : α → β) = f :=
-begin
-  funext a, dunfold of_bijective equiv.set.univ,
-  have hg := bijective_comp equiv.plift.symm.bijective
-    (bijective_comp hf equiv.plift.bijective),
-  simp [set.set_coe_cast, (∘), set.range_iff_surjective.2 hg.2],
-end
+@[simp] theorem of_bijective_to_fun {α β} {f : α → β} (hf : bijective f) : (of_bijective hf : α → β) = f := rfl
 
 section swap
 variable [decidable_eq α]

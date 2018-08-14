@@ -526,6 +526,22 @@ theorem perm_diff_right (l : list α) {t₁ t₂ : list α} (h : t₁ ~ t₂) : 
 by induction h generalizing l; simp [*, erase_perm_erase, erase_comm]
   <|> exact (ih_1 _).trans (ih_2 _)
 
+theorem subperm_cons_diff {a : α} : ∀ {l₁ l₂ : list α}, (a :: l₁).diff l₂ <+~ a :: l₁.diff l₂
+| l₁ []      := ⟨a::l₁, by simp⟩
+| l₁ (b::l₂) :=
+begin
+  repeat {rw diff_cons},
+  by_cases heq : a = b,
+  { by_cases b ∈ l₁,
+    { rw perm.subperm_right, apply subperm_cons_diff,
+      simp [perm_diff_left, heq, perm_erase h] },
+    { simp [subperm_of_sublist, sublist.cons, h, heq] } },
+  { simp [heq, subperm_cons_diff] }
+end
+
+theorem subset_cons_diff {a : α} {l₁ l₂ : list α} : (a :: l₁).diff l₂ ⊆ a :: l₁.diff l₂ :=
+subset_of_subperm subperm_cons_diff
+
 theorem perm_bag_inter_left {l₁ l₂ : list α} (t : list α) (h : l₁ ~ l₂) : l₁.bag_inter t ~ l₂.bag_inter t :=
 begin
   induction h with x _ _ _ _ x y _ _ _ _ _ _ ih_1 ih_2 generalizing t, {simp},

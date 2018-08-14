@@ -182,6 +182,10 @@ instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp�
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
+instance additive.fintype : Π [fintype α], fintype (additive α) := id
+
+instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
+
 @[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
@@ -360,6 +364,10 @@ d_array.fintype
 
 instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
 fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm
+
+@[simp] lemma card_vector [fintype α] (n : ℕ) :
+  fintype.card (vector α n) = fintype.card α ^ n :=
+by rw fintype.of_equiv_card; simp
 
 instance quotient.fintype [fintype α] (s : setoid α)
   [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=

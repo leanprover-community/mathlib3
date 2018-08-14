@@ -147,7 +147,7 @@ by intros a b; rw [gc2, gc1]
 
 protected lemma dual [pα : preorder α] [pβ : preorder β]
   (l : α → β) (u : β → α) (gc : galois_connection l u) :
-  @galois_connection β α pβ.dual pα.dual u l :=
+  @galois_connection (order_dual β) (order_dual α) _ _ u l :=
 assume a b, (gc _ _).symm
 
 protected lemma dfun {ι : Type u} {α : ι → Type v} {β : ι → Type w}

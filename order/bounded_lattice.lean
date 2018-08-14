@@ -14,9 +14,9 @@ import order.lattice data.option
 set_option old_structure_cmd true
 
 universes u v
-variable {α : Type u}
 
 namespace lattice
+variable {α : Type u}
 
 /-- Typeclass for the `⊤` (`\top`) notation -/
 class has_top (α : Type u) := (top : α)
@@ -270,6 +270,7 @@ end lattice
 def with_bot (α : Type*) := option α
 
 namespace with_bot
+variable {α : Type u}
 open lattice
 
 instance : has_coe_t α (with_bot α) := ⟨some⟩
@@ -402,6 +403,7 @@ end with_bot
 def with_top (α : Type*) := option α
 
 namespace with_top
+variable {α : Type u}
 open lattice
 
 instance : has_coe_t α (with_top α) := ⟨some⟩
@@ -529,3 +531,35 @@ have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (so
   (λ _ _, acc_some _))) acc_some⟩
 
 end with_top
+
+namespace order_dual
+open lattice
+variable (α : Type*)
+
+instance [has_bot α] : has_top (order_dual α) := ⟨(⊥ : α)⟩
+instance [has_top α] : has_bot (order_dual α) := ⟨(⊤ : α)⟩
+
+instance [order_bot α] : order_top (order_dual α) :=
+{ le_top := @bot_le α _,
+  .. order_dual.partial_order α, .. order_dual.lattice.has_top α }
+
+instance [order_top α] : order_bot (order_dual α) :=
+{ bot_le := @le_top α _,
+  .. order_dual.partial_order α, .. order_dual.lattice.has_bot α }
+
+instance [semilattice_inf_bot α] : semilattice_sup_top (order_dual α) :=
+{ .. order_dual.lattice.semilattice_sup α, .. order_dual.lattice.order_top α }
+
+instance [semilattice_inf_top α] : semilattice_sup_bot (order_dual α) :=
+{ .. order_dual.lattice.semilattice_sup α, .. order_dual.lattice.order_bot α }
+
+instance [semilattice_sup_bot α] : semilattice_inf_top (order_dual α) :=
+{ .. order_dual.lattice.semilattice_inf α, .. order_dual.lattice.order_top α }
+
+instance [semilattice_sup_top α] : semilattice_inf_bot (order_dual α) :=
+{ .. order_dual.lattice.semilattice_inf α, .. order_dual.lattice.order_bot α }
+
+instance [bounded_lattice α] : bounded_lattice (order_dual α) :=
+{ .. order_dual.lattice.lattice α, .. order_dual.lattice.order_top α, .. order_dual.lattice.order_bot α }
+
+end order_dual

@@ -98,7 +98,7 @@ equiv.symm (@equiv.of_bijective _ _
       $ show f g⁻¹ (f g a) = f g⁻¹ (f h a),
       by rw [← is_monoid_action.mul f, ← is_monoid_action.mul f,
         H, inv_mul_self, is_monoid_action.one f]))
-⟨λ g h, quotient.induction_on₂' g h (λ g h H, quotient.sound $
+⟨λ g h, quotient.induction_on₂' g h (λ g h H, quotient.sound' $
   have H : f g a = f h a := subtype.mk.inj H,
   show f (g⁻¹ * h) a = a,
   by rw [is_monoid_action.mul f, ← H, ← is_monoid_action.mul f, inv_mul_self,

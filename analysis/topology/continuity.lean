@@ -121,13 +121,12 @@ open topological_space
 
 variables {f : α → β} {ι : Sort*}
 
-lemma continuous_iff_induced_le {t₁ : tspace α} {t₂ : tspace β} :
-  cont t₁ t₂ f ↔ induced f t₂ ≤ t₁ :=
-⟨assume hc s ⟨t, ht, s_eq⟩, s_eq.symm ▸ hc t ht,
-  assume hle s h, hle _ ⟨_, h, rfl⟩⟩
-
 lemma continuous_iff_le_coinduced {t₁ : tspace α} {t₂ : tspace β} :
   cont t₁ t₂ f ↔ t₂ ≤ coinduced f t₁ := iff.rfl
+
+lemma continuous_iff_induced_le {t₁ : tspace α} {t₂ : tspace β} :
+  cont t₁ t₂ f ↔ induced f t₂ ≤ t₁ :=
+iff.trans continuous_iff_le_coinduced (gc_induced_coinduced f _ _).symm
 
 theorem continuous_generated_from {t : tspace α} {b : set (set β)}
   (h : ∀s∈b, is_open (f ⁻¹' s)) : cont t (generate_from b) f :=

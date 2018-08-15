@@ -1304,9 +1304,7 @@ instance : has_top (uniform_space α) :=
     rw [lift'_principal], {simp},
     exact monotone_comp_rel monotone_id monotone_id
   end,
-  is_open_uniformity :=
-    by rw [topological_space.lattice.has_top]; simp [subset_def, id_rel] {contextual := tt }
-}⟩
+  is_open_uniformity := by simp [is_open_fold, subset_def, id_rel] {contextual := tt } } ⟩
 
 instance : complete_lattice (uniform_space α) :=
 { sup           := λa b, Sup {a, b},

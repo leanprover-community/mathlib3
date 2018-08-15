@@ -131,10 +131,7 @@ lemma continuous_iff_le_coinduced {t₁ : tspace α} {t₂ : tspace β} :
 
 theorem continuous_generated_from {t : tspace α} {b : set (set β)}
   (h : ∀s∈b, is_open (f ⁻¹' s)) : cont t (generate_from b) f :=
-assume s hs, generate_open.rec_on hs h
-  is_open_univ
-  (assume s t _ _, is_open_inter)
-  (assume t _ h, by rw [preimage_sUnion]; exact (is_open_Union $ assume s, is_open_Union $ assume hs, h s hs))
+continuous_iff_le_coinduced.2 $ generate_from_le h
 
 lemma continuous_induced_dom {t : tspace β} : cont (induced f t) t f :=
 assume s h, ⟨_, h, rfl⟩
@@ -172,11 +169,11 @@ continuous_le_rng inf_le_right
 
 lemma continuous_Inf_dom {t₁ : set (tspace α)} {t₂ : tspace β}
   (h : ∀t∈t₁, cont t t₂ f) : cont (Inf t₁) t₂ f :=
-assume s hs t ht, h t ht s hs
+continuous_iff_induced_le.2 $ le_Inf $ assume t ht, continuous_iff_induced_le.1 $ h t ht
 
 lemma continuous_Inf_rng {t₁ : tspace α} {t₂ : set (tspace β)} {t : tspace β}
   (h₁ : t ∈ t₂) (hf : cont t₁ t f) : cont t₁ (Inf t₂) f :=
-assume s hs, hf s $ hs t h₁
+continuous_iff_le_coinduced.2 $ Inf_le_of_le h₁ $ continuous_iff_le_coinduced.1 hf
 
 lemma continuous_infi_dom {t₁ : ι → tspace α} {t₂ : tspace β}
   (h : ∀i, cont (t₁ i) t₂ f) : cont (infi t₁) t₂ f :=
@@ -217,24 +214,14 @@ lemma continuous_supr_rng {t₁ : tspace α} {t₂ : ι → tspace β}
 continuous_iff_le_coinduced.2 $ supr_le $ assume i, continuous_iff_le_coinduced.1 $ h i
 
 lemma continuous_top {t : tspace β} : cont ⊤ t f :=
-assume s h, trivial
+continuous_iff_induced_le.2 $ le_top
 
 lemma continuous_bot {t : tspace α} : cont t ⊥ f :=
-continuous_Inf_rng (mem_univ $ coinduced f t) continuous_coinduced_rng
+continuous_iff_le_coinduced.2 $ bot_le
 
 end constructions
 
 section embedding
-
-lemma induced_id [t : topological_space α] : t.induced id = t :=
-topological_space_eq $ funext $ assume s, propext $
-  ⟨assume ⟨s', hs, h⟩, h.symm ▸ hs, assume hs, ⟨s, hs, rfl⟩⟩
-
-lemma induced_compose [tβ : topological_space β] [tγ : topological_space γ]
-  {f : α → β} {g : β → γ} : (tγ.induced g).induced f = tγ.induced (g ∘ f) :=
-topological_space_eq $ funext $ assume s, propext $
-  ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁.symm ▸ h₂.symm ▸ ⟨s, hs, rfl⟩,
-    assume ⟨s, hs, h⟩, ⟨preimage g s, ⟨s, hs, rfl⟩, h ▸ rfl⟩⟩
 
 /-- A function between topological spaces is an embedding if it is injective,
   and for all `s : set α`, `s` is open iff it is the preimage of an open set. -/
@@ -279,13 +266,6 @@ h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
 end embedding
 
 section quotient_map
-
-lemma coinduced_id [t : topological_space α] : t.coinduced id = t :=
-topological_space_eq rfl
-
-lemma coinduced_compose [tα : topological_space α]
-  {f : α → β} {g : β → γ} : (tα.coinduced f).coinduced g = tα.coinduced (g ∘ f) :=
-topological_space_eq rfl
 
 /-- A function between topological spaces is a quotient map if it is surjective,
   and for all `s : set β`, `s` is open iff its preimage is an open set. -/

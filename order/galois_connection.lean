@@ -199,6 +199,9 @@ namespace galois_insertion
 open lattice
 variables [partial_order β] {l : α → β} {u : β → α}
 
+lemma l_u_eq [preorder α] (gi : galois_insertion l u) (b : β) : l (u b) = b :=
+le_antisymm (gi.gc.l_u_le _) (gi.le_l_u _)
+
 /-- Lift the suprema along a Galois insertion -/
 def lift_semilattice_sup [semilattice_sup α] (gi : galois_insertion l u) : semilattice_sup β :=
 { sup := λa b, l (u a ⊔ u b),

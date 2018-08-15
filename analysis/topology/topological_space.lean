@@ -324,13 +324,13 @@ lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
  s ∈ (nhds a).sets :=
 by simp [nhds_sets]; exact ⟨s, subset.refl _, hs, ha⟩
 
-lemma return_le_nhds : return ≤ (nhds : α → filter α) :=
+lemma pure_le_nhds : pure ≤ (nhds : α → filter α) :=
 assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $ by simp [h₁]
 
 @[simp] lemma nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
 assume : nhds a = ⊥,
 have return a = (⊥ : filter α),
-  from lattice.bot_unique $ this ▸ return_le_nhds a,
+  from lattice.bot_unique $ this ▸ pure_le_nhds a,
 pure_neq_bot this
 
 lemma interior_eq_nhds {s : set α} : interior s = {a | nhds a ≤ principal s} :=
@@ -939,36 +939,31 @@ lemma generate_from_le {t : topological_space α} { g : set (set α) } (h : ∀s
   generate_from g ≤ t :=
 generate_from_le_iff_subset_is_open.2 h
 
-lemma supr_eq_generate_from {ι : Sort w} { g : ι → topological_space α } :
-  supr g = generate_from (⋃i, {s | (g i).is_open s}) :=
-by simp [(gi_generate_from α).gc.l_supr, (gi_generate_from α).l_u_eq]
+protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
+{ is_open        := λs, a ∈ s → s ∈ f.sets,
+  is_open_univ   := assume s, univ_mem_sets,
+  is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem_sets (hs has) (ht hat),
+  is_open_sUnion := assume k hk ⟨u, hu, hau⟩, mem_sets_of_superset (hk u hu hau) (subset_sUnion_of_mem hu) }
 
-lemma sup_eq_generate_from { g₁ g₂ : topological_space α } :
-  g₁ ⊔ g₂ = generate_from ({s | g₁.is_open s ∨ g₂.is_open s}) :=
-show g₁ ⊔ g₂ = generate_from ({s | g₁.is_open s} ⊔ {s | g₂.is_open s}),
-  by simp [(gi_generate_from α).gc.l_sup, (gi_generate_from α).l_u_eq]
+lemma gc_nhds (a : α) :
+  @galois_connection _ (order_dual (filter α)) _ _ (λt, @nhds α t a) (topological_space.nhds_adjoint a) :=
+assume t (f : filter α), show f ≤ @nhds α t a ↔ _, from iff.intro
+  (assume h s hs has, h $ @mem_nhds_sets α t a s hs has)
+  (assume h, le_infi $ assume u, le_infi $ assume ⟨hau, hu⟩, le_principal_iff.2 $ h _ hu hau)
 
-lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) : @nhds α t₂ a ≤ @nhds α t₁ a :=
-infi_le_infi $ assume s, infi_le_infi2 $ assume ⟨ha, hs⟩, ⟨⟨ha, h _ hs⟩, le_refl _⟩
+lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) :
+  @nhds α t₂ a ≤ @nhds α t₁ a := (gc_nhds a).monotone_l h
 
-lemma nhds_supr {ι : Sort w} {t : ι → topological_space α} {a : α} :
-  @nhds α (supr t) a = (⨅i, @nhds α (t i) a) :=
-le_antisymm
-  (le_infi $ assume i, nhds_mono $ le_supr _ _)
-  begin
-    rw [supr_eq_generate_from, nhds_generate_from],
-    exact (le_infi $ assume s, le_infi $ assume ⟨hs, hi⟩,
-      begin
-        simp at hi, cases hi with i hi,
-        exact (infi_le_of_le i $ le_principal_iff.mpr $ @mem_nhds_sets α (t i) _ _ hi hs)
-      end)
-  end
+lemma nhds_supr {ι : Sort*} {t : ι → topological_space α} {a : α} :
+  @nhds α (supr t) a = (⨅i, @nhds α (t i) a) := (gc_nhds a).l_supr
+
+lemma nhds_Sup {s : set (topological_space α)} {a : α} :
+  @nhds α (Sup s) a = (⨅t∈s, @nhds α t a) := (gc_nhds a).l_Sup
 
 lemma nhds_sup {t₁ t₂ : topological_space α} {a : α} :
-  @nhds α (t₁ ⊔ t₂) a = @nhds α t₁ a ⊓ @nhds α t₂ a :=
-calc @nhds α (t₁ ⊔ t₂) a = @nhds α (⨆b:bool, cond b t₁ t₂) a : by rw [supr_bool_eq]
-  ... = (⨅b, @nhds α (cond b t₁ t₂) a) : begin rw [nhds_supr] end
-  ... = @nhds α t₁ a ⊓ @nhds α t₂ a : by rw [infi_bool_eq]
+  @nhds α (t₁ ⊔ t₂) a = @nhds α t₁ a ⊓ @nhds α t₂ a := (gc_nhds a).l_sup
+
+lemma nhds_bot {a : α} : @nhds α ⊥ a = ⊤ := (gc_nhds a).l_bot
 
 private lemma separated_by_f
   [tα : topological_space α] [tβ : topological_space β] [t2_space β]

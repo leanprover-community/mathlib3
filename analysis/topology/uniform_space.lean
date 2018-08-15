@@ -556,7 +556,7 @@ lemma cauchy_nhds {a : α} : cauchy (nhds a) :=
 lemma cauchy_pure {a : α} : cauchy (pure a) :=
 cauchy_downwards cauchy_nhds
   (show principal {a} ≠ ⊥, by simp)
-  (return_le_nhds a)
+  (pure_le_nhds a)
 
 lemma le_nhds_of_cauchy_adhp {f : filter α} {x : α} (hf : cauchy f)
   (adhs : f ⊓ nhds x ≠ ⊥) : f ≤ nhds x :=

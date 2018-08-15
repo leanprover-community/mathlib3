@@ -6,14 +6,14 @@ Authors: Andreas Swerdlow
 
 import ring_theory.subring
 
-variables {F : Type*}
+variables {F : Type*} [field F] (s : set F)
 
-class is_subfield [field F] (s : set F) extends is_subring s :=
+class is_subfield extends is_subring s :=
 (inv_mem : ∀ {x : F}, x ∈ s → x⁻¹ ∈ s)
 
 open is_subfield is_submonoid is_add_submonoid
 
-instance subtype.field [field F] (s : set F) [is_subfield s] : field s :=
+instance subtype.field [is_subfield s] : field s :=
 {
 add := λ (a b : s), ⟨a.val + b.val, add_mem a.property b.property⟩, 
 add_assoc := assume ⟨a, _⟩ ⟨b, _⟩ ⟨c, _⟩, subtype.eq (add_assoc a b c),

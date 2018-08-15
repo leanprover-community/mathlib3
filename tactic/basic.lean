@@ -48,7 +48,7 @@ meta def list_local_const (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if is_local_constant e' then insert e' es else es)
 
 /- only traverses the direct descendents -/
-meta def {u} traverse {m : Type → Type u} [monad m]
+meta def {u} traverse {m : Type → Type u} [applicative m]
   {elab elab' : bool} (f : expr elab → m (expr elab')) :
   expr elab → m (expr elab')
  | (var v)  := pure $ var v
@@ -60,7 +60,7 @@ meta def {u} traverse {m : Type → Type u} [monad m]
  | (lam n bi e₀ e₁) := lam n bi <$> f e₀ <*> f e₁
  | (pi n bi e₀ e₁) := pi n bi <$> f e₀ <*> f e₁
  | (elet n e₀ e₁ e₂) := elet n <$> f e₀ <*> f e₁ <*> f e₂
- | (macro mac es) := macro mac <$> mmap f es
+ | (macro mac es) := macro mac <$> list.traverse f es
 
 meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → expr → m α
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',

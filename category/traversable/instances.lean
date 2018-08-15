@@ -71,12 +71,7 @@ open function functor
 
 section inst
 
-variables {f : Type u → Type v}
-variables [applicative f]
-
-protected def option.traverse {α β : Type*} (g : α → f β) : option α → f (option β)
-| none := pure none
-| (some x) := some <$> g x
+variables {f : Type u → Type v} [applicative f]
 
 instance : traversable option :=
 { traverse := @option.traverse }
@@ -122,20 +117,6 @@ instance : is_lawful_traversable option :=
   map_traverse := @option.map_traverse,
   traverse_map := @option.traverse_map,
   naturality := @option.naturality }
-
-section list
-
-variables {f : Type u → Type v}
-variables [applicative f]
-
-open applicative functor
-open list (cons)
-
-protected def list.traverse {α β : Type*} (g : α → f β) : list α → f (list β)
-| [] := pure []
-| (x :: xs) := cons <$> g x <*> list.traverse xs
-
-end list
 
 section list
 

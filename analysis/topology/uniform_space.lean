@@ -65,7 +65,7 @@ lemma prod_mk_mem_comp_rel {a b c : α} {s t : set (α×α)} (h₁ : (a, c) ∈ 
 @[simp] lemma id_comp_rel {r : set (α×α)} : comp_rel id_rel r = r :=
 set.ext $ assume ⟨a, b⟩, by simp
 
-lemma assoc_comp_rel {r s t : set (α×α)} :
+lemma comp_rel_assoc {r s t : set (α×α)} :
   comp_rel (comp_rel r s) t = comp_rel r (comp_rel s t) :=
 by ext p; cases p; simp only [mem_comp_rel]; tauto
 
@@ -1359,16 +1359,15 @@ def uniform_space.vmap (f : α → β) (u : uniform_space β) : uniform_space α
       repeat { exact monotone_comp_rel monotone_id monotone_id }
     end
     (vmap_mono u.comp),
-  is_open_uniformity :=
-  begin
-    intro s,
+  is_open_uniformity := λ s, begin
     change (@is_open α (u.to_topological_space.induced f) s ↔ _),
     simp [is_open_iff_nhds, nhds_induced_eq_vmap, mem_nhds_uniformity_iff, filter.vmap, and_comm],
-    exact (ball_congr $ assume x hx,
-      ⟨assume ⟨t, hts, ht⟩, ⟨_, ht, assume ⟨x₁, x₂⟩, by simp [*, subset_def] at * {contextual := tt} ⟩,
-        assume ⟨t, ht, hts⟩, ⟨{y:β | (f x, y) ∈ t},
-          assume y (hy : (f x, f y) ∈ t), @hts (x, y) hy rfl,
-          mem_nhds_uniformity_iff.mp $ mem_nhds_left _ ht⟩⟩)
+    refine ball_congr (λ x hx, ⟨_, _⟩),
+    { rintro ⟨t, hts, ht⟩, refine ⟨_, ht, _⟩,
+      rintro ⟨x₁, x₂⟩ h rfl, exact hts (h rfl) },
+    { rintro ⟨t, ht, hts⟩,
+      exact ⟨{y | (f x, y) ∈ t}, λ y hy, @hts (x, y) hy rfl,
+        mem_nhds_uniformity_iff.1 $ mem_nhds_left _ ht⟩ }
   end }
 
 lemma uniform_continuous_vmap {f : α → β} [u : uniform_space β] :
@@ -1588,34 +1587,34 @@ lemma to_topological_space_subtype [u : uniform_space α] {p : α → Prop} :
 
 end constructions
 
-lemma lebesgue_entourage_lemma {α : Type u} [uniform_space α] {s : set α} {c : set (set α)}
-  (hs : compact s) (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
-  ∃ n ∈ (@uniformity α _).sets, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=
-let unif := (@uniformity α _).sets,
-    u : set (α × α) → set α := λ n,
-      {x | ∃ (t ∈ c) (m ∈ unif), {y | (x, y) ∈ comp_rel m n} ⊆ t} in
-have hu₁ : ∀ n ∈ unif, is_open (u n), from
-  assume n hn, is_open_uniformity.mpr $ begin
-    rintros x ⟨t, ht, m, hm, h⟩,
+lemma lebesgue_number_lemma {α : Type u} [uniform_space α] {s : set α} {ι} {c : ι → set α}
+  (hs : compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
+  ∃ n ∈ (@uniformity α _).sets, ∀ x ∈ s, ∃ i, {y | (x, y) ∈ n} ⊆ c i :=
+begin
+  let u := λ n, {x | ∃ i (m ∈ (@uniformity α _).sets), {y | (x, y) ∈ comp_rel m n} ⊆ c i},
+  have hu₁ : ∀ n ∈ (@uniformity α _).sets, is_open (u n),
+  { refine λ n hn, is_open_uniformity.2 _,
+    rintro x ⟨i, m, hm, h⟩,
     rcases comp_mem_uniformity_sets hm with ⟨m', hm', mm'⟩,
     apply uniformity.upwards_sets hm',
     rintros ⟨x, y⟩ hp rfl,
-    refine ⟨t, ht, m', hm', _⟩,
-    intros z hz,
-    have : (x, z) ∈ comp_rel m' (comp_rel m' n), from mem_comp_rel.mpr ⟨y, hp, hz⟩,
-    rw ←assoc_comp_rel at this,
-    exact h (monotone_comp_rel monotone_id monotone_const mm' this)
-  end,
-have hu₂ : s ⊆ ⋃ (n ∈ unif), u n, from assume x hx,
-  let ⟨t, ht, xt⟩ := mem_sUnion.mp (hc₂ hx),
-      ⟨m', hm', mm'⟩ := comp_mem_uniformity_sets (is_open_uniformity.mp (hc₁ t ht) x xt)
-  in mem_bUnion hm' ⟨t, ht, m', hm', assume y hy, mm' hy rfl⟩,
-let ⟨b, bu, b_fin, b_cover⟩ := compact_elim_finite_subcover_image hs hu₁ hu₂,
-    n := ⋂ (i ∈ b), i,
-    hn := Inter_mem_sets b_fin bu in
-⟨n, hn, assume x hx,
- let ⟨i, bi, hi⟩ := mem_bUnion_iff.mp (b_cover hx),
-     ⟨t, tc, n', hn', h⟩ := hi in
- ⟨t, tc, assume y hy, h $
-    prod_mk_mem_comp_rel (refl_mem_uniformity hn') $
-    bInter_subset_of_mem bi $ hy⟩⟩
+    refine ⟨i, m', hm', λ z hz, h (monotone_comp_rel monotone_id monotone_const mm' _)⟩,
+    dsimp at hz ⊢, rw comp_rel_assoc,
+    exact ⟨y, hp, hz⟩ },
+  have hu₂ : s ⊆ ⋃ n ∈ (@uniformity α _).sets, u n,
+  { intros x hx,
+    rcases mem_Union.1 (hc₂ hx) with ⟨i, h⟩,
+    rcases comp_mem_uniformity_sets (is_open_uniformity.1 (hc₁ i) x h) with ⟨m', hm', mm'⟩,
+    exact mem_bUnion hm' ⟨i, _, hm', λ y hy, mm' hy rfl⟩ },
+  rcases compact_elim_finite_subcover_image hs hu₁ hu₂ with ⟨b, bu, b_fin, b_cover⟩,
+  refine ⟨_, Inter_mem_sets b_fin bu, λ x hx, _⟩,
+  rcases mem_bUnion_iff.1 (b_cover hx) with ⟨n, bn, i, m, hm, h⟩,
+  refine ⟨i, λ y hy, h _⟩,
+  exact prod_mk_mem_comp_rel (refl_mem_uniformity hm) (bInter_subset_of_mem bn hy)
+end
+
+lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α} {c : set (set α)}
+  (hs : compact s) (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
+  ∃ n ∈ (@uniformity α _).sets, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=
+by rw sUnion_eq_Union at hc₂;
+   simpa using lebesgue_number_lemma hs (by simpa) hc₂

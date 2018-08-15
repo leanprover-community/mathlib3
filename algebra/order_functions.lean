@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_group order.lattice
+import algebra.ordered_group order.lattice tactic.wlog
 
 open lattice
 
@@ -77,6 +77,20 @@ by by_cases h : a ≤ b; simp [min, h]
 theorem max_choice (a b : α) : max a b = a ∨ max a b = b :=
 by by_cases h : a ≤ b; simp [max, h]
 
+lemma le_of_max_le_left {a b c : α} (h : max a b ≤ c) : a ≤ c :=
+le_trans (le_max_left _ _) h 
+
+lemma le_of_max_le_right {a b c : α} (h : max a b ≤ c) : b ≤ c :=
+le_trans (le_max_right _ _) h 
+
+lemma min_add_eq_min_add_min {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) : 
+      min a b - c = min (a-c) (b-c) := 
+begin
+  wlog hle : a ≤ b,
+  have : a - c ≤ b - c, from sub_le_sub hle (le_refl _),
+  simp [*, min_eq_left] at *
+end 
+
 end
 
 section decidable_linear_ordered_comm_group
@@ -124,6 +138,24 @@ lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a
 abs_le_of_le_of_neg_le
   (by simp [le_max_iff, le_trans hbc (le_abs_self c)])
   (by simp [le_max_iff, le_trans (neg_le_neg hab) (neg_le_abs_self a)])
+
+lemma min_le_add_of_nonneg_right {a b : α} (hb : b ≥ 0) : min a b ≤ a + b :=
+calc 
+  min a b ≤ a     : by apply min_le_left
+      ... ≤ a + b : le_add_of_nonneg_right hb
+
+lemma min_le_add_of_nonneg_left {a b : α} (ha : a ≥ 0) : min a b ≤ a + b :=
+calc 
+  min a b ≤ b     : by apply min_le_right
+      ... ≤ a + b : le_add_of_nonneg_left ha
+
+lemma max_le_add_of_nonneg {a b : α} (ha : a ≥ 0) (hb : b ≥ 0) : max a b ≤ a + b :=
+begin 
+  wlog hle : a ≤ b,
+  rw max_eq_right hle,
+  apply le_add_of_nonneg_left',
+  assumption 
+end 
 
 end decidable_linear_ordered_comm_group
 

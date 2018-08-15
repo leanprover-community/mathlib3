@@ -65,6 +65,10 @@ lemma prod_mk_mem_comp_rel {a b c : α} {s t : set (α×α)} (h₁ : (a, c) ∈ 
 @[simp] lemma id_comp_rel {r : set (α×α)} : comp_rel id_rel r = r :=
 set.ext $ assume ⟨a, b⟩, by simp
 
+lemma assoc_comp_rel {r s t : set (α×α)} :
+  comp_rel (comp_rel r s) t = comp_rel r (comp_rel s t) :=
+by ext p; cases p; simp only [mem_comp_rel]; tauto
+
 /-- This core description of a uniform space is outside of the type class hierarchy. It is useful
   for constructions of uniform spaces, when the topology is derived from the uniform space. -/
 structure uniform_space.core (α : Type u) :=
@@ -1583,3 +1587,35 @@ lemma to_topological_space_subtype [u : uniform_space α] {p : α → Prop} :
     @subtype.topological_space α p u.to_topological_space := rfl
 
 end constructions
+
+lemma lebesgue_entourage_lemma {α : Type u} [uniform_space α] {s : set α} {c : set (set α)}
+  (hs : compact s) (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
+  ∃ n ∈ (@uniformity α _).sets, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=
+let unif := (@uniformity α _).sets,
+    u : set (α × α) → set α := λ n,
+      {x | ∃ (t ∈ c) (m ∈ unif), {y | (x, y) ∈ comp_rel m n} ⊆ t} in
+have hu₁ : ∀ n ∈ unif, is_open (u n), from
+  assume n hn, is_open_uniformity.mpr $ begin
+    rintros x ⟨t, ht, m, hm, h⟩,
+    rcases comp_mem_uniformity_sets hm with ⟨m', hm', mm'⟩,
+    apply uniformity.upwards_sets hm',
+    rintros ⟨x, y⟩ hp rfl,
+    refine ⟨t, ht, m', hm', _⟩,
+    intros z hz,
+    have : (x, z) ∈ comp_rel m' (comp_rel m' n), from mem_comp_rel.mpr ⟨y, hp, hz⟩,
+    rw ←assoc_comp_rel at this,
+    exact h (monotone_comp_rel monotone_id monotone_const mm' this)
+  end,
+have hu₂ : s ⊆ ⋃ (n ∈ unif), u n, from assume x hx,
+  let ⟨t, ht, xt⟩ := mem_sUnion.mp (hc₂ hx),
+      ⟨m', hm', mm'⟩ := comp_mem_uniformity_sets (is_open_uniformity.mp (hc₁ t ht) x xt)
+  in mem_bUnion hm' ⟨t, ht, m', hm', assume y hy, mm' hy rfl⟩,
+let ⟨b, bu, b_fin, b_cover⟩ := compact_elim_finite_subcover_image hs hu₁ hu₂,
+    n := ⋂ (i ∈ b), i,
+    hn := Inter_mem_sets b_fin bu in
+⟨n, hn, assume x hx,
+ let ⟨i, bi, hi⟩ := mem_bUnion_iff.mp (b_cover hx),
+     ⟨t, tc, n', hn', h⟩ := hi in
+ ⟨t, tc, assume y hy, h $
+    prod_mk_mem_comp_rel (refl_mem_uniformity hn') $
+    bInter_subset_of_mem bi $ hy⟩⟩

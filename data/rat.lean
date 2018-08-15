@@ -980,7 +980,7 @@ suffices (q.num /. ↑q.denom) * (r.num /. ↑r.denom) = (q.num * r.num) /. ↑(
   by rwa [←num_denom q, ←num_denom r] at this,
 by simp [mul_def hq' hr'] 
 
-lemma rat.num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) : 
+lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) : 
       ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=
 have hq : q ≠ 0, from 
   assume : q = 0,

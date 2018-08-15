@@ -94,7 +94,7 @@ lemma C_apply : (C a : ℕ → α) n = ite (0 = n) a 0 := rfl
 
 @[simp] lemma C_1 : C (1 : α) = 1 := rfl
 
-@[simp] lemma C_mul_C : C (a * b) = C a * C b :=
+@[simp] lemma C_mul : C (a * b) = C a * C b :=
 by simp [C, single_mul_single]
 
 @[simp] lemma C_add : C (a + b) = C a + C b := finsupp.single_add
@@ -480,7 +480,7 @@ instance : module α (polynomial α) := finsupp.to_module
 instance {x : α} : is_ring_hom (eval x) := ⟨λ x y, eval_add, λ x y, eval_mul, eval_C⟩
 
 instance C.is_ring_hom : is_ring_hom (@C α _ _) :=
-⟨λ _ _, C_add, λ _ _, C_mul_C, C_1⟩
+⟨λ _ _, C_add, λ _ _, C_mul, C_1⟩
 
 @[simp] lemma degree_neg (p : polynomial α) : degree (-p) = degree p :=
 by unfold degree; rw support_neg

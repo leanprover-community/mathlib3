@@ -173,39 +173,4 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s)= L} :
     ... ≃ (quotient s × s) :
   equiv.sigma_equiv_prod _ _
 
-<<<<<<< HEAD
 end is_subgroup
-
-section quotient_group
-
-local attribute [instance] left_rel normal_subgroup.to_is_subgroup
-
-instance [group α] (s : set α) [normal_subgroup s] : group (left_cosets s) :=
-{ one := ⟦1⟧,
-  mul := λ a b, quotient.lift_on₂ a b
-  (λ a b, ⟦a * b⟧)
-  (λ a₁ a₂ b₁ b₂ hab₁ hab₂,
-    quotient.sound
-    ((is_subgroup.mul_mem_cancel_left s (is_subgroup.inv_mem hab₂)).1
-        (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
-          mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
-          exact normal_subgroup.normal _ hab₁ _))),
-  mul_assoc := λ a b c, quotient.induction_on₃
-    a b c (λ a b c, show ⟦_⟧ = ⟦_⟧, by rw mul_assoc),
-  one_mul := λ a, quotient.induction_on a
-    (λ a, show ⟦_⟧ = ⟦_⟧, by rw one_mul),
-  mul_one := λ a, quotient.induction_on a
-    (λ a, show ⟦_⟧ = ⟦_⟧, by rw mul_one),
-  inv := λ a, quotient.lift_on a (λ a, ⟦a⁻¹⟧)
-    (λ a b hab, quotient.sound begin
-      show a⁻¹⁻¹ * b⁻¹ ∈ s,
-      rw ← mul_inv_rev,
-      exact is_subgroup.inv_mem (is_subgroup.mem_norm_comm hab)
-    end),
-  mul_left_inv := λ a, quotient.induction_on a
-    (λ a, show ⟦_⟧ = ⟦_⟧, by rw inv_mul_self) }
-
-end quotient_group
-=======
-end is_subgroup
->>>>>>> ccfb2d191d777bbebb7830c90a9157561ce047cc

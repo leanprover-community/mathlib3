@@ -379,7 +379,7 @@ end
 end ring
 
 section comm_ring 
-variables {β : Type*} [comm_ring β] (abv : β → α) [is_absolute_value abv]
+variables {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
 by rw mul_comm; apply mul_equiv_zero _ hf

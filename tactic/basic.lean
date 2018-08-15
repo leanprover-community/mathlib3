@@ -6,6 +6,16 @@ Authors: Mario Carneiro
 
 import data.dlist.basic category.basic
 
+namespace name
+
+meta def deinternalize_field : name → name
+| (name.mk_string s name.anonymous) :=
+  let i := s.mk_iterator in
+  if i.curr = '_' then i.next.next_to_string else s
+| n := n
+
+end name
+
 namespace expr
 open tactic
 
@@ -41,6 +51,27 @@ namespace environment
 
 meta def in_current_file' (env : environment) (n : name) : bool :=
 env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
+
+meta def is_structure_like (env : environment) (n : name) : option (nat × name) :=
+do guardb (env.is_inductive n),
+  d ← (env.get n).to_option,
+  [intro] ← pure (env.constructors_of n) | none,
+  guard (env.inductive_num_indices n = 0),
+  some (env.inductive_num_params n, intro)
+
+meta def is_structure (env : environment) (n : name) : bool :=
+option.is_some $ do
+  (nparams, intro) ← env.is_structure_like n,
+  di ← (env.get intro).to_option,
+  @nat.iterate (expr → option unit)
+    (λ f e, do
+      expr.pi _ _ _ body ← pure e | none,
+      f body) nparams
+    (λ e, do
+      expr.pi x _ _ _ ← pure e | none,
+      let f := n ++ x.deinternalize_field,
+      env.is_projection f $> ())
+    di.type
 
 end environment
 

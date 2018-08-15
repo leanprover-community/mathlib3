@@ -1640,6 +1640,11 @@ by rw ← filter_map_eq_filter; exact filter_map_sublist_filter_map _ s
 theorem filter_of_map (f : β → α) (l) : filter p (map f l) = map f (filter (p ∘ f) l) :=
 by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 
+theorem filter_filter {q} [decidable_pred q] : ∀ l,
+  filter p (filter q l) = filter (λ a, p a ∧ q a) l
+| [] := rfl
+| (a :: l) := by by_cases p a; by_cases q a; simp *
+
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
 | (a::l) := by by_cases pa : p a; simp [span, take_while, drop_while, pa, span_eq_take_drop l]

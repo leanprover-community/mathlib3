@@ -1303,6 +1303,10 @@ quot.induction_on s $ λ l h, congr_arg coe $ filter_cons_of_pos l h
 @[simp] theorem filter_cons_of_neg {a : α} (s) : ¬ p a → filter p (a::s) = filter p s :=
 quot.induction_on s $ λ l h, @congr_arg _ _ _ _ coe $ filter_cons_of_neg l h
 
+lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+  {s : multiset α} : (∀ x ∈ s, p x ↔ q x) → filter p s = filter q s :=
+quot.induction_on s $ λ l h, congr_arg coe $ filter_congr h
+
 @[simp] theorem filter_add (s t : multiset α) :
   filter p (s + t) = filter p s + filter p t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ filter_append _ _
@@ -1371,6 +1375,19 @@ le_antisymm (le_inter
     (filter_le_filter $ inter_le_right _ _)) $ le_filter.2
 ⟨inf_le_inf (filter_le _) (filter_le _),
   λ a h, of_mem_filter (mem_of_le (inter_le_left _ _) h)⟩
+
+@[simp] theorem filter_filter {q} [decidable_pred q] (s : multiset α) :
+  filter p (filter q s) = filter (λ a, p a ∧ q a) s :=
+quot.induction_on s $ λ l, congr_arg coe $ filter_filter l
+
+theorem filter_add_filter {q} [decidable_pred q] (s : multiset α) :
+  filter p s + filter q s = filter (λ a, p a ∨ q a) s + filter (λ a, p a ∧ q a) s :=
+multiset.induction_on s rfl $ λ a s IH,
+by by_cases p a; by_cases q a; simp *
+
+theorem filter_add_not (s : multiset α) :
+  filter p s + filter (λ a, ¬ p a) s = s :=
+by rw [filter_add_filter, filter_eq_self.2, filter_eq_nil.2]; simp [decidable.em]
 
 /- filter_map -/
 

@@ -543,6 +543,9 @@ ext.2 $ assume a, by simp [and_comm, and.left_comm]
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext.2 $ assume a, by simp
 
+lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
+eq_of_veq $ filter_congr H
+
 variable [decidable_eq α]
 theorem filter_union (s₁ s₂ : finset α) :
   (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=

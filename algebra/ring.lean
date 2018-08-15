@@ -3,20 +3,45 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn
 -/
-import algebra.group tactic data.set.basic
+import algebra.group data.set.basic
 
 universes u v
 variable {α : Type u}
 
 section
-  variable [semiring α]
+variable [semiring α]
 
-  theorem mul_two (n : α) : n * 2 = n + n :=
-  (left_distrib n 1 1).trans (by simp)
+theorem mul_two (n : α) : n * 2 = n + n :=
+(left_distrib n 1 1).trans (by simp)
 
-  theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
-  (two_mul _).symm
+theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
+(two_mul _).symm
 end
+
+namespace units
+variables [ring α] {a b : α}
+
+instance : has_neg (units α) :=
+⟨λ u, ⟨-u.val, -u.inv, by simp [u.val_inv], by simp [u.inv_val]⟩⟩
+
+@[simp] protected theorem coe_neg (u : units α) : (↑-u : α) = -u := rfl
+
+@[simp] protected theorem neg_inv (u : units α) : (-u)⁻¹ = -u⁻¹ := rfl
+
+@[simp] protected theorem neg_neg (u : units α) : - -u = u :=
+units.ext $ neg_neg _
+
+@[simp] protected theorem neg_mul (u₁ u₂ : units α) : -u₁ * u₂ = -(u₁ * u₂) :=
+units.ext $ neg_mul_eq_neg_mul_symm _ _
+
+@[simp] protected theorem mul_neg (u₁ u₂ : units α) : u₁ * -u₂ = -(u₁ * u₂) :=
+units.ext $ (neg_mul_eq_mul_neg _ _).symm
+
+@[simp] protected theorem neg_mul_neg (u₁ u₂ : units α) : -u₁ * -u₂ = u₁ * u₂ := by simp
+
+protected theorem neg_eq_neg_one_mul (u : units α) : -u = -1 * u := by simp
+
+end units
 
 instance [semiring α] : semiring (with_zero α) :=
 { left_distrib := λ a b c, begin
@@ -33,6 +58,30 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.add_comm_monoid,
   ..with_zero.mul_zero_class,
   ..with_zero.monoid }
+
+attribute [refl] dvd_refl
+attribute [trans] dvd.trans
+
+class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f : α → β) : Prop :=
+(map_zero : f 0 = 0)
+(map_one : f 1 = 1)
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+
+namespace is_semiring_hom
+variables {β : Type v} [semiring α] [semiring β]
+variables (f : α → β) [is_semiring_hom f] {x y : α}
+
+instance id : is_semiring_hom (@id α) := by refine {..}; intros; refl
+
+instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
+  is_semiring_hom (g ∘ f) :=
+{ map_zero := by simp [map_zero f]; exact map_zero g,
+  map_one := by simp [map_one f]; exact map_one g,
+  map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
+  map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl }
+
+end is_semiring_hom
 
 section
   variables [ring α] (a b c d e : α)
@@ -52,7 +101,7 @@ section
   assume h,
   calc
     (a - b) * e + c = (a * e + c) - b * e : begin simp [@sub_eq_add_neg α, @right_distrib α] end
-                ... = d                   : begin rewrite h, simp [@add_sub_cancel α] end
+                ... = d                   : begin rw h, simp [@add_sub_cancel α] end
 
   theorem ne_zero_and_ne_zero_of_mul_ne_zero {a b : α} (h : a * b ≠ 0) : a ≠ 0 ∧ b ≠ 0 :=
   begin
@@ -79,8 +128,10 @@ class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β
 (map_one : f 1 = 1)
 
 namespace is_ring_hom
-
 variables {β : Type v} [ring α] [ring β]
+
+def of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
+
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
 lemma map_zero : f 0 = 0 :=
@@ -102,9 +153,19 @@ instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
   map_one := by simp [map_one f]; exact map_one g }
 
+instance : is_semiring_hom f :=
+{ map_zero := map_zero f, ..‹is_ring_hom f› }
+
 end is_ring_hom
 
 set_option old_structure_cmd true
+
+class nonzero_comm_ring (α : Type*) extends zero_ne_one_class α, comm_ring α
+
+instance integral_domain.to_nonzero_comm_ring (α : Type*) [id : integral_domain α] :
+  nonzero_comm_ring α :=
+{ ..id }
+
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -151,13 +212,13 @@ section
 
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
   have b * a - c * a = 0, by simp [h],
-  have (b - c) * a = 0, by rewrite [mul_sub_right_distrib, this],
+  have (b - c) * a = 0, by rw [mul_sub_right_distrib, this],
   have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right ha,
   eq_of_sub_eq_zero this
 
   theorem eq_of_mul_eq_mul_left_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
   have a * b - a * c = 0, by simp [h],
-  have a * (b - c) = 0, by rewrite [mul_sub_left_distrib, this],
+  have a * (b - c) = 0, by rw [mul_sub_left_distrib, this],
   have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_left ha,
   eq_of_sub_eq_zero this
 

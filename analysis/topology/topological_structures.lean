@@ -279,6 +279,9 @@ is_closed_le continuous_id continuous_const
 lemma is_closed_ge' (a : α) : is_closed {b | a ≤ b} :=
 is_closed_le continuous_const continuous_id
 
+lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
+is_closed_inter (is_closed_ge' a) (is_closed_le' b)
+
 lemma le_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
   (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) (h : {b | f b ≤ g b} ∈ b.sets) :
   a₁ ≤ a₂ :=
@@ -287,13 +290,13 @@ have tendsto (λb, (f b, g b)) b (nhds (a₁, a₂)),
 show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
   from mem_of_closed_of_tendsto hb this t.is_closed_le' h
 
-private lemma is_closed_eq : is_closed {p : α × α | p.1 = p.2 } :=
+private lemma is_closed_eq : is_closed {p : α × α | p.1 = p.2} :=
 by simp [le_antisymm_iff];
    exact is_closed_inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
 
 instance ordered_topology.to_t2_space : t2_space α :=
 { t2 :=
-  have is_open {p : α × α | p.1 ≠ p.2 }, from is_closed_eq,
+  have is_open {p : α × α | p.1 ≠ p.2}, from is_closed_eq,
   assume a b h,
   let ⟨u, v, hu, hv, ha, hb, h⟩ := is_open_prod_iff.mp this a b h in
   ⟨u, v, hu, hv, ha, hb,
@@ -301,7 +304,7 @@ instance ordered_topology.to_t2_space : t2_space α :=
     have a ≠ a, from @h (a, a) ⟨h₁, h₂⟩,
     this rfl⟩ }
 
-@[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g):
+@[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   closure {b | f b ≤ g b} = {b | f b ≤ g b} :=
 closure_eq_iff_is_closed.mpr $ is_closed_le hf hg
 end partial_order
@@ -512,7 +515,7 @@ by rw [@nhds_eq_orderable α _ _]; simp
 
 section linear_order
 
-variables [topological_space α] [ord : decidable_linear_order α] [t : orderable_topology α]
+variables [topological_space α] [linear_order α] [t : orderable_topology α]
 include t
 
 lemma mem_nhds_orderable_dest {a : α} {s : set α} (hs : s ∈ (nhds a).sets) :
@@ -527,6 +530,7 @@ have ht₁ : ((∃l, l<a) → ∃l, l < a ∧ ∀b, l < b → b ∈ t₁) ∧ (�
       begin
         by_cases a' < a,
         { simp [h] at hs₁,
+          letI := classical.DLO α,
           exact ⟨assume hx, let ⟨u, hu₁, hu₂⟩ := hs₂ hx in
             ⟨max u a', max_lt hu₁ h, assume b hb,
               ⟨hs₁ $ lt_of_le_of_lt (le_max_right _ _) hb,
@@ -545,6 +549,7 @@ have ht₂ : ((∃u, u>a) → ∃u, a < u ∧ ∀b, b < u → b ∈ t₂) ∧ (�
       begin
         by_cases a' > a,
         { simp [h] at hs₁,
+          letI := classical.DLO α,
           exact ⟨assume hx, let ⟨u, hu₁, hu₂⟩ := hs₂ hx in
             ⟨min u a', lt_min hu₁ h, assume b hb,
               ⟨hs₁ $ lt_of_lt_of_le hb (min_le_right _ _),
@@ -572,6 +577,7 @@ iff.intro
       intro p, rcases p with ⟨⟨l, hl⟩, ⟨u, hu⟩⟩,
       simp [set.subset_def],
       intros s₁ s₂ hs₁ l' hl' u' hu' hs₂,
+      letI := classical.DLO α,
       refine ⟨max l l', _, min u u', _⟩;
       simp [*, lt_min_iff, max_lt_iff] {contextual := tt}
     end

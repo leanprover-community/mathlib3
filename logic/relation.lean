@@ -5,15 +5,63 @@ Authors: Johannes Hölzl
 
 Transitive reflexive as well as reflexive closure of relations.
 -/
-import tactic
-variables {α : Type*} {β : Type*} {γ : Type*} {r : α → α → Prop} {a b c d : α}
+import tactic.interactive tactic.mk_iff_of_inductive_prop logic.relator
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace relation
+
+section comp
+variables {r : α → β → Prop} {p : β → γ → Prop} {q : γ → δ → Prop}
+
+def comp (r : α → β → Prop) (p : β → γ → Prop) (a : α) (c : γ) : Prop := ∃b, r a b ∧ p b c
+
+local infixr ` ∘r ` : 80 := relation.comp
+
+lemma comp_eq : r ∘r (=) = r :=
+funext $ assume a, funext $ assume b, propext $ iff.intro
+  (assume ⟨c, h, eq⟩, eq ▸ h)
+  (assume h, ⟨b, h, rfl⟩)
+
+lemma eq_comp : (=) ∘r r = r :=
+funext $ assume a, funext $ assume b, propext $ iff.intro
+  (assume ⟨c, eq, h⟩, eq.symm ▸ h)
+  (assume h, ⟨a, rfl, h⟩)
+
+lemma iff_comp {r : Prop → α → Prop} : (↔) ∘r r = r :=
+have (↔) = (=), by funext a b; exact iff_eq_eq,
+by rw [this, eq_comp]
+
+lemma comp_iff {r : α → Prop → Prop} : r ∘r (↔) = r :=
+have (↔) = (=), by funext a b; exact iff_eq_eq,
+by rw [this, comp_eq]
+
+lemma comp_assoc : (r ∘r p) ∘r q = r ∘r p ∘r q :=
+begin
+  funext a d, apply propext,
+  split,
+  exact assume ⟨c, ⟨b, hab, hbc⟩, hcd⟩, ⟨b, hab, c, hbc, hcd⟩,
+  exact assume ⟨b, hab, c, hbc, hcd⟩, ⟨c, ⟨b, hab, hbc⟩, hcd⟩
+end
+
+lemma flip_comp : flip (r ∘r p) = (flip p) ∘r (flip r) :=
+begin
+  funext c a, apply propext,
+  split,
+  exact assume ⟨b, hab, hbc⟩, ⟨b, hbc, hab⟩,
+  exact assume ⟨b, hbc, hab⟩, ⟨b, hab, hbc⟩
+end
+
+end comp
+
+protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ → δ → Prop :=
+λc d, ∃a b, r a b ∧ f a = c ∧ g b = d
+
+variables {r : α → α → Prop} {a b c d : α}
 
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
 inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop
 | refl {} : refl_trans_gen a
-| tail (b) {c} : refl_trans_gen b → r b c → refl_trans_gen c
+| tail {b c} : refl_trans_gen b → r b c → refl_trans_gen c
 
 attribute [refl] refl_trans_gen.refl
 
@@ -26,11 +74,18 @@ inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
 
 run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_gen `relation.refl_gen_iff
 
+/-- `trans_gen r`: transitive closure of `r` -/
+inductive trans_gen (r : α → α → Prop) (a : α) : α → Prop
+| single {b} : r a b → trans_gen b
+| tail {b c} : trans_gen b → r b c → trans_gen c
+
+run_cmd tactic.mk_iff_of_inductive_prop `relation.trans_gen `relation.trans_gen_iff
+
 attribute [refl] refl_gen.refl
 
 lemma refl_gen.to_refl_trans_gen : ∀{a b}, refl_gen r a b → refl_trans_gen r a b
 | a _ refl_gen.refl := by refl
-| a b (refl_gen.single h) := refl_trans_gen.tail _ refl_trans_gen.refl h
+| a b (refl_gen.single h) := refl_trans_gen.tail refl_trans_gen.refl h
 
 namespace refl_trans_gen
 
@@ -38,17 +93,17 @@ namespace refl_trans_gen
 begin
   induction hbc,
   case refl_trans_gen.refl { assumption },
-  case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail _ hcd }
+  case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
 end
 
 lemma single (hab : r a b) : refl_trans_gen r a b :=
-refl.tail _ hab
+refl.tail hab
 
 lemma head (hab : r a b) (hbc : refl_trans_gen r b c) : refl_trans_gen r a c :=
 begin
   induction hbc,
-  case refl_trans_gen.refl { exact refl.tail _ hab },
-  case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail _ hcd }
+  case refl_trans_gen.refl { exact refl.tail hab },
+  case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
 end
 
 lemma cases_tail : refl_trans_gen r a b → b = a ∨ (∃c, refl_trans_gen r a c ∧ r c b) :=
@@ -100,13 +155,94 @@ begin
     { exact head hac hcb } }
 end
 
+lemma total_of_right_unique (U : relator.right_unique r)
+  (ab : refl_trans_gen r a b) (ac : refl_trans_gen r a c) :
+  refl_trans_gen r b c ∨ refl_trans_gen r c b :=
+begin
+  induction ab with b d ab bd IH,
+  { exact or.inl ac },
+  { rcases IH with IH | IH,
+    { rcases cases_head IH with rfl | ⟨e, be, ec⟩,
+      { exact or.inr (single bd) },
+      { cases U bd be, exact or.inl ec } },
+    { exact or.inr (IH.tail bd) } }
+end
+
 end refl_trans_gen
+
+namespace trans_gen
+
+lemma to_refl {a b} (h : trans_gen r a b) : refl_trans_gen r a b :=
+begin
+  induction h with b h b c _ bc ab,
+  exact refl_trans_gen.single h,
+  exact refl_trans_gen.tail ab bc
+end
+
+@[trans] lemma trans_left (hab : trans_gen r a b) (hbc : refl_trans_gen r b c) : trans_gen r a c :=
+begin
+  induction hbc,
+  case refl_trans_gen.refl : c hab { assumption },
+  case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
+end
+
+@[trans] lemma trans (hab : trans_gen r a b) (hbc : trans_gen r b c) : trans_gen r a c :=
+trans_left hab hbc.to_refl
+
+lemma head' (hab : r a b) (hbc : refl_trans_gen r b c) : trans_gen r a c :=
+trans_left (single hab) hbc
+
+lemma tail' (hab : refl_trans_gen r a b) (hbc : r b c) : trans_gen r a c :=
+begin
+  induction hab generalizing c,
+  case refl_trans_gen.refl : c hac { exact single hac },
+  case refl_trans_gen.tail : d b hab hdb IH { exact tail (IH hdb) hbc }
+end
+
+@[trans] lemma trans_right (hab : refl_trans_gen r a b) (hbc : trans_gen r b c) : trans_gen r a c :=
+begin
+  induction hbc,
+  case trans_gen.single : c hbc { exact tail' hab hbc },
+  case trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
+end
+
+lemma head (hab : r a b) (hbc : trans_gen r b c) : trans_gen r a c :=
+head' hab hbc.to_refl
+
+lemma tail'_iff : trans_gen r a c ↔ ∃ b, refl_trans_gen r a b ∧ r b c :=
+begin
+  refine ⟨λ h, _, λ ⟨b, hab, hbc⟩, tail' hab hbc⟩,
+  cases h with _ hac b _ hab hbc,
+  { exact ⟨_, by refl, hac⟩ },
+  { exact ⟨_, hab.to_refl, hbc⟩ }
+end
+
+lemma head'_iff : trans_gen r a c ↔ ∃ b, r a b ∧ refl_trans_gen r b c :=
+begin
+  refine ⟨λ h, _, λ ⟨b, hab, hbc⟩, head' hab hbc⟩,
+  induction h,
+  case trans_gen.single : c hac { exact ⟨_, hac, by refl⟩ },
+  case trans_gen.tail : b c hab hbc IH {
+    rcases IH with ⟨d, had, hdb⟩, exact ⟨_, had, hdb.tail hbc⟩ }
+end
+
+end trans_gen
 
 section refl_trans_gen
 open refl_trans_gen
 
 lemma refl_trans_gen_iff_eq (h : ∀b, ¬ r a b) : refl_trans_gen r a b ↔ b = a :=
 by rw [cases_head_iff]; simp [h, eq_comm]
+
+lemma refl_trans_gen_iff_eq_or_trans_gen :
+  refl_trans_gen r a b ↔ b = a ∨ trans_gen r a b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { cases h with c _ hac hcb,
+    { exact or.inl rfl },
+    { exact or.inr (trans_gen.tail' hac hcb) } },
+  { rcases h with rfl | h, {refl}, {exact h.to_refl} }
+end
 
 lemma refl_trans_gen_lift {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀a b, r a b → p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
@@ -164,12 +300,12 @@ begin
       case refl_trans_gen.tail : f b hdf hfb ih {
         rcases ih with ⟨a, hea, hfa⟩,
         cases hfa with _ hfa,
-        { exact ⟨b, hea.tail _ hfb, refl_gen.refl⟩ },
+        { exact ⟨b, hea.tail hfb, refl_gen.refl⟩ },
         { rcases h _ _ _ hfb hfa with ⟨c, hbc, hac⟩,
           exact ⟨c, hea.trans hac, hbc⟩ } } },
     rcases this with ⟨a, hea, hba⟩, cases hba with _ hba,
     { exact ⟨b, hea, hcb⟩ },
-    { exact ⟨a, hea, hcb.tail _ hba⟩ } }
+    { exact ⟨a, hea, hcb.tail hba⟩ } }
 end
 
 lemma join_of_single (h : reflexive r) (hab : r a b) : join r a b :=

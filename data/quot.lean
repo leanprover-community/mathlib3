@@ -7,6 +7,33 @@ Quotients -- extends the core library
 -/
 variables {α : Sort*} {β : Sort*}
 
+namespace quot
+variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
+local notation `⟦`:max a `⟧` := quot.mk _ a
+
+protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
+  (ca : ∀ {b a₁ a₂}, ra a₁ a₂ → f a₁ b == f a₂ b)
+  (cb : ∀ {a b₁ b₂}, rb b₁ b₂ → f a b₁ == f a b₂) : φ qa qb :=
+quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁ a₂ pa,
+  quot.induction_on qb $ λ b,
+    calc @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₁) (@cb _)
+          == f a₁ b                                     : by simp
+      ... == f a₂ b                                     : ca pa
+      ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp
+
+end quot
+
+namespace quotient
+variables [sa : setoid α] [sb : setoid β]
+variables {φ : quotient sa → quotient sb → Sort*}
+
+protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
+  (c : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ == f a₂ b₂) : φ qa qb :=
+quot.hrec_on₂ qa qb f
+  (λ _ _ _ p, c _ _ _ _ p (setoid.refl _))
+  (λ _ _ _ p, c _ _ _ _ (setoid.refl _) p)
+end quotient
+
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=
 ⟨quotient.exact, quotient.sound⟩
 
@@ -40,6 +67,21 @@ noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 
 theorem quotient.mk_out [s : setoid α] (a : α) : ⟦a⟧.out ≈ a :=
 quotient.exact (quotient.out_eq _)
+
+instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
+{ r := λ a b, ∀ i, a i ≈ b i,
+  iseqv := ⟨
+    λ a i, setoid.refl _,
+    λ a b h i, setoid.symm (h _),
+    λ a b c h₁ h₂ i, setoid.trans (h₁ _) (h₂ _)⟩ }
+
+noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : ∀ i, setoid (α i)]
+  (f : ∀ i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=
+⟦λ i, (f i).out⟧
+
+theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [∀ i, setoid (α i)]
+  (f : ∀ i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
+quotient.sound $ λ i, quotient.mk_out _
 
 /-- `trunc α` is the quotient of `α` by the always-true relation. This
   is related to the propositional truncation in HoTT, and is similar
@@ -125,3 +167,56 @@ end trunc
 
 theorem nonempty_of_trunc (q : trunc α) : nonempty α :=
 let ⟨a, _⟩ := q.exists_rep in ⟨a⟩
+
+namespace quotient
+variables {γ : Sort*} {φ : Sort*} 
+  {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
+
+/- Versions of quotient definitions and lemmas ending in `'` use unification instead
+of typeclass inference for inferring the `setoid` argument. This is useful when there are
+several different quotient relations on a type, for example quotient groups, rings and modules -/
+
+protected def mk' (a : α) : quotient s₁ := quot.mk s₁.1 a
+
+@[elab_as_eliminator, reducible]
+protected def lift_on' (q : quotient s₁) (f : α → φ) 
+  (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) : φ := quotient.lift_on q f h
+
+@[elab_as_eliminator, reducible]
+protected def lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → γ)
+  (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂) : γ :=
+quotient.lift_on₂ q₁ q₂ f h
+
+@[elab_as_eliminator]
+protected lemma induction_on' {p : quotient s₁ → Prop} (q : quotient s₁)
+  (h : ∀ a, p (quotient.mk' a)) : p q := quotient.induction_on q h
+
+@[elab_as_eliminator]
+protected lemma induction_on₂' {p : quotient s₁ → quotient s₂ → Prop} (q₁ : quotient s₁)
+  (q₂ : quotient s₂) (h : ∀ a₁ a₂, p (quotient.mk' a₁) (quotient.mk' a₂)) : p q₁ q₂ :=
+quotient.induction_on₂ q₁ q₂ h
+
+@[elab_as_eliminator]
+protected lemma induction_on₃' {p : quotient s₁ → quotient s₂ → quotient s₃ → Prop} 
+  (q₁ : quotient s₁) (q₂ : quotient s₂) (q₃ : quotient s₃) 
+  (h : ∀ a₁ a₂ a₃, p (quotient.mk' a₁) (quotient.mk' a₂) (quotient.mk' a₃)) : p q₁ q₂ q₃ :=
+quotient.induction_on₃ q₁ q₂ q₃ h
+
+lemma exact' {a b : α} : 
+  (quotient.mk' a : quotient s₁) = quotient.mk' b → @setoid.r _ s₁ a b :=
+quotient.exact
+
+lemma sound' {a b : α} : @setoid.r _ s₁ a b → @quotient.mk' α s₁ a = quotient.mk' b :=
+quotient.sound
+
+@[simp] protected lemma eq' {a b : α} : @quotient.mk' α s₁ a = quotient.mk' b ↔ @setoid.r _ s₁ a b :=
+quotient.eq
+
+noncomputable def out' (a : quotient s₁) : α := quotient.out a
+
+@[simp] theorem out_eq' (q : quotient s₁) : quotient.mk' q.out' = q := q.out_eq
+
+theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a).out a :=
+quotient.exact (quotient.out_eq _) 
+
+end quotient

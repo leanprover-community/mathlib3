@@ -458,7 +458,7 @@ lemma uniform_embedding.uniform_continuous [uniform_space β] {f : α → β}
 
 lemma uniform_embedding.uniform_continuous_iff [uniform_space β] [uniform_space γ] {f : α → β}
   {g : β → γ} (hg : uniform_embedding g) : uniform_continuous f ↔ uniform_continuous (g ∘ f) :=
-by simp [uniform_continuous, tendsto]; rw [← hg.2, ← map_le_iff_le_vmap, map_map]
+by simp [uniform_continuous, tendsto]; rw [← hg.2, ← map_le_iff_le_vmap, filter.map_map]
 
 lemma uniform_embedding.dense_embedding [uniform_space β] {f : α → β}
   (h : uniform_embedding f) (hd : ∀x, x ∈ closure (range f)) : dense_embedding f :=
@@ -794,11 +794,11 @@ lemma totally_bounded_iff_filter {s : set α} :
   have f ≠ ⊥,
     from infi_neq_bot_of_directed ⟨a⟩
       (assume ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩, ⟨⟨t₁ ∪ t₂, finite_union ht₁ ht₂⟩,
-        principal_mono.mpr $ diff_right_antimono $ Union_subset_Union $
+        principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inl,
-        principal_mono.mpr $ diff_right_antimono $ Union_subset_Union $
+        principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inr⟩)
-      (assume ⟨t, ht⟩, by simp [diff_neq_empty]; exact hd_cover ht),
+      (assume ⟨t, ht⟩, by simp [diff_eq_empty]; exact hd_cover ht),
   have f ≤ principal s, from infi_le_of_le ⟨∅, finite_empty⟩ $ by simp; exact subset.refl s,
   let
     ⟨c, (hc₁ : c ≤ f), (hc₂ : cauchy c)⟩ := h f ‹f ≠ ⊥› this,
@@ -1032,13 +1032,12 @@ variables
   (h_dense : ∀x, x ∈ closure (range e))
   {f : β → γ}
   (h_f : uniform_continuous f)
-  [inhabited γ]
 
-local notation `ψ` := (h_e.dense_embedding h_dense).ext f
+local notation `ψ` := (h_e.dense_embedding h_dense).extend f
 
 lemma uniformly_extend_of_emb [cγ : complete_space γ] [sγ : separated γ] {b : β} :
   ψ (e b) = f b :=
-dense_embedding.ext_e_eq _ $ continuous_iff_tendsto.mp h_f.continuous b
+dense_embedding.extend_e_eq _ $ continuous_iff_tendsto.mp h_f.continuous b
 
 lemma uniformly_extend_exists [complete_space γ] [sγ : separated γ] {a : α} :
   ∃c, tendsto f (vmap e (nhds a)) (nhds c) :=
@@ -1052,7 +1051,7 @@ complete_space.complete this
 
 lemma uniformly_extend_spec [complete_space γ] [sγ : separated γ] {a : α} :
   tendsto f (vmap e (nhds a)) (nhds (ψ a)) :=
-lim_spec $ uniformly_extend_exists h_e h_dense h_f
+@lim_spec _ (id _) _ _ $ uniformly_extend_exists h_e h_dense h_f
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] [sγ : separated γ] :
   uniform_continuous ψ :=
@@ -1480,7 +1479,7 @@ uniform_space.of_core_eq
       by rw [to_topological_space_sup, to_topological_space_vmap, to_topological_space_vmap]; refl
     ... = _ : by rw [uniform_space.to_core_to_topological_space])
 
-theorem prod_uniformity [uniform_space α] [uniform_space β] : @uniformity (α × β) _ =
+theorem uniformity_prod [uniform_space α] [uniform_space β] : @uniformity (α × β) _ =
   uniformity.vmap (λp:(α × β) × α × β, (p.1.1, p.2.1)) ⊓
   uniformity.vmap (λp:(α × β) × α × β, (p.1.2, p.2.2)) :=
 sup_uniformity
@@ -1532,12 +1531,6 @@ end
 
 /- a similar product space is possible on the function space (uniformity of pointwise convergence),
   but we want to have the uniformity of uniform convergence on function spaces -/
-
-lemma uniformity_prod [uniform_space α] [uniform_space β] :
-  @uniformity (α×β) _ =
-    vmap (λp:(α×β)×(α×β), (p.1.1, p.2.1)) uniformity ⊓
-    vmap (λp:(α×β)×(α×β), (p.1.2, p.2.2)) uniformity :=
-by rw [prod.uniform_space, uniform_space.of_core_eq_to_core, uniformity, sup_uniformity]; refl
 
 lemma uniformity_prod_eq_prod [uniform_space α] [uniform_space β] :
   @uniformity (α×β) _ =

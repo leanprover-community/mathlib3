@@ -68,35 +68,3 @@ def psigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a))
 | ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
 
 end psigma
-
-section subtype
-variables {α : Sort*} {β : α → Prop}
-
-protected lemma subtype.eq' : ∀ {a1 a2 : {x // β x}}, a1.val = a2.val → a1 = a2
-| ⟨x, h1⟩ ⟨.(x), h2⟩ rfl := rfl
-
-lemma subtype.ext {a1 a2 : {x // β x}} : a1 = a2 ↔ a1.val = a2.val :=
-⟨congr_arg _, subtype.eq'⟩
-
-theorem subtype.val_injective : function.injective (@subtype.val _ β) :=
-λ a b, subtype.eq'
-
-@[simp] theorem subtype.coe_eta {α : Type*} {β : α → Prop}
- (a : {a // β a}) (h : β a) : subtype.mk ↑a h = a := subtype.eta _ _
-
-@[simp] theorem subtype.coe_mk {α : Type*} {β : α → Prop}
- (a h) : (@subtype.mk α β a h : α) = a := rfl
-
-@[simp] theorem subtype.mk_eq_mk {α : Type*} {β : α → Prop}
- {a h a' h'} : @subtype.mk α β a h = @subtype.mk α β a' h' ↔ a = a' :=
-⟨λ H, by injection H, λ H, by congr; assumption⟩
-
-@[simp] theorem subtype.forall {p : {a // β a} → Prop} :
-  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
-⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
-
-@[simp] theorem subtype.exists {p : {a // β a} → Prop} :
-  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
-⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
-
-end subtype

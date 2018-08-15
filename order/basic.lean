@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import tactic.interactive logic.basic data.sigma data.sum data.set.basic algebra.order
+import tactic.interactive logic.basic data.sum data.set.basic algebra.order
 open function
 
 /- TODO: automatic construction of dual definitions / theorems -/
@@ -29,6 +29,26 @@ instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α
 instance [linear_order α] : is_linear_order α (≤) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
 
+theorem preorder.ext {α} {A B : preorder α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+begin
+  resetI, cases A, cases B, congr,
+  { funext x y, exact propext (H x y) },
+  { funext x y,
+    dsimp [(≤)] at A_lt_iff_le_not_le B_lt_iff_le_not_le H,
+    simp [A_lt_iff_le_not_le, B_lt_iff_le_not_le, H] },
+end
+
+theorem partial_order.ext {α} {A B : partial_order α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+by haveI this := preorder.ext H;
+   cases A; cases B; injection this; congr'
+
+theorem linear_order.ext {α} {A B : linear_order α}
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+by haveI this := partial_order.ext H;
+   cases A; cases B; injection this; congr'
+
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
 
@@ -46,34 +66,34 @@ assume a b h, m_g (m_f h)
 
 end monotone
 
-/- order instances -/
+def order_dual (α : Type*) := α
 
-/-- Order dual of a preorder -/
-def preorder.dual (o : preorder α) : preorder α :=
-{ le       := λx y, y ≤ x,
-  le_refl  := le_refl,
-  le_trans := assume a b c h₁ h₂, le_trans h₂ h₁ }
+namespace order_dual
+instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
 
-instance preorder_fun {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] : preorder (Πi, α i) :=
+instance (α : Type*) [preorder α] : preorder (order_dual α) :=
+{ le_refl  := le_refl,
+  le_trans := assume a b c hab hbc, le_trans hbc hab,
+  .. order_dual.has_le α }
+
+instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
+{ le_antisymm := assume a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
+
+instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
+{ le_total := assume a b:α, le_total b a, .. order_dual.partial_order α }
+
+end order_dual
+
+/- order instances on the function space -/
+
+instance pi.preorder {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] : preorder (Πi, α i) :=
 { le       := λx y, ∀i, x i ≤ y i,
   le_refl  := assume a i, le_refl (a i),
   le_trans := assume a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
 
-instance partial_order_fun {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] : partial_order (Πi, α i) :=
+instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] : partial_order (Πi, α i) :=
 { le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),
-  ..preorder_fun }
-
-/-- Order dual of a partial order -/
-def partial_order.dual (wo : partial_order α) : partial_order α :=
-{ le          := λx y, y ≤ x,
-  le_refl     := le_refl,
-  le_trans    := assume a b c h₁ h₂, le_trans h₂ h₁,
-  le_antisymm := assume a b h₁ h₂, le_antisymm h₂ h₁ }
-
-theorem le_dual_eq_le {α : Type} (wo : partial_order α) (a b : α) :
-  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ wo.dual)) a b =
-  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ wo)) b a :=
-rfl
+  ..pi.preorder }
 
 theorem comp_le_comp_left_of_monotone [preorder α] [preorder β] [preorder γ]
   {f : β → α} {g h : γ → β} (m_f : monotone f) (le_gh : g ≤ h) : has_le.le.{max w u} (f ∘ g) (f ∘ h) :=
@@ -191,6 +211,9 @@ by letI LO := linear_order_of_STO' r; exact
 { decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
   ..LO }
 
+noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
+{ decidable_le := classical.dec_rel _, ..LO }
+
 theorem is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (swap r) :=
 ⟨λ a b, by simpa [swap, or_comm, or.left_comm] using @trichotomous _ r _ a b⟩
 
@@ -206,18 +229,15 @@ instance [linear_order α] : is_strict_total_order' α (<) := {}
 @[algebra] class is_order_connected (α : Type u) (lt : α → α → Prop) : Prop :=
 (conn : ∀ a b c, lt a c → lt a b ∨ lt b c)
 
-theorem is_order_connected.neg_trans (r : α → α → Prop) [is_order_connected α r]
+theorem is_order_connected.neg_trans {r : α → α → Prop} [is_order_connected α r]
   {a b c} (h₁ : ¬ r a b) (h₂ : ¬ r b c) : ¬ r a c :=
 mt (is_order_connected.conn a b c) $ by simp [h₁, h₂]
 
-theorem is_strict_weak_order_of_is_order_connected [is_asymm α r] :
-  ∀ [is_order_connected α r], is_strict_weak_order α r
-| ⟨H⟩ := {
-  trans := λ a b c h₁ h₂, (H _ c _ h₁).resolve_right (asymm h₂),
+theorem is_strict_weak_order_of_is_order_connected [is_asymm α r]
+  [is_order_connected α r] : is_strict_weak_order α r :=
+{ trans := λ a b c h₁ h₂, (is_order_connected.conn _ c _ h₁).resolve_right (asymm h₂),
   incomp_trans := λ a b c ⟨h₁, h₂⟩ ⟨h₃, h₄⟩,
-    have H' : ∀ {a b c}, ¬ r a b → ¬ r b c → ¬ r a c,
-    from λ a b c, by simpa [not_or_distrib] using mt (H a b c),
-    ⟨H' h₁ h₃, H' h₄ h₂⟩,
+    ⟨is_order_connected.neg_trans h₁ h₃, is_order_connected.neg_trans h₄ h₂⟩,
   ..@is_irrefl_of_is_asymm α r _ }
 
 instance is_order_connected_of_is_strict_total_order'

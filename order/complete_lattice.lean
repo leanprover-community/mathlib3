@@ -5,14 +5,14 @@ Authors: Johannes Hölzl
 
 Theory of complete lattices.
 -/
-import order.bounded_lattice data.set.basic
+import order.bounded_lattice data.set.basic tactic.pi_instances
 
 set_option old_structure_cmd true
 
-universes u v w w₂
-variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂}
 
 namespace lattice
+universes u v w w₂
+variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂}
 
 /-- class for the `Sup` operator -/
 class has_Sup (α : Type u) := (Sup : set α → α)
@@ -152,6 +152,16 @@ by finish [singleton_def]
 by finish [singleton_def]
 --eq.trans Inf_insert $ by simp
 
+@[simp] theorem Inf_eq_top : Inf s = ⊤ ↔ (∀a∈s, a = ⊤) :=
+iff.intro
+  (assume h a ha, top_unique $ h ▸ Inf_le ha)
+  (assume h, top_unique $ le_Inf $ assume a ha, top_le_iff.2 $ h a ha)
+
+@[simp] theorem Sup_eq_bot : Sup s = ⊥ ↔ (∀a∈s, a = ⊥) :=
+iff.intro
+  (assume h a ha, bot_unique $ h ▸ le_Sup ha)
+  (assume h, bot_unique $ Sup_le $ assume a ha, le_bot_iff.2 $ h a ha)
+
 end
 
 section complete_linear_order
@@ -276,17 +286,27 @@ le_antisymm
   (infi_le_infi2 $ assume j, ⟨pq.mpr j, le_of_eq $ f j⟩)
   (infi_le_infi2 $ assume j, ⟨pq.mp j, le_of_eq $ (f _).symm⟩)
 
-@[simp] theorem infi_const {a : α} [inhabited ι] : (⨅ b:ι, a) = a :=
-le_antisymm (Inf_le ⟨arbitrary ι, rfl⟩) (by finish)
+@[simp] theorem infi_const {a : α} : ∀[nonempty ι], (⨅ b:ι, a) = a
+| ⟨i⟩ := le_antisymm (Inf_le ⟨i, rfl⟩) (by finish)
 
-@[simp] theorem supr_const {a : α} [inhabited ι] : (⨆ b:ι, a) = a :=
-le_antisymm (by finish) (le_Sup ⟨arbitrary ι, rfl⟩)
+@[simp] theorem supr_const {a : α} : ∀[nonempty ι], (⨆ b:ι, a) = a
+| ⟨i⟩ := le_antisymm (by finish) (le_Sup ⟨i, rfl⟩)
 
-@[simp] lemma infi_top [complete_lattice α] : (⨅i:ι, ⊤ : α) = ⊤ :=
+@[simp] lemma infi_top : (⨅i:ι, ⊤ : α) = ⊤ :=
 top_unique $ le_infi $ assume i, le_refl _
 
-@[simp] lemma supr_bot [complete_lattice α] : (⨆i:ι, ⊥ : α) = ⊥ :=
+@[simp] lemma supr_bot : (⨆i:ι, ⊥ : α) = ⊥ :=
 bot_unique $ supr_le $ assume i, le_refl _
+
+@[simp] lemma infi_eq_top : infi s = ⊤ ↔ (∀i, s i = ⊤) :=
+iff.intro
+  (assume eq i, top_unique $ eq ▸ infi_le _ _)
+  (assume h, top_unique $ le_infi $ assume i, top_le_iff.2 $ h i)
+
+@[simp] lemma infi_eq_bot : supr s = ⊥ ↔ (∀i, s i = ⊥) :=
+iff.intro
+  (assume eq i, bot_unique $ eq ▸ le_supr _ _)
+  (assume h, bot_unique $ supr_le $ assume i, le_bot_iff.2 $ h i)
 
 @[simp] lemma infi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
 le_antisymm (infi_le _ _) (le_infi $ assume h, le_refl _)
@@ -414,12 +434,12 @@ le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
 
-theorem infi_and {p q : Prop} {s : p ∧ q → α} : infi s = (⨅ h₁ : p, ⨅ h₂ : q, s ⟨h₁, h₂⟩) :=
+theorem infi_and {p q : Prop} {s : p ∧ q → α} : infi s = (⨅ h₁ h₂, s ⟨h₁, h₂⟩) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume j, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
-theorem supr_and {p q : Prop} {s : p ∧ q → α} : supr s = (⨆ h₁ : p, ⨆ h₂ : q, s ⟨h₁, h₂⟩) :=
+theorem supr_and {p q : Prop} {s : p ∧ q → α} : supr s = (⨆ h₁ h₂, s ⟨h₁, h₂⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λj, s ⟨i, j⟩) _)
   (supr_le $ assume i, supr_le $ assume j, le_supr _ _)
@@ -555,32 +575,32 @@ le_antisymm
   (le_inf (infi_le _ _) (infi_le _ _))
   (le_infi $ assume b, match b with tt := inf_le_left | ff := inf_le_right end)
 
-theorem infi_subtype {p : ι → Prop} {f : subtype p → α} : (⨅ x, f x) = (⨅ i, ⨅ h:p i, f ⟨i, h⟩) :=
+theorem infi_subtype {p : ι → Prop} {f : subtype p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
-theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i, ⨆ h:p i, f ⟨i, h⟩) :=
+theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
 
-theorem infi_sigma {p : β → Type w} {f : sigma p → α} : (⨅ x, f x) = (⨅ i, ⨅ h:p i, f ⟨i, h⟩) :=
+theorem infi_sigma {p : β → Type w} {f : sigma p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
-theorem supr_sigma {p : β → Type w} {f : sigma p → α} : (⨆ x, f x) = (⨆ i, ⨆ h:p i, f ⟨i, h⟩) :=
+theorem supr_sigma {p : β → Type w} {f : sigma p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
 
-theorem infi_prod {γ : Type w} {f : β × γ → α} : (⨅ x, f x) = (⨅ i, ⨅ j, f (i, j)) :=
+theorem infi_prod {γ : Type w} {f : β × γ → α} : (⨅ x, f x) = (⨅ i j, f (i, j)) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume j, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
-theorem supr_prod {γ : Type w} {f : β × γ → α} : (⨆ x, f x) = (⨆ i, ⨆ j, f (i, j)) :=
+theorem supr_prod {γ : Type w} {f : β × γ → α} : (⨆ x, f x) = (⨆ i j, f (i, j)) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λj, f ⟨i, j⟩) _)
   (supr_le $ assume i, supr_le $ assume j, le_supr _ _)
@@ -620,15 +640,13 @@ instance complete_lattice_Prop : complete_lattice Prop :=
   le_Inf := assume s a h p b hb, h b hb p,
   ..lattice.bounded_lattice_Prop }
 
-instance complete_lattice_fun {α : Type u} {β : Type v} [complete_lattice β] :
-  complete_lattice (α → β) :=
-{ Sup    := λs a, Sup (set.image (λf : α → β, f a) s),
-  le_Sup := assume s f h a, le_Sup ⟨f, h, rfl⟩,
-  Sup_le := assume s f h a, Sup_le $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a,
-  Inf    := λs a, Inf (set.image (λf : α → β, f a) s),
-  Inf_le := assume s f h a, Inf_le ⟨f, h, rfl⟩,
-  le_Inf := assume s f h a, le_Inf $ assume b ⟨f', h', b_eq⟩, b_eq ▸ h _ h' a,
-  ..lattice.bounded_lattice_fun }
+instance pi.complete_lattice {α : Type u} {β : α → Type v} [∀ i, complete_lattice (β i)] :
+  complete_lattice (Π i, β i) :=
+by { pi_instance;
+     { intros, intro,
+       apply_field, intros,
+       simp at H, rcases H with ⟨ x, H₀, H₁ ⟩,
+       subst b, apply a_1 _ H₀ i, } }
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]
@@ -640,8 +658,6 @@ theorem monotone_Inf_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone
 assume x y h, le_Inf $ assume x' ⟨f, f_in, fx_eq⟩, Inf_le_of_le ⟨f, f_in, rfl⟩ $ fx_eq ▸ m_s _ f_in h
 
 end complete_lattice
-
-end lattice
 
 section ord_continuous
 open lattice
@@ -666,20 +682,20 @@ calc f a₁ ≤ f a₁ ⊔ f a₂ : le_sup_left
   ... = _ : by rw [sup_of_le_right h]
 
 end ord_continuous
+end lattice
 
-/- Classical statements:
+namespace order_dual
+open lattice
+variable (α : Type*)
 
-@[simp] theorem Inf_eq_top : Inf s = ⊤ ↔ (∀a∈s, a = ⊤) :=
-_
+instance [has_Inf α] : has_Sup (order_dual α) := ⟨(Inf : set α → α)⟩
+instance [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)⟩
 
-@[simp] theorem infi_eq_top : infi s = ⊤ ↔ (∀i, s i = ⊤) :=
-_
+instance [complete_lattice α] : complete_lattice (order_dual α) :=
+{ le_Sup := @complete_lattice.Inf_le α _,
+  Sup_le := @complete_lattice.le_Inf α _,
+  Inf_le := @complete_lattice.le_Sup α _,
+  le_Inf := @complete_lattice.Sup_le α _,
+  .. order_dual.lattice.bounded_lattice α, ..order_dual.lattice.has_Sup α, ..order_dual.lattice.has_Inf α }
 
-@[simp] theorem Sup_eq_bot : Sup s = ⊤ ↔ (∀a∈s, a = ⊥) :=
-_
-
-@[simp] theorem supr_eq_top : supr s = ⊤ ↔ (∀i, s i = ⊥) :=
-_
-
-
--/
+end order_dual

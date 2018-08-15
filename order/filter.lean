@@ -101,7 +101,7 @@ lemma filter_eq_iff : f = g ↔ f.sets = g.sets :=
 ⟨congr_arg _, filter_eq⟩
 
 lemma filter.ext : f = g ↔ ∀ s, s ∈ f.sets ↔ s ∈ g.sets :=
-by rw [filter_eq_iff, set_eq_def]
+by rw [filter_eq_iff, ext_iff]
 
 lemma univ_mem_sets' (h : ∀ a, a ∈ s): s ∈ f.sets :=
 let ⟨x, x_in_s⟩ := f.exists_mem_sets in f.upwards_sets x_in_s (assume x _, h x)
@@ -823,7 +823,7 @@ lemma infi_sets_induct {f : ι → filter α} {s : set α} (hs : s ∈ (infi f).
 begin
   have hs' : s ∈ (Inf {a : filter α | ∃ (i : ι), a = f i}).sets := hs,
   rw [Inf_sets_eq_finite] at hs',
-  simp only [mem_Union_eq] at hs',
+  simp only [mem_Union] at hs',
   rcases hs' with ⟨is, ⟨fin_is, his⟩, hs⟩, revert his s,
   refine finite.induction_on fin_is _ (λ fi is fi_ne_is fin_is ih, _); intros his s hs' hs,
   { rw [Inf_empty, mem_top_sets_iff] at hs, subst hs, assumption },
@@ -947,7 +947,7 @@ le_principal_iff.mp $ show f.lift g ≤ principal s,
 
 lemma mem_lift_sets (hg : monotone g) {s : set β} :
   s ∈ (f.lift g).sets ↔ (∃t∈f.sets, s ∈ (g t).sets) :=
-by rw [lift_sets_eq hg]; simp only [mem_Union_eq]
+by rw [lift_sets_eq hg]; simp only [mem_Union]
 
 lemma lift_le {f : filter α} {g : set α → filter β} {h : filter β} {s : set α}
   (hs : s ∈ f.sets) (hg : g s ≤ h) : f.lift g ≤ h :=
@@ -1086,7 +1086,7 @@ le_antisymm
         (assume s₁ s₂ hs₁ hs₂, le_trans hs₂ $ g_mono hs₁),
     begin
       rw [lift_sets_eq g_mono],
-      simp only [mem_Union_eq, exists_imp_distrib],
+      simp only [mem_Union, exists_imp_distrib],
       exact assume t ht hs, this t ht hs
     end)
 
@@ -1211,7 +1211,7 @@ le_antisymm
   (assume s,
   begin
     rw [lift_sets_eq hg],
-    simp only [mem_Union_eq, exists_imp_distrib, infi_sets_eq hf hι],
+    simp only [mem_Union, exists_imp_distrib, infi_sets_eq hf hι],
     exact assume t i ht hs, mem_infi_sets i $ mem_lift ht hs
   end)
 

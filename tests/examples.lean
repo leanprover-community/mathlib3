@@ -66,7 +66,7 @@ end
 
 example : true :=
 begin
-  have : ∀ (s₀ s₁ : set ℕ), s₀ = s₁,
+  have : ∀ (s₀ s₁ : set ℤ), s₀ = s₁,
   { intros, ext1,
     guard_target x ∈ s₀ ↔ x ∈ s₁,
     admit },
@@ -92,3 +92,20 @@ begin
     admit },
   trivial
 end
+
+/- refine_struct -/
+section refine_struct
+
+variables {α} [_inst : monoid α]
+include _inst
+
+example : true :=
+begin
+  have : group α,
+  { refine_struct { .._inst },
+    guard_tags _field inv group, admit,
+    guard_tags _field mul_left_inv group, admit, },
+  trivial
+end
+
+end refine_struct

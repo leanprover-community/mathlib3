@@ -7,8 +7,8 @@ Introduces the rational numbers as discrete, linear ordered field.
 -/
 
 import
-  data.nat.gcd data.pnat data.int.basic data.encodable order.basic
-  algebra.ordered_field
+  data.nat.gcd data.pnat data.int.basic data.equiv.encodable order.basic
+  algebra.ordered_field data.real.cau_seq
 
 /- rational numbers -/
 
@@ -43,8 +43,8 @@ def of_int (n : ℤ) : ℚ :=
 ⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩
 
 instance : has_zero ℚ := ⟨of_int 0⟩
-
 instance : has_one ℚ := ⟨of_int 1⟩
+instance : inhabited ℚ := ⟨0⟩
 
 /-- Form the quotient `n / d` where `n:ℤ` and `d:ℕ+` (not necessarily coprime) -/
 def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ :=
@@ -382,7 +382,7 @@ eq.trans (rat.mul_comm _ _) (rat.mul_inv_cancel _ h)
 
 instance : decidable_eq ℚ := by tactic.mk_dec_eq_instance
 
-instance field_rat : discrete_field ℚ :=
+instance : discrete_field ℚ :=
 { zero             := 0,
   add              := rat.add,
   neg              := rat.neg,
@@ -405,6 +405,30 @@ instance field_rat : discrete_field ℚ :=
   inv_mul_cancel   := rat.inv_mul_cancel,
   has_decidable_eq := rat.decidable_eq,
   inv_zero         := rfl }
+
+/- Extra instances to short-circuit type class resolution -/
+instance : field ℚ              := by apply_instance
+instance : division_ring ℚ      := by apply_instance
+instance : integral_domain ℚ    := by apply_instance
+-- TODO(Mario): this instance slows down data.real.basic
+--instance : domain ℚ           := by apply_instance
+instance : nonzero_comm_ring ℚ  := by apply_instance
+instance : comm_ring ℚ          := by apply_instance
+--instance : ring ℚ             := by apply_instance
+instance : comm_semiring ℚ      := by apply_instance
+instance : semiring ℚ           := by apply_instance
+instance : add_comm_group ℚ     := by apply_instance
+instance : add_group ℚ          := by apply_instance
+instance : add_comm_monoid ℚ    := by apply_instance
+instance : add_monoid ℚ         := by apply_instance
+instance : add_left_cancel_semigroup ℚ := by apply_instance
+instance : add_right_cancel_semigroup ℚ := by apply_instance
+instance : add_comm_semigroup ℚ := by apply_instance
+instance : add_semigroup ℚ      := by apply_instance
+instance : comm_monoid ℚ        := by apply_instance
+instance : monoid ℚ             := by apply_instance
+instance : comm_semigroup ℚ     := by apply_instance
+instance : semigroup ℚ          := by apply_instance
 
 theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
   a /. b - c /. d = (a * d - c * b) /. (b * d) :=
@@ -499,6 +523,18 @@ instance : decidable_linear_order ℚ :=
   decidable_eq    := by apply_instance,
   decidable_le    := assume a b, rat.decidable_nonneg (b - a) }
 
+/- Extra instances to short-circuit type class resolution -/
+instance : has_lt ℚ                  := by apply_instance
+instance : lattice.distrib_lattice ℚ := by apply_instance
+instance : lattice.lattice ℚ         := by apply_instance
+instance : lattice.semilattice_inf ℚ := by apply_instance
+instance : lattice.semilattice_sup ℚ := by apply_instance
+instance : lattice.has_inf ℚ         := by apply_instance
+instance : lattice.has_sup ℚ         := by apply_instance
+instance : linear_order ℚ            := by apply_instance
+instance : partial_order ℚ           := by apply_instance
+instance : preorder ℚ                := by apply_instance
+
 theorem nonneg_iff_zero_le {a} : rat.nonneg a ↔ 0 ≤ a :=
 show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
 
@@ -527,7 +563,21 @@ instance : discrete_linear_ordered_field ℚ :=
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
-  ..rat.field_rat, ..rat.decidable_linear_order }
+  ..rat.discrete_field, ..rat.decidable_linear_order }
+
+/- Extra instances to short-circuit type class resolution -/
+instance : linear_ordered_field ℚ                := by apply_instance
+instance : decidable_linear_ordered_comm_ring ℚ  := by apply_instance
+instance : linear_ordered_comm_ring ℚ            := by apply_instance
+instance : linear_ordered_ring ℚ                 := by apply_instance
+instance : ordered_ring ℚ                        := by apply_instance
+instance : decidable_linear_ordered_semiring ℚ   := by apply_instance
+instance : linear_ordered_semiring ℚ             := by apply_instance
+instance : ordered_semiring ℚ                    := by apply_instance
+instance : decidable_linear_ordered_comm_group ℚ := by apply_instance
+instance : ordered_comm_group ℚ                  := by apply_instance
+instance : ordered_cancel_comm_monoid ℚ          := by apply_instance
+instance : ordered_comm_monoid ℚ                 := by apply_instance
 
 theorem num_pos_iff_pos {a : ℚ} : 0 < a.num ↔ 0 < a :=
 le_iff_le_iff_lt_iff_lt.1 $

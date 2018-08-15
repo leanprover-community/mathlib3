@@ -6,7 +6,7 @@ Author: Johannes Hölzl
 Enumerate elements of a set with a select function.
 -/
 
-import data.encodable data.set.finite data.set.lattice logic.function
+import data.equiv.encodable data.set.finite data.set.lattice logic.function
 noncomputable theory
 
 open function set encodable

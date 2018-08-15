@@ -33,7 +33,7 @@ e.fold [] (λ e' _ es, if expr.is_local_constant e' ∧ ¬ e' ∈ es then e' :: 
 end expr
 
 namespace tactic
-open expr
+open expr binder_info
 
 meta def pis : list expr → expr → tactic expr
 | (e@(local_const uniq pp info _) :: es) f := do
@@ -41,5 +41,33 @@ meta def pis : list expr → expr → tactic expr
   f' ← pis es f,
   pure $ pi pp info t (abstract_local f' uniq)
 | _ f := pure f
+
+meta def last_explicit_arg : expr → tactic expr
+| (app f e) :=
+do t ← infer_type f >>= whnf,
+   if t.binding_info = binder_info.default
+     then pure e
+     else last_explicit_arg f
+| e := pure e
+
+private meta def get_expl_pi_arity_aux : expr → tactic nat
+| (expr.pi n bi d b) :=
+  do m     ← mk_fresh_name,
+     let l := expr.local_const m n bi d,
+     new_b ← whnf (expr.instantiate_var b l),
+     r     ← get_expl_pi_arity_aux new_b,
+     if bi = default then
+       return (r + 1)
+     else
+       return r
+| e                  := return 0
+
+/-- Compute the arity of explicit arguments of the given (Pi-)type -/
+meta def get_expl_pi_arity (type : expr) : tactic nat :=
+whnf type >>= get_expl_pi_arity_aux
+
+/-- Compute the arity of explicit arguments of the given function -/
+meta def get_expl_arity (fn : expr) : tactic nat :=
+infer_type fn >>= get_expl_pi_arity
 
 end tactic

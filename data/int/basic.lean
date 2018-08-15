@@ -32,6 +32,12 @@ by rw [← int.coe_nat_zero, coe_nat_inj']
 @[simp] theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
+lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (zero_le _)
+
+lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
+⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
+λ h, (ne_of_lt (coe_nat_lt.2 h)).symm⟩
+
 /- succ and pred -/
 
 /-- Immediate successor of an integer: `succ n = n + 1` -/
@@ -96,9 +102,11 @@ end
 
 /- /  -/
 
-theorem of_nat_div (m n : nat) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
+@[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
 
-theorem neg_succ_of_nat_div (m : nat) {b : ℤ} (H : b > 0) :
+@[simp] theorem coe_nat_div (m n : ℕ) : ((m / n : ℕ) : ℤ) = m / n := rfl
+
+theorem neg_succ_of_nat_div (m : ℕ) {b : ℤ} (H : b > 0) :
   -[1+m] / b = -(m / b + 1) :=
 match b, eq_succ_of_zero_lt H with ._, ⟨n, rfl⟩ := rfl end
 
@@ -332,6 +340,9 @@ by rw [mul_comm, mul_mod_left]
 
 @[simp] theorem mod_self {a : ℤ} : a % a = 0 :=
 by have := mul_mod_left 1 a; rwa one_mul at this
+
+@[simp] lemma mod_mod (a b : ℤ) : a % b % b = a % b :=
+by conv {to_rhs, rw [← mod_add_div a b, add_mul_mod_self_left]}
 
 /- properties of / and % -/
 
@@ -637,6 +648,24 @@ by rw [to_nat_eq_max]; apply le_max_left
 @[simp] theorem to_nat_le (a : ℤ) (n : ℕ) : to_nat a ≤ n ↔ a ≤ n :=
 by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
    exact and_iff_left (coe_zero_le _)
+
+def to_nat' : ℤ → option ℕ
+| (n : ℕ) := some n
+| -[1+ n] := none
+
+theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
+| (m : ℕ) n := option.some_inj.trans coe_nat_inj'.symm
+| -[1+ m] n := by split; intro h; cases h
+
+/- units -/
+
+@[simp] theorem units_nat_abs (u : units ℤ) : nat_abs u = 1 :=
+units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
+  by rw [← nat_abs_mul, units.mul_inv]; refl,
+  by rw [← nat_abs_mul, units.inv_mul]; refl⟩
+
+theorem units_eq_one_or (u : units ℤ) : u = 1 ∨ u = -1 :=
+by simpa [units.ext_iff, units_nat_abs] using nat_abs_eq u
 
 /- bitwise ops -/
 

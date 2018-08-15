@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import data.set data.set.basic data.option
+import data.set.basic data.option data.equiv.basic
 
 /-- `roption α` is the type of "partial values" of type `α`. It
   is similar to `option α` except the domain condition can be an
@@ -25,6 +25,10 @@ def ext' : Π {o p : roption α}
   (H2 : ∀h₁ h₂, o.get h₁ = p.get h₂), o = p
 | ⟨od, o⟩ ⟨pd, p⟩ H1 H2 := have t : od = pd, from propext H1,
   by cases t; rw [show o = p, from funext $ λp, H2 p p]
+
+/-- `roption` eta expansion -/
+@[simp] theorem eta : Π (o : roption α), (⟨o.dom, λ h, o.get h⟩ : roption α) = o
+| ⟨h, f⟩ := rfl
 
 /-- `a ∈ o` means that `o` is defined and equal to `a` -/
 protected def mem (a : α) (o : roption α) : Prop := ∃ h, o.get h = a
@@ -95,6 +99,13 @@ def of_option : option α → roption α
 | (option.some b) := ⟨λ h, congr_arg option.some h.snd,
   λ h, ⟨trivial, option.some.inj h⟩⟩
 
+@[simp] theorem of_option_dom {α} : ∀ (o : option α), (of_option o).dom ↔ o.is_some
+| option.none     := by simp [of_option, none]
+| (option.some a) := by simp [of_option]
+
+theorem of_option_eq_get {α} (o : option α) : of_option o = ⟨_, @option.get _ o⟩ :=
+roption.ext' (of_option_dom o) $ λ h₁ h₂, by cases o; [cases h₁, refl]
+
 instance : has_coe (option α) (roption α) := ⟨of_option⟩
 
 @[simp] theorem mem_coe {a : α} {o : option α} :
@@ -113,10 +124,15 @@ by cases o; refl
 @[simp] theorem of_to_option (o : roption α) [decidable o.dom] : of_option (to_option o) = o :=
 ext $ λ a, mem_of_option.trans mem_to_option
 
+noncomputable def equiv_option : roption α ≃ option α :=
+by haveI := classical.dec; exact
+⟨λ o, to_option o, of_option, λ o, of_to_option o,
+ λ o, eq.trans (by dsimp; congr) (to_of_option o)⟩
+
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/
 def assert (p : Prop) (f : p → roption α) : roption α :=
-⟨∃h : p, (f h).dom, λha, (f (let ⟨h, _⟩ := ha in h)).get (let ⟨_, h⟩ := ha in h)⟩
+⟨∃h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
 
 /-- The bind operation has value `g (f.get)`, and is defined when all the
   parts are defined. -/
@@ -267,6 +283,12 @@ funext $ λ a, roption.ext (H a)
 /-- Turn a partial function into a function out of a subtype -/
 def as_subtype (f : α →. β) (s : {x // f.dom x}) : β := f.fn s.1 s.2
 
+def equiv_subtype : (α →. β) ≃ (Σ p : α → Prop, subtype p → β) :=
+⟨λ f, ⟨f.dom, as_subtype f⟩,
+ λ ⟨p, f⟩ x, ⟨p x, λ h, f ⟨x, h⟩⟩,
+ λ f, funext $ λ a, roption.eta _,
+ λ ⟨p, f⟩, by dsimp; congr; funext a; cases a; refl⟩
+
 /-- Turn a total function into a partial function -/
 protected def lift (f : α → β) : α →. β := λ a, roption.some (f a)
 
@@ -362,8 +384,8 @@ theorem mem_fix_iff {f : α →. β ⊕ α} {a : α} {b : β} :
       rw well_founded.fix_F_eq, simp [h₁, h₂, h₄] } }
 end⟩
 
-theorem fix_induction {f : α →. β ⊕ α} {b : β}
-  {C : α → Sort*} {a : α} (h : b ∈ fix f a)
+@[elab_as_eliminator] theorem fix_induction
+  {f : α →. β ⊕ α} {b : β} {C : α → Sort*} {a : α} (h : b ∈ fix f a)
   (H : ∀ a, b ∈ fix f a →
     (∀ a', b ∈ fix f a' → sum.inr a' ∈ f a → C a') → C a) : C a :=
 begin

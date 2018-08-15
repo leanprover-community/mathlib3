@@ -6,7 +6,8 @@ Authors: Mario Carneiro
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
-import order.conditionally_complete_lattice data.real.cau_seq algebra.big_operators algebra.archimedean
+import order.conditionally_complete_lattice data.real.cau_seq
+  algebra.big_operators algebra.archimedean order.bounds
 
 def real := @quotient (cau_seq ℚ abs) cau_seq.equiv
 notation `ℝ` := real
@@ -72,14 +73,21 @@ by refine { neg := has_neg.neg,
           mul_left_comm, mul_comm, mul_add] }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : semigroup ℝ      := by apply_instance
-instance : monoid ℝ         := by apply_instance
-instance : comm_semigroup ℝ := by apply_instance
-instance : comm_monoid ℝ    := by apply_instance
-instance : add_monoid ℝ     := by apply_instance
-instance : add_group ℝ      := by apply_instance
-instance : add_comm_group ℝ := by apply_instance
-instance : ring ℝ           := by apply_instance
+instance : ring ℝ               := by apply_instance
+instance : comm_semiring ℝ      := by apply_instance
+instance : semiring ℝ           := by apply_instance
+instance : add_comm_group ℝ     := by apply_instance
+instance : add_group ℝ          := by apply_instance
+instance : add_comm_monoid ℝ    := by apply_instance
+instance : add_monoid ℝ         := by apply_instance
+instance : add_left_cancel_semigroup ℝ := by apply_instance
+instance : add_right_cancel_semigroup ℝ := by apply_instance
+instance : add_comm_semigroup ℝ := by apply_instance
+instance : add_semigroup ℝ      := by apply_instance
+instance : comm_monoid ℝ        := by apply_instance
+instance : monoid ℝ             := by apply_instance
+instance : comm_semigroup ℝ     := by apply_instance
+instance : semigroup ℝ          := by apply_instance
 
 theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
@@ -144,9 +152,11 @@ instance : linear_ordered_comm_ring ℝ :=
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
 instance : ordered_ring ℝ               := by apply_instance
+instance : linear_ordered_semiring ℝ    := by apply_instance
+instance : ordered_semiring ℝ           := by apply_instance
 instance : ordered_comm_group ℝ         := by apply_instance
 instance : ordered_cancel_comm_monoid ℝ := by apply_instance
-instance : integral_domain ℝ            := by apply_instance
+instance : ordered_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
 
 local attribute [instance] classical.prop_decidable
@@ -188,13 +198,22 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
   ..real.linear_ordered_comm_ring }
 
 /- Extra instances to short-circuit type class resolution -/
-noncomputable instance : linear_ordered_field ℝ   := by apply_instance
-noncomputable instance : decidable_linear_ordered_comm_ring ℝ  := by apply_instance
+noncomputable instance : linear_ordered_field ℝ    := by apply_instance
+noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
+noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
-noncomputable instance : decidable_linear_order ℝ := by apply_instance
-noncomputable instance : discrete_field ℝ         := by apply_instance
-noncomputable instance : field ℝ                  := by apply_instance
-noncomputable instance : division_ring ℝ          := by apply_instance
+noncomputable instance : discrete_field ℝ          := by apply_instance
+noncomputable instance : field ℝ                   := by apply_instance
+noncomputable instance : division_ring ℝ           := by apply_instance
+noncomputable instance : integral_domain ℝ         := by apply_instance
+noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
+noncomputable instance : decidable_linear_order ℝ  := by apply_instance
+noncomputable instance : lattice.distrib_lattice ℝ := by apply_instance
+noncomputable instance : lattice.lattice ℝ         := by apply_instance
+noncomputable instance : lattice.semilattice_inf ℝ := by apply_instance
+noncomputable instance : lattice.semilattice_sup ℝ := by apply_instance
+noncomputable instance : lattice.has_inf ℝ         := by apply_instance
+noncomputable instance : lattice.has_sup ℝ         := by apply_instance
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
 eq_cast of_rat rfl of_rat_add of_rat_mul
@@ -331,6 +350,11 @@ theorem le_Sup (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x) {x} (xS : x �
 
 theorem Sup_le_ub (S : set ℝ) (h₁ : ∃ x, x ∈ S) {ub} (h₂ : ∀ y ∈ S, y ≤ ub) : Sup S ≤ ub :=
 (Sup_le S h₁ ⟨_, h₂⟩).2 h₂
+
+protected lemma is_lub_Sup {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ upper_bounds s) :
+  is_lub s (Sup s) :=
+⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs,
+ λ u h, real.Sup_le_ub _ ⟨_, ha⟩ h⟩
 
 noncomputable def Inf (S : set ℝ) : ℝ := -Sup {x | -x ∈ S}
 

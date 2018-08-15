@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 (Least / Greatest) upper / lower bounds
 -/
-import order.complete_lattice data.set
+import order.complete_lattice
 open set lattice
 
 universes u v w x
@@ -15,12 +15,12 @@ section preorder
 
 variables [preorder α] [preorder β] {f : α → β}
 
-definition upper_bounds (s : set α) : set α := { x | ∀a ∈ s, a ≤ x }
-definition lower_bounds (s : set α) : set α := { x | ∀a ∈ s, x ≤ a }
-definition is_least (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ lower_bounds s
-definition is_greatest (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ upper_bounds s
-definition is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
-definition is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
+def upper_bounds (s : set α) : set α := { x | ∀a ∈ s, a ≤ x }
+def lower_bounds (s : set α) : set α := { x | ∀a ∈ s, x ≤ a }
+def is_least (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ lower_bounds s
+def is_greatest (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ upper_bounds s
+def is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
+def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
 lemma mem_upper_bounds_image (Hf : monotone f) (Ha : a ∈ upper_bounds s) :
   f a ∈ upper_bounds (f '' s) :=

@@ -41,10 +41,29 @@ by by_cases p; by_cases q; simp *
   to_bool (p ∨ q) = p || q :=
 by by_cases p; by_cases q; simp *
 
+@[simp] theorem to_bool_eq {p q : Prop} [decidable p] [decidable q] :
+  to_bool p = to_bool q ↔ (p ↔ q) :=
+⟨λ h, (coe_to_bool p).symm.trans $ by simp [h], to_bool_congr⟩
+
 lemma not_ff : ¬ ff := by simp
+
+@[simp] theorem default_bool : default bool = ff := rfl
 
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
 by cases b; simp
+
+theorem forall_bool {p : bool → Prop} : (∀ b, p b) ↔ p ff ∧ p tt :=
+⟨λ h, by simp [h], λ ⟨h₁, h₂⟩ b, by cases b; assumption⟩
+
+theorem exists_bool {p : bool → Prop} : (∃ b, p b) ↔ p ff ∨ p tt :=
+⟨λ ⟨b, h⟩, by cases b; [exact or.inl h, exact or.inr h],
+ λ h, by cases h; exact ⟨_, h⟩⟩
+
+instance decidable_forall_bool {p : bool → Prop} [∀ b, decidable (p b)] : decidable (∀ b, p b) :=
+decidable_of_decidable_of_iff and.decidable forall_bool.symm
+
+instance decidable_exists_bool {p : bool → Prop} [∀ b, decidable (p b)] : decidable (∃ b, p b) :=
+decidable_of_decidable_of_iff or.decidable exists_bool.symm
 
 @[simp] theorem cond_ff {α} (t e : α) : cond ff t e = e := rfl
 
@@ -54,23 +73,15 @@ by cases b; simp
   cond (to_bool p) t e = if p then t else e :=
 by by_cases p; simp *
 
-theorem eq_tt_of_ne_ff {a : bool} : a ≠ ff → a = tt :=
-by cases a; simp
+theorem eq_tt_of_ne_ff : ∀ {a : bool}, a ≠ ff → a = tt := dec_trivial
 
-theorem eq_ff_of_ne_tt {a : bool} : a ≠ tt → a = ff :=
-by cases a; simp
+theorem eq_ff_of_ne_tt : ∀ {a : bool}, a ≠ tt → a = ff := dec_trivial
 
-theorem absurd_of_eq_ff_of_eq_tt {B : Prop} {a : bool} (H₁ : a = ff) (H₂ : a = tt) : B :=
-by subst a; contradiction
+@[simp] theorem bor_comm : ∀ a b, a || b = b || a := dec_trivial
 
-@[simp] theorem bor_comm (a b : bool) : a || b = b || a :=
-by cases a; cases b; simp
+@[simp] theorem bor_assoc : ∀ a b c, (a || b) || c = a || (b || c) := dec_trivial
 
-@[simp] theorem bor_assoc (a b c : bool) : (a || b) || c = a || (b || c) :=
-by cases a; cases b; simp
-
-@[simp] theorem bor_left_comm (a b c : bool) : a || (b || c) = b || (a || c) :=
-by cases a; cases b; simp
+@[simp] theorem bor_left_comm : ∀ a b c, a || (b || c) = b || (a || c) := dec_trivial
 
 theorem bor_inl {a b : bool} (H : a) : a || b :=
 by simp [H]
@@ -78,41 +89,30 @@ by simp [H]
 theorem bor_inr {a b : bool} (H : b) : a || b :=
 by simp [H]
 
-@[simp] theorem band_comm (a b : bool) : a && b = b && a :=
-by cases a; simp
+@[simp] theorem band_comm : ∀ a b, a && b = b && a := dec_trivial
 
-@[simp] theorem band_assoc (a b c : bool) : (a && b) && c = a && (b && c) :=
-by cases a; simp
+@[simp] theorem band_assoc : ∀ a b c, (a && b) && c = a && (b && c) := dec_trivial
 
-@[simp] theorem band_left_comm (a b c : bool) : a && (b && c) = b && (a && c) :=
-by cases a; simp
+@[simp] theorem band_left_comm : ∀ a b c, a && (b && c) = b && (a && c) := dec_trivial
 
-theorem band_elim_left {a b : bool} (H : a && b = tt) : a = tt :=
-begin cases a; simp at H, simp [H] end
+theorem band_elim_left : ∀ {a b : bool}, a && b → a := dec_trivial
 
-theorem band_intro {a b : bool} (H₁ : a = tt) (H₂ : b = tt) : a && b = tt :=
-begin cases a, simp [H₁, H₂], simp [H₂] end
+theorem band_intro : ∀ {a b : bool}, a → b → a && b := dec_trivial
 
-theorem band_elim_right {a b : bool} (H : a && b = tt) : b = tt :=
-begin cases a, contradiction, simp at H, exact H end
+theorem band_elim_right : ∀ {a b : bool}, a && b → b := dec_trivial
 
 @[simp] theorem bnot_false : bnot ff = tt := rfl
 
 @[simp] theorem bnot_true : bnot tt = ff := rfl
 
-theorem eq_tt_of_bnot_eq_ff {a : bool} : bnot a = ff → a = tt :=
-by cases a; simp
+theorem eq_tt_of_bnot_eq_ff : ∀ {a : bool}, bnot a = ff → a = tt := dec_trivial
 
-theorem eq_ff_of_bnot_eq_tt {a : bool} : bnot a = tt → a = ff :=
-by cases a; simp
+theorem eq_ff_of_bnot_eq_tt : ∀ {a : bool}, bnot a = tt → a = ff := dec_trivial
 
-@[simp] theorem bxor_comm (a b : bool) : bxor a b = bxor b a :=
-by cases a; simp
+@[simp] theorem bxor_comm : ∀ a b, bxor a b = bxor b a := dec_trivial
 
-@[simp] theorem bxor_assoc (a b c : bool) : bxor (bxor a b) c = bxor a (bxor b c) :=
-by cases a; cases b; simp
+@[simp] theorem bxor_assoc : ∀ a b c, bxor (bxor a b) c = bxor a (bxor b c) := dec_trivial
 
-@[simp] theorem bxor_left_comm (a b c : bool) : bxor a (bxor b c) = bxor b (bxor a c) :=
-by cases a; cases b; simp
+@[simp] theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec_trivial
 
 end bool

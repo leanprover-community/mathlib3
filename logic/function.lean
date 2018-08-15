@@ -41,6 +41,10 @@ lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : 
 def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 | a b := decidable_of_iff _ I.eq_iff
 
+instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
+  [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
+| f g := decidable_of_iff (∀ hp, f hp = g hp) funext_iff.symm
+
 theorem cantor_surjective {α} (f : α → α → Prop) : ¬ function.surjective f | h :=
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
@@ -57,12 +61,29 @@ surjective_of_has_right_inverse ⟨f, λ U, funext $
 def is_partial_inv {α β} (f : α → β) (g : β → option α) : Prop :=
 ∀ x y, g y = some x ↔ f x = y
 
+theorem is_partial_inv_left {α β} {f : α → β} {g} (H : is_partial_inv f g) (x) : g (f x) = some x :=
+(H _ _).2 rfl
+
 theorem injective_of_partial_inv {α β} {f : α → β} {g} (H : is_partial_inv f g) : injective f :=
 λ a b h, option.some.inj $ ((H _ _).2 h).symm.trans ((H _ _).2 rfl)
 
 theorem injective_of_partial_inv_right {α β} {f : α → β} {g} (H : is_partial_inv f g)
  (x y b) (h₁ : b ∈ g x) (h₂ : b ∈ g y) : x = y :=
 ((H _ _).1 h₁).symm.trans ((H _ _).1 h₂)
+
+theorem left_inverse.comp_eq_id {f : α → β} {g : β → α} (h : left_inverse f g) : f ∘ g = id :=
+funext h
+
+theorem right_inverse.comp_eq_id {f : α → β} {g : β → α} (h : right_inverse f g) : g ∘ f = id :=
+funext h
+
+theorem left_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+  (hf : left_inverse f g) (hh : left_inverse h i) : left_inverse (h ∘ f) (g ∘ i) :=
+assume a, show h (f (g (i a))) = a, by rw [hf (i a), hh a]
+
+theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+  (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
+left_inverse.comp hh hf
 
 local attribute [instance] classical.prop_decidable
 
@@ -80,6 +101,9 @@ theorem partial_inv_of_injective {α β} {f : α → β} (I : injective f) :
   end else by rw [partial_inv, dif_neg h'] at h; contradiction,
  λ e, e ▸ have h : ∃ a', f a' = f a, from ⟨_, rfl⟩,
    (dif_pos h).trans (congr_arg _ (I $ classical.some_spec h))⟩
+
+theorem partial_inv_left {α β} {f : α → β} (I : injective f) : ∀ x, partial_inv f (f x) = some x :=
+is_partial_inv_left (partial_inv_of_injective I)
 
 end
 

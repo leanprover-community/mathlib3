@@ -225,7 +225,7 @@ def computable₂ {α β σ} [primcodable α] [primcodable β] [primcodable σ]
 theorem primrec.to_comp {α σ} [primcodable α] [primcodable σ]
   {f : α → σ} (hf : primrec f) : computable f :=
 (nat.partrec.ppred.comp (nat.partrec.of_primrec hf)).of_eq $
-λ n, by simp; cases decode α n; simp [option.map, option.bind]
+λ n, by simp; cases decode α n; simp
 
 theorem primrec₂.to_comp {α β σ} [primcodable α] [primcodable β] [primcodable σ]
   {f : α → β → σ} (hf : primrec₂ f) : computable₂ f := hf.to_comp
@@ -338,7 +338,7 @@ protected theorem bind {f : α →. β} {g : α → β →. σ}
   (hf : partrec f) (hg : partrec₂ g) : partrec (λ a, (f a).bind (g a)) :=
 (hg.comp (nat.partrec.some.pair hf)).of_eq $
 λ n, by simp [(<*>)]; cases e : decode α n with a;
-  simp [e, option.bind, option.map, encodek]
+  simp [e, encodek]
 
 theorem map {f : α →. β} {g : α → β → σ}
   (hf : partrec f) (hg : computable₂ g) : partrec (λ a, (f a).map (g a)) :=
@@ -357,14 +357,14 @@ theorem nat_elim
   induction f a with m IH; simp,
   rw [IH, bind_map],
   congr, funext s,
-  simp [option.map, option.bind, encodek]
+  simp [encodek]
 end
 
-theorem comp {f : β →. σ} {g : α → β} 
+theorem comp {f : β →. σ} {g : α → β}
   (hf : partrec f) (hg : computable g) : partrec (λ a, f (g a)) :=
 (hf.comp hg).of_eq $
 λ n, by simp; cases e : decode α n with a;
-  simp [e, option.bind, option.map, encodek]
+  simp [e, encodek]
 
 theorem nat_iff {f : ℕ →. ℕ} : partrec f ↔ nat.partrec f :=
 by simp [partrec, map_id']
@@ -440,9 +440,9 @@ theorem rfind {p : α → ℕ →. bool} (hp : partrec₂ p) :
     .comp primrec.snd).to₂.to_comp).of_eq $
 λ n, begin
   cases e : decode α n with a;
-    simp [e, option.bind, option.map, nat.rfind_zero_none, map_id'],
+    simp [e, nat.rfind_zero_none, map_id'],
   congr, funext n,
-  simp [map_map, (∘)],
+  simp [roption.map_map, (∘)],
   apply map_id' (λ b, _),
   cases b; refl
 end
@@ -502,8 +502,8 @@ theorem bind_decode_iff {f : α → β → option σ} : computable₂ (λ a n,
         nat.partrec.of_primrec $ primcodable.prim β)).comp snd).bind
       (computable.comp hf fst).to₂.part) $
   λ n, by simp;
-    cases decode α n.unpair.1; simp [option.bind, option.map];
-    cases decode β n.unpair.2; simp [option.bind, option.map],
+    cases decode α n.unpair.1; simp;
+    cases decode β n.unpair.2; simp,
 λ hf, begin
   have : partrec (λ a : α × ℕ, (encode (decode β a.2)).cases
     (some option.none) (λ n, roption.map (f a.1) (decode β n))) :=
@@ -511,7 +511,7 @@ theorem bind_decode_iff {f : α → β → option σ} : computable₂ (λ a n,
     (const none) ((of_option (computable.decode.comp snd)).map
       (hf.comp (fst.comp $ fst.comp fst) snd).to₂),
   refine this.of_eq (λ a, _),
-  simp, cases decode β a.2; simp [option.bind, option.map, encodek]
+  simp, cases decode β a.2; simp [encodek]
 end⟩
 
 theorem map_decode_iff {f : α → β → σ} : computable₂ (λ a n,
@@ -580,7 +580,7 @@ option_some_iff.1 $
     (to₂ $ list_concat.comp (snd.comp fst) snd))).of_eq $
 λ a, begin
   simp, induction a.2 with n IH, {refl},
-  simp [IH, H, list.range_concat, option.bind]
+  simp [IH, H, list.range_concat]
 end
 
 theorem list_of_fn : ∀ {n} {f : fin n → α → σ},
@@ -610,7 +610,7 @@ theorem option_some_iff {f : α →. σ} :
 theorem option_cases_right {o : α → option β} {f : α → σ} {g : α → β →. σ}
   (ho : computable o) (hf : computable f) (hg : partrec₂ g) :
   @partrec _ σ _ _ (λ a, option.cases_on (o a) (some (f a)) (g a)) :=
-have partrec (λ (a : α), nat.cases (roption.some (f a)) 
+have partrec (λ (a : α), nat.cases (roption.some (f a))
   (λ n, roption.bind (decode β n) (g a)) (encode (o a))) :=
 nat_cases_right (encode_iff.2 ho) hf.part $
   ((@computable.decode β _).comp snd).of_option.bind

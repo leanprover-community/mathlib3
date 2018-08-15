@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
+import data.dlist.basic category.basic
+
 namespace expr
 open tactic
 
@@ -19,7 +21,7 @@ protected meta def to_nat : expr → option ℕ
 
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
-| e                  := do n ← e.to_nat, return n
+| e                  := coe <$> e.to_nat
 
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
 nat.binary_rec
@@ -35,27 +37,50 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
 
 end expr
 
+namespace environment
+
+meta def in_current_file' (env : environment) (n : name) : bool :=
+env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
+
+end environment
+
 namespace tactic
 
-meta definition mk_local (n : name) : expr :=
+meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
 
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
 
+/-- Runs a tactic for a result, reverting the state after completion -/
+meta def retrieve {α} (tac : tactic α) : tactic α :=
+λ s, result.cases_on (tac s)
+ (λ a s', result.success a s)
+ result.exception
+
+/-- Repeat a tactic at least once, calling it recursively on all subgoals,
+  until it fails. This tactic fails if the first invocation fails. -/
+meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t
+
+/-- `iterate_range m n t`: Repeat the given tactic at least `m` times and
+  at most `n` times or until `t` fails. Fails if `t` does not run at least m times. -/
+meta def iterate_range : ℕ → ℕ → tactic unit → tactic unit
+| 0 0     t := skip
+| 0 (n+1) t := try (t >> iterate_range 0 n t)
+| (m+1) n t := t >> iterate_range m (n-1) t
+
 meta def replace_at (tac : expr → tactic (expr × expr)) (hs : list expr) (tgt : bool) : tactic bool :=
 do to_remove ← hs.mfilter $ λ h, do {
-         h_type ← infer_type h,
-         (do (new_h_type, pr) ← tac h_type,
-             assert h.local_pp_name new_h_type,
-             mk_eq_mp pr h >>= tactic.exact >> return tt)
-         <|>
-         (return ff) },
-   goal_simplified ← if tgt then (do
-     (new_t, pr) ← target >>= tac,
-     replace_target new_t pr,
-     return tt) <|> return ff else return ff,
-   to_remove.mmap' (λ h, try (clear h)),
-   return (¬ to_remove.empty ∨ goal_simplified)
+    h_type ← infer_type h,
+    succeeds $ do
+      (new_h_type, pr) ← tac h_type,
+      assert h.local_pp_name new_h_type,
+      mk_eq_mp pr h >>= tactic.exact },
+  goal_simplified ← succeeds $ do {
+    guard tgt,
+    (new_t, pr) ← target >>= tac,
+    replace_target new_t pr },
+  to_remove.mmap' (λ h, try (clear h)),
+  return (¬ to_remove.empty ∨ goal_simplified)
 
 meta def simp_bottom_up' (post : expr → tactic (expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (expr × expr) :=
 prod.snd <$> simplify_bottom_up () (λ _, (<$>) (prod.mk ()) ∘ post) e cfg
@@ -114,9 +139,9 @@ meta def subst_locals (s : list (expr × expr)) (e : expr) : expr :=
 (e.abstract_locals (s.map (expr.local_uniq_name ∘ prod.fst)).reverse).instantiate_vars (s.map prod.snd)
 
 meta def set_binder : expr → list binder_info → expr
- | e [] := e
- | (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
- | e _ := e
+| e [] := e
+| (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
+| e _ := e
 
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
@@ -132,9 +157,7 @@ meta def set_binder : expr → list binder_info → expr
       that a proof will not boil over to goals left over from the proof of `h`,
       unlike what would be the case when using `tactic.swap`.
 -/
-meta def local_proof
-  (h : name) (p : expr)
-  (tac₀ : tactic unit) :
+meta def local_proof (h : name) (p : expr) (tac₀ : tactic unit) :
   tactic (expr × list expr) :=
 focus1 $
 do h' ← assert h p,
@@ -142,6 +165,128 @@ do h' ← assert h p,
    set_goals [g₀], tac₀,
    gs ← get_goals,
    set_goals [g₁],
-   return (h' , gs)
+   return (h', gs)
+
+meta def try_intros : list name → tactic (list name)
+| [] := intros $> []
+| (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
+
+meta def ext1 (xs : list name) : tactic (list name) :=
+do ls ← attribute.get_instances `extensionality,
+   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
+   try_intros xs
+
+meta def ext : list name → option ℕ → tactic unit
+| _  (some 0) := skip
+| xs n        := focus1 $ do
+  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
+
+meta def var_names : expr → list name
+| (expr.pi n _ _ b) := n :: var_names b
+| _ := []
+
+meta def drop_binders : expr → tactic expr
+| (expr.pi n bi t b) := b.instantiate_var <$> mk_local' n bi t >>= drop_binders
+| e := pure e
+
+meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
+do env ← get_env,
+   [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
+   vs  ← var_names <$> (mk_const c >>= infer_type),
+   fields ← env.structure_fields struct_n,
+   return $ fields.partition (λ fn, ↑("_" ++ fn.to_string) ∈ vs)
+
+meta def expanded_field_list' : name → tactic (dlist $ name × name) | struct_n :=
+do (so,fs) ← subobject_names struct_n,
+   ts ← so.mmap (λ n, do
+     e ← mk_const (n.update_prefix struct_n) >>= infer_type >>= drop_binders,
+     expanded_field_list' $ e.get_app_fn.const_name),
+   return $ dlist.join ts ++ dlist.of_list (fs.map $ prod.mk struct_n)
+open functor function
+
+meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
+dlist.to_list <$> expanded_field_list' struct_n
+
+meta def get_classes (e : expr) : tactic (list name) :=
+attribute.get_instances `class >>= list.mfilter (λ n,
+  succeeds $ mk_app n [e] >>= mk_instance)
+
+open nat
+
+meta def mk_mvar_list : ℕ → tactic (list expr)
+| 0 := pure []
+| (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
+
+/--`iterate_at_most_on_all_goals n t`: repeat the given tactic at most `n` times on all goals,
+or until it fails. Always succeeds. -/
+meta def iterate_at_most_on_all_goals : nat → tactic unit → tactic unit
+| 0        tac := trace "maximal iterations reached"
+| (succ n) tac := tactic.all_goals $ (do tac, iterate_at_most_on_all_goals n tac) <|> skip
+
+/--`iterate_at_most_on_subgoals n t`: repeat the tactic `t` at most `n` times on the first
+goal and on all subgoals thus produced, or until it fails. Fails iff `t` fails on
+current goal. -/
+meta def iterate_at_most_on_subgoals : nat → tactic unit → tactic unit
+| 0        tac := trace "maximal iterations reached"
+| (succ n) tac := focus1 (do tac, iterate_at_most_on_all_goals n tac)
+
+/--`apply_list l`: try to apply the tactics in the list `l` on the first goal, and
+fail if none succeeds -/
+meta def apply_list_expr : list expr → tactic unit
+| []     := fail "no matching rule"
+| (h::t) := do interactive.concat_tags (apply h) <|> apply_list_expr t
+
+/-- constructs a list of expressions given a list of p-expressions, as follows:
+- if the p-expression is the name of a theorem, use `i_to_expr_for_apply` on it
+- if the p-expression is a user attribute, add all the theorems with this attribute
+  to the list.-/
+meta def build_list_expr_for_apply : list pexpr → tactic (list expr)
+| [] := return []
+| (h::t) := do
+  tail ← build_list_expr_for_apply t,
+  a ← i_to_expr_for_apply h,
+  (do l ← attribute.get_instances (expr.const_name a),
+      m ← list.mmap mk_const l,
+      return (m.append tail))
+  <|> return (a::tail)
+
+/--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
+first goal and the resulting subgoals, iteratively, at most `n` times -/
+meta def apply_rules (hs : list pexpr) (n : nat) : tactic unit :=
+do l ← build_list_expr_for_apply hs,
+   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr l)
+
+meta def replace (h : name) (p : pexpr) : tactic unit :=
+do h' ← get_local h,
+   p ← to_expr p,
+   note h none p,
+   clear h'
+
+meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
+tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
+
+meta def apply_assumption
+  (asms : option (list expr) := none)
+  (tac : tactic unit := skip) : tactic unit :=
+do { ctx ← asms.to_monad <|> local_context,
+     ctx.any_of (λ H, () <$ symm_apply H; tac) } <|>
+do { exfalso,
+     ctx ← asms.to_monad <|> local_context,
+     ctx.any_of (λ H, () <$ symm_apply H; tac) }
+<|> fail "assumption tactic failed"
+
+open nat
+
+meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
+| 0 := done
+| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+
+meta structure by_elim_opt :=
+  (discharger : tactic unit := done)
+  (restr_hyp_set : option (list expr) := none)
+  (max_rep : ℕ := 3)
+
+meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
+solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
 end tactic

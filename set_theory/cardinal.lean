@@ -9,10 +9,9 @@ Cardinals are represented as quotient over equinumerous types.
 -/
 
 import data.set.finite data.quot logic.schroeder_bernstein logic.function
-noncomputable theory
 
-open function lattice set classical
-local attribute [instance] prop_decidable
+open function lattice set
+local attribute [instance] classical.prop_decidable
 
 universes u v w x
 
@@ -56,10 +55,9 @@ instance : linear_order cardinal.{u} :=
     quotient.sound (e₁.antisymm e₂),
   le_total    := assume a b, quotient.induction_on₂ a b $ assume α β, embedding.total }
 
-instance : decidable_linear_order cardinal.{u} :=
-{ decidable_le := by apply_instance, ..cardinal.linear_order }
+noncomputable instance : decidable_linear_order cardinal.{u} := classical.DLO _
 
-instance : distrib_lattice cardinal.{u} := by apply_instance
+noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance
 
 instance : has_zero cardinal.{u} := ⟨⟦ulift empty⟧⟩
 
@@ -170,7 +168,7 @@ quot.sound ⟨equiv.ulift.trans $ equiv.Prop_equiv_bool.trans $
 @[simp] theorem zero_power {a : cardinal} : a ≠ 0 → 0 ^ a = 0 :=
 quotient.induction_on a $ assume α heq,
   have nonempty α, from ne_zero_iff_nonempty.1 heq,
-  let a := choice this in
+  let a := classical.choice this in
   have (α → empty) ≃ empty,
     from ⟨λf, f a, λe a, e, assume f, (f a).rec_on (λ_, (λa', f a) = f), assume e, rfl⟩,
   quotient.sound
@@ -276,7 +274,7 @@ instance : no_top_order cardinal.{u} :=
 
 /-- The minimum cardinal in a family of cardinals (the existence
   of which is provided by `injective_min`). -/
-def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
+noncomputable def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
 f $ classical.some $
 @embedding.injective_min _ (λ i, (f i).out) I
 
@@ -308,7 +306,7 @@ instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
 /-- The successor cardinal - the smallest cardinal greater than
   `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
-def succ (c : cardinal) : cardinal :=
+noncomputable def succ (c : cardinal) : cardinal :=
 @min {c' // c < c'} ⟨⟨_, cantor _⟩⟩ subtype.val
 
 theorem lt_succ_self (c : cardinal) : c < succ c :=
@@ -360,7 +358,7 @@ theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f
 
 /-- The indexed supremum of cardinals is the smallest cardinal above
   everything in the family. -/
-def sup {ι} (f : ι → cardinal) : cardinal :=
+noncomputable def sup {ι} (f : ι → cardinal) : cardinal :=
 @min {c // ∀ i, f i ≤ c} ⟨⟨sum f, le_sum f⟩⟩ (λ a, a.1)
 
 theorem le_sup {ι} (f : ι → cardinal) (i) : f i ≤ sup f :=
@@ -527,6 +525,14 @@ theorem fintype_card (α : Type u) [fintype α] : mk α = fintype.card α :=
 by rw [← lift_mk_fin.{u}, ← lift_id (mk α), lift_mk_eq.{u 0 u}];
    exact fintype.card_eq.1 (by simp)
 
+theorem card_le_of_finset {α} (s : finset α) :
+  (s.card : cardinal) ≤ cardinal.mk α :=
+begin
+  rw (_ : (s.card : cardinal) = cardinal.mk (↑s : set α)),
+  { exact ⟨function.embedding.subtype _⟩ },
+  rw [cardinal.fintype_card, fintype.card_coe]
+end
+
 @[simp] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
 by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
 
@@ -584,7 +590,7 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
     let g : {i | i < n} → S := λ ⟨i, h⟩, IH i h in
     classical.not_forall.1 (λ h, nf
       ⟨fintype.of_surjective g (λ a, subtype.exists.2 (h a))⟩),
-  let F : ℕ → S := nat.lt_wf.fix (λ n IH, some (P n IH)),
+  let F : ℕ → S := nat.lt_wf.fix (λ n IH, classical.some (P n IH)),
   refine not_le_of_lt h' ⟨⟨F, _⟩⟩,
   suffices : ∀ (n : ℕ) (m < n), F m ≠ F n,
   { refine λ m n, not_imp_not.1 (λ ne, _),
@@ -593,9 +599,9 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
     { contradiction },
     { exact (this m n h).symm } },
   intros n m h,
-  have := some_spec (P n (λ y _, F y)),
-  rw [← show F n = some (P n (λ y _, F y)),
-      from nat.lt_wf.fix_eq (λ n IH, some (P n IH)) n] at this,
+  have := classical.some_spec (P n (λ y _, F y)),
+  rw [← show F n = classical.some (P n (λ y _, F y)),
+      from nat.lt_wf.fix_eq (λ n IH, classical.some (P n IH)) n] at this,
   exact λ e, this ⟨m, h, e⟩,
 end, λ ⟨n, e⟩, e.symm ▸ nat_lt_omega _⟩
 
@@ -645,7 +651,7 @@ lt_of_not_ge $ λ ⟨F⟩, begin
     rw [← mk_out (f i), ← mk_out (g i)],
     exact ⟨embedding.of_surjective h⟩ },
   simp [classical.not_forall] at this,
-  exact let ⟨C, hc⟩ := axiom_of_choice this, ⟨⟨i, a⟩, h⟩ := sG C in
+  exact let ⟨C, hc⟩ := classical.axiom_of_choice this, ⟨⟨i, a⟩, h⟩ := sG C in
   hc i a (congr_fun h _),
 end
 

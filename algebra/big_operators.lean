@@ -188,7 +188,30 @@ finset.induction_on s (by simp) (assume a s has ih h,
     (assume hna : f a ≠ 1,
       ⟨a, mem_insert_self _ _, hna⟩))
 
+@[to_additive finset.sum_range_succ]
+lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
+  (range (nat.succ n)).prod f = f n * (range n).prod f := by simp
+
+lemma prod_range_succ' (f : ℕ → β) :
+  ∀ n : ℕ, (range (nat.succ n)).prod f = (range n).prod (f ∘ nat.succ) * f 0
+| 0       := by simp
+| (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
+                 exact prod_range_succ _ _
+
+@[simp] lemma prod_const [decidable_eq α] (b : β) : s.prod (λ a, b) = b ^ s.card :=
+finset.induction_on s rfl (by simp [pow_add, mul_comm] {contextual := tt})
+
 end comm_monoid
+
+@[simp] lemma sum_const [add_comm_monoid β] [decidable_eq α] (b : β) :
+  s.sum (λ a, b) = add_monoid.smul s.card b :=
+@prod_const _ (multiplicative β) _ _ _ _
+attribute [to_additive finset.sum_const] prod_const
+
+lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
+  ∀ n : ℕ, (range (nat.succ n)).sum f = (range n).sum (f ∘ nat.succ) + f 0 :=
+@prod_range_succ' (multiplicative β) _ _
+attribute [to_additive finset.sum_range_succ'] prod_range_succ'
 
 section comm_group
 variables [comm_group β]
@@ -206,13 +229,13 @@ multiset.card_sigma _ _
 end finset
 
 namespace finset
-variables [decidable_eq α] {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
+variables {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] : s.sum (λx, f x - g x) = s.sum f - s.sum g :=
 by simp [sum_add_distrib]
 
 section ordered_cancel_comm_monoid
-variables [ordered_cancel_comm_monoid β]
+variables [decidable_eq α] [ordered_cancel_comm_monoid β]
 
 lemma sum_le_sum : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
 finset.induction_on s (by simp) $ assume a s ha ih h,
@@ -237,7 +260,7 @@ lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 end semiring
 
 section comm_semiring
-variables [comm_semiring β]
+variables [decidable_eq α] [comm_semiring β]
 
 lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : s.prod f = 0 :=
 calc s.prod f = (insert a (erase s a)).prod f : by simp [ha, insert_erase]
@@ -272,7 +295,7 @@ end
 end comm_semiring
 
 section integral_domain /- add integral_semi_domain to support nat and ennreal -/
-variables [integral_domain β]
+variables [decidable_eq α] [integral_domain β]
 
 lemma prod_eq_zero_iff : s.prod f = 0 ↔ (∃a∈s, f a = 0) :=
 finset.induction_on s (by simp)
@@ -285,7 +308,7 @@ end
 end integral_domain
 
 section ordered_comm_monoid
-variables [ordered_comm_monoid β]
+variables [decidable_eq α] [ordered_comm_monoid β]
 
 lemma sum_le_sum' : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
 finset.induction_on s (by simp; refl) $ assume a s ha ih h,
@@ -316,7 +339,7 @@ from sum_le_sum_of_subset_of_nonneg
 end ordered_comm_monoid
 
 section canonically_ordered_monoid
-variables [canonically_ordered_monoid β] [@decidable_rel β (≤)]
+variables [decidable_eq α] [canonically_ordered_monoid β] [@decidable_rel β (≤)]
 
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : s₁.sum f ≤ s₂.sum f :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
@@ -343,6 +366,11 @@ finset.induction_on s (by simp [abs_zero]) $
 
 end discrete_linear_ordered_field
 
+@[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
+  (s : finset α) (t : Π a, finset (δ a)) : 
+  (s.pi t).card = s.prod (λ a, card (t a)) :=
+multiset.card_pi _ _
+
 end finset
 
 section group
@@ -350,11 +378,11 @@ section group
 open list
 variables [group α] [group β]
 
-theorem is_group_hom.prod {f : α → β} [is_group_hom f] (l : list α) :
+theorem is_group_hom.prod (f : α → β) [is_group_hom f] (l : list α) :
   f (prod l) = prod (map f l) :=
 by induction l; simp [*, is_group_hom.mul f, is_group_hom.one f]
 
-theorem is_group_anti_hom.prod {f : α → β} [is_group_anti_hom f] (l : list α) :
+theorem is_group_anti_hom.prod (f : α → β) [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
 by induction l; simp [*, is_group_anti_hom.mul f, is_group_anti_hom.one f]
 

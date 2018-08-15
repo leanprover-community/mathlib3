@@ -640,6 +640,16 @@ instance complete_lattice_Prop : complete_lattice Prop :=
   le_Inf := assume s a h p b hb, h b hb p,
   ..lattice.bounded_lattice_Prop }
 
+lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
+
+lemma Sup_Prop_eq {s : set Prop} : Sup s = (∃p ∈ s, p) := rfl
+
+lemma infi_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨅i, p i) = (∀i, p i) :=
+le_antisymm (assume h i, h _ ⟨i, rfl⟩ ) (assume h p ⟨i, eq⟩, eq.symm ▸ h i)
+
+lemma supr_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨆i, p i) = (∃i, p i) :=
+le_antisymm (assume ⟨q, ⟨i, (eq : q = p i)⟩, hq⟩, ⟨i, eq ▸ hq⟩) (assume ⟨i, hi⟩, ⟨p i, ⟨i, rfl⟩, hi⟩)
+
 instance pi.complete_lattice {α : Type u} {β : α → Type v} [∀ i, complete_lattice (β i)] :
   complete_lattice (Π i, β i) :=
 by { pi_instance;
@@ -647,6 +657,24 @@ by { pi_instance;
        apply_field, intros,
        simp at H, rcases H with ⟨ x, H₀, H₁ ⟩,
        subst b, apply a_1 _ H₀ i, } }
+
+lemma Inf_apply
+  {α : Type u} {β : α → Type v} [∀ i, complete_lattice (β i)] {s : set (Πa, β a)} {a : α} :
+  (Inf s) a = (⨅f∈s, (f : Πa, β a) a) :=
+by rw [← Inf_image]; refl
+
+lemma infi_apply {α : Type u} {β : α → Type v} {ι : Sort*} [∀ i, complete_lattice (β i)]
+  {f : ι → Πa, β a} {a : α} : (⨅i, f i) a = (⨅i, f i a) :=
+by rw [← Inf_range, Inf_apply, infi_range]
+
+lemma Sup_apply
+  {α : Type u} {β : α → Type v} [∀ i, complete_lattice (β i)] {s : set (Πa, β a)} {a : α} :
+  (Sup s) a = (⨆f∈s, (f : Πa, β a) a) :=
+by rw [← Sup_image]; refl
+
+lemma supr_apply {α : Type u} {β : α → Type v} {ι : Sort*} [∀ i, complete_lattice (β i)]
+  {f : ι → Πa, β a} {a : α} : (⨆i, f i) a = (⨆i, f i a) :=
+by rw [← Sup_range, Sup_apply, supr_range]
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]

@@ -34,8 +34,3 @@ instance subtype.field [is_subfield s] : field s :=
   mul_inv_cancel := assume ⟨a, _⟩, λ h, subtype.eq (mul_inv_cancel ((iff_false_left (not_not_intro h)).mp (begin dunfold ne, rw auto.not_not_eq, apply subtype.ext, end))),
   inv_mul_cancel := assume ⟨a, _⟩, λ h, subtype.eq (inv_mul_cancel ((iff_false_left (not_not_intro h)).mp (begin dunfold ne, rw auto.not_not_eq, apply subtype.ext, end))),
   mul_comm := assume ⟨a, _⟩ ⟨b, _⟩, subtype.eq (mul_comm a b),}
-
-instance is_subfield.is_ring_hom [is_subring s] : is_ring_hom (@subtype.val F s) :=
-{ map_add := λ _ _, rfl,
-  map_mul := λ _ _, rfl,
-  map_one := rfl }

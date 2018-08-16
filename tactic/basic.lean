@@ -44,8 +44,15 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
   e ← expr.of_nat α (n+1),
   tactic.mk_app ``has_neg.neg [e]
 
-meta def list_local_const (e : expr) : list expr :=
-e.fold [] (λ e' _ es, if is_local_constant e' then insert e' es else es)
+meta def is_meta_var : expr → bool
+| (mvar _ _ _) := tt
+| e            := ff
+
+meta def list_local_consts (e : expr) : list expr :=
+e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
+
+meta def list_meta_vars (e : expr) : list expr :=
+e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
 
 /- only traverses the direct descendents -/
 meta def {u} traverse {m : Type → Type u} [applicative m]
@@ -100,6 +107,41 @@ namespace tactic
 
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
+
+meta def local_def_value (e : expr) : tactic expr := do
+do (v,_) ← solve_aux `(true) (do
+         (expr.elet n t v _) ← (revert e >> target)
+           | fail format!"{e} is not a local definition",
+         return v),
+   return v
+
+meta def check_defn (n : name) (e : pexpr) : tactic unit :=
+do (declaration.defn _ _ _ d _ _) ← get_decl n,
+   e' ← to_expr e,
+   guard (d =ₐ e') <|> trace d >> failed
+
+-- meta def compile_eqn (n : name) (univ : list name) (args : list expr) (val : expr) (num : ℕ) : tactic unit :=
+-- do let lhs := (expr.const n $ univ.map level.param).mk_app args,
+--    stmt ← mk_app `eq [lhs,val],
+--    let vs := stmt.list_local_const,
+--    let stmt := stmt.pis vs,
+--    (_,pr) ← solve_aux stmt (tactic.intros >> reflexivity),
+--    add_decl $ declaration.thm (n <.> "equations" <.> to_string (format!"_eqn_{num}")) univ stmt (pure pr)
+
+meta def to_implicit : expr → expr
+| (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
+| e := e
+
+meta def extract_def (n : name) (trusted : bool) (elab_def : tactic unit) : tactic unit :=
+do cxt ← list.map to_implicit <$> local_context,
+   t ← target,
+   (eqns,d) ← solve_aux t elab_def,
+   d ← instantiate_mvars d,
+   t' ← pis cxt t,
+   d' ← lambdas cxt d,
+   let univ := t'.collect_univ_params,
+   add_decl $ declaration.defn n univ t' d' (reducibility_hints.regular 1 tt) trusted,
+   applyc n
 
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
 
@@ -200,6 +242,13 @@ meta def pis : list expr → expr → tactic expr
   t ← infer_type e,
   f' ← pis es f,
   pure $ expr.pi pp info t (expr.abstract_local f' uniq)
+| _ f := pure f
+
+meta def lambdas : list expr → expr → tactic expr
+| (e@(expr.local_const uniq pp info _) :: es) f := do
+  t ← infer_type e,
+  f' ← lambdas es f,
+  pure $ expr.lam pp info t (expr.abstract_local f' uniq)
 | _ f := pure f
 
 meta def last_explicit_arg : expr → tactic expr

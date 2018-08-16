@@ -89,7 +89,7 @@ instance (a : β) : is_subgroup (stabilizer f a) :=
 
 open quotient_group
 
-noncomputable lemma orbit_equiv_quotient_stabilizer (a : β) :
+noncomputable def orbit_equiv_quotient_stabilizer (a : β) :
   orbit f a ≃ quotient (stabilizer f a) :=
 equiv.symm (@equiv.of_bijective _ _
   (λ x : quotient (stabilizer f a), quotient.lift_on' x

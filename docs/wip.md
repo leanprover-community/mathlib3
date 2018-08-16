@@ -7,9 +7,11 @@ always welcome.
   [commutative algebra](https://github.com/leanprover/mathlib/pull/37), with a view toward algrebraic geometry.
 
 * [Scott Morrison](https://github.com/semorrison) is working
-  on merging his [category
-  theory](https://github.com/semorrison/lean-category-theory) into
+  on merging his category
+  theory ([part 1](https://github.com/semorrison/lean-category-theory-pr), [part 2](https://github.com/semorrison/lean-category-theory), [part 3](https://github.com/semorrison/lean-monoidal-categories))) into
   mathlib.
+
+* [Reid Barton](https://github.com/rwbarton) is working on [homotopy theory](https://github.com/rwbarton/lean-homotopy-theory).  
 
 * [Chris Hughes](https://github.com/dorhinj) is working on the
   [exponential function](https://github.com/dorhinj/mathlib)

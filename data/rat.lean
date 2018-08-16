@@ -202,18 +202,7 @@ theorem num_denom' (n d h c) : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom _
 num_denom_cases_on a $ λ n d h c,
 H n d $ ne_of_gt h
 
-/-theorem num_dvd (a) {b} (b0 : b ≠ 0) : (a /. b).num ∣ a :=
-begin
-  cases e : a /. b with n d h c,
-  rw [num_denom', mk_eq (int.coe_nat_ne_zero.2 b0)
-    (ne_of_gt (int.coe_nat_pos.2 h))] at e,
-  refine (int.nat_abs_dvd.1 $ int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $
-    c.dvd_of_dvd_mul_right _),
-  have := congr_arg int.nat_abs e,
-  simp [int.nat_abs_mul, int.nat_abs_of_nat] at this, simp [this]
-end-/
-
-theorem rat.num_dvd (a) {b : ℤ} (b0 : b ≠ 0) : (a /. b).num ∣ a :=
+theorem num_dvd (a) {b : ℤ} (b0 : b ≠ 0) : (a /. b).num ∣ a :=
 begin
   cases e : a /. b with n d h c,
   rw [rat.num_denom', rat.mk_eq b0

@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_group order.lattice tactic.wlog
+import algebra.ordered_group order.lattice 
 
 open lattice
 
@@ -83,15 +83,20 @@ le_trans (le_max_left _ _) h
 lemma le_of_max_le_right {a b c : α} (h : max a b ≤ c) : b ≤ c :=
 le_trans (le_max_right _ _) h 
 
-lemma min_add_eq_min_add_min {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) : 
-      min a b - c = min (a-c) (b-c) := 
-begin
-  wlog hle : a ≤ b,
-  have : a - c ≤ b - c, from sub_le_sub hle (le_refl _),
-  simp [*, min_eq_left] at *
-end 
-
 end
+
+lemma min_add {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) : 
+      min a b + c = min (a + c) (b + c) :=
+if hle : a ≤ b then 
+  have a - c ≤ b - c, from sub_le_sub hle (le_refl _),
+  by simp [*, min_eq_left] at *
+else 
+  have b - c ≤ a - c, from sub_le_sub (le_of_lt (lt_of_not_ge hle)) (le_refl _),
+  by simp [*, min_eq_right] at *
+
+lemma min_sub {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) : 
+      min a b - c = min (a - c) (b - c) :=
+by simp [min_add, sub_eq_add_neg]
 
 section decidable_linear_ordered_comm_group
 variables [decidable_linear_ordered_comm_group α] {a b c : α}
@@ -150,12 +155,7 @@ calc
       ... ≤ a + b : le_add_of_nonneg_left ha
 
 lemma max_le_add_of_nonneg {a b : α} (ha : a ≥ 0) (hb : b ≥ 0) : max a b ≤ a + b :=
-begin 
-  wlog hle : a ≤ b,
-  rw max_eq_right hle,
-  apply le_add_of_nonneg_left',
-  assumption 
-end 
+max_le_iff.2 (by split; simpa)
 
 end decidable_linear_ordered_comm_group
 

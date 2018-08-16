@@ -12,7 +12,7 @@ universe u
 
 section field_power
 open int nat 
-variables {α : Type u} [field α]
+variables {α : Type u} [division_ring α]
 
 @[simp] lemma zero_gpow : ∀ z : ℕ, z ≠ 0 → (0 : α)^z = 0
 | 0 h := absurd rfl h 
@@ -22,7 +22,7 @@ def fpow (a : α) : ℤ → α
 | (of_nat n) := a ^ n 
 | -[1+n] := 1/(a ^ (n+1))
 
-@[simp] lemma unit_pow {a : α} (ha : a ≠ 0) : ∀ n : ℕ, a ^ n = ↑((units.mk0 a ha)^n)
+lemma unit_pow {a : α} (ha : a ≠ 0) : ∀ n : ℕ, a ^ n = ↑((units.mk0 a ha)^n)
 | 0 := by simp; refl
 | (k+1) := by simp [_root_.pow_add]; congr; apply unit_pow 
 
@@ -41,6 +41,9 @@ lemma fpow_ne_zero_of_ne_zero {a : α} (ha : a ≠ 0) : ∀ (z : ℤ), fpow a z 
 @[simp] lemma fpow_zero {a : α} : fpow a 0 = 1 :=
 pow_zero _ 
 
+lemma fpow_add {a : α} (ha : a ≠ 0) (z1 z2 : ℤ) : fpow a (z1 + z2) = fpow a z1 * fpow a z2 := 
+begin simp only [fpow_eq_gpow ha], rw ←units.mul_coe, congr, apply gpow_add end 
+
 end field_power
 
 section discrete_field_power
@@ -55,21 +58,12 @@ lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → fpow (0 : α) z = 0
   have h1 : (0 : α) ^ (n+1) = 0, from zero_mul _,
   by simp [fpow, h1]
 
-lemma fpow_add {a : α} (ha : a ≠ 0) (z1 z2 : ℤ) : fpow a (z1 + z2) = fpow a z1 * fpow a z2 := 
-begin simp only [fpow_eq_gpow ha], rw ←units.mul_coe, congr, apply gpow_add end 
-
 end discrete_field_power
 
 section ordered_field_power
 open int 
 
 variables {α : Type u} [discrete_linear_ordered_field α]
-
-lemma inv_le_one {a : α} (ha : 1 ≤ a) : a⁻¹ ≤ 1 :=
-if ha' : 1 < a then le_of_lt $ inv_lt_one ha' 
-else 
-  have 1 = a, from le_antisymm ha (le_of_not_lt ha'),
-  by simp [this.symm]
 
 lemma fpow_nonneg_of_nonneg {a : α} (ha : a ≥ 0) : ∀ (z : ℤ), fpow a z ≥ 0
 | (of_nat n) := pow_nonneg ha _
@@ -79,34 +73,32 @@ lemma fpow_nonneg_of_nonneg {a : α} (ha : a ≥ 0) : ∀ (z : ℤ), fpow a z �
 lemma fpow_le_of_le {x : α} (hx : 1 ≤ x) {a b : ℤ} (h : a ≤ b) : fpow x a ≤ fpow x b :=
 begin 
   induction a with a a; induction b with b b,
-    { simp only [fpow], 
-      apply pow_le_pow hx, 
-      apply le_of_coe_nat_le_coe_nat h },
-    { apply absurd h, 
-      apply not_le_of_gt,
-      exact lt_of_lt_of_le (neg_succ_lt_zero _) (of_nat_nonneg _) },
-    { simp only [fpow, one_div_eq_inv], 
-      apply le_trans, 
-      apply inv_le_one, 
-      repeat { apply one_le_pow_of_one_le hx } },
-    { simp only [fpow],
-      apply (one_div_le_one_div _ _).2,
-        { apply pow_le_pow hx,
-          have : -(↑(a+1) : ℤ) ≤ -(↑(b+1) : ℤ), from h,
-          have h' := le_of_neg_le_neg this,
-          apply le_of_coe_nat_le_coe_nat h' },
-        repeat { apply pow_pos (lt_of_lt_of_le zero_lt_one hx) } }
+  { simp only [fpow], 
+    apply pow_le_pow hx, 
+    apply le_of_coe_nat_le_coe_nat h },
+  { apply absurd h, 
+    apply not_le_of_gt,
+    exact lt_of_lt_of_le (neg_succ_lt_zero _) (of_nat_nonneg _) },
+  { simp only [fpow, one_div_eq_inv], 
+    apply le_trans (inv_le_one _); apply one_le_pow_of_one_le hx },
+  { simp only [fpow],
+    apply (one_div_le_one_div _ _).2,
+    { apply pow_le_pow hx,
+      have : -(↑(a+1) : ℤ) ≤ -(↑(b+1) : ℤ), from h,
+      have h' := le_of_neg_le_neg this,
+      apply le_of_coe_nat_le_coe_nat h' },
+    repeat { apply pow_pos (lt_of_lt_of_le zero_lt_one hx) } }
 end
 
 lemma pow_le_max_of_min_le {x : α} (hx : x ≥ 1) {a b c : ℤ} (h : min a b ≤ c) : 
       fpow x (-c) ≤ max (fpow x (-a)) (fpow x (-b)) :=
 begin 
-  wlog hle := le_total a b using a b,
+  wlog hle : a ≤ b,
   have hnle : -b ≤ -a, from neg_le_neg hle,
   have hfle : fpow x (-b) ≤ fpow x (-a), from fpow_le_of_le hx hnle,
   have : fpow x (-c) ≤ fpow x (-a), 
-    { apply fpow_le_of_le hx,
-      simpa [hle, min_eq_left] using h },
+  { apply fpow_le_of_le hx,
+    simpa [hle, min_eq_left] using h },
   simpa [hfle, max_eq_left] using this 
 end 
 

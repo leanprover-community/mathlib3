@@ -401,22 +401,22 @@ theorem pow_pos {p : ℕ} (hp : p > 0) : ∀ n : ℕ, p ^ n > 0
 lemma pow_eq_mul_pow_sub (p : ℕ) {m n : ℕ} (h : m ≤ n) : p ^ m * p ^ (n - m)  = p ^ n :=
 by rw [←nat.pow_add, nat.add_sub_cancel' h] 
 
-lemma pow_le_pow_succ {p : ℕ} (h : p > 1) (n : ℕ) : p^n < p^(n+1) :=
+lemma pow_lt_pow_succ {p : ℕ} (h : p > 1) (n : ℕ) : p^n < p^(n+1) :=
 suffices p^n*1 < p^n*p, by simpa,
 nat.mul_lt_mul_of_pos_left h (nat.pow_pos (lt_of_succ_lt h) n)  
 
-lemma le_pow_self {p : ℕ} (h : p > 1) : ∀ n : ℕ, n < p ^ n
+lemma lt_pow_self {p : ℕ} (h : p > 1) : ∀ n : ℕ, n < p ^ n
 | 0 := by simp [zero_lt_one]
 | (n+1) := calc
-  n + 1 < p^n + 1 : nat.add_lt_add_right (le_pow_self _) _
-    ... ≤ p ^ (n+1) : pow_le_pow_succ h _ 
+  n + 1 < p^n + 1 : nat.add_lt_add_right (lt_pow_self _) _
+    ... ≤ p ^ (n+1) : pow_lt_pow_succ h _ 
 
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : p > 1) (hk : k > 1), ¬ p^k ∣ p
 | (succ p) (succ k) hp hk h := 
   have (succ p)^k * succ p ∣ 1 * succ p, by simpa,
   have (succ p) ^ k ∣ 1, from dvd_of_mul_dvd_mul_right (succ_pos _) this,
   have he : (succ p) ^ k = 1, from eq_one_of_dvd_one this,
-  have k < (succ p) ^ k, from le_pow_self hp k,
+  have k < (succ p) ^ k, from lt_pow_self hp k,
   have k < 1, by rwa [he] at this,
   have k = 0, from eq_zero_of_le_zero $ le_of_lt_succ this,
   have 1 > 1, by rwa [this] at hk,
@@ -578,9 +578,12 @@ le_of_dvd (fact_pos _) (fact_dvd_fact h)
 
 section find_greatest
 
+
+/-
+
 variables {P : ℕ → Prop} [decidable_pred P] {bound : ℕ}
     (hall : ∀ m : ℕ, m > bound → ¬ P m) (hex : ∃ m, P m)
-
+    
 protected def nat.find_greatest_x : {n : ℕ // P n ∧ ∀ m : ℕ, m > n → ¬ P m} :=
 have ∃ v, P (bound - v), from 
   let ⟨m, Hpm⟩ := hex in
@@ -617,7 +620,52 @@ nat.le_antisymm
      nat.find_greatest_is_greatest hall hex _ h hp)) 
   (le_of_not_gt
     (assume h : nat.find_greatest hall hex > m,
-     hallm _ h (nat.find_greatest_spec hall hex)))
+     hallm _ h (nat.find_greatest_spec hall hex)))-/
+
+private def nat.find_greatest_core_aux (P : ℕ → Prop) [decidable_pred P] (bound : ℕ) : 
+          Π m : ℕ, (∀ k, m < k ∧ k ≤ bound → ¬ P k) → 
+            psum {n // P n ∧ ∀ k, n < k ∧ k ≤ bound → ¬ P k} (∀ k, k ≤ bound → ¬ P k)
+| 0 h := if hp0 : P 0 then psum.inl ⟨0, hp0, h⟩ else  psum.inr $ 
+  λ k hk, if hk0 : 0 = k then by rwa hk0 at hp0 else h _ ⟨lt_of_le_of_ne (nat.zero_le _) hk0, hk⟩ 
+| (m+1) h := 
+  if hkp : P (m+1) then psum.inl ⟨m+1, hkp, h⟩ 
+  else nat.find_greatest_core_aux m $ 
+    λ k ⟨hmk, hkb⟩, if hm1k : m + 1 = k then by rwa hm1k at hkp else 
+      have m + 1 < k, from lt_of_le_of_ne (nat.succ_le_of_lt hmk) hm1k, 
+      h _ ⟨this, hkb⟩
+
+/--
+ Finds the largest n ≤ bound such that P n holds, or returns none if no such n exists
+-/
+protected def nat.find_greatest_core (P : ℕ → Prop) [decidable_pred P] (bound : ℕ) : 
+          psum {n // P n ∧ ∀ k, n < k ∧ k ≤ bound → ¬ P k} (∀ k, k ≤ bound → ¬ P k) :=
+nat.find_greatest_core_aux P bound bound $ λ _ ⟨hlt, hle⟩, false.elim $ not_le_of_gt hlt hle
+
+protected def nat.find_greatest_aux {P : ℕ → Prop} [decidable_pred P] {bound : ℕ} : 
+          psum {n // P n ∧ ∀ k, n < k ∧ k ≤ bound → ¬ P k} (∀ k, k ≤ bound → ¬ P k) → ℕ
+| (psum.inl ⟨n, _⟩) := n
+| (psum.inr _) := 0
+
+protected def nat.find_greatest (P : ℕ → Prop) [decidable_pred P] (bound : ℕ) : ℕ :=
+nat.find_greatest_aux $ nat.find_greatest_core P bound
+
+lemma nat.find_greatest_spec {P : ℕ → Prop} [decidable_pred P] {bound : ℕ}
+      (hex : ∃ m, m ≤ bound ∧ P m) : P (nat.find_greatest P bound) :=
+begin 
+  unfold nat.find_greatest,
+  rcases nat.find_greatest_core P bound with ⟨n, hn⟩ | h,
+  { cases hn; simpa only [nat.find_greatest_aux] },
+  { apply absurd hex, simpa }
+end 
+
+lemma nat.find_greatest_is_greatest {P : ℕ → Prop} [decidable_pred P] {bound : ℕ}
+      (hex : ∃ m, m ≤ bound ∧ P m) : ∀ k, nat.find_greatest P bound < k ∧ k ≤ bound → ¬ P k :=
+begin 
+  unfold nat.find_greatest,
+  rcases nat.find_greatest_core P bound with ⟨n, hn⟩ | h,
+  { cases hn; simpa only [nat.find_greatest_aux] },
+  { apply absurd hex, simpa }
+end 
 
 end find_greatest
 

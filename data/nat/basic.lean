@@ -578,50 +578,6 @@ le_of_dvd (fact_pos _) (fact_dvd_fact h)
 
 section find_greatest
 
-
-/-
-
-variables {P : ℕ → Prop} [decidable_pred P] {bound : ℕ}
-    (hall : ∀ m : ℕ, m > bound → ¬ P m) (hex : ∃ m, P m)
-    
-protected def nat.find_greatest_x : {n : ℕ // P n ∧ ∀ m : ℕ, m > n → ¬ P m} :=
-have ∃ v, P (bound - v), from 
-  let ⟨m, Hpm⟩ := hex in
-  have m ≤ bound, from le_of_not_gt (λ h, hall _ h Hpm),
-  ⟨bound - m, by rw nat.sub_sub_self; repeat {assumption}⟩,
-let minv := nat.find this,
-    minv_spec := nat.find_spec this,
-    minv_lt := @nat.find_min _ _ this in 
-⟨ bound - minv,
-  minv_spec,
-  assume (m : ℕ) (h : m > bound - minv),
-  if hmb : m > bound then
-    hall _ hmb
-  else
-    have hmb' : m ≤ bound, from le_of_not_gt hmb,
-    let minv' := @minv_lt (bound - m) in
-    have m + minv > bound, from nat.lt_add_of_sub_lt_right h,
-    have bound - m < minv, from (nat.sub_lt_left_iff_lt_add hmb').2 this,
-    begin rw nat.sub_sub_self at minv', exact minv' this, exact hmb' end ⟩ 
-
-protected def nat.find_greatest : ℕ := nat.find_greatest_x hall hex
-
-protected lemma nat.find_greatest_spec : P (nat.find_greatest hall hex) := 
-(nat.find_greatest_x hall hex).2.1
-
-protected lemma nat.find_greatest_is_greatest : ∀ (m : ℕ), m > nat.find_greatest hall hex → ¬ P m :=
-(nat.find_greatest_x hall hex).2.2
-
-protected lemma nat.find_greatest_unique {m : ℕ} (hp : P m) (hallm : ∀ k : ℕ, k > m → ¬ P k) :
-          m = nat.find_greatest hall hex :=
-nat.le_antisymm
-  (le_of_not_gt
-    (assume h : m > nat.find_greatest hall hex,
-     nat.find_greatest_is_greatest hall hex _ h hp)) 
-  (le_of_not_gt
-    (assume h : nat.find_greatest hall hex > m,
-     hallm _ h (nat.find_greatest_spec hall hex)))-/
-
 private def nat.find_greatest_core_aux (P : ℕ → Prop) [decidable_pred P] (bound : ℕ) : 
           Π m : ℕ, (∀ k, m < k ∧ k ≤ bound → ¬ P k) → 
             psum {n // P n ∧ ∀ k, n < k ∧ k ≤ bound → ¬ P k} (∀ k, k ≤ bound → ¬ P k)
@@ -634,9 +590,7 @@ private def nat.find_greatest_core_aux (P : ℕ → Prop) [decidable_pred P] (bo
       have m + 1 < k, from lt_of_le_of_ne (nat.succ_le_of_lt hmk) hm1k, 
       h _ ⟨this, hkb⟩
 
-/--
- Finds the largest n ≤ bound such that P n holds, or returns none if no such n exists
--/
+
 protected def nat.find_greatest_core (P : ℕ → Prop) [decidable_pred P] (bound : ℕ) : 
           psum {n // P n ∧ ∀ k, n < k ∧ k ≤ bound → ¬ P k} (∀ k, k ≤ bound → ¬ P k) :=
 nat.find_greatest_core_aux P bound bound $ λ _ ⟨hlt, hle⟩, false.elim $ not_le_of_gt hlt hle
@@ -646,6 +600,9 @@ protected def nat.find_greatest_aux {P : ℕ → Prop} [decidable_pred P] {bound
 | (psum.inl ⟨n, _⟩) := n
 | (psum.inr _) := 0
 
+/--
+  Finds the largest n ≤ bound such that P n holds, or returns 0 if no such n exists
+-/
 protected def nat.find_greatest (P : ℕ → Prop) [decidable_pred P] (bound : ℕ) : ℕ :=
 nat.find_greatest_aux $ nat.find_greatest_core P bound
 

@@ -91,15 +91,10 @@ meta def is_structure (env : environment) (n : name) : bool :=
 option.is_some $ do
   (nparams, intro) ← env.is_structure_like n,
   di ← (env.get intro).to_option,
-  @nat.iterate (expr → option unit)
-    (λ f e, do
-      expr.pi _ _ _ body ← pure e | none,
-      f body) nparams
-    (λ e, do
-      expr.pi x _ _ _ ← pure e | none,
-      let f := n ++ x.deinternalize_field,
-      env.is_projection f $> ())
-    di.type
+  expr.pi x _ _ _ ← nparams.iterate
+    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
+    (some di.type) | none,
+  env.is_projection (n ++ x.deinternalize_field)
 
 end environment
 

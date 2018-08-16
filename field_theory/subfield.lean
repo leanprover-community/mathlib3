@@ -11,19 +11,13 @@ variables {F : Type*} [field F] (s : set F)
 class is_subfield extends is_subring s :=
 (inv_mem : ∀ {x : F}, x ∈ s → x⁻¹ ∈ s)
 
-open is_subfield 
+open is_subfield
 
 instance subset.field [is_subfield s] : field s :=
-{ inv := λ (a : s), ⟨a.val⁻¹, inv_mem a.property⟩,   
-  zero_ne_one := (iff_false_right (@zero_ne_one F _)).mp subtype.mk_eq_mk,
-  mul_inv_cancel := assume ⟨a, _⟩, λ h, 
-                      subtype.eq (mul_inv_cancel 
-                        ((iff_false_left (not_not_intro h)).mp 
-                        (by rw auto.not_not_eq; apply subtype.ext))),
-  inv_mul_cancel := assume ⟨a, _⟩, λ h, 
-                      subtype.eq (inv_mul_cancel 
-                        ((iff_false_left (not_not_intro h)).mp 
-                        (by rw auto.not_not_eq; apply subtype.ext))),
-  .. subset.comm_ring,}
+begin
+  refine_struct { inv := λ (a : s), ⟨a.val⁻¹, inv_mem a.property⟩,
+                .. subset.comm_ring };
+  have_field; simp [subtype.ext]; intros; apply field; assumption
+end
 
 instance subtype.field [is_subfield s] : field (subtype s) := subset.field s

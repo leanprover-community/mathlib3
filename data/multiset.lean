@@ -1673,6 +1673,11 @@ countp_pos.2 ⟨_, h, pa⟩
 
 theorem countp_le_of_le {s t} (h : s ≤ t) : countp p s ≤ countp p t :=
 by simpa [countp_eq_card_filter] using card_le_of_le (filter_le_filter h)
+
+@[simp] theorem countp_filter {q} [decidable_pred q] (s : multiset α) :
+  countp p (filter q s) = countp (λ a, p a ∧ q a) s :=
+by simp [countp_eq_card_filter]
+
 end
 
 /- count -/
@@ -1759,6 +1764,10 @@ multiset.induction_on m (by simp) (by simp)
 
 theorem le_count_iff_repeat_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ repeat a n ≤ s :=
 quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
+
+@[simp] theorem count_filter {p} [decidable_pred p]
+  {a} {s : multiset α} (h : p a) : count a (filter p s) = count a s :=
+quot.induction_on s $ λ l, count_filter h
 
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count

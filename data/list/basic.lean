@@ -1640,7 +1640,7 @@ by rw ← filter_map_eq_filter; exact filter_map_sublist_filter_map _ s
 theorem filter_of_map (f : β → α) (l) : filter p (map f l) = map f (filter (p ∘ f) l) :=
 by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 
-theorem filter_filter {q} [decidable_pred q] : ∀ l,
+@[simp] theorem filter_filter {q} [decidable_pred q] : ∀ l,
   filter p (filter q l) = filter (λ a, p a ∧ q a) l
 | [] := rfl
 | (a :: l) := by by_cases p a; by_cases q a; simp *
@@ -1678,6 +1678,10 @@ by simp [countp_eq_length_filter, length_pos_iff_exists_mem]
 
 theorem countp_le_of_sublist {l₁ l₂} (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ :=
 by simpa using length_le_of_sublist (filter_sublist_filter s)
+
+@[simp] theorem countp_filter {q} [decidable_pred q] (l : list α) :
+  countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
+by simp [countp_eq_length_filter]
 
 end filter
 
@@ -1738,6 +1742,11 @@ theorem le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} : n ≤ cou
     ⟨by simp [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
   by rw ← this; apply filter_sublist,
  λ h, by simpa using count_le_of_sublist a h⟩
+
+@[simp] theorem count_filter {p} [decidable_pred p]
+  {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=
+by simp [count]; congr; exact
+set.ext (λ b, and_iff_left_of_imp (λ e, e ▸ h))
 
 end count
 

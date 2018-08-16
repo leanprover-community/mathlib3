@@ -59,17 +59,17 @@ else padic_norm hp (f (stationary_point hf))
 lemma norm_zero_iff (f : padic_seq hp) : f.norm = 0 ↔ f ≈ 0 :=
 begin 
   constructor,
-    { intro h,
-      by_contradiction hf,
-      unfold norm at h, split_ifs at h,
-      apply hf,
-      intros ε hε,
-      existsi stationary_point hf,
-      intros j hj,
-      have heq := stationary_point_spec hf (le_refl _) hj,
-      simpa [h, heq] },
-    { intro h,
-      simp [norm, h] }
+  { intro h,
+    by_contradiction hf,
+    unfold norm at h, split_ifs at h,
+    apply hf,
+    intros ε hε,
+    existsi stationary_point hf,
+    intros j hj,
+    have heq := stationary_point_spec hf (le_refl _) hj,
+    simpa [h, heq] },
+  { intro h,
+    simp [norm, h] }
 end 
 
 end 
@@ -115,21 +115,21 @@ else
   have hfg : ¬ f * g ≈ 0, by apply mul_not_equiv_zero; assumption,
   let i := max (stationary_point hfg) (max (stationary_point hf) (stationary_point hg)) in
   have hpnfg : padic_norm hp ((f * g) (stationary_point hfg)) = padic_norm hp ((f * g) i),
-    { apply stationary_point_spec hfg,
-      apply le_max_left,
-      apply le_refl },
+  { apply stationary_point_spec hfg,
+    apply le_max_left,
+    apply le_refl },
   have hpnf : padic_norm hp (f (stationary_point hf)) = padic_norm hp (f i),
-    { apply stationary_point_spec hf,
-      apply ge_trans,
-      apply le_max_right,
-      apply le_max_left,
-      apply le_refl },
+  { apply stationary_point_spec hf,
+    apply ge_trans,
+    apply le_max_right,
+    apply le_max_left,
+    apply le_refl },
   have hpng : padic_norm hp (g (stationary_point hg)) = padic_norm hp (g i),
-    { apply stationary_point_spec hg,
-      apply ge_trans,
-      apply le_max_right,
-      apply le_max_right,
-      apply le_refl },
+  { apply stationary_point_spec hg,
+    apply ge_trans,
+    apply le_max_right,
+    apply le_max_right,
+    apply le_refl },
   begin 
     unfold norm,
     split_ifs,
@@ -171,19 +171,19 @@ begin
   cases hfg _ hpn with N hN,
   let i := max N (max (stationary_point hf) (stationary_point hg)),
   have hfi : padic_norm hp (f (stationary_point hf)) = padic_norm hp (f i), 
-    { apply stationary_point_spec hf,
-      { apply le_trans,
-        apply le_max_left,
-        tactic.rotate_left 1,
-        apply le_max_right },
-      { apply le_refl } },
+  { apply stationary_point_spec hf,
+    { apply le_trans,
+      apply le_max_left,
+      tactic.rotate_left 1,
+      apply le_max_right },
+    { apply le_refl } },
   have hgi : padic_norm hp (g (stationary_point hg)) = padic_norm hp (g i),
-    { apply stationary_point_spec hg,
-      { apply le_trans,
-        apply le_max_right,
-        tactic.rotate_left 1,
-        apply le_max_right },
-      { apply le_refl } },
+  { apply stationary_point_spec hg,
+    { apply le_trans,
+      apply le_max_right,
+      tactic.rotate_left 1,
+      apply le_max_right },
+    { apply le_refl } },
   have hi : i ≥ N, from le_max_left _ _,
   have hN' := hN _ hi,
   simp only [hfi, hgi] at hN',
@@ -191,12 +191,12 @@ begin
     by rwa [hfi, hgi, ←padic_norm.neg hp (g i)] at h,
   let hpnem := add_eq_max_of_ne hp hpne,
   have hpeq : padic_norm hp ((f - g) i) = max (padic_norm hp (f i)) (padic_norm hp (g i)), 
-    { rwa padic_norm.neg at hpnem },
+  { rwa padic_norm.neg at hpnem },
   have hfigi : padic_norm hp (g i) < padic_norm hp (f i),
-    { rwa [hfi, hgi] at hgt },
+  { rwa [hfi, hgi] at hgt },
   rw [hpeq, max_eq_left_of_lt hfigi] at hN',
   have : padic_norm hp (f i) < padic_norm hp (f i),
-    { apply lt_of_lt_of_le hN', apply sub_le_self, apply padic_norm.nonneg },
+  { apply lt_of_lt_of_le hN', apply sub_le_self, apply padic_norm.nonneg },
   exact lt_irrefl _ this
 end 
 
@@ -207,11 +207,11 @@ begin
   cases (decidable.em (padic_norm hp (f (stationary_point hf)) > 
           padic_norm hp (g (stationary_point hg))))
       with hgt hngt,
-    { exact norm_eq_of_equiv_aux hf hg hfg h hgt },
-    { apply norm_eq_of_equiv_aux hg hf (setoid.symm hfg) (ne.symm h),
-      apply lt_of_le_of_ne,
-      apply le_of_not_gt hngt,
-      apply h }
+  { exact norm_eq_of_equiv_aux hf hg hfg h hgt },
+  { apply norm_eq_of_equiv_aux hg hf (setoid.symm hfg) (ne.symm h),
+    apply lt_of_le_of_ne,
+    apply le_of_not_gt hngt,
+    apply h }
 end 
 
 theorem norm_equiv {f g : padic_seq hp} (hfg : f ≈ g) : 
@@ -227,21 +227,21 @@ private lemma norm_nonarchimedean_aux {f g : padic_seq hp}
         (f + g).norm ≤ max (f.norm) (g.norm) :=
 let i := max (stationary_point hfg) (max (stationary_point hf) (stationary_point hg)) in
 have hpnfg : padic_norm hp ((f + g) (stationary_point hfg)) = padic_norm hp ((f + g) i),
-  { apply stationary_point_spec hfg,
-    apply le_max_left,
-    apply le_refl },
+{ apply stationary_point_spec hfg,
+  apply le_max_left,
+  apply le_refl },
 have hpnf : padic_norm hp (f (stationary_point hf)) = padic_norm hp (f i),
-  { apply stationary_point_spec hf,
-    apply ge_trans,
-    apply le_max_right,
-    apply le_max_left,
-    apply le_refl },
+{ apply stationary_point_spec hf,
+  apply ge_trans,
+  apply le_max_right,
+  apply le_max_left,
+  apply le_refl },
 have hpng : padic_norm hp (g (stationary_point hg)) = padic_norm hp (g i),
-  { apply stationary_point_spec hg,
-    apply ge_trans,
-    apply le_max_right,
-    apply le_max_right,
-    apply le_refl },
+{ apply stationary_point_spec hg,
+  apply ge_trans,
+  apply le_max_right,
+  apply le_max_right,
+  apply le_refl },
 begin 
   unfold norm, split_ifs,  
   rw [hpnfg, hpnf, hpng],
@@ -255,8 +255,8 @@ if hfg : f + g ≈ 0 then
   by simpa [hfg, norm]
 else if hf : f ≈ 0 then 
   have hfg' : f + g ≈ g,
-    { change lim_zero (f - 0) at hf,
-      show lim_zero (f + g - g), by simpa using hf },
+  { change lim_zero (f - 0) at hf,
+    show lim_zero (f + g - g), by simpa using hf },
   have hcfg : (f + g).norm = g.norm, from norm_equiv hfg',
   have hcl : f.norm = 0, from (norm_zero_iff f).2 hf,
   have max (f.norm) (g.norm) = g.norm, 
@@ -264,8 +264,8 @@ else if hf : f ≈ 0 then
   by rw [this, hcfg]
 else if hg : g ≈ 0 then 
   have hfg' : f + g ≈ f, 
-    { change lim_zero (g - 0) at hg,
-      show lim_zero (f + g - f), by  simpa [add_sub_cancel'] using hg },
+  { change lim_zero (g - 0) at hg,
+    show lim_zero (f + g - f), by  simpa [add_sub_cancel'] using hg },
   have hcfg : (f + g).norm = f.norm, from norm_equiv hfg',
   have hcl : g.norm = 0, from (norm_zero_iff g).2 hg,
   have max (f.norm) (g.norm) = f.norm, 
@@ -284,9 +284,9 @@ else
     simp [hg, hf, norm],
     let i := max (stationary_point hf) (stationary_point hg),
     have hpf : padic_norm hp (f (stationary_point hf)) = padic_norm hp (f i), 
-      { apply stationary_point_spec, apply le_max_left, apply le_refl },
+    { apply stationary_point_spec, apply le_max_left, apply le_refl },
     have hpg : padic_norm hp (g (stationary_point hg)) = padic_norm hp (g i), 
-      { apply stationary_point_spec, apply le_max_right, apply le_refl },
+    { apply stationary_point_spec, apply le_max_right, apply le_refl },
     rw [hpf, hpg, h]
   end
 
@@ -339,8 +339,8 @@ cau_seq.completion.of_rat_div
 @[simp] lemma cast_eq_of_rat_of_nat (n : ℕ) : (↑n : ℚ_[hp]) = of_rat hp n :=
 begin 
   induction n with n ih,
-    { refl },
-    { simp, ring, congr, apply ih }
+  { refl },
+  { simp, ring, congr, apply ih }
 end 
 
 @[simp] lemma cast_eq_of_rat_of_int (n : ℤ) : (↑n : ℚ_[hp]) = of_rat hp n :=
@@ -386,15 +386,15 @@ begin
     by simpa [not_forall] using h,
   rcases this N with ⟨i, hi, hge⟩,
   have hne : ¬ (f - const (padic_norm hp) (f i)) ≈ 0,
-    { intro h, unfold norm at hge; split_ifs at hge, exact not_lt_of_ge hge hε },
+  { intro h, unfold norm at hge; split_ifs at hge, exact not_lt_of_ge hge hε },
   unfold norm at hge; split_ifs at hge,
   apply not_le_of_gt _ hge,
   cases decidable.em ((stationary_point hne) ≥ N) with hgen hngen,
-    { apply hN; assumption },
-    { have := stationary_point_spec hne (le_refl _) (le_of_not_le hngen),
-      rw ←this,
-      apply hN,
-      apply le_refl, assumption }
+  { apply hN; assumption },
+  { have := stationary_point_spec hne (le_refl _) (le_of_not_le hngen),
+    rw ←this,
+    apply hN,
+    apply le_refl, assumption }
 end 
 
 protected lemma nonneg (q : ℚ_[hp]) : padic_norm_e q ≥ 0 :=
@@ -465,15 +465,15 @@ quotient.induction_on q $ λ q',
       simp only [padic.cast_eq_of_rat],
       change padic_seq.norm (q' - const _ (q' N)) < ε,
       cases decidable.em ((q' - const (padic_norm hp) (q' N)) ≈ 0) with heq hne',
-        { simpa only [heq, norm, dif_pos] },
-        { simp only [norm, dif_neg hne'],
-          change padic_norm hp (q' _ - q' _) < ε,        
-          have := stationary_point_spec hne', 
-          cases decidable.em (N ≥ stationary_point hne') with hle hle,
-            { have := eq.symm (this (le_refl _) hle),
-              simp at this, simpa [this] },
-            { apply hN,
-              apply le_of_lt, apply lt_of_not_ge, apply hle, apply le_refl }}
+      { simpa only [heq, norm, dif_pos] },
+      { simp only [norm, dif_neg hne'],
+        change padic_norm hp (q' _ - q' _) < ε,        
+        have := stationary_point_spec hne', 
+        cases decidable.em (N ≥ stationary_point hne') with hle hle,
+        { have := eq.symm (this (le_refl _) hle),
+          simp at this, simpa [this] },
+        { apply hN,
+          apply le_of_lt, apply lt_of_not_ge, apply hle, apply le_refl }}
     end⟩
 
 variables {p : ℕ} {hp : prime p} (f : cau_seq _ (@padic_norm_e _ hp))
@@ -505,9 +505,9 @@ begin
   have hi'' := le_mul_of_div_le hε (ceil_le.1 hi'),
   rw right_distrib, 
   apply le_add_of_le_of_nonneg,
-    { apply hi'' }, 
-    { apply le_of_lt, 
-      simpa }
+  { apply hi'' }, 
+  { apply le_of_lt, 
+    simpa }
 end  
 
 lemma exi_rat_seq_conv_cauchy : is_cau_seq (padic_norm hp) (lim_seq f) :=
@@ -520,22 +520,22 @@ begin
   intros j hj,
   rw [←padic_norm_e.eq_padic_norm, padic.of_rat_sub],
   suffices : padic_norm_e ((↑(lim_seq f j) - f (max N N2)) + (f (max N N2) - lim_seq f (max N N2))) < ε, 
-    { ring at this ⊢, simpa only [cast_eq_of_rat] },
-    { apply lt_of_le_of_lt,
-      { apply padic_norm_e.add },
-      { have : (3 : ℚ) ≠ 0, by norm_num,
-        have : ε = ε / 3 + ε / 3 + ε / 3,
-          { apply eq_of_mul_eq_mul_left this, simp [left_distrib, mul_div_cancel' _ this ], ring },
-        rw this,
-        apply add_lt_add, 
-          { suffices : padic_norm_e ((↑(lim_seq f j) - f j) + (f j - f (max N N2))) < ε / 3 + ε / 3,
-              by simpa,
-            apply lt_of_le_of_lt,
-              { apply padic_norm_e.add },
-              { apply add_lt_add,
-                { rw [padic_norm_e.sub_rev, cast_eq_of_rat], apply hN, apply le_of_max_le_left hj },
-                { apply hN2, apply le_of_max_le_right hj, apply le_max_right } } },
-          { rw cast_eq_of_rat, apply hN, apply le_max_left }} }
+  { ring at this ⊢, simpa only [cast_eq_of_rat] },
+  { apply lt_of_le_of_lt,
+    { apply padic_norm_e.add },
+    { have : (3 : ℚ) ≠ 0, by norm_num,
+      have : ε = ε / 3 + ε / 3 + ε / 3,
+      { apply eq_of_mul_eq_mul_left this, simp [left_distrib, mul_div_cancel' _ this ], ring },
+      rw this,
+      apply add_lt_add, 
+      { suffices : padic_norm_e ((↑(lim_seq f j) - f j) + (f j - f (max N N2))) < ε / 3 + ε / 3,
+          by simpa,
+        apply lt_of_le_of_lt,
+        { apply padic_norm_e.add },
+        { apply add_lt_add,
+          { rw [padic_norm_e.sub_rev, cast_eq_of_rat], apply hN, apply le_of_max_le_left hj },
+          { apply hN2, apply le_of_max_le_right hj, apply le_max_right } } },
+      { rw cast_eq_of_rat, apply hN, apply le_max_left }}}
 end 
 
 private def lim' : padic_seq hp := ⟨_, exi_rat_seq_conv_cauchy f⟩
@@ -552,15 +552,15 @@ theorem complete :
     existsi max N N2,
     intros i hi,
     suffices : padic_norm_e ((lim f - lim' f i) + (lim' f i - f i)) < ε, 
-      { ring at this; exact this },
-      { apply lt_of_le_of_lt,
-        { apply padic_norm_e.add },
-        { have : (2 : ℚ) ≠ 0, by norm_num,
-          have : ε = ε / 2 + ε / 2, by rw ←(add_self_div_two ε); simp,
-          rw this,
-          apply add_lt_add,
-            { apply hN2, apply le_of_max_le_right hi },
-            { rw [padic_norm_e.sub_rev, cast_eq_of_rat], apply hN, apply le_of_max_le_left hi } } }
+    { ring at this; exact this },
+    { apply lt_of_le_of_lt,
+      { apply padic_norm_e.add },
+      { have : (2 : ℚ) ≠ 0, by norm_num,
+        have : ε = ε / 2 + ε / 2, by rw ←(add_self_div_two ε); simp,
+        rw this,
+        apply add_lt_add,
+        { apply hN2, apply le_of_max_le_right hi },
+        { rw [padic_norm_e.sub_rev, cast_eq_of_rat], apply hN, apply le_of_max_le_left hi } } }
   end ⟩
 
 end complete 

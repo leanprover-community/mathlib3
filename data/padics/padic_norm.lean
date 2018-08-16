@@ -156,14 +156,14 @@ else
     cases hn with kn hkn,
     have hmn : m + n = ↑(p ^ padic_val p m) * km + ↑(p ^ padic_val p n) * kn, by cc,
     have hmn' : m + n = ↑(p ^ padic_val p m) * (km + ↑(p ^ (padic_val p n - padic_val p m)) * kn), 
-      { rw [left_distrib, hmn, ←nat.pow_eq_mul_pow_sub _ hle], simp [mul_assoc] },
+    { rw [left_distrib, hmn, ←nat.pow_eq_mul_pow_sub _ hle], simp [mul_assoc] },
     have hpp : ↑(p ^ padic_val p m) ∣ (m + n),
-      { rw hmn', apply dvd_mul_of_dvd_left, apply dvd_refl },
+    { rw hmn', apply dvd_mul_of_dvd_left, apply dvd_refl },
     have hpvle : padic_val p m ≤ padic_val p (m+n), from 
       le_padic_val_of_pow_div hp hmnz hpp,
     transitivity,
-      { apply min_le_left },
-      { apply hpvle }
+    { apply min_le_left },
+    { apply hpvle }
   end 
 
 end
@@ -429,16 +429,16 @@ begin
                ... ≤ max (padic_norm hp (q + r)) (padic_norm hp (-r)) : padic_norm.nonarchimedean hp
                ... = max (padic_norm hp (q + r)) (padic_norm hp r) : by simpa,
   have hnge : padic_norm hp r ≤ padic_norm hp (q + r), 
-    { apply le_of_not_gt,
-      intro hgt,
-      rw max_eq_right_of_lt hgt at this,
-      apply not_lt_of_ge this,
-      assumption },
+  { apply le_of_not_gt,
+    intro hgt,
+    rw max_eq_right_of_lt hgt at this,
+    apply not_lt_of_ge this,
+    assumption },
   have : padic_norm hp q ≤ padic_norm hp (q + r), by rwa [max_eq_left hnge] at this,
   apply _root_.le_antisymm,
-    { apply padic_norm.nonarchimedean hp },
-    { rw max_eq_left_of_lt hlt,
-      assumption }
+  { apply padic_norm.nonarchimedean hp },
+  { rw max_eq_left_of_lt hlt,
+    assumption }
 end 
 
 protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm hp q = fpow p (-n) :=
@@ -450,8 +450,8 @@ instance : is_absolute_value (padic_norm hp) :=
     begin 
       intros, 
       constructor; intro, 
-        { apply zero_of_padic_norm_eq_zero hp, assumption }, 
-        { simp [*] } 
+      { apply zero_of_padic_norm_eq_zero hp, assumption }, 
+      { simp [*] } 
     end,
   abv_add := padic_norm.triangle_ineq hp,
   abv_mul := padic_norm.mul hp }

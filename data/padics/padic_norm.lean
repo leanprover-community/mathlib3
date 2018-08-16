@@ -7,88 +7,95 @@ Define the p-adic valuation on ℤ and ℚ, and the p-adic norm on ℚ
 -/
 
 import data.rat algebra.field_power
-import tactic.wlog tactic.ring
+import tactic.wlog tactic.ring tactic.find
 
 universe u 
 open nat
 
-private lemma exi_div (p : ℕ) (n : ℤ) : ∃ k : ℕ, ↑(p ^ k) ∣ n := ⟨0, by simp⟩
+private lemma exi_div (p : ℕ) (n : ℤ) : ∃ k : ℕ, k ≤ n.nat_abs ∧ ↑(p ^ k) ∣ n :=
+⟨0, nat.zero_le _, by simp⟩
 
 private lemma bound {p : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) : 
         ∀ k : ℕ, k > n.nat_abs → ¬ (↑(p ^ k) ∣ n) := 
 assume k (hkn : k > n.nat_abs),
-have n.nat_abs < p^k, from lt.trans (le_pow_self hp _) (pow_lt_pow_of_lt_right hp hkn),
+have n.nat_abs < p^k, from lt.trans (lt_pow_self hp _) (pow_lt_pow_of_lt_right hp hkn),
 assume hdvd : ↑(p ^ k) ∣ n,
 have hdvd' : (p ^ k) ∣ n.nat_abs, from int.dvd_nat_abs_of_of_nat_dvd hdvd,
 let hle := le_of_dvd (int.nat_abs_pos_of_ne_zero hn) hdvd' in 
 not_le_of_gt this hle 
 
-def padic_val {p : ℕ} (hp : p > 1) (n : ℤ) : ℕ := 
-if hn : n = 0 then
-  0
-else nat.find_greatest (bound hp hn) (exi_div p n)
+def padic_val (p : ℕ) (n : ℤ) : ℕ := 
+if hn : n = 0 then 0
+else if hp : p > 1 then nat.find_greatest (λ k, ↑(p ^ k) ∣ n) n.nat_abs --(exi_div p n)
+else 0
 
 namespace padic_val 
 
-lemma spec {p : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) : ↑(p ^ padic_val hp n) ∣ n := 
-let ha := nat.find_greatest_spec (bound hp hn) (exi_div p n) in
-by simpa [padic_val, hn] using ha
+lemma spec {p : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) : ↑(p ^ padic_val p n) ∣ n := 
+let ha := nat.find_greatest_spec (exi_div p n) in
+by simpa [padic_val, hp, hn] using ha
 
-lemma is_greatest {p : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) : 
-      ∀ m : ℕ, m > padic_val hp n → ¬ ↑(p ^ m) ∣ n :=
-let ha := nat.find_greatest_is_greatest (bound hp hn) (exi_div p n) in 
-by simpa [padic_val, hn] using ha
+lemma is_greatest {p : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) (m : ℕ) (hm : m > padic_val p n) : 
+      ¬ ↑(p ^ m) ∣ n :=
+let ha := nat.find_greatest_is_greatest (exi_div p n) in 
+if hmb : m ≤ n.nat_abs then
+  have hfg : nat.find_greatest (λ (m : ℕ), ↑(p ^ m) ∣ n) (int.nat_abs n) < m, 
+    by simpa [padic_val, hn, hp] using hm,
+  ha _ ⟨hfg, hmb⟩ 
+else bound hp hn _ $ lt_of_not_ge hmb
 
 lemma unique {p : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) {k : ℕ} (hk : ↑(p^k) ∣ n) 
-      (hall : ∀ m : ℕ, m > k → ¬ ↑(p^m) ∣ n) : k = padic_val hp n :=
-let ha := nat.find_greatest_unique (bound hp hn) (exi_div p n) hk hall in 
-by simpa [padic_val, hn] using ha
+      (hall : ∀ m : ℕ, m > k → ¬ ↑(p^m) ∣ n) : k = padic_val p n :=
+have hle : k ≤ padic_val p n, from le_of_not_gt $ λ h, is_greatest hp hn _ h hk,
+have hge : k ≥ padic_val p n, from le_of_not_gt $ λ h, hall _ h (spec hp hn), 
+le_antisymm hle hge 
 
-@[simp] protected lemma neg {p : ℕ} (hp : p > 1) (n : ℤ) : padic_val hp (-n) = padic_val hp n :=
+@[simp] protected lemma neg {p : ℕ} (hp : p > 1) (n : ℤ) : padic_val p (-n) = padic_val p n :=
 if hn : n = 0 then by simp [hn] else 
 have hnn : -n ≠ 0, by simp [hn],
 unique hp hn
-  (have ↑(p ^ padic_val hp (-n)) ∣ (-n), from spec hp hnn, dvd_of_dvd_neg this) 
+  (have ↑(p ^ padic_val p (-n)) ∣ (-n), from spec hp hnn, dvd_of_dvd_neg this) 
   (assume m hm (hdiv : (↑(p^m) ∣ n)), 
    have ↑(p^m) ∣ (-n), from dvd_neg_of_dvd hdiv, 
    is_greatest hp  hnn _ hm this)
 
 lemma le_padic_val_of_pow_div {p k : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) (h : ↑(p^k) ∣ n) : 
-      k ≤ padic_val hp n := 
+      k ≤ padic_val p n := 
 le_of_not_gt $
-  assume : k > padic_val hp n,
+  assume : k > padic_val p n,
   is_greatest hp hn _ this h
 
 section
 variables {p : ℕ} (hp : p > 1)
 
-@[simp] protected lemma zero : padic_val hp 0 = 0 := by simp [padic_val]
+@[simp] protected lemma zero : padic_val p 0 = 0 := by simp [padic_val]
 
-@[simp] protected lemma one : padic_val hp 1 = 0 :=
+include hp
+@[simp] protected lemma one : padic_val p 1 = 0 :=
 begin
   symmetry,
-  apply nat.find_greatest_unique,
-    { norm_num },
-    { intros k hk,
-      have h1k : 1 ^ k < p ^ k, from pow_lt_pow_of_lt_left hp hk,
-      rw nat.one_pow at h1k,
-      intro hdvd,
-      apply not_le_of_gt h1k,
-      apply le_of_dvd zero_lt_one,
-      apply int.coe_nat_dvd.1 hdvd }
+  apply unique,
+  repeat { norm_num },
+  { assumption },
+  { intros k hk,
+    have h1k : 1 ^ k < p ^ k, from pow_lt_pow_of_lt_left hp hk,
+    rw nat.one_pow at h1k,
+    intro hdvd,
+    apply not_le_of_gt h1k,
+    apply le_of_dvd zero_lt_one,
+    apply int.coe_nat_dvd.1,
+    simpa }
 end 
 
-@[simp] lemma padic_val_self : padic_val hp p = 1 :=
+@[simp] lemma padic_val_self : padic_val p p = 1 :=
 have h : p ≠ 0, by intro h'; subst h'; exact absurd hp dec_trivial,
 begin 
-  unfold padic_val,
-  simp [h],
-  symmetry,
-  apply nat.find_greatest_unique,
-    { simp },
-    { intros k hk hdvd,
-      apply not_pos_pow_dvd hp hk,
-      rw ←int.coe_nat_dvd, simpa }
+  symmetry, apply unique,
+  repeat { simpa },
+  { assumption },
+  { intros k hk hdvd,
+    apply not_pos_pow_dvd hp hk,
+    rw ←int.coe_nat_dvd, simpa }
 end 
 
 end
@@ -99,33 +106,34 @@ parameters {p : ℕ} (p_prime : prime p)
 private lemma hpp : p > 1 := prime.gt_one p_prime
 
 protected lemma mul {m n : ℤ} (hm : m ≠ 0) (hn : n ≠ 0) : 
-      padic_val hpp m + padic_val hpp n = padic_val hpp (m*n) :=
+      padic_val p m + padic_val p n = padic_val p (m*n) :=
 have m*n ≠ 0, from mul_ne_zero hm hn,
-have hdivm : ↑(p ^ padic_val hpp m) ∣ m, from spec hpp hm,
-have hdivn : ↑(p ^ padic_val hpp n) ∣ n, from spec hpp hn,
-have hdiv : ↑(p ^ (padic_val hpp m + padic_val hpp n)) ∣ m*n, from
-  have hpoweq : (↑(p ^ (padic_val hpp m + padic_val hpp n)) : ℤ) = 
-                 (↑(p ^ padic_val hpp m * p ^ padic_val hpp n) : ℤ),
+have hdivm : ↑(p ^ padic_val p m) ∣ m, from spec hpp hm,
+have hdivn : ↑(p ^ padic_val p n) ∣ n, from spec hpp hn,
+have hdiv : ↑(p ^ (padic_val p m + padic_val p n)) ∣ m*n, from
+  have hpoweq : (↑(p ^ (padic_val p m + padic_val p n)) : ℤ) = 
+                 (↑(p ^ padic_val p m * p ^ padic_val p n) : ℤ),
     by simp [nat.pow_add],
   begin
     rw [hpoweq, int.coe_nat_mul],
     apply mul_dvd_mul,
     repeat {assumption}
   end, 
-have hall : ∀ k : ℕ, k > padic_val hpp m + padic_val hpp n → ¬ ↑(p ^ k) ∣ m*n, from
-  assume (k : ℕ) (hkgt : k > padic_val hpp m + padic_val hpp n) (hdiv : ↑(p ^ k) ∣ m*n),
-  have hpsucc : ↑(p ^ (padic_val hpp m + padic_val hpp n + 1)) ∣ m*n, from
+have hall : ∀ k : ℕ, k > padic_val p m + padic_val p n → ¬ ↑(p ^ k) ∣ m*n, from
+  assume (k : ℕ) (hkgt : k > padic_val p m + padic_val p n) (hdiv : ↑(p ^ k) ∣ m*n),
+  have hpsucc : ↑(p ^ (padic_val p m + padic_val p n + 1)) ∣ m*n, from
     int.pow_div_of_le_of_pow_div_int hkgt hdiv,
   let hsd := succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul_int p_prime hdivm hdivn hpsucc in
   or.elim hsd
-    (assume : ↑(p ^ (padic_val hpp m + 1)) ∣ m,
+    (assume : ↑(p ^ (padic_val p m + 1)) ∣ m,
       is_greatest hpp hm _ (lt_succ_self _) this)
-    (assume : ↑(p ^ (padic_val hpp n + 1)) ∣ n,
+    (assume : ↑(p ^ (padic_val p n + 1)) ∣ n,
       is_greatest hpp hn _ (lt_succ_self _) this), 
 have habs : m.nat_abs * n.nat_abs = (m*n).nat_abs, by simp [int.nat_abs_mul],
 begin 
   simp only [habs] at *, 
   apply unique, 
+  { exact hpp p_prime },
   repeat {assumption}
  end 
 
@@ -133,25 +141,26 @@ end padic_val
 
 section
 variables {p : ℕ} (hp : p > 1)
+include hp
 
 lemma min_le_padic_val_add {m n : ℤ} (hmnz : m + n ≠ 0) : 
-      min (padic_val hp m) (padic_val hp n) ≤ padic_val hp (m + n) :=
+      min (padic_val p m) (padic_val p n) ≤ padic_val p (m + n) :=
 if hmz : m = 0 then by simp [hmz, nat.zero_le]
 else if hnz : n = 0 then by simp [hnz, nat.zero_le]
 else 
   begin
-    wlog hle := le_total (padic_val hp m) (padic_val hp n) using [n m],
-    have hm : ∃ km, m = ↑(p ^ padic_val hp m) * km, from spec hp hmz,
-    have hn : ∃ kn, n = ↑(p ^ padic_val hp n) * kn, from spec hp hnz,
+    wlog hle := le_total (padic_val p m) (padic_val p n) using [n m],
+    have hm : ∃ km, m = ↑(p ^ padic_val p m) * km, from spec hp hmz,
+    have hn : ∃ kn, n = ↑(p ^ padic_val p n) * kn, from spec hp hnz,
     cases hm with km hkm,
     cases hn with kn hkn,
-    have hmn : m + n = ↑(p ^ padic_val hp m) * km + ↑(p ^ padic_val hp n) * kn, by cc,
-    have hmn' : m + n = ↑(p ^ padic_val hp m) * (km + ↑(p ^ (padic_val hp n - padic_val hp m)) * kn), 
+    have hmn : m + n = ↑(p ^ padic_val p m) * km + ↑(p ^ padic_val p n) * kn, by cc,
+    have hmn' : m + n = ↑(p ^ padic_val p m) * (km + ↑(p ^ (padic_val p n - padic_val p m)) * kn), 
       { rw [left_distrib, hmn, ←nat.pow_eq_mul_pow_sub _ hle], simp [mul_assoc] },
-    have hpp : ↑(p ^ padic_val hp m) ∣ (m + n),
+    have hpp : ↑(p ^ padic_val p m) ∣ (m + n),
       { rw hmn', apply dvd_mul_of_dvd_left, apply dvd_refl },
-    have hpvle : padic_val hp m ≤ padic_val hp (m+n), from 
-      le_padic_val_of_pow_div _ hmnz hpp,
+    have hpvle : padic_val p m ≤ padic_val p (m+n), from 
+      le_padic_val_of_pow_div hp hmnz hpp,
     transitivity,
       { apply min_le_left },
       { apply hpvle }
@@ -162,36 +171,38 @@ end padic_val
 
 local infix `/.`:70 := rat.mk
 
-def padic_val_rat {p : ℕ} (hp : p > 1) (q : ℚ) : ℤ :=
-(padic_val hp q.num : ℤ) - (padic_val hp q.denom : ℤ)
+def padic_val_rat (p : ℕ) (q : ℚ) : ℤ :=
+(padic_val p q.num : ℤ) - (padic_val p q.denom : ℤ)
 
 namespace padic_val_rat
 
 section padic_val_rat
 variables {p : ℕ} (hp : p > 1)
+include hp
 
-@[simp] protected lemma neg (q : ℚ) : padic_val_rat hp (-q) = padic_val_rat hp q :=
+@[simp] protected lemma neg (q : ℚ) : padic_val_rat p (-q) = padic_val_rat p q :=
 begin 
-  simp [padic_val_rat]
+  simp [padic_val_rat, hp]
 end 
 
-@[simp] protected lemma one : padic_val_rat hp 1 = 0 :=
+@[simp] protected lemma one : padic_val_rat p 1 = 0 :=
 have (1 : ℚ).num = 1, from rfl,
 have (1 : ℚ).denom = 1, from rfl,
 by simp [padic_val_rat, *]
 
-@[simp] lemma padic_val_rat_self : padic_val_rat hp p = 1 :=
-by simp [padic_val_rat]
+@[simp] lemma padic_val_rat_self : padic_val_rat p p = 1 :=
+by simp [padic_val_rat, hp]
 
 end padic_val_rat 
 
 section padic_val_rat
 open padic_val
 variables {p : ℕ} (p_prime : prime p)
+include p_prime
 
 protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) : 
-      padic_val_rat (prime.gt_one p_prime) q = 
-        (padic_val (prime.gt_one p_prime) n : ℤ) - padic_val (prime.gt_one p_prime) d :=
+      padic_val_rat p q = 
+        (padic_val p n : ℤ) - padic_val p d :=
 have hn : n ≠ 0, from rat.mk_num_ne_zero_of_ne_zero hqz qdf,
 have hd : d ≠ 0, from rat.mk_denom_ne_zero_of_ne_zero hqz qdf,
 have h : ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom, from rat.num_denom_mk hn hd qdf,
@@ -205,12 +216,12 @@ begin
       apply hn, simpa using hc1 },
   unfold padic_val_rat,
   rw [hc1, hc2, ←padic_val.mul p_prime hcz hqn, ←padic_val.mul p_prime hcz hqd],
-  simp
+  simp [p_prime.gt_one], ring
 end
 
 protected lemma mul {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) : 
-        padic_val_rat (prime.gt_one p_prime) (q*r) = 
-          padic_val_rat (prime.gt_one p_prime) q + padic_val_rat (prime.gt_one p_prime) r :=
+        padic_val_rat p (q*r) = 
+          padic_val_rat p q + padic_val_rat p r :=
 have q*r = (q.num * r.num) /. (↑q.denom * ↑r.denom), by simp [rat.mul_num_denom],
 begin
   rw padic_val_rat.defn p_prime (mul_ne_zero hq hr) this,
@@ -222,8 +233,8 @@ begin
 end  
 
 theorem min_le_padic_val_rat_add {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) (hqr : q + r ≠ 0) :
-        min (padic_val_rat (prime.gt_one p_prime) q) (padic_val_rat (prime.gt_one p_prime) r) ≤ 
-          padic_val_rat (prime.gt_one p_prime) (q + r) :=
+        min (padic_val_rat p q) (padic_val_rat p r) ≤ 
+          padic_val_rat p (q + r) :=
 have hqn : q.num ≠ 0, from rat.num_ne_zero_of_ne_zero hq,
 have hqd : q.denom ≠ 0, from rat.denom_ne_zero _,
 have hrn : r.num ≠ 0, from rat.num_ne_zero_of_ne_zero hr,
@@ -242,69 +253,70 @@ have hsnz : q.num*r.denom + q.denom*r.num ≠ 0, from
   assume heq,
   have q + r = 0 /. (q.denom * r.denom), by rwa [heq] at hqreq,
   hqr (by simpa),
-have hge  : (padic_val (prime.gt_one p_prime) (q.num * r.denom + q.denom * r.num) : ℤ) ≥ 
-       min ((padic_val (prime.gt_one p_prime) (q.num*r.denom)) : ℤ) 
-           (padic_val (prime.gt_one p_prime) (q.denom*r.num)),
+have hge  : (padic_val p (q.num * r.denom + q.denom * r.num) : ℤ) ≥ 
+       min ((padic_val p (q.num*r.denom)) : ℤ) 
+           (padic_val p (q.denom*r.num)),
     from calc 
-    min ((padic_val (prime.gt_one p_prime) (q.num*r.denom)) : ℤ) 
-           (padic_val (prime.gt_one p_prime) (q.denom*r.num)) = 
-    (min (padic_val (prime.gt_one p_prime) (q.num*r.denom)) 
-           (padic_val (prime.gt_one p_prime) (q.denom*r.num)) : ℤ) :
+    min ((padic_val p (q.num*r.denom)) : ℤ) 
+           (padic_val p (q.denom*r.num)) = 
+    (min (padic_val p (q.num*r.denom)) 
+           (padic_val p (q.denom*r.num)) : ℤ) :
        by simp
-     ... ≤ (padic_val (prime.gt_one p_prime) (q.num * r.denom + q.denom * r.num) : ℤ) : 
+     ... ≤ (padic_val p (q.num * r.denom + q.denom * r.num) : ℤ) : 
        begin 
          apply min_le_iff.2, 
          simp only [int.coe_nat_le], 
          apply min_le_iff.1, 
          apply min_le_padic_val_add, 
+         exact p_prime.gt_one,
          assumption 
        end,  
 calc 
-  padic_val_rat (prime.gt_one p_prime) (q + r) 
-         = padic_val_rat (prime.gt_one p_prime) 
+  padic_val_rat p (q + r) 
+         = padic_val_rat p 
                          (((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom * ↑r.denom : ℤ)) :
             by rw hqreq
-     ... = padic_val (prime.gt_one p_prime) 
+     ... = padic_val p 
                      (q.num * r.denom + q.denom * r.num) - 
-            padic_val (prime.gt_one p_prime) (↑q.denom * ↑r.denom) :
-       begin apply padic_val_rat.defn, cc, reflexivity end 
-     ... ≥ min (padic_val (prime.gt_one p_prime) (q.num*r.denom)) 
-               (padic_val (prime.gt_one p_prime) (q.denom*r.num)) - 
-            padic_val (prime.gt_one p_prime) (↑q.denom * ↑r.denom) :
+            padic_val p (↑q.denom * ↑r.denom) :
+       begin apply padic_val_rat.defn p_prime, cc, reflexivity end 
+     ... ≥ min (padic_val p (q.num*r.denom)) 
+               (padic_val p (q.denom*r.num)) - 
+            padic_val p (↑q.denom * ↑r.denom) :
        sub_le_sub hge (le_refl _)
-     ... = min (padic_val (prime.gt_one p_prime) q.num + 
-                 padic_val (prime.gt_one p_prime) r.denom) 
-               (padic_val (prime.gt_one p_prime) q.denom + 
-                 padic_val (prime.gt_one p_prime) r.num) - 
-            (padic_val (prime.gt_one p_prime) q.denom + 
-              padic_val (prime.gt_one p_prime) r.denom) :
-       begin rw [←padic_val.mul, ←padic_val.mul, ←padic_val.mul], reflexivity, repeat {simpa} end
-     ... = min (padic_val (prime.gt_one p_prime) q.num + 
-                 padic_val (prime.gt_one p_prime) r.denom - 
-                 (padic_val (prime.gt_one p_prime) q.denom + 
-                   padic_val (prime.gt_one p_prime) r.denom)) 
-               (padic_val (prime.gt_one p_prime) q.denom + 
-                 padic_val (prime.gt_one p_prime) r.num - 
-                 (padic_val (prime.gt_one p_prime) q.denom + 
-                   padic_val (prime.gt_one p_prime) r.denom)) :
-       by apply min_add_eq_min_add_min
-     ... = min (padic_val (prime.gt_one p_prime) q.num - 
-                 padic_val (prime.gt_one p_prime) q.denom) 
-               (padic_val (prime.gt_one p_prime) r.num - 
-                 padic_val (prime.gt_one p_prime) r.denom) :
+     ... = min (padic_val p q.num + 
+                 padic_val p r.denom) 
+               (padic_val p q.denom + 
+                 padic_val p r.num) - 
+            (padic_val p q.denom + 
+              padic_val p r.denom) :
+       begin rw [←padic_val.mul, ←padic_val.mul, ←padic_val.mul], reflexivity,repeat {simpa <|> assumption} end
+     ... = min (padic_val p q.num + 
+                 padic_val p r.denom - 
+                 (padic_val p q.denom + 
+                   padic_val p r.denom)) 
+               (padic_val p q.denom + 
+                 padic_val p r.num - 
+                 (padic_val p q.denom + 
+                   padic_val p r.denom)) :
+       by apply min_sub
+     ... = min (padic_val p q.num - 
+                 padic_val p q.denom) 
+               (padic_val p r.num - 
+                 padic_val p r.denom) :
        by simp
-     ... = min (padic_val_rat (prime.gt_one p_prime) (q.num /. ↑q.denom)) 
-               (padic_val_rat (prime.gt_one p_prime) (r.num /. ↑r.denom)) : 
-       by rw [padic_val_rat.defn, padic_val_rat.defn]; simpa
-     ... = min (padic_val_rat (prime.gt_one p_prime) q) 
-               (padic_val_rat (prime.gt_one p_prime) r) : 
+     ... = min (padic_val_rat p (q.num /. ↑q.denom)) 
+               (padic_val_rat p (r.num /. ↑r.denom)) : 
+       by rw [padic_val_rat.defn p_prime, padic_val_rat.defn p_prime]; simpa
+     ... = min (padic_val_rat p q) 
+               (padic_val_rat p r) : 
        by rw [←rat.num_denom q, ←rat.num_denom r]
 end padic_val_rat 
 end padic_val_rat 
 
 def padic_norm {p : ℕ} (hp : prime p) (q : ℚ) : ℚ :=
 if q = 0 then 0 
-else fpow (↑p : ℚ) (-(padic_val_rat (prime.gt_one hp) q))
+else fpow (↑p : ℚ) (-(padic_val_rat p q))
 
 namespace padic_norm
 
@@ -315,20 +327,20 @@ variables {p : ℕ} (hp : prime p)
 @[simp] protected lemma zero : padic_norm hp 0 = 0 := by simp [padic_norm]
 
 @[simp] protected lemma nonzero {q : ℚ} (hq : q ≠ 0) : 
-        padic_norm hp q = fpow p (-(padic_val_rat (prime.gt_one hp) q)) :=
+        padic_norm hp q = fpow p (-(padic_val_rat p q)) :=
 by simp [hq, padic_norm]
 
 @[simp] protected lemma neg (q : ℚ) : padic_norm hp (-q) = padic_norm hp q :=
 if hq : q = 0 then by simp [hq] 
-else by simp [padic_norm, hq]
+else by simp [padic_norm, hq, hp.gt_one]
 
 lemma zero_of_padic_norm_eq_zero {q : ℚ} (h : padic_norm hp q = 0) : q = 0 :=
 by_contradiction $
   assume hq : q ≠ 0,
-  have padic_norm hp q = fpow p (-(padic_val_rat (prime.gt_one hp) q)), by simp [hq],
+  have padic_norm hp q = fpow p (-(padic_val_rat p q)), by simp [hq],
   fpow_ne_zero_of_ne_zero 
     (show (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp]) 
-    (-(padic_val_rat (prime.gt_one hp) q)) (by rw [←this, h])
+    (-(padic_val_rat p q)) (by rw [←this, h])
 
 protected lemma nonneg (q : ℚ) : padic_norm hp q ≥ 0 :=
 if hq : q = 0 then by simp [hq]
@@ -357,22 +369,22 @@ else if hr : r = 0 then
 else if hqr : q + r = 0 then
   begin simp [hqr], apply add_nonneg; apply padic_norm.nonneg end 
 else 
-  have hminle : min (padic_val_rat (prime.gt_one hp) q) (padic_val_rat (prime.gt_one hp) r) ≤ 
-                 (padic_val_rat (prime.gt_one hp) (q + r)),
+  have hminle : min (padic_val_rat p q) (padic_val_rat p r) ≤ 
+                 (padic_val_rat p (q + r)),
     by apply min_le_padic_val_rat_add; assumption,
   have hpge1 : (↑p : ℚ) ≥ ↑(1 : ℕ), from nat.cast_le.2 $ le_of_lt $ prime.gt_one hp,
   calc 
-    padic_norm hp (q + r) = fpow p (-(padic_val_rat (prime.gt_one hp) (q + r))) : 
+    padic_norm hp (q + r) = fpow p (-(padic_val_rat p (q + r))) : 
                        by simp [padic_norm, *]
-                      ... ≤ max (fpow p (-(padic_val_rat (prime.gt_one hp) q))) 
-                                ((fpow p (-(padic_val_rat (prime.gt_one hp) r)))) : 
+                      ... ≤ max (fpow p (-(padic_val_rat p q))) 
+                                ((fpow p (-(padic_val_rat p r)))) : 
                        pow_le_max_of_min_le hpge1 hminle
                       ... = max (padic_norm hp q) (padic_norm hp r) : by simp [padic_norm, *] 
                       ... ≤ padic_norm hp q + padic_norm hp r : 
                        by apply max_le_add_of_nonneg; apply padic_norm.nonneg
 
 private lemma nonarchimedean_aux {q r : ℚ}
-        (h : padic_val_rat (prime.gt_one hp) q ≤ padic_val_rat (prime.gt_one hp) r) : 
+        (h : padic_val_rat p q ≤ padic_val_rat p r) : 
         padic_norm hp (q + r) ≤ max (padic_norm hp q) (padic_norm hp r) :=
 have hnqp : padic_norm hp q ≥ 0, from padic_norm.nonneg _ _,
 have hnrp : padic_norm hp r ≥ 0, from padic_norm.nonneg _ _,
@@ -390,8 +402,8 @@ else
     have hpge1 : (↑p : ℚ) ≥ ↑(1 : ℕ), from (nat.cast_le.2 $ le_of_lt $ prime.gt_one hp),
     apply fpow_le_of_le hpge1,
     apply neg_le_neg,
-    have : padic_val_rat (prime.gt_one hp) q = 
-            min (padic_val_rat (prime.gt_one hp) q) (padic_val_rat (prime.gt_one hp) r),
+    have : padic_val_rat p q = 
+            min (padic_val_rat p q) (padic_val_rat p r),
       from (min_eq_left h).symm,
     rw this,
     apply min_le_padic_val_rat_add; assumption
@@ -399,10 +411,10 @@ else
 
 protected theorem nonarchimedean {q r : ℚ} : 
         padic_norm hp (q + r) ≤ max (padic_norm hp q) (padic_norm hp r) :=
-if h : padic_val_rat (prime.gt_one hp) q ≤ padic_val_rat (prime.gt_one hp) r then
+if h : padic_val_rat p q ≤ padic_val_rat p r then
   nonarchimedean_aux hp h
 else 
-  have h' : padic_val_rat (prime.gt_one hp) r ≤ padic_val_rat (prime.gt_one hp) q,
+  have h' : padic_val_rat p r ≤ padic_val_rat p q,
     from le_of_lt $ lt_of_not_ge h,
   let h'' := nonarchimedean_aux hp h' in
   by rwa [add_comm, max_comm] at h''
@@ -430,7 +442,7 @@ begin
 end 
 
 protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm hp q = fpow p (-n) :=
-⟨ (padic_val_rat (prime.gt_one hp) q), by simp [padic_norm, hq] ⟩ 
+⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩ 
 
 instance : is_absolute_value (padic_norm hp) :=
 { abv_nonneg := padic_norm.nonneg hp,

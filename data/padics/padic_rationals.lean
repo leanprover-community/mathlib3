@@ -47,7 +47,7 @@ let ⟨N2, hN2⟩ := this in
 def stationary_point {f : padic_seq hp} (hf : ¬ f ≈ 0) : ℕ :=
 classical.some $ stationary hf
 
-def stationary_point_spec {f : padic_seq hp} (hf : ¬ f ≈ 0) :
+lemma stationary_point_spec {f : padic_seq hp} (hf : ¬ f ≈ 0) :
       ∀ {m n}, m ≥ stationary_point hf → n ≥ stationary_point hf → 
                  padic_norm hp (f n) = padic_norm hp (f m) :=
 classical.some_spec $ stationary hf
@@ -159,7 +159,7 @@ by simpa [hk] using padic_norm.image hp hk'
 
 lemma norm_one : norm (1 : padic_seq hp) = 1 :=
 have h1 : ¬ (1 : padic_seq hp) ≈ 0, from one_not_equiv_zero _,
-by simp [h1, norm]
+by simp [h1, norm, hp.gt_one]
 
 private lemma norm_eq_of_equiv_aux {f g : padic_seq hp} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) (hfg : f ≈ g) 
         (h : padic_norm hp (f (stationary_point hf)) ≠ padic_norm hp (g (stationary_point hg))) 

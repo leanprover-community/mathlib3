@@ -519,6 +519,12 @@ else
 have h₂ : a ∉ l₂, from mt (mem_of_perm p).2 h₁,
 by rw [erase_of_not_mem h₁, erase_of_not_mem h₂]; exact p
 
+theorem erase_subperm (a : α) (l : list α) : l.erase a <+~ l :=
+⟨l.erase a, perm.refl _, erase_sublist _ _⟩
+
+theorem erase_subperm_erase {l₁ l₂ : list α} (a : α)  (h : l₁ <+~ l₂) : l₁.erase a <+~ l₂.erase a :=
+let ⟨l, hp, hs⟩ := h in ⟨l.erase a, erase_perm_erase _ hp, erase_sublist_erase _ hs⟩
+
 theorem perm_diff_left {l₁ l₂ : list α} (t : list α) (h : l₁ ~ l₂) : l₁.diff t ~ l₂.diff t :=
 by induction t generalizing l₁ l₂ h; simp [*, erase_perm_erase]
 

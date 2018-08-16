@@ -132,6 +132,20 @@ meta def to_implicit : expr → expr
 | (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
 | e := e
 
+meta def pis : list expr → expr → tactic expr
+| (e@(expr.local_const uniq pp info _) :: es) f := do
+  t ← infer_type e,
+  f' ← pis es f,
+  pure $ expr.pi pp info t (expr.abstract_local f' uniq)
+| _ f := pure f
+
+meta def lambdas : list expr → expr → tactic expr
+| (e@(expr.local_const uniq pp info _) :: es) f := do
+  t ← infer_type e,
+  f' ← lambdas es f,
+  pure $ expr.lam pp info t (expr.abstract_local f' uniq)
+| _ f := pure f
+
 meta def extract_def (n : name) (trusted : bool) (elab_def : tactic unit) : tactic unit :=
 do cxt ← list.map to_implicit <$> local_context,
    t ← target,
@@ -236,20 +250,6 @@ meta def set_binder : expr → list binder_info → expr
 | e [] := e
 | (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
 | e _ := e
-
-meta def pis : list expr → expr → tactic expr
-| (e@(expr.local_const uniq pp info _) :: es) f := do
-  t ← infer_type e,
-  f' ← pis es f,
-  pure $ expr.pi pp info t (expr.abstract_local f' uniq)
-| _ f := pure f
-
-meta def lambdas : list expr → expr → tactic expr
-| (e@(expr.local_const uniq pp info _) :: es) f := do
-  t ← infer_type e,
-  f' ← lambdas es f,
-  pure $ expr.lam pp info t (expr.abstract_local f' uniq)
-| _ f := pure f
 
 meta def last_explicit_arg : expr → tactic expr
 | (expr.app f e) :=

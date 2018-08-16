@@ -344,6 +344,10 @@ le_antisymm
     have b ∈ interior {b | f b ≤ g b}, from this hb,
     by exact hb₂ this)
 
+lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
+by rw ← frontier_compl;
+   convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
+
 lemma continuous_max : continuous (λb, max (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, g b = f b, from assume b hb, (frontier_le_subset_eq hf hg hb).symm,
 continuous_if this hg hf

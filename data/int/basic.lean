@@ -527,6 +527,38 @@ eq_one_of_dvd_one H ⟨b, H'.symm⟩
 theorem eq_one_of_mul_eq_one_left {a b : ℤ} (H : b ≥ 0) (H' : a * b = 1) : b = 1 :=
 eq_one_of_mul_eq_one_right H (by rw [mul_comm, H'])
 
+lemma of_nat_dvd_of_dvd_nat_abs {a : ℕ} : ∀ {z : ℤ} (haz : a ∣ z.nat_abs), ↑a ∣ z
+| (int.of_nat _) haz := int.coe_nat_dvd.2 haz
+| -[1+k] haz :=
+  begin 
+    change ↑a ∣ -(k+1 : ℤ), 
+    apply dvd_neg_of_dvd, 
+    apply int.coe_nat_dvd.2,
+    exact haz 
+  end 
+
+lemma dvd_nat_abs_of_of_nat_dvd {a : ℕ} : ∀ {z : ℤ} (haz : ↑a ∣ z), a ∣ z.nat_abs 
+| (int.of_nat _) haz := int.coe_nat_dvd.1 (int.dvd_nat_abs.2 haz)
+| -[1+k] haz := 
+  have haz' : (↑a:ℤ) ∣ (↑(k+1):ℤ), from dvd_of_dvd_neg haz,
+  int.coe_nat_dvd.1 haz' 
+
+lemma pow_div_of_le_of_pow_div_int {p m n : ℕ} {k : ℤ} (hmn : m ≤ n) (hdiv : ↑(p ^ n) ∣ k) : 
+      ↑(p ^ m) ∣ k :=
+begin
+  induction k,
+    { apply int.coe_nat_dvd.2,
+      apply pow_div_of_le_of_pow_div hmn,
+      apply int.coe_nat_dvd.1 hdiv },
+    { change -[1+k] with -(↑(k+1) : ℤ),
+      apply dvd_neg_of_dvd,
+      apply int.coe_nat_dvd.2,
+      apply pow_div_of_le_of_pow_div hmn,
+      apply int.coe_nat_dvd.1,
+      apply dvd_of_dvd_neg,
+      exact hdiv } 
+end 
+
 /- / and ordering -/
 
 protected theorem div_mul_le (a : ℤ) {b : ℤ} (H : b ≠ 0) : a / b * b ≤ a :=
@@ -582,6 +614,16 @@ int.div_eq_of_eq_mul_right H3 $
 by rw [← int.mul_div_assoc _ H2]; exact
 (int.div_eq_of_eq_mul_left H4 H5.symm).symm
 
+theorem eq_mul_div_of_mul_eq_mul_of_dvd_left {a b c d : ℤ} (hb : b ≠ 0) (hd : d ≠ 0) (hbc : b ∣ c)
+      (h : b * a = c * d) : a = c / b * d :=
+begin 
+  cases hbc with k hk,
+  subst hk,
+  rw int.mul_div_cancel_left, rw mul_assoc at h,
+  apply _root_.eq_of_mul_eq_mul_left _ h,
+  repeat {assumption}
+end 
+
 theorem of_nat_add_neg_succ_of_nat_of_lt {m n : ℕ}
   (h : m < n.succ) : of_nat m + -[1+n] = -[1+ n - m] :=
 begin
@@ -630,6 +672,9 @@ by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]
+
+lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
+λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h 
 
 /- to_nat -/
 

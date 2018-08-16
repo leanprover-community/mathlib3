@@ -46,13 +46,16 @@ max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 @[simp] protected lemma zero_div (r : nnreal) : 0 / r = 0 :=
 nnreal.eq (zero_div _)
 
+@[simp] protected lemma coe_eq_zero (r : nnreal) : ↑r = (0 : ℝ) ↔ r = 0 :=
+@nnreal.eq_iff r 0
+
 instance : comm_semiring ℝ≥0 :=
 begin
   refine { zero := 0, add := (+), one := 1, mul := (*), ..};
   { intros;
     apply nnreal.eq;
     simp [mul_comm, mul_assoc, add_comm_monoid.add, left_distrib, right_distrib,
-          add_comm_monoid.zero],  }
+          add_comm_monoid.zero] }
 end
 
 @[simp] protected lemma coe_nat_cast : ∀(n : ℕ), (↑(↑n : ℝ≥0) : ℝ) = n
@@ -102,6 +105,13 @@ instance : linear_ordered_semiring ℝ≥0 :=
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
   zero_lt_one                := @zero_lt_one ℝ _,
   .. nnreal.decidable_linear_order,
+  .. nnreal.canonically_ordered_monoid,
+  .. nnreal.comm_semiring }
+
+instance : canonically_ordered_comm_semiring ℝ≥0 :=
+{ zero_ne_one     := assume h, @zero_ne_one ℝ _ $ congr_arg subtype.val $ h,
+  mul_eq_zero_iff := assume a b, nnreal.eq_iff.symm.trans $ mul_eq_zero.trans $ by simp,
+  .. nnreal.linear_ordered_semiring,
   .. nnreal.canonically_ordered_monoid,
   .. nnreal.comm_semiring }
 

@@ -222,6 +222,12 @@ instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
+lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b :=
+rfl
+
+@[simp] theorem top_ne_coe [partial_order α] {a : α} : ⊤ ≠ (a : with_top α) .
+@[simp] theorem coe_ne_top [partial_order α] {a : α} : (a : with_top α) ≠ ⊤ .
+
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { ..@additive.add_comm_semigroup _ $
     @with_zero.comm_semigroup (multiplicative α) _ }
@@ -255,6 +261,27 @@ begin
     simp at h,
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
+
+@[simp] lemma add_top [ordered_comm_monoid α] : ∀{a : with_top α}, a + ⊤ = ⊤
+| none := rfl
+| (some a) := rfl
+
+@[simp] lemma top_add [ordered_comm_monoid α] {a : with_top α} : ⊤ + a = ⊤ := rfl
+
+instance [canonically_ordered_monoid α] : canonically_ordered_monoid (with_top α) :=
+{ le_iff_exists_add := assume a b,
+  match a, b with
+  | a, none     := show a ≤ ⊤ ↔ ∃c, ⊤ = a + c, by simp; refine ⟨⊤, _⟩; cases a; refl
+  | (some a), (some b) := show (a:with_top α) ≤ ↑b ↔ ∃c:with_top α, ↑b = ↑a + c,
+    begin
+      simp [canonically_ordered_monoid.le_iff_exists_add, -add_comm],
+      split,
+      { rintro ⟨c, rfl⟩, refine ⟨c, _⟩, simp [coe_add] },
+      { exact assume h, match b, h with _, ⟨some c, rfl⟩ := ⟨_, rfl⟩ end }
+    end
+  | none, some b := show (⊤ : with_top α) ≤ b ↔ ∃c:with_top α, ↑b = ⊤ + c, by simp
+  end,
+  .. with_top.ordered_comm_monoid }
 
 end with_top
 

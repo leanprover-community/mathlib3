@@ -4,27 +4,35 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 
 Extended non-negative reals
-
-TODO: base ennreal on nnreal!
 -/
-import data.real.basic order.bounds
+import data.real.nnreal order.bounds
 noncomputable theory
 open classical set lattice
+
 local attribute [instance] prop_decidable
 variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
-inductive ennreal : Type
-| of_nonneg_real : Πr:real, 0 ≤ r → ennreal
-| infinity : ennreal
+def ennreal := with_top nnreal
 
-local notation `∞` := ennreal.infinity
+local notation `∞` := (⊤ : ennreal)
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : ℝ}
 
+instance : canonically_ordered_comm_semiring ennreal :=
+by unfold ennreal; apply_instance
+
+instance : inhabited ennreal := ⟨0⟩
+
+instance : has_coe nnreal ennreal := ⟨ option.some ⟩
+
 section projections
+
+/-- `of_real r` is the nonnegative extended real number `r` if `r` is nonnegative,
+  otherwise 0. -/
+def of_real (r : ℝ) : ennreal := of_nonneg_real (max 0 r) (le_max_left 0 r)
 
 /-- `of_real r` is the nonnegative extended real number `r` if `r` is nonnegative,
   otherwise 0. -/
@@ -60,18 +68,15 @@ end projections
 
 section semiring
 
-instance : has_zero ennreal := ⟨of_real 0⟩
-instance : has_one ennreal := ⟨of_real 1⟩
-instance : inhabited ennreal := ⟨0⟩
 
 @[simp] lemma of_real_zero : of_real 0 = 0 := rfl
 @[simp] lemma of_real_one : of_real 1 = 1 := rfl
 
-@[simp] lemma zero_ne_infty : 0 ≠ ∞ := assume h, ennreal.no_confusion h
-@[simp] lemma infty_ne_zero : ∞ ≠ 0 := assume h, ennreal.no_confusion h
+@[simp] lemma zero_ne_infty : 0 ≠ ∞ := assume h, option.no_confusion h
+@[simp] lemma infty_ne_zero : ∞ ≠ 0 := assume h, option.no_confusion h
 
-@[simp] lemma of_real_ne_infty : of_real r ≠ ∞ := assume h, ennreal.no_confusion h
-@[simp] lemma infty_ne_of_real : ∞ ≠ of_real r := assume h, ennreal.no_confusion h
+@[simp] lemma of_real_ne_infty : r ≠ ∞ := assume h, option.no_confusion h
+@[simp] lemma infty_ne_of_real : ∞ ≠ r := assume h, option.no_confusion h
 
 @[simp] lemma of_real_eq_of_real_of (hr : 0 ≤ r) (hq : 0 ≤ q) : of_real r = of_real q ↔ r = q :=
 by simp [of_real, max, hr, hq]; exact ⟨ennreal.of_nonneg_real.inj, by simp {contextual := tt}⟩

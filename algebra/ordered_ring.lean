@@ -109,9 +109,9 @@ le_iff_le_iff_lt_iff_lt.1 (mul_le_mul_right_of_neg h)
 lemma sub_one_lt (a : α) : a - 1 < a :=
 sub_lt_iff_lt_add.2 (lt_add_one a)
 
-lemma mul_le_one {α : Type*} [linear_ordered_semiring α] {a b : α} (ha : a ≤ 1) (hb' : 0 ≤ b) 
+lemma mul_le_one {α : Type*} [linear_ordered_semiring α] {a b : α} (ha : a ≤ 1) (hb' : 0 ≤ b)
       (hb : b ≤ 1) : a * b ≤ 1 :=
-begin rw ←one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end 
+begin rw ←one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end
 
 end linear_ordered_ring
 
@@ -242,14 +242,6 @@ end
 
 end canonically_ordered_semiring
 
-namespace option
-
-lemma bind_comm {α β γ} {f : α → β → option γ} (a : option α) (b : option β) :
-  a.bind (λx, b.bind (f x)) = b.bind (λy, a.bind (λx, f x y)) :=
-by cases a; cases b; refl
-
-end option
-
 namespace with_top
 variables [canonically_ordered_comm_semiring α] [decidable_eq α]
 
@@ -263,9 +255,6 @@ instance : has_one (with_top α) := ⟨↑(1:α)⟩
 
 lemma mul_def {a b : with_top α} :
   a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
-
-lemma none_eq_top : (none : with_top α) = (⊤ : with_top α) := rfl
-lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rfl
 
 @[simp] theorem top_ne_zero [partial_order α] : ⊤ ≠ (0 : with_top α) .
 @[simp] theorem zero_ne_top [partial_order α] : (0 : with_top α) ≠ ⊤ .
@@ -286,7 +275,10 @@ by cases a; simp [mul_def, h]; refl
 @[simp] lemma top_mul {a : with_top α} (h : a ≠ 0) : ⊤ * a = ⊤ :=
 by cases a; simp [mul_def, h]; refl
 
-lemma coe_mul_coe {a b : α} : (↑(a * b) : with_top α) = a * b :=
+@[simp] lemma top_mul_top : (⊤ * ⊤ : with_top α) = ⊤ :=
+top_mul top_ne_zero
+
+lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
 decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
 decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
 by simp [*, mul_def]; refl
@@ -294,7 +286,7 @@ by simp [*, mul_def]; refl
 lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λa:α, ↑(a * b))
 | none     := show (if (⊤:with_top α) = 0 ∨ (b:with_top α) = 0 then 0 else ⊤ : with_top α) = ⊤,
     by simp [hb]
-| (some a) := show ↑a * ↑b = ↑(a * b), from coe_mul_coe.symm
+| (some a) := show ↑a * ↑b = ↑(a * b), from coe_mul.symm
 
 private lemma comm (a b : with_top α) : a * b = b * a :=
 begin
@@ -329,12 +321,12 @@ begin
   cases c,
   { by_cases ha : a = 0; by_cases hb : b = 0;
       simp [*, none_eq_top, some_eq_coe, mul_eq_zero ↑a ↑b] },
-  simp [some_eq_coe, coe_mul_coe.symm, mul_assoc]
+  simp [some_eq_coe, coe_mul.symm, mul_assoc]
 end
 
 private lemma one_mul' : ∀a : with_top α, 1 * a = a
 | none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp
-| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul_coe.symm]
+| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm]
 
 instance [canonically_ordered_comm_semiring α] [decidable_eq α] :
   canonically_ordered_comm_semiring (with_top α) :=

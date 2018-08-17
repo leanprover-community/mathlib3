@@ -177,7 +177,7 @@ theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ is_mea
 by simp [infi_subtype, infi_and, trim_eq_infi]
 
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
-le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs]) (trim_ge _)
+le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (trim_ge _)
 
 theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm
@@ -337,7 +337,7 @@ begin
     measure_Union disjoint_disjointed (is_measurable.disjointed h),
     ennreal.tsum_eq_supr_nat],
   refine supr_le (λ n, _),
-  cases n, {apply zero_le},
+  cases n, {apply zero_le _},
   suffices : sum (finset.range n.succ) (λ i, μ (disjointed s i)) = μ (s n),
   { rw this, exact le_supr _ n },
   rw [← Union_disjointed_of_mono hs, measure_Union, tsum_eq_sum],
@@ -383,13 +383,15 @@ measure.of_measurable (λ s _, m s) m.empty
 
 lemma le_to_outer_measure_caratheodory {α} [ms : measurable_space α]
   (μ : measure α) : ms ≤ μ.to_outer_measure.caratheodory :=
-λ s hs, begin
+begin
+  assume s hs,
   rw to_outer_measure_eq_outer_measure',
   refine outer_measure.caratheodory_is_measurable (λ t, le_infi $ λ ht, _),
   rw [← measure_eq_measure' (ht.inter hs),
     ← measure_eq_measure' (ht.diff hs),
     ← measure_union _ (ht.inter hs) (ht.diff hs),
     inter_union_diff],
+  exact le_refl _,
   exact λ x ⟨⟨_, h₁⟩, _, h₂⟩, h₂ h₁
 end
 
@@ -583,9 +585,9 @@ theorem is_measurable.diff_null {s z : set α}
 begin
   rw measure_eq_infi at hz,
   have : ∀ q : {q:ℚ//q>0}, ∃ t:set α,
-    z ⊆ t ∧ is_measurable t ∧ μ t < ennreal.of_real q.1,
+    z ⊆ t ∧ is_measurable t ∧ μ t < (nnreal.of_real q.1 : ennreal),
   { rintro ⟨ε, ε0⟩,
-    have : 0 < ennreal.of_real ε, {simpa using ε0},
+    have : 0 < (nnreal.of_real ε : ennreal), { simpa using ε0 },
     rw ← hz at this, simpa [infi_lt_iff] },
   rcases axiom_of_choice this with ⟨f, hf⟩,
   dsimp at f hf,

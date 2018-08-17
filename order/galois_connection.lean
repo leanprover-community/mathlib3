@@ -208,7 +208,7 @@ def lift_semilattice_sup [semilattice_sup α] (gi : galois_insertion l u) : semi
   le_sup_left  := assume a b, le_trans (gi.le_l_u a) $ gi.gc.monotone_l $ le_sup_left,
   le_sup_right := assume a b, le_trans (gi.le_l_u b) $ gi.gc.monotone_l $ le_sup_right,
   sup_le       := assume a b c hac hbc, gi.gc.l_le $ sup_le (gi.gc.monotone_u hac) (gi.gc.monotone_u hbc),
-  .. ‹partial_order β›}
+  .. ‹partial_order β› }
 
 /-- Lift the infima along a Galois insertion -/
 def lift_semilattice_inf [semilattice_inf α] (gi : galois_insertion l u) : semilattice_inf β :=
@@ -218,7 +218,7 @@ def lift_semilattice_inf [semilattice_inf α] (gi : galois_insertion l u) : semi
   inf_le_right := by simp only [gi.choice_eq]; exact assume a b, gi.gc.l_le inf_le_right,
   le_inf       := by simp only [gi.choice_eq]; exact assume a b c hac hbc,
     le_trans (gi.le_l_u a) $ gi.gc.monotone_l $ le_inf (gi.gc.monotone_u hac) (gi.gc.monotone_u hbc),
-  .. ‹partial_order β›}
+  .. ‹partial_order β› }
 
 /-- Lift the suprema and infima along a Galois insertion -/
 def lift_lattice [lattice α] (gi : galois_insertion l u) : lattice β :=

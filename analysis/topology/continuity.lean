@@ -589,16 +589,17 @@ continuous_inf_dom hf hg
 
 end sum
 
-section subtype
-variables [topological_space α] [topological_space β] [topological_space γ] {p : α → Prop}
-
-lemma embedding.tendsto_nhds_iff {f : α → β} {g : β → γ} {a : filter α} {b : β} (hg : embedding g) :
+lemma embedding.tendsto_nhds_iff [topological_space β] [topological_space γ]
+  {f : α → β} {g : β → γ} {a : filter α} {b : β} (hg : embedding g) :
   tendsto f a (nhds b) ↔ tendsto (g ∘ f) a (nhds (g b)) :=
 by rw [tendsto, tendsto, hg.right, nhds_induced_eq_vmap, ← map_le_iff_le_vmap, filter.map_map]
 
+section subtype
+variables [topological_space α] [topological_space β] [topological_space γ] {p : α → Prop}
+
 lemma embedding.continuous_iff {f : α → β} {g : β → γ} (hg : embedding g) :
   continuous f ↔ continuous (g ∘ f) :=
-by simp [continuous_iff_tendsto, @embedding.tendsto_nhds_iff α β γ _ _ _ f g _ _ hg]
+by simp [continuous_iff_tendsto, @embedding.tendsto_nhds_iff α β γ _ _ f g _ _ hg]
 
 lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λx, (x, f x)) :=
 embedding_of_embedding_compose (continuous_id.prod_mk hf) continuous_fst embedding_id

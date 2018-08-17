@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2018  Sébastien Gouëzel. All rights reserved.
+Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 Adapted from the corresponding theory for complete lattices.
@@ -22,7 +22,9 @@ Inf_le is a statement in complete lattices ensuring Inf s ≤ x, while cInf_le i
 statement in conditionally complete lattices with an additional assumption that s is
 bounded below.
 -/
-import order.lattice order.complete_lattice tactic.finish data.set.countable
+import
+  order.lattice order.complete_lattice order.bounds
+  tactic.finish data.set.countable
 
 set_option old_structure_cmd true
 
@@ -89,7 +91,7 @@ end preorder
 ⟨⊤, by intros; apply order_top.le_top⟩
 
 /--When there is a global minimum, every set is bounded below.-/
-@[simp] lemma bdd_above_bot [order_bot α] (s : set α): bdd_below s :=
+@[simp] lemma bdd_below_bot [order_bot α] (s : set α): bdd_below s :=
 ⟨⊥, by intros; apply order_bot.bot_le⟩
 
 /-When there is a max (i.e., in the class semilattice_sup), then the union of
@@ -218,6 +220,10 @@ class conditionally_complete_lattice (α : Type u) extends lattice α, has_Sup �
 
 class conditionally_complete_linear_order (α : Type u)
   extends conditionally_complete_lattice α, linear_order α
+
+class conditionally_complete_linear_order_bot (α : Type u)
+  extends conditionally_complete_lattice α, linear_order α, order_bot α :=
+(cSup_empty : Sup ∅ = ⊥)
 
 /- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/
@@ -478,4 +484,93 @@ end
 
 end conditionally_complete_linear_order
 
+section conditionally_complete_linear_order_bot
+variables [conditionally_complete_linear_order_bot α]
+
+lemma cSup_empty [conditionally_complete_linear_order_bot α] : (Sup ∅ : α) = ⊥ :=
+conditionally_complete_linear_order_bot.cSup_empty α
+
+end conditionally_complete_linear_order_bot
+
 end lattice /-end of namespace lattice-/
+
+namespace with_top
+open lattice
+local attribute [instance] classical.prop_decidable
+
+variables [conditionally_complete_linear_order_bot α]
+
+lemma has_lub (s : set (with_top α)) : ∃a, is_lub s a :=
+begin
+  by_cases hs : s = ∅, { subst hs, exact ⟨⊥, is_lub_empty⟩, },
+  rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hxs⟩,
+  by_cases bnd : ∃b:α, ↑b ∈ upper_bounds s,
+  { rcases bnd with ⟨b, hb⟩,
+    have bdd : bdd_above {a : α | ↑a ∈ s}, from ⟨b, assume y hy, coe_le_coe.1 $ hb _ hy⟩,
+    refine ⟨(Sup {a : α | ↑a ∈ s} : α), _, _⟩,
+    { assume a has,
+      rcases (le_coe_iff _ _).1 (hb _ has) with ⟨a, rfl, h⟩,
+      exact (coe_le_coe.2 $ le_cSup bdd has) },
+    { assume a hs,
+      rcases (le_coe_iff _ _).1 (hb _ hxs) with ⟨x, rfl, h⟩,
+      refine (coe_le_iff _ _).2 (assume c hc, _), subst hc,
+      exact (cSup_le (ne_empty_of_mem hxs) $ assume b (hbs : ↑b ∈ s), coe_le_coe.1 $ hs _ hbs), } },
+  exact ⟨⊤, assume a _, le_top, assume a,
+    match a with
+    | some a, ha := (bnd ⟨a, ha⟩).elim
+    | none,   ha := _root_.le_refl ⊤
+    end⟩
+end
+
+lemma has_glb (s : set (with_top α)) : ∃a, is_glb s a :=
+begin
+  by_cases hs : ∃x:α, ↑x ∈ s,
+  { rcases hs with ⟨x, hxs⟩,
+    refine ⟨(Inf {a : α | ↑a ∈ s} : α), _, _⟩,
+    exact (assume a has, (coe_le_iff _ _).2 $ assume x hx, cInf_le (bdd_below_bot _) $
+      show ↑x ∈ s, from hx ▸ has),
+    { assume a has,
+      rcases (le_coe_iff _ _).1 (has _ hxs) with ⟨x, rfl, h⟩,
+      exact (coe_le_coe.2 $ le_cInf (ne_empty_of_mem hxs) $
+        assume b hbs, coe_le_coe.1 $ has _ hbs) } },
+  exact ⟨⊤, assume a, match a with
+    | some a, ha := (hs ⟨a, ha⟩).elim
+    | none,   ha := _root_.le_refl _
+    end,
+    assume a _, le_top⟩
+end
+
+noncomputable instance : has_Sup (with_top α) := ⟨λs, classical.some $ has_lub s⟩
+noncomputable instance : has_Inf (with_top α) := ⟨λs, classical.some $ has_glb s⟩
+
+lemma is_lub_Sup (s : set (with_top α)) : is_lub s (Sup s) := classical.some_spec _
+lemma is_glb_Inf (s : set (with_top α)) : is_glb s (Inf s) := classical.some_spec _
+
+noncomputable instance : complete_linear_order (with_top α) :=
+{ Sup := Sup, le_Sup := assume s, (is_lub_Sup s).1, Sup_le := assume s, (is_lub_Sup s).2,
+  Inf := Inf, le_Inf := assume s, (is_glb_Inf s).2, Inf_le := assume s, (is_glb_Inf s).1,
+  .. with_top.linear_order, ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
+
+lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = (⨆a∈s, ↑a) :=
+begin
+  by_cases hs : s = ∅,
+  { simp [hs, cSup_empty], refl },
+  apply le_antisymm,
+  { refine ((coe_le_iff _ _).2 $ assume b hb, cSup_le hs $ assume a has, coe_le_coe.1 $ hb ▸ _),
+    exact (le_supr_of_le a $ le_supr_of_le has $ _root_.le_refl _) },
+  { exact (supr_le $ assume a, supr_le $ assume ha, coe_le_coe.2 $ le_cSup hb ha) }
+end
+
+lemma coe_Inf {s : set α} (hs : s ≠ ∅) : (↑(Inf s) : with_top α) = (⨅a∈s, ↑a) :=
+let ⟨x, hx⟩ := ne_empty_iff_exists_mem.1 hs in
+have (⨅a∈s, ↑a : with_top α) ≤ x, from infi_le_of_le x $ infi_le_of_le hx $ _root_.le_refl _,
+let ⟨r, r_eq, hr⟩ := (le_coe_iff _ _).1 this in
+le_antisymm
+  (le_infi $ assume a, le_infi $ assume ha, coe_le_coe.2 $ cInf_le (bdd_below_bot s) ha)
+  begin
+    refine (r_eq.symm ▸ coe_le_coe.2 $ le_cInf hs $ assume a has, coe_le_coe.1 $ _),
+    refine (r_eq ▸ infi_le_of_le a _),
+    exact (infi_le_of_le has $ _root_.le_refl _),
+  end
+
+end with_top

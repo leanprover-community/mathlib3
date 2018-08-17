@@ -970,6 +970,10 @@ lemma tendsto_map' {f : β → γ} {g : α → β} {x : filter α} {y : filter �
   (h : tendsto (f ∘ g) x y) : tendsto f (map g x) y :=
 by rwa [tendsto, map_map]
 
+lemma tendsto_map'_iff {f : β → γ} {g : α → β} {x : filter α} {y : filter γ} :
+  tendsto f (map g x) y ↔ tendsto (f ∘ g) x y :=
+by rw [tendsto, map_map]; refl
+
 lemma tendsto_vmap {f : α → β} {x : filter β} : tendsto f (vmap f x) x :=
 map_vmap_le
 

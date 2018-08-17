@@ -7,6 +7,7 @@ Nonnegative real numbers.
 -/
 import data.real.nnreal analysis.real analysis.topology.infinite_sum
 noncomputable theory
+open set topological_space
 
 namespace nnreal
 local notation ` ℝ≥0 ` := nnreal
@@ -58,12 +59,27 @@ section coe
 variable {α : Type*}
 open filter
 
+lemma continuous_of_real : continuous nnreal.of_real :=
+continuous_subtype_mk _ $ continuous_max continuous_id continuous_const
+
+lemma continuous_coe : continuous (coe : nnreal → ℝ) :=
+continuous_subtype_val
+
 lemma tendsto_coe {f : filter α} {m : α → nnreal} :
   ∀{x : nnreal}, tendsto (λa, (m a : ℝ)) f (nhds (x : ℝ)) ↔ tendsto m f (nhds x)
 | ⟨r, hr⟩ := by rw [nhds_subtype_eq_vmap, tendsto_vmap_iff]; refl
 
+lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)):
+  tendsto (λa, nnreal.of_real (m a)) f (nhds (nnreal.of_real x)) :=
+h.comp (continuous_iff_tendsto.1 continuous_of_real _)
+
+lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
+  (hm : tendsto m f (nhds r)) (hn : tendsto n f (nhds p)) :
+  tendsto (λa, m a - n a) f (nhds (r - p)) :=
+tendsto_of_real $ tendsto_sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
+
 lemma is_sum_coe {f : α → nnreal} {r : nnreal} : is_sum (λa, (f a : ℝ)) (r : ℝ) ↔ is_sum f r :=
-by simp [is_sum, sum_coe, tendsto_coe]
+by simp [is_sum, sum_coe.symm, tendsto_coe]
 
 lemma has_sum_coe {f : α → nnreal} : has_sum (λa, (f a : ℝ)) ↔ has_sum f :=
 begin
@@ -72,6 +88,9 @@ begin
   exact assume ⟨a, ha⟩, ⟨⟨a, is_sum_le (λa, (f a).2) is_sum_zero ha⟩, is_sum_coe.1 ha⟩,
   exact assume ⟨a, ha⟩, ⟨a.1, is_sum_coe.2 ha⟩
 end
+
+lemma tsum_coe {f : α → nnreal} (hf : has_sum f) : (∑a, (f a : ℝ)) = ↑(∑a, f a) :=
+tsum_eq_is_sum $ is_sum_coe.2 $ is_sum_tsum $ hf
 
 end coe
 

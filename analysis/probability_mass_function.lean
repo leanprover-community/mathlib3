@@ -47,17 +47,17 @@ end
 def bind (p : pmf α) (f : α → pmf β) : pmf β :=
 ⟨λb, (∑a, p a * f a b),
   begin
-    simp [ennreal.is_sum_coe_iff.symm, ennreal.coe_tsum (bind.has_sum p f _)],
+    simp [ennreal.is_sum_coe.symm, (ennreal.tsum_coe (bind.has_sum p f _)).symm],
     rw [is_sum_iff_of_has_sum ennreal.has_sum, ennreal.tsum_comm],
-    simp [ennreal.mul_tsum, (ennreal.coe_tsum (f _).has_sum_coe).symm,
-      (ennreal.coe_tsum p.has_sum_coe).symm]
+    simp [ennreal.mul_tsum, (ennreal.tsum_coe (f _).has_sum_coe),
+      ennreal.tsum_coe p.has_sum_coe]
   end⟩
 
 @[simp] lemma bind_apply (p : pmf α) (f : α → pmf β) (b : β) : p.bind f b = (∑a, p a * f a b) := rfl
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :
   (p.bind f b : ennreal) = (∑a, p a * f a b) :=
-eq.trans (ennreal.coe_tsum $ bind.has_sum p f b) $ by simp
+eq.trans (ennreal.tsum_coe $ bind.has_sum p f b).symm $ by simp
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
@@ -106,7 +106,7 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
   have s.to_finset.sum (λa, (s.count a : ℝ) / s.card) = 1,
     by simp [div_eq_inv_mul, finset.mul_sum.symm, (finset.sum_nat_cast _ _).symm, hs],
   have s.to_finset.sum (λa, (s.count a : nnreal) / s.card) = 1,
-    by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, ← nnreal.sum_coe]; simp,
+    by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.sum_coe]; simp,
   begin
     rw ← this,
     apply is_sum_sum_of_ne_finset_zero,

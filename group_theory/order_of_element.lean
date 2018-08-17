@@ -39,11 +39,11 @@ have a ^ (i - j) = 1,
   by simp [gpow_add, gpow_neg, a_eq],
 ⟨i - j, sub_ne_zero.mpr ne, this⟩
 
-lemma exists_pow_eq_one (a : α) : ∃i≠0, a ^ i = 1 :=
+lemma exists_pow_eq_one (a : α) : ∃i > 0, a ^ i = 1 :=
 let ⟨i, hi, eq⟩ := exists_gpow_eq_one a in
 begin
   cases i,
-  { exact ⟨i, by simp [int.of_nat_eq_coe, *] at *, eq⟩ },
+  { exact ⟨i, nat.pos_of_ne_zero (by simp [int.of_nat_eq_coe, *] at *), eq⟩ },
   { exact ⟨i + 1, dec_trivial, inv_eq_one.1 eq⟩ }
 end
 
@@ -53,13 +53,13 @@ def order_of (a : α) : ℕ := nat.find (exists_pow_eq_one a)
 lemma pow_order_of_eq_one (a : α) : a ^ order_of a = 1 :=
 let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₂
 
-lemma order_of_ne_zero (a : α) : order_of a ≠ 0 :=
+lemma order_of_pos (a : α) : order_of a > 0 :=
 let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₁
 
 private lemma pow_injective_aux {n m : ℕ} (a : α) (h : n ≤ m)
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 decidable.by_contradiction $ assume ne : n ≠ m,
-  have h₁ : m - n ≠ 0, by simp [nat.sub_eq_iff_eq_add h, ne.symm],
+  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
   have h₂ : a ^ (m - n) = 1, by simp [pow_sub _ h, eq],
   have le : order_of a ≤ m - n, from nat.find_min' (exists_pow_eq_one a) ⟨h₁, h₂⟩,
   have lt : m - n < order_of a,
@@ -92,7 +92,7 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
 lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
   a' ∈ gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq
-  (nat.pos_iff_ne_zero.mpr (order_of_ne_zero a))
+  (order_of_pos a)
   (assume i, gpow_eq_mod_order_of.symm)
 
 instance decidable_gpowers : decidable_pred (gpowers a) :=
@@ -109,7 +109,7 @@ begin
   { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
   { exact assume ⟨_, i, rfl⟩ _,
     have pos: (0:int) < order_of a,
-      from int.coe_nat_lt.mpr $ nat.pos_iff_ne_zero.mpr $ order_of_ne_zero a,
+      from int.coe_nat_lt.mpr $ order_of_pos a,
     have 0 ≤ i % (order_of a),
       from int.mod_nonneg _ $ ne_of_gt pos,
     ⟨int.to_nat (i % order_of a),

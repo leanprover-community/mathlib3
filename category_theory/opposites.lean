@@ -27,6 +27,7 @@ instance opposite : category.{u₁ v₁} (Cᵒᵖ) :=
 
 namespace functor
 
+section
 variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒟
 
@@ -38,18 +39,20 @@ protected definition op (F : C ↝ D) : (Cᵒᵖ) ↝ (Dᵒᵖ) :=
 
 @[simp] lemma opposite_obj (F : C ↝ D) (X : C) : (F.op) X = F X := rfl
 @[simp] lemma opposite_map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F.op).map f = F.map f := rfl
-                   
-end functor
+end
 
 variable (C)
 
-definition hom_pairing : (Cᵒᵖ × C) ↝ (Type v₁) := 
+/-- `functor.hom` is the hom-pairing, sending (X,Y) to X → Y, contravariant in X and covariant in Y. -/
+definition hom : (Cᵒᵖ × C) ↝ (Type v₁) := 
 { obj      := λ p, @category.hom C _ p.1 p.2,
   map      := λ X Y f, λ h, f.1 ≫ h ≫ f.2,
   map_id   := begin /- `obviously'` says: -/ intros, ext, intros, cases X, dsimp at *, simp, erw [category.id_comp_lemma] end,
   map_comp := begin /- `obviously'` says: -/ intros, ext, intros, cases f, cases g, cases X, cases Y, cases Z, dsimp at *, simp, erw [category.assoc] end }
 
-@[simp] lemma hom_pairing_obj (X : Cᵒᵖ × C) : (hom_pairing C) X = @category.hom C _ X.1 X.2 := rfl
-@[simp] lemma hom_pairing_map {X Y : Cᵒᵖ × C} (f : X ⟶ Y) : (hom_pairing C).map f = λ h, f.1 ≫ h ≫ f.2 := rfl
+@[simp] lemma hom_obj (X : Cᵒᵖ × C) : (functor.hom C) X = @category.hom C _ X.1 X.2 := rfl
+@[simp] lemma hom_pairing_map {X Y : Cᵒᵖ × C} (f : X ⟶ Y) : (functor.hom C).map f = λ h, f.1 ≫ h ≫ f.2 := rfl
+
+end functor
 
 end category_theory

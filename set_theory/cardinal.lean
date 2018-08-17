@@ -525,6 +525,14 @@ theorem fintype_card (α : Type u) [fintype α] : mk α = fintype.card α :=
 by rw [← lift_mk_fin.{u}, ← lift_id (mk α), lift_mk_eq.{u 0 u}];
    exact fintype.card_eq.1 (by simp)
 
+theorem card_le_of_finset {α} (s : finset α) :
+  (s.card : cardinal) ≤ cardinal.mk α :=
+begin
+  rw (_ : (s.card : cardinal) = cardinal.mk (↑s : set α)),
+  { exact ⟨function.embedding.subtype _⟩ },
+  rw [cardinal.fintype_card, fintype.card_coe]
+end
+
 @[simp] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
 by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
 

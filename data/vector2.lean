@@ -100,6 +100,9 @@ def {u} mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 | ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
   (λ m hm hn, h ⟨m, hv ▸ hm⟩))
 
+def to_array : vector α n → array n α
+| ⟨xs, h⟩ := cast (by rw h) xs.to_array
+
 end vector
 
 namespace vector
@@ -109,124 +112,69 @@ variables {n : ℕ}
 
 section traverse
 
-variables {f f' : Type u → Type u}
-variables [applicative f] [applicative f']
+variables {F G : Type u → Type u}
+variables [applicative F] [applicative G]
 
 open applicative functor
 open list (cons) nat
 
-private def traverse_aux {α β : Type u} (g : α → f β) :
-  Π (x : list α), f (vector β x.length)
-| [] := pure vector.nil
-| (x::xs) := vector.cons <$> g x <*> traverse_aux xs
+private def traverse_aux {α β : Type u} (f : α → F β) :
+  Π (x : list α), F (vector β x.length)
+| []      := pure vector.nil
+| (x::xs) := vector.cons <$> f x <*> traverse_aux xs
 
-protected def traverse {α β : Type u} (g : α → f β) :
-  vector α n → f (vector β n)
- | ⟨v,Hv⟩ := cast (by rw Hv) $ traverse_aux g v
+protected def traverse {α β : Type u} (f : α → F β) : vector α n → F (vector β n)
+| ⟨v, Hv⟩ := cast (by rw Hv) $ traverse_aux f v
 
-protected def to_array {α : Type u} {n} : vector α n → array n α
- | ⟨xs,h⟩ := cast (by rw h) xs.to_array
+variables [is_lawful_applicative F] [is_lawful_applicative G]
+variables {α β γ : Type u}
 
-variables [is_lawful_applicative f] [is_lawful_applicative f']
-variables {α β η : Type u}
+@[simp] protected lemma traverse_def
+  (f : α → F β) (x : α) : ∀ (xs : vector α n),
+  (x :: xs).traverse f = cons <$> f x <*> xs.traverse f :=
+by rintro ⟨xs, rfl⟩; refl
 
-@[simp]
-protected lemma traverse_def (g : α → f β) (x : α) (xs : vector α n) :
-  vector.traverse g (x :: xs) = cons <$> g x <*> vector.traverse g xs :=
+protected lemma id_traverse : ∀ (x : vector α n), x.traverse id.mk = x :=
 begin
-  cases xs, simp!,
-  h_generalize _ : _ == i,
-  h_generalize _ : _ == j, subst n,
-  simp at *, subst i, subst j
-end
-
-protected lemma id_traverse (x : vector α n) :
-  vector.traverse id.mk x = x :=
-begin
-  cases x with x, subst n,
-  dsimp [vector.traverse,cast],
-  induction x with x xs, refl,
-  simp! [x_ih], refl
+  rintro ⟨x, rfl⟩, dsimp [vector.traverse, cast],
+  induction x with x xs IH, {refl},
+  simp! [IH], refl
 end
 
 open function
 
-protected lemma comp_traverse (g : α → f β) (h : β → f' η) (x : vector α n) :
-  vector.traverse (comp.mk ∘ functor.map h ∘ g) x =
-  comp.mk (vector.traverse h <$> vector.traverse g x) :=
-begin
-  cases x with x,
-  dunfold vector.traverse, subst n, dsimp [cast],
-  induction x with x xs; simp! [cast,*] with functor_norm, refl,
-  congr' 2, ext, simp [function.comp,flip]
-end
+protected lemma comp_traverse (f : β → F γ) (g : α → G β) : ∀ (x : vector α n),
+  vector.traverse (comp.mk ∘ functor.map f ∘ g) x =
+  comp.mk (vector.traverse f <$> vector.traverse g x) :=
+by rintro ⟨x, rfl⟩; dsimp [vector.traverse, cast];
+   induction x with x xs; simp! [cast, *] with functor_norm;
+   [refl, simp [(∘)]]
 
-protected lemma map_traverse
-   (g : α → f' β) (f : β → η)
-   (x : vector α n) :
-  map f <$> vector.traverse g x = vector.traverse (functor.map f ∘ g) x :=
-begin
-  symmetry,
-  cases x with x,
-  subst n, unfold vector.traverse cast,
-  induction x; simp! [*,cast,map,flip,function.comp,vector.map] with functor_norm,
-  { refl },
-  { congr' 2, ext, cases x_1, refl }
-end
+protected lemma traverse_eq_map_id {α β} (f : α → β) : ∀ (x : vector α n),
+  x.traverse (id.mk ∘ f) = id.mk (map f x) :=
+by rintro ⟨x, rfl⟩; simp!;
+   induction x; simp! * with functor_norm; refl
 
-protected lemma traverse_map
-   (g : α → β) (f : β → f' η)
-   (x : vector α n) :
-  vector.traverse f (map g x) = vector.traverse (f ∘ g) x :=
-begin
-  symmetry,
-  cases x with x, subst n,
-  induction x; simp! [*,map,flip,vector.map] with norm,
-  { refl },
-  { congr' 1, simp, simp,
-    congr' 1, simp, simp,
-    { dsimp [list.length],
-      rw list.length_map },
-    simp [vector.traverse,map] at x_ih,
-    transitivity, apply heq_of_eq, apply x_ih,
-    apply cast_heq }
-end
-
-variable (eta : applicative_transformation f f')
+variable (η : applicative_transformation F G)
 
 protected lemma naturality {α β : Type*}
-  (F : α → f β) (x : vector α n) :
-  eta (vector.traverse F x) = vector.traverse (@eta _ ∘ F) x :=
-begin
-  cases x;
-  simp! [vector.traverse] with norm,
-  induction x_val with x xs generalizing n,
-  { h_generalize Hi : _ == i,
-    h_generalize Hj : _ == j,
-    simp! at Hi Hj; subst n; cases Hi; cases Hj,
-    simp [*] with functor_norm },
-  { specialize x_val_ih rfl, subst n,
-    revert x_val_ih,
-    h_generalize Hi : _ == i, h_generalize _ : _ == j,
-    h_generalize _  : _ == k, h_generalize _ : _ == h,
-    intros, simp! at *,
-    subst k, subst h, simp with functor_norm,
-    subst i, subst j, rw [x_val_ih] }
-end
+  (f : α → F β) : ∀ (x : vector α n),
+  η (x.traverse f) = x.traverse (@η _ ∘ f) :=
+by rintro ⟨x, rfl⟩; simp! [cast];
+   induction x with x xs IH; simp! * with functor_norm
 
 end traverse
 
 instance : traversable.{u} (flip vector n) :=
-{ traverse := @vector.traverse n
-, map := λ α β, @vector.map.{u u} α β n }
+{ traverse := @vector.traverse n,
+  map := λ α β, @vector.map.{u u} α β n }
 
 instance : is_lawful_traversable.{u} (flip vector n) :=
 { id_traverse := @vector.id_traverse n,
   comp_traverse := @vector.comp_traverse n,
-  map_traverse := @vector.map_traverse.{u} n,
-  traverse_map := @vector.traverse_map n,
-  naturality := @vector.naturality.{u} n,
-  id_map := by intros; cases x; simp! [functor.map],
-  comp_map := by intros; cases x; simp! [functor.map] }
+  traverse_eq_map_id := @vector.traverse_eq_map_id n,
+  naturality := @vector.naturality n,
+  id_map := by intros; cases x; simp! [(<$>)],
+  comp_map := by intros; cases x; simp! [(<$>)] }
 
 end vector

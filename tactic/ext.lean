@@ -39,15 +39,8 @@ local postfix *:9001 := many
   introduced by the lemma. If `id` is omitted, the local constant is
   named automatically, as per `intro`.
  -/
-meta def interactive.ext1 (x : parse ident_ ?) : tactic unit :=
-do ls ← attribute.get_instances `extensionality,
-   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
-   try ( interactive.intro x )
-
-meta def ext_arg :=
-prod.mk <$> (some <$> small_nat)
-        <*> (tk "with" *> ident_* <|> pure [])
-<|> prod.mk none <$> (ident_*)
+meta def interactive.ext1 (xs : parse ident_*) : tactic unit :=
+ext1 xs $> ()
 
 /--
   - `ext` applies as many extensionality lemmas as possible;
@@ -74,11 +67,11 @@ prod.mk <$> (some <$> small_nat)
 
   by applying functional extensionality and set extensionality.
 
-  A maximum depth can be provided with `ext 3 with x y z`.
+  A maximum depth can be provided with `ext x y z : 3`.
   -/
-meta def interactive.ext : parse ext_arg → tactic unit
- | (some n, []) := interactive.ext1 none >> iterate_at_most (pred n) (interactive.ext1 none)
- | (none,   []) := interactive.ext1 none >> repeat (interactive.ext1 none)
- | (n, xs) := tactic.ext xs n
+meta def interactive.ext : parse ident_* → parse (tk ":" *> small_nat)? → tactic unit
+ | [] (some n) := iterate_range 1 n (ext1 [] $> ())
+ | [] none     := repeat1 (ext1 [] $> ())
+ | xs n        := tactic.ext xs n
 
 end tactic

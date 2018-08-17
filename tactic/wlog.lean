@@ -202,7 +202,7 @@ perms ← parse_permutations perms,
   (do
     (x, y) ← match perms with
     | []       := do
-      (x :: y :: _) ← return pat.list_local_const,
+      (x :: y :: _) ← return pat.list_local_consts,
       return (x, y)
     | [[x, y]] := return (x, y)
     | _        := fail ""

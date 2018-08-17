@@ -54,6 +54,11 @@ def decidable_prime_1 (p : ℕ) : decidable (prime p) :=
 decidable_of_iff' _ prime_def_lt'
 local attribute [instance] decidable_prime_1
 
+lemma prime.ne_zero {n : ℕ} (h : prime n) : n ≠ 0 :=
+assume hn : n = 0,
+have h2 : ¬ prime 0, from dec_trivial,
+h2 (hn ▸ h)
+
 theorem prime.pos {p : ℕ} (pp : prime p) : p > 0 :=
 lt_of_succ_lt pp.gt_one
 
@@ -355,5 +360,30 @@ end,
 perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@mem_factors _)
 
 end
+
+lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m n k l : ℕ} 
+      (hpm : p ^ k ∣ m) (hpn : p ^ l ∣ n) (hpmn : p ^ (k+l+1) ∣ m*n) : 
+      p ^ (k+1) ∣ m ∨ p ^ (l+1) ∣ n :=
+have hpd : p^(k+l) * p ∣ m*n, from hpmn,
+have hpd2 : p ∣ (m*n) / p ^ (k+l), from dvd_div_of_mul_dvd hpd,
+have hpd3 : p ∣ (m*n) / (p^k * p^l), by simpa [nat.pow_add] using hpd2,
+have hpd4 : p ∣ (m / p^k) * (n / p^l), by simpa [nat.div_mul_div hpm hpn] using hpd3,
+have hpd5 : p ∣ (m / p^k) ∨ p ∣ (n / p^l), from (prime.dvd_mul p_prime).1 hpd4,
+show p^k*p ∣ m ∨ p^l*p ∣ n, from
+  hpd5.elim
+    (assume : p ∣ m / p ^ k, or.inl $ mul_dvd_of_dvd_div hpm this)
+    (assume : p ∣ n / p ^ l, or.inr $ mul_dvd_of_dvd_div hpn this)
+
+lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul_int {p : ℕ} (p_prime : prime p) {m n : ℤ} {k l : ℕ} 
+      (hpm : ↑(p ^ k) ∣ m) 
+      (hpn : ↑(p ^ l) ∣ n) (hpmn : ↑(p ^ (k+l+1)) ∣ m*n) : ↑(p ^ (k+1)) ∣ m ∨ ↑(p ^ (l+1)) ∣ n :=
+have hpm' : p ^ k ∣ m.nat_abs, from int.coe_nat_dvd.1 $ int.dvd_nat_abs.2 hpm,
+have hpn' : p ^ l ∣ n.nat_abs, from int.coe_nat_dvd.1 $ int.dvd_nat_abs.2 hpn,
+have hpmn' : (p ^ (k+l+1)) ∣ m.nat_abs*n.nat_abs, 
+  by rw ←int.nat_abs_mul; apply (int.coe_nat_dvd.1 $ int.dvd_nat_abs.2 hpmn),
+let hsd := succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul p_prime hpm' hpn' hpmn' in
+hsd.elim
+  (λ hsd1, or.inl begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd1 end)
+  (λ hsd2, or.inr begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd2 end)
 
 end nat

@@ -66,13 +66,25 @@ assume a b h, m_g (m_f h)
 
 end monotone
 
-/- order instances -/
+def order_dual (α : Type*) := α
 
-/-- Order dual of a preorder -/
-def preorder.dual (o : preorder α) : preorder α :=
-{ le       := λx y, y ≤ x,
-  le_refl  := le_refl,
-  le_trans := assume a b c h₁ h₂, le_trans h₂ h₁ }
+namespace order_dual
+instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
+
+instance (α : Type*) [preorder α] : preorder (order_dual α) :=
+{ le_refl  := le_refl,
+  le_trans := assume a b c hab hbc, le_trans hbc hab,
+  .. order_dual.has_le α }
+
+instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
+{ le_antisymm := assume a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
+
+instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
+{ le_total := assume a b:α, le_total b a, .. order_dual.partial_order α }
+
+end order_dual
+
+/- order instances on the function space -/
 
 instance pi.preorder {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] : preorder (Πi, α i) :=
 { le       := λx y, ∀i, x i ≤ y i,
@@ -82,18 +94,6 @@ instance pi.preorder {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] 
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] : partial_order (Πi, α i) :=
 { le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),
   ..pi.preorder }
-
-/-- Order dual of a partial order -/
-def partial_order.dual (wo : partial_order α) : partial_order α :=
-{ le          := λx y, y ≤ x,
-  le_refl     := le_refl,
-  le_trans    := assume a b c h₁ h₂, le_trans h₂ h₁,
-  le_antisymm := assume a b h₁ h₂, le_antisymm h₂ h₁ }
-
-theorem le_dual_eq_le {α : Type} (wo : partial_order α) (a b : α) :
-  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ wo.dual)) a b =
-  @has_le.le _ (@preorder.to_has_le _ (@partial_order.to_preorder _ wo)) b a :=
-rfl
 
 theorem comp_le_comp_left_of_monotone [preorder α] [preorder β] [preorder γ]
   {f : β → α} {g h : γ → β} (m_f : monotone f) (le_gh : g ≤ h) : has_le.le.{max w u} (f ∘ g) (f ∘ h) :=

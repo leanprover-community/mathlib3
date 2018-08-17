@@ -121,20 +121,21 @@ end
 
 section classical
 local attribute [instance] classical.prop_decidable
+open quotient_group
 
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
 lemma order_of_dvd_card_univ : order_of a ∣ fintype.card α :=
-have ft_prod : fintype (left_cosets (gpowers a) × (gpowers a)),
-  from fintype.of_equiv α (gpowers.is_subgroup a).group_equiv_left_cosets_times_subgroup,
+have ft_prod : fintype (quotient (gpowers a) × (gpowers a)),
+  from fintype.of_equiv α (gpowers.is_subgroup a).group_equiv_quotient_times_subgroup,
 have ft_s : fintype (gpowers a),
   from @fintype.fintype_prod_right _ _ _ ft_prod _,
-have ft_cosets : fintype (left_cosets (gpowers a)),
+have ft_cosets : fintype (quotient (gpowers a)),
   from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, is_submonoid.one_mem (gpowers a)⟩⟩,
-have ft : fintype (left_cosets (gpowers a) × (gpowers a)),
+have ft : fintype (quotient (gpowers a) × (gpowers a)),
   from @prod.fintype _ _ ft_cosets ft_s,
 have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
   from calc fintype.card α = @fintype.card _ ft_prod :
-      @fintype.card_congr _ _ _ ft_prod (gpowers.is_subgroup a).group_equiv_left_cosets_times_subgroup
+      @fintype.card_congr _ _ _ ft_prod (gpowers.is_subgroup a).group_equiv_quotient_times_subgroup
     ... = @fintype.card _ (@prod.fintype _ _ ft_cosets ft_s) :
       congr_arg (@fintype.card _) $ subsingleton.elim _ _
     ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
@@ -142,7 +143,7 @@ have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
 have eq₂ : order_of a = @fintype.card _ ft_s,
   from calc order_of a = _ : order_eq_card_range_gpow
     ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
-dvd.intro (@fintype.card (left_cosets (gpowers a)) ft_cosets) $
+dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
 
 end classical

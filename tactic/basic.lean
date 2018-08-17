@@ -1,10 +1,19 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Simon Hudon
 -/
+import data.dlist.basic category.basic
 
-import data.dlist.basic
+namespace name
+
+meta def deinternalize_field : name → name
+| (name.mk_string s name.anonymous) :=
+  let i := s.mk_iterator in
+  if i.curr = '_' then i.next.next_to_string else s
+| n := n
+
+end name
 
 namespace expr
 open tactic
@@ -21,7 +30,7 @@ protected meta def to_nat : expr → option ℕ
 
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
-| e                  := do n ← e.to_nat, return n
+| e                  := coe <$> e.to_nat
 
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
 nat.binary_rec
@@ -35,6 +44,35 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
   e ← expr.of_nat α (n+1),
   tactic.mk_app ``has_neg.neg [e]
 
+meta def is_meta_var : expr → bool
+| (mvar _ _ _) := tt
+| e            := ff
+
+meta def list_local_consts (e : expr) : list expr :=
+e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
+
+meta def list_meta_vars (e : expr) : list expr :=
+e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
+
+/- only traverses the direct descendents -/
+meta def {u} traverse {m : Type → Type u} [applicative m]
+  {elab elab' : bool} (f : expr elab → m (expr elab')) :
+  expr elab → m (expr elab')
+ | (var v)  := pure $ var v
+ | (sort l) := pure $ sort l
+ | (const n ls) := pure $ const n ls
+ | (mvar n n' e) := mvar n n' <$> f e
+ | (local_const n n' bi e) := local_const n n' bi <$> f e
+ | (app e₀ e₁) := app <$> f e₀ <*> f e₁
+ | (lam n bi e₀ e₁) := lam n bi <$> f e₀ <*> f e₁
+ | (pi n bi e₀ e₁) := pi n bi <$> f e₀ <*> f e₁
+ | (elet n e₀ e₁ e₂) := elet n <$> f e₀ <*> f e₁ <*> f e₂
+ | (macro mac es) := macro mac <$> list.traverse f es
+
+meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → expr → m α
+| x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
+    (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
+
 end expr
 
 namespace environment
@@ -42,12 +80,77 @@ namespace environment
 meta def in_current_file' (env : environment) (n : name) : bool :=
 env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
 
+meta def is_structure_like (env : environment) (n : name) : option (nat × name) :=
+do guardb (env.is_inductive n),
+  d ← (env.get n).to_option,
+  [intro] ← pure (env.constructors_of n) | none,
+  guard (env.inductive_num_indices n = 0),
+  some (env.inductive_num_params n, intro)
+
+meta def is_structure (env : environment) (n : name) : bool :=
+option.is_some $ do
+  (nparams, intro) ← env.is_structure_like n,
+  di ← (env.get intro).to_option,
+  expr.pi x _ _ _ ← nparams.iterate
+    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
+    (some di.type) | none,
+  env.is_projection (n ++ x.deinternalize_field)
+
 end environment
 
 namespace tactic
 
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
+
+meta def local_def_value (e : expr) : tactic expr := do
+do (v,_) ← solve_aux `(true) (do
+         (expr.elet n t v _) ← (revert e >> target)
+           | fail format!"{e} is not a local definition",
+         return v),
+   return v
+
+meta def check_defn (n : name) (e : pexpr) : tactic unit :=
+do (declaration.defn _ _ _ d _ _) ← get_decl n,
+   e' ← to_expr e,
+   guard (d =ₐ e') <|> trace d >> failed
+
+-- meta def compile_eqn (n : name) (univ : list name) (args : list expr) (val : expr) (num : ℕ) : tactic unit :=
+-- do let lhs := (expr.const n $ univ.map level.param).mk_app args,
+--    stmt ← mk_app `eq [lhs,val],
+--    let vs := stmt.list_local_const,
+--    let stmt := stmt.pis vs,
+--    (_,pr) ← solve_aux stmt (tactic.intros >> reflexivity),
+--    add_decl $ declaration.thm (n <.> "equations" <.> to_string (format!"_eqn_{num}")) univ stmt (pure pr)
+
+meta def to_implicit : expr → expr
+| (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
+| e := e
+
+meta def pis : list expr → expr → tactic expr
+| (e@(expr.local_const uniq pp info _) :: es) f := do
+  t ← infer_type e,
+  f' ← pis es f,
+  pure $ expr.pi pp info t (expr.abstract_local f' uniq)
+| _ f := pure f
+
+meta def lambdas : list expr → expr → tactic expr
+| (e@(expr.local_const uniq pp info _) :: es) f := do
+  t ← infer_type e,
+  f' ← lambdas es f,
+  pure $ expr.lam pp info t (expr.abstract_local f' uniq)
+| _ f := pure f
+
+meta def extract_def (n : name) (trusted : bool) (elab_def : tactic unit) : tactic unit :=
+do cxt ← list.map to_implicit <$> local_context,
+   t ← target,
+   (eqns,d) ← solve_aux t elab_def,
+   d ← instantiate_mvars d,
+   t' ← pis cxt t,
+   d' ← lambdas cxt d,
+   let univ := t'.collect_univ_params,
+   add_decl $ declaration.defn n univ t' d' (reducibility_hints.regular 1 tt) trusted,
+   applyc n
 
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
 
@@ -57,20 +160,30 @@ meta def retrieve {α} (tac : tactic α) : tactic α :=
  (λ a s', result.success a s)
  result.exception
 
+/-- Repeat a tactic at least once, calling it recursively on all subgoals,
+  until it fails. This tactic fails if the first invocation fails. -/
+meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t
+
+/-- `iterate_range m n t`: Repeat the given tactic at least `m` times and
+  at most `n` times or until `t` fails. Fails if `t` does not run at least m times. -/
+meta def iterate_range : ℕ → ℕ → tactic unit → tactic unit
+| 0 0     t := skip
+| 0 (n+1) t := try (t >> iterate_range 0 n t)
+| (m+1) n t := t >> iterate_range m (n-1) t
+
 meta def replace_at (tac : expr → tactic (expr × expr)) (hs : list expr) (tgt : bool) : tactic bool :=
 do to_remove ← hs.mfilter $ λ h, do {
-         h_type ← infer_type h,
-         (do (new_h_type, pr) ← tac h_type,
-             assert h.local_pp_name new_h_type,
-             mk_eq_mp pr h >>= tactic.exact >> return tt)
-         <|>
-         (return ff) },
-   goal_simplified ← if tgt then (do
-     (new_t, pr) ← target >>= tac,
-     replace_target new_t pr,
-     return tt) <|> return ff else return ff,
-   to_remove.mmap' (λ h, try (clear h)),
-   return (¬ to_remove.empty ∨ goal_simplified)
+    h_type ← infer_type h,
+    succeeds $ do
+      (new_h_type, pr) ← tac h_type,
+      assert h.local_pp_name new_h_type,
+      mk_eq_mp pr h >>= tactic.exact },
+  goal_simplified ← succeeds $ do {
+    guard tgt,
+    (new_t, pr) ← target >>= tac,
+    replace_target new_t pr },
+  to_remove.mmap' (λ h, try (clear h)),
+  return (¬ to_remove.empty ∨ goal_simplified)
 
 meta def simp_bottom_up' (post : expr → tactic (expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (expr × expr) :=
 prod.snd <$> simplify_bottom_up () (λ _, (<$>) (prod.mk ()) ∘ post) e cfg
@@ -133,6 +246,34 @@ meta def set_binder : expr → list binder_info → expr
 | (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
 | e _ := e
 
+meta def last_explicit_arg : expr → tactic expr
+| (expr.app f e) :=
+do t ← infer_type f >>= whnf,
+   if t.binding_info = binder_info.default
+     then pure e
+     else last_explicit_arg f
+| e := pure e
+
+private meta def get_expl_pi_arity_aux : expr → tactic nat
+| (expr.pi n bi d b) :=
+  do m     ← mk_fresh_name,
+     let l := expr.local_const m n bi d,
+     new_b ← whnf (expr.instantiate_var b l),
+     r     ← get_expl_pi_arity_aux new_b,
+     if bi = binder_info.default then
+       return (r + 1)
+     else
+       return r
+| e := return 0
+
+/-- Compute the arity of explicit arguments of the given (Pi-)type -/
+meta def get_expl_pi_arity (type : expr) : tactic nat :=
+whnf type >>= get_expl_pi_arity_aux
+
+/-- Compute the arity of explicit arguments of the given function -/
+meta def get_expl_arity (fn : expr) : tactic nat :=
+infer_type fn >>= get_expl_pi_arity
+
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
 
@@ -147,9 +288,7 @@ meta def set_binder : expr → list binder_info → expr
       that a proof will not boil over to goals left over from the proof of `h`,
       unlike what would be the case when using `tactic.swap`.
 -/
-meta def local_proof
-  (h : name) (p : expr)
-  (tac₀ : tactic unit) :
+meta def local_proof (h : name) (p : expr) (tac₀ : tactic unit) :
   tactic (expr × list expr) :=
 focus1 $
 do h' ← assert h p,
@@ -157,23 +296,21 @@ do h' ← assert h p,
    set_goals [g₀], tac₀,
    gs ← get_goals,
    set_goals [g₁],
-   return (h' , gs)
+   return (h', gs)
 
 meta def try_intros : list name → tactic (list name)
-| [] := do
-  tgt ← target >>= instantiate_mvars,
-  if tgt.is_pi then failed
-               else return []
+| [] := intros $> []
 | (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
 
 meta def ext1 (xs : list name) : tactic (list name) :=
 do ls ← attribute.get_instances `extensionality,
-   ls.any_of (λ l, applyc l),
+   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
    try_intros xs
 
 meta def ext : list name → option ℕ → tactic unit
-| _ (some 0) := return ()
-| xs n := focus1 (do ys ← ext1 xs, ext ys (nat.pred <$> n) <|> return ())
+| _  (some 0) := skip
+| xs n        := focus1 $ do
+  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
 
 meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
@@ -200,6 +337,10 @@ open functor function
 
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
+
+meta def get_classes (e : expr) : tactic (list name) :=
+attribute.get_instances `class >>= list.mfilter (λ n,
+  succeeds $ mk_app n [e] >>= mk_instance)
 
 open nat
 
@@ -257,12 +398,12 @@ tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
 meta def apply_assumption
   (asms : option (list expr) := none)
-  (tac : tactic unit := return ()) : tactic unit :=
+  (tac : tactic unit := skip) : tactic unit :=
 do { ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H ; tac) } <|>
+     ctx.any_of (λ H, () <$ symm_apply H; tac) } <|>
 do { exfalso,
      ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H ; tac) }
+     ctx.any_of (λ H, () <$ symm_apply H; tac) }
 <|> fail "assumption tactic failed"
 
 open nat

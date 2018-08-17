@@ -5,8 +5,7 @@ Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
-  tactic.split_ifs meta.expr logic.basic
-  tactic.ext tactic.tauto tactic.replacer
+  tactic.split_ifs logic.basic tactic.ext tactic.tauto tactic.replacer
 
 open lean
 open lean.parser

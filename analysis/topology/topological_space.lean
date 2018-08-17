@@ -277,6 +277,9 @@ lemma frontier_eq_closure_inter_closure {s : set α} :
   frontier s = closure s ∩ closure (- s) :=
 by rw [closure_compl, frontier, diff_eq]
 
+@[simp] lemma frontier_compl (s : set α) : frontier (-s) = frontier s :=
+by simp [frontier_eq_closure_inter_closure, inter_comm]
+
 /-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 
@@ -1162,7 +1165,7 @@ begin
   let B' := {b ∈ B | ∃ s ∈ S, b ⊆ s},
   rcases axiom_of_choice (λ b:B', b.2.2) with ⟨f, hf⟩,
   change B' → set α at f,
-  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable, 
+  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable,
   have : range f ⊆ S := range_subset_iff.2 (λ x, (hf x).fst),
   exact ⟨_, countable_range f, this,
     subset.antisymm (sUnion_subset_sUnion this) $

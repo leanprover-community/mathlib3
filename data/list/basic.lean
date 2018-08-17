@@ -1640,6 +1640,11 @@ by rw ← filter_map_eq_filter; exact filter_map_sublist_filter_map _ s
 theorem filter_of_map (f : β → α) (l) : filter p (map f l) = map f (filter (p ∘ f) l) :=
 by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 
+@[simp] theorem filter_filter {q} [decidable_pred q] : ∀ l,
+  filter p (filter q l) = filter (λ a, p a ∧ q a) l
+| [] := rfl
+| (a :: l) := by by_cases p a; by_cases q a; simp *
+
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
 | (a::l) := by by_cases pa : p a; simp [span, take_while, drop_while, pa, span_eq_take_drop l]
@@ -1673,6 +1678,10 @@ by simp [countp_eq_length_filter, length_pos_iff_exists_mem]
 
 theorem countp_le_of_sublist {l₁ l₂} (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ :=
 by simpa using length_le_of_sublist (filter_sublist_filter s)
+
+@[simp] theorem countp_filter {q} [decidable_pred q] (l : list α) :
+  countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
+by simp [countp_eq_length_filter]
 
 end filter
 
@@ -1733,6 +1742,11 @@ theorem le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} : n ≤ cou
     ⟨by simp [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
   by rw ← this; apply filter_sublist,
  λ h, by simpa using count_le_of_sublist a h⟩
+
+@[simp] theorem count_filter {p} [decidable_pred p]
+  {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=
+by simp [count]; congr; exact
+set.ext (λ b, and_iff_left_of_imp (λ e, e ▸ h))
 
 end count
 
@@ -2566,6 +2580,19 @@ theorem diff_sublist : ∀ l₁ l₂ : list α, l₁.diff l₂ <+ l₁
 | l₁ (a::l₂) := calc l₁.diff (a :: l₂) = (l₁.erase a).diff l₂ : diff_cons _ _ _
   ... <+ l₁.erase a : diff_sublist _ _
   ... <+ l₁ : list.erase_sublist _ _
+
+theorem diff_subset (l₁ l₂ : list α) : l₁.diff l₂ ⊆ l₁ :=
+subset_of_sublist $ diff_sublist _ _
+
+theorem mem_diff_of_mem {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁ → a ∉ l₂ → a ∈ l₁.diff l₂
+| l₁ []      h₁ h₂ := h₁
+| l₁ (b::l₂) h₁ h₂ := by rw diff_cons; exact
+  mem_diff_of_mem ((mem_erase_of_ne (ne_of_not_mem_cons h₂)).2 h₁) (not_mem_of_not_mem_cons h₂)
+
+theorem diff_sublist_of_sublist : ∀ {l₁ l₂ l₃: list α}, l₁ <+ l₂ → l₁.diff l₃ <+ l₂.diff l₃
+| l₁ l₂ [] h      := h
+| l₁ l₂ (a::l₃) h := by simp
+  [diff_cons, diff_sublist_of_sublist (erase_sublist_erase _ h)]
 
 end diff
 

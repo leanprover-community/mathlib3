@@ -41,13 +41,11 @@ attribute.get_instances ntac >>= replacer_core ntac
 /-- Define a new replaceable tactic. -/
 meta def def_replacer (ntac : name) : tactic unit :=
 let nattr := ntac <.> "attr" in do
-  add_decl $ declaration.defn nattr []
-    `(user_attribute) `(replacer_attr %%(reflect ntac))
-    (reducibility_hints.regular 1 tt) ff,
+  add_meta_definition nattr []
+    `(user_attribute) `(replacer_attr %%(reflect ntac)),
   set_basic_attribute `user_attribute nattr tt,
-  add_decl $ declaration.defn ntac []
-    `(tactic unit) `(replacer %%(reflect ntac))
-    (reducibility_hints.regular 1 tt) ff,
+  add_meta_definition ntac []
+    `(tactic unit) `(replacer %%(reflect ntac)),
   add_doc_string ntac $
     "The `" ++ to_string ntac ++ "` tactic is a \"replaceable\" " ++
     "tactic, which means that its meaning is defined by tactics that " ++

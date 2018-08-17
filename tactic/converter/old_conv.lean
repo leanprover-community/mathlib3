@@ -5,6 +5,7 @@ Authors: Leonardo de Moura
 
 Converter monad for building simplifiers.
 -/
+import category.basic
 open tactic
 
 meta structure old_conv_result (α : Type) :=
@@ -88,12 +89,6 @@ meta def whnf (md : transparency := reducible) : old_conv unit :=
 
 meta def dsimp : old_conv unit :=
 λ r e, do s ← simp_lemmas.mk_default, n ← s.dsimplify [] e, return ⟨(), n, none⟩
-
-meta def try (c : old_conv unit) : old_conv unit :=
-c <|> return ()
-
-meta def tryb (c : old_conv unit) : old_conv bool :=
-(c >> return tt) <|> return ff
 
 meta def trace {α : Type} [has_to_tactic_format α] (a : α) : old_conv unit :=
 λ r e, tactic.trace a >> return ⟨(), e, none⟩
@@ -197,8 +192,8 @@ meta def congr_core (c_f c_a : old_conv unit) : old_conv unit :=
   (expr.app f a) ← return lhs,
   f_type ← infer_type f >>= tactic.whnf,
   guard (f_type.is_arrow),
-  ⟨(), new_f, of⟩ ← try c_f r f,
-  ⟨(), new_a, oa⟩ ← try c_a r a,
+  ⟨(), new_f, of⟩ ← mtry c_f r f,
+  ⟨(), new_a, oa⟩ ← mtry c_a r a,
   rhs ← return $ new_f new_a,
   match of, oa with
   | none, none      :=

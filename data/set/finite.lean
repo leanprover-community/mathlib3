@@ -55,6 +55,10 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ (finite.fintype h) _
 
+theorem finite.exists_finset {s : set α} : finite s →
+  ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
+| ⟨h⟩ := by exactI ⟨to_finset s, λ _, mem_to_finset⟩
+
 theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 ⟨fintype_of_finset s (λ _, iff.rfl)⟩
 

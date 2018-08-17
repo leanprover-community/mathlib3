@@ -89,32 +89,32 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
   ... = a ^ (i % order_of a) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
-lemma mem_range_gpow_iff_mem_range_order_of {a a' : α} :
-  a' ∈ range ((^) a : ℤ → α) ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
+lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
+  a' ∈ gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq
   (nat.pos_iff_ne_zero.mpr (order_of_ne_zero a))
   (assume i, gpow_eq_mod_order_of.symm)
 
-instance decidable_range_gpow : decidable_pred (range ((^) a : ℤ → α)) :=
+instance decidable_gpowers : decidable_pred (gpowers a) :=
 assume a', decidable_of_iff'
   (a' ∈ (finset.range (order_of a)).image ((^) a))
-  mem_range_gpow_iff_mem_range_order_of
+  mem_gpowers_iff_mem_range_order_of
 
 section
 local attribute [instance] set_fintype
 
-lemma order_eq_card_range_gpow : order_of a = fintype.card (range ((^) a : ℤ → α)) :=
+lemma order_eq_card_gpowers : order_of a = fintype.card (gpowers a) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨gpow a n, mem_range_self n⟩ },
+  { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
   { exact assume ⟨_, i, rfl⟩ _,
-      have pos: (0:int) < order_of a,
-        from int.coe_nat_lt.mpr $ nat.pos_iff_ne_zero.mpr $ order_of_ne_zero a,
-      have 0 ≤ i % (order_of a),
-        from int.mod_nonneg _ $ ne_of_gt pos,
-      ⟨int.to_nat (i % order_of a),
-        by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
-          exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
+    have pos: (0:int) < order_of a,
+      from int.coe_nat_lt.mpr $ nat.pos_iff_ne_zero.mpr $ order_of_ne_zero a,
+    have 0 ≤ i % (order_of a),
+      from int.mod_nonneg _ $ ne_of_gt pos,
+    ⟨int.to_nat (i % order_of a),
+      by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
+        exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
   { intros, exact finset.mem_univ _ },
   { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
 end
@@ -141,7 +141,7 @@ have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
     ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
       @fintype.card_prod _ _ ft_cosets ft_s,
 have eq₂ : order_of a = @fintype.card _ ft_s,
-  from calc order_of a = _ : order_eq_card_range_gpow
+  from calc order_of a = _ : order_eq_card_gpowers
     ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
 dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]

@@ -16,7 +16,7 @@ include 𝒞 𝒟
 `prod.category C D` gives the cartesian product of two categories.
 -/
 instance prod : category.{(max u₁ u₂) (max v₁ v₂)} (C × D) :=
-{ Hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
+{ hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
   id      := λ X, ⟨ 𝟙 (X.1), 𝟙 (X.2) ⟩,
   comp    := λ _ _ _ f g, (f.1 ≫ g.1, f.2 ≫ g.2),
   id_comp := begin /- `obviously'` says: -/ intros, cases X, cases Y, cases f, dsimp at *, simp end,

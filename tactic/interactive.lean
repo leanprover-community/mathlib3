@@ -544,6 +544,32 @@ private meta def h_generalize_arg_p_aux : pexpr → parser (pexpr × name)
 private meta def h_generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr == id" $ parser.pexpr 0 >>= h_generalize_arg_p_aux
 
+
+meta def generalize' (h : parse ident?) (_ : parse $ tk ":") (p : parse generalize_arg_p) : tactic unit :=
+propagate_tags $
+focus1 $
+do let (p, x) := p,
+   e ← i_to_expr p,
+   some h ← pure h | tactic.generalize e x >> intro1 >> skip,
+   tgt ← target,
+   trace "- Z",
+   -- if generalizing fails, fall back to not replacing anything
+   tgt' ← do {
+     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
+     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
+   } <|> to_expr ``(Π x, %%e = x → %%tgt),
+   t ← assert h tgt',
+   intro x,
+   intro h,
+   (g₀ :: g₁ :: gs) ← get_goals,
+   set_goals [g₁],
+   trace "- Y",
+   refine ``(%%t %%e rfl),
+   trace "- K",
+   gs' ← get_goals,
+   set_goals (g₀ :: gs ++ gs')
+
+open tactic (instantiate_mvars)
 /--
 `h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
 `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
@@ -570,20 +596,26 @@ do let (e,n) := arg,
    let h' := if h = `_ then none else h,
    h' ← (h' : tactic name) <|> get_unused_name ("h" ++ n.to_string : string),
    e ← to_expr e,
-   tgt ← target,
+   tgt ← target >>= instantiate_mvars,
+   trace "F",
    ((e,x,eq_h)::es) ← list_cast_of e tgt | fail "no cast found",
-   interactive.generalize h' () (to_pexpr e, n),
+   trace "E",
+   interactive.generalize' h' () (to_pexpr e, n),
+   trace "D",
    asm ← get_local h',
    v ← get_local n,
+   trace "C",
    hs ← es.mmap (λ ⟨e,_⟩, mk_app `eq [e,v]),
    (eqs_h.zip [e]).mmap' (λ ⟨h,e⟩, do
         h ← if h ≠ `_ then pure h else get_unused_name `h,
         () <$ note h none eq_h ),
+   trace "B",
    hs.mmap' (λ h,
      do h' ← assert `h h,
         tactic.exact asm,
         try (rewrite_target h'),
         tactic.clear h' ),
+   trace "A",
    when h.is_some (do
      (to_expr ``(heq_of_eq_rec_left %%eq_h %%asm)
        <|> to_expr ``(heq_of_eq_mp %%eq_h %%asm))

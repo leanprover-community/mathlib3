@@ -660,3 +660,35 @@ lemma heq_of_cast_eq {α β} {x : α} {y : β}
   (h' : cast h x = y)
 : x == y :=
 by cc
+
+@[simp]
+lemma cast_heq_iff_heq {α β γ} {x : α} {y : γ}
+  (h : α = β) :
+  cast h x == y ↔ x == y :=
+by subst h; split; apply id
+
+@[simp]
+lemma heq_cast_iff_heq {α β γ} {x : α} {y : γ}
+  (h : γ = β) :
+  x == cast h y ↔ x == y :=
+by subst h; split; apply id
+
+-- section hfunext
+-- universes u v
+-- variables {α : Sort u} {β : Sort u} {γ : Sort v}
+
+-- variables (f : α → γ) (g : β → γ)
+-- variables h₀ : α = β
+-- variables h₁ : ∀ (x : α) (y : β), x == y → f x = g y
+-- include h₀ h₁
+-- @[extensionality]
+-- lemma hfunext : f == g :=
+-- begin
+--   subst β,
+--   apply heq_of_eq,
+--   apply funext, intro i,
+--   apply h₁,
+--   refl,
+-- end
+
+-- end hfunext

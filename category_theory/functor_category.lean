@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 
-import .natural_transformation
+import category_theory.natural_transformation
 
 namespace category_theory
 
@@ -17,7 +17,7 @@ Notice that if `C` and `D` are both small categories at the same universe level,
 However if `C` and `D` are both large categories at the same universe level, this is a small category at the next higher level.
 -/
 instance functor.category (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (C ↝ D) :=
-{ Hom     := λ F G, F ⟹ G,
+{ hom     := λ F G, F ⟹ G,
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, α ⊟ β,
   id_comp := begin /- `obviously'` says: -/ intros, ext, intros, dsimp, simp end,

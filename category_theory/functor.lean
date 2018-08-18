@@ -13,7 +13,7 @@ Introduces notations
   `F X` (a coercion) for a functor `F` acting on an object `X`.
 -/
 
-import .category
+import category_theory.category
 
 namespace category_theory
 

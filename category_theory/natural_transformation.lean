@@ -12,7 +12,7 @@ Introduces notations
   `σ ◫ τ` for horizontal compositions.
 -/
 
-import .functor
+import category_theory.functor
 
 namespace category_theory
 

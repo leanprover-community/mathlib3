@@ -258,6 +258,8 @@ optional arguments:
 - discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
 - asms: list of assumptions / rules to consider instead of local constants
 - depth: number of attempts at discharging generated sub-goals
+
+The optional arguments can be specified as ``solve_by_elim { discharger := `[cc] }``.
 -/
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 tactic.solve_by_elim opt

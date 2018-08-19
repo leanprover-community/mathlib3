@@ -26,9 +26,7 @@ instance subtype.ring {S : set R} [is_subring S] : ring (subtype S) := subset.ri
 namespace is_ring_hom
 
 instance {S : set R} [is_subring S] : is_ring_hom (@subtype.val R S) :=
-{ map_add := λ _ _, rfl,
-  map_mul := λ _ _, rfl,
-  map_one := rfl }
+by refine {..} ; intros ; refl
 
 end is_ring_hom
 

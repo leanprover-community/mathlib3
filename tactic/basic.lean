@@ -420,4 +420,7 @@ meta structure by_elim_opt :=
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
+meta def find_local (t : pexpr) : tactic expr :=
+do t' ← to_expr t,
+   prod.snd <$> solve_aux t' assumption
 end tactic

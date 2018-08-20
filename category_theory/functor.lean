@@ -50,6 +50,8 @@ instance : has_coe_to_fun (C ↝ D) :=
 { F   := λ F, C → D,
   coe := λ F, F.obj }
 
+lemma refold_coe {F : C ↝ D} (X : C) : F.obj X = F X := by unfold_coes
+
 def map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F X) ⟶ (F Y) := F.map' f
 
 @[simp] lemma map_id (F : C ↝ D) (X : C) : F.map (𝟙 X) = 𝟙 (F X) := 

@@ -22,10 +22,14 @@ universes u₁ v₁ u₂ v₂ u₃ v₃
 /--
 `functor C D` represents a functor between categories `C` and `D`.
 
-To apply a functor `F` to an object use `F X`, and to a morphism use `F.map f`.
+To apply a functor `F` to an object use `F X` (which uses a coercion), and to a morphism use `F.map f`.
 
 The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
+
+Implementation note: when constructing a `functor`, you need to define the
+`map'` field (which does not know about the coercion).
+When using a `functor`, use the `map` field (which makes use of the coercion).
 -/
 structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
 (obj      : C → D)
@@ -34,10 +38,6 @@ structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [cate
 (map_comp : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map' (f ≫ g) = (map' f) ≫ (map' g) . obviously)
 
 infixr ` ↝ `:70 := functor       -- type as \lea --
-
--- restate_axiom functor.map_id
--- restate_axiom functor.map_comp
--- attribute [simp,ematch] functor.map_comp_lemma
 
 namespace functor
 
@@ -54,9 +54,10 @@ def map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F X) ⟶ (F Y) := F.map' f
 @[simp,ematch] lemma map_id_lemma (F : C ↝ D) (X : C) : F.map (𝟙 X) = 𝟙 (F X) := begin unfold functor.map, erw F.map_id, refl end
 @[simp,ematch] lemma map_comp_lemma (F : C ↝ D) {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : F.map (f ≫ g) = F.map f ≫ F.map g := begin unfold functor.map, erw F.map_comp end
 
+-- We do not define a refl lemma unfolding the coercion.
+-- However we do provide lemmas for the coercion applied to an explicit structure.
 @[simp] lemma obj_explicit (o : C → D) (m : _) (mi : _) (mc : _) (X : C) : ({ functor . obj := o, map' := m, map_id := mi, map_comp := mc } : C ↝ D) X = o X := rfl
 @[simp] lemma map_explicit (o : C → D) (m : _) (mi : _) (mc : _) {X Y : C} (f : X ⟶ Y) : functor.map { functor . obj := o, map' := m, map_id := mi, map_comp := mc } f = m f := rfl
--- @[simp] lemma coe_def (F : C ↝ D) (X : C) : F X = F.obj X := rfl
 end
 
 section
@@ -66,7 +67,7 @@ include 𝒞
 /-- `functor.id C` is the identity functor on a category `C`. -/
 protected def id : C ↝ C :=
 { obj      := λ X, X,
-  map'      := λ _ _ f, f,
+  map'     := λ _ _ f, f,
   map_id   := begin /- `obviously'` says: -/ intros, refl end,
   map_comp := begin /- `obviously'` says: -/ intros, refl end }
 

@@ -33,9 +33,6 @@ structure nat_trans (F G : C ↝ D) : Type (max u₁ v₂) :=
 (app : Π X : C, (F X) ⟶ (G X))
 (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 
--- restate_axiom nat_trans.naturality
--- attribute [ematch] nat_trans.naturality_lemma
-
 infixr ` ⟹ `:50  := nat_trans             -- type as \==> or ⟹
 
 namespace nat_trans
@@ -44,13 +41,12 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 { F   := λ α, Π X : C, (F X) ⟶ (G X),
   coe := λ α, α.app }
 
--- @[simp] lemma coe_def {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.app X := rfl
-
 @[simp] lemma coe_explicit_def {F G : C ↝ D} (app : Π X : C, (F X) ⟶ (G X)) (naturality : _) (X : C) : { nat_trans . app := app, naturality := naturality } X = app X := rfl 
 
 @[ematch] lemma naturality_lemma {F G : C ↝ D} (α : F ⟹ G) {X Y : C} (f : X ⟶ Y) : (F.map f) ≫ (α Y) = (α X) ≫ (G.map f) := 
 begin 
-erw nat_trans.naturality, refl
+  /- `obviously'` says: -/ 
+  erw nat_trans.naturality, refl
 end
 
 /-- `nat_trans.id F` is the identity natural transformation on a functor `F`. -/

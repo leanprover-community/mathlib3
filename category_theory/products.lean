@@ -76,8 +76,8 @@ include 𝒜 ℬ 𝒞 𝒟
 namespace functor
 /-- The cartesian product of two functors. -/
 def prod (F : A ↝ B) (G : C ↝ D) : (A × C) ↝ (B × D) :=
-{ obj := λ X, (F X.1, G X.2),
-  map':= λ _ _ f, (F.map f.1, G.map f.2),
+{ obj  := λ X, (F X.1, G X.2),
+  map' := λ _ _ f, (F.map f.1, G.map f.2),
   map_id   := begin /- `obviously'` says: -/ intros, cases X, dsimp, rw map_id_lemma, rw map_id_lemma end,
   map_comp := begin /- `obviously'` says: -/ intros, cases Z, cases Y, cases X, cases f, cases g, dsimp at *, rw map_comp_lemma, rw map_comp_lemma end }
 

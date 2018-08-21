@@ -454,6 +454,14 @@ iff_true_intro $ λ h, hn.elim h
 @[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
 mt Exists.fst
 
+theorem exists_prop_congr {p p' : Prop} {q : p → Prop} {q' : p' → Prop}
+  (H₀ : p ↔ p')
+  (H₁ : ∀ h, q h ↔ q' (H₀.1 h)) :
+  (∃ h : p, q h) ↔ (∃ h' : p', q' h') :=
+by { split; intros h; cases h,
+     exact ⟨_,(H₁ _).1 h_h⟩,
+     exact ⟨_,(H₁ $ H₀.2 h_w).2 h_h⟩, }
+
 end quantifiers
 
 /- classical versions -/
@@ -672,6 +680,19 @@ lemma heq_cast_iff_heq {α β γ} {x : α} {y : γ}
   (h : γ = β) :
   x == cast h y ↔ x == y :=
 by subst h; split; apply id
+
+@[simp]
+lemma cast_cast {α β γ} {x : α}
+  (h₀ : α = β)
+  (h₁ : β = γ) :
+  cast h₁ (cast h₀ x) = cast (eq.trans h₀ h₁) x :=
+by subst h₀; refl
+
+lemma of_refl_of_eq {α} (r : α → α → Prop)
+  (h : reflexive r)
+  {x y} (h' : x = y) :
+  r x y :=
+by subst h'; apply h
 
 -- section hfunext
 -- universes u v

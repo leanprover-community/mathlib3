@@ -339,6 +339,16 @@ end rcases
 
 section ext
 
+@[extensionality] lemma unit.ext (x y : unit) : x = y :=
+begin
+  cases x, cases y, refl
+end
+
+example : subsingleton unit :=
+begin
+  split, intros, ext
+end
+
 example (x y : ℕ) : true :=
 begin
   have : x = y,

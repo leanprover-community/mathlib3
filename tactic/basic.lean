@@ -299,7 +299,7 @@ do h' ← assert h p,
    return (h', gs)
 
 meta def try_intros : list name → tactic (list name)
-| [] := intros $> []
+| [] := try intros $> []
 | (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
 
 meta def ext1 (xs : list name) : tactic (list name) :=

@@ -1173,6 +1173,10 @@ theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
     { simp [ne.symm, list.erase, prod_erase h, mul_left_comm a b] }
   end
 
+lemma dvd_prod [comm_semiring α] {a} {l : list α} (ha : a ∈ l) : a ∣ l.prod :=
+let ⟨s, t, h⟩ := mem_split ha in
+by rw [h, prod_append, prod_cons, mul_left_comm]; exact dvd_mul_right _ _
+
 @[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; simp [*, nat.mul_succ]
 

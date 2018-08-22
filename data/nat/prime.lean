@@ -210,18 +210,15 @@ theorem exists_prime_and_dvd {n : ℕ} (n2 : n ≥ 2) : ∃ p, prime p ∧ p ∣
 ⟨min_fac n, min_fac_prime (ne_of_gt n2), min_fac_dvd _⟩
 
 theorem exists_infinite_primes : ∀ n : ℕ, ∃ p, p ≥ n ∧ prime p :=
-suffices ∀ {n}, n ≥ 2 → ∃ p, p ≥ n ∧ prime p, from
-λ n, let ⟨p, h, pp⟩ := this (nat.le_add_left 2 n) in
-  ⟨p, le_trans (nat.le_add_right n 2) h, pp⟩,
-λ n n2,
+λ n,
   let p := min_fac (fact n + 1) in
   have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
   have pp : prime p, from min_fac_prime f1,
-  have n ≤ p, from le_of_not_ge $ λ h,
-    have p ∣ fact n, from dvd_fact (min_fac_pos _) h,
-    have p ∣ 1, from (nat.dvd_add_iff_right this).2 (min_fac_dvd _),
-    pp.not_dvd_one this,
-  ⟨p, this, pp⟩
+  have b : n ≤ p, from le_of_not_ge $ λ h,
+    have h₁ : p ∣ fact n, from dvd_fact (min_fac_pos _) h,
+    have h₂ : p ∣ 1, from (nat.dvd_add_iff_right h₁).2 (min_fac_dvd _),
+    pp.not_dvd_one h₂,
+  ⟨p, b, pp⟩
 
 theorem factors_lemma {k} : (k+2) / min_fac (k+2) < k+2 :=
 div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one

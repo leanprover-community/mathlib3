@@ -537,7 +537,7 @@ instance : has_pow onote onote := ⟨power⟩
 theorem power_def (o₁ o₂ : onote) : o₁ ^ o₂ = power._match_1 o₂ (split o₁) := rfl
 
 theorem split_eq_scale_split' : ∀ {o o' m} [NF o], split' o = (o', m) → split o = (scale 1 o', m)
-| 0            o' m h p := by injection p; substs o' m
+| 0            o' m h p := by injection p; substs o' m; refl
 | (oadd e n a) o' m h p := begin
   by_cases e0 : e = 0; simp [e0, split, split'] at p ⊢,
   { rcases p with ⟨rfl, rfl⟩, exact ⟨rfl, rfl⟩ },

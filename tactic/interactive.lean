@@ -150,7 +150,7 @@ do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
 
 /-- Multiple subst. `substs x y z` is the same as `subst x, subst y, subst z`. -/
 meta def substs (l : parse ident*) : tactic unit :=
-l.mmap' (λ h, get_local h >>= tactic.subst)
+l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=

@@ -33,9 +33,9 @@ include 𝒟
 
 protected definition op (F : C ↝ D) : (Cᵒᵖ) ↝ (Dᵒᵖ) := 
 { obj      := λ X, F X,
-  map      := λ X Y f, F.map f,
-  map_id   := begin /- `obviously'` says: -/ intros, erw [map_id], refl, end,
-  map_comp := begin /- `obviously'` says: -/ intros, erw [map_comp], refl end }
+  map'     := λ X Y f, F.map f,
+  map_id   := begin /- `obviously'` says: -/ intros, erw [map_id_lemma], refl, end,
+  map_comp := begin /- `obviously'` says: -/ intros, erw [map_comp_lemma], refl end }
 
 @[simp] lemma opposite_obj (F : C ↝ D) (X : C) : (F.op) X = F X := rfl
 @[simp] lemma opposite_map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F.op).map f = F.map f := rfl
@@ -46,7 +46,7 @@ variable (C)
 /-- `functor.hom` is the hom-pairing, sending (X,Y) to X → Y, contravariant in X and covariant in Y. -/
 definition hom : (Cᵒᵖ × C) ↝ (Type v₁) := 
 { obj      := λ p, @category.hom C _ p.1 p.2,
-  map      := λ X Y f, λ h, f.1 ≫ h ≫ f.2,
+  map'     := λ X Y f, λ h, f.1 ≫ h ≫ f.2,
   map_id   := begin /- `obviously'` says: -/ intros, ext, intros, cases X, dsimp at *, simp, erw [category.id_comp_lemma] end,
   map_comp := begin /- `obviously'` says: -/ intros, ext, intros, cases f, cases g, cases X, cases Y, cases Z, dsimp at *, simp, erw [category.assoc] end }
 

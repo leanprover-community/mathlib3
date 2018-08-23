@@ -33,6 +33,9 @@ begin
   [ symmetry, skip ]; assumption,
 end
 
+instance (α) [decidable_eq α] : decidable_eq (buffer α) :=
+by tactic.mk_dec_eq_instance
+
 @[simp]
 lemma to_list_append_list  :
   to_list (append_list buf xs) = to_list buf ++ xs :=

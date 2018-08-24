@@ -47,7 +47,7 @@ show decode_list (succ v) = _, begin
 end
 
 theorem length_le_encode : ∀ (l : list α), length l ≤ encode l
-| [] := zero_le _
+| [] := _root_.zero_le _
 | (a :: l) := succ_le_succ $
   le_trans (length_le_encode l) (le_mkpair_right _ _)
 

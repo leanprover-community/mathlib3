@@ -492,6 +492,45 @@ conditionally_complete_linear_order_bot.cSup_empty α
 
 end conditionally_complete_linear_order_bot
 
+section
+
+local attribute [instance] classical.prop_decidable
+
+noncomputable instance : has_Inf ℕ :=
+⟨λs, if h : ∃n, n ∈ s then @nat.find (λn, n ∈ s) _ h else 0⟩
+
+noncomputable instance : has_Sup ℕ :=
+⟨λs, if h : ∃n, ∀a∈s, a ≤ n then @nat.find (λn, ∀a∈s, a ≤ n) _ h else 0⟩
+
+lemma Inf_nat_def {s : set ℕ} (h : ∃n, n ∈ s) : Inf s = @nat.find (λn, n ∈ s) _ h :=
+dif_pos _
+
+lemma Sup_nat_def {s : set ℕ} (h : ∃n, ∀a∈s, a ≤ n) :
+  Sup s = @nat.find (λn, ∀a∈s, a ≤ n) _ h :=
+dif_pos _
+
+/-- This instanec is necessary, otherwise the lattice operations would be derive via
+conditionally_complete_linear_order_bot and marked as noncomputable. -/
+instance : lattice ℕ := infer_instance
+
+noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
+{ Sup := Sup, Inf := Inf,
+  le_cSup    := assume s a hb ha, by rw [Sup_nat_def hb]; revert a ha; exact @nat.find_spec _ _ hb,
+  cSup_le    := assume s a hs ha, by rw [Sup_nat_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
+  le_cInf    := assume s a hs hb,
+    by rw [Inf_nat_def (ne_empty_iff_exists_mem.1 hs)]; exact hb _ (@nat.find_spec (λn, n ∈ s) _ _),
+  cInf_le    := assume s a hb ha, by rw [Inf_nat_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
+  cSup_empty :=
+  begin
+    simp [Sup_nat_def],
+    apply bot_unique (nat.find_min' _ _),
+    trivial
+  end,
+  .. (infer_instance : order_bot ℕ), .. (infer_instance : lattice ℕ),
+  .. (infer_instance : linear_order ℕ) }
+
+end
+
 end lattice /-end of namespace lattice-/
 
 namespace with_top

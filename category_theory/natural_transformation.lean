@@ -43,6 +43,8 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 
 @[simp] lemma coe_explicit_def {F G : C ↝ D} (app : Π X : C, (F X) ⟶ (G X)) (naturality : _) (X : C) : { nat_trans . app := app, naturality := naturality } X = app X := rfl 
 
+lemma refold_coe {F G : C ↝ D} (α : F ⟹ G) (X : C) : α.app X = α X := by unfold_coes
+
 @[ematch] lemma naturality_lemma {F G : C ↝ D} (α : F ⟹ G) {X Y : C} (f : X ⟶ Y) : (F.map f) ≫ (α Y) = (α X) ≫ (G.map f) := 
 begin 
   /- `obviously'` says: -/ 

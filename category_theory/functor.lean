@@ -58,6 +58,8 @@ def map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F X) ⟶ (F Y) := F.map' f
 -- However we do provide lemmas for the coercion applied to an explicit structure.
 @[simp] lemma obj_explicit (o : C → D) (m : _) (mi : _) (mc : _) (X : C) : ({ functor . obj := o, map' := m, map_id := mi, map_comp := mc } : C ↝ D) X = o X := rfl
 @[simp] lemma map_explicit (o : C → D) (m : _) (mi : _) (mc : _) {X Y : C} (f : X ⟶ Y) : functor.map { functor . obj := o, map' := m, map_id := mi, map_comp := mc } f = m f := rfl
+
+lemma refold_coe {F : C ↝ D} (X : C) : F.obj X = F X := by unfold_coes
 end
 
 section

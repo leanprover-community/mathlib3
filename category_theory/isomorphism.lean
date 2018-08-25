@@ -120,11 +120,11 @@ instance (X : C) : is_iso (𝟙 X) :=
   hom_inv_id := begin /- `obviously'` says: -/ simp end,
   inv_hom_id := begin /- `obviously'` says: -/ simp end }
 
-instance of_iso         (f : X ≅ Y) : is_iso f.hom :=
+instance of_iso         (f : X ≅ Y) : is_iso (f : X ⟶ Y) :=
 { inv   := f.inv,
   hom_inv_id := begin /- `obviously'` says: -/ simp end,
   inv_hom_id := begin /- `obviously'` says: -/ simp end }
-instance of_iso_inverse (f : X ≅ Y) : is_iso f.inv  := 
+instance of_iso_inverse (f : X ≅ Y) : is_iso (f.symm : Y ⟶ X)  := 
 { inv   := f.hom,
   hom_inv_id := begin /- `obviously'` says: -/ simp end,
   inv_hom_id := begin /- `obviously'` says: -/ simp end }

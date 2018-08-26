@@ -45,11 +45,11 @@ end
 /-- The filter represented by a `cfilter` is the collection of supersets of
   elements of the filter base. -/
 def to_filter (F : cfilter (set α) σ) : filter α :=
-{ sets            := {a | ∃ b, F b ⊆ a},
-  exists_mem_sets := ⟨_, F.pt, subset.refl _⟩,
-  upwards_sets    := λ x y ⟨b, h⟩ s, ⟨b, subset.trans h s⟩,
-  directed_sets   := λ x ⟨a, h₁⟩ y ⟨b, h₂⟩, ⟨_, ⟨F.inf a b, subset.refl _⟩,
-    subset.trans (F.inf_le_left _ _) h₁, subset.trans (F.inf_le_right _ _) h₂⟩ }
+{ sets             := {a | ∃ b, F b ⊆ a},
+  univ_sets        := ⟨F.pt, subset_univ _⟩,
+  sets_of_superset := λ x y ⟨b, h⟩ s, ⟨b, subset.trans h s⟩,
+  inter_sets       := λ x y ⟨a, h₁⟩ ⟨b, h₂⟩, ⟨F.inf a b,
+    subset_inter (subset.trans (F.inf_le_left _ _) h₁) (subset.trans (F.inf_le_right _ _) h₂)⟩ }
 
 @[simp] theorem mem_to_filter_sets (F : cfilter (set α) σ) {a : set α} :
   a ∈ F.to_filter.sets ↔ ∃ b, F b ⊆ a := iff.rfl

@@ -16,7 +16,7 @@ local attribute [reducible] real
 namespace real
 open cau_seq cau_seq.completion
 
-def of_rat (x : ℚ) : ℝ := of_rat x 
+def of_rat (x : ℚ) : ℝ := of_rat x
 
 instance : comm_ring ℝ := cau_seq.completion.comm_ring
 
@@ -136,7 +136,7 @@ noncomputable instance : lattice.semilattice_sup ℝ := by apply_instance
 noncomputable instance : lattice.has_inf ℝ         := by apply_instance
 noncomputable instance : lattice.has_sup ℝ         := by apply_instance
 
-open rat 
+open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
 eq_cast of_rat rfl of_rat_add of_rat_mul
@@ -325,6 +325,20 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
     show a ≤ Inf s,
       from lb_le_Inf s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
  ..real.linear_order, ..real.lattice}
+
+theorem Sup_empty : lattice.Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
+
+theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s = 0 :=
+dif_neg $ assume h, hs h.2
+
+theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
+show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
+
+theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : lattice.Inf s = 0 :=
+have bdd_above {x | -x ∈ s} → bdd_below s, from
+  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb _ $ by simp [hxs]⟩,
+have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
+neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
 
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin

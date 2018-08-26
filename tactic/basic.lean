@@ -299,7 +299,7 @@ do h' ← assert h p,
    return (h', gs)
 
 meta def try_intros : list name → tactic (list name)
-| [] := intros $> []
+| [] := try intros $> []
 | (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
 
 meta def ext1 (xs : list name) : tactic (list name) :=
@@ -413,7 +413,7 @@ meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr)
 | (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
-  (discharger : tactic unit := done)
+  (discharger : tactic unit := failed)
   (restr_hyp_set : option (list expr) := none)
   (max_rep : ℕ := 3)
 

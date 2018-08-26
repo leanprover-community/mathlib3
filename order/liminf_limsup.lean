@@ -54,7 +54,7 @@ bounded. -/
 lemma is_bounded_iff : f.is_bounded r ↔ (∃s∈f.sets, ∃b, s ⊆ {x | r x b}) :=
 iff.intro
   (assume ⟨b, hb⟩, ⟨{a | r a b}, hb, b, subset.refl _⟩)
-  (assume ⟨s, hs, b, hb⟩, ⟨b, f.upwards_sets hs hb⟩)
+  (assume ⟨s, hs, b, hb⟩, ⟨b, mem_sets_of_superset hs hb⟩)
 
 /-- A bounded function `u` is in particular eventually bounded. -/
 lemma is_bounded_under_of {f : filter β} {u : β → α} :
@@ -74,15 +74,15 @@ lemma is_bounded_sup [is_trans α r] (hr : ∀b₁ b₂, ∃b, r b₁ b ∧ r b�
   is_bounded r f → is_bounded r g → is_bounded r (f ⊔ g)
 | ⟨b₁, h₁⟩ ⟨b₂, h₂⟩ := let ⟨b, rb₁b, rb₂b⟩ := hr b₁ b₂ in
   ⟨b, mem_sup_sets.2 ⟨
-    f.upwards_sets h₁ $ assume x rxb₁, show r x b, from trans rxb₁ rb₁b,
-    g.upwards_sets h₂ $ assume x rxb₂, show r x b, from trans rxb₂ rb₂b⟩⟩
+    mem_sets_of_superset h₁ $ assume x rxb₁, show r x b, from trans rxb₁ rb₁b,
+    mem_sets_of_superset h₂ $ assume x rxb₂, show r x b, from trans rxb₂ rb₂b⟩⟩
 
 lemma is_bounded_of_le (h : f ≤ g) : is_bounded r g → is_bounded r f
 | ⟨b, hb⟩ := ⟨b, h hb⟩
 
 lemma is_bounded_under_of_is_bounded {q : β → β → Prop} {u : α → β}
   (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
-| ⟨b, h⟩ := ⟨u b, show {x : α | q (u x) (u b)} ∈ f.sets, from f.upwards_sets h $ assume a, hf _ _⟩
+| ⟨b, h⟩ := ⟨u b, show {x : α | q (u x) (u b)} ∈ f.sets, from mem_sets_of_superset h $ assume a, hf _ _⟩
 
 /-- `is_cobounded (≺) f` states that filter `f` is not tend to infinite w.r.t. `≺`. This is also
 called frequently bounded. Will be usually instantiated with `≤` or `≥`.

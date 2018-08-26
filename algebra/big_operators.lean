@@ -226,6 +226,13 @@ end comm_group
   card (s.sigma t) = s.sum (λ a, card (t a)) :=
 multiset.card_sigma _ _
 
+lemma card_bind [decidable_eq β] {s : finset α} {t : α → finset β}
+  (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → t x ∩ t y = ∅) :
+  (s.bind t).card = s.sum (λ u, card (t u)) :=
+calc (s.bind t).card = (s.bind t).sum (λ _, 1) : by simp
+... = s.sum (λ a, (t a).sum (λ _, 1)) : finset.sum_bind h
+... = s.sum (λ u, card (t u)) : by simp
+
 end finset
 
 namespace finset
@@ -367,7 +374,7 @@ finset.induction_on s (by simp [abs_zero]) $
 end discrete_linear_ordered_field
 
 @[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
-  (s : finset α) (t : Π a, finset (δ a)) : 
+  (s : finset α) (t : Π a, finset (δ a)) :
   (s.pi t).card = s.prod (λ a, card (t a)) :=
 multiset.card_pi _ _
 

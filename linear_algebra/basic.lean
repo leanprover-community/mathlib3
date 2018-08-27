@@ -68,7 +68,7 @@ variables [ring α] [module α β]
 
 instance : has_scalar α (lc α β) := finsupp.to_has_scalar
 
-instance : module α (lc α β) := finsupp.to_module
+instance : module α (lc α β) := finsupp.to_module β α α
 
 lemma is_linear_map_sum [module α γ] [module α δ] {f : β → α → γ} {g : δ → lc α β}
   (hf : ∀b, is_linear_map (f b)) (hg : is_linear_map g) : is_linear_map (λd, (g d).sum f) :=

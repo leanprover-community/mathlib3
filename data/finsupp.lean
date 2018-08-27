@@ -693,15 +693,16 @@ local attribute [instance] to_has_scalar
 @[simp] lemma smul_apply [ring β] {a : α} {b : β} {v : α →₀ β} :
   (b • v) a = b • (v a) := rfl
 
-def to_module' [ring γ] [module γ β] : module γ (α →₀ β) :=
+section
+variables (α β γ)
+def to_module [ring γ] [module γ β] : module γ (α →₀ β) :=
 { smul     := (•),
   smul_add := assume a x y, finsupp.ext $ by simp [smul_add],
   add_smul := assume a x y, finsupp.ext $ by simp [add_smul],
   one_smul := assume x, finsupp.ext $ by simp,
   mul_smul := assume r s x, finsupp.ext $ by simp [smul_smul],
   .. finsupp.add_comm_group }.
-
-def to_module [ring β] : module β (α →₀ β) := @to_module' α β β _ _ _ _
+end
 
 lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} {h : α → β → γ}
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=

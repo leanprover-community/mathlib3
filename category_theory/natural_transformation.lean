@@ -41,9 +41,11 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 { F   := λ α, Π X : C, (F X) ⟶ (G X),
   coe := λ α, α.app }
 
-@[simp] lemma coe_explicit_def {F G : C ↝ D} (app : Π X : C, (F X) ⟶ (G X)) (naturality : _) (X : C) : { nat_trans . app := app, naturality := naturality } X = app X := rfl 
+@[simp] lemma coe_explicit_def {F G : C ↝ D} (app : Π X : C, (F X) ⟶ (G X)) (naturality : _) (X : C) : 
+  { nat_trans . app := app, naturality := naturality } X = app X := rfl 
 
-@[ematch] lemma naturality_lemma {F G : C ↝ D} (α : F ⟹ G) {X Y : C} (f : X ⟶ Y) : (F.map f) ≫ (α Y) = (α X) ≫ (G.map f) := 
+@[ematch] lemma naturality_lemma {F G : C ↝ D} (α : F ⟹ G) {X Y : C} (f : X ⟶ Y) : 
+  (F.map f) ≫ (α Y) = (α X) ≫ (G.map f) := 
 begin 
   /- `obviously'` says: -/ 
   erw nat_trans.naturality, refl
@@ -79,7 +81,8 @@ def vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H :=
 notation α `⊟` β:80 := vcomp α β
 
 @[simp] lemma vcomp_app (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β) X = (α X) ≫ (β X) := rfl
-@[ematch] lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := begin ext, intros, dsimp, rw [assoc] end
+@[ematch] lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := 
+begin ext, intros, dsimp, rw [assoc] end
 end
 
 variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
@@ -100,11 +103,13 @@ def hcomp {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) : (F ⋙
 
 notation α `◫` β:80 := hcomp α β
 
-@[simp] lemma hcomp_app {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) : (α ◫ β) X = (β (F X)) ≫ (I.map (α X)) := rfl
+@[simp] lemma hcomp_app {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) : 
+  (α ◫ β) X = (β (F X)) ≫ (I.map (α X)) := rfl
 
 -- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we need to use associativity of functor composition
 
-@[ematch] lemma exchange {F G H : C ↝ D} {I J K : D ↝ E} (α : F ⟹ G) (β : G ⟹ H) (γ : I ⟹ J) (δ : J ⟹ K) : ((α ⊟ β) ◫ (γ ⊟ δ)) = ((α ◫ γ) ⊟ (β ◫ δ)) :=
+@[ematch] lemma exchange {F G H : C ↝ D} {I J K : D ↝ E} (α : F ⟹ G) (β : G ⟹ H) (γ : I ⟹ J) (δ : J ⟹ K) : 
+  ((α ⊟ β) ◫ (γ ⊟ δ)) = ((α ◫ γ) ⊟ (β ◫ δ)) :=
 begin
   -- `obviously'` says:
   ext,

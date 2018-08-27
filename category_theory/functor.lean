@@ -9,7 +9,8 @@ Defines a functor between categories.
 by the underlying function on objects, the name is capitalised.)
 
 Introduces notations
-  `C ↝ D` for the type of all functors from `C` to `D`. (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
+  `C ↝ D` for the type of all functors from `C` to `D`. 
+    (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
   `F X` (a coercion) for a functor `F` acting on an object `X`.
 -/
 
@@ -51,13 +52,18 @@ instance : has_coe_to_fun (C ↝ D) :=
 
 def map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F X) ⟶ (F Y) := F.map' f
 
-@[simp,ematch] lemma map_id_lemma (F : C ↝ D) (X : C) : F.map (𝟙 X) = 𝟙 (F X) := begin unfold functor.map, erw F.map_id, refl end
-@[simp,ematch] lemma map_comp_lemma (F : C ↝ D) {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : F.map (f ≫ g) = F.map f ≫ F.map g := begin unfold functor.map, erw F.map_comp end
+@[simp,ematch] lemma map_id_lemma (F : C ↝ D) (X : C) : F.map (𝟙 X) = 𝟙 (F X) := 
+begin unfold functor.map, erw F.map_id, refl end
+@[simp,ematch] lemma map_comp_lemma (F : C ↝ D) {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : 
+  F.map (f ≫ g) = F.map f ≫ F.map g := 
+begin unfold functor.map, erw F.map_comp end
 
 -- We do not define a refl lemma unfolding the coercion.
 -- However we do provide lemmas for the coercion applied to an explicit structure.
-@[simp] lemma obj_explicit (o : C → D) (m : _) (mi : _) (mc : _) (X : C) : ({ functor . obj := o, map' := m, map_id := mi, map_comp := mc } : C ↝ D) X = o X := rfl
-@[simp] lemma map_explicit (o : C → D) (m : _) (mi : _) (mc : _) {X Y : C} (f : X ⟶ Y) : functor.map { functor . obj := o, map' := m, map_id := mi, map_comp := mc } f = m f := rfl
+@[simp] lemma obj_explicit (o : C → D) (m : _) (mi : _) (mc : _) (X : C) : 
+  ({ functor . obj := o, map' := m, map_id := mi, map_comp := mc } : C ↝ D) X = o X := rfl
+@[simp] lemma map_explicit (o : C → D) (m : _) (mi : _) (mc : _) {X Y : C} (f : X ⟶ Y) : 
+  functor.map { functor . obj := o, map' := m, map_id := mi, map_comp := mc } f = m f := rfl
 end
 
 section
@@ -78,7 +84,9 @@ variable {C}
 end
 
 section
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ : category.{u₃ v₃} E]
+variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] 
+          {D : Type u₂} [𝒟 : category.{u₂ v₂} D] 
+          {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include 𝒞 𝒟 ℰ
 
 /--
@@ -93,7 +101,8 @@ def comp (F : C ↝ D) (G : D ↝ E) : C ↝ E :=
 infixr ` ⋙ `:80 := comp
 
 @[simp] lemma comp_obj (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G) X = G (F X) := rfl
-@[simp] lemma comp_map (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : (F ⋙ G).map f = G.map (F.map f) := rfl
+@[simp] lemma comp_map (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : 
+  (F ⋙ G).map f = G.map (F.map f) := rfl
 end
 
 end functor

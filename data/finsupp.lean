@@ -686,9 +686,10 @@ local attribute [instance] to_has_scalar
 
 def to_has_scalar' [ℛ : ring β] : has_scalar β (α →₀ β) := 
 begin
-  haveI ℳ : module β β := by apply_instance,
-  exact @to_has_scalar α β β _ _ ℛ ℳ
+  let ℳ : module β β := by apply_instance,
+  exact @to_has_scalar α β β _ _ ℛ ℳ,
 end
+local attribute [instance] to_has_scalar
 
 @[simp] lemma smul_apply [ring γ] [module γ β] {a : α} {b : γ} {v : α →₀ β} :
   (b • v) a = b • (v a) := rfl

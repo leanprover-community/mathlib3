@@ -681,19 +681,24 @@ lemma prod_single {ι : Type x} [decidable_eq ι] [add_comm_monoid α] [comm_sem
   s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
 finset.induction_on s (by simp [one_def]) (by simp [single_mul_single] {contextual := tt})
 
-def to_has_scalar [semiring β] : has_scalar β (α →₀ β) := ⟨λa v, v.map_range ((*) a) (mul_zero a)⟩
+def to_has_scalar [ring γ] [module γ β] : has_scalar γ (α →₀ β) := ⟨λa v, v.map_range ((•) a) (smul_zero)⟩
 local attribute [instance] to_has_scalar
 
-@[simp] lemma smul_apply [semiring β] {a : α} {b : β} {v : α →₀ β} :
-  (b • v) a = b * v a := rfl
+def to_has_scalar' [ℛ : ring β] : has_scalar β (α →₀ β) := 
+begin
+  haveI ℳ : module β β := by apply_instance,
+  exact @to_has_scalar α β β _ _ ℛ ℳ
+end
 
-/- should this be stronger? [module γ β] → module γ (α →₀ β) -/
-def to_module [ring β] : module β (α →₀ β) :=
+@[simp] lemma smul_apply [ring γ] [module γ β] {a : α} {b : γ} {v : α →₀ β} :
+  (b • v) a = b • (v a) := rfl
+
+def to_module [ring γ] [module γ β] : module γ (α →₀ β) :=
 { smul     := (•),
-  smul_add := assume a x y, finsupp.ext $ by simp [mul_add],
-  add_smul := assume a x y, finsupp.ext $ by simp [add_mul],
+  smul_add := assume a x y, finsupp.ext $ by simp [smul_add],
+  add_smul := assume a x y, finsupp.ext $ by simp [add_smul],
   one_smul := assume x, finsupp.ext $ by simp,
-  mul_smul := assume r s x, finsupp.ext $ by simp [mul_assoc],
+  mul_smul := assume r s x, finsupp.ext $ by simp [smul_smul],
   .. finsupp.add_comm_group }
 
 lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} {h : α → β → γ}

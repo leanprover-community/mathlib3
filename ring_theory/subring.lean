@@ -36,3 +36,6 @@ instance subset.comm_ring {S : set cR} [is_subring S] : comm_ring S :=
 by subtype_instance
 
 instance subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) := subset.comm_ring
+
+instance subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] : integral_domain S :=
+by subtype_instance

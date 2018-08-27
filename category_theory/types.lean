@@ -32,7 +32,7 @@ begin /- `obviously'` says: -/ simp end
 begin /- `obviously'` says: -/ simp end
 
 @[ematch] lemma naturality (f : X ⟶ Y) (x : F X) : σ Y ((F.map f) x) = (G.map f) (σ X x) := 
-congr_fun (σ.naturality_lemma f) x
+congr_fun (σ.naturality f) x
 
 @[simp] lemma vcomp (x : F X) : (σ ⊟ τ) X x = τ X (σ X x) := rfl
 
@@ -43,9 +43,9 @@ variables {D : Type u'} [𝒟 : category.{u' v'} D] (I J : D ↝ C) (ρ : I ⟹ 
 end functor_to_types
 
 definition ulift : (Type u) ↝ (Type (max u v)) := 
-{ obj      := λ X, ulift.{v} X,
-  map'     := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down),
-  map_id   := begin /- `obviously'` says: -/ intros, ext, refl end,
-  map_comp := begin /- `obviously'` says: -/ intros, refl end }
+{ obj       := λ X, ulift.{v} X,
+  map'      := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down),
+  map_id'   := begin /- `obviously'` says: -/ intros, ext, refl end,
+  map_comp' := begin /- `obviously'` says: -/ intros, refl end }
 
 end category_theory

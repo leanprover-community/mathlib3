@@ -42,31 +42,31 @@ namespace prod
 
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
 def inl (C : Type u₁) [category.{u₁ v₁} C] {D : Type u₁} [category.{u₁ v₁} D] (Z : D) : C ↝ (C × D) :=
-{ obj      := λ X, (X, Z),
-  map'     := λ X Y f, (f, 𝟙 Z),
-  map_id   := begin /- `obviously'` says: -/ intros, refl end,
-  map_comp := begin /- `obviously'` says: -/ intros, dsimp, simp end }
+{ obj       := λ X, (X, Z),
+  map'      := λ X Y f, (f, 𝟙 Z),
+  map_id'   := begin /- `obviously'` says: -/ intros, refl end,
+  map_comp' := begin /- `obviously'` says: -/ intros, dsimp, simp end }
 
 /-- `inr D Z` is the functor `X ↦ (Z, X)`. -/
 def inr {C : Type u₁} [category.{u₁ v₁} C] (D : Type u₁) [category.{u₁ v₁} D] (Z : C) : D ↝ (C × D) :=
-{ obj      := λ X, (Z, X),
-  map'     := λ X Y f, (𝟙 Z, f),
-  map_id   := begin /- `obviously'` says: -/ intros, refl end,
-  map_comp := begin /- `obviously'` says: -/ intros, dsimp, simp end }
+{ obj       := λ X, (Z, X),
+  map'      := λ X Y f, (𝟙 Z, f),
+  map_id'   := begin /- `obviously'` says: -/ intros, refl end,
+  map_comp' := begin /- `obviously'` says: -/ intros, dsimp, simp end }
 
 /-- `fst` is the functor `(X, Y) ↦ X`. -/
 def fst (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ↝ C :=
-{ obj      := λ X, X.1,
-  map'     := λ X Y f, f.1,
-  map_id   := begin /- `obviously'` says: -/ intros, refl end,
-  map_comp := begin /- `obviously'` says: -/ intros, refl end }
+{ obj       := λ X, X.1,
+  map'      := λ X Y f, f.1,
+  map_id'   := begin /- `obviously'` says: -/ intros, refl end,
+  map_comp' := begin /- `obviously'` says: -/ intros, refl end }
 
 /-- `snd` is the functor `(X, Y) ↦ Y`. -/
 def snd (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ↝ D :=
-{ obj      := λ X, X.2,
-  map'     := λ X Y f, f.2,
-  map_id   := begin /- `obviously'` says: -/ intros, refl end,
-  map_comp := begin /- `obviously'` says: -/ intros, refl end }
+{ obj       := λ X, X.2,
+  map'      := λ X Y f, f.2,
+  map_id'   := begin /- `obviously'` says: -/ intros, refl end,
+  map_comp' := begin /- `obviously'` says: -/ intros, refl end }
 
 end prod
 
@@ -76,10 +76,10 @@ include 𝒜 ℬ 𝒞 𝒟
 namespace functor
 /-- The cartesian product of two functors. -/
 def prod (F : A ↝ B) (G : C ↝ D) : (A × C) ↝ (B × D) :=
-{ obj  := λ X, (F X.1, G X.2),
-  map' := λ _ _ f, (F.map f.1, G.map f.2),
-  map_id   := begin /- `obviously'` says: -/ intros, cases X, dsimp, rw map_id_lemma, rw map_id_lemma end,
-  map_comp := begin /- `obviously'` says: -/ intros, cases Z, cases Y, cases X, cases f, cases g, dsimp at *, rw map_comp_lemma, rw map_comp_lemma end }
+{ obj       := λ X, (F X.1, G X.2),
+  map'      := λ _ _ f, (F.map f.1, G.map f.2),
+  map_id'   := begin /- `obviously'` says: -/ intros, cases X, dsimp, rw map_id, rw map_id end,
+  map_comp' := begin /- `obviously'` says: -/ intros, cases Z, cases Y, cases X, cases f, cases g, dsimp at *, rw map_comp, rw map_comp end }
 
 /- Because of limitations in Lean 3's handling of notations, we do not setup a notation `F × G`. 
    You can use `F.prod G` as a "poor man's infix", or just write `functor.prod F G`. -/
@@ -92,12 +92,12 @@ namespace nat_trans
 
 /-- The cartesian product of two natural transformations. -/
 def prod {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) : F.prod H ⟹ G.prod I :=
-{ app        := λ X, (α X.1, β X.2),
-  naturality := begin /- `obviously'` says: -/ intros, cases f, cases Y, cases X, dsimp at *, simp, split, rw naturality_lemma, rw naturality_lemma end }
+{ app         := λ X, (α X.1, β X.2),
+  naturality' := begin /- `obviously'` says: -/ intros, cases f, cases Y, cases X, dsimp at *, simp, split, rw naturality, rw naturality end }
 
 /- Again, it is inadvisable in Lean 3 to setup a notation `α × β`; use instead `α.prod β` or `nat_trans.prod α β`. -/
 
-@[simp, ematch] lemma prod_app  {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (nat_trans.prod α β)     (a, c) = (α a, β c) := rfl
+@[simp, ematch] lemma prod_app  {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (nat_trans.prod α β) (a, c) = (α a, β c) := rfl
 end nat_trans
 
 end category_theory

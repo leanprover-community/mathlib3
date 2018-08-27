@@ -12,7 +12,8 @@ open set topological_space
 namespace nnreal
 local notation ` ℝ≥0 ` := nnreal
 
-instance : topological_space ℝ≥0 := subtype.topological_space
+instance : metric_space ℝ≥0 := by unfold nnreal; apply_instance
+instance : topological_space ℝ≥0 := infer_instance
 
 instance : topological_semiring ℝ≥0 :=
 { continuous_mul :=

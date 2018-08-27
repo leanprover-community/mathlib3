@@ -223,6 +223,23 @@ iff.intro
     ⟨q, rat.cast_nonneg.1 this, by simp [coe_of_real _ this, nnreal.coe_lt, haq, hqb]⟩)
   (assume ⟨q, _, haq, hqb⟩, lt_trans haq hqb)
 
+lemma bot_eq_zero : (⊥ : nnreal) = 0 := rfl
+
+lemma mul_sup (a b c : ℝ≥0) : a * (b ⊔ c) = (a * b) ⊔ (a * c) :=
+begin
+  cases le_total b c with h h,
+  { simp [sup_eq_max, max_eq_right h, max_eq_right (mul_le_mul_of_nonneg_left h (zero_le a))] },
+  { simp [sup_eq_max, max_eq_left h, max_eq_left (mul_le_mul_of_nonneg_left h (zero_le a))] },
+end
+
+lemma mul_finset_sup {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
+  r * s.sup f = s.sup (λa, r * f a) :=
+begin
+  refine s.induction_on _ _,
+  { simp [bot_eq_zero] },
+  { assume a s has ih, simp [has, ih, mul_sup], }
+end
+
 section of_real
 
 @[simp] lemma zero_le_coe {q : nnreal} : 0 ≤ (q : ℝ) := q.2

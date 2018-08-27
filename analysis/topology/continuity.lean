@@ -346,6 +346,10 @@ le_antisymm
         is_open_inter is_open_t is_open_s'',
         ⟨a_in_t, a_in_s'⟩⟩))
 
+lemma embedding.map_nhds_eq [topological_space α] [topological_space β] {f : α → β} (hf : embedding f) (a : α)
+  (h : f '' univ ∈ (nhds (f a)).sets) : (nhds a).map f = nhds (f a) :=
+by rw [hf.2]; exact map_nhds_induced_eq h
+
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
   (hf : ∀x y, f x = f y → x = y) :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
@@ -391,6 +395,18 @@ is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
 lemma nhds_prod_eq {a : α} {b : β} : nhds (a, b) = filter.prod (nhds a) (nhds b) :=
 by rw [filter.prod, prod.topological_space, nhds_sup, nhds_induced_eq_vmap, nhds_induced_eq_vmap]
+
+lemma prod_mem_nhds_sets {s : set α} {t : set β} {a : α} {b : β}
+  (ha : s ∈ (nhds a).sets) (hb : t ∈ (nhds b).sets) : set.prod s t ∈ (nhds (a, b)).sets :=
+by rw [nhds_prod_eq]; exact prod_mem_prod ha hb
+
+lemma nhds_swap (a : α) (b : β) : nhds (a, b) = (nhds (b, a)).map prod.swap :=
+by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
+
+lemma tendsto_prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → α} {mb : γ → β}
+  (ha : tendsto ma f (nhds a)) (hb : tendsto mb f (nhds b)) :
+  tendsto (λc, (ma c, mb c)) f (nhds (a, b)) :=
+by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
 
 lemma prod_generate_from_generate_from_eq {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :

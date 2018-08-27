@@ -739,6 +739,11 @@ le_antisymm
     end,
     this s hs as)
 
+lemma tendsto_nhds_generate_from {β : Type*} {m : α → β} {f : filter α} {g : set (set β)} {b : β}
+  (h : ∀s∈g, b ∈ s → m ⁻¹' s ∈ f.sets) : tendsto m f (@nhds β (generate_from g) b) :=
+by rw [nhds_generate_from]; exact
+  (tendsto_infi.2 $ assume s, tendsto_infi.2 $ assume ⟨hbs, hsg⟩, tendsto_principal.2 $ h s hsg hbs)
+
 end topological_space
 
 section lattice

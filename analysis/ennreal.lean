@@ -13,29 +13,6 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 
 local notation `∞` := ennreal.infinity
 
-namespace topological_space
-
-lemma tendsto_nhds_generate_from {m : α → β} {f : filter α} {g : set (set β)} {b : β}
-  (h : ∀s∈g, b ∈ s → m ⁻¹' s ∈ f.sets) : tendsto m f (@nhds β (generate_from g) b) :=
-by rw [nhds_generate_from]; exact
-  (tendsto_infi.2 $ assume s, tendsto_infi.2 $ assume ⟨hbs, hsg⟩, tendsto_principal.2 $ h s hsg hbs)
-
-lemma prod_mem_nhds_sets [topological_space α] [topological_space β]
-  {s : set α} {t : set β} {a : α} {b : β} (ha : s ∈ (nhds a).sets) (hb : t ∈ (nhds b).sets) :
-  set.prod s t ∈ (nhds (a, b)).sets :=
-by rw [nhds_prod_eq]; exact prod_mem_prod ha hb
-
-lemma nhds_swap [topological_space α] [topological_space β] (a : α) (b : β) :
-  nhds (a, b) = (nhds (b, a)).map prod.swap :=
-by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
-
-lemma tendsto_prod_mk_nhds [topological_space α] [topological_space β] {a : α} {b : β} {f : filter γ}
-  {ma : γ → α} {mb : γ → β} (ha : tendsto ma f (nhds a)) (hb : tendsto mb f (nhds b)) :
-  tendsto (λc, (ma c, mb c)) f (nhds (a, b)) :=
-by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
-
-end topological_space
-
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
 
@@ -106,7 +83,7 @@ by rw [embedding_coe.2, map_nhds_induced_eq coe_image_univ_mem_nhds]
 lemma nhds_coe_coe {r p : nnreal} : nhds ((r : ennreal), (p : ennreal)) =
   (nhds (r, p)).map (λp:nnreal×nnreal, (p.1, p.2)) :=
 begin
-  rw [(embedding_prod_mk embedding_coe embedding_coe).2, map_nhds_induced_eq],
+  rw [(embedding_prod_mk embedding_coe embedding_coe).map_nhds_eq],
   rw [← univ_prod_univ, ← prod_image_image_eq],
   exact prod_mem_nhds_sets coe_image_univ_mem_nhds coe_image_univ_mem_nhds
 end

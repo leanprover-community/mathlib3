@@ -46,7 +46,7 @@ instance add_group       [∀ i, add_group       $ f i] : add_group       (Π i 
 instance add_comm_group  [∀ i, add_comm_group  $ f i] : add_comm_group  (Π i : I, f i) := by pi_instance
 instance ring            [∀ i, ring            $ f i] : ring            (Π i : I, f i) := by pi_instance
 instance comm_ring       [∀ i, comm_ring       $ f i] : comm_ring       (Π i : I, f i) := by pi_instance
-instance module {α} [ring α] [∀ i, module α    $ f i] : module α        (Π i : I, f i) := by pi_instance
+instance module {α} {_:ring α} [∀ i, module α  $ f i] : module α        (Π i : I, f i) := by pi_instance
 
 instance vector_space (α) [field α] [∀ i, vector_space α $ f i] : vector_space α (Π i : I, f i) :=
 { ..pi.module }

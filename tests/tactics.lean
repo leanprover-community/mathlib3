@@ -23,6 +23,18 @@ example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
 begin
   apply_assumption,
 end
+
+open tactic
+
+example : true :=
+begin
+  (do gs ← get_goals,
+     set_goals [],
+     success_if_fail `[solve_by_elim],
+     set_goals gs),
+  trivial
+end
+
 end solve_by_elim
 
 section tauto₀

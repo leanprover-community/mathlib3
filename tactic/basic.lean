@@ -418,6 +418,8 @@ meta structure by_elim_opt :=
   (max_rep : ℕ := 3)
 
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
+do
+  tactic.fail_if_no_goals,
+  solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
 end tactic

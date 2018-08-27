@@ -413,11 +413,13 @@ meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr)
 | (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
-  (discharger : tactic unit := failed)
+  (discharger : tactic unit := done)
   (restr_hyp_set : option (list expr) := none)
   (max_rep : ℕ := 3)
 
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
+do
+  tactic.fail_if_no_goals,
+  solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
 
 end tactic

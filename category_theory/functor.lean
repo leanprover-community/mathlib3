@@ -60,9 +60,9 @@ begin unfold functor.map, erw F.map_comp end
 
 -- We do not define a refl lemma unfolding the coercion.
 -- However we do provide lemmas for the coercion applied to an explicit structure.
-@[simp] lemma obj_explicit (o : C → D) (m : _) (mi : _) (mc : _) (X : C) : 
+@[simp] lemma mk_obj (o : C → D) (m mi mc) (X : C) : 
   ({ functor . obj := o, map' := m, map_id := mi, map_comp := mc } : C ↝ D) X = o X := rfl
-@[simp] lemma map_explicit (o : C → D) (m : _) (mi : _) (mc : _) {X Y : C} (f : X ⟶ Y) : 
+@[simp] lemma mk_map (o : C → D) (m mi mc) {X Y : C} (f : X ⟶ Y) : 
   functor.map { functor . obj := o, map' := m, map_id := mi, map_comp := mc } f = m f := rfl
 end
 

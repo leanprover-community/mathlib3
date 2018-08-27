@@ -476,7 +476,7 @@ section comm_ring
 variables [comm_ring α] {p q : polynomial α}
 instance : comm_ring (polynomial α) := finsupp.to_comm_ring
 instance : has_scalar α (polynomial α) := finsupp.to_has_scalar
-instance : module α (polynomial α) := finsupp.to_module ℕ α α
+instance : module α (polynomial α) := finsupp.to_module α
 instance {x : α} : is_ring_hom (eval x) := ⟨λ x y, eval_add, λ x y, eval_mul, eval_C⟩
 
 instance C.is_ring_hom : is_ring_hom (@C α _ _) :=
@@ -977,7 +977,7 @@ end integral_domain
 section field
 variables [field α] {p q : polynomial α}
 instance : vector_space α (polynomial α) :=
-{ ..finsupp.to_module ℕ α α }
+{ ..finsupp.to_module α }
 
 lemma monic_mul_leading_coeff_inv (h : p ≠ 0) :
   monic (p * C (leading_coeff p)⁻¹) :=

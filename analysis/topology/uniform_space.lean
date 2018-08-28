@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 
 Theory of uniform spaces.
 
@@ -1024,6 +1024,30 @@ set.ext $ assume ⟨a, b⟩, quotient.induction_on₂ a b $ assume a b,
   assume heq : ⟦a⟧ = ⟦b⟧, assume h hs,
   heq ▸ refl_mem_uniformity hs⟩
 
+variables [uniform_space β] [uniform_space γ]
+
+lemma uniform_continuous_quotient {f : quotient (separation_setoid α) → β}
+  (hf : uniform_continuous (λx, f ⟦x⟧)) : uniform_continuous f :=
+hf
+
+lemma uniform_continuous_quotient_lift
+  {f : α → β} {h : ∀a b, (a, b) ∈ separation_rel α → f a = f b}
+  (hf : uniform_continuous f) : uniform_continuous (λa, quotient.lift f h a) :=
+uniform_continuous_quotient hf
+
+lemma uniformity_quotient :
+  @uniformity (quotient (separation_setoid α)) _ = uniformity.map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) :=
+rfl
+
+lemma separated_of_uniform_continuous {f : α → β} (H : uniform_continuous f) {x y : α} 
+(h : x ≈ y) : f x ≈ f y :=
+assume _ h', h _ (H h')
+
+lemma eq_of_separated_of_uniform_continuous [separated β] {f : α → β} (H : uniform_continuous f) {x y : α} 
+(h : x ≈ y) : f x = f y :=
+separated_def.1 (by apply_instance) _ _ $ separated_of_uniform_continuous H h
+
+
 end separation_space
 
 section uniform_extension
@@ -1558,11 +1582,30 @@ tendsto_prod_uniformity_fst
 lemma uniform_continuous_snd [uniform_space α] [uniform_space β] : uniform_continuous (λp:α×β, p.2) :=
 tendsto_prod_uniformity_snd
 
-lemma uniform_continuous.prod_mk [uniform_space α] [uniform_space β] [uniform_space γ]
+variables [uniform_space α] [uniform_space β] [uniform_space γ]
+lemma uniform_continuous.prod_mk 
   {f₁ : α → β} {f₂ : α → γ} (h₁ : uniform_continuous f₁) (h₂ : uniform_continuous f₂) :
   uniform_continuous (λa, (f₁ a, f₂ a)) :=
 by rw [uniform_continuous, uniformity_prod]; exact
 tendsto_inf.2 ⟨tendsto_vmap_iff.2 h₁, tendsto_vmap_iff.2 h₂⟩
+
+lemma uniform_continuous.prod.partial1 {f : α × β → γ} (h : uniform_continuous f) :
+∀ b, uniform_continuous (λ a, f (a,b)) := λ b, uniform_continuous.comp 
+      (uniform_continuous.prod_mk uniform_continuous_id uniform_continuous_const) h
+
+lemma uniform_continuous.prod.partial2 {f : α × β → γ} (h : uniform_continuous f) :
+∀ a, uniform_continuous (λ b, f (a,b)) := λ a, uniform_continuous.comp 
+      (uniform_continuous.prod_mk uniform_continuous_const uniform_continuous_id) h
+
+instance complete_space.prod [complete_space α] [complete_space β] : complete_space (α × β) :=
+{ complete := λ f hf,
+    let ⟨x1, hx1⟩ := complete_space.complete $ cauchy_map uniform_continuous_fst hf in
+    let ⟨x2, hx2⟩ := complete_space.complete $ cauchy_map uniform_continuous_snd hf in
+    ⟨(x1, x2), by rw [nhds_prod_eq, filter.prod_def];
+      from filter.le_lift (λ s hs, filter.le_lift' $ λ t ht,
+        have H1 : prod.fst ⁻¹' s ∈ f.sets := hx1 hs,
+        have H2 : prod.snd ⁻¹' t ∈ f.sets := hx2 ht,
+        filter.inter_mem_sets H1 H2)⟩ }
 
 lemma uniform_embedding.prod {α' : Type*} {β' : Type*}
   [uniform_space α] [uniform_space β] [uniform_space α'] [uniform_space β']
@@ -1579,6 +1622,42 @@ lemma to_topological_space_prod [u : uniform_space α] [v : uniform_space β] :
 lemma to_topological_space_subtype [u : uniform_space α] {p : α → Prop} :
   @uniform_space.to_topological_space (subtype p) subtype.uniform_space =
     @subtype.topological_space α p u.to_topological_space := rfl
+
+section separation_space
+local attribute [instance] separation_setoid
+
+lemma uniform_continuous_quotient_lift₂ [uniform_space γ]
+  {f : α → β → γ} {h : ∀a c b d, (a, b) ∈ separation_rel α → (c, d) ∈ separation_rel β → f a c = f b d}
+  (hf : uniform_continuous (λp:α×β, f p.1 p.2)) :
+  uniform_continuous (λp:_×_, quotient.lift₂ f h p.1 p.2) :=
+begin
+  rw [uniform_continuous, uniformity_prod_eq_prod, uniformity_quotient, uniformity_quotient,
+    filter.prod_map_map_eq, filter.tendsto_map'_iff, filter.tendsto_map'_iff],
+  rwa [uniform_continuous, uniformity_prod_eq_prod, filter.tendsto_map'_iff] at hf
+end
+
+lemma separation_prod {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) ≈ (a₂, b₂) ↔ a₁ ≈ a₂ ∧ b₁ ≈ b₂ :=
+begin
+  split ; intro h,
+  { exact ⟨separated_of_uniform_continuous uniform_continuous_fst h,
+           separated_of_uniform_continuous uniform_continuous_snd h⟩ },
+  { rcases h with ⟨eqv_α, eqv_β⟩,  
+    intros r r_in,
+    rw uniformity_prod at r_in,
+    rcases r_in with ⟨t_α, ⟨r_α, r_α_in, h_α⟩, t_β, ⟨r_β, r_β_in, h_β⟩, H⟩,
+
+    let p_α := λ (p : (α × β) × α × β), ((p.fst).fst, (p.snd).fst),
+    let p_β := λ (p : (α × β) × α × β), ((p.fst).snd, (p.snd).snd),    
+    have key_α : p_α ((a₁, b₁), (a₂, b₂)) ∈ r_α, by simp[p_α, eqv_α r_α r_α_in],
+    have key_β : p_β ((a₁, b₁), (a₂, b₂)) ∈ r_β, by simp[p_β, eqv_β r_β r_β_in],
+    exact H ⟨h_α key_α, h_β key_β⟩ },
+end
+
+instance separated.prod [separated α] [separated β] : separated (α × β) := 
+separated_def.2 $ assume x y H, prod.ext 
+  (eq_of_separated_of_uniform_continuous uniform_continuous_fst H)
+  (eq_of_separated_of_uniform_continuous uniform_continuous_snd H)
+end separation_space
 
 end constructions
 

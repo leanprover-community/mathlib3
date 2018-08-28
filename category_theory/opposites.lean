@@ -18,12 +18,12 @@ variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
 include 𝒞
 
 instance opposite : category.{u₁ v₁} (Cᵒᵖ) := 
-{ hom     := λ X Y : C, Y ⟶ X,
-  comp    := λ _ _ _ f g, g ≫ f,
-  id      := λ X, 𝟙 X,
-  id_comp := begin /- `obviously'` says: -/ intros, simp end,
-  comp_id := begin /- `obviously'` says: -/ intros, simp end,
-  assoc   := begin /- `obviously'` says: -/ intros, simp end }
+{ hom      := λ X Y : C, Y ⟶ X,
+  comp     := λ _ _ _ f g, g ≫ f,
+  id       := λ X, 𝟙 X,
+  id_comp' := begin /- `obviously'` says: -/ intros, simp end,
+  comp_id' := begin /- `obviously'` says: -/ intros, simp end,
+  assoc'   := begin /- `obviously'` says: -/ intros, simp end }
 
 namespace functor
 
@@ -47,7 +47,7 @@ variable (C)
 definition hom : (Cᵒᵖ × C) ↝ (Type v₁) := 
 { obj       := λ p, @category.hom C _ p.1 p.2,
   map'      := λ X Y f, λ h, f.1 ≫ h ≫ f.2,
-  map_id'   := begin /- `obviously'` says: -/ intros, ext, intros, cases X, dsimp at *, simp, erw [category.id_comp_lemma] end,
+  map_id'   := begin /- `obviously'` says: -/ intros, ext, intros, cases X, dsimp at *, simp, erw [category.id_comp] end,
   map_comp' := begin /- `obviously'` says: -/ intros, ext, intros, cases f, cases g, cases X, cases Y, cases Z, dsimp at *, simp, erw [category.assoc] end }
 
 @[simp] lemma hom_obj (X : Cᵒᵖ × C) : (functor.hom C) X = @category.hom C _ X.1 X.2 := rfl

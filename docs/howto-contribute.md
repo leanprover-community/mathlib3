@@ -19,8 +19,8 @@ to make the process of contributing as smooth as possible.
 
 ## The community fork and the nursery
 
-Established contributors als use https://github.com/leanprover-community/mathlib
-for collaborative contributions.
+The community also uses https://github.com/leanprover-community/mathlib
+for collaborative contributions: ask on Zulip if you'd like commit access.
 
 Finally, https://github.com/leanprover-community/mathlib-nursery
 makes it possible to have early access to work in progress.

@@ -780,6 +780,9 @@ eq_univ_of_forall $ by simp [image]; exact H
 @[simp] theorem image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
 set.ext $ λ x, by simp [image]; rw eq_comm
 
+lemma inter_singleton_neq_empty {α : Type*} {s : set α} {a : α} : s ∩ {a} ≠ ∅ ↔ a ∈ s :=
+by finish  [set.inter_singleton_eq_empty]
+
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t
@@ -878,6 +881,9 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
+lemma preimage_subset_iff {A : set α} {B : set β} {f : α → β} :
+  (∀ a : α, f a ∈ B → a ∈ A) ↔ f⁻¹' B ⊆ A :=
+⟨λ H x h, H x h, λ H x h, H h⟩
 end image
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
@@ -951,6 +957,8 @@ theorem mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈
 
 @[simp] theorem mem_prod {p : α × β} : p ∈ set.prod s t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
+lemma mem_prod' {a : α} {b : β} (a_in : a ∈ s) (b_in : b ∈ t) : (a, b) ∈ set.prod s t := ⟨a_in, b_in⟩
+
 @[simp] theorem prod_empty {s : set α} : set.prod s ∅ = (∅ : set (α × β)) :=
 set.ext $ by simp [set.prod]
 
@@ -1009,5 +1017,9 @@ by simp [not_eq_empty_iff_exists]
 @[simp] theorem univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
 set.ext $ assume ⟨a, b⟩, by simp
 
+lemma sub_preimage_iff {W : set γ} {f : α × β → γ} :
+set.prod s t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
+⟨λ h a b a_in b_in, h (mem_prod' a_in b_in),
+ λ h p p_in, by have := h p.1 p.2 p_in.1 p_in.2 ; rwa prod.mk.eta at this⟩
 end prod
 end set

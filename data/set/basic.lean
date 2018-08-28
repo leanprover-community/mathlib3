@@ -882,8 +882,7 @@ set.ext $ assume a,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
 lemma preimage_subset_iff {A : set α} {B : set β} {f : α → β} :
-  f⁻¹' B ⊆ A ↔ (∀ a : α, f a ∈ B → a ∈ A) :=
-⟨ λ H x h, H h, λ H x h, H x h⟩
+  f⁻¹' B ⊆ A ↔ (∀ a : α, f a ∈ B → a ∈ A) := iff.rfl
 end image
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=

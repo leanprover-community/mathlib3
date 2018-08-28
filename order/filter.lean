@@ -1003,8 +1003,7 @@ le_trans (map_mono $ le_map_vmap' hs hi) this
 
 lemma vmap_eq_of_inverse {f : filter α} {g : filter β} 
   {φ : α → β} {ψ : β → α} (inv₁ : φ ∘ ψ = id) (inv₂ : ψ ∘ φ = id)
-  (lim₁ : tendsto φ f g) (lim₂ : tendsto ψ g f)
- : vmap φ g = f :=
+  (lim₁ : tendsto φ f g) (lim₂ : tendsto ψ g f) : vmap φ g = f :=
 begin
   have ineq₁ := calc
     vmap φ g = map ψ g : eq.symm (map_eq_vmap_of_inverse inv₂ inv₁)
@@ -1507,13 +1506,13 @@ calc filter.prod f g ≠ ⊥ ↔ (∀s∈f.sets, g.lift' (set.prod s) ≠ ⊥) :
   ... ↔ _ : by simp only  [forall_sets_neq_empty_iff_neq_bot]
 
 lemma tendsto_prod_iff {f : α × β → γ} {x : filter α} {y : filter β} {z : filter γ} :
- filter.tendsto f (filter.prod x y) z 
- ↔ ∀ W ∈ z.sets, ∃ U ∈ x.sets,  ∃ V ∈ y.sets, ∀ x y, x ∈ U → y ∈ V → f (x, y) ∈ W :=
+  filter.tendsto f (filter.prod x y) z  ↔ 
+  ∀ W ∈ z.sets, ∃ U ∈ x.sets,  ∃ V ∈ y.sets, ∀ x y, x ∈ U → y ∈ V → f (x, y) ∈ W :=
 by simp [tendsto_def, mem_prod_iff, set.prod_sub_preimage_iff]
 
 lemma tendsto_prod_self_iff {f : α × α → β} {x : filter α} {y : filter β} :
- filter.tendsto f (filter.prod x x) y 
- ↔ ∀ W ∈ y.sets, ∃ U ∈ x.sets, ∀ (x x' : α), x ∈ U → x' ∈ U → f (x, x') ∈ W :=
+  filter.tendsto f (filter.prod x x) y  ↔ 
+  ∀ W ∈ y.sets, ∃ U ∈ x.sets, ∀ (x x' : α), x ∈ U → x' ∈ U → f (x, x') ∈ W :=
 by simp [tendsto_def, mem_prod_same_iff, set.prod_sub_preimage_iff]
 
 end prod

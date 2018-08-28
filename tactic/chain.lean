@@ -65,6 +65,9 @@ meta def tactic_script.to_string : tactic_script string → string
 meta instance : has_to_string (tactic_script string) := 
 { to_string := λ s, s.to_string }
 
+meta instance tactic_script_unit_has_to_string : has_to_string (tactic_script unit) := 
+{ to_string := λ s, "[chain tactic]" }
+
 meta def abstract_if_success {α} (tac : expr → tactic α) (g : expr) : tactic α :=
 do 
   type ← infer_type g,
@@ -144,6 +147,6 @@ else
 meta def chain (cfg : chain_cfg) (tactics : list (tactic α)) : tactic (list string) :=
 do sequence ← chain_handle_trace cfg tactics,
    guard (sequence.length > 0) <|> fail "chain tactic made no progress",
-   pure sequence.reverse
+   pure sequence
 
 end tactic

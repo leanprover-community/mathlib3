@@ -273,6 +273,19 @@ theorem mem_closure_iff {s : set α} {a : α} : a ∈ closure s ↔ ∀ o, is_op
 λ H c ⟨h₁, h₂⟩, classical.by_contradiction $ λ nc,
   let ⟨x, hc, hs⟩ := exists_mem_of_ne_empty (H _ h₁ nc) in hc (h₂ hs)⟩
 
+lemma dense_iff_inter_open {s : set α} : closure s = univ ↔ ∀ U, is_open U → U ≠ ∅ → U ∩ s ≠ ∅ :=
+begin
+  split ; intro h,
+  { intros U U_op U_ne,
+    cases exists_mem_of_ne_empty U_ne with x x_in,
+    exact  mem_closure_iff.1 (by simp[h]) U U_op x_in },
+  { ext x,
+    suffices : x ∈ closure s, by simp [this],
+    rw mem_closure_iff,
+    intros U U_op x_in,
+    exact h U U_op (ne_empty_of_mem x_in) },
+end
+
 /-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s
 
@@ -939,6 +952,21 @@ instance {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topologic
 
 instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (Πa, β a) :=
 ⨆a, induced (λf, f a) (t₂ a)
+
+lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) : closure (quotient.mk '' s) = univ :=
+begin
+  ext x,
+  suffices : x ∈ closure (quotient.mk '' s), by simp [this],
+  rw mem_closure_iff,
+  intros U U_op x_in_U,
+  let V := quotient.mk ⁻¹' U,
+  cases quotient.exists_rep x with y y_x,
+  have y_in_V : y ∈ V, by simp [mem_preimage_eq, y_x, x_in_U],
+  have V_op : is_open V := U_op,
+  have : V ∩ s ≠ ∅ := mem_closure_iff.1 (H y) V V_op y_in_V,
+  rcases exists_mem_of_ne_empty this with ⟨w, w_in_V, w_in_range⟩,
+  exact ne_empty_of_mem ⟨by tauto, mem_image_of_mem quotient.mk w_in_range⟩
+end
 
 lemma generate_from_le {t : topological_space α} { g : set (set α) } (h : ∀s∈g, is_open s) :
   generate_from g ≤ t :=

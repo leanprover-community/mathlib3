@@ -6,6 +6,12 @@ namespace fin
 
 variable {n : ℕ}
 
+/-- The greatest value of `fin (n+1)` -/
+def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
+
+theorem le_last (i : fin (n+1)) : i ≤ last n :=
+le_of_lt_succ i.is_lt
+
 /-- Embedding of `fin n` in `fin (n+1)` -/
 def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
 
@@ -21,12 +27,13 @@ by cases j; simp [fin.pred]
 @[simp] protected lemma eta (a : fin n) (h : a.1 < n) : (⟨a.1, h⟩ : fin n) = a :=
 by cases a; refl
 
-instance {n : ℕ} : linear_order (fin n) :=
+instance {n : ℕ} : decidable_linear_order (fin n) :=
 { le_refl := λ a, @le_refl ℕ _ _,
   le_trans := λ a b c, @le_trans ℕ _ _ _ _,
   le_antisymm := λ a b ha hb, fin.eq_of_veq $ le_antisymm ha hb,
   le_total := λ a b, @le_total ℕ _ _ _,
   lt_iff_le_not_le := λ a b, @lt_iff_le_not_le ℕ _ _ _,
+  decidable_le := fin.decidable_le,
   ..fin.has_le,
   ..fin.has_lt }
 

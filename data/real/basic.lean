@@ -6,81 +6,37 @@ Authors: Mario Carneiro
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
-import order.conditionally_complete_lattice data.real.cau_seq
+import order.conditionally_complete_lattice data.real.cau_seq_completion
   algebra.big_operators algebra.archimedean order.bounds
 
-def real := @quotient (cau_seq ℚ abs) cau_seq.equiv
+def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
+local attribute [reducible] real
 
 namespace real
-open rat cau_seq
+open cau_seq cau_seq.completion
 
-def mk : cau_seq ℚ abs → ℝ := quotient.mk
+def of_rat (x : ℚ) : ℝ := of_rat x
 
-@[simp] theorem mk_eq_mk (f) : @eq ℝ ⟦f⟧ (mk f) := rfl
-
-theorem mk_eq {f g} : mk f = mk g ↔ f ≈ g := quotient.eq
-
-def of_rat (x : ℚ) : ℝ := mk (const abs x)
-
-instance : has_zero ℝ := ⟨of_rat 0⟩
-instance : has_one ℝ := ⟨of_rat 1⟩
-instance : inhabited ℝ := ⟨0⟩
-
-theorem of_rat_zero : of_rat 0 = 0 := rfl
-theorem of_rat_one : of_rat 1 = 1 := rfl
-
-@[simp] theorem mk_eq_zero {f} : mk f = 0 ↔ lim_zero f :=
-by have : mk f = 0 ↔ lim_zero (f - 0) := quotient.eq;
-   rwa sub_zero at this
-
-instance : has_add ℝ :=
-⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f + g)) $
-  λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
-  by simpa [(≈), setoid.r] using add_lim_zero hf hg⟩
-
-@[simp] theorem mk_add (f g : cau_seq ℚ abs) : mk f + mk g = mk (f + g) := rfl
-
-instance : has_neg ℝ :=
-⟨λ x, quotient.lift_on x (λ f, mk (-f)) $
-  λ f₁ f₂ hf, quotient.sound $
-  by simpa [(≈), setoid.r] using neg_lim_zero hf⟩
-
-@[simp] theorem mk_neg (f : cau_seq ℚ abs) : -mk f = mk (-f) := rfl
-
-instance : has_mul ℝ :=
-⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f * g)) $
-  λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
-  by simpa [(≈), setoid.r, mul_add, mul_comm] using
-    add_lim_zero (mul_lim_zero g₁ hf) (mul_lim_zero f₂ hg)⟩
-
-@[simp] theorem mk_mul (f g : cau_seq ℚ abs) : mk f * mk g = mk (f * g) := rfl
-
-theorem of_rat_add (x y : ℚ) : of_rat (x + y) = of_rat x + of_rat y :=
-congr_arg mk (const_add _ _)
-
-theorem of_rat_neg (x : ℚ) : of_rat (-x) = -of_rat x :=
-congr_arg mk (const_neg _)
-
-theorem of_rat_mul (x y : ℚ) : of_rat (x * y) = of_rat x * of_rat y :=
-congr_arg mk (const_mul _ _)
-
-instance : comm_ring ℝ :=
-by refine { neg := has_neg.neg,
-    add := (+), zero := 0, mul := (*), one := 1, .. };
-  { repeat {refine λ a, quotient.induction_on a (λ _, _)},
-    simp [show 0 = mk 0, from rfl, show 1 = mk 1, from rfl,
-          mul_left_comm, mul_comm, mul_add] }
+instance : comm_ring ℝ := cau_seq.completion.comm_ring
 
 /- Extra instances to short-circuit type class resolution -/
-instance : semigroup ℝ      := by apply_instance
-instance : monoid ℝ         := by apply_instance
-instance : comm_semigroup ℝ := by apply_instance
-instance : comm_monoid ℝ    := by apply_instance
-instance : add_monoid ℝ     := by apply_instance
-instance : add_group ℝ      := by apply_instance
-instance : add_comm_group ℝ := by apply_instance
-instance : ring ℝ           := by apply_instance
+instance : ring ℝ               := by apply_instance
+instance : comm_semiring ℝ      := by apply_instance
+instance : semiring ℝ           := by apply_instance
+instance : add_comm_group ℝ     := by apply_instance
+instance : add_group ℝ          := by apply_instance
+instance : add_comm_monoid ℝ    := by apply_instance
+instance : add_monoid ℝ         := by apply_instance
+instance : add_left_cancel_semigroup ℝ := by apply_instance
+instance : add_right_cancel_semigroup ℝ := by apply_instance
+instance : add_comm_semigroup ℝ := by apply_instance
+instance : add_semigroup ℝ      := by apply_instance
+instance : comm_monoid ℝ        := by apply_instance
+instance : monoid ℝ             := by apply_instance
+instance : comm_semigroup ℝ     := by apply_instance
+instance : semigroup ℝ          := by apply_instance
+instance : inhabited ℝ := ⟨0⟩
 
 theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
@@ -145,57 +101,42 @@ instance : linear_ordered_comm_ring ℝ :=
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
 instance : ordered_ring ℝ               := by apply_instance
+instance : linear_ordered_semiring ℝ    := by apply_instance
+instance : ordered_semiring ℝ           := by apply_instance
 instance : ordered_comm_group ℝ         := by apply_instance
 instance : ordered_cancel_comm_monoid ℝ := by apply_instance
-instance : integral_domain ℝ            := by apply_instance
+instance : ordered_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
 
 local attribute [instance] classical.prop_decidable
 
-noncomputable instance : has_inv ℝ :=
-⟨λ x, quotient.lift_on x
-  (λ f, mk $ if h : lim_zero f then 0 else inv f h) $
-λ f g fg, begin
-  have := lim_zero_congr fg,
-  by_cases hf : lim_zero f,
-  { simp [hf, this.1 hf, setoid.refl] },
-  { have hg := mt this.2 hf, simp [hf, hg],
-    have If : mk (inv f hf) * mk f = 1 := mk_eq.2 (inv_mul_cancel hf),
-    have Ig : mk (inv g hg) * mk g = 1 := mk_eq.2 (inv_mul_cancel hg),
-    rw [mk_eq.2 fg, ← Ig] at If,
-    rw mul_comm at Ig,
-    rw [← mul_one (mk (inv f hf)), ← Ig, ← mul_assoc, If,
-        mul_assoc, Ig, mul_one] }
-end⟩
-
-@[simp] theorem inv_zero : (0 : ℝ)⁻¹ = 0 :=
-congr_arg mk $ by rw dif_pos; [refl, exact zero_lim_zero]
-
-@[simp] theorem inv_mk {f} (hf) : (mk f)⁻¹ = mk (inv f hf) :=
-congr_arg mk $ by rw dif_neg
-
-protected theorem inv_mul_cancel {x : ℝ} : x ≠ 0 → x⁻¹ * x = 1 :=
-quotient.induction_on x $ λ f hf, begin
-  simp at hf, simp [hf],
-  exact quotient.sound (cau_seq.inv_mul_cancel hf)
-end
-
 noncomputable instance : discrete_linear_ordered_field ℝ :=
 { inv            := has_inv.inv,
-  inv_mul_cancel := @real.inv_mul_cancel,
-  mul_inv_cancel := λ x x0, by rw [mul_comm, real.inv_mul_cancel x0],
+  inv_mul_cancel := @cau_seq.completion.inv_mul_cancel _ _ _ _ _ _,
+  mul_inv_cancel := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
   inv_zero       := inv_zero,
   decidable_le   := by apply_instance,
   ..real.linear_ordered_comm_ring }
 
 /- Extra instances to short-circuit type class resolution -/
-noncomputable instance : linear_ordered_field ℝ   := by apply_instance
-noncomputable instance : decidable_linear_ordered_comm_ring ℝ  := by apply_instance
+noncomputable instance : linear_ordered_field ℝ    := by apply_instance
+noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
+noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
-noncomputable instance : decidable_linear_order ℝ := by apply_instance
-noncomputable instance : discrete_field ℝ         := by apply_instance
-noncomputable instance : field ℝ                  := by apply_instance
-noncomputable instance : division_ring ℝ          := by apply_instance
+noncomputable instance real.discrete_field : discrete_field ℝ          := by apply_instance
+noncomputable instance : field ℝ                   := by apply_instance
+noncomputable instance : division_ring ℝ           := by apply_instance
+noncomputable instance : integral_domain ℝ         := by apply_instance
+noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
+noncomputable instance : decidable_linear_order ℝ  := by apply_instance
+noncomputable instance : lattice.distrib_lattice ℝ := by apply_instance
+noncomputable instance : lattice.lattice ℝ         := by apply_instance
+noncomputable instance : lattice.semilattice_inf ℝ := by apply_instance
+noncomputable instance : lattice.semilattice_sup ℝ := by apply_instance
+noncomputable instance : lattice.has_inf ℝ         := by apply_instance
+noncomputable instance : lattice.has_sup ℝ         := by apply_instance
+
+open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
 eq_cast of_rat rfl of_rat_add of_rat_mul
@@ -246,7 +187,7 @@ theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq 
 
 theorem of_near (f : ℕ → ℚ) (x : ℝ)
   (h : ∀ ε > 0, ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) < ε) :
-  ∃ h', mk ⟨f, h'⟩ = x :=
+  ∃ h', cau_seq.completion.mk ⟨f, h'⟩ = x :=
 ⟨is_cau_seq_iff_lift.2 (of_near _ (const abs x) h),
  sub_eq_zero.1 $ abs_eq_zero.1 $
   eq_of_le_of_forall_le_of_dense (abs_nonneg _) $ λ ε ε0,
@@ -335,7 +276,7 @@ theorem Sup_le_ub (S : set ℝ) (h₁ : ∃ x, x ∈ S) {ub} (h₂ : ∀ y ∈ S
 
 protected lemma is_lub_Sup {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ upper_bounds s) :
   is_lub s (Sup s) :=
-⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs, 
+⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs,
  λ u h, real.Sup_le_ub _ ⟨_, ha⟩ h⟩
 
 noncomputable def Inf (S : set ℝ) : ℝ := -Sup {x | -x ∈ S}
@@ -385,6 +326,20 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
       from lb_le_Inf s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
  ..real.linear_order, ..real.lattice}
 
+theorem Sup_empty : lattice.Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
+
+theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s = 0 :=
+dif_neg $ assume h, hs h.2
+
+theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
+show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
+
+theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : lattice.Inf s = 0 :=
+have bdd_above {x | -x ∈ s} → bdd_below s, from
+  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb _ $ by simp [hxs]⟩,
+have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
+neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
+
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin
   let S := {x : ℝ | const abs x < f},
@@ -410,6 +365,10 @@ begin
     exact ih _ ij }
 end
 
+section lim
+
+open cau_seq
+
 noncomputable def lim (f : ℕ → ℝ) : ℝ :=
 if hf : is_cau_seq abs f then
   classical.some (cau_seq_converges ⟨f, hf⟩)
@@ -418,6 +377,66 @@ else 0
 theorem equiv_lim (f : cau_seq ℝ abs) : f ≈ const abs (lim f) :=
 by simp [lim, f.is_cau]; cases f with f hf;
    exact classical.some_spec (cau_seq_converges ⟨f, hf⟩)
+
+lemma eq_lim_of_const_equiv {f : cau_seq ℝ abs} {x : ℝ} (h : cau_seq.const abs x ≈ f) : x = lim f :=
+const_equiv.mp $ setoid.trans h $ equiv_lim f
+
+lemma lim_eq_of_equiv_const {f : cau_seq ℝ abs} {x : ℝ} (h : f ≈ cau_seq.const abs x) : lim f = x :=
+(eq_lim_of_const_equiv $ setoid.symm h).symm
+
+lemma lim_eq_lim_of_equiv {f g : cau_seq ℝ abs} (h : f ≈ g) : lim f = lim g := 
+lim_eq_of_equiv_const $ setoid.trans h $ equiv_lim g
+
+@[simp] lemma lim_const (x : ℝ) : lim (const abs x) = x := 
+lim_eq_of_equiv_const $ setoid.refl _
+
+lemma lim_add (f g : cau_seq ℝ abs) : lim f + lim g = lim ⇑(f + g) := 
+eq_lim_of_const_equiv $ show lim_zero (const abs (lim ⇑f + lim ⇑g) - (f + g)),
+  by rw [const_add, add_sub_comm];
+  exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g))
+
+lemma lim_mul_lim (f g : cau_seq ℝ abs) : lim f * lim g = lim ⇑(f * g) := 
+eq_lim_of_const_equiv $ show lim_zero (const abs (lim ⇑f * lim ⇑g) - f * g),
+  from have h : const abs (lim ⇑f * lim ⇑g) - f * g = g * (const abs (lim f) - f) 
+      + const abs (lim f) * (const abs (lim g) - g) := 
+    by simp [mul_sub, mul_comm, const_mul, mul_add],
+  by rw h; exact add_lim_zero (mul_lim_zero _ (setoid.symm (equiv_lim f))) 
+      (mul_lim_zero _ (setoid.symm (equiv_lim g)))
+
+lemma lim_mul (f : cau_seq ℝ abs) (x : ℝ) : lim f * x = lim ⇑(f * const abs x) :=
+by rw [← lim_mul_lim, lim_const]
+
+lemma lim_neg (f : cau_seq ℝ abs) : lim ⇑(-f) = -lim f :=
+lim_eq_of_equiv_const (show lim_zero (-f - const abs (-lim ⇑f)),
+  by rw [const_neg, sub_neg_eq_add, add_comm];
+  exact setoid.symm (equiv_lim f))
+
+lemma lim_eq_zero_iff (f : cau_seq ℝ abs) : lim f = 0 ↔ lim_zero f :=
+⟨assume h,
+  by have hf := equiv_lim f;
+  rw h at hf;
+  exact (lim_zero_congr hf).mpr (const_lim_zero.mpr rfl),
+assume h, 
+  have h₁ : f = (f - const abs 0) := ext (λ n, by simp [sub_apply, const_apply]),
+  by rw h₁ at h; exact lim_eq_of_equiv_const h ⟩
+
+lemma lim_inv {f : cau_seq ℝ abs} (hf : ¬ lim_zero f) : lim ⇑(inv f hf) = (lim f)⁻¹ :=
+have hl : lim f ≠ 0 := by rwa ← lim_eq_zero_iff at hf, 
+lim_eq_of_equiv_const $ show lim_zero (inv f hf - const abs (lim ⇑f)⁻¹),
+  from have h₁ : ∀ (g f : cau_seq ℝ abs) (hf : ¬ lim_zero f), lim_zero (g - f * inv f hf * g) := 
+    λ g f hf, by rw [← one_mul g, ← mul_assoc, ← sub_mul, mul_one, mul_comm, mul_comm f];
+    exact mul_lim_zero _ (setoid.symm (cau_seq.inv_mul_cancel _)),
+  have h₂ : lim_zero ((inv f hf - const abs (lim ⇑f)⁻¹) - (const abs (lim f) - f) * 
+      (inv f hf * const abs (lim ⇑f)⁻¹)) := 
+    by rw [sub_mul, ← sub_add, sub_sub, sub_add_eq_sub_sub, sub_right_comm, sub_add];
+    exact show lim_zero (inv f hf - const abs (lim ⇑f) * (inv f hf * const abs (lim ⇑f)⁻¹)
+      - (const abs (lim ⇑f)⁻¹ - f * (inv f hf * const abs (lim ⇑f)⁻¹))),
+    from sub_lim_zero
+      (by rw [← mul_assoc, mul_right_comm, const_inv hl]; exact h₁ _ _ _)
+      (by rw [← mul_assoc]; exact h₁ _ _ _),
+  (lim_zero_congr h₂).mpr $ by rw mul_comm; exact mul_lim_zero _ (setoid.symm (equiv_lim f))
+
+end lim
 
 theorem sqrt_exists : ∀ {x : ℝ}, 0 ≤ x → ∃ y, 0 ≤ y ∧ y * y = x :=
 suffices H : ∀ {x : ℝ}, 0 < x → x ≤ 1 → ∃ y, 0 < y ∧ y * y = x, begin

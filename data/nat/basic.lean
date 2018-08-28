@@ -372,6 +372,10 @@ by induction k; simp [*, add_succ, bind_assoc]
 
 /- pow -/
 
+@[simp] lemma one_pow : ∀ n : ℕ, 1 ^ n = 1
+| 0 := rfl
+| (k+1) := show 1^k * 1 = 1, by rw [mul_one, one_pow]
+
 theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
 by induction n; simp [*, pow_succ, mul_assoc]
 
@@ -389,6 +393,34 @@ by induction n; simp [*, nat.pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
 protected theorem pow_mul (a b n : ℕ) : n ^ (a * b) = (n ^ a) ^ b :=
 by induction b; simp [*, nat.succ_eq_add_one, nat.pow_add, mul_add, mul_comm]
+
+theorem pow_pos {p : ℕ} (hp : p > 0) : ∀ n : ℕ, p ^ n > 0
+| 0 := by simpa using zero_lt_one  
+| (k+1) := mul_pos (pow_pos _) hp 
+
+lemma pow_eq_mul_pow_sub (p : ℕ) {m n : ℕ} (h : m ≤ n) : p ^ m * p ^ (n - m)  = p ^ n :=
+by rw [←nat.pow_add, nat.add_sub_cancel' h] 
+
+lemma pow_lt_pow_succ {p : ℕ} (h : p > 1) (n : ℕ) : p^n < p^(n+1) :=
+suffices p^n*1 < p^n*p, by simpa,
+nat.mul_lt_mul_of_pos_left h (nat.pow_pos (lt_of_succ_lt h) n)  
+
+lemma lt_pow_self {p : ℕ} (h : p > 1) : ∀ n : ℕ, n < p ^ n
+| 0 := by simp [zero_lt_one]
+| (n+1) := calc
+  n + 1 < p^n + 1 : nat.add_lt_add_right (lt_pow_self _) _
+    ... ≤ p ^ (n+1) : pow_lt_pow_succ h _ 
+
+lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : p > 1) (hk : k > 1), ¬ p^k ∣ p
+| (succ p) (succ k) hp hk h := 
+  have (succ p)^k * succ p ∣ 1 * succ p, by simpa,
+  have (succ p) ^ k ∣ 1, from dvd_of_mul_dvd_mul_right (succ_pos _) this,
+  have he : (succ p) ^ k = 1, from eq_one_of_dvd_one this,
+  have k < (succ p) ^ k, from lt_pow_self hp k,
+  have k < 1, by rwa [he] at this,
+  have k = 0, from eq_zero_of_le_zero $ le_of_lt_succ this,
+  have 1 > 1, by rwa [this] at hk,
+  absurd this dec_trivial
 
 @[simp] theorem bodd_div2_eq (n : ℕ) : bodd_div2 n = (bodd n, div2 n) :=
 by unfold bodd div2; cases bodd_div2 n; refl
@@ -543,5 +575,99 @@ theorem dvd_fact : ∀ {m n}, m > 0 → m ≤ n → m ∣ fact n
 
 theorem fact_le {m n} (h : m ≤ n) : fact m ≤ fact n :=
 le_of_dvd (fact_pos _) (fact_dvd_fact h)
+
+section find_greatest
+
+private def nat.find_greatest_core_aux (P : ℕ → Prop) [decidable_pred P] (bound : ℕ) : 
+          Π m : ℕ, (∀ k, m < k ∧ k ≤ bound → ¬ P k) → 
+            psum {n // P n ∧ ∀ k, n < k ∧ k ≤ bound → ¬ P k} (∀ k, k ≤ bound → ¬ P k)
+| 0 h := if hp0 : P 0 then psum.inl ⟨0, hp0, h⟩ else  psum.inr $ 
+  λ k hk, if hk0 : 0 = k then by rwa hk0 at hp0 else h _ ⟨lt_of_le_of_ne (nat.zero_le _) hk0, hk⟩ 
+| (m+1) h := 
+  if hkp : P (m+1) then psum.inl ⟨m+1, hkp, h⟩ 
+  else nat.find_greatest_core_aux m $ 
+    λ k ⟨hmk, hkb⟩, if hm1k : m + 1 = k then by rwa hm1k at hkp else 
+      have m + 1 < k, from lt_of_le_of_ne (nat.succ_le_of_lt hmk) hm1k, 
+      h _ ⟨this, hkb⟩
+
+
+protected def nat.find_greatest_core (P : ℕ → Prop) [decidable_pred P] (bound : ℕ) : 
+          psum {n // P n ∧ ∀ k, n < k ∧ k ≤ bound → ¬ P k} (∀ k, k ≤ bound → ¬ P k) :=
+nat.find_greatest_core_aux P bound bound $ λ _ ⟨hlt, hle⟩, false.elim $ not_le_of_gt hlt hle
+
+protected def nat.find_greatest_aux {P : ℕ → Prop} [decidable_pred P] {bound : ℕ} : 
+          psum {n // P n ∧ ∀ k, n < k ∧ k ≤ bound → ¬ P k} (∀ k, k ≤ bound → ¬ P k) → ℕ
+| (psum.inl ⟨n, _⟩) := n
+| (psum.inr _) := 0
+
+/--
+  Finds the largest n ≤ bound such that P n holds, or returns 0 if no such n exists
+-/
+protected def nat.find_greatest (P : ℕ → Prop) [decidable_pred P] (bound : ℕ) : ℕ :=
+nat.find_greatest_aux $ nat.find_greatest_core P bound
+
+lemma nat.find_greatest_spec {P : ℕ → Prop} [decidable_pred P] {bound : ℕ}
+      (hex : ∃ m, m ≤ bound ∧ P m) : P (nat.find_greatest P bound) :=
+begin 
+  unfold nat.find_greatest,
+  rcases nat.find_greatest_core P bound with ⟨n, hn⟩ | h,
+  { cases hn; simpa only [nat.find_greatest_aux] },
+  { apply absurd hex, simpa }
+end 
+
+lemma nat.find_greatest_is_greatest {P : ℕ → Prop} [decidable_pred P] {bound : ℕ}
+      (hex : ∃ m, m ≤ bound ∧ P m) : ∀ k, nat.find_greatest P bound < k ∧ k ≤ bound → ¬ P k :=
+begin 
+  unfold nat.find_greatest,
+  rcases nat.find_greatest_core P bound with ⟨n, hn⟩ | h,
+  { cases hn; simpa only [nat.find_greatest_aux] },
+  { apply absurd hex, simpa }
+end 
+
+end find_greatest
+
+section div
+lemma dvd_div_of_mul_dvd {a b c : ℕ} (h : a * b ∣ c) : b ∣ c / a :=
+if ha : a = 0 then
+  by simp [ha]
+else
+  have ha : a > 0, from nat.pos_of_ne_zero ha,  
+  have h1 : ∃ d, c = a * b * d, from h,
+  let ⟨d, hd⟩ := h1 in
+  have hac : a ∣ c, from dvd_of_mul_right_dvd h,
+  have h2 : c / a = b * d, from nat.div_eq_of_eq_mul_right ha (by simpa [mul_assoc] using hd),
+  show ∃ d, c / a = b * d, from ⟨d, h2⟩
+
+lemma mul_dvd_of_dvd_div {a b c : ℕ} (hab : c ∣ b) (h : a ∣ b / c) : c * a ∣ b :=
+have h1 : ∃ d, b / c = a * d, from h,
+have h2 : ∃ e, b = c * e, from hab,
+let ⟨d, hd⟩ := h1, ⟨e, he⟩ := h2 in
+have h3 : b = a * d * c, from
+  nat.eq_mul_of_div_eq_left hab hd,
+show ∃ d, b = c * a * d, from ⟨d, by cc⟩
+
+lemma nat.div_mul_div {a b c d : ℕ} (hab : b ∣ a) (hcd : d ∣ c) : 
+      (a / b) * (c / d) = (a * c) / (b * d) :=
+have exi1 : ∃ x, a = b * x, from hab,
+have exi2 : ∃ y, c = d * y, from hcd,
+if hb : b = 0 then by simp [hb] 
+else have b > 0, from nat.pos_of_ne_zero hb,
+if hd : d = 0 then by simp [hd]
+else have d > 0, from nat.pos_of_ne_zero hd,
+begin 
+  cases exi1 with x hx, cases exi2 with y hy,
+  rw [hx, hy, nat.mul_div_cancel_left, nat.mul_div_cancel_left], 
+  symmetry,
+  apply nat.div_eq_of_eq_mul_left,
+  apply mul_pos,
+  repeat {assumption},
+  cc
+end 
+
+lemma pow_div_of_le_of_pow_div {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=
+have p ^ m ∣ p ^ n, from pow_dvd_pow _ hmn,
+dvd_trans this hdiv
+
+end div 
 
 end nat

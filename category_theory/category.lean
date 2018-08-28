@@ -34,24 +34,24 @@ def_replacer obviously
 The typeclass `category C` describes morphisms associated to objects of type `C`.
 The universe levels of the objects and morphisms are unconstrained, and will often need to be specified explicitly, as `category.{u v} C`. (See also `large_category` and `small_category`.)
 -/
-class category (Obj : Type u) : Type (max u (v+1)) :=
-(Hom     : Obj → Obj → Type v)
-(id      : Π X : Obj, Hom X X)
-(comp    : Π {X Y Z : Obj}, Hom X Y → Hom Y Z → Hom X Z)
-(id_comp : ∀ {X Y : Obj} (f : Hom X Y), comp (id X) f = f . obviously)
-(comp_id : ∀ {X Y : Obj} (f : Hom X Y), comp f (id Y) = f . obviously)
-(assoc   : ∀ {W X Y Z : Obj} (f : Hom W X) (g : Hom X Y) (h : Hom Y Z), comp (comp f g) h = comp f (comp g h) . obviously)
+class category (obj : Type u) : Type (max u (v+1)) :=
+(hom      : obj → obj → Type v)
+(id       : Π X : obj, hom X X)
+(comp     : Π {X Y Z : obj}, hom X Y → hom Y Z → hom X Z)
+(id_comp' : ∀ {X Y : obj} (f : hom X Y), comp (id X) f = f . obviously)
+(comp_id' : ∀ {X Y : obj} (f : hom X Y), comp f (id Y) = f . obviously)
+(assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z), comp (comp f g) h = comp f (comp g h) . obviously)
 
 notation `𝟙` := category.id -- type as \b1
 infixr ` ≫ `:80 := category.comp -- type as \gg
-infixr ` ⟶ `:10 := category.Hom -- type as \h
+infixr ` ⟶ `:10 := category.hom -- type as \h
 
--- restate_axiom is a command that creates a lemma from a structure field, discarding any auto_param wrappers from the type.
-restate_axiom category.id_comp
-restate_axiom category.comp_id
-restate_axiom category.assoc
--- We tag some lemmas with the attribute `@[ematch]`, for later automation. (I'd be happy to change this to e.g. `@[search]`.)
-attribute [simp,ematch] category.id_comp_lemma category.comp_id_lemma category.assoc_lemma 
+-- `restate_axiom` is a command that creates a lemma from a structure field, discarding any auto_param wrappers from the type.
+-- (It removes a backtick from the name, if it finds one, and otherwise adds "_lemma".)
+restate_axiom category.id_comp'
+restate_axiom category.comp_id'
+restate_axiom category.assoc'
+attribute [simp] category.id_comp category.comp_id category.assoc
 
 /--
 A `large_category` has objects in one universe level higher than the universe level of the morphisms. 

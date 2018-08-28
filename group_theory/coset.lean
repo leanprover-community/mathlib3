@@ -113,6 +113,8 @@ theorem normal_iff_eq_cosets : normal_subgroup s ↔ ∀ g, g *l s = s *r g :=
 
 end coset_subgroup
 
+namespace quotient_group
+
 def left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
 ⟨λ x y, x⁻¹ * y ∈ s,
   assume x, by simp [is_submonoid.one_mem],
@@ -123,19 +125,31 @@ def left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
   have x⁻¹ * y * (y⁻¹ * z) ∈ s, from is_submonoid.mul_mem hxy hyz,
   by simpa [mul_assoc] using this⟩
 
-def left_cosets [group α] (s : set α) [is_subgroup s] : Type* := quotient (left_rel s)
+/-- `quotient s` is the quotient type representing the left cosets of `s`.
+  If `s` is a normal subgroup, `quotient s` is a group -/
+def quotient [group α] (s : set α) [is_subgroup s] : Type* := quotient (left_rel s)
 
-namespace left_cosets
-local attribute [instance] left_rel
+variables [group α] {s : set α} [is_subgroup s]
 
-instance [group α] (s : set α) [is_subgroup s] : inhabited (left_cosets s) := ⟨⟦1⟧⟩
+def mk (a : α) : quotient s :=
+quotient.mk' a
 
-lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) : {x | ⟦x⟧ = ⟦g⟧} = left_coset g s :=
-set.ext $ λ z, by simp [eq_comm, mem_left_coset_iff]; refl
+instance : has_coe α (quotient s) := ⟨mk⟩
 
-end left_cosets
+instance [group α] (s : set α) [is_subgroup s] : inhabited (quotient s) :=
+⟨((1 : α) : quotient s)⟩
+
+protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
+quotient.eq'
+
+lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) :
+  {x : α | (x : quotient s) = g} = left_coset g s :=
+set.ext $ λ z, by rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq]
+
+end quotient_group
 
 namespace is_subgroup
+open quotient_group
 variables [group α] {s : set α}
 
 def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
@@ -144,48 +158,19 @@ def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
  λ ⟨x, hx⟩, subtype.eq $ by simp,
  λ ⟨g, hg⟩, subtype.eq $ by simp⟩
 
-local attribute [instance] left_rel
-
-noncomputable def group_equiv_left_cosets_times_subgroup (hs : is_subgroup s) :
-  α ≃ (left_cosets s × s) :=
-calc α ≃ Σ L : left_cosets s, {x // ⟦x⟧ = L} :
-  equiv.equiv_fib quotient.mk
-    ... ≃ Σ L : left_cosets s, left_coset (quotient.out L) s :
-  equiv.sigma_congr_right (λ L, by rw ← left_cosets.eq_class_eq_left_coset; simp)
-    ... ≃ Σ L : left_cosets s, s :
+noncomputable def group_equiv_quotient_times_subgroup (hs : is_subgroup s) :
+  α ≃ (quotient s × s) :=
+calc α ≃ Σ L : quotient s, {x : α // (x : quotient s)= L} :
+  equiv.equiv_fib quotient_group.mk
+    ... ≃ Σ L : quotient s, left_coset (quotient.out' L) s :
+  equiv.sigma_congr_right (λ L,
+    begin rw ← eq_class_eq_left_coset,
+      show {x // quotient.mk' x = L} ≃ {x : α // quotient.mk' x = quotient.mk' _},
+      simp [-quotient.eq']
+    end)
+    ... ≃ Σ L : quotient s, s :
   equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _)
-    ... ≃ (left_cosets s × s) :
+    ... ≃ (quotient s × s) :
   equiv.sigma_equiv_prod _ _
 
 end is_subgroup
-
-section quotient_group
-
-local attribute [instance] left_rel normal_subgroup.to_is_subgroup
-
-instance [group α] (s : set α) [normal_subgroup s] : group (left_cosets s) :=
-{ one := ⟦1⟧,
-  mul := λ a b, quotient.lift_on₂ a b
-  (λ a b, ⟦a * b⟧)
-  (λ a₁ a₂ b₁ b₂ hab₁ hab₂,
-    quotient.sound
-    ((is_subgroup.mul_mem_cancel_left s (is_subgroup.inv_mem hab₂)).1
-        (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
-          mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
-          exact normal_subgroup.normal _ hab₁ _))),
-  mul_assoc := λ a b c, quotient.induction_on₃
-    a b c (λ a b c, show ⟦_⟧ = ⟦_⟧, by rw mul_assoc),
-  one_mul := λ a, quotient.induction_on a
-    (λ a, show ⟦_⟧ = ⟦_⟧, by rw one_mul),
-  mul_one := λ a, quotient.induction_on a
-    (λ a, show ⟦_⟧ = ⟦_⟧, by rw mul_one),
-  inv := λ a, quotient.lift_on a (λ a, ⟦a⁻¹⟧)
-    (λ a b hab, quotient.sound begin
-      show a⁻¹⁻¹ * b⁻¹ ∈ s,
-      rw ← mul_inv_rev,
-      exact is_subgroup.inv_mem (is_subgroup.mem_norm_comm hab)
-    end),
-  mul_left_inv := λ a, quotient.induction_on a
-    (λ a, show ⟦_⟧ = ⟦_⟧, by rw inv_mul_self) }
-
-end quotient_group

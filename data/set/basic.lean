@@ -100,6 +100,9 @@ classical.by_contradiction $ assume hn,
   have t ⊆ s, from assume a hat, classical.by_contradiction $ assume has, hn ⟨a, hat, has⟩,
   h.2 $ subset.antisymm h.1 this
 
+lemma ssubset_iff_subset_not_subset {s t : set α} : s ⊂ t ↔ s ⊆ t ∧ ¬ t ⊆ s :=
+by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual := tt}
+
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
@@ -777,6 +780,9 @@ eq_univ_of_forall $ by simp [image]; exact H
 @[simp] theorem image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
 set.ext $ λ x, by simp [image]; rw eq_comm
 
+lemma inter_singleton_ne_empty {α : Type*} {s : set α} {a : α} : s ∩ {a} ≠ ∅ ↔ a ∈ s :=
+by finish  [set.inter_singleton_eq_empty]
+
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t
@@ -875,6 +881,9 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
+lemma preimage_subset_iff {A : set α} {B : set β} {f : α → β} :
+  f⁻¹' B ⊆ A ↔ (∀ a : α, f a ∈ B → a ∈ A) := iff.rfl
+
 end image
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
@@ -948,6 +957,8 @@ theorem mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈
 
 @[simp] theorem mem_prod {p : α × β} : p ∈ set.prod s t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
+lemma mk_mem_prod {a : α} {b : β} (a_in : a ∈ s) (b_in : b ∈ t) : (a, b) ∈ set.prod s t := ⟨a_in, b_in⟩
+
 @[simp] theorem prod_empty {s : set α} : set.prod s ∅ = (∅ : set (α × β)) :=
 set.ext $ by simp [set.prod]
 
@@ -1003,8 +1014,12 @@ by simp [not_eq_empty_iff_exists]
 @[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
 
-@[simp] theorem univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
+@[simp] theorem univ_prod_univ : set.prod (@univ α) (@univ β) = univ :=
 set.ext $ assume ⟨a, b⟩, by simp
+
+lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
+  set.prod s t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
+by simp [subset_def]
 
 end prod
 end set

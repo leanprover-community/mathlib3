@@ -14,35 +14,31 @@ namespace buffer
 
 open function
 
-variables {α : Type*}
-variables {buf buf' : buffer α}
-variables {xs : list α}
+variables {α : Type*} {xs : list α}
 
 @[extensionality]
-lemma ext
-  (h : to_list buf = to_list buf') :
-  buf = buf' :=
-begin
-  cases buf with n buf, cases buf' with n' buf', simp [to_list,to_array] at h,
-  have : n = n',
-  { rw [← array.to_list_length buf,← array.to_list_length buf',h] },
-  subst n',
-  have := array.to_list_to_array buf,
-  have := array.to_list_to_array buf',
-  rw h at *, congr, apply eq_of_heq, transitivity;
-  [ symmetry, skip ]; assumption,
+lemma ext : ∀ {b₁ b₂ : buffer α}, to_list b₁ = to_list b₂ → b₁ = b₂
+| ⟨n₁, a₁⟩ ⟨n₂, a₂⟩ h := begin
+  simp [to_list, to_array] at h,
+  have e : n₁ = n₂ :=
+    by rw [←array.to_list_length a₁, ←array.to_list_length a₂, h],
+  subst e,
+  have h : a₁ == a₂.to_list.to_array := h ▸ a₁.to_list_to_array.symm,
+  rw eq_of_heq (h.trans a₂.to_list_to_array)
 end
 
+instance (α) [decidable_eq α] : decidable_eq (buffer α) :=
+by tactic.mk_dec_eq_instance
+
 @[simp]
-lemma to_list_append_list  :
-  to_list (append_list buf xs) = to_list buf ++ xs :=
-by induction xs generalizing buf; simp! [*];
-   cases buf; simp! [to_list,to_array]
+lemma to_list_append_list {b : buffer α} :
+  to_list (append_list b xs) = to_list b ++ xs :=
+by induction xs generalizing b; simp! [*]; cases b; simp! [to_list,to_array]
 
 @[simp]
 lemma append_list_mk_buffer  :
   append_list mk_buffer xs = array.to_buffer (list.to_array xs) :=
-by ext 1 with x; simp [array.to_buffer,to_list,to_list_append_list];
+by ext x : 1; simp [array.to_buffer,to_list,to_list_append_list];
    induction xs; [refl,skip]; simp [to_array]; refl
 
 def list_equiv_buffer (α : Type*) : list α ≃ buffer α :=

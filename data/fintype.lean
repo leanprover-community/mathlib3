@@ -179,6 +179,11 @@ instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp�
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {ff, tt} := rfl
 
+instance units_int.fintype : fintype (units ℤ) :=
+⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
+
+@[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
+
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
 def finset.insert_none (s : finset α) : finset (option α) :=
@@ -248,15 +253,15 @@ by haveI := classical.prop_decidable; exact
 finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 
 lemma fintype.card_eq_one_iff [fintype α] : fintype.card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
-by rw [← fintype.card_unit, fintype.card_eq];
-exact ⟨λ ⟨a⟩, ⟨a.symm unit.star, λ y, a.bijective.1 (subsingleton.elim _ _)⟩,
-λ ⟨x, hx⟩, ⟨⟨λ _, unit.star, λ _, x, λ _, (hx _).trans (hx _).symm,
+by rw [← fintype.card_unit, fintype.card_eq]; exact
+⟨λ ⟨a⟩, ⟨a.symm (), λ y, a.bijective.1 (subsingleton.elim _ _)⟩,
+  λ ⟨x, hx⟩, ⟨⟨λ _, (), λ _, x, λ _, (hx _).trans (hx _).symm,
     λ _, subsingleton.elim _ _⟩⟩⟩
 
 lemma fintype.card_eq_zero_iff [fintype α] : fintype.card α = 0 ↔ (α → false) :=
 ⟨λ h a, have e : α ≃ empty := classical.choice (fintype.card_eq.1 (by simp [h])), (e a).elim,
-λ h, have e : α ≃ empty := ⟨λ a, (h a).elim, λ a, a.elim, λ a, (h a).elim, λ a, a.elim⟩,
-  by simp [fintype.card_congr e]⟩
+  λ h, have e : α ≃ empty := ⟨λ a, (h a).elim, λ a, a.elim, λ a, (h a).elim, λ a, a.elim⟩,
+    by simp [fintype.card_congr e]⟩
 
 lemma fintype.card_pos_iff [fintype α] : 0 < fintype.card α ↔ nonempty α :=
 ⟨λ h, classical.by_contradiction (λ h₁,
@@ -310,6 +315,9 @@ instance finset.subtype.fintype (s : finset α) : fintype {x // x ∈ s} :=
 instance finset_coe.fintype (s : finset α) : fintype (↑s : set α) :=
 finset.subtype.fintype s
 
+@[simp] lemma fintype.card_coe (s : finset α) :
+  fintype.card (↑s : set α) = s.card := card_attach
+
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then finset.singleton ⟨h⟩ else ∅, λ ⟨h⟩, by simp [h]⟩
 
@@ -361,6 +369,11 @@ set_fintype _
 
 instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
 pi.fintype
+
+instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
+  [Π hp, fintype (α hp)] : fintype (Π hp : p, α hp) :=
+if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩
+          else ⟨singleton (λ h, (hp h).elim), by simp [hp, function.funext_iff]⟩
 
 def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)] :

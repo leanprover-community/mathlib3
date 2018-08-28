@@ -39,11 +39,11 @@ have a ^ (i - j) = 1,
   by simp [gpow_add, gpow_neg, a_eq],
 ⟨i - j, sub_ne_zero.mpr ne, this⟩
 
-lemma exists_pow_eq_one (a : α) : ∃i≠0, a ^ i = 1 :=
+lemma exists_pow_eq_one (a : α) : ∃i > 0, a ^ i = 1 :=
 let ⟨i, hi, eq⟩ := exists_gpow_eq_one a in
 begin
   cases i,
-  { exact ⟨i, by simp [int.of_nat_eq_coe, *] at *, eq⟩ },
+  { exact ⟨i, nat.pos_of_ne_zero (by simp [int.of_nat_eq_coe, *] at *), eq⟩ },
   { exact ⟨i + 1, dec_trivial, inv_eq_one.1 eq⟩ }
 end
 
@@ -53,13 +53,13 @@ def order_of (a : α) : ℕ := nat.find (exists_pow_eq_one a)
 lemma pow_order_of_eq_one (a : α) : a ^ order_of a = 1 :=
 let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₂
 
-lemma order_of_ne_zero (a : α) : order_of a ≠ 0 :=
+lemma order_of_pos (a : α) : order_of a > 0 :=
 let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₁
 
 private lemma pow_injective_aux {n m : ℕ} (a : α) (h : n ≤ m)
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 decidable.by_contradiction $ assume ne : n ≠ m,
-  have h₁ : m - n ≠ 0, by simp [nat.sub_eq_iff_eq_add h, ne.symm],
+  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
   have h₂ : a ^ (m - n) = 1, by simp [pow_sub _ h, eq],
   have le : order_of a ≤ m - n, from nat.find_min' (exists_pow_eq_one a) ⟨h₁, h₂⟩,
   have lt : m - n < order_of a,
@@ -89,60 +89,61 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
   ... = a ^ (i % order_of a) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
-lemma mem_range_gpow_iff_mem_range_order_of {a a' : α} :
-  a' ∈ range ((^) a : ℤ → α) ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
+lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
+  a' ∈ gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq
-  (nat.pos_iff_ne_zero.mpr (order_of_ne_zero a))
+  (order_of_pos a)
   (assume i, gpow_eq_mod_order_of.symm)
 
-instance decidable_range_gpow : decidable_pred (range ((^) a : ℤ → α)) :=
+instance decidable_gpowers : decidable_pred (gpowers a) :=
 assume a', decidable_of_iff'
   (a' ∈ (finset.range (order_of a)).image ((^) a))
-  mem_range_gpow_iff_mem_range_order_of
+  mem_gpowers_iff_mem_range_order_of
 
 section
 local attribute [instance] set_fintype
 
-lemma order_eq_card_range_gpow : order_of a = fintype.card (range ((^) a : ℤ → α)) :=
+lemma order_eq_card_gpowers : order_of a = fintype.card (gpowers a) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨gpow a n, mem_range_self n⟩ },
+  { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
   { exact assume ⟨_, i, rfl⟩ _,
-      have pos: (0:int) < order_of a,
-        from int.coe_nat_lt.mpr $ nat.pos_iff_ne_zero.mpr $ order_of_ne_zero a,
-      have 0 ≤ i % (order_of a),
-        from int.mod_nonneg _ $ ne_of_gt pos,
-      ⟨int.to_nat (i % order_of a),
-        by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
-          exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
+    have pos: (0:int) < order_of a,
+      from int.coe_nat_lt.mpr $ order_of_pos a,
+    have 0 ≤ i % (order_of a),
+      from int.mod_nonneg _ $ ne_of_gt pos,
+    ⟨int.to_nat (i % order_of a),
+      by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
+        exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
   { intros, exact finset.mem_univ _ },
   { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
 end
 
 section classical
 local attribute [instance] classical.prop_decidable
+open quotient_group
 
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
 lemma order_of_dvd_card_univ : order_of a ∣ fintype.card α :=
-have ft_prod : fintype (left_cosets (gpowers a) × (gpowers a)),
-  from fintype.of_equiv α (gpowers.is_subgroup a).group_equiv_left_cosets_times_subgroup,
+have ft_prod : fintype (quotient (gpowers a) × (gpowers a)),
+  from fintype.of_equiv α (gpowers.is_subgroup a).group_equiv_quotient_times_subgroup,
 have ft_s : fintype (gpowers a),
   from @fintype.fintype_prod_right _ _ _ ft_prod _,
-have ft_cosets : fintype (left_cosets (gpowers a)),
+have ft_cosets : fintype (quotient (gpowers a)),
   from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, is_submonoid.one_mem (gpowers a)⟩⟩,
-have ft : fintype (left_cosets (gpowers a) × (gpowers a)),
+have ft : fintype (quotient (gpowers a) × (gpowers a)),
   from @prod.fintype _ _ ft_cosets ft_s,
 have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
   from calc fintype.card α = @fintype.card _ ft_prod :
-      @fintype.card_congr _ _ _ ft_prod (gpowers.is_subgroup a).group_equiv_left_cosets_times_subgroup
+      @fintype.card_congr _ _ _ ft_prod (gpowers.is_subgroup a).group_equiv_quotient_times_subgroup
     ... = @fintype.card _ (@prod.fintype _ _ ft_cosets ft_s) :
       congr_arg (@fintype.card _) $ subsingleton.elim _ _
     ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
       @fintype.card_prod _ _ ft_cosets ft_s,
 have eq₂ : order_of a = @fintype.card _ ft_s,
-  from calc order_of a = _ : order_eq_card_range_gpow
+  from calc order_of a = _ : order_eq_card_gpowers
     ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
-dvd.intro (@fintype.card (left_cosets (gpowers a)) ft_cosets) $
+dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
 
 end classical

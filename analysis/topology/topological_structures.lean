@@ -344,6 +344,10 @@ le_antisymm
     have b ∈ interior {b | f b ≤ g b}, from this hb,
     by exact hb₂ this)
 
+lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
+by rw ← frontier_compl;
+   convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
+
 lemma continuous_max : continuous (λb, max (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, g b = f b, from assume b hb, (frontier_le_subset_eq hf hg hb).symm,
 continuous_if this hg hf
@@ -404,13 +408,13 @@ lemma lt_mem_nhds {a b : α} (h : a < b) : {b | a < b} ∈ (nhds b).sets :=
 mem_nhds_sets (is_open_lt' _) h
 
 lemma le_mem_nhds {a b : α} (h : a < b) : {b | a ≤ b} ∈ (nhds b).sets :=
-(nhds b).upwards_sets (lt_mem_nhds h) $ assume b hb, le_of_lt hb
+(nhds b).sets_of_superset (lt_mem_nhds h) $ assume b hb, le_of_lt hb
 
 lemma gt_mem_nhds {a b : α} (h : a < b) : {a | a < b} ∈ (nhds a).sets :=
 mem_nhds_sets (is_open_gt' _) h
 
 lemma ge_mem_nhds {a b : α} (h : a < b) : {a | a ≤ b} ∈ (nhds a).sets :=
-(nhds a).upwards_sets (gt_mem_nhds h) $ assume b hb, le_of_lt hb
+(nhds a).sets_of_superset (gt_mem_nhds h) $ assume b hb, le_of_lt hb
 
 lemma nhds_eq_orderable {a : α} :
   nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) :=
@@ -618,10 +622,10 @@ instance orderable_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
               assume c hcs hca, show c < b,
                 from lt_of_not_ge $ assume hbc, h c (lt_of_lt_of_le hb₁ hbc) (le_of_lt hca) hcs,
-              inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_lt' _) hb₂) $
+              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hb₂) $
                 assume x (hx : b < x), show ¬ x < b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' < a}, is_open_gt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_lt' _) hl) $
+              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hl) $
                 assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
           end)
         (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
@@ -635,10 +639,10 @@ instance orderable_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
               assume c hcs hca, show c > b,
                 from lt_of_not_ge $ assume hbc, h c (le_of_lt hca) (lt_of_le_of_lt hbc hb₂) hcs,
-              inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_gt' _) hb₁) $
+              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hb₁) $
                 assume x (hx : b > x), show ¬ x > b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' > a}, is_open_lt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_gt' _) hu) $
+              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hu) $
                 assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
           end)
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
@@ -885,13 +889,13 @@ theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l
   {a | a < b} ∈ f.sets :=
 let ⟨c, (h : {a : α | a ≤ c} ∈ f.sets), hcb⟩ :=
   exists_lt_of_cInf_lt (ne_empty_iff_exists_mem.2 h) l in
-f.upwards_sets h $ assume a hac, lt_of_le_of_lt hac hcb
+mem_sets_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
 
 theorem gt_mem_sets_of_Liminf_gt {f : filter α} {b} (h : f.is_bounded (≥)) (l : f.Liminf > b) :
   {a | a > b} ∈ f.sets :=
 let ⟨c, (h : {a : α | c ≤ a} ∈ f.sets), hbc⟩ :=
   exists_lt_of_lt_cSup (ne_empty_iff_exists_mem.2 h) l in
-f.upwards_sets h $ assume a hca, lt_of_lt_of_le hbc hca
+mem_sets_of_superset h $ assume a hca, lt_of_lt_of_le hbc hca
 
 /-- If the liminf and the limsup of a filter coincide, then this filter converges to
 their common value, at least if the filter is eventually bounded above and below. -/
@@ -908,7 +912,7 @@ cInf_intro (ne_empty_iff_exists_mem.2 $ is_bounded_le_nhds a)
   (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ (nhds a).sets), c < b, from
     match dense_or_discrete hba with
     | or.inl ⟨c, hac, hcb⟩ := ⟨c, ge_mem_nhds hac, hcb⟩
-    | or.inr ⟨_, h⟩        := ⟨a, (nhds a).upwards_sets (gt_mem_nhds hba) h, hba⟩
+    | or.inr ⟨_, h⟩        := ⟨a, (nhds a).sets_of_superset (gt_mem_nhds hba) h, hba⟩
     end)
 
 theorem Liminf_nhds (a : α) : Liminf (nhds a) = a :=
@@ -917,7 +921,7 @@ cSup_intro (ne_empty_iff_exists_mem.2 $ is_bounded_ge_nhds a)
   (assume b (hba : b < a), show ∃c (h : {n : α | c ≤ n} ∈ (nhds a).sets), b < c, from
     match dense_or_discrete hba with
     | or.inl ⟨c, hbc, hca⟩ := ⟨c, le_mem_nhds hca, hbc⟩
-    | or.inr ⟨h, _⟩        := ⟨a, (nhds a).upwards_sets (lt_mem_nhds hba) h, hba⟩
+    | or.inr ⟨h, _⟩        := ⟨a, (nhds a).sets_of_superset (lt_mem_nhds hba) h, hba⟩
     end)
 
 /-- If a filter is converging, its limsup coincides with its limit. -/

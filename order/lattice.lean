@@ -326,3 +326,27 @@ instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
 end lattice
+
+namespace order_dual
+open lattice
+variable (α : Type*)
+
+instance [has_inf α] : has_sup (order_dual α) := ⟨((⊓) : α → α → α)⟩
+instance [has_sup α] : has_inf (order_dual α) := ⟨((⊔) : α → α → α)⟩
+
+instance [semilattice_inf α] : semilattice_sup (order_dual α) :=
+{ le_sup_left  := @inf_le_left α _,
+  le_sup_right := @inf_le_right α _,
+  sup_le := assume a b c hca hcb, @le_inf α _ _ _ _ hca hcb,
+  .. order_dual.partial_order α, .. order_dual.lattice.has_sup α }
+
+instance [semilattice_sup α] : semilattice_inf (order_dual α) :=
+{ inf_le_left  := @le_sup_left α _,
+  inf_le_right := @le_sup_right α _,
+  le_inf := assume a b c hca hcb, @sup_le α _ _ _ _ hca hcb,
+  .. order_dual.partial_order α, .. order_dual.lattice.has_inf α }
+
+instance [lattice α] : lattice (order_dual α) :=
+{ .. order_dual.lattice.semilattice_sup α, .. order_dual.lattice.semilattice_inf α }
+
+end order_dual

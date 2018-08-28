@@ -125,8 +125,6 @@ instance : partial_order (measurable_space α) :=
   le_trans    := assume a b c, le_trans,
   le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩ }
 
-section generated_from
-
 /-- The smallest σ-algebra containing a collection `s` of basic sets -/
 inductive generate_measurable (s : set (set α)) : set α → Prop
 | basic : ∀u∈s, generate_measurable u
@@ -152,16 +150,39 @@ assume t (ht : generate_measurable s t), ht.rec_on h
   (assume s _ hs, is_measurable_compl m s hs)
   (assume f _ hf, is_measurable_Union m f hf)
 
-end generated_from
+lemma generate_from_le_iff {s : set (set α)} {m : measurable_space α} :
+  generate_from s ≤ m ↔ s ⊆ {t | m.is_measurable t} :=
+iff.intro
+  (assume h u hu, h _ $ is_measurable_generate_from hu)
+  (assume h, generate_from_le h)
 
-instance : has_top (measurable_space α) :=
-⟨{is_measurable       := λs, true,
-  is_measurable_empty := trivial,
-  is_measurable_compl := assume s hs, trivial,
-  is_measurable_Union := assume f hf, trivial }⟩
+protected def mk_of_closure (g : set (set α)) (hg : {t | (generate_from g).is_measurable t} = g) :
+  measurable_space α :=
+{ is_measurable := λs, s ∈ g,
+  is_measurable_empty := hg ▸ is_measurable_empty _,
+  is_measurable_compl := hg ▸ is_measurable_compl _,
+  is_measurable_Union := hg ▸ is_measurable_Union _ }
 
-instance : has_bot (measurable_space α) :=
-⟨{is_measurable       := λs, s = ∅ ∨ s = univ,
+lemma mk_of_closure_sets {s : set (set α)}
+  {hs : {t | (generate_from s).is_measurable t} = s} :
+  measurable_space.mk_of_closure s hs = generate_from s :=
+measurable_space.ext $ assume t, show t ∈ s ↔ _, by rw [← hs] {occs := occurrences.pos [1] }; refl
+
+def gi_generate_from : galois_insertion (@generate_from α) (λm, {t | @is_measurable α m t}) :=
+{ gc        := assume s m, generate_from_le_iff,
+  le_l_u    := assume m s, is_measurable_generate_from,
+  choice    :=
+    λg hg, measurable_space.mk_of_closure g $ le_antisymm hg $ generate_from_le_iff.1 $ le_refl _,
+  choice_eq := assume g hg, mk_of_closure_sets }
+
+instance : complete_lattice (measurable_space α) :=
+gi_generate_from.lift_complete_lattice
+
+instance : inhabited (measurable_space α) := ⟨⊤⟩
+
+lemma is_measurable_bot_iff {s : set α} : @is_measurable α ⊥ s ↔ (s = ∅ ∨ s = univ) :=
+let b : measurable_space α :=
+{ is_measurable       := λs, s = ∅ ∨ s = univ,
   is_measurable_empty := or.inl rfl,
   is_measurable_compl := by simp [or_imp_distrib] {contextual := tt},
   is_measurable_Union := assume f hf, classical.by_cases
@@ -170,70 +191,24 @@ instance : has_bot (measurable_space α) :=
       or.inr $ eq_univ_of_univ_subset $ hi ▸ le_supr f i)
     (assume h : ¬ ∃i, f i = univ,
       or.inl $ eq_empty_of_subset_empty $ Union_subset $ assume i,
-        (hf i).elim (by simp {contextual := tt}) (assume hi, false.elim $ h ⟨i, hi⟩)) }⟩
+        (hf i).elim (by simp {contextual := tt}) (assume hi, false.elim $ h ⟨i, hi⟩)) } in
+have b = ⊥, from bot_unique $ assume s hs,
+  hs.elim (assume s, s.symm ▸ @is_measurable_empty _ ⊥) (assume s, s.symm ▸ @is_measurable_univ _ ⊥),
+this ▸ iff.refl _
 
-instance : has_inf (measurable_space α) :=
-⟨λm₁ m₂, {
-  is_measurable       := λs:set α, m₁.is_measurable s ∧ m₂.is_measurable s,
-  is_measurable_empty := ⟨m₁.is_measurable_empty, m₂.is_measurable_empty⟩,
-  is_measurable_compl := assume s ⟨h₁, h₂⟩, ⟨m₁.is_measurable_compl s h₁, m₂.is_measurable_compl s h₂⟩,
-  is_measurable_Union := assume f hf,
-    ⟨m₁.is_measurable_Union f (λi, (hf i).left), m₂.is_measurable_Union f (λi, (hf i).right)⟩ }⟩
-
-instance : has_Inf (measurable_space α) :=
-⟨λx, {
-  is_measurable       := λs:set α, ∀m:measurable_space α, m ∈ x → m.is_measurable s,
-  is_measurable_empty := assume m hm, m.is_measurable_empty,
-  is_measurable_compl := assume s hs m hm, m.is_measurable_compl s $ hs _ hm,
-  is_measurable_Union := assume f hf m hm, m.is_measurable_Union f $ assume i, hf _ _ hm }⟩
-
-protected lemma le_Inf {s : set (measurable_space α)} {m : measurable_space α}
-  (h : ∀m'∈s, m ≤ m') : m ≤ Inf s :=
-assume s hs m hm, h m hm s hs
-
-protected lemma Inf_le {s : set (measurable_space α)} {m : measurable_space α}
-  (h : m ∈ s) : Inf s ≤ m :=
-assume s hs, hs m h
-
-instance : complete_lattice (measurable_space α) :=
-{ sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},
-  le_sup_left   := assume a b, measurable_space.le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.left,
-  le_sup_right  := assume a b, measurable_space.le_Inf $ assume x, assume h : a ≤ x ∧ b ≤ x, h.right,
-  sup_le        := assume a b c h₁ h₂,
-    measurable_space.Inf_le $ show c ∈ {x | a ≤ x ∧ b ≤ x}, from ⟨h₁, h₂⟩,
-  inf           := (⊓),
-  le_inf        := assume a b h h₁ h₂ s hs, ⟨h₁ s hs, h₂ s hs⟩,
-  inf_le_left   := assume a b s ⟨h₁, h₂⟩, h₁,
-  inf_le_right  := assume a b s ⟨h₁, h₂⟩, h₂,
-  top           := ⊤,
-  le_top        := assume a t ht, trivial,
-  bot           := ⊥,
-  bot_le        := assume a s hs, hs.elim
-    (assume h, h.symm ▸ a.is_measurable_empty)
-    (assume h, begin rw [h, ←compl_empty], exact a.is_measurable_compl _ a.is_measurable_empty end),
-  Sup           := λtt, Inf {t | ∀t'∈tt, t' ≤ t},
-  le_Sup        := assume s f h, measurable_space.le_Inf $ assume t ht, ht _ h,
-  Sup_le        := assume s f h, measurable_space.Inf_le $ assume t ht, h _ ht,
-  Inf           := Inf,
-  le_Inf        := assume s a, measurable_space.le_Inf,
-  Inf_le        := assume s a, measurable_space.Inf_le,
-  ..measurable_space.partial_order }
-
-instance : inhabited (measurable_space α) := ⟨⊤⟩
-
-@[simp] theorem is_measurable_Inf {ms : set (measurable_space α)} {s : set α} :
-  @is_measurable _ (Inf ms) s ↔ ∀ m ∈ ms, @is_measurable _ m s :=
-iff.rfl
-
-@[simp] theorem is_measurable_infi {ι} {m : ι → measurable_space α} {s : set α} :
-  @is_measurable _ (infi m) s ↔ ∀ i, @is_measurable _ (m i) s :=
-is_measurable_Inf.trans $ by simp;
-  rw forall_swap; exact forall_congr (λ i, by simp)
+@[simp] theorem is_measurable_top {s : set α} : @is_measurable _ ⊤ s := trivial
 
 @[simp] theorem is_measurable_inf {m₁ m₂ : measurable_space α} {s : set α} :
   @is_measurable _ (m₁ ⊓ m₂) s ↔ @is_measurable _ m₁ s ∧ @is_measurable _ m₂ s :=
 iff.rfl
 
+@[simp] theorem is_measurable_Inf {ms : set (measurable_space α)} {s : set α} :
+  @is_measurable _ (Inf ms) s ↔ ∀ m ∈ ms, @is_measurable _ m s :=
+show s ∈ (⋂m∈ms, {t | @is_measurable _ m t }) ↔ _, by simp
+
+@[simp] theorem is_measurable_infi {ι} {m : ι → measurable_space α} {s : set α} :
+  @is_measurable _ (infi m) s ↔ ∀ i, @is_measurable _ (m i) s :=
+show s ∈ (λm, {s | @is_measurable _ m s }) (infi m) ↔ _, by rw (@gi_generate_from α).gc.u_infi; simp; refl
 
 end complete_lattice
 
@@ -293,8 +268,8 @@ lemma monotone_comap : monotone (measurable_space.comap g) := assume a b h, coma
 @[simp] lemma map_infi {m : ι → measurable_space α} : (⨅i, m i).map f = (⨅i, (m i).map f) :=
 (gc_comap_map f).u_infi
 
-lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).decreasing_l_u _
-lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).increasing_u_l _
+lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).l_u_le _
+lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
 end functors
 
@@ -318,18 +293,11 @@ le_antisymm
 
 lemma generate_from_le_generate_from {s t : set (set α)} (h : s ⊆ t) :
   generate_from s ≤ generate_from t :=
-generate_from_le $ assume s hs, generate_measurable.basic s $ h hs
+gi_generate_from.gc.monotone_l h
 
 lemma generate_from_sup_generate_from {s t : set (set α)} :
   generate_from s ⊔ generate_from t = generate_from (s ∪ t) :=
-le_antisymm
-  (sup_le (generate_from_le_generate_from $ subset_union_left _ _)
-    (generate_from_le_generate_from $ subset_union_right _ _))
-  (generate_from_le $ assume u hu, hu.elim
-    (assume hu, have is_measurable (generate_from s) u, from generate_measurable.basic _ hu,
-      @le_sup_left (measurable_space α) _ _ _ _ this)
-    (assume hu, have is_measurable (generate_from t) u, from generate_measurable.basic _ hu,
-      @le_sup_right (measurable_space α) _ _ _ _ this))
+(@gi_generate_from α).gc.l_sup.symm
 
 end measurable_space
 

@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Simon Hudon
+Authors: Simon Hudon, Scott Morrison
 -/
 import tactic data.set.lattice data.prod
+       tactic.rewrite
 
 section solve_by_elim
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
@@ -22,6 +23,18 @@ example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
 begin
   apply_assumption,
 end
+
+open tactic
+
+example : true :=
+begin
+  (do gs ← get_goals,
+     set_goals [],
+     success_if_fail `[solve_by_elim],
+     set_goals gs),
+  trivial
+end
+
 end solve_by_elim
 
 section tauto₀
@@ -338,6 +351,16 @@ end rcases
 
 section ext
 
+@[extensionality] lemma unit.ext (x y : unit) : x = y :=
+begin
+  cases x, cases y, refl
+end
+
+example : subsingleton unit :=
+begin
+  split, intros, ext
+end
+
 example (x y : ℕ) : true :=
 begin
   have : x = y,
@@ -345,24 +368,24 @@ begin
   have : x = y,
   { ext i <|> admit },
   have : x = y,
-  { ext 1 <|> admit },
+  { ext : 1 <|> admit },
   trivial
 end
 
 example (X Y : ℕ × ℕ)  (h : X.1 = Y.1) (h : X.2 = Y.2) : X = Y :=
 begin
-  ext ; assumption
+  ext; assumption
 end
 
 example (X Y : (ℕ → ℕ) × ℕ)  (h : ∀ i, X.1 i = Y.1 i) (h : X.2 = Y.2) : X = Y :=
 begin
-  ext x ; solve_by_elim,
+  ext x; solve_by_elim,
 end
 
 example (X Y : ℕ → ℕ × ℕ)  (h : ∀ i, X i = Y i) : true :=
 begin
   have : X = Y,
-  { ext 1 with i,
+  { ext i : 1,
     guard_target X i = Y i,
     admit },
   have : X = Y,
@@ -370,7 +393,7 @@ begin
     guard_target (X i).fst = (Y i).fst, admit,
     guard_target (X i).snd = (Y i).snd, admit, },
   have : X = Y,
-  { ext 1,
+  { ext : 1,
     guard_target X x = Y x,
     admit },
   trivial,
@@ -533,3 +556,48 @@ begin
 end
 
 end h_generalize
+
+section assoc_rw
+open tactic
+example : ∀ x y z a b c : ℕ, true :=
+begin
+ intros,
+ have : x + (y + z) = 3 + y, admit,
+ have : a + (b + x) + y + (z + b + c) ≤ 0,
+ (do this ← get_local `this,
+     tgt ← to_expr ```(a + (b + x) + y + (z + b + c)),
+     assoc ← mk_mapp ``add_monoid.add_assoc [`(ℕ),none],
+     (l,p) ← assoc_rewrite_intl assoc this tgt,
+     note `h none p  ),
+ erw h,
+ guard_target a + b + 3 + y + b + c ≤ 0,
+ admit,
+ trivial
+end
+
+example : ∀ x y z a b c : ℕ, true :=
+begin
+ intros,
+ have : ∀ y, x + (y + z) = 3 + y, admit,
+ have : a + (b + x) + y + (z + b + c) ≤ 0,
+ (do this ← get_local `this,
+     tgt ← to_expr ```(a + (b + x) + y + (z + b + c)),
+     assoc_rewrite_target this ),
+ guard_target a + b + 3 + y + b + c ≤ 0,
+ admit,
+ trivial
+end
+
+variables x y z a b c : ℕ
+variables h₀ : ∀ (y : ℕ), x + (y + z) = 3 + y
+variables h₁ : a + (b + x) + y + (z + b + a) ≤ 0
+variables h₂ : y + b + c = y + b + a
+include h₀ h₁ h₂
+example : a + (b + x) + y + (z + b + c) ≤ 0 :=
+by { assoc_rw [h₀,h₂] at *,
+     guard_hyp _inst := is_associative ℕ has_add.add,
+       -- keep a local instance of is_associative to cache
+       -- type class queries
+     exact h₁ }
+
+end assoc_rw

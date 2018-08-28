@@ -5,8 +5,8 @@ Authors: Chris Hughes
 -/
 
 import algebra.euclidean_domain ring_theory.ideals
-universes u v
-variables {α : Type u} {β : Type v} [comm_ring α] {a b : α}
+universes u
+variables {α : Type u} [comm_ring α] {a b : α}
 
 open set function is_ideal
 local attribute [instance] classical.prop_decidable

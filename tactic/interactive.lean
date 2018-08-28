@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel
+Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
@@ -157,16 +157,20 @@ meta def unfold_coes (loc : parse location) : tactic unit :=
 unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_coe.coe,
         ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
+/-- Unfold auxiliary definitions associated with the currently declaration. -/
+meta def unfold_aux : tactic unit :=
+do tgt ← target,
+   name ← decl_name,
+   let to_unfold := tgt.list_names_with_prefix name,
+   guard (to_unfold ≠ []),
+   tactic.dunfold to_unfold tgt >>= tactic.change,
+   try `[dsimp]
+
 /-- For debugging only. This tactic checks the current state for any
 missing dropped goals and restores them. Useful when there are no
 goals to solve but "result contains meta-variables". -/
 meta def recover : tactic unit :=
-do r ← tactic.result,
-   tactic.set_goals $ r.fold [] $ λ e _ l,
-     match e with
-     | expr.mvar _ _ _ := insert e l
-     | _ := l
-     end
+metavariables >>= tactic.set_goals 
 
 /-- Like `try { tac }`, but in the case of failure it continues
 from the failure state instead of reverting to the original state. -/

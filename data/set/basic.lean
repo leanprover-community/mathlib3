@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.ext tactic.finish data.subtype
+import tactic.ext tactic.finish data.subtype tactic.interactive
 open function
 
 namespace set
@@ -174,6 +174,20 @@ theorem eq_univ_iff_forall {s : set α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext_iff]
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
+
+lemma nonempty_iff_univ_ne_empty {α : Type*} : nonempty α ↔ (univ : set α) ≠ ∅ :=
+begin
+  split,
+  { rintro ⟨a⟩ H2,
+    show a ∈ (∅ : set α), by rw ←H2 ; trivial },
+  { intro H,
+    apply classical.by_contradiction,
+    intro H2,
+    apply H,
+    funext,
+    exfalso,
+    exact H2 ⟨a⟩ }
+end
 
 /- union -/
 
@@ -921,6 +935,13 @@ subset.antisymm
 
 theorem range_subset_iff {ι : Type*} {f : ι → β} {s : set β} : range f ⊆ s ↔ ∀ y, f y ∈ s :=
 forall_range_iff
+
+lemma nonempty_of_nonempty_range {α : Type*} {β : Type*} {f : α → β} (H : ¬range f = ∅) : nonempty α :=
+begin
+  cases exists_mem_of_ne_empty H with x h,
+  cases mem_range.1 h with y _,
+  exact ⟨y⟩
+end
 
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' preimage f t = t ∩ range f :=

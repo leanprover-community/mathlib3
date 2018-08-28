@@ -225,6 +225,15 @@ closure_minimal (subset.trans h subset_closure) is_closed_closure
 @[simp] lemma closure_empty : closure (∅ : set α) = ∅ :=
 closure_eq_of_is_closed is_closed_empty
 
+lemma closure_empty_iff (s : set α) : closure s = ∅ ↔ s = ∅ :=
+begin
+  split ; intro h,
+  { rw set.eq_empty_iff_forall_not_mem,
+    intros x H,
+    simpa [h] using subset_closure H },
+  { exact (eq.symm h) ▸ closure_empty },
+end
+
 @[simp] lemma closure_univ : closure (univ : set α) = univ :=
 closure_eq_of_is_closed is_closed_univ
 

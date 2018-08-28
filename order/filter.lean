@@ -767,6 +767,19 @@ vmap_neq_bot $ assume t ht,
 lemma map_ne_bot (hf : f ≠ ⊥) : map m f ≠ ⊥ :=
 assume h, hf $ by rwa [map_eq_bot_iff] at h
 
+lemma inter_vmap_sets (f : α → β) (F : filter β) : 
+  ⋂₀(vmap f F).sets = ⋂ U ∈ F.sets, f ⁻¹' U :=
+begin
+  ext x,
+  suffices : (∀ (A : set α) (B : set β), B ∈ F.sets → f ⁻¹' B ⊆ A → x ∈ A) ↔
+    ∀ (B : set β), B ∈ F.sets → f x ∈ B,
+  by simp [set.mem_sInter, set.mem_Inter, mem_vmap_sets, this],
+  split,
+  { intros h U U_in,
+    simpa [set.subset.refl] using h (f ⁻¹' U) U U_in },
+  { intros h V U U_in f_U_V,
+    exact f_U_V (h U U_in) },
+end
 end map
 
 lemma map_cong {m₁ m₂ : α → β} {f : filter α} (h : {x | m₁ x = m₂ x} ∈ f.sets) :
@@ -987,6 +1000,18 @@ lemma tendsto_vmap'' {m : α → β} {f : filter α} {g : filter β} (s : set α
 have tendsto m (map i $ vmap i $ f) g,
   by rwa [tendsto, ←map_compose] at h,
 le_trans (map_mono $ le_map_vmap' hs hi) this
+
+lemma vmap_eq_of_inverse {f : filter α} {g : filter β} 
+  {φ : α → β} {ψ : β → α} (inv₁ : φ ∘ ψ = id) (inv₂ : ψ ∘ φ = id)
+  (lim₁ : tendsto φ f g) (lim₂ : tendsto ψ g f)
+ : vmap φ g = f :=
+begin
+  have ineq₁ := calc
+    vmap φ g = map ψ g : eq.symm (map_eq_vmap_of_inverse inv₂ inv₁)
+         ... ≤ f : lim₂,
+  have ineq₂ : f ≤ vmap φ g := map_le_iff_le_vmap.1 lim₁,
+  exact le_antisymm ineq₁ ineq₂
+end
 
 lemma tendsto_inf {f : α → β} {x : filter α} {y₁ y₂ : filter β} :
   tendsto f x (y₁ ⊓ y₂) ↔ tendsto f x y₁ ∧ tendsto f x y₂ :=
@@ -1480,6 +1505,16 @@ calc filter.prod f g ≠ ⊥ ↔ (∀s∈f.sets, g.lift' (set.prod s) ≠ ⊥) :
         assume t ht, (h univ univ_mem_sets t ht).right⟩,
       assume ⟨h₁, h₂⟩ s hs t ht, ⟨h₁ s hs, h₂ t ht⟩⟩
   ... ↔ _ : by simp only  [forall_sets_neq_empty_iff_neq_bot]
+
+lemma tendsto_prod_iff {f : α × β → γ} {x : filter α} {y : filter β} {z : filter γ} :
+ filter.tendsto f (filter.prod x y) z 
+ ↔ ∀ W ∈ z.sets, ∃ U ∈ x.sets,  ∃ V ∈ y.sets, ∀ x y, x ∈ U → y ∈ V → f (x, y) ∈ W :=
+by simp [tendsto_def, mem_prod_iff, set.prod_sub_preimage_iff]
+
+lemma tendsto_prod_self_iff {f : α × α → β} {x : filter α} {y : filter β} :
+ filter.tendsto f (filter.prod x x) y 
+ ↔ ∀ W ∈ y.sets, ∃ U ∈ x.sets, ∀ (x x' : α), x ∈ U → x' ∈ U → f (x, x') ∈ W :=
+by simp [tendsto_def, mem_prod_same_iff, set.prod_sub_preimage_iff]
 
 end prod
 

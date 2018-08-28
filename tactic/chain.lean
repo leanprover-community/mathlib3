@@ -145,7 +145,7 @@ else
 
 meta def chain (tactics : list (tactic α)) : tactic (list string) :=
 do sequence ← chain_handle_trace tactics,
-   guard (sequence.length > 0) <|> fail "chain tactic made no progress",
+   when (sequence.empty) (fail "`chain` tactic made no progress"),
    pure sequence
 
 end tactic

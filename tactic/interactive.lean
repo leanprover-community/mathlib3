@@ -163,8 +163,8 @@ do tgt ← target,
    name ← decl_name,
    let to_unfold := (tgt.list_names_with_prefix name),
    guard (¬ to_unfold.empty),
-   tactic.dunfold to_unfold.to_list tgt >>= tactic.change,
-   try `[dsimp]
+   -- should we be using simp_lemmas.mk_default?
+   simp_lemmas.mk.dsimplify to_unfold.to_list tgt >>= tactic.change
 
 /-- For debugging only. This tactic checks the current state for any
 missing dropped goals and restores them. Useful when there are no

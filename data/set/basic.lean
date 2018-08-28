@@ -883,6 +883,7 @@ set.ext $ assume a,
 
 lemma preimage_subset_iff {A : set α} {B : set β} {f : α → β} :
   f⁻¹' B ⊆ A ↔ (∀ a : α, f a ∈ B → a ∈ A) := iff.rfl
+
 end image
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
@@ -956,7 +957,7 @@ theorem mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈
 
 @[simp] theorem mem_prod {p : α × β} : p ∈ set.prod s t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
-lemma mem_prod' {a : α} {b : β} (a_in : a ∈ s) (b_in : b ∈ t) : (a, b) ∈ set.prod s t := ⟨a_in, b_in⟩
+lemma mk_mem_prod {a : α} {b : β} (a_in : a ∈ s) (b_in : b ∈ t) : (a, b) ∈ set.prod s t := ⟨a_in, b_in⟩
 
 @[simp] theorem prod_empty {s : set α} : set.prod s ∅ = (∅ : set (α × β)) :=
 set.ext $ by simp [set.prod]
@@ -1013,12 +1014,12 @@ by simp [not_eq_empty_iff_exists]
 @[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
 
-@[simp] theorem univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
+@[simp] theorem univ_prod_univ : set.prod (@univ α) (@univ β) = univ :=
 set.ext $ assume ⟨a, b⟩, by simp
 
 lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
-set.prod s t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
-⟨λ h a b a_in b_in, h (mem_prod' a_in b_in),
- λ h p p_in, by have := h p.1 p.2 p_in.1 p_in.2 ; rwa prod.mk.eta at this⟩
+  set.prod s t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
+by simp [subset_def]
+
 end prod
 end set

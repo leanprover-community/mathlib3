@@ -9,12 +9,12 @@ namespace category_theory
 universes u v u' v' w
 
 instance types : large_category (Type u) :=
-{ hom     := λ a b, (a → b),
-  id      := λ a, id,
-  comp    := λ _ _ _ f g, g ∘ f,
-  id_comp := begin /- `obviously'` says: -/ intros, refl  end,
-  comp_id := begin /- `obviously'` says: -/ intros, refl end,
-  assoc   := begin /- `obviously'` says: -/ intros, refl end }
+{ hom      := λ a b, (a → b),
+  id       := λ a, id,
+  comp     := λ _ _ _ f g, g ∘ f,
+  id_comp' := begin /- `obviously'` says: -/ intros, refl  end,
+  comp_id' := begin /- `obviously'` says: -/ intros, refl end,
+  assoc'   := begin /- `obviously'` says: -/ intros, refl end }
 
 @[simp] lemma types_hom {α β : Type u} : (α ⟶ β) = (α → β) := rfl  
 @[simp] lemma types_id {α : Type u} (a : α) : (𝟙 α : α → α) a = a := rfl

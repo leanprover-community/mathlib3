@@ -503,11 +503,15 @@ meta def fsplit : tactic unit :=
 do [c] ← target' >>= get_constructors_for | tactic.fail "fsplit tactic failed, target is not an inductive datatype with only one constructor",
    mk_const c >>= λ e, apply e {new_goals := new_goals.all, auto_param := ff} >> skip
 
+run_cmd add_interactive [`fsplit]
+
 /-- Calls `injection` on each hypothesis, and then, for each hypothesis on which `injection`
     succeeds, clears the old hypothesis. -/
 meta def injections_and_clear : tactic unit :=
 do l ← local_context,
    at_least_one $ l.map $ λ e, injection e >> clear e,
    skip
+
+run_cmd add_interactive [`injections_and_clear]
 
 end tactic

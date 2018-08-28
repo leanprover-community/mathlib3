@@ -51,9 +51,6 @@ meta def work_on_goal : parse small_nat → itactic → tactic unit
             set_goals (earlier_goals ++ new_goals ++ later_goals)
 end interactive
 
-structure chain_cfg := 
-(trace_steps        : bool := ff)
-
 inductive tactic_script (α : Type) : Type
 | base : α → tactic_script
 | work (index : ℕ) (first : α) (later : list tactic_script) (closed : bool) : tactic_script
@@ -96,15 +93,14 @@ meta mutual def chain_single, chain_many, chain_iter {α} (tac : tactic α)
 with chain_single : expr → tactic (α × list (tactic_script α)) | g :=
 do set_goals [g],
   a ← tac,
-  l ← get_goals >>= chain_many tt,
+  l ← get_goals >>= chain_many,
   return (a, l)
-with chain_many : bool → list expr → tactic (list (tactic_script α))
-| tt [] := return []
-| ff [] := fail "`chain_many` made no progress"
-| _ [g] := do {
+with chain_many : list expr → tactic (list (tactic_script α))
+| [] := return []
+| [g] := do {
   (a, l) ← chain_single g,
   return (tactic_script.base a :: l) } <|> return []
-| _ gs := chain_iter gs []
+| gs := chain_iter gs []
 with chain_iter : list expr → list expr → tactic (list (tactic_script α))
 | [] _ := return []
 | (g :: later_goals) stuck_goals := do {
@@ -113,39 +109,42 @@ with chain_iter : list expr → list expr → tactic (list (tactic_script α))
   let w := tactic_script.work stuck_goals.length a l (new_goals = []),
   let current_goals := stuck_goals.reverse ++ new_goals ++ later_goals,
   set_goals current_goals, -- we keep the goals up to date, so they are correct at the end
-  l' ← chain_many tt current_goals,
+  l' ← chain_many current_goals,
   return (w :: l') } <|> chain_iter later_goals (g :: stuck_goals)
 
-meta def chain_core {α : Type} [has_to_string (tactic_script α)] (cfg : chain_cfg) (tactics : list (tactic α)) : tactic (list string) :=
-do results ← (get_goals >>= chain_many (first tactics) ff),
+meta def chain_core {α : Type} [has_to_string (tactic_script α)] (tactics : list (tactic α)) : tactic (list string) :=
+do results ← (get_goals >>= chain_many (first tactics)),
+   when (results.empty) (fail "`chain` tactic made no progress"),
    return (results.map (λ r : tactic_script α, to_string r))
 
 variables [has_to_string (tactic_script α)] [has_to_format α]
+
+declare_trace chain
 
 meta def trace_output (t : tactic α) : tactic α :=
 do tgt ← target,
    r ← t,
    name ← decl_name,
-   trace format!"successfully applied a tactic during elaboration of {name}:",
+   trace format!"`chain` successfully applied a tactic during elaboration of {name}:",
    tgt ← pp tgt,
-   trace format!"old target: {tgt}",
+   trace format!"previous target: {tgt}",
    trace format!"tactic result: {r}",
    tgt ← try_core target,
    tgt ← match tgt with
-          | (some tgt) := do pp tgt
-          | none       := do return "′no goals′"
+          | (some tgt) := pp tgt
+          | none       := return "no goals"
           end,
    trace format!"new target: {tgt}",
    pure r
 
-private meta def chain_handle_trace (cfg : chain_cfg) (tactics : list (tactic α)) : tactic (list string) :=
-if cfg.trace_steps then
-  chain_core cfg (tactics.map trace_output)
+private meta def chain_handle_trace (tactics : list (tactic α)) : tactic (list string) :=
+if is_trace_enabled_for `chain then
+  chain_core (tactics.map trace_output)
 else 
-  chain_core cfg tactics
+  chain_core tactics
 
-meta def chain (cfg : chain_cfg) (tactics : list (tactic α)) : tactic (list string) :=
-do sequence ← chain_handle_trace cfg tactics,
+meta def chain (tactics : list (tactic α)) : tactic (list string) :=
+do sequence ← chain_handle_trace tactics,
    guard (sequence.length > 0) <|> fail "chain tactic made no progress",
    pure sequence
 

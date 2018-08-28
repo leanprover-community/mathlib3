@@ -161,9 +161,9 @@ unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_c
 meta def unfold_aux : tactic unit :=
 do tgt ← target,
    name ← decl_name,
-   let to_unfold := tgt.list_names_with_prefix name,
-   guard (to_unfold ≠ []),
-   tactic.dunfold to_unfold tgt >>= tactic.change,
+   let to_unfold := (tgt.list_names_with_prefix name),
+   guard (¬ to_unfold.empty),
+   tactic.dunfold to_unfold.to_list tgt >>= tactic.change,
    try `[dsimp]
 
 /-- For debugging only. This tactic checks the current state for any

@@ -54,10 +54,10 @@ e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
 
-meta def list_names_with_prefix (pre : name) (e : expr) : list name := 
-e.fold [] $ λ e' _ l,
+meta def list_names_with_prefix (pre : name) (e : expr) : name_set := 
+e.fold mk_name_set $ λ e' _ l,
   match e' with
-  | expr.const n _ := if n.get_prefix = pre then insert n l else l
+  | expr.const n _ := if n.get_prefix = pre then l.insert n else l
   | _ := l
   end
 
@@ -441,55 +441,25 @@ do goals ← get_goals,
    p ← is_prop current_goal_type,
    guard p
 
-/-- Succeeds only if we can construct an instance showing the 
-    current goal is a subsingleton type. -/
-meta def subsingleton_goal : tactic unit :=
-do goals ← get_goals,
-   let current_goal := goals.head,
-   current_goal_type ← infer_type current_goal >>= instantiate_mvars,
-   to_expr ``(subsingleton %%current_goal_type) >>= mk_instance >> skip
-
-/-- Succeeds only if the current goal is "terminal", in the sense 
-    that no other goals depend on it. -/
-meta def terminal_goal : tactic unit :=
-propositional_goal <|> subsingleton_goal <|> -- We can't merely test for subsingletons, as sometimes in the presence of metavariables `propositional_goal` succeeds while `subsingleton_goal` does not.
-do g :: gs ← get_goals,
-   gs.mmap' $ λ g', (do t ← infer_type g', 
-                        t ← instantiate_mvars t, 
-                        d ← kdepends_on t g,
-                        monad.whenb d $ pp t >>= λ s, fail ("This is not a terminal goal: " ++ s.to_string ++ " depends on it."))
-
 variable {α : Type}
 
-private meta def repeat_with_results_aux (t : tactic α) : list α → tactic (list α)
-| L := do r ← try_core t,
-          match r with
-          | none := return L
-          | (some r) := repeat_with_results_aux (r :: L)
-          end
+private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
+| L := (do r ← t, iterate_aux (r :: L)) <|> return L
 
-meta def repeat_with_results (t : tactic α) : tactic (list α) := 
-do l ← repeat_with_results_aux t [],
-   return l.reverse
+meta def iterate' (t : tactic α) : tactic (list α) := 
+list.reverse <$> iterate_aux t []
 
-/-- This is just `repeat1`, but returning results. -/
-meta def repeat_at_least_once (t : tactic α) : tactic (α × list α) :=
-do r ← t | fail "repeat_at_least_once failed: tactic did not succeed",
-   L ← repeat_with_results t,
+meta def iterate1 (t : tactic α) : tactic (α × list α) :=
+do r ← t | fail "iterate1 failed: tactic did not succeed",
+   L ← iterate' t,
    return (r, L)
 
-meta def intro_at_least_once : tactic (list expr) :=
-repeat_at_least_once intro1 >>= λ p, return ((p.1 :: p.2))
+meta def intros1 : tactic (list expr) :=
+iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 
-/-- `at_least_one` invokes each tactic in turn, returning the list of successful results. 
-    Fails if no tactic succeeds. -/
-meta def at_least_one {α} (tactics : list (tactic α)) : tactic (list α) := 
-do 
-  options ← monad.sequence (tactics.map (λ t, try_core t)),
-  -- unfortunately we can't import data.option here!
-  let results := (options.map (λ o : option α, match o with | (some a) := [a] | none := [] end)).join,
-  guard ¬ results.empty,
-  return results
+/-- `successes` invokes each tactic in turn, returning the list of successful results. -/
+meta def successes {α} (tactics : list (tactic α)) : tactic (list α) := 
+list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
 
 /-- Return target after instantiating metavars and whnf -/
 private meta def target' : tactic expr :=
@@ -499,6 +469,7 @@ target >>= instantiate_mvars >>= whnf
 Just like `split`, `fsplit` applies the constructor when the type of the target is an inductive data type with one constructor.
 However it does not reorder goals or invoke `auto_param` tactics.
 -/
+-- FIXME check if we can remove `auto_param := ff`
 meta def fsplit : tactic unit :=
 do [c] ← target' >>= get_constructors_for | tactic.fail "fsplit tactic failed, target is not an inductive datatype with only one constructor",
    mk_const c >>= λ e, apply e {new_goals := new_goals.all, auto_param := ff} >> skip
@@ -509,8 +480,8 @@ run_cmd add_interactive [`fsplit]
     succeeds, clears the old hypothesis. -/
 meta def injections_and_clear : tactic unit :=
 do l ← local_context,
-   at_least_one $ l.map $ λ e, injection e >> clear e,
-   skip
+   results ← successes $ l.map $ λ e, injection e >> clear e,
+   when (results.empty) (fail "could not use `injection` then `clear` on any hypothesis")
 
 run_cmd add_interactive [`injections_and_clear]
 

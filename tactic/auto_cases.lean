@@ -41,5 +41,6 @@ do t' ← infer_type h,
 /-- Applies `cases` or `induction` on certain hypotheses. -/
 meta def auto_cases : tactic string :=
 do l ← local_context,
-   results ← at_least_one (l.reverse.map(λ h, auto_cases_at h)),
+   results ← successes (l.reverse.map(λ h, auto_cases_at h)),
+   when (results.empty) (fail "`auto_cases` did not find any hypotheses to apply `cases` or `induction` to"),
    return (string.intercalate ", " results)

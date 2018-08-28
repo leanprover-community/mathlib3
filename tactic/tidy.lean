@@ -31,7 +31,7 @@ meta def default_tidy_tactics : list (tactic string) :=
   `[exact dec_trivial]                        >> pure "exact dec_trivial",
   propositional_goal >> assumption            >> pure "assumption",
   `[ext1]                                     >> pure "ext1",
-  intro_at_least_once                         >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
+  intros1                                     >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   auto_cases,
   `[apply_auto_param]                         >> pure "apply_auto_param",
   `[dsimp at *]                               >> pure "dsimp at *",
@@ -42,15 +42,17 @@ meta def default_tidy_tactics : list (tactic string) :=
   `[unfold_aux]                               >> pure "unfold_aux",
   run_tidy_tactics ]
 
-meta structure tidy_cfg extends chain_cfg :=
+meta structure tidy_cfg :=
 (trace_result : bool            := ff)
 (trace_result_prefix : string   := "/- obviously says -/ ")
 (tactics : list (tactic string) := default_tidy_tactics)
 
+declare_trace tidy
+
 meta def tidy_core (cfg : tidy_cfg := {}) : tactic (list string) :=
 do
-  results ← chain cfg.to_chain_cfg cfg.tactics,
-  if cfg.trace_result then
+  results ← chain cfg.tactics,
+  if cfg.trace_result ∨ is_trace_enabled_for `tidy then
     trace (cfg.trace_result_prefix ++ (", ".intercalate results))
   else
     tactic.skip,

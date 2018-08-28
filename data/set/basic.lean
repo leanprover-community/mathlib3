@@ -181,12 +181,8 @@ begin
   { rintro ⟨a⟩ H2,
     show a ∈ (∅ : set α), by rw ←H2 ; trivial },
   { intro H,
-    apply classical.by_contradiction,
-    intro H2,
-    apply H,
-    funext,
-    exfalso,
-    exact H2 ⟨a⟩ }
+    cases exists_mem_of_ne_empty H with a _,
+    exact ⟨a⟩ }
 end
 
 /- union -/

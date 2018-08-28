@@ -47,10 +47,19 @@ meta structure tidy_cfg extends chain_cfg :=
 (trace_result_prefix : string   := "/- obviously says -/ ")
 (tactics : list (tactic string) := default_tidy_tactics)
 
-meta def tidy (cfg : tidy_cfg := {}) : tactic unit :=
+meta def tidy_core (cfg : tidy_cfg := {}) : tactic (list string) :=
 do
   results ← chain cfg.to_chain_cfg cfg.tactics,
   if cfg.trace_result then
     trace (cfg.trace_result_prefix ++ (", ".intercalate results))
   else
-    tactic.skip
+    tactic.skip,
+  return results
+
+meta def tidy (cfg : tidy_cfg := {}) := tidy_core cfg >> skip
+
+@[hole_command] meta def tidy_hole_cmd : hole_command :=
+{ name := "tidy", 
+  descr := "Use `tidy` to complete the goal.",
+  action := λ _, do script ← tidy_core, return [("begin " ++ (", ".intercalate script) ++ " end", "by tidy")] }
+

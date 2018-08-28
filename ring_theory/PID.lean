@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Author: Chris Hughes, Morenikeji Neri
 -/
 
 import algebra.euclidean_domain ring_theory.ideals
-universes u
-variables {α : Type u} [comm_ring α] {a b : α}
+
+variables {α : Type*} [comm_ring α]
 
 open set function is_ideal
 local attribute [instance] classical.prop_decidable
@@ -14,7 +14,7 @@ local attribute [instance] classical.prop_decidable
 class is_principal_ideal (S : set α) : Prop :=
 (principal : ∃ a : α, S = {x | a ∣ x})
 
-class principal_ideal_domain (α : Type u) extends integral_domain α :=
+class principal_ideal_domain (α : Type*) extends integral_domain α :=
 (principal : ∀ (S : set α) [is_ideal S], is_principal_ideal S)
 
 namespace is_principal_ideal
@@ -46,12 +46,12 @@ end is_principal_ideal
 
 open euclidean_domain is_principal_ideal is_ideal
 
-lemma mod_mem_iff {α : Type u} [euclidean_domain α] {S : set α} [is_ideal S] {x y : α}
+lemma mod_mem_iff {α : Type*} [euclidean_domain α] {S : set α} [is_ideal S] {x y : α}
   (hy : y ∈ S) : x % y ∈ S ↔ x ∈ S :=
 ⟨λ hxy, div_add_mod x y ▸ is_ideal.add (is_ideal.mul_right hy) hxy,
   λ hx, (mod_eq_sub_mul_div x y).symm ▸ is_ideal.sub hx (is_ideal.mul_right hy)⟩
 
-instance euclidean_domain.to_principal_ideal_domain {α : Type u} [euclidean_domain α] :
+instance euclidean_domain.to_principal_ideal_domain {α : Type*} [euclidean_domain α] :
   principal_ideal_domain α :=
 { principal := λ S h, by exactI
     ⟨if h : {x : α | x ∈ S ∧ x ≠ 0} = ∅

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison
 -/
 import data.dlist.basic category.basic
 
@@ -53,6 +53,13 @@ e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
 
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
+
+meta def list_names_with_prefix (pre : name) (e : expr) : name_set := 
+e.fold mk_name_set $ λ e' _ l,
+  match e' with
+  | expr.const n _ := if n.get_prefix = pre then l.insert n else l
+  | _ := l
+  end
 
 /- only traverses the direct descendents -/
 meta def {u} traverse {m : Type → Type u} [applicative m]
@@ -421,5 +428,61 @@ meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
   solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
+
+meta def metavariables : tactic (list expr) :=
+do r ← result,
+   pure (r.list_meta_vars)
+
+/-- Succeeds only if the current goal is a proposition. -/
+meta def propositional_goal : tactic unit :=
+do goals ← get_goals,
+   let current_goal := goals.head,
+   current_goal_type ← infer_type current_goal,
+   p ← is_prop current_goal_type,
+   guard p
+
+variable {α : Type}
+
+private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
+| L := (do r ← t, iterate_aux (r :: L)) <|> return L
+
+meta def iterate' (t : tactic α) : tactic (list α) := 
+list.reverse <$> iterate_aux t []
+
+meta def iterate1 (t : tactic α) : tactic (α × list α) :=
+do r ← t | fail "iterate1 failed: tactic did not succeed",
+   L ← iterate' t,
+   return (r, L)
+
+meta def intros1 : tactic (list expr) :=
+iterate1 intro1 >>= λ p, return (p.1 :: p.2)
+
+/-- `successes` invokes each tactic in turn, returning the list of successful results. -/
+meta def successes {α} (tactics : list (tactic α)) : tactic (list α) := 
+list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
+
+/-- Return target after instantiating metavars and whnf -/
+private meta def target' : tactic expr :=
+target >>= instantiate_mvars >>= whnf
+
+/--
+Just like `split`, `fsplit` applies the constructor when the type of the target is an inductive data type with one constructor.
+However it does not reorder goals or invoke `auto_param` tactics.
+-/
+-- FIXME check if we can remove `auto_param := ff`
+meta def fsplit : tactic unit :=
+do [c] ← target' >>= get_constructors_for | tactic.fail "fsplit tactic failed, target is not an inductive datatype with only one constructor",
+   mk_const c >>= λ e, apply e {new_goals := new_goals.all, auto_param := ff} >> skip
+
+run_cmd add_interactive [`fsplit]
+
+/-- Calls `injection` on each hypothesis, and then, for each hypothesis on which `injection`
+    succeeds, clears the old hypothesis. -/
+meta def injections_and_clear : tactic unit :=
+do l ← local_context,
+   results ← successes $ l.map $ λ e, injection e >> clear e,
+   when (results.empty) (fail "could not use `injection` then `clear` on any hypothesis")
+
+run_cmd add_interactive [`injections_and_clear]
 
 end tactic

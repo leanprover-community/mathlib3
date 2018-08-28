@@ -294,3 +294,22 @@ effectively be defined and re-defined later, by tagging definitions with `@[foo]
   definition of `foo`, and provides access to the previous definition via `old`.
   (The argument can also be an `option (tactic unit)`, which is provided as `none` if
   this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.)
+
+## tidy
+
+`tidy` attempts to use a variety of conservative tactics to solve the goals.
+In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tactics to
+the goal and recursively on new goals, until no tactic makes further progress.
+
+`tidy` can report the tactic script it found using `tidy { trace_result := tt }`. As an example
+```
+example : ∀ x : unit, x = unit.star := 
+begin
+  tidy {trace_result:=tt} -- Prints the trace message: "intros x, exact dec_trivial"
+end
+```
+
+The default list of tactics can be found by looking up the definition of 
+[`default_tidy_tactics`](https://github.com/leanprover/mathlib/blob/master/tactic/tidy.lean).
+
+This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of `tactic string`.)

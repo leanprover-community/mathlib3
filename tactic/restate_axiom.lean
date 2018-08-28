@@ -24,7 +24,11 @@ do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition 
 
 private meta def name_lemma (n : name) :=
 match n.components.reverse with
-| last :: most := mk_str_name n.get_prefix (last.to_string ++ "_lemma")
+| last :: most := let last := last.to_string in
+                  let last := if last.to_list.ilast = ''' then 
+                                 (last.to_list.reverse.drop 1).reverse.as_string
+                              else last ++ "_lemma" in
+                  mk_str_name n.get_prefix last
 | nil          := undefined
 end
 

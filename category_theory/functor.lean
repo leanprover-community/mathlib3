@@ -52,9 +52,9 @@ instance : has_coe_to_fun (C ↝ D) :=
 
 def map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F X) ⟶ (F Y) := F.map' f
 
-@[simp,ematch] lemma map_id (F : C ↝ D) (X : C) : F.map (𝟙 X) = 𝟙 (F X) := 
+@[simp] lemma map_id (F : C ↝ D) (X : C) : F.map (𝟙 X) = 𝟙 (F X) := 
 begin unfold functor.map, erw F.map_id', refl end
-@[simp,ematch] lemma map_comp (F : C ↝ D) {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : 
+@[simp] lemma map_comp (F : C ↝ D) {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : 
   F.map (f ≫ g) = F.map f ≫ F.map g := 
 begin unfold functor.map, erw F.map_comp' end
 

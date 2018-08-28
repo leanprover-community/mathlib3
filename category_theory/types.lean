@@ -25,13 +25,13 @@ variables {C : Type u} [𝒞 : category.{u v} C] (F G H : C ↝ (Type w)) {X Y Z
 include 𝒞
 variables (σ : F ⟹ G) (τ : G ⟹ H) 
 
-@[simp,ematch] lemma map_comp (f : X ⟶ Y) (g : Y ⟶ Z) (a : F X) : (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
+@[simp] lemma map_comp (f : X ⟶ Y) (g : Y ⟶ Z) (a : F X) : (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
 begin /- `obviously'` says: -/ simp end
 
-@[simp,ematch] lemma map_id (a : F X) : (F.map (𝟙 X)) a = a := 
+@[simp] lemma map_id (a : F X) : (F.map (𝟙 X)) a = a := 
 begin /- `obviously'` says: -/ simp end
 
-@[ematch] lemma naturality (f : X ⟶ Y) (x : F X) : σ Y ((F.map f) x) = (G.map f) (σ X x) := 
+lemma naturality (f : X ⟶ Y) (x : F X) : σ Y ((F.map f) x) = (G.map f) (σ X x) := 
 congr_fun (σ.naturality f) x
 
 @[simp] lemma vcomp (x : F X) : (σ ⊟ τ) X x = τ X (σ X x) := rfl

@@ -16,16 +16,16 @@ include 𝒞 𝒟
 `prod.category C D` gives the cartesian product of two categories.
 -/
 instance prod : category.{(max u₁ u₂) (max v₁ v₂)} (C × D) :=
-{ hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
-  id      := λ X, ⟨ 𝟙 (X.1), 𝟙 (X.2) ⟩,
-  comp    := λ _ _ _ f g, (f.1 ≫ g.1, f.2 ≫ g.2),
-  id_comp := begin /- `obviously'` says: -/ intros, cases X, cases Y, cases f, dsimp at *, simp end,
-  comp_id := begin /- `obviously'` says: -/ intros, cases X, cases Y, cases f, dsimp at *, simp end,
-  assoc   := begin /- `obviously'` says: -/ intros, cases W, cases X, cases Y, cases Z, cases f, cases g, cases h, dsimp at *, simp end }
+{ hom      := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
+  id       := λ X, ⟨ 𝟙 (X.1), 𝟙 (X.2) ⟩,
+  comp     := λ _ _ _ f g, (f.1 ≫ g.1, f.2 ≫ g.2),
+  id_comp' := begin /- `obviously'` says: -/ intros, cases X, cases Y, cases f, dsimp at *, simp end,
+  comp_id' := begin /- `obviously'` says: -/ intros, cases X, cases Y, cases f, dsimp at *, simp end,
+  assoc'   := begin /- `obviously'` says: -/ intros, cases W, cases X, cases Y, cases Z, cases f, cases g, cases h, dsimp at *, simp end }
 
 -- rfl lemmas for category.prod
-@[simp, ematch] lemma prod_id (X : C) (Y : D) : 𝟙 (X, Y) = (𝟙 X, 𝟙 Y) := rfl
-@[simp, ematch] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) : f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
+@[simp] lemma prod_id (X : C) (Y : D) : 𝟙 (X, Y) = (𝟙 X, 𝟙 Y) := rfl
+@[simp] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) : f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
 end
 
 section
@@ -84,8 +84,8 @@ def prod (F : A ↝ B) (G : C ↝ D) : (A × C) ↝ (B × D) :=
 /- Because of limitations in Lean 3's handling of notations, we do not setup a notation `F × G`. 
    You can use `F.prod G` as a "poor man's infix", or just write `functor.prod F G`. -/
 
-@[simp, ematch] lemma prod_obj  (F : A ↝ B) (G : C ↝ D) (a : A) (c : C) : (F.prod G) (a, c) = (F a, G c) := rfl
-@[simp, ematch] lemma prod_map  (F : A ↝ B) (G : C ↝ D) {a a' : A} {c c' : C} (f : (a, c) ⟶ (a', c')) : (F.prod G).map f = (F.map f.1, G.map f.2) := rfl
+@[simp] lemma prod_obj  (F : A ↝ B) (G : C ↝ D) (a : A) (c : C) : (F.prod G) (a, c) = (F a, G c) := rfl
+@[simp] lemma prod_map  (F : A ↝ B) (G : C ↝ D) {a a' : A} {c c' : C} (f : (a, c) ⟶ (a', c')) : (F.prod G).map f = (F.map f.1, G.map f.2) := rfl
 end functor
 
 namespace nat_trans
@@ -97,7 +97,7 @@ def prod {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) : F.prod 
 
 /- Again, it is inadvisable in Lean 3 to setup a notation `α × β`; use instead `α.prod β` or `nat_trans.prod α β`. -/
 
-@[simp, ematch] lemma prod_app  {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (nat_trans.prod α β) (a, c) = (α a, β c) := rfl
+@[simp] lemma prod_app  {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (nat_trans.prod α β) (a, c) = (α a, β c) := rfl
 end nat_trans
 
 end category_theory

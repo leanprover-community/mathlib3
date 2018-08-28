@@ -31,8 +31,8 @@ section
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
-@[simp, ematch] lemma id_app (F : C ↝ D) (X : C) : (𝟙 F : F ⟹ F) X = 𝟙 (F X) := rfl
-@[simp, ematch] lemma comp_app {F G H : C ↝ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) : 
+@[simp] lemma id_app (F : C ↝ D) (X : C) : (𝟙 F : F ⟹ F) X = 𝟙 (F X) := rfl
+@[simp] lemma comp_app {F G H : C ↝ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) : 
   ((α ≫ β) : F ⟹ H) X = (α : F ⟹ G) X ≫ (β : G ⟹ H) X := rfl
 end
 
@@ -45,10 +45,10 @@ variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
           {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include 𝒞 𝒟 ℰ
 
-@[ematch] lemma app_naturality {F G : C ↝ (D ↝ E)} (T : F ⟹ G) (X : C) {Y Z : D} (f : Y ⟶ Z) : 
+lemma app_naturality {F G : C ↝ (D ↝ E)} (T : F ⟹ G) (X : C) {Y Z : D} (f : Y ⟶ Z) : 
   ((F X).map f) ≫ ((T X) Z) = ((T X) Y) ≫ ((G X).map f) := (T X).naturality f
 
-@[ematch] lemma naturality_app {F G : C ↝ (D ↝ E)} (T : F ⟹ G) (Z : D) {X Y : C} (f : X ⟶ Y) : 
+lemma naturality_app {F G : C ↝ (D ↝ E)} (T : F ⟹ G) (Z : D) {X Y : C} (f : X ⟶ Y) : 
   ((F.map f) Z) ≫ ((T Y) Z) = ((T X) Z) ≫ ((G.map f) Z) := congr_fun (congr_arg app (T.naturality f)) Z
 
 end nat_trans

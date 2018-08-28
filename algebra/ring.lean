@@ -112,6 +112,9 @@ section
 
 end
 
+@[simp] lemma zero_dvd_iff [comm_semiring α] {a : α} : 0 ∣ a ↔ a = 0 :=
+⟨eq_zero_of_zero_dvd, λ h, by rw h⟩
+
 section comm_ring
   variable [comm_ring α]
 

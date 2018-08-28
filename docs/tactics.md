@@ -259,6 +259,31 @@ new goal.
 `rewrite [h₀, ← h₁] at ⊢ h₂` with the exception that associativity is
 used implicitly to make rewriting possible.
 
+## restate_axiom
+
+`restate_axiom` makes a new copy of a structure field, first definitionally simplifying the type.
+This is useful to remove `auto_param` or `opt_param` from the statement.
+
+As an example, we have:
+```
+structure A :=
+(x : ℕ)
+(a' : x = 1 . skip)
+
+example (z : A) : z.x = 1 := by rw A.a' -- rewrite tactic failed, lemma is not an equality nor a iff
+
+restate_axiom A.a'
+example (z : A) : z.x = 1 := by rw A.a 
+```
+
+By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
+`_lemma` if there is no trailing `'`. You can also give `restate_axiom` a second argument to
+specify the new name, as in
+```
+restate_axiom A.a f
+example (z : A) : z.x = 1 := by rw A.f
+```
+
 ## def_replacer
 
 `def_replacer foo` sets up a stub definition `foo : tactic unit`, which can

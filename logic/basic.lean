@@ -37,6 +37,14 @@ instance : decidable_eq empty := λa, a.elim
 @[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
   (a : α) : (a : γ) = (a : β) := rfl
 
+/-- `pempty` is the universe-polymorphic analogue of `empty`. -/
+@[derive decidable_eq]
+inductive {u} pempty : Sort u
+
+def pempty.elim {C : Sort*} : pempty → C.
+
+instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
+
 end miscellany
 
 /-

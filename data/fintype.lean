@@ -169,6 +169,12 @@ instance : fintype empty := ⟨∅, empty.rec _⟩
 
 @[simp] theorem fintype.card_empty : fintype.card empty = 0 := rfl
 
+instance : fintype pempty := ⟨∅, pempty.rec _⟩
+
+@[simp] theorem fintype.univ_pempty : @univ pempty _ = ∅ := rfl
+
+@[simp] theorem fintype.card_pempty : fintype.card pempty = 0 := rfl
+
 instance : fintype unit := ⟨⟨()::0, by simp⟩, λ ⟨⟩, by simp⟩
 
 @[simp] theorem fintype.univ_unit : @univ unit _ = {()} := rfl

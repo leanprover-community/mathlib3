@@ -2022,6 +2022,9 @@ quot.lift_on s nodup (λ s t p, propext $ perm_nodup p)
 
 @[simp] theorem coe_nodup {l : list α} : @nodup α l ↔ l.nodup := iff.rfl
 
+instance has_coe_nodup {l : list α} : has_coe l.nodup (l : multiset α).nodup :=
+⟨coe_nodup.mpr⟩
+
 @[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
 ⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
 

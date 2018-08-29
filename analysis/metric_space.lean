@@ -9,7 +9,7 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real.basic analysis.topology.topological_structures
+import data.real.nnreal analysis.topology.topological_structures
 open lattice set filter classical
 noncomputable theory
 
@@ -37,14 +37,19 @@ uniform_space.of_core {
   symm       := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
     tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ by simp [dist_comm] }
 
+/-- The distance function (given an ambient metric space on `α`), which returns
+  a nonnegative real number `dist x y` given `x y : α`. -/
+class has_dist (α : Type*) := (dist : α → α → ℝ)
+
+export has_dist (dist)
+
 /-- Metric space
 
 Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
 This is enforced in the type class definition, by extending the `uniform_space` structure. When
 instantiating a `metric_space` structure, the uniformity fields are not necessary, they will be
 filled in by default. -/
-class metric_space (α : Type u) : Type u :=
-(dist : α → α → ℝ)
+class metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
 (dist_comm : ∀ x y : α, dist x y = dist y x)
@@ -64,10 +69,6 @@ variables [metric_space α]
 
 instance metric_space.to_uniform_space' : uniform_space α :=
 metric_space.to_uniform_space α
-
-/-- The distance function (given an ambient metric space on `α`), which returns
-  a nonnegative real number `dist x y` given `x y : α`. -/
-def dist : α → α → ℝ := metric_space.dist
 
 @[simp] theorem dist_self (x : α) : dist x x = 0 := metric_space.dist_self x
 
@@ -110,6 +111,39 @@ by simpa [le_antisymm_iff, dist_nonneg] using @dist_eq_zero _ _ x y
 
 @[simp] theorem dist_pos {x y : α} : 0 < dist x y ↔ x ≠ y :=
 by simpa [-dist_le_zero] using not_congr (@dist_le_zero _ _ x y)
+
+
+section
+variables [metric_space α]
+
+def nndist (a b : α) : nnreal := ⟨dist a b, dist_nonneg⟩
+
+@[simp] lemma nndist_self (a : α) : nndist a a = 0 := (nnreal.coe_eq_zero _).1 (dist_self a)
+
+@[simp] lemma coe_dist (a b : α) : (nndist a b : ℝ) = dist a b := rfl
+
+theorem eq_of_nndist_eq_zero {x y : α} : nndist x y = 0 → x = y :=
+by simpa [nnreal.eq_iff.symm] using @eq_of_dist_eq_zero α _ x y
+
+theorem nndist_comm (x y : α) : nndist x y = nndist y x :=
+by simpa [nnreal.eq_iff.symm] using dist_comm x y
+
+@[simp] theorem nndist_eq_zero {x y : α} : nndist x y = 0 ↔ x = y :=
+by simpa [nnreal.eq_iff.symm]
+
+@[simp] theorem zero_eq_nndist {x y : α} : 0 = nndist x y ↔ x = y :=
+by simpa [nnreal.eq_iff.symm]
+
+theorem nndist_triangle (x y z : α) : nndist x z ≤ nndist x y + nndist y z :=
+by simpa [nnreal.coe_le] using dist_triangle x y z
+
+theorem nndist_triangle_left (x y z : α) : nndist x y ≤ nndist z x + nndist z y :=
+by simpa [nnreal.coe_le] using dist_triangle_left x y z
+
+theorem nndist_triangle_right (x y z : α) : nndist x y ≤ nndist x z + nndist y z :=
+by simpa [nnreal.coe_le] using dist_triangle_right x y z
+
+end
 
 /- instantiate metric space as a topology -/
 variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
@@ -270,7 +304,7 @@ instance : metric_space ℝ :=
 { dist               := λx y, abs (x - y),
   dist_self          := by simp [abs_zero],
   eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
-  dist_comm          := assume x y, by rw [abs_sub],
+  dist_comm          := assume x y, abs_sub _ _,
   dist_triangle      := assume x y z, abs_sub_le _ _ _ }
 
 theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
@@ -296,7 +330,7 @@ end
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
   (H : @uniformity _ U = @uniformity _ (metric_space.to_uniform_space α)) :
   metric_space α :=
-{ dist               := @dist _ m,
+{ dist               := @dist _ m.to_has_dist,
   dist_self          := dist_self,
   eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   dist_comm          := dist_comm,
@@ -409,6 +443,36 @@ by rw [← nhds_vmap_dist a, tendsto_vmap_iff]
 
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_dist continuous_id continuous_const) continuous_const
+
+section pi
+open finset lattice
+variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
+
+instance has_dist_pi : has_dist (Πb, π b) :=
+⟨λf g, ((finset.sup univ (λb, nndist (f b) (g b)) : nnreal) : ℝ)⟩
+
+lemma dist_pi_def (f g : Πb, π b) :
+  dist f g = (finset.sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
+
+instance metric_space_pi : metric_space (Πb, π b) :=
+{ dist := dist,
+  dist_self := assume f, (nnreal.coe_eq_zero _).2 $ bot_unique $ finset.sup_le $ by simp,
+  dist_comm := assume f g, nnreal.eq_iff.2 $ by congr; ext a; exact nndist_comm _ _,
+  dist_triangle := assume f g h, show dist f h ≤ (dist f g) + (dist g h), from
+    begin
+      simp only [dist_pi_def, (nnreal.coe_add _ _).symm, (nnreal.coe_le _ _).symm,
+        finset.sup_le_iff],
+      assume b hb,
+      exact le_trans (nndist_triangle _ (g b) _) (add_le_add (le_sup hb) (le_sup hb))
+    end,
+  eq_of_dist_eq_zero := assume f g eq0,
+    begin
+      simp only [dist_pi_def, nnreal.coe_eq_zero, nnreal.bot_eq_zero.symm, eq_bot_iff,
+        finset.sup_le_iff] at eq0,
+      exact (funext $ assume b, eq_of_nndist_eq_zero $ bot_unique $ eq0 b $ mem_univ b),
+    end }
+
+end pi
 
 lemma lebesgue_number_lemma_of_metric
   {s : set α} {ι} {c : ι → set α} (hs : compact s)

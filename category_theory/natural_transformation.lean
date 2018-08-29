@@ -31,10 +31,7 @@ Naturality is expressed by `α.naturality_lemma`.
 -/
 structure nat_trans (F G : C ↝ D) : Type (max u₁ v₂) :=
 (app : Π X : C, (F X) ⟶ (G X))
-(naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
-
-restate_axiom nat_trans.naturality
-attribute [ematch] nat_trans.naturality_lemma
+(naturality' : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 
 infixr ` ⟹ `:50  := nat_trans             -- type as \==> or ⟹
 
@@ -44,12 +41,20 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 { F   := λ α, Π X : C, (F X) ⟶ (G X),
   coe := λ α, α.app }
 
-@[simp] lemma coe_def {F G : C ↝ D} (α : F ⟹ G) (X : C) : α X = α.app X := rfl
+@[simp] lemma mk_app {F G : C ↝ D} (app : Π X : C, (F X) ⟶ (G X)) (naturality) (X : C) : 
+  { nat_trans . app := app, naturality' := naturality } X = app X := rfl 
+
+lemma naturality {F G : C ↝ D} (α : F ⟹ G) {X Y : C} (f : X ⟶ Y) : 
+  (F.map f) ≫ (α Y) = (α X) ≫ (G.map f) := 
+begin 
+  /- `obviously'` says: -/ 
+  erw nat_trans.naturality', refl
+end
 
 /-- `nat_trans.id F` is the identity natural transformation on a functor `F`. -/
 protected def id (F : C ↝ D) : F ⟹ F :=
-{ app        := λ X, 𝟙 (F X),
-  naturality := begin /- `obviously'` says: -/ intros, dsimp, simp end }
+{ app         := λ X, 𝟙 (F X),
+  naturality' := begin /- `obviously'` says: -/ intros, simp end }
 
 @[simp] lemma id_app (F : C ↝ D) (X : C) : (nat_trans.id F) X = 𝟙 (F X) := rfl
 
@@ -70,13 +75,14 @@ end
 
 /-- `vcomp α β` is the vertical compositions of natural transformations. -/
 def vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H :=
-{ app        := λ X, (α X) ≫ (β X),
-  naturality := begin /- `obviously'` says: -/ intros, simp, rw [←assoc_lemma, naturality_lemma, assoc_lemma, ←naturality_lemma], end }
+{ app         := λ X, (α X) ≫ (β X),
+  naturality' := begin /- `obviously'` says: -/ intros, simp, rw [←assoc, naturality, assoc, ←naturality], end }
 
 notation α `⊟` β:80 := vcomp α β
 
 @[simp] lemma vcomp_app (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β) X = (α X) ≫ (β X) := rfl
-@[ematch] lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := begin ext, intros, dsimp, rw [assoc] end
+lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := 
+begin ext, intros, dsimp, rw [assoc] end
 end
 
 variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
@@ -84,24 +90,26 @@ include ℰ
 
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/
 def hcomp {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) : (F ⋙ H) ⟹ (G ⋙ I) :=
-{ app        := λ X : C, (β (F X)) ≫ (I.map (α X)),
-  naturality := begin
-                  /- `obviously'` says: -/
-                  intros,
-                  dsimp,
-                  simp,
-                  -- Actually, obviously doesn't use exactly this sequence of rewrites, but achieves the same result
-                  rw [← assoc_lemma, naturality_lemma, assoc_lemma],
-                  conv { to_rhs, rw [← map_comp_lemma, ← α.naturality_lemma, map_comp_lemma] }
-                end }
+{ app         := λ X : C, (β (F X)) ≫ (I.map (α X)),
+  naturality' := begin
+                   /- `obviously'` says: -/
+                   intros,
+                   dsimp,
+                   simp,
+                   -- Actually, obviously doesn't use exactly this sequence of rewrites, but achieves the same result
+                   rw [← assoc, naturality, assoc],
+                   conv { to_rhs, rw [← map_comp, ← α.naturality, map_comp] }
+                 end }
 
 notation α `◫` β:80 := hcomp α β
 
-@[simp] lemma hcomp_app {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) : (α ◫ β) X = (β (F X)) ≫ (I.map (α X)) := rfl
+@[simp] lemma hcomp_app {F G : C ↝ D} {H I : D ↝ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) : 
+  (α ◫ β) X = (β (F X)) ≫ (I.map (α X)) := rfl
 
 -- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we need to use associativity of functor composition
 
-@[ematch] lemma exchange {F G H : C ↝ D} {I J K : D ↝ E} (α : F ⟹ G) (β : G ⟹ H) (γ : I ⟹ J) (δ : J ⟹ K) : ((α ⊟ β) ◫ (γ ⊟ δ)) = ((α ◫ γ) ⊟ (β ◫ δ)) :=
+lemma exchange {F G H : C ↝ D} {I J K : D ↝ E} (α : F ⟹ G) (β : G ⟹ H) (γ : I ⟹ J) (δ : J ⟹ K) : 
+  ((α ⊟ β) ◫ (γ ⊟ δ)) = ((α ◫ γ) ⊟ (β ◫ δ)) :=
 begin
   -- `obviously'` says:
   ext,
@@ -109,7 +117,7 @@ begin
   dsimp,
   simp,
   -- again, this isn't actually what obviously says, but it achieves the same effect.
-  conv { to_lhs, congr, skip, rw [←assoc_lemma, ←naturality_lemma, assoc_lemma] }
+  conv { to_lhs, congr, skip, rw [←assoc, ←naturality, assoc] }
 end
 
 end nat_trans

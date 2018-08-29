@@ -22,19 +22,29 @@ do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition 
   new_type ← (s.dsimplify [] type) <|> pure (type),
   updateex_env $ λ env, env.add (declaration.defn new_name levels new_type value reducibility trusted)
 
-private meta def name_lemma (n : name) :=
-match n.components.reverse with
-| last :: most := mk_str_name n.get_prefix (last.to_string ++ "_lemma")
-| nil          := undefined
+private meta def name_lemma (old : name) (new : option name := none) : tactic name :=
+match new with
+| none :=
+  match old.components.reverse with
+  | last :: most := (do let last := last.to_string,
+                       let last := if last.to_list.ilast = ''' then
+                                     (last.to_list.reverse.drop 1).reverse.as_string
+                                   else last ++ "_lemma",
+                       return (mk_str_name old.get_prefix last)) <|> failed
+  | nil          := undefined
+  end
+| (some new) := return (mk_str_name old.get_prefix new.to_string)
 end
 
 @[user_command] meta def restate_axiom_cmd (meta_info : decl_meta_info)
   (_ : parse $ tk "restate_axiom") : lean.parser unit :=
 do from_lemma ← ident,
+   new_name ← optional ident,
    from_lemma_fully_qualified ← resolve_constant from_lemma,
   d ← get_decl from_lemma_fully_qualified <|>
     fail ("declaration " ++ to_string from_lemma ++ " not found"),
   do {
-    restate_axiom d (name_lemma from_lemma_fully_qualified)
-  }.
+    new_name ← name_lemma from_lemma_fully_qualified new_name,
+    restate_axiom d new_name
+  }
 

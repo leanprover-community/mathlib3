@@ -18,7 +18,7 @@ instance : metric_space ℂ :=
 { dist               := λx y, (x - y).abs,
   dist_self          := by simp [abs_zero],
   eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
-  dist_comm          := assume x y, by rw [complex.abs_sub],
+  dist_comm          := assume x y, complex.abs_sub _ _,
   dist_triangle      := assume x y z, complex.abs_sub_le _ _ _ }
 
 theorem dist_eq (x y : ℂ) : dist x y = (x - y).abs := rfl

@@ -434,8 +434,8 @@ by rw [units.ext_iff, units.ext_iff]; simp
 noncomputable def f : quotient (one_neg_one hp) × (units (zmodp q hq)) → quotient (one_neg_one' hp hq) :=
 λ x, mk (quotient.out' x.1, x.2)
 
-lemma f_surjective : function.surjective (f hp hq) := λ x,
-quotient.induction_on' x (λ ⟨x, y⟩,
+lemma f_surjective : function.surjective (f hp hq) :=
+λ x, quotient.induction_on' x (λ ⟨x, y⟩,
 ⟨if h : quotient.out' (quotient.mk' x : quotient (one_neg_one hp)) = x
 then (quotient.mk' x, y)
 else (quotient.mk' x, -y),
@@ -460,7 +460,7 @@ lemma card_quotient_one_neg_one (hp1 : p % 2 = 1) : fintype.card (quotient (one_
 ⟨λ h, by simpa [quotient.out_eq'] using congr_arg (quotient.mk' : α → quotient s) h,
   λ h, congr_arg _ h⟩
 
-lemma univ_prod_quotient_one_neg_one (hp1 : p % 2 = 1) :
+lemma prod_univ_quotient_one_neg_one (hp1 : p % 2 = 1) :
   (univ : finset (quotient (one_neg_one hp))).prod quotient.out' ^ 2 = -((-1) ^ (p / 2)) :=
 calc (@univ (quotient (one_neg_one hp)) _).prod quotient.out' ^ 2 = (@univ (quotient (one_neg_one hp)) _).prod quotient.out' *
   ((@univ (quotient (one_neg_one hp)) _).prod (λ n, -quotient.out' n) * (-1 : units (zmodp p hp)) ^ (p / 2)) :
@@ -487,18 +487,71 @@ have (quotient.out' (quotient.mk' x))⁻¹ * x ∈ one_neg_one hp,
 by finish [one_neg_one, inv_mul_eq_iff_eq_mul]⟩)) (λ _ _, rfl))
 ... = _ : by rw prod_univ_units_finite_field; simp
 
+def thing : ℕ → Type := λ n : ℕ, 
+well_founded.fix nat.lt_wf (λ (x) (ih : Π (y : ℕ), nat.lt y x → Type), 
+  Π (m : fin x), ih m.1 m.2 → bool) n
+
+lemma thing_eq : thing = 
+  (λ n, (Π m : fin n, thing m.1 → bool)) :=
+begin
+  funext,
+  rw [thing],
+  dsimp, 
+  rw [well_founded.fix_eq]
+end
+
+instance : ∀ n : ℕ, fintype (thing n)
+| 0 := ⟨finset.singleton (begin rw thing_eq, exact λ ⟨m, hm⟩, (nat.not_lt_zero _ hm).elim end),
+  λ x, mem_singleton.2 (funext $ λ ⟨m, hm⟩, (nat.not_lt_zero _ hm).elim)⟩
+| (n+1) := begin
+  haveI : ∀ m : fin (n + 1), fintype (thing m.1) := 
+    λ m, have m.1 < n + 1, from m.2, thing.fintype m.1,
+  rw thing_eq,
+  apply_instance
+end
+
+#eval fintype.card (thing 4)
+
+example (n : nat) : thing n = sorry := 
+begin
+  rw thing_eq, rw thing_eq, rw thing_eq, rw thing_eq, rw thing_eq, rw thing_eq,
+  dsimp,
+end
+
 instance ahf : decidable_eq (quotient (one_neg_one hp) × (units (zmodp q hq))) := by apply_instance
 
 noncomputable instance afho : decidable_eq (quotient (one_neg_one' hp hq)) := classical.dec_eq _
 
-lemma prod_quotient_one_neg_one : (@univ (quotient (one_neg_one' hp hq)) _).prod id
-  = (mk ((-1) ^ (q / 2), (-1) ^ (p / 2))) :=
+lemma prod_product' {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
+  (f : γ → α × β) : s.prod f = (s.prod (λ x, (f x).1), s.prod (λ x, (f x).2)) :=
+by haveI := classical.dec_eq γ; exact
+finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
+
+lemma prod_pow {α β : Type} [comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
+  s.prod (λ x, f x ^ n) = s.prod f ^ n :=
+by haveI := classical.dec_eq α; exact
+finset.induction_on s (by simp) (by simp [_root_.mul_pow] {contextual := tt})
+
+lemma prod_quotient_one_neg_one₁ (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) :
+  (@univ (quotient (one_neg_one' hp hq)) _).prod id
+  = mk (-((-1) ^ (p / 2)) ^ (q / 2), (-1) ^ (p / 2)) :=
 calc (@univ (quotient (one_neg_one' hp hq)) _).prod id
    = ((@univ (quotient (one_neg_one hp) × (units (zmodp q hq))) _).image (f hp hq)).prod id :
 prod_congr (eq.symm (eq_univ_iff_forall.2 (λ x, mem_image.2 (by simpa using f_surjective hp hq x)))) (λ _ _, rfl)
-... = _ : prod_image sorry
-... = _ : prod_product
-... = _ : begin
-  simp [f],
+... = univ.prod (λ x : quotient (one_neg_one hp) × units (zmodp q hq),
+  mk (quotient.out' x.1, x.2)) : prod_image sorry
+... = mk (univ.prod (λ x : quotient (one_neg_one hp) × units (zmodp q hq), (quotient.out' x.1, x.2))) :
+prod_hom mk (is_group_hom.one _) (is_group_hom.mul _)
+... = mk ((finset.product _ _).prod (λ x : quotient (one_neg_one hp) × units (zmodp q hq), quotient.out' x.1),
+  (finset.product _ _).prod (λ x : quotient (one_neg_one hp) × units (zmodp q hq), x.2)) :
+congr_arg mk (prod_product' _ _)
+... = mk (univ.prod quotient.out' ^ fintype.card (units (zmodp q hq)),
+  univ.prod id ^ fintype.card (quotient (one_neg_one hp))) :
+by simp [prod_product, prod_pow, fintype.card]
+... = mk (-((-1) ^ (p / 2)) ^ (q / 2), (-1) ^ (p / 2)) :
+by rw [prod_univ_units_finite_field, card_quotient_one_neg_one _ hp1,
+   card_units_zmodp, ← two_mul_odd_div_two hq1, pow_mul, prod_univ_quotient_one_neg_one _ hp1]
 
-end
+lemma prod_quotient_one_neg_one₂ (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) :
+  (@univ (quotient (one_neg_one' hp hq)) _).prod id = 
+  mk ((-1) ^ (p / 2) * (units_of_nonzero (show q ≠ 0)) ^ (q / 2), (-1) ^ (p / 2)) := sorry

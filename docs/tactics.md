@@ -82,13 +82,14 @@ All accept an optional list of simplifier rules, typically definitions that shou
 Evaluate expressions in the language of (semi-)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
 
-### congr'
+### congr'
 
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
 is too aggressive in breaking down the goal. For example, given
 `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
+If, at any point, a subgoal matches a hypothesis then the subgoal will be closed.
 
 ### unfold_coes
 
@@ -258,6 +259,31 @@ new goal.
 `rewrite [h₀, ← h₁] at ⊢ h₂` with the exception that associativity is
 used implicitly to make rewriting possible.
 
+## restate_axiom
+
+`restate_axiom` makes a new copy of a structure field, first definitionally simplifying the type.
+This is useful to remove `auto_param` or `opt_param` from the statement.
+
+As an example, we have:
+```
+structure A :=
+(x : ℕ)
+(a' : x = 1 . skip)
+
+example (z : A) : z.x = 1 := by rw A.a' -- rewrite tactic failed, lemma is not an equality nor a iff
+
+restate_axiom A.a'
+example (z : A) : z.x = 1 := by rw A.a 
+```
+
+By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
+`_lemma` if there is no trailing `'`. You can also give `restate_axiom` a second argument to
+specify the new name, as in
+```
+restate_axiom A.a f
+example (z : A) : z.x = 1 := by rw A.f
+```
+
 ## def_replacer
 
 `def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
@@ -268,3 +294,22 @@ effectively be defined and re-defined later, by tagging definitions with `@[foo]
   definition of `foo`, and provides access to the previous definition via `old`.
   (The argument can also be an `option (tactic unit)`, which is provided as `none` if
   this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.)
+
+## tidy
+
+`tidy` attempts to use a variety of conservative tactics to solve the goals.
+In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tactics to
+the goal and recursively on new goals, until no tactic makes further progress.
+
+`tidy` can report the tactic script it found using `tidy { trace_result := tt }`. As an example
+```
+example : ∀ x : unit, x = unit.star := 
+begin
+  tidy {trace_result:=tt} -- Prints the trace message: "intros x, exact dec_trivial"
+end
+```
+
+The default list of tactics can be found by looking up the definition of 
+[`default_tidy_tactics`](https://github.com/leanprover/mathlib/blob/master/tactic/tidy.lean).
+
+This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of `tactic string`.)

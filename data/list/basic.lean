@@ -293,6 +293,9 @@ end
 
 attribute [simp] join
 
+theorem join_eq_nil {L : list (list α)} : join L = [] ↔ ∀ l ∈ L, l = [] :=
+by induction L; simp [or_imp_distrib, forall_and_distrib, *]
+
 @[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; simp *
 
@@ -334,6 +337,9 @@ by induction n; simp *
 
 @[simp] theorem tail_repeat (a : α) (n) : tail (repeat a n) = repeat a n.pred :=
 by cases n; refl
+
+@[simp] theorem join_repeat_nil (n : ℕ) : join (repeat [] n) = @nil α :=
+by induction n; simp *
 
 /- bind -/
 

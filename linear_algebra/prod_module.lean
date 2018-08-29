@@ -140,6 +140,21 @@ instance [add_comm_group α] [add_comm_group β] : add_comm_group (α × β) :=
   .. prod.add_group }
 attribute [to_additive prod.add_comm_group]     prod.comm_group
 
+instance [ring α] [ring β] : ring (α × β) :=
+{ left_distrib := λ a b c, mk.inj_iff.mpr ⟨left_distrib _ _ _, left_distrib _ _ _⟩,
+  right_distrib := λ a b c, mk.inj_iff.mpr ⟨right_distrib _ _ _, right_distrib _ _ _⟩,
+  ..prod.add_comm_group,
+  ..prod.monoid }
+
+instance [comm_ring α] [comm_ring β] : comm_ring (α × β) :=
+{ ..prod.ring,
+  ..prod.comm_monoid }
+
+instance [nonzero_comm_ring α] [nonzero_comm_ring β] : nonzero_comm_ring (α × β) :=
+{ zero_ne_one := by haveI := classical.prop_decidable;
+    exact mt prod.ext_iff.1 (not_and_distrib.2 (or.inl zero_ne_one)),
+  ..prod.comm_ring }
+
 attribute [to_additive prod.fst_sum] prod.fst_prod
 attribute [to_additive prod.snd_sum] prod.snd_prod
 

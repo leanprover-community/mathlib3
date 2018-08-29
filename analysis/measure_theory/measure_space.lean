@@ -177,7 +177,7 @@ theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ is_mea
 by simp [infi_subtype, infi_and, trim_eq_infi]
 
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
-le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs]) (trim_ge _)
+le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (trim_ge _)
 
 theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm
@@ -337,7 +337,7 @@ begin
     measure_Union disjoint_disjointed (is_measurable.disjointed h),
     ennreal.tsum_eq_supr_nat],
   refine supr_le (λ n, _),
-  cases n, {apply zero_le},
+  cases n, {apply zero_le _},
   suffices : sum (finset.range n.succ) (λ i, μ (disjointed s i)) = μ (s n),
   { rw this, exact le_supr _ n },
   rw [← Union_disjointed_of_mono hs, measure_Union, tsum_eq_sum],
@@ -383,13 +383,15 @@ measure.of_measurable (λ s _, m s) m.empty
 
 lemma le_to_outer_measure_caratheodory {α} [ms : measurable_space α]
   (μ : measure α) : ms ≤ μ.to_outer_measure.caratheodory :=
-λ s hs, begin
+begin
+  assume s hs,
   rw to_outer_measure_eq_outer_measure',
   refine outer_measure.caratheodory_is_measurable (λ t, le_infi $ λ ht, _),
   rw [← measure_eq_measure' (ht.inter hs),
     ← measure_eq_measure' (ht.diff hs),
     ← measure_union _ (ht.inter hs) (ht.diff hs),
     inter_union_diff],
+  exact le_refl _,
   exact λ x ⟨⟨_, h₁⟩, _, h₂⟩, h₂ h₁
 end
 
@@ -569,7 +571,7 @@ begin
     cases axiom_of_choice
       (λ i, is_null_measurable_iff.1 (hs i) : _) with t ht,
     dsimp at t ht, simp [forall_and_distrib] at ht,
-    rcases ht with ⟨st, ht, hz⟩, 
+    rcases ht with ⟨st, ht, hz⟩,
     refine is_null_measurable_iff.2
       ⟨Union t, Union_subset_Union st, is_measurable.Union ht,
         measure_mono_null _ (measure_Union_null hz)⟩,
@@ -583,9 +585,9 @@ theorem is_measurable.diff_null {s z : set α}
 begin
   rw measure_eq_infi at hz,
   have : ∀ q : {q:ℚ//q>0}, ∃ t:set α,
-    z ⊆ t ∧ is_measurable t ∧ μ t < ennreal.of_real q.1,
+    z ⊆ t ∧ is_measurable t ∧ μ t < (nnreal.of_real q.1 : ennreal),
   { rintro ⟨ε, ε0⟩,
-    have : 0 < ennreal.of_real ε, {simpa using ε0},
+    have : 0 < (nnreal.of_real ε : ennreal), { simpa using ε0 },
     rw ← hz at this, simpa [infi_lt_iff] },
   rcases axiom_of_choice this with ⟨f, hf⟩,
   dsimp at f hf,
@@ -595,7 +597,7 @@ begin
     measure_mono_null _ (le_zero_iff_eq.1 $ le_of_not_lt $ λ h, _)⟩,
   { exact Inter f },
   { rw [diff_subset_iff, diff_union_self],
-    exact subset.trans (diff_subset _ _) (subset_union_left _ _) }, 
+    exact subset.trans (diff_subset _ _) (subset_union_left _ _) },
   rcases ennreal.lt_iff_exists_rat_btwn.1 h with ⟨ε, ε0', ε0, h⟩,
   simp at ε0,
   apply not_le_of_lt (lt_trans (hf ⟨ε, ε0⟩).2.2 h),
@@ -632,7 +634,7 @@ def completion {α : Type u} [measurable_space α] (μ : measure α) :
 { to_outer_measure := μ.to_outer_measure,
   m_Union := λ s hs hd, show μ (Union s) = ∑ i, μ (s i), begin
     rcases axiom_of_choice (λ i, is_null_measurable_iff.1 (hs i):_) with ⟨t, ht⟩,
-    dsimp at t ht, simp [forall_and_distrib] at ht, rcases ht with ⟨st, ht, hz⟩, 
+    dsimp at t ht, simp [forall_and_distrib] at ht, rcases ht with ⟨st, ht, hz⟩,
     rw is_null_measurable_measure_eq (Union_subset_Union st),
     { rw measure_Union _ ht,
       { congr, funext i,

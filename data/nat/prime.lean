@@ -209,19 +209,15 @@ theorem exists_dvd_of_not_prime2 {n : ℕ} (n2 : n ≥ 2) (np : ¬ prime n) :
 theorem exists_prime_and_dvd {n : ℕ} (n2 : n ≥ 2) : ∃ p, prime p ∧ p ∣ n :=
 ⟨min_fac n, min_fac_prime (ne_of_gt n2), min_fac_dvd _⟩
 
-theorem exists_infinite_primes : ∀ n : ℕ, ∃ p, p ≥ n ∧ prime p :=
-suffices ∀ {n}, n ≥ 2 → ∃ p, p ≥ n ∧ prime p, from
-λ n, let ⟨p, h, pp⟩ := this (nat.le_add_left 2 n) in
-  ⟨p, le_trans (nat.le_add_right n 2) h, pp⟩,
-λ n n2,
-  let p := min_fac (fact n + 1) in
-  have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
-  have pp : prime p, from min_fac_prime f1,
-  have n ≤ p, from le_of_not_ge $ λ h,
-    have p ∣ fact n, from dvd_fact (min_fac_pos _) h,
-    have p ∣ 1, from (nat.dvd_add_iff_right this).2 (min_fac_dvd _),
-    pp.not_dvd_one this,
-  ⟨p, this, pp⟩
+theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
+let p := min_fac (fact n + 1) in
+have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
+have pp : prime p, from min_fac_prime f1,
+have np : n ≤ p, from le_of_not_ge $ λ h,
+  have h₁ : p ∣ fact n, from dvd_fact (min_fac_pos _) h,
+  have h₂ : p ∣ 1, from (nat.dvd_add_iff_right h₁).2 (min_fac_dvd _),
+  pp.not_dvd_one h₂,
+⟨p, np, pp⟩
 
 theorem factors_lemma {k} : (k+2) / min_fac (k+2) < k+2 :=
 div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one
@@ -325,9 +321,9 @@ lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) :
     (λ h, have hl : ∀ p ∈ l, prime p := λ p hlp, h₁ p ((mem_cons_iff _ _ _).2 (or.inr hlp)),
     (mem_cons_iff _ _ _).2 (or.inr (mem_list_primes_of_dvd_prod hl h)))
 
-lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∣ n ↔ p ∈ factors n :=
-⟨λ h, mem_list_primes_of_dvd_prod hp (@mem_factors n) ((prod_factors hn).symm ▸ h),
-  λ h, prod_factors hn ▸ list.dvd_prod h⟩
+lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factors n ↔ p ∣ n :=
+⟨λ h, prod_factors hn ▸ list.dvd_prod h,
+ λ h, mem_list_primes_of_dvd_prod hp (@mem_factors n) ((prod_factors hn).symm ▸ h)⟩
 
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →
   (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → l₁ ~ l₂

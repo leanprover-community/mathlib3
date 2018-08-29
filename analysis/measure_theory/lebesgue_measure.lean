@@ -8,7 +8,7 @@ Lebesgue measure on the real line
 import analysis.measure_theory.measure_space analysis.measure_theory.borel_space
 noncomputable theory
 open classical set lattice filter
-open ennreal (of_real)
+open nnreal (of_real)
 
 namespace measure_theory
 
@@ -23,11 +23,11 @@ le_zero_iff_eq.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
   lebesgue_length (Ico a b) = of_real (b - a) :=
 begin
   refine le_antisymm (infi_le_of_le a $ infi_le_of_le b $ infi_le _ (by refl))
-    (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, _),
+    (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, ennreal.coe_le_coe.2 _),
   cases le_or_lt b a with ab ab,
-  { rw ennreal.of_real_of_nonpos (sub_nonpos.2 ab), simp },
+  { rw nnreal.of_real_of_nonpos (sub_nonpos.2 ab), simp },
   cases (Ico_subset_Ico_iff ab).1 h with h₁ h₂,
-  exact ennreal.of_real_le_of_real (sub_le_sub h₂ h₁) 
+  exact nnreal.of_real_le_of_real (sub_le_sub h₂ h₁)
 end
 
 lemma lebesgue_length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) : lebesgue_length s₁ ≤ lebesgue_length s₂ :=
@@ -42,7 +42,9 @@ begin
   refine ennreal.le_of_forall_epsilon_le (λ ε ε0 _, _),
   refine infi_le_of_le (a - ε) (infi_le_of_le b $ infi_le_of_le
     (subset.trans h $ Ico_subset_Ioo_left $ (sub_lt_self_iff _).2 ε0) _),
-  rw ← sub_add, apply ennreal.of_real_add_le
+  rw [← sub_add, ← ennreal.coe_add, ennreal.coe_le_coe],
+  apply le_trans nnreal.of_real_add_le _,
+  simp,
 end
 
 @[simp] lemma lebesgue_length_Ioo (a b : ℝ) :
@@ -54,8 +56,8 @@ begin
   refine (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, _),
   cases le_or_lt b a with ab ab, {simp [ab]},
   cases (Ioo_subset_Ioo_iff ab).1 h with h₁ h₂,
-  rw lebesgue_length_Ico,
-  exact ennreal.of_real_le_of_real (sub_le_sub h₂ h₁) 
+  rw [lebesgue_length_Ico, ennreal.coe_le_coe],
+  exact nnreal.of_real_le_of_real (sub_le_sub h₂ h₁)
 end
 
 lemma lebesgue_length_eq_infi_Icc (s) : lebesgue_length s = ⨅a b (h : s ⊆ Icc a b), of_real (b - a) :=
@@ -67,7 +69,9 @@ begin
   refine ennreal.le_of_forall_epsilon_le (λ ε ε0 _, _),
   refine infi_le_of_le a (infi_le_of_le (b + ε) $ infi_le_of_le
     (subset.trans h $ Icc_subset_Ico_right $ (lt_add_iff_pos_right _).2 ε0) _),
-  rw [sub_eq_add_neg, add_right_comm], apply ennreal.of_real_add_le
+  rw [sub_eq_add_neg, add_right_comm, ←ennreal.coe_add, ennreal.coe_le_coe],
+  apply le_trans nnreal.of_real_add_le,
+  simp
 end
 
 @[simp] lemma lebesgue_length_Icc (a b : ℝ) :
@@ -88,11 +92,11 @@ outer_measure.of_function_le _ _ _
 
 lemma lebesgue_length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
   (ss : Icc a b ⊆ ⋃i, Ioo (c i) (d i)) :
-  of_real (b - a) ≤ ∑ i, of_real (d i - c i) :=
+  (of_real (b - a) : ennreal) ≤ ∑ i, of_real (d i - c i) :=
 begin
   suffices : ∀ (s:finset ℕ) b
     (cv : Icc a b ⊆ ⋃ i ∈ (↑s:set ℕ), Ioo (c i) (d i)),
-    of_real (b - a) ≤ s.sum (λ i, of_real (d i - c i)),
+    (of_real (b - a) : ennreal) ≤ s.sum (λ i, of_real (d i - c i)),
   { rcases @compact_elim_finite_subcover_image _ _
       _ (Icc a b) univ (λ i, Ioo (c i) (d i)) compact_Icc
       (λ i _, is_open_Ioo) (by simpa using ss) with ⟨s, su, hf, hs⟩,
@@ -104,14 +108,15 @@ begin
   clear ss b,
   refine λ s, finset.strong_induction_on s (λ s IH b cv, _),
   cases le_total b a with ab ab,
-  { rw ennreal.of_real_of_nonpos (sub_nonpos.2 ab), simp },
+  { rw nnreal.of_real_of_nonpos (sub_nonpos.2 ab), simp },
   have := cv ⟨ab, le_refl _⟩, simp at this,
   rcases this with ⟨i, is, cb, bd⟩,
   rw [← finset.insert_erase is] at cv ⊢,
   rw [finset.coe_insert, bUnion_insert] at cv,
   rw [finset.sum_insert (finset.not_mem_erase _ _)],
   refine le_trans _ (add_le_add_left' (IH _ (finset.erase_ssubset is) (c i) _)),
-  { refine le_trans (ennreal.of_real_le_of_real _) ennreal.of_real_add_le,
+  { rw [← ennreal.coe_add, ennreal.coe_le_coe],
+    refine le_trans (nnreal.of_real_le_of_real _) nnreal.of_real_add_le,
     rw sub_add_sub_cancel,
     exact sub_le_sub_right (le_of_lt bd) _ },
   { rintro x ⟨h₁, h₂⟩,
@@ -126,14 +131,14 @@ begin
     (le_infi $ λ f, le_infi $ λ hf,
     ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
-    (ennreal.zero_lt_of_real_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
+    (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left' (le_of_lt hε)),
   rw ← ennreal.tsum_add,
-  have : ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ of_real (p.2 - p.1) < 
-    lebesgue_length (f i) + of_real (ε' i),
+  have : ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) <
+    lebesgue_length (f i) + ε' i,
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
-        (ennreal.zero_lt_of_real_iff.2 (ε'0 i))),
+        (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
     conv at this {to_lhs, rw lebesgue_length_eq_infi_Ioo},
     simpa [infi_lt_iff] },
   cases axiom_of_choice this with g hg, dsimp only at g hg,
@@ -150,8 +155,9 @@ by simpa using lebesgue_outer_Icc a a
 begin
   refine le_antisymm (by rw ← lebesgue_length_Ico; apply lebesgue_outer_le_length)
     (ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
-  have := @ennreal.of_real_add_le (b - a - ε) ε,
-  rw [sub_add_cancel, sub_right_comm, ← lebesgue_outer_Icc a (b-ε)] at this,
+  have := @nnreal.of_real_add_le (b - a - ε) ε,
+  rw [← ennreal.coe_le_coe, ennreal.coe_add, sub_add_cancel, sub_right_comm,
+    ← lebesgue_outer_Icc a (b-ε), nnreal.of_real_coe] at this,
   exact le_trans this (add_le_add_right' $ lebesgue_outer.mono $
     Icc_subset_Ico_right $ (sub_lt_self_iff _).2 ε0)
 end
@@ -161,8 +167,9 @@ end
 begin
   refine le_antisymm (by rw ← lebesgue_length_Ioo; apply lebesgue_outer_le_length)
     (ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
-  have := @ennreal.of_real_add_le (b - a - ε) ε,
-  rw [sub_add_cancel, sub_sub, ← lebesgue_outer_Ico (a+ε) b] at this,
+  have := @nnreal.of_real_add_le (b - a - ε) ε,
+  rw [← ennreal.coe_le_coe, ennreal.coe_add, sub_add_cancel, sub_sub,
+    ← lebesgue_outer_Ico (a+ε) b, nnreal.of_real_coe] at this,
   exact le_trans this (add_le_add_right' $ lebesgue_outer.mono $
     Ico_subset_Ioo_left $ (lt_add_iff_pos_right _).2 ε0)
 end
@@ -175,10 +182,12 @@ le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
     (lebesgue_length_mono $ inter_subset_inter_left _ h)
     (lebesgue_length_mono $ diff_subset_diff_left h)) _,
   cases le_total a c with hac hca; cases le_total b c with hbc hcb;
-  simp [*, max_eq_right, max_eq_left, min_eq_left, min_eq_right,
-    -sub_eq_add_neg, sub_add_sub_cancel'],
-  rw ennreal.of_real_of_nonpos, {simp},
-  exact sub_nonpos.2 (le_trans hbc hca)
+    simp [*, max_eq_right, max_eq_left, min_eq_left, min_eq_right, -sub_eq_add_neg, sub_add_sub_cancel'];
+    rw [← ennreal.coe_add, ennreal.coe_le_coe],
+  { simp [*, nnreal.of_real_add_of_real, -sub_eq_add_neg, sub_add_sub_cancel'] },
+  { rw nnreal.of_real_of_nonpos,
+    { simp },
+    exact sub_nonpos.2 (le_trans hbc hca) }
 end
 
 theorem lebesgue_outer_trim : lebesgue_outer.trim = lebesgue_outer :=
@@ -188,23 +197,23 @@ begin
   refine le_infi (λ f, le_infi $ λ hf,
     ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
-    (ennreal.zero_lt_of_real_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
+    (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left' (le_of_lt hε)),
   rw ← ennreal.tsum_add,
   have : ∀ i, ∃ s, f i ⊆ s ∧ is_measurable s ∧
     lebesgue_outer s ≤ lebesgue_length (f i) + of_real (ε' i),
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
-        (ennreal.zero_lt_of_real_iff.2 (ε'0 i))),
+        (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
     conv at this {to_lhs, rw lebesgue_length},
     simp only [infi_lt_iff] at this,
     rcases this with ⟨a, b, h₁, h₂⟩,
     rw ← lebesgue_outer_Ico at h₂,
-    exact ⟨_, h₁, is_measurable_Ico, le_of_lt h₂⟩ },
-  cases axiom_of_choice this with g hg, dsimp at g hg,
-  apply infi_le_of_le (Union g),
-  apply infi_le_of_le (subset.trans hf $ Union_subset_Union (λ i, (hg i).1)),
-  apply infi_le_of_le (is_measurable.Union (λ i, (hg i).2.1)),
+    exact ⟨_, h₁, is_measurable_Ico, le_of_lt $ by simpa using h₂⟩ },
+  cases axiom_of_choice this with g hg, simp at g hg,
+  apply infi_le_of_le (Union g) _,
+  apply infi_le_of_le (subset.trans hf $ Union_subset_Union (λ i, (hg i).1)) _,
+  apply infi_le_of_le (is_measurable.Union (λ i, (hg i).2.1)) _,
   exact le_trans (lebesgue_outer.Union _) (ennreal.tsum_le_tsum $ λ i, (hg i).2.2)
 end
 

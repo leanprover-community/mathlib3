@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Simon Hudon
+Authors: Simon Hudon, Scott Morrison
 -/
 import tactic data.set.lattice data.prod
        tactic.rewrite
@@ -23,6 +23,18 @@ example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
 begin
   apply_assumption,
 end
+
+open tactic
+
+example : true :=
+begin
+  (do gs ← get_goals,
+     set_goals [],
+     success_if_fail `[solve_by_elim],
+     set_goals gs),
+  trivial
+end
+
 end solve_by_elim
 
 section tauto₀
@@ -338,6 +350,16 @@ end
 end rcases
 
 section ext
+
+@[extensionality] lemma unit.ext (x y : unit) : x = y :=
+begin
+  cases x, cases y, refl
+end
+
+example : subsingleton unit :=
+begin
+  split, intros, ext
+end
 
 example (x y : ℕ) : true :=
 begin

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 
 Continuous functions.
 
@@ -818,6 +818,50 @@ lemma inj_iff (de : dense_embedding e) {x y} : e x = e y ↔ x = y := de.inj.eq_
 lemma closure_range : closure (range e) = univ :=
 let h := de.dense in
 set.ext $ assume x, ⟨assume _, trivial, assume _, @h x⟩
+
+lemma self_sub_closure_image_preimage_of_open {s : set β} (de : dense_embedding e) :
+  is_open s → s ⊆ closure (e '' (e ⁻¹' s)) :=
+begin
+  intros s_op b b_in_s,
+  rw [image_preimage_eq_inter_range, mem_closure_iff],
+  intros U U_op b_in,
+  rw ←inter_assoc,
+  have ne_e : U ∩ s ≠ ∅ := ne_empty_of_mem ⟨b_in, b_in_s⟩,
+  exact (dense_iff_inter_open.1 de.closure_range) _ (is_open_inter U_op s_op) ne_e
+end
+
+lemma closure_image_nhds_of_nhds {s : set α} {a : α} (de : dense_embedding e) :
+  s ∈ (nhds a).sets → closure (e '' s) ∈ (nhds (e a)).sets :=
+begin
+  rw [← de.induced a, mem_vmap_sets],
+  intro h,
+  rcases h with ⟨t, t_nhd, sub⟩,
+  rw mem_nhds_sets_iff at t_nhd,
+  rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩, 
+  have := calc e ⁻¹' U ⊆ e⁻¹' t : preimage_mono U_sub
+                   ... ⊆ s      : sub,
+  have := calc U ⊆ closure (e '' (e ⁻¹' U)) : self_sub_closure_image_preimage_of_open de U_op
+             ... ⊆ closure (e '' s)         : closure_mono (image_subset e this),
+  have U_nhd : U ∈ (nhds (e a)).sets := mem_nhds_sets U_op e_a_in_U,
+  exact (nhds (e a)).sets_of_superset U_nhd this
+end
+
+variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
+/--
+ γ -f→ α
+g↓     ↓e
+ δ -h→ β 
+-/
+lemma tendsto_vmap_nhds_nhds  {d : δ} {a : α} (de : dense_embedding e) (H : tendsto h (nhds d) (nhds (e a)))
+  (comm : h ∘ g = e ∘ f) : tendsto f (vmap g (nhds d)) (nhds a) :=
+begin
+  have lim1 : map g (vmap g (nhds d)) ≤ nhds d := map_vmap_le,
+  replace lim1 : map h (map g (vmap g (nhds d))) ≤ map h (nhds d) := map_mono lim1,
+  rw [filter.map_map, comm, ← filter.map_map, map_le_iff_le_vmap] at lim1,
+  have lim2 :  vmap e (map h (nhds d)) ≤  vmap e  (nhds (e a)) := vmap_mono H,
+  rw de.induced at lim2,
+  exact le_trans lim1 lim2,
+end
 
 protected lemma nhds_inf_neq_bot (de : dense_embedding e) {b : β} : nhds b ⊓ principal (range e) ≠ ⊥ :=
 begin

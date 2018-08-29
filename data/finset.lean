@@ -29,6 +29,9 @@ theorem eq_of_veq : ∀ {s t : finset α}, s.1 = t.1 → s = t
 @[simp] theorem erase_dup_eq_self [decidable_eq α] (s : finset α) : erase_dup s.1 = s.1 :=
 erase_dup_eq_self.2 s.2
 
+instance has_coe_list_nodup {l : list α} : has_coe l.nodup (finset α) :=
+⟨λ d, finset.mk (l : multiset α) (d : (l : multiset α).nodup)⟩
+
 end finset
 
 namespace finset

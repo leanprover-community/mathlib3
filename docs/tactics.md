@@ -313,3 +313,22 @@ The default list of tactics can be found by looking up the definition of
 [`default_tidy_tactics`](https://github.com/leanprover/mathlib/blob/master/tactic/tidy.lean).
 
 This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of `tactic string`.)
+
+## linarith
+
+`linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
+Equivalently, it can prove a linear inequality by assuming its negation and proving `false`. 
+This tactic is currently work in progress, and has various limitations. In particular, all 
+coefficients must be integer-valued. The input format for hypotheses is somewhat restricted, e.g.
+no products of coefficients should be present. The tactic can be made much more efficient.
+
+An example: 
+```
+example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0) 
+        (h3 : 12*y - 4* z < 0)  : false :=
+by linarith
+```
+
+`linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
+`linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
+`linarith using [t1, t2, t3] will add `t1`, `t2`, `t3` to the local context and then run `linarith`.

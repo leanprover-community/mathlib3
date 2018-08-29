@@ -561,7 +561,7 @@ meta def repeat_or_not : rep_arity → tactic unit → option (tactic unit) → 
  | (rep_arity.exactly n) tac (some until) := iterate_exactly n tac >> until
 
 meta def assert_or_rule : lean.parser (pexpr ⊕ pexpr) :=
-(inl <$> texpr <|> (tk ":" *> inr <$> texpr))
+(tk ":=" *> inl <$> texpr <|> (tk ":" *> inr <$> texpr))
 
 meta def arity : lean.parser rep_arity :=
 rep_arity.many <$ tk "*" <|>

@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
-import algebra.module tactic.ring linear_algebra.quotient_module
+import algebra.module tactic.ring linear_algebra.quotient_module tactic.tidy
 
 universes u v
 variables {α : Type u} {β : Type v} [comm_ring α] {a b : α}
@@ -39,7 +39,7 @@ instance span (S : set α) : is_ideal (span S) := {}
 
 end is_ideal
 
-class is_proper_ideal {α : Type u} [comm_ring α] (S : set α) extends is_ideal S : Prop :=
+class is_proper_ideal {α} [comm_ring α] (S : set α) extends is_ideal S : Prop :=
 (ne_univ : S ≠ set.univ)
 
 lemma is_proper_ideal_iff_one_not_mem {S : set α} [hS : is_ideal S] :
@@ -48,19 +48,19 @@ lemma is_proper_ideal_iff_one_not_mem {S : set α} [hS : is_ideal S] :
   (eq_univ_iff_forall.2 (λ a, mul_one a ▸ is_ideal.mul_left h1)),
 λ h, {ne_univ := mt eq_univ_iff_forall.1 (λ ha, h (ha _)), ..hS}⟩
 
-class is_prime_ideal {α : Type u} [comm_ring α] (S : set α) extends is_proper_ideal S : Prop :=
+class is_prime_ideal {α} [comm_ring α] (S : set α) extends is_proper_ideal S : Prop :=
 (mem_or_mem_of_mul_mem : ∀ {x y : α}, x * y ∈ S → x ∈ S ∨ y ∈ S)
 
-theorem mem_or_mem_of_mul_eq_zero {α : Type u} [comm_ring α] (S : set α) [is_prime_ideal S] :
+theorem mem_or_mem_of_mul_eq_zero {α} [comm_ring α] (S : set α) [is_prime_ideal S] :
   ∀ {x y : α}, x * y = 0 → x ∈ S ∨ y ∈ S :=
 λ x y hxy, have x * y ∈ S, by rw hxy; from (@is_submodule.zero α α _ _ S _ : (0:α) ∈ S),
 is_prime_ideal.mem_or_mem_of_mul_mem this
 
-class is_maximal_ideal {α : Type u} [comm_ring α] (S : set α) extends is_proper_ideal S : Prop :=
+class is_maximal_ideal {α} [comm_ring α] (S : set α) extends is_proper_ideal S : Prop :=
 mk' ::
   (eq_or_univ_of_subset : ∀ (T : set α) [is_ideal T], S ⊆ T → T = S ∨ T = set.univ)
 
-theorem is_maximal_ideal.mk {α : Type u} [comm_ring α] (S : set α) [is_ideal S]
+theorem is_maximal_ideal.mk {α} [comm_ring α] (S : set α) [is_ideal S]
   (h₁ : (1:α) ∉ S) (h₂ : ∀ x (T : set α) [is_ideal T], S ⊆ T → x ∉ S → x ∈ T → (1:α) ∈ T) :
   is_maximal_ideal S :=
 { ne_univ              := assume hu, have (1:α) ∈ S, by rw hu; trivial, h₁ this,
@@ -79,13 +79,58 @@ instance is_maximal_ideal.is_prime_ideal (S : set α) [hS : is_maximal_ideal S] 
     ▸ ha)) (is_ideal.mul_left hxy)),
   ..hS }
 
-def nonunits (α : Type u) [monoid α] : set α := { x | ¬∃ y, y * x = 1 }
+def is_unit {α} [monoid α] (x : α) : Prop := ∃ y, y * x = 1
 
-theorem not_unit_of_mem_proper_ideal {α : Type u} [comm_ring α] (S : set α) [is_proper_ideal S] :
+theorem is_unit_iff_dvd_one {α} [comm_ring α] {x : α} :
+  is_unit x ↔ x ∣ 1 := by simp [is_unit, dvd_iff', eq_comm]
+
+@[simp] theorem not_is_unit_zero {α} [integral_domain α] : ¬ is_unit (0:α) :=
+by simp [is_unit_iff_dvd_one]
+
+theorem is_unit_iff_forall_dvd {α} [comm_ring α] {x : α} :
+  is_unit x ↔ ∀ y, x ∣ y :=
+is_unit_iff_dvd_one.trans ⟨λ h y, dvd.trans h (one_dvd _), λ h, h _⟩
+
+theorem mem_span_singleton_iff_dvd {α} [comm_ring α] {x y : α} :
+  x ∈ span ({y} : set α) ↔ y ∣ x :=
+by simp [span_singleton, dvd_mul_of_dvd_left, dvd_iff', eq_comm]
+
+theorem span_singleton_eq_univ {α} [comm_ring α] {x : α} :
+  span ({x} : set α) = set.univ ↔ is_unit x :=
+by simp [eq_univ_iff_forall, mem_span_singleton_iff_dvd, is_unit_iff_forall_dvd]
+
+def nonunits (α) [monoid α] : set α := {x | ¬is_unit x}
+
+@[simp] theorem mem_nonunits {α} [monoid α] (x : α) :
+  x ∈ nonunits α ↔ ¬ is_unit x := iff.rfl
+
+def is_irreducible {α} [ring α] (x : α) : Prop :=
+x ∈ nonunits α ∧ x ≠ 0 ∧ ∀ a b, a * b = x → is_unit a ∨ is_unit b
+
+@[simp] theorem not_is_irreducible_zero {α} [ring α] : ¬ is_irreducible (0:α)
+| ⟨_, h, _⟩ := h rfl
+
+@[simp] theorem of_is_irreducible_mul {α} [ring α] {x y : α} :
+  is_irreducible (x * y) → is_unit x ∨ is_unit y
+| ⟨_, _, h⟩ := h _ _ rfl
+
+theorem irreducible_or_factor {α} [ring α] (x : α)
+  (h : x ∈ nonunits α) (z : x ≠ 0) :
+  is_irreducible x ∨ ∃ a b ∈ nonunits α, a * b = x :=
+begin
+  by_cases nu : ∃ a b ∈ nonunits α, a * b = x, {exact or.inr nu},
+  apply or.inl, simp at nu h,
+  simp [h, z, is_irreducible],
+  refine λ a b h, classical.by_contradiction $ λ o, _,
+  simp [not_or_distrib] at o,
+  exact nu _ o.1 _ o.2 h,
+end
+
+theorem not_unit_of_mem_proper_ideal {α} [comm_ring α] (S : set α) [is_proper_ideal S] :
   S ⊆ nonunits α :=
 λ x hx ⟨y, hxy⟩, is_proper_ideal.ne_univ S $ is_submodule.eq_univ_of_contains_unit S x y hx hxy
 
-class local_ring (α : Type u) [comm_ring α] :=
+class local_ring (α) [comm_ring α] :=
 (S : set α)
 (max : is_maximal_ideal S)
 (unique : ∀ T [is_maximal_ideal T], S = T)

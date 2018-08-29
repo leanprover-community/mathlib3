@@ -1589,13 +1589,13 @@ lemma uniform_continuous.prod_mk
 by rw [uniform_continuous, uniformity_prod]; exact
 tendsto_inf.2 ⟨tendsto_vmap_iff.2 h₁, tendsto_vmap_iff.2 h₂⟩
 
-lemma uniform_continuous.prod.partial1 {f : α × β → γ} (h : uniform_continuous f) :
-∀ b, uniform_continuous (λ a, f (a,b)) := λ b, uniform_continuous.comp 
-      (uniform_continuous.prod_mk uniform_continuous_id uniform_continuous_const) h
+lemma uniform_continuous.prod_mk_left {f : α × β → γ} (h : uniform_continuous f) (b) :
+  uniform_continuous (λ a, f (a,b)) :=
+uniform_continuous.comp (uniform_continuous.prod_mk uniform_continuous_id uniform_continuous_const) h
 
-lemma uniform_continuous.prod.partial2 {f : α × β → γ} (h : uniform_continuous f) :
-∀ a, uniform_continuous (λ b, f (a,b)) := λ a, uniform_continuous.comp 
-      (uniform_continuous.prod_mk uniform_continuous_const uniform_continuous_id) h
+lemma uniform_continuous.prod_mk_right {f : α × β → γ} (h : uniform_continuous f) (a) :
+  uniform_continuous (λ b, f (a,b)) :=
+uniform_continuous.comp (uniform_continuous.prod_mk uniform_continuous_const uniform_continuous_id) h
 
 instance complete_space.prod [complete_space α] [complete_space β] : complete_space (α × β) :=
 { complete := λ f hf,

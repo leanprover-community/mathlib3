@@ -9,12 +9,9 @@ namespace category_theory
 universes u v u' v' w
 
 instance types : large_category (Type u) :=
-{ hom      := λ a b, (a → b),
-  id       := λ a, id,
-  comp     := λ _ _ _ f g, g ∘ f,
-  id_comp' := begin /- `obviously'` says: -/ intros, refl  end,
-  comp_id' := begin /- `obviously'` says: -/ intros, refl end,
-  assoc'   := begin /- `obviously'` says: -/ intros, refl end }
+{ hom     := λ a b, (a → b),
+  id      := λ a, id,
+  comp    := λ _ _ _ f g, g ∘ f }
 
 @[simp] lemma types_hom {α β : Type u} : (α ⟶ β) = (α → β) := rfl  
 @[simp] lemma types_id {α : Type u} (a : α) : (𝟙 α : α → α) a = a := rfl
@@ -26,10 +23,10 @@ include 𝒞
 variables (σ : F ⟹ G) (τ : G ⟹ H) 
 
 @[simp] lemma map_comp (f : X ⟶ Y) (g : Y ⟶ Z) (a : F X) : (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
-begin /- `obviously'` says: -/ simp end
+by simp
 
 @[simp] lemma map_id (a : F X) : (F.map (𝟙 X)) a = a := 
-begin /- `obviously'` says: -/ simp end
+by simp
 
 lemma naturality (f : X ⟶ Y) (x : F X) : σ Y ((F.map f) x) = (G.map f) (σ X x) := 
 congr_fun (σ.naturality f) x
@@ -43,9 +40,7 @@ variables {D : Type u'} [𝒟 : category.{u' v'} D] (I J : D ↝ C) (ρ : I ⟹ 
 end functor_to_types
 
 definition ulift_functor : (Type u) ↝ (Type (max u v)) := 
-{ obj       := λ X, ulift.{v} X,
-  map'      := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down),
-  map_id'   := begin /- `obviously'` says: -/ intros, ext, refl end,
-  map_comp' := begin /- `obviously'` says: -/ intros, refl end }
+{ obj      := λ X, ulift.{v} X,
+  map'     := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down) }
 
 end category_theory

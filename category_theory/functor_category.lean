@@ -18,12 +18,9 @@ However if `C` and `D` are both large categories at the same universe level, thi
 -/
 instance functor.category (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : 
   category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (C ↝ D) :=
-{ hom      := λ F G, F ⟹ G,
-  id       := λ F, nat_trans.id F,
-  comp     := λ _ _ _ α β, α ⊟ β,
-  id_comp' := begin /- `obviously'` says: -/ intros, ext, intros, dsimp, simp end,
-  comp_id' := begin /- `obviously'` says: -/ intros, ext, intros, dsimp, simp end,
-  assoc'   := begin /- `obviously'` says: -/ intros, ext, intros, simp end }
+{ hom     := λ F G, F ⟹ G,
+  id      := λ F, nat_trans.id F,
+  comp    := λ _ _ _ α β, α ⊟ β }
 
 namespace functor.category
 

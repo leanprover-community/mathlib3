@@ -17,22 +17,25 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 import tactic.restate_axiom
 import tactic.replacer
 import tactic.interactive
+import tactic.tidy
 
 namespace category_theory
 
 universes u v
 
 /- 
-The propositional fields of `category` are annotated with the auto_param `obviously`, which is just a synonym for `skip`.
-Actually, there is a tactic called `obviously` which is not part of this pull request, which should be used here. It successfully
-discharges a great many of these goals. For now, proofs which could be provided entirely by `obviously` (and hence omitted entirely
-and discharged by an auto_param), are all marked with a comment "-- obviously says:".
+The propositional fields of `category` are annotated with the auto_param `obviously`, which is
+defined here as a [`replacer` tactic](https://github.com/leanprover/mathlib/blob/master/docs/tactics.md#def_replacer).
+We then immediately set up `obviously` to call `tidy`. Later, this can be replaced with more
+powerful tactics.
 -/
 def_replacer obviously
+@[obviously] meta def obviously' := tactic.tidy
 
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.
-The universe levels of the objects and morphisms are unconstrained, and will often need to be specified explicitly, as `category.{u v} C`. (See also `large_category` and `small_category`.)
+The universe levels of the objects and morphisms are unconstrained, and will often need to be 
+specified explicitly, as `category.{u v} C`. (See also `large_category` and `small_category`.)
 -/
 class category (obj : Type u) : Type (max u (v+1)) :=
 (hom      : obj → obj → Type v)

@@ -2275,7 +2275,7 @@ theorem erase_dup_cons {a : α} {s : multiset α} :
 by by_cases a ∈ s; simp [h]
 
 theorem nodup_ndinsert (a : α) {s : multiset α} : nodup s → nodup (ndinsert a s) :=
-quot.induction_on s $ λ l, nodup_insert
+quot.induction_on s $ λ l, nodup_insert a
 
 theorem ndinsert_le {a : α} {s t : multiset α} : ndinsert a s ≤ t ↔ s ≤ t ∧ a ∈ t :=
 ⟨λ h, ⟨le_trans (le_ndinsert_self _ _) h, mem_of_le h (mem_ndinsert_self _ _)⟩,

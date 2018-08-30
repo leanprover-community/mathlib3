@@ -3612,7 +3612,7 @@ pairwise_filter_map_of_pairwise f $ λ a a' n b bm b' bm' e, n $ H a a' b' (e �
 theorem nodup_concat {a : α} {l : list α} (h : a ∉ l) (h' : nodup l) : nodup (concat l a) :=
 by simp; exact nodup_append_of_nodup h' (nodup_singleton _) (disjoint_singleton.2 h)
 
-theorem nodup_insert [decidable_eq α] {a : α} {l : list α} (h : nodup l) : nodup (insert a l) :=
+theorem nodup_insert [decidable_eq α] (a : α) {l : list α} (h : nodup l) : nodup (insert a l) :=
 by by_cases h' : a ∈ l; simp [h', h]; apply nodup_cons h' h
 
 theorem nodup_union [decidable_eq α] (l₁ : list α) {l₂ : list α} (h : nodup l₂) :

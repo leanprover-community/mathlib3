@@ -319,8 +319,8 @@ This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a
 `linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
 Equivalently, it can prove a linear inequality by assuming its negation and proving `false`. 
 This tactic is currently work in progress, and has various limitations. In particular, all 
-coefficients must be integer-valued. The input format for hypotheses is somewhat restricted, e.g.
-no products of coefficients should be present. The tactic can be made much more efficient.
+coefficients must be integer-valued, and it will not work on `nat`. 
+The tactic can be made much more efficient.
 
 An example: 
 ```

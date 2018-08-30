@@ -605,6 +605,12 @@ lemma find_greatest_spec_and_le :
 lemma find_greatest_spec {b} : (∃m, m ≤ b ∧ P m) → P (nat.find_greatest P b)
 | ⟨m, hmb, hm⟩ := (find_greatest_spec_and_le hmb hm).1
 
+lemma find_greatest_le : ∀ {b}, nat.find_greatest P b ≤ b
+| 0       := le_refl _
+| (b + 1) :=
+  have nat.find_greatest P b ≤ b + 1, from le_trans find_greatest_le (nat.le_succ b),
+  by by_cases P (b + 1); simp [nat.find_greatest, h, this]
+
 lemma le_find_greatest {b m} (hmb : m ≤ b) (hm : P m) : m ≤ nat.find_greatest P b :=
 (find_greatest_spec_and_le hmb hm).2
 

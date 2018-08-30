@@ -43,6 +43,7 @@ end lemmas
 
 section datatypes
 
+@[derive decidable_eq]
 inductive ineq
 | eq | le | lt
 
@@ -69,6 +70,7 @@ instance : has_to_string ineq := ⟨ineq.to_string⟩
 /--
   The main datatype for FM elimination.
   Variables are represented by natural numbers, each of which has an integer coefficient.
+  Index 0 is reserved for constants, i.e. `coeffs.find 0` is the coefficient of 1.
   The represented term is coeffs.keys.sum (λ i, coeffs.find i * Var[i]).
   str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
@@ -114,8 +116,8 @@ alist_lt m1.to_list m2.to_list
 meta def comp.lt (c1 c2 : comp) : bool :=
 (c1.str.is_lt c2.str) || (map_lt c1.coeffs c2.coeffs) 
 
-meta instance comp.has_lt : has_lt (comp) := ⟨λ a b, comp.lt a b⟩
-meta instance pcomp.has_lt : has_lt (pcomp) := ⟨λ p1 p2, p1.c < p2.c⟩
+meta instance comp.has_lt : has_lt comp := ⟨λ a b, comp.lt a b⟩
+meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
 meta instance pcomp.has_lt_dec : decidable_rel ((<) : pcomp → pcomp → Prop) := by apply_instance
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
@@ -136,10 +138,10 @@ meta def pcomp.scale (c : pcomp) (n : ℕ) : pcomp :=
 meta def pcomp.add (c1 c2 : pcomp) : pcomp :=
 ⟨c1.c.add c2.c, comp_source.add c1.src c2.src⟩
 
-meta instance pcomp.to_format : has_to_format (pcomp) :=
+meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
 
-meta instance comp.to_format : has_to_format (comp) :=
+meta instance comp.to_format : has_to_format comp :=
 ⟨λ p, to_fmt p.coeffs⟩
 
 end datatypes
@@ -158,27 +160,35 @@ if v1 * v2 < 0 then
   some ⟨v1', v2', comp.add (c1.scale v1') (c2.scale v2')⟩ 
 else none
 
-meta def pelim_var (p1 p2 : pcomp) (a : ℕ) : option (pcomp) := 
+meta def pelim_var (p1 p2 : pcomp) (a : ℕ) : option pcomp := 
 do (n1, n2, c) ← elim_var p1.c p2.c a,
    return ⟨c, comp_source.add (p1.src.scale n1) (p2.src.scale n2)⟩
 
-meta def comp.is_contr (c : comp) : bool := c.coeffs.keys = []
+meta def comp.is_contr (c : comp) : bool := c.coeffs.keys = [] ∧ c.str = ineq.lt
 
-meta def neg_valence (a : ℕ) (comps : rb_set (pcomp)) : rb_set (pcomp) :=
+meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
+
+meta def neg_valence (a : ℕ) (comps : rb_set pcomp) : rb_set pcomp :=
 comps.filter (λ p, p.c.coeff_of a < 0)
 
-meta def pos_valence (a : ℕ) (comps : rb_set (pcomp)) : rb_set (pcomp) :=
+meta def pos_valence (a : ℕ) (comps : rb_set pcomp) : rb_set pcomp :=
 comps.filter (λ p, p.c.coeff_of a > 0)
 
-meta def zero_valence (a : ℕ) (comps : rb_set (pcomp)) : rb_set (pcomp) :=
+meta def zero_valence (a : ℕ) (comps : rb_set pcomp) : rb_set pcomp :=
 comps.filter (λ p, p.c.coeff_of a = 0)
 
-meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set (pcomp)) : rb_set (pcomp) :=
+meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
 if ¬ p.c.coeffs.contains a then mk_rb_set.insert p else 
 comps.fold mk_rb_set $ λ pc s, 
 match pelim_var p pc a with 
 | some pc := s.insert pc
 | none := s 
+end
+
+meta def find_contr_in_set (comps : rb_set pcomp) : option pcomp :=
+match (comps.filter pcomp.is_contr).keys with 
+| [] := none 
+| (h::t) := some h
 end
 
 /-- 
@@ -187,13 +197,14 @@ end
     comps: a set of comparisons
     inputs: a set of pairs of exprs (t, pf), where t is a term and pf is a proof that t {<, ≤, =} 0,
       indexed by ℕ.
-    has_false: TODO
+    has_false: stores a pcomp of 0 < 0 if one has been found
+    TODO: is it more efficient to store comps as a list, to avoid comparisons?
 -/
 meta structure linarith_structure :=
 (vars : rb_set ℕ)
 (comps : rb_set pcomp)
 (inputs : rb_map ℕ (expr × expr)) -- first is term, second is proof of comparison
-(has_false : option comp) -- TODO: not used yet
+(has_false : option pcomp) 
 
 @[reducible] meta def linarith_monad := state (linarith_structure)
 
@@ -205,22 +216,31 @@ meta def get_var_list : linarith_monad (list ℕ) :=
 meta def get_vars : linarith_monad (rb_set ℕ) :=
 ⟨λ s, ⟨s.vars, s⟩⟩
 
-meta def get_comps : linarith_monad (rb_set (pcomp)) :=
+meta def get_comps : linarith_monad (rb_set pcomp) :=
 ⟨λ s, ⟨s.comps, s⟩⟩
 
-meta def is_contr : linarith_monad bool :=
-⟨λ s, ⟨s.has_false.is_some, s⟩⟩
+meta def get_contr : linarith_monad (option pcomp) :=
+linarith_structure.has_false <$> get
 
-meta def update_vars_and_comps (vars : rb_set ℕ) (comps : rb_set (pcomp)) : linarith_monad unit := 
+meta def is_contr : linarith_monad bool :=
+option.is_some <$> get_contr 
+
+meta def assert_contr (p : pcomp) : linarith_monad unit :=
+⟨λ s, ((), { s with has_false := some p })⟩
+
+meta def update_vars_and_comps (vars : rb_set ℕ) (comps : rb_set pcomp) : linarith_monad unit := 
 ⟨λ s, ⟨(), ⟨vars, comps, s.inputs, s.has_false⟩⟩⟩
 
--- TODO: short circuit if finds contr
+-- TODO: possible to short circuit earlier
 meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars, isc ← is_contr,
-   if ¬ vs.contains a ∨ isc then return () else
+   if (¬ vs.contains a) ∨ isc then return () else
 do comps ← get_comps,
    let cs' := comps.fold mk_rb_set (λ p s, s.union (elim_with_set a p comps)),
-   update_vars_and_comps (vs.erase a) cs'
+   match find_contr_in_set cs' with 
+   | none := update_vars_and_comps (vs.erase a) cs'
+   | some p := assert_contr p 
+   end
 
 meta def elim_all_vars : linarith_monad unit := 
 do vs ← get_var_list,
@@ -252,7 +272,7 @@ meta def map_of_expr : rb_map expr ℕ → ℕ → expr → tactic (rb_map expr 
       match map_of_expr_mul_aux comp1 comp2 with 
       | some mp := return (m', max', mp)
       | none := fail "input is nonlinear"
-  end
+      end
 | m max `(%%e1 + %%e2) :=
    do (m', max', comp1) ← map_of_expr m max e1, 
       (m', max', comp2) ← map_of_expr m' max' e2,
@@ -277,17 +297,11 @@ meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 
 meta def to_comp (e : expr) (m : rb_map expr ℕ) (max : ℕ) : tactic (comp × rb_map expr ℕ × ℕ) :=
 match parse_into_comp_and_expr e with 
-| none := do trace e, fail "expr is not an inequality"
+| none := fail "expr is not an inequality"
 | some (iq, e) := 
   do (m', max', comp') ← map_of_expr m max e,
      return ⟨⟨iq, comp'⟩, m', max'⟩
 end     
-
-meta def val_of_comp : expr → option expr
-| `(%%e < 0) := some e
-| `(%%e ≤ 0) := some e
-| `(%%e = 0) := some e
-| _ := none
 
 meta def to_comp_fold : rb_map expr ℕ → ℕ → list expr → 
      tactic (list (option comp) × rb_map expr ℕ × ℕ)
@@ -429,7 +443,7 @@ do (_, z) ← infer_type h >>= get_rel_sides,
    hz ← to_expr ``((neg_neg_of_pos zero_lt_one : -1 < %%z)),
    struct ← mk_linarith_structure (hz::l),
    let e : linarith_structure := (elim_all_vars.run struct).2,
-   let contr := find_contr e.comps,
+   let contr := e.has_false,
    guard contr.is_some <|> fail "linarith failed to find a contradiction",
    some contr ← return $ contr,
    coeffs ← return $ e.inputs.keys.map (λ k, (contr.src.flatten.ifind k)),

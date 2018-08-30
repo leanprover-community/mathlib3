@@ -45,6 +45,9 @@ nonpos_of_neg_nonneg (by simp at this; exact this)
 lemma mul_eq {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : b > 0) : b * a = 0 :=
 by simp *
 
+lemma eq_of_not_lt_of_not_gt {α} [linear_order α] (a b : α) (h1 : ¬ a < b) (h2 : ¬ b < a) : a = b :=
+le_antisymm (le_of_not_gt h2) (le_of_not_gt h1)
+
 end lemmas 
 
 section datatypes
@@ -505,7 +508,7 @@ do htp ← infer_type h,
 meta def get_contr_lemma_name : expr → tactic name
 | `(%%a < %%b) := return `lt_of_not_ge
 | `(%%a ≤ %%b) := return `le_of_not_gt
-| `(%%a = %%b) := fail "proving equality not handled yet"
+| `(%%a = %%b) := return ``eq_of_not_lt_of_not_gt
 | `(%%a ≥ %%b) := return `le_of_not_gt
 | `(%%a > %%b) := return `lt_of_not_ge
 | _ := fail "target type not supported by linarith"
@@ -536,7 +539,7 @@ meta def linarith.interactive_aux (cfg : linarith_config) :
 | [] none := 
   do t ← target,
      if t = `(false) then local_context >>= prove_false_by_linarith cfg
-     else do nm ← get_contr_lemma_name t, applyc nm, intro1, linarith.interactive_aux [] none
+     else do nm ← get_contr_lemma_name t, seq (applyc nm) (intro1 >> linarith.interactive_aux [] none)
 | ls none := (ls.mmap get_local) >>= prove_false_by_linarith cfg
 
 /--
@@ -551,3 +554,5 @@ meta def tactic.interactive.linarith (ids : parse (many ident))
 linarith.interactive_aux cfg ids using_hyps
 
 end
+
+#check le_antisymm

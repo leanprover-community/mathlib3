@@ -42,3 +42,6 @@ by linarith
 
 example (x : ℚ) (hx : x > 0) (h : x.num < 0) : false :=
 by linarith using [rat.num_pos_iff_pos.mpr hx]
+
+example (x y z : ℚ) (hx : x ≤ 3*y) (h2 : y ≤ 2*z) (h3 : x ≥ 6*z) : x = 3*y :=
+by linarith

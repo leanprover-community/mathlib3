@@ -20,13 +20,8 @@ theorem is_coprime_def {α} [ring α] (x y : α) :
 by simp [is_coprime, eq_univ_iff_forall, mem_span_pair]
 
 theorem is_coprime_self {α} [comm_ring α] (x y : α) :
-  is_coprime x x ↔ is_unit x := sorry
-
-theorem is_coprime_of_maximal_ideal {α} [comm_ring α] (S : set α) [is_maximal_ideal S]
-  {x y : α} (h : x ∈ S) (h₂ : y ∉ S) : span (insert x S) = univ :=
-begin
-
-end
+  is_coprime x x ↔ is_unit x :=
+by rw [← span_singleton_eq_univ]; simp [is_coprime]
 
 theorem span_gcd {α} [euclidean_domain α] (x y : α) :
   span ({gcd x y} : set α) = span ({x, y} : set α) :=
@@ -67,22 +62,19 @@ theorem is_maximal_ideal_of_irreducible {α} [euclidean_domain α] {x : α}
   (irr : is_irreducible x) : is_maximal_ideal (span ({x} : set α)) :=
 { ne_univ := by simp [span_singleton_eq_univ]; exact irr.1,
   eq_or_univ_of_subset := λ S hS ss, begin
-    resetI,
-    have := ss (subset_span (mem_singleton _)),
     refine or_iff_not_imp_left.2 (λ h, _),
     have : ¬ S ⊆ span {x}, {exact mt (subset.antisymm ss) (ne.symm h)},
     simp [subset_def, not_forall, mem_span_singleton_iff_dvd] at this,
     rcases this with ⟨y, h₁, h₂⟩,
-    have : _ = univ := (dvd_or_coprime _ _ irr).resolve_left h₂,
     apply univ_subset_iff.1,
-    simp [this.symm],
-    apply span_minimal hS.to_is_submodule, simp *
+    simp [((dvd_or_coprime _ _ irr).resolve_left h₂).symm],
+    apply span_minimal hS.to_is_submodule,
+    simp [h₁, ss (subset_span (mem_singleton _))]
   end }
 
 section
 universe u
-variables {K : Type u} [field K]
-  (f : polynomial K) (irr : is_irreducible f)
+variables {K : Type u} [field K] (f : polynomial K) (irr : is_irreducible f)
 include irr
 
 def adjoin_root : Type u :=

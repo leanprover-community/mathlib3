@@ -232,6 +232,13 @@ section parse
 
 open ineq tactic 
 
+meta def map_of_expr_mul_aux (c1 c2 : rb_map ℕ ℤ) : option (rb_map ℕ ℤ) :=
+match c1.keys, c2.keys with 
+| [0], _ := some $ c2.scale (c1.zfind 0)
+| _, [0] := some $ c1.scale (c2.zfind 0)
+| _, _ := none
+end
+
 /--
   Turns an expression into a map from ℕ to ℤ, for use in a comp object.
     The rb_map expr ℕ argument identifies which expressions have already been assigned numbers.
@@ -239,12 +246,12 @@ open ineq tactic
     Returns a new map and new max.
 -/
 meta def map_of_expr : rb_map expr ℕ → ℕ → expr → tactic (rb_map expr ℕ × ℕ × rb_map ℕ ℤ)
-| m max `(%%c * %%e) := 
-  match c.to_int, e.to_int with 
-  | some z, none := do (m', max', comp) ← map_of_expr m max e, return (m', max', comp.scale z)
-  | none, some z := do (m', max', comp) ← map_of_expr m max c, return (m', max', comp.scale z)
-  | some z1, some z2 := fail $ "product of numerals not handled yet"
-  | none, none := fail $ "found nonlinear hypotheseis" 
+| m max t@`(%%e1 * %%e2) := 
+   do (m', max', comp1) ← map_of_expr m max e1, 
+      (m', max', comp2) ← map_of_expr m' max' e2,
+      match map_of_expr_mul_aux comp1 comp2 with 
+      | some mp := return (m', max', mp)
+      | none := fail "input is nonlinear"
   end
 | m max `(%%e1 + %%e2) :=
    do (m', max', comp1) ← map_of_expr m max e1, 

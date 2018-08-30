@@ -288,37 +288,6 @@ instance : complete_space ℝ :=
   exact λ x h, lt_trans ((hF_dist n) x (G n) h (hG n)) h₁
 end⟩
 
--- TODO(Mario): This proof has nothing to do with reals
-theorem real.Cauchy_eq {f g : Cauchy ℝ} :
-  lim f.1 = lim g.1 ↔ (f, g) ∈ separation_rel (Cauchy ℝ) :=
-begin
-  split,
-  { intros e s hs,
-    rcases Cauchy.mem_uniformity'.1 hs with ⟨t, tu, ts⟩,
-    apply ts,
-    rcases comp_mem_uniformity_sets tu with ⟨d, du, dt⟩,
-    refine mem_prod_iff.2
-      ⟨_, le_nhds_lim_of_cauchy f.2 (mem_nhds_right (lim f.1) du),
-       _, le_nhds_lim_of_cauchy g.2 (mem_nhds_left (lim g.1) du), λ x h, _⟩,
-    cases x with a b, cases h with h₁ h₂,
-    rw ← e at h₂,
-    exact dt ⟨_, h₁, h₂⟩ },
-  { intros H,
-    refine separated_def.1 (by apply_instance) _ _ (λ t tu, _),
-    rcases mem_uniformity_is_closed tu with ⟨d, du, dc, dt⟩,
-    refine H {p | (lim p.1.1, lim p.2.1) ∈ t}
-      (Cauchy.mem_uniformity'.2 ⟨d, du, λ f g h, _⟩),
-    rcases mem_prod_iff.1 h with ⟨x, xf, y, yg, h⟩,
-    have limc : ∀ (f : Cauchy ℝ) (x ∈ f.1.sets), lim f.1 ∈ closure x,
-    { intros f x xf,
-      rw closure_eq_nhds,
-      exact neq_bot_of_le_neq_bot f.2.1
-        (le_inf (le_nhds_lim_of_cauchy f.2) (le_principal_iff.2 xf)) },
-    have := (closure_subset_iff_subset_of_is_closed dc).2 h,
-    rw closure_prod_eq at this,
-    refine dt (this ⟨_, _⟩); dsimp; apply limc; assumption }
-end
-
 lemma tendsto_of_nat_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
 tendsto_infi.2 $ assume r, tendsto_principal.2 $
 let ⟨n, hn⟩ := exists_nat_gt r in

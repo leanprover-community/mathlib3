@@ -353,6 +353,10 @@ iff.intro (assume h, compact_image h hf.continuous) $ assume h, begin
   rwa [hf.2, nhds_induced_eq_comap, ←map_le_iff_le_comap]
 end
 
+lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embedding e) (s : set α) :
+  closure s = e ⁻¹' closure (e '' s) :=
+by ext x; rw [set.mem_preimage_eq, ← closure_induced he.1, he.2]
+
 end embedding
 
 section quotient_map
@@ -1011,20 +1015,42 @@ let ⟨_, ⟨hx₁, y, rfl⟩⟩ := inhabited_of_mem_sets de.nhds_inf_neq_bot th
 subset_ne_empty hs $ ne_empty_of_mem hx₁
 
 variables [topological_space γ]
-/-- If `e : α → β` is a dense embedding, then any function `α → γ` extends to a function `β → γ`. -/
+/-- If `e : α → β` is a dense embedding, then any function `α → γ` extends to a function `β → γ`.
+It only extends the parts of `β` which are not mapped by `e`, everything else equal to `f (e a)`.
+This allows us to gain equality even if `γ` is not T2. -/
 def extend (de : dense_embedding e) (f : α → γ) (b : β) : γ :=
 have nonempty γ, from
-let ⟨_, ⟨_, a, _⟩⟩ := exists_mem_of_ne_empty
-  (mem_closure_iff.1 (de.dense b) _ is_open_univ trivial) in ⟨f a⟩,
-@lim _ (classical.inhabited_of_nonempty this) _ (map f (comap e (nhds b)))
+  let ⟨_, ⟨_, a, _⟩⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 (de.dense b) _ is_open_univ trivial) in
+  ⟨f a⟩,
+if hb : b ∈ range e
+then f (classical.some hb)
+else @lim _ (classical.inhabited_of_nonempty this) _ (map f (comap e (nhds b)))
 
-lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ}
-  (hf : map f (comap e (nhds b)) ≤ nhds c) : de.extend f b = c :=
-@lim_eq _ (id _) _ _ _ _ (by simp; exact comap_nhds_neq_bot de) hf
+lemma extend_e_eq {f : α → γ} (a : α) : de.extend f (e a) = f a :=
+have e a ∈ range e := ⟨a, rfl⟩,
+begin
+  simp [extend, this],
+  congr,
+  refine classical.some_spec2 (λx, x = a) _,
+  exact assume a h, de.inj h
+end
 
-lemma extend_e_eq [t2_space γ] {a : α} {f : α → γ} (de : dense_embedding e)
-  (hf : map f (nhds a) ≤ nhds (f a)) : de.extend f (e a) = f a :=
-de.extend_eq begin rw de.induced; exact hf end
+lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : map f (comap e (nhds b)) ≤ nhds c) :
+  de.extend f b = c :=
+begin
+  by_cases hb : b ∈ range e,
+  { rcases hb with ⟨a, rfl⟩,
+    rw [extend_e_eq],
+    have f_a_c : tendsto f (pure a) (nhds c),
+    { rw [de.induced] at hf,
+      refine le_trans (map_mono _) hf,
+      exact pure_le_nhds a },
+    have f_a_fa : tendsto f (pure a) (nhds (f a)),
+    { rw [tendsto, filter.map_pure], exact pure_le_nhds _  },
+    exact tendsto_nhds_unique pure_neq_bot f_a_fa f_a_c },
+  { simp [extend, hb],
+    exact @lim_eq _ (id _) _ _ _ _ (by simp; exact comap_nhds_neq_bot de) hf }
+end
 
 lemma tendsto_extend [regular_space γ] {b : β} {f : α → γ} (de : dense_embedding e)
   (hf : {b | ∃c, tendsto f (comap e $ nhds b) (nhds c)} ∈ (nhds b).sets) :

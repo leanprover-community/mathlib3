@@ -8,8 +8,9 @@ Theory of topological monoids, groups and rings.
 TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups, or add a type class
 `topological_operator α (*)`.
 -/
-
-import algebra.big_operators data.set.intervals order.liminf_limsup
+import order.liminf_limsup
+import algebra.big_operators algebra.group algebra.pi_instances
+import data.set.intervals
 import analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
 
 open classical set lattice filter topological_space
@@ -17,12 +18,6 @@ local attribute [instance] classical.prop_decidable
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
-
-lemma dense_or_discrete [linear_order α] {a₁ a₂ : α} (h : a₁ < a₂) :
-  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
-classical.or_iff_not_imp_left.2 $ assume h,
-  ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
-    assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
 section topological_monoid
 
@@ -140,6 +135,16 @@ lemma continuous_list_sum [topological_space β] {f : γ → β → α} (l : lis
 continuous_iff_tendsto.2 $ assume x, tendsto_list_sum l $ assume c hc,
   continuous_iff_tendsto.1 (h c hc) x
 
+instance [topological_space β] [add_monoid β] [topological_add_monoid β] :
+  topological_add_monoid (α × β) :=
+⟨continuous.prod_mk
+  (continuous_add
+    (continuous_fst.comp continuous_fst)
+    (continuous_snd.comp continuous_fst))
+  (continuous_add
+    (continuous_fst.comp continuous_snd)
+    (continuous_snd.comp continuous_snd)) ⟩
+
 end
 
 section
@@ -196,6 +201,10 @@ lemma tendsto_sub [topological_add_group α] {f : β → α} {g : β → α} {x 
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x - g x) x (nhds (a - b)) :=
 by simp; exact tendsto_add hf (tendsto_neg hg)
 
+instance [topological_add_group α] [topological_space β] [add_group β] [topological_add_group β] :
+  topological_add_group (α × β) :=
+{ continuous_neg := continuous.prod_mk (continuous_neg continuous_fst) (continuous_neg continuous_snd) }
+
 end topological_add_group
 
 section uniform_add_group
@@ -209,36 +218,119 @@ theorem uniform_add_group.mk' {α} [uniform_space α] [add_group α]
   (h₂ : uniform_continuous (λp:α, -p)) : uniform_add_group α :=
 ⟨(uniform_continuous_fst.prod_mk (uniform_continuous_snd.comp h₂)).comp h₁⟩
 
-variables [uniform_space α] [add_group α]
+variables [uniform_space α] [add_group α] [uniform_add_group α]
 
-lemma uniform_continuous_sub' [uniform_add_group α] : uniform_continuous (λp:α×α, p.1 - p.2) :=
+lemma uniform_continuous_sub' : uniform_continuous (λp:α×α, p.1 - p.2) :=
 uniform_add_group.uniform_continuous_sub α
 
-lemma uniform_continuous_sub [uniform_add_group α] [uniform_space β] {f : β → α} {g : β → α}
+lemma uniform_continuous_sub [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x - g x) :=
 (hf.prod_mk hg).comp uniform_continuous_sub'
 
-lemma uniform_continuous_neg [uniform_add_group α] [uniform_space β] {f : β → α}
+lemma uniform_continuous_neg [uniform_space β] {f : β → α}
   (hf : uniform_continuous f) : uniform_continuous (λx, - f x) :=
 have uniform_continuous (λx, 0 - f x),
   from uniform_continuous_sub uniform_continuous_const hf,
 by simp * at *
 
-lemma uniform_continuous_neg' [uniform_add_group α] : uniform_continuous (λx:α, - x) :=
+lemma uniform_continuous_neg' : uniform_continuous (λx:α, - x) :=
 uniform_continuous_neg uniform_continuous_id
 
-lemma uniform_continuous_add [uniform_add_group α] [uniform_space β] {f : β → α} {g : β → α}
+lemma uniform_continuous_add [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x + g x) :=
 have uniform_continuous (λx, f x - - g x),
   from uniform_continuous_sub hf $ uniform_continuous_neg hg,
 by simp * at *
 
-lemma uniform_continuous_add' [uniform_add_group α] : uniform_continuous (λp:α×α, p.1 + p.2) :=
+lemma uniform_continuous_add' : uniform_continuous (λp:α×α, p.1 + p.2) :=
 uniform_continuous_add uniform_continuous_fst uniform_continuous_snd
 
-instance uniform_add_group.to_topological_add_group [uniform_add_group α] : topological_add_group α :=
+instance uniform_add_group.to_topological_add_group : topological_add_group α :=
 { continuous_add := uniform_continuous_add'.continuous,
   continuous_neg := uniform_continuous_neg'.continuous }
+
+instance [uniform_space β] [add_group β] [uniform_add_group β] : uniform_add_group (α × β) :=
+⟨uniform_continuous.prod_mk
+  (uniform_continuous_sub
+    (uniform_continuous_fst.comp uniform_continuous_fst)
+    (uniform_continuous_snd.comp uniform_continuous_fst))
+  (uniform_continuous_sub
+    (uniform_continuous_fst.comp uniform_continuous_snd)
+    (uniform_continuous_snd.comp uniform_continuous_snd)) ⟩
+
+lemma uniformity_translate (a : α) : uniformity.map (λx:α×α, (x.1 + a, x.2 + a)) = uniformity :=
+le_antisymm
+  (uniform_continuous_add uniform_continuous_id uniform_continuous_const)
+  (calc uniformity =
+    (uniformity.map (λx:α×α, (x.1 + -a, x.2 + -a))).map (λx:α×α, (x.1 + a, x.2 + a)) :
+      by simp [filter.map_map, (∘)]; exact filter.map_id.symm
+    ... ≤ uniformity.map (λx:α×α, (x.1 + a, x.2 + a)) :
+      filter.map_mono (uniform_continuous_add uniform_continuous_id uniform_continuous_const))
+
+lemma uniform_embedding_translate (a : α) : uniform_embedding (λx:α, x + a) :=
+begin
+  refine ⟨assume x y, eq_of_add_eq_add_right, _⟩,
+  rw [← uniformity_translate a, comap_map] {occs := occurrences.pos [1]},
+  rintros ⟨p₁, p₂⟩ ⟨q₁, q₂⟩,
+  simp [prod.eq_iff_fst_eq_snd_eq] {contextual := tt}
+end
+
+section
+variables (α)
+lemma uniformity_eq_comap_nhds_zero : uniformity = comap (λx:α×α, x.2 - x.1) (nhds (0:α)) :=
+have ∀{s:set (α×α)} {f : α → α → α},
+  uniform_continuous (λp:α×α, f p.1 p.2) → s ∈ (@uniformity α _).sets →
+  ∃u∈(@uniformity α _).sets, ∀a b c, (a, b) ∈ u → (f a c, f b c) ∈ s,
+begin
+  assume s f hf hs,
+  rw [uniform_continuous, uniformity_prod_eq_prod, tendsto_map'_iff, (∘)] at hf,
+  rcases mem_map_sets_iff.1 (hf hs) with ⟨t, ht, hts⟩, clear hf,
+  rcases mem_prod_iff.1 ht with ⟨u, hu, v, hv, huvt⟩, clear ht,
+  refine ⟨u, hu, assume a b c hab, hts $ (mem_image _ _ _).2 ⟨⟨⟨a, b⟩, ⟨c, c⟩⟩, huvt ⟨_, _⟩, _⟩⟩,
+  exact hab,
+  exact refl_mem_uniformity hv,
+  refl
+end,
+begin
+  rw [nhds_eq_comap_uniformity, filter.comap_comap_comp],
+  refine le_antisymm (filter.map_le_iff_le_comap.1 _) _,
+  { assume s hs,
+    rcases this uniform_continuous_sub' hs with ⟨t, ht, hts⟩,
+    refine mem_map.2 (mem_sets_of_superset ht _),
+    rintros ⟨a, b⟩,
+    simpa [subset_def] using hts a b a },
+  { assume s hs,
+    rcases this uniform_continuous_add' hs with ⟨t, ht, hts⟩,
+    refine ⟨_, ht, _⟩,
+    rintros ⟨a, b⟩, simpa [subset_def] using hts 0 (b - a) a }
+end
+end
+
+lemma group_separation_rel (x y : α) : (x, y) ∈ separation_rel α ↔ x - y ∈ closure ({0} : set α) :=
+have embedding (λa, a + (y - x)), from (uniform_embedding_translate (y - x)).embedding,
+show (x, y) ∈ ⋂₀ uniformity.sets ↔ x - y ∈ closure ({0} : set α),
+begin
+  rw [this.closure_eq_preimage_closure_image, uniformity_eq_comap_nhds_zero α, sInter_comap_sets],
+  simp [mem_closure_iff_nhds, inter_singleton_eq_empty]
+end
+
+lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
+  {f : α → β} [is_add_group_hom f] (h : tendsto f (nhds 0) (nhds 0)) :
+  uniform_continuous f :=
+begin
+  have : ((λx:β×β, x.2 - x.1) ∘ (λx:α×α, (f x.1, f x.2))) = (λx:α×α, f (x.2 - x.1)),
+  { simp only [is_add_group_hom.sub f] },
+  rw [uniform_continuous, uniformity_eq_comap_nhds_zero α, uniformity_eq_comap_nhds_zero β,
+    tendsto_comap_iff, this],
+  exact tendsto.comp tendsto_comap h
+end
+
+lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [uniform_add_group β]
+  {f : α → β} [is_add_group_hom f] (h : continuous f) :
+  uniform_continuous f :=
+uniform_continuous_of_tendsto_zero $
+  suffices tendsto f (nhds 0) (nhds (f 0)), by rwa [is_add_group_hom.zero f] at this,
+  h.tendsto 0
 
 end uniform_add_group
 

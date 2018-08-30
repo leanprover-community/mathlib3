@@ -1,7 +1,13 @@
 import tactic.linarith
  
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
-by linarith
+by linarith {discharger := `[ring SOP]}
+
+example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
+by linarith 
+
+example (a b c : ℚ) (x y : ℤ) (h1 : x ≤ 3*y) (h2 : b + 2 > 3 + b) : false :=
+by linarith {restrict_type := ℚ}
 
 example (g v V c h : ℚ) (h1 : h = 0) (h2 : v = V) (h3 : V > 0) (h4 : g > 0)
         (h5 : 0 ≤ c) (h6 : c < 1) :

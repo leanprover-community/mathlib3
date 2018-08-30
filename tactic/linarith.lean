@@ -3,7 +3,13 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 
-A tactic for discharging linear arithmetic goals.
+A tactic for discharging linear arithmetic goals using Fourier-Motzkin elimination.
+
+`linarith` is (in principle) complete for ℚ and ℝ. It is not complete for non-dense orders, i.e. ℤ.
+
+@TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
+@TODO: (partial) support for ℕ by casting to ℤ 
+@TODO: alternative discharger to `ring`
 -/
 
 import tactic.ring data.nat.gcd data.list.basic meta.rb_map 
@@ -121,10 +127,7 @@ meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
 meta instance pcomp.has_lt_dec : decidable_rel ((<) : pcomp → pcomp → Prop) := by apply_instance
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
-match c.coeffs.find a with 
-| some v := v 
-| none := 0
-end
+c.coeffs.zfind a
 
 meta def comp.scale (c : comp) (n : ℕ) : comp :=
 { c with coeffs := c.coeffs.map ((*) (n : ℤ)) }
@@ -266,7 +269,7 @@ end
     Returns a new map and new max.
 -/
 meta def map_of_expr : rb_map expr ℕ → ℕ → expr → tactic (rb_map expr ℕ × ℕ × rb_map ℕ ℤ)
-| m max t@`(%%e1 * %%e2) := 
+| m max `(%%e1 * %%e2) := 
    do (m', max', comp1) ← map_of_expr m max e1, 
       (m', max', comp2) ← map_of_expr m' max' e2,
       match map_of_expr_mul_aux comp1 comp2 with 
@@ -432,21 +435,42 @@ meta def term_of_ineq_prf (prf : expr) : tactic expr :=
 do (lhs, _) ← infer_type prf >>= get_rel_sides,
    return lhs
 
+meta structure linarith_config :=
+(discharger : tactic unit := `[ring])
+(restrict_type : option Type := none)
+(restrict_type_reflect : reflected restrict_type . apply_instance)
+
+meta def ineq_pf_tp (pf : expr) : tactic expr :=
+do (_, z) ← infer_type pf >>= get_rel_sides,
+   infer_type z
+
+meta def mk_neg_one_lt_zero_pf (tp : expr) : tactic expr :=
+to_expr ``((neg_neg_of_pos zero_lt_one : -1 < (0 : %%tp)))
+
 /--
   Takes a list of proofs of propositions of the form t {<, ≤, =} 0,
   and tries to prove the goal `false`.
 -/
-meta def prove_false_by_linarith1 : list expr → tactic unit 
+meta def prove_false_by_linarith1 (cfg : linarith_config) : list expr → tactic unit 
 | [] := fail "no args to linarith"
 | l@(h::t) :=
-do (_, z) ← infer_type h >>= get_rel_sides,
-   hz ← to_expr ``((neg_neg_of_pos zero_lt_one : -1 < %%z)),
-   struct ← mk_linarith_structure (hz::l),
+do extp ← match cfg.restrict_type with 
+          | none := do (_, z) ← infer_type h >>= get_rel_sides, infer_type z
+          | some rtp := 
+             do m ← mk_mvar,
+                unify `(some %%m : option Type) cfg.restrict_type_reflect,
+                return m
+          end,
+   hz ← mk_neg_one_lt_zero_pf extp, 
+   l' ← if cfg.restrict_type.is_some then 
+           l.mfilter (λ e, (ineq_pf_tp e >>= is_def_eq extp >> return tt) <|> return ff)
+        else return l,
+   struct ← mk_linarith_structure (hz::l'),
    let e : linarith_structure := (elim_all_vars.run struct).2,
    let contr := e.has_false,
    guard contr.is_some <|> fail "linarith failed to find a contradiction",
    some contr ← return $ contr,
-   coeffs ← return $ e.inputs.keys.map (λ k, (contr.src.flatten.ifind k)),
+   let coeffs := e.inputs.keys.map (λ k, (contr.src.flatten.ifind k)),
    let pfs : list expr := e.inputs.keys.map (λ k, (e.inputs.ifind k).1), 
    let zip := (coeffs.zip pfs).filter (λ pr, pr.1 ≠ 0),
    coeffs ← return $ zip.map prod.fst,
@@ -454,7 +478,7 @@ do (_, z) ← infer_type h >>= get_rel_sides,
    mls ← zip.mmap (λ pr, do e ← term_of_ineq_prf pr.2, return (mul_expr pr.1 e)),
    sm ← to_expr $ add_exprs mls,
    tgt ← to_expr ``(%%sm = 0),
-   (a, b) ← solve_aux tgt `[ring, done],
+   (a, b) ← solve_aux tgt (cfg.discharger >> done),
    pf ← mk_lt_zero_pf coeffs pfs,
    pftp ← infer_type pf,
    (_, nep, _) ← rewrite_core b pftp,
@@ -491,9 +515,9 @@ meta def get_contr_lemma_name : expr → tactic name
   Filters out the proofs of linear (in)equalities,
   and tries to use them to prove `false`.
 -/
-meta def prove_false_by_linarith (l : list expr) : tactic unit :=
+meta def prove_false_by_linarith (cfg : linarith_config) (l : list expr) : tactic unit :=
 do ls ← l.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none),
-   prove_false_by_linarith1 ls.reduce_option
+   prove_false_by_linarith1 cfg ls.reduce_option
 
 end prove
 
@@ -506,6 +530,15 @@ open lean lean.parser interactive tactic interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
+meta def linarith.interactive_aux (cfg : linarith_config) : 
+     parse ident* → (parse (tk "using" *> pexpr_list)?) → tactic unit
+| l (some pe) := pe.mmap (λ p, i_to_expr p >>= note_anon) >> linarith.interactive_aux l none
+| [] none := 
+  do t ← target,
+     if t = `(false) then local_context >>= prove_false_by_linarith cfg
+     else do nm ← get_contr_lemma_name t, applyc nm, intro1, linarith.interactive_aux [] none
+| ls none := (ls.mmap get_local) >>= prove_false_by_linarith cfg
+
 /--
   If the goal is `false`, tries to prove it by linear arithmetic on hypotheses.
   If the goal is a linear (in)equality, tries to prove it by contradiction.
@@ -513,12 +546,8 @@ local postfix *:9001 := many
   `linarith h1 h2 h3` will only use hypotheses h1, h2, h3.
   `linarith using [t1, t2, t3]` will add proof terms t1, t2, t3 to the local context.
 -/
-meta def tactic.interactive.linarith :
-     parse (many ident) → (parse (tk "using" *> pexpr_list)?) → tactic unit
-| l (some pe) := pe.mmap (λ p, i_to_expr p >>= note_anon) >> tactic.interactive.linarith l none
-| [] none := 
-  do t ← target,
-     if t = `(false) then local_context >>= prove_false_by_linarith
-     else do nm ← get_contr_lemma_name t, applyc nm, intro1, tactic.interactive.linarith [] none
-| ls none := (ls.mmap get_local) >>= prove_false_by_linarith
+meta def tactic.interactive.linarith (ids : parse (many ident)) 
+     (using_hyps : parse (tk "using" *> pexpr_list)?) (cfg : linarith_config := {}) : tactic unit :=
+linarith.interactive_aux cfg ids using_hyps
+
 end

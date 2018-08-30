@@ -267,6 +267,9 @@ units.ext begin
   simpa using nat.mul_le_mul_left u h'
 end
 
+def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units α :=
+⟨a, b, hab, by rwa mul_comm a b at hab⟩
+
 @[to_additive with_zero]
 def with_one (α) := option α
 

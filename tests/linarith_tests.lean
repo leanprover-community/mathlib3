@@ -26,6 +26,10 @@ example (x y z : ℤ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
         (h3 : 12*y - 4* z < 0)  : false :=
 by linarith
 
+example (x y z : ℤ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0) (h3 : x*y < 5) 
+        (h3 : 12*y - 4* z < 0)  : false :=
+by linarith
+
 example (w x y z : ℤ) (h1 : 4*x + (-3)*y + 6*w ≤ 0) (h2 : (-1)*x < 0) 
         (h3 : y < 0) (h4 : w ≥ 0) (h5 : nat.prime x.nat_abs) : false :=
 by linarith

@@ -10,6 +10,7 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 @TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
 @TODO: (partial) support for ℕ by casting to ℤ 
 @TODO: alternative discharger to `ring`
+@TODO: support rational coefficients
 -/
 
 import tactic.ring data.nat.gcd data.list.basic meta.rb_map 
@@ -154,7 +155,7 @@ end datatypes
 
 section fm_elim
 
-/- if c1 and c2 both contain variable a with opposite coefficients,
+/-- If c1 and c2 both contain variable a with opposite coefficients,
    produces v1, v2, and c such that a has been cancelled in c := v1*c1 + v2*c2 -/
 meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ × comp) :=
 let v1 := c1.coeff_of a,
@@ -173,15 +174,6 @@ do (n1, n2, c) ← elim_var p1.c p2.c a,
 meta def comp.is_contr (c : comp) : bool := c.coeffs.keys = [] ∧ c.str = ineq.lt
 
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
-
-meta def neg_valence (a : ℕ) (comps : rb_set pcomp) : rb_set pcomp :=
-comps.filter (λ p, p.c.coeff_of a < 0)
-
-meta def pos_valence (a : ℕ) (comps : rb_set pcomp) : rb_set pcomp :=
-comps.filter (λ p, p.c.coeff_of a > 0)
-
-meta def zero_valence (a : ℕ) (comps : rb_set pcomp) : rb_set pcomp :=
-comps.filter (λ p, p.c.coeff_of a = 0)
 
 meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
 if ¬ p.c.coeffs.contains a then mk_rb_set.insert p else 
@@ -271,14 +263,12 @@ end
     The ℕ argument identifies the next unused number.
     Returns a new map and new max.
 -/
-meta def map_of_expr : rb_map expr ℕ → ℕ → expr → tactic (rb_map expr ℕ × ℕ × rb_map ℕ ℤ)
+meta def map_of_expr : rb_map expr ℕ → ℕ → expr → option (rb_map expr ℕ × ℕ × rb_map ℕ ℤ)
 | m max `(%%e1 * %%e2) := 
    do (m', max', comp1) ← map_of_expr m max e1, 
       (m', max', comp2) ← map_of_expr m' max' e2,
-      match map_of_expr_mul_aux comp1 comp2 with 
-      | some mp := return (m', max', mp)
-      | none := fail "input is nonlinear"
-      end
+      mp ← map_of_expr_mul_aux comp1 comp2,
+      return (m', max', mp)
 | m max `(%%e1 + %%e2) :=
    do (m', max', comp1) ← map_of_expr m max e1, 
       (m', max', comp2) ← map_of_expr m' max' e2,
@@ -301,21 +291,18 @@ meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 | `(%%e = 0) := (ineq.eq, e) 
 | _ := none
 
-meta def to_comp (e : expr) (m : rb_map expr ℕ) (max : ℕ) : tactic (comp × rb_map expr ℕ × ℕ) :=
-match parse_into_comp_and_expr e with 
-| none := fail "expr is not an inequality"
-| some (iq, e) := 
-  do (m', max', comp') ← map_of_expr m max e,
-     return ⟨⟨iq, comp'⟩, m', max'⟩
-end     
+meta def to_comp (e : expr) (m : rb_map expr ℕ) (max : ℕ) : option (comp × rb_map expr ℕ × ℕ) :=
+do (iq, e) ← parse_into_comp_and_expr e,
+   (m', max', comp') ← map_of_expr m max e,
+   return ⟨⟨iq, comp'⟩, m', max'⟩
 
 meta def to_comp_fold : rb_map expr ℕ → ℕ → list expr → 
-     tactic (list (option comp) × rb_map expr ℕ × ℕ)
-| m max [] := return ([], m, max)
-| m max (h::t) := do trp ← to_comp h m max,
-  match trp with 
-  | (c, m', max') := 
-    do (l, m, n) ← to_comp_fold m' max' t, return (c::l, m, n)
+      (list (option comp) × rb_map expr ℕ × ℕ)
+| m max [] := ([], m, max)
+| m max (h::t) := 
+  match to_comp h m max with 
+  | some (c, m', max') := let (l, mp, n) := to_comp_fold m' max' t in (c::l, mp, n)
+  | none := let (l, mp, n) := to_comp_fold m max t in (none::l, mp, n)
   end
 
 def reduce_pair_option {α β} : list (α × option β) → list (α × β)
@@ -328,7 +315,7 @@ def reduce_pair_option {α β} : list (α × option β) → list (α × β)
 -/
 meta def mk_linarith_structure (l : list expr) : tactic linarith_structure := 
 do pftps ← l.mmap infer_type,
-   (l', map, max) ← to_comp_fold mk_rb_map 1 pftps,
+   let (l', map, max) := to_comp_fold mk_rb_map 1 pftps,
    let lz := reduce_pair_option ((l.zip pftps).zip l'),
    let prmap := rb_map.of_list $ (list.range lz.length).map (λ n, (n, (lz.inth n).1)),
    let vars : rb_set ℕ := rb_map.of_list $ (list.range (max)).map (λ k, (k, ())),

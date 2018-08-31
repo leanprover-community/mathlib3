@@ -219,8 +219,8 @@ by simp [set.ext_iff]
   (list.nodup_insert a d : finset α) = insert a (d : finset α) :=
 rfl
 
-@[simp] theorem nodup_coe_cons {a : α} {l : list α} (d : (list.cons a l).nodup) :
-  (d : finset α) = insert a (list.nodup_of_nodup_cons d : finset α) :=
+@[simp] theorem nodup_coe_cons {a : α} {l : list α} (m : a ∉ l) (d : l.nodup) :
+  (list.nodup_cons_of_nodup m d : finset α) = insert a (d : finset α) :=
 ext' $ by simp
 
 @[simp] theorem insert_eq_of_mem {a : α} {s : finset α} (h : a ∈ s) : insert a s = s :=

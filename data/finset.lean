@@ -695,7 +695,7 @@ def to_finset (l : list α) : finset α := multiset.to_finset l
 
 @[simp] theorem to_finset_val (l : list α) : l.to_finset.1 = (l.erase_dup : multiset α) := rfl
 
-theorem to_finset_eq {l : list α} (n : nodup l) : @finset.mk α l n = l.to_finset :=
+theorem to_finset_eq {l : list α} (n : nodup l) : (n : finset α) = l.to_finset :=
 multiset.to_finset_eq n
 
 @[simp] theorem mem_to_finset {a : α} {l : list α} : a ∈ l.to_finset ↔ a ∈ l :=

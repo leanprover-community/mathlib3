@@ -218,6 +218,8 @@ instance : normed_field ℝ :=
   dist_eq := assume x y, rfl,
   norm_mul := abs_mul }
 
+lemma real.norm_eq_abs (r : ℝ): norm r = abs r := rfl
+
 end normed_field
 
 section normed_space

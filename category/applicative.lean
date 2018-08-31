@@ -52,6 +52,9 @@ end
 
 end lemmas
 
+instance : is_comm_applicative id :=
+by refine { .. }; intros; refl
+
 namespace comp
 
 open function (hiding comp)
@@ -115,6 +118,18 @@ theorem applicative_comp_id {F} [AF : applicative F] [LF : is_lawful_applicative
   @comp.applicative F id _ _ = AF :=
 @applicative.ext F _ _ (@comp.is_lawful_applicative F id _ _ _ _) _
   (λ α x, rfl) (λ α β f x, show id <$> f <*> x = f <*> x, by rw id_map)
+
+open is_comm_applicative
+
+instance {f : Type u → Type w} {g : Type v → Type u}
+  [applicative f] [applicative g]
+  [is_comm_applicative f] [is_comm_applicative g] :
+  is_comm_applicative (comp f g) :=
+by { refine { .. @comp.is_lawful_applicative f g _ _ _ _, .. },
+     intros, casesm* comp _ _ _, simp! [map,has_seq.seq] with functor_norm,
+     rw [commutative_map],
+     simp [comp.mk,flip,(∘)] with functor_norm,
+     congr, funext, rw [commutative_map], congr }
 
 end comp
 open functor

@@ -106,9 +106,21 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
 
 @[simp] theorem trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext _ _ (by simp)
 
+lemma trans_assoc {δ} (ab : α ≃ β) (bc : β ≃ γ) (cd : γ ≃ δ) :
+  (ab.trans bc).trans cd = ab.trans (bc.trans cd) :=
+equiv.ext _ _ $ assume a, rfl
+
 theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_inv
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
+
+def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃ δ) :=
+⟨ λac, (ab.symm.trans ac).trans cd, λbd, ab.trans $ bd.trans $ cd.symm,
+  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end,
+  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end, ⟩
+
+def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
+equiv_congr e e
 
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
@@ -159,6 +171,15 @@ def equiv_empty (h : α → false) : α ≃ empty :=
 def false_equiv_empty : false ≃ empty :=
 equiv_empty _root_.id
 
+def equiv_pempty (h : α → false) : α ≃ pempty :=
+⟨λ x, (h x).elim, λ e, e.rec _, λ x, (h x).elim, λ e, e.rec _⟩
+
+def false_equiv_pempty : false ≃ pempty :=
+equiv_pempty _root_.id
+
+def pempty_equiv_pempty : pempty.{v} ≃ pempty.{w} :=
+equiv_pempty (pempty.elim)
+
 def empty_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : α ≃ empty :=
 ⟨assume a, (h ⟨a⟩).elim, assume e, e.rec_on _, assume a, (h ⟨a⟩).elim, assume e, e.rec_on _⟩
 
@@ -188,12 +209,12 @@ section
 @[simp] def empty_arrow_equiv_unit (α : Sort*) : (empty → α) ≃ punit.{u} :=
 ⟨λ f, punit.star, λ u e, e.rec _, λ f, funext $ λ x, x.rec _, λ u, by cases u; refl⟩
 
+@[simp] def pempty_arrow_equiv_unit (α : Sort*) : (pempty → α) ≃ punit.{u} :=
+⟨λ f, punit.star, λ u e, e.rec _, λ f, funext $ λ x, x.rec _, λ u, by cases u; refl⟩
+
 @[simp] def false_arrow_equiv_unit (α : Sort*) : (false → α) ≃ punit.{u} :=
 calc (false → α) ≃ (empty → α) : arrow_congr false_equiv_empty (equiv.refl _)
              ... ≃ punit       : empty_arrow_equiv_unit _
-
-def arrow_empty_unit {α : Sort*} : (empty → α) ≃ punit.{u} :=
-⟨λf, punit.star, λu e, e.rec_on _, assume f, funext $ assume e, e.rec_on _, assume u, punit_eq _ _⟩
 
 end
 
@@ -233,6 +254,12 @@ equiv_empty (λ ⟨_, e⟩, e.rec _)
 
 @[simp] def empty_prod (α : Sort*) : (empty × α) ≃ empty :=
 equiv_empty (λ ⟨e, _⟩, e.rec _)
+
+@[simp] def prod_pempty (α : Sort*) : (α × pempty) ≃ pempty :=
+equiv_pempty (λ ⟨_, e⟩, e.rec _)
+
+@[simp] def pempty_prod (α : Sort*) : (pempty × α) ≃ pempty :=
+equiv_pempty (λ ⟨e, _⟩, e.rec _)
 end
 
 section
@@ -292,6 +319,15 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
 
 @[simp] def empty_sum (α : Sort*) : (empty ⊕ α) ≃ α :=
 (sum_comm _ _).trans $ sum_empty _
+
+@[simp] def sum_pempty (α : Sort*) : (α ⊕ pempty) ≃ α :=
+⟨λ s, match s with inl a := a | inr e := pempty.rec _ e end,
+ inl,
+ λ s, by rcases s with _ | ⟨⟨⟩⟩; refl,
+ λ a, rfl⟩
+
+@[simp] def pempty_sum (α : Sort*) : (pempty ⊕ α) ≃ α :=
+(sum_comm _ _).trans $ sum_pempty _
 
 @[simp] def option_equiv_sum_unit (α : Sort*) : option α ≃ (α ⊕ punit.{u+1}) :=
 ⟨λ o, match o with none := inr punit.star | some a := inl a end,
@@ -449,6 +485,9 @@ protected def univ (α) : @univ α ≃ α :=
 
 protected def empty (α) : (∅ : set α) ≃ empty :=
 equiv_empty $ λ ⟨x, h⟩, not_mem_empty x h
+
+protected def pempty (α) : (∅ : set α) ≃ pempty :=
+equiv_pempty $ λ ⟨x, h⟩, not_mem_empty x h
 
 protected def union {α} {s t : set α} [decidable_pred s] (H : s ∩ t = ∅) :
   (s ∪ t : set α) ≃ (s ⊕ t) :=

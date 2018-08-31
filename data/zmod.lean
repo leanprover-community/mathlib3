@@ -216,8 +216,8 @@ private lemma mul_inv_cancel_aux : ∀ a : zmodp p hp, a ≠ 0 → a * a⁻¹ = 
 λ ⟨a, hap⟩ ha0, begin
   rw [mk_eq_cast, ne.def, ← @nat.cast_zero (zmodp p hp), eq_iff_modeq_nat, modeq_zero_iff] at ha0,
   have : nat.gcd p a = 1 := (prime.coprime_iff_not_dvd hp).2 ha0,
-  rw [mk_eq_cast _ hap, mul_inv_eq_gcd, gcd_comm],
-  simpa [gcd_comm, this]
+  rw [mk_eq_cast _ hap, mul_inv_eq_gcd, nat.gcd_comm],
+  simpa [nat.gcd_comm, this]
 end
 
 instance : discrete_field (zmodp p hp) :=

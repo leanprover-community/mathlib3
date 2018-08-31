@@ -7,9 +7,9 @@ Instances of `traversable` for types from the core library
 -/
 
 import category.traversable.basic
-import category.basic
-import category.functor
-import category.applicative
+       category.basic
+       category.functor
+       category.applicative
 
 universes u v
 
@@ -69,27 +69,25 @@ variables [is_lawful_applicative F] [is_lawful_applicative G]
 open applicative functor
 open list (cons)
 
-lemma list.id_traverse {α} (xs : list α) :
+protected lemma list.id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=
 by induction xs; simp! * with functor_norm; refl
 
-lemma list.comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
+protected lemma list.comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
   list.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (list.traverse f <$> list.traverse g x) :=
 by induction x; simp! * with functor_norm; refl
 
-lemma list.traverse_eq_map_id {α β} (f : α → β) (x : list α) :
+protected lemma list.traverse_eq_map_id {α β} (f : α → β) (x : list α) :
   list.traverse (id.mk ∘ f) x = id.mk (f <$> x) :=
 by induction x; simp! * with functor_norm; refl
 
 variable (η : applicative_transformation F G)
 
-lemma list.naturality {α β} (f : α → F β) (x : list α) :
+protected lemma list.naturality {α β} (f : α → F β) (x : list α) :
   η (list.traverse f x) = list.traverse (@η _ ∘ f) x :=
 by induction x; simp! * with functor_norm
 open nat
-
-end list
 
 instance : traversable list := ⟨@list.traverse⟩
 
@@ -98,6 +96,19 @@ instance : is_lawful_traversable list :=
   comp_traverse := @list.comp_traverse,
   traverse_eq_map_id := @list.traverse_eq_map_id,
   naturality := @list.naturality }
+
+lemma traverse_append {α β : Type*} (g : α → F β) (xs ys : list α) :
+  traverse g (xs ++ ys) = (++) <$> traverse g xs <*> traverse g ys :=
+begin
+  simp! [traverse],
+  induction xs,
+  { have : append (@list.nil β) = id,
+    { funext, simp },
+    simp! [this] },
+  { simp! [traverse,xs_ih] with functor_norm, refl }
+end
+
+end list
 
 namespace sum
 

@@ -146,7 +146,7 @@ local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
 @[simp] theorem power_zero {a : cardinal} : a ^ 0 = 1 :=
 quotient.induction_on a $ assume α, quotient.sound ⟨
   equiv.trans (equiv.arrow_congr equiv.ulift (equiv.refl α)) $
-  equiv.trans equiv.arrow_empty_unit $
+  equiv.trans (equiv.empty_arrow_equiv_unit α) $
   equiv.ulift.symm⟩
 
 @[simp] theorem power_one {a : cardinal} : a ^ 1 = a :=

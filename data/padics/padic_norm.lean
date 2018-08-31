@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Define the p-adic valuation on ℤ and ℚ, and the p-adic norm on ℚ
 -/
 
-import data.rat algebra.field_power
+import data.rat data.int.basic algebra.field_power
 import tactic.wlog tactic.ring
 
 universe u
@@ -123,7 +123,7 @@ have hall : ∀ k : ℕ, k > padic_val p m + padic_val p n → ¬ ↑(p ^ k) ∣
   assume (k : ℕ) (hkgt : k > padic_val p m + padic_val p n) (hdiv : ↑(p ^ k) ∣ m*n),
   have hpsucc : ↑(p ^ (padic_val p m + padic_val p n + 1)) ∣ m*n, from
     int.pow_div_of_le_of_pow_div_int hkgt hdiv,
-  let hsd := succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul_int p_prime hdivm hdivn hpsucc in
+  let hsd := int.succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul p_prime hdivm hdivn hpsucc in
   or.elim hsd
     (assume : ↑(p ^ (padic_val p m + 1)) ∣ m,
       is_greatest hpp hm _ (lt_succ_self _) this)

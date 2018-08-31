@@ -31,6 +31,17 @@ instance : has_mul (polynomial α) := finsupp.has_mul
 instance : comm_semiring (polynomial α) := finsupp.to_comm_semiring
 instance : decidable_eq (polynomial α) := finsupp.decidable_eq
 
+instance [has_repr α] : has_repr (polynomial α) :=
+⟨λ p, if p = 0 then "0" 
+  else (p.support.sort (≤)).foldr 
+    (λ n a, a ++ (if a = "" then "" else " + ") ++ 
+      if n = 0 
+        then repr (p n)
+        else if n = 1
+          then if (p n) = 1 then "X" else repr (p n) ++ " * X"
+          else if (p n) = 1 then "X ^ " ++ repr n 
+            else repr (p n) ++ " * X ^ " ++ repr n) ""⟩
+
 local attribute [instance] finsupp.to_comm_semiring
 
 @[simp] lemma support_zero : (0 : polynomial α).support = ∅ := rfl

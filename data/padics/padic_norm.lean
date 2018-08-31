@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Define the p-adic valuation on ℤ and ℚ, and the p-adic norm on ℚ
 -/
 
-import data.rat data.int.basic algebra.field_power
+import data.rat data.int.gcd algebra.field_power
 import tactic.wlog tactic.ring
 
 universe u

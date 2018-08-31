@@ -119,11 +119,28 @@ begin
   try {refl}; [skip, rw add_comm a b]; apply this
 end
 
-theorem nat_abs_neg_of_nat (n : nat) : nat_abs (neg_of_nat n) = n :=
+theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
 
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
 by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
+
+theorem nat_abs_div (a b : ℤ) (H : b ∣ a) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=
+begin
+  cases (nat.eq_zero_or_pos (nat_abs b)),
+  rw eq_zero_of_nat_abs_eq_zero h,
+  simp,
+  calc 
+  nat_abs (a / b) = nat_abs (a / b) * 1 : by rw mul_one
+    ... = nat_abs (a / b) * (nat_abs b / nat_abs b) : by rw nat.div_self h
+    ... = nat_abs (a / b) * nat_abs b / nat_abs b : by rw (nat.mul_div_assoc _ (dvd_refl _))
+    ... = nat_abs (a / b * b) / nat_abs b : by rw (nat_abs_mul (a / b) b)
+    ... = nat_abs a / nat_abs b : by rw int.div_mul_cancel H,
+end
+
+theorem nat_abs_dvd_abs_iff {i j : ℤ} : i.nat_abs ∣ j.nat_abs ↔ i ∣ j :=
+⟨assume (H : i.nat_abs ∣ j.nat_abs), dvd_nat_abs.mp (nat_abs_dvd.mp (coe_nat_dvd.mpr H)), 
+assume H : (i ∣ j), coe_nat_dvd.mp (dvd_nat_abs.mpr (nat_abs_dvd.mpr H))⟩
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]

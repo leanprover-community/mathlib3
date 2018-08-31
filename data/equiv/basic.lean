@@ -106,9 +106,21 @@ theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f
 
 @[simp] theorem trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext _ _ (by simp)
 
+lemma trans_assoc {δ} (ab : α ≃ β) (bc : β ≃ γ) (cd : γ ≃ δ) :
+  (ab.trans bc).trans cd = ab.trans (bc.trans cd) :=
+equiv.ext _ _ $ assume a, rfl
+
 theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_inv
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
+
+def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃ δ) :=
+⟨ λac, (ab.symm.trans ac).trans cd, λbd, ab.trans $ bd.trans $ cd.symm,
+  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end,
+  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end, ⟩
+
+def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
+equiv_congr e e
 
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv

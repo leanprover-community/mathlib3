@@ -586,6 +586,16 @@ protected def find_greatest (P : ℕ → Prop) [decidable_pred P] : ℕ → ℕ
 
 variables {P : ℕ → Prop} [decidable_pred P]
 
+@[simp] lemma find_greatest_zero : nat.find_greatest P 0 = 0 := rfl
+
+@[simp] lemma find_greatest_eq : ∀{b}, P b → nat.find_greatest P b = b
+| 0       h := rfl
+| (n + 1) h := by simp [nat.find_greatest, h]
+
+@[simp] lemma find_greatest_of_not {b} (h : ¬ P (b + 1)) :
+  nat.find_greatest P (b + 1) = nat.find_greatest P b :=
+by simp [nat.find_greatest, h]
+
 lemma find_greatest_spec_and_le :
   ∀{b m}, m ≤ b → P m → P (nat.find_greatest P b) ∧ m ≤ nat.find_greatest P b
 | 0       m hm hP :=
@@ -594,12 +604,12 @@ lemma find_greatest_spec_and_le :
 | (b + 1) m hm hP :=
   begin
     by_cases h : P (b + 1),
-    { simp [nat.find_greatest, h, hm] },
+    { simp [h, hm] },
     { have : m ≠ b + 1 := assume this, h $ this ▸ hP,
       have : m ≤ b := (le_of_not_gt $ assume h : b + 1 ≤ m, this $ le_antisymm hm h),
       have : P (nat.find_greatest P b) ∧ m ≤ nat.find_greatest P b :=
         find_greatest_spec_and_le this hP,
-      simp [nat.find_greatest, h, this], }
+      simp [h, this] }
   end
 
 lemma find_greatest_spec {b} : (∃m, m ≤ b ∧ P m) → P (nat.find_greatest P b)
@@ -609,7 +619,7 @@ lemma find_greatest_le : ∀ {b}, nat.find_greatest P b ≤ b
 | 0       := le_refl _
 | (b + 1) :=
   have nat.find_greatest P b ≤ b + 1, from le_trans find_greatest_le (nat.le_succ b),
-  by by_cases P (b + 1); simp [nat.find_greatest, h, this]
+  by by_cases P (b + 1); simp [h, this]
 
 lemma le_find_greatest {b m} (hmb : m ≤ b) (hm : P m) : m ≤ nat.find_greatest P b :=
 (find_greatest_spec_and_le hmb hm).2

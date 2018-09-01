@@ -67,9 +67,9 @@ modeq_of_dvd $ by rwa add_neg_cancel_left at this
 theorem modeq_add_cancel_right (h₁ : c ≡ d [MOD n]) (h₂ : a + c ≡ b + d [MOD n]) : a ≡ b [MOD n] :=
 by rw [add_comm a, add_comm b] at h₂; exact modeq_add_cancel_left h₁ h₂
 
-theorem chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
+def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 ⟨let (c, d) := xgcd n m in int.to_nat ((b * c * n + a * d * m) % (n * m)), begin
-  rw xgcd_val, dsimp,
+  rw xgcd_val, dsimp [chinese_remainder._match_1],
   rw [modeq_iff_dvd, modeq_iff_dvd],
   rw [int.to_nat_of_nonneg], swap,
   { by_cases h₁ : n = 0, {simp [coprime, h₁] at co, substs m n, simp},

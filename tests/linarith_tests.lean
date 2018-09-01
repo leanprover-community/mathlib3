@@ -1,5 +1,15 @@
 import tactic.linarith
- 
+
+example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + z/2 < 0) 
+        (h3 : 12*y - z < 0)  : false :=
+by linarith
+
+example (ε : ℚ) (h1 : ε > 0) : ε / 2 < ε :=
+by linarith
+
+example (ε : ℚ) (h1 : ε > 0) : ε / 3 + ε / 3 + ε / 3 = ε :=
+by linarith
+
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
 by linarith {discharger := `[ring SOP]}
 

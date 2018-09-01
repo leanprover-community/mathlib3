@@ -66,9 +66,10 @@ lemma mul_subst {α} [comm_ring α] {n1 n2 k e1 e2 t1 t2 : α} (h1 : n1 * e1 = t
       k * (e1 * e2) = t1 * t2 := 
 by rw [←h3, mul_comm n1, mul_assoc n2, ←mul_assoc n1, h1, ←mul_assoc n2, mul_comm n2, mul_assoc, h2] -- OUCH
 
-lemma div_subst {α} [field α] {n1 n2 k e1 e2 t1 t2 : α} (h1 : n1 * e1 = t1) (h2 : n2 / e2 = t2) (h3 : n1*n2 = k) :
-      k * (e1 / e2) = t2 * t1 := 
-by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm]
+lemma div_subst {α} [field α] {n1 n2 k e1 e2 t1 : α} (h1 : n1 * e1 = t1) (h2 : n2 / e2 = 1) (h3 : n1*n2 = k) :
+      k * (e1 / e2) = t1 := 
+by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
+
 
 end lemmas 
 

@@ -509,4 +509,7 @@ do l ← local_context,
 
 run_cmd add_interactive [`injections_and_clear]
 
+meta def find_local (t : pexpr) : tactic expr :=
+do t' ← to_expr t,
+   prod.snd <$> solve_aux t' assumption
 end tactic

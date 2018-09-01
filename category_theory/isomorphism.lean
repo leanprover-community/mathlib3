@@ -18,9 +18,7 @@ structure iso {C : Type u} [category.{u v} C] (X Y : C) :=
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
 (inv_hom_id' : inv ≫ hom = 𝟙 Y . obviously)
 
-restate_axiom iso.hom_inv_id'
-restate_axiom iso.inv_hom_id'
-attribute [simp] iso.hom_inv_id iso.inv_hom_id
+-- We restate the hom_inv_id' and inv_hom_id' lemmas below.
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
@@ -49,66 +47,73 @@ instance : has_coe (iso.{u v} X Y) (X ⟶ Y) :=
     refl
   end
 
+@[symm] def symm (I : X ≅ Y) : Y ≅ X := 
+{ hom := I.inv,
+  inv := I.hom,
+  hom_inv_id' := I.inv_hom_id',
+  inv_hom_id' := I.hom_inv_id' }
+
+-- These are the restated lemmas for iso.hom_inv_id' and iso.inv_hom_id'
+@[simp] lemma hom_inv_id (α : X ≅ Y) : (α : X ⟶ Y) ≫ (α.symm : Y ⟶ X) = 𝟙 X := 
+begin unfold_coes, unfold symm, have p := α.hom_inv_id', dsimp at p, rw p end
+@[simp] lemma inv_hom_id (α : X ≅ Y) : (α.symm : Y ⟶ X) ≫ (α : X ⟶ Y) = 𝟙 Y := 
+begin unfold_coes, unfold symm, have p := iso.inv_hom_id', dsimp at p, rw p end
+
+-- We rewrite the projections `.hom` and `.inv` into coercions.
+@[simp] lemma hom_eq_coe (α : X ≅ Y) : α.hom = (α : X ⟶ Y) := rfl
+@[simp] lemma inv_eq_coe (α : X ≅ Y) : α.inv = (α.symm : Y ⟶ X) := rfl
+
 @[refl] def refl (X : C) : X ≅ X := 
 { hom := 𝟙 X,
   inv := 𝟙 X }
 
-@[simp] lemma refl_map (X : C) : (iso.refl X).hom = 𝟙 X := rfl
 @[simp] lemma refl_coe (X : C) : ((iso.refl X) : X ⟶ X) = 𝟙 X := rfl
-@[simp] lemma refl_inv  (X : C) : (iso.refl X).inv  = 𝟙 X := rfl
+@[simp] lemma refl_symm_coe  (X : C) : ((iso.refl X).symm : X ⟶ X)  = 𝟙 X := rfl
 
 @[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z := 
-{ hom := α.hom ≫ β.hom,
-  inv := β.inv ≫ α.inv,
+{ hom := (α : X ⟶ Y) ≫ (β : Y ⟶ Z),
+  inv := (β.symm : Z ⟶ Y) ≫ (α.symm : Y ⟶ X),
   hom_inv_id' := begin /- `obviously'` says: -/ erw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.hom_inv_id, rw category.id_comp, rw iso.hom_inv_id end,
   inv_hom_id' := begin /- `obviously'` says: -/ erw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.inv_hom_id, rw category.id_comp, rw iso.inv_hom_id end }
 
 infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
-@[simp] lemma trans_hom (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).hom = α.hom ≫ β.hom := rfl
 @[simp] lemma trans_coe (α : X ≅ Y) (β : Y ≅ Z) : ((α ≪≫ β) : X ⟶ Z) = (α : X ⟶ Y) ≫ (β : Y ⟶ Z) := rfl
-@[simp] lemma trans_inv (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv  = β.inv ≫ α.inv   := rfl
+@[simp] lemma trans_symm_coe (α : X ≅ Y) (β : Y ≅ Z) : ((α ≪≫ β).symm : Z ⟶ X)  = (β.symm : Z ⟶ Y) ≫ (α.symm : Y ⟶ X) := rfl
 
-@[symm] def symm (I : X ≅ Y) : Y ≅ X := 
-{ hom := I.inv,
-  inv := I.hom }
-
-@[simp] lemma refl_symm_coe (X : C) : ((iso.refl X).symm : X ⟶ X)  = 𝟙 X := rfl
-@[simp] lemma trans_symm_coe (α : X ≅ Y) (β : Y ≅ Z) : ((α ≪≫ β).symm : Z ⟶ X) = (β.symm : Z ⟶ Y) ≫ (α.symm : Y ⟶ X) := rfl
-
--- These next two aggressively rewrite the projections `.hom` and `.inv` into coercions.
--- I'm not certain it is a good idea.
-@[simp] lemma hom_coe (α : X ≅ Y) : α.hom = (α : X ⟶ Y) := rfl
-@[simp] lemma inv_coe (α : X ≅ Y) : α.inv = (α.symm : Y ⟶ X) := rfl
-
--- FIXME these are actually the ones we want to use
-@[simp] lemma hom_inv_id_coe (α : X ≅ Y) : (α : X ⟶ Y) ≫ (α.symm : Y ⟶ X) = 𝟙 X := begin unfold_coes, unfold symm, rw iso.hom_inv_id, end
-@[simp] lemma inv_hom_id_coe (α : X ≅ Y) : (α.symm : Y ⟶ X) ≫ (α : X ⟶ Y) = 𝟙 Y := begin unfold_coes, unfold symm, rw iso.inv_hom_id, end
+@[simp] lemma refl_symm (X : C) : ((iso.refl X).symm : X ⟶ X)  = 𝟙 X := rfl
+@[simp] lemma trans_symm (α : X ≅ Y) (β : Y ≅ Z) : ((α ≪≫ β).symm : Z ⟶ X) = (β.symm : Z ⟶ Y) ≫ (α.symm : Y ⟶ X) := rfl
 
 end iso
 
+/-- `is_iso` typeclass expressing that a morphism is invertible. 
+    This contains the data of the inverse, but is a subsingleton type. -/
 class is_iso (f : X ⟶ Y) :=
 (inv : Y ⟶ X)
 (hom_inv_id' : f ≫ inv = 𝟙 X . obviously)
 (inv_hom_id' : inv ≫ f = 𝟙 Y . obviously)
 
-restate_axiom is_iso.hom_inv_id'
-restate_axiom is_iso.inv_hom_id'
-attribute [simp,ematch] is_iso.hom_inv_id is_iso.inv_hom_id
-
-def inv' {f : X ⟶ Y} (p : is_iso f) := is_iso.inv f 
-def hom_inv_id' {f : X ⟶ Y} (p : is_iso f) : f ≫ inv' p = 𝟙 X := is_iso.hom_inv_id f 
-def inv_hom_id' {f : X ⟶ Y} (p : is_iso f) : inv' p ≫ f = 𝟙 Y := is_iso.inv_hom_id f 
+def inv (f : X ⟶ Y) [is_iso f] := is_iso.inv f 
 
 namespace is_iso
+
+instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
+⟨ λ a b, begin 
+          cases a, cases b, 
+          dsimp at *, congr, 
+          rw [← category.id_comp _ a_inv, ← b_inv_hom_id', category.assoc, a_hom_inv_id', category.comp_id]
+         end ⟩ 
+
+@[simp] def hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ inv f = 𝟙 X := is_iso.hom_inv_id' f 
+@[simp] def inv_hom_id (f : X ⟶ Y) [is_iso f] : inv f ≫ f = 𝟙 Y := is_iso.inv_hom_id' f 
 
 instance (X : C) : is_iso (𝟙 X) := 
 { inv := 𝟙 X }
 
 instance of_iso         (f : X ≅ Y) : is_iso (f : X ⟶ Y) :=
-{ inv   := f.inv }
+{ inv := (f.symm : Y ⟶ X) }
 instance of_iso_inverse (f : X ≅ Y) : is_iso (f.symm : Y ⟶ X)  := 
-{ inv   := f.hom }
+{ inv := (f : X ⟶ Y) }
 
 end is_iso
 
@@ -120,21 +125,21 @@ variables {D : Type u₂}
 variables [𝒟 : category.{u₂ v₂} D]
 include 𝒟
 
-def on_isos (F : C ↝ D) {X Y : C} (i : X ≅ Y) : (F X) ≅ (F Y) :=
+def on_iso (F : C ↝ D) {X Y : C} (i : X ≅ Y) : (F X) ≅ (F Y) :=
 { hom := F.map i.hom,
   inv := F.map i.inv,
-  hom_inv_id' := begin /- `obviously'` says: -/ dsimp at *, erw [←map_comp, iso.hom_inv_id_coe, ←map_id] end,
-  inv_hom_id' := begin /- `obviously'` says: -/ dsimp at *, erw [←map_comp, iso.inv_hom_id_coe, ←map_id] end }
+  hom_inv_id' := by erw [←map_comp, iso.hom_inv_id, ←map_id],
+  inv_hom_id' := by erw [←map_comp, iso.inv_hom_id, ←map_id] }
 
-@[simp,ematch] lemma on_isos_hom (F : C ↝ D) {X Y : C} (i : X ≅ Y) : (F.on_isos i).hom = F.map i.hom := rfl
-@[simp,ematch] lemma on_isos_inv (F : C ↝ D) {X Y : C} (i : X ≅ Y) : (F.on_isos i).inv = F.map i.inv := rfl
+@[simp] lemma on_iso_hom (F : C ↝ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i) : F X ⟶ F Y) = F.map (i : X ⟶ Y) := rfl
+@[simp] lemma on_iso_inv (F : C ↝ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i).symm : F Y ⟶ F X) = F.map (i.symm : Y ⟶ X) := rfl
+
+instance (F : C ↝ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
+{ inv := F.map (inv f),
+  hom_inv_id' := begin rw ← F.map_comp, erw is_iso.hom_inv_id, rw map_id, end,
+  inv_hom_id' := begin rw ← F.map_comp, erw is_iso.inv_hom_id, rw map_id, end }
 
 end functor
-
-class epi  (f : X ⟶ Y) := 
-(left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
-class mono (f : X ⟶ Y) :=
-(right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
 instance epi_of_iso  (f : X ⟶ Y) [is_iso f] : epi f  := 
 { left_cancellation := begin
@@ -152,9 +157,5 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
                          erw [←category.assoc, w, ←category.assoc]
                        end }
 
-@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  (g h : Y ⟶ Z) : (f ≫ g = f ≫ h) ↔ g = h := 
-⟨ λ p, epi.left_cancellation g h p, by tidy ⟩
-@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] (g h : Z ⟶ X) : (g ≫ f = h ≫ f) ↔ g = h := 
-⟨ λ p, mono.right_cancellation g h p, by tidy ⟩
 
 end category_theory

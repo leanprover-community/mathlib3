@@ -50,8 +50,6 @@ instance : has_coe_to_fun (C ↝ D) :=
 { F   := λ F, C → D,
   coe := λ F, F.obj }
 
-lemma refold_coe {F : C ↝ D} (X : C) : F.obj X = F X := by unfold_coes
-
 def map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F X) ⟶ (F Y) := F.map' f
 
 @[simp] lemma map_id (F : C ↝ D) (X : C) : F.map (𝟙 X) = 𝟙 (F X) := 
@@ -60,8 +58,9 @@ begin unfold functor.map, erw F.map_id', refl end
   F.map (f ≫ g) = F.map f ≫ F.map g := 
 begin unfold functor.map, erw F.map_comp' end
 
--- We do not define a refl lemma unfolding the coercion.
--- However we do provide lemmas for the coercion applied to an explicit structure.
+-- We define a refl lemma 'refolding' the coercion,
+-- and two lemmas for the coercion applied to an explicit structure.
+@[simp] lemma obj_eq_coe {F : C ↝ D} (X : C) : F.obj X = F X := by unfold_coes
 @[simp] lemma mk_obj (o : C → D) (m mi mc) (X : C) : 
   ({ functor . obj := o, map' := m, map_id' := mi, map_comp' := mc } : C ↝ D) X = o X := rfl
 @[simp] lemma mk_map (o : C → D) (m mi mc) {X Y : C} (f : X ⟶ Y) : 

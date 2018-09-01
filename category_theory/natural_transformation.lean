@@ -41,6 +41,7 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 { F   := λ α, Π X : C, (F X) ⟶ (G X),
   coe := λ α, α.app }
 
+@[simp] lemma app_eq_coe {F G : C ↝ D} (α : F ⟹ G) (X : C) : α.app X = α X := by unfold_coes
 @[simp] lemma mk_app {F G : C ↝ D} (app : Π X : C, (F X) ⟶ (G X)) (naturality) (X : C) : 
   { nat_trans . app := app, naturality' := naturality } X = app X := rfl 
 

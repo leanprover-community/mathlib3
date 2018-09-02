@@ -686,7 +686,8 @@ index_of_cons_eq _ rfl
 @[simp] theorem index_of_cons_ne {a b : α} (l : list α) : a ≠ b → index_of a (b::l) = succ (index_of a l) :=
 assume n, if_neg n
 
-theorem index_of_eq_length {a : α} {l : list α} : index_of a l = length l ↔ a ∉ l :=
+theorem index_of_eq_length {a : α} {l : list α} : index_of a l = length l ↔ a ∉ l 
+:=
 begin
   induction l with b l ih; simp [-add_comm],
   by_cases h : a = b; simp [h, -add_comm],
@@ -3833,6 +3834,15 @@ by simp [enum, range_eq_range']
 
 def reduce_option {α} : list (option α) → list α :=
 list.filter_map id
+
+def map_head {α} (f : α → α) : list α → list α
+| [] := []
+| (x :: xs) := f x :: xs
+
+def map_last {α} (f : α → α) : list α → list α
+| [] := []
+| [x] := [f x]
+| (x :: xs) := x :: map_last xs
 
 end list
 

@@ -73,14 +73,19 @@ by cases x; simp
 
 @[simp] theorem seq_some {α β} {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
 
-@[simp] theorem orelse_some' (a : α) (x : option α) : (some a).orelse x = some a := rfl
+@[simp] theorem some_orelse' (a : α) (x : option α) : (some a).orelse x = some a := rfl
 
-@[simp] theorem orelse_some (a : α) (x : option α) : (some a <|> x) = some a := rfl
+@[simp] theorem some_orelse (a : α) (x : option α) : (some a <|> x) = some a := rfl
 
-@[simp] theorem orelse_none' (x : option α) : none.orelse x = x :=
+@[simp] theorem none_orelse' (x : option α) : none.orelse x = x :=
 by cases x; refl
 
-@[simp] theorem orelse_none (x : option α) : (none <|> x) = x := orelse_none' x
+@[simp] theorem none_orelse (x : option α) : (none <|> x) = x := none_orelse' x
+
+@[simp] theorem orelse_none' (x : option α) : x.orelse none = x :=
+by cases x; refl
+
+@[simp] theorem orelse_none (x : option α) : (x <|> none) = x := orelse_none' x
 
 @[simp] theorem is_some_none : @is_some α none = ff := rfl
 

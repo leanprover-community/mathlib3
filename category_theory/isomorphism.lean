@@ -4,10 +4,6 @@
 
 import category_theory.functor
 
--- TODO remove these once everything is merged
-import tactic.tidy
-@[obviously] meta def obviously' := tactic.tidy
-
 universes u v
 
 namespace category_theory

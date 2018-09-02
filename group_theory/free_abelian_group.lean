@@ -46,15 +46,16 @@ def to_add_comm_group.is_add_group_hom :
 local attribute [instance] to_add_comm_group.is_add_group_hom
 
 @[simp] lemma to_add_comm_group.add (x y : free_abelian_group α) :
-  to_add_comm_group f (x + y)
-  = to_add_comm_group f x +
-    to_add_comm_group f y :=
+  to_add_comm_group f (x + y) = to_add_comm_group f x + to_add_comm_group f y :=
 is_add_group_hom.add _ _ _
 
 @[simp] lemma to_add_comm_group.neg (x : free_abelian_group α) :
-  to_add_comm_group f (-x)
-  = -to_add_comm_group f x :=
+  to_add_comm_group f (-x) = -to_add_comm_group f x :=
 is_add_group_hom.neg _ _
+
+@[simp] lemma to_add_comm_group.sub (x y : free_abelian_group α) :
+  to_add_comm_group f (x - y) = to_add_comm_group f x - to_add_comm_group f y :=
+by simp
 
 @[simp] lemma to_add_comm_group.zero :
   to_add_comm_group f 0 = 0 :=
@@ -63,6 +64,10 @@ is_add_group_hom.zero _
 @[simp] lemma to_add_comm_group.of (x : α) :
   to_add_comm_group f (of x) = f x :=
 by unfold of; unfold to_add_comm_group; simp
+
+@[simp] lemma to_add_comm_group.coe (x : α) :
+  to_add_comm_group f ↑x = f x :=
+to_add_comm_group.of f x
 
 theorem to_add_comm_group.unique
   (g : free_abelian_group α → β) [is_add_group_hom g]

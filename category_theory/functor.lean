@@ -15,6 +15,7 @@ Introduces notations
 -/
 
 import category_theory.category
+import tactic.tidy
 
 namespace category_theory
 
@@ -58,8 +59,9 @@ begin unfold functor.map, erw F.map_id', refl end
   F.map (f ≫ g) = F.map f ≫ F.map g := 
 begin unfold functor.map, erw F.map_comp' end
 
--- We do not define a refl lemma unfolding the coercion.
--- However we do provide lemmas for the coercion applied to an explicit structure.
+-- We define a refl lemma 'refolding' the coercion,
+-- and two lemmas for the coercion applied to an explicit structure.
+@[simp] lemma obj_eq_coe {F : C ↝ D} (X : C) : F.obj X = F X := by unfold_coes
 @[simp] lemma mk_obj (o : C → D) (m mi mc) (X : C) : 
   ({ functor . obj := o, map' := m, map_id' := mi, map_comp' := mc } : C ↝ D) X = o X := rfl
 @[simp] lemma mk_map (o : C → D) (m mi mc) {X Y : C} (f : X ⟶ Y) : 
@@ -72,10 +74,8 @@ include 𝒞
 
 /-- `functor.id C` is the identity functor on a category `C`. -/
 protected def id : C ↝ C :=
-{ obj       := λ X, X,
-  map'      := λ _ _ f, f,
-  map_id'   := begin /- `obviously'` says: -/ intros, refl end,
-  map_comp' := begin /- `obviously'` says: -/ intros, refl end }
+{ obj      := λ X, X,
+  map'     := λ _ _ f, f }
 
 variable {C}
 
@@ -93,10 +93,8 @@ include 𝒞 𝒟 ℰ
 `F ⋙ G` is the composition of a functor `F` and a functor `G` (`F` first, then `G`).
 -/
 def comp (F : C ↝ D) (G : D ↝ E) : C ↝ E :=
-{ obj       := λ X, G (F X),
-  map'      := λ _ _ f, G.map (F.map f),
-  map_id'   := begin /- `obviously'` says: -/ intros, simp end,
-  map_comp' := begin /- `obviously'` says: -/ intros, simp end }
+{ obj      := λ X, G (F X),
+  map'      := λ _ _ f, G.map (F.map f) }
 
 infixr ` ⋙ `:80 := comp
 

@@ -16,12 +16,9 @@ include 𝒞 𝒟
 `prod.category C D` gives the cartesian product of two categories.
 -/
 instance prod : category.{(max u₁ u₂) (max v₁ v₂)} (C × D) :=
-{ hom      := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
-  id       := λ X, ⟨ 𝟙 (X.1), 𝟙 (X.2) ⟩,
-  comp     := λ _ _ _ f g, (f.1 ≫ g.1, f.2 ≫ g.2),
-  id_comp' := begin /- `obviously'` says: -/ intros, cases X, cases Y, cases f, dsimp at *, simp end,
-  comp_id' := begin /- `obviously'` says: -/ intros, cases X, cases Y, cases f, dsimp at *, simp end,
-  assoc'   := begin /- `obviously'` says: -/ intros, cases W, cases X, cases Y, cases Z, cases f, cases g, cases h, dsimp at *, simp end }
+{ hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
+  id      := λ X, ⟨ 𝟙 (X.1), 𝟙 (X.2) ⟩,
+  comp    := λ _ _ _ f g, (f.1 ≫ g.1, f.2 ≫ g.2) }
 
 -- rfl lemmas for category.prod
 @[simp] lemma prod_id (X : C) (Y : D) : 𝟙 (X, Y) = (𝟙 X, 𝟙 Y) := rfl
@@ -42,31 +39,23 @@ namespace prod
 
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
 def inl (C : Type u₁) [category.{u₁ v₁} C] {D : Type u₁} [category.{u₁ v₁} D] (Z : D) : C ↝ (C × D) :=
-{ obj       := λ X, (X, Z),
-  map'      := λ X Y f, (f, 𝟙 Z),
-  map_id'   := begin /- `obviously'` says: -/ intros, refl end,
-  map_comp' := begin /- `obviously'` says: -/ intros, dsimp, simp end }
+{ obj      := λ X, (X, Z),
+  map'     := λ X Y f, (f, 𝟙 Z) }
 
 /-- `inr D Z` is the functor `X ↦ (Z, X)`. -/
 def inr {C : Type u₁} [category.{u₁ v₁} C] (D : Type u₁) [category.{u₁ v₁} D] (Z : C) : D ↝ (C × D) :=
-{ obj       := λ X, (Z, X),
-  map'      := λ X Y f, (𝟙 Z, f),
-  map_id'   := begin /- `obviously'` says: -/ intros, refl end,
-  map_comp' := begin /- `obviously'` says: -/ intros, dsimp, simp end }
+{ obj      := λ X, (Z, X),
+  map'     := λ X Y f, (𝟙 Z, f) }
 
 /-- `fst` is the functor `(X, Y) ↦ X`. -/
 def fst (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ↝ C :=
-{ obj       := λ X, X.1,
-  map'      := λ X Y f, f.1,
-  map_id'   := begin /- `obviously'` says: -/ intros, refl end,
-  map_comp' := begin /- `obviously'` says: -/ intros, refl end }
+{ obj      := λ X, X.1,
+  map'     := λ X Y f, f.1 }
 
 /-- `snd` is the functor `(X, Y) ↦ Y`. -/
 def snd (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ↝ D :=
-{ obj       := λ X, X.2,
-  map'      := λ X Y f, f.2,
-  map_id'   := begin /- `obviously'` says: -/ intros, refl end,
-  map_comp' := begin /- `obviously'` says: -/ intros, refl end }
+{ obj      := λ X, X.2,
+  map'     := λ X Y f, f.2 }
 
 end prod
 
@@ -76,11 +65,9 @@ include 𝒜 ℬ 𝒞 𝒟
 namespace functor
 /-- The cartesian product of two functors. -/
 def prod (F : A ↝ B) (G : C ↝ D) : (A × C) ↝ (B × D) :=
-{ obj       := λ X, (F X.1, G X.2),
-  map'      := λ _ _ f, (F.map f.1, G.map f.2),
-  map_id'   := begin /- `obviously'` says: -/ intros, cases X, dsimp, rw map_id, rw map_id end,
-  map_comp' := begin /- `obviously'` says: -/ intros, cases Z, cases Y, cases X, cases f, cases g, dsimp at *, rw map_comp, rw map_comp end }
-
+{ obj  := λ X, (F X.1, G X.2),
+  map' := λ _ _ f, (F.map f.1, G.map f.2) }
+  
 /- Because of limitations in Lean 3's handling of notations, we do not setup a notation `F × G`. 
    You can use `F.prod G` as a "poor man's infix", or just write `functor.prod F G`. -/
 

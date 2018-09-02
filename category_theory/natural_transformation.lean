@@ -41,6 +41,7 @@ instance {F G : C ↝ D} : has_coe_to_fun (F ⟹ G) :=
 { F   := λ α, Π X : C, (F X) ⟶ (G X),
   coe := λ α, α.app }
 
+@[simp] lemma app_eq_coe {F G : C ↝ D} (α : F ⟹ G) (X : C) : α.app X = α X := by unfold_coes
 @[simp] lemma mk_app {F G : C ↝ D} (app : Π X : C, (F X) ⟶ (G X)) (naturality) (X : C) : 
   { nat_trans . app := app, naturality' := naturality } X = app X := rfl 
 
@@ -53,8 +54,7 @@ end
 
 /-- `nat_trans.id F` is the identity natural transformation on a functor `F`. -/
 protected def id (F : C ↝ D) : F ⟹ F :=
-{ app         := λ X, 𝟙 (F X),
-  naturality' := begin /- `obviously'` says: -/ intros, simp end }
+{ app        := λ X, 𝟙 (F X) }
 
 @[simp] lemma id_app (F : C ↝ D) (X : C) : (nat_trans.id F) X = 𝟙 (F X) := rfl
 
@@ -81,8 +81,7 @@ def vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H :=
 notation α `⊟` β:80 := vcomp α β
 
 @[simp] lemma vcomp_app (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β) X = (α X) ≫ (β X) := rfl
-lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := 
-begin ext, intros, dsimp, rw [assoc] end
+@[simp] lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := by tidy
 end
 
 variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]

@@ -2,7 +2,6 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Stephen Morgan, Scott Morrison
 
-import category_theory.functor
 import category_theory.products
 import category_theory.types
 
@@ -18,12 +17,9 @@ variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
 include 𝒞
 
 instance opposite : category.{u₁ v₁} (Cᵒᵖ) := 
-{ hom      := λ X Y : C, Y ⟶ X,
-  comp     := λ _ _ _ f g, g ≫ f,
-  id       := λ X, 𝟙 X,
-  id_comp' := begin /- `obviously'` says: -/ intros, simp end,
-  comp_id' := begin /- `obviously'` says: -/ intros, simp end,
-  assoc'   := begin /- `obviously'` says: -/ intros, simp end }
+{ hom     := λ X Y : C, Y ⟶ X,
+  comp    := λ _ _ _ f g, g ≫ f,
+  id      := λ X, 𝟙 X }
 
 namespace functor
 

@@ -5,6 +5,7 @@ Author: Robert Y. Lewis
 
 Additional operations on native rb_maps and rb_sets.
 -/
+import data.option
 
 namespace native
 namespace rb_set 
@@ -20,16 +21,10 @@ end rb_set
 namespace rb_map 
 
 meta def ifind {α β} [inhabited β] (m : rb_map α β) (a : α) : β :=
-match m.find a with 
-| some a := a 
-| none := default β
-end 
+(m.find a).iget
 
 meta def zfind {α β} [has_zero β] (m : rb_map α β) (a : α) : β :=
-match m.find a with 
-| some v := v 
-| none := 0
-end
+(m.find a).get_or_else 0
 
 meta def add {α β} [has_add β] [has_zero β] [decidable_eq β] (m1 m2 : rb_map α β) : rb_map α β :=
 m1.fold m2 

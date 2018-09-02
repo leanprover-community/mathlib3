@@ -4,12 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 
 Theory of unique factorization domains.
+
+@TODO: setup the complete lattice structure on `factor_set`.
 -/
 import ring_theory.associated_elements algebra.gcd_domain
 
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated
 
+/-- Unique factorization domains.
+
+In a unique factorization domain each element (except zero) is uniquely represented as a multiset
+of irreducible factors. Uniqueness is only up to associated elements.
+-/
 class unique_factorization_domain (α : Type*) [integral_domain α] :=
 (factors : α → multiset α)
 (factors_prod : ∀{a : α}, a ≠ 0 → (factors a).prod ~ᵤ a)
@@ -20,6 +27,17 @@ class unique_factorization_domain (α : Type*) [integral_domain α] :=
 namespace associates
 open unique_factorization_domain associated lattice
 variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (associates α)]
+
+/-- `factor_set α` representation elements of unique factorization domain as multisets.
+
+`multiset α` produced by `factors` are only unique up to associated elements, while the multisets in
+`factor_set α` are unqiue by equality and restricted to irreducible elements. This gives us a
+representation of each element as a unique multisets (or the added ⊤ for 0), which has a complete
+lattice struture. Infimum is the greatest common divisor and supremum is the least common multiple.
+-/
+@[reducible] def {u} factor_set (α : Type u) [integral_domain α] [unique_factorization_domain α] :
+  Type u :=
+with_top (multiset { a : associates α // irreducible a })
 
 local attribute [instance] associated.setoid
 
@@ -67,10 +85,6 @@ iff.intro
     { simp [multiset.prod_add, prod_mk, *] at * }
   end
   prod_le_prod
-
-@[reducible] def {u} factor_set (α : Type u) [integral_domain α] [unique_factorization_domain α] :
-  Type u :=
-with_top (multiset { a : associates α // irreducible a })
 
 @[simp] theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
   (↑a + ↑b : factor_set α) = ↑(a + b) :=

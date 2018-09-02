@@ -3831,6 +3831,15 @@ theorem reverse_range' : ∀ s n : ℕ,
   map prod.fst (enum l) = range l.length :=
 by simp [enum, range_eq_range']
 
+def map_head {α} (f : α → α) : list α → list α
+| [] := []
+| (x :: xs) := f x :: xs
+
+def map_last {α} (f : α → α) : list α → list α
+| [] := []
+| [x] := [f x]
+| (x :: xs) := x :: map_last xs
+
 end list
 
 theorem option.to_list_nodup {α} (o : option α) : o.to_list.nodup :=

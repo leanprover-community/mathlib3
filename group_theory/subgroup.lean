@@ -48,14 +48,10 @@ theorem multiplicative.is_subgroup_iff
   λ h, by resetI; apply_instance⟩
 
 instance subtype.group {s : set α} [is_subgroup s] : group s :=
-{ inv          := λa, ⟨(a.1)⁻¹, is_subgroup.inv_mem a.2⟩,
-  mul_left_inv := λa, subtype.eq $ mul_left_inv _,
-  .. subtype.monoid }
+by subtype_instance
 
 instance subtype.add_group {s : set β} [is_add_subgroup s] : add_group s :=
-{ neg          := λa, ⟨-(a.1), is_add_subgroup.neg_mem a.2⟩,
-  add_left_neg := λa, subtype.eq $ add_left_neg _,
-  .. subtype.add_monoid }
+by subtype_instance
 attribute [to_additive subtype.add_group] subtype.group
 
 theorem is_subgroup.of_div (s : set α)

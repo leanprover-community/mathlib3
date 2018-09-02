@@ -296,24 +296,31 @@ namespace is_group_hom
 open is_submonoid is_subgroup
 variables [group α] [group β]
 
+@[to_additive is_add_group_hom.ker]
 def ker (f : α → β) [is_group_hom f] : set α := preimage f (trivial β)
+attribute [to_additive is_add_group_hom.ker.equations._eqn_1] ker.equations._eqn_1
 
+@[to_additive is_add_group_hom.mem_ker]
 lemma mem_ker (f : α → β) [is_group_hom f] {x : α} : x ∈ ker f ↔ f x = 1 :=
 mem_trivial
 
+@[to_additive is_add_group_hom.zero_ker_neg]
 lemma one_ker_inv (f : α → β) [is_group_hom f] {a b : α} (h : f (a * b⁻¹) = 1) : f a = f b :=
 begin
   rw [mul f, inv f] at h,
   rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
 end
 
+@[to_additive is_add_group_hom.neg_ker_zero]
 lemma inv_ker_one (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : f (a * b⁻¹) = 1 :=
 have f a * (f b)⁻¹ = 1, by rw [h, mul_right_inv],
 by rwa [←inv f, ←mul f] at this
 
+@[to_additive is_add_group_hom.zero_iff_ker_neg]
 lemma one_iff_ker_inv (f : α → β) [is_group_hom f] (a b : α) : f a = f b ↔ f (a * b⁻¹) = 1 :=
 ⟨inv_ker_one f, one_ker_inv f⟩
 
+@[to_additive is_add_group_hom.neg_iff_ker]
 lemma inv_iff_ker (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a * b⁻¹ ∈ ker f :=
 by rw [mem_ker]; exact one_iff_ker_inv _ _ _
 
@@ -323,22 +330,38 @@ instance image_subgroup (f : α → β) [is_group_hom f] (s : set α) [is_subgro
              ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, mul f]⟩,
   one_mem := ⟨1, one_mem s, one f⟩,
   inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw inv f; simp *⟩ }
+attribute [to_additive is_add_group_hom.image_add_subgroup._match_1] is_group_hom.image_subgroup._match_1
+attribute [to_additive is_add_group_hom.image_add_subgroup._match_2] is_group_hom.image_subgroup._match_2
+attribute [to_additive is_add_group_hom.image_add_subgroup._match_3] is_group_hom.image_subgroup._match_3
+attribute [to_additive is_add_group_hom.image_add_subgroup] is_group_hom.image_subgroup
+attribute [to_additive is_add_group_hom.image_add_subgroup._match_1.equations._eqn_1] is_group_hom.image_subgroup._match_1.equations._eqn_1
+attribute [to_additive is_add_group_hom.image_add_subgroup._match_2.equations._eqn_1] is_group_hom.image_subgroup._match_2.equations._eqn_1
+attribute [to_additive is_add_group_hom.image_add_subgroup._match_3.equations._eqn_1] is_group_hom.image_subgroup._match_3.equations._eqn_1
+attribute [to_additive is_add_group_hom.image_add_subgroup.equations._eqn_1] is_group_hom.image_subgroup.equations._eqn_1
 
 instance range_subgroup (f : α → β) [is_group_hom f] : is_subgroup (set.range f) :=
 @set.image_univ _ _ f ▸ is_group_hom.image_subgroup f set.univ
+attribute [to_additive is_add_group_hom.range_add_subgroup] is_group_hom.range_subgroup
+attribute [to_additive is_add_group_hom.range_add_subgroup.equations._eqn_1] is_group_hom.range_subgroup.equations._eqn_1
 
 local attribute [simp] one_mem inv_mem mul_mem normal_subgroup.normal
 
 instance preimage (f : α → β) [is_group_hom f] (s : set β) [is_subgroup s] :
   is_subgroup (f ⁻¹' s) :=
 by refine {..}; simp [mul f, one f, inv f, @inv_mem β _ s] {contextual:=tt}
+attribute [to_additive is_add_group_hom.preimage] is_group_hom.preimage
+attribute [to_additive is_add_group_hom.preimage.equations._eqn_1] is_group_hom.preimage.equations._eqn_1
 
 instance preimage_normal (f : α → β) [is_group_hom f] (s : set β) [normal_subgroup s] :
   normal_subgroup (f ⁻¹' s) :=
 ⟨by simp [mul f, inv f] {contextual:=tt}⟩
+attribute [to_additive is_add_group_hom.preimage_normal] is_group_hom.preimage_normal
+attribute [to_additive is_add_group_hom.preimage_normal.equations._eqn_1] is_group_hom.preimage_normal.equations._eqn_1
 
 instance normal_subgroup_ker (f : α → β) [is_group_hom f] : normal_subgroup (ker f) :=
 is_group_hom.preimage_normal f (trivial β)
+attribute [to_additive is_add_group_hom.normal_subgroup_ker] is_group_hom.normal_subgroup_ker
+attribute [to_additive is_add_group_hom.normal_subgroup_ker.equations._eqn_1] is_group_hom.normal_subgroup_ker.equations._eqn_1
 
 lemma inj_of_trivial_ker (f : α → β) [is_group_hom f] (h : ker f = trivial α) :
   function.injective f :=

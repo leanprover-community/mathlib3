@@ -163,6 +163,9 @@ instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
 instance : is_semiring_hom f :=
 { map_zero := map_zero f, ..‹is_ring_hom f› }
 
+instance : is_add_group_hom f :=
+⟨λ _ _, is_ring_hom.map_add f⟩
+
 end is_ring_hom
 
 set_option old_structure_cmd true

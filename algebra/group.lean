@@ -86,6 +86,10 @@ attribute [to_additive add_group.to_add_monoid] group.to_monoid
 attribute [to_additive add_group.add_left_neg] group.mul_left_inv
 attribute [to_additive add_group.add] group.mul
 attribute [to_additive add_group.add_assoc] group.mul_assoc
+attribute [to_additive add_group.zero] group.one
+attribute [to_additive add_group.zero_add] group.one_mul
+attribute [to_additive add_group.add_zero] group.mul_one
+attribute [to_additive add_group.neg] group.inv
 
 attribute [to_additive add_comm_group] comm_group
 attribute [to_additive add_comm_group.mk] comm_group.mk

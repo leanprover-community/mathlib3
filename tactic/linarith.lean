@@ -13,7 +13,7 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 @TODO: delay proofs of denominator normalization until after contradiction is found
 -/
 
-import tactic.ring data.nat.gcd data.list.basic meta.rb_map tactic.find
+import tactic.ring data.nat.gcd data.list.basic meta.rb_map
 
 meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)
@@ -60,12 +60,10 @@ lemma add_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n *
 lemma sub_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n * e2 = t2) : 
       n * (e1 - e2) = t1 - t2 := by simp [left_distrib, *]
 
-meta def apnn : tactic unit := `[norm_num]
-
-example (h1 : 1 < 2 . apnn) : 1 < 2 := h1
-
 lemma neg_subst {α} [ring α] {n e t : α} (h1 : n * e = t) : n * (-e) = -t := by simp *
-#check tactic.interactive.norm_num 
+
+private meta def apnn : tactic unit := `[norm_num]
+
 lemma mul_subst {α} [comm_ring α] {n1 n2 k e1 e2 t1 t2 : α} (h1 : n1 * e1 = t1) (h2 : n2 * e2 = t2) 
      (h3 : n1*n2 = k . apnn) : k * (e1 * e2) = t1 * t2 := 
 have h3 : n1 * n2 = k, from h3,

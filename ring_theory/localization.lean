@@ -207,11 +207,9 @@ instance : has_inv (quotient_ring β) :=
     by_cases hr₂ : r₂ = 0;
     simp [hr₁, hr₂] at hrs; simp [inv_aux, hr₁, hr₂],
     { exfalso,
-      exact ne_zero_of_mem_non_zero_divisors hs₁
-        (eq_zero_of_ne_zero_of_mul_eq_zero hr₂ hrs) },
+      exact ne_zero_of_mem_non_zero_divisors hs₁ hrs },
     { exfalso,
-      exact ne_zero_of_mem_non_zero_divisors hs₂
-        (eq_zero_of_ne_zero_of_mul_eq_zero hr₁ hrs.symm) },
+      exact ne_zero_of_mem_non_zero_divisors hs₂ hrs },
     { apply r_of_eq,
       simpa [mul_comm] using hrs.symm }
   end⟩

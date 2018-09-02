@@ -532,6 +532,8 @@ instance semilattice_inf [semilattice_inf α] : semilattice_inf_top (with_top α
   end,
   ..with_top.order_top }
 
+lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_top α) = a ⊓ b := rfl
+
 instance semilattice_sup [semilattice_sup α] : semilattice_sup_top (with_top α) :=
 { sup          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊔ b)),
   le_sup_left  := λ o₁ o₂ a ha, begin
@@ -549,6 +551,8 @@ instance semilattice_sup [semilattice_sup α] : semilattice_sup_top (with_top α
     exact ⟨_, rfl, sup_le ab ac⟩
   end,
   ..with_top.order_top }
+
+lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_top α) = a ⊔ b := rfl
 
 instance lattice [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }

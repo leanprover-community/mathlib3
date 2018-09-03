@@ -95,6 +95,10 @@ instance quotient.module : module α Q :=
   add_smul     := assume a b c, quotient.induction_on' c $
     assume c, quotient_module.eq.2 $ by simp [is_submodule.zero, add_smul], }
 
+@[simp] lemma coe_zero : ((0 : β) : Q) = 0 := rfl
+@[simp] lemma coe_smul (a : α) (b : β) : ((a • b : β) : Q) = a • b := rfl
+@[simp] lemma coe_add (a b : β) : ((a + b : β) : Q) = a + b := rfl
+
 instance quotient.inhabited : inhabited Q := ⟨0⟩
 
 lemma is_linear_map_quotient_mk : @is_linear_map _ _ Q _ _ _ (λb, mk b : β → Q) :=
@@ -116,7 +120,7 @@ lemma is_linear_map_quotient_lift {f : β → γ} {h : ∀x y, x - y ∈ s → f
 
 lemma quotient.injective_lift [is_submodule s] {f : β → γ} (hf : is_linear_map f)
   (hs : s = {x | f x = 0}) : injective (quotient.lift s hf $ le_of_eq hs) :=
-assume a b, quotient.induction_on₂ a b $ assume a b (h : f a = f b), quotient.sound $
+assume a b, quotient.induction_on₂' a b $ assume a b (h : f a = f b), quotient.sound' $
   have f (a - b) = 0, by rw [hf.sub]; simp [h],
   show a - b ∈ s, from hs.symm ▸ this
 

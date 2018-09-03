@@ -1,4 +1,4 @@
-import algebra.euclidean_domain ring_theory.ideals data.polynomial
+import algebra.euclidean_domain ring_theory.ideals ring_theory.associated
 noncomputable theory
 local attribute [instance] classical.dec
 open euclidean_domain set
@@ -43,23 +43,23 @@ begin
   rw [← gcd_is_unit_iff],
   by_contra h,
   refine H _ h _ (gcd_dvd_left _ _) (gcd_dvd_right _ _),
-  rwa [ne, gcd_eq_zero_iff]
+  rwa [ne, euclidean_domain.gcd_eq_zero_iff]
 end
 
 theorem dvd_or_coprime {α} [euclidean_domain α] (x y : α)
-  (h : is_irreducible x) : x ∣ y ∨ is_coprime x y :=
+  (h : irreducible x) : x ∣ y ∨ is_coprime x y :=
 begin
   refine or_iff_not_imp_left.2 (λ h', _),
-  apply is_coprime_of_dvd,
+  unfreezeI, apply is_coprime_of_dvd,
   { rintro ⟨rfl, rfl⟩, simpa using h },
   { rintro z nu nz ⟨w, rfl⟩ dy,
     refine h' (dvd.trans _ dy),
     simpa using mul_dvd_mul_left z (is_unit_iff_dvd_one.1 $
-      (of_is_irreducible_mul h).resolve_left nu) }
+      (of_irreducible_mul h).resolve_left nu) }
 end
 
 theorem is_maximal_ideal_of_irreducible {α} [euclidean_domain α] {x : α}
-  (irr : is_irreducible x) : is_maximal_ideal (span ({x} : set α)) :=
+  (irr : irreducible x) : is_maximal_ideal (span ({x} : set α)) :=
 { ne_univ := by simp [span_singleton_eq_univ]; exact irr.1,
   eq_or_univ_of_subset := λ S hS ss, begin
     refine or_iff_not_imp_left.2 (λ h, _),
@@ -71,31 +71,3 @@ theorem is_maximal_ideal_of_irreducible {α} [euclidean_domain α] {x : α}
     apply span_minimal hS.to_is_submodule,
     simp [h₁, ss (subset_span (mem_singleton _))]
   end }
-
-section
-universe u
-variables {K : Type u} [field K] (f : polynomial K) (irr : is_irreducible f)
-include irr
-
-def adjoin_root : Type u :=
-@quotient_ring.quotient _ _
-  (@span _ _ _ ring.to_module ({f} : set (polynomial K))) (is_ideal.span _)
-
-instance adjoin_root.field : field (adjoin_root f irr) :=
-begin
-  haveI := is_maximal_ideal_of_irreducible irr,
-  apply quotient_ring.field
-end
-
-variables {f irr}
-def mk : polynomial K → adjoin_root f irr :=
-@quotient_ring.mk _ _
-  (@span _ _ _ ring.to_module ({f} : set (polynomial K))) (is_ideal.span _)
-
-def root : adjoin_root f irr := mk polynomial.X
-
-def inj (x : K) : adjoin_root f irr := mk (polynomial.C x)
-
-instance adjoin_root.has_coe_t : has_coe_t K (adjoin_root f irr) := ⟨inj⟩
-
-end

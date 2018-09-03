@@ -140,7 +140,7 @@ theorem gcd_dvd_left (a b : α) : gcd a b ∣ a := (gcd_dvd a b).left
 
 theorem gcd_dvd_right (a b : α) : gcd a b ∣ b := (gcd_dvd a b).right
 
-theorem gcd_eq_zero_iff {a b : α} :
+protected theorem gcd_eq_zero_iff {a b : α} :
   gcd a b = 0 ↔ a = 0 ∧ b = 0 :=
 ⟨λ h, by simpa [h] using gcd_dvd a b,
  by rintro ⟨rfl, rfl⟩; simp⟩

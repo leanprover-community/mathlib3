@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
-import algebra.module tactic.ring linear_algebra.quotient_module tactic.tidy
+import algebra.module tactic.ring linear_algebra.quotient_module ring_theory.associated
 
 universes u v
 variables {α : Type u} {β : Type v} [comm_ring α] {a b : α}
@@ -19,13 +19,17 @@ protected lemma zero (S : set α) [is_ideal S] : (0 : α) ∈ S := is_submodule.
 
 protected lemma add {S : set α} [is_ideal S] : a ∈ S → b ∈ S → a + b ∈ S := is_submodule.add_ α
 
-lemma neg_iff {S : set α} [is_ideal S] : a ∈ S ↔ -a ∈ S := ⟨is_submodule.neg, λ h, neg_neg a ▸ is_submodule.neg h⟩
+lemma neg_iff {S : set α} [is_ideal S] : -a ∈ S ↔ a ∈ S :=
+⟨λ h, neg_neg a ▸ is_submodule.neg h, is_submodule.neg⟩
 
 protected lemma sub {S : set α} [is_ideal S] : a ∈ S → b ∈ S → a - b ∈ S := is_submodule.sub
 
 lemma mul_left {S : set α} [is_ideal S] : b ∈ S → a * b ∈ S := @is_submodule.smul α α _ _ _ _ a _
 
 lemma mul_right {S : set α} [is_ideal S] : a ∈ S → a * b ∈ S := mul_comm b a ▸ mul_left
+
+lemma dvd {S : set α} [is_ideal S] : a ∣ b → a ∈ S → b ∈ S :=
+by rintro ⟨c, rfl⟩; exact mul_right
 
 def trivial (α : Type*) [comm_ring α] : set α := {0}
 
@@ -79,18 +83,6 @@ instance is_maximal_ideal.is_prime_ideal (S : set α) [hS : is_maximal_ideal S] 
     ▸ ha)) (is_ideal.mul_left hxy)),
   ..hS }
 
-def is_unit {α} [monoid α] (x : α) : Prop := ∃ y, y * x = 1
-
-theorem is_unit_iff_dvd_one {α} [comm_ring α] {x : α} :
-  is_unit x ↔ x ∣ 1 := by simp [is_unit, dvd_iff', eq_comm]
-
-@[simp] theorem not_is_unit_zero {α} [integral_domain α] : ¬ is_unit (0:α) :=
-by simp [is_unit_iff_dvd_one]
-
-theorem is_unit_iff_forall_dvd {α} [comm_ring α] {x : α} :
-  is_unit x ↔ ∀ y, x ∣ y :=
-is_unit_iff_dvd_one.trans ⟨λ h y, dvd.trans h (one_dvd _), λ h, h _⟩
-
 theorem mem_span_singleton_iff_dvd {α} [comm_ring α] {x y : α} :
   x ∈ span ({y} : set α) ↔ y ∣ x :=
 by simp [span_singleton, dvd_mul_of_dvd_left, dvd_iff', eq_comm]
@@ -104,53 +96,31 @@ def nonunits (α) [monoid α] : set α := {x | ¬is_unit x}
 @[simp] theorem mem_nonunits {α} [monoid α] (x : α) :
   x ∈ nonunits α ↔ ¬ is_unit x := iff.rfl
 
-def is_irreducible {α} [ring α] (x : α) : Prop :=
-x ∈ nonunits α ∧ x ≠ 0 ∧ ∀ a b, a * b = x → is_unit a ∨ is_unit b
-
-@[simp] theorem not_is_irreducible_zero {α} [ring α] : ¬ is_irreducible (0:α)
-| ⟨_, h, _⟩ := h rfl
-
-@[simp] theorem of_is_irreducible_mul {α} [ring α] {x y : α} :
-  is_irreducible (x * y) → is_unit x ∨ is_unit y
-| ⟨_, _, h⟩ := h _ _ rfl
-
-theorem irreducible_or_factor {α} [ring α] (x : α)
-  (h : x ∈ nonunits α) (z : x ≠ 0) :
-  is_irreducible x ∨ ∃ a b ∈ nonunits α, a * b = x :=
-begin
-  by_cases nu : ∃ a b ∈ nonunits α, a * b = x, {exact or.inr nu},
-  apply or.inl, simp at nu h,
-  simp [h, z, is_irreducible],
-  refine λ a b h, classical.by_contradiction $ λ o, _,
-  simp [not_or_distrib] at o,
-  exact nu _ o.1 _ o.2 h,
-end
-
 theorem not_unit_of_mem_proper_ideal {α} [comm_ring α] (S : set α) [is_proper_ideal S] :
   S ⊆ nonunits α :=
-λ x hx ⟨y, hxy⟩, is_proper_ideal.ne_univ S $ is_submodule.eq_univ_of_contains_unit S x y hx hxy
+λ x hx xu, let ⟨y, hxy⟩ := is_unit_iff_dvd_one.1 xu in
+is_proper_ideal.ne_univ S $ is_submodule.eq_univ_of_contains_unit S x y hx (by simp [hxy, mul_comm])
 
 class local_ring (α) [comm_ring α] :=
 (S : set α)
 (max : is_maximal_ideal S)
 (unique : ∀ T [is_maximal_ideal T], S = T)
 
-def local_of_nonunits_ideal {α : Type u} [comm_ring α] (hnze : (0:α) ≠ 1)
+def local_of_nonunits_ideal {α : Type u} [nonzero_comm_ring α]
   (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : local_ring α :=
 have hi : is_ideal (nonunits α), from
-  { zero_ := λ ⟨y, hy⟩, hnze $ by simpa using hy,
+  { zero_ := not_is_unit_zero,
     add_  := h,
-    smul  := λ x y hy ⟨z, hz⟩, hy ⟨x * z, by rw [← hz]; simp [mul_left_comm, mul_assoc]⟩ },
+    smul  := λ x y hy hu, hy $ is_unit_of_dvd_unit (dvd_mul_left _ _) hu },
 { S      := nonunits α,
-  max    := @@is_maximal_ideal.mk _ (nonunits α) hi (λ ho, ho ⟨1, mul_one 1⟩) $
-    λ x T ht hst hxns hxt,
-    let ⟨y, hxy⟩ := classical.by_contradiction hxns in
-    by rw [← hxy]; by exactI is_ideal.mul_left hxt,
+  max    := @@is_maximal_ideal.mk _ (nonunits α) hi (λ ho, ho is_unit_one) $
+    λ x T ht hst hxns hxt, by exactI
+      is_ideal.dvd (is_unit_iff_dvd_one.1 (not_not.1 hxns)) hxt,
   unique := λ T hmt, or.cases_on
     (@@is_maximal_ideal.eq_or_univ_of_subset _ hmt (nonunits α) hi $
       λ z hz, @@not_unit_of_mem_proper_ideal _ T (by resetI; apply_instance) hz)
     id
-    (λ htu, false.elim $ ((set.ext_iff _ _).1 htu 1).2 trivial ⟨1, mul_one 1⟩) }
+    (λ htu, false.elim $ ((set.ext_iff _ _).1 htu 1).2 trivial is_unit_one) }
 
 instance is_ideal.preimage [comm_ring β] (S : set β) (f : α → β)
   [is_ring_hom f] [is_ideal S] : is_ideal (f ⁻¹' S) :=
@@ -254,7 +224,7 @@ by haveI hS : is_proper_ideal (span (set.insert a S)) :=
   is_proper_ideal_iff_one_not_mem.2
   (mt mem_span_insert.1 $ λ ⟨b, hb⟩,
   h ⟨-b, quotient_ring.eq.2
-    (neg_iff.2 (begin
+    (neg_iff.1 (begin
       rw [neg_sub, mul_neg_eq_neg_mul_symm, sub_eq_add_neg, neg_neg, mul_comm],
       rw span_eq_of_is_submodule (show is_submodule S, by apply_instance) at hb,
       exact hb
@@ -266,7 +236,7 @@ exact have span (set.insert a S) = S :=
 
 /-- quotient by maximal ideal is a field. def rather than instance, since users will have
 computable inverses in some applications -/
-protected noncomputable def field (S : set α) [is_maximal_ideal S] : field (quotient S) :=
+protected noncomputable def field (S : set α) [is_maximal_ideal S] : discrete_field (quotient S) :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (exists_inv ha),
   mul_inv_cancel := λ a (ha : a ≠ 0), show a * dite _ _ _ = _,
     by rw dif_neg ha;
@@ -274,6 +244,8 @@ protected noncomputable def field (S : set α) [is_maximal_ideal S] : field (quo
   inv_mul_cancel := λ a (ha : a ≠ 0), show dite _ _ _ * a = _,
     by rw [mul_comm, dif_neg ha];
     exact classical.some_spec (exists_inv ha),
+  has_decidable_eq := by apply_instance,
+  inv_zero := dif_pos rfl,
   ..quotient_ring.integral_domain S }
 
 end quotient_ring

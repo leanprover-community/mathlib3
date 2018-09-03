@@ -7,7 +7,7 @@ Direct sum of modules over commutative rings,
 indexed by a discrete type.
 -/
 
-import linear_algebra.subtype_module
+import linear_algebra.basic
 import algebra.pi_instances
 
 universes u v w u₁
@@ -424,5 +424,17 @@ protected def id (M : Type v) [module R M] :
     cases u; simp,
   right_inv := λ x, by simp,
   linear_fun := to_module.linear _ }
+
+def to_pi (f : direct_sum R ι β) : Π i, β i :=
+begin
+  refine to_module (λ i x j, if h : i = j then (eq.rec_on h x) else 0) (λ i, _) f,
+  constructor; intros; funext j,
+  { change _ = _ + _,
+    split_ifs, { subst h },
+    simp },
+  change _ = c • _,
+  split_ifs, { subst h },
+  simp
+end
 
 end direct_sum

@@ -73,7 +73,6 @@ lemma div_subst {α} [field α] {n1 n2 k e1 e2 t1 : α} (h1 : n1 * e1 = t1) (h2 
       k * (e1 / e2) = t1 := 
 by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
 
-
 end lemmas 
 
 section datatypes
@@ -402,7 +401,7 @@ do tp ← infer_type h,
        tp ← (prod.snd <$> (infer_type h >>= get_rel_sides)) >>= infer_type,
        cpos ← to_expr ``((%%c.to_pexpr : %%tp) > 0),
        (_, ex) ← solve_aux cpos `[norm_num, done],
---       e' ← mk_app (ineq_const_mul_nm iq) [h, ex], -- this takes many seconds longer! why?
+--       e' ← mk_app (ineq_const_mul_nm iq) [h, ex], -- this takes many seconds longer in some examples! why?
        e' ← to_expr ``(%%nm %%h %%ex) ff,
        return (iq, e')
 
@@ -443,6 +442,21 @@ meta def mk_neg_one_lt_zero_pf (tp : expr) : tactic expr :=
 to_expr ``((neg_neg_of_pos zero_lt_one : -1 < (0 : %%tp)))
 
 /--
+  Assumes e is a proof that t = 0. Creates a proof that -t = 0.
+-/
+meta def mk_neg_eq_zero_pf (e : expr) : tactic expr := 
+to_expr ``(neg_eq_zero.mpr %%e)
+
+meta def add_neg_eq_pfs : list expr → tactic (list expr)
+| [] := return []
+| (h::t) := 
+  do some (iq, tp) ← parse_into_comp_and_expr <$> infer_type h,
+  match iq with 
+  | ineq.eq := do nep ← mk_neg_eq_zero_pf h, tl ← add_neg_eq_pfs t, return $ h::nep::tl
+  | _ := list.cons h <$> add_neg_eq_pfs t
+  end 
+
+/--
   Takes a list of proofs of propositions of the form t {<, ≤, =} 0,
   and tries to prove the goal `false`.
 -/
@@ -460,6 +474,7 @@ do extp ← match cfg.restrict_type with
    l' ← if cfg.restrict_type.is_some then 
            l.mfilter (λ e, (ineq_pf_tp e >>= is_def_eq extp >> return tt) <|> return ff)
         else return l,
+   l' ← add_neg_eq_pfs l',
    struct ← mk_linarith_structure (hz::l'),
    let e : linarith_structure := (elim_all_vars.run struct).2,
    let contr := e.has_false,
@@ -550,8 +565,8 @@ meta def mk_prod_prf : ℕ → tree ℕ → expr → tactic expr
      mk_app ``mul_subst [v1, v2, npf]
 | v (node n lhs rhs@(node rn _ _)) `(%%e1 / %%e2) := 
   do tp ← infer_type e1, v1 ← mk_prod_prf (v/rn) lhs e1,
-     rn' ← tp.of_nat rn, o ← tp.of_nat 1, vrn' ← tp.of_nat (v/rn), n' ← tp.of_nat n, v' ← tp.of_nat v,
-     ntp ← to_expr ``(%%rn' / %%e2 = %%o), 
+     rn' ← tp.of_nat rn, vrn' ← tp.of_nat (v/rn), n' ← tp.of_nat n, v' ← tp.of_nat v,
+     ntp ← to_expr ``(%%rn' / %%e2 = 1), 
      (_, npf) ← solve_aux ntp `[norm_num, done],
      ntp2 ← to_expr ``(%%vrn' * %%n' = %%v'),
      (_, npf2) ← solve_aux ntp2 `[norm_num, done],

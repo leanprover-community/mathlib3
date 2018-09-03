@@ -91,4 +91,20 @@ instance : large_category (ulift.{(u+1)} C) :=
   comp := λ _ _ _ f g, f ≫ g }
 end
 
+variables (α : Type u)
+
+instance [preorder α] : small_category α :=
+{ hom  := λ U V, ulift (plift (U ≤ V)),
+  id   := by tidy,
+  comp := begin tidy, transitivity Y; assumption end }
+
+section
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
+
+def End (X : C) := X ⟶ X
+
+instance {X : C} : monoid (End X) := by refine { one := 𝟙 X, mul := λ x y, x ≫ y, .. } ; obviously
+end
+
 end category_theory

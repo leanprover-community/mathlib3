@@ -54,7 +54,7 @@ e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
 
-meta def list_names_with_prefix (pre : name) (e : expr) : name_set := 
+meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
 e.fold mk_name_set $ λ e' _ l,
   match e' with
   | expr.const n _ := if n.get_prefix = pre then l.insert n else l
@@ -104,6 +104,30 @@ option.is_some $ do
   env.is_projection (n ++ x.deinternalize_field)
 
 end environment
+
+namespace interaction_monad
+open result
+
+meta def get_result {σ α} (tac : interaction_monad σ α) :
+  interaction_monad σ (interaction_monad.result σ α) | s :=
+match tac s with
+| r@(success _ s') := success r s'
+| r@(exception _ _ s') := success r s'
+end
+
+end interaction_monad
+
+namespace lean.parser
+open lean interaction_monad.result
+
+meta def of_tactic' {α} (tac : tactic α) : parser α :=
+do r ← of_tactic (interaction_monad.get_result tac),
+match r with
+| (success a _) := return a
+| (exception f pos _) := exception f pos
+end
+
+end lean.parser
 
 namespace tactic
 
@@ -446,7 +470,7 @@ variable {α : Type}
 private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
 | L := (do r ← t, iterate_aux (r :: L)) <|> return L
 
-meta def iterate' (t : tactic α) : tactic (list α) := 
+meta def iterate' (t : tactic α) : tactic (list α) :=
 list.reverse <$> iterate_aux t []
 
 meta def iterate1 (t : tactic α) : tactic (α × list α) :=
@@ -458,7 +482,7 @@ meta def intros1 : tactic (list expr) :=
 iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
-meta def successes {α} (tactics : list (tactic α)) : tactic (list α) := 
+meta def successes {α} (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
 
 /-- Return target after instantiating metavars and whnf -/
@@ -484,5 +508,13 @@ do l ← local_context,
    when (results.empty) (fail "could not use `injection` then `clear` on any hypothesis")
 
 run_cmd add_interactive [`injections_and_clear]
+
+meta def note_anon (e : expr) : tactic unit :=
+do n ← get_unused_name "lh",
+   note n none e, skip 
+
+meta def find_local (t : pexpr) : tactic expr :=
+do t' ← to_expr t,
+   prod.snd <$> solve_aux t' assumption
 
 end tactic

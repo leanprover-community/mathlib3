@@ -9,6 +9,12 @@ open set
 universe u
 variables {α : Type u}
 
+instance division_ring.to_domain [s : division_ring α] : domain α :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
+    classical.by_contradiction $ λ hn,
+      division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
+  ..s }
+
 namespace units
 variables [division_ring α] {a b : α}
 
@@ -18,9 +24,6 @@ variables [division_ring α] {a b : α}
   as a partial function with three arguments. -/
 def mk0 (a : α) (ha : a ≠ 0) : units α :=
 ⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
-
-@[simp] theorem ne_zero (u : units α) : (u : α) ≠ 0
-| h := by simpa [h] using inv_mul u
 
 @[simp] theorem inv_eq_inv (u : units α) : (↑u⁻¹ : α) = u⁻¹ :=
 (mul_left_inj u).1 $ by simp
@@ -34,12 +37,6 @@ end units
 section division_ring
 variables [s : division_ring α] {a b c : α}
 include s
-
-instance division_ring.to_domain : domain α :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
-    classical.by_contradiction $ λ hn,
-      division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
-  ..s }
 
 lemma div_eq_mul_inv : a / b = a * b⁻¹ := rfl
 

@@ -32,6 +32,10 @@ do α ← infer_type e,
 meta def cache.cs_app (c : cache) (n : name) : list expr → expr :=
 (@expr.const tt n [c.univ] c.α c.comm_semiring_inst).mk_app
 
+meta def cache.mk_app (c : cache) (n inst : name) (l : list expr) : tactic expr :=
+do m ← mk_instance ((expr.const inst [c.univ] : expr) c.α),
+   return $ (@expr.const tt n [c.univ] c.α m).mk_app l
+
 meta inductive destruct_ty : Type
 | const : ℚ → destruct_ty
 | xadd : expr → expr → expr → ℕ → expr → destruct_ty
@@ -166,7 +170,7 @@ do d ← destruct e, match d with
 | xadd a x n _ b := do
   (a', h₁) ← eval_neg a,
   (b', h₂) ← eval_neg b,
-  p ← mk_app ``horner_neg [a, x, n, b, a', b', h₁, h₂],
+  p ← c.mk_app ``horner_neg ``comm_ring [a, x, n, b, a', b', h₁, h₂],
   return (c.cs_app ``horner [a', x, n, b'], p)
 end
 
@@ -285,7 +289,7 @@ meta def eval_pow (c : cache) : expr → nat → tactic (expr × expr)
       (tl, hl) ← eval_pow e (m-1),
       (t, p₂) ← eval_mul c tl e,
       hr ← mk_eq_refl e,
-      p₂ ← mk_app ``norm_num.subst_into_prod [l, e, tl, e, t, hl, hr, p₂],
+      p₂ ← c.mk_app ``norm_num.subst_into_prod ``has_mul [l, e, tl, e, t, hl, hr, p₂],
       p₁ ← mk_app ``pow_succ' [e, e₂],
       p ← mk_eq_trans p₁ p₂,
       return (t, p)
@@ -313,7 +317,7 @@ meta def eval (c : cache) : expr → tactic (expr × expr)
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
   (e', p') ← eval_add c e₁' e₂',
-  p ← mk_app ``norm_num.subst_into_sum [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+  p ← c.mk_app ``norm_num.subst_into_sum ``has_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | `(%%e₁ - %%e₂) := do
   e₂' ← mk_app ``has_neg.neg [e₂],
@@ -321,13 +325,13 @@ meta def eval (c : cache) : expr → tactic (expr × expr)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg c e₁,
-  p ← mk_app ``subst_into_neg [e, e₁, e₂, p₁, p₂],
+  p ← c.mk_app ``subst_into_neg ``has_neg [e, e₁, e₂, p₁, p₂],
   return (e₂, p)
 | `(%%e₁ * %%e₂) := do
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
   (e', p') ← eval_mul c e₁' e₂',
-  p ← mk_app ``norm_num.subst_into_prod [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+  p ← c.mk_app ``norm_num.subst_into_prod ``has_mul [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(has_inv.inv %%_) := (do
     (e', p) ← norm_num.derive e,
@@ -342,12 +346,12 @@ meta def eval (c : cache) : expr → tactic (expr × expr)
   | some k, `(monoid.has_pow) := do
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow c e₁' k,
-    p ← mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+    p ← c.mk_app ``subst_into_pow ``monoid [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
     return (e', p)
   | some k, `(nat.has_pow) := do
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow c e₁' k,
-    p₃ ← mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+    p₃ ← c.mk_app ``subst_into_pow ``monoid [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
     p₄ ← mk_app ``nat.pow_eq_pow [e₁, e₂] >>= mk_eq_symm,
     p ← mk_eq_trans p₄ p₃,
     return (e', p)

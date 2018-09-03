@@ -288,9 +288,15 @@ theorem tendsto_nhds_of_metric [metric_space β] {f : α → β} {a b} :
   mem_nhds_iff_metric.2 ⟨δ, δ0, λ x h, hε (hδ h)⟩⟩
 
 theorem continuous_of_metric [metric_space β] {f : α → β} :
-  continuous f ↔ ∀ {b} (ε > 0), ∃ δ > 0, ∀{a},
+  continuous f ↔ ∀b (ε > 0), ∃ δ > 0, ∀a,
     dist a b < δ → dist (f a) (f b) < ε :=
 continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds_of_metric
+
+theorem exists_delta_of_continuous [metric_space β] {f : α → β} {ε:ℝ}
+  (hf : continuous f) (hε : ε > 0) (b : α) :
+  ∃ δ > 0, ∀a, dist a b ≤ δ → dist (f a) (f b) < ε :=
+let ⟨δ, δ_pos, hδ⟩ := continuous_of_metric.1 hf b ε hε in
+⟨δ / 2, half_pos δ_pos, assume a ha, hδ a $ lt_of_le_of_lt ha $ div_two_lt_of_pos δ_pos⟩
 
 theorem eq_of_forall_dist_le {x y : α} (h : ∀ε, ε > 0 → dist x y ≤ ε) : x = y :=
 eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)

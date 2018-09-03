@@ -15,7 +15,7 @@ scientists.
 * [Relations on types, quotients](theories/relations.md)
 * [Partial and total orders, lattices](theories/orders.md)
 * [Sets and set like objects](theories/sets.md)
-* [Categories](theories/categories.md)
+* [Categories](theories/category_theory.md)
 * [The natural numbers](theories/naturals.md)
 * [The integers](theories/integers.md)
 * [Groups](theories/groups.md)

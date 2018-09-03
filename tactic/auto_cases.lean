@@ -2,17 +2,18 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 
+import logic.basic
 import tactic.basic
 import data.option
 
 open tactic
 
--- FIXME we need to be able to add more cases here...
--- Alternatively, just put `pempty` into mathlib and I'll survive.
 meta def auto_cases_at (h : expr) : tactic string :=
 do t' ← infer_type h,
   t' ← whnf t',
   let use_cases := match t' with
+  | `(empty)     := tt
+  | `(pempty)    := tt
   | `(unit)      := tt
   | `(punit)     := tt
   | `(ulift _)   := tt

@@ -100,6 +100,37 @@ begin
     exact this (i + 1) }
 end
 
+/- nat abs -/
+
+attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
+
+theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
+begin
+  have, {
+    refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
+      (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ _ rfl);
+    intros i n e,
+    { subst e, rw [add_comm _ i, add_assoc],
+      exact nat.le_add_right i (b.succ + b).succ },
+    { apply succ_le_succ,
+      rw [← succ_inj e, ← add_assoc, add_comm],
+      apply nat.le_add_right } },
+  cases a; cases b with b b; simp [nat_abs, nat.succ_add];
+  try {refl}; [skip, rw add_comm a b]; apply this
+end
+
+theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
+by cases n; refl
+
+theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
+by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
+
+theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
+by simp [neg_succ_of_nat_eq]
+
+lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
+λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h
+
 /- /  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
@@ -416,6 +447,12 @@ theorem coe_nat_dvd {m n : ℕ} : (↑m : ℤ) ∣ ↑n ↔ m ∣ n :=
     subst a, exact ⟨k, int.coe_nat_inj ae⟩ }),
  λ ⟨k, e⟩, dvd.intro k $ by rw [e, int.coe_nat_mul]⟩
 
+theorem coe_nat_dvd_left {n : ℕ} {z : ℤ} : (↑n : ℤ) ∣ z ↔ n ∣ z.nat_abs :=
+by rcases nat_abs_eq z with eq | eq; rw eq; simp [coe_nat_dvd]
+
+theorem coe_nat_dvd_right {n : ℕ} {z : ℤ} : z ∣ (↑n : ℤ) ↔ z.nat_abs ∣ n :=
+by rcases nat_abs_eq z with eq | eq; rw eq; simp [coe_nat_dvd]
+
 theorem dvd_antisymm {a b : ℤ} (H1 : a ≥ 0) (H2 : b ≥ 0) : a ∣ b → b ∣ a → a = b :=
 begin
   rw [← abs_of_nonneg H1, ← abs_of_nonneg H2, abs_eq_nat_abs, abs_eq_nat_abs],
@@ -530,20 +567,20 @@ eq_one_of_mul_eq_one_right H (by rw [mul_comm, H'])
 lemma of_nat_dvd_of_dvd_nat_abs {a : ℕ} : ∀ {z : ℤ} (haz : a ∣ z.nat_abs), ↑a ∣ z
 | (int.of_nat _) haz := int.coe_nat_dvd.2 haz
 | -[1+k] haz :=
-  begin 
-    change ↑a ∣ -(k+1 : ℤ), 
-    apply dvd_neg_of_dvd, 
+  begin
+    change ↑a ∣ -(k+1 : ℤ),
+    apply dvd_neg_of_dvd,
     apply int.coe_nat_dvd.2,
-    exact haz 
-  end 
+    exact haz
+  end
 
-lemma dvd_nat_abs_of_of_nat_dvd {a : ℕ} : ∀ {z : ℤ} (haz : ↑a ∣ z), a ∣ z.nat_abs 
+lemma dvd_nat_abs_of_of_nat_dvd {a : ℕ} : ∀ {z : ℤ} (haz : ↑a ∣ z), a ∣ z.nat_abs
 | (int.of_nat _) haz := int.coe_nat_dvd.1 (int.dvd_nat_abs.2 haz)
-| -[1+k] haz := 
+| -[1+k] haz :=
   have haz' : (↑a:ℤ) ∣ (↑(k+1):ℤ), from dvd_of_dvd_neg haz,
-  int.coe_nat_dvd.1 haz' 
+  int.coe_nat_dvd.1 haz'
 
-lemma pow_div_of_le_of_pow_div_int {p m n : ℕ} {k : ℤ} (hmn : m ≤ n) (hdiv : ↑(p ^ n) ∣ k) : 
+lemma pow_div_of_le_of_pow_div_int {p m n : ℕ} {k : ℤ} (hmn : m ≤ n) (hdiv : ↑(p ^ n) ∣ k) :
       ↑(p ^ m) ∣ k :=
 begin
   induction k,
@@ -556,8 +593,8 @@ begin
       apply pow_div_of_le_of_pow_div hmn,
       apply int.coe_nat_dvd.1,
       apply dvd_of_dvd_neg,
-      exact hdiv } 
-end 
+      exact hdiv }
+end
 
 /- / and ordering -/
 
@@ -616,13 +653,13 @@ by rw [← int.mul_div_assoc _ H2]; exact
 
 theorem eq_mul_div_of_mul_eq_mul_of_dvd_left {a b c d : ℤ} (hb : b ≠ 0) (hd : d ≠ 0) (hbc : b ∣ c)
       (h : b * a = c * d) : a = c / b * d :=
-begin 
+begin
   cases hbc with k hk,
   subst hk,
   rw int.mul_div_cancel_left, rw mul_assoc at h,
   apply _root_.eq_of_mul_eq_mul_left _ h,
   repeat {assumption}
-end 
+end
 
 theorem of_nat_add_neg_succ_of_nat_of_lt {m n : ℕ}
   (h : m < n.succ) : of_nat m + -[1+n] = -[1+ n - m] :=
@@ -644,37 +681,6 @@ begin
 end
 
 @[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
-
-/- nat abs -/
-
-attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
-
-theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
-begin
-  have, {
-    refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
-      (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ _ rfl);
-    intros i n e,
-    { subst e, rw [add_comm _ i, add_assoc],
-      exact nat.le_add_right i (b.succ + b).succ },
-    { apply succ_le_succ,
-      rw [← succ_inj e, ← add_assoc, add_comm],
-      apply nat.le_add_right } },
-  cases a; cases b with b b; simp [nat_abs, nat.succ_add];
-  try {refl}; [skip, rw add_comm a b]; apply this
-end
-
-theorem nat_abs_neg_of_nat (n : nat) : nat_abs (neg_of_nat n) = n :=
-by cases n; refl
-
-theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
-by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
-
-theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
-by simp [neg_succ_of_nat_eq]
-
-lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
-λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h 
 
 /- to_nat -/
 

@@ -1035,7 +1035,7 @@ theorem succ_lt_of_not_succ {o} (h : ¬ ∃ a, o = succ a) {b} : succ b < o ↔ 
 theorem lt_pred {a b} : a < pred b ↔ succ a < b :=
 if h : ∃ a, b = succ a then let ⟨c, e⟩ := h in
 by rw [e, pred_succ, succ_lt_succ]
-else by simpa [pred, h, succ_lt_of_not_succ]
+else by simp [pred, h, succ_lt_of_not_succ]
 
 theorem pred_le {a b} : pred a ≤ b ↔ a ≤ succ b :=
 le_iff_le_iff_lt_iff_lt.2 lt_pred

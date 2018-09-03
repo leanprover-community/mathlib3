@@ -123,16 +123,16 @@ def nndist (a b : α) : nnreal := ⟨dist a b, dist_nonneg⟩
 @[simp] lemma coe_dist (a b : α) : (nndist a b : ℝ) = dist a b := rfl
 
 theorem eq_of_nndist_eq_zero {x y : α} : nndist x y = 0 → x = y :=
-by simpa [nnreal.eq_iff.symm] using @eq_of_dist_eq_zero α _ x y
+by simp [nnreal.eq_iff.symm]
 
 theorem nndist_comm (x y : α) : nndist x y = nndist y x :=
 by simpa [nnreal.eq_iff.symm] using dist_comm x y
 
 @[simp] theorem nndist_eq_zero {x y : α} : nndist x y = 0 ↔ x = y :=
-by simpa [nnreal.eq_iff.symm]
+by simp [nnreal.eq_iff.symm]
 
 @[simp] theorem zero_eq_nndist {x y : α} : 0 = nndist x y ↔ x = y :=
-by simpa [nnreal.eq_iff.symm]
+by simp [nnreal.eq_iff.symm]
 
 theorem nndist_triangle (x y z : α) : nndist x z ≤ nndist x y + nndist y z :=
 by simpa [nnreal.coe_le] using dist_triangle x y z

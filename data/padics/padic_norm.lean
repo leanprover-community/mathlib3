@@ -90,12 +90,10 @@ end
 @[simp] lemma padic_val_self : padic_val p p = 1 :=
 have h : p ≠ 0, by intro h'; subst h'; exact absurd hp dec_trivial,
 begin
-  symmetry, apply unique,
-  repeat { simpa },
-  { assumption },
-  { intros k hk hdvd,
-    apply not_pos_pow_dvd hp hk,
-    rw ←int.coe_nat_dvd, simpa }
+  symmetry, apply unique; simp *,
+  intros k hk hdvd,
+  apply not_pos_pow_dvd hp hk,
+  rw ← int.coe_nat_dvd, simpa
 end
 
 end

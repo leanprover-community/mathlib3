@@ -9,6 +9,7 @@ Tensor product of modules over commutative rings.
 
 import group_theory.free_abelian_group
 import linear_algebra.linear_map_module
+import linear_algebra.direct_sum_module
 
 variables {R : Type*} [comm_ring R]
 variables (M : Type*) (N : Type*) (P : Type*) (Q : Type*)
@@ -376,6 +377,106 @@ protected def assoc : (M ⊗ N) ⊗ P ≃ₗ M ⊗ (N ⊗ P) :=
       (to_module.linear _)) ((bilinear _ _).linear_right m) (λ n p, _) np,
     simp
   end,
+  linear_fun := to_module.linear _ }
+
+variables (ι₁ : Type*) (ι₂ : Type*)
+variables [decidable_eq ι₁] [decidable_eq ι₂]
+variables (β₁ : ι₁ → Type*) (β₂ : ι₂ → Type*)
+variables [Π i₁, module R (β₁ i₁)] [Π i₂, module R (β₂ i₂)]
+
+def direct_sum.to_fun : direct_sum R ι₁ β₁ ⊗ direct_sum R ι₂ β₂
+  → direct_sum R (ι₁ × ι₂) (λ i, β₁ i.1 ⊗ β₂ i.2) :=
+begin
+  refine to_module
+  (λ f g, direct_sum.to_module
+    (λ i₁ x₁, direct_sum.to_module
+      (λ i₂ x₂, direct_sum.of (i₁, i₂) (x₁ ⊗ₜ x₂))
+      (λ i₂, is_linear_map.comp (direct_sum.of_linear _) ((bilinear _ _).linear_right _)) g)
+    (λ i₁, _) f) _;
+  constructor; intros,
+  { symmetry,
+    refine direct_sum.to_module.unique _ _ _ _ g,
+    { apply is_linear_map.map_add;
+      exact direct_sum.to_module.linear _ },
+    intros i₂ x₂,
+    simp },
+  { symmetry,
+    refine direct_sum.to_module.unique _ _ _ _ g,
+    { exact is_linear_map.map_smul_right (direct_sum.to_module.linear _) },
+    intros i₂ x₂,
+    simp },
+  { simp },
+  { symmetry,
+    refine direct_sum.to_module.unique _ _ _ _ x,
+    { apply is_linear_map.map_add;
+      exact direct_sum.to_module.linear _ },
+    intros i₁ x₁,
+    simp },
+  { simp },
+  { symmetry,
+    refine direct_sum.to_module.unique _ _ _ _ x,
+    { exact is_linear_map.map_smul_right (direct_sum.to_module.linear _) },
+    intros i₂ x₂,
+    simp }
+end
+
+def direct_sum.inv_fun : direct_sum R (ι₁ × ι₂) (λ i, β₁ i.1 ⊗ β₂ i.2)
+  → direct_sum R ι₁ β₁ ⊗ direct_sum R ι₂ β₂ :=
+begin
+  refine direct_sum.to_module
+    (λ i x, to_module (λ x₁ x₂, direct_sum.of i.1 x₁ ⊗ₜ direct_sum.of i.2 x₂) _ x)
+    (λ i, _);
+  constructor; intros; simp
+end
+
+theorem direct_sum.left_inv : function.left_inverse
+  (direct_sum.inv_fun ι₁ ι₂ β₁ β₂)
+  (direct_sum.to_fun ι₁ ι₂ β₁ β₂) :=
+begin
+  intro z,
+  refine to_module.ext
+    (is_linear_map.comp (direct_sum.to_module.linear _) (to_module.linear _))
+    is_linear_map.id (λ f₁ f₂, _) z,
+  refine direct_sum.to_module.ext _
+    (is_linear_map.comp (direct_sum.to_module.linear _)
+      (is_linear_map.comp (to_module.linear _)
+        ((bilinear _ _).linear_left _))) _
+    ((bilinear _ _).linear_left _) _ f₁,
+  intros i₁ x₁,
+  refine direct_sum.to_module.ext _
+    (is_linear_map.comp (direct_sum.to_module.linear _)
+      (is_linear_map.comp (to_module.linear _)
+        ((bilinear _ _).linear_right _))) _
+    ((bilinear _ _).linear_right _) _ f₂,
+  intros i₂ x₂,
+  simp
+end
+
+theorem direct_sum.right_inv : function.right_inverse
+  (direct_sum.inv_fun ι₁ ι₂ β₁ β₂)
+  (direct_sum.to_fun ι₁ ι₂ β₁ β₂) :=
+begin
+  intro z,
+  refine direct_sum.to_module.ext _
+    (is_linear_map.comp (to_module.linear _) (direct_sum.to_module.linear _)) _
+    is_linear_map.id _ z,
+  intros i x,
+  refine to_module.ext
+    (is_linear_map.comp (to_module.linear _)
+      (is_linear_map.comp (direct_sum.to_module.linear _) _)) _ _ x,
+  { exact direct_sum.of_linear i },
+  { exact direct_sum.of_linear i },
+  intros x₁ x₂,
+  cases i,
+  simp
+end
+
+def direct_sum : direct_sum R ι₁ β₁ ⊗ direct_sum R ι₂ β₂
+  ≃ₗ direct_sum R (ι₁ × ι₂) (λ i, β₁ i.1 ⊗ β₂ i.2) :=
+{ to_fun := direct_sum.to_fun ι₁ ι₂ β₁ β₂,
+  inv_fun := direct_sum.inv_fun ι₁ ι₂ β₁ β₂,
+  left_inv := direct_sum.left_inv ι₁ ι₂ β₁ β₂,
+  right_inv := direct_sum.right_inv ι₁ ι₂ β₁ β₂,
   linear_fun := to_module.linear _ }
 
 end tensor_product

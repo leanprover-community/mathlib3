@@ -121,16 +121,16 @@ variables {D : Type u₂}
 variables [𝒟 : category.{u₂ v₂} D]
 include 𝒟
 
-def on_iso (F : C ↝ D) {X Y : C} (i : X ≅ Y) : (F X) ≅ (F Y) :=
+def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F X) ≅ (F Y) :=
 { hom := F.map i.hom,
   inv := F.map i.inv,
   hom_inv_id' := by erw [←map_comp, iso.hom_inv_id, ←map_id],
   inv_hom_id' := by erw [←map_comp, iso.inv_hom_id, ←map_id] }
 
-@[simp] lemma on_iso_hom (F : C ↝ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i) : F X ⟶ F Y) = F.map (i : X ⟶ Y) := rfl
-@[simp] lemma on_iso_inv (F : C ↝ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i).symm : F Y ⟶ F X) = F.map (i.symm : Y ⟶ X) := rfl
+@[simp] lemma on_iso_hom (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i) : F X ⟶ F Y) = F.map (i : X ⟶ Y) := rfl
+@[simp] lemma on_iso_inv (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i).symm : F Y ⟶ F X) = F.map (i.symm : Y ⟶ X) := rfl
 
-instance (F : C ↝ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
+instance (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 { inv := F.map (inv f),
   hom_inv_id' := begin rw ← F.map_comp, erw is_iso.hom_inv_id, rw map_id, end,
   inv_hom_id' := begin rw ← F.map_comp, erw is_iso.inv_hom_id, rw map_id, end }
@@ -167,7 +167,7 @@ universes u₁ v₁ u₂ v₂
 variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒟
 
-@[simp] lemma eq_to_iso (F : C ↝ D) {X Y : C} (p : X = Y) : F.on_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
+@[simp] lemma eq_to_iso (F : C ⥤ D) {X Y : C} (p : X = Y) : F.on_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 begin /- obviously says: -/ ext1, induction p, dsimp at *, simp at * end
 end functor
 

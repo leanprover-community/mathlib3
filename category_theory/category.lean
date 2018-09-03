@@ -66,6 +66,7 @@ A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
 
+section
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}
 include 𝒞
 
@@ -78,6 +79,16 @@ class mono (f : X ⟶ Y) : Prop :=
 ⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
 @[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] (g h : Z ⟶ X) : (g ≫ f = h ≫ f) ↔ g = h := 
 ⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
+end
 
+section
+variable (C : Type u)
+variable [small_category C]
+
+instance : large_category (ulift.{(u+1)} C) := 
+{ hom  := λ X Y, (X.down ⟶ Y.down),
+  id   := λ X, 𝟙 X.down,
+  comp := λ _ _ _ f g, f ≫ g }
+end
 
 end category_theory

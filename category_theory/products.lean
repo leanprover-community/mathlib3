@@ -3,6 +3,8 @@
 -- Authors: Stephen Morgan, Scott Morrison
 
 import category_theory.functor_category
+import category_theory.isomorphism
+import tactic.interactive
 
 namespace category_theory
 
@@ -38,53 +40,80 @@ end
 namespace prod
 
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
-def inl (C : Type u₁) [category.{u₁ v₁} C] {D : Type u₁} [category.{u₁ v₁} D] (Z : D) : C ↝ (C × D) :=
+def inl (C : Type u₁) [category.{u₁ v₁} C] {D : Type u₁} [category.{u₁ v₁} D] (Z : D) : C ⥤ (C × D) :=
 { obj      := λ X, (X, Z),
   map'     := λ X Y f, (f, 𝟙 Z) }
 
 /-- `inr D Z` is the functor `X ↦ (Z, X)`. -/
-def inr {C : Type u₁} [category.{u₁ v₁} C] (D : Type u₁) [category.{u₁ v₁} D] (Z : C) : D ↝ (C × D) :=
+def inr {C : Type u₁} [category.{u₁ v₁} C] (D : Type u₁) [category.{u₁ v₁} D] (Z : C) : D ⥤ (C × D) :=
 { obj      := λ X, (Z, X),
   map'     := λ X Y f, (𝟙 Z, f) }
 
 /-- `fst` is the functor `(X, Y) ↦ X`. -/
-def fst (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ↝ C :=
+def fst (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ⥤ C :=
 { obj      := λ X, X.1,
   map'     := λ X Y f, f.1 }
 
 /-- `snd` is the functor `(X, Y) ↦ Y`. -/
-def snd (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ↝ D :=
+def snd (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ⥤ D :=
 { obj      := λ X, X.2,
   map'     := λ X Y f, f.2 }
 
+variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
+include 𝒞 𝒟
+
+def swap : (C × D) ⥤ (D × C) :=
+{ obj := λ X, (X.2, X.1),
+  map' := λ _ _ f, (f.2, f.1) }
+
+def symmetry : ((swap C D) ⋙ (swap D C)) ≅ (functor.id (C × D)) :=
+{ hom := { app := λ X, 𝟙 X, 
+           naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end },
+  inv := { app := λ X, 𝟙 X, 
+           naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end } }
+
 end prod
+
+section
+variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
+include 𝒞 𝒟 
+
+-- TODO, later this can be defined by uncurrying `functor.id (C ⥤ D)`
+def evaluation : ((C ⥤ D) × C) ⥤ D := 
+{ obj := λ p, p.1 p.2,
+  map' := λ x y f, (x.1.map f.2) ≫ (f.1 y.2),
+  map_comp' := begin 
+                 intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *, 
+                 erw [←nat_trans.vcomp_app, nat_trans.naturality, category.assoc, nat_trans.naturality] 
+               end }
+end
 
 variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A] {B : Type u₂} [ℬ : category.{u₂ v₂} B] {C : Type u₃} [𝒞 : category.{u₃ v₃} C] {D : Type u₄} [𝒟 : category.{u₄ v₄} D]
 include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor
 /-- The cartesian product of two functors. -/
-def prod (F : A ↝ B) (G : C ↝ D) : (A × C) ↝ (B × D) :=
+def prod (F : A ⥤ B) (G : C ⥤ D) : (A × C) ⥤ (B × D) :=
 { obj  := λ X, (F X.1, G X.2),
   map' := λ _ _ f, (F.map f.1, G.map f.2) }
   
 /- Because of limitations in Lean 3's handling of notations, we do not setup a notation `F × G`. 
    You can use `F.prod G` as a "poor man's infix", or just write `functor.prod F G`. -/
 
-@[simp] lemma prod_obj  (F : A ↝ B) (G : C ↝ D) (a : A) (c : C) : (F.prod G) (a, c) = (F a, G c) := rfl
-@[simp] lemma prod_map  (F : A ↝ B) (G : C ↝ D) {a a' : A} {c c' : C} (f : (a, c) ⟶ (a', c')) : (F.prod G).map f = (F.map f.1, G.map f.2) := rfl
+@[simp] lemma prod_obj  (F : A ⥤ B) (G : C ⥤ D) (a : A) (c : C) : (F.prod G) (a, c) = (F a, G c) := rfl
+@[simp] lemma prod_map  (F : A ⥤ B) (G : C ⥤ D) {a a' : A} {c c' : C} (f : (a, c) ⟶ (a', c')) : (F.prod G).map f = (F.map f.1, G.map f.2) := rfl
 end functor
 
 namespace nat_trans
 
 /-- The cartesian product of two natural transformations. -/
-def prod {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) : F.prod H ⟹ G.prod I :=
+def prod {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟹ G) (β : H ⟹ I) : F.prod H ⟹ G.prod I :=
 { app         := λ X, (α X.1, β X.2),
   naturality' := begin /- `obviously'` says: -/ intros, cases f, cases Y, cases X, dsimp at *, simp, split, rw naturality, rw naturality end }
 
 /- Again, it is inadvisable in Lean 3 to setup a notation `α × β`; use instead `α.prod β` or `nat_trans.prod α β`. -/
 
-@[simp] lemma prod_app  {F G : A ↝ B} {H I : C ↝ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (nat_trans.prod α β) (a, c) = (α a, β c) := rfl
+@[simp] lemma prod_app  {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) : (nat_trans.prod α β) (a, c) = (α a, β c) := rfl
 end nat_trans
 
 end category_theory

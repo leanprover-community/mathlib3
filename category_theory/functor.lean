@@ -9,7 +9,7 @@ Defines a functor between categories.
 by the underlying function on objects, the name is capitalised.)
 
 Introduces notations
-  `C ↝ D` for the type of all functors from `C` to `D`. 
+  `C ⥤ D` for the type of all functors from `C` to `D`. 
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
   `F X` (a coercion) for a functor `F` acting on an object `X`.
 -/
@@ -39,7 +39,7 @@ structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [cate
 (map_id'   : ∀ (X : C), map' (𝟙 X) = 𝟙 (obj X) . obviously)
 (map_comp' : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map' (f ≫ g) = (map' f) ≫ (map' g) . obviously)
 
-infixr ` ↝ `:70 := functor       -- type as \lea --
+infixr ` ⥤ `:70 := functor       -- type as \func --
 
 namespace functor
 
@@ -47,23 +47,23 @@ section
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
-instance : has_coe_to_fun (C ↝ D) :=
+instance : has_coe_to_fun (C ⥤ D) :=
 { F   := λ F, C → D,
   coe := λ F, F.obj }
 
-def map (F : C ↝ D) {X Y : C} (f : X ⟶ Y) : (F X) ⟶ (F Y) := F.map' f
+def map (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) : (F X) ⟶ (F Y) := F.map' f
 
-@[simp] lemma map_id (F : C ↝ D) (X : C) : F.map (𝟙 X) = 𝟙 (F X) := 
+@[simp] lemma map_id (F : C ⥤ D) (X : C) : F.map (𝟙 X) = 𝟙 (F X) := 
 begin unfold functor.map, erw F.map_id', refl end
-@[simp] lemma map_comp (F : C ↝ D) {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : 
+@[simp] lemma map_comp (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : 
   F.map (f ≫ g) = F.map f ≫ F.map g := 
 begin unfold functor.map, erw F.map_comp' end
 
 -- We define a refl lemma 'refolding' the coercion,
 -- and two lemmas for the coercion applied to an explicit structure.
-@[simp] lemma obj_eq_coe {F : C ↝ D} (X : C) : F.obj X = F X := by unfold_coes
+@[simp] lemma obj_eq_coe {F : C ⥤ D} (X : C) : F.obj X = F X := by unfold_coes
 @[simp] lemma mk_obj (o : C → D) (m mi mc) (X : C) : 
-  ({ functor . obj := o, map' := m, map_id' := mi, map_comp' := mc } : C ↝ D) X = o X := rfl
+  ({ functor . obj := o, map' := m, map_id' := mi, map_comp' := mc } : C ⥤ D) X = o X := rfl
 @[simp] lemma mk_map (o : C → D) (m mi mc) {X Y : C} (f : X ⟶ Y) : 
   functor.map { functor . obj := o, map' := m, map_id' := mi, map_comp' := mc } f = m f := rfl
 end
@@ -73,7 +73,7 @@ variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
 include 𝒞
 
 /-- `functor.id C` is the identity functor on a category `C`. -/
-protected def id : C ↝ C :=
+protected def id : C ⥤ C :=
 { obj      := λ X, X,
   map'     := λ _ _ f, f }
 
@@ -92,14 +92,14 @@ include 𝒞 𝒟 ℰ
 /--
 `F ⋙ G` is the composition of a functor `F` and a functor `G` (`F` first, then `G`).
 -/
-def comp (F : C ↝ D) (G : D ↝ E) : C ↝ E :=
+def comp (F : C ⥤ D) (G : D ⥤ E) : C ⥤ E :=
 { obj      := λ X, G (F X),
   map'      := λ _ _ f, G.map (F.map f) }
 
 infixr ` ⋙ `:80 := comp
 
-@[simp] lemma comp_obj (F : C ↝ D) (G : D ↝ E) (X : C) : (F ⋙ G) X = G (F X) := rfl
-@[simp] lemma comp_map (F : C ↝ D) (G : D ↝ E) (X Y : C) (f : X ⟶ Y) : 
+@[simp] lemma comp_obj (F : C ⥤ D) (G : D ⥤ E) (X : C) : (F ⋙ G) X = G (F X) := rfl
+@[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) (X Y : C) (f : X ⟶ Y) : 
   (F ⋙ G).map f = G.map (F.map f) := rfl
 end
 

@@ -42,7 +42,7 @@ by simp [finset.prod]
 attribute [to_additive finset.sum_const_zero] prod_const_one
 
 @[simp, to_additive finset.sum_image]
-lemma prod_image [decidable_eq α] [decidable_eq γ] {s : finset γ} {g : γ → α} :
+lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
   (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).prod f = s.prod (λx, f (g x)) :=
 fold_image
 

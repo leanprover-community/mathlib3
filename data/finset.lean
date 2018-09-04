@@ -833,9 +833,9 @@ by by_cases a ∈ s; simp [h, nat.le_add_right]
 
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
-theorem card_range (n : ℕ) : card (range n) = n := card_range n
+@[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
-theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
+@[simp] theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
 
 theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
   (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
@@ -1103,7 +1103,7 @@ by simp [fold, ndinsert_of_not_mem h]
 @[simp] theorem fold_singleton : (singleton a).fold op b f = f a * b :=
 by simp [fold]
 
-@[simp] theorem fold_image [decidable_eq α] [decidable_eq γ] {g : γ → α} {s : finset γ}
+@[simp] theorem fold_image [decidable_eq α] {g : γ → α} {s : finset γ}
   (H : ∀ (x ∈ s) (y ∈ s), g x = g y → x = y) : (s.image g).fold op b f = s.fold op b (f ∘ g) :=
 by simp [fold, image_val_of_inj_on H, map_map]
 

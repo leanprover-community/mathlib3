@@ -1924,6 +1924,35 @@ by induction h; simp [*]
 
 end rel
 
+section map
+
+theorem map_eq_map {f : α → β} (hf : function.injective f) {s t : multiset α} :
+  s.map f = t.map f ↔ s = t :=
+by rw [← rel_eq, ← rel_eq, rel_map_left, rel_map_right]; simp [hf.eq_iff]
+
+theorem injective_map {f : α → β} (hf : function.injective f) :
+  function.injective (multiset.map f) :=
+assume x y, (map_eq_map hf).1
+
+end map
+
+section quot
+
+theorem map_mk_eq_map_mk_of_rel {r : α → α → Prop} {s t : multiset α} (hst : s.rel r t) :
+ s.map (quot.mk r) = t.map (quot.mk r) :=
+rel.rec_on hst rfl $ assume a b s t hab hst ih, by simp [ih, quot.sound hab]
+
+theorem exists_multiset_eq_map_quot_mk {r : α → α → Prop} (s : multiset (quot r)) :
+  ∃t:multiset α, s = t.map (quot.mk r) :=
+multiset.induction_on s ⟨0, rfl⟩ $
+  assume a s ⟨t, ht⟩, quot.induction_on a $ assume a, ht.symm ▸ ⟨a::t, (map_cons _ _ _).symm⟩
+
+theorem induction_on_multiset_quot
+  {r : α → α → Prop} {p : multiset (quot r) → Prop} (s : multiset (quot r)) :
+  (∀s:multiset α, p (s.map (quot.mk r))) → p s :=
+match s, exists_multiset_eq_map_quot_mk s with _, ⟨t, rfl⟩ := assume h, h _ end
+
+end quot
 
 /- disjoint -/
 

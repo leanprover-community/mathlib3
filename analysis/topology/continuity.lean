@@ -497,7 +497,7 @@ lemma nhds_contain_boxes_of_singleton {x : α} {y : β} :
   nhds_contain_boxes ({x} : set α) ({y} : set β) :=
 assume n hn hp,
   let ⟨u, v, uo, vo, xu, yv, hp'⟩ :=
-    is_open_prod_iff.mp hn x y (hp $ by simpa) in
+    is_open_prod_iff.mp hn x y (hp $ by simp) in
   ⟨u, v, uo, vo, by simpa, by simpa, hp'⟩
 
 lemma nhds_contain_boxes_of_compact {s : set α} (hs : compact s) (t : set β)
@@ -837,7 +837,7 @@ begin
   intro h,
   rcases h with ⟨t, t_nhd, sub⟩,
   rw mem_nhds_sets_iff at t_nhd,
-  rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩, 
+  rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩,
   have := calc e ⁻¹' U ⊆ e⁻¹' t : preimage_mono U_sub
                    ... ⊆ s      : sub,
   have := calc U ⊆ closure (e '' (e ⁻¹' U)) : self_sub_closure_image_preimage_of_open de U_op
@@ -850,7 +850,7 @@ variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--
  γ -f→ α
 g↓     ↓e
- δ -h→ β 
+ δ -h→ β
 -/
 lemma tendsto_vmap_nhds_nhds  {d : δ} {a : α} (de : dense_embedding e) (H : tendsto h (nhds d) (nhds (e a)))
   (comm : h ∘ g = e ∘ f) : tendsto f (vmap g (nhds d)) (nhds a) :=

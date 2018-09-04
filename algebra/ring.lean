@@ -184,9 +184,12 @@ class domain (α : Type u) extends ring α, no_zero_divisors α, zero_ne_one_cla
 section domain
   variable [domain α]
 
-  theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
+  @[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
   ⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
     or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
+
+  @[simp] theorem zero_eq_mul {a b : α} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
+  by rw [eq_comm, mul_eq_zero]
 
   theorem mul_ne_zero' {a b : α} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
   λ h, or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) h₁ h₂

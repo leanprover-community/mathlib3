@@ -215,9 +215,9 @@ variables (f : α → β) [is_semiring_hom f]
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
 
-@[simp] lemma map_C : (C a).map f = a := eval₂_C _ _
+@[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
 
-@[simp] lemma map_X : X.map f = x := eval₂_X _ _
+@[simp] lemma map_X : X.map f = X := eval₂_X _ _
 
 @[simp] lemma map_zero : (0 : polynomial α).map f = 0 :=  eval₂_zero _ _
 

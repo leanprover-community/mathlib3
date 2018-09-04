@@ -106,7 +106,6 @@ end
 lemma mk_eq_cast {n : ℕ+} {a : ℕ} (h : a < n) : (⟨a, h⟩ : zmod n) = (a : zmod n) :=
 fin.eq_of_veq (by rw [val_cast_nat, nat.mod_eq_of_lt h])
 
-
 @[simp] lemma cast_self_eq_zero {n : ℕ+} : ((n : ℕ) : zmod n) = 0 :=
 fin.eq_of_veq (show (n : zmod n).val = 0, by simp [val_cast_nat])
 

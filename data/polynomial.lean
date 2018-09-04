@@ -110,6 +110,9 @@ by simp [C, single_mul_single]
 
 @[simp] lemma C_add : C (a + b) = C a + C b := finsupp.single_add
 
+instance C.is_semiring_hom : is_semiring_hom (C : α → polynomial α) :=
+⟨C_0, C_1, λ _ _, C_add, λ _ _, C_mul⟩
+
 @[simp] lemma C_mul_apply (p : polynomial α) : (C a * p) n = a * p n :=
 begin
   conv in (a * _) { rw [← @sum_single _ _ _ _ _ p, sum_apply] },
@@ -125,38 +128,68 @@ suffices (single n 1 : polynomial α) i = (if n = i then 1 else 0),
   by rw [single_eq_C_mul_X] at this; simpa,
 single_apply
 
+section eval₂
+variables {β : Type*} [comm_semiring β]
+variables (f : α → β) [is_semiring_hom f] (x : β)
+open is_semiring_hom
+
+/-- Evaluate a polynomial `p` given a ring hom `f` from the scalar ring
+  to the target and a value `x` for the variable in the target -/
+def eval₂ (p : polynomial α) : β :=
+p.sum (λ e a, f a * x ^ e)
+
+@[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
+by simp [C, eval₂, sum_single_index, map_zero f]
+
+@[simp] lemma eval₂_X : X.eval₂ f x = x :=
+by simp [X, eval₂, sum_single_index, map_zero f, map_one f]
+
+@[simp] lemma eval₂_zero : (0 : polynomial α).eval₂ f x = 0 :=
+finsupp.sum_zero_index
+
+@[simp] lemma eval₂_add : (p + q).eval₂ f x = p.eval₂ f x + q.eval₂ f x :=
+finsupp.sum_add_index (by simp [map_zero f]) (by simp [add_mul, map_add f])
+
+@[simp] lemma eval₂_one : (1 : polynomial α).eval₂ f x = 1 :=
+by rw [← C_1, eval₂_C, map_one f]
+
+@[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
+begin
+  dunfold eval₂,
+  rw [mul_def, finsupp.sum_mul _ p],
+  simp [finsupp.mul_sum _ q, sum_sum_index, map_zero f, map_add f, add_mul,
+    sum_single_index, map_mul f, pow_add],
+  exact sum_congr rfl (assume i hi, sum_congr rfl $ assume j hj, by ac_refl)
+end
+
+instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
+⟨eval₂_zero _ _, eval₂_one _ _, λ _ _, eval₂_add _ _, λ _ _, eval₂_mul _ _⟩
+
+lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := map_pow _ _ _
+
+end eval₂
+
 section eval
 variable {x : α}
 
 /-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
-def eval (x : α) (p : polynomial α) : α :=
-p.sum (λ e a, a * x ^ e)
+def eval : α → polynomial α → α := eval₂ id
 
-@[simp] lemma eval_C : (C a).eval x = a :=
-by simp [C, eval, sum_single_index]
+@[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
-@[simp] lemma eval_X : X.eval x = x :=
-by simp [X, eval, sum_single_index]
+@[simp] lemma eval_X : X.eval x = x := eval₂_X _ _
 
-@[simp] lemma eval_zero : (0 : polynomial α).eval x = 0 :=
-finsupp.sum_zero_index
+@[simp] lemma eval_zero : (0 : polynomial α).eval x = 0 :=  eval₂_zero _ _
 
-@[simp] lemma eval_add : (p + q).eval x = p.eval x + q.eval x :=
-finsupp.sum_add_index (by simp) (by simp [add_mul])
+@[simp] lemma eval_add : (p + q).eval x = p.eval x + q.eval x := eval₂_add _ _
 
-@[simp] lemma eval_one : (1 : polynomial α).eval x = 1 :=
-by rw [← C_1, eval_C]
+@[simp] lemma eval_one : (1 : polynomial α).eval x = 1 := eval₂_one _ _
 
-@[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x :=
-begin
-  dunfold eval,
-  rw [mul_def, finsupp.sum_mul _ p],
-  simp [finsupp.mul_sum _ q, sum_sum_index, sum_single_index, add_mul, pow_add],
-  exact sum_congr rfl (assume i hi, sum_congr rfl $ assume j hj, by ac_refl)
-end
+@[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
 
-lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n :=
-by induction n; simp [pow_succ, eval_mul, *]
+instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_hom _ _
+
+lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
 
 /-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
 def is_root (p : polynomial α) (a : α) : Prop := p.eval a = 0
@@ -174,6 +207,31 @@ lemma root_mul_right_of_is_root {p : polynomial α} (q : polynomial α) :
 by simp [is_root.def, eval_mul] {contextual := tt}
 
 end eval
+
+section map
+variables {β : Type*} [comm_semiring β] [decidable_eq β]
+variables (f : α → β) [is_semiring_hom f]
+
+/-- `map f p` maps a polynomial `p` across a ring hom `f` -/
+def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
+
+@[simp] lemma map_C : (C a).map f = a := eval₂_C _ _
+
+@[simp] lemma map_X : X.map f = x := eval₂_X _ _
+
+@[simp] lemma map_zero : (0 : polynomial α).map f = 0 :=  eval₂_zero _ _
+
+@[simp] lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
+
+@[simp] lemma map_one : (1 : polynomial α).map f = 1 := eval₂_one _ _
+
+@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f := eval₂_mul _ _
+
+instance map.is_semiring_hom : is_semiring_hom (map f) := eval₂.is_semiring_hom _ _
+
+lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
+
+end map
 
 /-- `leading_coeff p` gives the coefficient of the highest power of `X` in `p`-/
 def leading_coeff (p : polynomial α) : α := p (nat_degree p)
@@ -488,10 +546,18 @@ variables [comm_ring α] {p q : polynomial α}
 instance : comm_ring (polynomial α) := finsupp.to_comm_ring
 instance : has_scalar α (polynomial α) := finsupp.to_has_scalar
 instance : module α (polynomial α) := finsupp.to_module α
-instance {x : α} : is_ring_hom (eval x) := ⟨λ x y, eval_add, λ x y, eval_mul, eval_C⟩
 
-instance C.is_ring_hom : is_ring_hom (@C α _ _) :=
-⟨λ _ _, C_add, λ _ _, C_mul, C_1⟩
+instance C.is_ring_hom : is_ring_hom (@C α _ _) := by apply is_ring_hom.of_semiring
+
+instance eval₂.is_ring_hom {β} [comm_ring β]
+  (f : α → β) [is_ring_hom f] {x : β} : is_ring_hom (eval₂ f x) :=
+by apply is_ring_hom.of_semiring
+
+instance eval.is_ring_hom {x : α} : is_ring_hom (eval x) := eval₂.is_ring_hom _
+
+instance map.is_ring_hom {β} [comm_ring β] [decidable_eq β]
+  (f : α → β) [is_ring_hom f] : is_ring_hom (map f) :=
+eval₂.is_ring_hom (C ∘ f)
 
 @[simp] lemma degree_neg (p : polynomial α) : degree (-p) = degree p :=
 by unfold degree; rw support_neg

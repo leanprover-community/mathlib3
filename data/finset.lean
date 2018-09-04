@@ -1420,3 +1420,37 @@ begin
 end
 
 end list
+
+namespace finset
+
+/-- A type is (constructively) infinite if it can be shown that, for any finite
+set of inhabitants of that type, there exists an inhabitant not in the set. -/
+def infinite (α : Type*) : Prop :=
+∀ (s : finset α), ∃ (a : α), a ∉ s
+
+/-- Successor of the maximum: the minimum nat not a member of the finite set -/
+def max_succ (s : finset ℕ) : ℕ :=
+match s.max with
+| none   := 0
+| some m := m + 1
+end
+
+@[simp] theorem max_succ_empty : max_succ ∅ = 0 :=
+rfl
+
+@[simp] theorem max_succ_of_ne_empty {s : finset ℕ} (h : s ≠ ∅) : s.max_succ = s.max.iget + 1 :=
+let ⟨m, hm⟩ := max_of_ne_empty h in
+by simp [option.mem_def.mp hm, max_succ, option.iget]
+
+theorem max_succ_not_mem (s : finset ℕ) : s.max_succ ∉ s :=
+λ h, if p : s = ∅ then
+  by simpa [p] using h
+else
+  let ⟨m, hm⟩ := max_of_ne_empty p in
+  have hms : m+1 ∈ s := by simpa [max_succ, option.mem_def.mp hm] using h,
+  m.not_succ_le_self $ le_max_of_mem hms hm
+
+theorem infinite_nat : infinite ℕ :=
+λ s, ⟨max_succ s, max_succ_not_mem s⟩
+
+end finset

@@ -131,6 +131,25 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr rfl begin simp [hf] {contextual := tt} end,
 by rw [←prod_sdiff h]; simp [this]
 
+@[to_additive sum_eq_single]
+lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
+  (h₀ : ∀b∈s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : s.prod f = f a :=
+by haveI := classical.dec_eq α;
+from classical.by_cases
+  (assume : a ∈ s,
+    calc s.prod f = ({a} : finset α).prod f :
+      begin
+        refine (prod_subset _ _).symm,
+        { simp [finset.subset_iff, this] },
+        { simpa using h₀ }
+      end
+      ... = f a : by simp)
+  (assume : a ∉ s,
+    have ∀b, b ∈ s → f b = 1,
+      from assume b hb, h₀ b hb $ assume eq, this $ eq ▸ hb,
+    calc s.prod f = (∅ : finset α).prod f : (prod_subset (empty_subset s) $ by simpa).symm
+      ... = f a : (h₁ ‹a ∉ s›).symm)
+
 @[to_additive sum_attach]
 lemma prod_attach {f : α → β} : s.attach.prod (λx, f x.val) = s.prod f :=
 by haveI := classical.dec_eq α; exact
@@ -367,7 +386,7 @@ finset.induction_on s (by simp [abs_zero]) $
 end discrete_linear_ordered_field
 
 @[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
-  (s : finset α) (t : Π a, finset (δ a)) : 
+  (s : finset α) (t : Π a, finset (δ a)) :
   (s.pi t).card = s.prod (λ a, card (t a)) :=
 multiset.card_pi _ _
 

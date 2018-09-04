@@ -249,6 +249,9 @@ by unfold monic; apply_instance
 
 @[simp] lemma degree_zero : degree (0 : polynomial α) = ⊥ := rfl
 
+@[simp] lemma nat_degree_zero : nat_degree (0 : polynomial α) = 0 :=
+by simp [nat_degree]; refl
+
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
 show sup (ite (a = 0) ∅ {0}) some = 0,
 by rw [if_neg ha]; refl
@@ -1155,6 +1158,14 @@ variables [comm_semiring α] {β : Type*}
 /-- `derivative p` formal derivative of the polynomial `p` -/
 def derivative (p : polynomial α) : polynomial α := p.sum (λn a, C (a * n) * X^(n - 1))
 
+lemma derivative_apply (p : polynomial α) (n : ℕ) : (derivative p) n = p (n + 1) * (n + 1) :=
+begin
+  rw [derivative],
+  simp [finsupp.sum],
+  rw [sum_eq_single (n + 1)]; simp {contextual := tt},
+  assume b, cases b; simp [nat.succ_eq_add_one] {contextual := tt},
+end
+
 @[simp] lemma derivative_zero : derivative (0 : polynomial α) = 0 :=
 finsupp.sum_zero_index
 
@@ -1215,11 +1226,37 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       simp [finsupp.sum, mul_assoc, mul_comm, mul_left_comm]
     end
 
-/-
-@[simp] lemma degree_derivative (p : polynomial α) (hp : 0 < nat_degree p) :
-  nat_degree (derivative p) = nat_degree p - 1 :=
-_
--/
 end derivative
+
+section domain
+variables [integral_domain α]
+
+lemma mem_support_derivative [char_zero α] (p : polynomial α) (n : ℕ) :
+  n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
+suffices (¬(p (n + 1) = 0 ∨ ((1 + n:ℕ) : α) = 0)) ↔ p (n + 1) ≠ 0, by simpa [derivative_apply],
+by rw [nat.cast_eq_zero]; simp
+
+@[simp] lemma degree_derivative_eq [char_zero α] (p : polynomial α) (hp : 0 < nat_degree p) :
+  degree (derivative p) = (nat_degree p - 1 : ℕ) :=
+le_antisymm
+  (le_trans (degree_sum_le _ _) $ sup_le $ assume n hn,
+    have n ≤ nat_degree p,
+    begin
+      rw [← with_bot.coe_le_coe, ← degree_eq_nat_degree],
+      { refine le_degree_of_ne_zero _, simpa using hn },
+      { assume h, simpa [h] using hn }
+    end,
+    le_trans (degree_monomial_le _ _) $ with_bot.coe_le_coe.2 $ nat.sub_le_sub_right this _)
+  begin
+    refine le_sup _,
+    rw [mem_support_derivative, nat.sub_add_cancel, mem_support_iff],
+    { show ¬ leading_coeff p = 0,
+      rw [leading_coeff_eq_zero],
+      assume h, rw [h, nat_degree_zero] at hp,
+      exact lt_irrefl 0 (lt_of_le_of_lt (zero_le _) hp), },
+    exact hp
+  end
+
+end domain
 
 end polynomial

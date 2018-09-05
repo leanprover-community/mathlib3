@@ -104,4 +104,18 @@ infixr ` ⋙ `:80 := comp
 end
 
 end functor
+
+def concrete_functor
+  {C : Type u → Type v} (hC : ∀{α β}, C α → C β → (α → β) → Prop) [concrete_category @hC]
+  {D : Type u → Type v} (hD : ∀{α β}, D α → D β → (α → β) → Prop) [concrete_category @hD]
+  (m : ∀{α}, C α → D α) (h : ∀{α β} (ia : C α) (ib : C β) {f}, hC ia ib f → hD (m ia) (m ib) f) :
+  sigma C ⥤ sigma D :=
+begin
+  /- Uh, we have a problem when obviously fails! -/
+  refine @category_theory.functor.mk (sigma C) _ (sigma D) _ (sigma.map id @m) _ _ _,
+  /- change sigma.map to use projections instead of case -/
+  { rintros ⟨a, ia⟩ ⟨b, ib⟩ ⟨f, hf⟩, exact ⟨f, h ia ib hf⟩ },
+  obviously
+end
+
 end category_theory

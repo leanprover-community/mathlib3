@@ -304,6 +304,7 @@ meta def map_of_expr : rb_map expr ℕ → ℕ → expr → option (rb_map expr 
 | m max `(-%%e) := do (m', max', comp) ← map_of_expr m max e, return (m', max', comp.scale (-1))
 | m max e := 
   match e.to_int, m.find e with
+  | some 0, _ := return ⟨m, max, mk_rb_map⟩
   | some z, _ := return ⟨m, max, mk_rb_map.insert 0 z⟩ 
   | none, some k := return (m, max, mk_rb_map.insert k 1) 
   | none, none := return (m.insert e max, max + 1, mk_rb_map.insert max 1)

@@ -273,8 +273,33 @@ let ⟨n, hn⟩ :=
 have hn : degree p = some n := not_not.1 hn,
 by rw [nat_degree, hn]; refl
 
+@[simp] lemma degree_le_nat_degree : degree p ≤ nat_degree p :=
+begin
+  by_cases hp : p = 0, { simp [hp] },
+  rw [degree_eq_nat_degree hp],
+  exact le_refl _
+end
+
 lemma nat_degree_eq_of_degree_eq (h : degree p = degree q) : nat_degree p = nat_degree q :=
 by unfold nat_degree; rw h
+
+lemma le_degree_of_ne_zero (h : p n ≠ 0) : (n : with_bot ℕ) ≤ degree p :=
+show @has_le.le (with_bot ℕ) _ (some n : with_bot ℕ) (p.support.sup some : with_bot ℕ),
+from finset.le_sup ((finsupp.mem_support_iff _ _).2 h)
+
+lemma le_nat_degree_of_ne_zero (h : p n ≠ 0) : n ≤ nat_degree p :=
+begin
+  rw [← with_bot.coe_le_coe, ← degree_eq_nat_degree],
+  exact le_degree_of_ne_zero h,
+  { assume h, subst h, exact h rfl }
+end
+
+lemma degree_le_degree (h : q (nat_degree p) ≠ 0) : degree p ≤ degree q :=
+begin
+  by_cases hp : p = 0,
+  { simp [hp] },
+  { rw [degree_eq_nat_degree hp], exact le_degree_of_ne_zero h }
+end
 
 @[simp] lemma nat_degree_C (a : α) : nat_degree (C a) = 0 :=
 begin
@@ -291,12 +316,11 @@ by rw [← single_eq_C_mul_X, degree, support_single_ne_zero ha]; refl
 lemma degree_monomial_le (n : ℕ) (a : α) : degree (C a * X ^ n) ≤ n :=
 if h : a = 0 then by simp [h] else le_of_eq (degree_monomial n h)
 
-lemma le_degree_of_ne_zero (h : p n ≠ 0) : (n : with_bot ℕ) ≤ degree p :=
-show @has_le.le (with_bot ℕ) _ (some n : with_bot ℕ) (p.support.sup some : with_bot ℕ),
-from finset.le_sup ((finsupp.mem_support_iff _ _).2 h)
-
 lemma eq_zero_of_degree_lt (h : degree p < n) : p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
+
+lemma apply_nat_degree_eq_zero_of_degree_lt (h : degree p < degree q) : p (nat_degree q) = 0 :=
+eq_zero_of_degree_lt (lt_of_lt_of_le h degree_le_nat_degree)
 
 lemma ne_zero_of_degree_gt {n : with_bot ℕ} (h : n < degree p) : p ≠ 0 :=
 mt degree_eq_bot.2 (ne.symm (ne_of_lt (lt_of_le_of_lt bot_le h)))
@@ -324,13 +348,10 @@ calc degree (p + q) = ((p + q).support).sup some : rfl
 by simp {contextual := tt}⟩
 
 lemma degree_add_eq_of_degree_lt (h : degree p < degree q) : degree (p + q) = degree q :=
-le_antisymm (max_eq_right_of_lt h ▸ degree_add_le _ _) $
+le_antisymm (max_eq_right_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
   begin
-    have hq0 : q ≠ 0, { rintro rfl, exact not_lt_bot h },
-    rw degree_eq_nat_degree hq0 at *,
-    refine le_degree_of_ne_zero _,
-    rw [add_apply, eq_zero_of_degree_lt h, zero_add],
-    exact mt leading_coeff_eq_zero.1 hq0
+    rw [add_apply, apply_nat_degree_eq_zero_of_degree_lt h, zero_add],
+    exact mt leading_coeff_eq_zero.1 (ne_zero_of_degree_gt h)
   end
 
 lemma degree_add_eq_of_leading_coeff_add_ne_zero (h : leading_coeff p + leading_coeff q ≠ 0) :
@@ -340,16 +361,13 @@ le_antisymm (degree_add_le _ _) $
   | or.inl hlt :=
     by rw [degree_add_eq_of_degree_lt hlt, max_eq_right_of_lt hlt]; exact le_refl _
   | or.inr (or.inl heq) :=
-    have hq : q ≠ 0 := assume hq,
-      have hp : p = 0, by simpa [hq, degree_eq_bot] using heq,
-      by simpa [hp, hq] using h,
     le_of_not_gt $
       assume hlt : max (degree p) (degree q) > degree (p + q),
       h $ show leading_coeff p + leading_coeff q = 0,
       begin
-        rw [heq, max_self, degree_eq_nat_degree hq] at hlt,
+        rw [heq, max_self] at hlt,
         rw [leading_coeff, leading_coeff, nat_degree_eq_of_degree_eq heq, ← add_apply],
-        exact eq_zero_of_degree_lt hlt,
+        exact apply_nat_degree_eq_zero_of_degree_lt hlt
       end
   | or.inr (or.inr hlt) :=
     by rw [add_comm, degree_add_eq_of_degree_lt hlt, max_eq_left_of_lt hlt]; exact le_refl _
@@ -377,12 +395,10 @@ calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (p i * a) 
     finset.sup_mono_fun (assume i hi,  degree_sum_le _ _)
   ... ≤ degree p + degree q :
     begin
-      refine finset.sup_le (λ a ha, finset.sup_le (λ b hb, _)),
-      by_cases hpq : p a * q b = 0,
-      { simp [hpq] },
-      { rw [degree_monomial _ hpq, with_bot.coe_add],
-        rw mem_support_iff at ha hb,
-        exact add_le_add' (le_degree_of_ne_zero ha) (le_degree_of_ne_zero hb) }
+      refine finset.sup_le (λ a ha, finset.sup_le (λ b hb, le_trans (degree_monomial_le _ _) _)),
+      rw [with_bot.coe_add],
+      rw mem_support_iff at ha hb,
+      exact add_le_add' (le_degree_of_ne_zero ha) (le_degree_of_ne_zero hb)
     end
 
 lemma degree_pow_le (p : polynomial α) : ∀ n, degree (p ^ n) ≤ add_monoid.smul n (degree p)
@@ -415,85 +431,33 @@ leading_coeff_monomial 1 0
 
 lemma leading_coeff_add_of_degree_lt (h : degree p < degree q) :
   leading_coeff (p + q) = leading_coeff q :=
-have hq0 : q ≠ 0 := ne_zero_of_degree_gt h,
-have hpq0 : p + q ≠ 0 := ne_zero_of_degree_gt
-  (show degree p < degree (p + q), by rwa degree_add_eq_of_degree_lt h),
-have h : nat_degree (p + q) = nat_degree q := option.some_inj.1 $
-  show (nat_degree (p + q) : with_bot ℕ) = nat_degree q,
-  by rw [← degree_eq_nat_degree hq0, ← degree_eq_nat_degree hpq0];
-    exact degree_add_eq_of_degree_lt h,
-begin
-  unfold leading_coeff,
-  rw [h, add_apply, eq_zero_of_degree_lt, zero_add],
-  rwa ← degree_eq_nat_degree hq0
-end
+have p (nat_degree q) = 0, from apply_nat_degree_eq_zero_of_degree_lt h,
+by simp [leading_coeff, nat_degree_eq_of_degree_eq (degree_add_eq_of_degree_lt h), this]
 
 lemma leading_coeff_add_of_degree_eq (h : degree p = degree q)
   (hlc : leading_coeff p + leading_coeff q ≠ 0) :
   leading_coeff (p + q) = leading_coeff p + leading_coeff q :=
-if hp0 : p = 0 then by simp [hp0]
-else
-have hpq0 : p + q ≠ 0 := λ hpq0,
-  by rw [leading_coeff, leading_coeff, nat_degree, nat_degree, h,
-    ← add_apply, hpq0, zero_apply] at hlc;
-  exact hlc rfl,
-have hpq : nat_degree (p + q) = nat_degree p := option.some_inj.1
-  $ show (nat_degree (p + q) : with_bot ℕ) = nat_degree p,
-  by rw [← degree_eq_nat_degree hp0, ← degree_eq_nat_degree hpq0,
-    degree_add_eq_of_leading_coeff_add_ne_zero hlc, h, max_self],
-by rw [leading_coeff, add_apply, hpq, leading_coeff, nat_degree_eq_of_degree_eq h];
-  refl
+have nat_degree (p + q) = nat_degree p,
+  by apply nat_degree_eq_of_degree_eq; rw [degree_add_eq_of_leading_coeff_add_ne_zero hlc, h, max_self],
+by simp [leading_coeff, this, nat_degree_eq_of_degree_eq h]
 
 @[simp] lemma mul_apply_degree_add_degree (p q : polynomial α) :
   (p * q) (nat_degree p + nat_degree q) = leading_coeff p * leading_coeff q :=
+have ∀i, p i ≠ 0 → i ≠ nat_degree p →
+    q.support.sum (λj, ite (i + j = nat_degree p + nat_degree q) (p i * q j) 0) = 0,
 begin
-  by_cases hpl : leading_coeff p = 0,
-  { rw [hpl, zero_mul, leading_coeff_eq_zero.1 hpl, zero_mul, zero_apply] },
-  by_cases hql : leading_coeff q = 0,
-  { rw [hql, mul_zero, leading_coeff_eq_zero.1 hql, mul_zero, zero_apply] },
-  calc p.sum (λ a b, sum q (λ a₂ b₂, single (a + a₂) (p a * b₂))) (nat_degree p + nat_degree q) =
-      p.sum (λ a b, sum q (λ a₂ b₂, C (p a * b₂) * X^(a + a₂))) (nat_degree p + nat_degree q) :
-    begin
-      apply congr_fun _ _,
-      congr, ext i a : 2,
-      congr, ext j b : 2,
-      apply single_eq_C_mul_X
-    end
-    ... = sum (finset.singleton (nat_degree p))
-        (λ a, sum q (λ a₂ b₂, C (p a * b₂) * X^(a + a₂)) (nat_degree p + nat_degree q)) :
-    begin
-      rw [sum_apply, finsupp.sum],
-      refine eq.symm (sum_subset (λ n hn, (mem_support_iff _ _).2
-        ((mem_singleton.1 hn).symm ▸ hpl)) (λ n hnp hn, _)),
-      rw [← @sum_const_zero _ _ q.support, finsupp.sum_apply, finsupp.sum],
-      refine finset.sum_congr rfl (λ m hm, _),
-      have : n + m ≠ nat_degree p + nat_degree q := (ne_of_lt $ add_lt_add_of_lt_of_le
-        (lt_of_le_of_ne
-          (le_of_not_gt (λ h,
-            have degree p < n :=
-              by rw degree_eq_nat_degree (mt leading_coeff_eq_zero.2 hpl);
-                exact with_bot.some_lt_some.2 h,
-            mt (mem_support_iff _ _).1 (not_not.2 (eq_zero_of_degree_lt this)) hnp))
-          (mt mem_singleton.2 hn))
-        (le_of_not_gt $ λ h,
-          have degree q < m :=
-            by rw degree_eq_nat_degree (mt leading_coeff_eq_zero.2 hql);
-              exact with_bot.some_lt_some.2 h,
-          mt eq_zero_of_degree_lt ((mem_support_iff _ _).1 hm) this)),
-      simp [this]
-    end
-  ... = (finset.singleton (nat_degree q)).sum
-      (λ a, (C (p (nat_degree p) * q a) * X^(nat_degree p + a)) (nat_degree p + nat_degree q)) :
-    begin
-      rw [sum_singleton, sum_apply, finsupp.sum],
-      refine eq.symm (sum_subset (λ n hn, (mem_support_iff _ _).2
-        ((mem_singleton.1 hn).symm ▸ hql)) (λ n hnq hn, _)),
-      have : nat_degree p + n ≠ nat_degree p + nat_degree q :=
-        mt add_left_cancel (mt mem_singleton.2 hn),
-      simp [this]
-    end
-  ... = leading_coeff p * leading_coeff q :
-    by simp [leading_coeff]
+  assume i hpi hid,
+  rw [sum_eq_single (nat_degree q)]; simp [hid],
+  assume j hqj hjd,
+  have hi : j < nat_degree q, from lt_of_le_of_ne (le_nat_degree_of_ne_zero hqj) hjd,
+  have hj : i < nat_degree p, from lt_of_le_of_ne (le_nat_degree_of_ne_zero hpi) hid,
+  exact if_neg (ne_of_lt $ add_lt_add hj hi)
+end,
+begin
+  rw [mul_def, sum_apply, finsupp.sum, sum_eq_single (nat_degree p),
+      sum_apply, finsupp.sum, sum_eq_single (nat_degree q)];
+    simp [single_apply, leading_coeff] {contextual := tt},
+  assumption
 end
 
 lemma degree_mul_eq' (h : leading_coeff p * leading_coeff q ≠ 0) :

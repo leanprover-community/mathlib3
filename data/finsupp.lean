@@ -266,6 +266,13 @@ rfl
 lemma support_add {g₁ g₂ : α →₀ β} : (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
 support_zip_with
 
+lemma support_add_eq {g₁ g₂ : α →₀ β} (h : disjoint g₁.support g₂.support):
+  (g₁ + g₂).support = g₁.support ∪ g₂.support :=
+le_antisymm support_zip_with $ assume a ha,
+(finset.mem_union.1 ha).elim
+  (assume ha, have a ∉ g₂.support, from disjoint_left.1 h ha, by simp * at *)
+  (assume ha, have a ∉ g₁.support, from disjoint_right.1 h ha, by simp * at *)
+
 @[simp] lemma single_add {a : α} {b₁ b₂ : β} : single a (b₁ + b₂) = single a b₁ + single a b₂ :=
 ext $ assume a',
 begin

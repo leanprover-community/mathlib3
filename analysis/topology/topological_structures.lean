@@ -254,10 +254,6 @@ instance topological_ring.to_topological_semiring
 instance topological_ring.to_topological_add_group
   [topological_space α] [ring α] [t : topological_ring α] : topological_add_group α := {..t}
 
-/-- A topological commutative ring is a commutative ring where the ring operations are continuous. -/
-class topological_comm_ring (α : Type u) [topological_space α] [comm_ring α]
-  extends topological_ring α : Prop.
-
 /-- (Partially) ordered topology
 Also called: partially ordered spaces (pospaces).
 

@@ -1091,6 +1091,18 @@ mem_powerset.2 (subset.refl _)
 
 end powerset
 
+section subtype
+variables [decidable_eq α]
+
+protected def subtype (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
+(s.filter p).attach.image $ λ⟨a, ha⟩, ⟨a, (mem_filter.1 ha).2⟩
+
+@[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
+  ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
+| ⟨a, ha⟩ := by simp [finset.subtype, ha]
+
+end subtype
+
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]
 local notation a * b := op a b

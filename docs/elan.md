@@ -97,7 +97,7 @@ mathlib `group_theory/subgroup.lean`.
 
 If you want to play more, it's better to compile all your dependencies
 once and for all.
-You can do this by going into `my_playground/_target/deps/mathlib/`
+You can do this by going into `my_playground`
 and running `leanpkg build`.
 
 Now go and get some coffee.

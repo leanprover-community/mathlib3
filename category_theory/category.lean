@@ -67,16 +67,18 @@ A `small_category` has objects and morphisms in the same universe level.
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
 
 /-- `concrete_category c h _ _` constructs a concrete category from a class `c` and a morphism
-predicate `hom`. `c` is usually a type class like `topological_space` and `hom` is `continuity`. -/
-def concrete_category (C : Type u → Type v)
-  (hom : ∀{α β : Type u}, C α → C β → (α → β) → Prop)
-  (hom_id : ∀{α} (o : C α), hom o o id)
-  (hom_comp : ∀{α β γ} (oa : C α) (ob : C β) (oc : C γ) {f g},
-    hom oa ob f → hom ob oc g → hom oa oc (g ∘ f)) :
-  category (sigma C) :=
+predicate `hom`. `c` is usually a type class like `topological_space` and `hom` is `continuous`. -/
+structure concrete_category {C : Type u → Type v}
+  (hom : out_param $ ∀{α β : Type u}, C α → C β → (α → β) → Prop) :=
+(hom_id : ∀{α} (ia : C α), hom ia ia id)
+(hom_comp : ∀{α β γ} (ia : C α) (ib : C β) (ic : C γ) {f g}, hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
+attribute [class] concrete_category
+
+instance {C : Type u → Type v} (hom : ∀{α β : Type u}, C α → C β → (α → β) → Prop)
+  [h : concrete_category @hom] : category (sigma C) :=
 { hom   := λa b, subtype (hom a.2 b.2),
-  id    := λa, ⟨@id a.1, hom_id a.2⟩,
-  comp  := λa b c f g, ⟨g.1 ∘ f.1, hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
+  id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
+  comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
 
 section
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}

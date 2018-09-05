@@ -1,5 +1,7 @@
 import tactic.explode data.nat.totient data.zmod data.polynomial group_theory.order_of_element linear_algebra.prod_module group_theory.quotient_group
-#exit
+
+set_option trace.simplify.rewrite true
+
 open function
 
 def units_of_nonzero {α : Type*} [field α] {a : α} (ha : a ≠ 0) : units α :=
@@ -29,9 +31,6 @@ instance units.fintype {α : Type*} [field α] [fintype α] [decidable_eq α] : 
 by haveI := set_fintype {a : α | a ≠ 0}; exact
 fintype.of_equiv _ (units_equiv_ne_zero α).symm
 
-def equiv_univ (α : Type*) : α ≃ @set.univ α :=
-⟨λ a, ⟨a, trivial⟩, λ a, a.1, λ _, rfl, λ ⟨_, _⟩, rfl⟩
-
 instance univ_decidable {α : Sort*} : decidable_pred (@set.univ α) :=
 by unfold set.univ; apply_instance
 
@@ -46,7 +45,7 @@ begin
   haveI := set_fintype (@set.univ α),
   rw [fintype.card_congr (units_equiv_ne_zero _),
     ← @set.card_insert _ _ {a : α | a ≠ 0} _ (not_not.2 (eq.refl (0 : α)))
-    (set.fintype_insert _ _), fintype.card_congr (equiv_univ α)],
+    (set.fintype_insert _ _), fintype.card_congr (equiv.set.univ α).symm],
   congr; simp [set.ext_iff, classical.em]
 end
 
@@ -63,9 +62,9 @@ open polynomial finset nat
 lemma order_of_dvd_of_pow_eq_one {α : Type*} [fintype α] [group α] [decidable_eq α] {a : α}
   {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
 by_contradiction
-(λ h₁, nat.find_min _ (show n % order_of a < order_of a,
-from nat.mod_lt _ (order_of_pos _))
-⟨nat.pos_of_ne_zero (mt nat.dvd_of_mod_eq_zero h₁), by rwa ← pow_eq_mod_order_of⟩)
+  (λ h₁, nat.find_min _ (show n % order_of a < order_of a,
+    from nat.mod_lt _ (order_of_pos _))
+      ⟨nat.pos_of_ne_zero (mt nat.dvd_of_mod_eq_zero h₁), by rwa ← pow_eq_mod_order_of⟩)
 
 lemma order_of_le_of_pow_eq_one {α : Type*} [fintype α] [group α] [decidable_eq α] {a : α}
   {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
@@ -103,7 +102,7 @@ lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 
 lemma nat.div_pos {a b : ℕ} (hba : b ≤ a) (hb : 0 < b) : 0 < a / b :=
 nat.pos_of_ne_zero (λ h, lt_irrefl a
-  (calc a = a % b : by simpa [h] using (nat.mod_add_div a b).symm
+  (calc a = a % b : by simpa [h] using (mod_add_div a b).symm
       ... < b : nat.mod_lt a hb
       ... ≤ a : hba))
 
@@ -114,8 +113,8 @@ lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b) = b
 (nat.mul_right_inj (nat.div_pos (le_of_dvd (succ_pos a) h₁) (succ_pos b))).1 $
   by rw [nat.div_mul_cancel (div_dvd_of_dvd h₁), nat.mul_div_cancel' h₁]
 
-lemma zero_pow {α : Type*} [semiring α] {n : ℕ} (hn : 0 < n) : (0 : α) ^ n = 0 :=
-by cases n; simpa [_root_.pow_succ, lt_irrefl] using hn
+lemma zero_pow {α : Type*} [semiring α] {n : ℕ} : 0 < n → (0 : α) ^ n = 0 :=
+by cases n; simp [_root_.pow_succ, lt_irrefl]
 
 lemma card_nth_roots_units {α : Type*} [fintype α] [field α] [decidable_eq α] {n : ℕ} (hn : 0 < n)
   (a : units α) : (univ.filter (λ b, b ^ n = a)).card = (nth_roots n (a : α)).card :=
@@ -420,7 +419,7 @@ by rw [ne.def, units.ext_iff, units.coe_neg, eq_neg_iff_add_eq_zero, ← cast_va
     (not_or_distrib.2 ⟨λ h, not_prime_one (h ▸ hp), (λ h, by rw h at hp1; exact nat.no_confusion hp1)⟩),
     mt nat.modeq.modeq_zero_iff.2 (mt (eq_iff_modeq_nat hp).2 (by simp))⟩)
 
-@[simp] lemma units.neg_eq_neg {α : Type*} [ring α] {a b : units α} : -a = - b ↔ a = b :=
+@[simp] lemma units.neg_eq_neg {α : Type*} [ring α] {a b : units α} : -a = -b ↔ a = b :=
 by rw [units.ext_iff, units.ext_iff]; simp
 
 noncomputable def f : quotient (one_neg_one hp) × (units (zmodp q hq)) → quotient (one_neg_one' hp hq) :=
@@ -853,41 +852,45 @@ begin
       ((nat.div_eq_zero_iff hq.pos).2 (nat.div_lt_self hq.pos (lt_succ_self _))), zero_add] at this⟩,
         by rw nat.div_mul_cancel hb'.2⟩))
 end
-#print coprime.coprime_mul_left
+
+lemma coprime_mul_iff_left {k m n : ℕ} : coprime (m * n) k ↔ coprime m k ∧ coprime n k :=
+⟨λ h, ⟨coprime.coprime_mul_right h, coprime.coprime_mul_left h⟩,
+  λ ⟨h, _⟩, by rwa [coprime, coprime.gcd_mul_left_cancel n h]⟩
+
+lemma coprime_mul_iff_right {k m n : ℕ} : coprime k (m * n) ↔ coprime m k ∧ coprime n k :=
+by rw [coprime, nat.gcd_comm]; exact coprime_mul_iff_left
+
 lemma prod_range_p_mul_q_filter_coprime_mod_p (hq : prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
   ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp p hp) =
   (-1) ^ (q / 2) * q ^ (p / 2) :=
+have hq0 : (q : zmodp p hp) ≠ 0, by rwa [← nat.cast_zero, ne.def, zmodp.eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
+  ← hp.coprime_iff_not_dvd, coprime_primes hp hq],
 (domain.mul_right_inj
   (show (q ^ (p / 2) * ((range (p / 2).succ).erase 0).prod (λ x, x) : zmodp p hp) ≠ 0,
     from mul_ne_zero
-      (pow_ne_zero _ $
-        by rwa [← nat.cast_zero, ne.def, zmodp.eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
-          ← hp.coprime_iff_not_dvd, coprime_primes hp hq])
-        begin
-          suffices : ∀ (x : ℕ), ¬x = 0 → x ≤ p / 2 → ¬(x : zmodp p hp) = 0,
-          { simpa [prod_eq_zero_iff, -range_succ, lt_succ_iff], },
+      (pow_ne_zero _ hq0)
+        (suffices h : ∀ (x : ℕ), ¬x = 0 → x ≤ p / 2 → ¬(x : zmodp p hp) = 0,
+            by simpa [prod_eq_zero_iff, -range_succ, lt_succ_iff],
           assume x hx0 hxp,
-          refine fin.ne_of_vne _,
-          rwa [← mk_eq_cast hp (lt_of_le_of_lt hxp (div_lt_self hp.pos (lt_succ_self _))),
-            ← @nat.cast_zero (zmodp p hp), zmod.val_cast_nat, zero_mod]
-        end)).1 $
+          by rwa [← @nat.cast_zero (zmodp p hp), zmodp.eq_iff_modeq_nat, nat.modeq,
+            zero_mod, mod_eq_of_lt (lt_of_le_of_lt hxp (nat.div_lt_self hp.pos (lt_succ_self _)))]))).1 $
 have h₁ : (range (succ (p * q / 2))).filter (coprime (p * q)) ∩
       filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2)))) = ∅,
   by have := @coprime.coprime_mul_left p q; simp [finset.ext, *] at * {contextual := tt},
-begin
-  conv {to_lhs, rw ← prod_range_p_mul_q_filter_not_coprime_eq hp hq hp1 hq1 hpq},
-  rw [← nat.cast_mul, ← prod_union h₁],
+calc ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp p hp)
+     * (q ^ (p / 2) * ((range (p / 2).succ).erase 0).prod (λ x, x) : zmodp p hp)
+   = (((range (succ (p * q / 2))).filter (coprime (p * q)) ∪
+     filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2))))).prod (λ x, x) : ℕ) :
+by rw [← prod_range_p_mul_q_filter_not_coprime_eq hp hq hp1 hq1 hpq, ← nat.cast_mul, ← prod_union h₁]
+... = (((range ((p * q) / 2).succ).filter (coprime p)).prod (λ x, x) : ℕ) :
+congr_arg coe (prod_congr (by simp [finset.ext, coprime_mul_iff_left]; tauto) (λ _ _, rfl))
+... = _ : by rw [prod_range_p_mul_q_mod_p_eq hp hq hp1 hq1];
+  cases pow_div_two_eq_neg_one_or_one hp hq0; simp [h, _root_.pow_succ]
 
-
-end
-
-lemma prod_foo_units_prime_mul_prime_le (hpq : p ≠ q) : ((range ((p * q) / 2).succ).filter
-  (coprime (p * q))).prod (λ n, (n : zmodp p hp)) = (-1) ^ (q / 2) / q ^ (p / 2) :=
-calc (((range ((p * q) / 2).succ)).filter (coprime (p * q))).prod (λ n, (n : zmodp p hp))
-    = ((range (q / 2).succ).bind (λ n, ((range (p / 2)).image (+ (n * (p / 2)))).filter (coprime (p * q)))).prod
-      (λ n, (n : zmodp p hp)) :
-prod_congr sorry (λ _ _, rfl)
-... = _ : begin
-  rw [range_succ, bind_insert, prod_union],
-
-end
+lemma prod_quotient_one_neg_one₂ (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) :
+  (@univ (quotient (one_neg_one' hp hq)) _).prod (λ x, x)
+  = mk (-((-1) ^ (p / 2)) ^ (q / 2), (-1) ^ (p / 2)) :=
+begin end
+-- calc (@univ (quotient (one_neg_one' hp hq)) _).prod (λ x, x)
+--     = mk (((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp p hp),
+--       ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp q hq)) :

@@ -22,7 +22,8 @@ The best is to define a copy and select the instances best suited.
 -/
 import data.finset data.set.finite algebra.big_operators algebra.module
 open finset
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Type*}
+  {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
 
 reserve infix ` →₀ `:25
 
@@ -342,6 +343,7 @@ lemma single_sum [has_zero γ] [add_comm_monoid β] [decidable_eq α] [decidable
   (s : δ →₀ γ) (f : δ → γ → β) (a : α) : single a (s.sum f) = s.sum (λd c, single a (f d c)) :=
 single_finset_sum _ _ _
 
+
 @[to_additive finsupp.sum_neg_index]
 lemma prod_neg_index [add_group β] [comm_monoid γ]
   {g : α →₀ β} {h : α → β → γ} (h0 : ∀a, h a 0 = 1) :
@@ -449,7 +451,7 @@ calc (f - g).sum h = (f + - g).sum h : by simp
   ... = _ : by simp
 
 @[to_additive finsupp.sum_finset_sum_index]
-lemma prod_finset_sum_index {ι : Type*} [add_comm_monoid β] [comm_monoid γ] [decidable_eq ι]
+lemma prod_finset_sum_index [add_comm_monoid β] [comm_monoid γ] [decidable_eq ι]
   {s : finset ι} {g : ι → α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
   s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
@@ -464,6 +466,26 @@ lemma prod_sum_index
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
   (f.sum g).prod h = f.prod (λa b, (g a b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
+
+lemma multiset_sum_sum_index
+  [decidable_eq α] [decidable_eq β] [add_comm_monoid β] [add_comm_monoid γ]
+  (f : multiset (α →₀ β)) (h : α → β → γ)
+  (h₀ : ∀a, h a 0 = 0) (h₁ : ∀ (a : α) (b₁ b₂ : β), h a (b₁ + b₂) = h a b₁ + h a b₂) :
+  (f.sum.sum h) = (f.map $ λg:α →₀ β, g.sum h).sum :=
+multiset.induction_on f (by simp [finsupp.sum_zero_index])
+  (assume a s ih, by simp [finsupp.sum_add_index h₀ h₁, ih] {contextual := tt})
+
+lemma multiset_map_sum [has_zero β] {f : α →₀ β} {m : γ → δ} {h : α → β → multiset γ} :
+  multiset.map m (f.sum h) = f.sum (λa b, (h a b).map m) :=
+(finset.sum_hom _ (multiset.map_zero m) (multiset.map_add m)).symm
+
+lemma multiset_sum_sum [has_zero β] [add_comm_monoid γ] {f : α →₀ β} {h : α → β → multiset γ} :
+  multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
+begin
+  refine (finset.sum_hom multiset.sum _ _).symm,
+  exact multiset.sum_zero,
+  exact multiset.sum_add
+end
 
 section map_domain
 variables [decidable_eq α₁] [decidable_eq α₂] [add_comm_monoid β] {v v₁ v₂ : α →₀ β}
@@ -494,8 +516,7 @@ finset.sum_congr rfl $ by simp [*] at * {contextual := tt}
 lemma map_domain_add {f : α → α₂} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
 sum_add_index (by simp) (by simp)
 
-lemma map_domain_finset_sum {ι : Type*} [decidable_eq ι]
-  {f : α → α₂} {s : finset ι} {v : ι → α →₀ β} :
+lemma map_domain_finset_sum [decidable_eq ι] {f : α → α₂} {s : finset ι} {v : ι → α →₀ β} :
   map_domain f (s.sum v) = s.sum (λi, map_domain f (v i)) :=
 by refine (sum_finset_sum_index _ _).symm; simp
 
@@ -779,7 +800,7 @@ lemma single_mul_single [has_add α] [semiring β] {a₁ a₂ : α} {b₁ b₂ :
   single a₁ b₁ * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
 by simp [mul_def, sum_single_index]
 
-lemma prod_single {ι : Type x} [decidable_eq ι] [add_comm_monoid α] [comm_semiring β]
+lemma prod_single [decidable_eq ι] [add_comm_monoid α] [comm_semiring β]
   {s : finset ι} {a : ι → α} {b : ι → β} :
   s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
 finset.induction_on s (by simp [one_def]) (by simp [single_mul_single] {contextual := tt})

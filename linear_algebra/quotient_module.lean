@@ -42,7 +42,7 @@ local notation ` Q ` := quotient β s
 
 def mk {s : set β} [is_submodule s] : β → quotient β s := quotient.mk'
 
-instance : has_coe β Q := ⟨mk⟩
+instance {α} {β} {r : ring α} [module α β] (s : set β) [is_submodule s] : has_coe β (quotient β s) := ⟨mk⟩
 
 protected def eq {s : set β} [is_submodule s] {a b : β} : (a : quotient β s) = b ↔ a - b ∈ s :=
 quotient.eq'

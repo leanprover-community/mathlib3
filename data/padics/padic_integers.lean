@@ -202,7 +202,7 @@ begin
     cases hex with y hy,
     have hym : ∥(y*x)∥ < 1, from is_submodule.smul _ hx,
     apply lt_irrefl (1 : ℝ),
-    rw hy at hym, simpa using hym },
+    simpa [hy] using hym },
   { intro hx,
     by_contradiction hnm,
     apply hx,
@@ -213,7 +213,7 @@ end
 instance : is_proper_ideal (maximal_ideal hp) :=
 { ne_univ := maximal_ideal_ne_univ }
 
-lemma maximal_ideal_eq_or_univ_of_subset (T : set ℤ_[hp]) [_inst_2 : is_ideal T]
+lemma maximal_ideal_eq_or_univ_of_subset (T : set ℤ_[hp]) [is_ideal T]
       (hss : maximal_ideal hp ⊆ T) : T = maximal_ideal hp ∨ T = set.univ :=
 have T ≠ maximal_ideal hp → T = set.univ, from
   (assume h : T ≠ maximal_ideal hp,
@@ -228,7 +228,7 @@ if hT : T = maximal_ideal hp then or.inl hT else or.inr (this hT)
 instance : is_maximal_ideal (maximal_ideal hp) :=
 { eq_or_univ_of_subset := maximal_ideal_eq_or_univ_of_subset }
 
-lemma maximal_ideal_unique (T : set ℤ_[hp]) [_inst_2 : is_maximal_ideal T] : maximal_ideal hp = T :=
+lemma maximal_ideal_unique (T : set ℤ_[hp]) [is_maximal_ideal T] : maximal_ideal hp = T :=
 let htmax := @is_maximal_ideal.eq_or_univ_of_subset _ _ T _ (maximal_ideal hp) _ in
 have htsub : T ⊆ maximal_ideal hp,
   by rw maximal_ideal_eq_nonunits; apply not_unit_of_mem_proper_ideal,

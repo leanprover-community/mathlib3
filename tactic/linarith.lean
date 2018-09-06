@@ -346,7 +346,7 @@ do pftps ← l.mmap infer_type,
    let vars : rb_set ℕ := rb_map.of_list $ (list.range (max)).map (λ k, (k, ())),
    let pc : rb_set pcomp := 
      rb_map.of_list $ (list.range lz.length).map (λ n, (⟨(lz.inth n).2, comp_source.assump n⟩, ())),
-   return ⟨vars, pc, prmap, none⟩ 
+   return ⟨vars, pc, prmap, find_contr_in_set pc⟩ 
 
 end parse 
 

@@ -219,6 +219,9 @@ by simp [padic_val_rat, *]
 @[simp] lemma padic_val_rat_self : padic_val_rat p p = 1 :=
 by simp [padic_val_rat, hp]
 
+lemma padic_val_rat_of_int (z : ℤ) : padic_val_rat p ↑z = padic_val p z := 
+by simp [padic_val_rat, rat.coe_int_denom, padic_val.one hp]
+
 end padic_val_rat
 
 section padic_val_rat
@@ -465,6 +468,21 @@ instance : is_absolute_value (padic_norm hp) :=
     end,
   abv_add := padic_norm.triangle_ineq hp,
   abv_mul := padic_norm.mul hp }
+
+lemma le_of_dvd {n : ℕ} {z : ℤ} (hd : ↑(p^n) ∣ z) : padic_norm hp z ≤ fpow ↑p (-n) := 
+have hp' : (↑p : ℚ) ≥ 1, from show ↑p ≥ ↑(1 : ℕ), from cast_le.2 (le_of_lt hp.gt_one),
+have hpn : (↑p : ℚ) ≥ 0, from le_trans zero_le_one hp',
+begin 
+  unfold padic_norm, split_ifs with hz hz,
+  { simpa [padic_norm, hz] using fpow_nonneg_of_nonneg hpn _ },
+  { apply fpow_le_of_le hp',
+    apply neg_le_neg,
+    rw padic_val_rat_of_int hp.gt_one _,
+    apply int.coe_nat_le.2,
+    apply padic_val.le_padic_val_of_pow_dvd hp.gt_one,
+    { simpa using hz },
+    { assumption }}
+end 
 
 end padic_norm
 end padic_norm

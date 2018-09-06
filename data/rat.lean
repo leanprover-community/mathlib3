@@ -943,6 +943,9 @@ lemma zero_of_num_zero {q : ℚ} (hq : q.num = 0) : q = 0 :=
 have q = q.num /. q.denom, from num_denom _,
 by simpa [hq]
 
+lemma zero_iff_num_zero {q : ℚ} : q = 0 ↔ q.num = 0 :=
+⟨λ _, by simp *, zero_of_num_zero⟩
+
 lemma num_ne_zero_of_ne_zero {q : ℚ} (h : q ≠ 0) : q.num ≠ 0 :=
 assume : q.num = 0,
 h $ zero_of_num_zero this

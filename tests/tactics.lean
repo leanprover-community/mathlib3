@@ -129,17 +129,6 @@ end
 example {x y z : ℕ} : true :=
 begin
   suffices : false, trivial,
-  wlog h : x ≤ y + z,
-  { guard_target x ≤ y + z ∨ x ≤ z + y,
-    admit },
-  { guard_hyp h := x ≤ y + z,
-    guard_target false,
-    admit }
-end
-
-example {x y z : ℕ} : true :=
-begin
-  suffices : false, trivial,
   wlog : x ≤ y + z using x y,
   { guard_target x ≤ y + z ∨ y ≤ x + z,
     admit },

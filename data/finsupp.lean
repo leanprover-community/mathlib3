@@ -391,6 +391,11 @@ finset.sum_add_distrib
   {h : α → β → γ} : f.sum (λa b, - h a b) = - f.sum h :=
 finset.sum_hom (@has_neg.neg γ _) neg_zero (assume a b, neg_add _ _)
 
+@[simp] lemma sum_sub [add_comm_monoid β] [add_comm_group γ] {f : α →₀ β}
+  {h₁ h₂ : α → β → γ} :
+  f.sum (λa b, h₁ a b - h₂ a b) = f.sum h₁ - f.sum h₂ :=
+by rw [sub_eq_add_neg, ←sum_neg, ←sum_add]; refl
+
 @[simp] lemma sum_single [add_comm_monoid β] {f : α →₀ β} :
   f.sum single = f :=
 have ∀a:α, f.sum (λa' b, ite (a' = a) b 0) =

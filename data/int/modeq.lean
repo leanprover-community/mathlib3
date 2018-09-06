@@ -98,6 +98,29 @@ lemma gcd_a_modeq (a b : ℕ) : (a : ℤ) * nat.gcd_a a b ≡ nat.gcd a b [ZMOD 
 by rw [← add_zero ((a : ℤ) * _), nat.gcd_eq_gcd_ab];
   exact int.modeq.modeq_add rfl (int.modeq.modeq_zero_iff.2 (dvd_mul_right _ _)).symm
 
+theorem modeq_add_fac {a b n : ℤ} (c : ℤ) (ha : a ≡ b [ZMOD n]) : a + n*c ≡ b [ZMOD n] :=
+calc a + n*c ≡ b + n*c [ZMOD n] : int.modeq.modeq_add ha (int.modeq.refl _)
+         ... ≡ b + 0 [ZMOD n] : int.modeq.modeq_add (int.modeq.refl _) (int.modeq.modeq_zero_iff.2 (dvd_mul_right _ _))
+         ... ≡ b [ZMOD n] : by simp
+
+open nat
+lemma mod_coprime {a b : ℕ} (hab : coprime a b) : ∃ y : ℤ, a * y ≡ 1 [ZMOD b] :=
+⟨ gcd_a a b,
+  have hgcd : nat.gcd a b = 1, from coprime.gcd_eq_one hab,
+  calc
+   ↑a * gcd_a a b ≡ ↑a*gcd_a a b + ↑b*gcd_b a b [ZMOD ↑b] : int.modeq.symm $ modeq_add_fac _ $ int.modeq.refl _
+              ... ≡ 1 [ZMOD ↑b] : by rw [←gcd_eq_gcd_ab, hgcd]; reflexivity ⟩
+
+lemma exists_unique_equiv (a : ℤ) {b : ℤ} (hb : b > 0) : ∃ z : ℤ, 0 ≤ z ∧ z < b ∧ z ≡ a [ZMOD b] :=
+⟨ a % b, int.mod_nonneg _ (ne_of_gt hb),
+  have a % b < abs b, from int.mod_lt _ (ne_of_gt hb),
+  by rwa abs_of_pos hb at this,
+  by simp [int.modeq] ⟩
+
+lemma exists_unique_equiv_nat (a : ℤ) {b : ℤ} (hb : b > 0) : ∃ z : ℕ, ↑z < b ∧ ↑z ≡ a [ZMOD b] :=
+let ⟨z, hz1, hz2, hz3⟩ := exists_unique_equiv a hb in
+⟨z.nat_abs, by split; rw [←int.of_nat_eq_coe, int.of_nat_nat_abs_eq_of_nonneg hz1]; assumption⟩
+
 end modeq
 
 @[simp] lemma mod_mul_right_mod (a b c : ℤ) : a % (b * c) % b = a % b :=

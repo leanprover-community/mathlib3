@@ -176,7 +176,7 @@ quotient.induction_on a $ assume a, decidable.by_cases
   (assume : associates.mk a = 0, by simp [quotient_mk_eq_mk, this])
   (assume : associates.mk a ≠ 0,
     have a ≠ 0, by simp * at *,
-    by simpa [this, quotient_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated.2 (factors_prod this)])
+    by simp [this, quotient_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated.2 (factors_prod this)])
 
 theorem eq_of_factors_eq_factors {a b : associates α} (h : a.factors = b.factors) : a = b :=
 have a.factors.prod = b.factors.prod, by rw h,

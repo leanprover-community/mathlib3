@@ -245,7 +245,7 @@ end comm_ring
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural
   addition operation and a way to multiply them by real numbers, but no multiplication
   operation between vectors. -/
-class vector_space (α : out_param $ Type u) (β : Type v) [field α] extends module α β
+class vector_space (α : out_param $ Type u) (β : Type v) [out_param $ field α] extends module α β
 
 /-- Subspace of a vector space. Defined to equal `is_submodule`. -/
 @[reducible] def subspace {α : Type u} {β : Type v} [field α] [vector_space α β] (p : set β) :

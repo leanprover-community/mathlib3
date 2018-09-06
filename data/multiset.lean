@@ -1639,6 +1639,14 @@ end
 by have := card_powerset s;
    rwa [← diagonal_map_fst, card_map] at this
 
+lemma prod_map_add [comm_semiring β] {s : multiset α} {f g : α → β} :
+  prod (s.map (λa, f a + g a)) = sum ((diagonal s).map (λp, (p.1.map f).prod * (p.2.map g).prod)) :=
+begin
+  refine s.induction_on _ _,
+  { simp },
+  { assume a s ih, simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm] },
+end
+
 /- countp -/
 
 /-- `countp p s` counts the number of elements of `s` (with multiplicity) that

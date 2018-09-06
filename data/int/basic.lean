@@ -580,21 +580,24 @@ lemma dvd_nat_abs_of_of_nat_dvd {a : ℕ} : ∀ {z : ℤ} (haz : ↑a ∣ z), a 
   have haz' : (↑a:ℤ) ∣ (↑(k+1):ℤ), from dvd_of_dvd_neg haz,
   int.coe_nat_dvd.1 haz'
 
-lemma pow_div_of_le_of_pow_div_int {p m n : ℕ} {k : ℤ} (hmn : m ≤ n) (hdiv : ↑(p ^ n) ∣ k) :
+lemma pow_dvd_of_le_of_pow_dvd {p m n : ℕ} {k : ℤ} (hmn : m ≤ n) (hdiv : ↑(p ^ n) ∣ k) :
       ↑(p ^ m) ∣ k :=
 begin
   induction k,
     { apply int.coe_nat_dvd.2,
-      apply pow_div_of_le_of_pow_div hmn,
+      apply pow_dvd_of_le_of_pow_dvd hmn,
       apply int.coe_nat_dvd.1 hdiv },
     { change -[1+k] with -(↑(k+1) : ℤ),
       apply dvd_neg_of_dvd,
       apply int.coe_nat_dvd.2,
-      apply pow_div_of_le_of_pow_div hmn,
+      apply pow_dvd_of_le_of_pow_dvd hmn,
       apply int.coe_nat_dvd.1,
       apply dvd_of_dvd_neg,
       exact hdiv }
 end
+
+lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m := 
+by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 /- / and ordering -/
 

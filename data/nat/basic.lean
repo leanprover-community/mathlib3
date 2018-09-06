@@ -656,7 +656,7 @@ have h3 : b = a * d * c, from
   nat.eq_mul_of_div_eq_left hab hd,
 show ∃ d, b = c * a * d, from ⟨d, by cc⟩
 
-lemma nat.div_mul_div {a b c d : ℕ} (hab : b ∣ a) (hcd : d ∣ c) :
+lemma div_mul_div {a b c d : ℕ} (hab : b ∣ a) (hcd : d ∣ c) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
 have exi1 : ∃ x, a = b * x, from hab,
 have exi2 : ∃ y, c = d * y, from hcd,
@@ -674,9 +674,12 @@ begin
   cc
 end
 
-lemma pow_div_of_le_of_pow_div {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=
+lemma pow_dvd_of_le_of_pow_dvd {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=
 have p ^ m ∣ p ^ n, from pow_dvd_pow _ hmn,
 dvd_trans this hdiv
+
+lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m := 
+by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 end div
 

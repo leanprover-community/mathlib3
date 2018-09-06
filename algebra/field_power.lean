@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Integer power operation on fields.
 -/
 
-import algebra.group_power tactic.wlog
+import algebra.group_power tactic.wlog 
 
 universe u
 
@@ -36,7 +36,6 @@ begin change fpow a -[1+0] = a⁻¹, simp [fpow] end
 lemma fpow_ne_zero_of_ne_zero {a : α} (ha : a ≠ 0) : ∀ (z : ℤ), fpow a z ≠ 0
 | (of_nat n) := pow_ne_zero _ ha
 | -[1+n] := one_div_ne_zero $ pow_ne_zero _ ha
-
 
 @[simp] lemma fpow_zero {a : α} : fpow a 0 = 1 :=
 pow_zero _ 

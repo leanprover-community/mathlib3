@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Integer power operation on fields.
 -/
 
-import algebra.group_power tactic.wlog 
+import algebra.group_power tactic.wlog
 
 universe u
 
@@ -100,5 +100,9 @@ begin
     simpa [hle] using h },
   simpa [hfle] using this
 end
+
+lemma fpow_le_one_of_nonpos {p : α} (hp : p ≥ 1) {z : ℤ} (hz : z ≤ 0) : fpow p z ≤ 1 :=
+calc fpow p z ≤ fpow p 0 : fpow_le_of_le hp hz
+          ... = 1        : by simp
 
 end ordered_field_power

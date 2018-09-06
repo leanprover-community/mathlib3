@@ -610,7 +610,7 @@ variables {p : ℕ} {hp : p.prime}
 @[simp] protected lemma mul (q r : ℚ_[hp]) : ∥q * r∥ = ∥q∥ * ∥r∥ :=
 by simp [has_norm.norm, padic_norm_e.mul']
 
-@[simp] protected lemma is_norm (q : ℚ_[hp]) : ↑(padic_norm_e q) = ∥q∥ := rfl
+protected lemma is_norm (q : ℚ_[hp]) : ↑(padic_norm_e q) = ∥q∥ := rfl
 
 theorem nonarchimedean (q r : ℚ_[hp]) : ∥q + r∥ ≤ max (∥q∥) (∥r∥) :=
 begin
@@ -634,6 +634,28 @@ def rat_norm (q : ℚ_[hp]) : ℚ := classical.some (padic_norm_e.is_rat q)
 
 lemma eq_rat_norm (q : ℚ_[hp]) : ∥q∥ = rat_norm q := classical.some_spec (padic_norm_e.is_rat q)
 
+theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[hp])∥ ≤ 1
+| ⟨n, d, hn, hd⟩ := λ hq : ¬ p ∣ d,
+  if hnz : n = 0 then
+    have (⟨n, d, hn, hd⟩ : ℚ) = 0, from rat.zero_of_num_zero hnz,
+      by simp [this, padic.cast_eq_of_rat, zero_le_one]
+  else
+    have hnz' : {rat . num := n, denom := d, pos := hn, cop := hd} ≠ 0,
+      from mt rat.zero_iff_num_zero.1 hnz,
+    have fpow (p : ℚ) (-↑(padic_val p n)) ≤ 1,
+      from fpow_le_one_of_nonpos
+             (show (↑p : ℚ) ≥ ↑(1: ℕ), from le_of_lt (nat.cast_lt.2 hp.gt_one))
+             (neg_nonpos_of_nonneg (int.coe_nat_nonneg _)),
+    have (↑(fpow (p : ℚ) (-↑(padic_val p n))) : ℝ) ≤ (1 : ℚ), from rat.cast_le.2 this,
+    by simpa [padic.cast_eq_of_rat, hnz', padic_norm, padic_val_rat,
+              padic_val_eq_zero_of_not_dvd' hq] using this
+
+end normed_space
+end padic_norm_e
+
+namespace padic
+variables {p : ℕ} {hp : p.prime}
+
 protected theorem complete (f : cau_seq ℚ_[hp] (λ a, ∥a∥)):
         ∃ q : ℚ_[hp], ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥q - f i∥ < ε :=
 let f' : cau_seq ℚ_[hp] padic_norm_e :=
@@ -645,5 +667,18 @@ let ⟨q, hq⟩ := padic.complete' f' in
       ⟨N, hN⟩ := hq _ (by simpa using hε'l) in
   ⟨N, λ i hi, lt.trans (rat.cast_lt.2 (hN _ hi)) hε'r ⟩⟩
 
-end normed_space
-end padic_norm_e
+def cau_seq_lim (f : cau_seq ℚ_[hp] (λ a, ∥a∥)) : ℚ_[hp] :=
+classical.some (padic.complete f)
+
+lemma cau_seq_lim_spec (f : cau_seq ℚ_[hp] (λ a, ∥a∥)) :
+      ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥(cau_seq_lim f) - f i∥ < ε :=
+classical.some_spec (padic.complete f)
+
+lemma padic_norm_e_lim_le {f : cau_seq ℚ_[hp] (λ a, ∥a∥)} {a : ℝ} (ha : a > 0)
+      (hf : ∀ i, ∥f i∥ ≤ a) : ∥cau_seq_lim f∥ ≤ a :=
+let ⟨N, hN⟩ := cau_seq_lim_spec f _ ha in
+calc ∥cau_seq_lim f∥ = ∥cau_seq_lim f - f N + f N∥ : by simp
+                ... ≤ max (∥cau_seq_lim f - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
+                ... ≤ a : max_le (le_of_lt (hN _ (le_refl _))) (hf _)
+
+end padic

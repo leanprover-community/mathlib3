@@ -72,7 +72,7 @@ instance : has_coe ℤ_[hp] ℚ_[hp] := ⟨subtype.val⟩
 
 @[simp] lemma coe_one : (↑(1 : ℤ_[hp]) : ℚ_[hp]) = 1 := rfl 
 
-lemma mk_coe : ∀ (k : ℤ_[hp]) /-{p : @padic_norm_e _ hp ↑k ≤ 1}-/, (⟨↑k, k.2⟩ : ℤ_[hp]) = k
+lemma mk_coe : ∀ (k : ℤ_[hp]), (⟨↑k, k.2⟩ : ℤ_[hp]) = k
 | ⟨_, _⟩ := rfl
 
 def inv : ℤ_[hp] → ℤ_[hp]
@@ -110,7 +110,8 @@ instance : comm_ring ℤ_[hp] :=
 protected lemma padic_int.zero_ne_one : (0 : ℤ_[hp]) ≠ 1 := 
 show (⟨(0 : ℚ_[hp]), _⟩ : ℤ_[hp]) ≠ ⟨(1 : ℚ_[hp]), _⟩, from mt subtype.ext.1 zero_ne_one
 
-protected lemma padic_int.eq_zero_or_eq_zero_of_mul_eq_zero : ∀ (a b : ℤ_[hp]), a * b = 0 → a = 0 ∨ b = 0
+protected lemma padic_int.eq_zero_or_eq_zero_of_mul_eq_zero : 
+          ∀ (a b : ℤ_[hp]), a * b = 0 → a = 0 ∨ b = 0
 | ⟨a, ha⟩ ⟨b, hb⟩ := λ h : (⟨a * b, _⟩ : ℤ_[hp]) = ⟨0, _⟩, 
 have a * b = 0, from subtype.ext.1 h,
 (mul_eq_zero_iff_eq_zero_or_eq_zero.1 this).elim

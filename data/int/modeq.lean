@@ -56,6 +56,8 @@ modeq_iff_dvd.2 $ by rwa add_neg_cancel_left at this
 theorem modeq_add_cancel_right (h₁ : c ≡ d [ZMOD n]) (h₂ : a + c ≡ b + d [ZMOD n]) : a ≡ b [ZMOD n] :=
 by rw [add_comm a, add_comm b] at h₂; exact modeq_add_cancel_left h₁ h₂
 
+theorem mod_modeq (a n) : a % n ≡ a [ZMOD n] := int.mod_mod _ _
+
 theorem modeq_neg (h : a ≡ b [ZMOD n]) : -a ≡ -b [ZMOD n] :=
 modeq_add_cancel_left h (by simp)
 
@@ -75,5 +77,18 @@ by rw [mul_comm a, mul_comm b]; exact modeq_mul_left c h
 theorem modeq_mul (h₁ : a ≡ b [ZMOD n]) (h₂ : c ≡ d [ZMOD n]) : a * c ≡ b * d [ZMOD n] :=
 (modeq_mul_left _ h₂).trans (modeq_mul_right _ h₁)
 
+theorem modeq_of_modeq_mul_left (m : ℤ) (h : a ≡ b [ZMOD m * n]) : a ≡ b [ZMOD n] :=
+by rw [modeq_iff_dvd] at *; exact dvd.trans (dvd_mul_left n m) h
+
+theorem modeq_of_modeq_mul_right (m : ℤ) : a ≡ b [ZMOD n * m] → a ≡ b [ZMOD n] :=
+mul_comm m n ▸ modeq_of_modeq_mul_left _
+
 end modeq
+
+@[simp] lemma mod_mul_right_mod (a b c : ℤ) : a % (b * c) % b = a % b :=
+int.modeq.modeq_of_modeq_mul_right _ (int.modeq.mod_modeq _ _)
+
+@[simp] lemma mod_mul_left_mod (a b c : ℤ) : a % (b * c) % c = a % c :=
+int.modeq.modeq_of_modeq_mul_left _ (int.modeq.mod_modeq _ _)
+
 end int

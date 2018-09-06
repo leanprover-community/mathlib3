@@ -100,6 +100,15 @@ assume a', decidable_of_iff'
   (a' ∈ (finset.range (order_of a)).image ((^) a))
   mem_gpowers_iff_mem_range_order_of
 
+lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
+by_contradiction
+  (λ h₁, nat.find_min _ (show n % order_of a < order_of a,
+    from nat.mod_lt _ (order_of_pos _))
+      ⟨nat.pos_of_ne_zero (mt nat.dvd_of_mod_eq_zero h₁), by rwa ← pow_eq_mod_order_of⟩)
+
+lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
+nat.find_min' (exists_pow_eq_one a) ⟨hn, h⟩
+
 section
 local attribute [instance] set_fintype
 
@@ -147,6 +156,12 @@ dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
 
 end classical
+
+variables [group α] [fintype α] [decidable_eq α]
+
+@[simp] lemma pow_card_eq_one (a : α) : a ^ fintype.card α = 1 :=
+let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ in
+by simp [hm, pow_mul, pow_order_of_eq_one]
 
 end
 

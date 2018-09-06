@@ -329,6 +329,9 @@ theorem is_semiring_hom.map_pow {β} [semiring α] [semiring β]
   (f : α → β) [is_semiring_hom f] (x : α) (n : ℕ) : f (x ^ n) = f x ^ n :=
 by induction n; simp [*, is_semiring_hom.map_one f, is_semiring_hom.map_mul f, pow_succ]
 
+lemma zero_pow [semiring α] {n : ℕ} : 0 < n → (0 : α) ^ n = 0 :=
+by cases n; simp [_root_.pow_succ, lt_irrefl]
+
 theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := by simp
 | (n+1) := by cases neg_one_pow_eq_or n; simp [pow_succ, h]

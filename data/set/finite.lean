@@ -276,4 +276,16 @@ begin
   exact finset.card_lt_card h,
 end
 
+lemma card_le_of_subset {s t : set α} [fintype s] [fintype t] (hsub : s ⊆ t) :
+  fintype.card s ≤ fintype.card t :=
+calc fintype.card s = s.to_finset.card : set.card_fintype_of_finset' _ (by simp)
+... ≤ t.to_finset.card : finset.card_le_of_subset (λ x hx, by simp [set.subset_def, *] at *)
+... = fintype.card t : eq.symm (set.card_fintype_of_finset' _ (by simp))
+
+lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
+   (hsub : s ⊆ t) (hcard : fintype.card t ≤ fintype.card s) : s = t :=
+classical.by_contradiction (λ h, lt_irrefl (fintype.card t)
+  (have fintype.card s < fintype.card t := set.card_lt_card ⟨hsub, h⟩,
+    by rwa [le_antisymm (card_le_of_subset hsub) hcard] at this))
+
 end set

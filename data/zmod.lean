@@ -132,6 +132,9 @@ int.coe_nat_inj $
     ← nat_abs_of_nonneg (mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2 n.pos)),
     int.cast_coe_nat, val_cast_of_lt h] }
 
+lemma coe_val_cast_int {n : ℕ+} (a : ℤ) : ((a : zmod n).val : ℤ) = a % (n : ℕ) :=
+by rw [val_cast_int, int.nat_abs_of_nonneg (mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2 n.pos))]
+
 lemma eq_iff_modeq_nat {n : ℕ+} {a b : ℕ} : (a : zmod n) = b ↔ a ≡ b [MOD n] :=
 ⟨λ h, by have := fin.veq_of_eq h;
   rwa [val_cast_nat, val_cast_nat] at this,
@@ -196,6 +199,9 @@ lemma val_cast_of_lt {a : ℕ} (h : a < p) : (a : zmodp p hp).val = a :=
 
 lemma val_cast_int (a : ℤ) : (a : zmodp p hp).val = (a % p).nat_abs :=
 @zmod.val_cast_int ⟨p, hp.pos⟩ _
+
+lemma coe_val_cast_int  (a : ℤ) : ((a : zmodp p hp).val : ℤ) = a % (p : ℕ) :=
+@zmod.coe_val_cast_int ⟨p, hp.pos⟩ _
 
 lemma eq_iff_modeq_nat {a b : ℕ} : (a : zmodp p hp) = b ↔ a ≡ b [MOD p] :=
 @zmod.eq_iff_modeq_nat ⟨p, hp.pos⟩ _ _

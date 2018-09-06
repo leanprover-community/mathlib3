@@ -215,16 +215,17 @@ by constructor; simp [inl, inr] {contextual := tt}
 
 instance [has_scalar α β] [has_scalar α γ] : has_scalar α (β × γ) := ⟨λa p, (a • p.1, a • p.2)⟩
 
-section module
-variables [ring α] [module α β] [module α γ] [module α δ]
-include α
-
-instance : module α (β × γ) :=
+instance {r : ring α} [module α β] [module α γ] : module α (β × γ) :=
 { smul_add := assume a p₁ p₂, mk.inj_iff.mpr ⟨smul_add, smul_add⟩,
   add_smul := assume a p₁ p₂, mk.inj_iff.mpr ⟨add_smul, add_smul⟩,
   mul_smul := assume a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul, mul_smul⟩,
   one_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul, one_smul⟩,
   .. prod.has_scalar }
+
+
+section module
+variables [ring α] [module α β] [module α γ] [module α δ]
+include α
 
 lemma is_linear_map_prod_fst : is_linear_map (prod.fst : β × γ → β) :=
 ⟨assume x y, rfl, assume x y, rfl⟩
@@ -286,7 +287,7 @@ lemma is_basis_inl_union_inr {s : set β} {t : set γ}
 
 end module
 
-instance [field α] [vector_space α β] [vector_space α γ] : vector_space α (β × γ) :=
+instance {f : field α} [vector_space α β] [vector_space α γ] : vector_space α (β × γ) :=
 {..prod.module}
 
 end prod

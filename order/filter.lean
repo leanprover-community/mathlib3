@@ -594,10 +594,10 @@ congr_fun (@@filter.map_compose m m') f
 
 end map
 
-section vmap
+section comap
 
 /-- The inverse map of a filter -/
-def vmap (m : α → β) (f : filter β) : filter α :=
+def comap (m : α → β) (f : filter β) : filter α :=
 { sets             := { s | ∃t∈f.sets, m ⁻¹' t ⊆ s },
   univ_sets        := ⟨univ, univ_mem_sets, by simp⟩,
   sets_of_superset := assume a b ⟨a', ha', ma'a⟩ ab,
@@ -605,7 +605,7 @@ def vmap (m : α → β) (f : filter β) : filter α :=
   inter_sets       := assume a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
     ⟨a' ∩ b', inter_mem_sets ha₁ hb₁, inter_subset_inter ha₂ hb₂⟩ }
 
-end vmap
+end comap
 
 /-- The cofinite filter is the filter of subsets whose complements are finite. -/
 def cofinite : filter α :=
@@ -643,75 +643,75 @@ instance : alternative filter :=
 { failure := λα, ⊥,
   orelse  := λα x y, x ⊔ y }
 
-/- map and vmap equations -/
+/- map and comap equations -/
 section map
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : filter β} {m : α → β} {m' : β → γ} {s : set α} {t : set β}
 
-@[simp] theorem mem_vmap_sets : s ∈ (vmap m g).sets ↔ ∃t∈g.sets, m ⁻¹' t ⊆ s := iff.rfl
-theorem preimage_mem_vmap (ht : t ∈ g.sets) : m ⁻¹' t ∈ (vmap m g).sets :=
+@[simp] theorem mem_comap_sets : s ∈ (comap m g).sets ↔ ∃t∈g.sets, m ⁻¹' t ⊆ s := iff.rfl
+theorem preimage_mem_comap (ht : t ∈ g.sets) : m ⁻¹' t ∈ (comap m g).sets :=
 ⟨t, ht, subset.refl _⟩
 
-lemma vmap_id : vmap id f = f :=
-le_antisymm (assume s, preimage_mem_vmap) (assume s ⟨t, ht, hst⟩, mem_sets_of_superset ht hst)
+lemma comap_id : comap id f = f :=
+le_antisymm (assume s, preimage_mem_comap) (assume s ⟨t, ht, hst⟩, mem_sets_of_superset ht hst)
 
-lemma vmap_vmap_comp {m : γ → β} {n : β → α} : vmap m (vmap n f) = vmap (n ∘ m) f :=
+lemma comap_comap_comp {m : γ → β} {n : β → α} : comap m (comap n f) = comap (n ∘ m) f :=
 le_antisymm
-  (assume c ⟨b, hb, (h : preimage (n ∘ m) b ⊆ c)⟩, ⟨preimage n b, preimage_mem_vmap hb, h⟩)
+  (assume c ⟨b, hb, (h : preimage (n ∘ m) b ⊆ c)⟩, ⟨preimage n b, preimage_mem_comap hb, h⟩)
   (assume c ⟨b, ⟨a, ha, (h₁ : preimage n a ⊆ b)⟩, (h₂ : preimage m b ⊆ c)⟩,
     ⟨a, ha, show preimage m (preimage n a) ⊆ c, from subset.trans (preimage_mono h₁) h₂⟩)
 
-@[simp] theorem vmap_principal {t : set β} : vmap m (principal t) = principal (m ⁻¹' t) :=
+@[simp] theorem comap_principal {t : set β} : comap m (principal t) = principal (m ⁻¹' t) :=
 filter_eq $ set.ext $ assume s,
   ⟨assume ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, subset.trans (preimage_mono hu) b,
     assume : preimage m t ⊆ s, ⟨t, subset.refl t, this⟩⟩
 
-lemma map_le_iff_le_vmap : map m f ≤ g ↔ f ≤ vmap m g :=
+lemma map_le_iff_le_comap : map m f ≤ g ↔ f ≤ comap m g :=
 ⟨assume h s ⟨t, ht, hts⟩, mem_sets_of_superset (h ht) hts, assume h s ht, h ⟨_, ht, subset.refl _⟩⟩
 
-lemma gc_map_vmap (m : α → β) : galois_connection (map m) (vmap m) :=
-assume f g, map_le_iff_le_vmap
+lemma gc_map_comap (m : α → β) : galois_connection (map m) (comap m) :=
+assume f g, map_le_iff_le_comap
 
-lemma map_mono (h : f₁ ≤ f₂) : map m f₁ ≤ map m f₂ := (gc_map_vmap m).monotone_l h
+lemma map_mono (h : f₁ ≤ f₂) : map m f₁ ≤ map m f₂ := (gc_map_comap m).monotone_l h
 lemma monotone_map : monotone (map m) | a b := map_mono
-lemma vmap_mono (h : g₁ ≤ g₂) : vmap m g₁ ≤ vmap m g₂ := (gc_map_vmap m).monotone_u h
-lemma monotone_vmap : monotone (vmap m) | a b := vmap_mono
+lemma comap_mono (h : g₁ ≤ g₂) : comap m g₁ ≤ comap m g₂ := (gc_map_comap m).monotone_u h
+lemma monotone_comap : monotone (comap m) | a b := comap_mono
 
-@[simp] lemma map_bot : map m ⊥ = ⊥ := (gc_map_vmap m).l_bot
-@[simp] lemma map_sup : map m (f₁ ⊔ f₂) = map m f₁ ⊔ map m f₂ := (gc_map_vmap m).l_sup
+@[simp] lemma map_bot : map m ⊥ = ⊥ := (gc_map_comap m).l_bot
+@[simp] lemma map_sup : map m (f₁ ⊔ f₂) = map m f₁ ⊔ map m f₂ := (gc_map_comap m).l_sup
 @[simp] lemma map_supr {f : ι → filter α} : map m (⨆i, f i) = (⨆i, map m (f i)) :=
-(gc_map_vmap m).l_supr
+(gc_map_comap m).l_supr
 
-@[simp] lemma vmap_top : vmap m ⊤ = ⊤ := (gc_map_vmap m).u_top
-@[simp] lemma vmap_inf : vmap m (g₁ ⊓ g₂) = vmap m g₁ ⊓ vmap m g₂ := (gc_map_vmap m).u_inf
-@[simp] lemma vmap_infi {f : ι → filter β} : vmap m (⨅i, f i) = (⨅i, vmap m (f i)) :=
-(gc_map_vmap m).u_infi
+@[simp] lemma comap_top : comap m ⊤ = ⊤ := (gc_map_comap m).u_top
+@[simp] lemma comap_inf : comap m (g₁ ⊓ g₂) = comap m g₁ ⊓ comap m g₂ := (gc_map_comap m).u_inf
+@[simp] lemma comap_infi {f : ι → filter β} : comap m (⨅i, f i) = (⨅i, comap m (f i)) :=
+(gc_map_comap m).u_infi
 
-lemma map_vmap_le : map m (vmap m g) ≤ g := (gc_map_vmap m).l_u_le _
-lemma le_vmap_map : f ≤ vmap m (map m f) := (gc_map_vmap m).le_u_l _
+lemma map_comap_le : map m (comap m g) ≤ g := (gc_map_comap m).l_u_le _
+lemma le_comap_map : f ≤ comap m (map m f) := (gc_map_comap m).le_u_l _
 
-@[simp] lemma vmap_bot : vmap m ⊥ = ⊥ :=
+@[simp] lemma comap_bot : comap m ⊥ = ⊥ :=
 bot_unique $ assume s _, ⟨∅, by simp, by simp⟩
 
-lemma vmap_sup : vmap m (g₁ ⊔ g₂) = vmap m g₁ ⊔ vmap m g₂ :=
+lemma comap_sup : comap m (g₁ ⊔ g₂) = comap m g₁ ⊔ comap m g₂ :=
 le_antisymm
   (assume s ⟨⟨t₁, ht₁, hs₁⟩, ⟨t₂, ht₂, hs₂⟩⟩,
     ⟨t₁ ∪ t₂,
       ⟨g₁.sets_of_superset ht₁ (subset_union_left _ _), g₂.sets_of_superset ht₂ (subset_union_right _ _)⟩,
       union_subset hs₁ hs₂⟩)
-  (sup_le (vmap_mono le_sup_left) (vmap_mono le_sup_right))
+  (sup_le (comap_mono le_sup_left) (comap_mono le_sup_right))
 
-lemma le_map_vmap' {f : filter β} {m : α → β} {s : set β}
-  (hs : s ∈ f.sets) (hm : ∀b∈s, ∃a, m a = b) : f ≤ map m (vmap m f) :=
+lemma le_map_comap' {f : filter β} {m : α → β} {s : set β}
+  (hs : s ∈ f.sets) (hm : ∀b∈s, ∃a, m a = b) : f ≤ map m (comap m f) :=
 assume t' ⟨t, ht, (sub : m ⁻¹' t ⊆ m ⁻¹' t')⟩,
 by filter_upwards [ht, hs] assume x hxt hxs,
   let ⟨y, hy⟩ := hm x hxs in
   hy ▸ sub (show m y ∈ t, from hy.symm ▸ hxt)
 
-lemma le_map_vmap {f : filter β} {m : α → β} (hm : ∀x, ∃y, m y = x) : f ≤ map m (vmap m f) :=
-le_map_vmap' univ_mem_sets (assume b _, hm b)
+lemma le_map_comap {f : filter β} {m : α → β} (hm : ∀x, ∃y, m y = x) : f ≤ map m (comap m f) :=
+le_map_comap' univ_mem_sets (assume b _, hm b)
 
-lemma vmap_map {f : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
-  vmap m (map m f) = f :=
+lemma comap_map {f : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
+  comap m (map m f) = f :=
 have ∀s, preimage m (image m s) = s,
   from assume s, preimage_image_eq s h,
 le_antisymm
@@ -719,7 +719,7 @@ le_antisymm
     image m s,
     f.sets_of_superset hs $ by simp [this, subset.refl],
     by simp [this, subset.refl]⟩)
-  le_vmap_map
+  le_comap_map
 
 lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f.sets) (hsg : s ∈ g.sets) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y)
@@ -743,18 +743,18 @@ le_antisymm
 
 lemma map_inj {f g : filter α} {m : α → β} (hm : ∀ x y, m x = m y → x = y) (h : map m f = map m g) :
   f = g :=
-have vmap m (map m f) = vmap m (map m g), by rw h,
-by rwa [vmap_map hm, vmap_map hm] at this
+have comap m (map m f) = comap m (map m g), by rw h,
+by rwa [comap_map hm, comap_map hm] at this
 
-lemma vmap_neq_bot {f : filter β} {m : α → β}
-  (hm : ∀t∈f.sets, ∃a, m a ∈ t) : vmap m f ≠ ⊥ :=
+lemma comap_neq_bot {f : filter β} {m : α → β}
+  (hm : ∀t∈f.sets, ∃a, m a ∈ t) : comap m f ≠ ⊥ :=
 forall_sets_neq_empty_iff_neq_bot.mp $ assume s ⟨t, ht, t_s⟩,
   let ⟨a, (ha : a ∈ preimage m t)⟩ := hm t ht in
   neq_bot_of_le_neq_bot (ne_empty_of_mem ha) t_s
 
-lemma vmap_neq_bot_of_surj {f : filter β} {m : α → β}
-  (hf : f ≠ ⊥) (hm : ∀b, ∃a, m a = b) : vmap m f ≠ ⊥ :=
-vmap_neq_bot $ assume t ht,
+lemma comap_neq_bot_of_surj {f : filter β} {m : α → β}
+  (hf : f ≠ ⊥) (hm : ∀b, ∃a, m a = b) : comap m f ≠ ⊥ :=
+comap_neq_bot $ assume t ht,
   let
     ⟨b, (hx : b ∈ t)⟩ := inhabited_of_mem_sets hf ht,
     ⟨a, (ha : m a = b)⟩ := hm b
@@ -767,13 +767,13 @@ vmap_neq_bot $ assume t ht,
 lemma map_ne_bot (hf : f ≠ ⊥) : map m f ≠ ⊥ :=
 assume h, hf $ by rwa [map_eq_bot_iff] at h
 
-lemma sInter_vmap_sets (f : α → β) (F : filter β) :
-  ⋂₀(vmap f F).sets = ⋂ U ∈ F.sets, f ⁻¹' U :=
+lemma sInter_comap_sets (f : α → β) (F : filter β) :
+  ⋂₀(comap f F).sets = ⋂ U ∈ F.sets, f ⁻¹' U :=
 begin
   ext x,
   suffices : (∀ (A : set α) (B : set β), B ∈ F.sets → f ⁻¹' B ⊆ A → x ∈ A) ↔
     ∀ (B : set β), B ∈ F.sets → f x ∈ B,
-  by simp [set.mem_sInter, set.mem_Inter, mem_vmap_sets, this],
+  by simp [set.mem_sInter, set.mem_Inter, mem_comap_sets, this],
   split,
   { intros h U U_in,
     simpa [set.subset.refl] using h (f ⁻¹' U) U U_in },
@@ -841,8 +841,8 @@ lemma map_inf {f g : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = 
   map m (f ⊓ g) = map m f ⊓ map m g :=
 map_inf' univ_mem_sets univ_mem_sets (assume x _ y _, h x y)
 
-lemma map_eq_vmap_of_inverse {f : filter α} {m : α → β} {n : β → α}
-  (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = vmap n f :=
+lemma map_eq_comap_of_inverse {f : filter α} {m : α → β} {n : β → α}
+  (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = comap n f :=
 le_antisymm
   (assume b ⟨a, ha, (h : preimage n a ⊆ b)⟩, f.sets_of_superset ha $
     calc a = preimage (n ∘ m) a : by simp [h₂, preimage_id]
@@ -850,8 +850,8 @@ le_antisymm
   (assume b (hb : preimage m b ∈ f.sets),
     ⟨preimage m b, hb, show preimage (m ∘ n) b ⊆ b, by simp [h₁]; apply subset.refl⟩)
 
-lemma map_swap_eq_vmap_swap {f : filter (α × β)} : prod.swap <$> f = vmap prod.swap f :=
-map_eq_vmap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
+lemma map_swap_eq_comap_swap {f : filter (α × β)} : prod.swap <$> f = comap prod.swap f :=
+map_eq_comap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
 
 /- bind equations -/
 
@@ -950,9 +950,9 @@ def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f 
 lemma tendsto_def {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ ∀ s ∈ l₂.sets, f ⁻¹' s ∈ l₁.sets := iff.rfl
 
-lemma tendsto_iff_vmap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
-  tendsto f l₁ l₂ ↔ l₁ ≤ l₂.vmap f :=
-map_le_iff_le_vmap
+lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
+  tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
+map_le_iff_le_comap
 
 lemma tendsto_cong {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
   (h : tendsto f₁ l₁ l₂) (hl : {x | f₁ x = f₂ x} ∈ l₁.sets) : tendsto f₂ l₁ l₂ :=
@@ -987,28 +987,28 @@ lemma tendsto_map'_iff {f : β → γ} {g : α → β} {x : filter α} {y : filt
   tendsto f (map g x) y ↔ tendsto (f ∘ g) x y :=
 by rw [tendsto, map_map]; refl
 
-lemma tendsto_vmap {f : α → β} {x : filter β} : tendsto f (vmap f x) x :=
-map_vmap_le
+lemma tendsto_comap {f : α → β} {x : filter β} : tendsto f (comap f x) x :=
+map_comap_le
 
-lemma tendsto_vmap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} :
-  tendsto f a (c.vmap g) ↔ tendsto (g ∘ f) a c :=
-⟨assume h, h.comp tendsto_vmap, assume h, map_le_iff_le_vmap.mp $ by rwa [map_map]⟩
+lemma tendsto_comap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} :
+  tendsto f a (c.comap g) ↔ tendsto (g ∘ f) a c :=
+⟨assume h, h.comp tendsto_comap, assume h, map_le_iff_le_comap.mp $ by rwa [map_map]⟩
 
-lemma tendsto_vmap'' {m : α → β} {f : filter α} {g : filter β} (s : set α)
+lemma tendsto_comap'' {m : α → β} {f : filter α} {g : filter β} (s : set α)
   {i : γ → α} (hs : s ∈ f.sets) (hi : ∀a∈s, ∃c, i c = a)
-  (h : tendsto (m ∘ i) (vmap i f) g) : tendsto m f g :=
-have tendsto m (map i $ vmap i $ f) g,
+  (h : tendsto (m ∘ i) (comap i f) g) : tendsto m f g :=
+have tendsto m (map i $ comap i $ f) g,
   by rwa [tendsto, ←map_compose] at h,
-le_trans (map_mono $ le_map_vmap' hs hi) this
+le_trans (map_mono $ le_map_comap' hs hi) this
 
-lemma vmap_eq_of_inverse {f : filter α} {g : filter β}
+lemma comap_eq_of_inverse {f : filter α} {g : filter β}
   {φ : α → β} {ψ : β → α} (inv₁ : φ ∘ ψ = id) (inv₂ : ψ ∘ φ = id)
-  (lim₁ : tendsto φ f g) (lim₂ : tendsto ψ g f) : vmap φ g = f :=
+  (lim₁ : tendsto φ f g) (lim₂ : tendsto ψ g f) : comap φ g = f :=
 begin
   have ineq₁ := calc
-    vmap φ g = map ψ g : eq.symm (map_eq_vmap_of_inverse inv₂ inv₁)
+    comap φ g = map ψ g : eq.symm (map_eq_comap_of_inverse inv₂ inv₁)
          ... ≤ f : lim₂,
-  have ineq₂ : f ≤ vmap φ g := map_le_iff_le_vmap.1 lim₁,
+  have ineq₂ : f ≤ comap φ g := map_le_iff_le_comap.1 lim₁,
   exact le_antisymm ineq₁ ineq₂
 end
 
@@ -1084,19 +1084,19 @@ have monotone (map m ∘ g),
 filter_eq $ set.ext $
   by simp [mem_lift_sets, hg, @mem_lift_sets _ _ f _ this]
 
-lemma vmap_lift_eq {m : γ → β} (hg : monotone g) : vmap m (f.lift g) = f.lift (vmap m ∘ g) :=
-have monotone (vmap m ∘ g),
-  from monotone_comp hg monotone_vmap,
+lemma comap_lift_eq {m : γ → β} (hg : monotone g) : comap m (f.lift g) = f.lift (comap m ∘ g) :=
+have monotone (comap m ∘ g),
+  from monotone_comp hg monotone_comap,
 filter_eq $ set.ext begin
-  simp only [hg, @mem_lift_sets _ _ f _ this, vmap, mem_lift_sets, mem_set_of_eq, exists_prop,
+  simp only [hg, @mem_lift_sets _ _ f _ this, comap, mem_lift_sets, mem_set_of_eq, exists_prop,
     function.comp_apply],
   exact λ s,
    ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩,
     λ ⟨a, ha, b, hb, hs⟩, ⟨b, ⟨a, ha, hb⟩, hs⟩⟩
 end
 
-theorem vmap_lift_eq2 {m : β → α} {g : set β → filter γ} (hg : monotone g) :
-  (vmap m f).lift g = f.lift (g ∘ preimage m) :=
+theorem comap_lift_eq2 {m : β → α} {g : set β → filter γ} (hg : monotone g) :
+  (comap m f).lift g = f.lift (g ∘ preimage m) :=
 le_antisymm
   (le_infi $ assume s, le_infi $ assume hs,
     infi_le_of_le (preimage m s) $ infi_le _ ⟨s, hs, subset.refl _⟩)
@@ -1209,7 +1209,7 @@ end lift
 
 section lift'
 /-- Specialize `lift` to functions `set α → set β`. This can be viewed as
-  a generalization of `vmap`. -/
+  a generalization of `comap`. -/
 protected def lift' (f : filter α) (h : set α → set β) :=
 f.lift (principal ∘ h)
 
@@ -1246,15 +1246,15 @@ lemma map_lift'_eq2 {g : set β → set γ} {m : α → β} (hg : monotone g) :
   (map m f).lift' g = f.lift' (g ∘ image m) :=
 map_lift_eq2 $ monotone_comp hg monotone_principal
 
-theorem vmap_lift'_eq {m : γ → β} (hh : monotone h) :
-  vmap m (f.lift' h) = f.lift' (preimage m ∘ h) :=
-calc vmap m (f.lift' h) = f.lift (vmap m ∘ principal ∘ h) :
-    vmap_lift_eq $ monotone_comp hh monotone_principal
+theorem comap_lift'_eq {m : γ → β} (hh : monotone h) :
+  comap m (f.lift' h) = f.lift' (preimage m ∘ h) :=
+calc comap m (f.lift' h) = f.lift (comap m ∘ principal ∘ h) :
+    comap_lift_eq $ monotone_comp hh monotone_principal
   ... = f.lift' (preimage m ∘ h) : by simp [function.comp, filter.lift']
 
-theorem vmap_lift'_eq2 {m : β → α} {g : set β → set γ} (hg : monotone g) :
-  (vmap m f).lift' g = f.lift' (g ∘ preimage m) :=
-vmap_lift_eq2 $ monotone_comp hg monotone_principal
+theorem comap_lift'_eq2 {m : β → α} {g : set β → set γ} (hg : monotone g) :
+  (comap m f).lift' g = f.lift' (g ∘ preimage m) :=
+comap_lift_eq2 $ monotone_comp hg monotone_principal
 
 lemma lift'_principal {s : set α} (hh : monotone h) :
   (principal s).lift' h = principal (h s) :=
@@ -1334,9 +1334,9 @@ lemma lift'_infi {f : ι → filter α} {g : set α → set β}
   (hι : nonempty ι) (hg : ∀{s t}, g s ∩ g t = g (s ∩ t)) : (infi f).lift' g = (⨅i, (f i).lift' g) :=
 lift_infi hι $ by simp; apply assume s t, hg
 
-theorem vmap_eq_lift' {f : filter β} {m : α → β} :
-  vmap m f = f.lift' (preimage m) :=
-filter_eq $ set.ext $ by simp [mem_lift'_sets, monotone_preimage, vmap]
+theorem comap_eq_lift' {f : filter β} {m : α → β} :
+  comap m f = f.lift' (preimage m) :=
+filter_eq $ set.ext $ by simp [mem_lift'_sets, monotone_preimage, comap]
 
 end lift'
 
@@ -1360,11 +1360,11 @@ variables {s : set α} {t : set β} {f : filter α} {g : filter β}
 /-- Product of filters. This is the filter generated by cartesian products
   of elements of the component filters. -/
 protected def prod (f : filter α) (g : filter β) : filter (α × β) :=
-f.vmap prod.fst ⊓ g.vmap prod.snd
+f.comap prod.fst ⊓ g.comap prod.snd
 
 lemma prod_mem_prod {s : set α} {t : set β} {f : filter α} {g : filter β}
   (hs : s ∈ f.sets) (ht : t ∈ g.sets) : set.prod s t ∈ (filter.prod f g).sets :=
-inter_mem_inf_sets (preimage_mem_vmap hs) (preimage_mem_vmap ht)
+inter_mem_inf_sets (preimage_mem_comap hs) (preimage_mem_comap ht)
 
 lemma mem_prod_iff {s : set (α×β)} {f : filter α} {g : filter β} :
   s ∈ (filter.prod f g).sets ↔ (∃t₁∈f.sets, ∃t₂∈g.sets, set.prod t₁ t₂ ⊆ s) :=
@@ -1378,37 +1378,37 @@ begin
 end
 
 lemma tendsto_fst {f : filter α} {g : filter β} : tendsto prod.fst (filter.prod f g) f :=
-tendsto_inf_left tendsto_vmap
+tendsto_inf_left tendsto_comap
 
 lemma tendsto_snd {f : filter α} {g : filter β} : tendsto prod.snd (filter.prod f g) g :=
-tendsto_inf_right tendsto_vmap
+tendsto_inf_right tendsto_comap
 
 lemma tendsto.prod_mk {f : filter α} {g : filter β} {h : filter γ} {m₁ : α → β} {m₂ : α → γ}
   (h₁ : tendsto m₁ f g) (h₂ : tendsto m₂ f h) : tendsto (λx, (m₁ x, m₂ x)) f (filter.prod g h) :=
-tendsto_inf.2 ⟨tendsto_vmap_iff.2 h₁, tendsto_vmap_iff.2 h₂⟩
+tendsto_inf.2 ⟨tendsto_comap_iff.2 h₁, tendsto_comap_iff.2 h₂⟩
 
 lemma prod_infi_left {f : ι → filter α} {g : filter β} (i : ι) :
   filter.prod (⨅i, f i) g = (⨅i, filter.prod (f i) g) :=
-by rw [filter.prod, vmap_infi, infi_inf i]; simp [filter.prod]
+by rw [filter.prod, comap_infi, infi_inf i]; simp [filter.prod]
 
 lemma prod_infi_right {f : filter α} {g : ι → filter β} (i : ι) :
   filter.prod f (⨅i, g i) = (⨅i, filter.prod f (g i)) :=
-by rw [filter.prod, vmap_infi, inf_infi i]; simp [filter.prod]
+by rw [filter.prod, comap_infi, inf_infi i]; simp [filter.prod]
 
 lemma prod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
   filter.prod f₁ g₁ ≤ filter.prod f₂ g₂ :=
-inf_le_inf (vmap_mono hf) (vmap_mono hg)
+inf_le_inf (comap_mono hf) (comap_mono hg)
 
-lemma prod_vmap_vmap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
+lemma prod_comap_comap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : β₁ → α₁} {m₂ : β₂ → α₂} :
-  filter.prod (vmap m₁ f₁) (vmap m₂ f₂) = vmap (λp:β₁×β₂, (m₁ p.1, m₂ p.2)) (filter.prod f₁ f₂) :=
-by simp [filter.prod, vmap_vmap_comp]
+  filter.prod (comap m₁ f₁) (comap m₂ f₂) = comap (λp:β₁×β₂, (m₁ p.1, m₂ p.2)) (filter.prod f₁ f₂) :=
+by simp [filter.prod, comap_comap_comp]
 
-lemma prod_comm' : filter.prod f g = vmap (prod.swap) (filter.prod g f) :=
-by simp [filter.prod, vmap_vmap_comp, function.comp, inf_comm]
+lemma prod_comm' : filter.prod f g = comap (prod.swap) (filter.prod g f) :=
+by simp [filter.prod, comap_comap_comp, function.comp, inf_comm]
 
 lemma prod_comm : filter.prod f g = map (λp:β×α, (p.2, p.1)) (filter.prod g f) :=
-by rw [prod_comm', ← map_swap_eq_vmap_swap]; refl
+by rw [prod_comm', ← map_swap_eq_comap_swap]; refl
 
 lemma prod_map_map_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :
@@ -1424,22 +1424,22 @@ le_antisymm
 
 lemma prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :
   filter.prod f₁ g₁ ⊓ filter.prod f₂ g₂ = filter.prod (f₁ ⊓ f₂) (g₁ ⊓ g₂) :=
-by simp only [filter.prod, vmap_inf, inf_comm, inf_assoc, lattice.inf_left_comm]
+by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, lattice.inf_left_comm]
 
 @[simp] lemma prod_bot1 {f : filter α} : filter.prod f (⊥ : filter β) = ⊥ := by simp [filter.prod]
 @[simp] lemma prod_bot2 {g : filter β} : filter.prod (⊥ : filter α) g = ⊥ := by simp [filter.prod]
 
 @[simp] lemma prod_principal_principal {s : set α} {t : set β} :
   filter.prod (principal s) (principal t) = principal (set.prod s t) :=
-by simp [filter.prod, vmap_principal]; refl
+by simp [filter.prod, comap_principal]; refl
 
 lemma prod_def {f : filter α} {g : filter β} : f.prod g = (f.lift $ λs, g.lift' $ set.prod s) :=
 have ∀(s:set α) (t : set β),
-    principal (set.prod s t) = (principal s).vmap prod.fst ⊓ (principal t).vmap prod.snd,
+    principal (set.prod s t) = (principal s).comap prod.fst ⊓ (principal t).comap prod.snd,
   by simp; intros; refl,
 begin
-  simp [filter.lift', function.comp, this, -vmap_principal, lift_inf],
-  rw [← vmap_lift_eq monotone_principal, ← vmap_lift_eq monotone_principal],
+  simp [filter.lift', function.comp, this, -comap_principal, lift_inf],
+  rw [← comap_lift_eq monotone_principal, ← comap_lift_eq monotone_principal],
   simp [filter.prod]
 end
 

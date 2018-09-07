@@ -481,8 +481,8 @@ theorem induced_orderable_topology' {α : Type u} {β : Type v}
 begin
   letI := induced f ta,
   refine ⟨eq_of_nhds_eq_nhds (λ a, _)⟩,
-  rw [nhds_induced_eq_vmap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
-  { rw [← map_le_iff_le_vmap],
+  rw [nhds_induced_eq_comap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
+  { rw [← map_le_iff_le_comap],
     refine le_inf _ _; refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _); simp,
     { rcases H₁ h with ⟨b, ab, xb⟩,
       refine mem_infi_sets _ (mem_infi_sets ⟨ab, b, or.inl rfl⟩ (mem_principal_sets.2 _)),
@@ -492,10 +492,10 @@ begin
       exact λ c hc, lt_of_lt_of_le (hf.2 hc) xb } },
   refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
   rcases hs with ⟨ab, b, rfl|rfl⟩,
-  { exact mem_vmap_sets.2 ⟨{x | f b < x},
+  { exact mem_comap_sets.2 ⟨{x | f b < x},
       mem_inf_sets_of_left $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
       λ x, hf.1⟩ },
-  { exact mem_vmap_sets.2 ⟨{x | x < f b},
+  { exact mem_comap_sets.2 ⟨{x | x < f b},
       mem_inf_sets_of_right $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
       λ x, hf.1⟩ }
 end
@@ -660,8 +660,8 @@ end linear_order
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
 
-lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = vmap (has_neg.neg : α → α) :=
-funext $ assume f, map_eq_vmap_of_inverse (funext neg_neg) (funext neg_neg)
+lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
+funext $ assume f, map_eq_comap_of_inverse (funext neg_neg) (funext neg_neg)
 
 section topological_add_group
 

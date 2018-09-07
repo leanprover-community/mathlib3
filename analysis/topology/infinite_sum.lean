@@ -143,13 +143,13 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     set.ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
     by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_right] },
   have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
-      (⨅b (h : b ∈ bs), at_top.vmap (λp, p b)) (nhds (bs.sum g)),
+      (⨅b (h : b ∈ bs), at_top.comap (λp, p b)) (nhds (bs.sum g)),
     from tendsto_finset_sum bs $
-      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_vmap.comp (hf c),
+      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_comap.comp (hf c),
   have bs.sum g ∈ s,
     from mem_closure_of_tendsto this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
       by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,
-               filter.mem_infi_sets_finset, mem_vmap_sets, skolem, mem_at_top_sets,
+               filter.mem_infi_sets_finset, mem_comap_sets, skolem, mem_at_top_sets,
                and_comm];
       from
         assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',

@@ -416,7 +416,7 @@ lemma mem_closure_of_tendsto {f : β → α} {x : filter β} {a : α} {s : set �
   (hf : tendsto f x (nhds a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
 is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
-    le_trans (map_mono $ inf_le_right_of_le $ by simp; exact subset.refl _) (@map_vmap_le _ _ _ f)
+    le_trans (map_mono $ inf_le_right_of_le $ by simp; exact subset.refl _) (@map_comap_le _ _ _ f)
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite

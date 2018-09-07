@@ -131,7 +131,7 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr rfl begin simp [hf] {contextual := tt} end,
 by rw [←prod_sdiff h]; simp [this]
 
-@[to_additive sum_eq_single]
+@[to_additive finset.sum_eq_single]
 lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
   (h₀ : ∀b∈s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : s.prod f = f a :=
 by haveI := classical.dec_eq α;

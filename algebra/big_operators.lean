@@ -150,7 +150,7 @@ from classical.by_cases
     calc s.prod f = (∅ : finset α).prod f : (prod_subset (empty_subset s) $ by simpa).symm
       ... = f a : (h₁ ‹a ∉ s›).symm)
 
-@[to_additive sum_attach]
+@[to_additive finset.sum_attach]
 lemma prod_attach {f : α → β} : s.attach.prod (λx, f x.val) = s.prod f :=
 by haveI := classical.dec_eq α; exact
 calc s.attach.prod (λx, f x.val) = ((s.attach).image subtype.val).prod f :

@@ -447,15 +447,15 @@ have ∀i, p i ≠ 0 → i ≠ nat_degree p →
     q.support.sum (λj, ite (i + j = nat_degree p + nat_degree q) (p i * q j) 0) = 0,
 begin
   assume i hpi hid,
-  rw [sum_eq_single (nat_degree q)]; simp [hid],
+  rw [finset.sum_eq_single (nat_degree q)]; simp [hid],
   assume j hqj hjd,
   have hi : j < nat_degree q, from lt_of_le_of_ne (le_nat_degree_of_ne_zero hqj) hjd,
   have hj : i < nat_degree p, from lt_of_le_of_ne (le_nat_degree_of_ne_zero hpi) hid,
   exact if_neg (ne_of_lt $ add_lt_add hj hi)
 end,
 begin
-  rw [mul_def, sum_apply, finsupp.sum, sum_eq_single (nat_degree p),
-      sum_apply, finsupp.sum, sum_eq_single (nat_degree q)];
+  rw [mul_def, sum_apply, finsupp.sum, finset.sum_eq_single (nat_degree p),
+      sum_apply, finsupp.sum, finset.sum_eq_single (nat_degree q)];
     simp [single_apply, leading_coeff] {contextual := tt},
   assumption
 end
@@ -1126,7 +1126,7 @@ lemma derivative_apply (p : polynomial α) (n : ℕ) : (derivative p) n = p (n +
 begin
   rw [derivative],
   simp [finsupp.sum],
-  rw [sum_eq_single (n + 1)]; simp {contextual := tt},
+  rw [finset.sum_eq_single (n + 1)]; simp {contextual := tt},
   assume b, cases b; simp [nat.succ_eq_add_one] {contextual := tt},
 end
 

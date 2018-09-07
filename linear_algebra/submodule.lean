@@ -3,10 +3,12 @@ Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro and Kevin Buzzard
 -/
+import order.order_iso
+import tactic.tidy
+
 import linear_algebra.subtype_module
 import linear_algebra.quotient_module
-import tactic.tidy
-import order.order_iso
+import linear_algebra.prod_module
 
 local attribute [instance] classical.dec
 open lattice function set
@@ -86,6 +88,7 @@ end
 theorem span_union (s t : set β) : (span (s ∪ t) : submodule α β) = span s ⊔ span t :=
 (@submodule.galois_insertion α β _ _).gc.l_sup
 
+/-- The pushforward -/
 def map (f : β → γ) (h : is_linear_map f) (m : submodule α β) : submodule α γ :=
 by letI := m.to_is_submodule; exact ⟨f '' m, is_submodule.image h⟩
 
@@ -102,6 +105,7 @@ by ext : 2; simp [-mem_coe, coe_map, (set.image_comp g f _).symm]
 lemma injective_map (f : β → γ) (h : is_linear_map f) (hf : injective f) : injective (map f h) :=
 assume a b eq, by rwa [← submodule.ext_iff, coe_map, coe_map, image_eq_image hf, submodule.ext_iff] at eq
 
+/-- The pullback -/
 def comap (f : β → γ) (h : is_linear_map f) (m : submodule α γ) : submodule α β :=
 by letI := m.to_is_submodule; exact ⟨f ⁻¹' m, is_submodule.preimage h⟩
 
@@ -199,6 +203,16 @@ def comap_quotient.order_iso :
   ord := by tidy }
 
 end quotient
+
+section prod
+
+def prod (s : submodule α β) (t : submodule α γ) : submodule α (β × γ) :=
+comap prod.fst prod.is_linear_map_prod_fst s ⊓ comap prod.snd prod.is_linear_map_prod_snd t
+
+lemma coe_prod (s : submodule α β) (t : submodule α γ) : (prod s t : set (β × γ)) = set.prod s t :=
+rfl
+
+end prod
 
 end submodule
 

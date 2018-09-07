@@ -67,7 +67,7 @@ end tidy
 meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy.core cfg >> skip
 
 namespace interactive
-meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy
+meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy cfg
 end interactive
 
 @[hole_command] meta def tidy_hole_cmd : hole_command :=

@@ -1273,7 +1273,7 @@ let ⟨⟨i, h⟩, e⟩ := @min_eq S _ _ in
 (show omin S H = i, from e).symm ▸ h
 
 theorem le_omin {S H a} : a ≤ omin S H ↔ ∀ i ∈ S, a ≤ i :=
-le_min.trans set.set_coe.forall
+le_min.trans set_coe.forall
 
 theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
 le_omin.1 (le_refl _) _ h

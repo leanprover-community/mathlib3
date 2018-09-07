@@ -499,6 +499,10 @@ noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
 noncomputable def {u} rec_on {C : Sort u} (h : ∃ a, p a) (H : ∀ a, p a → C) : C :=
 H (classical.some h) (classical.some_spec h)
 
+lemma some_spec2 {α : Type*} {p : α → Prop} {h : ∃a, p a}
+  (q : α → Prop) (hpq : ∀a, p a → q a) : q (some h) :=
+hpq _ $ some_spec _
+
 end classical
 
 /-

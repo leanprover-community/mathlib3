@@ -59,6 +59,10 @@ theorem finite.exists_finset {s : set α} : finite s →
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
 | ⟨h⟩ := by exactI ⟨to_finset s, λ _, mem_to_finset⟩
 
+theorem finite.exists_finset_coe {s : set α} (hs : finite s) :
+  ∃ s' : finset α, ↑s' = s :=
+let ⟨s', h⟩ := hs.exists_finset in ⟨s', set.ext h⟩
+
 theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 ⟨fintype_of_finset s (λ _, iff.rfl)⟩
 

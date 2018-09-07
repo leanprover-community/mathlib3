@@ -68,7 +68,7 @@ continuous_subtype_val
 
 lemma tendsto_coe {f : filter α} {m : α → nnreal} :
   ∀{x : nnreal}, tendsto (λa, (m a : ℝ)) f (nhds (x : ℝ)) ↔ tendsto m f (nhds x)
-| ⟨r, hr⟩ := by rw [nhds_subtype_eq_vmap, tendsto_vmap_iff]; refl
+| ⟨r, hr⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]; refl
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)):
   tendsto (λa, nnreal.of_real (m a)) f (nhds (nnreal.of_real x)) :=

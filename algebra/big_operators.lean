@@ -131,7 +131,7 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr rfl begin simp [hf] {contextual := tt} end,
 by rw [←prod_sdiff h]; simp [this]
 
-@[to_additive sum_eq_single]
+@[to_additive finset.sum_eq_single]
 lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
   (h₀ : ∀b∈s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : s.prod f = f a :=
 by haveI := classical.dec_eq α;
@@ -150,7 +150,7 @@ from classical.by_cases
     calc s.prod f = (∅ : finset α).prod f : (prod_subset (empty_subset s) $ by simpa).symm
       ... = f a : (h₁ ‹a ∉ s›).symm)
 
-@[to_additive sum_attach]
+@[to_additive finset.sum_attach]
 lemma prod_attach {f : α → β} : s.attach.prod (λx, f x.val) = s.prod f :=
 by haveI := classical.dec_eq α; exact
 calc s.attach.prod (λx, f x.val) = ((s.attach).image subtype.val).prod f :

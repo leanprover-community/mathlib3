@@ -23,7 +23,7 @@ namespace category_theory
 
 universes u v
 
-/- 
+/-
 The propositional fields of `category` are annotated with the auto_param `obviously`, which is
 defined here as a [`replacer` tactic](https://github.com/leanprover/mathlib/blob/master/docs/tactics.md#def_replacer).
 We then immediately set up `obviously` to call `tidy`. Later, this can be replaced with more
@@ -34,7 +34,7 @@ def_replacer obviously
 
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.
-The universe levels of the objects and morphisms are unconstrained, and will often need to be 
+The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{u v} C`. (See also `large_category` and `small_category`.)
 -/
 class category (obj : Type u) : Type (max u (v+1)) :=
@@ -57,7 +57,7 @@ restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
 
 /--
-A `large_category` has objects in one universe level higher than the universe level of the morphisms. 
+A `large_category` has objects in one universe level higher than the universe level of the morphisms.
 It is useful for examples such as the category of types, or the category of groups, etc.
 -/
 abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u+1 u} C
@@ -66,18 +66,32 @@ A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
 
+/-- `concrete_category c h _ _` constructs a concrete category from a class `c` and a morphism
+predicate `hom`. `c` is usually a type class like `topological_space` and `hom` is `continuous`. -/
+structure concrete_category {C : Type u → Type v}
+  (hom : out_param $ ∀{α β : Type u}, C α → C β → (α → β) → Prop) :=
+(hom_id : ∀{α} (ia : C α), hom ia ia id)
+(hom_comp : ∀{α β γ} (ia : C α) (ib : C β) (ic : C γ) {f g}, hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
+attribute [class] concrete_category
+
+instance {C : Type u → Type v} (hom : ∀{α β : Type u}, C α → C β → (α → β) → Prop)
+  [h : concrete_category @hom] : category (sigma C) :=
+{ hom   := λa b, subtype (hom a.2 b.2),
+  id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
+  comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
+
 section
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}
 include 𝒞
 
-class epi  (f : X ⟶ Y) : Prop := 
+class epi  (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  (g h : Y ⟶ Z) : (f ≫ g = f ≫ h) ↔ g = h := 
+@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  (g h : Y ⟶ Z) : (f ≫ g = f ≫ h) ↔ g = h :=
 ⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
-@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] (g h : Z ⟶ X) : (g ≫ f = h ≫ f) ↔ g = h := 
+@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] (g h : Z ⟶ X) : (g ≫ f = h ≫ f) ↔ g = h :=
 ⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
 end
 
@@ -85,7 +99,7 @@ section
 variable (C : Type u)
 variable [small_category C]
 
-instance : large_category (ulift.{(u+1)} C) := 
+instance : large_category (ulift.{(u+1)} C) :=
 { hom  := λ X Y, (X.down ⟶ Y.down),
   id   := λ X, 𝟙 X.down,
   comp := λ _ _ _ f g, f ≫ g }

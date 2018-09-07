@@ -99,6 +99,9 @@ instance quotient.module : module α Q :=
 @[simp] lemma coe_smul (a : α) (b : β) : ((a • b : β) : Q) = a • b := rfl
 @[simp] lemma coe_add (a b : β) : ((a + b : β) : Q) = a + b := rfl
 
+lemma coe_eq_zero (b : β) : (b : quotient β s) = 0 ↔ b ∈ s :=
+by rw [← (coe_zero s), quotient_module.eq]; simp
+
 instance quotient.inhabited : inhabited Q := ⟨0⟩
 
 lemma is_linear_map_quotient_mk : @is_linear_map _ _ Q _ _ _ (λb, mk b : β → Q) :=

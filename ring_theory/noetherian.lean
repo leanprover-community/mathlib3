@@ -1,8 +1,14 @@
-import ring_theory.ideals data.fintype order.order_iso data.polynomial linear_algebra.subtype_module
+/-
+Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro and Kevin Buzzard
+-/
+
+import order.order_iso
+import data.fintype data.polynomial
 import tactic.tidy
-import ring_theory.submodule -- KMB moved some stuff from this file to here 
-import linear_algebra.quotient_module
-import ring_theory.correspondence_theorem
+import linear_algebra.submodule
+import ring_theory.ideals
 
 local attribute [instance] classical.dec
 open set lattice
@@ -15,8 +21,6 @@ namespace submodule
 universes u v
 variables {α : Type u} {β : Type v} [ring α] [module α β]
 
--- KMB moved around 90 lines to ring_theory/submodule.lean
-
 def fg (s : submodule α β) : Prop := is_fg (s : set β)
 
 theorem fg_def {s : submodule α β} :
@@ -26,10 +30,6 @@ theorem fg_def {s : submodule α β} :
   rcases finite.exists_finset_coe h with ⟨t, rfl⟩,
   exact ⟨t, rfl⟩
 end⟩
-
-def univ : submodule α β :=
-{ s := univ,
-  sub := is_submodule.univ }
 
 end submodule
 
@@ -81,7 +81,7 @@ theorem is_noetherian_iff_well_founded
     { intro hn, apply h₂,
       simpa using submodule.span_subset_iff.1 (le_trans le_sup_right hn) },
     rcases IH (M ⊔ submodule.span {x})
-      ⟨le_sup_left, this⟩
+      ⟨@le_sup_left _ _ M _, this⟩
       (sup_le MN (submodule.span_subset_iff.2 (by simpa))) with ⟨s, hs, hs₂⟩,
     refine ⟨insert x s, finite_insert _ hs, _⟩,
     rw [← hs₂, sup_assoc, ← submodule.span_union], simp }

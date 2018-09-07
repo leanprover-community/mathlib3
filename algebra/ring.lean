@@ -68,6 +68,7 @@ class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f
 (map_mul : ∀ {x y}, f (x * y) = f x * f y)
 
 namespace is_semiring_hom
+
 variables {β : Type v} [semiring α] [semiring β]
 variables (f : α → β) [is_semiring_hom f] {x y : α}
 
@@ -79,6 +80,12 @@ instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   map_one := by simp [map_one f]; exact map_one g,
   map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl }
+
+instance : is_add_monoid_hom f :=
+{ ..‹is_semiring_hom f› }
+
+instance : is_monoid_hom f :=
+{ ..‹is_semiring_hom f› }
 
 end is_semiring_hom
 
@@ -130,11 +137,12 @@ section comm_ring
 end comm_ring
 
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
 (map_one : f 1 = 1)
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
 
 namespace is_ring_hom
+
 variables {β : Type v} [ring α] [ring β]
 
 def of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
@@ -164,7 +172,7 @@ instance : is_semiring_hom f :=
 { map_zero := map_zero f, ..‹is_ring_hom f› }
 
 instance : is_add_group_hom f :=
-⟨λ _ _, is_ring_hom.map_add f⟩
+⟨λ _ _, map_add f⟩
 
 end is_ring_hom
 

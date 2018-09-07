@@ -185,6 +185,9 @@ begin
     exact ⟨a⟩ }
 end
 
+instance univ_decidable : decidable_pred (@set.univ α) :=
+λ x, is_true trivial
+
 /- union -/
 
 theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl

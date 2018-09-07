@@ -109,6 +109,19 @@ by_contradiction
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
 nat.find_min' (exists_pow_eq_one a) ⟨hn, h⟩
 
+lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
+  ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
+  = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
+calc ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
+    = _ : (finset.card_bind (by simp [finset.ext]; cc)).symm
+... = _ : congr_arg finset.card (finset.ext.2 (begin
+  assume a,
+  suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
+  { simpa [-finset.range_succ, nat.lt_succ_iff], },
+  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, _root_.one_pow],
+    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
+end))
+
 section
 local attribute [instance] set_fintype
 
@@ -164,5 +177,25 @@ let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
 end
+
+section cyclic
+
+local attribute [instance] set_fintype
+
+class is_cyclic (α : Type*) [group α] : Prop :=
+(exists_generator : ∃ g : α, ∀ x, x ∈ gpowers g)
+
+lemma is_cyclic_of_order_of_eq_card [group α] [fintype α] [decidable_eq α]
+  (x : α) (hx : order_of x = fintype.card α) : is_cyclic α :=
+⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
+  (set.subset_univ _)
+  (by rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers])⟩⟩
+
+lemma order_of_eq_card_of_forall_mem_gppowers [group α] [fintype α] [decidable_eq α]
+  {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
+by rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers];
+  simp [hx]; congr
+
+end cyclic
 
 end order_of

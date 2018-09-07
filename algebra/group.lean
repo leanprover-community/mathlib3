@@ -225,10 +225,10 @@ instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
 instance : has_inv (units α) := ⟨units.inv'⟩
 
 variables (a b)
-@[simp] lemma mul_coe : (↑(a * b) : α) = a * b := rfl
-@[simp] lemma one_coe : ((1 : units α) : α) = 1 := rfl
+@[simp] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
+@[simp] lemma coe_one : ((1 : units α) : α) = 1 := rfl
 lemma val_coe : (↑a : α) = a.val := rfl
-lemma inv_coe : ((a⁻¹ : units α) : α) = a.inv := rfl
+lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
 @[simp] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 
@@ -273,6 +273,16 @@ end
 
 def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units α :=
 ⟨a, b, hab, by rwa mul_comm a b at hab⟩
+
+def units.mk_of_ne_zero [field α] {a : α} (ha : a ≠ 0) : units α :=
+⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
+
+@[simp] lemma units.mk_of_ne_zero_inj {α : Type*} [field α] {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+  units.mk_of_ne_zero ha = units.mk_of_ne_zero hb ↔ a = b :=
+⟨λ h, by injection h, λ h, units.ext h⟩
+
+@[simp] lemma units.coe_of_ne_zero {α : Type*} [field α] {a : α} (ha : a ≠ 0) :
+  (units.mk_of_ne_zero ha : α) = a := rfl
 
 @[to_additive with_zero]
 def with_one (α) := option α

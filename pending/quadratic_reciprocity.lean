@@ -52,7 +52,6 @@ end
 lemma two_mul_odd_div_two {n : ℕ} (hn : n % 2 = 1) : 2 * (n / 2) = n - 1 :=
 by conv {to_rhs, rw [← nat.mod_add_div n 2, hn, nat.add_sub_cancel_left]}
 
-
 open polynomial finset nat
 
 lemma sum_card_order_of_eq_card_pow_eq_one {α : Type*} [fintype α] [group α] [decidable_eq α] {n : ℕ} (hn : 0 < n) :
@@ -217,19 +216,19 @@ by rw [card_units, card_zmodp]
 by rw [← coe_units_of_nonzero ha, ← @units.one_coe (zmodp p hp), ← units.coe_pow, ← units.ext_iff,
     ← card_units_zmodp hp, pow_card_eq_one]
 
-lemma gpowers_eq_powers {α : Type*} [group α] [fintype α] (a : α) : gpowers a = powers a :=
+lemma powers_eq_gpowers {α : Type*} [group α] [fintype α] (a : α) : powers a = gpowers a :=
 by haveI := classical.dec_eq α; exact
-set.ext (λ x, ⟨λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
-  by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩,
-λ ⟨n, hn⟩, ⟨n, by simp * at *⟩⟩)
+set.ext (λ x, ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
+  λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
+    by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩⟩)
 
-lemma euler_criterion {x : units (zmodp p hp)} :
+lemma euler_criterion_units {x : units (zmodp p hp)} :
   (∃ y : units (zmodp p hp), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 hp.eq_two_or_odd.elim
   (λ h, by subst h; revert x; exact dec_trivial)
   (λ hp1, let ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmodp p hp)) in
-    let ⟨n, hn⟩ := show x ∈ powers g, from gpowers_eq_powers g ▸ hg x in
+    let ⟨n, hn⟩ := show x ∈ powers g, from (powers_eq_gpowers g).symm ▸ hg x in
     ⟨λ ⟨y, hy⟩, by rw [← hy, ← pow_mul, two_mul_odd_div_two hp1,
         ← card_units_zmodp hp, pow_card_eq_one],
     λ hx, have 2 * (p / 2) ∣ n * (p / 2),
@@ -237,6 +236,15 @@ hp.eq_two_or_odd.elim
         exact order_of_dvd_of_pow_eq_one (by rwa [pow_mul, hn]),
       let ⟨m, hm⟩ := dvd_of_mul_dvd_mul_right (nat.div_pos hp.ge_two dec_trivial) this in
       ⟨g ^ m, by rwa [← pow_mul, mul_comm, ← hm]⟩⟩)
+
+lemma euler_criterion {x : zmodp p hp} (hx : x ≠ 0) :
+  (∃ y : zmodp p hp, y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
+⟨λ ⟨y, hy⟩,
+  have hy0 : y ≠ 0, from λ h, by simp [h, _root_.zero_pow (succ_pos 1)] at hy; cc,
+  by simpa using (units.ext_iff.1 $ (euler_criterion_units hp).1 ⟨units_of_nonzero hy0, show _ = units_of_nonzero hx,
+    by rw [units.ext_iff]; simpa⟩),
+λ h, let ⟨y, hy⟩ := (euler_criterion_units hp).2 (show units_of_nonzero hx ^ (p / 2) = 1, by simpa [units.ext_iff]) in
+  ⟨y, by simpa [units.ext_iff] using hy⟩⟩
 
 lemma units.inv_eq_self_iff {α : Type*} [integral_domain α] (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by conv {to_lhs, rw [inv_eq_iff_mul_eq_one, ← mul_one (1 : units α), units.ext_iff, units.mul_coe,
@@ -324,7 +332,7 @@ by rw [ne.def, eq_neg_iff_add_eq_zero, ← cast_val hp n,
 @[simp] lemma units.neg_eq_neg {α : Type*} [ring α] {a b : units α} : -a = -b ↔ a = b :=
 by rw [units.ext_iff, units.ext_iff]; simp
 
-lemma prod_product' {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
+lemma prod_prod_mk {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
   (f : γ → α × β) : s.prod f = (s.prod (λ x, (f x).1), s.prod (λ x, (f x).2)) :=
 by haveI := classical.dec_eq γ; exact
 finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
@@ -707,47 +715,6 @@ by rw [← @nat.cast_zero (zmod n), zmod.eq_iff_modeq_nat, nat.modeq.modeq_zero_
 lemma zmodp.eq_zero_iff_dvd (n : ℕ) : (n : zmodp p hp) = 0 ↔ p ∣ n :=
 @zmod.eq_zero_iff_dvd ⟨p, hp.pos⟩ _
 
-#eval let p := 5 in let q := 3 in let hp : prime p := sorry in let hq : prime q := sorry in
- ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
-    (λ x, ((x : zmodp p hp), (x : zmodp q hq)))
-
-#eval let p := 5 in let q := 3 in let hp : prime p := sorry in let hq : prime q := sorry in
-(((range p).erase 0).product ((range (q / 2).succ).erase 0)).prod
-    (λ x, ((x.1 : zmodp p hp), (x.2 : zmodp q hq)))
-
--- #eval (∀ p ∈ range 40, ∀ q ∈ range 40, ∀ (hp : prime p) (hq : prime q)
---   (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q),
---   ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
---     (λ x, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp), (x : zmodp q hq))
---       else -((x : zmodp p hp), (x : zmodp q hq))) =
---   (((range p).erase 0).product ((range (q / 2).succ).erase 0)).prod
---     (λ x, ((x.1 : zmodp p hp), (x.2 : zmodp q hq))) : bool)
-
-#eval let p := 5 in let q := 11 in let hp : prime p := sorry in let hq : prime q := sorry in
-  (((range p).erase 0).product ((range (q / 2).succ).erase 0)).prod
-    (λ x, ((x.1 : zmodp p hp), (x.2 : zmodp q hq)))
-
-lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
-  a ≡ b [MOD m] ∧ a ≡ b [MOD n] ↔ (a ≡ b [MOD m * n]) :=
-⟨λ h, begin
-    rw [nat.modeq.modeq_iff_dvd, nat.modeq.modeq_iff_dvd, ← int.dvd_nat_abs,
-      int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd] at h,
-    rw [nat.modeq.modeq_iff_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd],
-    exact hmn.mul_dvd_of_dvd_of_dvd h.1 h.2
-  end,
-λ h, ⟨nat.modeq.modeq_of_modeq_mul_right _ h, nat.modeq.modeq_of_modeq_mul_left _ h⟩⟩
-
-lemma int.modeq_and_modeq_iff_modeq_mul {a b m n : ℤ} (hmn : coprime m.nat_abs n.nat_abs) :
-  a ≡ b [ZMOD m] ∧ a ≡ b [ZMOD n] ↔ (a ≡ b [ZMOD m * n]) :=
-⟨λ h, begin
-    rw [int.modeq.modeq_iff_dvd, int.modeq.modeq_iff_dvd] at h,
-    rw [int.modeq.modeq_iff_dvd, ← int.nat_abs_dvd, ← int.dvd_nat_abs,
-      int.coe_nat_dvd, int.nat_abs_mul],
-    refine hmn.mul_dvd_of_dvd_of_dvd _ _;
-    rw [← int.coe_nat_dvd, int.nat_abs_dvd, int.dvd_nat_abs]; tauto
-  end,
-λ h, ⟨int.modeq.modeq_of_modeq_mul_right _ h, int.modeq.modeq_of_modeq_mul_left _ h⟩⟩
-
 lemma prod_range_p_mul_q_eq_prod_product (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
   ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
     (λ x, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp), (x : zmodp q hq))
@@ -793,7 +760,7 @@ prod_bij (λ x _, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp).val, 
       begin
         rw [← int.cast_coe_nat a, ← int.cast_coe_nat b, ← int.cast_coe_nat a, ← int.cast_coe_nat b,
           ← int.cast_neg, ← int.cast_neg, zmodp.eq_iff_modeq_int, zmodp.eq_iff_modeq_int,
-          @int.modeq_and_modeq_iff_modeq_mul _ _ p q ((coprime_primes hp hq).2 hpq), ← hpqpnat,
+          @int.modeq.modeq_and_modeq_iff_modeq_mul _ _ p q ((coprime_primes hp hq).2 hpq), ← hpqpnat,
           ← zmod.eq_iff_modeq_int, int.cast_coe_nat, int.cast_neg, int.cast_coe_nat],
         assume h,
         rw [← hpqpnat', ← zmod.val_cast_of_lt hbpq', zmod.lt_neg_iff_le hpq1 hbpq0,
@@ -805,7 +772,7 @@ prod_bij (λ x _, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp).val, 
     suffices (a : zmodp p hp) = b ∧ (a : zmodp q hq) = b,
       by rw [← mod_eq_of_lt hapq', ← mod_eq_of_lt hbpq'];
         rwa [zmodp.eq_iff_modeq_nat, zmodp.eq_iff_modeq_nat,
-          modeq_and_modeq_iff_modeq_mul ((coprime_primes hp hq).2 hpq)] at this,
+          nat.modeq.modeq_and_modeq_iff_modeq_mul ((coprime_primes hp hq).2 hpq)] at this,
     by split_ifs at h; simp * at *)
   (λ ⟨x, y⟩ hxy, let ⟨k, hk⟩ := nat.modeq.chinese_remainder ((coprime_primes hp hq).2 hpq) x y in
     have hxy : x ≠ 0 ∧ x < p ∧ y ≠ 0 ∧ y ≤ q / 2,
@@ -921,10 +888,64 @@ have finset.prod (erase (range (succ (q / 2))) 0) (λ x, (x : zmodp q hq)) ^ car
   (- 1) ^ (p / 2) * ((-1) ^ (p / 2 * (q / 2))),
  by rw [card_erase_of_mem (mem_range.2 hp.pos), card_range, nat.pred_eq_sub_one,
    ← two_mul_odd_div_two hp1, pow_mul, this, mul_comm (p / 2), pow_mul, ← _root_.mul_pow]; simp,
-by simp [prod_product, prod_product', prod_pow,-range_succ, nat.prod_pow, prod_const,
+by simp [prod_product, prod_prod_mk, prod_pow, -range_succ, nat.prod_pow, prod_const,
     *, range_prod_erase_zero]
 
-lemma prod_range_p_mul_q_ite_eq (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) :
+lemma prod_range_p_mul_q_ite_eq (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
   ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
   (λ x, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp), (x : zmodp q hq))
     else -((x : zmodp p hp), (x : zmodp q hq))) =
+  ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, if (x : zmodp q hq).1 ≤ q / 2 then 1 else -1) *
+  ((-1) ^ (q / 2) * q ^ (p / 2), (-1) ^ (p / 2) * p ^ (q / 2)) :=
+calc ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
+  (λ x, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp), (x : zmodp q hq))
+    else -((x : zmodp p hp), (x : zmodp q hq))) =
+  ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
+  (λ x, (if (x : zmodp q hq).1 ≤ (q / 2) then 1 else -1) * ((x : zmodp p hp), (x : zmodp q hq))) :
+prod_congr rfl (λ _ _, by split_ifs; simp)
+... = _ : by rw [prod_mul_distrib, prod_prod_mk _ (λ x : ℕ, ((x : zmodp p hp), (x : zmodp q hq))),
+    prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul,
+    prod_range_p_mul_q_filter_coprime_mod_p hp hq hp1 hq1 hpq,
+    prod_hom (coe : ℕ → zmodp q hq) nat.cast_one nat.cast_mul,
+    mul_comm p q, prod_range_p_mul_q_filter_coprime_mod_p hq hp hq1 hp1 hpq.symm]
+
+def legendre_sym (a p : ℕ) (hp : prime p) : ℤ :=
+if (a : zmodp p hp) = 0 then 0 else if ∃ b : zmodp p hp, b ^ 2 = a then 1 else -1
+
+lemma legendre_sym_eq_pow (a p : ℕ) (hp : prime p) : (legendre_sym a p hp : zmodp p hp) = (a ^ (p / 2)) :=
+if ha : (a : zmodp p hp) = 0 then by simp [*, legendre_sym, _root_.zero_pow (nat.div_pos hp.ge_two (succ_pos 1))]
+else
+(prime.eq_two_or_odd hp).elim
+  (λ hp2, begin subst hp2,
+    suffices : ∀ a : zmodp 2 prime_two,
+      (((ite (a = 0) 0 (ite (∃ (b : zmodp 2 hp), b ^ 2 = a) 1 (-1))) : ℤ) : zmodp 2 prime_two) = a ^ (2 / 2),
+    { exact this a },
+    exact dec_trivial,
+   end)
+  (λ hp1, have _ := euler_criterion hp ha,
+    have (-1 : zmodp p hp) ≠ 1, from (ne_neg_self hp hp1 zero_ne_one.symm).symm,
+    by cases pow_div_two_eq_neg_one_or_one hp ha; simp [legendre_sym, *] at *)
+
+lemma quadratic_reciprocity (hp : prime p) (hq : prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
+  legendre_sym p q hq * legendre_sym q p hp = (-1) ^ (p / 2) * (-1) ^ (q / 2) :=
+have hneg_one_or_one : ((range (p * q / 2).succ).filter (coprime (p * q))).prod
+    (λ (x : ℕ), if (x : zmodp q hq).val ≤ q / 2 then (1 : zmodp p hp × zmodp q hq) else -1) = 1 ∨
+    ((range (p * q / 2).succ).filter (coprime (p * q))).prod
+    (λ (x : ℕ), if (x : zmodp q hq).val ≤ q / 2 then (1 : zmodp p hp × zmodp q hq) else -1) = -1 :=
+  finset.induction_on ((range (p * q / 2).succ).filter (coprime (p * q))) (or.inl rfl)
+    (λ a s h, by simp [prod_insert h]; split_ifs; finish),
+have h : (((-1) ^ (q / 2), (-1) ^ (p / 2) * (-1) ^ (p / 2 * (q / 2))) : zmodp p hp × zmodp q hq) =
+   ((-1) ^ (q / 2) * q ^ (p / 2), (-1) ^ (p / 2) * p ^ (q / 2)) ∨
+   (((-1) ^ (q / 2), (-1) ^ (p / 2) * (-1) ^ (p / 2 * (q / 2))) : zmodp p hp × zmodp q hq) =
+   - ((-1) ^ (q / 2) * q ^ (p / 2), (-1) ^ (p / 2) * p ^ (q / 2)) :=
+begin
+  have := prod_range_p_mul_q_eq_prod_product hp hq hp1 hq1 hpq,
+  rw [prod_range_p_mul_q_ite_eq hp hq hp1 hq1 hpq,
+    range_p_product_range_q_div_two_prod hp hq hp1 hq1] at this,
+  cases hneg_one_or_one with h h; simp * at *
+end,
+begin
+
+
+
+end

@@ -118,6 +118,9 @@ attribute [to_additive smul_add_comm] pow_mul_comm
 @list.prod_repeat (multiplicative β) _
 attribute [to_additive list.sum_repeat] list.prod_repeat
 
+@[simp] lemma units.coe_pow (u : units α) (n : ℕ) : ((u ^ n : units α) : α) = u ^ n :=
+by induction n; simp [*, pow_succ]
+
 end monoid
 
 @[simp] theorem nat.pow_eq_pow (p q : ℕ) :

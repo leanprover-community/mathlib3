@@ -5,7 +5,9 @@ Authors: Chris Hughes
 -/
 import algebra.big_operators data.nat.gcd
 
-open finset nat
+open finset
+
+namespace nat
 
 def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 
@@ -65,3 +67,5 @@ congr_arg card (finset.ext.2 (λ m, ⟨by finish,
     mem_bind.2 ⟨gcd n m, mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (nat.zero_le _) h)
       (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))
 ... = n : card_range _
+
+end nat

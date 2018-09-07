@@ -96,6 +96,16 @@ def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧
         ← sub_eq_iff_eq_add'] at this⟩ }
 end⟩
 
+lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
+  a ≡ b [MOD m] ∧ a ≡ b [MOD n] ↔ (a ≡ b [MOD m * n]) :=
+⟨λ h, begin
+    rw [nat.modeq.modeq_iff_dvd, nat.modeq.modeq_iff_dvd, ← int.dvd_nat_abs,
+      int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd] at h,
+    rw [nat.modeq.modeq_iff_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd],
+    exact hmn.mul_dvd_of_dvd_of_dvd h.1 h.2
+  end,
+λ h, ⟨nat.modeq.modeq_of_modeq_mul_right _ h, nat.modeq.modeq_of_modeq_mul_left _ h⟩⟩
+
 end modeq
 
 @[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=

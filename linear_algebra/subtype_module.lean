@@ -43,10 +43,12 @@ instance {α β} {f : field α} [vector_space α β] {p : set β} [is_submodule 
 
 @[simp] lemma sub_val : (x - y).val = x.val - y.val := by simp
 
+-- should this be in the root namespace?
 lemma is_linear_map_subtype_val {f : γ → {x : β // x ∈ p}} (hf : is_linear_map f) :
   is_linear_map (λb, (f b).val) :=
 by refine {..}; simp [hf.add, hf.smul]
 
+-- should this be in the root namespace?
 lemma is_linear_map_subtype_mk (f : γ → β) (hf : is_linear_map f) (h : ∀c, f c ∈ p) :
   is_linear_map (λc, ⟨f c, h c⟩ : γ → {x : β // x ∈ p}) :=
 by refine {..}; intros; apply subtype.eq; simp [hf.add, hf.smul]
@@ -54,5 +56,11 @@ by refine {..}; intros; apply subtype.eq; simp [hf.add, hf.smul]
 instance {s t : set β} [is_submodule s] [is_submodule t] :
   is_submodule (@subtype.val β (λx, x ∈ s) ⁻¹' t) :=
 is_submodule.preimage (is_linear_map_subtype_val is_linear_map.id)
+
+-- shouldn't this be the thing called is_linear_map_subtype_val?
+lemma is_submodule.is_linear_map_inclusion : is_linear_map (λ x : {x : β // x ∈ p}, x.val) :=
+{ add := by simp,
+  smul := by simp
+}
 
 end

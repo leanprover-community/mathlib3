@@ -124,4 +124,7 @@ assume a b, quotient.induction_on₂' a b $ assume a b (h : f a = f b), quotient
   have f (a - b) = 0, by rw [hf.sub]; simp [h],
   show a - b ∈ s, from hs.symm ▸ this
 
+lemma quotient.exists_rep {s : set β} [is_submodule s] : ∀ q : quotient β s, ∃ b : β, mk b = q :=
+@_root_.quotient.exists_rep _ (quotient_rel s)
+
 end quotient_module

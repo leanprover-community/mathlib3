@@ -128,7 +128,7 @@ show (bdd_above s ∧ bdd_above t) → bdd_above (s ∪ t), from
 /--Adding a point to a set preserves its boundedness above.-/
 @[simp] lemma bdd_above_insert : bdd_above (insert a s) ↔ bdd_above s :=
 ⟨show bdd_above (insert a s) → bdd_above s, from bdd_above_subset (by simp),
- show bdd_above s → bdd_above (insert a s), by rw[insert_eq]; finish⟩
+ show bdd_above s → bdd_above (insert a s), by rw [insert_eq]; simp [-singleton_union] {contextual := tt}⟩
 
 /--A finite set is bounded above.-/
 lemma bdd_above_finite [inhabited α] (_ : finite s) : bdd_above s :=
@@ -183,7 +183,7 @@ show (bdd_below s ∧ bdd_below t) → bdd_below (s ∪ t), from
 /--Adding a point to a set preserves its boundedness below.-/
 @[simp] lemma bdd_below_insert : bdd_below (insert a s) ↔ bdd_below s :=
 ⟨show bdd_below (insert a s) → bdd_below s, from bdd_below_subset (by simp),
- show bdd_below s → bdd_below (insert a s), by rw[insert_eq]; finish⟩
+ show bdd_below s → bdd_below (insert a s), by rw[insert_eq]; simp [-singleton_union] {contextual := tt}⟩
 
 /--A finite set is bounded below.-/
 lemma bdd_below_finite [inhabited α] (_ : finite s) : bdd_below s :=

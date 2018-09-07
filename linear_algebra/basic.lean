@@ -178,7 +178,7 @@ span_eq is_submodule_span (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mon
 lemma span_insert : span (insert b s) = {z | ∃a, ∃x∈span s, z = a • b + x } :=
 set.ext $ assume b',
 begin
-  split; simp [insert_eq, span_union, span_singleton, set.ext_iff, range, -add_comm],
+  split; rw [insert_eq, span_union]; simp [span_singleton, set.ext_iff, range, -add_comm],
   exact (assume y a eq_y x hx eq, ⟨a, x, hx, by simp [eq_y, eq]⟩),
   exact (assume a b₂ hb₂ eq, ⟨a • b, ⟨a, rfl⟩, b₂, hb₂, eq⟩)
 end
@@ -745,11 +745,11 @@ assume t, finset.induction_on t
         have s ⊆ span ↑(insert b₂ s' ∪ t), from
           assume b₃ hb₃,
           have ↑(s' ∪ insert b₁ t) ⊆ insert b₁ (insert b₂ ↑(s' ∪ t) : set β),
-            by simp [insert_eq, union_subset_union, subset.refl, subset_union_right],
+            by simp [insert_eq, -singleton_union, -union_singleton, union_subset_union, subset.refl, subset_union_right],
           have hb₃ : b₃ ∈ span (insert b₁ (insert b₂ ↑(s' ∪ t) : set β)),
             from span_mono this (hss' hb₃),
           have s ⊆ span (insert b₁ ↑(s' ∪ t)),
-            by simpa [insert_eq] using hss',
+            by simpa [insert_eq, -singleton_union, -union_singleton] using hss',
           have hb₁ : b₁ ∈ span (insert b₂ ↑(s' ∪ t)),
             from mem_span_insert_exchange (this hb₂s) hb₂t,
           by rw [span_insert_eq_span hb₁] at hb₃; simpa using hb₃,

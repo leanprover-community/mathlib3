@@ -453,8 +453,11 @@ by finish
 theorem set_compr_eq_eq_singleton {a : α} : {b | b = a} = {a} :=
 set.ext $ by simp
 
-theorem union_singleton : s ∪ {a} = insert a s :=
+@[simp] theorem union_singleton : s ∪ {a} = insert a s :=
 by simp [singleton_def]
+
+@[simp] theorem singleton_union : {a} ∪ s = insert a s :=
+by rw [union_comm, union_singleton]
 
 theorem singleton_inter_eq_empty : {a} ∩ s = ∅ ↔ a ∉ s :=
 by simp [eq_empty_iff_forall_not_mem]
@@ -640,7 +643,7 @@ diff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
 
 @[simp] theorem insert_diff_singleton {a : α} {s : set α} :
   insert a (s \ {a}) = insert a s :=
-by simp [insert_eq, union_diff_self]
+by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
 
 /- powerset -/
 

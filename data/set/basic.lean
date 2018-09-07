@@ -6,6 +6,40 @@ Author: Jeremy Avigad, Leonardo de Moura
 import tactic.ext tactic.finish data.subtype tactic.interactive
 open function
 
+
+/- set coercion to a type -/
+namespace set
+instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
+end set
+
+section set_coe
+universe u
+variables {α : Type u}
+@[simp] theorem set.set_coe_eq_subtype (s : set α) :
+  coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
+
+@[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
+  (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=
+subtype.forall
+
+@[simp] theorem set_coe.exists {s : set α} {p : s → Prop} :
+  (∃ x : s, p x) ↔ (∃ x (h : x ∈ s), p ⟨x, h⟩) :=
+subtype.exists
+
+@[simp] theorem set_coe_cast : ∀ {s t : set α} (H' : s = t) (H : @eq (Type u) s t) (x : s),
+  cast H x = ⟨x.1, H' ▸ x.2⟩
+| s _ rfl _ ⟨x, h⟩ := rfl
+
+theorem set_coe.ext {s : set α} {a b : s} : (↑a : α) = ↑b → a = b :=
+subtype.eq
+
+theorem set_coe.ext_iff {s : set α} {a b : s} : (↑a : α) = ↑b ↔ a = b :=
+iff.intro set_coe.ext (assume h, h ▸ rfl)
+
+end set_coe
+
+lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.property
+
 namespace set
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t : set α}
@@ -37,24 +71,6 @@ instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a
 instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred {a | p a} := H
 
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
-
-/- set coercion to a type -/
-
-instance : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
-
-@[simp] theorem set_coe_eq_subtype (s : set α) : coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
-
-@[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
-  (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=
-subtype.forall
-
-@[simp] theorem set_coe.exists {s : set α} {p : s → Prop} :
-  (∃ x : s, p x) ↔ (∃ x (h : x ∈ s), p ⟨x, h⟩) :=
-subtype.exists
-
-@[simp] theorem set_coe_cast : ∀ {s t : set α} (H' : s = t) (H : @eq (Type u) s t) (x : s),
-  cast H x = ⟨x.1, H' ▸ x.2⟩
-| s _ rfl _ ⟨x, h⟩ := rfl
 
 /- subset -/
 
@@ -869,6 +885,14 @@ subset.antisymm
   (image_preimage_subset f s)
   (λ x hx, let ⟨y, e⟩ := h x in ⟨y, (e.symm ▸ hx : f y ∈ s), e⟩)
 
+lemma preimage_eq_preimage {f : β → α} (hf : surjective f) : f ⁻¹' s = preimage f t ↔ s = t :=
+iff.intro
+  (assume eq, by rw [← @image_preimage_eq β α f s hf, ← @image_preimage_eq β α f t hf, eq])
+  (assume eq, eq ▸ rfl)
+
+lemma surjective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
+assume s t, (preimage_eq_preimage hf).1
+
 theorem compl_image : image (@compl α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
 
@@ -896,6 +920,20 @@ set.ext $ assume a,
 
 lemma preimage_subset_iff {A : set α} {B : set β} {f : α → β} :
   f⁻¹' B ⊆ A ↔ (∀ a : α, f a ∈ B → a ∈ A) := iff.rfl
+
+lemma image_eq_image {f : α → β} (hf : injective f) : f '' s = f '' t ↔ s = t :=
+iff.symm $ iff.intro (assume eq, eq ▸ rfl) $ assume eq,
+  by rw [← preimage_image_eq s hf, ← preimage_image_eq t hf, eq]
+
+lemma image_subset_image_iff {f : α → β} (hf : injective f) : f '' s ⊆ f '' t ↔ s ⊆ t :=
+begin
+  refine (iff.symm $ iff.intro (image_subset f) $ assume h, _),
+  rw [← preimage_image_eq s hf, ← preimage_image_eq t hf],
+  exact preimage_mono h
+end
+
+lemma injective_image {f : α → β} (hf : injective f) : injective (('') f) :=
+assume s t, (image_eq_image hf).1
 
 end image
 

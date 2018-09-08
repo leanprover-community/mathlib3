@@ -27,18 +27,6 @@ reserve infix ` →₀ `:25
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y
 
-namespace finset
-variables {α : Type u} [decidable_eq α]
-
-protected def subtype (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
-(s.filter p).attach.image $ λ⟨a, ha⟩, ⟨a, (mem_filter.1 ha).2⟩
-
-@[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
-  ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
-| ⟨a, ha⟩ := by simp [finset.subtype, ha]
-
-end finset
-
 /-- `finsupp α β`, denoted `α →₀ β`, is the type of functions `f : α → β` such that
   `f x = 0` for all but finitely many `x`. -/
 structure finsupp (α : Type u) (β : Type v) [has_zero β] :=

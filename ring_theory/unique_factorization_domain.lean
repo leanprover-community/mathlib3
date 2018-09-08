@@ -66,14 +66,11 @@ theorem prod_le_prod_iff_le {p q : multiset (associates α)}
   p.prod ≤ q.prod ↔ p ≤ q :=
 iff.intro
   begin
-    rintros ⟨c, eq⟩,
-    have : c ≠ 0, from assume hc,
-      have q.prod = 0, by simp * at *,
-      have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 this,
-      not_irreducible_zero ((irreducible_mk_iff 0).1 $ hq _ this),
-
-    induction c using quot.induction_on,
-    have : c ≠ 0, from mt mk_eq_zero_iff_eq_zero.2 this,
+    rintros ⟨⟨c⟩, eq⟩,
+    have : c ≠ 0, from (mt mk_eq_zero_iff_eq_zero.2 $
+      assume (hc : quot.mk setoid.r c = 0),
+      have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eq ▸ hc.symm ▸ mul_zero _,
+      not_irreducible_zero ((irreducible_mk_iff 0).1 $ hq _ this)),
     have : associates.mk (factors c).prod = quot.mk setoid.r c,
       from mk_eq_mk_iff_associated.2 (factors_prod this),
 
@@ -150,7 +147,7 @@ theorem prod_factors : ∀(s : factor_set α), s.prod.factors = s
   begin
     unfold factor_set.prod,
     generalize eq_a : (s.map subtype.val).prod = a,
-    induction a using quot.induction_on,
+    rcases a with ⟨a⟩,
     rw quot_mk_eq_mk at *,
 
     have : (s.map subtype.val).prod ≠ 0, from assume ha,

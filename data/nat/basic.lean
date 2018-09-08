@@ -15,6 +15,8 @@ variables {m n k : ℕ}
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
 
+lemma pred_eq_sub_one (n : ℕ) : pred n = n - 1 := rfl
+
 theorem pos_iff_ne_zero : n > 0 ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 
@@ -229,6 +231,24 @@ lt_of_mul_lt_mul_left
     ... = m : mod_add_div _ _
     ... < n * k : h)
   (nat.zero_le n)
+
+protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
+⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
+  λ h, by rw [← nat.mul_left_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+    mod_eq_of_lt h, mul_zero, add_zero]⟩
+
+@[simp] protected lemma add_mul_left_div (a b : ℕ) {c : ℕ} (hc : 0 < c) : (a + b * c) / c = a / c + b :=
+by rw [← nat.mul_left_inj hc, ← @add_left_cancel_iff _ _ ((a + b * c) % c), mod_add_div,
+  nat.add_mul_mod_self_right, mul_add, ← add_assoc, mod_add_div, mul_comm]
+
+@[simp] protected lemma add_mul_right_div (a b : ℕ) {c : ℕ} (hc : 0 < c) : (a + c * b) / c = a / c + b :=
+by rw [mul_comm c, nat.add_mul_left_div _ _ hc]
+
+@[simp] protected lemma mul_left_add_div (a b : ℕ) {c : ℕ} (hc : 0 < c) : (b * c + a) / c = b + a / c :=
+by rw [add_comm _ a, nat.add_mul_left_div _ _ hc, add_comm]
+
+@[simp] protected lemma mul_right_add_div (a b : ℕ) {c : ℕ} (hc : 0 < c) : (c * b + a) / c = b + a / c :=
+by rw [mul_comm c, nat.mul_left_add_div _ _ hc]
 
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
 ⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_refl _⟩

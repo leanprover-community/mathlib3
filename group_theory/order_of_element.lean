@@ -170,11 +170,15 @@ dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
 
 end classical
 
-variables [group α] [fintype α] [decidable_eq α]
-
 @[simp] lemma pow_card_eq_one (a : α) : a ^ fintype.card α = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
+
+lemma powers_eq_gpowers (a : α) : powers a = gpowers a :=
+set.ext (λ x, ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
+  λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
+    by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩⟩)
 
 end
 

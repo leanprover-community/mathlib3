@@ -150,7 +150,7 @@ instance [comm_ring α] [comm_ring β] : comm_ring (α × β) :=
 { ..prod.ring,
   ..prod.comm_monoid }
 
-instance [nonzero_comm_ring α] [nonzero_comm_ring β] : nonzero_comm_ring (α × β) :=
+instance [nonzero_comm_ring α] [comm_ring β] : nonzero_comm_ring (α × β) :=
 { zero_ne_one := by haveI := classical.prop_decidable;
     exact mt prod.ext_iff.1 (not_and_distrib.2 (or.inl zero_ne_one)),
   ..prod.comm_ring }

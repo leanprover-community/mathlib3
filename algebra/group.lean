@@ -277,11 +277,11 @@ def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units
 def units.mk_of_ne_zero [field α] {a : α} (ha : a ≠ 0) : units α :=
 ⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
 
-@[simp] lemma units.mk_of_ne_zero_inj {α : Type*} [field α] {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+@[simp] lemma units.mk_of_ne_zero_inj [field α] {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
   units.mk_of_ne_zero ha = units.mk_of_ne_zero hb ↔ a = b :=
 ⟨λ h, by injection h, λ h, units.ext h⟩
 
-@[simp] lemma units.coe_mk_of_ne_zero {α : Type*} [field α] {a : α} (ha : a ≠ 0) :
+@[simp] lemma units.coe_mk_of_ne_zero [field α] {a : α} (ha : a ≠ 0) :
   (units.mk_of_ne_zero ha : α) = a := rfl
 
 @[to_additive with_zero]

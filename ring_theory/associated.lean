@@ -273,11 +273,11 @@ variables [comm_semiring α]
 @[simp] theorem mk_zero_eq (a : α) : associates.mk a = 0 ↔ a = 0 :=
 ⟨assume h, (associated_zero_iff_eq_zero a).1 $ quotient.exact h, assume h, h.symm ▸ rfl⟩
 
-@[simp] theorem mul_zero (a : associates α) : a * 0 = 0 :=
-quot.induction_on a $ assume a, show associates.mk (a * 0) = associates.mk 0, by rw [mul_zero]
+@[simp] theorem mul_zero : ∀(a : associates α), a * 0 = 0 :=
+by rintros ⟨a⟩; show associates.mk (a * 0) = associates.mk 0; rw [mul_zero]
 
-@[simp] theorem zero_mul (a : associates α) : 0 * a = 0 :=
-quot.induction_on a $ assume a, show associates.mk (0 * a) = associates.mk 0, by rw [zero_mul]
+@[simp] theorem zero_mul : ∀(a : associates α), 0 * a = 0 :=
+by rintros ⟨a⟩; show associates.mk (0 * a) = associates.mk 0; rw [zero_mul]
 
 theorem mk_eq_zero_iff_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=
 calc associates.mk a = 0 ↔ (a ~ᵤ 0) :  mk_eq_mk_iff_associated

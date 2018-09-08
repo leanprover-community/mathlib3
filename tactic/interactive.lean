@@ -68,6 +68,9 @@ If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
 `∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
 parameter as necessary.
 
+`rcases` also has special support for quotient types: quotient induction into Prop works like
+matching on the constructor `quot.mk`.
+
 `rcases? e` will perform case splits on `e` in the same way as `rcases e`,
 but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,

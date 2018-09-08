@@ -341,12 +341,11 @@ instance : group (free_group α) :=
 { mul := (*),
   one := 1,
   inv := has_inv.inv,
-  mul_assoc := λ x y z, quot.induction_on x $ λ L₁,
-    quot.induction_on y $ λ L₂, quot.induction_on z $ λ L₃, by simp,
-  one_mul := λ x, quot.induction_on x $ λ L, rfl,
-  mul_one := λ x, quot.induction_on x $ λ L, by simp [one_eq_mk],
-  mul_left_inv := λ x, quot.induction_on x $ λ L, list.rec_on L rfl $
-    λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [one_eq_mk]) ih }
+  mul_assoc := by rintros ⟨L₁⟩ ⟨L₂⟩ ⟨L₃⟩; simp,
+  one_mul := by rintros ⟨L⟩; refl,
+  mul_one := by rintros ⟨L⟩; simp [one_eq_mk],
+  mul_left_inv := by rintros ⟨L⟩; exact (list.rec_on L rfl $
+    λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [one_eq_mk]) ih) }
 
 /-- `of x` is the canonical injection from the type to the free group over that type by sending each
 element to the equivalence class of the letter that is the element. -/
@@ -389,7 +388,7 @@ rfl
 one_mul _
 
 instance to_group.is_group_hom : is_group_hom (to_group f) :=
-⟨λ x y, quot.induction_on x $ λ L₁, quot.induction_on y $ λ L₂, by simp⟩
+⟨by rintros ⟨L₁⟩ ⟨L₂⟩; simp⟩
 
 @[simp] lemma to_group.mul : to_group f (x * y) = to_group f x * to_group f y :=
 is_group_hom.mul _ _ _
@@ -401,26 +400,25 @@ is_group_hom.one _
 is_group_hom.inv _ _
 
 theorem to_group.unique (g : free_group α → β) [is_group_hom g]
-  (hg : ∀ x, g (of x) = f x) {x} :
-  g x = to_group f x :=
-quot.induction_on x $ λ L, list.rec_on L (is_group_hom.one g) $
-λ ⟨x, b⟩ t (ih : g (mk t) = _), bool.rec_on b
+  (hg : ∀ x, g (of x) = f x) : ∀{x}, g x = to_group f x :=
+by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.one g)
+(λ ⟨x, b⟩ t (ih : g (mk t) = _), bool.rec_on b
   (show g ((of x)⁻¹ * mk t) = to_group f (mk ((x, ff) :: t)),
      by simp [is_group_hom.mul g, is_group_hom.inv g, hg, ih, to_group, to_group.aux])
   (show g (of x * mk t) = to_group f (mk ((x, tt) :: t)),
-     by simp [is_group_hom.mul g, is_group_hom.inv g, hg, ih, to_group, to_group.aux])
+     by simp [is_group_hom.mul g, is_group_hom.inv g, hg, ih, to_group, to_group.aux]))
+
 
 theorem to_group.of_eq (x : free_group α) : to_group of x = x :=
 eq.symm $ to_group.unique id (λ x, rfl)
 
 theorem to_group.range_subset {s : set β} [is_subgroup s] (H : set.range f ⊆ s) :
   set.range (to_group f) ⊆ s :=
-λ y ⟨x, H1⟩, H1 ▸ (quot.induction_on x $ λ L,
-list.rec_on L (is_submonoid.one_mem s) $ λ ⟨x, b⟩ tl ih,
-bool.rec_on b
-  (by simp at ih ⊢; from is_submonoid.mul_mem
-    (is_subgroup.inv_mem $ H ⟨x, rfl⟩) ih)
-  (by simp at ih ⊢; from is_submonoid.mul_mem (H ⟨x, rfl⟩) ih))
+by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L (is_submonoid.one_mem s)
+(λ ⟨x, b⟩ tl ih, bool.rec_on b
+    (by simp at ih ⊢; from is_submonoid.mul_mem
+      (is_subgroup.inv_mem $ H ⟨x, rfl⟩) ih)
+    (by simp at ih ⊢; from is_submonoid.mul_mem (H ⟨x, rfl⟩) ih))
 
 theorem to_group.range_eq_closure :
   set.range (to_group f) = group.closure (set.range f) :=
@@ -445,8 +443,7 @@ x.lift_on (λ L, mk $ map.aux f L) $
 λ L₁ L₂ H, quot.sound $ by cases H; simp [map.aux]
 
 instance map.is_group_hom : is_group_hom (map f) :=
-⟨λ x y, quot.induction_on x $ λ L₁, quot.induction_on y $ λ L₂,
-by simp [map, map.aux]⟩
+⟨by rintros ⟨L₁⟩ ⟨L₂⟩; simp [map, map.aux]⟩
 
 variable {f}
 
@@ -455,13 +452,13 @@ rfl
 
 @[simp] lemma map.id : map id x = x :=
 have H1 : (λ (x : α × bool), x) = id := rfl,
-quot.induction_on x $ λ L, by simp [H1]
+by rcases x with ⟨L⟩; simp [H1]
 
 @[simp] lemma map.id' : map (λ z, z) x = x := map.id
 
 theorem map.comp {γ : Type*} {f : α → β} {g : β → γ} {x} :
   map g (map f x) = map (g ∘ f) x :=
-quot.induction_on x $ λ L, by simp
+by rcases x with ⟨L⟩; simp
 
 @[simp] lemma map.of {x} : map f (of x) = of (f x) := rfl
 
@@ -475,14 +472,13 @@ is_group_hom.one _
 is_group_hom.inv _ x
 
 theorem map.unique (g : free_group α → free_group β) [is_group_hom g]
-  (hg : ∀ x, g (of x) = of (f x)) {x} :
-  g x = map f x :=
-quot.induction_on x $ λ L, list.rec_on L (is_group_hom.one g) $
-λ ⟨x, b⟩ t (ih : g (mk t) = map f (mk t)), bool.rec_on b
+  (hg : ∀ x, g (of x) = of (f x)) : ∀{x}, g x = map f x :=
+by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.one g)
+(λ ⟨x, b⟩ t (ih : g (mk t) = map f (mk t)), bool.rec_on b
   (show g ((of x)⁻¹ * mk t) = map f ((of x)⁻¹ * mk t),
      by simp [is_group_hom.mul g, is_group_hom.inv g, hg, ih])
   (show g (of x * mk t) = map f (of x * mk t),
-     by simp [is_group_hom.mul g, hg, ih])
+     by simp [is_group_hom.mul g, hg, ih]))
 
 /-- Equivalent types give rise to equivalent free groups. -/
 def free_group_congr {α β} (e : α ≃ β) : free_group α ≃ free_group β :=
@@ -575,15 +571,14 @@ end sum
 def free_group_empty_equiv_unit : free_group empty ≃ unit :=
 { to_fun    := λ _, (),
   inv_fun   := λ _, 1,
-  left_inv  := λ x, quot.induction_on x $ λ L,
-    match L with [] := rfl end,
+  left_inv  := by rintros ⟨_ | ⟨⟨⟨⟩, _⟩, _⟩⟩; refl,
   right_inv := λ ⟨⟩, rfl }
 
 def free_group_unit_equiv_int : free_group unit ≃ int :=
 { to_fun    := λ x, sum $ map (λ _, 1) x,
   inv_fun   := λ x, of () ^ x,
-  left_inv  := λ x, quot.induction_on x $ λ L, list.rec_on L rfl $
-    λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [gpow_add] at ih ⊢; rw ih; refl,
+  left_inv  := by rintros ⟨L⟩; exact list.rec_on L rfl
+    (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [gpow_add] at ih ⊢; rw ih; refl),
   right_inv := λ x, int.induction_on x (by simp)
     (λ i ih, by simp at ih; simp [gpow_add, ih])
     (λ i ih, by simp at ih; simp [gpow_add, ih]) }
@@ -710,11 +705,11 @@ group to its maximal reduction. -/
 def to_word : free_group α → list (α × bool) :=
 quot.lift reduce $ λ L₁ L₂ H, reduce.step.eq H
 
-def to_word.mk {x : free_group α} : mk (to_word x) = x :=
-quot.induction_on x $ λ L₁, reduce.self
+def to_word.mk : ∀{x : free_group α}, mk (to_word x) = x :=
+by rintros ⟨L⟩; exact reduce.self
 
-def to_word.inj (x y : free_group α) : to_word x = to_word y → x = y :=
-quot.induction_on x $ λ L₁, quot.induction_on y $ λ L₂, reduce.exact
+def to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
+by rintros ⟨L₁⟩ ⟨L₂⟩; exact reduce.exact
 
 /-- Constructive Church-Rosser theorem (compare `church_rosser`). -/
 def reduce.church_rosser (H12 : red L₁ L₂) (H13 : red L₁ L₃) :

@@ -424,30 +424,42 @@ meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × e
 tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
 meta def apply_assumption
-  (asms : option (list expr) := none)
+  (asms : tactic (list expr) := local_context)
   (tac : tactic unit := skip) : tactic unit :=
-do { ctx ← asms.to_monad <|> local_context,
+do { ctx ← asms,
      ctx.any_of (λ H, () <$ symm_apply H; tac) } <|>
 do { exfalso,
-     ctx ← asms.to_monad <|> local_context,
+     ctx ← asms,
      ctx.any_of (λ H, () <$ symm_apply H; tac) }
 <|> fail "assumption tactic failed"
 
 open nat
 
-meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
+meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
 | 0 := done
 | (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
 
+meta def solve_by_elim.congr : tactic (list expr) := 
+do congr_fun ← mk_const `congr_fun,
+  congr_arg ← mk_const `congr_arg,
+  return [congr_fun, congr_arg]
+
 meta structure by_elim_opt :=
   (discharger : tactic unit := done)
-  (restr_hyp_set : option (list expr) := none)
+  (congr : bool := tt)
+  (assumptions : tactic (list expr) := local_context)
   (max_rep : ℕ := 3)
 
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
+  let asms := if opt.congr then
+                (do congr_fun ← mk_const `congr_fun,
+                   congr_arg ← mk_const `congr_arg,
+                   asms ← opt.assumptions,
+                   return (congr_fun :: congr_arg :: asms))
+              else opt.assumptions,
+  solve_by_elim_aux opt.discharger asms opt.max_rep
 
 meta def metavariables : tactic (list expr) :=
 do r ← result,

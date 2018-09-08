@@ -463,6 +463,17 @@ end discrete_linear_ordered_field
   (s.pi t).card = s.prod (λ a, card (t a)) :=
 multiset.card_pi _ _
 
+@[simp] lemma prod_range_id_eq_fact (n : ℕ) : ((range n.succ).erase 0).prod (λ x, x) = fact n :=
+calc ((range n.succ).erase 0).prod (λ x, x) = (range n).prod succ :
+eq.symm (prod_bij (λ x _, succ x)
+  (λ a h₁, mem_erase.2 ⟨succ_ne_zero _, mem_range.2 $ succ_lt_succ $ by simpa using h₁⟩)
+  (by simp) (λ _ _ _ _, succ_inj)
+  (λ b h,
+    have b.pred.succ = b, from succ_pred_eq_of_pos $
+      by simp [nat.pos_iff_ne_zero] at *; tauto,
+    ⟨pred b, mem_range.2 $ lt_of_succ_lt_succ (by simp [*, - range_succ] at *), this.symm⟩))
+... = fact n : by induction n; simp *
+
 end finset
 
 section group

@@ -285,7 +285,6 @@ choose_spec (exists_rep q)
 def encodable_quotient : encodable (quotient s) :=
 ⟨λ q, encode (rep q),
  λ n, quotient.mk <$> decode α n,
- λ q, quot.induction_on q $ λ l,
-   by rw encodek; exact congr_arg some (rep_spec _)⟩
+ by rintros ⟨l⟩; rw encodek; exact congr_arg some (rep_spec _)⟩
 
 end quot

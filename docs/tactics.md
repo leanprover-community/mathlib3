@@ -26,6 +26,9 @@ arguments, such as `⟨a, b, c⟩` for splitting on `∃ x, ∃ y, p x`, then it
 will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last parameter as
 necessary.
 
+`rcases` also has special support for quotient types: quotient induction into Prop works like
+matching on the constructor `quot.mk`.
+
 `rcases? e` will perform case splits on `e` in the same way as `rcases e`,
 but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
@@ -273,7 +276,7 @@ structure A :=
 example (z : A) : z.x = 1 := by rw A.a' -- rewrite tactic failed, lemma is not an equality nor a iff
 
 restate_axiom A.a'
-example (z : A) : z.x = 1 := by rw A.a 
+example (z : A) : z.x = 1 := by rw A.a
 ```
 
 By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
@@ -303,13 +306,13 @@ the goal and recursively on new goals, until no tactic makes further progress.
 
 `tidy` can report the tactic script it found using `tidy { trace_result := tt }`. As an example
 ```
-example : ∀ x : unit, x = unit.star := 
+example : ∀ x : unit, x = unit.star :=
 begin
   tidy {trace_result:=tt} -- Prints the trace message: "intros x, exact dec_trivial"
 end
 ```
 
-The default list of tactics can be found by looking up the definition of 
+The default list of tactics can be found by looking up the definition of
 [`default_tidy_tactics`](https://github.com/leanprover/mathlib/blob/master/tactic/tidy.lean).
 
 This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of `tactic string`.)
@@ -317,22 +320,22 @@ This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a
 ## linarith
 
 `linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
-Equivalently, it can prove a linear inequality by assuming its negation and proving `false`. 
-This tactic is currently work in progress, and has various limitations. In particular, 
+Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
+This tactic is currently work in progress, and has various limitations. In particular,
 it will not work on `nat`. The tactic can be made much more efficient.
 
-An example: 
+An example:
 ```
-example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0) 
+example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
         (h3 : 12*y - 4* z < 0)  : false :=
 by linarith
 ```
 
 `linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
 `linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
-`linarith using [t1, t2, t3] will add `t1`, `t2`, `t3` to the local context and then run 
+`linarith using [t1, t2, t3] will add `t1`, `t2`, `t3` to the local context and then run
 `linarith`.
-`linarith {discharger := tac, restrict_type := tp}` takes a config object with two optional 
+`linarith {discharger := tac, restrict_type := tp}` takes a config object with two optional
 arguments. `discharger` specifies a tactic to be used for reducing an algebraic equation in the
 proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
 problems. `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful

@@ -25,7 +25,7 @@ dvd_antisymm
           nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm])))
 
 def units_equiv_ne_zero (α : Type*) [field α] : units α ≃ {a : α | a ≠ 0} :=
-⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk_of_ne_zero a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
+⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 
 @[simp] lemma coe_units_equiv_ne_zero (a : units α) : ((units_equiv_ne_zero α a) : α) = a := rfl
 
@@ -55,7 +55,7 @@ card_congr (λ a _, a)
   (by simp [units.ext_iff.symm])
   (λ b hb, have hb0 : b ≠ 0, from λ h,
     units.coe_ne_zero a $ by rwa [mem_nth_roots hn, h, _root_.zero_pow hn, eq_comm] at hb,
-    ⟨units.mk_of_ne_zero hb0, by simp [units.ext_iff, (mem_nth_roots hn).1 hb]⟩)
+    ⟨units.mk0 _ hb0, by simp [units.ext_iff, (mem_nth_roots hn).1 hb]⟩)
 
 lemma card_pow_eq_one_eq_order_of (a : units α) :
   (univ.filter (λ b : units α, b ^ order_of a = 1)).card = order_of a :=

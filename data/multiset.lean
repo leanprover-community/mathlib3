@@ -79,13 +79,12 @@ theorem singleton_coe (a : α) : (a::0 : multiset α) = ([a] : list α) := rfl
   have [a] ++ l ~ [b] ++ l, from quotient.exact e,
   eq_singleton_of_perm $ (perm_app_right_iff _).1 this, congr_arg _⟩
 
-@[simp] theorem cons_inj_right (a : α) {s t : multiset α} :
-  a::s = a::t ↔ s = t :=
-quotient.induction_on₂ s t $ λ l₁ l₂, by simp [perm_cons]
+@[simp] theorem cons_inj_right (a : α) : ∀{s t : multiset α}, a::s = a::t ↔ s = t :=
+by rintros ⟨l₁⟩ ⟨l₂⟩; simp [perm_cons]
 
 @[recursor 5] protected theorem induction {p : multiset α → Prop}
-  (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) (s) : p s :=
-quot.induction_on s $ λ l, by induction l with _ _ ih; [exact h₁, exact h₂ ih]
+  (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) : ∀s, p s :=
+by rintros ⟨l⟩; induction l with _ _ ih; [exact h₁, exact h₂ ih]
 
 @[elab_as_eliminator] protected theorem induction_on {p : multiset α → Prop}
   (s : multiset α) (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) : p s :=
@@ -245,11 +244,10 @@ quotient.lift_on₂ s t (<+~) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
   propext (p₂.subperm_left.trans p₁.subperm_right)
 
 instance : partial_order (multiset α) :=
-{ le := multiset.le,
-  le_refl := λ s, quot.induction_on s $ λ l, subperm.refl _,
-  le_trans := λ s t u, quotient.induction_on₃ s t u $ @subperm.trans _,
-  le_antisymm := λ s t, quotient.induction_on₂ s t $
-    λ l₁ l₂ h₁ h₂, quot.sound (subperm.antisymm h₁ h₂) }
+{ le          := multiset.le,
+  le_refl     := by rintros ⟨l⟩; exact subperm.refl _,
+  le_trans    := by rintros ⟨l₁⟩ ⟨l₂⟩ ⟨l₃⟩; exact @subperm.trans _ _ _ _,
+  le_antisymm := by rintros ⟨l₁⟩ ⟨l₂⟩ h₁ h₂; exact quot.sound (subperm.antisymm h₁ h₂) }
 
 theorem subset_of_le {s t : multiset α} : s ≤ t → s ⊆ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, subset_of_subperm

@@ -161,7 +161,7 @@ instance (S : set α) [is_ideal S] : comm_ring (quotient S) :=
     λ a b c, congr_arg mk (left_distrib a b c),
   right_distrib := λ a b c, quotient.induction_on₃' a b c $
     λ a b c, congr_arg mk (right_distrib a b c),
-  ..is_submodule.quotient.add_comm_group S }
+  ..quotient_module.quotient.add_comm_group S }
 
 instance is_ring_hom_mk (S : set α) [is_ideal S] :
   @is_ring_hom _ (quotient S) _ _ mk :=

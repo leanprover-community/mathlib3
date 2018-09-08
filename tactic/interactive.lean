@@ -68,6 +68,9 @@ If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
 `∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
 parameter as necessary.
 
+`rcases` also has special support for quotient types: quotient induction into Prop works like
+matching on the constructor `quot.mk`.
+
 `rcases? e` will perform case splits on `e` in the same way as `rcases e`,
 but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
@@ -118,25 +121,24 @@ it is first added to the local context using `have`.
 meta def simpa (use_iota_eqn : parse $ (tk "!")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (tgt : parse (tk "using" *> texpr)?) (cfg : simp_config_ext := {}) : tactic unit :=
-let simp_at (lc) := simp use_iota_eqn no_dflt hs attr_names (loc.ns lc) cfg >> try (assumption <|> trivial) in
+let simp_at (lc) := try (simp use_iota_eqn no_dflt hs attr_names (loc.ns lc) cfg) >> (assumption <|> trivial) in
 match tgt with
 | none := get_local `this >> simp_at [some `this, none] <|> simp_at [none]
-| some e :=
-  (do e ← i_to_expr e,
-    match e with
-    | local_const _ lc _ _ := simp_at [some lc, none]
-    | e := do
-      t ← infer_type e,
-      assertv `this t e >> simp_at [some `this, none]
-    end) <|> (do
-      simp_at [none],
-      ty ← target,
-      e ← i_to_expr_strict ``(%%e : %%ty), -- for positional error messages, don't care about the result
-      pty ← pp ty, ptgt ← pp e,
-      -- Fail deliberately, to advise regarding `simp; exact` usage
-      fail ("simpa failed, 'using' expression type not directly " ++
-        "inferrable. Try:\n\nsimpa ... using\nshow " ++
-        to_fmt pty ++ ",\nfrom " ++ ptgt : format))
+| some e := do
+  e ← i_to_expr e <|> do {
+    ty ← target,
+    e ← i_to_expr_strict ``(%%e : %%ty), -- for positional error messages, don't care about the result
+    pty ← pp ty, ptgt ← pp e,
+    -- Fail deliberately, to advise regarding `simp; exact` usage
+    fail ("simpa failed, 'using' expression type not directly " ++
+      "inferrable. Try:\n\nsimpa ... using\nshow " ++
+      to_fmt pty ++ ",\nfrom " ++ ptgt : format) },
+  match e with
+  | local_const _ lc _ _ := simp_at [some lc, none]
+  | e := do
+    t ← infer_type e,
+    assertv `this t e >> simp_at [some `this, none]
+  end
 end
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
@@ -170,7 +172,7 @@ do tgt ← target,
 missing dropped goals and restores them. Useful when there are no
 goals to solve but "result contains meta-variables". -/
 meta def recover : tactic unit :=
-metavariables >>= tactic.set_goals 
+metavariables >>= tactic.set_goals
 
 /-- Like `try { tac }`, but in the case of failure it continues
 from the failure state instead of reverting to the original state. -/

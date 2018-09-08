@@ -182,12 +182,22 @@ with rcases_core : listΣ (listΠ rcases_patt) → expr → tactic goals
   t ← whnf t,
   env ← get_env,
   let I := t.get_app_fn.const_name,
-  when (¬env.is_inductive I) $
-    fail format!"rcases tactic failed, {e} is not an inductive datatype",
-  let params := env.inductive_num_params I,
-  let c := env.constructors_of I,
-  (ids, r) ← rcases.process_constructors params c ids,
-  l ← cases_core e ids.to_list,
+  (ids, r, l) ← (if I ≠ `quot
+  then do
+    when (¬env.is_inductive I) $
+      fail format!"rcases tactic failed: {e} : {I} is not an inductive datatype",
+    let params := env.inductive_num_params I,
+    let c := env.constructors_of I,
+    (ids, r) ← rcases.process_constructors params c ids,
+    l ← cases_core e ids.to_list,
+    return (ids, r, l)
+  else do
+    (ids, r) ← rcases.process_constructors 2 [`quot.mk] ids,
+    [(_, d)] ← induction e ids.to_list `quot.induction_on |
+      fail format!"quotient induction on {e} failed. Maybe goal is not in Prop?",
+    -- the result from `induction` is missing the information that the original constructor was
+    -- `quot.mk` so we fix this up:
+    return (ids, r, [(`quot.mk, d)])),
   gs ← get_goals,
   -- `cases_core` may not generate a new goal for every constructor,
   -- as some constructors may be impossible for type reasons. (See its

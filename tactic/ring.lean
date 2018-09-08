@@ -312,6 +312,12 @@ lemma subst_into_pow {α} [monoid α] (l r tl tr t)
   (prl : (l : α) = tl) (prr : (r : ℕ) = tr) (prt : tl ^ tr = t) : l ^ r = t :=
 by simp [prl, prr, prt]
 
+lemma unfold_sub {α} [add_group α] (a b c : α)
+  (h : a + -b = c) : a - b = c := h
+
+lemma unfold_div {α} [division_ring α] (a b c : α)
+  (h : a * b⁻¹ = c) : a / b = c := h
+
 meta def eval (c : cache) : expr → tactic (expr × expr)
 | `(%%e₁ + %%e₂) := do
   (e₁', p₁) ← eval e₁,
@@ -321,7 +327,10 @@ meta def eval (c : cache) : expr → tactic (expr × expr)
   return (e', p)
 | `(%%e₁ - %%e₂) := do
   e₂' ← mk_app ``has_neg.neg [e₂],
-  mk_app ``has_add.add [e₁, e₂'] >>= eval
+  e ← mk_app ``has_add.add [e₁, e₂'],
+  (e', p) ← eval e,
+  p' ← c.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
+  return (e', p')
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg c e₁,
@@ -337,9 +346,12 @@ meta def eval (c : cache) : expr → tactic (expr × expr)
     (e', p) ← norm_num.derive e,
     e'.to_rat,
     return (e', p)) <|> eval_atom c e
-| e@`(%%e₁ / %%e₂) := do
+| `(%%e₁ / %%e₂) := do
   e₂' ← mk_app ``has_inv.inv [e₂],
-  mk_app ``has_mul.mul [e₁, e₂'] >>= eval
+  e ← mk_app ``has_mul.mul [e₁, e₂'],
+  (e', p) ← eval e,
+  p' ← c.mk_app ``unfold_div ``division_ring [e₁, e₂, e', p],
+  return (e', p')
 | e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
   (e₂', p₂) ← eval e₂,
   match e₂'.to_nat, P with

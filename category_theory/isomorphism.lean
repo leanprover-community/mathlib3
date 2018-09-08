@@ -171,4 +171,11 @@ include 𝒟
 begin /- obviously says: -/ ext1, induction p, dsimp at *, simp at * end
 end functor
 
+def Aut (X : C) := X ≅ X
+
+instance {X : C} : group (Aut X) := 
+by refine { one := iso.refl X, 
+            inv := iso.symm,
+            mul := iso.trans, .. } ; obviously
+
 end category_theory

@@ -7,7 +7,7 @@ Theory of unique factorization domains.
 
 @TODO: setup the complete lattice structure on `factor_set`.
 -/
-import ring_theory.associated_elements algebra.gcd_domain
+import ring_theory.associated algebra.gcd_domain
 
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated
@@ -66,14 +66,11 @@ theorem prod_le_prod_iff_le {p q : multiset (associates α)}
   p.prod ≤ q.prod ↔ p ≤ q :=
 iff.intro
   begin
-    rintros ⟨c, eq⟩,
-    have : c ≠ 0, from assume hc,
-      have q.prod = 0, by simp * at *,
-      have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 this,
-      not_irreducible_zero ((irreducible_mk_iff 0).1 $ hq _ this),
-
-    induction c using quot.induction_on,
-    have : c ≠ 0, from mt mk_eq_zero_iff_eq_zero.2 this,
+    rintros ⟨⟨c⟩, eq⟩,
+    have : c ≠ 0, from (mt mk_eq_zero_iff_eq_zero.2 $
+      assume (hc : quot.mk setoid.r c = 0),
+      have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eq ▸ hc.symm ▸ mul_zero _,
+      not_irreducible_zero ((irreducible_mk_iff 0).1 $ hq _ this)),
     have : associates.mk (factors c).prod = quot.mk setoid.r c,
       from mk_eq_mk_iff_associated.2 (factors_prod this),
 
@@ -150,7 +147,7 @@ theorem prod_factors : ∀(s : factor_set α), s.prod.factors = s
   begin
     unfold factor_set.prod,
     generalize eq_a : (s.map subtype.val).prod = a,
-    induction a using quot.induction_on,
+    rcases a with ⟨a⟩,
     rw quot_mk_eq_mk at *,
 
     have : (s.map subtype.val).prod ≠ 0, from assume ha,
@@ -176,7 +173,7 @@ quotient.induction_on a $ assume a, decidable.by_cases
   (assume : associates.mk a = 0, by simp [quotient_mk_eq_mk, this])
   (assume : associates.mk a ≠ 0,
     have a ≠ 0, by simp * at *,
-    by simpa [this, quotient_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated.2 (factors_prod this)])
+    by simp [this, quotient_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated.2 (factors_prod this)])
 
 theorem eq_of_factors_eq_factors {a b : associates α} (h : a.factors = b.factors) : a = b :=
 have a.factors.prod = b.factors.prod, by rw h,

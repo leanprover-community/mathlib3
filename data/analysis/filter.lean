@@ -131,14 +131,14 @@ exists_congr (λ s, image_subset_iff)⟩
 @[simp] theorem map_σ (m : α → β) {f : filter α} (F : f.realizer) : (F.map m).σ = F.σ := rfl
 @[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) : (F.map m).F s = image m (F.F s) := rfl
 
-/-- Construct a realizer for `vmap m f` given a realizer for `f` -/
-protected def vmap (m : α → β) {f : filter β} (F : f.realizer) : (vmap m f).realizer := ⟨F.σ,
+/-- Construct a realizer for `comap m f` given a realizer for `f` -/
+protected def comap (m : α → β) {f : filter β} (F : f.realizer) : (comap m f).realizer := ⟨F.σ,
 { f            := λ s, preimage m (F.F s),
   pt           := F.F.pt,
   inf          := F.F.inf,
   inf_le_left  := λ a b, preimage_mono (F.F.inf_le_left _ _),
   inf_le_right := λ a b, preimage_mono (F.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_vmap_sets]; exact
+filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_comap_sets]; exact
 ⟨λ ⟨s, h⟩, ⟨_, ⟨s, subset.refl _⟩, h⟩,
  λ ⟨y, ⟨s, h⟩, h₂⟩, ⟨s, subset.trans (preimage_mono h) h₂⟩⟩⟩
 
@@ -210,7 +210,7 @@ F'.of_equiv $ show (Σ u:unit, Π (i : α), true → (F i).σ) ≃ Π i, (F i).�
 
 /-- Construct a realizer for the product of filters -/
 protected def prod {f g : filter α} (F : f.realizer) (G : g.realizer) : (f.prod g).realizer :=
-(F.vmap _).inf (G.vmap _)
+(F.comap _).inf (G.comap _)
 
 theorem le_iff {f g : filter α} (F : f.realizer) (G : g.realizer) :
   f ≤ g ↔ ∀ b : G.σ, ∃ a : F.σ, F.F a ≤ G.F b :=

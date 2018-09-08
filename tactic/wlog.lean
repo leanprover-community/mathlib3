@@ -200,17 +200,15 @@ perms ← parse_permutations perms,
   some pat ← return pat | fail "Either specify cases or a pattern with permutations",
   pat ← to_expr pat,
   (do
-    (x, y) ← match perms with
-    | []       := do
-      (x :: y :: _) ← return pat.list_local_consts,
-      return (x, y)
-    | [[x, y]] := return (x, y)
-    | _        := fail ""
+    [x, y] ← match perms with
+    | []  := return pat.list_local_consts
+    | [l] := return l
+    | _   := failed
     end,
     let cases := mk_or_lst [pat, pat.instantiate_locals [(x.local_uniq_name, y), (y.local_uniq_name, x)]],
     (do
-      `(%%x ≤ %%y) ← return pat,
-      (cases_pr, []) ← local_proof name_h cases (exact ``(le_total %%x %%y)),
+      `(%%x' ≤ %%y') ← return pat,
+      (cases_pr, []) ← local_proof name_h cases (exact ``(le_total %%x' %%y')),
       return (pat, cases_pr, none, [x, y], [[x, y], [y, x]]))
     <|>
     (do

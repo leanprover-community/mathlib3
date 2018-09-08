@@ -7,17 +7,6 @@ import field_theory.finite data.zmod.basic linear_algebra.prod_module
 
 open function finset nat finite_field zmodp
 
-@[simp] lemma prod_range_id_eq_fact (n : ℕ) : ((range n.succ).erase 0).prod (λ x, x) = fact n :=
-calc ((range n.succ).erase 0).prod (λ x, x) = (range n).prod succ :
-eq.symm (prod_bij (λ x _, succ x)
-  (λ a h₁, mem_erase.2 ⟨succ_ne_zero _, mem_range.2 $ succ_lt_succ $ by simpa using h₁⟩)
-  (by simp) (λ _ _ _ _, succ_inj)
-  (λ b h,
-    have b.pred.succ = b, from succ_pred_eq_of_pos $
-      by simp [nat.pos_iff_ne_zero] at *; tauto,
-    ⟨pred b, mem_range.2 $ lt_of_succ_lt_succ (by simp [*, - range_succ] at *), this.symm⟩))
-... = fact n : by induction n; simp *
-
 namespace zmodp
 
 variables {p q : ℕ} (hp : prime p) (hq : prime q)
@@ -60,7 +49,7 @@ hp.eq_two_or_odd.elim
 
 @[simp] lemma wilsons_lemma {p : ℕ} (hp : prime p) : (fact (p - 1) : zmodp p hp) = -1 :=
 begin
-  rw [← prod_range_id_eq_fact, ← @units.coe_one (zmodp p hp), ← units.coe_neg,
+  rw [← finset.prod_range_id_eq_fact, ← @units.coe_one (zmodp p hp), ← units.coe_neg,
     ← @prod_univ_units_id_eq_neg_one (zmodp p hp),
     ← prod_hom (coe : units (zmodp p hp) → zmodp p hp) units.coe_one units.coe_mul,
     ← prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul],
@@ -80,7 +69,8 @@ end
 @[simp] lemma prod_range_prime_erase_zero {p : ℕ} (hp : prime p) :
   ((range p).erase 0).prod (λ x, (x : zmodp p hp)) = -1 :=
 by conv in (range p) { rw [← succ_sub_one p, succ_sub hp.pos] };
-  rw [prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul, prod_range_id_eq_fact, wilsons_lemma]
+  rw [prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul,
+    finset.prod_range_id_eq_fact, wilsons_lemma]
 
 end zmodp
 

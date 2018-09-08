@@ -29,19 +29,17 @@ def units_equiv_ne_zero (α : Type*) [field α] : units α ≃ {a : α | a ≠ 0
 
 @[simp] lemma coe_units_equiv_ne_zero (a : units α) : ((units_equiv_ne_zero α a) : α) = a := rfl
 
-variables [fintype α] [decidable_eq α]
-local attribute [instance] set_fintype
+namespace finite_field
 
-instance units.fintype [decidable_eq α] : fintype (units α) :=
+variables [fintype α] [decidable_eq α]
+
+instance : fintype (units α) :=
 by haveI := set_fintype {a : α | a ≠ 0}; exact
 fintype.of_equiv _ (units_equiv_ne_zero α).symm
 
-lemma two_le_card_fintype_domain (α : Type*) [domain α] [fintype α] : 2 ≤ fintype.card α :=
-nat.succ_le_of_lt (lt_of_not_ge (mt fintype.card_le_one_iff.1 (λ h, zero_ne_one (h _ _))))
-
-lemma card_units [decidable_eq α] : fintype.card (units α) = fintype.card α - 1 :=
+lemma card_units : fintype.card (units α) = fintype.card α - 1 :=
 begin
-  rw [eq_comm, nat.sub_eq_iff_eq_add (nat.le_of_succ_le (two_le_card_fintype_domain α))],
+  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩)],
   haveI := set_fintype {a : α | a ≠ 0},
   haveI := set_fintype (@set.univ α),
   rw [fintype.card_congr (units_equiv_ne_zero _),
@@ -59,7 +57,7 @@ card_congr (λ a _, a)
     units.coe_ne_zero a $ by rwa [mem_nth_roots hn, h, _root_.zero_pow hn, eq_comm] at hb,
     ⟨units.mk_of_ne_zero hb0, by simp [units.ext_iff, (mem_nth_roots hn).1 hb]⟩)
 
-lemma card_pow_eq_one_eq_order_of {α : Type*} [fintype α] [field α] [decidable_eq α] (a : units α) :
+lemma card_pow_eq_one_eq_order_of (a : units α) :
   (univ.filter (λ b : units α, b ^ order_of a = 1)).card = order_of a :=
 le_antisymm
 (by rw card_nth_roots_units (order_of_pos a) 1; exact card_nth_roots _ _)
@@ -115,7 +113,7 @@ have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   ... = _ : by rw [h, ← sum_insert hinsert₁];
     exact finset.sum_congr hinsert.symm (λ _ _, rfl))
 
-lemma field.card_order_of_eq_totient {d : ℕ} (hd : d ∣ fintype.card (units α)) :
+lemma card_order_of_eq_totient {d : ℕ} (hd : d ∣ fintype.card (units α)) :
   (univ.filter (λ a : units α, order_of a = d)).card = φ d :=
 by_contradiction $ λ h,
 have h0 : (univ.filter (λ a : units α, order_of a = d)).card = 0 :=
@@ -151,7 +149,18 @@ instance {α : Type*} [fintype α] [field α] : is_cyclic (units α) :=
 by haveI := classical.dec_eq α; exact
 have ∃ x, x ∈ univ.filter (λ a : units α, order_of a = fintype.card (units α)),
 from exists_mem_of_ne_empty (card_pos.1 $
-  by rw [field.card_order_of_eq_totient (dvd_refl _)];
+  by rw [card_order_of_eq_totient (dvd_refl _)];
   exact totient_pos (fintype.card_pos_iff.2 ⟨1⟩)),
 let ⟨x, hx⟩ := this in
 is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2
+
+lemma prod_univ_units_id_eq_neg_one : univ.prod (λ x, x) = (-1 : units α) :=
+have ((@univ (units α) _).erase (-1)).prod (λ x, x) = 1,
+from prod_involution (λ x _, x⁻¹) (by simp)
+  (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
+  (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
+  (by simp),
+by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
+    this, mul_one]
+
+end finite_field

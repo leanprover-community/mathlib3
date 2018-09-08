@@ -291,3 +291,12 @@ instance {f : field α} [vector_space α β] [vector_space α γ] : vector_space
 {..prod.module}
 
 end prod
+
+namespace finset
+
+lemma prod_prod_mk [comm_monoid α] [comm_monoid β] (s : finset γ)
+  (f : γ → α × β) : s.prod f = (s.prod (λ x, (f x).1), s.prod (λ x, (f x).2)) :=
+by haveI := classical.dec_eq γ; exact
+finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
+
+end finset

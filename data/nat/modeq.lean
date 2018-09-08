@@ -106,6 +106,15 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
   end,
 λ h, ⟨nat.modeq.modeq_of_modeq_mul_right _ h, nat.modeq.modeq_of_modeq_mul_left _ h⟩⟩
 
+lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
+nat.coprime_of_dvd' (λ k ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
+  rw [hka, hkb, modeq_iff_dvd] at h,
+  cases h with z hz,
+  rw [sub_eq_iff_eq_add] at hz,
+  rw [hz, int.coe_nat_mul, mul_assoc, mul_assoc, int.coe_nat_mul, ← mul_add],
+  exact dvd_mul_right _ _,
+end)
+
 end modeq
 
 @[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=
@@ -113,5 +122,8 @@ modeq.modeq_of_modeq_mul_right _ (modeq.mod_modeq _ _)
 
 @[simp] lemma mod_mul_left_mod (a b c : ℕ) : a % (b * c) % c = a % c :=
 modeq.modeq_of_modeq_mul_left _ (modeq.mod_modeq _ _)
+
+lemma odd_mul_odd {n m : ℕ} (hn1 : n % 2 = 1) (hm1 : m % 2 = 1) : (n * m) % 2 = 1 :=
+show (n * m) % 2 = (1 * 1) % 2, from nat.modeq.modeq_mul hn1 hm1
 
 end nat

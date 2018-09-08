@@ -935,6 +935,14 @@ calc s.card = s.attach.card : card_attach.symm
     ⟨λ h, let ⟨a, ha₁, ha₂⟩ := mem_image.1 h in ha₂ ▸ h₁ _ _,
       λ h, let ⟨a, ha₁, ha₂⟩ := h₃ b h in mem_image.2 ⟨⟨a, ha₁⟩, by simp [ha₂]⟩⟩)
 
+lemma card_union_add_card_inter [decidable_eq α] (s t : finset α) :
+  (s ∪ t).card + (s ∩ t).card = s.card + t.card :=
+finset.induction_on t (by simp) (λ a, by by_cases a ∈ s; simp * {contextual := tt})
+
+lemma card_union_le [decidable_eq α] (s t : finset α) :
+  (s ∪ t).card ≤ s.card + t.card :=
+card_union_add_card_inter s t ▸ le_add_right _ _
+
 end card
 
 section bind

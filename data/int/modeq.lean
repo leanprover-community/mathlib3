@@ -94,6 +94,10 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℤ} (hmn : nat.coprime m.nat_abs
   end,
 λ h, ⟨int.modeq.modeq_of_modeq_mul_right _ h, int.modeq.modeq_of_modeq_mul_left _ h⟩⟩
 
+lemma gcd_a_modeq (a b : ℕ) : (a : ℤ) * nat.gcd_a a b ≡ nat.gcd a b [ZMOD b] :=
+by rw [← add_zero ((a : ℤ) * _), nat.gcd_eq_gcd_ab];
+  exact int.modeq.modeq_add rfl (int.modeq.modeq_zero_iff.2 (dvd_mul_right _ _)).symm
+
 end modeq
 
 @[simp] lemma mod_mul_right_mod (a b c : ℤ) : a % (b * c) % b = a % b :=

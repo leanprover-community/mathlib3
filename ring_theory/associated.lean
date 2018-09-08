@@ -23,9 +23,9 @@ theorem units.is_unit_of_mul_one [comm_monoid α] (a b : α) (h : a * b = 1) : i
 @[simp] theorem is_unit_mul_units [monoid α] (a : α) (u : units α) : is_unit (a * u) ↔ is_unit a :=
 iff.intro
   (assume ⟨v, hv⟩,
-    have is_unit (a * ↑u * ↑u⁻¹), by existsi v * u⁻¹; rw [hv, units.mul_coe],
+    have is_unit (a * ↑u * ↑u⁻¹), by existsi v * u⁻¹; rw [hv, units.coe_mul],
     by rwa [mul_assoc, units.mul_inv, mul_one] at this)
-  (assume ⟨v, hv⟩, hv.symm ▸ ⟨v * u, (units.mul_coe v u).symm⟩)
+  (assume ⟨v, hv⟩, hv.symm ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
 
 theorem is_unit_iff_dvd_one {α} [comm_semiring α] {x : α} : is_unit x ↔ x ∣ 1 :=
 ⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
@@ -103,7 +103,7 @@ namespace associated
 | x _ ⟨u, rfl⟩ := ⟨u⁻¹, by rw [mul_assoc, units.mul_inv, mul_one]⟩
 
 @[trans] protected theorem trans [monoid α] : ∀{x y z : α}, x ~ᵤ y → y ~ᵤ z → x ~ᵤ z
-| x _ _ ⟨u, rfl⟩ ⟨v, rfl⟩ := ⟨u * v, by rw [units.mul_coe, mul_assoc]⟩
+| x _ _ ⟨u, rfl⟩ ⟨v, rfl⟩ := ⟨u * v, by rw [units.coe_mul, mul_assoc]⟩
 
 theorem unit_associated_one [monoid α] {u : units α} : (u : α) ~ᵤ 1 := ⟨u⁻¹, units.mul_inv u⟩
 
@@ -370,7 +370,7 @@ begin
   calc a * ↑(norm_unit a) = a * ↑(u * norm_unit a * u⁻¹) :
       by rw [mul_comm u, mul_assoc, mul_inv_self, mul_one]
     ... = a * ↑u * ↑(norm_unit (a * ↑u)) :
-      by simp [h, norm_unit_mul, units.mul_coe, units.inv_coe, mul_assoc]
+      by simp [h, norm_unit_mul, units.coe_mul, units.coe_inv, mul_assoc]
 end
 
 lemma out_mk (a : α) : (associates.mk a).out = a * ↑(norm_unit a) :=

@@ -355,6 +355,9 @@ by rw [gsmul_eq_mul, gsmul_eq_mul, mul_assoc]
 @[simp] theorem int.cast_pow [ring α] (n : ℤ) (m : ℕ) : (↑(n ^ m) : α) = ↑n ^ m :=
 by induction m; simp [*, nat.succ_eq_add_one,pow_add]
 
+lemma neg_one_pow_eq_one_or_neg_one [ring α] (n : ℕ) : (-1 : α) ^ n = 1 ∨ (-1 : α) ^ n = -1 :=
+by induction n; finish [_root_.pow_succ]
+
 theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 by induction n with n ih; simp [pow_succ, mul_eq_zero, *]
 

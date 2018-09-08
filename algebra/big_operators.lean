@@ -217,14 +217,70 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
-@[simp] lemma prod_const [decidable_eq α] (b : β) : s.prod (λ a, b) = b ^ s.card :=
+@[simp] lemma prod_const (b : β) : s.prod (λ a, b) = b ^ s.card :=
+by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (by simp [pow_add, mul_comm] {contextual := tt})
+
+lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
+  s.prod (λ x, f x ^ n) = s.prod f ^ n :=
+by haveI := classical.dec_eq α; exact
+finset.induction_on s (by simp) (by simp [_root_.mul_pow] {contextual := tt})
+
+lemma prod_nat_pow (s : finset α) (n : ℕ) (f : α → ℕ) :
+  s.prod (λ x, f x ^ n) = s.prod f ^ n :=
+by haveI := classical.dec_eq α; exact
+finset.induction_on s (by simp) (by simp [nat.mul_pow] {contextual := tt})
+
+@[to_additive finset.sum_involution]
+lemma prod_involution {s : finset α} {f : α → β} :
+  ∀ (g : Π a ∈ s, α)
+  (h₁ : ∀ a ha, f a * f (g a ha) = 1)
+  (h₂ : ∀ a ha, f a ≠ 1 → g a ha ≠ a)
+  (h₃ : ∀ a ha, g a ha ∈ s)
+  (h₄ : ∀ a ha, g (g a ha) (h₃ a ha) = a),
+  s.prod f = 1 :=
+by haveI := classical.dec_eq α;
+haveI := classical.dec_eq β; exact
+finset.strong_induction_on s
+  (λ s ih g h₁ h₂ h₃ h₄,
+    if hs : s = ∅ then hs.symm ▸ rfl
+    else let ⟨x, hx⟩ := exists_mem_of_ne_empty hs in
+      have hmem : ∀ y ∈ (s.erase x).erase (g x hx), y ∈ s,
+        from λ y hy, (mem_of_mem_erase (mem_of_mem_erase hy)),
+      have g_inj : ∀ {x hx y hy}, g x hx = g y hy → x = y,
+        from λ x hx y hy h, by rw [← h₄ x hx, ← h₄ y hy]; simp [h],
+      have ih': (erase (erase s x) (g x hx)).prod f = (1 : β) :=
+        ih ((s.erase x).erase (g x hx))
+          ⟨subset.trans (erase_subset _ _) (erase_subset _ _),
+            λ h, not_mem_erase (g x hx) (s.erase x) (h (h₃ x hx))⟩
+          (λ y hy, g y (hmem y hy))
+          (λ y hy, h₁ y (hmem y hy))
+          (λ y hy, h₂ y (hmem y hy))
+          (λ y hy, mem_erase.2 ⟨λ (h : g y _ = g x hx), by simpa [g_inj h] using hy,
+            mem_erase.2 ⟨λ (h : g y _ = x),
+              have y = g x hx, from h₄ y (hmem y hy) ▸ by simp [h],
+              by simpa [this] using hy, h₃ y (hmem y hy)⟩⟩)
+          (λ y hy, h₄ y (hmem y hy)),
+      if hx1 : f x = 1
+      then ih' ▸ eq.symm (prod_subset hmem
+        (λ y hy hy₁,
+          have y = x ∨ y = g x hx, by simp [hy] at hy₁; tauto,
+          this.elim (λ h, h.symm ▸ hx1)
+            (λ h, h₁ x hx ▸ h ▸ hx1.symm ▸ (one_mul _).symm)))
+      else by rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
+        ← insert_erase (mem_erase.2 ⟨h₂ x hx hx1, h₃ x hx⟩),
+        prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx])
 
 end comm_monoid
 
-@[simp] lemma sum_const [add_comm_monoid β] [decidable_eq α] (b : β) :
+lemma sum_smul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
+  s.sum (λ x, add_monoid.smul n (f x)) = add_monoid.smul n (s.sum f) :=
+@prod_pow _ (multiplicative β) _ _ _ _
+attribute [to_additive finset.sum_smul] prod_pow
+
+@[simp] lemma sum_const [add_comm_monoid β] (b : β) :
   s.sum (λ a, b) = add_monoid.smul s.card b :=
-@prod_const _ (multiplicative β) _ _ _ _
+@prod_const _ (multiplicative β) _ _ _
 attribute [to_additive finset.sum_const] prod_const
 
 lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
@@ -251,6 +307,16 @@ lemma card_bind [decidable_eq β] {s : finset α} {t : α → finset β}
 calc (s.bind t).card = (s.bind t).sum (λ _, 1) : by simp
 ... = s.sum (λ a, (t a).sum (λ _, 1)) : finset.sum_bind h
 ... = s.sum (λ u, card (t u)) : by simp
+
+lemma card_bind_le [decidable_eq β] {s : finset α} {t : α → finset β} :
+  (s.bind t).card ≤ s.sum (λ a, (t a).card) :=
+by haveI := classical.dec_eq α; exact
+finset.induction_on s (by simp)
+  (λ a s has ih,
+    calc ((insert a s).bind t).card ≤ (t a).card + (s.bind t).card :
+    by rw bind_insert; exact finset.card_union_le _ _
+    ... ≤ (insert a s).sum (λ a, card (t a)) :
+    by rw sum_insert has; exact add_le_add_left ih _)
 
 end finset
 

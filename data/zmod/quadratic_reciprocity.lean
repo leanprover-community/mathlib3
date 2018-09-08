@@ -36,9 +36,9 @@ lemma euler_criterion {x : zmodp p hp} (hx : x ≠ 0) :
   (∃ y : zmodp p hp, y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 ⟨λ ⟨y, hy⟩,
   have hy0 : y ≠ 0, from λ h, by simp [h, _root_.zero_pow (succ_pos 1)] at hy; cc,
-  by simpa using (units.ext_iff.1 $ (euler_criterion_units hp).1 ⟨units.mk0 _ hy0, show _ = units.mk_of_ne_zero hx,
+  by simpa using (units.ext_iff.1 $ (euler_criterion_units hp).1 ⟨units.mk0 _ hy0, show _ = units.mk0 _ hx,
     by rw [units.ext_iff]; simpa⟩),
-λ h, let ⟨y, hy⟩ := (euler_criterion_units hp).2 (show units.mk0 hx ^ (p / 2) = 1, by simpa [units.ext_iff]) in
+λ h, let ⟨y, hy⟩ := (euler_criterion_units hp).2 (show units.mk0 _ hx ^ (p / 2) = 1, by simpa [units.ext_iff]) in
   ⟨y, by simpa [units.ext_iff] using hy⟩⟩
 
 lemma pow_div_two_eq_neg_one_or_one {n : zmodp p hp} (hn : n ≠ 0) : n ^ (p / 2) = 1 ∨ n ^ (p / 2) = -1 :=
@@ -60,7 +60,7 @@ begin
     (λ a _, by simp) (λ _ _ _ _, units.ext_iff.2 ∘ fin.eq_of_veq)
     (λ b hb,
       have b ≠ 0 ∧ b < p, by rwa [mem_erase, mem_range, ← succ_sub hp.pos, succ_sub_one] at hb,
-      ⟨units.mk0 (show (b : zmodp p hp) ≠ 0, from fin.ne_of_vne $
+      ⟨units.mk0 _ (show (b : zmodp p hp) ≠ 0, from fin.ne_of_vne $
         by rw [zmod.val_cast_nat, ← @nat.cast_zero (zmodp p hp), zmod.val_cast_nat];
         simp [mod_eq_of_lt this.2, this.1]), mem_univ _,
       by simp [val_cast_of_lt hp this.2]⟩))

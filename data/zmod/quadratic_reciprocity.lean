@@ -1,4 +1,9 @@
-import field_theory.finite data.zmod linear_algebra.prod_module
+/-
+Copyright (c) 2018 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
+import field_theory.finite data.zmod.basic linear_algebra.prod_module
 
 open function finset nat finite_field zmodp
 
@@ -89,8 +94,6 @@ by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_ge_one_right' (nat.zero_le _) hn0)]
 
 namespace quadratic_reciprocity_aux
-
-section
 
 variables {p q : ℕ} (hp : prime p) (hq : prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1)
   (hpq : p ≠ q)
@@ -455,8 +458,6 @@ prod_congr rfl (λ _ _, by split_ifs; simp)
     prod_range_p_mul_q_filter_coprime_mod_p hp hq hp1 hq1 hpq,
     prod_hom (coe : ℕ → zmodp q hq) nat.cast_one nat.cast_mul,
     mul_comm p q, prod_range_p_mul_q_filter_coprime_mod_p hq hp hq1 hp1 hpq.symm]
-
-end
 
 end quadratic_reciprocity_aux
 

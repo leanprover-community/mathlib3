@@ -335,9 +335,22 @@ meta def try_intros : list name → tactic (list name)
 | [] := try intros $> []
 | (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
 
+meta def rec_beta : expr → tactic expr
+| (expr.app e₀ e₁) := expr.app <$> rec_beta e₀ <*> rec_beta e₁ >>= head_beta
+| (expr.pi n bi e₀ e₁)  := expr.pi n bi  <$> rec_beta e₀ <*> rec_beta e₁ >>= head_beta
+| (expr.lam n bi e₀ e₁) := expr.lam n bi <$> rec_beta e₀ <*> rec_beta e₁ >>= head_beta
+| e := head_beta e
+
 meta def ext1 (xs : list name) : tactic (list name) :=
 do ls ← attribute.get_instances `extensionality,
-   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
+   ls.any_of (λ l, do
+     t ← target,
+     g ← main_goal,
+     applyc l,
+     t  ← instantiate_mvars t >>= rec_beta,
+     t' ← get_assignment g >>= infer_type >>= instantiate_mvars >>= rec_beta,
+     guard $ t =ₐ t' ) <|>
+   ls.any_of applyc <|> fail "no applicable extensionality rule found",
    try_intros xs
 
 meta def ext : list name → option ℕ → tactic unit

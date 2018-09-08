@@ -265,8 +265,6 @@ congr_arg coe (prod_congr (by simp [finset.ext, coprime_mul_iff_left]; tauto) (�
 ... = _ : by rw [prod_filter_range_p_mul_q_div_two_mod_p_eq hp hq hp1 hq1 hpq];
   cases zmodp.pow_div_two_eq_neg_one_or_one hp hq0; simp [h, _root_.pow_succ]
 
-instance : has_repr (zmodp p hp) := fin.has_repr _
-
 lemma prod_filter_range_p_mul_q_div_two_eq_prod_product :
   ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
     (λ x, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp), (x : zmodp q hq))
@@ -329,8 +327,8 @@ prod_bij (λ x _, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp).val, 
   (λ ⟨x, y⟩ hxy, let ⟨k, hk⟩ := nat.modeq.chinese_remainder ((coprime_primes hp hq).2 hpq) x y in
     have hxy : x ≠ 0 ∧ x < p ∧ y ≠ 0 ∧ y ≤ q / 2,
       by simpa [and.assoc, -range_succ, lt_succ_iff] using hxy,
-    have hkx : x = k % p := mod_eq_of_lt hxy.2.1 ▸ hk.1.symm,
-    have hky : y = k % q := mod_eq_of_lt (lt_of_le_of_lt hxy.2.2.2
+    have hkx : x = k % p, from mod_eq_of_lt hxy.2.1 ▸ hk.1.symm,
+    have hky : y = k % q, from mod_eq_of_lt (lt_of_le_of_lt hxy.2.2.2
       (div_lt_self hq.pos (lt_succ_self 1))) ▸ hk.2.symm,
     have hkpqmod : 0 ≤ (- k : ℤ) % (p * q), from int.mod_nonneg _
       (mul_ne_zero (int.coe_nat_ne_zero_iff_pos.2 hp.pos) (int.coe_nat_ne_zero_iff_pos.2 hq.pos)),
@@ -338,40 +336,44 @@ prod_bij (λ x _, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp).val, 
       by rw [int.cast_neg, neg_ne_zero, int.cast_coe_nat, ne.def, zmod.eq_zero_iff_dvd_nat];
         exact mt (dvd.trans (dvd_mul_right p q)) (by rw [dvd_iff_mod_eq_zero, ← hkx]; exact hxy.1),
     ⟨if k % (p * q) ≤ (p * q) / 2 then k % (p * q) else ((- k : ℤ) % (p * q)).nat_abs,
-    begin
-      split_ifs with h,
-      { refine mem_filter.2 ⟨mem_range.2 (lt_succ_of_le h), _⟩,
-        rw [coprime_mul_iff_left, hp.coprime_iff_not_dvd, hq.coprime_iff_not_dvd,
-          dvd_iff_mod_eq_zero, dvd_iff_mod_eq_zero]; simp * at *; tauto },
-      { refine mem_filter.2 ⟨mem_range.2 _, _⟩,
-        { rwa [← hpqpnat', ← int.coe_nat_lt, int.nat_abs_of_nonneg hkpqmod, ← hpqpnat, ← zmod.coe_val_cast_int,
+      if h : k % (p * q) ≤ p * q / 2
+      then begin
+          rw if_pos h,
+          refine mem_filter.2 ⟨mem_range.2 (lt_succ_of_le h), _⟩,
+          rw [coprime_mul_iff_left, hp.coprime_iff_not_dvd, hq.coprime_iff_not_dvd,
+            dvd_iff_mod_eq_zero, dvd_iff_mod_eq_zero]; simp * at *; tauto,
+        end
+      else have ∀ {p q : ℕ}, prime p → prime q → k % p ≠ 0 → coprime p (int.nat_abs ((-k : ℤ) % (↑p * ↑q))),
+        from λ p q hp hq hkx, by rwa [hp.coprime_iff_not_dvd, ← int.coe_nat_dvd, int.dvd_nat_abs,
+          int.dvd_iff_mod_eq_zero, int.mod_mul_right_mod, ← int.dvd_iff_mod_eq_zero, dvd_neg_iff_dvd,
+          int.coe_nat_dvd, dvd_iff_mod_eq_zero],
+        begin
+          rw if_neg h,
+          refine mem_filter.2 ⟨mem_range.2 _, coprime_mul_iff_left.2 ⟨this hp hq (hkx ▸ hxy.1),
+            mul_comm (q : ℤ) (p : ℤ) ▸ this hq hp (hky ▸ hxy.2.2.1)⟩⟩,
+          rwa [← hpqpnat', ← int.coe_nat_lt, int.nat_abs_of_nonneg hkpqmod, ← hpqpnat, ← zmod.coe_val_cast_int,
             int.coe_nat_lt, lt_succ_iff, zmod.le_div_two_iff_lt_neg hpq1 hpqk0,
-            ← int.cast_neg, neg_neg, int.cast_coe_nat, zmod.val_cast_nat, hpqpnat', ← not_le] },
-        { rw [coprime_mul_iff_left, hp.coprime_iff_not_dvd, ← int.coe_nat_dvd, int.dvd_nat_abs,
-            int.dvd_iff_mod_eq_zero, int.mod_mul_right_mod, ← int.dvd_iff_mod_eq_zero, dvd_neg_iff_dvd,
-            int.coe_nat_dvd, dvd_iff_mod_eq_zero, ← hkx, hq.coprime_iff_not_dvd, ← int.coe_nat_dvd, int.dvd_nat_abs,
-            int.dvd_iff_mod_eq_zero, int.mod_mul_left_mod, ← int.dvd_iff_mod_eq_zero, dvd_neg_iff_dvd,
-            int.coe_nat_dvd, dvd_iff_mod_eq_zero, ← hky]; cc } }
-      end,
-    have hkq0 : ((k : ℤ) : zmodp q hq) ≠ 0,
-        by rw [int.cast_coe_nat, ne.def, zmodp.eq_zero_iff_dvd_nat, dvd_iff_mod_eq_zero, ← hky];
-        exact hxy.2.2.1,
-      have hkpq : ¬ int.nat_abs (-↑k % (↑p * ↑q)) % q ≤ q / 2 :=
-        by rw [not_le, ← int.coe_nat_lt, int.coe_nat_mod, int.nat_abs_of_nonneg hkpqmod,
-            int.mod_mul_left_mod, ← zmodp.coe_val_cast_int hq, int.coe_nat_lt, int.cast_neg,
-            ← zmodp.le_div_two_iff_lt_neg hq hq1 hkq0, int.cast_coe_nat, zmodp.val_cast_nat, ← hky];
-          exact hxy.2.2.2,
-      have hneg_neg : (-(int.nat_abs (-↑k % (↑p * ↑q))) : zmodp p hp).val = k % p :=
-      by rw [← int.cast_coe_nat, int.nat_abs_of_nonneg hkpqmod, ← int.cast_neg, ← int.coe_nat_inj',
-          zmodp.coe_val_cast_int hp, int.coe_nat_mod];
-        exact int.modeq.modeq_of_modeq_mul_right q
-          (int.modeq.trans (int.modeq.modeq_neg (int.modeq.mod_modeq _ _)) (by simp)),
-      have hneg_neg' : (-(int.nat_abs (-↑k % (↑p * ↑q))) : zmodp q hq).val = k % q :=
+            ← int.cast_neg, neg_neg, int.cast_coe_nat, zmod.val_cast_nat, hpqpnat', ← not_le],
+        end,
+      have hkq0 : ((k : ℤ) : zmodp q hq) ≠ 0,
+          by rw [int.cast_coe_nat, ne.def, zmodp.eq_zero_iff_dvd_nat, dvd_iff_mod_eq_zero, ← hky];
+          exact hxy.2.2.1,
+        have hkpq : ¬ int.nat_abs (-↑k % (↑p * ↑q)) % q ≤ q / 2 :=
+          by rw [not_le, ← int.coe_nat_lt, int.coe_nat_mod, int.nat_abs_of_nonneg hkpqmod,
+              int.mod_mul_left_mod, ← zmodp.coe_val_cast_int hq, int.coe_nat_lt, int.cast_neg,
+              ← zmodp.le_div_two_iff_lt_neg hq hq1 hkq0, int.cast_coe_nat, zmodp.val_cast_nat, ← hky];
+            exact hxy.2.2.2,
+        have hneg_neg : (-(int.nat_abs (-↑k % (↑p * ↑q))) : zmodp p hp).val = k % p :=
         by rw [← int.cast_coe_nat, int.nat_abs_of_nonneg hkpqmod, ← int.cast_neg, ← int.coe_nat_inj',
-          zmodp.coe_val_cast_int hq, int.coe_nat_mod];
-        exact int.modeq.modeq_of_modeq_mul_left p
-          (int.modeq.trans (int.modeq.modeq_neg (int.modeq.mod_modeq _ _)) (by simp)),
-      by split_ifs; simp [zmodp.val_cast_nat, *, -not_le, -not_lt] at *⟩)
+            zmodp.coe_val_cast_int hp, int.coe_nat_mod];
+          exact int.modeq.modeq_of_modeq_mul_right q
+            (int.modeq.trans (int.modeq.modeq_neg (int.modeq.mod_modeq _ _)) (by simp)),
+        have hneg_neg' : (-(int.nat_abs (-↑k % (↑p * ↑q))) : zmodp q hq).val = k % q :=
+          by rw [← int.cast_coe_nat, int.nat_abs_of_nonneg hkpqmod, ← int.cast_neg, ← int.coe_nat_inj',
+            zmodp.coe_val_cast_int hq, int.coe_nat_mod];
+          exact int.modeq.modeq_of_modeq_mul_left p
+            (int.modeq.trans (int.modeq.modeq_neg (int.modeq.mod_modeq _ _)) (by simp)),
+        by split_ifs; simp [zmodp.val_cast_nat, *, -not_le, -not_lt] at *⟩)
 
 lemma prod_range_div_two_erase_zero :
   ((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp)) ^ 2 * (-1) ^ (p / 2) = -1 :=

@@ -502,7 +502,7 @@ have h : (((-1) ^ (q / 2), (-1) ^ (p / 2) * (-1) ^ (p / 2 * (q / 2))) : zmodp p 
   begin
     have := prod_filter_range_p_mul_q_div_two_eq_prod_product hp hq hp1 hq1 hpq,
     rw [prod_range_p_mul_q_div_two_ite_eq hp hq hp1 hq1 hpq,
-      range_p_product_range_q_div_two_prod hp hq hp1 hq1] at this,
+      range_p_product_range_q_div_two_prod hp hq hp1 hq1 hpq] at this,
     cases hneg_one_or_one with h h; simp * at *
   end,
 begin

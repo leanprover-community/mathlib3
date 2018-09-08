@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 import tactic data.set.lattice data.prod
-       tactic.rewrite
+       tactic.rewrite data.stream.basic
 
 section solve_by_elim
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
@@ -387,6 +387,12 @@ begin
     admit },
   trivial,
 end
+
+example (s₀ s₁ : set ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
+by { ext1, guard_target x ∈ s₀ ↔ x ∈ s₁, simp * }
+
+example (s₀ s₁ : stream ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
+by { ext1, guard_target s₀.nth n = s₁.nth n, simp * }
 
 def my_foo {α} (x : semigroup α) (y : group α) : true := trivial
 

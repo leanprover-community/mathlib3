@@ -3,6 +3,23 @@ import tactic.basic
 
 universes u₁ u₂
 
+open interactive interactive.types
+open lean.parser nat tactic
+
+meta def get_ext_subject : expr → tactic name
+| (expr.pi n bi d b) :=
+  do v  ← mk_local' n bi d,
+     b' ← whnf $ b.instantiate_var v,
+     get_ext_subject b'
+| (expr.app _ e) :=
+  do t ← infer_type e,
+     pure $ t.get_app_fn.const_name
+| _ := pure name.anonymous
+
+open native
+
+meta def rident := do i ← ident, resolve_constant i
+
 /--
  Tag lemmas of the form:
 
@@ -13,11 +30,22 @@ universes u₁ u₂
  ```
  -/
 @[user_attribute]
-meta def extensional_attribute : user_attribute :=
+meta def extensional_attribute : user_attribute (name_map name) (list name) :=
 { name := `extensionality,
-  descr := "lemmas usable by `ext` tactic" }
+  descr := "lemmas usable by `ext` tactic",
+  cache_cfg := { mk_cache := λ ls,
+                          do { attrs ← ls.mmap $ λ l,
+                                     do { ls ← extensional_attribute.get_param l,
+                                          if ls.empty
+                                          then list.ret <$> (prod.mk <$> (mk_const l >>= infer_type >>= get_ext_subject)
+                                                                     <*> pure l)
+                                          else pure $ prod.mk <$> ls <*> pure l },
+                               pure $ rb_map.of_list $ attrs.join },
+                 dependencies := [] },
+  parser := many (name.anonymous <$ tk "*" <|> rident) }
 
-attribute [extensionality] _root_.funext array.ext
+attribute [extensionality] array.ext
+attribute [extensionality * thunk] _root_.funext
 
 namespace ulift
 @[extensionality] lemma ext {α : Type u₁} (X Y : ulift.{u₂} α) (w : X.down = Y.down) : X = Y :=
@@ -27,8 +55,22 @@ end
 end ulift
 
 namespace tactic
-open interactive interactive.types
-open lean.parser nat
+
+meta def ext1 (xs : list name) : tactic (list name) :=
+do subject ← target >>= get_ext_subject,
+   m ← extensional_attribute.get_cache,
+   do { rule ← m.find subject,
+        applyc rule } <|>
+     do { ls ← attribute.get_instances `extensionality,
+          ls.any_of applyc } <|>
+     fail format!"no applicable extensionality rule found for {subject}",
+   try_intros xs
+
+meta def ext : list name → option ℕ → tactic unit
+| _  (some 0) := skip
+| xs n        := focus1 $ do
+  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
+
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many

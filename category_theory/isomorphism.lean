@@ -43,30 +43,30 @@ instance : has_coe (iso.{u v} X Y) (X ⟶ Y) :=
     refl
   end
 
-@[symm] def symm (I : X ≅ Y) : Y ≅ X := 
+@[symm] def symm (I : X ≅ Y) : Y ≅ X :=
 { hom := I.inv,
   inv := I.hom,
   hom_inv_id' := I.inv_hom_id',
   inv_hom_id' := I.hom_inv_id' }
 
 -- These are the restated lemmas for iso.hom_inv_id' and iso.inv_hom_id'
-@[simp] lemma hom_inv_id (α : X ≅ Y) : (α : X ⟶ Y) ≫ (α.symm : Y ⟶ X) = 𝟙 X := 
+@[simp] lemma hom_inv_id (α : X ≅ Y) : (α : X ⟶ Y) ≫ (α.symm : Y ⟶ X) = 𝟙 X :=
 begin unfold_coes, unfold symm, have p := α.hom_inv_id', dsimp at p, rw p end
-@[simp] lemma inv_hom_id (α : X ≅ Y) : (α.symm : Y ⟶ X) ≫ (α : X ⟶ Y) = 𝟙 Y := 
+@[simp] lemma inv_hom_id (α : X ≅ Y) : (α.symm : Y ⟶ X) ≫ (α : X ⟶ Y) = 𝟙 Y :=
 begin unfold_coes, unfold symm, have p := iso.inv_hom_id', dsimp at p, rw p end
 
 -- We rewrite the projections `.hom` and `.inv` into coercions.
 @[simp] lemma hom_eq_coe (α : X ≅ Y) : α.hom = (α : X ⟶ Y) := rfl
 @[simp] lemma inv_eq_coe (α : X ≅ Y) : α.inv = (α.symm : Y ⟶ X) := rfl
 
-@[refl] def refl (X : C) : X ≅ X := 
+@[refl] def refl (X : C) : X ≅ X :=
 { hom := 𝟙 X,
   inv := 𝟙 X }
 
 @[simp] lemma refl_coe (X : C) : ((iso.refl X) : X ⟶ X) = 𝟙 X := rfl
 @[simp] lemma refl_symm_coe  (X : C) : ((iso.refl X).symm : X ⟶ X)  = 𝟙 X := rfl
 
-@[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z := 
+@[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
 { hom := (α : X ⟶ Y) ≫ (β : Y ⟶ Z),
   inv := (β.symm : Z ⟶ Y) ≫ (α.symm : Y ⟶ X),
   hom_inv_id' := begin /- `obviously'` says: -/ erw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.hom_inv_id, rw category.id_comp, rw iso.hom_inv_id end,
@@ -82,40 +82,40 @@ infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
 end iso
 
-/-- `is_iso` typeclass expressing that a morphism is invertible. 
+/-- `is_iso` typeclass expressing that a morphism is invertible.
     This contains the data of the inverse, but is a subsingleton type. -/
 class is_iso (f : X ⟶ Y) :=
 (inv : Y ⟶ X)
 (hom_inv_id' : f ≫ inv = 𝟙 X . obviously)
 (inv_hom_id' : inv ≫ f = 𝟙 Y . obviously)
 
-def inv (f : X ⟶ Y) [is_iso f] := is_iso.inv f 
+def inv (f : X ⟶ Y) [is_iso f] := is_iso.inv f
 
 namespace is_iso
 
 instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
-⟨ λ a b, begin 
-          cases a, cases b, 
-          dsimp at *, congr, 
+⟨ λ a b, begin
+          cases a, cases b,
+          dsimp at *, congr,
           rw [← category.id_comp _ a_inv, ← b_inv_hom_id', category.assoc, a_hom_inv_id', category.comp_id]
-         end ⟩ 
+         end ⟩
 
-@[simp] def hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ inv f = 𝟙 X := is_iso.hom_inv_id' f 
-@[simp] def inv_hom_id (f : X ⟶ Y) [is_iso f] : inv f ≫ f = 𝟙 Y := is_iso.inv_hom_id' f 
+@[simp] def hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ inv f = 𝟙 X := is_iso.hom_inv_id' f
+@[simp] def inv_hom_id (f : X ⟶ Y) [is_iso f] : inv f ≫ f = 𝟙 Y := is_iso.inv_hom_id' f
 
-instance (X : C) : is_iso (𝟙 X) := 
+instance (X : C) : is_iso (𝟙 X) :=
 { inv := 𝟙 X }
 
 instance of_iso         (f : X ≅ Y) : is_iso (f : X ⟶ Y) :=
 { inv := (f.symm : Y ⟶ X) }
-instance of_iso_inverse (f : X ≅ Y) : is_iso (f.symm : Y ⟶ X)  := 
+instance of_iso_inverse (f : X ≅ Y) : is_iso (f.symm : Y ⟶ X)  :=
 { inv := (f : X ⟶ Y) }
 
 end is_iso
 
 namespace functor
 
-universes u₁ v₁ u₂ v₂ 
+universes u₁ v₁ u₂ v₂
 variables {D : Type u₂}
 
 variables [𝒟 : category.{u₂ v₂} D]
@@ -137,7 +137,7 @@ instance (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 
 end functor
 
-instance epi_of_iso  (f : X ⟶ Y) [is_iso f] : epi f  := 
+instance epi_of_iso  (f : X ⟶ Y) [is_iso f] : epi f  :=
 { left_cancellation := begin
                          -- This is an interesting test case for better rewrite automation.
                          intros,
@@ -145,7 +145,7 @@ instance epi_of_iso  (f : X ⟶ Y) [is_iso f] : epi f  :=
                          rw [← is_iso.inv_hom_id f],
                          erw [category.assoc, w, category.assoc],
                        end }
-instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f := 
+instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := begin
                          intros,
                          rw [←category.comp_id C g, ←category.comp_id C h],
@@ -173,8 +173,10 @@ end functor
 
 def Aut (X : C) := X ≅ X
 
-instance {X : C} : group (Aut X) := 
-by refine { one := iso.refl X, 
+attribute [extensionality iso Aut] iso.ext
+
+instance {X : C} : group (Aut X) :=
+by refine { one := iso.refl X,
             inv := iso.symm,
             mul := iso.trans, .. } ; obviously
 

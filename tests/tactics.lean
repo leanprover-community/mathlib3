@@ -19,6 +19,9 @@ by solve_by_elim
 example {α : Type} {a b : α → Prop} (h₀ : ∀ x : α, b x = a x) (y : α) : a y = b y :=
 by solve_by_elim
 
+example {α : Type} {a b : α → Prop} (h₀ : b = a) (y : α) : a y = b y :=
+by solve_by_elim
+
 example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
 begin
   apply_assumption,

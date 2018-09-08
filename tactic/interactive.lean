@@ -245,7 +245,7 @@ optional arguments:
         the next one will be attempted.
 -/
 meta def apply_assumption
-  (asms : option (list expr) := none)
+  (asms : tactic (list expr) := local_context)
   (tac : tactic unit := return ()) : tactic unit :=
 tactic.apply_assumption asms tac
 
@@ -253,19 +253,18 @@ open nat
 
 /--
 `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
-and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
-or up to `depth` times.
+and then repeatedly calls `apply_assumption` on the generated subgoals until no subgoals remain,
+performing at most `max_rep` recursive steps.
 
 `solve_by_elim` discharges the current goal or fails
 
-`solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
+`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
 
 optional arguments:
-- discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
-- asms: list of assumptions / rules to consider instead of local constants
-- depth: number of attempts at discharging generated sub-goals
-
-The optional arguments can be specified as ``solve_by_elim { discharger := `[cc] }``.
+- discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
+- assumptions: tactic generating a list of assumptions (defaults to `local_context`)
+- congr: if `tt`, prepend `congr_arg` and `congr_fun` to the assumptions
+- max_rep: number of attempts at discharging generated sub-goals
 -/
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 tactic.solve_by_elim opt

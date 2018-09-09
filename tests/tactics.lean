@@ -394,6 +394,13 @@ by { ext1, guard_target x ∈ s₀ ↔ x ∈ s₁, simp * }
 example (s₀ s₁ : stream ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
 by { ext1, guard_target s₀.nth n = s₁.nth n, simp * }
 
+example (s₀ s₁ : ℤ → set (ℕ × ℕ))
+        (h : ∀ i a b, (a,b) ∈ s₀ i ↔ (a,b) ∈ s₁ i) : s₀ = s₁ :=
+begin
+  ext i ⟨a,b⟩,
+  apply h
+end
+
 def my_foo {α} (x : semigroup α) (y : group α) : true := trivial
 
 example {α : Type} : true :=

@@ -335,10 +335,6 @@ do h' ← assert h p,
    set_goals [g₁],
    return (h', gs)
 
-meta def try_intros : list name → tactic (list name)
-| [] := try intros $> []
-| (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
-
 meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
 | _ := []

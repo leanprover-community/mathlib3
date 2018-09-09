@@ -50,6 +50,10 @@ meta def is_meta_var : expr → bool
 | (mvar _ _ _) := tt
 | e            := ff
 
+meta def is_sort : expr → bool
+| (sort _) := tt
+| e         := ff
+
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
 

@@ -222,11 +222,14 @@ A maximum depth can be provided with `ext x y z : 3`.
  is equivalent to
 
  ```lean
- @[extensionality]
+ @[extensionality *]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
  ```
+
+ The `*` parameter indicates to simply infer the
+ type from the lemma's statement.
 
  This allows us specify type synonyms along with the type
  that referred to in the lemma statement.

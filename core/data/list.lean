@@ -4,7 +4,8 @@ namespace list
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-infix ` \\ `:65 := list.diff
+instance [decidable_eq α] : has_sdiff (list α) :=
+⟨ list.diff ⟩
 
 /- partition -/
 

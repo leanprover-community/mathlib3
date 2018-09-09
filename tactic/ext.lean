@@ -132,7 +132,7 @@ meta def extensional_attribute : user_attribute (name_map name) (bool × list ex
                            then ([],[s])
                            else ls.partition_map (sum.map (flip option.get_or_else s) (flip option.get_or_else s)),
        ls''.mmap' (equiv_type_constr s),
-       let l := ls'' ∪ (ls'.filter $ λ l, prod.snd l = n).map prod.fst \\ rs,
+       let l := ls'' ∪ (ls'.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
        extensional_attribute.set n (tt,[],l,[]) b }
 
 attribute [extensionality] array.ext

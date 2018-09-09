@@ -11,6 +11,7 @@ import category_theory.natural_transformation
 import category_theory.opposites
 import category_theory.types
 import category_theory.embedding
+import category_theory.natural_isomorphism
 
 namespace category_theory
 
@@ -46,6 +47,21 @@ begin
   injection p with h,
   convert (congr_fun (congr_fun h X) (𝟙 X)) ; simp
 end
+
+/-- Extensionality via Yoneda. The typical usage would be
+```
+-- Goal is `X ≅ Y`
+apply yoneda.ext,
+-- Goals are now functions `(Z ⟶ X) → (Z ⟶ Y)`, `(Z ⟶ Y) → (Z ⟶ X)`, and the fact that these
+functions are inverses and natural in `Z`.
+```
+-/
+def ext (X Y : C)
+  (p : Π {Z : C}, (Z ⟶ X) → (Z ⟶ Y)) (q : Π {Z : C}, (Z ⟶ Y) → (Z ⟶ X))
+  (h₁ : Π {Z : C} (f : Z ⟶ X), q (p f) = f) (h₂ : Π {Z : C} (f : Z ⟶ Y), p (q f) = f) 
+  (n : Π {Z Z' : C} (f : Z' ⟶ Z) (g : Z ⟶ X), p (f ≫ g) = f ≫ p g) : X ≅ Y := 
+@preimage_iso _ _ _ _ (yoneda C) _ _ _ _ 
+  (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
 
 -- We need to help typeclass inference with some awkward universe levels here.
 instance prod_category_instance_1 : category (((Cᵒᵖ) ⥤ Type v₁) × (Cᵒᵖ)) := category_theory.prod.{(max u₁ (v₁+1)) (max u₁ v₁) u₁ v₁} (Cᵒᵖ ⥤ Type v₁) (Cᵒᵖ)

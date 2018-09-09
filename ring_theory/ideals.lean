@@ -165,7 +165,7 @@ instance (S : set α) [is_ideal S] : comm_ring (quotient S) :=
 
 instance is_ring_hom_mk (S : set α) [is_ideal S] :
   @is_ring_hom _ (quotient S) _ _ mk :=
-⟨λ _ _, rfl, λ _ _, rfl, rfl⟩
+⟨rfl, λ _ _, rfl, λ _ _, rfl⟩
 
 instance (S T : set α) [is_ideal S] [is_ideal T] :
   is_ideal (mk '' S : set (quotient T)) :=

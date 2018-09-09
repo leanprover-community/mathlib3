@@ -509,6 +509,17 @@ have h₂ : leading_coeff p * leading_coeff (p ^ n) ≠ 0 :=
   by rwa [pow_succ, ← leading_coeff_pow' h₁] at h,
 by rw [pow_succ, degree_mul_eq' h₂, succ_smul, degree_pow_eq' h₁]
 
+@[simp] lemma leading_coeff_X_pow : ∀ n : ℕ, leading_coeff ((X : polynomial α) ^ n) = 1
+| 0 := by simp
+| (n+1) :=
+if h10 : (1 : α) = 0
+then by rw [pow_succ, ← one_mul X, ← C_1, h10]; simp
+else
+have h : leading_coeff (X : polynomial α) * leading_coeff (X ^ n) ≠ 0,
+  by rw [leading_coeff_X, leading_coeff_X_pow n, one_mul];
+    exact h10,
+by rw [pow_succ, leading_coeff_mul' h, leading_coeff_X, leading_coeff_X_pow, one_mul]
+
 end comm_semiring
 
 section comm_ring
@@ -809,14 +820,6 @@ begin
   { simp [ha] },
   exact degree_add_eq_of_degree_lt (by rw [degree_X, degree_neg, degree_C ha]; exact dec_trivial)
 end
-
-@[simp] lemma leading_coeff_X_pow : ∀ n : ℕ, leading_coeff ((X : polynomial α) ^ n) = 1
-| 0 := by simp
-| (n+1) :=
-have h : leading_coeff (X : polynomial α) * leading_coeff (X ^ n) ≠ 0,
-  by rw [leading_coeff_X, leading_coeff_X_pow n, one_mul];
-    exact zero_ne_one.symm,
-by rw [pow_succ, leading_coeff_mul' h, leading_coeff_X, leading_coeff_X_pow, one_mul]
 
 @[simp] lemma degree_X_pow : ∀ (n : ℕ), degree ((X : polynomial α) ^ n) = n
 | 0 := by simp; refl

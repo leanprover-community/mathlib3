@@ -360,15 +360,15 @@ noncomputable def sup {ι} (f : ι → cardinal) : cardinal :=
 theorem le_sup {ι} (f : ι → cardinal) (i) : f i ≤ sup f :=
 by dsimp [sup]; cases min_eq _ _ with c hc; rw hc; exact c.2 i
 
-theorem sup_le {ι} (f : ι → cardinal) (a) : sup f ≤ a ↔ ∀ i, f i ≤ a :=
+theorem sup_le {ι} {f : ι → cardinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
 ⟨λ h i, le_trans (le_sup _ _) h,
  λ h, by dsimp [sup]; change a with (⟨a, h⟩:subtype _).1; apply min_le⟩
 
 theorem sup_le_sup {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sup f ≤ sup g :=
-(sup_le _ _).2 $ λ i, le_trans (H i) (le_sup _ _)
+sup_le.2 $ λ i, le_trans (H i) (le_sup _ _)
 
 theorem sup_le_sum {ι} (f : ι → cardinal) : sup f ≤ sum f :=
-(sup_le _ _).2 $ le_sum _
+sup_le.2 $ le_sum _
 
 theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ mk ι * sup.{u u} f :=
 by rw ← sum_const; exact sum_le_sum _ _ (le_sup _)

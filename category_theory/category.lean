@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Stephen Morgan, Scott Morrison
+Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 
 Defines a category, as a typeclass parametrised by the type of objects.
 Introduces notations
@@ -66,19 +66,35 @@ A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
 
-/-- `concrete_category c h _ _` constructs a concrete category from a class `c` and a morphism
-predicate `hom`. `c` is usually a type class like `topological_space` and `hom` is `continuous`. -/
-structure concrete_category {C : Type u → Type v}
-  (hom : out_param $ ∀{α β : Type u}, C α → C β → (α → β) → Prop) :=
-(hom_id : ∀{α} (ia : C α), hom ia ia id)
-(hom_comp : ∀{α β γ} (ia : C α) (ib : C β) (ic : C γ) {f g}, hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
+structure bundled (c : Type u → Type v) :=
+(α : Type u)
+[str : c α]
+
+instance (c : Type u → Type v) : has_coe_to_sort (bundled c) :=
+{ S := Type u, coe := bundled.α }
+ 
+def mk_ob {c : Type u → Type v} (α : Type u) [str : c α] : bundled c :=
+@bundled.mk c α str
+
+/-- `concrete_category hom` collects the evidence that a type constructor `c` and a morphism
+predicate `hom` can be thought of as a concrete category.
+In a typical example, `c` is the type class `topological_space` and `hom` is `continuous`. -/
+structure concrete_category {c : Type u → Type v}
+  (hom : out_param $ ∀{α β : Type u}, c α → c β → (α → β) → Prop) :=
+(hom_id : ∀{α} (ia : c α), hom ia ia id)
+(hom_comp : ∀{α β γ} (ia : c α) (ib : c β) (ic : c γ) {f g}, hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
 attribute [class] concrete_category
 
-instance {C : Type u → Type v} (hom : ∀{α β : Type u}, C α → C β → (α → β) → Prop)
-  [h : concrete_category @hom] : category (sigma C) :=
+instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+  [h : concrete_category @hom] : category (bundled c) :=
 { hom   := λa b, subtype (hom a.2 b.2),
   id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
   comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
+
+instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+  [h : concrete_category @hom] {R S : bundled c} : has_coe_to_fun (R ⟶ S) :=
+{ F := λ f, R → S,
+  coe := λ f, f.1 }
 
 section
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}

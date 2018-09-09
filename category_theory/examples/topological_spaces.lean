@@ -11,15 +11,16 @@ universe u
 
 namespace category_theory.examples
 
-@[reducible] def Top : Type (u + 1) := Σ α : Type u, topological_space α
+/-- The category of topological spaces and continuous maps. -/
+@[reducible] def Top : Type (u+1) := bundled topological_space
+
+instance (x : Top) : topological_space x := x.str
 
 namespace Top
 instance : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
 
-instance : large_category Top := infer_instance
-
-instance (X : Top) : topological_space X.1 := X.2
-
+-- local attribute [class] continuous
+-- instance {R S : Top} (f : R ⟶ S) : continuous (f : R → S) := f.2
 end Top
 
 structure open_set (α : Type u) [X : topological_space α] : Type u :=

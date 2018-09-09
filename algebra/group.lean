@@ -611,6 +611,34 @@ def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 
 end is_conj
 
+class is_monoid_hom [monoid α] [monoid β] (f : α → β) : Prop :=
+(map_one : f 1 = 1)
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+
+class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) : Prop :=
+(map_zero : f 0 = 0)
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
+
+attribute [to_additive is_add_monoid_hom] is_monoid_hom
+attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
+attribute [to_additive is_add_monoid_hom.mk] is_monoid_hom.mk
+
+namespace is_monoid_hom
+variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+
+@[to_additive is_add_monoid_hom.id]
+instance id : is_monoid_hom (@id α) := by refine {..}; intros; refl
+
+@[to_additive is_add_monoid_hom.id]
+instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
+  is_monoid_hom (g ∘ f) :=
+{ map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
+  map_one := by simp [map_one f]; exact map_one g }
+  
+end is_monoid_hom
+
+-- TODO rename fields of is_group_hom: mul ↝ map_mul?
+
 /-- Predicate for group homomorphism. -/
 class is_group_hom [group α] [group β] (f : α → β) : Prop :=
 (mul : ∀ a b : α, f (a * b) = f a * f b)
@@ -648,8 +676,6 @@ protected lemma is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a 
 | ⟨c, hc⟩ := ⟨f c, by rw [← is_group_hom.mul f, ← is_group_hom.inv f, ← is_group_hom.mul f, hc]⟩
 
 end is_group_hom
-
-attribute [instance] is_add_group_hom.id
 
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/

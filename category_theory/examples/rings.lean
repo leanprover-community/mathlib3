@@ -7,36 +7,55 @@ Introduce CommRing -- the category of commutative rings.
 Currently only the basic setup.
 -/
 
-import category_theory.functor
+import category_theory.examples.monoids
+import category_theory.embedding
 import algebra.ring
-import analysis.topology.topological_structures
+
+universes u v
 
 open category_theory
 
 namespace category_theory.examples
 
-@[reducible] def {u} CommRing : Type (u + 1) := Σ α : Type u, comm_ring α
+/-- The category of rings. -/
+@[reducible] def Ring : Type (u+1) := bundled ring
+
+instance (x : Ring) : ring x := x.str
+
+instance concrete_is_ring_hom : concrete_category @is_ring_hom :=
+⟨by introsI α ia; apply_instance,
+  by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
+
+instance Ring_hom_is_ring_hom {R S : Ring} (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
+
+/-- The category of commutative rings. -/
+@[reducible] def CommRing : Type (u+1) := bundled comm_ring
+
+instance (x : CommRing) : comm_ring x := x.str
 
 @[reducible] def is_comm_ring_hom {α β} [comm_ring α] [comm_ring β] (f : α → β) : Prop :=
 is_ring_hom f
 
-instance : concrete_category @is_comm_ring_hom :=
-⟨by introsI α ia; exact is_ring_hom.id,
-  by introsI α β γ ia ib ic f g hf hg; exact is_ring_hom.comp f g⟩
+instance concrete_is_comm_ring_hom : concrete_category @is_comm_ring_hom :=
+⟨by introsI α ia; apply_instance,
+  by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
-instance : large_category CommRing := infer_instance
+instance CommRing_hom_is_comm_ring_hom {R S : CommRing} (f : R ⟶ S) : is_comm_ring_hom (f : R → S) := f.2
 
-instance (R : CommRing) : comm_ring R.1 := R.2
+namespace CommRing
+/-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
+def forget_to_CommMon : CommRing ⥤ CommMon := 
+concrete_functor
+  (by intros _ c; exact { ..c })
+  (by introsI _ _ _ _ f i;  exact { ..i })
 
-instance (R S : CommRing) (f : category.hom R S) : is_ring_hom f.1 := f.2
+instance : faithful (forget_to_CommMon) :=
+begin
+  tidy, 
+  apply (congr_fun h_1), -- TODO solve_by_elim should try this?
+end
 
-@[simp] lemma comm_ring_hom.map_mul (R S : CommRing) (f : category.hom R S) (x y : R.1) :
-  f.1 (x * y) = (f.1 x) * (f.1 y) :=
-by rw f.2.map_mul
-@[simp] lemma comm_ring_hom.map_add (R S : CommRing) (f : category.hom R S) (x y : R.1) :
-  f.1 (x + y) = (f.1 x) + (f.1 y) :=
-by rw f.2.map_add
-@[simp] lemma comm_ring_hom.map_one (R S : CommRing) (f : category.hom R S) : f.1 1 = 1 :=
-by rw f.2.map_one
+example : faithful (forget_to_CommMon ⋙ CommMon.forget_to_Mon) := by apply_instance
+end CommRing
 
 end category_theory.examples

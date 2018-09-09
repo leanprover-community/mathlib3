@@ -1,6 +1,5 @@
 
-import tactic.basic
-
+import tactic.basic core data.sum
 universes u₁ u₂
 
 open interactive interactive.types
@@ -12,40 +11,132 @@ meta def get_ext_subject : expr → tactic name
      b' ← whnf $ b.instantiate_var v,
      get_ext_subject b'
 | (expr.app _ e) :=
-  do t ← infer_type e,
-     pure $ t.get_app_fn.const_name
-| _ := pure name.anonymous
+  do t ← infer_type e >>= instantiate_mvars,
+     if t.get_app_fn.is_constant then
+       pure $ t.get_app_fn.const_name
+     else if t.is_pi then
+       pure name.anonymous
+     else fail format!"only constants and Pi types are supported: {t}"
+| e := fail format!"Only expressions of the form `_ → _ → ... → R ... e are supported: {e}"
 
 open native
 
-meta def rident := do i ← ident, resolve_constant i
+@[reducible] def ext_param_type := option name ⊕ option name
+
+meta def opt_minus : lean.parser (option name → ext_param_type) :=
+sum.inl <$ tk "-" <|> pure sum.inr
+
+meta def ext_param :=
+opt_minus <*> ( name.anonymous <$ brackets "(" ")" (tk "→" <|> tk "->") <|>
+                none <$  tk "*" <|>
+                some <$> ident )
+
+meta def saturate_fun : name → tactic expr
+| name.anonymous :=
+do v₀ ← mk_mvar,
+   v₁ ← mk_mvar,
+   return $ v₀.imp v₁
+| n :=
+do e ← resolve_constant n >>= mk_const,
+   a ← get_arity e,
+   e.mk_app <$> (list.iota a).mmap (λ _, mk_mvar)
+
+meta def equiv_type_constr (n n' : name) : tactic unit :=
+do e  ← saturate_fun n,
+   e' ← saturate_fun n',
+   unify e e' <|> fail format!"{n} and {n'} are not definitionally equal types"
+
+run_cmd equiv_type_constr `list `list
 
 /--
  Tag lemmas of the form:
 
  ```
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ The attribute indexes extensionality lemma using the type of the
+ objects (i.e. `my_collection`) which it gets from the statement of
+ the lemma.  In some cases, the same lemma can be used to state the
+ extensionality of multiple types that are definitionally equivalent.
+
+ ```
+ attribute [extensionality [(→),thunk,stream]] funext
+ ```
+
+ Those parameters are cumulative. The following are equivalent:
+
+ ```
+ attribute [extensionality [(→),thunk]] funext
+ attribute [extensionality [stream]] funext
+ ```
+ and
+ ```
+ attribute [extensionality [(→),thunk,stream]] funext
+ ```
+
+ One removes type names from the list for one lemma with:
+ ```
+ attribute [extensionality [-stream,-thunk]] funext
+  ```
+
+ Finally, the following:
+
+ ```
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ is equivalent to
+
+ ```
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ This allows us specify type synonyms along with the type
+ that referred to in the lemma statement.
+
+ ```
+ @[extensionality [*,my_type_synonym]]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
  ```
  -/
 @[user_attribute]
-meta def extensional_attribute : user_attribute (name_map name) (list name) :=
+meta def extensional_attribute : user_attribute (name_map name) (bool × list ext_param_type × list name × list (name × name)) :=
 { name := `extensionality,
   descr := "lemmas usable by `ext` tactic",
   cache_cfg := { mk_cache := λ ls,
                           do { attrs ← ls.mmap $ λ l,
-                                     do { ls ← extensional_attribute.get_param l,
-                                          if ls.empty
-                                          then list.ret <$> (prod.mk <$> (mk_const l >>= infer_type >>= get_ext_subject)
-                                                                     <*> pure l)
-                                          else pure $ prod.mk <$> ls <*> pure l },
+                                     do { ⟨_,_,ls,_⟩ ← extensional_attribute.get_param l,
+                                          pure $ prod.mk <$> ls <*> pure l },
                                pure $ rb_map.of_list $ attrs.join },
                  dependencies := [] },
-  parser := many (name.anonymous <$ tk "*" <|> rident) }
+  parser :=
+    do { ls ← pure <$> ext_param <|> list_of ext_param <|> pure [],
+         m ← extensional_attribute.get_cache,
+         pure $ (ff,ls,[],m.to_list)  },
+  after_set := some $ λ n _ b,
+    do (ff,ls,_,ls') ← extensional_attribute.get_param n | pure (),
+       s ← mk_const n >>= infer_type >>= get_ext_subject,
+       let (rs,ls'') := if ls.empty
+                           then ([],[s])
+                           else ls.partition_map (sum.map (flip option.get_or_else s) (flip option.get_or_else s)),
+       ls''.mmap' (equiv_type_constr s),
+       let l := ls'' ∪ (ls'.filter $ λ l, prod.snd l = n).map prod.fst \\ rs,
+       extensional_attribute.set n (tt,[],l,[]) b }
 
 attribute [extensionality] array.ext
-attribute [extensionality * thunk] _root_.funext
+attribute [extensionality [*,thunk]] _root_.funext
 
 namespace ulift
 @[extensionality] lemma ext {α : Type u₁} (X Y : ulift.{u₂} α) (w : X.down = Y.down) : X = Y :=

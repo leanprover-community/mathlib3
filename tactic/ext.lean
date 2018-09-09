@@ -15,7 +15,9 @@ meta def get_ext_subject : expr → tactic name
      if t.get_app_fn.is_constant then
        pure $ t.get_app_fn.const_name
      else if t.is_pi then
-       pure name.anonymous
+       pure $ name.mk_numeral 0 name.anonymous
+     else if t.is_sort then
+       pure $ name.mk_numeral 1 name.anonymous
      else fail format!"only constants and Pi types are supported: {t}"
 | e := fail format!"Only expressions of the form `_ → _ → ... → R ... e are supported: {e}"
 
@@ -27,15 +29,18 @@ meta def opt_minus : lean.parser (option name → ext_param_type) :=
 sum.inl <$ tk "-" <|> pure sum.inr
 
 meta def ext_param :=
-opt_minus <*> ( name.anonymous <$ brackets "(" ")" (tk "→" <|> tk "->") <|>
+opt_minus <*> ( name.mk_numeral 0 name.anonymous <$ brackets "(" ")" (tk "→" <|> tk "->") <|>
                 none <$  tk "*" <|>
                 some <$> ident )
 
 meta def saturate_fun : name → tactic expr
-| name.anonymous :=
+| (name.mk_numeral 0 name.anonymous) :=
 do v₀ ← mk_mvar,
    v₁ ← mk_mvar,
    return $ v₀.imp v₁
+| (name.mk_numeral 1 name.anonymous) :=
+do u ← mk_meta_univ,
+   pure $ expr.sort u
 | n :=
 do e ← resolve_constant n >>= mk_const,
    a ← get_arity e,
@@ -45,8 +50,6 @@ meta def equiv_type_constr (n n' : name) : tactic unit :=
 do e  ← saturate_fun n,
    e' ← saturate_fun n',
    unify e e' <|> fail format!"{n} and {n'} are not definitionally equal types"
-
-run_cmd equiv_type_constr `list `list
 
 /--
  Tag lemmas of the form:
@@ -95,7 +98,7 @@ run_cmd equiv_type_constr `list `list
  is equivalent to
 
  ```
- @[extensionality]
+ @[extensionality *]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -135,7 +138,7 @@ meta def extensional_attribute : user_attribute (name_map name) (bool × list ex
        let l := ls'' ∪ (ls'.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
        extensional_attribute.set n (tt,[],l,[]) b }
 
-attribute [extensionality] array.ext
+attribute [extensionality] array.ext propext
 attribute [extensionality [*,thunk]] _root_.funext
 
 namespace ulift

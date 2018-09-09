@@ -148,7 +148,7 @@ also attempts to discharge the goal using congruence closure before each round o
 
 When trying to prove:
 
-  ```
+  ```lean
   α β : Type,
   f g : α → set β
   ⊢ f = g
@@ -156,7 +156,7 @@ When trying to prove:
 
 applying `ext x y` yields:
 
-  ```
+  ```lean
   α β : Type,
   f g : α → set β,
   x : α,
@@ -167,6 +167,73 @@ applying `ext x y` yields:
 by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
+
+### The `extensionality` attribute
+
+ Tag lemmas of the form:
+
+ ```lean
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ The attribute indexes extensionality lemma using the type of the
+ objects (i.e. `my_collection`) which it gets from the statement of
+ the lemma.  In some cases, the same lemma can be used to state the
+ extensionality of multiple types that are definitionally equivalent.
+
+ ```lean
+ attribute [extensionality [(→),thunk,stream]] funext
+ ```
+
+ Those parameters are cumulative. The following are equivalent:
+
+ ```lean
+ attribute [extensionality [(→),thunk]] funext
+ attribute [extensionality [stream]] funext
+ ```
+
+ and
+
+ ```lean
+ attribute [extensionality [(→),thunk,stream]] funext
+ ```
+
+ One removes type names from the list for one lemma with:
+
+ ```lean
+ attribute [extensionality [-stream,-thunk]] funext
+ ```
+
+ Finally, the following:
+
+ ```lean
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ is equivalent to
+
+ ```lean
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ This allows us specify type synonyms along with the type
+ that referred to in the lemma statement.
+
+ ```lean
+ @[extensionality [*,my_type_synonym]]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
 
 ### refine_struct
 
@@ -273,7 +340,7 @@ structure A :=
 example (z : A) : z.x = 1 := by rw A.a' -- rewrite tactic failed, lemma is not an equality nor a iff
 
 restate_axiom A.a'
-example (z : A) : z.x = 1 := by rw A.a 
+example (z : A) : z.x = 1 := by rw A.a
 ```
 
 By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
@@ -303,13 +370,13 @@ the goal and recursively on new goals, until no tactic makes further progress.
 
 `tidy` can report the tactic script it found using `tidy { trace_result := tt }`. As an example
 ```
-example : ∀ x : unit, x = unit.star := 
+example : ∀ x : unit, x = unit.star :=
 begin
   tidy {trace_result:=tt} -- Prints the trace message: "intros x, exact dec_trivial"
 end
 ```
 
-The default list of tactics can be found by looking up the definition of 
+The default list of tactics can be found by looking up the definition of
 [`default_tidy_tactics`](https://github.com/leanprover/mathlib/blob/master/tactic/tidy.lean).
 
 This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of `tactic string`.)
@@ -317,22 +384,22 @@ This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a
 ## linarith
 
 `linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
-Equivalently, it can prove a linear inequality by assuming its negation and proving `false`. 
-This tactic is currently work in progress, and has various limitations. In particular, 
+Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
+This tactic is currently work in progress, and has various limitations. In particular,
 it will not work on `nat`. The tactic can be made much more efficient.
 
-An example: 
+An example:
 ```
-example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0) 
+example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
         (h3 : 12*y - 4* z < 0)  : false :=
 by linarith
 ```
 
 `linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
 `linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
-`linarith using [t1, t2, t3] will add `t1`, `t2`, `t3` to the local context and then run 
+`linarith using [t1, t2, t3] will add `t1`, `t2`, `t3` to the local context and then run
 `linarith`.
-`linarith {discharger := tac, restrict_type := tp}` takes a config object with two optional 
+`linarith {discharger := tac, restrict_type := tp}` takes a config object with two optional
 arguments. `discharger` specifies a tactic to be used for reducing an algebraic equation in the
 proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
 problems. `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful

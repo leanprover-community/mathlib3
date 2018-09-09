@@ -173,7 +173,7 @@ end functor
 
 def Aut (X : C) := X ≅ X
 
-attribute [extensionality iso Aut] iso.ext
+attribute [extensionality Aut] iso.ext
 
 instance {X : C} : group (Aut X) :=
 by refine { one := iso.refl X,

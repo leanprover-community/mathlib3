@@ -104,7 +104,9 @@ lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
  λ h, have -a < 0, from neg_neg_of_pos h,
   neg_pos_of_neg $ lt_of_not_ge $ (not_iff_not_of_iff floor_nonneg).2 $ not_le_of_gt this ⟩
 
-lemma ceil_nonneg {q : ℚ} (hq : q ≥ 0) : ⌈q⌉ ≥ 0 :=
+@[simp] theorem ceil_zero : ⌈(0 : α)⌉ = 0 := by simp [ceil]
+
+lemma ceil_nonneg [decidable_rel ((<) : α → α → Prop)] {q : α} (hq : q ≥ 0) : ⌈q⌉ ≥ 0 :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
 else 
   have h' : q = 0, from le_antisymm (le_of_not_lt h) hq,

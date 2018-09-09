@@ -59,7 +59,7 @@ unique hp hn
    have ↑(p^m) ∣ (-n), from dvd_neg_of_dvd hdiv,
    is_greatest hp  hnn _ hm this)
 
-lemma le_padic_val_of_pow_div {p k : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) (h : ↑(p^k) ∣ n) :
+lemma le_padic_val_of_pow_dvd {p k : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) (h : ↑(p^k) ∣ n) :
       k ≤ padic_val p n :=
 le_of_not_gt $
   assume : k > padic_val p n,
@@ -98,6 +98,20 @@ end
 
 end
 
+lemma padic_val_eq_zero_of_not_dvd {p : ℕ} {n : ℤ} (hnd : ¬ ↑p ∣ n) : padic_val p n = 0 :=
+if h : n = 0 then by simp [h] else
+if hp : p > 1 then 
+  eq.symm $ padic_val.unique hp h (by simp) $ λ m hm hpm, hnd $ 
+    begin 
+      rw [show p = p^1, by simp [hp]], 
+      apply int.pow_dvd_of_le_of_pow_dvd _ hpm,
+      apply nat.succ_le_of_lt hm
+    end 
+else by simp [h, hp, padic_val]
+
+lemma padic_val_eq_zero_of_not_dvd' {p : ℕ} {n : ℕ} (hnd : ¬ p ∣ n) : padic_val p n = 0 :=
+by apply padic_val_eq_zero_of_not_dvd; simpa [int.coe_nat_dvd] using hnd 
+
 section padic_val
 parameters {p : ℕ} (p_prime : prime p)
 
@@ -120,7 +134,7 @@ have hdiv : ↑(p ^ (padic_val p m + padic_val p n)) ∣ m*n, from
 have hall : ∀ k : ℕ, k > padic_val p m + padic_val p n → ¬ ↑(p ^ k) ∣ m*n, from
   assume (k : ℕ) (hkgt : k > padic_val p m + padic_val p n) (hdiv : ↑(p ^ k) ∣ m*n),
   have hpsucc : ↑(p ^ (padic_val p m + padic_val p n + 1)) ∣ m*n, from
-    int.pow_div_of_le_of_pow_div_int hkgt hdiv,
+    int.pow_dvd_of_le_of_pow_dvd hkgt hdiv,
   let hsd := int.succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul p_prime hdivm hdivn hpsucc in
   or.elim hsd
     (assume : ↑(p ^ (padic_val p m + 1)) ∣ m,
@@ -158,11 +172,25 @@ else
     have hpp : ↑(p ^ padic_val p m) ∣ (m + n),
     { rw hmn', apply dvd_mul_of_dvd_left, apply dvd_refl },
     have hpvle : padic_val p m ≤ padic_val p (m+n), from
-      le_padic_val_of_pow_div hp hmnz hpp,
+      le_padic_val_of_pow_dvd hp hmnz hpp,
     transitivity,
     { apply min_le_left },
     { apply hpvle }
   end
+
+lemma dvd_of_padic_val_pos {n : ℤ} (hpn : padic_val p n > 0) : ↑p ∣ n :=
+if hn : n = 0 then by simp [hn]
+else let hps := padic_val.spec hp hn in int.dvd_of_pow_dvd hpn hps
+
+
+lemma padic_val_eq_zero_of_coprime {a b : ℕ} (hle : padic_val p a ≤ padic_val p b) 
+  (hab : nat.coprime a b) : padic_val p a = 0 :=
+by_contradiction $ λ h, 
+  have hap : padic_val p a > 0, from nat.pos_of_ne_zero h,
+  nat.not_coprime_of_dvd_of_dvd hp 
+    (int.coe_nat_dvd.1 (dvd_of_padic_val_pos hp hap))
+    (int.coe_nat_dvd.1 (dvd_of_padic_val_pos hp (lt_of_lt_of_le hap hle)))
+    hab
 
 end
 end padic_val
@@ -190,6 +218,9 @@ by simp [padic_val_rat, *]
 
 @[simp] lemma padic_val_rat_self : padic_val_rat p p = 1 :=
 by simp [padic_val_rat, hp]
+
+lemma padic_val_rat_of_int (z : ℤ) : padic_val_rat p ↑z = padic_val p z := 
+by simp [padic_val_rat, rat.coe_int_denom, padic_val.one hp]
 
 end padic_val_rat
 
@@ -359,28 +390,6 @@ else
   have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
   by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
 
-theorem triangle_ineq (q r : ℚ) : padic_norm hp (q + r) ≤ padic_norm hp q + padic_norm hp r :=
-if hq : q = 0 then
-  by simp [hq]
-else if hr : r = 0 then
-  by simp [hr]
-else if hqr : q + r = 0 then
-  begin simp [hqr], apply add_nonneg; apply padic_norm.nonneg end
-else
-  have hminle : min (padic_val_rat p q) (padic_val_rat p r) ≤
-                 (padic_val_rat p (q + r)),
-    by apply min_le_padic_val_rat_add; assumption,
-  have hpge1 : (↑p : ℚ) ≥ ↑(1 : ℕ), from nat.cast_le.2 $ le_of_lt $ prime.gt_one hp,
-  calc
-    padic_norm hp (q + r) = fpow p (-(padic_val_rat p (q + r))) :
-                       by simp [padic_norm, *]
-                      ... ≤ max (fpow p (-(padic_val_rat p q)))
-                                ((fpow p (-(padic_val_rat p r)))) :
-                       pow_le_max_of_min_le hpge1 hminle
-                      ... = max (padic_norm hp q) (padic_norm hp r) : by simp [padic_norm, *]
-                      ... ≤ padic_norm hp q + padic_norm hp r :
-                       by apply max_le_add_of_nonneg; apply padic_norm.nonneg
-
 private lemma nonarchimedean_aux {q r : ℚ}
         (h : padic_val_rat p q ≤ padic_val_rat p r) :
         padic_norm hp (q + r) ≤ max (padic_norm hp q) (padic_norm hp r) :=
@@ -416,6 +425,12 @@ else
     from le_of_lt $ lt_of_not_ge h,
   let h'' := nonarchimedean_aux hp h' in
   by rwa [add_comm, max_comm] at h''
+
+theorem triangle_ineq (q r : ℚ) : padic_norm hp (q + r) ≤ padic_norm hp q + padic_norm hp r :=
+calc padic_norm hp (q + r) ≤ max (padic_norm hp q) (padic_norm hp r) : padic_norm.nonarchimedean hp
+                       ... ≤ padic_norm hp q + padic_norm hp r : 
+                         max_le_add_of_nonneg (padic_norm.nonneg hp _) (padic_norm.nonneg hp _)
+
 
 lemma add_eq_max_of_ne {q r : ℚ} (hne : padic_norm hp q ≠ padic_norm hp r) :
       padic_norm hp (q + r) = max (padic_norm hp q) (padic_norm hp r) :=
@@ -453,6 +468,21 @@ instance : is_absolute_value (padic_norm hp) :=
     end,
   abv_add := padic_norm.triangle_ineq hp,
   abv_mul := padic_norm.mul hp }
+
+lemma le_of_dvd {n : ℕ} {z : ℤ} (hd : ↑(p^n) ∣ z) : padic_norm hp z ≤ fpow ↑p (-n) := 
+have hp' : (↑p : ℚ) ≥ 1, from show ↑p ≥ ↑(1 : ℕ), from cast_le.2 (le_of_lt hp.gt_one),
+have hpn : (↑p : ℚ) ≥ 0, from le_trans zero_le_one hp',
+begin 
+  unfold padic_norm, split_ifs with hz hz,
+  { simpa [padic_norm, hz] using fpow_nonneg_of_nonneg hpn _ },
+  { apply fpow_le_of_le hp',
+    apply neg_le_neg,
+    rw padic_val_rat_of_int hp.gt_one _,
+    apply int.coe_nat_le.2,
+    apply padic_val.le_padic_val_of_pow_dvd hp.gt_one,
+    { simpa using hz },
+    { assumption }}
+end 
 
 end padic_norm
 end padic_norm

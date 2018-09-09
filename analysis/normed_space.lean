@@ -84,6 +84,9 @@ abs_le.2 $ and.intro
 lemma dist_norm_norm_le (g h : α) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
 
+lemma norm_sub_rev (g h : α) : ∥g - h∥ = ∥h - g∥ :=
+by rw ←norm_neg; simp
+
 section nnnorm
 
 def nnnorm (a : α) : nnreal := ⟨norm a, norm_nonneg a⟩
@@ -200,6 +203,23 @@ class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_s
 
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
 { norm_mul := by finish [i.norm_mul], ..i }
+
+@[simp] lemma norm_one {α : Type*} [normed_field α] : ∥(1 : α)∥ = 1 := 
+have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
+ ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul
+                  ... = ∥(1 : α)∥ * 1 : by simp,
+eq_of_mul_eq_mul_left (ne_of_gt ((norm_pos_iff _).2 (by simp))) this
+
+@[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ := 
+if hb : b = 0 then by simp [hb] else 
+begin 
+  apply eq_div_of_mul_eq,
+  { apply ne_of_gt, apply (norm_pos_iff _).mpr hb },
+  { rw [←normed_field.norm_mul, div_mul_cancel _ hb] }
+end 
+
+@[simp] lemma norm_inv {α : Type*} [normed_field α] (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ := 
+by simp only [inv_eq_one_div, norm_div, norm_one] 
 
 instance : normed_field ℝ :=
 { norm := λ x, abs x,

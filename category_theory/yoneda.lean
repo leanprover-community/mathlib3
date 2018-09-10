@@ -33,10 +33,10 @@ namespace yoneda
 @[simp] lemma obj_map (X : C) {Y Y' : C} (f : Y ⟶ Y') : ((yoneda C) X).map f = λ g, f ≫ g := rfl
 @[simp] lemma map_app {X X' : C} (f : X ⟶ X') (Y : C) : ((yoneda C).map f) Y = λ g, g ≫ f := rfl
 
-lemma aux_1 {X Y : Cᵒᵖ} (f : X ⟶ Y) : ((yoneda C) X).map f (𝟙 X) = ((yoneda C).map f) Y (𝟙 Y) := 
+lemma obj_map_id {X Y : Cᵒᵖ} (f : X ⟶ Y) : ((yoneda C) X).map f (𝟙 X) = ((yoneda C).map f) Y (𝟙 Y) := 
 by obviously
 
-@[simp] lemma aux_2 {X Y : C} (α : (yoneda C) X ⟶ (yoneda C) Y) 
+@[simp] lemma naturality {X Y : C} (α : (yoneda C) X ⟶ (yoneda C) Y) 
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α Z' h = α Z (f ≫ h) :=
 begin erw [functor_to_types.naturality], refl end
 
@@ -95,7 +95,7 @@ let H := (functor.hom ((Cᵒᵖ) ⥤ (Type v₁))) in
 def yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C) := 
 { hom := 
   { app := λ F x, ulift.up ((x.app F.2) (𝟙 F.2)),
-    naturality' := begin intros X Y f, ext1, ext1, cases f, cases Y, cases X, dsimp at *, simp at *, erw [←functor_to_types.naturality, yoneda.aux_1, functor_to_types.naturality, functor_to_types.map_id] end },
+    naturality' := begin intros X Y f, ext1, ext1, cases f, cases Y, cases X, dsimp at *, simp at *, erw [←functor_to_types.naturality, yoneda.obj_map_id, functor_to_types.naturality, functor_to_types.map_id] end },
   inv := 
   { app := λ F x, 
     { app := λ X a, (F.1.map a) x.down,

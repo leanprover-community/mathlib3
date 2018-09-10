@@ -8,13 +8,10 @@ Based on http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf .
 -/
 import algebra.group_power tactic.norm_num
 
-universes u v w
-open tactic
-
-def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + b
-
 namespace tactic
 namespace ring
+
+def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + b
 
 meta structure cache :=
 (α : expr)
@@ -45,9 +42,6 @@ meta def horner_expr.e : horner_expr → expr
 | (horner_expr.xadd e _ _ _ _) := e
 
 meta instance : has_coe horner_expr expr := ⟨horner_expr.e⟩
-
-meta def horner_expr.const' (α : expr) (q : ℚ) : tactic horner_expr :=
-do e ← expr.of_rat α q, return $ horner_expr.const e
 
 meta def horner_expr.xadd' (c : cache) (a : horner_expr) (x : expr) (n : expr × ℕ) (b : horner_expr): horner_expr :=
 horner_expr.xadd (c.cs_app ``horner [a, x, n.1, b]) a x n b
@@ -222,7 +216,6 @@ theorem horner_mul_horner {α} [comm_semiring α]
 by rw [← H, ← h₂, ← h₁, ← h₃, ← h₄];
    simp [horner, mul_add, mul_comm, mul_left_comm, mul_assoc]
 
-set_option pp.all true
 meta def eval_mul (c : cache) : horner_expr → horner_expr → tactic (horner_expr × expr)
 | (const e₁) (const e₂) := do
   (e', p) ← mk_app ``has_mul.mul [e₁, e₂] >>= norm_num,
@@ -307,9 +300,6 @@ meta def eval_pow (c : cache) : horner_expr → expr × ℕ → tactic (horner_e
 theorem horner_atom {α} [comm_semiring α] (x : α) : x = horner 1 x 1 0 :=
 by simp [horner]
 
-lemma subst_into_neg {α} [has_neg α] (a ta t : α) (pra : a = ta) (prt : -ta = t) : -a = t :=
-by simp [pra, prt]
-
 meta def eval_atom (c : cache) (e : expr) : tactic (horner_expr × expr) :=
 do α0 ← expr.of_nat c.α 0,
    α1 ← expr.of_nat c.α 1,
@@ -342,7 +332,7 @@ meta def eval (c : cache) : expr → tactic (horner_expr × expr)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg c e₁,
-  p ← c.mk_app ``subst_into_neg ``has_neg [e, e₁, e₂, p₁, p₂],
+  p ← c.mk_app ``norm_num.subst_into_neg ``has_neg [e, e₁, e₂, p₁, p₂],
   return (e₂, p)
 | `(%%e₁ * %%e₂) := do
   (e₁', p₁) ← eval e₁,
@@ -397,7 +387,7 @@ by simp [pow_add]
 theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
 by simp [pow_add, mul_assoc]
 
-theorem add_neg_eq_sub {α : Type u} [add_group α] (a b : α) : a + -b = a - b := rfl
+theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
 
 @[derive has_reflect]
 inductive normalize_mode | raw | SOP | horner

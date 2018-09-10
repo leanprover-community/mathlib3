@@ -37,17 +37,17 @@ do m ← mk_instance ((expr.const inst [c.univ] : expr) c.α),
    return $ (@expr.const tt n [c.univ] c.α m).mk_app l
 
 meta inductive horner_expr : Type
-| const (e : expr) (val : ℚ) : horner_expr
+| const (e : expr) : horner_expr
 | xadd (e : expr) (a : horner_expr) (x : expr) (n : expr × ℕ) (b : horner_expr) : horner_expr
 
 meta def horner_expr.e : horner_expr → expr
-| (horner_expr.const e _) := e
+| (horner_expr.const e) := e
 | (horner_expr.xadd e _ _ _ _) := e
 
 meta instance : has_coe horner_expr expr := ⟨horner_expr.e⟩
 
 meta def horner_expr.const' (α : expr) (q : ℚ) : tactic horner_expr :=
-do e ← expr.of_rat α q, return $ horner_expr.const e q
+do e ← expr.of_rat α q, return $ horner_expr.const e
 
 meta def horner_expr.xadd' (c : cache) (a : horner_expr) (x : expr) (n : expr × ℕ) (b : horner_expr): horner_expr :=
 horner_expr.xadd (c.cs_app ``horner [a, x, n.1, b]) a x n b
@@ -55,13 +55,13 @@ horner_expr.xadd (c.cs_app ``horner [a, x, n.1, b]) a x n b
 open horner_expr
 
 meta def horner_expr.to_string : horner_expr → string
-| (const e n) := to_string n
+| (const e) := to_string e
 | (xadd e a x (_, n) b) :=
     "(" ++ a.to_string ++ ") * (" ++ to_string x ++ ")^"
         ++ to_string n ++ " + " ++ b.to_string
 
 meta def horner_expr.pp : horner_expr → tactic format
-| (const e n) := return $ to_string n
+| (const e) := pp e
 | (xadd e a x (_, n) b) := do
   pa ← a.pp, pb ← b.pp, px ← pp x,
   return $ "(" ++ pa ++ ") * (" ++ px ++ ")^" ++ to_string n ++ " + " ++ pb
@@ -81,8 +81,8 @@ theorem horner_horner {α} [comm_semiring α] (a₁ x n₁ n₂ b n')
 by simp [h.symm, horner, pow_add, mul_assoc]
 
 meta def eval_horner (c : cache) : horner_expr → expr → expr × ℕ → horner_expr → tactic (horner_expr × expr)
-| ha@(const a q) x n b :=
-  if q = 0 then
+| ha@(const a) x n b :=
+  if a.to_nat = some 0 then
     return (b, c.cs_app ``zero_horner [x, n.1, b])
   else (xadd' c ha x n b).refl_conv
 | ha@(xadd a a₁ x₁ n₁ b₁) x n b :=
@@ -116,23 +116,25 @@ theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a'
 by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]
 
 meta def eval_add (c : cache) : horner_expr → horner_expr → tactic (horner_expr × expr)
-| (const e₁ n₁) (const e₂ n₂) := do
+| (const e₁) (const e₂) := do
   (e, p) ← mk_app ``has_add.add [e₁, e₂] >>= norm_num,
-  return (const e (n₁ + n₂), p)
-| he₁@(const e₁ k) he₂@(xadd e₂ a x n b) :=
-  if k = 0 then do
+  return (const e, p)
+| he₁@(const e₁) he₂@(xadd e₂ a x n b) :=
+  if e₁.to_nat = some 0 then  do
     p ← mk_app ``zero_add [e₂],
-    return (he₂, p) else do
-  (b', h) ← eval_add he₁ b,
-  return (xadd' c a x n b',
-    c.cs_app ``const_add_horner [e₁, a, x, n.1, b, b', h])
-| he₁@(xadd e₁ a x n b) he₂@(const e₂ k) :=
-  if k = 0 then do
+    return (he₂, p)
+  else do
+    (b', h) ← eval_add he₁ b,
+    return (xadd' c a x n b',
+      c.cs_app ``const_add_horner [e₁, a, x, n.1, b, b', h])
+| he₁@(xadd e₁ a x n b) he₂@(const e₂) :=
+  if e₂.to_nat = some 0 then do
     p ← mk_app ``add_zero [e₁],
-    return (he₁, p) else do
-  (b', h) ← eval_add b he₂,
-  return (xadd' c a x n b',
-    c.cs_app ``horner_add_const [a, x, n.1, b, e₂, b', h])
+    return (he₁, p)
+  else do
+    (b', h) ← eval_add b he₂,
+    return (xadd' c a x n b',
+      c.cs_app ``horner_add_const [a, x, n.1, b, e₂, b', h])
 | he₁@(xadd e₁ a₁ x₁ n₁ b₁) he₂@(xadd e₂ a₂ x₂ n₂ b₂) :=
   if expr.lex_lt x₁ x₂ then do
     (b', h) ← eval_add b₁ he₂,
@@ -147,7 +149,7 @@ meta def eval_add (c : cache) : horner_expr → horner_expr → tactic (horner_e
     ek ← expr.of_nat (expr.const `nat []) k,
     (_, h₁) ← mk_app ``has_add.add [n₁.1, ek] >>= norm_num,
     α0 ← expr.of_nat c.α 0,
-    (a', h₂) ← eval_add a₁ (xadd' c a₂ x₁ (ek, k) (const α0 0)),
+    (a', h₂) ← eval_add a₁ (xadd' c a₂ x₁ (ek, k) (const α0)),
     (b', h₃) ← eval_add b₁ b₂,
     return (xadd' c a' x₁ n₁ b',
       c.cs_app ``horner_add_horner_lt [a₁, x₁, n₁.1, b₁, a₂, n₂.1, b₂, ek, a', b', h₁, h₂, h₃])
@@ -156,7 +158,7 @@ meta def eval_add (c : cache) : horner_expr → horner_expr → tactic (horner_e
     ek ← expr.of_nat (expr.const `nat []) k,
     (_, h₁) ← mk_app ``has_add.add [n₂.1, ek] >>= norm_num,
     α0 ← expr.of_nat c.α 0,
-    (a', h₂) ← eval_add (xadd' c a₁ x₁ (ek, k) (const α0 0)) a₂,
+    (a', h₂) ← eval_add (xadd' c a₁ x₁ (ek, k) (const α0)) a₂,
     (b', h₃) ← eval_add b₁ b₂,
     return (xadd' c a' x₁ n₂ b',
       c.cs_app ``horner_add_horner_gt [a₁, x₁, n₁.1, b₁, a₂, n₂.1, b₂, ek, a', b', h₁, h₂, h₃])
@@ -173,9 +175,9 @@ theorem horner_neg {α} [comm_ring α] (a x n b a' b')
 by simp [h₂.symm, h₁.symm, horner]
 
 meta def eval_neg (c : cache) : horner_expr → tactic (horner_expr × expr)
-| (const e q) := do
+| (const e) := do
   (e', p) ← mk_app ``has_neg.neg [e] >>= norm_num,
-  return (const e' (-q), p)
+  return (const e', p)
 | (xadd e a x n b) := do
   (a', h₁) ← eval_neg a,
   (b', h₂) ← eval_neg b,
@@ -192,16 +194,16 @@ theorem horner_mul_const {α} [comm_semiring α] (a x n b c a' b')
   @horner α _ a x n b * c = horner a' x n b' :=
 by simp [h₂.symm, h₁.symm, horner, add_mul, mul_right_comm]
 
-meta def eval_const_mul (c : cache) (k : expr × ℚ) :
+meta def eval_const_mul (c : cache) (k : expr) :
   horner_expr → tactic (horner_expr × expr)
-| (const e q) := do
-  (e', p) ← mk_app ``has_mul.mul [k.1, e] >>= norm_num,
-  return (const e' (k.2 * q), p)
+| (const e) := do
+  (e', p) ← mk_app ``has_mul.mul [k, e] >>= norm_num,
+  return (const e', p)
 | (xadd e a x n b) := do
   (a', h₁) ← eval_const_mul a,
   (b', h₂) ← eval_const_mul b,
   return (xadd' c a' x n b',
-    c.cs_app ``horner_const_mul [k.1, a, x, n.1, b, a', b', h₁, h₂])
+    c.cs_app ``horner_const_mul [k, a, x, n.1, b, a', b', h₁, h₂])
 
 theorem horner_mul_horner_zero {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ aa t)
   (h₁ : @horner α _ a₁ x n₁ b₁ * a₂ = aa)
@@ -220,20 +222,23 @@ theorem horner_mul_horner {α} [comm_semiring α]
 by rw [← H, ← h₂, ← h₁, ← h₃, ← h₄];
    simp [horner, mul_add, mul_comm, mul_left_comm, mul_assoc]
 
+set_option pp.all true
 meta def eval_mul (c : cache) : horner_expr → horner_expr → tactic (horner_expr × expr)
-| (const e₁ n₁) (const e₂ n₂) := do
+| (const e₁) (const e₂) := do
   (e', p) ← mk_app ``has_mul.mul [e₁, e₂] >>= norm_num,
-  return (const e' (n₁ * n₂), p)
-| (const e₁ n₁) e₂ :=
-  if n₁ = 0 then do
+  return (const e', p)
+| (const e₁) e₂ :=
+  match e₁.to_nat with
+  | (some 0) := do
     α0 ← expr.of_nat c.α 0,
     p ← mk_app ``zero_mul [e₂],
-    return (const α0 0, p) else
-  if n₁ = 1 then do
+    return (const α0, p)
+  | (some 1) := do
     p ← mk_app ``one_mul [e₂],
-    return (e₂, p) else
-  eval_const_mul c (e₁, n₁) e₂
-| e₁ he₂@(const e₂ _) := do
+    return (e₂, p)
+  | _ := eval_const_mul c e₁ e₂
+  end
+| e₁ he₂@(const e₂) := do
   p₁ ← mk_app ``mul_comm [e₁, e₂],
   (e', p₂) ← eval_mul he₂ e₁,
   p ← mk_eq_trans p₁ p₂, return (e', p)
@@ -251,7 +256,7 @@ meta def eval_mul (c : cache) : horner_expr → horner_expr → tactic (horner_e
   else do
     (aa, h₁) ← eval_mul he₁ a₂,
     α0 ← expr.of_nat c.α 0,
-    (haa, h₂) ← eval_horner c aa x₁ n₂ (const α0 0),
+    (haa, h₂) ← eval_horner c aa x₁ n₂ (const α0),
     if b₂.e.to_nat = some 0 then
       return (haa, c.cs_app ``horner_mul_horner_zero
         [a₁, x₁, n₁.1, b₁, a₂, n₂.1, aa, haa, h₁, h₂])
@@ -271,13 +276,13 @@ meta def eval_pow (c : cache) : horner_expr → expr × ℕ → tactic (horner_e
 | e (_, 0) := do
   α1 ← expr.of_nat c.α 1,
   p ← mk_app ``pow_zero [e],
-  return (const α1 1, p)
+  return (const α1, p)
 | e (_, 1) := do
   p ← mk_app ``pow_one [e],
   return (e, p)
-| (const e q) (e₂, m) := do
+| (const e) (e₂, m) := do
   (e', p) ← mk_app ``monoid.pow [e, e₂] >>= norm_num.derive,
-  return (const e' (q ^ m), p)
+  return (const e', p)
 | he@(xadd e a x n b) m :=
   let N : expr := expr.const `nat [] in
   match b.e.to_nat with
@@ -285,7 +290,7 @@ meta def eval_pow (c : cache) : horner_expr → expr × ℕ → tactic (horner_e
     (n', h₁) ← mk_app ``has_mul.mul [n.1, m.1] >>= norm_num,
     (a', h₂) ← eval_pow a m,
     α0 ← expr.of_nat c.α 0,
-    return (xadd' c a' x (n', n.2 * m.2) (const α0 0),
+    return (xadd' c a' x (n', n.2 * m.2) (const α0),
       c.cs_app ``horner_pow [a, x, n.1, m.1, n', a', h₁, h₂])
   | _ := do
     e₂ ← expr.of_nat N (m.2-1),
@@ -309,7 +314,7 @@ meta def eval_atom (c : cache) (e : expr) : tactic (horner_expr × expr) :=
 do α0 ← expr.of_nat c.α 0,
    α1 ← expr.of_nat c.α 1,
    n1 ← expr.of_nat (expr.const `nat []) 1,
-   return (xadd' c (const α1 1) e (n1, 1) (const α0 0), c.cs_app ``horner_atom [e])
+   return (xadd' c (const α1) e (n1, 1) (const α0), c.cs_app ``horner_atom [e])
 
 lemma subst_into_pow {α} [monoid α] (l r tl tr t)
   (prl : (l : α) = tl) (prr : (r : ℕ) = tr) (prt : tl ^ tr = t) : l ^ r = t :=
@@ -347,8 +352,8 @@ meta def eval (c : cache) : expr → tactic (horner_expr × expr)
   return (e', p)
 | e@`(has_inv.inv %%_) := (do
     (e', p) ← norm_num.derive e,
-    q ← e'.to_rat,
-    return (const e' q, p)) <|> eval_atom c e
+    e'.to_rat,
+    return (const e', p)) <|> eval_atom c e
 | `(%%e₁ / %%e₂) := do
   e₂' ← mk_app ``has_inv.inv [e₂],
   e ← mk_app ``has_mul.mul [e₁, e₂'],
@@ -373,7 +378,7 @@ meta def eval (c : cache) : expr → tactic (horner_expr × expr)
   | _, _ := eval_atom c e
   end
 | e := match e.to_nat with
-  | some n := (const e (rat.of_int n)).refl_conv
+  | some n := (const e).refl_conv
   | none := eval_atom c e
   end
 

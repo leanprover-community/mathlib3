@@ -68,4 +68,9 @@ theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
    by change a = c at e; subst e; exact lex.right _ _ h
  end⟩
 
+instance lex.decidable [decidable_eq α] [decidable_eq β]
+  (r : α → α → Prop) (s : β → β → Prop) [decidable_rel r] [decidable_rel s] :
+  decidable_rel (prod.lex r s) :=
+λ p q, decidable_of_decidable_of_iff (by apply_instance) (lex_def r s).symm
+
 end prod

@@ -1,3 +1,12 @@
+/-
+Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Robert Y. Lewis
+
+A proof of Hensel's lemma on ℤ_p, roughly following Keith Conrad's writeup:
+http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf
+-/
+
 import data.padics.padic_integers data.polynomial data.nat.binomial data.real.cau_seq_filter analysis.limits tactic.ring
 
 noncomputable theory

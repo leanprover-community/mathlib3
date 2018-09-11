@@ -7,7 +7,7 @@ A basic theory of Cauchy sequences, used in the construction of the reals.
 Where applicable, lemmas that will be reused in other contexts have
 been stated in extra generality.
 -/
-import algebra.big_operators algebra.ordered_field data.analysis.filter
+import algebra.big_operators algebra.ordered_field
 
 class is_absolute_value {α} [discrete_linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=

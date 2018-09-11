@@ -164,7 +164,7 @@ applying `ext x y` yields:
   f g : α → set β,
   x : α,
   y : β
-  ⊢ y ∈ f x ↔ y ∈ f x
+  ⊢ y ∈ f x ↔ y ∈ g x
   ```
 
 by applying functional extensionality and set extensionality.

@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.euclidean_domain
+import data.finsupp algebra.euclidean_domain analysis.topology.topological_structures
 
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
@@ -211,6 +211,29 @@ by simp [is_root.def, eval_mul] {contextual := tt}
 lemma root_mul_right_of_is_root {p : polynomial α} (q : polynomial α) :
   is_root p a → is_root (p * q) a :=
 by simp [is_root.def, eval_mul] {contextual := tt}
+
+lemma eval_sum (p : polynomial α) (f : ℕ → α → polynomial α) (x : α) :
+  (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
+finsupp.sum_sum_index (by simp) (by intros; simp [right_distrib])
+
+lemma continuous_eval [topological_space α] [topological_semiring α] (p : polynomial α) :
+  continuous (λ x, p.eval x) :=
+begin
+  apply p.induction,
+  { convert continuous_const,
+    ext, show polynomial.eval x 0 = 0, from rfl },
+  { intros a b f haf hb hcts,
+    simp only [polynomial.eval_add],
+    refine continuous_add _ hcts,
+    dsimp [polynomial.eval, polynomial.eval₂],
+    have : ∀ x, finsupp.sum (finsupp.single a b) (λ (e : ℕ) (a : α), a * x ^ e) = b * x ^a,
+      from λ x, finsupp.sum_single' _ (by simp),
+    convert continuous_mul _ _,
+    { ext, apply this },
+    { apply_instance },
+    { apply continuous_const },
+    { apply continuous_pow }}
+end
 
 end eval
 
@@ -1200,6 +1223,9 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       simp [finsupp.mul_sum, finsupp.sum_mul],
       simp [finsupp.sum, mul_assoc, mul_comm, mul_left_comm]
     end
+
+lemma derivative_eval (p : polynomial α) (x : α) : p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
+by simp [derivative, eval_sum, eval_pow]
 
 end derivative
 

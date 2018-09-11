@@ -7,7 +7,7 @@ A basic theory of Cauchy sequences, used in the construction of the reals.
 Where applicable, lemmas that will be reused in other contexts have
 been stated in extra generality.
 -/
-import algebra.big_operators algebra.ordered_field
+import algebra.big_operators algebra.ordered_field data.analysis.filter
 
 class is_absolute_value {α} [discrete_linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
@@ -359,7 +359,7 @@ assume : lim_zero (f*g - 0),
 have hlz : lim_zero (f*g), by simpa,
 have hf' : ¬ lim_zero f, by simpa using (show ¬ lim_zero (f - 0), from hf),
 have hg' : ¬ lim_zero g, by simpa using (show ¬ lim_zero (g - 0), from hg),
-begin 
+begin
   rcases abv_pos_of_not_lim_zero hf' with ⟨a1, ha1, N1, hN1⟩,
   rcases abv_pos_of_not_lim_zero hg' with ⟨a2, ha2, N2, hN2⟩,
   have : a1 * a2 > 0, from mul_pos ha1 ha2,
@@ -374,17 +374,17 @@ begin
   apply mul_le_mul; try { assumption },
     { apply le_of_lt ha2 },
     { apply is_absolute_value.abv_nonneg abv }
-end 
+end
 
 end ring
 
-section comm_ring 
+section comm_ring
 variables {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
 by rw mul_comm; apply mul_equiv_zero _ hf
 
-end comm_ring 
+end comm_ring
 
 section integral_domain
 variables {β : Type*} [integral_domain β] (abv : β → α) [is_absolute_value abv]

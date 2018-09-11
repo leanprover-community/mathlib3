@@ -1,129 +1,216 @@
 /-
-Copyright (c) 2018 Ellen Arlt and Blair Shi. All rights reserved.
+Copyright (c) 2018 Ellen Arlt, Blair Shi, Sean Leather. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ellen Arlt, Blair Shi
+Authors: Ellen Arlt, Blair Shi, Sean Leather
 
-Matrices over a ring
+Matrices
 -/
 
-import algebra.big_operators data.set.finite
-import algebra.module 
-import algebra.pi_instances
+import algebra.module data.fintype
 
-definition matrix (R) (n m : ℕ) [ring R] :=  fin n → fin m → R 
- 
+universes u v
+
+def matrix (m n : Type u) [fintype m] [fintype n] (α : Type v) : Type (max u v) :=
+m → n → α
+
 namespace matrix
+variables {l m n o : Type u} [fintype l] [fintype m] [fintype n] [fintype o]
+variables {α : Type v}
 
-open finset
+section ext
+variables {M N : matrix m n α}
 
-variables {R : Type*} [ring R] {k l m n : ℕ}
+def ext : (∀ i j, M i j = N i j) ↔ M = N :=
+⟨λ h, funext $ λ i, funext $ λ j, h i j, λ h, by simp [h]⟩
 
-instance : add_comm_group (matrix R k l) := by unfold matrix; apply_instance
+@[extensionality] theorem ext' : (∀ i j, M i j = N i j) → M = N :=
+ext.mp
 
-definition mul (A : matrix R k l) (B : matrix R l m) : matrix R k m := 
-λ x y, sum univ (λ i, A x i * B i y)
+end ext
 
-theorem mul_assoc (A : matrix R k l) (B : matrix R l m) (C : matrix R m n) :
-mul (mul A B) C = mul A (mul B C) :=
-begin
-  ext x y,
-  unfold mul,
-  suffices : sum univ
-      (λ (j : fin m), sum univ (λ (i : fin l), 
-        A x i * B i j * C j y)) =
-    sum univ
-      (λ (i : fin l), sum univ (λ (j : fin m), 
-        A x i * (B i j * C j y))),
-    simpa [finset.mul_sum,finset.sum_mul],
-  rw finset.sum_comm,
-  simp [mul_assoc],
-end
+section zero
+variables [has_zero α]
 
-theorem left_distrib (A : matrix R m n) (B C : matrix R n l) :
-mul A (B + C) = mul A B + mul A C :=
-begin
-  ext i k,
-  show sum univ (λ j, A i j * (B j k + C j k)) =
-    sum univ (λ j, A i j * B j k) +
-    sum univ (λ j, A i j * C j k),
-  simp [finset.sum_add_distrib,mul_add],
-end
+instance : has_zero (matrix m n α) :=
+⟨λ _ _, 0⟩
 
-theorem right_distrib (A B : matrix R m n) (C : matrix R n l) :
-mul (A + B) C = mul A C + mul B C :=
-begin
-  ext i k,
-  show sum univ (λ j, (A i j + B i j) * C j k) =
-    sum univ (λ j, A i j * C j k) +
-    sum univ (λ j, B i j * C j k),
-  simp [finset.sum_add_distrib,add_mul],
-end
+@[simp] theorem zero_val {i j} : (0 : matrix m n α) i j = 0 :=
+rfl
 
-definition identity_matrix : (matrix R n n) := 
-λ i j, if i = j then 1 else 0
+end zero
 
-instance : has_one (matrix R n n) := ⟨identity_matrix⟩
-instance : has_mul (matrix R n n) := ⟨mul⟩
+section one
+variables [decidable_eq n] [has_zero α] [has_one α]
 
-theorem one_mul (A : matrix R n n) : 1 * A = A :=
-begin
-  ext i k,
-  show sum univ (λ j, ite (i = j) 1 0 * A j k) = A i k,
-  have H : ∀ j : fin n, j ∉ finset.singleton i → ite (i = j) 1 0 * A j k = 0,
-    intros w Hw,split_ifs,
-      rw h at Hw,simp * at *,
-    rw zero_mul,
-  rw ←finset.sum_subset (finset.subset_univ _) (λ j _, H j),
-  simp,
-end
+instance : has_one (matrix n n α) :=
+⟨λ i j, if i = j then 1 else 0⟩
 
-theorem mul_one (A : matrix R n n) : A * 1 = A :=
-begin
-  ext i k,
-  show sum univ (λ (j : fin n), A i j * ite (j = k) 1 0) = A i k,
-  have H : ∀ j : fin n, j ∉ finset.singleton k → A i j * ite (j = k) 1 0 = 0,
-    intros j Hj,
-    split_ifs,
-      rw h at Hj, simp * at *,
-    rw mul_zero,
-  rw ←finset.sum_subset (finset.subset_univ _) (λ j _, H j),
-  simp,      
-end
+theorem one_val {i j} : (1 : matrix n n α) i j = if i = j then 1 else 0 :=
+rfl
 
-instance : ring (matrix R n n) := {
-mul := (*),
-mul_assoc := mul_assoc,
-mul_one := mul_one,
-one := identity_matrix,
-one_mul := one_mul,
-left_distrib := left_distrib,
-right_distrib := right_distrib,
-..matrix.add_comm_group
-}
+@[simp] theorem one_val_eq {i} : (1 : matrix n n α) i i = 1 :=
+by simp [one_val]
 
-def smul (a : R) (M : matrix R m n) :
-matrix R m n := λ i j, a * M i j
+@[simp] theorem one_val_ne {i j} (h : i ≠ j) : (1 : matrix n n α) i j = 0 :=
+by simp [one_val, h]
 
-instance : has_scalar R (matrix R m n) := ⟨smul⟩
+end one
 
-theorem smul_add (s : R) (m1 m2 : matrix R m n) : s • (m1 + m2) = s • m1 + s • m2 := 
-by funext i j; exact mul_add s (m1 i j) (m2 i j)
+section neg
+variables [has_neg α]
 
-theorem add_smul (r s : R) (M : matrix R m n) : (r + s) • M = r • M + s • M :=
-by funext i j; exact add_mul r s (M i j)
+instance : has_neg (matrix m n α) :=
+⟨λ M i j, - M i j⟩
 
-theorem mul_smul (s t : R) (M : matrix R m n) : (s * t) • M = s • (t • M) := 
-by funext i j; exact _root_.mul_assoc s t (M i j)
+@[simp] theorem neg_val {M : matrix m n α} {i j} : (- M) i j = - M i j :=
+rfl
 
-theorem one_smul (M : matrix R m n) : (1 : R) • M = M :=
-by funext i j; exact _root_.one_mul (M i j)
+end neg
 
-instance : module R (matrix R m n) :=
-{
-  smul_add := smul_add,
-  add_smul := add_smul,
-  mul_smul := mul_smul,
-  one_smul := one_smul,
-}
+section add
+variables [has_add α]
+
+instance : has_add (matrix m n α) :=
+⟨λ M N i j, M i j + N i j⟩
+
+@[simp] theorem add_val {M N : matrix m n α} {i j} :
+  (M + N) i j = M i j + N i j :=
+rfl
+
+end add
+
+instance [add_semigroup α] : add_semigroup (matrix m n α) :=
+{ add_assoc := λ L M N, ext' $ by simp,
+  ..matrix.has_add }
+
+instance [add_comm_semigroup α] : add_comm_semigroup (matrix m n α) :=
+{ add_comm := λ M N, ext' $ by simp,
+  ..matrix.add_semigroup }
+
+instance [add_monoid α] : add_monoid (matrix m n α) :=
+{ zero_add := λ M, show 0 + M = M, from ext' $ by simp,
+  add_zero := λ M, ext' $ by simp,
+  ..matrix.has_zero,
+  ..matrix.add_semigroup }
+
+instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) :=
+{ ..matrix.add_monoid,
+  ..matrix.add_comm_semigroup }
+
+protected def mul [has_mul α] [add_comm_monoid α] (M : matrix l m α) (N : matrix m n α) :
+  matrix l n α :=
+λ i k, finset.univ.sum (λ j, M i j * N j k)
+
+@[simp] theorem mul_val [has_mul α] [add_comm_monoid α] {M : matrix l m α} {N : matrix m n α} {i k} :
+  (M.mul N) i k = finset.univ.sum (λ j, M i j * N j k) :=
+rfl
+
+instance [has_mul α] [add_comm_monoid α] : has_mul (matrix n n α) :=
+⟨matrix.mul⟩
+
+@[simp] theorem mul_val' [has_mul α] [add_comm_monoid α] {M N : matrix n n α} {i k} :
+  (M * N) i k = finset.univ.sum (λ j, M i j * N j k) :=
+rfl
+
+section semigroup
+variables [decidable_eq m] [decidable_eq n] [semiring α]
+
+protected theorem mul_assoc (L : matrix l m α) (M : matrix m n α) (N : matrix n o α) :
+  L.mul (M.mul N) = (L.mul M).mul N :=
+funext $ λ i, funext $ λ k,
+  calc finset.univ.sum (λ (j₁ : m), L i j₁ * finset.univ.sum (λ (j₂ : n), M j₁ j₂ * N j₂ k))
+    = finset.univ.sum (λ (j₁ : m), finset.univ.sum (λ (j₂ : n), L i j₁ * M j₁ j₂ * N j₂ k)) :
+      by congr; funext; rw finset.mul_sum; congr; funext; rw mul_assoc
+    ... = finset.univ.sum (λ (j₂ : n), finset.univ.sum (λ (j₁ : m), L i j₁ * M j₁ j₂ * N j₂ k)) :
+      by rw finset.sum_comm
+    ... = finset.univ.sum (λ (j₂ : n), finset.univ.sum (λ (j₁ : m), L i j₁ * M j₁ j₂) * N j₂ k) :
+      by congr; funext; rw ←finset.sum_mul
+
+instance : semigroup (matrix n n α) :=
+{ mul_assoc := λ L M N, (matrix.mul_assoc L M N).symm,
+  ..matrix.has_mul }
+
+end semigroup
+
+section monoid
+variables [decidable_eq n] [decidable_eq m] [semiring α]
+
+protected theorem one_mul (M : matrix n m α) : (1 : matrix n n α).mul M = M :=
+ext' $ λ i j,
+have h : ∀ (j' : n), j' ∈ (finset.univ : finset n) → j' ∉ finset.singleton i → (1 : matrix n n α) i j' * M j' j = 0 :=
+  λ j' h₁ h₂, by simp at h₂; simp [ne.symm h₂],
+calc finset.univ.sum (λ i', (1 : matrix n n α) i i' * M i' j)
+  = (finset.singleton i).sum (λ i', (1 : matrix n n α) i i' * M i' j) :
+    (finset.sum_subset (finset.subset_univ (finset.singleton i)) h).symm
+  ... = M i j :
+    by simp
+
+protected theorem mul_one (M : matrix n m α) : M.mul (1 : matrix m m α) = M :=
+ext' $ λ i j,
+have h : ∀ (j' : m), j' ∈ (finset.univ : finset m) → j' ∉ finset.singleton j → M i j' * (1 : matrix m m α) j' j = 0 :=
+  λ j' h₁ h₂, by simp at h₂; simp [h₂],
+calc finset.univ.sum (λ j',  M i j' * (1 : matrix m m α) j' j)
+  = (finset.singleton j).sum (λ j', M i j' * (1 : matrix m m α) j' j) :
+    (finset.sum_subset (finset.subset_univ (finset.singleton j)) h).symm
+  ... = M i j :
+    by simp
+
+instance : monoid (matrix n n α) :=
+{ one_mul := matrix.one_mul,
+  mul_one := matrix.mul_one,
+  ..matrix.has_one,
+  ..matrix.semigroup }
+
+end monoid
+
+instance [add_group α] : add_group (matrix m n α) :=
+{ add_left_neg := λ M, show - M + M = 0, from ext' $ by simp,
+  ..matrix.add_monoid,
+  ..matrix.has_neg }
+
+instance [add_comm_group α] : add_comm_group (matrix m n α) :=
+{ ..matrix.add_group,
+  ..matrix.add_comm_monoid }
+
+section distrib
+variables [semiring α]
+
+theorem left_distrib (L M N : matrix n n α) : L * (M + N) = (L * M) + (L * N) :=
+ext' $ λ i j,
+calc finset.univ.sum (λ j', L i j' * (M j' j + N j' j))
+  = finset.univ.sum (λ j', (λ j', L i j' * M j' j) j' + (λ j', L i j' * N j' j) j') :
+    by simp [left_distrib]
+  ... = finset.univ.sum (λ j', L i j' * M j' j) + finset.univ.sum (λ j', L i j' * N j' j) :
+    finset.sum_add_distrib
+
+theorem right_distrib (L M N : matrix n n α) : (L + M) * N = (L * N) + (M * N) :=
+ext' $ λ i j,
+calc finset.univ.sum (λ i', (L i i' + M i i') * N i' j)
+  = finset.univ.sum (λ i', (λ i', L i i' * N i' j) i' + (λ i', M i i' * N i' j) i') :
+    by simp [right_distrib]
+  ... = finset.univ.sum (λ i', L i i' * N i' j) + finset.univ.sum (λ i', M i i' * N i' j) :
+    finset.sum_add_distrib
+
+instance : distrib (matrix n n α) :=
+{ left_distrib := left_distrib,
+  right_distrib := right_distrib,
+  ..matrix.has_mul,
+  ..matrix.has_add }
+
+end distrib
+
+instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
+{ ..matrix.add_comm_group,
+  ..matrix.monoid,
+  ..matrix.distrib }
+
+instance [has_mul α] : has_scalar α (matrix m n α) :=
+⟨λ a M i j, a * M i j⟩
+
+instance [ring α] : module α (matrix m n α) :=
+{ smul_add := λ a M N, ext' $ λ i j, mul_add a (M i j) (N i j),
+  add_smul := λ a b M, ext' $ λ i j, add_mul a b (M i j),
+  mul_smul := λ a b M, ext' $ λ i j, mul_assoc a b (M i j),
+  one_smul := λ M, ext' $ λ i j, one_mul (M i j) }
 
 end matrix

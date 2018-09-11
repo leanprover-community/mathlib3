@@ -274,16 +274,6 @@ end
 def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units α :=
 ⟨a, b, hab, by rwa mul_comm a b at hab⟩
 
-def units.mk_of_ne_zero [field α] {a : α} (ha : a ≠ 0) : units α :=
-⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
-
-@[simp] lemma units.mk_of_ne_zero_inj [field α] {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
-  units.mk_of_ne_zero ha = units.mk_of_ne_zero hb ↔ a = b :=
-⟨λ h, by injection h, λ h, units.ext h⟩
-
-@[simp] lemma units.coe_mk_of_ne_zero [field α] {a : α} (ha : a ≠ 0) :
-  (units.mk_of_ne_zero ha : α) = a := rfl
-
 @[to_additive with_zero]
 def with_one (α) := option α
 
@@ -634,7 +624,7 @@ instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
   is_monoid_hom (g ∘ f) :=
 { map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
   map_one := by simp [map_one f]; exact map_one g }
-  
+
 end is_monoid_hom
 
 -- TODO rename fields of is_group_hom: mul ↝ map_mul?

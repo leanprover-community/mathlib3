@@ -14,7 +14,7 @@ variables {p q : ℕ} (hp : prime p) (hq : prime q)
 @[simp] lemma card_units_zmodp : fintype.card (units (zmodp p hp)) = p - 1 :=
 by rw [card_units, card_zmodp]
 
-theorem fermat_little {p : ℕ} (hp : nat.prime p) {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p - 1) = 1 :=
+theorem fermat_little {p : ℕ} (hp : prime p) {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p - 1) = 1 :=
 by rw [← units.mk0_val ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow, ← units.ext_iff,
     ← card_units_zmodp hp, pow_card_eq_one]
 
@@ -514,8 +514,9 @@ begin
   cc
 end
 
-lemma is_square_iff_is_square_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
+lemma is_square_iff_is_square_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 = 1) :
   (∃ a : zmodp p hp, a ^ 2 = q) ↔ ∃ b : zmodp q hq, b ^ 2 = p :=
+if hpq : p = q then by subst hpq else
 have h1 : (-1 : ℤ) ^ ((p / 2) * (q / 2)) = 1,
   by rw [← mod_add_div p 4, hp1, ← show 2 * 2 = 4, from rfl, mul_assoc 2,
     nat.add_mul_right_div _ _ (succ_pos 1), show 1 / 2 = 0, from rfl, zero_add, mul_assoc, pow_mul,
@@ -526,7 +527,7 @@ have hp1' : p % 2 = 1,
 begin
   have := quadratic_reciprocity hp hq hp1' hq1 hpq,
   rw [h1, legendre_sym, legendre_sym, if_neg (zmodp.prime_ne_zero hp hq hpq),
-    if_neg (zmodp.prime_ne_zero hq hp hpq.symm)] at this,
+    if_neg (zmodp.prime_ne_zero hq hp (ne.symm hpq))] at this,
   split_ifs at this; simp *; contradiction
 end
 

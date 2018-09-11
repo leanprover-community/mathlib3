@@ -943,6 +943,24 @@ lemma card_union_le [decidable_eq α] (s t : finset α) :
   (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ le_add_right _ _
 
+lemma surj_on_of_inj_on_of_card_eq {s : finset α} {t : finset β}
+  (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t) (hst : card t ≤ card s)
+  (hinj : ∀ a₁ a₂ ha₁ ha₂, f a₁ ha₁ = f a₂ ha₂ → a₁ = a₂) :
+  (∀ b ∈ t, ∃ a ha, f a ha = b) :=
+by haveI := classical.dec_eq β; exact
+λ b hb,
+  have h : card (image (λ (a : {a // a ∈ s}), f (a.val) a.2) (attach s)) = card s,
+    from @card_attach _ s ▸ card_image_of_injective _
+      (λ ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ h, subtype.eq $ hinj _ _ _ _ h),
+  have h₁ : image (λ a : {a // a ∈ s}, f a.1 a.2) s.attach = t :=
+  eq_of_subset_of_card_le (λ b h, let ⟨a, ha₁, ha₂⟩ := mem_image.1 h in
+    ha₂ ▸ hf _ _) (by simp [hst, h]),
+begin
+  rw ← h₁ at hb,
+  rcases mem_image.1 hb with ⟨a, ha₁, ha₂⟩,
+  exact ⟨a, a.2, ha₂⟩,
+end
+
 end card
 
 section bind

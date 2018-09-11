@@ -250,6 +250,15 @@ by rw [add_comm _ a, nat.add_mul_left_div _ _ hc, add_comm]
 @[simp] protected lemma mul_right_add_div (a b : ℕ) {c : ℕ} (hc : 0 < c) : (c * b + a) / c = b + a / c :=
 by rw [mul_comm c, nat.mul_left_add_div _ _ hc]
 
+lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
+if hb : b = 0 then by simp [hb] else if hc : c = 0 then by simp [hc]
+else by conv {to_rhs, rw ← mod_add_div a (b * c)};
+rw [mul_assoc, nat.add_mul_div_left _ _ (nat.pos_of_ne_zero hb), add_mul_mod_self_left,
+  mod_eq_of_lt (nat.div_lt_of_lt_mul (mod_lt _ (mul_pos (nat.pos_of_ne_zero hb) (nat.pos_of_ne_zero hc))))]
+
+lemma mod_mul_left_div_self (a b c : ℕ) : a % (c * b) / b = (a / b) % c :=
+by rw [mul_comm c, mod_mul_right_div_self]
+
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
 ⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_refl _⟩
 

@@ -369,8 +369,14 @@ by rw [gsmul_eq_mul, gsmul_eq_mul, mul_assoc]
 @[simp] theorem int.cast_pow [ring α] (n : ℤ) (m : ℕ) : (↑(n ^ m) : α) = ↑n ^ m :=
 by induction m; simp [*, nat.succ_eq_add_one,pow_add]
 
+lemma neg_one_pow_odd [ring α] {n : ℕ} (hn : n % 2 = 1) : (-1 : α) ^ n = -1 :=
+by rw [← nat.mod_add_div n 2, hn, pow_add, pow_mul]; simp [pow_two]
+
+lemma neg_one_pow_even [ring α] {n : ℕ} (hn : n % 2 = 0) : (-1 : α) ^ n = 1 :=
+by rw [← nat.mod_add_div n 2, hn, pow_add, pow_mul]; simp [pow_two]
+
 lemma neg_one_pow_eq_one_or_neg_one [ring α] (n : ℕ) : (-1 : α) ^ n = 1 ∨ (-1 : α) ^ n = -1 :=
-by induction n; finish [_root_.pow_succ]
+(nat.mod_two_eq_zero_or_one n).elim (or.inl ∘ neg_one_pow_even) (or.inr ∘ neg_one_pow_odd)
 
 theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 by induction n with n ih; simp [pow_succ, mul_eq_zero, *]

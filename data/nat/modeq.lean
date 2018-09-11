@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Modular equality relation.
 -/
-import data.int.gcd
+import data.int.gcd algebra.ordered_ring
 
 namespace nat
 
@@ -134,5 +134,11 @@ have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
   ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_ge_one_right' (nat.zero_le _) hn0)]
+
+lemma odd_of_mod_four_eq_one {n : ℕ} (h : n % 4 = 1) : n % 2 = 1 :=
+@modeq.modeq_of_modeq_mul_left 2 n 1 2 h
+
+lemma odd_of_mod_four_eq_three {n : ℕ} (h : n % 4 = 3) : n % 2 = 1 :=
+@modeq.modeq_of_modeq_mul_left 2 n 3 2 h
 
 end nat

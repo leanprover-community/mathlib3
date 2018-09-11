@@ -72,6 +72,12 @@ instance : has_coe ℤ_[hp] ℚ_[hp] := ⟨subtype.val⟩
 
 @[simp] lemma coe_one : (↑(1 : ℤ_[hp]) : ℚ_[hp]) = 1 := rfl
 
+@[simp] lemma coe_zero : (↑(0 : ℤ_[hp]) : ℚ_[hp]) = 0 := rfl
+
+@[simp] lemma cast_pow (x : ℤ_[hp]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[hp]) = (↑x : ℚ_[hp])^n
+| 0 := by simp
+| (k+1) := by simp [monoid.pow, pow]; congr; apply cast_pow
+
 lemma mk_coe : ∀ (k : ℤ_[hp]), (⟨↑k, k.2⟩ : ℤ_[hp]) = k
 | ⟨_, _⟩ := rfl
 
@@ -132,13 +138,38 @@ variables {p : ℕ} {hp : p.prime}
 lemma le_one : ∀ z : ℤ_[hp], ∥z∥ ≤ 1
 | ⟨_, h⟩ := h
 
+@[simp] lemma one : ∥(1 : ℤ_[hp])∥ = 1 := by simp [norm, padic_norm_z]
+
 @[simp] lemma mul (z1 z2 : ℤ_[hp]) : ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ :=
 by unfold norm; simp [padic_norm_z]
+
+@[simp] lemma pow (z : ℤ_[hp]) : ∀ n : ℕ, ∥z^n∥ = ∥z∥^n
+| 0 := by simp
+| (k+1) := show ∥z*z^k∥ = ∥z∥*∥z∥^k, by {rw mul, congr, apply pow}
 
 theorem nonarchimedean : ∀ (q r : ℤ_[hp]), ∥q + r∥ ≤ max (∥q∥) (∥r∥)
 | ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.nonarchimedean _ _
 
+theorem add_eq_max_of_ne : ∀ {q r : ℤ_[hp]}, ∥q∥ ≠ ∥r∥ → ∥q+r∥ = max (∥q∥) (∥r∥)
+| ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.add_eq_max_of_ne
+
 @[simp] lemma norm_one : ∥(1 : ℤ_[hp])∥ = 1 := norm_one
+
+lemma eq_of_norm_add_lt_right {p : ℕ} {hp : p.prime} {z1 z2 : ℤ_[hp]}
+  (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
+by_contradiction $ λ hne,
+  not_lt_of_ge (by rw padic_norm_z.add_eq_max_of_ne hne; apply le_max_right) h
+
+lemma eq_of_norm_add_lt_left {p : ℕ} {hp : p.prime} {z1 z2 : ℤ_[hp]}
+  (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
+by_contradiction $ λ hne,
+  not_lt_of_ge (by rw padic_norm_z.add_eq_max_of_ne hne; apply le_max_left) h
+
+@[simp] lemma padic_norm_e_of_padic_int {p : ℕ} {hp : p.prime} (z : ℤ_[hp]) : ∥(↑z : ℚ_[hp])∥ = ∥z∥ :=
+by simp [norm, padic_norm_z]
+
+@[simp] lemma padic_norm_z_eq_padic_norm_e {p : ℕ} {hp : p.prime} {q : ℚ_[hp]} (hq : ∥q∥ ≤ 1) :
+  @norm ℤ_[hp] _ ⟨q, hq⟩ = ∥q∥ := rfl
 
 end padic_norm_z
 
@@ -239,17 +270,37 @@ instance : local_ring ℤ_[hp] :=
   max := by apply_instance,
   unique := maximal_ideal_unique }
 
-private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[hp] (λ a, ∥a∥)) :
+private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[hp] norm) :
   cau_seq ℚ_[hp] (λ a, ∥a∥) :=
 ⟨ λ n, f n,
   λ _ hε, by simpa [norm, padic_norm_z] using f.cauchy hε ⟩
 
-theorem padic_int.complete (f : cau_seq ℤ_[hp] (λ a, ∥a∥)) :
+theorem complete (f : cau_seq ℤ_[hp] norm) :
   ∃ z : ℤ_[hp], ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥z - f i∥ < ε :=
 have hqn : ∥padic.cau_seq_lim (cau_seq_to_rat_cau_seq f)∥ ≤ 1,
   from padic_norm_e_lim_le zero_lt_one (λ _, padic_norm_z.le_one _),
 ⟨ ⟨_, hqn⟩,
   by simpa [norm, padic_norm_z] using padic.cau_seq_lim_spec (cau_seq_to_rat_cau_seq f) ⟩
+
+def cau_seq_lim (f : cau_seq ℤ_[hp] norm) : ℤ_[hp] := classical.some (complete f)
+
+lemma cau_seq_lim_spec (f : cau_seq ℤ_[hp] norm) : ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥cau_seq_lim f - f i∥ < ε :=
+classical.some_spec (complete f)
+
+open filter
+lemma tendsto_limit (f : cau_seq ℤ_[hp] norm) : tendsto f at_top (nhds (cau_seq_lim f)) :=
+tendsto_nhds
+begin
+  intros s lfs os,
+  suffices : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → f b ∈ s, by simpa,
+  rcases is_open_metric.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
+  cases cau_seq_lim_spec f _ hε with N hN,
+  existsi N,
+  intros b hb,
+  apply hεs,
+  dsimp [ball], rw [dist_comm, dist_eq_norm],
+  solve_by_elim
+end
 
 end padic_int
 

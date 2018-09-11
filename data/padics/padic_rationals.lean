@@ -289,6 +289,52 @@ else
 lemma norm_neg (a : padic_seq hp) : (-a).norm = a.norm :=
 norm_eq $ by simp
 
+lemma norm_eq_of_add_equiv_zero {f g : padic_seq hp} (h : f + g ≈ 0) : f.norm = g.norm :=
+have lim_zero (f + g - 0), from h,
+have f ≈ -g, from show lim_zero (f - (-g)), by simpa,
+have f.norm = (-g).norm, from norm_equiv this,
+by simpa [norm_neg] using this
+
+lemma add_eq_max_of_ne {f g : padic_seq hp} (hfgne : f.norm ≠ g.norm) :
+  (f + g).norm = max f.norm g.norm :=
+have hfg : ¬f + g ≈ 0, from mt norm_eq_of_add_equiv_zero hfgne,
+if hf : f ≈ 0 then
+  have lim_zero (f - 0), from hf,
+  have f + g ≈ g, from show lim_zero ((f + g) - g), by simpa,
+  have h1 : (f+g).norm = g.norm, from norm_equiv this,
+  have h2 : f.norm = 0, from (norm_zero_iff _).2 hf,
+  by rw [h1, h2]; rw max_eq_right (norm_nonneg _)
+else if hg : g ≈ 0 then
+  have lim_zero (g - 0), from hg,
+  have f + g ≈ f, from show lim_zero ((f + g) - f), by rw [add_sub_cancel']; simpa,
+  have h1 : (f+g).norm = f.norm, from norm_equiv this,
+  have h2 : g.norm = 0, from (norm_zero_iff _).2 hg,
+  by rw [h1, h2]; rw max_eq_left (norm_nonneg _)
+else
+let i := max (stationary_point hfg) (max (stationary_point hf) (stationary_point hg)) in
+have hpnfg : padic_norm hp ((f + g) (stationary_point hfg)) = padic_norm hp ((f + g) i),
+{ apply stationary_point_spec hfg,
+  apply le_max_left,
+  apply le_refl },
+have hpnf : padic_norm hp (f (stationary_point hf)) = padic_norm hp (f i),
+{ apply stationary_point_spec hf,
+  apply ge_trans,
+  apply le_max_right,
+  apply le_max_left,
+  apply le_refl },
+have hpng : padic_norm hp (g (stationary_point hg)) = padic_norm hp (g i),
+{ apply stationary_point_spec hg,
+  apply ge_trans,
+  apply le_max_right,
+  apply le_max_right,
+  apply le_refl },
+begin
+  unfold norm, split_ifs,
+  rw [hpnfg, hpnf, hpng],
+  apply padic_norm.add_eq_max_of_ne,
+  simpa [hf, hg, norm, hpnf, hpng] using hfgne
+end
+
 end embedding
 end padic_seq
 
@@ -414,6 +460,10 @@ quotient.induction_on q $ norm_neg
 theorem nonarchimedean' (q r : ℚ_[hp]) :
       padic_norm_e (q + r) ≤ max (padic_norm_e q) (padic_norm_e r) :=
 quotient.induction_on₂ q r $ norm_nonarchimedean
+
+theorem add_eq_max_of_ne' {q r : ℚ_[hp]} :
+  padic_norm_e q ≠ padic_norm_e r → padic_norm_e (q + r) = max (padic_norm_e q) (padic_norm_e r) :=
+quotient.induction_on₂ q r $ λ _ _, padic_seq.add_eq_max_of_ne
 
 lemma triangle_ineq (x y z : ℚ_[hp]) :
   padic_norm_e (x - z) ≤ padic_norm_e (x - y) + padic_norm_e (y - z) :=
@@ -617,6 +667,19 @@ begin
   unfold has_norm.norm, rw ←rat.cast_max, apply rat.cast_le.2, apply nonarchimedean'
 end
 
+theorem add_eq_max_of_ne {q r : ℚ_[hp]} (h : ∥q∥ ≠ ∥r∥) : ∥q+r∥ = max (∥q∥) (∥r∥) :=
+begin
+  unfold has_norm.norm,
+  rw ←rat.cast_max,
+  congr,
+  apply add_eq_max_of_ne',
+  intro h',
+  apply h,
+  unfold has_norm.norm,
+  congr,
+  apply h'
+end
+
 @[simp] lemma eq_padic_norm (q : ℚ) : ∥padic.of_rat hp q∥ = padic_norm hp q :=
 by unfold has_norm.norm; congr; apply padic_seq.norm_const
 
@@ -650,6 +713,16 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[hp
     by simpa [padic.cast_eq_of_rat, hnz', padic_norm, padic_val_rat,
               padic_val_eq_zero_of_not_dvd' hq] using this
 
+lemma eq_of_norm_add_lt_right {p : ℕ} {hp : p.prime} {z1 z2 : ℚ_[hp]}
+  (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
+by_contradiction $ λ hne,
+  not_lt_of_ge (by rw padic_norm_e.add_eq_max_of_ne hne; apply le_max_right) h
+
+lemma eq_of_norm_add_lt_left {p : ℕ} {hp : p.prime} {z1 z2 : ℚ_[hp]}
+  (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
+by_contradiction $ λ hne,
+  not_lt_of_ge (by rw padic_norm_e.add_eq_max_of_ne hne; apply le_max_left) h
+
 end normed_space
 end padic_norm_e
 
@@ -680,5 +753,20 @@ let ⟨N, hN⟩ := cau_seq_lim_spec f _ ha in
 calc ∥cau_seq_lim f∥ = ∥cau_seq_lim f - f N + f N∥ : by simp
                 ... ≤ max (∥cau_seq_lim f - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
                 ... ≤ a : max_le (le_of_lt (hN _ (le_refl _))) (hf _)
+
+open filter
+lemma tendsto_limit (f : cau_seq ℚ_[hp] norm) : tendsto f at_top (nhds (cau_seq_lim f)) :=
+tendsto_nhds
+begin
+  intros s lfs os,
+  suffices : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → f b ∈ s, by simpa,
+  rcases is_open_metric.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
+  cases cau_seq_lim_spec f _ hε with N hN,
+  existsi N,
+  intros b hb,
+  apply hεs,
+  dsimp [ball], rw [dist_comm, dist_eq_norm],
+  solve_by_elim
+end
 
 end padic

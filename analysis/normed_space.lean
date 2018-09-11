@@ -189,18 +189,6 @@ lemma norm_pow {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, n > 0 →
            (mul_le_mul (le_refl _)
                        (norm_pow (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
 
-instance prod.ring [ring α] [ring β] : ring (α × β) :=
-{ left_distrib := assume x y z, calc
-    x*(y+z) = (x.1, x.2) * (y.1 + z.1, y.2 + z.2) : rfl
-    ... = (x.1*(y.1 + z.1), x.2*(y.2 + z.2)) : rfl
-    ... = (x.1*y.1 + x.1*z.1, x.2*y.2 + x.2*z.2) : by simp[left_distrib],
-  right_distrib := assume x y z, calc
-    (x+y)*z = (x.1 + y.1, x.2 + y.2)*(z.1, z.2) : rfl
-    ... = ((x.1 + y.1)*z.1, (x.2 + y.2)*z.2) : rfl
-    ... = (x.1*z.1 + y.1*z.1, x.2*z.2 + y.2*z.2) : by simp[right_distrib],
-  ..prod.monoid,
-  ..prod.add_comm_group}
-
 instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
@@ -214,7 +202,6 @@ instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α ×
   ..prod.normed_group }
 end normed_ring
 
--- refactor this...
 instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
 ⟨ continuous_iff_tendsto.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =

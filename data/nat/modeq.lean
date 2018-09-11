@@ -126,4 +126,13 @@ modeq.modeq_of_modeq_mul_left _ (modeq.mod_modeq _ _)
 lemma odd_mul_odd {n m : ℕ} (hn1 : n % 2 = 1) (hm1 : m % 2 = 1) : (n * m) % 2 = 1 :=
 show (n * m) % 2 = (1 * 1) % 2, from nat.modeq.modeq_mul hn1 hm1
 
+lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
+  (m * n) / 2 = m * (n / 2) + m / 2 :=
+have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
+have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
+(nat.mul_left_inj (show 0 < 2, from dec_trivial)).1 $
+by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
+  two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
+  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_ge_one_right' (nat.zero_le _) hn0)]
+
 end nat

@@ -74,15 +74,6 @@ by conv in (range p) { rw [← succ_sub_one p, succ_sub hp.pos] };
 
 end zmodp
 
-lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
-  (m * n) / 2 = m * (n / 2) + m / 2 :=
-have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
-have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
-(nat.mul_left_inj (show 0 < 2, from dec_trivial)).1 $
-by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
-  two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
-  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_ge_one_right' (nat.zero_le _) hn0)]
-
 namespace quadratic_reciprocity_aux
 
 variables {p q : ℕ} (hp : prime p) (hq : prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1)

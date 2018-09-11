@@ -105,4 +105,20 @@ lemma fpow_le_one_of_nonpos {p : α} (hp : p ≥ 1) {z : ℤ} (hz : z ≤ 0) : f
 calc fpow p z ≤ fpow p 0 : fpow_le_of_le hp hz
           ... = 1        : by simp
 
-end ordered_field_power
+end ordered_field_power 
+
+lemma one_lt_pow {α} [linear_ordered_semiring α] {p : α} (hp : p > 1) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n  
+| 1 h := by simp; assumption
+| (k+2) h := 
+  begin 
+    rw ←one_mul (1 : α), 
+    apply mul_lt_mul,
+    { assumption },
+    { apply le_of_lt, simpa using one_lt_pow (nat.le_add_left 1 k)},
+    { apply zero_lt_one },
+    { apply le_of_lt (lt_trans zero_lt_one hp) }
+  end
+
+lemma one_lt_fpow {α}  [discrete_linear_ordered_field α] {p : α} (hp : p > 1) :
+  ∀ z : ℤ, z > 0 → 1 < fpow p z
+| (int.of_nat n) h := one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h))

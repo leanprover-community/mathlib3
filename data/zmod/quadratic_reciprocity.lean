@@ -32,20 +32,20 @@ hp.eq_two_or_odd.elim
       let ⟨m, hm⟩ := dvd_of_mul_dvd_mul_right (nat.div_pos hp.ge_two dec_trivial) this in
       ⟨g ^ m, by rwa [← pow_mul, mul_comm, ← hm]⟩⟩)
 
-lemma euler_criterion {x : zmodp p hp} (hx : x ≠ 0) :
-  (∃ y : zmodp p hp, y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
+lemma euler_criterion {a : zmodp p hp} (ha : a ≠ 0) :
+  (∃ y : zmodp p hp, y ^ 2 = a) ↔ a ^ (p / 2) = 1 :=
 ⟨λ ⟨y, hy⟩,
   have hy0 : y ≠ 0, from λ h, by simp [h, _root_.zero_pow (succ_pos 1)] at hy; cc,
-  by simpa using (units.ext_iff.1 $ (euler_criterion_units hp).1 ⟨units.mk0 _ hy0, show _ = units.mk0 _ hx,
+  by simpa using (units.ext_iff.1 $ (euler_criterion_units hp).1 ⟨units.mk0 _ hy0, show _ = units.mk0 _ ha,
     by rw [units.ext_iff]; simpa⟩),
-λ h, let ⟨y, hy⟩ := (euler_criterion_units hp).2 (show units.mk0 _ hx ^ (p / 2) = 1, by simpa [units.ext_iff]) in
+λ h, let ⟨y, hy⟩ := (euler_criterion_units hp).2 (show units.mk0 _ ha ^ (p / 2) = 1, by simpa [units.ext_iff]) in
   ⟨y, by simpa [units.ext_iff] using hy⟩⟩
 
-lemma pow_div_two_eq_neg_one_or_one {n : zmodp p hp} (hn : n ≠ 0) : n ^ (p / 2) = 1 ∨ n ^ (p / 2) = -1 :=
+lemma pow_div_two_eq_neg_one_or_one {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 hp.eq_two_or_odd.elim
-  (λ h, by revert n hn; subst h; exact dec_trivial)
+  (λ h, by revert a ha; subst h; exact dec_trivial)
   (λ hp1, by rw [← mul_self_eq_one_iff, ← _root_.pow_add, ← two_mul, two_mul_odd_div_two hp1];
-    exact fermat_little hp hn)
+    exact fermat_little hp ha)
 
 @[simp] lemma wilsons_lemma {p : ℕ} (hp : prime p) : (fact (p - 1) : zmodp p hp) = -1 :=
 begin
@@ -246,9 +246,27 @@ congr_arg coe (prod_congr (by simp [finset.ext, coprime_mul_iff_left]; tauto) (�
 ... = _ : by rw [prod_filter_range_p_mul_q_div_two_mod_p_eq hp hq hp1 hq1 hpq];
   cases zmodp.pow_div_two_eq_neg_one_or_one hp hq0; simp [h, _root_.pow_succ]
 
+lemma card_range_p_mul_q_filter_not_coprime :
+  card (filter (λ x, ¬coprime p x) (range (succ (p * q / 2)))) = (q / 2).succ :=
+calc card (filter (λ x, ¬coprime p x) (range (succ (p * q / 2))))
+    = card ((range (q / 2).succ).image (* p)) :
+congr_arg card $ finset.ext.2 $ λ x, begin
+  rw [mem_filter, mem_range, hp.coprime_iff_not_dvd, not_not, mem_image],
+  exact ⟨λ ⟨h, ⟨m, hm⟩⟩, ⟨m, mem_range.2 (lt_of_mul_lt_mul_left
+      (by rw ← hm; exact lt_of_lt_of_le h (by rw [succ_le_iff, mul_succ,
+          odd_mul_odd_div_two hp1 hq1];
+        exact add_lt_add_left (div_lt_self hp.pos (lt_succ_self 1)) _))
+      (nat.zero_le p)), hm.symm ▸ mul_comm m p⟩,
+    λ ⟨m, hm₁, hm₂⟩, ⟨lt_succ_of_le (by rw [← hm₂, odd_mul_odd_div_two hp1 hq1];
+      exact le_trans (by rw mul_comm; exact mul_le_mul_left _
+        (le_of_lt_succ (mem_range.1 hm₁))) (le_add_right _ _)),
+      by simp [hm₂.symm]⟩⟩
+end
+... = _ : by rw [card_image_of_injective _ (λ _ _ h, (nat.mul_right_inj hp.pos).1 h), card_range]
+
 lemma prod_filter_range_p_mul_q_div_two_eq_prod_product :
   ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
-    (λ x, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp), (x : zmodp q hq))
+    (λ x, if (x : zmodp q hq).1 ≤ q / 2 then ((x : zmodp p hp), (x : zmodp q hq))
       else -((x : zmodp p hp), (x : zmodp q hq))) =
   (((range p).erase 0).product ((range (q / 2).succ).erase 0)).prod
     (λ x, ((x.1 : zmodp p hp), (x.2 : zmodp q hq))) :=
@@ -257,23 +275,17 @@ have hpqpnat' : ((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) = p * q, by 
 have hpq1 : ((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) % 2 = 1,
   from nat.odd_mul_odd hp1 hq1,
 have hpq1' : p * q > 1, from one_lt_mul hp.pos hq.gt_one,
-prod_bij (λ x _, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp).val, (x : zmodp q hq).val)
-      else ((-x : zmodp p hp).val, (-x : zmodp q hq).val))
-  (λ x, have hxp : ∀ {p : ℕ} (hp : prime p), (x : zmodp p hp).val = 0 ↔ p ∣ x,
-      from λ p hp, by rw [zmodp.val_cast_nat, nat.dvd_iff_mod_eq_zero],
-    have hxpneg : ∀ {p : ℕ} (hp : prime p), (-x : zmodp p hp).val = 0 ↔ p ∣ x,
-      from λ p hp, by rw [← int.cast_coe_nat x, ← int.cast_neg, ← int.coe_nat_inj',
-        zmodp.coe_val_cast_int, int.coe_nat_zero, ← int.dvd_iff_mod_eq_zero, dvd_neg, int.coe_nat_dvd],
-    have hxplt : (x : zmodp p hp).val < p := (x : zmodp p hp).2,
-    have hxpltneg : (-x : zmodp p hp).val < p := (-x : zmodp p hp).2,
-    have hneglt : ¬(x : zmodp q hq).val ≤ q / 2 → (x : zmodp q hq) ≠ 0 → (-x : zmodp q hq).val ≤ q / 2,
-      from λ hx₁ hx0, by rwa [zmodp.le_div_two_iff_lt_neg hq hq1 hx0, not_lt] at hx₁,
-    by split_ifs;
-      simp [zmodp.eq_zero_iff_dvd_nat hq, (x : zmodp p hp).2, coprime_mul_iff_left,
-        -range_succ, lt_succ_iff, h, *, hp.coprime_iff_not_dvd,
-        hq.coprime_iff_not_dvd] {contextual := tt})
-  (λ a ha, by split_ifs; simp [*, prod.ext_iff] at *)
-  (λ a b ha hb h,
+have hhq0 : ∀ a : ℕ, coprime q a → a ≠ 0,
+  from λ a, imp_not_comm.1 $ by simp [hq.coprime_iff_not_dvd] {contextual := tt},
+have hpq0 : 0 < p * q / 2, from nat.div_pos (succ_le_of_lt $ one_lt_mul hp.pos hq.gt_one) dec_trivial,
+have hinj : ∀ a₁ a₂ : ℕ,
+    a₁ ∈ (range (p * q / 2).succ).filter (coprime (p * q)) →
+    a₂ ∈ (range (p * q / 2).succ).filter (coprime (p * q)) →
+    (if (a₁ : zmodp q hq).1 ≤ q / 2 then ((a₁ : zmodp p hp).1, (a₁ : zmodp q hq).1)
+      else ((-a₁ : zmodp p hp).1, (-a₁ : zmodp q hq).1)) =
+    (if (a₂ : zmodp q hq).1 ≤ q / 2 then ((a₂ : zmodp p hp).1, (a₂ : zmodp q hq).1)
+      else ((-a₂ : zmodp p hp).1, (-a₂ : zmodp q hq).1)) → a₁ = a₂,
+  from λ a b ha hb h,
     have ha' : a ≤ (p * q) / 2 ∧ coprime (p * q) a,
       by simpa [-range_succ, lt_succ_iff] using ha,
     have hapq' : a < ((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) :=
@@ -304,57 +316,50 @@ prod_bij (λ x _, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp).val, 
       by rw [← mod_eq_of_lt hapq', ← mod_eq_of_lt hbpq'];
         rwa [zmodp.eq_iff_modeq_nat, zmodp.eq_iff_modeq_nat,
           nat.modeq.modeq_and_modeq_iff_modeq_mul ((coprime_primes hp hq).2 hpq)] at this,
-    by split_ifs at h; simp * at *)
-  (λ ⟨x, y⟩ hxy, let ⟨k, hk⟩ := nat.modeq.chinese_remainder ((coprime_primes hp hq).2 hpq) x y in
-    have hxy : x ≠ 0 ∧ x < p ∧ y ≠ 0 ∧ y ≤ q / 2,
-      by simpa [and.assoc, -range_succ, lt_succ_iff] using hxy,
-    have hkx : x = k % p, from mod_eq_of_lt hxy.2.1 ▸ hk.1.symm,
-    have hky : y = k % q, from mod_eq_of_lt (lt_of_le_of_lt hxy.2.2.2
-      (div_lt_self hq.pos (lt_succ_self 1))) ▸ hk.2.symm,
-    have hkpqmod : 0 ≤ (- k : ℤ) % (p * q), from int.mod_nonneg _
-      (mul_ne_zero (int.coe_nat_ne_zero_iff_pos.2 hp.pos) (int.coe_nat_ne_zero_iff_pos.2 hq.pos)),
-    have hpqk0 : ((- k : ℤ) : zmod (⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+)) ≠ 0,
-      by rw [int.cast_neg, neg_ne_zero, int.cast_coe_nat, ne.def, zmod.eq_zero_iff_dvd_nat];
-        exact mt (dvd.trans (dvd_mul_right p q)) (by rw [dvd_iff_mod_eq_zero, ← hkx]; exact hxy.1),
-    ⟨if k % (p * q) ≤ (p * q) / 2 then k % (p * q) else ((- k : ℤ) % (p * q)).nat_abs,
-      if h : k % (p * q) ≤ p * q / 2
-      then begin
-          rw if_pos h,
-          refine mem_filter.2 ⟨mem_range.2 (lt_succ_of_le h), _⟩,
-          rw [coprime_mul_iff_left, hp.coprime_iff_not_dvd, hq.coprime_iff_not_dvd,
-            dvd_iff_mod_eq_zero, dvd_iff_mod_eq_zero]; simp * at *; tauto,
-        end
-      else have ∀ {p q : ℕ}, prime p → prime q → k % p ≠ 0 → coprime p (int.nat_abs ((-k : ℤ) % (↑p * ↑q))),
-        from λ p q hp hq hkx, by rwa [hp.coprime_iff_not_dvd, ← int.coe_nat_dvd, int.dvd_nat_abs,
-          int.dvd_iff_mod_eq_zero, int.mod_mul_right_mod, ← int.dvd_iff_mod_eq_zero, dvd_neg_iff_dvd,
-          int.coe_nat_dvd, dvd_iff_mod_eq_zero],
-        begin
-          rw if_neg h,
-          refine mem_filter.2 ⟨mem_range.2 _, coprime_mul_iff_left.2 ⟨this hp hq (hkx ▸ hxy.1),
-            mul_comm (q : ℤ) (p : ℤ) ▸ this hq hp (hky ▸ hxy.2.2.1)⟩⟩,
-          rwa [← hpqpnat', ← int.coe_nat_lt, int.nat_abs_of_nonneg hkpqmod, ← hpqpnat, ← zmod.coe_val_cast_int,
-            int.coe_nat_lt, lt_succ_iff, zmod.le_div_two_iff_lt_neg hpq1 hpqk0,
-            ← int.cast_neg, neg_neg, int.cast_coe_nat, zmod.val_cast_nat, hpqpnat', ← not_le],
-        end,
-      have hkq0 : ((k : ℤ) : zmodp q hq) ≠ 0,
-          by rw [int.cast_coe_nat, ne.def, zmodp.eq_zero_iff_dvd_nat, dvd_iff_mod_eq_zero, ← hky];
-          exact hxy.2.2.1,
-        have hkpq : ¬ int.nat_abs (-↑k % (↑p * ↑q)) % q ≤ q / 2 :=
-          by rw [not_le, ← int.coe_nat_lt, int.coe_nat_mod, int.nat_abs_of_nonneg hkpqmod,
-              int.mod_mul_left_mod, ← zmodp.coe_val_cast_int hq, int.coe_nat_lt, int.cast_neg,
-              ← zmodp.le_div_two_iff_lt_neg hq hq1 hkq0, int.cast_coe_nat, zmodp.val_cast_nat, ← hky];
-            exact hxy.2.2.2,
-        have hneg_neg : (-(int.nat_abs (-↑k % (↑p * ↑q))) : zmodp p hp).val = k % p :=
-        by rw [← int.cast_coe_nat, int.nat_abs_of_nonneg hkpqmod, ← int.cast_neg, ← int.coe_nat_inj',
-            zmodp.coe_val_cast_int hp, int.coe_nat_mod];
-          exact int.modeq.modeq_of_modeq_mul_right q
-            (int.modeq.trans (int.modeq.modeq_neg (int.modeq.mod_modeq _ _)) (by simp)),
-        have hneg_neg' : (-(int.nat_abs (-↑k % (↑p * ↑q))) : zmodp q hq).val = k % q :=
-          by rw [← int.cast_coe_nat, int.nat_abs_of_nonneg hkpqmod, ← int.cast_neg, ← int.coe_nat_inj',
-            zmodp.coe_val_cast_int hq, int.coe_nat_mod];
-          exact int.modeq.modeq_of_modeq_mul_left p
-            (int.modeq.trans (int.modeq.modeq_neg (int.modeq.mod_modeq _ _)) (by simp)),
-        by split_ifs; simp [zmodp.val_cast_nat, *, -not_le, -not_lt] at *⟩)
+    by split_ifs at h; simp * at *,
+have hmem : ∀ a : ℕ,
+    a ∈ (range (p * q / 2).succ).filter (coprime (p * q)) →
+    (if (a : zmodp q hq).1 ≤ q / 2 then ((a : zmodp p hp).1, (a : zmodp q hq).1)
+      else ((-a : zmodp p hp).1, (-a : zmodp q hq).1)) ∈
+      ((range p).erase 0).product ((range (succ (q / 2))).erase 0),
+  from λ x, have hxp : ∀ {p : ℕ} (hp : prime p), (x : zmodp p hp).val = 0 ↔ p ∣ x,
+    from λ p hp, by rw [zmodp.val_cast_nat, nat.dvd_iff_mod_eq_zero],
+  have hxpneg : ∀ {p : ℕ} (hp : prime p), (-x : zmodp p hp).val = 0 ↔ p ∣ x,
+    from λ p hp, by rw [← int.cast_coe_nat x, ← int.cast_neg, ← int.coe_nat_inj',
+      zmodp.coe_val_cast_int, int.coe_nat_zero, ← int.dvd_iff_mod_eq_zero, dvd_neg, int.coe_nat_dvd],
+  have hxplt : (x : zmodp p hp).val < p := (x : zmodp p hp).2,
+  have hxpltneg : (-x : zmodp p hp).val < p := (-x : zmodp p hp).2,
+  have hneglt : ¬(x : zmodp q hq).val ≤ q / 2 → (x : zmodp q hq) ≠ 0 → (-x : zmodp q hq).val ≤ q / 2,
+    from λ hx₁ hx0, by rwa [zmodp.le_div_two_iff_lt_neg hq hq1 hx0, not_lt] at hx₁,
+  by split_ifs;
+    simp [zmodp.eq_zero_iff_dvd_nat hq, (x : zmodp p hp).2, coprime_mul_iff_left,
+      -range_succ, lt_succ_iff, h, *, hp.coprime_iff_not_dvd,
+      hq.coprime_iff_not_dvd, (x : zmodp p hp).2, (-x : zmodp p hp).2] {contextual := tt},
+prod_bij (λ x _, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp).val, (x : zmodp q hq).val)
+      else ((-x : zmodp p hp).val, (-x : zmodp q hq).val))
+  hmem
+  (λ a ha, by split_ifs; simp [*, prod.ext_iff] at *)
+  hinj
+  (surj_on_of_inj_on_of_card_le _ hmem hinj
+    (@nat.le_of_add_le_add_right (q / 2 + (p / 2).succ) _ _
+      (calc card (finset.product (erase (range p) 0) (erase (range (succ (q / 2))) 0)) + (q / 2 + (p / 2).succ)
+            = (p * q) / 2 + 1 :
+        by rw [card_product, card_erase_of_mem (mem_range.2 hp.pos), card_erase_of_mem (mem_range.2 (succ_pos _)),
+          card_range, card_range, pred_succ, ← add_assoc, ← succ_mul, succ_pred_eq_of_pos hp.pos,
+          odd_mul_odd_div_two hp1 hq1, add_succ]
+        ... = card (range (p * q / 2).succ) : by rw card_range
+        ... = card ((range (p * q / 2).succ).filter (coprime (p * q)) ∪
+                    ((range (p * q / 2).succ).filter (λ x, ¬coprime p x)).erase 0 ∪
+                    (range (p * q / 2).succ).filter (λ x, ¬coprime q x)) :
+        congr_arg card (by simp [finset.ext, coprime_mul_iff_left, -range_succ]; tauto)
+        ... ≤ card ((range (p * q / 2).succ).filter (coprime (p * q))) +
+              card (((range (p * q / 2).succ).filter (λ x, ¬coprime p x)).erase 0) +
+              card ((range (p * q / 2).succ).filter (λ x, ¬coprime q x)) :
+          le_trans (card_union_le _ _) (add_le_add_right (card_union_le _ _) _)
+        ... = _ : by rw [card_erase_of_mem, card_range_p_mul_q_filter_not_coprime hp hq hp1 hq1 hpq,
+            mul_comm p q, card_range_p_mul_q_filter_not_coprime hq hp hq1 hp1 hpq.symm, pred_succ,
+            add_assoc];
+          simp [hp.coprime_iff_not_dvd, hpq0])))
 
 lemma prod_range_div_two_erase_zero :
   ((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp)) ^ 2 * (-1) ^ (p / 2) = -1 :=
@@ -490,8 +495,8 @@ have h : (((-1) ^ (q / 2), (-1) ^ (p / 2) * (-1) ^ (p / 2 * (q / 2))) : zmodp p 
     cases hneg_one_or_one with h h; simp * at *
   end,
 begin
-  have := ne_neg_self hp hp1 zero_ne_one.symm,
-  have := ne_neg_self hq hq1 zero_ne_one.symm,
+  have := ne_neg_self hp hp1 one_ne_zero,
+  have := ne_neg_self hq hq1 one_ne_zero,
   generalize hnp : (-1 : ℤ) ^ (p / 2) = np,
   have hnpp : (-1 : zmodp q hq) ^ (p / 2) = np, by simp [hnp.symm],
   generalize hnq : (-1 : ℤ) ^ (q / 2) = nq,
@@ -509,14 +514,11 @@ lemma is_square_iff_is_square_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 
   (∃ a : zmodp p hp, a ^ 2 = q) ↔ ∃ b : zmodp q hq, b ^ 2 = p :=
 if hpq : p = q then by subst hpq else
 have h1 : (-1 : ℤ) ^ ((p / 2) * (q / 2)) = 1,
-  by rw [← mod_add_div p 4, hp1, ← show 2 * 2 = 4, from rfl, mul_assoc 2,
-    nat.add_mul_right_div _ _ (succ_pos 1), show 1 / 2 = 0, from rfl, zero_add, mul_assoc, pow_mul,
-      show (-1 : ℤ) ^ 2 = 1, from rfl, _root_.one_pow],
-have hp1' : p % 2 = 1,
-  from have p % 4 % 2 = p % 2 := nat.mod_mul_left_mod p 2 2,
-    by rw [← this, hp1]; refl,
+  from neg_one_pow_even ((dvd_iff_mod_eq_zero _ _).1
+    (dvd_mul_of_dvd_left ((dvd_iff_mod_eq_zero _ _).2 $
+    by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp1]; refl) _)),
 begin
-  have := quadratic_reciprocity hp hq hp1' hq1 hpq,
+  have := quadratic_reciprocity hp hq (odd_of_mod_four_eq_one hp1) hq1 hpq,
   rw [h1, legendre_sym, legendre_sym, if_neg (zmodp.prime_ne_zero hp hq hpq),
     if_neg (zmodp.prime_ne_zero hq hp (ne.symm hpq))] at this,
   split_ifs at this; simp *; contradiction
@@ -524,22 +526,13 @@ end
 
 lemma is_square_iff_is_not_square_of_mod_four_eq_three (hp3 : p % 4 = 3) (hq3 : q % 4 = 3)
   (hpq : p ≠ q) : (∃ a : zmodp p hp, a ^ 2 = q) ↔ ¬∃ b : zmodp q hq, b ^ 2 = p :=
-have ∀ n, n % 4 = 3 → (n / 2) % 2 = 1,
-  from λ n hn, by rw [← mod_add_div n 4, hn, ← show 2 * 2 = 4, from rfl, mul_assoc 2,
-    nat.add_mul_right_div _ _ (succ_pos _), nat.add_mul_mod_self_left]; refl,
-have (p / 2) * (q / 2) % 2 = 1,
-  from nat.odd_mul_odd (this p hp3) (this q hq3),
 have h1 : (-1 : ℤ) ^ ((p / 2) * (q / 2)) = -1,
-  by rw [← mod_add_div ((p / 2) * (q / 2)) 2, this, _root_.pow_add, _root_.pow_mul,
-      show (-1 : ℤ) ^ 2 = 1, from rfl, _root_.one_pow]; refl,
-have hp1' : p % 2 = 1,
-  from have p % 4 % 2 = p % 2 := nat.mod_mul_left_mod p 2 2,
-    by rw [← this, hp3]; refl,
-have hq1' : q % 2 = 1,
-  from have q % 4 % 2 = q % 2 := nat.mod_mul_left_mod q 2 2,
-    by rw [← this, hq3]; refl,
+  from neg_one_pow_odd (nat.odd_mul_odd
+    (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp3]; refl)
+    (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hq3]; refl)),
 begin
-  have := quadratic_reciprocity hp hq hp1' hq1' hpq,
+  have := quadratic_reciprocity hp hq (odd_of_mod_four_eq_three hp3)
+    (odd_of_mod_four_eq_three hq3) hpq,
   rw [h1, legendre_sym, legendre_sym, if_neg (zmodp.prime_ne_zero hp hq hpq),
     if_neg (zmodp.prime_ne_zero hq hp hpq.symm)] at this,
   split_ifs at this; simp *; contradiction

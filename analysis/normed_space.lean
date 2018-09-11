@@ -182,6 +182,25 @@ instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := 
 lemma norm_mul {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 normed_ring.norm_mul _ _
 
+lemma norm_pow {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, n > 0 → ∥a^n∥ ≤ ∥a∥^n
+| 1 h := by simp
+| (n+2) h :=
+  le_trans (norm_mul a (a^(n+1)))
+           (mul_le_mul (le_refl _)
+                       (norm_pow (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
+
+instance prod.ring [ring α] [ring β] : ring (α × β) :=
+{ left_distrib := assume x y z, calc
+    x*(y+z) = (x.1, x.2) * (y.1 + z.1, y.2 + z.2) : rfl
+    ... = (x.1*(y.1 + z.1), x.2*(y.2 + z.2)) : rfl
+    ... = (x.1*y.1 + x.1*z.1, x.2*y.2 + x.2*z.2) : by simp[left_distrib],
+  right_distrib := assume x y z, calc
+    (x+y)*z = (x.1 + y.1, x.2 + y.2)*(z.1, z.2) : rfl
+    ... = ((x.1 + y.1)*z.1, (x.2 + y.2)*z.2) : rfl
+    ... = (x.1*z.1 + y.1*z.1, x.2*z.2 + y.2*z.2) : by simp[right_distrib],
+  ..prod.monoid,
+  ..prod.add_comm_group}
+
 instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
@@ -195,6 +214,44 @@ instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α ×
   ..prod.normed_group }
 end normed_ring
 
+-- refactor this...
+instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
+⟨ continuous_iff_tendsto.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
+    have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =
+      e.fst * e.snd - e.fst * x.snd + (e.fst * x.snd - x.fst * x.snd), by intro; rw sub_add_sub_cancel,
+    begin
+      apply squeeze_zero,
+      { intro, apply norm_nonneg },
+      { simp only [this], intro, apply norm_triangle },
+      { rw ←zero_add (0 : ℝ), apply tendsto_add,
+        { apply squeeze_zero,
+          { intro, apply norm_nonneg },
+          { intro t, show ∥t.fst * t.snd - t.fst * x.snd∥ ≤ ∥t.fst∥ * ∥t.snd - x.snd∥,
+            rw ←mul_sub, apply norm_mul },
+          { rw ←mul_zero (∥x.fst∥), apply tendsto_mul,
+            { apply continuous_iff_tendsto.1,
+              apply continuous.comp,
+              { apply continuous_fst },
+              { apply continuous_norm }},
+            { apply tendsto_iff_norm_tendsto_zero.1,
+              apply continuous_iff_tendsto.1,
+              apply continuous_snd }}},
+        { apply squeeze_zero,
+          { intro, apply norm_nonneg },
+          { intro t, show ∥t.fst * x.snd - x.fst * x.snd∥ ≤ ∥t.fst - x.fst∥ * ∥x.snd∥,
+            rw ←sub_mul, apply norm_mul },
+          { rw ←zero_mul (∥x.snd∥), apply tendsto_mul,
+            { apply tendsto_iff_norm_tendsto_zero.1,
+              apply continuous_iff_tendsto.1,
+              apply continuous_fst },
+            { apply tendsto_const_nhds }}}}
+    end ⟩
+
+instance normed_top_ring [normed_ring α] : topological_ring α :=
+⟨ continuous_iff_tendsto.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
+    have ∀ e : α, -e - -x = -(e - x), by intro; simp,
+    by simp only [this, norm_neg]; apply lim_norm ⟩
+
 section normed_field
 
 class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_space α :=
@@ -204,22 +261,30 @@ class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_s
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
 { norm_mul := by finish [i.norm_mul], ..i }
 
-@[simp] lemma norm_one {α : Type*} [normed_field α] : ∥(1 : α)∥ = 1 := 
+@[simp] lemma norm_one {α : Type*} [normed_field α] : ∥(1 : α)∥ = 1 :=
 have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul
                   ... = ∥(1 : α)∥ * 1 : by simp,
 eq_of_mul_eq_mul_left (ne_of_gt ((norm_pos_iff _).2 (by simp))) this
 
-@[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ := 
-if hb : b = 0 then by simp [hb] else 
-begin 
+@[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
+if hb : b = 0 then by simp [hb] else
+begin
   apply eq_div_of_mul_eq,
   { apply ne_of_gt, apply (norm_pos_iff _).mpr hb },
   { rw [←normed_field.norm_mul, div_mul_cancel _ hb] }
-end 
+end
 
-@[simp] lemma norm_inv {α : Type*} [normed_field α] (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ := 
-by simp only [inv_eq_one_div, norm_div, norm_one] 
+@[simp] lemma norm_inv {α : Type*} [normed_field α] (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
+by simp only [inv_eq_one_div, norm_div, norm_one]
+
+@[simp] lemma normed_field.norm_pow {α : Type*} [normed_field α] (a : α) :
+  ∀ n : ℕ, ∥a^n∥ = ∥a∥^n
+| 0 := by simp
+| (k+1) := calc
+  ∥a ^ (k + 1)∥ = ∥a*(a^k)∥ : rfl
+           ... = ∥a∥*∥a^k∥ : by rw normed_field.norm_mul
+           ... = ∥a∥ ^ (k + 1) : by rw normed_field.norm_pow; simp [pow, monoid.pow]
 
 instance : normed_field ℝ :=
 { norm := λ x, abs x,

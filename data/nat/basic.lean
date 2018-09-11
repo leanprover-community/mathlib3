@@ -678,9 +678,20 @@ lemma pow_dvd_of_le_of_pow_dvd {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣
 have p ^ m ∣ p ^ n, from pow_dvd_pow _ hmn,
 dvd_trans this hdiv
 
-lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m := 
+lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 end div
+
+lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
+| 0 0 h := ⟨0, by simp⟩
+| 0 (n+1) h := ⟨n+1, by simp⟩
+| (m+1) (n+1) h := let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in ⟨k, by simp [hk]⟩
+
+lemma exists_eq_add_of_lt : ∀ {m n : ℕ}, m < n → ∃ k : ℕ, n = m + k + 1
+| 0 0 h := false.elim $ lt_irrefl _ h
+| 0 (n+1) h := ⟨n, by simp⟩
+| (m+1) (n+1) h := let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in ⟨k, by simp [hk]⟩
+
 
 end nat

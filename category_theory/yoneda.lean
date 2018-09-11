@@ -95,13 +95,16 @@ let H := (functor.hom ((Cᵒᵖ) ⥤ (Type v₁))) in
 def yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C) := 
 { hom := 
   { app := λ F x, ulift.up ((x.app F.2) (𝟙 F.2)),
-    naturality' := begin intros X Y f, ext1, ext1, cases f, cases Y, cases X, dsimp at *, simp at *, erw [←functor_to_types.naturality, yoneda.obj_map_id, functor_to_types.naturality, functor_to_types.map_id] end },
+    naturality' := begin intros X Y f, ext1, ext1, cases f, cases Y, cases X, dsimp at *, simp at *, 
+      erw [←functor_to_types.naturality, yoneda.obj_map_id, functor_to_types.naturality, functor_to_types.map_id] end },
   inv := 
   { app := λ F x, 
     { app := λ X a, (F.1.map a) x.down,
       naturality' := begin intros X Y f, ext1, cases x, cases F, dsimp at *, erw [functor_to_types.map_comp], refl end },
-    naturality' := begin intros X Y f, ext1, ext1, ext1, cases x, cases f, cases Y, cases X, dsimp at *, simp at *, erw [←functor_to_types.naturality, functor_to_types.map_comp] end },
-  hom_inv_id' := begin ext1, ext1, ext1, ext1, cases X, dsimp at *, simp at *, erw [←functor_to_types.naturality, yoneda.aux_1, functor_to_types.naturality, functor_to_types.map_id] end,
+    naturality' := begin intros X Y f, ext1, ext1, ext1, cases x, cases f, cases Y, cases X, 
+      dsimp at *, simp at *, erw [←functor_to_types.naturality, functor_to_types.map_comp] end },
+  hom_inv_id' := begin ext1, ext1, ext1, ext1, cases X, dsimp at *, simp at *, 
+    erw [←functor_to_types.naturality, yoneda.obj_map_id, functor_to_types.naturality, functor_to_types.map_id] end,
   inv_hom_id' := begin ext1, ext1, ext1, cases x, cases X, dsimp at *, erw [functor_to_types.map_id] end }.
 
 end category_theory

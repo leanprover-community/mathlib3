@@ -288,9 +288,10 @@ open tactic.abel
 
 local postfix `?`:9001 := optional
 
-/-- Tactic for solving equations in the language of abels.
+/-- Tactic for solving equations in the language of
+  commutative monoids and groups.
   This version of `abel` fails if the target is not an equality
-  that is provable by the axioms of commutative (semi)abels. -/
+  that is provable by the axioms of commutative monoids/groups. -/
 meta def abel1 : tactic unit :=
 do `(%%e₁ = %%e₂) ← target,
   c ← mk_cache e₁,

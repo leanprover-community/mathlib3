@@ -151,7 +151,7 @@ also attempts to discharge the goal using congruence closure before each round o
 
 When trying to prove:
 
-  ```
+  ```lean
   α β : Type,
   f g : α → set β
   ⊢ f = g
@@ -159,17 +159,87 @@ When trying to prove:
 
 applying `ext x y` yields:
 
-  ```
+  ```lean
   α β : Type,
   f g : α → set β,
   x : α,
   y : β
-  ⊢ y ∈ f x ↔ y ∈ f x
+  ⊢ y ∈ f x ↔ y ∈ g x
   ```
 
 by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
+
+### The `extensionality` attribute
+
+ Tag lemmas of the form:
+
+ ```lean
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ The attribute indexes extensionality lemma using the type of the
+ objects (i.e. `my_collection`) which it gets from the statement of
+ the lemma.  In some cases, the same lemma can be used to state the
+ extensionality of multiple types that are definitionally equivalent.
+
+ ```lean
+ attribute [extensionality [(→),thunk,stream]] funext
+ ```
+
+ Those parameters are cumulative. The following are equivalent:
+
+ ```lean
+ attribute [extensionality [(→),thunk]] funext
+ attribute [extensionality [stream]] funext
+ ```
+
+ and
+
+ ```lean
+ attribute [extensionality [(→),thunk,stream]] funext
+ ```
+
+ One removes type names from the list for one lemma with:
+
+ ```lean
+ attribute [extensionality [-stream,-thunk]] funext
+ ```
+
+ Finally, the following:
+
+ ```lean
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ is equivalent to
+
+ ```lean
+ @[extensionality *]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ The `*` parameter indicates to simply infer the
+ type from the lemma's statement.
+
+ This allows us specify type synonyms along with the type
+ that referred to in the lemma statement.
+
+ ```lean
+ @[extensionality [*,my_type_synonym]]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
 
 ### refine_struct
 
@@ -297,6 +367,11 @@ effectively be defined and re-defined later, by tagging definitions with `@[foo]
   definition of `foo`, and provides access to the previous definition via `old`.
   (The argument can also be an `option (tactic unit)`, which is provided as `none` if
   this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.)
+
+`def_replacer foo : α → β → tactic γ` allows the specification of a replacer with
+custom input and output types. In this case all subsequent redefinitions must have the
+same type, or the type `α → β → tactic γ → tactic γ` or
+`α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
 
 ## tidy
 

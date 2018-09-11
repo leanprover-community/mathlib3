@@ -477,6 +477,23 @@ def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p
 
 end
 
+section
+
+local attribute [elab_with_expected_type] quot.lift
+
+def quot_equiv_of_quot' {r : α → α → Prop} {s : β → β → Prop} (e : α ≃ β)
+  (h : ∀ a a', r a a' ↔ s (e a) (e a')) : quot r ≃ quot s :=
+⟨quot.lift (λ a, quot.mk _ (e a)) (λ a a' H, quot.sound ((h a a').mp H)),
+ quot.lift (λ b, quot.mk _ (e.symm b)) (λ b b' H, quot.sound ((h _ _).mpr (by convert H; simp))),
+ quot.ind $ by simp,
+ quot.ind $ by simp⟩
+
+def quot_equiv_of_quot {r : α → α → Prop} (e : α ≃ β) :
+  quot r ≃ quot (λ b b', r (e.symm b) (e.symm b')) :=
+quot_equiv_of_quot' e (by simp)
+
+end
+
 namespace set
 open set
 

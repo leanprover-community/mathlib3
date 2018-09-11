@@ -17,6 +17,9 @@ instance types : large_category (Type u) :=
 @[simp] lemma types_id {α : Type u} (a : α) : (𝟙 α : α → α) a = a := rfl
 @[simp] lemma types_comp {α β γ : Type u} (f : α → β) (g : β → γ) (a : α) : (((f : α ⟶ β) ≫ (g : β ⟶ γ)) : α ⟶ γ) a = g (f a) := rfl
 
+@[simp] lemma types.iso_mk_coe (α β : Type u) (f : α → β) (g : β → α) (hom_inv_id) (inv_hom_id) (a : α) :
+(({ iso . hom := f, inv := g, hom_inv_id' := hom_inv_id, inv_hom_id' := inv_hom_id } : α ≅ β) : α ⟶ β) a = f a := rfl
+
 namespace functor_to_types
 variables {C : Type u} [𝒞 : category.{u v} C] (F G H : C ⥤ (Type w)) {X Y Z : C}
 include 𝒞

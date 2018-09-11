@@ -18,6 +18,8 @@ end name
 namespace expr
 open tactic
 
+attribute [derive has_reflect] binder_info
+
 protected meta def to_pos_nat : expr → option ℕ
 | `(has_one.one _) := some 1
 | `(bit0 %%e) := bit0 <$> e.to_pos_nat
@@ -511,7 +513,7 @@ run_cmd add_interactive [`injections_and_clear]
 
 meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",
-   note n none e, skip 
+   note n none e, skip
 
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,

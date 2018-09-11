@@ -6,7 +6,58 @@ Author: Mario Carneiro
 A mechanism for defining tactics for use in auto params, whose
 meaning is defined incrementally through attributes.
 -/
+import tactic.basic
+
 namespace tactic
+
+meta def replacer_core {α : Type} [reflected α]
+  (ntac : name) (eval : ∀ β [reflected β], expr → tactic β) :
+  list name → tactic α
+| [] := fail ("no implementation defined for " ++ to_string ntac)
+| (n::ns) := do d ← get_decl n, let t := d.type,
+  do { tac ← mk_const n >>= eval (tactic α), tac } <|>
+  do { tac ← mk_const n >>= eval (tactic α → tactic α),
+       tac (replacer_core ns) } <|>
+  do { tac ← mk_const n >>= eval (option (tactic α) → tactic α),
+       tac (guard (ns ≠ []) >> some (replacer_core ns)) }
+
+meta def replacer (ntac : name) {α : Type} [reflected α]
+  (F : Type → Type) (eF : ∀ β, reflected β → reflected (F β))
+  (R : ∀ β, F β → β) : tactic α :=
+attribute.get_instances ntac >>= replacer_core ntac
+  (λ β eβ e, R β <$> @eval_expr (F β) (eF β eβ) e)
+
+meta def mk_replacer₁ : expr → nat → expr × expr
+| (expr.pi n bi d b) i :=
+  let (e₁, e₂) := mk_replacer₁ b (i+1) in
+  (expr.pi n bi d e₁, (`(expr.pi n bi d) : expr) e₂)
+| _                  i := (expr.var i, expr.var 0)
+
+meta def mk_replacer₂ (ntac : name) (v : expr × expr) : expr → nat → option expr
+| (expr.pi n bi d b) i := do
+  b' ← mk_replacer₂ b (i+1),
+  some (expr.lam n bi d b')
+| `(tactic %%β) i := some $
+  (expr.const ``replacer []).mk_app [
+    reflect ntac, β, reflect β,
+    expr.lam `γ binder_info.default `(Type) v.1,
+    expr.lam `γ binder_info.default `(Type) $
+    expr.lam `eγ binder_info.inst_implicit ((`(@reflected Type) : expr) β) v.2,
+    expr.lam `γ binder_info.default `(Type) $
+    expr.lam `f binder_info.default v.1 $
+    (list.range i).foldr (λ i e', e' (expr.var (i+2))) (expr.var 0)
+  ]
+| _ i := none
+
+meta def mk_replacer (ntac : name) (e : expr) : tactic expr :=
+mk_replacer₂ ntac (mk_replacer₁ e 0) e 0
+
+meta def valid_types : expr → list expr
+| (expr.pi n bi d b) := expr.pi n bi d <$> valid_types b
+| `(tactic %%β) := [`(tactic.{0} %%β),
+    `(tactic.{0} %%β → tactic.{0} %%β),
+    `(option (tactic.{0} %%β) → tactic.{0} %%β)]
+| _ := []
 
 meta def replacer_attr (ntac : name) : user_attribute :=
 { name := ntac,
@@ -16,36 +67,20 @@ meta def replacer_attr (ntac : name) : user_attribute :=
   "called whenever `" ++ to_string ntac ++ "` is called. The definition " ++
   "can optionally have an argument of type `tactic unit` or " ++
   "`option (tactic unit)` which refers to the previous definition, if any.",
-  after_set := some $ λ n _ _, do d ← get_decl n,
-    monad.unlessb (d.type =ₐ `(tactic unit) ∨
-      d.type =ₐ `(tactic unit → tactic unit) ∨
-      d.type =ₐ `(option (tactic unit) → tactic unit)) $
-    fail format!"incorrect type for @[{ntac}]" }
-
-meta def replacer_core (ntac : name) : list name → tactic unit
-| [] := fail ("no implementation defined for " ++ to_string ntac)
-| (n::ns) := do d ← get_decl n, let t := d.type,
-  if t =ₐ `(tactic unit) then
-    monad.join (mk_const n >>= eval_expr (tactic unit))
-  else if t =ₐ `(tactic unit → tactic unit) then
-    do tac ← mk_const n >>= eval_expr (tactic unit → tactic unit),
-       tac (replacer_core ns)
-  else if t =ₐ `(option (tactic unit) → tactic unit) then
-    do tac ← mk_const n >>= eval_expr (option (tactic unit) → tactic unit),
-       tac (guard (ns ≠ []) >> some (replacer_core ns))
-  else failed
-
-meta def replacer (ntac : name) : tactic unit :=
-attribute.get_instances ntac >>= replacer_core ntac
+  after_set := some $ λ n _ _, do
+    d ← get_decl n,
+    base ← get_decl ntac,
+    guardb ((valid_types base.type).any (=ₐ d.type))
+      <|> fail format!"incorrect type for @[{ntac}]" }
 
 /-- Define a new replaceable tactic. -/
-meta def def_replacer (ntac : name) : tactic unit :=
+meta def def_replacer (ntac : name) (ty : expr) : tactic unit :=
 let nattr := ntac <.> "attr" in do
   add_meta_definition nattr []
     `(user_attribute) `(replacer_attr %%(reflect ntac)),
   set_basic_attribute `user_attribute nattr tt,
-  add_meta_definition ntac []
-    `(tactic unit) `(replacer %%(reflect ntac)),
+  v ← mk_replacer ntac ty,
+  add_meta_definition ntac [] ty v,
   add_doc_string ntac $
     "The `" ++ to_string ntac ++ "` tactic is a \"replaceable\" " ++
     "tactic, which means that its meaning is defined by tactics that " ++
@@ -56,6 +91,11 @@ open interactive lean.parser
 /-- Define a new replaceable tactic. -/
 @[user_command] meta def def_replacer_cmd (meta_info : decl_meta_info)
   (_ : parse $ tk "def_replacer") : lean.parser unit :=
-do ntac ← ident, def_replacer ntac
+do ntac ← ident,
+  ty ← optional (tk ":" *> types.texpr),
+  match ty with
+  | (some p) := do t ← to_expr p, def_replacer ntac t
+  | none     := def_replacer ntac `(tactic unit)
+  end
 
 end tactic

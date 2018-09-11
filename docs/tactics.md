@@ -298,6 +298,11 @@ effectively be defined and re-defined later, by tagging definitions with `@[foo]
   (The argument can also be an `option (tactic unit)`, which is provided as `none` if
   this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.)
 
+`def_replacer foo : α → β → tactic γ` allows the specification of a replacer with
+custom input and output types. In this case all subsequent redefinitions must have the
+same type, or the type `α → β → tactic γ → tactic γ` or
+`α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
+
 ## tidy
 
 `tidy` attempts to use a variety of conservative tactics to solve the goals.

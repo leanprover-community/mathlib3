@@ -55,40 +55,8 @@ def X : polynomial α := single 1 1
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial α) (n : ℕ) := p n
 
-def ext (p q : polynomial α) : p = q ↔ ∀ n, coeff p n = coeff q n :=
-⟨λ h n, h ▸ rfl,finsupp.ext⟩ 
-
-theorem mul_X_coeff {p : polynomial α} {n : ℕ} :
-coeff (p * X) (n + 1) = coeff p n :=
-begin
-  rw [coeff, finsupp.mul_def, finsupp.sum_apply, finsupp.sum, polynomial.X],
-  conv { to_lhs, congr, skip, funext,
-    rw [finsupp.sum_single_index, finsupp.single_apply], skip,
-    rw [mul_zero, finsupp.single_zero] },
-  rw [finset.sum_eq_single n, if_pos rfl, mul_one], refl,
-  { intros k _ h1,
-    rw if_neg (mt nat.succ_inj h1) },
-  { intros h1,
-    rw [finsupp.mem_support_iff, not_not] at h1,
-    rw [if_pos rfl, h1, mul_one] }
-end
-
-theorem mul_X_pow_coeff {p : polynomial α} {d : ℕ} :
-coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
-begin
-  induction n with e He,
-    rw [pow_zero, mul_one, add_zero],
-  rwa [pow_succ, mul_comm polynomial.X, ←mul_assoc, 
-    nat.succ_eq_add_one, ←add_assoc, mul_X_coeff]
-end
-
--- this proof should be in term mode
-theorem mul_X_pow_eq_zero {p : polynomial α} {n : ℕ}
-  (H : p * X ^ n = 0) : p = 0 :=
-begin
-  rw ext, intro n,
-  rw [←mul_X_pow_coeff,H],refl,
-end
+theorem ext (p q : polynomial α) : p = q ↔ ∀ n, coeff p n = coeff q n :=
+⟨λ h n, h ▸ rfl,finsupp.ext⟩
 
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
@@ -168,6 +136,113 @@ end
 suffices (single n 1 : polynomial α) i = (if n = i then 1 else 0),
   by rw [single_eq_C_mul_X] at this; simpa,
 single_apply
+
+section coeff
+
+@[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial α) n = 0 := rfl
+
+@[simp] lemma coeff_C_mul_X (x : α) (k n : ℕ) :
+  coeff (C x * X^k : polynomial α) n = if n = k then x else 0 :=
+by rw [← single_eq_C_mul_X, coeff, single_apply]; split_ifs; cc
+
+@[simp] lemma coeff_C (x : α) (n : ℕ) :
+  coeff (C x) n = if n = 0 then x else 0 :=
+by simpa only [pow_zero, mul_one] using coeff_C_mul_X x 0 n
+
+@[simp] lemma coeff_one (n : ℕ) :
+  coeff (1 : polynomial α) n = if n = 0 then 1 else 0 :=
+coeff_C 1 n
+
+variable α
+@[simp] lemma coeff_X_pow (k n : ℕ) :
+  coeff (X^k : polynomial α) n = if n = k then 1 else 0 :=
+by simpa only [C_1, one_mul] using coeff_C_mul_X (1:α) k n
+
+@[simp] lemma coeff_X (n : ℕ) :
+  coeff (X : polynomial α) n = if n = 1 then 1 else 0 :=
+by simpa only [pow_one] using coeff_X_pow α 1 n
+variable {α}
+
+@[simp] lemma coeff_add (p q : polynomial α) (n : ℕ) :
+  coeff (p + q) n = coeff p n + coeff q n := rfl
+
+lemma coeff_mul_left (p q : polynomial α) (n : ℕ) :
+  coeff (p * q) n = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :=
+begin
+  refine polynomial.induction_on p (λ x, _) (λ p1 p2 ih1 ih2, _) (λ pn x ih, _),
+  { refine polynomial.induction_on q (λ y, _) (λ q1 q2 ih1 ih2, _) (λ qn y ih, _),
+    { rw [sum_eq_single 0, ← C_mul, coeff_C, coeff_C, coeff_C, if_pos rfl, nat.sub_zero],
+      { by_cases h : n = 0,
+        { simp only [if_pos h] },
+        { simp only [if_neg h, mul_zero] } },
+      { intros k h1 h2, rw [coeff_C, if_neg h2, zero_mul] },
+      { exact λ h1, (h1 (mem_range.2 (nat.zero_lt_succ n))).elim } },
+    { simp only [mul_add, coeff_add],
+      -- why can't I just rw [ih1, ih2]???
+      generalize_hyp h1 : coeff (C x * q1) n = Q1 at ih1 ⊢, rw ih1,
+      generalize_hyp h2 : coeff (C x * q2) n = Q2 at ih2 ⊢, rw ih2,
+      rw finset.sum_add_distrib },
+    { rw [sum_eq_single 0, ← mul_assoc, ← C_mul, coeff_C_mul_X, coeff_C_mul_X, coeff_C, if_pos rfl, nat.sub_zero],
+      { split_ifs; simp only [h, if_pos rfl, if_false, mul_zero] },
+      { intros k h1 h2, rw [coeff_C, if_neg h2, zero_mul] },
+      { exact λ h1, (h1 (mem_range.2 (nat.zero_lt_succ n))).elim } } },
+  { simp only [add_mul, coeff_add],
+    -- why can't I just rw [ih1, ih2]???
+    generalize_hyp h1 : coeff (p1 * q) n = P1 at ih1 ⊢, rw ih1,
+    generalize_hyp h2 : coeff (p2 * q) n = P2 at ih2 ⊢, rw ih2,
+    rw finset.sum_add_distrib },
+  { refine polynomial.induction_on q (λ y, _) (λ q1 q2 ih1 ih2, _) (λ qn y ih, _),
+    { rw [sum_eq_single n, mul_right_comm, ← C_mul, coeff_C_mul_X, coeff_C_mul_X, coeff_C, if_pos (nat.sub_self _)],
+      { split_ifs with h; simp only [h, if_pos rfl, if_false, zero_mul] },
+      { intros k h1 h2, rw [coeff_C, if_neg, mul_zero],
+        refine mt (λ H, le_antisymm (nat.le_of_lt_succ (mem_range.1 h1)) (nat.sub_eq_zero_iff_le.1 H)) h2 },
+      { exact λ h1, (h1 (mem_range.2 (le_refl (n+1)))).elim } },
+    { simp only [mul_add, coeff_add],
+      generalize_hyp h1 : coeff (C x * X ^ (pn + 1) * q1) n = Q1 at ih1 ⊢, rw ih1,
+      generalize_hyp h2 : coeff (C x * X ^ (pn + 1) * q2) n = Q2 at ih2 ⊢, rw ih2,
+      rw finset.sum_add_distrib },
+    { rw [mul_left_comm, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul], 
+      rw [sum_eq_single (pn + 1), coeff_C_mul_X, coeff_C_mul_X, coeff_C_mul_X, if_pos rfl],
+      { have H : n = pn + 1 + (qn + 1) ↔ n - (pn + 1) = qn + 1,
+        { split, { intro H, rw [H, nat.add_sub_cancel_left] },
+          intro H,
+          have H1 : pn + 1 < n,
+          { refine lt_of_not_ge (λ H1, _),
+            rw [nat.sub_eq_zero_of_le H1] at H,
+            exact nat.succ_ne_zero qn H.symm },
+          rw [(nat.sub_eq_iff_eq_add (le_of_lt H1)).1 H, add_comm] },
+        split_ifs with h,
+        { rw [if_pos (H.1 h), mul_comm] },
+        { rw [if_neg (mt H.2 h), mul_zero] } },
+      { intros k h1 h2, rw [coeff_C_mul_X, if_neg h2, zero_mul] },
+      { intro H,
+        rw [coeff_C_mul_X, if_pos rfl, coeff_C_mul_X, if_neg, mul_zero],
+        rw [mem_range, not_lt] at H,
+        rw [nat.sub_eq_zero_of_le (le_of_lt H)],
+        exact ne.symm (nat.succ_ne_zero _) } } }
+end
+
+lemma coeff_mul_right (p q : polynomial α) (n : ℕ) :
+  coeff (p * q) n = (range (n+1)).sum (λ k, coeff p (n-k) * coeff q k) :=
+by rw [mul_comm, coeff_mul_left]; simp only [mul_comm]
+
+theorem coeff_mul_X_pow (p : polynomial α) (n d : ℕ) :
+  coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
+begin
+  rw [coeff_mul_right, sum_eq_single n, coeff_X_pow, if_pos rfl, mul_one, nat.add_sub_cancel],
+  { intros b h1 h2, rw [coeff_X_pow, if_neg h2, mul_zero] },
+  { exact λ h1, (h1 (mem_range.2 (nat.le_add_left _ _))).elim }
+end
+
+theorem coeff_mul_X (p : polynomial α) (n : ℕ) :
+  coeff (p * X) (n + 1) = coeff p n :=
+by simpa only [pow_one] using coeff_mul_X_pow p 1 n
+
+theorem mul_X_pow_eq_zero {p : polynomial α} {n : ℕ}
+  (H : p * X ^ n = 0) : p = 0 :=
+(ext _ _).2 $ λ k, (coeff_mul_X_pow p n k).symm.trans $ (ext _ _).1 H (k+n)
+
+end coeff
 
 section eval₂
 variables {β : Type*} [comm_semiring β]

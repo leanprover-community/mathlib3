@@ -9,8 +9,8 @@ import data.finsupp algebra.euclidean_domain
 
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
-Polynomials should be seen as (semi-)rings with the additional the constructor `X`. `C` is the
-embedding from `α`. -/
+Polynomials should be seen as (semi-)rings with the additional constructor `X`.
+The embedding from α is called `C`. -/
 def polynomial (α : Type*) [comm_semiring α] := ℕ →₀ α
 
 open finsupp finset lattice
@@ -52,6 +52,44 @@ def C (a : α) : polynomial α := single 0 a
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial α := single 1 1
 
+/-- coeff p n is the coefficient of X^n in p -/
+def coeff (p : polynomial α) (n : ℕ) := p n
+
+def ext (p q : polynomial α) : p = q ↔ ∀ n, coeff p n = coeff q n :=
+⟨λ h n, h ▸ rfl,finsupp.ext⟩ 
+
+theorem mul_X_coeff {p : polynomial α} {n : ℕ} :
+coeff (p * X) (n + 1) = coeff p n :=
+begin
+  rw [coeff, finsupp.mul_def, finsupp.sum_apply, finsupp.sum, polynomial.X],
+  conv { to_lhs, congr, skip, funext,
+    rw [finsupp.sum_single_index, finsupp.single_apply], skip,
+    rw [mul_zero, finsupp.single_zero] },
+  rw [finset.sum_eq_single n, if_pos rfl, mul_one], refl,
+  { intros k _ h1,
+    rw if_neg (mt nat.succ_inj h1) },
+  { intros h1,
+    rw [finsupp.mem_support_iff, not_not] at h1,
+    rw [if_pos rfl, h1, mul_one] }
+end
+
+theorem mul_X_pow_coeff {p : polynomial α} {d : ℕ} :
+coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
+begin
+  induction n with e He,
+    rw [pow_zero, mul_one, add_zero],
+  rwa [pow_succ, mul_comm polynomial.X, ←mul_assoc, 
+    nat.succ_eq_add_one, ←add_assoc, mul_X_coeff]
+end
+
+-- this proof should be in term mode
+theorem mul_X_pow_eq_zero {p : polynomial α} {n : ℕ}
+  (H : p * X ^ n = 0) : p = 0 :=
+begin
+  rw ext, intro n,
+  rw [←mul_X_pow_coeff,H],refl,
+end
+
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
@@ -60,7 +98,7 @@ def degree (p : polynomial α) : with_bot ℕ := p.support.sup some
 def degree_lt_wf : well_founded (λp q : polynomial α, degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 
-/-- `nat_degree p` forces `degree p` to ℕ, by fixing the zero polnomial to the 0 degree. -/
+/-- `nat_degree p` forces `degree p` to ℕ, by defining nat_degree 0 = 0. -/
 def nat_degree (p : polynomial α) : ℕ := (degree p).get_or_else 0
 
 lemma single_eq_C_mul_X : ∀{n}, single n a = C a * X^n
@@ -346,6 +384,9 @@ calc degree (p + q) = ((p + q).support).sup some : rfl
 ⟨λ h, by_contradiction $ λ hp, mt (mem_support_iff _ _).1
   (not_not.2 h) (mem_of_max (degree_eq_nat_degree hp)),
 by simp {contextual := tt}⟩
+
+lemma leading_coeff_eq_zero_iff_deg_eq_bot : leading_coeff p = 0 ↔ degree p = ⊥ :=
+by rw [leading_coeff_eq_zero, degree_eq_bot]
 
 lemma degree_add_eq_of_degree_lt (h : degree p < degree q) : degree (p + q) = degree q :=
 le_antisymm (max_eq_right_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
@@ -928,7 +969,7 @@ lemma degree_pos_of_root (hp : p ≠ 0) (h : is_root p a) : 0 < degree p :=
 lt_of_not_ge $ λ hlt, begin
   have := eq_C_of_degree_le_zero hlt,
   rw [is_root, this, eval_C] at h,
-  exact hp (ext (λ n, show p n = 0, from
+  exact hp (finsupp.ext (λ n, show p n = 0, from
     nat.cases_on n h (λ _, eq_zero_of_degree_lt (lt_of_le_of_lt hlt
       (with_bot.coe_lt_coe.2 (nat.succ_pos _)))))),
 end

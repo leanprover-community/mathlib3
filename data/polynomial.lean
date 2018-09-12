@@ -9,8 +9,8 @@ import data.finsupp algebra.euclidean_domain
 
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
-Polynomials should be seen as (semi-)rings with the additional the constructor `X`. `C` is the
-embedding from `α`. -/
+Polynomials should be seen as (semi-)rings with the additional constructor `X`.
+The embedding from α is called `C`. -/
 def polynomial (α : Type*) [comm_semiring α] := ℕ →₀ α
 
 open finsupp finset lattice
@@ -98,7 +98,7 @@ def degree (p : polynomial α) : with_bot ℕ := p.support.sup some
 def degree_lt_wf : well_founded (λp q : polynomial α, degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 
-/-- `nat_degree p` forces `degree p` to ℕ, by fixing the zero polnomial to the 0 degree. -/
+/-- `nat_degree p` forces `degree p` to ℕ, by defining nat_degree 0 = 0. -/
 def nat_degree (p : polynomial α) : ℕ := (degree p).get_or_else 0
 
 lemma single_eq_C_mul_X : ∀{n}, single n a = C a * X^n

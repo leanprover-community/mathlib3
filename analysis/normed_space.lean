@@ -226,6 +226,10 @@ by refine { add := (+),
             neg := λ x, -x,
             ..i, .. }; simp
 
+instance normed_field.to_normed_space : normed_space α α :=
+{ dist_eq := normed_field.dist_eq,
+  norm_smul := normed_field.norm_mul }
+
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 normed_space.norm_smul _ _
 

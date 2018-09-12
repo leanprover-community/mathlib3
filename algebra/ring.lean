@@ -190,7 +190,7 @@ by rw [←one_mul a,←h01,zero_mul]
 theorem semiring.subsingleton_of_zero_eq_one {α} [semiring α] (h01 : (0 : α) = 1) : subsingleton α :=
 ⟨λ b c,begin rw [←mul_one b,←mul_one c,←h01,mul_zero,mul_zero] end⟩
 
-definition comm_ring.non_zero_of_zero_ne_one {α} [h : comm_ring α] (h01 : (0 : α) ≠ 1) : nonzero_comm_ring α :=
+definition comm_ring.nonzero_of_zero_ne_one {α} [h : comm_ring α] (h01 : (0 : α) ≠ 1) : nonzero_comm_ring α :=
 { zero_ne_one := by exact h01,
   ..h
 }

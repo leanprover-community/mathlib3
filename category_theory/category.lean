@@ -125,8 +125,8 @@ variables (α : Type u)
 
 instance [preorder α] : small_category α :=
 { hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := by tidy,
-  comp := begin tidy, transitivity Y; assumption end }
+  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
+  comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
 
 section
 variables {C : Type u} [𝒞 : category.{u v} C]

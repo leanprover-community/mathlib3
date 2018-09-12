@@ -385,6 +385,9 @@ calc degree (p + q) = ((p + q).support).sup some : rfl
   (not_not.2 h) (mem_of_max (degree_eq_nat_degree hp)),
 by simp {contextual := tt}⟩
 
+lemma leading_coeff_eq_zero_iff_deg_eq_bot : leading_coeff p = 0 ↔ degree p = ⊥ :=
+by rw [leading_coeff_eq_zero, degree_eq_bot]
+
 lemma degree_add_eq_of_degree_lt (h : degree p < degree q) : degree (p + q) = degree q :=
 le_antisymm (max_eq_right_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
   begin

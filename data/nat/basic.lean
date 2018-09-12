@@ -237,19 +237,6 @@ protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :
   λ h, by rw [← nat.mul_left_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
 
-@[simp] protected lemma add_mul_left_div (a b : ℕ) {c : ℕ} (hc : 0 < c) : (a + b * c) / c = a / c + b :=
-by rw [← nat.mul_left_inj hc, ← @add_left_cancel_iff _ _ ((a + b * c) % c), mod_add_div,
-  nat.add_mul_mod_self_right, mul_add, ← add_assoc, mod_add_div, mul_comm]
-
-@[simp] protected lemma add_mul_right_div (a b : ℕ) {c : ℕ} (hc : 0 < c) : (a + c * b) / c = a / c + b :=
-by rw [mul_comm c, nat.add_mul_left_div _ _ hc]
-
-@[simp] protected lemma mul_left_add_div (a b : ℕ) {c : ℕ} (hc : 0 < c) : (b * c + a) / c = b + a / c :=
-by rw [add_comm _ a, nat.add_mul_left_div _ _ hc, add_comm]
-
-@[simp] protected lemma mul_right_add_div (a b : ℕ) {c : ℕ} (hc : 0 < c) : (c * b + a) / c = b + a / c :=
-by rw [mul_comm c, nat.mul_left_add_div _ _ hc]
-
 lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
 if hb : b = 0 then by simp [hb] else if hc : c = 0 then by simp [hc]
 else by conv {to_rhs, rw ← mod_add_div a (b * c)};

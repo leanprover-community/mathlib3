@@ -163,7 +163,7 @@ have h₂ : ∀ x, x ∈ range (q / 2) → ∀ y, y ∈ range (q / 2) → x ≠ 
     assume z a ha0 hap ha b hb0 hbp hb,
     have : (a + p * x) / p = (b + p * y) / p,
     { rw [ha, hb] },
-    rw [nat.add_mul_right_div _ _ hp.pos, nat.add_mul_right_div _ _ hp.pos,
+    rw [nat.add_mul_div_right _ _ hp.pos, nat.add_mul_div_right _ _ hp.pos,
       (nat.div_eq_zero_iff hp.pos).2 hap, (nat.div_eq_zero_iff hp.pos).2 hbp] at this,
     simpa [hxy]
   end,

@@ -38,23 +38,23 @@ begin
   apply (pow_add_expansion _ _ _).property
 end
 
-private lemma poly_binom_aux2 (p : polynomial α) (x y : α) :
-  p.eval (x + y) = p.sum (λ e a, a * (x^e + e*x^(e-1)*y + (poly_binom_aux1 x y e a).val*y^2)) :=
+private lemma poly_binom_aux2 (f : polynomial α) (x y : α) :
+  f.eval (x + y) = f.sum (λ e a, a * (x^e + e*x^(e-1)*y + (poly_binom_aux1 x y e a).val*y^2)) :=
 begin
   unfold eval eval₂, congr, ext,
   apply (poly_binom_aux1 x y _ _).property
 end
 
-private lemma poly_binom_aux3 (p : polynomial α) (x y : α) : p.eval (x + y) =
-  p.sum (λ e a, a * x^e) +
-  p.sum (λ e a, (a * e * x^(e-1)) * y) +
-  p.sum (λ e a, (a *(poly_binom_aux1 x y e a).val)*y^2) :=
+private lemma poly_binom_aux3 (f : polynomial α) (x y : α) : f.eval (x + y) =
+  f.sum (λ e a, a * x^e) +
+  f.sum (λ e a, (a * e * x^(e-1)) * y) +
+  f.sum (λ e a, (a *(poly_binom_aux1 x y e a).val)*y^2) :=
 by rw poly_binom_aux2; simp [left_distrib, finsupp.sum_add, mul_assoc]
 
-lemma poly_binom_expansion (p : polynomial α) (x y : α) :
-  {k : α // p.eval (x + y) = p.eval x + (p.derivative.eval x) * y + k * y^2} :=
+lemma poly_binom_expansion (f : polynomial α) (x y : α) :
+  {k : α // f.eval (x + y) = f.eval x + (f.derivative.eval x) * y + k * y^2} :=
 begin
-  existsi p.sum (λ e a, a *((poly_binom_aux1 x y e a).val)),
+  existsi f.sum (λ e a, a *((poly_binom_aux1 x y e a).val)),
   rw poly_binom_aux3,
   congr,
   { rw derivative_eval, symmetry,
@@ -74,14 +74,14 @@ lemma pow_sub_pow_factor (x y : α) : Π {i : ℕ}, i ≥ 1 → {z : α // x^i -
         ←mul_sub x, hz], simp only [_root_.pow_succ], ring
   end
 
-lemma polynomial.eval_sub_factor (p : polynomial α) (x y : α) : {z : α // p.eval x - p.eval y = z*(x - y)} :=
+lemma polynomial.eval_sub_factor (f : polynomial α) (x y : α) : {z : α // f.eval x - f.eval y = z*(x - y)} :=
 begin
-  existsi p.sum (λ a b, if h : a ≥ 1 then b * (pow_sub_pow_factor x y h).val else 0),
+  existsi f.sum (λ a b, if h : a ≥ 1 then b * (pow_sub_pow_factor x y h).val else 0),
   unfold eval eval₂,
   rw ←finsupp.sum_sub,
-  have : finsupp.sum p -- strange unification problems with finsupp.sum_mul. troubleshoot this
+  have : finsupp.sum f -- strange unification problems with finsupp.sum_mul. troubleshoot this
         (λ (a : ℕ) (b : α), dite (a ≥ 1) (λ (h : a ≥ 1), b * (pow_sub_pow_factor x y h).val) (λ (h : ¬a ≥ 1), 0)) *
-      (x - y) = finsupp.sum p
+      (x - y) = finsupp.sum f
         (λ (a : ℕ) (b : α), dite (a ≥ 1) (λ (h : a ≥ 1), b * (pow_sub_pow_factor x y h).val) (λ (h : ¬a ≥ 1), 0) * (x - y)),
   { apply finsupp.sum_mul },
   rw this, clear this,

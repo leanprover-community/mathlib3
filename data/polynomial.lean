@@ -966,7 +966,7 @@ lemma degree_pos_of_root (hp : p ≠ 0) (h : is_root p a) : 0 < degree p :=
 lt_of_not_ge $ λ hlt, begin
   have := eq_C_of_degree_le_zero hlt,
   rw [is_root, this, eval_C] at h,
-  exact hp (ext (λ n, show p n = 0, from
+  exact hp (finsupp.ext (λ n, show p n = 0, from
     nat.cases_on n h (λ _, eq_zero_of_degree_lt (lt_of_le_of_lt hlt
       (with_bot.coe_lt_coe.2 (nat.succ_pos _)))))),
 end

@@ -163,7 +163,7 @@ have h₂ : ∀ x, x ∈ range (q / 2) → ∀ y, y ∈ range (q / 2) → x ≠ 
     assume z a ha0 hap ha b hb0 hbp hb,
     have : (a + p * x) / p = (b + p * y) / p,
     { rw [ha, hb] },
-    rw [nat.add_mul_div_right _ _ hp.pos, nat.add_mul_div_right _ _ hp.pos,
+    rw [nat.add_mul_div_left _ _ hp.pos, nat.add_mul_div_left _ _ hp.pos,
       (nat.div_eq_zero_iff hp.pos).2 hap, (nat.div_eq_zero_iff hp.pos).2 hbp] at this,
     simpa [hxy]
   end,
@@ -214,7 +214,7 @@ begin
         mem_range.2 $ lt_succ_of_le $
           by rw [mul_comm, odd_mul_odd_div_two hq1 hp1] at hb';
           have := @nat.div_le_div_right _ _ hb'.1.1 q;
-          rwa [add_comm, nat.add_mul_right_div _ _ hq.pos,
+          rwa [add_comm, nat.add_mul_div_left _ _ hq.pos,
       ((nat.div_eq_zero_iff hq.pos).2 (nat.div_lt_self hq.pos (lt_succ_self _))), zero_add] at this⟩,
         by rw nat.div_mul_cancel hb'.2⟩))
 end

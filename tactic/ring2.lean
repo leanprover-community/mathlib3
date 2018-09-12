@@ -208,7 +208,7 @@ def of_csexpr : csring_expr → horner_expr
 
 def cseval {α} [comm_semiring α] (t : tree α) : horner_expr → α
 | (const n)        := n.abs
-| (horner a x n b) := _root_.horner (cseval a) (t.get x) n (cseval b)
+| (horner a x n b) := tactic.ring.horner (cseval a) (t.get x) n (cseval b)
 
 theorem cseval_atom {α} [comm_semiring α] (t : tree α)
   (n : pos_num) : (atom n).is_cs ∧ cseval t (atom n) = t.get n :=
@@ -233,10 +233,10 @@ end
 theorem cseval_horner' {α} [comm_semiring α] (t : tree α)
   (a x n b) (h₁ : is_cs a) (h₂ : is_cs b) :
   (horner' a x n b).is_cs ∧ cseval t (horner' a x n b) =
-    _root_.horner (cseval t a) (t.get x) n (cseval t b) :=
+    tactic.ring.horner (cseval t a) (t.get x) n (cseval t b) :=
 begin
   cases a with n₁ a₁ x₁ n₁ b₁; simp [horner']; split_ifs,
-  { simp! [*, _root_.horner] },
+  { simp! [*, tactic.ring.horner] },
   { exact ⟨⟨h₁, h₂⟩, rfl⟩ },
   { refine ⟨⟨h₁.1, h₂⟩, eq.symm _⟩, simp! *,
     apply tactic.ring.horner_horner, simp },

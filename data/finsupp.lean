@@ -22,26 +22,14 @@ The best is to define a copy and select the instances best suited.
 -/
 import data.finset data.set.finite algebra.big_operators algebra.module
 open finset
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Type*}
+  {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
 
 reserve infix ` →₀ `:25
 
-universes u u₁ u₂ v v₁ v₂ v₃ w x y
-
-namespace finset
-variables {α : Type u} [decidable_eq α]
-
-protected def subtype (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
-(s.filter p).attach.image $ λ⟨a, ha⟩, ⟨a, (mem_filter.1 ha).2⟩
-
-@[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
-  ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
-| ⟨a, ha⟩ := by simp [finset.subtype, ha]
-
-end finset
-
 /-- `finsupp α β`, denoted `α →₀ β`, is the type of functions `f : α → β` such that
   `f x = 0` for all but finitely many `x`. -/
-structure finsupp (α : Type u) (β : Type v) [has_zero β] :=
+structure finsupp (α : Type*) (β : Type*) [has_zero β] :=
 (support            : finset α)
 (to_fun             : α → β)
 (mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0)
@@ -49,8 +37,6 @@ structure finsupp (α : Type u) (β : Type v) [has_zero β] :=
 infix →₀ := finsupp
 
 namespace finsupp
-variables {α : Type u} {β : Type v} {γ : Type w}
-  {α₁ : Type u₁} {α₂ : Type u₂} {β₁ : Type v₁} {β₂ : Type v₂}
 
 section basic
 variable [has_zero β]
@@ -266,6 +252,13 @@ rfl
 lemma support_add {g₁ g₂ : α →₀ β} : (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
 support_zip_with
 
+lemma support_add_eq {g₁ g₂ : α →₀ β} (h : disjoint g₁.support g₂.support):
+  (g₁ + g₂).support = g₁.support ∪ g₂.support :=
+le_antisymm support_zip_with $ assume a ha,
+(finset.mem_union.1 ha).elim
+  (assume ha, have a ∉ g₂.support, from disjoint_left.1 h ha, by simp * at *)
+  (assume ha, have a ∉ g₁.support, from disjoint_right.1 h ha, by simp * at *)
+
 @[simp] lemma single_add {a : α} {b₁ b₂ : β} : single a (b₁ + b₂) = single a b₁ + single a b₂ :=
 ext $ assume a',
 begin
@@ -333,6 +326,24 @@ instance [add_group β] : add_group (α →₀ β) :=
   add_left_neg := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
   .. finsupp.add_monoid }
 
+lemma single_multiset_sum [add_comm_monoid β] [decidable_eq α] [decidable_eq β]
+  (s : multiset β) (a : α) : single a s.sum = (s.map (single a)).sum :=
+multiset.induction_on s (by simp) (by simp {contextual := tt})
+
+lemma single_finset_sum [add_comm_monoid β] [decidable_eq α] [decidable_eq β]
+  (s : finset γ) (f : γ → β) (a : α) : single a (s.sum f) = s.sum (λb, single a (f b)) :=
+begin
+  transitivity,
+  apply single_multiset_sum,
+  rw [multiset.map_map],
+  refl
+end
+
+lemma single_sum [has_zero γ] [add_comm_monoid β] [decidable_eq α] [decidable_eq β]
+  (s : δ →₀ γ) (f : δ → γ → β) (a : α) : single a (s.sum f) = s.sum (λd c, single a (f d c)) :=
+single_finset_sum _ _ _
+
+
 @[to_additive finsupp.sum_neg_index]
 lemma prod_neg_index [add_group β] [comm_monoid γ]
   {g : α →₀ β} {h : α → β → γ} (h0 : ∀a, h a 0 = 1) :
@@ -367,16 +378,16 @@ have ∀a₁ : α, f.sum (λ (a : α₁) (b : β₁), (g a b) a₁) ≠ 0 →
   ⟨a, (f.mem_support_iff a).mp ha, ne⟩,
 by simpa [finset.subset_iff, mem_support_iff, finset.mem_bind, sum_apply] using this
 
-@[simp] lemma sum_zero {γ : Type w} [add_comm_monoid β] [add_comm_monoid γ] {f : α →₀ β} :
+@[simp] lemma sum_zero [add_comm_monoid β] [add_comm_monoid γ] {f : α →₀ β} :
   f.sum (λa b, (0 : γ)) = 0 :=
 finset.sum_const_zero
 
-@[simp] lemma sum_add {γ : Type w} [add_comm_monoid β] [add_comm_monoid γ] {f : α →₀ β}
+@[simp] lemma sum_add  [add_comm_monoid β] [add_comm_monoid γ] {f : α →₀ β}
   {h₁ h₂ : α → β → γ} :
   f.sum (λa b, h₁ a b + h₂ a b) = f.sum h₁ + f.sum h₂ :=
 finset.sum_add_distrib
 
-@[simp] lemma sum_neg {γ : Type w} [add_comm_monoid β] [add_comm_group γ] {f : α →₀ β}
+@[simp] lemma sum_neg [add_comm_monoid β] [add_comm_group γ] {f : α →₀ β}
   {h : α → β → γ} : f.sum (λa b, - h a b) = - f.sum h :=
 finset.sum_hom (@has_neg.neg γ _) neg_zero (assume a b, neg_add _ _)
 
@@ -402,7 +413,7 @@ end,
 ext $ assume a, by simp [single_apply, this]
 
 @[to_additive finsupp.sum_add_index]
-lemma prod_add_index {γ : Type w} [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
+lemma prod_add_index [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
 have f_eq : (f.support ∪ g.support).prod (λa, h a (f a)) = f.prod h,
@@ -420,7 +431,7 @@ calc (f + g).support.prod (λa, h a ((f + g) a)) =
     by simp [h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
 
-lemma sum_sub_index {γ : Type w} [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
+lemma sum_sub_index [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
   {h : α → β → γ} (h_sub : ∀a b₁ b₂, h a (b₁ - b₂) = h a b₁ - h a b₂) :
   (f - g).sum h = f.sum h - g.sum h :=
 have h_zero : ∀a, h a 0 = 0,
@@ -440,8 +451,7 @@ calc (f - g).sum h = (f + - g).sum h : by simp
   ... = _ : by simp
 
 @[to_additive finsupp.sum_finset_sum_index]
-lemma prod_finset_sum_index {γ : Type w} {ι : Type x}
-  [add_comm_monoid β] [comm_monoid γ] [decidable_eq ι]
+lemma prod_finset_sum_index [add_comm_monoid β] [comm_monoid γ] [decidable_eq ι]
   {s : finset ι} {g : ι → α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
   s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
@@ -450,12 +460,32 @@ finset.induction_on s
   (by simp [prod_add_index, h_zero, h_add] {contextual := tt})
 
 @[to_additive finsupp.sum_sum_index]
-lemma prod_sum_index {γ : Type w}
+lemma prod_sum_index
   [decidable_eq α₁] [add_comm_monoid β₁] [add_comm_monoid β] [comm_monoid γ]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
   (f.sum g).prod h = f.prod (λa b, (g a b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
+
+lemma multiset_sum_sum_index
+  [decidable_eq α] [decidable_eq β] [add_comm_monoid β] [add_comm_monoid γ]
+  (f : multiset (α →₀ β)) (h : α → β → γ)
+  (h₀ : ∀a, h a 0 = 0) (h₁ : ∀ (a : α) (b₁ b₂ : β), h a (b₁ + b₂) = h a b₁ + h a b₂) :
+  (f.sum.sum h) = (f.map $ λg:α →₀ β, g.sum h).sum :=
+multiset.induction_on f (by simp [finsupp.sum_zero_index])
+  (assume a s ih, by simp [finsupp.sum_add_index h₀ h₁, ih] {contextual := tt})
+
+lemma multiset_map_sum [has_zero β] {f : α →₀ β} {m : γ → δ} {h : α → β → multiset γ} :
+  multiset.map m (f.sum h) = f.sum (λa b, (h a b).map m) :=
+(finset.sum_hom _ (multiset.map_zero m) (multiset.map_add m)).symm
+
+lemma multiset_sum_sum [has_zero β] [add_comm_monoid γ] {f : α →₀ β} {h : α → β → multiset γ} :
+  multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
+begin
+  refine (finset.sum_hom multiset.sum _ _).symm,
+  exact multiset.sum_zero,
+  exact multiset.sum_add
+end
 
 section map_domain
 variables [decidable_eq α₁] [decidable_eq α₂] [add_comm_monoid β] {v v₁ v₂ : α →₀ β}
@@ -486,8 +516,7 @@ finset.sum_congr rfl $ by simp [*] at * {contextual := tt}
 lemma map_domain_add {f : α → α₂} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
 sum_add_index (by simp) (by simp)
 
-lemma map_domain_finset_sum {ι : Type x} [decidable_eq ι]
-  {f : α → α₂} {s : finset ι} {v : ι → α →₀ β} :
+lemma map_domain_finset_sum [decidable_eq ι] {f : α → α₂} {s : finset ι} {v : ι → α →₀ β} :
   map_domain f (s.sum v) = s.sum (λi, map_domain f (v i)) :=
 by refine (sum_finset_sum_index _ _).symm; simp
 
@@ -502,7 +531,7 @@ finset.subset.trans support_sum $
   by rw [finset.bind_singleton]; exact subset.refl _
 
 @[to_additive finsupp.sum_map_domain_index]
-lemma prod_map_domain_index {γ : Type w} [comm_monoid γ] {f : α → α₂} {s : α →₀ β}
+lemma prod_map_domain_index [comm_monoid γ] {f : α → α₂} {s : α →₀ β}
   {h : α₂ → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (s.map_domain f).prod h = s.prod (λa b, h (f a) b) :=
 by simp [map_domain, prod_sum_index, h_zero, h_add, prod_single_index]
@@ -554,7 +583,7 @@ end filter
 
 section subtype_domain
 
-variables {α' : Type u₁} {δ : Type y} [has_zero δ] {p : α → Prop} [decidable_pred p]
+variables {α' : Type*} [has_zero δ] {p : α → Prop} [decidable_pred p]
 
 section zero
 variables [has_zero β] {v v' : α' →₀ β}
@@ -624,6 +653,101 @@ end group
 
 end subtype_domain
 
+section multiset
+
+def to_multiset (f : α →₀ ℕ) : multiset α :=
+f.sum (λa n, add_monoid.smul n {a})
+
+@[simp] lemma count_to_multiset [decidable_eq α] (f : α →₀ ℕ) (a : α) :
+  f.to_multiset.count a = f a :=
+calc f.to_multiset.count a = f.sum (λx n, (add_monoid.smul n {x} : multiset α).count a) :
+    (finset.sum_hom _ (multiset.count_zero a) (multiset.count_add a)).symm
+  ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp
+  ... = f.sum (λx n, n * (x :: 0 : multiset α).count a) : rfl
+  ... = f a * (a :: 0 : multiset α).count a :
+    begin
+      refine sum_eq_single _ _ _,
+      { simp [multiset.count_cons_of_ne, nat.mul_eq_zero, multiset.count_eq_zero, eq_comm]
+        {contextual := tt} },
+      { simp }
+    end
+  ... = f a : by simp [multiset.count_singleton]
+
+def of_multiset [decidable_eq α] (m : multiset α) : α →₀ ℕ :=
+on_finset m.to_finset (λa, m.count a) $ by simp [multiset.count_eq_zero]
+
+@[simp] lemma of_multiset_apply [decidable_eq α] (m : multiset α) (a : α) :
+  of_multiset m a = m.count a :=
+rfl
+
+def equiv_multiset [decidable_eq α] : (α →₀ ℕ) ≃ (multiset α) :=
+⟨ to_multiset, of_multiset, assume f, finsupp.ext $ by simp, assume m, multiset.ext.2 $ by simp ⟩
+
+lemma mem_support_multiset_sum [decidable_eq α] [decidable_eq β] [add_comm_monoid β]
+  {s : multiset (α →₀ β)} (a : α) :
+  a ∈ s.sum.support → ∃f∈s, a ∈ (f : α →₀ β).support :=
+multiset.induction_on s (by simp)
+  begin
+    assume f s ih ha,
+    by_cases a ∈ f.support,
+    { exact ⟨f, multiset.mem_cons_self _ _, h⟩ },
+    { simp at h,
+      simp [h] at ha,
+      simp [ha] at ih,
+      rcases ih with ⟨f', h₀, h₁⟩,
+      exact ⟨f', multiset.mem_cons_of_mem h₀, by simpa using h₁⟩ }
+  end
+
+lemma mem_support_finset_sum [decidable_eq α] [decidable_eq β] [add_comm_monoid β]
+  {s : finset γ} {h : γ → α →₀ β} (a : α) (ha : a ∈ (s.sum h).support) : ∃c∈s, a ∈ (h c).support :=
+let ⟨f, hf, hfa⟩ := mem_support_multiset_sum a ha in
+let ⟨c, hc, eq⟩ := multiset.mem_map.1 hf in
+⟨c, hc, eq.symm ▸ hfa⟩
+
+lemma mem_support_single [decidable_eq α] [decidable_eq β] [has_zero β] (a a' : α) (b : β) :
+  a ∈ (single a' b).support ↔ a = a' ∧ b ≠ 0 :=
+classical.by_cases
+  (assume : b = 0, by simp [this])
+  (assume : b ≠ 0, by simp [this, -mem_support_iff, support_single_ne_zero])
+
+end multiset
+
+section curry_uncurry
+
+protected def curry [decidable_eq α] [decidable_eq β] [decidable_eq γ] [add_comm_monoid γ]
+  (f : (α × β) →₀ γ) : α →₀ (β →₀ γ) :=
+f.sum $ λp c, single p.1 (single p.2 c)
+
+lemma sum_curry_index
+  [decidable_eq α] [decidable_eq β] [decidable_eq γ] [add_comm_monoid γ] [add_comm_monoid δ]
+  (f : (α × β) →₀ γ) (g : α → β → γ → δ)
+  (hg₀ : ∀ a b, g a b 0 = 0) (hg₁ : ∀a b c₀ c₁, g a b (c₀ + c₁) = g a b c₀ + g a b c₁) :
+  f.curry.sum (λa f, f.sum (g a)) = f.sum (λp c, g p.1 p.2 c) :=
+begin
+  rw [finsupp.curry],
+  transitivity,
+  { exact sum_sum_index (assume a, sum_zero_index)
+      (assume a b₀ b₁, sum_add_index (assume a, hg₀ _ _) (assume c d₀ d₁, hg₁ _ _ _ _)) },
+  congr, funext p c,
+  transitivity,
+  { exact sum_single_index sum_zero_index },
+  exact sum_single_index (hg₀ _ _)
+end
+
+protected def uncurry [decidable_eq α] [decidable_eq β] [decidable_eq γ] [add_comm_monoid γ]
+  (f : α →₀ (β →₀ γ)) : (α × β) →₀ γ :=
+f.sum $ λa g, g.sum $ λb c, single (a, b) c
+
+def finsupp_prod_equiv [add_comm_monoid γ] [decidable_eq α] [decidable_eq β] [decidable_eq γ] :
+  ((α × β) →₀ γ) ≃ (α →₀ (β →₀ γ)) :=
+⟨ finsupp.curry, finsupp.uncurry,
+  assume f, by simp [finsupp.curry, finsupp.uncurry, sum_sum_index, sum_zero_index, sum_add_index,
+    sum_single_index],
+  assume f, by simp [finsupp.curry, finsupp.uncurry, sum_sum_index, sum_zero_index, sum_add_index,
+    sum_single_index, (single_sum _ _ _).symm] ⟩
+
+end curry_uncurry
+
 section
 variables [add_monoid α] [semiring β]
 
@@ -676,7 +800,7 @@ lemma single_mul_single [has_add α] [semiring β] {a₁ a₂ : α} {b₁ b₂ :
   single a₁ b₁ * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
 by simp [mul_def, sum_single_index]
 
-lemma prod_single {ι : Type x} [decidable_eq ι] [add_comm_monoid α] [comm_semiring β]
+lemma prod_single [decidable_eq ι] [add_comm_monoid α] [comm_semiring β]
   {s : finset ι} {a : ι → α} {b : ι → β} :
   s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
 finset.induction_on s (by simp [one_def]) (by simp [single_mul_single] {contextual := tt})

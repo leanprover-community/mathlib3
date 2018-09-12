@@ -181,7 +181,7 @@ lemma mk_eq_cast {a : ℕ} (h : a < p) : (⟨a, h⟩ : zmodp p hp) = (a : zmodp 
 @zmod.mk_eq_cast ⟨p, hp.pos⟩ _ _
 
 @[simp] lemma cast_self_eq_zero: (p : zmodp p hp) = 0 :=
-fin.eq_of_veq (by simpa [val_cast_nat])
+fin.eq_of_veq $ by simp [val_cast_nat]
 
 lemma val_cast_of_lt {a : ℕ} (h : a < p) : (a : zmodp p hp).val = a :=
 @zmod.val_cast_of_lt ⟨p, hp.pos⟩ _ h

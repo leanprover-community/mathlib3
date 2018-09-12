@@ -123,16 +123,16 @@ def nndist (a b : α) : nnreal := ⟨dist a b, dist_nonneg⟩
 @[simp] lemma coe_dist (a b : α) : (nndist a b : ℝ) = dist a b := rfl
 
 theorem eq_of_nndist_eq_zero {x y : α} : nndist x y = 0 → x = y :=
-by simpa [nnreal.eq_iff.symm] using @eq_of_dist_eq_zero α _ x y
+by simp [nnreal.eq_iff.symm]
 
 theorem nndist_comm (x y : α) : nndist x y = nndist y x :=
 by simpa [nnreal.eq_iff.symm] using dist_comm x y
 
 @[simp] theorem nndist_eq_zero {x y : α} : nndist x y = 0 ↔ x = y :=
-by simpa [nnreal.eq_iff.symm]
+by simp [nnreal.eq_iff.symm]
 
 @[simp] theorem zero_eq_nndist {x y : α} : 0 = nndist x y ↔ x = y :=
-by simpa [nnreal.eq_iff.symm]
+by simp [nnreal.eq_iff.symm]
 
 theorem nndist_triangle (x y z : α) : nndist x z ≤ nndist x y + nndist y z :=
 by simpa [nnreal.coe_le] using dist_triangle x y z
@@ -351,10 +351,10 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
   eq_of_dist_eq_zero := λ x y h, hf (dist_eq_zero.1 h),
   dist_comm          := λ x y, dist_comm _ _,
   dist_triangle      := λ x y z, dist_triangle _ _ _,
-  to_uniform_space   := uniform_space.vmap f m.to_uniform_space,
+  to_uniform_space   := uniform_space.comap f m.to_uniform_space,
   uniformity_dist    := begin
     apply @uniformity_dist_of_mem_uniformity _ _ (λ x y, dist (f x) (f y)),
-    refine λ s, mem_vmap_sets.trans _,
+    refine λ s, mem_comap_sets.trans _,
     split; intro H,
     { rcases H with ⟨r, ru, rs⟩,
       rcases mem_uniformity_dist.1 ru with ⟨ε, ε0, hε⟩,
@@ -368,7 +368,7 @@ theorem metric_space.induced_uniform_embedding {α β} (f : α → β) (hf : fun
   by haveI := metric_space.induced f hf m;
      exact uniform_embedding f :=
 by let := metric_space.induced f hf m; exactI
-uniform_embedding_of_metric.2 ⟨hf, uniform_continuous_vmap, λ ε ε0, ⟨ε, ε0, λ a b, id⟩⟩
+uniform_embedding_of_metric.2 ⟨hf, uniform_continuous_comap, λ ε ε0, ⟨ε, ε0, λ a b, id⟩⟩
 
 instance {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
@@ -389,7 +389,7 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
     (le_trans (dist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
   uniformity_dist := begin
     refine uniformity_prod.trans _,
-    simp [uniformity_dist, vmap_infi],
+    simp [uniformity_dist, comap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
     simp [inf_principal, ext_iff, max_lt_iff]
@@ -433,7 +433,7 @@ have tendsto (λp:α×α, dist p.1 p.2) (nhds (a, b)) (nhds (dist a b)),
   from continuous_iff_tendsto.mp continuous_dist' (a, b),
 (hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
 
-lemma nhds_vmap_dist (a : α) : (nhds (0 : ℝ)).vmap (λa', dist a' a) = nhds a :=
+lemma nhds_comap_dist (a : α) : (nhds (0 : ℝ)).comap (λa', dist a' a) = nhds a :=
 have h₁ : ∀ε, (λa', dist a' a) ⁻¹' ball 0 ε ⊆ ball a ε,
   by simp [subset_def, real.dist_0_eq_abs],
 have h₂ : tendsto (λa', dist a' a) (nhds a) (nhds (dist a a)),
@@ -441,11 +441,11 @@ have h₂ : tendsto (λa', dist a' a) (nhds a) (nhds (dist a a)),
 le_antisymm
   (by simp [h₁, nhds_eq_metric, infi_le_infi, principal_mono,
       -le_principal_iff, -le_infi_iff])
-  (by simpa [map_le_iff_le_vmap.symm, tendsto] using h₂)
+  (by simpa [map_le_iff_le_comap.symm, tendsto] using h₂)
 
 lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
   (tendsto f x (nhds a)) ↔ (tendsto (λb, dist (f b) a) x (nhds 0)) :=
-by rw [← nhds_vmap_dist a, tendsto_vmap_iff]
+by rw [← nhds_comap_dist a, tendsto_comap_iff]
 
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_dist continuous_id continuous_const) continuous_const

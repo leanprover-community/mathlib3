@@ -416,7 +416,7 @@ lemma mem_closure_of_tendsto {f : β → α} {x : filter β} {a : α} {s : set �
   (hf : tendsto f x (nhds a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
 is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
-    le_trans (map_mono $ inf_le_right_of_le $ by simp; exact subset.refl _) (@map_vmap_le _ _ _ f)
+    le_trans (map_mono $ inf_le_right_of_le $ by simp; exact subset.refl _) (@map_comap_le _ _ _ f)
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
@@ -1091,7 +1091,7 @@ lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) : s ∈ (nhds a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
 begin
   rw [hb.2.2, nhds_generate_from, infi_sets_eq'],
-  { simpa [and_comm, and.left_comm] },
+  { simp [and_comm, and.left_comm] },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in

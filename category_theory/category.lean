@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Stephen Morgan, Scott Morrison
+Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 
 Defines a category, as a typeclass parametrised by the type of objects.
 Introduces notations
@@ -23,7 +23,7 @@ namespace category_theory
 
 universes u v
 
-/- 
+/-
 The propositional fields of `category` are annotated with the auto_param `obviously`, which is
 defined here as a [`replacer` tactic](https://github.com/leanprover/mathlib/blob/master/docs/tactics.md#def_replacer).
 We then immediately set up `obviously` to call `tidy`. Later, this can be replaced with more
@@ -34,7 +34,7 @@ def_replacer obviously
 
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.
-The universe levels of the objects and morphisms are unconstrained, and will often need to be 
+The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{u v} C`. (See also `large_category` and `small_category`.)
 -/
 class category (obj : Type u) : Type (max u (v+1)) :=
@@ -57,7 +57,7 @@ restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
 
 /--
-A `large_category` has objects in one universe level higher than the universe level of the morphisms. 
+A `large_category` has objects in one universe level higher than the universe level of the morphisms.
 It is useful for examples such as the category of types, or the category of groups, etc.
 -/
 abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u+1 u} C
@@ -66,18 +66,48 @@ A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
 
+structure bundled (c : Type u → Type v) :=
+(α : Type u)
+[str : c α]
+
+instance (c : Type u → Type v) : has_coe_to_sort (bundled c) :=
+{ S := Type u, coe := bundled.α }
+ 
+def mk_ob {c : Type u → Type v} (α : Type u) [str : c α] : bundled c :=
+@bundled.mk c α str
+
+/-- `concrete_category hom` collects the evidence that a type constructor `c` and a morphism
+predicate `hom` can be thought of as a concrete category.
+In a typical example, `c` is the type class `topological_space` and `hom` is `continuous`. -/
+structure concrete_category {c : Type u → Type v}
+  (hom : out_param $ ∀{α β : Type u}, c α → c β → (α → β) → Prop) :=
+(hom_id : ∀{α} (ia : c α), hom ia ia id)
+(hom_comp : ∀{α β γ} (ia : c α) (ib : c β) (ic : c γ) {f g}, hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
+attribute [class] concrete_category
+
+instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+  [h : concrete_category @hom] : category (bundled c) :=
+{ hom   := λa b, subtype (hom a.2 b.2),
+  id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
+  comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
+
+instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+  [h : concrete_category @hom] {R S : bundled c} : has_coe_to_fun (R ⟶ S) :=
+{ F := λ f, R → S,
+  coe := λ f, f.1 }
+
 section
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}
 include 𝒞
 
-class epi  (f : X ⟶ Y) : Prop := 
+class epi  (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  (g h : Y ⟶ Z) : (f ≫ g = f ≫ h) ↔ g = h := 
+@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  (g h : Y ⟶ Z) : (f ≫ g = f ≫ h) ↔ g = h :=
 ⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
-@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] (g h : Z ⟶ X) : (g ≫ f = h ≫ f) ↔ g = h := 
+@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] (g h : Z ⟶ X) : (g ≫ f = h ≫ f) ↔ g = h :=
 ⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
 end
 
@@ -85,10 +115,26 @@ section
 variable (C : Type u)
 variable [small_category C]
 
-instance : large_category (ulift.{(u+1)} C) := 
+instance : large_category (ulift.{(u+1)} C) :=
 { hom  := λ X Y, (X.down ⟶ Y.down),
   id   := λ X, 𝟙 X.down,
   comp := λ _ _ _ f g, f ≫ g }
+end
+
+variables (α : Type u)
+
+instance [preorder α] : small_category α :=
+{ hom  := λ U V, ulift (plift (U ≤ V)),
+  id   := by tidy,
+  comp := begin tidy, transitivity Y; assumption end }
+
+section
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
+
+def End (X : C) := X ⟶ X
+
+instance {X : C} : monoid (End X) := by refine { one := 𝟙 X, mul := λ x y, x ≫ y, .. } ; obviously
 end
 
 end category_theory

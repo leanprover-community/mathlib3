@@ -15,11 +15,6 @@ def is_unit [monoid α] (a : α) : Prop := ∃u:units α, a = u
 @[simp] theorem not_is_unit_zero [nonzero_comm_ring α] : ¬ is_unit (0 : α)
 | ⟨⟨a, b, hab, hba⟩, rfl⟩ := have 0 * b = 1, from hab, by simpa using this
 
-@[simp] theorem is_unit_nat {n : ℕ} : is_unit n ↔ n = 1 :=
-iff.intro
-  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
-  (assume h, h.symm ▸ ⟨1, rfl⟩)
-
 @[simp] theorem is_unit_one [monoid α] : is_unit (1:α) := ⟨1, rfl⟩
 
 theorem units.is_unit_of_mul_one [comm_monoid α] (a b : α) (h : a * b = 1) : is_unit a :=
@@ -32,12 +27,29 @@ iff.intro
     by rwa [mul_assoc, units.mul_inv, mul_one] at this)
   (assume ⟨v, hv⟩, hv.symm ▸ ⟨v * u, (units.mul_coe v u).symm⟩)
 
+theorem is_unit_iff_dvd_one {α} [comm_semiring α] {x : α} : is_unit x ↔ x ∣ 1 :=
+⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
+ λ ⟨y, h⟩, ⟨⟨x, y, h.symm, by rw [h, mul_comm]⟩, rfl⟩⟩
+
+theorem is_unit_iff_forall_dvd {α} [comm_semiring α] {x : α} :
+  is_unit x ↔ ∀ y, x ∣ y :=
+is_unit_iff_dvd_one.trans ⟨λ h y, dvd.trans h (one_dvd _), λ h, h _⟩
+
+theorem is_unit_of_dvd_unit {α} [comm_semiring α] {x y : α}
+  (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
+is_unit_iff_dvd_one.2 $ dvd_trans xy $ is_unit_iff_dvd_one.1 hu
+
+@[simp] theorem is_unit_nat {n : ℕ} : is_unit n ↔ n = 1 :=
+iff.intro
+  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
+  (assume h, h.symm ▸ ⟨1, rfl⟩)
+
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
 
 We explicitly avoid stating that `p` is non-zero, this would require a semiring. Assuming only a
 monoid allows us to reuse irreducible for associated elements.
 -/
-def irreducible [monoid α] (p : α) : Prop :=
+@[class] def irreducible [monoid α] (p : α) : Prop :=
 ¬ is_unit p ∧ ∀a b, p = a * b → is_unit a ∨ is_unit b
 
 @[simp] theorem not_irreducible_one [monoid α] : ¬ irreducible (1 : α) :=
@@ -46,6 +58,21 @@ by simp [irreducible]
 @[simp] theorem not_irreducible_zero [semiring α] : ¬ irreducible (0 : α)
 | ⟨hn0, h⟩ := have is_unit (0:α) ∨ is_unit (0:α), from h 0 0 ((mul_zero 0).symm),
   this.elim hn0 hn0
+
+theorem of_irreducible_mul {α} [monoid α] {x y : α} :
+  irreducible (x * y) → is_unit x ∨ is_unit y
+| ⟨_, h⟩ := h _ _ rfl
+
+theorem irreducible_or_factor {α} [monoid α] (x : α) (h : ¬ is_unit x) :
+  irreducible x ∨ ∃ a b, ¬ is_unit a ∧ ¬ is_unit b ∧ a * b = x :=
+begin
+  haveI := classical.dec,
+  refine or_iff_not_imp_right.2 (λ H, _),
+  simp [h, irreducible] at H ⊢,
+  refine λ a b h, classical.by_contradiction $ λ o, _,
+  simp [not_or_distrib] at o,
+  exact H _ o.1 _ o.2 h.symm
+end
 
 theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
 | 0 := by simp [nat.not_prime_zero]
@@ -246,11 +273,11 @@ variables [comm_semiring α]
 @[simp] theorem mk_zero_eq (a : α) : associates.mk a = 0 ↔ a = 0 :=
 ⟨assume h, (associated_zero_iff_eq_zero a).1 $ quotient.exact h, assume h, h.symm ▸ rfl⟩
 
-@[simp] theorem mul_zero (a : associates α) : a * 0 = 0 :=
-quot.induction_on a $ assume a, show associates.mk (a * 0) = associates.mk 0, by rw [mul_zero]
+@[simp] theorem mul_zero : ∀(a : associates α), a * 0 = 0 :=
+by rintros ⟨a⟩; show associates.mk (a * 0) = associates.mk 0; rw [mul_zero]
 
-@[simp] theorem zero_mul (a : associates α) : 0 * a = 0 :=
-quot.induction_on a $ assume a, show associates.mk (0 * a) = associates.mk 0, by rw [zero_mul]
+@[simp] theorem zero_mul : ∀(a : associates α), 0 * a = 0 :=
+by rintros ⟨a⟩; show associates.mk (0 * a) = associates.mk 0; rw [zero_mul]
 
 theorem mk_eq_zero_iff_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=
 calc associates.mk a = 0 ↔ (a ~ᵤ 0) :  mk_eq_mk_iff_associated

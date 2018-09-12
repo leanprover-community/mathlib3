@@ -931,13 +931,13 @@ theorem nat_ceil_lt_add_one {q : ℚ} (hq : q ≥ 0) : ↑(nat_ceil q) < q + 1 :
 lt_nat_ceil.1 $ by rw [
   show nat_ceil (q+1) = nat_ceil q+1, from nat_ceil_add_nat hq 1]; apply nat.lt_succ_self
 
-@[simp] lemma denom_neg_eq_denom : ∀ q : ℚ, (-q).denom = q.denom 
+@[simp] lemma denom_neg_eq_denom : ∀ q : ℚ, (-q).denom = q.denom
 | ⟨_, d, _, _⟩ := rfl
 
 @[simp] lemma num_neg_eq_neg_num : ∀ q : ℚ, (-q).num = -(q.num)
-| ⟨n, _, _, _⟩ := rfl 
+| ⟨n, _, _, _⟩ := rfl
 
-@[simp] lemma num_zero : rat.num 0 = 0 := rfl 
+@[simp] lemma num_zero : rat.num 0 = 0 := rfl
 
 lemma zero_of_num_zero {q : ℚ} (hq : q.num = 0) : q = 0 :=
 have q = q.num /. q.denom, from num_denom _,
@@ -945,18 +945,18 @@ by simpa [hq]
 
 lemma num_ne_zero_of_ne_zero {q : ℚ} (h : q ≠ 0) : q.num ≠ 0 :=
 assume : q.num = 0,
-h $ zero_of_num_zero this 
+h $ zero_of_num_zero this
 
 lemma denom_ne_zero (q : ℚ) : q.denom ≠ 0 :=
 ne_of_gt q.pos
 
 lemma mk_num_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : n ≠ 0 :=
 assume : n = 0,
-hq $ by simpa [this] using hqnd 
+hq $ by simpa [this] using hqnd
 
 lemma mk_denom_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : d ≠ 0 :=
 assume : d = 0,
-hq $ by simpa [this] using hqnd 
+hq $ by simpa [this] using hqnd
 
 lemma mk_ne_zero_of_ne_zero {n d : ℤ} (h : n ≠ 0) (hd : d ≠ 0) : n /. d ≠ 0 :=
 assume : n /. d = 0,
@@ -965,25 +965,25 @@ h $ (mk_eq_zero hd).1 this
 lemma mul_num_denom (q r : ℚ) : q * r = (q.num * r.num) /. ↑(q.denom * r.denom) :=
 have hq' : (↑q.denom : ℤ) ≠ 0, by have := denom_ne_zero q; simpa,
 have hr' : (↑r.denom : ℤ) ≠ 0, by have := denom_ne_zero r; simpa,
-suffices (q.num /. ↑q.denom) * (r.num /. ↑r.denom) = (q.num * r.num) /. ↑(q.denom * r.denom), 
+suffices (q.num /. ↑q.denom) * (r.num /. ↑r.denom) = (q.num * r.num) /. ↑(q.denom * r.denom),
   by rwa [←num_denom q, ←num_denom r] at this,
-by simp [mul_def hq' hr'] 
+by simp [mul_def hq' hr']
 
-lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) : 
+lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) :
       ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=
-have hq : q ≠ 0, from 
+have hq : q ≠ 0, from
   assume : q = 0,
   hn $ (rat.mk_eq_zero hd).1 (by cc),
 have q.num /. q.denom = n /. d, by rwa [←rat.num_denom q],
-have q.num * d = n * ↑(q.denom), from (rat.mk_eq (by simpa [rat.denom_ne_zero]) hd).1 this,
-begin 
+have q.num * d = n * ↑(q.denom), from (rat.mk_eq (by simp [rat.denom_ne_zero]) hd).1 this,
+begin
   existsi n / q.num,
   have hqdn : q.num ∣ n, begin rw qdf, apply rat.num_dvd, assumption end,
   split,
     { rw int.div_mul_cancel hqdn },
     { apply int.eq_mul_div_of_mul_eq_mul_of_dvd_left,
-      {apply rat.num_ne_zero_of_ne_zero hq}, 
+      {apply rat.num_ne_zero_of_ne_zero hq},
       {simp [rat.denom_ne_zero]},
       repeat {assumption} }
-end 
+end
 end rat

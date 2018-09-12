@@ -39,28 +39,28 @@ end
 
 namespace prod
 
+variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
+include 𝒞 𝒟
+
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
-def inl (C : Type u₁) [category.{u₁ v₁} C] {D : Type u₁} [category.{u₁ v₁} D] (Z : D) : C ⥤ (C × D) :=
+def inl (Z : D) : C ⥤ (C × D) :=
 { obj      := λ X, (X, Z),
   map'     := λ X Y f, (f, 𝟙 Z) }
 
 /-- `inr D Z` is the functor `X ↦ (Z, X)`. -/
-def inr {C : Type u₁} [category.{u₁ v₁} C] (D : Type u₁) [category.{u₁ v₁} D] (Z : C) : D ⥤ (C × D) :=
+def inr (Z : C) : D ⥤ (C × D) :=
 { obj      := λ X, (Z, X),
   map'     := λ X Y f, (𝟙 Z, f) }
 
 /-- `fst` is the functor `(X, Y) ↦ X`. -/
-def fst (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ⥤ C :=
+def fst : (C × D) ⥤ C :=
 { obj      := λ X, X.1,
   map'     := λ X Y f, f.1 }
 
 /-- `snd` is the functor `(X, Y) ↦ Y`. -/
-def snd (C : Type u₁) [category.{u₁ v₁} C] (Z : C) (D : Type u₁) [category.{u₁ v₁} D] : (C × D) ⥤ D :=
+def snd : (C × D) ⥤ D :=
 { obj      := λ X, X.2,
   map'     := λ X Y f, f.2 }
-
-variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
-include 𝒞 𝒟
 
 def swap : (C × D) ⥤ (D × C) :=
 { obj := λ X, (X.2, X.1),

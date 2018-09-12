@@ -110,6 +110,19 @@ assume a a' h, m h b
 
 end monotone
 
+def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
+{ le := λx y, f x ≤ f y,
+  le_refl := λ a, le_refl _,
+  le_trans := λ a b c, le_trans }
+
+def partial_order.lift {α β} [partial_order β]
+  (f : α → β) (antisymm : ∀x y, f x ≤ f y → f y ≤ f x → x = y) : partial_order α :=
+{ le_antisymm := antisymm, ..preorder.lift f }
+
+def linear_order.lift {α β} [linear_order β]
+  (f : α → β) (antisymm : ∀x y, f x ≤ f y → f y ≤ f x → x = y) : linear_order α :=
+{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f antisymm }
+
 /- additional order classes -/
 
 /-- order without a top element; somtimes called cofinal -/

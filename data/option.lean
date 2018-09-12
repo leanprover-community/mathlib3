@@ -25,6 +25,9 @@ option.some.inj $ ha.symm.trans hb
 
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
+theorem injective_some (α : Type*) : function.injective (@some α) :=
+λ _ _, some_inj.mp
+
 theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl
 | (some a) o        H := ((H _).1 rfl).symm

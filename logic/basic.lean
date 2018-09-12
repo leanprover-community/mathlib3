@@ -314,7 +314,8 @@ variables {α : Sort*} {a b : α}
 @[simp] theorem heq_iff_eq : a == b ↔ a = b :=
 ⟨eq_of_heq, heq_of_eq⟩
 
-theorem proof_irrel_heq {p q : Prop} (e : p = q) (hp : p) (hq : q) : hp == hq :=
+theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : hp == hq :=
+have p = q, from propext ⟨λ _, hq, λ _, hp⟩,
 by subst q; refl
 
 theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
@@ -498,6 +499,10 @@ noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
 @[elab_as_eliminator]
 noncomputable def {u} rec_on {C : Sort u} (h : ∃ a, p a) (H : ∀ a, p a → C) : C :=
 H (classical.some h) (classical.some_spec h)
+
+lemma some_spec2 {α : Type*} {p : α → Prop} {h : ∃a, p a}
+  (q : α → Prop) (hpq : ∀a, p a → q a) : q (some h) :=
+hpq _ $ some_spec _
 
 end classical
 

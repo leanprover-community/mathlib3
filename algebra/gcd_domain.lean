@@ -160,7 +160,7 @@ classical.by_cases (assume h : gcd b c = 0, by simp * at *) $ assume hbc : gcd b
       (mul_dvd_mul_left a $ gcd_dvd_right _ _))
 
 @[simp] theorem gcd_mul_right (a b c : α) : gcd (b * a) (c * a) = gcd b c * (a * norm_unit a) :=
-by simpa [mul_comm] using gcd_mul_left a b c
+by simp [mul_comm]
 
 theorem gcd_eq_left_iff (a b : α) (h : norm_unit a = 1) : gcd a b = a ↔ a ∣ b :=
 iff.intro (assume eq, eq ▸ gcd_dvd_right _ _) $
@@ -285,7 +285,7 @@ classical.by_cases (assume : lcm b c = 0, by simp [*, mul_eq_zero] at *) $ assum
       ((mul_dvd_mul_iff_left ha).1 $ eq ▸ dvd_lcm_right _ _)))
 
 @[simp] theorem lcm_mul_right (a b c : α) : lcm (b * a) (c * a) = lcm b c * (a * norm_unit a) :=
-by simpa [mul_comm] using lcm_mul_left a b c
+by simp [mul_comm]
 
 theorem lcm_eq_left_iff (a b : α) (h : norm_unit a = 1) : lcm a b = a ↔ b ∣ a :=
 iff.intro (assume eq, eq ▸ dvd_lcm_right _ _) $

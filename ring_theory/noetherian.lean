@@ -89,6 +89,26 @@ theorem is_noetherian_iff_well_founded
 
 def is_noetherian_ring (α) [ring α] : Prop := is_noetherian α α
 
+theorem ring.is_noetherian_of_fintype (R M) [ring R] [module R M] [fintype M] : is_noetherian R M :=
+begin
+  intro N,
+  existsi (to_finset N : finset M),
+  suffices : span (N : set M) = N,
+    simpa,
+  exact span_eq_of_is_submodule N.to_is_submodule,
+end
+
+noncomputable instance fintype.of_subsingleton_ring {α} [ring α] [h : subsingleton α] : fintype α :=
+{ elems := {0},
+  complete := λ x, begin
+    suffices: x = 0, by simpa,
+    exact subsingleton.elim x 0,
+  end
+}
+
+theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
+by haveI := semiring.subsingleton_of_zero_eq_one h01; exact ring.is_noetherian_of_fintype R R
+
 theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [module R M] (N : set M) [is_submodule N]
   (h : is_noetherian R M) : is_noetherian R N :=
 begin

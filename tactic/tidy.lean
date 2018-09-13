@@ -32,11 +32,19 @@ do names ← attribute.get_instances `tidy,
    tactics ← names.mmap name_to_tactic,
    first tactics <|> fail "no @[tidy] tactics succeeded"
 
+meta def ext1_wrapper : tactic string :=
+do ng ← num_goals,
+   ext1 [] {apply_cfg . new_goals := new_goals.all},
+   ng' ← num_goals,
+   return $ if ng' > ng then
+     "tactic.ext1 [] {new_goals := tactic.new_goals.all}"
+   else "ext1"
+
 meta def default_tactics : list (tactic string) :=
 [ reflexivity                                 >> pure "refl", 
   `[exact dec_trivial]                        >> pure "exact dec_trivial",
   propositional_goal >> assumption            >> pure "assumption",
-  `[ext1]                                     >> pure "ext1",
+  ext1_wrapper,
   intros1                                     >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   auto_cases,
   `[apply_auto_param]                         >> pure "apply_auto_param",

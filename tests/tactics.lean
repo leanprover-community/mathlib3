@@ -497,7 +497,7 @@ end
 
 example (s : dependent_fields) : s = s :=
 begin
-  ext,
+  tactic.ext1 [] {tactic.apply_cfg . new_goals := tactic.new_goals.all},
   guard_target s.a = s.a,
   refl,
   refl,

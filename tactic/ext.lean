@@ -158,13 +158,13 @@ do tgt ← target >>= whnf,
      then rintro [x] >> try_intros xs
      else pure (x :: xs)
 
-meta def ext1 (xs : ext_patt) : tactic ext_patt :=
+meta def ext1 (xs : ext_patt) (cfg : apply_cfg := {}): tactic ext_patt :=
 do subject ← target >>= get_ext_subject,
    m ← extensional_attribute.get_cache,
    do { rule ← m.find subject,
-        applyc rule {new_goals := new_goals.all} } <|>
+        applyc rule cfg } <|>
      do { ls ← attribute.get_instances `extensionality,
-          ls.any_of (λ n, applyc n {new_goals := new_goals.all}) } <|>
+          ls.any_of (λ n, applyc n cfg) } <|>
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
 

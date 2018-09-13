@@ -40,18 +40,12 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
-lemma exists_eq_coe_nat {i : ℤ} (hi : 0 ≤ i) : ∃ n : ℕ, i = n :=
+lemma exists_eq_coe_nat_of_nonneg {i : ℤ} (hi : 0 ≤ i) : ∃ n : ℕ, i = n :=
 ⟨i.nat_abs, eq.symm $ nat_abs_of_nonneg hi⟩
 
-lemma exists_eq_neg_succ_coe_nat : ∀ {a : ℤ}, a < 0 → ∃m : ℕ, a = -[1+m]
+lemma exists_eq_neg_succ_of_neg : ∀ {a : ℤ}, a < 0 → ∃m : ℕ, a = -[1+m]
 | (a : ℕ) ha := absurd ha dec_trivial
 | -[1+m]  ha := ⟨m, rfl⟩
-
-lemma of_nat_le_of_nat_of_le {n m : ℕ} (h : n ≤ m) : of_nat n ≤ of_nat m :=
-coe_nat_le_coe_nat_of_le h
-
-lemma le_of_of_nat_le_of_nat {n m : ℕ} (h : of_nat n ≤ of_nat m) : n ≤ m :=
-int.coe_nat_le.1 h
 
 /- succ and pred -/
 
@@ -145,9 +139,6 @@ by simp [neg_succ_of_nat_eq]
 
 lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h
-
-lemma nat_abs_of_nonpos {a : ℤ} (ha : a ≤ 0) : (a.nat_abs : ℤ) = -a :=
-by rw [← abs_eq_nat_abs, abs_of_nonpos ha]
 
 /- /  -/
 

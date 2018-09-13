@@ -40,13 +40,6 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
-lemma exists_eq_coe_nat_of_nonneg {i : ℤ} (hi : 0 ≤ i) : ∃ n : ℕ, i = n :=
-⟨i.nat_abs, eq.symm $ nat_abs_of_nonneg hi⟩
-
-lemma exists_eq_neg_succ_of_neg : ∀ {a : ℤ}, a < 0 → ∃m : ℕ, a = -[1+m]
-| (a : ℕ) ha := absurd ha dec_trivial
-| -[1+m]  ha := ⟨m, rfl⟩
-
 /- succ and pred -/
 
 /-- Immediate successor of an integer: `succ n = n + 1` -/

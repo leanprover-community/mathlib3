@@ -75,6 +75,9 @@ lt_add_of_le_of_pos (le_refl _) zero_lt_one
 
 lemma one_lt_two : 1 < (2 : α) := lt_add_one _
 
+lemma mul_le_one {a b : α} (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
+begin rw ← one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end
+
 end linear_ordered_semiring
 
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
@@ -109,9 +112,9 @@ le_iff_le_iff_lt_iff_lt.1 (mul_le_mul_right_of_neg h)
 lemma sub_one_lt (a : α) : a - 1 < a :=
 sub_lt_iff_lt_add.2 (lt_add_one a)
 
-lemma mul_le_one {α : Type*} [linear_ordered_semiring α] {a b : α} (ha : a ≤ 1) (hb' : 0 ≤ b)
-      (hb : b ≤ 1) : a * b ≤ 1 :=
-begin rw ←one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end
+lemma mul_self_pos {a : α} (ha : a ≠ 0) : 0 < a * a :=
+by rcases lt_trichotomy a 0 with h|h|h;
+   [exact mul_pos_of_neg_of_neg h h, exact (ha h).elim, exact mul_pos h h]
 
 end linear_ordered_ring
 

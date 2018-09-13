@@ -410,11 +410,12 @@ lemma sign_eq_sign_of_equiv [fintype α] [decidable_eq β] [fintype β] (f : per
 have hg : g = (e.symm.trans f).trans e, from equiv.ext _ _ $ by simp [h],
 by rw [hg, sign_symm_trans_trans]
 
-lemma sign_eq_sign_of_injective [fintype α] [decidable_eq β] [fintype β]
+lemma sign_bij [fintype α] [decidable_eq β] [fintype β]
   (f : perm α) (g : perm β) (i : Π x : α, f x ≠ x → β)
-  (hi : ∀ x₁ x₂ hx₁ hx₂, i x₁ hx₁ = i x₂ hx₂ → x₁ = x₂)
   (h : ∀ x hx hx', i (f x) hx' = g (i x hx))
-  (hg : ∀ y, (∀ x hx, i x hx ≠ y) → g y = y) : sign f = sign g :=
+  (hi : ∀ x₁ x₂ hx₁ hx₂, i x₁ hx₁ = i x₂ hx₂ → x₁ = x₂)
+  (hg : ∀ y, g y ≠ y → ∃ x hx, i x hx = y) :
+  sign f = sign g :=
 calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
 eq.symm (sign_subtype_perm _ _ (λ _, id))
 ... = sign (@subtype_perm _ g (λ x, g x ≠ x) (by simp)) :
@@ -424,9 +425,7 @@ sign_eq_sign_of_equiv _ _
       (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.bijective.1 h) x.2,
         by rw [← h _ x.2 this]; exact mt (hi _ _ this x.2) x.2⟩ : {y // g y ≠ y})),
       from ⟨λ ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq (hi _ _ _ _ (subtype.mk.inj h)),
-        λ ⟨y, hy⟩, let ⟨x, hx⟩ := classical.not_forall.1 (mt (hg y) hy) in
-          let ⟨hfx, hx⟩ := classical.not_forall.1 hx in
-          ⟨⟨x, hfx⟩, subtype.eq $ classical.by_contradiction hx⟩⟩))
+        λ ⟨y, hy⟩, let ⟨x, hfx, hx⟩ := hg y hy in ⟨⟨x, hfx⟩, subtype.eq hx⟩⟩))
     (λ ⟨x, _⟩, subtype.eq (h x _ _))
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
 

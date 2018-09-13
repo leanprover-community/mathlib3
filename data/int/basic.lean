@@ -38,6 +38,21 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
 λ h, (ne_of_lt (coe_nat_lt.2 h)).symm⟩
 
+lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
+
+lemma exists_eq_coe_nat {i : ℤ} (hi : 0 ≤ i) : ∃ n : ℕ, i = n :=
+⟨i.nat_abs, eq.symm $ nat_abs_of_nonneg hi⟩
+
+lemma exists_eq_neg_succ_coe_nat : ∀ {a : ℤ}, a < 0 → ∃m : ℕ, a = -[1+m]
+| (a : ℕ) ha := absurd ha dec_trivial
+| -[1+m]  ha := ⟨m, rfl⟩
+
+lemma of_nat_le_of_nat_of_le {n m : ℕ} (h : n ≤ m) : of_nat n ≤ of_nat m :=
+coe_nat_le_coe_nat_of_le h
+
+lemma le_of_of_nat_le_of_nat {n m : ℕ} (h : of_nat n ≤ of_nat m) : n ≤ m :=
+int.coe_nat_le.1 h
+
 /- succ and pred -/
 
 /-- Immediate successor of an integer: `succ n = n + 1` -/
@@ -130,6 +145,9 @@ by simp [neg_succ_of_nat_eq]
 
 lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h
+
+lemma nat_abs_of_nonpos {a : ℤ} (ha : a ≤ 0) : (a.nat_abs : ℤ) = -a :=
+by rw [← abs_eq_nat_abs, abs_of_nonpos ha]
 
 /- /  -/
 
@@ -717,6 +735,9 @@ units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
 
 theorem units_eq_one_or (u : units ℤ) : u = 1 ∨ u = -1 :=
 by simpa [units.ext_iff, units_nat_abs] using nat_abs_eq u
+
+lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
+(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
 
 /- bitwise ops -/
 

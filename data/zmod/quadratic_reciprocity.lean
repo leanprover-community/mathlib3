@@ -504,8 +504,8 @@ begin
   have hnqq : (-1 : zmodp q hq) ^ (q / 2) = nq, by simp [hnq.symm],
   cases legendre_sym_eq_one_or_neg_one q hp (zmodp.prime_ne_zero hp hq hpq);
   cases legendre_sym_eq_one_or_neg_one p hq (zmodp.prime_ne_zero hq hp hpq.symm);
-  cases @neg_one_pow_eq_one_or_neg_one ℤ _ (p / 2);
-  cases @neg_one_pow_eq_one_or_neg_one ℤ _ (q / 2);
+  cases @neg_one_pow_eq_or ℤ _ (p / 2);
+  cases @neg_one_pow_eq_or ℤ _ (q / 2);
   simp [*, pow_mul, (legendre_sym_eq_pow p q hq).symm, (legendre_sym_eq_pow q p hp).symm, prod.ext_iff] at *;
   cc
 end
@@ -513,27 +513,29 @@ end
 lemma is_square_iff_is_square_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 = 1) :
   (∃ a : zmodp p hp, a ^ 2 = q) ↔ ∃ b : zmodp q hq, b ^ 2 = p :=
 if hpq : p = q then by subst hpq else
-have h1 : (-1 : ℤ) ^ ((p / 2) * (q / 2)) = 1,
-  from neg_one_pow_even ((dvd_iff_mod_eq_zero _ _).1
+have h1 : ((p / 2) * (q / 2)) % 2 = 0,
+  from (dvd_iff_mod_eq_zero _ _).1
     (dvd_mul_of_dvd_left ((dvd_iff_mod_eq_zero _ _).2 $
-    by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp1]; refl) _)),
+    by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp1]; refl) _),
 begin
   have := quadratic_reciprocity hp hq (odd_of_mod_four_eq_one hp1) hq1 hpq,
-  rw [h1, legendre_sym, legendre_sym, if_neg (zmodp.prime_ne_zero hp hq hpq),
+  rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym,
+    if_neg (zmodp.prime_ne_zero hp hq hpq),
     if_neg (zmodp.prime_ne_zero hq hp (ne.symm hpq))] at this,
   split_ifs at this; simp *; contradiction
 end
 
 lemma is_square_iff_is_not_square_of_mod_four_eq_three (hp3 : p % 4 = 3) (hq3 : q % 4 = 3)
   (hpq : p ≠ q) : (∃ a : zmodp p hp, a ^ 2 = q) ↔ ¬∃ b : zmodp q hq, b ^ 2 = p :=
-have h1 : (-1 : ℤ) ^ ((p / 2) * (q / 2)) = -1,
-  from neg_one_pow_odd (nat.odd_mul_odd
+have h1 : ((p / 2) * (q / 2)) % 2 = 1,
+  from nat.odd_mul_odd
     (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp3]; refl)
-    (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hq3]; refl)),
+    (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hq3]; refl),
 begin
   have := quadratic_reciprocity hp hq (odd_of_mod_four_eq_three hp3)
     (odd_of_mod_four_eq_three hq3) hpq,
-  rw [h1, legendre_sym, legendre_sym, if_neg (zmodp.prime_ne_zero hp hq hpq),
+  rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym,
+    if_neg (zmodp.prime_ne_zero hp hq hpq),
     if_neg (zmodp.prime_ne_zero hq hp hpq.symm)] at this,
   split_ifs at this; simp *; contradiction
 end

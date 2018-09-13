@@ -411,19 +411,23 @@ have hg : g = (e.symm.trans f).trans e, from equiv.ext _ _ $ by simp [h],
 by rw [hg, sign_symm_trans_trans]
 
 lemma sign_eq_sign_of_injective [fintype α] [decidable_eq β] [fintype β]
-  (f : perm α) (g : perm β) (i : α → β) (hi : injective i) (h : ∀ x, i (f x) = g (i x))
-  (hg : ∀ y, (∀ x, i x ≠ y) → g y = y) : sign f = sign g :=
-calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) : eq.symm (sign_subtype_perm _ _ (λ _, id))
+  (f : perm α) (g : perm β) (i : Π x : α, f x ≠ x → β)
+  (hi : ∀ x₁ x₂ hx₁ hx₂, i x₁ hx₁ = i x₂ hx₂ → x₁ = x₂)
+  (h : ∀ x hx hx', i (f x) hx' = g (i x hx))
+  (hg : ∀ y, (∀ x hx, i x hx ≠ y) → g y = y) : sign f = sign g :=
+calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
+eq.symm (sign_subtype_perm _ _ (λ _, id))
 ... = sign (@subtype_perm _ g (λ x, g x ≠ x) (by simp)) :
 sign_eq_sign_of_equiv _ _
   (equiv.of_bijective
     (show function.bijective (λ x : {x // f x ≠ x},
-      (⟨i x, by  rw [← h, ne.def, injective.eq_iff hi]; exact x.2⟩ : {y // g y ≠ y})),
-    from ⟨λ ⟨x, _⟩ ⟨y, _⟩ h, subtype.eq (hi (subtype.mk.inj h)),
-    λ ⟨y, hy⟩, let ⟨x, hx⟩ := classical.not_forall.1 (mt (hg y) hy) in
-      ⟨⟨x, mt (congr_arg i) $ by rwa [h, not_not.1 hx]⟩, subtype.eq
-        $ by haveI := classical.prop_decidable; exact not_not.1 hx⟩⟩))
-    (λ ⟨x, _⟩, subtype.eq (h x))
+      (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.bijective.1 h) x.2,
+        by rw [← h _ x.2 this]; exact mt (hi _ _ this x.2) x.2⟩ : {y // g y ≠ y})),
+      from ⟨λ ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq (hi _ _ _ _ (subtype.mk.inj h)),
+        λ ⟨y, hy⟩, let ⟨x, hx⟩ := classical.not_forall.1 (mt (hg y) hy) in
+          let ⟨hfx, hx⟩ := classical.not_forall.1 hx in
+          ⟨⟨x, hfx⟩, subtype.eq $ classical.by_contradiction hx⟩⟩))
+    (λ ⟨x, _⟩, subtype.eq (h x _ _))
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
 
 lemma is_cycle_swap {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=

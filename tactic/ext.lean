@@ -162,9 +162,9 @@ meta def ext1 (xs : ext_patt) : tactic ext_patt :=
 do subject ← target >>= get_ext_subject,
    m ← extensional_attribute.get_cache,
    do { rule ← m.find subject,
-        applyc rule } <|>
+        applyc rule {new_goals := new_goals.all} } <|>
      do { ls ← attribute.get_instances `extensionality,
-          ls.any_of applyc } <|>
+          ls.any_of (λ n, applyc n {new_goals := new_goals.all}) } <|>
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
 

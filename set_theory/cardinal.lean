@@ -651,4 +651,67 @@ lt_of_not_ge $ λ ⟨F⟩, begin
   hc i a (congr_fun h _),
 end
 
+theorem mk_le_mk_finset (α : Type u) : mk α ≤ mk (finset α) :=
+⟨⟨finset.singleton, λ _ _, finset.singleton_inj.1⟩⟩
+
+theorem mk_finset_le_mk_list (α : Type u) : mk (finset α) ≤ mk (list α) :=
+⟨⟨quotient.out ∘ finset.val, λ x y H, finset.val_inj.1 $
+calc x.1 = _ : (quotient.out_eq x.1).symm ... = _ : congr_arg _ H
+... = _ : quotient.out_eq y.1⟩⟩
+
+def vector_equiv_fin_fn (α : Type u) (n : ℕ) : vector α n ≃ (ulift.{u 0} (fin n) → α) :=
+{ to_fun := λ L i, vector.nth L i.down,
+  inv_fun := λ f, vector.of_fn (λ i, f (ulift.up i)),
+  left_inv := vector.of_fn_nth,
+  right_inv := λ f, funext (λ ⟨i⟩, vector.nth_of_fn _ i) }
+
+theorem vector_equiv_fin_fn_length (α : Type u) (n : ℕ) (f : ulift (fin n) → α) :
+  ((vector_equiv_fin_fn α n).symm f).1.length = n :=
+((vector_equiv_fin_fn α n).symm f).2
+
+theorem mk_list_eq_sum_pow (α : Type u) : mk (list α) = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) :=
+by conv {to_rhs, congr, funext, rw [← lift_mk_fin, lift_mk, power_def]};
+rw [sum_mk]; from
+(quotient.sound $ nonempty.intro $
+{ to_fun := λ L, ⟨L.length, vector_equiv_fin_fn α L.length ⟨L, rfl⟩⟩,
+  inv_fun := λ x, ((vector_equiv_fin_fn α x.1).symm x.2).to_list,
+  left_inv := λ L, by dsimp only; simp only [equiv.inverse_apply_apply]; refl,
+  right_inv := λ x, sigma.eq (vector_equiv_fin_fn_length _ _ _)
+    (begin dsimp only, generalize : rfl = H1,
+      generalize : vector_equiv_fin_fn_length α (x.fst) (x.snd) = H,
+      let N1 := ((vector_equiv_fin_fn α x.1).symm x.2).1.length,
+      change N1 = _ at H1,
+      generalize_hyp : ((vector_equiv_fin_fn α x.1).symm x.2).1.length = N3 at H H1 ⊢,
+      subst H,
+      simp only [vector.mk_to_list, equiv.apply_inverse_apply], end) })
+
+theorem mk_union_le_mk_mul_omega {α : Type u} {S : set α} {f : S → set α}
+  (hf : ∀ s, set.finite (f s)) : mk (⋃ s, f s) ≤ mk S * omega :=
+⟨⟨λ x, (classical.some (set.mem_Union.1 x.2),
+  (classical.choice (le_of_lt $ lt_omega_iff_finite.2 $ (hf $ classical.some (set.mem_Union.1 x.2)))).1
+    ⟨x.1, classical.some_spec (set.mem_Union.1 x.2)⟩),
+λ x y H, subtype.eq $ begin
+  cases prod.ext_iff.1 H with H1 H2, clear H,
+  dsimp only at H1 H2,
+  generalize_hyp : set.mem_Union.1 x.2 = H3 at H1 H2,
+  generalize_hyp : hf (classical.some H3) = H5 at H2,
+  generalize_hyp : classical.some_spec H3 = H7 at H2,
+  generalize_hyp : classical.some H3 = i at H1 H2 H5 H7,
+  subst H1,
+  exact subtype.mk.inj (function.embedding.inj _ H2)
+end⟩⟩
+
+theorem mk_le_mk_of_finset_card_to_finset_le {α : Type u} {S T : set α}
+  {HS : set.finite S} {HT : set.finite T}
+  (H : finset.card (set.finite.to_finset HS) ≤ finset.card (set.finite.to_finset HT)) :
+  mk S ≤ mk T :=
+begin
+  tactic.unfreeze_local_instances,
+  cases HS, cases HT,
+  rw [fintype_card, fintype_card, nat_cast_le],
+  rw [← fintype.card_coe, ← fintype.card_coe] at H,
+  convert H;
+  { ext z, rw [finset.mem_coe, set.finite.mem_to_finset] }
+end
+
 end cardinal

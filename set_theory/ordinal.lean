@@ -2884,4 +2884,28 @@ lt_of_le_of_lt (add_le_add (le_max_left a b) (le_max_right a b)) $
   (λ h, lt_of_lt_of_le (add_lt_omega h h) hc)
   (λ h, by rw add_eq_self h; exact max_lt h1 h2)
 
+theorem pow_le {κ : cardinal.{u}} (H1 : omega ≤ κ) {n : ℕ} : κ^(n:cardinal.{u}) ≤ κ :=
+quotient.induction_on κ (λ α H1, nat.rec_on n
+  (le_of_lt $ lt_of_lt_of_le (by rw [nat.cast_zero, power_zero];
+    from one_lt_omega) H1)
+  (λ n ih, trans_rel_left _
+    (by rw [nat.cast_succ, power_add, power_one];
+      from mul_le_mul_right _ ih)
+    (mul_eq_self H1))) H1
+
+theorem mk_list_le_mk_aux {α : Type u} : sum (λ (n : ℕ), mk α) = sum (λ (n : ulift.{u} ℕ), mk α) :=
+by rw [sum_mk, sum_mk]; from
+(quotient.sound $ nonempty.intro $
+⟨λ x, ⟨ulift.up x.1, x.2⟩, λ x, ⟨ulift.down x.1, x.2⟩,
+λ ⟨x1, x2⟩, rfl, λ ⟨⟨x1⟩, x2⟩, rfl⟩)
+
+theorem mk_list_le_mk {α : Type u} (H1 : omega ≤ mk α) : mk (list α) ≤ mk α :=
+calc  mk (list α)
+    = sum (λ n : ℕ, mk α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
+... ≤ sum (λ n : ℕ, mk α) : sum_le_sum _ _ $ λ n, pow_le H1
+... = sum (λ n : ulift.{u} ℕ, mk α) : mk_list_le_mk_aux
+... = omega * mk α : sum_const _ _
+... = max (omega) (mk α) : mul_eq_max (le_refl _) H1
+... = mk α : max_eq_right H1
+
 end cardinal

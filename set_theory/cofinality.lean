@@ -337,7 +337,7 @@ omega ≤ c ∧ c.ord.cof = c
 theorem cof_is_regular {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨omega_le_cof.2 h, cof_cof _⟩
 
-theorem omega_is_regular {o : ordinal} (h : o.is_limit) : is_regular omega :=
+theorem omega_is_regular : is_regular omega :=
 ⟨le_refl _, by simp⟩
 
 theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ c) :=
@@ -360,6 +360,21 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
     rw [← lt_succ, ← lt_ord, ← αe, re],
     apply typein_lt_type }
 end⟩
+
+theorem sup_lt_of_is_regular {ι} (f : ι → cardinal)
+  {c} (hc : is_regular c) (H1 : cardinal.mk ι < c)
+  (H2 : ∀ i, f i < c) : sup.{u u} f < c :=
+begin
+  refine lt_of_le_of_ne (sup_le.2 (λ i, le_of_lt $ H2 i)) _,
+  rintro rfl, apply not_le_of_lt H1,
+  simpa [sup_ord, H2, hc.2] using cof_sup_le.{u} (λ i, (f i).ord)
+end
+
+theorem sum_lt_of_is_regular {ι} (f : ι → cardinal)
+  {c} (hc : is_regular c) (H1 : cardinal.mk ι < c)
+  (H2 : ∀ i, f i < c) : sum.{u u} f < c :=
+lt_of_le_of_lt (sum_le_sup _) $ mul_lt_of_lt hc.1 H1 $
+sup_lt_of_is_regular f hc H1 H2
 
 /-- A cardinal is inaccessible if it is an
   uncountable regular strong limit cardinal. -/

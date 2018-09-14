@@ -47,6 +47,12 @@ lemma lt_iff_lt_of_strict_mono {β} [linear_order α] [preorder β]
   .resolve_left $ λ h', lt_asymm h $ H _ _ h')
   .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, H _ _⟩
 
+lemma le_iff_le_of_strict_mono {β} [linear_order α] [preorder β]
+  (f : α → β) (H : ∀ a b, a < b → f a < f b) {a b} :
+  f a ≤ f b ↔ a ≤ b :=
+⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H b a h') h,
+ λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H _ _ h')) (λ h', h' ▸ le_refl _)⟩
+
 lemma injective_of_strict_mono {β} [linear_order α] [preorder β]
   (f : α → β) (H : ∀ a b, a < b → f a < f b) : function.injective f
 | a b e := ((lt_trichotomy a b)

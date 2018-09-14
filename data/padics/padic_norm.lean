@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Define the p-adic valuation on ℤ and ℚ, and the p-adic norm on ℚ
 -/
 
-import data.rat algebra.field_power
+import data.rat data.int.gcd algebra.field_power
 import tactic.wlog tactic.ring
 
 universe u
@@ -90,12 +90,10 @@ end
 @[simp] lemma padic_val_self : padic_val p p = 1 :=
 have h : p ≠ 0, by intro h'; subst h'; exact absurd hp dec_trivial,
 begin
-  symmetry, apply unique,
-  repeat { simpa },
-  { assumption },
-  { intros k hk hdvd,
-    apply not_pos_pow_dvd hp hk,
-    rw ←int.coe_nat_dvd, simpa }
+  symmetry, apply unique; simp *,
+  intros k hk hdvd,
+  apply not_pos_pow_dvd hp hk,
+  rw ← int.coe_nat_dvd, simpa
 end
 
 end
@@ -123,7 +121,7 @@ have hall : ∀ k : ℕ, k > padic_val p m + padic_val p n → ¬ ↑(p ^ k) ∣
   assume (k : ℕ) (hkgt : k > padic_val p m + padic_val p n) (hdiv : ↑(p ^ k) ∣ m*n),
   have hpsucc : ↑(p ^ (padic_val p m + padic_val p n + 1)) ∣ m*n, from
     int.pow_div_of_le_of_pow_div_int hkgt hdiv,
-  let hsd := succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul_int p_prime hdivm hdivn hpsucc in
+  let hsd := int.succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul p_prime hdivm hdivn hpsucc in
   or.elim hsd
     (assume : ↑(p ^ (padic_val p m + 1)) ∣ m,
       is_greatest hpp hm _ (lt_succ_self _) this)
@@ -307,7 +305,7 @@ calc
        by simp
      ... = min (padic_val_rat p (q.num /. ↑q.denom))
                (padic_val_rat p (r.num /. ↑r.denom)) :
-       by rw [padic_val_rat.defn p_prime, padic_val_rat.defn p_prime]; simpa
+       by rw [padic_val_rat.defn p_prime, padic_val_rat.defn p_prime]; simp *
      ... = min (padic_val_rat p q)
                (padic_val_rat p r) :
        by rw [←rat.num_denom q, ←rat.num_denom r]
@@ -358,7 +356,7 @@ else if hr : r = 0 then
   by simp [hr]
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by simpa [prime.ne_zero hp],
+  have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
   by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
 
 theorem triangle_ineq (q r : ℚ) : padic_norm hp (q + r) ≤ padic_norm hp q + padic_norm hp r :=
@@ -427,7 +425,7 @@ begin
   have : padic_norm hp q ≤ max (padic_norm hp (q + r)) (padic_norm hp r), from calc
    padic_norm hp q = padic_norm hp (q + r - r) : by congr; ring
                ... ≤ max (padic_norm hp (q + r)) (padic_norm hp (-r)) : padic_norm.nonarchimedean hp
-               ... = max (padic_norm hp (q + r)) (padic_norm hp r) : by simpa,
+               ... = max (padic_norm hp (q + r)) (padic_norm hp r) : by simp,
   have hnge : padic_norm hp r ≤ padic_norm hp (q + r),
   { apply le_of_not_gt,
     intro hgt,

@@ -423,6 +423,9 @@ theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
   by simpa [(abv_pos abv).1 (lt_of_lt_of_le K0 (H _ ij)),
     abv_zero abv] using ε0⟩
 
+theorem const_inv {x : β} (hx : x ≠ 0) : const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
+ext (assume n, by simp[inv_apply, const_apply])
+
 end discrete_field
 
 section abs

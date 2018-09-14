@@ -16,7 +16,7 @@ local attribute [reducible] real
 namespace real
 open cau_seq cau_seq.completion
 
-def of_rat (x : ℚ) : ℝ := of_rat x 
+def of_rat (x : ℚ) : ℝ := of_rat x
 
 instance : comm_ring ℝ := cau_seq.completion.comm_ring
 
@@ -136,7 +136,7 @@ noncomputable instance : lattice.semilattice_sup ℝ := by apply_instance
 noncomputable instance : lattice.has_inf ℝ         := by apply_instance
 noncomputable instance : lattice.has_sup ℝ         := by apply_instance
 
-open rat 
+open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
 eq_cast of_rat rfl of_rat_add of_rat_mul
@@ -326,6 +326,20 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
       from lb_le_Inf s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
  ..real.linear_order, ..real.lattice}
 
+theorem Sup_empty : lattice.Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
+
+theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s = 0 :=
+dif_neg $ assume h, hs h.2
+
+theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
+show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
+
+theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : lattice.Inf s = 0 :=
+have bdd_above {x | -x ∈ s} → bdd_below s, from
+  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb _ $ by simp [hxs]⟩,
+have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
+neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
+
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin
   let S := {x : ℝ | const abs x < f},
@@ -351,6 +365,10 @@ begin
     exact ih _ ij }
 end
 
+section lim
+
+open cau_seq
+
 noncomputable def lim (f : ℕ → ℝ) : ℝ :=
 if hf : is_cau_seq abs f then
   classical.some (cau_seq_converges ⟨f, hf⟩)
@@ -359,6 +377,66 @@ else 0
 theorem equiv_lim (f : cau_seq ℝ abs) : f ≈ const abs (lim f) :=
 by simp [lim, f.is_cau]; cases f with f hf;
    exact classical.some_spec (cau_seq_converges ⟨f, hf⟩)
+
+lemma eq_lim_of_const_equiv {f : cau_seq ℝ abs} {x : ℝ} (h : cau_seq.const abs x ≈ f) : x = lim f :=
+const_equiv.mp $ setoid.trans h $ equiv_lim f
+
+lemma lim_eq_of_equiv_const {f : cau_seq ℝ abs} {x : ℝ} (h : f ≈ cau_seq.const abs x) : lim f = x :=
+(eq_lim_of_const_equiv $ setoid.symm h).symm
+
+lemma lim_eq_lim_of_equiv {f g : cau_seq ℝ abs} (h : f ≈ g) : lim f = lim g := 
+lim_eq_of_equiv_const $ setoid.trans h $ equiv_lim g
+
+@[simp] lemma lim_const (x : ℝ) : lim (const abs x) = x := 
+lim_eq_of_equiv_const $ setoid.refl _
+
+lemma lim_add (f g : cau_seq ℝ abs) : lim f + lim g = lim ⇑(f + g) := 
+eq_lim_of_const_equiv $ show lim_zero (const abs (lim ⇑f + lim ⇑g) - (f + g)),
+  by rw [const_add, add_sub_comm];
+  exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g))
+
+lemma lim_mul_lim (f g : cau_seq ℝ abs) : lim f * lim g = lim ⇑(f * g) := 
+eq_lim_of_const_equiv $ show lim_zero (const abs (lim ⇑f * lim ⇑g) - f * g),
+  from have h : const abs (lim ⇑f * lim ⇑g) - f * g = g * (const abs (lim f) - f) 
+      + const abs (lim f) * (const abs (lim g) - g) := 
+    by simp [mul_sub, mul_comm, const_mul, mul_add],
+  by rw h; exact add_lim_zero (mul_lim_zero _ (setoid.symm (equiv_lim f))) 
+      (mul_lim_zero _ (setoid.symm (equiv_lim g)))
+
+lemma lim_mul (f : cau_seq ℝ abs) (x : ℝ) : lim f * x = lim ⇑(f * const abs x) :=
+by rw [← lim_mul_lim, lim_const]
+
+lemma lim_neg (f : cau_seq ℝ abs) : lim ⇑(-f) = -lim f :=
+lim_eq_of_equiv_const (show lim_zero (-f - const abs (-lim ⇑f)),
+  by rw [const_neg, sub_neg_eq_add, add_comm];
+  exact setoid.symm (equiv_lim f))
+
+lemma lim_eq_zero_iff (f : cau_seq ℝ abs) : lim f = 0 ↔ lim_zero f :=
+⟨assume h,
+  by have hf := equiv_lim f;
+  rw h at hf;
+  exact (lim_zero_congr hf).mpr (const_lim_zero.mpr rfl),
+assume h, 
+  have h₁ : f = (f - const abs 0) := ext (λ n, by simp [sub_apply, const_apply]),
+  by rw h₁ at h; exact lim_eq_of_equiv_const h ⟩
+
+lemma lim_inv {f : cau_seq ℝ abs} (hf : ¬ lim_zero f) : lim ⇑(inv f hf) = (lim f)⁻¹ :=
+have hl : lim f ≠ 0 := by rwa ← lim_eq_zero_iff at hf, 
+lim_eq_of_equiv_const $ show lim_zero (inv f hf - const abs (lim ⇑f)⁻¹),
+  from have h₁ : ∀ (g f : cau_seq ℝ abs) (hf : ¬ lim_zero f), lim_zero (g - f * inv f hf * g) := 
+    λ g f hf, by rw [← one_mul g, ← mul_assoc, ← sub_mul, mul_one, mul_comm, mul_comm f];
+    exact mul_lim_zero _ (setoid.symm (cau_seq.inv_mul_cancel _)),
+  have h₂ : lim_zero ((inv f hf - const abs (lim ⇑f)⁻¹) - (const abs (lim f) - f) * 
+      (inv f hf * const abs (lim ⇑f)⁻¹)) := 
+    by rw [sub_mul, ← sub_add, sub_sub, sub_add_eq_sub_sub, sub_right_comm, sub_add];
+    exact show lim_zero (inv f hf - const abs (lim ⇑f) * (inv f hf * const abs (lim ⇑f)⁻¹)
+      - (const abs (lim ⇑f)⁻¹ - f * (inv f hf * const abs (lim ⇑f)⁻¹))),
+    from sub_lim_zero
+      (by rw [← mul_assoc, mul_right_comm, const_inv hl]; exact h₁ _ _ _)
+      (by rw [← mul_assoc]; exact h₁ _ _ _),
+  (lim_zero_congr h₂).mpr $ by rw mul_comm; exact mul_lim_zero _ (setoid.symm (equiv_lim f))
+
+end lim
 
 theorem sqrt_exists : ∀ {x : ℝ}, 0 ≤ x → ∃ y, 0 ≤ y ∧ y * y = x :=
 suffices H : ∀ {x : ℝ}, 0 < x → x ≤ 1 → ∃ y, 0 < y ∧ y * y = x, begin

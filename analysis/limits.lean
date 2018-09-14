@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 A collection of limit properties.
 -/
 import algebra.big_operators algebra.group_power tactic.norm_num
-  analysis.real analysis.topology.infinite_sum
+  analysis.ennreal analysis.topology.infinite_sum
 noncomputable theory
 open classical finset function filter
 local attribute [instance] prop_decidable
@@ -199,3 +199,28 @@ begin
   { exact option.get_of_mem _ (encodable.encodek2 _) },
   { dsimp [g], rw encodable.encodek2 }
 end
+
+namespace nnreal
+
+theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :
+  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, is_sum ε' c ∧ c < ε :=
+let ⟨a, a0, aε⟩ := dense hε in
+let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
+⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, (nnreal.coe_lt _ _).2 $ hε' i,
+  ⟨c, is_sum_le (assume i, le_of_lt $ hε' i) is_sum_zero hc ⟩, nnreal.is_sum_coe.1 hc,
+   lt_of_le_of_lt ((nnreal.coe_le _ _).1 hcε) aε ⟩
+
+end nnreal
+
+namespace ennreal
+
+theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
+  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑ i, (ε' i : ennreal)) < ε :=
+begin
+  rcases dense hε with ⟨r, h0r, hrε⟩,
+  rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,
+  rcases nnreal.exists_pos_sum_of_encodable (coe_lt_coe.1 h0r) ι with ⟨ε', hp, c, hc, hcr⟩,
+  exact ⟨ε', hp, (ennreal.tsum_coe_eq hc).symm ▸ lt_trans (coe_lt_coe.2 hcr) hrε⟩
+end
+
+end ennreal

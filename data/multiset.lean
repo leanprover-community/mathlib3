@@ -8,7 +8,8 @@ Multisets.
 import logic.function order.boolean_algebra
   data.list.basic data.list.perm data.list.sort data.quot data.string
   algebra.order_functions algebra.group_power algebra.ordered_group
-  tactic.interactive
+  category.traversable.lemmas tactic.interactive
+  category.traversable.instances category.basic
 
 open list subtype nat lattice
 
@@ -78,13 +79,12 @@ theorem singleton_coe (a : α) : (a::0 : multiset α) = ([a] : list α) := rfl
   have [a] ++ l ~ [b] ++ l, from quotient.exact e,
   eq_singleton_of_perm $ (perm_app_right_iff _).1 this, congr_arg _⟩
 
-@[simp] theorem cons_inj_right (a : α) {s t : multiset α} :
-  a::s = a::t ↔ s = t :=
-quotient.induction_on₂ s t $ λ l₁ l₂, by simp [perm_cons]
+@[simp] theorem cons_inj_right (a : α) : ∀{s t : multiset α}, a::s = a::t ↔ s = t :=
+by rintros ⟨l₁⟩ ⟨l₂⟩; simp [perm_cons]
 
 @[recursor 5] protected theorem induction {p : multiset α → Prop}
-  (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) (s) : p s :=
-quot.induction_on s $ λ l, by induction l with _ _ ih; [exact h₁, exact h₂ ih]
+  (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) : ∀s, p s :=
+by rintros ⟨l⟩; induction l with _ _ ih; [exact h₁, exact h₂ ih]
 
 @[elab_as_eliminator] protected theorem induction_on {p : multiset α → Prop}
   (s : multiset α) (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) : p s :=
@@ -244,11 +244,10 @@ quotient.lift_on₂ s t (<+~) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
   propext (p₂.subperm_left.trans p₁.subperm_right)
 
 instance : partial_order (multiset α) :=
-{ le := multiset.le,
-  le_refl := λ s, quot.induction_on s $ λ l, subperm.refl _,
-  le_trans := λ s t u, quotient.induction_on₃ s t u $ @subperm.trans _,
-  le_antisymm := λ s t, quotient.induction_on₂ s t $
-    λ l₁ l₂ h₁ h₂, quot.sound (subperm.antisymm h₁ h₂) }
+{ le          := multiset.le,
+  le_refl     := by rintros ⟨l⟩; exact subperm.refl _,
+  le_trans    := by rintros ⟨l₁⟩ ⟨l₂⟩ ⟨l₃⟩; exact @subperm.trans _ _ _ _,
+  le_antisymm := by rintros ⟨l₁⟩ ⟨l₂⟩ h₁ h₂; exact quot.sound (subperm.antisymm h₁ h₂) }
 
 theorem subset_of_le {s t : multiset α} : s ≤ t → s ⊆ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, subset_of_subperm
@@ -1638,6 +1637,14 @@ end
 by have := card_powerset s;
    rwa [← diagonal_map_fst, card_map] at this
 
+lemma prod_map_add [comm_semiring β] {s : multiset α} {f g : α → β} :
+  prod (s.map (λa, f a + g a)) = sum ((diagonal s).map (λp, (p.1.map f).prod * (p.2.map g).prod)) :=
+begin
+  refine s.induction_on _ _,
+  { simp },
+  { assume a s ih, simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm] },
+end
+
 /- countp -/
 
 /-- `countp p s` counts the number of elements of `s` (with multiplicity) that
@@ -1923,6 +1930,35 @@ by induction h; simp [*]
 
 end rel
 
+section map
+
+theorem map_eq_map {f : α → β} (hf : function.injective f) {s t : multiset α} :
+  s.map f = t.map f ↔ s = t :=
+by rw [← rel_eq, ← rel_eq, rel_map_left, rel_map_right]; simp [hf.eq_iff]
+
+theorem injective_map {f : α → β} (hf : function.injective f) :
+  function.injective (multiset.map f) :=
+assume x y, (map_eq_map hf).1
+
+end map
+
+section quot
+
+theorem map_mk_eq_map_mk_of_rel {r : α → α → Prop} {s t : multiset α} (hst : s.rel r t) :
+ s.map (quot.mk r) = t.map (quot.mk r) :=
+rel.rec_on hst rfl $ assume a b s t hab hst ih, by simp [ih, quot.sound hab]
+
+theorem exists_multiset_eq_map_quot_mk {r : α → α → Prop} (s : multiset (quot r)) :
+  ∃t:multiset α, s = t.map (quot.mk r) :=
+multiset.induction_on s ⟨0, rfl⟩ $
+  assume a s ⟨t, ht⟩, quot.induction_on a $ assume a, ht.symm ▸ ⟨a::t, (map_cons _ _ _).symm⟩
+
+theorem induction_on_multiset_quot
+  {r : α → α → Prop} {p : multiset (quot r) → Prop} (s : multiset (quot r)) :
+  (∀s:multiset α, p (s.map (quot.mk r))) → p s :=
+match s, exists_multiset_eq_map_quot_mk s with _, ⟨t, rfl⟩ := assume h, h _ end
+
+end quot
 
 /- disjoint -/
 
@@ -2748,5 +2784,127 @@ begin
 end
 
 end pi
+end multiset
+
+namespace multiset
+
+instance : functor multiset :=
+{ map := @map }
+
+instance : is_lawful_functor multiset :=
+by refine { .. }; intros; simp
+
+open is_lawful_traversable is_comm_applicative
+
+variables {F : Type u_1 → Type u_1} [applicative F] [is_comm_applicative F]
+variables {α' β' : Type u_1} (f : α' → F β')
+
+lemma coe_append_eq_add_coe :
+  ((∘) (coe : list β' → multiset β') ∘ append) = (λ x y, x + coe y) ∘ coe :=
+by ext; simp
+
+lemma coe_list_cons_eq_cons_coe :
+  flip ((∘) (coe : list β' → multiset β') ∘ @list.cons β') = flip multiset.cons ∘ (coe) :=
+by ext; simp! [flip]
+
+lemma coe_traverse_cons (x : α') (xs : list α') :
+  (coe : list β' → multiset β') <$> traverse f (x :: xs) =
+  coe <$> traverse f (xs ++ [x]) :=
+begin
+  symmetry, simp! [traverse],
+  induction xs, refl,
+  simp! [traverse] with functor_norm,
+  rw [commutative_map,coe_list_cons_eq_cons_coe,comp_map,xs_ih],
+  rw [commutative_map], symmetry, rw [commutative_map],
+  simp with functor_norm, congr,
+  ext, simp! [flip], constructor
+end
+
+lemma coe_traverse_cons_swap (x x' : α') (xs : list α') :
+  (coe : list β' → multiset β') <$> traverse f (x :: x' :: xs) =
+  coe <$> traverse f (x' :: x :: xs : list α') :=
+begin
+  simp! [traverse] with functor_norm,
+  rw commutative_map,
+  congr, ext, simp! [flip],
+  constructor
+end
+
+def traverse :
+  multiset α' → F (multiset β') :=
+quotient.lift (functor.map coe ∘ traversable.traverse f)
+begin
+  introv p, unfold function.comp,
+  induction p, refl,
+  { simp [coe_traverse_cons,traverse_append] with functor_norm,
+    rw [coe_append_eq_add_coe,comp_map,p_ih],
+    simp! with functor_norm },
+  { rw coe_traverse_cons_swap },
+  { simp [*] }
+end
+
+open functor
+open traversable is_lawful_traversable
+
+@[simp]
+lemma lift_beta {α β : Type*} (x : list α) (f : list α → β)
+  (h : ∀ a b : list α, a ≈ b → f a = f b) :
+  quotient.lift f h (x : multiset α) = f x :=
+quotient.lift_beta _ _ _
+
+@[simp]
+lemma map_comp_coe {α β} (h : α → β) :
+  functor.map h ∘ coe = (coe ∘ functor.map h : list α → multiset β) :=
+by funext; simp [functor.map]
+
+lemma id_traverse {α : Type*} (x : multiset α) :
+  traverse id.mk x = x :=
+quotient.induction_on x
+(by { intro, rw [traverse,quotient.lift_beta,function.comp],
+      simp, congr })
+
+lemma comp_traverse {G H : Type* → Type*}
+               [applicative G] [applicative H]
+               [is_comm_applicative G] [is_comm_applicative H]
+               {α β γ : Type*}
+               (g : α → G β) (h : β → H γ) (x : multiset α) :
+  traverse (comp.mk ∘ functor.map h ∘ g) x =
+  comp.mk (functor.map (traverse h) (traverse g x)) :=
+quotient.induction_on x
+(by intro;
+    simp [traverse,comp_traverse] with functor_norm;
+    simp [(<$>),(∘)] with functor_norm)
+
+lemma map_traverse {G : Type* → Type*}
+               [applicative G] [is_comm_applicative G]
+               {α β γ : Type*}
+               (g : α → G β) (h : β → γ)
+               (x : multiset α) :
+  functor.map (functor.map h) (traverse g x) =
+  traverse (functor.map h ∘ g) x :=
+quotient.induction_on x
+(by intro; simp [traverse] with functor_norm;
+    rw [comp_map,map_traverse])
+
+lemma traverse_map {G : Type* → Type*}
+               [applicative G] [is_comm_applicative G]
+               {α β γ : Type*}
+               (g : α → β) (h : β → G γ)
+               (x : multiset α) :
+  traverse h (map g x) =
+  traverse (h ∘ g) x :=
+quotient.induction_on x
+(by intro; simp [traverse];
+    rw [← traversable.traverse_map h g];
+    [ refl, apply_instance ])
+
+lemma naturality {G H : Type* → Type*}
+                [applicative G] [applicative H]
+                [is_comm_applicative G] [is_comm_applicative H]
+                (eta : applicative_transformation G H)
+                {α β : Type*} (f : α → G β) (x : multiset α) :
+  eta (traverse f x) = traverse (@eta _ ∘ f) x :=
+quotient.induction_on x
+(by intro; simp [traverse,is_lawful_traversable.naturality] with functor_norm)
 
 end multiset

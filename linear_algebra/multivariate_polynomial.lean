@@ -210,7 +210,7 @@ section map
 variables [comm_semiring β] [decidable_eq β]
 variables (f : α → β) [is_semiring_hom f]
 
--- `mv_polynomial σ` is a functor (incomplete)
+/-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : mv_polynomial σ α → mv_polynomial σ β := eval₂ (C ∘ f) X
 
 @[simp] theorem map_monomial (s : σ →₀ ℕ) (a : α) : map f (monomial s a) = monomial s (f a) :=
@@ -295,7 +295,7 @@ variables {p q : mv_polynomial σ α}
 instance : ring (mv_polynomial σ α) := finsupp.to_ring
 instance : comm_ring (mv_polynomial σ α) := finsupp.to_comm_ring
 instance : has_scalar α (mv_polynomial σ α) := finsupp.to_has_scalar
-instance : module α (mv_polynomial σ α) := finsupp.to_module
+instance : module α (mv_polynomial σ α) := finsupp.to_module α
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring

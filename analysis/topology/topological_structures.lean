@@ -77,7 +77,7 @@ variables [topological_space α] [comm_monoid α] [topological_monoid α]
 lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) →
     tendsto (λb, (s.map (λc, f c b)).prod) x (nhds ((s.map a).prod)) :=
-quot.induction_on s $ by simp; exact tendsto_list_prod
+by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
 
 lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.prod (λc, f c b)) x (nhds (s.prod a)) :=
@@ -85,7 +85,7 @@ tendsto_multiset_prod _
 
 lemma continuous_multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).prod) :=
-quot.induction_on s $ by simp; exact continuous_list_prod
+by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
 
 lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
@@ -142,18 +142,18 @@ end
 section
 variables [topological_space α] [add_comm_monoid α] [topological_add_monoid α]
 
-lemma tendsto_multiset_sum {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
-  (∀c∈s, tendsto (f c) x (nhds (a c))) →
+lemma tendsto_multiset_sum {f : γ → β → α} {x : filter β} {a : γ → α} :
+  ∀ (s : multiset γ), (∀c∈s, tendsto (f c) x (nhds (a c))) →
     tendsto (λb, (s.map (λc, f c b)).sum) x (nhds ((s.map a).sum)) :=
-quot.induction_on s $ by simp; exact tendsto_list_sum
+by rintros ⟨l⟩; simp; exact tendsto_list_sum l
 
 lemma tendsto_finset_sum {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.sum (λc, f c b)) x (nhds (s.sum a)) :=
 tendsto_multiset_sum _
 
-lemma continuous_multiset_sum [topological_space β] {f : γ → β → α} (s : multiset γ) :
-  (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).sum) :=
-quot.induction_on s $ by simp; exact continuous_list_sum
+lemma continuous_multiset_sum [topological_space β] {f : γ → β → α} :
+  ∀(s : multiset γ), (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).sum) :=
+by rintros ⟨l⟩; simp; exact continuous_list_sum l
 
 lemma continuous_finset_sum [topological_space β] {f : γ → β → α} (s : finset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, s.sum (λc, f c a)) :=
@@ -408,13 +408,13 @@ lemma lt_mem_nhds {a b : α} (h : a < b) : {b | a < b} ∈ (nhds b).sets :=
 mem_nhds_sets (is_open_lt' _) h
 
 lemma le_mem_nhds {a b : α} (h : a < b) : {b | a ≤ b} ∈ (nhds b).sets :=
-(nhds b).upwards_sets (lt_mem_nhds h) $ assume b hb, le_of_lt hb
+(nhds b).sets_of_superset (lt_mem_nhds h) $ assume b hb, le_of_lt hb
 
 lemma gt_mem_nhds {a b : α} (h : a < b) : {a | a < b} ∈ (nhds a).sets :=
 mem_nhds_sets (is_open_gt' _) h
 
 lemma ge_mem_nhds {a b : α} (h : a < b) : {a | a ≤ b} ∈ (nhds a).sets :=
-(nhds a).upwards_sets (gt_mem_nhds h) $ assume b hb, le_of_lt hb
+(nhds a).sets_of_superset (gt_mem_nhds h) $ assume b hb, le_of_lt hb
 
 lemma nhds_eq_orderable {a : α} :
   nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) :=
@@ -481,8 +481,8 @@ theorem induced_orderable_topology' {α : Type u} {β : Type v}
 begin
   letI := induced f ta,
   refine ⟨eq_of_nhds_eq_nhds (λ a, _)⟩,
-  rw [nhds_induced_eq_vmap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
-  { rw [← map_le_iff_le_vmap],
+  rw [nhds_induced_eq_comap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
+  { rw [← map_le_iff_le_comap],
     refine le_inf _ _; refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _); simp,
     { rcases H₁ h with ⟨b, ab, xb⟩,
       refine mem_infi_sets _ (mem_infi_sets ⟨ab, b, or.inl rfl⟩ (mem_principal_sets.2 _)),
@@ -492,10 +492,10 @@ begin
       exact λ c hc, lt_of_lt_of_le (hf.2 hc) xb } },
   refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
   rcases hs with ⟨ab, b, rfl|rfl⟩,
-  { exact mem_vmap_sets.2 ⟨{x | f b < x},
+  { exact mem_comap_sets.2 ⟨{x | f b < x},
       mem_inf_sets_of_left $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
       λ x, hf.1⟩ },
-  { exact mem_vmap_sets.2 ⟨{x | x < f b},
+  { exact mem_comap_sets.2 ⟨{x | x < f b},
       mem_inf_sets_of_right $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
       λ x, hf.1⟩ }
 end
@@ -622,10 +622,10 @@ instance orderable_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
               assume c hcs hca, show c < b,
                 from lt_of_not_ge $ assume hbc, h c (lt_of_lt_of_le hb₁ hbc) (le_of_lt hca) hcs,
-              inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_lt' _) hb₂) $
+              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hb₂) $
                 assume x (hx : b < x), show ¬ x < b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' < a}, is_open_gt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_lt' _) hl) $
+              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hl) $
                 assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
           end)
         (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
@@ -639,10 +639,10 @@ instance orderable_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
               assume c hcs hca, show c > b,
                 from lt_of_not_ge $ assume hbc, h c (le_of_lt hca) (lt_of_le_of_lt hbc hb₂) hcs,
-              inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_gt' _) hb₁) $
+              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hb₁) $
                 assume x (hx : b > x), show ¬ x > b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' > a}, is_open_lt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot $ (nhds a).upwards_sets (mem_nhds_sets (is_open_gt' _) hu) $
+              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hu) $
                 assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
           end)
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
@@ -660,8 +660,8 @@ end linear_order
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
 
-lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = vmap (has_neg.neg : α → α) :=
-funext $ assume f, map_eq_vmap_of_inverse (funext neg_neg) (funext neg_neg)
+lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
+funext $ assume f, map_eq_comap_of_inverse (funext neg_neg) (funext neg_neg)
 
 section topological_add_group
 
@@ -889,13 +889,13 @@ theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l
   {a | a < b} ∈ f.sets :=
 let ⟨c, (h : {a : α | a ≤ c} ∈ f.sets), hcb⟩ :=
   exists_lt_of_cInf_lt (ne_empty_iff_exists_mem.2 h) l in
-f.upwards_sets h $ assume a hac, lt_of_le_of_lt hac hcb
+mem_sets_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
 
 theorem gt_mem_sets_of_Liminf_gt {f : filter α} {b} (h : f.is_bounded (≥)) (l : f.Liminf > b) :
   {a | a > b} ∈ f.sets :=
 let ⟨c, (h : {a : α | c ≤ a} ∈ f.sets), hbc⟩ :=
   exists_lt_of_lt_cSup (ne_empty_iff_exists_mem.2 h) l in
-f.upwards_sets h $ assume a hca, lt_of_lt_of_le hbc hca
+mem_sets_of_superset h $ assume a hca, lt_of_lt_of_le hbc hca
 
 /-- If the liminf and the limsup of a filter coincide, then this filter converges to
 their common value, at least if the filter is eventually bounded above and below. -/
@@ -912,7 +912,7 @@ cInf_intro (ne_empty_iff_exists_mem.2 $ is_bounded_le_nhds a)
   (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ (nhds a).sets), c < b, from
     match dense_or_discrete hba with
     | or.inl ⟨c, hac, hcb⟩ := ⟨c, ge_mem_nhds hac, hcb⟩
-    | or.inr ⟨_, h⟩        := ⟨a, (nhds a).upwards_sets (gt_mem_nhds hba) h, hba⟩
+    | or.inr ⟨_, h⟩        := ⟨a, (nhds a).sets_of_superset (gt_mem_nhds hba) h, hba⟩
     end)
 
 theorem Liminf_nhds (a : α) : Liminf (nhds a) = a :=
@@ -921,7 +921,7 @@ cSup_intro (ne_empty_iff_exists_mem.2 $ is_bounded_ge_nhds a)
   (assume b (hba : b < a), show ∃c (h : {n : α | c ≤ n} ∈ (nhds a).sets), b < c, from
     match dense_or_discrete hba with
     | or.inl ⟨c, hbc, hca⟩ := ⟨c, le_mem_nhds hca, hbc⟩
-    | or.inr ⟨h, _⟩        := ⟨a, (nhds a).upwards_sets (lt_mem_nhds hba) h, hba⟩
+    | or.inr ⟨h, _⟩        := ⟨a, (nhds a).sets_of_superset (lt_mem_nhds hba) h, hba⟩
     end)
 
 /-- If a filter is converging, its limsup coincides with its limit. -/

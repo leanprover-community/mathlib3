@@ -1035,7 +1035,7 @@ theorem succ_lt_of_not_succ {o} (h : ¬ ∃ a, o = succ a) {b} : succ b < o ↔ 
 theorem lt_pred {a b} : a < pred b ↔ succ a < b :=
 if h : ∃ a, b = succ a then let ⟨c, e⟩ := h in
 by rw [e, pred_succ, succ_lt_succ]
-else by simpa [pred, h, succ_lt_of_not_succ]
+else by simp [pred, h, succ_lt_of_not_succ]
 
 theorem pred_le {a b} : pred a ≤ b ↔ a ≤ succ b :=
 le_iff_le_iff_lt_iff_lt.2 lt_pred
@@ -1273,7 +1273,7 @@ let ⟨⟨i, h⟩, e⟩ := @min_eq S _ _ in
 (show omin S H = i, from e).symm ▸ h
 
 theorem le_omin {S H a} : a ≤ omin S H ↔ ∀ i ∈ S, a ≤ i :=
-le_min.trans set.set_coe.forall
+le_min.trans set_coe.forall
 
 theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
 le_omin.1 (le_refl _) _ h
@@ -1881,6 +1881,9 @@ eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g
          (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
    simp [sup_le]
+
+theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
+eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]
 
 /-- The supremum of a family of ordinals indexed by the set
   of ordinals less than some `o : ordinal.{u}`.
@@ -2855,6 +2858,13 @@ max_le
   (by simpa using mul_le_mul_left a (le_trans (le_of_lt one_lt_omega) hb))
   (by simpa using mul_le_mul_right b (le_trans (le_of_lt one_lt_omega) ha))
 
+theorem mul_lt_of_lt {a b c : cardinal} (hc : omega ≤ c)
+  (h1 : a < c) (h2 : b < c) : a * b < c :=
+lt_of_le_of_lt (mul_le_mul (le_max_left a b) (le_max_right a b)) $
+(lt_or_le (max a b) omega).elim
+  (λ h, lt_of_lt_of_le (mul_lt_omega h h) hc)
+  (λ h, by rw mul_eq_self h; exact max_lt h1 h2)
+
 theorem add_eq_self {c : cardinal} (h : omega ≤ c) : c + c = c :=
 le_antisymm
   (by simpa [mul_eq_self h, two_mul] using
@@ -2866,5 +2876,12 @@ le_antisymm
   (add_eq_self (le_trans ha (le_max_left a b)) ▸
     add_le_add (le_max_left _ _) (le_max_right _ _)) $
 max_le (le_add_right _ _) (le_add_left _ _)
+
+theorem add_lt_of_lt {a b c : cardinal} (hc : omega ≤ c)
+  (h1 : a < c) (h2 : b < c) : a + b < c :=
+lt_of_le_of_lt (add_le_add (le_max_left a b) (le_max_right a b)) $
+(lt_or_le (max a b) omega).elim
+  (λ h, lt_of_lt_of_le (add_lt_omega h h) hc)
+  (λ h, by rw add_eq_self h; exact max_lt h1 h2)
 
 end cardinal

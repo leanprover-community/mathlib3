@@ -49,11 +49,10 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 
 instance : linear_order cardinal.{u} :=
 { le          := (≤),
-  le_refl     := assume a, quot.induction_on a $ λ α, ⟨embedding.refl _⟩,
-  le_trans    := assume a b c, quotient.induction_on₃ a b c $ assume α β γ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩,
-  le_antisymm := assume a b, quotient.induction_on₂ a b $ assume α β ⟨e₁⟩ ⟨e₂⟩,
-    quotient.sound (e₁.antisymm e₂),
-  le_total    := assume a b, quotient.induction_on₂ a b $ assume α β, embedding.total }
+  le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
+  le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
+  le_antisymm := by rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩; exact quotient.sound (e₁.antisymm e₂),
+  le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total }
 
 noncomputable instance : decidable_linear_order cardinal.{u} := classical.DLO _
 
@@ -146,7 +145,7 @@ local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
 @[simp] theorem power_zero {a : cardinal} : a ^ 0 = 1 :=
 quotient.induction_on a $ assume α, quotient.sound ⟨
   equiv.trans (equiv.arrow_congr equiv.ulift (equiv.refl α)) $
-  equiv.trans equiv.arrow_empty_unit $
+  equiv.trans (equiv.empty_arrow_equiv_unit α) $
   equiv.ulift.symm⟩
 
 @[simp] theorem power_one {a : cardinal} : a ^ 1 = a :=
@@ -195,8 +194,8 @@ from (quotient.induction_on₃ a b c $ assume α β γ,
 section order_properties
 open sum
 
-theorem zero_le (a : cardinal) : 0 ≤ a :=
-quot.induction_on a $ λ α, ⟨embedding.of_not_nonempty $ λ ⟨⟨a⟩⟩, a.elim⟩
+theorem zero_le : ∀(a : cardinal), 0 ≤ a :=
+by rintro ⟨α⟩; exact ⟨embedding.of_not_nonempty $ λ ⟨⟨a⟩⟩, a.elim⟩
 
 theorem le_zero (a : cardinal) : a ≤ 0 ↔ a = 0 :=
 by simp [le_antisymm_iff, zero_le]
@@ -207,9 +206,8 @@ by simp [lt_iff_le_and_ne, eq_comm, zero_le]
 theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
-theorem add_le_add {a b c d : cardinal} : a ≤ b → c ≤ d → a + c ≤ b + d :=
-quotient.induction_on₂ a b $ assume α β, quotient.induction_on₂ c d $ assume γ δ ⟨e₁⟩ ⟨e₂⟩,
-  ⟨embedding.sum_congr e₁ e₂⟩
+theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.sum_congr e₁ e₂⟩
 
 theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
 add_le_add (le_refl _)
@@ -223,9 +221,8 @@ by simpa using add_le_add_left a (zero_le b)
 theorem le_add_left (a b : cardinal) : a ≤ b + a :=
 by simpa using add_le_add_right a (zero_le b)
 
-theorem mul_le_mul {a b c d : cardinal} : a ≤ b → c ≤ d → a * c ≤ b * d :=
-quotient.induction_on₂ a b $ assume α β, quotient.induction_on₂ c d $ assume γ δ ⟨e₁⟩ ⟨e₂⟩,
-  ⟨embedding.prod_congr e₁ e₂⟩
+theorem mul_le_mul : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a * c ≤ b * d :=
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.prod_congr e₁ e₂⟩
 
 theorem mul_le_mul_left (a) {b c : cardinal} : b ≤ c → a * b ≤ a * c :=
 mul_le_mul (le_refl _)
@@ -233,8 +230,8 @@ mul_le_mul (le_refl _)
 theorem mul_le_mul_right {a b : cardinal} (c) (h : a ≤ b) : a * c ≤ b * c :=
 mul_le_mul h (le_refl _)
 
-theorem power_le_power_left {a b c : cardinal} : a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
-quotient.induction_on₃ a b c $ assume α β γ hα ⟨e⟩,
+theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
   have nonempty α, from classical.by_contradiction $ assume hnα,
     hα $ quotient.sound ⟨equiv.trans (equiv.empty_of_not_nonempty hnα) equiv.ulift.symm⟩,
   let ⟨a⟩ := this in
@@ -262,12 +259,11 @@ instance : canonically_ordered_monoid cardinal.{u} :=
 instance : order_bot cardinal.{u} :=
 { bot := 0, bot_le := zero_le, ..cardinal.linear_order }
 
-theorem cantor (a : cardinal.{u}) : a < 2 ^ a :=
-by rw ← prop_eq_two; exact
-quot.induction_on a (λ α, ⟨⟨⟨λ a b, ⟨a = b⟩,
-  λ a b h, cast (ulift.up.inj (@congr_fun _ _ _ _ h b)).symm rfl⟩⟩,
-λ ⟨⟨f, hf⟩⟩, cantor_injective (λ s, f (λ a, ⟨s a⟩)) $
-  λ s t h, by funext a; injection congr_fun (hf h) a⟩)
+theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a :=
+by rw ← prop_eq_two; rintros ⟨a⟩; exact ⟨
+  ⟨⟨λ a b, ⟨a = b⟩, λ a b h, cast (ulift.up.inj (@congr_fun _ _ _ _ h b)).symm rfl⟩⟩,
+  λ ⟨⟨f, hf⟩⟩, cantor_injective (λ s, f (λ a, ⟨s a⟩)) $
+    λ s t h, by funext a; injection congr_fun (hf h) a⟩
 
 instance : no_top_order cardinal.{u} :=
 { no_top := λ a, ⟨_, cantor a⟩, ..cardinal.linear_order }
@@ -364,15 +360,15 @@ noncomputable def sup {ι} (f : ι → cardinal) : cardinal :=
 theorem le_sup {ι} (f : ι → cardinal) (i) : f i ≤ sup f :=
 by dsimp [sup]; cases min_eq _ _ with c hc; rw hc; exact c.2 i
 
-theorem sup_le {ι} (f : ι → cardinal) (a) : sup f ≤ a ↔ ∀ i, f i ≤ a :=
+theorem sup_le {ι} {f : ι → cardinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
 ⟨λ h i, le_trans (le_sup _ _) h,
  λ h, by dsimp [sup]; change a with (⟨a, h⟩:subtype _).1; apply min_le⟩
 
 theorem sup_le_sup {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sup f ≤ sup g :=
-(sup_le _ _).2 $ λ i, le_trans (H i) (le_sup _ _)
+sup_le.2 $ λ i, le_trans (H i) (le_sup _ _)
 
 theorem sup_le_sum {ι} (f : ι → cardinal) : sup f ≤ sum f :=
-(sup_le _ _).2 $ le_sum _
+sup_le.2 $ le_sum _
 
 theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ mk ι * sup.{u u} f :=
 by rw ← sum_const; exact sum_le_sum _ _ (le_sup _)

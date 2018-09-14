@@ -9,6 +9,12 @@ open set
 universe u
 variables {α : Type u}
 
+instance division_ring.to_domain [s : division_ring α] : domain α :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
+    classical.by_contradiction $ λ hn,
+      division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
+  ..s }
+
 namespace units
 variables [division_ring α] {a b : α}
 
@@ -18,9 +24,6 @@ variables [division_ring α] {a b : α}
   as a partial function with three arguments. -/
 def mk0 (a : α) (ha : a ≠ 0) : units α :=
 ⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
-
-@[simp] theorem ne_zero (u : units α) : (u : α) ≠ 0
-| h := by simpa [h] using inv_mul u
 
 @[simp] theorem inv_eq_inv (u : units α) : (↑u⁻¹ : α) = u⁻¹ :=
 (mul_left_inj u).1 $ by simp
@@ -34,12 +37,6 @@ end units
 section division_ring
 variables [s : division_ring α] {a b c : α}
 include s
-
-instance division_ring.to_domain : domain α :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
-    classical.by_contradiction $ λ hn,
-      division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
-  ..s }
 
 lemma div_eq_mul_inv : a / b = a * b⁻¹ := rfl
 
@@ -183,3 +180,44 @@ if b0 : b = 0 then by simp [b0] else
 field.div_div_cancel ha b0
 
 end
+
+@[reducible] def is_field_hom {α β} [division_ring α] [division_ring β] (f : α → β) := is_ring_hom f
+
+namespace is_field_hom
+open is_ring_hom
+
+section
+variables {β : Type*} [division_ring α] [division_ring β]
+variables (f : α → β) [is_field_hom f] {x y : α}
+
+lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
+⟨mt $ λ h, h.symm ▸ map_zero f,
+ λ x0 h, one_ne_zero $ calc
+    1 = f (x * x⁻¹) : by rw [mul_inv_cancel x0, map_one f]
+  ... = 0 : by rw [map_mul f, h, zero_mul]⟩
+
+lemma map_eq_zero : f x = 0 ↔ x = 0 :=
+by haveI := classical.dec; exact not_iff_not.1 (map_ne_zero f)
+
+lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ :=
+(domain.mul_left_inj ((map_ne_zero f).2 h)).1 $
+by rw [mul_inv_cancel ((map_ne_zero f).2 h), ← map_mul f, mul_inv_cancel h, map_one f]
+
+lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y :=
+by simp [division_def, map_mul f, map_inv' f h]
+
+end
+
+section
+variables {β : Type*} [discrete_field α] [discrete_field β]
+variables (f : α → β) [is_field_hom f] {x y : α}
+
+lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
+classical.by_cases (by rintro rfl; simp [map_zero f]) (map_inv' f)
+
+lemma map_div : f (x / y) = f x / f y :=
+by simp [division_def, map_mul f, map_inv f]
+
+end
+
+end is_field_hom

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro
 -/
 import algebra.group_power
+import tactic.subtype_instance
 
 variables {α : Type*} [monoid α] {s : set α}
 variables {β : Type*} [add_monoid β] {t : set β}
@@ -81,15 +82,13 @@ lemma is_submonoid.list_prod_mem [is_submonoid s] : ∀{l : list α}, (∀x∈l,
   is_submonoid.mul_mem this.1 (is_submonoid.list_prod_mem this.2)
 
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
-{ mul       := λ a b : s, ⟨a * b, is_submonoid.mul_mem a.2 b.2⟩,
-  one       := ⟨1, is_submonoid.one_mem s⟩,
-  mul_assoc := λ a b c, subtype.eq $ mul_assoc _ _ _,
-  one_mul   := λ a, subtype.eq $ one_mul _,
-  mul_one   := λ a, subtype.eq $ mul_one _ }
+by subtype_instance
+
 attribute [to_additive subtype.add_monoid._proof_1] subtype.monoid._proof_1
 attribute [to_additive subtype.add_monoid._proof_2] subtype.monoid._proof_2
 attribute [to_additive subtype.add_monoid._proof_3] subtype.monoid._proof_3
 attribute [to_additive subtype.add_monoid._proof_4] subtype.monoid._proof_4
+attribute [to_additive subtype.add_monoid._proof_5] subtype.monoid._proof_5
 attribute [to_additive subtype.add_monoid] subtype.monoid
 
 namespace monoid

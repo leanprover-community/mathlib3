@@ -86,6 +86,10 @@ attribute [to_additive add_group.to_add_monoid] group.to_monoid
 attribute [to_additive add_group.add_left_neg] group.mul_left_inv
 attribute [to_additive add_group.add] group.mul
 attribute [to_additive add_group.add_assoc] group.mul_assoc
+attribute [to_additive add_group.zero] group.one
+attribute [to_additive add_group.zero_add] group.one_mul
+attribute [to_additive add_group.add_zero] group.mul_one
+attribute [to_additive add_group.neg] group.inv
 
 attribute [to_additive add_comm_group] comm_group
 attribute [to_additive add_comm_group.mk] comm_group.mk
@@ -136,8 +140,8 @@ attribute [to_additive neg_add] mul_inv
 
 end pending_1857
 
-universe u
-variables {α : Type u}
+universes u v
+variables {α : Type u} {β : Type v}
 
 def additive (α : Type*) := α
 def multiplicative (α : Type*) := α
@@ -266,6 +270,9 @@ units.ext begin
   refine le_antisymm _ h,
   simpa using nat.mul_le_mul_left u h'
 end
+
+def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units α :=
+⟨a, b, hab, by rwa mul_comm a b at hab⟩
 
 @[to_additive with_zero]
 def with_one (α) := option α
@@ -576,7 +583,8 @@ section add_comm_group
 
 end add_comm_group
 
-variables {β : Type*} [group α] [group β]
+section is_conj
+variables [group α] [group β]
 
 def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 
@@ -591,22 +599,63 @@ def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩
 
+end is_conj
+
+class is_monoid_hom [monoid α] [monoid β] (f : α → β) : Prop :=
+(map_one : f 1 = 1)
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+
+class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) : Prop :=
+(map_zero : f 0 = 0)
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
+
+attribute [to_additive is_add_monoid_hom] is_monoid_hom
+attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
+attribute [to_additive is_add_monoid_hom.mk] is_monoid_hom.mk
+
+namespace is_monoid_hom
+variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+
+@[to_additive is_add_monoid_hom.id]
+instance id : is_monoid_hom (@id α) := by refine {..}; intros; refl
+
+@[to_additive is_add_monoid_hom.id]
+instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
+  is_monoid_hom (g ∘ f) :=
+{ map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
+  map_one := by simp [map_one f]; exact map_one g }
+  
+end is_monoid_hom
+
+-- TODO rename fields of is_group_hom: mul ↝ map_mul?
+
 /-- Predicate for group homomorphism. -/
-class is_group_hom (f : α → β) : Prop :=
+class is_group_hom [group α] [group β] (f : α → β) : Prop :=
 (mul : ∀ a b : α, f (a * b) = f a * f b)
 
-namespace is_group_hom
-variables (f : α → β) [is_group_hom f]
+class is_add_group_hom [add_group α] [add_group β] (f : α → β) : Prop :=
+(add : ∀ a b, f (a + b) = f a + f b)
 
+attribute [to_additive is_add_group_hom] is_group_hom
+attribute [to_additive is_add_group_hom.add] is_group_hom.mul
+attribute [to_additive is_add_group_hom.mk] is_group_hom.mk
+
+namespace is_group_hom
+variables [group α] [group β] (f : α → β) [is_group_hom f]
+
+@[to_additive is_add_group_hom.zero]
 theorem one : f 1 = 1 :=
 mul_self_iff_eq_one.1 $ by simp [(mul f 1 1).symm]
 
+@[to_additive is_add_group_hom.neg]
 theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
 eq.symm $ inv_eq_of_mul_eq_one $ by simp [(mul f a a⁻¹).symm, one f]
 
+@[to_additive is_add_group_hom.id]
 instance id : is_group_hom (@id α) :=
 ⟨λ _ _, rfl⟩
 
+@[to_additive is_add_group_hom.comp]
 instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] :
   is_group_hom (g ∘ f) :=
 ⟨λ x y, calc
@@ -623,10 +672,8 @@ end is_group_hom
 class is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
 (mul : ∀ a b : α, f (a * b) = f b * f a)
 
-attribute [class] is_group_anti_hom
-
 namespace is_group_anti_hom
-variables (f : α → β) [w : is_group_anti_hom f]
+variables [group α] [group β] (f : α → β) [w : is_group_anti_hom f]
 include w
 
 theorem one : f 1 = 1 :=
@@ -639,3 +686,13 @@ end is_group_anti_hom
 
 theorem inv_is_group_anti_hom [group α] : is_group_anti_hom (λ x : α, x⁻¹) :=
 ⟨mul_inv_rev⟩
+
+namespace is_add_group_hom
+variables [add_group α] [add_group β] (f : α → β) [is_add_group_hom f]
+
+lemma sub (a b) : f (a - b) = f a - f b :=
+calc f (a - b) = f (a + -b)   : rfl
+           ... = f a + f (-b) : add f _ _
+           ... = f a - f b    : by  simp[neg f]
+
+end is_add_group_hom

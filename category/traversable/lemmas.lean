@@ -108,6 +108,11 @@ lemma traverse_map' (g : α → β) (h : β → G γ) :
   (traverse h ∘ map g : t α → G (t γ)) :=
 by ext; simp [traverse_map]
 
+lemma map_traverse' (g : α → G β) (h : β → γ) :
+  traverse (map h ∘ g) =
+  (map (map h) ∘ traverse g : t α → G (t γ)) :=
+by ext; simp [map_traverse]
+
 lemma naturality_pf (η : applicative_transformation F G) (f : α → F β) :
   traverse (@η _ ∘ f) = @η _ ∘ (traverse f : t α → F (t β)) :=
 by ext; simp [naturality]

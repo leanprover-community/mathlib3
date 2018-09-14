@@ -87,6 +87,10 @@ begin
   apply classical.some_spec h
 end
 
+/-- Embedding into `option` -/
+protected def some {α} : α ↪ option α :=
+⟨some, option.injective_some α⟩
+
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨subtype.val, λ _ _, subtype.eq'⟩
 

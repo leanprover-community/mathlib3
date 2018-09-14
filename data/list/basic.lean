@@ -293,6 +293,9 @@ end
 
 attribute [simp] join
 
+theorem join_eq_nil {L : list (list α)} : join L = [] ↔ ∀ l ∈ L, l = [] :=
+by induction L; simp [or_imp_distrib, forall_and_distrib, *]
+
 @[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; simp *
 
@@ -334,6 +337,9 @@ by induction n; simp *
 
 @[simp] theorem tail_repeat (a : α) (n) : tail (repeat a n) = repeat a n.pred :=
 by cases n; refl
+
+@[simp] theorem join_repeat_nil (n : ℕ) : join (repeat [] n) = @nil α :=
+by induction n; simp *
 
 /- bind -/
 
@@ -680,7 +686,8 @@ index_of_cons_eq _ rfl
 @[simp] theorem index_of_cons_ne {a b : α} (l : list α) : a ≠ b → index_of a (b::l) = succ (index_of a l) :=
 assume n, if_neg n
 
-theorem index_of_eq_length {a : α} {l : list α} : index_of a l = length l ↔ a ∉ l :=
+theorem index_of_eq_length {a : α} {l : list α} : index_of a l = length l ↔ a ∉ l
+:=
 begin
   induction l with b l ih; simp [-add_comm],
   by_cases h : a = b; simp [h, -add_comm],
@@ -1172,6 +1179,10 @@ theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
     { simp [list.erase] },
     { simp [ne.symm, list.erase, prod_erase h, mul_left_comm a b] }
   end
+
+lemma dvd_prod [comm_semiring α] {a} {l : list α} (ha : a ∈ l) : a ∣ l.prod :=
+let ⟨s, t, h⟩ := mem_split ha in
+by rw [h, prod_append, prod_cons, mul_left_comm]; exact dvd_mul_right _ _
 
 @[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; simp [*, nat.mul_succ]
@@ -2594,6 +2605,13 @@ theorem diff_sublist_of_sublist : ∀ {l₁ l₂ l₃: list α}, l₁ <+ l₂ �
 | l₁ l₂ (a::l₃) h := by simp
   [diff_cons, diff_sublist_of_sublist (erase_sublist_erase _ h)]
 
+theorem erase_diff_erase_sublist_of_sublist {a : α} : ∀ {l₁ l₂ : list α},
+  l₁ <+ l₂ → (l₂.erase a).diff (l₁.erase a) <+ l₂.diff l₁
+| []      l₂ h := by simp [erase_sublist]
+| (b::l₁) l₂ h := if heq : b = a then by simp [heq]
+                  else by simpa [heq, erase_comm a b l₂]
+                  using erase_diff_erase_sublist_of_sublist (erase_sublist_erase b h)
+
 end diff
 
 /- zip & unzip -/
@@ -3813,6 +3831,18 @@ theorem reverse_range' : ∀ s n : ℕ,
 @[simp] theorem enum_map_fst (l : list α) :
   map prod.fst (enum l) = range l.length :=
 by simp [enum, range_eq_range']
+
+def reduce_option {α} : list (option α) → list α :=
+list.filter_map id
+
+def map_head {α} (f : α → α) : list α → list α
+| [] := []
+| (x :: xs) := f x :: xs
+
+def map_last {α} (f : α → α) : list α → list α
+| [] := []
+| [x] := [f x]
+| (x :: xs) := x :: map_last xs
 
 end list
 

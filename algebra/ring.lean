@@ -21,8 +21,7 @@ end
 namespace units
 variables [ring α] {a b : α}
 
-instance : has_neg (units α) :=
-⟨λ u, ⟨-u.val, -u.inv, by simp [u.val_inv], by simp [u.inv_val]⟩⟩
+instance : has_neg (units α) := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
 
 @[simp] protected theorem coe_neg (u : units α) : (↑-u : α) = -u := rfl
 
@@ -69,6 +68,7 @@ class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f
 (map_mul : ∀ {x y}, f (x * y) = f x * f y)
 
 namespace is_semiring_hom
+
 variables {β : Type v} [semiring α] [semiring β]
 variables (f : α → β) [is_semiring_hom f] {x y : α}
 
@@ -81,7 +81,18 @@ instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl }
 
+instance : is_add_monoid_hom f :=
+{ ..‹is_semiring_hom f› }
+
+instance : is_monoid_hom f :=
+{ ..‹is_semiring_hom f› }
+
 end is_semiring_hom
+
+@[simp] lemma zero_dvd_iff_eq_zero [comm_semiring α] (a : α) : 0 ∣ a ↔ a = 0 :=
+iff.intro
+  eq_zero_of_zero_dvd
+  (assume ha, ha ▸ dvd_refl a)
 
 section
   variables [ring α] (a b c d e : α)
@@ -112,6 +123,9 @@ section
 
 end
 
+@[simp] lemma zero_dvd_iff [comm_semiring α] {a : α} : 0 ∣ a ↔ a = 0 :=
+⟨eq_zero_of_zero_dvd, λ h, by rw h⟩
+
 section comm_ring
   variable [comm_ring α]
 
@@ -123,11 +137,12 @@ section comm_ring
 end comm_ring
 
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
 (map_one : f 1 = 1)
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
 
 namespace is_ring_hom
+
 variables {β : Type v} [ring α] [ring β]
 
 def of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
@@ -156,6 +171,9 @@ instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
 instance : is_semiring_hom f :=
 { map_zero := map_zero f, ..‹is_ring_hom f› }
 
+instance : is_add_group_hom f :=
+⟨λ _ _, map_add f⟩
+
 end is_ring_hom
 
 set_option old_structure_cmd true
@@ -174,9 +192,12 @@ class domain (α : Type u) extends ring α, no_zero_divisors α, zero_ne_one_cla
 section domain
   variable [domain α]
 
-  theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
+  @[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
   ⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
     or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
+
+  @[simp] theorem zero_eq_mul {a b : α} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
+  by rw [eq_comm, mul_eq_zero]
 
   theorem mul_ne_zero' {a b : α} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
   λ h, or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) h₁ h₂
@@ -229,3 +250,38 @@ section
   exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]
 
 end
+
+/- units in various rings -/
+
+namespace units
+
+section comm_semiring
+variables [comm_semiring α] (a b : α) (u : units α)
+
+@[simp] lemma coe_dvd : ↑u ∣ a := ⟨↑u⁻¹ * a, by simp⟩
+
+@[simp] lemma dvd_coe_mul : a ∣ b * u ↔ a ∣ b :=
+iff.intro
+  (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
+  (assume ⟨c, eq⟩, eq.symm ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
+
+@[simp] lemma dvd_coe : a ∣ ↑u ↔ a ∣ 1 :=
+suffices a ∣ 1 * ↑u ↔ a ∣ 1, by simpa,
+dvd_coe_mul _ _ _
+
+@[simp] lemma coe_mul_dvd : a * u ∣ b ↔ a ∣ b :=
+iff.intro
+  (assume ⟨c, eq⟩, ⟨c * ↑u, eq.symm ▸ by ac_refl⟩)
+  (assume h, suffices a * ↑u ∣ b * 1, by simpa, mul_dvd_mul h (coe_dvd _ _))
+
+end comm_semiring
+
+section domain
+variables [domain α]
+
+@[simp] theorem ne_zero : ∀(u : units α), (↑u : α) ≠ 0
+| ⟨u, v, (huv : 0 * v = 1), hvu⟩ rfl := by simpa using huv
+
+end domain
+
+end units

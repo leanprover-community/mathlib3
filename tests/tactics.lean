@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Simon Hudon
+Authors: Simon Hudon, Scott Morrison
 -/
 import tactic data.set.lattice data.prod
-       tactic.rewrite
+       tactic.rewrite data.stream.basic
 
 section solve_by_elim
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
@@ -23,6 +23,18 @@ example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
 begin
   apply_assumption,
 end
+
+open tactic
+
+example : true :=
+begin
+  (do gs ← get_goals,
+     set_goals [],
+     success_if_fail `[solve_by_elim],
+     set_goals gs),
+  trivial
+end
+
 end solve_by_elim
 
 section tauto₀
@@ -110,17 +122,6 @@ begin
   suffices : false, trivial,
   wlog h : x ≤ y,
   { guard_hyp h := x ≤ y,
-    guard_target false,
-    admit }
-end
-
-example {x y z : ℕ} : true :=
-begin
-  suffices : false, trivial,
-  wlog h : x ≤ y + z,
-  { guard_target x ≤ y + z ∨ x ≤ z + y,
-    admit },
-  { guard_hyp h := x ≤ y + z,
     guard_target false,
     admit }
 end
@@ -339,6 +340,16 @@ end rcases
 
 section ext
 
+@[extensionality] lemma unit.ext (x y : unit) : x = y :=
+begin
+  cases x, cases y, refl
+end
+
+example : subsingleton unit :=
+begin
+  split, intros, ext
+end
+
 example (x y : ℕ) : true :=
 begin
   have : x = y,
@@ -375,6 +386,19 @@ begin
     guard_target X x = Y x,
     admit },
   trivial,
+end
+
+example (s₀ s₁ : set ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
+by { ext1, guard_target x ∈ s₀ ↔ x ∈ s₁, simp * }
+
+example (s₀ s₁ : stream ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
+by { ext1, guard_target s₀.nth n = s₁.nth n, simp * }
+
+example (s₀ s₁ : ℤ → set (ℕ × ℕ))
+        (h : ∀ i a b, (a,b) ∈ s₀ i ↔ (a,b) ∈ s₁ i) : s₀ = s₁ :=
+begin
+  ext i ⟨a,b⟩,
+  apply h
 end
 
 def my_foo {α} (x : semigroup α) (y : group α) : true := trivial

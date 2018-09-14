@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison
 -/
 import data.dlist.basic category.basic
 
@@ -17,6 +17,8 @@ end name
 
 namespace expr
 open tactic
+
+attribute [derive has_reflect] binder_info
 
 protected meta def to_pos_nat : expr → option ℕ
 | `(has_one.one _) := some 1
@@ -48,11 +50,22 @@ meta def is_meta_var : expr → bool
 | (mvar _ _ _) := tt
 | e            := ff
 
+meta def is_sort : expr → bool
+| (sort _) := tt
+| e         := ff
+
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
 
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
+
+meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
+e.fold mk_name_set $ λ e' _ l,
+  match e' with
+  | expr.const n _ := if n.get_prefix = pre then l.insert n else l
+  | _ := l
+  end
 
 /- only traverses the direct descendents -/
 meta def {u} traverse {m : Type → Type u} [applicative m]
@@ -97,6 +110,30 @@ option.is_some $ do
   env.is_projection (n ++ x.deinternalize_field)
 
 end environment
+
+namespace interaction_monad
+open result
+
+meta def get_result {σ α} (tac : interaction_monad σ α) :
+  interaction_monad σ (interaction_monad.result σ α) | s :=
+match tac s with
+| r@(success _ s') := success r s'
+| r@(exception _ _ s') := success r s'
+end
+
+end interaction_monad
+
+namespace lean.parser
+open lean interaction_monad.result
+
+meta def of_tactic' {α} (tac : tactic α) : parser α :=
+do r ← of_tactic (interaction_monad.get_result tac),
+match r with
+| (success a _) := return a
+| (exception f pos _) := exception f pos
+end
+
+end lean.parser
 
 namespace tactic
 
@@ -298,20 +335,6 @@ do h' ← assert h p,
    set_goals [g₁],
    return (h', gs)
 
-meta def try_intros : list name → tactic (list name)
-| [] := intros $> []
-| (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
-
-meta def ext1 (xs : list name) : tactic (list name) :=
-do ls ← attribute.get_instances `extensionality,
-   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
-   try_intros xs
-
-meta def ext : list name → option ℕ → tactic unit
-| _  (some 0) := skip
-| xs n        := focus1 $ do
-  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
-
 meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
 | _ := []
@@ -418,6 +441,72 @@ meta structure by_elim_opt :=
   (max_rep : ℕ := 3)
 
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
+do
+  tactic.fail_if_no_goals,
+  solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
+
+meta def metavariables : tactic (list expr) :=
+do r ← result,
+   pure (r.list_meta_vars)
+
+/-- Succeeds only if the current goal is a proposition. -/
+meta def propositional_goal : tactic unit :=
+do goals ← get_goals,
+   let current_goal := goals.head,
+   current_goal_type ← infer_type current_goal,
+   p ← is_prop current_goal_type,
+   guard p
+
+variable {α : Type}
+
+private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
+| L := (do r ← t, iterate_aux (r :: L)) <|> return L
+
+meta def iterate' (t : tactic α) : tactic (list α) :=
+list.reverse <$> iterate_aux t []
+
+meta def iterate1 (t : tactic α) : tactic (α × list α) :=
+do r ← t | fail "iterate1 failed: tactic did not succeed",
+   L ← iterate' t,
+   return (r, L)
+
+meta def intros1 : tactic (list expr) :=
+iterate1 intro1 >>= λ p, return (p.1 :: p.2)
+
+/-- `successes` invokes each tactic in turn, returning the list of successful results. -/
+meta def successes {α} (tactics : list (tactic α)) : tactic (list α) :=
+list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
+
+/-- Return target after instantiating metavars and whnf -/
+private meta def target' : tactic expr :=
+target >>= instantiate_mvars >>= whnf
+
+/--
+Just like `split`, `fsplit` applies the constructor when the type of the target is an inductive data type with one constructor.
+However it does not reorder goals or invoke `auto_param` tactics.
+-/
+-- FIXME check if we can remove `auto_param := ff`
+meta def fsplit : tactic unit :=
+do [c] ← target' >>= get_constructors_for | tactic.fail "fsplit tactic failed, target is not an inductive datatype with only one constructor",
+   mk_const c >>= λ e, apply e {new_goals := new_goals.all, auto_param := ff} >> skip
+
+run_cmd add_interactive [`fsplit]
+
+/-- Calls `injection` on each hypothesis, and then, for each hypothesis on which `injection`
+    succeeds, clears the old hypothesis. -/
+meta def injections_and_clear : tactic unit :=
+do l ← local_context,
+   results ← successes $ l.map $ λ e, injection e >> clear e,
+   when (results.empty) (fail "could not use `injection` then `clear` on any hypothesis")
+
+run_cmd add_interactive [`injections_and_clear]
+
+meta def note_anon (e : expr) : tactic unit :=
+do n ← get_unused_name "lh",
+   note n none e, skip
+
+meta def find_local (t : pexpr) : tactic expr :=
+do t' ← to_expr t,
+   prod.snd <$> solve_aux t' assumption
 
 end tactic

@@ -3,8 +3,42 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.ext tactic.finish data.subtype
+import tactic.ext tactic.finish data.subtype tactic.interactive
 open function
+
+
+/- set coercion to a type -/
+namespace set
+instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
+end set
+
+section set_coe
+universe u
+variables {α : Type u}
+@[simp] theorem set.set_coe_eq_subtype (s : set α) :
+  coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
+
+@[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
+  (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=
+subtype.forall
+
+@[simp] theorem set_coe.exists {s : set α} {p : s → Prop} :
+  (∃ x : s, p x) ↔ (∃ x (h : x ∈ s), p ⟨x, h⟩) :=
+subtype.exists
+
+@[simp] theorem set_coe_cast : ∀ {s t : set α} (H' : s = t) (H : @eq (Type u) s t) (x : s),
+  cast H x = ⟨x.1, H' ▸ x.2⟩
+| s _ rfl _ ⟨x, h⟩ := rfl
+
+theorem set_coe.ext {s : set α} {a b : s} : (↑a : α) = ↑b → a = b :=
+subtype.eq
+
+theorem set_coe.ext_iff {s : set α} {a b : s} : (↑a : α) = ↑b ↔ a = b :=
+iff.intro set_coe.ext (assume h, h ▸ rfl)
+
+end set_coe
+
+lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.property
 
 namespace set
 universes u v w x
@@ -37,24 +71,6 @@ instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a
 instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred {a | p a} := H
 
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
-
-/- set coercion to a type -/
-
-instance : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
-
-@[simp] theorem set_coe_eq_subtype (s : set α) : coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
-
-@[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
-  (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=
-subtype.forall
-
-@[simp] theorem set_coe.exists {s : set α} {p : s → Prop} :
-  (∃ x : s, p x) ↔ (∃ x (h : x ∈ s), p ⟨x, h⟩) :=
-subtype.exists
-
-@[simp] theorem set_coe_cast : ∀ {s t : set α} (H' : s = t) (H : @eq (Type u) s t) (x : s),
-  cast H x = ⟨x.1, H' ▸ x.2⟩
-| s _ rfl _ ⟨x, h⟩ := rfl
 
 /- subset -/
 
@@ -174,6 +190,16 @@ theorem eq_univ_iff_forall {s : set α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext_iff]
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
+
+lemma nonempty_iff_univ_ne_empty {α : Type*} : nonempty α ↔ (univ : set α) ≠ ∅ :=
+begin
+  split,
+  { rintro ⟨a⟩ H2,
+    show a ∈ (∅ : set α), by rw ←H2 ; trivial },
+  { intro H,
+    cases exists_mem_of_ne_empty H with a _,
+    exact ⟨a⟩ }
+end
 
 /- union -/
 
@@ -443,8 +469,11 @@ by finish
 theorem set_compr_eq_eq_singleton {a : α} : {b | b = a} = {a} :=
 set.ext $ by simp
 
-theorem union_singleton : s ∪ {a} = insert a s :=
+@[simp] theorem union_singleton : s ∪ {a} = insert a s :=
 by simp [singleton_def]
+
+@[simp] theorem singleton_union : {a} ∪ s = insert a s :=
+by rw [union_comm, union_singleton]
 
 theorem singleton_inter_eq_empty : {a} ∩ s = ∅ ↔ a ∉ s :=
 by simp [eq_empty_iff_forall_not_mem]
@@ -630,7 +659,7 @@ diff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
 
 @[simp] theorem insert_diff_singleton {a : α} {s : set α} :
   insert a (s \ {a}) = insert a s :=
-by simp [insert_eq, union_diff_self]
+by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
 
 /- powerset -/
 
@@ -780,6 +809,9 @@ eq_univ_of_forall $ by simp [image]; exact H
 @[simp] theorem image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
 set.ext $ λ x, by simp [image]; rw eq_comm
 
+lemma inter_singleton_ne_empty {α : Type*} {s : set α} {a : α} : s ∩ {a} ≠ ∅ ↔ a ∈ s :=
+by finish  [set.inter_singleton_eq_empty]
+
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t
@@ -853,6 +885,14 @@ subset.antisymm
   (image_preimage_subset f s)
   (λ x hx, let ⟨y, e⟩ := h x in ⟨y, (e.symm ▸ hx : f y ∈ s), e⟩)
 
+lemma preimage_eq_preimage {f : β → α} (hf : surjective f) : f ⁻¹' s = preimage f t ↔ s = t :=
+iff.intro
+  (assume eq, by rw [← @image_preimage_eq β α f s hf, ← @image_preimage_eq β α f t hf, eq])
+  (assume eq, eq ▸ rfl)
+
+lemma surjective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
+assume s t, (preimage_eq_preimage hf).1
+
 theorem compl_image : image (@compl α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
 
@@ -877,6 +917,23 @@ lemma subtype_val_image {p : α → Prop} {s : set (subtype p)} :
 set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
+
+lemma preimage_subset_iff {A : set α} {B : set β} {f : α → β} :
+  f⁻¹' B ⊆ A ↔ (∀ a : α, f a ∈ B → a ∈ A) := iff.rfl
+
+lemma image_eq_image {f : α → β} (hf : injective f) : f '' s = f '' t ↔ s = t :=
+iff.symm $ iff.intro (assume eq, eq ▸ rfl) $ assume eq,
+  by rw [← preimage_image_eq s hf, ← preimage_image_eq t hf, eq]
+
+lemma image_subset_image_iff {f : α → β} (hf : injective f) : f '' s ⊆ f '' t ↔ s ⊆ t :=
+begin
+  refine (iff.symm $ iff.intro (image_subset f) $ assume h, _),
+  rw [← preimage_image_eq s hf, ← preimage_image_eq t hf],
+  exact preimage_mono h
+end
+
+lemma injective_image {f : α → β} (hf : injective f) : injective (('') f) :=
+assume s t, (image_eq_image hf).1
 
 end image
 
@@ -916,6 +973,13 @@ subset.antisymm
 theorem range_subset_iff {ι : Type*} {f : ι → β} {s : set β} : range f ⊆ s ↔ ∀ y, f y ∈ s :=
 forall_range_iff
 
+lemma nonempty_of_nonempty_range {α : Type*} {β : Type*} {f : α → β} (H : ¬range f = ∅) : nonempty α :=
+begin
+  cases exists_mem_of_ne_empty H with x h,
+  cases mem_range.1 h with y _,
+  exact ⟨y⟩
+end
+
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' preimage f t = t ∩ range f :=
 set.ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_range_self _⟩,
@@ -950,6 +1014,8 @@ protected def prod (s : set α) (t : set β) : set (α × β) :=
 theorem mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈ t) := rfl
 
 @[simp] theorem mem_prod {p : α × β} : p ∈ set.prod s t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
+
+lemma mk_mem_prod {a : α} {b : β} (a_in : a ∈ s) (b_in : b ∈ t) : (a, b) ∈ set.prod s t := ⟨a_in, b_in⟩
 
 @[simp] theorem prod_empty {s : set α} : set.prod s ∅ = (∅ : set (α × β)) :=
 set.ext $ by simp [set.prod]
@@ -1006,8 +1072,12 @@ by simp [not_eq_empty_iff_exists]
 @[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
 
-@[simp] theorem univ_prod_univ : set.prod univ univ = (univ : set (α×β)) :=
+@[simp] theorem univ_prod_univ : set.prod (@univ α) (@univ β) = univ :=
 set.ext $ assume ⟨a, b⟩, by simp
+
+lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
+  set.prod s t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
+by simp [subset_def]
 
 end prod
 end set

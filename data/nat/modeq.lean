@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Modular equality relation.
 -/
-import data.int.basic data.nat.gcd
+import data.int.gcd
 
 namespace nat
 

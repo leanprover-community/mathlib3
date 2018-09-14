@@ -209,10 +209,12 @@ attribute [to_additive zero_gsmul] gpow_zero
 @[simp] theorem one_gsmul (a : β) : (1:ℤ) • a = a := add_zero _
 attribute [to_additive one_gsmul] gpow_one
 
-@[simp, to_additive zero_gsmul]
-theorem one_gpow : ∀ (n : ℤ), (1 : α) ^ n = 1
+@[simp] theorem one_gpow : ∀ (n : ℤ), (1 : α) ^ n = 1
 | (n : ℕ) := one_pow _
 | -[1+ n] := by simp
+@[simp] theorem gsmul_zero : ∀ (n : ℤ), n • (0 : β) = 0 :=
+@one_gpow (multiplicative β) _
+attribute [to_additive gsmul_zero] one_gpow
 
 @[simp] theorem gpow_neg (a : α) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := rfl
@@ -306,6 +308,18 @@ end is_group_hom
 
 local infix ` •ℤ `:70 := gsmul
 
+section comm_monoid
+variables [comm_group α] {β : Type*} [add_comm_group β]
+
+theorem mul_gpow (a b : α) : ∀ n:ℤ, (a * b)^n = a^n * b^n
+| (n : ℕ) := mul_pow a b n
+| -[1+ n] := by simp [pow_succ, mul_pow, mul_inv, mul_comm, mul_left_comm]
+theorem gsmul_add : ∀ (a b : β) (n : ℤ), n •ℤ (a + b) = n •ℤ a + n •ℤ b :=
+@mul_gpow (multiplicative β) _
+attribute [to_additive gsmul_add] mul_gpow
+
+end comm_monoid
+
 theorem add_monoid.smul_eq_mul' [semiring α] (a : α) : ∀ n : ℕ, n • a = a * n
 | 0 := by simp
 | (n+1) := by simp [add_monoid.smul_eq_mul' n, mul_add, succ_smul']
@@ -322,8 +336,12 @@ by rw [add_monoid.smul_eq_mul, add_monoid.smul_eq_mul, mul_assoc]
 @[simp] theorem nat.cast_pow [semiring α] (n m : ℕ) : (↑(n ^ m) : α) = ↑n ^ m :=
 by induction m; simp [*, nat.succ_eq_add_one, nat.pow_add, pow_add]
 
-@[simp] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ)  = n ^ m := 
+@[simp] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m; simp [*, pow_succ', nat.pow_succ]
+
+theorem is_semiring_hom.map_pow {β} [semiring α] [semiring β]
+  (f : α → β) [is_semiring_hom f] (x : α) (n : ℕ) : f (x ^ n) = f x ^ n :=
+by induction n; simp [*, is_semiring_hom.map_one f, is_semiring_hom.map_mul f, pow_succ]
 
 theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := by simp

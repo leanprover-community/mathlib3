@@ -24,6 +24,11 @@ def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) :
 
 infix ` ⁻¹'o `:80 := order.preimage
 
+/-- the induced order on a subtype is an embedding under the natural inclusion. -/
+definition subtype.order_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) : 
+((subtype.val : subtype p → X) ⁻¹'o r) ≼o r := 
+⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
+
 namespace order_embedding
 
 instance : has_coe_to_fun (r ≼o s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
@@ -128,6 +133,15 @@ end
 
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
+
+-- If le is preserved by an order embedding of preorders, then lt is too
+definition lt_embedding_of_le_embedding [preorder α] [preorder β]
+  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
+(has_lt.lt : α → α → Prop) ≼o (has_lt.lt : β → β → Prop) :=
+{ to_fun := f,
+  inj := f.inj,
+  ord := by intros;simp [lt_iff_le_not_le,f.ord],
+  }
 
 theorem nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
   ((<) : ℕ → ℕ → Prop) ≼o r :=
@@ -282,6 +296,14 @@ instance (r : α → α → Prop) [is_well_order α r]
 order_embedding.is_well_order (subrel.order_embedding r p)
 
 end subrel
+
+-- KMB is only putting this here because subrel is cool
+instance subtype.partial_order (X) [partial_order X] (p : X → Prop) : partial_order ({x : X // p x}) :=
+{ le := subrel (≤) p,
+  le_refl := λ a, le_refl (a : X),
+  le_trans := λ a b c, le_trans,
+  le_antisymm := λ a b hab hba, subtype.eq $ le_antisymm hab hba
+}
 
 /-- Restrict the codomain of an order embedding -/
 def order_embedding.cod_restrict (p : set β) (f : r ≼o s) (H : ∀ a, f a ∈ p) : r ≼o subrel s p :=

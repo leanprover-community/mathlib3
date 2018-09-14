@@ -41,6 +41,11 @@ instance : has_mod α := ⟨remainder⟩
 theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
 quotient_mul_add_remainder_eq _ _
 
+lemma mod_eq_sub_mul_div {α : Type*} [euclidean_domain α] (a b : α) :
+  a % b = a - b * (a / b) :=
+calc a % b = b * (a / b) + a % b - b * (a / b) : by simp
+... = a - b * (a / b) : by rw div_add_mod
+
 theorem mod_lt : ∀ a {b : α}, b ≠ 0 → (a % b) ≺ b :=
 remainder_lt
 
@@ -101,7 +106,7 @@ def gcd : α → α → α
 | a := λ b, if a0 : a = 0 then b else
   have h:_ := mod_lt b a0,
   gcd (b%a) a
-using_well_founded {dec_tac := tactic.assumption, 
+using_well_founded {dec_tac := tactic.assumption,
   rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
 
 @[simp] theorem gcd_zero_left (a : α) : gcd 0 a = a :=
@@ -121,7 +126,7 @@ theorem gcd.induction {P : α → α → Prop} : ∀ a b : α,
 | a := λ b H0 H1, if a0 : a = 0 then by simp [a0, H0] else
   have h:_ := mod_lt b a0,
   H1 _ _ a0 (gcd.induction (b%a) a H0 H1)
-using_well_founded {dec_tac := tactic.assumption, 
+using_well_founded {dec_tac := tactic.assumption,
   rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
 
 theorem gcd_dvd (a b : α) : gcd a b ∣ a ∧ gcd a b ∣ b :=
@@ -152,6 +157,56 @@ gcd_eq_left.2 (one_dvd _)
 @[simp] theorem gcd_self (a : α) : gcd a a = a :=
 gcd_eq_left.2 (dvd_refl _)
 
+def xgcd_aux : α → α → α → α → α → α → α × α × α
+| r := λ s t r' s' t',
+if hr : r = 0 then (r', s', t')
+  else
+  have r' % r ≺ r, from mod_lt _ hr,
+  let q := r' / r in xgcd_aux (r' % r) (s' - q * s) (t' - q * t) r s t
+using_well_founded {dec_tac := tactic.assumption,
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+
+@[simp] theorem xgcd_zero_left {s t r' s' t' : α} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
+by unfold xgcd_aux; rw if_pos rfl
+
+@[simp] theorem xgcd_aux_rec {r s t r' s' t' : α} (h : r ≠ 0) :
+  xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
+by conv {to_lhs, rw [xgcd_aux]}; simp [h]
+
+/-- Use the extended GCD algorithm to generate the `a` and `b` values
+  satisfying `gcd x y = x * a + y * b`. -/
+def xgcd (x y : α) : α × α := (xgcd_aux x 1 0 y 0 1).2
+
+/-- The extended GCD `a` value in the equation `gcd x y = x * a + y * b`. -/
+def gcd_a (x y : α) : α := (xgcd x y).1
+
+/-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
+def gcd_b (x y : α) : α := (xgcd x y).2
+
+@[simp] theorem xgcd_aux_fst (x y : α) : ∀ s t s' t',
+  (xgcd_aux x s t y s' t').1 = gcd x y :=
+gcd.induction x y (by finish) (λ x y h IH s t s' t', by simp [h, IH]; rw ← gcd_val)
+
+theorem xgcd_aux_val (x y : α) : xgcd_aux x 1 0 y 0 1 = (gcd x y, xgcd x y) :=
+by rw [xgcd, ← xgcd_aux_fst x y 1 0 0 1]; cases xgcd_aux x 1 0 y 0 1; refl
+
+theorem xgcd_val (x y : α) : xgcd x y = (gcd_a x y, gcd_b x y) :=
+by unfold gcd_a gcd_b; cases xgcd x y; refl
+
+private def P (a b : α) : α × α × α → Prop | (r, s, t) := (r : α) = a * s + b * t
+
+theorem xgcd_aux_P (a b : α) {r r' : α} : ∀ {s t s' t'}, P a b (r, s, t) →
+  P a b (r', s', t') → P a b (xgcd_aux r s t r' s' t') :=
+gcd.induction r r' (by finish) $ λ x y h IH s t s' t' p p', begin
+  rw [xgcd_aux_rec h], refine IH _ p, dsimp [P] at *,
+  rw [mod_eq_sub_mul_div, p, p'],
+  simp [mul_add, add_mul, mul_comm, mul_assoc, mul_left_comm]
+end
+
+theorem gcd_eq_gcd_ab (a b : α) : (gcd a b : α) = a * gcd_a a b + b * gcd_b a b :=
+by have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1 (by simp [P]) (by simp [P]);
+   rwa [xgcd_aux_val, xgcd_val] at this
+
 end gcd
 
 instance : euclidean_domain ℤ :=
@@ -163,7 +218,7 @@ instance : euclidean_domain ℤ :=
   remainder_lt := λ a b b0, int.coe_nat_lt.1 $
     by rw [int.nat_abs_of_nonneg (int.mod_nonneg _ b0), ← int.abs_eq_nat_abs];
     exact int.mod_lt _ b0,
-  mul_left_not_lt := λ a b b0, not_lt_of_ge $  
+  mul_left_not_lt := λ a b b0, not_lt_of_ge $
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
 

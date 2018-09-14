@@ -7,8 +7,7 @@ Extends theory on products
 -/
 import tactic.ext
 
-universes u v
-variables {α : Type u} {β : Type v}
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 @[simp] theorem prod.forall {p : α × β → Prop} : (∀ x, p x) ↔ (∀ a b, p (a, b)) :=
 ⟨assume h a b, h (a, b), assume h ⟨a, b⟩, h a b⟩
@@ -19,6 +18,12 @@ variables {α : Type u} {β : Type v}
 namespace prod
 
 attribute [simp] prod.map
+
+@[simp] lemma map_fst (f : α → γ) (g : β → δ) : ∀(p : α × β), (map f g p).1 = f (p.1)
+| ⟨a, b⟩ := rfl
+
+@[simp] lemma map_snd (f : α → γ) (g : β → δ) : ∀(p : α × β), (map f g p).2 = g (p.2)
+| ⟨a, b⟩ := rfl
 
 @[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩
@@ -62,5 +67,10 @@ theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
  | (a, b), (c, d), or.inr ⟨e, h⟩ :=
    by change a = c at e; subst e; exact lex.right _ _ h
  end⟩
+
+instance lex.decidable [decidable_eq α] [decidable_eq β]
+  (r : α → α → Prop) (s : β → β → Prop) [decidable_rel r] [decidable_rel s] :
+  decidable_rel (prod.lex r s) :=
+λ p q, decidable_of_decidable_of_iff (by apply_instance) (lex_def r s).symm
 
 end prod

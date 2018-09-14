@@ -1,50 +1,37 @@
-import tactic.norm_num data.nat.basic tactic.ring algebra.archimedean .limits data.nat.binomial
-section a
+import data.complex.basic algebra.archimedean data.nat.binomial algebra.field_power
+#exit
+section
 open real nat is_absolute_value finset
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 
-lemma pow_inv' {α : Type*} [discrete_field α] (a : α) (n : ℕ) : (a ^ n)⁻¹ = a⁻¹ ^ n :=
-by induction n; simp [_root_.pow_succ, *, mul_inv', mul_comm]
-
-lemma pow_incrs_of_gt_one {α : Type*}  [linear_ordered_semiring α] {x : α} {n m : ℕ}
+lemma pow_lt_pow_of_gt_one {α : Type*} [linear_ordered_semiring α] {x : α} {n m : ℕ}
   (h1x : 1 < x) (hnm : n < m) : x ^ n < x ^ m :=
 begin
   rw [← nat.sub_add_cancel hnm, _root_.pow_add, _root_.pow_succ, ← mul_assoc],
-  refine (lt_mul_iff_one_lt_left (pow_pos (lt_trans (by norm_num) h1x) _)).2 _,
+  refine (lt_mul_iff_one_lt_left (pow_pos (lt_trans zero_lt_one h1x) _)).2 _,
   rw ← one_mul (1 : α),
-  refine mul_lt_mul' (one_le_pow_of_one_le (le_of_lt h1x) _) h1x (by norm_num)
-    (pow_pos (lt_trans (by norm_num) h1x) _)
+  exact mul_lt_mul' (one_le_pow_of_one_le (le_of_lt h1x) _) h1x zero_le_one
+    (pow_pos (lt_trans zero_lt_one h1x) _)
 end
 
-lemma pow_dcrs_of_lt_one_of_pos {α : Type*} [discrete_linear_ordered_field α] {x : α} {n m : ℕ}
+lemma pow_lt_pow_of_lt_one_of_pos {α : Type*} [discrete_linear_ordered_field α] {x : α} {n m : ℕ}
   (hx1 : x < 1) (h0x : 0 < x) (hnm : n < m) : x ^ m < x ^ n :=
-begin
-  refine (inv_lt_inv _ _).1 _,
-  { exact pow_pos h0x _ },
-  { exact pow_pos h0x _ },
-  { rw [pow_inv', pow_inv'],
-    refine pow_incrs_of_gt_one (one_lt_inv h0x hx1) hnm }
-end
+(inv_lt_inv (pow_pos h0x _) (pow_pos h0x _)).1
+  (by rw [pow_inv _ _ (ne.symm (ne_of_lt h0x)), pow_inv _ _ (ne.symm (ne_of_lt h0x))];
+    exact pow_lt_pow_of_gt_one (one_lt_inv h0x hx1) hnm)
 
 open finset
 
-lemma geo_series_eq {α : Type*} [field α] {x : α} (n : ℕ) (hx1 : x ≠ 1) :
-  (range n).sum (λ m, x ^ m) = (1 - x ^ n) / (1 - x) :=
-have 1 - x ≠ 0 := mt sub_eq_zero_iff_eq.1 hx1.symm,
-begin
-  induction n with n ih,
-  { simp },
-  { rw [sum_range_succ, ← mul_div_cancel (x ^ n) this, ih, ← add_div, _root_.pow_succ],
-    refine congr_fun (congr_arg _ _) _,
-    ring }
-end
-
-variables {α : Type*} {β : Type*}
-  [discrete_linear_ordered_field α] [archimedean α] {abv : β → α}
+lemma geo_series_eq {α : Type*} [field α] {x : α} : ∀ (n : ℕ) (hx1 : x ≠ 1),
+  (range n).sum (λ m, x ^ m) = (1 - x ^ n) / (1 - x)
+| 0     hx1 := by simp
+| (n+1) hx1 := have 1 - x ≠ 0 := mt sub_eq_zero_iff_eq.1 hx1.symm,
+by rw [sum_range_succ, ← mul_div_cancel (x ^ n) this, geo_series_eq n hx1, ← add_div, _root_.pow_succ];
+    simp [mul_add, add_mul, mul_comm]
 
 lemma forall_ge_le_of_forall_le_succ {α : Type*} [preorder α] (f : ℕ → α) {m : ℕ}
-  (h : ∀ n ≥ m, f (succ n) ≤ f n) : ∀ l, ∀ k ≥ m, k ≤ l → f l ≤ f k :=
+  (h : ∀ n ≥ m, f (succ n) ≤ f n) : ∀ {l}, ∀ k ≥ m, k ≤ l → f l ≤ f k :=
 begin
   assume l k hkm hkl,
   generalize hp : l - k = p,
@@ -56,9 +43,10 @@ begin
   { exact le_trans (h _ (le_trans hkm (nat.le_add_right _ _))) ih }
 end
 
-lemma is_cau_of_dcrs_bounded {α : Type*} [discrete_linear_ordered_field α]
-  [archimedean α] (f : ℕ → α)
-  {a : α} {m : ℕ} (ham : ∀ n ≥ m, abs (f n) ≤ a)
+variables {α : Type*} {β : Type*} [ring β]
+  [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+
+lemma is_cau_of_decreasing_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n ≥ m, abs (f n) ≤ a)
   (hnm : ∀ n ≥ m, f (succ n) ≤ f n) : is_cau_seq abs f :=
 λ ε ε0,
 let ⟨k, hk⟩ := archimedean.arch a ε0 in
@@ -81,7 +69,7 @@ begin
   rw [not_imp, not_lt] at hi,
   existsi i,
   assume j hj,
-  have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm _ _ hi.1 hj,
+  have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm _ hi.1 hj,
   rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
   exact calc f i ≤ a - add_monoid.smul (pred l) ε : hi.2
     ... = a - add_monoid.smul l ε + ε :
@@ -90,32 +78,33 @@ begin
     ... < f j + ε : add_lt_add_right (hl j (le_trans hi.1 hj)) _
 end
 
-lemma is_cau_of_incrs_bounded {α : Type*} [discrete_linear_ordered_field α]
-  [archimedean α] (f : ℕ → α)
-  {a : α} {m : ℕ} (ham : ∀ n ≥ m, abs (f n) ≤ a)
+lemma is_cau_of_mono_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n ≥ m, abs (f n) ≤ a)
   (hnm : ∀ n ≥ m, f n ≤ f (succ n)) : is_cau_seq abs f :=
 begin
   refine @eq.rec_on (ℕ → α) _ (is_cau_seq abs) _ _
-    (-⟨_, @is_cau_of_dcrs_bounded _ _ _ (λ n, -f n) a m (by simpa) (by simpa)⟩ : cau_seq α abs).2,
+    (-⟨_, @is_cau_of_decreasing_bounded _ _ _ (λ n, -f n) a m (by simpa) (by simpa)⟩ : cau_seq α abs).2,
   ext,
   exact neg_neg _
 end
 
-lemma series_cau_of_abv_le_cau {α : Type*} {β : Type*} [discrete_linear_ordered_field α] [ring β] {f : ℕ → β}
-    {g : ℕ → α} {abv : β → α} [is_absolute_value abv] (n : ℕ) : (∀ m, n ≤ m → abv (f m) ≤ g m) →
-    is_cau_seq abs (λ n, (range n).sum g) → is_cau_seq abv (λ n, (range n).sum f) := begin
-  assume hm hg ε ε0,cases hg (ε / 2) (div_pos ε0 (by norm_num)) with i hi,
+lemma is_cau_series_of_abv_le_cau  {f : ℕ → β} {g : ℕ → α}  (n : ℕ) : (∀ m, n ≤ m → abv (f m) ≤ g m) →
+  is_cau_seq abs (λ n, (range n).sum g) → is_cau_seq abv (λ n, (range n).sum f) :=
+begin
+  assume hm hg ε ε0,
+  cases hg (ε / 2) (div_pos ε0 (by norm_num)) with i hi,
   existsi max n i,
   assume j ji,
   have hi₁ := hi j (le_trans (le_max_right n i) ji),
   have hi₂ := hi (max n i) (le_max_right n i),
   have sub_le := abs_sub_le ((range j).sum g) ((range i).sum g) ((range (max n i)).sum g),
   have := add_lt_add hi₁ hi₂,
-  rw abs_sub ((range (max n i)).sum g) at this,
-  rw add_halves ε at this,
+  rw [abs_sub ((range (max n i)).sum g), add_halves ε] at this,
   refine lt_of_le_of_lt (le_trans (le_trans _ (le_abs_self _)) sub_le) this,
-  generalize hk : j - max n i = k,clear this hi₂ hi₁ hi ε0 ε hg sub_le,
-  rw nat.sub_eq_iff_eq_add ji at hk,rw hk, clear hk ji j,
+  generalize hk : j - max n i = k,
+  clear this hi₂ hi₁ hi ε0 ε hg sub_le,
+  rw nat.sub_eq_iff_eq_add ji at hk,
+  rw hk,
+  clear hk ji j,
   induction k with k' hi,
   { simp [abv_zero abv] },
   { dsimp at *,
@@ -128,18 +117,17 @@ lemma pow_abv {α β : Type*} [discrete_linear_ordered_field α] [domain β] (ab
   (a : β) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
 by induction n; simp [abv_mul abv, _root_.pow_succ, abv_one abv, *]
 
-lemma series_cau_of_abv_cau {α : Type*} {β : Type*} [discrete_linear_ordered_field α] [ring β] {abv : β → α} {f : ℕ → β}
-    [is_absolute_value abv] : is_cau_seq abs (λ m, (range m).sum (λ n, abv (f n))) → is_cau_seq abv (λ m, (range m).sum f) :=
-   λ h, series_cau_of_abv_le_cau 0 (λ n h, le_refl _) h
+lemma series_cau_of_abv_cau {f : ℕ → β} : is_cau_seq abs (λ m, (range m).sum (λ n, abv (f n))) →
+  is_cau_seq abv (λ m, (range m).sum f) :=
+is_cau_series_of_abv_le_cau 0 (λ n h, le_refl _)
 
-lemma geo_series_cau {α β : Type*} [discrete_linear_ordered_field α] [archimedean α] [field β]
-  {abv : β → α} [is_absolute_value abv]
+lemma geo_series_cau {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
    (x : β) (hx1 : abv x < 1) : is_cau_seq abv (λ n, (range n).sum (λ m, x ^ m)) :=
 have hx1' : abv x ≠ 1 := λ h, by simpa [h, lt_irrefl] using hx1,
 series_cau_of_abv_cau
 begin
   simp only [pow_abv abv, geo_series_eq _ hx1'] {eta := ff},
-  refine @is_cau_of_incrs_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
+  refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
     rw abs_of_nonneg ,
     refine div_le_div_of_le_of_pos (sub_le_self _ (pow_abv abv x n ▸ abv_nonneg _ _))
@@ -156,44 +144,24 @@ begin
     exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv_nonneg _ _) _) }
 end
 
-lemma geo_series_const_cau {α : Type*} [discrete_linear_ordered_field α] [archimedean α] (a x : α) :
-  abs x < 1 → is_cau_seq abs (λ m, (range m).sum (λ n, a * x ^ n)) :=
-λ hx1, begin
-  have : is_cau_seq abs (λ m, a * (range m).sum (λ n, x ^ n)) := (cau_seq.const abs a * ⟨_, geo_series_cau x hx1⟩).2,
-  simpa only [mul_sum] using this
-end
+lemma geo_series_const_cau (a : α) {x : α} (hx1 : abs x < 1) : is_cau_seq abs (λ m, (range m).sum (λ n, a * x ^ n)) :=
+have is_cau_seq abs (λ m, a * (range m).sum (λ n, x ^ n)) := (cau_seq.const abs a * ⟨_, geo_series_cau x hx1⟩).2,
+  by simpa only [mul_sum]
 
 -- The form of ratio test with  0 ≤ r < 1, and abv (f (succ m)) ≤ r * abv (f m) handled zero terms of series the best
-lemma series_ratio_test {α : Type*} {β : Type*} [discrete_linear_ordered_field α] [ring β]
-    [archimedean α] {abv : β → α} [is_absolute_value abv] {f : ℕ → β} (n : ℕ) (r : α) :
-    0 ≤ r → r < 1 → (∀ m, n ≤ m → abv (f (succ m)) ≤ r * abv (f m)) → is_cau_seq abv (λ m, (range m).sum f)
-  := begin
-  assume r0 r1 h,
-  refine series_cau_of_abv_le_cau (succ n) _ (geo_series_const_cau (abv (f (succ n)) * r⁻¹ ^ (succ n)) r _),
-  assume m mn,
-  generalize hk : m - (succ n) = k,rw nat.sub_eq_iff_eq_add mn at hk,
-  cases classical.em (r = 0) with r_zero r_pos,have m_pos := lt_of_lt_of_le (succ_pos n) mn,
-  have := pred_le_pred mn,simp at this,
-  have := h (pred m) this,simp[r_zero,succ_pred_eq_of_pos m_pos] at this,
-  refine le_trans this _,refine mul_nonneg _ _,
-  refine mul_nonneg (abv_nonneg _ _) (pow_nonneg (inv_nonneg.mpr r0) _),exact pow_nonneg r0 _,
-  replace r_pos : 0 < r,cases lt_or_eq_of_le r0 with h h,exact h,exact absurd h.symm r_pos,
-  revert m n,
-  induction k with k' hi,assume m n h mn hk,
-  rw [hk,zero_add,mul_right_comm,←pow_inv',←div_eq_mul_inv,mul_div_cancel],
-  exact (ne_of_lt (pow_pos r_pos _)).symm,
-  assume m n h mn hk,rw [hk,succ_add],
-  have kn : k' + (succ n) ≥ (succ n), rw ←zero_add (succ n),refine add_le_add _ _,exact zero_le _,simp,
-  replace hi := hi (k' + (succ n)) n h kn rfl,
-  rw [(by simp [_root_.pow_succ'] : r ^ (succ (k' + succ n)) = r ^ (k' + succ n) * r),←mul_assoc],
-  replace h := h (k' + succ n) (le_of_succ_le kn),rw mul_comm at h,
-  exact le_trans h (mul_le_mul_of_nonneg_right hi r0),
-  rwa abs_of_nonneg r0,
+lemma series_ratio_test {f : ℕ → β} (n : ℕ) {r : α} (hr0 : 0 ≤ r) (hr1 : r < 1) (h : ∀ m, n ≤ m → abv (f (succ m)) ≤ r * abv (f m)) :
+  is_cau_seq abv (λ m, (range m).sum f) :=
+have har1 : abs r < 1, by rwa abs_of_nonneg hr0,
+begin
+  refine is_cau_series_of_abv_le_cau (succ n) (λ m hmn, _) (geo_series_const_cau (abv (f (succ n)) * r⁻¹ ^ (succ n)) har1),
+
+
+  have := forall_ge_le_of_forall_le_succ,
 end
 
 lemma sum_range_diag_flip {α : Type*} [add_comm_monoid α] (n : ℕ) (f : ℕ → ℕ → α) :
-    (range n).sum (λ m, (range (m + 1)).sum (λ k, f k (m - k))) =
-    (range n).sum (λ m, (range (n - m)).sum (f m)) :=
+  (range n).sum (λ m, (range (m + 1)).sum (λ k, f k (m - k))) =
+  (range n).sum (λ m, (range (n - m)).sum (f m)) :=
 have h₁ : ((range n).sigma (range ∘ succ)).sum
     (λ (a : Σ m, ℕ), f (a.2) (a.1 - a.2)) =
     (range n).sum (λ m, (range (m + 1)).sum
@@ -216,7 +184,7 @@ h₁ ▸ h₂ ▸ sum_bij
   have h' : a₁ = b₁ - b₂ + a₂ := (nat.sub_eq_iff_eq_add ha.2).1 (eq_of_heq h.2),
   sigma.mk.inj_iff.2
     ⟨nat.sub_add_cancel hb.2 ▸ h'.symm ▸ h.1 ▸ rfl,
-    (heq_of_eq h.1)⟩)
+      (heq_of_eq h.1)⟩)
 (λ ⟨a₁, a₂⟩ ha,
   have ha : a₁ < n ∧ a₂ < n - a₁ :=
       ⟨mem_range.1 (mem_sigma.1 ha).1, (mem_range.1 (mem_sigma.1 ha).2)⟩,
@@ -344,9 +312,10 @@ begin
      end }
 end
 
-end a
+end
 
 open nat finset
+
 lemma complex.exp_series_abs_cau (z : ℂ) : is_cau_seq abs (λ n, (range n).sum (λ m, complex.abs (z ^ m / fact m))) := begin
   cases exists_nat_gt (complex.abs z) with n hn,
   have n_pos : (0 : ℝ) < n := lt_of_le_of_lt (complex.abs_nonneg _) hn,
@@ -371,6 +340,7 @@ lemma complex.exp_series_cau (z : ℂ) : is_cau_seq complex.abs (λ n, (range n)
 def exp' (z : ℂ) : cau_seq ℂ complex.abs := ⟨_, complex.exp_series_cau z⟩
 
 open complex
+
 def exp (z : ℂ) : ℂ := complex.lim (exp' z)
 
 def sin (z : ℂ) : ℂ := (exp (I * z) - exp (-I * z)) / (2 * I)

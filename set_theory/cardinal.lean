@@ -651,67 +651,97 @@ lt_of_not_ge $ λ ⟨F⟩, begin
   hc i a (congr_fun h _),
 end
 
-theorem mk_le_mk_finset (α : Type u) : mk α ≤ mk (finset α) :=
-⟨⟨finset.singleton, λ _ _, finset.singleton_inj.1⟩⟩
+@[simp] theorem mk_empty : mk empty = 0 :=
+fintype_card empty
 
-theorem mk_finset_le_mk_list (α : Type u) : mk (finset α) ≤ mk (list α) :=
-⟨⟨quotient.out ∘ finset.val, λ x y H, finset.val_inj.1 $
-calc x.1 = _ : (quotient.out_eq x.1).symm ... = _ : congr_arg _ H
-... = _ : quotient.out_eq y.1⟩⟩
+@[simp] theorem mk_pempty : mk pempty = 0 :=
+fintype_card pempty
 
-def vector_equiv_fin_fn (α : Type u) (n : ℕ) : vector α n ≃ (ulift.{u 0} (fin n) → α) :=
-{ to_fun := λ L i, vector.nth L i.down,
-  inv_fun := λ f, vector.of_fn (λ i, f (ulift.up i)),
-  left_inv := vector.of_fn_nth,
-  right_inv := λ f, funext (λ ⟨i⟩, vector.nth_of_fn _ i) }
+@[simp] theorem mk_empty' {α : Type u} : mk (∅ : set α) = 0 :=
+quotient.sound ⟨⟨λ ⟨x, hx⟩, hx.rec _, λ ⟨x⟩, x.rec _, λ ⟨x, hx⟩, hx.rec _, λ ⟨x⟩, x.rec _⟩⟩
 
-theorem vector_equiv_fin_fn_length (α : Type u) (n : ℕ) (f : ulift (fin n) → α) :
-  ((vector_equiv_fin_fn α n).symm f).1.length = n :=
-((vector_equiv_fin_fn α n).symm f).2
+@[simp] theorem mk_plift_false : mk (plift false) = 0 :=
+quotient.sound ⟨⟨λ ⟨x⟩, x.rec _, λ ⟨x⟩, x.rec _, λ ⟨x⟩, x.rec _, λ ⟨x⟩, x.rec _⟩⟩
+
+@[simp] theorem mk_unit : mk unit = 1 :=
+(fintype_card unit).trans nat.cast_one
+
+@[simp] theorem mk_punit : mk punit = 1 :=
+(fintype_card punit).trans nat.cast_one
+
+@[simp] theorem mk_singleton {α : Type u} {x : α} : mk ({x} : set α) = 1 :=
+quotient.sound ⟨⟨λ z, ⟨⟨⟩⟩, λ z, ⟨x, or.inl rfl⟩,
+λ ⟨z, hz⟩, subtype.eq $ eq.symm $ by simpa using hz, λ ⟨⟨⟩⟩, rfl⟩⟩
+
+@[simp] theorem mk_plift_true : mk (plift true) = 1 :=
+quotient.sound ⟨⟨λ ⟨⟨⟩⟩, ⟨⟨⟩⟩, λ ⟨⟨⟩⟩, ⟨⟨⟩⟩, λ ⟨⟨⟩⟩, rfl, λ ⟨⟨⟩⟩, rfl⟩⟩
+
+@[simp] theorem mk_bool : mk bool = 2 :=
+quotient.sound ⟨⟨λ b, bool.rec_on b (sum.inl $ ulift.up ()) (sum.inr $ ulift.up ()),
+λ x, sum.rec_on x (λ _, ff) (λ _, tt),
+λ b, by cases b; refl,
+λ x, by cases x; cases x; cases x; refl⟩⟩
+
+@[simp] theorem mk_Prop : mk Prop = 2 :=
+quotient.sound ⟨⟨λ b, if b then sum.inr ⟨()⟩ else sum.inl ⟨()⟩,
+λ x, sum.rec_on x (λ _, false) (λ _, true),
+λ b, if h : b then by dsimp only; rw [if_pos h]; simp [h]
+  else by dsimp only; rw [if_neg h]; simp [h],
+λ x, by cases x; cases x; cases x; simp⟩⟩
+
+@[simp] theorem mk_option {α : Type u} : mk (option α) = mk α + 1 :=
+quotient.sound ⟨(equiv.option_equiv_sum_unit α).trans $ equiv.sum_congr (equiv.refl α) equiv.ulift.symm⟩
+
+theorem mk_eq_of_injective {α β : Type u} {f : α → β} {s : set α} (hf : injective f) : mk (f '' s) = mk s :=
+quotient.sound ⟨⟨λ x, ⟨classical.some x.2, (classical.some_spec x.2).1⟩, λ x, ⟨f x.1, x.1, x.2, rfl⟩,
+λ x, subtype.eq (classical.some_spec x.2).2,
+λ x, subtype.eq $ hf $ (classical.some_spec (_ : ∃ (a : α), a ∈ s ∧ f a = f (x.val))).2⟩⟩
 
 theorem mk_list_eq_sum_pow (α : Type u) : mk (list α) = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) :=
-by conv {to_rhs, congr, funext, rw [← lift_mk_fin, lift_mk, power_def]};
-rw [sum_mk]; from
-(quotient.sound $ nonempty.intro $
-{ to_fun := λ L, ⟨L.length, vector_equiv_fin_fn α L.length ⟨L, rfl⟩⟩,
-  inv_fun := λ x, ((vector_equiv_fin_fn α x.1).symm x.2).to_list,
-  left_inv := λ L, by dsimp only; simp only [equiv.inverse_apply_apply]; refl,
-  right_inv := λ x, sigma.eq (vector_equiv_fin_fn_length _ _ _)
-    (begin dsimp only, generalize : rfl = H1,
-      generalize : vector_equiv_fin_fn_length α (x.fst) (x.snd) = H,
-      let N1 := ((vector_equiv_fin_fn α x.1).symm x.2).1.length,
-      change N1 = _ at H1,
-      generalize_hyp : ((vector_equiv_fin_fn α x.1).symm x.2).1.length = N3 at H H1 ⊢,
-      subst H,
-      simp only [vector.mk_to_list, equiv.apply_inverse_apply], end) })
+calc  mk (list α)
+    = mk (Σ n, vector α n) : quotient.sound ⟨equiv.equiv_sigma_subtype list.length⟩
+... = mk (Σ n, fin n → α) : quotient.sound ⟨equiv.sigma_congr_right $ λ n,
+  ⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩⟩
+... = mk (Σ n : ℕ, ulift.{u} (fin n) → α) : quotient.sound ⟨equiv.sigma_congr_right $ λ n,
+  equiv.arrow_congr equiv.ulift.symm (equiv.refl α)⟩
+... = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) : by simp only [(lift_mk_fin _).symm, lift_mk, power_def, sum_mk]
 
-theorem mk_union_le_mk_mul_omega {α : Type u} {S : set α} {f : S → set α}
-  (hf : ∀ s, set.finite (f s)) : mk (⋃ s, f s) ≤ mk S * omega :=
-⟨⟨λ x, (classical.some (set.mem_Union.1 x.2),
-  (classical.choice (le_of_lt $ lt_omega_iff_finite.2 $ (hf $ classical.some (set.mem_Union.1 x.2)))).1
-    ⟨x.1, classical.some_spec (set.mem_Union.1 x.2)⟩),
-λ x y H, subtype.eq $ begin
-  cases prod.ext_iff.1 H with H1 H2, clear H,
-  dsimp only at H1 H2,
-  generalize_hyp : set.mem_Union.1 x.2 = H3 at H1 H2,
-  generalize_hyp : hf (classical.some H3) = H5 at H2,
-  generalize_hyp : classical.some_spec H3 = H7 at H2,
-  generalize_hyp : classical.some H3 = i at H1 H2 H5 H7,
-  subst H1,
-  exact subtype.mk.inj (function.embedding.inj _ H2)
-end⟩⟩
+theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : mk (⋃ i, f i) ≤ sum (λ i, mk (f i)) :=
+calc  mk (⋃ i, f i)
+    ≤ mk (Σ i, f i) : show nonempty ((⋃ i, f i) ↪ (Σ i, f i)),
+  from ⟨⟨λ x, ⟨classical.some (mem_Union.1 x.2), x.1, classical.some_spec (mem_Union.1 x.2)⟩,
+  λ x y H, subtype.eq $ begin
+    cases sigma.mk.inj H with H1 H2, clear H,
+    generalize_hyp : classical.some_spec _ = H4 at H1 H2,
+    generalize_hyp : classical.some _ = i₀ at H1 H2 H4,
+    subst H1,
+    exact subtype.mk.inj (eq_of_heq H2)
+  end⟩⟩
+... = sum (λ i, mk (f i)) : (sum_mk _).symm
 
-theorem mk_le_mk_of_finset_card_to_finset_le {α : Type u} {S T : set α}
-  {HS : set.finite S} {HT : set.finite T}
-  (H : finset.card (set.finite.to_finset HS) ≤ finset.card (set.finite.to_finset HT)) :
-  mk S ≤ mk T :=
-begin
-  tactic.unfreeze_local_instances,
-  cases HS, cases HT,
-  rw [fintype_card, fintype_card, nat_cast_le],
-  rw [← fintype.card_coe, ← fintype.card_coe] at H,
-  convert H;
-  { ext z, rw [finset.mem_coe, set.finite.mem_to_finset] }
-end
+@[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = mk (↑s : set α) :=
+by rw [fintype_card, nat_cast_inj, fintype.card_coe]
+
+theorem mk_union_add_mk_inter {α : Type u} {S T : set α} : mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
+quotient.sound $ nonempty.intro $
+{ to_fun := λ x, sum.rec_on x
+    (λ x, if h : x.1 ∈ S then sum.inl ⟨x.1, h⟩ else sum.inr ⟨x.1, x.2.resolve_left h⟩)
+    (λ x, sum.inr ⟨x.1, x.2.2⟩),
+  inv_fun := λ x, sum.rec_on x
+    (λ x, sum.inl ⟨x.1, or.inl x.2⟩)
+    (λ x, if h : x.1 ∈ S then sum.inr ⟨x.1, h, x.2⟩ else sum.inl ⟨x.1, or.inr x.2⟩),
+  left_inv := λ x, sum.rec_on x
+    (λ ⟨x, hx⟩, if h : x ∈ S
+      then by dsimp only; rw [dif_pos h]; refl
+      else by dsimp only; rw [dif_neg h]; dsimp only; rw [dif_neg h]; refl)
+    (λ ⟨x, hx1, hx2⟩, by dsimp only; rw [dif_pos hx1]),
+  right_inv := λ x, sum.rec_on x
+    (λ ⟨x, hx⟩, by dsimp only; rw [dif_pos hx])
+    (λ ⟨x, hx⟩, if h : x ∈ S
+      then by dsimp only; rw [dif_pos h]
+      else by dsimp only; rw [dif_neg h]; dsimp only; rw [dif_neg h]) } 
+
+theorem mk_union_of_disjiont {α : Type u} {S T : set α} (H : disjoint S T) : mk (S ∪ T : set α) = mk S + mk T :=
+eq.trans (by simp only [(eq_empty_of_subset_empty H : S ∩ T = ∅), mk_empty', add_zero]) mk_union_add_mk_inter
 
 end cardinal

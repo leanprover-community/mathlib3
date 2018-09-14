@@ -130,4 +130,13 @@ assume a b, quotient.induction_on₂' a b $ assume a b (h : f a = f b), quotient
 lemma quotient.exists_rep {s : set β} [is_submodule s] : ∀ q : quotient β s, ∃ b : β, mk b = q :=
 @_root_.quotient.exists_rep _ (quotient_rel s)
 
+section vector_space
+variables {α' : Type u} {β' : Type v}
+variables [field α'] [vector_space α' β'] (s' : set β') [is_submodule s']
+include α'
+
+instance quotient.vector_space : vector_space α' (quotient β' s') := {}
+
+end vector_space
+
 end quotient_module

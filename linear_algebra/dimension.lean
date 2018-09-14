@@ -5,13 +5,17 @@ Author: Mario Carneiro
 
 Dimension of modules and vector spaces.
 -/
-import linear_algebra.basic set_theory.ordinal
+import linear_algebra.basic
+import linear_algebra.linear_map_module
+import linear_algebra.prod_module
+import linear_algebra.quotient_module
+import set_theory.ordinal
 noncomputable theory
 
 local attribute [instance] classical.prop_decidable
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {α : Type u} {β γ : Type v}
 
 namespace vector_space
 variables [field α] [vector_space α β]
@@ -33,7 +37,10 @@ have h6 : ¬I ⊆ ⋃ j, h5 j,
   from λ H, @not_lt_of_le _ _ (cardinal.mk I) (cardinal.mk (⋃ j, h5 j))
     (⟨set.embedding_of_subset H⟩) $
   calc  cardinal.mk (⋃ j, h5 j)
-      ≤ cardinal.mk J * cardinal.omega : cardinal.mk_union_le_mk_mul_omega $ λ j, finset.finite_to_set _
+      ≤ cardinal.sum (λ j, cardinal.mk (h5 j)) : cardinal.mk_Union_le_sum_mk
+  ... ≤ cardinal.sum (λ j : J, cardinal.omega.{v}) : cardinal.sum_le_sum _ _ $ λ j,
+    le_of_lt $ cardinal.lt_omega_iff_finite.2 $ finset.finite_to_set _
+  ... = cardinal.mk J * cardinal.omega : cardinal.sum_const _ _
   ... = max (cardinal.mk J) (cardinal.omega) : cardinal.mul_eq_max h4 (le_refl _)
   ... = cardinal.mk J : max_eq_left h4
   ... < cardinal.mk I : h3,
@@ -59,17 +66,75 @@ end)
 (assume h4 : cardinal.mk J < cardinal.omega,
 let ⟨h5, h6⟩ := exists_finite_card_le_of_finite_of_linear_independent_of_span
   (cardinal.lt_omega_iff_finite.1 h4) h1.1 (λ _ _, h2 _) in
-cardinal.mk_le_mk_of_finset_card_to_finset_le h6)
+by rwa [← cardinal.nat_cast_le, cardinal.finset_card, cardinal.finset_card, finset.coe_to_finset, finset.coe_to_finset] at h6)
 
-theorem dimension_theorem {I J : set β} (h1 : is_basis I) (h2 : is_basis J) : cardinal.mk I = cardinal.mk J :=
+/-- dimension theorem -/
+theorem mk_eq_mk_of_basis {I J : set β} (h1 : is_basis I) (h2 : is_basis J) : cardinal.mk I = cardinal.mk J :=
 le_antisymm (basis_le_span _ _ h1 h2.2) (basis_le_span _ _ h2 h1.2)
 
 theorem mk_basis {b : set β} (h : is_basis b) : cardinal.mk b = dim α β :=
 begin
   cases (show ∃ b', dim α β = _, from cardinal.min_eq _ _) with b' e,
-  refine dimension_theorem h _,
+  refine mk_eq_mk_of_basis h _,
   generalize : classical.some _ = b1,
   exact b1.2,
 end
+
+theorem quotient_prod_linear_equiv (s : set β) [is_submodule s] :
+  nonempty ((quotient_module.quotient β s × s) ≃ₗ β) :=
+let ⟨g, H1, H2⟩ := exists_right_inverse_linear_map_of_surjective
+  (quotient_module.is_linear_map_quotient_mk s)
+  (quotient_module.quotient.exists_rep) in
+have H3 : ∀ b, quotient_module.mk (g b) = b := λ b, congr_fun H2 b,
+⟨{ to_fun := λ b, g b.1 + b.2.1,
+  inv_fun := λ b, (quotient_module.mk b, ⟨b - g (quotient_module.mk b),
+    (quotient_module.coe_eq_zero _ _).1 $
+    ((quotient_module.is_linear_map_quotient_mk _).sub _ _).trans $
+    by rw [H3, sub_self]⟩),
+  left_inv := λ ⟨q, b, h⟩,
+    have H4 : quotient_module.mk b = 0,
+      from (quotient_module.coe_eq_zero s b).2 h,
+    have H5 : quotient_module.mk (g q + b) = q,
+      from ((quotient_module.is_linear_map_quotient_mk _).add _ _).trans $
+      by simp only [H3, H4, add_zero],
+    prod.ext H5 (subtype.eq $ by simp only [H5, add_sub_cancel']),
+  right_inv := λ b, add_sub_cancel'_right _ _,
+  linear_fun := ⟨λ ⟨q1, b1, h1⟩ ⟨q2, b2, h2⟩,
+      show g (q1 + q2) + (b1 + b2) = (g q1 + b1) + (g q2 + b2),
+      by rw [H1.add]; simp only [add_left_comm, add_assoc],
+    λ c ⟨q, b, h⟩, show g (c • q) + (c • b) = c • (g q + b),
+      by rw [H1.smul, smul_add]⟩ }⟩
+
+variables [vector_space α γ]
+
+theorem dim_eq_of_linear_equiv (f : β ≃ₗ γ) : dim α β = dim α γ :=
+let ⟨b, hb⟩ := exists_is_basis β in
+(mk_basis hb).symm.trans $ (cardinal.mk_eq_of_injective f.to_equiv.bijective.1).symm.trans $
+mk_basis $ hb.linear_equiv
+
+theorem dim_prod : dim α (β × γ) = dim α β + dim α γ :=
+let ⟨b, hb⟩ := exists_is_basis β in
+let ⟨c, hc⟩ := exists_is_basis γ in
+have H1 : _ := prod.is_basis_inl_union_inr hb hc,
+have H2 : _ := @mk_basis.{u v} _ (β × γ) _ _ _ H1,
+begin
+  rw [← mk_basis hb, ← mk_basis hc, ← H2, cardinal.mk_union_of_disjiont],
+  rw [cardinal.mk_eq_of_injective prod.injective_inl.{v v}], 
+  rw [cardinal.mk_eq_of_injective prod.injective_inr.{v v}],
+  intros z h,
+  rcases h with ⟨⟨x, h1, h2⟩, ⟨y, h3, h4⟩⟩,
+  subst h4,
+  cases prod.inl_eq_inr.1 h2 with h4 h5,
+  substs h4 h5,
+  exact zero_not_mem_of_linear_independent (@zero_ne_one α _) hb.1 h1
+end
+
+theorem dim_quotient {s : set β} [is_submodule s] : dim α (quotient_module.quotient β s) + dim α s = dim α β :=
+nonempty.rec_on (quotient_prod_linear_equiv s) $ λ f,
+dim_prod.symm.trans $ dim_eq_of_linear_equiv f
+
+/-- rank-nullity theorem -/
+theorem dim_im_add_dim_ker (f : linear_map β γ) : dim α f.im + dim α f.ker = dim α β :=
+by rw [← dim_eq_of_linear_equiv (linear_map.quot_ker_equiv_im f), dim_quotient]
 
 end vector_space

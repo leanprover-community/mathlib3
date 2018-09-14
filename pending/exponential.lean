@@ -1,19 +1,35 @@
 import data.complex.basic algebra.archimedean data.nat.binomial algebra.field_power
 #exit
 section
-open real nat is_absolute_value finset
-noncomputable theory
+open real is_absolute_value finset
+
 local attribute [instance, priority 0] classical.prop_decidable
+
+lemma one_lt_mul_of_le_of_lt {α : Type*} [linear_ordered_semiring α] {a b : α}
+  (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
+calc 1 = 1 * 1 : by rw one_mul
+... < a * b : mul_lt_mul' ha hb zero_le_one (lt_of_lt_of_le zero_lt_one ha)
+
+lemma one_lt_mul_of_lt_of_le {α : Type*} [linear_ordered_semiring α] {a b : α}
+  (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
+calc 1 = 1 * 1 : by rw one_mul
+... < a * b : mul_lt_mul ha hb zero_lt_one (le_trans zero_le_one (le_of_lt ha))
+
+lemma mul_le_of_le_one_left {α : Type*} [linear_ordered_semiring α] {a b : α}
+  (ha : 0 ≤ a) (hb1 : b ≤ 1) : a * b ≤ a :=
+calc a * b ≤ a * 1 : mul_le_mul_of_nonneg_left hb1 ha
+... = a : mul_one a
+
+lemma mul_le_of_le_one_right {α : Type*} [linear_ordered_semiring α] {a b : α}
+  (hb : 0 ≤ b) (ha1 : a ≤ 1) : a * b ≤ b :=
+calc a * b ≤ 1 * b : mul_le_mul ha1 (le_refl b) hb zero_le_one
+... = b : one_mul b
 
 lemma pow_lt_pow_of_gt_one {α : Type*} [linear_ordered_semiring α] {x : α} {n m : ℕ}
   (h1x : 1 < x) (hnm : n < m) : x ^ n < x ^ m :=
-begin
-  rw [← nat.sub_add_cancel hnm, _root_.pow_add, _root_.pow_succ, ← mul_assoc],
-  refine (lt_mul_iff_one_lt_left (pow_pos (lt_trans zero_lt_one h1x) _)).2 _,
-  rw ← one_mul (1 : α),
-  exact mul_lt_mul' (one_le_pow_of_one_le (le_of_lt h1x) _) h1x zero_le_one
-    (pow_pos (lt_trans zero_lt_one h1x) _)
-end
+by rw [← nat.sub_add_cancel hnm, pow_add, pow_succ, ← mul_assoc];
+  exact (lt_mul_iff_one_lt_left (pow_pos (lt_trans zero_lt_one h1x) _)).2
+    (one_lt_mul_of_le_of_lt (one_le_pow_of_one_le (le_of_lt h1x) _) h1x)
 
 lemma pow_lt_pow_of_lt_one_of_pos {α : Type*} [discrete_linear_ordered_field α] {x : α} {n m : ℕ}
   (hx1 : x < 1) (h0x : 0 < x) (hnm : n < m) : x ^ m < x ^ n :=
@@ -31,7 +47,7 @@ by rw [sum_range_succ, ← mul_div_cancel (x ^ n) this, geo_series_eq n hx1, ←
     simp [mul_add, add_mul, mul_comm]
 
 lemma forall_ge_le_of_forall_le_succ {α : Type*} [preorder α] (f : ℕ → α) {m : ℕ}
-  (h : ∀ n ≥ m, f (succ n) ≤ f n) : ∀ {l}, ∀ k ≥ m, k ≤ l → f l ≤ f k :=
+  (h : ∀ n ≥ m, f n.succ ≤ f n) : ∀ {l}, ∀ k ≥ m, k ≤ l → f l ≤ f k :=
 begin
   assume l k hkm hkl,
   generalize hp : l - k = p,
@@ -47,7 +63,7 @@ variables {α : Type*} {β : Type*} [ring β]
   [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_of_decreasing_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n ≥ m, abs (f n) ≤ a)
-  (hnm : ∀ n ≥ m, f (succ n) ≤ f n) : is_cau_seq abs f :=
+  (hnm : ∀ n ≥ m, f n.succ ≤ f n) : is_cau_seq abs f :=
 λ ε ε0,
 let ⟨k, hk⟩ := archimedean.arch a ε0 in
 have h : ∃ l, ∀ n ≥ m, a - add_monoid.smul l ε < f n :=
@@ -65,21 +81,21 @@ have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m (le_refl _))
   (lt_of_lt_of_le (by have := hl m (le_refl m); simpa [hl0] using this) (le_abs_self (f m))),
 begin
   cases classical.not_forall.1
-    (nat.find_min h (pred_lt hl0)) with i hi,
+    (nat.find_min h (nat.pred_lt hl0)) with i hi,
   rw [not_imp, not_lt] at hi,
   existsi i,
   assume j hj,
   have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm _ hi.1 hj,
   rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
-  exact calc f i ≤ a - add_monoid.smul (pred l) ε : hi.2
+  exact calc f i ≤ a - add_monoid.smul (nat.pred l) ε : hi.2
     ... = a - add_monoid.smul l ε + ε :
-      by conv {to_rhs, rw [← succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_smul',
+      by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_smul',
         sub_add, add_sub_cancel] }
     ... < f j + ε : add_lt_add_right (hl j (le_trans hi.1 hj)) _
 end
 
 lemma is_cau_of_mono_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n ≥ m, abs (f n) ≤ a)
-  (hnm : ∀ n ≥ m, f n ≤ f (succ n)) : is_cau_seq abs f :=
+  (hnm : ∀ n ≥ m, f n ≤ f n.succ) : is_cau_seq abs f :=
 begin
   refine @eq.rec_on (ℕ → α) _ (is_cau_seq abs) _ _
     (-⟨_, @is_cau_of_decreasing_bounded _ _ _ (λ n, -f n) a m (by simpa) (by simpa)⟩ : cau_seq α abs).2,
@@ -108,7 +124,7 @@ begin
   induction k with k' hi,
   { simp [abv_zero abv] },
   { dsimp at *,
-    rw [succ_add, sum_range_succ, sum_range_succ, add_assoc, add_assoc],
+    rw [nat.succ_add, sum_range_succ, sum_range_succ, add_assoc, add_assoc],
     refine le_trans (abv_add _ _ _) _,
     exact add_le_add (hm _ (le_add_of_nonneg_of_le (nat.zero_le _) (le_max_left _ _))) hi },
 end
@@ -143,21 +159,27 @@ begin
     rw [← one_mul (_ ^ n), _root_.pow_succ],
     exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv_nonneg _ _) _) }
 end
-
+#print notation dec_trivial
 lemma geo_series_const_cau (a : α) {x : α} (hx1 : abs x < 1) : is_cau_seq abs (λ m, (range m).sum (λ n, a * x ^ n)) :=
 have is_cau_seq abs (λ m, a * (range m).sum (λ n, x ^ n)) := (cau_seq.const abs a * ⟨_, geo_series_cau x hx1⟩).2,
   by simpa only [mul_sum]
-
--- The form of ratio test with  0 ≤ r < 1, and abv (f (succ m)) ≤ r * abv (f m) handled zero terms of series the best
-lemma series_ratio_test {f : ℕ → β} (n : ℕ) {r : α} (hr0 : 0 ≤ r) (hr1 : r < 1) (h : ∀ m, n ≤ m → abv (f (succ m)) ≤ r * abv (f m)) :
+-- abv (f m) ≤ abv (f (nat.succ n)) * r⁻¹ ^ nat.succ n * r ^ m
+lemma series_ratio_test {f : ℕ → β} (n : ℕ) {r : α} (hr0 : 0 ≤ r) (hr1 : r < 1) (h : ∀ m, n ≤ m → abv (f m.succ) ≤ r * abv (f m)) :
   is_cau_seq abv (λ m, (range m).sum f) :=
 have har1 : abs r < 1, by rwa abs_of_nonneg hr0,
-begin
-  refine is_cau_series_of_abv_le_cau (succ n) (λ m hmn, _) (geo_series_const_cau (abv (f (succ n)) * r⁻¹ ^ (succ n)) har1),
+is_cau_series_of_abv_le_cau n.succ
+  (λ m hm,
+    calc abv (f m) ≤ abv (f n.succ) : forall_ge_le_of_forall_le_succ (abv ∘ f)
+      (λ k hk, le_trans (h k hk) (mul_le_of_le_one_right (abv_nonneg _ _) (le_of_lt hr1))) _ (nat.le_succ _) hm
+    ... ≤ abv (f n.succ) * (r⁻¹ ^ nat.succ n * r ^ m) : le_mul_of_ge_one_right (abv_nonneg _ _)
+      (begin rw [← fpow_eq_pow],end)
+    ... = abv (f n.succ) * r⁻¹ ^ nat.succ n * r ^ m : by rw mul_assoc
 
 
-  have := forall_ge_le_of_forall_le_succ,
-end
+  )
+
+  (geo_series_const_cau (abv (f n.succ) * r⁻¹ ^ n.succ) har1)
+
 
 lemma sum_range_diag_flip {α : Type*} [add_comm_monoid α] (n : ℕ) (f : ℕ → ℕ → α) :
   (range n).sum (λ m, (range (m + 1)).sum (λ k, f k (m - k))) =

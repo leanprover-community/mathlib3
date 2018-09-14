@@ -355,14 +355,14 @@ lemma im_const_equiv_of_const_equiv {f : cau_seq ℂ abs} (z : ℂ)
   const _root_.abs z.im ≈ ⟨(λ (n : ℕ), (f n).im), is_cau_seq_im f⟩  :=
 λ ε ε0, let ⟨i, hi⟩ := h ε ε0 in
 ⟨i, λ j hji, show abs' (z.im - (f j).im) < ε,
-  by rw ←sub_im; exact lt_of_le_of_lt (abs_im_le_abs _) (hi j hji)⟩
+  by rw ← sub_im; exact lt_of_le_of_lt (abs_im_le_abs _) (hi j hji)⟩
 
 lemma eq_lim_of_const_equiv {f : cau_seq ℂ abs} {z : ℂ}
   (h : const abs z ≈ f) : z = lim f :=
 complex.ext
-  (show z.re = real.lim (⟨_, is_cau_seq_re f⟩ : cau_seq ℝ abs'),
+  (show z.re = real.lim (⟨complex.re ∘ f, is_cau_seq_re f⟩ : cau_seq ℝ abs'),
     from real.eq_lim_of_const_equiv (re_const_equiv_of_const_equiv _ h))
-  (show z.im = real.lim (⟨_, is_cau_seq_im f⟩ : cau_seq ℝ abs'),
+  (show z.im = real.lim (⟨complex.im ∘ f, is_cau_seq_im f⟩ : cau_seq ℝ abs'),
     from real.eq_lim_of_const_equiv (im_const_equiv_of_const_equiv _ h))
 
 lemma lim_eq_of_equiv_const {f : cau_seq ℂ abs} {x : ℂ} (h : f ≈ const abs x) : lim f = x :=

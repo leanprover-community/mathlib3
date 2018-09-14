@@ -223,6 +223,9 @@ if h : z = 0 then by simp [h] else
 (domain.mul_left_inj (mt conj_eq_zero.1 h)).1 $
 by rw [← conj_mul]; simp [h, -conj_mul]
 
+@[simp] lemma conj_sub (z w : ℂ) : conj (z - w) = conj z - conj w :=
+by simp
+
 @[simp] lemma conj_div (z w : ℂ) : conj (z / w) = conj z / conj w :=
 by rw [division_def, conj_mul, conj_inv]; refl
 
@@ -394,6 +397,15 @@ lemma lim_neg (f : cau_seq ℂ abs) : lim ⇑(-f) = -lim f :=
 lim_eq_of_equiv_const (show lim_zero (-f - const abs (-lim ⇑f)),
   by rw [const_neg, sub_neg_eq_add, add_comm];
   exact setoid.symm (equiv_lim f))
+
+lemma is_cau_seq_conj {f : ℕ → ℂ} (hf : is_cau_seq abs f) :
+  is_cau_seq abs (conj ∘ f) :=
+λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
+⟨i, λ j hj, by rw [function.comp_apply, function.comp_apply, ← conj_sub, abs_conj];
+  exact hi j hj⟩
+
+lemma lim_conj (f : cau_seq ℂ abs) : lim (⟨conj ∘ f, is_cau_seq_conj f.2⟩ : cau_seq ℂ abs) = conj (lim f) :=
+complex.ext rfl (real.lim_neg ⟨_, is_cau_seq_im f⟩ : _)
 
 lemma lim_eq_zero_iff (f : cau_seq ℂ abs) : lim f = 0 ↔ lim_zero f :=
 ⟨assume h,

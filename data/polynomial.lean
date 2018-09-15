@@ -650,6 +650,11 @@ coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
 (ext _ _).2 $ λ n, C_mul_apply f
 
+-- TODO -- this is OK for semimodules
+lemma coeff_is_linear (n : ℕ) : is_linear_map (λ f : polynomial α, coeff f n) := {
+  add := λ f g, coeff_add f g n,
+  smul := λ r p, coeff_smul p r n
+}
 instance C.is_ring_hom : is_ring_hom (@C α _ _) := by apply is_ring_hom.of_semiring
 
 instance eval₂.is_ring_hom {β} [comm_ring β]

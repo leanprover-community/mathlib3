@@ -18,7 +18,7 @@ variables (ι : Type v) [decidable_eq ι] (β : ι → Type w)
 variables [Π i, module R (β i)]
 include R
 
-def direct_sum : Type* := ι →ₚ β
+def direct_sum : Type* := Π₀ i, β i
 
 namespace direct_sum
 
@@ -159,9 +159,9 @@ protected def id (M : Type v) [module R M] :
   right_inv := λ x, by simp,
   linear_fun := to_module.linear _ }
 
-def to_pi (f : direct_sum R ι β) : Π i, β i :=
-begin
-  refine to_module (λ i x j, if h : i = j then (eq.rec_on h x) else 0) (λ i, _) f,
+instance : has_coe_to_fun (direct_sum R ι β) :=
+⟨λ _, Π i, β i, λ f, to_module (λ i x j, if h : i = j then (eq.rec_on h x) else 0)
+(λ i, begin
   constructor; intros; funext j,
   { change _ = _ + _,
     split_ifs, { subst h },
@@ -169,6 +169,6 @@ begin
   change _ = c • _,
   split_ifs, { subst h },
   simp
-end
+end) f⟩
 
 end direct_sum

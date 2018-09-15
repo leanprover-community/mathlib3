@@ -652,7 +652,7 @@ instance : has_zero ordinal :=
 ⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
 
 theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
-quotient.sound ⟨⟨equiv.pempty_equiv_empty, λ _ _, iff.rfl⟩⟩
+quotient.sound ⟨⟨equiv.empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
 

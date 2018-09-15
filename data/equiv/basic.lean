@@ -180,9 +180,6 @@ equiv_pempty _root_.id
 def empty_equiv_pempty : empty ≃ pempty :=
 equiv_pempty $ empty.rec _
 
-def pempty_equiv_empty : pempty ≃ empty :=
-equiv_empty $ pempty.rec _
-
 def pempty_equiv_pempty : pempty.{v} ≃ pempty.{w} :=
 equiv_pempty pempty.elim
 

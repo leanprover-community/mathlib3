@@ -349,6 +349,14 @@ namespace complex
 @[simp] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
 by rw [← of_real_nat_cast, abs_of_real, @_root_.abs_of_nonneg ℝ _ _ (nat.cast_nonneg n)]
 
+lemma conj_pow (z : ℂ) (n : ℕ) : conj (z ^ n) = conj z ^ n :=
+by induction n; simp [*, conj_mul, pow_succ]
+#print bit0_zero
+@[simp] lemma bit0_re (z : ℂ) : (bit0 z).re = bit0 z.re := add_re _ _
+@[simp] lemma bit1_re (z : ℂ) : (bit1 z).re = bit1 z.re := by simp [bit1]
+@[simp] lemma bit0_im (z : ℂ) : (bit0 z).im = bit0 z.im := add_im _ _
+@[simp] lemma bit1_im (z : ℂ) : (bit1 z).im = bit0 z.im := by simp [bit1]
+
 set_option trace.simplify.rewrite true
 
 lemma is_cau_abs_exp (z : ℂ) : is_cau_seq _root_.abs
@@ -374,7 +382,7 @@ def exp' (z : ℂ) : cau_seq ℂ complex.abs := ⟨_, is_cau_exp z⟩
 
 def exp (z : ℂ) : ℂ := lim (exp' z)
 
-def sin (z : ℂ) : ℂ := (exp (I * z) - exp (-I * z)) / (2 * I)
+def sin (z : ℂ) : ℂ := (I * (exp (-I * z) - exp (I * z))) / 2
 
 def cos (z : ℂ) : ℂ := (exp (I * z) + exp (-I * z)) / 2
 
@@ -385,6 +393,8 @@ def sinh (z : ℂ) : ℂ := (exp z - exp (-z)) / 2
 def cosh (z : ℂ) : ℂ := (exp z + exp (-z)) / 2
 
 def tanh (z : ℂ) : ℂ := sinh z / cosh z
+
+variables (x y : ℂ)
 
 @[simp] lemma exp_zero : exp 0 = 1 :=
 lim_eq_of_equiv_const $
@@ -400,7 +410,7 @@ lim_eq_of_equiv_const $
       simp } }
 end⟩
 
-lemma exp_add (x y : ℂ) : exp (x + y) = exp x * exp y :=
+lemma exp_add : exp (x + y) = exp x * exp y :=
 show lim (⟨_, is_cau_exp (x + y)⟩ : cau_seq ℂ abs) =
   lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp x⟩)
   * lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp y⟩),
@@ -425,5 +435,77 @@ have hj : ∀ j : ℕ, (range j).sum
 by rw lim_mul_lim;
   exact eq.symm (lim_eq_lim_of_equiv (by dsimp; simp only [hj];
     exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)))
+
+lemma exp_ne_zero : exp x ≠ 0 :=
+λ h, @zero_ne_one ℂ _ $
+  by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
+
+lemma exp_neg : exp (-x) = (exp x)⁻¹ :=
+by rw [← domain.mul_left_inj (exp_ne_zero x), ← exp_add];
+  simp [mul_inv_cancel (exp_ne_zero x)]
+
+lemma exp_sub : exp (x - y) = exp x / exp y :=
+by simp [exp_add, exp_neg, div_eq_mul_inv]
+
+@[simp] lemma exp_conj : exp (conj x) = conj (exp x) :=
+begin
+  dsimp [exp],
+  rw [← lim_conj],
+  refine congr_arg lim _,
+  dsimp [exp', function.comp],
+  funext,
+  rw ← sum_hom conj conj_zero conj_add,
+  refine sum_congr rfl (λ n hn, _),
+  rw [conj_div, conj_pow, ← of_real_nat_cast, conj_of_real]
+end
+
+lemma exp_of_real_im (x : ℝ) : (exp x).im = 0 :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero ℝ _), two_mul],
+  conv in (exp x) { rw [← conj_of_real x, exp_conj] },
+  simp
+end
+
+@[simp] lemma sin_zero : sin 0 = 0 := by simp [sin]
+
+@[simp] lemma sin_neg : sin (-x) = -sin x :=
+by simp [sin, exp_neg, (neg_div _ _).symm, mul_add]
+
+lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _),
+      ← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _)],
+  simp only [mul_add, add_mul, exp_add, div_mul_div, div_add_div_same,
+    mul_assoc, (div_div_eq_div_mul _ _ _).symm,
+    mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _), sin, cos],
+  ring
+end
+
+@[simp] lemma cos_zero : cos 0 = 1 := by simp [cos]
+
+@[simp] lemma cos_neg : cos (-x) = cos x :=
+by simp [cos, exp_neg]
+
+lemma cos_add : cos (x + y) = cos x * cos y - sin x * sin y :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _),
+      ← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _)],
+  simp only [mul_add, add_mul, mul_sub, sub_mul, exp_add, div_mul_div,
+    div_add_div_same, mul_assoc, (div_div_eq_div_mul _ _ _).symm,
+    mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _), sin, cos],
+  apply complex.ext; simp; ring
+end
+
+lemma sin_sub : sin (x - y) = sin x * cos y - cos x * sin y :=
+by simp [sin_add, sin_neg, cos_neg]
+
+lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
+by simp [cos_add, sin_neg, cos_neg]
+
+@[simp] lemma tan_zero : tan 0 = 0 := by simp [tan]
+
+@[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
+
+-- lemma tan_add : tan (x + y) =
 
 end complex

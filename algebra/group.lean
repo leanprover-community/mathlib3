@@ -499,8 +499,9 @@ instance [add_comm_group α] : comm_group (multiplicative α) :=
 section add_monoid
   variables [add_monoid α] {a b c : α}
 
-  @[simp] lemma bit0_zero : bit0 0 = 0 := add_zero _
-  @[simp] lemma bit1_zero : bit1 0 = 1 := add_zero _
+  @[simp] lemma bit0_zero : bit0 (0 : α) = 0 := add_zero _
+  @[simp] lemma bit1_zero [has_one α] : bit1 (0 : α) = 1 := by simp [bit1]
+  
 end add_monoid
 
 section add_group

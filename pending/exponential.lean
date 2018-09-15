@@ -25,6 +25,12 @@ lemma mul_le_of_le_one_right {α : Type*} [linear_ordered_semiring α] {a b : α
 calc a * b ≤ 1 * b : mul_le_mul ha1 (le_refl b) hb zero_le_one
 ... = b : one_mul b
 
+lemma div_le_div_of_le_left {α : Type*} [discrete_linear_ordered_field α]
+  {a b c : α} (ha : 0 ≤ a) (hb : 0 < b) (hc : 0 < c) (h : c ≤ b) :
+  a / b ≤ a / c :=
+if ha0 : a = 0 then by simp [ha0]
+else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) hb hc).2 h
+
 lemma pow_lt_pow_of_gt_one {α : Type*} [linear_ordered_semiring α] {x : α} {n m : ℕ}
   (h1x : 1 < x) (hnm : n < m) : x ^ n < x ^ m :=
 by rw [← nat.sub_add_cancel hnm, pow_add, pow_succ, ← mul_assoc];
@@ -336,36 +342,37 @@ end⟩
 
 end
 
-open nat finset
+open finset
 
-lemma complex.exp_series_abs_cau (z : ℂ) : is_cau_seq abs (λ n, (range n).sum (λ m, complex.abs (z ^ m / fact m))) := begin
-  cases exists_nat_gt (complex.abs z) with n hn,
-  have n_pos : (0 : ℝ) < n := lt_of_le_of_lt (complex.abs_nonneg _) hn,
-  refine series_ratio_test n (complex.abs z / n) _ _ _,exact div_nonneg_of_nonneg_of_pos (complex.abs_nonneg _) n_pos,rwa [div_lt_iff n_pos,one_mul],
-  assume m mn,rw [abs_of_nonneg (complex.abs_nonneg _),abs_of_nonneg (complex.abs_nonneg _)],
-  unfold fact,simp only [_root_.pow_succ, complex.abs_div,complex.abs_mul,div_eq_mul_inv,mul_inv',
-    nat.cast_mul,complex.abs_inv],
-  have : complex.abs z * complex.abs (z ^ m) * ((complex.abs ↑(fact m))⁻¹ * (complex.abs ↑(succ m))⁻¹) = complex.abs z *
-    complex.abs (z ^ m) * (complex.abs ↑(fact m))⁻¹ * (complex.abs ↑(succ m))⁻¹,ring,rw this,
-  have : complex.abs z * (↑n)⁻¹ * (complex.abs (z ^ m) * (complex.abs ↑(fact m))⁻¹) = complex.abs z * complex.abs (z ^ m) * (complex.abs ↑(fact m))⁻¹ * (↑n)⁻¹,ring,
-  rw this,
-  rw[(by simp : (succ m : ℂ) = ((succ m : ℝ) : ℂ)),complex.abs_of_nonneg],
-  refine mul_le_mul_of_nonneg_left _ _,
-  rw [inv_le_inv,nat.cast_le],exact le_succ_of_le mn,
-  rw [←nat.cast_zero,nat.cast_lt],exact succ_pos _,exact n_pos,rw[←complex.abs_inv,←complex.abs_mul,←complex.abs_mul],
-  exact complex.abs_nonneg _,rw[←nat.cast_zero,nat.cast_le],exact zero_le _,
-end
+namespace complex
+
+@[simp] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
+by rw [← of_real_nat_cast, abs_of_real, @_root_.abs_of_nonneg ℝ _ _ (nat.cast_nonneg n)]
+
+set_option trace.simplify.rewrite true
+
+lemma is_cau_abs_exp (z : ℂ) : is_cau_seq _root_.abs
+  (λ n, (range n).sum (λ m, abs (z ^ m / nat.fact m))) :=
+let ⟨n, hn⟩ := exists_nat_gt (abs z) in
+have hn0 : (0 : ℝ) < n, from lt_of_le_of_lt (abs_nonneg _) hn,
+series_ratio_test n (complex.abs z / n) (div_nonneg_of_nonneg_of_pos (complex.abs_nonneg _) hn0)
+  (by rwa [div_lt_iff hn0, one_mul])
+  (λ m hm,
+    by rw [abs_abs, abs_abs, nat.fact_succ, pow_succ,
+      mul_comm m.succ, nat.cast_mul, ← div_div_eq_div_mul, mul_div_assoc,
+      mul_div_right_comm, abs_mul, abs_div, abs_cast_nat];
+    exact mul_le_mul_of_nonneg_right
+      (div_le_div_of_le_left (abs_nonneg _) (nat.cast_pos.2 (nat.succ_pos _)) hn0
+        (nat.cast_le.2 (le_trans hm (nat.le_succ _)))) (abs_nonneg _))
 
 noncomputable theory
 
-lemma is_cau_exp (z : ℂ) : is_cau_seq complex.abs (λ n, (range n).sum (λ m, z ^ m / fact m)) :=
-  is_cau_series_of_abv_cau (complex.exp_series_abs_cau z)
+lemma is_cau_exp (z : ℂ) : is_cau_seq abs (λ n, (range n).sum (λ m, z ^ m / nat.fact m)) :=
+  is_cau_series_of_abv_cau (is_cau_abs_exp z)
 
 def exp' (z : ℂ) : cau_seq ℂ complex.abs := ⟨_, is_cau_exp z⟩
 
-open complex
-
-def exp (z : ℂ) : ℂ := complex.lim (exp' z)
+def exp (z : ℂ) : ℂ := lim (exp' z)
 
 def sin (z : ℂ) : ℂ := (exp (I * z) - exp (-I * z)) / (2 * I)
 
@@ -385,44 +392,38 @@ lim_eq_of_equiv_const $
   convert ε0,
   cases j,
   { exact absurd hj (not_le_of_gt zero_lt_one) },
-  { induction j with j ih,
+  { dsimp [exp'],
+    induction j with j ih,
     { dsimp [exp']; simp },
     { rw ← ih dec_trivial,
-      simp only [sum_range_succ, _root_.pow_succ],
+      simp only [sum_range_succ, pow_succ],
       simp } }
 end⟩
 
 lemma exp_add (x y : ℂ) : exp (x + y) = exp x * exp y :=
-show complex.lim (⟨_, complex.exp_series_cau (x + y)⟩ : cau_seq ℂ abs) =
-  complex.lim (show cau_seq ℂ abs, from ⟨_, complex.exp_series_cau x⟩)
-  * complex.lim (show cau_seq ℂ abs, from ⟨_, complex.exp_series_cau y⟩),
-begin
- have hxa := complex.exp_series_abs_cau x,
- have hx := complex.exp_series_cau x,
- have hy := complex.exp_series_cau y,
- have hxy := complex.exp_series_cau (x + y),
-   rw complex.lim_mul_lim,
- have hj : ∀ j : ℕ, (range j).sum (λ (m : ℕ),
-    (x + y) ^ m / ↑(fact m)) = (range j).sum
-    (λ i, (range (i + 1)).sum (λ k, x ^ k / fact k *
-    (y ^ (i - k) / fact (i - k)))),
-    { assume j,
-      refine finset.sum_congr rfl (λ m hm, _),
+show lim (⟨_, is_cau_exp (x + y)⟩ : cau_seq ℂ abs) =
+  lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp x⟩)
+  * lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp y⟩),
+from
+have hj : ∀ j : ℕ, (range j).sum
+    (λ m, (x + y) ^ m / m.fact) = (range j).sum
+    (λ i, (range (i + 1)).sum (λ k, x ^ k / k.fact *
+    (y ^ (i - k) / (i - k).fact))),
+  from assume j,
+    finset.sum_congr rfl (λ m hm, begin
       rw [add_pow, div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
-      have := choose_mul_fact_mul_fact (le_of_lt_succ $ finset.mem_range.1 hi),
-      rw [← this, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
+      have h₁ : (choose m i : ℂ) ≠ 0 := nat.cast_ne_zero.2 (λ h,
+        by simpa [h, lt_irrefl] using choose_pos (nat.le_of_lt_succ (mem_range.1 hi))),
+      have h₂ := choose_mul_fact_mul_fact (nat.le_of_lt_succ $ finset.mem_range.1 hi),
+      rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
       simp only [mul_left_comm (choose m i : ℂ), mul_assoc, mul_left_comm (choose m i : ℂ)⁻¹,
         mul_comm (choose m i : ℂ)],
-      have : (choose m i : ℂ) ≠ 0 := nat.cast_ne_zero.2 (λ h,
-        by have := choose_pos (le_of_lt_succ (mem_range.1 hi)); simpa [h, lt_irrefl] using this),
-      rw inv_mul_cancel this,
-      simp [div_eq_mul_inv, mul_comm, mul_assoc, mul_left_comm] },
-  have hf := funext hj, have hxy1 := hxy, rw hf at hxy1,
-  have := series_cauchy_prod hxa hy,
-  refine eq.symm (lim_eq_lim_of_equiv _),
-  assume ε ε0,
-  dsimp,
-  simp only [hj],
-  exact this ε ε0,
-end
+      rw inv_mul_cancel h₁,
+      simp [div_eq_mul_inv, mul_comm, mul_assoc, mul_left_comm]
+    end),
+by rw lim_mul_lim;
+  exact eq.symm (lim_eq_lim_of_equiv (by dsimp; simp only [hj];
+    exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)))
+
+end complex

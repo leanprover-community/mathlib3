@@ -181,6 +181,12 @@ instance : fintype unit := ⟨⟨()::0, by simp⟩, λ ⟨⟩, by simp⟩
 
 @[simp] theorem fintype.card_unit : fintype.card unit = 1 := rfl
 
+instance : fintype punit := ⟨⟨punit.star::0, by simp⟩, λ ⟨⟩, by simp⟩
+
+@[simp] theorem fintype.univ_punit : @univ punit _ = {punit.star} := rfl
+
+@[simp] theorem fintype.card_punit : fintype.card punit = 1 := rfl
+
 instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp⟩
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {ff, tt} := rfl

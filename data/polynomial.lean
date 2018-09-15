@@ -639,7 +639,16 @@ section comm_ring
 variables [comm_ring α] {p q : polynomial α}
 instance : comm_ring (polynomial α) := finsupp.to_comm_ring
 instance : has_scalar α (polynomial α) := finsupp.to_has_scalar
-instance : module α (polynomial α) := finsupp.to_module α
+-- TODO if this becomes a semimodule then the below lemma could be proved for semimodules
+instance : module α (polynomial α) := finsupp.to_module α 
+
+-- TODO -- this is OK for semimodules
+@[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
+coeff (r • p) n = r * coeff p n := finsupp.smul_apply
+
+-- TODO -- this is OK for semimodules
+lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
+(ext _ _).2 $ λ n, C_mul_apply f
 
 instance C.is_ring_hom : is_ring_hom (@C α _ _) := by apply is_ring_hom.of_semiring
 

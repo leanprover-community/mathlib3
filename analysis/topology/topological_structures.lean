@@ -77,7 +77,7 @@ variables [topological_space α] [comm_monoid α] [topological_monoid α]
 lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) →
     tendsto (λb, (s.map (λc, f c b)).prod) x (nhds ((s.map a).prod)) :=
-quot.induction_on s $ by simp; exact tendsto_list_prod
+by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
 
 lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.prod (λc, f c b)) x (nhds (s.prod a)) :=
@@ -85,7 +85,7 @@ tendsto_multiset_prod _
 
 lemma continuous_multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).prod) :=
-quot.induction_on s $ by simp; exact continuous_list_prod
+by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
 
 lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
@@ -142,18 +142,18 @@ end
 section
 variables [topological_space α] [add_comm_monoid α] [topological_add_monoid α]
 
-lemma tendsto_multiset_sum {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
-  (∀c∈s, tendsto (f c) x (nhds (a c))) →
+lemma tendsto_multiset_sum {f : γ → β → α} {x : filter β} {a : γ → α} :
+  ∀ (s : multiset γ), (∀c∈s, tendsto (f c) x (nhds (a c))) →
     tendsto (λb, (s.map (λc, f c b)).sum) x (nhds ((s.map a).sum)) :=
-quot.induction_on s $ by simp; exact tendsto_list_sum
+by rintros ⟨l⟩; simp; exact tendsto_list_sum l
 
 lemma tendsto_finset_sum {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.sum (λc, f c b)) x (nhds (s.sum a)) :=
 tendsto_multiset_sum _
 
-lemma continuous_multiset_sum [topological_space β] {f : γ → β → α} (s : multiset γ) :
-  (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).sum) :=
-quot.induction_on s $ by simp; exact continuous_list_sum
+lemma continuous_multiset_sum [topological_space β] {f : γ → β → α} :
+  ∀(s : multiset γ), (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).sum) :=
+by rintros ⟨l⟩; simp; exact continuous_list_sum l
 
 lemma continuous_finset_sum [topological_space β] {f : γ → β → α} (s : finset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, s.sum (λc, f c a)) :=
@@ -481,8 +481,8 @@ theorem induced_orderable_topology' {α : Type u} {β : Type v}
 begin
   letI := induced f ta,
   refine ⟨eq_of_nhds_eq_nhds (λ a, _)⟩,
-  rw [nhds_induced_eq_vmap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
-  { rw [← map_le_iff_le_vmap],
+  rw [nhds_induced_eq_comap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
+  { rw [← map_le_iff_le_comap],
     refine le_inf _ _; refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _); simp,
     { rcases H₁ h with ⟨b, ab, xb⟩,
       refine mem_infi_sets _ (mem_infi_sets ⟨ab, b, or.inl rfl⟩ (mem_principal_sets.2 _)),
@@ -492,10 +492,10 @@ begin
       exact λ c hc, lt_of_lt_of_le (hf.2 hc) xb } },
   refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
   rcases hs with ⟨ab, b, rfl|rfl⟩,
-  { exact mem_vmap_sets.2 ⟨{x | f b < x},
+  { exact mem_comap_sets.2 ⟨{x | f b < x},
       mem_inf_sets_of_left $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
       λ x, hf.1⟩ },
-  { exact mem_vmap_sets.2 ⟨{x | x < f b},
+  { exact mem_comap_sets.2 ⟨{x | x < f b},
       mem_inf_sets_of_right $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
       λ x, hf.1⟩ }
 end
@@ -660,8 +660,8 @@ end linear_order
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
 
-lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = vmap (has_neg.neg : α → α) :=
-funext $ assume f, map_eq_vmap_of_inverse (funext neg_neg) (funext neg_neg)
+lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
+funext $ assume f, map_eq_comap_of_inverse (funext neg_neg) (funext neg_neg)
 
 section topological_add_group
 

@@ -10,8 +10,8 @@ to make the process of contributing as smooth as possible.
 1. Use Zulip: https://leanprover.zulipchat.com/#
    Discuss your contribution while you are working on it.
 2. Adhere to the guidelines:
-   - The [style guide](docs/style.md) for contributors
-   - The explanation of [naming conventions](docs/naming.md).
+   - The [style guide](/docs/style.md) for contributors.
+   - The explanation of [naming conventions](/docs/naming.md).
    - The [git commit conventions](https://github.com/leanprover/lean/blob/master/doc/commit_convention.md).
 3. Create a pull request from a feature branch on your personal fork,
    as explained in the link above.

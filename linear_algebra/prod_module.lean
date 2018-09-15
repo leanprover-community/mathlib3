@@ -140,6 +140,21 @@ instance [add_comm_group α] [add_comm_group β] : add_comm_group (α × β) :=
   .. prod.add_group }
 attribute [to_additive prod.add_comm_group]     prod.comm_group
 
+instance [ring α] [ring β] : ring (α × β) :=
+{ left_distrib := λ a b c, mk.inj_iff.mpr ⟨left_distrib _ _ _, left_distrib _ _ _⟩,
+  right_distrib := λ a b c, mk.inj_iff.mpr ⟨right_distrib _ _ _, right_distrib _ _ _⟩,
+  ..prod.add_comm_group,
+  ..prod.monoid }
+
+instance [comm_ring α] [comm_ring β] : comm_ring (α × β) :=
+{ ..prod.ring,
+  ..prod.comm_monoid }
+
+instance [nonzero_comm_ring α] [comm_ring β] : nonzero_comm_ring (α × β) :=
+{ zero_ne_one := by haveI := classical.prop_decidable;
+    exact mt prod.ext_iff.1 (not_and_distrib.2 (or.inl zero_ne_one)),
+  ..prod.comm_ring }
+
 attribute [to_additive prod.fst_sum] prod.fst_prod
 attribute [to_additive prod.snd_sum] prod.snd_prod
 
@@ -200,16 +215,17 @@ by constructor; simp [inl, inr] {contextual := tt}
 
 instance [has_scalar α β] [has_scalar α γ] : has_scalar α (β × γ) := ⟨λa p, (a • p.1, a • p.2)⟩
 
-section module
-variables [ring α] [module α β] [module α γ] [module α δ]
-include α
-
-instance : module α (β × γ) :=
+instance {r : ring α} [module α β] [module α γ] : module α (β × γ) :=
 { smul_add := assume a p₁ p₂, mk.inj_iff.mpr ⟨smul_add, smul_add⟩,
   add_smul := assume a p₁ p₂, mk.inj_iff.mpr ⟨add_smul, add_smul⟩,
   mul_smul := assume a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul, mul_smul⟩,
   one_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul, one_smul⟩,
   .. prod.has_scalar }
+
+
+section module
+variables [ring α] [module α β] [module α γ] [module α δ]
+include α
 
 lemma is_linear_map_prod_fst : is_linear_map (prod.fst : β × γ → β) :=
 ⟨assume x y, rfl, assume x y, rfl⟩
@@ -271,7 +287,7 @@ lemma is_basis_inl_union_inr {s : set β} {t : set γ}
 
 end module
 
-instance [field α] [vector_space α β] [vector_space α γ] : vector_space α (β × γ) :=
+instance {f : field α} [vector_space α β] [vector_space α γ] : vector_space α (β × γ) :=
 {..prod.module}
 
 end prod

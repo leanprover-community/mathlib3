@@ -620,6 +620,24 @@ by simp [or_imp_distrib, forall_and_distrib]
 
 end finset
 
+namespace option
+
+/-- Construct an empty or singleton finset from an `option` -/
+def to_finset (o : option α) : finset α :=
+match o with
+| none   := ∅
+| some a := finset.singleton a
+end
+
+@[simp] theorem to_finset_none : none.to_finset = (∅ : finset α) := rfl
+
+@[simp] theorem to_finset_some {a : α} : (some a).to_finset = finset.singleton a := rfl
+
+@[simp] theorem mem_to_finset {a : α} {o : option α} : a ∈ o.to_finset ↔ a ∈ o :=
+by cases o; simp [eq_comm]
+
+end option
+
 /- erase_dup on list and multiset -/
 
 namespace multiset

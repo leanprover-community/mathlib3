@@ -47,7 +47,7 @@ begin
 end
 
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
-uniform_continuous_vmap
+uniform_continuous_comap
 
 theorem uniform_embedding_of_rat : uniform_embedding (coe : ℚ → ℝ) :=
 metric_space.induced_uniform_embedding _ _ _

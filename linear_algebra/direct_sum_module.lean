@@ -23,15 +23,14 @@ def direct_sum : Type* := Π₀ i, β i
 namespace direct_sum
 
 variables {R ι β}
-def mk (s : finset ι) (f : dfinsupp.finset ι β s) : direct_sum R ι β :=
+def mk (s : finset ι) (f : Π i : (↑s : set ι), β i.1) : direct_sum R ι β :=
 dfinsupp.mk s f
-local attribute [instance] dfinsupp.to_has_scalar'
+--local attribute [instance] dfinsupp.to_has_scalar'
 instance direct_sum.module : module R (direct_sum R ι β) :=
 dfinsupp.to_module
 
 theorem mk_linear (s : finset ι) : is_linear_map (@mk _ _ _ _ β _ s) :=
-{ add := λ x y, by ext i; dsimp [mk]; simp; split_ifs; [refl, simp],
-  smul := λ c x, by ext i; dsimp [mk]; simp; split_ifs; [refl, simp] }
+dfinsupp.is_linear_map
 
 theorem mk_inj (s : finset ι) : function.injective (@mk _ _ _ _ β _ s) :=
 dfinsupp.mk_inj s
@@ -77,13 +76,19 @@ variables (φ : Π i, β i → γ) (hφ : Π i, is_linear_map (φ i))
 include hφ
 
 def to_module (f : direct_sum R ι β) : γ :=
-dfinsupp.lift_on' f (λ s x, s.sum $ λ i, if H : i ∈ s then φ i (x ⟨i, H⟩) else 0) $
+quotient.lift_on f (λ x, x.2.to_finset.sum $ λ i, φ i (x.1 i)) $ λ x y H,
 begin
-  intros s t x hst,
-  refine eq.trans (finset.sum_congr rfl _) (finset.sum_subset hst _),
-  { intros i h1, simp [h1, hst h1] },
-  { intros i h1 h2, simp [h1, h2, (hφ i).zero] }
-end 
+  have H1 : x.2.to_finset ∩ y.2.to_finset ⊆ x.2.to_finset, from finset.inter_subset_left,
+  have H2 : x.2.to_finset ∩ y.2.to_finset ⊆ y.2.to_finset, from finset.inter_subset_right,
+  refine (finset.sum_subset H1 _).symm.trans ((finset.sum_congr rfl _).trans (finset.sum_subset H2 _)),
+  { intros i H1 H2, rw finset.mem_inter at H2, rw H i,
+    simp only [multiset.mem_to_finset] at H1 H2,
+    rw [(y.3 i).resolve_left (mt (and.intro H1) H2), (hφ i).zero] },
+  { intros i H1, rw H i },
+  { intros i H1 H2, rw finset.mem_inter at H2, rw ← H i,
+    simp only [multiset.mem_to_finset] at H1 H2,
+    rw [(x.3 i).resolve_left (mt (λ H3, and.intro H3 H1) H2), (hφ i).zero] }
+end
 
 variables {φ}
 
@@ -91,25 +96,28 @@ theorem to_module.linear : is_linear_map (to_module φ hφ) :=
 begin
   constructor,
   { intros f g,
-    refine dfinsupp.induction_on f (λ s x, _),
-    refine dfinsupp.induction_on g (λ t y, _),
-    change finset.sum _ _ = _,
-    rw dfinsupp.mk_eq_of_subset (s ∪ t) x finset.subset_union_left,
-    rw dfinsupp.mk_eq_of_subset (s ∪ t) y finset.subset_union_right,
-    dsimp [to_module],
-    rw ← finset.sum_add_distrib,
-    apply finset.sum_congr rfl,
-    intros i h1, dsimp at *,
-    split_ifs; apply (hφ i).add },
+    refine quotient.induction_on f (λ x, _),
+    refine quotient.induction_on g (λ y, _),
+    change finset.sum _ _ = finset.sum _ _ + finset.sum _ _,
+    simp only [(hφ _).add, finset.sum_add_distrib],
+    congr' 1,
+    { refine (finset.sum_subset _ _).symm,
+      { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inl },
+      { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
+        rw [(x.3 i).resolve_left H2, (hφ i).zero] } },
+    { refine (finset.sum_subset _ _).symm,
+      { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inr },
+      { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
+        rw [(y.3 i).resolve_left H2, (hφ i).zero] } } },
   { intros c f,
-    refine dfinsupp.induction_on f (λ s x, _),
+    refine quotient.induction_on f (λ x, _),
     refine eq.trans (finset.sum_congr rfl _) (finset.sum_hom _ _ _),
     { intros i h1, dsimp at *, simp [h1, (hφ i).smul] },
     all_goals { simp [smul_add] } }
 end
 
 @[simp] lemma to_module.of (i x) : to_module φ hφ (of i x) = φ i x :=
-by dsimp [to_module, of, dfinsupp.single]; simp
+by dsimp [to_module, of, dfinsupp.single, dfinsupp.mk]; simp
 
 @[simp] lemma to_module.add (f g) : to_module φ hφ (f + g) = to_module φ hφ f + to_module φ hφ g :=
 (to_module.linear _).add _ _
@@ -160,15 +168,6 @@ protected def id (M : Type v) [module R M] :
   linear_fun := to_module.linear _ }
 
 instance : has_coe_to_fun (direct_sum R ι β) :=
-⟨λ _, Π i, β i, λ f, to_module (λ i x j, if h : i = j then (eq.rec_on h x) else 0)
-(λ i, begin
-  constructor; intros; funext j,
-  { change _ = _ + _,
-    split_ifs, { subst h },
-    simp },
-  change _ = c • _,
-  split_ifs, { subst h },
-  simp
-end) f⟩
+dfinsupp.has_coe_to_fun
 
 end direct_sum

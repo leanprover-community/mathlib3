@@ -90,7 +90,8 @@ def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 ext_iff.2 $ by simp
 
 @[simp] lemma conj_zero : conj 0 = 0 := conj_of_real 0
-@[simp] lemma conj_one : conj 1 = 1 := conj_of_real 1
+@[simp] lemma conj_one : conj 1 = 1 := conj_of_real
+@[simp] lemma conj_two : conj (2 : ℂ) = 2 := by apply complex.ext; simp
 @[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
 
 @[simp] lemma conj_add (z w : ℂ) : conj (z + w) = conj z + conj w :=
@@ -104,6 +105,12 @@ ext_iff.2 $ by simp
 
 @[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z :=
 ext_iff.2 $ by simp
+
+lemma conj_pow (z : ℂ) (n : ℕ) : conj (z ^ n) = conj z ^ n :=
+by induction n; simp [*, conj_mul, pow_succ]
+
+lemma conj_neg_I : conj (-I) = I :=
+complex.ext (by simp) (by simp)
 
 lemma conj_bijective : function.bijective conj :=
 ⟨function.injective_of_has_left_inverse ⟨conj, conj_conj⟩,
@@ -168,6 +175,11 @@ ext_iff.2 $ by simp [two_mul]
 instance : comm_ring ℂ :=
 by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
    { intros, apply ext_iff.2; split; simp; ring }
+
+@[simp] lemma bit0_re (z : ℂ) : (bit0 z).re = bit0 z.re := add_re _ _
+@[simp] lemma bit1_re (z : ℂ) : (bit1 z).re = bit1 z.re := by simp [bit1]
+@[simp] lemma bit0_im (z : ℂ) : (bit0 z).im = bit0 z.im := add_im _ _
+@[simp] lemma bit1_im (z : ℂ) : (bit1 z).im = bit0 z.im := by simp [bit1]
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
@@ -322,6 +334,9 @@ lemma abs_abs_sub_le_abs_sub : ∀ z w, abs' (abs z - abs w) ≤ abs (z - w) := 
 
 lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ abs' z.re + abs' z.im :=
 by simpa [re_add_im] using abs_add z.re (z.im * I)
+
+@[simp] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
+by rw [← of_real_nat_cast, abs_of_real, @_root_.abs_of_nonneg ℝ _ _ (nat.cast_nonneg n)]
 
 noncomputable def lim (f : ℕ → ℂ) : ℂ :=
 ⟨real.lim (λ n, (f n).re), real.lim (λ n, (f n).im)⟩

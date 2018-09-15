@@ -78,6 +78,40 @@ lemma one_lt_two : 1 < (2 : α) := lt_add_one _
 lemma mul_le_one {a b : α} (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
 begin rw ← one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end
 
+lemma one_lt_mul_of_le_of_lt {a b : α} (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
+calc 1 = 1 * 1 : by rw one_mul
+... < a * b : mul_lt_mul' ha hb zero_le_one (lt_of_lt_of_le zero_lt_one ha)
+
+lemma one_lt_mul_of_lt_of_le {a b : α} (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
+calc 1 = 1 * 1 : by rw one_mul
+... < a * b : mul_lt_mul ha hb zero_lt_one (le_trans zero_le_one (le_of_lt ha))
+
+lemma mul_le_of_le_one_right {a b : α} (ha : 0 ≤ a) (hb1 : b ≤ 1) : a * b ≤ a :=
+calc a * b ≤ a * 1 : mul_le_mul_of_nonneg_left hb1 ha
+... = a : mul_one a
+
+lemma mul_le_of_le_one_left {a b : α} (hb : 0 ≤ b) (ha1 : a ≤ 1) : a * b ≤ b :=
+calc a * b ≤ 1 * b : mul_le_mul ha1 (le_refl b) hb zero_le_one
+... = b : one_mul b
+
+lemma mul_lt_of_lt_one_right {a b : α} (ha : 0 < a) (hb1 : b < 1) : a * b < a :=
+calc a * b < a * 1 : (mul_lt_mul_left ha).2 hb1
+... = a : mul_one a
+
+lemma mul_lt_of_lt_one_left {a b : α} (hb : 0 < b) (ha1 : a < 1) : a * b < b :=
+calc a * b < 1 * b : (mul_lt_mul_right hb).2 ha1
+... = b : one_mul b
+
+lemma mul_lt_one_of_nonneg_of_lt_one_left {a b : α}
+  (ha0 : 0 ≤ a) (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
+calc a * b ≤ a : mul_le_of_le_one_right ha0 hb
+... < 1 : ha
+
+lemma mul_lt_one_of_nonneg_of_lt_one_right {a b : α}
+  (ha : a ≤ 1) (hb0 : 0 ≤ b) (hb : b < 1) : a * b < 1 :=
+calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
+... < 1 : hb
+
 end linear_ordered_semiring
 
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :

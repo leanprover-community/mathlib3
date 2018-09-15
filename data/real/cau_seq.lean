@@ -64,6 +64,10 @@ lemma abs_abv_sub_le_abv_sub (a b : β) :
 abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
   by rw abv_sub abv; apply sub_abv_le_abv_sub abv⟩
 
+
+lemma abv_pow (a : β) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
+by induction n; simp [abv_mul abv, _root_.pow_succ, abv_one abv, *]
+
 end is_absolute_value
 
 instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :
@@ -359,7 +363,7 @@ assume : lim_zero (f*g - 0),
 have hlz : lim_zero (f*g), by simpa,
 have hf' : ¬ lim_zero f, by simpa using (show ¬ lim_zero (f - 0), from hf),
 have hg' : ¬ lim_zero g, by simpa using (show ¬ lim_zero (g - 0), from hg),
-begin 
+begin
   rcases abv_pos_of_not_lim_zero hf' with ⟨a1, ha1, N1, hN1⟩,
   rcases abv_pos_of_not_lim_zero hg' with ⟨a2, ha2, N2, hN2⟩,
   have : a1 * a2 > 0, from mul_pos ha1 ha2,
@@ -374,17 +378,17 @@ begin
   apply mul_le_mul; try { assumption },
     { apply le_of_lt ha2 },
     { apply is_absolute_value.abv_nonneg abv }
-end 
+end
 
 end ring
 
-section comm_ring 
+section comm_ring
 variables {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
 by rw mul_comm; apply mul_equiv_zero _ hf
 
-end comm_ring 
+end comm_ring
 
 section integral_domain
 variables {β : Type*} [integral_domain β] (abv : β → α) [is_absolute_value abv]

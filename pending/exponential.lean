@@ -5,44 +5,6 @@ open real is_absolute_value finset
 
 local attribute [instance, priority 0] classical.prop_decidable
 
-lemma one_lt_mul_of_le_of_lt {α : Type*} [linear_ordered_semiring α] {a b : α}
-  (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-calc 1 = 1 * 1 : by rw one_mul
-... < a * b : mul_lt_mul' ha hb zero_le_one (lt_of_lt_of_le zero_lt_one ha)
-
-lemma one_lt_mul_of_lt_of_le {α : Type*} [linear_ordered_semiring α] {a b : α}
-  (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
-calc 1 = 1 * 1 : by rw one_mul
-... < a * b : mul_lt_mul ha hb zero_lt_one (le_trans zero_le_one (le_of_lt ha))
-
-lemma mul_le_of_le_one_left {α : Type*} [linear_ordered_semiring α] {a b : α}
-  (ha : 0 ≤ a) (hb1 : b ≤ 1) : a * b ≤ a :=
-calc a * b ≤ a * 1 : mul_le_mul_of_nonneg_left hb1 ha
-... = a : mul_one a
-
-lemma mul_le_of_le_one_right {α : Type*} [linear_ordered_semiring α] {a b : α}
-  (hb : 0 ≤ b) (ha1 : a ≤ 1) : a * b ≤ b :=
-calc a * b ≤ 1 * b : mul_le_mul ha1 (le_refl b) hb zero_le_one
-... = b : one_mul b
-
-lemma div_le_div_of_le_left {α : Type*} [discrete_linear_ordered_field α]
-  {a b c : α} (ha : 0 ≤ a) (hb : 0 < b) (hc : 0 < c) (h : c ≤ b) :
-  a / b ≤ a / c :=
-if ha0 : a = 0 then by simp [ha0]
-else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) hb hc).2 h
-
-lemma pow_lt_pow_of_gt_one {α : Type*} [linear_ordered_semiring α] {x : α} {n m : ℕ}
-  (h1x : 1 < x) (hnm : n < m) : x ^ n < x ^ m :=
-by rw [← nat.sub_add_cancel hnm, pow_add, pow_succ, ← mul_assoc];
-  exact (lt_mul_iff_one_lt_left (pow_pos (lt_trans zero_lt_one h1x) _)).2
-    (one_lt_mul_of_le_of_lt (one_le_pow_of_one_le (le_of_lt h1x) _) h1x)
-
-lemma pow_lt_pow_of_lt_one_of_pos {α : Type*} [discrete_linear_ordered_field α] {x : α} {n m : ℕ}
-  (hx1 : x < 1) (h0x : 0 < x) (hnm : n < m) : x ^ m < x ^ n :=
-(inv_lt_inv (pow_pos h0x _) (pow_pos h0x _)).1
-  (by rw [pow_inv _ _ (ne.symm (ne_of_lt h0x)), pow_inv _ _ (ne.symm (ne_of_lt h0x))];
-    exact pow_lt_pow_of_gt_one (one_lt_inv h0x hx1) hnm)
-
 open finset
 
 lemma geo_series_eq {α : Type*} [field α] {x : α} : ∀ (n : ℕ) (hx1 : x ≠ 1),
@@ -351,12 +313,19 @@ by rw [← of_real_nat_cast, abs_of_real, @_root_.abs_of_nonneg ℝ _ _ (nat.cas
 
 lemma conj_pow (z : ℂ) (n : ℕ) : conj (z ^ n) = conj z ^ n :=
 by induction n; simp [*, conj_mul, pow_succ]
-#print bit0_zero
+
+lemma conj_neg_I : conj (-I) = I :=
+complex.ext (by simp) (by simp)
+
+lemma conj_def (z : ℂ) : conj z = z.re - z.im * I :=
+complex.ext (by simp) (by simp)
+
 @[simp] lemma bit0_re (z : ℂ) : (bit0 z).re = bit0 z.re := add_re _ _
 @[simp] lemma bit1_re (z : ℂ) : (bit1 z).re = bit1 z.re := by simp [bit1]
 @[simp] lemma bit0_im (z : ℂ) : (bit0 z).im = bit0 z.im := add_im _ _
 @[simp] lemma bit1_im (z : ℂ) : (bit1 z).im = bit0 z.im := by simp [bit1]
 
+lemma conj_two : conj (2 : ℂ) = 2 := by apply complex.ext; simp
 set_option trace.simplify.rewrite true
 
 lemma is_cau_abs_exp (z : ℂ) : is_cau_seq _root_.abs
@@ -382,9 +351,9 @@ def exp' (z : ℂ) : cau_seq ℂ complex.abs := ⟨_, is_cau_exp z⟩
 
 def exp (z : ℂ) : ℂ := lim (exp' z)
 
-def sin (z : ℂ) : ℂ := (I * (exp (-I * z) - exp (I * z))) / 2
+def sin (z : ℂ) : ℂ := ((exp (-z * I) - exp (z * I)) * I) / 2
 
-def cos (z : ℂ) : ℂ := (exp (I * z) + exp (-I * z)) / 2
+def cos (z : ℂ) : ℂ := (exp (z * I) + exp (-z * I)) / 2
 
 def tan (z : ℂ) : ℂ := sin z / cos z
 
@@ -393,6 +362,30 @@ def sinh (z : ℂ) : ℂ := (exp z - exp (-z)) / 2
 def cosh (z : ℂ) : ℂ := (exp z + exp (-z)) / 2
 
 def tanh (z : ℂ) : ℂ := sinh z / cosh z
+
+end complex
+
+namespace real
+
+open complex
+
+def exp (x : ℝ) : ℝ := (exp x).re
+
+def sin (x : ℝ) : ℝ := (sin x).re
+
+def cos (x : ℝ) : ℝ := (cos x).re
+
+def tan (x : ℝ) : ℝ := (tan x).re
+
+def sinh (x : ℝ) : ℝ := (sinh x).re
+
+def cosh (x : ℝ) : ℝ := (cosh x).re
+
+def tanh (x : ℝ) : ℝ := (tanh x).re
+
+end real
+
+namespace complex
 
 variables (x y : ℂ)
 
@@ -459,17 +452,23 @@ begin
   rw [conj_div, conj_pow, ← of_real_nat_cast, conj_of_real]
 end
 
-lemma exp_of_real_im (x : ℝ) : (exp x).im = 0 :=
+@[simp] lemma exp_of_real_im (x : ℝ) : (exp x).im = 0 :=
 begin
   rw [← domain.mul_left_inj (@two_ne_zero ℝ _), two_mul],
   conv in (exp x) { rw [← conj_of_real x, exp_conj] },
   simp
 end
 
+@[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
+complex.ext (by simp) (by simp)
+
+@[simp] lemma of_real_exp (x : ℝ) : (real.exp x : ℂ) = exp x :=
+complex.ext (by simp [real.exp]) (by simp [real.exp])
+
 @[simp] lemma sin_zero : sin 0 = 0 := by simp [sin]
 
 @[simp] lemma sin_neg : sin (-x) = -sin x :=
-by simp [sin, exp_neg, (neg_div _ _).symm, mul_add]
+by simp [sin, exp_neg, (neg_div _ _).symm, add_mul]
 
 lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
 begin
@@ -478,6 +477,7 @@ begin
   simp only [mul_add, add_mul, exp_add, div_mul_div, div_add_div_same,
     mul_assoc, (div_div_eq_div_mul _ _ _).symm,
     mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _), sin, cos],
+  simp [mul_add, add_mul, exp_add],
   ring
 end
 
@@ -493,7 +493,7 @@ begin
   simp only [mul_add, add_mul, mul_sub, sub_mul, exp_add, div_mul_div,
     div_add_div_same, mul_assoc, (div_div_eq_div_mul _ _ _).symm,
     mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _), sin, cos],
-  apply complex.ext; simp; ring
+  apply complex.ext; simp [mul_add, add_mul, exp_add]; ring
 end
 
 lemma sin_sub : sin (x - y) = sin x * cos y - cos x * sin y :=
@@ -502,10 +502,236 @@ by simp [sin_add, sin_neg, cos_neg]
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [cos_add, sin_neg, cos_neg]
 
+lemma sin_conj : sin (conj x) = conj (sin x) :=
+begin
+  rw [sin, ← conj_neg_I, ← conj_mul, ← conj_neg, ← conj_mul,
+    exp_conj, exp_conj, ← conj_sub, sin, conj_div, conj_two,
+    ← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _),
+    mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _),
+    mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _)],
+  apply complex.ext; simp [sin, neg_add],
+end
+
+@[simp] lemma sin_of_real_im (x : ℝ) : (sin x).im = 0 :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero ℝ _), two_mul],
+  conv in (sin x) { rw [← conj_of_real x, sin_conj] },
+  simp
+end
+
+@[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
+by apply complex.ext; simp
+
+@[simp] lemma of_real_sin (x : ℝ) : (real.sin x : ℂ) = sin x :=
+by simp [real.sin]
+
+lemma cos_conj : cos (conj x) = conj (cos x) :=
+begin
+  rw [cos, ← conj_neg_I, ← conj_mul, ← conj_neg, ← conj_mul,
+    exp_conj, exp_conj, cos, conj_div, conj_two,
+    ← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _),
+    mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _),
+    mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _)],
+  apply complex.ext; simp
+end
+
+@[simp] lemma cos_of_real_im (x : ℝ) : (cos x).im = 0 :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero ℝ _), two_mul],
+  conv in (cos x) { rw [← conj_of_real x, cos_conj] },
+  simp
+end
+
+@[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
+by apply complex.ext; simp
+
+@[simp] lemma of_real_cos (x : ℝ) : (real.cos x : ℂ) = cos x :=
+by simp [real.cos]
+
 @[simp] lemma tan_zero : tan 0 = 0 := by simp [tan]
 
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
--- lemma tan_add : tan (x + y) =
+lemma tan_conj : tan (conj x) = conj (tan x) :=
+by rw [tan, sin_conj, cos_conj, ← conj_div, tan]
+
+@[simp] lemma tan_of_real_im (x : ℝ) : (tan x).im = 0 :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero ℝ _), two_mul],
+  conv in (tan x) { rw [← conj_of_real x, tan_conj] },
+  simp
+end
+
+@[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
+by apply complex.ext; simp
+
+@[simp] lemma of_real_tan (x : ℝ) : (real.tan x : ℂ) = tan x :=
+by simp [real.tan]
+
+
+@[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
+
+@[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
+by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
+
+lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _),
+      ← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _)],
+  simp only [mul_add, add_mul, exp_add, div_mul_div, div_add_div_same,
+    mul_assoc, (div_div_eq_div_mul _ _ _).symm,
+    mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _), sinh, cosh],
+  simp [mul_add, add_mul, exp_add],
+  ring
+end
+
+@[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
+
+@[simp] lemma cosh_neg : cosh (-x) = cosh x :=
+by simp [cosh, exp_neg]
+
+lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _),
+      ← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _)],
+  simp only [mul_add, add_mul, mul_sub, sub_mul, exp_add, div_mul_div,
+    div_add_div_same, mul_assoc, (div_div_eq_div_mul _ _ _).symm,
+    mul_div_cancel' _ (@two_ne_zero' ℂ _ _ _), sinh, cosh],
+  apply complex.ext; simp [mul_add, add_mul, exp_add]; ring
+end
+
+lemma sinh_sub : sinh (x - y) = sinh x * cosh y - cosh x * sinh y :=
+by simp [sinh_add, sinh_neg, cosh_neg]
+
+lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
+by simp [cosh_add, sinh_neg, cosh_neg]
+
+lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
+by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, conj_two]
+
+@[simp] lemma sinh_of_real_im (x : ℝ) : (sinh x).im = 0 :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero ℝ _), two_mul],
+  conv in (sinh x) { rw [← conj_of_real x, sinh_conj] },
+  simp
+end
+
+@[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
+by apply complex.ext; simp
+
+@[simp] lemma of_real_sinh (x : ℝ) : (real.sinh x : ℂ) = sinh x :=
+by simp [real.sinh]
+
+lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
+by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, conj_two]
+
+@[simp] lemma cosh_of_real_im (x : ℝ) : (cosh x).im = 0 :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero ℝ _), two_mul],
+  conv in (cosh x) { rw [← conj_of_real x, cosh_conj] },
+  simp
+end
+
+@[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
+by apply complex.ext; simp
+
+@[simp] lemma of_real_cosh (x : ℝ) : (real.cosh x : ℂ) = cosh x :=
+by simp [real.cosh]
+
+@[simp] lemma tanh_zero : tanh 0 = 0 := by simp [tanh]
+
+@[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
+
+lemma tanh_conj : tanh (conj x) = conj (tanh x) :=
+by rw [tanh, sinh_conj, cosh_conj, ← conj_div, tanh]
+
+@[simp] lemma tanh_of_real_im (x : ℝ) : (tanh x).im = 0 :=
+begin
+  rw [← domain.mul_left_inj (@two_ne_zero ℝ _), two_mul],
+  conv in (tanh x) { rw [← conj_of_real x, tanh_conj] },
+  simp
+end
+
+@[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
+by apply complex.ext; simp
+
+@[simp] lemma of_real_tanh (x : ℝ) : (real.tanh x : ℂ) = tanh x :=
+by simp [real.tanh]
 
 end complex
+
+namespace real
+
+open complex
+
+variables (x y : ℝ)
+
+@[simp] lemma exp_zero : exp 0 = 1 :=
+by rw [real.exp, of_real_zero]; simp
+
+lemma exp_add : exp (x + y) = exp x * exp y :=
+by simp [exp_add, real.exp]
+
+lemma exp_ne_zero : exp x ≠ 0 :=
+λ h, exp_ne_zero x $ by rw [real.exp, ← of_real_inj, of_real_zero] at h; simp * at *
+
+lemma exp_neg : exp (-x) = (exp x)⁻¹ :=
+by rw [← of_real_inj, real.exp, of_real_exp_of_real_re, of_real_neg, exp_neg,
+  of_real_inv, of_real_exp]
+
+lemma exp_sub : exp (x - y) = exp x / exp y :=
+by simp [exp_add, exp_neg, div_eq_mul_inv]
+
+@[simp] lemma sin_zero : sin 0 = 0 := by simp [sin, of_real_zero]
+
+@[simp] lemma sin_neg : sin (-x) = -sin x :=
+by simp [sin, exp_neg, (neg_div _ _).symm, add_mul]
+
+lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
+by rw [← of_real_inj]; simp [sin, sin_add]
+
+@[simp] lemma cos_zero : cos 0 = 1 := by simp [cos, of_real_zero]
+
+@[simp] lemma cos_neg : cos (-x) = cos x :=
+by simp [cos, exp_neg]
+
+lemma cos_add : cos (x + y) = cos x * cos y - sin x * sin y :=
+by rw ← of_real_inj; simp [cos, cos_add]
+
+lemma sin_sub : sin (x - y) = sin x * cos y - cos x * sin y :=
+by simp [sin_add, sin_neg, cos_neg]
+
+lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
+by simp [cos_add, sin_neg, cos_neg]
+
+@[simp] lemma tan_zero : tan 0 = 0 := by simp [tan, of_real_zero]
+
+@[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
+
+@[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh, of_real_zero]
+
+@[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
+by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
+
+lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
+by rw ← of_real_inj; simp [sinh, sinh_add]
+
+@[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh, of_real_zero]
+
+@[simp] lemma cosh_neg : cosh (-x) = cosh x :=
+by simp [cosh, exp_neg]
+
+lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
+by rw ← of_real_inj; simp [cosh, cosh_add]
+
+lemma sinh_sub : sinh (x - y) = sinh x * cosh y - cosh x * sinh y :=
+by simp [sinh_add, sinh_neg, cosh_neg]
+
+lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
+by simp [cosh_add, sinh_neg, cosh_neg]
+
+@[simp] lemma tanh_zero : tanh 0 = 0 := by simp [tanh, of_real_zero]
+
+@[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
+
+end real

@@ -253,6 +253,13 @@ variables {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
 @[simp] lemma sum_sub_distrib [add_comm_group β] : s.sum (λx, f x - g x) = s.sum f - s.sum g :=
 by simp [sum_add_distrib]
 
+lemma sum_nonneg [ordered_comm_monoid α] {f : β → α} {s : finset β} :
+  (∀ x ∈ s, 0 ≤ f x) → 0 ≤ s.sum f :=
+by haveI := classical.dec_eq β; exact
+finset.induction_on s (by simp)
+  (λ a s has ih h, by rw [sum_insert has];
+    exact add_nonneg' (h a (by simp)) (ih (λx hx, by simp *)))
+
 section ordered_cancel_comm_monoid
 variables [decidable_eq α] [ordered_cancel_comm_monoid β]
 

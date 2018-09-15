@@ -80,31 +80,6 @@ begin
   exact b1.2,
 end
 
-theorem quotient_prod_linear_equiv (s : set β) [is_submodule s] :
-  nonempty ((quotient_module.quotient β s × s) ≃ₗ β) :=
-let ⟨g, H1, H2⟩ := exists_right_inverse_linear_map_of_surjective
-  (quotient_module.is_linear_map_quotient_mk s)
-  (quotient_module.quotient.exists_rep) in
-have H3 : ∀ b, quotient_module.mk (g b) = b := λ b, congr_fun H2 b,
-⟨{ to_fun := λ b, g b.1 + b.2.1,
-  inv_fun := λ b, (quotient_module.mk b, ⟨b - g (quotient_module.mk b),
-    (quotient_module.coe_eq_zero _ _).1 $
-    ((quotient_module.is_linear_map_quotient_mk _).sub _ _).trans $
-    by rw [H3, sub_self]⟩),
-  left_inv := λ ⟨q, b, h⟩,
-    have H4 : quotient_module.mk b = 0,
-      from (quotient_module.coe_eq_zero s b).2 h,
-    have H5 : quotient_module.mk (g q + b) = q,
-      from ((quotient_module.is_linear_map_quotient_mk _).add _ _).trans $
-      by simp only [H3, H4, add_zero],
-    prod.ext H5 (subtype.eq $ by simp only [H5, add_sub_cancel']),
-  right_inv := λ b, add_sub_cancel'_right _ _,
-  linear_fun := ⟨λ ⟨q1, b1, h1⟩ ⟨q2, b2, h2⟩,
-      show g (q1 + q2) + (b1 + b2) = (g q1 + b1) + (g q2 + b2),
-      by rw [H1.add]; simp only [add_left_comm, add_assoc],
-    λ c ⟨q, b, h⟩, show g (c • q) + (c • b) = c • (g q + b),
-      by rw [H1.smul, smul_add]⟩ }⟩
-
 variables [vector_space α γ]
 
 theorem dim_eq_of_linear_equiv (f : β ≃ₗ γ) : dim α β = dim α γ :=
@@ -130,7 +105,7 @@ begin
 end
 
 theorem dim_quotient {s : set β} [is_submodule s] : dim α (quotient_module.quotient β s) + dim α s = dim α β :=
-nonempty.rec_on (quotient_prod_linear_equiv s) $ λ f,
+nonempty.rec_on (quotient_module.quotient_prod_linear_equiv s) $ λ f,
 dim_prod.symm.trans $ dim_eq_of_linear_equiv f
 
 /-- rank-nullity theorem -/

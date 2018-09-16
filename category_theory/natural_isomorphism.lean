@@ -87,6 +87,7 @@ namespace category_theory.functor
 
 universes u₁ u₂ v₁ v₂
 
+section
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] 
           {D : Type u₂} [𝒟 : category.{u₂ v₂} D] 
 include 𝒞 𝒟
@@ -121,4 +122,20 @@ variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D)
 -- When it's time to define monoidal categories and 2-categories,
 -- we'll need to add lemmas relating these natural isomorphisms,
 -- in particular the pentagon for the associator.
+end
+
+section
+variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] 
+include 𝒞
+
+def ulift_down_up : ulift_down.{u₁ v₁ u₂} C ⋙ ulift_up C ≅ functor.id (ulift.{u₂} C) :=
+{ hom := { app := λ X, @category.id (ulift.{u₂} C) _ X },
+  inv := { app := λ X, @category.id (ulift.{u₂} C) _ X } }
+
+def ulift_up_down : ulift_up.{u₁ v₁ u₂} C ⋙ ulift_down C ≅ functor.id C :=
+{ hom := { app := λ X, 𝟙 X },
+  inv := { app := λ X, 𝟙 X } }
+
+end
+
 end category_theory.functor

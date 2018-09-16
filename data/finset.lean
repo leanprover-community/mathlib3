@@ -269,9 +269,9 @@ by rw [mem_union, not_or_distrib]
 theorem union_subset {s₁ s₂ s₃ : finset α} (h₁ : s₁ ⊆ s₃) (h₂ : s₂ ⊆ s₃) : s₁ ∪ s₂ ⊆ s₃ :=
 val_le_iff.1 (ndunion_le.2 ⟨h₁, val_le_iff.2 h₂⟩)
 
-theorem subset_union_left {s₁ s₂ : finset α} : s₁ ⊆ s₁ ∪ s₂ := λ x, mem_union_left _
+theorem subset_union_left (s₁ s₂ : finset α) : s₁ ⊆ s₁ ∪ s₂ := λ x, mem_union_left _
 
-theorem subset_union_right {s₁ s₂ : finset α} : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
+theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
 
 @[simp] theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ :=
 ext.2 $ λ x, by simp only [mem_union, or_comm]
@@ -333,9 +333,9 @@ theorem mem_of_mem_inter_right {a : α} {s₁ s₂ : finset α} (h : a ∈ s₁ 
 theorem mem_inter_of_mem {a : α} {s₁ s₂ : finset α} : a ∈ s₁ → a ∈ s₂ → a ∈ s₁ ∩ s₂ :=
 and_imp.1 mem_inter.2
 
-theorem inter_subset_left {s₁ s₂ : finset α} : s₁ ∩ s₂ ⊆ s₁ := λ a, mem_of_mem_inter_left
+theorem inter_subset_left (s₁ s₂ : finset α) : s₁ ∩ s₂ ⊆ s₁ := λ a, mem_of_mem_inter_left
 
-theorem inter_subset_right {s₁ s₂ : finset α} : s₁ ∩ s₂ ⊆ s₂ := λ a, mem_of_mem_inter_right
+theorem inter_subset_right (s₁ s₂ : finset α) : s₁ ∩ s₂ ⊆ s₂ := λ a, mem_of_mem_inter_right
 
 theorem subset_inter {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₁ ⊆ s₃ → s₁ ⊆ s₂ ∩ s₃ :=
 by simp only [subset_iff, mem_inter] {contextual:=tt}; intros; split; trivial
@@ -398,12 +398,12 @@ by rw [inter_comm, singleton_inter_of_not_mem h]
 instance : lattice (finset α) :=
 { sup          := (∪),
   sup_le       := assume a b c, union_subset,
-  le_sup_left  := assume a b, subset_union_left,
-  le_sup_right := assume a b, subset_union_right,
+  le_sup_left  := subset_union_left,
+  le_sup_right := subset_union_right,
   inf          := (∩),
   le_inf       := assume a b c, subset_inter,
-  inf_le_left  := assume a b, inter_subset_left,
-  inf_le_right := assume a b, inter_subset_right,
+  inf_le_left  := inter_subset_left,
+  inf_le_right := inter_subset_right,
   ..finset.partial_order }
 
 @[simp] theorem sup_eq_union (s t : finset α) : s ⊔ t = s ∪ t := rfl

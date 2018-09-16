@@ -103,6 +103,19 @@ infixr ` ⋙ `:80 := comp
   (F ⋙ G).map f = G.map (F.map f) := rfl
 end
 
+section
+variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
+include 𝒞
+
+@[simp] def ulift_down : (ulift.{u₂} C) ⥤ C :=
+{ obj := λ X, X.down,
+  map' := λ X Y f, f }
+
+@[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
+{ obj := λ X, ⟨ X ⟩,
+  map' := λ X Y f, f }
+end
+
 end functor
 
 def bundled.map {c : Type u → Type v} {d : Type u → Type v} (f : Π{a}, c a → d a) (s : bundled c) : bundled d :=

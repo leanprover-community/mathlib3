@@ -118,12 +118,17 @@ end
 
 section
 variable (C : Type u)
-variable [small_category C]
+variable [category.{u v} C]
 
-instance : large_category (ulift.{(u+1)} C) :=
+universe u'
+
+instance ulift_category : category.{(max u u') v} (ulift.{u'} C) :=
 { hom  := λ X Y, (X.down ⟶ Y.down),
   id   := λ X, 𝟙 X.down,
-  comp := λ _ _ _ f g, f ≫ g }
+  comp := λ _ _ _ f g, f ≫ g }  
+
+-- We verify that this previous instance can lift small categories to large categories.
+example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance
 end
 
 variables (α : Type u)

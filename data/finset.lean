@@ -56,6 +56,17 @@ instance : has_lift (finset α) (set α) := ⟨to_set⟩
 
 @[simp] lemma mem_coe {a : α} {s : finset α} : a ∈ (↑s : set α) ↔ a ∈ s := iff.rfl
 
+/- nodup list coercion -/
+
+def of_nodup_list {l : list α} (d : l.nodup) : finset α :=
+finset.mk (l : multiset α) (d : (l : multiset α).nodup)
+
+instance has_coe_nodup_list {l : list α} : has_coe l.nodup (finset α) :=
+⟨of_nodup_list⟩
+
+@[simp] lemma mem_nodup_coe {a : α} {l : list α} (d : l.nodup) : a ∈ (d : finset α) ↔ a ∈ l :=
+iff.rfl
+
 /- extensionality -/
 theorem ext {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
 val_inj.symm.trans $ nodup_ext s₁.2 s₂.2
@@ -87,6 +98,10 @@ theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ ∀ ⦃x⦄, x �
 @[simp] theorem coe_subset {s₁ s₂ : finset α} :
   (↑s₁ : set α) ⊆ ↑s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 
+@[simp] theorem nodup_coe_subset {l₁ l₂ : list α} (d₁ : l₁.nodup) (d₂ : l₂.nodup) :
+  (d₁ : finset α) ⊆ (d₂ : finset α) ↔ l₁ ⊆ l₂ :=
+iff.rfl
+
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
 
 instance : has_ssubset (finset α) := ⟨λa b, a ⊆ b ∧ ¬ b ⊆ a⟩
@@ -104,6 +119,10 @@ instance : partial_order (finset α) :=
 @[simp] lemma coe_ssubset {s₁ s₂ : finset α} : (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊂ s₂ :=
 show (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
   by simp [set.ssubset_iff_subset_not_subset] {contextual := tt}
+
+@[simp] lemma nodup_coe_ssubset {l₁ l₂ : list α} (d₁ : l₁.nodup) (d₂ : l₂.nodup) :
+  (d₁ : finset α) ⊂ (d₂ : finset α) ↔ l₁ ⊆ l₂ ∧ ¬l₂ ⊆ l₁ :=
+iff.rfl
 
 @[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
 and_congr val_le_iff $ not_congr val_le_iff
@@ -140,6 +159,9 @@ exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) :=
 by simp [set.ext_iff]
 
+@[simp] theorem nodup_coe_nil : (@list.nodup_nil α : finset α) = ∅ :=
+ext' $ by simp
+
 /-- `singleton a` is the set `{a}` containing `a` and nothing else. -/
 def singleton (a : α) : finset α := ⟨_, nodup_singleton a⟩
 local prefix `ι`:90 := singleton
@@ -160,6 +182,9 @@ theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
 
 @[simp] lemma coe_singleton (a : α) : ↑(ι a) = ({a} : set α) :=
 by simp [set.ext_iff]
+
+@[simp] lemma nodup_coe_singleton (a : α) : (list.nodup_singleton a : finset α) = ι a :=
+rfl
 
 /- insert -/
 section decidable_eq
@@ -189,6 +214,14 @@ theorem mem_of_mem_insert_of_ne {a b : α} {s : finset α} (h : b ∈ insert a s
 
 @[simp] lemma coe_insert (a : α) (s : finset α) : ↑(insert a s) = (insert a ↑s : set α) :=
 by simp [set.ext_iff]
+
+@[simp] lemma nodup_coe_insert {a : α} {l : list α} (d : l.nodup) :
+  (list.nodup_insert a d : finset α) = insert a (d : finset α) :=
+rfl
+
+@[simp] theorem nodup_coe_cons {a : α} {l : list α} (m : a ∉ l) (d : l.nodup) :
+  (list.nodup_cons_of_nodup m d : finset α) = insert a (d : finset α) :=
+ext' $ by simp
 
 @[simp] theorem insert_eq_of_mem {a : α} {s : finset α} (h : a ∈ s) : insert a s = s :=
 eq_of_veq $ ndinsert_of_mem h
@@ -264,6 +297,10 @@ by simp [not_or_distrib]
 
 @[simp] lemma coe_union (s₁ s₂ : finset α) : ↑(s₁ ∪ s₂) = (↑s₁ ∪ ↑s₂ : set α) := by simp [set.ext_iff]
 
+@[simp] lemma nodup_coe_union {l₁ l₂ : list α} (d₁ : l₁.nodup) (d₂ : l₂.nodup) :
+  (list.nodup_union l₁ d₂ : finset α) = ↑d₁ ∪ ↑d₂ :=
+rfl
+
 theorem union_subset {s₁ s₂ s₃ : finset α} (h₁ : s₁ ⊆ s₃) (h₂ : s₂ ⊆ s₃) : s₁ ∪ s₂ ⊆ s₃ :=
 val_le_iff.1 (ndunion_le.2 ⟨h₁, val_le_iff.2 h₂⟩)
 
@@ -334,6 +371,10 @@ theorem subset_inter {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₁ ⊆ s
 by simp [subset_iff] {contextual:=tt}; finish
 
 @[simp] lemma coe_inter (s₁ s₂ : finset α) : ↑(s₁ ∩ s₂) = (↑s₁ ∩ ↑s₂ : set α) := by simp [set.ext_iff]
+
+@[simp] lemma nodup_coe_inter {l₁ l₂ : list α} (d₁ : l₁.nodup) (d₂ : l₂.nodup) :
+  (list.nodup_inter_of_nodup l₂ d₁ : finset α) = ↑d₁ ∩ ↑d₂ :=
+rfl
 
 @[simp] theorem inter_comm (s₁ s₂ : finset α) : s₁ ∩ s₂ = s₂ ∩ s₁ := ext.2 $ by simp [and_comm]
 
@@ -447,6 +488,10 @@ theorem erase_subset (a : α) (s : finset α) : erase s a ⊆ s := erase_subset 
 
 @[simp] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (↑s \ {a} : set α) :=
 by simp [set.ext_iff, and_comm]
+
+@[simp] lemma nodup_coe_erase (a : α) {l : list α} (d : l.nodup) :
+  (list.nodup_erase_of_nodup a d : finset α) = erase ↑d a :=
+rfl
 
 lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
 calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
@@ -668,7 +713,7 @@ def to_finset (l : list α) : finset α := multiset.to_finset l
 
 @[simp] theorem to_finset_val (l : list α) : l.to_finset.1 = (l.erase_dup : multiset α) := rfl
 
-theorem to_finset_eq {l : list α} (n : nodup l) : @finset.mk α l n = l.to_finset :=
+theorem to_finset_eq {l : list α} (n : nodup l) : (n : finset α) = l.to_finset :=
 multiset.to_finset_eq n
 
 @[simp] theorem mem_to_finset {a : α} {l : list α} : a ∈ l.to_finset ↔ a ∈ l :=

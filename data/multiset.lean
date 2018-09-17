@@ -2057,6 +2057,9 @@ quot.lift_on s nodup (λ s t p, propext $ perm_nodup p)
 
 @[simp] theorem coe_nodup {l : list α} : @nodup α l ↔ l.nodup := iff.rfl
 
+instance has_coe_nodup {l : list α} : has_coe l.nodup (l : multiset α).nodup :=
+⟨coe_nodup.mpr⟩
+
 @[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
 ⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
 
@@ -2307,7 +2310,7 @@ theorem erase_dup_cons {a : α} {s : multiset α} :
 by by_cases a ∈ s; simp [h]
 
 theorem nodup_ndinsert (a : α) {s : multiset α} : nodup s → nodup (ndinsert a s) :=
-quot.induction_on s $ λ l, nodup_insert
+quot.induction_on s $ λ l, nodup_insert a
 
 theorem ndinsert_le {a : α} {s t : multiset α} : ndinsert a s ≤ t ↔ s ≤ t ∧ a ∈ t :=
 ⟨λ h, ⟨le_trans (le_ndinsert_self _ _) h, mem_of_le h (mem_ndinsert_self _ _)⟩,

@@ -69,6 +69,21 @@ else by simp [h, of_subtype_apply_of_not_mem f h]
   subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
 equiv.ext _ _ $ λ ⟨x, hx⟩, by dsimp [subtype_perm, of_subtype]; simp [show p x, from hx]
 
+lemma pow_apply_eq_of_apply_apply_eq_self_nat {f : perm α} {x : α} (hffx : f (f x) = x) :
+  ∀ n : ℕ, (f ^ n) x = x ∨ (f ^ n) x = f x
+| 0     := or.inl rfl
+| (n+1) := (pow_apply_eq_of_apply_apply_eq_self_nat n).elim
+  (λ h, or.inr (by rw [pow_succ, mul_apply, h]))
+  (λ h, or.inl (by rw [pow_succ, mul_apply, h, hffx]))
+
+lemma pow_apply_eq_of_apply_apply_eq_self_int {f : perm α} {x : α} (hffx : f (f x) = x) :
+  ∀ i : ℤ, (f ^ i) x = x ∨ (f ^ i) x = f x
+| (n : ℕ) := pow_apply_eq_of_apply_apply_eq_self_nat hffx n
+| -[1+ n] :=
+  by rw [gpow_neg_succ, inv_eq_iff_eq, ← injective.eq_iff f.bijective.1, ← mul_apply, ← pow_succ,
+    eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm];
+  exact pow_apply_eq_of_apply_apply_eq_self_nat hffx _
+
 variable [decidable_eq α]
 
 def support [fintype α] (f : perm α) := univ.filter (λ x, f x ≠ x)
@@ -504,15 +519,6 @@ lemma is_cycle_swap_mul_aux₂ : ∀ (n : ℤ) {b x : α} {f : perm α}
 lemma eq_swap_of_is_cycle_of_apply_apply_eq_self {f : perm α} (hf : is_cycle f) {x : α}
   (hfx : f x ≠ x) (hffx : f (f x) = x) : f = swap x (f x) :=
 equiv.ext _ _ $ λ y,
-have ∀ n : ℕ, (f ^ n) x = x ∨ (f ^ n) x = f x :=
-  λ n, nat.rec_on n (or.inl rfl)
-    (λ n ih, ih.elim (λ h, or.inr (by rw [pow_succ, mul_apply, h]))
-      (λ h, or.inl (by rw [pow_succ, mul_apply, h, hffx]))),
-have ∀ i : ℤ, (f ^ i) x = x ∨ (f ^ i) x = f x :=
-  λ i, int.rec_on i this (λ n,
-  by rw [gpow_neg_succ, inv_eq_iff_eq, ← injective.eq_iff f.bijective.1, ← mul_apply, ← pow_succ,
-    eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm];
-    exact this _),
 let ⟨z, hz⟩ := hf in
 let ⟨i, hi⟩ := hz.2 x hfx in
 if hyx : y = x then by simp [hyx]
@@ -522,7 +528,7 @@ else begin
   refine by_contradiction (λ hy, _),
   cases hz.2 y hy with j hj,
   rw [← sub_add_cancel j i, gpow_add, mul_apply, hi] at hj,
-  cases this (j - i) with hji hji,
+  cases pow_apply_eq_of_apply_apply_eq_self_int hffx (j - i) with hji hji,
   { rw [← hj, hji] at hyx, cc },
   { rw [← hj, hji] at hfyx, cc }
 end

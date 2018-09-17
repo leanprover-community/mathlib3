@@ -1368,6 +1368,14 @@ by simp [_root_.disjoint, subset_iff]; refl
 theorem disjoint_val {s t : finset α} : disjoint s t ↔ s.1.disjoint t.1 :=
 disjoint_left
 
+@[simp] theorem disjoint_mk_left {l : list α} {s : finset α} (n : l.nodup) :
+  disjoint (@finset.mk α l n) s ↔ ∀ {a}, a ∈ l → a ∉ s :=
+by simp [disjoint_left]
+
+@[simp] theorem disjoint_mk_right {l : list α} {s : finset α} (n : l.nodup) :
+  disjoint s (@finset.mk α l n) ↔ ∀ {a}, a ∈ s → a ∉ l :=
+by simp [disjoint_left]
+
 theorem disjoint_iff_inter_eq_empty {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
 disjoint_iff
 

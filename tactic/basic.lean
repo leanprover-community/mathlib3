@@ -137,6 +137,9 @@ end lean.parser
 
 namespace tactic
 
+meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
+mk_app ``id [e] >>= eval_expr α
+
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
 

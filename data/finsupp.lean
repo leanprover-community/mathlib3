@@ -417,11 +417,6 @@ begin
 end,
 ext $ assume a, by simp [single_apply, this]
 
-lemma sum_single' [add_comm_monoid γ] [has_zero β] {a b} (g : α → β → γ) (hg : g a 0 = 0) :
-  (finsupp.single a b).sum g = g a b :=
-if h : b = 0 then by simp [finsupp.sum, h, hg]
-else by simp [finsupp.sum, finsupp.support_single_ne_zero h]
-
 @[to_additive finsupp.sum_add_index]
 lemma prod_add_index [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :

@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Define the p-adic integers ℤ_p as a subtype of ℚ_p. Construct algebraic structures on ℤ_p.
 -/
 
-import data.padics.padic_rationals tactic.subtype_instance ring_theory.ideals data.int.modeq
+import data.padics.padic_numbers tactic.subtype_instance ring_theory.ideals data.int.modeq
 open nat padic
 noncomputable theory
 local attribute [instance] classical.prop_decidable

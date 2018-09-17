@@ -7,111 +7,24 @@ A proof of Hensel's lemma on ℤ_p, roughly following Keith Conrad's writeup:
 http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf
 -/
 
-import data.padics.padic_integers data.polynomial data.nat.binomial data.real.cau_seq_filter analysis.limits tactic.ring
+import data.padics.padic_integers data.polynomial data.nat.binomial data.real.cau_seq_filter
+       analysis.limits tactic.ring
 
 noncomputable theory
 
 local attribute [instance] classical.prop_decidable
 
-section identities
-open polynomial
-
-lemma pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ),
-  {k // (x + y)^n = x^n + n*x^(n-1)*y + k * y^2}
-| 0 := ⟨0, by simp⟩
-| 1 := ⟨0, by simp⟩
-| (k+2) :=
-  begin
-    cases pow_add_expansion (k+1) with z hz,
-    rw [_root_.pow_succ, hz],
-    existsi (x*z + (k+1)*x^k+z*y),
-    simp [_root_.pow_succ], ring -- expensive!
-  end
-
-variables {α : Type*} [decidable_eq α] [comm_ring α]
-
-private lemma poly_binom_aux1 (x y : α) (e : ℕ) (a : α) :
-  {k : α // a * (x + y)^e = a * (x^e + e*x^(e-1)*y + k*y^2)} :=
-begin
-  existsi (pow_add_expansion x y e).val,
-  congr,
-  apply (pow_add_expansion _ _ _).property
-end
-
-private lemma poly_binom_aux2 (f : polynomial α) (x y : α) :
-  f.eval (x + y) = f.sum (λ e a, a * (x^e + e*x^(e-1)*y + (poly_binom_aux1 x y e a).val*y^2)) :=
-begin
-  unfold eval eval₂, congr, ext,
-  apply (poly_binom_aux1 x y _ _).property
-end
-
-private lemma poly_binom_aux3 (f : polynomial α) (x y : α) : f.eval (x + y) =
-  f.sum (λ e a, a * x^e) +
-  f.sum (λ e a, (a * e * x^(e-1)) * y) +
-  f.sum (λ e a, (a *(poly_binom_aux1 x y e a).val)*y^2) :=
-by rw poly_binom_aux2; simp [left_distrib, finsupp.sum_add, mul_assoc]
-
-lemma poly_binom_expansion (f : polynomial α) (x y : α) :
-  {k : α // f.eval (x + y) = f.eval x + (f.derivative.eval x) * y + k * y^2} :=
-begin
-  existsi f.sum (λ e a, a *((poly_binom_aux1 x y e a).val)),
-  rw poly_binom_aux3,
-  congr,
-  { rw derivative_eval, symmetry,
-    apply finsupp.sum_mul },
-  { symmetry, apply finsupp.sum_mul }
-end
-
-lemma pow_sub_pow_factor (x y : α) : Π {i : ℕ}, i ≥ 1 → {z : α // x^i - y^i = z*(x - y)}
-| 0 h := false.elim $ not_lt_of_ge h zero_lt_one
-| 1 h := ⟨1, by simp⟩
-| (k+2) h :=
-  begin
-    have : k + 1 ≥ 1, from (le_add_iff_nonneg_left _).mpr (nat.zero_le _),
-    cases pow_sub_pow_factor this with z hz,
-    existsi z*x + y^(k+1),
-    rw [_root_.pow_succ x, _root_.pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
-        ←mul_sub x, hz], simp only [_root_.pow_succ], ring
-  end
-
-lemma polynomial.eval_sub_factor (f : polynomial α) (x y : α) : {z : α // f.eval x - f.eval y = z*(x - y)} :=
-begin
-  existsi f.sum (λ a b, if h : a ≥ 1 then b * (pow_sub_pow_factor x y h).val else 0),
-  unfold eval eval₂,
-  rw ←finsupp.sum_sub,
-  have : finsupp.sum f -- strange unification problems with finsupp.sum_mul. troubleshoot this
-        (λ (a : ℕ) (b : α), dite (a ≥ 1) (λ (h : a ≥ 1), b * (pow_sub_pow_factor x y h).val) (λ (h : ¬a ≥ 1), 0)) *
-      (x - y) = finsupp.sum f
-        (λ (a : ℕ) (b : α), dite (a ≥ 1) (λ (h : a ≥ 1), b * (pow_sub_pow_factor x y h).val) (λ (h : ¬a ≥ 1), 0) * (x - y)),
-  { apply finsupp.sum_mul },
-  rw this, clear this,
-  congr, ext e a, split_ifs with he he,
-  { rw [mul_assoc, ←(pow_sub_pow_factor x y he).property], simp [left_distrib] },
-  { have : e = 0, from nat.eq_zero_of_le_zero (le_of_not_gt he), simp * }
-end
-
-end identities
-
-section dist_lemma
-/- This is a useful fact in general; ideally it would live somewhere else, but it depends on
-   eval_sub_factor above. -/
-open polynomial nat
-variables {p : ℕ} {hp : p.prime} (F : polynomial ℤ_[hp])
-
-lemma padic_polynomial_dist (x y : ℤ_[hp]) :
-      ∥F.eval x - F.eval y∥ ≤ ∥x - y∥ :=
+lemma padic_polynomial_dist {p : ℕ} {hp : p.prime} (F : polynomial ℤ_[hp]) (x y : ℤ_[hp]) :
+  ∥F.eval x - F.eval y∥ ≤ ∥x - y∥ :=
 let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
   ∥F.eval x - F.eval y∥ = ∥z∥ * ∥x - y∥ : by simp [hz]
     ... ≤ 1 * ∥x - y∥ : mul_le_mul_of_nonneg_right (padic_norm_z.le_one _) (norm_nonneg _)
     ... = ∥x - y∥ : by simp
 
-end dist_lemma
-
 open filter
 
-private lemma comp_tendsto_lim {p : ℕ} {hp : p.prime} {F : polynomial ℤ_[hp]}
-  (ncs : cau_seq ℤ_[hp] norm) : tendsto (λ i, F.eval (ncs i)) at_top
-                                 (nhds (F.eval (padic_int.cau_seq_lim ncs))) :=
+private lemma comp_tendsto_lim {p : ℕ} {hp : p.prime} {F : polynomial ℤ_[hp]} (ncs : cau_seq ℤ_[hp] norm) :
+  tendsto (λ i, F.eval (ncs i)) at_top (nhds (F.eval (padic_int.cau_seq_lim ncs))) :=
 @tendsto.comp _ _ _ ncs
   (λ k, F.eval k)
   _ _ _
@@ -123,11 +36,12 @@ parameters {p : ℕ} {hp : p.prime} {ncs : cau_seq ℤ_[hp] norm} {F : polynomia
            (ncs_der_val : ∀ n, ∥F.derivative.eval (ncs n)∥ = ∥F.derivative.eval a∥)
 include ncs_der_val
 
-private lemma ncs_tendsto_const : tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (nhds ∥F.derivative.eval a∥) :=
+private lemma ncs_tendsto_const :
+  tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (nhds ∥F.derivative.eval a∥) :=
 by convert tendsto_const_nhds; ext; rw ncs_der_val
 
-private lemma ncs_tendsto_lim : tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top
-                                (nhds (∥F.derivative.eval (padic_int.cau_seq_lim ncs)∥)) :=
+private lemma ncs_tendsto_lim :
+  tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (nhds (∥F.derivative.eval (padic_int.cau_seq_lim ncs)∥)) :=
 tendsto.comp (comp_tendsto_lim _) (continuous_iff_tendsto.1 continuous_norm _)
 
 private lemma norm_deriv_eq : ∥F.derivative.eval (padic_int.cau_seq_lim ncs)∥ = ∥F.derivative.eval a∥ :=
@@ -222,7 +136,7 @@ have hdzne' : (↑(F.derivative.eval z) : ℚ_[hp]) ≠ 0, from
   have hdzne : F.derivative.eval z ≠ 0,
     from mt (norm_eq_zero _).2 (by rw hz.1; apply deriv_norm_ne_zero; assumption),
   λ h, hdzne $ subtype.ext.2 h,
-let ⟨q, hq⟩ := poly_binom_expansion F z (-z1) in
+let ⟨q, hq⟩ := F.binom_expansion z (-z1) in
 have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) : ℚ_[hp])∥ ≤ 1,
   by {rw padic_norm_e.mul, apply mul_le_one, apply padic_norm_z.le_one, apply norm_nonneg, apply h1},
 have F.derivative.eval z * (-z1) = -F.eval z, from calc
@@ -451,7 +365,7 @@ have soln_dist : ∥z - soln∥ < ∥F.derivative.eval a∥, from calc
         ... ≤ max (∥z - a∥) (∥a - soln∥) : padic_norm_z.nonarchimedean _ _
         ... < ∥F.derivative.eval a∥ : max_lt hnlt (by rw norm_sub_rev; apply soln_dist_to_a_lt_deriv),
 let h := z - soln,
-    ⟨q, hq⟩ := poly_binom_expansion F soln h in
+    ⟨q, hq⟩ := F.binom_expansion soln h in
 have (F.derivative.eval soln + q * h) * h = 0, from eq.symm (calc
   0 = F.eval (soln + h) : by simp [hev, h]
 ... = F.derivative.eval soln * h + q * h^2 : by rw [hq, eval_soln, zero_add]
@@ -473,7 +387,7 @@ variables {p : ℕ} {hp : p.prime} {F : polynomial ℤ_[hp]} {a : ℤ_[hp]}
 private lemma a_soln_is_unique (ha : F.eval a = 0) (z' : ℤ_[hp]) (hz' : F.eval z' = 0)
   (hnormz' : ∥z' - a∥ < ∥F.derivative.eval a∥) : z' = a :=
 let h := z' - a,
-    ⟨q, hq⟩ := poly_binom_expansion F a h in
+    ⟨q, hq⟩ := F.binom_expansion a h in
 have (F.derivative.eval a + q * h) * h = 0, from eq.symm (calc
   0 = F.eval (a + h) : show 0 = F.eval (a + (z' - a)), by rw add_comm; simp [hz']
 ... = F.derivative.eval a * h + q * h^2 : by rw [hq, ha, zero_add]

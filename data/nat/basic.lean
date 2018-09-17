@@ -12,6 +12,12 @@ universe u
 namespace nat
 variables {m n k : ℕ}
 
+@[simp] theorem max_zero : max n 0 = n :=
+max_eq_left (zero_le n)
+
+@[simp] theorem zero_max : max 0 n = n :=
+max_eq_right (zero_le n)
+
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
 

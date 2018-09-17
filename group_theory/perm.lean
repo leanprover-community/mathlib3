@@ -430,7 +430,7 @@ have hg : g = (e.symm.trans f).trans e, from equiv.ext _ _ $ by simp [h],
 by rw [hg, sign_symm_trans_trans]
 
 lemma sign_bij [fintype α] [decidable_eq β] [fintype β]
-  (f : perm α) (g : perm β) (i : Π x : α, f x ≠ x → β)
+  {f : perm α} {g : perm β} (i : Π x : α, f x ≠ x → β)
   (h : ∀ x hx hx', i (f x) hx' = g (i x hx))
   (hi : ∀ x₁ x₂ hx₁ hx₂, i x₁ hx₁ = i x₂ hx₂ → x₁ = x₂)
   (hg : ∀ y, g y ≠ y → ∃ x hx, i x hx = y) :

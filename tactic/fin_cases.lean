@@ -11,9 +11,8 @@ namespace tactic
 
 meta def fin_cases_at (e : expr) : tactic unit :=
 do `(fin %%n) ← infer_type e,
-   guard n.is_numeral,
-   [(_, [val, bd], _)] ← cases_core e [`val, `bd],
    n ← eval_expr ℕ n,
+   [(_, [val, bd], _)] ← cases_core e [`val, `bd],
    -- We now call `cases val` n times, rotating the generated goals out of the way.
    iterate_at_most n (do val ← get_local `val, cases val, rotate 1),
    -- We've got an absurd hypothesis, but it is messy: it looks like

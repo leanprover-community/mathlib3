@@ -431,6 +431,7 @@ meta structure linarith_config :=
 (discharger : tactic unit := `[ring])
 (restrict_type : option Type := none)
 (restrict_type_reflect : reflected restrict_type . apply_instance)
+(exfalso : bool := tt)
 
 meta def ineq_pf_tp (pf : expr) : tactic expr :=
 do (_, z) ← infer_type pf >>= get_rel_sides,
@@ -612,13 +613,13 @@ do htp ← infer_type h,
      norm_hyp_aux h' lhs
    else return h'
 
-meta def get_contr_lemma_name : expr → tactic name
+meta def get_contr_lemma_name : expr → option name
 | `(%%a < %%b) := return `lt_of_not_ge
 | `(%%a ≤ %%b) := return `le_of_not_gt
 | `(%%a = %%b) := return ``eq_of_not_lt_of_not_gt
 | `(%%a ≥ %%b) := return `le_of_not_gt
 | `(%%a > %%b) := return `lt_of_not_ge
-| _ := fail "target type not supported by linarith"
+| _ := none
 
 
 -- assumes the input t is of type ℕ. Produces t' of type ℤ such that ↑t = t' and a proof of equality
@@ -700,15 +701,27 @@ meta def linarith.interactive_aux (cfg : linarith_config) :
 | [] none :=
   do t ← target,
      if t = `(false) then local_context >>= prove_false_by_linarith cfg
-     else do nm ← get_contr_lemma_name t, seq (applyc nm) (intro1 >> linarith.interactive_aux [] none)
+     else match get_contr_lemma_name t with
+     | some nm := seq (applyc nm) (intro1 >> linarith.interactive_aux [] none)
+     | none := if cfg.exfalso then exfalso >> linarith.interactive_aux [] none
+               else fail "linarith failed: target type is not an inequality."
+     end
 | ls none := (ls.mmap get_local) >>= prove_false_by_linarith cfg
 
 /--
-  If the goal is `false`, tries to prove it by linear arithmetic on hypotheses.
+  Tries to prove a goal of `false` by linear arithmetic on hypotheses.
   If the goal is a linear (in)equality, tries to prove it by contradiction.
+  If the goal is not `false` or an inequality, applies `exfalso` and tries linarith on the
+  hypotheses.
   `linarith` will use all relevant hypotheses in the local context.
   `linarith h1 h2 h3` will only use hypotheses h1, h2, h3.
   `linarith using [t1, t2, t3]` will add proof terms t1, t2, t3 to the local context.
+
+  Config options:
+  `linarith {exfalso := ff}` will fail on a goal that is neither an inequality nor `false`
+  `linarith {restrict_type := T}` will run only on hypotheses that are inequalities over `T`
+  `linarith {discharger := tac}` will use `tac` instead of `ring` for normalization.
+    Options: `ring2`, `ring SOP`, `simp`
 -/
 meta def tactic.interactive.linarith (ids : parse (many ident))
      (using_hyps : parse (tk "using" *> pexpr_list)?) (cfg : linarith_config := {}) : tactic unit :=

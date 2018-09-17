@@ -59,7 +59,7 @@ example (a b c : ℚ) (h2 : b > 0) (h3 : b < 0) : false :=
 by linarith
 
 example (a b c : ℚ) (h2 : (2 : ℚ) > 3)  : a + b - c ≥ 3 :=
-by linarith
+by linarith {exfalso := ff}
 
 example (x : ℚ) (hx : x > 0) (h : x.num < 0) : false :=
 by linarith using [rat.num_pos_iff_pos.mpr hx]
@@ -71,6 +71,9 @@ example (x y z : ℕ) (hx : x ≤ 3*y) (h2 : y ≤ 2*z) (h3 : x ≥ 6*z) : x = 3
 by linarith
 
 example (h1 : (1 : ℕ) < 1) : false :=
+by linarith
+
+example (a b c : ℚ) (h2 : b > 0) (h3 : b < 0) : nat.prime 10 :=
 by linarith
 
 example (a b c : ℕ) : a + b ≥ a :=

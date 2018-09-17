@@ -123,9 +123,9 @@ finset.ext.2 $ λ x,
     exact calc 2 * m + (q - 1) * p ≤ 2 * (p / 2) + (q - 1) * p :
       add_le_add_right ((mul_le_mul_left dec_trivial).2 (le_of_lt_succ (mem_range.1 (by simp * at *)))) _
     ... < _ : begin rw [two_mul_odd_div_two hp1, nat.mul_sub_right_distrib, one_mul],
-      rw [← nat.sub_add_comm hp.pos, nat.add_sub_cancel' (le_mul_of_ge_one_left' (nat.zero_le _) hq.pos), mul_comm],
-      exact lt_add_of_pos_right _ dec_trivial
-    end,
+        rw [← nat.sub_add_comm hp.pos, nat.add_sub_cancel' (le_mul_of_ge_one_left' (nat.zero_le _) hq.pos), mul_comm],
+        exact lt_add_of_pos_right _ dec_trivial
+      end,
   end,
   by rw [hp.coprime_iff_not_dvd, dvd_iff_mod_eq_zero, ← hm₂, nat.add_mul_mod_self_right, mod_eq_of_lt
       (lt_of_lt_of_le _ (nat.div_lt_self hp.pos (show 1 < 2, from dec_trivial)))];
@@ -139,7 +139,7 @@ calc (range (q / 2)).prod (λ n, ((range p).erase 0).prod (+ p * n)) *
   ((range (p / 2).succ).erase 0).prod (+ (q / 2) * p)
     = (range (q / 2)).prod (λ n, (((range p).erase 0).image (+ p * n)).prod (λ x, x)) *
   (((range (p / 2).succ).erase 0).image (+ (q / 2) * p)).prod (λ x, x) :
-by simp only [prod_image (λ _ _ _ _ h, add_right_cancel h)]; refl
+  by simp only [prod_image (λ _ _ _ _ h, add_right_cancel h)]; refl
 ... = ((range (q / 2)).bind (λ x, (erase (range p) 0).image (+ p * x))
          ∪ (erase (range (succ (p / 2))) 0).image (+ q / 2 * p)).prod (λ x, x) :
 have h₁ : finset.bind (range (q / 2)) (λ x, ((range p).erase 0).image (+ p * x)) ∩
@@ -200,7 +200,7 @@ begin
         (calc a * q ≤ q * (p / 2) :
             by rw mul_comm; exact mul_le_mul_left _ ha'.1
           ... ≤ _ : by rw [mul_comm p, odd_mul_odd_div_two hq1 hp1];
-            exact nat.le_add_right _ _),
+              exact nat.le_add_right _ _),
         by rw [hp.coprime_iff_not_dvd, hp.dvd_mul, not_or_distrib];
           refine ⟨λ hpa, not_le_of_gt (show p / 2 < p, from nat.div_lt_self hp.pos dec_trivial)
             (le_trans (le_of_dvd ha'.2 hpa) ha'.1), by rwa [← hp.coprime_iff_not_dvd, coprime_primes hp hq]⟩⟩,
@@ -240,9 +240,9 @@ calc ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : �
      * (q ^ (p / 2) * ((range (p / 2).succ).erase 0).prod (λ x, x) : zmodp p hp)
    = (((range (succ (p * q / 2))).filter (coprime (p * q)) ∪
      filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2))))).prod (λ x, x) : ℕ) :
-by rw [← prod_filter_range_p_mul_q_not_coprime_eq hp hq hp1 hq1 hpq, ← nat.cast_mul, ← prod_union h₁]
+  by rw [← prod_filter_range_p_mul_q_not_coprime_eq hp hq hp1 hq1 hpq, ← nat.cast_mul, ← prod_union h₁]
 ... = (((range ((p * q) / 2).succ).filter (coprime p)).prod (λ x, x) : ℕ) :
-congr_arg coe (prod_congr (by simp [finset.ext, coprime_mul_iff_left]; tauto) (λ _ _, rfl))
+  congr_arg coe (prod_congr (by simp [finset.ext, coprime_mul_iff_left]; tauto) (λ _ _, rfl))
 ... = _ : by rw [prod_filter_range_p_mul_q_div_two_mod_p_eq hp hq hp1 hq1 hpq];
   cases zmodp.pow_div_two_eq_neg_one_or_one hp hq0; simp [h, _root_.pow_succ]
 
@@ -250,18 +250,18 @@ lemma card_range_p_mul_q_filter_not_coprime :
   card (filter (λ x, ¬coprime p x) (range (succ (p * q / 2)))) = (q / 2).succ :=
 calc card (filter (λ x, ¬coprime p x) (range (succ (p * q / 2))))
     = card ((range (q / 2).succ).image (* p)) :
-congr_arg card $ finset.ext.2 $ λ x, begin
-  rw [mem_filter, mem_range, hp.coprime_iff_not_dvd, not_not, mem_image],
-  exact ⟨λ ⟨h, ⟨m, hm⟩⟩, ⟨m, mem_range.2 (lt_of_mul_lt_mul_left
-      (by rw ← hm; exact lt_of_lt_of_le h (by rw [succ_le_iff, mul_succ,
-          odd_mul_odd_div_two hp1 hq1];
-        exact add_lt_add_left (div_lt_self hp.pos (lt_succ_self 1)) _))
-      (nat.zero_le p)), hm.symm ▸ mul_comm m p⟩,
-    λ ⟨m, hm₁, hm₂⟩, ⟨lt_succ_of_le (by rw [← hm₂, odd_mul_odd_div_two hp1 hq1];
-      exact le_trans (by rw mul_comm; exact mul_le_mul_left _
-        (le_of_lt_succ (mem_range.1 hm₁))) (le_add_right _ _)),
-      by simp [hm₂.symm]⟩⟩
-end
+  congr_arg card $ finset.ext.2 $ λ x, begin
+    rw [mem_filter, mem_range, hp.coprime_iff_not_dvd, not_not, mem_image],
+    exact ⟨λ ⟨h, ⟨m, hm⟩⟩, ⟨m, mem_range.2 (lt_of_mul_lt_mul_left
+        (by rw ← hm; exact lt_of_lt_of_le h (by rw [succ_le_iff, mul_succ,
+            odd_mul_odd_div_two hp1 hq1];
+          exact add_lt_add_left (div_lt_self hp.pos (lt_succ_self 1)) _))
+        (nat.zero_le p)), hm.symm ▸ mul_comm m p⟩,
+      λ ⟨m, hm₁, hm₂⟩, ⟨lt_succ_of_le (by rw [← hm₂, odd_mul_odd_div_two hp1 hq1];
+        exact le_trans (by rw mul_comm; exact mul_le_mul_left _
+          (le_of_lt_succ (mem_range.1 hm₁))) (le_add_right _ _)),
+        by simp [hm₂.symm]⟩⟩
+  end
 ... = _ : by rw [card_image_of_injective _ (λ _ _ h, (nat.mul_right_inj hp.pos).1 h), card_range]
 
 lemma prod_filter_range_p_mul_q_div_two_eq_prod_product :
@@ -344,22 +344,22 @@ prod_bij (λ x _, if (x : zmodp q hq).1 ≤ (q / 2) then ((x : zmodp p hp).val, 
     (@nat.le_of_add_le_add_right (q / 2 + (p / 2).succ) _ _
       (calc card (finset.product (erase (range p) 0) (erase (range (succ (q / 2))) 0)) + (q / 2 + (p / 2).succ)
             = (p * q) / 2 + 1 :
-        by rw [card_product, card_erase_of_mem (mem_range.2 hp.pos), card_erase_of_mem (mem_range.2 (succ_pos _)),
-          card_range, card_range, pred_succ, ← add_assoc, ← succ_mul, succ_pred_eq_of_pos hp.pos,
-          odd_mul_odd_div_two hp1 hq1, add_succ]
+          by rw [card_product, card_erase_of_mem (mem_range.2 hp.pos), card_erase_of_mem (mem_range.2 (succ_pos _)),
+            card_range, card_range, pred_succ, ← add_assoc, ← succ_mul, succ_pred_eq_of_pos hp.pos,
+            odd_mul_odd_div_two hp1 hq1, add_succ]
         ... = card (range (p * q / 2).succ) : by rw card_range
         ... = card ((range (p * q / 2).succ).filter (coprime (p * q)) ∪
                     ((range (p * q / 2).succ).filter (λ x, ¬coprime p x)).erase 0 ∪
                     (range (p * q / 2).succ).filter (λ x, ¬coprime q x)) :
-        congr_arg card (by simp [finset.ext, coprime_mul_iff_left, -range_succ]; tauto)
+          congr_arg card (by simp [finset.ext, coprime_mul_iff_left, -range_succ]; tauto)
         ... ≤ card ((range (p * q / 2).succ).filter (coprime (p * q))) +
               card (((range (p * q / 2).succ).filter (λ x, ¬coprime p x)).erase 0) +
               card ((range (p * q / 2).succ).filter (λ x, ¬coprime q x)) :
           le_trans (card_union_le _ _) (add_le_add_right (card_union_le _ _) _)
         ... = _ : by rw [card_erase_of_mem, card_range_p_mul_q_filter_not_coprime hp hq hp1 hq1 hpq,
-            mul_comm p q, card_range_p_mul_q_filter_not_coprime hq hp hq1 hp1 hpq.symm, pred_succ,
-            add_assoc];
-          simp [hp.coprime_iff_not_dvd, hpq0])))
+              mul_comm p q, card_range_p_mul_q_filter_not_coprime hq hp hq1 hp1 hpq.symm, pred_succ,
+              add_assoc];
+            simp [hp.coprime_iff_not_dvd, hpq0])))
 
 lemma prod_range_div_two_erase_zero :
   ((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp)) ^ 2 * (-1) ^ (p / 2) = -1 :=
@@ -400,10 +400,10 @@ have h₂ : ((range (p / 2).succ).erase 0).prod (λ x : ℕ, (x : zmodp p hp) * 
 calc ((((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp)) ^ 2)) * (-1) ^ (p / 2) =
   ((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp)) *
   ((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp) * -1) :
-by rw prod_mul_distrib; simp [_root_.pow_two, -range_succ, hcard, mul_assoc]
+  by rw prod_mul_distrib; simp [_root_.pow_two, -range_succ, hcard, mul_assoc]
 ... = (((range p).erase 0).filter (λ x : ℕ, (x : zmodp p hp).val ≤ p / 2)).prod (λ x, (x : zmodp p hp)) *
     (((range p).erase 0).filter (λ x : ℕ, ¬(x : zmodp p hp).val ≤ p / 2)).prod (λ x, (x : zmodp p hp)) :
-by rw [h₂, h₁]
+  by rw [h₂, h₁]
 ... = ((range p).erase 0).prod (λ x, (x : zmodp p hp)) :
   begin
     rw ← prod_union,
@@ -440,7 +440,7 @@ calc ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
     else -((x : zmodp p hp), (x : zmodp q hq))) =
   ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
   (λ x, (if (x : zmodp q hq).1 ≤ (q / 2) then 1 else -1) * ((x : zmodp p hp), (x : zmodp q hq))) :
-prod_congr rfl (λ _ _, by split_ifs; simp)
+  prod_congr rfl (λ _ _, by split_ifs; simp)
 ... = _ : by rw [prod_mul_distrib, prod_prod_mk _ (λ x : ℕ, ((x : zmodp p hp), (x : zmodp q hq))),
     prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul,
     prod_range_p_mul_q_filter_coprime_mod_p hp hq hp1 hq1 hpq,

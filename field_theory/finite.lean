@@ -63,12 +63,12 @@ le_antisymm
 (by rw card_nth_roots_units (order_of_pos a) 1; exact card_nth_roots _ _)
 (calc order_of a = @fintype.card (gpowers a) (id _) : order_eq_card_gpowers
   ... ≤ @fintype.card (↑(univ.filter (λ b : units α, b ^ order_of a = 1)) : set (units α))
-    (set.fintype_of_finset _ (λ _, iff.rfl)) :
-  @fintype.card_le_of_injective (gpowers a) (↑(univ.filter (λ b : units α, b ^ order_of a = 1)) : set (units α))
-    (id _) (id _) (λ b, ⟨b.1, mem_filter.2 ⟨mem_univ _,
-    let ⟨i, hi⟩ := b.2 in
-    by rw [← hi, ← gpow_coe_nat, ← gpow_mul, mul_comm, gpow_mul, gpow_coe_nat,
-      pow_order_of_eq_one, one_gpow]⟩⟩) (λ _ _ h, subtype.eq (subtype.mk.inj h))
+  (set.fintype_of_finset _ (λ _, iff.rfl)) :
+    @fintype.card_le_of_injective (gpowers a) (↑(univ.filter (λ b : units α, b ^ order_of a = 1)) : set (units α))
+      (id _) (id _) (λ b, ⟨b.1, mem_filter.2 ⟨mem_univ _,
+        let ⟨i, hi⟩ := b.2 in
+        by rw [← hi, ← gpow_coe_nat, ← gpow_mul, mul_comm, gpow_mul, gpow_coe_nat,
+          pow_order_of_eq_one, one_gpow]⟩⟩) (λ _ _ h, subtype.eq (subtype.mk.inj h))
   ... = (univ.filter (λ b : units α, b ^ order_of a = 1)).card : set.card_fintype_of_finset _ _)
 
 local notation `φ` := totient
@@ -102,16 +102,16 @@ have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   (λ m, (univ.filter (λ a : units α, order_of a = m)).card))).1
   (calc _ = (insert d.succ (filter (∣ d.succ) (range d.succ))).sum
         (λ m, (univ.filter (λ (a : units α), order_of a = m)).card) :
-  eq.symm (finset.sum_insert (by simp [-range_succ, mem_range, zero_le_one, le_succ]))
+    eq.symm (finset.sum_insert (by simp [-range_succ, mem_range, zero_le_one, le_succ]))
   ... = ((range d.succ.succ).filter (∣ d.succ)).sum (λ m,
       (univ.filter (λ a : units α, order_of a = m)).card) :
-  sum_congr hinsert (λ _ _, rfl)
+    sum_congr hinsert (λ _ _, rfl)
   ... = (univ.filter (λ a : units α, a ^ d.succ = 1)).card :
-  sum_card_order_of_eq_card_pow_eq_one (succ_pos d)
+    sum_card_order_of_eq_card_pow_eq_one (succ_pos d)
   ... = ((range d.succ.succ).filter (∣ d.succ)).sum φ :
-  ha ▸ (card_pow_eq_one_eq_order_of a).symm ▸ (sum_totient _).symm
+    ha ▸ (card_pow_eq_one_eq_order_of a).symm ▸ (sum_totient _).symm
   ... = _ : by rw [h, ← sum_insert hinsert₁];
-    exact finset.sum_congr hinsert.symm (λ _ _, rfl))
+      exact finset.sum_congr hinsert.symm (λ _ _, rfl))
 
 lemma card_order_of_eq_totient {d : ℕ} (hd : d ∣ fintype.card (units α)) :
   (univ.filter (λ a : units α, order_of a = d)).card = φ d :=
@@ -122,27 +122,27 @@ let c := fintype.card (units α) in
 have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
 lt_irrefl c $
   calc c = (univ.filter (λ a : units α, a ^ c = 1)).card :
-  congr_arg card $ by simp [finset.ext]
+    congr_arg card $ by simp [finset.ext]
   ... = ((range c.succ).filter (∣ c)).sum
       (λ m, (univ.filter (λ a : units α, order_of a = m)).card) :
-  (sum_card_order_of_eq_card_pow_eq_one hc0).symm
+    (sum_card_order_of_eq_card_pow_eq_one hc0).symm
   ... = (((range c.succ).filter (∣ c)).erase d).sum
       (λ m, (univ.filter (λ a : units α, order_of a = m)).card) :
-  eq.symm (sum_subset (erase_subset _ _) (λ m hm₁ hm₂,
-    have m = d, by simp at *; cc,
-    by simp [*, finset.ext] at *))
+    eq.symm (sum_subset (erase_subset _ _) (λ m hm₁ hm₂,
+      have m = d, by simp at *; cc,
+      by simp [*, finset.ext] at *))
   ... ≤ (((range c.succ).filter (∣ c)).erase d).sum φ :
-  sum_le_sum (λ m hm,
-    have hmc : m ∣ c, by simp at hm; tauto,
-    (imp_iff_not_or.1 (card_order_of_eq_totient_aux hmc)).elim
-      (λ h, by simp [nat.le_zero_iff.1 (le_of_not_gt h), nat.zero_le])
-      (by simp [le_refl] {contextual := tt}))
+    sum_le_sum (λ m hm,
+      have hmc : m ∣ c, by simp at hm; tauto,
+      (imp_iff_not_or.1 (card_order_of_eq_totient_aux hmc)).elim
+        (λ h, by simp [nat.le_zero_iff.1 (le_of_not_gt h), nat.zero_le])
+        (by simp [le_refl] {contextual := tt}))
   ... < φ d + (((range c.succ).filter (∣ c)).erase d).sum φ :
-  lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
-    (λ h, nat.pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
+    lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
+      (λ h, nat.pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
   ... = (insert d (((range c.succ).filter (∣ c)).erase d)).sum φ : eq.symm (sum_insert (by simp))
   ... = ((range c.succ).filter (∣ c)).sum φ : finset.sum_congr
-    (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩)) (λ _ _, rfl)
+      (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩)) (λ _ _, rfl)
   ... = c : sum_totient _
 
 instance {α : Type*} [fintype α] [field α] : is_cyclic (units α) :=

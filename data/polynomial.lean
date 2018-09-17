@@ -1262,15 +1262,18 @@ end domain
 
 section identities
 
-private def pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ),
+/- @TODO: pow_add_expansion and pow_sub_pow_factor are not specific to polynomials.
+  These belong somewhere else. But not in group_power because they depend on tactic.ring -/
+
+def pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ),
   {k // (x + y)^n = x^n + n*x^(n-1)*y + k * y^2}
 | 0 := ⟨0, by simp⟩
 | 1 := ⟨0, by simp⟩
-| (k+2) :=
+| (n+2) :=
   begin
-    cases pow_add_expansion (k+1) with z hz,
+    cases pow_add_expansion (n+1) with z hz,
     rw [_root_.pow_succ, hz],
-    existsi (x*z + (k+1)*x^k+z*y),
+    existsi (x*z + (n+1)*x^n+z*y),
     simp [_root_.pow_succ],
     ring -- expensive!
   end

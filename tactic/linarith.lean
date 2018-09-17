@@ -8,9 +8,9 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 `linarith` is (in principle) complete for ℚ and ℝ. It is not complete for non-dense orders, i.e. ℤ.
 
 @TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
-@TODO: (partial) support for ℕ by casting to ℤ
+@TODO: perform slightly better on ℤ by strengthening t < 0 hyps to t + 1 ≤ 0
 @TODO: alternative discharger to `ring`
-@TODO: delay proofs of denominator normalization until after contradiction is found
+@TODO: delay proofs of denominator normalization and nat casting until after contradiction is found
 -/
 
 import tactic.ring data.nat.gcd data.list.basic meta.rb_map
@@ -24,6 +24,18 @@ open native
 namespace linarith
 
 section lemmas
+
+lemma int.coe_nat_bit0 (n : ℕ) : (↑(bit0 n : ℕ) : ℤ) = bit0 (↑n : ℤ) := by simp [bit0]
+lemma int.coe_nat_bit1 (n : ℕ) : (↑(bit1 n : ℕ) : ℤ) = bit1 (↑n : ℤ) := by simp [bit1, bit0]
+
+lemma nat_eq_subst {n1 n2 : ℕ} {z1 z2 : ℤ} (hn : n1 = n2) (h1 : ↑n1 = z1) (h2 : ↑n2 = z2) : z1 = z2 :=
+by simpa [eq.symm h1, eq.symm h2, int.coe_nat_eq_coe_nat_iff]
+
+lemma nat_le_subst {n1 n2 : ℕ} {z1 z2 : ℤ} (hn : n1 ≤ n2) (h1 : ↑n1 = z1) (h2 : ↑n2 = z2) : z1 ≤ z2 :=
+by simpa [eq.symm h1, eq.symm h2, int.coe_nat_le]
+
+lemma nat_lt_subst {n1 n2 : ℕ} {z1 z2 : ℤ} (hn : n1 < n2) (h1 : ↑n1 = z1) (h2 : ↑n2 = z2) : z1 < z2 :=
+by simpa [eq.symm h1, eq.symm h2, int.coe_nat_lt]
 
 lemma eq_of_eq_of_eq {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : b = 0) : a + b = 0 :=
 by simp *
@@ -340,6 +352,8 @@ meta def get_rel_sides : expr → tactic (expr × expr)
 | `(%%a < %%b) := return (a, b)
 | `(%%a ≤ %%b) := return (a, b)
 | `(%%a = %%b) := return (a, b)
+| `(%%a ≥ %%b) := return (a, b)
+| `(%%a > %%b) := return (a, b)
 | _ := failed
 
 meta def mul_expr (n : ℕ) (e : expr) : pexpr :=
@@ -417,6 +431,7 @@ meta structure linarith_config :=
 (discharger : tactic unit := `[ring])
 (restrict_type : option Type := none)
 (restrict_type_reflect : reflected restrict_type . apply_instance)
+(exfalso : bool := tt)
 
 meta def ineq_pf_tp (pf : expr) : tactic expr :=
 do (_, z) ← infer_type pf >>= get_rel_sides,
@@ -480,12 +495,19 @@ end prove
 section normalize
 open tactic
 
+set_option eqn_compiler.max_steps 50000
+
 meta def rearr_comp (prf : expr) : expr → tactic expr
 | `(%%a ≤ 0) := return prf
 | `(%%a < 0) := return prf
 | `(%%a = 0) := return prf
 | `(%%a ≥ 0) := to_expr ``(neg_nonpos.mpr %%prf)
 | `(%%a > 0) := to_expr ``(neg_neg_of_pos %%prf) --mk_app ``neg_neg_of_pos [prf]
+| `(0 ≥ %%a) := to_expr ``(show %%a ≤ 0, from %%prf)
+| `(0 > %%a) := to_expr ``(show %%a < 0, from %%prf)
+| `(0 = %%a) := to_expr ``(eq.symm %%prf)
+| `(0 ≤ %%a) := to_expr ``(neg_nonpos.mpr %%prf)
+| `(0 < %%a) := to_expr ``(neg_neg_of_pos %%prf)
 | `(%%a ≤ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
 | `(%%a < %%b) := to_expr ``(sub_neg_of_lt %%prf) -- mk_app ``sub_neg_of_lt [prf]
 | `(%%a = %%b) := to_expr ``(sub_eq_zero.mpr %%prf)
@@ -591,13 +613,66 @@ do htp ← infer_type h,
      norm_hyp_aux h' lhs
    else return h'
 
-meta def get_contr_lemma_name : expr → tactic name
+meta def get_contr_lemma_name : expr → option name
 | `(%%a < %%b) := return `lt_of_not_ge
 | `(%%a ≤ %%b) := return `le_of_not_gt
 | `(%%a = %%b) := return ``eq_of_not_lt_of_not_gt
 | `(%%a ≥ %%b) := return `le_of_not_gt
 | `(%%a > %%b) := return `lt_of_not_ge
-| _ := fail "target type not supported by linarith"
+| _ := none
+
+
+-- assumes the input t is of type ℕ. Produces t' of type ℤ such that ↑t = t' and a proof of equality
+meta def cast_expr (e : expr) : tactic (expr × expr) :=
+do s ← [`int.coe_nat_add, `int.coe_nat_mul, `int.coe_nat_zero, `int.coe_nat_one,
+        ``int.coe_nat_bit0, ``int.coe_nat_bit1].mfoldl simp_lemmas.add_simp simp_lemmas.mk,
+   ce ← to_expr ``(↑%%e : ℤ),
+   simplify s [] ce {fail_if_unchanged := ff}
+
+meta def is_nat_int_coe : expr → option expr
+| `((↑(%%n : ℕ) : ℤ)) := some n
+| _ := none
+
+meta def mk_coe_nat_nonneg_prf (e : expr) : tactic expr :=
+mk_app `int.coe_nat_nonneg [e]
+
+meta def get_nat_comps : expr → list expr
+| `(%%a + %%b) := (get_nat_comps a).append (get_nat_comps b)
+| `(%%a * %%b) := (get_nat_comps a).append (get_nat_comps b)
+| e := match is_nat_int_coe e with
+  | some e' := [e']
+  | none := []
+  end
+
+meta def mk_coe_nat_nonneg_prfs (e : expr) : tactic (list expr) :=
+(get_nat_comps e).mmap mk_coe_nat_nonneg_prf
+
+meta def mk_cast_eq_and_nonneg_prfs (pf a b : expr) (ln : name) : tactic (list expr) :=
+do (a', prfa) ← cast_expr a,
+   (b', prfb) ← cast_expr b,
+   la ← mk_coe_nat_nonneg_prfs a',
+   lb ← mk_coe_nat_nonneg_prfs b',
+   pf' ← mk_app ln [pf, prfa, prfb],
+   return $ pf'::(la.append lb)
+
+meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
+do tp ← infer_type pf,
+match tp with
+| `(%%a = %%b) := mk_cast_eq_and_nonneg_prfs pf a b ``nat_eq_subst
+| `(%%a ≤ %%b) := mk_cast_eq_and_nonneg_prfs pf a b ``nat_le_subst
+| `(%%a < %%b) := mk_cast_eq_and_nonneg_prfs pf a b ``nat_lt_subst
+| `(%%a ≥ %%b) := mk_cast_eq_and_nonneg_prfs pf b a ``nat_le_subst
+| `(%%a > %%b) := mk_cast_eq_and_nonneg_prfs pf b a ``nat_lt_subst
+| _ := fail "mk_coe_comp_prf failed: proof is not an inequality"
+end
+
+meta def replace_nat_pfs : list expr → tactic (list expr)
+| [] := return []
+| (h::t) :=
+  (do (a, _) ← infer_type h >>= get_rel_sides,
+     infer_type a >>= unify `(ℕ),
+     ls ← mk_int_pfs_of_nat_pf h,
+     list.append ls <$> replace_nat_pfs t) <|> list.cons h <$> replace_nat_pfs t
 
 /--
   Takes a list of proofs of propositions.
@@ -605,7 +680,8 @@ meta def get_contr_lemma_name : expr → tactic name
   and tries to use them to prove `false`.
 -/
 meta def prove_false_by_linarith (cfg : linarith_config) (l : list expr) : tactic unit :=
-do ls ← l.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none),
+do l' ← replace_nat_pfs l,
+   ls ← l'.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none),
    prove_false_by_linarith1 cfg ls.reduce_option
 
 end normalize
@@ -625,15 +701,27 @@ meta def linarith.interactive_aux (cfg : linarith_config) :
 | [] none :=
   do t ← target,
      if t = `(false) then local_context >>= prove_false_by_linarith cfg
-     else do nm ← get_contr_lemma_name t, seq (applyc nm) (intro1 >> linarith.interactive_aux [] none)
+     else match get_contr_lemma_name t with
+     | some nm := seq (applyc nm) (intro1 >> linarith.interactive_aux [] none)
+     | none := if cfg.exfalso then exfalso >> linarith.interactive_aux [] none
+               else fail "linarith failed: target type is not an inequality."
+     end
 | ls none := (ls.mmap get_local) >>= prove_false_by_linarith cfg
 
 /--
-  If the goal is `false`, tries to prove it by linear arithmetic on hypotheses.
+  Tries to prove a goal of `false` by linear arithmetic on hypotheses.
   If the goal is a linear (in)equality, tries to prove it by contradiction.
+  If the goal is not `false` or an inequality, applies `exfalso` and tries linarith on the
+  hypotheses.
   `linarith` will use all relevant hypotheses in the local context.
   `linarith h1 h2 h3` will only use hypotheses h1, h2, h3.
   `linarith using [t1, t2, t3]` will add proof terms t1, t2, t3 to the local context.
+
+  Config options:
+  `linarith {exfalso := ff}` will fail on a goal that is neither an inequality nor `false`
+  `linarith {restrict_type := T}` will run only on hypotheses that are inequalities over `T`
+  `linarith {discharger := tac}` will use `tac` instead of `ring` for normalization.
+    Options: `ring2`, `ring SOP`, `simp`
 -/
 meta def tactic.interactive.linarith (ids : parse (many ident))
      (using_hyps : parse (tk "using" *> pexpr_list)?) (cfg : linarith_config := {}) : tactic unit :=

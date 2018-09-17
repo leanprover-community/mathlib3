@@ -1903,17 +1903,10 @@ theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop
 theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
-⟨λ h, let ⟨r, e⟩ := h in begin
-  rwa append_inj_left ((take_append_drop (length l₁) l₂).trans e.symm) _,
-  simp [min_eq_left, length_le_of_sublist (sublist_of_prefix h)],
-end, λ e, ⟨_, e⟩⟩
+⟨by rintros ⟨r, rfl⟩; simp, λ e, ⟨_, e⟩⟩
 
 theorem suffix_iff_eq_append {l₁ l₂ : list α} : l₁ <:+ l₂ ↔ take (length l₂ - length l₁) l₂ ++ l₁ = l₂ :=
-⟨λ ⟨r, e⟩, begin
-  rwa append_inj_right ((take_append_drop (length l₂ - length l₁) l₂).trans e.symm) _,
-  simp [min_eq_left, nat.sub_le, e.symm],
-  apply nat.add_sub_cancel_left
-end, λ e, ⟨_, e⟩⟩
+⟨by rintros ⟨r, rfl⟩; simp [nat.add_sub_cancel_left], λ e, ⟨_, e⟩⟩
 
 theorem prefix_iff_eq_take {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ = take (length l₁) l₂ :=
 ⟨λ h, append_right_cancel $

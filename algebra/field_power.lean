@@ -98,8 +98,8 @@ begin
   have hfle : fpow x (-b) ≤ fpow x (-a), from fpow_le_of_le hx hnle,
   have : fpow x (-c) ≤ fpow x (-a),
   { apply fpow_le_of_le hx,
-    simpa [hle, min_eq_left] using h },
-  simpa [hfle, max_eq_left] using this
+    simpa [hle] using h },
+  simpa [hfle] using this
 end
 
 end ordered_field_power

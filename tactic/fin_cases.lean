@@ -9,14 +9,9 @@ import tactic.linarith
 
 namespace tactic
 
-meta def is_numeral : expr → bool
-| `(bit0 _) := tt
-| `(bit1 _) := tt
-| _ := ff
-
 meta def fin_cases_at (e : expr) : tactic unit :=
 do `(fin %%n) ← infer_type e,
-   guard (is_numeral n),
+   guard n.is_numeral,
    [(_, [val, bd], _)] ← cases_core e [`val, `bd],
    n ← eval_expr ℕ n,
    -- We now call `cases val` n times, rotating the generated goals out of the way.

@@ -6,7 +6,7 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 Matrices
 -/
 
-import algebra.module data.fintype
+import algebra.module data.fintype algebra.pi_instances
 
 universes u v
 
@@ -21,21 +21,26 @@ section ext
 variables {M N : matrix m n α}
 
 theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
-⟨λ h, funext $ λ i, funext $ λ j, h i j, λ h, by simp [h]⟩
+⟨λ h, funext $ λ i, funext $ h i, λ h, by simp [h]⟩
 
 @[extensionality] theorem ext : (∀ i j, M i j = N i j) → M = N :=
 ext_iff.mp
 
 end ext
 
-section zero
-variables [has_zero α]
+instance [has_add α] : has_add (matrix m n α) := pi.has_add
+instance [add_semigroup α] : add_semigroup (matrix m n α) := pi.add_semigroup
+instance [add_comm_semigroup α] : add_comm_semigroup (matrix m n α) := pi.add_comm_semigroup
+instance [has_zero α] : has_zero (matrix m n α) := pi.has_zero
+instance [add_monoid α] : add_monoid (matrix m n α) := pi.add_monoid
+instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) := pi.add_comm_monoid
+instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
+instance [add_group α] : add_group (matrix m n α) := pi.add_group
+instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
 
-instance : has_zero (matrix m n α) := ⟨λ _ _, 0⟩
-
-@[simp] theorem zero_val {i j} : (0 : matrix m n α) i j = 0 := rfl
-
-end zero
+@[simp] theorem zero_val [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
+@[simp] theorem neg_val [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
+@[simp] theorem add_val [has_add α] (M N : matrix m n α) (i j) : (M + N) i j = M i j + N i j := rfl
 
 section diagonal
 variables [decidable_eq n]
@@ -74,42 +79,9 @@ diagonal_val_ne'
 end one
 end diagonal
 
-section neg
-variables [has_neg α]
-
-instance : has_neg (matrix m n α) := ⟨λ M i j, - M i j⟩
-
-@[simp] theorem neg_val {M : matrix m n α} {i j} : (- M) i j = - M i j := rfl
-
-end neg
-
-section add
-variables [has_add α]
-
-instance : has_add (matrix m n α) := ⟨λ M N i j, M i j + N i j⟩
-
-@[simp] theorem add_val {M N : matrix m n α} {i j} : (M + N) i j = M i j + N i j := rfl
-
-end add
-
-instance [add_semigroup α] : add_semigroup (matrix m n α) :=
-{ add_assoc := by intros; ext; simp, ..matrix.has_add }
-
-instance [add_comm_semigroup α] : add_comm_semigroup (matrix m n α) :=
-{ add_comm := by intros; ext; simp, ..matrix.add_semigroup }
-
-instance [add_monoid α] : add_monoid (matrix m n α) :=
-{ zero := 0, add := (+),
-  zero_add := by intros; ext; simp,
-  add_zero := by intros; ext; simp,
-  ..matrix.add_semigroup }
-
 @[simp] theorem diagonal_add [decidable_eq n] [add_monoid α] (d₁ d₂ : n → α) :
   diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
 by ext i j; by_cases i = j; simp [h]
-
-instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) :=
-{ ..matrix.add_monoid, ..matrix.add_comm_semigroup }
 
 protected def mul [has_mul α] [add_comm_monoid α] (M : matrix l m α) (N : matrix m n α) :
   matrix l n α :=
@@ -142,17 +114,9 @@ instance : semigroup (matrix n n α) :=
 
 end semigroup
 
-instance [add_group α] : add_group (matrix m n α) :=
-{ zero := 0, add := (+), neg := has_neg.neg,
-  add_left_neg := by intros; ext; simp,
-  ..matrix.add_monoid }
-
 @[simp] theorem diagonal_neg [decidable_eq n] [add_group α] (d : n → α) :
   -diagonal d = diagonal (λ i, -d i) :=
 by ext i j; by_cases i = j; simp [h]
-
-instance [add_comm_group α] : add_comm_group (matrix m n α) :=
-{ ..matrix.add_group, ..matrix.add_comm_monoid }
 
 section semiring
 variables [semiring α]

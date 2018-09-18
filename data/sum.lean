@@ -82,6 +82,10 @@ section
 
 end
 
+@[simp] def map {α' β'} (f : α → α') (g : β → β') : α ⊕ β → α' ⊕ β'
+| (sum.inl l) := sum.inl $ f l
+| (sum.inr r) := sum.inr $ g r
+
 /-- Swap the factors of a sum type -/
 @[simp] def swap : α ⊕ β → β ⊕ α
 | (inl a) := inr a
@@ -100,4 +104,3 @@ swap_swap
 swap_swap
 
 end sum
-

@@ -440,6 +440,7 @@ section is_basis
 lemma is_basis.map_repr (hs : is_basis s) : is_linear_map hs.1.repr :=
 ⟨assume b₁ b₂, repr_add hs.1 (hs.2 _) (hs.2 _), assume a b, repr_smul hs.1 (hs.2 _)⟩
 
+/-- Construct a linear map given the value at the basis. -/
 def is_basis.constr (hs : is_basis s) (f : β → γ) (b : β) : γ := (hs.1.repr b).sum (λb a, a • f b)
 
 lemma is_basis.map_constr (hs : is_basis s) {f : β → γ} : is_linear_map (hs.constr f) :=
@@ -593,6 +594,12 @@ lemma linear_map.linear_independent_image_iff {s : set β} {f : β → γ}
 iff.intro
   (assume h, h.of_image hf $ assume x hx y hy, hf_inj x (subset_span hx) y (subset_span hy))
   (assume h, h.image hf hf_inj)
+
+lemma is_basis.linear_equiv {s : set β} (hs : is_basis s)
+  {f : β ≃ₗ γ} : is_basis ((f.to_equiv : β → γ) '' s) :=
+⟨hs.1.image f.linear_fun $ λ b1 _ b2 _ H, f.to_equiv.bijective.1 H,
+λ x, by rw span_image_of_linear_map (show is_linear_map f.to_equiv, from f.linear_fun);
+  from ⟨f.to_equiv.symm x, hs.2 _, by rw equiv.apply_inverse_apply⟩⟩
 
 end module
 

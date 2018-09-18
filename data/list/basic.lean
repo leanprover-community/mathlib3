@@ -686,7 +686,7 @@ index_of_cons_eq _ rfl
 @[simp] theorem index_of_cons_ne {a b : α} (l : list α) : a ≠ b → index_of a (b::l) = succ (index_of a l) :=
 assume n, if_neg n
 
-theorem index_of_eq_length {a : α} {l : list α} : index_of a l = length l ↔ a ∉ l 
+theorem index_of_eq_length {a : α} {l : list α} : index_of a l = length l ↔ a ∉ l
 :=
 begin
   induction l with b l ih; simp [-add_comm],
@@ -1903,17 +1903,10 @@ theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop
 theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
-⟨λ h, let ⟨r, e⟩ := h in begin
-  rwa append_inj_left ((take_append_drop (length l₁) l₂).trans e.symm) _,
-  simp [min_eq_left, length_le_of_sublist (sublist_of_prefix h)],
-end, λ e, ⟨_, e⟩⟩
+⟨by rintros ⟨r, rfl⟩; simp, λ e, ⟨_, e⟩⟩
 
 theorem suffix_iff_eq_append {l₁ l₂ : list α} : l₁ <:+ l₂ ↔ take (length l₂ - length l₁) l₂ ++ l₁ = l₂ :=
-⟨λ ⟨r, e⟩, begin
-  rwa append_inj_right ((take_append_drop (length l₂ - length l₁) l₂).trans e.symm) _,
-  simp [min_eq_left, nat.sub_le, e.symm],
-  apply nat.add_sub_cancel_left
-end, λ e, ⟨_, e⟩⟩
+⟨by rintros ⟨r, rfl⟩; simp [nat.add_sub_cancel_left], λ e, ⟨_, e⟩⟩
 
 theorem prefix_iff_eq_take {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ = take (length l₁) l₂ :=
 ⟨λ h, append_right_cancel $
@@ -2605,7 +2598,7 @@ theorem diff_sublist_of_sublist : ∀ {l₁ l₂ l₃: list α}, l₁ <+ l₂ �
 | l₁ l₂ (a::l₃) h := by simp
   [diff_cons, diff_sublist_of_sublist (erase_sublist_erase _ h)]
 
-theorem erase_diff_erase_sublist_of_sublist {a : α} : ∀ {l₁ l₂ : list α}, 
+theorem erase_diff_erase_sublist_of_sublist {a : α} : ∀ {l₁ l₂ : list α},
   l₁ <+ l₂ → (l₂.erase a).diff (l₁.erase a) <+ l₂.diff l₁
 | []      l₂ h := by simp [erase_sublist]
 | (b::l₁) l₂ h := if heq : b = a then by simp [heq]

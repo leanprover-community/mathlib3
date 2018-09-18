@@ -649,17 +649,17 @@ theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ car
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
 
 instance : has_zero ordinal :=
-⟨⟦⟨ulift empty, empty_relation, by apply_instance⟩⟧⟩
+⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
 
 theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
-quotient.sound ⟨⟨equiv.ulift, λ _ _, iff.rfl⟩⟩
+quotient.sound ⟨⟨equiv.empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
 theorem zero_le (o : ordinal) : 0 ≤ o :=
 induction_on o $ λ α r _,
-⟨⟨⟨embedding.of_not_nonempty $ λ ⟨⟨a⟩⟩, a.elim,
-  λ ⟨a⟩, a.elim⟩, λ ⟨a⟩, a.elim⟩⟩
+⟨⟨⟨embedding.of_not_nonempty $ λ ⟨a⟩, a.elim,
+  λ a, a.elim⟩, λ a, a.elim⟩⟩
 
 @[simp] theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
 by simp [le_antisymm_iff, zero_le]
@@ -668,10 +668,10 @@ theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
 by simp [lt_iff_le_and_ne, eq_comm, zero_le]
 
 instance : has_one ordinal :=
-⟨⟦⟨ulift unit, empty_relation, by apply_instance⟩⟧⟩
+⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
 
 theorem one_eq_type_unit : 1 = @type unit empty_relation _ :=
-quotient.sound ⟨⟨equiv.ulift, λ _ _, iff.rfl⟩⟩
+quotient.sound ⟨⟨equiv.punit_equiv_punit, λ _ _, iff.rfl⟩⟩
 
 @[simp] theorem card_one : card 1 = 1 := rfl
 
@@ -692,14 +692,11 @@ def succ (o : ordinal) : ordinal := o + 1
 theorem succ_eq_add_one (o) : succ o = o + 1 := rfl
 
 theorem lt_succ_self (o : ordinal.{u}) : o < succ o :=
-induction_on o $ λ α r _,
-⟨begin
-  resetI, cases e : initial_seg.lt_or_eq
-    (@initial_seg.le_add α (ulift.{u 0} unit) r empty_relation) with f f,
-  { exact f },
-  { have := (initial_seg.of_iso f).eq (initial_seg.le_add _ _) (f.symm (sum.inr ⟨()⟩)),
-    simp at this, cases this }
-end⟩
+induction_on o $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
+  λ _ _, sum.lex_inl_inl.symm⟩,
+sum.inr punit.star, λ b, sum.rec_on b
+  (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _ _ _⟩)
+  (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩
 
 theorem succ_pos (o : ordinal) : 0 < succ o :=
 lt_of_le_of_lt (zero_le _) (lt_succ_self _)
@@ -738,12 +735,10 @@ theorem nat_cast_succ (n : ℕ) : (succ n : ordinal) = n.succ := rfl
 instance : add_monoid ordinal.{u} :=
 { add       := (+),
   zero      := 0,
-  zero_add  := λ o, induction_on o $ λ α r _, eq.symm $ quot.sound
-    ⟨⟨(equiv.symm $ (equiv.ulift.sum_congr (equiv.refl _)).trans (equiv.empty_sum _)),
-    λ a b, show r a b ↔ sum.lex _ _ (sum.inr a) (sum.inr b), by simp⟩⟩,
-  add_zero  := λ o, induction_on o $ λ α r _, eq.symm $ quot.sound
-    ⟨⟨(equiv.symm $ ((equiv.refl _).sum_congr equiv.ulift).trans (equiv.sum_empty _)),
-    λ a b, show r a b ↔ sum.lex _ _ (sum.inl a) (sum.inl b), by simp⟩⟩,
+  zero_add  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
+    ⟨⟨(equiv.pempty_sum α).symm, λ a b, sum.lex_inr_inr.symm⟩⟩,
+  add_zero  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
+    ⟨⟨(equiv.sum_pempty α).symm, λ a b, sum.lex_inl_inl.symm⟩⟩,
   add_assoc := λ o₁ o₂ o₃, quotient.induction_on₃ o₁ o₂ o₃ $
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩, quot.sound
     ⟨⟨equiv.sum_assoc _ _ _, λ a b,
@@ -866,14 +861,14 @@ by simp [lt_iff_le_not_le, -not_le]
 
 @[simp] theorem lift_zero : lift 0 = 0 :=
 quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
- ⟨equiv.ulift.trans equiv.ulift.symm, λ a b, iff.rfl⟩⟩
+ ⟨equiv.pempty_equiv_pempty, λ a b, iff.rfl⟩⟩
 
 theorem zero_eq_lift_type_empty : 0 = lift.{0 u} (@type empty empty_relation _) :=
 by rw [← zero_eq_type_empty, lift_zero]
 
 @[simp] theorem lift_one : lift 1 = 1 :=
 quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
- ⟨equiv.ulift.trans equiv.ulift.symm, λ a b, iff.rfl⟩⟩
+ ⟨equiv.punit_equiv_punit, λ a b, iff.rfl⟩⟩
 
 theorem one_eq_lift_type_unit : 1 = lift.{0 u} (@type unit empty_relation _) :=
 by rw [← one_eq_type_unit, lift_one]
@@ -987,7 +982,7 @@ by simp [le_antisymm_iff, add_le_add_iff_right]
   refine le_antisymm (le_of_not_lt $
     λ hn, ne_zero_iff_nonempty.2 _ h) (zero_le _),
   rw [← succ_le, succ_zero] at hn, cases hn with f,
-  exact ⟨f ⟨()⟩⟩
+  exact ⟨f punit.star⟩
 end, λ e, by simp [e]⟩
 
 @[simp] theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
@@ -998,7 +993,7 @@ end, λ e, by simp [e]⟩
 
 instance : zero_ne_one_class ordinal.{u} :=
 { zero := 0, one := 1, zero_ne_one :=
-  ne.symm $ type_ne_zero_iff_nonempty.2 ⟨⟨()⟩⟩ }
+  ne.symm $ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 by simp [lt_iff_le_and_ne, zero_le]
@@ -1416,14 +1411,13 @@ instance : monoid ordinal.{u} :=
       rcases b with ⟨⟨b₁, b₂⟩, b₃⟩,
       simp [prod.lex_def, and_or_distrib_left, or_assoc, and_assoc]
     end⟩⟩,
-  mul_one := λ a, induction_on a $ λ α r _, by exact quotient.sound
-    ⟨⟨(equiv.ulift.prod_congr (equiv.refl _)).trans (equiv.unit_prod _),
-      λ a b, by rcases a with ⟨⟨⟨⟩⟩, a⟩; rcases b with ⟨⟨⟨⟩⟩, b⟩;
-                simp [prod.lex_def, empty_relation]⟩⟩,
-  one_mul := λ a, induction_on a $ λ α r _, by exact quotient.sound
-    ⟨⟨((equiv.refl _).prod_congr equiv.ulift).trans (equiv.prod_unit _),
-      λ a b, by rcases a with ⟨a, ⟨⟨⟩⟩⟩; rcases b with ⟨b, ⟨⟨⟩⟩⟩;
-                simp [prod.lex_def, empty_relation]⟩⟩ }
+  mul_one := λ a, induction_on a $ λ α r _, quotient.sound
+    ⟨⟨equiv.punit_prod _, λ a b, by rcases a with ⟨⟨⟨⟩⟩, a⟩; rcases b with ⟨⟨⟨⟩⟩, b⟩;
+    simp only [prod.lex_def, empty_relation, false_or]; dsimp only;
+    simp only [eq_self_iff_true, true_and]; refl⟩⟩,
+  one_mul := λ a, induction_on a $ λ α r _, quotient.sound
+    ⟨⟨equiv.prod_punit _, λ a b, by rcases a with ⟨a, ⟨⟨⟩⟩⟩; rcases b with ⟨b, ⟨⟨⟩⟩⟩;
+    simp only [prod.lex_def, empty_relation, and_false, or_false]; refl⟩⟩ }
 
 @[simp] theorem type_mul {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] : type r * type s = type (prod.lex s r) := rfl
@@ -1440,11 +1434,11 @@ mul_comm (mk β) (mk α)
 
 @[simp] theorem mul_zero (a : ordinal) : a * 0 = 0 :=
 induction_on a $ λ α _ _, by exactI
-type_eq_zero_iff_empty.2 (λ ⟨⟨⟨e⟩, _⟩⟩, e.elim)
+type_eq_zero_iff_empty.2 (λ ⟨⟨e, _⟩⟩, e.elim)
 
 @[simp] theorem zero_mul (a : ordinal) : 0 * a = 0 :=
 induction_on a $ λ α _ _, by exactI
-type_eq_zero_iff_empty.2 (λ ⟨⟨_, ⟨e⟩⟩⟩, e.elim)
+type_eq_zero_iff_empty.2 (λ ⟨⟨_, e⟩⟩, e.elim)
 
 theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
@@ -2837,11 +2831,11 @@ begin
     { intros q h,
       simp [s, order.preimage, prod.lex_def, typein_inj] at h,
       simpa using max_le_iff.1 (le_iff_lt_or_eq.2 $ h.imp_right and.left) },
-    suffices H : (insert (g p) {x | r x (g p)} : set α) ≃ ({x | r x (g p)} ⊕ ulift unit),
+    suffices H : (insert (g p) {x | r x (g p)} : set α) ≃ ({x | r x (g p)} ⊕ punit),
     { exact ⟨(set.embedding_of_subset this).trans
         ((equiv.set.prod _ _).trans (H.prod_congr H)).to_embedding⟩ },
     refine (equiv.set.insert _).trans
-      ((equiv.refl _).sum_congr (equiv.punit_equiv_punit.trans equiv.ulift.symm)),
+      ((equiv.refl _).sum_congr equiv.punit_equiv_punit),
     apply @irrefl _ r },
   cases lt_or_ge (card (typein (<) (g p)).succ) omega with qo qo,
   { exact lt_of_lt_of_le (mul_lt_omega qo qo) ol },
@@ -2883,5 +2877,26 @@ lt_of_le_of_lt (add_le_add (le_max_left a b) (le_max_right a b)) $
 (lt_or_le (max a b) omega).elim
   (λ h, lt_of_lt_of_le (add_lt_omega h h) hc)
   (λ h, by rw add_eq_self h; exact max_lt h1 h2)
+
+theorem pow_le {κ μ : cardinal.{u}} (H1 : omega ≤ κ) (H2 : μ < omega) : κ^μ ≤ κ :=
+let ⟨n, H3⟩ := lt_omega.1 H2 in
+H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
+  (le_of_lt $ lt_of_lt_of_le (by rw [nat.cast_zero, power_zero];
+    from one_lt_omega) H1)
+  (λ n ih, trans_rel_left _
+    (by rw [nat.cast_succ, power_add, power_one];
+      from mul_le_mul_right _ ih)
+    (mul_eq_self H1))) H1)
+
+theorem mk_list_eq_mk {α : Type u} (H1 : omega ≤ mk α) : mk (list α) = mk α :=
+eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
+calc  mk (list α)
+    = sum (λ n : ℕ, mk α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
+... ≤ sum (λ n : ℕ, mk α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
+... = sum (λ n : ulift.{u} ℕ, mk α) : quotient.sound
+  ⟨@equiv.sigma_congr_left _ _ (λ _, quotient.out (mk α)) equiv.ulift.symm⟩
+... = omega * mk α : sum_const _ _
+... = max (omega) (mk α) : mul_eq_max (le_refl _) H1
+... = mk α : max_eq_right H1
 
 end cardinal

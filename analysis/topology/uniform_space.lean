@@ -1279,6 +1279,17 @@ complete_space_extension
 
 end
 
+section
+local attribute [instance] separation_setoid
+lemma injective_separated_pure_cauchy {α : Type*} [uniform_space α] [s : separated α] :
+  function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
+separated_def.1 s _ _ $ assume s hs,
+let ⟨t, ht, hts⟩ :=
+  by rw [← (@uniform_embedding_pure_cauchy α _).right, filter.mem_comap_sets] at hs; exact hs in
+have (pure_cauchy a, pure_cauchy b) ∈ t, from quotient.exact h t ht,
+@hts (a, b) this
+end
+
 end Cauchy
 
 instance nonempty_Cauchy {α : Type u} [h : nonempty α] [uniform_space α] : nonempty (Cauchy α) :=

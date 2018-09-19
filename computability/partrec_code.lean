@@ -689,7 +689,7 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
       exact ⟨(max k₁ k₂).succ, nat.le_succ_of_le $
         le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁, a,
         evaln_mono (nat.succ_le_succ $ nat.le_succ_of_le $ le_max_left _ _) hk₁,
-        by simpa [nat.succ_eq_add_one, a0] using
+        by simpa [nat.succ_eq_add_one, a0, -max_eq_left, -max_eq_right] using
           evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk₂⟩ } }
 end, λ ⟨k, h⟩, evaln_sound h⟩
 
@@ -777,7 +777,7 @@ begin
       (snd.comp (primrec.unpair.comp n))
       (hlup.comp $ L.pair $ (k.pair cf).pair z)
       (_ : primrec _),
-    have L := L.comp fst, have z := z.comp fst, have y := snd, 
+    have L := L.comp fst, have z := z.comp fst, have y := snd,
     refine option_bind
       (hlup.comp $ L.pair $
         (((k'.pair c).comp fst).comp fst).pair

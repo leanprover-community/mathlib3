@@ -55,6 +55,23 @@ cantor_surjective (λ a b, ∀ U, a = f U → U b) $
 surjective_of_has_right_inverse ⟨f, λ U, funext $
   λ a, propext ⟨λ h, h U rfl, λ h' U' e, i e ▸ h'⟩⟩
 
+/-- `dwrite` replaces the value of a (dependent) function at one point. -/
+def dwrite {α} [decidable_eq α] {β : α → Sort*}
+  (f : ∀ a, β a) (a') (b : β a') (a) : β a :=
+if h : a = a' then eq.rec_on h.symm b else f a
+
+@[simp] theorem dwrite_eq {α} [decidable_eq α] {C : α → Type*}
+  (f : ∀ a, C a) (a) (b : C a) : dwrite f a b a = b :=
+by simp [dwrite]
+
+@[simp] theorem dwrite_ne {α} [decidable_eq α] {C : α → Type*}
+  (f : ∀ a, C a) (a') (b : C a') (a) (h : ¬ a = a') : dwrite f a' b a = f a :=
+by simp [dwrite, h]
+
+@[simp] theorem dwrite_self {α} [decidable_eq α] {C : α → Type*}
+  (f : ∀ a, C a) (a) : dwrite f a (f a) = f :=
+funext $ λ a', by unfold dwrite; split_ifs; [subst h, refl]
+
 /-- `g` is a partial inverse to `f` (an injective but not necessarily
   surjective function) if `g y = some x` implies `f x = y`, and `g y = none`
   implies that `y` is not in the range of `f`. -/

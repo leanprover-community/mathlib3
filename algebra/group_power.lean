@@ -442,3 +442,13 @@ by rw pow_two; exact mul_self_nonneg _
 theorem pow_ge_one_add_sub_mul [linear_ordered_ring α]
   {a : α} (H : a ≥ 1) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
 by simpa using pow_ge_one_add_mul (sub_nonneg.2 H) n
+
+namespace int
+
+lemma units_pow_two (u : units ℤ) : u ^ 2 = 1 :=
+(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
+by conv {to_lhs, rw ← nat.mod_add_div n 2}; simp [pow_add, pow_mul, units_pow_two]
+
+end int

@@ -612,16 +612,16 @@ eq_of_to_fun_eq $ funext $ λ r, swap_core_comm r _ _
 theorem swap_apply_def (a b x : α) : swap a b x = if x = a then b else if x = b then a else x :=
 rfl
 
-theorem swap_apply_left (a b : α) : swap a b a = b :=
+@[simp] theorem swap_apply_left (a b : α) : swap a b a = b :=
 if_pos rfl
 
-theorem swap_apply_right (a b : α) : swap a b b = a :=
+@[simp] theorem swap_apply_right (a b : α) : swap a b b = a :=
 by by_cases b = a; simp [swap_apply_def, *]
 
 theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}
 
-theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
+@[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
 
 theorem swap_comp_apply {a b x : α} (π : perm α) :

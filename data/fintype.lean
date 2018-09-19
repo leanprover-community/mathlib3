@@ -307,6 +307,12 @@ from λ f hinj x,
     ⟨surj_inv hsurj, left_inverse_of_surjective_of_right_inverse
       (this (injective_surj_inv _)) (right_inverse_surj_inv _)⟩⟩
 
+lemma fintype.injective_iff_bijective [fintype α] {f : α → α} : injective f ↔ bijective f :=
+by simp [bijective, fintype.injective_iff_surjective]
+
+lemma fintype.surjective_iff_bijective [fintype α] {f : α → α} : surjective f ↔ bijective f :=
+by simp [bijective, fintype.injective_iff_surjective]
+
 lemma fintype.injective_iff_surjective_of_equiv [fintype α] {f : α → β} (e : α ≃ β) :
   injective f ↔ surjective f :=
 have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from fintype.injective_iff_surjective,

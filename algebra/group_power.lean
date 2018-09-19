@@ -333,6 +333,9 @@ by rw [add_monoid.smul_eq_mul', add_monoid.smul_eq_mul', mul_assoc]
 theorem add_monoid.mul_smul_assoc [semiring α] (a b : α) (n : ℕ) : n • (a * b) = n • a * b :=
 by rw [add_monoid.smul_eq_mul, add_monoid.smul_eq_mul, mul_assoc]
 
+lemma zero_pow [semiring α] : ∀ {n : ℕ}, 0 < n → (0 : α) ^ n = 0
+| (n+1) _ := zero_mul _
+
 @[simp] theorem nat.cast_pow [semiring α] (n m : ℕ) : (↑(n ^ m) : α) = ↑n ^ m :=
 by induction m; simp [*, nat.succ_eq_add_one, nat.pow_add, pow_add]
 

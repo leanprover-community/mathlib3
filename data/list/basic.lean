@@ -1650,6 +1650,87 @@ end
 
 end find
 
+section lookup
+variables [decidable_eq α] {σ : α → Type v}
+
+/-- `lookup a l` is the first value in `l` corresponding to the key `a`,
+  or `none` if no such element exists. -/
+def lookup (a : α) : list (sigma σ) → option (σ a)
+| []             := none
+| (⟨a', b⟩ :: l) := if h : a' = a then some (eq.rec_on h b) else lookup l
+
+@[simp] theorem lookup_nil (a : α) : lookup a [] = @none (σ a) := rfl
+
+@[simp] theorem lookup_cons_eq (l) (a : α) (b : σ a) : lookup a (⟨a, b⟩::l) = some b :=
+dif_pos rfl
+
+@[simp] theorem lookup_cons_ne (l) {a} :
+  ∀ s : sigma σ, a ≠ s.1 → lookup a (s::l) = lookup a l
+| ⟨a', b⟩ h := dif_neg h.symm
+
+theorem lookup_eq_none {a : α} : ∀ {l : list (sigma σ)},
+  lookup a l = none ↔ ∀ b : σ a, sigma.mk a b ∉ l
+| []             := by simp
+| (⟨a', b⟩ :: l) := begin
+  by_cases h : a = a',
+  { subst a', simp, exact λ H, H b (or.inl rfl) },
+  { simp [h, lookup_eq_none] },
+end
+
+theorem of_mem_lookup
+  {a : α} {b : σ a} : ∀ {l : list (sigma σ)}, b ∈ lookup a l → sigma.mk a b ∈ l
+| (⟨a', b'⟩ :: l) H := begin
+  by_cases h : a = a',
+  { subst a', simp at H, simp [H] },
+  { simp [h] at H, exact or.inr (of_mem_lookup H) }
+end
+
+theorem map_lookup_eq_find (a : α) : ∀ l : list (sigma σ),
+  (lookup a l).map (sigma.mk a) = find (λ s, a = s.1) l
+| [] := rfl
+| (⟨a', b'⟩ :: l) := begin
+  by_cases h : a = a',
+  { subst a', simp },
+  { simp [h, map_lookup_eq_find] }
+end
+
+/-- `lookup_all a l` is the first value in `l` corresponding to the key `a`,
+  or `none` if no such element exists. -/
+def lookup_all (a : α) : list (sigma σ) → list (σ a)
+| []             := []
+| (⟨a', b⟩ :: l) := if h : a' = a then eq.rec_on h b :: lookup_all l else lookup_all l
+
+@[simp] theorem lookup_all_nil (a : α) : lookup_all a [] = @nil (σ a) := rfl
+
+@[simp] theorem lookup_all_cons_eq (l) (a : α) (b : σ a) :
+  lookup_all a (⟨a, b⟩::l) = b :: lookup_all a l :=
+dif_pos rfl
+
+@[simp] theorem lookup_all_cons_ne (l) {a} :
+  ∀ s : sigma σ, a ≠ s.1 → lookup_all a (s::l) = lookup_all a l
+| ⟨a', b⟩ h := dif_neg h.symm
+
+theorem lookup_all_eq_nil {a : α} : ∀ {l : list (sigma σ)},
+  lookup_all a l = [] ↔ ∀ b : σ a, sigma.mk a b ∉ l
+| []             := by simp
+| (⟨a', b⟩ :: l) := begin
+  by_cases h : a = a',
+  { subst a', simp, exact λ H, H b (or.inl rfl) },
+  { simp [h, lookup_all_eq_nil] },
+end
+
+theorem head_lookup_all (a : α) : ∀ l : list (sigma σ),
+  head' (lookup_all a l) = lookup a l
+| []             := by simp
+| (⟨a', b⟩ :: l) := by by_cases h : a = a'; [{subst h, simp}, simp *]
+
+theorem mem_lookup_all {a : α} {b : σ a} :
+  ∀ {l : list (sigma σ)}, b ∈ lookup_all a l ↔ sigma.mk a b ∈ l
+| []              := by simp
+| (⟨a', b'⟩ :: l) := by by_cases h : a = a'; [{subst h, simp *}, simp *]
+
+end lookup
+
 /-- `indexes_of a l` is the list of all indexes of `a` in `l`.
   `indexes_of a [a, b, a, a] = [0, 2, 3]` -/
 def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
@@ -2837,11 +2918,10 @@ end
 else by simp only [erase_of_not_mem hb, erase_of_not_mem (mt mem_of_mem_erase hb)]
 else by simp only [erase_of_not_mem ha, erase_of_not_mem (mt mem_of_mem_erase ha)]
 
-theorem map_erase [decidable_eq β] {f : α → β} (finj : injective f) {a : α} :
-  ∀ (l : list α), map f (l.erase a) = (map f l).erase (f a)
-| []     := rfl
-| (b::l) := if h : f b = f a then by simp only [h, finj h, erase_cons_head, map_cons]
-    else by simp only [map, erase_cons_tail _ h, erase_cons_tail _ (mt (congr_arg f) h), map_erase l]; split; refl
+theorem map_erase [decidable_eq β] {f : α → β} (finj : injective f) {a : α}
+  (l : list α) : map f (l.erase a) = (map f l).erase (f a) :=
+by rw [erase_eq_erasep, erase_eq_erasep, erasep_map]; congr;
+   ext b; simp [finj.eq_iff]
 
 theorem map_foldl_erase [decidable_eq β] {f : α → β} (finj : injective f) {l₁ l₂ : list α} :
   map f (foldl list.erase l₁ l₂) = foldl (λ l a, l.erase (f a)) (map f l₁) l₂ :=
@@ -3959,6 +4039,27 @@ by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
 
 end nodup
 
+section ndkeys
+variables {σ : α → Type v}
+
+def ndkeys (l : list (sigma σ)) : Prop :=
+(l.map sigma.fst).nodup
+
+variables [decidable_eq α]
+
+theorem mem_lookup_iff {a : α} {b : σ a} {l : list (sigma σ)} (nd : l.ndkeys) :
+  b ∈ lookup a l ↔ sigma.mk a b ∈ l :=
+⟨of_mem_lookup, λ h, begin
+  induction l with s l IH generalizing b; cases h with h h,
+  { subst s, simp },
+  { cases s with a' b',
+    by_cases h' : a = a',
+    { subst h', simp,
+      exact (not_mem_of_nodup_cons nd).elim (mem_map_of_mem sigma.fst h : _) },
+    { simpa [h'] using IH (nodup_of_nodup_cons nd) h } }
+end⟩
+
+end ndkeys
 /- erase duplicates function -/
 
 section erase_dup

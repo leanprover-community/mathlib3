@@ -957,6 +957,30 @@ theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
 | 0     (a::l) h := rfl
 | (n+1) (a::l) h := @drop_eq_nth_le_cons n _ _
 
+@[simp] theorem drop_drop : ∀ (n m) (l : list α), drop n (drop m l) = drop (n + m) l
+| n     0     l      := by simp
+| 0     (m+1) l      := by simp
+| (n+1) (m+1) nil    := by simp [drop_nil]
+| (n+1) (m+1) (a::l) :=
+  have h: n + (m + 2) = (n + (m + 1)) + 1, by simp,
+  show drop (n + 1) (drop (m + 1) (a :: l)) = drop (n + 1 + (m + 1)) (a :: l),
+  begin 
+    simp [drop_drop, drop], 
+    rw [h], 
+    refl 
+  end
+
+theorem drop_take : ∀ (m : ℕ) (n : ℕ) (l : list α),
+  drop m (take (m + n) l) = take n (drop m l)
+| 0     n _ := by simp
+| (m+1) n nil := by simp
+| (m+1) n (_::l) :=
+  have h: m + 1 + n = (m+n) + 1, by simp,
+  begin 
+    simp [take_cons,h], 
+    exact (drop_take m n l) 
+  end
+
 theorem modify_nth_tail_eq_take_drop (f : list α → list α) (H : f [] = []) :
   ∀ n l, modify_nth_tail f n l = take n l ++ f (drop n l)
 | 0     l      := rfl
@@ -2288,6 +2312,28 @@ theorem forall₂_iff_zip {R : α → β → Prop} {l₁ l₂} : forall₂ R l�
   { cases l₂ with b l₂; injection h₁ with h₁,
     exact forall₂.cons (h₂ $ or.inl rfl) (IH h₁ $ λ a b h, h₂ $ or.inr h) }
 end⟩
+
+theorem forall₂_take {R : α → β → Prop} :
+  ∀ n {l₁ l₂}, forall₂ R l₁ l₂ → forall₂ R (take n l₁) (take n l₂)
+| 0 _ _ _ := by simp only [forall₂.nil, take]
+| (n+1) _ _ (forall₂.nil) := by simp only [forall₂.nil, take]
+| (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_take n]
+
+theorem forall₂_drop {R : α → β → Prop} :
+  ∀ n {l₁ l₂}, forall₂ R l₁ l₂ → forall₂ R (drop n l₁) (drop n l₂)
+| 0 _ _ h := by simp only [drop, h]
+| (n+1) _ _ (forall₂.nil) := by simp only [forall₂.nil, drop]
+| (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_drop n]
+
+theorem forall₂_take_append {R : α → β → Prop} (l : list α) (l₁ : list β) (l₂ : list β)
+  (h : forall₂ R l (l₁ ++ l₂)) : forall₂ R (list.take (length l₁) l) l₁ :=
+  have h': forall₂ R (take (length l₁) l) (take (length l₁) (l₁ ++ l₂)), from forall₂_take (length l₁) h,
+  by rwa [take_left] at h'
+
+theorem forall₂_drop_append {R : α → β → Prop} (l : list α) (l₁ : list β) (l₂ : list β)
+  (h : forall₂ R l (l₁ ++ l₂)) : forall₂ R (list.drop (length l₁) l) l₂ :=
+  have h': forall₂ R (drop (length l₁) l) (drop (length l₁) (l₁ ++ l₂)), from forall₂_drop (length l₁) h,
+  by rwa [drop_left] at h'
 
 lemma rel_mem (hr : bi_unique r) : (r ⇒ forall₂ r ⇒ iff) (∈) (∈)
 | a b h [] [] forall₂.nil := by simp

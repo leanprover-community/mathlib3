@@ -97,46 +97,113 @@ tendsto_of_uniform_continuous_subtype
       (continuous_abs _ $ is_open_gt' _))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
+lemma continuous_re : continuous re :=
+continuous_of_metric.2 (λ _ ε ε0, ⟨ε, ε0, λ _, lt_of_le_of_lt (abs_re_le_abs _)⟩)
+
+lemma continuous_im : continuous im :=
+continuous_of_metric.2 (λ _ ε ε0, ⟨ε, ε0, λ _, lt_of_le_of_lt (abs_im_le_abs _)⟩)
+
+lemma continuous_of_real : continuous of_real :=
+continuous_of_metric.2 (λ _ ε ε0, ⟨ε, ε0, λ _,
+  by rw [real.dist_eq, complex.dist_eq, of_real_eq_coe, of_real_eq_coe, ← of_real_sub, abs_of_real];
+    exact id⟩)
+
+
 instance : topological_ring ℂ :=
 { continuous_mul := continuous_mul, ..complex.topological_add_group }
 
 instance : topological_semiring ℂ := by apply_instance
 
-section exponential
-
 open finset
 
 lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
-  abs (exp x - (x + 1)) ≤ abs x ^ 2 * (3 / 4) :=
-calc abs (exp x - (x + 1)) = abs (exp x - (range 2).sum (λ m, x ^ m / m.fact)) :
+  abs (exp x - 1) ≤ 2 * abs x :=
+calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
   by simp [sum_range_succ]
-... ≤ abs x ^ 2 * ((nat.succ 2) * (nat.fact 2 * 2)⁻¹) :
+... ≤ abs x ^ 1 * ((nat.succ 1) * (nat.fact 1 * 1)⁻¹) :
   exp_bound hx dec_trivial
-... = abs x ^ 2 * (3 / 4) : by norm_num
+... = 2 * abs x : by simp [bit0, mul_comm]
 
-lemma half_le_self {α : Type*} [linear_ordered_field α] {a : α} (ha : 0 ≤ a) : a / 2 ≤ a :=
-by linarith
-
-lemma tendsto_exp_zero_one : tendsto exp (nhds 0) (nhds 1) :=
+lemma tendsto_exp_zero_one : tendsto (λ x : ℂ, exp x) (nhds (0 : ℂ)) (nhds (1 : ℂ)) :=
 tendsto_nhds_of_metric.2 $ λ ε ε0,
-  ⟨min 1 (real.sqrt ε / 2), sorry,
-    λ x hx,
-    have hx' : abs x < min 1 (real.sqrt ε / 2), by simpa [dist_eq] using hx,
-    calc abs (exp x - 1) ≤ abs (exp x - (x + 1)) + abs ((x + 1) - 1) :
-      abs_sub_le _ _ _
-    ... < abs x ^ 2 * (3 / 4) + real.sqrt ε / 2 :
-      add_lt_add_of_le_of_lt (abs_exp_sub_one_le (le_trans (le_of_lt hx') (min_le_left _ _)))
-        (by rw add_sub_cancel; exact (lt_of_lt_of_le hx' (min_le_right _ _)))
-    ... ≤ (real.sqrt ε / 2) ^ 2 * (3 / 4) + real.sqrt ε / 2 :
-      add_le_add_right (mul_le_mul_of_nonneg_right
-        (by rw [pow_two, pow_two]; exact mul_self_le_mul_self (abs_nonneg _)
-          (le_trans (le_of_lt hx') (min_le_right _ _)))
-        (by norm_num)) _
-    ... < ε : begin
-      rw [div_pow, real.sqr_sqrt],
+  ⟨min (ε / 2) 1, lt_min (div_pos ε0 (by norm_num)) (by norm_num),
+    λ x h, have h : abs x < min (ε / 2) 1, by simpa [dist_eq] using h,
+      calc abs (exp x - 1) ≤ 2 * abs x : abs_exp_sub_one_le
+        (le_trans (le_of_lt h) (min_le_right _ _))
+      ... = abs x + abs x : two_mul (abs x)
+      ... < ε / 2 + ε / 2 : add_lt_add
+        (lt_of_lt_of_le h (min_le_left _ _)) (lt_of_lt_of_le h (min_le_left _ _))
+      ... = ε : by rw add_halves⟩
 
-    end⟩
+lemma continuous_exp : continuous exp :=
+continuous_iff_tendsto.2 (λ x,
+  have H1 : tendsto (λ h, exp (x + h)) (nhds 0) (nhds (exp x)),
+    by simpa [exp_add] using tendsto_mul tendsto_const_nhds tendsto_exp_zero_one,
+  have H2 : tendsto (λ y, y - x) (nhds x) (nhds (x - x)) :=
+     tendsto_sub tendsto_id (@tendsto_const_nhds _ _ _ x _),
+  suffices tendsto ((λ h, exp (x + h)) ∘
+    (λ y, id y - (λ z, x) y)) (nhds x) (nhds (exp x)),
+    by simp only [function.comp, add_sub_cancel'_right, id.def] at this;
+      exact this,
+  tendsto.comp (by rw [sub_self] at H2; exact H2) H1)
 
-end exponential
+lemma continuous_sin : continuous sin :=
+_root_.continuous_mul
+  (_root_.continuous_mul
+    (_root_.continuous_sub
+      (continuous.comp (_root_.continuous_mul continuous_neg' continuous_const) continuous_exp)
+      (continuous.comp (_root_.continuous_mul continuous_id continuous_const) continuous_exp))
+    continuous_const)
+  continuous_const
+
+lemma continuous_cos : continuous cos :=
+_root_.continuous_mul
+  (_root_.continuous_add
+    (continuous.comp (_root_.continuous_mul continuous_id continuous_const) continuous_exp)
+    (continuous.comp (_root_.continuous_mul continuous_neg' continuous_const) continuous_exp))
+  continuous_const
+
+lemma continuous_sinh : continuous sinh :=
+_root_.continuous_mul
+  (_root_.continuous_sub
+    continuous_exp
+    (continuous.comp continuous_neg' continuous_exp))
+  continuous_const
+
+lemma continuous_cosh : continuous cosh :=
+_root_.continuous_mul
+  (_root_.continuous_add
+    continuous_exp
+    (continuous.comp continuous_neg' continuous_exp))
+  continuous_const
 
 end complex
+
+namespace real
+
+lemma continuous_exp : continuous exp :=
+continuous.comp
+  (continuous.comp complex.continuous_of_real complex.continuous_exp)
+  complex.continuous_re
+
+lemma continuous_sin : continuous sin :=
+continuous.comp
+  (continuous.comp complex.continuous_of_real complex.continuous_sin)
+  complex.continuous_re
+
+lemma continuous_cos : continuous cos :=
+continuous.comp
+  (continuous.comp complex.continuous_of_real complex.continuous_cos)
+  complex.continuous_re
+
+lemma continuous_sinh : continuous sinh :=
+continuous.comp
+  (continuous.comp complex.continuous_of_real complex.continuous_sinh)
+  complex.continuous_re
+
+lemma continuous_cosh : continuous cosh :=
+continuous.comp
+  (continuous.comp complex.continuous_of_real complex.continuous_cosh)
+  complex.continuous_re
+
+end real

@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Topology of the complex numbers.
 -/
-import data.complex.basic analysis.metric_space
+import data.complex.basic analysis.metric_space data.complex.exponential
 
 noncomputable theory
 open filter
@@ -101,5 +101,3 @@ instance : topological_ring ℂ :=
 { continuous_mul := continuous_mul, ..complex.topological_add_group }
 
 instance : topological_semiring ℂ := by apply_instance
-
-end complex

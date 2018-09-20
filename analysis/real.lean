@@ -357,7 +357,8 @@ compact_of_totally_bounded_is_closed
 
 open real
 
-lemma real.exists_eq_zero_of_tendsto {f : ℝ → ℝ} {a b : ℝ} (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
+lemma real.exists_eq_zero_of_tendsto_of_le_zero_of_zero_le {f : ℝ → ℝ} {a b : ℝ}
+  (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
   (ha : f a ≤ 0) (hb : 0 ≤ f b) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = 0 :=
 let x := real.Sup {x | f x ≤ 0 ∧ a ≤ x ∧ x ≤ b} in
 have hx₁ : ∃ y, ∀ g ∈ {x | f x ≤ 0 ∧ a ≤ x ∧ x ≤ b}, g ≤ y := ⟨b, λ _ h, h.2.2⟩,
@@ -396,5 +397,13 @@ have hxb : x ≤ b, from (Sup_le _ hx₂ hx₁).2 (λ _ h, h.2.2),
                       by linarith⟩))))))⟩))
           hx₁
         end)⟩
+
+lemma real.exists_eq_zero_of_tendsto_of_zero_le_of_le_zero {f : ℝ → ℝ} {a b : ℝ}
+  (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
+  (ha : 0 ≤ f a) (hb : f b ≤ 0) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = 0 :=
+let ⟨x, hx₁, hx₂, hx₃⟩ := @real.exists_eq_zero_of_tendsto_of_le_zero_of_zero_le
+  (λ x, - f x) a b (λ x hax hxb, tendsto_neg (hf x hax hxb))
+  (neg_nonpos.2 ha) (neg_nonneg.2 hb) hab in
+⟨x, hx₁, hx₂, neg_eq_zero.1 hx₃⟩
 
 end

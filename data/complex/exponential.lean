@@ -876,7 +876,7 @@ lemma cos_one_pos : 0 < real.cos 1 :=
 calc 0 < 1 / 2 - 1 / 6 : by norm_num
 ... ≤ real.cos 1 : sub_le_of_sub_le (abs_sub_le_iff.1 cos_one_bound).2
 
-lemma cos_two_le : real.cos 2 < 0 :=
+lemma cos_two_neg : real.cos 2 < 0 :=
 calc real.cos 2 = real.cos (2 * 1) : congr_arg real.cos (by simp [bit0])
 ... = _ : real.cos_two_mul 1
 ... ≤ 2 * (2 / 3) ^ 2 - 1 :

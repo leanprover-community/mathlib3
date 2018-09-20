@@ -1,4 +1,4 @@
-import data.list.basic
+import data.list.perm
 
 universes u v
 
@@ -10,16 +10,49 @@ variables {α : Type u} {β : α → Type v}
 def knodup (l : list (sigma β)) : Prop :=
 (l.map sigma.fst).nodup
 
+theorem knodup_iff_pairwise {l} : knodup l ↔
+  pairwise (λ s s' : sigma β, s.1 ≠ s'.1) l := pairwise_map _
+
 @[simp] theorem knodup_nil : @knodup α β [] := pairwise.nil _
 
 @[simp] theorem knodup_cons {a : α} {b : β a} {l : list (sigma β)} :
   knodup (⟨a, b⟩::l) ↔ (∀ b' : β a, sigma.mk a b' ∉ l) ∧ knodup l :=
 by simp [knodup]
 
+theorem knodup.eq_of_fst_eq {l : list (sigma β)}
+  (nd : knodup l) {s s' : sigma β} (h : s ∈ l) (h' : s' ∈ l) :
+  s.1 = s'.1 → s = s' :=
+@forall_of_forall_of_pairwise _
+  (λ s s' : sigma β, s.1 = s'.1 → s = s')
+  (λ s s' H h, (H h.symm).symm) _ (λ x h _, rfl)
+  ((knodup_iff_pairwise.1 nd).imp (λ s s' h h', (h h').elim)) _ h _ h'
+
+theorem knodup.eq_of_mk_mem {a : α} {b b' : β a} {l : list (sigma β)}
+  (nd : knodup l) (h : sigma.mk a b ∈ l) (h' : sigma.mk a b' ∈ l) : b = b' :=
+by cases nd.eq_of_fst_eq h h' rfl; refl
+
 theorem knodup_singleton (s : sigma β) : knodup [s] := nodup_singleton _
 
 theorem knodup_of_sublist {l₁ l₂ : list (sigma β)} (h : l₁ <+ l₂) : knodup l₂ → knodup l₁ :=
 nodup_of_sublist (map_sublist_map _ h)
+
+theorem nodup_of_knodup {l : list (sigma β)} : knodup l → nodup l :=
+nodup_of_nodup_map _
+
+theorem perm_knodup {l₁ l₂ : list (sigma β)} (h : l₁ ~ l₂) : knodup l₁ ↔ knodup l₂ :=
+perm_nodup $ perm_map _ h
+
+theorem knodup_join {L : list (list (sigma β))} :
+  knodup (join L) ↔ (∀ l ∈ L, knodup l) ∧ pairwise disjoint (L.map (map sigma.fst)) :=
+begin
+  rw [knodup_iff_pairwise, pairwise_join, pairwise_map],
+  refine and_congr (ball_congr $ λ l h, by simp [knodup_iff_pairwise]) _,
+  apply iff_of_eq, congr', ext l₁ l₂,
+  rw [disjoint_iff_ne], simp
+end
+
+theorem nodup_enum_map_fst (l : list α) : (l.enum.map prod.fst).nodup :=
+by simp [list.nodup_range]
 
 variables [decidable_eq α]
 
@@ -77,14 +110,13 @@ end
 theorem mem_lookup_iff {a : α} {b : β a} {l : list (sigma β)} (nd : l.knodup) :
   b ∈ lookup a l ↔ sigma.mk a b ∈ l :=
 ⟨of_mem_lookup, λ h, begin
-  induction l with s l IH generalizing b; cases h with h h,
-  { subst s, simp },
-  { cases s with a' b',
-    by_cases h' : a = a',
-    { subst h', simp,
-      exact (not_mem_of_nodup_cons nd).elim (mem_map_of_mem sigma.fst h : _) },
-    { simpa [h'] using IH (nodup_of_nodup_cons nd) h } }
+  cases option.is_some_iff_exists.1 (lookup_is_some.2 ⟨_, h⟩) with b' h',
+  cases nd.eq_of_mk_mem h (of_mem_lookup h'), exact h'
 end⟩
+
+theorem perm_lookup (a : α) {l₁ l₂ : list (sigma β)}
+  (nd₁ : l₁.knodup) (nd₂ : l₂.knodup) (p : l₁ ~ l₂) : lookup a l₁ = lookup a l₂ :=
+by ext b; simp [mem_lookup_iff, nd₁, nd₂]; exact mem_of_perm p
 
 /- lookup_all -/
 
@@ -123,30 +155,108 @@ theorem mem_lookup_all {a : α} {b : β a} :
 | []              := by simp
 | (⟨a', b'⟩ :: l) := by by_cases h : a = a'; [{subst h, simp *}, simp *]
 
+theorem lookup_all_sublist (a : α) :
+  ∀ l : list (sigma β), (lookup_all a l).map (sigma.mk a) <+ l
+| []              := by simp
+| (⟨a', b'⟩ :: l) := begin
+    by_cases h : a = a',
+    { subst h, simp, exact (lookup_all_sublist l).cons2 _ _ _ },
+    { simp [h], exact (lookup_all_sublist l).cons _ _ _ }
+  end
+
+theorem lookup_all_length_le_one (a : α) {l : list (sigma β)} (h : l.knodup) :
+  length (lookup_all a l) ≤ 1 :=
+by have := nodup_of_sublist (map_sublist_map _ $ lookup_all_sublist a l) h;
+   rw map_map at this; rwa [← nodup_repeat, ← map_const _ a]
+
+theorem lookup_all_eq_lookup (a : α) {l : list (sigma β)} (h : l.knodup) :
+  lookup_all a l = (lookup a l).to_list :=
+begin
+  rw ← head_lookup_all,
+  have := lookup_all_length_le_one a h, revert this,
+  rcases lookup_all a l with _|⟨b, _|⟨c, l⟩⟩; intro; try {refl},
+  exact absurd this dec_trivial
+end
+
+theorem lookup_all_nodup (a : α) {l : list (sigma β)} (h : l.knodup) :
+  (lookup_all a l).nodup :=
+by rw lookup_all_eq_lookup a h; apply option.to_list_nodup
+
+theorem perm_lookup_all (a : α) {l₁ l₂ : list (sigma β)}
+  (nd₁ : l₁.knodup) (nd₂ : l₂.knodup) (p : l₁ ~ l₂) : lookup_all a l₁ = lookup_all a l₂ :=
+by simp [lookup_all_eq_lookup, nd₁, nd₂, perm_lookup a nd₁ nd₂ p]
 
 /- kreplace -/
 
 def kreplace (a : α) (b : β a) : list (sigma β) → list (sigma β) :=
 lookmap $ λ s, if h : a = s.1 then some ⟨a, b⟩ else none
 
+theorem kreplace_of_forall_not (a : α) (b : β a) {l : list (sigma β)}
+  (H : ∀ b : β a, sigma.mk a b ∉ l) : kreplace a b l = l :=
+lookmap_of_forall_not _ $ begin
+  rintro ⟨a', b'⟩ h, dsimp, split_ifs,
+  { subst a', exact H _ h }, {refl}
+end
+
+theorem kreplace_self {a : α} {b : β a} {l : list (sigma β)}
+  (nd : knodup l) (h : sigma.mk a b ∈ l) : kreplace a b l = l :=
+begin
+  refine (lookmap_congr _).trans
+    (lookmap_id' (option.guard (λ s, a = s.1)) _ _),
+  { rintro ⟨a', b'⟩ h', dsimp [option.guard], split_ifs,
+    { subst a', exact ⟨rfl, heq_of_eq $ nd.eq_of_mk_mem h h'⟩ },
+    { refl } },
+  { rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, dsimp [option.guard], split_ifs,
+    { subst a₁, rintro ⟨⟩, simp }, { rintro ⟨⟩ } },
+end
+
 theorem kreplace_map_fst (a : α) (b : β a) : ∀ l : list (sigma β),
   (kreplace a b l).map sigma.fst = l.map sigma.fst :=
-lookmap_map_eq _ $ by rintro ⟨a₁, b₂⟩ ⟨a₂, b₂⟩;
+lookmap_map_eq _ _ $ by rintro ⟨a₁, b₂⟩ ⟨a₂, b₂⟩;
   dsimp; split_ifs; simp [h] {contextual := tt}
 
 theorem kreplace_knodup (a : α) (b : β a) {l : list (sigma β)} :
   (kreplace a b l).knodup ↔ l.knodup :=
 by simp [knodup, kreplace_map_fst]
 
+theorem perm_kreplace {a : α} {b : β a} {l₁ l₂ : list (sigma β)}
+  (nd : l₁.knodup) : l₁ ~ l₂ →
+  kreplace a b l₁ ~ kreplace a b l₂ :=
+perm_lookmap _ $ begin
+  refine (knodup_iff_pairwise.1 nd).imp _,
+  intros x y h z h₁ w h₂,
+  split_ifs at h₁ h₂; cases h₁; cases h₂,
+  exact (h (h_2.symm.trans h_1)).elim
+end
+
 /- kerase -/
 
 def kerase (a : α) : list (sigma β) → list (sigma β) :=
-erasep $ λ s, s.1 = a
+erasep $ λ s, a = s.1
 
 theorem kerase_sublist (a : α) (l : list (sigma β)) : kerase a l <+ l :=
 erasep_sublist _
 
 theorem kerase_knodup (a : α) {l : list (sigma β)} : knodup l → (kerase a l).knodup :=
 knodup_of_sublist $ kerase_sublist _ _
+
+theorem perm_kerase {a : α} {l₁ l₂ : list (sigma β)}
+  (nd : l₁.knodup) : l₁ ~ l₂ → kerase a l₁ ~ kerase a l₂ :=
+perm_erasep _ $ (knodup_iff_pairwise.1 nd).imp $
+by rintro x y h rfl; exact h
+
+def kextract (a : α) : list (sigma β) → option (β a) × list (sigma β)
+| []     := (none, [])
+| (s::l) := if h : s.1 = a then (some (eq.rec_on h s.2), l) else
+  let (b', l') := kextract l in (b', s :: l')
+
+@[simp] theorem kextract_eq_lookup_kerase (a : α) :
+  ∀ l : list (sigma β), kextract a l = (lookup a l, kerase a l)
+| []     := rfl
+| (⟨a', b⟩::l) := begin
+    simp [kextract], dsimp, split_ifs,
+    { subst a', simp [kerase] },
+    { simp [kextract, ne.symm h, kextract_eq_lookup_kerase l, kerase] }
+  end
 
 end list

@@ -1667,22 +1667,49 @@ def lookmap (f : α → option α) : list α → list α
 
 @[simp] theorem lookmap_nil : [].lookmap f = [] := rfl
 
-theorem lookmap_cons_none {a : α} (l : list α) (h : f a = none) :
+@[simp] theorem lookmap_cons_none {a : α} (l : list α) (h : f a = none) :
   (a :: l).lookmap f = a :: l.lookmap f :=
 by simp [lookmap, h]
 
-theorem lookmap_cons_some {a b : α} (l : list α) (h : f a = some b) :
+@[simp] theorem lookmap_cons_some {a b : α} (l : list α) (h : f a = some b) :
   (a :: l).lookmap f = b :: l :=
 by simp [lookmap, h]
 
-theorem lookmap_map_eq {g : α → β} (h : ∀ a (b ∈ f a), g a = g b) :
+theorem lookmap_some : ∀ l : list α, l.lookmap some = l
+| []     := rfl
+| (a::l) := rfl
+
+theorem lookmap_none : ∀ l : list α, l.lookmap (λ _, none) = l
+| []     := rfl
+| (a::l) := congr_arg (cons a) (lookmap_none l)
+
+theorem lookmap_congr {f g : α → option α} :
+  ∀ {l : list α}, (∀ a ∈ l, f a = g a) → l.lookmap f = l.lookmap g
+| []     H := rfl
+| (a::l) H := begin
+  cases forall_mem_cons.1 H with H₁ H₂,
+  cases h : g a with b,
+  { simp [h, H₁.trans h, lookmap_congr H₂] },
+  { simp [lookmap_cons_some _ _ h, lookmap_cons_some _ _ (H₁.trans h)] }
+end
+
+theorem lookmap_of_forall_not {l : list α} (H : ∀ a ∈ l, f a = none) : l.lookmap f = l :=
+(lookmap_congr H).trans (lookmap_none l)
+
+theorem lookmap_map_eq (g : α → β) (h : ∀ a (b ∈ f a), g a = g b) :
   ∀ l : list α, map g (l.lookmap f) = map g l
 | []     := rfl
 | (a::l) := begin
   cases h' : f a with b,
-  { simp [lookmap_cons_none _ _ h', lookmap_map_eq] },
+  { simp [h', lookmap_map_eq] },
   { simp [lookmap_cons_some _ _ h', h _ _ h'] }
 end
+
+theorem lookmap_id' (h : ∀ a (b ∈ f a), a = b) (l : list α) : l.lookmap f = l :=
+by rw [← map_id (l.lookmap f), lookmap_map_eq, map_id]; exact h
+
+theorem length_lookmap (l : list α) : length (l.lookmap f) = length l :=
+by rw [← length_map, lookmap_map_eq _ (λ _, ()), length_map]; simp
 
 end lookmap
 
@@ -2798,10 +2825,20 @@ theorem mem_of_mem_erasep {a : α} {l : list α} : a ∈ l.erasep p → a ∈ l 
     simpa [this] using al }
 end⟩
 
-theorem erasep_map [decidable_eq β] (f : β → α) :
+theorem erasep_map (f : β → α) :
   ∀ (l : list β), (map f l).erasep p = map f (l.erasep (p ∘ f))
 | []     := rfl
 | (b::l) := by by_cases p (f b); simp [h, erasep_map l]
+
+def extractp (p : α → Prop) [decidable_pred p] : list α → option α × list α
+| []     := (none, [])
+| (a::l) := if p a then (some a, l) else
+  let (a', l') := extractp l in (a', a :: l')
+
+@[simp] theorem extractp_eq_find_erasep :
+  ∀ l : list α, extractp p l = (find p l, erasep p l)
+| []     := rfl
+| (a::l) := by by_cases pa : p a; simp [extractp, pa, extractp_eq_find_erasep l]
 
 end erasep
 
@@ -3494,6 +3531,17 @@ theorem pairwise_of_sublist : Π {l₁ l₂ : list α}, l₁ <+ l₂ → pairwis
 | ._ ._ (sublist.cons2 l₁ l₂ a s) (pairwise.cons i n) :=
   (pairwise_of_sublist s n).cons (ball.imp_left (subset_of_sublist s) i)
 
+theorem forall_of_forall_of_pairwise (H : symmetric R)
+  {l : list α} (H₁ : ∀ x ∈ l, R x x) (H₂ : pairwise R l) :
+  ∀ (x ∈ l) (y ∈ l), R x y :=
+begin
+  induction l with a l IH, { exact forall_mem_nil _ },
+  cases forall_mem_cons.1 H₁ with H₁₁ H₁₂,
+  cases pairwise_cons.1 H₂ with H₂₁ H₂₂,
+  rintro x (rfl | hx) y (rfl | hy),
+  exacts [H₁₁, H₂₁ _ hy, H (H₂₁ _ hx), IH H₁₂ H₂₂ _ hx _ hy]
+end
+
 theorem pairwise_singleton (R) (a : α) : pairwise R [a] :=
 by simp only [pairwise_cons, mem_singleton, forall_prop_of_false (not_mem_nil _), forall_true_iff, pairwise.nil, and_true]
 
@@ -3853,6 +3901,13 @@ theorem nodup_iff_count_le_one [decidable_eq α] {l : list α} : nodup l ↔ ∀
 nodup_iff_sublist.trans $ forall_congr $ λ a,
 have [a, a] <+ l ↔ 1 < count a l, from (@le_count_iff_repeat_sublist _ _ a l 2).symm,
 (not_congr this).trans not_lt
+
+theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
+| 0 := by simp [zero_le]
+| 1 := by simp
+| (n+2) := iff_of_false
+  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (le_add_left 2 n)))
+  (not_le_of_lt $ le_add_left 2 n)
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=

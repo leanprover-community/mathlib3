@@ -6,8 +6,11 @@ Author: Johannes Hölzl
 Semigroup, monoid, group and module structures on product spaces.
 -/
 
-import data.prod linear_algebra.basic
+import data.prod linear_algebra.basic algebra.pi_instances
 open set function
+
+namespace prod
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 section module
 variables [ring α] [module α β] [module α γ] [module α δ]
@@ -72,8 +75,5 @@ lemma is_basis_inl_union_inr {s : set β} {t : set γ}
   by rw [span_inl_union_inr]; exact assume ⟨b, c⟩, ⟨hs.2 b, ht.2 c⟩⟩
 
 end module
-
-instance {f : field α} [vector_space α β] [vector_space α γ] : vector_space α (β × γ) :=
-{..prod.module}
 
 end prod

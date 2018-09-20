@@ -50,9 +50,9 @@ instance add_comm_group     [∀ i, add_comm_group     $ f i] : add_comm_group  
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
 
-instance semimodule   (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]   : semimodule α (Π i : I, f i)   := by pi_instance
-instance module       (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]       : module α (Π i : I, f i)       := {..pi.semimodule α}
-instance vector_space (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i] : vector_space α (Π i : I, f i) := {..pi.module α}
+instance semimodule   (α) {r : semiring α} [∀ i, semimodule α $ f i]   : semimodule α (Π i : I, f i)   := by pi_instance
+instance module       (α) {r : ring α}     [∀ i, module α $ f i]       : module α (Π i : I, f i)       := {..pi.semimodule α}
+instance vector_space (α) {r : field α}    [∀ i, vector_space α $ f i] : vector_space α (Π i : I, f i) := {..pi.module α}
 
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
@@ -215,20 +215,13 @@ by constructor; simp [inl, inr] {contextual := tt}
 
 instance [has_scalar α β] [has_scalar α γ] : has_scalar α (β × γ) := ⟨λa p, (a • p.1, a • p.2)⟩
 
-instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
-  [semimodule α β] [semimodule α γ] : semimodule α (β × γ) :=
+instance {r : ring α} [module α β] [module α γ] : module α (β × γ) :=
 { smul_add  := assume a p₁ p₂, mk.inj_iff.mpr ⟨smul_add, smul_add⟩,
   add_smul  := assume a p₁ p₂, mk.inj_iff.mpr ⟨add_smul, add_smul⟩,
   mul_smul  := assume a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul, mul_smul⟩,
   one_smul  := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul, one_smul⟩,
-  zero_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul, zero_smul⟩,
-  smul_zero := assume a, mk.inj_iff.mpr ⟨smul_zero, smul_zero⟩,
   .. prod.has_scalar }
 
-instance {r : ring α} [add_comm_group β] [add_comm_group γ]
-  [module α β] [module α γ] : module α (β × γ) := {}
-
-instance {r : discrete_field α} [add_comm_group β] [add_comm_group γ]
-  [vector_space α β] [vector_space α γ] : vector_space α (β × γ) := {}
+instance {r : field α} [vector_space α β] [vector_space α γ] : vector_space α (β × γ) := {}
 
 end prod

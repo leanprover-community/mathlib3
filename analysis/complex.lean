@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Topology of the complex numbers.
 -/
-import data.complex.basic analysis.metric_space data.complex.exponential
+import data.complex.basic analysis.metric_space data.complex.exponential analysis.real
 
 noncomputable theory
 open filter
@@ -205,5 +205,13 @@ lemma continuous_cosh : continuous cosh :=
 continuous.comp
   (continuous.comp complex.continuous_of_real complex.continuous_cosh)
   complex.continuous_re
+
+lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
+real.exists_eq_zero_of_tendsto_of_zero_le_of_le_zero
+  (λ x _ _, continuous_iff_tendsto.1 continuous_cos _)
+  (le_of_lt complex.cos_one_pos)
+  (le_of_lt complex.cos_two_neg) (by norm_num)
+
+def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
 end real

@@ -101,3 +101,42 @@ instance : topological_ring ℂ :=
 { continuous_mul := continuous_mul, ..complex.topological_add_group }
 
 instance : topological_semiring ℂ := by apply_instance
+
+section exponential
+
+open finset
+
+lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
+  abs (exp x - (x + 1)) ≤ abs x ^ 2 * (3 / 4) :=
+calc abs (exp x - (x + 1)) = abs (exp x - (range 2).sum (λ m, x ^ m / m.fact)) :
+  by simp [sum_range_succ]
+... ≤ abs x ^ 2 * ((nat.succ 2) * (nat.fact 2 * 2)⁻¹) :
+  exp_bound hx dec_trivial
+... = abs x ^ 2 * (3 / 4) : by norm_num
+
+lemma half_le_self {α : Type*} [linear_ordered_field α] {a : α} (ha : 0 ≤ a) : a / 2 ≤ a :=
+by linarith
+
+lemma tendsto_exp_zero_one : tendsto exp (nhds 0) (nhds 1) :=
+tendsto_nhds_of_metric.2 $ λ ε ε0,
+  ⟨min 1 (real.sqrt ε / 2), sorry,
+    λ x hx,
+    have hx' : abs x < min 1 (real.sqrt ε / 2), by simpa [dist_eq] using hx,
+    calc abs (exp x - 1) ≤ abs (exp x - (x + 1)) + abs ((x + 1) - 1) :
+      abs_sub_le _ _ _
+    ... < abs x ^ 2 * (3 / 4) + real.sqrt ε / 2 :
+      add_lt_add_of_le_of_lt (abs_exp_sub_one_le (le_trans (le_of_lt hx') (min_le_left _ _)))
+        (by rw add_sub_cancel; exact (lt_of_lt_of_le hx' (min_le_right _ _)))
+    ... ≤ (real.sqrt ε / 2) ^ 2 * (3 / 4) + real.sqrt ε / 2 :
+      add_le_add_right (mul_le_mul_of_nonneg_right
+        (by rw [pow_two, pow_two]; exact mul_self_le_mul_self (abs_nonneg _)
+          (le_trans (le_of_lt hx') (min_le_right _ _)))
+        (by norm_num)) _
+    ... < ε : begin
+      rw [div_pow, real.sqr_sqrt],
+
+    end⟩
+
+end exponential
+
+end complex

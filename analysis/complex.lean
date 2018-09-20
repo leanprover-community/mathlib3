@@ -214,4 +214,11 @@ real.exists_eq_zero_of_tendsto_of_zero_le_of_le_zero
 
 def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
+lemma cos_pi_div_two : cos (pi / 2) = 0 :=
+begin
+  rw [pi, mul_div_cancel_left],
+  exact (classical.some_spec exists_cos_eq_zero).2.2,
+  norm_num
+end
+
 end real

@@ -181,6 +181,9 @@ fintype_of_finset (s.to_finset.image f) $ by simp
 instance fintype_range [decidable_eq β] (f : α → β) [fintype α] : fintype (range f) :=
 fintype_of_finset (finset.univ.image f) $ by simp [range]
 
+theorem finite_range (f : α → β) [fintype α] : finite (range f) :=
+by haveI := classical.dec_eq β; exact ⟨by apply_instance⟩
+
 theorem finite_image {s : set α} (f : α → β) : finite s → finite (f '' s)
 | ⟨h⟩ := ⟨@set.fintype_image _ _ (classical.dec_eq β) _ _ h⟩
 
@@ -251,6 +254,16 @@ by ext; simp
 end finset
 
 namespace set
+
+lemma finite_subset_Union {s : set α} (hs : finite s)
+  {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
+begin
+  unfreezeI, cases hs,
+  have : ∀ x : s, ∃ i, x.1 ∈ t i, {simpa [subset_def] using h},
+  cases classical.axiom_of_choice this with f hf,
+  refine ⟨range f, finite_range f, _⟩,
+  rintro x hx, simp, exact ⟨_, ⟨_, hx, rfl⟩, hf ⟨x, hx⟩⟩
+end
 
 lemma infinite_univ_nat : infinite (univ : set ℕ) :=
 assume (h : finite (univ : set ℕ)),

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of filters on sets.
 -/
-import order.galois_connection data.set data.finset order.zorn
+import order.galois_connection data.set.finite order.zorn
 open lattice set
 
 universes u v w x y
@@ -88,14 +88,7 @@ section order
 variables {α : Type u} (r : α → α → Prop)
 local infix `≼` : 50 := r
 
-/-- A family of elements of α is directed (with respect to a relation `≼` on α)
-  if there is a member of the family `≼`-above any pair in the family.  -/
-def directed {ι : Sort v} (f : ι → α) := ∀x y, ∃z, f z ≼ f x ∧ f z ≼ f y
-/-- A subset of α is directed if there is an element of the set `≼`-above any
-  pair of elements in the set. -/
-def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃z ∈ s, z ≼ x ∧ z ≼ y
-
-lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊇) f)
+lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊆) f)
   (h : ∀x, directed_on r (f x)) : directed_on r (⋃x, f x) :=
 by simp [directed_on]; exact
 assume a₁ b₁ fb₁ a₂ b₂ fb₂,
@@ -105,16 +98,14 @@ let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
 
 end order
 
-theorem directed_of_chain {α : Type u} {β : Type v} [preorder β] {f : α → β} {c : set α}
-  (h : zorn.chain (λa b, f b ≤ f a) c) :
-  directed (≤) (λx:{a:α // a ∈ c}, f (x.val)) :=
+theorem directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
+  (h : zorn.chain (f ⁻¹'o r) c) :
+  directed r (λx:{a:α // a ∈ c}, f (x.val)) :=
 assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
-  (assume : a = b, by simp [this]; exact ⟨b, hb, le_refl _⟩)
-  (assume : a ≠ b,
-    have f b ≤ f a ∨ f a ≤ f b, from h a ha b hb this,
-    or.elim this
-      (assume : f b ≤ f a, ⟨⟨b, hb⟩, this, le_refl _⟩)
-      (assume : f a ≤ f b, ⟨⟨a, ha⟩, le_refl _, this⟩))
+  (assume : a = b, by simp [this]; exact ⟨b, hb, refl _⟩)
+  (assume : a ≠ b, (h a ha b hb this).elim
+    (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
+    (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))
 
 structure filter (α : Type*) :=
 (sets                   : set (set α))
@@ -425,7 +416,7 @@ have ∅ ∈ (f ⊓ principal (- s)).sets, from h.symm ▸ mem_bot_sets,
 let ⟨s₁, hs₁, s₂, (hs₂ : -s ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩ := this in
 by filter_upwards [hs₁] assume a ha, classical.by_contradiction $ assume ha', hs ⟨ha, hs₂ ha'⟩
 
-lemma infi_sets_eq {f : ι → filter α} (h : directed (≤) f) (ne : nonempty ι) :
+lemma infi_sets_eq {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) :
   (infi f).sets = (⋃ i, (f i).sets) :=
 let ⟨i⟩ := ne, u := { filter .
     sets             := (⋃ i, (f i).sets),
@@ -442,7 +433,7 @@ subset.antisymm
   (show u ≤ infi f, from le_infi $ assume i, le_supr (λi, (f i).sets) i)
   (Union_subset $ assume i, infi_le f i)
 
-lemma infi_sets_eq' {f : β → filter α} {s : set β} (h : directed_on (λx y, f x ≤ f y) s) (ne : ∃i, i ∈ s) :
+lemma infi_sets_eq' {f : β → filter α} {s : set β} (h : directed_on (f ⁻¹'o (≥)) s) (ne : ∃i, i ∈ s) :
   (⨅ i∈s, f i).sets = (⋃ i ∈ s, (f i).sets) :=
 let ⟨i, hi⟩ := ne in
 calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw [infi_subtype]; refl
@@ -798,7 +789,7 @@ lemma map_infi_le {f : ι → filter α} {m : α → β} :
   map m (infi f) ≤ (⨅ i, map m (f i)) :=
 le_infi $ assume i, map_mono $ infi_le _ _
 
-lemma map_infi_eq {f : ι → filter α} {m : α → β} (hf : directed (≤) f) (hι : nonempty ι) :
+lemma map_infi_eq {f : ι → filter α} {m : α → β} (hf : directed (≥) f) (hι : nonempty ι) :
   map m (infi f) = (⨅ i, map m (f i)) :=
 le_antisymm
   map_infi_le
@@ -811,7 +802,7 @@ le_antisymm
     by simp at this; assumption)
 
 lemma map_binfi_eq {ι : Type w} {f : ι → filter α} {m : α → β} {p : ι → Prop}
-  (h : directed_on (λx y, f x ≤ f y) {x | p x}) (ne : ∃i, p i) :
+  (h : directed_on (f ⁻¹'o (≥)) {x | p x}) (ne : ∃i, p i) :
   map m (⨅i (h : p i), f i) = (⨅i (h: p i), map m (f i)) :=
 let ⟨i, hi⟩ := ne in
 calc map m (⨅i (h : p i), f i) = map m (⨅i:subtype p, f i.val) : by simp [infi_subtype]
@@ -889,7 +880,7 @@ le_trans (bind_mono2 hf) (bind_mono $ univ_mem_sets' $ assume f, map_mono hg)
   s ∈ (return a : filter α).sets ↔ a ∈ s := mem_pure_sets
 
 lemma infi_neq_bot_of_directed {f : ι → filter α}
-  (hn : nonempty α) (hd : directed (≤) f) (hb : ∀i, f i ≠ ⊥): (infi f) ≠ ⊥ :=
+  (hn : nonempty α) (hd : directed (≥) f) (hb : ∀i, f i ≠ ⊥): (infi f) ≠ ⊥ :=
 let ⟨x⟩ := hn in
 assume h, have he: ∅ ∈ (infi f).sets, from h.symm ▸ mem_bot_sets,
 classical.by_cases
@@ -908,7 +899,7 @@ classical.by_cases
     this $ mem_univ x)
 
 lemma infi_neq_bot_iff_of_directed {f : ι → filter α}
-  (hn : nonempty α) (hd : directed (≤) f) : (infi f) ≠ ⊥ ↔ (∀i, f i ≠ ⊥) :=
+  (hn : nonempty α) (hd : directed (≥) f) : (infi f) ≠ ⊥ ↔ (∀i, f i ≠ ⊥) :=
 ⟨assume neq_bot i eq_bot, neq_bot $ bot_unique $ infi_le_of_le i $ eq_bot ▸ le_refl _,
   infi_neq_bot_of_directed hn hd⟩
 
@@ -1320,7 +1311,7 @@ lemma le_lift' {f : filter α} {h : set α → set β} {g : filter β}
 le_infi $ assume s, le_infi $ assume hs, by simp [h_le]; exact h_le s hs
 
 lemma lift_infi' {f : ι → filter α} {g : set α → filter β}
-  (hι : nonempty ι) (hf : directed (≤) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
+  (hι : nonempty ι) (hf : directed (≥) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
   (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
   (assume s,
@@ -1536,7 +1527,7 @@ mem_infi_sets a $ subset.refl _
 
 @[simp] lemma at_top_ne_bot [inhabited α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
 infi_neq_bot_of_directed (by apply_instance)
-  (assume a b, ⟨a ⊔ b, by simp {contextual := tt}⟩)
+  (assume a b, ⟨a ⊔ b, by simp [ge] {contextual := tt}⟩)
   (assume a, by simp [principal_eq_bot_iff]; exact ne_empty_of_mem (le_refl a))
 
 @[simp] lemma mem_at_top_sets [inhabited α] [semilattice_sup α] {s : set α} :
@@ -1551,7 +1542,7 @@ iff.intro
 lemma map_at_top_eq [inhabited α] [semilattice_sup α] {f : α → β} :
   at_top.map f = (⨅a, principal $ f '' {a' | a ≤ a'}) :=
 calc map f (⨅a, principal {a' | a ≤ a'}) = (⨅a, map f $ principal {a' | a ≤ a'}) :
-    map_infi_eq (assume a b, ⟨a ⊔ b, by simp {contextual := tt}⟩) ⟨default α⟩
+    map_infi_eq (assume a b, ⟨a ⊔ b, by simp [ge] {contextual := tt}⟩) ⟨default α⟩
   ... = (⨅a, principal $ f '' {a' | a ≤ a'}) : by simp
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :

@@ -11,6 +11,18 @@ import data.list.basic data.list.perm data.finset
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+theorem directed.finset_le {r : α → α → Prop} [is_trans α r]
+  {ι} (hι : nonempty ι) {f : ι → α} (D : directed r f) (s : finset ι) :
+  ∃ z, ∀ i ∈ s, r (f i) (f z) :=
+show ∃ z, ∀ i ∈ s.1, r (f i) (f z), from
+multiset.induction_on s.1 (by simp [exists_true_iff_nonempty, hι]) $
+begin
+  rintro i s ⟨j, H⟩,
+  rcases D i j with ⟨k, h₁, h₂⟩, existsi k,
+  simp, rintro a (rfl | h),
+  exacts [h₁, trans (H _ h) h₂]
+end
+
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 

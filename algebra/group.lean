@@ -48,6 +48,7 @@ attribute [to_additive add_semigroup] semigroup
 attribute [to_additive add_semigroup.mk] semigroup.mk
 attribute [to_additive add_semigroup.to_has_add] semigroup.to_has_mul
 attribute [to_additive add_semigroup.add_assoc] semigroup.mul_assoc
+attribute [to_additive add_semigroup.add] semigroup.mul
 
 attribute [to_additive add_comm_semigroup] comm_semigroup
 attribute [to_additive add_comm_semigroup.mk] comm_semigroup.mk
@@ -501,7 +502,7 @@ section add_monoid
 
   @[simp] lemma bit0_zero : bit0 (0 : α) = 0 := add_zero _
   @[simp] lemma bit1_zero [has_one α] : bit1 (0 : α) = 1 := by simp [bit1]
-  
+
 end add_monoid
 
 section add_group

@@ -37,12 +37,6 @@ reserve infix `≃ₗ` : 50
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Type x}
 
-@[simp] lemma set.diff_self {s : set α} : s \ s = ∅ :=
-set.ext $ by simp
-
-lemma zero_ne_one_or_forall_eq_0 (α : Type u) [ring α] : (0 : α) ≠ 1 ∨ (∀a:α, a = 0) :=
-not_or_of_imp $ λ h a, by simpa using congr_arg ((*) a) h.symm
-
 namespace finset
 
 lemma smul_sum [ring γ] [module γ β] {s : finset α} {a : γ} {f : α → β} :

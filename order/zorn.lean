@@ -38,6 +38,9 @@ match H.total_of_refl hx hy with
 | or.inr h := ⟨x, hx, refl _, h⟩
 end
 
+theorem chain.directed_on [is_refl α r] {c} (H : chain c) : directed_on (≺) c :=
+λ x xc y yc, let ⟨z, hz, h⟩ := H.directed xc yc in ⟨z, hz, h⟩
+
 theorem chain_insert {c : set α} {a : α} (hc : chain c) (ha : ∀b∈c, b ≠ a → a ≺ b ∨ b ≺ a) :
   chain (insert a c) :=
 forall_insert_of_forall
@@ -218,6 +221,21 @@ theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, @chain α (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
+
+theorem zorn_subset {α : Type u} (S : set (set α))
+  (h : ∀c ⊆ S, chain (⊆) c → (⋃₀ c) ∈ S) :
+  ∃ m ∈ S, ∀a ∈ S, m ⊆ a → a = m :=
+begin
+  letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.eq'),
+  have : ∀c:set S, @chain S (≤) c → ∃ub, ∀a∈c, a ≤ ub,
+  { refine λ c hc, ⟨⟨_, h (subtype.val '' c) (image_subset_iff.2 _) _⟩, _⟩,
+    { rintro ⟨x, hx⟩ _, exact hx },
+    { rintro _ ⟨x, cx, rfl⟩ _ ⟨y, cy, rfl⟩ xy,
+      exact hc x cx y cy (mt (congr_arg _) xy) },
+    { rintro ⟨x, hx⟩ xc, exact subset_sUnion_of_mem (mem_image_of_mem _ xc) } },
+  rcases zorn_partial_order this with ⟨⟨m, mS⟩, hm⟩,
+  exact ⟨m, mS, λ a aS ha, congr_arg subtype.val (hm ⟨a, aS⟩ ha)⟩
+end
 
 theorem chain.total {α : Type u} [preorder α]
   {c} (H : @chain α (≤) c) :

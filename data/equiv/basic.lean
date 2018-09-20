@@ -488,6 +488,13 @@ def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p
 def equiv_sigma_subtype {α : Type u} {β : Type v} (f : α → β) : α ≃ Σ b, {x : α // f x = b} :=
 ⟨λ x, ⟨f x, x, rfl⟩, λ x, x.2.1, λ x, rfl, λ ⟨b, x, H⟩, sigma.eq H $ eq.drec_on H $ subtype.eq rfl⟩
 
+def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :
+  (Πi, π i) ≃ {f : ι → Σi, π i | ∀i, (f i).1 = i } :=
+⟨ λf, ⟨λi, ⟨i, f i⟩, assume i, rfl⟩, λf i, begin rw ← f.2 i, exact (f.1 i).2 end,
+  assume f, funext $ assume i, rfl,
+  assume ⟨f, hf⟩, subtype.eq $ funext $ assume i, sigma.eq (hf i).symm $
+    eq_of_heq $ rec_heq_of_heq _ $ rec_heq_of_heq _ $ heq.refl _⟩
+
 end
 
 section

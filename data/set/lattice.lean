@@ -536,6 +536,14 @@ end
 
 end monad
 
+section pi
+
+lemma pi_def {α : Type*} {π : α → Type*} (i : set α) (s : Πa, set (π a)) :
+  pi i s = (⋂ a∈i, ((λf:(Πa, π a), f a) ⁻¹' (s a))) :=
+by ext; simp [pi]
+
+end pi
+
 end set
 
 /- disjoint sets -/

@@ -37,6 +37,22 @@ instance : decidable_eq empty := λa, a.elim
 @[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
   (a : α) : (a : γ) = (a : β) := rfl
 
+@[simp] theorem coe_fn_coe_trans
+  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
+  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
+
+@[simp] theorem coe_fn_coe_base
+  {α β} [has_coe α β] [has_coe_to_fun β]
+  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
+
+@[simp] theorem coe_sort_coe_trans
+  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
+  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+
+@[simp] theorem coe_sort_coe_base
+  {α β} [has_coe α β] [has_coe_to_sort β]
+  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+
 /-- `pempty` is the universe-polymorphic analogue of `empty`. -/
 @[derive decidable_eq]
 inductive {u} pempty : Sort u

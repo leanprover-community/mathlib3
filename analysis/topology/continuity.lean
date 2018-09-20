@@ -751,6 +751,7 @@ end quotient
 
 section pi
 variables {ι : Type*} {π : ι → Type*}
+open topological_space
 
 lemma continuous_pi [topological_space α] [∀i, topological_space (π i)] {f : α → Πi:ι, π i}
   (h : ∀i, continuous (λa, f a i)) : continuous f :=
@@ -778,6 +779,73 @@ begin
         from mem_sets_of_superset hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
     let ⟨a, ha⟩ := classical.axiom_of_choice this in
     ⟨a, assume i, (ha i).left, assume i, map_le_iff_le_comap.mp $ (ha i).right⟩
+end
+
+lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
+  (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
+by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, continuous_apply a _ $ hs a ha)
+
+lemma pi_eq_generate_from [∀a, topological_space (π a)] :
+  Pi.topological_space =
+  generate_from {g | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, is_open (s a)) ∧ g = pi ↑i s} :=
+le_antisymm
+  (supr_le $ assume a s ⟨t, ht, s_eq⟩, generate_open.basic _ $
+    ⟨function.update (λa, univ) a t, {a}, by simpa using ht, by ext f; simp [s_eq, pi]⟩)
+  (generate_from_le $ assume g ⟨s, i, hi, eq⟩, eq.symm ▸ is_open_set_pi (finset.finite_to_set _) hi)
+
+lemma pi_generate_from_eq {g : Πa, set (set (π a))} :
+  @Pi.topological_space ι π (λa, generate_from (g a)) =
+  generate_from {t | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, s a ∈ g a) ∧ t = pi ↑i s} :=
+let G := {t | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, s a ∈ g a) ∧ t = pi ↑i s} in
+begin
+  rw [pi_eq_generate_from],
+  refine le_antisymm (generate_from_le _) (generate_from_mono _),
+  { rintros s ⟨t, i, hi, rfl⟩,
+    rw [pi_def],
+    apply is_open_bInter (finset.finite_to_set _),
+    assume a ha, show ((generate_from G).coinduced (λf:Πa, π a, f a)).is_open (t a),
+    refine generate_from_le _ _ (hi a ha),
+    exact assume s hs, generate_open.basic _ ⟨function.update (λa, univ) a s, {a}, by simp [hs]⟩ },
+  exact assume s ⟨t, i, ht, eq⟩, ⟨t, i, assume a ha, generate_open.basic _ (ht a ha), eq⟩
+end
+
+lemma pi_generate_from_eq_fintype {g : Πa, set (set (π a))} [fintype ι] (hg : ∀a, ⋃₀ g a = univ) :
+  @Pi.topological_space ι π (λa, generate_from (g a)) =
+  generate_from {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} :=
+let G := {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} in
+begin
+  rw [pi_generate_from_eq],
+  refine le_antisymm (generate_from_le _) (generate_from_mono _),
+  { rintros s ⟨t, i, ht, rfl⟩,
+    apply is_open_iff_forall_mem_open.2 _,
+    assume f hf,
+    have : ∀a, ∃s, s ∈ g a ∧ f a ∈ s,
+    { assume a, have : f a ∈ ⋃₀ g a, { rw [hg], apply mem_univ }, simpa },
+    rcases classical.axiom_of_choice this with ⟨c, hc⟩,
+    refine ⟨pi univ (λa, if a ∈ i then t a else (c : Πa, set (π a)) a), _, _, _⟩,
+    { simp [pi_if] },
+    { refine generate_open.basic _ ⟨_, assume a, _, rfl⟩,
+      by_cases a ∈ i; simp [*, pi] at * },
+    { have : f ∈ pi {a | a ∉ i} c, { simp [*, pi] at * },
+      simpa [pi_if, hf] } },
+  exact assume s ⟨t, ht, eq⟩, ⟨t, finset.univ, by simp [ht, eq]⟩
+end
+
+instance second_countable_topology_fintype
+  [fintype ι] [t : ∀a, topological_space (π a)] [sc : ∀a, second_countable_topology (π a)] :
+  second_countable_topology (∀a, π a) :=
+have ∀i, ∃b : set (set (π i)), countable b ∧ ∅ ∉ b ∧ is_topological_basis b, from
+  assume a, @is_open_generated_countable_inter (π a) _ (sc a),
+let ⟨g, hg⟩ := classical.axiom_of_choice this in
+have t = (λa, generate_from (g a)), from funext $ assume a, (hg a).2.2.2.2,
+begin
+  constructor,
+  refine ⟨pi univ '' pi univ g, countable_image _ _, _⟩,
+  { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ g a}, { simpa [pi] },
+    exact countable_pi (assume i, (hg i).1), },
+  rw [this, pi_generate_from_eq_fintype],
+  { congr' 1, ext f, simp [pi, eq_comm] },
+  exact assume a, (hg a).2.2.2.1
 end
 
 end pi

@@ -805,6 +805,10 @@ def gi_generate_from (α : Type*) :
     (subset.antisymm hg $ generate_from_le_iff_subset_is_open.1 $ le_refl _),
   choice_eq := assume s hs, mk_of_closure_sets }
 
+lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
+  topological_space.generate_from g₁ ≤ topological_space.generate_from g₂ :=
+(gi_generate_from _).gc.monotone_l h
+
 instance {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 

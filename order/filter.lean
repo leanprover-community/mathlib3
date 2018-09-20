@@ -607,19 +607,46 @@ def cofinite : filter α :=
   inter_sets       := assume s t (hs : finite (-s)) (ht : finite (-t)),
     by simp [compl_inter, finite_union, ht, hs] }
 
-/-- The monadic bind operation on filter is defined the usual way in terms of `map` and `join`. -/
+/-- The monadic bind operation on filter is defined the usual way in terms of `map` and `join`.
+
+Unfortunately, this `bind` does not result in the expected applicative. See `filter.seq` for the
+applicative instance. -/
 def bind (f : filter α) (m : α → filter β) : filter β := join (map m f)
 
-instance : monad filter :=
-{ bind       := @bind,
-  pure       := λ(α : Type u) x, principal {x},
-  map        := @filter.map }
+/-- The applicative sequentiation operation. This is not induced by the bind operation. -/
+def seq (f : filter (α → β)) (g : filter α) : filter β :=
+⟨{ s | ∃u∈f.sets, ∃t∈g.sets, (∀m∈u, ∀x∈t, (m : α → β) x ∈ s) },
+  ⟨univ, univ_mem_sets, univ, univ_mem_sets, by simp⟩,
+  assume s₀ s₁ ⟨t₀, t₁, h₀, h₁, h⟩ hst, ⟨t₀, t₁, h₀, h₁, assume x hx y hy, hst $ h _ hx _ hy⟩,
+  assume s₀ s₁ ⟨t₀, ht₀, t₁, ht₁, ht⟩ ⟨u₀, hu₀, u₁, hu₁, hu⟩,
+    ⟨t₀ ∩ u₀, inter_mem_sets ht₀ hu₀, t₁ ∩ u₁, inter_mem_sets ht₁ hu₁,
+      assume x ⟨hx₀, hx₁⟩ x ⟨hy₀, hy₁⟩, ⟨ht _ hx₀ _ hy₀, hu _ hx₁ _ hy₁⟩⟩⟩
 
-instance : is_lawful_monad filter :=
+instance : has_pure filter := ⟨λ(α : Type u) x, principal {x}⟩
+
+instance : has_bind filter := ⟨@filter.bind⟩
+
+instance : has_seq filter := ⟨@filter.seq⟩
+
+instance : functor filter := { map := @filter.map }
+
+section
+-- this section needs to be before applicative, otherwiese the wrong instance will be chosen
+protected def monad : monad filter := { map := @filter.map }
+
+local attribute [instance] filter.monad
+protected def is_lawful_monad : is_lawful_monad filter :=
 { id_map     := assume α f, filter_eq rfl,
   pure_bind  := assume α β a f, by simp [bind, Sup_image],
   bind_assoc := assume α β γ f m₁ m₂, filter_eq rfl,
   bind_pure_comp_eq_map := assume α β f x, filter_eq $ by simp [bind, join, map, preimage, principal] }
+end
+
+instance : applicative filter := { map := @filter.map, seq := @filter.seq }
+
+instance : alternative filter :=
+{ failure := λα, ⊥,
+  orelse  := λα x y, x ⊔ y }
 
 @[simp] lemma pure_def (x : α) : pure x = principal {x} := rfl
 
@@ -629,10 +656,6 @@ by simp; exact id
 @[simp] lemma map_def {α β} (m : α → β) (f : filter α) : m <$> f = map m f := rfl
 
 @[simp] lemma bind_def {α β} (f : filter α) (m : α → filter β) : f >>= m = bind f m := rfl
-
-instance : alternative filter :=
-{ failure := λα, ⊥,
-  orelse  := λα x y, x ⊔ y }
 
 /- map and comap equations -/
 section map
@@ -871,13 +894,10 @@ show join (map f (principal s)) = (⨆x ∈ s, f x),
 
 lemma seq_mono {β : Type u} {f₁ f₂ : filter (α → β)} {g₁ g₂ : filter α}
   (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) : f₁ <*> g₁ ≤ f₂ <*> g₂ :=
-le_trans (bind_mono2 hf) (bind_mono $ univ_mem_sets' $ assume f, map_mono hg)
+assume s ⟨t, ht, u, hu, h⟩, ⟨t, hf ht, u, hg hu, h⟩
 
 @[simp] lemma mem_pure_sets {a : α} {s : set α} :
   s ∈ (pure a : filter α).sets ↔ a ∈ s := by simp
-
-@[simp] lemma mem_return_sets {a : α} {s : set α} :
-  s ∈ (return a : filter α).sets ↔ a ∈ s := mem_pure_sets
 
 lemma infi_neq_bot_of_directed {f : ι → filter α}
   (hn : nonempty α) (hd : directed (≥) f) (hb : ∀i, f i ≠ ⊥): (infi f) ≠ ⊥ :=

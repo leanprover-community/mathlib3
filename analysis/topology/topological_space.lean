@@ -351,7 +351,7 @@ assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr
 
 @[simp] lemma nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
 assume : nhds a = ⊥,
-have return a = (⊥ : filter α),
+have pure a = (⊥ : filter α),
   from lattice.bot_unique $ this ▸ pure_le_nhds a,
 pure_neq_bot this
 

@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter data.set.countable tactic
+import order.filter data.set data.set.countable tactic
 
 open set filter lattice classical
 local attribute [instance] prop_decidable
@@ -1095,7 +1095,7 @@ begin
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in
-      ⟨u, ⟨hu₂, hu₁⟩, by simpa using hu₃⟩ },
+      ⟨u, ⟨hu₂, hu₁⟩, by simpa [(≥)] using hu₃⟩ },
   { suffices : a ∈ (⋃₀ b), { simpa [and_comm] },
     { rw [hb.2.1], trivial } }
 end
@@ -1175,7 +1175,7 @@ let ⟨f, hf⟩ := this in
       have a ∈ s₁ ∩ s₂, from ⟨has₁, has₂⟩,
       let ⟨s₃, hs₃, has₃, hs⟩ := hb₃ _ hs₁ _ hs₂ _ this in
       ⟨⟨s₃, has₃, hs₃⟩, begin
-        simp only [le_principal_iff, mem_principal_sets],
+        simp only [le_principal_iff, mem_principal_sets, (≥)],
         simp at hs, split; apply inter_subset_inter_left; simp [hs]
       end⟩)
     (assume ⟨s, has, hs⟩,

@@ -273,8 +273,8 @@ instance : normed_space α (E × F) :=
     exact calc
       ∥s • (x₁, x₂)∥ = ∥ (s • x₁, s• x₂)∥ : rfl
       ... = max (∥s • x₁∥) (∥ s• x₂∥) : rfl
-      ... = max (∥s∥ * ∥x₁∥) (∥s∥ * ∥x₂∥) : by simp[norm_smul s x₁, norm_smul s x₂]
-      ... = ∥s∥ * max (∥x₁∥) (∥x₂∥) : by simp[mul_max_of_nonneg]
+      ... = max (∥s∥ * ∥x₁∥) (∥s∥ * ∥x₂∥) : by simp [norm_smul s x₁, norm_smul s x₂]
+      ... = ∥s∥ * max (∥x₁∥) (∥x₂∥) : by simp [mul_max_of_nonneg]
   end,
 
   add_smul := by simp[add_smul],
@@ -284,8 +284,7 @@ instance : normed_space α (E × F) :=
   ..prod.normed_group,
   ..prod.vector_space }
 
-instance fintype.normed_space
-  {ι : Type*} {E : ι → Type*} [fintype ι] [∀i, normed_space α (E i)] :
+instance fintype.normed_space {ι : Type*} {E : ι → Type*} [fintype ι] [∀i, normed_space α (E i)] :
   normed_space α (Πi, E i) :=
 { norm := λf, ((finset.univ.sup (λb, nnnorm (f b)) : nnreal) : ℝ),
   dist_eq :=
@@ -295,6 +294,7 @@ instance fintype.normed_space
     show (↑(finset.sup finset.univ (λ (b : ι), nnnorm (a • f b))) : ℝ) =
       nnnorm a * ↑(finset.sup finset.univ (λ (b : ι), nnnorm (f b))),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul],
-  ..metric_space_pi }
+  ..metric_space_pi,
+  ..pi.vector_space α }
 
 end normed_space

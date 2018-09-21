@@ -72,6 +72,11 @@ instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_p
 
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
 
+@[simp] lemma sep_set_of {α} {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} :=
+rfl
+
+@[simp] lemma set_of_mem {α} {s : set α} : {a | a ∈ s} = s := rfl
+
 /- subset -/
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
@@ -503,6 +508,9 @@ assume x, and.left
 theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (h : {x ∈ s | p x} = ∅) :
   ∀ x ∈ s, ¬ p x :=
 by finish [ext_iff]
+
+@[simp] lemma sep_univ {α} {p : α → Prop} : {a ∈ (univ : set α) | p a} = {a | p a} :=
+set.ext $ by simp
 
 /- complement -/
 
@@ -1085,4 +1093,32 @@ lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
 by simp [subset_def]
 
 end prod
+
+section pi
+variables {α : Type*} {π : α → Type*}
+
+def pi (i : set α) (s : Πa, set (π a)) : set (Πa, π a) := { f | ∀a∈i, f a ∈ s a }
+
+@[simp] lemma pi_empty_index (s : Πa, set (π a)) : pi ∅ s = univ := by ext; simp [pi]
+
+@[simp] lemma pi_insert_index (a : α) (i : set α) (s : Πa, set (π a)) :
+  pi (insert a i) s = ((λf, f a) ⁻¹' s a) ∩ pi i s :=
+by ext; simp [pi, or_imp_distrib, forall_and_distrib]
+
+@[simp] lemma pi_singleton_index (a : α) (s : Πa, set (π a)) :
+  pi {a} s = ((λf:(Πa, π a), f a) ⁻¹' s a) :=
+by ext; simp [pi]
+
+lemma pi_if {p : α → Prop} [h : decidable_pred p] (i : set α) (s t : Πa, set (π a)) :
+  pi i (λa, if p a then s a else t a) = pi {a ∈ i | p a} s ∩ pi {a ∈ i | ¬ p a} t :=
+begin
+  ext f,
+  split,
+  { assume h, split; { rintros a ⟨hai, hpa⟩, simpa [*] using h a } },
+  { rintros ⟨hs, ht⟩ a hai,
+    by_cases p a; simp [*, pi] at * }
+end
+
+end pi
+
 end set

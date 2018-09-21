@@ -345,6 +345,10 @@ lemma heq_of_eq_mp :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
 
+lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (eq : a = b) (h : x == y) :
+  @eq.rec α a C x b eq == y :=
+by subst eq; exact h
+
 end equality
 
 /-

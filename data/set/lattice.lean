@@ -500,6 +500,62 @@ set.ext $ by simp [preimage]
 
 end preimage
 
+
+section seq
+
+def seq (s : set (α → β)) (t : set α) : set β := {b | ∃f∈s, ∃a∈t, (f : α → β) a = b}
+
+lemma seq_def {s : set (α → β)} {t : set α} : seq s t = ⋃f∈s, f '' t :=
+set.ext $ by simp [seq]
+
+lemma mem_seq_iff {s : set (α → β)} {t : set α} {b : β} :
+  b ∈ seq s t ↔ (∃f ∈ s, ∃a∈t, (f : α → β) a = b) :=
+iff.refl _
+
+lemma seq_subset {s : set (α → β)} {t : set α} {u : set β} :
+  seq s t ⊆ u ↔ (∀f∈s, ∀a∈t, (f : α → β) a ∈ u) :=
+iff.intro
+  (assume h f hf a ha, h ⟨f, hf, a, ha, rfl⟩)
+  (assume h b ⟨f, hf, a, ha, eq⟩, eq ▸ h f hf a ha)
+
+lemma seq_mono {s₀ s₁ : set (α → β)} {t₀ t₁ : set α} (hs : s₀ ⊆ s₁) (ht : t₀ ⊆ t₁) :
+  seq s₀ t₀ ⊆ seq s₁ t₁ :=
+assume b ⟨f, hf, a, ha, eq⟩, ⟨f, hs hf, a, ht ha, eq⟩
+
+lemma singleton_seq {f : α → β} {t : set α} : set.seq {f} t = f '' t :=
+set.ext $ by simp [seq]
+
+lemma seq_singleton {s : set (α → β)} {a : α} : set.seq s {a} = (λf:α→β, f a) '' s :=
+set.ext $ by simp [seq]
+
+lemma seq_seq {s : set (β → γ)} {t : set (α → β)} {u : set α} :
+  seq s (seq t u) = seq (seq ((∘) '' s) t) u :=
+begin
+  refine (set.ext $ assume c, iff.intro _ _),
+  { rintros ⟨f, hfs, b, ⟨g, hg, a, hau, rfl⟩, rfl⟩,
+    exact ⟨f ∘ g, ⟨(∘) f, mem_image_of_mem _ hfs, g, hg, rfl⟩, a, hau, rfl⟩ },
+  { rintros ⟨fg, ⟨fc, ⟨f, hfs, rfl⟩, g, hgt, rfl⟩, a, ha, rfl⟩,
+    exact ⟨f, hfs, g a, ⟨g, hgt, a, ha, rfl⟩ , rfl⟩ }
+end
+
+lemma image_seq {f : β → γ} {s : set (α → β)} {t : set α} :
+  f '' seq s t = seq ((∘) f '' s) t :=
+by rw [← singleton_seq, ← singleton_seq, seq_seq, image_singleton]
+
+lemma prod_eq_seq {s : set α} {t : set β} : set.prod s t = (prod.mk '' s).seq t :=
+begin
+  ext ⟨a, b⟩,
+  split,
+  { rintros ⟨ha, hb⟩, exact ⟨prod.mk a, ⟨a, ha, rfl⟩, b, hb, rfl⟩ },
+  { rintros ⟨f, ⟨x, hx, rfl⟩, y, hy, eq⟩, rw ← eq, exact ⟨hx, hy⟩ }
+end
+
+lemma prod_image_seq_comm (s : set α) (t : set β) :
+  (prod.mk '' s).seq t = seq ((λb a, (a, b)) '' t) s :=
+by rw [← prod_eq_seq, ← image_swap_prod, prod_eq_seq, image_seq, ← image_comp]
+
+end seq
+
 theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
   (hf : monotone f) (hg : monotone g) : monotone (λx, set.prod (f x) (g x)) :=
 assume a b h, prod_mono (hf h) (hg h)
@@ -507,16 +563,21 @@ assume a b h, prod_mono (hf h) (hg h)
 instance : monad set :=
 { pure       := λ(α : Type u) a, {a},
   bind       := λ(α β : Type u) s f, ⋃i∈s, f i,
+  seq        := λ(α β : Type u), set.seq,
   map        := λ(α β : Type u), set.image }
 
 instance : is_lawful_monad set :=
-{ pure_bind  := assume α β x f, by simp,
-  bind_assoc := assume α β γ s f g, set.ext $ assume a,
+{ pure_bind             := assume α β x f, by simp,
+  bind_assoc            := assume α β γ s f g, set.ext $ assume a,
     by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
              exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
        exact exists_swap,
-  id_map     := assume α, id_map,
-  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm] }
+  id_map                := assume α, id_map,
+  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm],
+  bind_map_eq_seq       := assume α β s t, by simp [seq_def] }
+
+instance : is_comm_applicative (set : Type u → Type u) :=
+⟨ assume α β s t, prod_image_seq_comm s t ⟩
 
 section monad
 variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' → β')}
@@ -525,16 +586,19 @@ variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' �
 
 lemma fmap_eq_image : f <$> s = f '' s := rfl
 
-lemma mem_seq_iff {b : β'} : b ∈ (g <*> s) ↔ (∃(f' : α' → β'), ∃a∈s, f' ∈ g ∧ b = f' a) :=
-begin
-  simp [seq_eq_bind_map],
-  apply exists_congr,
-  intro f',
-  exact ⟨assume ⟨hf', a, ha, h_eq⟩, ⟨a, ha, hf', h_eq.symm⟩,
-    assume ⟨a, ha, hf', h_eq⟩, ⟨hf', a, ha, h_eq.symm⟩⟩
-end
+lemma seq_eq_set_seq {α β : Type*} (s : set (α → β)) (t : set α) : s <*> t = s.seq t := rfl
+
+@[simp] lemma pure_def (a : α): (pure a : set α) = {a} := rfl
 
 end monad
+
+section pi
+
+lemma pi_def {α : Type*} {π : α → Type*} (i : set α) (s : Πa, set (π a)) :
+  pi i s = (⋂ a∈i, ((λf:(Πa, π a), f a) ⁻¹' (s a))) :=
+by ext; simp [pi]
+
+end pi
 
 end set
 

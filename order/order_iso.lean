@@ -191,7 +191,7 @@ def to_order_embedding (f : r ≃o s) : r ≼o s :=
 
 instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
 
-@[simp] theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
+theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
 
 theorem ord' : ∀ (f : r ≃o s) {a b}, r a b ↔ s (f a) (f b)
 | ⟨f, o⟩ := @o

@@ -36,7 +36,7 @@ protected theorem ext_iff {s t : submodule α β}  : (s : set β) = t ↔ s = t 
 iff.intro ext (assume h, h ▸ rfl)
 
 instance : partial_order (submodule α β) :=
-partial_order.lift (coe : submodule α β → set β) $ λ a b h₁ h₂, ext (subset.antisymm h₁ h₂)
+partial_order.lift (coe : submodule α β → set β) $ λ a b, ext
 
 def span (s : set β) : submodule α β := ⟨span s, is_submodule_span⟩
 

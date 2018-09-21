@@ -12,48 +12,48 @@ universes u v
 namespace list
 variables {α : Type u} {β : α → Type v}
 
-/- knodup -/
+/- nodupkeys -/
 
-def knodup (l : list (sigma β)) : Prop :=
+def nodupkeys (l : list (sigma β)) : Prop :=
 (l.map sigma.fst).nodup
 
-theorem knodup_iff_pairwise {l} : knodup l ↔
+theorem nodupkeys_iff_pairwise {l} : nodupkeys l ↔
   pairwise (λ s s' : sigma β, s.1 ≠ s'.1) l := pairwise_map _
 
-@[simp] theorem knodup_nil : @knodup α β [] := pairwise.nil _
+@[simp] theorem nodupkeys_nil : @nodupkeys α β [] := pairwise.nil _
 
-@[simp] theorem knodup_cons {a : α} {b : β a} {l : list (sigma β)} :
-  knodup (⟨a, b⟩::l) ↔ (∀ b' : β a, sigma.mk a b' ∉ l) ∧ knodup l :=
-by simp [knodup]
+@[simp] theorem nodupkeys_cons {a : α} {b : β a} {l : list (sigma β)} :
+  nodupkeys (⟨a, b⟩::l) ↔ (∀ b' : β a, sigma.mk a b' ∉ l) ∧ nodupkeys l :=
+by simp [nodupkeys]
 
-theorem knodup.eq_of_fst_eq {l : list (sigma β)}
-  (nd : knodup l) {s s' : sigma β} (h : s ∈ l) (h' : s' ∈ l) :
+theorem nodupkeys.eq_of_fst_eq {l : list (sigma β)}
+  (nd : nodupkeys l) {s s' : sigma β} (h : s ∈ l) (h' : s' ∈ l) :
   s.1 = s'.1 → s = s' :=
 @forall_of_forall_of_pairwise _
   (λ s s' : sigma β, s.1 = s'.1 → s = s')
   (λ s s' H h, (H h.symm).symm) _ (λ x h _, rfl)
-  ((knodup_iff_pairwise.1 nd).imp (λ s s' h h', (h h').elim)) _ h _ h'
+  ((nodupkeys_iff_pairwise.1 nd).imp (λ s s' h h', (h h').elim)) _ h _ h'
 
-theorem knodup.eq_of_mk_mem {a : α} {b b' : β a} {l : list (sigma β)}
-  (nd : knodup l) (h : sigma.mk a b ∈ l) (h' : sigma.mk a b' ∈ l) : b = b' :=
+theorem nodupkeys.eq_of_mk_mem {a : α} {b b' : β a} {l : list (sigma β)}
+  (nd : nodupkeys l) (h : sigma.mk a b ∈ l) (h' : sigma.mk a b' ∈ l) : b = b' :=
 by cases nd.eq_of_fst_eq h h' rfl; refl
 
-theorem knodup_singleton (s : sigma β) : knodup [s] := nodup_singleton _
+theorem nodupkeys_singleton (s : sigma β) : nodupkeys [s] := nodup_singleton _
 
-theorem knodup_of_sublist {l₁ l₂ : list (sigma β)} (h : l₁ <+ l₂) : knodup l₂ → knodup l₁ :=
+theorem nodupkeys_of_sublist {l₁ l₂ : list (sigma β)} (h : l₁ <+ l₂) : nodupkeys l₂ → nodupkeys l₁ :=
 nodup_of_sublist (map_sublist_map _ h)
 
-theorem nodup_of_knodup {l : list (sigma β)} : knodup l → nodup l :=
+theorem nodup_of_nodupkeys {l : list (sigma β)} : nodupkeys l → nodup l :=
 nodup_of_nodup_map _
 
-theorem perm_knodup {l₁ l₂ : list (sigma β)} (h : l₁ ~ l₂) : knodup l₁ ↔ knodup l₂ :=
+theorem perm_nodupkeys {l₁ l₂ : list (sigma β)} (h : l₁ ~ l₂) : nodupkeys l₁ ↔ nodupkeys l₂ :=
 perm_nodup $ perm_map _ h
 
-theorem knodup_join {L : list (list (sigma β))} :
-  knodup (join L) ↔ (∀ l ∈ L, knodup l) ∧ pairwise disjoint (L.map (map sigma.fst)) :=
+theorem nodupkeys_join {L : list (list (sigma β))} :
+  nodupkeys (join L) ↔ (∀ l ∈ L, nodupkeys l) ∧ pairwise disjoint (L.map (map sigma.fst)) :=
 begin
-  rw [knodup_iff_pairwise, pairwise_join, pairwise_map],
-  refine and_congr (ball_congr $ λ l h, by simp [knodup_iff_pairwise]) _,
+  rw [nodupkeys_iff_pairwise, pairwise_join, pairwise_map],
+  refine and_congr (ball_congr $ λ l h, by simp [nodupkeys_iff_pairwise]) _,
   apply iff_of_eq, congr', ext l₁ l₂,
   rw [disjoint_iff_ne], simp
 end
@@ -114,7 +114,7 @@ theorem map_lookup_eq_find (a : α) : ∀ l : list (sigma β),
   { simp [h, map_lookup_eq_find] }
 end
 
-theorem mem_lookup_iff {a : α} {b : β a} {l : list (sigma β)} (nd : l.knodup) :
+theorem mem_lookup_iff {a : α} {b : β a} {l : list (sigma β)} (nd : l.nodupkeys) :
   b ∈ lookup a l ↔ sigma.mk a b ∈ l :=
 ⟨of_mem_lookup, λ h, begin
   cases option.is_some_iff_exists.1 (lookup_is_some.2 ⟨_, h⟩) with b' h',
@@ -122,7 +122,7 @@ theorem mem_lookup_iff {a : α} {b : β a} {l : list (sigma β)} (nd : l.knodup)
 end⟩
 
 theorem perm_lookup (a : α) {l₁ l₂ : list (sigma β)}
-  (nd₁ : l₁.knodup) (nd₂ : l₂.knodup) (p : l₁ ~ l₂) : lookup a l₁ = lookup a l₂ :=
+  (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) (p : l₁ ~ l₂) : lookup a l₁ = lookup a l₂ :=
 by ext b; simp [mem_lookup_iff, nd₁, nd₂]; exact mem_of_perm p
 
 /- lookup_all -/
@@ -171,12 +171,12 @@ theorem lookup_all_sublist (a : α) :
     { simp [h], exact (lookup_all_sublist l).cons _ _ _ }
   end
 
-theorem lookup_all_length_le_one (a : α) {l : list (sigma β)} (h : l.knodup) :
+theorem lookup_all_length_le_one (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
   length (lookup_all a l) ≤ 1 :=
 by have := nodup_of_sublist (map_sublist_map _ $ lookup_all_sublist a l) h;
    rw map_map at this; rwa [← nodup_repeat, ← map_const _ a]
 
-theorem lookup_all_eq_lookup (a : α) {l : list (sigma β)} (h : l.knodup) :
+theorem lookup_all_eq_lookup (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
   lookup_all a l = (lookup a l).to_list :=
 begin
   rw ← head_lookup_all,
@@ -185,12 +185,12 @@ begin
   exact absurd this dec_trivial
 end
 
-theorem lookup_all_nodup (a : α) {l : list (sigma β)} (h : l.knodup) :
+theorem lookup_all_nodup (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
   (lookup_all a l).nodup :=
 by rw lookup_all_eq_lookup a h; apply option.to_list_nodup
 
 theorem perm_lookup_all (a : α) {l₁ l₂ : list (sigma β)}
-  (nd₁ : l₁.knodup) (nd₂ : l₂.knodup) (p : l₁ ~ l₂) : lookup_all a l₁ = lookup_all a l₂ :=
+  (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) (p : l₁ ~ l₂) : lookup_all a l₁ = lookup_all a l₂ :=
 by simp [lookup_all_eq_lookup, nd₁, nd₂, perm_lookup a nd₁ nd₂ p]
 
 /- kreplace -/
@@ -206,7 +206,7 @@ lookmap_of_forall_not _ $ begin
 end
 
 theorem kreplace_self {a : α} {b : β a} {l : list (sigma β)}
-  (nd : knodup l) (h : sigma.mk a b ∈ l) : kreplace a b l = l :=
+  (nd : nodupkeys l) (h : sigma.mk a b ∈ l) : kreplace a b l = l :=
 begin
   refine (lookmap_congr _).trans
     (lookmap_id' (option.guard (λ s, a = s.1)) _ _),
@@ -222,15 +222,15 @@ theorem kreplace_map_fst (a : α) (b : β a) : ∀ l : list (sigma β),
 lookmap_map_eq _ _ $ by rintro ⟨a₁, b₂⟩ ⟨a₂, b₂⟩;
   dsimp; split_ifs; simp [h] {contextual := tt}
 
-theorem kreplace_knodup (a : α) (b : β a) {l : list (sigma β)} :
-  (kreplace a b l).knodup ↔ l.knodup :=
-by simp [knodup, kreplace_map_fst]
+theorem kreplace_nodupkeys (a : α) (b : β a) {l : list (sigma β)} :
+  (kreplace a b l).nodupkeys ↔ l.nodupkeys :=
+by simp [nodupkeys, kreplace_map_fst]
 
 theorem perm_kreplace {a : α} {b : β a} {l₁ l₂ : list (sigma β)}
-  (nd : l₁.knodup) : l₁ ~ l₂ →
+  (nd : l₁.nodupkeys) : l₁ ~ l₂ →
   kreplace a b l₁ ~ kreplace a b l₂ :=
 perm_lookmap _ $ begin
-  refine (knodup_iff_pairwise.1 nd).imp _,
+  refine (nodupkeys_iff_pairwise.1 nd).imp _,
   intros x y h z h₁ w h₂,
   split_ifs at h₁ h₂; cases h₁; cases h₂,
   exact (h (h_2.symm.trans h_1)).elim
@@ -244,12 +244,12 @@ erasep $ λ s, a = s.1
 theorem kerase_sublist (a : α) (l : list (sigma β)) : kerase a l <+ l :=
 erasep_sublist _
 
-theorem kerase_knodup (a : α) {l : list (sigma β)} : knodup l → (kerase a l).knodup :=
-knodup_of_sublist $ kerase_sublist _ _
+theorem kerase_nodupkeys (a : α) {l : list (sigma β)} : nodupkeys l → (kerase a l).nodupkeys :=
+nodupkeys_of_sublist $ kerase_sublist _ _
 
 theorem perm_kerase {a : α} {l₁ l₂ : list (sigma β)}
-  (nd : l₁.knodup) : l₁ ~ l₂ → kerase a l₁ ~ kerase a l₂ :=
-perm_erasep _ $ (knodup_iff_pairwise.1 nd).imp $
+  (nd : l₁.nodupkeys) : l₁ ~ l₂ → kerase a l₁ ~ kerase a l₂ :=
+perm_erasep _ $ (nodupkeys_iff_pairwise.1 nd).imp $
 by rintro x y h rfl; exact h
 
 def kextract (a : α) : list (sigma β) → option (β a) × list (sigma β)

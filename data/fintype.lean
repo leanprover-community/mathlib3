@@ -30,6 +30,9 @@ fintype.complete x
 
 @[simp] theorem mem_univ_val : ∀ x, x ∈ (univ : finset α).1 := mem_univ
 
+@[simp] lemma coe_univ : ↑(finset.univ : finset α) = (set.univ : set α) :=
+by ext; simp
+
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=

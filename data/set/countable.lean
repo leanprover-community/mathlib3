@@ -51,7 +51,7 @@ lemma countable_iff_exists_surjective [ne : inhabited α] {s : set α} :
     have := inv_fun_eq (hf hx), dsimp at this ⊢,
     simp [this, hx]
   end⟩⟩⟩
-  
+
 def countable.to_encodable {s : set α} : countable s → encodable s :=
 classical.choice
 
@@ -123,5 +123,15 @@ begin
     cases congr_arg subtype.val e, exact bt },
   { exact λ h, ⟨ts h, _, h, rfl⟩ }
 end
+
+lemma countable_pi {π : α → Type*} [fintype α] {s : Πa, set (π a)} (hs : ∀a, countable (s a)) :
+  countable {f : Πa, π a | ∀a, f a ∈ s a} :=
+countable_subset
+  (show {f : Πa, π a | ∀a, f a ∈ s a} ⊆ range (λf : Πa, s a, λa, (f a).1), from
+    assume f hf, ⟨λa, ⟨f a, hf a⟩, funext $ assume a, rfl⟩) $
+have trunc (encodable (Π (a : α), s a)), from
+  @encodable.fintype_pi α _ _ _ (assume a, (hs a).to_encodable),
+trunc.induction_on this $ assume h,
+@countable_range _ _ h _
 
 end set

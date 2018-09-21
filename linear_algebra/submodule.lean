@@ -36,7 +36,7 @@ protected theorem ext_iff {s t : submodule α β}  : (s : set β) = t ↔ s = t 
 iff.intro ext (assume h, h ▸ rfl)
 
 instance : partial_order (submodule α β) :=
-partial_order.lift (coe : submodule α β → set β) $ λ a b h₁ h₂, ext (subset.antisymm h₁ h₂)
+partial_order.lift (coe : submodule α β → set β) $ λ a b, ext
 
 def span (s : set β) : submodule α β := ⟨span s, is_submodule_span⟩
 
@@ -164,7 +164,10 @@ order_embedding.trans (order_iso.to_order_embedding $ map_subtype.order_iso α �
 
 def submodule_lt_equiv (X Y : submodule α s) :
   X < Y ↔ ((map_subtype.le_order_embedding α β s) X) < ((map_subtype.le_order_embedding α β s) Y) :=
-by simp [lt_iff_le_not_le, (map_subtype.order_iso α β s).ord]; refl -- why do I need refl after simp??
+begin
+  rw [lt_iff_le_not_le, lt_iff_le_not_le, (map_subtype.order_iso α β s).ord, (map_subtype.order_iso α β s).ord],
+  refl
+end
 
 def lt_order_embedding :
   ((<) : submodule α s → submodule α s → Prop) ≼o ((<) : submodule α β → submodule α β → Prop) :=

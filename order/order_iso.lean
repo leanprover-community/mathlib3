@@ -16,17 +16,9 @@ structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → �
 
 infix ` ≼o `:50 := order_embedding
 
-/-- Given an order `R` on `β` and a function `f : α → β`,
-  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
-  It is the unique order on `α` making `f` an order embedding
-  (assuming `f` is injective). -/
-def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
-
-infix ` ⁻¹'o `:80 := order.preimage
-
 /-- the induced order on a subtype is an embedding under the natural inclusion. -/
-definition subtype.order_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) : 
-((subtype.val : subtype p → X) ⁻¹'o r) ≼o r := 
+definition subtype.order_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
+((subtype.val : subtype p → X) ⁻¹'o r) ≼o r :=
 ⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
 
 namespace order_embedding
@@ -199,7 +191,7 @@ def to_order_embedding (f : r ≃o s) : r ≼o s :=
 
 instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
 
-@[simp] theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
+theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
 
 theorem ord' : ∀ (f : r ≃o s) {a b}, r a b ↔ s (f a) (f b)
 | ⟨f, o⟩ := @o

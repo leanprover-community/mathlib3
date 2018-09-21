@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter data.set.countable tactic
+import order.filter data.set data.set.countable tactic
 
 open set filter lattice classical
 local attribute [instance] prop_decidable
@@ -319,7 +319,7 @@ tendsto_nhds $ assume s ha hs, univ_mem_sets' $ assume _, ha
 lemma nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
 calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : infi_sets_eq'
   (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
-    ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩, by simp⟩)
+    ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩, by simp [ge]⟩)
   ⟨univ, by simp⟩
   ... = {s | ∃t⊆s, is_open t ∧ a ∈ t} :
     le_antisymm
@@ -331,7 +331,7 @@ lemma map_nhds {a : α} {f : α → β} :
 calc map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, map f (principal s)) :
     map_binfi_eq
     (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
-      ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩, by simp⟩)
+      ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩, by simp [ge]⟩)
     ⟨univ, by simp⟩
   ... = _ : by simp
 
@@ -351,7 +351,7 @@ assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr
 
 @[simp] lemma nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
 assume : nhds a = ⊥,
-have return a = (⊥ : filter α),
+have pure a = (⊥ : filter α),
   from lattice.bot_unique $ this ▸ pure_le_nhds a,
 pure_neq_bot this
 
@@ -766,6 +766,24 @@ lemma tendsto_nhds_generate_from {β : Type*} {m : α → β} {f : filter α} {g
 by rw [nhds_generate_from]; exact
   (tendsto_infi.2 $ assume s, tendsto_infi.2 $ assume ⟨hbs, hsg⟩, tendsto_principal.2 $ h s hsg hbs)
 
+protected def mk_of_nhds (n : α → filter α) : topological_space α :=
+{ is_open        := λs, ∀a∈s, s ∈ (n a).sets,
+  is_open_univ   := assume x h, univ_mem_sets,
+  is_open_inter  := assume s t hs ht x ⟨hxs, hxt⟩, inter_mem_sets (hs x hxs) (ht x hxt),
+  is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩, mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
+
+lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
+  (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ (n a).sets → ∃t∈(n a).sets, t ⊆ s ∧ ∀a'∈t, t ∈ (n a').sets) :
+  @nhds α (topological_space.mk_of_nhds n) a = n a :=
+by letI := topological_space.mk_of_nhds n; from
+(le_antisymm
+  (assume s hs, let ⟨t, ht, hst, h⟩ := h₁ hs in
+    have t ∈ (nhds a).sets, from mem_nhds_sets h (mem_pure_sets.1 $ h₀ a ht),
+    (nhds a).sets_of_superset this hst)
+  (assume s hs,
+    let ⟨t, hts, ht, hat⟩ := (@mem_nhds_sets_iff α (topological_space.mk_of_nhds n) _ _).1 hs in
+    (n a).sets_of_superset (ht _ hat) hts))
+
 end topological_space
 
 section lattice
@@ -804,6 +822,10 @@ def gi_generate_from (α : Type*) :
   choice    := λg hg, mk_of_closure g
     (subset.antisymm hg $ generate_from_le_iff_subset_is_open.1 $ le_refl _),
   choice_eq := assume s hs, mk_of_closure_sets }
+
+lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
+  topological_space.generate_from g₁ ≤ topological_space.generate_from g₂ :=
+(gi_generate_from _).gc.monotone_l h
 
 instance {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
@@ -962,7 +984,43 @@ instance {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topologic
 instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (Πa, β a) :=
 ⨆a, induced (λf, f a) (t₂ a)
 
-lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) : closure (quotient.mk '' s) = univ :=
+instance [topological_space α] : topological_space (list α) :=
+topological_space.mk_of_nhds (traverse nhds)
+
+lemma nhds_list [topological_space α] (as : list α) : nhds as = traverse nhds as :=
+begin
+  refine nhds_mk_of_nhds _ _ _ _,
+  { assume l, induction l,
+    case list.nil { exact le_refl _ },
+    case list.cons : a l ih {
+      suffices : list.cons <$> pure a <*> pure l ≤ list.cons <$> nhds a <*> traverse nhds l,
+      { simpa [-filter.pure_def] with functor_norm using this },
+      exact filter.seq_mono (filter.map_mono $ pure_le_nhds a) ih } },
+  { assume l s hs,
+    rcases (mem_traverse_sets_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
+    have : ∃v:list (set α), l.forall₂ (λa s, is_open s ∧ a ∈ s) v ∧ sequence v ⊆ s,
+    { induction hu generalizing s,
+      case list.forall₂.nil : hs this { existsi [], simpa },
+      case list.forall₂.cons : a s as ss ht h ih t hts {
+        rcases mem_nhds_sets_iff.1 ht with ⟨u, hut, hu⟩,
+        rcases ih (subset.refl _) with ⟨v, hv, hvss⟩,
+        exact ⟨u::v, list.forall₂.cons hu hv,
+          subset.trans (set.seq_mono (set.image_subset _ hut) hvss) hts⟩ } },
+    rcases this with ⟨v, hv, hvs⟩,
+    refine ⟨sequence v, mem_traverse_sets _ _ _, hvs, _⟩,
+    { exact hv.imp (assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) },
+    { assume u hu,
+      have hu := (list.mem_traverse _ _).1 hu,
+      have : list.forall₂ (λa s, is_open s ∧ a ∈ s) u v,
+      { refine list.forall₂.flip _,
+        replace hv := hv.flip,
+        simp [list.forall₂_and_left, flip] at ⊢ hv,
+        exact ⟨hv.1, hu.flip⟩ },
+      exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
+end
+
+lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
+  closure (quotient.mk '' s) = univ :=
 begin
   ext x,
   suffices : x ∈ closure (quotient.mk '' s), by simp [this],
@@ -1095,7 +1153,7 @@ begin
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in
-      ⟨u, ⟨hu₂, hu₁⟩, by simpa using hu₃⟩ },
+      ⟨u, ⟨hu₂, hu₁⟩, by simpa [(≥)] using hu₃⟩ },
   { suffices : a ∈ (⋃₀ b), { simpa [and_comm] },
     { rw [hb.2.1], trivial } }
 end
@@ -1175,7 +1233,7 @@ let ⟨f, hf⟩ := this in
       have a ∈ s₁ ∩ s₂, from ⟨has₁, has₂⟩,
       let ⟨s₃, hs₃, has₃, hs⟩ := hb₃ _ hs₁ _ hs₂ _ this in
       ⟨⟨s₃, has₃, hs₃⟩, begin
-        simp only [le_principal_iff, mem_principal_sets],
+        simp only [le_principal_iff, mem_principal_sets, (≥)],
         simp at hs, split; apply inter_subset_inter_left; simp [hs]
       end⟩)
     (assume ⟨s, has, hs⟩,

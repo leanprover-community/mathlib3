@@ -319,7 +319,7 @@ tendsto_nhds $ assume s ha hs, univ_mem_sets' $ assume _, ha
 lemma nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
 calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : infi_sets_eq'
   (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
-    ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩, by simp⟩)
+    ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩, by simp [ge]⟩)
   ⟨univ, by simp⟩
   ... = {s | ∃t⊆s, is_open t ∧ a ∈ t} :
     le_antisymm
@@ -331,7 +331,7 @@ lemma map_nhds {a : α} {f : α → β} :
 calc map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, map f (principal s)) :
     map_binfi_eq
     (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
-      ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩, by simp⟩)
+      ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩, by simp [ge]⟩)
     ⟨univ, by simp⟩
   ... = _ : by simp
 

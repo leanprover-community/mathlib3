@@ -89,7 +89,7 @@ by haveI this := partial_order.ext H;
   the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
   It is the unique order on `α` making `f` an order embedding
   (assuming `f` is injective). -/
-def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
+@[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
 
 infix ` ⁻¹'o `:80 := order.preimage
 

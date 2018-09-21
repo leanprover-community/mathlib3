@@ -48,7 +48,7 @@ by rw [lc.total_on, linear_map.ker, linear_map.comap_cod_restrict, map_bot, coma
   comap_bot, ker_subtype, le_bot_iff]
 
 lemma linear_independent_empty : linear_independent (∅ : set β) :=
-by simp [linear_independent, disjoint_bot_left]
+by simp [linear_independent]
 
 lemma linear_independent.mono (h : t ⊆ s) : linear_independent s → linear_independent t :=
 disjoint_mono_left (lc.supported_mono h)
@@ -220,6 +220,32 @@ by rw [span_eq_map_lc, disjoint_iff, map_inf_eq_map_inf_comap,
 
 end
 
+lemma linear_independent.inj_span_iff_inj {s : set β} {f : β →ₗ γ}
+  (hfs : linear_independent (f '' s)) :
+  disjoint (span s) f.ker ↔ (∀a b ∈ s, f a = f b → a = b) :=
+⟨linear_map.inj_of_disjoint_ker subset_span, hfs.disjoint_ker⟩
+
+open linear_map
+lemma linear_independent.image {s : set β} {f : β →ₗ γ} (hs : linear_independent s)
+  (hf_inj : disjoint (span s) f.ker) : linear_independent (f '' s) :=
+by rw [disjoint, span_eq_map_lc, map_inf_eq_map_inf_comap,
+    map_le_iff_le_comap, comap_bot] at hf_inj;
+  rw [linear_independent, disjoint, ← lc.map_supported f, map_inf_eq_map_inf_comap,
+    map_le_iff_le_comap, ← ker_comp, lc.map_total, ker_comp];
+  exact le_trans (le_inf inf_le_left hf_inj) (le_trans hs bot_le)
+
+lemma linear_map.linear_independent_image_iff {s : set β} {f : β →ₗ γ}
+  (hf_inj : disjoint (span s) f.ker) :
+  linear_independent (f '' s) ↔ linear_independent s :=
+⟨λ hs, hs.of_image (linear_map.inj_of_disjoint_ker subset_span hf_inj),
+ λ hs, hs.image hf_inj⟩
+
+lemma linear_independent_inl_union_inr {s : set β} {t : set γ}
+  (hs : linear_independent s) (ht : linear_independent t) :
+  linear_independent (inl β γ '' s ∪ inr β γ '' t) :=
+linear_independent_union (hs.image $ by simp) (ht.image $ by simp) $
+by rw [span_image, span_image]; simp [disjoint_iff, prod_inf_prod]
+
 /-- A set of vectors is a basis if it is linearly independent and all vectors are in the span -/
 def is_basis (s : set β) := linear_independent s ∧ span s = ⊤
 
@@ -321,33 +347,17 @@ def equiv_of_is_basis {s : set β} {t : set γ} {f : β → γ} {g : γ → β}
     λ y, congr_arg (λ h:γ →ₗ γ, h y) this,
   ..hs.constr f }
 
+lemma is_basis_inl_union_inr {s : set β} {t : set γ}
+  (hs : is_basis s) (ht : is_basis t) : is_basis (inl β γ '' s ∪ inr β γ '' t) :=
+⟨linear_independent_inl_union_inr hs.1 ht.1,
+  by rw [span_union, span_image, span_image]; simp [hs.2, ht.2]⟩
+
 end is_basis
-
-lemma linear_independent.inj_span_iff_inj {s : set β} {f : β →ₗ γ}
-  (hfs : linear_independent (f '' s)) :
-  disjoint (span s) f.ker ↔ (∀a b ∈ s, f a = f b → a = b) :=
-⟨linear_map.inj_of_disjoint_ker subset_span, hfs.disjoint_ker⟩
-
-open linear_map
-lemma linear_independent.image {s : set β} {f : β →ₗ γ} (hs : linear_independent s)
-  (hf_inj : disjoint (span s) f.ker) : linear_independent (f '' s) :=
-by rw [disjoint, span_eq_map_lc, map_inf_eq_map_inf_comap,
-    map_le_iff_le_comap, comap_bot] at hf_inj;
-  rw [linear_independent, disjoint, ← lc.map_supported f, map_inf_eq_map_inf_comap,
-    map_le_iff_le_comap, ← ker_comp, lc.map_total, ker_comp];
-  exact le_trans (le_inf inf_le_left hf_inj) (le_trans hs bot_le)
-
-lemma linear_map.linear_independent_image_iff {s : set β} {f : β →ₗ γ}
-  (hf_inj : disjoint (span s) f.ker) :
-  linear_independent (f '' s) ↔ linear_independent s :=
-⟨λ hs, hs.of_image (linear_map.inj_of_disjoint_ker subset_span hf_inj),
- λ hs, hs.image hf_inj⟩
 
 lemma linear_equiv.is_basis {s : set β} (hs : is_basis s)
   (f : β ≃ₗ γ) : is_basis (f '' s) :=
 show is_basis ((f : β →ₗ γ) '' s), from
-⟨hs.1.image $ by rw f.ker; exact disjoint_bot_right,
- by rw [span_image, hs.2, map_top, f.range]⟩
+⟨hs.1.image $ by simp, by rw [span_image, hs.2, map_top, f.range]⟩
 
 end module
 
@@ -491,7 +501,7 @@ lemma exists_left_inverse_linear_map_of_injective {f : β →ₗ γ}
 begin
   rcases exists_is_basis β with ⟨B, hB⟩,
   have : linear_independent (f '' B) :=
-    hB.1.image (by simp [hf_inj, disjoint_bot_right]),
+    hB.1.image (by simp [hf_inj]),
   rcases exists_subset_is_basis this with ⟨C, BC, hC⟩,
   haveI : inhabited β := ⟨0⟩,
   refine ⟨hC.constr (inv_fun f), hB.ext $ λ b bB, _⟩,

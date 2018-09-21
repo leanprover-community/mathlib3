@@ -7,8 +7,6 @@ Quotient construction on modules
 -/
 
 import linear_algebra.basic
-import linear_algebra.prod_module
-import linear_algebra.subtype_module
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

@@ -113,7 +113,6 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {p q : α × β}
 
 instance [has_add α] [has_add β] : has_add (α × β) :=
 ⟨λp q, (p.1 + q.1, p.2 + q.2)⟩
-
 @[to_additive prod.has_add]
 instance [has_mul α] [has_mul β] : has_mul (α × β) :=
 ⟨λp q, (p.1 * q.1, p.2 * q.2)⟩
@@ -122,9 +121,11 @@ instance [has_mul α] [has_mul β] : has_mul (α × β) :=
 lemma fst_mul [has_mul α] [has_mul β] : (p * q).1 = p.1 * q.1 := rfl
 @[simp, to_additive prod.snd_add]
 lemma snd_mul [has_mul α] [has_mul β] : (p * q).2 = p.2 * q.2 := rfl
+@[simp, to_additive prod.mk_add_mk]
+lemma mk_mul_mk [has_mul α] [has_mul β] (a₁ a₂ : α) (b₁ b₂ : β) :
+  (a₁, b₁) * (a₂, b₂) = (a₁ * a₂, b₁ * b₂) := rfl
 
 instance [has_zero α] [has_zero β] : has_zero (α × β) := ⟨(0, 0)⟩
-
 @[to_additive prod.has_zero]
 instance [has_one α] [has_one β] : has_one (α × β) := ⟨(1, 1)⟩
 
@@ -132,9 +133,10 @@ instance [has_one α] [has_one β] : has_one (α × β) := ⟨(1, 1)⟩
 lemma fst_one [has_one α] [has_one β] : (1 : α × β).1 = 1 := rfl
 @[simp, to_additive prod.snd_zero]
 lemma snd_one [has_one α] [has_one β] : (1 : α × β).2 = 1 := rfl
+@[to_additive prod.zero_eq_mk]
+lemma one_eq_mk [has_one α] [has_one β] : (1 : α × β) = (1, 1) := rfl
 
 instance [has_neg α] [has_neg β] : has_neg (α × β) := ⟨λp, (- p.1, - p.2)⟩
-
 @[to_additive prod.has_neg]
 instance [has_inv α] [has_inv β] : has_inv (α × β) := ⟨λp, (p.1⁻¹, p.2⁻¹)⟩
 
@@ -142,6 +144,8 @@ instance [has_inv α] [has_inv β] : has_inv (α × β) := ⟨λp, (p.1⁻¹, p.
 lemma fst_inv [has_inv α] [has_inv β] : (p⁻¹).1 = (p.1)⁻¹ := rfl
 @[simp, to_additive prod.snd_neg]
 lemma snd_inv [has_inv α] [has_inv β] : (p⁻¹).2 = (p.2)⁻¹ := rfl
+@[to_additive prod.neg_mk]
+lemma inv_mk [has_inv α] [has_inv β] (a : α) (b : β) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
 
 instance [add_semigroup α] [add_semigroup β] : add_semigroup (α × β) :=
 { add_assoc := assume a b c, mk.inj_iff.mpr ⟨add_assoc _ _ _, add_assoc _ _ _⟩,
@@ -251,6 +255,13 @@ by constructor; simp [inl, inr] {contextual := tt}
 @[simp] lemma snd_inr [has_zero α] (b : β) : (inr b : α × β).2 = b := rfl
 
 instance [has_scalar α β] [has_scalar α γ] : has_scalar α (β × γ) := ⟨λa p, (a • p.1, a • p.2)⟩
+
+@[simp] theorem smul_fst [has_scalar α β] [has_scalar α γ]
+  (a : α) (x : β × γ) : (a • x).1 = a • x.1 := rfl
+@[simp] theorem smul_snd [has_scalar α β] [has_scalar α γ]
+  (a : α) (x : β × γ) : (a • x).2 = a • x.2 := rfl
+@[simp] theorem smul_mk [has_scalar α β] [has_scalar α γ]
+  (a : α) (b : β) (c : γ) : a • (b, c) = (a • b, a • c) := rfl
 
 instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
   [semimodule α β] [semimodule α γ] : semimodule α (β × γ) :=

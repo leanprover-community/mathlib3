@@ -229,9 +229,9 @@ begin
   funext l₁ l₃, apply propext,
   split,
   { assume h, rcases h with ⟨l₂, h₁₂, h₂₃⟩,
-    have : forall₂ (flip r) l₂ l₁, from forall₂_flip h₁₂,
+    have : forall₂ (flip r) l₂ l₁, from h₁₂.flip ,
     rcases perm_comp_forall₂ h₂₃.symm this with ⟨l', h₁, h₂⟩,
-    exact ⟨l', h₂.symm, forall₂_flip h₁⟩ },
+    exact ⟨l', h₂.symm, h₁.flip⟩ },
   { exact assume ⟨l₂, h₁₂, h₂₃⟩, perm_comp_forall₂ h₁₂ h₂₃ }
 end
 
@@ -247,7 +247,7 @@ this ▸ hbd
 lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp (assume a b c, left_unique_flip hr.1) (forall₂_flip hab) (forall₂_flip hcd))
+  (rel_perm_imp (assume a b c, left_unique_flip hr.1) hab.flip hcd.flip)
 
 end rel
 

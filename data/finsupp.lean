@@ -161,6 +161,9 @@ on_finset g.support (f ∘ g) $
   map_range f hf g a = f (g a) :=
 rfl
 
+@[simp] lemma map_range_zero {f : β₁ → β₂} {hf : f 0 = 0} : map_range f hf (0 : α →₀ β₁) = 0 :=
+finsupp.ext $ λ a, by simp [hf]
+
 lemma support_map_range {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} :
   (map_range f hf g).support ⊆ g.support :=
 support_on_finset_subset
@@ -328,6 +331,11 @@ begin
   { apply ih _ _,
     rw [support_erase, hf, finset.erase_insert has] }
 end
+
+lemma map_range_add [decidable_eq β₁] [decidable_eq β₂] [add_monoid β₁] [add_monoid β₂]
+  {f : β₁ → β₂} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ β₁) :
+  map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
+finsupp.ext $ λ a, by simp [hf']
 
 end add_monoid
 
@@ -530,7 +538,7 @@ end
 lemma map_domain_single {f : α → α₁} {a : α} {b : β} : map_domain f (single a b) = single (f a) b :=
 sum_single_index single_zero
 
-lemma map_domain_zero {f : α → α₂} : map_domain f 0 = (0 : α₂ →₀ β) :=
+@[simp] lemma map_domain_zero {f : α → α₂} : map_domain f 0 = (0 : α₂ →₀ β) :=
 sum_zero_index
 
 lemma map_domain_congr {f g : α → α₂} (h : ∀x∈v.support, f x = g x) :
@@ -579,9 +587,9 @@ instance [has_zero α] [has_zero β] [has_one β] : has_one (α →₀ β) :=
 
 lemma one_def [has_zero α] [has_zero β] [has_one β] : 1 = (single 0 1 : α →₀ β) := rfl
 
-section filter -- TODO: remove filter? build upon subtype_domain?
+section filter
 section has_zero
-variables [has_zero β] {p : α → Prop} [decidable_pred p] {f : α →₀ β}
+variables [has_zero β] (p : α → Prop) [decidable_pred p] (f : α →₀ β)
 
 /-- `filter p f` is the function which is `f a` if `p a` is true and 0 otherwise. -/
 def filter (p : α → Prop) [decidable_pred p] (f : α →₀ β) : α →₀ β :=
@@ -599,9 +607,23 @@ finset.ext.mpr $ assume a, if H : p a
 then by simp only [mem_support_iff, filter_apply_pos H, mem_filter, H, and_true]
 else by simp only [mem_support_iff, filter_apply_neg H, mem_filter, H, and_false, ne.def, ne_self_iff_false]
 
+@[simp] lemma filter_single_of_pos
+  {a : α} {b : β} (h : p a) : (single a b).filter p = single a b :=
+finsupp.ext $ λ x, begin
+  by_cases h' : p x; simp [h'],
+  rw single_eq_of_ne, rintro rfl, exact h' h
+end
+
+@[simp] lemma filter_single_of_neg
+  {a : α} {b : β} (h : ¬ p a) : (single a b).filter p = 0 :=
+finsupp.ext $ λ x, begin
+  by_cases h' : p x; simp [h'],
+  rw single_eq_of_ne, rintro rfl, exact h h'
+end
+
 end has_zero
 
-lemma filter_pos_add_filter_neg [add_monoid β] {f : α →₀ β} {p : α → Prop}
+lemma filter_pos_add_filter_neg [add_monoid β] (f : α →₀ β) (p : α → Prop)
   [decidable_pred p] [decidable_pred (λa, ¬ p a)] :
   f.filter p + f.filter (λa, ¬ p a) = f :=
 finsupp.ext $ assume a, if H : p a
@@ -651,6 +673,10 @@ variables [add_monoid β] {v v' : α' →₀ β}
 @[simp] lemma subtype_domain_add {v v' : α →₀ β} :
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ _, rfl
+
+@[simp] lemma filter_add {v v' : α →₀ β} :
+  (v + v').filter p = v.filter p + v'.filter p :=
+ext $ λ a, by by_cases p a; simp [h]
 
 end monoid
 
@@ -839,25 +865,53 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, sum_insert has, prod_insert has]
 
 section
-variable (β)
+variables (α β)
 
-def to_has_scalar' [ring γ] [module γ β] : has_scalar γ (α →₀ β) := ⟨λa v, v.map_range ((•) a) (smul_zero)⟩
+def to_has_scalar' {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) := ⟨λa v, v.map_range ((•) a) (smul_zero)⟩
 local attribute [instance] to_has_scalar'
 
-@[simp] lemma smul_apply' [ring γ] [module γ β] {a : α} {b : γ} {v : α →₀ β} :
+@[simp] lemma smul_apply' {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {a : α} {b : γ} {v : α →₀ β} :
   (b • v) a = b • (v a) := rfl
 
-def to_module [ring γ] [module γ β] : module γ (α →₀ β) :=
-{ smul     := (•),
-  smul_add := assume a x y, finsupp.ext $ λ _, smul_add,
-  add_smul := assume a x y, finsupp.ext $ λ _, add_smul,
-  one_smul := assume x, finsupp.ext $ λ _, one_smul,
-  mul_smul := assume r s x, finsupp.ext $ λ _, mul_smul,
-  .. finsupp.add_comm_group }
+def to_semimodule {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : semimodule γ (α →₀ β) :=
+{ smul      := (•),
+  smul_add  := λ a x y, finsupp.ext $ λ _, smul_add,
+  add_smul  := λ a x y, finsupp.ext $ λ _, add_smul,
+  one_smul  := λ x, finsupp.ext $ λ _, one_smul,
+  mul_smul  := λ r s x, finsupp.ext $ λ _, mul_smul,
+  zero_smul := λ x, finsupp.ext $ λ _, zero_smul,
+  smul_zero := λ x, finsupp.ext $ λ _, smul_zero }
+
+def to_module {R:ring γ} [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
+{ ..to_semimodule α β }
+
+variables {α β}
+lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : γ} {g : α →₀ β} :
+  (b • g).support ⊆ g.support :=
+λ a, by simp; exact mt (λ h, h.symm ▸ smul_zero)
+
+section
+variables {α' : Type*} [has_zero δ] {p : α → Prop} [decidable_pred p]
+
+@[simp] lemma filter_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β]
+  {b : γ} {v : α →₀ β} : (b • v).filter p = b • v.filter p :=
+ext $ λ a, by by_cases p a; simp [h]
+end
+
+lemma map_domain_smul {α'} [decidable_eq α'] {R:semiring γ} [add_comm_monoid β] [semimodule γ β]
+   {f : α → α'} (b : γ) (v : α →₀ β) : map_domain f (b • v) = b • map_domain f v :=
+begin
+  change map_domain f (map_range _ _ _) = map_range _ _ _,
+  apply finsupp.induction v, {simp},
+  intros a b v' hv₁ hv₂ IH,
+  rw [map_range_add, map_domain_add, IH, map_domain_add, map_range_add,
+    map_range_single, map_domain_single, map_domain_single, map_range_single];
+  apply smul_add
+end
 
 end
 
-def to_has_scalar [ring β] : has_scalar β (α →₀ β) := to_has_scalar' β
+def to_has_scalar [ring β] : has_scalar β (α →₀ β) := to_has_scalar' α β
 local attribute [instance] to_has_scalar
 
 @[simp] lemma smul_apply [ring β] {a : α} {b : β} {v : α →₀ β} :

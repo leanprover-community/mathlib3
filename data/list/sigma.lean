@@ -244,6 +244,10 @@ erasep $ λ s, a = s.1
 theorem kerase_sublist (a : α) (l : list (sigma β)) : kerase a l <+ l :=
 erasep_sublist _
 
+theorem kerase_map_fst (a : α) (l : list (sigma β)) :
+  (kerase a l).map sigma.fst = (l.map sigma.fst).erase a :=
+by rw [kerase, ←erasep_map sigma.fst l, erase_eq_erasep]
+
 theorem kerase_nodupkeys (a : α) {l : list (sigma β)} : nodupkeys l → (kerase a l).nodupkeys :=
 nodupkeys_of_sublist $ kerase_sublist _ _
 

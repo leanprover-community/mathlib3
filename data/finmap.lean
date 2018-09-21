@@ -5,7 +5,7 @@ Authors: Sean Leather, Mario Carneiro
 
 Finite maps over `multiset`.
 -/
-import data.list.alist data.multiset data.pfun
+import data.list.alist data.finset data.pfun
 
 universes u v w
 open list
@@ -29,6 +29,7 @@ structure finmap (α : Type u) (β : α → Type v) : Type (max u v) :=
 
 /-- The quotient map from `alist` to `finmap`. -/
 def alist.to_finmap {α β} (s : alist α β) : finmap α β := ⟨s.entries, s.nodupkeys⟩
+
 local notation `⟦`:max a `⟧`:0 := alist.to_finmap a
 
 theorem alist.to_finmap_eq {α β} {s₁ s₂ : alist α β} :
@@ -56,7 +57,7 @@ end
   lift_on ⟦s⟧ f H = f s := by cases s; refl
 
 @[elab_as_eliminator] theorem induction_on
-  {C : finmap α β → Prop} (s : finmap α β) (H : ∀ a, C ⟦a⟧) : C s :=
+  {C : finmap α β → Prop} (s : finmap α β) (H : ∀ (a : alist α β), C ⟦a⟧) : C s :=
 by rcases s with ⟨⟨a⟩, h⟩; exact H ⟨a, h⟩
 
 @[extensionality] theorem ext : ∀ {s t : finmap α β}, s.entries = t.entries → s = t
@@ -71,17 +72,18 @@ theorem mem_def {a : α} {s : finmap α β} :
 @[simp] theorem mem_to_finmap {a : α} {s : alist α β} :
   a ∈ ⟦s⟧ ↔ a ∈ s := iff.rfl
 
-/-- The list of keys of a finite map. -/
-def keys (s : finmap α β) : multiset α := s.entries.map sigma.fst
+/-- The set of keys of a finite map. -/
+def keys (s : finmap α β) : finset α :=
+⟨s.entries.map sigma.fst, induction_on s $ λ s, s.keys_nodup⟩
 
-@[simp] theorem keys_to_finmap (s : alist α β) :
-  keys ⟦s⟧ = s.keys := rfl
+@[simp] theorem keys_val (s : alist α β) : (keys ⟦s⟧).val = s.keys := rfl
+
+@[simp] theorem keys_ext {s₁ s₂ : alist α β} :
+  keys ⟦s₁⟧ = keys ⟦s₂⟧ ↔ s₁.keys ~ s₂.keys :=
+by simp [keys, alist.keys]
 
 theorem mem_keys {a : α} {s : finmap α β} : a ∈ s.keys ↔ a ∈ s :=
 induction_on s $ λ s, mem_keys
-
-theorem keys_nodup (s : finmap α β) : s.keys.nodup :=
-induction_on s $ λ s, s.keys_nodup
 
 /-- The empty map. -/
 instance : has_emptyc (finmap α β) := ⟨⟨0, nodupkeys_nil⟩⟩
@@ -95,13 +97,14 @@ multiset.not_mem_zero _
 theorem not_mem_empty {a : α} : a ∉ (∅ : finmap α β) :=
 λ ⟨b, h⟩, not_mem_empty_entries h
 
-@[simp] theorem keys_empty : (∅ : finmap α β).keys = 0 := rfl
+@[simp] theorem keys_empty : (∅ : finmap α β).keys = ∅ := rfl
 
 /-- The singleton map. -/
 def singleton (a : α) (b : β a) : finmap α β :=
 ⟨⟨a, b⟩::0, nodupkeys_singleton _⟩
 
-@[simp] theorem keys_singleton (a : α) (b : β a) : (singleton a b).keys = [a] := rfl
+@[simp] theorem keys_singleton (a : α) (b : β a) :
+  (singleton a b).keys = finset.singleton a := rfl
 
 variables [decidable_eq α]
 
@@ -125,7 +128,7 @@ def insert (a : α) (b : β a) (s : finmap α β) : finmap α β :=
 lift_on s (λ t, ⟦insert a b t⟧) $
 λ s₁ s₂ p, to_finmap_eq.2 $ perm_insert p
 
-@[simp] theorem insert_to_finset (a : α) (b : β a) (s : alist α β) :
+@[simp] theorem insert_to_finmap (a : α) (b : β a) (s : alist α β) :
   insert a b ⟦s⟧ = ⟦s.insert a b⟧ := by simp [insert]
 
 @[simp] theorem insert_of_pos {a : α} {b : β a} {s : finmap α β} : a ∈ s →
@@ -138,13 +141,9 @@ theorem insert_entries_of_neg {a : α} {b : β a} {s : finmap α β} : a ∉ s �
 induction_on s $ λ s h,
 by simp [insert_entries_of_neg (mt mem_to_finmap.1 h)]
 
-@[simp] theorem keys_insert (a : α) (b : β a) (s : finmap α β) :
-  (insert a b s).keys = s.keys.ndinsert a :=
-induction_on s $ λ s, by simp
-
 @[simp] theorem mem_insert {a a' : α} {b : β a} {s : finmap α β} :
   a' ∈ insert a b s ↔ a' = a ∨ a' ∈ s :=
-by rw [← mem_keys, ← mem_keys]; simp
+induction_on s $ by simp
 
 /-- Replace a key with a given value in a finite map.
   If the key is not present it does nothing. -/
@@ -152,7 +151,7 @@ def replace (a : α) (b : β a) (s : finmap α β) : finmap α β :=
 lift_on s (λ t, ⟦replace a b t⟧) $
 λ s₁ s₂ p, to_finmap_eq.2 $ perm_replace p
 
-@[simp] theorem replace_to_finset (a : α) (b : β a) (s : alist α β) :
+@[simp] theorem replace_to_finmap (a : α) (b : β a) (s : alist α β) :
   replace a b ⟦s⟧ = ⟦s.replace a b⟧ := by simp [replace]
 
 @[simp] theorem keys_replace (a : α) (b : β a) (s : finmap α β) :
@@ -174,8 +173,12 @@ def erase (a : α) (s : finmap α β) : finmap α β :=
 lift_on s (λ t, ⟦erase a t⟧) $
 λ s₁ s₂ p, to_finmap_eq.2 $ perm_erase p
 
-@[simp] theorem erase_to_finset (a : α) (s : alist α β) :
+@[simp] theorem erase_to_finmap (a : α) (s : alist α β) :
   erase a ⟦s⟧ = ⟦s.erase a⟧ := by simp [erase]
+
+@[simp] theorem keys_erase_to_finset (a : α) (s : alist α β) :
+  keys ⟦s.erase a⟧ = (keys ⟦s⟧).erase a :=
+by simp [finset.erase, keys, alist.erase, list.kerase_map_fst]
 
 @[simp] theorem keys_erase (a : α) (s : finmap α β) :
   (erase a s).keys = s.keys.erase a :=

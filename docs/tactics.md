@@ -407,13 +407,18 @@ by linarith
 ```
 
 `linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
+
 `linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
-`linarith using [t1, t2, t3] will add `t1`, `t2`, `t3` to the local context and then run
+
+`linarith using [t1, t2, t3]` will add `t1`, `t2`, `t3` to the local context and then run
 `linarith`.
+
 `linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
-arguments. `discharger` specifies a tactic to be used for reducing an algebraic equation in the
+arguments. 
+* `discharger` specifies a tactic to be used for reducing an algebraic equation in the
 proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
-problems. `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
+problems. 
+* `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
 if you have e.g. both integer and rational valued inequalities in the local context, which can
 sometimes confuse the tactic.
-If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
+* If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)

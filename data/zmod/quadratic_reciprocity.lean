@@ -142,34 +142,34 @@ calc (range (q / 2)).prod (λ n, ((range p).erase 0).prod (+ p * n)) *
   by simp only [prod_image (λ _ _ _ _ h, add_right_cancel h)]; refl
 ... = ((range (q / 2)).bind (λ x, (erase (range p) 0).image (+ p * x))
          ∪ (erase (range (succ (p / 2))) 0).image (+ q / 2 * p)).prod (λ x, x) :
-have h₁ : finset.bind (range (q / 2)) (λ x, ((range p).erase 0).image (+ p * x)) ∩
-    image (+ q / 2 * p) (erase (range (succ (p / 2))) 0) = ∅ :=
+  have h₁ : finset.bind (range (q / 2)) (λ x, ((range p).erase 0).image (+ p * x)) ∩
+      image (+ q / 2 * p) (erase (range (succ (p / 2))) 0) = ∅ :=
     eq_empty_iff_forall_not_mem.2 $ λ x, begin
-    suffices : ∀ a, a ≠ 0 → a ≤ p / 2 → a + q / 2 * p = x → ∀ b, b < q / 2 →
-      ∀ c, c ≠ 0 → c < p → ¬c + p * b = x,
-    { simpa [- range_succ, lt_succ_iff] },
-    assume a ha0 hap ha b hbq c hc0 hcp hc,
-    rw mul_comm at ha,
-    rw [← ((nat.div_mod_unique hp.pos).2 ⟨hc, hcp⟩).1,
-      ← ((nat.div_mod_unique hp.pos).2 ⟨ha, lt_of_le_of_lt hap
-      (nat.div_lt_self hp.pos dec_trivial)⟩).1] at hbq,
-    exact lt_irrefl _ hbq
-  end,
-have h₂ : ∀ x, x ∈ range (q / 2) → ∀ y, y ∈ range (q / 2) → x ≠ y →
-    (erase (range p) 0).image (+ p * x) ∩ image (+ p * y) (erase (range p) 0) = ∅ :=
-  λ x hx y hy hxy, begin
-    suffices : ∀ z a, a ≠ 0 → a < p → a + p * x = z → ∀ b, b ≠ 0 → b < p → b + p * y ≠ z,
-    { simpa [finset.ext] },
-    assume z a ha0 hap ha b hb0 hbp hb,
-    have : (a + p * x) / p = (b + p * y) / p,
-    { rw [ha, hb] },
-    rw [nat.add_mul_div_left _ _ hp.pos, nat.add_mul_div_left _ _ hp.pos,
-      (nat.div_eq_zero_iff hp.pos).2 hap, (nat.div_eq_zero_iff hp.pos).2 hbp] at this,
-    simpa [hxy]
-  end,
-by rw [prod_union h₁, prod_bind h₂]
+      suffices : ∀ a, a ≠ 0 → a ≤ p / 2 → a + q / 2 * p = x → ∀ b, b < q / 2 →
+        ∀ c, c ≠ 0 → c < p → ¬c + p * b = x,
+      { simpa [- range_succ, lt_succ_iff] },
+      assume a ha0 hap ha b hbq c hc0 hcp hc,
+      rw mul_comm at ha,
+      rw [← ((nat.div_mod_unique hp.pos).2 ⟨hc, hcp⟩).1,
+        ← ((nat.div_mod_unique hp.pos).2 ⟨ha, lt_of_le_of_lt hap
+        (nat.div_lt_self hp.pos dec_trivial)⟩).1] at hbq,
+      exact lt_irrefl _ hbq
+    end,
+  have h₂ : ∀ x, x ∈ range (q / 2) → ∀ y, y ∈ range (q / 2) → x ≠ y →
+      (erase (range p) 0).image (+ p * x) ∩ image (+ p * y) (erase (range p) 0) = ∅ :=
+    λ x hx y hy hxy, begin
+      suffices : ∀ z a, a ≠ 0 → a < p → a + p * x = z → ∀ b, b ≠ 0 → b < p → b + p * y ≠ z,
+      { simpa [finset.ext] },
+      assume z a ha0 hap ha b hb0 hbp hb,
+      have : (a + p * x) / p = (b + p * y) / p,
+      { rw [ha, hb] },
+      rw [nat.add_mul_div_left _ _ hp.pos, nat.add_mul_div_left _ _ hp.pos,
+        (nat.div_eq_zero_iff hp.pos).2 hap, (nat.div_eq_zero_iff hp.pos).2 hbp] at this,
+      simpa [hxy]
+    end,
+  by rw [prod_union h₁, prod_bind h₂]
 ... = (((range ((p * q) / 2).succ)).filter (coprime p)).prod (λ x, x) :
-prod_congr (filter_range_p_mul_q_div_two_eq hp hq hp1 hq1 hpq).symm (λ _ _, rfl)
+  prod_congr (filter_range_p_mul_q_div_two_eq hp hq hp1 hq1 hpq).symm (λ _ _, rfl)
 
 lemma prod_filter_range_p_mul_q_div_two_mod_p_eq :
   ((((range ((p * q) / 2).succ).filter (coprime p)).prod (λ x, x) : ℕ) : zmodp p hp)
@@ -426,7 +426,7 @@ have finset.prod (erase (range (succ (q / 2))) 0) (λ x, (x : zmodp q hq)) ^ car
   (- 1) ^ (p / 2) * ((-1) ^ (p / 2 * (q / 2))),
  by rw [card_erase_of_mem (mem_range.2 hp.pos), card_range, pred_eq_sub_one,
    ← two_mul_odd_div_two hp1, pow_mul, this, mul_comm (p / 2), pow_mul, ← _root_.mul_pow]; simp,
-by simp [prod_product, prod_prod_mk, prod_pow, -range_succ, prod_nat_pow, prod_const, *,
+by simp [prod_product, (prod_mk_prod _ _ _).symm, prod_pow, -range_succ, prod_nat_pow, prod_const, *,
   zmodp.prod_range_prime_erase_zero hp]
 
 lemma prod_range_p_mul_q_div_two_ite_eq :
@@ -441,7 +441,7 @@ calc ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
   ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
   (λ x, (if (x : zmodp q hq).1 ≤ (q / 2) then 1 else -1) * ((x : zmodp p hp), (x : zmodp q hq))) :
   prod_congr rfl (λ _ _, by split_ifs; simp)
-... = _ : by rw [prod_mul_distrib, prod_prod_mk _ (λ x : ℕ, ((x : zmodp p hp), (x : zmodp q hq))),
+... = _ : by rw [prod_mul_distrib, ← prod_mk_prod,
     prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul,
     prod_range_p_mul_q_filter_coprime_mod_p hp hq hp1 hq1 hpq,
     prod_hom (coe : ℕ → zmodp q hq) nat.cast_one nat.cast_mul,

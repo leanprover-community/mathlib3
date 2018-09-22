@@ -335,6 +335,24 @@ lemma embedding.continuous_iff {f : α → β} {g : β → γ} (hg : embedding g
   continuous f ↔ continuous (g ∘ f) :=
 by simp [continuous_iff_tendsto, embedding.tendsto_nhds_iff hg]
 
+lemma embedding.continuous {f : α → β} (hf : embedding f) : continuous f :=
+hf.continuous_iff.mp continuous_id
+
+lemma compact_iff_compact_image_of_embedding {s : set α} {f : α → β} (hf : embedding f) :
+  compact s ↔ compact (f '' s) :=
+iff.intro (assume h, compact_image h hf.continuous) $ assume h, begin
+  rw compact_iff_ultrafilter_le_nhds at ⊢ h,
+  intros u hu us',
+  let u' : filter β := map f u,
+  have : u' ≤ principal (f '' s), begin
+    rw [map_le_iff_le_comap, comap_principal], convert us',
+    exact preimage_image_eq _ hf.1
+  end,
+  rcases h u' (ultrafilter_map hu) this with ⟨_, ⟨a, ha, ⟨⟩⟩, _⟩,
+  refine ⟨a, ha, _⟩,
+  rwa [hf.2, nhds_induced_eq_comap, ←map_le_iff_le_comap]
+end
+
 end embedding
 
 section quotient_map
@@ -365,6 +383,9 @@ lemma quotient_map_of_quotient_map_compose {f : α → β} {g : β → γ}
 lemma quotient_map.continuous_iff {f : α → β} {g : β → γ} (hf : quotient_map f) :
   continuous g ↔ continuous (g ∘ f) :=
 by rw [continuous_iff_le_coinduced, continuous_iff_le_coinduced, hf.right, coinduced_compose]
+
+lemma quotient_map.continuous {f : α → β} (hf : quotient_map f) : continuous f :=
+hf.continuous_iff.mp continuous_id
 
 end quotient_map
 
@@ -720,6 +741,13 @@ continuous_iff_is_closed.mpr $
 lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ x.val ∈ closure (subtype.val '' s) :=
 closure_induced $ assume x y, subtype.eq
+
+lemma compact_iff_compact_in_subtype {s : set {a // p a}} :
+  compact s ↔ compact (subtype.val '' s) :=
+compact_iff_compact_image_of_embedding embedding_subtype_val
+
+lemma compact_iff_compact_univ {s : set α} : compact s ↔ compact (univ : set (subtype s)) :=
+by rw [compact_iff_compact_in_subtype, image_univ, subtype_val_range]; refl
 
 end subtype
 

@@ -16,6 +16,13 @@ theorem mul_two (n : α) : n * 2 = n + n :=
 
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
+
+variable (α)
+lemma zero_ne_one_or_forall_eq_0 : (0 : α) ≠ 1 ∨ (∀a:α, a = 0) :=
+by haveI := classical.dec;
+   refine not_or_of_imp (λ h a, _); simpa using congr_arg ((*) a) h.symm
+variable {α}
+
 end
 
 namespace units

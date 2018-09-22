@@ -94,6 +94,9 @@ encodable.subtype
 instance fin_arrow [encodable α] {n} : encodable (fin n → α) :=
 of_equiv _ (equiv.vector_equiv_fin _ _).symm
 
+instance fin_pi (n) (π : fin n → Type*) [∀i, encodable (π i)] : encodable (Πi, π i) :=
+of_equiv _ (equiv.pi_equiv_subtype_sigma (fin n) π)
+
 instance array [encodable α] {n} : encodable (array n α) :=
 of_equiv _ (equiv.array_equiv_fin _ _)
 
@@ -101,6 +104,18 @@ instance finset [encodable α] : encodable (finset α) :=
 by haveI := decidable_eq_of_encodable α; exact
  of_equiv {s : multiset α // s.nodup}
   ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
+
+def fintype_arrow (α : Type*) (β : Type*) [fintype α] [decidable_eq α] [encodable β] :
+  trunc (encodable (α → β)) :=
+(fintype.equiv_fin α).map $
+  λf, encodable.of_equiv (fin (fintype.card α) → β) $
+  equiv.arrow_congr f (equiv.refl _)
+
+def fintype_pi (α : Type*) (π : α → Type*) [fintype α] [decidable_eq α] [∀a, encodable (π a)] :
+  trunc (encodable (Πa, π a)) :=
+(encodable.trunc_encodable_of_fintype α).bind $ λa,
+  (@fintype_arrow α (Σa, π a) _ _ (@encodable.sigma _ _ a _)).bind $ λf,
+  trunc.mk $ @encodable.of_equiv _ _ (@encodable.subtype _ _ f _) (equiv.pi_equiv_subtype_sigma α π)
 
 end encodable
 

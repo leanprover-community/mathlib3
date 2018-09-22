@@ -31,7 +31,7 @@ failed to prove recursive application is decreasing, well founded relation
   @has_well_founded.r (Σ' (a : ℕ), ℕ)
     (@psigma.has_well_founded ℕ (λ (a : ℕ), ℕ) (@has_well_founded_of_has_sizeof ℕ nat.has_sizeof)
        (λ (a : ℕ), @has_well_founded_of_has_sizeof ℕ nat.has_sizeof))
-Possible solutions: 
+Possible solutions:
   - Use 'using_well_founded' keyword in the end of your definition to specify tactics for synthesizing well founded relations and decreasing proofs.
   - The default decreasing tactic uses the 'assumption' tactic, thus hints (aka local proofs) can be provided using 'have'-expressions.
 The nested exception contains the failure state for the decreasing tactic.
@@ -43,7 +43,7 @@ x y : ℕ
 ⊢ y % succ x < succ x
 ```
 
-The error message has given us a goal, `y % succ x < succ x`. Including a proof of this goal as part of our definition using `have` removes the error. 
+The error message has given us a goal, `y % succ x < succ x`. Including a proof of this goal as part of our definition using `have` removes the error.
 
 ```lean
 def gcd : nat → nat → nat
@@ -66,7 +66,7 @@ end
 
 ### order of arguments ###
 
-Sometimes the default relation the equation compiler uses is not the correct one. For example swapping the order of x and y in the above example causes a failure 
+Sometimes the default relation the equation compiler uses is not the correct one. For example swapping the order of x and y in the above example causes a failure
 
 ```lean
 def gcd : nat → nat → nat
@@ -83,7 +83,7 @@ Sometimes moving an argument outside of the equation compiler, can help the equa
 lemma prod_factors : ∀ (n), 0 < n → list.prod (factors n) = n
 | 0       h := (lt_irrefl _).elim h
 | 1       h := rfl
-| n@(k+2) h := 
+| n@(k+2) h :=
   let m := min_fac n in have n / m < n := factors_lemma,
   show list.prod (m :: factors (n / m)) = n, from
   have h₁ : 0 < n / m :=
@@ -99,7 +99,7 @@ But moving the `h` into a lambda after the `:=` makes it work
 lemma prod_factors : ∀ (n), 0 < n → list.prod (factors n) = n
 | 0       := λ h, (lt_irrefl _).elim h
 | 1       := λ h, rfl
-| n@(k+2) := λ h, 
+| n@(k+2) := λ h,
   let m := min_fac n in have n / m < n := factors_lemma,
   show list.prod (m :: factors (n / m)) = n, from
   have h₁ : 0 < n / m :=
@@ -109,9 +109,9 @@ lemma prod_factors : ∀ (n), 0 < n → list.prod (factors n) = n
   by rw [list.prod_cons, prod_factors _ h₁, nat.mul_div_cancel' (min_fac_dvd _)]
 ```
 
-This is because for some reason, in the first example, the equation compiler tries to use the always false relation. 
+This is because for some reason, in the first example, the equation compiler tries to use the always false relation.
 
-Conjecture : this is because the type of `h` depends on `n` and the equation compiler can only synthesize useful relations on non dependent products 
+Conjecture : this is because the type of `h` depends on `n` and the equation compiler can only synthesize useful relations on non dependent products
 
 ### using_well_founded rel_tac ###
 
@@ -128,7 +128,7 @@ The following proof in `data.multiset` uses this relation.
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
 ```
 
-The final line tells the equation compiler to use this relation. It is not necessary to fully understand the final line to be able to use well_founded tactics. The most important part is `⟨_, measure_wf card⟩` This is the well_founded instance. `measure_wf` is a proof that any relation generated from a function to the natural numbers, i.e. for a function `f : α → ℕ`, the relation `λ x y, f x < f y`. The underscore is a placeholder for the relation, as it can be inferred from the type of the proof. Note that the well founded relation must be on a `psigma` type corresponding to the product of the types of the arguments after the vertical bar, if there are multiple areguments after the vertical bar.
+The final line tells the equation compiler to use this relation. It is not necessary to fully understand the final line to be able to use well_founded tactics. The most important part is `⟨_, measure_wf card⟩` This is the well_founded instance. `measure_wf` is a proof that any relation generated from a function to the natural numbers, i.e. for a function `f : α → ℕ`, the relation `λ x y, f x < f y`. The underscore is a placeholder for the relation, as it can be inferred from the type of the proof. Note that the well founded relation must be on a `psigma` type corresponding to the product of the types of the arguments after the vertical bar, if there are multiple arguments after the vertical bar.
 
 In the gcd example the `psigma` type is `Σ' (a : ℕ), ℕ`. In order to solve the problem in the example where the order of the arguments was flipped, you could define a well founded relation on `Σ' (a : ℕ), ℕ` using the function `psigma.snd`, the function giving the second element of the pair, and then the error disappears.
 

@@ -31,7 +31,7 @@ instance : has_coe (r ≼i s) (r ≼o s) := ⟨initial_seg.to_order_embedding⟩
 
 @[simp] theorem coe_fn_to_order_embedding (f : r ≼i s) : (f.to_order_embedding : α → β) = f := rfl
 
-@[simp] theorem coe_coe_fn (f : r ≼i s) : ((f : r ≼o s) : α → β) = f := rfl
+theorem coe_coe_fn (f : r ≼i s) : ((f : r ≼o s) : α → β) = f := rfl
 
 theorem init' (f : r ≼i s) {a : α} {b : β} : s b (f a) → ∃ a', f a' = b :=
 f.init _ _
@@ -100,7 +100,7 @@ by haveI := f.to_order_embedding.is_well_order; exact
 
 @[simp] theorem antisymm_symm [is_well_order α r] [is_well_order β s]
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g).symm = antisymm g f :=
-order_iso.eq_of_to_fun_eq $ by dunfold initial_seg.antisymm; simp
+order_iso.eq_of_to_fun_eq $ by dunfold initial_seg.antisymm; simp [-coe_fn_coe_base]
 
 theorem eq_or_principal [is_well_order β s] (f : r ≼i s) : surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
 or_iff_not_imp_right.2 $ λ h b,
@@ -141,7 +141,7 @@ instance : has_coe (r ≺i s) (r ≼o s) := ⟨principal_seg.to_order_embedding�
 
 @[simp] theorem coe_fn_to_order_embedding (f : r ≺i s) : (f.to_order_embedding : α → β) = f := rfl
 
-@[simp] theorem coe_coe_fn (f : r ≺i s) : ((f : r ≼o s) : α → β) = f := rfl
+theorem coe_coe_fn (f : r ≺i s) : ((f : r ≼o s) : α → β) = f := rfl
 
 theorem down' (f : r ≺i s) {b : β} : s b f.top ↔ ∃ a, f a = b :=
 f.down _
@@ -155,7 +155,7 @@ f.down'.1 $ trans h $ f.lt_top _
 instance has_coe_initial_seg [is_trans β s] : has_coe (r ≺i s) (r ≼i s) :=
 ⟨λ f, ⟨f.to_order_embedding, λ a b, f.init⟩⟩
 
-@[simp] theorem coe_coe_fn' [is_trans β s] (f : r ≺i s) : ((f : r ≼i s) : α → β) = f := rfl
+theorem coe_coe_fn' [is_trans β s] (f : r ≺i s) : ((f : r ≼i s) : α → β) = f := rfl
 
 theorem init_iff [is_trans β s] (f : r ≺i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' = b ∧ r a' a :=
 initial_seg.init_iff f
@@ -171,7 +171,7 @@ end
 def lt_le [is_trans β s] (f : r ≺i s) (g : s ≼i t) : r ≺i t :=
 ⟨@order_embedding.trans _ _ _ r s t f g, g f.top, λ a,
  by simp [g.init_iff, f.down', exists_and_distrib_left.symm,
-          -exists_and_distrib_left, exists_swap]; refl⟩
+          -exists_and_distrib_left, -coe_fn_coe_base, coe_coe_fn, exists_swap]; refl⟩
 
 @[simp] theorem lt_le_apply [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≼i t) (a : α) : (f.lt_le g) a = g (f a) :=
 order_embedding.trans_apply _ _ _
@@ -189,10 +189,10 @@ lt_le_apply _ _ _
 def equiv_lt [is_trans β s] [is_trans γ t] (f : r ≃o s) (g : s ≺i t) : r ≺i t :=
 ⟨@order_embedding.trans _ _ _ r s t f g, g.top, λ c,
  by simp [g.down']; exact
- ⟨λ ⟨b, h⟩, ⟨f.symm b, by simp [h]⟩, λ ⟨a, h⟩, ⟨f a, h⟩⟩⟩
+ ⟨λ ⟨b, h⟩, ⟨f.symm b, by simp [h, -coe_fn_coe_base, order_iso.coe_coe_fn]⟩, λ ⟨a, h⟩, ⟨f a, h⟩⟩⟩
 
 @[simp] theorem equiv_lt_apply [is_trans β s] [is_trans γ t] (f : r ≃o s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
-by delta equiv_lt; simp
+by delta equiv_lt; simp [-coe_fn_coe_base, -coe_fn_coe_trans, order_iso.coe_coe_fn, coe_coe_fn]
 
 @[simp] theorem equiv_lt_top [is_trans β s] [is_trans γ t] (f : r ≃o s) (g : s ≺i t) : (equiv_lt f g).top = g.top := rfl
 
@@ -203,7 +203,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
     rw @subsingleton.elim _ _ (f : r ≼i s) g, refl },
   have et : f.top = g.top,
   { refine @is_extensional.ext _ s _ _ _ (λ x, _),
-    simp [f.down, g.down, ef] },
+    simp [f.down, g.down, ef, -coe_fn_coe_base, -coe_fn_coe_trans, order_iso.coe_coe_fn, coe_coe_fn] },
   cases f, cases g, simp at ef et,
   have := order_embedding.eq_of_to_fun_eq ef; congr'
 end⟩
@@ -268,8 +268,10 @@ end
   (f : r ≼i s) (g : s ≺i t) (a : α) : (f.le_lt g) a = g (f a) :=
 begin
   delta initial_seg.le_lt, cases h : f.lt_or_eq with f' f',
-  { simp [f.lt_or_eq_apply_left h] },
-  { simp [f.lt_or_eq_apply_right h] }
+  { simp [f.lt_or_eq_apply_left h,
+    -coe_fn_coe_base, -coe_fn_coe_trans, order_iso.coe_coe_fn, principal_seg.coe_coe_fn] },
+  { simp [f.lt_or_eq_apply_right h,
+    -coe_fn_coe_base, -coe_fn_coe_trans, order_iso.coe_coe_fn, principal_seg.coe_coe_fn] }
 end
 
 namespace order_embedding
@@ -335,7 +337,8 @@ private def partial_wo.is_refl : is_refl _ (≤) :=
 local attribute [instance] partial_wo.is_refl
 
 private def partial_wo.trans {a b c} : a ≤ b → b ≤ c → a ≤ c
-| ⟨f, hf⟩ ⟨g, hg⟩ := ⟨f.trans g, λ a, by simp [hf, hg]⟩
+| ⟨f, hf⟩ ⟨g, hg⟩ := ⟨f.trans g, λ a, by simp [hf, hg,
+    -coe_fn_coe_base, -coe_fn_coe_trans, order_iso.coe_coe_fn, principal_seg.coe_coe_fn]⟩
 
 private def sub_of_le {s t} : s ≤ t → s.1 ⊆ t.1
 | ⟨f, hf⟩ x h := by have := (f ⟨x, h⟩).2; rwa [hf ⟨x, h⟩] at this
@@ -772,7 +775,8 @@ theorem add_le_add_iff_left (a) {b c : ordinal} : a + b ≤ a + c ↔ b ≤ c :=
 ⟨induction_on a $ λ α r _, induction_on b $ λ β₁ s₁ _, induction_on c $ λ β₂ s₂ _ ⟨f⟩, ⟨
   by exactI
   have fl : ∀ a, f (sum.inl a) = sum.inl a := λ a,
-    by simpa using initial_seg.eq ((initial_seg.le_add r s₁).trans f) (initial_seg.le_add r s₂) a,
+    by simpa [-coe_fn_coe_base, -coe_fn_coe_trans, order_iso.coe_coe_fn, principal_seg.coe_coe_fn]
+      using initial_seg.eq ((initial_seg.le_add r s₁).trans f) (initial_seg.le_add r s₂) a,
   have ∀ b, {b' // f (sum.inr b) = sum.inr b'}, begin
     intro b, cases e : f (sum.inr b),
     { rw ← fl at e, have := f.inj e, contradiction },
@@ -782,12 +786,14 @@ theorem add_le_add_iff_left (a) {b c : ordinal} : a + b ≤ a + c ↔ b ≤ c :=
   have fr : ∀ b, f (sum.inr b) = sum.inr (g b), from λ b, (this b).2,
   ⟨⟨⟨g, λ x y h, by injection f.inj
     (by rw [fr, fr, h] : f (sum.inr x) = f (sum.inr y))⟩,
-    λ a b, by simpa [fr] using @order_embedding.ord _ _ _ _
+    λ a b, by simpa [fr, -coe_fn_coe_base, -coe_fn_coe_trans, order_iso.coe_coe_fn, principal_seg.coe_coe_fn]
+      using @order_embedding.ord _ _ _ _
       f.to_order_embedding (sum.inr a) (sum.inr b)⟩,
     λ a b, begin
       have nex : ¬ ∃ (a : α), f (sum.inl a) = sum.inr b :=
         λ ⟨a, e⟩, by rw [fl] at e; injection e,
-      simpa [fr, nex] using f.init (sum.inr a) (sum.inr b),
+      simpa [fr, nex, -coe_fn_coe_base, -coe_fn_coe_trans, order_iso.coe_coe_fn, principal_seg.coe_coe_fn]
+        using f.init (sum.inr a) (sum.inr b),
     end⟩⟩,
 λ h, add_le_add_left h _⟩
 
@@ -2708,7 +2714,8 @@ end
 
 @[simp] theorem aleph_idx.order_iso_coe :
   (aleph_idx.order_iso : cardinal → ordinal) = aleph_idx :=
-by delta aleph_idx.order_iso; simp
+by delta aleph_idx.order_iso;
+  simp [-coe_fn_coe_base, -coe_fn_coe_trans, principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]
 
 @[simp] theorem type_cardinal : @ordinal.type cardinal (<) _ = ordinal.univ.{u (u+1)} :=
 by rw ordinal.univ_id; exact quotient.sound ⟨aleph_idx.order_iso⟩

@@ -11,14 +11,16 @@ meta def get_ext_subject : expr → tactic name
      b' ← whnf $ b.instantiate_var v,
      get_ext_subject b'
 | (expr.app _ e) :=
-  do t ← infer_type e >>= instantiate_mvars,
+  do t ← infer_type e >>= instantiate_mvars >>= head_beta,
      if t.get_app_fn.is_constant then
        pure $ t.get_app_fn.const_name
      else if t.is_pi then
        pure $ name.mk_numeral 0 name.anonymous
      else if t.is_sort then
        pure $ name.mk_numeral 1 name.anonymous
-     else fail format!"only constants and Pi types are supported: {t}"
+     else do
+       t ← pp t,
+       fail format!"only constants and Pi types are supported: {t}"
 | e := fail format!"Only expressions of the form `_ → _ → ... → R ... e are supported: {e}"
 
 open native

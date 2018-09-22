@@ -755,7 +755,7 @@ equiv_of_mem h (ret_mem _)
 
 /-- `lift_rel R ca cb` is a generalization of `equiv` to relations other than
   equality. It asserts that if `ca` terminates with `a`, then `cb` terminates with
-  some `b` such that `R a b`, and if `cb` terminates with b` then `ca` terminates
+  some `b` such that `R a b`, and if `cb` terminates with `b` then `ca` terminates
   with some `a` such that `R a b`. -/
 def lift_rel (R : α → β → Prop) (ca : computation α) (cb : computation β) : Prop :=
 (∀ {a}, a ∈ ca → ∃ {b}, b ∈ cb ∧ R a b) ∧

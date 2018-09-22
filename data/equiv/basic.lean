@@ -488,6 +488,13 @@ def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p
 def equiv_sigma_subtype {α : Type u} {β : Type v} (f : α → β) : α ≃ Σ b, {x : α // f x = b} :=
 ⟨λ x, ⟨f x, x, rfl⟩, λ x, x.2.1, λ x, rfl, λ ⟨b, x, H⟩, sigma.eq H $ eq.drec_on H $ subtype.eq rfl⟩
 
+def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :
+  (Πi, π i) ≃ {f : ι → Σi, π i | ∀i, (f i).1 = i } :=
+⟨ λf, ⟨λi, ⟨i, f i⟩, assume i, rfl⟩, λf i, begin rw ← f.2 i, exact (f.1 i).2 end,
+  assume f, funext $ assume i, rfl,
+  assume ⟨f, hf⟩, subtype.eq $ funext $ assume i, sigma.eq (hf i).symm $
+    eq_of_heq $ rec_heq_of_heq _ $ rec_heq_of_heq _ $ heq.refl _⟩
+
 end
 
 section
@@ -612,16 +619,16 @@ eq_of_to_fun_eq $ funext $ λ r, swap_core_comm r _ _
 theorem swap_apply_def (a b x : α) : swap a b x = if x = a then b else if x = b then a else x :=
 rfl
 
-theorem swap_apply_left (a b : α) : swap a b a = b :=
+@[simp] theorem swap_apply_left (a b : α) : swap a b a = b :=
 if_pos rfl
 
-theorem swap_apply_right (a b : α) : swap a b b = a :=
+@[simp] theorem swap_apply_right (a b : α) : swap a b b = a :=
 by by_cases b = a; simp [swap_apply_def, *]
 
 theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}
 
-theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
+@[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
 
 theorem swap_comp_apply {a b x : α} (π : perm α) :

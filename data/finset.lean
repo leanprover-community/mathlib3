@@ -56,6 +56,8 @@ instance : has_lift (finset α) (set α) := ⟨to_set⟩
 
 @[simp] lemma mem_coe {a : α} {s : finset α} : a ∈ (↑s : set α) ↔ a ∈ s := iff.rfl
 
+@[simp] lemma set_of_mem {α} {s : finset α} : {a | a ∈ s} = ↑s := rfl
+
 /- extensionality -/
 theorem ext {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
 val_inj.symm.trans $ nodup_ext s₁.2 s₂.2

@@ -6,11 +6,16 @@ Authors: Chris Hughes
 import data.fintype
 
 universes u v
+<<<<<<< HEAD
 open equiv function fintype
+=======
+open equiv function finset fintype
+>>>>>>> 9a7a611c426c90f3894addba8a38cf4f9f3d8775
 variables {α : Type u} {β : Type v}
 
 namespace equiv.perm
 
+<<<<<<< HEAD
 section fintype
 
 open list
@@ -132,6 +137,8 @@ end fintype
 
 open finset
 
+=======
+>>>>>>> 9a7a611c426c90f3894addba8a38cf4f9f3d8775
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
 ⟨λ x, ⟨f x, (h _).1 x.2⟩, λ x, ⟨f⁻¹ x, (h (f⁻¹ x)).2 $ by simpa using x.2⟩,
   λ _, by simp, λ _, by simp⟩
@@ -666,8 +673,12 @@ lemma is_cycle_swap_mul {f : perm α} (hf : is_cycle f) {x : α}
   is_cycle_swap_mul_aux₂ (i - 1) hf hy hi⟩
 
 lemma support_swap_mul_cycle [fintype α] {f : perm α} (hf : is_cycle f) {x : α}
+<<<<<<< HEAD
   (hffx : f (f x) ≠ x) : (swap x (f x) * f).support = f.support.erase x :=
 have hfx : f x ≠ x, from λ hfx, by simpa [hfx] using hffx,
+=======
+  (hx : f x ≠ x) (hffx : f (f x) ≠ x) : (swap x (f x) * f).support = f.support.erase x :=
+>>>>>>> 9a7a611c426c90f3894addba8a38cf4f9f3d8775
 finset.ext.2 $ λ y, begin
   have h1 : swap x (f x) * f ≠ 1,
     from λ h1, hffx $ by
@@ -675,7 +686,11 @@ finset.ext.2 $ λ y, begin
       rw ← h1; simp,
   have hfyxor : f y ≠ x ∨ f x ≠ y :=
     not_and_distrib.1 (λ h, h1 $
+<<<<<<< HEAD
       by have := eq_swap_of_is_cycle_of_apply_apply_eq_self hf hfx (by rw [h.2, h.1]);
+=======
+      by have := eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx (by rw [h.2, h.1]);
+>>>>>>> 9a7a611c426c90f3894addba8a38cf4f9f3d8775
       rw [← this, this, mul_def, swap_swap, one_def]),
   rw [mem_support, mem_erase, mem_support],
   split,
@@ -683,7 +698,11 @@ finset.ext.2 $ λ y, begin
     refine not_or_distrib.1 (λ h₁, h₁.elim
       (λ hyx, by simpa [hyx, mul_apply] using h) _),
     assume hfy,
+<<<<<<< HEAD
     have hyx : x ≠ y := λ h, by rw h at hfx; tauto,
+=======
+    have hyx : x ≠ y := λ h, by rw h at hx; tauto,
+>>>>>>> 9a7a611c426c90f3894addba8a38cf4f9f3d8775
     have hfyx : f x ≠ y := by rwa [← hfy, ne.def, injective.eq_iff f.bijective.1],
     simpa [mul_apply, hfy, swap_apply_of_ne_of_ne hyx.symm hfyx.symm] using h },
   { assume h,
@@ -714,7 +733,11 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
         card_support_swap hx.1.symm]; refl
   else
     have h : card (support (swap x (f x) * f)) + 1 = card (support f),
+<<<<<<< HEAD
       by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_cycle hf h1,
+=======
+      by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_cycle hf hx.1 h1,
+>>>>>>> 9a7a611c426c90f3894addba8a38cf4f9f3d8775
         card_insert_of_not_mem (not_mem_erase _ _)],
     have wf : card (support (swap x (f x) * f)) < card (support f),
       from h ▸ nat.lt_succ_self _,

@@ -333,6 +333,9 @@ by rw [add_monoid.smul_eq_mul', add_monoid.smul_eq_mul', mul_assoc]
 theorem add_monoid.mul_smul_assoc [semiring α] (a b : α) (n : ℕ) : n • (a * b) = n • a * b :=
 by rw [add_monoid.smul_eq_mul, add_monoid.smul_eq_mul, mul_assoc]
 
+lemma zero_pow [semiring α] : ∀ {n : ℕ}, 0 < n → (0 : α) ^ n = 0
+| (n+1) _ := zero_mul _
+
 @[simp] theorem nat.cast_pow [semiring α] (n m : ℕ) : (↑(n ^ m) : α) = ↑n ^ m :=
 by induction m; simp [*, nat.succ_eq_add_one, nat.pow_add, pow_add]
 
@@ -439,3 +442,13 @@ by rw pow_two; exact mul_self_nonneg _
 theorem pow_ge_one_add_sub_mul [linear_ordered_ring α]
   {a : α} (H : a ≥ 1) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
 by simpa using pow_ge_one_add_mul (sub_nonneg.2 H) n
+
+namespace int
+
+lemma units_pow_two (u : units ℤ) : u ^ 2 = 1 :=
+(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
+by conv {to_lhs, rw ← nat.mod_add_div n 2}; simp [pow_add, pow_mul, units_pow_two]
+
+end int

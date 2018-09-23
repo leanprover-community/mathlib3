@@ -167,6 +167,15 @@ def linear_order.lift {α β} [linear_order β]
   (f : α → β) (inj : injective f) : linear_order α :=
 { le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj }
 
+instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
+preorder.lift subtype.val
+
+instance subtype.partial_order {α} [partial_order α] (p : α → Prop) : partial_order (subtype p) :=
+partial_order.lift subtype.val $ λ x y, subtype.eq'
+
+instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
+linear_order.lift subtype.val $ λ x y, subtype.eq'
+
 /- additional order classes -/
 
 /-- order without a top element; somtimes called cofinal -/

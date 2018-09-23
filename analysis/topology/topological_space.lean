@@ -465,19 +465,25 @@ end locally_finite
 /- compact sets -/
 section compact
 
-/-- A set `s` is compact if every filter that contains `s` also meets every
-  neighborhood of some `a ∈ s`. -/
+/-- A set `s` is compact if for every filter `f` that contains `s`,
+    every set of `f` also meets every neighborhood of some `a ∈ s`. -/
 def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ nhds a ≠ ⊥
 
-lemma compact_of_is_closed_subset {s t : set α}
-  (hs : compact s) (ht : is_closed t) (h : t ⊆ s) : compact t :=
-assume f hnf hsf,
-let ⟨a, hsa, (ha : f ⊓ nhds a ≠ ⊥)⟩ := hs f hnf (le_trans hsf $ by simp [h]) in
+lemma compact_inter {s t : set α} (hs : compact s) (ht : is_closed t) : compact (s ∩ t) :=
+assume f hnf hstf,
+let ⟨a, hsa, (ha : f ⊓ nhds a ≠ ⊥)⟩ := hs f hnf (le_trans hstf (by simp)) in
 have ∀a, principal t ⊓ nhds a ≠ ⊥ → a ∈ t,
   by intro a; rw [inf_comm]; rw [is_closed_iff_nhds] at ht; exact ht a,
 have a ∈ t,
-  from this a $ neq_bot_of_le_neq_bot ha $ inf_le_inf hsf (le_refl _),
-⟨a, this, ha⟩
+  from this a $ neq_bot_of_le_neq_bot ha $ inf_le_inf (le_trans hstf (by simp)) (le_refl _),
+⟨a, ⟨hsa, this⟩, ha⟩
+
+lemma compact_diff {s t : set α} (hs : compact s) (ht : is_open t) : compact (s \ t) :=
+compact_inter hs (is_closed_compl_iff.mpr ht)
+
+lemma compact_of_is_closed_subset {s t : set α}
+  (hs : compact s) (ht : is_closed t) (h : t ⊆ s) : compact t :=
+by convert ← compact_inter hs ht; exact inter_eq_self_of_subset_right h
 
 lemma compact_adherence_nhdset {s t : set α} {f : filter α}
   (hs : compact s) (hf₂ : f ≤ principal s) (ht₁ : is_open t) (ht₂ : ∀a∈s, nhds a ⊓ f ≠ ⊥ → a ∈ t) :

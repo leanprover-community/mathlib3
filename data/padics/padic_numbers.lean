@@ -9,7 +9,7 @@ Show that the p-adic norm extends to ℚ_p, that ℚ is embedded in ℚ_p, and t
 
 import data.real.cau_seq_completion data.padics.padic_norm algebra.archimedean analysis.normed_space
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 1] classical.prop_decidable
 
 open nat padic_val padic_norm cau_seq cau_seq.completion
 
@@ -21,7 +21,7 @@ section
 variables {p : ℕ} {hp : prime p}
 
 lemma stationary {f : cau_seq ℚ (padic_norm hp)} (hf : ¬ f ≈ 0) :
-      ∃ N, ∀ m n, m ≥ N → n ≥ N → padic_norm hp (f n) = padic_norm hp (f m) :=
+  ∃ N, ∀ m n, m ≥ N → n ≥ N → padic_norm hp (f n) = padic_norm hp (f m) :=
 have ∃ ε > 0, ∃ N1, ∀ j ≥ N1, ε ≤ padic_norm hp (f j),
   from cau_seq.abv_pos_of_not_lim_zero $ not_lim_zero_of_not_congr_zero hf,
 let ⟨ε, hε, N1, hN1⟩ := this,
@@ -46,13 +46,12 @@ def stationary_point {f : padic_seq hp} (hf : ¬ f ≈ 0) : ℕ :=
 classical.some $ stationary hf
 
 lemma stationary_point_spec {f : padic_seq hp} (hf : ¬ f ≈ 0) :
-      ∀ {m n}, m ≥ stationary_point hf → n ≥ stationary_point hf →
-                 padic_norm hp (f n) = padic_norm hp (f m) :=
+  ∀ {m n}, m ≥ stationary_point hf → n ≥ stationary_point hf →
+    padic_norm hp (f n) = padic_norm hp (f m) :=
 classical.some_spec $ stationary hf
 
 def norm (f : padic_seq hp) : ℚ :=
-if hf : f ≈ 0 then 0
-else padic_norm hp (f (stationary_point hf))
+if hf : f ≈ 0 then 0 else padic_norm hp (f (stationary_point hf))
 
 lemma norm_zero_iff (f : padic_seq hp) : f.norm = 0 ↔ f ≈ 0 :=
 begin
@@ -77,16 +76,16 @@ open cau_seq
 variables {p : ℕ} {hp : prime p}
 
 lemma equiv_zero_of_val_eq_of_equiv_zero {f g : padic_seq hp}
-      (h : ∀ k, padic_norm hp (f k) = padic_norm hp (g k)) (hf : f ≈ 0) : g ≈ 0 :=
+  (h : ∀ k, padic_norm hp (f k) = padic_norm hp (g k)) (hf : f ≈ 0) : g ≈ 0 :=
 λ ε hε, let ⟨i, hi⟩ := hf _ hε in
 ⟨i, λ j hj, by simpa [h] using hi _ hj⟩
 
 lemma norm_nonzero_of_not_equiv_zero {f : padic_seq hp} (hf : ¬ f ≈ 0) :
-      f.norm ≠ 0 :=
+  f.norm ≠ 0 :=
 hf ∘ f.norm_zero_iff.1
 
 lemma norm_eq_norm_app_of_nonzero {f : padic_seq hp} (hf : ¬ f ≈ 0) :
-      ∃ k, f.norm = padic_norm hp k ∧ k ≠ 0 :=
+  ∃ k, f.norm = padic_norm hp k ∧ k ≠ 0 :=
 have heq : f.norm = padic_norm hp (f $ stationary_point hf), by simp [norm, hf],
 ⟨f $ stationary_point hf, heq,
   λ h, norm_nonzero_of_not_equiv_zero hf (by simpa [h] using heq)⟩
@@ -101,6 +100,70 @@ lemma norm_nonneg (f : padic_seq hp) : f.norm ≥ 0 :=
 if hf : f ≈ 0 then by simp [hf, norm]
 else by simp [norm, hf, padic_norm.nonneg]
 
+lemma lift_index_left_left {f : padic_seq hp} (hf : ¬ f ≈ 0) (v2 v3 : ℕ) :
+  padic_norm hp (f (stationary_point hf)) = padic_norm hp (f (max (stationary_point hf) (max v2 v3))) :=
+let i := max (stationary_point hf) (max v2 v3) in
+begin
+  apply stationary_point_spec hf,
+  { apply le_max_left },
+  { apply le_refl }
+end
+
+lemma lift_index_left {f : padic_seq hp} (hf : ¬ f ≈ 0) (v1 v3 : ℕ) :
+  padic_norm hp (f (stationary_point hf)) = padic_norm hp (f (max v1 (max (stationary_point hf) v3))) :=
+let i := max v1 (max (stationary_point hf) v3) in
+begin
+  apply stationary_point_spec hf,
+  { apply le_trans,
+    { apply le_max_left _ v3 },
+    { apply le_max_right } },
+  { apply le_refl }
+end
+
+lemma lift_index_right {f : padic_seq hp} (hf : ¬ f ≈ 0) (v1 v2 : ℕ) :
+  padic_norm hp (f (stationary_point hf)) = padic_norm hp (f (max v1 (max v2 (stationary_point hf)))) :=
+let i := max v1 (max v2 (stationary_point hf)) in
+begin
+  apply stationary_point_spec hf,
+  { apply le_trans,
+    { apply le_max_right v2 },
+    { apply le_max_right } },
+  { apply le_refl }
+end
+
+end embedding
+
+end padic_seq
+
+section
+open padic_seq
+
+meta def index_simp_core (hh hf hg : expr) (at_ : interactive.loc := interactive.loc.ns [none]) : tactic unit :=
+do [v1, v2, v3] ← [hh, hf, hg].mmap
+     (λ n, tactic.mk_app ``stationary_point [n] <|> return n),
+   e1 ← tactic.mk_app ``lift_index_left_left [hh, v2, v3] <|> return `(true),
+   e2 ← tactic.mk_app ``lift_index_left [hf, v1, v3] <|> return `(true),
+   e3 ← tactic.mk_app ``lift_index_right [hg, v1, v2] <|> return `(true),
+   sl ← [e1, e2, e3].mfoldl (λ s e, simp_lemmas.add s e) simp_lemmas.mk,
+   when at_.include_goal (tactic.simp_target sl),
+   hs ← at_.get_locals, hs.mmap' (tactic.simp_hyp sl [])
+
+/--
+  This is a special-purpose tactic that lifts padic_norm (f (stationary_point f)) to
+  padic_norm (f (max _ _ _)).
+-/
+meta def tactic.interactive.padic_index_simp (l : interactive.parse interactive.types.pexpr_list)
+  (at_ : interactive.parse interactive.types.location) : tactic unit :=
+do [h, f, g] ← l.mmap tactic.i_to_expr,
+   index_simp_core h f g at_
+end
+
+namespace padic_seq
+section embedding
+
+open cau_seq
+variables {p : ℕ} {hp : prime p}
+
 lemma norm_mul (f g : padic_seq hp) : (f * g).norm = f.norm * g.norm :=
 if hf : f ≈ 0 then
   have hg : f * g ≈ 0, from mul_equiv_zero' _ hf,
@@ -110,27 +173,10 @@ else if hg : g ≈ 0 then
   by simp [hf, hg, norm]
 else
   have hfg : ¬ f * g ≈ 0, by apply mul_not_equiv_zero; assumption,
-  let i := max (stationary_point hfg) (max (stationary_point hf) (stationary_point hg)) in
-  have hpnfg : padic_norm hp ((f * g) (stationary_point hfg)) = padic_norm hp ((f * g) i),
-  { apply stationary_point_spec hfg,
-    apply le_max_left,
-    apply le_refl },
-  have hpnf : padic_norm hp (f (stationary_point hf)) = padic_norm hp (f i),
-  { apply stationary_point_spec hf,
-    apply ge_trans,
-    apply le_max_right,
-    apply le_max_left,
-    apply le_refl },
-  have hpng : padic_norm hp (g (stationary_point hg)) = padic_norm hp (g i),
-  { apply stationary_point_spec hg,
-    apply ge_trans,
-    apply le_max_right,
-    apply le_max_right,
-    apply le_refl },
   begin
     unfold norm,
     split_ifs,
-    rw [hpnfg, hpnf, hpng],
+    padic_index_simp [hfg, hf, hg],
     apply padic_norm.mul hp
   end
 
@@ -150,7 +196,7 @@ else
   by simp [norm, this]
 
 lemma norm_image (a : padic_seq hp) (ha : ¬ a ≈ 0) :
-      (∃ (n : ℤ), a.norm = fpow ↑p (-n)) :=
+  (∃ (n : ℤ), a.norm = fpow ↑p (-n)) :=
 let ⟨k, hk, hk'⟩ := norm_eq_norm_app_of_nonzero ha in
 by simpa [hk] using padic_norm.image hp hk'
 
@@ -159,46 +205,30 @@ have h1 : ¬ (1 : padic_seq hp) ≈ 0, from one_not_equiv_zero _,
 by simp [h1, norm, hp.gt_one]
 
 private lemma norm_eq_of_equiv_aux {f g : padic_seq hp} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) (hfg : f ≈ g)
-        (h : padic_norm hp (f (stationary_point hf)) ≠ padic_norm hp (g (stationary_point hg)))
-        (hgt : padic_norm hp (f (stationary_point hf)) > padic_norm hp (g (stationary_point hg))) :
-        false :=
+  (h : padic_norm hp (f (stationary_point hf)) ≠ padic_norm hp (g (stationary_point hg)))
+  (hgt : padic_norm hp (f (stationary_point hf)) > padic_norm hp (g (stationary_point hg))) :
+  false :=
 begin
   have hpn : padic_norm hp (f (stationary_point hf)) - padic_norm hp (g (stationary_point hg)) > 0,
     from sub_pos_of_lt hgt,
   cases hfg _ hpn with N hN,
   let i := max N (max (stationary_point hf) (stationary_point hg)),
-  have hfi : padic_norm hp (f (stationary_point hf)) = padic_norm hp (f i),
-  { apply stationary_point_spec hf,
-    { apply le_trans,
-      apply le_max_left,
-      tactic.rotate_left 1,
-      apply le_max_right },
-    { apply le_refl } },
-  have hgi : padic_norm hp (g (stationary_point hg)) = padic_norm hp (g i),
-  { apply stationary_point_spec hg,
-    { apply le_trans,
-      apply le_max_right,
-      tactic.rotate_left 1,
-      apply le_max_right },
-    { apply le_refl } },
   have hi : i ≥ N, from le_max_left _ _,
   have hN' := hN _ hi,
-  simp only [hfi, hgi] at hN',
+  padic_index_simp [N, hf, hg] at hN' h hgt,
   have hpne : padic_norm hp (f i) ≠ padic_norm hp (-(g i)),
-    by rwa [hfi, hgi, ←padic_norm.neg hp (g i)] at h,
+    by rwa [ ←padic_norm.neg hp (g i)] at h,
   let hpnem := add_eq_max_of_ne hp hpne,
   have hpeq : padic_norm hp ((f - g) i) = max (padic_norm hp (f i)) (padic_norm hp (g i)),
   { rwa padic_norm.neg at hpnem },
-  have hfigi : padic_norm hp (g i) < padic_norm hp (f i),
-  { rwa [hfi, hgi] at hgt },
-  rw [hpeq, max_eq_left_of_lt hfigi] at hN',
+  rw [hpeq, max_eq_left_of_lt hgt] at hN',
   have : padic_norm hp (f i) < padic_norm hp (f i),
   { apply lt_of_lt_of_le hN', apply sub_le_self, apply padic_norm.nonneg },
   exact lt_irrefl _ this
 end
 
 private lemma norm_eq_of_equiv {f g : padic_seq hp} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) (hfg : f ≈ g) :
-      padic_norm hp (f (stationary_point hf)) = padic_norm hp (g (stationary_point hg)) :=
+  padic_norm hp (f (stationary_point hf)) = padic_norm hp (g (stationary_point hg)) :=
 begin
   by_contradiction h,
   cases (decidable.em (padic_norm hp (f (stationary_point hf)) >
@@ -219,33 +249,14 @@ else have hg : ¬ g ≈ 0, from hf ∘ setoid.trans hfg,
 by unfold norm; split_ifs; exact norm_eq_of_equiv hf hg hfg
 
 private lemma norm_nonarchimedean_aux {f g : padic_seq hp}
-        (hfg : ¬ f + g ≈ 0) (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) :
-        (f + g).norm ≤ max (f.norm) (g.norm) :=
-let i := max (stationary_point hfg) (max (stationary_point hf) (stationary_point hg)) in
-have hpnfg : padic_norm hp ((f + g) (stationary_point hfg)) = padic_norm hp ((f + g) i),
-{ apply stationary_point_spec hfg,
-  apply le_max_left,
-  apply le_refl },
-have hpnf : padic_norm hp (f (stationary_point hf)) = padic_norm hp (f i),
-{ apply stationary_point_spec hf,
-  apply ge_trans,
-  apply le_max_right,
-  apply le_max_left,
-  apply le_refl },
-have hpng : padic_norm hp (g (stationary_point hg)) = padic_norm hp (g i),
-{ apply stationary_point_spec hg,
-  apply ge_trans,
-  apply le_max_right,
-  apply le_max_right,
-  apply le_refl },
+  (hfg : ¬ f + g ≈ 0) (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) : (f + g).norm ≤ max (f.norm) (g.norm) :=
 begin
   unfold norm, split_ifs,
-  rw [hpnfg, hpnf, hpng],
+  padic_index_simp [hfg, hf, hg],
   apply padic_norm.nonarchimedean
 end
 
-theorem norm_nonarchimedean (f g : padic_seq hp) :
-      (f + g).norm ≤ max (f.norm) (g.norm) :=
+theorem norm_nonarchimedean (f g : padic_seq hp) : (f + g).norm ≤ max (f.norm) (g.norm) :=
 if hfg : f + g ≈ 0 then
   have 0 ≤ max (f.norm) (g.norm), from le_max_left_of_le (norm_nonneg _),
   by simpa [hfg, norm]
@@ -270,7 +281,7 @@ else if hg : g ≈ 0 then
 else norm_nonarchimedean_aux hfg hf hg
 
 lemma norm_eq {f g : padic_seq hp} (h : ∀ k, padic_norm hp (f k) = padic_norm hp (g k)) :
-      f.norm = g.norm :=
+  f.norm = g.norm :=
 if hf : f ≈ 0 then
   have hg : g ≈ 0, from equiv_zero_of_val_eq_of_equiv_zero h hf,
   by simp [hf, hg, norm]
@@ -311,28 +322,11 @@ else if hg : g ≈ 0 then
   have h2 : g.norm = 0, from (norm_zero_iff _).2 hg,
   by rw [h1, h2]; rw max_eq_left (norm_nonneg _)
 else
-let i := max (stationary_point hfg) (max (stationary_point hf) (stationary_point hg)) in
-have hpnfg : padic_norm hp ((f + g) (stationary_point hfg)) = padic_norm hp ((f + g) i),
-{ apply stationary_point_spec hfg,
-  apply le_max_left,
-  apply le_refl },
-have hpnf : padic_norm hp (f (stationary_point hf)) = padic_norm hp (f i),
-{ apply stationary_point_spec hf,
-  apply ge_trans,
-  apply le_max_right,
-  apply le_max_left,
-  apply le_refl },
-have hpng : padic_norm hp (g (stationary_point hg)) = padic_norm hp (g i),
-{ apply stationary_point_spec hg,
-  apply ge_trans,
-  apply le_max_right,
-  apply le_max_right,
-  apply le_refl },
 begin
-  unfold norm, split_ifs,
-  rw [hpnfg, hpnf, hpng],
+  unfold norm at ⊢ hfgne, split_ifs at ⊢ hfgne,
+  padic_index_simp [hfg, hf, hg] at ⊢ hfgne,
   apply padic_norm.add_eq_max_of_ne,
-  simpa [hf, hg, norm, hpnf, hpng] using hfgne
+  simpa [hf, hg, norm] using hfgne
 end
 
 end embedding
@@ -417,8 +411,7 @@ section embedding
 open padic_seq
 variables {p : ℕ} {hp : prime p}
 
-lemma defn (f : padic_seq hp) {ε : ℚ} (hε : ε > 0) :
-      ∃ N, ∀ i ≥ N, padic_norm_e (⟦f⟧ - f i) < ε :=
+lemma defn (f : padic_seq hp) {ε : ℚ} (hε : ε > 0) : ∃ N, ∀ i ≥ N, padic_norm_e (⟦f⟧ - f i) < ε :=
 begin
   simp only [padic.cast_eq_of_rat],
   change ∃ N, ∀ i ≥ N, (f - const _ (f i)).norm < ε,
@@ -458,7 +451,7 @@ norm_one
 quotient.induction_on q $ norm_neg
 
 theorem nonarchimedean' (q r : ℚ_[hp]) :
-      padic_norm_e (q + r) ≤ max (padic_norm_e q) (padic_norm_e r) :=
+  padic_norm_e (q + r) ≤ max (padic_norm_e q) (padic_norm_e r) :=
 quotient.induction_on₂ q r $ norm_nonarchimedean
 
 theorem add_eq_max_of_ne' {q r : ℚ_[hp]} :
@@ -472,15 +465,13 @@ calc padic_norm_e (x - z) = padic_norm_e ((x - y) + (y - z)) : by rw sub_add_sub
   ... ≤ padic_norm_e (x - y) + padic_norm_e (y - z) :
     max_le_add_of_nonneg (padic_norm_e.nonneg _) (padic_norm_e.nonneg _)
 
-protected lemma add (q r : ℚ_[hp]) :
-      padic_norm_e (q + r) ≤ (padic_norm_e q) + (padic_norm_e r) :=
+protected lemma add (q r : ℚ_[hp]) : padic_norm_e (q + r) ≤ (padic_norm_e q) + (padic_norm_e r) :=
 calc
   padic_norm_e (q + r) ≤ max (padic_norm_e q) (padic_norm_e r) : nonarchimedean' _ _
                       ... ≤ (padic_norm_e q) + (padic_norm_e r) :
                               max_le_add_of_nonneg (padic_norm_e.nonneg _) (padic_norm_e.nonneg _)
 
-protected lemma mul' (q r : ℚ_[hp]) :
-      padic_norm_e (q * r) = (padic_norm_e q) * (padic_norm_e r) :=
+protected lemma mul' (q r : ℚ_[hp]) : padic_norm_e (q * r) = (padic_norm_e q) * (padic_norm_e r) :=
 quotient.induction_on₂ q r $ norm_mul
 
 instance : is_absolute_value (@padic_norm_e _ hp) :=
@@ -509,7 +500,7 @@ section complete
 open padic_seq padic
 
 theorem rat_dense' {p : ℕ} {hp : prime p} (q : ℚ_[hp]) {ε : ℚ} (hε : ε > 0) :
-        ∃ r : ℚ, padic_norm_e (q - r) < ε :=
+  ∃ r : ℚ, padic_norm_e (q - r) < ε :=
 quotient.induction_on q $ λ q',
   have ∃ N, ∀ m n ≥ N, padic_norm hp (q' m - q' n) < ε, from cauchy₂ _ hε,
   let ⟨N, hN⟩ := this in
@@ -585,8 +576,7 @@ private def lim' : padic_seq hp := ⟨_, exi_rat_seq_conv_cauchy f⟩
 
 private def lim : ℚ_[hp] := ⟦lim' f⟧
 
-theorem complete' :
-        ∃ q : ℚ_[hp], ∀ ε > 0, ∃ N, ∀ i ≥ N, padic_norm_e (q - f i) < ε :=
+theorem complete' : ∃ q : ℚ_[hp], ∀ ε > 0, ∃ N, ∀ i ≥ N, padic_norm_e (q - f i) < ε :=
 ⟨ lim f,
   λ ε hε,
   let ⟨N, hN⟩ := exi_rat_seq_conv f (show ε / 2 > 0, from div_pos hε (by norm_num)),

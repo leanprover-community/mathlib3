@@ -351,9 +351,17 @@ variables {p : ℕ} (hp : prime p)
 
 @[simp] protected lemma zero : padic_norm hp 0 = 0 := by simp [padic_norm]
 
-@[simp] protected lemma nonzero {q : ℚ} (hq : q ≠ 0) :
+@[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
   padic_norm hp q = fpow p (-(padic_val_rat p q)) :=
 by simp [hq, padic_norm]
+
+protected lemma nonzero {q : ℚ} (hq : q ≠ 0) : padic_norm hp q ≠ 0 :=
+begin
+  rw padic_norm.eq_fpow_of_nonzero hp hq,
+  apply fpow_ne_zero_of_ne_zero, simp,
+  apply ne_of_gt,
+  simpa using hp.pos
+end
 
 @[simp] protected lemma neg (q : ℚ) : padic_norm hp (-q) = padic_norm hp q :=
 if hq : q = 0 then by simp [hq]
@@ -376,7 +384,7 @@ else
     apply nat.cast_nonneg
   end
 
-protected theorem mul (q r : ℚ) : padic_norm hp (q*r) = padic_norm hp q * padic_norm hp r :=
+@[simp] protected theorem mul (q r : ℚ) : padic_norm hp (q*r) = padic_norm hp q * padic_norm hp r :=
 if hq : q = 0 then
   by simp [hq]
 else if hr : r = 0 then
@@ -385,6 +393,11 @@ else
   have q*r ≠ 0, from mul_ne_zero hq hr,
   have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
   by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
+
+@[simp] protected theorem div (q r : ℚ) : padic_norm hp (q / r) = padic_norm hp q / padic_norm hp r :=
+if hr : r = 0 then by simp [hr] else
+eq_div_of_mul_eq _ _ (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
+
 
 private lemma nonarchimedean_aux {q r : ℚ} (h : padic_val_rat p q ≤ padic_val_rat p r) :
   padic_norm hp (q + r) ≤ max (padic_norm hp q) (padic_norm hp r) :=

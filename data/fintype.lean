@@ -568,7 +568,8 @@ lemma fintype.card_perm [fintype α] : fintype.card (perm α) = (fintype.card α
 subsingleton.elim (@fintype_perm α _ _) (@equiv.fintype α α _ _ _ _) ▸
 card_perms_of_finset _
 
-lemma fintype.card_equiv [fintype α] [fintype β] (e : α ≃ β) : fintype.card (α ≃ β) = (fintype.card α).fact :=
+lemma fintype.card_equiv [fintype α] [fintype β] (e : α ≃ β) :
+  fintype.card (α ≃ β) = (fintype.card α).fact :=
 fintype.card_congr (equiv_congr (equiv.refl α) e) ▸ fintype.card_perm
 
 end equiv

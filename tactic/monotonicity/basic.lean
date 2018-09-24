@@ -1,6 +1,9 @@
 
 import tactic.basic
 import category.basic
+import algebra.order_functions
+import algebra.order
+import meta.rb_map
 
 namespace tactic.interactive
 open tactic list
@@ -52,38 +55,48 @@ meta def match_imp : expr → tactic (expr × expr)
       return (e₀,e₁)
  | _ := failed
 
-meta def monotoncity.check_rel (xs : list expr) (l r : expr) : tactic unit :=
-do (_,x,y,_) ← find_one_difference { mono_cfg . }
-               l.get_app_args r.get_app_args,
-   when (¬ l.get_app_fn = r.get_app_fn)
-     (fail format!"{l} and {r} should be the f x and f y for some f"),
-   t ← infer_type (list.ilast xs),
-   (l',r') ← last_two t.get_app_args
-     <|> match_imp t
-     <|> fail format!"expecting assumption {t} to be a relation R x y",
-   when (¬ x.is_local_constant) (fail format!"expecting a bound variable: {x}"),
-   when (¬ y.is_local_constant) (fail format!"expecting a bound variable: {y}"),
-   when ([l',r'] ≠ [x,y] ∧ [l',r'] ≠ [y,x])
-     (fail "assumption {t} should be relating variables {l'} and {r'}"),
-   return ()
+open expr
 
-meta def monotoncity.check_imp (x₀ : expr) : list expr → tactic unit
-| (x₁ :: xs) := infer_type x₁ >>= monotoncity.check_rel xs.reverse x₀
-| _ := fail "monotoncity.check_imp"
+meta def same_operator : expr → expr → bool
+| (app e₀ _) (app e₁ _) :=
+let fn₀ := e₀.get_app_fn,
+    fn₁ := e₁.get_app_fn in
+    fn₀.is_constant ∧ fn₀.const_name = fn₁.const_name
+| (pi _ _ _ _) (pi _ _ _ _) := tt
+| _ _ := ff
 
-meta def monotoncity.check (lm_n : name) (prio : ℕ) (persistent : bool) : tactic unit :=
+meta def get_operator (e : expr) : option name :=
+guard (¬ e.is_pi) >> pure e.get_app_fn.const_name
+
+meta def monotoncity.check_rel (xs : list expr) (l r : expr) : tactic (option name) :=
+do guard (same_operator l r) <|>
+     do { fail format!"{l} and {r} should be the f x and f y for some f" },
+   if l.is_pi then pure none
+              else pure r.get_app_fn.const_name
+
+@[reducible]
+def mono_key := (with_bot name × with_bot name)
+
+open nat
+
+meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
+| 0 _ h := fail format!"oh? {h}"
+| (succ n) xs h :=
+  do { (rel,l,r) ← if h.is_arrow
+           then pure (none,h.binding_domain,h.binding_body)
+           else guard h.get_app_fn.is_constant >>
+                prod.mk (some h.get_app_fn.const_name) <$> last_two h.get_app_args,
+       prod.mk <$> monotoncity.check_rel xs.reverse l r <*> pure rel } <|>
+         match xs with
+         | [] := fail format!"oh? {h}"
+         | (x::xs) := mono_head_candidates n xs (h.pis [x])
+         end
+
+meta def monotoncity.check (lm_n : name) (prio : ℕ) (persistent : bool) : tactic mono_key :=
 do lm ← mk_const lm_n,
    lm_t ← infer_type lm,
    (xs,h) ← mk_local_pis lm_t,
-   x ← try_core (monotoncity.check_imp h xs.reverse),
-   match x with
-    | (some x) :=
-      (do (l,r) ← last_two h.get_app_args,
-          monotoncity.check_rel xs l r) <|> return x
-    | none :=
-      do (l,r) ← last_two h.get_app_args <|> fail format!"expecting: R x y\nactual: {h}",
-         monotoncity.check_rel xs l r
-   end
+   mono_head_candidates 3 xs.reverse h
 
 meta instance : has_to_format mono_selection :=
 ⟨ λ x, match x with
@@ -100,27 +113,51 @@ do some n ← optional ident | pure mono_selection.both,
    else if n = `both then pure $ mono_selection.both
    else fail format!"invalid argument: {n}, expecting 'left', 'right' or 'both' (default)"
 
+open function
+
 @[user_attribute]
-meta def monotonicity.attr : user_attribute unit mono_selection :=
+meta def monotonicity.attr : user_attribute
+  (native.rb_map mono_key (list name))
+  (option mono_key × mono_selection) :=
 { name  := `monotonic
-, descr := "monotonicity of functions wrt relations: R₀ x y → R₁ (f x) (f y)"
--- , after_set := some monotoncity.check
-, parser := side }
+, descr := "monotonicity of function `f` wrt relations `R₀` and `R₁`: R₀ x y → R₁ (f x) (f y)"
+, cache_cfg :=
+  { dependencies := [],
+    mk_cache := λ ls,
+    do ps ← ls.mmap monotonicity.attr.get_param,
+       let ps := ps.filter_map prod.fst,
+       pure $ (ps.zip ls).foldl
+         (flip $ uncurry native.rb_map.insert_cons)
+         (native.rb_map.mk mono_key _)  }
+, after_set := some $ λ n prio p,
+  do { (none,v) ← monotonicity.attr.get_param n | pure (),
+       k ← monotoncity.check n prio p,
+       monotonicity.attr.set n (some k,v) p }
+, parser := prod.mk none <$> side }
 
 meta def filter_instances (e : mono_selection) (ns : list name) : tactic (list name) :=
 ns.mfilter $ λ n,
 do d ← user_attribute.get_param_untyped monotonicity.attr n,
-   d ← to_expr ``(id %%d) >>= eval_expr mono_selection,
-   return (e = d)
+   (_,d) ← to_expr ``(id %%d) >>= eval_expr (option mono_key × mono_selection),
+   return (e = d : bool)
 
-meta def get_monotonicity_lemmas (e : mono_selection) : tactic (list name) :=
-do ns  ← attribute.get_instances `monotonic,
+meta def get_monotonicity_lemmas (k : expr) (e : mono_selection) : tactic (list name) :=
+do ns  ← monotonicity.attr.get_cache,
+   k' ← if k.is_pi
+        then pure (get_operator k.binding_domain,none)
+        else do { (x₀,x₁) ← last_two k.get_app_args,
+                  pure (get_operator x₀,some k.get_app_fn.const_name) },
+   let ns := ns.find_def [] k',
    ns' ← filter_instances e ns,
    if e ≠ mono_selection.both then (++) ns' <$> filter_instances mono_selection.both ns
                else pure ns'
 
 end tactic.interactive
 
-attribute [monotonic] add_le_add mul_le_mul neg_le_neg mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
+attribute [monotonic] add_le_add mul_le_mul neg_le_neg
+         mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
+         imp_imp_imp le_implies_le_of_le_of_le
+         sub_le_sub abs_le_abs
 attribute [monotonic left] add_lt_add_of_le_of_lt mul_lt_mul'
 attribute [monotonic right] add_lt_add_of_lt_of_le mul_lt_mul
+open tactic.interactive

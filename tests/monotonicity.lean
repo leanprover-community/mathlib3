@@ -1,5 +1,5 @@
 
-import tactic.monotonicity.interactive
+import tactic.monotonicity.interactive tactic.norm_num
 
 import algebra.ordered_ring
 
@@ -35,23 +35,26 @@ example (x y z k : ℤ)
   (h' : z ≤ y)
 : (k + 3 + x) - y ≤ (k + 4 + x) - z :=
 begin
-  mono, -- unfold `(-)`, apply add_le_add
-  { -- ⊢ k + 3 + x ≤ k + 4 + x
-    mono, -- apply add_le_add, refl
-    -- ⊢ k + 3 ≤ k + 4
-    mono },
-  { -- ⊢ -y ≤ -z
-    mono /- apply neg_le_neg -/ }
+  mono, norm_num
+end
+
+example (x y z a b : ℤ)
+  (h : a ≤ (b : ℤ))
+  (h' : z ≤ y)
+: (1 + a + x) - y ≤ (1 + b + x) - z :=
+begin
+  transitivity (1 + a + x - z),
+  { mono, },
+  { mono, mono, mono },
 end
 
 example (x y z : ℤ)
-  (h : 3 ≤ (4 : ℤ))
   (h' : z ≤ y)
 : (1 + 3 + x) - y ≤ (1 + 4 + x) - z :=
 begin
   transitivity (1 + 3 + x - z),
-  { mono, mono },
-  { mono, mono },
+  { mono },
+  { mono, mono, norm_num },
 end
 
 example (x y z : ℤ)
@@ -283,6 +286,14 @@ end
 
 example (x y z k m n i j : ℕ)
   (h₁ : x + i = y + j)
+: z * (x + i + n + m) + k = z * (y + j + n + m) + k :=
+begin
+  congr,
+  simp [h₁],
+end
+
+example (x y z k m n i j : ℕ)
+  (h₁ : x + i = y + j)
 : (m + x + n + i) * z + k = z * (j + n + m + y) + k :=
 begin
   ac_mono*,
@@ -330,7 +341,7 @@ end
 example {x y z w : ℕ} : true :=
 begin
   have : x * y ≤ z * w,
-  { mono using [0 ≤ z,0 ≤ y],
+  { mono with [0 ≤ z,0 ≤ y],
     { guard_target 0 ≤ z, admit },
     { guard_target 0 ≤ y, admit },
     guard_target' x ≤ z, admit,
@@ -386,4 +397,18 @@ begin
   ac_mono := h,
   trivial,
   exact 3
+end
+
+example {α} [decidable_linear_order α]
+  (a b c d e : α) :
+  max a b ≤ e → b ≤ e :=
+by { mono, apply le_max_right }
+
+example (a b c d e : Prop)
+  (h : d → a) (h' : c → e) :
+  (a ∧ b → c) ∨ d → (d ∧ b → e) ∨ a :=
+begin
+  mono,
+  mono,
+  mono,
 end

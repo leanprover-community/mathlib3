@@ -92,6 +92,8 @@ solve_by_elim { restr_hyp_set := asms }
 <|>
 reflexivity
 <|>
+applyc ``id
+<|>
 return ()
 
 private meta def match_rule_head  (p : expr)
@@ -467,8 +469,8 @@ do t ← target,
 
 meta def mono_aux (dir : parse side) (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
-do t ← target,
-   ns ← get_monotonicity_lemmas dir,
+do t ← target >>= instantiate_mvars,
+   ns ← get_monotonicity_lemmas t dir,
    asms ← local_context,
    rs ← find_lemma asms t ns,
    focus1 $ () <$ best_match rs (λ law, tactic.refine $ to_pexpr law)
@@ -484,7 +486,7 @@ do t ← target,
     - right: `x < w` and `y ≤ z`
 -/
 meta def mono (many : parse (tk "*")?) (dir : parse side)
-  (hyps : parse $ tk "using" *> pexpr_list_or_texpr <|> pure [])
+  (hyps : parse $ tk "with" *> pexpr_list_or_texpr <|> pure [])
   (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
 do hyps ← hyps.mmap (λ p, to_expr p >>= mk_meta_var),
@@ -506,11 +508,10 @@ meta def ac_mono_aux (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
 hide_meta_vars $ λ asms,
 do try `[dunfold has_sub.sub algebra.sub],
-   (l,r,id_rs,g) ← target >>=
-                 instantiate_mvars >>=
-                 ac_monotonicity_goal cfg
+   tgt ← target >>= instantiate_mvars,
+   (l,r,id_rs,g) ← ac_monotonicity_goal cfg tgt
              <|> fail "monotonic context not found",
-   ns ← get_monotonicity_lemmas both,
+   ns ← get_monotonicity_lemmas tgt both,
    p ← mk_pattern g,
    rules ← find_rule asms ns p <|> fail "no applicable rules found",
    when (rules = []) (fail "no applicable rules found"),

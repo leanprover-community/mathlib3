@@ -293,6 +293,13 @@ namespace with_bot
 variable {α : Type u}
 open lattice
 
+meta instance {α} [has_to_format α] : has_to_format (with_bot α) :=
+{ to_format := λ x,
+  match x with
+  | none := "⊥"
+  | (some x) := to_fmt x
+  end }
+
 instance : has_coe_t α (with_bot α) := ⟨some⟩
 instance has_bot : has_bot (with_bot α) := ⟨none⟩
 
@@ -301,6 +308,10 @@ lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rf
 
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
+
+@[priority 0]
+instance has_lt [has_lt α] : has_lt (with_bot α) :=
+{ lt := λ o₁ o₂ : option α, o₂.is_some ∧ ∀ a ∈ o₁, ∃ b ∈ o₂, a < b }
 
 instance partial_order [partial_order α] : partial_order (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
@@ -333,6 +344,27 @@ theorem coe_le [partial_order α] {a b : α} :
   ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b)
 | _ rfl := coe_le_coe
 
+@[simp] theorem has_lt_iff_lt [partial_order α] {a b : with_bot α} :
+  @has_lt.lt _ (with_bot.has_lt) a b ↔ a < b :=
+begin
+  split; rintro ⟨h₀,h₁⟩, split,
+   { intros a' ha', existsi [option.get h₀,option.get_mem _],
+     rcases h₁ a' ha' with ⟨b,⟨ ⟩,hab⟩, dsimp [option.get],
+     exact  le_of_lt hab },
+   { intro h₂, rcases h₂ (option.get h₀) (option.get_mem _) with ⟨a',⟨ ⟩,h₃⟩,
+     rcases h₁ a' rfl with ⟨b',⟨ ⟩,h₄⟩, dsimp [option.get] at h₃,
+     refine not_lt_of_le h₃ h₄ },
+   have h₃ : ↥(option.is_some b),
+   { by_contradiction h₂, simp [option.is_none_iff_eq_none] at h₂, subst b,
+     apply h₁, rintro _ ⟨ ⟩, },
+   { existsi h₃, rintros a' ⟨ ⟩, simp [option.is_some_iff_exists] at h₃,
+     cases h₃ with b' hb', existsi [_,hb'],
+     rw lt_iff_le_not_le, split,
+     { rcases h₀ a' rfl with ⟨b'',⟨ ⟩,h₄⟩, cases hb', apply h₄, },
+     { intro h₃, apply h₁, rintros _ ⟨ ⟩, cases hb',
+       existsi [_,rfl], exact h₃, } }
+end
+
 @[simp] theorem some_lt_some [partial_order α] {a b : α} :
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 (and_congr some_le_some (not_congr some_le_some))
@@ -352,6 +384,14 @@ instance linear_order [linear_order α] : linear_order (with_bot α) :=
     simp [le_total]
   end,
   ..with_bot.partial_order }
+
+instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_bot α) (<)
+| none (some x) := is_true $ by existsi [rfl]; rintro _ ⟨ ⟩
+| (some x) (some y) :=
+  if h : x < y
+  then is_true $ by existsi [rfl]; rintro _ ⟨ ⟩; existsi [_,rfl]; exact h
+  else is_false $ by intro h'; apply h; rcases h'.2 x rfl with ⟨y',⟨ ⟩,hy⟩; exact hy
+| x none := is_false $ by rintro ⟨⟨ ⟩,_⟩
 
 instance decidable_linear_order [decidable_linear_order α] : decidable_linear_order (with_bot α) :=
 { decidable_le := λ a b, begin
@@ -448,6 +488,13 @@ def with_top (α : Type*) := option α
 namespace with_top
 variable {α : Type u}
 open lattice
+
+meta instance {α} [has_to_format α] : has_to_format (with_top α) :=
+{ to_format := λ x,
+  match x with
+  | none := "⊤"
+  | (some x) := to_fmt x
+  end }
 
 instance : has_coe_t α (with_top α) := ⟨some⟩
 instance has_top : has_top (with_top α) := ⟨none⟩

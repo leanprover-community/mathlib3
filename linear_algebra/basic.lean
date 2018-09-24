@@ -464,6 +464,64 @@ begin
   refine mem_sup.2 ⟨(x, y), ⟨hx, hy⟩, (x', y'), ⟨hx', hy'⟩, rfl⟩
 end
 
+-- TODO(Mario): Factor through add_subgroup
+def quotient_rel : setoid β :=
+⟨λ x y, x - y ∈ p, λ x, by simp,
+ λ x y h, by simpa using neg_mem _ h,
+ λ x y z h₁ h₂, by simpa using add_mem _ h₁ h₂⟩
+
+def quotient : Type* := quotient (quotient_rel p)
+
+namespace quotient
+
+def mk {p : submodule α β} : β → quotient p := quotient.mk'
+
+@[simp] theorem mk_eq_mk {p : submodule α β} (x : β) : (quotient.mk x : quotient p) = mk x := rfl
+@[simp] theorem mk'_eq_mk {p : submodule α β} (x : β) : (quotient.mk' x : quotient p) = mk x := rfl
+@[simp] theorem quot_mk_eq_mk {p : submodule α β} (x : β) : (quot.mk _ x : quotient p) = mk x := rfl
+
+protected theorem eq {x y : β} : (mk x : quotient p) = mk y ↔ x - y ∈ p := quotient.eq'
+
+instance : has_zero (quotient p) := ⟨mk 0⟩
+
+@[simp] theorem mk_zero : mk 0 = (0 : quotient p) := rfl
+
+@[simp] theorem mk_eq_zero : (mk x : quotient p) = 0 ↔ x ∈ p :=
+by simpa using (quotient.eq p : mk x = 0 ↔ _)
+
+instance : has_add (quotient p) :=
+⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a + b)) $
+ λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $ by simpa using add_mem p h₁ h₂⟩
+
+@[simp] theorem mk_add : (mk (x + y) : quotient p) = mk x + mk y := rfl
+
+instance : has_neg (quotient p) :=
+⟨λ a, quotient.lift_on' a (λ a, mk (-a)) $
+ λ a b h, (quotient.eq p).2 $ by simpa using neg_mem p h⟩
+
+@[simp] theorem mk_neg : (mk (-x) : quotient p) = -mk x := rfl
+
+instance : add_comm_group (quotient p) :=
+by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
+   repeat {rintro ⟨⟩};
+   simp [-mk_zero, (mk_zero p).symm, -mk_add, (mk_add p).symm, -mk_neg, (mk_neg p).symm]
+
+instance : has_scalar α (quotient p) :=
+⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
+ λ x y h, (quotient.eq p).2 $ by simpa [smul_add] using smul_mem p a h⟩
+
+@[simp] theorem mk_smul : (mk (r • x) : quotient p) = r • mk x := rfl
+
+instance : module α (quotient p) :=
+module.of_core $ by refine {smul := (•), ..};
+  repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
+    -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
+
+instance {α β} {R:discrete_field α} [add_comm_group β] [vector_space α β]
+  (p : submodule α β) : vector_space α (quotient p) := {}
+
+end quotient
+
 end submodule
 
 section comm_ring
@@ -590,7 +648,7 @@ end linear_map
 
 namespace submodule
 variables {R:ring α} [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
-variables (p : submodule α β) (q : submodule α γ)
+variables (p p' : submodule α β) (q : submodule α γ)
 include R
 open linear_map
 
@@ -638,6 +696,61 @@ by rw [range, ← prod_top, prod_map_fst]
 @[simp] theorem range_snd : (snd β γ).range = ⊤ :=
 by rw [range, ← prod_top, prod_map_snd]
 
+def mkq : β →ₗ p.quotient := ⟨quotient.mk, by simp, by simp⟩
+
+@[simp] theorem mkq_apply (x : β) : p.mkq x = quotient.mk x := rfl
+
+def liftq (f : β →ₗ γ) (h : p ≤ f.ker) : p.quotient →ₗ γ :=
+⟨λ x, _root_.quotient.lift_on' x f $
+   λ a b (ab : a - b ∈ p), eq_of_sub_eq_zero $ by simpa using h ab,
+ by rintro ⟨x⟩ ⟨y⟩; exact map_add f x y,
+ by rintro a ⟨x⟩; exact map_smul f a x⟩
+
+@[simp] theorem liftq_apply (f : β →ₗ γ) {h} (x : β) :
+  p.liftq f h (quotient.mk x) = f x := rfl
+
+@[simp] theorem liftq_mkq (f : β →ₗ γ) (h) : (p.liftq f h).comp p.mkq = f :=
+by ext; refl
+
+@[simp] theorem mkq_range : p.mkq.range = ⊤ :=
+eq_top_iff.2 $ by rintro ⟨x⟩ _; exact ⟨x, trivial, rfl⟩
+
+@[simp] theorem mkq_ker : p.mkq.ker = p :=
+by ext; simp [quotient.zero_eq_mk, quotient.eq]
+
+@[simp] theorem mkq_map_self : map p.mkq p = ⊥ :=
+by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, mkq_ker]; exact le_refl _
+
+@[simp] theorem comap_map_mkq : comap p.mkq (map p.mkq p') = p ⊔ p' :=
+begin
+  refine le_antisymm _
+    (sup_le (map_le_iff_le_comap.1 _) (map_le_iff_le_comap.1 $ le_refl _)),
+  { rintro x ⟨y, h₁, h₂⟩,
+    exact mem_sup.2 ⟨x - y, (quotient.eq p).1 h₂.symm, y, h₁, by simp⟩ },
+  { rw mkq_map_self, exact bot_le }
+end
+
+def mapq (f : β →ₗ γ) (h : p ≤ comap f q) : p.quotient →ₗ q.quotient :=
+p.liftq (q.mkq.comp f) $ by simpa [ker_comp] using h
+
+@[simp] theorem mapq_apply (f : β →ₗ γ) {h} (x : β) :
+  mapq p q f h (quotient.mk x) = quotient.mk (f x) := rfl
+
+theorem mapq_mkq (f : β →ₗ γ) {h} : (mapq p q f h).comp p.mkq = q.mkq.comp f :=
+by ext x; refl
+
+theorem comap_liftq (f : β →ₗ γ) (h) :
+  q.comap (p.liftq f h) = (q.comap f).map (mkq p) :=
+le_antisymm
+  (by rintro ⟨x⟩ hx; exact ⟨_, hx, rfl⟩)
+  (by rw [map_le_iff_le_comap, ← comap_comp, liftq_mkq]; exact le_refl _)
+
+theorem ker_liftq (f : β →ₗ γ) (h) :
+  ker (p.liftq f h) = (ker f).map (mkq p) := comap_liftq _ _ _ _
+
+theorem ker_liftq_eq_bot (f : β →ₗ γ) (h) (h' : ker f = p) : ker (p.liftq f h) = ⊥ :=
+by rw [ker_liftq, h', mkq_map_self]
+
 end submodule
 
 section
@@ -676,6 +789,13 @@ noncomputable def of_bijective
 
 @[simp] theorem of_bijective_apply (f : β →ₗ γ) {hf₁ hf₂} (x : β) :
   of_bijective f hf₁ hf₂ x = f x := rfl
+
+def of_linear (f : β →ₗ γ) (g : γ →ₗ β)
+  (h₁ : f.comp g = linear_map.id) (h₂ : g.comp f = linear_map.id) : β ≃ₗ γ :=
+{ inv_fun := g,
+  left_inv := λ x, congr_fun h₁ x,
+  right_inv := λ x, congr_fun h₂ x,
+  ..f }
 
 @[simp] protected theorem ker (f : β ≃ₗ γ) : (f : β →ₗ γ).ker = ⊥ :=
 linear_map.ker_eq_bot.2 f.to_equiv.bijective.1

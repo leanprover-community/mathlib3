@@ -7,7 +7,7 @@ Basics of linear algebra. This sets up the "categorical/lattice structure" of
 modules, submodules, and linear maps.
 -/
 
-import algebra.pi_instances order.zorn data.set.finite data.finsupp
+import algebra.pi_instances order.zorn data.set.finite data.finsupp order.order_iso
 
 open function lattice
 
@@ -311,7 +311,7 @@ lemma map_le_iff_le_comap {f : β →ₗ γ} {p : submodule α β} {q : submodul
 lemma map_comap_le (f : β →ₗ γ) (q : submodule α γ) : map f (comap f q) ≤ q :=
 map_le_iff_le_comap.2 $ le_refl _
 
-lemma le_comap_map (f : β →ₗ γ) (q : submodule α γ) : p ≤ comap f (map f p) :=
+lemma le_comap_map (f : β →ₗ γ) (p : submodule α β) : p ≤ comap f (map f p) :=
 map_le_iff_le_comap.1 $ le_refl _
 
 @[simp] lemma map_bot (f : β →ₗ γ) : map f ⊥ = ⊥ :=
@@ -615,6 +615,9 @@ theorem ker_comp (f : β →ₗ γ) (g : γ →ₗ δ) : ker (g.comp f) = comap 
 theorem ker_le_ker_comp (f : β →ₗ γ) (g : γ →ₗ δ) : ker f ≤ ker (g.comp f) :=
 by rw ker_comp; exact comap_mono bot_le
 
+theorem sub_mem_ker_iff {f : β →ₗ γ} {x y} : x - y ∈ f.ker ↔ f x = f y :=
+by rw [mem_ker, map_sub, sub_eq_zero]
+
 theorem disjoint_ker {f : β →ₗ γ} {p : submodule α β} :
   disjoint p (ker f) ↔ ∀ x ∈ p, f x = 0 → x = 0 :=
 by simp [disjoint_def]
@@ -636,30 +639,24 @@ by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ f ⊤
 lemma le_ker_iff_map {f : β →ₗ γ} {p : submodule α β} : p ≤ ker f ↔ map f p = ⊥ :=
 by rw [ker, eq_bot_iff, map_le_iff_le_comap]
 
-lemma map_comap_eq (f : β →ₗ γ) (p : submodule α β) :
-  map f (comap f p) = p ⊓ range f :=
-begin
-  refine le_antisymm (le_inf (map_comap_le _) (map_mono le_top)) _,
-  -- p ⊓ range f ≤ map f (comap f p)
-  rintro _ ⟨hx, x, _, rfl⟩, -- hx : f x ∈ p
-  exact ⟨x, hx, rfl⟩
-end
+lemma map_comap_eq (f : β →ₗ γ) (q : submodule α γ) :
+  map f (comap f q) = range f ⊓ q :=
+le_antisymm (le_inf (map_mono le_top) (map_comap_le _ _)) $
+by rintro _ ⟨⟨x, _, rfl⟩, hx⟩; exact ⟨x, hx, rfl⟩
 
-lemma map_comap_eq_self {f : β →ₗ γ} {p : submodule α β} (h : p ≤ range f) :
-  map f (comap f p) = p :=
-by rw [map_comap_eq, inf_of_le_left h]
+lemma map_comap_eq_self {f : β →ₗ γ} {q : submodule α γ} (h : q ≤ range f) :
+  map f (comap f q) = q :=
+by rw [map_comap_eq, inf_of_le_right h]
 
-lemma comap_map_eq (f : β →ₗ γ) (p : submodule α γ) :
+lemma comap_map_eq (f : β →ₗ γ) (p : submodule α β) :
   comap f (map f p) = p ⊔ ker f :=
 begin
-  refine le_antisymm _ (sup_le (le_comap_map _) (comap_mono bot_le)),
-  rintro x ⟨y, hy, e⟩, -- hy : y ∈ p, e : f y = f x
-  refine mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simp⟩,
-  simpa using sub_eq_zero.2 e.symm -- f x + -f y = 0
-  -- x ∈ p ⊔ ker f,
+  refine le_antisymm _ (sup_le (le_comap_map _ _) (comap_mono bot_le)),
+  rintro x ⟨y, hy, e⟩,
+  exact mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simp⟩
 end
 
-lemma comap_map_eq_self {f : β →ₗ γ} {p : submodule α γ} (h : ker f ≤ p) :
+lemma comap_map_eq_self {f : β →ₗ γ} {p : submodule α β} (h : ker f ≤ p) :
   comap f (map f p) = p :=
 by rw [comap_map_eq, sup_of_le_left h]
 
@@ -732,20 +729,20 @@ by simpa using (map_mono le_top : map p.subtype p' ≤ p.subtype.range)
 def map_subtype.order_iso :
   ((≤) : submodule α p → submodule α p → Prop) ≃o
   ((≤) : {p' : submodule α β // p' ≤ p} → {p' : submodule α β // p' ≤ p} → Prop) :=
-{ to_fun := λ p', ⟨map p.subtype p', map_subtype_le p⟩,
-  inv_fun := λ q, comap p.subtype q,
-  left_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [map_comap_subtype p, inf_of_le_right hq],
-  right_inv := λ p', comap_map_eq_self $ by simp,
-  ord := λ p₁ p₂, (map_le_map_iff $ ker_subtype _).symm }
+{ to_fun    := λ p', ⟨map p.subtype p', map_subtype_le p _⟩,
+  inv_fun   := λ q, comap p.subtype q,
+  left_inv  := λ p', comap_map_eq_self $ by simp,
+  right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [map_comap_subtype p, inf_of_le_right hq],
+  ord       := λ p₁ p₂, (map_le_map_iff $ ker_subtype _).symm }
 
 def map_subtype.le_order_embedding :
   ((≤) : submodule α p → submodule α p → Prop) ≼o ((≤) : submodule α β → submodule α β → Prop) :=
-(order_iso.to_order_embedding $ map_subtype.order_iso α β s).trans (subtype.order_embedding _ _)
+(order_iso.to_order_embedding $ map_subtype.order_iso p).trans (subtype.order_embedding _ _)
 
 @[simp] lemma map_subtype_embedding_eq (p' : submodule α p) :
   map_subtype.le_order_embedding p p' = map p.subtype p' := rfl
 
-def lt_order_embedding :
+def map_subtype.lt_order_embedding :
   ((<) : submodule α p → submodule α p → Prop) ≼o ((<) : submodule α β → submodule α β → Prop) :=
 (map_subtype.le_order_embedding p).lt_embedding_of_le_embedding
 
@@ -805,14 +802,14 @@ eq_top_iff.2 $ by rintro ⟨x⟩ _; exact ⟨x, trivial, rfl⟩
 @[simp] theorem ker_mkq : p.mkq.ker = p :=
 by ext; simp
 
-lemma le_comap_mkq (p' : submodule α p.subtype) : p ≤ comap p.mkq p' :=
+lemma le_comap_mkq (p' : submodule α p.quotient) : p ≤ comap p.mkq p' :=
 by simpa using (comap_mono bot_le : p.mkq.ker ≤ comap p.mkq p')
 
 @[simp] theorem mkq_map_self : map p.mkq p = ⊥ :=
 by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_refl _
 
 @[simp] theorem comap_map_mkq : comap p.mkq (map p.mkq p') = p ⊔ p' :=
-by simp [comap_map_eq]
+by simp [comap_map_eq, sup_comm]
 
 def mapq (f : β →ₗ γ) (h : p ≤ comap f q) : p.quotient →ₗ q.quotient :=
 p.liftq (q.mkq.comp f) $ by simpa [ker_comp] using h
@@ -839,20 +836,20 @@ by rw [ker_liftq, h', mkq_map_self]
 def comap_mkq.order_iso :
   ((≤) : submodule α p.quotient → submodule α p.quotient → Prop) ≃o
   ((≤) : {p' : submodule α β // p ≤ p'} → {p' : submodule α β // p ≤ p'} → Prop) :=
-{ to_fun := λ p', ⟨comap p.mkq p', le_comap_mkq p⟩,
-  inv_fun := λ q, map p.mkq q,
-  left_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [comap_map_mkq p, sup_of_le_right hq],
-  right_inv := λ p', map_comap_eq_self $ by simp,
-  ord := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
+{ to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
+  inv_fun   := λ q, map p.mkq q,
+  left_inv  := λ p', map_comap_eq_self $ by simp,
+  right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [comap_map_mkq p, sup_of_le_right hq],
+  ord       := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
 
 def comap_mkq.le_order_embedding :
   ((≤) : submodule α p.quotient → submodule α p.quotient → Prop) ≼o ((≤) : submodule α β → submodule α β → Prop) :=
-(order_iso.to_order_embedding $ comap_mkq.order_iso α β s).trans (subtype.order_embedding _ _)
+(order_iso.to_order_embedding $ comap_mkq.order_iso p).trans (subtype.order_embedding _ _)
 
 @[simp] lemma comap_mkq_embedding_eq (p' : submodule α p.quotient) :
   comap_mkq.le_order_embedding p p' = comap p.mkq p' := rfl
 
-def lt_order_embedding :
+def comap_mkq.lt_order_embedding :
   ((<) : submodule α p.quotient → submodule α p.quotient → Prop) ≼o ((<) : submodule α β → submodule α β → Prop) :=
 (comap_mkq.le_order_embedding p).lt_embedding_of_le_embedding
 
@@ -897,10 +894,16 @@ noncomputable def of_bijective
 
 def of_linear (f : β →ₗ γ) (g : γ →ₗ β)
   (h₁ : f.comp g = linear_map.id) (h₂ : g.comp f = linear_map.id) : β ≃ₗ γ :=
-{ inv_fun := g,
-  left_inv := λ x, congr_fun h₁ x,
-  right_inv := λ x, congr_fun h₂ x,
+{ inv_fun   := g,
+  left_inv  := linear_map.ext_iff.1 h₂,
+  right_inv := linear_map.ext_iff.1 h₁,
   ..f }
+
+@[simp] theorem of_linear_apply (f : β →ₗ γ) (g : γ →ₗ β) {h₁ h₂}
+  (x : β) : of_linear f g h₁ h₂ x = f x := rfl
+
+@[simp] theorem of_linear_symm_apply (f : β →ₗ γ) (g : γ →ₗ β) {h₁ h₂}
+  (x : γ) : (of_linear f g h₁ h₂).symm x = g x := rfl
 
 @[simp] protected theorem ker (f : β ≃ₗ γ) : (f : β →ₗ γ).ker = ⊥ :=
 linear_map.ker_eq_bot.2 f.to_equiv.bijective.1
@@ -921,3 +924,34 @@ def of_top (p : submodule α β) (h : p = ⊤) : p ≃ₗ β :=
   ↑((of_top p h).symm x) = x := rfl
 
 end linear_equiv
+
+namespace linear_map
+variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
+variables [module α β] [module α γ] [module α δ]
+variables (f : β →ₗ γ)
+
+/-- First Isomorphism Law -/
+
+-- f : β → γ
+-- ker[f] : sub β
+-- β / ker[f] : mod
+-- liftq (cod_restrict f _) : β / ker[f] → ran[f]
+-- cod_restrict f _ : β → ran[f]
+-- f : ran[f] -> β / ker[f]
+def quot_ker_equiv_im : f.ker.quotient ≃ₗ f.range :=
+{ inv_fun    := λx, f.ker.quotient.mk (classical.some x.2),
+  left_inv   := λ ⟨x, hx⟩, @quotient.induction_on _ (quotient_rel _) _ b' $
+    begin
+      -- f.ker.liftq (cod_restrict f _) _ (f.ker.quotient.mk (classical.some b.2) x)
+      assume b,
+      apply quotient.sound,
+      apply classical.some_spec2 (λa, f (a - b) = 0),
+      show (∀a, f a = f b → f (a - b) = 0), simp {contextual := tt}
+    end,
+  right_inv  := assume c, subtype.eq $ classical.some_spec2 (λa, f a = c) $ assume b, id,
+  linear_fun :=
+    is_linear_map_quotient_lift _ $ @is_linear_map_subtype_mk _ _ _ _ _ _ f.im _ f f.2 _,
+  .. f.ker.liftq (cod_restrict f $ λ x, ⟨x, trivial, rfl⟩)
+    (λ x hx, subtype.coe_ext.2 $ by simpa using hx) }
+
+end linear_map

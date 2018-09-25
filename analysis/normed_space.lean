@@ -7,7 +7,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 
 import algebra.pi_instances
-import linear_algebra.prod_module
+import linear_algebra.basic
 import analysis.nnreal
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 

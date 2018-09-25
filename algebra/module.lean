@@ -124,6 +124,9 @@ instance : has_coe_to_fun (β →ₗ γ) := ⟨_, to_fun⟩
 @[extensionality] theorem ext {f g : β →ₗ γ} (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
 
+theorem ext_iff {f g : β →ₗ γ} : f = g ↔ ∀ x, f x = g x :=
+⟨by rintro rfl; simp, ext⟩
+
 @[simp] lemma map_add (x y : β) : f (x + y) = f x + f y := f.add x y
 
 @[simp] lemma map_smul (c : α) (x : β) : f (c • x) = c • f x := f.smul c x

@@ -443,11 +443,6 @@ meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr)
 | 0 := done
 | (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
 
-meta def solve_by_elim.congr : tactic (list expr) := 
-do congr_fun ← mk_const `congr_fun,
-  congr_arg ← mk_const `congr_arg,
-  return [congr_fun, congr_arg]
-
 meta structure by_elim_opt :=
   (discharger : tactic unit := done)
   (congr : bool := tt)

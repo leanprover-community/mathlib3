@@ -18,6 +18,8 @@ end name
 namespace expr
 open tactic
 
+attribute [derive has_reflect] binder_info
+
 protected meta def to_pos_nat : expr → option ℕ
 | `(has_one.one _) := some 1
 | `(bit0 %%e) := bit0 <$> e.to_pos_nat
@@ -47,6 +49,10 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
 meta def is_meta_var : expr → bool
 | (mvar _ _ _) := tt
 | e            := ff
+
+meta def is_sort : expr → bool
+| (sort _) := tt
+| e         := ff
 
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
@@ -333,16 +339,6 @@ meta def try_intros : list name → tactic (list name)
 | [] := try intros $> []
 | (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
 
-meta def ext1 (xs : list name) : tactic (list name) :=
-do ls ← attribute.get_instances `extensionality,
-   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
-   try_intros xs
-
-meta def ext : list name → option ℕ → tactic unit
-| _  (some 0) := skip
-| xs n        := focus1 $ do
-  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
-
 meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
 | _ := []
@@ -443,6 +439,11 @@ meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr)
 | 0 := done
 | (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
 
+meta def solve_by_elim.congr : tactic (list expr) := 
+do congr_fun ← mk_const `congr_fun,
+  congr_arg ← mk_const `congr_arg,
+  return [congr_fun, congr_arg]
+
 meta structure by_elim_opt :=
   (discharger : tactic unit := done)
   (congr : bool := tt)
@@ -518,7 +519,7 @@ run_cmd add_interactive [`injections_and_clear]
 
 meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",
-   note n none e, skip 
+   note n none e, skip
 
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,

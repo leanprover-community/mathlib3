@@ -22,7 +22,7 @@ do b ← target >>= is_prop,
      hs ← intros <|> pure [],
      resetI,
      x ← get_unused_name,
-     try (ext [x] none <|> () <$ intro x),
+     try (() <$ ext1 [x] <|> () <$ intro x),
      x' ← try_core (get_local x),
      applyc field,
      hs.mmap (λ h, try $

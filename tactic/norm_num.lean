@@ -54,6 +54,9 @@ open tactic
 namespace norm_num
 variable {α : Type u}
 
+lemma subst_into_neg {α} [has_neg α] (a ta t : α) (pra : a = ta) (prt : -ta = t) : -a = t :=
+by simp [pra, prt]
+
 theorem bit0_zero [add_group α] : bit0 (0 : α) = 0 := add_zero _
 
 theorem bit1_zero [add_group α] [has_one α] : bit1 (0 : α) = 1 :=

@@ -337,7 +337,7 @@ omega ≤ c ∧ c.ord.cof = c
 theorem cof_is_regular {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨omega_le_cof.2 h, cof_cof _⟩
 
-theorem omega_is_regular {o : ordinal} (h : o.is_limit) : is_regular omega :=
+theorem omega_is_regular : is_regular omega :=
 ⟨le_refl _, by simp⟩
 
 theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ c) :=

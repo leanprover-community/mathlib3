@@ -17,6 +17,35 @@ class has_scalar (α : out_param $ Type u) (γ : Type v) := (smul : α → γ �
 
 infixr ` • `:73 := has_scalar.smul
 
+/-- A semimodule is a generalization of vector spaces to a scalar semiring.
+  It consists of a scalar semiring `α` and an additive monoid of "vectors" `β`,
+  connected by a "scalar multiplication" operation `r • x : β`
+  (where `r : α` and `x : β`) with some natural associativity and
+  distributivity axioms similar to those on a ring. -/
+class semimodule (α : out_param $ Type u) (β : Type v) [out_param $ semiring α]
+  extends has_scalar α β, add_comm_monoid β :=
+(smul_add : ∀r (x y : β), r • (x + y) = r • x + r • y)
+(add_smul : ∀r s (x : β), (r + s) • x = r • x + s • x)
+(mul_smul : ∀r s (x : β), (r * s) • x = r • s • x)
+(one_smul : ∀x : β, (1 : α) • x = x)
+(zero_smul : ∀x : β, (0 : α) • x = 0)
+(smul_zero {} : ∀r, r • (0 : β) = 0)
+
+section semimodule
+variables {R:semiring α} [semimodule α β] {r s : α} {x y : β}
+include R
+
+theorem smul_add' : r • (x + y) = r • x + r • y := semimodule.smul_add r x y
+theorem add_smul' : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
+theorem mul_smul' : (r * s) • x = r • s • x := semimodule.mul_smul r s x
+@[simp] theorem one_smul' : (1 : α) • x = x := semimodule.one_smul x
+@[simp] theorem zero_smul' : (0 : α) • x = 0 := semimodule.zero_smul x
+@[simp] theorem smul_zero' : r • (0 : β) = 0 := semimodule.smul_zero r
+
+lemma smul_smul' : r • s • x = (r * s) • x := mul_smul'.symm
+
+end semimodule
+
 /-- A module is a generalization of vector spaces to a scalar ring.
   It consists of a scalar ring `α` and an additive group of "vectors" `β`,
   connected by a "scalar multiplication" operation `r • x : β`
@@ -30,11 +59,12 @@ class module (α : out_param $ Type u) (β : Type v) [out_param $ ring α]
 (one_smul : ∀x : β, (1 : α) • x = x)
 
 section module
-variables [ring α] [module α β] {r s : α} {x y : β}
+variables {R:ring α} [module α β] {r s : α} {x y : β}
+include R
 
 theorem smul_add : r • (x + y) = r • x + r • y := module.smul_add r x y
 theorem add_smul : (r + s) • x = r • x + s • x := module.add_smul r s x
-theorem mul_smul : (r * s) • x = r • s • x :=  module.mul_smul r s x
+theorem mul_smul : (r * s) • x = r • s • x := module.mul_smul r s x
 @[simp] theorem one_smul : (1 : α) • x = x := module.one_smul x
 
 @[simp] theorem zero_smul : (0 : α) • x = 0 :=
@@ -44,6 +74,11 @@ add_left_cancel this
 @[simp] theorem smul_zero : r • (0 : β) = 0 :=
 have r • (0:β) + r • 0 = r • 0 + 0, by rw ← smul_add; simp,
 add_left_cancel this
+
+instance module.to_semimodule : semimodule α β :=
+{ zero_smul := λ x, zero_smul,
+  smul_zero := λ r, smul_zero,
+  ..‹module α β› }
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
 eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
@@ -63,12 +98,19 @@ lemma smul_smul : r • s • x = (r * s) • x := mul_smul.symm
 
 end module
 
-instance ring.to_module [r : ring α] : module α α :=
+instance semiring.to_semimodule [r : semiring α] : semimodule α α :=
 { smul := (*),
   smul_add := mul_add,
   add_smul := add_mul,
   mul_smul := mul_assoc,
-  one_smul := one_mul, ..r }
+  one_smul := one_mul,
+  zero_smul := zero_mul,
+  smul_zero := mul_zero, ..r }
+
+@[simp] lemma smul_eq_mul' [semiring α] {a a' : α} : a • a' = a * a' := rfl
+
+instance ring.to_module [r : ring α] : module α α :=
+{ ..semiring.to_semimodule }
 
 @[simp] lemma smul_eq_mul [ring α] {a a' : α} : a • a' = a * a' := rfl
 

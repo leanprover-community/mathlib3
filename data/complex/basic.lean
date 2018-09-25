@@ -275,6 +275,10 @@ real.mul_self_sqrt (norm_sq_nonneg _)
 @[simp] lemma abs_one : abs 1 = 1 := by simp [abs]
 @[simp] lemma abs_I : abs I = 1 := by simp [abs]
 
+@[simp] lemma abs_two : abs 2 = 2 :=
+calc abs 2 = abs (2 : ℝ) : by rw [of_real_bit0, of_real_one]
+... = (2 : ℝ) : abs_of_nonneg (by norm_num)
+
 lemma abs_nonneg (z : ℂ) : 0 ≤ abs z :=
 real.sqrt_nonneg _
 
@@ -347,6 +351,11 @@ lt_of_le_of_lt (by simpa using abs_re_le_abs (f j - f i)) (H _ ij)
 theorem is_cau_seq_im (f : cau_seq ℂ abs) : is_cau_seq abs' (λ n, (f n).im) :=
 λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
 lt_of_le_of_lt (by simpa using abs_im_le_abs (f j - f i)) (H _ ij)
+
+lemma is_cau_seq_abs {f : ℕ → ℂ} (hf : is_cau_seq abs f) :
+  is_cau_seq abs' (abs ∘ f) :=
+λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
+⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
 
 theorem equiv_lim (f : cau_seq ℂ abs) : f ≈ cau_seq.const abs (lim f) :=
 λ ε ε0, (exists_forall_ge_and
@@ -445,5 +454,11 @@ lim_eq_of_equiv_const $ show lim_zero (inv f hf - const abs (lim ⇑f)⁻¹),
       (by rw [← mul_assoc, mul_right_comm, const_inv hl]; exact h₁ _ _ _)
       (by rw [← mul_assoc]; exact h₁ _ _ _),
   (lim_zero_congr h₂).mpr $ by rw mul_comm; exact mul_lim_zero _ (setoid.symm (equiv_lim f))
+
+lemma lim_abs (f : cau_seq ℂ abs) :
+  real.lim (⟨_, is_cau_seq_abs f.2⟩ : cau_seq ℝ abs') = abs (complex.lim f) :=
+real.lim_eq_of_equiv_const (λ ε ε0,
+let ⟨i, hi⟩ := equiv_lim f ε ε0 in
+⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩)
 
 end complex

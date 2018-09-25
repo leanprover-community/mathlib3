@@ -1,4 +1,9 @@
-import data.complex.basic algebra.archimedean data.nat.binomial algebra.field_power tactic.linarith
+/-
+Copyright (c) 2018 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
+import data.complex.basic algebra.archimedean data.nat.binomial tactic.linarith
 
 section
 open real is_absolute_value finset
@@ -523,6 +528,8 @@ by simp [real.cos]
 
 @[simp] lemma tan_zero : tan 0 = 0 := by simp [tan]
 
+lemma tan_eq_sin_div_cos : tan x = sin x / cos x := rfl
+
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
@@ -553,7 +560,6 @@ end
 lemma cos_two_mul : cos (2 * x) = 2 * cos x ^ 2 - 1 :=
 by rw [two_mul, cos_add, ← pow_two, ← pow_two, eq_sub_iff_add_eq.2 (sin_pow_two_add_cos_pow_two x)];
   simp [two_mul]
-
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
@@ -624,6 +630,8 @@ by apply complex.ext; simp
 @[simp] lemma of_real_cosh (x : ℝ) : (real.cosh x : ℂ) = cosh x :=
 by simp [real.cosh]
 
+lemma tanh_eq_sinh_div_cos : tanh x = sinh x / cosh x := rfl
+
 @[simp] lemma tanh_zero : tanh 0 = 0 := by simp [tanh]
 
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
@@ -690,6 +698,12 @@ by simp [sin_add, sin_neg, cos_neg]
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [cos_add, sin_neg, cos_neg]
 
+lemma tan_eq_sin_div_cos : tan x = sin x / cos x :=
+if h : complex.cos x = 0 then by simp [sin, cos, tan, *, complex.tan, div_eq_mul_inv] at *
+else
+  by rw [sin, cos, tan, complex.tan, ← of_real_inj, div_eq_mul_inv, mul_re];
+  simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
+
 @[simp] lemma tan_zero : tan 0 = 0 := by simp [tan, of_real_zero]
 
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
@@ -722,11 +736,15 @@ by simp [sinh_add, sinh_neg, cosh_neg]
 lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [cosh_add, sinh_neg, cosh_neg]
 
+lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x :=
+if h : complex.cosh x = 0 then by simp [sinh, cosh, tanh, *, complex.tanh, div_eq_mul_inv] at *
+else
+  by rw [sinh, cosh, tanh, complex.tanh, ← of_real_inj, div_eq_mul_inv, mul_re];
+  simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
+
 @[simp] lemma tanh_zero : tanh 0 = 0 := by simp [tanh, of_real_zero]
 
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
-
-
 
 end real
 
@@ -753,6 +771,11 @@ lemma cau_seq.le_of_eq_of_le {f g h : cau_seq ℝ abs'}
   (hfg : f ≈ g) (hgh : g ≤ h) : f ≤ h :=
 hgh.elim (le_of_lt ∘ cau_seq.lt_of_eq_of_lt hfg)
   (or.inr ∘ setoid.trans hfg)
+  
+lemma cau_seq.le_of_le_of_eq {f g h : cau_seq ℝ abs'}
+  (hfg : f ≤ g) (hgh : g ≈ h) : f ≤ h :=
+hfg.elim (λ h, le_of_lt (cau_seq.lt_of_lt_of_eq h hgh)) 
+  (λ h, or.inr (setoid.trans h hgh))
 
 lemma cau_seq.le_of_exists {f g : cau_seq ℝ abs'}
   (h : ∃ i, ∀ j ≥ i, f j ≤ g j) : f ≤ g :=
@@ -766,6 +789,71 @@ let ⟨i, hi⟩ := h in
 lemma real.lim_le (f : cau_seq ℝ abs') (x : ℝ)
   (h : f ≤ cau_seq.const abs' x) : real.lim f ≤ x :=
 cau_seq.const_le.1 $ cau_seq.le_of_eq_of_le (setoid.symm (real.equiv_lim f)) h
+
+lemma real.lt_lim (f : cau_seq ℝ abs') (x : ℝ)
+  (h : cau_seq.const abs' x < f) : x < real.lim f :=
+cau_seq.const_lt.1 $ cau_seq.lt_of_lt_of_eq h (real.equiv_lim f)
+
+lemma real.le_lim (f : cau_seq ℝ abs') (x : ℝ)
+  (h : cau_seq.const abs' x ≤ f) : x ≤ real.lim f :=
+cau_seq.const_le.1 $ cau_seq.le_of_le_of_eq h (real.equiv_lim f) 
+
+/- TODO make this private -/
+lemma add_one_le_exp_aux {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ real.exp x :=
+show x + 1 ≤ real.lim (⟨(λ (n : ℕ), ((exp' ↑x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ abs'),
+from real.le_lim _ _ $ cau_seq.le_of_exists ⟨2, 
+  λ j hj, show x + (1 : ℝ) ≤ ((range j).sum (λ m, (x ^ m / m.fact : ℂ))).re,
+    from have h₁ : (((λ m : ℕ, (x ^ m / m.fact : ℂ)) ∘ nat.succ) 0).re = x, by simp,
+    have h₂ : ((x : ℂ) ^ 0 / nat.fact 0).re = 1, by simp,
+    begin
+      rw [← nat.sub_add_cancel hj, sum_range_succ', sum_range_succ',
+        add_re, add_re, h₁, h₂, add_assoc, ← sum_hom complex.re zero_re add_re],
+      refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
+      rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
+      exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)), 
+    end⟩
+
+/- TODO use add_one_le_exp -/
+lemma one_le_exp {x : ℝ} (hx : 0 ≤ x) : 1 ≤ real.exp x :=
+show 1 ≤ real.lim (⟨(λ (n : ℕ), ((exp' ↑x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ abs'),
+from real.le_lim _ _ $ cau_seq.le_of_exists ⟨1, 
+  λ j hj, show (1 : ℝ) ≤ ((range j).sum (λ m, (x ^ m / m.fact : ℂ))).re, 
+    from have (λ m, ((x : ℂ) ^ m / nat.fact m).re) 0 = 1, by simp, 
+    begin
+      rw [← sum_hom complex.re zero_re add_re, ← this],
+      refine single_le_sum (λ m hm, _) (mem_range.2 hj),
+      rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
+      exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),
+    end⟩
+
+lemma exp_pos (x : ℝ) : 0 < real.exp x :=
+(le_total 0 x).elim (lt_of_lt_of_le zero_lt_one ∘ one_le_exp)
+  (λ h, by rw [← neg_neg x, real.exp_neg];
+    exact inv_pos (lt_of_lt_of_le zero_lt_one (one_le_exp (neg_nonneg.2 h))))
+
+lemma add_one_le_exp {x : ℝ} (hx : x ≤ 0) : x + 1 ≤ real.exp x :=
+begin
+  have := add_one_le_exp_aux (neg_nonneg.2 hx),
+  rw [real.exp_neg, le_inv] at this,
+
+end
+
+lemma exp_le_exp {x y : ℝ} (h : x ≤ y) : real.exp x ≤ real.exp y :=
+by rw [← sub_add_cancel y x, real.exp_add];
+  exact (le_mul_iff_one_le_left (exp_pos _)).2 (one_le_exp (sub_nonneg.2 h))
+  
+lemma exp_lt_exp {x y : ℝ} (h : x < y) : real.exp x < real.exp y :=
+by rw [← sub_add_cancel y x, real.exp_add];
+  exact (lt_mul_iff_one_lt_left (exp_pos _)).2 
+    (lt_of_lt_of_le (by linarith) (add_one_le_exp_aux (by linarith)))
+    
+lemma exp_injective : function.injective real.exp :=
+λ x y h, begin
+  rcases lt_trichotomy x y with h₁ | h₁ | h₁,
+  { exact absurd h (ne_of_lt (exp_lt_exp h₁)) },
+  { exact h₁ },
+  { exact absurd h (ne.symm (ne_of_lt (exp_lt_exp h₁))) }
+end
 
 lemma nat.cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 :=
 by simp
@@ -847,6 +935,14 @@ begin
     mul_le_mul_of_nonneg_left (exp_continuous_aux₁ _ _ hn) (pow_nonneg (abs_nonneg _) _)
 end
 
+lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
+  abs (exp x - 1) ≤ 2 * abs x :=
+calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
+  by simp [sum_range_succ]
+... ≤ abs x ^ 1 * ((nat.succ 1) * (nat.fact 1 * 1)⁻¹) :
+  exp_bound hx dec_trivial
+... = 2 * abs x : by simp [bit0, mul_comm]
+
 lemma cos_one_bound : abs' (real.cos 1 - 1 / 2) ≤ 1 / 6 :=
 calc abs' (real.cos 1 - 1 / 2) = abs (cos 1 - 1 / 2) :
   by rw ← abs_of_real; simp [of_real_bit0, of_real_one, of_real_inv]
@@ -863,7 +959,8 @@ calc abs' (real.cos 1 - 1 / 2) = abs (cos 1 - 1 / 2) :
   by rw add_div; exact abs_add _ _
 ... = abs ((exp I - (range 4).sum (λ m, I ^ m / m.fact))) / 2 +
     abs ((exp (-I) - (range 4).sum (λ m, (-I) ^ m / m.fact))) / 2 : by simp [abs_div]
-... ≤ (abs I ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 + (abs (-I) ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 :
+... ≤ (abs I ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 + 
+    (abs (-I) ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 :
   add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simp) dec_trivial))
              ((div_le_div_right (by norm_num)).2 (exp_bound (by simp) dec_trivial))
 ... ≤ 1 / 6 : by simp [nat.fact]; norm_num

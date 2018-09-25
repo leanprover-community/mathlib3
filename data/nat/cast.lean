@@ -28,6 +28,8 @@ end
 
 @[simp] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
 
+lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp
+
 @[simp] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
 | 0     := (add_zero _).symm
 | (n+1) := show ((m + n : ℕ) : α) + 1 = m + (n + 1), by rw [cast_add n, add_assoc]

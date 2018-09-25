@@ -357,53 +357,56 @@ compact_of_totally_bounded_is_closed
 
 open real
 
-lemma real.exists_eq_zero_of_tendsto_of_le_zero_of_zero_le {f : ℝ → ℝ} {a b : ℝ}
+lemma real.intermediate_value {f : ℝ → ℝ} {a b t : ℝ}
   (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
-  (ha : f a ≤ 0) (hb : 0 ≤ f b) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = 0 :=
-let x := real.Sup {x | f x ≤ 0 ∧ a ≤ x ∧ x ≤ b} in
-have hx₁ : ∃ y, ∀ g ∈ {x | f x ≤ 0 ∧ a ≤ x ∧ x ≤ b}, g ≤ y := ⟨b, λ _ h, h.2.2⟩,
-have hx₂ : ∃ y, y ∈ {x | f x ≤ 0 ∧ a ≤ x ∧ x ≤ b} := ⟨a, ha, le_refl _, hab⟩,
+  (ha : f a ≤ t) (hb : t ≤ f b) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t :=
+let x := real.Sup {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b} in
+have hx₁ : ∃ y, ∀ g ∈ {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b}, g ≤ y := ⟨b, λ _ h, h.2.2⟩,
+have hx₂ : ∃ y, y ∈ {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b} := ⟨a, ha, le_refl _, hab⟩,
 have hax : a ≤ x, from le_Sup _ hx₁ ⟨ha, le_refl _, hab⟩,
 have hxb : x ≤ b, from (Sup_le _ hx₂ hx₁).2 (λ _ h, h.2.2),
 ⟨x, hax, hxb,
   eq_of_forall_dist_le $ λ ε ε0,
     let ⟨δ, hδ0, hδ⟩ := tendsto_nhds_of_metric.1 (hf _ hax hxb) ε ε0 in
-    (le_total 0 (f x)).elim
+    (le_total t (f x)).elim
       (λ h, le_of_not_gt $ λ hfε, begin
-        rw [dist_0_eq_abs, abs_of_nonneg h] at hfε,
-        refine mt (Sup_le {x | f x ≤ 0 ∧ a ≤ x ∧ x ≤ b} hx₂ hx₁).2
+        rw [dist_eq, abs_of_nonneg (sub_nonneg.2 h)] at hfε,
+        refine mt (Sup_le {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b} hx₂ hx₁).2
           (not_le_of_gt (sub_lt_self x (half_pos hδ0)))
           (λ g hg, le_of_not_gt
             (λ hgδ, not_lt_of_ge hg.1
-              (lt_trans (sub_pos_of_lt hfε) (sub_lt_of_sub_lt
+              (lt_trans (lt_sub.1 hfε) (sub_lt_of_sub_lt
                 (lt_of_le_of_lt (le_abs_self _) _))))),
         rw abs_sub,
         exact hδ (abs_sub_lt_iff.2 ⟨lt_of_le_of_lt (sub_nonpos.2 (le_Sup _ hx₁ hg)) hδ0,
           by simp only [x] at *; linarith⟩)
         end)
       (λ h, le_of_not_gt $ λ hfε, begin
-        rw [dist_0_eq_abs, abs_of_nonpos h] at hfε,
-        exact mt (le_Sup {x | f x ≤ 0 ∧ a ≤ x ∧ x ≤ b})
-          (λ h : ∀ k, k ∈ {x | f x ≤ 0 ∧ a ≤ x ∧ x ≤ b} → k ≤ x,
+        rw [dist_eq, abs_of_nonpos (sub_nonpos.2 h)] at hfε,
+        exact mt (le_Sup {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b})
+          (λ h : ∀ k, k ∈ {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b} → k ≤ x,
             not_le_of_gt ((lt_add_iff_pos_left x).2 (half_pos hδ0))
               (h _ ⟨le_trans (le_sub_iff_add_le.2 (le_trans (le_abs_self _)
                     (le_of_lt (hδ $ by rw [dist_eq, add_sub_cancel, abs_of_nonneg (le_of_lt (half_pos hδ0))];
                       exact half_lt_self hδ0))))
-                  (le_of_lt (sub_neg_of_lt hfε)),
+                  (by linarith),
                 le_trans hax (le_of_lt ((lt_add_iff_pos_left _).2 (half_pos hδ0))),
-                le_of_not_gt (λ hδy, not_lt_of_ge hb (lt_of_le_of_lt (show f b ≤ f b - f x - ε, by linarith)
-                  (sub_neg_of_lt (lt_of_le_of_lt (le_abs_self _)
-                    (@hδ b (abs_sub_lt_iff.2 ⟨by simp only [x] at *; linarith,
-                      by linarith⟩))))))⟩))
+                le_of_not_gt (λ hδy, not_lt_of_ge hb (lt_of_le_of_lt
+                  (show f b ≤ f b - f x - ε + t, by linarith)
+                  (add_lt_of_neg_of_le
+                    (sub_neg_of_lt (lt_of_le_of_lt (le_abs_self _)
+                      (@hδ b (abs_sub_lt_iff.2 ⟨by simp only [x] at *; linarith,
+                        by linarith⟩))))
+                    (le_refl _))))⟩))
           hx₁
         end)⟩
 
-lemma real.exists_eq_zero_of_tendsto_of_zero_le_of_le_zero {f : ℝ → ℝ} {a b : ℝ}
+lemma real.intermediate_value' {f : ℝ → ℝ} {a b t : ℝ}
   (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
-  (ha : 0 ≤ f a) (hb : f b ≤ 0) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = 0 :=
-let ⟨x, hx₁, hx₂, hx₃⟩ := @real.exists_eq_zero_of_tendsto_of_le_zero_of_zero_le
-  (λ x, - f x) a b (λ x hax hxb, tendsto_neg (hf x hax hxb))
-  (neg_nonpos.2 ha) (neg_nonneg.2 hb) hab in
-⟨x, hx₁, hx₂, neg_eq_zero.1 hx₃⟩
+  (ha : t ≤ f a) (hb : f b ≤ t) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t :=
+let ⟨x, hx₁, hx₂, hx₃⟩ := @real.intermediate_value
+  (λ x, - f x) a b (-t) (λ x hax hxb, tendsto_neg (hf x hax hxb))
+  (neg_le_neg ha) (neg_le_neg hb) hab in
+⟨x, hx₁, hx₂, neg_inj hx₃⟩
 
 end

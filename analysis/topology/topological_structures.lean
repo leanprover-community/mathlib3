@@ -9,8 +9,7 @@ TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups
 `topological_operator α (*)`.
 -/
 
-import algebra.big_operators
-import order.liminf_limsup
+import algebra.big_operators data.set.intervals order.liminf_limsup
 import analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
 
 open classical set lattice filter topological_space

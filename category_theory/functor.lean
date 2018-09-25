@@ -61,7 +61,7 @@ begin unfold functor.map, erw F.map_comp' end
 
 -- We define a refl lemma 'refolding' the coercion,
 -- and two lemmas for the coercion applied to an explicit structure.
-@[simp] lemma obj_eq_coe {F : C ⥤ D} (X : C) : F.obj X = F X := by unfold_coes
+@[simp] lemma obj_eq_coe {F : C ⥤ D} (X : C) : F.obj X = F X := rfl
 @[simp] lemma mk_obj (o : C → D) (m mi mc) (X : C) :
   ({ functor . obj := o, map' := m, map_id' := mi, map_comp' := mc } : C ⥤ D) X = o X := rfl
 @[simp] lemma mk_map (o : C → D) (m mi mc) {X Y : C} (f : X ⟶ Y) :

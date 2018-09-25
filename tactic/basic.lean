@@ -441,20 +441,13 @@ meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr)
 
 meta structure by_elim_opt :=
   (discharger : tactic unit := done)
-  (congr : bool := tt)
   (assumptions : tactic (list expr) := local_context)
   (max_rep : ℕ := 3)
 
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  let asms := if opt.congr then
-                (do congr_fun ← mk_const `congr_fun,
-                   congr_arg ← mk_const `congr_arg,
-                   asms ← opt.assumptions,
-                   return (congr_fun :: congr_arg :: asms))
-              else opt.assumptions,
-  solve_by_elim_aux opt.discharger asms opt.max_rep
+  solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 meta def metavariables : tactic (list expr) :=
 do r ← result,

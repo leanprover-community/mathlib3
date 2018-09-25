@@ -278,10 +278,10 @@ By default, the assumptions passed to apply_assumption are the local context, `c
 
 `solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
 
-`solve_by_elim [h₁ h₂ ... hᵣ]` also applies the named lemmas (or all lemmas tagged with the named 
+`solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas (or all lemmas tagged with the named 
 attributes).
 
-`solve_by_elim only [h₁ h₂ ... hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
+`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
 unless they are explicitly included.
 
 `solve_by_elim [-id_1, ... -id_n]` uses the default assumptions, removing the specified ones.

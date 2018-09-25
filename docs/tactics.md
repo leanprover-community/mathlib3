@@ -141,10 +141,10 @@ By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the 
 
 The assumptions can be modified with similar syntax as for `simp`:
 
-`solve_by_elim [h₁ h₂ ... hᵣ]` also applies the named lemmas (or all lemmas tagged with the named 
+`solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas (or all lemmas tagged with the named 
 attributes).
 
-`solve_by_elim only [h₁ h₂ ... hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
+`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
 unless they are explicitly included.
 
 `solve_by_elim [-id_1, ... -id_n]` uses the default assumptions, removing the specified ones.

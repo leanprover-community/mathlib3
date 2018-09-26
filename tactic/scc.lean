@@ -3,8 +3,12 @@ Copyright (c) 2018 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 
-Data structures and algorithms for finding the sets of equivalent
-proposition in a set of implications.
+Tactics based on the strongly connected components (SCC) of a graph where
+the vertices are propositions and the edges are implications found
+in the context.
+
+They are used for finding the sets of equivalent proposition in a set
+of implications.
 -/
 
 import tactic.basic
@@ -142,19 +146,17 @@ meta def prove_eqv_target (cl : closure) : tactic unit :=
 do `(%%p ↔ %%q) ← target >>= whnf,
    cl.prove_eqv p q >>= exact
 
-meta def interactive.check_eqv : tactic unit :=
-closure.mk_closure $ λ cl,
-do ls ← local_context,
-   ls.mmap' $ λ l, try (cl.merge l),
-   `(%%p ↔ %%q) ← target,
-   cl.prove_eqv p q >>= exact
-
+/-- Use the available equivalences and implications to prove
+a goal of the form `p ↔ q`. -/
 meta def interactive.scc : tactic unit :=
 closure.mk_closure $ λ cl,
 do impl_graph.mk_scc cl,
    `(%%p ↔ %%q) ← target,
    cl.prove_eqv p q >>= exact
 
+/-- Collect all the available equivalences and implications and
+add assumptions for every equivalence that can be proven using the
+strongly connected components technique. Mostly useful for testing. -/
 meta def interactive.scc' : tactic unit :=
 closure.mk_closure $ λ cl,
 do m ← impl_graph.mk_scc cl,

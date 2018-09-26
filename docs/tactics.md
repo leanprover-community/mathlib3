@@ -23,9 +23,9 @@ tactics.  The first tactic is `tfae_have`.  As an argument it takes an
 expression of the form `i arrow j`, where `i` and `j` are two positive
 natural numbers, and `arrow` is an arrow such as `→`, `->`, `←`, `<-`,
 `↔`, or `<->`.  The tactic `tfae_have : i arrow j` sets up a subgoal in
-which the user
+which the user has to prove the equivalence (or implication) of `pi` and `pj`.
 
-The remaining tactics, `tfae_finish`, is a finishing tactic. It
+The remaining tactic, `tfae_finish`, is a finishing tactic. It
 collects all implications and equivalences from the local context and
 computes their transitive closure to close the
 main goal.

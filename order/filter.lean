@@ -1155,15 +1155,20 @@ have tendsto m (map i $ comap i $ f) g,
   by rwa [tendsto, ←map_compose] at h,
 le_trans (map_mono $ le_map_comap' hs hi) this
 
-lemma comap_eq_of_inverse {f : filter α} {g : filter β}
-  {φ : α → β} {ψ : β → α} (inv₁ : φ ∘ ψ = id) (inv₂ : ψ ∘ φ = id)
-  (lim₁ : tendsto φ f g) (lim₂ : tendsto ψ g f) : comap φ g = f :=
+lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
+  (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
 begin
-  have ineq₁ := calc
-    comap φ g = map ψ g : eq.symm (map_eq_comap_of_inverse inv₂ inv₁)
-         ... ≤ f : lim₂,
-  have ineq₂ : f ≤ comap φ g := map_le_iff_le_comap.1 lim₁,
-  exact le_antisymm ineq₁ ineq₂
+  refine le_antisymm (le_trans (comap_mono $ map_le_iff_le_comap.1 hψ) _) (map_le_iff_le_comap.1 hφ),
+  rw [comap_comap_comp, eq, comap_id],
+  exact le_refl _
+end
+
+lemma map_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
+  (eq : φ ∘ ψ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : map φ f = g :=
+begin
+  refine le_antisymm hφ (le_trans _ (map_mono hψ)),
+  rw [map_map, eq, map_id],
+  exact le_refl _
 end
 
 lemma tendsto_inf {f : α → β} {x : filter α} {y₁ y₂ : filter β} :

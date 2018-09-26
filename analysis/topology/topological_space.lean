@@ -768,16 +768,20 @@ protected def mk_of_nhds (n : α → filter α) : topological_space α :=
   is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩, mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
 
 lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
-  (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ (n a).sets → ∃t∈(n a).sets, t ⊆ s ∧ ∀a'∈t, t ∈ (n a').sets) :
+  (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ (n a).sets → ∃t∈(n a).sets, t ⊆ s ∧ ∀a'∈t, s ∈ (n a').sets) :
   @nhds α (topological_space.mk_of_nhds n) a = n a :=
-by letI := topological_space.mk_of_nhds n; from
-(le_antisymm
-  (assume s hs, let ⟨t, ht, hst, h⟩ := h₁ hs in
-    have t ∈ (nhds a).sets, from mem_nhds_sets h (mem_pure_sets.1 $ h₀ a ht),
-    (nhds a).sets_of_superset this hst)
-  (assume s hs,
-    let ⟨t, hts, ht, hat⟩ := (@mem_nhds_sets_iff α (topological_space.mk_of_nhds n) _ _).1 hs in
-    (n a).sets_of_superset (ht _ hat) hts))
+begin
+  letI := topological_space.mk_of_nhds n,
+  refine le_antisymm (assume s hs, _) (assume s hs, _),
+  { have h₀ : {b | s ∈ (n b).sets} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
+    have h₁ : {b | s ∈ (n b).sets} ∈ (nhds a).sets,
+    { refine mem_nhds_sets (assume b (hb : s ∈ (n b).sets), _) hs,
+      rcases h₁ hb with ⟨t, ht, hts, h⟩,
+      exact mem_sets_of_superset ht h },
+    exact mem_sets_of_superset h₁ h₀ },
+  { rcases (@mem_nhds_sets_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
+    exact (n a).sets_of_superset (ht _ hat) hts },
+end
 
 end topological_space
 
@@ -1013,6 +1017,7 @@ begin
         replace hv := hv.flip,
         simp only [list.forall₂_and_left, flip] at ⊢ hv,
         exact ⟨hv.1, hu.flip⟩ },
+      refine mem_sets_of_superset _ hvs,
       exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
 end
 

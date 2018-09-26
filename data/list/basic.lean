@@ -3849,6 +3849,54 @@ def map_last {α} (f : α → α) : list α → list α
 | [x] := [f x]
 | (x :: xs) := x :: map_last xs
 
+/- tfae: The Following (propositions) Are Equivalent -/
+section tfae
+
+@[simp] def last' {α} : α → list α → α
+| a []     := a
+| a (b::l) := last' b l
+
+theorem last'_mem {α} : ∀ a l, @last' α a l ∈ a :: l
+| a []     := or.inl rfl
+| a (b::l) := or.inr (last'_mem b l)
+
+def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
+
+theorem tfae_nil : tfae [] := forall_mem_nil _
+theorem tfae_singleton (p) : tfae [p] := by simp [tfae]
+
+theorem tfae_cons_of_mem {a b} {l : list Prop} (h : b ∈ l) :
+  tfae (a::l) ↔ (a ↔ b) ∧ tfae l :=
+⟨λ H, ⟨H a (by simp) b (or.inr h), λ p hp q hq, H _ (or.inr hp) _ (or.inr hq)⟩,
+begin
+   rintro ⟨ab, H⟩ p (rfl | hp) q (rfl | hq),
+   { refl },
+   { exact ab.trans (H _ h _ hq) },
+   { exact (ab.trans (H _ h _ hp)).symm },
+   { exact H _ hp _ hq }
+end⟩
+
+theorem tfae_cons_cons {a b} {l : list Prop} : tfae (a::b::l) ↔ (a ↔ b) ∧ tfae (b::l) :=
+tfae_cons_of_mem (or.inl rfl)
+
+theorem tfae_of_cycle {a b} {l : list Prop} :
+  list.chain (→) a (b::l) → (last' b l → a) → tfae (a::b::l) :=
+begin
+  induction l with c l IH generalizing a b; simp [tfae_cons_cons, tfae_singleton] at *,
+  { exact iff.intro },
+  intros ab bc ch la,
+  have := IH bc ch (ab ∘ la),
+  exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (last'_mem _ _)).1 ∘ bc⟩, this⟩
+end
+
+theorem tfae.out {l} (h : tfae l) (n₁ n₂)
+ (h₁ : n₁ < list.length l . tactic.exact_dec_trivial)
+ (h₂ : n₂ < list.length l . tactic.exact_dec_trivial) :
+  list.nth_le l n₁ h₁ ↔ list.nth_le l n₂ h₂ :=
+h _ (list.nth_le_mem _ _ _) _ (list.nth_le_mem _ _ _)
+
+end tfae
+
 end list
 
 theorem option.to_list_nodup {α} (o : option α) : o.to_list.nodup :=

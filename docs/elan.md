@@ -1,43 +1,35 @@
-# How to lean with elan
-
-    Assumptions:
-    You are working on a Linux system, or something similar.
-    You can use a terminal.
+# How to install Lean using elan
 
 This document explains how to get started with Lean and mathlib.
-There are two scenarios:
-
-1. Start a new package (= 'project')
-2. Work on an existing package
-
-We will dive into these scenarios after we have covered some preliminaries.
 
 ## Preliminaries
 
-You need to install Lean, and you need an editor that knows about Lean.
-(If your editor does not know about Lean,
-then you will hit a wall very soon.)
+We'll need to set up Lean, an editor that know about Lean, and `mathlib` (the standard library).
 
-But do not install Lean immediately. Here is why:
-Different packages (think, 'projects')
-might need different versions of Lean.
-Therefore it is recommended to install Elan.
-Elan is a small program that looks at a special filein your package
-to determine which version of Lean (and mathlib) you need.
-It will then automagically make sure that you use
-this correct version of Lean (and mathlib).
+Rather than installing Lean ourselves, we'll install a small program called Elan
+which automatically provides the correct version of Lean on a per-project basis. This is very
+helpful and recommended for all users.
 
 ### Installing Elan
 
-1. Make sure `git` and `curl` are installed.
-   For example, use your distributions package manager.
-2. Run the command
+1. We'll need a terminal along with some basic prerequisites.
+  * Ubuntu: Probably you have everything already, but `sudo apt-get install git curl` should be enough.
+  * macOS: We need `libgmp`, which isn't available by default. The recommended course is to
+    install [homebrew](https://brew.sh/), then run `brew install libgmp` in a terminal. 
+  * Windows 10: 
+    * Install the [Visual C++ redistributable](https://www.microsoft.com/en-au/download/details.aspx?id=48145).
+    * Install [Git for Windows](https://gitforwindows.org/).
+    * In the following instructions, you'll use a "git bash" terminal, which you can start by
+      typing "git bash" in the Windows search bar.
+
+2. At a terminal, run the command
 
    `curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh`
 
-   and type enter when a question is asked.
+   and hit enter when a question is asked.
    This automatically appends a line to your `$HOME/.profile`
    which prepends `$HOME/.elan/bin` to your `$PATH`.
+
    It is recommended that you re-login,
    so that your environment knows about Elan.
    
@@ -47,18 +39,14 @@ this correct version of Lean (and mathlib).
 ### Installing and configuring an editor
 
 Currently, there are two Lean-aware editors:
-VScode and emacs.
-This document only covers VScode.
-(If you want to know how to make emacs Lean-aware,
-take a look at https://github.com/leanprover/lean-mode
-and its README.)
+VS Code and emacs.
+This document describes using VS Code (for emacs, look at https://github.com/leanprover/lean-mode).
 
-1. Install VScode (https://code.visualstudio.com/).
-   For example, use your distributions package manager.
-2. Launch VScode and install the Lean extension:
-   click on the extension icon in the view bar at the left
+1. Install [VS Code](https://code.visualstudio.com/).
+2. Launch VScode.
+3. Click on the extension icon in the view bar at the left
    and search for `lean`.
-3. Quit VScode for now
+4. Click "install", and then "reload" to restart VS Code.
 
 ## Scenario 1: Start a new package
 
@@ -81,9 +69,6 @@ At this point you can already create some Lean file in `my_playground/src`:
 say `test.lean`.
 
 1. Now launch VScode.
-   (If you did not re-login after installing Elan,
-   then you have to launch VScode from a terminal that has
-   sourced `$HOME/.elan/env`.)
 2. Click "File -> Open folder" (Ctrl-K Ctrl-O) and open `my_plaground`.
 3. Open the file `test.lean`.
 4. Type Ctrl-Shift-Enter to open the Lean message window.
@@ -102,8 +87,6 @@ and running `leanpkg build`.
 
 Now go and get some coffee.
 
-
-
 ## Scenario 2: Work on an existing package
 
 Suppose you want to work on an existing project.
@@ -120,9 +103,9 @@ As example, we will take https://github.com/kbuzzard/lean-stacks-project.
 
 Once the compile is over, you can start working.
 
-1. Now launch VScode.
+1. Now launch VS Code.
    (If you did not re-login after installing Elan,
-   then you have to launch VScode from a terminal that has
+   then you have to launch VS Code from a terminal that has
    sourced `$HOME/.elan/env`.)
 2. Click "File -> Open folder" (Ctrl-K Ctrl-O) and open `lean-stacks-project`.
 2. Type Ctrl-Shift-Enter to open the Lean message window.

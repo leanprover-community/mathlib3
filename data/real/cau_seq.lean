@@ -509,22 +509,13 @@ theorem lt_irrefl {f : cau_seq α abs} : ¬ f < f
 
 lemma le_of_eq_of_le {f g h : cau_seq α abs}
   (hfg : f ≈ g) (hgh : g ≤ h) : f ≤ h :=
-hgh.elim (le_of_lt ∘ cau_seq.lt_of_eq_of_lt hfg)
+hgh.elim (or.inl ∘ cau_seq.lt_of_eq_of_lt hfg)
   (or.inr ∘ setoid.trans hfg)
 
 lemma le_of_le_of_eq {f g h : cau_seq α abs}
   (hfg : f ≤ g) (hgh : g ≈ h) : f ≤ h :=
-hfg.elim (λ h, le_of_lt (cau_seq.lt_of_lt_of_eq h hgh))
+hfg.elim (λ h, or.inl (cau_seq.lt_of_lt_of_eq h hgh))
   (λ h, or.inr (setoid.trans h hgh))
-
-lemma le_of_exists {f g : cau_seq α abs}
-  (h : ∃ i, ∀ j ≥ i, f j ≤ g j) : f ≤ g :=
-let ⟨i, hi⟩ := h in
-(or.assoc.2 (cau_seq.lt_total f g)).elim
-  id
-  (λ hgf, false.elim (let ⟨K, hK0, j, hKj⟩ := hgf in
-    not_lt_of_ge (hi (max i j) (le_max_left _ _))
-      (sub_pos.1 (lt_of_lt_of_le hK0 (hKj _ (le_max_right _ _))))))
 
 instance : preorder (cau_seq α abs) :=
 { lt := (<),
@@ -560,6 +551,15 @@ show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
 
 theorem const_le {x y : α} : const x ≤ const y ↔ x ≤ y :=
 by rw le_iff_lt_or_eq; exact or_congr const_lt const_equiv
+
+lemma le_of_exists {f g : cau_seq α abs}
+  (h : ∃ i, ∀ j ≥ i, f j ≤ g j) : f ≤ g :=
+let ⟨i, hi⟩ := h in
+(or.assoc.2 (cau_seq.lt_total f g)).elim
+  id
+  (λ hgf, false.elim (let ⟨K, hK0, j, hKj⟩ := hgf in
+    not_lt_of_ge (hi (max i j) (le_max_left _ _))
+      (sub_pos.1 (lt_of_lt_of_le hK0 (hKj _ (le_max_right _ _))))))
 
 theorem exists_gt (f : cau_seq α abs) : ∃ a : α, f < const a :=
 let ⟨K, H⟩ := f.bounded in

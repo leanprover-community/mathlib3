@@ -5,10 +5,12 @@ Authors: Chris Hughes
 -/
 import data.complex.basic algebra.archimedean data.nat.binomial tactic.linarith
 
+local attribute [instance, priority 0] classical.prop_decidable
+local notation `abs'` := _root_.abs
+open is_absolute_value
+
 section
 open real is_absolute_value finset
-
-local attribute [instance, priority 0] classical.prop_decidable
 
 lemma geo_sum_eq {α : Type*} [field α] {x : α} : ∀ (n : ℕ) (hx1 : x ≠ 1),
   (range n).sum (λ m, x ^ m) = (1 - x ^ n) / (1 - x)
@@ -630,7 +632,7 @@ by apply complex.ext; simp
 @[simp] lemma of_real_cosh (x : ℝ) : (real.cosh x : ℂ) = cosh x :=
 by simp [real.cosh]
 
-lemma tanh_eq_sinh_div_cos : tanh x = sinh x / cosh x := rfl
+lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x := rfl
 
 @[simp] lemma tanh_zero : tanh 0 = 0 := by simp [tanh]
 
@@ -664,13 +666,13 @@ variables (x y : ℝ)
 by rw [real.exp, of_real_zero]; simp
 
 lemma exp_add : exp (x + y) = exp x * exp y :=
-by simp [exp_add, real.exp]
+by simp [exp_add, exp]
 
 lemma exp_ne_zero : exp x ≠ 0 :=
-λ h, exp_ne_zero x $ by rw [real.exp, ← of_real_inj, of_real_zero] at h; simp * at *
+λ h, exp_ne_zero x $ by rw [exp, ← of_real_inj, of_real_zero] at h; simp * at *
 
 lemma exp_neg : exp (-x) = (exp x)⁻¹ :=
-by rw [← of_real_inj, real.exp, of_real_exp_of_real_re, of_real_neg, exp_neg,
+by rw [← of_real_inj, exp, of_real_exp_of_real_re, of_real_neg, exp_neg,
   of_real_inv, of_real_exp]
 
 lemma exp_sub : exp (x - y) = exp x / exp y :=
@@ -746,62 +748,12 @@ else
 
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
 
-end real
-
-namespace complex
-
 open is_absolute_value
 
-local notation `abs'` := _root_.abs
-
-local attribute [instance, priority 0] classical.prop_decidable
-
-lemma is_cau_seq_abs {f : ℕ → ℂ} (hf : is_cau_seq abs f) :
-  is_cau_seq abs' (abs ∘ f) :=
-λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
-⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
-
-lemma lim_abs (f : cau_seq ℂ abs) :
-  real.lim (⟨_, is_cau_seq_abs f.2⟩ : cau_seq ℝ abs') = abs (complex.lim f) :=
-real.lim_eq_of_equiv_const (λ ε ε0,
-let ⟨i, hi⟩ := equiv_lim f ε ε0 in
-⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩)
-
-lemma cau_seq.le_of_eq_of_le {f g h : cau_seq ℝ abs'}
-  (hfg : f ≈ g) (hgh : g ≤ h) : f ≤ h :=
-hgh.elim (le_of_lt ∘ cau_seq.lt_of_eq_of_lt hfg)
-  (or.inr ∘ setoid.trans hfg)
-  
-lemma cau_seq.le_of_le_of_eq {f g h : cau_seq ℝ abs'}
-  (hfg : f ≤ g) (hgh : g ≈ h) : f ≤ h :=
-hfg.elim (λ h, le_of_lt (cau_seq.lt_of_lt_of_eq h hgh)) 
-  (λ h, or.inr (setoid.trans h hgh))
-
-lemma cau_seq.le_of_exists {f g : cau_seq ℝ abs'}
-  (h : ∃ i, ∀ j ≥ i, f j ≤ g j) : f ≤ g :=
-let ⟨i, hi⟩ := h in
-(or.assoc.2 (cau_seq.lt_total f g)).elim
-  id
-  (λ hgf, false.elim (let ⟨K, hK0, j, hKj⟩ := hgf in
-    not_lt_of_ge (hi (max i j) (le_max_left _ _))
-      (sub_pos.1 (lt_of_lt_of_le hK0 (hKj _ (le_max_right _ _))))))
-
-lemma real.lim_le (f : cau_seq ℝ abs') (x : ℝ)
-  (h : f ≤ cau_seq.const abs' x) : real.lim f ≤ x :=
-cau_seq.const_le.1 $ cau_seq.le_of_eq_of_le (setoid.symm (real.equiv_lim f)) h
-
-lemma real.lt_lim (f : cau_seq ℝ abs') (x : ℝ)
-  (h : cau_seq.const abs' x < f) : x < real.lim f :=
-cau_seq.const_lt.1 $ cau_seq.lt_of_lt_of_eq h (real.equiv_lim f)
-
-lemma real.le_lim (f : cau_seq ℝ abs') (x : ℝ)
-  (h : cau_seq.const abs' x ≤ f) : x ≤ real.lim f :=
-cau_seq.const_le.1 $ cau_seq.le_of_le_of_eq h (real.equiv_lim f) 
-
-/- TODO make this private -/
-lemma add_one_le_exp_aux {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ real.exp x :=
-show x + 1 ≤ real.lim (⟨(λ (n : ℕ), ((exp' ↑x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ abs'),
-from real.le_lim _ _ $ cau_seq.le_of_exists ⟨2, 
+/- TODO make this private and prove ∀ x -/
+lemma add_one_le_exp_aux {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ exp x :=
+show x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ abs'),
+from real.le_lim (cau_seq.le_of_exists ⟨2,
   λ j hj, show x + (1 : ℝ) ≤ ((range j).sum (λ m, (x ^ m / m.fact : ℂ))).re,
     from have h₁ : (((λ m : ℕ, (x ^ m / m.fact : ℂ)) ∘ nat.succ) 0).re = x, by simp,
     have h₂ : ((x : ℂ) ^ 0 / nat.fact 0).re = 1, by simp,
@@ -810,15 +762,15 @@ from real.le_lim _ _ $ cau_seq.le_of_exists ⟨2,
         add_re, add_re, h₁, h₂, add_assoc, ← sum_hom complex.re zero_re add_re],
       refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
       rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
-      exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)), 
-    end⟩
+      exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),
+    end⟩)
 
 /- TODO use add_one_le_exp -/
-lemma one_le_exp {x : ℝ} (hx : 0 ≤ x) : 1 ≤ real.exp x :=
+lemma one_le_exp {x : ℝ} (hx : 0 ≤ x) : 1 ≤ exp x :=
 show 1 ≤ real.lim (⟨(λ (n : ℕ), ((exp' ↑x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ abs'),
-from real.le_lim _ _ $ cau_seq.le_of_exists ⟨1, 
-  λ j hj, show (1 : ℝ) ≤ ((range j).sum (λ m, (x ^ m / m.fact : ℂ))).re, 
-    from have (λ m, ((x : ℂ) ^ m / nat.fact m).re) 0 = 1, by simp, 
+from real.le_lim $ cau_seq.le_of_exists ⟨1,
+  λ j hj, show (1 : ℝ) ≤ ((range j).sum (λ m, (x ^ m / m.fact : ℂ))).re,
+    from have (λ m, ((x : ℂ) ^ m / nat.fact m).re) 0 = 1, by simp,
     begin
       rw [← sum_hom complex.re zero_re add_re, ← this],
       refine single_le_sum (λ m hm, _) (mem_range.2 hj),
@@ -826,28 +778,21 @@ from real.le_lim _ _ $ cau_seq.le_of_exists ⟨1,
       exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),
     end⟩
 
-lemma exp_pos (x : ℝ) : 0 < real.exp x :=
+lemma exp_pos (x : ℝ) : 0 < exp x :=
 (le_total 0 x).elim (lt_of_lt_of_le zero_lt_one ∘ one_le_exp)
   (λ h, by rw [← neg_neg x, real.exp_neg];
     exact inv_pos (lt_of_lt_of_le zero_lt_one (one_le_exp (neg_nonneg.2 h))))
 
-lemma add_one_le_exp {x : ℝ} (hx : x ≤ 0) : x + 1 ≤ real.exp x :=
-begin
-  have := add_one_le_exp_aux (neg_nonneg.2 hx),
-  rw [real.exp_neg, le_inv] at this,
-
-end
-
-lemma exp_le_exp {x y : ℝ} (h : x ≤ y) : real.exp x ≤ real.exp y :=
+lemma exp_le_exp {x y : ℝ} (h : x ≤ y) : exp x ≤ exp y :=
 by rw [← sub_add_cancel y x, real.exp_add];
   exact (le_mul_iff_one_le_left (exp_pos _)).2 (one_le_exp (sub_nonneg.2 h))
-  
-lemma exp_lt_exp {x y : ℝ} (h : x < y) : real.exp x < real.exp y :=
+
+lemma exp_lt_exp {x y : ℝ} (h : x < y) : exp x < exp y :=
 by rw [← sub_add_cancel y x, real.exp_add];
-  exact (lt_mul_iff_one_lt_left (exp_pos _)).2 
+  exact (lt_mul_iff_one_lt_left (exp_pos _)).2
     (lt_of_lt_of_le (by linarith) (add_one_le_exp_aux (by linarith)))
-    
-lemma exp_injective : function.injective real.exp :=
+
+lemma exp_injective : function.injective exp :=
 λ x y h, begin
   rcases lt_trichotomy x y with h₁ | h₁ | h₁,
   { exact absurd h (ne_of_lt (exp_lt_exp h₁)) },
@@ -855,24 +800,11 @@ lemma exp_injective : function.injective real.exp :=
   { exact absurd h (ne.symm (ne_of_lt (exp_lt_exp h₁))) }
 end
 
-lemma nat.cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 :=
-by simp
+end real
 
-@[simp] lemma abs_two : abs 2 = 2 :=
-calc abs 2 = abs (2 : ℝ) : by rw [of_real_bit0, of_real_one]
-... = (2 : ℝ) : abs_of_nonneg (by norm_num)
+namespace complex
 
-lemma fact_mul_pow_le_fact : ∀ {m n : ℕ}, m.fact * m.succ ^ n ≤ (m + n).fact
-| m 0     := by simp
-| m (n+1) :=
-by  rw [← add_assoc, nat.fact_succ, mul_comm (nat.succ _), nat.pow_succ, ← mul_assoc];
-  exact mul_le_mul fact_mul_pow_le_fact
-    (nat.succ_le_succ (nat.le_add_right _ _)) (nat.zero_le _) (nat.zero_le _)
-
-lemma inv_pow' {α : Type*} [discrete_field α] (a : α) (n : ℕ) : (a ^ n)⁻¹ = a⁻¹ ^ n :=
-by induction n; simp [*, pow_succ, mul_inv', mul_comm]
-
-lemma exp_continuous_aux₁ {α : Type*} [discrete_linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
+lemma sum_div_fact_le {α : Type*} [discrete_linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
   (sum (filter (λ k, n ≤ k) (range j)) (λ m : ℕ, (1 / m.fact : α))) ≤ n.succ * (n.fact * n)⁻¹ :=
 calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
     = (range (j - n)).sum (λ m, 1 / (m + n).fact) :
@@ -891,7 +823,7 @@ calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
     refine (inv_le_inv (nat.cast_pos.2 (nat.fact_pos _)) _).2 _,
     { exact mul_pos (nat.cast_pos.2 (nat.fact_pos _)) (pow_pos (nat.cast_pos.2 (nat.succ_pos _)) _) },
     { rw [← nat.cast_pow, ← nat.cast_mul, nat.cast_le, add_comm],
-      exact fact_mul_pow_le_fact }
+      exact nat.fact_mul_pow_le_fact }
   end)
 ... = (nat.fact n)⁻¹ * (range (j - n)).sum (λ m, n.succ⁻¹ ^ m) :
   by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.fact_succ, mul_comm, inv_pow']
@@ -915,7 +847,7 @@ lemma exp_bound {x : ℂ} (hx : abs x ≤ 1) {n : ℕ} (hn : 0 < n) :
   abs (exp x - (range n).sum (λ m, x ^ m / m.fact)) ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹) :=
 begin
   rw [← lim_const ((range n).sum _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
-  refine real.lim_le _ _ (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
+  refine real.lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
   show abs ((range j).sum (λ m, x ^ m / m.fact) - (range n).sum (λ m, x ^ m / m.fact))
     ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹),
   rw sum_range_sub_sum_range hj,
@@ -932,7 +864,7 @@ begin
   ... = abs x ^ n * (((range j).filter (λ k, n ≤ k)).sum (λ m : ℕ, (1 / m.fact : ℝ))) :
     by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]
   ... ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹) :
-    mul_le_mul_of_nonneg_left (exp_continuous_aux₁ _ _ hn) (pow_nonneg (abs_nonneg _) _)
+    mul_le_mul_of_nonneg_left (sum_div_fact_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
 end
 
 lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
@@ -943,29 +875,36 @@ calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
   exp_bound hx dec_trivial
 ... = 2 * abs x : by simp [bit0, mul_comm]
 
-lemma cos_one_bound : abs' (real.cos 1 - 1 / 2) ≤ 1 / 6 :=
-calc abs' (real.cos 1 - 1 / 2) = abs (cos 1 - 1 / 2) :
+end complex
+
+namespace real
+
+open complex finset
+
+lemma cos_one_bound : abs' (cos 1 - 1 / 2) ≤ 1 / 6 :=
+calc abs' (cos 1 - 1 / 2) = abs (complex.cos 1 - 1 / 2) :
   by rw ← abs_of_real; simp [of_real_bit0, of_real_one, of_real_inv]
-... = abs ((exp I + exp (-I) - 1) / 2) :
-  by rw [cos, sub_div]; simp
-... = abs (((exp I - (range 4).sum (λ m, I ^ m / m.fact)) + (exp (-I) - (range 4).sum (λ m, (-I) ^ m / m.fact))) / 2) :
+... = abs ((complex.exp I + complex.exp (-I) - 1) / 2) :
+  by rw [complex.cos, sub_div]; simp
+... = abs (((complex.exp I - (range 4).sum (λ m, I ^ m / m.fact)) +
+    (complex.exp (-I) - (range 4).sum (λ m, (-I) ^ m / m.fact))) / 2) :
   congr_arg abs (congr_arg (λ x : ℂ, x / 2) begin
     simp only [sum_range_succ],
     simp [pow_succ],
     apply complex.ext; simp [div_eq_mul_inv, norm_sq], norm_num
   end)
-... ≤ abs ((exp I - (range 4).sum (λ m, I ^ m / m.fact)) / 2) +
-    abs ((exp (-I) - (range 4).sum (λ m, (-I) ^ m / m.fact)) / 2) :
+... ≤ abs ((complex.exp I - (range 4).sum (λ m, I ^ m / m.fact)) / 2) +
+    abs ((complex.exp (-I) - (range 4).sum (λ m, (-I) ^ m / m.fact)) / 2) :
   by rw add_div; exact abs_add _ _
-... = abs ((exp I - (range 4).sum (λ m, I ^ m / m.fact))) / 2 +
-    abs ((exp (-I) - (range 4).sum (λ m, (-I) ^ m / m.fact))) / 2 : by simp [abs_div]
-... ≤ (abs I ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 + 
+... = abs ((complex.exp I - (range 4).sum (λ m, I ^ m / m.fact))) / 2 +
+    abs ((complex.exp (-I) - (range 4).sum (λ m, (-I) ^ m / m.fact))) / 2 : by simp [complex.abs_div]
+... ≤ (abs I ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 +
     (abs (-I) ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 :
   add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simp) dec_trivial))
              ((div_le_div_right (by norm_num)).2 (exp_bound (by simp) dec_trivial))
 ... ≤ 1 / 6 : by simp [nat.fact]; norm_num
 
-lemma cos_one_le : real.cos 1 ≤ 2 / 3 :=
+lemma cos_one_le : cos 1 ≤ 2 / 3 :=
 calc real.cos 1 ≤ 1 / 6 + 1 / 2 : sub_le_iff_le_add.1 (abs_sub_le_iff.1 cos_one_bound).1
 ... ≤ 2 / 3 : by norm_num
 
@@ -984,4 +923,4 @@ calc real.cos 2 = real.cos (2 * 1) : congr_arg real.cos (by simp [bit0])
   (by norm_num)) _
 ... < 0 : by norm_num
 
-end complex
+end real

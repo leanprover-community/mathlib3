@@ -91,13 +91,13 @@ continuous.comp
   (continuous.comp complex.continuous_of_real complex.continuous_cosh)
   complex.continuous_re
 
-private lemma exists_exp_eq_of_one_le {x : ℝ} (hx : 1 ≤ x) : ∃ y, real.exp y = x :=
+private lemma exists_exp_eq_of_one_le {x : ℝ} (hx : 1 ≤ x) : ∃ y, exp y = x :=
 let ⟨y, hy⟩ := @intermediate_value real.exp 0 (x - 1) x
   (λ _ _ _, continuous_iff_tendsto.1 continuous_exp _) (by simpa)
-  (by simpa using complex.add_one_le_exp_aux (sub_nonneg.2 hx)) (sub_nonneg.2 hx) in
+  (by simpa using add_one_le_exp_aux (sub_nonneg.2 hx)) (sub_nonneg.2 hx) in
 ⟨y, hy.2.2⟩
 
-lemma exists_exp_eq_of_pos {x : ℝ} (hx : 0 < x) : ∃ y, real.exp y = x :=
+lemma exists_exp_eq_of_pos {x : ℝ} (hx : 0 < x) : ∃ y, exp y = x :=
 (le_total x 1).elim
 (λ hx1, let ⟨y, hy⟩ := exists_exp_eq_of_one_le (one_le_inv hx hx1) in
   ⟨-y, by rw [exp_neg, hy, inv_inv']⟩)
@@ -110,13 +110,13 @@ lemma exp_ln {x : ℝ} (hx : 0 < x) : exp (ln x) = x :=
 by rw [ln, dif_pos hx]; exact classical.some_spec (exists_exp_eq_of_pos hx)
 
 @[simp] lemma ln_exp (x : ℝ) : ln (exp x) = x :=
-complex.exp_injective $ by rw exp_ln (complex.exp_pos x)
+exp_injective $ exp_ln (exp_pos x)
 
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'
   (λ x _ _, continuous_iff_tendsto.1 continuous_cos _)
-  (le_of_lt complex.cos_one_pos)
-  (le_of_lt complex.cos_two_neg) (by norm_num)
+  (le_of_lt cos_one_pos)
+  (le_of_lt cos_two_neg) (by norm_num)
 
 noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 

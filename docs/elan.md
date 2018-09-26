@@ -68,7 +68,7 @@ That's it.
 At this point you can already create some Lean file in `my_playground/src`:
 say `test.lean`.
 
-1. Now launch VScode.
+1. Now launch VS Code.
 2. Click "File -> Open folder" (Ctrl-K Ctrl-O) and open `my_plaground`.
 3. Open the file `test.lean`.
 4. Type Ctrl-Shift-Enter to open the Lean message window.

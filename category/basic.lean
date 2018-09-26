@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Extends the theory on functors, applicatives and monads.
 -/
 
-universes u v
+universes u v w
 variables {α β γ : Type u}
 
 notation a ` $< `:1 f:1 := f a
@@ -94,6 +94,23 @@ by rw [← bind_pure_comp_eq_map, bind_assoc]; simp [pure_bind]
 
 lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x)) :=
 (bind_map_eq_seq m f x).symm
+
+variables {β' γ' : Type v}
+variables {m' : Type v → Type w} [monad m']
+
+def list.mmap_accumr (f : α → β' → m' (β' × γ')) : β' → list α → m' (β' × list γ')
+| a [] := pure (a,[])
+| a (x :: xs) :=
+  do (a',ys) ← list.mmap_accumr a xs,
+     (a'',y) ← f x a',
+     pure (a'',y::ys)
+
+def list.mmap_accuml (f : β' → α → m' (β' × γ')) : β' → list α → m' (β' × list γ')
+| a [] := pure (a,[])
+| a (x :: xs) :=
+  do (a',y) ← f a x,
+     (a'',ys) ← list.mmap_accuml a' xs,
+     pure (a'',y :: ys)
 
 end monad
 

@@ -613,7 +613,7 @@ example (p q r s : Prop)
   (h₂ : r ↔ s) :
   p ↔ s :=
 begin
-  check_eqv,
+  scc,
 end
 
 example (p' p q r r' s s' : Prop)

@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import data.fintype
 
 universes u v
-open equiv function finset fintype
+open equiv function fintype finset
 variables {α : Type u} {β : Type v}
 
 namespace equiv.perm
@@ -545,7 +545,8 @@ lemma is_cycle_swap_mul {f : perm α} (hf : is_cycle f) {x : α}
   is_cycle_swap_mul_aux₂ (i - 1) hf hy hi⟩
 
 lemma support_swap_mul_cycle [fintype α] {f : perm α} (hf : is_cycle f) {x : α}
-  (hx : f x ≠ x) (hffx : f (f x) ≠ x) : (swap x (f x) * f).support = f.support.erase x :=
+  (hffx : f (f x) ≠ x) : (swap x (f x) * f).support = f.support.erase x :=
+have hfx : f x ≠ x, from λ hfx, by simpa [hfx] using hffx,
 finset.ext.2 $ λ y, begin
   have h1 : swap x (f x) * f ≠ 1,
     from λ h1, hffx $ by
@@ -553,7 +554,7 @@ finset.ext.2 $ λ y, begin
       rw ← h1; simp,
   have hfyxor : f y ≠ x ∨ f x ≠ y :=
     not_and_distrib.1 (λ h, h1 $
-      by have := eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx (by rw [h.2, h.1]);
+      by have := eq_swap_of_is_cycle_of_apply_apply_eq_self hf hfx (by rw [h.2, h.1]);
       rw [← this, this, mul_def, swap_swap, one_def]),
   rw [mem_support, mem_erase, mem_support],
   split,
@@ -561,7 +562,7 @@ finset.ext.2 $ λ y, begin
     refine not_or_distrib.1 (λ h₁, h₁.elim
       (λ hyx, by simpa [hyx, mul_apply] using h) _),
     assume hfy,
-    have hyx : x ≠ y := λ h, by rw h at hx; tauto,
+    have hyx : x ≠ y := λ h, by rw h at hfx; tauto,
     have hfyx : f x ≠ y := by rwa [← hfy, ne.def, injective.eq_iff f.bijective.1],
     simpa [mul_apply, hfy, swap_apply_of_ne_of_ne hyx.symm hfyx.symm] using h },
   { assume h,
@@ -592,7 +593,7 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
         card_support_swap hx.1.symm]; refl
   else
     have h : card (support (swap x (f x) * f)) + 1 = card (support f),
-      by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_cycle hf hx.1 h1,
+      by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_cycle hf h1,
         card_insert_of_not_mem (not_mem_erase _ _)],
     have wf : card (support (swap x (f x) * f)) < card (support f),
       from h ▸ nat.lt_succ_self _,

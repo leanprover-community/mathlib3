@@ -15,13 +15,23 @@ Actually `completion.extension f` is defined for all maps from `α` to `β` but 
 properties only if `f` is uniformly continuous.
 
 Beware that `completion α` is not injective if `α` is not Hausdorff. But its image is always
-dense.
+dense. The adjoint functor acting on morphisms is then constructed by the usual abstract nonsense.
+For every uniform spaces `α` and `β`, it turns `f : α → β` into a morphism
+  `completion.map f : completion α → completion β`
+such that
+  `coe ∘ f = (completion.map f) ∘ coe`
+provided `f` is uniformly continuous. This construction is compatible with composition.
 
-The adjoint functor acting on morphisms is then constructed by the usual abstract nonsense.
-For every uniform spaces `α` and `β`, if turns `f : α → β` into
-a morphism `completion.map f : completion α → completion β` such that
-`(completion β) ∘ f = (completion.map f) ∘ completion α` provided `f` is uniformly continuous.
-This construction is compatible with composition.
+In this file we introduce the following concepts:
+
+* `separation_setoid α`: to construct the quotient over all elements which are topologically not
+  distinguishable.
+
+* `Cauchy α` the uniform completion of the uniform space `α` (using Cauchy filters). These are not
+  minimal filters.
+
+* `completion α := quotient (separation_setoid (Cauchy α))` the Hausdorff completion.
+  We also lift topological groups (using `uniform_add_group`) to the complete group structure.
 
 This formalization is mostly based on
   N. Bourbaki: General Topology

@@ -1903,17 +1903,10 @@ theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop
 theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
-⟨λ h, let ⟨r, e⟩ := h in begin
-  rwa append_inj_left ((take_append_drop (length l₁) l₂).trans e.symm) _,
-  simp [min_eq_left, length_le_of_sublist (sublist_of_prefix h)],
-end, λ e, ⟨_, e⟩⟩
+⟨by rintros ⟨r, rfl⟩; simp, λ e, ⟨_, e⟩⟩
 
 theorem suffix_iff_eq_append {l₁ l₂ : list α} : l₁ <:+ l₂ ↔ take (length l₂ - length l₁) l₂ ++ l₁ = l₂ :=
-⟨λ ⟨r, e⟩, begin
-  rwa append_inj_right ((take_append_drop (length l₂ - length l₁) l₂).trans e.symm) _,
-  simp [min_eq_left, nat.sub_le, e.symm],
-  apply nat.add_sub_cancel_left
-end, λ e, ⟨_, e⟩⟩
+⟨by rintros ⟨r, rfl⟩; simp [nat.add_sub_cancel_left], λ e, ⟨_, e⟩⟩
 
 theorem prefix_iff_eq_take {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ = take (length l₁) l₂ :=
 ⟨λ h, append_right_cancel $
@@ -2202,9 +2195,15 @@ theorem forall₂.imp {R S : α → β → Prop}
   (h : forall₂ R l₁ l₂) : forall₂ S l₁ l₂ :=
 by induction h; simp *
 
-lemma forall₂_flip : ∀{a b}, forall₂ (flip r) b a → forall₂ r a b
+lemma forall₂.mp {r q s : α → β → Prop} (h : ∀a b, r a b → q a b → s a b) :
+  ∀{l₁ l₂}, forall₂ r l₁ l₂ → forall₂ q l₁ l₂ → forall₂ s l₁ l₂
+| []      []      forall₂.nil           forall₂.nil           := forall₂.nil
+| (a::l₁) (b::l₂) (forall₂.cons hr hrs) (forall₂.cons hq hqs) :=
+  forall₂.cons (h a b hr hq) (forall₂.mp hrs hqs)
+
+lemma forall₂.flip : ∀{a b}, forall₂ (flip r) b a → forall₂ r a b
 | _ _                 forall₂.nil          := forall₂.nil
-| (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := forall₂.cons h₁ (forall₂_flip h₂)
+| (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := forall₂.cons h₁ h₂.flip
 
 lemma forall₂_same {r : α → α → Prop} : ∀{l}, (∀x∈l, r x x) → forall₂ r l l
 | []      _ := forall₂.nil
@@ -2239,6 +2238,12 @@ lemma forall₂_cons_right_iff {b l u} :
 iff.intro
   (assume h, match u, h with (b :: u'), forall₂.cons h₁ h₂ := ⟨b, u', h₁, h₂, rfl⟩ end)
   (assume h, match u, h with _, ⟨b, u', h₁, h₂, rfl⟩ := forall₂.cons h₁ h₂ end)
+
+lemma forall₂_and_left {r : α → β → Prop} {p : α → Prop} :
+  ∀l u, forall₂ (λa b, p a ∧ r a b) l u ↔ (∀a∈l, p a) ∧ forall₂ r l u
+| []     u := by simp [forall₂_nil_left_iff]
+| (a::l) u := by simp [forall₂_and_left l, forall₂_cons_left_iff,
+    and_assoc, and_comm, and.left_comm, - exists_and_distrib_left, exists_and_distrib_left.symm]
 
 @[simp] lemma forall₂_map_left_iff {f : γ → α} :
   ∀{l u}, forall₂ r (map f l) u ↔ forall₂ (λc b, r (f c) b) l u

@@ -1,5 +1,5 @@
 
-import tactic.basic core data.sum
+import tactic.basic core data.sum tactic.rcases
 universes u₁ u₂
 
 open interactive interactive.types
@@ -11,14 +11,16 @@ meta def get_ext_subject : expr → tactic name
      b' ← whnf $ b.instantiate_var v,
      get_ext_subject b'
 | (expr.app _ e) :=
-  do t ← infer_type e >>= instantiate_mvars,
+  do t ← infer_type e >>= instantiate_mvars >>= head_beta,
      if t.get_app_fn.is_constant then
        pure $ t.get_app_fn.const_name
      else if t.is_pi then
        pure $ name.mk_numeral 0 name.anonymous
      else if t.is_sort then
        pure $ name.mk_numeral 1 name.anonymous
-     else fail format!"only constants and Pi types are supported: {t}"
+     else do
+       t ← pp t,
+       fail format!"only constants and Pi types are supported: {t}"
 | e := fail format!"Only expressions of the form `_ → _ → ... → R ... e are supported: {e}"
 
 open native
@@ -139,7 +141,7 @@ meta def extensional_attribute : user_attribute (name_map name) (bool × list ex
        extensional_attribute.set n (tt,[],l,[]) b }
 
 attribute [extensionality] array.ext propext
-attribute [extensionality [*,thunk]] _root_.funext
+attribute [extensionality [(→),thunk]] _root_.funext
 
 namespace ulift
 @[extensionality] lemma ext {α : Type u₁} (X Y : ulift.{u₂} α) (w : X.down = Y.down) : X = Y :=
@@ -150,7 +152,15 @@ end ulift
 
 namespace tactic
 
-meta def ext1 (xs : list name) : tactic (list name) :=
+meta def try_intros : ext_patt → tactic ext_patt
+| [] := try intros $> []
+| (x::xs) :=
+do tgt ← target >>= whnf,
+   if tgt.is_pi
+     then rintro [x] >> try_intros xs
+     else pure (x :: xs)
+
+meta def ext1 (xs : ext_patt) : tactic ext_patt :=
 do subject ← target >>= get_ext_subject,
    m ← extensional_attribute.get_cache,
    do { rule ← m.find subject,
@@ -160,7 +170,7 @@ do subject ← target >>= get_ext_subject,
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
 
-meta def ext : list name → option ℕ → tactic unit
+meta def ext : ext_patt → option ℕ → tactic unit
 | _  (some 0) := skip
 | xs n        := focus1 $ do
   ys ← ext1 xs, try (ext ys (nat.pred <$> n))
@@ -175,7 +185,7 @@ local postfix *:9001 := many
   introduced by the lemma. If `id` is omitted, the local constant is
   named automatically, as per `intro`.
  -/
-meta def interactive.ext1 (xs : parse ident_*) : tactic unit :=
+meta def interactive.ext1 (xs : parse ext_parse) : tactic unit :=
 ext1 xs $> ()
 
 /--
@@ -205,7 +215,7 @@ ext1 xs $> ()
 
   A maximum depth can be provided with `ext x y z : 3`.
   -/
-meta def interactive.ext : parse ident_* → parse (tk ":" *> small_nat)? → tactic unit
+meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → tactic unit
  | [] (some n) := iterate_range 1 n (ext1 [] $> ())
  | [] none     := repeat1 (ext1 [] $> ())
  | xs n        := tactic.ext xs n

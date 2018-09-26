@@ -134,6 +134,7 @@ lemma uniform_space.to_core_to_topological_space (u : uniform_space α) :
 topological_space_eq $ funext $ assume s,
   by rw [uniform_space.core.to_topological_space, uniform_space.is_open_uniformity]
 
+@[extensionality]
 lemma uniform_space_eq : ∀{u₁ u₂ : uniform_space α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
 | (uniform_space.mk' t₁ u₁ o₁)  (uniform_space.mk' t₂ u₂ o₂) h :=
   have u₁ = u₂, from uniform_space.core_eq h,
@@ -1279,6 +1280,17 @@ complete_space_extension
 
 end
 
+section
+local attribute [instance] separation_setoid
+lemma injective_separated_pure_cauchy {α : Type*} [uniform_space α] [s : separated α] :
+  function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
+separated_def.1 s _ _ $ assume s hs,
+let ⟨t, ht, hts⟩ :=
+  by rw [← (@uniform_embedding_pure_cauchy α _).right, filter.mem_comap_sets] at hs; exact hs in
+have (pure_cauchy a, pure_cauchy b) ∈ t, from quotient.exact h t ht,
+@hts (a, b) this
+end
+
 end Cauchy
 
 instance nonempty_Cauchy {α : Type u} [h : nonempty α] [uniform_space α] : nonempty (Cauchy α) :=
@@ -1391,6 +1403,17 @@ def uniform_space.comap (f : α → β) (u : uniform_space β) : uniform_space �
       exact ⟨{y | (f x, y) ∈ t}, λ y hy, @hts (x, y) hy rfl,
         mem_nhds_uniformity_iff.1 $ mem_nhds_left _ ht⟩ }
   end }
+
+lemma uniform_space_comap_id {α : Type*} : uniform_space.comap (id : α → α) = id :=
+by ext u ; dsimp [uniform_space.comap] ; rw [prod.id_prod, filter.comap_id]
+
+lemma uniform_space.comap_comap_comp {α β γ} [uγ : uniform_space γ] {f : α → β} {g : β → γ} :
+  uniform_space.comap (g ∘ f) uγ = uniform_space.comap f (uniform_space.comap g uγ) :=
+by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap_comp
+
+lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] (f : α → β) :
+  uniform_continuous f ↔ uβ.comap f ≤ uα :=
+filter.map_le_iff_le_comap
 
 lemma uniform_continuous_comap {f : α → β} [u : uniform_space β] :
   @uniform_continuous α β (uniform_space.comap f u) u f :=

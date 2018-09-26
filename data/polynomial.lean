@@ -126,6 +126,9 @@ begin
   simp
 end
 
+lemma C_inj : C a = C b ↔ a = b :=
+⟨λ h, C_apply_zero.symm.trans (h.symm ▸ C_apply_zero), congr_arg C⟩
+
 @[simp] lemma X_pow_apply (n i : ℕ) : (X ^ n : polynomial α) i = (if n = i then 1 else 0) :=
 suffices (single n 1 : polynomial α) i = (if n = i then 1 else 0),
   by rw [single_eq_C_mul_X] at this; simpa,
@@ -880,6 +883,11 @@ lemma mul_div_by_monic_eq_iff_is_root : (X - C a) * (p /ₘ (X - C a)) = p ↔ i
 λ h : p.eval a = 0,
   by conv {to_rhs, rw ← mod_by_monic_add_div p (monic_X_sub_C a)};
     rw [mod_by_monic_X_sub_C_eq_C_eval, h, C_0, zero_add]⟩
+
+lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a :=
+⟨λ h, by rwa [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _),
+    mod_by_monic_X_sub_C_eq_C_eval, ← C_0, C_inj] at h,
+  λ h, ⟨(p /ₘ (X - C a)), by rw mul_div_by_monic_eq_iff_is_root.2 h⟩⟩
 
 end nonzero_comm_ring
 

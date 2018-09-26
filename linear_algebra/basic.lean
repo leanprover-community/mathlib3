@@ -16,6 +16,11 @@ reserve infix `≃ₗ` : 50
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Type x}
 
+@[elab_as_eliminator]
+lemma classical.some_spec3 {α : Type*} {p : α → Prop} {h : ∃a, p a}
+  (q : α → Prop) (hpq : ∀a, p a → q a) : q (classical.some h) :=
+hpq _ $ classical.some_spec _
+
 namespace finset
 
 lemma smul_sum [ring γ] [add_comm_group β] [module γ β]
@@ -72,13 +77,33 @@ lemma sum_apply [decidable_eq δ] (t : finset δ) (f : δ → β →ₗ γ) (b :
   t.sum f b = t.sum (λd, f d b) :=
 (@finset.sum_hom _ _ _ t f _ _ (λ g : β →ₗ γ, g b) (by simp) (by simp)).symm
 
-lemma sub_apply (x : β) : (f - g) x = f x - g x := rfl
+@[simp] lemma sub_apply (x : β) : (f - g) x = f x - g x := rfl
 
 def smul_right (f : γ →ₗ α) (x : β) : γ →ₗ β :=
 ⟨λb, f b • x, by simp [add_smul], by simp [smul_smul]⟩.
 
 @[simp] theorem smul_right_apply (f : γ →ₗ α) (x : β) (c : γ) :
   (smul_right f x : γ → β) c = f c • x := rfl
+
+instance : has_one (β →ₗ β) := ⟨linear_map.id⟩
+instance : has_mul (β →ₗ β) := ⟨linear_map.comp⟩
+
+@[simp] lemma one_app (x : β) : (1 : β →ₗ β) x = x := rfl
+@[simp] lemma mul_app (A B : β →ₗ β) (x : β) : (A * B) x = A (B x) := rfl
+
+section
+variables (α β)
+include β
+
+-- declaring this an instance breaks `real.lean` with reaching max. instance resolution depth
+def endomorphism_ring : ring (β →ₗ β) :=
+by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
+  { intros, apply linear_map.ext, simp }
+
+/-- The group of invertible linear maps from `β` to itself -/
+def general_linear_group :=
+by haveI := endomorphism_ring α β; exact units (β →ₗ β)
+end
 
 section
 variables (β γ)
@@ -91,6 +116,9 @@ end
 
 def pair (f : β →ₗ γ) (g : β →ₗ δ) : β →ₗ γ × δ :=
 ⟨λ x, (f x, g x), λ x y, by simp, λ x y, by simp⟩
+
+@[simp] theorem pair_apply (f : β →ₗ γ) (g : β →ₗ δ) (x : β) :
+  pair f g x = (f x, g x) := rfl
 
 @[simp] theorem fst_pair (f : β →ₗ γ) (g : β →ₗ δ) :
   (fst γ δ).comp (pair f g) = f := by ext; refl
@@ -106,7 +134,7 @@ variables (β γ)
 def inl : β →ₗ β × γ := by refine ⟨prod.inl, _, _⟩; intros; simp [prod.inl]
 def inr : γ →ₗ β × γ := by refine ⟨prod.inr, _, _⟩; intros; simp [prod.inr]
 end
-
+set_option profiler true
 @[simp] theorem inl_apply (x : β) : inl β γ x = (x, 0) := rfl
 @[simp] theorem inr_apply (x : γ) : inr β γ x = (0, x) := rfl
 
@@ -588,7 +616,7 @@ def range (f : β →ₗ γ) : submodule α γ := map f ⊤
 theorem range_coe (f : β →ₗ γ) : (range f : set γ) = set.range f := set.image_univ
 
 @[simp] theorem mem_range {f : β →ₗ γ} : ∀ {x}, x ∈ range f ↔ ∃ y, f y = x :=
-(set.ext_iff _ _).1 (range_coe f)
+(set.ext_iff _ _).1 (range_coe f).
 
 @[simp] theorem range_id : range (linear_map.id : β →ₗ β) = ⊤ := map_id _
 
@@ -931,27 +959,53 @@ variables [module α β] [module α γ] [module α δ]
 variables (f : β →ₗ γ)
 
 /-- First Isomorphism Law -/
+noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ f.range :=
+have hr : ∀ x : f.range, ∃ y, f y = ↑x := λ x, x.2.imp $ λ _, and.right,
+let F : f.ker.quotient →ₗ f.range :=
+  f.ker.liftq (cod_restrict f.range f $ λ x, ⟨x, trivial, rfl⟩)
+    (λ x hx, by simp; apply subtype.coe_ext.2; simpa using hx) in
+{ inv_fun    := λx, submodule.quotient.mk (classical.some (hr x)),
+  left_inv   := by rintro ⟨x⟩; exact
+    (submodule.quotient.eq _).2 (sub_mem_ker_iff.2 $
+      classical.some_spec $ hr $ F $ submodule.quotient.mk x),
+  right_inv  := λ x : range f, subtype.eq $ classical.some_spec (hr x),
+  .. F }
 
--- f : β → γ
--- ker[f] : sub β
--- β / ker[f] : mod
--- liftq (cod_restrict f _) : β / ker[f] → ran[f]
--- cod_restrict f _ : β → ran[f]
--- f : ran[f] -> β / ker[f]
-def quot_ker_equiv_im : f.ker.quotient ≃ₗ f.range :=
-{ inv_fun    := λx, f.ker.quotient.mk (classical.some x.2),
-  left_inv   := λ ⟨x, hx⟩, @quotient.induction_on _ (quotient_rel _) _ b' $
-    begin
-      -- f.ker.liftq (cod_restrict f _) _ (f.ker.quotient.mk (classical.some b.2) x)
-      assume b,
-      apply quotient.sound,
-      apply classical.some_spec2 (λa, f (a - b) = 0),
-      show (∀a, f a = f b → f (a - b) = 0), simp {contextual := tt}
-    end,
-  right_inv  := assume c, subtype.eq $ classical.some_spec2 (λa, f a = c) $ assume b, id,
-  linear_fun :=
-    is_linear_map_quotient_lift _ $ @is_linear_map_subtype_mk _ _ _ _ _ _ f.im _ f f.2 _,
-  .. f.ker.liftq (cod_restrict f $ λ x, ⟨x, trivial, rfl⟩)
-    (λ x hx, subtype.coe_ext.2 $ by simpa using hx) }
+open submodule
+-- p / p ⊓ p' ≃ p ⊔ p' / p'
+-- liftq f _ : p / p ⊓ p' → p ⊔ p' / p'
+-- f := mkq ∘ of_le _ : p → p ⊔ p' / p'
+-- liftq g _ : p ⊔ p' / p' → p / p ⊓ p'
+-- g : p ⊔ p' → p / p ⊓ p'
+/-- Second Isomorphism Law -/
+noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule α β) :
+  (comap p.subtype (p ⊓ p')).quotient ≃ₗ
+  (comap (p ⊔ p').subtype p').quotient :=
+begin
+  let F : (comap p.subtype (p ⊓ p')).quotient →ₗ
+          (comap (p ⊔ p').subtype p').quotient :=
+    (comap p.subtype (p ⊓ p')).liftq
+      ((comap (p ⊔ p').subtype p').mkq.comp (of_le le_sup_left)) begin
+    rw [ker_comp, of_le, comap_cod_restrict, ker_mkq, map_comap_subtype],
+    exact comap_mono (inf_le_inf le_sup_left (le_refl _)),
+  end,
+  have hsup : ∀ x : p ⊔ p', ∃ y : p, ↑x - ↑y ∈ p',
+  { rintro ⟨x, hx⟩,
+    rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
+    exact ⟨⟨y, hy⟩, by simp [hz]⟩ },
+  let G := λ x, classical.some (hsup x),
+  have hG : ∀ x : p ⊔ p', ↑x - ↑(G x) ∈ p' :=
+    λ x, classical.some_spec (hsup x),
+  refine {
+    to_fun := F,
+    inv_fun := λ q, quotient.lift_on' q (λ x, submodule.quotient.mk (G x)) _,
+    ..F, .. },
+  { refine λ x y h, (submodule.quotient.eq _).2 ⟨(G x - G y : p).2, _⟩,
+    simpa using add_mem _ (sub_mem p' h (hG x)) (hG y) },
+  { rintro ⟨x⟩,
+    refine ((submodule.quotient.eq _).2 _).symm,
+    exact ⟨(x - G _ : p).2, hG ⟨↑x, _⟩⟩ },
+  { rintro ⟨x⟩, refine (quot.sound _).symm, exact hG x }
+end
 
 end linear_map

@@ -520,38 +520,22 @@ begin
   exact right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) _
 end
 
+open submodule linear_map
 theorem quotient_prod_linear_equiv (p : submodule α β) :
   nonempty ((p.quotient × p) ≃ₗ β) :=
 begin
-  rcases exists_right_inverse_linear_map_of_surjective p.mkq_range with ⟨f, hf⟩,
-  have mkf : ∀ x, p.quotient.mk (f x) = x := λ x, congr_fun hf x,
-  have fp : ∀ x, x - f (p.mkq x) ∈ p,
-  { intro x,
-    -- x - f (p.mkq x) ∈ p,
-    refine p.quotient.eq.2 (mkf (p.mkq x)).symm,
-    -- p.mkq x = p.mkq (f (p.mkq x)),
-    },
-  refine ⟨of_linear (copair f p.subtype)
-    (pair p.mkq (cod_restrict (linear_map.id - f.comp p.mkq) fp)) _ _⟩,
-  { intro x, -- β
-    -- (copair f p.subtype) (pair p.mkq (cod_restrict (linear_map.id - f.comp p.mkq) _)) x = x
-    simp,
-    -- (f (p.mkq x) + (x - f (p.mkq x)) = x
-
-     },
-  { rintro ⟨⟨x⟩, y, hy⟩, -- β, β, y ∈ p
-    -- (p.mkq (f (mk x) + y), (cod_restrict (linear_map.id - f.comp p.mkq) _) (f (mk x) + y)) (f (mk x) + y)) = (mk x, ⟨y, hy⟩)
-    congr',
-    { -- p.mkq (f (mk x) + y) = mk x
-      apply p.quotient.eq.1,
-      -- f (mk x) + y - x ∈ p
-      simpa using add_mem p (fp x) hy },
-    { refine subtype.coe_ext.2 _,
-      -- ↑ cod_restrict (linear_map.id - f.comp p.mkq) _) (f (mk x) + y)) (f (mk x) + y) = ↑ ⟨y, hy⟩
-      simp [mkf, mk_eq_zero.2 hy],
-      -- (f (mk x) + y) - (f (mk x) + f (mk y))) = y
-      -- y - f (mk y) = y
-      } },
+  rcases exists_right_inverse_linear_map_of_surjective p.range_mkq with ⟨f, hf⟩,
+  have mkf : ∀ x, submodule.quotient.mk (f x) = x := linear_map.ext_iff.1 hf,
+  have fp : ∀ x, x - f (p.mkq x) ∈ p :=
+    λ x, (submodule.quotient.eq p).1 (mkf (p.mkq x)).symm,
+  refine ⟨linear_equiv.of_linear (f.copair p.subtype)
+    (p.mkq.pair (cod_restrict p (linear_map.id - f.comp p.mkq) fp))
+    (by ext; simp) _⟩,
+  ext ⟨⟨x⟩, y, hy⟩; simp,
+  { apply (submodule.quotient.eq p).2,
+    simpa using sub_mem p hy (fp x) },
+  { refine subtype.coe_ext.2 _,
+    simp [mkf, (submodule.quotient.mk_eq_zero p).2 hy] }
 end.
 
 end vector_space

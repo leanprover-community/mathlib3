@@ -101,10 +101,10 @@ But if you run `leanpkg build` from inside `my_playground`,
 then it will compile only those files that are dependencies of
 mathlib `group_theory/subgroup.lean`.
 
-If you want to play more, it's better to compile all your dependencies
+If you want to play more, it's better to compile all of mathlib
 once and for all.
 You can do this by going into `my_playground`
-and running `leanpkg build`.
+and running `lean --make _target/deps/mathlib`.
 
 Now go and get some coffee.
 

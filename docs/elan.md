@@ -20,7 +20,6 @@ all users.
   * macOS: We need `libgmp`, which isn't available by default. The recommended course is to
     install [homebrew](https://brew.sh/), then run `brew install libgmp` in a terminal. 
   * Windows 10: 
-    * Install the [Visual C++ redistributable](https://www.microsoft.com/en-au/download/details.aspx?id=48145).
     * Either (recommended): install [Git for Windows](https://gitforwindows.org/), after which you
       can open a terminal by typing "git bash" in the Windows search bar.
     * Or: install [Msys2](https://www.msys2.org/), after which you can open a terminal by

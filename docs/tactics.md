@@ -414,11 +414,62 @@ by linarith
 `linarith`.
 
 `linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
-arguments. 
+arguments.
 * `discharger` specifies a tactic to be used for reducing an algebraic equation in the
 proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
-problems. 
+problems.
 * `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
 if you have e.g. both integer and rational valued inequalities in the local context, which can
 sometimes confuse the tactic.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
+
+### tfae
+
+The `tfae` tactic suite is a set of tactics that help with proving that certain
+propositions are equivalent.
+In `data/list/basic.lean` there is a section devoted to propositions of the
+form
+```
+tfae [p1, p2, ..., pn]
+```
+where `p1`, `p2`, through, `pn` are terms of type `Prop`.
+This proposition asserts that all the `pi` are pairwise equivalent.
+There are results that allow to extract the equivalence
+of two propositions `pi` and `pj`.
+
+To prove a goal of the form `tfae [p1, p2, ..., pn]`, there are two
+tactics.  The first is `tfae_have`.  As an argument it takes an
+expression of the form `i arrow j`, where `i` and `j` are two positive
+natural numbers, and `arrow` is an arrow such as `->`, `→`, `←`, `↔`,
+etc...  The tactic `tfae_have i arrow j` sets up a subgoal in which
+the user has to prove the equivalence (or implication) of `pi` and
+`pj`.
+
+The remaining tactics, `tfae_finish`, is a finishing tactic. It
+collects all implications and equivalences from the local context and
+computes their transitive closure to close the
+main goal.
+
+`tfae_have` and `tfae_finish` can be used together in a proof as
+follows:
+
+```lean
+example (a b c d : Prop) : tfae [a,b,c,d] :=
+begin
+  tfae_have : 3 → 1,
+  { /- prove c → a -/ },
+  tfae_have : 2 → 3,
+  { /- prove b → c -/ },
+  tfae_have : 2 ← 1,
+  { /- prove a → b -/ },
+  tfae_have : 4 ↔ 2,
+  { /- prove d ↔ b -/ },
+    -- a b c d : Prop,
+    -- tfae_3_to_1 : c → a,
+    -- tfae_2_to_3 : b → c,
+    -- tfae_1_to_2 : a → b,
+    -- tfae_4_iff_2 : d ↔ b
+    -- ⊢ tfae [a, b, c, d]
+  tfae_finish,
+end
+```

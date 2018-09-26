@@ -20,27 +20,32 @@ namespace closure
 meta def mk_closure {α} : (closure → tactic α) → tactic α :=
 using_new_ref (expr_map.mk _)
 
-meta def root (cl : closure) : expr → tactic (expr × expr) | e :=
+meta def root' (cl : closure) : expr → tactic (expr × expr) | e :=
 do m ← read_ref cl,
    match m.find e with
    | none :=
      do p ← mk_app ``iff.refl [e],
         pure (e,p)
    | (some (e₀,p₀)) :=
-     do (e₁,p₁) ← root e₀,
+     do (e₁,p₁) ← root' e₀,
         p ← mk_app ``iff.trans [p₀,p₁],
         modify_ref cl $ λ m, m.insert e (e₁,p),
         pure (e₁,p)
    end
 
+meta def root (cl : closure) (p : expr) : tactic (expr × expr) :=
+instantiate_mvars p >>= root' cl
+
 meta def merge (cl : closure) (p : expr) : tactic unit :=
-do `(%%e₀ ↔ %%e₁) ← infer_type p,
+do `(%%e₀ ↔ %%e₁) ← infer_type p >>= instantiate_mvars,
    (e₂,p₀) ← root cl e₀,
-   if e₂ ≠ e₁ then do
+   (e₃,p₁) ← root cl e₁,
+   if e₂ ≠ e₃ then do
      p₂ ← mk_app ``iff.symm [p₀],
-     p₁ ← mk_app ``iff.trans [p₂,p],
+     p ← mk_app ``iff.trans [p₂,p],
+     p ← mk_app ``iff.trans [p,p₁],
      m ← read_ref cl,
-     modify_ref cl $ λ m, m.insert e₂ (e₁,p₁)
+     modify_ref cl $ λ m, m.insert e₂ (e₃,p)
    else pure ()
 
 meta def prove_eqv (cl : closure) (e₀ e₁ : expr) : tactic expr :=
@@ -134,7 +139,7 @@ do ls ← local_context,
 end impl_graph
 
 meta def prove_eqv_target (cl : closure) : tactic unit :=
-do `(%%p ↔ %%q) ← target,
+do `(%%p ↔ %%q) ← target >>= whnf,
    cl.prove_eqv p q >>= exact
 
 meta def interactive.check_eqv : tactic unit :=

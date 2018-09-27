@@ -182,7 +182,7 @@ le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
     (lebesgue_length_mono $ inter_subset_inter_left _ h)
     (lebesgue_length_mono $ diff_subset_diff_left h)) _,
   cases le_total a c with hac hca; cases le_total b c with hbc hcb;
-    simp [*, max_eq_right, max_eq_left, min_eq_left, min_eq_right, -sub_eq_add_neg, sub_add_sub_cancel'];
+    simp [*, -sub_eq_add_neg, sub_add_sub_cancel'];
     rw [← ennreal.coe_add, ennreal.coe_le_coe],
   { simp [*, nnreal.of_real_add_of_real, -sub_eq_add_neg, sub_add_sub_cancel'] },
   { rw nnreal.of_real_of_nonpos,

@@ -37,12 +37,6 @@ reserve infix `≃ₗ` : 50
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Type x}
 
-@[simp] lemma set.diff_self {s : set α} : s \ s = ∅ :=
-set.ext $ by simp
-
-lemma zero_ne_one_or_forall_eq_0 (α : Type u) [ring α] : (0 : α) ≠ 1 ∨ (∀a:α, a = 0) :=
-not_or_of_imp $ λ h a, by simpa using congr_arg ((*) a) h.symm
-
 namespace finset
 
 lemma smul_sum [ring γ] [module γ β] {s : finset α} {a : γ} {f : α → β} :
@@ -399,7 +393,7 @@ end repr
 section
 variables {f : β → γ} {l : lc α β}
   (hs : linear_independent (f '' s)) (hf : is_linear_map f)
-  (hf_inj : ∀a∈s, ∀b∈s, f a = f b → a = b) (hl : ∀x∉s, l x = 0)
+  (hf_inj : ∀ a b ∈ s, f a = f b → a = b) (hl : ∀x∉s, l x = 0)
 include hs hf hf_inj
 
 private lemma l_eq_0 (h : f (l.sum (λb a, a • b)) = 0) : l = 0 :=
@@ -440,6 +434,7 @@ section is_basis
 lemma is_basis.map_repr (hs : is_basis s) : is_linear_map hs.1.repr :=
 ⟨assume b₁ b₂, repr_add hs.1 (hs.2 _) (hs.2 _), assume a b, repr_smul hs.1 (hs.2 _)⟩
 
+/-- Construct a linear map given the value at the basis. -/
 def is_basis.constr (hs : is_basis s) (f : β → γ) (b : β) : γ := (hs.1.repr b).sum (λb a, a • f b)
 
 lemma is_basis.map_constr (hs : is_basis s) {f : β → γ} : is_linear_map (hs.constr f) :=
@@ -541,16 +536,16 @@ end is_basis
 
 lemma linear_independent.inj_span_iff_inj {s : set β} {f : β → γ}
   (hf : is_linear_map f) (hfs : linear_independent (f '' s)) :
-  (∀a∈span s, ∀b∈span s, f a = f b → a = b) ↔ (∀a∈s, ∀b∈s, f a = f b → a = b) :=
+  (∀a b∈span s, f a = f b → a = b) ↔ (∀a b∈s, f a = f b → a = b) :=
 iff.intro
-  (assume h a ha b hb eq, h a (subset_span ha) b (subset_span hb) eq)
-  (assume h a ha b hb eq, eq_of_sub_eq_zero $ hfs.eq_0_of_span hf h _ (is_submodule.sub ha hb)
+  (assume h a b ha hb eq, h a b (subset_span ha) (subset_span hb) eq)
+  (assume h a b ha hb eq, eq_of_sub_eq_zero $ hfs.eq_0_of_span hf h _ (is_submodule.sub ha hb)
     (by simp [eq, hf.add, hf.neg]))
 
 -- TODO: clean up proof / alternative proof
 lemma linear_independent.image {s : set β} {f : β → γ}
   (hf : is_linear_map f) (hs : linear_independent s)
-  (hf_inj : ∀a∈span s, ∀b∈span s, f a = f b → a = b) :
+  (hf_inj : ∀ a b ∈ span s, f a = f b → a = b) :
   linear_independent (f '' s) :=
 let g := @inv_fun_on _ ⟨0⟩ _ f (span s) in
 have hg : ∀x∈span s, g (f x) = x,
@@ -581,18 +576,24 @@ have l.map_domain g = 0, from
         by rw [←finsupp.map_domain_comp, l_f_g, finsupp.map_domain_id, eq],
   have ∀b∉s, (l.map_domain g) b = 0,
     from assume b hb, classical.by_contradiction $ assume hnb, hb $ l_g b $ by simp *,
-  hs _ this $ hf_inj _ l_g_s _ is_submodule.zero (by simpa [hf.zero] using f_sum),
+  hs _ this $ hf_inj _ _ l_g_s is_submodule.zero (by simpa [hf.zero] using f_sum),
 calc l = (l.map_domain g).map_domain f :
     by rw [←finsupp.map_domain_comp, l_f_g, finsupp.map_domain_id]
   ... = 0 :
     by rw [this, finsupp.map_domain_zero]
 
 lemma linear_map.linear_independent_image_iff {s : set β} {f : β → γ}
-  (hf : is_linear_map f) (hf_inj : ∀a∈span s, ∀b∈span s, f a = f b → a = b) :
+  (hf : is_linear_map f) (hf_inj : ∀ a b ∈ span s, f a = f b → a = b) :
   linear_independent (f '' s) ↔ linear_independent s :=
 iff.intro
-  (assume h, h.of_image hf $ assume x hx y hy, hf_inj x (subset_span hx) y (subset_span hy))
+  (assume h, h.of_image hf $ assume x y hx hy, hf_inj x y (subset_span hx) (subset_span hy))
   (assume h, h.image hf hf_inj)
+
+lemma is_basis.linear_equiv {s : set β} (hs : is_basis s)
+  {f : β ≃ₗ γ} : is_basis ((f.to_equiv : β → γ) '' s) :=
+⟨hs.1.image f.linear_fun $ λ b1 _ b2 _ H, f.to_equiv.bijective.1 H,
+λ x, by rw span_image_of_linear_map (show is_linear_map f.to_equiv, from f.linear_fun);
+  from ⟨f.to_equiv.symm x, hs.2 _, by rw equiv.apply_inverse_apply⟩⟩
 
 end module
 

@@ -91,6 +91,11 @@ instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (
   id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
   comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
 
+@[simp] lemma concrete_category_id {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+  [h : concrete_category @hom] (X : bundled c) : subtype.val (𝟙 X) = id := rfl
+@[simp] lemma concrete_category_comp {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+  [h : concrete_category @hom] {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z): subtype.val (f ≫ g) = g.val ∘ f.val := rfl
+
 instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
   [h : concrete_category @hom] {R S : bundled c} : has_coe_to_fun (R ⟶ S) :=
 { F := λ f, R → S,
@@ -113,20 +118,25 @@ end
 
 section
 variable (C : Type u)
-variable [small_category C]
+variable [category.{u v} C]
 
-instance : large_category (ulift.{(u+1)} C) :=
+universe u'
+
+instance ulift_category : category.{(max u u') v} (ulift.{u'} C) :=
 { hom  := λ X Y, (X.down ⟶ Y.down),
   id   := λ X, 𝟙 X.down,
-  comp := λ _ _ _ f g, f ≫ g }
+  comp := λ _ _ _ f g, f ≫ g }  
+
+-- We verify that this previous instance can lift small categories to large categories.
+example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance
 end
 
 variables (α : Type u)
 
 instance [preorder α] : small_category α :=
 { hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := by tidy,
-  comp := begin tidy, transitivity Y; assumption end }
+  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
+  comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
 
 section
 variables {C : Type u} [𝒞 : category.{u v} C]

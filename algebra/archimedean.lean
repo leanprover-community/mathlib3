@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Archimedean groups and fields.
 -/
-import algebra.group_power data.rat data.int.order
+import algebra.group_power data.rat
 
 local infix ` • ` := add_monoid.smul
 
@@ -99,14 +99,14 @@ theorem ceil_lt_add_one (x : α) : (⌈x⌉ : α) < x + 1 :=
 by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one
 
 lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
-⟨ λ h, have ⌊-a⌋ < 0, from neg_of_neg_pos h, 
+⟨ λ h, have ⌊-a⌋ < 0, from neg_of_neg_pos h,
   pos_of_neg_neg $ lt_of_not_ge $ (not_iff_not_of_iff floor_nonneg).1 $ not_le_of_gt this,
  λ h, have -a < 0, from neg_neg_of_pos h,
   neg_pos_of_neg $ lt_of_not_ge $ (not_iff_not_of_iff floor_nonneg).2 $ not_le_of_gt this ⟩
 
 lemma ceil_nonneg {q : ℚ} (hq : q ≥ 0) : ⌈q⌉ ≥ 0 :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
-else 
+else
   have h' : q = 0, from le_antisymm (le_of_not_lt h) hq,
   by simp [h']
 

@@ -17,37 +17,6 @@ namespace tactic
 namespace interactive
 open interactive interactive.types expr
 
-local notation `listΣ` := list_Sigma
-local notation `listΠ` := list_Pi
-
-meta def rcases_patt_parse_core
-  (rcases_patt_parse_list : parser (listΣ rcases_patt_inverted)) :
-  parser rcases_patt_inverted | x :=
-((rcases_patt_inverted.one <$> ident_) <|>
-(rcases_patt_inverted.many <$> brackets "⟨" "⟩"
-  (sep_by (tk ",") rcases_patt_parse_list))) x
-
-meta def rcases_patt_parse_list : parser (listΣ rcases_patt_inverted) :=
-with_desc "patt" $
-list.cons <$> rcases_patt_parse_core rcases_patt_parse_list <*>
-  (tk "|" *> rcases_patt_parse_core rcases_patt_parse_list)*
-
-meta def rcases_patt_parse : parser rcases_patt_inverted :=
-with_desc "patt_list" $ rcases_patt_parse_core rcases_patt_parse_list
-
-meta def rcases_parse_depth : parser nat :=
-do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
-
-meta def rcases_parse : parser (pexpr × (listΣ (listΠ rcases_patt) ⊕ nat)) :=
-do hint ← (tk "?")?,
-  p ← texpr,
-  match hint with
-  | none := do
-    ids ← (tk "with" *> rcases_patt_parse_list)?,
-    pure (p, sum.inl $ rcases_patt_inverted.invert_list (ids.get_or_else [default _]))
-  | some _ := do depth ← rcases_parse_depth, pure (p, sum.inr depth)
-  end
-
 /--
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
 `with` pattern syntax to allow for recursive case splitting. The pattern syntax
@@ -82,12 +51,6 @@ meta def rcases : parse rcases_parse → tactic unit
   patt ← tactic.rcases_hint p depth,
   pe ← pp p,
   trace $ ↑"snippet: rcases " ++ pe ++ " with " ++ to_fmt patt
-
-meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
-(tk "?" >> sum.inr <$> rcases_parse_depth) <|>
-sum.inl <$> (rcases_patt_inverted.invert <$>
-  (brackets "(" ")" rcases_patt_parse_list <|>
-  (λ x, [x]) <$> rcases_patt_parse))*
 
 /--
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to

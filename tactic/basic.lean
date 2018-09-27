@@ -18,6 +18,8 @@ end name
 namespace expr
 open tactic
 
+attribute [derive has_reflect] binder_info
+
 protected meta def to_pos_nat : expr → option ℕ
 | `(has_one.one _) := some 1
 | `(bit0 %%e) := bit0 <$> e.to_pos_nat
@@ -47,6 +49,10 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
 meta def is_meta_var : expr → bool
 | (mvar _ _ _) := tt
 | e            := ff
+
+meta def is_sort : expr → bool
+| (sort _) := tt
+| e         := ff
 
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
@@ -329,20 +335,6 @@ do h' ← assert h p,
    set_goals [g₁],
    return (h', gs)
 
-meta def try_intros : list name → tactic (list name)
-| [] := try intros $> []
-| (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
-
-meta def ext1 (xs : list name) : tactic (list name) :=
-do ls ← attribute.get_instances `extensionality,
-   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
-   try_intros xs
-
-meta def ext : list name → option ℕ → tactic unit
-| _  (some 0) := skip
-| xs n        := focus1 $ do
-  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
-
 meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
 | _ := []
@@ -511,7 +503,7 @@ run_cmd add_interactive [`injections_and_clear]
 
 meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",
-   note n none e, skip 
+   note n none e, skip
 
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,

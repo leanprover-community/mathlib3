@@ -181,4 +181,39 @@ instance [ring α] : module α (matrix m n α) :=
   mul_smul := λ a b M, ext $ λ i j, mul_assoc a b (M i j),
   one_smul := λ M, ext $ λ i j, one_mul (M i j) }
 
+section free_module
+
+def free_module (α : Type v) [R : semiring α] : Type := ℕ
+
+variables [semiring α]
+
+open category_theory
+
+instance : category (free_module α) :=
+{ hom  := λ m n, matrix (fin m) (fin n) α,
+  id   := λ m, 1,
+  comp := λ _ _ _ M N, M.mul N,
+  comp_id' := λ _ _ M, matrix.mul_one M,
+  id_comp' := λ _ _ M, matrix.one_mul M,
+  assoc'   := λ _ _ _ _, matrix.mul_assoc }
+
+end free_module
+
+section scalar
+variables [decidable_eq n] [has_zero α]
+
+def scalar (a : α) : matrix n n α := diagonal (λ _, a)
+
+@[simp] theorem scalar_val_eq {a : α} {i : n} : (scalar a) i i = a :=
+diagonal_val_eq _
+
+@[simp] theorem scalar_val_ne {a : α} {i j : n} (h : i ≠ j) : (scalar a) i j = 0 :=
+diagonal_val_ne h
+
+@[simp] theorem scalar_zero : (scalar 0 : matrix n n α) = 0 := diagonal_zero
+
+@[simp] theorem scalar_one  [has_one α] : (scalar 1 : matrix n n α) = 1 := rfl
+
+end scalar
+
 end matrix

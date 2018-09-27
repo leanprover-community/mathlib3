@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Integer power operation on fields.
 -/
 
-import algebra.group_power tactic.wlog
+import algebra.group_power tactic.wlog tactic.find
 
 universe u
 
@@ -57,6 +57,14 @@ lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → fpow (0 : α) z = 0
   have h1 : (0 : α) ^ (n+1) = 0, from zero_mul _,
   by simp [fpow, h1]
 
+lemma fpow_neg (a : α) : ∀ n, fpow a (-n) = 1 / fpow a n
+| (of_nat 0) := by simp [of_nat_zero]
+| (of_nat (n+1)) := rfl
+| -[1+n] := show fpow a (n+1) = 1 / (1 / fpow a (n+1)), by rw one_div_one_div
+
+lemma fpow_sub {a : α} (ha : a ≠ 0) (z1 z2 : ℤ) : fpow a (z1 - z2) = fpow a z1 / fpow a z2 :=
+by rw [sub_eq_add_neg, fpow_add ha, fpow_neg, ←div_eq_mul_one_div]
+
 end discrete_field_power
 
 section ordered_field_power
@@ -68,6 +76,9 @@ lemma fpow_nonneg_of_nonneg {a : α} (ha : a ≥ 0) : ∀ (z : ℤ), fpow a z �
 | (of_nat n) := pow_nonneg ha _
 | -[1+n] := div_nonneg' zero_le_one $ pow_nonneg ha _
 
+lemma fpow_pos_of_pos {a : α} (ha : a > 0) : ∀ (z : ℤ), fpow a z > 0
+| (of_nat n) := pow_pos ha _
+| -[1+n] := div_pos zero_lt_one $ pow_pos ha _
 
 lemma fpow_le_of_le {x : α} (hx : 1 ≤ x) {a b : ℤ} (h : a ≤ b) : fpow x a ≤ fpow x b :=
 begin
@@ -105,13 +116,17 @@ lemma fpow_le_one_of_nonpos {p : α} (hp : p ≥ 1) {z : ℤ} (hz : z ≤ 0) : f
 calc fpow p z ≤ fpow p 0 : fpow_le_of_le hp hz
           ... = 1        : by simp
 
-end ordered_field_power 
+lemma fpow_ge_one_of_nonneg {p : α} (hp : p ≥ 1) {z : ℤ} (hz : z ≥ 0) : fpow p z ≥ 1 :=
+calc fpow p z ≥ fpow p 0 : fpow_le_of_le hp hz
+          ... = 1        : by simp
 
-lemma one_lt_pow {α} [linear_ordered_semiring α] {p : α} (hp : p > 1) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n  
+end ordered_field_power
+
+lemma one_lt_pow {α} [linear_ordered_semiring α] {p : α} (hp : p > 1) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
 | 1 h := by simp; assumption
-| (k+2) h := 
-  begin 
-    rw ←one_mul (1 : α), 
+| (k+2) h :=
+  begin
+    rw ←one_mul (1 : α),
     apply mul_lt_mul,
     { assumption },
     { apply le_of_lt, simpa using one_lt_pow (nat.le_add_left 1 k)},

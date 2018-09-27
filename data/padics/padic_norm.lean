@@ -65,6 +65,14 @@ le_of_not_gt $
   assume : k > padic_val p n,
   is_greatest hp hn _ this h
 
+lemma pow_dvd_of_le_padic_val {p k : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) (h : k ≤ padic_val p n) :
+  ↑(p^k) ∣ n :=
+int.pow_dvd_of_le_of_pow_dvd h (spec hp hn)
+
+lemma pow_dvd_iff_le_padic_val {p k : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) :
+  ↑(p^k) ∣ n ↔ k ≤ padic_val p n :=
+⟨le_padic_val_of_pow_dvd hp hn, pow_dvd_of_le_padic_val hp hn⟩
+
 section
 variables {p : ℕ} (hp : p > 1)
 
@@ -255,6 +263,17 @@ begin
     repeat {apply rat.num_ne_zero_of_ne_zero, assumption}
 end
 
+protected lemma div {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
+  padic_val_rat p (q / r) = padic_val_rat p q - padic_val_rat p r :=
+have hqr : q / r ≠ 0, from div_ne_zero hq hr,
+have hnd' : _, from padic_val_rat.defn p_prime hqr (rat.div_num_denom q r),
+have _, from rat.denom_ne_zero q, have _, from rat.denom_ne_zero r,
+begin
+  rw [←padic_val.mul p_prime, ←padic_val.mul p_prime] at hnd',
+  { simpa [padic_val_rat] using hnd' },
+  all_goals { simpa <|> by apply rat.num_ne_zero_of_ne_zero; assumption }
+end
+
 theorem min_le_padic_val_rat_add {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) (hqr : q + r ≠ 0) :
   min (padic_val_rat p q) (padic_val_rat p r) ≤ padic_val_rat p (q + r) :=
 have hqn : q.num ≠ 0, from rat.num_ne_zero_of_ne_zero hq,
@@ -398,6 +417,17 @@ else
 if hr : r = 0 then by simp [hr] else
 eq_div_of_mul_eq _ _ (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
 
+protected theorem of_int (z : ℤ) : padic_norm hp ↑z ≤ 1 :=
+if hz : z = 0 then by simp [hz] else
+begin
+  suffices : padic_norm hp ↑z = fpow (↑p : ℚ) (-(padic_val p z)),
+  { convert fpow_le_one_of_nonpos (show (↑p : ℚ) ≥ ↑(1 : ℕ), from _) _,
+    { apply le_of_lt, apply nat.cast_lt.2 hp.gt_one },
+    apply neg_nonpos.2,
+    apply int.coe_nat_nonneg },
+  have hnz : padic_val_rat p z = padic_val p z, from padic_val_rat_of_int hp.gt_one z,
+  simp [padic_val_rat, hz, hnz]
+end
 
 private lemma nonarchimedean_aux {q r : ℚ} (h : padic_val_rat p q ≤ padic_val_rat p r) :
   padic_norm hp (q + r) ≤ max (padic_norm hp q) (padic_norm hp r) :=
@@ -436,6 +466,8 @@ calc padic_norm hp (q + r) ≤ max (padic_norm hp q) (padic_norm hp r) : padic_n
                        ... ≤ padic_norm hp q + padic_norm hp r :
                          max_le_add_of_nonneg (padic_norm.nonneg hp _) (padic_norm.nonneg hp _)
 
+protected theorem sub {q r : ℚ} : padic_norm hp (q - r) ≤ max (padic_norm hp q) (padic_norm hp r) :=
+by rw [sub_eq_add_neg, ←padic_norm.neg hp r]; apply padic_norm.nonarchimedean
 
 lemma add_eq_max_of_ne {q r : ℚ} (hne : padic_norm hp q ≠ padic_norm hp r) :
   padic_norm hp (q + r) = max (padic_norm hp q) (padic_norm hp r) :=

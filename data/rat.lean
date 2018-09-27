@@ -972,6 +972,15 @@ suffices (q.num /. ↑q.denom) * (r.num /. ↑r.denom) = (q.num * r.num) /. ↑(
   by rwa [←num_denom q, ←num_denom r] at this,
 by simp [mul_def hq' hr']
 
+lemma div_num_denom (q r : ℚ) : q / r = (q.num * r.denom) /. (q.denom * r.num) :=
+if hr : r.num = 0 then
+  have hr' : r = 0, from zero_of_num_zero hr,
+  by simp *
+else calc q / r = q * r⁻¹ : div_eq_mul_inv
+            ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by rw [←num_denom q, ←num_denom r]
+            ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
+            ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
+
 lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) :
       ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=
 have hq : q ≠ 0, from

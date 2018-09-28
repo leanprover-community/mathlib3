@@ -8,7 +8,6 @@ import group_theory.subgroup
 import group_theory.perm
 import data.finset
 import ring_theory.matrix
-import group_theory.sym
 
 universes u v
 
@@ -51,6 +50,7 @@ by apply_instance
 by ext; simp
 
 namespace matrix
+open equiv
 variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 
 instance : group (equiv.perm n) := by apply_instance
@@ -70,14 +70,6 @@ set_fintype _
 @[extensionality] theorem equiv.perm.ext (σ τ : equiv.perm n)
   (H : ∀ i, σ i = τ i) : σ = τ :=
 equiv.ext _ _ H
-
-instance equiv_perm_fin_finite : fintype (equiv.perm n):=
-trunc.rec_on_subsingleton (fintype.equiv_fin n) $ λ φ,
-fintype.of_equiv (Sym (fintype.card n)) $
-{ to_fun := λ σ, φ.trans (σ.trans φ.symm),
-  inv_fun := λ σ, φ.symm.trans (σ.trans φ),
-  left_inv := λ σ, by ext i; simp,
-  right_inv := λ σ, by ext i; simp }
 
 @[simp] lemma equiv.perm.sign_mul (σ τ : equiv.perm n) :
   (σ * τ).sign = σ.sign * τ.sign :=

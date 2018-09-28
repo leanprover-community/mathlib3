@@ -134,7 +134,7 @@ variables (β γ)
 def inl : β →ₗ β × γ := by refine ⟨prod.inl, _, _⟩; intros; simp [prod.inl]
 def inr : γ →ₗ β × γ := by refine ⟨prod.inr, _, _⟩; intros; simp [prod.inr]
 end
-set_option profiler true
+
 @[simp] theorem inl_apply (x : β) : inl β γ x = (x, 0) := rfl
 @[simp] theorem inr_apply (x : γ) : inr β γ x = (0, x) := rfl
 

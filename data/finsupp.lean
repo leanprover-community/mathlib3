@@ -419,7 +419,7 @@ finset.sum_hom (@has_neg.neg γ _) neg_zero (assume a b, neg_add _ _)
   f.sum (λa b, h₁ a b - h₂ a b) = f.sum h₁ - f.sum h₂ :=
 by rw [sub_eq_add_neg, ←sum_neg, ←sum_add]; refl
 
-@[simp] lemma sum_single [add_comm_monoid β] {f : α →₀ β} :
+@[simp] lemma sum_single [add_comm_monoid β] (f : α →₀ β) :
   f.sum single = f :=
 have ∀a:α, f.sum (λa' b, ite (a' = a) b 0) =
     ({a} : finset α).sum (λa', ite (a' = a) (f a') 0),
@@ -522,8 +522,7 @@ variables [decidable_eq α₁] [decidable_eq α₂] [add_comm_monoid β] {v v₁
 def map_domain (f : α₁ → α₂) (v : α₁ →₀ β) : α₂ →₀ β :=
 v.sum $ λa, single (f a)
 
-lemma map_domain_id : map_domain id v = v :=
-sum_single
+lemma map_domain_id : map_domain id v = v := sum_single _
 
 lemma map_domain_comp {f : α → α₁} {g : α₁ → α₂} :
   map_domain (g ∘ f) v = map_domain g (map_domain f v) :=
@@ -908,6 +907,10 @@ begin
     map_range_single, map_domain_single, map_domain_single, map_range_single];
   apply smul_add
 end
+
+@[simp] lemma smul_single {R:semiring γ} [add_comm_monoid β] [semimodule γ β]
+  (c : γ) (a : α) (b : β) : c • finsupp.single a b = finsupp.single a (c • b) :=
+ext $ λ a', by by_cases a = a'; [{subst h, simp}, simp [h]]
 
 end
 

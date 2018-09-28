@@ -48,6 +48,17 @@ theorem single_mem_supported {s : set β} (a : α) {b : β} (h : b ∈ s) :
   finsupp.single b a ∈ supported s :=
 set.subset.trans finsupp.support_single_subset (set.singleton_subset_iff.2 h)
 
+theorem supported_eq_span_single (s : set β) :
+  lc.supported s = span ((λ x, finsupp.single x (1:α)) '' s) :=
+begin
+  refine (span_eq_of_le _ _ (le_def'.2 $ λ l hl, _)).symm,
+  { rintro _ ⟨l, hl, rfl⟩, exact single_mem_supported _ hl },
+  { rw ← l.sum_single,
+    refine sum_mem _ (λ x xl, _),
+    rw (by simp : finsupp.single x (l x) = l x • finsupp.single x 1),
+    exact smul_mem _ _ (subset_span ⟨_, hl xl, rfl⟩) }
+end
+
 def restrict_dom (s : set β) : lc α β →ₗ supported s :=
 linear_map.cod_restrict _
   { to_fun := finsupp.filter (∈ s),
@@ -107,6 +118,12 @@ begin
   simp [le_def, infi_coe, set.subset_def],
   exact λ l, set.subset_Inter
 end
+
+def apply (x : β) : lc α β →ₗ α :=
+⟨λ l, l x, λ _ _, finsupp.add_apply, λ _ _, finsupp.smul_apply⟩
+
+@[simp] theorem apply_apply (x : β) (l : lc α β) :
+  (lc.apply x : lc α β →ₗ α) l = l x := rfl
 
 protected def lsum (f : β → α →ₗ γ) : lc α β →ₗ γ :=
 ⟨λ d, d.sum (λ b, f b),

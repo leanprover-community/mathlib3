@@ -235,6 +235,18 @@ begin
        ← div_lt_iff' (sub_pos.2 h), one_div_eq_inv]
 end
 
+theorem exists_nat_one_div_lt {ε : α} (hε : ε > 0) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
+begin
+  cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
+  existsi n,
+  apply div_lt_of_mul_lt_of_pos,
+  { simp, apply add_pos_of_pos_of_nonneg zero_lt_one, apply nat.cast_nonneg },
+  { apply (div_lt_iff' hε).1,
+    transitivity,
+    { exact hn },
+    { simp [zero_lt_one] }}
+end
+
 include α
 @[simp] theorem rat.cast_floor (x : ℚ) :
   by haveI := archimedean.floor_ring α; exact ⌊(x:α)⌋ = ⌊x⌋ :=

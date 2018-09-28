@@ -17,8 +17,8 @@ all users.
 
 1. We'll need a terminal, along with some basic prerequisites.
   * Ubuntu: `sudo apt install git curl` if you don't already have these.
-  * macOS: We need `libgmp`, which isn't available by default. The recommended course is to
-    install [homebrew](https://brew.sh/), then run `brew install libgmp` in a terminal. 
+  * macOS: Install [homebrew](https://brew.sh/), then run `brew install libgmp coreutils` in a terminal
+    (`libgmp` is required by `lean`, `coreutils` by `leanpkg`).
   * Windows 10: 
     * Either (recommended): install [Git for Windows](https://gitforwindows.org/), after which you
       can open a terminal by typing "git bash" in the Windows search bar.

@@ -3849,9 +3849,6 @@ def map_last {α} (f : α → α) : list α → list α
 | [x] := [f x]
 | (x :: xs) := x :: map_last xs
 
-/- tfae: The Following (propositions) Are Equivalent -/
-section tfae
-
 @[simp] def last' {α} : α → list α → α
 | a []     := a
 | a (b::l) := last' b l
@@ -3860,6 +3857,9 @@ theorem last'_mem {α} : ∀ a l, @last' α a l ∈ a :: l
 | a []     := or.inl rfl
 | a (b::l) := or.inr (last'_mem b l)
 
+section tfae
+
+/-- tfae: The Following (propositions) Are Equivalent -/
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
 
 theorem tfae_nil : tfae [] := forall_mem_nil _

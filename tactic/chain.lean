@@ -57,7 +57,7 @@ inductive tactic_script (α : Type) : Type
 
 meta def tactic_script.to_string : tactic_script string → string
 | (tactic_script.base a) := a
-| (tactic_script.work n a l c) := "work_on_goal " ++ (to_string n) ++ " { " ++ (", ".intercalate (a :: l.map(λ m : tactic_script string, m.to_string))) ++ " }"
+| (tactic_script.work n a l c) := "work_on_goal " ++ (to_string n) ++ " { " ++ (", ".intercalate (a :: l.map tactic_script.to_string)) ++ " }"
 
 meta instance : has_to_string (tactic_script string) := 
 { to_string := λ s, s.to_string }
@@ -65,7 +65,7 @@ meta instance : has_to_string (tactic_script string) :=
 meta instance tactic_script_unit_has_to_string : has_to_string (tactic_script unit) := 
 { to_string := λ s, "[chain tactic]" }
 
-meta def abstract_if_success {α} (tac : expr → tactic α) (g : expr) : tactic α :=
+meta def abstract_if_success (tac : expr → tactic α) (g : expr) : tactic α :=
 do 
   type ← infer_type g,
   is_lemma ← is_prop type,
@@ -114,8 +114,8 @@ with chain_iter : list expr → list expr → tactic (list (tactic_script α))
 
 meta def chain_core {α : Type} [has_to_string (tactic_script α)] (tactics : list (tactic α)) : tactic (list string) :=
 do results ← (get_goals >>= chain_many (first tactics)),
-   when (results.empty) (fail "`chain` tactic made no progress"),
-   return (results.map (λ r : tactic_script α, to_string r))
+   when results.empty (fail "`chain` tactic made no progress"),
+   return (results.map to_string)
 
 variables [has_to_string (tactic_script α)] [has_to_format α]
 
@@ -137,15 +137,10 @@ do tgt ← target,
    trace format!"new target: {tgt}",
    pure r
 
-private meta def chain_handle_trace (tactics : list (tactic α)) : tactic (list string) :=
+meta def chain (tactics : list (tactic α)) : tactic (list string) :=
 if is_trace_enabled_for `chain then
   chain_core (tactics.map trace_output)
 else 
   chain_core tactics
-
-meta def chain (tactics : list (tactic α)) : tactic (list string) :=
-do sequence ← chain_handle_trace tactics,
-   when (sequence.empty) (fail "`chain` tactic made no progress"),
-   pure sequence
 
 end tactic

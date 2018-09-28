@@ -452,9 +452,7 @@ do r ← result,
 /-- Succeeds only if the current goal is a proposition. -/
 meta def propositional_goal : tactic unit :=
 do goals ← get_goals,
-   let current_goal := goals.head,
-   current_goal_type ← infer_type current_goal,
-   p ← is_prop current_goal_type,
+   p ← is_proof goals.head,
    guard p
 
 variable {α : Type}
@@ -462,11 +460,13 @@ variable {α : Type}
 private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
 | L := (do r ← t, iterate_aux (r :: L)) <|> return L
 
+/-- Apply a tactic as many times as possible, collecting the results in a list. -/
 meta def iterate' (t : tactic α) : tactic (list α) :=
 list.reverse <$> iterate_aux t []
 
+/-- Like iterate', but fail if the tactic does not succeed at least once. -/
 meta def iterate1 (t : tactic α) : tactic (α × list α) :=
-do r ← t | fail "iterate1 failed: tactic did not succeed",
+do r ← decorate_ex "iterate1 failed: tactic did not succeed" t,
    L ← iterate' t,
    return (r, L)
 
@@ -474,7 +474,7 @@ meta def intros1 : tactic (list expr) :=
 iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
-meta def successes {α} (tactics : list (tactic α)) : tactic (list α) :=
+meta def successes (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
 
 /-- Return target after instantiating metavars and whnf -/

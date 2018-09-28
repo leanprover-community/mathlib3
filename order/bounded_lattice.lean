@@ -311,10 +311,12 @@ by rw [← option.some.inj_eq a b]; refl
 
 @[priority 0]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
-{ lt := λ o₁ o₂ : option α, o₂.is_some ∧ ∀ a ∈ o₁, ∃ b ∈ o₂, a < b }
+{ lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
 
 instance partial_order [partial_order α] : partial_order (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
+  lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b,
+  lt_iff_le_not_le := by intros; cases a; cases b; simp [lt_iff_le_not_le]; split; refl,
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
     let ⟨b, hb, ab⟩ := h₁ a ha, ⟨c, hc, bc⟩ := h₂ b hb in
@@ -344,31 +346,13 @@ theorem coe_le [partial_order α] {a b : α} :
   ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b)
 | _ rfl := coe_le_coe
 
-@[simp] theorem has_lt_iff_lt [partial_order α] {a b : with_bot α} :
-  @has_lt.lt _ (with_bot.has_lt) a b ↔ a < b :=
-begin
-  split; rintro ⟨h₀,h₁⟩, split,
-   { intros a' ha', existsi [option.get h₀,option.get_mem _],
-     rcases h₁ a' ha' with ⟨b,⟨ ⟩,hab⟩, dsimp [option.get],
-     exact  le_of_lt hab },
-   { intro h₂, rcases h₂ (option.get h₀) (option.get_mem _) with ⟨a',⟨ ⟩,h₃⟩,
-     rcases h₁ a' rfl with ⟨b',⟨ ⟩,h₄⟩, dsimp [option.get] at h₃,
-     refine not_lt_of_le h₃ h₄ },
-   have h₃ : ↥(option.is_some b),
-   { by_contradiction h₂, simp [option.is_none_iff_eq_none] at h₂, subst b,
-     apply h₁, rintro _ ⟨ ⟩, },
-   { existsi h₃, rintros a' ⟨ ⟩, simp [option.is_some_iff_exists] at h₃,
-     cases h₃ with b' hb', existsi [_,hb'],
-     rw lt_iff_le_not_le, split,
-     { rcases h₀ a' rfl with ⟨b'',⟨ ⟩,h₄⟩, cases hb', apply h₄, },
-     { intro h₃, apply h₁, rintros _ ⟨ ⟩, cases hb',
-       existsi [_,rfl], exact h₃, } }
-end
+-- @[simp] theorem has_lt_iff_lt [partial_order α] {a b : with_bot α} :
+--   @has_lt.lt _ (with_bot.has_lt) a b ↔ a < b :=
+-- by refl
 
-@[simp] theorem some_lt_some [partial_order α] {a b : α} :
+@[simp] theorem some_lt_some [has_lt α] {a b : α} :
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
-(and_congr some_le_some (not_congr some_le_some))
-  .trans lt_iff_le_not_le.symm
+by simp [(<)]
 
 lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
 
@@ -386,12 +370,12 @@ instance linear_order [linear_order α] : linear_order (with_bot α) :=
   ..with_bot.partial_order }
 
 instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_bot α) (<)
-| none (some x) := is_true $ by existsi [rfl]; rintro _ ⟨ ⟩
+| none (some x) := is_true $ by existsi [x,rfl]; rintros _ ⟨⟩
 | (some x) (some y) :=
   if h : x < y
-  then is_true $ by existsi [rfl]; rintro _ ⟨ ⟩; existsi [_,rfl]; exact h
-  else is_false $ by intro h'; apply h; rcases h'.2 x rfl with ⟨y',⟨ ⟩,hy⟩; exact hy
-| x none := is_false $ by rintro ⟨⟨ ⟩,_⟩
+  then is_true $ by simp *
+  else is_false $ by simp *
+| x none := is_false $ by rintro ⟨a,⟨⟨⟩⟩⟩
 
 instance decidable_linear_order [decidable_linear_order α] : decidable_linear_order (with_bot α) :=
 { decidable_le := λ a b, begin

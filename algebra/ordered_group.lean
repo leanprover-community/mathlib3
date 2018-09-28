@@ -181,20 +181,23 @@ instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_orde
 instance [decidable_linear_order α] :
  decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
 
+/- new comment -/
 def ordered_comm_monoid [ordered_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_comm_monoid (with_zero α) :=
 begin
   suffices, refine {
     add_le_add_left := this,
     ..with_zero.partial_order,
-    ..with_zero.add_comm_monoid, ..},
+    ..with_zero.add_comm_monoid, .. },
   { intros a b c h,
-    refine ⟨λ b h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    have h' := lt_iff_le_not_le.1 h,
+    rw lt_iff_le_not_le at ⊢,
+    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
     cases h₂, cases c with c,
-    { cases h.2 (this _ _ bot_le a) },
+    { cases h'.2 (this _ _ bot_le a) },
     { refine ⟨_, rfl, _⟩,
       cases a with a,
-      { exact with_bot.some_le_some.1 h.1 },
+      { exact with_bot.some_le_some.1 h'.1 },
       { exact le_of_lt (lt_of_add_lt_add_left' $
           with_bot.some_lt_some.1 h), } } },
   { intros a b h c ca h₂,
@@ -308,7 +311,9 @@ begin
     ..with_bot.partial_order,
     ..with_bot.add_comm_monoid, ..},
   { intros a b c h,
-    refine ⟨λ b h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    have h' := h,
+    rw lt_iff_le_not_le at h' ⊢,
+    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
     cases h₂, cases a with a,
     { exact (not_le_of_lt h).elim bot_le },
     cases c with c,

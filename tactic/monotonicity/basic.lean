@@ -80,7 +80,7 @@ def mono_key := (with_bot name × with_bot name)
 open nat
 
 meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
-| 0 _ h := fail format!"oh? {h}"
+| 0 _ h := failed
 | (succ n) xs h :=
   do { (rel,l,r) ← if h.is_arrow
            then pure (none,h.binding_domain,h.binding_body)
@@ -112,6 +112,7 @@ do some n ← optional ident | pure mono_selection.both,
    else if n = `right then pure $ mono_selection.right
    else if n = `both then pure $ mono_selection.both
    else fail format!"invalid argument: {n}, expecting 'left', 'right' or 'both' (default)"
+
 
 open function
 

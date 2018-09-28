@@ -48,7 +48,6 @@ do `(%%e₀ ↔ %%e₁) ← infer_type p >>= instantiate_mvars,
      p₂ ← mk_app ``iff.symm [p₀],
      p ← mk_app ``iff.trans [p₂,p],
      p ← mk_app ``iff.trans [p,p₁],
-     m ← read_ref cl,
      modify_ref cl $ λ m, m.insert e₂ (e₃,p)
    else pure ()
 
@@ -63,8 +62,7 @@ do (r,p₀) ← root cl e₀,
 meta def is_eqv (cl : closure) (e₀ e₁ : expr) : tactic bool :=
 do (r,p₀) ← root cl e₀,
    (r',p₁) ← root cl e₁,
-   b ← try_core $ is_def_eq r r',
-   pure b.is_some
+   succeeds $ is_def_eq r r'
 
 end closure
 

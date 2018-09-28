@@ -7,7 +7,8 @@ Define the p-adic numbers (rationals) ℚ_p as the completion of ℚ wrt the p-a
 Show that the p-adic norm extends to ℚ_p, that ℚ is embedded in ℚ_p, and that ℚ_p is complete
 -/
 
-import data.real.cau_seq_completion data.padics.padic_norm algebra.archimedean analysis.normed_space
+import data.real.cau_seq_completion data.real.cau_seq_filter
+import data.padics.padic_norm algebra.archimedean analysis.normed_space
 noncomputable theory
 local attribute [instance, priority 1] classical.prop_decidable
 
@@ -719,7 +720,7 @@ end padic_norm_e
 namespace padic
 variables {p : ℕ} {hp : p.prime}
 
-protected theorem complete (f : cau_seq ℚ_[hp] (λ a, ∥a∥)):
+protected theorem complete (f : cau_seq ℚ_[hp] norm):
         ∃ q : ℚ_[hp], ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥q - f i∥ < ε :=
 let f' : cau_seq ℚ_[hp] padic_norm_e :=
   ⟨λ n, f n, λ ε hε,
@@ -730,14 +731,14 @@ let ⟨q, hq⟩ := padic.complete' f' in
       ⟨N, hN⟩ := hq _ (by simpa using hε'l) in
   ⟨N, λ i hi, lt.trans (rat.cast_lt.2 (hN _ hi)) hε'r ⟩⟩
 
-def cau_seq_lim (f : cau_seq ℚ_[hp] (λ a, ∥a∥)) : ℚ_[hp] :=
+def cau_seq_lim (f : cau_seq ℚ_[hp] norm) : ℚ_[hp] :=
 classical.some (padic.complete f)
 
-lemma cau_seq_lim_spec (f : cau_seq ℚ_[hp] (λ a, ∥a∥)) :
+lemma cau_seq_lim_spec (f : cau_seq ℚ_[hp] norm) :
       ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥(cau_seq_lim f) - f i∥ < ε :=
 classical.some_spec (padic.complete f)
 
-lemma padic_norm_e_lim_le {f : cau_seq ℚ_[hp] (λ a, ∥a∥)} {a : ℝ} (ha : a > 0)
+lemma padic_norm_e_lim_le {f : cau_seq ℚ_[hp] norm} {a : ℝ} (ha : a > 0)
       (hf : ∀ i, ∥f i∥ ≤ a) : ∥cau_seq_lim f∥ ≤ a :=
 let ⟨N, hN⟩ := cau_seq_lim_spec f _ ha in
 calc ∥cau_seq_lim f∥ = ∥cau_seq_lim f - f N + f N∥ : by simp
@@ -758,5 +759,7 @@ begin
   dsimp [ball], rw [dist_comm, dist_eq_norm],
   solve_by_elim
 end
+
+instance : complete_space ℚ_[hp] := complete_space_of_cauchy_complete padic.complete
 
 end padic

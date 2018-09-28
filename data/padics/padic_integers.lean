@@ -6,7 +6,9 @@ Authors: Robert Y. Lewis
 Define the p-adic integers ℤ_p as a subtype of ℚ_p. Construct algebraic structures on ℤ_p.
 -/
 
-import data.padics.padic_numbers tactic.subtype_instance ring_theory.ideals data.int.modeq
+import data.padics.padic_numbers ring_theory.ideals data.int.modeq
+import tactic.linarith tactic.subtype_instance
+
 open nat padic
 noncomputable theory
 local attribute [instance] classical.prop_decidable
@@ -275,19 +277,19 @@ private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[hp] norm) :
 ⟨ λ n, f n,
   λ _ hε, by simpa [norm, padic_norm_z] using f.cauchy hε ⟩
 
-theorem complete (f : cau_seq ℤ_[hp] norm) :
+protected theorem complete (f : cau_seq ℤ_[hp] norm) :
   ∃ z : ℤ_[hp], ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥z - f i∥ < ε :=
 have hqn : ∥padic.cau_seq_lim (cau_seq_to_rat_cau_seq f)∥ ≤ 1,
   from padic_norm_e_lim_le zero_lt_one (λ _, padic_norm_z.le_one _),
 ⟨ ⟨_, hqn⟩,
   by simpa [norm, padic_norm_z] using padic.cau_seq_lim_spec (cau_seq_to_rat_cau_seq f) ⟩
 
-def cau_seq_lim (f : cau_seq ℤ_[hp] norm) : ℤ_[hp] := classical.some (complete f)
+def cau_seq_lim (f : cau_seq ℤ_[hp] norm) : ℤ_[hp] := classical.some (padic_int.complete f)
 
 lemma cau_seq_lim_spec (f : cau_seq ℤ_[hp] norm) : ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥cau_seq_lim f - f i∥ < ε :=
-classical.some_spec (complete f)
+classical.some_spec (padic_int.complete f)
 
-open filter
+open set filter
 lemma tendsto_limit (f : cau_seq ℤ_[hp] norm) : tendsto f at_top (nhds (cau_seq_lim f)) :=
 tendsto_nhds
 begin

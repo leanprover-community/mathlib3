@@ -158,11 +158,11 @@ by induction x; simp! * with functor_norm; refl
 
 protected lemma map_traverse {α β γ} (g : α → G β) (f : β → γ) (x : σ ⊕ α) :
   (<$>) f <$> sum.traverse g x = sum.traverse ((<$>) f ∘ g) x :=
-by cases x; simp [(<$>), sum.mapr, sum.traverse, id_map] with functor_norm; congr
+by cases x; simp [sum.traverse, id_map] with functor_norm; congr; refl
 
 protected lemma traverse_map {α β γ : Type u} (g : α → β) (f : β → G γ) (x : σ ⊕ α) :
   sum.traverse f (g <$> x) = sum.traverse (f ∘ g) x :=
-by cases x; simp [(<$>), sum.mapr, sum.traverse, id_map] with functor_norm
+by cases x; simp [sum.traverse, id_map] with functor_norm; refl
 
 variable (η : applicative_transformation F G)
 

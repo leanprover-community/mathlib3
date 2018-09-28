@@ -132,6 +132,7 @@ by { refine { .. @comp.is_lawful_applicative f g _ _ _ _, .. },
      congr, funext, rw [commutative_map], congr }
 
 end comp
+
 open functor
 
 @[functor_norm]

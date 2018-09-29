@@ -92,20 +92,23 @@ lemma set_seq_of_cau_filter_spec : ∀ n, ∀ {x y},
     (mem_of_mem_inter_right hx) (mem_of_mem_inter_right hy)
 
 -- this must exist somewhere, no?
-lemma mono_of_mono_succ_aux {α} [partial_order α] (f : ℕ → α) (h : ∀ n, f (n+1) ≤ f n) (m : ℕ) : ∀ n, f (m + n) ≤ f m
+private lemma mono_of_mono_succ_aux {α} [partial_order α] (f : ℕ → α) (h : ∀ n, f (n+1) ≤ f n) (m : ℕ) :
+  ∀ n, f (m + n) ≤ f m
 | 0 := le_refl _
 | (k+1) := le_trans (h _) (mono_of_mono_succ_aux _)
 
-lemma mono_of_mono_succ {α} [partial_order α] (f : ℕ → α) (h : ∀ n, f (n+1) ≤ f n) (m n : ℕ)
+lemma mono_of_mono_succ {α} [partial_order α] (f : ℕ → α) (h : ∀ n, f (n+1) ≤ f n) {m n : ℕ}
   (hmn : m ≤ n) : f n ≤ f m :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hmn in
 by simpa [hk] using mono_of_mono_succ_aux f h m k
 
-lemma set_seq_of_cau_filter_monotone' (n : ℕ) : set_seq_of_cau_filter hf (n+1) ⊆ set_seq_of_cau_filter hf n :=
+lemma set_seq_of_cau_filter_monotone' (n : ℕ) :
+  set_seq_of_cau_filter hf (n+1) ⊆ set_seq_of_cau_filter hf n :=
 inter_subset_left _ _
 
-lemma set_seq_of_cau_filter_monotone {n k : ℕ} (hle : n ≤ k) : set_seq_of_cau_filter hf k ⊆ set_seq_of_cau_filter hf n :=
-mono_of_mono_succ (set_seq_of_cau_filter hf) (set_seq_of_cau_filter_monotone' hf) _ _ hle
+lemma set_seq_of_cau_filter_monotone {n k : ℕ} (hle : n ≤ k) : 
+  set_seq_of_cau_filter hf k ⊆ set_seq_of_cau_filter hf n :=
+mono_of_mono_succ (set_seq_of_cau_filter hf) (set_seq_of_cau_filter_monotone' hf) hle
 
 noncomputable def seq_of_cau_filter (n : ℕ) : β :=
 some (set_seq_of_cau_filter_inhabited hf n)
@@ -117,13 +120,13 @@ lemma seq_of_cau_filter_is_cauchy' {n k : ℕ} (hle : n ≤ k) :
   dist (seq_of_cau_filter hf n) (seq_of_cau_filter hf k) < 1 / ((n : ℝ) + 1) :=
 set_seq_of_cau_filter_spec hf _
   (seq_of_cau_filter_mem_set_seq hf n)
-  (set_seq_of_cau_filter_monotone hf hle (some_spec (set_seq_of_cau_filter_inhabited hf k)))
+  (set_seq_of_cau_filter_monotone hf hle (seq_of_cau_filter_mem_set_seq hf k))
 
 lemma is_cau_seq_of_dist_tendsto_0 {s : ℕ → β} {b : ℕ → ℝ} (h : ∀ {n k : ℕ}, n ≤ k → dist (s n) (s k) < b n)
   (hb : tendsto b at_top (nhds 0)) : is_cau_seq norm s :=
 λ ε hε,
 begin
-  have hb : ∀ (i : set ℝ), (0:ℝ) ∈ i → is_open i → (∃ (a : ℕ), ∀ (b_1 : ℕ), b_1 ≥ a → b b_1 ∈ i),
+  have hb : ∀ (i : set ℝ), (0:ℝ) ∈ i → is_open i → (∃ (a : ℕ), ∀ (c : ℕ), c ≥ a → b c ∈ i),
   { simpa [tendsto, nhds] using hb },
   cases hb (ball 0 ε) (mem_ball_self hε) (is_open_ball) with N hN,
   existsi N,
@@ -183,10 +186,9 @@ begin
   apply ne_empty_iff_exists_mem.2,
   rcases mem_nhds_iff_metric.1 ht2 with ⟨ε, hε, ht2'⟩,
   cases cauchy_of_metric.1 hf with hfb _,
-  have : ∃ n : ℕ, 1 / (↑n + 1) < ε / 2,
-    from exists_nat_one_div_lt (show ε / 2 > 0, from div_pos hε (by norm_num)),
-  cases this with n hnε,
   have : ε / 2 > 0, from div_pos hε (by norm_num),
+  have : ∃ n : ℕ, 1 / (↑n + 1) < ε / 2, from exists_nat_one_div_lt this,
+  cases this with n hnε,
   cases cau_filter_lim_spec hf complete _ this with n2 hn2,
   let N := max n n2,
   have hNε : 1 / (↑N+1) < ε / 2,
@@ -194,8 +196,10 @@ begin
     apply one_div_le_one_div_of_le,
     { exact add_pos_of_nonneg_of_pos (nat.cast_nonneg _) zero_lt_one },
     { apply add_le_add_right, simp [le_max_left] }},
-  have ht1sn : t1 ∩ set_seq_of_cau_filter hf N ∈ f.sets, from inter_mem_sets ht1 (set_seq_of_cau_filter_mem_sets hf _),
-  have hts1n_ne : t1 ∩ set_seq_of_cau_filter hf N ≠ ∅, from forall_sets_neq_empty_iff_neq_bot.2 hfb _ ht1sn,
+  have ht1sn : t1 ∩ set_seq_of_cau_filter hf N ∈ f.sets, 
+    from inter_mem_sets ht1 (set_seq_of_cau_filter_mem_sets hf _),
+  have hts1n_ne : t1 ∩ set_seq_of_cau_filter hf N ≠ ∅, 
+    from forall_sets_neq_empty_iff_neq_bot.2 hfb _ ht1sn,
   cases exists_mem_of_ne_empty hts1n_ne with x hx,
   have hdist1 := set_seq_of_cau_filter_spec hf _ hx.2 (cau_seq_of_cau_filter_mem_set_seq hf N),
   have hdist2 := hn2 N (le_max_right _ _),
@@ -210,8 +214,7 @@ begin
   have hxt2 : x ∈ t2, from ht2' hdist,
   existsi x,
   apply ht1t2,
-  apply mem_inter _ hxt2,
-  apply hx.left
+  exact mem_inter hx.left hxt2
 end
 
 theorem complete_space_of_cauchy_complete : complete_space β :=

@@ -144,10 +144,10 @@ tendsto_coe_iff.1 $
   have hr : (k : ℝ) > 1, from show (k : ℝ) > (1 : ℕ), from nat.cast_lt.2 h,
   by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
 
-lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (↑n : ℝ)⁻¹) at_top (nhds 0) :=
+lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (nhds 0) :=
 tendsto.comp (tendsto_coe_iff.2 tendsto_id) tendsto_inverse_at_top_nhds_0
 
-lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(↑n : ℝ)) at_top (nhds 0) :=
+lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (nhds 0) :=
 by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat
 
 lemma sum_geometric' {r : ℝ} (h : r ≠ 0) :

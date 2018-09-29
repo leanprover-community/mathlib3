@@ -117,19 +117,17 @@ le_iff_le_iff_lt_iff_lt.2 (nat.sub_lt_left_iff_lt_add H)
 protected theorem le_sub_right_iff_add_le (H : n ≤ k) : m ≤ k - n ↔ m + n ≤ k :=
 by rw [nat.le_sub_left_iff_add_le H, add_comm]
 
-protected theorem lt_sub_left_iff_add_lt (H : m ≤ k) : n < k - m ↔ m + n < k :=
-⟨λ h, by have := nat.add_le_add_left h m;
-         rwa [nat.add_sub_cancel' H] at this,
- nat.lt_sub_left_of_add_lt⟩
+protected theorem lt_sub_left_iff_add_lt : n < k - m ↔ m + n < k :=
+⟨nat.add_lt_of_lt_sub_left, nat.lt_sub_left_of_add_lt⟩
 
-protected theorem lt_sub_right_iff_add_lt (H : n ≤ k) : m < k - n ↔ m + n < k :=
-by rw [nat.lt_sub_left_iff_add_lt H, add_comm]
+protected theorem lt_sub_right_iff_add_lt : m < k - n ↔ m + n < k :=
+by rw [nat.lt_sub_left_iff_add_lt, add_comm]
 
-theorem sub_le_left_iff_le_add (H : n ≤ m) : m - n ≤ k ↔ m ≤ n + k :=
-le_iff_le_iff_lt_iff_lt.2 (nat.lt_sub_left_iff_add_lt H)
+theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
+le_iff_le_iff_lt_iff_lt.2 nat.lt_sub_left_iff_add_lt
 
-theorem sub_le_right_iff_le_add (H : k ≤ m) : m - k ≤ n ↔ m ≤ n + k :=
-by rw [nat.sub_le_left_iff_le_add H, add_comm]
+theorem sub_le_right_iff_le_add : m - k ≤ n ↔ m ≤ n + k :=
+by rw [nat.sub_le_left_iff_le_add, add_comm]
 
 protected theorem sub_lt_right_iff_lt_add (H : k ≤ m) : m - k < n ↔ m < n + k :=
 by rw [nat.sub_lt_left_iff_lt_add H, add_comm]
@@ -146,14 +144,17 @@ le_iff_le_iff_lt_iff_lt.1 (nat.sub_le_sub_right_iff _ _ _ H)
 protected theorem sub_lt_sub_left_iff (H : n ≤ m) : m - n < m - k ↔ k < n :=
 le_iff_le_iff_lt_iff_lt.1 (nat.sub_le_sub_left_iff H)
 
-protected theorem sub_le_iff (h₁ : n ≤ m) (h₂ : k ≤ m) : m - n ≤ k ↔ m - k ≤ n :=
-(nat.sub_le_left_iff_le_add h₁).trans (nat.sub_le_right_iff_le_add h₂).symm
+protected theorem sub_le_iff : m - n ≤ k ↔ m - k ≤ n :=
+nat.sub_le_left_iff_le_add.trans nat.sub_le_right_iff_le_add.symm
 
 protected theorem sub_lt_iff (h₁ : n ≤ m) (h₂ : k ≤ m) : m - n < k ↔ m - k < n :=
 (nat.sub_lt_left_iff_lt_add h₁).trans (nat.sub_lt_right_iff_lt_add h₂).symm
 
-lemma lt_pred_of_succ_lt {n m : ℕ} : succ n < m → n < pred m :=
-@nat.lt_sub_right_of_add_lt n m 1
+lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
+@nat.sub_le_right_iff_le_add n m 1
+
+lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
+@nat.lt_sub_right_iff_add_lt n 1 m
 
 protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0
 | nm := (eq_zero_of_mul_eq_zero nm).elim n0 m0

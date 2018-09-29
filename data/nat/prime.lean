@@ -71,7 +71,7 @@ theorem prime_two : prime 2 := dec_trivial
 theorem prime_three : prime 3 := dec_trivial
 
 theorem prime.pred_pos {p : ℕ} (pp : prime p) : pred p > 0 :=
-lt_pred_of_succ_lt pp.gt_one
+lt_pred_iff.2 pp.gt_one
 
 theorem succ_pred_prime {p : ℕ} (pp : prime p) : succ (pred p) = p :=
 succ_pred_eq_of_pos pp.pos

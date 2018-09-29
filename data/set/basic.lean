@@ -882,9 +882,6 @@ theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :
   f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
 ball_image_iff
 
-lemma image_subset_iff' {α : Type*} {β : Type*} (f : α → β) (s : set α) (t : set β) :
-  f '' s ⊆ t ↔ ∀ a, a ∈ s → f a ∈ t := image_subset_iff
-
 theorem image_preimage_subset (f : α → β) (s : set β) :
   f '' (f ⁻¹' s) ⊆ s :=
 image_subset_iff.2 (subset.refl _)

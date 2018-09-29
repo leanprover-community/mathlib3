@@ -104,6 +104,12 @@ have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (
   neq_bot_of_le_neq_bot h₁ h₂,
 by simp [image_subset_iff, closure_eq_nhds]; assumption
 
+lemma mem_closure [topological_space α] [topological_space β]
+  {s : set α} {t : set β} {f : α → β} {a : α}
+  (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
+subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
+  (mem_image_of_mem f ha)
+
 lemma compact_image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) : compact (f '' s) :=
 compact_of_finite_subcover $ assume c hco hcs,
   have hdo : ∀t∈c, is_open (f ⁻¹' t), from assume t' ht, hf _ $ hco _ ht,
@@ -506,6 +512,15 @@ have filter.prod (nhds a) (nhds b) ⊓ principal (set.prod s t) =
   filter.prod (nhds a ⊓ principal s) (nhds b ⊓ principal t),
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_nhds, nhds_prod_eq, this]; exact prod_neq_bot
+
+lemma mem_closure2 [topological_space α] [topological_space β] [topological_space γ]
+  {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
+  (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
+  (hu : ∀a b, a ∈ s → b ∈ t → f a b ∈ u) :
+  f a b ∈ closure u :=
+have (a, b) ∈ closure (set.prod s t), by rw [closure_prod_eq]; from ⟨ha, hb⟩,
+show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
+  mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
 
 lemma is_closed_prod [topological_space α] [topological_space β] {s₁ : set α} {s₂ : set β}
   (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (set.prod s₁ s₂) :=

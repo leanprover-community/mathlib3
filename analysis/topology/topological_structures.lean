@@ -385,45 +385,16 @@ end topological_ring
 
 section topological_comm_ring
 universe u'
-variables (α) [topological_space α] [comm_ring α] [t : topological_ring α]
+variables (α) [topological_space α] [comm_ring α] [topological_ring α]
 
+instance ideal_closure (S : set α) [is_ideal S] : is_ideal (closure S) :=
+{ zero_ := subset_closure (is_ideal.zero S),
+  add_  := assume x y hx hy,
+    mem_closure2 continuous_add' hx hy $ assume a b, is_ideal.add,
+  smul  := assume c x hx,
+    have continuous (λx:α, c * x) := continuous_mul continuous_const continuous_id,
+    mem_closure this hx $ assume a, is_ideal.mul_left }
 
-class is_ideal' {α : Type u} [comm_ring α] (s : set α) : Prop :=
-(zero : (0:α) ∈ s)
-(add  : (λ p : α × α, p.1 + p.2) ''  set.prod s s ⊆ s)
-(mul : ∀ b, (λ s, b*s) '' s ⊆ s)
-
-lemma is_ideal_iff {β : Type*} [comm_ring β] (S : set β) :
- is_ideal S ↔ is_ideal' S :=
-begin
-  split ; intro h ; haveI := h,
-  { split,
-    { exact is_ideal.zero S },
-    { rintros a ⟨⟨x, y⟩, ⟨x_in, y_in⟩, sum⟩,
-      rw ←sum,
-      exact is_ideal.add x_in y_in },
-    { rintros b s ⟨a, ⟨a_in, prod⟩⟩,
-      rw ←prod,
-      exact is_ideal.mul_left a_in } },
-  { exact { zero_ := h.zero,
-      add_ := λ x y x_in y_in, have xy : x + y ∈ (λ (p : β × β), p.fst + p.snd) '' set.prod S S :=
-          mem_image_of_mem (λ p : β × β, p.1 + p.2) (mk_mem_prod x_in y_in),
-        is_ideal'.add S xy,
-      smul := λ b, by rw ←image_subset_iff' ; exact is_ideal'.mul S b }}
-end
-
-instance ideal_closure [topological_ring α] (S : set α) [is_ideal S] : is_ideal (closure S) :=
-begin
-  rcases (is_ideal_iff S).1 (by apply_instance) with ⟨zero, add, mul⟩,
-  rw is_ideal_iff,
-  split,
-  { exact subset_closure zero },
-  { rw ←closure_prod_eq,
-    exact subset.trans (image_closure_subset_closure_image continuous_add') (closure_mono add) },
-  { intro b,
-    have : continuous (λ s, b*s) := continuous_mul continuous_const continuous_id,
-    exact subset.trans (image_closure_subset_closure_image this) (closure_mono (mul b)) },
-end
 end topological_comm_ring
 
 /-- (Partially) ordered topology

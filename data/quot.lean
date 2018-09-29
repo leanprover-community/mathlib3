@@ -83,6 +83,9 @@ theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [∀ i, setoid (α i
   (f : ∀ i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 quotient.sound $ λ i, quotient.mk_out _
 
+lemma nonempty_quotient_iff (s : setoid α): nonempty (quotient s) ↔ nonempty α :=
+⟨assume ⟨a⟩, quotient.induction_on a nonempty.intro, assume ⟨a⟩, ⟨⟦a⟧⟩⟩
+
 /-- `trunc α` is the quotient of `α` by the always-true relation. This
   is related to the propositional truncation in HoTT, and is similar
   in effect to `nonempty α`, but unlike `nonempty α`, `trunc α` is data,

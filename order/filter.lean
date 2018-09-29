@@ -1596,6 +1596,9 @@ by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, lattice.inf_left_comm
   filter.prod (principal s) (principal t) = principal (set.prod s t) :=
 by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal]; refl
 
+@[simp] lemma prod_pure_pure {a : α} {b : β} : filter.prod (pure a) (pure b) = pure (a, b) :=
+by simp
+
 lemma prod_def {f : filter α} {g : filter β} : f.prod g = (f.lift $ λs, g.lift' $ set.prod s) :=
 have ∀(s:set α) (t : set β),
     principal (set.prod s t) = (principal s).comap prod.fst ⊓ (principal t).comap prod.snd,

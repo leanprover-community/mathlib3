@@ -19,6 +19,49 @@ by solve_by_elim
 example {α : Type} {a b : α → Prop} (h₀ : ∀ x : α, b x = a x) (y : α) : a y = b y :=
 by solve_by_elim
 
+example {α : Type} {a b : α → Prop} (h₀ : b = a) (y : α) : a y = b y :=
+by solve_by_elim
+
+example {α : Type} {a b : α → Prop} (h₀ : b = a) (y : α) : a y = b y :=
+begin
+  success_if_fail { solve_by_elim only [] },
+  success_if_fail { solve_by_elim only [h₀] },
+  solve_by_elim only [h₀, congr_fun]
+end
+
+example {α : Type} {a b : α → Prop} (h₀ : b = a) (y : α) : a y = b y :=
+by solve_by_elim [h₀]
+
+example {α : Type} {a b : α → Prop} (h₀ : b = a) (y : α) : a y = b y :=
+begin
+ success_if_fail { solve_by_elim [*, -h₀] },
+ solve_by_elim [*]
+end
+
+example {α β : Type} (a b : α) (f : α → β) (i : function.injective f) (h : f a = f b) : a = b :=
+begin
+  success_if_fail { solve_by_elim only [i] },
+  success_if_fail { solve_by_elim only [h] },
+  solve_by_elim only [i,h]
+end
+
+@[user_attribute]
+meta def ex : user_attribute := {
+  name := `ex,
+  descr := "An example attribute for testing solve_by_elim."
+}
+
+@[ex] def f : ℕ := 0
+
+example : ℕ := by solve_by_elim [f]
+
+example : ℕ :=
+begin
+  success_if_fail { solve_by_elim },
+  success_if_fail { solve_by_elim [ex, -f] },
+  solve_by_elim [ex],
+end
+
 example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
 begin
   apply_assumption,

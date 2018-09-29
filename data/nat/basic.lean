@@ -379,6 +379,8 @@ by induction k; simp [*, add_succ, bind_assoc]
 
 /- pow -/
 
+attribute [simp] nat.pow_zero nat.pow_one
+
 @[simp] lemma one_pow : ∀ n : ℕ, 1 ^ n = 1
 | 0 := rfl
 | (k+1) := show 1^k * 1 = 1, by rw [mul_one, one_pow]

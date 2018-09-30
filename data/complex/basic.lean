@@ -89,16 +89,15 @@ def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 @[simp] lemma conj_of_real (r : ℝ) : conj r = r :=
 ext_iff.2 $ by simp
 
-@[simp] lemma conj_zero : conj 0 = 0 := conj_of_real 0
-@[simp] lemma conj_one : conj 1 = 1 := conj_of_real 1
-@[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
-@[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
+@[simp] lemma conj_zero : conj 0 = 0 := rfl
+@[simp] lemma conj_one : conj 1 = 1 := rfl
+@[simp] lemma conj_I : conj I = -I := rfl
+@[simp] lemma conj_neg_I : conj (-I) = I := rfl
 
 @[simp] lemma conj_add (z w : ℂ) : conj (z + w) = conj z + conj w :=
 ext_iff.2 $ by simp
 
-@[simp] lemma conj_neg (z : ℂ) : conj (-z) = -conj z :=
-ext_iff.2 $ by simp
+@[simp] lemma conj_neg (z : ℂ) : conj (-z) = -conj z := rfl
 
 @[simp] lemma conj_mul (z w : ℂ) : conj (z * w) = conj z * conj w :=
 ext_iff.2 $ by simp

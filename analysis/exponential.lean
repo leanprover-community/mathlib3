@@ -94,7 +94,7 @@ continuous.comp
 private lemma exists_exp_eq_of_one_le {x : ℝ} (hx : 1 ≤ x) : ∃ y, exp y = x :=
 let ⟨y, hy⟩ := @intermediate_value real.exp 0 (x - 1) x
   (λ _ _ _, continuous_iff_tendsto.1 continuous_exp _) (by simpa)
-  (by simpa using add_one_le_exp_aux (sub_nonneg.2 hx)) (sub_nonneg.2 hx) in
+  (by simpa using add_one_le_exp_of_nonneg (sub_nonneg.2 hx)) (sub_nonneg.2 hx) in
 ⟨y, hy.2.2⟩
 
 lemma exists_exp_eq_of_pos {x : ℝ} (hx : 0 < x) : ∃ y, exp y = x :=

@@ -458,6 +458,13 @@ by rw [← nat.add_sub_cancel' hnm, pow_add, pow_succ', mul_assoc];
     (mul_lt_one_of_nonneg_of_lt_one_left (le_of_lt h0x) hx1
       (pow_le_one _ (le_of_lt h0x) (le_of_lt hx1)))
 
+lemma pow_le_pow_of_le_one_of_pos {x : α} {n m : ℕ}
+  (hx1 : x ≤ 1) (h0x : 0 < x) (hnm : n ≤ m) : x ^ m ≤ x ^ n :=
+(lt_or_eq_of_le hx1).elim
+  (λ hx1, (lt_or_eq_of_le hnm).elim (le_of_lt ∘ pow_lt_pow_of_lt_one_of_pos hx1 h0x)
+    (λ h, by simp [h]))
+  (λ h, by simp [h])
+
 end linear_ordered_semiring
 
 theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=

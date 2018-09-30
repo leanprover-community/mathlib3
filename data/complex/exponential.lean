@@ -194,8 +194,7 @@ h₁ ▸ h₂ ▸ sum_bij
 (λ ⟨a₁, a₂⟩ ha,
   have ha : a₁ < n ∧ a₂ < n - a₁ :=
       ⟨mem_range.1 (mem_sigma.1 ha).1, (mem_range.1 (mem_sigma.1 ha).2)⟩,
-  ⟨⟨a₂ + a₁, a₁⟩, ⟨mem_sigma.2 ⟨mem_range.2 ((nat.lt_sub_right_iff_add_lt
-      (le_of_lt ha.1)).1 ha.2),
+  ⟨⟨a₂ + a₁, a₁⟩, ⟨mem_sigma.2 ⟨mem_range.2 (nat.lt_sub_right_iff_add_lt.1 ha.2),
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
   sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (nat.add_sub_cancel _ _).symm⟩⟩⟩)
 
@@ -304,9 +303,6 @@ end
 open finset
 
 namespace complex
-
-@[simp] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : ℂ) = r ^ n :=
-by induction n; simp [*, of_real_mul, pow_succ]
 
 lemma is_cau_abs_exp (z : ℂ) : is_cau_seq _root_.abs
   (λ n, (range n).sum (λ m, abs (z ^ m / nat.fact m))) :=
@@ -947,10 +943,10 @@ calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
 ... = _ : real.cos_two_mul 1
 ... ≤ 2 * (2 / 3) ^ 2 - 1 :
   sub_le_sub_right (mul_le_mul_of_nonneg_left
-  (by rw [pow_two, pow_two]; exact
-    mul_self_le_mul_self (le_of_lt cos_one_pos)
-    cos_one_le)
-  (by norm_num)) _
+    (by rw [pow_two, pow_two]; exact
+      mul_self_le_mul_self (le_of_lt cos_one_pos)
+        cos_one_le)
+    (by norm_num)) _
 ... < 0 : by norm_num
 
 lemma sin_pos_of_pos_of_le_two {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 2) : 0 < sin x :=

@@ -9,7 +9,7 @@ open finset filter
 
 namespace complex
 
-lemma tendsto_exp_zero_one : tendsto (λ x : ℂ, exp x) (nhds (0 : ℂ)) (nhds (1 : ℂ)) :=
+lemma tendsto_exp_zero_one : tendsto exp (nhds 0) (nhds 1) :=
 tendsto_nhds_of_metric.2 $ λ ε ε0,
   ⟨min (ε / 2) 1, lt_min (div_pos ε0 (by norm_num)) (by norm_num),
     λ x h, have h : abs x < min (ε / 2) 1, by simpa [dist_eq] using h,
@@ -27,7 +27,7 @@ continuous_iff_tendsto.2 (λ x,
   have H2 : tendsto (λ y, y - x) (nhds x) (nhds (x - x)) :=
      tendsto_sub tendsto_id (@tendsto_const_nhds _ _ _ x _),
   suffices tendsto ((λ h, exp (x + h)) ∘
-    (λ y, id y - (λ z, x) y)) (nhds x) (nhds (exp x)),
+      (λ y, id y - (λ z, x) y)) (nhds x) (nhds (exp x)),
     by simp only [function.comp, add_sub_cancel'_right, id.def] at this;
       exact this,
   tendsto.comp (by rw [sub_self] at H2; exact H2) H1)
@@ -112,6 +112,9 @@ by rw [ln, dif_pos hx]; exact classical.some_spec (exists_exp_eq_of_pos hx)
 @[simp] lemma ln_exp (x : ℝ) : ln (exp x) = x :=
 exp_injective $ exp_ln (exp_pos x)
 
+@[simp] lemma ln_one : ln 1 = 0 :=
+exp_injective $ by rw [exp_ln zero_lt_one, exp_zero]
+
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'
   (λ x _ _, continuous_iff_tendsto.1 continuous_cos _)
@@ -126,6 +129,29 @@ local notation `π` := pi
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).2.2
 
+lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
+by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+  exact (classical.some_spec exists_cos_eq_zero).1
+
+lemma pi_div_two_le_two : π / 2 ≤ 2 :=
+by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+  exact (classical.some_spec exists_cos_eq_zero).2.1
+
+lemma two_le_pi : (2 : ℝ) ≤ π :=
+(div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
+  (by rw div_self (@two_ne_zero' ℝ _ _ _); exact one_le_pi_div_two)
+
+lemma pi_le_four : π ≤ 4 :=
+(div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
+  (calc π / 2 ≤ 2 : pi_div_two_le_two
+    ... = 4 / 2 : by norm_num)
+
+lemma pi_pos : 0 < π :=
+lt_of_lt_of_le (by norm_num) two_le_pi
+
+lemma pi_div_two_pos : 0 < π / 2 :=
+half_pos pi_pos
+
 @[simp] lemma sin_pi : sin π = 0 :=
 by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp
@@ -136,9 +162,27 @@ by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _), mul_div_assoc,
   simp [bit0, pow_add]
 
 lemma sin_add_pi (x : ℝ) : sin (x + π) = -sin x :=
-by rw [sin_add, sin_pi, cos_pi]; simp
+by simp [sin_add]
+
+lemma sin_pi_sub (x : ℝ) : sin (π - x) = sin x :=
+by simp [sin_add]
 
 lemma cos_add_pi (x : ℝ) : cos (x + π) = -cos x :=
-by rw [cos_add, cos_pi, sin_pi]; simp
+by simp [cos_add]
+
+lemma sin_pos_of_pos_of_lt_pi {x : ℝ} (h0x : 0 < x) (hxp : x < π) : 0 < sin x :=
+if hx2 : x ≤ 2 then sin_pos_of_pos_of_le_two h0x hx2
+else
+have (2 : ℝ) + 2 = 4, from rfl,
+have π - x ≤ 2, from sub_le_iff_le_add.2
+  (le_trans pi_le_four (this ▸ add_le_add_left (le_of_not_ge hx2) _)),
+sin_pi_sub x ▸ sin_pos_of_pos_of_le_two (sub_pos.2 hxp) this
+
+@[simp] lemma sin_pi_div_two : sin (π / 2) = 1 :=
+have sin (π / 2) = 1 ∨ sin (π / 2) = -1 :=
+by simpa [pow_two, mul_self_eq_one_iff] using sin_pow_two_add_cos_pow_two (π / 2),
+this.resolve_right
+  (λ h, (show ¬(0 : ℝ) < -1, by norm_num) $
+    h ▸ sin_pos_of_pos_of_lt_pi pi_div_two_pos (half_lt_self pi_pos))
 
 end real

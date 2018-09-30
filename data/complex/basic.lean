@@ -169,14 +169,16 @@ instance : comm_ring ℂ :=
 by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
    { intros, apply ext_iff.2; split; simp; ring }
 
-@[simp] lemma bit0_re (z : ℂ) : (bit0 z).re = bit0 z.re := add_re _ _
-@[simp] lemma bit1_re (z : ℂ) : (bit1 z).re = bit1 z.re := by simp [bit1]
-@[simp] lemma bit0_im (z : ℂ) : (bit0 z).im = bit0 z.im := add_im _ _
-@[simp] lemma bit1_im (z : ℂ) : (bit1 z).im = bit0 z.im := by simp [bit1]
+@[simp] lemma bit0_re (z : ℂ) : (bit0 z).re = bit0 z.re := rfl
+@[simp] lemma bit1_re (z : ℂ) : (bit1 z).re = bit1 z.re := rfl
+@[simp] lemma bit0_im (z : ℂ) : (bit0 z).im = bit0 z.im := rfl
+@[simp] lemma bit1_im (z : ℂ) : (bit1 z).im = bit0 z.im := add_zero _
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
 @[simp] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : ℂ) = r - s := rfl
+@[simp] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : ℂ) = r ^ n :=
+by induction n; simp [*, of_real_mul, pow_succ]
 
 theorem sub_conj (z : ℂ) : z - conj z = (2 * z.im : ℝ) * I :=
 ext_iff.2 $ by simp [two_mul]

@@ -76,11 +76,16 @@ meta def tfae_finish : tactic unit :=
 applyc ``tfae_nil <|>
 closure.mk_closure (λ cl,
 do impl_graph.mk_scc cl,
-   tfae_cons ← mk_const ``tfae_cons_cons,
-   repeat $ do {
-     rewrite_target tfae_cons, split,
-     prove_eqv_target cl },
-   applyc ``tfae_singleton,
+   `(tfae %%l) ← target,
+   l ← parse_list l,
+   (r,_) ← cl.root l.head,
+   refine ``(tfae_of_forall %%r _ _),
+   thm ← mk_const ``forall_mem_cons,
+   l.mmap' (λ e,
+     do rewrite_target thm, split,
+        (r',p) ← cl.root e,
+        tactic.exact p ),
+   applyc ``forall_mem_nil,
    pure ())
 
 end interactive

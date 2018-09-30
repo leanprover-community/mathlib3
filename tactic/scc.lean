@@ -54,7 +54,6 @@ do `(%%e₀ ↔ %%e₁) ← infer_type p >>= instantiate_mvars,
 meta def prove_eqv (cl : closure) (e₀ e₁ : expr) : tactic expr :=
 do (r,p₀) ← root cl e₀,
    (r',p₁) ← root cl e₁,
-   m ← read_ref cl,
    is_def_eq r r',
    p₁ ← mk_app ``iff.symm [p₁],
    mk_app ``iff.trans [p₀,p₁]

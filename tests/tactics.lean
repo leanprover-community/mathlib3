@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
-import tactic data.set.lattice data.prod
+import tactic data.set.lattice data.prod data.vector
        tactic.rewrite data.stream.basic
 
 section solve_by_elim
@@ -476,6 +476,31 @@ begin
     guard_tags _field one_mul monoid, admit,
     guard_tags _field mul_one monoid, admit, },
   trivial
+end
+
+structure dependent_fields :=
+(a : bool)
+(v : if a then ℕ else ℤ)
+
+@[extensionality] lemma df.ext (s t : dependent_fields) (h : s.a = t.a)
+ (w : (@eq.rec _ s.a (λ b, if b then ℕ else ℤ) s.v t.a h) = t.v): s = t :=
+begin
+  cases s, cases t,
+  dsimp at *,
+  congr,
+  exact h,
+  subst h,
+  simp,
+  simp at w,
+  exact w,
+end
+
+example (s : dependent_fields) : s = s :=
+begin
+  tactic.ext1 [] {tactic.apply_cfg . new_goals := tactic.new_goals.all},
+  guard_target s.a = s.a,
+  refl,
+  refl,
 end
 
 end ext

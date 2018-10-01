@@ -34,27 +34,27 @@ lemma id_tsnd : Π {α β} (x : t α β), tsnd id.mk x = id.mk x :=
 lemma comp_tfst {α₀ α₁ α₂ β}
   (f : α₀ → F α₁) (f' : α₁ → G α₂) (x : t α₀ β) :
   comp.mk (tfst f' <$> tfst f x) = tfst (comp.mk ∘ map f' ∘ f) x :=
-by simp [tfst,comp_bitraverse,map_comp_pure,has_pure.pure]
+by rw ← comp_bitraverse; simp [tfst,map_comp_pure,has_pure.pure]
 
 @[higher_order tfst_comp_tsnd]
 lemma tfst_tsnd {α₀ α₁ β₀ β₁}
   (f : α₀ → F α₁) (f' : β₀ → G β₁) (x : t α₀ β₀) :
   comp.mk (tfst f <$> tsnd f' x) =
   bitraverse (comp.mk ∘ pure ∘ f) (comp.mk ∘ map pure ∘ f') x :=
-by simp [tfst,tsnd,comp_bitraverse]
+by rw ← comp_bitraverse; simp [tfst,tsnd]
 
 @[higher_order tsnd_comp_tfst]
 lemma tsnd_tfst {α₀ α₁ β₀ β₁}
   (f : α₀ → F α₁) (f' : β₀ → G β₁) (x : t α₀ β₀) :
   comp.mk (tsnd f' <$> tfst f x) =
   bitraverse (comp.mk ∘ map pure ∘ f) (comp.mk ∘ pure ∘ f') x :=
-by simp [tfst,tsnd,comp_bitraverse]
+by rw ← comp_bitraverse; simp [tfst,tsnd]
 
 @[higher_order tsnd_comp_tsnd]
 lemma comp_tsnd {α β₀ β₁ β₂}
   (g : β₀ → F β₁) (g' : β₁ → G β₂) (x : t α β₀) :
   comp.mk (tsnd g' <$> tsnd g x) = tsnd (comp.mk ∘ map g' ∘ g) x :=
-by simp [tsnd,comp_bitraverse]; refl
+by rw ← comp_bitraverse; simp [tsnd]; refl
 
 open bifunctor
 

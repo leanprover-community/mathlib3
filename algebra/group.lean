@@ -226,10 +226,10 @@ instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
 instance : has_inv (units α) := ⟨units.inv'⟩
 
 variables (a b)
-@[simp] lemma mul_coe : (↑(a * b) : α) = a * b := rfl
-@[simp] lemma one_coe : ((1 : units α) : α) = 1 := rfl
+@[simp] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
+@[simp] lemma coe_one : ((1 : units α) : α) = 1 := rfl
 lemma val_coe : (↑a : α) = a.val := rfl
-lemma inv_coe : ((a⁻¹ : units α) : α) = a.inv := rfl
+lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
 @[simp] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 

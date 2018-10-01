@@ -853,9 +853,9 @@ by by_cases a ∈ s; simp [h, nat.le_add_right]
 
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
-theorem card_range (n : ℕ) : card (range n) = n := card_range n
+@[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
-theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
+@[simp] theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
 
 theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
   (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
@@ -925,6 +925,44 @@ calc n = card (range n) : (card_range n).symm
 finset.strong_induction_on s $ λ s,
 finset.induction_on s (λ _, h₀) $ λ a s n _ ih, h₁ a s n $
 λ t ss, ih _ (lt_of_le_of_lt ss (ssubset_insert n) : t < _)
+
+lemma card_congr {s : finset α} {t : finset β} (f : Π a ∈ s, β)
+  (h₁ : ∀ a ha, f a ha ∈ t) (h₂ : ∀ a b ha hb, f a ha = f b hb → a = b)
+  (h₃ : ∀ b ∈ t, ∃ a ha, f a ha = b) : s.card = t.card :=
+by haveI := classical.prop_decidable; exact
+calc s.card = s.attach.card : card_attach.symm
+... = (s.attach.image (λ (a : {a // a ∈ s}), f a.1 a.2)).card :
+  eq.symm (card_image_of_injective _ (λ a b h, subtype.eq (h₂ _ _ _ _ h)))
+... = t.card : congr_arg card (finset.ext.2 $ λ b,
+    ⟨λ h, let ⟨a, ha₁, ha₂⟩ := mem_image.1 h in ha₂ ▸ h₁ _ _,
+      λ h, let ⟨a, ha₁, ha₂⟩ := h₃ b h in mem_image.2 ⟨⟨a, ha₁⟩, by simp [ha₂]⟩⟩)
+
+lemma card_union_add_card_inter [decidable_eq α] (s t : finset α) :
+  (s ∪ t).card + (s ∩ t).card = s.card + t.card :=
+finset.induction_on t (by simp) (λ a, by by_cases a ∈ s; simp * {contextual := tt})
+
+lemma card_union_le [decidable_eq α] (s t : finset α) :
+  (s ∪ t).card ≤ s.card + t.card :=
+card_union_add_card_inter s t ▸ le_add_right _ _
+
+lemma surj_on_of_inj_on_of_card_le {s : finset α} {t : finset β}
+  (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t)
+  (hinj : ∀ a₁ a₂ ha₁ ha₂, f a₁ ha₁ = f a₂ ha₂ → a₁ = a₂)
+  (hst : card t ≤ card s) :
+  (∀ b ∈ t, ∃ a ha, b = f a ha) :=
+by haveI := classical.dec_eq β; exact
+λ b hb,
+  have h : card (image (λ (a : {a // a ∈ s}), f (a.val) a.2) (attach s)) = card s,
+    from @card_attach _ s ▸ card_image_of_injective _
+      (λ ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ h, subtype.eq $ hinj _ _ _ _ h),
+  have h₁ : image (λ a : {a // a ∈ s}, f a.1 a.2) s.attach = t :=
+  eq_of_subset_of_card_le (λ b h, let ⟨a, ha₁, ha₂⟩ := mem_image.1 h in
+    ha₂ ▸ hf _ _) (by simp [hst, h]),
+begin
+  rw ← h₁ at hb,
+  rcases mem_image.1 hb with ⟨a, ha₁, ha₂⟩,
+  exact ⟨a, a.2, ha₂.symm⟩,
+end
 
 end card
 
@@ -1124,7 +1162,7 @@ by simp [fold, ndinsert_of_not_mem h]
 @[simp] theorem fold_singleton : (singleton a).fold op b f = f a * b :=
 by simp [fold]
 
-@[simp] theorem fold_image [decidable_eq α] [decidable_eq γ] {g : γ → α} {s : finset γ}
+@[simp] theorem fold_image [decidable_eq α] {g : γ → α} {s : finset γ}
   (H : ∀ (x ∈ s) (y ∈ s), g x = g y → x = y) : (s.image g).fold op b f = s.fold op b (f ∘ g) :=
 by simp [fold, image_val_of_inj_on H, map_map]
 

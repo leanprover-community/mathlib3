@@ -225,3 +225,13 @@ instance {r : ring α} [module α β] [module α γ] : module α (β × γ) :=
 instance {r : field α} [vector_space α β] [vector_space α γ] : vector_space α (β × γ) := {}
 
 end prod
+
+namespace finset
+
+@[to_additive finset.prod_mk_sum]
+lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
+  (f : γ → α) (g : γ → β) : (s.prod f, s.prod g) = s.prod (λ x, (f x, g x)) :=
+by haveI := classical.dec_eq γ; exact
+finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
+
+end finset

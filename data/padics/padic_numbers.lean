@@ -745,33 +745,11 @@ instance complete : cau_seq.is_complete ℚ_[p] norm :=
         ⟨N, hN⟩ := hq _ (by simpa using hε'l) in
     ⟨N, λ i hi, lt.trans (rat.cast_lt.2 (hN _ hi)) hε'r ⟩⟩⟩
 
-/- def cau_seq_lim (f : cau_seq ℚ_[p] norm) : ℚ_[p] :=
-classical.some (complete f)
-
-lemma cau_seq_lim_spec (f : cau_seq ℚ_[p] norm) :
-      ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥(cau_seq_lim f) - f i∥ < ε :=
-classical.some_spec (complete f) -/
-
 lemma padic_norm_e_lim_le {f : cau_seq ℚ_[p] norm} {a : ℝ} (ha : a > 0)
       (hf : ∀ i, ∥f i∥ ≤ a) : ∥f.lim∥ ≤ a :=
 let ⟨N, hN⟩ := cau_seq.lim_spec f _ ha in
 calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
                 ... ≤ a : max_le (le_of_lt (hN _ (le_refl _))) (hf _)
-
-/- open filter
-lemma tendsto_limit (f : cau_seq ℚ_[p] norm) : tendsto f at_top (nhds f.lim) :=
-tendsto_nhds
-begin
-  intros s lfs os,
-  suffices : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → f b ∈ s, by simpa,
-  rcases is_open_metric.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
-  cases cau_seq.lim_spec f _ hε with N hN,
-  existsi N,
-  intros b hb,
-  apply hεs,
-  dsimp [ball], rw [dist_comm, dist_eq_norm],
-  solve_by_elim
-end -/
 
 end padic

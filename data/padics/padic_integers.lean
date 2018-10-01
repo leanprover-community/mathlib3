@@ -282,8 +282,7 @@ private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[p] norm) :
 ⟨ λ n, f n,
   λ _ hε, by simpa [norm, padic_norm_z] using f.cauchy hε ⟩
 
-instance complete : cau_seq.is_complete ℤ_[p] norm := /- (f : cau_seq ℤ_[p] norm) :
-  ∃ z : ℤ_[p], ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥z - f i∥ < ε := -/
+instance complete : cau_seq.is_complete ℤ_[p] norm :=
 ⟨ λ f,
   have hqn : ∥cau_seq.lim (cau_seq_to_rat_cau_seq f)∥ ≤ 1,
     from padic_norm_e_lim_le zero_lt_one (λ _, padic_norm_z.le_one _),

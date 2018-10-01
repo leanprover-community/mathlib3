@@ -11,20 +11,18 @@ local infix ` • ` := add_monoid.smul
 
 variables {α : Type*}
 
-class floor_ring (α) extends linear_ordered_ring α :=
+class floor_ring (α) [linear_ordered_ring α] :=
 (floor : α → ℤ)
 (le_floor : ∀ (z : ℤ) (x : α), z ≤ floor x ↔ (z : α) ≤ x)
 
 instance : floor_ring ℤ :=
-{ floor := id, le_floor := by simp,
-  ..linear_ordered_comm_ring.to_linear_ordered_ring ℤ }
+{ floor := id, le_floor := by simp }
 
 instance : floor_ring ℚ :=
-{ floor := rat.floor, le_floor := @rat.le_floor,
-  ..linear_ordered_comm_ring.to_linear_ordered_ring ℚ }
+{ floor := rat.floor, le_floor := @rat.le_floor }
 
 section
-variable [floor_ring α]
+variables [linear_ordered_ring α] [floor_ring α]
 
 def floor : α → ℤ := floor_ring.floor
 
@@ -40,7 +38,7 @@ theorem floor_le (x : α) : (⌊x⌋ : α) ≤ x :=
 le_floor.1 (le_refl _)
 
 theorem floor_nonneg {x : α} : 0 ≤ ⌊x⌋ ↔ 0 ≤ x :=
-by simpa using @le_floor _ _ 0 x
+by simpa using @le_floor _ _ _ 0 x
 
 theorem lt_succ_floor (x : α) : x < ⌊x⌋.succ :=
 floor_lt.1 $ int.lt_succ_self _
@@ -154,6 +152,29 @@ end
 
 end linear_ordered_ring
 
+section linear_ordered_field
+
+variables [linear_ordered_field α] [floor_ring α]
+
+lemma sub_floor_div_mul_nonneg (x : α) {y : α} (hy : 0 < y) :
+  0 ≤ x - ⌊x / y⌋ * y :=
+begin
+  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
+  rw ← sub_mul,
+  exact mul_nonneg (sub_nonneg.2 (floor_le _)) (le_of_lt hy)
+end
+
+lemma sub_floor_div_mul_lt (x : α) {y : α} (hy : 0 < y) :
+  x - ⌊x / y⌋ * y < y :=
+sub_lt_iff_lt_add.2 begin
+  conv in y {rw ← one_mul y},
+  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
+  rw ← add_mul,
+  exact (mul_lt_mul_right hy).2 (by rw add_comm; exact lt_floor_add_one _),
+end
+
+end linear_ordered_field
+
 instance : archimedean ℕ :=
 ⟨λ n m m0, ⟨n, by simpa using nat.mul_le_mul_left n m0⟩⟩
 
@@ -243,23 +264,6 @@ begin
     apply floor_le },
   { rw [le_floor, ← rat.cast_coe_int, rat.cast_le],
     apply floor_le }
-end
-
-lemma sub_floor_div_mul_nonneg (x : α) {y : α} (hy : 0 < y) :
-  0 ≤ x - ⌊x / y⌋ * y :=
-begin
-  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
-  rw ← sub_mul,
-  exact mul_nonneg (sub_nonneg.2 (floor_le _)) (le_of_lt hy)
-end
-
-lemma sub_floor_div_mul_lt (x : α) {y : α} (hy : 0 < y) :
-  x - ⌊x / y⌋ * y < y :=
-sub_lt_iff_lt_add.2 begin
-  conv in y {rw ← one_mul y},
-  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
-  rw ← add_mul,
-  exact (mul_lt_mul_right hy).2 (by rw add_comm; exact lt_floor_add_one _),
 end
 
 end linear_ordered_field

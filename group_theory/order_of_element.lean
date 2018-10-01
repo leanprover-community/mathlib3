@@ -100,6 +100,28 @@ assume a', decidable_of_iff'
   (a' ∈ (finset.range (order_of a)).image ((^) a))
   mem_gpowers_iff_mem_range_order_of
 
+lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
+by_contradiction
+  (λ h₁, nat.find_min _ (show n % order_of a < order_of a,
+    from nat.mod_lt _ (order_of_pos _))
+      ⟨nat.pos_of_ne_zero (mt nat.dvd_of_mod_eq_zero h₁), by rwa ← pow_eq_mod_order_of⟩)
+
+lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
+nat.find_min' (exists_pow_eq_one a) ⟨hn, h⟩
+
+lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
+  ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
+  = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
+calc ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
+    = _ : (finset.card_bind (by simp [finset.ext]; cc)).symm
+... = _ : congr_arg finset.card (finset.ext.2 (begin
+  assume a,
+  suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
+  { simpa [-finset.range_succ, nat.lt_succ_iff], },
+  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, _root_.one_pow],
+    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
+end))
+
 section
 local attribute [instance] set_fintype
 
@@ -148,6 +170,36 @@ dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
 
 end classical
 
+@[simp] lemma pow_card_eq_one (a : α) : a ^ fintype.card α = 1 :=
+let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ in
+by simp [hm, pow_mul, pow_order_of_eq_one]
+
+lemma powers_eq_gpowers (a : α) : powers a = gpowers a :=
+set.ext (λ x, ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
+  λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
+    by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩⟩)
+
 end
+
+section cyclic
+
+local attribute [instance] set_fintype
+
+class is_cyclic (α : Type*) [group α] : Prop :=
+(exists_generator : ∃ g : α, ∀ x, x ∈ gpowers g)
+
+lemma is_cyclic_of_order_of_eq_card [group α] [fintype α] [decidable_eq α]
+  (x : α) (hx : order_of x = fintype.card α) : is_cyclic α :=
+⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
+  (set.subset_univ _)
+  (by rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers])⟩⟩
+
+lemma order_of_eq_card_of_forall_mem_gppowers [group α] [fintype α] [decidable_eq α]
+  {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
+by rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers];
+  simp [hx]; congr
+
+end cyclic
 
 end order_of

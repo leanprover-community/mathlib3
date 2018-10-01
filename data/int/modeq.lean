@@ -56,6 +56,8 @@ modeq_iff_dvd.2 $ by rwa add_neg_cancel_left at this
 theorem modeq_add_cancel_right (h₁ : c ≡ d [ZMOD n]) (h₂ : a + c ≡ b + d [ZMOD n]) : a ≡ b [ZMOD n] :=
 by rw [add_comm a, add_comm b] at h₂; exact modeq_add_cancel_left h₁ h₂
 
+theorem mod_modeq (a n) : a % n ≡ a [ZMOD n] := int.mod_mod _ _
+
 theorem modeq_neg (h : a ≡ b [ZMOD n]) : -a ≡ -b [ZMOD n] :=
 modeq_add_cancel_left h (by simp)
 
@@ -75,5 +77,33 @@ by rw [mul_comm a, mul_comm b]; exact modeq_mul_left c h
 theorem modeq_mul (h₁ : a ≡ b [ZMOD n]) (h₂ : c ≡ d [ZMOD n]) : a * c ≡ b * d [ZMOD n] :=
 (modeq_mul_left _ h₂).trans (modeq_mul_right _ h₁)
 
+theorem modeq_of_modeq_mul_left (m : ℤ) (h : a ≡ b [ZMOD m * n]) : a ≡ b [ZMOD n] :=
+by rw [modeq_iff_dvd] at *; exact dvd.trans (dvd_mul_left n m) h
+
+theorem modeq_of_modeq_mul_right (m : ℤ) : a ≡ b [ZMOD n * m] → a ≡ b [ZMOD n] :=
+mul_comm m n ▸ modeq_of_modeq_mul_left _
+
+lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℤ} (hmn : nat.coprime m.nat_abs n.nat_abs) :
+  a ≡ b [ZMOD m] ∧ a ≡ b [ZMOD n] ↔ (a ≡ b [ZMOD m * n]) :=
+⟨λ h, begin
+    rw [int.modeq.modeq_iff_dvd, int.modeq.modeq_iff_dvd] at h,
+    rw [int.modeq.modeq_iff_dvd, ← int.nat_abs_dvd, ← int.dvd_nat_abs,
+      int.coe_nat_dvd, int.nat_abs_mul],
+    refine hmn.mul_dvd_of_dvd_of_dvd _ _;
+    rw [← int.coe_nat_dvd, int.nat_abs_dvd, int.dvd_nat_abs]; tauto
+  end,
+λ h, ⟨int.modeq.modeq_of_modeq_mul_right _ h, int.modeq.modeq_of_modeq_mul_left _ h⟩⟩
+
+lemma gcd_a_modeq (a b : ℕ) : (a : ℤ) * nat.gcd_a a b ≡ nat.gcd a b [ZMOD b] :=
+by rw [← add_zero ((a : ℤ) * _), nat.gcd_eq_gcd_ab];
+  exact int.modeq.modeq_add rfl (int.modeq.modeq_zero_iff.2 (dvd_mul_right _ _)).symm
+
 end modeq
+
+@[simp] lemma mod_mul_right_mod (a b c : ℤ) : a % (b * c) % b = a % b :=
+int.modeq.modeq_of_modeq_mul_right _ (int.modeq.mod_modeq _ _)
+
+@[simp] lemma mod_mul_left_mod (a b c : ℤ) : a % (b * c) % c = a % c :=
+int.modeq.modeq_of_modeq_mul_left _ (int.modeq.mod_modeq _ _)
+
 end int

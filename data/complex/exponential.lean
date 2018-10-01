@@ -691,6 +691,42 @@ else
 lemma sin_pow_two_add_cos_pow_two : sin x ^ 2 + cos x ^ 2 = 1 :=
 by rw ← of_real_inj; simpa [sin, of_real_pow] using sin_pow_two_add_cos_pow_two x
 
+lemma abs_sin_le_one : abs' (sin x) ≤ 1 :=
+not_lt.1 $ λ h, lt_irrefl (1 * 1 : ℝ)
+  (calc 1 * 1 < abs' (sin x) * abs' (sin x) :
+      mul_lt_mul h (le_of_lt h) zero_lt_one (le_trans zero_le_one (le_of_lt h))
+    ... = sin x ^ 2 : by rw [← _root_.abs_mul, abs_mul_self, pow_two]
+    ... ≤ sin x ^ 2 + cos x ^ 2 : le_add_of_nonneg_right (pow_two_nonneg _)
+    ... = 1 * 1 : by rw [sin_pow_two_add_cos_pow_two, one_mul])
+
+lemma abs_cos_le_one : abs' (cos x) ≤ 1 :=
+not_lt.1 $ λ h, lt_irrefl (1 * 1 : ℝ)
+  (calc 1 * 1 < abs' (cos x) * abs' (cos x) :
+      mul_lt_mul h (le_of_lt h) zero_lt_one (le_trans zero_le_one (le_of_lt h))
+    ... = cos x ^ 2 : by rw [← _root_.abs_mul, abs_mul_self, pow_two]
+    ... ≤ sin x ^ 2 + cos x ^ 2 : le_add_of_nonneg_left (pow_two_nonneg _)
+    ... = 1 * 1 : by rw [sin_pow_two_add_cos_pow_two, one_mul])
+
+lemma sin_le_one : sin x ≤ 1 :=
+(abs_le.1 (abs_sin_le_one _)).2
+
+lemma cos_le_one : cos x ≤ 1 :=
+(abs_le.1 (abs_cos_le_one _)).2
+
+lemma neg_one_le_sin : -1 ≤ sin x :=
+(abs_le.1 (abs_sin_le_one _)).1
+
+lemma neg_one_le_cos : -1 ≤ cos x :=
+(abs_le.1 (abs_cos_le_one _)).1
+
+lemma sin_pow_two_le_one : sin x ^ 2 ≤ 1 :=
+by rw [pow_two, ← abs_mul_self, _root_.abs_mul];
+exact mul_le_one (abs_sin_le_one _) (abs_nonneg _) (abs_sin_le_one _)
+
+lemma cos_pow_two_le_one : cos x ^ 2 ≤ 1 :=
+by rw [pow_two, ← abs_mul_self, _root_.abs_mul];
+exact mul_le_one (abs_cos_le_one _) (abs_nonneg _) (abs_cos_le_one _)
+
 lemma cos_two_mul : cos (2 * x) = 2 * cos x ^ 2 - 1 :=
 by rw ← of_real_inj; simp [cos_two_mul, cos, pow_two]
 

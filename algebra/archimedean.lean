@@ -245,6 +245,23 @@ begin
     apply floor_le }
 end
 
+lemma sub_floor_div_mul_nonneg (x : α) {y : α} (hy : 0 < y) :
+  0 ≤ x - ⌊x / y⌋ * y :=
+begin
+  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
+  rw ← sub_mul,
+  exact mul_nonneg (sub_nonneg.2 (floor_le _)) (le_of_lt hy)
+end
+
+lemma sub_floor_div_mul_lt (x : α) {y : α} (hy : 0 < y) :
+  x - ⌊x / y⌋ * y < y :=
+sub_lt_iff_lt_add.2 begin
+  conv in y {rw ← one_mul y},
+  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
+  rw ← add_mul,
+  exact (mul_lt_mul_right hy).2 (by rw add_comm; exact lt_floor_add_one _),
+end
+
 end linear_ordered_field
 
 section

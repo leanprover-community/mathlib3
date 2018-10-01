@@ -5,9 +5,9 @@ Authors: Alexander Bentkamp
 
 Basic properties of holors.
 
-Holors are indexed collections of tensor coefficients. Confusingly, 
-they are often called tensors in physics and in the neural network 
-community. 
+Holors are indexed collections of tensor coefficients. Confusingly,
+they are often called tensors in physics and in the neural network
+community.
 
 Based on the tensor library found in https://www.isa-afp.org/entries/Deep_Learning.html.
 -/
@@ -17,14 +17,15 @@ import tactic.interactive
 import tactic.tidy
 import tactic.pi_instances
 
+universes u
+
 open list
 
 /-- `holor_index ds` is the type of valid index tuples to identify an entry of a holor of dimenstions `ds` -/
-def holor_index (ds: list ℕ) := { is : list ℕ // forall₂ (<) is ds}
+def holor_index (ds : list ℕ) : Type := { is : list ℕ // forall₂ (<) is ds}
 
 namespace holor_index
-
-variables {ds₁ : list ℕ} {ds₂ : list ℕ} {ds₃ : list ℕ}
+variables {ds₁ ds₂ ds₃ : list ℕ}
 
 def take : Π {ds₁ : list ℕ}, holor_index (ds₁ ++ ds₂) → holor_index ds₁
 | ds is := ⟨ list.take (length ds) is.1, forall₂_take_append is.1 ds ds₂ is.2 ⟩
@@ -32,7 +33,7 @@ def take : Π {ds₁ : list ℕ}, holor_index (ds₁ ++ ds₂) → holor_index d
 def drop : Π {ds₁ : list ℕ}, holor_index (ds₁ ++ ds₂) → holor_index ds₂
 | ds is := ⟨ list.drop (length ds) is.1, forall₂_drop_append is.1 ds ds₂ is.2 ⟩
 
-lemma cast_type (is : list ℕ) (eq : ds₁ = ds₂) (h: forall₂ (<) is ds₁) :
+lemma cast_type (is : list ℕ) (eq : ds₁ = ds₂) (h : forall₂ (<) is ds₁) :
   (cast (congr_arg holor_index eq) ⟨is, h⟩).val = is :=
 by subst eq; refl
 
@@ -61,9 +62,8 @@ lemma drop_drop :
 
 end holor_index
 
-
 /-- Holor (indexed collections of tensor coefficients) -/
-def holor (α : Type) (ds:list ℕ) := holor_index ds -> α
+def holor (α : Type u) (ds:list ℕ) := holor_index ds → α
 
 namespace holor
 
@@ -100,9 +100,9 @@ instance [field α] : vector_space α (holor α ds) := ⟨α, (holor α ds)⟩
 def mul [s : has_mul α] (x : holor α ds₁) (y : holor α ds₂) : holor α (ds₁ ++ ds₂) :=
   λ t, x (t.take) * y (t.drop)
 
-infix ` ⊗ ` : 70 := mul
+local infix ` ⊗ ` : 70 := mul
 
-lemma cast_type (eq : ds₁ = ds₂) (a : holor α ds₁):
+lemma cast_type (eq : ds₁ = ds₂) (a : holor α ds₁) :
   cast (congr_arg (holor α) eq) a = (λ t, a (cast (congr_arg holor_index eq.symm) t)) :=
 by subst eq; refl
 
@@ -169,7 +169,7 @@ lemma holor_index_cons_decomp (p: holor_index (d :: ds) → Prop):
 /-- Two holors are equal if all their slices are equal. -/
 lemma slice_eq (x : holor α (d :: ds)) (y : holor α (d :: ds))
   (h : slice x = slice y) : x = y :=
-funext (λ t : holor_index (d :: ds), holor_index_cons_decomp (λ t, x t = y t) t (λ i is hiis,
+funext $ λ t : holor_index (d :: ds), holor_index_cons_decomp (λ t, x t = y t) t $ λ i is hiis,
 have hiisdds: forall₂ (<) (i :: is) (d :: ds), begin rw [←hiis], exact t.2 end,
 have hid:     i<d,                             from (forall₂_cons.1 hiisdds).1,
 have hisds:   forall₂ (<) is ds,               from (forall₂_cons.1 hiisdds).2,
@@ -177,17 +177,13 @@ calc
   x ⟨i :: is, _⟩ = slice x i hid ⟨is, hisds⟩  : congr_arg (λ t, x t) (subtype.eq rfl)
               ... = slice y i hid ⟨is, hisds⟩  : by rw h
               ... = y ⟨i :: is, _⟩             : congr_arg (λ t, y t) (subtype.eq rfl)
-))
 
 lemma slice_unit_vec_mul [ring α] {i : ℕ} {j : ℕ}
-  (hid : i < d) (x : holor α ds):
+  (hid : i < d) (x : holor α ds) :
   slice (unit_vec d j ⊗ x) i hid = if i=j then x else 0 :=
-  if h : i=j then
-    funext (λ t : holor_index ds,
-      by simp [slice, mul, holor_index.take, unit_vec, holor_index.drop, h])
-  else
-    funext (λ t : holor_index ds,
-      by simp [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]; refl)
+funext $ λ t : holor_index ds, if h : i = j
+  then by simp [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]
+  else by simp [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]; refl
 
 lemma slice_add [has_add α] (i : ℕ) (hid : i < d)  (x : holor α (d :: ds)) (y : holor α (d :: ds)):
   slice x i hid + slice y i hid = slice (x + y) i hid := funext (λ t, by simp [slice,(+)])
@@ -198,38 +194,32 @@ lemma slice_zero [has_zero α] (i : ℕ) (hid : i < d)  :
 lemma slice_sum [add_comm_monoid α] {β : Type}
   (i : ℕ) (hid : i < d) (s : finset β) (f : β → holor α (d :: ds)):
   finset.sum s (λ x, slice (f x) i hid) = slice (finset.sum s f) i hid :=
-by letI := classical.dec_eq β; 
-exact finset.induction_on s
-  (by simp [slice_zero])
-  begin
-    intros _ _ h_not_in ih,
-    rw [finset.sum_insert h_not_in, ih, slice_add],
-    rw [finset.sum_insert h_not_in]
-  end
+begin
+  letI := classical.dec_eq β,
+  refine finset.induction_on s _ _,
+  { simp [slice_zero] },
+  { intros _ _ h_not_in ih,
+    rw [finset.sum_insert h_not_in, ih, slice_add, finset.sum_insert h_not_in] }
+end
 
 /-- The original holor can be recovered from its slices by multiplying with unit vectors and summing up. -/
 @[simp] lemma sum_unit_vec_mul_slice [ring α] (x : holor α (d :: ds)) :
-  finset.sum
-    (finset.range d).attach
+  (finset.range d).attach.sum
     (λ i, unit_vec d i.1 ⊗ slice x i.1 (nat.succ_le_of_lt (finset.mem_range.1 i.2))) = x :=
 begin
-  apply slice_eq _ _ (funext _), 
-  intro i, 
-  apply funext, 
-  intro hid, 
+  apply slice_eq _ _ _,
+  ext i hid,
   rw [←slice_sum],
   simp only [slice_unit_vec_mul hid],
-  rw finset.sum_eq_single (subtype.mk i _), 
+  rw finset.sum_eq_single (subtype.mk i _),
   { simp, refl },
-  { assume (b : {x // x ∈ finset.range d}) (hb : b ∈ finset.attach (finset.range d)) (hbi : b ≠ ⟨i, _⟩),
-    have hbi' : i ≠ b.val, 
-    { 
-      apply not.imp hbi, 
-      { assume h0 : i = b.val, 
-        apply subtype.eq, 
-        simp only [h0] }, 
-      { exact finset.mem_range.2 hid }
-    }, 
+  { assume (b : {x // x ∈ finset.range d}) (hb : b ∈ (finset.range d).attach) (hbi : b ≠ ⟨i, _⟩),
+    have hbi' : i ≠ b.val,
+    { apply not.imp hbi,
+      { assume h0 : i = b.val,
+        apply subtype.eq,
+        simp only [h0] },
+      { exact finset.mem_range.2 hid } },
     simp [hbi']},
   { assume hid' : subtype.mk i _ ∉ finset.attach (finset.range d),
     exfalso,
@@ -242,13 +232,13 @@ end
 inductive cprank_max1 [has_mul α]: Π {ds}, holor α ds → Prop
 | nil (x : holor α []) :
     cprank_max1 x
-| cons {d} {ds} (x : holor α [d]) (y : holor α ds):
+| cons {d} {ds} (x : holor α [d]) (y : holor α ds) :
     cprank_max1 y → cprank_max1 (x ⊗ y)
 
 inductive cprank_max [has_mul α] [add_monoid α] : ℕ → Π {ds}, holor α ds → Prop
-| zero {ds}:
+| zero {ds} :
     cprank_max 0 (0 : holor α ds)
-| succ n {ds} (x : holor α ds) (y : holor α ds):
+| succ n {ds} (x : holor α ds) (y : holor α ds) :
     cprank_max1 x → cprank_max n y →  cprank_max (n+1) (x + y)
 
 lemma cprank_max_nil [monoid α] [add_monoid α] (x : holor α nil) : cprank_max 1 x :=
@@ -286,7 +276,7 @@ end
 
 lemma cprank_max_sum [ring α] {β} {n : ℕ} (s : finset β) (f : β → holor α ds) :
   (∀ x ∈ s, cprank_max n (f x)) → cprank_max (s.card * n) (finset.sum s f) :=
-by letI := classical.dec_eq β; 
+by letI := classical.dec_eq β;
 exact finset.induction_on s
   (by simp [cprank_max.zero])
   (begin

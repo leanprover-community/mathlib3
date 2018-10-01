@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Modular equality relation.
 -/
-import data.int.gcd
+import data.int.gcd algebra.ordered_ring
 
 namespace nat
 
@@ -67,9 +67,15 @@ modeq_of_dvd $ by rwa add_neg_cancel_left at this
 theorem modeq_add_cancel_right (h₁ : c ≡ d [MOD n]) (h₂ : a + c ≡ b + d [MOD n]) : a ≡ b [MOD n] :=
 by rw [add_comm a, add_comm b] at h₂; exact modeq_add_cancel_left h₁ h₂
 
-theorem chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
+theorem modeq_of_modeq_mul_left (m : ℕ) (h : a ≡ b [MOD m * n]) : a ≡ b [MOD n] :=
+by rw [modeq_iff_dvd] at *; exact dvd.trans (dvd_mul_left (n : ℤ) (m : ℤ)) h
+
+theorem modeq_of_modeq_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] :=
+mul_comm m n ▸ modeq_of_modeq_mul_left _
+
+def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 ⟨let (c, d) := xgcd n m in int.to_nat ((b * c * n + a * d * m) % (n * m)), begin
-  rw xgcd_val, dsimp,
+  rw xgcd_val, dsimp [chinese_remainder._match_1],
   rw [modeq_iff_dvd, modeq_iff_dvd],
   rw [int.to_nat_of_nonneg], swap,
   { by_cases h₁ : n = 0, {simp [coprime, h₁] at co, substs m n, simp},
@@ -90,5 +96,49 @@ theorem chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n]
         ← sub_eq_iff_eq_add'] at this⟩ }
 end⟩
 
+lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
+  a ≡ b [MOD m] ∧ a ≡ b [MOD n] ↔ (a ≡ b [MOD m * n]) :=
+⟨λ h, begin
+    rw [nat.modeq.modeq_iff_dvd, nat.modeq.modeq_iff_dvd, ← int.dvd_nat_abs,
+      int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd] at h,
+    rw [nat.modeq.modeq_iff_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd],
+    exact hmn.mul_dvd_of_dvd_of_dvd h.1 h.2
+  end,
+λ h, ⟨nat.modeq.modeq_of_modeq_mul_right _ h, nat.modeq.modeq_of_modeq_mul_left _ h⟩⟩
+
+lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
+nat.coprime_of_dvd' (λ k ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
+  rw [hka, hkb, modeq_iff_dvd] at h,
+  cases h with z hz,
+  rw [sub_eq_iff_eq_add] at hz,
+  rw [hz, int.coe_nat_mul, mul_assoc, mul_assoc, int.coe_nat_mul, ← mul_add],
+  exact dvd_mul_right _ _,
+end)
+
 end modeq
+
+@[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=
+modeq.modeq_of_modeq_mul_right _ (modeq.mod_modeq _ _)
+
+@[simp] lemma mod_mul_left_mod (a b c : ℕ) : a % (b * c) % c = a % c :=
+modeq.modeq_of_modeq_mul_left _ (modeq.mod_modeq _ _)
+
+lemma odd_mul_odd {n m : ℕ} (hn1 : n % 2 = 1) (hm1 : m % 2 = 1) : (n * m) % 2 = 1 :=
+show (n * m) % 2 = (1 * 1) % 2, from nat.modeq.modeq_mul hn1 hm1
+
+lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
+  (m * n) / 2 = m * (n / 2) + m / 2 :=
+have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
+have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
+(nat.mul_left_inj (show 0 < 2, from dec_trivial)).1 $
+by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
+  two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
+  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_ge_one_right' (nat.zero_le _) hn0)]
+
+lemma odd_of_mod_four_eq_one {n : ℕ} (h : n % 4 = 1) : n % 2 = 1 :=
+@modeq.modeq_of_modeq_mul_left 2 n 1 2 h
+
+lemma odd_of_mod_four_eq_three {n : ℕ} (h : n % 4 = 3) : n % 2 = 1 :=
+@modeq.modeq_of_modeq_mul_left 2 n 3 2 h
+
 end nat

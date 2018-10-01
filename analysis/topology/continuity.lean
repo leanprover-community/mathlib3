@@ -624,6 +624,43 @@ instance [second_countable_topology α] [second_countable_topology β] :
 
 end prod
 
+
+section locally_compact
+
+/-- There are various definitions of "locally compact space" in the literature, which agree for
+Hausdorff spaces but not in general. This one is the precise condition on X needed for the
+evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` is given the
+compact-open topology. -/
+class locally_compact_space (α : Type*) [topological_space α] :=
+(local_compact_nhds : ∀ (x : α) (n ∈ (nhds x).sets), ∃ s ∈ (nhds x).sets, s ⊆ n ∧ compact s)
+
+lemma locally_compact_of_compact_nhds [topological_space α] [t2_space α]
+  (h : ∀ x : α, ∃ s, s ∈ (nhds x).sets ∧ compact s) :
+  locally_compact_space α :=
+⟨assume x n hn,
+  let ⟨u, un, uo, xu⟩ := mem_nhds_sets_iff.mp hn in
+  let ⟨k, kx, kc⟩ := h x in
+  -- K is compact but not necessarily contained in N.
+  -- K \ U is again compact and doesn't contain x, so
+  -- we may find open sets V, W separating x from K \ U.
+  -- Then K \ W is a compact neighborhood of x contained in U.
+  let ⟨v, w, vo, wo, xv, kuw, vw⟩ :=
+    compact_compact_separated compact_singleton (compact_diff kc uo)
+      (by rw [singleton_inter_eq_empty]; exact λ h, h.2 xu) in
+  have wn : -w ∈ (nhds x).sets, from
+   mem_nhds_sets_iff.mpr
+     ⟨v, subset_compl_iff_disjoint.mpr vw, vo, singleton_subset_iff.mp xv⟩,
+  ⟨k - w,
+   filter.inter_mem_sets kx wn,
+   subset.trans (diff_subset_comm.mp kuw) un,
+   compact_diff kc wo⟩⟩
+
+lemma locally_compact_of_compact [topological_space α] [t2_space α] (h : compact (univ : set α)) :
+  locally_compact_space α :=
+locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ trivial, h⟩)
+
+end locally_compact
+
 section sum
 variables [topological_space α] [topological_space β] [topological_space γ]
 

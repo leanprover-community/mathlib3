@@ -226,10 +226,10 @@ instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
 instance : has_inv (units α) := ⟨units.inv'⟩
 
 variables (a b)
-@[simp] lemma mul_coe : (↑(a * b) : α) = a * b := rfl
-@[simp] lemma one_coe : ((1 : units α) : α) = 1 := rfl
+@[simp] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
+@[simp] lemma coe_one : ((1 : units α) : α) = 1 := rfl
 lemma val_coe : (↑a : α) = a.val := rfl
-lemma inv_coe : ((a⁻¹ : units α) : α) = a.inv := rfl
+lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
 @[simp] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 
@@ -698,3 +698,16 @@ calc f (a - b) = f (a + -b)   : rfl
            ... = f a - f b    : by  simp[neg f]
 
 end is_add_group_hom
+
+namespace units
+variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+
+definition map : units α → units β :=
+λ u, ⟨f u.val, f u.inv,
+      by rw [← is_monoid_hom.map_mul f, u.val_inv, is_monoid_hom.map_one f],
+      by rw [← is_monoid_hom.map_mul f, u.inv_val, is_monoid_hom.map_one f] ⟩
+
+instance : is_group_hom (units.map f) :=
+⟨λ a b, by ext; exact is_monoid_hom.map_mul f ⟩
+
+end units

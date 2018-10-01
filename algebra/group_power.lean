@@ -118,6 +118,9 @@ attribute [to_additive smul_add_comm] pow_mul_comm
 @list.prod_repeat (multiplicative β) _
 attribute [to_additive list.sum_repeat] list.prod_repeat
 
+@[simp] lemma units.coe_pow (u : units α) (n : ℕ) : ((u ^ n : units α) : α) = u ^ n :=
+by induction n; simp [*, pow_succ]
+
 end monoid
 
 @[simp] theorem nat.pow_eq_pow (p q : ℕ) :
@@ -365,6 +368,9 @@ by rw [gsmul_eq_mul, gsmul_eq_mul, mul_assoc]
 
 @[simp] theorem int.cast_pow [ring α] (n : ℤ) (m : ℕ) : (↑(n ^ m) : α) = ↑n ^ m :=
 by induction m; simp [*, nat.succ_eq_add_one,pow_add]
+
+lemma neg_one_pow_eq_pow_mod_two [ring α] {n : ℕ} : (-1 : α) ^ n = -1 ^ (n % 2) :=
+by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 
 theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 by induction n with n ih; simp [pow_succ, mul_eq_zero, *]

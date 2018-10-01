@@ -75,6 +75,9 @@ lt_add_of_le_of_pos (le_refl _) zero_lt_one
 
 lemma one_lt_two : 1 < (2 : α) := lt_add_one _
 
+lemma one_lt_mul {a b : α} (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
+(one_mul (1 : α)) ▸ mul_lt_mul' ha hb zero_le_one (lt_of_lt_of_le zero_lt_one ha)
+
 lemma mul_le_one {a b : α} (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
 begin rw ← one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end
 

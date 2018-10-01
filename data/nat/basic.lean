@@ -15,6 +15,8 @@ variables {m n k : ℕ}
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
 
+lemma pred_eq_sub_one (n : ℕ) : pred n = n - 1 := rfl
+
 theorem pos_iff_ne_zero : n > 0 ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 
@@ -117,19 +119,17 @@ le_iff_le_iff_lt_iff_lt.2 (nat.sub_lt_left_iff_lt_add H)
 protected theorem le_sub_right_iff_add_le (H : n ≤ k) : m ≤ k - n ↔ m + n ≤ k :=
 by rw [nat.le_sub_left_iff_add_le H, add_comm]
 
-protected theorem lt_sub_left_iff_add_lt (H : m ≤ k) : n < k - m ↔ m + n < k :=
-⟨λ h, by have := nat.add_le_add_left h m;
-         rwa [nat.add_sub_cancel' H] at this,
- nat.lt_sub_left_of_add_lt⟩
+protected theorem lt_sub_left_iff_add_lt : n < k - m ↔ m + n < k :=
+⟨nat.add_lt_of_lt_sub_left, nat.lt_sub_left_of_add_lt⟩
 
-protected theorem lt_sub_right_iff_add_lt (H : n ≤ k) : m < k - n ↔ m + n < k :=
-by rw [nat.lt_sub_left_iff_add_lt H, add_comm]
+protected theorem lt_sub_right_iff_add_lt : m < k - n ↔ m + n < k :=
+by rw [nat.lt_sub_left_iff_add_lt, add_comm]
 
-theorem sub_le_left_iff_le_add (H : n ≤ m) : m - n ≤ k ↔ m ≤ n + k :=
-le_iff_le_iff_lt_iff_lt.2 (nat.lt_sub_left_iff_add_lt H)
+theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
+le_iff_le_iff_lt_iff_lt.2 nat.lt_sub_left_iff_add_lt
 
-theorem sub_le_right_iff_le_add (H : k ≤ m) : m - k ≤ n ↔ m ≤ n + k :=
-by rw [nat.sub_le_left_iff_le_add H, add_comm]
+theorem sub_le_right_iff_le_add : m - k ≤ n ↔ m ≤ n + k :=
+by rw [nat.sub_le_left_iff_le_add, add_comm]
 
 protected theorem sub_lt_right_iff_lt_add (H : k ≤ m) : m - k < n ↔ m < n + k :=
 by rw [nat.sub_lt_left_iff_lt_add H, add_comm]
@@ -146,14 +146,20 @@ le_iff_le_iff_lt_iff_lt.1 (nat.sub_le_sub_right_iff _ _ _ H)
 protected theorem sub_lt_sub_left_iff (H : n ≤ m) : m - n < m - k ↔ k < n :=
 le_iff_le_iff_lt_iff_lt.1 (nat.sub_le_sub_left_iff H)
 
-protected theorem sub_le_iff (h₁ : n ≤ m) (h₂ : k ≤ m) : m - n ≤ k ↔ m - k ≤ n :=
-(nat.sub_le_left_iff_le_add h₁).trans (nat.sub_le_right_iff_le_add h₂).symm
+protected theorem sub_le_iff : m - n ≤ k ↔ m - k ≤ n :=
+nat.sub_le_left_iff_le_add.trans nat.sub_le_right_iff_le_add.symm
+
+protected lemma sub_le_self (n m : ℕ) : n - m ≤ n :=
+nat.sub_le_left_of_le_add (nat.le_add_left _ _)
 
 protected theorem sub_lt_iff (h₁ : n ≤ m) (h₂ : k ≤ m) : m - n < k ↔ m - k < n :=
 (nat.sub_lt_left_iff_lt_add h₁).trans (nat.sub_lt_right_iff_lt_add h₂).symm
 
-lemma lt_pred_of_succ_lt {n m : ℕ} : succ n < m → n < pred m :=
-@nat.lt_sub_right_of_add_lt n m 1
+lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
+@nat.sub_le_right_iff_le_add n m 1
+
+lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
+@nat.lt_sub_right_iff_add_lt n 1 m
 
 protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0
 | nm := (eq_zero_of_mul_eq_zero nm).elim n0 m0
@@ -195,11 +201,51 @@ protected theorem div_mod_unique {n k m d : ℕ} (h : 0 < k) :
  λ ⟨h₁, h₂⟩, h₁ ▸ by rw [add_mul_div_left _ _ h, add_mul_mod_self_left];
    simp [div_eq_of_lt, mod_eq_of_lt, h₂]⟩
 
+lemma two_mul_odd_div_two {n : ℕ} (hn : n % 2 = 1) : 2 * (n / 2) = n - 1 :=
+by conv {to_rhs, rw [← nat.mod_add_div n 2, hn, nat.add_sub_cancel_left]}
+
+lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
+⟨b, (nat.div_mul_cancel h).symm⟩
+
+protected lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : 0 < b) : 0 < a / b :=
+nat.pos_of_ne_zero (λ h, lt_irrefl a
+  (calc a = a % b : by simpa [h] using (mod_add_div a b).symm
+      ... < b : nat.mod_lt a hb
+      ... ≤ a : hba))
+
 protected theorem mul_right_inj {a b c : ℕ} (ha : a > 0) : b * a = c * a ↔ b = c :=
 ⟨nat.eq_of_mul_eq_mul_right ha, λ e, e ▸ rfl⟩
 
 protected theorem mul_left_inj {a b c : ℕ} (ha : a > 0) : a * b = a * c ↔ b = c :=
 ⟨nat.eq_of_mul_eq_mul_left ha, λ e, e ▸ rfl⟩
+
+protected lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b) = b
+| a     0     h₁ h₂ := by rw eq_zero_of_zero_dvd h₁; refl
+| 0     b     h₁ h₂ := absurd h₂ dec_trivial
+| (a+1) (b+1) h₁ h₂ :=
+(nat.mul_right_inj (nat.div_pos (le_of_dvd (succ_pos a) h₁) (succ_pos b))).1 $
+  by rw [nat.div_mul_cancel (div_dvd_of_dvd h₁), nat.mul_div_cancel' h₁]
+
+protected lemma div_lt_of_lt_mul {m n k : ℕ} (h : m < n * k) : m / n < k :=
+lt_of_mul_lt_mul_left
+  (calc n * (m / n) ≤ m % n + n * (m / n) : nat.le_add_left _ _
+    ... = m : mod_add_div _ _
+    ... < n * k : h)
+  (nat.zero_le n)
+
+protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
+⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
+  λ h, by rw [← nat.mul_left_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+    mod_eq_of_lt h, mul_zero, add_zero]⟩
+
+lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
+if hb : b = 0 then by simp [hb] else if hc : c = 0 then by simp [hc]
+else by conv {to_rhs, rw ← mod_add_div a (b * c)};
+rw [mul_assoc, nat.add_mul_div_left _ _ (nat.pos_of_ne_zero hb), add_mul_mod_self_left,
+  mod_eq_of_lt (nat.div_lt_of_lt_mul (mod_lt _ (mul_pos (nat.pos_of_ne_zero hb) (nat.pos_of_ne_zero hc))))]
+
+lemma mod_mul_left_div_self (a b c : ℕ) : a % (c * b) / b = (a / b) % c :=
+by rw [mul_comm c, mod_mul_right_div_self]
 
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
 ⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_refl _⟩
@@ -243,6 +289,9 @@ theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff
+
+lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
+⟨lt_of_succ_le, succ_le_of_lt⟩
 
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
 lt_succ_iff.trans le_iff_lt_or_eq
@@ -377,6 +426,8 @@ theorem psub_add (m n k) : psub m (n + k) = do x ← psub m n, psub x k :=
 by induction k; simp [*, add_succ, bind_assoc]
 
 /- pow -/
+
+attribute [simp] nat.pow_zero nat.pow_one
 
 @[simp] lemma one_pow : ∀ n : ℕ, 1 ^ n = 1
 | 0 := rfl

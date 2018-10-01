@@ -41,7 +41,7 @@ lemma fpow_ne_zero_of_ne_zero {a : α} (ha : a ≠ 0) : ∀ (z : ℤ), fpow a z 
 pow_zero _
 
 lemma fpow_add {a : α} (ha : a ≠ 0) (z1 z2 : ℤ) : fpow a (z1 + z2) = fpow a z1 * fpow a z2 :=
-begin simp only [fpow_eq_gpow ha], rw ←units.mul_coe, congr, apply gpow_add end
+begin simp only [fpow_eq_gpow ha], rw ← units.coe_mul, congr, apply gpow_add end
 
 end field_power
 

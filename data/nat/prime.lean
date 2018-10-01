@@ -71,7 +71,7 @@ theorem prime_two : prime 2 := dec_trivial
 theorem prime_three : prime 3 := dec_trivial
 
 theorem prime.pred_pos {p : ℕ} (pp : prime p) : pred p > 0 :=
-lt_pred_of_succ_lt pp.gt_one
+lt_pred_iff.2 pp.gt_one
 
 theorem succ_pred_prime {p : ℕ} (pp : prime p) : succ (pred p) = p :=
 succ_pred_eq_of_pos pp.pos
@@ -218,6 +218,11 @@ have np : n ≤ p, from le_of_not_ge $ λ h,
   have h₂ : p ∣ 1, from (nat.dvd_add_iff_right h₁).2 (min_fac_dvd _),
   pp.not_dvd_one h₂,
 ⟨p, np, pp⟩
+
+lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
+(nat.mod_two_eq_zero_or_one p).elim
+  (λ h, or.inl ((hp.2 2 (dvd_of_mod_eq_zero h)).resolve_left dec_trivial).symm)
+  or.inr
 
 theorem factors_lemma {k} : (k+2) / min_fac (k+2) < k+2 :=
 div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one

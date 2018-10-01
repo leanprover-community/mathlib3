@@ -32,6 +32,10 @@ def mk0 (a : α) (ha : a ≠ 0) : units α :=
 
 @[simp] theorem mk0_inv (ha : a ≠ 0) : ((mk0 a ha)⁻¹ : α) = a⁻¹ := rfl
 
+@[simp] lemma units.mk0_inj [field α] {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+  units.mk0 a ha = units.mk0 b hb ↔ a = b :=
+⟨λ h, by injection h, λ h, units.ext h⟩
+
 end units
 
 section division_ring

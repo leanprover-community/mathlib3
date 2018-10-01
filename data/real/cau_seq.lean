@@ -291,6 +291,9 @@ theorem sub_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f - g) :=
 add_lim_zero hf (neg_lim_zero hg)
 
+theorem lim_zero_sub_rev {f g : cau_seq β abv} (hfg : lim_zero (f - g)) : lim_zero (g - f) :=
+by simpa using neg_lim_zero hfg
+
 theorem zero_lim_zero : lim_zero (0 : cau_seq β abv)
 | ε ε0 := ⟨0, λ j ij, by simpa [abv_zero abv] using ε0⟩
 

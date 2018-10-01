@@ -10,6 +10,28 @@ import analysis.topology.uniform_space analysis.normed_space data.real.cau_seq a
 import tactic.linarith
 
 section
+variables {β : Type*} [normed_ring β] [hn : is_absolute_value (norm : β → ℝ)]
+open filter
+include hn
+
+lemma tendsto_limit (f : cau_seq β norm) [cau_seq.is_complete β norm] :
+  tendsto f at_top (nhds f.lim) :=
+tendsto_nhds
+begin
+  intros s lfs os,
+  suffices : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → f b ∈ s, by simpa using this,
+  rcases is_open_metric.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
+  cases cau_seq.lim_spec f _ hε with N hN,
+  existsi N,
+  intros b hb,
+  apply hεs,
+  dsimp [ball], rw [dist_comm, dist_eq_norm],
+  solve_by_elim
+end
+
+end
+
+section
 variables {β : Type*} [normed_field β]
 
 instance normed_field.is_absolute_value : is_absolute_value (norm : β → ℝ) :=
@@ -106,7 +128,7 @@ lemma set_seq_of_cau_filter_monotone' (n : ℕ) :
   set_seq_of_cau_filter hf (n+1) ⊆ set_seq_of_cau_filter hf n :=
 inter_subset_left _ _
 
-lemma set_seq_of_cau_filter_monotone {n k : ℕ} (hle : n ≤ k) : 
+lemma set_seq_of_cau_filter_monotone {n k : ℕ} (hle : n ≤ k) :
   set_seq_of_cau_filter hf k ⊆ set_seq_of_cau_filter hf n :=
 mono_of_mono_succ (set_seq_of_cau_filter hf) (set_seq_of_cau_filter_monotone' hf) hle
 
@@ -153,18 +175,12 @@ noncomputable def cau_seq_of_cau_filter : cau_seq β norm :=
 lemma cau_seq_of_cau_filter_mem_set_seq (n : ℕ) : cau_seq_of_cau_filter hf n ∈ set_seq_of_cau_filter hf n :=
 seq_of_cau_filter_mem_set_seq hf n
 
-variable complete : ∀ s : cau_seq β norm, ∃ b : β, ∀ ε > 0, ∃ N : ℕ, ∀ n ≥ N, ∥b - s.val n∥ < ε
-include complete
+variable [cau_seq.is_complete β norm]
 
-noncomputable def cau_seq_lim (s : cau_seq β norm) : β := some (complete s)
+noncomputable def cau_filter_lim : β := cau_seq.lim (cau_seq_of_cau_filter hf)
 
-lemma cau_seq_lim_spec (s : cau_seq β norm) : ∀ ε > 0, ∃ N : ℕ, ∀ n ≥ N, ∥cau_seq_lim complete s - s.val n∥ < ε :=
-some_spec (complete s)
-
-noncomputable def cau_filter_lim : β := cau_seq_lim complete (cau_seq_of_cau_filter hf)
-
-lemma cau_filter_lim_spec : ∀ ε > 0, ∃ N : ℕ, ∀ n ≥ N, ∥cau_filter_lim hf complete - cau_seq_of_cau_filter hf n∥ < ε :=
-cau_seq_lim_spec complete _
+lemma cau_filter_lim_spec : ∀ ε > 0, ∃ N : ℕ, ∀ n ≥ N, ∥cau_filter_lim hf - cau_seq_of_cau_filter hf n∥ < ε :=
+cau_seq.lim_spec _
 
 /-
 Let lim be the limit of the Cauchy sequence seq that is derived from the Cauchy filter f.
@@ -176,7 +192,7 @@ The Nth one has radius < 1/N < ε/2. This set is in f, so we can find an element
 dist(x, seq N) < ε/2 since seq N is in this set, and dist (seq N, lim) < ε/2,
 so x is in the ε-ball of lim, and thus in t2.
 -/
-lemma le_nhds_cau_seq_lim : f ≤ nhds (cau_seq_lim complete (cau_seq_of_cau_filter hf)) :=
+lemma le_nhds_cau_filter_lim : f ≤ nhds (cau_filter_lim hf) :=
 begin
   apply (le_nhds_iff_adhp_of_cauchy hf).2,
   apply forall_sets_neq_empty_iff_neq_bot.1,
@@ -189,23 +205,23 @@ begin
   have : ε / 2 > 0, from div_pos hε (by norm_num),
   have : ∃ n : ℕ, 1 / (↑n + 1) < ε / 2, from exists_nat_one_div_lt this,
   cases this with n hnε,
-  cases cau_filter_lim_spec hf complete _ this with n2 hn2,
+  cases cau_filter_lim_spec hf _ this with n2 hn2,
   let N := max n n2,
   have hNε : 1 / (↑N+1) < ε / 2,
   { apply lt_of_le_of_lt _ hnε,
     apply one_div_le_one_div_of_le,
     { exact add_pos_of_nonneg_of_pos (nat.cast_nonneg _) zero_lt_one },
     { apply add_le_add_right, simp [le_max_left] }},
-  have ht1sn : t1 ∩ set_seq_of_cau_filter hf N ∈ f.sets, 
+  have ht1sn : t1 ∩ set_seq_of_cau_filter hf N ∈ f.sets,
     from inter_mem_sets ht1 (set_seq_of_cau_filter_mem_sets hf _),
-  have hts1n_ne : t1 ∩ set_seq_of_cau_filter hf N ≠ ∅, 
+  have hts1n_ne : t1 ∩ set_seq_of_cau_filter hf N ≠ ∅,
     from forall_sets_neq_empty_iff_neq_bot.2 hfb _ ht1sn,
   cases exists_mem_of_ne_empty hts1n_ne with x hx,
   have hdist1 := set_seq_of_cau_filter_spec hf _ hx.2 (cau_seq_of_cau_filter_mem_set_seq hf N),
   have hdist2 := hn2 N (le_max_right _ _),
   replace hdist1 := lt_trans hdist1 hNε,
   rw [←dist_eq_norm, dist_comm] at hdist2,
-  have hdist : dist x (cau_filter_lim hf complete) < ε,
+  have hdist : dist x (cau_filter_lim hf) < ε,
   { apply lt_of_le_of_lt,
     { apply metric_space.dist_triangle,
       exact (cau_seq_of_cau_filter hf) N },
@@ -217,8 +233,8 @@ begin
   exact mem_inter hx.left hxt2
 end
 
-theorem complete_space_of_cauchy_complete : complete_space β :=
-⟨λ _ hf, ⟨cau_seq_lim complete (cau_seq_of_cau_filter hf), le_nhds_cau_seq_lim hf complete⟩⟩
+instance complete_space_of_cauchy_complete : complete_space β :=
+⟨λ _ hf, ⟨cau_filter_lim hf, le_nhds_cau_filter_lim hf⟩⟩
 
 end
 

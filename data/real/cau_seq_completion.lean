@@ -146,3 +146,30 @@ by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
 
 end
 end cau_seq.completion
+
+namespace cau_seq
+section
+
+variables {α : Type*} [discrete_linear_ordered_field α]
+variables (β : Type*) [ring β] (abv : β → α) [is_absolute_value abv]
+
+class is_complete :=
+(is_complete : ∀ s : cau_seq β abv, ∃ b : β, ∀ ε > 0, ∃ N : ℕ, ∀ i ≥ N, abv (b - s.val i) < ε)
+end
+
+section
+
+variables {α : Type*} [discrete_linear_ordered_field α]
+variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
+variable [is_complete β abv]
+
+lemma complete : ∀ s : cau_seq β abv, ∃ b : β, ∀ ε > 0, ∃ N : ℕ, ∀ i ≥ N, abv (b - s.val i) < ε :=
+is_complete.is_complete
+
+noncomputable def lim (s : cau_seq β abv) := classical.some (complete s)
+
+lemma lim_spec (s : cau_seq β abv) : ∀ ε > 0, ∃ N : ℕ, ∀ i ≥ N, abv (lim s - s.val i) < ε :=
+classical.some_spec (complete s)
+
+end
+end cau_seq

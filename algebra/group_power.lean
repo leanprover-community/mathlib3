@@ -345,10 +345,6 @@ by induction m; simp [*, nat.succ_eq_add_one, nat.pow_add, pow_add]
 @[simp] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m; simp [*, pow_succ', nat.pow_succ]
 
-@[simp] lemma units.coe_pow [monoid α] (a : units α) (n : ℕ) :
-  ((a ^ n : units α) : α) = a ^ n :=
-by induction n; simp [*, pow_succ]
-
 theorem is_semiring_hom.map_pow {β} [semiring α] [semiring β]
   (f : α → β) [is_semiring_hom f] (x : α) (n : ℕ) : f (x ^ n) = f x ^ n :=
 by induction n; simp [*, is_semiring_hom.map_one f, is_semiring_hom.map_mul f, pow_succ]

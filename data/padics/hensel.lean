@@ -24,11 +24,11 @@ let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
 open filter
 
 private lemma comp_tendsto_lim {p : ℕ} [hp : p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
-  tendsto (λ i, F.eval (ncs i)) at_top (nhds (F.eval (padic_int.cau_seq_lim ncs))) :=
+  tendsto (λ i, F.eval (ncs i)) at_top (nhds (F.eval ncs.lim)) :=
 @tendsto.comp _ _ _ ncs
   (λ k, F.eval k)
   _ _ _
-  (padic_int.tendsto_limit ncs)
+  (tendsto_limit ncs)
   (continuous_iff_tendsto.1 F.continuous_eval _)
 
 section
@@ -41,10 +41,10 @@ private lemma ncs_tendsto_const :
 by convert tendsto_const_nhds; ext; rw ncs_der_val
 
 private lemma ncs_tendsto_lim :
-  tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (nhds (∥F.derivative.eval (padic_int.cau_seq_lim ncs)∥)) :=
+  tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (nhds (∥F.derivative.eval ncs.lim∥)) :=
 tendsto.comp (comp_tendsto_lim _) (continuous_iff_tendsto.1 continuous_norm _)
 
-private lemma norm_deriv_eq : ∥F.derivative.eval (padic_int.cau_seq_lim ncs)∥ = ∥F.derivative.eval a∥ :=
+private lemma norm_deriv_eq : ∥F.derivative.eval ncs.lim∥ = ∥F.derivative.eval a∥ :=
 tendsto_nhds_unique at_top_ne_bot ncs_tendsto_lim ncs_tendsto_const
 
 end
@@ -57,7 +57,7 @@ include hnorm
 private lemma tendsto_zero_of_norm_tendsto_zero : tendsto (λ i, F.eval (ncs i)) at_top (nhds 0) :=
 tendsto_iff_norm_tendsto_zero.2 (by simpa using hnorm)
 
-lemma limit_zero_of_norm_tendsto_zero : F.eval (padic_int.cau_seq_lim ncs) = 0 :=
+lemma limit_zero_of_norm_tendsto_zero : F.eval ncs.lim = 0 :=
 tendsto_nhds_unique at_top_ne_bot (comp_tendsto_lim _) tendsto_zero_of_norm_tendsto_zero
 
 end
@@ -321,11 +321,11 @@ end
 
 private def newton_cau_seq : cau_seq ℤ_[p] norm := ⟨_, newton_seq_is_cauchy⟩
 
-private def soln : ℤ_[p] := padic_int.cau_seq_lim newton_cau_seq
+private def soln : ℤ_[p] := newton_cau_seq.lim
 
 private lemma soln_spec {ε : ℝ} (hε : ε > 0) :
   ∃ (N : ℕ), ∀ {i : ℕ}, i ≥ N → ∥soln - newton_cau_seq i∥ < ε :=
-padic_int.cau_seq_lim_spec newton_cau_seq _ hε
+cau_seq.lim_spec newton_cau_seq _ hε
 
 private lemma soln_deriv_norm : ∥F.derivative.eval soln∥ = ∥F.derivative.eval a∥ :=
 norm_deriv_eq newton_seq_deriv_norm
@@ -341,7 +341,7 @@ tendsto_cong (tendsto_const_nhds) $
 
 private lemma newton_seq_dist_tendsto' :
   tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (nhds ∥soln - a∥) :=
-tendsto.comp (tendsto_sub (padic_int.tendsto_limit _) tendsto_const_nhds)
+tendsto.comp (tendsto_sub (tendsto_limit _) tendsto_const_nhds)
              (continuous_iff_tendsto.1 continuous_norm _)
 
 private lemma soln_dist_to_a : ∥soln - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥ :=

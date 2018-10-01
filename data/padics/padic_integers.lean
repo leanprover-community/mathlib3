@@ -282,32 +282,13 @@ private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[p] norm) :
 ⟨ λ n, f n,
   λ _ hε, by simpa [norm, padic_norm_z] using f.cauchy hε ⟩
 
-protected theorem complete (f : cau_seq ℤ_[p] norm) :
-  ∃ z : ℤ_[p], ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥z - f i∥ < ε :=
-have hqn : ∥padic.cau_seq_lim (cau_seq_to_rat_cau_seq f)∥ ≤ 1,
-  from padic_norm_e_lim_le zero_lt_one (λ _, padic_norm_z.le_one _),
-⟨ ⟨_, hqn⟩,
-  by simpa [norm, padic_norm_z] using padic.cau_seq_lim_spec (cau_seq_to_rat_cau_seq f) ⟩
-
-def cau_seq_lim (f : cau_seq ℤ_[p] norm) : ℤ_[p] := classical.some (padic_int.complete f)
-
-lemma cau_seq_lim_spec (f : cau_seq ℤ_[p] norm) : ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥cau_seq_lim f - f i∥ < ε :=
-classical.some_spec (padic_int.complete f)
-
-open set filter
-lemma tendsto_limit (f : cau_seq ℤ_[p] norm) : tendsto f at_top (nhds (cau_seq_lim f)) :=
-tendsto_nhds
-begin
-  intros s lfs os,
-  suffices : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → f b ∈ s, by simpa,
-  rcases is_open_metric.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
-  cases cau_seq_lim_spec f _ hε with N hN,
-  existsi N,
-  intros b hb,
-  apply hεs,
-  dsimp [ball], rw [dist_comm, dist_eq_norm],
-  solve_by_elim
-end
+instance complete : cau_seq.is_complete ℤ_[p] norm := /- (f : cau_seq ℤ_[p] norm) :
+  ∃ z : ℤ_[p], ∀ ε > 0, ∃ N, ∀ i ≥ N, ∥z - f i∥ < ε := -/
+⟨ λ f,
+  have hqn : ∥cau_seq.lim (cau_seq_to_rat_cau_seq f)∥ ≤ 1,
+    from padic_norm_e_lim_le zero_lt_one (λ _, padic_norm_z.le_one _),
+  ⟨ ⟨_, hqn⟩,
+    by simpa [norm, padic_norm_z] using cau_seq.lim_spec (cau_seq_to_rat_cau_seq f) ⟩⟩
 
 end padic_int
 

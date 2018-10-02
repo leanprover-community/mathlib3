@@ -538,6 +538,10 @@ theorem filter_filter (s : finset α) :
   (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
 ext.2 $ assume a, by simp [and_comm, and.left_comm]
 
+@[simp] lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
+  @finset.filter α (λ _, true) h s = s :=
+by ext; simp
+
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext.2 $ assume a, by simp
 

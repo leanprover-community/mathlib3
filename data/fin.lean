@@ -44,11 +44,11 @@ def lower : Π i : fin (n+1), i.1 < n → fin n := λ i h, ⟨i.1, h⟩
 
 @[simp] lemma lower_val (k : fin (n+1)) (H : k.1 < n) : (k.lower H).val = k.val := rfl
 
-def ascend (pivot : fin (n+1)) : Π i : fin n, fin (n+1) :=
-λ i, if i.1 < pivot.1 then i.raise else i.succ
+def ascend (pivot : fin (n+1)) (i : fin n) : fin (n+1) :=
+if i.1 < pivot.1 then i.raise else i.succ
 
-def descend (pivot : fin (n+1)) : Π i : fin (n+1), i ≠ pivot → fin n :=
-λ i H, if h : i.1 < pivot.1
+def descend (pivot : fin (n+1)) (i : fin (n+1)) (H : i ≠ pivot) : fin n :=
+if h : i.1 < pivot.1
   then i.lower (lt_of_lt_of_le h $ nat.le_of_lt_succ pivot.2)
   else i.pred (λ H1, H $ by subst H1;
     replace h := nat.eq_zero_of_le_zero (le_of_not_gt h);
@@ -83,21 +83,19 @@ end
 begin
   unfold fin.descend fin.ascend,
   apply fin.eq_of_veq,
-  by_cases h : i.val < pivot.val,
+  split_ifs,
   { simp [h] },
-  { unfold ite dite,
+  { split_ifs,
     cases nat.decidable_lt ((ite (i.val < pivot.val) (fin.raise i) (fin.succ i)).val) (pivot.val) with h1 h1,
-    { simp,
-      cases nat.decidable_lt (i.val) (pivot.val),
-      { simp },
+    { cases nat.decidable_lt (i.val) (pivot.val),
+      { split_ifs, simp },
       { cc } },
-    { simp,
-      cases nat.decidable_lt (i.val) (pivot.val) with h2 h2,
+    { cases nat.decidable_lt (i.val) (pivot.val) with h2 h2,
       { simp [h2] at h1,
         simp at *,
         exfalso, apply lt_asymm (nat.lt_succ_self i.1),
-        apply lt_of_lt_of_le h1 h },
-      { simp } } }
+        apply lt_of_lt_of_le h1 h2 },
+      { split_ifs, exfalso, exact h h2 } } }
 end
 
 @[simp] protected lemma eta (a : fin n) (h : a.1 < n) : (⟨a.1, h⟩ : fin n) = a :=

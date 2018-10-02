@@ -30,13 +30,27 @@ fintype.complete x
 
 @[simp] theorem mem_univ_val : ∀ x, x ∈ (univ : finset α).1 := mem_univ
 
-@[simp] lemma coe_univ : ↑(finset.univ : finset α) = (set.univ : set α) :=
+@[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
 
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext]
+
+lemma univ_sum_mul_right [group α] [add_comm_monoid β] {f : α → β} (x : α) :
+  univ.sum f =
+  univ.sum (λ z, f (z * x)) :=
+sum_bij (λ z _, z * x⁻¹) (λ _ _, mem_univ _) (λ _ _, by simp)
+  (λ _ _ _ _, mul_right_cancel) (λ b H,
+    ⟨b * x, by revert H; simp [eq_comm] {contextual:=tt}, by simp⟩)
+
+lemma prod_perm [decidable_eq α] [comm_monoid β] {f : α → β} (σ : equiv.perm α) :
+  (univ : finset α).prod f
+  = univ.prod (λ z, f (σ z)) :=
+eq.symm $ prod_bij (λ z _, σ z) (λ _ _, mem_univ _) (λ _ _, rfl)
+  (λ _ _ _ _ H, σ.bijective.1 H) (λ b _, ⟨σ⁻¹ b, mem_univ _, by simp⟩)
+
 
 end finset
 
@@ -573,3 +587,4 @@ lemma fintype.card_equiv [fintype α] [fintype β] (e : α ≃ β) :
 fintype.card_congr (equiv_congr (equiv.refl α) e) ▸ fintype.card_perm
 
 end equiv
+

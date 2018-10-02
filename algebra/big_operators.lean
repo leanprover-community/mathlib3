@@ -232,7 +232,22 @@ lemma prod_range_succ' (f : ℕ → β) :
 @[simp] lemma prod_const [decidable_eq α] (b : β) : s.prod (λ a, b) = b ^ s.card :=
 finset.induction_on s rfl (by simp [pow_add, mul_comm] {contextual := tt})
 
+lemma prod_mul_right [group α] (x : α) :
+  s.prod f =
+  (s.map ⟨λ z, z * x⁻¹, λ _ _, mul_right_cancel⟩).prod (λ z, f (z * x)) :=
+finset.prod_bij (λ z _, z * x⁻¹) (λ _ _, by simpa) (λ _ _, by simp)
+  (λ _ _ _ _, mul_right_cancel) (λ b H,
+    ⟨b * x, by revert H; simp [eq_comm] {contextual:=tt}, by simp⟩)
+
 end comm_monoid
+
+lemma sum_mul_right [group α]
+  {β} [add_comm_monoid β] {f : α → β} {s : finset α} (x : α) :
+  s.sum f =
+  (s.map ⟨λ z, z * x⁻¹, λ _ _, mul_right_cancel⟩).sum (λ z, f (z * x)) :=
+finset.sum_bij (λ z _, z * x⁻¹) (λ _ _, by simpa) (λ _ _, by simp)
+  (λ _ _ _ _, mul_right_cancel) (λ b H,
+    ⟨b * x, by revert H; simp [eq_comm] {contextual:=tt}, by simp⟩)
 
 @[simp] lemma sum_const [add_comm_monoid β] [decidable_eq α] (b : β) :
   s.sum (λ a, b) = add_monoid.smul s.card b :=

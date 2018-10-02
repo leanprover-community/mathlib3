@@ -44,8 +44,11 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e�
     show g₁ x = g₂ x,           from injective_of_left_inverse l₁ this,
   by simp *
 
-lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
+@[extensionality] lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
 eq_of_to_fun_eq (funext H)
+
+@[extensionality] lemma perm.ext (σ τ : equiv.perm α) (H : ∀ x, σ x = τ x) : σ = τ :=
+equiv.ext _ _ H
 
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
 

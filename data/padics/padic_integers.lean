@@ -7,7 +7,7 @@ Define the p-adic integers ℤ_p as a subtype of ℚ_p. Construct algebraic stru
 -/
 
 import data.padics.padic_numbers ring_theory.ideals data.int.modeq
-import tactic.linarith tactic.subtype_instance
+import tactic.linarith
 
 open nat padic
 noncomputable theory

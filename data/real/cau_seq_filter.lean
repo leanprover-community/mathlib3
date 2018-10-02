@@ -128,7 +128,7 @@ lemma set_seq_of_cau_filter_monotone' (n : ℕ) :
   set_seq_of_cau_filter hf (n+1) ⊆ set_seq_of_cau_filter hf n :=
 inter_subset_left _ _
 
-lemma set_seq_of_cau_filter_monotone {n k : ℕ} (hle : n ≤ k) : 
+lemma set_seq_of_cau_filter_monotone {n k : ℕ} (hle : n ≤ k) :
   set_seq_of_cau_filter hf k ⊆ set_seq_of_cau_filter hf n :=
 mono_of_mono_succ (set_seq_of_cau_filter hf) (set_seq_of_cau_filter_monotone' hf) hle
 
@@ -175,15 +175,7 @@ noncomputable def cau_seq_of_cau_filter : cau_seq β norm :=
 lemma cau_seq_of_cau_filter_mem_set_seq (n : ℕ) : cau_seq_of_cau_filter hf n ∈ set_seq_of_cau_filter hf n :=
 seq_of_cau_filter_mem_set_seq hf n
 
---variable complete : ∀ s : cau_seq β norm, ∃ b : β, ∀ ε > 0, ∃ N : ℕ, ∀ n ≥ N, ∥b - s.val n∥ < ε
---include complete
-
 variable [cau_seq.is_complete β norm]
-
---noncomputable def cau_seq_lim (s : cau_seq β norm) : β := some (complete s)
-
---lemma cau_seq_lim_spec (s : cau_seq β norm) : ∀ ε > 0, ∃ N : ℕ, ∀ n ≥ N, ∥cau_seq_lim complete s - s.val n∥ < ε :=
---some_spec (complete s)
 
 noncomputable def cau_filter_lim : β := cau_seq.lim (cau_seq_of_cau_filter hf)
 
@@ -211,22 +203,18 @@ begin
   rcases mem_nhds_iff_metric.1 ht2 with ⟨ε, hε, ht2'⟩,
   cases cauchy_of_metric.1 hf with hfb _,
   have : ε / 2 > 0, from div_pos hε (by norm_num),
-<<<<<<< 4719d34d6fb4610054560c9f62a86589460c4f68
   have : ∃ n : ℕ, 1 / (↑n + 1) < ε / 2, from exists_nat_one_div_lt this,
   cases this with n hnε,
-  cases cau_filter_lim_spec hf complete _ this with n2 hn2,
-=======
   cases cau_filter_lim_spec hf _ this with n2 hn2,
->>>>>>> feat(data/real,data/padics): cauchy_complete typeclass
   let N := max n n2,
   have hNε : 1 / (↑N+1) < ε / 2,
   { apply lt_of_le_of_lt _ hnε,
     apply one_div_le_one_div_of_le,
     { exact add_pos_of_nonneg_of_pos (nat.cast_nonneg _) zero_lt_one },
     { apply add_le_add_right, simp [le_max_left] }},
-  have ht1sn : t1 ∩ set_seq_of_cau_filter hf N ∈ f.sets, 
+  have ht1sn : t1 ∩ set_seq_of_cau_filter hf N ∈ f.sets,
     from inter_mem_sets ht1 (set_seq_of_cau_filter_mem_sets hf _),
-  have hts1n_ne : t1 ∩ set_seq_of_cau_filter hf N ≠ ∅, 
+  have hts1n_ne : t1 ∩ set_seq_of_cau_filter hf N ≠ ∅,
     from forall_sets_neq_empty_iff_neq_bot.2 hfb _ ht1sn,
   cases exists_mem_of_ne_empty hts1n_ne with x hx,
   have hdist1 := set_seq_of_cau_filter_spec hf _ hx.2 (cau_seq_of_cau_filter_mem_set_seq hf N),

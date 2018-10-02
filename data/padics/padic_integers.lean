@@ -17,8 +17,7 @@ def padic_int (p : ℕ) [p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int
-variables {p : ℕ} [hp : prime p]
-include hp
+variables {p : ℕ} [nat.prime p]
 
 def add : ℤ_[p] → ℤ_[p] → ℤ_[p]
 | ⟨x, hx⟩ ⟨y, hy⟩ := ⟨x+y,
@@ -69,11 +68,11 @@ instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
 @[simp] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
+@[simp] lemma coe_one : (↑(1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
+
 @[simp] lemma coe_coe : ∀ n : ℕ, (↑(↑n : ℤ_[p]) : ℚ_[p]) = (↑n : ℚ_[p])
 | 0 := rfl
-| (k+1) := by simp [coe_coe]; refl
-
-@[simp] lemma coe_one : (↑(1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
+| (k+1) := by simp [coe_coe]
 
 @[simp] lemma coe_zero : (↑(0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
@@ -90,8 +89,7 @@ def inv : ℤ_[p] → ℤ_[p]
 end padic_int
 
 section instances
-variables {p : ℕ} [hp : p.prime]
-include hp
+variables {p : ℕ} [nat.prime p]
 
 @[reducible] def padic_norm_z (z : ℤ_[p]) : ℝ := ∥z.val∥
 
@@ -104,7 +102,7 @@ instance : normed_ring ℤ_[p] :=
 { dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
   norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul _ _ }
 
-instance padic_norm_z.is_absolute_value {p} {hp : prime p} : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
+instance padic_norm_z.is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero, padic_int.zero_def],
   abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_triangle _ _,
@@ -137,8 +135,7 @@ end instances
 
 namespace padic_norm_z
 
-variables {p : ℕ} [hp : p.prime]
-include hp
+variables {p : ℕ} [nat.prime p]
 
 lemma le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
 | ⟨_, h⟩ := h
@@ -160,20 +157,20 @@ theorem add_eq_max_of_ne : ∀ {q r : ℤ_[p]}, ∥q∥ ≠ ∥r∥ → ∥q+r�
 
 @[simp] lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := norm_one
 
-lemma eq_of_norm_add_lt_right {p : ℕ} {hp : p.prime} {z1 z2 : ℤ_[p]}
+lemma eq_of_norm_add_lt_right {z1 z2 : ℤ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_z.add_eq_max_of_ne hne; apply le_max_right) h
 
-lemma eq_of_norm_add_lt_left {p : ℕ} {hp : p.prime} {z1 z2 : ℤ_[p]}
+lemma eq_of_norm_add_lt_left {z1 z2 : ℤ_[p]}
   (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_z.add_eq_max_of_ne hne; apply le_max_left) h
 
-@[simp] lemma padic_norm_e_of_padic_int {p : ℕ} {hp : p.prime} (z : ℤ_[p]) : ∥(↑z : ℚ_[p])∥ = ∥z∥ :=
+@[simp] lemma padic_norm_e_of_padic_int (z : ℤ_[p]) : ∥(↑z : ℚ_[p])∥ = ∥z∥ :=
 by simp [norm, padic_norm_z]
 
-@[simp] lemma padic_norm_z_eq_padic_norm_e {p : ℕ} {hp : p.prime} {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
+@[simp] lemma padic_norm_z_eq_padic_norm_e {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
   @norm ℤ_[p] _ ⟨q, hq⟩ = ∥q∥ := rfl
 
 end padic_norm_z
@@ -190,8 +187,10 @@ else if ha' : a = 1 then by simpa [ha']
 else mul_lt_one (lt_of_le_of_ne hbz (ne.symm hb')) (lt_of_le_of_ne ha ha') hb
 
 namespace padic_int
-variables {p : ℕ} [hp : p.prime]
-include hp
+
+def maximal_ideal (p : ℕ) [p.prime] : set ℤ_[p] := λ z, ∥z∥ < 1
+
+variables {p : ℕ} [nat.prime p]
 
 local attribute [reducible] padic_int
 
@@ -208,7 +207,6 @@ lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
 lemma inv_mul {z : ℤ_[p]} (hz : ∥z∥ = 1) : z.inv * z = 1 :=
 by rw [mul_comm, mul_inv hz]
 
-def maximal_ideal {p : ℕ} (hp : prime p) : set ℤ_[p] := λ z, ∥z∥ < 1
 
 lemma maximal_ideal_add {z1 z2 : ℤ_[p]} (hz1 : ∥z1∥ < 1) (hz2 : ∥z2∥ < 1) : ∥z1 + z2∥ < 1 :=
 lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hz1 hz2)
@@ -217,12 +215,12 @@ lemma maximal_ideal_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ <
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
            ... < 1 : mul_lt_one_of_le_of_lt (padic_norm_z.le_one _) (norm_nonneg _) hz2
 
-instance : is_submodule (maximal_ideal hp) :=
+instance : is_submodule (maximal_ideal p) :=
 { zero_ := show ∥(0 : ℤ_[p])∥ < 1, by simp [zero_lt_one],
   add_ := @maximal_ideal_add _ _,
   smul := @maximal_ideal_mul _ _ }
 
-lemma maximal_ideal_ne_univ : maximal_ideal hp ≠ set.univ :=
+lemma maximal_ideal_ne_univ : maximal_ideal p ≠ set.univ :=
 mt set.eq_univ_iff_forall.mp
   begin
     rw [not_forall],
@@ -232,7 +230,7 @@ mt set.eq_univ_iff_forall.mp
     simp, apply le_refl
   end
 
-lemma maximal_ideal_eq_nonunits : maximal_ideal hp = nonunits _ :=
+lemma maximal_ideal_eq_nonunits : maximal_ideal p = nonunits _ :=
 begin
   ext,
   constructor,
@@ -248,32 +246,32 @@ begin
     existsi x.inv, apply inv_mul this }
 end
 
-instance : is_proper_ideal (maximal_ideal hp) :=
+instance : is_proper_ideal (maximal_ideal p) :=
 { ne_univ := maximal_ideal_ne_univ }
 
 lemma maximal_ideal_eq_or_univ_of_subset (T : set ℤ_[p]) [_inst_2 : is_ideal T]
-      (hss : maximal_ideal hp ⊆ T) : T = maximal_ideal hp ∨ T = set.univ :=
-have T ≠ maximal_ideal hp → T = set.univ, from
-  (assume h : T ≠ maximal_ideal hp,
+      (hss : maximal_ideal p ⊆ T) : T = maximal_ideal p ∨ T = set.univ :=
+have T ≠ maximal_ideal p → T = set.univ, from
+  (assume h : T ≠ maximal_ideal p,
    let ⟨k, hkt, hknm⟩ := set.exists_of_ssubset ⟨hss, ne.symm h⟩ in
    set.eq_univ_of_forall $ λ z,
      have hknm : ∥k∥ = 1, from le_antisymm (padic_norm_z.le_one _) (le_of_not_gt hknm),
      have hkzt : z*k ∈ T, from is_submodule.smul _ hkt,
      have hkzt' : (inv k)*(z*k) ∈ T, from is_submodule.smul _ hkzt,
      by rw [mul_comm, mul_assoc, mul_inv] at hkzt'; simpa using hkzt'),
-if hT : T = maximal_ideal hp then or.inl hT else or.inr (this hT)
+if hT : T = maximal_ideal p then or.inl hT else or.inr (this hT)
 
-instance : is_maximal_ideal (maximal_ideal hp) :=
+instance : is_maximal_ideal (maximal_ideal p) :=
 { eq_or_univ_of_subset := maximal_ideal_eq_or_univ_of_subset }
 
-lemma maximal_ideal_unique (T : set ℤ_[p]) [_inst_2 : is_maximal_ideal T] : maximal_ideal hp = T :=
-let htmax := @is_maximal_ideal.eq_or_univ_of_subset _ _ T _ (maximal_ideal hp) _ in
-have htsub : T ⊆ maximal_ideal hp,
+lemma maximal_ideal_unique (T : set ℤ_[p]) [_inst_2 : is_maximal_ideal T] : maximal_ideal p = T :=
+let htmax := @is_maximal_ideal.eq_or_univ_of_subset _ _ T _ (maximal_ideal p) _ in
+have htsub : T ⊆ maximal_ideal p,
   by rw maximal_ideal_eq_nonunits; apply not_unit_of_mem_proper_ideal,
 or.resolve_right (htmax htsub) maximal_ideal_ne_univ
 
 instance : local_ring ℤ_[p] :=
-{ S := maximal_ideal hp,
+{ S := maximal_ideal p,
   max := by apply_instance,
   unique := maximal_ideal_unique }
 
@@ -292,8 +290,7 @@ instance complete : cau_seq.is_complete ℤ_[p] norm :=
 end padic_int
 
 namespace padic_norm_z
-variables {p : ℕ} [hp : p.prime]
-include hp
+variables {p : ℕ} [nat.prime p]
 
 lemma padic_val_of_cong_pow_p {z1 z2 : ℤ} {n : ℕ} (hz : z1 ≡ z2 [ZMOD ↑(p^n)]) :
       ∥(z1 - z2 : ℚ_[p])∥ ≤ ↑(fpow ↑p (-n) : ℚ) :=

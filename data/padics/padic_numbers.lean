@@ -14,13 +14,12 @@ local attribute [instance, priority 1] classical.prop_decidable
 
 open nat padic_val padic_norm cau_seq cau_seq.completion
 
-@[reducible] def padic_seq (p : ℕ) [hp : prime p] := cau_seq _ (padic_norm p)
+@[reducible] def padic_seq (p : ℕ) [p.prime] := cau_seq _ (padic_norm p)
 
 namespace padic_seq
 
 section
-variables {p : ℕ} [hp : prime p]
-include hp
+variables {p : ℕ} [prime p]
 
 lemma stationary {f : cau_seq ℚ (padic_norm p)} (hf : ¬ f ≈ 0) :
   ∃ N, ∀ m n, m ≥ N → n ≥ N → padic_norm p (f n) = padic_norm p (f m) :=
@@ -75,8 +74,7 @@ end
 
 section embedding
 open cau_seq
-variables {p : ℕ} [hp : prime p]
-include hp
+variables {p : ℕ} [prime p]
 
 lemma equiv_zero_of_val_eq_of_equiv_zero {f g : padic_seq p}
   (h : ∀ k, padic_norm p (f k) = padic_norm p (g k)) (hf : f ≈ 0) : g ≈ 0 :=
@@ -347,12 +345,23 @@ variables {p : ℕ} [prime p]
 instance discrete_field : discrete_field (ℚ_[p]) :=
 cau_seq.completion.discrete_field
 
+-- short circuits
+
+instance : has_zero ℚ_[p] := by apply_instance
+instance : has_one ℚ_[p] := by apply_instance
+instance : has_add ℚ_[p] := by apply_instance
+instance : has_mul ℚ_[p] := by apply_instance
+instance : has_sub ℚ_[p] := by apply_instance
+instance : has_neg ℚ_[p] := by apply_instance
+instance : has_div ℚ_[p] := by apply_instance
+instance : add_comm_group ℚ_[p] := by apply_instance
+instance : comm_ring ℚ_[p] := by apply_instance
+
 def mk : padic_seq p → ℚ_[p] := quotient.mk
 end completion
 
 section completion
-variables (p : ℕ) [hp : prime p]
-include hp
+variables (p : ℕ) [prime p]
 
 lemma mk_eq {f g : padic_seq p} : mk f = mk g ↔ f ≈ g := quotient.eq
 
@@ -381,14 +390,12 @@ cau_seq.completion.of_rat_div
 begin
   induction n with n ih,
   { refl },
-  { simp, ring, congr, apply ih }
+  { simpa using ih }
 end
 
 example {α} [discrete_field α] (n : ℤ) : α := n
 
---set_option trace.class_instances true
-set_option class.instance_max_depth 100000
-
+-- without short circuits, this needs an increase of class.instance_max_depth
 @[simp] lemma cast_eq_of_rat_of_int (n : ℤ) : ↑n = of_rat p n :=
 by induction n; simp
 
@@ -413,14 +420,13 @@ instance : char_zero ℚ_[p] :=
 end completion
 end padic
 
-def padic_norm_e {p : ℕ} {hp : prime p} : ℚ_[p] → ℚ :=
+def padic_norm_e {p : ℕ} [hp : prime p] : ℚ_[p] → ℚ :=
 quotient.lift padic_seq.norm $ @padic_seq.norm_equiv _ _
 
 namespace padic_norm_e
 section embedding
 open padic_seq
-variables {p : ℕ} [hp : prime p]
-include hp
+variables {p : ℕ} [prime p]
 
 lemma defn (f : padic_seq p) {ε : ℚ} (hε : ε > 0) : ∃ N, ∀ i ≥ N, padic_norm_e (⟦f⟧ - f i) < ε :=
 begin
@@ -485,7 +491,7 @@ calc
 protected lemma mul' (q r : ℚ_[p]) : padic_norm_e (q * r) = (padic_norm_e q) * (padic_norm_e r) :=
 quotient.induction_on₂ q r $ norm_mul
 
-instance : is_absolute_value (@padic_norm_e _ hp) :=
+instance : is_absolute_value (@padic_norm_e p _) :=
 { abv_nonneg := padic_norm_e.nonneg,
   abv_eq_zero := zero_iff,
   abv_add := padic_norm_e.add,
@@ -510,7 +516,7 @@ namespace padic
 section complete
 open padic_seq padic
 
-theorem rat_dense' {p : ℕ} {hp : prime p} (q : ℚ_[p]) {ε : ℚ} (hε : ε > 0) :
+theorem rat_dense' {p : ℕ} [prime p] (q : ℚ_[p]) {ε : ℚ} (hε : ε > 0) :
   ∃ r : ℚ, padic_norm_e (q - r) < ε :=
 quotient.induction_on q $ λ q',
   have ∃ N, ∀ m n ≥ N, padic_norm p (q' m - q' n) < ε, from cauchy₂ _ hε,
@@ -531,7 +537,7 @@ quotient.induction_on q $ λ q',
           apply le_of_lt, apply lt_of_not_ge, apply hle, apply le_refl }}
     end⟩
 
-variables {p : ℕ} {hp : prime p} (f : cau_seq _ (@padic_norm_e _ hp))
+variables {p : ℕ} [prime p] (f : cau_seq _ (@padic_norm_e p _))
 open classical
 
 private lemma cast_succ_nat_pos (n : ℕ) : (↑(n + 1) : ℚ) > 0 :=
@@ -610,8 +616,7 @@ theorem complete' : ∃ q : ℚ_[p], ∀ ε > 0, ∃ N, ∀ i ≥ N, padic_norm_
 end complete
 
 section normed_space
-variables (p : ℕ) [hp : p.prime]
-include hp
+variables (p : ℕ) [prime p]
 
 instance : has_dist ℚ_[p] := ⟨λ x y, padic_norm_e (x - y)⟩
 
@@ -730,8 +735,7 @@ end normed_space
 end padic_norm_e
 
 namespace padic
-variables {p : ℕ} [hp : p.prime]
-include hp
+variables {p : ℕ} [prime p]
 
 set_option eqn_compiler.zeta true
 instance complete : cau_seq.is_complete ℚ_[p] norm :=

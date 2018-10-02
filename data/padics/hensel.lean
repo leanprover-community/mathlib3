@@ -14,7 +14,7 @@ noncomputable theory
 
 local attribute [instance] classical.prop_decidable
 
-lemma padic_polynomial_dist {p : ℕ} [hp : p.prime] (F : polynomial ℤ_[p]) (x y : ℤ_[p]) :
+lemma padic_polynomial_dist {p : ℕ} [p.prime] (F : polynomial ℤ_[p]) (x y : ℤ_[p]) :
   ∥F.eval x - F.eval y∥ ≤ ∥x - y∥ :=
 let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
   ∥F.eval x - F.eval y∥ = ∥z∥ * ∥x - y∥ : by simp [hz]
@@ -23,7 +23,7 @@ let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
 
 open filter
 
-private lemma comp_tendsto_lim {p : ℕ} [hp : p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
+private lemma comp_tendsto_lim {p : ℕ} [p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (nhds (F.eval ncs.lim)) :=
 @tendsto.comp _ _ _ ncs
   (λ k, F.eval k)
@@ -32,7 +32,7 @@ private lemma comp_tendsto_lim {p : ℕ} [hp : p.prime] {F : polynomial ℤ_[p]}
   (continuous_iff_tendsto.1 F.continuous_eval _)
 
 section
-parameters {p : ℕ} [hp : p.prime] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
+parameters {p : ℕ} [nat.prime p] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
            (ncs_der_val : ∀ n, ∥F.derivative.eval (ncs n)∥ = ∥F.derivative.eval a∥)
 include ncs_der_val
 
@@ -50,7 +50,7 @@ tendsto_nhds_unique at_top_ne_bot ncs_tendsto_lim ncs_tendsto_const
 end
 
 section
-parameters {p : ℕ} {hp : p.prime} {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]}
+parameters {p : ℕ} [nat.prime p] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]}
            (hnorm : tendsto (λ i, ∥F.eval (ncs i)∥) at_top (nhds 0))
 include hnorm
 
@@ -65,7 +65,7 @@ end
 section hensel
 open nat
 
-parameters {p : ℕ} {hp : prime p} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
+parameters {p : ℕ} [nat.prime p] {F : polynomial ℤ_[p]} {a : ℤ_[p]}
            (hnorm : ∥F.eval a∥ < ∥F.derivative.eval a∥^2) (hnsol : F.eval a ≠ 0)
 include hnorm
 
@@ -295,8 +295,7 @@ begin
   intros ε hε,
   cases this (ball 0 ε) (mem_ball_self hε) (is_open_ball) with N hN,
   existsi N, intros n hn,
-  have := hN _ hn,
-  simpa [normed_field.norm_mul, real.norm_eq_abs, abs_of_nonneg (mtn n)] using this
+  simpa [normed_field.norm_mul, real.norm_eq_abs, abs_of_nonneg (mtn n)] using hN _ hn
 end
 
 private lemma bound'_sq : tendsto (λ n : ℕ, ∥F.derivative.eval a∥^2 * T^(2^n)) at_top (nhds 0) :=
@@ -308,7 +307,7 @@ begin
   { apply bound', assumption }
 end
 
-private theorem newton_seq_is_cauchy : is_cau_seq padic_norm_z newton_seq :=
+private theorem newton_seq_is_cauchy : is_cau_seq norm newton_seq :=
 begin
   intros ε hε,
   cases bound hnorm hnsol hε with N hN,
@@ -382,7 +381,7 @@ eq_of_sub_eq_zero (by rw ←this; refl)
 
 end hensel
 
-variables {p : ℕ} {hp : p.prime} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
+variables {p : ℕ} [nat.prime p] {F : polynomial ℤ_[p]} {a : ℤ_[p]}
 
 private lemma a_soln_is_unique (ha : F.eval a = 0) (z' : ℤ_[p]) (hz' : F.eval z' = 0)
   (hnormz' : ∥z' - a∥ < ∥F.derivative.eval a∥) : z' = a :=

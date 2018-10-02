@@ -561,5 +561,28 @@ do let (e,n) := arg,
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
 
+/-- `choice e with ns` assumes that `e` is a hypothesis or expression of the type
+  `∀x y z, ∃a b c, p x y z a b c`.
+It will skolemize `e` and use the names given by `ns` to assign names to the functions resulting
+from the existential quantifiers.
+
+Example:
+
+```lean
+example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
+begin
+  choice h with i j h,
+  guard_hyp i := ℕ → ℕ → ℕ,
+  guard_hyp j := ℕ → ℕ → ℕ,
+  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
+  trivial
+end
+```
+-/
+meta def choice (e : parse texpr) (names : parse with_ident_list) : tactic unit := do
+e ← tactic.i_to_expr_strict e,
+tactic.choice e names,
+try (tactic.clear e)
+
 end interactive
 end tactic

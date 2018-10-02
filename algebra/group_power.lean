@@ -440,6 +440,38 @@ calc a ^ n = a ^ n * 1 : by simp
     (pow_nonneg (le_trans zero_le_one ha) _)
   ... = a ^ m : by rw [←hk, pow_add]
 
+lemma pow_le_pow_of_le_left  {a b : α} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
+| 0 := by simp
+| (k+1) := mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab)
+
+private lemma pow_lt_pow_of_lt_one_aux {a : α} (h : 0 < a) (ha : a < 1) (i : ℕ) :
+  ∀ k : ℕ, a ^ (i + k + 1) < a ^ i
+| 0 := begin simp, rw ←one_mul (a^i), exact mul_lt_mul ha (le_refl _) (pow_pos h _) zero_le_one end
+| (k+1) :=
+  begin
+    rw ←one_mul (a^i),
+    apply mul_lt_mul ha _ _ zero_le_one,
+    { apply le_of_lt, apply pow_lt_pow_of_lt_one_aux },
+    { show 0 < a ^ (i + (k + 1) + 0), apply pow_pos h }
+  end
+
+private lemma pow_le_pow_of_le_one_aux {a : α}  (h : 0 ≤ a) (ha : a ≤ 1) (i : ℕ) :
+  ∀ k : ℕ, a ^ (i + k) ≤ a ^ i
+| 0 := by simp
+| (k+1) := by rw [←add_assoc, ←one_mul (a^i)];
+              exact mul_le_mul ha (pow_le_pow_of_le_one_aux _) (pow_nonneg h _) zero_le_one
+
+lemma pow_lt_pow_of_lt_one  {a : α} (h : 0 < a) (ha : a < 1)
+  {i j : ℕ} (hij : i < j) : a ^ j < a ^ i :=
+let ⟨k, hk⟩ := nat.exists_eq_add_of_lt hij in
+by rw hk; exact pow_lt_pow_of_lt_one_aux h ha _ _
+
+lemma pow_le_pow_of_le_one  {a : α} (h : 0 ≤ a) (ha : a ≤ 1)
+  {i j : ℕ} (hij : i ≤ j) : a ^ j ≤ a ^ i :=
+let ⟨k, hk⟩ := nat.exists_eq_add_of_le hij in
+by rw hk; exact pow_le_pow_of_le_one_aux h ha _ _
+
+
 end linear_ordered_semiring
 
 theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=
@@ -458,3 +490,9 @@ lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :
 by conv {to_lhs, rw ← nat.mod_add_div n 2}; simp [pow_add, pow_mul, units_pow_two]
 
 end int
+
+@[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
+by simp [pow, monoid.pow]
+
+lemma div_sq_cancel {α} [field α] {a : α} (ha : a ≠ 0) (b : α) : a^2 * b / a = a * b :=
+by rw [pow_two, mul_assoc, mul_div_cancel_left _ ha]

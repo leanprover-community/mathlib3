@@ -291,6 +291,9 @@ theorem sub_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f - g) :=
 add_lim_zero hf (neg_lim_zero hg)
 
+theorem lim_zero_sub_rev {f g : cau_seq β abv} (hfg : lim_zero (f - g)) : lim_zero (g - f) :=
+by simpa using neg_lim_zero hfg
+
 theorem zero_lim_zero : lim_zero (0 : cau_seq β abv)
 | ε ε0 := ⟨0, λ j ij, by simpa [abv_zero abv] using ε0⟩
 
@@ -359,7 +362,7 @@ assume : lim_zero (f*g - 0),
 have hlz : lim_zero (f*g), by simpa,
 have hf' : ¬ lim_zero f, by simpa using (show ¬ lim_zero (f - 0), from hf),
 have hg' : ¬ lim_zero g, by simpa using (show ¬ lim_zero (g - 0), from hg),
-begin 
+begin
   rcases abv_pos_of_not_lim_zero hf' with ⟨a1, ha1, N1, hN1⟩,
   rcases abv_pos_of_not_lim_zero hg' with ⟨a2, ha2, N2, hN2⟩,
   have : a1 * a2 > 0, from mul_pos ha1 ha2,
@@ -374,17 +377,17 @@ begin
   apply mul_le_mul; try { assumption },
     { apply le_of_lt ha2 },
     { apply is_absolute_value.abv_nonneg abv }
-end 
+end
 
 end ring
 
-section comm_ring 
+section comm_ring
 variables {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
 by rw mul_comm; apply mul_equiv_zero _ hf
 
-end comm_ring 
+end comm_ring
 
 section integral_domain
 variables {β : Type*} [integral_domain β] (abv : β → α) [is_absolute_value abv]

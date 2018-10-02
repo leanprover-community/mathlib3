@@ -42,6 +42,10 @@ lemma continuous_mul [topological_space β] {f : β → α} {g : β → α}
   continuous (λx, f x * g x) :=
 (hf.prod_mk hg).comp continuous_mul'
 
+lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
+| 0 := by simpa using continuous_const
+| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_mul continuous_id (continuous_pow _)
+
 lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)) :=
 continuous_iff_tendsto.mp (topological_monoid.continuous_mul α) (a, b)
 

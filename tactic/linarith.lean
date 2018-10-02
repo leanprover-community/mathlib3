@@ -509,23 +509,32 @@ open tactic
 
 set_option eqn_compiler.max_steps 50000
 
-meta def rearr_comp (prf : expr) : expr → tactic expr
-| `(%%a ≤ 0) := return prf
-| `(%%a < 0) := return prf
-| `(%%a = 0) := return prf
-| `(%%a ≥ 0) := to_expr ``(neg_nonpos.mpr %%prf)
-| `(%%a > 0) := to_expr ``(neg_neg_of_pos %%prf) --mk_app ``neg_neg_of_pos [prf]
-| `(0 ≥ %%a) := to_expr ``(show %%a ≤ 0, from %%prf)
-| `(0 > %%a) := to_expr ``(show %%a < 0, from %%prf)
-| `(0 = %%a) := to_expr ``(eq.symm %%prf)
-| `(0 ≤ %%a) := to_expr ``(neg_nonpos.mpr %%prf)
-| `(0 < %%a) := to_expr ``(neg_neg_of_pos %%prf)
-| `(%%a ≤ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
-| `(%%a < %%b) := to_expr ``(sub_neg_of_lt %%prf) -- mk_app ``sub_neg_of_lt [prf]
-| `(%%a = %%b) := to_expr ``(sub_eq_zero.mpr %%prf)
-| `(%%a > %%b) := to_expr ``(sub_neg_of_lt %%prf) -- mk_app ``sub_neg_of_lt [prf]
-| `(%%a ≥ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
-| _ := fail "couldn't rearrange comp"
+meta def rem_neg (prf : expr) : expr → tactic expr
+| `(_ ≤ _) := to_expr ``(lt_of_not_ge %%prf)
+| `(_ < _) := to_expr ``(le_of_not_gt %%prf)
+| `(_ > _) := to_expr ``(le_of_not_gt %%prf)
+| `(_ ≥ _) := to_expr ``(lt_of_not_ge %%prf)
+| e := failed
+
+meta def rearr_comp : expr → expr → tactic expr
+| prf `(%%a ≤ 0) := return prf
+| prf  `(%%a < 0) := return prf
+| prf  `(%%a = 0) := return prf
+| prf  `(%%a ≥ 0) := to_expr ``(neg_nonpos.mpr %%prf)
+| prf  `(%%a > 0) := to_expr ``(neg_neg_of_pos %%prf)
+| prf  `(0 ≥ %%a) := to_expr ``(show %%a ≤ 0, from %%prf)
+| prf  `(0 > %%a) := to_expr ``(show %%a < 0, from %%prf)
+| prf  `(0 = %%a) := to_expr ``(eq.symm %%prf)
+| prf  `(0 ≤ %%a) := to_expr ``(neg_nonpos.mpr %%prf)
+| prf  `(0 < %%a) := to_expr ``(neg_neg_of_pos %%prf)
+| prf  `(%%a ≤ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
+| prf  `(%%a < %%b) := to_expr ``(sub_neg_of_lt %%prf)
+| prf  `(%%a = %%b) := to_expr ``(sub_eq_zero.mpr %%prf)
+| prf  `(%%a > %%b) := to_expr ``(sub_neg_of_lt %%prf)
+| prf  `(%%a ≥ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
+| prf  `(¬ %%t) := do nprf ← rem_neg prf t, tp ← infer_type nprf, rearr_comp nprf tp
+| prf  _ := fail "couldn't rearrange comp"
+
 
 meta def is_numeric : expr → option ℚ
 | `(%%e1 + %%e2) := (+) <$> is_numeric e1 <*> is_numeric e2
@@ -631,8 +640,12 @@ meta def get_contr_lemma_name : expr → option name
 | `(%%a = %%b) := return ``eq_of_not_lt_of_not_gt
 | `(%%a ≥ %%b) := return `le_of_not_gt
 | `(%%a > %%b) := return `lt_of_not_ge
+| `(¬ %%a < %%b) := return `not.intro
+| `(¬ %%a ≤ %%b) := return `not.intro
+| `(¬ %%a = %%b) := return `not.intro
+| `(¬ %%a ≥ %%b) := return `not.intro
+| `(¬ %%a > %%b) := return `not.intro
 | _ := none
-
 
 -- assumes the input t is of type ℕ. Produces t' of type ℤ such that ↑t = t' and a proof of equality
 meta def cast_expr (e : expr) : tactic (expr × expr) :=

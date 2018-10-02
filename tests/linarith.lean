@@ -47,6 +47,10 @@ example (x y z : ℤ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0) (h3 : x*y < 5)
         (h3 : 12*y - 4* z < 0)  : false :=
 by linarith
 
+example (x y z : ℤ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0) (h3 : x*y < 5) :
+        ¬ 12*y - 4* z < 0 :=
+by linarith
+
 example (w x y z : ℤ) (h1 : 4*x + (-3)*y + 6*w ≤ 0) (h2 : (-1)*x < 0)
         (h3 : y < 0) (h4 : w ≥ 0) (h5 : nat.prime x.nat_abs) : false :=
 by linarith
@@ -55,7 +59,7 @@ example (a b c : ℚ) (h1 : a > 0) (h2 : b > 5) (h3 : c < -10)
         (h4 : a + b - c < 3)  : false :=
 by linarith
 
-example (a b c : ℚ) (h2 : b > 0) (h3 : b < 0) : false :=
+example (a b c : ℚ) (h2 : b > 0) (h3 : ¬ b ≥ 0) : false :=
 by linarith
 
 example (a b c : ℚ) (h2 : (2 : ℚ) > 3)  : a + b - c ≥ 3 :=
@@ -70,6 +74,9 @@ by linarith
 example (x y z : ℕ) (hx : x ≤ 3*y) (h2 : y ≤ 2*z) (h3 : x ≥ 6*z) : x = 3*y :=
 by linarith
 
+example (x y z : ℚ) (hx : ¬ x > 3*y) (h2 : ¬ y > 2*z) (h3 : x ≥ 6*z) : x = 3*y :=
+by linarith
+
 example (h1 : (1 : ℕ) < 1) : false :=
 by linarith
 
@@ -77,6 +84,9 @@ example (a b c : ℚ) (h2 : b > 0) (h3 : b < 0) : nat.prime 10 :=
 by linarith
 
 example (a b c : ℕ) : a + b ≥ a :=
+by linarith
+
+example (a b c : ℕ) : ¬ a + b < a :=
 by linarith
 
 example (x y : ℚ) (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3) (h' : (x + 4) * x ≥ 0)

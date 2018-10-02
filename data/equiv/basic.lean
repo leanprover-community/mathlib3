@@ -90,11 +90,8 @@ rfl
 
 @[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 
-theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f x = y ↔ x = f.symm y
-| ⟨f₁, g₁, l₁, r₁⟩ x y := by simp [equiv.symm];
-  show f₁ x = y ↔ x = g₁ y; from
-  ⟨λ e : f₁ x = y, e ▸ (l₁ x).symm,
-   λ e : x = g₁ y, e.symm ▸ r₁ y⟩
+@[simp] lemma symm_apply_eq {α β} {e : α ≃ β} {x y} : e.symm x = y ↔ x = e y :=
+⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
 
 @[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
 

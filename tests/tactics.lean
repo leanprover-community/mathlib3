@@ -628,3 +628,13 @@ by { assoc_rw [h₀,h₂] at *,
      exact h₁ }
 
 end assoc_rw
+
+section choice
+example (X Y : Type) (f : X → Y) (hyp : ∀ y : Y, ∃ x : X, f(x) = y) :
+  (∃ g : Y → X, f ∘ g = id) :=
+begin
+  choice hyp with g H,
+  existsi g,
+  exact funext H
+end
+end choice

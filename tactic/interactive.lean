@@ -119,8 +119,10 @@ l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducibl
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=
-unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_coe.coe,
-        ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
+unfold [
+  ``coe, ``coe_t, ``has_coe_t.coe, ``coe_b,``has_coe.coe,
+  ``lift, ``has_lift.lift, ``lift_t, ``has_lift_t.lift,
+  ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
 /-- Unfold auxiliary definitions associated with the current declaration. -/
 meta def unfold_aux : tactic unit :=

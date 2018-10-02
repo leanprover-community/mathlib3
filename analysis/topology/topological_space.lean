@@ -1242,22 +1242,30 @@ let ⟨f, hf⟩ := this in
         from ne_empty_of_mem ⟨hf _ hs, mem_bUnion hs $ mem_Union.mpr ⟨hs, mem_singleton _⟩⟩,
       mt principal_eq_bot_iff.1 this) ⟩⟩
 
+variables {α}
+
+lemma is_open_Union_countable [second_countable_topology α]
+  {ι} (s : ι → set α) (H : ∀ i, _root_.is_open (s i)) :
+  ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
+let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
+begin
+  let B' := {b ∈ B | ∃ i, b ⊆ s i},
+  choose f hf using λ b:B', b.2.2,
+  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable,
+  refine ⟨_, countable_range f,
+    subset.antisymm (bUnion_subset_Union _ _) (sUnion_subset _)⟩,
+  rintro _ ⟨i, rfl⟩ x xs,
+  rcases mem_basis_subset_of_mem_open bB xs (H _) with ⟨b, hb, xb, bs⟩,
+  exact ⟨_, ⟨_, rfl⟩, _, ⟨⟨⟨_, hb, _, bs⟩, rfl⟩, rfl⟩, hf _ (by exact xb)⟩
+end
+
 lemma is_open_sUnion_countable [second_countable_topology α]
   (S : set (set α)) (H : ∀ s ∈ S, _root_.is_open s) :
   ∃ T : set (set α), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
-let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
-begin
-  let B' := {b ∈ B | ∃ s ∈ S, b ⊆ s},
-  choose f hf using assume b:B', b.2.2,
-  change B' → set α at f,
-  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable,
-  have : range f ⊆ S := range_subset_iff.2 (λ x, (hf x).fst),
-  exact ⟨_, countable_range f, this,
-    subset.antisymm (sUnion_subset_sUnion this) $
-    sUnion_subset $ λ s hs x xs,
-      let ⟨b, hb, xb, bs⟩ := mem_basis_subset_of_mem_open bB xs (H _ hs) in
-      ⟨_, ⟨⟨_, hb, _, hs, bs⟩, rfl⟩, (hf _).snd xb⟩⟩
-end
+let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) in
+⟨subtype.val '' T, countable_image _ cT,
+  image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
+  by rwa [sUnion_image, sUnion_eq_Union]⟩
 
 end topological_space
 

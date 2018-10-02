@@ -978,6 +978,9 @@ eq_univ_iff_forall
 @[simp] theorem image_univ {ι : Type*} {f : ι → β} : f '' univ = range f :=
 ext $ by simp [image, range]
 
+theorem image_subset_range {ι : Type*} (f : ι → β) (s : set ι) : f '' s ⊆ range f :=
+by rw ← image_univ; exact image_subset _ (subset_univ _)
+
 theorem range_comp {g : α → β} : range (g ∘ f) = g '' range f :=
 subset.antisymm
   (forall_range_iff.mpr $ assume i, mem_image_of_mem g (mem_range_self _))
@@ -994,10 +997,17 @@ begin
 end
 
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
-  f '' preimage f t = t ∩ range f :=
+  f '' (f ⁻¹' t) = t ∩ range f :=
 ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_range_self _⟩,
   assume ⟨hx, ⟨y, h_eq⟩⟩, h_eq ▸ mem_image_of_mem f $
-    show y ∈ preimage f t, by simp [preimage, h_eq, hx]⟩
+    show y ∈ f ⁻¹' t, by simp [preimage, h_eq, hx]⟩
+
+theorem preimage_inter_range {f : α → β} {s : set β} : f ⁻¹' (s ∩ range f) = f ⁻¹' s :=
+set.ext $ λ x, and_iff_left ⟨x, rfl⟩
+
+theorem preimage_image_preimage {f : α → β} {s : set β} :
+  f ⁻¹' (f '' (f ⁻¹' s)) = f ⁻¹' s :=
+by rw [image_preimage_eq_inter_range, preimage_inter_range]
 
 @[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_iff_surjective.2 quot.exists_rep

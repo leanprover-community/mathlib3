@@ -22,6 +22,12 @@ def is_greatest (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ upper_bounds s
 def is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
 def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
+lemma upper_bounds_mono (h₁ : a₁ ≤ a₂) (h₂ : a₁ ∈ upper_bounds s) : a₂ ∈ upper_bounds s :=
+λ a h, le_trans (h₂ _ h) h₁
+
+lemma lower_bounds_mono (h₁ : a₂ ≤ a₁) (h₂ : a₁ ∈ lower_bounds s) : a₂ ∈ lower_bounds s :=
+λ a h, le_trans h₁ (h₂ _ h)
+
 lemma mem_upper_bounds_image (Hf : monotone f) (Ha : a ∈ upper_bounds s) :
   f a ∈ upper_bounds (f '' s) :=
 ball_image_of_ball (assume x H, Hf (Ha _ ‹x ∈ s›))
@@ -58,6 +64,12 @@ eq_of_is_least_of_is_least
 
 lemma is_lub_iff_eq_of_is_lub : is_lub s a₁ → (is_lub s a₂ ↔ a₁ = a₂) :=
 is_least_iff_eq_of_is_least
+
+lemma is_lub_le_iff (h : is_lub s a₁) : a₁ ≤ a₂ ↔ a₂ ∈ upper_bounds s :=
+⟨λ hl, upper_bounds_mono hl h.1, h.2 _⟩
+
+lemma le_is_glb_iff (h : is_glb s a₁) : a₂ ≤ a₁ ↔ a₂ ∈ lower_bounds s :=
+⟨λ hl, lower_bounds_mono hl h.1, h.2 _⟩
 
 lemma eq_of_is_glb_of_is_glb : is_glb s a₁ → is_glb s a₂ → a₁ = a₂ :=
 eq_of_is_greatest_of_is_greatest
@@ -113,10 +125,25 @@ is_glb_iff_eq_of_is_glb $ is_glb_insert_inf $ is_glb_singleton
 
 end lattice
 
+section linear_order
+variables [linear_order α]
+
+lemma lt_is_lub_iff (h : is_lub s a₁) : a₂ < a₁ ↔ ∃ a ∈ s, a₂ < a :=
+by haveI := classical.dec;
+   simpa [upper_bounds, not_ball] using
+   not_congr (@is_lub_le_iff _ _ a₂ _ _ h)
+
+lemma is_glb_lt_iff (h : is_glb s a₁) : a₁ < a₂ ↔ ∃ a ∈ s, a < a₂ :=
+by haveI := classical.dec;
+   simpa [lower_bounds, not_ball] using
+   not_congr (@le_is_glb_iff _ _ a₂ _ _ h)
+
+end linear_order
+
 section complete_lattice
 variables [complete_lattice α] {f : ι → α}
 
-lemma is_lub_Sup : is_lub s (Sup s) := and.intro (assume x, le_Sup) (assume x, Sup_le)
+lemma is_lub_Sup : is_lub s (Sup s) := ⟨assume x, le_Sup, assume x, Sup_le⟩
 
 lemma is_lub_supr : is_lub (range f) (⨆j, f j) :=
 have is_lub (range f) (Sup (range f)), from is_lub_Sup,
@@ -125,7 +152,7 @@ by rwa [Sup_range] at this
 lemma is_lub_iff_supr_eq : is_lub (range f) a ↔ (⨆j, f j) = a := is_lub_iff_eq_of_is_lub is_lub_supr
 lemma is_lub_iff_Sup_eq : is_lub s a ↔ Sup s = a := is_lub_iff_eq_of_is_lub is_lub_Sup
 
-lemma is_glb_Inf : is_glb s (Inf s) := and.intro (assume a, Inf_le) (assume a, le_Inf)
+lemma is_glb_Inf : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
 
 lemma is_glb_infi : is_glb (range f) (⨅j, f j) :=
 have is_glb (range f) (Inf (range f)), from is_glb_Inf,

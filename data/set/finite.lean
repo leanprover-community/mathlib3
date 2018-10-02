@@ -236,14 +236,13 @@ instance fintype_bUnion' [decidable_eq α] {ι : Type*} {s : set ι} [fintype s]
   (f : ι → set α) [H : ∀ i, fintype (f i)] : fintype (⋃ i ∈ s, f i) :=
 fintype_bUnion _ (λ i _, H i)
 
-theorem finite_bUnion {ι : Type*} {s : set ι} {f : ι → set α} : finite s →
-  (∀i ∈ s, finite (f i)) → finite (⋃ i ∈ s, f i)
-| ⟨hs⟩ H := ⟨@set.fintype_bUnion _ (classical.dec_eq α) _ _ hs
-  _ (λ i hi, finite.fintype (H i hi))⟩
-
 theorem finite_sUnion {s : set (set α)} (h : finite s) (H : ∀t∈s, finite t) : finite (⋃₀ s) :=
 by rw sUnion_eq_Union; haveI := finite.fintype h;
    apply finite_Union; simpa using H
+
+theorem finite_bUnion {α} {ι : Type*} {s : set ι} {f : ι → set α} :
+  finite s → (∀i, finite (f i)) → finite (⋃ i∈s, f i)
+| ⟨hs⟩ h := by rw [bUnion_eq_Union]; exactI finite_Union (λ i, h _)
 
 instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=
 fintype_of_finset (finset.range n) $ by simp

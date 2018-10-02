@@ -414,11 +414,19 @@ by linarith
 `linarith`.
 
 `linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
-arguments. 
+arguments.
 * `discharger` specifies a tactic to be used for reducing an algebraic equation in the
 proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
-problems. 
+problems.
 * `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
 if you have e.g. both integer and rational valued inequalities in the local context, which can
 sometimes confuse the tactic.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
+
+## choice
+
+`choice hyp with g H` takes an hypothesis `hyp` of the form
+`∀ (y : Y), ∃ (x : X), P x y` for some `P : X → Y → Prop` and outputs into
+context a function `g : Y → X` and a proposition `H` stating
+`∀ (y : Y), P (g y) y`. It presumably also works with dependent versions
+(see the actual type of `classical.axiom_of_choice`).

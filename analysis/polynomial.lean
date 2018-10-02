@@ -17,7 +17,6 @@ begin
   { intros a b f haf hb hcts,
     simp only [polynomial.eval_add],
     refine continuous_add _ hcts,
-    dsimp [polynomial.eval, polynomial.eval₂],
     have : ∀ x, finsupp.sum (finsupp.single a b) (λ (e : ℕ) (a : α), a * x ^ e) = b * x ^a,
       from λ x, finsupp.sum_single_index (by simp),
     convert continuous_mul _ _,

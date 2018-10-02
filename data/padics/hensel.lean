@@ -8,7 +8,7 @@ http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf
 -/
 
 import data.padics.padic_integers data.polynomial data.nat.binomial data.real.cau_seq_filter
-       analysis.limits tactic.ring
+       analysis.limits analysis.polynomial tactic.ring
 
 noncomputable theory
 

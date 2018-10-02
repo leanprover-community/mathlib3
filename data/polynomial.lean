@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.euclidean_domain analysis.topology.topological_structures tactic.ring
+import data.finsupp algebra.euclidean_domain tactic.ring
 
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
@@ -204,7 +204,7 @@ begin
       generalize_hyp h1 : coeff (C x * X ^ (pn + 1) * q1) n = Q1 at ih1 ⊢, rw ih1,
       generalize_hyp h2 : coeff (C x * X ^ (pn + 1) * q2) n = Q2 at ih2 ⊢, rw ih2,
       rw finset.sum_add_distrib },
-    { rw [mul_left_comm, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul], 
+    { rw [mul_left_comm, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul],
       rw [sum_eq_single (pn + 1), coeff_C_mul_X, coeff_C_mul_X, coeff_C_mul_X, if_pos rfl],
       { have H : n = pn + 1 + (qn + 1) ↔ n - (pn + 1) = qn + 1,
         { split, { intro H, rw [H, nat.add_sub_cancel_left] },
@@ -328,25 +328,6 @@ by simp [is_root.def, eval_mul] {contextual := tt}
 lemma eval_sum (p : polynomial α) (f : ℕ → α → polynomial α) (x : α) :
   (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
 finsupp.sum_sum_index (by simp) (by intros; simp [right_distrib])
-
-lemma continuous_eval [topological_space α] [topological_semiring α] (p : polynomial α) :
-  continuous (λ x, p.eval x) :=
-begin
-  apply p.induction,
-  { convert continuous_const,
-    ext, show polynomial.eval x 0 = 0, from rfl },
-  { intros a b f haf hb hcts,
-    simp only [polynomial.eval_add],
-    refine continuous_add _ hcts,
-    dsimp [polynomial.eval, polynomial.eval₂],
-    have : ∀ x, finsupp.sum (finsupp.single a b) (λ (e : ℕ) (a : α), a * x ^ e) = b * x ^a,
-      from λ x, finsupp.sum_single_index (by simp),
-    convert continuous_mul _ _,
-    { ext, apply this },
-    { apply_instance },
-    { apply continuous_const },
-    { apply continuous_pow }}
-end
 
 end eval
 
@@ -666,7 +647,7 @@ variables [comm_ring α] {p q : polynomial α}
 instance : comm_ring (polynomial α) := finsupp.to_comm_ring
 instance : has_scalar α (polynomial α) := finsupp.to_has_scalar
 -- TODO if this becomes a semimodule then the below lemma could be proved for semimodules
-instance : module α (polynomial α) := finsupp.to_module α 
+instance : module α (polynomial α) := finsupp.to_module α
 
 -- TODO -- this is OK for semimodules
 @[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :

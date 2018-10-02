@@ -365,6 +365,11 @@ begin
     exact ih _ ij }
 end
 
+noncomputable instance : cau_seq.is_complete ℝ abs :=
+⟨ λ f, let ⟨x, hx⟩ := cau_seq_converges f in
+  have lim_zero (const abs x - f), from lim_zero_sub_rev hx,
+  ⟨x, this⟩ ⟩
+
 section lim
 
 open cau_seq

@@ -509,4 +509,44 @@ meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,
    prod.snd <$> solve_aux t' assumption
 
+/-- `dependent_pose_core l`: introduce dependent hypothesis, where the proofs depend on the values
+of the previous local constants. `l` is a list of local constants and their values. -/
+meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
+  let lc := l.map prod.fst,
+  let lm := l.map (λ⟨l, v⟩, (l.local_uniq_name, v)),
+  t ← target,
+  new_goal ← mk_meta_var (t.pis lc),
+  old::other_goals ← get_goals,
+  set_goals (old :: new_goal :: other_goals),
+  exact ((new_goal.mk_app lc).instantiate_locals lm),
+  return ()
+
+/-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g` -/
+meta def choice1 (h : expr) (data : name) (spec : name) : tactic expr := do
+  t ← infer_type h,
+  (ctxt, t) ← mk_local_pis t,
+  `(@Exists %%α %%p) ← whnf t transparency.all,
+  expr.sort u ← infer_type α >>= whnf,
+  value ← mk_local_def data (α.pis ctxt),
+  t' ← head_beta (p.app (value.mk_app ctxt)),
+  spec ← mk_local_def spec (t'.pis ctxt),
+  dependent_pose_core [
+    (value, ((((expr.const `classical.some [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt),
+    (spec, ((((expr.const `classical.some_spec [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt)],
+  tactic.clear h,
+  intro1,
+  intro1
+
+/-- Changes `(h : ∀xs, ∃as, p as) ⊢ g` to a list of functions `as`, an a final hypothesis on `p as` -/
+meta def choice : expr → list name → tactic unit
+| h [] := fail "expect list of variables"
+| h [n] := do
+  cnt ← revert h,
+  intro n,
+  intron (cnt - 1),
+  return ()
+| h (n::ns) := do
+  v ← get_unused_name >>= choice1 h n,
+  choice v ns
+
 end tactic

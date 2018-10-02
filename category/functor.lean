@@ -106,20 +106,3 @@ instance : functor ulift :=
 { map := λ α β f, up ∘ f ∘ down }
 
 end ulift
-
-namespace sum
-
-variables {γ : Type u} {α β : Type v}
-
-protected def mapr (f : α → β) : γ ⊕ α → γ ⊕ β
-| (inl x) := inl x
-| (inr x) := inr (f x)
-
-instance : functor (sum.{u v} γ) :=
-{ map := @sum.mapr γ }
-
-instance : is_lawful_functor (sum γ) :=
-{ id_map := by intros; casesm _ ⊕ _; refl,
-  comp_map := by intros; casesm _ ⊕ _; refl }
-
-end sum

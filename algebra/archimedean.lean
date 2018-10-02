@@ -102,7 +102,9 @@ lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
  λ h, have -a < 0, from neg_neg_of_pos h,
   neg_pos_of_neg $ lt_of_not_ge $ (not_iff_not_of_iff floor_nonneg).2 $ not_le_of_gt this ⟩
 
-lemma ceil_nonneg {q : ℚ} (hq : q ≥ 0) : ⌈q⌉ ≥ 0 :=
+@[simp] theorem ceil_zero : ⌈(0 : α)⌉ = 0 := by simp [ceil]
+
+lemma ceil_nonneg [decidable_rel ((<) : α → α → Prop)] {q : α} (hq : q ≥ 0) : ⌈q⌉ ≥ 0 :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
 else
   have h' : q = 0, from le_antisymm (le_of_not_lt h) hq,
@@ -252,6 +254,18 @@ begin
   refine lt_of_le_of_lt (add_le_add_right ((zh _).1 (le_refl _)) _) _,
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
        ← div_lt_iff' (sub_pos.2 h), one_div_eq_inv]
+end
+
+theorem exists_nat_one_div_lt {ε : α} (hε : ε > 0) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
+begin
+  cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
+  existsi n,
+  apply div_lt_of_mul_lt_of_pos,
+  { simp, apply add_pos_of_pos_of_nonneg zero_lt_one, apply nat.cast_nonneg },
+  { apply (div_lt_iff' hε).1,
+    transitivity,
+    { exact hn },
+    { simp [zero_lt_one] }}
 end
 
 include α

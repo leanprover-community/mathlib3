@@ -3,20 +3,20 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Robert Y. Lewis
 
-Generalizes the Cauchy completion of (ℚ, abs) to the completion of a 
-commutative ring with absolute value. 
+Generalizes the Cauchy completion of (ℚ, abs) to the completion of a
+commutative ring with absolute value.
 -/
 
 import data.real.cau_seq
 
-namespace cau_seq.completion 
+namespace cau_seq.completion
 open cau_seq
 
 section
 parameters {α : Type*} [discrete_linear_ordered_field α]
 parameters {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
-def Cauchy := @quotient (cau_seq _ abv) cau_seq.equiv 
+def Cauchy := @quotient (cau_seq _ abv) cau_seq.equiv
 
 def mk : cau_seq _ abv → Cauchy := quotient.mk
 
@@ -112,13 +112,13 @@ congr_arg mk $ by rw dif_pos; [refl, exact zero_lim_zero]
 @[simp] theorem inv_mk {f} (hf) : (@mk α _ β _ abv _ f)⁻¹ = mk (inv f hf) :=
 congr_arg mk $ by rw dif_neg
 
-lemma cau_seq_zero_ne_one : ¬ (0 : cau_seq _ abv) ≈ 1 := λ h, 
+lemma cau_seq_zero_ne_one : ¬ (0 : cau_seq _ abv) ≈ 1 := λ h,
 have lim_zero (1 - 0), from setoid.symm h,
 have lim_zero 1, by simpa,
-one_ne_zero $ const_lim_zero.1 this 
+one_ne_zero $ const_lim_zero.1 this
 
 lemma zero_ne_one : (0 : Cauchy) ≠ 1 :=
-λ h, cau_seq_zero_ne_one $ mk_eq.1 h 
+λ h, cau_seq_zero_ne_one $ mk_eq.1 h
 
 
 protected theorem inv_mul_cancel {x : Cauchy} : x ≠ 0 → x⁻¹ * x = 1 :=
@@ -144,5 +144,32 @@ congr_arg mk $ by split_ifs with h; try {simp [const_lim_zero.1 h]}; refl
 theorem of_rat_div (x y : β) : of_rat (x / y) = (of_rat x / of_rat y : Cauchy) :=
 by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
 
-end 
+end
 end cau_seq.completion
+
+namespace cau_seq
+section
+
+variables {α : Type*} [discrete_linear_ordered_field α]
+variables (β : Type*) [ring β] (abv : β → α) [is_absolute_value abv]
+
+class is_complete :=
+(is_complete : ∀ s : cau_seq β abv, ∃ b : β, ∀ ε > 0, ∃ N : ℕ, ∀ i ≥ N, abv (b - s.val i) < ε)
+end
+
+section
+
+variables {α : Type*} [discrete_linear_ordered_field α]
+variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
+variable [is_complete β abv]
+
+lemma complete : ∀ s : cau_seq β abv, ∃ b : β, ∀ ε > 0, ∃ N : ℕ, ∀ i ≥ N, abv (b - s.val i) < ε :=
+is_complete.is_complete
+
+noncomputable def lim (s : cau_seq β abv) := classical.some (complete s)
+
+lemma lim_spec (s : cau_seq β abv) : ∀ ε > 0, ∃ N : ℕ, ∀ i ≥ N, abv (lim s - s.val i) < ε :=
+classical.some_spec (complete s)
+
+end
+end cau_seq

@@ -21,7 +21,12 @@ variable (α)
 lemma zero_ne_one_or_forall_eq_0 : (0 : α) ≠ 1 ∨ (∀a:α, a = 0) :=
 by haveI := classical.dec;
    refine not_or_of_imp (λ h a, _); simpa using congr_arg ((*) a) h.symm
-variable {α}
+
+lemma eq_zero_of_zero_eq_one (h : (0 : α) = 1) : (∀a:α, a = 0) :=
+(zero_ne_one_or_forall_eq_0 α).neg_resolve_left h
+
+theorem subsingleton_of_zero_eq_one (h : (0 : α) = 1) : subsingleton α :=
+⟨λa b, by rw [eq_zero_of_zero_eq_one α h a, eq_zero_of_zero_eq_one α h b]⟩
 
 end
 

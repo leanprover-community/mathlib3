@@ -255,25 +255,11 @@ begin
   simp [compl_subset_compl]
 end
 
-@[simp] lemma interior_compl_eq {s : set α} : interior (- s) = - closure s :=
+@[simp] lemma interior_compl {s : set α} : interior (- s) = - closure s :=
 by simp [closure_eq_compl_interior_compl]
 
-@[simp] lemma closure_compl_eq {s : set α} : closure (- s) = - interior s :=
+@[simp] lemma closure_compl {s : set α} : closure (- s) = - interior s :=
 by simp [closure_eq_compl_interior_compl]
-
-lemma closure_compl {s : set α} : closure (-s) = - interior s :=
-subset.antisymm
-  (by simp [closure_subset_iff_subset_of_is_closed, compl_subset_compl, subset.refl])
-  begin
-    rw [compl_subset_comm, subset_interior_iff_subset_of_open, compl_subset_comm],
-    exact subset_closure,
-    exact is_open_compl_iff.mpr is_closed_closure
-  end
-
-lemma interior_compl {s : set α} : interior (-s) = - closure s :=
-calc interior (- s) = - - interior (- s) : by simp
-  ... = - closure (- (- s)) : by rw [closure_compl]
-  ... = - closure s : by simp
 
 theorem mem_closure_iff {s : set α} {a : α} : a ∈ closure s ↔ ∀ o, is_open o → a ∈ o → o ∩ s ≠ ∅ :=
 ⟨λ h o oo ao os,

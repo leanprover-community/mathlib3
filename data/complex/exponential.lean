@@ -489,6 +489,8 @@ end
 let ⟨r, hr⟩ := (eq_conj_iff_real (sin x)).1 (by rw [← sin_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
+@[simp] lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
+
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
 by apply complex.ext; simp
 
@@ -509,11 +511,13 @@ end
 let ⟨r, hr⟩ := (eq_conj_iff_real (cos x)).1 (by rw [← cos_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
+@[simp] lemma cos_of_real_re (x : ℝ) : (cos x).re = real.cos x := rfl
+
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
 by apply complex.ext; simp
 
 @[simp] lemma of_real_cos (x : ℝ) : (real.cos x : ℂ) = cos x :=
-by simp [real.cos]
+by simp [real.cos, -cos_of_real_re]
 
 @[simp] lemma tan_zero : tan 0 = 0 := by simp [tan]
 
@@ -528,11 +532,13 @@ by rw [tan, sin_conj, cos_conj, ← conj_div, tan]
 let ⟨r, hr⟩ := (eq_conj_iff_real (tan x)).1 (by rw [← tan_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
+@[simp] lemma tan_of_real_re (x : ℝ) : (tan x).re = real.tan x := rfl
+
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
 by apply complex.ext; simp
 
 @[simp] lemma of_real_tan (x : ℝ) : (real.tan x : ℂ) = tan x :=
-by simp [real.tan]
+by simp [real.tan, -tan_of_real_re]
 
 lemma sin_pow_two_add_cos_pow_two : sin x ^ 2 + cos x ^ 2 = 1 :=
 begin
@@ -549,6 +555,16 @@ by rw [two_mul, cos_add, ← pow_two, ← pow_two, eq_sub_iff_add_eq.2 (sin_pow_
 
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
+
+lemma exp_mul_I : exp (x * I) = cos x + sin x * I :=
+by rw [cos, sin, mul_comm (_ / 2) I, ← mul_div_assoc, mul_left_comm I, I_mul_I,
+  ← add_div]; simp
+
+lemma exp_add_mul_I : exp (x + y * I) = exp x * (cos y + sin y * I) :=
+by rw [exp_add, exp_mul_I]
+
+lemma exp_eq_exp_re_mul_sin_add_cos : exp x = exp x.re * (cos x.im + sin x.im * I) :=
+by rw [← exp_add_mul_I, re_add_im]
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
@@ -594,6 +610,8 @@ by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, con
 let ⟨r, hr⟩ := (eq_conj_iff_real (sinh x)).1 (by rw [← sinh_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
+@[simp] lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
+
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 by apply complex.ext; simp
 
@@ -606,6 +624,8 @@ by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, con
 @[simp] lemma cosh_of_real_im (x : ℝ) : (cosh x).im = 0 :=
 let ⟨r, hr⟩ := (eq_conj_iff_real (cosh x)).1 (by rw [← cosh_conj, conj_of_real]) in
 by rw [hr, of_real_im]
+
+@[simp] lemma cosh_of_real_re (x : ℝ) : (cosh x).re = real.cosh x := rfl
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
 by apply complex.ext; simp
@@ -625,6 +645,8 @@ by rw [tanh, sinh_conj, cosh_conj, ← conj_div, tanh]
 @[simp] lemma tanh_of_real_im (x : ℝ) : (tanh x).im = 0 :=
 let ⟨r, hr⟩ := (eq_conj_iff_real (tanh x)).1 (by rw [← tanh_conj, conj_of_real]) in
 by rw [hr, of_real_im]
+
+@[simp] lemma tanh_of_real_re (x : ℝ) : (tanh x).re = real.tanh x := rfl
 
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
 by apply complex.ext; simp

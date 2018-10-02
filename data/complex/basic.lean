@@ -75,6 +75,8 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 @[simp] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
+@[simp] lemma I_mul_I : I * I = -1 := rfl
+
 lemma mk_eq_add_mul_I (a b : ℝ) : complex.mk a b = a + b * I :=
 ext_iff.2 $ by simp
 
@@ -338,6 +340,16 @@ lemma abs_abs_sub_le_abs_sub : ∀ z w, abs' (abs z - abs w) ≤ abs (z - w) := 
 
 lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ abs' z.re + abs' z.im :=
 by simpa [re_add_im] using abs_add z.re (z.im * I)
+
+lemma abs_re_div_abs_le_one (z : ℂ) : abs' (z.re / z.abs) ≤ 1 :=
+if hz : z = 0 then by simp [hz, zero_le_one]
+else by rw [_root_.abs_div, abs_abs]; exact
+  div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_re_le_abs _)
+
+lemma abs_im_div_abs_le_one (z : ℂ) : abs' (z.im / z.abs) ≤ 1 :=
+if hz : z = 0 then by simp [hz, zero_le_one]
+else by rw [_root_.abs_div, abs_abs]; exact
+  div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_im_le_abs _)
 
 @[simp] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
 by rw [← of_real_nat_cast, abs_of_real, @_root_.abs_of_nonneg ℝ _ _ (nat.cast_nonneg n)]

@@ -14,11 +14,11 @@ tendsto_nhds_of_metric.2 $ λ ε ε0,
   ⟨min (ε / 2) 1, lt_min (div_pos ε0 (by norm_num)) (by norm_num),
     λ x h, have h : abs x < min (ε / 2) 1, by simpa [dist_eq] using h,
       calc abs (exp x - 1) ≤ 2 * abs x : abs_exp_sub_one_le
-        (le_trans (le_of_lt h) (min_le_right _ _))
-      ... = abs x + abs x : two_mul (abs x)
-      ... < ε / 2 + ε / 2 : add_lt_add
-        (lt_of_lt_of_le h (min_le_left _ _)) (lt_of_lt_of_le h (min_le_left _ _))
-      ... = ε : by rw add_halves⟩
+          (le_trans (le_of_lt h) (min_le_right _ _))
+        ... = abs x + abs x : two_mul (abs x)
+        ... < ε / 2 + ε / 2 : add_lt_add
+          (lt_of_lt_of_le h (min_le_left _ _)) (lt_of_lt_of_le h (min_le_left _ _))
+        ... = ε : by rw add_halves⟩
 
 lemma continuous_exp : continuous exp :=
 continuous_iff_tendsto.2 (λ x,
@@ -278,37 +278,6 @@ by cases n; simp only [cos_nat_mul_two_pi, int.of_nat_eq_coe,
 lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
 by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
-/- TODO move -/
-lemma sub_floor_div_mul_nonneg (x : ℝ) {y : ℝ} (hy : 0 < y) :
-  0 ≤ x - ⌊x / y⌋ * y :=
-begin
-  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
-  rw ← sub_mul,
-  exact mul_nonneg (sub_nonneg.2 (floor_le _)) (le_of_lt hy)
-end
-/- TODO move -/
-lemma sub_floor_div_mul_lt (x : ℝ) {y : ℝ} (hy : 0 < y) :
-  x - ⌊x / y⌋ * y < y :=
-sub_lt_iff_lt_add.2 begin
-  conv in y {rw ← one_mul y},
-  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
-  rw ← add_mul,
-  exact (mul_lt_mul_right hy).2 (by rw add_comm; exact lt_floor_add_one _),
-end
-
-/- TODO move -/
-lemma int.mod_two_eq_zero_or_one (n : ℤ) : n % 2 = 0 ∨ n % 2 = 1 :=
-have h : n % 2 < 2 := abs_of_nonneg (show (2 : ℤ) ≥ 0, from dec_trivial) ▸ int.mod_lt _ dec_trivial,
-have h₁ : n % 2 ≥ 0 := int.mod_nonneg _ dec_trivial,
-match (n % 2), h, h₁ with
-| (0 : ℕ) := λ _ _, or.inl rfl
-| (1 : ℕ) := λ _ _, or.inr rfl
-| (k + 2 : ℕ) := λ h _, absurd h dec_trivial
-| -[1+ a] := λ _ h₁, absurd h₁ dec_trivial
-end
-/- TODO move -/
-lemma int.cast_two {α : Type*} [ring α] : ((2 : ℤ) : α) = 2 := by simp
-
 lemma sin_eq_zero_iff_of_lt_of_lt {x : ℝ} (hx₁ : -π < x) (hx₂ : x < π) :
   sin x = 0 ↔ x = 0 :=
 ⟨λ h, le_antisymm
@@ -427,6 +396,27 @@ lemma arcsin_sin {x : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) : ar
 sin_inj_of_le_of_le_pi_div_two (neg_pi_div_two_le_arcsin _) (arcsin_le_pi_div_two _) hx₁ hx₂
   (by rw sin_arcsin (neg_one_le_sin _) (sin_le_one _))
 
+@[simp] lemma arcsin_zero : arcsin 0 = 0 :=
+sin_inj_of_le_of_le_pi_div_two
+  (neg_pi_div_two_le_arcsin _)
+  (arcsin_le_pi_div_two _)
+  (neg_nonpos.2 (le_of_lt pi_div_two_pos))
+  (le_of_lt pi_div_two_pos)
+  (by rw [sin_arcsin, sin_zero]; norm_num)
+
+@[simp] lemma arcsin_neg (x : ℝ) : arcsin (-x) = - arcsin x :=
+if h : -1 ≤ x ∧ x ≤ 1 then
+  have -1 ≤ -x ∧ -x ≤ 1, by rwa [neg_le_neg_iff, neg_le, and.comm],
+  sin_inj_of_le_of_le_pi_div_two
+    (neg_pi_div_two_le_arcsin _)
+    (arcsin_le_pi_div_two _)
+    (neg_le_neg (arcsin_le_pi_div_two _))
+    (neg_le.1 (neg_pi_div_two_le_arcsin _))
+    (by rw [sin_arcsin this.1 this.2, sin_neg, sin_arcsin h.1 h.2])
+else
+  have ¬(-1 ≤ -x ∧ -x ≤ 1) := by rwa [neg_le_neg_iff, neg_le, and.comm],
+  by rw [arcsin, arcsin, dif_neg h, dif_neg this, neg_zero]
+
 /-- Inverse of the `cos` function, returns values in the range `0 ≤ arccos x` and `arccos x ≤ π`.
   If the argument is not between `-1` and `1` it defaults to `π / 2` -/
 noncomputable def arccos (x : ℝ) : ℝ :=
@@ -452,6 +442,17 @@ lemma cos_arcsin_nonneg (x : ℝ) : 0 ≤ cos (arcsin x) :=
 cos_nonneg_of_neg_pi_div_two_le_of_le_pi_div_two
     (neg_pi_div_two_le_arcsin _) (arcsin_le_pi_div_two _)
 
+lemma cos_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
+have sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_pow_two_add_cos_pow_two (arcsin x),
+begin
+  rw [← eq_sub_iff_add_eq', ← sqrt_inj (pow_two_nonneg _) (sub_nonneg.2 (sin_pow_two_le_one (arcsin x))),
+    pow_two, sqrt_mul_self (cos_arcsin_nonneg _)] at this,
+  rw [this, sin_arcsin hx₁ hx₂],
+end
+
+lemma sin_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arccos x) = sqrt (1 - x ^ 2) :=
+by rw [arccos_eq_arcsin_add_pi_div_two, sin_pi_div_two_sub, cos_arcsin hx₁ hx₂]
+
 lemma abs_div_sqrt_one_add_lt (x : ℝ) : abs (x / sqrt (1 + x ^ 2)) < 1 :=
 have h₁ : 0 < 1 + x ^ 2, from add_pos_of_pos_of_nonneg zero_lt_one (pow_two_nonneg _),
 have h₂ : 0 < sqrt (1 + x ^ 2), from sqrt_pos.2 h₁,
@@ -467,45 +468,172 @@ lemma div_sqrt_one_add_lt_one (x : ℝ) : x / sqrt (1 + x ^ 2) < 1 :=
 lemma neg_one_lt_div_sqrt_one_add (x : ℝ) : -1 < x / sqrt (1 + x ^ 2) :=
 (abs_lt.1 (abs_div_sqrt_one_add_lt _)).1
 
+lemma tan_pos_of_pos_of_lt_pi_div_two {x : ℝ} (h0x : 0 < x) (hxp : x < π / 2) : 0 < tan x :=
+by rw tan_eq_sin_div_cos; exact div_pos (sin_pos_of_pos_of_lt_pi h0x (by linarith))
+  (cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two (by linarith) hxp)
+
+lemma tan_nonneg_of_nonneg_of_le_pi_div_two {x : ℝ} (h0x : 0 ≤ x) (hxp : x ≤ π / 2) : 0 ≤ tan x :=
+(lt_or_eq_of_le h0x).elim
+  (λ hx0, (lt_or_eq_of_le hxp).elim
+    (le_of_lt ∘ tan_pos_of_pos_of_lt_pi_div_two hx0)
+    (λ h, by simp [h, tan_eq_sin_div_cos]))
+  (λ h, by simp [h.symm])
+
+lemma tan_neg_of_neg_of_pi_div_two_lt {x : ℝ} (hx0 : x < 0) (hpx : -(π / 2) < x) : tan x < 0 :=
+neg_pos.1 (tan_neg x ▸ tan_pos_of_pos_of_lt_pi_div_two (by linarith) (by linarith using [pi_pos]))
+
+lemma tan_nonpos_of_nonpos_of_neg_pi_div_two_le {x : ℝ} (hx0 : x ≤ 0) (hpx : -(π / 2) ≤ x) : tan x ≤ 0 :=
+neg_nonneg.1 (tan_neg x ▸ tan_nonneg_of_nonneg_of_le_pi_div_two (by linarith) (by linarith using [pi_pos]))
+
+lemma tan_lt_tan_of_nonneg_of_lt_pi_div_two {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x < π / 2) (hy₁ : 0 ≤ y)
+  (hy₂ : y < π / 2) (hxy : x < y) : tan x < tan y :=
+begin
+  rw [tan_eq_sin_div_cos, tan_eq_sin_div_cos],
+  exact div_lt_div
+    (sin_lt_sin_of_le_of_le_pi_div_two (by linarith) (le_of_lt hx₂)
+      (by linarith) (le_of_lt hy₂) hxy)
+    (cos_le_cos_of_nonneg_of_le_pi hx₁ (by linarith) hy₁ (by linarith) (le_of_lt hxy))
+    (sin_nonneg_of_nonneg_of_le_pi hy₁ (by linarith))
+    (cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two (by linarith) hy₂)
+end
+
+lemma tan_lt_tan_of_lt_of_lt_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2)
+  (hy₁ : -(π / 2) < y) (hy₂ : y < π / 2) (hxy : x < y) : tan x < tan y :=
+(le_total x 0).elim
+  (λ hx0, (le_total y 0).elim
+    (λ hy0, neg_lt_neg_iff.1 $ by rw [← tan_neg, ← tan_neg]; exact
+      tan_lt_tan_of_nonneg_of_lt_pi_div_two (neg_nonneg.2 hy0) (neg_lt.2 hy₁)
+        (neg_nonneg.2 hx0) (neg_lt.2 hx₁) (neg_lt_neg hxy))
+    (λ hy0, (lt_or_eq_of_le hy0).elim
+      (λ hy0, calc tan x ≤ 0 : tan_nonpos_of_nonpos_of_neg_pi_div_two_le hx0 (le_of_lt hx₁)
+        ... < tan y : tan_pos_of_pos_of_lt_pi_div_two hy0 hy₂)
+      (λ hy0, by rw [← hy0, tan_zero]; exact
+        tan_neg_of_neg_of_pi_div_two_lt (hy0.symm ▸ hxy) hx₁)))
+  (λ hx0, (le_total y 0).elim
+    (λ hy0, by linarith)
+    (λ hy0, tan_lt_tan_of_nonneg_of_lt_pi_div_two hx0 hx₂ hy0 hy₂ hxy))
+
+lemma tan_inj_of_lt_of_lt_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2)
+  (hy₁ : -(π / 2) < y) (hy₂ : y < π / 2) (hxy : tan x = tan y) : x = y :=
+(lt_trichotomy x y).elim
+  (λ h, absurd (tan_lt_tan_of_lt_of_lt_pi_div_two hx₁ hx₂ hy₁ hy₂ h) (by rw hxy; exact lt_irrefl _))
+  (λ h, h.elim id
+    (λ h, absurd (tan_lt_tan_of_lt_of_lt_pi_div_two hy₁ hy₂ hx₁ hx₂ h) (by rw hxy; exact lt_irrefl _)))
+
 noncomputable def arctan (x : ℝ) : ℝ :=
 arcsin (x / sqrt (1 + x ^ 2))
 
-lemma arctan_le_pi_div_two (x : ℝ) : arctan x ≤ π / 2 :=
-arcsin_le_pi_div_two _
+lemma sin_arctan (x : ℝ) : sin (arctan x) = x / sqrt (1 + x ^ 2) :=
+sin_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _)) (le_of_lt (div_sqrt_one_add_lt_one _))
 
-lemma neg_pi_div_two_le_arctan (x : ℝ) : -(π / 2) ≤ arctan x :=
-neg_pi_div_two_le_arcsin _
-
-lemma tan_arctan (x : ℝ) : tan (arctan x) = x :=
-have h₁ : ∀ y, 0 ≤ 1 - sin y ^ 2 :=
-  λ y, sub_nonneg.2 (sin_pow_two_le_one _),
-have h₅ : (x / sqrt (1 + x ^ 2)) ^ 2 < 1,
+lemma cos_arctan (x : ℝ) : cos (arctan x) = 1 / sqrt (1 + x ^ 2) :=
+have h₁ : (0 : ℝ) < 1 + x ^ 2,
+  from add_pos_of_pos_of_nonneg zero_lt_one (pow_two_nonneg _),
+have h₂ : (x / sqrt (1 + x ^ 2)) ^ 2 < 1,
   by rw [pow_two, ← abs_mul_self, _root_.abs_mul];
     exact mul_lt_one_of_nonneg_of_lt_one_left (abs_nonneg _)
       (abs_div_sqrt_one_add_lt _) (le_of_lt (abs_div_sqrt_one_add_lt _)),
-have h₆ : sqrt (1 - (x / sqrt (1 + x ^ 2)) ^ 2) ≠ 0 :=
-  mt sqrt_eq_zero'.1 (not_le_of_gt (sub_pos.2 h₅)),
-have h₇ : (0 : ℝ) < 1 + x ^ 2,
-  from add_pos_of_pos_of_nonneg zero_lt_one (pow_two_nonneg _),
-have h₈ : sqrt (1 + x ^ 2) ≠ 0 :=
-  mt sqrt_eq_zero'.1 (not_le_of_gt h₇),
-have h₉ : 0 ≤ 1 - (x / sqrt (1 + x ^ 2)) ^ 2 :=
-  sub_nonneg.2 $ le_of_lt h₅,
-have h₁₀ : 1 + x ^ 2 - (x ^ 2 / (1 + x ^ 2) + x ^ 2 / (1 + x ^ 2) * x ^ 2) = 1 :=
-  (domain.mul_left_inj (ne.symm (ne_of_lt h₇))).1 $
-    by rw [mul_sub, mul_add, mul_add, ← mul_assoc, mul_div_cancel' _ (ne.symm (ne_of_lt h₇))]; ring,
-begin
-  have := sin_pow_two_add_cos_pow_two (arcsin (x / sqrt (1 + x ^ 2))),
-  rw [← eq_sub_iff_add_eq', ← sqrt_inj (pow_two_nonneg _) (h₁ _), sqrt_sqr (cos_arcsin_nonneg _),
-    sin_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _)) (le_of_lt (div_sqrt_one_add_lt_one _))] at this,
-  rw [tan_eq_sin_div_cos, arctan, sin_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _))
-    (le_of_lt (div_sqrt_one_add_lt_one _)), this, div_eq_iff_mul_eq h₆,
-    eq_div_iff_mul_eq _ _ h₈, mul_assoc, ← sqrt_mul h₉, sub_mul, mul_add, mul_add,
-    div_pow _ h₈, pow_two (sqrt (1 + _)), mul_self_sqrt (le_of_lt h₇), one_mul, one_mul, mul_one,
-    h₁₀, sqrt_one, mul_one]
-end
+by rw [arctan, cos_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _)) (le_of_lt (div_sqrt_one_add_lt_one _)),
+    one_div_eq_inv, ← sqrt_inv, sqrt_inj (sub_nonneg.2 (le_of_lt h₂)) (inv_nonneg.2 (le_of_lt h₁)),
+    div_pow _ (mt sqrt_eq_zero'.1 (not_le.2 h₁)), pow_two (sqrt _), mul_self_sqrt (le_of_lt h₁),
+    ← domain.mul_left_inj (ne.symm (ne_of_lt h₁)), mul_sub,
+    mul_div_cancel' _ (ne.symm (ne_of_lt h₁)), mul_inv_cancel (ne.symm (ne_of_lt h₁))];
+  simp
+
+lemma tan_arctan (x : ℝ) : tan (arctan x) = x :=
+by rw [tan_eq_sin_div_cos, sin_arctan, cos_arctan, div_div_div_div_eq, mul_one,
+    mul_div_assoc,
+    div_self (mt sqrt_eq_zero'.1 (not_le_of_gt (add_pos_of_pos_of_nonneg zero_lt_one (pow_two_nonneg x)))),
+    mul_one]
+
+lemma arctan_lt_pi_div_two (x : ℝ) : arctan x < π / 2 :=
+lt_of_le_of_ne (arcsin_le_pi_div_two _)
+  (λ h, ne_of_lt (div_sqrt_one_add_lt_one x) $
+    by rw [← sin_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _))
+        (le_of_lt (div_sqrt_one_add_lt_one _)), ← arctan, h, sin_pi_div_two])
+
+lemma neg_pi_div_two_lt_arctan (x : ℝ) : -(π / 2) < arctan x :=
+lt_of_le_of_ne (neg_pi_div_two_le_arcsin _)
+  (λ h, ne_of_lt (neg_one_lt_div_sqrt_one_add x) $
+    by rw [← sin_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _))
+        (le_of_lt (div_sqrt_one_add_lt_one _)), ← arctan, ← h, sin_neg, sin_pi_div_two])
 
 lemma tan_surjective : function.surjective tan :=
 function.surjective_of_has_right_inverse ⟨_, tan_arctan⟩
 
+lemma arctan_tan {x : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2) : arctan (tan x) = x :=
+tan_inj_of_lt_of_lt_pi_div_two (neg_pi_div_two_lt_arctan _)
+  (arctan_lt_pi_div_two _) hx₁ hx₂ (by rw tan_arctan)
+
 end real
+
+namespace complex
+
+local notation `π` := real.pi
+
+/-- `arg` returns values in the range (-π, π]. `arg 0 = 0` -/
+noncomputable def arg (x : ℂ) : ℝ :=
+if 0 ≤ x.re
+then real.arcsin (x.im / x.abs)
+else if 0 ≤ x.im
+then real.arcsin ((-x).im / x.abs) + π
+else real.arcsin ((-x).im / x.abs) - π
+
+lemma arg_eq_arg_neg_add_pi {x : ℂ} (hxr : x.re < 0) (hxi : 0 ≤ x.im) : arg x = arg (-x) + π :=
+have 0 ≤ (-x).re, from le_of_lt $ by simpa [neg_pos],
+by rw [arg, arg, if_neg (not_le.2 hxr), if_pos this, if_pos hxi, abs_neg]
+
+lemma arg_eq_arg_neg_sub_pi {x : ℂ} (hxr : x.re < 0) (hxi : x.im < 0) : arg x = arg (-x) - π :=
+have 0 ≤ (-x).re, from le_of_lt $ by simpa [neg_pos],
+by rw [arg, arg, if_neg (not_le.2 hxr), if_neg (not_le.2 hxi), if_pos this, abs_neg]
+
+@[simp] lemma arg_zero : arg 0 = 0 :=
+by simp [arg, le_refl]
+
+lemma sin_arg (x : ℂ) : real.sin (arg x) = x.im / x.abs :=
+by unfold arg; split_ifs;
+  simp [arg, real.sin_arcsin (abs_le.1 (abs_im_div_abs_le_one x)).1
+    (abs_le.1 (abs_im_div_abs_le_one x)).2, real.sin_add, neg_div, real.arcsin_neg,
+    real.sin_neg]
+
+private lemma cos_arg_of_re_nonneg {x : ℂ} (hx : x ≠ 0) (hxr : 0 ≤ x.re) : real.cos (arg x) = x.re / x.abs :=
+have 0 ≤ 1 - (x.im / abs x) ^ 2,
+  from sub_nonneg.2 $ by rw [pow_two, ← _root_.abs_mul_self, _root_.abs_mul, ← pow_two];
+  exact pow_le_one _ (_root_.abs_nonneg _) (abs_im_div_abs_le_one _),
+by rw [eq_div_iff_mul_eq _ _ (mt abs_eq_zero.1 hx), ← real.mul_self_sqrt (abs_nonneg x),
+    arg, if_pos hxr, real.cos_arcsin (abs_le.1 (abs_im_div_abs_le_one x)).1
+    (abs_le.1 (abs_im_div_abs_le_one x)).2, ← real.sqrt_mul (abs_nonneg _), ← real.sqrt_mul this,
+    sub_mul, div_pow _ (mt abs_eq_zero.1 hx), ← pow_two, div_mul_cancel _ (pow_ne_zero 2 (mt abs_eq_zero.1 hx)),
+    one_mul, pow_two, mul_self_abs, norm_sq, pow_two, add_sub_cancel, real.sqrt_mul_self hxr]
+
+lemma cos_arg {x : ℂ} (hx : x ≠ 0) : real.cos (arg x) = x.re / x.abs :=
+if hxr : 0 ≤ x.re then cos_arg_of_re_nonneg hx hxr
+else
+  have 0 ≤ (-x).re, from le_of_lt $ by simpa [neg_pos] using hxr,
+  if hxi : 0 ≤ x.im
+  then have 0 ≤ (-x).re, from le_of_lt $ by simpa [neg_pos] using hxr,
+    by rw [arg_eq_arg_neg_add_pi (not_le.1 hxr) hxi, real.cos_add_pi,
+        cos_arg_of_re_nonneg (neg_ne_zero.2 hx) this];
+      simp [neg_div]
+  else by rw [arg_eq_arg_neg_sub_pi (not_le.1 hxr) (not_le.1 hxi)];
+    simp [real.cos_add, neg_div, cos_arg_of_re_nonneg (neg_ne_zero.2 hx) this]
+
+lemma tan_arg {x : ℂ} : real.tan (arg x) = x.im / x.re :=
+if hx : x = 0 then by simp [hx]
+else by rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg hx,
+    div_div_div_cancel_right _ _ (mt abs_eq_zero.1 hx)]
+
+noncomputable def ln (x : ℂ) : ℂ := real.ln x.abs + arg x * I
+
+lemma exp_ln {x : ℂ} (hx : x ≠ 0) : exp (ln x) = x :=
+have h₁ : x.re / x.abs ≤ 1,
+  from (abs_le.1 (abs_re_div_abs_le_one x)).2,
+have h₂ : -1 ≤ x.re / x.abs,
+  from (abs_le.1 (abs_re_div_abs_le_one x)).1,
+by rw [ln, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx,
+    ← of_real_exp, real.exp_ln (abs_pos.2 hx), mul_add, of_real_div, of_real_div,
+    mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), ← mul_assoc,
+    mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), re_add_im]
+
+
+end complex

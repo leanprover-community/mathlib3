@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.euclidean_domain
+import data.finsupp algebra.euclidean_domain tactic.ring
 
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
@@ -204,7 +204,7 @@ begin
       generalize_hyp h1 : coeff (C x * X ^ (pn + 1) * q1) n = Q1 at ih1 ⊢, rw ih1,
       generalize_hyp h2 : coeff (C x * X ^ (pn + 1) * q2) n = Q2 at ih2 ⊢, rw ih2,
       rw finset.sum_add_distrib },
-    { rw [mul_left_comm, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul], 
+    { rw [mul_left_comm, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul],
       rw [sum_eq_single (pn + 1), coeff_C_mul_X, coeff_C_mul_X, coeff_C_mul_X, if_pos rfl],
       { have H : n = pn + 1 + (qn + 1) ↔ n - (pn + 1) = qn + 1,
         { split, { intro H, rw [H, nat.add_sub_cancel_left] },
@@ -324,6 +324,10 @@ by simp [is_root.def, eval_mul] {contextual := tt}
 lemma root_mul_right_of_is_root {p : polynomial α} (q : polynomial α) :
   is_root p a → is_root (p * q) a :=
 by simp [is_root.def, eval_mul] {contextual := tt}
+
+lemma eval_sum (p : polynomial α) (f : ℕ → α → polynomial α) (x : α) :
+  (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
+finsupp.sum_sum_index (by simp) (by intros; simp [right_distrib])
 
 end eval
 
@@ -462,6 +466,9 @@ calc degree (p + q) = ((p + q).support).sup some : rfl
 ⟨λ h, by_contradiction $ λ hp, mt (mem_support_iff _ _).1
   (not_not.2 h) (mem_of_max (degree_eq_nat_degree hp)),
 by simp {contextual := tt}⟩
+
+lemma leading_coeff_eq_zero_iff_deg_eq_bot : leading_coeff p = 0 ↔ degree p = ⊥ :=
+by rw [leading_coeff_eq_zero, degree_eq_bot]
 
 lemma degree_add_eq_of_degree_lt (h : degree p < degree q) : degree (p + q) = degree q :=
 le_antisymm (max_eq_right_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
@@ -643,7 +650,7 @@ variables [comm_ring α] {p q : polynomial α}
 instance : comm_ring (polynomial α) := finsupp.to_comm_ring
 instance : has_scalar α (polynomial α) := finsupp.to_has_scalar
 -- TODO if this becomes a semimodule then the below lemma could be proved for semimodules
-instance : module α (polynomial α) := finsupp.to_module α 
+instance : module α (polynomial α) := finsupp.to_module α
 
 -- TODO -- this is OK for semimodules
 @[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
@@ -1328,6 +1335,9 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       simp [finsupp.sum, mul_assoc, mul_comm, mul_left_comm]
     end
 
+lemma derivative_eval (p : polynomial α) (x : α) : p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
+by simp [derivative, eval_sum, eval_pow]
+
 end derivative
 
 section domain
@@ -1360,5 +1370,87 @@ le_antisymm
   end
 
 end domain
+
+section identities
+
+/- @TODO: pow_add_expansion and pow_sub_pow_factor are not specific to polynomials.
+  These belong somewhere else. But not in group_power because they depend on tactic.ring -/
+
+def pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ),
+  {k // (x + y)^n = x^n + n*x^(n-1)*y + k * y^2}
+| 0 := ⟨0, by simp⟩
+| 1 := ⟨0, by simp⟩
+| (n+2) :=
+  begin
+    cases pow_add_expansion (n+1) with z hz,
+    rw [_root_.pow_succ, hz],
+    existsi (x*z + (n+1)*x^n+z*y),
+    simp [_root_.pow_succ],
+    ring -- expensive!
+  end
+
+variable [comm_ring α]
+
+private def poly_binom_aux1 (x y : α) (e : ℕ) (a : α) :
+  {k : α // a * (x + y)^e = a * (x^e + e*x^(e-1)*y + k*y^2)} :=
+begin
+  existsi (pow_add_expansion x y e).val,
+  congr,
+  apply (pow_add_expansion _ _ _).property
+end
+
+private lemma poly_binom_aux2 (f : polynomial α) (x y : α) :
+  f.eval (x + y) = f.sum (λ e a, a * (x^e + e*x^(e-1)*y + (poly_binom_aux1 x y e a).val*y^2)) :=
+begin
+  unfold eval eval₂, congr, ext,
+  apply (poly_binom_aux1 x y _ _).property
+end
+
+private lemma poly_binom_aux3 (f : polynomial α) (x y : α) : f.eval (x + y) =
+  f.sum (λ e a, a * x^e) +
+  f.sum (λ e a, (a * e * x^(e-1)) * y) +
+  f.sum (λ e a, (a *(poly_binom_aux1 x y e a).val)*y^2) :=
+by rw poly_binom_aux2; simp [left_distrib, finsupp.sum_add, mul_assoc]
+
+def binom_expansion (f : polynomial α) (x y : α) :
+  {k : α // f.eval (x + y) = f.eval x + (f.derivative.eval x) * y + k * y^2} :=
+begin
+  existsi f.sum (λ e a, a *((poly_binom_aux1 x y e a).val)),
+  rw poly_binom_aux3,
+  congr,
+  { rw derivative_eval, symmetry,
+    apply finsupp.sum_mul },
+  { symmetry, apply finsupp.sum_mul }
+end
+
+def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z : α // x^i - y^i = z*(x - y)}
+| 0 := ⟨0, by simp⟩ --sorry --false.elim $ not_lt_of_ge h zero_lt_one
+| 1 := ⟨1, by simp⟩
+| (k+2) :=
+  begin
+    cases pow_sub_pow_factor with z hz,
+    existsi z*x + y^(k+1),
+    rw [_root_.pow_succ x, _root_.pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
+        ←mul_sub x, hz],
+    simp only [_root_.pow_succ],
+    ring
+  end
+
+def eval_sub_factor (f : polynomial α) (x y : α) :
+  {z : α // f.eval x - f.eval y = z*(x - y)} :=
+begin
+  existsi f.sum (λ a b, b * (pow_sub_pow_factor x y).val),
+  unfold eval eval₂,
+  rw [←finsupp.sum_sub],
+  have : finsupp.sum f (λ (a : ℕ) (b : α), b * (pow_sub_pow_factor x y).val) * (x - y) =
+    finsupp.sum f (λ (a : ℕ) (b : α), b * (pow_sub_pow_factor x y).val * (x - y)),
+  { apply finsupp.sum_mul },
+  rw this,
+  congr, ext e a,
+  rw [mul_assoc, ←(pow_sub_pow_factor x y).property],
+  simp [left_distrib]
+end
+
+end identities
 
 end polynomial

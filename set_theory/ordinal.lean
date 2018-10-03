@@ -2740,7 +2740,7 @@ aleph'.order_iso.ord'.symm
 le_iff_le_iff_lt_iff_lt.2 aleph'_lt
 
 @[simp] theorem aleph'_aleph_idx (c : cardinal.{u}) : aleph' c.aleph_idx = c :=
-by simpa using cardinal.aleph_idx.order_iso.to_equiv.inverse_apply_apply c
+by simpa [-symm_apply_eq] using cardinal.aleph_idx.order_iso.to_equiv.inverse_apply_apply c
 
 @[simp] theorem aleph_idx_aleph' (o : ordinal.{u}) : (aleph' o).aleph_idx = o :=
 by simpa using cardinal.aleph_idx.order_iso.to_equiv.apply_inverse_apply o

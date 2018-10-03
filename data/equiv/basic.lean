@@ -93,8 +93,11 @@ rfl
 
 @[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 
-@[simp] lemma symm_apply_eq {α β} {e : α ≃ β} {x y} : e.symm x = y ↔ x = e y :=
+@[simp] lemma symm_apply_eq {α β} (e : α ≃ β) {x y} : e.symm x = y ↔ x = e y :=
 ⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+
+@[simp] lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
+(eq_comm.trans e.symm_apply_eq).trans eq_comm
 
 @[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
 

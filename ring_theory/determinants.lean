@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2018 Johannes Hölzl. All rights reserved.
+Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
@@ -18,7 +18,7 @@ variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 instance : decidable_pred (function.bijective : (n → n) → Prop) :=
 λ _, by unfold function.bijective; apply_instance
 
-instance bij_fintype : fintype {f : n → n // function.bijective f} := 
+instance bij_fintype : fintype {f : n → n // function.bijective f} :=
 set_fintype _
 
 definition det (M : matrix n n R) : R :=

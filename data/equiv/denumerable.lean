@@ -55,7 +55,7 @@ def mk' {α} (e : α ≃ ℕ) : denumerable α :=
   decode_inv := λ n, ⟨_, rfl, e.apply_inverse_apply _⟩ }
 
 def of_equiv (α) {β} [denumerable α] (e : β ≃ α) : denumerable β :=
-{ decode_inv := λ n, by simp,
+{ decode_inv := λ n, by simp [-equiv.symm_apply_eq],
   ..encodable.of_equiv _ e }
 
 @[simp] theorem of_equiv_of_nat (α) {β} [denumerable α] (e : β ≃ α)

@@ -204,8 +204,8 @@ int.exists_greatest_of_bdd
 theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y ≤ x) →
   ∃ x, ∀ y, x ≤ y ↔ ∀ z ∈ S, z ≤ y
 | ⟨L, hL⟩ ⟨U, hU⟩ := begin
-  have,
-  { refine λ d : ℕ, @int.exists_greatest_of_bdd
+  choose f hf using begin
+    refine λ d : ℕ, @int.exists_greatest_of_bdd
       (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _ _,
     { cases exists_int_gt U with k hk,
       refine ⟨k * d, λ z h, _⟩,
@@ -214,9 +214,8 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
       simp,
       exact mul_le_mul_of_nonneg_right
         (le_trans (hU _ yS) (le_of_lt hk)) (nat.cast_nonneg _) },
-    { exact ⟨⌊L * d⌋, L, hL, floor_le _⟩ } },
-  cases classical.axiom_of_choice this with f hf,
-  dsimp at f hf,
+    { exact ⟨⌊L * d⌋, L, hL, floor_le _⟩ }
+  end,
   have hf₁ : ∀ n > 0, ∃ y ∈ S, ((f n / n:ℚ):ℝ) ≤ y := λ n n0,
     let ⟨y, yS, hy⟩ := (hf n).1 in
     ⟨y, yS, by simpa using (div_le_iff (nat.cast_pos.2 n0)).2 hy⟩,

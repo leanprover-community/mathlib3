@@ -423,9 +423,9 @@ if you have e.g. both integer and rational valued inequalities in the local cont
 sometimes confuse the tactic.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
 
-## choice
+## choose
 
-`choice hyp with a b h` takes an hypothesis `hyp` of the form
+`choose hyp with a b h` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
 into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
 `∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.

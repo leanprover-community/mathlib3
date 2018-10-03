@@ -104,6 +104,15 @@ begin
   trivial
 end
 
+example (h : ∀n m : ℕ, ∃i, ∀n:ℕ, ∃j, m = n + i ∨ m + j = n) : true :=
+begin
+  choose i j h using h,
+  guard_hyp i := ℕ → ℕ → ℕ,
+  guard_hyp j := ℕ → ℕ → ℕ → ℕ,
+  guard_hyp h := ∀ (n m k : ℕ), m = k + i n m ∨ m + j n m k = k,
+  trivial
+end
+
 /- refine_struct -/
 section refine_struct
 

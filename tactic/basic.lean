@@ -521,24 +521,32 @@ meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
   exact ((new_goal.mk_app lc).instantiate_locals lm),
   return ()
 
+/-- like `mk_local_pis` but translating into weak head normal form before checking if it is a Π. -/
+meta def mk_local_pis_whnf : expr → tactic (list expr × expr) | e := do
+(expr.pi n bi d b) ← whnf e | return ([], e),
+p ← mk_local' n bi d,
+(ps, r) ← mk_local_pis (expr.instantiate_var b p),
+return ((p :: ps), r)
+
 /-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g` -/
-meta def choice1 (h : expr) (data : name) (spec : name) : tactic expr := do
+meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
   t ← infer_type h,
-  (ctxt, t) ← mk_local_pis t,
-  `(@Exists %%α %%p) ← whnf t transparency.all,
-  expr.sort u ← infer_type α >>= whnf,
+  (ctxt, t) ← mk_local_pis_whnf t,
+  `(@Exists %%α %%p) ← whnf t transparency.all | fail "expected a term of the shape ∀xs, ∃a, p xs a",
+  α_t ← infer_type α,
+  expr.sort u ← whnf α_t transparency.all,
   value ← mk_local_def data (α.pis ctxt),
   t' ← head_beta (p.app (value.mk_app ctxt)),
   spec ← mk_local_def spec (t'.pis ctxt),
   dependent_pose_core [
     (value, ((((expr.const `classical.some [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt),
     (spec, ((((expr.const `classical.some_spec [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt)],
-  tactic.clear h,
+  try (tactic.clear h),
   intro1,
   intro1
 
 /-- Changes `(h : ∀xs, ∃as, p as) ⊢ g` to a list of functions `as`, an a final hypothesis on `p as` -/
-meta def choice : expr → list name → tactic unit
+meta def choose : expr → list name → tactic unit
 | h [] := fail "expect list of variables"
 | h [n] := do
   cnt ← revert h,
@@ -546,7 +554,7 @@ meta def choice : expr → list name → tactic unit
   intron (cnt - 1),
   return ()
 | h (n::ns) := do
-  v ← get_unused_name >>= choice1 h n,
-  choice v ns
+  v ← get_unused_name >>= choose1 h n,
+  choose v ns
 
 end tactic

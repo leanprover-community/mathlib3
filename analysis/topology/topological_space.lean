@@ -1239,7 +1239,7 @@ lemma is_open_sUnion_countable [second_countable_topology α]
 let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
 begin
   let B' := {b ∈ B | ∃ s ∈ S, b ⊆ s},
-  rcases axiom_of_choice (λ b:B', b.2.2) with ⟨f, hf⟩,
+  choose f hf using assume b:B', b.2.2,
   change B' → set α at f,
   haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable,
   have : range f ⊆ S := range_subset_iff.2 (λ x, (hf x).fst),

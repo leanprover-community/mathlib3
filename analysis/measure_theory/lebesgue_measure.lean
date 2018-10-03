@@ -134,14 +134,13 @@ begin
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left' (le_of_lt hε)),
   rw ← ennreal.tsum_add,
-  have : ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) <
-    lebesgue_length (f i) + ε' i,
+  choose g hg using show
+    ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) < lebesgue_length (f i) + ε' i,
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
     conv at this {to_lhs, rw lebesgue_length_eq_infi_Ioo},
     simpa [infi_lt_iff] },
-  cases axiom_of_choice this with g hg, dsimp only at g hg,
   refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hg i).2),
   exact lebesgue_length_subadditive (subset.trans hf $
     Union_subset_Union $ λ i, (hg i).1)
@@ -200,8 +199,8 @@ begin
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left' (le_of_lt hε)),
   rw ← ennreal.tsum_add,
-  have : ∀ i, ∃ s, f i ⊆ s ∧ is_measurable s ∧
-    lebesgue_outer s ≤ lebesgue_length (f i) + of_real (ε' i),
+  choose g hg using show
+    ∀ i, ∃ s, f i ⊆ s ∧ is_measurable s ∧ lebesgue_outer s ≤ lebesgue_length (f i) + of_real (ε' i),
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
@@ -210,7 +209,7 @@ begin
     rcases this with ⟨a, b, h₁, h₂⟩,
     rw ← lebesgue_outer_Ico at h₂,
     exact ⟨_, h₁, is_measurable_Ico, le_of_lt $ by simpa using h₂⟩ },
-  cases axiom_of_choice this with g hg, simp at g hg,
+  simp at hg,
   apply infi_le_of_le (Union g) _,
   apply infi_le_of_le (subset.trans hf $ Union_subset_Union (λ i, (hg i).1)) _,
   apply infi_le_of_le (is_measurable.Union (λ i, (hg i).2.1)) _,

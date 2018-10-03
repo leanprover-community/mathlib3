@@ -2146,11 +2146,12 @@ quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, by simp [nodup_product d�
 
 theorem nodup_sigma {σ : α → Type*} {s : multiset α} {t : Π a, multiset (σ a)} :
   nodup s → (∀ a, nodup (t a)) → nodup (s.sigma t) :=
-quot.induction_on s $ λ l₁,
-let l₂ (a) : list (σ a) := classical.some (quotient.exists_rep (t a)) in
-have t = λ a, l₂ a, from eq.symm $ funext $ λ a,
-  classical.some_spec (quotient.exists_rep (t a)),
-by rw [this]; simpa using nodup_sigma
+quot.induction_on s $ assume l₁,
+begin
+  choose f hf using assume a, quotient.exists_rep (t a),
+  rw show t = λ a, f a, from (eq.symm $ funext $ λ a, hf a),
+  simpa using nodup_sigma
+end
 
 theorem nodup_filter_map (f : α → option β) {s : multiset α}
   (H : ∀ (a a' : α) (b : β), b ∈ f a → b ∈ f a' → a = a') :

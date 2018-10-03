@@ -10,104 +10,21 @@ import data.nat.basic
 
 open fin nat
 
+theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
+have h3 : a ≤ b, from le_of_lt_succ h1,
+or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
+
+instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
+instance fin_to_int (n : ℕ) : has_coe (fin n) int := ⟨λ k, ↑(fin.val k)⟩
+
 namespace fin
-
-variable {n : ℕ}
-
-/-- The greatest value of `fin (n+1)` -/
-def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
-
-theorem le_last (i : fin (n+1)) : i ≤ last n :=
-le_of_lt_succ i.is_lt
-
-def add_nat {n} (i : fin n) (k) : fin (n + k) :=
-⟨i.1 + k, nat.add_lt_add_right i.2 _⟩
-
-@[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
-by cases j; simp [fin.succ]
-
-@[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
-by cases j; simp [fin.pred]
-
-@[simp] lemma fin.succ_pred (i : fin (n+1)) (H : i ≠ 0) :
-  (i.pred H).succ = i :=
-begin
-  apply fin.eq_of_veq,
-  cases i with i hi,
-  cases i,
-  { exfalso, apply H, apply fin.eq_of_veq, refl },
-  refl
-end
-
-@[simp] lemma fin.pred_succ (i : fin n) (H : i.succ ≠ 0) :
-  i.succ.pred H = i :=
-by cases i; refl
-
-/-- Embedding of `fin n` in `fin (n+1)` -/
-def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
-
-@[simp] lemma fin.raise_val (k : fin n) : k.raise.val = k.val := rfl
-
-def lower : Π i : fin (n+1), i.1 < n → fin n := λ i h, ⟨i.1, h⟩
-
-@[simp] lemma lower_val (k : fin (n+1)) (H : k.1 < n) : (k.lower H).val = k.val := rfl
-
-def ascend (pivot : fin (n+1)) (i : fin n) : fin (n+1) :=
-if i.1 < pivot.1 then i.raise else i.succ
-
-def descend (pivot : fin (n+1)) (i : fin (n+1)) (H : i ≠ pivot) : fin n :=
-if h : i.1 < pivot.1
-  then i.lower (lt_of_lt_of_le h $ nat.le_of_lt_succ pivot.2)
-  else i.pred (λ H1, H $ by subst H1;
-    replace h := nat.eq_zero_of_le_zero (le_of_not_gt h);
-    from fin.eq_of_veq h.symm)
-
-theorem ascend_ne (pivot : fin (n+1)) (i : fin n) :
-  pivot.ascend i ≠ pivot :=
-λ H, begin
-  unfold fin.ascend at H,
-  split_ifs at H;
-  rw ← H at h;
-  simp [lt_irrefl, nat.lt_succ_self] at h;
-  exact h
-end
-
-@[simp] lemma ascend_descend (pivot i : fin (n+1))
-  (H : i ≠ pivot) : pivot.ascend (pivot.descend i H) = i :=
-begin
-  unfold fin.descend fin.ascend,
-  split_ifs with H1 H2 H3; apply fin.eq_of_veq; simp at *,
-  { cases pivot with p hp,
-    cases i with i hi,
-    cases i with i, { simp at * },
-    exfalso, apply H, apply fin.eq_of_veq,
-    apply le_antisymm, { apply nat.succ_le_of_lt H2 },
-    simpa using H1 }
-end
-
-@[simp] lemma descend_ascend (pivot : fin (n+1))
-  (i : fin n) (H : pivot.ascend i ≠ pivot) :
-  pivot.descend (pivot.ascend i) H = i :=
-begin
-  unfold fin.descend fin.ascend,
-  apply fin.eq_of_veq,
-  split_ifs,
-  { simp [h] },
-  { split_ifs,
-    cases nat.decidable_lt ((ite (i.val < pivot.val) (fin.raise i) (fin.succ i)).val) (pivot.val) with h1 h1,
-    { cases nat.decidable_lt (i.val) (pivot.val),
-      { split_ifs, simp },
-      { cc } },
-    { cases nat.decidable_lt (i.val) (pivot.val) with h2 h2,
-      { simp [h2] at h1,
-        simp at *,
-        exfalso, apply lt_asymm (nat.lt_succ_self i.1),
-        apply lt_of_lt_of_le h1 h2 },
-      { split_ifs, exfalso, exact h h2 } } }
-end
+variables {n : ℕ} {a b : fin n}
 
 @[simp] protected lemma eta (a : fin n) (h : a.1 < n) : (⟨a.1, h⟩ : fin n) = a :=
 by cases a; refl
+
+protected lemma ext_iff (a b : fin n) : a = b ↔ a.val = b.val :=
+iff.intro (congr_arg _) fin.eq_of_veq
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 { le_refl := λ a, @le_refl ℕ _ _,
@@ -119,19 +36,10 @@ instance {n : ℕ} : decidable_linear_order (fin n) :=
   ..fin.has_le,
   ..fin.has_lt }
 
-end fin
+instance {n : ℕ} : preorder (fin n) :=
+by apply_instance
 
-theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
-have h3 : a ≤ b, from le_of_lt_succ h1,
-or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
-
-instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
-instance fin_to_int (n : ℕ) : has_coe (fin n) int := ⟨λ k, ↑(fin.val k)⟩
-
-namespace fin
-
-variables {n : ℕ} {a b : fin n}
-
+section succ
 protected theorem succ.inj (p : fin.succ a = fin.succ b) : a = b :=
 by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
 
@@ -173,10 +81,88 @@ by cases i; refl
   @fin.cases n C H0 Hs i.succ = Hs i :=
 by cases i; refl
 
+end succ
+
 def fin_zero_elim {C : Sort*} : fin 0 → C :=
 λ x, false.elim $ nat.not_lt_zero x.1 x.2
 
-end fin
+/-- The greatest value of `fin (n+1)` -/
+def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
 
-instance {n : ℕ} : preorder (fin n) :=
-by apply_instance
+/-- Embedding of `fin n` in `fin (n+1)`, ignoring the `last n` -/
+def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
+
+/-- Embedding of `fin (n+1)` in `fin n`, assuming that the argument is not `last n`. -/
+def lower (i : fin (n+1)) (h : i.1 < n) : fin n := ⟨i.1, h⟩
+
+/-- Embedding of `fin n` in `fin (n+1)`, around `p`. -/
+def ascend (p : fin (n+1)) (i : fin n) : fin (n+1) :=
+if i.1 < p.1 then i.raise else i.succ
+
+/-- Embedding of `fin (n+1)` in `fin n`, around `p`. -/
+def descend (p : fin (n+1)) (i : fin (n+1)) (hi : i ≠ p) : fin n :=
+begin
+  refine if h : i.1 < p.1
+    then i.lower (lt_of_lt_of_le h $ nat.le_of_lt_succ p.2)
+    else i.pred (mt (assume eq, _) hi),
+  subst eq,
+  exact fin.eq_of_veq (nat.eq_zero_of_le_zero (le_of_not_gt h)).symm
+end
+
+theorem le_last (i : fin (n+1)) : i ≤ last n :=
+le_of_lt_succ i.is_lt
+
+@[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
+by cases j; simp [fin.succ]
+
+@[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
+by cases j; simp [fin.pred]
+
+@[simp] lemma succ_pred : ∀(i : fin (n+1)) (h : i ≠ 0), (i.pred h).succ = i
+| ⟨0,     h⟩ hi := by contradiction
+| ⟨n + 1, h⟩ hi := rfl
+
+@[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
+by cases i; refl
+
+@[simp] lemma raise_val (k : fin n) : k.raise.val = k.val := rfl
+
+@[simp] lemma lower_val (k : fin (n+1)) (h : k.1 < n) : (k.lower h).val = k.val := rfl
+
+@[simp] lemma raise_lower (i : fin (n + 1)) (h : i.val < n): raise (lower i h) = i :=
+fin.eq_of_veq rfl
+
+theorem ascend_ne (p : fin (n+1)) (i : fin n) : p.ascend i ≠ p :=
+begin
+  assume eq,
+  unfold fin.ascend at eq,
+  split_ifs at eq with h;
+    simpa [lt_irrefl, nat.lt_succ_self, eq.symm] using h
+end
+
+@[simp] lemma ascend_descend : ∀(p i : fin (n+1)) (h : i ≠ p), p.ascend (p.descend i h) = i
+| ⟨p, hp⟩ ⟨0,   hi⟩ h := fin.eq_of_veq $ by simp [ascend, descend]; split_ifs; simp * at *
+| ⟨p, hp⟩ ⟨i+1, hi⟩ h := fin.eq_of_veq
+  begin
+    have : i + 1 ≠ p, by rwa [(≠), fin.ext_iff] at h,
+    unfold ascend descend,
+    split_ifs with h1 h2; simp at *,
+    exact (this (le_antisymm h2 (le_of_not_gt h1))).elim
+  end
+
+@[simp] lemma descend_ascend (p : fin (n+1)) (i : fin n) (h : p.ascend i ≠ p) :
+  p.descend (p.ascend i) h = i :=
+begin
+  unfold fin.ascend,
+  apply fin.eq_of_veq,
+  split_ifs with h₀,
+  { simp [descend, h₀] },
+  { unfold descend,
+    split_ifs with h₁,
+    { exfalso,
+      rw [succ_val] at h₁,
+      exact h₀ (lt_trans (nat.lt_succ_self _) h₁) },
+    { rw [pred_succ] } }
+end
+
+end fin

@@ -432,6 +432,8 @@ end
 let ⟨r, hr⟩ := (eq_conj_iff_real (exp x)).1 (by rw [← exp_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
+lemma exp_of_real_re (x : ℝ) : (exp x).re = real.exp x := rfl
+
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
 complex.ext (by simp) (by simp)
 
@@ -489,7 +491,7 @@ end
 let ⟨r, hr⟩ := (eq_conj_iff_real (sin x)).1 (by rw [← sin_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
-@[simp] lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
+lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
 
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
 by apply complex.ext; simp
@@ -511,7 +513,7 @@ end
 let ⟨r, hr⟩ := (eq_conj_iff_real (cos x)).1 (by rw [← cos_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
-@[simp] lemma cos_of_real_re (x : ℝ) : (cos x).re = real.cos x := rfl
+lemma cos_of_real_re (x : ℝ) : (cos x).re = real.cos x := rfl
 
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
 by apply complex.ext; simp
@@ -532,7 +534,7 @@ by rw [tan, sin_conj, cos_conj, ← conj_div, tan]
 let ⟨r, hr⟩ := (eq_conj_iff_real (tan x)).1 (by rw [← tan_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
-@[simp] lemma tan_of_real_re (x : ℝ) : (tan x).re = real.tan x := rfl
+lemma tan_of_real_re (x : ℝ) : (tan x).re = real.tan x := rfl
 
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
 by apply complex.ext; simp
@@ -610,7 +612,7 @@ by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, con
 let ⟨r, hr⟩ := (eq_conj_iff_real (sinh x)).1 (by rw [← sinh_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
-@[simp] lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
+lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 by apply complex.ext; simp
@@ -625,7 +627,7 @@ by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, con
 let ⟨r, hr⟩ := (eq_conj_iff_real (cosh x)).1 (by rw [← cosh_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
-@[simp] lemma cosh_of_real_re (x : ℝ) : (cosh x).re = real.cosh x := rfl
+lemma cosh_of_real_re (x : ℝ) : (cosh x).re = real.cosh x := rfl
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
 by apply complex.ext; simp
@@ -646,7 +648,7 @@ by rw [tanh, sinh_conj, cosh_conj, ← conj_div, tanh]
 let ⟨r, hr⟩ := (eq_conj_iff_real (tanh x)).1 (by rw [← tanh_conj, conj_of_real]) in
 by rw [hr, of_real_im]
 
-@[simp] lemma tanh_of_real_re (x : ℝ) : (tanh x).re = real.tanh x := rfl
+lemma tanh_of_real_re (x : ℝ) : (tanh x).re = real.tanh x := rfl
 
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
 by apply complex.ext; simp
@@ -811,6 +813,9 @@ lemma exp_pos (x : ℝ) : 0 < exp x :=
 (le_total 0 x).elim (lt_of_lt_of_le zero_lt_one ∘ one_le_exp)
   (λ h, by rw [← neg_neg x, real.exp_neg];
     exact inv_pos (lt_of_lt_of_le zero_lt_one (one_le_exp (neg_nonneg.2 h))))
+
+@[simp] lemma abs_exp (x : ℝ) : abs' (exp x) = exp x :=
+abs_of_nonneg (le_of_lt (exp_pos _))
 
 lemma exp_le_exp {x y : ℝ} (h : x ≤ y) : exp x ≤ exp y :=
 by rw [← sub_add_cancel y x, real.exp_add];
@@ -978,16 +983,23 @@ calc 0 < x - x ^ 3 / 6 - abs' x ^ 4 * (5 / 96) :
         ≤ x * (5 / 96) + x / 6 :
       add_le_add
         (mul_le_mul_of_nonneg_right
-          (calc abs' x ^ 4 ≤ abs' x ^ 1 : pow_le_pow_of_le_one_of_pos
+          (calc abs' x ^ 4 ≤ abs' x ^ 1 : pow_le_pow_of_le_one (abs_nonneg _)
                 (by rwa _root_.abs_of_nonneg (le_of_lt hx0))
-                (abs_pos_of_pos hx0) dec_trivial
+                dec_trivial
             ... = x : by simp [_root_.abs_of_nonneg (le_of_lt (hx0))]) (by norm_num))
         ((div_le_div_right (by norm_num)).2
-          (calc x ^ 3 ≤ x ^ 1 : pow_le_pow_of_le_one_of_pos hx hx0 dec_trivial
+          (calc x ^ 3 ≤ x ^ 1 : pow_le_pow_of_le_one (le_of_lt hx0) hx dec_trivial
             ... = x : pow_one _))
     ... < x : by linarith)
 ... ≤ sin x : sub_le.1 (abs_sub_le_iff.1 (sin_bound
     (by rwa [_root_.abs_of_nonneg (le_of_lt hx0)]))).2
+
+lemma sin_pos_of_pos_of_le_two {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 2) : 0 < sin x :=
+have x / 2 ≤ 1, from div_le_of_le_mul (by norm_num) (by simpa),
+calc 0 < 2 * sin (x / 2) * cos (x / 2) :
+  mul_pos (mul_pos (by norm_num) (sin_pos_of_pos_of_le_one (half_pos hx0) this))
+    (cos_pos_of_le_one (by rwa [_root_.abs_of_nonneg (le_of_lt (half_pos hx0))]))
+... = sin x : by rw [← sin_two_mul, two_mul, add_halves]
 
 lemma cos_one_le : cos 1 ≤ 2 / 3 :=
 calc cos 1 ≤ abs' (1 : ℝ) ^ 4 * (5 / 96) + (1 - 1 ^ 2 / 2) :
@@ -1007,11 +1019,22 @@ calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
     (by norm_num)) _
 ... < 0 : by norm_num
 
-lemma sin_pos_of_pos_of_le_two {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 2) : 0 < sin x :=
-have x / 2 ≤ 1, from div_le_of_le_mul (by norm_num) (by simpa),
-calc 0 < 2 * sin (x / 2) * cos (x / 2) :
-  mul_pos (mul_pos (by norm_num) (sin_pos_of_pos_of_le_one (half_pos hx0) this))
-    (cos_pos_of_le_one (by rwa [_root_.abs_of_nonneg (le_of_lt (half_pos hx0))]))
-... = sin x : by rw [← sin_two_mul, two_mul, add_halves]
-
 end real
+
+namespace complex
+
+lemma abs_cos_add_sin_mul_I (x : ℝ) : abs (cos x + sin x * I) = 1 :=
+have _ := real.sin_pow_two_add_cos_pow_two x,
+by simp [abs, norm_sq, pow_two, *, sin_of_real_re, cos_of_real_re, mul_re] at *
+
+lemma abs_exp_eq_iff_re_eq {x y : ℂ} : abs (exp x) = abs (exp y) ↔ x.re = y.re :=
+by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y,
+    abs_mul, abs_mul, abs_cos_add_sin_mul_I, abs_cos_add_sin_mul_I,
+    ← of_real_exp, ← of_real_exp, abs_of_nonneg (le_of_lt (real.exp_pos _)),
+    abs_of_nonneg (le_of_lt (real.exp_pos _)), mul_one, mul_one];
+  exact ⟨λ h, real.exp_injective h, congr_arg _⟩
+
+@[simp] lemma abs_exp_of_real (x : ℝ) : abs (exp x) = real.exp x :=
+by rw [← of_real_exp]; exact abs_of_nonneg (le_of_lt (real.exp_pos _))
+
+end complex

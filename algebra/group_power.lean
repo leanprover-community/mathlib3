@@ -443,6 +443,10 @@ calc a ^ n = a ^ n * 1 : by simp
     (pow_nonneg (le_trans zero_le_one ha) _)
   ... = a ^ m : by rw [←hk, pow_add]
 
+lemma pow_le_pow_of_le_left  {a b : α} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
+| 0 := by simp
+| (k+1) := mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab)
+
 private lemma pow_lt_pow_of_lt_one_aux {a : α} (h : 0 < a) (ha : a < 1) (i : ℕ) :
   ∀ k : ℕ, a ^ (i + k + 1) < a ^ i
 | 0 := begin simp, rw ←one_mul (a^i), exact mul_lt_mul ha (le_refl _) (pow_pos h _) zero_le_one end

@@ -97,14 +97,6 @@ lemma mul_le_of_le_one_left {a b : α} (hb : 0 ≤ b) (ha1 : a ≤ 1) : a * b �
 calc a * b ≤ 1 * b : mul_le_mul ha1 (le_refl b) hb zero_le_one
 ... = b : one_mul b
 
-lemma mul_lt_of_lt_one_right {a b : α} (ha : 0 < a) (hb1 : b < 1) : a * b < a :=
-calc a * b < a * 1 : (mul_lt_mul_left ha).2 hb1
-... = a : mul_one a
-
-lemma mul_lt_of_lt_one_left {a b : α} (hb : 0 < b) (ha1 : a < 1) : a * b < b :=
-calc a * b < 1 * b : (mul_lt_mul_right hb).2 ha1
-... = b : one_mul b
-
 lemma mul_lt_one_of_nonneg_of_lt_one_left {a b : α}
   (ha0 : 0 ≤ a) (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
 calc a * b ≤ a : mul_le_of_le_one_right ha0 hb

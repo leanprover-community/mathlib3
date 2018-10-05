@@ -829,7 +829,8 @@ if hy : y = 0 then by simp * at *
 else have hx : x ≠ 0, from λ hx, by simp [*, eq_comm] at *,
   by rwa [arg_eq_arg_iff hx hy, h₁, div_self (of_real_ne_zero.2 (mt abs_eq_zero.1 hy)), one_mul] at h₂
 
-/-- Inverse of the `exp` function. Returns values whose imaginary -/
+/-- Inverse of the `exp` function. Returns values such that `(log x).im > - π` and `(log x).im ≤ π`.
+  `log 0 = 0`-/
 noncomputable def log (x : ℂ) : ℂ := x.abs.log + arg x * I
 
 lemma log_re (x : ℂ) : x.log.re = x.abs.log := by simp [log]

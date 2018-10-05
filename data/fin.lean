@@ -18,6 +18,9 @@ def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
 def add_nat {n} (i : fin n) (k) : fin (n + k) :=
 ⟨i.1 + k, nat.add_lt_add_right i.2 _⟩
 
+def nat_add {n} (k) (i : fin n) : fin (k + n) :=
+⟨k + i.1, nat.add_lt_add_left i.2 _⟩
+
 @[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
 by cases j; simp [fin.succ]
 

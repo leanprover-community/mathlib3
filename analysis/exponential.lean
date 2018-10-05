@@ -111,10 +111,11 @@ let ⟨y, hy⟩ := @intermediate_value real.exp 0 (x - 1) x
 ⟨y, hy.2.2⟩
 
 lemma exists_exp_eq_of_pos {x : ℝ} (hx : 0 < x) : ∃ y, exp y = x :=
-(le_total x 1).elim
-(λ hx1, let ⟨y, hy⟩ := exists_exp_eq_of_one_le (one_le_inv hx hx1) in
-  ⟨-y, by rw [exp_neg, hy, inv_inv']⟩)
-exists_exp_eq_of_one_le
+match le_total x 1 with
+| (or.inl hx1) := let ⟨y, hy⟩ := exists_exp_eq_of_one_le (one_le_inv hx hx1) in
+  ⟨-y, by rw [exp_neg, hy, inv_inv']⟩
+| (or.inr hx1) := exists_exp_eq_of_one_le hx1
+end
 
 noncomputable def log (x : ℝ) : ℝ :=
 if hx : 0 < x then classical.some (exists_exp_eq_of_pos hx) else 0
@@ -207,11 +208,12 @@ else
   sin_pi_sub x ▸ sin_pos_of_pos_of_le_two (sub_pos.2 hxp) this
 
 lemma sin_nonneg_of_nonneg_of_le_pi {x : ℝ} (h0x : 0 ≤ x) (hxp : x ≤ π) : 0 ≤ sin x :=
-(lt_or_eq_of_le h0x).elim
-  (λ h0x, (lt_or_eq_of_le hxp).elim
-    (le_of_lt ∘ sin_pos_of_pos_of_lt_pi h0x)
-    (λ hpx, by simp [hpx]))
-  (λ h0x, by simp [h0x.symm])
+match lt_or_eq_of_le h0x with
+| or.inl h0x := (lt_or_eq_of_le hxp).elim
+  (le_of_lt ∘ sin_pos_of_pos_of_lt_pi h0x)
+  (λ hpx, by simp [hpx])
+| or.inr h0x := by simp [h0x.symm]
+end
 
 lemma sin_neg_of_neg_of_neg_pi_lt {x : ℝ} (hx0 : x < 0) (hpx : -π < x) : sin x < 0 :=
 neg_pos.1 $ sin_neg x ▸ sin_pos_of_pos_of_lt_pi (neg_pos.2 hx0) (neg_lt.1 hpx)
@@ -250,11 +252,11 @@ sin_add_pi_div_two x ▸ sin_pos_of_pos_of_lt_pi (by linarith) (by linarith)
 
 lemma cos_nonneg_of_neg_pi_div_two_le_of_le_pi_div_two
   {x : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) : 0 ≤ cos x :=
-(lt_or_eq_of_le hx₁).elim
-  (λ hx₁, (lt_or_eq_of_le hx₂).elim
-    (le_of_lt ∘ cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two hx₁)
-    (λ hx₂, by simp [hx₂]))
-  (λ hx₁, by simp [hx₁.symm])
+match lt_or_eq_of_le hx₁, lt_or_eq_of_le hx₂ with
+| or.inl hx₁, or.inl hx₂ := le_of_lt (cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two hx₁ hx₂)
+| or.inl hx₁, or.inr hx₂ := by simp [hx₂]
+| or.inr hx₁, _          := by simp [hx₁.symm]
+end
 
 lemma cos_neg_of_pi_div_two_lt_of_lt {x : ℝ} (hx₁ : π / 2 < x) (hx₂ : x < π + π / 2) : cos x < 0 :=
 neg_pos.1 $ cos_pi_sub x ▸
@@ -335,22 +337,22 @@ calc cos y = cos x * cos (y - x) - sin x * sin (y - x) :
 
 lemma cos_lt_cos_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π)
   (hy₁ : 0 ≤ y) (hy₂ : y ≤ π) (hxy : x < y) : cos y < cos x :=
-(le_total x (π / 2)).elim
-  (λ hx, (le_total y (π / 2)).elim
-    (λ hy, cos_lt_cos_of_nonneg_of_le_pi_div_two hx₁ hx hy₁ hy hxy)
-    (λ hy, (lt_or_eq_of_le hx).elim
-      (λ hx, calc cos y ≤ 0 : cos_nonpos_of_pi_div_two_le_of_le hy (by linarith using [pi_pos])
-        ... < cos x : cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two (by linarith) hx)
-      (λ hx, calc cos y < 0 : cos_neg_of_pi_div_two_lt_of_lt (by linarith) (by linarith using [pi_pos])
-        ... = cos x : by simp [hx, cos_pi_div_two])))
-  (λ hx, (le_total y (π / 2)).elim
-    (λ hy, by linarith)
-    (λ hy, neg_lt_neg_iff.1 $ cos_pi_sub x ▸ cos_pi_sub y ▸
-      by apply cos_lt_cos_of_nonneg_of_le_pi_div_two; linarith))
+match le_total x (π / 2), le_total y (π / 2) with
+| or.inl hx, or.inl hy := cos_lt_cos_of_nonneg_of_le_pi_div_two hx₁ hx hy₁ hy hxy
+| or.inl hx, or.inr hy := (lt_or_eq_of_le hx).elim
+  (λ hx, calc cos y ≤ 0 : cos_nonpos_of_pi_div_two_le_of_le hy (by linarith using [pi_pos])
+    ... < cos x : cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two (by linarith) hx)
+  (λ hx, calc cos y < 0 : cos_neg_of_pi_div_two_lt_of_lt (by linarith) (by linarith using [pi_pos])
+    ... = cos x : by simp [hx, cos_pi_div_two])
+| or.inr hx, or.inl hy := by linarith
+| or.inr hx, or.inr hy := neg_lt_neg_iff.1 $ cos_pi_sub x ▸ cos_pi_sub y ▸
+  by apply cos_lt_cos_of_nonneg_of_le_pi_div_two; linarith
+end
 
 lemma cos_le_cos_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π)
   (hy₁ : 0 ≤ y) (hy₂ : y ≤ π) (hxy : x ≤ y) : cos y ≤ cos x :=
-(lt_or_eq_of_le hxy).elim (le_of_lt ∘ cos_lt_cos_of_nonneg_of_le_pi hx₁ hx₂ hy₁ hy₂)
+(lt_or_eq_of_le hxy).elim
+  (le_of_lt ∘ cos_lt_cos_of_nonneg_of_le_pi hx₁ hx₂ hy₁ hy₂)
   (λ h, h ▸ le_refl _)
 
 lemma sin_lt_sin_of_le_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) (hy₁ : -(π / 2) ≤ y)
@@ -360,15 +362,17 @@ by rw [← cos_sub_pi_div_two, ← cos_sub_pi_div_two, ← cos_neg (x - _), ← 
 
 lemma sin_le_sin_of_le_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) (hy₁ : -(π / 2) ≤ y)
   (hy₂ : y ≤ π / 2) (hxy : x ≤ y) : sin x ≤ sin y :=
-(lt_or_eq_of_le hxy).elim (le_of_lt ∘ sin_lt_sin_of_le_of_le_pi_div_two hx₁ hx₂ hy₁ hy₂)
+(lt_or_eq_of_le hxy).elim
+  (le_of_lt ∘ sin_lt_sin_of_le_of_le_pi_div_two hx₁ hx₂ hy₁ hy₂)
   (λ h, h ▸ le_refl _)
 
 lemma sin_inj_of_le_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) (hy₁ : -(π / 2) ≤ y)
   (hy₂ : y ≤ π / 2) (hxy : sin x = sin y) : x = y :=
-(lt_trichotomy x y).elim
-  (λ h, absurd (sin_lt_sin_of_le_of_le_pi_div_two hx₁ hx₂ hy₁ hy₂ h) (by rw hxy; exact lt_irrefl _))
-  (λ h, h.elim id
-    (λ h, absurd (sin_lt_sin_of_le_of_le_pi_div_two hy₁ hy₂ hx₁ hx₂ h) (by rw hxy; exact lt_irrefl _)))
+match lt_trichotomy x y with
+| or.inl h          := absurd (sin_lt_sin_of_le_of_le_pi_div_two hx₁ hx₂ hy₁ hy₂ h) (by rw hxy; exact lt_irrefl _)
+| or.inr (or.inl h) := h
+| or.inr (or.inr h) := absurd (sin_lt_sin_of_le_of_le_pi_div_two hy₁ hy₂ hx₁ hx₂ h) (by rw hxy; exact lt_irrefl _)
+end
 
 lemma cos_inj_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π) (hy₁ : 0 ≤ y) (hy₂ : y ≤ π)
   (hxy : cos x = cos y) : x = y :=
@@ -533,11 +537,11 @@ by rw tan_eq_sin_div_cos; exact div_pos (sin_pos_of_pos_of_lt_pi h0x (by linarit
   (cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two (by linarith) hxp)
 
 lemma tan_nonneg_of_nonneg_of_le_pi_div_two {x : ℝ} (h0x : 0 ≤ x) (hxp : x ≤ π / 2) : 0 ≤ tan x :=
-(lt_or_eq_of_le h0x).elim
-  (λ hx0, (lt_or_eq_of_le hxp).elim
-    (le_of_lt ∘ tan_pos_of_pos_of_lt_pi_div_two hx0)
-    (λ h, by simp [h, tan_eq_sin_div_cos]))
-  (λ h, by simp [h.symm])
+match lt_or_eq_of_le h0x, lt_or_eq_of_le hxp with
+| or.inl hx0, or.inl hxp := le_of_lt (tan_pos_of_pos_of_lt_pi_div_two hx0 hxp)
+| or.inl hx0, or.inr hxp := by simp [hxp, tan_eq_sin_div_cos]
+| or.inr hx0, _          := by simp [hx0.symm]
+end
 
 lemma tan_neg_of_neg_of_pi_div_two_lt {x : ℝ} (hx0 : x < 0) (hpx : -(π / 2) < x) : tan x < 0 :=
 neg_pos.1 (tan_neg x ▸ tan_pos_of_pos_of_lt_pi_div_two (by linarith) (by linarith using [pi_pos]))
@@ -559,26 +563,26 @@ end
 
 lemma tan_lt_tan_of_lt_of_lt_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2)
   (hy₁ : -(π / 2) < y) (hy₂ : y < π / 2) (hxy : x < y) : tan x < tan y :=
-(le_total x 0).elim
-  (λ hx0, (le_total y 0).elim
-    (λ hy0, neg_lt_neg_iff.1 $ by rw [← tan_neg, ← tan_neg]; exact
-      tan_lt_tan_of_nonneg_of_lt_pi_div_two (neg_nonneg.2 hy0) (neg_lt.2 hy₁)
-        (neg_nonneg.2 hx0) (neg_lt.2 hx₁) (neg_lt_neg hxy))
-    (λ hy0, (lt_or_eq_of_le hy0).elim
-      (λ hy0, calc tan x ≤ 0 : tan_nonpos_of_nonpos_of_neg_pi_div_two_le hx0 (le_of_lt hx₁)
-        ... < tan y : tan_pos_of_pos_of_lt_pi_div_two hy0 hy₂)
-      (λ hy0, by rw [← hy0, tan_zero]; exact
-        tan_neg_of_neg_of_pi_div_two_lt (hy0.symm ▸ hxy) hx₁)))
-  (λ hx0, (le_total y 0).elim
-    (λ hy0, by linarith)
-    (λ hy0, tan_lt_tan_of_nonneg_of_lt_pi_div_two hx0 hx₂ hy0 hy₂ hxy))
+match le_total x 0, le_total y 0 with
+| or.inl hx0, or.inl hy0 := neg_lt_neg_iff.1 $ by rw [← tan_neg, ← tan_neg]; exact
+  tan_lt_tan_of_nonneg_of_lt_pi_div_two (neg_nonneg.2 hy0) (neg_lt.2 hy₁)
+    (neg_nonneg.2 hx0) (neg_lt.2 hx₁) (neg_lt_neg hxy)
+| or.inl hx0, or.inr hy0 := (lt_or_eq_of_le hy0).elim
+  (λ hy0, calc tan x ≤ 0 : tan_nonpos_of_nonpos_of_neg_pi_div_two_le hx0 (le_of_lt hx₁)
+    ... < tan y : tan_pos_of_pos_of_lt_pi_div_two hy0 hy₂)
+  (λ hy0, by rw [← hy0, tan_zero]; exact
+    tan_neg_of_neg_of_pi_div_two_lt (hy0.symm ▸ hxy) hx₁)
+| or.inr hx0, or.inl hy0 := by linarith
+| or.inr hx0, or.inr hy0 := tan_lt_tan_of_nonneg_of_lt_pi_div_two hx0 hx₂ hy0 hy₂ hxy
+end
 
 lemma tan_inj_of_lt_of_lt_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2)
   (hy₁ : -(π / 2) < y) (hy₂ : y < π / 2) (hxy : tan x = tan y) : x = y :=
-(lt_trichotomy x y).elim
-  (λ h, absurd (tan_lt_tan_of_lt_of_lt_pi_div_two hx₁ hx₂ hy₁ hy₂ h) (by rw hxy; exact lt_irrefl _))
-  (λ h, h.elim id
-    (λ h, absurd (tan_lt_tan_of_lt_of_lt_pi_div_two hy₁ hy₂ hx₁ hx₂ h) (by rw hxy; exact lt_irrefl _)))
+match lt_trichotomy x y with
+| or.inl h          := absurd (tan_lt_tan_of_lt_of_lt_pi_div_two hx₁ hx₂ hy₁ hy₂ h) (by rw hxy; exact lt_irrefl _)
+| or.inr (or.inl h) := h
+| or.inr (or.inr h) := absurd (tan_lt_tan_of_lt_of_lt_pi_div_two hy₁ hy₂ hx₁ hx₂ h) (by rw hxy; exact lt_irrefl _)
+end
 
 /-- Inverse of the `tan` function, returns values in the range `-π / 2 < arctan x` and `arctan x < π / 2` -/
 noncomputable def arctan (x : ℝ) : ℝ :=

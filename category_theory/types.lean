@@ -51,7 +51,7 @@ variables (C : Type u → Type v) {hom : ∀α β, C α → C β → (α → β)
 include i
 
 /-- The forgetful functor from a bundled category to `Type`. -/
-def forget : bundled C ⥤ Type u := { obj := bundled.α, map' := λa b h, h.1 }
+def forget : sigma C ⥤ Type u := { obj := sigma.fst, map' := λa b h, h.1 }
 
 instance forget.faithful : faithful (forget C) := {}
 

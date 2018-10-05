@@ -14,9 +14,9 @@ universes u v
 
 namespace category_theory.examples
 
-@[reducible] def Meas : Type (u+1) := bundled measurable_space
+@[reducible] def Meas : Type (u+1) := sigma measurable_space
 
-instance (x : Meas) : measurable_space x := x.str
+instance (x : Meas) : measurable_space x := x.snd
 
 namespace Meas
 

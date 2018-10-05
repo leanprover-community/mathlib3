@@ -16,9 +16,9 @@ universe u
 namespace category_theory.examples
 
 /-- The category of topological spaces and continuous maps. -/
-@[reducible] def Top : Type (u+1) := bundled topological_space
+@[reducible] def Top : Type (u+1) := sigma topological_space
 
-instance (x : Top) : topological_space x := x.str
+instance (x : Top) : topological_space x := x.snd
 
 namespace Top
 instance : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
@@ -29,7 +29,7 @@ end Top
 
 structure open_set (X : Top.{u}) : Type u :=
 (s : set X.α)
-(is_open : topological_space.is_open X.str s)
+(is_open : topological_space.is_open X.snd s)
 
 variables {X : Top.{u}}
 

@@ -190,6 +190,13 @@ iff.intro
     let ⟨a, ha, h⟩ := h _ h' in
     lt_irrefl a $ lt_of_le_of_lt (le_Sup ha) h)
 
+lemma Inf_eq_bot : Inf s = ⊥ ↔ (∀b>⊥, ∃a∈s, a < b) :=
+iff.intro
+  (assume (h : Inf s = ⊥) b (hb : ⊥ < b), by rwa [←h, Inf_lt_iff] at hb)
+  (assume h, bot_unique $ le_of_not_gt $ assume h',
+    let ⟨a, ha, h⟩ := h _ h' in
+    lt_irrefl a $ lt_of_lt_of_le h (Inf_le ha))
+
 lemma lt_supr_iff {ι : Sort*} {f : ι → α} : a < supr f ↔ (∃i, a < f i) :=
 iff.trans lt_Sup_iff $ iff.intro
   (assume ⟨a', ⟨i, rfl⟩, ha⟩, ⟨i, ha⟩)
@@ -303,7 +310,7 @@ iff.intro
   (assume eq i, top_unique $ eq ▸ infi_le _ _)
   (assume h, top_unique $ le_infi $ assume i, top_le_iff.2 $ h i)
 
-@[simp] lemma infi_eq_bot : supr s = ⊥ ↔ (∀i, s i = ⊥) :=
+@[simp] lemma supr_eq_bot : supr s = ⊥ ↔ (∀i, s i = ⊥) :=
 iff.intro
   (assume eq i, bot_unique $ eq ▸ le_supr _ _)
   (assume h, bot_unique $ supr_le $ assume i, le_bot_iff.2 $ h i)
@@ -628,6 +635,19 @@ le_antisymm
     (supr_le_supr2 $ assume j, ⟨sum.inr j, le_refl _⟩))
 
 end
+
+section complete_linear_order
+variables [complete_linear_order α]
+
+lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :=
+by rw [← Sup_range, Sup_eq_top];
+from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
+
+lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, b > f i) :=
+by rw [← Inf_range, Inf_eq_bot];
+from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
+
+end complete_linear_order
 
 /- Instances -/
 

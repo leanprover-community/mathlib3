@@ -334,7 +334,7 @@ lemma measurable_generate_from [measurable_space α] {s : set (set β)} {f : α 
 generate_from_le h
 
 lemma measurable.if [measurable_space α] [measurable_space β]
-  {p : α → Prop} [decidable_pred p] {f g : α → β}
+  {p : α → Prop} {h : decidable_pred p} {f g : α → β}
   (hp : is_measurable {a | p a}) (hf : measurable f) (hg : measurable g) :
   measurable (λa, if p a then f a else g a) :=
 λ s hs, show is_measurable {a | (if p a then f a else g a) ∈ s},
@@ -342,6 +342,12 @@ begin
   convert (hp.inter $ hf s hs).union (hp.compl.inter $ hg s hs),
   exact ext (λ a, by by_cases p a; simp [h, mem_def])
 end
+
+lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} : measurable (λb:β, a) :=
+assume s hs, show is_measurable {b : β | a ∈ s}, from
+  classical.by_cases
+    (assume h : a ∈ s, by simp [h]; from is_measurable.univ)
+    (assume h : a ∉ s, by simp [h]; from is_measurable.empty)
 
 end measurable_functions
 

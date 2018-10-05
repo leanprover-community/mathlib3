@@ -516,6 +516,8 @@ set.ext $ by simp
 
 theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ -s := h
 
+lemma compl_set_of {α} (p : α → Prop) : - {a | p a} = { a | ¬ p a } := rfl
+
 theorem not_mem_of_mem_compl {s : set α} {x : α} (h : x ∈ -s) : x ∉ s := h
 
 @[simp] theorem mem_compl_eq (s : set α) (x : α) : x ∈ -s = (x ∉ s) := rfl
@@ -969,6 +971,9 @@ theorem mem_range_self (i : ι) : f i ∈ range f := ⟨i, rfl⟩
 
 theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
 ⟨assume h i, h (f i) (mem_range_self _), assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩
+
+theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
+⟨assume ⟨a, ⟨i, eq⟩, h⟩, ⟨i, eq.symm ▸ h⟩, assume ⟨i, h⟩, ⟨f i, mem_range_self _, h⟩⟩
 
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall

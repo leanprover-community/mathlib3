@@ -197,6 +197,23 @@ lemma measurable_mul
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
 measurable_of_continuous2 continuous_mul'
 
+lemma measurable_le {α β}
+  [topological_space α] [partial_order α] [ordered_topology α] [second_countable_topology α]
+  [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
+  is_measurable {a | f a ≤ g a} :=
+have is_measurable {p : α × α | p.1 ≤ p.2}, from
+  is_measurable_of_is_closed (ordered_topology.is_closed_le' _),
+show is_measurable {a | (f a, g a).1 ≤ (f a, g a).2},
+begin
+  refine measurable.preimage _ this,
+  rw ← borel_prod,
+  exact measurable_prod_mk hf hg
+end
+
+-- generalize
+lemma measurable_coe_int_real : measurable (λa, a : ℤ → ℝ) :=
+assume s (hs : is_measurable s), is_measurable_of_is_open $ by trivial
+
 section ordered_topology
 variables [linear_order α] [topological_space α] [ordered_topology α] {a b c : α}
 

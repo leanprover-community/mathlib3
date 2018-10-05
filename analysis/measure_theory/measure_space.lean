@@ -717,6 +717,17 @@ lemma volume_sUnion {S : set (set α)} : countable S →
   volume (⋃₀ S) = ∑s:S, volume s.1 :=
 measure_sUnion
 
+lemma volume_bUnion_finset {β} {s : finset β} {f : β → set α}
+  (hd : pairwise_on ↑s (disjoint on f)) (hm : ∀b∈s, is_measurable (f b)) :
+  volume (⋃b∈s, f b) = s.sum (λp, volume (f p)) :=
+show volume (⋃b∈(↑s : set β), f b) = s.sum (λp, volume (f p)),
+begin
+  rw [volume_bUnion (countable_finite (finset.finite_to_set s)) hd hm, tsum_eq_sum],
+  { show s.attach.sum (λb:(↑s : set β), volume (f b)) = s.sum (λb, volume (f b)),
+    exact @finset.sum_attach _ _ s _ (λb, volume (f b)) },
+  simp
+end
+
 lemma volume_diff : s₂ ⊆ s₁ → is_measurable s₁ → is_measurable s₂ →
   volume s₂ < ⊤ → volume (s₁ \ s₂) = volume s₁ - volume s₂ :=
 measure_diff

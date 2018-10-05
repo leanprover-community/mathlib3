@@ -91,3 +91,12 @@ by cases i; refl
   {n} {C : fin (succ n) → Sort*} {H0 Hs} (i : fin n) :
   @fin.cases n C H0 Hs i.succ = Hs i :=
 by cases i; refl
+
+def raise_nat {n} (i : fin n) (k) : fin (n + k) :=
+⟨i.val, lt_add_of_lt_of_nonneg i.is_lt (nat.zero_le k)⟩
+
+def lower_left {n m} (i : fin (n + m)) (h : i.val < n) : fin n :=
+⟨i.val, h⟩
+
+def lower_right {n m} (i : fin (n + m)) (h: i.val >= n) : fin m :=
+⟨i.val - n, by simp [nat.sub_lt_right_iff_lt_add h, i.is_lt]⟩

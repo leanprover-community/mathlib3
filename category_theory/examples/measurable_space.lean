@@ -16,7 +16,7 @@ namespace category_theory.examples
 
 @[reducible] def Meas : Type (u+1) := bundled measurable_space
 
-instance (x : Meas) : measurable_space x := x.str
+instance (x : Meas) : measurable_space x := x.inst
 
 namespace Meas
 

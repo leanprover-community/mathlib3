@@ -19,7 +19,7 @@ namespace category_theory.examples
 /-- The category of monoids and monoid morphisms. -/
 @[reducible] def Mon : Type (u+1) := bundled monoid
 
-instance (x : Mon) : monoid x := x.str
+instance (x : Mon) : monoid x := x.inst
 
 instance concrete_is_monoid_hom : concrete_category @is_monoid_hom :=
 ⟨by introsI α ia; apply_instance,
@@ -30,7 +30,7 @@ instance Mon_hom_is_monoid_hom {R S : Mon} (f : R ⟶ S) : is_monoid_hom (f : R 
 /-- The category of commutative monoids and monoid morphisms. -/
 @[reducible] def CommMon : Type (u+1) := bundled comm_monoid
 
-instance (x : CommMon) : comm_monoid x := x.str
+instance (x : CommMon) : comm_monoid x := x.inst
 
 @[reducible] def is_comm_monoid_hom {α β} [comm_monoid α] [comm_monoid β] (f : α → β) : Prop :=
 is_monoid_hom f

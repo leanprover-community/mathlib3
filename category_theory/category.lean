@@ -14,6 +14,7 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
 
+import data.bundled
 import tactic.restate_axiom
 import tactic.replacer
 import tactic.interactive
@@ -65,16 +66,6 @@ abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u+1 u} C
 A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
-
-structure bundled (c : Type u → Type v) :=
-(α : Type u)
-[str : c α]
-
-instance (c : Type u → Type v) : has_coe_to_sort (bundled c) :=
-{ S := Type u, coe := bundled.α }
- 
-def mk_ob {c : Type u → Type v} (α : Type u) [str : c α] : bundled c :=
-@bundled.mk c α str
 
 /-- `concrete_category hom` collects the evidence that a type constructor `c` and a morphism
 predicate `hom` can be thought of as a concrete category.

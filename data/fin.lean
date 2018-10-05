@@ -12,9 +12,6 @@ def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
 theorem le_last (i : fin (n+1)) : i ≤ last n :=
 le_of_lt_succ i.is_lt
 
-/-- Embedding of `fin n` in `fin (n+1)` -/
-def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
-
 def add_nat {n} (i : fin n) (k) : fin (n + k) :=
 ⟨i.1 + k, nat.add_lt_add_right i.2 _⟩
 
@@ -92,11 +89,25 @@ by cases i; refl
   @fin.cases n C H0 Hs i.succ = Hs i :=
 by cases i; refl
 
-def fin.raise_nat {n} (i : fin n) (k) : fin (n + k) :=
-⟨i.val, lt_add_of_lt_of_nonneg i.is_lt (nat.zero_le k)⟩
-
 def fin.lower_left {n m} (i : fin (n + m)) (h : i.val < n) : fin n :=
 ⟨i.val, h⟩
 
 def fin.lower_right {n m} (i : fin (n + m)) (h: i.val >= n) : fin m :=
 ⟨i.val - n, by simp [nat.sub_lt_right_iff_lt_add h, i.is_lt]⟩
+
+def fin.raise_le {m n} (h : m ≤ n) (i : fin m) : fin n :=
+⟨i.val, lt_of_lt_of_le (i.is_lt) h⟩
+
+def fin.cast {m n} (h : m = n) (i : fin m) : fin n :=
+fin.raise_le (by simp [h]) i
+
+/-- Embedding of `fin n` in `fin (n+1)` -/
+def fin.raise_one (i : fin n) : fin (n + 1) :=
+fin.raise_le (by simp [le_succ]) i
+
+/-- Embedding of `fin n` in `fin (n+k)` -/
+def fin.raise_nat {n} (i : fin n) (k) : fin (n + k) :=
+fin.raise_le (by rw nat.add_comm; apply nat.le_add_left) i
+
+def fin.swap_add {m n} (i : fin (m + n)) : fin (n + m) :=
+fin.raise_le (by rw nat.add_comm) i

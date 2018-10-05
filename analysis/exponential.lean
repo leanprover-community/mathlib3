@@ -720,9 +720,6 @@ if hx : x = 0 then by simp [hx]
 else by rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg hx,
     div_div_div_cancel_right _ _ (mt abs_eq_zero.1 hx)]
 
-lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
-by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
-
 lemma arg_cos_add_sin_mul_I {x : ℝ} (hx₁ : -π < x) (hx₂ : x ≤ π) :
   arg (cos x + sin x * I) = x :=
 if hx₃ : -(π / 2) ≤ x ∧ x ≤ π / 2

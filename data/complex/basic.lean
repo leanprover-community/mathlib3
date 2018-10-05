@@ -352,7 +352,10 @@ else by rw [_root_.abs_div, abs_abs]; exact
   div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_im_le_abs _)
 
 @[simp] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
-by rw [← of_real_nat_cast, abs_of_real, @_root_.abs_of_nonneg ℝ _ _ (nat.cast_nonneg n)]
+by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
+
+lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
+by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
 
 noncomputable def lim (f : ℕ → ℂ) : ℂ :=
 ⟨real.lim (λ n, (f n).re), real.lim (λ n, (f n).im)⟩

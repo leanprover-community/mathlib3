@@ -15,6 +15,19 @@ meta def deinternalize_field : name → name
 
 end name
 
+namespace name_set
+meta def filter (s : name_set) (P : name → bool) : name_set :=
+s.fold s (λ a m, if P a then m else m.erase a)
+
+meta def mfilter {m} [monad m] (s : name_set) (P : name → m bool) : m name_set :=
+s.fold (pure s) (λ a m,
+  do x ← m,
+     mcond (P a) (pure x) (pure $ x.erase a))
+
+meta def union (s t : name_set) : name_set :=
+s.fold t (λ a t, t.insert a)
+
+end name_set
 namespace expr
 open tactic
 
@@ -56,6 +69,9 @@ meta def is_sort : expr → bool
 
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
+
+meta def list_constant (e : expr) : name_set :=
+e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)
 
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
@@ -136,6 +152,28 @@ end
 end lean.parser
 
 namespace tactic
+
+meta def is_simp_lemma : name → tactic bool :=
+succeeds ∘ tactic.has_attribute `simp
+
+meta def local_decls : tactic (name_map declaration) :=
+do e ← tactic.get_env,
+   let xs := e.fold native.mk_rb_map
+     (λ d s, if environment.in_current_file' e d.to_name
+             then s.insert d.to_name d else s),
+   pure xs
+
+meta def simp_lemmas_from_file : tactic name_set :=
+do s ← local_decls,
+   let s := s.map (expr.list_constant ∘ declaration.value),
+   xs ← s.to_list.mmap ((<$>) name_set.of_list ∘ mfilter tactic.is_simp_lemma ∘ name_set.to_list ∘ prod.snd),
+   return $ name_set.filter (xs.foldl name_set.union mk_name_set) (λ x, ¬ s.contains x)
+
+meta def file_simp_attribute_decl (attr : name) : tactic unit :=
+do s ← simp_lemmas_from_file,
+   trace format!"run_cmd mk_simp_attr `{attr}",
+   let lmms := format.join $ list.intersperse " " $ s.to_list.map to_fmt,
+   trace format!"local attribute [{attr}] {lmms}"
 
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])

@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import analysis.real analysis.complex tactic.linarith data.complex.exponential
 
 open finset filter
-#print classical.em
+
 namespace complex
 
 lemma tendsto_exp_zero_one : tendsto exp (nhds 0) (nhds 1) :=
@@ -711,6 +711,9 @@ by simp [arg, le_refl]
 @[simp] lemma arg_one : arg 1 = 0 :=
 by simp [arg, zero_le_one]
 
+@[simp] lemma arg_neg_one : arg (-1) = π :=
+by simp [arg, le_refl, not_le.2 (@zero_lt_one ℝ _)]
+
 @[simp] lemma arg_I : arg I = π / 2 :=
 by simp [arg, le_refl]
 
@@ -889,11 +892,11 @@ complex.ext
 
 @[simp] lemma log_one : log 1 = 0 := by simp [log]
 
-@[simp] lemma log_neg_one : log (-1) = π := by simp [log]
+lemma log_neg_one : log (-1) = π * I := by simp [log]
 
-@[simp] lemma log_I : log I = π / 2 := by simp [log]
+lemma log_I : log I = π / 2 * I := by simp [log]
 
-@[simp] lemma log_neg_I : log (-I) = -(π / 2) := by simp [log]
+lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 calc cos (π / 2) = real.cos (π / 2) : by rw [of_real_cos]; simp

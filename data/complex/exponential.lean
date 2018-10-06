@@ -665,13 +665,13 @@ open complex
 variables (x y : ℝ)
 
 @[simp] lemma exp_zero : exp 0 = 1 :=
-by rw [real.exp, of_real_zero]; simp
+by simp [real.exp]
 
 lemma exp_add : exp (x + y) = exp x * exp y :=
 by simp [exp_add, exp]
 
 lemma exp_ne_zero : exp x ≠ 0 :=
-λ h, exp_ne_zero x $ by rw [exp, ← of_real_inj, of_real_zero] at h; simp * at *
+λ h, exp_ne_zero x $ by rw [exp, ← of_real_inj] at h; simp * at *
 
 lemma exp_neg : exp (-x) = (exp x)⁻¹ :=
 by rw [← of_real_inj, exp, of_real_exp_of_real_re, of_real_neg, exp_neg,
@@ -680,7 +680,7 @@ by rw [← of_real_inj, exp, of_real_exp_of_real_re, of_real_neg, exp_neg,
 lemma exp_sub : exp (x - y) = exp x / exp y :=
 by simp [exp_add, exp_neg, div_eq_mul_inv]
 
-@[simp] lemma sin_zero : sin 0 = 0 := by simp [sin, of_real_zero]
+@[simp] lemma sin_zero : sin 0 = 0 := by simp [sin]
 
 @[simp] lemma sin_neg : sin (-x) = -sin x :=
 by simp [sin, exp_neg, (neg_div _ _).symm, add_mul]
@@ -688,7 +688,7 @@ by simp [sin, exp_neg, (neg_div _ _).symm, add_mul]
 lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
 by rw [← of_real_inj]; simp [sin, sin_add]
 
-@[simp] lemma cos_zero : cos 0 = 1 := by simp [cos, of_real_zero]
+@[simp] lemma cos_zero : cos 0 = 1 := by simp [cos]
 
 @[simp] lemma cos_neg : cos (-x) = cos x :=
 by simp [cos, exp_neg]
@@ -708,7 +708,7 @@ else
   by rw [sin, cos, tan, complex.tan, ← of_real_inj, div_eq_mul_inv, mul_re];
   simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
 
-@[simp] lemma tan_zero : tan 0 = 0 := by simp [tan, of_real_zero]
+@[simp] lemma tan_zero : tan 0 = 0 := by simp [tan]
 
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
@@ -757,7 +757,7 @@ by rw ← of_real_inj; simp [cos_two_mul, cos, pow_two]
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw ← of_real_inj; simp [sin_two_mul, sin, pow_two]
 
-@[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh, of_real_zero]
+@[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
 @[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
 by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
@@ -765,7 +765,7 @@ by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
 lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
 by rw ← of_real_inj; simp [sinh, sinh_add]
 
-@[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh, of_real_zero]
+@[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
 @[simp] lemma cosh_neg : cosh (-x) = cosh x :=
 by simp [cosh, exp_neg]
@@ -785,7 +785,7 @@ else
   by rw [sinh, cosh, tanh, complex.tanh, ← of_real_inj, div_eq_mul_inv, mul_re];
   simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
 
-@[simp] lemma tanh_zero : tanh 0 = 0 := by simp [tanh, of_real_zero]
+@[simp] lemma tanh_zero : tanh 0 = 0 := by simp [tanh]
 
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
 

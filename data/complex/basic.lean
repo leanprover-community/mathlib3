@@ -38,7 +38,7 @@ instance : inhabited ℂ := ⟨0⟩
 
 @[simp] lemma zero_re : (0 : ℂ).re = 0 := rfl
 @[simp] lemma zero_im : (0 : ℂ).im = 0 := rfl
-lemma of_real_zero : ((0 : ℝ) : ℂ) = 0 := rfl
+@[simp] lemma of_real_zero : ((0 : ℝ) : ℂ) = 0 := rfl
 
 @[simp] theorem of_real_eq_zero {z : ℝ} : (z : ℂ) = 0 ↔ z = 0 := of_real_inj
 @[simp] theorem of_real_ne_zero {z : ℝ} : (z : ℂ) ≠ 0 ↔ z ≠ 0 := not_congr of_real_eq_zero

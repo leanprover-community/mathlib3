@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import analysis.real analysis.complex tactic.linarith data.complex.exponential
 
 open finset filter
-
+#print classical.em
 namespace complex
 
 lemma tendsto_exp_zero_one : tendsto exp (nhds 0) (nhds 1) :=
@@ -125,6 +125,9 @@ by rw [log, dif_pos hx]; exact classical.some_spec (exists_exp_eq_of_pos hx)
 
 @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
 exp_injective $ exp_log (exp_pos x)
+
+@[simp] lemma log_zero : log 0 = 0 :=
+by simp [log, lt_irrefl]
 
 @[simp] lemma log_one : log 1 = 0 :=
 exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
@@ -641,6 +644,12 @@ lemma arctan_tan {x : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2) : arctan
 tan_inj_of_lt_of_lt_pi_div_two (neg_pi_div_two_lt_arctan _)
   (arctan_lt_pi_div_two _) hx₁ hx₂ (by rw tan_arctan)
 
+@[simp] lemma arctan_zero : arctan 0 = 0 :=
+by simp [arctan]
+
+@[simp] lemma arctan_neg (x : ℝ) : arctan (-x) = - arctan x :=
+by simp [arctan, neg_div]
+
 end real
 
 namespace complex
@@ -701,6 +710,12 @@ by simp [arg, le_refl]
 
 @[simp] lemma arg_one : arg 1 = 0 :=
 by simp [arg, zero_le_one]
+
+@[simp] lemma arg_I : arg I = π / 2 :=
+by simp [arg, le_refl]
+
+@[simp] lemma arg_neg_I : arg (-I) = -(π / 2) :=
+by simp [arg, le_refl]
 
 lemma sin_arg (x : ℂ) : real.sin (arg x) = x.im / x.abs :=
 by unfold arg; split_ifs;
@@ -829,6 +844,13 @@ if hy : y = 0 then by simp * at *
 else have hx : x ≠ 0, from λ hx, by simp [*, eq_comm] at *,
   by rwa [arg_eq_arg_iff hx hy, h₁, div_self (of_real_ne_zero.2 (mt abs_eq_zero.1 hy)), one_mul] at h₂
 
+lemma arg_of_real_of_nonneg {x : ℝ} (hx : 0 ≤ x) : arg x = 0 :=
+by simp [arg, hx]
+
+lemma arg_of_real_of_neg {x : ℝ} (hx : x < 0) : arg x = π :=
+by rw [arg_eq_arg_neg_add_pi_of_im_nonneg_of_re_neg, ← of_real_neg, arg_of_real_of_nonneg];
+  simp [*, le_iff_eq_or_lt, lt_neg]
+
 /-- Inverse of the `exp` function. Returns values such that `(log x).im > - π` and `(log x).im ≤ π`.
   `log 0 = 0`-/
 noncomputable def log (x : ℂ) : ℂ := x.abs.log + arg x * I
@@ -858,11 +880,26 @@ exp_inj_of_neg_pi_lt_of_le_pi
   (by rw log_im; exact arg_le_pi _)
   hx₁ hx₂ (by rw [exp_log (exp_ne_zero _)])
 
+lemma of_real_log {x : ℝ} (hx : 0 ≤ x) : (x.log : ℂ) = log x :=
+complex.ext
+  (by rw [log_re, of_real_re, abs_of_nonneg hx])
+  (by rw [of_real_im, log_im, arg_of_real_of_nonneg hx])
+
+@[simp] lemma log_zero : log 0 = 0 := by simp [log]
+
+@[simp] lemma log_one : log 1 = 0 := by simp [log]
+
+@[simp] lemma log_neg_one : log (-1) = π := by simp [log]
+
+@[simp] lemma log_I : log I = π / 2 := by simp [log]
+
+@[simp] lemma log_neg_I : log (-I) = -(π / 2) := by simp [log]
+
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 calc cos (π / 2) = real.cos (π / 2) : by rw [of_real_cos]; simp
 ... = 0 : by simp
 
-@[simp] lemma sin_pi_div_twp : sin (π / 2) = 1 :=
+@[simp] lemma sin_pi_div_two : sin (π / 2) = 1 :=
 calc sin (π / 2) = real.sin (π / 2) : by rw [of_real_sin]; simp
 ... = 1 : by simp
 

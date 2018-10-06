@@ -568,15 +568,14 @@ theorem is_null_measurable.Union_nat {s : ℕ → set α}
   (hs : ∀ i, is_null_measurable μ (s i)) :
   is_null_measurable μ (Union s) :=
 begin
-    cases axiom_of_choice
-      (λ i, is_null_measurable_iff.1 (hs i) : _) with t ht,
-    dsimp at t ht, simp [forall_and_distrib] at ht,
-    rcases ht with ⟨st, ht, hz⟩,
-    refine is_null_measurable_iff.2
-      ⟨Union t, Union_subset_Union st, is_measurable.Union ht,
-        measure_mono_null _ (measure_Union_null hz)⟩,
-    rw [diff_subset_iff, ← Union_union_distrib],
-    exact Union_subset_Union (λ i, by rw ← diff_subset_iff)
+  choose t ht using assume i, is_null_measurable_iff.1 (hs i),
+  simp [forall_and_distrib] at ht,
+  rcases ht with ⟨st, ht, hz⟩,
+  refine is_null_measurable_iff.2
+    ⟨Union t, Union_subset_Union st, is_measurable.Union ht,
+      measure_mono_null _ (measure_Union_null hz)⟩,
+  rw [diff_subset_iff, ← Union_union_distrib],
+  exact Union_subset_Union (λ i, by rw ← diff_subset_iff)
 end
 
 theorem is_measurable.diff_null {s z : set α}
@@ -584,13 +583,11 @@ theorem is_measurable.diff_null {s z : set α}
   is_null_measurable μ (s \ z) :=
 begin
   rw measure_eq_infi at hz,
-  have : ∀ q : {q:ℚ//q>0}, ∃ t:set α,
+  choose f hf using show ∀ q : {q:ℚ//q>0}, ∃ t:set α,
     z ⊆ t ∧ is_measurable t ∧ μ t < (nnreal.of_real q.1 : ennreal),
   { rintro ⟨ε, ε0⟩,
     have : 0 < (nnreal.of_real ε : ennreal), { simpa using ε0 },
     rw ← hz at this, simpa [infi_lt_iff] },
-  rcases axiom_of_choice this with ⟨f, hf⟩,
-  dsimp at f hf,
   refine is_null_measurable_iff.2 ⟨s \ Inter f,
     diff_subset_diff_right (subset_Inter (λ i, (hf i).1)),
     hs.diff (is_measurable.Inter (λ i, (hf i).2.1)),
@@ -633,8 +630,8 @@ def completion {α : Type u} [measurable_space α] (μ : measure α) :
   @measure_theory.measure α (null_measurable μ) :=
 { to_outer_measure := μ.to_outer_measure,
   m_Union := λ s hs hd, show μ (Union s) = ∑ i, μ (s i), begin
-    rcases axiom_of_choice (λ i, is_null_measurable_iff.1 (hs i):_) with ⟨t, ht⟩,
-    dsimp at t ht, simp [forall_and_distrib] at ht, rcases ht with ⟨st, ht, hz⟩,
+    choose t ht using assume i, is_null_measurable_iff.1 (hs i),
+    simp [forall_and_distrib] at ht, rcases ht with ⟨st, ht, hz⟩,
     rw is_null_measurable_measure_eq (Union_subset_Union st),
     { rw measure_Union _ ht,
       { congr, funext i,

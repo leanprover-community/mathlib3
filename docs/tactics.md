@@ -4,6 +4,56 @@ In addition to [core tactics](https://leanprover.github.io/reference/tactics.htm
 mathlib provides a number of specific interactive tactics and commands.
 Here we document the mostly commonly used ones.
 
+### tfae
+
+The `tfae` tactic suite is a set of tactics that help with proving that certain
+propositions are equivalent.
+In `data/list/basic.lean` there is a section devoted to propositions of the
+form
+```
+tfae [p1, p2, ..., pn]
+```
+where `p1`, `p2`, through, `pn` are terms of type `Prop`.
+This proposition asserts that all the `pi` are pairwise equivalent.
+There are results that allow to extract the equivalence
+of two propositions `pi` and `pj`.
+
+To prove a goal of the form `tfae [p1, p2, ..., pn]`, there are two
+tactics.  The first tactic is `tfae_have`.  As an argument it takes an
+expression of the form `i arrow j`, where `i` and `j` are two positive
+natural numbers, and `arrow` is an arrow such as `→`, `->`, `←`, `<-`,
+`↔`, or `<->`.  The tactic `tfae_have : i arrow j` sets up a subgoal in
+which the user has to prove the equivalence (or implication) of `pi` and `pj`.
+
+The remaining tactic, `tfae_finish`, is a finishing tactic. It
+collects all implications and equivalences from the local context and
+computes their transitive closure to close the
+main goal.
+
+`tfae_have` and `tfae_finish` can be used together in a proof as
+follows:
+
+```lean
+example (a b c d : Prop) : tfae [a,b,c,d] :=
+begin
+  tfae_have : 3 → 1,
+  { /- prove c → a -/ },
+  tfae_have : 2 → 3,
+  { /- prove b → c -/ },
+  tfae_have : 2 ← 1,
+  { /- prove a → b -/ },
+  tfae_have : 4 ↔ 2,
+  { /- prove d ↔ b -/ },
+    -- a b c d : Prop,
+    -- tfae_3_to_1 : c → a,
+    -- tfae_2_to_3 : b → c,
+    -- tfae_1_to_2 : a → b,
+    -- tfae_4_iff_2 : d ↔ b
+    -- ⊢ tfae [a, b, c, d]
+  tfae_finish,
+end
+```
+
 ### rcases
 
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
@@ -423,9 +473,9 @@ if you have e.g. both integer and rational valued inequalities in the local cont
 sometimes confuse the tactic.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
 
-## choice
+## choose
 
-`choice hyp with a b h` takes an hypothesis `hyp` of the form
+`choose hyp with a b h` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
 into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
 `∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.

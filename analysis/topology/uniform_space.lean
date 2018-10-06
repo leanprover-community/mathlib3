@@ -708,17 +708,17 @@ theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
   rcases comp_symm_of_uniformity hd with ⟨r, hr, rs, rd⟩,
   rcases H r hr with ⟨k, fk, ks⟩,
   let u := {y ∈ k | ∃ x, x ∈ s ∧ (x, y) ∈ r},
-  let f : u → α := λ x, classical.some x.2.2,
-  have : ∀ x : u, f x ∈ s ∧ (f x, x.1) ∈ r := λ x, classical.some_spec x.2.2,
+  choose f this using assume x:u, x.2.2,
   refine ⟨range f, _, _, _⟩,
   { exact range_subset_iff.2 (λ x, (this x).1) },
   { have : finite u := finite_subset fk (λ x h, h.1),
     exact ⟨@set.fintype_range _ _ _ _ this.fintype⟩ },
   { intros x xs,
-    have := ks xs, simp at this,
-    rcases this with ⟨y, hy, xy⟩,
+    rcases mem_Union.1 (ks xs) with ⟨y, hy⟩,
+    rcases mem_Union.1 hy with ⟨hy, xy⟩,
     let z : coe_sort u := ⟨y, hy, x, xs, xy⟩,
-    simp, exact ⟨_, ⟨_, z.2, rfl⟩, rd $ mem_comp_rel.2 ⟨_, xy, rs (this z).2⟩⟩ }
+    refine mem_Union.2 ⟨f z, mem_Union.2 ⟨mem_range_self z, _⟩⟩,
+    exact rd (mem_comp_rel.2 ⟨_, xy, rs (this z).2⟩) }
 end,
 λ H d hd, let ⟨t, _, ht⟩ := H d hd in ⟨t, ht⟩⟩
 

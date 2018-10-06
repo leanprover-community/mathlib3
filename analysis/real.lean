@@ -253,12 +253,16 @@ end
 -- TODO(Mario): Generalize to first-countable uniform spaces?
 instance : complete_space ℝ :=
 ⟨λ f cf, begin
-  have := (cauchy_of_metric.1 cf).2,
-  let S : ∀ ε:{ε:ℝ//ε>0}, {t : f.sets // ∀ x y ∈ t.1, dist x y < ε} :=
-    λ ε, classical.choice
-      (let ⟨t, tf, h⟩ := (cauchy_of_metric.1 cf).2 ε ε.2 in ⟨⟨⟨t, tf⟩, h⟩⟩),
-  let g : ℕ → {ε:ℝ//ε>0} := λ n,
-    ⟨n.to_pnat'⁻¹, inv_pos (nat.cast_pos.2 n.to_pnat'.pos)⟩,
+  let g : ℕ → {ε:ℝ//ε>0} := λ n, ⟨n.to_pnat'⁻¹, inv_pos (nat.cast_pos.2 n.to_pnat'.pos)⟩,
+  choose S hS hS_dist using show ∀n:ℕ, ∃t ∈ f.sets, ∀ x y ∈ t, dist x y < g n, from
+    assume n, let ⟨t, tf, h⟩ := (cauchy_of_metric.1 cf).2 (g n).1 (g n).2 in ⟨t, tf, h⟩,
+  let F : ℕ → set ℝ := λn, ⋂i≤n, S i,
+  have hF : ∀n, F n ∈ f.sets := assume n, Inter_mem_sets (finite_le_nat n) (λ i _, hS i),
+  have hF_dist : ∀n, ∀ x y ∈ F n, dist x y < g n :=
+    assume n x y hx hy,
+    have F n ⊆ S n := bInter_subset_of_mem (le_refl n),
+    (hS_dist n) _ _ (this hx) (this hy),
+  choose G hG using assume n:ℕ, inhabited_of_mem_sets cf.1 (hF n),
   have hg : ∀ ε > 0, ∃ n, ∀ j ≥ n, (g j : ℝ) < ε,
   { intros ε ε0,
     cases exists_nat_gt ε⁻¹ with n hn,
@@ -267,30 +271,21 @@ instance : complete_space ℝ :=
     have j0 := lt_trans (inv_pos ε0) hj,
     have jε := (inv_lt j0 ε0).2 hj,
     rwa ← pnat.to_pnat'_coe (nat.cast_pos.1 j0) at jε },
-  let F : ∀ n : ℕ, {t : f.sets // ∀ x y ∈ t.1, dist x y < g n},
-  { refine λ n, ⟨⟨_, Inter_mem_sets (finite_le_nat n) (λ i _, (S (g i)).1.2)⟩, _⟩,
-    have : (⋂ i ∈ {i : ℕ | i ≤ n}, (S (g i)).1.1) ⊆ S (g n) :=
-      bInter_subset_of_mem (le_refl n),
-    exact λ x y xs ys, (S (g n)).2 _ _ (this xs) (this ys) },
-  let G : ∀ n : ℕ, F n,
-  { refine λ n, classical.choice _,
-    cases inhabited_of_mem_sets cf.1 (F n).1.2 with x xS,
-    exact ⟨⟨x, xS⟩⟩ },
   let c : cau_seq ℝ abs,
   { refine ⟨λ n, G n, λ ε ε0, _⟩,
     cases hg _ ε0 with n hn,
     refine ⟨n, λ j jn, _⟩,
-    have : (F j).1.1 ⊆ (F n) :=
+    have : F j ⊆ F n :=
       bInter_subset_bInter_left (λ i h, @le_trans _ _ i n j h jn),
-    exact lt_trans ((F n).2 _ _ (this (G j).2) (G n).2) (hn _ $ le_refl _) },
+    exact lt_trans (hF_dist n _ _ (this (hG j)) (hG n)) (hn _ $ le_refl _) },
   refine ⟨real.lim c, λ s h, _⟩,
   rcases mem_nhds_iff_metric.1 h with ⟨ε, ε0, hε⟩,
   cases exists_forall_ge_and (hg _ $ half_pos ε0)
     (real.equiv_lim c _ $ half_pos ε0) with n hn,
   cases hn _ (le_refl _) with h₁ h₂,
-  refine sets_of_superset _ (F n).1.2 (subset.trans _ $
+  refine sets_of_superset _ (hF n) (subset.trans _ $
     subset.trans (ball_half_subset (G n) h₂) hε),
-  exact λ x h, lt_trans ((F n).2 x (G n) h (G n).2) h₁
+  exact λ x h, lt_trans ((hF_dist n) x (G n) h (hG n)) h₁
 end⟩
 
 -- TODO(Mario): This proof has nothing to do with reals

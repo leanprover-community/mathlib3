@@ -53,7 +53,7 @@ begin
   intros j hj,
   rw ←dist_eq_norm,
   apply @htsub (f j, f N),
-  apply set.mk_mem_prod; solve_by_elim {discharger := `[apply le_refl]}
+  apply set.mk_mem_prod; solve_by_elim [le_refl]
 end
 
 lemma filter_cauchy_of_cauchy (f : cau_seq β norm) : cauchy (at_top.map f) :=

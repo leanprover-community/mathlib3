@@ -7,37 +7,6 @@ import tactic data.set.lattice data.prod data.vector
        tactic.rewrite data.stream.basic
        tactic.tfae
 
-section solve_by_elim
-example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
-begin
-  apply_assumption,
-  apply_assumption,
-end
-
-example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
-by solve_by_elim
-
-example {α : Type} {a b : α → Prop} (h₀ : ∀ x : α, b x = a x) (y : α) : a y = b y :=
-by solve_by_elim
-
-example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
-begin
-  apply_assumption,
-end
-
-open tactic
-
-example : true :=
-begin
-  (do gs ← get_goals,
-     set_goals [],
-     success_if_fail `[solve_by_elim],
-     set_goals gs),
-  trivial
-end
-
-end solve_by_elim
-
 section tauto₀
 variables p q r : Prop
 variables h : p ∧ q ∨ p ∧ r

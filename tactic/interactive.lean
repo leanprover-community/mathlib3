@@ -208,30 +208,58 @@ optional arguments:
         the next one will be attempted.
 -/
 meta def apply_assumption
-  (asms : option (list expr) := none)
+  (asms : tactic (list expr) := local_context)
   (tac : tactic unit := return ()) : tactic unit :=
 tactic.apply_assumption asms tac
 
 open nat
 
+meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name): tactic (list expr) :=
+do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
+   hs ← hs.mmap i_to_expr_for_apply,
+   l ← attr.mmap $ λ a, attribute.get_instances a,
+   let l := l.join,
+   m ← list.mmap mk_const l,
+   let hs := (hs ++ m).filter $ λ h, expr.const_name h ∉ gex,
+   hs ← if no_dflt then 
+          return hs
+        else
+          do { congr_fun ← mk_const `congr_fun,
+               congr_arg ← mk_const `congr_arg,
+               return (congr_fun :: congr_arg :: hs) },
+   if ¬ no_dflt ∨ all_hyps then do
+    ctx ← local_context,
+    return $ hs.append (ctx.filter (λ h, h.local_uniq_name ∉ hex)) -- remove local exceptions
+   else return hs
+
 /--
 `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
-and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
-or up to `depth` times.
+and then repeatedly calls `apply_assumption` on the generated subgoals until no subgoals remain,
+performing at most `max_rep` recursive steps.
 
 `solve_by_elim` discharges the current goal or fails
 
-`solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
+`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
+
+By default, the assumptions passed to apply_assumption are the local context, `congr_fun` and 
+`congr_arg`.
+
+`solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
+
+`solve_by_elim with attr₁ ... attrᵣ also applied all lemmas tagged with the specified attributes.
+
+`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
+unless they are explicitly included.
+
+`solve_by_elim [-id]` removes a specified assumption.
 
 optional arguments:
-- discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
-- asms: list of assumptions / rules to consider instead of local constants
-- depth: number of attempts at discharging generated sub-goals
-
-The optional arguments can be specified as ``solve_by_elim { discharger := `[cc] }``.
+- discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
+- max_rep: number of attempts at discharging generated sub-goals
 -/
-meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-tactic.solve_by_elim opt
+meta def solve_by_elim (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
+do asms ← mk_assumption_set no_dflt hs attr_names,
+   tactic.solve_by_elim { assumptions := return asms ..opt }
 
 /--
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`

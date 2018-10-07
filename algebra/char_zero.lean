@@ -19,7 +19,7 @@ theorem char_zero_of_inj_zero {α : Type*} [add_monoid α] [has_one α]
   from λ h, le_antisymm (this h) (this h.symm),
   λ m n h, (le_total m n).elim id $ λ h2, le_of_eq $ begin
     cases nat.le.dest h2 with k e,
-    suffices : k = 0, {simp [this] at e, rw e},
+    suffices : k = 0, {rw [← e, this, add_zero]},
     apply H, apply add_left_cancel n,
     rw [← nat.cast_add, e, add_zero, h]
   end,
@@ -38,7 +38,7 @@ instance linear_ordered_semiring.to_char_zero {α : Type*}
   [linear_ordered_semiring α] : char_zero α :=
 ordered_cancel_comm_monoid.char_zero_of_inj_zero $
 λ n h, nat.eq_zero_of_le_zero $
-  (@nat.cast_le α _ _ _).1 (by simp [h])
+  (@nat.cast_le α _ _ _).1 (le_of_eq h)
 
 namespace nat
 variables {α : Type*} [add_monoid α] [has_one α] [char_zero α]
@@ -58,13 +58,14 @@ not_congr cast_eq_zero
 end nat
 
 lemma two_ne_zero' {α : Type*} [add_monoid α] [has_one α] [char_zero α] : (2:α) ≠ 0 :=
-by simpa using (@nat.cast_ne_zero α _ _ _ 2).2 dec_trivial
+have ((2:ℕ):α) ≠ 0, from nat.cast_ne_zero.2 dec_trivial,
+by rwa [nat.cast_succ, nat.cast_one] at this
 
 section
 variables {α : Type*} [domain α] [char_zero α]
 
 lemma add_self_eq_zero {a : α} : a + a = 0 ↔ a = 0 :=
-by rw [← two_mul, mul_eq_zero]; simp [two_ne_zero']
+by simp only [(two_mul a).symm, mul_eq_zero, two_ne_zero', false_or]
 
 lemma bit0_eq_zero {a : α} : bit0 a = 0 ↔ a = 0 := add_self_eq_zero
 end

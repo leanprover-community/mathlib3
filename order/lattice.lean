@@ -119,7 +119,7 @@ theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
   (x y : α) : (by haveI := A; exact (x ⊔ y)) = x ⊔ y :=
 eq_of_forall_ge_iff $ λ c,
-by simp; rw [← H, @sup_le_iff α A, H, H]
+by simp only [sup_le_iff]; rw [← H, @sup_le_iff α A, H, H]
 
 theorem semilattice_sup.ext {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -205,7 +205,7 @@ theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
   (x y : α) : (by haveI := A; exact (x ⊓ y)) = x ⊓ y :=
 eq_of_forall_le_iff $ λ c,
-by simp; rw [← H, @le_inf_iff α A, H, H]
+by simp only [le_inf_iff]; rw [← H, @le_inf_iff α A, H, H]
 
 theorem semilattice_inf.ext {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -271,28 +271,28 @@ theorem sup_inf_left : x ⊔ (y ⊓ z) = (x ⊔ y) ⊓ (x ⊔ z) :=
 le_antisymm sup_inf_le le_sup_inf
 
 theorem sup_inf_right : (y ⊓ z) ⊔ x = (y ⊔ x) ⊓ (z ⊔ x) :=
-by simp [sup_inf_left, λy:α, @sup_comm α _ y x]
+by simp only [sup_inf_left, λy:α, @sup_comm α _ y x, eq_self_iff_true]
 
 theorem inf_sup_left : x ⊓ (y ⊔ z) = (x ⊓ y) ⊔ (x ⊓ z) :=
 calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_self]
-             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp [inf_assoc, sup_inf_right]
+             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp only [inf_assoc, sup_inf_right, eq_self_iff_true]
              ... = (x ⊔ (x ⊓ y)) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_inf_self]
              ... = ((x ⊓ y) ⊔ x) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_comm]
              ... = (x ⊓ y) ⊔ (x ⊓ z)             : by rw [sup_inf_left]
 
 theorem inf_sup_right : (y ⊔ z) ⊓ x = (y ⊓ x) ⊔ (z ⊓ x) :=
-by simp [inf_sup_left, λy:α, @inf_comm α _ y x]
+by simp only [inf_sup_left, λy:α, @inf_comm α _ y x, eq_self_iff_true]
 
 lemma eq_of_sup_eq_inf_eq {α : Type u} [distrib_lattice α] {a b c : α}
   (h₁ : b ⊓ a = c ⊓ a) (h₂ : b ⊔ a = c ⊔ a) : b = c :=
 le_antisymm
   (calc b ≤ (c ⊓ a) ⊔ b     : le_sup_right
     ... = (c ⊔ b) ⊓ (a ⊔ b) : sup_inf_right
-    ... = c ⊔ (c ⊓ a)       : by rw [←h₁, sup_inf_left, ←h₂]; simp [sup_comm]
+    ... = c ⊔ (c ⊓ a)       : by rw [←h₁, sup_inf_left, ←h₂]; simp only [sup_comm, eq_self_iff_true]
     ... = c                 : sup_inf_self)
   (calc c ≤ (b ⊓ a) ⊔ c     : le_sup_right
     ... = (b ⊔ c) ⊓ (a ⊔ c) : sup_inf_right
-    ... = b ⊔ (b ⊓ a)       : by rw [h₁, sup_inf_left, h₂]; simp [sup_comm]
+    ... = b ⊔ (b ⊓ a)       : by rw [h₁, sup_inf_left, h₂]; simp only [sup_comm, eq_self_iff_true]
     ... = b                 : sup_inf_self)
 
 end distrib_lattice

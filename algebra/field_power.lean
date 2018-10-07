@@ -23,15 +23,15 @@ def fpow (a : α) : ℤ → α
 | -[1+n] := 1/(a ^ (n+1))
 
 lemma unit_pow {a : α} (ha : a ≠ 0) : ∀ n : ℕ, a ^ n = ↑((units.mk0 a ha)^n)
-| 0 := by simp; refl
-| (k+1) := by simp [_root_.pow_add]; congr; apply unit_pow
+| 0 := units.coe_one.symm
+| (k+1) := by simp only [_root_.pow_succ, units.coe_mul, units.mk0_val]; rw unit_pow
 
 lemma fpow_eq_gpow {a : α} (h : a ≠ 0) : ∀ (z : ℤ), fpow a z = ↑(gpow (units.mk0 a h) z)
-| (of_nat k) := by simp only [fpow, gpow]; apply unit_pow
-| -[1+k] := by simp [fpow, gpow]; congr; apply unit_pow
+| (of_nat k) := unit_pow _ _
+| -[1+k] := by rw [fpow, gpow, one_div_eq_inv, units.inv_eq_inv, unit_pow]
 
 lemma fpow_inv (a : α) : fpow a (-1) = a⁻¹ :=
-begin change fpow a -[1+0] = a⁻¹, simp [fpow] end
+show 1*(a*1)⁻¹ = a⁻¹, by rw [one_mul, mul_one]
 
 lemma fpow_ne_zero_of_ne_zero {a : α} (ha : a ≠ 0) : ∀ (z : ℤ), fpow a z ≠ 0
 | (of_nat n) := pow_ne_zero _ ha
@@ -50,12 +50,8 @@ open int nat
 variables {α : Type u} [discrete_field α]
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → fpow (0 : α) z = 0
-| (of_nat n) h :=
-  have h2 : n ≠ 0, from assume : n = 0, by simpa [this] using h,
-  by simp [h, h2, fpow]
-| -[1+n] h :=
-  have h1 : (0 : α) ^ (n+1) = 0, from zero_mul _,
-  by simp [fpow, h1]
+| (of_nat n) h := zero_gpow _ $ by rintro rfl; exact h rfl
+| -[1+n] h := show 1/(0*0^n)=(0:α), by rw [zero_mul, one_div_zero]
 
 lemma fpow_neg (a : α) : ∀ n, fpow a (-n) = 1 / fpow a n
 | (of_nat 0) := by simp [of_nat_zero]
@@ -108,8 +104,8 @@ begin
   have hfle : fpow x (-b) ≤ fpow x (-a), from fpow_le_of_le hx hnle,
   have : fpow x (-c) ≤ fpow x (-a),
   { apply fpow_le_of_le hx,
-    simpa [hle] using h },
-  simpa [hfle] using this
+    simpa only [min_eq_left hle, neg_le_neg_iff] using h },
+  simpa only [max_eq_left hfle]
 end
 
 lemma fpow_le_one_of_nonpos {p : α} (hp : p ≥ 1) {z : ℤ} (hz : z ≤ 0) : fpow p z ≤ 1 :=

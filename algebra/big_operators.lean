@@ -132,10 +132,6 @@ lemma prod_hom [comm_monoid γ] (g : β → γ)
   (h₁ : g 1 = 1) (h₂ : ∀x y, g (x * y) = g x * g y) : s.prod (λx, g (f x)) = g (s.prod f) :=
 eq.trans (by rw [h₁]; refl) (fold_hom h₂)
 
-lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
-  ↑(s.sum f) = s.sum (λa, f a : α → β) :=
-(sum_hom _ nat.cast_zero nat.cast_add).symm
-
 @[to_additive finset.sum_subset]
 lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → f x = 1) : s₁.prod f = s₂.prod f :=
 by haveI := classical.dec_eq α; exact
@@ -299,6 +295,10 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (range (nat.succ n)).sum f = (range n).sum (f ∘ nat.succ) + f 0 :=
 @prod_range_succ' (multiplicative β) _ _
 attribute [to_additive finset.sum_range_succ'] prod_range_succ'
+
+lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
+  ↑(s.sum f) = s.sum (λa, f a : α → β) :=
+(sum_hom _ nat.cast_zero nat.cast_add).symm
 
 section comm_group
 variables [comm_group β]

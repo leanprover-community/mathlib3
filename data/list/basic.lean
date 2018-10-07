@@ -3400,8 +3400,8 @@ by have := pairwise_sublists' (pairwise_reverse.2 H);
 
 variable [decidable_rel R]
 instance decidable_pairwise (l : list α) : decidable (pairwise R l) :=
-list.rec_on l (is_true $ pairwise.nil _) $ λ hd tl ih,
-@@decidable_of_iff' _ pairwise_cons (@@and.decidable _ ih)
+by induction l with hd tl ih; [exact is_true (pairwise.nil _),
+  exact @@decidable_of_iff' _ pairwise_cons (@@and.decidable _ ih)]
 
 /- pairwise reduct -/
 
@@ -4031,4 +4031,7 @@ end tfae
 end list
 
 theorem option.to_list_nodup {α} (o : option α) : o.to_list.nodup :=
-option.rec_on o list.nodup_nil $ λ x, list.nodup_singleton x
+match o with
+| none := list.nodup_nil
+| some x := list.nodup_singleton x
+end

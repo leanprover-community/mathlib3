@@ -849,7 +849,7 @@ eq_of_veq $ by rw [image_val, attach_val, multiset.attach_map_val, erase_dup_eq_
 @[simp] lemma attach_insert [decidable_eq α] {a : α} {s : finset α} :
   attach (insert a s) = insert (⟨a, mem_insert_self a s⟩ : {x // x ∈ insert a s})
     ((attach s).image (λx, ⟨x.1, mem_insert_of_mem x.2⟩)) :=
-ext.2 $ λ y, ⟨subtype.rec_on y $ λ x hx, or.cases_on (mem_insert.1 hx)
+ext.2 $ λ ⟨x, hx⟩, ⟨or.cases_on (mem_insert.1 hx)
   (assume h : x = a, λ _, mem_insert.2 $ or.inl $ subtype.eq h)
   (assume h : x ∈ s, λ _, mem_insert_of_mem $ mem_image.2 $ ⟨⟨x, h⟩, mem_attach _ _, subtype.eq rfl⟩),
 λ _, finset.mem_attach _ _⟩

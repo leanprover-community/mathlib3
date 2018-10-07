@@ -295,19 +295,32 @@ instance [semigroup α] : mul_zero_class (with_zero α) :=
   ..with_zero.add_monoid }
 
 instance [semigroup α] : semigroup (with_zero α) :=
-{ mul_assoc := λ a b c, option.rec_on a rfl $ λ a, option.rec_on b rfl $ λ b,
-    option.rec_on c rfl $ λ c, congr_arg some (mul_assoc _ _ _),
+{ mul_assoc := λ a b c, match a, b, c with
+    | none,   _,      _      := rfl
+    | some a, none,   _      := rfl
+    | some a, some b, none   := rfl
+    | some a, some b, some c := congr_arg some (mul_assoc _ _ _)
+    end,
   ..with_zero.mul_zero_class }
 
 instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
-{ mul_comm := λ a b, option.rec_on a (mul_zero _).symm $ λ a, option.rec_on b rfl $ λ b,
-    congr_arg some (mul_comm _ _),
+{ mul_comm := λ a b, match a, b with
+    | none,   _      := (mul_zero _).symm
+    | some a, none   := rfl
+    | some a, some b := congr_arg some (mul_comm _ _)
+    end,
   ..with_zero.semigroup }
 
 instance [monoid α] : monoid (with_zero α) :=
 { one := some 1,
-  one_mul := λ a, option.rec_on a rfl $ λ _, congr_arg some $ one_mul _,
-  mul_one := λ a, option.rec_on a rfl $ λ _, congr_arg some $ mul_one _,
+  one_mul := λ a, match a with
+    | none   := rfl
+    | some a := congr_arg some $ one_mul _
+    end,
+  mul_one := λ a, match a with
+    | none   := rfl
+    | some a := congr_arg some $ mul_one _
+    end,
   ..with_zero.semigroup }
 
 instance [comm_monoid α] : comm_monoid (with_zero α) :=

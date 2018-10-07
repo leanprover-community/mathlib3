@@ -15,7 +15,7 @@ theorem directed.finset_le {r : α → α → Prop} [is_trans α r]
   {ι} (hι : nonempty ι) {f : ι → α} (D : directed r f) (s : finset ι) :
   ∃ z, ∀ i ∈ s, r (f i) (f z) :=
 show ∃ z, ∀ i ∈ s.1, r (f i) (f z), from
-multiset.induction_on s.1 (nonempty.rec_on hι $ λ z, ⟨z, λ _, false.elim⟩) $
+multiset.induction_on s.1 (match hι with ⟨z⟩ := ⟨z, λ _, false.elim⟩ end) $
 λ i s ⟨j, H⟩, let ⟨k, h₁, h₂⟩ := D i j in
 ⟨k, λ a h, or.cases_on (multiset.mem_cons.1 h)
   (λ h, h.symm ▸ h₁)

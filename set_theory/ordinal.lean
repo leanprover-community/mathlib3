@@ -119,7 +119,7 @@ def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i sub
 
 def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
 ⟨⟨⟨sum.inl, λ _ _, sum.inl.inj⟩, λ a b, sum.lex_inl_inl.symm⟩,
-  λ a b, sum.rec_on b (λ _ _, ⟨_, rfl⟩) (λ _, false.elim ∘ sum.lex_inr_inl)⟩
+  λ a b, by cases b; [exact (λ _, ⟨_, rfl⟩), exact (false.elim ∘ sum.lex_inr_inl)]⟩
 
 @[simp] theorem le_add_apply (r : α → α → Prop) (s : β → β → Prop)
   (a) : le_add r s a = sum.inl a := rfl
@@ -762,16 +762,24 @@ theorem add_le_add_left {a b : ordinal} : a ≤ b → ∀ c, c + a ≤ c + b :=
 induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
 induction_on c $ λ β s _,
 ⟨⟨⟨(embedding.refl _).sum_congr f,
-  λ a b, ⟨λ H, sum.lex.rec_on H (λ _ _, sum.lex_inl_inl.2)
-      (λ _ _ h, sum.lex_inr_inr.2 $ fo.1 h) (λ _ _, sum.lex.sep _ _ _ _),
-    sum.rec_on a (λ a, sum.rec_on b (λ b, sum.lex_inl_inl.2 ∘ sum.lex_inl_inl.1)
-        (λ _ _, sum.lex.sep _ _ _ _))
-      (λ a, sum.rec_on b (λ b, false.elim ∘ sum.lex_inr_inl)
-        (λ b, sum.lex_inr_inr.2 ∘ fo.2 ∘ sum.lex_inr_inr.1))⟩⟩,
-  λ a b, sum.rec_on b (λ _ _, ⟨sum.inl _, rfl⟩)
-    (λ b, sum.rec_on a (λ a, false.elim ∘ sum.lex_inr_inl)
-      (λ a H, let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
-        ⟨sum.inr w, congr_arg sum.inr h⟩))⟩⟩
+  λ a b, ⟨λ H, match a, b, H with
+    | _, _, sum.lex.inl _ h := sum.lex.inl _ h
+    | _, _, sum.lex.inr _ h := sum.lex.inr _ (fo.1 h)
+    | _, _, sum.lex.sep _ _ _ _ := sum.lex.sep _ _ _ _
+    end,
+    λ H, match a, b, H with
+    | sum.inl a, sum.inl b, H := sum.lex.inl _ $ sum.lex_inl_inl.1 H
+    | sum.inl a, sum.inr b, H := sum.lex.sep _ _ _ _
+    | sum.inr a, sum.inl b, H := false.elim $ sum.lex_inr_inl H
+    | sum.inr a, sum.inr b, H := sum.lex.inr _ $ fo.2 $ sum.lex_inr_inr.1 H
+    end⟩⟩,
+  λ a b H, match a, b, H with
+    | sum.inl a, sum.inl b, H := ⟨sum.inl b, rfl⟩
+    | sum.inl a, sum.inr b, H := false.elim $ sum.lex_inr_inl H
+    | sum.inr a, sum.inl b, H := ⟨sum.inl b, rfl⟩
+    | sum.inr a, sum.inr b, H := let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
+        ⟨sum.inr w, congr_arg sum.inr h⟩
+    end⟩⟩
 
 theorem le_add_right (a b : ordinal) : a ≤ a + b :=
 by simpa only [add_zero] using add_le_add_left (zero_le b) a
@@ -992,8 +1000,8 @@ theorem succ_inj {a b : ordinal} : succ a = succ b ↔ a = b :=
 by simp only [le_antisymm_iff, succ_le_succ]
 
 theorem add_le_add_iff_right {a b : ordinal} (n : ℕ) : a + n ≤ b + n ↔ a ≤ b :=
-nat.rec_on n (by rw [nat.cast_zero, add_zero, add_zero]) $ λ n ih,
-by rw [← nat_cast_succ, add_succ, add_succ, succ_le_succ, ih]
+by induction n with n ih; [rw [nat.cast_zero, add_zero, add_zero],
+  rw [← nat_cast_succ, add_succ, add_succ, succ_le_succ, ih]]
 
 theorem add_right_cancel {a b : ordinal} (n : ℕ) : a + n = b + n ↔ a = b :=
 by simp only [le_antisymm_iff, add_le_add_iff_right]

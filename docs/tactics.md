@@ -479,3 +479,53 @@ sometimes confuse the tactic.
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
 into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
 `∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
+
+## squeeze_simp / squeeze_simpa
+
+`squeeze_simp` and `squeeze_simpa` perform the same task with
+the difference that `squeeze_simp` relates to `simp` while
+`squeeze_simpa` relates to `simpa`. The following applies to both
+`squeeze_simp` and `squeeze_simpa`.
+
+`squeeze_simp` behaves like `simp` (including all its arguments)
+and prints a `simp only` invokation to skip the search through the
+`simp` lemma list.
+
+For instance, the following is easily solved with `simp`:
+
+```
+example : 0 + 1 = 1 + 0 := by simp
+```
+
+To guide the proof search and speed it up, we may replace `simp`
+with `squeeze_simp`:
+
+```
+example : 0 + 1 = 1 + 0 := by squeeze_simp
+-- prints: simp only [add_zero, eq_self_iff_true, zero_add]
+```
+
+`squeeze_simp` suggests a replacement which we can use instead of
+`squeeze_simp`.
+
+```
+example : 0 + 1 = 1 + 0 := by simp only [add_zero, eq_self_iff_true, zero_add]
+```
+
+`squeeze_simp only` prints nothing as it already skips the `simp` list.
+
+This tactic is useful for speeding up the compilation of a complete file.
+Steps:
+
+   1. search and replace ` simp` with ` squeeze_simp` (the space helps avoid the
+      replacement of `simp` in `@[simp]`) throughout the file.
+   2. Starting at the beginning of the file, go to each printout in turn, copy
+      the suggestion in place of `squeeze_simp`.
+   3. after all the suggestions were applied, search and replace `squeeze_simp` with
+      `simp` to remove the occurrences of `squeeze_simp` that did not produce a suggestion.
+
+Known limitation(s):
+  * in cases where `squeeze_simp` is used after a `;` (e.g. `cases x; squeeze_simp`),
+    `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
+    It is likely that none of the suggestion is a good replacement but they can all be
+    combined by concatenating their list of lemmas.

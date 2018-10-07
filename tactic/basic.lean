@@ -557,4 +557,41 @@ meta def choose : expr → list name → tactic unit
   v ← get_unused_name >>= choose1 h n,
   choose v ns
 
+
+/--
+Hole command used to fill in a structure's field when specifying an instance.
+
+In the following:
+
+```
+instance : monad id :=
+{! !}
+```
+
+invoking hole command `Instance Stub` produces:
+
+```
+instance : monad id :=
+{ map := _,
+  map_const := _,
+  pure := _,
+  seq := _,
+  seq_left := _,
+  seq_right := _,
+  bind := _ }
+```
+-/
+@[hole_command] meta def instance_stub : hole_command :=
+{ name := "Instance Stub",
+  descr := "Generate a skeleton for the structure under construction.",
+  action := λ _,
+  do tgt ← target,
+     let cl := tgt.get_app_fn.const_name,
+     env ← get_env,
+     fs ← expanded_field_list cl,
+     let fs := fs.map prod.snd,
+     let fs := list.intersperse (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
+     let out := format.to_string format!"{{ {format.join fs} }",
+     return [(out,"")] }
+
 end tactic

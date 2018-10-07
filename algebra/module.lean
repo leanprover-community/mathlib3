@@ -234,6 +234,29 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 end submodule
 
+@[reducible] def ideal (α : Type u) [comm_ring α] := submodule α α
+
+namespace ideal
+variables [comm_ring α] (I : ideal α) {a b : α}
+
+protected lemma zero_mem : (0 : α) ∈ I := I.zero_mem
+
+protected lemma add_mem : a ∈ I → b ∈ I → a + b ∈ I := I.add_mem
+
+lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
+
+lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
+
+lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
+
+protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
+
+lemma mul_mem_left : b ∈ I → a * b ∈ I := I.smul_mem _
+
+lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left h
+
+end ideal
+
 /-- A vector space is the same as a module, except the scalar ring is actually
   a field. (This adds commutativity of the multiplication and existence of inverses.)
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural

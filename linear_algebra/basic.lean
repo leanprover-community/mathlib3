@@ -264,6 +264,9 @@ instance : complete_lattice (submodule α β) :=
   ..submodule.lattice.order_top,
   ..submodule.lattice.order_bot }
 
+@[simp] lemma eq_top_iff' {p : submodule α β} : p = ⊤ ↔ ∀ x, x ∈ p :=
+eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
+
 @[simp] theorem inf_coe : (p ⊓ p' : set β) = p ∩ p' := rfl
 
 @[simp] theorem mem_inf {p p' : submodule α β} :
@@ -415,6 +418,12 @@ begin
     exact ⟨k, add_mem _ (ik hi) (jk hj)⟩ },
   { simp [-mem_coe]; exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
+
+@[simp] theorem mem_supr_of_directed {ι} (hι : nonempty ι)
+  (S : ι → submodule α β)
+  (H : ∀ i j, ∃ k, S i ≤ S k ∧ S j ≤ S k) {x} :
+  x ∈ supr S ↔ ∃ i, x ∈ S i :=
+by rw [← mem_coe, Union_coe_of_directed hι S H, mem_Union]; refl
 
 variables {p p'}
 lemma mem_sup : x ∈ p ⊔ p' ↔ ∃ (y ∈ p) (z ∈ p'), y + z = x :=
@@ -576,22 +585,6 @@ end quotient
 
 end submodule
 
-section comm_ring
-
--- TODO(Mario): move to ideal theory
-theorem submodule.eq_top_of_unit_mem {α : Type u} [comm_ring α] (S : submodule α α)
-  (x y : α) (hx : x ∈ S) (h : y * x = 1) : S = ⊤ :=
-submodule.ext $ λ z, ⟨λ hz, trivial, λ hz, calc
-    z = z * (y * x) : by simp [h]
-  ... = (z * y) * x : eq.symm $ mul_assoc z y x
-  ... ∈ S : S.smul_mem (z * y) hx⟩
-
-theorem submodule.eq_top_of_one_mem {α : Type u} [comm_ring α] (S : submodule α α)
-  (h : (1:α) ∈ S) : S = ⊤ :=
-submodule.eq_top_of_unit_mem _ _ 1 h (by simp)
-
-end comm_ring
-
 namespace linear_map
 variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
@@ -689,7 +682,7 @@ lemma comap_map_eq_self {f : β →ₗ γ} {p : submodule α β} (h : ker f ≤ 
 by rw [comap_map_eq, sup_of_le_left h]
 
 @[simp] theorem ker_zero : ker (0 : β →ₗ γ) = ⊤ :=
-eq_top_iff.2 $ λ x, by simp
+eq_top_iff'.2 $ λ x, by simp
 
 theorem ker_eq_top {f : β →ₗ γ} : ker f = ⊤ ↔ f = 0 :=
 ⟨λ h, ext $ λ x, mem_ker.1 $ h.symm ▸ trivial, λ h, h.symm ▸ ker_zero⟩
@@ -825,7 +818,7 @@ def liftq (f : β →ₗ γ) (h : p ≤ f.ker) : p.quotient →ₗ γ :=
 by ext; refl
 
 @[simp] theorem range_mkq : p.mkq.range = ⊤ :=
-eq_top_iff.2 $ by rintro ⟨x⟩ _; exact ⟨x, trivial, rfl⟩
+eq_top_iff'.2 $ by rintro ⟨x⟩; exact ⟨x, trivial, rfl⟩
 
 @[simp] theorem ker_mkq : p.mkq.ker = p :=
 by ext; simp

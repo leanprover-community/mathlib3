@@ -252,7 +252,7 @@ def is_basis (s : set β) := linear_independent s ∧ span s = ⊤
 section is_basis
 variables (hs : is_basis s)
 
-lemma is_basis.mem_span (hs : is_basis s) (x) : x ∈ span s := by rw hs.2; trivial
+lemma is_basis.mem_span (hs : is_basis s) : ∀ x, x ∈ span s := eq_top_iff'.1 hs.2
 
 def is_basis.repr : β →ₗ lc α β :=
 (hs.1.repr).comp (linear_map.id.cod_restrict _ hs.mem_span)
@@ -410,24 +410,17 @@ end
 lemma exists_linear_independent (hs : linear_independent s) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span b ∧ linear_independent b :=
 begin
-  rcases zorn.zorn_subset {b | (b = ∅ ∨ s ⊆ b) ∧ b ⊆ t ∧ linear_independent b} _ with ⟨b, ⟨sb, bt, bi⟩, h⟩,
-  { replace sb,
-    { refine (or_iff_right_of_imp _).1 sb,
-      rintro rfl, rw h s ⟨or.inr (refl _), hst, hs⟩ (empty_subset _) },
-    refine ⟨b, bt, sb, λ x xt, _, bi⟩,
+  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent b} _
+    ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
+  { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
     by_contra hn,
     apply hn,
-    rw ← h _ ⟨or.inr (subset.trans sb (subset_insert _ _)),
-      insert_subset.2 ⟨xt, bt⟩, bi.insert hn⟩ (subset_insert _ _),
+    rw ← h _ ⟨insert_subset.2 ⟨xt, bt⟩, bi.insert hn⟩ (subset_insert _ _),
     exact subset_span (mem_insert _ _) },
-  { refine λ c hc cc, ⟨_, sUnion_subset (λ x xc, (hc xc).2.1), _⟩,
-    { by_cases ∃ x ∈ c, s ⊆ x,
-      { rcases h with ⟨x, xc, sx⟩,
-        exact or.inr (subset.trans sx (subset_sUnion_of_mem xc)) },
-      { refine or.inl (eq_empty_of_subset_empty $ sUnion_subset $ λ x xc, _),
-        rw or.resolve_right (hc xc).1 _,
-        exact λ h', h ⟨_, xc, h'⟩ } },
-    { exact linear_independent_sUnion_of_directed cc.directed_on (λ x xc, (hc xc).2.2) } }
+  { refine λ c hc cc c0, ⟨⋃₀ c, ⟨_, _⟩, λ x, _⟩,
+    { exact sUnion_subset (λ x xc, (hc xc).1) },
+    { exact linear_independent_sUnion_of_directed cc.directed_on (λ x xc, (hc xc).2) },
+    { exact subset_sUnion_of_mem } }
 end
 
 lemma exists_subset_is_basis (hs : linear_independent s) : ∃b, s ⊆ b ∧ is_basis b :=

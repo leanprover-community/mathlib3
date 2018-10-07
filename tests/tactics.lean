@@ -630,54 +630,54 @@ by { assoc_rw [h₀,h₂] at *,
 
 end assoc_rw
 
-section tfae
+-- section tfae
 
-example (p q r s : Prop)
-  (h₀ : p ↔ q)
-  (h₁ : q ↔ r)
-  (h₂ : r ↔ s) :
-  p ↔ s :=
-begin
-  scc,
-end
+-- example (p q r s : Prop)
+--   (h₀ : p ↔ q)
+--   (h₁ : q ↔ r)
+--   (h₂ : r ↔ s) :
+--   p ↔ s :=
+-- begin
+--   scc,
+-- end
 
-example (p' p q r r' s s' : Prop)
-  (h₀ : p' → p)
-  (h₀ : p → q)
-  (h₁ : q → r)
-  (h₁ : r' → r)
-  (h₂ : r ↔ s)
-  (h₂ : s → p)
-  (h₂ : s → s') :
-  p ↔ s :=
-begin
-  scc,
-end
+-- example (p' p q r r' s s' : Prop)
+--   (h₀ : p' → p)
+--   (h₀ : p → q)
+--   (h₁ : q → r)
+--   (h₁ : r' → r)
+--   (h₂ : r ↔ s)
+--   (h₂ : s → p)
+--   (h₂ : s → s') :
+--   p ↔ s :=
+-- begin
+--   scc,
+-- end
 
-example (p' p q r r' s s' : Prop)
-  (h₀ : p' → p)
-  (h₀ : p → q)
-  (h₁ : q → r)
-  (h₁ : r' → r)
-  (h₂ : r ↔ s)
-  (h₂ : s → p)
-  (h₂ : s → s') :
-  p ↔ s :=
-begin
-  scc',
-  assumption
-end
+-- example (p' p q r r' s s' : Prop)
+--   (h₀ : p' → p)
+--   (h₀ : p → q)
+--   (h₁ : q → r)
+--   (h₁ : r' → r)
+--   (h₂ : r ↔ s)
+--   (h₂ : s → p)
+--   (h₂ : s → s') :
+--   p ↔ s :=
+-- begin
+--   scc',
+--   assumption
+-- end
 
-example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
-  tfae_have : 3 → 1, { intro h, constructor },
-  tfae_have : 2 → 3, { intro h, constructor },
-  tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
-  tfae_have : 4 ↔ 2, { tauto },
-  tfae_finish,
-end
+-- example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
+--   tfae_have : 3 → 1, { intro h, constructor },
+--   tfae_have : 2 → 3, { intro h, constructor },
+--   tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
+--   tfae_have : 4 ↔ 2, { tauto },
+--   tfae_finish,
+-- end
 
-example : tfae [] := begin
-  tfae_finish,
-end
+-- example : tfae [] := begin
+--   tfae_finish,
+-- end
 
-end tfae
+-- end tfae

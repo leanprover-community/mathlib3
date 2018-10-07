@@ -3918,11 +3918,7 @@ theorem tfae_cons_cons {a b} {l : list Prop} : tfae (a::b::l) ↔ (a ↔ b) ∧ 
 tfae_cons_of_mem (or.inl rfl)
 
 theorem tfae_of_forall (b : Prop) (l : list Prop) (h : ∀ a ∈ l, a ↔ b) : tfae l :=
-show ∀ x ∈ l, ∀ y ∈ l, x ↔ y, from
-assume x (hx : x ∈ l) y (hy : y ∈ l),
-calc  x
-    ↔ b : h _ hx
-... ↔ y : (h _ hy).symm
+λ a₁ h₁ a₂ h₂, (h _ h₁).trans (h _ h₂).symm
 
 theorem tfae_of_cycle {a b} {l : list Prop} :
   list.chain (→) a (b::l) → (last' b l → a) → tfae (a::b::l) :=

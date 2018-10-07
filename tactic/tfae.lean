@@ -41,23 +41,23 @@ namespace interactive
 
 open tactic.tfae list
 
-meta def parse_list : expr → option (list expr )
+meta def parse_list : expr → option (list expr)
 | `([]) := pure []
 | `(%%e :: %%es) := (::) e <$> parse_list es
 | _ := none
 
-/-- in a goal of the form `tfae [a₀,a₁,a₂]`,
+/-- In a goal of the form `tfae [a₀, a₁, a₂]`,
 `tfae_have : i → j` creates the assertion `aᵢ → aⱼ`. The other possible
 notations are `tfae_have : i ← j` and `tfae_have : i ↔ j`. The user can
-also provide a label for the assertion, as with `have`: `tfae_have h : i ↔ j`
+also provide a label for the assertion, as with `have`: `tfae_have h : i ↔ j`.
 -/
 meta def tfae_have
   (h : parse $ optional ident <* tk ":")
-  (i₁ : parse small_nat)
+  (i₁ : parse (with_desc "i" small_nat))
   (re : parse (((tk "→" <|> tk "->")  *> return arrow.right)      <|>
                ((tk "↔" <|> tk "<->") *> return arrow.left_right) <|>
                ((tk "←" <|> tk "<-")  *> return arrow.left)))
-  (i₂ : parse small_nat)
+  (i₂ : parse (with_desc "j" small_nat))
   (discharger : tactic unit := (solve_by_elim)) :
   tactic unit := do
     `(tfae %%l) <- target,
@@ -69,9 +69,8 @@ meta def tfae_have
     tactic.assert h type,
     return ()
 
-/-- find all implications and equivalences in to prove a goal of
-the form `tfae [...]`
--/
+/-- Finds all implications and equivalences in the context
+to prove a goal of the form `tfae [...]`. -/
 meta def tfae_finish : tactic unit :=
 applyc ``tfae_nil <|>
 closure.mk_closure (λ cl,

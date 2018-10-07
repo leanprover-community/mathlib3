@@ -1,0 +1,3 @@
+#! /bin/sh
+BRANCH=`git branch | awk '/\*/ { print $2; }'`
+./.git/hooks/cache_olean.sh $BRANCH

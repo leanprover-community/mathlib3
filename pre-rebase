@@ -1,0 +1,5 @@
+#! /bin/sh
+FROM=`git branch | awk '/\*/ { print $2; }'`
+TO=$1
+./.git/hooks/cache_olean.sh $FROM
+./.git/hooks/restore_olean.sh $TO

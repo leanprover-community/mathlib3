@@ -84,6 +84,11 @@ lemma pow_apply_eq_of_apply_apply_eq_self_int {f : perm α} {x : α} (hffx : f (
     eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm];
   exact pow_apply_eq_of_apply_apply_eq_self_nat hffx _
 
+lemma prod_univ_perm [fintype α] [comm_monoid β] {f : α → β} (σ : perm α) :
+  (univ : finset α).prod f = univ.prod (λ z, f (σ z)) :=
+eq.symm $ prod_bij (λ z _, σ z) (λ _ _, mem_univ _) (λ _ _, rfl)
+  (λ _ _ _ _ H, σ.bijective.1 H) (λ b _, ⟨σ⁻¹ b, mem_univ _, by simp⟩)
+
 variable [decidable_eq α]
 
 def support [fintype α] (f : perm α) := univ.filter (λ x, f x ≠ x)

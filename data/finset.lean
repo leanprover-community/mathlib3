@@ -100,6 +100,9 @@ instance : partial_order (finset α) :=
   le_trans := @subset.trans _,
   le_antisymm := @subset.antisymm _ }
 
+theorem subset.antisymm_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ s₁ ⊆ s₂ ∧ s₂ ⊆ s₁ :=
+le_antisymm_iff
+
 @[simp] theorem le_iff_subset {s₁ s₂ : finset α} : s₁ ≤ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 @[simp] theorem lt_iff_ssubset {s₁ s₂ : finset α} : s₁ < s₂ ↔ s₁ ⊂ s₂ := iff.rfl
 
@@ -700,8 +703,11 @@ variables {f : α ↪ β} {s : finset α}
 
 @[simp] theorem mem_map {b : β} : b ∈ s.map f ↔ ∃ a ∈ s, f a = b := by simp [mem_def]
 
-@[simp] theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.map f :=
-mem_map.2 ⟨_, h, rfl⟩
+theorem mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s :=
+mem_map_of_inj f.2
+
+@[simp] theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
+(mem_map' _).2
 
 theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset := ext.2 $ by simp
@@ -711,8 +717,16 @@ theorem map_refl : s.map (embedding.refl _) = s := ext.2 $ by simp [embedding.re
 theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
 eq_of_veq $ by simp [erase_dup_map_erase_dup_eq]
 
-theorem map_subset_map {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.map f ⊆ s₂.map f :=
-by simp [subset_def, map_subset_map h]
+theorem map_subset_map {s₁ s₂ : finset α} : s₁.map f ⊆ s₂.map f ↔ s₁ ⊆ s₂ :=
+⟨λ h x xs, (mem_map' _).1 $ h $ (mem_map' f).2 xs,
+ λ h, by simp [subset_def, map_subset_map h]⟩
+
+theorem map_inj {s₁ s₂ : finset α} : s₁.map f = s₂.map f ↔ s₁ = s₂ :=
+by simp only [subset.antisymm_iff, map_subset_map]
+
+def map_embedding (f : α ↪ β) : finset α ↪ finset β := ⟨map f, λ s₁ s₂, map_inj.1⟩
+
+@[simp] theorem map_embedding_apply : map_embedding f s = map f s := rfl
 
 theorem map_filter {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=

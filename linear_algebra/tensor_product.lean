@@ -8,10 +8,11 @@ Tensor product of modules over commutative rings.
 -/
 
 import group_theory.free_abelian_group
-import linear_algebra.linear_map_module
+import linear_algebra.basic
 
 variables {R : Type*} [comm_ring R]
 variables (M : Type*) (N : Type*) (P : Type*) (Q : Type*)
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
 variables [module R M] [module R N] [module R P] [module R Q]
 include R
 

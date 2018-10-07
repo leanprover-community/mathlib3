@@ -16,7 +16,6 @@ meta def loc.to_string : loc → string
 | loc.wildcard := " at *"
 
 namespace tactic
-namespace interactive
 
 meta def arg.to_tactic_format : simp_arg_type → tactic format
 | (simp_arg_type.expr e) := i_to_expr_no_subgoals e >>= pp
@@ -24,6 +23,64 @@ meta def arg.to_tactic_format : simp_arg_type → tactic format
 | (simp_arg_type.except n) := pure format!"-{n}"
 
 open list
+
+meta def rec.to_tactic_format (e : pexpr) : tactic format :=
+do r ← e.get_structure_instance_info,
+   fs ← mzip_with (λ n v,
+     do v ← to_expr v >>= pp,
+        pure $ format!"{n} := {v}" )
+     r.field_names r.field_values,
+   let ss := r.sources.map (λ s, format!" .. {s}"),
+   let x : format := format.join $ list.intersperse ", " (fs ++ ss),
+   pure format!" {{{x}}"
+
+meta def parse_config : option pexpr → tactic (simp_config_ext × format)
+| none := pure ({}, "")
+| (some cfg) :=
+  do e ← to_expr ``(%%cfg : simp_config_ext),
+     fmt ← has_to_tactic_format.to_tactic_format cfg,
+     prod.mk <$> eval_expr simp_config_ext e
+             <*> rec.to_tactic_format cfg
+
+meta def squeeze_simp
+  (use_iota_eqn : option unit) (no_dflt : bool) (hs : list simp_arg_type)
+  (attr_names : list name) (locat : loc)
+  (cfg : option pexpr) : tactic string :=
+do g ← main_goal,
+   (cfg',c) ← parse_config cfg,
+   hs' ← hs.mmap arg.to_tactic_format,
+   interactive.simp use_iota_eqn no_dflt hs attr_names locat cfg',
+   g ← instantiate_mvars g,
+   let vs := g.list_constant,
+   vs ← vs.mfilter (succeeds ∘ has_attribute `simp),
+   let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
+   let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
+   let loc := loc.to_string locat,
+   let args := hs' ++ vs.to_list.map to_fmt,
+   pure $ to_string format!"simp{use_iota_eqn} only {args}{attrs}{loc}{c}"
+
+meta def squeeze_simpa
+  (use_iota_eqn : option unit) (no_dflt : bool) (hs : list simp_arg_type)
+  (attr_names : list name) (tgt : option pexpr)
+  (cfg : option pexpr) : tactic string :=
+do g ← main_goal,
+   (cfg',c) ← parse_config cfg,
+   tgt' ← traverse (λ t, do t ← to_expr t >>= pp,
+                            pure format!" using {t}") tgt,
+   interactive.simpa use_iota_eqn no_dflt hs attr_names tgt cfg',
+   g ← instantiate_mvars g,
+   let vs := g.list_constant,
+   vs ← vs.mfilter (succeeds ∘ has_attribute `simp),
+   let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
+   let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
+   let tgt' := tgt'.get_or_else "",
+   hs ← hs.mmap arg.to_tactic_format,
+   let args := hs ++ vs.to_list.map to_fmt,
+   pure $ to_string format!"simpa{use_iota_eqn} only {args}{attrs}{tgt'}{c}"
+
+namespace interactive
+
+local postfix `?`:9001 := optional
 
 meta def record_lit : lean.parser pexpr :=
 do tk "{",
@@ -37,26 +94,6 @@ do tk "{",
      { field_names := names,
        field_values := values,
        sources := srcs }
-
-meta def rec.to_tactic_format (e : pexpr) : tactic format :=
-do r ← e.get_structure_instance_info,
-   fs ← mzip_with (λ n v,
-     do v ← to_expr v >>= pp,
-        pure $ format!"{n} := {v}" )
-     r.field_names r.field_values,
-   let ss := r.sources.map (λ s, format!" .. {s}"),
-   let x : format := format.join $ list.intersperse ", " (fs ++ ss),
-   pure format!" {{{x}}"
-
-local postfix `?`:9001 := optional
-
-meta def parse_config : option pexpr → tactic (simp_config_ext × format)
-| none := pure ({}, "")
-| (some cfg) :=
-  do e ← to_expr ``(%%cfg : simp_config_ext),
-     fmt ← has_to_tactic_format.to_tactic_format cfg,
-     prod.mk <$> eval_expr simp_config_ext e
-             <*> rec.to_tactic_format cfg
 
 /-- `squeeze_simp` behaves like `simp` (including all its arguments)
 and prints a `simp only` invokation to skip the search through the
@@ -105,43 +142,16 @@ meta def squeeze_simp
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (locat : parse location)
   (cfg : parse record_lit?) : tactic unit :=
-do g ← main_goal,
-   (cfg',c) ← parse_config cfg,
-   hs' ← hs.mmap arg.to_tactic_format,
-   simp use_iota_eqn no_dflt hs attr_names locat cfg',
-   when (¬ no_dflt) $ do
-     g ← instantiate_mvars g,
-     let vs := g.list_constant,
-     vs ← vs.mfilter (succeeds ∘ has_attribute `simp),
-     let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
-     let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
-     let loc := loc.to_string locat,
-     let args := hs' ++ vs.to_list.map to_fmt,
-     trace format!"simp{use_iota_eqn} only {args}{attrs}{loc}{c}"
-
-example : 0 + 1 = 1 + 0 :=
-by squeeze_simp
+do script ← tactic.squeeze_simp use_iota_eqn no_dflt hs attr_names locat cfg,
+   when (¬ no_dflt) $ trace script
 
 /-- same as `squeeze_simp` for `simpa` -/
 meta def squeeze_simpa
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (tgt : parse (tk "using" *> texpr)?)
   (cfg : parse record_lit?) : tactic unit :=
-do g ← main_goal,
-   (cfg',c) ← parse_config cfg,
-   tgt' ← traverse (λ t, do t ← to_expr t >>= pp,
-                            pure format!" using {t}") tgt,
-   simpa use_iota_eqn no_dflt hs attr_names tgt cfg',
-   when (¬ no_dflt) $ do
-     g ← instantiate_mvars g,
-     let vs := g.list_constant,
-     vs ← vs.mfilter (succeeds ∘ has_attribute `simp),
-     let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
-     let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
-     let tgt' := tgt'.get_or_else "",
-     hs ← hs.mmap arg.to_tactic_format,
-     let args := hs ++ vs.to_list.map to_fmt,
-     trace format!"simpa{use_iota_eqn} only {args}{attrs}{tgt'}{c}"
+do script ← tactic.squeeze_simpa use_iota_eqn no_dflt hs attr_names tgt cfg,
+   when (¬ no_dflt) $ trace script
 
 end interactive
 end tactic

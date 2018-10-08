@@ -9,7 +9,8 @@ Besides [Lean's general documentation](https://leanprover.github.io/documentatio
 - A [guide](docs/elan.md) on installing Lean and mathlib with elan.
 - A description of [currently covered theories](docs/theories.md),
   as well as an [overview](docs/mathlib-overview.md) for mathematicians.
-- A description of [tactics](docs/tactics.md) introduced in mathlib.
+- A description of [tactics](docs/tactics.md) introduced in mathlib,
+  and available [hole commands](docs/holes.md).
 - An explanation of [naming conventions](docs/naming.md) that is useful
   to find or contribute definitions and lemmas.
 - A [style guide](docs/style.md) for contributors

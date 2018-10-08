@@ -4,6 +4,56 @@ In addition to [core tactics](https://leanprover.github.io/reference/tactics.htm
 mathlib provides a number of specific interactive tactics and commands.
 Here we document the mostly commonly used ones.
 
+### tfae
+
+The `tfae` tactic suite is a set of tactics that help with proving that certain
+propositions are equivalent.
+In `data/list/basic.lean` there is a section devoted to propositions of the
+form
+```
+tfae [p1, p2, ..., pn]
+```
+where `p1`, `p2`, through, `pn` are terms of type `Prop`.
+This proposition asserts that all the `pi` are pairwise equivalent.
+There are results that allow to extract the equivalence
+of two propositions `pi` and `pj`.
+
+To prove a goal of the form `tfae [p1, p2, ..., pn]`, there are two
+tactics.  The first tactic is `tfae_have`.  As an argument it takes an
+expression of the form `i arrow j`, where `i` and `j` are two positive
+natural numbers, and `arrow` is an arrow such as `→`, `->`, `←`, `<-`,
+`↔`, or `<->`.  The tactic `tfae_have : i arrow j` sets up a subgoal in
+which the user has to prove the equivalence (or implication) of `pi` and `pj`.
+
+The remaining tactic, `tfae_finish`, is a finishing tactic. It
+collects all implications and equivalences from the local context and
+computes their transitive closure to close the
+main goal.
+
+`tfae_have` and `tfae_finish` can be used together in a proof as
+follows:
+
+```lean
+example (a b c d : Prop) : tfae [a,b,c,d] :=
+begin
+  tfae_have : 3 → 1,
+  { /- prove c → a -/ },
+  tfae_have : 2 → 3,
+  { /- prove b → c -/ },
+  tfae_have : 2 ← 1,
+  { /- prove a → b -/ },
+  tfae_have : 4 ↔ 2,
+  { /- prove d ↔ b -/ },
+    -- a b c d : Prop,
+    -- tfae_3_to_1 : c → a,
+    -- tfae_2_to_3 : b → c,
+    -- tfae_1_to_2 : a → b,
+    -- tfae_4_iff_2 : d ↔ b
+    -- ⊢ tfae [a, b, c, d]
+  tfae_finish,
+end
+```
+
 ### rcases
 
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
@@ -136,6 +186,15 @@ The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, a
 solve_by_elim { discharger := `[cc] }
 ```
 also attempts to discharge the goal using congruence closure before each round of applying assumptions.
+
+By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
+
+The assumptions can be modified with similar syntax as for `simp`:
+* `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas (or all lemmas tagged with the named 
+attributes).
+* `solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
+unless they are explicitly included.
+* `solve_by_elim [-id_1, ... -id_n]` uses the default assumptions, removing the specified ones.
 
 ### ext1 / ext
 
@@ -429,3 +488,53 @@ sometimes confuse the tactic.
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
 into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
 `∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
+
+## squeeze_simp / squeeze_simpa
+
+`squeeze_simp` and `squeeze_simpa` perform the same task with
+the difference that `squeeze_simp` relates to `simp` while
+`squeeze_simpa` relates to `simpa`. The following applies to both
+`squeeze_simp` and `squeeze_simpa`.
+
+`squeeze_simp` behaves like `simp` (including all its arguments)
+and prints a `simp only` invokation to skip the search through the
+`simp` lemma list.
+
+For instance, the following is easily solved with `simp`:
+
+```
+example : 0 + 1 = 1 + 0 := by simp
+```
+
+To guide the proof search and speed it up, we may replace `simp`
+with `squeeze_simp`:
+
+```
+example : 0 + 1 = 1 + 0 := by squeeze_simp
+-- prints: simp only [add_zero, eq_self_iff_true, zero_add]
+```
+
+`squeeze_simp` suggests a replacement which we can use instead of
+`squeeze_simp`.
+
+```
+example : 0 + 1 = 1 + 0 := by simp only [add_zero, eq_self_iff_true, zero_add]
+```
+
+`squeeze_simp only` prints nothing as it already skips the `simp` list.
+
+This tactic is useful for speeding up the compilation of a complete file.
+Steps:
+
+   1. search and replace ` simp` with ` squeeze_simp` (the space helps avoid the
+      replacement of `simp` in `@[simp]`) throughout the file.
+   2. Starting at the beginning of the file, go to each printout in turn, copy
+      the suggestion in place of `squeeze_simp`.
+   3. after all the suggestions were applied, search and replace `squeeze_simp` with
+      `simp` to remove the occurrences of `squeeze_simp` that did not produce a suggestion.
+
+Known limitation(s):
+  * in cases where `squeeze_simp` is used after a `;` (e.g. `cases x; squeeze_simp`),
+    `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
+    It is likely that none of the suggestion is a good replacement but they can all be
+    combined by concatenating their list of lemmas.

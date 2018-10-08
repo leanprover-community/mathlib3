@@ -49,4 +49,6 @@ end.
 
 def f : unit → unit → unit := by tidy -- intros a a_1, cases a_1, cases a, fsplit
 
+def g (P Q : Prop) (p : P) (h : P ↔ Q) : Q := by tidy
+
 end tidy.test

@@ -324,6 +324,13 @@ instance is_extensional_of_is_strict_total_order'
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
 
+instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] : is_strict_total_order α r := by apply_instance
+instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] : is_extensional α r := by apply_instance
+instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] : is_trichotomous α r := by apply_instance
+instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] : is_trans α r := by apply_instance
+instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] : is_irrefl α r := by apply_instance
+instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] : is_asymm α r := by apply_instance
+
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
   irrefl       := λ a, id,

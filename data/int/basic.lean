@@ -82,7 +82,7 @@ theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
 @add_le_add_iff_right _ _ a b 1
 
-theorem sub_one_le_iff {a b : ℤ} : a - 1 < b ↔ a ≤ b :=
+theorem sub_one_lt_iff {a b : ℤ} : a - 1 < b ↔ a ≤ b :=
 sub_lt_iff_lt_add.trans lt_add_one_iff
 
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
@@ -608,7 +608,7 @@ begin
       exact hdiv }
 end
 
-lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m := 
+lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m :=
 by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 /- / and ordering -/

@@ -15,6 +15,19 @@ meta def deinternalize_field : name → name
 
 end name
 
+namespace name_set
+meta def filter (s : name_set) (P : name → bool) : name_set :=
+s.fold s (λ a m, if P a then m else m.erase a)
+
+meta def mfilter {m} [monad m] (s : name_set) (P : name → m bool) : m name_set :=
+s.fold (pure s) (λ a m,
+  do x ← m,
+     mcond (P a) (pure x) (pure $ x.erase a))
+
+meta def union (s t : name_set) : name_set :=
+s.fold t (λ a t, t.insert a)
+
+end name_set
 namespace expr
 open tactic
 
@@ -56,6 +69,9 @@ meta def is_sort : expr → bool
 
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
+
+meta def list_constant (e : expr) : name_set :=
+e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)
 
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
@@ -136,6 +152,28 @@ end
 end lean.parser
 
 namespace tactic
+
+meta def is_simp_lemma : name → tactic bool :=
+succeeds ∘ tactic.has_attribute `simp
+
+meta def local_decls : tactic (name_map declaration) :=
+do e ← tactic.get_env,
+   let xs := e.fold native.mk_rb_map
+     (λ d s, if environment.in_current_file' e d.to_name
+             then s.insert d.to_name d else s),
+   pure xs
+
+meta def simp_lemmas_from_file : tactic name_set :=
+do s ← local_decls,
+   let s := s.map (expr.list_constant ∘ declaration.value),
+   xs ← s.to_list.mmap ((<$>) name_set.of_list ∘ mfilter tactic.is_simp_lemma ∘ name_set.to_list ∘ prod.snd),
+   return $ name_set.filter (xs.foldl name_set.union mk_name_set) (λ x, ¬ s.contains x)
+
+meta def file_simp_attribute_decl (attr : name) : tactic unit :=
+do s ← simp_lemmas_from_file,
+   trace format!"run_cmd mk_simp_attr `{attr}",
+   let lmms := format.join $ list.intersperse " " $ s.to_list.map to_fmt,
+   trace format!"local attribute [{attr}] {lmms}"
 
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
@@ -420,30 +458,31 @@ meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × e
 tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
 meta def apply_assumption
-  (asms : option (list expr) := none)
+  (asms : tactic (list expr) := local_context)
   (tac : tactic unit := skip) : tactic unit :=
-do { ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H; tac) } <|>
+do { ctx ← asms,
+     ctx.any_of (λ H, symm_apply H >> tac) } <|> 
 do { exfalso,
-     ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H; tac) }
+     ctx ← asms,
+     ctx.any_of (λ H, symm_apply H >> tac) }
 <|> fail "assumption tactic failed"
 
 open nat
 
-meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
+meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
 | 0 := done
 | (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
   (discharger : tactic unit := done)
-  (restr_hyp_set : option (list expr) := none)
+  (assumptions : tactic (list expr) := local_context)
   (max_rep : ℕ := 3)
 
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
+  focus1 $
+    solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 meta def metavariables : tactic (list expr) :=
 do r ← result,
@@ -556,5 +595,42 @@ meta def choose : expr → list name → tactic unit
 | h (n::ns) := do
   v ← get_unused_name >>= choose1 h n,
   choose v ns
+
+
+/--
+Hole command used to fill in a structure's field when specifying an instance.
+
+In the following:
+
+```
+instance : monad id :=
+{! !}
+```
+
+invoking hole command `Instance Stub` produces:
+
+```
+instance : monad id :=
+{ map := _,
+  map_const := _,
+  pure := _,
+  seq := _,
+  seq_left := _,
+  seq_right := _,
+  bind := _ }
+```
+-/
+@[hole_command] meta def instance_stub : hole_command :=
+{ name := "Instance Stub",
+  descr := "Generate a skeleton for the structure under construction.",
+  action := λ _,
+  do tgt ← target,
+     let cl := tgt.get_app_fn.const_name,
+     env ← get_env,
+     fs ← expanded_field_list cl,
+     let fs := fs.map prod.snd,
+     let fs := list.intersperse (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
+     let out := format.to_string format!"{{ {format.join fs} }",
+     return [(out,"")] }
 
 end tactic

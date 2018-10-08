@@ -647,6 +647,12 @@ equiv.ext _ _ (λ x, begin
   split_ifs; simp
 end)
 
+@[simp] lemma swap_mul_self {α : Type*} [decidable_eq α] (i j : α) : swap i j * swap i j = 1 :=
+equiv.swap_swap i j
+
+@[simp] lemma swap_apply_self {α : Type*} [decidable_eq α] (i j a : α) : swap i j (swap i j a) = a :=
+by rw [← perm.mul_apply, swap_mul_self, perm.one_apply]
+
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 (swap a (f.symm b)).trans f

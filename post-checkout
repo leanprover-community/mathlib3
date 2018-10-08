@@ -1,3 +1,4 @@
 #! /bin/sh
 BRANCH=`git branch | awk '/\*/ { print $2; }'`
-./.git/hooks/restore_olean.sh $BRANCH
+GITDIR=`git rev-parse --git-dir`
+$GITDIR/hooks/restore_olean.sh $BRANCH

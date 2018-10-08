@@ -1,3 +1,4 @@
 #! /bin/sh
 BRANCH=`git branch | awk '/\*/ { print $2; }'`
-./.git/hooks/cache_olean.sh $BRANCH
+GITDIR=`git rev-parse --git-dir`
+$GITDIR/hooks/cache_olean.sh $BRANCH

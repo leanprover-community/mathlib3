@@ -200,9 +200,9 @@ theorem xgcd_aux_P (a b : α) {r r' : α} : ∀ {s t s' t'}, P a b (r, s, t) →
   P a b (r', s', t') → P a b (xgcd_aux r s t r' s' t') :=
 gcd.induction r r' (by intros; simpa only [xgcd_zero_left]) $ λ x y h IH s t s' t' p p', begin
   rw [xgcd_aux_rec h], refine IH _ p, unfold P at p p' ⊢,
-  conv {to_lhs, rw mod_eq_sub_mul_div, congr, rw p', skip, congr, rw p },
-  rw [add_mul, mul_sub, mul_sub, sub_add_eq_sub_sub, add_sub, sub_add_eq_add_sub],
-  simp only [mul_assoc, mul_comm, mul_left_comm]
+  rw [mul_sub, mul_sub, add_sub, sub_add_eq_add_sub, ← p', sub_sub,
+    mul_comm _ s, ← mul_assoc, mul_comm _ t, ← mul_assoc, ← add_mul, ← p,
+    mod_eq_sub_mul_div]
 end
 
 theorem gcd_eq_gcd_ab (a b : α) : (gcd a b : α) = a * gcd_a a b + b * gcd_b a b :=

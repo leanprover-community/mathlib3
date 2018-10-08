@@ -25,8 +25,8 @@ lemma Inf_eq_finite_sets {s : set α} :
 le_antisymm
   (le_infi $ assume t, le_infi $ assume ⟨_, h⟩, Inf_le_Inf h)
   (le_Inf $ assume b h, infi_le_of_le {b} $ infi_le_of_le
-  (by simp only [h, finite_singleton, and_self, mem_set_of_eq,
-    singleton_subset_iff]) $ Inf_le $ by simp only [mem_singleton])
+    (by simp only [h, finite_singleton, and_self, mem_set_of_eq,
+      singleton_subset_iff]) $ Inf_le $ by simp only [mem_singleton])
 
 lemma infi_insert_finset {ι : Type v} {s : finset ι} {f : ι → α} {i : ι} :
   (⨅j∈insert i s, f j) = f i ⊓ (⨅j∈s, f j) :=
@@ -505,10 +505,10 @@ le_antisymm
 
 lemma infi_sup_eq { f : filter α } {g : ι → filter α} : (⨅ x, f ⊔ g x) = f ⊔ infi g :=
 calc (⨅ x, f ⊔ g x) = (⨅ x (h : ∃i, g i = x), f ⊔ x) :
-  by simp only [infi_exists]; rw [infi_comm]; simp only [infi_infi_eq_right, eq_self_iff_true]
+  by simp only [infi_exists]; rw infi_comm; simp only [infi_infi_eq_right, eq_self_iff_true]
   ... = f ⊔ Inf {x | ∃i, g i = x} : binfi_sup_eq
-  ... = f ⊔ infi g : by rw [Inf_eq_infi]; dsimp; simp only [infi_exists];
-                        rw [infi_comm]; simp only [infi_infi_eq_right, eq_self_iff_true]
+  ... = f ⊔ infi g : by rw Inf_eq_infi; dsimp; simp only [infi_exists];
+                        rw infi_comm; simp only [infi_infi_eq_right, eq_self_iff_true]
 
 lemma mem_infi_sets_finset {s : finset α} {f : α → filter β} :
   ∀t, t ∈ (⨅a∈s, f a).sets ↔ (∃p:α → set β, (∀a∈s, p a ∈ (f a).sets) ∧ (⋂a∈s, p a) ⊆ t) :=
@@ -955,8 +955,7 @@ end
 le_antisymm
   (le_principal_iff.2 $ sets_of_superset (map f (pure a)) (image_mem_map singleton_mem_pure_sets) $
     by simp only [image_singleton, mem_singleton, singleton_subset_iff])
-  (le_map $ assume s,
-  begin
+  (le_map $ assume s, begin
     simp only [mem_image, pure_def, mem_principal_sets, singleton_subset_iff],
     exact assume has, ⟨a, has, rfl⟩
   end)
@@ -1780,8 +1779,9 @@ le_of_inf_eq $ ultrafilter_unique hf h inf_le_left
 lemma mem_or_compl_mem_of_ultrafilter (hf : ultrafilter f) (s : set α) :
   s ∈ f.sets ∨ - s ∈ f.sets :=
 classical.or_iff_not_imp_right.2 $ assume : - s ∉ f.sets,
-  have f ≤ principal s,
-    from le_of_ultrafilter hf $ assume h, this $ mem_sets_of_neq_bot $ by simp only [h, eq_self_iff_true, lattice.neg_neg],
+  have f ≤ principal s, from
+    le_of_ultrafilter hf $ assume h, this $ mem_sets_of_neq_bot $
+    by simp only [h, eq_self_iff_true, lattice.neg_neg],
   by simp only [le_principal_iff] at this; assumption
 
 lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : ultrafilter f) (h : s ∪ t ∈ f.sets) :
@@ -1862,7 +1862,7 @@ begin
   split,
   { induction fs generalizing t,
     case nil { simp only [sequence, pure_def, imp_self, forall₂_nil_left_iff, pure_def,
-    exists_eq_left, mem_principal_sets, set.pure_def, singleton_subset_iff, traverse_nil] },
+      exists_eq_left, mem_principal_sets, set.pure_def, singleton_subset_iff, traverse_nil] },
     case cons : b fs ih t {
       assume ht,
       rcases mem_seq_sets_iff.1 ht with ⟨u, hu, v, hv, ht⟩,

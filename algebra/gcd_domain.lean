@@ -189,7 +189,7 @@ end gcd
 
 section lcm
 
-lemma lcm_dvd_iff (a b c : α) : lcm a b ∣ c ↔ a ∣ c ∧ b ∣ c :=
+lemma lcm_dvd_iff {a b c : α} : lcm a b ∣ c ↔ a ∣ c ∧ b ∣ c :=
 classical.by_cases
   (assume : a = 0 ∨ b = 0, by rcases this with rfl | rfl;
     simp only [iff_def, lcm_zero_left, lcm_zero_right, zero_dvd_iff, dvd_zero,
@@ -202,14 +202,12 @@ classical.by_cases
         ← gcd_mul_left, dvd_gcd_iff, mul_comm c a, mul_dvd_mul_iff_left h1,
         mul_dvd_mul_iff_right h2, and_comm])
 
-lemma dvd_lcm_left (a b : α) : a ∣ lcm a b :=
-((lcm_dvd_iff _ _ _).1 (dvd_refl _)).1
+lemma dvd_lcm_left (a b : α) : a ∣ lcm a b := (lcm_dvd_iff.1 (dvd_refl _)).1
 
-lemma dvd_lcm_right (a b : α) : b ∣ lcm a b :=
-((lcm_dvd_iff _ _ _).1 (dvd_refl _)).2
+lemma dvd_lcm_right (a b : α) : b ∣ lcm a b := (lcm_dvd_iff.1 (dvd_refl _)).2
 
 lemma lcm_dvd {a b c : α} (hab : a ∣ b) (hcb : c ∣ b) : lcm a c ∣ b :=
-(lcm_dvd_iff _ _ _).2 ⟨hab, hcb⟩
+lcm_dvd_iff.2 ⟨hab, hcb⟩
 
 @[simp] theorem lcm_eq_zero_iff (a b : α) : lcm a b = 0 ↔ a = 0 ∨ b = 0 :=
 iff.intro

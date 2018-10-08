@@ -51,8 +51,11 @@ instance : has_zero (α →₀ β) := ⟨⟨∅, (λ_, 0), λ _, ⟨false.elim, 
 
 instance : inhabited (α →₀ β) := ⟨0⟩
 
-@[simp] lemma mem_support_iff (f : α →₀ β) : ∀a:α, a ∈ f.support ↔ f a ≠ 0 :=
+@[simp] lemma mem_support_iff {f : α →₀ β} : ∀{a:α}, a ∈ f.support ↔ f a ≠ 0 :=
 f.mem_support_to_fun
+
+lemma not_mem_support_iff {f : α →₀ β} {a} : a ∉ f.support ↔ f a = 0 :=
+by haveI := classical.dec; exact not_iff_comm.1 mem_support_iff.symm
 
 @[extensionality]
 lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
@@ -66,19 +69,19 @@ lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
 
 @[simp] lemma support_eq_empty [decidable_eq β] {f : α →₀ β} : f.support = ∅ ↔ f = 0 :=
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext.1 h a).1 $
-  (mem_support_iff f a).2 H, by rintro rfl; refl⟩
+  mem_support_iff.2 H, by rintro rfl; refl⟩
 
 instance [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume a,
       if h : a ∈ f.support then h₂ a h else
-        have hf : f a = 0, by rwa [f.mem_support_iff, not_not] at h,
-        have hg : g a = 0, by rwa [h₁, g.mem_support_iff, not_not] at h,
+        have hf : f a = 0, by rwa [mem_support_iff, not_not] at h,
+        have hg : g a = 0, by rwa [h₁, mem_support_iff, not_not] at h,
         by rw [hf, hg],
     by rintro rfl; exact ⟨rfl, λ _ _, rfl⟩⟩
 
 lemma finite_supp (f : α →₀ β) : set.finite {a | f a ≠ 0} :=
-⟨set.fintype_of_finset f.support f.mem_support_iff⟩
+⟨set.fintype_of_finset f.support (λ _, mem_support_iff)⟩
 
 lemma support_subset_iff {s : set α} {f : α →₀ β} [decidable_eq α] :
   ↑f.support ⊆ s ↔ (∀a∉s, f a = 0) :=
@@ -93,22 +96,20 @@ variables [decidable_eq α] [decidable_eq β] [has_zero β] {a a' : α} {b : β}
 /-- `single a b` is the finitely supported function which has
   value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : β) : α →₀ β :=
-⟨(if b = 0 then ∅ else {a}), (λa', if a = a' then b else 0),
-  begin intro a', by_cases hb : b = 0; by_cases a = a'; simp only [hb, h, if_pos, if_false,
-    insert_empty_eq_singleton, mem_singleton],
-    { exact ⟨false.elim, λ H, H rfl⟩ },
-    { exact ⟨false.elim, λ H, H rfl⟩ },
-    { exact ⟨λ _, hb, λ _, rfl⟩ },
-    { exact ⟨λ H _, h H.symm, λ H, (H rfl).elim⟩ } end⟩
+⟨if b = 0 then ∅ else finset.singleton a, λ a', if a = a' then b else 0, λ a', begin
+  by_cases hb : b = 0; by_cases a = a';
+    simp only [hb, h, if_pos, if_false, mem_singleton],
+  { exact ⟨false.elim, λ H, H rfl⟩ },
+  { exact ⟨false.elim, λ H, H rfl⟩ },
+  { exact ⟨λ _, hb, λ _, rfl⟩ },
+  { exact ⟨λ H _, h H.symm, λ H, (H rfl).elim⟩ }
+end⟩
 
-lemma single_apply : (single a b : α →₀ β) a' = (if a = a' then b else 0) :=
-rfl
+lemma single_apply : (single a b : α →₀ β) a' = if a = a' then b else 0 := rfl
 
-@[simp] lemma single_eq_same : (single a b : α →₀ β) a = b :=
-if_pos rfl
+@[simp] lemma single_eq_same : (single a b : α →₀ β) a = b := if_pos rfl
 
-@[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ β) a' = 0 :=
-if_neg h
+@[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ β) a' = 0 := if_neg h
 
 @[simp] lemma single_zero : (single a 0 : α →₀ β) = 0 :=
 ext $ assume a',
@@ -143,8 +144,7 @@ def on_finset (s : finset α) (f : α → β) (hf : ∀a, f a ≠ 0 → a ∈ s)
 rfl
 
 @[simp] lemma support_on_finset_subset {s : finset α} {f : α → β} {hf} :
-  (on_finset s f hf).support ⊆ s :=
-filter_subset _
+  (on_finset s f hf).support ⊆ s := filter_subset _
 
 end on_finset
 
@@ -178,16 +178,15 @@ variables [has_zero β] [has_zero β₁] [has_zero β₂] [decidable_eq α] [dec
 /-- `zip_with f hf g₁ g₂` is the finitely supported function satisfying
   `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, and well defined when `f 0 0 = 0`. -/
 def zip_with (f : β₁ → β₂ → β) (hf : f 0 0 = 0) (g₁ : α →₀ β₁) (g₂ : α →₀ β₂) : (α →₀ β) :=
-on_finset (g₁.support ∪ g₂.support) (λa, f (g₁ a) (g₂ a)) $
-  assume a, classical.by_cases
-    (assume h : g₁ a = 0, by simp only [h, mem_union, mem_support_iff, ne.def, ne_self_iff_false, false_or, not_imp_not];
-      intro H; rw H; exact hf)
-    (assume h : g₁ a ≠ 0, λ _, mem_union_left _ $ (mem_support_iff _ _).2 h)
+on_finset (g₁.support ∪ g₂.support) (λa, f (g₁ a) (g₂ a)) $ λ a H, begin
+  haveI := classical.dec_eq β₁,
+  simp only [mem_union, mem_support_iff, ne], rw [← not_and_distrib],
+  rintro ⟨h₁, h₂⟩, rw [h₁, h₂] at H, exact H hf
+end
 
 @[simp] lemma zip_with_apply
   {f : β₁ → β₂ → β} {hf : f 0 0 = 0} {g₁ : α →₀ β₁} {g₂ : α →₀ β₂} {a : α} :
-  zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a) :=
-rfl
+  zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a) := rfl
 
 lemma support_zip_with {f : β₁ → β₂ → β} {hf : f 0 0 = 0} {g₁ : α →₀ β₁} {g₂ : α →₀ β₂} :
   (zip_with f hf g₁ g₂).support ⊆ g₁.support ∪ g₂.support :=
@@ -232,12 +231,11 @@ lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ] [d
   {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {h : α → β₂ → γ} (h0 : ∀a, h a 0 = 1) :
   (map_range f hf g).prod h = g.prod (λa b, h a (f b)) :=
 finset.prod_subset support_map_range $ λ _ _ H,
-by rw [by_contradiction (mt (mem_support_iff _ _).2 H), h0]
+by rw [not_mem_support_iff.1 H, h0]
 
 @[to_additive finsupp.sum_zero_index]
 lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → γ} :
-  (0 : α →₀ β).prod h = 1 :=
-rfl
+  (0 : α →₀ β).prod h = 1 := rfl
 
 section decidable
 variables [decidable_eq α] [decidable_eq β]
@@ -311,7 +309,7 @@ suffices p (single a (f a) + f.erase a), by rwa [single_add_erase] at this,
 begin
   apply ha,
   { rw [support_erase, mem_erase], exact λ H, H.1 rfl },
-  { rw [← mem_support_iff _ a, hf], exact mem_insert_self _ _ },
+  { rw [← mem_support_iff, hf], exact mem_insert_self _ _ },
   { apply ih _ _,
     rw [support_erase, hf, finset.erase_insert has] }
 end
@@ -326,7 +324,7 @@ suffices p (f.erase a + single a (f a)), by rwa [erase_add_single] at this,
 begin
   apply ha,
   { rw [support_erase, mem_erase], exact λ H, H.1 rfl },
-  { rw [← mem_support_iff _ a, hf], exact mem_insert_self _ _ },
+  { rw [← mem_support_iff, hf], exact mem_insert_self _ _ },
   { apply ih _ _,
     rw [support_erase, hf, finset.erase_insert has] }
 end
@@ -344,8 +342,8 @@ instance [add_group β] : add_group (α →₀ β) :=
 
 lemma single_multiset_sum [add_comm_monoid β] [decidable_eq α] [decidable_eq β]
   (s : multiset β) (a : α) : single a s.sum = (s.map (single a)).sum :=
-multiset.induction_on s single_zero (λ a s ih,
-by rw [multiset.sum_cons, single_add, ih, multiset.map_cons, multiset.sum_cons])
+multiset.induction_on s single_zero $ λ a s ih,
+by rw [multiset.sum_cons, single_add, ih, multiset.map_cons, multiset.sum_cons]
 
 lemma single_finset_sum [add_comm_monoid β] [decidable_eq α] [decidable_eq β]
   (s : finset γ) (f : γ → β) (a : α) : single a (s.sum f) = s.sum (λb, single a (f b)) :=
@@ -392,7 +390,7 @@ have ∀a₁ : α, f.sum (λ (a : α₁) (b : β₁), (g a b) a₁) ≠ 0 →
     (∃ (a : α₁), f a ≠ 0 ∧ ¬ (g a (f a)) a₁ = 0),
   from assume a₁ h,
   let ⟨a, ha, ne⟩ := finset.exists_ne_zero_of_sum_ne_zero h in
-  ⟨a, (f.mem_support_iff a).mp ha, ne⟩,
+  ⟨a, mem_support_iff.mp ha, ne⟩,
 by simpa only [finset.subset_iff, mem_support_iff, finset.mem_bind, sum_apply, exists_prop] using this
 
 @[simp] lemma sum_zero [add_comm_monoid β] [add_comm_monoid γ] {f : α →₀ β} :
@@ -425,13 +423,10 @@ begin
     refine (finset.sum_subset this (λ _ _ H, _)).symm,
     exact if_neg (mt mem_singleton.2 H) },
   { transitivity (f.support.sum (λa, (0 : β))),
-    { refine (finset.sum_congr rfl _),
-      intros a' ha',
-      have h: a' ≠ a,
-        { rintro rfl, exact h ha' },
-      exact if_neg h },
+    { refine (finset.sum_congr rfl $ λ a' ha', if_neg _),
+      rintro rfl, exact h ha' },
     { rw [sum_const_zero, insert_empty_eq_singleton, sum_singleton,
-        if_pos rfl, by_contradiction (mt (mem_support_iff _ _).2 h)] } }
+        if_pos rfl, not_mem_support_iff.1 h] } }
 end,
 ext $ assume a, by simp only [sum_apply, single_apply, this,
   insert_empty_eq_singleton, sum_singleton, if_pos]
@@ -442,14 +437,14 @@ lemma prod_add_index [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
   (f + g).prod h = f.prod h * g.prod h :=
 have f_eq : (f.support ∪ g.support).prod (λa, h a (f a)) = f.prod h,
   from (finset.prod_subset finset.subset_union_left $
-    by intros _ _ H; rw [by_contradiction (mt (mem_support_iff _ _).2 H), h_zero]).symm,
+    by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
 have g_eq : (f.support ∪ g.support).prod (λa, h a (g a)) = g.prod h,
   from (finset.prod_subset finset.subset_union_right $
-    by intros _ _ H; rw [by_contradiction (mt (mem_support_iff _ _).2 H), h_zero]).symm,
+    by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
 calc (f + g).support.prod (λa, h a ((f + g) a)) =
       (f.support ∪ g.support).prod (λa, h a ((f + g) a)) :
     finset.prod_subset support_add $
-      by intros _ _ H; rw [by_contradiction (mt (mem_support_iff _ _).2 H), h_zero]
+      by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]
   ... = (f.support ∪ g.support).prod (λa, h a (f a)) *
       (f.support ∪ g.support).prod (λa, h a (g a)) :
     by simp only [add_apply, h_add, finset.prod_mul_distrib]
@@ -590,8 +585,8 @@ variables [has_zero β] {p : α → Prop} [decidable_pred p] {f : α →₀ β}
 
 /-- `filter p f` is the function which is `f a` if `p a` is true and 0 otherwise. -/
 def filter (p : α → Prop) [decidable_pred p] (f : α →₀ β) : α →₀ β :=
-on_finset f.support (λa, if p a then f a else 0) (λ a H,
-(mem_support_iff f a).2 $ λ h, by rw [h, if_t_t] at H; exact H rfl)
+on_finset f.support (λa, if p a then f a else 0) $ λ a H,
+mem_support_iff.2 $ λ h, by rw [h, if_t_t] at H; exact H rfl
 
 @[simp] lemma filter_apply_pos {a : α} (h : p a) : f.filter p a = f a :=
 if_pos h
@@ -698,14 +693,9 @@ calc f.to_multiset.count a = f.sum (λx n, (add_monoid.smul n {x} : multiset α)
     (finset.sum_hom _ (multiset.count_zero a) (multiset.count_add a)).symm
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_smul]
   ... = f.sum (λx n, n * (x :: 0 : multiset α).count a) : rfl
-  ... = f a * (a :: 0 : multiset α).count a :
-    begin
-      refine sum_eq_single _ _ _,
-      { intros _ _ H,
-        simp only [multiset.count_cons_of_ne (ne.symm H), multiset.count_zero, mul_zero] },
-      { intro H,
-        simp only [by_contradiction (mt (mem_support_iff _ _).2 H), zero_mul] }
-    end
+  ... = f a * (a :: 0 : multiset α).count a : sum_eq_single _
+    (λ a' _ H, by simp only [multiset.count_cons_of_ne (ne.symm H), multiset.count_zero, mul_zero])
+    (λ H, by simp only [not_mem_support_iff.1 H, zero_mul])
   ... = f a : by simp only [multiset.count_singleton, mul_one]
 
 def of_multiset [decidable_eq α] (m : multiset α) : α →₀ ℕ :=
@@ -730,8 +720,8 @@ multiset.induction_on s false.elim
     by_cases a ∈ f.support,
     { exact ⟨f, multiset.mem_cons_self _ _, h⟩ },
     { simp only [multiset.sum_cons, mem_support_iff, add_apply,
-        by_contradiction (mt (mem_support_iff _ _).2 h), zero_add] at ha,
-      rcases ih ((mem_support_iff _ _).2 ha) with ⟨f', h₀, h₁⟩,
+        not_mem_support_iff.1 h, zero_add] at ha,
+      rcases ih (mem_support_iff.2 ha) with ⟨f', h₀, h₁⟩,
       exact ⟨f', multiset.mem_cons_of_mem h₀, h₁⟩ }
   end
 
@@ -778,15 +768,10 @@ f.sum $ λa g, g.sum $ λb c, single (a, b) c
 
 def finsupp_prod_equiv [add_comm_monoid γ] [decidable_eq α] [decidable_eq β] [decidable_eq γ] :
   ((α × β) →₀ γ) ≃ (α →₀ (β →₀ γ)) :=
-⟨ finsupp.curry, finsupp.uncurry,
-  assume f, by simp only [finsupp.curry, finsupp.uncurry,
-    sum_sum_index, sum_zero_index, sum_add_index, sum_single_index,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    prod.mk.eta, sum_single],
-  assume f, by simp only [finsupp.curry, finsupp.uncurry,
-    sum_sum_index, sum_zero_index, sum_add_index, sum_single_index,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    prod.mk.eta, (single_sum _ _ _).symm, sum_single] ⟩
+by refine ⟨finsupp.curry, finsupp.uncurry, λ f, _, λ f, _⟩; simp only [
+  finsupp.curry, finsupp.uncurry, sum_sum_index, sum_zero_index, sum_add_index,
+  sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff,
+  forall_3_true_iff, prod.mk.eta, (single_sum _ _ _).symm, sum_single]
 
 end curry_uncurry
 

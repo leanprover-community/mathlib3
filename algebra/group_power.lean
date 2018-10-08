@@ -354,13 +354,11 @@ theorem is_semiring_hom.map_pow {β} [semiring α] [semiring β]
 by induction n with n ih; [exact is_semiring_hom.map_one f,
   rw [pow_succ, pow_succ, is_semiring_hom.map_mul f, ih]]
 
-theorem neg_one_pow_eq_or {R} [ring R] (n : ℕ) : (-1 : R)^n = 1 ∨ (-1 : R)^n = -1 :=
-begin
-  induction n with n ih, {left, refl},
-  cases ih with h h,
-  { right, rw [pow_succ, h, mul_one] },
-  { left, rw [pow_succ, h, neg_one_mul, neg_neg] }
-end
+theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
+| 0     := or.inl rfl
+| (n+1) := (neg_one_pow_eq_or n).swap.imp
+  (λ h, by rw [pow_succ, h, neg_one_mul, neg_neg])
+  (λ h, by rw [pow_succ, h, mul_one])
 
 theorem gsmul_eq_mul [ring α] (a : α) : ∀ n, n •ℤ a = n * a
 | (n : ℕ) := add_monoid.smul_eq_mul _ _
@@ -384,11 +382,10 @@ by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 
 theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 begin
-  induction n with n ih, { exact one_ne_zero },
+  induction n with n ih, {exact one_ne_zero},
   intro H,
   cases mul_eq_zero.1 H with h1 h1,
-  { exact h h1 },
-  { exact ih h1 }
+  exacts [h h1, ih h1]
 end
 
 @[simp] theorem one_div_pow [division_ring α] {a : α} (ha : a ≠ 0) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
@@ -499,6 +496,7 @@ lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :
 by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_pow_two, one_pow, mul_one]
 
 end int
+
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]
 

@@ -119,8 +119,7 @@ add_lt_of_nonpos_of_lt' (le_of_lt ha) hbc
 lemma add_lt_of_lt_of_neg' (hbc : b < c) (ha : a < 0) : b + a < c :=
 add_lt_of_lt_of_nonpos' hbc (le_of_lt ha)
 
-lemma add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg'
-  (ha : 0 ≤ a) (hb : 0 ≤ b) : a + b = 0 ↔ a = 0 ∧ b = 0 :=
+lemma add_eq_zero_iff' (ha : 0 ≤ a) (hb : 0 ≤ b) : a + b = 0 ↔ a = 0 ∧ b = 0 :=
 iff.intro
   (assume hab : a + b = 0,
    have a ≤ 0, from hab ▸ le_add_of_le_of_nonneg' (le_refl _) hb,
@@ -340,7 +339,7 @@ canonically_ordered_monoid.le_iff_exists_add a b
 @[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
 
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
-add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg' (zero_le _) (zero_le _)
+add_eq_zero_iff' (zero_le _) (zero_le _)
 
 @[simp] lemma le_zero_iff_eq : a ≤ 0 ↔ a = 0 :=
 iff.intro

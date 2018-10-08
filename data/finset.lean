@@ -142,8 +142,7 @@ theorem subset_empty {s : finset α} : s ⊆ ∅ ↔ s = ∅ := subset_zero.tran
 theorem exists_mem_of_ne_empty {s : finset α} (h : s ≠ ∅) : ∃ a : α, a ∈ s :=
 exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 
-@[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) :=
-rfl
+@[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
 
 /-- `singleton a` is the set `{a}` containing `a` and nothing else. -/
 def singleton (a : α) : finset α := ⟨_, nodup_singleton a⟩
@@ -151,8 +150,7 @@ local prefix `ι`:90 := singleton
 
 @[simp] theorem singleton_val (a : α) : (ι a).1 = a :: 0 := rfl
 
-@[simp] theorem mem_singleton {a b : α} : b ∈ ι a ↔ b = a :=
-mem_singleton
+@[simp] theorem mem_singleton {a b : α} : b ∈ ι a ↔ b = a := mem_singleton
 
 theorem not_mem_singleton {a b : α} : a ∉ ι b ↔ a ≠ b := not_iff_not_of_iff mem_singleton
 
@@ -163,8 +161,7 @@ theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
 
 @[simp] theorem singleton_ne_empty (a : α) : ι a ≠ ∅ := ne_empty_of_mem (mem_singleton_self _)
 
-@[simp] lemma coe_singleton (a : α) : ↑(ι a) = ({a} : set α) :=
-rfl
+@[simp] lemma coe_singleton (a : α) : ↑(ι a) = ({a} : set α) := rfl
 
 /- insert -/
 section decidable_eq
@@ -377,7 +374,7 @@ by rw [inter_comm, insert_inter_of_mem h, inter_comm]
 
 @[simp] theorem insert_inter_of_not_mem {s₁ s₂ : finset α} {a : α} (h : a ∉ s₂) :
   insert a s₁ ∩ s₂ = s₁ ∩ s₂ :=
-ext.2 $ λ x, have x = a ∧ x ∈ s₂ ↔ false, from (iff_false _).2 $ by rintro ⟨rfl, H⟩; cc,
+ext.2 $ λ x, have ¬ (x = a ∧ x ∈ s₂), by rintro ⟨rfl, H⟩; exact h H,
 by simp only [mem_inter, mem_insert, or_and_distrib_right, this, false_or]
 
 @[simp] theorem inter_insert_of_not_mem {s₁ s₂ : finset α} {a : α} (h : a ∉ s₁) :
@@ -388,7 +385,7 @@ by rw [inter_comm, insert_inter_of_not_mem h, inter_comm]
 show insert a ∅ ∩ s = insert a ∅, by rw [insert_inter_of_mem H, empty_inter]
 
 @[simp] theorem singleton_inter_of_not_mem {a : α} {s : finset α} (H : a ∉ s) : ι a ∩ s = ∅ :=
-eq_empty_of_forall_not_mem $ by simp only [mem_inter, mem_singleton]; rintro x ⟨rfl, H⟩; cc
+eq_empty_of_forall_not_mem $ by simp only [mem_inter, mem_singleton]; rintro x ⟨rfl, h⟩; exact H h
 
 @[simp] theorem inter_singleton_of_mem {a : α} {s : finset α} (h : a ∈ s) : s ∩ ι a = ι a :=
 by rw [inter_comm, singleton_inter_of_mem h]
@@ -454,7 +451,7 @@ by simp only [mem_erase]; exact and.intro
 
 theorem erase_insert {a : α} {s : finset α} (h : a ∉ s) : erase (insert a s) a = s :=
 ext.2 $ assume x, by simp only [mem_erase, mem_insert, and_or_distrib_left, not_and_self, false_or];
-apply and_iff_right_of_imp; rintro H rfl; cc
+apply and_iff_right_of_imp; rintro H rfl; exact h H
 
 theorem insert_erase {a : α} {s : finset α} (h : a ∈ s) : insert a (erase s a) = s :=
 ext.2 $ assume x, by simp only [mem_insert, mem_erase, or_and_distrib_left, dec_em, true_and];
@@ -494,13 +491,15 @@ instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of
   a ∈ s₁ \ s₂ ↔ a ∈ s₁ ∧ a ∉ s₂ := mem_sub_of_nodup s₁.2
 
 @[simp] theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
-ext.2 $ λ a, by simpa only [mem_sdiff, mem_union, or_comm, or_and_distrib_left, dec_em, and_true] using or_iff_right_of_imp (@h a)
+ext.2 $ λ a, by simpa only [mem_sdiff, mem_union, or_comm,
+  or_and_distrib_left, dec_em, and_true] using or_iff_right_of_imp (@h a)
 
 @[simp] theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ∪ (s₂ \ s₁) = s₂ :=
 (union_comm _ _).trans (sdiff_union_of_subset h)
 
 @[simp] theorem inter_sdiff_self (s₁ s₂ : finset α) : s₁ ∩ (s₂ \ s₁) = ∅ :=
-eq_empty_of_forall_not_mem $ by simp only [mem_inter, mem_sdiff]; rintro x ⟨h1, h2, h3⟩; cc
+eq_empty_of_forall_not_mem $
+by simp only [mem_inter, mem_sdiff]; rintro x ⟨h, _, hn⟩; exact hn h
 
 @[simp] theorem sdiff_inter_self (s₁ s₂ : finset α) : (s₂ \ s₁) ∩ s₁ = ∅ :=
 (inter_comm _ _).trans (inter_sdiff_self _ _)
@@ -761,9 +760,9 @@ ext.2 $ λ _, by simp only [mem_map, mem_union, exists_prop, or_and_distrib_righ
 
 theorem map_inter [decidable_eq α] [decidable_eq β]
   {f : α ↪ β} (s₁ s₂ : finset α) : (s₁ ∩ s₂).map f = s₁.map f ∩ s₂.map f :=
-ext.2 $ λ b, by simp only [mem_map, mem_inter, exists_prop, and_assoc]; exact
-⟨by rintro ⟨a, m₁, m₂, rfl⟩; exact ⟨⟨a, m₁, rfl⟩, ⟨a, m₂, rfl⟩⟩,
-by rintro ⟨⟨a, m₁, e⟩, ⟨a', m₂, rfl⟩⟩; cases f.2 e; exact ⟨_, m₁, m₂, rfl⟩⟩
+ext.2 $ λ b, by simp only [mem_map, mem_inter, exists_prop]; exact
+⟨by rintro ⟨a, ⟨m₁, m₂⟩, rfl⟩; exact ⟨⟨a, m₁, rfl⟩, ⟨a, m₂, rfl⟩⟩,
+by rintro ⟨⟨a, m₁, e⟩, ⟨a', m₂, rfl⟩⟩; cases f.2 e; exact ⟨_, ⟨m₁, m₂⟩, rfl⟩⟩
 
 @[simp] theorem map_singleton (f : α ↪ β) (a : α) : (singleton a).map f = singleton (f a) :=
 ext.2 $ λ _, by simp only [mem_map, mem_singleton, exists_prop, exists_eq_left]; exact eq_comm
@@ -820,9 +819,9 @@ by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset', multi
 
 theorem image_filter {p : β → Prop} [decidable_pred p] :
   (s.image f).filter p = (s.filter (p ∘ f)).image f :=
-ext.2 $ λ b, by simp only [mem_filter, mem_image, exists_prop, and_assoc]; exact
-⟨by rintro ⟨⟨x, h1, rfl⟩, h2⟩; exact ⟨x, h1, h2, rfl⟩,
-by rintro ⟨x, h1, h2, rfl⟩; exact ⟨⟨x, h1, rfl⟩, h2⟩⟩
+ext.2 $ λ b, by simp only [mem_filter, mem_image, exists_prop]; exact
+⟨by rintro ⟨⟨x, h1, rfl⟩, h2⟩; exact ⟨x, ⟨h1, h2⟩, rfl⟩,
+ by rintro ⟨x, ⟨h1, h2⟩, rfl⟩; exact ⟨⟨x, h1, rfl⟩, h2⟩⟩
 
 theorem image_union [decidable_eq α] {f : α → β} (s₁ s₂ : finset α) : (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f :=
 ext.2 $ λ _, by simp only [mem_image, mem_union, exists_prop, or_and_distrib_right, exists_or_distrib]
@@ -858,7 +857,8 @@ theorem map_eq_image (f : α ↪ β) (s : finset α) : s.map f = s.image f :=
 eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
 
 lemma image_const [decidable_eq β] {s : finset α} (h : s ≠ ∅) (b : β) : s.image (λa, b) = singleton b :=
-ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right, exists_mem_of_ne_empty h, true_and, mem_singleton, eq_comm]
+ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
+  exists_mem_of_ne_empty h, true_and, mem_singleton, eq_comm]
 
 end image
 
@@ -878,8 +878,10 @@ card_eq_zero.trans val_eq_zero
 theorem card_pos {s : finset α} : 0 < card s ↔ s ≠ ∅ :=
 pos_iff_ne_zero.trans $ not_congr card_eq_zero
 
-@[simp] theorem card_insert_of_not_mem [decidable_eq α] {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
-by simpa only [card_cons, card, insert_val] using congr_arg multiset.card (ndinsert_of_not_mem h)
+@[simp] theorem card_insert_of_not_mem [decidable_eq α]
+  {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
+by simpa only [card_cons, card, insert_val] using
+congr_arg multiset.card (ndinsert_of_not_mem h)
 
 theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert a s) ≤ card s + 1 :=
 by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
@@ -1018,7 +1020,8 @@ by simp only [mem_def, bind_val, mem_erase_dup, mem_bind, exists_prop]
 
 @[simp] theorem bind_insert [decidable_eq α] {a : α} : (insert a s).bind t = t a ∪ s.bind t :=
 ext.2 $ λ x, by simp only [mem_bind, exists_prop, mem_union, mem_insert,
-  or_and_distrib_right, exists_or_distrib, exists_eq_left] --by simp [or_and_distrib_right, exists_or_distrib]
+  or_and_distrib_right, exists_or_distrib, exists_eq_left]
+-- ext.2 $ λ x, by simp [or_and_distrib_right, exists_or_distrib]
 
 @[simp] lemma singleton_bind [decidable_eq α] {a : α} : (singleton a).bind t = t a :=
 show (insert a ∅ : finset α).bind t = t a, from bind_insert.trans $ union_empty _
@@ -1027,13 +1030,13 @@ theorem image_bind [decidable_eq γ] {f : α → β} {s : finset α} {t : β →
   (s.image f).bind t = s.bind (λa, t (f a)) :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
-by simp only [image_insert, bind_insert, ih])
+  by simp only [image_insert, bind_insert, ih])
 
 theorem bind_image [decidable_eq γ] {s : finset α} {t : α → finset β} {f : β → γ} :
   (s.bind t).image f = s.bind (λa, (t a).image f) :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
-by simp only [bind_insert, image_union, ih])
+  by simp only [bind_insert, image_union, ih])
 
 theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :
   (s.bind t).to_finset = s.to_finset.bind (λa, (t a).to_finset) :=
@@ -1201,8 +1204,7 @@ variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 @[simp] theorem fold_insert [decidable_eq α] (h : a ∉ s) : (insert a s).fold op b f = f a * s.fold op b f :=
 by unfold fold; rw [insert_val, ndinsert_of_not_mem h, map_cons, fold_cons_left]
 
-@[simp] theorem fold_singleton : (singleton a).fold op b f = f a * b :=
-rfl
+@[simp] theorem fold_singleton : (singleton a).fold op b f = f a * b := rfl
 
 @[simp] theorem fold_image [decidable_eq α] {g : γ → α} {s : finset γ}
   (H : ∀ (x ∈ s) (y ∈ s), g x = g y → x = y) : (s.image g).fold op b f = s.fold op b (f ∘ g) :=
@@ -1260,8 +1262,8 @@ by rw [insert_union, sup_insert, sup_insert, ih, sup_assoc]
 lemma sup_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.sup f ≤ s.sup g :=
 by letI := classical.dec_eq β; from
 finset.induction_on s (λ _, le_refl _) (λ a s has ih H,
-by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-simp only [sup_insert]; exact sup_le_sup H.1 (ih H.2))
+  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
+     simp only [sup_insert]; exact sup_le_sup H.1 (ih H.2))
 
 lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
 by letI := classical.dec_eq β; from
@@ -1272,8 +1274,8 @@ calc f b ≤ f b ⊔ s.sup f : le_sup_left
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
 by letI := classical.dec_eq β; from
 finset.induction_on s (λ _, bot_le) (λ n s hns ih H,
-by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-simp only [sup_insert]; exact sup_le H.1 (ih H.2))
+  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
+     simp only [sup_insert]; exact sup_le H.1 (ih H.2))
 
 lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
 iff.intro (assume h b hb, le_trans (le_sup hb) h) sup_le
@@ -1310,8 +1312,8 @@ by rw [insert_union, inf_insert, inf_insert, ih, inf_assoc]
 lemma inf_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.inf f ≤ s.inf g :=
 by letI := classical.dec_eq β; from
 finset.induction_on s (λ _, le_refl _) (λ a s has ih H,
-by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-simp only [inf_insert]; exact inf_le_inf H.1 (ih H.2))
+  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
+     simp only [inf_insert]; exact inf_le_inf H.1 (ih H.2))
 
 lemma inf_le {b : β} (hb : b ∈ s) : s.inf f ≤ f b :=
 by letI := classical.dec_eq β; from
@@ -1322,8 +1324,8 @@ calc f b ≥ f b ⊓ s.inf f : inf_le_left
 lemma le_inf {a : α} : (∀b ∈ s, a ≤ f b) → a ≤ s.inf f :=
 by letI := classical.dec_eq β; from
 finset.induction_on s (λ _, le_top) (λ n s hns ih H,
-by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-simp only [inf_insert]; exact le_inf H.1 (ih H.2))
+  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
+     simp only [inf_insert]; exact le_inf H.1 (ih H.2))
 
 lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ (∀b ∈ s, a ≤ f b) :=
 iff.intro (assume h b hb, le_trans h (inf_le hb)) le_inf
@@ -1346,14 +1348,11 @@ theorem max_eq_sup_with_bot (s : finset α) :
 @[simp] theorem max_empty : (∅ : finset α).max = none := rfl
 
 @[simp] theorem max_insert {a : α} {s : finset α} :
-  (insert a s).max = option.lift_or_get max (some a) s.max :=
-fold_insert_idem
+  (insert a s).max = option.lift_or_get max (some a) s.max := fold_insert_idem
 
-@[simp] theorem max_singleton {a : α} : finset.max {a} = some a :=
-max_insert
+@[simp] theorem max_singleton {a : α} : finset.max {a} = some a := max_insert
 
-@[simp] theorem max_singleton' {a : α} : finset.max (singleton a) = some a :=
-max_singleton
+@[simp] theorem max_singleton' {a : α} : finset.max (singleton a) = some a := max_singleton
 
 theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :=
 (@le_sup (with_bot α) _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
@@ -1374,7 +1373,7 @@ finset.induction_on s (λ _ H, by cases H)
     { induction p, exact mem_insert_self b s },
     { cases option.lift_or_get_choice max_choice (some b) s.max with q q;
       rw [max_insert, q] at h,
-      { cases h, cc },
+      { cases h, cases p rfl },
       { exact mem_insert_of_mem (ih h) } }
   end)
 
@@ -1388,15 +1387,13 @@ fold (option.lift_or_get min) none some
 theorem min_eq_inf_with_top (s : finset α) :
   s.min = @inf (with_top α) α _ s some := rfl
 
-@[simp] theorem min_empty : (∅ : finset α).min = none :=
-rfl
+@[simp] theorem min_empty : (∅ : finset α).min = none := rfl
 
 @[simp] theorem min_insert {a : α} {s : finset α} :
   (insert a s).min = option.lift_or_get min (some a) s.min :=
 fold_insert_idem
 
-@[simp] theorem min_singleton {a : α} : finset.min {a} = some a :=
-min_insert
+@[simp] theorem min_singleton {a : α} : finset.min {a} = some a := min_insert
 
 theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
 (@inf_le (with_top α) _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
@@ -1417,7 +1414,7 @@ finset.induction_on s (λ _ H, by cases H) $
     { induction p, exact mem_insert_self b s },
     { cases option.lift_or_get_choice min_choice (some b) s.min with q q;
       rw [min_insert, q] at h,
-      { cases h, cc },
+      { cases h, cases p rfl },
       { exact mem_insert_of_mem (ih h) } }
   end
 
@@ -1532,15 +1529,7 @@ end finset
 namespace list
 variable [decidable_eq α]
 
-theorem to_finset_card_of_nodup {l : list α} : l.nodup → l.to_finset.card = l.length :=
-begin
-  induction l,
-  case list.nil { intros, refl },
-  case list.cons : _ _ ih {
-    intros nd,
-    cases list.nodup_cons.1 nd with h1 h2,
-    specialize ih h2,
-    rw [to_finset_cons, finset.card_insert_of_not_mem (mt mem_to_finset.1 h1), ih, length_cons] }
-end
+theorem to_finset_card_of_nodup {l : list α} (h : l.nodup) : l.to_finset.card = l.length :=
+congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 
 end list

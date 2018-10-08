@@ -100,7 +100,7 @@ by haveI := f.to_order_embedding.is_well_order; exact
 
 @[simp] theorem antisymm_symm [is_well_order α r] [is_well_order β s]
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g).symm = antisymm g f :=
-order_iso.eq_of_to_fun_eq $ rfl
+order_iso.eq_of_to_fun_eq rfl
 
 theorem eq_or_principal [is_well_order β s] (f : r ≼i s) : surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
 or_iff_not_imp_right.2 $ λ h b,
@@ -119,7 +119,7 @@ def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i sub
 
 def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
 ⟨⟨⟨sum.inl, λ _ _, sum.inl.inj⟩, λ a b, sum.lex_inl_inl.symm⟩,
-  λ a b, by cases b; [exact (λ _, ⟨_, rfl⟩), exact (false.elim ∘ sum.lex_inr_inl)]⟩
+  λ a b, by cases b; [exact λ _, ⟨_, rfl⟩, exact false.elim ∘ sum.lex_inr_inl]⟩
 
 @[simp] theorem le_add_apply (r : α → α → Prop) (s : β → β → Prop)
   (a) : le_add r s a = sum.inl a := rfl
@@ -394,18 +394,20 @@ private theorem wo : is_well_order U R :=
       (λ o, o.imp (subtype.eq ∘ subtype.mk.inj)
       (R_iff sc _ _).2),
   irrefl :=  λ ⟨a, au⟩ h, let ⟨s, sc, ha⟩ := mem_U.1 au in
+    -- by haveI := s.2.2; exact irrefl _ ((R_iff hc sc _ ha).1 h),
     @irrefl _ s.2.1 s.2.2.1.2.1 _ ((R_iff sc _ ha).1 h),
   trans := λ ⟨a, au⟩ ⟨b, bu⟩ ⟨d, du⟩ ab bd,
     let ⟨s, sc, as, bs⟩ := mem_U2 au bu, ⟨t, tc, dt⟩ := mem_U.1 du,
         ⟨k, kc, ks, kt⟩ := hc.directed sc tc in begin
       simp only [R_iff hc kc, sub_of_le ks as, sub_of_le ks bs, sub_of_le kt dt] at ab bd ⊢,
+      -- haveI := k.2.2, exact trans ab bd
       exact @trans _ k.2.1 k.2.2.1.2.2 _ _ _ ab bd
     end,
   wf := ⟨λ ⟨a, au⟩, let ⟨s, sc, ha⟩ := mem_U.1 au in
     suffices ∀ (a : s.1) (au : a.1 ∈ U), acc R ⟨a.1, au⟩, from this ⟨a, ha⟩ au,
-    (λ a, acc.rec_on ((@is_well_order.wf _ _ s.2.2).apply a) $
+    λ a, acc.rec_on ((@is_well_order.wf _ _ s.2.2).apply a) $
     λ ⟨a, ha⟩ H IH au, ⟨_, λ ⟨b, hb⟩ h,
-      let ⟨hb, h⟩ := R_ex sc ha h in IH ⟨b, hb⟩ h _⟩)⟩ }
+      let ⟨hb, h⟩ := R_ex sc ha h in IH ⟨b, hb⟩ h _⟩⟩ }
 
 theorem chain_ub : ∃ ub, ∀ a ∈ c, a ≤ ub :=
 ⟨⟨U, R, wo⟩, λ s sc, ⟨⟨⟨⟨
@@ -431,7 +433,7 @@ let f : (insert a m.1 : set σ) ≃ (m.1 ⊕ unit) :=
   λ x, sum.cases_on x (λ x, ⟨x.1, or.inr x.2⟩) (λ _, ⟨a, or.inl rfl⟩),
   λ x, match x with
     | ⟨_, or.inl rfl⟩ := by dsimp only; rw dif_neg ha
-    | ⟨x, or.inr h⟩ := by dsimp only; rw [dif_pos h]
+    | ⟨x, or.inr h⟩ := by dsimp only; rw dif_pos h
     end,
   λ x, by rcases x with ⟨x, h⟩ | ⟨⟨⟩⟩; dsimp only;
     [rw [dif_pos h], rw [dif_neg ha]]⟩ in
@@ -444,7 +446,7 @@ let g : m.2.1 ≼i r' := ⟨⟨⟨sum.inl, λ a b, sum.inl.inj⟩,
   λ a b h, begin
     rcases b with b | ⟨⟨⟩⟩,
     { exact ⟨_, rfl⟩ },
-    { exact false.elim (sum.lex_inr_inl h) }
+    { cases sum.lex_inr_inl h }
   end⟩ in
 ha (sub_of_le (MM m' ⟨g.trans
   (initial_seg.of_iso (order_iso.preimage f r').symm),
@@ -707,16 +709,16 @@ theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _),
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
   refine ⟨⟨@order_embedding.of_monotone (α ⊕ punit) β _ _
-    (@sum.lex.is_well_order _ _ _ _ hr _).1.1 
+    (@sum.lex.is_well_order _ _ _ _ hr _).1.1
     (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
     (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
   { exact f }, { exact λ _, t },
-  { rcases a with a|u; rcases b with b|u,
+  { rcases a with a|_; rcases b with b|_,
     { simpa only [sum.lex_inl_inl] using f.ord'.1 },
     { intro _, rw hf, exact ⟨_, rfl⟩ },
     { exact false.elim ∘ sum.lex_inr_inl },
     { exact false.elim ∘ sum.lex_inr_inr.1 } },
-  { rcases a with a|u,
+  { rcases a with a|_,
     { intro h, have := @principal_seg.init _ _ _ _ hs.1.2.2 ⟨f, t, hf⟩ _ _ h,
       cases this with w h, exact ⟨sum.inl w, h⟩ },
     { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
@@ -762,21 +764,15 @@ theorem add_le_add_left {a b : ordinal} : a ≤ b → ∀ c, c + a ≤ c + b :=
 induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
 induction_on c $ λ β s _,
 ⟨⟨⟨(embedding.refl _).sum_congr f,
-  λ a b, ⟨λ H, match a, b, H with
-    | _, _, sum.lex.inl _ h := sum.lex.inl _ h
-    | _, _, sum.lex.inr _ h := sum.lex.inr _ (fo.1 h)
-    | _, _, sum.lex.sep _ _ _ _ := sum.lex.sep _ _ _ _
-    end,
-    λ H, match a, b, H with
-    | sum.inl a, sum.inl b, H := sum.lex.inl _ $ sum.lex_inl_inl.1 H
-    | sum.inl a, sum.inr b, H := sum.lex.sep _ _ _ _
-    | sum.inr a, sum.inl b, H := false.elim $ sum.lex_inr_inl H
-    | sum.inr a, sum.inr b, H := sum.lex.inr _ $ fo.2 $ sum.lex_inr_inr.1 H
-    end⟩⟩,
+  λ a b, match a, b with
+    | sum.inl a, sum.inl b := sum.lex_inl_inl.trans sum.lex_inl_inl.symm
+    | sum.inl a, sum.inr b := by apply iff_of_true; apply sum.lex.sep
+    | sum.inr a, sum.inl b := by apply iff_of_false; exact sum.lex_inr_inl
+    | sum.inr a, sum.inr b := sum.lex_inr_inr.trans $ fo.trans sum.lex_inr_inr.symm
+    end⟩,
   λ a b H, match a, b, H with
-    | sum.inl a, sum.inl b, H := ⟨sum.inl b, rfl⟩
-    | sum.inl a, sum.inr b, H := false.elim $ sum.lex_inr_inl H
-    | sum.inr a, sum.inl b, H := ⟨sum.inl b, rfl⟩
+    | _,         sum.inl b, _ := ⟨sum.inl b, rfl⟩
+    | sum.inl a, sum.inr b, H := (sum.lex_inr_inl H).elim
     | sum.inr a, sum.inr b, H := let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
         ⟨sum.inr w, congr_arg sum.inr h⟩
     end⟩⟩
@@ -788,7 +784,8 @@ theorem add_le_add_iff_left (a) {b c : ordinal} : a + b ≤ a + c ↔ b ≤ c :=
 ⟨induction_on a $ λ α r hr, induction_on b $ λ β₁ s₁ hs₁, induction_on c $ λ β₂ s₂ hs₂ ⟨f⟩, ⟨
   have fl : ∀ a, f (sum.inl a) = sum.inl a := λ a,
     by simpa only [initial_seg.trans_apply, initial_seg.le_add_apply]
-      using @initial_seg.eq _ _ _ _ (@sum.lex.is_well_order _ _ _ _ hr hs₂) ((initial_seg.le_add r s₁).trans f) (initial_seg.le_add r s₂) a,
+      using @initial_seg.eq _ _ _ _ (@sum.lex.is_well_order _ _ _ _ hr hs₂)
+        ((initial_seg.le_add r s₁).trans f) (initial_seg.le_add r s₂) a,
   have ∀ b, {b' // f (sum.inr b) = sum.inr b'}, begin
     intro b, cases e : f (sum.inr b),
     { rw ← fl at e, have := f.inj e, contradiction },
@@ -798,16 +795,13 @@ theorem add_le_add_iff_left (a) {b c : ordinal} : a + b ≤ a + c ↔ b ≤ c :=
   have fr : ∀ b, f (sum.inr b) = sum.inr (g b), from λ b, (this b).2,
   ⟨⟨⟨g, λ x y h, by injection f.inj
     (by rw [fr, fr, h] : f (sum.inr x) = f (sum.inr y))⟩,
-    λ a b, by simpa only [sum.lex_inr_inr, fr, order_embedding.coe_fn_to_embedding, initial_seg.coe_fn_to_order_embedding, function.embedding.coe_fn_mk]
-      using @order_embedding.ord _ _ _ _
-      f.to_order_embedding (sum.inr a) (sum.inr b)⟩,
+    λ a b, by simpa only [sum.lex_inr_inr, fr, order_embedding.coe_fn_to_embedding,
+        initial_seg.coe_fn_to_order_embedding, function.embedding.coe_fn_mk]
+      using @order_embedding.ord _ _ _ _ f.to_order_embedding (sum.inr a) (sum.inr b)⟩,
     λ a b H, begin
-      have nex : ¬ ∃ (a : α), f (sum.inl a) = sum.inr b :=
-        λ ⟨a, e⟩, by rw [fl] at e; injection e,
-      have : sum.lex r s₂ (sum.inr b) (f (sum.inr a)) → ∃ a', f a' = sum.inr b := f.init (sum.inr a) (sum.inr b),
-      rw [fr] at this, rcases this (sum.lex_inr_inr.2 H) with ⟨a'|a', h⟩,
-      { exact false.elim (nex ⟨a', h⟩) },
-      rw [fr, sum.inr.inj_iff] at h, exact ⟨a', h⟩
+      rcases f.init' (by rw fr; exact sum.lex_inr_inr.2 H) with ⟨a'|a', h⟩,
+      { rw fl at h, cases h },
+      { rw fr at h, exact ⟨a', sum.inr.inj h⟩ }
     end⟩⟩,
 λ h, add_le_add_left h _⟩
 
@@ -952,11 +946,9 @@ induction_on c $ λ β s hs, (@type_le' _ _ _ _
   (@sum.lex.is_well_order _ _ _ _ hr₁ hs)
   (@sum.lex.is_well_order _ _ _ _ hr₂ hs)).2
 ⟨⟨embedding.sum_congr f (embedding.refl _), λ a b, begin
-  split,
-  { intro H, cases H with _ _ H1 _ _ H1 _ _ H1; constructor,
-    { rw ← fo, assumption }, assumption },
-  { intro H, cases a with a a; cases b with b b; cases H; constructor,
-    { rw fo, assumption }, assumption }
+  split; intro H,
+  { cases H; constructor; [rwa ← fo, assumption] },
+  { cases a with a a; cases b with b b; cases H; constructor; [rwa fo, assumption] }
 end⟩⟩
 
 theorem le_add_left (a b : ordinal) : a ≤ b + a :=
@@ -971,8 +963,8 @@ match lt_or_eq_of_le (le_add_left b a), lt_or_eq_of_le (le_add_right a b) with
     resetI,
     rw [← typein_top f, ← typein_top g, le_iff_lt_or_eq,
         le_iff_lt_or_eq, typein_lt_typein, typein_lt_typein],
-    rcases trichotomous_of (sum.lex r₁ r₂) g.top f.top with h|h|h,
-    { left, left, assumption }, { rw h, left, right, refl }, { right, left, assumption }
+    rcases trichotomous_of (sum.lex r₁ r₂) g.top f.top with h|h|h;
+    [exact or.inl (or.inl h), {left, right, rw h}, exact or.inr (or.inl h)]
   end) h₁ h₂
 end
 
@@ -1239,7 +1231,7 @@ theorem add_le_of_limit {a b c : ordinal.{u}}
 ⟨λ h b' l, le_trans (add_le_add_left (le_of_lt l) _) h,
 λ H, le_of_not_lt $
 induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
-  try_for 2000 { resetI,
+  resetI,
   suffices : ∀ x : β, sum.lex r s (sum.inr x) (enum _ _ l),
   { cases enum _ _ l with x x,
     { cases this (enum s 0 h.pos) },
@@ -1254,7 +1246,7 @@ induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
     { exact sum.inl a },
     { exact sum.inr ⟨b, by cases h; assumption⟩ } },
   { rcases a with ⟨a | a, h₁⟩; rcases b with ⟨b | b, h₂⟩; cases h₁; cases h₂;
-    rintro ⟨H⟩; constructor; assumption } }
+      rintro ⟨⟩; constructor; assumption }
 end) h H⟩
 
 theorem add_is_normal (a : ordinal) : is_normal ((+) a) :=
@@ -1326,7 +1318,7 @@ theorem univ_umax : univ.{u (max (u+1) v)} = univ.{u v} := congr_fun lift_umax _
 
 def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<) :=
 ⟨↑lift.initial_seg.{u (max (u+1) v)}, univ.{u v}, begin
-  try_for 3000 { refine λ b, induction_on b _, introsI β s _,
+  refine λ b, induction_on b _, introsI β s _,
   rw [univ, ← lift_umax], split; intro h,
   { rw ← lift_id (type s) at h ⊢,
     cases lift_type_lt.1 h with f, cases f with f a hf,
@@ -1343,7 +1335,7 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
   { cases h with a e, rw [← e],
     apply induction_on a, intros α r _,
     exact lift_type_lt.{u (u+1) (max (u+1) v)}.2
-      ⟨typein.principal_seg r⟩ } }
+      ⟨typein.principal_seg r⟩ }
 end⟩
 
 @[simp] theorem lift.principal_seg_coe :
@@ -1420,8 +1412,8 @@ begin
   have : is_well_order unit empty_relation := by apply_instance,
   refine ⟨order_embedding.collapse (order_embedding.of_monotone _ _)⟩,
   { apply sum.rec, exact λ _, 0, exact nat.succ },
-  { intros a b, cases a; cases b; intro H; cases H with _ _ H _ _ H,
-    { cases H }, { exact nat.succ_pos _ }, { exact nat.succ_lt_succ H } }
+  { intros a b, cases a; cases b; intro H; cases H with _ _ H _ _ H;
+    [cases H, exact nat.succ_pos _, exact nat.succ_lt_succ H] }
 end
 
 @[simp] theorem one_add_of_omega_le {o} (h : omega ≤ o) : 1 + o = o :=
@@ -1471,21 +1463,11 @@ type_eq_zero_iff_empty.2 (λ ⟨⟨_, e⟩⟩, e.elim)
 
 theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
-quotient.sound ⟨⟨equiv.sum_prod_distrib _ _ _, λ a b,
-begin
-  split; intro H,
-  { cases H with _ _ _ _ H1 bc _ _ H1,
-    { cases H1; constructor; left; assumption },
-    { cases bc; constructor; right; assumption } },
-  { rcases a with ⟨a₁|a₁,a₂⟩; rcases b with ⟨b₁|b₁,b₂⟩;
-    cases H with _ _ H1 _ _ H1 _ _ H1,
-    { cases H1,
-      { left, constructor, assumption },
-      { right, assumption } },
-    { left, constructor },
-    { cases H1,
-      { left, constructor, assumption },
-      { right, assumption} } }
+quotient.sound ⟨⟨equiv.sum_prod_distrib _ _ _, begin
+  rintro ⟨a₁|a₁, a₂⟩ ⟨b₁|b₁, b₂⟩; simp only [prod.lex_def,
+    sum.lex_inl_inl, sum.lex.sep, sum.lex_inr_inl, sum.lex_inr_inr,
+    equiv.sum_prod_distrib_apply_left, equiv.sum_prod_distrib_apply_right];
+  simp only [sum.inl.inj_iff, true_or, false_and, false_or]
 end⟩⟩
 
 @[simp] theorem mul_add_one (a b : ordinal) : a * (b + 1) = a * b + a :=
@@ -1518,13 +1500,10 @@ end
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=
 le_trans (mul_le_mul_left _ h₂) (mul_le_mul_right _ h₁)
 
-theorem mul_le_of_limit {a b c : ordinal.{u}}
-  (h : is_limit b) : a * b ≤ c ↔ ∀ b' < b, a * b' ≤ c :=
-⟨λ h b' l, le_trans (mul_le_mul_left _ (le_of_lt l)) h,
-λ H, le_of_not_lt $
-induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
-try_for 300 {
-  resetI,
+private lemma mul_le_of_limit_aux {α β r s} [is_well_order α r] [is_well_order β s]
+  {c} (h : is_limit (type s)) (H : ∀ b' < type s, type r * b' ≤ c)
+  (l : c < type r * type s) : false :=
+begin
   suffices : ∀ a b, prod.lex s r (b, a) (enum _ _ l),
   { cases enum _ _ l with b a, exact irrefl _ (this _ _) },
   intros a b,
@@ -1536,9 +1515,7 @@ try_for 300 {
   refine lt_of_le_of_lt _ this,
   refine (type_le'.2 _),
   constructor,
-}, try_for 800 {
   refine order_embedding.of_monotone (λ a, _) (λ a b, _),
-},
   { rcases a with ⟨⟨b', a'⟩, h⟩,
     by_cases e : b = b',
     { refine sum.inr ⟨a', _⟩,
@@ -1556,7 +1533,13 @@ try_for 300 {
       cases h₂; [exact asymm h h₂_h, exact e₂ rfl] },
     { simp only [e₂, dif_pos, eq_self_iff_true, dif_neg e₁, not_false_iff, sum.lex.sep] },
     { simpa only [dif_neg e₁, dif_neg e₂, prod.lex_def, subrel_val, subtype.mk_eq_mk, sum.lex_inl_inl] using h } }
-end) h H⟩
+end
+
+theorem mul_le_of_limit {a b c : ordinal.{u}}
+  (h : is_limit b) : a * b ≤ c ↔ ∀ b' < b, a * b' ≤ c :=
+⟨λ h b' l, le_trans (mul_le_mul_left _ (le_of_lt l)) h,
+λ H, le_of_not_lt $ induction_on a (λ α r _, induction_on b $ λ β s _,
+  by exactI mul_le_of_limit_aux) h H⟩
 
 theorem mul_is_normal {a : ordinal} (h : 0 < a) : is_normal ((*) a) :=
 ⟨λ b, by rw mul_succ; simpa only [add_zero] using (add_lt_add_iff_left (a*b)).2 h,
@@ -2769,8 +2752,7 @@ def aleph_idx.order_iso : @order_iso cardinal.{u} ordinal.{u} (<) (<) :=
 end
 
 @[simp] theorem aleph_idx.order_iso_coe :
-  (aleph_idx.order_iso : cardinal → ordinal) = aleph_idx :=
-rfl
+  (aleph_idx.order_iso : cardinal → ordinal) = aleph_idx := rfl
 
 @[simp] theorem type_cardinal : @ordinal.type cardinal (<) _ = ordinal.univ.{u (u+1)} :=
 by rw ordinal.univ_id; exact quotient.sound ⟨aleph_idx.order_iso⟩

@@ -55,27 +55,23 @@ rfl
 
 variables [topological_space α]
 
-lemma is_open_union (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∪ s₂) :=
-have (⋃₀ {s₁, s₂}) = (s₁ ∪ s₂), from (sUnion_insert _ _).trans $ by rw [sUnion_singleton, union_comm],
-this ▸ is_open_sUnion $ show ∀(t : set α), t ∈ ({s₁, s₂} : set (set α)) → is_open t,
-  from by rintro t (rfl|⟨rfl|ht⟩); [exact h₂, exact h₁, cases ht]
-
 lemma is_open_Union {f : ι → set α} (h : ∀i, is_open (f i)) : is_open (⋃i, f i) :=
-is_open_sUnion $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
+is_open_sUnion $ by rintro _ ⟨i, rfl⟩; exact h i
 
 lemma is_open_bUnion {s : set β} {f : β → set α} (h : ∀i∈s, is_open (f i)) :
   is_open (⋃i∈s, f i) :=
 is_open_Union $ assume i, is_open_Union $ assume hi, h i hi
 
+lemma is_open_union (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∪ s₂) :=
+by rw union_eq_Union; exact is_open_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
+
 @[simp] lemma is_open_empty : is_open (∅ : set α) :=
-have is_open (⋃₀ ∅ : set α), from is_open_sUnion (assume a, false.elim),
-by rwa sUnion_empty at this
+by rw ← sUnion_empty; exact is_open_sUnion (assume a, false.elim)
 
 lemma is_open_sInter {s : set (set α)} (hs : finite s) : (∀t ∈ s, is_open t) → is_open (⋂₀ s) :=
-finite.induction_on hs (λ _, by rw sInter_empty; exact is_open_univ) $ λ a s has hs ih h, begin
-  suffices : is_open (a ∩ ⋂₀ s), { rwa sInter_insert },
-  exact is_open_inter (h _ $ mem_insert _ _) (ih $ assume t ht, h _ $ mem_insert_of_mem _ ht)
-end
+finite.induction_on hs (λ _, by rw sInter_empty; exact is_open_univ) $
+λ a s has hs ih h, by rw sInter_insert; exact
+is_open_inter (h _ $ mem_insert _ _) (ih $ λ t, h t ∘ mem_insert_of_mem _)
 
 lemma is_open_bInter {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_open (f i)) → is_open (⋂i∈s, f i) :=
@@ -562,7 +558,7 @@ lemma compact_of_finite_subcover {s : set α}
   (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds x ≠ ⊥),
   have hf : ∀x∈s, nhds x ⊓ f = ⊥,
-    by simpa only [not_exists, not_not, inf_comm] using this,
+    by simpa only [not_exists, not_not, inf_comm],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ (nhds x ⊓ f).sets, by rw [empty_in_sets_eq_bot, hf x hxs],
@@ -572,7 +568,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
     have nhds x ⊓ principal t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
     by simp only [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
-  have ∀x∈s, ∃t∈f.sets, x ∉ closure t, by simpa only [not_exists, not_forall] using this,
+  have ∀x∈s, ∃t∈f.sets, x ∉ closure t, by simpa only [not_exists, not_forall],
   let c := (λt, - closure t) '' f.sets, ⟨c', hcc', hcf, hsc'⟩ := h c
     (assume t ⟨s, hs, h⟩, h ▸ is_closed_closure) (by simpa only [subset_def, sUnion_image, mem_Union]) in
   let ⟨b, hb⟩ := axiom_of_choice $
@@ -1022,8 +1018,7 @@ end
 
 lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
   closure (quotient.mk '' s) = univ :=
-begin
-  refine eq_univ_of_forall (λ x, _),
+eq_univ_of_forall $ λ x, begin
   rw mem_closure_iff,
   intros U U_op x_in_U,
   let V := quotient.mk ⁻¹' U,
@@ -1032,7 +1027,7 @@ begin
   have V_op : is_open V := U_op,
   have : V ∩ s ≠ ∅ := mem_closure_iff.1 (H y) V V_op y_in_V,
   rcases exists_mem_of_ne_empty this with ⟨w, w_in_V, w_in_range⟩,
-  exact ne_empty_of_mem ⟨by tauto, mem_image_of_mem quotient.mk w_in_range⟩
+  exact ne_empty_of_mem ⟨w_in_V, mem_image_of_mem quotient.mk w_in_range⟩
 end
 
 lemma generate_from_le {t : topological_space α} { g : set (set α) } (h : ∀s∈g, is_open s) :
@@ -1157,8 +1152,8 @@ begin
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in
       ⟨u, ⟨hu₂, hu₁⟩, le_principal_iff.2 (subset.trans hu₃ (inter_subset_left _ _)),
         le_principal_iff.2 (subset.trans hu₃ (inter_subset_right _ _))⟩ },
-  { suffices : a ∈ (⋃₀ b), { rcases this with ⟨i, h1, h2⟩, exact ⟨i, h2, h1⟩ },
-    { rw [hb.2.1], trivial } }
+  { rcases eq_univ_iff_forall.1 hb.2.1 a with ⟨i, h1, h2⟩,
+    exact ⟨i, h2, h1⟩ }
 end
 
 lemma is_open_of_is_topological_basis {s : set α} {b : set (set α)}

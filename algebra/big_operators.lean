@@ -7,6 +7,7 @@ Some big operators for lists and finite sets.
 -/
 import data.list.basic data.list.perm data.finset
   algebra.group algebra.ordered_group algebra.group_power
+  tactic.squeeze
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -15,7 +16,7 @@ theorem directed.finset_le {r : α → α → Prop} [is_trans α r]
   {ι} (hι : nonempty ι) {f : ι → α} (D : directed r f) (s : finset ι) :
   ∃ z, ∀ i ∈ s, r (f i) (f z) :=
 show ∃ z, ∀ i ∈ s.1, r (f i) (f z), from
-multiset.induction_on s.1 (match hι with ⟨z⟩ := ⟨z, λ _, false.elim⟩ end) $
+multiset.induction_on s.1 (let ⟨z⟩ := hι in ⟨z, λ _, false.elim⟩) $
 λ i s ⟨j, H⟩, let ⟨k, h₁, h₂⟩ := D i j in
 ⟨k, λ a h, or.cases_on (multiset.mem_cons.1 h)
   (λ h, h.symm ▸ h₁)
@@ -373,7 +374,7 @@ lemma prod_sum {δ : α → Type*} [∀a, decidable_eq (δ a)]
 begin
   induction s using finset.induction with a s ha ih,
   { rw [pi_empty, sum_singleton], refl },
-  { have h₁ : ∀x ∈ t a, ∀y∈t a, ∀h : x ≠ y,
+  { have h₁ : ∀x ∈ t a, ∀y ∈ t a, ∀h : x ≠ y,
         image (pi.cons s a x) (pi s t) ∩ image (pi.cons s a y) (pi s t) = ∅,
     { assume x hx y hy h,
       apply eq_empty_of_forall_not_mem,
@@ -381,21 +382,20 @@ begin
       rintro p₁ ⟨⟨p₂, hp, eq⟩, ⟨p₃, hp₃, rfl⟩⟩,
       have : pi.cons s a x p₂ a (mem_insert_self _ _) = pi.cons s a y p₃ a (mem_insert_self _ _),
       { rw [eq] },
-      rw [pi.cons_same, pi.cons_same] at this, cc },
+      rw [pi.cons_same, pi.cons_same] at this,
+      exact h this },
     rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bind h₁],
-    refine sum_congr rfl (λ x hx, _),
-    have h₂ : ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a x p₁ = pi.cons s a x p₂ → p₁ = p₂, from
+    refine sum_congr rfl (λ b _, _),
+    have h₂ : ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
       assume p₁ h₁ p₂ h₂ eq, injective_pi_cons ha eq,
     rw [sum_image h₂, mul_sum],
-    refine sum_congr rfl (λ g hg, _),
-    have h₃ : ∀ x ∈ attach s, ∀ y ∈ attach s, (⟨x.1, mem_insert_of_mem x.2⟩ : {x // x ∈ insert a s}) = ⟨y.1, mem_insert_of_mem y.2⟩ → x = y, from
-      λ _ _ _ _, subtype.eq ∘ subtype.mk.inj,
-    have h₄ : (⟨a, _⟩ : {x // x ∈ insert a s}) ∉ image (λ (x : {x // x ∈ s}), (⟨x.1, _⟩ : {x // x ∈ insert a s})) (attach s),
-    { simp only [mem_image], rintro ⟨⟨_, _⟩, _, rfl⟩, cc },
-    rw [attach_insert, prod_insert h₄, prod_image h₃],
-    simp only [pi.cons_same],
-    refine congr_arg _ (prod_congr rfl (λ v hv, congr_arg _ _)),
-    exact (pi.cons_ne (by rintro rfl; exact ha v.2)).symm }
+    refine sum_congr rfl (λ g _, _),
+    rw [attach_insert, prod_insert, prod_image],
+    { simp only [pi.cons_same],
+      congr', ext ⟨v, hv⟩, congr',
+      exact (pi.cons_ne (by rintro rfl; exact ha hv)).symm },
+    { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
+    { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
 end
 
 end comm_semiring
@@ -404,13 +404,9 @@ section integral_domain /- add integral_semi_domain to support nat and ennreal -
 variables [decidable_eq α] [integral_domain β]
 
 lemma prod_eq_zero_iff : s.prod f = 0 ↔ (∃a∈s, f a = 0) :=
-finset.induction_on s ⟨false.elim ∘ one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩
-begin
-  intros a s ha,
-  rw [bex_def, bex_def, exists_mem_insert],
-  intro ih,
-  simp only [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero, ih]
-end
+finset.induction_on s ⟨not.elim one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩ $ λ a s ha ih,
+by rw [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero,
+  bex_def, exists_mem_insert, ih, ← bex_def]
 
 end integral_domain
 
@@ -436,9 +432,9 @@ calc s₁.sum f ≤ (s₂ \ s₁).sum f + s₁.sum f :
 lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → (s.sum f = 0 ↔ ∀x∈s, f x = 0) :=
 finset.induction_on s (λ _, ⟨λ _ _, false.elim, λ _, rfl⟩) $ λ a s ha ih H,
 have ∀ x ∈ s, 0 ≤ f x, from λ _, H _ ∘ mem_insert_of_mem,
-⟨by rw [sum_insert ha, add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg' (H _ $ mem_insert_self _ _) (zero_le_sum' this)];
-  simp only [mem_insert]; rintro ⟨_, _⟩ x (rfl | h2); cases ih this; solve_by_elim,
-λ h1, (sum_congr rfl h1).trans sum_const_zero⟩
+by rw [sum_insert ha,
+  add_eq_zero_iff' (H _ $ mem_insert_self _ _) (zero_le_sum' this),
+  forall_mem_insert, ih this]
 
 lemma single_le_sum (hf : ∀x∈s, 0 ≤ f x) {a} (h : a ∈ s) : f a ≤ s.sum f :=
 have (singleton a).sum f ≤ s.sum f,

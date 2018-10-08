@@ -155,9 +155,6 @@ variables [discrete_field α] {a b c : α}
 
 attribute [simp] inv_zero div_zero
 
-lemma inv_sub_inv_eq (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ - b⁻¹ = (b - a) / (a * b) :=
-inv_sub_inv ha hb
-
 lemma div_right_comm (a b c : α) : (a / b) / c = (a / c) / b :=
 if b0 : b = 0 then by simp only [b0, div_zero, zero_div] else
 if c0 : c = 0 then by simp only [c0, div_zero, zero_div] else

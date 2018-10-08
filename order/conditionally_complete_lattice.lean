@@ -62,13 +62,11 @@ a notion of maximum and minimum, i.e., a lattice structure, see later on.-/
 
 /-If a set is included in another one, boundedness of the second implies boundedness
 of the first-/
-lemma bdd_above_subset (_ : s ⊆ t) (_ : bdd_above t) : bdd_above s :=
-let ⟨w, hw⟩ := ‹bdd_above t› in  /-hw : ∀ (y : α), y ∈ t → y ≤ w-/
-⟨w, assume (y : α) (_ : y ∈ s), hw _ (‹s ⊆ t› ‹y ∈ s›)⟩
+lemma bdd_above_subset (st : s ⊆ t) : bdd_above t → bdd_above s
+| ⟨w, hw⟩ := ⟨w, λ y ys, hw _ (st ys)⟩
 
-lemma bdd_below_subset (_ : s ⊆ t) (_ : bdd_below t) : bdd_below s :=
-let ⟨w, hw⟩ := ‹bdd_below t› in  /-hw : ∀ (y : α), y ∈ t → w ≤ y-/
-⟨w, assume (y : α) (_ : y ∈ s), hw _ (‹s ⊆ t› ‹y ∈ s›)⟩
+lemma bdd_below_subset (st : s ⊆ t) : bdd_below t → bdd_below s
+| ⟨w, hw⟩ := ⟨w, λ y ys, hw _ (st ys)⟩
 
 /- Boundedness of intersections of sets, in different guises, deduced from the
 monotonicity of boundedness.-/
@@ -127,12 +125,12 @@ show (bdd_above s ∧ bdd_above t) → bdd_above (s ∪ t), from
 
 /--Adding a point to a set preserves its boundedness above.-/
 @[simp] lemma bdd_above_insert : bdd_above (insert a s) ↔ bdd_above s :=
-⟨show bdd_above (insert a s) → bdd_above s, from bdd_above_subset (by simp only [set.subset_insert]),
- show bdd_above s → bdd_above (insert a s), by rw [insert_eq]; simp only [bdd_above_singleton, and_self, bdd_above_union, forall_true_iff] {contextual := tt}⟩
+⟨bdd_above_subset (by simp only [set.subset_insert]),
+ λ h, by rw [insert_eq, bdd_above_union]; exact ⟨bdd_above_singleton, h⟩⟩
 
 /--A finite set is bounded above.-/
-lemma bdd_above_finite [inhabited α] (_ : finite s) : bdd_above s :=
-by apply finite.induction_on ‹finite s›; simp only [bdd_above_insert, imp_self, forall_const, forall_true_iff,bdd_above_empty]
+lemma bdd_above_finite [inhabited α] (hs : finite s) : bdd_above s :=
+finite.induction_on hs bdd_above_empty $ λ a s _ _, bdd_above_insert.2
 
 /--A finite union of sets which are all bounded above is still bounded above.-/
 lemma bdd_above_finite_union [inhabited α] {β : Type v} {I : set β} {S : β → set α} (H : finite I) :

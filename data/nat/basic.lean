@@ -12,6 +12,9 @@ universe u
 namespace nat
 variables {m n k : ℕ}
 
+theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
+⟨succ_inj, congr_arg _⟩
+
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
 

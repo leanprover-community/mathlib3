@@ -7,7 +7,11 @@ Case bashing on `fin n`, for explicit numerals `n`.
 -/
 import tactic.linarith
 
+def fin_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl 
+
 namespace tactic
+open lean.parser
+open interactive interactive.types expr
 
 meta def fin_cases_at (e : expr) : tactic unit :=
 do `(fin %%n) ← infer_type e,
@@ -22,15 +26,18 @@ do `(fin %%n) ← infer_type e,
    bd ← get_local `bd,
    (list.range n).mfoldl (λ bd _, do rewrite_hyp ss bd) bd,
    exfalso >> `[linarith],
-   -- Finally we put the goals back in order.
-   rotate_right n
+   -- We put the goals back in order, and clear the `bd` hypotheses.
+   iterate_exactly n (do rotate_right 1, 
+                         `[rw [fin_val]], 
+                         try (get_local `bd >>= clear))
 
-meta def fin_cases : tactic unit :=
-do ctx ← local_context,
-   ctx.mfirst fin_cases_at <|> fail "No explicit `fin n` hypotheses."
+namespace interactive
+private meta def hyp := tk "*" *> return none <|> some <$> ident
 
-run_cmd add_interactive [`fin_cases]
+meta def fin_cases : parse hyp → tactic unit
+| none := do ctx ← local_context,
+             ctx.mfirst fin_cases_at <|> fail "No explicit `fin n` hypotheses."
+| (some n) := do h ← get_local n, fin_cases_at h
+end interactive
 
--- TODO would it be valuable to have an interactive tactic with a parser, so we can aim this
--- at individual hypotheses, rather than just the first that matches?
 end tactic

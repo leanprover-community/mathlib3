@@ -28,13 +28,13 @@ instance : concrete_category @continuous := ⟨@continuous_id, @continuous.comp�
 end Top
 
 structure open_set (X : Top.{u}) : Type u :=
-(s : set X.α)
+(s : set X.fst)
 (is_open : topological_space.is_open X.snd s)
 
 variables {X : Top.{u}}
 
 namespace open_set
-instance : has_coe (open_set X) (set X.α) := { coe := λ U, U.s }
+instance : has_coe (open_set X) (set X.fst) := { coe := λ U, U.s }
 
 instance : has_subset (open_set X) :=
 { subset := λ U V, U.s ⊆ V.s }
@@ -43,11 +43,11 @@ instance : preorder (open_set X) := by refine { le := (⊇), .. } ; tidy
 
 instance open_sets : small_category (open_set X) := by apply_instance
 
-instance : has_mem X.α (open_set X) :=
+instance : has_mem X.fst (open_set X) :=
 { mem := λ a V, a ∈ V.s }
 
-def nbhd (x : X.α) := { U : open_set X // x ∈ U }
-def nbhds (x : X.α) : small_category (nbhd x) := begin unfold nbhd, apply_instance end
+def nbhd (x : X.fst) := { U : open_set X // x ∈ U }
+def nbhds (x : X.fst) : small_category (nbhd x) := begin unfold nbhd, apply_instance end
 
 /-- `open_set.map f` gives the functor from open sets in Y to open set in X, 
     given by taking preimages under f. -/

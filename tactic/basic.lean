@@ -461,10 +461,10 @@ meta def apply_assumption
   (asms : tactic (list expr) := local_context)
   (tac : tactic unit := skip) : tactic unit :=
 do { ctx ← asms,
-     ctx.any_of (λ H, () <$ symm_apply H; tac) } <|>
+     ctx.any_of (λ H, symm_apply H >> tac) } <|> 
 do { exfalso,
      ctx ← asms,
-     ctx.any_of (λ H, () <$ symm_apply H; tac) }
+     ctx.any_of (λ H, symm_apply H >> tac) }
 <|> fail "assumption tactic failed"
 
 open nat
@@ -481,7 +481,8 @@ meta structure by_elim_opt :=
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
+  focus1 $
+    solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 meta def metavariables : tactic (list expr) :=
 do r ← result,

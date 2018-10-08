@@ -77,3 +77,17 @@ begin
   trivial
 end
 
+example {α : Type} (r : α → α → Prop) (f : α → α → α)
+  (l : ∀ a b c : α, r a b → r a (f b c) → r a c)
+  (a b c : α) (h₁ : r a b) (h₂ : r a (f b c)) : r a c :=
+begin
+  solve_by_elim,
+end
+
+-- Verifying that solve_by_elim behaves as expected in the presence of multiple goals.
+example (n : ℕ) : ℕ × ℕ :=
+begin
+  split,
+  solve_by_elim,
+  solve_by_elim
+end

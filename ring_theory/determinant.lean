@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau
+Authors: Kenny Lau, Chris Hughes
 -/
 import group_theory.subgroup group_theory.perm ring_theory.matrix
 
@@ -92,15 +92,15 @@ calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
     (univ.prod (λ i, N (σ i) i) * (sign σ * sign τ)) *
     univ.prod (λ i, M (τ i) i))) :
   sum_congr rfl (λ σ _, sum_bij (λ τ _, τ * σ⁻¹) (λ _ _, mem_univ _)
-  (λ τ _,
-    have univ.prod (λ j, M (τ j) (σ j)) = univ.prod (λ j, M ((τ * σ⁻¹) j) j),
-      by rw prod_univ_perm σ⁻¹; simp [mul_apply],
-    have h : (sign σ * sign (τ * σ⁻¹) : R) = sign τ :=
-      calc (sign σ * sign (τ * σ⁻¹) : R) = sign ((τ * σ⁻¹) * σ) :
-        by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp [sign_mul]
-      ... = sign τ : by simp,
-    by rw h; simp [this, mul_comm, mul_assoc, mul_left_comm])
-  (λ _ _ _ _, (mul_right_inj _).1) (λ τ _, ⟨τ * σ, by simp⟩))
+    (λ τ _,
+      have univ.prod (λ j, M (τ j) (σ j)) = univ.prod (λ j, M ((τ * σ⁻¹) j) j),
+        by rw prod_univ_perm σ⁻¹; simp [mul_apply],
+      have h : (sign σ * sign (τ * σ⁻¹) : R) = sign τ :=
+        calc (sign σ * sign (τ * σ⁻¹) : R) = sign ((τ * σ⁻¹) * σ) :
+          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp [sign_mul]
+        ... = sign τ : by simp,
+      by rw h; simp [this, mul_comm, mul_assoc, mul_left_comm])
+    (λ _ _ _ _, (mul_right_inj _).1) (λ τ _, ⟨τ * σ, by simp⟩))
 ... = det M * det N : by simp [det, mul_assoc, mul_sum, mul_comm, mul_left_comm]
-
+#print det_mul
 end matrix

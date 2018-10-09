@@ -100,22 +100,19 @@ tendsto_of_uniform_continuous_subtype
 lemma uniform_continuous_re : uniform_continuous re :=
 uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε, ε0, λ _ _, lt_of_le_of_lt (abs_re_le_abs _)⟩)
 
-lemma continuous_re : continuous re :=
-uniform_continuous_re.continuous
+lemma continuous_re : continuous re := uniform_continuous_re.continuous
 
 lemma uniform_continuous_im : uniform_continuous im :=
 uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε, ε0, λ _ _, lt_of_le_of_lt (abs_im_le_abs _)⟩)
 
-lemma continuous_im : continuous im :=
-uniform_continuous_im.continuous
+lemma continuous_im : continuous im := uniform_continuous_im.continuous
 
 lemma uniform_continuous_of_real : uniform_continuous of_real :=
 uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε, ε0, λ _ _,
   by rw [real.dist_eq, complex.dist_eq, of_real_eq_coe, of_real_eq_coe, ← of_real_sub, abs_of_real];
     exact id⟩)
 
-lemma continuous_of_real : continuous of_real :=
-uniform_continuous_of_real.continuous
+lemma continuous_of_real : continuous of_real := uniform_continuous_of_real.continuous
 
 instance : topological_ring ℂ :=
 { continuous_mul := continuous_mul, ..complex.topological_add_group }

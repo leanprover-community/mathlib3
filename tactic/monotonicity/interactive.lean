@@ -88,7 +88,7 @@ apply_opt_param
 <|>
 apply_auto_param
 <|>
-solve_by_elim { restr_hyp_set := asms }
+tactic.solve_by_elim { assumptions := pure asms }
 <|>
 reflexivity
 <|>
@@ -533,7 +533,8 @@ do try `[dunfold has_sub.sub algebra.sub],
                ac_refl <|>
                `[simp only [is_associative.assoc]]) ),
      n ← num_goals,
-     iterate_exactly (n-1) (try $ solve1 $ apply_instance <|> solve_by_elim {restr_hyp_set := asms}))
+     iterate_exactly (n-1) (try $ solve1 $ apply_instance <|>
+       tactic.solve_by_elim {assumptions := pure asms}))
 
 open sum nat
 

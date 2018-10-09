@@ -47,7 +47,7 @@ have h6 : ¬I ⊆ ⋃ j, h5 j,
 let ⟨i₀, h7⟩ := not_forall.1 h6 in
 let ⟨h7, h8⟩ := not_imp.1 h7 in
 have h9 : _ := λ j : J, not_exists.1 (mt set.mem_Union.2 h8) j,
-have h9 : _ := λ j : J, by_contradiction $ mt (finsupp.mem_support_iff (h1.1.repr j) i₀).2 $ h9 j,
+have h9 : _ := λ j : J, finsupp.not_mem_support_iff.1 $ h9 j,
 let ⟨h10, h11, h12⟩ := h2 i₀ in
 have h13 : _ := (repr_eq_single h1.1 h7).symm.trans $
   (congr_arg h1.1.repr h12).trans $
@@ -59,7 +59,7 @@ begin
   rw [← finset.sum_subset (finset.empty_subset _), finset.sum_empty] at h14,
   { exact zero_ne_one h14.symm },
   intros v h15 h16,
-  have h17 := by_contradiction (mt (h11 v) ((finsupp.mem_support_iff _ _).1 h15)),
+  have h17 := by_contradiction (mt (h11 v) (finsupp.mem_support_iff.1 h15)),
   have h18 : (linear_independent.repr (h1.left) v) i₀ = 0 := h9 ⟨v, h17⟩,
   rw [repr_smul h1.1 (h1.2 _), finsupp.smul_apply, h18, smul_eq_mul, mul_zero]
 end)
@@ -94,7 +94,7 @@ have H1 : _ := prod.is_basis_inl_union_inr hb hc,
 have H2 : _ := @mk_basis.{u v} _ (β × γ) _ _ _ H1,
 begin
   rw [← mk_basis hb, ← mk_basis hc, ← H2, cardinal.mk_union_of_disjiont],
-  rw [cardinal.mk_eq_of_injective prod.injective_inl.{v v}], 
+  rw [cardinal.mk_eq_of_injective prod.injective_inl.{v v}],
   rw [cardinal.mk_eq_of_injective prod.injective_inr.{v v}],
   intros z h,
   rcases h with ⟨⟨x, h1, h2⟩, ⟨y, h3, h4⟩⟩,

@@ -7,7 +7,6 @@ Some big operators for lists and finite sets.
 -/
 import data.list.basic data.list.perm data.finset
   algebra.group algebra.ordered_group algebra.group_power
-  tactic.squeeze
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

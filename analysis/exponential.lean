@@ -351,16 +351,16 @@ calc cos y = cos x * cos (y - x) - sin x * sin (y - x) :
 
 lemma cos_lt_cos_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π)
   (hy₁ : 0 ≤ y) (hy₂ : y ≤ π) (hxy : x < y) : cos y < cos x :=
-match le_total x (π / 2), le_total y (π / 2) with
+match (le_total x (π / 2) : x ≤ π / 2 ∨ π / 2 ≤ x), le_total y (π / 2) with
 | or.inl hx, or.inl hy := cos_lt_cos_of_nonneg_of_le_pi_div_two hx₁ hx hy₁ hy hxy
 | or.inl hx, or.inr hy := (lt_or_eq_of_le hx).elim
   (λ hx, calc cos y ≤ 0 : cos_nonpos_of_pi_div_two_le_of_le hy (by linarith using [pi_pos])
     ... < cos x : cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two (by linarith) hx)
   (λ hx, calc cos y < 0 : cos_neg_of_pi_div_two_lt_of_lt (by linarith) (by linarith using [pi_pos])
-    ... = cos x : by simp [hx, cos_pi_div_two])
+    ... = cos x : by rw [hx, cos_pi_div_two])
 | or.inr hx, or.inl hy := by linarith
-| or.inr hx, or.inr hy := neg_lt_neg_iff.1 $ cos_pi_sub x ▸ cos_pi_sub y ▸
-  by apply cos_lt_cos_of_nonneg_of_le_pi_div_two; linarith
+| or.inr hx, or.inr hy := neg_lt_neg_iff.1 (by rw [← cos_pi_sub, ← cos_pi_sub];
+  apply cos_lt_cos_of_nonneg_of_le_pi_div_two; linarith)
 end
 
 lemma cos_le_cos_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π)

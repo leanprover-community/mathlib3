@@ -1,5 +1,5 @@
 
-import logic.basic tactic.basic
+import logic.basic tactic.solve_by_elim
 
 namespace tactic
 

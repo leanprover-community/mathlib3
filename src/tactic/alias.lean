@@ -32,7 +32,7 @@ The .. notation attempts to generate the 'of'-names automatically when the
 input theorem has the form A_iff_B or A_iff_B_left etc.
 
 -/
-import data.buffer.parser meta.coinductive_predicates
+import data.buffer.parser meta.coinductive_predicates tactic.basic
 
 open lean.parser tactic interactive parser
 
@@ -53,11 +53,6 @@ do updateex_env $ λ env,
   end),
   alias_attr.set al () tt,
   add_doc_string al doc
-
-meta def mk_iff_mp_app (iffmp : name) : expr → (nat → expr) → tactic expr
-| (expr.pi n bi e t) f := expr.lam n bi e <$> mk_iff_mp_app t (λ n, f (n+1) (expr.var n))
-| `(%%a ↔ %%b) f := pure $ @expr.const tt iffmp [] a b (f 0)
-| _ f := fail "Target theorem must have the form `Π x y z, a ↔ b`"
 
 meta def alias_iff (d : declaration) (doc : string) (al : name) (iffmp : name) : tactic unit :=
 (if al = `_ then skip else get_decl al >> skip) <|> do

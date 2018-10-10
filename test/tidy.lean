@@ -22,6 +22,9 @@ begin
   tidy -- intros x, exact dec_trivial
 end
 
+example (h : 1 = 2) : false :=
+by tidy
+
 structure A :=
 (z : ℕ)
 

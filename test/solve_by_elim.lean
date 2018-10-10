@@ -91,3 +91,19 @@ begin
   solve_by_elim,
   solve_by_elim
 end
+
+example {P Q : Prop} (h : P ↔ Q) (h : P) : Q :=
+begin
+  solve_by_elim
+end
+
+example {P Q : Prop} (h : P ↔ Q) (h : Q) : P :=
+begin
+  solve_by_elim
+end
+
+example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
+begin
+  solve_by_elim [nat.dvd_add_iff_left],
+end
+

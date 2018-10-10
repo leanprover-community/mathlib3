@@ -444,19 +444,6 @@ do h' ← get_local h,
    note h none p,
    clear h'
 
-meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
-tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
-
-meta def apply_assumption
-  (asms : tactic (list expr) := local_context)
-  (tac : tactic unit := skip) : tactic unit :=
-do { ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) } <|>
-do { exfalso,
-     ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) }
-<|> fail "assumption tactic failed"
-
 meta def change_core (e : expr) : option expr → tactic unit
 | none     := tactic.change e
 | (some h) :=
@@ -475,22 +462,33 @@ do h ← get_local hyp,
    let repl_tp := tp.replace (λ a n, if a = olde then some newe else none),
    change_core repl_tp (some h)
 
-open nat
+meta def mk_iff_mp_app (iffmp : name) : expr → (nat → expr) → tactic expr
+| (expr.pi n bi e t) f := expr.lam n bi e <$> mk_iff_mp_app t (λ n, f (n+1) (expr.var n))
+| `(%%a ↔ %%b) f := pure $ @expr.const tt iffmp [] a b (f 0)
+| _ f := fail "Target theorem must have the form `Π x y z, a ↔ b`"
 
-meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
-| 0 := done
-| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+meta def iff_mp (e : expr) : tactic expr :=
+do t ← infer_type e,
+   mk_iff_mp_app `iff.mp t (λ_, e)
 
-meta structure by_elim_opt :=
-  (discharger : tactic unit := done)
-  (assumptions : tactic (list expr) := local_context)
-  (max_rep : ℕ := 3)
+meta def iff_mpr (e : expr) : tactic expr :=
+do t ← infer_type e,
+   mk_iff_mp_app `iff.mpr t (λ_, e)
 
-meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-do
-  tactic.fail_if_no_goals,
-  focus1 $
-    solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
+private meta def apply_verbose (e : expr) : tactic (list (name × expr) × (list string)) :=
+do r ← tactic.apply e {new_goals := new_goals.non_dep_only},
+   pp_e ← pp e,
+   pure (r, ["apply " ++ to_string pp_e])
+
+/--
+Attempts to apply `e`, and if that fails also tries calling `symmetry` first, and
+if `e` is an `iff`, try applying both directions separately.
+-/
+meta def apply_thorough (e : expr) : tactic (list (name × expr) × list string) :=
+apply_verbose e
+<|> do { symmetry, r ← apply_verbose e, pure (r.1, "symmetry" :: r.2) }
+<|> iff_mp e >>= apply_verbose
+<|> iff_mpr e >>= apply_verbose
 
 meta def metavariables : tactic (list expr) :=
 do r ← result,

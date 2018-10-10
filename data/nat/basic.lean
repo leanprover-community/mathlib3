@@ -5,7 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 Basic operations on the natural numbers.
 -/
-import logic.basic algebra.order data.option
+import logic.basic algebra.ordered_ring data.option
 
 universe u
 
@@ -14,6 +14,15 @@ variables {m n k : ℕ}
 
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 ⟨succ_inj, congr_arg _⟩
+
+theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
+⟨le_of_succ_le_succ, succ_le_succ⟩
+
+theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
+succ_le_succ_iff
+
+lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
+⟨lt_of_succ_le, succ_le_of_lt⟩
 
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
@@ -56,10 +65,10 @@ lt_of_not_ge
     begin rw this at h, exact lt_irrefl _ h end)
 
 protected theorem lt_of_sub_lt_sub_right : m - k < n - k → m < n :=
-le_imp_le_iff_lt_imp_lt.1 (λ h, nat.sub_le_sub_right h _)
+lt_imp_lt_of_le_imp_le (λ h, nat.sub_le_sub_right h _)
 
 protected theorem lt_of_sub_lt_sub_left : m - n < m - k → k < n :=
-le_imp_le_iff_lt_imp_lt.1 (nat.sub_le_sub_left _)
+lt_imp_lt_of_le_imp_le (nat.sub_le_sub_left _)
 
 protected theorem sub_lt_self (h₁ : m > 0) (h₂ : n > 0) : m - n < m :=
 calc
@@ -89,22 +98,22 @@ protected theorem add_lt_of_lt_sub_left (h : m < n - k) : k + m < n :=
 by rw add_comm; exact nat.add_lt_of_lt_sub_right h
 
 protected theorem le_add_of_sub_le_right : n - k ≤ m → n ≤ m + k :=
-le_imp_le_iff_lt_imp_lt.2 nat.lt_sub_right_of_add_lt
+le_imp_le_of_lt_imp_lt nat.lt_sub_right_of_add_lt
 
 protected theorem le_add_of_sub_le_left : n - k ≤ m → n ≤ k + m :=
-le_imp_le_iff_lt_imp_lt.2 nat.lt_sub_left_of_add_lt
+le_imp_le_of_lt_imp_lt nat.lt_sub_left_of_add_lt
 
 protected theorem lt_add_of_sub_lt_right : n - k < m → n < m + k :=
-le_imp_le_iff_lt_imp_lt.1 nat.le_sub_right_of_add_le
+lt_imp_lt_of_le_imp_le nat.le_sub_right_of_add_le
 
 protected theorem lt_add_of_sub_lt_left : n - k < m → n < k + m :=
-le_imp_le_iff_lt_imp_lt.1 nat.le_sub_left_of_add_le
+lt_imp_lt_of_le_imp_le nat.le_sub_left_of_add_le
 
 protected theorem sub_le_left_of_le_add : n ≤ k + m → n - k ≤ m :=
-le_imp_le_iff_lt_imp_lt.2 nat.add_lt_of_lt_sub_left
+le_imp_le_of_lt_imp_lt nat.add_lt_of_lt_sub_left
 
 protected theorem sub_le_right_of_le_add : n ≤ m + k → n - k ≤ m :=
-le_imp_le_iff_lt_imp_lt.2 nat.add_lt_of_lt_sub_right
+le_imp_le_of_lt_imp_lt nat.add_lt_of_lt_sub_right
 
 protected theorem sub_lt_left_iff_lt_add (H : n ≤ k) : k - n < m ↔ k < n + m :=
 ⟨nat.lt_add_of_sub_lt_left,
@@ -144,10 +153,10 @@ protected theorem sub_le_sub_left_iff (H : k ≤ m) : m - n ≤ m - k ↔ k ≤ 
 nat.sub_le_sub_left _⟩
 
 protected theorem sub_lt_sub_right_iff (H : k ≤ m) : m - k < n - k ↔ m < n :=
-le_iff_le_iff_lt_iff_lt.1 (nat.sub_le_sub_right_iff _ _ _ H)
+lt_iff_lt_of_le_iff_le (nat.sub_le_sub_right_iff _ _ _ H)
 
 protected theorem sub_lt_sub_left_iff (H : n ≤ m) : m - n < m - k ↔ k < n :=
-le_iff_le_iff_lt_iff_lt.1 (nat.sub_le_sub_left_iff H)
+lt_iff_lt_of_le_iff_le (nat.sub_le_sub_left_iff H)
 
 protected theorem sub_le_iff : m - n ≤ k ↔ m - k ≤ n :=
 nat.sub_le_left_iff_le_add.trans nat.sub_le_right_iff_le_add.symm
@@ -173,11 +182,56 @@ iff.intro eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt})
 @[simp] protected theorem zero_eq_mul {a b : ℕ} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
 by rw [eq_comm, nat.mul_eq_zero]
 
+@[elab_as_eliminator]
+protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m) → p n) : ∀ (n : ℕ), p n
+| n := H n (λ m hm, strong_rec' m)
+
 attribute [simp] nat.div_self
+
+protected lemma div_le_of_le_mul' {m n : ℕ} {k} (h : m ≤ k * n) : m / k ≤ n :=
+(eq_zero_or_pos k).elim
+  (λ k0, by rw [k0, nat.div_zero]; apply zero_le)
+  (λ k0, (decidable.mul_le_mul_left k0).1 $
+    calc k * (m / k)
+        ≤ m % k + k * (m / k) : le_add_left _ _
+    ... = m                   : mod_add_div _ _
+    ... ≤ k * n               : h)
+
+protected lemma div_le_self' (m n : ℕ) : m / n ≤ m :=
+(eq_zero_or_pos n).elim
+  (λ n0, by rw [n0, nat.div_zero]; apply zero_le)
+  (λ n0, nat.div_le_of_le_mul' $ calc
+      m = 1 * m : (one_mul _).symm
+    ... ≤ n * m : mul_le_mul_right _ n0)
+
+theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
+begin
+  revert x, refine nat.strong_rec' _ y,
+  clear y, intros y IH x,
+  cases decidable.lt_or_le y k with h h,
+  { rw [div_eq_of_lt h],
+    cases x with x,
+    { simp [zero_mul, zero_le] },
+    { rw succ_mul,
+      exact iff_of_false (not_succ_le_zero _)
+        (not_le_of_lt $ lt_of_lt_of_le h (le_add_left _ _)) } },
+  { rw [div_eq_sub_div k0 h],
+    cases x with x,
+    { simp [zero_mul, zero_le] },
+    { rw [← add_one, nat.add_le_add_iff_le_right, succ_mul,
+        IH _ (sub_lt_of_pos_le _ _ k0 h), add_le_to_le_sub _ h] } }
+end
+
+theorem div_mul_le_self' (m n : ℕ) : m / n * n ≤ m :=
+(nat.eq_zero_or_pos n).elim (λ n0, by simp [n0, zero_le]) $ λ n0,
+(le_div_iff_mul_le' n0).1 (le_refl _)
+
+theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
+lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
 protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k ≤ m / k :=
 (nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
-(nat.le_div_iff_mul_le _ _ hk).2 $ le_trans (nat.div_mul_le_self _ _) h
+(le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self' _ _) h
 
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=
@@ -286,15 +340,6 @@ iff.intro
     { apply add_pos_left mpos },
     apply add_pos_right _ npos
   end
-
-theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
-⟨le_of_succ_le_succ, succ_le_succ⟩
-
-theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
-succ_le_succ_iff
-
-lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
-⟨lt_of_succ_le, succ_le_of_lt⟩
 
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
 lt_succ_iff.trans le_iff_lt_or_eq
@@ -581,7 +626,7 @@ begin
     cases n with n,
     { exact e.elim (eq_zero_of_le_zero (le_of_lt_succ h)) },
     { apply succ_le_succ (IH _),
-      apply le_imp_le_iff_lt_imp_lt.1 (λ h', bit0_le_bit _ h') h } }
+      apply lt_imp_lt_of_le_imp_le (λ h', bit0_le_bit _ h') h } }
 end⟩
 
 theorem lt_size {m n : ℕ} : m < size n ↔ 2^m ≤ n :=

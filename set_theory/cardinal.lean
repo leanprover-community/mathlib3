@@ -235,7 +235,7 @@ end order_properties
 
 instance : canonically_ordered_monoid cardinal.{u} :=
 { add_le_add_left       := λ a b h c, add_le_add_left _ h,
-  lt_of_add_lt_add_left := λ a b c, le_imp_le_iff_lt_imp_lt.1 (add_le_add_left _),
+  lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (add_le_add_left _),
   le_iff_exists_add     := @le_iff_exists_add,
   ..cardinal.comm_semiring, ..cardinal.linear_order }
 

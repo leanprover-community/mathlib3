@@ -22,10 +22,12 @@ variable [linear_ordered_semiring α]
 ⟨λ h', le_of_mul_le_mul_right h' h, λ h', mul_le_mul_of_nonneg_right h' (le_of_lt h)⟩
 
 @[simp] lemma mul_lt_mul_left {a b c : α} (h : 0 < c) : c * a < c * b ↔ a < b :=
-⟨λ h', lt_of_mul_lt_mul_left h' (le_of_lt h), λ h', mul_lt_mul_of_pos_left h' h⟩
+⟨lt_imp_lt_of_le_imp_le $ λ h', mul_le_mul_of_nonneg_left h' (le_of_lt h),
+ λ h', mul_lt_mul_of_pos_left h' h⟩
 
 @[simp] lemma mul_lt_mul_right {a b c : α} (h : 0 < c) : a * c < b * c ↔ a < b :=
-⟨λ h', lt_of_mul_lt_mul_right h' (le_of_lt h), λ h', mul_lt_mul_of_pos_right h' h⟩
+⟨lt_imp_lt_of_le_imp_le $ λ h', mul_le_mul_of_nonneg_right h' (le_of_lt h),
+ λ h', mul_lt_mul_of_pos_right h' h⟩
 
 lemma mul_lt_mul'' {a b c d : α} (h1 : a < c) (h2 : b < d) (h3 : 0 ≤ a) (h4 : 0 ≤ b) :
        a * b < c * d :=
@@ -99,6 +101,17 @@ lemma mul_lt_iff_lt_one_right {a b : α} (hb : b > 0) : b * a < b ↔ a < 1 :=
 
 end linear_ordered_semiring
 
+section decidable_linear_ordered_semiring
+variable [decidable_linear_ordered_semiring α]
+
+@[simp] lemma decidable.mul_le_mul_left {a b c : α} (h : 0 < c) : c * a ≤ c * b ↔ a ≤ b :=
+decidable.le_iff_le_iff_lt_iff_lt.2 $ mul_lt_mul_left h
+
+@[simp] lemma decidable.mul_le_mul_right {a b c : α} (h : 0 < c) : a * c ≤ b * c ↔ a ≤ b :=
+decidable.le_iff_le_iff_lt_iff_lt.2 $ mul_lt_mul_right h
+
+end decidable_linear_ordered_semiring
+
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
@@ -115,18 +128,18 @@ section linear_ordered_ring
 variable [linear_ordered_ring α]
 
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
-⟨le_imp_le_iff_lt_imp_lt.2 $ λ h', mul_lt_mul_of_neg_left h' h,
+⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_left h' h,
   λ h', mul_le_mul_of_nonpos_left h' (le_of_lt h)⟩
 
 @[simp] lemma mul_le_mul_right_of_neg {a b c : α} (h : c < 0) : a * c ≤ b * c ↔ b ≤ a :=
-⟨le_imp_le_iff_lt_imp_lt.2 $ λ h', mul_lt_mul_of_neg_right h' h,
+⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_right h' h,
   λ h', mul_le_mul_of_nonpos_right h' (le_of_lt h)⟩
 
 @[simp] lemma mul_lt_mul_left_of_neg {a b c : α} (h : c < 0) : c * a < c * b ↔ b < a :=
-le_iff_le_iff_lt_iff_lt.1 (mul_le_mul_left_of_neg h)
+lt_iff_lt_of_le_iff_le (mul_le_mul_left_of_neg h)
 
 @[simp] lemma mul_lt_mul_right_of_neg {a b c : α} (h : c < 0) : a * c < b * c ↔ b < a :=
-le_iff_le_iff_lt_iff_lt.1 (mul_le_mul_right_of_neg h)
+lt_iff_lt_of_le_iff_le (mul_le_mul_right_of_neg h)
 
 lemma sub_one_lt (a : α) : a - 1 < a :=
 sub_lt_iff_lt_add.2 (lt_add_one a)

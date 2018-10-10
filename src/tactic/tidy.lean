@@ -6,6 +6,7 @@ import tactic
 import tactic.auto_cases
 import tactic.chain
 import tactic.interactive
+import tactic.back
 
 namespace tactic
 
@@ -43,6 +44,7 @@ meta def default_tactics : list (tactic string) :=
 [ reflexivity                                 >> pure "refl", 
   `[exact dec_trivial]                        >> pure "exact dec_trivial",
   propositional_goal >> assumption            >> pure "assumption",
+  `[back]                                     >> pure "back",
   ext1_wrapper,
   intros1                                     >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   auto_cases,

@@ -385,32 +385,35 @@ refine_struct ({ .. } : semigroup α),
 { have field := @semigroup.mul_assoc, ... },
 ```
 
-### apply_rules
+### back
 
-`apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
-first goal and the resulting subgoals, iteratively, at most `n` times.
-`n` is optional, equal to 50 by default.
-`hs` can contain user attributes: in this case all theorems with this
-attribute are added to the list of rules.
+`back` performs backwards reasoning, recursively applying lemmas against the goal.
 
-For instance:
+Lemmas can be specified via an optional argument, e.g. as `back [foo, bar]`. If one
+of these arguments is an attribute, all lemmas tagged with that attribute will be
+included. Additionally, `back` always includes any lemmas tagged with the attribute `@[back]`,
+and, if the current goal is a proposition, all local hypotheses.
 
-```lean
-@[user_attribute]
-meta def mono_rules : user_attribute :=
-{ name := `mono_rules,
-  descr := "lemmas usable to prove monotonicity" }
+(If the goal is not a proposition, `back` is constructing data and so behaves more conservatively.
+In this case, all local hypotheses can be included using `back [*]`.)
 
-attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
+Lemmas which were included because of the `@[back]` attribute, or local hypotheses,
+can be excluded using the notation `back [-h]`.
 
-lemma my_test {a b c d e : real} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
--- any of the following lines solve the goal:
-add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
-by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
-by apply_rules [mono_rules]
-by apply_rules mono_rules
-```
+Further, lemmas can be tagged with the `@[back!]` attribute, or appear in the list with
+a leading `!`, e.g. as `back [!foo]`. The tactic `back` will return successfully if it either
+discharges the goal, or applies at least one `!` lemma. (More precisely, `back` will apply a
+non-empty and maximal collection of the lemmas, subject to the condition that if any lemma not
+marked with `!` is applied, all resulting subgoals are later dischargeed.)
+
+Finally, the search depth can be controlled e.g. as `back 5`. The default value is 100.
+
+`back?` will print a trace message showing the term it constructed. (Possibly with placeholders,
+for use with `refine`.)
+
+`back` will apply lemmas even if this introduces new metavariables (so for example it is possible
+to apply transitivity lemmas), but with the proviso that any subgoals containing metavariables must
+be subsequently discharged in a single step.
 
 ### h_generalize
 

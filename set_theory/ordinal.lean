@@ -980,7 +980,7 @@ theorem add_lt_add_iff_left (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
 
 theorem lt_of_add_lt_add_right {a b c : ordinal} : a + b < c + b → a < c :=
-le_imp_le_iff_lt_imp_lt.1 (λ h, add_le_add_right h _)
+lt_imp_lt_of_le_imp_le (λ h, add_le_add_right h _)
 
 @[simp] theorem succ_lt_succ {a b : ordinal} : succ a < succ b ↔ a < b :=
 by rw [lt_succ, succ_le]
@@ -1362,7 +1362,7 @@ theorem sub_le {a b c : ordinal} : a - b ≤ c ↔ a ≤ b + c :=
  λ h, omin_le h⟩
 
 theorem lt_sub {a b c : ordinal} : a < b - c ↔ c + a < b :=
-le_iff_le_iff_lt_iff_lt.1 sub_le
+lt_iff_lt_of_le_iff_le sub_le
 
 theorem add_sub_cancel (a b : ordinal) : a + b - a = b :=
 le_antisymm (sub_le.2 $ le_refl _)
@@ -1567,7 +1567,7 @@ by simpa only [pos_iff_ne_zero] using mul_pos
 
 theorem le_of_mul_le_mul_left {a b c : ordinal}
   (h : c * a ≤ c * b) (h0 : 0 < c) : a ≤ b :=
-le_imp_le_iff_lt_imp_lt.2 (λ h', mul_lt_mul_of_pos_left h' h0) h
+le_imp_le_of_lt_imp_lt (λ h', mul_lt_mul_of_pos_left h' h0) h
 
 theorem mul_left_inj {a b c : ordinal} (a0 : 0 < a) : a * b = a * c ↔ b = c :=
 (mul_is_normal a0).inj
@@ -1623,7 +1623,7 @@ end
 
 theorem div_lt {a b c : ordinal} (b0 : b ≠ 0) :
   a / b < c ↔ a < b * c :=
-le_iff_le_iff_lt_iff_lt.1 $ le_div b0
+lt_iff_lt_of_le_iff_le $ le_div b0
 
 theorem div_le_of_le_mul {a b c : ordinal} (h : a ≤ b * c) : a / b ≤ c :=
 if b0 : b = 0 then by simp only [b0, div_zero, zero_le] else
@@ -1631,7 +1631,7 @@ if b0 : b = 0 then by simp only [b0, div_zero, zero_le] else
 mul_lt_mul_of_pos_left (lt_succ_self _) (pos_iff_ne_zero.2 b0)
 
 theorem mul_lt_of_lt_div {a b c : ordinal} : a < b / c → c * a < b :=
-le_imp_le_iff_lt_imp_lt.1 div_le_of_le_mul
+lt_imp_lt_of_le_imp_le div_le_of_le_mul
 
 @[simp] theorem zero_div (a : ordinal) : 0 / a = 0 :=
 le_zero.1 $ div_le_of_le_mul $ zero_le _
@@ -2189,7 +2189,7 @@ theorem le_log {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) :
 
 theorem log_lt {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) :
   log b x < c ↔ x < b ^ c :=
-le_iff_le_iff_lt_iff_lt.1 (le_log b1 x0)
+lt_iff_lt_of_le_iff_le (le_log b1 x0)
 
 theorem log_le_log (b) {x y : ordinal} (xy : x ≤ y) :
   log b x ≤ log b y :=
@@ -2260,7 +2260,7 @@ by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cas
 by rw [← succ_le, ← cardinal.succ_le, cardinal.nat_succ, nat_le_card]; refl
 
 @[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
-le_iff_le_iff_lt_iff_lt.1 nat_le_card
+lt_iff_lt_of_le_iff_le nat_le_card
 
 @[simp] theorem card_le_nat {o} {n : ℕ} : card o ≤ n ↔ o ≤ n :=
 le_iff_le_iff_lt_iff_lt.2 nat_lt_card
@@ -2706,7 +2706,7 @@ open ordinal
 
 theorem ord_is_limit {c} (co : omega ≤ c) : (ord c).is_limit :=
 begin
-  refine ⟨λ h, omega_ne_zero _, λ a, le_imp_le_iff_lt_imp_lt.1 _⟩,
+  refine ⟨λ h, omega_ne_zero _, λ a, lt_imp_lt_of_le_imp_le _⟩,
   { rw [← ordinal.le_zero, ord_le] at h,
     simpa only [card_zero, le_zero] using le_trans co h },
   { intro h, rw [ord_le] at h ⊢,

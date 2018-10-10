@@ -22,7 +22,7 @@ theorem prime.gt_one {p : ℕ} : prime p → p > 1 := prime.ge_two
 theorem prime_def_lt {p : ℕ} : prime p ↔ p ≥ 2 ∧ ∀ m < p, m ∣ p → m = 1 :=
 and_congr_right $ λ p2, forall_congr $ λ m,
 ⟨λ h l d, (h d).resolve_right (ne_of_lt l),
- λ h d, (lt_or_eq_of_le $
+ λ h d, (decidable.lt_or_eq_of_le $
    le_of_dvd (le_of_succ_le p2) d).imp_left (λ l, h l d)⟩
 
 theorem prime_def_lt' {p : ℕ} : prime p ↔ p ≥ 2 ∧ ∀ m, 2 ≤ m → m < p → ¬ m ∣ p :=

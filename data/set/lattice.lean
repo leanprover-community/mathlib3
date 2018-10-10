@@ -514,8 +514,8 @@ def seq (s : set (α → β)) (t : set α) : set β := {b | ∃f∈s, ∃a∈t, 
 lemma seq_def {s : set (α → β)} {t : set α} : seq s t = ⋃f∈s, f '' t :=
 set.ext $ by simp [seq]
 
-lemma mem_seq_iff {s : set (α → β)} {t : set α} {b : β} :
-  b ∈ seq s t ↔ (∃f ∈ s, ∃a∈t, (f : α → β) a = b) :=
+@[simp] lemma mem_seq_iff {s : set (α → β)} {t : set α} {b : β} :
+  b ∈ seq s t ↔ ∃ (f ∈ s) (a ∈ t), (f : α → β) a = b :=
 iff.refl _
 
 lemma seq_subset {s : set (α → β)} {t : set α} {u : set β} :
@@ -529,19 +529,19 @@ lemma seq_mono {s₀ s₁ : set (α → β)} {t₀ t₁ : set α} (hs : s₀ ⊆
 assume b ⟨f, hf, a, ha, eq⟩, ⟨f, hs hf, a, ht ha, eq⟩
 
 lemma singleton_seq {f : α → β} {t : set α} : set.seq {f} t = f '' t :=
-set.ext $ by simp [seq]
+set.ext $ by simp
 
 lemma seq_singleton {s : set (α → β)} {a : α} : set.seq s {a} = (λf:α→β, f a) '' s :=
-set.ext $ by simp [seq]
+set.ext $ by simp
 
 lemma seq_seq {s : set (β → γ)} {t : set (α → β)} {u : set α} :
   seq s (seq t u) = seq (seq ((∘) '' s) t) u :=
 begin
-  refine (set.ext $ assume c, iff.intro _ _),
+  refine set.ext (assume c, iff.intro _ _),
   { rintros ⟨f, hfs, b, ⟨g, hg, a, hau, rfl⟩, rfl⟩,
     exact ⟨f ∘ g, ⟨(∘) f, mem_image_of_mem _ hfs, g, hg, rfl⟩, a, hau, rfl⟩ },
   { rintros ⟨fg, ⟨fc, ⟨f, hfs, rfl⟩, g, hgt, rfl⟩, a, ha, rfl⟩,
-    exact ⟨f, hfs, g a, ⟨g, hgt, a, ha, rfl⟩ , rfl⟩ }
+    exact ⟨f, hfs, g a, ⟨g, hgt, a, ha, rfl⟩, rfl⟩ }
 end
 
 lemma image_seq {f : β → γ} {s : set (α → β)} {t : set α} :
@@ -590,11 +590,11 @@ variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' �
 
 @[simp] lemma bind_def : s >>= f = ⋃i∈s, f i := rfl
 
-lemma fmap_eq_image : f <$> s = f '' s := rfl
+@[simp] lemma fmap_eq_image (f : α' → β') : f <$> s = f '' s := rfl
 
-lemma seq_eq_set_seq {α β : Type*} (s : set (α → β)) (t : set α) : s <*> t = s.seq t := rfl
+@[simp] lemma seq_eq_set_seq {α β : Type*} (s : set (α → β)) (t : set α) : s <*> t = s.seq t := rfl
 
-@[simp] lemma pure_def (a : α): (pure a : set α) = {a} := rfl
+@[simp] lemma pure_def (a : α) : (pure a : set α) = {a} := rfl
 
 end monad
 

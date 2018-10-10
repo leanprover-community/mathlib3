@@ -44,6 +44,7 @@ attribute [to_additive quotient_add_group.add_group._proof_3] quotient_group.gro
 attribute [to_additive quotient_add_group.add_group._proof_2] quotient_group.group._proof_2
 attribute [to_additive quotient_add_group.add_group._proof_1] quotient_group.group._proof_1
 attribute [to_additive quotient_add_group.add_group] quotient_group.group
+attribute [to_additive quotient_add_group.quotient.equations._eqn_1] quotient_group.quotient.equations._eqn_1
 attribute [to_additive quotient_add_group.add_group.equations._eqn_1] quotient_group.group.equations._eqn_1
 
 instance : is_group_hom (mk : G → quotient N) := ⟨λ _ _, rfl⟩

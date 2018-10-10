@@ -1212,6 +1212,9 @@ by rw reverse_reverse l at t; rwa t
 | []     := rfl
 | (x::l) := by simp only [foldr_cons, foldr_eta l]; split; refl
 
+@[simp] theorem reverse_foldl {l : list α} : reverse (foldl (λ t h, h :: t) [] l) = l :=
+by rw ←foldr_reverse; simp
+
 /-- Fold a function `f` over the list from the left, returning the list
   of partial results. `scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]` -/
 def scanl (f : α → β → α) : α → list β → list α
@@ -1283,6 +1286,35 @@ lemma foldl_assoc_comm_cons {l : list α} {a₁ a₂} : (a₁ :: l) <*> a₂ = a
 by rw [foldl_cons, hc.comm, foldl_assoc]
 
 end
+
+/- mfoldl, mfoldr -/
+
+section mfoldl_mfoldr
+variables {m : Type v → Type w} [monad m]
+
+@[simp] theorem mfoldl_nil (f : β → α → m β) {b} : mfoldl f b [] = pure b := rfl
+
+@[simp] theorem mfoldr_nil (f : α → β → m β) {b} : mfoldr f b [] = pure b := rfl
+
+@[simp] theorem mfoldl_cons {f : β → α → m β} {b a l} :
+  mfoldl f b (a :: l) = f b a >>= λ b', mfoldl f b' l := rfl
+
+@[simp] theorem mfoldr_cons {f : α → β → m β} {b a l} :
+  mfoldr f b (a :: l) = mfoldr f b l >>= f a := rfl
+
+variables [is_lawful_monad m]
+
+@[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},
+  mfoldl f b (l₁ ++ l₂) = mfoldl f b l₁ >>= λ x, mfoldl f x l₂
+| _ []     _ := by simp only [nil_append, mfoldl_nil, pure_bind]
+| _ (_::_) _ := by simp only [cons_append, mfoldl_cons, mfoldl_append, bind_assoc]
+
+@[simp] theorem mfoldr_append {f : α → β → m β} : ∀ {b l₁ l₂},
+  mfoldr f b (l₁ ++ l₂) = mfoldr f b l₂ >>= λ x, mfoldr f x l₁
+| _ []     _ := by simp only [nil_append, mfoldr_nil, bind_pure]
+| _ (_::_) _ := by simp only [mfoldr_cons, cons_append, mfoldr_append, bind_assoc]
+
+end mfoldl_mfoldr
 
 /- sum -/
 

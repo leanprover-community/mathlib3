@@ -7,6 +7,12 @@ Author: Johannes Hölzl
 section sigma
 variables {α : Type*} {β : α → Type*}
 
+section
+universes u v
+instance (c : Type u → Type v) : has_coe_to_sort (sigma c) :=
+{ S := Type u, coe := @sigma.fst (Type u) c }
+end
+
 instance [inhabited α] [inhabited (β (default α))] : inhabited (sigma β) :=
 ⟨⟨default α, default (β (default α))⟩⟩
 
@@ -34,9 +40,13 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
 
 variables {α₁ : Type*} {α₂ : Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
 
-/-- Map the left and right components of a sigma -/
+/-- Map the `fst` and `snd` components of a `sigma` -/
 def sigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : sigma β₁ → sigma β₂
 | ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
+
+/-- Map only the `snd` component of a `sigma` -/
+def sigma.map_snd {β₁ β₂ : α → Type*} (f : ∀ a, β₁ a → β₂ a) (s : sigma β₁) : sigma β₂ :=
+⟨s.fst, f _ s.snd⟩
 
 end sigma
 
@@ -63,8 +73,12 @@ iff.intro psigma.mk.inj $
 
 variables {α₁ : Sort*} {α₂ : Sort*} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*}
 
-/-- Map the left and right components of a sigma -/
+/-- Map the `fst` and `snd` components of a `psigma` -/
 def psigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : psigma β₁ → psigma β₂
 | ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
+
+/-- Map only the `snd` component of a `psigma` -/
+def psigma.map_snd {β₁ β₂ : α → Type*} (f : ∀ a, β₁ a → β₂ a) (s : psigma β₁) : psigma β₂ :=
+⟨s.fst, f _ s.snd⟩
 
 end psigma

@@ -66,16 +66,6 @@ A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
 
-structure bundled (c : Type u → Type v) :=
-(α : Type u)
-[str : c α]
-
-instance (c : Type u → Type v) : has_coe_to_sort (bundled c) :=
-{ S := Type u, coe := bundled.α }
- 
-def mk_ob {c : Type u → Type v} (α : Type u) [str : c α] : bundled c :=
-@bundled.mk c α str
-
 /-- `concrete_category hom` collects the evidence that a type constructor `c` and a morphism
 predicate `hom` can be thought of as a concrete category.
 In a typical example, `c` is the type class `topological_space` and `hom` is `continuous`. -/
@@ -86,18 +76,18 @@ structure concrete_category {c : Type u → Type v}
 attribute [class] concrete_category
 
 instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] : category (bundled c) :=
+  [h : concrete_category @hom] : category (sigma c) :=
 { hom   := λa b, subtype (hom a.2 b.2),
   id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
   comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
 
 @[simp] lemma concrete_category_id {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] (X : bundled c) : subtype.val (𝟙 X) = id := rfl
+  [h : concrete_category @hom] (X : sigma c) : subtype.val (𝟙 X) = id := rfl
 @[simp] lemma concrete_category_comp {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z): subtype.val (f ≫ g) = g.val ∘ f.val := rfl
+  [h : concrete_category @hom] {X Y Z : sigma c} (f : X ⟶ Y) (g : Y ⟶ Z): subtype.val (f ≫ g) = g.val ∘ f.val := rfl
 
 instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {R S : bundled c} : has_coe_to_fun (R ⟶ S) :=
+  [h : concrete_category @hom] {R S : sigma c} : has_coe_to_fun (R ⟶ S) :=
 { F := λ f, R → S,
   coe := λ f, f.1 }
 

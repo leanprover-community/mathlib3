@@ -18,9 +18,9 @@ open category_theory
 namespace category_theory.examples
 
 /-- The category of rings. -/
-@[reducible] def Ring : Type (u+1) := bundled ring
+@[reducible] def Ring : Type (u+1) := sigma ring
 
-instance (x : Ring) : ring x := x.str
+instance (x : Ring) : ring x := x.snd
 
 instance concrete_is_ring_hom : concrete_category @is_ring_hom :=
 ⟨by introsI α ia; apply_instance,
@@ -29,9 +29,9 @@ instance concrete_is_ring_hom : concrete_category @is_ring_hom :=
 instance Ring_hom_is_ring_hom {R S : Ring} (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
 
 /-- The category of commutative rings. -/
-@[reducible] def CommRing : Type (u+1) := bundled comm_ring
+@[reducible] def CommRing : Type (u+1) := sigma comm_ring
 
-instance (x : CommRing) : comm_ring x := x.str
+instance (x : CommRing) : comm_ring x := x.snd
 
 @[reducible] def is_comm_ring_hom {α β} [comm_ring α] [comm_ring β] (f : α → β) : Prop :=
 is_ring_hom f

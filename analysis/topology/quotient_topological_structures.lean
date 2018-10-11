@@ -8,34 +8,29 @@ variables {γ : Type*} [topological_space γ] {δ : Type*} [topological_space δ
 
 def is_open_map (f : α → β) := ∀ U : set α, is_open U → is_open (f '' U)
 
-lemma is_open_map_iff_nhds_sets (f : α → β) : is_open_map f ↔ ∀(a:α) (U ∈(nhds a).sets), f '' U ∈(nhds (f a)).sets :=
-begin
-  split,
-  { intros H a U U_nhd,
-    rw mem_nhds_sets_iff at *,
-    rcases U_nhd with ⟨s, s_sub, ⟨s_op, a_in_s⟩⟩,
-    existsi [f '' s, image_subset _ s_sub],
-    exact ⟨H s s_op, mem_image_of_mem _ a_in_s⟩ },
-  { intros H U U_op,
-    rw is_open_iff_mem_nhds,
-    rintros b ⟨a, a_in, fa⟩,
-    rw ←fa,
-    exact H _ _ (mem_nhds_sets U_op a_in) }
-end
-
 lemma is_open_map_iff_nhds_le (f : α → β) : is_open_map f ↔ ∀(a:α), nhds (f a) ≤ (nhds a).map f :=
 begin
-  rw [is_open_map_iff_nhds_sets],
-  refine forall_congr (assume a, _),
   split,
-  exact assume h s hs, let ⟨t, ht, hts⟩ := filter.mem_map_sets_iff.1 hs in
-    filter.mem_sets_of_superset (h t ht) hts,
-  exact assume h u hu, h (filter.image_mem_map hu)
+  { assume h a s hs,
+    rcases mem_nhds_sets_iff.1 hs with ⟨t, hts, ht, hat⟩,
+    exact filter.mem_sets_of_superset
+      (mem_nhds_sets (h t ht) (mem_image_of_mem _ hat))
+      (image_subset_iff.2 hts) },
+  { refine assume h s hs, is_open_iff_mem_nhds.2 _,
+    rintros b ⟨a, ha, rfl⟩,
+    exact h _ (filter.image_mem_map $ mem_nhds_sets hs ha) }
 end
 
 namespace is_open_map
-protected lemma prod {f : α → β} {g : γ → δ} (hf : is_open_map f) (hg : is_open_map g) :
-  is_open_map (λ p : α × γ, (f p.1, g p.2)) :=
+
+protected lemma id : is_open_map (@id α) := assume s hs, by rwa [image_id]
+
+protected lemma comp
+  {f : α → β} {g : β → γ} (hf : is_open_map f) (hg : is_open_map g) : is_open_map (g ∘ f) :=
+by intros s hs; rw [image_comp]; exact hg _ (hf _ hs)
+
+protected lemma prod {f : α → β} {g : γ → δ}
+  (hf : is_open_map f) (hg : is_open_map g) : is_open_map (λ p : α × γ, (f p.1, g p.2)) :=
 begin
   rw [is_open_map_iff_nhds_le],
   rintros ⟨a, b⟩,
@@ -43,76 +38,80 @@ begin
   exact filter.prod_mono ((is_open_map_iff_nhds_le f).1 hf a) ((is_open_map_iff_nhds_le g).1 hg b)
 end
 
-lemma of_inverse {f : α → β} {g : β → α} (h : continuous g) (l_inv : left_inverse f g) (r_inv : right_inverse f g) :
+lemma of_inverse {f : α → β} {f' : β → α}
+  (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
   is_open_map f :=
-begin
-  intros s s_op,
-  have : f '' s = g ⁻¹' s,
-  { ext x,
-    simp [mem_image_iff_of_inverse r_inv l_inv] },
-  rw this,
-  exact h s s_op
-end
+assume s hs,
+have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
+this ▸ h s hs
 
-local attribute [extensionality] topological_space_eq
-open function
-lemma quotient_map_of_open_of_surj_of_cont {f : α → β} (cont : continuous f) (op : is_open_map f) (surj : surjective f): quotient_map f :=
-⟨surj, begin
-  ext s,
-  split; intro h,
-  { exact cont s h },
-  have := op (f ⁻¹' s) h,
-  rwa image_preimage_eq surj at this,
-end⟩
+lemma to_quotient_map {f : α → β}
+  (open_map : is_open_map f) (cont : continuous f) (surj : surjective f) :
+  quotient_map f :=
+⟨ surj,
+  begin
+    ext s,
+    show is_open s ↔ is_open (f ⁻¹' s),
+    split,
+    { exact cont s },
+    { assume h,
+      rw ← @image_preimage_eq _ _ _ s surj,
+      exact open_map _ h }
+  end⟩
+
 end is_open_map
 
-class topological_group (α : Type*) [topological_space α] [group α]
-  extends topological_monoid α : Prop :=
-(continuous_inv : continuous (λa:α, a⁻¹))
+lemma is_open_coinduced {β} {s : set β} {f : α → β} :
+  @is_open β (topological_space.coinduced f _inst_1) s ↔ is_open (f ⁻¹' s) :=
+iff.refl _
 
-lemma continuous_inv' {α : Type*} [topological_space α] [group α] [topological_group α] :
-continuous (λ a : α, a⁻¹) := topological_group.continuous_inv α
+section topological_group
+variables [group α] [topological_group α]
 
-lemma continuous_inv {α : Type*} {β : Type*} [topological_space α] [group α] [topological_group α] [topological_space β] {f : β → α} (hf : continuous f) :
-continuous (λ b, (f b)⁻¹) := hf.comp continuous_inv'
+@[to_additive is_open_map_add_left]
+lemma is_open_map_mul_left (a : α) : is_open_map (λ x, x*a) :=
+begin
+  have : continuous (λ x, x*a⁻¹) := continuous_mul continuous_id continuous_const,
+  apply is_open_map.of_inverse this;
+    simp [function.right_inverse, function.left_inverse],
+end
+
+@[to_additive is_open_map_add_right]
+lemma is_open_map_mul_right (a : α) : is_open_map (λ x, a*x) :=
+begin
+  have : continuous (λ x, a⁻¹*x) := continuous_mul continuous_const continuous_id,
+  apply is_open_map.of_inverse this;
+    simp [function.right_inverse, function.left_inverse],
+end
+end topological_group
 
 section topological_group
 variables [group α] [topological_group α] (N : set α) [normal_subgroup N]
 
+@[to_additive quotient_add_group.quotient.topological_space]
 instance : topological_space (quotient_group.quotient N) :=
-by dunfold quotient_group.quotient ; apply_instance
+by dunfold quotient_group.quotient; apply_instance
+
+attribute [instance] quotient_add_group.quotient.topological_space
 
 open quotient_group
+@[to_additive quotient_add_group_saturate]
 lemma quotient_group_saturate (s : set α) :
   (coe : α → quotient N) ⁻¹' ((coe : α → quotient N) '' s) = (⋃ x : N, (λ y, y*x.1) '' s) :=
 begin
   ext x,
-  rw mem_preimage_eq,
-  rw mem_Union,
-  split ; intro h,
-  { rcases h with ⟨a, a_in, h⟩,
-    rw quotient_group.eq at h,
-    existsi (⟨a⁻¹*x, h⟩ : N),
-    rw mem_image,
-    existsi [a, a_in],
+  rw [mem_preimage_eq, mem_Union],
+  split,
+  { rintros ⟨a, a_in, h⟩,
+    existsi [(⟨a⁻¹*x, quotient_group.eq.1 h⟩ : N), a, a_in],
     simp },
-  { rcases h with ⟨⟨n, n_in⟩, x_in⟩,
-    rw mem_image at x_in,
-    rcases x_in with ⟨a, a_in, ha⟩,
-    rw mem_image,
+  { rintros ⟨⟨n, n_in⟩, ⟨a, a_in, rfl⟩⟩,
     existsi [a, a_in],
     rw quotient_group.eq,
-    rwa show a⁻¹*x = n, by rw ←ha ; simp }
+    simp [n_in] }
 end
 
-lemma is_open_translate (a : α) : is_open_map (λ x, x*a) :=
-begin
-  have : continuous (λ x, x*a⁻¹) := continuous_mul continuous_id continuous_const,
-  apply is_open_map.of_inverse this,
-  simp[function.left_inverse],
-  intro x, simp,
-end
-
+@[to_additive quotient_add_group.open_coe]
 lemma quotient_group.open_coe : is_open_map (coe : α →  quotient N) :=
 begin
   intros s s_op,
@@ -120,20 +119,21 @@ begin
   rw quotient_group_saturate N s,
   apply is_open_Union,
   rintro ⟨n, _⟩,
-  exact is_open_translate n s s_op
+  exact is_open_map_mul_left n s s_op
 end
 
+@[to_additive topological_add_group_quotient]
 instance topological_group_quotient : topological_group (quotient N) :=
 { continuous_mul := begin
     have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst * p.snd)) :=
-    continuous.comp continuous_mul' continuous_quot_mk,
+      continuous.comp continuous_mul' continuous_quot_mk,
 
     have quot : quotient_map (λ p : α × α, ((p.1:quotient N), (p.2:quotient N))),
-    { apply is_open_map.quotient_map_of_open_of_surj_of_cont,
+    { apply is_open_map.to_quotient_map,
+      { exact is_open_map.prod (quotient_group.open_coe N) (quotient_group.open_coe N) },
       { apply continuous.prod_mk,
         { exact continuous.comp continuous_fst continuous_quot_mk },
         { exact continuous.comp continuous_snd continuous_quot_mk } },
-      { exact is_open_map.prod (quotient_group.open_coe N) (quotient_group.open_coe N) },
       { rintro ⟨⟨x⟩, ⟨y⟩⟩,
         existsi (x, y),
         refl }},
@@ -144,87 +144,26 @@ instance topological_group_quotient : topological_group (quotient N) :=
     change continuous ((coe : α → quotient N) ∘ (λ (a : α), a⁻¹)),
     exact continuous.comp continuous_inv' continuous_quot_mk
   end }
+
+attribute [instance] topological_add_group_quotient
+
 end topological_group
-
-section topological_add_group
-variables [add_comm_group α] [topological_add_group α] (N : set α) [is_add_subgroup N]
-
-instance [topological_add_group α] (N : set α) [is_add_subgroup N]: topological_space (quotient_add_group.quotient N) :=
-by dunfold quotient_add_group.quotient ; apply_instance
-
-open quotient_add_group
-
-lemma quotient_add_group_saturate (s : set α) :
-  (coe : α → quotient N) ⁻¹' ((coe : α → quotient N) '' s) = (⋃ x : N, (λ y, x.1 + y) '' s) :=
-begin
-  ext x,
-  rw mem_preimage_eq,
-  rw mem_Union,
-  split ; intro h,
-  { rcases h with ⟨a, a_in, h⟩,
-    rw quotient_add_group.eq at h,
-    existsi (⟨-a+x, h⟩ : N),
-    rw mem_image,
-    existsi [a, a_in],
-    simp },
-  { rcases h with ⟨⟨n, n_in⟩, x_in⟩,
-    rw mem_image at x_in,
-    rcases x_in with ⟨a, a_in, ha⟩,
-    rw mem_image,
-    existsi [a, a_in],
-    rw quotient_add_group.eq,
-    rwa show -a + x = n, by rw ←ha ; simp }
-end
-
-lemma is_open_add_translate (a : α) : is_open_map (λ x, a + x) :=
-begin
-  have : continuous (λ x, -a + x) := continuous_add continuous_const continuous_id,
-  apply is_open_map.of_inverse this,
-  simp[function.left_inverse], intro x, rw [add_comm, add_assoc], simp,
-  simp[function.left_inverse], intro x, finish
-end
-
-lemma quotient_add_group.open_coe : is_open_map (coe : α →  quotient N) :=
-begin
-  intros s s_op,
-  change is_open ((coe : α →  quotient N) ⁻¹' (coe '' s)),
-  rw quotient_add_group_saturate N s,
-  apply is_open_Union,
-  rintro ⟨n, _⟩,
-  exact is_open_add_translate n s s_op
-end
-
-instance topological_add_group_quotient : topological_add_group (quotient N) :=
-{ continuous_add := begin
-    have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst + p.snd)) :=
-    continuous.comp continuous_add' continuous_quot_mk,
-
-    have quot : quotient_map (λ p : α × α, ((p.1:quotient N), (p.2:quotient N))),
-    { apply is_open_map.quotient_map_of_open_of_surj_of_cont,
-      { apply continuous.prod_mk,
-        { exact continuous.comp continuous_fst continuous_quot_mk },
-        { exact continuous.comp continuous_snd continuous_quot_mk } },
-      { exact is_open_map.prod (quotient_add_group.open_coe N) (quotient_add_group.open_coe N) },
-      { rintro ⟨⟨x⟩, ⟨y⟩⟩,
-        existsi (x, y),
-        refl }},
-    exact (quotient_map.continuous_iff quot).2 cont,
-  end,
-  continuous_neg := begin
-    apply continuous_quotient_lift,
-    change continuous ((coe : α → quotient N) ∘ (λ (a : α), -a)),
-    exact continuous.comp continuous_neg' continuous_quot_mk
-  end }
-end topological_add_group
 
 section ideal_is_add_subgroup
 variables [comm_ring α] {M : Type*} [module α M] (N : set α) [is_submodule N]
 
 instance submodule_is_add_subgroup : is_add_subgroup N :=
-{ zero_mem :=  is_submodule.zero,
-  add_mem :=  λ a b, is_submodule.add,
-  neg_mem := λ a,  is_submodule.neg}
+{ zero_mem := is_submodule.zero,
+  add_mem  := λ a b, is_submodule.add,
+  neg_mem  := λ a, is_submodule.neg}
+
 end ideal_is_add_subgroup
+
+@[to_additive normal_add_subgroup_of_comm]
+instance normal_subgroup_of_comm [comm_group α] (s : set α) [hs : is_subgroup s] :
+  normal_subgroup s :=
+{ normal := assume a hn b, by rwa [mul_comm b, mul_inv_cancel_right] }
+attribute [instance] normal_add_subgroup_of_comm
 
 section topological_ring
 variables [comm_ring α] [topological_ring α] (N : set α) [is_ideal N]
@@ -233,14 +172,7 @@ open quotient_ring
 instance topological_ring_quotient_topology : topological_space (quotient N) :=
 by dunfold quotient_ring.quotient ; apply_instance
 
-lemma is_open_ring_add_translate (a : α) : is_open_map (λ x, a + x) :=
-begin
-  have : continuous (λ x, -a + x) := continuous_add continuous_const continuous_id,
-  apply is_open_map.of_inverse this,
-  simp[function.left_inverse], intro x, rw [add_comm, add_assoc], simp,
-  simp[function.left_inverse], intro x, change a + x - a = x, ring
-end
-
+-- this should be quotient_add_saturate ...
 lemma quotient_ring_saturate (s : set α) :
   (coe : α → quotient N) ⁻¹' ((coe : α → quotient N) '' s) = (⋃ x : N, (λ y, x.1 + y) '' s) :=
 begin
@@ -265,42 +197,35 @@ begin
     rwa show -(a - x) = n, by {rw ←ha, simp} }
 end
 
-lemma quotient_ring.open_coe : is_open_map (coe : α →  quotient N) :=
+lemma quotient_ring.is_open_map_coe : is_open_map (coe : α →  quotient N) :=
 begin
   intros s s_op,
   change is_open ((coe : α →  quotient N) ⁻¹' (coe '' s)),
   rw quotient_ring_saturate N s,
-  apply is_open_Union,
-  rintro ⟨n, _⟩,
-  exact is_open_ring_add_translate n s s_op
+  exact is_open_Union (assume ⟨n, _⟩, is_open_map_add_right n s s_op)
 end
 
-lemma quotient_ring.is_open_map :quotient_map (λ p : α × α, ((p.1:quotient N), (p.2:quotient N))) :=
+lemma quotient_ring.quotient_map : quotient_map (λ p : α × α, ((p.1:quotient N), (p.2:quotient N))) :=
 begin
-  apply is_open_map.quotient_map_of_open_of_surj_of_cont,
+  apply is_open_map.to_quotient_map,
+  { exact is_open_map.prod (quotient_ring.is_open_map_coe N) (quotient_ring.is_open_map_coe N) },
   { apply continuous.prod_mk,
     { exact continuous.comp continuous_fst continuous_quot_mk },
     { exact continuous.comp continuous_snd continuous_quot_mk } },
-  { exact is_open_map.prod (quotient_ring.open_coe N) (quotient_ring.open_coe N) },
   { rintro ⟨⟨x⟩, ⟨y⟩⟩,
     existsi (x, y),
     refl }
 end
 
 instance topological_ring_quotient : topological_ring (quotient N) :=
-{continuous_add := begin
+{ continuous_add :=
     have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst + p.snd)) :=
-    continuous.comp continuous_add' continuous_quot_mk,
-    exact (quotient_map.continuous_iff (quotient_ring.is_open_map N)).2 cont,
-  end,
-  continuous_neg := begin
-    apply continuous_quotient_lift,
-    change continuous ((coe : α → quotient N) ∘ (λ (a : α), -a)),
-    exact continuous.comp continuous_neg' continuous_quot_mk
-  end,
-  continuous_mul := begin
+      continuous.comp continuous_add' continuous_quot_mk,
+    (quotient_map.continuous_iff (quotient_ring.quotient_map N)).2 cont,
+  continuous_neg := continuous_quotient_lift _ (continuous.comp continuous_neg' continuous_quot_mk),
+  continuous_mul :=
     have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst * p.snd)) :=
-    continuous.comp continuous_mul' continuous_quot_mk,
-    exact (quotient_map.continuous_iff (quotient_ring.is_open_map N)).2 cont
-  end}
+      continuous.comp continuous_mul' continuous_quot_mk,
+    (quotient_map.continuous_iff (quotient_ring.quotient_map N)).2 cont }
+
 end topological_ring

@@ -1293,6 +1293,29 @@ iff.intro (assume h b hb, le_trans (le_sup hb) h) sup_le
 lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
 sup_le $ assume b hb, le_sup (h hb)
 
+lemma sup_lt [is_total α (≤)] {a : α} : (⊥ < a) → (∀b ∈ s, f b < a) → s.sup f < a :=
+have A: ∀ x y, x < a → y < a → x ⊔ y < a :=
+begin
+  assume x y hx hy,
+  cases (is_total.total (≤) x y) with h,
+  {simpa [sup_of_le_right h] using hy},
+  {simpa [sup_of_le_left h] using hx}
+end,
+by letI := classical.dec_eq β; from
+finset.induction_on s (by simp) (by simp [A] {contextual := tt})
+
+lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
+(g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
+have A : ∀x y, g (x ⊔ y) = g x ⊔ g y :=
+begin
+  assume x y,
+  cases (is_total.total (≤) x y) with h,
+  {simp [sup_of_le_right h, sup_of_le_right (mono_g h)]},
+  {simp [sup_of_le_left h, sup_of_le_left (mono_g h)]}
+end,
+by letI := classical.dec_eq β; from
+finset.induction_on s (by simp [bot]) (by simp [A] {contextual := tt})
+
 end sup
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
@@ -1347,6 +1370,29 @@ iff.intro (assume h b hb, le_trans h (inf_le hb)) le_inf
 
 lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
+
+lemma lt_inf [is_total α (≤)] {a : α} : (a < ⊤) → (∀b ∈ s, a < f b) → a < s.inf f :=
+have A: ∀ x y, a < x → a < y → a < x ⊓ y :=
+begin
+  assume x y hx hy,
+  cases (is_total.total (≤) x y) with h,
+  {simpa [inf_of_le_left h] using hy},
+  {simpa [inf_of_le_right h] using hx}
+end,
+by letI := classical.dec_eq β; from
+finset.induction_on s (by simp) (by simp [A] {contextual := tt})
+
+lemma comp_inf_eq_inf_comp [is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
+(g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
+have A : ∀x y, g (x ⊓ y) = g x ⊓ g y :=
+begin
+  assume x y,
+  cases (is_total.total (≤) x y) with h,
+  {simp [inf_of_le_left h, inf_of_le_left (mono_g h)]},
+  {simp [inf_of_le_right h, inf_of_le_right (mono_g h)]}
+end,
+by letI := classical.dec_eq β; from
+finset.induction_on s (by simp [top]) (by simp [A] {contextual := tt})
 
 end inf
 

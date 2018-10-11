@@ -14,7 +14,7 @@ namespace complex
 
 -- TODO(Mario): these proofs are all copied from analysis/real. Generalize
 -- to normed fields
-instance : metric_space ℂ :=
+instance : metric_space ℂ := metric_space.mk''
 { dist               := λx y, (x - y).abs,
   dist_self          := by simp [abs_zero],
   eq_of_dist_eq_zero := by simp [add_neg_eq_zero],

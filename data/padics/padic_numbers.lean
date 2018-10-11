@@ -618,21 +618,20 @@ end complete
 section normed_space
 variables (p : ℕ) [prime p]
 
-instance : has_dist ℚ_[p] := ⟨λ x y, padic_norm_e (x - y)⟩
-
-instance : metric_space ℚ_[p] :=
-{ dist_self := by simp [dist],
-  dist_comm := λ x y, by unfold dist; rw ←padic_norm_e.neg (x - y); simp,
+instance : metric_space ℚ_[p] := metric_space.mk''
+{ dist := λ x y, padic_norm_e (x - y),
+  dist_self := by simp [dist],
+  dist_comm := λ x y, by rw ←padic_norm_e.neg (x - y); simp,
   dist_triangle :=
     begin
-      intros, unfold dist,
+      intros,
       rw ←rat.cast_add,
       apply rat.cast_le.2,
       apply padic_norm_e.triangle_ineq
     end,
   eq_of_dist_eq_zero :=
     begin
-      unfold dist, intros _ _ h,
+      intros _ _ h,
       apply eq_of_sub_eq_zero,
       apply (padic_norm_e.zero_iff _).1,
       simpa using h

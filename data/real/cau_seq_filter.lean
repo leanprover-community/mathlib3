@@ -223,7 +223,7 @@ begin
   rw [←dist_eq_norm, dist_comm] at hdist2,
   have hdist : dist x (cau_filter_lim hf) < ε,
   { apply lt_of_le_of_lt,
-    { apply metric_space.dist_triangle,
+    { apply dist_triangle,
       exact (cau_seq_of_cau_filter hf) N },
     { rw ←add_halves ε,
       apply add_lt_add; assumption }},

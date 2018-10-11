@@ -7,6 +7,16 @@ Quotients -- extends the core library
 -/
 variables {α : Sort*} {β : Sort*}
 
+namespace setoid
+
+lemma ext {α : Sort*} :
+  ∀{s t : setoid α}, (∀a b, @setoid.r α s a b ↔ @setoid.r α t a b) → s = t
+| ⟨r, _⟩ ⟨p, _⟩ eq :=
+  have r = p, from funext $ assume a, funext $ assume b, propext $ eq a b,
+  by subst this
+
+end setoid
+
 namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a

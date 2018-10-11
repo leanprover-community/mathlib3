@@ -251,26 +251,17 @@ separated_def.2 $ assume x y H, prod.ext
   (eq_of_separated_of_uniform_continuous uniform_continuous_fst H)
   (eq_of_separated_of_uniform_continuous uniform_continuous_snd H)
 
--- Two useless variations on the same theme
 lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   separation_setoid α = quotient_ring.quotient_rel (closure $ is_ideal.trivial α) :=
-begin
-  dsimp [separation_setoid],
-  conv {congr, congr, funext, rw group_separation_rel x y },
-  refl
-end
+setoid.ext $ assume x y, group_separation_rel x y
 
 lemma ring_sep_quot (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   quotient (separation_setoid α) = quotient_ring.quotient (closure $ is_ideal.trivial α) :=
-begin
-  dsimp [separation_setoid],
-  conv {congr, congr, congr, funext, rw group_separation_rel x y },
-  refl
-end
+by rw [@ring_sep_rel α _inst_4]; refl
 
 instance [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   comm_ring (quotient (separation_setoid α)) :=
-by rw ring_sep_quot α ;  apply_instance
+by rw ring_sep_quot α; apply_instance
 
 @[simp] lemma eq_mpr_heq {α β : Sort u} (h : β = α) (x : α) : eq.mpr h x == x :=
 by subst h; refl

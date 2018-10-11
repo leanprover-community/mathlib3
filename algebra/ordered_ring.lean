@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import order.basic algebra.order algebra.ordered_group algebra.ring
+import order.basic algebra.order algebra.ordered_group algebra.ring data.nat.cast
 
 universe u
 variable {α : Type u}
@@ -412,5 +412,16 @@ instance [canonically_ordered_comm_semiring α] [decidable_eq α] :
   mul_one         := assume a, by rw [comm, one_mul'],
   zero_ne_one     := assume h, @zero_ne_one α _ $ option.some.inj h,
   .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_monoid }
+
+@[simp] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
+| 0     := rfl
+| (n+1) := have (((1 : nat) : α) : with_top α) = ((1 : nat) : with_top α) := rfl,
+           by rw [nat.cast_add, coe_add, nat.cast_add, coe_nat n, this]
+
+@[simp] lemma nat_ne_top (n : nat) : (n : with_top α ) ≠ ⊤ :=
+by rw [←coe_nat n]; apply coe_ne_top
+
+@[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
+by rw [←coe_nat n]; apply top_ne_coe
 
 end with_top

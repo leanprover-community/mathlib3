@@ -6,65 +6,6 @@ open function set
 variables {α : Type*} [topological_space α] {β : Type*} [topological_space β]
 variables {γ : Type*} [topological_space γ] {δ : Type*} [topological_space δ]
 
-def is_open_map (f : α → β) := ∀ U : set α, is_open U → is_open (f '' U)
-
-lemma is_open_map_iff_nhds_le (f : α → β) : is_open_map f ↔ ∀(a:α), nhds (f a) ≤ (nhds a).map f :=
-begin
-  split,
-  { assume h a s hs,
-    rcases mem_nhds_sets_iff.1 hs with ⟨t, hts, ht, hat⟩,
-    exact filter.mem_sets_of_superset
-      (mem_nhds_sets (h t ht) (mem_image_of_mem _ hat))
-      (image_subset_iff.2 hts) },
-  { refine assume h s hs, is_open_iff_mem_nhds.2 _,
-    rintros b ⟨a, ha, rfl⟩,
-    exact h _ (filter.image_mem_map $ mem_nhds_sets hs ha) }
-end
-
-namespace is_open_map
-
-protected lemma id : is_open_map (@id α) := assume s hs, by rwa [image_id]
-
-protected lemma comp
-  {f : α → β} {g : β → γ} (hf : is_open_map f) (hg : is_open_map g) : is_open_map (g ∘ f) :=
-by intros s hs; rw [image_comp]; exact hg _ (hf _ hs)
-
-protected lemma prod {f : α → β} {g : γ → δ}
-  (hf : is_open_map f) (hg : is_open_map g) : is_open_map (λ p : α × γ, (f p.1, g p.2)) :=
-begin
-  rw [is_open_map_iff_nhds_le],
-  rintros ⟨a, b⟩,
-  rw [nhds_prod_eq, nhds_prod_eq, ← filter.prod_map_map_eq],
-  exact filter.prod_mono ((is_open_map_iff_nhds_le f).1 hf a) ((is_open_map_iff_nhds_le g).1 hg b)
-end
-
-lemma of_inverse {f : α → β} {f' : β → α}
-  (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
-  is_open_map f :=
-assume s hs,
-have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
-this ▸ h s hs
-
-lemma to_quotient_map {f : α → β}
-  (open_map : is_open_map f) (cont : continuous f) (surj : surjective f) :
-  quotient_map f :=
-⟨ surj,
-  begin
-    ext s,
-    show is_open s ↔ is_open (f ⁻¹' s),
-    split,
-    { exact cont s },
-    { assume h,
-      rw ← @image_preimage_eq _ _ _ s surj,
-      exact open_map _ h }
-  end⟩
-
-end is_open_map
-
-lemma is_open_coinduced {β} {s : set β} {f : α → β} :
-  @is_open β (topological_space.coinduced f _inst_1) s ↔ is_open (f ⁻¹' s) :=
-iff.refl _
-
 section topological_group
 variables [group α] [topological_group α]
 

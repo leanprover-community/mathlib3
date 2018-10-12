@@ -868,6 +868,10 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
       show is_open (⋃h, f i h), from @is_open_Union β _ t _ $ assume h, (hf i h).left)
   end }
 
+lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
+  @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ s = f ⁻¹' t) :=
+iff.refl _
+
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
 ⟨assume ⟨t, ht, heq⟩, ⟨-t, is_closed_compl_iff.2 ht, by simp only [preimage_compl, heq.symm, lattice.neg_neg]⟩,
@@ -884,6 +888,10 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
   is_open_sUnion := assume s h, by rw [preimage_sUnion]; exact (@is_open_Union _ _ t _ $ assume i,
     show is_open (⋃ (H : i ∈ s), f ⁻¹' i), from
       @is_open_Union _ _ t _ $ assume hi, h i hi) }
+
+lemma is_open_coinduced {t : topological_space α} {s : set β} {f : α → β} :
+  @is_open β (topological_space.coinduced f t) s ↔ is_open (f ⁻¹' s) :=
+iff.refl _
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 

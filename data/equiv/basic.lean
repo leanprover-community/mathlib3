@@ -660,6 +660,7 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by dsimp [set_value]; simp [swap_apply_left]
 
 end swap
+
 end equiv
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton

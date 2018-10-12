@@ -10,7 +10,7 @@ TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups
 -/
 import order.liminf_limsup
 import algebra.big_operators algebra.group algebra.pi_instances
-import data.set.intervals
+import data.set.intervals data.equiv.algebra
 import analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
 import ring_theory.ideals
 
@@ -163,6 +163,39 @@ instance [topological_group α] [topological_space β] [group β] [topological_g
 { continuous_inv := continuous.prod_mk (continuous_inv continuous_fst) (continuous_inv continuous_snd) }
 
 attribute [instance] prod.topological_add_group
+
+protected def homeomorph.mul_left
+  {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
+  α ≃ₜ α :=
+{ continuous_to_fun  := continuous_mul continuous_const continuous_id,
+  continuous_inv_fun := continuous_mul continuous_const continuous_id,
+  .. equiv.mul_left a }
+attribute [to_additive homeomorph.add_left._proof_1] homeomorph.mul_left._proof_1
+attribute [to_additive homeomorph.add_left._proof_2] homeomorph.mul_left._proof_2
+attribute [to_additive homeomorph.add_left._proof_3] homeomorph.mul_left._proof_3
+attribute [to_additive homeomorph.add_left._proof_4] homeomorph.mul_left._proof_4
+attribute [to_additive homeomorph.add_left] homeomorph.mul_left
+
+protected def homeomorph.mul_right
+  {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
+  α ≃ₜ α :=
+{ continuous_to_fun  := continuous_mul continuous_id continuous_const,
+  continuous_inv_fun := continuous_mul continuous_id continuous_const,
+  .. equiv.mul_right a }
+attribute [to_additive homeomorph.add_right._proof_1] homeomorph.mul_right._proof_1
+attribute [to_additive homeomorph.add_right._proof_2] homeomorph.mul_right._proof_2
+attribute [to_additive homeomorph.add_right._proof_3] homeomorph.mul_right._proof_3
+attribute [to_additive homeomorph.add_right._proof_4] homeomorph.mul_right._proof_4
+attribute [to_additive homeomorph.add_right] homeomorph.mul_right
+
+protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
+  α ≃ₜ α :=
+{ continuous_to_fun  := continuous_inv',
+  continuous_inv_fun := continuous_inv',
+  .. equiv.inv α }
+attribute [to_additive homeomorph.inv._proof_1] homeomorph.inv._proof_1
+attribute [to_additive homeomorph.inv._proof_2] homeomorph.inv._proof_2
+attribute [to_additive homeomorph.inv] homeomorph.inv
 
 @[to_additive exists_nhds_half]
 lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ (nhds (1 : α)).sets) :

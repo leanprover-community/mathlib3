@@ -1212,7 +1212,6 @@ protected def subtype (p : α → Prop) {e : α → β} (de : dense_embedding e)
 
 end dense_embedding
 
-
 lemma is_closed_property [topological_space α] [topological_space β] {e : α → β} {p : β → Prop}
   (he : closure (range e) = univ) (hp : is_closed {x | p x}) (h : ∀a, p (e a)) :
   ∀b, p b :=
@@ -1255,3 +1254,110 @@ have (a,b) ∈ closure (set.prod s t),
 show f (a, b).1 (a, b).2 ∈ closure u,
   from @mem_closure_of_continuous (α×β) _ _ _ (λp:α×β, f p.1 p.2) (a,b) _ u hf this $
     assume ⟨p₁, p₂⟩ ⟨h₁, h₂⟩, h p₁ h₁ p₂ h₂
+
+/-- α and β are homeomorph, also called topological isomoph -/
+structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
+  extends α ≃ β :=
+(continuous_to_fun  : continuous to_fun)
+(continuous_inv_fun : continuous inv_fun)
+
+infix ` ≃ₜ `:50 := homeomorph
+
+namespace homeomorph
+variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
+
+instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
+
+lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
+
+protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
+{ continuous_to_fun := continuous_id, continuous_inv_fun := continuous_id, .. equiv.refl α }
+
+protected def trans (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) : α ≃ₜ γ :=
+{ continuous_to_fun  := h₁.continuous_to_fun.comp h₂.continuous_to_fun,
+  continuous_inv_fun := h₂.continuous_inv_fun.comp h₁.continuous_inv_fun,
+  .. equiv.trans h₁.to_equiv h₂.to_equiv }
+
+protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
+{ continuous_to_fun  := h.continuous_inv_fun,
+  continuous_inv_fun := h.continuous_to_fun,
+  .. h.to_equiv.symm }
+
+protected def continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
+
+lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=
+funext $ assume a, h.to_equiv.left_inv a
+
+lemma self_comp_symm (h : α ≃ₜ β) : ⇑h ∘ ⇑h.symm = id :=
+funext $ assume a, h.to_equiv.right_inv a
+
+lemma range_coe (h : α ≃ₜ β) : range h = univ :=
+eq_univ_of_forall $ assume b, ⟨h.symm b, congr_fun h.self_comp_symm b⟩
+
+lemma image_symm (h : α ≃ₜ β) : image h.symm = preimage h :=
+image_eq_preimage_of_inverse h.symm.to_equiv.left_inv h.symm.to_equiv.right_inv
+
+lemma preimage_symm (h : α ≃ₜ β) : preimage h.symm = image h :=
+(image_eq_preimage_of_inverse h.to_equiv.left_inv h.to_equiv.right_inv).symm
+
+lemma induced_eq
+  {α : Type*} {β : Type*} [tα : topological_space α] [tβ : topological_space β] (h : α ≃ₜ β) :
+  tβ.induced h = tα :=
+le_antisymm
+  (induced_le_iff_le_coinduced.2 h.continuous)
+  (calc tα = (tα.induced h.symm).induced h : by rw [induced_compose, symm_comp_self, induced_id]
+    ... ≤ tβ.induced h : induced_mono $ (induced_le_iff_le_coinduced.2 h.symm.continuous))
+
+lemma coinduced_eq
+  {α : Type*} {β : Type*} [tα : topological_space α] [tβ : topological_space β] (h : α ≃ₜ β) :
+  tα.coinduced h = tβ :=
+le_antisymm
+  (calc tα.coinduced h ≤ (tβ.coinduced h.symm).coinduced h : coinduced_mono h.symm.continuous
+    ... = tβ : by rw [coinduced_compose, self_comp_symm, coinduced_id])
+  h.continuous
+
+protected lemma embedding (h : α ≃ₜ β) : embedding h :=
+⟨h.to_equiv.bijective.1, h.induced_eq.symm⟩
+
+protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
+{ dense   := assume a, by rw [h.range_coe, closure_univ]; trivial,
+  inj     := h.to_equiv.bijective.1,
+  induced := assume a, by rw [← nhds_induced_eq_comap, h.induced_eq] }
+
+protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h :=
+begin
+  assume s,
+  rw ← h.preimage_symm,
+  exact h.symm.continuous s
+end
+
+protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
+⟨h.to_equiv.bijective.2, h.coinduced_eq.symm⟩
+
+def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : (α × γ) ≃ₜ (β × δ) :=
+{ continuous_to_fun  :=
+    continuous.prod_mk (continuous_fst.comp h₁.continuous) (continuous_snd.comp h₂.continuous),
+  continuous_inv_fun :=
+    continuous.prod_mk (continuous_fst.comp h₁.symm.continuous) (continuous_snd.comp h₂.symm.continuous),
+  .. h₁.to_equiv.prod_congr h₂.to_equiv }
+
+section
+variables (α β γ)
+
+def prod_comm : (α × β) ≃ₜ (β × α) :=
+{ continuous_to_fun  := continuous.prod_mk continuous_snd continuous_fst,
+  continuous_inv_fun := continuous.prod_mk continuous_snd continuous_fst,
+  .. equiv.prod_comm α β }
+
+def prod_assoc : ((α × β) × γ) ≃ₜ (α × (β × γ)) :=
+{ continuous_to_fun  :=
+    continuous.prod_mk (continuous_fst.comp continuous_fst)
+      (continuous.prod_mk (continuous_fst.comp continuous_snd) continuous_snd),
+  continuous_inv_fun := continuous.prod_mk
+      (continuous.prod_mk continuous_fst (continuous_snd.comp continuous_fst))
+      (continuous_snd.comp continuous_snd),
+  .. equiv.prod_assoc α β γ }
+
+end
+
+end homeomorph

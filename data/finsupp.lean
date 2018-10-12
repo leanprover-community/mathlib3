@@ -224,7 +224,6 @@ f.support.sum (λa, g a (f a))
 @[to_additive finsupp.sum]
 def prod [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 f.support.prod (λa, g a (f a))
-attribute [to_additive finsupp.sum.equations._eqn_1] finsupp.prod.equations._eqn_1
 
 @[to_additive finsupp.sum_map_range_index]
 lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ] [decidable_eq β₂]

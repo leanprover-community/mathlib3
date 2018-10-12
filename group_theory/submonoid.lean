@@ -109,11 +109,6 @@ end is_submonoid
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
 by subtype_instance
 
-attribute [to_additive subtype.add_monoid._proof_1] subtype.monoid._proof_1
-attribute [to_additive subtype.add_monoid._proof_2] subtype.monoid._proof_2
-attribute [to_additive subtype.add_monoid._proof_3] subtype.monoid._proof_3
-attribute [to_additive subtype.add_monoid._proof_4] subtype.monoid._proof_4
-attribute [to_additive subtype.add_monoid._proof_5] subtype.monoid._proof_5
 attribute [to_additive subtype.add_monoid] subtype.monoid
 
 @[simp, to_additive is_add_submonoid.coe_zero]

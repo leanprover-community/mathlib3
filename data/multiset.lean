@@ -693,7 +693,6 @@ theorem foldl_swap (f : β → α → β) (H : right_commutative f) (b : β) (s 
   `prod {a, b, c} = a * b * c` -/
 def prod [comm_monoid α] : multiset α → α :=
 foldr (*) (λ x y z, by simp [mul_left_comm]) 1
-attribute [to_additive multiset.sum._proof_1] prod._proof_1
 attribute [to_additive multiset.sum] prod
 
 @[to_additive multiset.sum_eq_foldr]

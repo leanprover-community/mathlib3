@@ -1289,7 +1289,6 @@ end
 /-- Product of a list. `prod [a, b, c] = ((1 * a) * b) * c` -/
 @[to_additive list.sum]
 def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
-attribute [to_additive list.sum.equations._eqn_1] list.prod.equations._eqn_1
 
 section monoid
 variables [monoid α] {l l₁ l₂ : list α} {a : α}

@@ -10,11 +10,9 @@ variable {α : Type*}
 
 @[to_additive left_add_coset]
 def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
-attribute [to_additive left_add_coset.equations._eqn_1] left_coset.equations._eqn_1
 
 @[to_additive right_add_coset]
 def right_coset [has_mul α] (s : set α) (a : α) : set α := (λ x, x * a) '' s
-attribute [to_additive right_add_coset.equations._eqn_1] right_coset.equations._eqn_1
 
 local infix ` *l `:70 := left_coset
 local infix ` +l `:70 := left_add_coset
@@ -151,22 +149,18 @@ def left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
   assume x y z hxy hyz,
   have x⁻¹ * y * (y⁻¹ * z) ∈ s, from is_submonoid.mul_mem hxy hyz,
   by simpa [mul_assoc] using this⟩
-attribute [to_additive quotient_add_group.left_rel._proof_1] left_rel._proof_1
 attribute [to_additive quotient_add_group.left_rel] left_rel
-attribute [to_additive quotient_add_group.left_rel.equations._eqn_1] left_rel.equations._eqn_1
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
 def quotient [group α] (s : set α) [is_subgroup s] : Type* := quotient (left_rel s)
 attribute [to_additive quotient_add_group.quotient] quotient
-attribute [to_additive quotient_add_group.quotient.equations._eqn_1] quotient.equations._eqn_1
 
 variables [group α] {s : set α} [is_subgroup s]
 
 @[to_additive quotient_add_group.mk]
 def mk (a : α) : quotient s :=
 quotient.mk' a
-attribute [to_additive quotient_add_group.mk.equations._eqn_1] mk.equations._eqn_1
 
 @[elab_as_eliminator, elab_strategy, to_additive quotient_add_group.induction_on]
 lemma induction_on {C : quotient s → Prop} (x : quotient s)
@@ -176,7 +170,6 @@ attribute [elab_as_eliminator, elab_strategy] quotient_add_group.induction_on
 
 @[to_additive quotient_add_group.has_coe]
 instance : has_coe α (quotient s) := ⟨mk⟩
-attribute [to_additive quotient_add_group.has_coe.equations._eqn_1] has_coe.equations._eqn_1
 
 @[elab_as_eliminator, elab_strategy, to_additive quotient_add_group.induction_on']
 lemma induction_on' {C : quotient s → Prop} (x : quotient s)
@@ -187,7 +180,6 @@ attribute [elab_as_eliminator, elab_strategy] quotient_add_group.induction_on'
 @[to_additive quotient_add_group.inhabited]
 instance [group α] (s : set α) [is_subgroup s] : inhabited (quotient s) :=
 ⟨((1 : α) : quotient s)⟩
-attribute [to_additive quotient_add_group.inhabited.equations._eqn_1] inhabited.equations._eqn_1
 
 @[to_additive quotient_add_group.eq]
 protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
@@ -209,16 +201,7 @@ def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
  λ x, ⟨g * x.1, x.1, x.2, rfl⟩,
  λ ⟨x, hx⟩, subtype.eq $ by simp,
  λ ⟨g, hg⟩, subtype.eq $ by simp⟩
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_2] left_coset_equiv_subgroup._match_2
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_1] left_coset_equiv_subgroup._match_1
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._proof_4] left_coset_equiv_subgroup._proof_4
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._proof_3] left_coset_equiv_subgroup._proof_3
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._proof_2] left_coset_equiv_subgroup._proof_2
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._proof_1] left_coset_equiv_subgroup._proof_1
 attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup] left_coset_equiv_subgroup
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup.equations._eqn_1] left_coset_equiv_subgroup.equations._eqn_1
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_1.equations._eqn_1] left_coset_equiv_subgroup._match_1.equations._eqn_1
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_2.equations._eqn_1] left_coset_equiv_subgroup._match_2.equations._eqn_1
 
 noncomputable def group_equiv_quotient_times_subgroup (hs : is_subgroup s) :
   α ≃ (quotient s × s) :=
@@ -234,9 +217,6 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s)= L} :
   equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _)
     ... ≃ (quotient s × s) :
   equiv.sigma_equiv_prod _ _
-attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup._proof_2] group_equiv_quotient_times_subgroup._proof_2
-attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup._proof_1] group_equiv_quotient_times_subgroup._proof_1
 attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup] group_equiv_quotient_times_subgroup
-attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup.equations._eqn_1] group_equiv_quotient_times_subgroup.equations._eqn_1
 
 end is_subgroup

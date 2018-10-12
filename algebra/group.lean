@@ -13,6 +13,23 @@ section pending_1857
 section transport
 open tactic
 
+meta def prefixes : name → list name
+| (name.mk_string s p) := p :: prefixes p
+| name.anonymous := []
+| _ := []
+
+meta def set_to_additive_attr : name_set → name → name → name_map name → tactic (name_map name)
+| pre src tgt dict :=
+(get_decl tgt >> pure dict) <|>
+do d ← get_decl src,
+   let ns := (d.value.list_constant).filter
+     (λ n, ∃ p ∈ prefixes n, pre.contains p),
+   dict ← ns.to_list.mfoldl (λ (dict : name_map _) n,
+     set_to_additive_attr (pre.insert n) n (n.update_prefix tgt) dict ) dict,
+   transport_with_dict dict src tgt,
+   let dict := dict.insert src tgt,
+   pure dict
+
 @[user_attribute]
 meta def to_additive_attr : user_attribute (name_map name) name :=
 { name      := `to_additive,
@@ -22,11 +39,16 @@ meta def to_additive_attr : user_attribute (name_map name) name :=
     pure $ dict.insert n val) mk_name_map, []⟩,
   parser    := lean.parser.ident,
   after_set := some $ λ src _ _, do
-    env ← get_env,
-    dict ← to_additive_attr.get_cache,
     tgt ← to_additive_attr.get_param src,
     (get_decl tgt >> skip) <|>
-      transport_with_dict dict src tgt }
+      do dict ← to_additive_attr.get_cache,
+         dict ← set_to_additive_attr (name_set.of_list [src]) src tgt dict,
+         ls ← get_eqn_lemmas_for tt src,
+         dict ← ls.mfoldl (λ (dict : name_map _) src',
+           do let tgt' := (src'.replace_prefix src tgt),
+              transport_with_dict dict src' tgt',
+              pure $ dict.insert src' tgt') dict,
+         dict.to_list.mmap' $ λ ⟨src,tgt⟩, to_additive_attr.set src tgt tt }
 
 end transport
 
@@ -282,9 +304,6 @@ instance [semigroup α] : monoid (with_one α) :=
   one_mul   := (option.lift_or_get_is_left_id _).1,
   mul_one   := (option.lift_or_get_is_right_id _).1 }
 
-attribute [to_additive with_zero.add_monoid._proof_1] with_one.monoid._proof_1
-attribute [to_additive with_zero.add_monoid._proof_2] with_one.monoid._proof_2
-attribute [to_additive with_zero.add_monoid._proof_3] with_one.monoid._proof_3
 attribute [to_additive with_zero.add_monoid] with_one.monoid
 
 instance [semigroup α] : mul_zero_class (with_zero α) :=

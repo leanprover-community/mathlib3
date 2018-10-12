@@ -37,32 +37,18 @@ instance : group (quotient N) :=
     end),
   mul_left_inv := λ a, quotient.induction_on' a
     (λ a, congr_arg mk (mul_left_inv a)) }
-attribute [to_additive quotient_add_group.add_group._proof_6] quotient_group.group._proof_6
-attribute [to_additive quotient_add_group.add_group._proof_5] quotient_group.group._proof_5
-attribute [to_additive quotient_add_group.add_group._proof_4] quotient_group.group._proof_4
-attribute [to_additive quotient_add_group.add_group._proof_3] quotient_group.group._proof_3
-attribute [to_additive quotient_add_group.add_group._proof_2] quotient_group.group._proof_2
-attribute [to_additive quotient_add_group.add_group._proof_1] quotient_group.group._proof_1
+
 attribute [to_additive quotient_add_group.add_group] quotient_group.group
-attribute [to_additive quotient_add_group.quotient.equations._eqn_1] quotient_group.quotient.equations._eqn_1
-attribute [to_additive quotient_add_group.add_group.equations._eqn_1] quotient_group.group.equations._eqn_1
 
 instance : is_group_hom (mk : G → quotient N) := ⟨λ _ _, rfl⟩
 attribute [to_additive quotient_add_group.is_add_group_hom] quotient_group.is_group_hom
-attribute [to_additive quotient_add_group.is_add_group_hom.equations._eqn_1] quotient_group.is_group_hom.equations._eqn_1
 
 instance {G : Type*} [comm_group G] (s : set G) [is_subgroup s] : comm_group (quotient s) :=
 { mul_comm := λ a b, quotient.induction_on₂' a b
     (λ a b, congr_arg mk (mul_comm a b)),
   ..@quotient_group.group _ _ s (normal_subgroup_of_comm_group s) }
-attribute [to_additive quotient_add_group.add_comm_group._proof_6] quotient_group.comm_group._proof_6
-attribute [to_additive quotient_add_group.add_comm_group._proof_5] quotient_group.comm_group._proof_5
-attribute [to_additive quotient_add_group.add_comm_group._proof_4] quotient_group.comm_group._proof_4
-attribute [to_additive quotient_add_group.add_comm_group._proof_3] quotient_group.comm_group._proof_3
-attribute [to_additive quotient_add_group.add_comm_group._proof_2] quotient_group.comm_group._proof_2
-attribute [to_additive quotient_add_group.add_comm_group._proof_1] quotient_group.comm_group._proof_1
+
 attribute [to_additive quotient_add_group.add_comm_group] quotient_group.comm_group
-attribute [to_additive quotient_add_group.add_comm_group.equations._eqn_1] quotient_group.comm_group.equations._eqn_1
 
 @[simp] lemma coe_one : ((1 : G) : quotient N) = 1 := rfl
 @[simp] lemma coe_mul (a b : G) : ((a * b : G) : quotient N) = a * b := rfl
@@ -82,7 +68,6 @@ local notation ` Q ` := quotient N
 instance is_group_hom_quotient_group_mk : is_group_hom (mk : G → Q) :=
 by refine {..}; intros; refl
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_add_group_mk] quotient_group.is_group_hom_quotient_group_mk
-attribute [to_additive quotient_add_group.is_add_group_hom_quotient_add_group_mk.equations._eqn_1] quotient_group.is_group_hom_quotient_group_mk.equations._eqn_1
 
 def lift (φ : G → H) [is_group_hom φ] (HN : ∀x∈N, φ x = 1) (q : Q) : H :=
 q.lift_on' φ $ assume a b (hab : a⁻¹ * b ∈ N),
@@ -90,9 +75,7 @@ q.lift_on' φ $ assume a b (hab : a⁻¹ * b ∈ N),
 ...       = φ a * φ (a⁻¹ * b) : by rw HN (a⁻¹ * b) hab
 ...       = φ (a * (a⁻¹ * b)) : by rw is_group_hom.mul φ a (a⁻¹ * b)
 ...       = φ b               : by simp)
-attribute [to_additive quotient_add_group.lift._proof_1] lift._proof_1
 attribute [to_additive quotient_add_group.lift] lift
-attribute [to_additive quotient_add_group.lift.equations._eqn_1] lift.equations._eqn_1
 
 @[simp] lemma lift_mk {φ : G → H} [is_group_hom φ] (HN : ∀x∈N, φ x = 1) (g : G) :
   lift N φ HN (g : Q) = φ g := rfl
@@ -124,7 +107,6 @@ instance is_group_hom_quotient_lift  :
 ⟨λ q r, quotient.induction_on₂' q r $ λ a b,
   show φ (a * b) = φ a * φ b, from is_group_hom.mul φ a b⟩
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift] quotient_group.is_group_hom_quotient_lift
-attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift.equations._eqn_1] quotient_group.is_group_hom_quotient_lift.equations._eqn_1
 
 open function is_group_hom
 

@@ -99,19 +99,19 @@ end coproduct
 variable (C)
 
 class has_products :=
-(prod : Π {β : Type v} (f : β → C), fan.{u v} f)
-(is_product : Π {β : Type v} (f : β → C), is_product (prod f) . obviously)
+(pi : Π {β : Type v} (f : β → C), fan.{u v} f)
+(is_product : Π {β : Type v} (f : β → C), is_product (pi f) . obviously)
 
 class has_coproducts :=
-(coprod : Π {β : Type v} (f : β → C), cofan.{u v} f)
-(is_coproduct : Π {β : Type v} (f : β → C), is_coproduct (coprod f) . obviously)
+(sigma : Π {β : Type v} (f : β → C), cofan.{u v} f)
+(is_coproduct : Π {β : Type v} (f : β → C), is_coproduct (sigma f) . obviously)
 
 variable {C}
 
 section
 variables [has_products.{u v} C] {β : Type v}
 
-def pi.fan (f : β → C) : fan f := has_products.prod.{u v} f
+def pi.fan (f : β → C) : fan f := has_products.pi.{u v} f
 def pi (f : β → C) : C := (pi.fan f).X
 def pi.π (f : β → C) (b : β) : pi f ⟶ f b := (pi.fan f).π b
 def pi.universal_property (f : β → C) : is_product (pi.fan f) := has_products.is_product.{u v} C f
@@ -265,7 +265,7 @@ end
 section
 variables [has_coproducts.{u v} C] {β : Type v}
 
-def sigma.cofan (f : β → C) := has_coproducts.coprod.{u v} f
+def sigma.cofan (f : β → C) := has_coproducts.sigma.{u v} f
 def sigma (f : β → C) : C := (sigma.cofan f).X
 def sigma.ι (f : β → C) (b : β) : f b ⟶ sigma f := (sigma.cofan f).ι b
 def sigma.universal_property (f : β → C) : is_coproduct (sigma.cofan f) := has_coproducts.is_coproduct.{u v} C f

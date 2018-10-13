@@ -36,7 +36,7 @@ begin
   solve_by_elim,
  end
 
-lemma is_limit.univ {F : J ⥤ C} {t : cone F} [h : is_limit t] (s : cone F) (φ : s.X ⟶ t.X) :
+lemma is_limit.universal {F : J ⥤ C} {t : cone F} [h : is_limit t] (s : cone F) (φ : s.X ⟶ t.X) :
   (∀ j, φ ≫ t.π j = s.π j) ↔ (φ = is_limit.lift h s) :=
 /- obviously says: -/
 ⟨ is_limit.uniq h s φ,
@@ -47,12 +47,12 @@ lemma is_limit.univ {F : J ⥤ C} {t : cone F} [h : is_limit t] (s : cone F) (φ
     simp at *,
   end ⟩
 
-def is_limit.of_lift_univ {F : J ⥤ C} {t : cone F}
+def is_limit.of_lift_universal {F : J ⥤ C} {t : cone F}
   (lift : Π (s : cone F), s.X ⟶ t.X)
-  (univ : Π (s : cone F) (φ : s.X ⟶ t.X), (∀ j : J, (φ ≫ t.π j) = s.π j) ↔ (φ = lift s)) : is_limit t :=
+  (universal : Π (s : cone F) (φ : s.X ⟶ t.X), (∀ j : J, (φ ≫ t.π j) = s.π j) ↔ (φ = lift s)) : is_limit t :=
 { lift := lift,
-  fac'  := λ s j, ((univ s (lift s)).mpr (eq.refl (lift s))) j,
-  uniq' := λ s φ, (univ s φ).mp }
+  fac'  := λ s j, ((universal s (lift s)).mpr (eq.refl (lift s))) j,
+  uniq' := λ s φ, (universal s φ).mp }
 
 end limit
 
@@ -79,7 +79,7 @@ begin
   solve_by_elim,
 end
 
-lemma is_colimit.univ {F : J ⥤ C} {t : cocone F} [h : is_colimit t] (s : cocone F) (φ : t.X ⟶ s.X) :
+lemma is_colimit.universal {F : J ⥤ C} {t : cocone F} [h : is_colimit t] (s : cocone F) (φ : t.X ⟶ s.X) :
   (∀ j, t.ι j ≫ φ = s.ι j) ↔ (φ = is_colimit.desc h s) :=
 ⟨ is_colimit.uniq h s φ,
   begin
@@ -89,12 +89,12 @@ lemma is_colimit.univ {F : J ⥤ C} {t : cocone F} [h : is_colimit t] (s : cocon
     simp at *,
   end ⟩
 
-def is_colimit.of_desc_univ {F : J ⥤ C} {t : cocone F}
+def is_colimit.of_desc_universal {F : J ⥤ C} {t : cocone F}
   (desc : Π (s : cocone F), t.X ⟶ s.X)
-  (univ : Π (s : cocone F) (φ : t.X ⟶ s.X), (∀ j : J, (t.ι j ≫ φ) = s.ι j) ↔ (φ = desc s)) : is_colimit t :=
+  (universal : Π (s : cocone F) (φ : t.X ⟶ s.X), (∀ j : J, (t.ι j ≫ φ) = s.ι j) ↔ (φ = desc s)) : is_colimit t :=
 { desc := desc,
-  fac'  := λ s j, ((univ s (desc s)).mpr (eq.refl (desc s))) j,
-  uniq' := λ s φ, (univ s φ).mp }
+  fac'  := λ s j, ((universal s (desc s)).mpr (eq.refl (desc s))) j,
+  uniq' := λ s φ, (universal s φ).mp }
 
 end colimit
 

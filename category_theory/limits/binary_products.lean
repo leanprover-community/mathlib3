@@ -48,14 +48,14 @@ lemma is_binary_product.univ
   λ a, ⟨ by rw [a, is_binary_product.fac₁],
          by rw [a, is_binary_product.fac₂] ⟩ ⟩
 
-def is_binary_product.of_lift_univ {Y Z : C} {t : span Y Z}
+def is_binary_product.of_lift_universal {Y Z : C} {t : span Y Z}
   (lift : Π (s : span Y Z), s.X ⟶ t.X)
-  (univ : Π (s : span Y Z) (φ : s.X ⟶ t.X), (φ ≫ t.π₁ = s.π₁ ∧ φ ≫ t.π₂ = s.π₂) ↔ (φ = lift s)) :
+  (universal : Π (s : span Y Z) (φ : s.X ⟶ t.X), (φ ≫ t.π₁ = s.π₁ ∧ φ ≫ t.π₂ = s.π₂) ↔ (φ = lift s)) :
   is_binary_product t :=
 { lift := lift,
-  fac₁' := λ s, ((univ s (lift s)).mpr (eq.refl (lift s))).left,
-  fac₂' := λ s, ((univ s (lift s)).mpr (eq.refl (lift s))).right,
-  uniq' := λ s m w₁ w₂, ((univ s m).mp ⟨w₁, w₂⟩) }
+  fac₁' := λ s, ((universal s (lift s)).mpr (eq.refl (lift s))).left,
+  fac₂' := λ s, ((universal s (lift s)).mpr (eq.refl (lift s))).right,
+  uniq' := λ s m w₁ w₂, ((universal s m).mp ⟨w₁, w₂⟩) }
 
 end binary_product
 
@@ -94,14 +94,14 @@ lemma is_binary_coproduct.univ
   λ a, ⟨ by rw [a, is_binary_coproduct.fac₁],
          by rw [a, is_binary_coproduct.fac₂] ⟩ ⟩
 
-def is_binary_coproduct.of_desc_univ {Y Z : C} {t : cospan Y Z}
+def is_binary_coproduct.of_desc_universal {Y Z : C} {t : cospan Y Z}
   (desc : Π (s : cospan Y Z), t.X ⟶ s.X)
-  (univ : Π (s : cospan Y Z) (φ : t.X ⟶ s.X), (t.ι₁ ≫ φ = s.ι₁ ∧ t.ι₂ ≫ φ = s.ι₂) ↔ (φ = desc s)) :
+  (universal : Π (s : cospan Y Z) (φ : t.X ⟶ s.X), (t.ι₁ ≫ φ = s.ι₁ ∧ t.ι₂ ≫ φ = s.ι₂) ↔ (φ = desc s)) :
   is_binary_coproduct t :=
 { desc := desc,
-  fac₁' := λ s, ((univ s (desc s)).mpr (eq.refl (desc s))).left,
-  fac₂' := λ s, ((univ s (desc s)).mpr (eq.refl (desc s))).right,
-  uniq' := λ s m w₁ w₂, ((univ s m).mp ⟨w₁, w₂⟩) }
+  fac₁' := λ s, ((universal s (desc s)).mpr (eq.refl (desc s))).left,
+  fac₂' := λ s, ((universal s (desc s)).mpr (eq.refl (desc s))).right,
+  uniq' := λ s m w₁ w₂, ((universal s m).mp ⟨w₁, w₂⟩) }
 
 end binary_coproduct
 

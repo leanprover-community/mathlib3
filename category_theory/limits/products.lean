@@ -41,16 +41,16 @@ instance is_product_subsingleton {t : fan f}  : subsingleton (is_product t) := b
 lemma is_product.uniq'' {t : fan f} (h : is_product t) {X' : C} (m : X' ⟶ t.X) : m = h.lift { X := X', π := λ b, m ≫ t.π b } :=
 h.uniq { X := X', π := λ b, m ≫ t.π b } m (λ b, rfl)
 
-lemma is_product.univ {t : fan f} (h : is_product t) (s : fan f) (φ : s.X ⟶ t.X) : (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = h.lift s) :=
+lemma is_product.universal {t : fan f} (h : is_product t) (s : fan f) (φ : s.X ⟶ t.X) : (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = h.lift s) :=
 ⟨ is_product.uniq h s φ,
   λ a b, by rw [a, is_product.fac] ⟩
 
-def is_product.of_lift_univ {t : fan f}
+def is_product.of_lift_universal {t : fan f}
   (lift : Π (s : fan f), s.X ⟶ t.X)
-  (univ : Π (s : fan f) (φ : s.X ⟶ t.X), (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = lift s)) : is_product t :=
+  (universal : Π (s : fan f) (φ : s.X ⟶ t.X), (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = lift s)) : is_product t :=
 { lift := lift,
-  fac'  := λ s b, ((univ s (lift s)).mpr (eq.refl (lift s))) b,
-  uniq' := λ s φ, (univ s φ).mp }
+  fac'  := λ s b, ((universal s (lift s)).mpr (eq.refl (lift s))) b,
+  uniq' := λ s φ, (universal s φ).mp }
 
 end product
 
@@ -83,16 +83,16 @@ instance is_coproduct_subsingleton {t : cofan f}  : subsingleton (is_coproduct t
 lemma is_coproduct.uniq'' {t : cofan f} (h : is_coproduct t) {X' : C} (m : t.X ⟶ X') : m = h.desc { X := X', ι := λ b, t.ι b ≫ m } :=
 h.uniq { X := X', ι := λ b, t.ι b ≫ m } m (λ b, rfl)
 
-lemma is_coproduct.univ {t : cofan f} (h : is_coproduct t) (s : cofan f) (φ : t.X ⟶ s.X) : (∀ b, t.ι b ≫ φ = s.ι b) ↔ (φ = h.desc s) :=
+lemma is_coproduct.universal {t : cofan f} (h : is_coproduct t) (s : cofan f) (φ : t.X ⟶ s.X) : (∀ b, t.ι b ≫ φ = s.ι b) ↔ (φ = h.desc s) :=
 ⟨ is_coproduct.uniq h s φ,
   λ a b, by rw [a, is_coproduct.fac] ⟩
 
-def is_coproduct.of_desc_univ {t :cofan f}
+def is_coproduct.of_desc_universal {t :cofan f}
   (desc : Π (s : cofan f), t.X ⟶ s.X)
-  (univ : Π (s : cofan f) (φ : t.X ⟶ s.X), (∀ b, t.ι b ≫ φ = s.ι b) ↔ (φ = desc s)) : is_coproduct t :=
+  (universal : Π (s : cofan f) (φ : t.X ⟶ s.X), (∀ b, t.ι b ≫ φ = s.ι b) ↔ (φ = desc s)) : is_coproduct t :=
 { desc := desc,
-  fac'  := λ s b, ((univ s (desc s)).mpr (eq.refl (desc s))) b,
-  uniq' := λ s φ, (univ s φ).mp }
+  fac'  := λ s b, ((universal s (desc s)).mpr (eq.refl (desc s))) b,
+  uniq' := λ s φ, (universal s φ).mp }
 
 end coproduct
 

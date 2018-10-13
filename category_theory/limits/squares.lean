@@ -35,20 +35,20 @@ begin
   exact eq.symm (P_uniq' x (Q_lift x) (Q_fac₁' x) (Q_fac₂' x))
 end
 
-lemma is_pullback.univ {t : square r₁ r₂} (h : is_pullback t) (s : square r₁ r₂) (φ : s.X ⟶ t.X) :
+lemma is_pullback.universal {t : square r₁ r₂} (h : is_pullback t) (s : square r₁ r₂) (φ : s.X ⟶ t.X) :
   (φ ≫ t.π₁ = s.π₁ ∧ φ ≫ t.π₂ = s.π₂) ↔ (φ = h.lift s) :=
 ⟨ λ a, is_pullback.uniq h s φ a.1 a.2,
   λ a, ⟨ by rw [a, is_pullback.fac₁],
          by rw [a, is_pullback.fac₂] ⟩ ⟩
 
-def is_pullback.of_lift_univ {t : square r₁ r₂}
+def is_pullback.of_lift_universal {t : square r₁ r₂}
   (lift : Π (s : square r₁ r₂), s.X ⟶ t.X)
-  (univ : Π (s : square r₁ r₂) (φ : s.X ⟶ t.X), (φ ≫ t.π₁ = s.π₁ ∧ φ ≫ t.π₂ = s.π₂) ↔ (φ = lift s)) :
+  (universal : Π (s : square r₁ r₂) (φ : s.X ⟶ t.X), (φ ≫ t.π₁ = s.π₁ ∧ φ ≫ t.π₂ = s.π₂) ↔ (φ = lift s)) :
   is_pullback t :=
 { lift := lift,
-  fac₁' := λ s, ((univ s (lift s)).mpr (eq.refl (lift s))).left,
-  fac₂' := λ s, ((univ s (lift s)).mpr (eq.refl (lift s))).right,
-  uniq' := λ s m w₁ w₂, (univ s m).mp ⟨w₁, w₂⟩ }
+  fac₁' := λ s, ((universal s (lift s)).mpr (eq.refl (lift s))).left,
+  fac₂' := λ s, ((universal s (lift s)).mpr (eq.refl (lift s))).right,
+  uniq' := λ s m w₁ w₂, (universal s m).mp ⟨w₁, w₂⟩ }
 
 end pullback
 
@@ -75,19 +75,19 @@ begin
   exact eq.symm (P_uniq' x (Q_desc x) (Q_fac₁' x) (Q_fac₂' x))
 end
 
-lemma is_pushout.univ {t : cosquare r₁ r₂} (h : is_pushout t) (s : cosquare r₁ r₂) (φ : t.X ⟶ s.X) :
+lemma is_pushout.universal {t : cosquare r₁ r₂} (h : is_pushout t) (s : cosquare r₁ r₂) (φ : t.X ⟶ s.X) :
   (t.ι₁ ≫ φ = s.ι₁ ∧ t.ι₂ ≫ φ = s.ι₂) ↔ (φ = h.desc s) :=
 ⟨ λ a, is_pushout.uniq h s φ a.1 a.2,
   λ a, ⟨ by rw [a, is_pushout.fac₁],
          by rw [a, is_pushout.fac₂] ⟩ ⟩
 
-def is_pushout.of_desc_univ {t : cosquare r₁ r₂}
+def is_pushout.of_desc_universal {t : cosquare r₁ r₂}
   (desc : Π (s : cosquare r₁ r₂), t.X ⟶ s.X)
-  (univ : Π (s : cosquare r₁ r₂) (φ : t.X ⟶ s.X), (t.ι₁ ≫ φ = s.ι₁ ∧ t.ι₂ ≫ φ = s.ι₂) ↔ (φ = desc s)) : is_pushout t :=
+  (universal : Π (s : cosquare r₁ r₂) (φ : t.X ⟶ s.X), (t.ι₁ ≫ φ = s.ι₁ ∧ t.ι₂ ≫ φ = s.ι₂) ↔ (φ = desc s)) : is_pushout t :=
 { desc := desc,
-  fac₁' := λ s, ((univ s (desc s)).mpr (eq.refl (desc s))).left,
-  fac₂' := λ s, ((univ s (desc s)).mpr (eq.refl (desc s))).right,
-  uniq' := λ s m w₁ w₂, (univ s m).mp ⟨w₁, w₂⟩ }
+  fac₁' := λ s, ((universal s (desc s)).mpr (eq.refl (desc s))).left,
+  fac₂' := λ s, ((universal s (desc s)).mpr (eq.refl (desc s))).right,
+  uniq' := λ s m w₁ w₂, (universal s m).mp ⟨w₁, w₂⟩ }
 
 end pushout
 

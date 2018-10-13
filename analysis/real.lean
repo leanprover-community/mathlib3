@@ -172,7 +172,7 @@ let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
-lemma real.continuous_mul : continuous (λp : ℝ × ℝ, p.1 * p.2) :=
+protected lemma real.continuous_mul : continuous (λp : ℝ × ℝ, p.1 * p.2) :=
 continuous_iff_tendsto.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul

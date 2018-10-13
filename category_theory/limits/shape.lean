@@ -119,12 +119,14 @@ structure cone {C : Type u} [𝒞 : category.{u v} C] {J : Type v} [small_catego
 (w' : ∀ {j j' : J} (f : j ⟶ j'), π j ≫ (F.map f) = π j' . obviously)
 
 restate_axiom cone.w'
+attribute [simp] cone.w
 
 structure cocone {C : Type u} [𝒞 : category.{u v} C] {J : Type v} [small_category J] (F : J ⥤ C) extends shape C :=
 (ι : ∀ j : J, F j ⟶ X)
 (w' : ∀ {j j' : J} (f : j ⟶ j'), (F.map f) ≫ ι j' = ι j . obviously)
 
 restate_axiom cocone.w'
+attribute [simp] cocone.w
 
 end shapes
 

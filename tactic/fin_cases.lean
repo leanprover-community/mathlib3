@@ -7,7 +7,7 @@ Case bashing on `fin n`, for explicit numerals `n`.
 -/
 import tactic.linarith
 
-def fin_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl 
+def fin_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
 namespace tactic
 open lean.parser
@@ -27,8 +27,8 @@ do `(fin %%n) ← infer_type e,
    (list.range n).mfoldl (λ bd _, do rewrite_hyp ss bd) bd,
    exfalso >> `[linarith],
    -- We put the goals back in order, and clear the `bd` hypotheses.
-   iterate_exactly n (do rotate_right 1, 
-                         `[rw [fin_val]], 
+   iterate_exactly n (do rotate_right 1,
+                         try `[rw [fin_val]],
                          try (get_local `bd >>= clear))
 
 namespace interactive

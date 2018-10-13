@@ -3,7 +3,7 @@
 -- Authors: Scott Morrison, Reid Barton, Mario Carneiro
 
 import category_theory.whiskering
-import category_theory.cones
+import category_theory.limits.cones
 
 open category_theory
 

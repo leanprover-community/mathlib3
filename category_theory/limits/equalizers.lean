@@ -102,19 +102,19 @@ end coequalizer
 variable (C)
 
 class has_equalizers :=
-(equalizer : Π {Y Z : C} (f g : Y ⟶ Z), fork f g)
-(is_equalizer : Π {Y Z : C} (f g : Y ⟶ Z), is_equalizer (equalizer f g) . obviously)
+(fork : Π {Y Z : C} (f g : Y ⟶ Z), fork f g)
+(is_equalizer : Π {Y Z : C} (f g : Y ⟶ Z), is_equalizer (fork f g) . obviously)
 
 class has_coequalizers :=
-(coequalizer : Π {Y Z : C} (f g : Y ⟶ Z), cofork f g)
-(is_coequalizer : Π {Y Z : C} (f g : Y ⟶ Z), is_coequalizer (coequalizer f g) . obviously)
+(cofork : Π {Y Z : C} (f g : Y ⟶ Z), cofork f g)
+(is_coequalizer : Π {Y Z : C} (f g : Y ⟶ Z), is_coequalizer (cofork f g) . obviously)
 
 variable {C}
 
 section
 variables [has_equalizers.{u v} C] {Y Z : C} (f g : Y ⟶ Z)
 
-def equalizer.fork := has_equalizers.equalizer.{u v} f g
+def equalizer.fork := has_equalizers.fork.{u v} f g
 def equalizer := (equalizer.fork f g).X
 def equalizer.ι : (equalizer f g) ⟶ Y := (equalizer.fork f g).ι
 def equalizer.w : (equalizer.ι f g) ≫ f = (equalizer.ι f g) ≫ g := (equalizer.fork f g).w
@@ -149,7 +149,7 @@ end
 section
 variables [has_coequalizers.{u v} C] {Y Z : C} (f g : Y ⟶ Z)
 
-def coequalizer.cofork := has_coequalizers.coequalizer.{u v} f g
+def coequalizer.cofork := has_coequalizers.cofork.{u v} f g
 def coequalizer := (coequalizer.cofork f g).X
 def coequalizer.π : Z ⟶ (coequalizer f g) := (coequalizer.cofork f g).π
 def coequalizer.w : f ≫ (coequalizer.π f g)  = g ≫ (coequalizer.π f g) := (coequalizer.cofork f g).w

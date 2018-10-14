@@ -101,8 +101,8 @@ end colimit
 variable (C)
 
 class has_limits :=
-(limit : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), cone F)
-(is_limit : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), is_limit (limit F) . obviously)
+(cone : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), cone F)
+(is_limit : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), is_limit (cone F) . obviously)
 
 -- also do finite limits? filtered limits? can we do these without lots of repetition below?
 
@@ -112,7 +112,7 @@ section
 variables [has_limits.{u v} C] {J : Type v} [𝒥 : small_category J]
 include 𝒥
 
-def limit.cone (F : J ⥤ C) : cone F := has_limits.limit.{u v} F
+def limit.cone (F : J ⥤ C) : cone F := has_limits.cone.{u v} F
 def limit (F : J ⥤ C) := (limit.cone F).X
 def limit.π (F : J ⥤ C) (j : J) : limit F ⟶ F j := (limit.cone F).π j
 @[simp] lemma limit.w (F : J ⥤ C) {j j' : J} (f : j ⟶ j') : limit.π F j ≫ F.map f = limit.π F j' := (limit.cone F).w f
@@ -297,8 +297,8 @@ end
 variable (C)
 
 class has_colimits :=
-(colimit : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), cocone F)
-(is_colimit : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), is_colimit (colimit F) . obviously)
+(cocone : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), cocone F)
+(is_colimit : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), is_colimit (cocone F) . obviously)
 
 variable {C}
 
@@ -306,7 +306,7 @@ section
 variables [has_colimits.{u v} C] {J : Type v} [𝒥 : small_category J]
 include 𝒥
 
-def colimit.cocone (F : J ⥤ C) : cocone F := has_colimits.colimit.{u v} F
+def colimit.cocone (F : J ⥤ C) : cocone F := has_colimits.cocone.{u v} F
 def colimit (F : J ⥤ C) := (colimit.cocone F).X
 def colimit.ι (F : J ⥤ C) (j : J) : F j ⟶ colimit F := (colimit.cocone F).ι j
 @[simp] lemma colimit.w (F : J ⥤ C) {j j' : J} (f : j ⟶ j') : F.map f ≫ colimit.ι F j' = colimit.ι F j := (colimit.cocone F).w f

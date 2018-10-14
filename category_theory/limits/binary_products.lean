@@ -108,19 +108,19 @@ end binary_coproduct
 variable (C)
 
 class has_binary_products :=
-(prod    : Π (Y Z : C), span Y Z)
-(is_binary_product : Π (Y Z : C), is_binary_product (prod Y Z) . obviously)
+(span : Π (Y Z : C), span Y Z)
+(is_binary_product : Π (Y Z : C), is_binary_product (span Y Z) . obviously)
 
 class has_binary_coproducts :=
-(coprod    : Π (Y Z : C), cospan Y Z)
-(is_binary_coproduct : Π (Y Z : C), is_binary_coproduct (coprod Y Z) . obviously)
+(cospan : Π (Y Z : C), cospan Y Z)
+(is_binary_coproduct : Π (Y Z : C), is_binary_coproduct (cospan Y Z) . obviously)
 
 variable {C}
 
 section
 variables [has_binary_products.{u v} C]
 
-def prod.span (Y Z : C) := has_binary_products.prod.{u v} Y Z
+def prod.span (Y Z : C) := has_binary_products.span.{u v} Y Z
 def prod (Y Z : C) : C := (prod.span Y Z).X
 def prod.π₁ (Y Z : C) : prod Y Z ⟶ Y := (prod.span Y Z).π₁
 def prod.π₂ (Y Z : C) : prod Y Z ⟶ Z := (prod.span Y Z).π₂
@@ -294,7 +294,7 @@ end
 section
 variables [has_binary_coproducts.{u v} C]
 
-def coprod.cospan (Y Z : C) := has_binary_coproducts.coprod.{u v} Y Z
+def coprod.cospan (Y Z : C) := has_binary_coproducts.cospan.{u v} Y Z
 def coprod (Y Z : C) : C := (coprod.cospan Y Z).X
 def coprod.ι₁ (Y Z : C) : Y ⟶ coprod Y Z := (coprod.cospan Y Z).ι₁
 def coprod.ι₂ (Y Z : C) : Z ⟶ coprod Y Z := (coprod.cospan Y Z).ι₂

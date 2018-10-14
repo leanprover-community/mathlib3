@@ -94,12 +94,12 @@ end pushout
 variable (C)
 
 class has_pullbacks :=
-(pullback : Π {Y₁ Y₂ Z : C} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z), square r₁ r₂)
-(is_pullback : Π {Y₁ Y₂ Z : C} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z), is_pullback (pullback r₁ r₂) . obviously)
+(square : Π {Y₁ Y₂ Z : C} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z), square r₁ r₂)
+(is_pullback : Π {Y₁ Y₂ Z : C} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z), is_pullback (square r₁ r₂) . obviously)
 
 class has_pushouts :=
-(pushout : Π {Y₁ Y₂ Z : C} (r₁ : Z ⟶ Y₁) (r₂ : Z ⟶ Y₂), cosquare r₁ r₂)
-(is_pushout : Π {Y₁ Y₂ Z : C} (r₁ : Z ⟶ Y₁) (r₂ : Z ⟶ Y₂), is_pushout (pushout r₁ r₂) . obviously)
+(cosquare : Π {Y₁ Y₂ Z : C} (r₁ : Z ⟶ Y₁) (r₂ : Z ⟶ Y₂), cosquare r₁ r₂)
+(is_pushout : Π {Y₁ Y₂ Z : C} (r₁ : Z ⟶ Y₁) (r₂ : Z ⟶ Y₂), is_pushout (cosquare r₁ r₂) . obviously)
 
 variable {C}
 
@@ -107,7 +107,7 @@ variable {C}
 section
 variables [has_pullbacks.{u v} C] {Y₁ Y₂ Z : C} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z)
 
-def pullback.square := has_pullbacks.pullback.{u v} r₁ r₂
+def pullback.square := has_pullbacks.square.{u v} r₁ r₂
 def pullback := (pullback.square r₁ r₂).X
 def pullback.π₁ : pullback r₁ r₂ ⟶ Y₁ := (pullback.square r₁ r₂).π₁
 def pullback.π₂ : pullback r₁ r₂ ⟶ Y₂ := (pullback.square r₁ r₂).π₂
@@ -144,7 +144,7 @@ end
 section
 variables [has_pushouts.{u v} C] {Y₁ Y₂ Z : C} (r₁ : Z ⟶ Y₁) (r₂ : Z ⟶ Y₂)
 
-def pushout.cosquare := has_pushouts.pushout.{u v} r₁ r₂
+def pushout.cosquare := has_pushouts.cosquare.{u v} r₁ r₂
 def pushout := (pushout.cosquare r₁ r₂).X
 def pushout.ι₁ : Y₁ ⟶ pushout r₁ r₂ := (pushout.cosquare r₁ r₂).ι₁
 def pushout.ι₂ : Y₂ ⟶ pushout r₁ r₂ := (pushout.cosquare r₁ r₂).ι₂

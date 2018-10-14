@@ -4020,6 +4020,30 @@ h _ (list.nth_le_mem _ _ _) _ (list.nth_le_mem _ _ _)
 
 end tfae
 
+section choose
+variables (p : α → Prop) [decidable_pred p] (l : list α)
+
+def choose_x : Π l : list α, Π hp : (∃ a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a }
+| [] hp := false.elim (exists.elim hp (assume a h, not_mem_nil a h.left))
+| (l :: ls) hp := if pl : p l then ⟨l, ⟨or.inl rfl, pl⟩⟩ else
+subtype.rec_on (choose_x ls
+begin
+  rcases hp with ⟨a, rfl | a_mem_ls, pa⟩,
+  { exfalso; apply pl pa },
+  { exact ⟨a, a_mem_ls, pa⟩ }
+end) (λ a ⟨a_mem_ls, pa⟩, ⟨a, ⟨or.inr a_mem_ls, pa⟩⟩)
+
+def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
+
+lemma choose_spec (hp : ∃ a, a ∈ l ∧ p a) : choose p l hp ∈ l ∧ p (choose p l hp) :=
+(choose_x p l hp).property
+
+lemma choose_mem (hp : ∃ a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose_spec _ _ _).1
+
+lemma choose_property (hp : ∃ a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
+
+end choose
+
 end list
 
 theorem option.to_list_nodup {α} : ∀ o : option α, o.to_list.nodup

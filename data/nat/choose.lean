@@ -5,7 +5,7 @@ Authors: Chris Hughes
 Mostly based on Jeremy Avigad's choose file in lean 2
 -/
 
-import data.nat.basic
+import data.nat.basic data.nat.prime
 
 open nat
 
@@ -81,3 +81,10 @@ end
 
 theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
 by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
+
+lemma prime.dvd_choose {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) : p ∣ choose p k :=
+(hp.dvd_mul.1 (show p ∣ choose p k * (fact k * fact (p - k)),
+  by rw [← mul_assoc, choose_mul_fact_mul_fact (le_of_lt hkp)];
+    exact dvd_fact hp.pos (le_refl _))).resolve_right
+      (by rw [hp.dvd_mul, hp.dvd_fact, hp.dvd_fact, not_or_distrib, not_le, not_le];
+        exact ⟨hkp, nat.sub_lt_self hp.pos hk⟩)

@@ -112,25 +112,25 @@ section
 variables [has_products.{u v} C] {β : Type v}
 
 def pi.fan (f : β → C) : fan f := has_products.pi.{u v} f
-def pi (f : β → C) : C := (pi.fan f).X
-def pi.π (f : β → C) (b : β) : pi f ⟶ f b := (pi.fan f).π b
+protected def pi (f : β → C) : C := (pi.fan f).X
+def pi.π (f : β → C) (b : β) : limits.pi f ⟶ f b := (pi.fan f).π b
 def pi.universal_property (f : β → C) : is_product (pi.fan f) := has_products.is_product.{u v} C f
 
 @[simp] lemma pi.fan_π (f : β → C) (b : β) : (pi.fan f).π b = @pi.π C _ _ _ f b := rfl
 
-def pi.lift {f : β → C} {P : C} (p : Π b, P ⟶ f b) : P ⟶ pi f :=
+def pi.lift {f : β → C} {P : C} (p : Π b, P ⟶ f b) : P ⟶ limits.pi f :=
 (pi.universal_property f).lift ⟨ ⟨ P ⟩, p ⟩
 
 @[simp] lemma pi.lift_π {f : β → C} {P : C} (p : Π b, P ⟶ f b) (b : β) : pi.lift p ≫ pi.π f b = p b :=
 by erw is_product.fac
 
-def pi.map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) : (pi f) ⟶ (pi g) :=
+def pi.map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) : (limits.pi f) ⟶ (limits.pi g) :=
 pi.lift (λ b, pi.π f b ≫ k b)
 
 @[simp] lemma pi.map_π {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) (b : β) : pi.map k ≫ pi.π g b = pi.π f b ≫ k b :=
 by erw is_product.fac
 
-def pi.pre {α} (f : α → C) (h : β → α) : pi f ⟶ pi (f ∘ h) :=
+def pi.pre {α} (f : α → C) (h : β → α) : limits.pi f ⟶ limits.pi (f ∘ h) :=
 pi.lift (λ g, pi.π f (h g))
 
 @[simp] lemma pi.pre_π {α} (f : α → C) (h : β → α) (b : β) : pi.pre f h ≫ pi.π (f ∘ h) b = pi.π f (h b) :=
@@ -140,14 +140,14 @@ section
 variables {D : Type u} [𝒟 : category.{u v} D] [has_products.{u v} D]
 include 𝒟
 
-def pi.post (f : β → C) (G : C ⥤ D) : G (pi f) ⟶ (pi (G.obj ∘ f)) :=
+def pi.post (f : β → C) (G : C ⥤ D) : G (limits.pi f) ⟶ (limits.pi (G.obj ∘ f)) :=
 @is_product.lift _ _ _ _ (pi.fan (G.obj ∘ f)) (pi.universal_property _) { X := _, π := λ b, G.map (pi.π f b) }
 
 @[simp] lemma pi.post_π (f : β → C) (G : C ⥤ D) (b : β) : pi.post f G ≫ pi.π _ b = G.map (pi.π f b) :=
 by erw is_product.fac
 end
 
-@[extensionality] lemma pi.hom_ext (f : β → C) {X : C} (g h : X ⟶ pi f) (w : ∀ b, g ≫ pi.π f b = h ≫ pi.π f b) : g = h :=
+@[extensionality] lemma pi.hom_ext (f : β → C) {X : C} (g h : X ⟶ limits.pi f) (w : ∀ b, g ≫ pi.π f b = h ≫ pi.π f b) : g = h :=
 begin
   rw is_product.uniq (pi.universal_property f) { X := X, π := λ b, g ≫ pi.π f b } g,
   rw is_product.uniq (pi.universal_property f) { X := X, π := λ b, g ≫ pi.π f b } h,
@@ -243,15 +243,15 @@ end.
 end
 
 
-instance : has_terminal_object.{u v} C :=
-{ terminal := pi.{u v} (@pempty.elim.{u+1} C),
+def has_terminal_object_from_has_products : has_terminal_object.{u v} C :=
+{ terminal := limits.pi.{u v} (@pempty.elim.{u+1} C),
   is_terminal := { lift := λ X, pi.lift (pempty.rec _) } }
 
-instance : has_binary_products.{u v} C :=
+def has_binary_products_from_has_products : has_binary_products.{u v} C :=
 { prod := λ Y Z,
   begin
     let f : ulift bool → C := (λ b : ulift bool, cond b.down Y Z),
-    exact { X := pi f, π₁ := pi.π f ⟨ tt ⟩, π₂ := pi.π f ⟨ ff ⟩ }
+    exact { X := limits.pi f, π₁ := pi.π f ⟨ tt ⟩, π₂ := pi.π f ⟨ ff ⟩ }
   end,
   is_binary_product := λ Y Z,
   { lift := λ s, pi.lift (λ b, bool.cases_on b.down s.π₂ s.π₁),
@@ -266,25 +266,25 @@ section
 variables [has_coproducts.{u v} C] {β : Type v}
 
 def sigma.cofan (f : β → C) := has_coproducts.sigma.{u v} f
-def sigma (f : β → C) : C := (sigma.cofan f).X
-def sigma.ι (f : β → C) (b : β) : f b ⟶ sigma f := (sigma.cofan f).ι b
+protected def sigma (f : β → C) : C := (sigma.cofan f).X
+def sigma.ι (f : β → C) (b : β) : f b ⟶ limits.sigma f := (sigma.cofan f).ι b
 def sigma.universal_property (f : β → C) : is_coproduct (sigma.cofan f) := has_coproducts.is_coproduct.{u v} C f
 
 @[simp] lemma sigma.cofan_ι (f : β → C) (b : β) : (sigma.cofan f).ι b = @sigma.ι C _ _ _ f b := rfl
 
-def sigma.desc {f : β → C} {P : C} (p : Π b, f b ⟶ P) : sigma f ⟶ P :=
+def sigma.desc {f : β → C} {P : C} (p : Π b, f b ⟶ P) : limits.sigma f ⟶ P :=
 (sigma.universal_property f).desc ⟨ ⟨ P ⟩, p ⟩
 
 @[simp] lemma sigma.ι_desc {f : β → C} {P : C} (p : Π b, f b ⟶ P) (b : β) : sigma.ι f b ≫ sigma.desc p = p b :=
 by erw is_coproduct.fac
 
-def sigma.map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) : (sigma f) ⟶ (sigma g) :=
+def sigma.map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) : (limits.sigma f) ⟶ (limits.sigma g) :=
 sigma.desc (λ b, k b ≫ sigma.ι g b)
 
 @[simp] lemma sigma.ι_map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) (b : β) : sigma.ι f b ≫ sigma.map k = k b ≫ sigma.ι g b :=
 by erw is_coproduct.fac
 
-def sigma.pre {α} (f : α → C) (h : β → α) : sigma (f ∘ h) ⟶ sigma f :=
+def sigma.pre {α} (f : α → C) (h : β → α) : limits.sigma (f ∘ h) ⟶ limits.sigma f :=
 sigma.desc (λ g, sigma.ι f (h g))
 
 @[simp] lemma sigma.ι_pre {α} (f : α → C) (h : β → α) (b : β) : sigma.ι (f ∘ h) b ≫ sigma.pre f h = sigma.ι f (h b) :=
@@ -294,14 +294,14 @@ section
 variables {D : Type u} [𝒟 : category.{u v} D] [has_coproducts.{u v} D]
 include 𝒟
 
-def sigma.post (f : β → C) (G : C ⥤ D) : (sigma (G.obj ∘ f)) ⟶ G (sigma f) :=
+def sigma.post (f : β → C) (G : C ⥤ D) : (limits.sigma (G.obj ∘ f)) ⟶ G (limits.sigma f) :=
 @is_coproduct.desc _ _ _ _ (sigma.cofan (G.obj ∘ f)) (sigma.universal_property _) { X := _, ι := λ b, G.map (sigma.ι f b) }
 
 @[simp] lemma sigma.ι_post (f : β → C) (G : C ⥤ D) (b : β) : sigma.ι _ b ≫ sigma.post f G = G.map (sigma.ι f b) :=
 by erw is_coproduct.fac
 end
 
-@[extensionality] lemma sigma.hom_ext (f : β → C) {X : C} (g h : sigma f ⟶ X) (w : ∀ b, sigma.ι f b ≫ g = sigma.ι f b ≫ h) : g = h :=
+@[extensionality] lemma sigma.hom_ext (f : β → C) {X : C} (g h : limits.sigma f ⟶ X) (w : ∀ b, sigma.ι f b ≫ g = sigma.ι f b ≫ h) : g = h :=
 begin
   rw is_coproduct.uniq (sigma.universal_property f) { X := X, ι := λ b, sigma.ι f b ≫ g } g,
   rw is_coproduct.uniq (sigma.universal_property f) { X := X, ι := λ b, sigma.ι f b ≫ g } h,
@@ -415,15 +415,15 @@ begin
 end.
 end
 
-instance : has_initial_object.{u v} C :=
-{ initial := sigma.{u v} (@pempty.elim.{u+1} C),
+def has_initial_object_from_has_products : has_initial_object.{u v} C :=
+{ initial := limits.sigma.{u v} (@pempty.elim.{u+1} C),
   is_initial := { desc := λ X, sigma.desc (pempty.rec _) } }
 
-instance : has_binary_coproducts.{u v} C :=
+def has_binary_coproducts_from_has_products : has_binary_coproducts.{u v} C :=
 { coprod := λ Y Z,
   begin
     let f : ulift bool → C := (λ b : ulift bool, cond b.down Y Z),
-    exact { X := sigma f, ι₁ := sigma.ι f ⟨ tt ⟩, ι₂ := sigma.ι f ⟨ ff ⟩ }
+    exact { X := limits.sigma f, ι₁ := sigma.ι f ⟨ tt ⟩, ι₂ := sigma.ι f ⟨ ff ⟩ }
   end,
   is_binary_coproduct := λ Y Z,
   { desc := λ s, sigma.desc (λ b, bool.cases_on b.down s.ι₂ s.ι₁),

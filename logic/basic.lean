@@ -510,7 +510,7 @@ or_iff_not_imp_left
 protected theorem or_iff_not_imp_right {p q : Prop} : q ∨ p ↔ (¬ p → q) :=
 or_iff_not_imp_right
 
-lemma not_not {p : Prop} : ¬¬p ↔ p := not_not
+protected lemma not_not {p : Prop} : ¬¬p ↔ p := not_not
 
 /- use shortened names to avoid conflict when classical namespace is open -/
 noncomputable theorem dec (p : Prop) : decidable p := by apply_instance

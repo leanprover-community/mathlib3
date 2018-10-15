@@ -61,9 +61,9 @@ lemma forall_ennreal {p : ennreal → Prop} : (∀a, p a) ↔ (∀r:nnreal, p r)
 lemma to_nnreal_eq_zero_iff (x : ennreal) : x.to_nnreal = 0 ↔ x = 0 ∨ x = ⊤ :=
 ⟨begin
   cases x,
-  {simp [none_eq_top]},
-  {have A: some (0:nnreal) = (0:ennreal) := rfl,
-   simp [ennreal.to_nnreal, A] {contextual := tt}}
+  { simp [none_eq_top] },
+  { have A : some (0:nnreal) = (0:ennreal) := rfl,
+    simp [ennreal.to_nnreal, A] {contextual := tt} }
 end,
 by intro h; cases h; [simp [h], simp[h]]⟩
 
@@ -166,12 +166,12 @@ begin
   rcases dense bd with ⟨b', bb', b'd⟩,
   rcases lt_iff_exists_coe.1 bb' with ⟨bR, rfl, _⟩,
   rcases lt_iff_exists_coe.1 b'd with ⟨b'R, rfl, _⟩,
-  have I: ↑aR + ↑bR < ↑a'R + ↑b'R :=
+  have I : ↑aR + ↑bR < ↑a'R + ↑b'R :=
   begin
     rw [← coe_add, ← coe_add, coe_lt_coe],
     apply add_lt_add (coe_lt_coe.1 aa') (coe_lt_coe.1 bb')
   end,
-  have J: ↑a'R + ↑b'R ≤ c + d := add_le_add' (le_of_lt a'c) (le_of_lt b'd),
+  have J : ↑a'R + ↑b'R ≤ c + d := add_le_add' (le_of_lt a'c) (le_of_lt b'd),
   apply lt_of_lt_of_le I J
 end
 
@@ -378,12 +378,13 @@ forall_ennreal.2 $ and.intro
       exact div_pos zero_lt_one two_pos
     end,
     by rwa [mul_top, if_neg ne] at this)
+
 lemma div_add_div_same {a b c : ennreal} : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)
 
 lemma div_self {a : ennreal} (h0 : a ≠ 0) (hI : a ≠ ∞) : a / a = 1 :=
-have A: 1 ≤ a / a := by simp [le_div_iff_mul_le h0 hI, le_refl],
-have B: a / a ≤ 1 := by simp [div_le_iff_le_mul h0 hI, le_refl],
+have A : 1 ≤ a / a := by simp [le_div_iff_mul_le h0 hI, le_refl],
+have B : a / a ≤ 1 := by simp [div_le_iff_le_mul h0 hI, le_refl],
 le_antisymm B A
 
 lemma add_halves (a : ennreal) : a / 2 + a / 2 = a :=

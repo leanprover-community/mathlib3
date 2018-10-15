@@ -389,8 +389,8 @@ instance [canonically_ordered_comm_semiring α] [decidable_eq α] :
 
 @[simp] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
 | 0     := rfl
-| (n+1) := have A: (((1 : nat) : α) : with_top α) = ((1 : nat) : with_top α) := rfl,
-           by rw [nat.cast_add, coe_add, nat.cast_add, coe_nat n, A]
+| (n+1) := have (((1 : nat) : α) : with_top α) = ((1 : nat) : with_top α) := rfl,
+           by rw [nat.cast_add, coe_add, nat.cast_add, coe_nat n, this]
 
 @[simp] lemma nat_ne_top (n : nat) : (n : with_top α ) ≠ ⊤ :=
 by rw [←coe_nat n]; apply coe_ne_top

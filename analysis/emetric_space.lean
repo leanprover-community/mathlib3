@@ -54,10 +54,10 @@ diamond problem disappears.
 
 /--Creating a uniform space from an extended distance.-/
 def emetric_space.uniform_space_of_edist
-(edist : α → α → ennreal)
-(edist_self : ∀ x : α, edist x x = 0)
-(edist_comm : ∀ x y : α, edist x y = edist y x)
-(edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z) : uniform_space α :=
+  (edist : α → α → ennreal)
+  (edist_self : ∀ x : α, edist x x = 0)
+  (edist_comm : ∀ x y : α, edist x y = edist y x)
+  (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z) : uniform_space α :=
 uniform_space.of_core {
   uniformity := (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}),
   refl       := le_infi $ assume ε, le_infi $
@@ -244,8 +244,8 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (α × β) :=
   edist_self := λ x, by simp,
   eq_of_edist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
-    have A: x.fst = y.fst := eq_of_edist_eq_zero (by simpa using h₁),
-    have B: x.snd = y.snd := eq_of_edist_eq_zero (by simpa using h₂),
+    have A : x.fst = y.fst := eq_of_edist_eq_zero (by simpa using h₁),
+    have B : x.snd = y.snd := eq_of_edist_eq_zero (by simpa using h₂),
     exact prod.ext_iff.2 ⟨A, B⟩
   end,
   edist_comm := λ x y, by simp [edist_comm],
@@ -266,7 +266,10 @@ open finset
 variables {π : β → Type*} [fintype β]
 
 /--The product of a finite number of emetric spaces, with the max distance, is still
-an emetric space-/
+an emetric space. 
+This construction would also work for infinite products, but it would not give rise
+to the product topology. Hence, we only formalize it in the good situation of finitely many
+spaces.-/
 instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
   edist_self := assume f, bot_unique $ finset.sup_le $ by simp,

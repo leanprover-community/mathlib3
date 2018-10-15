@@ -44,7 +44,6 @@ From a slightly different perspective in order to reuse material in analysis.top
 import data.set.basic data.set.function
 import algebra.pi_instances
 import analysis.topology.uniform_space analysis.topology.topological_structures
-import analysis.topology.quotient_topological_structures
 import ring_theory.ideals
 
 noncomputable theory
@@ -251,33 +250,6 @@ separated_def.2 $ assume x y H, prod.ext
   (eq_of_separated_of_uniform_continuous uniform_continuous_fst H)
   (eq_of_separated_of_uniform_continuous uniform_continuous_snd H)
 
-lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  separation_setoid α = quotient_ring.quotient_rel (closure $ is_ideal.trivial α) :=
-setoid.ext $ assume x y, group_separation_rel x y
-
-lemma ring_sep_quot (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  quotient (separation_setoid α) = quotient_ring.quotient (closure $ is_ideal.trivial α) :=
-by rw [@ring_sep_rel α _inst_4]; refl
-
-instance [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  comm_ring (quotient (separation_setoid α)) :=
-by rw ring_sep_quot α; apply_instance
-
-@[simp] lemma eq_mpr_heq {α β : Sort u} (h : β = α) (x : α) : eq.mpr h x == x :=
-by subst h; refl
-
-instance [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  topological_ring (quotient (separation_setoid α)) :=
-begin
-  convert topological_ring_quotient (closure (is_ideal.trivial α)),
-  { apply ring_sep_rel },
-  { dsimp [topological_ring_quotient_topology, quotient.topological_space, to_topological_space],
-    congr,
-    apply ring_sep_rel,
-    apply ring_sep_rel },
-  { apply ring_sep_rel },
-  { simp [uniform_space.comm_ring] },
-end
 end uniform_space
 
 /-- Space of Cauchy filters

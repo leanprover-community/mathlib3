@@ -164,9 +164,7 @@ instance [topological_group α] [topological_space β] [group β] [topological_g
 
 attribute [instance] prod.topological_add_group
 
-protected def homeomorph.mul_left
-  {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
-  α ≃ₜ α :=
+protected def homeomorph.mul_left [topological_group α] (a : α) : α ≃ₜ α :=
 { continuous_to_fun  := continuous_mul continuous_const continuous_id,
   continuous_inv_fun := continuous_mul continuous_const continuous_id,
   .. equiv.mul_left a }
@@ -175,6 +173,10 @@ attribute [to_additive homeomorph.add_left._proof_2] homeomorph.mul_left._proof_
 attribute [to_additive homeomorph.add_left._proof_3] homeomorph.mul_left._proof_3
 attribute [to_additive homeomorph.add_left._proof_4] homeomorph.mul_left._proof_4
 attribute [to_additive homeomorph.add_left] homeomorph.mul_left
+
+@[to_additive is_open_map_add_left]
+lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map (λ x, a * x) :=
+(homeomorph.mul_left a).is_open_map
 
 protected def homeomorph.mul_right
   {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
@@ -187,6 +189,10 @@ attribute [to_additive homeomorph.add_right._proof_2] homeomorph.mul_right._proo
 attribute [to_additive homeomorph.add_right._proof_3] homeomorph.mul_right._proof_3
 attribute [to_additive homeomorph.add_right._proof_4] homeomorph.mul_right._proof_4
 attribute [to_additive homeomorph.add_right] homeomorph.mul_right
+
+@[to_additive is_open_map_add_right]
+lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (λ x, x * a) :=
+(homeomorph.mul_right a).is_open_map
 
 protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
   α ≃ₜ α :=

@@ -346,10 +346,6 @@ theorem coe_le [partial_order α] {a b : α} :
   ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b)
 | _ rfl := coe_le_coe
 
--- @[simp] theorem has_lt_iff_lt [partial_order α] {a b : with_bot α} :
---   @has_lt.lt _ (with_bot.has_lt) a b ↔ a < b :=
--- by refl
-
 @[simp] theorem some_lt_some [has_lt α] {a b : α} :
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]

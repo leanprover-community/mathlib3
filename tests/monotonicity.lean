@@ -1,5 +1,5 @@
 
-import tactic.monotonicity.interactive tactic.norm_num
+import tactic.monotonicity tactic.norm_num
 
 import algebra.ordered_ring
 

@@ -184,7 +184,6 @@ end
 
 end order_of
 
-
 section cyclic
 
 local attribute [instance] set_fintype

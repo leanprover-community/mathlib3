@@ -248,7 +248,7 @@ def has_terminal_object_from_has_products : has_terminal_object.{u v} C :=
   is_terminal := { lift := λ X, pi.lift (pempty.rec _) } }
 
 def has_binary_products_from_has_products : has_binary_products.{u v} C :=
-{ prod := λ Y Z,
+{ span := λ Y Z,
   begin
     let f : ulift bool → C := (λ b : ulift bool, cond b.down Y Z),
     exact { X := limits.pi f, π₁ := pi.π f ⟨ tt ⟩, π₂ := pi.π f ⟨ ff ⟩ }
@@ -420,7 +420,7 @@ def has_initial_object_from_has_products : has_initial_object.{u v} C :=
   is_initial := { desc := λ X, sigma.desc (pempty.rec _) } }
 
 def has_binary_coproducts_from_has_products : has_binary_coproducts.{u v} C :=
-{ coprod := λ Y Z,
+{ cospan := λ Y Z,
   begin
     let f : ulift bool → C := (λ b : ulift bool, cond b.down Y Z),
     exact { X := limits.sigma f, ι₁ := sigma.ι f ⟨ tt ⟩, ι₂ := sigma.ι f ⟨ ff ⟩ }

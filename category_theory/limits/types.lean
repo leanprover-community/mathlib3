@@ -18,7 +18,7 @@ instance : has_terminal_object.{u+1 u} (Type u) :=
 @[simp] lemma types_terminal_π (α : Type u) : (terminal.π α) = λ a, punit.star := by obviously
 
 instance : has_binary_products.{u+1 u} (Type u) :=
-{ prod := λ Y Z, { X := Y × Z, π₁ := prod.fst, π₂ := prod.snd } }
+{ span := λ Y Z, { X := Y × Z, π₁ := prod.fst, π₂ := prod.snd } }
 
 @[simp] lemma types_prod (Y Z : Type u) : limits.prod Y Z = (Y × Z) := rfl
 @[simp] lemma types_prod_π₁ (Y Z : Type u) : limits.prod.π₁ Y Z = prod.fst := rfl.
@@ -29,7 +29,7 @@ instance : has_binary_products.{u+1 u} (Type u) :=
   limits.prod.lift f g = λ x, (f x, g x) := rfl
 
 instance : has_products.{u+1 u} (Type u) :=
-{ pi := λ β f, { X := Π b, f b, π := λ b x, x b },
+{ fan := λ β f, { X := Π b, f b, π := λ b x, x b },
   is_product :=
   begin
     tidy,
@@ -49,7 +49,7 @@ instance : has_products.{u+1 u} (Type u) :=
 attribute [extensionality] subtype.eq
 
 instance : has_equalizers.{u+1 u} (Type u) :=
-{ equalizer := λ Y Z f g, { X := { y : Y // f y = g y }, ι := subtype.val },
+{ fork := λ Y Z f g, { X := { y : Y // f y = g y }, ι := subtype.val },
   is_equalizer :=
   begin
     tidy,
@@ -58,7 +58,7 @@ instance : has_equalizers.{u+1 u} (Type u) :=
   end }
 
 instance : has_pullbacks.{u+1 u} (Type u) :=
-{ pullback := λ Y₁ Y₂ Z r₁ r₂,
+{ square := λ Y₁ Y₂ Z r₁ r₂,
   { X := { z : Y₁ × Y₂ // r₁ z.1 = r₂ z.2 },
     π₁ := λ z, z.val.1,
     π₂ := λ z, z.val.2 },
@@ -80,7 +80,7 @@ instance : has_initial_object.{u+1 u} (Type u) :=
 @[simp] lemma types_initial_ι (α : Type u) : (initial.ι α) = pempty.rec _ := rfl
 
 instance : has_binary_coproducts.{u+1 u} (Type u) :=
-{ coprod := λ Y Z, { X := Y ⊕ Z, ι₁ := sum.inl, ι₂ := sum.inr } }
+{ cospan := λ Y Z, { X := Y ⊕ Z, ι₁ := sum.inl, ι₂ := sum.inr } }
 
 @[simp] lemma types_coprod (Y Z : Type u) : limits.coprod Y Z = (Y ⊕ Z) := rfl
 @[simp] lemma types_coprod_ι₁ (Y Z : Type u) : limits.coprod.ι₁ Y Z = sum.inl := rfl.
@@ -92,7 +92,7 @@ instance : has_binary_coproducts.{u+1 u} (Type u) :=
   limits.coprod.desc f g = λ p, sum.rec f g p := rfl
 
 instance : has_coproducts.{u+1 u} (Type u) :=
-{ sigma := λ β f, { X := Σ b, f b, ι := λ b x, ⟨b, x⟩ } }.
+{ cofan := λ β f, { X := Σ b, f b, ι := λ b x, ⟨b, x⟩ } }.
 
 @[simp] lemma types_sigma {β : Type u} (f : β → Type u) : limits.sigma f = Σ b, f b := rfl
 @[simp] lemma types_sigma_ι {β : Type u} (f : β → Type u) (b : β) : limits.sigma.ι f b = λ p : f b, (⟨b, p⟩ : Σ b, f b) := rfl
@@ -116,7 +116,7 @@ def pushout_is_pushout {Y₁ Y₂ Z : Type u} (r₁ : Z ⟶ Y₁) (r₂ : Z ⟶ 
             (assume o o' ⟨z, hz⟩, begin rw hz.left, rw hz.right, dsimp, exact congr_fun s.w z end) }
 
 instance : has_pushouts.{u+1 u} (Type u) :=
-{ pushout := @pushout, is_pushout := @pushout_is_pushout }
+{ cosquare := @pushout, is_pushout := @pushout_is_pushout }
 
 def coequalizer {Y Z : Type u} (f g : Y ⟶ Z) : cofork f g :=
 { X := @quot Z (λ z z', ∃ y : Y, z = f y ∧ z' = g y),
@@ -128,7 +128,7 @@ def coequalizer_is_coequalizer {Y Z : Type u} (f g : Y ⟶ Z) : is_coequalizer (
     (assume z z' ⟨y, hy⟩, begin rw hy.left, rw hy.right, exact congr_fun s.w y, end) }
 
 instance : has_coequalizers.{u+1 u} (Type u) :=
-{ coequalizer := @coequalizer, is_coequalizer := @coequalizer_is_coequalizer }
+{ cofork := @coequalizer, is_coequalizer := @coequalizer_is_coequalizer }
 
 variables {J : Type u} [𝒥 : small_category J]
 include 𝒥
@@ -147,7 +147,7 @@ def limit_is_limit (F : J ⥤ Type u) : is_limit (limit F) :=
   end }
 
 instance : has_limits.{u+1 u} (Type u) :=
-{ limit := @limit, is_limit := @limit_is_limit }
+{ cone := @limit, is_limit := @limit_is_limit }
 
 @[simp] lemma types_limit (F : J ⥤ Type u) :
   limits.limit F = {u : Π j, F j // ∀ j j' f, F.map f (u j) = u j'} := rfl
@@ -174,7 +174,7 @@ def colimit_is_colimit (F : J ⥤ Type u) : is_colimit (colimit F) :=
       by rw hf; exact (congr_fun (s.w f) x).symm) }
 
 instance : has_colimits.{u+1 u} (Type u) :=
-{ colimit := @colimit, is_colimit := @colimit_is_colimit }
+{ cocone := @colimit, is_colimit := @colimit_is_colimit }
 
 @[simp] lemma types_colimit (F : J ⥤ Type u) : limits.colimit F = @quot (Σ j, F j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2) := rfl
 @[simp] lemma types_colimit_ι (F : J ⥤ Type u) (j : J) : colimit.ι F j = λ x, quot.mk _ (⟨j, x⟩ : (Σ j, F j)) := rfl.

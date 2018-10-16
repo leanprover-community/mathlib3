@@ -45,11 +45,13 @@ creates a lot of problem.
 The idea is to add, in the very definition of an `emetric_space`, a uniform structure
 with a uniformity which equal to the one given by the distance, but maybe not defeq.
 And the instance from `emetric_space` to `uniform_space` uses this uniformity.
-In this way, when we create
-the product of emetric spaces, we put in the product the uniformity corresponding to the
-product of the uniformities. There is one more proof obligation, that this product
-uniformity is equal to the uniformity corresponding to the product metric. But the
-diamond problem disappears.
+In this way, when we create the product of emetric spaces, we put in the product
+the uniformity corresponding to the product of the uniformities. There is one more
+proof obligation, that this product uniformity is equal to the uniformity corresponding
+to the product metric. But the diamond problem disappears.
+
+The same trick is used in the definition of a metric space, where one stores as well
+a uniform structure and an edistance.
  -/
 
 /--Creating a uniform space from an extended distance.-/
@@ -266,7 +268,7 @@ open finset
 variables {π : β → Type*} [fintype β]
 
 /--The product of a finite number of emetric spaces, with the max distance, is still
-an emetric space. 
+an emetric space.
 This construction would also work for infinite products, but it would not give rise
 to the product topology. Hence, we only formalize it in the good situation of finitely many
 spaces.-/

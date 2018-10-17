@@ -66,15 +66,6 @@ A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
 
-/-- `concrete_category hom` collects the evidence that a type constructor `c` and a morphism
-predicate `hom` can be thought of as a concrete category.
-In a typical example, `c` is the type class `topological_space` and `hom` is `continuous`. -/
-structure concrete_category {c : Type u → Type v}
-  (hom : out_param $ ∀{α β : Type u}, c α → c β → (α → β) → Prop) :=
-(hom_id : ∀{α} (ia : c α), hom ia ia id)
-(hom_comp : ∀{α β γ} (ia : c α) (ib : c β) (ic : c γ) {f g}, hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
-attribute [class] concrete_category
-
 section
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}
 include 𝒞

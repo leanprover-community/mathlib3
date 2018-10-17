@@ -621,12 +621,3 @@ try (tactic.clear tgt)
 
 end interactive
 end tactic
-
-example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
-begin
-  choose i j h using show ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n, from h,
-  guard_hyp i := ℕ → ℕ → ℕ,
-  guard_hyp j := ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
-  trivial
-end

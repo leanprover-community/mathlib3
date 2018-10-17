@@ -882,6 +882,32 @@ def to_array (l : list α) : array l.length α :=
 def modify_nth (f : α → α) : ℕ → list α → list α :=
 modify_nth_tail (modify_head f)
 
+lemma modify_nth_tail_modify_nth_tail {f g : list α → list α} (m : ℕ) :
+  ∀n (l:list α), (l.modify_nth_tail f n).modify_nth_tail g (m + n) =
+    l.modify_nth_tail (λl, (f l).modify_nth_tail g m) n
+| 0     l      := rfl
+| (n+1) []     := rfl
+| (n+1) (a::l) := congr_arg (list.cons a) (modify_nth_tail_modify_nth_tail n l)
+
+lemma modify_nth_tail_modify_nth_tail_le
+  {f g : list α → list α} (m n : ℕ) (l : list α) (h : n ≤ m) :
+  (l.modify_nth_tail f n).modify_nth_tail g m =
+    l.modify_nth_tail (λl, (f l).modify_nth_tail g (m - n)) n :=
+begin
+  rcases le_iff_exists_add.1 h with ⟨m, rfl⟩,
+  rw [nat.add_sub_cancel_left, add_comm, modify_nth_tail_modify_nth_tail]
+end
+
+lemma modify_nth_tail_modify_nth_tail_same {f g : list α → list α} (n : ℕ) (l:list α) :
+  (l.modify_nth_tail f n).modify_nth_tail g n = l.modify_nth_tail (g ∘ f) n :=
+by rw [modify_nth_tail_modify_nth_tail_le n n l (le_refl n), nat.sub_self]; refl
+
+lemma modify_nth_tail_id :
+  ∀n (l:list α), l.modify_nth_tail id n = l
+| 0     l      := rfl
+| (n+1) []     := rfl
+| (n+1) (a::l) := congr_arg (list.cons a) (modify_nth_tail_id n l)
+
 theorem remove_nth_eq_nth_tail : ∀ n (l : list α), remove_nth l n = modify_nth_tail tail n l
 | 0     l      := by cases l; refl
 | (n+1) []     := rfl
@@ -942,6 +968,50 @@ by rw [nth_update_nth_eq, nth_le_nth h]; refl
 theorem nth_update_nth_ne (a : α) {m n} (l : list α) (h : m ≠ n) :
   nth (update_nth l m a) n = nth l n :=
 by simp only [update_nth_eq_modify_nth, nth_modify_nth_ne _ _ h]
+
+section insert_nth
+variable {a : α}
+
+def insert_nth (n : ℕ) (a : α) : list α → list α := modify_nth_tail (list.cons a) n
+
+@[simp] lemma insert_nth_nil (a : α) : insert_nth 0 a [] = [a] := rfl
+
+lemma length_insert_nth : ∀n as, n ≤ length as → length (insert_nth n a as) = length as + 1
+| 0     as       h := rfl
+| (n+1) []       h := (nat.not_succ_le_zero _ h).elim
+| (n+1) (a'::as) h := congr_arg nat.succ $ length_insert_nth n as (nat.le_of_succ_le_succ h)
+
+lemma remove_nth_insert_nth (n:ℕ) (l : list α) : (l.insert_nth n a).remove_nth n = l :=
+by rw [remove_nth_eq_nth_tail, insert_nth, modify_nth_tail_modify_nth_tail_same];
+from modify_nth_tail_id _ _
+
+lemma insert_nth_remove_nth_of_ge : ∀n m as, n < length as → m ≥ n →
+  insert_nth m a (as.remove_nth n) = (as.insert_nth (m + 1) a).remove_nth n
+| 0     0     []      has _   := (lt_irrefl _ has).elim
+| 0     0     (a::as) has hmn := by simp [remove_nth, insert_nth]
+| 0     (m+1) (a::as) has hmn := rfl
+| (n+1) (m+1) (a::as) has hmn :=
+  congr_arg (cons a) $
+    insert_nth_remove_nth_of_ge n m as (nat.lt_of_succ_lt_succ has) (nat.le_of_succ_le_succ hmn)
+
+lemma insert_nth_remove_nth_of_le : ∀n m as, n < length as → m ≤ n →
+  insert_nth m a (as.remove_nth n) = (as.insert_nth m a).remove_nth (n + 1)
+| n       0       (a :: as) has hmn := rfl
+| (n + 1) (m + 1) (a :: as) has hmn :=
+  congr_arg (cons a) $
+    insert_nth_remove_nth_of_le n m as (nat.lt_of_succ_lt_succ has) (nat.le_of_succ_le_succ hmn)
+
+lemma insert_nth_comm (a b : α) :
+  ∀(i j : ℕ) (l : list α) (h : i ≤ j) (hj : j ≤ length l),
+    (l.insert_nth i a).insert_nth (j + 1) b = (l.insert_nth j b).insert_nth i a
+| 0       j     l      := by simp [insert_nth]
+| (i + 1) 0     l      := assume h, (nat.not_lt_zero _ h).elim
+| (i + 1) (j+1) []     := by simp
+| (i + 1) (j+1) (c::l) :=
+  assume h₀ h₁,
+  by simp [insert_nth]; exact insert_nth_comm i j l (nat.le_of_succ_le_succ h₀) (nat.le_of_succ_le_succ h₁)
+
+end insert_nth
 
 /- take, drop -/
 @[simp] theorem take_zero (l : list α) : take 0 l = [] := rfl

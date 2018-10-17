@@ -70,3 +70,9 @@ def fin_prod_fin_equiv : (fin m × fin n) ≃ fin (m * n) :=
             = y.1 % n : nat.add_mul_mod_self_left _ _ _
         ... = y.1 : nat.mod_eq_of_lt y.2),
   right_inv := λ x, fin.eq_of_veq $ nat.mod_add_div _ _ }
+
+instance subsingleton_fin_zero : subsingleton (fin 0) :=
+fin_zero_equiv.subsingleton
+
+instance subsingleton_fin_one : subsingleton (fin 1) :=
+fin_one_equiv.subsingleton

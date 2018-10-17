@@ -22,6 +22,9 @@ by cases a; refl
 protected lemma ext_iff (a b : fin n) : a = b ↔ a.val = b.val :=
 iff.intro (congr_arg _) fin.eq_of_veq
 
+lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
+⟨veq_of_eq, eq_of_veq⟩
+
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
@@ -55,6 +58,12 @@ by cases j; simp [fin.pred]
 
 @[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
 by cases i; refl
+
+@[simp] lemma pred_inj :
+  ∀ {a b : fin (n + 1)} {ha : a ≠ 0} {hb : b ≠ 0}, a.pred ha = b.pred hb ↔ a = b
+| ⟨0,   _⟩  b         ha hb := by contradiction
+| ⟨i+1, _⟩  ⟨0,   _⟩  ha hb := by contradiction
+| ⟨i+1, hi⟩ ⟨j+1, hj⟩ ha hb := by simp [fin.eq_iff_veq]
 
 /-- The greatest value of `fin (n+1)` -/
 def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
@@ -107,6 +116,9 @@ rfl
 
 @[simp] lemma add_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.add_nat m).val = i.val + m :=
 rfl
+
+@[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
+by simp [eq_iff_veq]
 
 theorem succ_above_ne (p : fin (n+1)) (i : fin n) : p.succ_above i ≠ p :=
 begin

@@ -14,7 +14,6 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
 
-import category_theory.bundled
 import tactic.restate_axiom
 import tactic.replacer
 import tactic.interactive
@@ -75,22 +74,6 @@ structure concrete_category {c : Type u → Type v}
 (hom_id : ∀{α} (ia : c α), hom ia ia id)
 (hom_comp : ∀{α β γ} (ia : c α) (ib : c β) (ic : c γ) {f g}, hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
 attribute [class] concrete_category
-
-instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] : category (bundled c) :=
-{ hom   := λa b, subtype (hom a.2 b.2),
-  id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
-  comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
-
-@[simp] lemma concrete_category_id {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] (X : bundled c) : subtype.val (𝟙 X) = id := rfl
-@[simp] lemma concrete_category_comp {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z): subtype.val (f ≫ g) = g.val ∘ f.val := rfl
-
-instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {R S : bundled c} : has_coe_to_fun (R ⟶ S) :=
-{ F := λ f, R → S,
-  coe := λ f, f.1 }
 
 section
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}

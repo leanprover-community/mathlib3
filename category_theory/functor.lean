@@ -14,7 +14,7 @@ Introduces notations
   `F X` (a coercion) for a functor `F` acting on an object `X`.
 -/
 
-import category_theory.category
+import category_theory.bundled
 import tactic.tidy
 
 namespace category_theory

@@ -44,8 +44,11 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e�
     show g₁ x = g₂ x,           from injective_of_left_inverse l₁ this,
   by simp *
 
-lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
+@[extensionality] lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
 eq_of_to_fun_eq (funext H)
+
+@[extensionality] lemma perm.ext (σ τ : equiv.perm α) (H : ∀ x, σ x = τ x) : σ = τ :=
+equiv.ext _ _ H
 
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
 
@@ -90,11 +93,11 @@ rfl
 
 @[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 
-theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f x = y ↔ x = f.symm y
-| ⟨f₁, g₁, l₁, r₁⟩ x y := by simp [equiv.symm];
-  show f₁ x = y ↔ x = g₁ y; from
-  ⟨λ e : f₁ x = y, e ▸ (l₁ x).symm,
-   λ e : x = g₁ y, e.symm ▸ r₁ y⟩
+lemma symm_apply_eq {α β} (e : α ≃ β) {x y} : e.symm x = y ↔ x = e y :=
+⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+
+lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
+(eq_comm.trans e.symm_apply_eq).trans eq_comm
 
 @[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
 

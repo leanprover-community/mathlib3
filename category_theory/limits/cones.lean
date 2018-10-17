@@ -95,7 +95,7 @@ section
 variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
 
-def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cone F) ⥤ (cone (F ⋙ G)) :=
+@[simp] def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cone F) ⥤ (cone (F ⋙ G)) :=
 { obj      := λ A, { X := G A.X,
                      π := λ j, G.map (A.π j),
                      w' := begin intros, simp, erw [←functor.map_comp, cone.w] end },
@@ -139,7 +139,7 @@ section
 variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
 
-def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cocone F) ⥤ (cocone (F ⋙ G)) :=
+@[simp] def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cocone F) ⥤ (cocone (F ⋙ G)) :=
 { obj      := λ A,     { X  := G A.X,
                          ι  := λ j, G.map (A.ι j),
                          w' := begin intros, simp, erw [←functor.map_comp, cocone.w] end },

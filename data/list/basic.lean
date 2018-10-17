@@ -1482,6 +1482,8 @@ by simp only [pmap_eq_map_attach, mem_map, mem_attach, true_and, subtype.exists]
   {l H} : length (pmap f l H) = length l :=
 by induction l; [refl, simp only [*, pmap, length]]
 
+@[simp] lemma length_attach {α} (L : list α) : L.attach.length = L.length := length_pmap
+
 /- find -/
 
 section find
@@ -2915,7 +2917,7 @@ theorem length_of_fn_aux {n} (f : fin n → α) :
 | 0        h l := rfl
 | (succ m) h l := (length_of_fn_aux m _ _).trans (succ_add _ _)
 
-theorem length_of_fn {n} (f : fin n → α) : length (of_fn f) = n :=
+@[simp] theorem length_of_fn {n} (f : fin n → α) : length (of_fn f) = n :=
 (length_of_fn_aux f _ _ _).trans (zero_add _)
 
 def of_fn_nth_val {n} (f : fin n → α) (i : ℕ) : option α :=
@@ -2937,7 +2939,7 @@ end
 nth_of_fn_aux f _ _ _ _ $ λ i,
 by simp only [of_fn_nth_val, dif_neg (not_lt.2 (le_add_left n i))]; refl
 
-theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
+@[simp] theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
   nth_le (of_fn f) i.1 ((length_of_fn f).symm ▸ i.2) = f i :=
 option.some.inj $ by rw [← nth_le_nth];
   simp only [list.nth_of_fn, of_fn_nth_val, fin.eta, dif_pos i.2]
@@ -3976,6 +3978,26 @@ def map_last {α} (f : α → α) : list α → list α
 theorem last'_mem {α} : ∀ a l, @last' α a l ∈ a :: l
 | a []     := or.inl rfl
 | a (b::l) := or.inr (last'_mem b l)
+
+@[simp] lemma nth_le_attach {α} (L : list α) (i) (H : i < L.attach.length) :
+  (L.attach.nth_le i H).1 = L.nth_le i (length_attach L ▸ H) :=
+calc  (L.attach.nth_le i H).1
+    = (L.attach.map subtype.val).nth_le i (by simpa using H) : by rw nth_le_map'
+... = L.nth_le i _ : by congr; apply attach_map_val
+
+@[simp] lemma nth_le_range {n} (i) (H : i < (range n).length) :
+  nth_le (range n) i H = i :=
+option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
+
+theorem of_fn_eq_pmap {α n} {f : fin n → α} :
+  of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (range n) (λ _, mem_range.1) :=
+by rw [pmap_eq_map_attach]; from ext_le (by simp)
+  (λ i hi1 hi2, by simp at hi1; simp [nth_le_of_fn f ⟨i, hi1⟩])
+
+theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
+  nodup (of_fn f) :=
+by rw of_fn_eq_pmap; from nodup_pmap
+  (λ _ _ _ _ H, fin.veq_of_eq $ hf H) (nodup_range n)
 
 section tfae
 

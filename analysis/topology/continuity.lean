@@ -713,7 +713,7 @@ section locally_compact
 Hausdorff spaces but not in general. This one is the precise condition on X needed for the
 evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` is given the
 compact-open topology. -/
-class locally_compact_space (α : Type*) [topological_space α] :=
+class locally_compact_space (α : Type*) [topological_space α] : Prop :=
 (local_compact_nhds : ∀ (x : α) (n ∈ (nhds x).sets), ∃ s ∈ (nhds x).sets, s ⊆ n ∧ compact s)
 
 lemma locally_compact_of_compact_nhds [topological_space α] [t2_space α]

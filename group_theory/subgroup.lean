@@ -128,6 +128,10 @@ lemma mul_mem_cancel_right (h : a ∈ s) : a * b ∈ s ↔ b ∈ s :=
 
 end is_subgroup
 
+theorem is_add_subgroup.sub_mem {α} [add_group α] (s : set α) [is_add_subgroup s] (a b : α)
+  (ha : a ∈ s) (hb : b ∈ s) : a - b ∈ s :=
+is_add_submonoid.add_mem ha (is_add_subgroup.neg_mem hb)
+
 namespace group
 open is_submonoid is_subgroup
 

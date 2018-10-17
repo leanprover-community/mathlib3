@@ -667,6 +667,21 @@ protected lemma is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a 
 
 end is_group_hom
 
+@[to_additive is_add_group_hom_add]
+lemma is_group_hom_mul {α β} [group α] [comm_group β]
+  (f g : α → β) [is_group_hom f] [is_group_hom g] :
+  is_group_hom (λa, f a * g a) :=
+⟨assume a b, by simp only [is_group_hom.mul f, is_group_hom.mul g, mul_comm, mul_assoc, mul_left_comm]⟩
+
+attribute [instance] is_group_hom_mul is_add_group_hom_add
+
+@[to_additive is_add_group_hom_neg]
+lemma is_group_hom_inv {α β} [group α] [comm_group β] (f : α → β) [is_group_hom f] :
+  is_group_hom (λa, (f a)⁻¹) :=
+⟨assume a b, by rw [is_group_hom.mul f, mul_inv]⟩
+
+attribute [instance] is_group_hom_inv is_add_group_hom_neg
+
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/
 class is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
@@ -696,6 +711,13 @@ calc f (a - b) = f (a + -b)   : rfl
            ... = f a - f b    : by  simp[neg f]
 
 end is_add_group_hom
+
+lemma is_add_group_hom_sub {α β} [add_group α] [add_comm_group β]
+  (f g : α → β) [is_add_group_hom f] [is_add_group_hom g] :
+  is_add_group_hom (λa, f a - g a) :=
+is_add_group_hom_add f (λa, - g a)
+
+attribute [instance] is_add_group_hom_sub
 
 namespace units
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]

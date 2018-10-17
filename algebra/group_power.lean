@@ -11,7 +11,8 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import algebra.char_zero data.int.basic algebra.group algebra.ordered_field data.list.basic
+import algebra.char_zero algebra.group algebra.ordered_field
+import data.int.basic data.list.basic
 
 universes u v
 variable {α : Type u}
@@ -224,6 +225,7 @@ attribute [to_additive gsmul_zero] one_gpow
 | (n+1:ℕ) := rfl
 | 0       := one_inv.symm
 | -[1+ n] := (inv_inv _).symm
+
 @[simp] theorem neg_gsmul : ∀ (a : β) (n : ℤ), -n • a = -(n • a) :=
 @gpow_neg (multiplicative β) _
 attribute [to_additive neg_gsmul] gpow_neg
@@ -297,6 +299,16 @@ theorem bit1_gsmul : ∀ (a : β) (n : ℤ), bit1 n • a = n • a + n • a + 
 @gpow_bit1 (multiplicative β) _
 attribute [to_additive bit1_gsmul] gpow_bit1
 
+theorem gsmul_neg (a : β) (n : ℤ) : gsmul n (- a) = - gsmul n a :=
+begin
+  induction n using int.induction_on with z ih z ih,
+  { simp },
+  { rw [add_comm] {occs := occurrences.pos [1]}, simp [add_gsmul, ih, -add_comm] },
+  { rw [sub_eq_add_neg, add_comm] {occs := occurrences.pos [1]},
+    simp [ih, add_gsmul, neg_gsmul, -add_comm] }
+end
+attribute [to_additive gsmul_neg] gpow_neg
+
 end group
 
 namespace is_group_hom
@@ -308,9 +320,26 @@ by induction n with n ih; [exact is_group_hom.one f,
 
 theorem gpow (a : α) (n : ℤ) : f (a ^ n) = f a ^ n :=
 by cases n; [exact is_group_hom.pow f _ _,
-exact (is_group_hom.inv f _).trans (congr_arg _ $ is_group_hom.pow f _ _)]
+  exact (is_group_hom.inv f _).trans (congr_arg _ $ is_group_hom.pow f _ _)]
 
 end is_group_hom
+
+namespace is_add_group_hom
+variables {β : Type v} [add_group α] [add_group β] (f : α → β) [is_add_group_hom f]
+
+theorem smul (a : α) (n : ℕ) : f (n • a) = n • f a :=
+by induction n with n ih; [exact is_add_group_hom.zero f,
+  rw [succ_smul, is_add_group_hom.add f, ih]]; refl
+
+theorem gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
+begin
+  induction n using int.induction_on with z ih z ih,
+  { simp [is_add_group_hom.zero f] },
+  { simp [is_add_group_hom.add f, add_gsmul, ih] },
+  { simp [is_add_group_hom.add f, is_add_group_hom.neg f, add_gsmul, ih] }
+end
+
+end is_add_group_hom
 
 local infix ` •ℤ `:70 := gsmul
 
@@ -324,7 +353,20 @@ theorem gsmul_add : ∀ (a b : β) (n : ℤ), n •ℤ (a + b) = n •ℤ a + n 
 @mul_gpow (multiplicative β) _
 attribute [to_additive gsmul_add] mul_gpow
 
+theorem gsmul_sub : ∀ (a b : β) (n : ℤ), gsmul n (a - b) = gsmul n a - gsmul n b :=
+by simp [gsmul_add, gsmul_neg]
+
 end comm_monoid
+
+section group
+
+@[instance]
+theorem is_add_group_hom_gsmul
+  {α β} [add_group α] [add_comm_group β] (f : α → β) [is_add_group_hom f] (z : ℤ) :
+  is_add_group_hom (λa, gsmul z (f a)) :=
+⟨assume a b, by rw [is_add_group_hom.add f, gsmul_add]⟩
+
+end group
 
 theorem add_monoid.smul_eq_mul' [semiring α] (a : α) (n : ℕ) : n • a = a * n :=
 by induction n with n ih; [rw [add_monoid.zero_smul, nat.cast_zero, mul_zero],

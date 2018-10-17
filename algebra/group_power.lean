@@ -232,7 +232,6 @@ theorem gpow_neg_one (x : α) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $
 theorem neg_one_gsmul (x : β) : (-1:ℤ) • x = -x := congr_arg has_neg.neg $ add_monoid.one_smul x
 attribute [to_additive neg_one_gsmul] gpow_neg_one
 
-@[to_additive neg_gsmul]
 theorem inv_gpow (a : α) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := inv_pow a n
 | -[1+ n] := congr_arg has_inv.inv $ inv_pow a (n+1)

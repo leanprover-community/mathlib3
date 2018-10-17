@@ -592,10 +592,10 @@ do let (e,n) := arg,
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
 
-/-- `choose names using e` assumes that `e` is a hypothesis or expression of the type
-  `∀x y z, ∃a b c, p x y z a b c`.
-It will skolemize `e` and use the names given by `ns` to assign names to the functions resulting
-from the existential quantifiers.
+/-- `choose a b h using hyp` takes an hypothesis `hyp` of the form
+`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
+into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
+`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
 
 Example:
 

@@ -681,6 +681,13 @@ theorem dvd_fact : ∀ {m n}, m > 0 → m ≤ n → m ∣ fact n
 theorem fact_le {m n} (h : m ≤ n) : fact m ≤ fact n :=
 le_of_dvd (fact_pos _) (fact_dvd_fact h)
 
+lemma fact_mul_pow_le_fact : ∀ {m n : ℕ}, m.fact * m.succ ^ n ≤ (m + n).fact
+| m 0     := by simp
+| m (n+1) :=
+by  rw [← add_assoc, nat.fact_succ, mul_comm (nat.succ _), nat.pow_succ, ← mul_assoc];
+  exact mul_le_mul fact_mul_pow_le_fact
+    (nat.succ_le_succ (nat.le_add_right _ _)) (nat.zero_le _) (nat.zero_le _)
+
 section find_greatest
 
 /-- `find_greatest P b` is the largest `i ≤ bound` such that `P i` holds, or `0` if no such `i`

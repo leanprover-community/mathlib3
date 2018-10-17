@@ -406,6 +406,9 @@ lemma pow_abs [decidable_linear_ordered_comm_ring α] (a : α) (n : ℕ) : (abs 
 by induction n with n ih; [exact (abs_one).symm,
   rw [pow_succ, pow_succ, ih, abs_mul]]
 
+lemma inv_pow' [discrete_field α] (a : α) (n : ℕ) : (a ^ n)⁻¹ = a⁻¹ ^ n :=
+by induction n; simp [*, pow_succ, mul_inv', mul_comm]
+
 lemma pow_inv [division_ring α] (a : α) : ∀ n : ℕ, a ≠ 0 → (a^n)⁻¹ = (a⁻¹)^n
 | 0     ha := inv_one
 | (n+1) ha := by rw [pow_succ, pow_succ', mul_inv_eq (pow_ne_zero _ ha) ha, pow_inv _ ha]
@@ -477,9 +480,11 @@ lemma pow_le_pow_of_le_one  {a : α} (h : 0 ≤ a) (ha : a ≤ 1)
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hij in
 by rw hk; exact pow_le_pow_of_le_one_aux h ha _ _
 
+lemma pow_le_one {x : α} : ∀ (n : ℕ) (h0 : 0 ≤ x) (h1 : x ≤ 1), x ^ n ≤ 1
+| 0     h0 h1 := le_refl (1 : α)
+| (n+1) h0 h1 := mul_le_one h1 (pow_nonneg h0 _) (pow_le_one n h0 h1)
 
 end linear_ordered_semiring
-
 theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=
 by rw pow_two; exact mul_self_nonneg _
 

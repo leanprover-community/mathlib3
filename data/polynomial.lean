@@ -157,59 +157,26 @@ by simpa only [C_1, one_mul] using coeff_C_mul_X (1:α) k n
 
 lemma coeff_mul_left (p q : polynomial α) (n : ℕ) :
   coeff (p * q) n = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :=
-begin
-  refine polynomial.induction_on p (λ x, _) (λ p1 p2 ih1 ih2, _) (λ pn x ih, _),
-  { refine polynomial.induction_on q (λ y, _) (λ q1 q2 ih1 ih2, _) (λ qn y ih, _),
-    { rw [sum_eq_single 0, ← C_mul, coeff_C, coeff_C, coeff_C, if_pos rfl, nat.sub_zero],
-      { by_cases h : n = 0,
-        { simp only [if_pos h] },
-        { simp only [if_neg h, mul_zero] } },
-      { intros k h1 h2, rw [coeff_C, if_neg h2, zero_mul] },
-      { exact λ h1, (h1 (mem_range.2 (nat.zero_lt_succ n))).elim } },
-    { simp only [mul_add, coeff_add],
-      -- why can't I just rw [ih1, ih2]???
-      generalize_hyp h1 : coeff (C x * q1) n = Q1 at ih1 ⊢, rw ih1,
-      generalize_hyp h2 : coeff (C x * q2) n = Q2 at ih2 ⊢, rw ih2,
-      rw finset.sum_add_distrib },
-    { rw [sum_eq_single 0, ← mul_assoc, ← C_mul, coeff_C_mul_X, coeff_C_mul_X, coeff_C, if_pos rfl, nat.sub_zero],
-      { split_ifs; simp only [h, if_pos rfl, if_false, mul_zero] },
-      { intros k h1 h2, rw [coeff_C, if_neg h2, zero_mul] },
-      { exact λ h1, (h1 (mem_range.2 (nat.zero_lt_succ n))).elim } } },
-  { simp only [add_mul, coeff_add],
-    -- why can't I just rw [ih1, ih2]???
-    generalize_hyp h1 : coeff (p1 * q) n = P1 at ih1 ⊢, rw ih1,
-    generalize_hyp h2 : coeff (p2 * q) n = P2 at ih2 ⊢, rw ih2,
-    rw finset.sum_add_distrib },
-  { refine polynomial.induction_on q (λ y, _) (λ q1 q2 ih1 ih2, _) (λ qn y ih, _),
-    { rw [sum_eq_single n, mul_right_comm, ← C_mul, coeff_C_mul_X, coeff_C_mul_X, coeff_C, if_pos (nat.sub_self _)],
-      { split_ifs with h; simp only [h, if_pos rfl, if_false, zero_mul] },
-      { intros k h1 h2, rw [coeff_C, if_neg, mul_zero],
-        refine mt (λ H, le_antisymm (nat.le_of_lt_succ (mem_range.1 h1)) (nat.sub_eq_zero_iff_le.1 H)) h2 },
-      { exact λ h1, (h1 (mem_range.2 (le_refl (n+1)))).elim } },
-    { simp only [mul_add, coeff_add],
-      generalize_hyp h1 : coeff (C x * X ^ (pn + 1) * q1) n = Q1 at ih1 ⊢, rw ih1,
-      generalize_hyp h2 : coeff (C x * X ^ (pn + 1) * q2) n = Q2 at ih2 ⊢, rw ih2,
-      rw finset.sum_add_distrib },
-    { rw [mul_left_comm, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul],
-      rw [sum_eq_single (pn + 1), coeff_C_mul_X, coeff_C_mul_X, coeff_C_mul_X, if_pos rfl],
-      { have H : n = pn + 1 + (qn + 1) ↔ n - (pn + 1) = qn + 1,
-        { split, { intro H, rw [H, nat.add_sub_cancel_left] },
-          intro H,
-          have H1 : pn + 1 < n,
-          { refine lt_of_not_ge (λ H1, _),
-            rw [nat.sub_eq_zero_of_le H1] at H,
-            exact nat.succ_ne_zero qn H.symm },
-          rw [(nat.sub_eq_iff_eq_add (le_of_lt H1)).1 H, add_comm] },
-        split_ifs with h,
-        { rw [if_pos (H.1 h), mul_comm] },
-        { rw [if_neg (mt H.2 h), mul_zero] } },
-      { intros k h1 h2, rw [coeff_C_mul_X, if_neg h2, zero_mul] },
-      { intro H,
-        rw [coeff_C_mul_X, if_pos rfl, coeff_C_mul_X, if_neg, mul_zero],
-        rw [mem_range, not_lt] at H,
-        rw [nat.sub_eq_zero_of_le (le_of_lt H)],
-        exact ne.symm (nat.succ_ne_zero _) } } }
-end
+have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
+    → a.1 + a.2 = n, from λ a ha, by_contradiction 
+  (λ h, absurd (eq.refl (0 : α)) (by rwa if_neg h at ha)),
+calc coeff (p * q) n = sum (p.support) (λ a, sum (q.support) 
+    (λ b, ite (a + b = n) (coeff p a * coeff q b) 0)) :
+  by simp only [finsupp.mul_def, coeff_sum, coeff_single]; refl
+... = (p.support.product q.support).sum 
+    (λ v : ℕ × ℕ, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0) :
+  by rw sum_product
+... = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :
+  sum_bij_ne_zero (λ a _ _, a.1) 
+  (λ a _ ha, mem_range.2 (nat.lt_succ_of_le (hite a ha ▸ le_add_right (le_refl _)))) 
+  (λ a₁ a₂ _ h₁ _ h₂ h, prod.ext h 
+    ((add_left_inj a₁.1).1 (by rw [hite a₁ h₁, h, hite a₂ h₂])))
+  (λ a h₁ h₂, ⟨(a, n - a), mem_product.2 
+      ⟨mem_support_iff.2 (ne_zero_of_mul_ne_zero_right h₂), 
+      mem_support_iff.2 (ne_zero_of_mul_ne_zero_left h₂)⟩, 
+    by simpa [nat.add_sub_cancel' (nat.le_of_lt_succ (mem_range.1 h₁))],
+    rfl⟩) 
+  (λ a _ ha, by rw [← hite a ha, if_pos rfl, nat.add_sub_cancel_left])
 
 lemma coeff_mul_right (p q : polynomial α) (n : ℕ) :
   coeff (p * q) n = (range (n+1)).sum (λ k, coeff p (n-k) * coeff q k) :=

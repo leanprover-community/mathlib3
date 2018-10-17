@@ -580,7 +580,7 @@ instance : ordered_cancel_comm_monoid ℚ          := by apply_instance
 instance : ordered_comm_monoid ℚ                 := by apply_instance
 
 theorem num_pos_iff_pos {a : ℚ} : 0 < a.num ↔ 0 < a :=
-le_iff_le_iff_lt_iff_lt.1 $
+lt_iff_lt_of_le_iff_le $
 by simpa [(by cases a; refl : (-a).num = -a.num)]
    using @num_nonneg_iff_zero_le (-a)
 
@@ -621,7 +621,7 @@ theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
 end
 
 theorem floor_lt {r : ℚ} {z : ℤ} : floor r < z ↔ r < z :=
-le_iff_le_iff_lt_iff_lt.1 le_floor
+lt_iff_lt_of_le_iff_le le_floor
 
 theorem floor_le (r : ℚ) : (floor r : ℚ) ≤ r :=
 le_floor.1 (le_refl _)

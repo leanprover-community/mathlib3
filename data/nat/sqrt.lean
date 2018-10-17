@@ -14,7 +14,7 @@ namespace nat
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=
 begin
   simp [shiftr_eq_div_pow],
-  apply (nat.div_lt_iff_lt_mul _ _ (dec_trivial : 4 > 0)).2,
+  apply (nat.div_lt_iff_lt_mul' (dec_trivial : 4 > 0)).2,
   have := nat.mul_lt_mul_of_pos_left
     (dec_trivial : 1 < 4) (nat.pos_of_ne_zero h),
   rwa mul_one at this
@@ -137,7 +137,7 @@ theorem le_sqrt {m n : ℕ} : m ≤ sqrt n ↔ m*m ≤ n :=
    lt_of_le_of_lt h (lt_succ_sqrt n)⟩
 
 theorem sqrt_lt {m n : ℕ} : sqrt m < n ↔ m < n*n :=
-le_iff_le_iff_lt_iff_lt.1 le_sqrt
+lt_iff_lt_of_le_iff_le le_sqrt
 
 theorem sqrt_le_self (n : ℕ) : sqrt n ≤ n :=
 le_trans (le_mul_self _) (sqrt_le n)

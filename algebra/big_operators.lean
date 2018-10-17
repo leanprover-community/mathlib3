@@ -114,6 +114,25 @@ calc (s.sigma t).prod f =
   ... = (s.prod $ λa, (t a).prod $ λs, f ⟨a, s⟩) :
     prod_congr rfl $ λ _ _, prod_image $ λ _ _ _ _ _, by cc
 
+@[to_additive finset.sum_image']
+lemma prod_image' [decidable_eq α] {s : finset γ} {g : γ → α} (h : γ → β)
+  (eq : ∀c∈s, f (g c) = (s.filter (λc', g c' = g c)).prod h) :
+  (s.image g).prod f = s.prod h :=
+begin
+  letI := classical.dec_eq γ,
+  rw [← image_bind_filter_eq s g] {occs := occurrences.pos [2]},
+  rw [finset.prod_bind],
+  { refine finset.prod_congr rfl (assume a ha, _),
+    rcases finset.mem_image.1 ha with ⟨b, hb, rfl⟩,
+    exact eq b hb },
+  assume a₀ _ a₁ _ ne,
+  refine disjoint_iff_inter_eq_empty.1 (disjoint_iff_ne.2 _),
+  assume c₀ h₀ c₁ h₁,
+  rcases mem_filter.1 h₀ with ⟨h₀, rfl⟩,
+  rcases mem_filter.1 h₁ with ⟨h₁, rfl⟩,
+  exact mt (congr_arg g) ne
+end
+
 @[to_additive finset.sum_add_distrib]
 lemma prod_mul_distrib : s.prod (λx, f x * g x) = s.prod f * s.prod g :=
 eq.trans (by rw one_mul; refl) fold_op_distrib
@@ -128,6 +147,16 @@ finset.induction_on s (by simp only [prod_empty, prod_const_one]) $
 lemma prod_hom [comm_monoid γ] (g : β → γ)
   (h₁ : g 1 = 1) (h₂ : ∀x y, g (x * y) = g x * g y) : s.prod (λx, g (f x)) = g (s.prod f) :=
 eq.trans (by rw [h₁]; refl) (fold_hom h₂)
+
+@[to_additive finset.sum_hom_rel]
+lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
+  (h₁ : r 1 1) (h₂ : ∀a b c, r b c → r (f a * b) (g a * c)) : r (s.prod f) (s.prod g) :=
+begin
+  letI := classical.dec_eq α,
+  refine finset.induction_on s h₁ (assume a s has ih, _),
+  rw [prod_insert has, prod_insert has],
+  exact h₂ a (s.prod f) (s.prod g) ih,
+end
 
 @[to_additive finset.sum_subset]
 lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → f x = 1) : s₁.prod f = s₂.prod f :=

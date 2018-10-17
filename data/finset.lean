@@ -1050,6 +1050,16 @@ by simpa only [subset_iff, mem_bind, exists_imp_distrib, and_imp, exists_prop]
 lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
 ext.2 $ λ x, by simp only [mem_bind, mem_image, insert_empty_eq_singleton, mem_singleton, eq_comm]
 
+lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
+  (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
+begin
+  ext b,
+  simp,
+  split,
+  { rintros ⟨a, ⟨b', _, _⟩, hb, _⟩, exact hb },
+  { rintros hb, exact ⟨g b, ⟨b, hb, rfl⟩, hb, rfl⟩ }
+end
+
 end bind
 
 section prod
@@ -1285,6 +1295,11 @@ sup_le $ assume b hb, le_sup (h hb)
 
 end sup
 
+lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
+le_antisymm
+  (finset.sup_le $ assume a ha, le_supr_of_le a $ le_supr _ ha)
+  (supr_le $ assume a, supr_le $ assume ha, le_sup ha)
+
 section inf
 variables [semilattice_inf_top α]
 
@@ -1334,6 +1349,11 @@ lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
 
 end inf
+
+lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
+le_antisymm
+  (le_infi $ assume a, le_infi $ assume ha, inf_le ha)
+  (finset.le_inf $ assume a ha, infi_le_of_le a $ infi_le _ ha)
 
 /- max and min of finite sets -/
 section max_min

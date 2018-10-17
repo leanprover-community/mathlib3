@@ -119,8 +119,10 @@ l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducibl
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=
-unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_coe.coe,
-        ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
+unfold [
+  ``coe, ``coe_t, ``has_coe_t.coe, ``coe_b,``has_coe.coe,
+  ``lift, ``has_lift.lift, ``lift_t, ``has_lift_t.lift,
+  ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
 /-- Unfold auxiliary definitions associated with the current declaration. -/
 meta def unfold_aux : tactic unit :=
@@ -174,7 +176,8 @@ and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
 | o        := focus1 (assumption <|> (congr_core >>
-  all_goals (reflexivity <|> try (congr' (nat.pred <$> o)))))
+  all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
+             `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
 
 /--
 Acts like `have`, but removes a hypothesis with the same name as
@@ -221,7 +224,7 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
    let l := l.join,
    m ← list.mmap mk_const l,
    let hs := (hs ++ m).filter $ λ h, expr.const_name h ∉ gex,
-   hs ← if no_dflt then 
+   hs ← if no_dflt then
           return hs
         else
           do { congr_fun ← mk_const `congr_fun,
@@ -241,7 +244,7 @@ performing at most `max_rep` recursive steps.
 
 `solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
 
-By default, the assumptions passed to apply_assumption are the local context, `congr_fun` and 
+By default, the assumptions passed to apply_assumption are the local context, `congr_fun` and
 `congr_arg`.
 
 `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.

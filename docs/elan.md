@@ -1,32 +1,39 @@
-# How to install Lean using elan
+# How to install Lean using `elan`
 
 This document explains how to get started with Lean and mathlib.
 
 If you get stuck, please come to [the chat room](https://leanprover.zulipchat.com/) to ask for
 assistance.
 
+If you'd prefer to watch a short video tutorial, try:
+* [Installation instructions for Windows 10](https://www.youtube.com/watch?v=2f_9Zetekd8)
+* [Installation instructions for macOS](https://www.youtube.com/watch?v=k8U6YOK7c0M)
+
 ## Preliminaries
 
 We'll need to set up Lean, an editor that knows about Lean, and `mathlib` (the standard library).
 
-Rather than installing Lean directly, we'll install a small program called elan which 
+Rather than installing Lean directly, we'll install a small program called `elan` which
 automatically provides the correct version of Lean on a per-project basis. This is recommended for
 all users.
 
-### Installing Elan
+### Installing `elan`
 
 1. We'll need a terminal, along with some basic prerequisites.
   * Ubuntu: `sudo apt install git curl` if you don't already have these.
   * macOS: Install [homebrew](https://brew.sh/), then run `brew install gmp coreutils` in a terminal
     (`gmp` is required by `lean`, `coreutils` by `leanpkg`).
-  * Windows 10: 
+  * Windows 10:
     * Either (recommended): install [Git for Windows](https://gitforwindows.org/), after which you
       can open a terminal by typing "git bash" in the Windows search bar.
     * Or: install [Msys2](https://www.msys2.org/), after which you can open a terminal by
-      typing "msys2" in the Windows search bar. You'll also need to run `pacman -S unzip git` in 
+      typing "msys2" in the Windows search bar. You'll also need to run `pacman -S unzip git` in
       an msys2 terminal.
 
-2. At a terminal, run the command
+2. (This step can be skipped: VS Code will prompt you to install `elan` if it can't find a
+   usable copy of Lean.)
+
+   At a terminal, run the command
 
    `curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh`
 
@@ -39,8 +46,8 @@ all users.
    `echo 'PATH="$HOME/.elan/bin:$PATH"' >> $HOME/.profile` in the terminal.
 
    It is recommended that you re-login,
-   so that your environment knows about Elan.
-   
+   so that your environment knows about `elan`.
+
    (Alternatively, type `source $HOME/.elan/env` to update the current terminal.)
 
 ### Installing and configuring an editor
@@ -53,14 +60,10 @@ This document describes using VS Code (for emacs, look at https://github.com/lea
 3. Click on the extension icon in the view bar at the left
    and search for `lean`.
 4. Click "install", and then "reload" to restart VS Code.
-5. If you're running Windows, you've got a few more steps:
-  * Press `ctrl-comma` to open settings, and change the user setting `lean.executablePath`. This 
-    should be `C:\users\NNN\.elan\bin\lean.exe` if you installed `elan` using a `git bash` 
-    terminal, or `C:\msys64\home\NNN\.elan\bin\lean.exe` if you installed `elan` using an `msys` 
-    terminal.
-  * If you're using `git bash`, press `ctrl-shift-p` to open the command palette, and type 
+5. If you're running Windows, you've got one more step:
+  * If you're using `git bash`, press `ctrl-shift-p` to open the command palette, and type
     `Select Default Shell`, then select `git bash` from the menu.
-  * If you're using `msys`, press `ctrl-comma` again to open the settings, and add two settings:
+  * If you're using `msys2`, press `ctrl-comma` again to open the settings, and add two settings:
   ```
   "terminal.integrated.shell.windows": "C:\\msys64\\usr\\bin\\bash.exe",
   "terminal.integrated.shellArgs.windows": ["--login", "-i"]
@@ -71,28 +74,25 @@ This document describes using VS Code (for emacs, look at https://github.com/lea
 
 ## Scenario 1: Start a new package
 
-When you installed Elan, it downloaded the latest stable release of Lean.
+When you installed `elan`, it downloaded the latest stable release of Lean.
 That may be too recent or too old for mathlib, and you really want mathlib.
-Have a look at
-https://github.com/leanprover/mathlib/blob/master/leanpkg.toml#L4 to see what
-is the nightly that mathlib currently wants.
-Say you see `nightly-2018-04-06`.
 
 1. Decide on a name for your package. We will use `my_playground`.
-2. Run `elan run --install nightly-2018-04-06 leanpkg new my_playground`.
+2. Run `leanpkg +nightly new my_playground`.
    This will create a `my_playground` directory with a Lean project layout.
 3. Run `cd my_playground`.
 4. Run `leanpkg add leanprover/mathlib`.
-   This will download mathlib and put it inside `my_playground/_target/deps`.
+   This will download mathlib and put it inside `my_playground/_target/deps/mathlib/`.
 
 That's it.
 At this point you can already create some Lean file in `my_playground/src`:
 say `test.lean`.
 
 1. Now launch VS Code.
-2. Click "File -> Open folder" (Ctrl-K Ctrl-O) and open `my_plaground`.
-3. Open the file `test.lean`.
-4. Type Ctrl-Shift-Enter to open the Lean message window.
+2. On Windows: Click "File -> Open folder" (Ctrl-K Ctrl-O) and open `my_playground`.
+   On macOS: Click "File -> Open..." and open `my_playground`. It is essential that you open the *folder*, rather than a file inside it.
+3. Open the file `test.lean`, from the 'Explorer' view on the left edge of VS Code.
+4. Type Ctrl-Shift-Enter (Cmd-Shift-Enter on macOS) to open the Lean message window.
 5. Type, say `#check 1` to see the result.
 
 You can also use `import group_theory.subgroup` and then `#check is_subgroup`.
@@ -104,7 +104,8 @@ mathlib `group_theory/subgroup.lean`.
 If you want to play more, it's better to compile all of mathlib
 once and for all.
 You can do this by going into `my_playground`
-and running `lean --make _target/deps/mathlib`.
+and running `lean --make _target/deps/mathlib`. (Don't actually go into the mathlib directory and
+run `lean --make` there!)
 
 Now go and get some coffee.
 
@@ -117,7 +118,7 @@ As example, we will take https://github.com/kbuzzard/lean-stacks-project.
 2. Run `git clone https://github.com/kbuzzard/lean-stacks-project`.
 3. This gives you a directory named `lean-stacks-project`. Enter it.
 4. Inside this directory is a file named `leanpkg.toml`.
-   Elan uses this file to determine which version of Lean you need.
+   `elan` uses this file to determine which version of Lean you need.
    You don't have to worry about this!
 5. Run `leanpkg build` to compile everything.
 6. Now is a good time to get yourself some tea and relax.
@@ -125,8 +126,9 @@ As example, we will take https://github.com/kbuzzard/lean-stacks-project.
 Once the compile is over, you can start working.
 
 1. Now launch VS Code.
-   (If you did not re-login after installing Elan,
-   then you have to launch VS Code from a terminal that has
+   (If you did not re-login after installing `elan`,
+   then you may have to launch VS Code from a terminal that has
    sourced `$HOME/.elan/env`.)
-2. Click "File -> Open folder" (Ctrl-K Ctrl-O) and open `lean-stacks-project`.
-2. Type Ctrl-Shift-Enter to open the Lean message window.
+2. On Windowds: Click "File -> Open folder" (Ctrl-K Ctrl-O) and open `lean-stacks-project`.
+   On macOS: Check "File -> Open..." and open `lean-stacks-project`.
+3. Type Ctrl-Shift-Enter (Cmd-Shift-Enter on macOS) to open the Lean message window.

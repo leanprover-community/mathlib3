@@ -5,7 +5,7 @@ Authors: Chris Hughes
 Mostly based on Jeremy Avigad's choose file in lean 2
 -/
 
-import data.nat.basic
+import data.nat.basic data.nat.prime
 
 open nat
 
@@ -41,7 +41,7 @@ lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | 0             _ hk := by rw [eq_zero_of_le_zero hk]; exact dec_trivial
 | (n + 1)       0 hk := by simp; exact dec_trivial
 | (n + 1) (k + 1) hk := by rw choose_succ_succ;
-    exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (zero_le _)
+    exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (nat.zero_le _)
 
 
 lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
@@ -81,3 +81,10 @@ end
 
 theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
 by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
+
+lemma nat.prime.dvd_choose {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) : p ∣ choose p k :=
+have h₁ : p ∣ fact p, from hp.dvd_fact.2 (le_refl _),
+have h₂ : ¬p ∣ fact k, from mt hp.dvd_fact.1 (not_le_of_gt hkp),
+have h₃ : ¬p ∣ fact (p - k), from mt hp.dvd_fact.1 (not_le_of_gt (nat.sub_lt_self hp.pos hk)),
+by rw [← choose_mul_fact_mul_fact (le_of_lt hkp), mul_assoc, hp.dvd_mul, hp.dvd_mul] at h₁;
+  exact h₁.resolve_right (not_or_distrib.2 ⟨h₂, h₃⟩)

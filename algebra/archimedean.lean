@@ -34,7 +34,7 @@ theorem le_floor : ∀ {z : ℤ} {x : α}, z ≤ ⌊x⌋ ↔ (z : α) ≤ x :=
 floor_ring.le_floor
 
 theorem floor_lt {x : α} {z : ℤ} : ⌊x⌋ < z ↔ x < z :=
-le_iff_le_iff_lt_iff_lt.1 le_floor
+lt_iff_lt_of_le_iff_le le_floor
 
 theorem floor_le (x : α) : (⌊x⌋ : α) ≤ x :=
 le_floor.1 (le_refl _)
@@ -78,7 +78,7 @@ theorem ceil_le {z : ℤ} {x : α} : ⌈x⌉ ≤ z ↔ x ≤ z :=
 by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
 
 theorem lt_ceil {x : α} {z : ℤ} : z < ⌈x⌉ ↔ (z:α) < x :=
-le_iff_le_iff_lt_iff_lt.1 ceil_le
+lt_iff_lt_of_le_iff_le ceil_le
 
 theorem le_ceil (x : α) : x ≤ ⌈x⌉ :=
 ceil_le.1 (le_refl _)
@@ -215,7 +215,7 @@ begin
   have n0' := (@nat.cast_pos α _ _).2 n0,
   rw [rat.cast_div_of_ne_zero, rat.cast_coe_nat, rat.cast_coe_int, div_lt_iff n0'],
   refine ⟨(lt_div_iff n0').2 $
-    (le_iff_le_iff_lt_iff_lt.1 (zh _)).1 (lt_add_one _), _⟩,
+    (lt_iff_lt_of_le_iff_le (zh _)).1 (lt_add_one _), _⟩,
   rw [int.cast_add, int.cast_one],
   refine lt_of_le_of_lt (add_le_add_right ((zh _).1 (le_refl _)) _) _,
   rwa [← lt_sub_iff_add_lt', ← sub_mul,

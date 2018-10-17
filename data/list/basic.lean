@@ -335,7 +335,7 @@ begin
   refine ⟨_, _, rfl, append_inj this _⟩,
   rw [length_map, length_take, min_eq_left],
   rw [← length_map f l, h, length_append],
-  apply le_add_right
+  apply nat.le_add_right
 end
 
 /- join -/
@@ -749,7 +749,7 @@ theorem index_of_le_length {a : α} {l : list α} : index_of a l ≤ length l :=
 begin
   induction l with b l ih, {refl},
   simp only [length, index_of_cons],
-  by_cases h : a = b, {rw if_pos h, exact zero_le _},
+  by_cases h : a = b, {rw if_pos h, exact nat.zero_le _},
   rw if_neg h, exact succ_le_succ ih
 end
 
@@ -1065,7 +1065,7 @@ theorem take'_eq_take : ∀ {n} {l : list α},
   take'_eq_take $ le_of_succ_le_succ h
 
 @[simp] theorem take'_left (l₁ l₂ : list α) : take' (length l₁) (l₁ ++ l₂) = l₁ :=
-(take'_eq_take (by simp only [length_append, le_add_right])).trans (take_left _ _)
+(take'_eq_take (by simp only [length_append, nat.le_add_right])).trans (take_left _ _)
 
 theorem take'_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
   take' n (l₁ ++ l₂) = l₁ :=
@@ -3911,7 +3911,7 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n :=
 by simp only [range_eq_range', range'_subset_right]
 
 @[simp] theorem mem_range {m n : ℕ} : m ∈ range n ↔ m < n :=
-by simp only [range_eq_range', mem_range', zero_le, true_and, zero_add]
+by simp only [range_eq_range', mem_range', nat.zero_le, true_and, zero_add]
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n :=
 mt mem_range.1 $ lt_irrefl _

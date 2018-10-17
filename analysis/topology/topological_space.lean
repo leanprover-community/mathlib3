@@ -29,6 +29,7 @@ section topological_space
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {a a₁ a₂ : α} {s s₁ s₂ : set α} {p p₁ p₂ : α → Prop}
 
+@[extensionality]
 lemma topological_space_eq : ∀ {f g : topological_space α}, f.is_open = g.is_open → f = g
 | ⟨a, _, _, _⟩ ⟨b, _, _, _⟩ rfl := rfl
 
@@ -768,16 +769,20 @@ protected def mk_of_nhds (n : α → filter α) : topological_space α :=
   is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩, mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
 
 lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
-  (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ (n a).sets → ∃t∈(n a).sets, t ⊆ s ∧ ∀a'∈t, t ∈ (n a').sets) :
+  (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ (n a).sets → ∃t∈(n a).sets, t ⊆ s ∧ ∀a'∈t, s ∈ (n a').sets) :
   @nhds α (topological_space.mk_of_nhds n) a = n a :=
-by letI := topological_space.mk_of_nhds n; from
-(le_antisymm
-  (assume s hs, let ⟨t, ht, hst, h⟩ := h₁ hs in
-    have t ∈ (nhds a).sets, from mem_nhds_sets h (mem_pure_sets.1 $ h₀ a ht),
-    (nhds a).sets_of_superset this hst)
-  (assume s hs,
-    let ⟨t, hts, ht, hat⟩ := (@mem_nhds_sets_iff α (topological_space.mk_of_nhds n) _ _).1 hs in
-    (n a).sets_of_superset (ht _ hat) hts))
+begin
+  letI := topological_space.mk_of_nhds n,
+  refine le_antisymm (assume s hs, _) (assume s hs, _),
+  { have h₀ : {b | s ∈ (n b).sets} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
+    have h₁ : {b | s ∈ (n b).sets} ∈ (nhds a).sets,
+    { refine mem_nhds_sets (assume b (hb : s ∈ (n b).sets), _) hs,
+      rcases h₁ hb with ⟨t, ht, hts, h⟩,
+      exact mem_sets_of_superset ht h },
+    exact mem_sets_of_superset h₁ h₀ },
+  { rcases (@mem_nhds_sets_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
+    exact (n a).sets_of_superset (ht _ hat) hts },
+end
 
 end topological_space
 
@@ -863,6 +868,10 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
       show is_open (⋃h, f i h), from @is_open_Union β _ t _ $ assume h, (hf i h).left)
   end }
 
+lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
+  @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ s = f ⁻¹' t) :=
+iff.refl _
+
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
 ⟨assume ⟨t, ht, heq⟩, ⟨-t, is_closed_compl_iff.2 ht, by simp only [preimage_compl, heq.symm, lattice.neg_neg]⟩,
@@ -879,6 +888,10 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
   is_open_sUnion := assume s h, by rw [preimage_sUnion]; exact (@is_open_Union _ _ t _ $ assume i,
     show is_open (⋃ (H : i ∈ s), f ⁻¹' i), from
       @is_open_Union _ _ t _ $ assume hi, h i hi) }
+
+lemma is_open_coinduced {t : topological_space α} {s : set β} {f : α → β} :
+  @is_open β (topological_space.coinduced f t) s ↔ is_open (f ⁻¹' s) :=
+iff.refl _
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 
@@ -1013,6 +1026,7 @@ begin
         replace hv := hv.flip,
         simp only [list.forall₂_and_left, flip] at ⊢ hv,
         exact ⟨hv.1, hu.flip⟩ },
+      refine mem_sets_of_superset _ hvs,
       exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
 end
 
@@ -1242,22 +1256,30 @@ let ⟨f, hf⟩ := this in
         from ne_empty_of_mem ⟨hf _ hs, mem_bUnion hs $ mem_Union.mpr ⟨hs, mem_singleton _⟩⟩,
       mt principal_eq_bot_iff.1 this) ⟩⟩
 
+variables {α}
+
+lemma is_open_Union_countable [second_countable_topology α]
+  {ι} (s : ι → set α) (H : ∀ i, _root_.is_open (s i)) :
+  ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
+let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
+begin
+  let B' := {b ∈ B | ∃ i, b ⊆ s i},
+  choose f hf using λ b:B', b.2.2,
+  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable,
+  refine ⟨_, countable_range f,
+    subset.antisymm (bUnion_subset_Union _ _) (sUnion_subset _)⟩,
+  rintro _ ⟨i, rfl⟩ x xs,
+  rcases mem_basis_subset_of_mem_open bB xs (H _) with ⟨b, hb, xb, bs⟩,
+  exact ⟨_, ⟨_, rfl⟩, _, ⟨⟨⟨_, hb, _, bs⟩, rfl⟩, rfl⟩, hf _ (by exact xb)⟩
+end
+
 lemma is_open_sUnion_countable [second_countable_topology α]
   (S : set (set α)) (H : ∀ s ∈ S, _root_.is_open s) :
   ∃ T : set (set α), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
-let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
-begin
-  let B' := {b ∈ B | ∃ s ∈ S, b ⊆ s},
-  choose f hf using assume b:B', b.2.2,
-  change B' → set α at f,
-  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable,
-  have : range f ⊆ S := range_subset_iff.2 (λ x, (hf x).fst),
-  exact ⟨_, countable_range f, this,
-    subset.antisymm (sUnion_subset_sUnion this) $
-    sUnion_subset $ λ s hs x xs,
-      let ⟨b, hb, xb, bs⟩ := mem_basis_subset_of_mem_open bB xs (H _ hs) in
-      ⟨_, ⟨⟨_, hb, _, hs, bs⟩, rfl⟩, (hf _).snd xb⟩⟩
-end
+let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) in
+⟨subtype.val '' T, countable_image _ cT,
+  image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
+  by rwa [sUnion_image, sUnion_eq_Union]⟩
 
 end topological_space
 

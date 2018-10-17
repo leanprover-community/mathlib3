@@ -9,6 +9,22 @@ import data.fin data.equiv.basic
 
 variables {m n : ℕ}
 
+def fin_zero_equiv : fin 0 ≃ empty :=
+⟨fin_zero_elim, empty.elim, assume a, fin_zero_elim a, assume a, empty.elim a⟩
+
+def fin_one_equiv : fin 1 ≃ punit :=
+⟨λ_, (), λ_, 0, fin.cases rfl (λa, fin_zero_elim a), assume ⟨⟩, rfl⟩
+
+def fin_two_equiv : fin 2 ≃ bool :=
+⟨@fin.cases 1 (λ_, bool) ff (λ_, tt),
+  λb, cond b 1 0,
+  begin
+    refine fin.cases _ _, refl,
+    refine fin.cases _ _, refl,
+    exact λi, fin_zero_elim i
+  end,
+  assume b, match b with tt := rfl | ff := rfl end⟩
+
 def sum_fin_sum_equiv : (fin m ⊕ fin n) ≃ fin (m + n) :=
 { to_fun := λ x, sum.rec_on x
     (λ y, ⟨y.1, nat.lt_of_lt_of_le y.2 $ nat.le_add_right m n⟩)

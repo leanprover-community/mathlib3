@@ -32,7 +32,7 @@ by rw [← int.coe_nat_zero, coe_nat_inj']
 @[simp] theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
-lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (zero_le _)
+lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 
 lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
@@ -82,7 +82,7 @@ theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
 @add_le_add_iff_right _ _ a b 1
 
-theorem sub_one_le_iff {a b : ℤ} : a - 1 < b ↔ a ≤ b :=
+theorem sub_one_lt_iff {a b : ℤ} : a - 1 < b ↔ a ≤ b :=
 sub_lt_iff_lt_add.trans lt_add_one_iff
 
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
@@ -598,7 +598,7 @@ begin
       exact hdiv }
 end
 
-lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m := 
+lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m :=
 by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 /- / and ordering -/

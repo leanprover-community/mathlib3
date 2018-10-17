@@ -49,11 +49,7 @@ concrete_functor
   (by intros _ c; exact { ..c })
   (by introsI _ _ _ _ f i;  exact { ..i })
 
-instance : faithful (forget_to_CommMon) :=
-begin
-  tidy, 
-  apply (congr_fun h_1), -- TODO solve_by_elim should try this?
-end
+instance : faithful (forget_to_CommMon) := {}
 
 example : faithful (forget_to_CommMon ⋙ CommMon.forget_to_Mon) := by apply_instance
 end CommRing

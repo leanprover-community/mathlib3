@@ -18,6 +18,9 @@ def raise (k : fin n) : fin (n + 1) := ⟨val k, lt_succ_of_lt (is_lt k)⟩
 def add_nat {n} (i : fin n) (k) : fin (n + k) :=
 ⟨i.1 + k, nat.add_lt_add_right i.2 _⟩
 
+def nat_add {n} (k) (i : fin n) : fin (k + n) :=
+⟨k + i.1, nat.add_lt_add_left i.2 _⟩
+
 @[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
 by cases j; simp [fin.succ]
 
@@ -88,3 +91,12 @@ by cases i; refl
   {n} {C : fin (succ n) → Sort*} {H0 Hs} (i : fin n) :
   @fin.cases n C H0 Hs i.succ = Hs i :=
 by cases i; refl
+
+def raise_nat {n} (i : fin n) (k) : fin (n + k) :=
+⟨i.val, lt_add_of_lt_of_nonneg i.is_lt (nat.zero_le k)⟩
+
+def lower_left {n m} (i : fin (n + m)) (h : i.val < n) : fin n :=
+⟨i.val, h⟩
+
+def lower_right {n m} (i : fin (n + m)) (h: i.val >= n) : fin m :=
+⟨i.val - n, by simp [nat.sub_lt_right_iff_lt_add h, i.is_lt]⟩

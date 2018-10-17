@@ -44,6 +44,10 @@ protected def to_nnreal : ennreal → nnreal
 | (some r) h := rfl
 | none     h := (h rfl).elim
 
+lemma coe_to_nnreal_le_self : ∀{a:ennreal}, ↑(a.to_nnreal) ≤ a
+| (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_refl _
+| none     := le_top
+
 @[simp] lemma top_to_nnreal : ∞.to_nnreal = 0 := rfl
 
 lemma forall_ennreal {p : ennreal → Prop} : (∀a, p a) ↔ (∀r:nnreal, p r) ∧ p ∞ :=
@@ -76,6 +80,10 @@ lemma forall_ennreal {p : ennreal → Prop} : (∀a, p a) ↔ (∀r:nnreal, p r)
 
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
+
+lemma coe_nat : ∀n:ℕ, (n : ennreal) = (n : nnreal)
+| 0       := rfl
+| (n + 1) := by simp [coe_nat n]
 
 lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top _ _
 
@@ -315,6 +323,33 @@ begin
   exact le_div_iff_mul_le (mt coe_eq_coe.1 h) coe_ne_top
 end
 
+lemma mul_inv_cancel : ∀{r : ennreal}, r ≠ 0 → r ≠ ⊤ → r * r⁻¹ = 1 :=
+begin
+  refine forall_ennreal.2 (and.intro (assume r, _) _); simp { contextual := tt},
+  assume h, rw [← ennreal.coe_mul, nnreal.mul_inv_cancel h, coe_one]
+end
+
+lemma mul_le_if_le_inv {a b r : ennreal} (hr₀ : r ≠ 0) (hr₁ : r ≠ ⊤) : (r * a ≤ b ↔ a ≤ r⁻¹ * b) :=
+by rw [← @ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ← mul_assoc, mul_inv_cancel hr₀ hr₁, one_mul]
+
+lemma le_of_forall_lt_one_mul_lt : ∀{x y : ennreal}, (∀a<1, a * x ≤ y) → x ≤ y :=
+forall_ennreal.2 $ and.intro
+  (assume r, forall_ennreal.2 $ and.intro
+    (assume q h, coe_le_coe.2 $ nnreal.le_of_forall_lt_one_mul_lt $ assume a ha,
+      begin rw [← coe_le_coe, coe_mul], exact h _ (coe_lt_coe.2 ha) end)
+    (assume h, le_top))
+  (assume r hr,
+    have ((1 / 2 : nnreal) : ennreal) * ⊤ ≤ r :=
+      hr _ (coe_lt_coe.2 ((nnreal.coe_lt (1/2) 1).2 one_half_lt_one)),
+    have ne : ((1 / 2 : nnreal) : ennreal) ≠ 0,
+    begin
+      rw [(≠), coe_eq_zero],
+      refine zero_lt_iff_ne_zero.1 _,
+      show 0 < (1 / 2 : ℝ),
+      exact div_pos zero_lt_one two_pos
+    end,
+    by rwa [mul_top, if_neg ne] at this)
+
 end inv
 
 section infi
@@ -364,5 +399,18 @@ finset.induction_on s (by simp) $ assume a s ha ih,
   by simp [ha, ih.symm, infi_add_infi this]
 
 end infi
+
+section supr
+
+lemma supr_coe_nat : (⨆n:ℕ, (n : ennreal)) = ⊤ :=
+(lattice.supr_eq_top _).2 $ assume b hb,
+begin
+  rcases lt_iff_exists_coe.1 hb with ⟨r, rfl, hb⟩,
+  rcases exists_nat_gt r with ⟨n, hn⟩,
+  refine ⟨n, _⟩,
+  rwa [ennreal.coe_nat, ennreal.coe_lt_coe],
+end
+
+end supr
 
 end ennreal

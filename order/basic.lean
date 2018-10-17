@@ -219,6 +219,12 @@ lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a�
   (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₂ ≥ a₃) : a₁ = a₂ :=
 le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 
+lemma dense_or_discrete [linear_order α] {a₁ a₂ : α} (h : a₁ < a₂) :
+  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
+classical.or_iff_not_imp_left.2 $ assume h,
+  ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
+    assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
+
 section
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
@@ -323,6 +329,13 @@ instance is_extensional_of_is_strict_total_order'
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
+
+instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] : is_strict_total_order α r := by apply_instance
+instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] : is_extensional α r := by apply_instance
+instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] : is_trichotomous α r := by apply_instance
+instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] : is_trans α r := by apply_instance
+instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] : is_irrefl α r := by apply_instance
+instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] : is_asymm α r := by apply_instance
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,

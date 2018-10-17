@@ -602,3 +602,14 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.card)⟩]}
 
 end equiv.perm
+
+lemma finset.prod_univ_perm [fintype α] [comm_monoid β] {f : α → β} (σ : perm α) :
+  (univ : finset α).prod f = univ.prod (λ z, f (σ z)) :=
+eq.symm $ prod_bij (λ z _, σ z) (λ _ _, mem_univ _) (λ _ _, rfl)
+  (λ _ _ _ _ H, σ.bijective.1 H) (λ b _, ⟨σ⁻¹ b, mem_univ _, by simp⟩)
+
+lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ : perm α) :
+  (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
+@finset.prod_univ_perm _ (multiplicative β) _ _ f σ
+
+attribute [to_additive finset.sum_univ_perm] finset.prod_univ_perm

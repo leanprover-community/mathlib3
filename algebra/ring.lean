@@ -101,11 +101,6 @@ instance : is_monoid_hom f :=
 
 end is_semiring_hom
 
-@[simp] lemma zero_dvd_iff_eq_zero [comm_semiring α] (a : α) : 0 ∣ a ↔ a = 0 :=
-iff.intro
-  eq_zero_of_zero_dvd
-  (assume ha, ha ▸ dvd_refl a)
-
 section
   variables [ring α] (a b c d e : α)
 

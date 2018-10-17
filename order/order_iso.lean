@@ -21,6 +21,10 @@ definition subtype.order_embedding {X : Type*} (r : X → X → Prop) (p : X →
 ((subtype.val : subtype p → X) ⁻¹'o r) ≼o r :=
 ⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
 
+theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
+  (hs : equivalence s) : equivalence (f ⁻¹'o s) :=
+⟨λ a, hs.1 _, λ a b h, hs.2.1 h, λ a b c h₁ h₂, hs.2.2 h₁ h₂⟩
+
 namespace order_embedding
 
 instance : has_coe_to_fun (r ≼o s) := ⟨λ _, α → β, λ o, o.to_embedding⟩

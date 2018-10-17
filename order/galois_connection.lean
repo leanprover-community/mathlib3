@@ -158,7 +158,7 @@ protected lemma compose [preorder α] [preorder β] [preorder γ]
 by intros a b; rw [gc2, gc1]
 
 protected lemma dual [pα : preorder α] [pβ : preorder β]
-  (l : α → β) (u : β → α) (gc : galois_connection l u) :
+  {l : α → β} {u : β → α} (gc : galois_connection l u) :
   @galois_connection (order_dual β) (order_dual α) _ _ u l :=
 assume a b, (gc _ _).symm
 

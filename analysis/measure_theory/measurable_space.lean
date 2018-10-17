@@ -36,7 +36,7 @@ lemma is_measurable.compl : is_measurable s → is_measurable (-s) :=
 lemma is_measurable.compl_iff : is_measurable (-s) ↔ is_measurable s :=
 ⟨λ h, by simpa using h.compl, is_measurable.compl⟩
 
-lemma is_measurable_univ : is_measurable (univ : set α) :=
+lemma is_measurable.univ : is_measurable (univ : set α) :=
 by simpa using (@is_measurable.empty α _).compl
 
 lemma encodable.Union_decode2 {α} [encodable β] (f : β → set α) :
@@ -71,6 +71,10 @@ lemma is_measurable.sUnion {s : set (set α)} (hs : countable s) (h : ∀t∈s, 
   is_measurable (⋃₀ s) :=
 by rw sUnion_eq_bUnion; exact is_measurable.bUnion hs h
 
+lemma is_measurable.Union_Prop {p : Prop} {f : p → set α} (hf : ∀b, is_measurable (f b)) :
+  is_measurable (⋃b, f b) :=
+by by_cases p; simp [h, hf, is_measurable.empty]
+
 lemma is_measurable.Inter [encodable β] {f : β → set α} (h : ∀b, is_measurable (f b)) :
   is_measurable (⋂b, f b) :=
 is_measurable.compl_iff.1 $
@@ -84,6 +88,10 @@ by rw compl_bInter; exact is_measurable.bUnion hs (λ b hb, (h b hb).compl)
 lemma is_measurable.sInter {s : set (set α)} (hs : countable s) (h : ∀t∈s, is_measurable t) :
   is_measurable (⋂₀ s) :=
 by rw sInter_eq_bInter; exact is_measurable.bInter hs h
+
+lemma is_measurable.Inter_Prop {p : Prop} {f : p → set α} (hf : ∀b, is_measurable (f b)) :
+  is_measurable (⋂b, f b) :=
+by by_cases p; simp [h, hf, is_measurable.univ]
 
 lemma is_measurable.union {s₁ s₂ : set α}
   (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) : is_measurable (s₁ ∪ s₂) :=
@@ -106,6 +114,9 @@ is_measurable.diff
 lemma is_measurable.disjointed {f : ℕ → set α} (h : ∀i, is_measurable (f i)) (n) :
   is_measurable (disjointed f n) :=
 disjointed_induct (h n) (assume t i ht, is_measurable.diff ht $ h _)
+
+lemma is_measurable.const (p : Prop) : is_measurable {a : α | p} :=
+by by_cases p; simp [h, is_measurable.empty]; apply is_measurable.univ
 
 end
 
@@ -193,7 +204,7 @@ let b : measurable_space α :=
       or.inl $ eq_empty_of_subset_empty $ Union_subset $ assume i,
         (hf i).elim (by simp {contextual := tt}) (assume hi, false.elim $ h ⟨i, hi⟩)) } in
 have b = ⊥, from bot_unique $ assume s hs,
-  hs.elim (assume s, s.symm ▸ @is_measurable_empty _ ⊥) (assume s, s.symm ▸ @is_measurable_univ _ ⊥),
+  hs.elim (assume s, s.symm ▸ @is_measurable_empty _ ⊥) (assume s, s.symm ▸ @is_measurable.univ _ ⊥),
 this ▸ iff.refl _
 
 @[simp] theorem is_measurable_top {s : set α} : @is_measurable _ ⊤ s := trivial
@@ -323,7 +334,7 @@ lemma measurable_generate_from [measurable_space α] {s : set (set β)} {f : α 
 generate_from_le h
 
 lemma measurable.if [measurable_space α] [measurable_space β]
-  {p : α → Prop} [decidable_pred p] {f g : α → β}
+  {p : α → Prop} {h : decidable_pred p} {f g : α → β}
   (hp : is_measurable {a | p a}) (hf : measurable f) (hg : measurable g) :
   measurable (λa, if p a then f a else g a) :=
 λ s hs, show is_measurable {a | (if p a then f a else g a) ∈ s},
@@ -331,6 +342,12 @@ begin
   convert (hp.inter $ hf s hs).union (hp.compl.inter $ hg s hs),
   exact ext (λ a, by by_cases p a; simp [h, mem_def])
 end
+
+lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} : measurable (λb:β, a) :=
+assume s hs, show is_measurable {b : β | a ∈ s}, from
+  classical.by_cases
+    (assume h : a ∈ s, by simp [h]; from is_measurable.univ)
+    (assume h : a ∉ s, by simp [h]; from is_measurable.empty)
 
 end measurable_functions
 

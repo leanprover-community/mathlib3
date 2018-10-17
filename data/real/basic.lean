@@ -572,7 +572,7 @@ by rw [mul_self_le_mul_self_iff (sqrt_nonneg _) (sqrt_nonneg _),
        mul_self_sqrt hx, mul_self_sqrt hy]
 
 @[simp] theorem sqrt_lt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x < sqrt y ↔ x < y :=
-le_iff_le_iff_lt_iff_lt.1 (sqrt_le hy hx)
+lt_iff_lt_of_le_iff_le (sqrt_le hy hx)
 
 @[simp] theorem sqrt_inj {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x = sqrt y ↔ x = y :=
 by simp [le_antisymm_iff, hx, hy]
@@ -586,7 +586,7 @@ theorem sqrt_eq_zero' {x : ℝ} : sqrt x = 0 ↔ x ≤ 0 :=
   (λ h, by simp [h]; simp [le_antisymm_iff, h])
 
 @[simp] theorem sqrt_pos {x : ℝ} : 0 < sqrt x ↔ 0 < x :=
-le_iff_le_iff_lt_iff_lt.1 (iff.trans
+lt_iff_lt_of_le_iff_le (iff.trans
   (by simp [le_antisymm_iff, sqrt_nonneg]) sqrt_eq_zero')
 
 @[simp] theorem sqrt_mul' (x) {y : ℝ} (hy : 0 ≤ y) : sqrt (x * y) = sqrt x * sqrt y :=

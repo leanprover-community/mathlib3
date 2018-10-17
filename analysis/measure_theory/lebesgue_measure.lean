@@ -220,29 +220,50 @@ end
 
 The outer Lebesgue measure is the completion of this measure. (TODO: proof this)
 -/
-def lebesgue : measure ℝ :=
-lebesgue_outer.to_measure $
-  calc borel ℝ = measurable_space.generate_from (⋃a:ℚ, {Iio a}) :
-      real.borel_eq_generate_from_Iio_rat
-    ... ≤ lebesgue_outer.caratheodory :
-      measurable_space.generate_from_le $ by simp [is_lebesgue_measurable_Iio] {contextual := tt}
+instance : measure_space ℝ :=
+⟨{to_outer_measure := lebesgue_outer,
+  m_Union :=
+    have borel ℝ ≤ lebesgue_outer.caratheodory,
+    by rw real.borel_eq_generate_from_Iio_rat;
+       refine measurable_space.generate_from_le _;
+       simp [is_lebesgue_measurable_Iio] {contextual := tt},
+    λ f hf, lebesgue_outer.Union_eq_of_caratheodory (λ i, this _ (hf i)),
+  trimmed := lebesgue_outer_trim }⟩
 
-@[simp] theorem lebesgue_to_outer_measure : lebesgue.to_outer_measure = lebesgue_outer :=
-(to_measure_to_outer_measure _ _).trans lebesgue_outer_trim
+@[simp] theorem lebesgue_to_outer_measure :
+  (measure_space.μ : measure ℝ).to_outer_measure = lebesgue_outer := rfl
 
-theorem lebesgue_val (s) : lebesgue s = lebesgue_outer s :=
-(congr_arg (λ m:outer_measure ℝ, m s) lebesgue_to_outer_measure : _)
+theorem real.volume_val (s) : volume s = lebesgue_outer s := rfl
+local attribute [simp] real.volume_val
 
-@[simp] lemma lebesgue_Ico {a b : ℝ} : lebesgue (Ico a b) = of_real (b - a) :=
-by simp [lebesgue_val]
+@[simp] lemma real.volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) := by simp
+@[simp] lemma real.volume_Icc {a b : ℝ} : volume (Icc a b) = of_real (b - a) := by simp
+@[simp] lemma real.volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) := by simp
+@[simp] lemma real.volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 := by simp
 
-@[simp] lemma lebesgue_Icc {a b : ℝ} : lebesgue (Icc a b) = of_real (b - a) :=
-by simp [lebesgue_val]
+/-
+section vitali
 
-@[simp] lemma lebesgue_Ioo {a b : ℝ} : lebesgue (Ioo a b) = of_real (b - a) :=
-by simp [lebesgue_val]
+def vitali_aux_h (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
+  ∃ y ∈ Icc (0:ℝ) 1, ∃ q:ℚ, ↑q = x - y :=
+⟨x, h, 0, by simp⟩
 
-@[simp] lemma lebesgue_singleton {a : ℝ} : lebesgue {a} = 0 :=
-by simp [lebesgue_val]
+def vitali_aux (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : ℝ :=
+classical.some (vitali_aux_h x h)
+
+theorem vitali_aux_mem (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : vitali_aux x h ∈ Icc (0:ℝ) 1 :=
+Exists.fst (classical.some_spec (vitali_aux_h x h):_)
+
+theorem vitali_aux_rel (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
+ ∃ q:ℚ, ↑q = x - vitali_aux x h :=
+Exists.snd (classical.some_spec (vitali_aux_h x h):_)
+
+def vitali : set ℝ := {x | ∃ h, x = vitali_aux x h}
+
+theorem vitali_nonmeasurable : ¬ is_null_measurable measure_space.μ vitali :=
+sorry
+
+end vitali
+-/
 
 end measure_theory

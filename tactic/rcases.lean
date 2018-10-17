@@ -350,6 +350,7 @@ with_desc "patt_list" $ rcases_patt_parse_core rcases_patt_parse_list
 meta def rcases_parse_depth : parser nat :=
 do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
 
+precedence `?`:max
 meta def rcases_parse : parser (pexpr × (listΣ (listΠ rcases_patt) ⊕ nat)) :=
 do hint ← (tk "?")?,
   p ← texpr,

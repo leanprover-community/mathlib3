@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter data.set.countable tactic
+import order.filter data.set.countable tactic tactic.tidy
 
 open set filter lattice classical
 local attribute [instance] prop_decidable
@@ -1280,6 +1280,97 @@ let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) i
 ⟨subtype.val '' T, countable_image _ cT,
   image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
   by rwa [sUnion_image, sUnion_eq_Union]⟩
+
+variable (α)
+def opens := {s : set α // _root_.is_open s}
+variable {α}
+
+instance : has_coe (opens α) (set α) := { coe := subtype.val }
+
+instance : has_subset (opens α) :=
+{ subset := λ U V, U.val ⊆ V.val }
+
+instance : has_mem α (opens α) :=
+{ mem := λ a U, a ∈ U.val }
+
+namespace opens
+
+@[extensionality] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
+
+instance : partial_order (opens α) := subtype.partial_order _
+
+def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
+
+def gc : galois_connection (subtype.val : opens α → set α) interior :=
+λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
+
+def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ interior (subtype.val) :=
+{ choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
+  gc := gc.dual,
+  le_l_u := λ _, interior_subset,
+  choice_eq := λ s hs, le_antisymm interior_subset hs }
+
+instance : complete_lattice (opens α) :=
+@order_dual.lattice.complete_lattice _
+  (@galois_insertion.lift_complete_lattice
+    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi)
+
+@[simp] lemma Sup_s {Us : set (opens α)} : (Sup Us).val = ⋃₀ (subtype.val '' Us) :=
+begin
+  rw [@galois_connection.l_Sup (opens α) (set α) _ _ (subtype.val : opens α → set α) interior (gc) Us, set.sUnion_image],
+  congr
+end
+
+def is_basis (B : set (opens α)) : Prop := is_topological_basis (subtype.val '' B)
+
+lemma is_basis_iff_nbhd {B : set (opens α)} :
+is_basis B ↔ ∀ {U : opens α} {x}, x ∈ U → ∃ U' ∈ B, x ∈ U' ∧ U' ⊆ U :=
+begin
+split; intro h,
+{ rintros ⟨sU, hU⟩ x hx,
+  rcases (mem_nhds_of_is_topological_basis h).mp (mem_nhds_sets hU hx) with ⟨sV,⟨⟨V,H₁,H₂⟩,hsV⟩⟩,
+  refine ⟨V,H₁,_⟩,
+  cases V, dsimp at H₂, subst H₂, exact hsV },
+{ refine is_topological_basis_of_open_of_nhds _ _,
+  { rintros sU ⟨U,⟨H₁,H₂⟩⟩, subst H₂, exact U.property },
+  { intros x sU hx hsU,
+    rcases @h (⟨sU,hsU⟩ : opens α) x hx with ⟨V,hV,H⟩,
+    refine ⟨V, ⟨V,hV,rfl⟩, H⟩ } }
+end
+
+lemma is_basis_iff_cover {B : set (opens α)} :
+is_basis B ↔ ∀ U : opens α, ∃ Us ⊆ B, U = Sup Us :=
+begin
+  split,
+  { intros hB U,
+    rcases sUnion_basis_of_is_open hB U.property with ⟨sUs, H, hU⟩,
+    existsi {U : opens α | U ∈ B ∧ U.val ∈ sUs},
+    split,
+    { intros U hU, exact hU.left },
+    { apply ext, rw [Sup_s, hU], congr,
+      ext s; split; intro hs,
+      { rcases H hs with ⟨V,hV⟩,
+        rw ← hV.right at hs,
+        refine ⟨V,⟨⟨hV.left,hs⟩,hV.right⟩⟩ },
+      { rcases hs with ⟨V,⟨⟨H₁,H₂⟩,H₃⟩⟩,
+        subst H₃, exact H₂ } } },
+  { intro h,
+    rw is_basis_iff_nbhd,
+    intros U x hx,
+    rcases h U with ⟨Us, hUs, H⟩,
+    replace H := congr_arg subtype.val H,
+    rw Sup_s at H,
+    change x ∈ U.val at hx,
+    rw H at hx,
+    rcases set.mem_sUnion.mp hx with ⟨sV, ⟨⟨V,H₁,H₂⟩,hsV⟩⟩,
+    refine ⟨V,hUs H₁,_⟩,
+    cases V, dsimp at H₂, subst H₂,
+    refine ⟨hsV,_⟩,
+    change V_val ⊆ U.val, rw H,
+    exact set.subset_sUnion_of_mem ⟨⟨V_val,_⟩,⟨H₁,rfl⟩⟩ }
+end
+
+end opens
 
 end topological_space
 

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes, Morenikeji Neri
 -/
 
-import algebra.euclidean_domain ring_theory.ideals
+import algebra.euclidean_domain
+import ring_theory.ideals
 
 variables {α : Type*} [comm_ring α]
 
@@ -44,7 +45,33 @@ instance to_is_ideal (S : set α) [is_principal_ideal S] : is_ideal S :=
 
 end is_principal_ideal
 
-open euclidean_domain is_principal_ideal is_ideal
+namespace is_prime_ideal
+open is_principal_ideal is_ideal
+
+lemma to_maximal_ideal {α : Type*} [principal_ideal_domain α] {S : set α}
+  [hpi : is_prime_ideal S] (hS : S ≠ trivial α) : is_maximal_ideal S :=
+is_maximal_ideal.mk _ (is_proper_ideal_iff_one_not_mem.1 (by apply_instance))
+begin
+  assume x T i hST hxS hxT,
+  haveI := principal_ideal_domain.principal S,
+  haveI := principal_ideal_domain.principal T,
+  cases (mem_iff_generator_dvd _).1 (hST ((mem_iff_generator_dvd _).2 (dvd_refl _))) with z hz,
+  cases is_prime_ideal.mem_or_mem_of_mul_mem (show generator T * z ∈ S,
+    by rw [mem_iff_generator_dvd S, ← hz]),
+  { have hST' : S = T := set.subset.antisymm hST
+      (λ y hyT, (mem_iff_generator_dvd _).2
+        (dvd.trans ((mem_iff_generator_dvd _).1 h) ((mem_iff_generator_dvd _).1 hyT))),
+    cc },
+  { cases (mem_iff_generator_dvd _).1 h with y hy,
+    rw [← mul_one (generator S), hy, mul_left_comm,
+      domain.mul_left_inj (mt (eq_trivial_iff_generator_eq_zero S).2 hS)] at hz,
+    exact hz.symm ▸ is_ideal.mul_right (generator_mem T) }
+end
+
+end is_prime_ideal
+
+section
+open euclidean_domain
 
 lemma mod_mem_iff {α : Type*} [euclidean_domain α] {S : set α} [is_ideal S] {x y : α}
   (hy : y ∈ S) : x % y ∈ S ↔ x ∈ S :=
@@ -71,23 +98,4 @@ instance euclidean_domain.to_principal_ideal_domain {α : Type*} [euclidean_doma
         have x % well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h = 0, by finish [(mod_mem_iff hmin.1).2 hx],
         by simp *),
       λ hx, let ⟨y, hy⟩ := hx in hy.symm ▸ is_ideal.mul_right hmin.1⟩⟩⟩ }
-
-lemma is_prime_ideal.to_maximal_ideal {α : Type*} [principal_ideal_domain α] {S : set α}
-  [hpi : is_prime_ideal S] (hS : S ≠ trivial α) : is_maximal_ideal S :=
-is_maximal_ideal.mk _ (is_proper_ideal_iff_one_not_mem.1 (by apply_instance))
-begin
-  assume x T i hST hxS hxT,
-  haveI := principal_ideal_domain.principal S,
-  haveI := principal_ideal_domain.principal T,
-  cases (mem_iff_generator_dvd _).1 (hST ((mem_iff_generator_dvd _).2 (dvd_refl _))) with z hz,
-  cases is_prime_ideal.mem_or_mem_of_mul_mem (show generator T * z ∈ S,
-    by rw [mem_iff_generator_dvd S, ← hz]),
-  { have hST' : S = T := set.subset.antisymm hST
-      (λ y hyT, (mem_iff_generator_dvd _).2
-        (dvd.trans ((mem_iff_generator_dvd _).1 h) ((mem_iff_generator_dvd _).1 hyT))),
-    cc },
-  { cases (mem_iff_generator_dvd _).1 h with y hy,
-    rw [← mul_one (generator S), hy, mul_left_comm,
-      domain.mul_left_inj (mt (eq_trivial_iff_generator_eq_zero S).2 hS)] at hz,
-    exact hz.symm ▸ is_ideal.mul_right (generator_mem T) }
 end

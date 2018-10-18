@@ -1060,6 +1060,13 @@ begin
       exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
 end
 
+lemma nhds_nil [topological_space α] : nhds ([] : list α) = pure [] :=
+by rw [nhds_list, list.traverse_nil _]; apply_instance
+
+lemma nhds_cons [topological_space α] (a : α) (l : list α) :
+  nhds (a :: l) = list.cons <$> nhds a <*> nhds l  :=
+by rw [nhds_list, list.traverse_cons _, ← nhds_list]; apply_instance
+
 lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
   closure (quotient.mk '' s) = univ :=
 eq_univ_of_forall $ λ x, begin

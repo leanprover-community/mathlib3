@@ -120,7 +120,7 @@ open function
 meta def monotonicity.attr : user_attribute
   (native.rb_map mono_key (list name))
   (option mono_key × mono_selection) :=
-{ name  := `monotonic
+{ name  := `mono
 , descr := "monotonicity of function `f` wrt relations `R₀` and `R₁`: R₀ x y → R₁ (f x) (f y)"
 , cache_cfg :=
   { dependencies := [],
@@ -155,10 +155,10 @@ do ns  ← monotonicity.attr.get_cache,
 
 end tactic.interactive
 
-attribute [monotonic] add_le_add mul_le_mul neg_le_neg
+attribute [mono] add_le_add mul_le_mul neg_le_neg
          mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
          imp_imp_imp le_implies_le_of_le_of_le
          sub_le_sub abs_le_abs
-attribute [monotonic left] add_lt_add_of_le_of_lt mul_lt_mul'
-attribute [monotonic right] add_lt_add_of_lt_of_le mul_lt_mul
+attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
+attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul
 open tactic.interactive

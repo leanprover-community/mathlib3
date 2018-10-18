@@ -3,7 +3,7 @@ import tactic.monotonicity.basic
 
 variables {α : Type*}
 
-@[monotonic]
+@[mono]
 lemma mul_mono_nonneg {x y z : α} [ordered_semiring α]
   (h' : 0 ≤ z)
   (h : x ≤ y)
@@ -20,7 +20,7 @@ have h3 : b * (-c) < a * (-c), from calc
           ... = a * (-c)     : by rewrite neg_mul_eq_mul_neg,
 lt_of_mul_lt_mul_right h3 nhc
 
-@[monotonic]
+@[mono]
 lemma mul_mono_nonpos {x y z : α} [linear_ordered_ring α]
   [decidable_rel ((≤) : α → α → Prop)]
   (h' : 0 ≥ z)
@@ -34,7 +34,7 @@ begin
   apply lt_of_not_ge h''
 end
 
-@[monotonic]
+@[mono]
 lemma nat.sub_mono_left_strict {x y z : ℕ}
   (h' : z ≤ x)
   (h : x < y)
@@ -47,7 +47,7 @@ begin
     solve_by_elim
 end
 
-@[monotonic]
+@[mono]
 lemma nat.sub_mono_right_strict {x y z : ℕ}
   (h' : x ≤ z)
   (h : y < x)

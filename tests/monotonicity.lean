@@ -104,7 +104,7 @@ begin
     apply xs_ih _ h.right h'.right, }
 end
 
-@[monotonic]
+@[mono]
 lemma list_le_mono_left {α : Type*} [preorder α] {xs ys zs : list α}
   (h : xs ≤ ys)
 : xs ++ zs ≤ ys ++ zs :=
@@ -117,7 +117,7 @@ begin
     apply xs_ih }
 end
 
-@[monotonic]
+@[mono]
 lemma list_le_mono_right {α : Type*} [preorder α] {xs ys zs : list α}
   (h : xs ≤ ys)
 : zs ++ xs ≤ zs ++ ys :=
@@ -161,13 +161,13 @@ end
 def P (x : ℕ) := 7 ≤ x
 def Q (x : ℕ) := x ≤ 7
 
-@[monotonic]
+@[mono]
 lemma P_mono {x y : ℕ}
   (h : x ≤ y)
 : P x → P y :=
 by { intro h', apply le_trans h' h }
 
-@[monotonic]
+@[mono]
 lemma Q_mono {x y : ℕ}
   (h : y ≤ x)
 : Q x → Q y :=

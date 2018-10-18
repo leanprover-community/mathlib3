@@ -607,6 +607,6 @@ do h ← i_to_expr t >>= assert `h,
    tactic.swap,
    focus1 $ repeat_or_not rep (ac_mono_aux opt) (some $ done <|> ac_refine h)
 
-attribute [monotonic] and.imp or.imp
+attribute [mono] and.imp or.imp
 
 end tactic.interactive

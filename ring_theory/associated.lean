@@ -10,6 +10,7 @@ import order.galois_connection algebra.group data.equiv.basic data.multiset data
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 open lattice
 
+/-- is unit -/
 def is_unit [monoid α] (a : α) : Prop := ∃u:units α, a = u
 
 @[simp] theorem not_is_unit_zero [nonzero_comm_ring α] : ¬ is_unit (0 : α)
@@ -17,21 +18,22 @@ def is_unit [monoid α] (a : α) : Prop := ∃u:units α, a = u
 
 @[simp] theorem is_unit_one [monoid α] : is_unit (1:α) := ⟨1, rfl⟩
 
-theorem units.is_unit_of_mul_one [comm_monoid α] (a b : α) (h : a * b = 1) : is_unit a :=
+theorem is_unit_of_mul_one [comm_monoid α] (a b : α) (h : a * b = 1) : is_unit a :=
 ⟨units.mk_of_mul_eq_one a b h, rfl⟩
 
-@[simp] theorem is_unit_mul_units [monoid α] (a : α) (u : units α) : is_unit (a * u) ↔ is_unit a :=
+@[simp] theorem units.is_unit_mul_units [monoid α] (a : α) (u : units α) :
+  is_unit (a * u) ↔ is_unit a :=
 iff.intro
   (assume ⟨v, hv⟩,
     have is_unit (a * ↑u * ↑u⁻¹), by existsi v * u⁻¹; rw [hv, units.coe_mul],
     by rwa [mul_assoc, units.mul_inv, mul_one] at this)
   (assume ⟨v, hv⟩, hv.symm ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
 
-theorem is_unit_iff_dvd_one {α} [comm_semiring α] {x : α} : is_unit x ↔ x ∣ 1 :=
+theorem is_unit_iff_dvd_one [comm_semiring α] {x : α} : is_unit x ↔ x ∣ 1 :=
 ⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
  λ ⟨y, h⟩, ⟨⟨x, y, h.symm, by rw [h, mul_comm]⟩, rfl⟩⟩
 
-theorem is_unit_iff_forall_dvd {α} [comm_semiring α] {x : α} :
+theorem is_unit_iff_forall_dvd [comm_semiring α] {x : α} :
   is_unit x ↔ ∀ y, x ∣ y :=
 is_unit_iff_dvd_one.trans ⟨λ h y, dvd.trans h (one_dvd _), λ h, h _⟩
 
@@ -43,6 +45,26 @@ is_unit_iff_dvd_one.2 $ dvd_trans xy $ is_unit_iff_dvd_one.1 hu
 iff.intro
   (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (assume h, h.symm ▸ ⟨1, rfl⟩)
+
+lemma is_unit_of_dvd_one [comm_semiring α] : ∀a ∣ 1, is_unit (a:α)
+| a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
+
+/-- prime element of a semiring -/
+def prime [comm_semiring α] (p : α) : Prop :=
+p ≠ 0 ∧ ¬ is_unit p ∧ (∀a b, p ∣ a * b → p ∣ a ∨ p ∣ b)
+
+lemma not_prime_zero [integral_domain α] : ¬ prime (0 : α)
+| ⟨h, _⟩ := h rfl
+
+lemma exists_mem_multiset_dvd_of_prime [comm_semiring α] {s : multiset α} {p : α} (hp : prime p) :
+  p ∣ s.prod → ∃a∈s, p ∣ a :=
+multiset.induction_on s (assume h, (hp.2.1 $ is_unit_of_dvd_one _ h).elim) $
+assume a s ih h,
+  have p ∣ a * s.prod, by simpa using h,
+  match hp.2.2 a s.prod this with
+  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
+  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
+  end
 
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
 
@@ -105,6 +127,13 @@ namespace associated
 @[trans] protected theorem trans [monoid α] : ∀{x y z : α}, x ~ᵤ y → y ~ᵤ z → x ~ᵤ z
 | x _ _ ⟨u, rfl⟩ ⟨v, rfl⟩ := ⟨u * v, by rw [units.coe_mul, mul_assoc]⟩
 
+protected def setoid (α : Type*) [monoid α] : setoid α :=
+{ r := associated, iseqv := ⟨associated.refl, λa b, associated.symm, λa b c, associated.trans⟩ }
+
+end associated
+
+local attribute [instance] associated.setoid
+
 theorem unit_associated_one [monoid α] {u : units α} : (u : α) ~ᵤ 1 := ⟨u⁻¹, units.mul_inv u⟩
 
 theorem associated_one_iff_is_unit [monoid α] {a : α} : (a : α) ~ᵤ 1 ↔ is_unit a :=
@@ -124,6 +153,10 @@ theorem associated_one_of_associated_mul_one [comm_monoid α] {a b : α} :
   a * b ~ᵤ 1 → a ~ᵤ 1
 | ⟨u, h⟩ := associated_one_of_mul_eq_one (b * u) $ by simpa [mul_assoc] using h
 
+lemma associated_mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
+  a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)
+| ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ := ⟨c₁ * c₂, by simp [h₁.symm, h₂.symm, mul_assoc, mul_comm, mul_left_comm]⟩
+
 theorem associated_of_dvd_dvd [integral_domain α] {a b : α} (hab : a ∣ b) (hba : b ∣ a) : a ~ᵤ b :=
 begin
   haveI := classical.dec_eq α,
@@ -136,13 +169,6 @@ begin
   have : 1 = (c * d), from eq_of_mul_eq_mul_left ha0 this,
   exact ⟨units.mk_of_mul_eq_one c d (this.symm), by rw [units.mk_of_mul_eq_one, units.val_coe]⟩
 end
-
-protected def setoid (α : Type*) [monoid α] : setoid α :=
-{ r := associated, iseqv := ⟨associated.refl, λa b, associated.symm, λa b c, associated.trans⟩ }
-
-end associated
-
-local attribute [instance] associated.setoid
 
 def associates (α : Type*) [monoid α] : Type* :=
 quotient (associated.setoid α)
@@ -200,6 +226,10 @@ instance : preorder (associates α) :=
 { le := λa b, ∃c, a * c = b,
   le_refl := assume a, ⟨1, by simp⟩,
   le_trans := assume a b c ⟨f₁, h₁⟩ ⟨f₂, h₂⟩, ⟨f₁ * f₂, h₂ ▸ h₁ ▸ (mul_assoc _ _ _).symm⟩}
+
+instance [comm_monoid α] : has_dvd (associates α) := ⟨(≤)⟩
+
+lemma dvd_eq_le [comm_monoid α] : ((∣) : associates α → associates α → Prop) = (≤) := rfl
 
 theorem prod_mk {p : multiset α} : (p.map associates.mk).prod = associates.mk p.prod :=
 multiset.induction_on p (by simp; refl) $ assume a s ih, by simp [ih]; refl
@@ -296,6 +326,36 @@ assume ⟨c, hc⟩, ⟨associates.mk c, by simp [hc]; refl⟩
 theorem mk_le_mk_iff_dvd_iff {a b : α} : associates.mk a ≤ associates.mk b ↔ a ∣ b :=
 iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
 
+def prime (p : associates α) : Prop := p ≠ 0 ∧ p ≠ 1 ∧ (∀a b, p ≤ a * b → p ≤ a ∨ p ≤ b)
+
+lemma exists_mem_multiset_le_of_prime {s : multiset (associates α)} {p : associates α}
+  (hp : prime p) :
+  p ≤ s.prod → ∃a∈s, p ≤ a :=
+multiset.induction_on s (assume ⟨d, eq⟩, (hp.2.1 (mul_eq_one_iff.1 eq).1).elim) $
+assume a s ih h,
+  have p ≤ a * s.prod, by simpa using h,
+  match hp.2.2 a s.prod this with
+  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
+  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
+  end
+
+lemma prime_mk (p : α) : prime (associates.mk p) ↔ _root_.prime p :=
+begin
+  rw [associates.prime, _root_.prime, forall_associated],
+  transitivity,
+  { apply and_congr, refl,
+    apply and_congr, refl,
+    apply forall_congr, assume a,
+    exact forall_associated },
+  apply and_congr,
+  { rw [(≠), mk_zero_eq] },
+  apply and_congr,
+  { rw [(≠), ← is_unit_iff_eq_one, is_unit_mk], },
+  apply forall_congr, assume a,
+  apply forall_congr, assume b,
+  rw [mk_mul_mk, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff]
+end
+
 end comm_semiring
 
 section integral_domain
@@ -354,6 +414,35 @@ begin
     have : a = x * (y * u), by rwa [mul_assoc, eq_comm] at eq,
     show is_unit (associates.mk x) ∨ is_unit (associates.mk y),
     simpa [is_unit_mk] using h _ _ this }
+end
+
+lemma eq_of_mul_eq_mul_left [integral_domain α] :
+  ∀(a b c : associates α), a ≠ 0 → a * b = a * c → b = c :=
+begin
+  rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ha h,
+  rcases quotient.exact' h with ⟨u, hu⟩,
+  have hu : a * (b * ↑u) = a * c, { rwa [← mul_assoc] },
+  exact quotient.sound' ⟨u, eq_of_mul_eq_mul_left (mt (mk_zero_eq a).2 ha) hu⟩
+end
+
+lemma le_of_mul_le_mul_left [integral_domain α] (a b c : associates α) (ha : a ≠ 0) :
+  a * b ≤ a * c → b ≤ c
+| ⟨d, hd⟩ := ⟨d, eq_of_mul_eq_mul_left a _ _ ha $ by rwa ← mul_assoc⟩
+
+lemma one_or_eq_of_le_of_prime [integral_domain α] :
+  ∀(p m : associates α), prime p → m ≤ p → (m = 1 ∨ m = p)
+| _ m ⟨hp0, hp1, h⟩ ⟨d, rfl⟩ :=
+match h m d (le_refl _) with
+| or.inl h := classical.by_cases (assume : m = 0, by simp [this]) $
+  assume : m ≠ 0,
+  have m * d ≤ m * 1, by simpa using h,
+  have d ≤ 1, from associates.le_of_mul_le_mul_left m d 1 ‹m ≠ 0› this,
+  have d = 1, from lattice.bot_unique this,
+  by simp [this]
+| or.inr h := classical.by_cases (assume : d = 0, by simp [this] at hp0; contradiction) $
+  assume : d ≠ 0,
+  have d * m ≤ d * 1, by simpa [mul_comm] using h,
+  or.inl $ lattice.bot_unique $ associates.le_of_mul_le_mul_left d m 1 ‹d ≠ 0› this
 end
 
 end integral_domain

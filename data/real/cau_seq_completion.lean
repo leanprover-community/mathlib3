@@ -55,7 +55,7 @@ instance : has_mul Cauchy :=
 ⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f * g)) $
   λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
   by simpa [(≈), setoid.r, mul_add, mul_comm] using
-    add_lim_zero (mul_lim_zero g₁ hf) (mul_lim_zero f₂ hg)⟩
+    add_lim_zero (mul_lim_zero_right g₁ hf) (mul_lim_zero_right f₂ hg)⟩
 
 @[simp] theorem mk_mul (f g : cau_seq β abv) : mk f * mk g = mk (f * g) := rfl
 
@@ -120,7 +120,6 @@ one_ne_zero $ const_lim_zero.1 this
 lemma zero_ne_one : (0 : Cauchy) ≠ 1 :=
 λ h, cau_seq_zero_ne_one $ mk_eq.1 h
 
-
 protected theorem inv_mul_cancel {x : Cauchy} : x ≠ 0 → x⁻¹ * x = 1 :=
 quotient.induction_on x $ λ f hf, begin
   simp at hf, simp [hf],
@@ -147,29 +146,112 @@ by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
 end
 end cau_seq.completion
 
+variables {α : Type*} [discrete_linear_ordered_field α]
 namespace cau_seq
 section
 
-variables {α : Type*} [discrete_linear_ordered_field α]
 variables (β : Type*) [ring β] (abv : β → α) [is_absolute_value abv]
 
 class is_complete :=
-(is_complete : ∀ s : cau_seq β abv, ∃ b : β, ∀ ε > 0, ∃ N : ℕ, ∀ i ≥ N, abv (b - s.val i) < ε)
+(is_complete : ∀ s : cau_seq β abv, ∃ b : β, s ≈ const abv b)
 end
 
 section
 
-variables {α : Type*} [discrete_linear_ordered_field α]
 variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
 variable [is_complete β abv]
 
-lemma complete : ∀ s : cau_seq β abv, ∃ b : β, ∀ ε > 0, ∃ N : ℕ, ∀ i ≥ N, abv (b - s.val i) < ε :=
+lemma complete : ∀ s : cau_seq β abv, ∃ b : β, s ≈ const abv b :=
 is_complete.is_complete
 
 noncomputable def lim (s : cau_seq β abv) := classical.some (complete s)
 
-lemma lim_spec (s : cau_seq β abv) : ∀ ε > 0, ∃ N : ℕ, ∀ i ≥ N, abv (lim s - s.val i) < ε :=
+lemma equiv_lim (s : cau_seq β abv) : s ≈ const abv (lim s) :=
 classical.some_spec (complete s)
+
+lemma eq_lim_of_const_equiv {f : cau_seq β abv} {x : β} (h : cau_seq.const abv x ≈ f) : x = lim f :=
+const_equiv.mp $ setoid.trans h $ equiv_lim f
+
+lemma lim_eq_of_equiv_const {f : cau_seq β abv} {x : β} (h : f ≈ cau_seq.const abv x) : lim f = x :=
+(eq_lim_of_const_equiv $ setoid.symm h).symm
+
+lemma lim_eq_lim_of_equiv {f g : cau_seq β abv} (h : f ≈ g) : lim f = lim g :=
+lim_eq_of_equiv_const $ setoid.trans h $ equiv_lim g
+
+@[simp] lemma lim_const (x : β) : lim (const abv x) = x :=
+lim_eq_of_equiv_const $ setoid.refl _
+
+lemma lim_add (f g : cau_seq β abv) : lim f + lim g = lim (f + g) :=
+eq_lim_of_const_equiv $ show lim_zero (const abv (lim f + lim g) - (f + g)),
+  by rw [const_add, add_sub_comm];
+  exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g))
+
+lemma lim_mul_lim (f g : cau_seq β abv) : lim f * lim g = lim (f * g) :=
+eq_lim_of_const_equiv $ show lim_zero (const abv (lim f * lim g) - f * g),
+  from have h : const abv (lim f * lim g) - f * g = (const abv (lim f) - f) * g
+      + const abv (lim f) * (const abv (lim g) - g) :=
+    by simp [const_mul (lim f), mul_add, add_mul],
+  by rw h; exact add_lim_zero (mul_lim_zero_left _ (setoid.symm (equiv_lim _)))
+    (mul_lim_zero_right _ (setoid.symm (equiv_lim _)))
+
+lemma lim_mul (f : cau_seq β abv) (x : β) : lim f * x = lim (f * const abv x) :=
+by rw [← lim_mul_lim, lim_const]
+
+lemma lim_neg (f : cau_seq β abv) : lim (-f) = -lim f :=
+lim_eq_of_equiv_const (show lim_zero (-f - const abv (-lim f)),
+  by rw [const_neg, sub_neg_eq_add, add_comm];
+  exact setoid.symm (equiv_lim f))
+
+lemma lim_eq_zero_iff (f : cau_seq β abv) : lim f = 0 ↔ lim_zero f :=
+⟨assume h,
+  by have hf := equiv_lim f;
+  rw h at hf;
+  exact (lim_zero_congr hf).mpr (const_lim_zero.mpr rfl),
+assume h,
+  have h₁ : f = (f - const abv 0) := ext (λ n, by simp [sub_apply, const_apply]),
+  by rw h₁ at h; exact lim_eq_of_equiv_const h ⟩
+
+end
+
+section
+variables {β : Type*} [discrete_field β] {abv : β → α} [is_absolute_value abv] [is_complete β abv]
+
+lemma lim_inv {f : cau_seq β abv} (hf : ¬ lim_zero f) : lim (inv f hf) = (lim f)⁻¹ :=
+have hl : lim f ≠ 0 := by rwa ← lim_eq_zero_iff at hf,
+lim_eq_of_equiv_const $ show lim_zero (inv f hf - const abv (lim f)⁻¹),
+  from have h₁ : ∀ (g f : cau_seq β abv) (hf : ¬ lim_zero f), lim_zero (g - f * inv f hf * g) :=
+    λ g f hf, by rw [← one_mul g, ← mul_assoc, ← sub_mul, mul_one, mul_comm, mul_comm f];
+    exact mul_lim_zero_right _ (setoid.symm (cau_seq.inv_mul_cancel _)),
+  have h₂ : lim_zero ((inv f hf - const abv (lim f)⁻¹) - (const abv (lim f) - f) *
+      (inv f hf * const abv (lim f)⁻¹)) :=
+    by rw [sub_mul, ← sub_add, sub_sub, sub_add_eq_sub_sub, sub_right_comm, sub_add];
+    exact show lim_zero (inv f hf - const abv (lim f) * (inv f hf * const abv (lim f)⁻¹)
+      - (const abv (lim f)⁻¹ - f * (inv f hf * const abv (lim f)⁻¹))),
+    from sub_lim_zero
+      (by rw [← mul_assoc, mul_right_comm, const_inv hl]; exact h₁ _ _ _)
+      (by rw [← mul_assoc]; exact h₁ _ _ _),
+  (lim_zero_congr h₂).mpr $ mul_lim_zero_left _ (setoid.symm (equiv_lim f))
+
+end
+
+section
+variables [is_complete α abs]
+
+lemma lim_le {f : cau_seq α abs} {x : α}
+  (h : f ≤ cau_seq.const abs x) : lim f ≤ x :=
+cau_seq.const_le.1 $ cau_seq.le_of_eq_of_le (setoid.symm (equiv_lim f)) h
+
+lemma le_lim {f : cau_seq α abs} {x : α}
+  (h : cau_seq.const abs x ≤ f) : x ≤ lim f :=
+cau_seq.const_le.1 $ cau_seq.le_of_le_of_eq h (equiv_lim f)
+
+lemma lt_lim {f : cau_seq α abs} {x : α}
+  (h : cau_seq.const abs x < f) : x < lim f :=
+cau_seq.const_lt.1 $ cau_seq.lt_of_lt_of_eq h (equiv_lim f)
+
+lemma lim_lt {f : cau_seq α abs} {x : α}
+  (h : f < cau_seq.const abs x) : lim f < x :=
+cau_seq.const_lt.1 $ cau_seq.lt_of_eq_of_lt (setoid.symm (equiv_lim f)) h
 
 end
 end cau_seq

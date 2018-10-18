@@ -3,7 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.complex.basic algebra.archimedean data.nat.binomial tactic.linarith
+import algebra.archimedean
+import data.nat.choose data.complex.basic
+import tactic.linarith
 
 local attribute [instance, priority 0] classical.prop_decidable
 local notation `abs'` := _root_.abs

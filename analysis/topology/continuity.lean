@@ -492,6 +492,11 @@ is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 lemma nhds_prod_eq {a : α} {b : β} : nhds (a, b) = filter.prod (nhds a) (nhds b) :=
 by rw [filter.prod, prod.topological_space, nhds_sup, nhds_induced_eq_comap, nhds_induced_eq_comap]
 
+instance [topological_space α] [discrete_topology α] [topological_space β] [discrete_topology β] :
+  discrete_topology (α × β) :=
+⟨eq_of_nhds_eq_nhds $ assume ⟨a, b⟩,
+  by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_top, filter.prod_pure_pure]⟩
+
 lemma prod_mem_nhds_sets {s : set α} {t : set β} {a : α} {b : β}
   (ha : s ∈ (nhds a).sets) (hb : t ∈ (nhds b).sets) : set.prod s t ∈ (nhds (a, b)).sets :=
 by rw [nhds_prod_eq]; exact prod_mem_prod ha hb

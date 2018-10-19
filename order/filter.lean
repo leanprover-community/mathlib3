@@ -647,7 +647,7 @@ instance : has_seq filter := ⟨@filter.seq⟩
 instance : functor filter := { map := @filter.map }
 
 section
--- this section needs to be before applicative, otherwiese the wrong instance will be chosen
+-- this section needs to be before applicative, otherwise the wrong instance will be chosen
 protected def monad : monad filter := { map := @filter.map }
 
 local attribute [instance] filter.monad
@@ -1835,6 +1835,14 @@ begin
   rw [mem_pure_sets, mem_pure_sets], exact iff.rfl
 end
 
+lemma ultrafilter_bind {f : filter α} (hf : is_ultrafilter f) {m : α → filter β}
+  (hm : ∀ a, is_ultrafilter (m a)) : is_ultrafilter (f.bind m) :=
+begin
+  simp only [ultrafilter_iff_compl_mem_iff_not_mem] at ⊢ hf hm, intro s,
+  dsimp [bind, join, map],
+  simp only [hm], apply hf
+end
+
 /-- The ultrafilter lemma: Any proper filter is contained in an ultrafilter. -/
 lemma exists_ultrafilter (h : f ≠ ⊥) : ∃u, u ≤ f ∧ is_ultrafilter u :=
 let
@@ -1880,6 +1888,36 @@ lemma ultrafilter_ultrafilter_of (h : f ≠ ⊥) : is_ultrafilter (ultrafilter_o
 
 lemma ultrafilter_of_ultrafilter (h : is_ultrafilter f) : ultrafilter_of f = f :=
 ultrafilter_unique h (ultrafilter_ultrafilter_of h.left).left ultrafilter_of_le
+
+/- The ultrafilter monad. The monad structure on ultrafilters is the
+  restriction of the one on filters. -/
+
+def ultrafilter (α : Type u) : Type u := {f : filter α // is_ultrafilter f}
+
+def ultrafilter.map (m : α → β) (u : ultrafilter α) : ultrafilter β :=
+⟨u.val.map m, ultrafilter_map u.property⟩
+
+def ultrafilter.pure (x : α) : ultrafilter α := ⟨pure x, ultrafilter_pure⟩
+
+def ultrafilter.bind (u : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
+⟨u.val.bind (λ a, (m a).val), ultrafilter_bind u.property (λ a, (m a).property)⟩
+
+instance ultrafilter.has_pure : has_pure ultrafilter := ⟨@ultrafilter.pure⟩
+instance ultrafilter.has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
+instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map }
+instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
+
+section
+
+local attribute [instance] filter.monad filter.is_lawful_monad
+
+instance ultrafilter.is_lawful_monad : is_lawful_monad ultrafilter :=
+{ id_map := assume α f, subtype.eq (id_map f.val),
+  pure_bind := assume α β a f, subtype.eq (pure_bind a (subtype.val ∘ f)),
+  bind_assoc := assume α β γ f m₁ m₂, subtype.eq (filter_eq rfl),
+  bind_pure_comp_eq_map := assume α β f x, subtype.eq (bind_pure_comp_eq_map _ f x.val) }
+
+end
 
 end ultrafilter
 

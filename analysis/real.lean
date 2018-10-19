@@ -278,10 +278,10 @@ instance : complete_space ℝ :=
     have : F j ⊆ F n :=
       bInter_subset_bInter_left (λ i h, @le_trans _ _ i n j h jn),
     exact lt_trans (hF_dist n _ _ (this (hG j)) (hG n)) (hn _ $ le_refl _) },
-  refine ⟨real.lim c, λ s h, _⟩,
+  refine ⟨cau_seq.lim c, λ s h, _⟩,
   rcases mem_nhds_iff_metric.1 h with ⟨ε, ε0, hε⟩,
   cases exists_forall_ge_and (hg _ $ half_pos ε0)
-    (real.equiv_lim c _ $ half_pos ε0) with n hn,
+    (cau_seq.equiv_lim c _ $ half_pos ε0) with n hn,
   cases hn _ (le_refl _) with h₁ h₂,
   refine sets_of_superset _ (hF n) (subset.trans _ $
     subset.trans (ball_half_subset (G n) h₂) hε),

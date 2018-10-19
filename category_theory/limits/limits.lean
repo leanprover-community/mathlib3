@@ -38,6 +38,8 @@ begin
   solve_by_elim,
  end
 
+instance : subsingleton (is_limit t) := by tidy
+
 lemma is_limit.universal (h : is_limit t) (s : cone F) (φ : s.X ⟶ t.X) :
   (∀ j, φ ≫ t.π j = s.π j) ↔ (φ = is_limit.lift h s) :=
 /- obviously says: -/
@@ -82,6 +84,8 @@ begin
   ext1,
   solve_by_elim,
 end
+
+instance : subsingleton (is_colimit t) := by tidy
 
 lemma is_colimit.universal (h : is_colimit t) (s : cocone F) (φ : t.X ⟶ s.X) :
   (∀ j, t.ι j ≫ φ = s.ι j) ↔ (φ = is_colimit.desc h s) :=

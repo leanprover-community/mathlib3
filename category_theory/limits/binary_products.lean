@@ -37,7 +37,7 @@ end
 
 instance subsingleton_is_binary_product {Y Z : C} {t : span Y Z} : subsingleton (is_binary_product t) := by obviously
 
-lemma is_binary_product.uniq'' {Y Z : C} {t : span Y Z} (h : is_binary_product t) {X' : C} (m : X' ⟶ t.X) :
+lemma is_binary_product.hom_lift {Y Z : C} {t : span Y Z} (h : is_binary_product t) {X' : C} (m : X' ⟶ t.X) :
   m = h.lift { X := X', π₁ := m ≫ t.π₁, π₂ := m ≫ t.π₂ } :=
 h.uniq { X := X', π₁ := m ≫ t.π₁, π₂ := m ≫ t.π₂ } m rfl rfl
 
@@ -84,7 +84,7 @@ end
 instance subsingleton_is_binary_coproduct {Y Z : C} {t : cospan Y Z} : subsingleton (is_binary_coproduct t) :=
 by obviously
 
-lemma is_binary_coproduct.uniq'' {Y Z : C} {t : cospan Y Z} (h : is_binary_coproduct t) {X' : C} (m : t.X ⟶ X') :
+lemma is_binary_coproduct.hom_desc {Y Z : C} {t : cospan Y Z} (h : is_binary_coproduct t) {X' : C} (m : t.X ⟶ X') :
   m = h.desc { X := X', ι₁ := t.ι₁ ≫ m, ι₂ := t.ι₂ ≫ m } :=
 h.uniq { X := X', ι₁ := t.ι₁ ≫ m, ι₂ := t.ι₂ ≫ m } m rfl rfl
 
@@ -176,8 +176,8 @@ end
   (w₁ : f ≫ prod.π₁ Y Z = g ≫ prod.π₁ Y Z)
   (w₂ : f ≫ prod.π₂ Y Z = g ≫ prod.π₂ Y Z) : f = g :=
 begin
-  rw (prod.universal_property Y Z).uniq'' f,
-  rw (prod.universal_property Y Z).uniq'' g,
+  rw (prod.universal_property Y Z).hom_lift f,
+  rw (prod.universal_property Y Z).hom_lift g,
   congr ; assumption,
 end
 
@@ -348,8 +348,8 @@ end
   (w₁ : coprod.ι₁ Y Z ≫ f = coprod.ι₁ Y Z ≫ g)
   (w₂ : coprod.ι₂ Y Z ≫ f = coprod.ι₂ Y Z ≫ g) : f = g :=
 begin
-  rw (coprod.universal_property Y Z).uniq'' f,
-  rw (coprod.universal_property Y Z).uniq'' g,
+  rw (coprod.universal_property Y Z).hom_desc f,
+  rw (coprod.universal_property Y Z).hom_desc g,
   congr ; assumption,
 end
 

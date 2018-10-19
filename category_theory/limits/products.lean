@@ -40,8 +40,7 @@ end
 
 instance is_product_subsingleton : subsingleton (is_product t) := by split; ext1
 
--- FIXME name
-lemma is_product.uniq'' (h : is_product t) {X' : C} (m : X' ⟶ t.X) : m = h.lift { X := X', π := λ b, m ≫ t.π b } :=
+lemma is_product.hom_lift (h : is_product t) {X' : C} (m : X' ⟶ t.X) : m = h.lift { X := X', π := λ b, m ≫ t.π b } :=
 h.uniq { X := X', π := λ b, m ≫ t.π b } m (λ b, rfl)
 
 lemma is_product.universal (h : is_product t) (s : fan f) (φ : s.X ⟶ t.X) :
@@ -85,8 +84,7 @@ end
 
 instance is_coproduct_subsingleton : subsingleton (is_coproduct t) := by split; ext1
 
--- FIXME name
-lemma is_coproduct.uniq'' (h : is_coproduct t) {X' : C} (m : t.X ⟶ X') : m = h.desc { X := X', ι := λ b, t.ι b ≫ m } :=
+lemma is_coproduct.hom_desc (h : is_coproduct t) {X' : C} (m : t.X ⟶ X') : m = h.desc { X := X', ι := λ b, t.ι b ≫ m } :=
 h.uniq { X := X', ι := λ b, t.ι b ≫ m } m (λ b, rfl)
 
 lemma is_coproduct.universal (h : is_coproduct t) (s : cofan f) (φ : t.X ⟶ s.X) :

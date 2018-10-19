@@ -64,12 +64,15 @@ instance : has_colimits.{u+1 u} (Type u) :=
   limits.colimit F = @quot (Σ j, F j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2) := rfl
 @[simp] lemma types_colimit_ι (F : J ⥤ Type u) (j : J) : colimit.ι F j = λ x, quot.mk _ (⟨j, x⟩ : (Σ j, F j)) := rfl.
 -- TODO remaining lemmas:
--- @[simp] lemma types_colimit_pre
---   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
---   colimit.pre F E g = sorry := sorry
--- @[simp] lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟹ G) (g : (colimit F).X) :
---   (colim.map α : (colimit F).X → (colimit G).X) g = sorry := sorry
+@[simp] lemma types_colimit_pre
+  (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
+  colimit.pre F E g = sorry := sorry
+@[simp] lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟹ G) :
+  (colim.map α : (colimit F).X → (colimit G).X) =
+  (quot.lift
+    (λ p : Σ (j : J), F j, quot.mk _ ⟨ p.1, (α p.1) p.2 ⟩ )
+    (λ p p' r, begin tidy, end)) := sorry
 -- @[simp] lemma types_colimit_lift (F : J ⥤ Type u) (c : cocone F) (x : c.X) :
 --   colimit.desc F c x = sorry := sorry
-
+#print quot.lift
 end category_theory.universal.types

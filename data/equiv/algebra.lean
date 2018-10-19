@@ -38,4 +38,10 @@ attribute [to_additive equiv.neg._proof_1] equiv.inv._proof_1
 attribute [to_additive equiv.neg._proof_2] equiv.inv._proof_2
 attribute [to_additive equiv.neg] equiv.inv
 
+def units_equiv_ne_zero (α : Type*) [field α] : units α ≃ {a : α | a ≠ 0} :=
+⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
+
+@[simp] lemma coe_units_equiv_ne_zero [field α] (a : units α) :
+  ((units_equiv_ne_zero α a) : α) = a := rfl
+
 end equiv

@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.nat.totient data.polynomial
+import group_theory.order_of_element data.nat.totient data.polynomial data.equiv.algebra
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -134,11 +134,6 @@ is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2
 end
 
 namespace finite_field
-
-def units_equiv_ne_zero (α : Type*) [field α] : units α ≃ {a : α | a ≠ 0} :=
-⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
-
-@[simp] lemma coe_units_equiv_ne_zero [field α] (a : units α) : ((units_equiv_ne_zero α a) : α) = a := rfl
 
 variables [field α] [fintype α]
 

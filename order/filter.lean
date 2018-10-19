@@ -672,6 +672,9 @@ instance : alternative filter :=
 @[simp] lemma mem_pure {a : α} {s : set α} : a ∈ s → s ∈ (pure a : filter α).sets :=
 by simp only [imp_self, pure_def, mem_principal_sets, singleton_subset_iff]; exact id
 
+@[simp] lemma mem_pure_iff {a : α} {s : set α} : s ∈ (pure a : filter α).sets ↔ a ∈ s :=
+by rw [pure_def, mem_principal_sets, set.singleton_subset_iff]
+
 @[simp] lemma map_def {α β} (m : α → β) (f : filter α) : m <$> f = map m f := rfl
 
 @[simp] lemma bind_def {α β} (f : filter α) (m : α → filter β) : f >>= m = bind f m := rfl
@@ -927,6 +930,12 @@ iff.refl _
 lemma mem_seq_sets_iff {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ (f.seq g).sets ↔ (∃u∈f.sets, ∃t∈g.sets, set.seq u t ⊆ s) :=
 by simp only [mem_seq_sets_def, seq_subset, exists_prop, iff_self]
+
+lemma mem_map_seq_iff {f : filter α} {g : filter β} {m : α → β → γ} {s : set γ} :
+  s ∈ ((f.map m).seq g).sets ↔ (∃t u, t ∈ g.sets ∧ u ∈ f.sets ∧ ∀x∈u, ∀y∈t, m x y ∈ s) :=
+iff.intro
+  (assume ⟨t, ht, s, hs, hts⟩, ⟨s, m ⁻¹' t, hs, ht, assume a, hts _⟩)
+  (assume ⟨t, s, ht, hs, hts⟩, ⟨m '' s, image_mem_map hs, t, ht, assume f ⟨a, has, eq⟩, eq ▸ hts _ has⟩)
 
 lemma seq_mem_seq_sets {f : filter (α → β)} {g : filter α} {s : set (α → β)} {t : set α}
   (hs : s ∈ f.sets) (ht : t ∈ g.sets): s.seq t ∈ (f.seq g).sets :=
@@ -1198,6 +1207,14 @@ by simp only [tendsto, le_principal_iff, mem_map, iff_self]
 lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β} :
   tendsto f (principal s) (principal t) ↔ ∀a∈s, f a ∈ t :=
 by simp only [tendsto, image_subset_iff, le_principal_iff, map_principal, mem_principal_sets]; refl
+
+lemma tendsto_pure_pure (f : α → β) (a : α) :
+  tendsto f (pure a) (pure (f a)) :=
+show filter.map f (pure a) ≤ pure (f a),
+  by rw [filter.map_pure]; exact le_refl _
+
+lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λa, b) a (pure b) :=
+by simp [tendsto]; exact univ_mem_sets
 
 section lift
 
@@ -1584,6 +1601,19 @@ le_antisymm
           set.prod_image_image_eq
         ... ⊆ _ : by rwa [image_subset_iff])
   ((tendsto_fst.comp (le_refl _)).prod_mk (tendsto_snd.comp (le_refl _)))
+
+lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
+  map m (f.prod g) = (f.map (λa b, m (a, b))).seq g :=
+begin
+  simp [filter.ext_iff, mem_prod_iff, mem_map_seq_iff],
+  assume s,
+  split,
+  exact assume ⟨t, ht, s, hs, h⟩, ⟨s, hs, t, ht, assume x hx y hy, @h ⟨x, y⟩ ⟨hx, hy⟩⟩,
+  exact assume ⟨s, hs, t, ht, h⟩, ⟨t, ht, s, hs, assume ⟨x, y⟩ ⟨hx, hy⟩, h x hx y hy⟩
+end
+
+lemma prod_eq {f : filter α} {g : filter β} : f.prod g = (f.map prod.mk).seq g  :=
+have h : _ := map_prod id f g, by rwa [map_id] at h
 
 lemma prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :
   filter.prod f₁ g₁ ⊓ filter.prod f₂ g₂ = filter.prod (f₁ ⊓ f₂) (g₁ ⊓ g₂) :=

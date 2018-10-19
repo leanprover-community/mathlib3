@@ -156,6 +156,9 @@ theorem subset_closure {s : set α} : s ⊆ closure s := λ a, mem_closure
 theorem closure_subset {s t : set α} [is_subgroup t] (h : s ⊆ t) : closure s ⊆ t :=
 assume a ha, by induction ha; simp [h _, *, one_mem, mul_mem, inv_mem_iff]
 
+lemma closure_subset_iff (s t : set α) [is_subgroup t] : closure s ⊆ t ↔ s ⊆ t :=
+⟨assume h b ha, h (mem_closure ha), assume h b ha, closure_subset h ha⟩
+
 theorem gpowers_eq_closure {a : α} : gpowers a = closure {a} :=
 subset.antisymm
   (assume x h, match x, h with _, ⟨i, rfl⟩ := gpow_mem (mem_closure $ by simp) end)
@@ -183,7 +186,9 @@ attribute [to_additive add_group.subset_closure] group.subset_closure
 
 theorem closure_subset {s t : set α} [is_add_subgroup t] : s ⊆ t → closure s ⊆ t :=
 group.closure_subset
+
 attribute [to_additive add_group.closure_subset] group.closure_subset
+attribute [to_additive add_group.closure_subset_iff] group.closure_subset_iff
 
 theorem gmultiples_eq_closure {a : α} : gmultiples a = closure {a} :=
 group.gpowers_eq_closure

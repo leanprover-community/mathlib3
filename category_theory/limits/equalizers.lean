@@ -4,8 +4,6 @@
 
 import category_theory.limits.shape
 
-set_option trace.tidy true
-
 open category_theory
 
 namespace category_theory.limits

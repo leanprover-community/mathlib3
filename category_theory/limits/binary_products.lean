@@ -41,7 +41,7 @@ lemma is_binary_product.uniq'' {Y Z : C} {t : span Y Z} (h : is_binary_product t
   m = h.lift { X := X', π₁ := m ≫ t.π₁, π₂ := m ≫ t.π₂ } :=
 h.uniq { X := X', π₁ := m ≫ t.π₁, π₂ := m ≫ t.π₂ } m rfl rfl
 
-lemma is_binary_product.univ
+lemma is_binary_product.universal
   {Y Z : C} {t : span Y Z} (h : is_binary_product t) (s : span Y Z) (φ : s.X ⟶ t.X) :
   (φ ≫ t.π₁ = s.π₁ ∧ φ ≫ t.π₂ = s.π₂) ↔ (φ = h.lift s) :=
 ⟨ λ a, is_binary_product.uniq h s φ a.1 a.2,
@@ -88,7 +88,7 @@ lemma is_binary_coproduct.uniq'' {Y Z : C} {t : cospan Y Z} (h : is_binary_copro
   m = h.desc { X := X', ι₁ := t.ι₁ ≫ m, ι₂ := t.ι₂ ≫ m } :=
 h.uniq { X := X', ι₁ := t.ι₁ ≫ m, ι₂ := t.ι₂ ≫ m } m rfl rfl
 
-lemma is_binary_coproduct.univ
+lemma is_binary_coproduct.universal
   {Y Z : C} {t : cospan Y Z} (h : is_binary_coproduct t) (s : cospan Y Z) (φ : t.X ⟶ s.X) :
   (t.ι₁ ≫ φ = s.ι₁ ∧ t.ι₂ ≫ φ = s.ι₂) ↔ (φ = h.desc s) :=
 ⟨ λ a, is_binary_coproduct.uniq h s φ a.1 a.2,

@@ -89,7 +89,8 @@ instance cones (F : J ⥤ C) : category.{(max u v) v} (cone F) :=
 
 namespace cones
 @[simp] lemma id.hom   {F : J ⥤ C} (c : cone F) : (𝟙 c : cone_morphism c c).hom = 𝟙 (c.X) := rfl
-@[simp] lemma comp.hom {F : J ⥤ C} {c d e : cone F} (f : c ⟶ d) (g : d ⟶ e) : ((f ≫ g) : cone_morphism c e).hom = (f : cone_morphism c d).hom ≫ (g : cone_morphism d e).hom := rfl
+@[simp] lemma comp.hom {F : J ⥤ C} {c d e : cone F} (f : c ⟶ d) (g : d ⟶ e) : ((f ≫ g) :
+  cone_morphism c e).hom = (f : cone_morphism c d).hom ≫ (g : cone_morphism d e).hom := rfl
 
 section
 variables {D : Type u} [𝒟 : category.{u v} D]
@@ -133,7 +134,8 @@ instance cocones (F : J ⥤ C) : category.{(max u v) v} (cocone F) :=
 
 namespace cocones
 @[simp] lemma id.hom   {F : J ⥤ C} (c : cocone F) : (𝟙 c : cocone_morphism c c).hom = 𝟙 (c.X) := rfl
-@[simp] lemma comp.hom {F : J ⥤ C} {c d e : cocone F} (f : c ⟶ d) (g : d ⟶ e) : ((f ≫ g) : cocone_morphism c e).hom = (f : cocone_morphism c d).hom ≫ (g : cocone_morphism d e).hom := rfl
+@[simp] lemma comp.hom {F : J ⥤ C} {c d e : cocone F} (f : c ⟶ d) (g : d ⟶ e) : ((f ≫ g) :
+  cocone_morphism c e).hom = (f : cocone_morphism c d).hom ≫ (g : cocone_morphism d e).hom := rfl
 
 section
 variables {D : Type u} [𝒟 : category.{u v} D]
@@ -161,7 +163,9 @@ open category_theory.limits
 
 def map_cone   (H : C ⥤ D) (c : cone F)   : cone (F ⋙ H)   := (cones.functoriality F H) c
 def map_cocone (H : C ⥤ D) (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality F H) c
-def map_cone_morphism   (H : C ⥤ D) {c c' : cone F}   (f : cone_morphism c c')   : cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality F H).map f
-def map_cocone_morphism (H : C ⥤ D) {c c' : cocone F} (f : cocone_morphism c c') : cocone_morphism (H.map_cocone c) (H.map_cocone c') := (cocones.functoriality F H).map f
+def map_cone_morphism   (H : C ⥤ D) {c c' : cone F}   (f : cone_morphism c c')   :
+  cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality F H).map f
+def map_cocone_morphism (H : C ⥤ D) {c c' : cocone F} (f : cocone_morphism c c') :
+  cocone_morphism (H.map_cocone c) (H.map_cocone c') := (cocones.functoriality F H).map f
 
 end category_theory.functor

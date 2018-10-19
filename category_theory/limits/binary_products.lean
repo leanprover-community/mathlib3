@@ -81,7 +81,8 @@ begin
   exact eq.symm (P_uniq' x (Q_desc x) (Q_fac₁' x) (Q_fac₂' x))
 end
 
-instance subsingleton_is_binary_coproduct {Y Z : C} {t : cospan Y Z} : subsingleton (is_binary_coproduct t) := by obviously
+instance subsingleton_is_binary_coproduct {Y Z : C} {t : cospan Y Z} : subsingleton (is_binary_coproduct t) :=
+by obviously
 
 lemma is_binary_coproduct.uniq'' {Y Z : C} {t : cospan Y Z} (h : is_binary_coproduct t) {X' : C} (m : t.X ⟶ X') :
   m = h.desc { X := X', ι₁ := t.ι₁ ≫ m, ι₂ := t.ι₂ ≫ m } :=
@@ -319,9 +320,11 @@ by erw is_binary_coproduct.fac₁.
 @[simp] lemma coprod.ι₂_swap (P Q : C) : coprod.ι₂ P Q ≫ coprod.swap P Q = coprod.ι₁ Q P :=
 by erw is_binary_coproduct.fac₂.
 
-@[simp] lemma coprod.ι₁_map {P Q R S : C} (f : P ⟶ Q) (g : R ⟶ S) : coprod.ι₁ P R ≫ coprod.map f g = f ≫ coprod.ι₁ Q S :=
+@[simp] lemma coprod.ι₁_map {P Q R S : C} (f : P ⟶ Q) (g : R ⟶ S) :
+  coprod.ι₁ P R ≫ coprod.map f g = f ≫ coprod.ι₁ Q S :=
 by erw is_binary_coproduct.fac₁.
-@[simp] lemma coprod.ι₂_map {P Q R S : C} (f : P ⟶ Q) (g : R ⟶ S) : coprod.ι₂ P R ≫ coprod.map f g = g ≫ coprod.ι₂ Q S :=
+@[simp] lemma coprod.ι₂_map {P Q R S : C} (f : P ⟶ Q) (g : R ⟶ S) :
+  coprod.ι₂ P R ≫ coprod.map f g = g ≫ coprod.ι₂ Q S :=
 by erw is_binary_coproduct.fac₂.
 
 section

@@ -26,7 +26,9 @@ restate_axiom is_product.fac'
 attribute [simp] is_product.fac
 restate_axiom is_product.uniq'
 
-@[extensionality] lemma is_product.ext {t : fan f} (P Q : is_product t) : P = Q :=
+variables {t : fan f}
+
+@[extensionality] lemma is_product.ext (P Q : is_product t) : P = Q :=
 begin
   tactic.unfreeze_local_instances,
   cases P,
@@ -36,16 +38,18 @@ begin
   exact eq.symm (P_uniq' x (Q_lift x) (Q_fac' x))
 end
 
-instance is_product_subsingleton {t : fan f}  : subsingleton (is_product t) := by split; ext1
+instance is_product_subsingleton : subsingleton (is_product t) := by split; ext1
 
-lemma is_product.uniq'' {t : fan f} (h : is_product t) {X' : C} (m : X' ⟶ t.X) : m = h.lift { X := X', π := λ b, m ≫ t.π b } :=
+-- FIXME name
+lemma is_product.uniq'' (h : is_product t) {X' : C} (m : X' ⟶ t.X) : m = h.lift { X := X', π := λ b, m ≫ t.π b } :=
 h.uniq { X := X', π := λ b, m ≫ t.π b } m (λ b, rfl)
 
-lemma is_product.universal {t : fan f} (h : is_product t) (s : fan f) (φ : s.X ⟶ t.X) : (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = h.lift s) :=
+lemma is_product.universal (h : is_product t) (s : fan f) (φ : s.X ⟶ t.X) :
+  (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = h.lift s) :=
 ⟨ is_product.uniq h s φ,
   λ a b, by rw [a, is_product.fac] ⟩
 
-def is_product.of_lift_universal {t : fan f}
+def is_product.of_lift_universal
   (lift : Π (s : fan f), s.X ⟶ t.X)
   (universal : Π (s : fan f) (φ : s.X ⟶ t.X), (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = lift s)) : is_product t :=
 { lift := lift,
@@ -67,7 +71,9 @@ restate_axiom is_coproduct.fac'
 attribute [simp] is_coproduct.fac
 restate_axiom is_coproduct.uniq'
 
-@[extensionality] lemma is_coproduct.ext {t : cofan f} (P Q : is_coproduct t) : P = Q :=
+variables {t : cofan f}
+
+@[extensionality] lemma is_coproduct.ext (P Q : is_coproduct t) : P = Q :=
 begin
   tactic.unfreeze_local_instances,
   cases P,
@@ -78,16 +84,18 @@ begin
 
 end
 
-instance is_coproduct_subsingleton {t : cofan f}  : subsingleton (is_coproduct t) := by split; ext1
+instance is_coproduct_subsingleton : subsingleton (is_coproduct t) := by split; ext1
 
-lemma is_coproduct.uniq'' {t : cofan f} (h : is_coproduct t) {X' : C} (m : t.X ⟶ X') : m = h.desc { X := X', ι := λ b, t.ι b ≫ m } :=
+-- FIXME name
+lemma is_coproduct.uniq'' (h : is_coproduct t) {X' : C} (m : t.X ⟶ X') : m = h.desc { X := X', ι := λ b, t.ι b ≫ m } :=
 h.uniq { X := X', ι := λ b, t.ι b ≫ m } m (λ b, rfl)
 
-lemma is_coproduct.universal {t : cofan f} (h : is_coproduct t) (s : cofan f) (φ : t.X ⟶ s.X) : (∀ b, t.ι b ≫ φ = s.ι b) ↔ (φ = h.desc s) :=
+lemma is_coproduct.universal (h : is_coproduct t) (s : cofan f) (φ : t.X ⟶ s.X) :
+  (∀ b, t.ι b ≫ φ = s.ι b) ↔ (φ = h.desc s) :=
 ⟨ is_coproduct.uniq h s φ,
   λ a b, by rw [a, is_coproduct.fac] ⟩
 
-def is_coproduct.of_desc_universal {t :cofan f}
+def is_coproduct.of_desc_universal
   (desc : Π (s : cofan f), t.X ⟶ s.X)
   (universal : Π (s : cofan f) (φ : t.X ⟶ s.X), (∀ b, t.ι b ≫ φ = s.ι b) ↔ (φ = desc s)) : is_coproduct t :=
 { desc := desc,
@@ -147,7 +155,8 @@ def pi.post (f : β → C) (G : C ⥤ D) : G (limits.pi f) ⟶ (limits.pi (G.obj
 by erw is_product.fac
 end
 
-@[extensionality] lemma pi.hom_ext (f : β → C) {X : C} (g h : X ⟶ limits.pi f) (w : ∀ b, g ≫ pi.π f b = h ≫ pi.π f b) : g = h :=
+@[extensionality] lemma pi.hom_ext
+  (f : β → C) {X : C} (g h : X ⟶ limits.pi f) (w : ∀ b, g ≫ pi.π f b = h ≫ pi.π f b) : g = h :=
 begin
   rw is_product.uniq (pi.universal_property f) { X := X, π := λ b, g ≫ pi.π f b } g,
   rw is_product.uniq (pi.universal_property f) { X := X, π := λ b, g ≫ pi.π f b } h,
@@ -229,7 +238,8 @@ begin
   erw pi.lift_π
 end
 
-@[simp] def pi.post_post {E : Type u} [category.{u v} E] [has_products.{u v} E] (f : β → C) (G : C ⥤ D) (H : D ⥤ E):
+@[simp] def pi.post_post
+  {E : Type u} [category.{u v} E] [has_products.{u v} E] (f : β → C) (G : C ⥤ D) (H : D ⥤ E) :
   H.map (pi.post f G) ≫ pi.post (G.obj ∘ f) H = pi.post f (G ⋙ H) :=
 begin
   /- `obviously` says -/
@@ -281,7 +291,8 @@ by erw is_coproduct.fac
 def sigma.map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) : (limits.sigma f) ⟶ (limits.sigma g) :=
 sigma.desc (λ b, k b ≫ sigma.ι g b)
 
-@[simp] lemma sigma.ι_map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) (b : β) : sigma.ι f b ≫ sigma.map k = k b ≫ sigma.ι g b :=
+@[simp] lemma sigma.ι_map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) (b : β) :
+  sigma.ι f b ≫ sigma.map k = k b ≫ sigma.ι g b :=
 by erw is_coproduct.fac
 
 def sigma.pre {α} (f : α → C) (h : β → α) : limits.sigma (f ∘ h) ⟶ limits.sigma f :=
@@ -295,13 +306,17 @@ variables {D : Type u} [𝒟 : category.{u v} D] [has_coproducts.{u v} D]
 include 𝒟
 
 def sigma.post (f : β → C) (G : C ⥤ D) : (limits.sigma (G.obj ∘ f)) ⟶ G (limits.sigma f) :=
-@is_coproduct.desc _ _ _ _ (sigma.cofan (G.obj ∘ f)) (sigma.universal_property _) { X := _, ι := λ b, G.map (sigma.ι f b) }
+@is_coproduct.desc _ _ _ _
+  (sigma.cofan (G.obj ∘ f))
+  (sigma.universal_property _)
+  { X := _, ι := λ b, G.map (sigma.ι f b) }
 
 @[simp] lemma sigma.ι_post (f : β → C) (G : C ⥤ D) (b : β) : sigma.ι _ b ≫ sigma.post f G = G.map (sigma.ι f b) :=
 by erw is_coproduct.fac
 end
 
-@[extensionality] lemma sigma.hom_ext (f : β → C) {X : C} (g h : limits.sigma f ⟶ X) (w : ∀ b, sigma.ι f b ≫ g = sigma.ι f b ≫ h) : g = h :=
+@[extensionality] lemma sigma.hom_ext
+  (f : β → C) {X : C} (g h : limits.sigma f ⟶ X) (w : ∀ b, sigma.ι f b ≫ g = sigma.ι f b ≫ h) : g = h :=
 begin
   rw is_coproduct.uniq (sigma.universal_property f) { X := X, ι := λ b, sigma.ι f b ≫ g } g,
   rw is_coproduct.uniq (sigma.universal_property f) { X := X, ι := λ b, sigma.ι f b ≫ g } h,
@@ -376,7 +391,8 @@ begin
 end.
 
 def sigma.map_post {f g : β → C} (k : Π b : β, f b ⟶ g b) (H : C ⥤ D) :
-  @sigma.map _ _ _ _ (H.obj ∘ f) (H.obj ∘ g) (λ b, H.map (k b)) ≫ sigma.post g H = sigma.post f H ≫ H.map (sigma.map k) :=
+  @sigma.map _ _ _ _ (H.obj ∘ f) (H.obj ∘ g) (λ b, H.map (k b)) ≫ sigma.post g H =
+    sigma.post f H ≫ H.map (sigma.map k) :=
 begin
   /- `obviously` says -/
   ext1,
@@ -401,7 +417,8 @@ begin
       sigma.ι_post, ←functor.map_comp, sigma.ι_pre]
 end
 
-@[simp] def sigma.post_post {E : Type u} [category.{u v} E] [has_coproducts.{u v} E] (f : β → C) (G : C ⥤ D) (H : D ⥤ E):
+@[simp] def sigma.post_post
+  {E : Type u} [category.{u v} E] [has_coproducts.{u v} E] (f : β → C) (G : C ⥤ D) (H : D ⥤ E) :
   sigma.post (G.obj ∘ f) H ≫ H.map (sigma.post f G) = sigma.post f (G ⋙ H) :=
 begin
   /- `obviously` says -/

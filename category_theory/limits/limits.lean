@@ -15,10 +15,10 @@ variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 
 section limit
-variables {J : Type v} [𝒥 : small_category J]
+variables {J : Type v} [𝒥 : small_category J] {F : J ⥤ C}
 include 𝒥
 
-structure is_limit {F : J ⥤ C} (t : cone F) :=
+structure is_limit (t : cone F) :=
 (lift : ∀ (s : cone F), s.X ⟶ t.X)
 (fac'  : ∀ (s : cone F) (j : J), (lift s ≫ t.π j) = s.π j . obviously)
 (uniq' : ∀ (s : cone F) (m : s.X ⟶ t.X) (w : ∀ j : J, (m ≫ t.π j) = s.π j), m = lift s . obviously)
@@ -27,7 +27,9 @@ restate_axiom is_limit.fac'
 attribute [simp] is_limit.fac
 restate_axiom is_limit.uniq'
 
-@[extensionality] lemma is_limit.ext {F : J ⥤ C} {t : cone F} (P Q : is_limit t) : P = Q :=
+variables {t : cone F}
+
+@[extensionality] lemma is_limit.ext (P Q : is_limit t) : P = Q :=
 begin
   tactic.unfreeze_local_instances,
   cases P, cases Q,
@@ -36,7 +38,7 @@ begin
   solve_by_elim,
  end
 
-lemma is_limit.universal {F : J ⥤ C} {t : cone F} [h : is_limit t] (s : cone F) (φ : s.X ⟶ t.X) :
+lemma is_limit.universal (h : is_limit t) (s : cone F) (φ : s.X ⟶ t.X) :
   (∀ j, φ ≫ t.π j = s.π j) ↔ (φ = is_limit.lift h s) :=
 /- obviously says: -/
 ⟨ is_limit.uniq h s φ,
@@ -47,7 +49,7 @@ lemma is_limit.universal {F : J ⥤ C} {t : cone F} [h : is_limit t] (s : cone F
     simp at *,
   end ⟩
 
-def is_limit.of_lift_universal {F : J ⥤ C} {t : cone F}
+def is_limit.of_lift_universal
   (lift : Π (s : cone F), s.X ⟶ t.X)
   (universal : Π (s : cone F) (φ : s.X ⟶ t.X), (∀ j : J, (φ ≫ t.π j) = s.π j) ↔ (φ = lift s)) : is_limit t :=
 { lift := lift,
@@ -58,10 +60,10 @@ end limit
 
 
 section colimit
-variables {J : Type v} [𝒥 : small_category J]
+variables {J : Type v} [𝒥 : small_category J] {F : J ⥤ C}
 include 𝒥
 
-structure is_colimit {F : J ⥤ C} (t : cocone F) :=
+structure is_colimit (t : cocone F) :=
 (desc : ∀ (s : cocone F), t.X ⟶ s.X)
 (fac'  : ∀ (s : cocone F) (j : J), (t.ι j ≫ desc s) = s.ι j . obviously)
 (uniq' : ∀ (s : cocone F) (m : t.X ⟶ s.X) (w : ∀ j : J, (t.ι j ≫ m) = s.ι j), m = desc s . obviously)
@@ -70,7 +72,9 @@ restate_axiom is_colimit.fac'
 attribute [simp] is_colimit.fac
 restate_axiom is_colimit.uniq'
 
-@[extensionality] lemma is_colimit.ext {F : J ⥤ C} {t : cocone F} (P Q : is_colimit t) : P = Q :=
+variables {t : cocone F}
+
+@[extensionality] lemma is_colimit.ext (P Q : is_colimit t) : P = Q :=
 begin
   tactic.unfreeze_local_instances,
   cases P, cases Q,
@@ -79,7 +83,7 @@ begin
   solve_by_elim,
 end
 
-lemma is_colimit.universal {F : J ⥤ C} {t : cocone F} [h : is_colimit t] (s : cocone F) (φ : t.X ⟶ s.X) :
+lemma is_colimit.universal (h : is_colimit t) (s : cocone F) (φ : t.X ⟶ s.X) :
   (∀ j, t.ι j ≫ φ = s.ι j) ↔ (φ = is_colimit.desc h s) :=
 ⟨ is_colimit.uniq h s φ,
   begin
@@ -89,7 +93,7 @@ lemma is_colimit.universal {F : J ⥤ C} {t : cocone F} [h : is_colimit t] (s : 
     simp at *,
   end ⟩
 
-def is_colimit.of_desc_universal {F : J ⥤ C} {t : cocone F}
+def is_colimit.of_desc_universal
   (desc : Π (s : cocone F), t.X ⟶ s.X)
   (universal : Π (s : cocone F) (φ : t.X ⟶ s.X), (∀ j : J, (t.ι j ≫ φ) = s.ι j) ↔ (φ = desc s)) : is_colimit t :=
 { desc := desc,
@@ -120,7 +124,8 @@ def limit.universal_property (F : J ⥤ C) : is_limit (limit.cone F) :=
 has_limits.is_limit.{u v} C F
 
 def limit.lift (F : J ⥤ C) (c : cone F) : c.X ⟶ limit F := (limit.universal_property F).lift c
-@[simp] lemma limit.universal_property_lift (F : J ⥤ C) (c : cone F) : (limit.universal_property F).lift c = limit.lift F c := rfl
+@[simp] lemma limit.universal_property_lift (F : J ⥤ C) (c : cone F) :
+  (limit.universal_property F).lift c = limit.lift F c := rfl
 
 @[simp] lemma limit.lift_π (F : J ⥤ C) (c : cone F) (j : J) : limit.lift F c ≫ limit.π F j = c.π j :=
 is_limit.fac _ c j
@@ -131,7 +136,8 @@ def limit.cone_morphism (F : J ⥤ C) (c : cone F) : cone_morphism c (limit.cone
 { hom := (limit.lift F) c }
 
 @[simp] lemma limit.cone_morphism_hom {F : J ⥤ C} (c : cone F) : (limit.cone_morphism F c).hom = limit.lift F c := rfl
-@[simp] lemma limit.cone_morphism_π {F : J ⥤ C} (c : cone F) (j : J) : (limit.cone_morphism F c).hom ≫ (limit.π F j) = c.π j :=
+@[simp] lemma limit.cone_morphism_π {F : J ⥤ C} (c : cone F) (j : J) :
+  (limit.cone_morphism F c).hom ≫ (limit.π F j) = c.π j :=
 by erw is_limit.fac
 
 @[extensionality] lemma limit.hom_ext {F : J ⥤ C} {X : C}
@@ -279,7 +285,8 @@ begin
   simp,
 end.
 
-@[simp] lemma limit.post_post {E : Type u} [category.{u v} E] [has_limits.{u v} E] (F : J ⥤ C) (G : C ⥤ D) (H : D ⥤ E):
+@[simp] lemma limit.post_post
+  {E : Type u} [category.{u v} E] [has_limits.{u v} E] (F : J ⥤ C) (G : C ⥤ D) (H : D ⥤ E) :
 /- H G (limit F) ⟶ H (limit (F ⋙ G)) ⟶ limit ((F ⋙ G) ⋙ H) vs -/
 /- H G (limit F) ⟶ limit (F ⋙ (G ⋙ H)) or -/
   H.map (limit.post F G) ≫ limit.post (F ⋙ G) H = limit.post F (G ⋙ H) :=
@@ -309,12 +316,14 @@ include 𝒥
 def colimit.cocone (F : J ⥤ C) : cocone F := has_colimits.cocone.{u v} F
 def colimit (F : J ⥤ C) := (colimit.cocone F).X
 def colimit.ι (F : J ⥤ C) (j : J) : F j ⟶ colimit F := (colimit.cocone F).ι j
-@[simp] lemma colimit.w (F : J ⥤ C) {j j' : J} (f : j ⟶ j') : F.map f ≫ colimit.ι F j' = colimit.ι F j := (colimit.cocone F).w f
+@[simp] lemma colimit.w (F : J ⥤ C) {j j' : J} (f : j ⟶ j') : F.map f ≫ colimit.ι F j' = colimit.ι F j :=
+(colimit.cocone F).w f
 def colimit.universal_property (F : J ⥤ C) : is_colimit (colimit.cocone F) :=
 has_colimits.is_colimit.{u v} C F
 
 def colimit.desc (F : J ⥤ C) (c : cocone F) : colimit F ⟶ c.X := (colimit.universal_property F).desc c
-@[simp] lemma colimit.universal_property_desc (F : J ⥤ C) (c : cocone F) : (colimit.universal_property F).desc c = colimit.desc F c := rfl
+@[simp] lemma colimit.universal_property_desc (F : J ⥤ C) (c : cocone F) :
+  (colimit.universal_property F).desc c = colimit.desc F c := rfl
 
 @[simp] lemma colimit.ι_desc (F : J ⥤ C) (c : cocone F) (j : J) : colimit.ι F j ≫ colimit.desc F c = c.ι j :=
 is_colimit.fac _ c j
@@ -324,8 +333,10 @@ is_colimit.fac _ c j
 def colimit.cocone_morphism (F : J ⥤ C) (c : cocone F) : cocone_morphism (colimit.cocone F) c :=
 { hom := (colimit.desc F) c }
 
-@[simp] lemma colimit.cocone_morphism_hom {F : J ⥤ C} (c : cocone F) : (colimit.cocone_morphism F c).hom = colimit.desc F c := rfl
-@[simp] lemma colimit.ι_cocone_morphism {F : J ⥤ C} (c : cocone F) (j : J) : (colimit.ι F j) ≫ (colimit.cocone_morphism F c).hom = c.ι j :=
+@[simp] lemma colimit.cocone_morphism_hom {F : J ⥤ C} (c : cocone F) :
+  (colimit.cocone_morphism F c).hom = colimit.desc F c := rfl
+@[simp] lemma colimit.ι_cocone_morphism {F : J ⥤ C} (c : cocone F) (j : J) :
+  (colimit.ι F j) ≫ (colimit.cocone_morphism F c).hom = c.ι j :=
 by erw is_colimit.fac
 
 @[extensionality] lemma colimit.hom_ext {F : J ⥤ C} {X : C}
@@ -497,7 +508,8 @@ begin
   rw colimit.ι_pre,
 end.
 
-@[simp] lemma colimit.post_post {E : Type u} [category.{u v} E] [has_colimits.{u v} E] (F : J ⥤ C) (G : C ⥤ D) (H : D ⥤ E):
+@[simp] lemma colimit.post_post
+  {E : Type u} [category.{u v} E] [has_colimits.{u v} E] (F : J ⥤ C) (G : C ⥤ D) (H : D ⥤ E) :
   colimit.post (F ⋙ G) H ≫ H.map (colimit.post F G) = colimit.post F (G ⋙ H) :=
 begin
   /- `obviously` says -/

@@ -24,7 +24,8 @@ instance : has_binary_products.{u+1 u} (Type u) :=
 @[simp] lemma types_prod_π₁ (Y Z : Type u) : limits.prod.π₁ Y Z = prod.fst := rfl.
 @[simp] lemma types_prod_π₂ (Y Z : Type u) : limits.prod.π₂ Y Z = prod.snd := rfl.
 @[simp] lemma types_prod_swap (Y Z : Type u) : limits.prod.swap Y Z = λ p : Y × Z, (p.2, p.1) := rfl
-@[simp] lemma types_prod_map {Y Y' Z Z' : Type u} (f : Y ⟶ Y') (g : Z ⟶ Z') : limits.prod.map f g = λ p : Y × Z, (f p.1, g p.2) := rfl
+@[simp] lemma types_prod_map {Y Y' Z Z' : Type u} (f : Y ⟶ Y') (g : Z ⟶ Z') :
+  limits.prod.map f g = λ p : Y × Z, (f p.1, g p.2) := rfl
 @[simp] lemma types_prod_lift {X Y Z : Type u} (f : X ⟶ Y) (g : X ⟶ Z):
   limits.prod.lift f g = λ x, (f x, g x) := rfl
 
@@ -95,7 +96,8 @@ instance : has_coproducts.{u+1 u} (Type u) :=
 { cofan := λ β f, { X := Σ b, f b, ι := λ b x, ⟨b, x⟩ } }.
 
 @[simp] lemma types_sigma {β : Type u} (f : β → Type u) : limits.sigma f = Σ b, f b := rfl
-@[simp] lemma types_sigma_ι {β : Type u} (f : β → Type u) (b : β) : limits.sigma.ι f b = λ p : f b, (⟨b, p⟩ : Σ b, f b) := rfl
+@[simp] lemma types_sigma_ι
+  {β : Type u} (f : β → Type u) (b : β) : limits.sigma.ι f b = λ p : f b, (⟨b, p⟩ : Σ b, f b) := rfl
 @[simp] lemma types_sigma_pre {β α : Type u} (f : α → Type u) (h : β → α) :
   limits.sigma.pre f h = λ (d : Σ b, f (h b)), (⟨h d.1, d.2⟩ : Σ a, f a) := by obviously
 @[simp] lemma types_sigma_map {β : Type u} (f : β → Type u) (g : β → Type u) (k : Π b, f b ⟶ g b) :
@@ -176,7 +178,8 @@ def colimit_is_colimit (F : J ⥤ Type u) : is_colimit (colimit F) :=
 instance : has_colimits.{u+1 u} (Type u) :=
 { cocone := @colimit, is_colimit := @colimit_is_colimit }
 
-@[simp] lemma types_colimit (F : J ⥤ Type u) : limits.colimit F = @quot (Σ j, F j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2) := rfl
+@[simp] lemma types_colimit (F : J ⥤ Type u) :
+  limits.colimit F = @quot (Σ j, F j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2) := rfl
 @[simp] lemma types_colimit_ι (F : J ⥤ Type u) (j : J) : colimit.ι F j = λ x, quot.mk _ (⟨j, x⟩ : (Σ j, F j)) := rfl.
 -- TODO remaining lemmas:
 -- @[simp] lemma types_colimit_pre (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) :

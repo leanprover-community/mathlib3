@@ -15,11 +15,13 @@ include 𝒞
 
 section pullback
 variables {Y₁ Y₂ Z : C} {r₁ : Y₁ ⟶ Z} {r₂ : Y₂ ⟶ Z}
+
 structure is_pullback (t : square r₁ r₂) :=
 (lift : ∀ (s : square r₁ r₂), s.X ⟶ t.X)
 (fac₁' : ∀ (s : square r₁ r₂), (lift s ≫ t.π₁) = s.π₁ . obviously)
 (fac₂' : ∀ (s : square r₁ r₂), (lift s ≫ t.π₂) = s.π₂ . obviously)
-(uniq' : ∀ (s : square r₁ r₂) (m : s.X ⟶ t.X) (w₁ : (m ≫ t.π₁) = s.π₁) (w₂ : (m ≫ t.π₂) = s.π₂), m = lift s . obviously)
+(uniq' : ∀ (s : square r₁ r₂) (m : s.X ⟶ t.X) (w₁ : (m ≫ t.π₁) = s.π₁) (w₂ : (m ≫ t.π₂) = s.π₂),
+           m = lift s . obviously)
 
 restate_axiom is_pullback.fac₁'
 attribute [simp] is_pullback.fac₁
@@ -27,7 +29,9 @@ restate_axiom is_pullback.fac₂'
 attribute [simp] is_pullback.fac₂
 restate_axiom is_pullback.uniq'
 
-@[extensionality] lemma is_pullback.ext {t : square r₁ r₂} (P Q : is_pullback t) : P = Q :=
+variables {t : square r₁ r₂}
+
+@[extensionality] lemma is_pullback.ext (P Q : is_pullback t) : P = Q :=
 begin
   cases P, cases Q,
   simp,
@@ -35,13 +39,13 @@ begin
   exact eq.symm (P_uniq' x (Q_lift x) (Q_fac₁' x) (Q_fac₂' x))
 end
 
-lemma is_pullback.universal {t : square r₁ r₂} (h : is_pullback t) (s : square r₁ r₂) (φ : s.X ⟶ t.X) :
+lemma is_pullback.universal (h : is_pullback t) (s : square r₁ r₂) (φ : s.X ⟶ t.X) :
   (φ ≫ t.π₁ = s.π₁ ∧ φ ≫ t.π₂ = s.π₂) ↔ (φ = h.lift s) :=
 ⟨ λ a, is_pullback.uniq h s φ a.1 a.2,
   λ a, ⟨ by rw [a, is_pullback.fac₁],
          by rw [a, is_pullback.fac₂] ⟩ ⟩
 
-def is_pullback.of_lift_universal {t : square r₁ r₂}
+def is_pullback.of_lift_universal
   (lift : Π (s : square r₁ r₂), s.X ⟶ t.X)
   (universal : Π (s : square r₁ r₂) (φ : s.X ⟶ t.X), (φ ≫ t.π₁ = s.π₁ ∧ φ ≫ t.π₂ = s.π₂) ↔ (φ = lift s)) :
   is_pullback t :=
@@ -55,6 +59,7 @@ end pullback
 
 section pushout
 variables {Y₁ Y₂ Z : C} {r₁ : Z ⟶ Y₁} {r₂ : Z ⟶ Y₂}
+
 structure is_pushout (t : cosquare r₁ r₂) :=
 (desc : ∀ (s : cosquare r₁ r₂), t.X ⟶ s.X)
 (fac₁' : ∀ (s : cosquare r₁ r₂), (t.ι₁ ≫ desc s) = s.ι₁ . obviously)
@@ -67,7 +72,9 @@ restate_axiom is_pushout.fac₂'
 attribute [simp] is_pushout.fac₂
 restate_axiom is_pushout.uniq'
 
-@[extensionality] lemma is_pushout.ext {t : cosquare r₁ r₂} (P Q : is_pushout t) : P = Q :=
+variables {t : cosquare r₁ r₂}
+
+@[extensionality] lemma is_pushout.ext (P Q : is_pushout t) : P = Q :=
 begin
   cases P, cases Q,
   simp,
@@ -75,13 +82,13 @@ begin
   exact eq.symm (P_uniq' x (Q_desc x) (Q_fac₁' x) (Q_fac₂' x))
 end
 
-lemma is_pushout.universal {t : cosquare r₁ r₂} (h : is_pushout t) (s : cosquare r₁ r₂) (φ : t.X ⟶ s.X) :
+lemma is_pushout.universal (h : is_pushout t) (s : cosquare r₁ r₂) (φ : t.X ⟶ s.X) :
   (t.ι₁ ≫ φ = s.ι₁ ∧ t.ι₂ ≫ φ = s.ι₂) ↔ (φ = h.desc s) :=
 ⟨ λ a, is_pushout.uniq h s φ a.1 a.2,
   λ a, ⟨ by rw [a, is_pushout.fac₁],
          by rw [a, is_pushout.fac₂] ⟩ ⟩
 
-def is_pushout.of_desc_universal {t : cosquare r₁ r₂}
+def is_pushout.of_desc_universal
   (desc : Π (s : cosquare r₁ r₂), t.X ⟶ s.X)
   (universal : Π (s : cosquare r₁ r₂) (φ : t.X ⟶ s.X), (t.ι₁ ≫ φ = s.ι₁ ∧ t.ι₂ ≫ φ = s.ι₂) ↔ (φ = desc s)) : is_pushout t :=
 { desc := desc,

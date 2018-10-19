@@ -90,7 +90,7 @@ X  --π₁--> Y₁
 Y₂ --r₂--> Z
 ```
 -/
-structure square {C : Type u} [𝒞 : category.{u v} C] {Y₁ Y₂ Z : C} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z)extends shape C :=
+structure square {C : Type u} [𝒞 : category.{u v} C] {Y₁ Y₂ Z : C} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z) extends shape C :=
 (π₁ : X ⟶ Y₁)
 (π₂ : X ⟶ Y₂)
 (w' : π₁ ≫ r₁ = π₂ ≫ r₂ . obviously)
@@ -107,7 +107,7 @@ X  <--ι₁-- Y₁
 Y₂ <--r₂-- Z
 ```
 -/
-structure cosquare {C : Type u} [𝒞 : category.{u v} C] {Y₁ Y₂ Z : C} (r₁ : Z ⟶ Y₁) (r₂ : Z ⟶ Y₂)extends shape C :=
+structure cosquare {C : Type u} [𝒞 : category.{u v} C] {Y₁ Y₂ Z : C} (r₁ : Z ⟶ Y₁) (r₂ : Z ⟶ Y₂) extends shape C :=
 (ι₁ : Y₁ ⟶ X)
 (ι₂ : Y₂ ⟶ X)
 (w' : r₁ ≫ ι₁ = r₂ ≫ ι₂ . obviously)

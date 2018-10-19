@@ -1270,6 +1270,11 @@ le_antisymm
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ h x)
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ (h x).symm)
 
+lemma eq_top_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊤ :=
+top_unique $ le_of_nhds_le_nhds $ assume x,
+  have nhds x ≤ pure x, from infi_le_of_le {x} (infi_le _ (by simpa using h x)),
+  le_trans this (@pure_le_nhds _ ⊤ x)
+
 end lattice
 
 section galois_connection
@@ -1537,6 +1542,14 @@ instance {p : α → Prop} [topological_space α] [discrete_topology α] :
   discrete_topology (subtype p) :=
 ⟨top_unique $ assume s hs,
   ⟨subtype.val '' s, is_open_discrete _, (set.preimage_image_eq _ subtype.val_injective).symm⟩⟩
+
+instance sum.discrete_topology [topological_space α] [topological_space β]
+  [hα : discrete_topology α] [hβ : discrete_topology β] : discrete_topology (α ⊕ β) :=
+⟨by unfold sum.topological_space; simp [hα.eq_top, hβ.eq_top]⟩
+
+instance sigma.discrete_topology {β : α → Type v} [Πa, topological_space (β a)]
+  [h : Πa, discrete_topology (β a)] : discrete_topology (sigma β) :=
+⟨by unfold sigma.topological_space; simp [λ a, (h a).eq_top]⟩
 
 end constructions
 

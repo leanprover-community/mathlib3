@@ -160,15 +160,15 @@ by obviously
 @[simp] def lim : (J ⥤ C) ⥤ C :=
 { obj := limit,
   map' := λ F F' t, limit.lift F' $
-    { X := limit F,
-      π := λ j, limit.π F j ≫ t j,
-      w' :=
-      begin
-        /- `obviously` says -/
-        intros j j' f, dsimp at *, simp at *,
-        erw [←nat_trans.naturality, ←category.assoc, limits.cone.w],
-        refl
-      end },
+  { X := limit F,
+    π := λ j, limit.π F j ≫ t j,
+    w' :=
+    begin
+      /- `obviously` says -/
+      intros j j' f, dsimp at *, simp at *,
+      erw [←nat_trans.naturality, ←category.assoc, limits.cone.w],
+      refl
+    end },
   map_comp' :=
   begin
     /- `obviously` says -/
@@ -369,18 +369,18 @@ end
 @[simp] def colim : (J ⥤ C) ⥤ C :=
 { obj := colimit,
   map' := λ F F' t, colimit.desc F $
-    { X := colimit F',
-      ι := λ j, t j ≫ colimit.ι F' j,
-      w' :=
-      begin
-        /- `obviously` says -/
-        intros j j' f, dsimp at *,
-        erw [←category.assoc,
-             nat_trans.naturality,
-             category.assoc,
-             limits.cocone.w],
-        refl,
-      end },
+  { X := colimit F',
+    ι := λ j, t j ≫ colimit.ι F' j,
+    w' :=
+    begin
+      /- `obviously` says -/
+      intros j j' f, dsimp at *,
+      erw [←category.assoc,
+            nat_trans.naturality,
+            category.assoc,
+            limits.cocone.w],
+      refl,
+    end },
   map_comp' :=
   begin
     /- `obviously` says -/

@@ -135,8 +135,7 @@ begin
       dsimp at *, simp at *,
       erw limits.square.w,
       refl,
-    end
-  },
+    end },
   have q := (pullback.universal_property r₁ r₂).uniq s f,
   have p := (pullback.universal_property r₁ r₂).uniq s g,
   rw [q, ←p],

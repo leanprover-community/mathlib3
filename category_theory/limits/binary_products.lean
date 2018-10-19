@@ -191,12 +191,12 @@ by obviously
 lemma prod.swap_map {P Q R S : C} (f : P ⟶ Q) (g : R ⟶ S) :
   prod.swap P R ≫ prod.map g f = prod.map f g ≫ prod.swap Q S :=
 begin
-/- `obviously` says -/
-ext1,
-{ simp,
-  rw [←category.assoc, ←prod.swap_π₁] },
-{ simp,
-  rw [←category.assoc, ←prod.swap_π₂] }
+  /- `obviously` says -/
+  ext1,
+  { simp,
+    rw [←category.assoc, ←prod.swap_π₁] },
+  { simp,
+    rw [←category.assoc, ←prod.swap_π₂] }
 end
 
 @[simp] lemma prod.lift_map

@@ -81,7 +81,6 @@ begin
   congr,
   ext1,
   exact eq.symm (P_uniq' x (Q_desc x) (Q_fac' x))
-
 end
 
 instance is_coproduct_subsingleton : subsingleton (is_coproduct t) := by split; ext1

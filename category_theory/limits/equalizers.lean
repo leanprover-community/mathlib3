@@ -85,9 +85,9 @@ lemma is_coequalizer.epi (h : is_coequalizer t) : epi (t.π) :=
 { left_cancellation := λ X' k l w,
   begin
     let s : cofork f g :=
-      { X := X',
-        π := t.π ≫ k,
-        w' := by rw [←category.assoc, ←category.assoc, ←limits.cofork.w] },
+    { X := X',
+      π := t.π ≫ k,
+      w' := by rw [←category.assoc, ←category.assoc, ←limits.cofork.w] },
     have uniq_k := h.uniq s k rfl,
     have uniq_l := h.uniq s l (eq.symm w),
     rw [uniq_k, uniq_l],

@@ -1774,56 +1774,36 @@ variables {f g : filter α}
 /-- An ultrafilter is a minimal (maximal in the set order) proper filter. -/
 def ultrafilter (f : filter α) := f ≠ ⊥ ∧ ∀g, g ≠ ⊥ → g ≤ f → f ≤ g
 
-lemma ultrafilter_pure {a : α} : ultrafilter (pure a) :=
-⟨pure_neq_bot,
-  assume g hg ha,
-  have {a} ∈ g.sets, by simpa only [le_principal_iff, pure_def] using ha,
-  show ∀s∈g.sets, {a} ⊆ s, from classical.by_contradiction $
-  begin
-    simp only [classical.not_forall, not_imp, exists_imp_distrib, singleton_subset_iff],
-    exact assume s ⟨hs, hna⟩,
-      have {a} ∩ s ∈ g.sets, from inter_mem_sets ‹{a} ∈ g.sets› hs,
-      have ∅ ∈ g.sets, from mem_sets_of_superset this $
-        assume x ⟨hxa, hxs⟩, begin simp only [set.mem_singleton_iff] at hxa; simp only [hxa] at hxs, exact hna hxs end,
-      have g = ⊥, from empty_in_sets_eq_bot.mp this,
-      hg this
-  end⟩
-
 lemma ultrafilter_unique (hg : ultrafilter g) (hf : f ≠ ⊥) (h : f ≤ g) : f = g :=
 le_antisymm h (hg.right _ hf h)
-
-lemma exists_ultrafilter (h : f ≠ ⊥) : ∃u, u ≤ f ∧ ultrafilter u :=
-let
-  τ                := {f' // f' ≠ ⊥ ∧ f' ≤ f},
-  r : τ → τ → Prop := λt₁ t₂, t₂.val ≤ t₁.val,
-  ⟨a, ha⟩          := inhabited_of_mem_sets h univ_mem_sets,
-  top : τ          := ⟨f, h, le_refl f⟩,
-  sup : Π(c:set τ), chain r c → τ :=
-    λc hc, ⟨⨅a:{a:τ // a ∈ insert top c}, a.val.val,
-      infi_neq_bot_of_directed ⟨a⟩
-        (directed_of_chain $ chain_insert hc $ assume ⟨b, _, hb⟩ _ _, or.inl hb)
-        (assume ⟨⟨a, ha, _⟩, _⟩, ha),
-      infi_le_of_le ⟨top, mem_insert _ _⟩ (le_refl _)⟩
-in
-have ∀c (hc: chain r c) a (ha : a ∈ c), r a (sup c hc),
-  from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ (le_refl _),
-have (∃ (u : τ), ∀ (a : τ), r u a → r a u),
-  from zorn (assume c hc, ⟨sup c hc, this c hc⟩) (assume f₁ f₂ f₃ h₁ h₂, le_trans h₂ h₁),
-let ⟨uτ, hmin⟩ := this in
-⟨uτ.val, uτ.property.right, uτ.property.left, assume g hg₁ hg₂,
-  hmin ⟨g, hg₁, le_trans hg₂ uτ.property.right⟩ hg₂⟩
 
 lemma le_of_ultrafilter {g : filter α} (hf : ultrafilter f) (h : f ⊓ g ≠ ⊥) :
   f ≤ g :=
 le_of_inf_eq $ ultrafilter_unique hf h inf_le_left
 
+/-- Equivalent characterization of ultrafilters:
+  A filter f is an ultrafilter if and only if for each set s,
+  -s belongs to f if and only if s does not belong to f. -/
+lemma ultrafilter_iff_compl_mem_iff_not_mem :
+  ultrafilter f ↔ (∀ s, -s ∈ f.sets ↔ s ∉ f.sets) :=
+⟨assume hf s,
+   ⟨assume hns hs,
+      hf.1 $ empty_in_sets_eq_bot.mp $ by convert f.inter_sets hs hns; rw [inter_compl_self],
+    assume hs,
+      have f ≤ principal (-s), from
+        le_of_ultrafilter hf $ assume h, hs $ mem_sets_of_neq_bot $
+          by simp only [h, eq_self_iff_true, lattice.neg_neg],
+      by simp only [le_principal_iff] at this; assumption⟩,
+ assume hf,
+   ⟨mt empty_in_sets_eq_bot.mpr ((hf ∅).mp (by convert f.univ_sets; rw [compl_empty])),
+    assume g hg g_le s hs, classical.by_contradiction $ mt (hf s).mpr $
+      assume : - s ∈ f.sets,
+        have s ∩ -s ∈ g.sets, from inter_mem_sets hs (g_le this),
+        by simp only [empty_in_sets_eq_bot, hg, inter_compl_self] at this; contradiction⟩⟩
+
 lemma mem_or_compl_mem_of_ultrafilter (hf : ultrafilter f) (s : set α) :
   s ∈ f.sets ∨ - s ∈ f.sets :=
-classical.or_iff_not_imp_right.2 $ assume : - s ∉ f.sets,
-  have f ≤ principal s, from
-    le_of_ultrafilter hf $ assume h, this $ mem_sets_of_neq_bot $
-    by simp only [h, eq_self_iff_true, lattice.neg_neg],
-  by simp only [le_principal_iff] at this; assumption
+classical.or_iff_not_imp_left.2 (ultrafilter_iff_compl_mem_iff_not_mem.mp hf s).mpr
 
 lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : ultrafilter f) (h : s ∪ t ∈ f.sets) :
   s ∈ f.sets ∨ t ∈ f.sets :=
@@ -1846,17 +1826,36 @@ have h : (⋃₀ image s is) ∈ f.sets, from by simp only [sUnion_image, set.sU
 let ⟨t, ⟨i, hi, h_eq⟩, (ht : t ∈ f.sets)⟩ := mem_of_finite_sUnion_ultrafilter hf his h in
 ⟨i, hi, h_eq.symm ▸ ht⟩
 
-lemma ultrafilter_of_split {f : filter α} (hf : f ≠ ⊥) (h : ∀s, s ∈ f.sets ∨ - s ∈ f.sets) :
-  ultrafilter f :=
-⟨hf, assume g hg g_le s hs, (h s).elim id $
-  assume : - s ∈ f.sets,
-  have s ∩ -s ∈ g.sets, from inter_mem_sets hs (g_le this),
-  by simp only [empty_in_sets_eq_bot, hg, inter_compl_self] at this; contradiction⟩
-
 lemma ultrafilter_map {f : filter α} {m : α → β} (h : ultrafilter f) : ultrafilter (map m f) :=
-ultrafilter_of_split (by simp only [map_eq_bot_iff, h.left, ne.def, map_eq_bot_iff, not_false_iff]) $
-  assume s, show preimage m s ∈ f.sets ∨ - preimage m s ∈ f.sets,
-    from mem_or_compl_mem_of_ultrafilter h (preimage m s)
+by rw ultrafilter_iff_compl_mem_iff_not_mem at ⊢ h; exact assume s, h (m ⁻¹' s)
+
+lemma ultrafilter_pure {a : α} : ultrafilter (pure a) :=
+begin
+  rw ultrafilter_iff_compl_mem_iff_not_mem, intro s,
+  rw [mem_pure_sets, mem_pure_sets], exact iff.rfl
+end
+
+/-- The ultrafilter lemma: Any proper filter is contained in an ultrafilter. -/
+lemma exists_ultrafilter (h : f ≠ ⊥) : ∃u, u ≤ f ∧ ultrafilter u :=
+let
+  τ                := {f' // f' ≠ ⊥ ∧ f' ≤ f},
+  r : τ → τ → Prop := λt₁ t₂, t₂.val ≤ t₁.val,
+  ⟨a, ha⟩          := inhabited_of_mem_sets h univ_mem_sets,
+  top : τ          := ⟨f, h, le_refl f⟩,
+  sup : Π(c:set τ), chain r c → τ :=
+    λc hc, ⟨⨅a:{a:τ // a ∈ insert top c}, a.val.val,
+      infi_neq_bot_of_directed ⟨a⟩
+        (directed_of_chain $ chain_insert hc $ assume ⟨b, _, hb⟩ _ _, or.inl hb)
+        (assume ⟨⟨a, ha, _⟩, _⟩, ha),
+      infi_le_of_le ⟨top, mem_insert _ _⟩ (le_refl _)⟩
+in
+have ∀c (hc: chain r c) a (ha : a ∈ c), r a (sup c hc),
+  from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ (le_refl _),
+have (∃ (u : τ), ∀ (a : τ), r u a → r a u),
+  from zorn (assume c hc, ⟨sup c hc, this c hc⟩) (assume f₁ f₂ f₃ h₁ h₂, le_trans h₂ h₁),
+let ⟨uτ, hmin⟩ := this in
+⟨uτ.val, uτ.property.right, uτ.property.left, assume g hg₁ hg₂,
+  hmin ⟨g, hg₁, le_trans hg₂ uτ.property.right⟩ hg₂⟩
 
 /-- Construct an ultrafilter extending a given filter.
   The ultrafilter lemma is the assertion that such a filter exists;

@@ -68,18 +68,20 @@ by cases i; refl
 /-- The greatest value of `fin (n+1)` -/
 def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
 
+/-- `cast_lt i h` embeds `i` into a `fin` where `h` proves it belongs into.  -/
+def cast_lt (i : fin m) (h : i.1 < n) : fin n := ⟨i.1, h⟩
+
 /-- `cast_le h i` embeds `i` into a larger `fin` type.  -/
-def cast_le (h : n ≤ m) (a : fin n) : fin m :=
-⟨a.1, lt_of_lt_of_le a.2 h⟩
+def cast_le (h : n ≤ m) (a : fin n) : fin m := cast_lt a (lt_of_lt_of_le a.2 h)
 
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
 def cast (eq : n = m): fin n → fin m := cast_le $ le_of_eq eq
 
-/-- `cast_succ i` embedds `i` in `fin (n+1)`. -/
-def cast_succ : fin n → fin (n + 1) := cast_le $ le_succ n
+/-- `cast_add m i` embedds `i` in `fin (n+m)`. -/
+def cast_add (m) : fin n → fin (n + m) := cast_le $ le_add_right n m
 
-/-- `cast_lt i h` embeds `i` into a `fin` where `h` proves it belongs into.  -/
-def cast_lt (i : fin m) (h : i.1 < n) : fin n := ⟨i.1, h⟩
+/-- `cast_succ i` embedds `i` in `fin (n+1)`. -/
+def cast_succ : fin n → fin (n + 1) := cast_add 1
 
 /-- `succ_above p i` embeds into `fin (n + 1)` with a hole around `p`. -/
 def succ_above (p : fin (n+1)) (i : fin n) : fin (n+1) :=

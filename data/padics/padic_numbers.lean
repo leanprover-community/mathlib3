@@ -744,14 +744,14 @@ instance complete : cau_seq.is_complete ℚ_[p] norm :=
     ⟨λ n, f n, λ ε hε,
       let ⟨N, hN⟩ := is_cau f ↑ε (rat.cast_pos.2 hε) in ⟨N, λ j hj, rat.cast_lt.1 (hN _ hj)⟩⟩ in
   let ⟨q, hq⟩ := padic.complete' f' in
-  ⟨ q, λ ε hε,
+  ⟨ q, setoid.symm $ λ ε hε,
     let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
         ⟨N, hN⟩ := hq _ (by simpa using hε'l) in
     ⟨N, λ i hi, lt.trans (rat.cast_lt.2 (hN _ hi)) hε'r ⟩⟩⟩
 
 lemma padic_norm_e_lim_le {f : cau_seq ℚ_[p] norm} {a : ℝ} (ha : a > 0)
       (hf : ∀ i, ∥f i∥ ≤ a) : ∥f.lim∥ ≤ a :=
-let ⟨N, hN⟩ := cau_seq.lim_spec f _ ha in
+let ⟨N, hN⟩ := setoid.symm (cau_seq.equiv_lim f) _ ha in
 calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
                 ... ≤ a : max_le (le_of_lt (hN _ (le_refl _))) (hf _)

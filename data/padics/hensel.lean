@@ -325,7 +325,7 @@ private def soln : ℤ_[p] := newton_cau_seq.lim
 
 private lemma soln_spec {ε : ℝ} (hε : ε > 0) :
   ∃ (N : ℕ), ∀ {i : ℕ}, i ≥ N → ∥soln - newton_cau_seq i∥ < ε :=
-cau_seq.lim_spec newton_cau_seq _ hε
+setoid.symm (cau_seq.equiv_lim newton_cau_seq) _ hε
 
 private lemma soln_deriv_norm : ∥F.derivative.eval soln∥ = ∥F.derivative.eval a∥ :=
 norm_deriv_eq newton_seq_deriv_norm

@@ -139,14 +139,14 @@ variables [field α] [fintype α]
 
 instance [decidable_eq α] : fintype (units α) :=
 by haveI := set_fintype {a : α | a ≠ 0}; exact
-fintype.of_equiv _ (units_equiv_ne_zero α).symm
+fintype.of_equiv _ (equiv.units_equiv_ne_zero α).symm
 
 lemma card_units [decidable_eq α] : fintype.card (units α) = fintype.card α - 1 :=
 begin
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩)],
   haveI := set_fintype {a : α | a ≠ 0},
   haveI := set_fintype (@set.univ α),
-  rw [fintype.card_congr (units_equiv_ne_zero _),
+  rw [fintype.card_congr (equiv.units_equiv_ne_zero _),
     ← @set.card_insert _ _ {a : α | a ≠ 0} _ (not_not.2 (eq.refl (0 : α)))
     (set.fintype_insert _ _), fintype.card_congr (equiv.set.univ α).symm],
   congr; simp [set.ext_iff, classical.em]

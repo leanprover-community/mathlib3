@@ -1772,12 +1772,12 @@ open zorn
 variables {f g : filter α}
 
 /-- An ultrafilter is a minimal (maximal in the set order) proper filter. -/
-def ultrafilter (f : filter α) := f ≠ ⊥ ∧ ∀g, g ≠ ⊥ → g ≤ f → f ≤ g
+def is_ultrafilter (f : filter α) := f ≠ ⊥ ∧ ∀g, g ≠ ⊥ → g ≤ f → f ≤ g
 
-lemma ultrafilter_unique (hg : ultrafilter g) (hf : f ≠ ⊥) (h : f ≤ g) : f = g :=
+lemma ultrafilter_unique (hg : is_ultrafilter g) (hf : f ≠ ⊥) (h : f ≤ g) : f = g :=
 le_antisymm h (hg.right _ hf h)
 
-lemma le_of_ultrafilter {g : filter α} (hf : ultrafilter f) (h : f ⊓ g ≠ ⊥) :
+lemma le_of_ultrafilter {g : filter α} (hf : is_ultrafilter f) (h : f ⊓ g ≠ ⊥) :
   f ≤ g :=
 le_of_inf_eq $ ultrafilter_unique hf h inf_le_left
 
@@ -1785,7 +1785,7 @@ le_of_inf_eq $ ultrafilter_unique hf h inf_le_left
   A filter f is an ultrafilter if and only if for each set s,
   -s belongs to f if and only if s does not belong to f. -/
 lemma ultrafilter_iff_compl_mem_iff_not_mem :
-  ultrafilter f ↔ (∀ s, -s ∈ f.sets ↔ s ∉ f.sets) :=
+  is_ultrafilter f ↔ (∀ s, -s ∈ f.sets ↔ s ∉ f.sets) :=
 ⟨assume hf s,
    ⟨assume hns hs,
       hf.1 $ empty_in_sets_eq_bot.mp $ by convert f.inter_sets hs hns; rw [inter_compl_self],
@@ -1801,16 +1801,16 @@ lemma ultrafilter_iff_compl_mem_iff_not_mem :
         have s ∩ -s ∈ g.sets, from inter_mem_sets hs (g_le this),
         by simp only [empty_in_sets_eq_bot, hg, inter_compl_self] at this; contradiction⟩⟩
 
-lemma mem_or_compl_mem_of_ultrafilter (hf : ultrafilter f) (s : set α) :
+lemma mem_or_compl_mem_of_ultrafilter (hf : is_ultrafilter f) (s : set α) :
   s ∈ f.sets ∨ - s ∈ f.sets :=
 classical.or_iff_not_imp_left.2 (ultrafilter_iff_compl_mem_iff_not_mem.mp hf s).mpr
 
-lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : ultrafilter f) (h : s ∪ t ∈ f.sets) :
+lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : is_ultrafilter f) (h : s ∪ t ∈ f.sets) :
   s ∈ f.sets ∨ t ∈ f.sets :=
 (mem_or_compl_mem_of_ultrafilter hf s).imp_right
   (assume : -s ∈ f.sets, by filter_upwards [this, h] assume x hnx hx, hx.resolve_left hnx)
 
-lemma mem_of_finite_sUnion_ultrafilter {s : set (set α)} (hf : ultrafilter f) (hs : finite s)
+lemma mem_of_finite_sUnion_ultrafilter {s : set (set α)} (hf : is_ultrafilter f) (hs : finite s)
   : ⋃₀ s ∈ f.sets → ∃t∈s, t ∈ f.sets :=
 finite.induction_on hs (by simp only [empty_in_sets_eq_bot, hf.left, mem_empty_eq, sUnion_empty,
   forall_prop_of_false, exists_false, not_false_iff, exists_prop_of_false]) $
@@ -1820,23 +1820,23 @@ assume h, (mem_or_mem_of_ultrafilter hf h).elim
   (assume h, let ⟨t, hts', ht⟩ := ih h in ⟨t, or.inr hts', ht⟩)
 
 lemma mem_of_finite_Union_ultrafilter {is : set β} {s : β → set α}
-  (hf : ultrafilter f) (his : finite is) (h : (⋃i∈is, s i) ∈ f.sets) : ∃i∈is, s i ∈ f.sets :=
+  (hf : is_ultrafilter f) (his : finite is) (h : (⋃i∈is, s i) ∈ f.sets) : ∃i∈is, s i ∈ f.sets :=
 have his : finite (image s is), from finite_image s his,
 have h : (⋃₀ image s is) ∈ f.sets, from by simp only [sUnion_image, set.sUnion_image]; assumption,
 let ⟨t, ⟨i, hi, h_eq⟩, (ht : t ∈ f.sets)⟩ := mem_of_finite_sUnion_ultrafilter hf his h in
 ⟨i, hi, h_eq.symm ▸ ht⟩
 
-lemma ultrafilter_map {f : filter α} {m : α → β} (h : ultrafilter f) : ultrafilter (map m f) :=
+lemma ultrafilter_map {f : filter α} {m : α → β} (h : is_ultrafilter f) : is_ultrafilter (map m f) :=
 by rw ultrafilter_iff_compl_mem_iff_not_mem at ⊢ h; exact assume s, h (m ⁻¹' s)
 
-lemma ultrafilter_pure {a : α} : ultrafilter (pure a) :=
+lemma ultrafilter_pure {a : α} : is_ultrafilter (pure a) :=
 begin
   rw ultrafilter_iff_compl_mem_iff_not_mem, intro s,
   rw [mem_pure_sets, mem_pure_sets], exact iff.rfl
 end
 
 /-- The ultrafilter lemma: Any proper filter is contained in an ultrafilter. -/
-lemma exists_ultrafilter (h : f ≠ ⊥) : ∃u, u ≤ f ∧ ultrafilter u :=
+lemma exists_ultrafilter (h : f ≠ ⊥) : ∃u, u ≤ f ∧ is_ultrafilter u :=
 let
   τ                := {f' // f' ≠ ⊥ ∧ f' ≤ f},
   r : τ → τ → Prop := λt₁ t₂, t₂.val ≤ t₁.val,
@@ -1861,9 +1861,9 @@ let ⟨uτ, hmin⟩ := this in
   The ultrafilter lemma is the assertion that such a filter exists;
   we use the axiom of choice to pick one. -/
 noncomputable def ultrafilter_of (f : filter α) : filter α :=
-if h : f = ⊥ then ⊥ else classical.epsilon (λu, u ≤ f ∧ ultrafilter u)
+if h : f = ⊥ then ⊥ else classical.epsilon (λu, u ≤ f ∧ is_ultrafilter u)
 
-lemma ultrafilter_of_spec (h : f ≠ ⊥) : ultrafilter_of f ≤ f ∧ ultrafilter (ultrafilter_of f) :=
+lemma ultrafilter_of_spec (h : f ≠ ⊥) : ultrafilter_of f ≤ f ∧ is_ultrafilter (ultrafilter_of f) :=
 begin
   have h' := classical.epsilon_spec (exists_ultrafilter h),
   simp only [ultrafilter_of, dif_neg, h, dif_neg, not_false_iff],
@@ -1875,10 +1875,10 @@ lemma ultrafilter_of_le : ultrafilter_of f ≤ f :=
 if h : f = ⊥ then by simp only [ultrafilter_of, dif_pos, h, dif_pos, eq_self_iff_true, le_bot_iff]; exact le_refl _
   else (ultrafilter_of_spec h).left
 
-lemma ultrafilter_ultrafilter_of (h : f ≠ ⊥) : ultrafilter (ultrafilter_of f) :=
+lemma ultrafilter_ultrafilter_of (h : f ≠ ⊥) : is_ultrafilter (ultrafilter_of f) :=
 (ultrafilter_of_spec h).right
 
-lemma ultrafilter_of_ultrafilter (h : ultrafilter f) : ultrafilter_of f = f :=
+lemma ultrafilter_of_ultrafilter (h : is_ultrafilter f) : ultrafilter_of f = f :=
 ultrafilter_unique h (ultrafilter_ultrafilter_of h.left).left ultrafilter_of_le
 
 end ultrafilter

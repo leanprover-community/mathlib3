@@ -513,14 +513,14 @@ lemma second_countable_of_separable_metric_space (α : Type u) [metric_space α]
   second_countable_topology α :=
 let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ α in
 ⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
-⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}, from
+⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
 begin
   apply countable_bUnion S_countable,
   intros a aS,
   apply countable_Union,
   simp
 end,
-show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}), from
+show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}),
 begin
   have A : ∀ (u : set α), (u ∈ ⋃x ∈ S, ⋃ (n : nat), ({ball x ((n : ℝ)⁻¹)} : set (set α))) → is_open u :=
   begin
@@ -586,7 +586,7 @@ lemma countable_closure_of_compact {α : Type u} [metric_space α] {s : set α} 
   ∃ t ⊆ s, (countable t ∧ s = closure t) :=
 begin
   have A : ∀ (e:ℝ), e > 0 → ∃ t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=
-  assume e, finite_cover_balls_of_compact hs,
+    assume e, finite_cover_balls_of_compact hs,
   have B : ∀ (e:ℝ), ∃ t ⊆ s, finite t ∧ (e > 0 → s ⊆ (⋃x∈t, ball x e)) :=
   begin
     intro e,
@@ -672,7 +672,7 @@ begin
   /-We show that the space admits a countable dense subset. The case where the space is empty
   is special, and trivial.-/
   have A : (univ : set α) = ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
-  assume H, ⟨∅, ⟨by simp, by simp; exact H.symm⟩⟩,
+    assume H, ⟨∅, ⟨by simp, by simp; exact H.symm⟩⟩,
   have B : (univ : set α) ≠ ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
   begin
     /-When the space is not empty, we take a point `x` in the space, and then a countable set
@@ -681,9 +681,8 @@ begin
     of countable sets, and dense in the space by construction.-/
     assume non_empty,
     rcases ne_empty_iff_exists_mem.1 non_empty with ⟨x, x_univ⟩,
-    have A : ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t) :=
-    assume r, countable_closure_of_compact (proper_space.compact_ball _ _),
-    choose T a using A,
+    choose T a using show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t),
+      from assume r, countable_closure_of_compact (proper_space.compact_ball _ _),
     let t := (⋃n:ℕ, T (n : ℝ)),
     have T₁ : countable t := by finish [countable_Union],
     have T₂ : closure t ⊆ univ := by simp,

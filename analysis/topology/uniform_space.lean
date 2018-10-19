@@ -1284,7 +1284,7 @@ begin
   exact (assume x hx, ⟨⟨x, hp x hx⟩, rfl⟩)
 end
 
-/-If a Cauchy filter contains a complete set, then it is converging. The proof
+/--If a Cauchy filter contains a compact set, then it is converging. The proof
 is done by restricting to the compact set, and then lifting everything back.
 The same would work if the filter contained a complete set, but complete sets
 are not defined, and this would be less useful anyway.-/

@@ -21,13 +21,163 @@ variables {t : fan f}
 
 instance is_product_subsingleton : subsingleton (is_product t) := by dsimp [is_product]; apply_instance
 
+-- unnecessary?
 lemma is_product.hom_lift (h : is_product t) {X' : C} (m : X' ⟶ t.X) : m = h.lift { X := X', π := λ b, m ≫ t.π b } :=
-is_limit.hom_lift m
+is_limit.hom_lift h m
 
+-- unnecessary?
 lemma is_product.universal (h : is_product t) (s : fan f) (φ : s.X ⟶ t.X) :
-  (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = h.lift s) := sorry
+  (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = h.lift s) := is_limit.universal h s φ
 
+-- unnecessary?
 def is_product.of_lift_universal
+  (lift : Π (s : fan f), s.X ⟶ t.X)
+  (universal : Π (s : fan f) (φ : s.X ⟶ t.X), (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = lift s)) : is_product t :=
+is_limit.of_lift_universal lift universal
+
+variable (C)
+
+class has_products :=
+(fan : Π {β : Type v} (f : β → C), fan.{u v} f)
+(is_product : Π {β : Type v} (f : β → C), is_product (fan f) . obviously)
+
+variable {C}
+
+section
+variables [has_products.{u v} C]
+
+def pi.fan (f : β → C) : fan f := has_products.fan.{u v} f
+protected def pi (f : β → C) : C := (pi.fan f).X
+def pi.π (f : β → C) (b : β) : limits.pi f ⟶ f b := (pi.fan f).π b
+def pi.universal_property (f : β → C) : is_product (pi.fan f) := has_products.is_product.{u v} C f
+
+@[simp] lemma pi.fan_π (f : β → C) (b : β) : (pi.fan f).π b = @pi.π C _ _ _ f b := rfl
+
+def pi.lift {f : β → C} {P : C} (p : Π b, P ⟶ f b) : P ⟶ limits.pi f :=
+(pi.universal_property f).lift ⟨ ⟨ P ⟩, p ⟩
+
+@[simp] lemma pi.lift_π {f : β → C} {P : C} (p : Π b, P ⟶ f b) (b : β) : pi.lift p ≫ pi.π f b = p b :=
+by erw is_limit.fac
+
+def pi.map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) : (limits.pi f) ⟶ (limits.pi g) :=
+pi.lift (λ b, pi.π f b ≫ k b)
+
+@[simp] lemma pi.map_π {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) (b : β) : pi.map k ≫ pi.π g b = pi.π f b ≫ k b :=
+by erw is_limit.fac
+
+def pi.pre {α} (f : α → C) (h : β → α) : limits.pi f ⟶ limits.pi (f ∘ h) :=
+pi.lift (λ g, pi.π f (h g))
+
+@[simp] lemma pi.pre_π {α} (f : α → C) (h : β → α) (b : β) : pi.pre f h ≫ pi.π (f ∘ h) b = pi.π f (h b) :=
+by erw is_limit.fac
+
+section
+variables {D : Type u} [𝒟 : category.{u v} D] [has_products.{u v} D]
+include 𝒟
+
+def pi.post (f : β → C) (G : C ⥤ D) : G (limits.pi f) ⟶ (limits.pi (G.obj ∘ f)) :=
+@is_limit.lift _ _ _ _ _ (pi.fan (G.obj ∘ f)) (pi.universal_property _) { X := _, π := λ b, G.map (pi.π f b) }
+
+@[simp] lemma pi.post_π (f : β → C) (G : C ⥤ D) (b : β) : pi.post f G ≫ pi.π _ b = G.map (pi.π f b) :=
+by erw is_limit.fac
+end
+
+@[extensionality] lemma pi.hom_ext
+  (f : β → C) {X : C} (g h : X ⟶ limits.pi f) (w : ∀ b, g ≫ pi.π f b = h ≫ pi.π f b) : g = h :=
+begin
+  rw is_limit.uniq (pi.universal_property f) { X := X, π := λ b, g ≫ pi.π f b } g,
+  rw is_limit.uniq (pi.universal_property f) { X := X, π := λ b, g ≫ pi.π f b } h,
+  intro b, exact eq.symm (w b),
+  intro b, refl,
+end
+
+@[simp] def pi.lift_map
+  {f : β → C} {g : β → C} {P : C} (p : Π b, P ⟶ f b) (k : Π b, f b ⟶ g b) :
+  pi.lift p ≫ pi.map k = pi.lift (λ b, p b ≫ k b) :=
+begin
+  /- `obviously` says -/
+  ext1,
+  simp,
+  rw [←category.assoc, pi.lift_π]
+end
+
+@[simp] def pi.map_map {f1 : β → C} {f2 : β → C} {f3 : β → C}
+  (k1 : Π b, f1 b ⟶ f2 b) (k2 : Π b, f2 b ⟶ f3 b) :
+  pi.map k1 ≫ pi.map k2 = pi.map (λ b, k1 b ≫ k2 b) :=
+begin
+  /- `obviously` says -/
+  ext1,
+  simp,
+  rw ←category.assoc,
+  erw pi.lift_π,
+  rw ←category.assoc
+end
+
+@[simp] def pi.lift_pre {α : Type v} {f : β → C} {P : C} (p : Π b, P ⟶ f b) (h : α → β) :
+  pi.lift p ≫ pi.pre _ h = pi.lift (λ a, p (h a)) :=
+by ext1; simp.
+
+def pi.map_pre {α : Type v} {f g : β → C} (k : Π b : β, f b ⟶ g b) (e : α → β) :
+  pi.map k ≫ pi.pre g e = pi.pre f e ≫ pi.map (λ a, k (e a)) :=
+begin
+  /- `obviously` says -/
+  ext1,
+  simp,
+  rw ←category.assoc,
+  erw pi.lift_π
+end.
+
+@[simp] lemma pi.pre_pre {γ δ : Type v} (f : β → C) (g : γ → β) (h : δ → γ) :
+  pi.pre f g ≫ pi.pre (f ∘ g) h = pi.pre f (g ∘ h) :=
+by ext1; simp.
+
+section
+variables {D : Type u} [category.{u v} D] [has_products.{u v} D]
+
+@[simp] def pi.lift_post {f : β → C} {P : C} (k : Π b : β, P ⟶ f b) (G : C ⥤ D) :
+  G.map (pi.lift k) ≫ pi.post f G = pi.lift (λ b, G.map (k b)) :=
+begin
+  /- `obvously` says -/
+  ext1, simp,
+  erw [←functor.map_comp, pi.lift_π]
+end.
+
+def pi.map_post {f g : β → C} (k : Π b : β, f b ⟶ g b) (H : C ⥤ D) :
+  H.map (pi.map k) ≫ pi.post g H = pi.post f H ≫ pi.map (λ b, H.map (k b)) :=
+begin
+  /- `tidy` says -/
+  ext1,
+  simp,
+  rw ←functor.map_comp,
+  erw pi.lift_π,
+  rw ←category.assoc,
+  erw pi.lift_π,
+  rw ←functor.map_comp
+end.
+
+def pi.pre_post {α} (f : β → C) (g : α → β) (G : C ⥤ D) :
+  G.map (pi.pre f g) ≫ pi.post (f ∘ g) G = pi.post f G ≫ pi.pre (G.obj ∘ f) g :=
+begin
+  /- `tidy` says -/
+  ext1,
+  simp,
+  rw ←functor.map_comp,
+  erw pi.lift_π
+end
+
+@[simp] def pi.post_post
+  {E : Type u} [category.{u v} E] [has_products.{u v} E] (f : β → C) (G : C ⥤ D) (H : D ⥤ E) :
+  H.map (pi.post f G) ≫ pi.post (G.obj ∘ f) H = pi.post f (G ⋙ H) :=
+begin
+  /- `obviously` says -/
+  ext1,
+  simp,
+  rw ←functor.map_comp,
+  rw pi.post_π,
+  erw pi.post_π,
+  refl,
+end.
+end
 
 
 end category_theory.limits

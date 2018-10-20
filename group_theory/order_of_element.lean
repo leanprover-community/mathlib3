@@ -218,6 +218,13 @@ local attribute [instance] set_fintype
 class is_cyclic (α : Type*) [group α] : Prop :=
 (exists_generator : ∃ g : α, ∀ x, x ∈ gpowers g)
 
+def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
+{ mul_comm := λ x y, show x * y = y * x,
+    from let ⟨g, hg⟩ := is_cyclic.exists_generator α in
+    let ⟨n, hn⟩ := hg x in let ⟨m, hm⟩ := hg y in
+    hm ▸ hn ▸ gpow_mul_comm _ _ _,
+  ..hg }
+
 lemma is_cyclic_of_order_of_eq_card [group α] [fintype α] [decidable_eq α]
   (x : α) (hx : order_of x = fintype.card α) : is_cyclic α :=
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le

@@ -91,15 +91,9 @@ end
 section
 
 def pi.fan (f : β → C) [has_product f] : fan f := has_product.fan.{u v} f
-
--- def pi.fan' (f : β → C) [has_product f] : fan f := limit.cone (functor.of_function f)
--- lemma pi.fan_same (f : β → C) [has_product f] : pi.fan f = pi.fan' f := rfl
-
 protected def pi (f : β → C) [has_product f] : C := (pi.fan f).X
 def pi.π (f : β → C) [has_product f] (b : β) : limits.pi f ⟶ f b := (pi.fan f).π b
 def pi.universal_property (f : β → C) [has_product f] : is_product (pi.fan f) := has_product.is_product.{u v} f
--- def pi.universal_property (f : β → C) [has_product f] : is_product (pi.fan f) :=
---   limit.universal_property.{u v} (functor.of_function f)
 
 @[simp] lemma pi.fan_π (f : β → C) [has_product f] (b : β) : (pi.fan f).π b = @pi.π C _ _ f _ b := rfl
 
@@ -107,20 +101,11 @@ def pi.universal_property (f : β → C) [has_product f] : is_product (pi.fan f)
 { X := P,
   π := p }
 
--- -- Not a good idea, apparently.
--- instance cone.of_function_coe {f : β → C} {P : C} : has_coe (Π b, P ⟶ f b) (cone (functor.of_function f)) :=
--- { coe := cone.of_function }
-
 def pi.lift {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ limits.pi f :=
 limit.lift _ (cone.of_function p)
 
--- def pi.lift'  {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ limits.pi f :=
--- (pi.universal_property f).lift ⟨ ⟨ P ⟩, p ⟩
--- lemma pi.lift_same {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : pi.lift p = pi.lift' p := rfl
-
 @[simp] lemma pi.lift_π {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) (b : β) : pi.lift p ≫ pi.π f b = p b :=
 limit.lift_π (cone.of_function p) b
--- by erw is_limit.fac; refl
 
 def pi.map
   {f : β → C} [has_product f] {g : β → C} [has_product g] (k : Π b, f b ⟶ g b) : (limits.pi f) ⟶ (limits.pi g) :=
@@ -130,7 +115,7 @@ pi.lift (λ b, pi.π f b ≫ k b)
   {f : β → C} [has_product f] {g : β → C} [has_product g] (k : Π b, f b ⟶ g b) (b : β) :
   pi.map k ≫ pi.π g b = pi.π f b ≫ k b :=
 by erw is_limit.fac; refl
--- lim_map_π (nat_trans.of_function k) b -- doesn't work
+-- lim_map_π (nat_trans.of_function k) b -- TODO doesn't work
 
 def pi.pre {α} (f : α → C) [has_product.{u v} f] (h : β → α) [has_product.{u v} (f ∘ h)] :
   limits.pi f ⟶ limits.pi (f ∘ h) :=
@@ -143,6 +128,21 @@ by erw is_limit.fac; refl
 section
 variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
+
+-- instance (f : β → C) (G : C ⥤ D) [has_product (G.obj ∘ f)] : has_limit (functor.of_function f ⋙ G) :=
+-- begin
+--   have h : functor.of_function f ⋙ G = functor.of_function (G.obj ∘ f),
+--   { tactic.unfreeze_local_instances,
+--     cases G,
+--     dsimp,
+--     dsimp [functor.comp],
+--     congr,
+--     ext1, ext1, ext1, cases x_2, cases x_2, cases x_2,
+--     dsimp,
+--     rw G_map_id' },
+--   rw h,
+--   apply_instance
+-- end
 
 def pi.post (f : β → C) [has_product f] (G : C ⥤ D) [has_product (G.obj ∘ f)] :
   G (limits.pi f) ⟶ (limits.pi (G.obj ∘ f)) :=

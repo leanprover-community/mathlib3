@@ -157,10 +157,6 @@ def is_colimit.of_desc_universal
 
 end colimit
 
-variable (C)
-
-variable {C}
-
 section
 variables {J : Type v} [𝒥 : small_category J]
 include 𝒥
@@ -370,6 +366,8 @@ class has_colimits :=
 variable {C}
 
 section
+-- FIXME don't use has_colimits
+
 variables [has_colimits.{u v} C] {J : Type v} [𝒥 : small_category J]
 include 𝒥
 

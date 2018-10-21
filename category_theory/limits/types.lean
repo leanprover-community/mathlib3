@@ -3,14 +3,16 @@
 -- Authors: Scott Morrison, Reid Barton
 
 import category_theory.limits
+import category_theory.limits.pullbacks
 
 universes u v
 
 open category_theory
 open category_theory.limits
 
-namespace category_theory.universal.types
+namespace category_theory.limits.types
 
+section
 variables {J : Type u} [𝒥 : small_category J]
 include 𝒥
 
@@ -80,4 +82,45 @@ local attribute [extensionality] quot.sound
 -- @[simp] lemma types_colimit_lift (F : J ⥤ Type u) (c : cocone F) :
 --   colimit.desc F c = λ x, sorry := sorry
 
-end category_theory.universal.types
+end
+
+open category_theory.limits.walking_cospan
+open category_theory.limits.walking_cospan_hom
+
+def pullback {Y₁ Y₂ Z : Type u} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z) : cone (cospan r₁ r₂) :=
+{ X := { z : Y₁ × Y₂ // r₁ z.1 = r₂ z.2 },
+  π := λ j z,
+  match j with
+  | left  := z.val.1
+  | right := z.val.2
+  | one   := r₁ z.val.1
+  end,
+  w' := λ j j' f, funext $
+  match j, j', f with
+  | _, _, (id _) := by tidy
+  | _, _, inl := by tidy
+  | _, _, inr := λ x, begin dsimp [cospan], erw ← x.property, refl end
+  end }
+
+instance : has_pullbacks.{u+1 u} (Type u) :=
+{ square := λ Y₁ Y₂ Z r₁ r₂, pullback r₁ r₂,
+  is_pullback := λ Y₁ Y₂ Z r₁ r₂,
+  { lift  := λ s x, ⟨ (s.π left x, s.π right x),
+    begin
+      have swl := congr_fun (s.w inl) x,
+      have swr := congr_fun (s.w inr) x,
+      exact eq.trans swl (eq.symm swr),
+    end ⟩,
+    fac' := λ s j, funext $ λ x,
+    begin
+      cases j, refl, refl,
+      exact congr_fun (s.w inl) x,
+    end,
+    uniq' := λ s m w,
+    begin
+      tidy,
+      exact congr_fun (w left) x,
+      exact congr_fun (w right) x,
+    end }, }
+
+end category_theory.limits.types

@@ -97,6 +97,19 @@ by rw dist_comm z; apply dist_triangle
 theorem dist_triangle_right (x y z : α) : dist x y ≤ dist x z + dist y z :=
 by rw dist_comm y; apply dist_triangle
 
+lemma dist_triangle4 (x y z t : α) :
+  dist x t ≤ dist x y + dist y z + dist z t :=
+calc
+  dist x t ≤ dist x z + dist z t : dist_triangle x z t
+       ... ≤ (dist x y + dist y z) + dist z t : add_le_add_right (metric_space.dist_triangle x y z) _
+
+lemma dist_triangle5 (x y z t u : α) :
+  dist x u ≤ dist x y + dist y z + dist z t + dist t u :=
+calc
+  dist x u ≤ dist x t + dist t u : dist_triangle x t u
+       ... ≤ (dist x y + dist y z + dist z t) + dist t u : add_le_add_right (dist_triangle4 x y z t) _
+
+
 theorem swap_dist : function.swap (@dist α _) = dist :=
 by funext x y; exact dist_comm _ _
 

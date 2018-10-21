@@ -30,9 +30,20 @@ sorry
   π := λ j, c.π j k,
   w' := λ j j' f, begin rw ←(c.w f), refl, end }
 
+def functor.constant (K : Type v) [small_category K] (X : C) : K ⥤ C :=
+{ obj := λ k, X,
+  map' := λ k k' f, 𝟙 X }
+
+@[simp] lemma functor.constant_obj (X : C) (k : K) : ((functor.constant K X) : K ⥤ C) k = X := rfl
+@[simp] lemma functor.constant_map (X : C) {k k' : K} (f : k ⟶ k') : (functor.constant K X).map f = 𝟙 X := rfl
+
+def nat_trans.of_cone {F : J ⥤ C} (c : cone F) : functor.constant.{u v} J c.X ⟹ F :=
+{ app := c.π,
+  naturality' := λ j j' f, begin simp, erw category.id_comp, end }
+
 def is_limit_pointwise (F : J ⥤ (K ⥤ C)) (c : cone F) (h : is_limit c) (k : K) :
   is_limit (c.pointwise k) :=
-{ lift := λ s, begin sorry end,
+{ lift := λ s, (h.lift { X := functor.constant K s.X, π := λ j, { app := λ k', begin simp, exact s.π j end }, w' := sorry }).app k,
   fac' := sorry,
   uniq' := sorry }
 

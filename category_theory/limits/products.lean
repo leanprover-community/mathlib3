@@ -41,58 +41,120 @@ class has_products :=
 (fan : Π {β : Type v} (f : β → C), fan.{u v} f)
 (is_product : Π {β : Type v} (f : β → C), is_product (fan f) . obviously)
 
+class has_products_of_shape (β : Type v) :=
+(fan : Π f : β → C, fan f)
+(is_product : Π f : β → C, is_product (fan f))
+
 variable {C}
 
+class has_product {β : Type v} (f : β → C) :=
+(fan : fan.{u v} f)
+(is_product : is_product fan)
+
+instance has_product_of_has_products_of_shape
+  {β : Type v} [has_products_of_shape.{u v} C β] (f : β → C) : has_product f :=
+{ fan := has_products_of_shape.fan f,
+  is_product := has_products_of_shape.is_product f }
+
+instance has_products_of_shape_of_has_products
+  {β : Type v} [has_products.{u v} C] : has_products_of_shape.{u v} C β :=
+{ fan := λ f, has_products.fan f,
+  is_product := λ f, has_products.is_product C f }
+
+-- Special cases of this may be marked with [instance] as desired.
+def has_products_of_has_limits [limits.has_limits.{u v} C] : has_products.{u v} C :=
+{ fan := λ β f, limit.cone (functor.of_function f),
+  is_product := λ β f, limit.universal_property (functor.of_function f) }
+
+instance has_limit_of_has_product {β : Type v} (f : β → C) [has_product f] : limits.has_limit (functor.of_function f) :=
+{ cone := has_product.fan f,
+  is_limit := has_product.is_product f }
+
+instance has_limits_of_shape_of_has_products_of_shape {β : Type v} [has_products_of_shape.{u v} C β] :
+  limits.has_limits_of_shape.{u v} C (discrete β) :=
+  begin
+    haveI : has_products_of_shape.{u v} C (discrete β) := (by apply_instance : has_products_of_shape.{u v} C β),
+    exact
+    { cone := λ F, { w' := λ j j' f, begin cases f, cases f, cases f, sorry end, .. has_products_of_shape.fan F.obj },
+      is_limit := λ F, let is_product := has_product.is_product F.obj in
+      { lift := λ s, let lift := is_product.lift { w' := sorry, .. s } in
+        begin convert lift, end,
+        fac' := sorry,
+        uniq' := sorry } }
+  end
+
 section
-variables [has_products.{u v} C]
 
-def pi.fan (f : β → C) : fan f := has_products.fan.{u v} f
-protected def pi (f : β → C) : C := (pi.fan f).X
-def pi.π (f : β → C) (b : β) : limits.pi f ⟶ f b := (pi.fan f).π b
-def pi.universal_property (f : β → C) : is_product (pi.fan f) := has_products.is_product.{u v} C f
+def pi.fan (f : β → C) [has_product f] : fan f := has_product.fan.{u v} f
 
-@[simp] lemma pi.fan_π (f : β → C) (b : β) : (pi.fan f).π b = @pi.π C _ _ _ f b := rfl
+-- def pi.fan' (f : β → C) [has_product f] : fan f := limit.cone (functor.of_function f)
+-- lemma pi.fan_same (f : β → C) [has_product f] : pi.fan f = pi.fan' f := rfl
 
-def pi.lift {f : β → C} {P : C} (p : Π b, P ⟶ f b) : P ⟶ limits.pi f :=
-(pi.universal_property f).lift ⟨ ⟨ P ⟩, p ⟩
+protected def pi (f : β → C) [has_product f] : C := (pi.fan f).X
+def pi.π (f : β → C) [has_product f] (b : β) : limits.pi f ⟶ f b := (pi.fan f).π b
+def pi.universal_property (f : β → C) [has_product f] : is_product (pi.fan f) := has_product.is_product.{u v} f
+-- def pi.universal_property (f : β → C) [has_product f] : is_product (pi.fan f) :=
+--   limit.universal_property.{u v} (functor.of_function f)
 
-@[simp] lemma pi.lift_π {f : β → C} {P : C} (p : Π b, P ⟶ f b) (b : β) : pi.lift p ≫ pi.π f b = p b :=
-by erw is_limit.fac
+@[simp] lemma pi.fan_π (f : β → C) [has_product f] (b : β) : (pi.fan f).π b = @pi.π C _ _ f _ b := rfl
 
-def pi.map {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) : (limits.pi f) ⟶ (limits.pi g) :=
+@[simp] def cone.of_function {f : β → C} {P : C} (p : Π b, P ⟶ f b) : cone (functor.of_function f) :=
+{ X := P,
+  π := p }
+
+-- -- Not a good idea, apparently.
+-- instance cone.of_function_coe {f : β → C} {P : C} : has_coe (Π b, P ⟶ f b) (cone (functor.of_function f)) :=
+-- { coe := cone.of_function }
+
+def pi.lift {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ limits.pi f :=
+limit.lift _ (cone.of_function p)
+
+-- def pi.lift'  {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ limits.pi f :=
+-- (pi.universal_property f).lift ⟨ ⟨ P ⟩, p ⟩
+-- lemma pi.lift_same {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : pi.lift p = pi.lift' p := rfl
+
+@[simp] lemma pi.lift_π {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) (b : β) : pi.lift p ≫ pi.π f b = p b :=
+limit.lift_π (cone.of_function p) b
+-- by erw is_limit.fac; refl
+
+def pi.map
+  {f : β → C} [has_product f] {g : β → C} [has_product g] (k : Π b, f b ⟶ g b) : (limits.pi f) ⟶ (limits.pi g) :=
 pi.lift (λ b, pi.π f b ≫ k b)
 
-@[simp] lemma pi.map_π {f : β → C} {g : β → C} (k : Π b, f b ⟶ g b) (b : β) : pi.map k ≫ pi.π g b = pi.π f b ≫ k b :=
-by erw is_limit.fac
+@[simp] lemma pi.map_π
+  {f : β → C} [has_product f] {g : β → C} [has_product g] (k : Π b, f b ⟶ g b) (b : β) :
+  pi.map k ≫ pi.π g b = pi.π f b ≫ k b :=
+by erw is_limit.fac; refl
+-- lim_map_π (nat_trans.of_function k) b -- doesn't work
 
-def pi.pre {α} (f : α → C) (h : β → α) : limits.pi f ⟶ limits.pi (f ∘ h) :=
+def pi.pre {α} (f : α → C) [has_product.{u v} f] (h : β → α) [has_product.{u v} (f ∘ h)] :
+  limits.pi f ⟶ limits.pi (f ∘ h) :=
 pi.lift (λ g, pi.π f (h g))
 
-@[simp] lemma pi.pre_π {α} (f : α → C) (h : β → α) (b : β) : pi.pre f h ≫ pi.π (f ∘ h) b = pi.π f (h b) :=
-by erw is_limit.fac
+@[simp] lemma pi.pre_π {α} (f : α → C) [has_product.{u v} f] (h : β → α) [has_product.{u v} (f ∘ h)] (b : β) :
+  pi.pre f h ≫ pi.π (f ∘ h) b = pi.π f (h b) :=
+by erw is_limit.fac; refl
 
 section
-variables {D : Type u} [𝒟 : category.{u v} D] [has_products.{u v} D]
+variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
 
-def pi.post (f : β → C) (G : C ⥤ D) : G (limits.pi f) ⟶ (limits.pi (G.obj ∘ f)) :=
+def pi.post (f : β → C) [has_product f] (G : C ⥤ D) [has_product (G.obj ∘ f)] :
+  G (limits.pi f) ⟶ (limits.pi (G.obj ∘ f)) :=
+-- limit.post (functor.of_function f) G -- TODO make this work
 @is_limit.lift _ _ _ _ _ (pi.fan (G.obj ∘ f)) (pi.universal_property _) { X := _, π := λ b, G.map (pi.π f b) }
 
-@[simp] lemma pi.post_π (f : β → C) (G : C ⥤ D) (b : β) : pi.post f G ≫ pi.π _ b = G.map (pi.π f b) :=
+@[simp] lemma pi.post_π (f : β → C) [has_product f] (G : C ⥤ D) [has_product (G.obj ∘ f)] (b : β) :
+  pi.post f G ≫ pi.π _ b = G.map (pi.π f b) :=
 by erw is_limit.fac
 end
 
 @[extensionality] lemma pi.hom_ext
-  (f : β → C) {X : C} (g h : X ⟶ limits.pi f) (w : ∀ b, g ≫ pi.π f b = h ≫ pi.π f b) : g = h :=
-begin
-  rw is_limit.uniq (pi.universal_property f) { X := X, π := λ b, g ≫ pi.π f b } g,
-  rw is_limit.uniq (pi.universal_property f) { X := X, π := λ b, g ≫ pi.π f b } h,
-  intro b, exact eq.symm (w b),
-  intro b, refl,
-end
+  {f : β → C} [has_product f] {X : C} {g h : X ⟶ limits.pi f} (w : ∀ b, g ≫ pi.π f b = h ≫ pi.π f b) : g = h :=
+limit.hom_ext w
 
 @[simp] def pi.lift_map
-  {f : β → C} {g : β → C} {P : C} (p : Π b, P ⟶ f b) (k : Π b, f b ⟶ g b) :
+  {f : β → C} [has_product f] {g : β → C} [has_product g] {P : C} (p : Π b, P ⟶ f b) (k : Π b, f b ⟶ g b) :
   pi.lift p ≫ pi.map k = pi.lift (λ b, p b ≫ k b) :=
 begin
   /- `obviously` says -/
@@ -101,9 +163,10 @@ begin
   rw [←category.assoc, pi.lift_π]
 end
 
-@[simp] def pi.map_map {f1 : β → C} {f2 : β → C} {f3 : β → C}
+@[simp] def pi.map_map {f1 : β → C} [has_product f1] {f2 : β → C} [has_product f2] {f3 : β → C} [has_product f3]
   (k1 : Π b, f1 b ⟶ f2 b) (k2 : Π b, f2 b ⟶ f3 b) :
   pi.map k1 ≫ pi.map k2 = pi.map (λ b, k1 b ≫ k2 b) :=
+-- lim.map_comp (nat_trans.of_function k1) (nat_trans.of_function k2)
 begin
   /- `obviously` says -/
   ext1,

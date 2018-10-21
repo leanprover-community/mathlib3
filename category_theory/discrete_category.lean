@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Stephen Morgan, Scott Morrison
 
-import category_theory.functor
+import category_theory.natural_transformation
 import category_theory.isomorphism
 
 namespace category_theory
@@ -38,10 +38,14 @@ instance punit_category : category.{u₁ v₁} punit :=
 -- TODO this needs to wait for equivalences to arrive
 -- example : equivalence.{u₁ u₁ u₁ u₁} punit (discrete punit) := by obviously
 
-namespace functor
+def discrete.lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete α) ⥤ (discrete β) :=
+{ obj := f,
+  map' := λ X Y g, begin cases g, cases g, cases g, exact 𝟙 (f X) end }
+
 variables (C : Type u₂) [𝒞 : category.{u₂ v₂} C]
 include 𝒞
 
+namespace functor
 def empty : pempty ⥤ C := by obviously
 
 variables {C}
@@ -50,6 +54,19 @@ variables {C}
 { obj := F,
   map' := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
 
+-- instance of_function_coe {I : Type u₁} : has_coe (I → C) ((discrete I) ⥤ C) := ⟨ of_function ⟩
+
 end functor
+
+namespace nat_trans
+
+variables {C}
+
+@[simp] def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
+  (functor.of_function F) ⟹ (functor.of_function G) :=
+{ app := λ i, f i,
+  naturality' := λ X Y g, begin cases g, cases g, cases g, dsimp [functor.of_function], simp, end }
+
+end nat_trans
 
 end category_theory

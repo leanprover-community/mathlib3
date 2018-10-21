@@ -164,8 +164,6 @@ variable {C}
 section
 variables {J : Type v} [𝒥 : small_category J]
 include 𝒥
--- variables (F : J ⥤ C) [H : has_limit.{u v} F]
--- include H
 
 def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone.{u v} F
 def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
@@ -174,14 +172,15 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F j := (limit.con
 def limit.universal_property (F : J ⥤ C) [has_limit F] : is_limit (limit.cone F) :=
 has_limit.is_limit.{u v} F
 
+-- We could make `F` an implicit argument here, but it seems to make usage more confusing.
 def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F := (limit.universal_property F).lift c
-@[simp] lemma limit.universal_property_lift (F : J ⥤ C) [has_limit F] (c : cone F) :
+@[simp] lemma limit.universal_property_lift {F : J ⥤ C} [has_limit F] (c : cone F) :
   (limit.universal_property F).lift c = limit.lift F c := rfl
 
-@[simp] lemma limit.lift_π (F : J ⥤ C) [has_limit F] (c : cone F) (j : J) : limit.lift F c ≫ limit.π F j = c.π j :=
+@[simp] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) : limit.lift F c ≫ limit.π F j = c.π j :=
 is_limit.fac _ c j
 
-@[simp] lemma limit.cone_π (F : J ⥤ C) [has_limit F] (j : J) : (limit.cone F).π j = (@limit.π C _ J _ F _ j) := rfl
+@[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) : (limit.cone F).π j = (@limit.π C _ J _ F _ j) := rfl
 
 def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) : cone_morphism c (limit.cone F) :=
 { hom := (limit.lift F) c }
@@ -193,7 +192,7 @@ def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) : cone_morphism
 by erw is_limit.fac
 
 @[extensionality] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C}
-  (f g : X ⟶ limit F)
+  {f g : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = g ≫ limit.π F j) : f = g :=
 begin
   let c : cone F :=
@@ -278,7 +277,8 @@ begin
 end
 
 @[simp] lemma limit.pre_pre
-  {L : Type v} [small_category L] (F : J ⥤ C) (E : K ⥤ J) (D : L ⥤ K) :
+  {L : Type v} [small_category L]
+  (F : J ⥤ C) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)] (D : L ⥤ K) [has_limit (D ⋙ E ⋙ F)] :
   limit.pre F E ≫ limit.pre (E ⋙ F) D = limit.pre F (D ⋙ E) :=
 begin
   /- `obviously` says -/
@@ -292,7 +292,7 @@ section
 variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
 
-def limit.post (F : J ⥤ C) (G : C ⥤ D) : G (limit F) ⟶ limit (F ⋙ G) :=
+def limit.post (F : J ⥤ C) [has_limit F] (G : C ⥤ D) [has_limit (F ⋙ G)] : G (limit F) ⟶ limit (F ⋙ G) :=
 limit.lift (F ⋙ G)
 { X := _,
   π := λ j, G.map (limit.π F j),
@@ -304,11 +304,11 @@ limit.lift (F ⋙ G)
     refl
   end }
 
-@[simp] lemma limit.post_π (F : J ⥤ C) (G : C ⥤ D) (j : J) :
+@[simp] lemma limit.post_π (F : J ⥤ C) [has_limit F] (G : C ⥤ D) [has_limit (F ⋙ G)] (j : J) :
   limit.post F G ≫ limit.π (F ⋙ G) j = G.map (limit.π F j) :=
 by erw is_limit.fac
 
-@[simp] lemma limit.lift_post {F : J ⥤ C} (c : cone F) (G : C ⥤ D) :
+@[simp] lemma limit.lift_post {F : J ⥤ C} [has_limit F] (c : cone F) (G : C ⥤ D) [has_limit (F ⋙ G)] :
   G.map (limit.lift F c) ≫ limit.post F G = limit.lift (F ⋙ G) (G.map_cone c) :=
 begin
   /- `obviously` says -/
@@ -318,7 +318,9 @@ begin
   refl
 end
 
-lemma limit.map_post {F G : J ⥤ C} (α : F ⟹ G) (H : C ⥤ D) :
+lemma limit.map_post
+  [has_limits_of_shape.{u v} C J] [has_limits_of_shape.{u v} D J]
+  {F G : J ⥤ C} (α : F ⟹ G) (H : C ⥤ D) :
 /- H (limit F) ⟶ H (limit G) ⟶ limit (G ⋙ H) vs
    H (limit F) ⟶ limit (F ⋙ H) ⟶ limit (G ⋙ H) -/
   H.map (lim.map α) ≫ limit.post G H = limit.post F H ≫ lim.map (whisker_right α H) :=
@@ -327,9 +329,11 @@ begin
   ext1, dsimp at *, simp at *,
   erw [←category.assoc, is_limit.fac, ←functor.map_comp],
   refl
-end
+end.
 
-lemma limit.pre_post {K : Type v} [small_category K] (F : J ⥤ C) (E : K ⥤ J) (G : C ⥤ D) :
+lemma limit.pre_post
+  {K : Type v} [small_category K]
+  (F : J ⥤ C) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)] (G : C ⥤ D) [has_limit (F ⋙ G)] [has_limit ((E ⋙ F) ⋙ G)]:
 /- G (limit F) ⟶ G (limit (E ⋙ F)) ⟶ limit ((E ⋙ F) ⋙ G) vs -/
 /- G (limit F) ⟶ limit F ⋙ G ⟶ limit (E ⋙ (F ⋙ G)) or -/
   G.map (limit.pre F E) ≫ limit.post (E ⋙ F) G = limit.post F G ≫ limit.pre (F ⋙ G) E :=
@@ -341,7 +345,8 @@ begin
 end.
 
 @[simp] lemma limit.post_post
-  {E : Type u} [category.{u v} E] [has_limits.{u v} E] (F : J ⥤ C) (G : C ⥤ D) (H : D ⥤ E) :
+  {E : Type u} [category.{u v} E]
+  (F : J ⥤ C) [has_limit F] (G : C ⥤ D) [has_limit (F ⋙ G)] (H : D ⥤ E) [has_limit ((F ⋙ G) ⋙ H)] :
 /- H G (limit F) ⟶ H (limit (F ⋙ G)) ⟶ limit ((F ⋙ G) ⋙ H) vs -/
 /- H G (limit F) ⟶ limit (F ⋙ (G ⋙ H)) or -/
   H.map (limit.post F G) ≫ limit.post (F ⋙ G) H = limit.post F (G ⋙ H) :=

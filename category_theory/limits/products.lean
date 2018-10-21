@@ -15,25 +15,11 @@ def fan (f : β → C) := cone (functor.of_function f)
 
 variables {f : β → C}
 
-def is_product {f : β → C} (t : fan f) := is_limit t
+def is_product (t : fan f) := is_limit t
 
 variables {t : fan f}
 
 instance is_product_subsingleton : subsingleton (is_product t) := by dsimp [is_product]; apply_instance
-
--- unnecessary?
-lemma is_product.hom_lift (h : is_product t) {X' : C} (m : X' ⟶ t.X) : m = h.lift { X := X', π := λ b, m ≫ t.π b } :=
-is_limit.hom_lift h m
-
--- unnecessary?
-lemma is_product.universal (h : is_product t) (s : fan f) (φ : s.X ⟶ t.X) :
-  (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = h.lift s) := is_limit.universal h s φ
-
--- unnecessary?
-def is_product.of_lift_universal
-  (lift : Π (s : fan f), s.X ⟶ t.X)
-  (universal : Π (s : fan f) (φ : s.X ⟶ t.X), (∀ b, φ ≫ t.π b = s.π b) ↔ (φ = lift s)) : is_product t :=
-is_limit.of_lift_universal lift universal
 
 variable (C)
 
@@ -70,18 +56,37 @@ instance has_limit_of_has_product {β : Type v} (f : β → C) [has_product f] :
 { cone := has_product.fan f,
   is_limit := has_product.is_product f }
 
+def cone.of_fan {β : Type v} {F : (discrete β) ⥤ C} (t : fan (F.obj)) : cone F :=
+{ w' := λ j j' g,
+  begin
+    cases g, cases g, cases g,
+    have h : ({down := {down := g}} : j ⟶ j) = 𝟙 j, ext1, ext1,
+    rw h,
+    simp,
+  end,
+  .. t }
+
+def fan.of_cone {β : Type v} {F : (discrete β) ⥤ C} (t : cone F) : fan (F.obj) :=
+{ w' := λ j j' g,
+  begin
+    cases g, cases g, cases g,
+    have h : ({down := {down := g}} : j ⟶ j) = 𝟙 j, ext1, ext1,
+    rw h,
+    simp,
+  end,
+  .. t }
+
 instance has_limits_of_shape_of_has_products_of_shape {β : Type v} [has_products_of_shape.{u v} C β] :
   limits.has_limits_of_shape.{u v} C (discrete β) :=
-  begin
-    haveI : has_products_of_shape.{u v} C (discrete β) := (by apply_instance : has_products_of_shape.{u v} C β),
-    exact
-    { cone := λ F, { w' := λ j j' f, begin cases f, cases f, cases f, sorry end, .. has_products_of_shape.fan F.obj },
-      is_limit := λ F, let is_product := has_product.is_product F.obj in
-      { lift := λ s, let lift := is_product.lift { w' := sorry, .. s } in
-        begin convert lift, end,
-        fac' := sorry,
-        uniq' := sorry } }
-  end
+begin
+  haveI : has_products_of_shape.{u v} C (discrete β) := (by apply_instance : has_products_of_shape.{u v} C β),
+  exact
+  { cone := λ F, cone.of_fan (has_products_of_shape.fan F.obj),
+    is_limit := λ F, let is_product := has_product.is_product F.obj in
+    { lift := λ s, is_product.lift (fan.of_cone s),
+      fac' := λ s j, is_product.fac (fan.of_cone s) j,
+      uniq' := λ s m j, is_product.uniq (fan.of_cone s) m j } }
+end
 
 section
 
@@ -154,94 +159,55 @@ end
 limit.hom_ext w
 
 @[simp] def pi.lift_map
-  {f : β → C} [has_product f] {g : β → C} [has_product g] {P : C} (p : Π b, P ⟶ f b) (k : Π b, f b ⟶ g b) :
+  [has_products_of_shape.{u v} C β] {f : β → C} {g : β → C} {P : C} (p : Π b, P ⟶ f b) (k : Π b, f b ⟶ g b) :
   pi.lift p ≫ pi.map k = pi.lift (λ b, p b ≫ k b) :=
-begin
-  /- `obviously` says -/
-  ext1,
-  simp,
-  rw [←category.assoc, pi.lift_π]
-end
+limit.lift_map (cone.of_function p) (nat_trans.of_function k)
 
-@[simp] def pi.map_map {f1 : β → C} [has_product f1] {f2 : β → C} [has_product f2] {f3 : β → C} [has_product f3]
+@[simp] def pi.map_map [has_products_of_shape.{u v} C β] {f1 : β → C} {f2 : β → C} {f3 : β → C}
   (k1 : Π b, f1 b ⟶ f2 b) (k2 : Π b, f2 b ⟶ f3 b) :
-  pi.map k1 ≫ pi.map k2 = pi.map (λ b, k1 b ≫ k2 b) :=
--- lim.map_comp (nat_trans.of_function k1) (nat_trans.of_function k2)
-begin
-  /- `obviously` says -/
-  ext1,
-  simp,
-  rw ←category.assoc,
-  erw pi.lift_π,
-  rw ←category.assoc
-end
+  pi.map (λ b, k1 b ≫ k2 b) = pi.map k1 ≫ pi.map k2 :=
+lim.map_comp (nat_trans.of_function k1) (nat_trans.of_function k2)
 
-@[simp] def pi.lift_pre {α : Type v} {f : β → C} {P : C} (p : Π b, P ⟶ f b) (h : α → β) :
+@[simp] def pi.lift_pre
+  {α : Type v} {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) (h : α → β) [has_product (f ∘ h)]:
   pi.lift p ≫ pi.pre _ h = pi.lift (λ a, p (h a)) :=
 by ext1; simp.
 
-def pi.map_pre {α : Type v} {f g : β → C} (k : Π b : β, f b ⟶ g b) (e : α → β) :
+def pi.map_pre
+  {α : Type v} [has_products_of_shape.{u v} C β] [has_products_of_shape.{u v} C α]
+  {f g : β → C} (k : Π b : β, f b ⟶ g b)
+  (e : α → β) :
   pi.map k ≫ pi.pre g e = pi.pre f e ≫ pi.map (λ a, k (e a)) :=
-begin
-  /- `obviously` says -/
-  ext1,
-  simp,
-  rw ←category.assoc,
-  erw pi.lift_π
-end.
+limit.map_pre (nat_trans.of_function k) (discrete.lift e)
 
-@[simp] lemma pi.pre_pre {γ δ : Type v} (f : β → C) (g : γ → β) (h : δ → γ) :
+@[simp] lemma pi.pre_pre {γ δ : Type v}
+  [has_products_of_shape.{u v} C β] [has_products_of_shape.{u v} C γ] [has_products_of_shape.{u v} C δ]
+  (f : β → C) (g : γ → β) (h : δ → γ) :
   pi.pre f g ≫ pi.pre (f ∘ g) h = pi.pre f (g ∘ h) :=
 by ext1; simp.
 
 section
 variables {D : Type u} [category.{u v} D] [has_products.{u v} D]
 
-@[simp] def pi.lift_post {f : β → C} {P : C} (k : Π b : β, P ⟶ f b) (G : C ⥤ D) :
+@[simp] def pi.lift_post [has_products_of_shape.{u v} C β] {f : β → C} {P : C} (k : Π b : β, P ⟶ f b) (G : C ⥤ D) :
   G.map (pi.lift k) ≫ pi.post f G = pi.lift (λ b, G.map (k b)) :=
-begin
-  /- `obvously` says -/
-  ext1, simp,
-  erw [←functor.map_comp, pi.lift_π]
-end.
+limit.lift_post (cone.of_function k) G
 
-def pi.map_post {f g : β → C} (k : Π b : β, f b ⟶ g b) (H : C ⥤ D) :
+def pi.map_post [has_products_of_shape.{u v} C β] {f g : β → C} (k : Π b : β, f b ⟶ g b) (H : C ⥤ D) :
   H.map (pi.map k) ≫ pi.post g H = pi.post f H ≫ pi.map (λ b, H.map (k b)) :=
-begin
-  /- `tidy` says -/
-  ext1,
-  simp,
-  rw ←functor.map_comp,
-  erw pi.lift_π,
-  rw ←category.assoc,
-  erw pi.lift_π,
-  rw ←functor.map_comp
-end.
+limit.map_post (nat_trans.of_function k) H
 
-def pi.pre_post {α} (f : β → C) (g : α → β) (G : C ⥤ D) :
+def pi.pre_post {α} [has_products_of_shape.{u v} C β] [has_products_of_shape.{u v} C α] (f : β → C) (g : α → β) (G : C ⥤ D) :
   G.map (pi.pre f g) ≫ pi.post (f ∘ g) G = pi.post f G ≫ pi.pre (G.obj ∘ f) g :=
-begin
-  /- `tidy` says -/
-  ext1,
-  simp,
-  rw ←functor.map_comp,
-  erw pi.lift_π
-end
+limit.pre_post (functor.of_function f) (discrete.lift g) G
 
 @[simp] def pi.post_post
+  [has_products_of_shape.{u v} C β]
   {E : Type u} [category.{u v} E] [has_products.{u v} E] (f : β → C) (G : C ⥤ D) (H : D ⥤ E) :
   H.map (pi.post f G) ≫ pi.post (G.obj ∘ f) H = pi.post f (G ⋙ H) :=
-begin
-  /- `obviously` says -/
-  ext1,
-  simp,
-  rw ←functor.map_comp,
-  rw pi.post_π,
-  erw pi.post_π,
-  refl,
-end.
+limit.post_post (functor.of_function f) G H
 end
-
+end
 
 end category_theory.limits
 

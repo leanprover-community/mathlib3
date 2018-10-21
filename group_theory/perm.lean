@@ -103,6 +103,12 @@ end
 lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
 by rw [swap_mul_eq_mul_swap, inv_apply_self, inv_apply_self]
 
+@[simp] lemma swap_mul_self (i j : α) : equiv.swap i j * equiv.swap i j = 1 :=
+equiv.swap_swap i j
+
+@[simp] lemma swap_swap_apply (i j k : α) : equiv.swap i j (equiv.swap i j k) = k :=
+equiv.swap_core_swap_core k i j
+
 lemma is_swap_of_subtype {p : α → Prop} [decidable_pred p]
   {f : perm (subtype p)} (h : is_swap f) : is_swap (of_subtype f) :=
 let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
@@ -362,22 +368,34 @@ def sign [fintype α] (f : perm α) := sign_aux3 f mem_univ
 instance sign.is_group_hom [fintype α] : is_group_hom (@sign α _ _) :=
 ⟨λ f g, (sign_aux3_mul_and_swap f g _ mem_univ).1⟩
 
-@[simp] lemma sign_mul [fintype α] (f g : perm α) : sign (f * g) = sign f * sign g :=
+section sign
+
+variable [fintype α]
+
+@[simp] lemma sign_mul (f g : perm α) : sign (f * g) = sign f * sign g :=
 is_group_hom.mul sign _ _
 
-@[simp] lemma sign_one [fintype α] : (sign (1 : perm α)) = 1 :=
+@[simp] lemma sign_one : (sign (1 : perm α)) = 1 :=
 is_group_hom.one sign
 
-@[simp] lemma sign_inv [fintype α] (f : perm α) : sign f⁻¹ = sign f :=
+@[simp] lemma sign_refl : sign (equiv.refl α) = 1 :=
+is_group_hom.one sign
+
+@[simp] lemma sign_inv (f : perm α) : sign f⁻¹ = sign f :=
 by rw [is_group_hom.inv sign, int.units_inv_eq_self]; apply_instance
 
-lemma sign_swap [fintype α] {x y : α} (h : x ≠ y) : sign (swap x y) = -1 :=
+lemma sign_swap {x y : α} (h : x ≠ y) : sign (swap x y) = -1 :=
 (sign_aux3_mul_and_swap 1 1 _ mem_univ).2 x y h
 
-lemma sign_eq_of_is_swap [fintype α] {f : perm α} (h : is_swap f) : sign f = -1 :=
+@[simp] lemma sign_swap' {x y : α} :
+  (swap x y).sign = if x = y then 1 else -1 :=
+if H : x = y then by simp [H, swap_self] else
+by simp [sign_swap H, H]
+
+lemma sign_eq_of_is_swap {f : perm α} (h : is_swap f) : sign f = -1 :=
 let ⟨x, y, hxy⟩ := h in hxy.2.symm ▸ sign_swap hxy.1
 
-lemma sign_aux3_symm_trans_trans [fintype α] [decidable_eq β] [fintype β] (f : perm α)
+lemma sign_aux3_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
   (e : α ≃ β) {s : multiset α} {t : multiset β} (hs : ∀ x, x ∈ s) (ht : ∀ x, x ∈ t) :
   sign_aux3 ((e.symm.trans f).trans e) ht = sign_aux3 f hs :=
 quotient.induction_on₂ t s
@@ -388,11 +406,11 @@ quotient.induction_on₂ t s
       exact congr_arg sign_aux (equiv.ext _ _ (λ x, by simp)))
   ht hs
 
-lemma sign_symm_trans_trans [fintype α] [decidable_eq β] [fintype β] (f : perm α)
+lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
   (e : α ≃ β) : sign ((e.symm.trans f).trans e) = sign f :=
 sign_aux3_symm_trans_trans f e mem_univ mem_univ
 
-lemma sign_prod_list_swap [fintype α] {l : list (perm α)}
+lemma sign_prod_list_swap {l : list (perm α)}
   (hl : ∀ g ∈ l, is_swap g) : sign l.prod = -1 ^ l.length :=
 have h₁ : l.map sign = list.repeat (-1) l.length :=
   list.eq_repeat.2 ⟨by simp, λ u hu,
@@ -400,7 +418,7 @@ have h₁ : l.map sign = list.repeat (-1) l.length :=
   hg.2 ▸ sign_eq_of_is_swap (hl _ hg.1)⟩,
 by rw [← list.prod_repeat, ← h₁, ← is_group_hom.prod (@sign α _ _)]
 
-lemma eq_sign_of_surjective_hom [fintype α] {s : perm α → units ℤ}
+lemma eq_sign_of_surjective_hom {s : perm α → units ℤ}
   [is_group_hom s] (hs : surjective s) : s = sign :=
 have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
@@ -422,7 +440,7 @@ have hsl : ∀ a ∈ l.map s, a = (-1 : units ℤ) := λ a ha,
 by rw [← hl₁, is_group_hom.prod s, list.eq_repeat'.2 hsl, list.length_map,
      list.prod_repeat, sign_prod_list_swap hl₂]
 
-lemma sign_subtype_perm [fintype α] (f : perm α) {p : α → Prop} [decidable_pred p]
+lemma sign_subtype_perm (f : perm α) {p : α → Prop} [decidable_pred p]
   (h₁ : ∀ x, p x ↔ p (f x)) (h₂ : ∀ x, f x ≠ x → p x) : sign (subtype_perm f h₁) = sign f :=
 let l := trunc.out (trunc_swap_factors (subtype_perm f h₁)) in
 have hl' : ∀ g' ∈ l.1.map of_subtype, is_swap g' :=
@@ -434,17 +452,17 @@ have hl'₂ : (l.1.map of_subtype).prod = f,
 by conv {congr, rw ← l.2.1, skip, rw ← hl'₂};
   rw [sign_prod_list_swap l.2.2, sign_prod_list_swap hl', list.length_map]
 
-@[simp] lemma sign_of_subtype [fintype α] {p : α → Prop} [decidable_pred p]
+@[simp] lemma sign_of_subtype {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) : sign (of_subtype f) = sign f :=
 have ∀ x, of_subtype f x ≠ x → p x, from λ x, not_imp_comm.1 (of_subtype_apply_of_not_mem f),
 by conv {to_rhs, rw [← subtype_perm_of_subtype f, sign_subtype_perm _ _ this]}
 
-lemma sign_eq_sign_of_equiv [fintype α] [decidable_eq β] [fintype β] (f : perm α) (g : perm β)
+lemma sign_eq_sign_of_equiv [decidable_eq β] [fintype β] (f : perm α) (g : perm β)
   (e : α ≃ β) (h : ∀ x, e (f x) = g (e x)) : sign f = sign g :=
 have hg : g = (e.symm.trans f).trans e, from equiv.ext _ _ $ by simp [h],
 by rw [hg, sign_symm_trans_trans]
 
-lemma sign_bij [fintype α] [decidable_eq β] [fintype β]
+lemma sign_bij [decidable_eq β] [fintype β]
   {f : perm α} {g : perm β} (i : Π x : α, f x ≠ x → β)
   (h : ∀ x hx hx', i (f x) hx' = g (i x hx))
   (hi : ∀ x₁ x₂ hx₁ hx₂, i x₁ hx₁ = i x₂ hx₂ → x₁ = x₂)
@@ -462,6 +480,8 @@ calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
           λ ⟨y, hy⟩, let ⟨x, hfx, hx⟩ := hg y hy in ⟨⟨x, hfx⟩, subtype.eq hx⟩⟩))
       (λ ⟨x, _⟩, subtype.eq (h x _ _))
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
+
+end sign
 
 lemma is_cycle_swap {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
 ⟨y, by rwa swap_apply_right,

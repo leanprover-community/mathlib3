@@ -440,6 +440,22 @@ lim_eq_of_equiv_const $ show lim_zero (inv f hf - const abs (lim ⇑f)⁻¹),
       (by rw [← mul_assoc]; exact h₁ _ _ _),
   (lim_zero_congr h₂).mpr $ by rw mul_comm; exact mul_lim_zero _ (setoid.symm (equiv_lim f))
 
+lemma lim_le {f : cau_seq ℝ abs} {x : ℝ}
+  (h : f ≤ cau_seq.const abs x) : real.lim f ≤ x :=
+cau_seq.const_le.1 $ cau_seq.le_of_eq_of_le (setoid.symm (real.equiv_lim f)) h
+
+lemma le_lim {f : cau_seq ℝ abs} {x : ℝ}
+  (h : cau_seq.const abs x ≤ f) : x ≤ real.lim f :=
+cau_seq.const_le.1 $ cau_seq.le_of_le_of_eq h (real.equiv_lim f)
+
+lemma lt_lim {f : cau_seq ℝ abs} {x : ℝ}
+  (h : cau_seq.const abs x < f) : x < real.lim f :=
+cau_seq.const_lt.1 $ cau_seq.lt_of_lt_of_eq h (real.equiv_lim f)
+
+lemma lim_lt {f : cau_seq ℝ abs} {x : ℝ}
+  (h : f < cau_seq.const abs x) : real.lim f < x :=
+cau_seq.const_lt.1 $ cau_seq.lt_of_eq_of_lt (setoid.symm (real.equiv_lim f)) h
+
 end lim
 
 theorem sqrt_exists : ∀ {x : ℝ}, 0 ≤ x → ∃ y, 0 ≤ y ∧ y * y = x :=

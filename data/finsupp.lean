@@ -436,10 +436,10 @@ lemma prod_add_index [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
 have f_eq : (f.support ∪ g.support).prod (λa, h a (f a)) = f.prod h,
-  from (finset.prod_subset finset.subset_union_left $
+  from (finset.prod_subset (finset.subset_union_left _ _) $
     by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
 have g_eq : (f.support ∪ g.support).prod (λa, h a (g a)) = g.prod h,
-  from (finset.prod_subset finset.subset_union_right $
+  from (finset.prod_subset (finset.subset_union_right _ _) $
     by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
 calc (f + g).support.prod (λa, h a ((f + g) a)) =
       (f.support ∪ g.support).prod (λa, h a ((f + g) a)) :

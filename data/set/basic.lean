@@ -950,6 +950,16 @@ end
 lemma injective_image {f : α → β} (hf : injective f) : injective (('') f) :=
 assume s t, (image_eq_image hf).1
 
+lemma prod_quotient_preimage_eq_image [s : setoid α] (g : quotient s → β) {h : α → β}
+  (Hh : h = g ∘ quotient.mk) (r : set (β × β)) :
+  {x : quotient s × quotient s | (g x.1, g x.2) ∈ r} =
+  (λ a : α × α, (⟦a.1⟧, ⟦a.2⟧)) '' ((λ a : α × α, (h a.1, h a.2)) ⁻¹' r) :=
+Hh.symm ▸ set.ext (λ ⟨a₁, a₂⟩, ⟨quotient.induction_on₂ a₁ a₂
+  (λ a₁ a₂ h, ⟨(a₁, a₂), h, rfl⟩),
+  λ ⟨⟨b₁, b₂⟩, h₁, h₂⟩, show (g a₁, g a₂) ∈ r, from
+  have h₃ : ⟦b₁⟧ = a₁ ∧ ⟦b₂⟧ = a₂ := prod.ext_iff.1 h₂,
+    h₃.1 ▸ h₃.2 ▸ h₁⟩)
+
 end image
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
@@ -1016,11 +1026,12 @@ by rw [image_preimage_eq_inter_range, preimage_inter_range]
 
 @[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_iff_surjective.2 quot.exists_rep
-end range
 
 lemma subtype_val_range {p : α → Prop} :
   range (@subtype.val _ p) = {x | p x} :=
 by rw ← image_univ; simp [-image_univ, subtype_val_image]
+
+end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y

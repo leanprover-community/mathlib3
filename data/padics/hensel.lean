@@ -7,8 +7,9 @@ A proof of Hensel's lemma on ℤ_p, roughly following Keith Conrad's writeup:
 http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf
 -/
 
-import data.padics.padic_integers data.polynomial data.nat.binomial data.real.cau_seq_filter
-       analysis.limits analysis.polynomial tactic.ring
+import data.padics.padic_integers data.polynomial data.nat.choose data.real.cau_seq_filter
+import analysis.limits analysis.polynomial
+import tactic.ring
 
 noncomputable theory
 

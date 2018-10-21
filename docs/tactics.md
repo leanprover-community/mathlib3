@@ -10,7 +10,7 @@ The `tfae` tactic suite is a set of tactics that help with proving that certain
 propositions are equivalent.
 In `data/list/basic.lean` there is a section devoted to propositions of the
 form
-```
+```lean
 tfae [p1, p2, ..., pn]
 ```
 where `p1`, `p2`, through, `pn` are terms of type `Prop`.
@@ -60,7 +60,7 @@ The `rcases` tactic is the same as `cases`, but with more flexibility in the
 `with` pattern syntax to allow for recursive case splitting. The pattern syntax
 uses the following recursive grammar:
 
-```
+```lean
 patt ::= (patt_list "|")* patt_list
 patt_list ::= id | "_" | "⟨" (patt ",")* patt "⟩"
 ```
@@ -190,7 +190,7 @@ also attempts to discharge the goal using congruence closure before each round o
 By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
 
 The assumptions can be modified with similar syntax as for `simp`:
-* `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas (or all lemmas tagged with the named 
+* `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas (or all lemmas tagged with the named
 attributes).
 * `solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
 unless they are explicitly included.
@@ -310,7 +310,7 @@ being refined.
 As an example, we can use `refine_struct` to automate the construction semigroup
 instances:
 
-```
+```lean
 refine_struct ( { .. } : semigroup α ),
 -- case semigroup, mul
 -- α : Type u,
@@ -324,13 +324,13 @@ refine_struct ( { .. } : semigroup α ),
 `have_field`, used after `refine_struct _` poses `field` as a local constant
 with the type of the field of the current goal:
 
-```
+```lean
 refine_struct ({ .. } : semigroup α),
 { have_field, ... },
 { have_field, ... },
 ```
 behaves like
-```
+```lean
 refine_struct ({ .. } : semigroup α),
 { have field := @semigroup.mul, ... },
 { have field := @semigroup.mul_assoc, ... },
@@ -346,7 +346,7 @@ attribute are added to the list of rules.
 
 For instance:
 
-```
+```lean
 @[user_attribute]
 meta def mono_rules : user_attribute :=
 { name := `mono_rules,
@@ -397,7 +397,7 @@ used implicitly to make rewriting possible.
 This is useful to remove `auto_param` or `opt_param` from the statement.
 
 As an example, we have:
-```
+```lean
 structure A :=
 (x : ℕ)
 (a' : x = 1 . skip)
@@ -411,7 +411,7 @@ example (z : A) : z.x = 1 := by rw A.a
 By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
 `_lemma` if there is no trailing `'`. You can also give `restate_axiom` a second argument to
 specify the new name, as in
-```
+```lean
 restate_axiom A.a f
 example (z : A) : z.x = 1 := by rw A.f
 ```
@@ -439,7 +439,7 @@ In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tact
 the goal and recursively on new goals, until no tactic makes further progress.
 
 `tidy` can report the tactic script it found using `tidy { trace_result := tt }`. As an example
-```
+```lean
 example : ∀ x : unit, x = unit.star :=
 begin
   tidy {trace_result:=tt} -- Prints the trace message: "intros x, exact dec_trivial"
@@ -459,7 +459,7 @@ This tactic is currently work in progress, and has various limitations. In parti
 it will not work on `nat`. The tactic can be made much more efficient.
 
 An example:
-```
+```lean
 example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
         (h3 : 12*y - 4* z < 0)  : false :=
 by linarith
@@ -484,10 +484,23 @@ sometimes confuse the tactic.
 
 ## choose
 
-`choose hyp with a b h` takes an hypothesis `hyp` of the form
+`choose a b h using hyp` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
 into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
 `∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
+
+Example:
+
+```lean
+example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
+begin
+  choose i j h using h,
+  guard_hyp i := ℕ → ℕ → ℕ,
+  guard_hyp j := ℕ → ℕ → ℕ,
+  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
+  trivial
+end
+```
 
 ## squeeze_simp / squeeze_simpa
 
@@ -502,14 +515,14 @@ and prints a `simp only` invokation to skip the search through the
 
 For instance, the following is easily solved with `simp`:
 
-```
+```lean
 example : 0 + 1 = 1 + 0 := by simp
 ```
 
 To guide the proof search and speed it up, we may replace `simp`
 with `squeeze_simp`:
 
-```
+```lean
 example : 0 + 1 = 1 + 0 := by squeeze_simp
 -- prints: simp only [add_zero, eq_self_iff_true, zero_add]
 ```
@@ -517,7 +530,7 @@ example : 0 + 1 = 1 + 0 := by squeeze_simp
 `squeeze_simp` suggests a replacement which we can use instead of
 `squeeze_simp`.
 
-```
+```lean
 example : 0 + 1 = 1 + 0 := by simp only [add_zero, eq_self_iff_true, zero_add]
 ```
 

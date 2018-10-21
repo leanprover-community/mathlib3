@@ -672,6 +672,9 @@ instance : alternative filter :=
 @[simp] lemma mem_pure {a : α} {s : set α} : a ∈ s → s ∈ (pure a : filter α).sets :=
 by simp only [imp_self, pure_def, mem_principal_sets, singleton_subset_iff]; exact id
 
+@[simp] lemma mem_pure_iff {a : α} {s : set α} : s ∈ (pure a : filter α).sets ↔ a ∈ s :=
+by rw [pure_def, mem_principal_sets, set.singleton_subset_iff]
+
 @[simp] lemma map_def {α β} (m : α → β) (f : filter α) : m <$> f = map m f := rfl
 
 @[simp] lemma bind_def {α β} (f : filter α) (m : α → filter β) : f >>= m = bind f m := rfl
@@ -928,6 +931,12 @@ lemma mem_seq_sets_iff {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ (f.seq g).sets ↔ (∃u∈f.sets, ∃t∈g.sets, set.seq u t ⊆ s) :=
 by simp only [mem_seq_sets_def, seq_subset, exists_prop, iff_self]
 
+lemma mem_map_seq_iff {f : filter α} {g : filter β} {m : α → β → γ} {s : set γ} :
+  s ∈ ((f.map m).seq g).sets ↔ (∃t u, t ∈ g.sets ∧ u ∈ f.sets ∧ ∀x∈u, ∀y∈t, m x y ∈ s) :=
+iff.intro
+  (assume ⟨t, ht, s, hs, hts⟩, ⟨s, m ⁻¹' t, hs, ht, assume a, hts _⟩)
+  (assume ⟨t, s, ht, hs, hts⟩, ⟨m '' s, image_mem_map hs, t, ht, assume f ⟨a, has, eq⟩, eq ▸ hts _ has⟩)
+
 lemma seq_mem_seq_sets {f : filter (α → β)} {g : filter α} {s : set (α → β)} {t : set α}
   (hs : s ∈ f.sets) (ht : t ∈ g.sets): s.seq t ∈ (f.seq g).sets :=
 ⟨s, hs, t, ht, assume f hf a ha, ⟨f, hf, a, ha, rfl⟩⟩
@@ -1155,15 +1164,20 @@ have tendsto m (map i $ comap i $ f) g,
   by rwa [tendsto, ←map_compose] at h,
 le_trans (map_mono $ le_map_comap' hs hi) this
 
-lemma comap_eq_of_inverse {f : filter α} {g : filter β}
-  {φ : α → β} {ψ : β → α} (inv₁ : φ ∘ ψ = id) (inv₂ : ψ ∘ φ = id)
-  (lim₁ : tendsto φ f g) (lim₂ : tendsto ψ g f) : comap φ g = f :=
+lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
+  (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
 begin
-  have ineq₁ := calc
-    comap φ g = map ψ g : eq.symm (map_eq_comap_of_inverse inv₂ inv₁)
-         ... ≤ f : lim₂,
-  have ineq₂ : f ≤ comap φ g := map_le_iff_le_comap.1 lim₁,
-  exact le_antisymm ineq₁ ineq₂
+  refine le_antisymm (le_trans (comap_mono $ map_le_iff_le_comap.1 hψ) _) (map_le_iff_le_comap.1 hφ),
+  rw [comap_comap_comp, eq, comap_id],
+  exact le_refl _
+end
+
+lemma map_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
+  (eq : φ ∘ ψ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : map φ f = g :=
+begin
+  refine le_antisymm hφ (le_trans _ (map_mono hψ)),
+  rw [map_map, eq, map_id],
+  exact le_refl _
 end
 
 lemma tendsto_inf {f : α → β} {x : filter α} {y₁ y₂ : filter β} :
@@ -1193,6 +1207,14 @@ by simp only [tendsto, le_principal_iff, mem_map, iff_self]
 lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β} :
   tendsto f (principal s) (principal t) ↔ ∀a∈s, f a ∈ t :=
 by simp only [tendsto, image_subset_iff, le_principal_iff, map_principal, mem_principal_sets]; refl
+
+lemma tendsto_pure_pure (f : α → β) (a : α) :
+  tendsto f (pure a) (pure (f a)) :=
+show filter.map f (pure a) ≤ pure (f a),
+  by rw [filter.map_pure]; exact le_refl _
+
+lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λa, b) a (pure b) :=
+by simp [tendsto]; exact univ_mem_sets
 
 section lift
 
@@ -1580,6 +1602,19 @@ le_antisymm
         ... ⊆ _ : by rwa [image_subset_iff])
   ((tendsto_fst.comp (le_refl _)).prod_mk (tendsto_snd.comp (le_refl _)))
 
+lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
+  map m (f.prod g) = (f.map (λa b, m (a, b))).seq g :=
+begin
+  simp [filter.ext_iff, mem_prod_iff, mem_map_seq_iff],
+  assume s,
+  split,
+  exact assume ⟨t, ht, s, hs, h⟩, ⟨s, hs, t, ht, assume x hx y hy, @h ⟨x, y⟩ ⟨hx, hy⟩⟩,
+  exact assume ⟨s, hs, t, ht, h⟩, ⟨t, ht, s, hs, assume ⟨x, y⟩ ⟨hx, hy⟩, h x hx y hy⟩
+end
+
+lemma prod_eq {f : filter α} {g : filter β} : f.prod g = (f.map prod.mk).seq g  :=
+have h : _ := map_prod id f g, by rwa [map_id] at h
+
 lemma prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :
   filter.prod f₁ g₁ ⊓ filter.prod f₂ g₂ = filter.prod (f₁ ⊓ f₂) (g₁ ⊓ g₂) :=
 by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, lattice.inf_left_comm]
@@ -1590,6 +1625,9 @@ by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, lattice.inf_left_comm
 @[simp] lemma prod_principal_principal {s : set α} {t : set β} :
   filter.prod (principal s) (principal t) = principal (set.prod s t) :=
 by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal]; refl
+
+@[simp] lemma prod_pure_pure {a : α} {b : β} : filter.prod (pure a) (pure b) = pure (a, b) :=
+by simp
 
 lemma prod_def {f : filter α} {g : filter β} : f.prod g = (f.lift $ λs, g.lift' $ set.prod s) :=
 have ∀(s:set α) (t : set β),

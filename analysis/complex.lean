@@ -83,7 +83,7 @@ let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
-lemma continuous_mul : continuous (λp : ℂ × ℂ, p.1 * p.2) :=
+protected lemma continuous_mul : continuous (λp : ℂ × ℂ, p.1 * p.2) :=
 continuous_iff_tendsto.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (uniform_continuous_mul
@@ -97,8 +97,25 @@ tendsto_of_uniform_continuous_subtype
       (continuous_abs _ $ is_open_gt' _))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
+lemma uniform_continuous_re : uniform_continuous re :=
+uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε, ε0, λ _ _, lt_of_le_of_lt (abs_re_le_abs _)⟩)
+
+lemma continuous_re : continuous re := uniform_continuous_re.continuous
+
+lemma uniform_continuous_im : uniform_continuous im :=
+uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε, ε0, λ _ _, lt_of_le_of_lt (abs_im_le_abs _)⟩)
+
+lemma continuous_im : continuous im := uniform_continuous_im.continuous
+
+lemma uniform_continuous_of_real : uniform_continuous of_real :=
+uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε, ε0, λ _ _,
+  by rw [real.dist_eq, complex.dist_eq, of_real_eq_coe, of_real_eq_coe, ← of_real_sub, abs_of_real];
+    exact id⟩)
+
+lemma continuous_of_real : continuous of_real := uniform_continuous_of_real.continuous
+
 instance : topological_ring ℂ :=
-{ continuous_mul := continuous_mul, ..complex.topological_add_group }
+{ continuous_mul := complex.continuous_mul, ..complex.topological_add_group }
 
 instance : topological_semiring ℂ := by apply_instance
 

@@ -37,6 +37,8 @@ end
 @[simp] theorem cast_bit1 [add_monoid α] [has_one α] (n : ℕ) : ((bit1 n : ℕ) : α) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
+lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp
+
 @[simp] theorem cast_pred [add_group α] [has_one α] : ∀ {n}, n > 0 → ((n - 1 : ℕ) : α) = n - 1
 | (n+1) h := (add_sub_cancel (n:α) 1).symm
 

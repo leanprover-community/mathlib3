@@ -43,6 +43,13 @@ def span (s : set β) : submodule α β := ⟨span s, is_submodule_span⟩
 theorem span_subset_iff {s : set β} {t : submodule α β} : span s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_span, span_minimal t.2⟩
 
+lemma span_singleton_subset {b : β} {s : submodule α β} : span {b} ⊆ s ↔ b ∈ s :=
+by rw [submodule.span_subset_iff, set.singleton_subset_iff]; refl
+
+lemma mem_span_singleton {b₁ b₂ : β} : b₁ ∈ span ({b₂} : set β) ↔ ∃c, b₁ = c • b₂ :=
+show b₁ ∈ _root_.span ({b₂} : set β) ↔ ∃c, b₁ = c • b₂,
+  by simp [_root_.span_singleton, eq_comm]
+
 protected def galois_insertion :
   galois_insertion (@span α β _ _) coe :=
 { choice := λ s h, ⟨s, by rw le_antisymm (by exact subset_span) h; exact is_submodule_span⟩,

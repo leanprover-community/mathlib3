@@ -278,6 +278,15 @@ by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
     exact (pp.dvd_mul.1 h).elim IH id]
 
+lemma prime.dvd_fact : ∀ {n p : ℕ} (hp : prime p), p ∣ n.fact ↔ p ≤ n
+| 0 p hp := iff_of_false hp.not_dvd_one (not_le_of_lt hp.pos)
+| (n+1) p hp := begin
+  rw [fact_succ, hp.dvd_mul, prime.dvd_fact hp],
+  exact ⟨λ h, h.elim (le_of_dvd (succ_pos _)) le_succ_of_le,
+    λ h, (_root_.lt_or_eq_of_le h).elim (or.inr ∘ le_of_lt_succ)
+      (λ h, or.inl $ by rw h)⟩
+end
+
 theorem prime.coprime_pow_of_not_dvd {p m a : ℕ} (pp : prime p) (h : ¬ p ∣ a) : coprime a (p^m) :=
 (pp.coprime_iff_not_dvd.2 h).symm.pow_right _
 

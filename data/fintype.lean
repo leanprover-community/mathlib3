@@ -30,7 +30,7 @@ fintype.complete x
 
 @[simp] theorem mem_univ_val : ∀ x, x ∈ (univ : finset α).1 := mem_univ
 
-@[simp] lemma coe_univ : ↑(finset.univ : finset α) = (set.univ : set α) :=
+@[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
 
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
@@ -616,8 +616,8 @@ variables {f : α → β}
 /-- `bij_inv f` is the unique inverse to a bijection `f`. This acts
   as a computable alternative to `function.inv_fun`. -/
 def bij_inv (f_bij : bijective f) (b : β) : α :=
+fintype.choose (λ a, f a = b)
 begin
-  apply fintype.choose (λ a, f a = b),
   rcases f_bij.right b with ⟨a', fa_eq_b⟩,
   rw ← fa_eq_b,
   exact ⟨a', ⟨rfl, (λ a h, f_bij.left h)⟩⟩

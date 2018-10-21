@@ -844,10 +844,20 @@ begin
   exact assume f hf hfs, hc (ht _ hf hfs) hfs
 end
 
+/--Cauchy sequences. Usually defined on ℕ, but often it is also useful to say that a function
+defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that
+is general enough to cover both ℕ and ℝ, which are the main motivating examples.-/
+def cauchy_seq [inhabited β] [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
+
 /-- A complete space is defined here using uniformities. A uniform space
   is complete if every Cauchy filter converges. -/
 class complete_space (α : Type u) [uniform_space α] : Prop :=
 (complete : ∀{f:filter α}, cauchy f → ∃x, f ≤ nhds x)
+
+/--A Cauchy sequence in a complete space converges-/
+theorem cauchy_seq_tendsto_of_complete [inhabited β] [semilattice_sup β] [complete_space α]
+  {u : β → α} (H : cauchy_seq u) : ∃x, tendsto u at_top (nhds x)
+:= complete_space.complete H
 
 theorem le_nhds_lim_of_cauchy {α} [uniform_space α] [complete_space α]
   [inhabited α] {f : filter α} (hf : cauchy f) : f ≤ nhds (lim f) :=

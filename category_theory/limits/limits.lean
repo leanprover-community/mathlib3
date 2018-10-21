@@ -212,14 +212,14 @@ by obviously
     w' :=
     begin
       /- `obviously` says -/
-      intros j j' f, dsimp at *, simp at *,
+      intros j j' f, simp,
       erw [←nat_trans.naturality, ←category.assoc, limits.cone.w],
       refl
     end },
   map_comp' :=
   begin
     /- `obviously` says -/
-    intros X Y Z f g, ext1, dsimp at *, simp at *,
+    intros X Y Z f g, ext1, simp,
     conv { to_rhs, rw ←category.assoc },
     simp
   end }.
@@ -232,7 +232,7 @@ by erw is_limit.fac
   limit.lift F c ≫ lim.map α = limit.lift G (c.postcompose α) :=
 begin
   /- `obviously` says -/
-  ext1, dsimp at *, simp at *,
+  ext1, simp,
   erw ←category.assoc,
   simp,
   refl
@@ -249,7 +249,7 @@ limit.lift (E ⋙ F)
   w' :=
   begin
     /- `obviously` says -/
-    intros j j' f, dsimp at *,
+    intros j j' f,
     erw limits.cone.w,
     refl
   end }
@@ -407,7 +407,7 @@ begin
     w' :=
     begin
       /- obviously says: -/
-      intros j j' f_1, dsimp at *,
+      intros j j' f_1,
       erw [← category.assoc, limits.cocone.w],
       simp,
     end },
@@ -432,7 +432,7 @@ end
     w' :=
     begin
       /- `obviously` says -/
-      intros j j' f, dsimp at *,
+      intros j j' f,
       erw [←category.assoc,
             nat_trans.naturality,
             category.assoc,

@@ -2,7 +2,8 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Stephen Morgan, Scott Morrison
 
-import category_theory.limits.shape
+import category_theory.types
+import category_theory.isomorphism
 
 open category_theory
 
@@ -12,6 +13,22 @@ universes u v
 variables {J : Type v} [small_category J]
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
+
+structure cone (F : J ⥤ C) :=
+(X : C)
+(π : ∀ j : J, X ⟶ F j)
+(w' : ∀ {j j' : J} (f : j ⟶ j'), π j ≫ (F.map f) = π j' . obviously)
+
+restate_axiom cone.w'
+attribute [simp] cone.w
+
+structure cocone (F : J ⥤ C) :=
+(X : C)
+(ι : ∀ j : J, F j ⟶ X)
+(w' : ∀ {j j' : J} (f : j ⟶ j'), (F.map f) ≫ ι j' = ι j . obviously)
+
+restate_axiom cocone.w'
+attribute [simp] cocone.w
 
 variable {F : J ⥤ C}
 
@@ -25,40 +42,39 @@ def postcompose {G : J ⥤ C} (c : cone F) (α : F ⟹ G) : cone G :=
   π := λ j, c.π j ≫ α j,
   w' :=
   begin
-    intros j j' f, dsimp at *, simp at *,
+    intros j j' f, simp,
     rw ←nat_trans.naturality,
     rw ←category.assoc,
-    rw ←limits.cone.w c f
+    rw ←w c f
   end }
 
 def whisker (c : cone F) {K : Type v} [small_category K] (E : K ⥤ J) : cone (E ⋙ F) :=
 { X := c.X,
   π := λ k, c.π (E k),
-  w' := begin intros j j' f, dsimp at *, rw limits.cone.w c end }
+  w' := λ j j' f, by erw w c }
 end cone
 
 namespace cocone
 def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
 { X := X,
   ι := λ j, c.ι j ≫ f,
-  w' := begin intros j j' f_1, dsimp at *, rw ←category.assoc, simp end }
+  w' := λ j j' g, begin rw ←category.assoc, simp end }
 
 def precompose {G : J ⥤ C} (c : cocone F) (α : G ⟹ F) : cocone G :=
 { X := c.X,
   ι := λ j, α j ≫ c.ι j,
-  w' :=
+  w' := λ j j' f,
   begin
-    intros j j' f, dsimp at *,
     rw ←category.assoc,
     rw nat_trans.naturality α f,
-    rw ←limits.cocone.w c f,
+    rw ←w c f,
     rw ←category.assoc
   end }
 
 def whisker (c : cocone F) {K : Type v} [small_category K] (E : K ⥤ J) : cocone (E ⋙ F) :=
 { X := c.X,
   ι := λ k, c.ι (E k),
-  w' := begin intros j j' f, dsimp at *, rw limits.cocone.w c end }
+  w' := λ j j' f, by erw w c }
 end cocone
 
 structure cone_morphism (A B : cone F) : Type v :=
@@ -121,7 +137,7 @@ begin
   induction f,
   induction g,
   -- `obviously'` says:
-  dsimp at *,
+  dsimp at w,
   induction w,
   refl,
 end

@@ -747,6 +747,27 @@ let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 
 end regularity
 
+section normality
+
+/-- A T₄ space, also known as a normal space (although this condition sometimes
+  omits T₂), is one in which for every pair of disjoint closed sets `C` and `D`,
+  there exist disjoint open sets containing `C` and `D` respectively. -/
+
+class normal_space (α : Type u) [topological_space α] extends t2_space α : Prop :=
+(normal : ∀{s t:set α}, is_closed s → is_closed t → s ∩ t = ∅ →
+  ∃u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ∩ v = ∅)
+
+instance normal_space.regular_space [topological_space α] [normal_space α] : regular_space α :=
+⟨assume s a hs as,
+   let ⟨u, v, uo, vo, su, av, uv⟩ :=
+     normal_space.normal hs is_closed_singleton (inter_singleton_eq_empty.mpr as) in
+   ⟨u, uo, su,
+    empty_in_sets_eq_bot.mp $ mem_inf_sets.mpr
+      ⟨v, mem_nhds_sets vo (by simpa using av), u, mem_principal_self u,
+       by rw [inter_comm, uv]⟩⟩⟩
+
+end normality
+
 /- generating sets -/
 
 end topological_space

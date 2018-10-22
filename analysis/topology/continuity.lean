@@ -728,6 +728,10 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 
 lemma compact_univ [topological_space α] [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
+lemma compact_of_closed [topological_space α] [compact_space α] {s : set α} (h : is_closed s) :
+  compact s :=
+compact_of_is_closed_subset compact_univ h (subset_univ _)
+
 /-- There are various definitions of "locally compact space" in the literature, which agree for
 Hausdorff spaces but not in general. This one is the precise condition on X needed for the
 evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` is given the
@@ -760,6 +764,9 @@ instance locally_compact_of_compact [topological_space α] [t2_space α] [compac
   locally_compact_space α :=
 locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ trivial, compact_univ⟩)
 
+-- We can't make this an instance because it could cause an instance loop.
+lemma normal_of_compact_t2 [topological_space α] [compact_space α] [t2_space α] : normal_space α :=
+⟨assume s t hs ht st, compact_compact_separated (compact_of_closed hs) (compact_of_closed ht) st⟩
 
 end compact_and_proper_spaces
 

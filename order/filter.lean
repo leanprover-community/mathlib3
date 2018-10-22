@@ -585,6 +585,9 @@ variables {f : filter α} {m : α → β} {m' : β → γ} {s : set α} {t : set
 lemma image_mem_map (hs : s ∈ f.sets) : m '' s ∈ (map m f).sets :=
 f.sets_of_superset hs $ subset_preimage_image m s
 
+lemma range_mem_map : range m ∈ (map m f).sets :=
+by rw ←image_univ; exact image_mem_map univ_mem_sets
+
 lemma mem_map_sets_iff : t ∈ (map m f).sets ↔ (∃s∈f.sets, m '' s ⊆ t) :=
 iff.intro
   (assume ht, ⟨set.preimage m t, ht, image_preimage_subset _ _⟩)

@@ -929,6 +929,19 @@ lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = 
   (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
 continuous_coinduced_dom h
 
+instance quot.compact_space {r : α → α → Prop} [topological_space α] [compact_space α] :
+  compact_space (quot r) :=
+⟨begin
+   have : quot.mk r '' univ = univ,
+     by rw [image_univ, range_iff_surjective]; exact quot.exists_rep,
+   rw ←this,
+   exact compact_image compact_univ continuous_quot_mk
+ end⟩
+
+instance quotient.compact_space {s : setoid α} [topological_space α] [compact_space α] :
+  compact_space (quotient s) :=
+quot.compact_space
+
 end quotient
 
 section pi

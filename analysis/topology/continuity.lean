@@ -57,6 +57,14 @@ lemma continuous_iff_is_closed {f : α → β} :
 ⟨assume hf s hs, hf (-s) hs,
   assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
 
+lemma continuous_at_iff_ultrafilter {f : α → β} (x) : tendsto f (nhds x) (nhds (f x)) ↔
+  ∀ g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
+tendsto_iff_ultrafilter f (nhds x) (nhds (f x))
+
+lemma continuous_iff_ultrafilter {f : α → β} :
+  continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
+by simp only [continuous_iff_tendsto, continuous_at_iff_ultrafilter]
+
 lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
   (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
   continuous (λa, @ite (p a) (h a) β (f a) (g a)) :=

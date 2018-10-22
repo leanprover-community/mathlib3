@@ -382,6 +382,16 @@ mem_closure_iff.trans
   (H _ is_open_interior (mem_interior_iff_mem_nhds.2 ht)),
  λ H o oo ao, H _ (mem_nhds_sets oo ao)⟩
 
+/-- `x` belongs to the closure of `s` if and only if some ultrafilter
+  supported on `s` converges to `x`. -/
+lemma mem_closure_iff_ultrafilter {s : set α} {x : α} :
+  x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u.val.sets ∧ u.val ≤ nhds x :=
+begin
+  rw closure_eq_nhds, change nhds x ⊓ principal s ≠ ⊥ ↔ _, symmetry,
+  convert exists_ultrafilter_iff _, ext u,
+  rw [←le_principal_iff, inf_comm, le_inf_iff]
+end
+
 lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀a, nhds a ⊓ principal s ≠ ⊥ → a ∈ s :=
 calc is_closed s ↔ closure s = s : by rw [closure_eq_iff_is_closed]
   ... ↔ closure s ⊆ s : ⟨assume h, by rw h, assume h, subset.antisymm h subset_closure⟩
@@ -657,7 +667,7 @@ closure_eq_of_is_closed is_closed_singleton
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
-class t2_space (α : Type u) [topological_space α] :=
+class t2_space (α : Type u) [topological_space α] : Prop :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
@@ -686,6 +696,23 @@ let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 x y this in
 have u ∩ v ∈ (nhds x ⊓ nhds y).sets,
   from inter_mem_inf_sets (mem_nhds_sets hu hx) (mem_nhds_sets hv hy),
 h $ empty_in_sets_eq_bot.mp $ huv ▸ this
+
+lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, nhds x ⊓ nhds y ≠ ⊥ → x = y :=
+⟨assume h, by exactI λ x y, eq_of_nhds_neq_bot,
+ assume h, ⟨assume x y xy,
+   have nhds x ⊓ nhds y = ⊥ := classical.by_contradiction (mt h xy),
+   let ⟨u', hu', v', hv', u'v'⟩ := empty_in_sets_eq_bot.mpr this,
+       ⟨u, uu', uo, hu⟩ := mem_nhds_sets_iff.mp hu',
+       ⟨v, vv', vo, hv⟩ := mem_nhds_sets_iff.mp hv' in
+   ⟨u, v, uo, vo, hu, hv, disjoint.eq_bot $ disjoint_mono uu' vv' u'v'⟩⟩⟩
+
+lemma t2_iff_ultrafilter :
+  t2_space α ↔ ∀ f {x y : α}, is_ultrafilter f → f ≤ nhds x → f ≤ nhds y → x = y :=
+t2_iff_nhds.trans
+  ⟨assume h f x y u fx fy, h $ neq_bot_of_le_neq_bot u.1 (le_inf fx fy),
+   assume h x y xy,
+     let ⟨f, hf, uf⟩ := exists_ultrafilter xy in
+     h f uf (le_trans hf lattice.inf_le_left) (le_trans hf lattice.inf_le_right)⟩
 
 @[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : nhds a = nhds b ↔ a = b :=
 ⟨assume h, eq_of_nhds_neq_bot $ by rw [h, inf_idem]; exact nhds_neq_bot, assume h, h ▸ rfl⟩

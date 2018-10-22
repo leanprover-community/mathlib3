@@ -1889,6 +1889,40 @@ lemma ultrafilter_ultrafilter_of (h : f ≠ ⊥) : is_ultrafilter (ultrafilter_o
 lemma ultrafilter_of_ultrafilter (h : is_ultrafilter f) : ultrafilter_of f = f :=
 ultrafilter_unique h (ultrafilter_ultrafilter_of h.left).left ultrafilter_of_le
 
+/-- A filter equals the intersection of all the ultrafilters which contain it. -/
+lemma sup_of_ultrafilters (f : filter α) : f = ⨆ (g) (u : is_ultrafilter g) (H : g ≤ f), g :=
+begin
+  refine le_antisymm _ (supr_le $ λ g, supr_le $ λ u, supr_le $ λ H, H),
+  intros s hs,
+  -- If s ∉ f.sets, we'll apply the ultrafilter lemma to the restriction of f to -s.
+  by_contradiction hs',
+  let j : (-s) → α := subtype.val,
+  have j_inv_s : j ⁻¹' s = ∅, by
+    erw [←preimage_inter_range, subtype_val_range, inter_compl_self, preimage_empty],
+  let f' := comap j f,
+  have : f' ≠ ⊥,
+  { apply mt empty_in_sets_eq_bot.mpr,
+    rintro ⟨t, htf, ht⟩,
+    suffices : t ⊆ s, from absurd (f.sets_of_superset htf this) hs',
+    rw [subset_empty_iff] at ht,
+    have : j '' (j ⁻¹' t) = ∅, by rw [ht, image_empty],
+    erw [image_preimage_eq_inter_range, subtype_val_range, ←subset_compl_iff_disjoint,
+      set.compl_compl] at this,
+    exact this },
+  rcases exists_ultrafilter this with ⟨g', g'f', u'⟩,
+  simp only [supr_sets_eq, mem_Inter] at hs,
+  have := hs (g'.map subtype.val) (ultrafilter_map u') (map_le_iff_le_comap.mpr g'f'),
+  rw [←le_principal_iff, map_le_iff_le_comap, comap_principal, j_inv_s, principal_empty,
+    le_bot_iff] at this,
+  exact absurd this u'.1
+end
+
+/-- The `tendsto` relation can be checked on ultrafilters. -/
+lemma tendsto_iff_ultrafilter (f : α → β) (l₁ : filter α) (l₂ : filter β) :
+  tendsto f l₁ l₂ ↔ ∀ g, is_ultrafilter g → g ≤ l₁ → g.map f ≤ l₂ :=
+⟨assume h g u gx, le_trans (map_mono gx) h,
+ assume h, by rw [sup_of_ultrafilters l₁]; simpa only [tendsto, map_supr, supr_le_iff]⟩
+
 /- The ultrafilter monad. The monad structure on ultrafilters is the
   restriction of the one on filters. -/
 
@@ -1918,6 +1952,14 @@ instance ultrafilter.is_lawful_monad : is_lawful_monad ultrafilter :=
   bind_pure_comp_eq_map := assume α β f x, subtype.eq (bind_pure_comp_eq_map _ f x.val) }
 
 end
+
+lemma ultrafilter.eq_iff_val_le_val {u v : ultrafilter α} : u = v ↔ u.val ≤ v.val :=
+⟨assume h, by rw h; exact le_refl _,
+ assume h, by rw subtype.ext; apply ultrafilter_unique v.property u.property.1 h⟩
+
+lemma exists_ultrafilter_iff (f : filter α) : (∃ (u : ultrafilter α), u.val ≤ f) ↔ f ≠ ⊥ :=
+⟨assume ⟨u, uf⟩, lattice.neq_bot_of_le_neq_bot u.property.1 uf,
+ assume h, let ⟨u, uf, hu⟩ := exists_ultrafilter h in ⟨⟨u, hu⟩, uf⟩⟩
 
 end ultrafilter
 

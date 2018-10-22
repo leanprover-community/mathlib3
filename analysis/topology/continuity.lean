@@ -719,8 +719,14 @@ instance [second_countable_topology α] [second_countable_topology β] :
 
 end prod
 
+section compact_and_proper_spaces
 
-section locally_compact
+/--Type class for compact spaces. Separation is sometimes included in the definition, especially
+in the French literature, but we do not include it here.-/
+class compact_space (α : Type*) [topological_space α] : Prop :=
+(compact_univ : compact (univ : set α))
+
+lemma compact_univ [topological_space α] [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
 /-- There are various definitions of "locally compact space" in the literature, which agree for
 Hausdorff spaces but not in general. This one is the precise condition on X needed for the
@@ -750,11 +756,12 @@ lemma locally_compact_of_compact_nhds [topological_space α] [t2_space α]
    subset.trans (diff_subset_comm.mp kuw) un,
    compact_diff kc wo⟩⟩
 
-lemma locally_compact_of_compact [topological_space α] [t2_space α] (h : compact (univ : set α)) :
+instance locally_compact_of_compact [topological_space α] [t2_space α] [compact_space α] :
   locally_compact_space α :=
-locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ trivial, h⟩)
+locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ trivial, compact_univ⟩)
 
-end locally_compact
+
+end compact_and_proper_spaces
 
 section sum
 variables [topological_space α] [topological_space β] [topological_space γ]

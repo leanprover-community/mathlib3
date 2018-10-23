@@ -7,6 +7,7 @@ An experimental variant on the `ring` tactic that uses computational
 reflection instead of proof generation. Useful for kernel benchmarking.
 -/
 import tactic.ring data.num.lemmas
+import tactic.converter.interactive
 
 namespace tactic.ring2
 
@@ -468,3 +469,10 @@ do `[repeat {rw ← nat.pow_eq_pow}],
 
 end interactive
 end tactic
+
+namespace conv.interactive
+open conv
+
+meta def ring2 : conv unit := discharge_eq_lhs tactic.interactive.ring2
+
+end conv.interactive

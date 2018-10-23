@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Keeley Hoek
 
 Converter monad for building simplifiers.
 -/
-import tactic.converter.old_conv
+import tactic.basic tactic.converter.old_conv
 
 namespace old_conv
 meta def save_info (p : pos) : old_conv unit :=
@@ -66,10 +66,27 @@ end interactive
 end old_conv
 
 namespace conv
+open tactic
+
+meta def replace_lhs (tac : expr → tactic (expr × expr)) : conv unit :=
+do (e, pf) ← lhs >>= tac, update_lhs e pf
+
+-- Attempts to discharge the equality of the current `lhs` using `tac`,
+-- moving to the next goal on success.
+meta def discharge_eq_lhs (tac : tactic unit) : conv unit :=
+do pf ← lock_tactic_state (do m ← lhs >>= mk_meta_var,
+                              set_goals [m],
+                              tac >> done,
+                              instantiate_mvars m),
+   congr,
+   the_rhs ← rhs,
+   update_lhs the_rhs pf,
+   skip,
+   skip
+
 namespace interactive
 open interactive
 open tactic.interactive (rw_rules)
-open tactic (rewrite_cfg)
 
 meta def erw (q : parse rw_rules) (cfg : rewrite_cfg := {md := semireducible}) : conv unit :=
 rw q cfg

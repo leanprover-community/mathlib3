@@ -20,7 +20,7 @@ open filter
  - (*) define the sequential closure of a set and prove that it's contained in the closure, 
  - (*) define a type class "sequential_space" in which closure and sequential closure agree, 
  - (*) define sequential continuity and show that it coincides with continuity in sequential spaces,
- - (*) provide and instance that shows that every metric space is a sequential space.
+ - (*) provide an instance that shows that every metric space is a sequential space.
  -
  - TODO: There should be an instance that associates a sequential space with a first countable
  -       space. 
@@ -83,7 +83,7 @@ show A = sequential_closure A, from set.ext (assume p, iff.intro
     let ⟨x, ⟨_, _⟩⟩ := this in
     show p ∈ A, from h x ‹∀ n : ℕ, ((x n) ∈ A)› p ‹converges_to x p›))
 
-/- The sequential closure of a set is containt in the closure of that set. The converse is not
+/- The sequential closure of a set is contained in the closure of that set. The converse is not
  - true.
  -/ 
 lemma sequential_closure_subset_closure (M : set X) : sequential_closure M ⊆ closure M :=

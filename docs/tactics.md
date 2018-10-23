@@ -564,9 +564,10 @@ end
 after `fin_cases p`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
 ## conv
-The `conv` tactic is built-in to lean. Currently mathlib additionally provides `erw`
-to be available inside a `conv` block. Also, as a shorthand `conv_lhs` and `conv_rhs`
-are provided, so that
+The `conv` tactic is built-in to lean. Currently mathlib additionally provides
+   * `erw`, and
+   * `ring` and `ring2`
+inside `conv` blocks. Also, as a shorthand `conv_lhs` and `conv_rhs` are provided, so that
 ```
 example : 0 + 0 = 0 :=
 begin

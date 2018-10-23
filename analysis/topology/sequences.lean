@@ -68,7 +68,7 @@ def sequential_closure (M : set X) : set X :=
 
 
 lemma subset_seq_closure (M : set X) : M ⊆ sequential_closure M := 
-assume p (_ :p ∈ M), show p ∈ sequential_closure M, from
+assume p (_ : p ∈ M), show p ∈ sequential_closure M, from
   exists.intro (λ n, p) ⟨assume n, ‹p ∈ M›, const_seq_conv p⟩
 
 def is_seq_closed (A : set X) : Prop := A = sequential_closure A
@@ -78,7 +78,7 @@ lemma is_seq_closed_of_def {A : set X} (h : ∀ (x : ℕ → X), (∀ n : ℕ, (
   converges_to x p → p ∈ A) : is_seq_closed A :=
 show A = sequential_closure A, from set.ext (assume p, iff.intro
   (assume : p ∈ A, subset_seq_closure A ‹p ∈ A›)
-  (assume :p ∈ sequential_closure A, 
+  (assume : p ∈ sequential_closure A, 
     have ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ A)) ∧ (converges_to x p), by assumption,
     let ⟨x, ⟨_, _⟩⟩ := this in
     show p ∈ A, from h x ‹∀ n : ℕ, ((x n) ∈ A)› p ‹converges_to x p›))
@@ -89,7 +89,7 @@ show A = sequential_closure A, from set.ext (assume p, iff.intro
 lemma sequential_closure_subset_closure (M : set X) : sequential_closure M ⊆ closure M :=
 show ∀ p, p ∈ sequential_closure M → p ∈ closure M, from
 assume p,
-assume : ∃ x : ℕ → X, (∀ n :ℕ, ((x n) ∈ M)) ∧ (converges_to x p),
+assume : ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ M)) ∧ (converges_to x p),
 let ⟨x, ⟨_, _⟩⟩ := this in
 show p ∈ closure M, from
 -- we have to show that p is in the closure of M
@@ -265,7 +265,7 @@ instance metric_space.to_sequential_space : sequential_space X :=
            (exists.intro n0 (assume n ngtn0,
            show dist (x n) p < ε, from
            calc dist (x n) p < (1:ℝ)/↑(n+1) : (h n).property.1
-                         ... = abs ((1:ℝ)/↑(n+1)): eq.symm 
+                         ... = abs ((1:ℝ)/↑(n+1)) : eq.symm 
                                    (abs_of_pos (one_div_succ_pos n)) 
                          ... = abs ((1:ℝ)/↑(n+1) - 0) : by simp
                          ... = dist ((1:ℝ)/↑(n+1)) 0 : eq.symm $ real.dist_eq ((1:ℝ)/↑(n+1)) 0

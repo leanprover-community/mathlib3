@@ -4,77 +4,94 @@
 
 import category_theory.types
 import category_theory.isomorphism
+import category_theory.whiskering
+
+open category_theory
+
+universes u v
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
+variables (J : Type v) [small_category J]
+
+namespace category_theory.functor
+
+def const (X : C) : J ⥤ C :=
+{ obj := λ j, X,
+  map' := λ j j' f, 𝟙 X }
+
+instance const_coe : has_coe C (J ⥤ C) := ⟨ const J ⟩
+
+@[simp] lemma const_obj (X : C) (j : J) : (X : J ⥤ C) j = X := rfl
+@[simp] lemma const_map (X : C) {j j' : J} (f : j ⟶ j') : (X : J ⥤ C).map f = 𝟙 X := rfl
+
+section
+variables {J}
+variables {D : Type u} [𝒟 : category.{u v} D]
+include 𝒟
+
+@[simp] def const_compose (X : C) (F : C ⥤ D) : (F X : J ⥤ D) ≅ (X : J ⥤ C) ⋙ F :=
+{ hom := { app := λ _, 𝟙 _ },
+  inv := { app := λ _, 𝟙 _ } }
+
+end
+
+end category_theory.functor
+
+open category_theory
+
+namespace category_theory.nat_trans
+
+def const {X Y : C} (f : X ⟶ Y) : (X : J ⥤ C) ⟹ (Y : J ⥤ C) :=
+{ app := λ j, f }
+
+instance const_coe {X Y : C} : has_coe (X ⟶ Y) ((X : J ⥤ C) ⟹ (Y : J ⥤ C)) := ⟨ const J ⟩
+
+end category_theory.nat_trans
+
+variables {J}
 
 open category_theory
 
 namespace category_theory.limits
 
-universes u v
-variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{u v} C]
-include 𝒞
-
+/-- A `c : cone F` is an object `c.X` and a natural transformation `c.π : c.X ⟹ F` from the constant `c.X` functor to `F`. -/
 structure cone (F : J ⥤ C) :=
 (X : C)
-(π : ∀ j : J, X ⟶ F j)
-(w' : ∀ {j j' : J} (f : j ⟶ j'), π j ≫ (F.map f) = π j' . obviously)
+(π : (X : J ⥤ C) ⟹ F)
 
-restate_axiom cone.w'
-attribute [simp] cone.w
-
+/-- A `c : cocone F` is an object `c.X` and a natural transformation `c.π : F ⟹ c.X` from `F` to the constant `c.X` functor. -/
 structure cocone (F : J ⥤ C) :=
 (X : C)
-(ι : ∀ j : J, F j ⟶ X)
-(w' : ∀ {j j' : J} (f : j ⟶ j'), (F.map f) ≫ ι j' = ι j . obviously)
-
-restate_axiom cocone.w'
-attribute [simp] cocone.w
+(ι : F ⟹ (X : J ⥤ C))
 
 variable {F : J ⥤ C}
 
 namespace cone
 def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
 { X := X,
-  π := λ j, f ≫ c.π j }
+  π := (f : (X : J ⥤ C) ⟹ (c.X : J ⥤ C)) ⊟ c.π }
 
 def postcompose {G : J ⥤ C} (c : cone F) (α : F ⟹ G) : cone G :=
 { X := c.X,
-  π := λ j, c.π j ≫ α j,
-  w' :=
-  begin
-    intros j j' f, simp,
-    rw ←nat_trans.naturality,
-    rw ←category.assoc,
-    rw ←w c f
-  end }
+  π := c.π ⊟ α }
 
 def whisker (c : cone F) {K : Type v} [small_category K] (E : K ⥤ J) : cone (E ⋙ F) :=
 { X := c.X,
-  π := λ k, c.π (E k),
-  w' := λ j j' f, by erw w c }
+  π := whisker_left E c.π }
 end cone
 
 namespace cocone
 def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
 { X := X,
-  ι := λ j, c.ι j ≫ f,
-  w' := λ j j' g, begin rw ←category.assoc, simp end }
+  ι := c.ι ⊟ (f : (c.X : J ⥤ C) ⟹ (X : J ⥤ C)) }
 
 def precompose {G : J ⥤ C} (c : cocone F) (α : G ⟹ F) : cocone G :=
 { X := c.X,
-  ι := λ j, α j ≫ c.ι j,
-  w' := λ j j' f,
-  begin
-    rw ←category.assoc,
-    rw nat_trans.naturality α f,
-    rw ←w c f,
-    rw ←category.assoc
-  end }
+  ι := α ⊟ c.ι }
 
 def whisker (c : cocone F) {K : Type v} [small_category K] (E : K ⥤ J) : cocone (E ⋙ F) :=
 { X := c.X,
-  ι := λ k, c.ι (E k),
-  w' := λ j j' f, by erw w c }
+  ι := whisker_left E c.ι }
 end cocone
 
 structure cone_morphism (A B : cone F) : Type v :=
@@ -115,11 +132,10 @@ include 𝒟
 @[simp] def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cone F) ⥤ (cone (F ⋙ G)) :=
 { obj      := λ A,
   { X := G A.X,
-    π := λ j, G.map (A.π j),
-    w' := begin intros, simp, erw [←functor.map_comp, cone.w] end },
+    π := (functor.const_compose _ _).hom ⊟ whisker_right A.π G },
   map'     := λ X Y f,
   { hom := G.map f.hom,
-    w' := begin intros, dsimp, erw [←functor.map_comp, cone_morphism.w] end } }
+    w' := begin intros, dsimp, erw [category.id_comp, ←functor.map_comp, cone_morphism.w, category.id_comp] end } }
 end
 end cones
 
@@ -162,11 +178,10 @@ include 𝒟
 @[simp] def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cocone F) ⥤ (cocone (F ⋙ G)) :=
 { obj := λ A,
   { X  := G A.X,
-    ι  := λ j, G.map (A.ι j),
-    w' := begin intros, simp, erw [←functor.map_comp, cocone.w] end },
+    ι  :=  whisker_right A.ι G ⊟ (functor.const_compose _ _).inv },
   map' := λ _ _ f,
   { hom := G.map f.hom,
-    w'  := begin intros, dsimp, erw [←functor.map_comp, cocone_morphism.w] end } }
+    w'  := begin intros, dsimp, erw [category.comp_id, ←functor.map_comp, cocone_morphism.w, category.comp_id], end } }
 end
 end cocones
 
@@ -174,9 +189,7 @@ end category_theory.limits
 
 namespace category_theory.functor
 
-universes u v
-variables {J : Type v} [small_category J]
-variables {C : Type u} [category.{u v} C] {D : Type u} [category.{u v} D]
+variables {D : Type u} [category.{u v} D]
 variables {F : J ⥤ C} {G : J ⥤ C}
 
 open category_theory.limits

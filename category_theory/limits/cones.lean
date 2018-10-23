@@ -59,6 +59,12 @@ structure cone (F : J ⥤ C) :=
 (X : C)
 (π : (X : J ⥤ C) ⟹ F)
 
+@[simp] lemma cone.w (F : J ⥤ C) (c : cone F) {j j' : J} (f : j ⟶ j') :
+  c.π j ≫ F.map f = c.π j' :=
+(c.π).naturality f
+
+
+
 /-- A `c : cocone F` is an object `c.X` and a natural transformation `c.π : F ⟹ c.X` from `F` to the constant `c.X` functor. -/
 structure cocone (F : J ⥤ C) :=
 (X : C)

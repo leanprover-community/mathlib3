@@ -62,8 +62,9 @@ lemma is_limit.universal (h : is_limit t) (s : cone F) (φ : s.X ⟶ t.X) :
     simp at *,
   end ⟩
 
-lemma is_limit.hom_lift (h : is_limit t) {X' : C} (m : X' ⟶ t.X) : m = h.lift { X := X', π := λ b, m ≫ t.π b } :=
-h.uniq { X := X', π := λ b, m ≫ t.π b } m (λ b, rfl)
+lemma is_limit.hom_lift (h : is_limit t) {X' : C} (m : X' ⟶ t.X) :
+  m = h.lift { X := X', π := { app := λ b, m ≫ t.π b } } :=
+h.uniq { X := X', π := { app := λ b, m ≫ t.π b } } m (λ b, rfl)
 
 def is_limit.of_lift_universal
   (lift : Π (s : cone F), s.X ⟶ t.X)

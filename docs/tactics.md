@@ -554,8 +554,10 @@ Known limitation(s):
 
 ## conv
 
-The `conv` tactic is built-in to lean. Currently mathlib additionally provides `erw`
-to be available inside a `conv` block. Also, as a shorthand `conv_lhs` and `conv_rhs`
+The `conv` tactic is built-in to lean. Currently mathlib additionally provides
+   * `erw`, and
+   * `ring` and `ring2`
+inside `conv` blocks. Also, as a shorthand `conv_lhs` and `conv_rhs`
 are provided, so that
 ```
 example : 0 + 0 = 0 :=

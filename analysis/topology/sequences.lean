@@ -42,7 +42,7 @@ def converges_to (x : ℕ → X) (limit : X) : Prop :=
   ∀ U : set X, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U
 
 lemma const_seq_conv (p : X) : converges_to (λ n, p) p :=
-assume U (_: p ∈ U) (_ : is_open U), exists.intro 0 (assume n (_ : n ≥ 0), ‹p ∈ U›)
+assume U (_ : p ∈ U) (_ : is_open U), exists.intro 0 (assume n (_ : n ≥ 0), ‹p ∈ U›)
 
 /- A sequence converges if and only if the associated statement for filter holds. -/
 lemma converges_to_iff_tendsto [topological_space X] {x : ℕ → X} {limit : X} :
@@ -64,12 +64,12 @@ lemma converges_to_iff_tendsto [topological_space X] {x : ℕ → X} {limit : X}
  - the set of all p ∈ X which arise as limit of sequences in M.
  -/
 def sequential_closure (M : set X) : set X :=
-  {p | ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ M)) ∧ (converges_to x p)}
+{p | ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ M)) ∧ (converges_to x p)}
 
 
 lemma subset_seq_closure (M : set X) : M ⊆ sequential_closure M := 
 assume p (_ :p ∈ M), show p ∈ sequential_closure M, from
-  exists.intro (λ n, p) ⟨assume n, ‹p∈ M›, const_seq_conv p⟩
+  exists.intro (λ n, p) ⟨assume n, ‹p ∈ M›, const_seq_conv p⟩
 
 def is_seq_closed (A : set X) : Prop := A = sequential_closure A
 
@@ -77,17 +77,17 @@ def is_seq_closed (A : set X) : Prop := A = sequential_closure A
 lemma is_seq_closed_of_def {A : set X} (h : ∀ (x : ℕ → X), (∀ n : ℕ, ((x n) ∈ A)) → ∀ p : X,
   converges_to x p → p ∈ A) : is_seq_closed A :=
 show A = sequential_closure A, from set.ext (assume p, iff.intro
-(assume : p ∈ A, subset_seq_closure A ‹p ∈ A›)
-(assume :p ∈ sequential_closure A, 
-  have ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ A)) ∧ (converges_to x p), by assumption,
-  let ⟨x, ⟨_, _⟩⟩ := this in
-  show p ∈ A, from h x ‹∀ n : ℕ, ((x n) ∈ A)› p ‹converges_to x p›))
+  (assume : p ∈ A, subset_seq_closure A ‹p ∈ A›)
+  (assume :p ∈ sequential_closure A, 
+    have ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ A)) ∧ (converges_to x p), by assumption,
+    let ⟨x, ⟨_, _⟩⟩ := this in
+    show p ∈ A, from h x ‹∀ n : ℕ, ((x n) ∈ A)› p ‹converges_to x p›))
 
 /- The sequential closure of a set is containt in the closure of that set. The converse is not
  - true.
  -/ 
 lemma sequential_closure_subset_closure (M : set X) : sequential_closure M ⊆ closure M :=
-suffices ∀ p, p ∈ sequential_closure M → p ∈ closure M, by assumption,
+show ∀ p, p ∈ sequential_closure M → p ∈ closure M, from
 assume p,
 assume : ∃ x : ℕ → X, (∀ n :ℕ, ((x n) ∈ M)) ∧ (converges_to x p),
 let ⟨x, ⟨_, _⟩⟩ := this in
@@ -105,7 +105,7 @@ set.ne_empty_of_mem this
 /- A set is sequentially closed if it is closed. -/
 lemma is_seq_closed_of_is_closed : ∀ M : set X, is_closed M → is_seq_closed M :=
 assume M (_ : is_closed M),
-have M = closure M ,from  eq.symm $ closure_eq_of_is_closed ‹is_closed M›,
+have M = closure M, from  eq.symm $ closure_eq_of_is_closed ‹is_closed M›,
 have M ⊆ sequential_closure M, from subset_seq_closure M,
 have sequential_closure M ⊆ M, from 
   calc sequential_closure M ⊆ closure M : sequential_closure_subset_closure M
@@ -115,7 +115,7 @@ set.eq_of_subset_of_subset ‹M ⊆ sequential_closure M› ‹sequential_closur
 
 /- The limit of a convergent sequence in a sequentially closed set is in that set.-/
 lemma is_mem_of_conv_to_of_is_seq_closed {A : set X} (_ : is_seq_closed A) {x : ℕ → X}
-  (_ :∀ n, x n ∈ A) {limit : X} (_ :converges_to x limit) : limit ∈ A :=
+  (_ : ∀ n, x n ∈ A) {limit : X} (_ : converges_to x limit) : limit ∈ A :=
 have limit ∈ sequential_closure A, from 
   show ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ A)) ∧ (converges_to x limit), from
     exists.intro x ⟨‹∀ n, x n ∈ A›, ‹converges_to x limit›⟩,
@@ -123,7 +123,7 @@ eq.subst (eq.symm ‹is_seq_closed A›) ‹limit ∈ sequential_closure A›
 
 /- The limit of a convergent sequence in a closed set is in that set.-/
 lemma is_mem_of_is_closed_of_conv_to {A : set X} (_ : is_closed A) {x : ℕ → X}
-  (_ :∀ n, x n ∈ A) {limit : X} (_ :converges_to x limit) : limit ∈ A :=
+  (_ : ∀ n, x n ∈ A) {limit : X} (_ : converges_to x limit) : limit ∈ A :=
 is_mem_of_conv_to_of_is_seq_closed (is_seq_closed_of_is_closed A ‹is_closed A›)
   ‹∀ n, x n ∈ A› ‹converges_to x limit›
 
@@ -172,13 +172,12 @@ iff.intro
     assume A (_ : is_closed A),
       is_seq_closed_of_def $
         assume (x : ℕ → X),
-        assume :∀ n, (x n) ∈ (f ⁻¹' A),
+        assume : ∀ n, (x n) ∈ (f ⁻¹' A),
         have ∀ n, f (x n) ∈ A, by assumption,
-        assume p (_: converges_to x p),
+        assume p (_ : converges_to x p),
         have converges_to (f ∘ x) (f p), from ‹sequentially_continuous f› x ‹converges_to x p›, 
-        have f p ∈ A, from is_mem_of_is_closed_of_conv_to ‹is_closed A› ‹∀ n, f (x n) ∈ A›
-          ‹converges_to (f∘x) (f p)›,
-        this)
+        show f p ∈ A, from is_mem_of_is_closed_of_conv_to ‹is_closed A› ‹∀ n, f (x n) ∈ A›
+          ‹converges_to (f∘x) (f p)›)
   
 
 end topological_space
@@ -199,7 +198,7 @@ iff.intro
   (assume metrConvTo,
     show ∀ U : set X, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from
     assume U limitInU isOpenU,
-      have ∃ ε > 0, ball limit ε ⊆ U ,from is_open_metric.mp isOpenU limit limitInU,
+      have ∃ ε > 0, ball limit ε ⊆ U, from is_open_metric.mp isOpenU limit limitInU,
       let ⟨ε, _, _⟩ := this in
       have ∃ n0, ∀ n ≥ n0, dist (x n) limit < ε, from ‹metrically_converges_to x limit› ε ‹ε > 0›, 
       let ⟨n0, _⟩ := this in
@@ -232,10 +231,7 @@ one_div_pos_of_pos (by linarith using [show (↑n : ℝ) ≥ 0, from nat.cast_no
 -- necessary for the next instance
 set_option eqn_compiler.zeta true
 /- Show that every metric space is sequential. -/
-instance metric_space.to_sequential_space: sequential_space X :=
--- prelimary inequalities of natural numbers
-have ∀ n : ℕ, n ≤ n + 1, from assume n, le_add_of_nonneg_right' (nat.zero_le 1),
-have ∀ n : ℕ, (0:ℝ) < (1/(n+1)), from one_div_succ_pos,
+instance metric_space.to_sequential_space : sequential_space X :=
 -- actual proof
 ⟨show ∀ M, sequential_closure M = closure M, from assume M,
   suffices closure M ⊆ sequential_closure M,
@@ -249,10 +245,10 @@ have ∀ n : ℕ, (0:ℝ) < (1/(n+1)), from one_div_succ_pos,
                   (mem_ball_self (show (1:ℝ)/(n+1) > 0, from one_div_succ_pos n)),
 
   -- from this, construct a "sequence of hypothesis" h, (h n) := _ ∈ {x // x ∈ ball (1/n+1) p ∩ M}
-  let h := λ n : ℕ, (classical.indefinite_description _ (set.exists_mem_of_ne_empty (this n))) in
-  -- an actual sequence
-  let x := λ n : ℕ, (h n).val in
-  
+  let h := λ n : ℕ, (classical.indefinite_description _ (set.exists_mem_of_ne_empty (this n))),
+  -- and the actual sequence
+      x := λ n : ℕ, (h n).val in
+
   -- now we construct the promised sequence and show the claim
   show ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ M)) ∧ (converges_to x p), from
     exists.intro x
@@ -270,7 +266,7 @@ have ∀ n : ℕ, (0:ℝ) < (1/(n+1)), from one_div_succ_pos,
            show dist (x n) p < ε, from
            calc dist (x n) p < (1:ℝ)/↑(n+1) : (h n).property.1
                          ... = abs ((1:ℝ)/↑(n+1)): eq.symm 
-                                   (abs_of_pos (‹∀ n : ℕ, (0:ℝ) < (1/(n+1))› n)) 
+                                   (abs_of_pos (one_div_succ_pos n)) 
                          ... = abs ((1:ℝ)/↑(n+1) - 0) : by simp
                          ... = dist ((1:ℝ)/↑(n+1)) 0 : eq.symm $ real.dist_eq ((1:ℝ)/↑(n+1)) 0
                          ... < ε : hn0 n ‹n ≥ n0›))))⟩

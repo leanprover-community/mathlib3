@@ -133,5 +133,7 @@ definitionally equal, rather like the `show` command in tactic mode.
 The `whnf` command means "reduces to weak head normal form" and will eventually
 be explained in [Programming in Lean](https://leanprover.github.io/programming_in_lean/#08_Writing_Tactics.html) section 8.4.
 
+Extensions to `conv` provided by mathlib can be found at [docs/tactics.md#conv](../tactics.md#conv).
+
 Soon, `norm_num` and `ring` will be available in conversion mode, but not
 yet.

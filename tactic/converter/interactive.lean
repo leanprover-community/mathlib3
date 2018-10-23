@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Leonardo de Moura
+Authors: Leonardo de Moura, Keeley Hoek
 
 Converter monad for building simplifiers.
 -/
@@ -65,11 +65,24 @@ meta def find (p : parse lean.parser.pexpr) (c : itactic) : old_conv unit :=
 end interactive
 end old_conv
 
+namespace conv
+namespace interactive
+open interactive
+open tactic.interactive (rw_rules)
+open tactic (rewrite_cfg)
+
+meta def erw (q : parse rw_rules) (cfg : rewrite_cfg := {md := semireducible}) : conv unit :=
+rw q cfg
+
+end interactive
+end conv
+
 namespace tactic
 namespace interactive
+open lean
 open lean.parser
 open interactive
-open interactive.types
+local postfix `?`:9001 := optional
 
 meta def old_conv (c : old_conv.interactive.itactic) : tactic unit :=
 do t ← target,
@@ -78,6 +91,16 @@ do t ← target,
 
 meta def find (p : parse lean.parser.pexpr) (c : old_conv.interactive.itactic) : tactic unit :=
 old_conv $ old_conv.interactive.find p c
+
+meta def conv_lhs (loc : parse (tk "at" *> ident)?)
+              (p : parse (tk "in" *> parser.pexpr)?)
+              (c : conv.interactive.itactic) : tactic unit :=
+conv loc p (conv.interactive.to_lhs >> c)
+
+meta def conv_rhs (loc : parse (tk "at" *> ident)?)
+              (p : parse (tk "in" *> parser.pexpr)?)
+              (c : conv.interactive.itactic) : tactic unit :=
+conv loc p (conv.interactive.to_rhs >> c)
 
 end interactive
 end tactic

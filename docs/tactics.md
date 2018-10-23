@@ -551,3 +551,23 @@ Known limitation(s):
     `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
     It is likely that none of the suggestion is a good replacement but they can all be
     combined by concatenating their list of lemmas.
+
+## conv
+
+The `conv` tactic is built-in to lean. Currently mathlib additionally provides `erw`
+to be available inside a `conv` block. Also, as a shorthand `conv_lhs` and `conv_rhs`
+are provided, so that
+```
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs {simp}
+end
+```
+just means
+```
+example : 0 + 0 = 0 :=
+begin
+  conv {to_lhs, simp}
+end
+```
+and likewise for `to_rhs`.

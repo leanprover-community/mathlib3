@@ -5,7 +5,7 @@ Authors: Simon Hudon, Scott Morrison
 -/
 import tactic data.set.lattice data.prod data.vector
        tactic.rewrite data.stream.basic
-       tactic.tfae
+       tactic.tfae tactic.converter.interactive
 
 section tauto₀
 variables p q r : Prop
@@ -650,3 +650,18 @@ end assoc_rw
 -- end
 
 -- end tfae
+
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs {erw [add_zero]}
+end
+
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs {simp}
+end
+
+example : 0 = 0 + 0 :=
+begin
+  conv_rhs {simp}
+end

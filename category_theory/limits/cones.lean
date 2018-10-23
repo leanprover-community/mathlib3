@@ -15,11 +15,13 @@ variables (J : Type v) [small_category J]
 
 namespace category_theory.functor
 
-def const (X : C) : J ⥤ C :=
-{ obj := λ j, X,
-  map' := λ j j' f, 𝟙 X }
+def const : C ⥤ (J ⥤ C) :=
+{ obj := λ X,
+  { obj := λ j, X,
+    map' := λ j j' f, 𝟙 X },
+  map' := λ X Y f, { app := λ j, f } }
 
-instance const_coe : has_coe C (J ⥤ C) := ⟨ const J ⟩
+instance const_coe : has_coe C (J ⥤ C) := ⟨ @const C _ J _ ⟩
 
 @[simp] lemma const_obj (X : C) (j : J) : (X : J ⥤ C) j = X := rfl
 @[simp] lemma const_map (X : C) {j j' : J} (f : j ⟶ j') : (X : J ⥤ C).map f = 𝟙 X := rfl
@@ -41,10 +43,7 @@ open category_theory
 
 namespace category_theory.nat_trans
 
-def const {X Y : C} (f : X ⟶ Y) : (X : J ⥤ C) ⟹ (Y : J ⥤ C) :=
-{ app := λ j, f }
-
-instance const_coe {X Y : C} : has_coe (X ⟶ Y) ((X : J ⥤ C) ⟹ (Y : J ⥤ C)) := ⟨ const J ⟩
+instance const_coe {X Y : C} : has_coe (X ⟶ Y) ((X : J ⥤ C) ⟹ (Y : J ⥤ C)) := ⟨ (functor.const J).map ⟩
 
 end category_theory.nat_trans
 

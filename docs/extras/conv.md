@@ -135,5 +135,4 @@ be explained in [Programming in Lean](https://leanprover.github.io/programming_i
 
 Extensions to `conv` provided by mathlib can be found at [docs/tactics.md#conv](../tactics.md#conv).
 
-Soon, `norm_num` and `ring` will be available in conversion mode, but not
-yet.
+Soon, `norm_num` will be available in conversion mode, but not yet.

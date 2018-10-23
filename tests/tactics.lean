@@ -652,6 +652,8 @@ end assoc_rw
 
 -- end tfae
 
+section conv
+
 example : 0 + 0 = 0 :=
 begin
   conv_lhs {erw [add_zero]}
@@ -691,3 +693,16 @@ example (x : ℕ) : (22 + 7 * x + 3 * 8 = 0 + 7 * x + 46 + 1)
 begin
   conv { ring, },
 end
+
+-- norm_num examples:
+example : 22 + 7 * 4 + 3 * 8 = 74 :=
+begin
+  conv { norm_num, },
+end
+
+example (x : ℕ) : 22 + 7 * x + 3 * 8 = 7 * x + 46 :=
+begin
+  conv { norm_num, },
+end
+
+end conv

@@ -555,8 +555,9 @@ Known limitation(s):
 ## conv
 
 The `conv` tactic is built-in to lean. Currently mathlib additionally provides
-   * `erw`, and
-   * `ring` and `ring2`
+   * `erw`,
+   * `ring` and `ring2`, and
+   * `norm_num`
 inside `conv` blocks. Also, as a shorthand `conv_lhs` and `conv_rhs`
 are provided, so that
 ```

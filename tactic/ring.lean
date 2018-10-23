@@ -7,6 +7,7 @@ Evaluate expressions in the language of (semi-)rings.
 Based on http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf .
 -/
 import algebra.group_power tactic.norm_num
+import tactic.converter.interactive
 
 namespace tactic
 namespace ring
@@ -469,3 +470,17 @@ do ns ← loc.get_locals,
 
 end interactive
 end tactic
+
+namespace conv
+namespace interactive
+open interactive
+open tactic tactic.interactive (ring.mode ring1)
+open tactic.ring (normalize)
+
+meta def ring (SOP : parse ring.mode) : conv unit :=
+discharge_eq ring1 <|> do (e, pf) ← lhs >>= normalize SOP
+                          <|> fail "ring failed to simplify",
+                          update_lhs e pf
+
+end interactive
+end conv

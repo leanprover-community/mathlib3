@@ -178,7 +178,8 @@ def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F := (li
 @[simp] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) : limit.lift F c ≫ limit.π F j = c.π j :=
 is_limit.fac _ c j
 
-@[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) : ((limit.cone F).π : _ ⟹ F) j = (@limit.π C _ J _ F _ j) := rfl
+-- We need to be really explicit about the coercion we're simplifying here.
+@[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) : (((limit.cone F).π) : Π j : J, ((limit.cone F).X ⟶ F j)) j = (@limit.π C _ J _ F _ j) := rfl
 
 def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) : cone_morphism c (limit.cone F) :=
 { hom := (limit.lift F) c }
@@ -195,7 +196,7 @@ by erw is_limit.fac
 begin
   let c : cone F :=
   { X := X,
-    π := λ j, f ≫ limit.π F j },
+    π := { app := λ j, f ≫ limit.π F j }},
   have p_f := (limit.universal_property F).uniq c f (λ j, by simp),
   have p_g := (limit.universal_property F).uniq c g (λ j, eq.symm (w j)),
   rw [p_f, p_g]
@@ -210,14 +211,14 @@ by obviously
 { obj := λ F, limit F,
   map' := λ F F' t, limit.lift F' $
   { X := limit F,
-    π := λ j, limit.π F j ≫ t j,
-    w' :=
-    begin
-      /- `obviously` says -/
-      intros j j' f, simp,
-      erw [←nat_trans.naturality, ←category.assoc, limits.cone.w],
-      refl
-    end },
+    π := 
+    { app := λ j, limit.π F j ≫ t j,
+      naturality' :=
+      begin
+        /- `obviously` says -/
+        intros j j' f, simp,
+        sorry
+      end } },
   map_comp' :=
   begin
     /- `obviously` says -/
@@ -228,7 +229,10 @@ by obviously
 
 @[simp] lemma lim_map_π [has_limits_of_shape.{u v} C J] {F G : J ⥤ C} (α : F ⟹ G) (j : J) :
   lim.map α ≫ limit.π G j = limit.π F j ≫ α j :=
-by erw is_limit.fac
+begin
+  erw is_limit.fac,
+  refl
+end
 
 @[simp] lemma limit.lift_map [has_limits_of_shape.{u v} C J] {F G : J ⥤ C} (c : cone F) (α : F ⟹ G) :
   limit.lift F c ≫ lim.map α = limit.lift G (c.postcompose α) :=
@@ -247,18 +251,23 @@ include 𝒦
 def limit.pre (F : J ⥤ C) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)] : limit F ⟶ limit (E ⋙ F) :=
 limit.lift (E ⋙ F)
 { X := limit F,
-  π := λ k, limit.π F (E k),
-  w' :=
-  begin
-    /- `obviously` says -/
-    intros j j' f,
-    erw limits.cone.w,
-    refl
-  end }
+  π := 
+  { app := λ k, limit.π F (E k),
+    naturality' :=
+    begin
+      /- `obviously` says -/
+      intros j j' f,
+      erw limits.cone.w,
+      simp,
+      erw category.id_comp,
+    end } }
 
 @[simp] lemma limit.pre_π (F : J ⥤ C) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)] (k : K) :
   limit.pre F E ≫ limit.π (E ⋙ F) k = limit.π F (E k) :=
-by erw is_limit.fac
+begin
+  erw is_limit.fac,
+  refl,
+end
 
 @[simp] lemma limit.lift_pre {F : J ⥤ C} [has_limit F] (c : cone F) (E : K ⥤ J) [has_limit (E ⋙ F)] :
   limit.lift F c ≫ limit.pre F E = limit.lift (E ⋙ F) (c.whisker E) :=
@@ -293,18 +302,22 @@ include 𝒟
 def limit.post (F : J ⥤ C) [has_limit F] (G : C ⥤ D) [has_limit (F ⋙ G)] : G (limit F) ⟶ limit (F ⋙ G) :=
 limit.lift (F ⋙ G)
 { X := _,
-  π := λ j, G.map (limit.π F j),
-  w' :=
-  begin
-    /- `obviously` says -/
-    intros j j' f, dsimp at *,
-    erw [←functor.map_comp, limits.cone.w],
-    refl
-  end }
+  π := 
+  { app := λ j, G.map (limit.π F j),
+    naturality' :=
+    begin
+      /- `obviously` says -/
+      intros j j' f, dsimp at *,
+      erw [←functor.map_comp, limits.cone.w, category.id_comp],
+      refl
+    end } }
 
 @[simp] lemma limit.post_π (F : J ⥤ C) [has_limit F] (G : C ⥤ D) [has_limit (F ⋙ G)] (j : J) :
   limit.post F G ≫ limit.π (F ⋙ G) j = G.map (limit.π F j) :=
-by erw is_limit.fac
+begin
+  erw is_limit.fac,
+  refl
+end
 
 @[simp] lemma limit.lift_post {F : J ⥤ C} [has_limit F] (c : cone F) (G : C ⥤ D) [has_limit (F ⋙ G)] :
   G.map (limit.lift F c) ≫ limit.post F G = limit.lift (F ⋙ G) (G.map_cone c) :=
@@ -313,7 +326,7 @@ begin
   ext1, dsimp at *, simp at *,
   erw ←functor.map_comp,
   simp,
-  refl
+  sorry
 end
 
 lemma limit.map_post
@@ -326,7 +339,8 @@ begin
   /- `obviously` says -/
   ext1, dsimp at *, simp at *,
   erw [←category.assoc, is_limit.fac, ←functor.map_comp],
-  refl
+  simp,
+  sorry
 end.
 
 lemma limit.pre_post

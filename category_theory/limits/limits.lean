@@ -164,8 +164,9 @@ include 𝒥
 
 def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone.{u v} F
 def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
-def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F j := (limit.cone F).π j
-@[simp] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') : limit.π F j ≫ F.map f = limit.π F j' := (limit.cone F).w f
+def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F j := ((limit.cone F).π).app j
+@[simp] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
+  limit.π F j ≫ F.map f = limit.π F j' := (limit.cone F).w f
 def limit.universal_property (F : J ⥤ C) [has_limit F] : is_limit (limit.cone F) :=
 has_limit.is_limit.{u v} F
 
@@ -177,7 +178,7 @@ def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F := (li
 @[simp] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) : limit.lift F c ≫ limit.π F j = c.π j :=
 is_limit.fac _ c j
 
-@[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) : (limit.cone F).π j = (@limit.π C _ J _ F _ j) := rfl
+@[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) : ((limit.cone F).π : _ ⟹ F) j = (@limit.π C _ J _ F _ j) := rfl
 
 def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) : cone_morphism c (limit.cone F) :=
 { hom := (limit.lift F) c }

@@ -6,9 +6,19 @@ import category_theory.types
 import category_theory.isomorphism
 import category_theory.whiskering
 
+universes u v
+def isos (C : Type u) := C
+
 open category_theory
 
-universes u v
+instance category_isos {C : Type u} [category.{u v} C] : category (isos C) :=
+{ hom := λ X Y, @iso C _ X Y,
+  id := iso.refl,
+  comp := λ X Y Z, iso.trans }
+
+instance category_isos_type : large_category (isos (Type u)) :=
+by apply_instance
+
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 variables (J : Type v) [small_category J]
@@ -57,6 +67,36 @@ namespace category_theory.limits
 structure cone (F : J ⥤ C) :=
 (X : C)
 (π : (X : J ⥤ C) ⟹ F)
+
+-- namespace cone
+
+-- @[extensionality] lemma ext {F : J ⥤ C} {A B : cone F} (w : f.hom = g.hom) : f = g :=
+-- begin
+--   /- obviously' say: -/
+--   induction f,
+--   induction g,
+--   dsimp at w,
+--   induction w,
+--   refl,
+-- end
+
+-- end cone
+
+
+def cone_f : isos (J ⥤ C) ⥤ isos (Type (max u v)) :=
+{ obj  := cone,
+  map' := λ F G α,
+  { hom := λ c,
+    { X := c.X,
+      π := c.π ⊟ α },
+    inv := λ c,
+    { X := c.X,
+      π := c.π ⊟ α.symm },
+    hom_inv_id' :=
+    begin
+      tidy, cases x, congr,
+      tidy, sorry
+    end  } }
 
 @[simp] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π j ≫ F.map f = c.π j' :=

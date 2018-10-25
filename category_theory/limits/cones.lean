@@ -4,7 +4,57 @@
 
 import category_theory.types
 import category_theory.isomorphism
+import category_theory.natural_isomorphism
 import category_theory.whiskering
+
+namespace conv
+open tactic
+
+private meta def congr_aux : list congr_arg_kind → list expr → tactic (list expr × list expr)
+| []      []      := return ([], [])
+| (k::ks) (a::as) := do
+  (gs, largs) ← congr_aux ks as,
+  match k with
+  | congr_arg_kind.fixed            := return $ (gs, a::largs)
+  | congr_arg_kind.fixed_no_param   := return $ (gs, largs)
+  | congr_arg_kind.eq               := do
+      a_type  ← infer_type a,
+      rhs     ← mk_meta_var a_type,
+      g_type  ← mk_app `eq [a, rhs],
+      g       ← mk_meta_var g_type,
+      return (g::gs, a::rhs::g::largs)
+  | congr_arg_kind.cast             := return $ (gs, a::largs)
+  | congr_arg_kind.heq              := fail "congr tactic failed, unsupported congruence lemma (heq)"
+  end
+| ks      as := fail "congr tactic failed, unsupported congruence lemma"
+  
+meta def congr' : conv unit :=
+do (r, lhs, rhs) ← target_lhs_rhs,
+   guard (r = `eq),
+   let fn   := lhs.get_app_fn,
+   let args := lhs.get_app_args,
+   (s, u) ← mk_simp_set ff [] [],
+   fn ← (s.dsimplify [] fn) <|> pure (fn),
+   trace fn,
+   cgr_lemma ← mk_congr_lemma_simp fn (some args.length),
+   trace "!",
+   trace cgr_lemma.arg_kinds.length,
+   trace args,
+   g::gs ← get_goals,
+   (new_gs, lemma_args) ← congr_aux cgr_lemma.arg_kinds args,
+   let g_val := cgr_lemma.proof.mk_app lemma_args,
+   unify g g_val,
+   set_goals $ new_gs ++ gs,
+   return ()
+
+namespace interactive
+
+meta def congr' : conv unit :=
+conv.congr'
+
+end interactive
+
+end conv
 
 universes u v
 def isos (C : Type u) := C
@@ -68,21 +118,28 @@ structure cone (F : J ⥤ C) :=
 (X : C)
 (π : (X : J ⥤ C) ⟹ F)
 
--- namespace cone
+namespace cone
 
--- @[extensionality] lemma ext {F : J ⥤ C} {A B : cone F} (w : f.hom = g.hom) : f = g :=
--- begin
---   /- obviously' say: -/
---   induction f,
---   induction g,
---   dsimp at w,
---   induction w,
---   refl,
--- end
+@[extensionality] lemma evil_ext {F : J ⥤ C} {A B : cone F} (w : A.X = B.X) (h : (functor.const J).map (eq_to_iso w).hom ⊟ B.π = A.π) : A = B :=
+begin
+  /- obviously' say: -/
+  induction A,
+  induction B,
+  dsimp at w,
+  induction w,
+  simp at h,
+  congr,
+  rw ← h,
+  ext1,
+  simp,
+end
 
--- end cone
+end cone
 
 
+
+#print category_theory.functor.map
+-- set_option pp.all true
 def cone_f : isos (J ⥤ C) ⥤ isos (Type (max u v)) :=
 { obj  := cone,
   map' := λ F G α,
@@ -94,8 +151,10 @@ def cone_f : isos (J ⥤ C) ⥤ isos (Type (max u v)) :=
       π := c.π ⊟ α.symm },
     hom_inv_id' :=
     begin
-      tidy, cases x, congr,
-      tidy, sorry
+      tidy,
+      conv {to_lhs, congr, congr', },
+      rw functor.map_id, -- FIXME why doesn't simp do this?
+      simp,
     end  } }
 
 @[simp] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :

@@ -14,6 +14,20 @@ universes u₁ u₂ v₁ v₂
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
+@[simp] lemma hom_inv_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α : F ⟹ G) X ≫ ((iso.symm α) : G ⟹ F) X = 𝟙 (F X) :=
+begin
+  rw ← functor.category.comp_app,
+  rw α.hom_inv_id,
+  simp,
+end
+
+@[simp] lemma inv_hom_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) : ((iso.symm α) : G ⟹ F) X ≫ (α : F ⟹ G) X = 𝟙 (G X) :=
+begin
+  rw ← functor.category.comp_app,
+  rw α.inv_hom_id,
+  simp,
+end
+
 def app {F G : C ⥤ D} (α : F ≅ G) (X : C) : F X ≅ G X :=
 { hom := (α : F ⟶ G) X,
   inv := (α.symm : G ⟶ F) X,

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir
 
 Irrationality of real numbers.
 -/
@@ -30,7 +30,6 @@ theorem sqrt_two_irrational : irrational (sqrt 2)
   exact nat.not_coprime_of_dvd_of_dvd (nat.lt_succ_self _) ae de c
 end
 
-----abhimanyu
 theorem irr_of_irr_mul_rat (q : ℚ) (x : ℝ) : q ≠ 0 → irrational x → irrational (x * ↑q) :=
     begin
         intro Hqn0, intro Hix, intro Hqxrat, cases Hqxrat with r Hr, have Hr' := Hr,

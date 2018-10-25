@@ -33,10 +33,7 @@ end
 theorem irr_of_rat_add_irr (q : ℚ) (x : ℝ) :
   irrational x → irrational (q + x) :=
 λ hx_irr hq_rat, hx_irr (exists.elim hq_rat (λ a h, exists.intro (-q + a)
-begin by
-  rw [← zero_add x, ← neg_add_self ↑q, add_assoc, h, cast_add, cast_neg],
-end
-))
+(by rw [← zero_add x, ← neg_add_self ↑q, add_assoc, h, cast_add, cast_neg]))
 
 theorem irr_of_irr_mul_rat (q : ℚ) (x : ℝ) : q ≠ 0 → irrational x → irrational (x * ↑q) :=
 begin
@@ -52,4 +49,3 @@ begin
     revert Hxd0, apply rat.num_ne_zero_of_ne_zero, exact Hqn0,
     rw rat.cast_ne_zero, exact Hqn0,
 end
-

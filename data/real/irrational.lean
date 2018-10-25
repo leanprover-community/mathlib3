@@ -29,3 +29,19 @@ theorem sqrt_two_irrational : irrational (sqrt 2)
     rwa [← E, nat.mul_dvd_mul_iff_left (nat.succ_pos 1)] at this },
   exact nat.not_coprime_of_dvd_of_dvd (nat.lt_succ_self _) ae de c
 end
+
+----abhimanyu
+theorem irr_of_irr_mul_rat (q : ℚ) (x : ℝ) : q ≠ 0 → irrational x → irrational (x * ↑q) :=
+    begin
+        intro Hqn0, intro Hix, intro Hqxrat, cases Hqxrat with r Hr, have Hr' := Hr,
+        rw [←div_eq_iff_mul_eq, rat.num_denom r, rat.num_denom q, rat.cast_mk, rat.cast_mk, div_div_div_div_eq] at Hr,
+        rw [←int.cast_mul, ←int.cast_mul, ←rat.cast_mk_of_ne_zero] at Hr,
+        unfold irrational at Hix, apply Hix, existsi (rat.mk (r.num * ↑(q.denom)) (↑(r.denom) * q.num)),
+        exact Hr.symm,
+        intro Hxd0, rw [int.cast_eq_zero, mul_eq_zero] at Hxd0, cases Hxd0,
+        rw int.coe_nat_eq_zero at Hxd0,
+        revert Hxd0,
+        apply rat.denom_ne_zero,
+        revert Hxd0, apply rat.num_ne_zero_of_ne_zero, exact Hqn0,
+        rw rat.cast_ne_zero, exact Hqn0,
+    end

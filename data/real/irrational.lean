@@ -32,15 +32,19 @@ end
 
 variables {q : ℚ} {x : ℝ}
 
-theorem irr_rat_add_of_irr (hx_irr : irrational x) : irrational (q + x) :=
-λ ⟨a, h⟩, hx_irr ⟨-q + a, by rw [cast_add, ← h, cast_neg, neg_add_cancel_left]⟩
+theorem irr_rat_add_of_irr : irrational x → irrational (q + x) :=
+mt $ λ ⟨a, h⟩, ⟨-q + a, by rw [rat.cast_add, ← h, rat.cast_neg, neg_add_cancel_left]⟩
 
-theorem irr_iff_irr_add_rat : irrational x ↔ irrational (x + q) :=
-⟨by rw add_comm; exact irr_rat_add_of_irr,
-by simpa only [cast_neg, add_comm, add_neg_cancel_right] using @irr_rat_add_of_irr (-q) (x+q)⟩
+@[simp] theorem irr_add_rat_iff_irr : irrational (x + q) ↔ irrational x :=
+⟨by simpa only [cast_neg, add_comm, add_neg_cancel_right] using @irr_rat_add_of_irr (-q) (x+q),
+by rw add_comm; exact irr_rat_add_of_irr⟩
 
-theorem irr_mul_rat_of_irr (Hqn0 : q ≠ 0) (Hix : irrational x) : irrational (x * ↑q) :=
-λ ⟨r, Hr⟩, Hix ⟨r / q, by rw [cast_div, ← Hr, mul_div_cancel]; rwa cast_ne_zero⟩
+@[simp] theorem irr_rat_add_iff_irr : irrational (q + x) ↔ irrational x :=
+by rw [add_comm, irr_add_rat_iff_irr]
 
-theorem irr_of_irr_mul_self (k : ℝ) (Hix : irrational (k*k)) : irrational k :=
+theorem irr_mul_rat_iff_irr (Hqn0 : q ≠ 0) : irrational (x * ↑q) ↔ irrational x :=
+⟨mt $ λ ⟨r, hr⟩, ⟨r * q, hr.symm ▸ (rat.cast_mul _ _).symm⟩,
+mt $ λ ⟨r, hr⟩, ⟨r / q, by rw [cast_div, ← hr, mul_div_cancel]; rwa cast_ne_zero⟩⟩
+
+theorem irr_of_irr_mul_self (Hix : irrational (x * x)) : irrational x :=
 λ ⟨p, e⟩, Hix ⟨p * p, by rw [e, cast_mul]⟩

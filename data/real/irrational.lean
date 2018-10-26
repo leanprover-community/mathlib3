@@ -11,65 +11,36 @@ open rat real
 
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
-theorem sqrt_two_irrational : irrational (sqrt 2)
+theorem irr_sqrt_two : irrational (sqrt 2)
 | ⟨⟨n, d, h, c⟩, e⟩ := begin
   simp [num_denom', mk_eq_div] at e,
   have := mul_self_sqrt (le_of_lt two_pos),
   have d0 : (0:ℝ) < d := nat.cast_pos.2 h,
   rw [e, div_mul_div, div_eq_iff_mul_eq (ne_of_gt $ mul_pos d0 d0),
-      ← int.cast_mul, ← int.nat_abs_mul_self] at this,
-  revert c this, generalize : n.nat_abs = a, intros,
-  have E : 2 * (d * d) = a * a := (@nat.cast_inj ℝ _ _ _ _ _).1 (by simpa),
-  have ae : 2 ∣ a,
+    ← int.cast_mul, ← int.nat_abs_mul_self] at this,
+  generalize_hyp : n.nat_abs = k at c this,
+  have E : 2 * (d * d) = k * k := (@nat.cast_inj ℝ _ _ _ _ _).1 (by simpa),
+  have ke : 2 ∣ k,
   { refine (or_self _).1 (nat.prime_two.dvd_mul.1 _),
     rw ← E, apply dvd_mul_right },
   have de : 2 ∣ d,
-  { have := mul_dvd_mul ae ae,
+  { have := mul_dvd_mul ke ke,
     refine (or_self _).1 (nat.prime_two.dvd_mul.1 _),
     rwa [← E, nat.mul_dvd_mul_iff_left (nat.succ_pos 1)] at this },
-  exact nat.not_coprime_of_dvd_of_dvd (nat.lt_succ_self _) ae de c
+  exact nat.not_coprime_of_dvd_of_dvd (nat.lt_succ_self _) ke de c
 end
 
-theorem irr_of_rat_add_irr (q : ℚ) (x : ℝ) :
-  irrational x → irrational (q + x) :=
-λ hx_irr hq_rat, hx_irr (exists.elim hq_rat (λ a h, exists.intro (-q + a)
-(by rw [← zero_add x, ← neg_add_self ↑q, add_assoc, h, cast_add, cast_neg])))
+variables {q : ℚ} {x : ℝ}
 
-theorem irr_of_add_irr_iff (q : ℚ) (x : ℝ) : irrational x ↔ irrational(x+↑q) := begin
-split, 
-    intro Hix, rintro ⟨p, e⟩,
-    rw [←add_comm, eq_comm, ←neg_add_eq_iff_eq_add, ←cast_neg, ←cast_add] at e,
-    unfold irrational at Hix, apply Hix, existsi (-q+p), exact e.symm,
-intro Hix, unfold irrational at Hix, rintro ⟨p, e⟩, apply Hix,
-rw [←add_right_inj ↑q, ←cast_add] at e, existsi (p+q), assumption,
-end
+theorem irr_rat_add_of_irr (hx_irr : irrational x) : irrational (q + x) :=
+λ ⟨a, h⟩, hx_irr ⟨-q + a, by rw [← zero_add x, ← neg_add_self ↑q, add_assoc, h, cast_add, cast_neg]⟩
 
-theorem irr_of_irr_mul_rat (q : ℚ) (x : ℝ) : q ≠ 0 → irrational x → irrational (x * ↑q) :=
-begin
-    intro Hqn0, intro Hix, intro Hqxrat, cases Hqxrat with r Hr,
-    rw [←div_eq_iff_mul_eq, rat.num_denom r, rat.num_denom q, rat.cast_mk, rat.cast_mk, div_div_div_div_eq] at Hr,
-    rw [←int.cast_mul, ←int.cast_mul, ←rat.cast_mk_of_ne_zero] at Hr,
-    unfold irrational at Hix, apply Hix, existsi (rat.mk (r.num * ↑(q.denom)) (↑(r.denom) * q.num)),
-    exact Hr.symm,
-    intro Hxd0, rw [int.cast_eq_zero, mul_eq_zero] at Hxd0, cases Hxd0,
-    rw int.coe_nat_eq_zero at Hxd0,
-    revert Hxd0,
-    apply rat.denom_ne_zero,
-    revert Hxd0, apply rat.num_ne_zero_of_ne_zero, exact Hqn0,
-    rw rat.cast_ne_zero, exact Hqn0,
-end
+theorem irr_iff_irr_add_rat : irrational x ↔ irrational(x+q) :=
+⟨by rw add_comm; exact irr_rat_add_of_irr,
+by simpa only [cast_neg, add_comm, add_neg_cancel_right] using @irr_rat_add_of_irr (-q) (x+q)⟩
 
-theorem irr_of_irr_mul_rat_alt (q : ℚ) (x : ℝ) : q ≠ 0 → irrational x → irrational(x*↑q) := begin
-intros Hn0 Hix, rintro ⟨p, e⟩, unfold irrational at Hix,
-rw [←div_eq_iff_mul_eq, ←cast_div] at e,
-apply Hix, existsi (p / q), exact e.symm,
-intro Hq, apply Hn0, rwa cast_eq_zero at Hq,
-end
+theorem irr_mul_rat_of_irr (Hqn0 : q ≠ 0) (Hix : irrational x) : irrational (x * ↑q) :=
+λ ⟨r, Hr⟩, Hix ⟨r/q, by rw [cast_div, ← Hr, mul_div_cancel]; rwa cast_ne_zero⟩
 
-theorem sqrt_irr_is_irr (k : ℝ) : k ≠ 0 → irrational (k*k) → irrational k := begin
-intros Hn0 Hix, rintro ⟨p, e⟩, unfold irrational at Hix, apply Hix,
-have e_help := mul_self_eq_mul_self_iff k ↑p,
-have e_sqr : k * k = ↑p * ↑p,
-    rw e_help, left, assumption,
-rw ←cast_mul at e_sqr, existsi p*p, assumption,
-end
+theorem irr_of_irr_mul_self (k : ℝ) (Hix : irrational (k*k)) : irrational k :=
+λ ⟨p, e⟩, Hix ⟨p * p, by rw [e, cast_mul]⟩

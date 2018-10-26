@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo
+Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne.
 
 Irrationality of real numbers.
 -/
 import data.real.basic data.nat.prime
 
-open real rat
+open rat real
 
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
@@ -38,6 +38,15 @@ begin by
 end
 ))
 
+theorem irr_of_add_irr_iff (q : ℚ) (x : ℝ) : irrational x ↔ irrational(x+↑q) := begin
+split, 
+    intro Hix, rintro ⟨p, e⟩,
+    rw [←add_comm, eq_comm, ←neg_add_eq_iff_eq_add, ←cast_neg, ←cast_add] at e,
+    unfold irrational at Hix, apply Hix, existsi (-q+p), exact e.symm,
+intro Hix, unfold irrational at Hix, rintro ⟨p, e⟩, apply Hix,
+rw [←add_right_inj ↑q, ←cast_add] at e, existsi (p+q), assumption,
+end
+
 theorem irr_of_irr_mul_rat (q : ℚ) (x : ℝ) : q ≠ 0 → irrational x → irrational (x * ↑q) :=
 begin
     intro Hqn0, intro Hix, intro Hqxrat, cases Hqxrat with r Hr,
@@ -53,3 +62,17 @@ begin
     rw rat.cast_ne_zero, exact Hqn0,
 end
 
+theorem irr_of_irr_mul_rat_alt (q : ℚ) (x : ℝ) : q ≠ 0 → irrational x → irrational(x*↑q) := begin
+intros Hn0 Hix, rintro ⟨p, e⟩, unfold irrational at Hix,
+rw [←div_eq_iff_mul_eq, ←cast_div] at e,
+apply Hix, existsi (p / q), exact e.symm,
+intro Hq, apply Hn0, rwa cast_eq_zero at Hq,
+end
+
+theorem sqrt_irr_is_irr (k : ℝ) : k ≠ 0 → irrational (k*k) → irrational k := begin
+intros Hn0 Hix, rintro ⟨p, e⟩, unfold irrational at Hix, apply Hix,
+have e_help := mul_self_eq_mul_self_iff k ↑p,
+have e_sqr : k * k = ↑p * ↑p,
+    rw e_help, left, assumption,
+rw ←cast_mul at e_sqr, existsi p*p, assumption,
+end

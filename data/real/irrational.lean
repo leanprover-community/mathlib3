@@ -33,14 +33,14 @@ end
 variables {q : ℚ} {x : ℝ}
 
 theorem irr_rat_add_of_irr (hx_irr : irrational x) : irrational (q + x) :=
-λ ⟨a, h⟩, hx_irr ⟨-q + a, by rw [← zero_add x, ← neg_add_self ↑q, add_assoc, h, cast_add, cast_neg]⟩
+λ ⟨a, h⟩, hx_irr ⟨-q + a, by rw [cast_add, ← h, cast_neg, neg_add_cancel_left]⟩
 
-theorem irr_iff_irr_add_rat : irrational x ↔ irrational(x+q) :=
+theorem irr_iff_irr_add_rat : irrational x ↔ irrational (x + q) :=
 ⟨by rw add_comm; exact irr_rat_add_of_irr,
 by simpa only [cast_neg, add_comm, add_neg_cancel_right] using @irr_rat_add_of_irr (-q) (x+q)⟩
 
 theorem irr_mul_rat_of_irr (Hqn0 : q ≠ 0) (Hix : irrational x) : irrational (x * ↑q) :=
-λ ⟨r, Hr⟩, Hix ⟨r/q, by rw [cast_div, ← Hr, mul_div_cancel]; rwa cast_ne_zero⟩
+λ ⟨r, Hr⟩, Hix ⟨r / q, by rw [cast_div, ← Hr, mul_div_cancel]; rwa cast_ne_zero⟩
 
 theorem irr_of_irr_mul_self (k : ℝ) (Hix : irrational (k*k)) : irrational k :=
 λ ⟨p, e⟩, Hix ⟨p * p, by rw [e, cast_mul]⟩

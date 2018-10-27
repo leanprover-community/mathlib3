@@ -32,6 +32,12 @@ theorem irr_sqrt_of_padic_val_odd (m : ℤ) (Hnpl : m > 0)
   cases HPV'
 end
 
+theorem irr_of_sqrt_prime (p : ℕ) (Hp : nat.prime p) : irrational(sqrt(↑p)) :=
+begin
+  rw ←int.cast_coe_nat, apply irr_sqrt_of_padic_val_odd p (int.coe_nat_pos.2(@gt_trans ℕ _ p 1 0 (nat.prime.gt_one Hp)(nat.one_pos))),
+  existsi [p, Hp], rw padic_val.padic_val_self(nat.prime.gt_one Hp), exact dec_trivial,
+end
+
 theorem irr_sqrt_two : irrational (sqrt 2) :=
 irr_sqrt_of_padic_val_odd 2 dec_trivial ⟨2, dec_trivial, rfl⟩
 

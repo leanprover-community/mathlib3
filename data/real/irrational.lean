@@ -48,3 +48,23 @@ mt $ λ ⟨r, hr⟩, ⟨r / q, by rw [cast_div, ← hr, mul_div_cancel]; rwa cas
 
 theorem irr_of_irr_mul_self (Hix : irrational (x * x)) : irrational x :=
 λ ⟨p, e⟩, Hix ⟨p * p, by rw [e, cast_mul]⟩
+
+theorem irr_of_sqrt_padic_val_odd (m : ℤ) (Hnpl : m > 0) 
+                                  (Hpn : ∃ p : ℕ, nat.prime p ∧ (padic_val p m) % 2 = 1) : 
+        irrational (sqrt (↑m)) 
+| ⟨⟨n, d, h, c⟩, e⟩ := begin
+  cases Hpn with p Hpp, cases Hpp with Hp Hpv,
+  simp [num_denom', mk_eq_div] at e,
+  have Hnpl' : 0 < (m : ℝ) := int.cast_pos.2 Hnpl,
+  have Hd0 : (0:ℝ) < d := nat.cast_pos.2 h,
+  have := mul_self_sqrt (le_of_lt Hnpl'),
+  rw [e, div_mul_div, div_eq_iff_mul_eq (ne_of_gt (mul_pos Hd0 Hd0)), ←int.cast_mul, ←int.cast_of_nat, ←int.cast_mul, ←int.cast_mul m (int.of_nat d * int.of_nat d), 
+      int.cast_inj] at this,
+  have d0' : int.of_nat d ≠ 0, rw [←int.coe_nat_eq, int.coe_nat_ne_zero], apply ne_of_gt h,
+  have n0 : n ≠ 0, intro y0, rw [y0, int.cast_zero, zero_div, sqrt_eq_zero'] at e, revert e, apply not_le_of_gt Hnpl',
+  have HPV : padic_val p (m * (int.of_nat d * int.of_nat d)) = padic_val p (n * n), rw this,
+  rw [←padic_val.mul Hp (ne_of_gt Hnpl) (mul_ne_zero d0' d0'), ←padic_val.mul Hp d0' d0', ←padic_val.mul Hp n0 n0, ←mul_two, ←mul_two] at HPV,
+  have HPV' : (padic_val p m + padic_val p (int.of_nat d) * 2) % 2 = (padic_val p n * 2) % 2, rw HPV,
+  rw [nat.mul_mod_left, nat.add_mul_mod_self_right, Hpv] at HPV',
+  revert HPV', exact dec_trivial,
+end

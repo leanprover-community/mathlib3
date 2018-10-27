@@ -5,31 +5,23 @@ Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne.
 
 Irrationality of real numbers.
 -/
-import data.real.basic data.nat.prime data.padics.padic_norm
+import data.real.basic data.nat.prime data.padics.padic_norm tactic.linarith
 
 open rat real
 
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
 theorem irr_sqrt_of_padic_val_odd (m : ℤ) (Hnpl : m > 0)
-  (p : ℕ) [nat.prime p] (Hpv : padic_val p m % 2 = 1) :
+  (p : ℕ) [hp : nat.prime p] (Hpv : padic_val p m % 2 = 1) :
   irrational (sqrt m)
-| ⟨⟨n, d, h, c⟩, e⟩ := begin
-  simp [num_denom', mk_eq_div] at e,
-  have Hnpl' : 0 < (m : ℝ) := int.cast_pos.2 Hnpl,
-  have Hd0 : (0:ℝ) < d := nat.cast_pos.2 h,
-  have := mul_self_sqrt (le_of_lt Hnpl'),
-  rw [e, div_mul_div, div_eq_iff_mul_eq (ne_of_gt (mul_pos Hd0 Hd0))] at this,
-  have : m * (d * d) = n * n := (@int.cast_inj ℝ _ _ _ _ _).1 (by simpa),
-  have d0' : (d:ℤ) ≠ 0, rw int.coe_nat_ne_zero, apply ne_of_gt h,
-  have n0 : n ≠ 0, { intro y0, apply not_le_of_gt Hnpl',
-    rwa [y0, int.cast_zero, zero_div, sqrt_eq_zero'] at e },
-  have HPV : padic_val p (m * (d * d)) = padic_val p (n * n), rw this,
-  rw [←padic_val.mul p (ne_of_gt Hnpl) (mul_ne_zero d0' d0'), ←padic_val.mul p d0' d0',
-      ←padic_val.mul p n0 n0, ←mul_two, ←mul_two] at HPV,
-  have HPV' : (padic_val p m + padic_val p d * 2) % 2 = (padic_val p n * 2) % 2, rw HPV,
-  rw [nat.mul_mod_left, nat.add_mul_mod_self_right, Hpv] at HPV',
-  cases HPV'
+| ⟨q, e⟩ := begin
+  have hqm := mul_self_sqrt (le_of_lt (int.cast_lt.2 Hnpl)),
+  rw [e, ← cast_mul, ← cast_coe_int, @cast_inj ℝ] at hqm,
+  have : padic_val_rat p (q * q) % 2 = padic_val_rat p m % (2:ℕ), { rw hqm, refl },
+  have hq : q ≠ 0, { rintro rfl, exact ne_of_lt Hnpl (int.cast_inj.1 hqm) },
+  rw [padic_val_rat.padic_val_rat_of_int hp.gt_one, ← int.coe_nat_mod, Hpv,
+      padic_val_rat.mul p hq hq, ← mul_two, int.mul_mod_left] at this,
+  exact zero_ne_one this
 end
 
 theorem irr_sqrt_of_prime (p : ℕ) (hp : nat.prime p) : irrational (sqrt p) :=
@@ -37,9 +29,6 @@ irr_sqrt_of_padic_val_odd p (int.coe_nat_pos.2 hp.pos) p $
 by rw padic_val.padic_val_self hp.gt_one; refl
 
 theorem irr_sqrt_two : irrational (sqrt 2) := irr_sqrt_of_prime 2 nat.prime_two
-
-/-theorem irr_sqrt_two : irrational (sqrt 2) :=
-irr_sqrt_of_padic_val_odd 2 dec_trivial ⟨2, dec_trivial, rfl⟩-/
 
 variables {q : ℚ} {x : ℝ}
 

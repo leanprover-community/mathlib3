@@ -11,6 +11,22 @@ open rat real
 
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
+theorem irr_nrt_of_notint_nrt (x : ℝ) (n : ℕ) (m : ℤ)
+        (hxr : x ^ n = m) (hv : ¬ (∃ y : ℤ, x = ↑y)) (hnpos : n > 0) (hmpos : m > 0) :
+        irrational x
+| ⟨q, e⟩ := begin
+  rw [e, ←cast_pow] at hxr, cases q,
+  have c1 : ((q_denom : ℤ) : ℝ) ≠ 0, rw [int.cast_ne_zero, int.coe_nat_ne_zero], apply ne_of_gt(q_pos),
+  have c2 : (((q_denom ^ n) : ℤ) : ℝ) ≠ 0, rw int.cast_ne_zero, apply pow_ne_zero, rw int.coe_nat_ne_zero, apply ne_of_gt(q_pos),
+  have c3 : q_denom ≠ 1, intro, rw [rat.num_denom', a, mk_eq_div, int.coe_nat_one, int.cast_one, div_one, cast_coe_int] at e, apply hv, existsi q_num, exact e,
+  rw [num_denom', cast_pow, cast_mk, div_pow, ←int.cast_pow, ←int.cast_pow, div_eq_iff_mul_eq, ←int.cast_mul, int.cast_inj] at hxr, swap, exact c2, swap, exact c1,
+  have hdivn : (↑q_denom ^ n) ∣ (q_num)^n, apply dvd.intro_left m hxr,
+  rw [←int.dvd_nat_abs, ←int.coe_nat_pow, int.coe_nat_dvd, int_o_nat_abs_pow, nat.pow_dvd_pow_iff hnpos] at hdivn,
+  have hdivn' : nat.gcd (int.nat_abs q_num) (q_denom) = q_denom, apply nat.gcd_eq_right hdivn,
+  have hint : q_denom = 1, rw ←hdivn', apply nat.coprime.gcd_eq_one q_cop,
+  apply c3, exact hint,
+end
+
 theorem irr_nrt_of_n_not_dvd_padic_val {x : ℝ} (n : ℕ) (m : ℤ) (p : ℕ)
         [hp : nat.prime p] (hxr : x ^ n = m) (hv : padic_val p m % n ≠ 0) :
         irrational x

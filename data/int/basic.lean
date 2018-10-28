@@ -127,6 +127,13 @@ by cases n; refl
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
 by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
 
+theorem nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
+begin
+  induction k,
+  rw [pow_zero, nat.pow_zero, int.nat_abs_one],
+  rw [pow_succ', int.nat_abs_mul, nat.pow_succ, k_ih],
+end
+
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]
 

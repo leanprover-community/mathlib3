@@ -139,6 +139,10 @@ instance cones (F : J ⥤ C) : category.{(max u v) v} (cone F) :=
     w' := begin intros j, rw category.assoc, rw cone_morphism.w g, rw cone_morphism.w f j end },
   id   := λ B, { hom := 𝟙 B.X } }
 
+@[extensionality] lemma cone.ext
+  {F : J ⥤ C} (c c' : cone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.π j = φ.hom ≫ c'.π j): c ≅ c' :=
+sorry
+
 namespace cones
 @[simp] lemma id.hom   {F : J ⥤ C} (c : cone F) : (𝟙 c : cone_morphism c c).hom = 𝟙 (c.X) := rfl
 @[simp] lemma comp.hom {F : J ⥤ C} {c d e : cone F} (f : c ⟶ d) (g : d ⟶ e) :

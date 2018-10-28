@@ -38,6 +38,18 @@ restate_axiom is_limit.fac'
 attribute [simp] is_limit.fac
 restate_axiom is_limit.uniq'
 
+def limit_cone.ext {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t :=
+{ hom :=
+  { hom := Q.lift s,
+    w' := λ j, Q.fac s j },
+  inv := { hom := P.lift t },
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry }
+
+-- somewhat awkward binders, so we can write `apply is_limit_invariance s`:
+def is_limit_invariance (s : cone F) {t : cone F} (i : s ≅ t) (P : is_limit s) : is_limit t :=
+sorry
+
 variables {t : cone F}
 
 @[extensionality] lemma is_limit.ext (P Q : is_limit t) : P = Q :=

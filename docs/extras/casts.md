@@ -1,6 +1,6 @@
 # Coercions from numbers #
 
-This document is not about coercions in general -- see [section 10.6 of TPIL](https://leanprover.github.io/theorem_proving_in_lean/type_classes.html#coercions-using-type-classes) for a general overview. This is an overview of how to work with the coercions `ℕ → ℤ → ℚ → ℝ → ℂ` (maps which mathematicians fondly call "the identity function") and also the natural coercions from `ℤ` to a general ring and so on.
+This document is not about coercions in general -- see [section 10.6 of TPIL](https://leanprover.github.io/theorem_proving_in_lean/type_classes.html#coercions-using-type-classes) for a general overview. This is an overview of how to work with the coercions `ℕ → ℤ → ℚ → ℝ → ℂ` (maps which mathematicians fondly call "the identity function", and which computer scientists call `↑`) and also the natural coercions from `ℤ` to a general ring and so on.
 
 In brief: this document might help if you have three integers `x y z`, a proof that `x * y = z`, and your goal is `↑x * ↑y = ↑z`, something which you suspect is a statement about real numbers.
 
@@ -25,11 +25,24 @@ H : a + b * c = 12
 ⊢ ↑a + ↑b * ↑c = 12
 ```
 
-These two problems are of a different nature, and require two different solutions. The next two short sections give what I hope are quick solutions to these problems.
+These two problems are of a slightly different nature, and require two different solutions. In the next few sections I explain what I hope are enough tricks to make solving questions like this easy. But first here's a warning.
+
+# A subtlety with automatic coercions
+
+Before we go on, let me get this potentially confusing issue out of the way. Because there's a coercion from `ℤ` to `ℝ` one can just write `a : ℝ` if `a` is an integer, and Lean knows you mean the corresponding real number. Watch out for this gotcha though:
+
+```lean
+variables (a b : ℤ) 
+
+#check ((a + b) : ℝ) -- ↑a + ↑b : ℝ
+#check ((a + b : ℤ) : ℝ) -- ↑(a + b) : ℝ
+```
+
+I was initially surprised that these two terms didn't evaluate to exactly the same thing. What is happening here is that Lean figures out what is going on from the outside in. So for the first term, Lean knows that the type of `a + b` is supposed to be `ℝ`, so it then decides that the addition we want must be `real.add`, so it then decides that we must want `a` and `b` to be reals, giving us `↑a + ↑b`. In the second term, we explicitly say that we want `a + b` to be treated like an integer, and so Lean uses integer addition.
 
 ### "Obvious in maths" goals.
 
-These should all be provable with `simp`. Examples:
+These are goals where there is no extra hypothesis or implication sign needed, they are just goals which are of the form `X = X'` where `X` and `X'` are "obviously equal" modulo the fact that calculations like additions might be taking place in different types. Goals like this should all be provable with `simp`. Examples:
 
 ```lean
 import data.complex.basic
@@ -44,9 +57,19 @@ example (a : ℤ) (b : ℕ) (c : ℚ) (d : ℝ) :
 by simp
 ```
 
-What is going on here is that there are a whole bunch of lemmas of the form "coercing two numbers from X to Y and then adding, equals adding and then coercing". These lemmas do not always have the most intuitive names, but they are all tagged with `simp`, so hopefully in most cases end users do not need to know their names. I will say more about their names later.
+What is going on behind the scenes is that there are a whole bunch of lemmas of the form "coercing two numbers from X to Y and then adding, equals adding and then coercing", or "if a and b have type X and `↑` is the coercion to `Y` then `a < b` iff `↑a < ↑b`". These lemmas do not always have the most intuitive names, but they are all tagged with `simp`, so hopefully in most cases end users do not need to know their names. I will say more about their names later.
+
+But remember -- subtraction on naturals and division on naturals/integers are not what you expect if you're a mathematician. Lean can prove `(2 : ℕ) - (7 : ℕ) = (0 : ℕ)`, and `(5 : ℤ) / (2 : ℤ) = (2 : ℤ)` ("rounding" is occurring here), so `simp` fails here because the goals are actually false:
+
+```lean
+example (a b : ℕ) : ((a - b : ℕ) : ℤ) = a - b := by simp -- fails because false!
+example (a b : ℕ) : ((a / b : ℕ) : ℚ) = a / b := by simp -- fails because false!
+example (a b : ℤ) : ((a / b : ℤ) : ℂ) = a - b := by simp -- fails because false!
+```
 
 ### "I have a hypothesis which says this already" goals
+
+If the hypothesis is in the "smaller" set of numbers, and the conclusion in the larger set (e.g. you have a hypothesis involving an equality of rationals and a conclusion about equality of complex numbers), then this shouldn't be too hard. Here's an example.
 
 ```
 example (a b c : ℤ) (H : a + b * c = 12) : (a : ℝ) + b * c = 12 :=
@@ -63,7 +86,70 @@ begin
 end
 ```
 
-In this example, a hypothesis says that `a + b * c = 12` (this is a statement about integers), and the goal is to prove a version of this for real numbers. Unfortunately the goal is not `↑(a + b * c) = 12`; instead, each of `a`, `b` and `c` are being coerced individually. However `↑a + ↑b * ↑c = ↑(a + b * c)` is exactly a "trivial in maths" goal which `simp` can prove, and then one can rewrite this and *then* rewrite `H` and get the goal into a form that `simp` can deal with.
+In this example, a hypothesis says that `a + b * c = 12` (this is a statement about integers), and the goal is to prove a version of this for real numbers. Unfortunately the goal is not `↑(a + b * c) = 12`; instead, each of `a`, `b` and `c` are being coerced individually. However `↑a + ↑b * ↑c = ↑(a + b * c)` is exactly a "trivial in maths" goal which `simp` can prove (as we saw in the previous section), and then one can rewrite this and *then* rewrite `H` and get the goal into a form that `simp` can deal with.
+
+Unfortunately, things can be harder when one is going the other way around.
+
+```lean
+example (a b c : ℤ) (H : (a : ℝ) + b * c = 12) : 
+a + b * c = 12 :=
+/-
+a b c : ℤ,
+H : ↑a + ↑b * ↑c = 12
+⊢ a + b * c = 12
+-/
+begin
+  have H2 : (a : ℝ) + b * c = ((a + b * c : ℤ) : ℝ) := by simp,
+  -- now for the trick
+  suffices H3 : (((a + b * c) : ℤ) : ℝ) = (12 : ℤ),
+    exact int.cast_inj.1 H3,
+    -- rwa int.cast_inj at H3, -- also works
+  -- now the same as before
+  rw ←H2,
+  rw H,
+  simp
+end
+```
+
+Some magic happened here -- we had to invoke an explicit function `int.cast_inj.1` to show that if the real numbers corresponding to two integers were the same, then the integers were also the same. At the time of writing, the tactic which would do this automatically is just on a wishlist of future tactics. Until then, here are the ten explicit functions which you need to know, which prove all ten cases of the problem.
+
+```lean
+import data.complex.basic
+
+example (q : ℕ) : (q : ℤ) = (3 : ℕ) → q = 3 := int.of_nat_inj
+example (q : ℕ) : (q : ℚ) = (3 : ℕ) → q = 3 := nat.cast_inj.1
+example (q : ℕ) : (q : ℝ) = (3 : ℕ) → q = 3 := nat.cast_inj.1
+example (q : ℕ) : (q : ℂ) = (3 : ℕ) → q = 3 := nat.cast_inj.1
+
+example (q : ℤ) : (q : ℚ) = (3 : ℤ) → q = 3 := int.cast_inj.1
+example (q : ℤ) : (q : ℝ) = (3 : ℤ) → q = 3 := int.cast_inj.1
+example (q : ℤ) : (q : ℂ) = (3 : ℤ) → q = 3 := int.cast_inj.1
+
+example (q : ℚ) : (q : ℝ) = (3 : ℚ) → q = 3 := rat.cast_inj.1
+example (q : ℚ) : (q : ℂ) = (3 : ℚ) → q = 3 := rat.cast_inj.1
+
+example (q : ℝ) : (q : ℂ) = (3 : ℝ) → q = 3 := complex.of_real_inj.1
+```
+
+Note however that the issue here is that we are dealing with numerals. With variables things are much better:
+
+```lean
+example (q r : ℕ) : (q : ℤ) = r → q = r := int.of_nat_inj -- missing simp lemma?
+example (q r : ℕ) : (q : ℚ) = r → q = r := by simp
+example (q r : ℕ) : (q : ℝ) = r → q = r := by simp
+example (q r : ℕ) : (q : ℂ) = r → q = r := by simp
+
+example (q r : ℤ) : (q : ℚ) = r → q = r := by simp
+example (q r : ℤ) : (q : ℝ) = r → q = r := by simp
+example (q r : ℤ) : (q : ℂ) = r → q = r := by simp
+
+example (q r : ℚ) : (q : ℝ) = r → q = r := by simp
+example (q r : ℚ) : (q : ℂ) = r → q = r := by simp
+
+example (q r : ℝ) : (q : ℂ) = r → q = r := by simp
+```
+
+Hopefully these clues will be enough to get beginners through. Remember that numerals sometimes need coercing too, and  `↑7 = 7` might not be true by `refl` -- although it will be provable using `simp`.
 
 # More information about what is going on.
 
@@ -97,19 +183,6 @@ def from_R_to_C (r : ℝ) : ℂ := r
 
 Looking at the definition of the function, we see that Lean is using `↑` to mean "use a coercion".
 
-# A subtlety with automatic coercions
-
-Before we go on, let me get this potentially confusing issue out of the way. Because there's a coercion from `ℤ` to `ℝ` one can just write `a : ℝ` if `a` is an integer, and Lean knows you mean the corresponding real number. Watch out for this gotcha though:
-
-```lean
-variables (a b : ℤ) 
-
-#check (a + b : ℝ) -- ↑a + ↑b : ℝ
-#check ((a + b : ℤ) : ℝ) -- ↑(a + b) : ℝ
-```
-
-I was initially surprised that these two terms didn't evaluate to exactly the same thing. What is happening here is that for the first term, Lean knows that the type of `a + b` is supposed to be `ℝ`, so it then decides that the addition we want must be `real.add`, so it then decides that we must want `a` and `b` to be reals, giving us `↑a + ↑b`. In the second term, we explicitly say that we want `a + b` to be treated like an integer, and so Lean does the addition first.
-
 # How do I know which coercion the arrow means?
 
 If the tricks at the top work for you, you might not even have to worry about exactly what `↑a` means. But if you do not understand what your goal says, because you have lost track of whether `↑a` means the rational number `a`, or the real number `a` or the complex number `a`, and you do need to know, then try writing `set_option pp.all true` before your theorem and then taking another look. For example, what was `↑(a + b) = ↑a + ↑b` above might now become around 25 lines of output, starting with
@@ -128,7 +201,7 @@ and the very first line tells you that the goal is an equality between two real 
 
 The coercion from `ℕ` to `ℤ` is not defined as the one coming from the fact that `ℤ` is a ring; it is more computationally efficient to use the constructor. The two functions are equal, but this is a theorem and not a definition. The coercion from `ℚ` to `ℝ` is noncomputable (although it doesn't have to be), and the coercion from `ℝ` to `ℂ` is defined by hand rather than being part of a general scheme of maps from `ℝ` to lots of places. 
 
-# Avoiding `simp`.
+# Examples of names.
 
 If you do want to prove "trivial in maths" goals "by hand" for some reason, then you can write `set_option trace.simplify.rewrite true` before your theorem, see what `simp` is doing, and then mimic it.
 

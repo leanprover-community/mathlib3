@@ -21,7 +21,7 @@ theorem irr_nrt_of_notint_nrt (x : ℝ) (n : ℕ) (m : ℤ)
   have c3 : q_denom ≠ 1, intro, rw [rat.num_denom', a, mk_eq_div, int.coe_nat_one, int.cast_one, div_one, cast_coe_int] at e, apply hv, existsi q_num, exact e,
   rw [num_denom', cast_pow, cast_mk, div_pow, ←int.cast_pow, ←int.cast_pow, div_eq_iff_mul_eq, ←int.cast_mul, int.cast_inj] at hxr, swap, exact c2, swap, exact c1,
   have hdivn : (↑q_denom ^ n) ∣ (q_num)^n, apply dvd.intro_left m hxr,
-  rw [←int.dvd_nat_abs, ←int.coe_nat_pow, int.coe_nat_dvd, int_o_nat_abs_pow, nat.pow_dvd_pow_iff hnpos] at hdivn,
+  rw [←int.dvd_nat_abs, ←int.coe_nat_pow, int.coe_nat_dvd, int.nat_abs_pow, nat.pow_dvd_pow_iff hnpos] at hdivn,
   have hdivn' : nat.gcd (int.nat_abs q_num) (q_denom) = q_denom, apply nat.gcd_eq_right hdivn,
   have hint : q_denom = 1, rw ←hdivn', apply nat.coprime.gcd_eq_one q_cop,
   apply c3, exact hint,

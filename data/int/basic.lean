@@ -533,13 +533,6 @@ theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
 
-@[simp] theorem one_mul (n : ℤ) : 1 * n = n :=
-begin
-  induction n,
-  rw [←int.coe_nat_one, int.of_nat_eq_coe, ←int.coe_nat_mul, int.coe_nat_inj', nat.one_mul],
-  rw [int.neg_succ_of_nat_coe, ←int.coe_nat_one, mul_neg_eq_neg_mul_symm, ←int.coe_nat_mul, nat.one_mul],
-end
-
 theorem div_sign : ∀ a b, a / sign b = a * sign b
 | a (n+1:ℕ) := by unfold sign; simp
 | a 0       := by simp [sign]

@@ -155,6 +155,15 @@ begin
   repeat {assumption}
  end
 
+include p_prime
+protected lemma pow {q : ℤ} (hq : q ≠ 0) {k : ℕ} :
+    padic_val p (q ^ k) = k * padic_val p q :=
+begin
+  induction k with k ih,
+  { rw [_root_.pow_zero, zero_mul, padic_val.one (hpp p)] },
+  rw [pow_succ', ← padic_val.mul (pow_ne_zero k hq) hq, succ_mul, ih]
+end
+
 end padic_val
 
 section

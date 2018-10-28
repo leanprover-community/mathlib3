@@ -390,6 +390,9 @@ by induction m with m ih; [exact nat.cast_one, rw [nat.pow_succ, pow_succ', nat.
 @[simp] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [nat.pow_succ, pow_succ', int.coe_nat_mul, ih]]
 
+theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
+by induction k with k ih; [refl, rw [pow_succ', int.nat_abs_mul, nat.pow_succ, ih]]
+
 theorem is_semiring_hom.map_pow {β} [semiring α] [semiring β]
   (f : α → β) [is_semiring_hom f] (x : α) (n : ℕ) : f (x ^ n) = f x ^ n :=
 by induction n with n ih; [exact is_semiring_hom.map_one f,

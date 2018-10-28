@@ -5,47 +5,46 @@ Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne.
 
 Irrationality of real numbers.
 -/
-import data.real.basic data.nat.prime data.padics.padic_norm tactic.linarith
+import data.real.basic data.padics.padic_norm
 
 open rat real
 
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
-theorem irr_nrt_of_notint_nrt (x : ℝ) (n : ℕ) (m : ℤ)
-        (hxr : x ^ n = m) (hv : ¬ (∃ y : ℤ, x = ↑y)) (hnpos : n > 0) (hmpos : m > 0) :
-        irrational x
+theorem irr_nrt_of_notint_nrt {x : ℝ} (n : ℕ) (m : ℤ)
+  (hxr : x ^ n = m) (hv : ¬ ∃ y : ℤ, x = y) (hnpos : n > 0) :
+  irrational x
 | ⟨q, e⟩ := begin
-  rw [e, ←cast_pow] at hxr, cases q,
-  have c1 : ((q_denom : ℤ) : ℝ) ≠ 0, rw [int.cast_ne_zero, int.coe_nat_ne_zero], apply ne_of_gt(q_pos),
-  have c2 : (((q_denom ^ n) : ℤ) : ℝ) ≠ 0, rw int.cast_ne_zero, apply pow_ne_zero, rw int.coe_nat_ne_zero, apply ne_of_gt(q_pos),
-  have c3 : q_denom ≠ 1, intro, rw [rat.num_denom', a, mk_eq_div, int.coe_nat_one, int.cast_one, div_one, cast_coe_int] at e, apply hv, existsi q_num, exact e,
-  rw [num_denom', cast_pow, cast_mk, div_pow, ←int.cast_pow, ←int.cast_pow, div_eq_iff_mul_eq, ←int.cast_mul, int.cast_inj] at hxr, swap, exact c2, swap, exact c1,
-  have hdivn : (↑q_denom ^ n) ∣ (q_num)^n, apply dvd.intro_left m hxr,
+  rw [e, ←cast_pow] at hxr, cases q with N D P C,
+  have c1 : ((D : ℤ) : ℝ) ≠ 0,
+  { rw [int.cast_ne_zero, int.coe_nat_ne_zero], exact ne_of_gt P },
+  have c2 : ((D : ℤ) : ℝ) ^ n ≠ 0 := pow_ne_zero _ c1,
+  rw [num_denom', cast_pow, cast_mk, div_pow _ c1, div_eq_iff_mul_eq c2,
+      ←int.cast_pow, ←int.cast_pow, ←int.cast_mul, int.cast_inj] at hxr,
+  have hdivn : ↑D ^ n ∣ N ^ n := dvd.intro_left m hxr,
   rw [←int.dvd_nat_abs, ←int.coe_nat_pow, int.coe_nat_dvd, int.nat_abs_pow, nat.pow_dvd_pow_iff hnpos] at hdivn,
-  have hdivn' : nat.gcd (int.nat_abs q_num) (q_denom) = q_denom, apply nat.gcd_eq_right hdivn,
-  have hint : q_denom = 1, rw ←hdivn', apply nat.coprime.gcd_eq_one q_cop,
-  apply c3, exact hint,
+  have hdivn' : nat.gcd N.nat_abs D = D := nat.gcd_eq_right hdivn,
+  refine hv ⟨N, _⟩,
+  rwa [num_denom', ←hdivn', C.gcd_eq_one, int.coe_nat_one, mk_eq_div,
+      int.cast_one, div_one, cast_coe_int] at e
 end
 
 theorem irr_nrt_of_n_not_dvd_padic_val {x : ℝ} (n : ℕ) (m : ℤ) (p : ℕ)
-        [hp : nat.prime p] (hxr : x ^ n = m) (hv : padic_val p m % n ≠ 0) :
-        irrational x
-| ⟨q, e⟩ := begin
+  [hp : nat.prime p] (hxr : x ^ n = m) (hv : padic_val p m % n ≠ 0) :
+  irrational x :=
+begin
   rcases nat.eq_zero_or_pos n with rfl | hnpos,
   { rw [eq_comm, pow_zero, ← int.cast_one, int.cast_inj] at hxr,
     rw [hxr, padic_val.one hp.gt_one, nat.zero_mod] at hv,
-    exact hv rfl },
+    exact (hv rfl).elim },
   rcases decidable.em (m = 0) with rfl | hm,
   { rw [padic_val.zero, nat.zero_mod] at hv,
-    exact hv rfl },
-  rw [e, ←cast_coe_int, ←cast_pow, cast_inj] at hxr,
-  have : padic_val_rat p (q ^ n) % n = padic_val_rat p m % n, { rw hxr },
-  have hqnz : q ≠ 0,
-  { rintro rfl, apply hm,
-    rwa [zero_pow (hnpos), eq_comm, int.cast_eq_zero] at hxr },
-  rw [padic_val_rat.padic_val_rat_of_int hp.gt_one, ← int.coe_nat_mod, padic_val_rat.pow p hqnz,
-      int.mul_mod_right, eq_comm, int.coe_nat_eq_zero] at this,
-  exact hv this,
+    exact (hv rfl).elim },
+  refine irr_nrt_of_notint_nrt _ _ hxr _ hnpos,
+  rintro ⟨y, rfl⟩,
+  rw [← int.cast_pow, int.cast_inj] at hxr, subst m,
+  have : y ≠ 0, { rintro rfl, rw zero_pow hnpos at hm, exact hm rfl },
+  rw [padic_val.pow p this, nat.mul_mod_right] at hv, exact hv rfl
 end
 
 theorem irr_sqrt_of_padic_val_odd (m : ℤ) (hm : m ≥ 0)

@@ -204,14 +204,16 @@ lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
 
 section eval₂
-variables {β : Type*} [comm_semiring β]
-variables (f : α → β) [is_semiring_hom f] (x : β)
+variables {β : Type*} [semiring β]
+variables (f : α → β) (x : β)
 open is_semiring_hom
 
 /-- Evaluate a polynomial `p` given a ring hom `f` from the scalar ring
   to the target and a value `x` for the variable in the target -/
 def eval₂ (p : polynomial α) : β :=
 p.sum (λ e a, f a * x ^ e)
+
+variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [pow_zero, mul_one]
@@ -229,6 +231,16 @@ finsupp.sum_add_index
 
 @[simp] lemma eval₂_one : (1 : polynomial α).eval₂ f x = 1 :=
 by rw [← C_1, eval₂_C, map_one f]
+
+instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
+⟨eval₂_zero _ _, λ _ _, eval₂_add _ _⟩
+
+end eval₂
+
+section eval₂
+variables {β : Type*} [comm_semiring β]
+variables (f : α → β) [is_semiring_hom f] (x : β)
+open is_semiring_hom
 
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 begin

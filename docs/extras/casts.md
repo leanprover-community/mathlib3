@@ -172,30 +172,39 @@ This lemma is in the `complex` namespace, but it is about coercions *to* the com
 
 Hopefully the example I gave above was sufficiently convoluted that if you really want to know the exact names of the lemmas you need, you can start to guess. Here's a brief selection. Because there are so many special cases, this can be a bit of a minefield.
 
-```
+
 coercions commute with multiplication:
 
+```
 nat.cast_mul -- ∀ (m n : ℕ), ↑(m * n) = ↑m * ↑n
 int.cast_mul -- ∀ (m n : ℤ), ↑(m * n) = ↑m * ↑n
 rat.cast_mul -- ∀ {α : Type u_1} (m n : ℚ), ↑(m * n) = ↑m * ↑n
+```
 
 coercions commute with inequalities.
 
+```
 nat.cast_le -- ∀ {m n : ℕ}, ↑m ≤ ↑n ↔ m ≤ n
+```
+
 etc etc
 
 coercion from int to rat to X equals coercion from int to X [in rat namespace]
 
+```
 rat.cast_coe_int : ∀ (n : ℤ), ↑↑n = ↑n
+```
 
 coercion from int to real to complex equals coercion from int to complex [in complex namespace]
 
+```
 complex.of_real_int_cast : ∀ (n : ℤ), ↑↑n = ↑n
-
+```
 special coercions commute with multiplication:
 
+```
 complex.of_real_mul : ∀ (r s : ℝ), ↑(r * s) = ↑r * ↑s [a theorem about complexes]
 int.coe_nat_mul : ∀ (m n : ℕ), ↑(m * n) = ↑m * ↑n [a theorem about integers]
+```
 
 Note that these are in the namespace of the target type not the source.
-```

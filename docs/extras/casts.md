@@ -1,6 +1,6 @@
 # Coercions from numbers #
 
-This document is not about coercions in general -- see [section 10.6 of TPIL](https://leanprover.github.io/theorem_proving_in_lean/type_classes.html#coercions-using-type-classes) for a general overview. This is an overview of how to work with the coercions `ℕ → ℤ → ℚ → ℝ → ℂ` (maps which mathematicians fondly call "the identity function") and also the the natural coercions from `ℤ` to a general ring and so on.
+This document is not about coercions in general -- see [section 10.6 of TPIL](https://leanprover.github.io/theorem_proving_in_lean/type_classes.html#coercions-using-type-classes) for a general overview. This is an overview of how to work with the coercions `ℕ → ℤ → ℚ → ℝ → ℂ` (maps which mathematicians fondly call "the identity function") and also the natural coercions from `ℤ` to a general ring and so on.
 
 In brief: this document might help if you have three integers `x y z`, a proof that `x * y = z`, and your goal is `↑x * ↑y = ↑z`, something which you suspect is a statement about real numbers.
 
@@ -130,7 +130,7 @@ The coercion from `ℕ` to `ℤ` is not defined as the one coming from the fact 
 
 # Avoiding `simp`.
 
-If you do want to prove "trivial in maths2 goals "by hand" for some reason, then you can write `set_option trace.simplify.rewrite true` before your theorem, see what `simp` is doing, and then mimic it.
+If you do want to prove "trivial in maths" goals "by hand" for some reason, then you can write `set_option trace.simplify.rewrite true` before your theorem, see what `simp` is doing, and then mimic it.
 
 ```lean
 import data.complex.basic

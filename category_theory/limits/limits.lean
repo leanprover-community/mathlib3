@@ -38,17 +38,54 @@ restate_axiom is_limit.fac'
 attribute [simp] is_limit.fac
 restate_axiom is_limit.uniq'
 
+@[simp] lemma is_limit.lift_self {t : cone F} (h : is_limit t) : h.lift t = 𝟙 t.X :=
+begin
+  symmetry,
+  apply h.uniq,
+  tidy,
+end
+
 def limit_cone.ext {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t :=
 { hom :=
   { hom := Q.lift s,
     w' := λ j, Q.fac s j },
   inv := { hom := P.lift t },
-  hom_inv_id' := sorry,
-  inv_hom_id' := sorry }
+  hom_inv_id' :=
+  begin
+    ext, simp,
+    rw ← is_limit.lift_self P,
+    apply P.uniq,
+    tidy,
+  end,
+  inv_hom_id' :=
+  begin
+    ext, simp,
+    rw ← is_limit.lift_self Q,
+    apply Q.uniq,
+    tidy,
+  end }
 
 -- somewhat awkward binders, so we can write `apply is_limit_invariance s`:
-def is_limit_invariance (s : cone F) {t : cone F} (i : s ≅ t) (P : is_limit s) : is_limit t :=
-sorry
+def is_limit_invariance (r : cone F) {t : cone F} (i : r ≅ t) (P : is_limit r) : is_limit t :=
+{ lift := λ s, P.lift s ≫ i.hom.hom,
+  uniq' :=
+  begin
+    tidy,
+    have h : m ≫ i.inv.hom = P.lift s,
+    { apply P.uniq,
+      intro j,
+      rw category.assoc,
+      rw i.inv.w,
+      exact w j },
+    replace h := congr_arg (λ p, p ≫ i.hom.hom) h,
+    dsimp at h,
+    rw category.assoc at h,
+    have p := congr_arg cone_morphism.hom i.inv_hom_id,
+    dsimp at p,
+    rw p at h,
+    simp at h,
+    exact h
+  end }
 
 variables {t : cone F}
 

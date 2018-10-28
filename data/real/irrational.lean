@@ -11,6 +11,17 @@ open rat real
 
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
+theorem irr_nrt_of_n_not_dvd_padic_val (x : ℝ) (n : ℕ) (m : ℤ) (p : ℕ)
+        [hp : nat.prime p] (hxr : x ^ n = m) (hv : padic_val p m % n ≠ 0) (hnpos : n > 0) (hmpos : m > 0) :
+        irrational x
+| ⟨q, e⟩ := begin
+  rw [e, ←cast_coe_int, ←cast_pow, cast_inj] at hxr,
+  have : padic_val_rat p (q ^ n) % n = padic_val_rat p (↑m) % n := by rw hxr,
+  have hqnz : q ≠ 0, {rintro rfl, rw [zero_pow (hnpos), eq_comm, int.cast_eq_zero] at hxr, revert hxr, exact ne_of_gt hmpos},
+  rw [padic_val_rat.padic_val_rat_of_int hp.gt_one, ← int.coe_nat_mod, @padic_val_rat.pow p n _ _ hqnz, int.mul_mod_right, eq_comm, int.coe_nat_eq_zero] at this,
+  apply hv, exact this,
+end
+
 theorem irr_sqrt_of_padic_val_odd (m : ℤ) (Hnpl : m > 0)
   (p : ℕ) [hp : nat.prime p] (Hpv : padic_val p m % 2 = 1) :
   irrational (sqrt m)

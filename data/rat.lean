@@ -857,8 +857,8 @@ cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos
 @[simp] theorem cast_div [discrete_field α] [char_zero α] (m n) : ((m / n : ℚ) : α) = m / n :=
 by rw [division_def, cast_mul, cast_inv, division_def]
 
-@[simp] theorem cast_pow (k : ℕ) (q : ℚ) : ((q ^ k : ℚ) : ℝ) = q ^ k := 
-by induction k; simp [*, rat.cast_mul, pow_succ]
+@[simp] theorem cast_pow [discrete_field α] [char_zero α] (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k := 
+by induction k; simp only [*, cast_one, cast_mul, pow_zero, pow_succ]
 
 @[simp] theorem cast_bit0 [division_ring α] [char_zero α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _
 

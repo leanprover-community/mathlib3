@@ -11,33 +11,36 @@ open rat real
 
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
-theorem irr_nrt_of_n_not_dvd_padic_val (x : ℝ) (n : ℕ) (m : ℤ) (p : ℕ)
-        [hp : nat.prime p] (hxr : x ^ n = m) (hv : padic_val p m % n ≠ 0) (hnpos : n > 0) (hmpos : m > 0) :
+theorem irr_nrt_of_n_not_dvd_padic_val {x : ℝ} (n : ℕ) (m : ℤ) (p : ℕ)
+        [hp : nat.prime p] (hxr : x ^ n = m) (hv : padic_val p m % n ≠ 0) :
         irrational x
 | ⟨q, e⟩ := begin
+  rcases nat.eq_zero_or_pos n with rfl | hnpos,
+  { rw [eq_comm, pow_zero, ← int.cast_one, int.cast_inj] at hxr,
+    rw [hxr, padic_val.one hp.gt_one, nat.zero_mod] at hv,
+    exact hv rfl },
+  rcases decidable.em (m = 0) with rfl | hm,
+  { rw [padic_val.zero, nat.zero_mod] at hv,
+    exact hv rfl },
   rw [e, ←cast_coe_int, ←cast_pow, cast_inj] at hxr,
-  have : padic_val_rat p (q ^ n) % n = padic_val_rat p (↑m) % n := by rw hxr,
-  have hqnz : q ≠ 0, {rintro rfl, rw [zero_pow (hnpos), eq_comm, int.cast_eq_zero] at hxr, revert hxr, exact ne_of_gt hmpos},
-  rw [padic_val_rat.padic_val_rat_of_int hp.gt_one, ← int.coe_nat_mod, @padic_val_rat.pow p n _ _ hqnz, int.mul_mod_right, 
-      eq_comm, int.coe_nat_eq_zero] at this,
-  apply hv, exact this,
+  have : padic_val_rat p (q ^ n) % n = padic_val_rat p m % n, { rw hxr },
+  have hqnz : q ≠ 0,
+  { rintro rfl, apply hm,
+    rwa [zero_pow (hnpos), eq_comm, int.cast_eq_zero] at hxr },
+  rw [padic_val_rat.padic_val_rat_of_int hp.gt_one, ← int.coe_nat_mod, padic_val_rat.pow p hqnz,
+      int.mul_mod_right, eq_comm, int.coe_nat_eq_zero] at this,
+  exact hv this,
 end
 
-theorem irr_sqrt_of_padic_val_odd (m : ℤ) (Hnpl : m > 0)
+theorem irr_sqrt_of_padic_val_odd (m : ℤ) (hm : m ≥ 0)
   (p : ℕ) [hp : nat.prime p] (Hpv : padic_val p m % 2 = 1) :
-  irrational (sqrt m)
-| ⟨q, e⟩ := begin
-  have hqm := mul_self_sqrt (le_of_lt (int.cast_lt.2 Hnpl)),
-  rw [e, ← cast_mul, ← cast_coe_int, @cast_inj ℝ] at hqm,
-  have : padic_val_rat p (q * q) % 2 = padic_val_rat p m % (2:ℕ), { rw hqm, refl },
-  have hq : q ≠ 0, { rintro rfl, exact ne_of_lt Hnpl (int.cast_inj.1 hqm) },
-  rw [padic_val_rat.padic_val_rat_of_int hp.gt_one, ← int.coe_nat_mod, Hpv,
-      padic_val_rat.mul p hq hq, ← mul_two, int.mul_mod_left] at this,
-  exact zero_ne_one this
-end
+  irrational (sqrt m) :=
+irr_nrt_of_n_not_dvd_padic_val 2 m p
+  (sqr_sqrt (int.cast_nonneg.2 hm))
+  (by rw Hpv; exact one_ne_zero)
 
 theorem irr_sqrt_of_prime (p : ℕ) (hp : nat.prime p) : irrational (sqrt p) :=
-irr_sqrt_of_padic_val_odd p (int.coe_nat_pos.2 hp.pos) p $
+irr_sqrt_of_padic_val_odd p (int.coe_nat_nonneg p) p $
 by rw padic_val.padic_val_self hp.gt_one; refl
 
 theorem irr_sqrt_two : irrational (sqrt 2) := irr_sqrt_of_prime 2 nat.prime_two

@@ -182,4 +182,12 @@ theorem exists_list_of_mem_closure {s : set β} {a : β} :
   a ∈ closure s → ∃l:list β, (∀x∈l, x ∈ s) ∧ l.sum = a :=
 @monoid.exists_list_of_mem_closure (multiplicative β) _ _ _
 
+@[elab_as_eliminator]
+theorem in_closure.rec_on {s : set β} {C : β → Prop}
+  {a : β} (H : a ∈ closure s)
+  (H1 : ∀ {a : β}, a ∈ s → C a) (H2 : C 0)
+  (H3 : ∀ {a b : β}, a ∈ closure s → b ∈ closure s → C a → C b → C (a + b)) :
+  C a :=
+monoid.in_closure.rec_on H (λ _, H1) H2 (λ _ _, H3)
+
 end add_monoid

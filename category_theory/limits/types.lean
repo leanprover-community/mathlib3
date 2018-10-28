@@ -18,12 +18,12 @@ include 𝒥
 
 def limit (F : J ⥤ Type u) : cone F :=
 { X := {u : Π j, F j // ∀ (j j' : J) (f : j ⟶ j'), F.map f (u j) = u j'},
-  π := λ j u, u.val j }
+  π := { app := λ j u, u.val j } }
 
 attribute [extensionality] subtype.eq
 
 def limit_is_limit (F : J ⥤ Type u) : is_limit (limit F) :=
-{ lift := λ s v, ⟨λ j, s.π j v, λ j j' f, congr_fun (s.w f) _⟩,
+{ lift := λ s v, ⟨λ j, s.π j v, λ j j' f, congr_fun (@cone.w _ _ _ _ _ s j j' f) _⟩,
   uniq' :=
   begin
     tidy,
@@ -45,19 +45,22 @@ instance : has_limits.{u+1 u} (Type u) :=
   (⟨ λ j, (α j) (g.val j), λ j j' f,
      by rw [←functor_to_types.naturality, ←(g.property j j' f)] ⟩ : (limit G).X) :=
 rfl
+
+-- FIXME the fact we need @cone.w is really weird here; a Lean bug?
 @[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X):
-  limit.lift F c x = (⟨ λ j, c.π j x, λ j j' f, congr_fun (c.w f) x ⟩ : (limit F).X) := rfl
+  limit.lift F c x = (⟨ λ j, c.π j x, λ j j' f, congr_fun (@cone.w _ _ _ _ _ c _ _ f) x ⟩ : (limit F).X) := rfl
 
 def colimit (F : J ⥤ Type u) : cocone F :=
 { X := @quot (Σ j, F j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2),
-  ι := λ j x, quot.mk _ ⟨j, x⟩,
-  w' := λ j j' f, funext $ λ x, eq.symm (quot.sound ⟨f, rfl⟩) }
+  ι :=
+  { app := λ j x, quot.mk _ ⟨j, x⟩,
+    naturality' := λ j j' f, funext $ λ x, eq.symm (quot.sound ⟨f, rfl⟩) } }
 
 local attribute [elab_with_expected_type] quot.lift
 
 def colimit_is_colimit (F : J ⥤ Type u) : is_colimit (colimit F) :=
 { desc := λ s, quot.lift (λ (p : Σ j, F j), s.ι p.1 p.2)
-  (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (s.w f) x).symm) }
+  (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (@cocone.w _ _ _ _ _ s j j' f) x).symm) }
 
 instance : has_colimits.{u+1 u} (Type u) :=
 { cocone := @colimit, is_colimit := @colimit_is_colimit }
@@ -89,18 +92,19 @@ open category_theory.limits.walking_cospan_hom
 
 def pullback {Y₁ Y₂ Z : Type u} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z) : cone (cospan r₁ r₂) :=
 { X := { z : Y₁ × Y₂ // r₁ z.1 = r₂ z.2 },
-  π := λ j z,
-  match j with
-  | left  := z.val.1
-  | right := z.val.2
-  | one   := r₁ z.val.1
-  end,
-  w' := λ j j' f, funext $
-  match j, j', f with
-  | _, _, (id _) := by tidy
-  | _, _, inl := by tidy
-  | _, _, inr := λ x, begin dsimp [cospan], erw ← x.property, refl end
-  end }
+  π :=
+  { app := λ j z,
+      match j with
+      | left  := z.val.1
+      | right := z.val.2
+      | one   := r₁ z.val.1
+      end,
+    naturality' := λ j j' f, funext $
+      match j, j', f with
+      | _, _, (id _) := by tidy
+      | _, _, inl := by tidy
+      | _, _, inr := λ x, begin dsimp [cospan], erw ← x.property, refl end
+      end }
 
 instance : has_pullbacks.{u+1 u} (Type u) :=
 { square := λ Y₁ Y₂ Z r₁ r₂, pullback r₁ r₂,

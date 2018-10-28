@@ -82,8 +82,8 @@ variables (f g)
 
 def pullback.square : square f g := has_pullbacks.square.{u v} f g
 def pullback := (pullback.square f g).X
-def pullback.π₁ : pullback f g ⟶ X := (pullback.square f g).π left
-def pullback.π₂ : pullback f g ⟶ Y := (pullback.square f g).π right
+def pullback.π₁ : pullback f g ⟶ X := (pullback.square f g).π.app left
+def pullback.π₂ : pullback f g ⟶ Y := (pullback.square f g).π.app right
 @[simp] lemma pullback.w : pullback.π₁ f g ≫ f = pullback.π₂ f g ≫ g :=
 begin
   erw ((pullback.square f g).w inl),

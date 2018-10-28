@@ -1,0 +1,92 @@
+-- Copyright (c) 2018 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+
+import category_theory.whiskering
+import category_theory.limits.limits
+
+open category_theory
+
+namespace category_theory.limits
+
+universes u₁ u₂ v
+
+variables {C : Type u₁} [𝒞 : category.{u₁ v} C]
+variables {D : Type u₂} [𝒟 : category.{u₂ v} D]
+include 𝒞 𝒟
+
+variables {J : Type v} [small_category J] {K : J ⥤ C}
+
+class preserves_limit (K : J ⥤ C) (F : C ⥤ D) :=
+(preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
+
+class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
+(preserves : Π {K : J ⥤ C} {c : cone K}, is_limit c → is_limit (F.map_cone c))
+
+class preserves_limits (F : C ⥤ D) :=
+(preserves : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone K}, is_limit c → is_limit (F.map_cone c))
+
+instance preserves_limit_of_preserves_limits_of_shape (K : J ⥤ C) (F : C ⥤ D) [preserves_limits_of_shape J F] :
+  preserves_limit K F :=
+{ preserves := λ _, preserves_limits_of_shape.preserves F }
+
+instance preserves_limits_of_shape_of_preserves_limit (F : C ⥤ D) [preserves_limits F] :
+  preserves_limits_of_shape J F :=
+{ preserves := λ _ _, preserves_limits.preserves F }
+
+class reflects_limit (K : J ⥤ C) (F : C ⥤ D) :=
+(reflects : Π {c : cone K}, is_limit (F.map_cone c) → is_limit c)
+
+class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
+(reflects : Π {K : J ⥤ C} {c : cone K}, is_limit (F.map_cone c) → is_limit c)
+
+class reflects_limits (F : C ⥤ D) :=
+(reflects : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone K}, is_limit (F.map_cone c) → is_limit c)
+
+instance reflects_limit_of_reflects_limits_of_shape (K : J ⥤ C) (F : C ⥤ D) [reflects_limits_of_shape J F] :
+  reflects_limit K F :=
+{ reflects := λ _, reflects_limits_of_shape.reflects }
+
+instance reflects_limits_of_shape_of_reflects_limit (F : C ⥤ D) [reflects_limits F] :
+  reflects_limits_of_shape J F :=
+{ reflects := λ _ _, reflects_limits.reflects }
+
+class creates_limit (K : J ⥤ C) (F : C ⥤ D) extends reflects_limit K F :=
+(creates : Π {c : cone (K ⋙ F)}, is_limit c → cone K)
+(image_is_limit : Π {c : cone (K ⋙ F)} (h : is_limit c), is_limit (F.map_cone (creates h)))
+
+class creates_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) extends reflects_limits_of_shape J F :=
+(creates : Π {K : J ⥤ C} {c : cone (K ⋙ F)}, is_limit c → cone K)
+(image_is_limit : Π {K : J ⥤ C} {c : cone (K ⋙ F)} (h : is_limit c), is_limit (F.map_cone (creates h)))
+
+class creates_limits (F : C ⥤ D) extends reflects_limits F :=
+(creates : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone (K ⋙ F)}, is_limit c → cone K)
+(image_is_limit : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone (K ⋙ F)} (h : is_limit c),
+  is_limit (F.map_cone (creates h)))
+
+def creates_limit.is_limit {F : C ⥤ D} [creates_limit K F]
+  {c : cone (K ⋙ F)} (h : is_limit c) : is_limit (creates_limit.creates h) :=
+reflects_limit.reflects (creates_limit.image_is_limit h)
+
+-- Specific instances of this should be turned into instances.
+def preserved_limit (F : C ⥤ D) [preserves_limit K F] [has_limit K] : has_limit (K ⋙ F) :=
+{ cone := F.map_cone (limit.cone K),
+  is_limit := preserves_limit.preserves F (limit.universal_property K) }
+
+-- Specific instances of this should be turned into instances.
+def created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : has_limit K :=
+{ cone := creates_limit.creates (limit.universal_property (K ⋙ F)),
+  is_limit := creates_limit.is_limit (limit.universal_property (K ⋙ F)) }
+
+instance preserves_created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : preserves_limit K F :=
+{ preserves := sorry } -- See second half of Proposition 3.3.3 of Category Theory in Context
+
+/-
+Lemma 3.3.5. Any full and faithful functor reflects any limits and colimits that are present
+in its codomain.
+
+Lemma 3.3.6. Any equivalence of categories preserves, reflects, andc reates any limits and
+colimits that are present in its domain or codomain.
+-/
+
+end category_theory.limits

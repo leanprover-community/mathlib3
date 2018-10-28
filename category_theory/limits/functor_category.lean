@@ -1,4 +1,5 @@
 import category_theory.limits.limits
+import category_theory.limits.preserves
 
 open category_theory
 
@@ -25,38 +26,49 @@ variables {J K : Type v} [small_category J] [small_category K]
   (c.π j) k ≫ (F.map f) k = (c.π j') k :=
 sorry
 
-@[simp] def cone.pointwise {F : J ⥤ (K ⥤ C)} (c : cone F) (k : K) : cone ((switched F) k) :=
-{ X := c.X k,
-  π := λ j, c.π j k,
-  w' := λ j j' f, begin rw ←(c.w f), refl, end }
+@[simp] lemma discrete.functor_map_id (F : discrete K ⥤ C) (k : discrete K) (f : k ⟶ k) : F.map f = 𝟙 (F k) :=
+begin
+  have h : f = 𝟙 k, cases f, cases f, ext,
+  rw h,
+  simp,
+end
 
-def functor.constant (K : Type v) [small_category K] (X : C) : K ⥤ C :=
-{ obj := λ k, X,
-  map' := λ k k' f, 𝟙 X }
+def product_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ (discrete K ⥤ C)) : cone F :=
+{ X :=
+  { obj := λ k, limit ((switched F) k),
+    map' := λ k k' f, begin cases f, cases f, cases f, exact 𝟙 _ end },
+  π :=
+  { app := λ j,
+    { app := λ k, limit.π _ _ },
+      naturality' := λ j j' f, begin ext, dsimp, simp, erw limit.w, end } }.
 
-@[simp] lemma functor.constant_obj (X : C) (k : K) : ((functor.constant K X) : K ⥤ C) k = X := rfl
-@[simp] lemma functor.constant_map (X : C) {k k' : K} (f : k ⟶ k') : (functor.constant K X).map f = 𝟙 X := rfl
+@[simp] lemma product_cone_π [has_limits_of_shape.{u v} J C] (F : J ⥤ (discrete K ⥤ C)) (j : J) (k : K):
+  ((product_cone F).π : Π j : J, _ ⟹ _) j k = limit.π _ _ := rfl
 
-def nat_trans.of_cone {F : J ⥤ C} (c : cone F) : functor.constant.{u v} J c.X ⟹ F :=
-{ app := c.π,
-  naturality' := λ j j' f, begin simp, erw category.id_comp, end }
+instance product_has_limits_of_shape [has_limits_of_shape.{u v} J C] : has_limits_of_shape J (discrete K ⥤ C) :=
+{ cone := λ F, product_cone F,
+  is_limit := λ F,
+  { lift := λ s,
+    { app := λ k, limit.lift ((switched F) k)
+      { X := s.X k,
+        π := { app := λ j, s.π j k } }
+    },
+    uniq' := λ s m w,
+    begin
+      ext k j,
+      dsimp,
+      simp,
+      have h := congr_fun (congr_arg nat_trans.app (w j)) k,
+      simp at h, -- re-express in terms of coercions, yuck
+      erw ←h,
+      refl,
+    end
+  } }.
 
-def is_limit_pointwise (F : J ⥤ (K ⥤ C)) (c : cone F) (h : is_limit c) (k : K) :
-  is_limit (c.pointwise k) :=
-{ lift := λ s, (h.lift { X := functor.constant K s.X, π := λ j, { app := λ k', begin simp, exact s.π j end }, w' := sorry }).app k,
-  fac' := sorry,
-  uniq' := sorry }
-
--- variable [has_limits.{u v} C]
-
-def is_limit_of_pointwise (F : J ⥤ (K ⥤ C)) (c : cone F) (h : Π k, is_limit (c.pointwise k)) :
-  is_limit c :=
-{ lift := λ s,
-  { app := λ k, (h k).lift
-    { X := s.X k,
-      π := λ j, (s.π j) k },
-    naturality' := begin sorry end },
-  fac' := begin tidy, end,
-  uniq' := begin tidy, end, }
+instance [has_limits_of_shape.{u v} J C] (k : K) : preserves_limits_of_shape J (evaluation_at.{v v u v} (discrete K) C k) :=
+{ preserves := λ F c h,
+  { lift := begin sorry end,
+    fac' := sorry,
+    uniq' := sorry, } }
 
 end category_theory.limits

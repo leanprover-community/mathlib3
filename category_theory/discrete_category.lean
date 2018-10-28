@@ -4,6 +4,7 @@
 
 import category_theory.natural_transformation
 import category_theory.isomorphism
+import category_theory.functor_category
 
 namespace category_theory
 
@@ -30,7 +31,7 @@ instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 
 instance pempty_category : small_category pempty := (by apply_instance : small_category (discrete pempty))
 
-instance punit_category : category.{u₁ v₁} punit :=
+instance punit_category : small_category punit :=
 { hom  := λ X Y, punit,
   id   := by obviously,
   comp := by obviously }
@@ -44,6 +45,19 @@ def discrete.lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete 
 
 variables (C : Type u₂) [𝒞 : category.{u₂ v₂} C]
 include 𝒞
+
+section forget
+
+variables (J : Type v₂) [small_category J]
+
+def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
+{ obj := λ F,
+  { obj := F.obj,
+    map' := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 _ end },
+  map' := λ F G α,
+  { app := α.app } }
+
+end forget
 
 namespace functor
 def empty : pempty ⥤ C := by obviously

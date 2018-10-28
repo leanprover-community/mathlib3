@@ -57,24 +57,30 @@ instance has_limit_of_has_product {β : Type v} (f : β → C) [has_product f] :
   is_limit := has_product.is_product f }
 
 def cone.of_fan {β : Type v} {F : (discrete β) ⥤ C} (t : fan (F.obj)) : cone F :=
-{ w' := λ j j' g,
-  begin
-    cases g, cases g, cases g,
-    have h : ({down := {down := g}} : j ⟶ j) = 𝟙 j, ext1, ext1,
-    rw h,
-    simp,
-  end,
-  .. t }
+{ X := t.X,
+  π :=
+  { app := t.π.app,
+    naturality' := λ j j' g,
+    begin
+      cases g, cases g, cases g,
+      have h : ({down := {down := g}} : j ⟶ j) = 𝟙 j, ext1, ext1,
+      rw h,
+      simp,
+      erw category.id_comp,
+    end } }
 
 def fan.of_cone {β : Type v} {F : (discrete β) ⥤ C} (t : cone F) : fan (F.obj) :=
-{ w' := λ j j' g,
-  begin
-    cases g, cases g, cases g,
-    have h : ({down := {down := g}} : j ⟶ j) = 𝟙 j, ext1, ext1,
-    rw h,
-    simp,
-  end,
-  .. t }
+{ X := t.X,
+  π :=
+  { app := t.π.app,
+    naturality' := λ j j' g,
+    begin
+      cases g, cases g, cases g,
+      have h : ({down := {down := g}} : j ⟶ j) = 𝟙 j, ext1, ext1,
+      rw h,
+      simp,
+      erw category.id_comp,
+    end } }
 
 instance has_limits_of_shape_of_has_products_of_shape {β : Type v} [has_products_of_shape.{u v} C β] :
   limits.has_limits_of_shape.{u v} C (discrete β) :=
@@ -92,14 +98,14 @@ section
 
 def pi.fan (f : β → C) [has_product f] : fan f := has_product.fan.{u v} f
 protected def pi (f : β → C) [has_product f] : C := (pi.fan f).X
-def pi.π (f : β → C) [has_product f] (b : β) : limits.pi f ⟶ f b := (pi.fan f).π b
+def pi.π (f : β → C) [has_product f] (b : β) : limits.pi f ⟶ f b := ((pi.fan f).π).app b
 def pi.universal_property (f : β → C) [has_product f] : is_product (pi.fan f) := has_product.is_product.{u v} f
 
-@[simp] lemma pi.fan_π (f : β → C) [has_product f] (b : β) : (pi.fan f).π b = @pi.π C _ _ f _ b := rfl
+-- @[simp] lemma pi.fan_π (f : β → C) [has_product f] (b : β) : (pi.fan f).π b = @pi.π C _ _ f _ b := rfl
 
 @[simp] def cone.of_function {f : β → C} {P : C} (p : Π b, P ⟶ f b) : cone (functor.of_function f) :=
 { X := P,
-  π := p }
+  π := { app := p } }
 
 def pi.lift {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ limits.pi f :=
 limit.lift _ (cone.of_function p)
@@ -147,11 +153,14 @@ include 𝒟
 def pi.post (f : β → C) [has_product f] (G : C ⥤ D) [has_product (G.obj ∘ f)] :
   G (limits.pi f) ⟶ (limits.pi (G.obj ∘ f)) :=
 -- limit.post (functor.of_function f) G -- TODO make this work
-@is_limit.lift _ _ _ _ _ (pi.fan (G.obj ∘ f)) (pi.universal_property _) { X := _, π := λ b, G.map (pi.π f b) }
+@is_limit.lift _ _ _ _ _ (pi.fan (G.obj ∘ f))
+  (pi.universal_property _)
+  { X := _,
+    π := { app := λ b, G.map (pi.π f b) } }
 
 @[simp] lemma pi.post_π (f : β → C) [has_product f] (G : C ⥤ D) [has_product (G.obj ∘ f)] (b : β) :
   pi.post f G ≫ pi.π _ b = G.map (pi.π f b) :=
-by erw is_limit.fac
+by erw is_limit.fac; refl
 end
 
 @[extensionality] lemma pi.hom_ext
@@ -191,7 +200,14 @@ variables {D : Type u} [category.{u v} D] [has_products.{u v} D]
 
 @[simp] def pi.lift_post [has_products_of_shape.{u v} C β] {f : β → C} {P : C} (k : Π b : β, P ⟶ f b) (G : C ⥤ D) :
   G.map (pi.lift k) ≫ pi.post f G = pi.lift (λ b, G.map (k b)) :=
-limit.lift_post (cone.of_function k) G
+-- limit.lift_post (cone.of_function k) G -- TODO make this work?
+begin
+  /- `obviously` says -/
+  ext1, dsimp, simp,
+  erw ←functor.map_comp,
+  simp,
+end
+
 
 def pi.map_post [has_products_of_shape.{u v} C β] {f g : β → C} (k : Π b : β, f b ⟶ g b) (H : C ⥤ D) :
   H.map (pi.map k) ≫ pi.post g H = pi.post f H ≫ pi.map (λ b, H.map (k b)) :=

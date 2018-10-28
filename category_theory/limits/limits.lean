@@ -17,6 +17,7 @@ structure Small_Category :=
 
 instance Diagram_category (J : Small_Category.{v}) : small_category J.J := J.𝒥
 
+variables {J : Type v} [small_category J]
 variables (C : Type u) [𝒞 : category.{u v} C]
 include 𝒞
 
@@ -26,8 +27,7 @@ structure Diagram extends Small_Category :=
 variables {C}
 
 section limit
-variables {J : Type v} [𝒥 : small_category J] {F : J ⥤ C}
-include 𝒥
+variables {F : J ⥤ C}
 
 structure is_limit (t : cone F) :=
 (lift : ∀ (s : cone F), s.X ⟶ t.X)
@@ -78,7 +78,7 @@ class has_limits_of {A : Type v} (Q : A → Diagram.{u v} C) :=
 (cone : Π a : A, cone (Q a).F)
 (is_limit : Π a : A, is_limit (cone a))
 
-variable (C)
+variables (J C)
 
 class has_limits_of_shapes {A : Type v} (D : A → Small_Category) :=
 (cone : Π {a : A} (F : (D a).J ⥤ C), cone F)
@@ -88,18 +88,18 @@ class has_limits :=
 (cone : Π {J : Type v} [small_category J] (F : J ⥤ C), cone F)
 (is_limit : Π {J : Type v} [small_category J] (F : J ⥤ C), is_limit (cone F))
 
-class has_limits_of_shape (J : Type v) [small_category.{v} J] :=
+class has_limits_of_shape :=
 (cone : Π F : J ⥤ C, cone F)
 (is_limit : Π F : J ⥤ C, is_limit (cone F))
 
-variable {C}
+variables {J C}
 
 class has_limit {J : Type v} [small_category J] (F : J ⥤ C) :=
 (cone : cone F)
 (is_limit : is_limit cone)
 
 instance has_limit_of_has_limits_of_shape
-  {J : Type v} [small_category J] [has_limits_of_shape.{u v} C J] (F : J ⥤ C) : has_limit F :=
+  {J : Type v} [small_category J] [has_limits_of_shape.{u v} J C] (F : J ⥤ C) : has_limit F :=
 { cone := has_limits_of_shape.cone F,
   is_limit := has_limits_of_shape.is_limit F }
 
@@ -109,13 +109,12 @@ instance has_limit_of_has_limits_of
   is_limit := has_limits_of.is_limit Q a }
 
 instance has_limits_of_shape_of_has_limits
-  {J : Type v} [small_category J] [has_limits.{u v} C] : has_limits_of_shape.{u v} C J :=
+  {J : Type v} [small_category J] [has_limits.{u v} C] : has_limits_of_shape.{u v} J C :=
 { cone := λ F, has_limits.cone F,
   is_limit := λ F, has_limits.is_limit F }
 
 section colimit
-variables {J : Type v} [𝒥 : small_category J] {F : J ⥤ C}
-include 𝒥
+variables {F : J ⥤ C}
 
 structure is_colimit (t : cocone F) :=
 (desc : ∀ (s : cocone F), t.X ⟶ s.X)
@@ -159,8 +158,6 @@ def is_colimit.of_desc_universal
 end colimit
 
 section
-variables {J : Type v} [𝒥 : small_category J]
-include 𝒥
 
 def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone.{u v} F
 def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
@@ -175,13 +172,13 @@ def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F := (li
 @[simp] lemma limit.universal_property_lift {F : J ⥤ C} [has_limit F] (c : cone F) :
   (limit.universal_property F).lift c = limit.lift F c := rfl
 
-@[simp] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) : 
+@[simp] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
   limit.lift F c ≫ limit.π F j = c.π j :=
 is_limit.fac _ c j
 
 -- We need to be really explicit about the coercion we're simplifying here.
 @[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) :
-  (((limit.cone F).π) : Π j : J, ((limit.cone F).X ⟶ F j)) j = (@limit.π C _ J _ F _ j) := rfl
+  (((limit.cone F).π) : Π j : J, ((limit.cone F).X ⟶ F j)) j = (@limit.π J _ C _ F _ j) := rfl
 
 def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) : cone_morphism c (limit.cone F) :=
 { hom := (limit.lift F) c }
@@ -209,11 +206,11 @@ lemma limit.lift_extend {F : J ⥤ C} [has_limit F] (c : cone F) {X : C} (f : X 
 by obviously
 
 /-- `limit F` is functorial in `F`. -/
-@[simp] def lim [has_limits_of_shape.{u v} C J] : (J ⥤ C) ⥤ C :=
+@[simp] def lim [has_limits_of_shape.{u v} J C] : (J ⥤ C) ⥤ C :=
 { obj := λ F, limit F,
   map' := λ F F' t, limit.lift F' $
   { X := limit F,
-    π := 
+    π :=
     { app := λ j, limit.π F j ≫ t j,
       naturality' :=
       begin
@@ -229,14 +226,14 @@ by obviously
     simp
   end }.
 
-@[simp] lemma lim_map_π [has_limits_of_shape.{u v} C J] {F G : J ⥤ C} (α : F ⟹ G) (j : J) :
+@[simp] lemma lim_map_π [has_limits_of_shape.{u v} J C] {F G : J ⥤ C} (α : F ⟹ G) (j : J) :
   lim.map α ≫ limit.π G j = limit.π F j ≫ α j :=
 begin
   erw is_limit.fac,
   refl
 end
 
-@[simp] lemma limit.lift_map [has_limits_of_shape.{u v} C J] {F G : J ⥤ C} (c : cone F) (α : F ⟹ G) :
+@[simp] lemma limit.lift_map [has_limits_of_shape.{u v} J C] {F G : J ⥤ C} (c : cone F) (α : F ⟹ G) :
   limit.lift F c ≫ lim.map α = limit.lift G (c.postcompose α) :=
 begin
   /- `obviously` says -/
@@ -253,7 +250,7 @@ include 𝒦
 def limit.pre (F : J ⥤ C) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)] : limit F ⟶ limit (E ⋙ F) :=
 limit.lift (E ⋙ F)
 { X := limit F,
-  π := 
+  π :=
   { app := λ k, limit.π F (E k),
     naturality' :=
     begin
@@ -276,7 +273,7 @@ end
 by obviously
 
 lemma limit.map_pre
-  [has_limits_of_shape.{u v} C J] [has_limits_of_shape.{u v} C K] {F G : J ⥤ C} (α : F ⟹ G) (E : K ⥤ J) :
+  [has_limits_of_shape.{u v} J C] [has_limits_of_shape.{u v} K C] {F G : J ⥤ C} (α : F ⟹ G) (E : K ⥤ J) :
   lim.map α ≫ limit.pre G E = limit.pre F E ≫ lim.map (whisker_left E α) :=
 begin
   /- `obviously` says -/
@@ -304,7 +301,7 @@ include 𝒟
 def limit.post (F : J ⥤ C) [has_limit F] (G : C ⥤ D) [has_limit (F ⋙ G)] : G (limit F) ⟶ limit (F ⋙ G) :=
 limit.lift (F ⋙ G)
 { X := _,
-  π := 
+  π :=
   { app := λ j, G.map (limit.π F j),
     naturality' :=
     begin
@@ -328,24 +325,21 @@ begin
   ext1, dsimp at *, simp at *,
   erw ←functor.map_comp,
   simp,
-  dsimp [functor.map_cone], -- TODO rfl lemmas
   erw category.id_comp,
 end
 
 lemma limit.map_post
-  [has_limits_of_shape.{u v} C J] [has_limits_of_shape.{u v} D J]
+  [has_limits_of_shape.{u v} J C] [has_limits_of_shape.{u v} J D]
   {F G : J ⥤ C} (α : F ⟹ G) (H : C ⥤ D) :
 /- H (limit F) ⟶ H (limit G) ⟶ limit (G ⋙ H) vs
    H (limit F) ⟶ limit (F ⋙ H) ⟶ limit (G ⋙ H) -/
   H.map (lim.map α) ≫ limit.post G H = limit.post F H ≫ lim.map (whisker_right α H) :=
 begin
   /- `obviously` says -/
-  ext1, dsimp at *, simp at *,
-  erw [←category.assoc, is_limit.fac, ←functor.map_comp],
+  ext1, dsimp, simp, dsimp,
+  rw category.id_comp,
+  rw ← category.assoc,
   simp,
-  dsimp [functor.map_cone], -- TODO rfl lemmas
-  erw category.id_comp,
-  erw functor.map_comp,
 end.
 
 lemma limit.pre_post

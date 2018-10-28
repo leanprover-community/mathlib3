@@ -424,13 +424,16 @@ by induction m with m ih; [exact int.cast_one,
 lemma neg_one_pow_eq_pow_mod_two [ring α] {n : ℕ} : (-1 : α) ^ n = -1 ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 
-theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+theorem pow_eq_zero [domain α] {x : α} {n : ℕ} (H : x^n = 0) : x = 0 :=
 begin
-  induction n with n ih, {exact one_ne_zero},
-  intro H,
-  cases mul_eq_zero.1 H with h1 h1,
-  exacts [h h1, ih h1]
+  induction n with n ih,
+  { rw pow_zero at H,
+    rw [← mul_one x, H, mul_zero] },
+  exact or.cases_on (mul_eq_zero.1 H) id ih
 end
+
+theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+mt pow_eq_zero h
 
 @[simp] theorem one_div_pow [division_ring α] {a : α} (ha : a ≠ 0) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
 by induction n with n ih; [exact (div_one _).symm,

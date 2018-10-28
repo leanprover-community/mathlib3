@@ -18,7 +18,8 @@ theorem irr_nrt_of_n_not_dvd_padic_val (x : ℝ) (n : ℕ) (m : ℤ) (p : ℕ)
   rw [e, ←cast_coe_int, ←cast_pow, cast_inj] at hxr,
   have : padic_val_rat p (q ^ n) % n = padic_val_rat p (↑m) % n := by rw hxr,
   have hqnz : q ≠ 0, {rintro rfl, rw [zero_pow (hnpos), eq_comm, int.cast_eq_zero] at hxr, revert hxr, exact ne_of_gt hmpos},
-  rw [padic_val_rat.padic_val_rat_of_int hp.gt_one, ← int.coe_nat_mod, @padic_val_rat.pow p n _ _ hqnz, int.mul_mod_right, eq_comm, int.coe_nat_eq_zero] at this,
+  rw [padic_val_rat.padic_val_rat_of_int hp.gt_one, ← int.coe_nat_mod, @padic_val_rat.pow p n _ _ hqnz, int.mul_mod_right, 
+      eq_comm, int.coe_nat_eq_zero] at this,
   apply hv, exact this,
 end
 

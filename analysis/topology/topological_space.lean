@@ -875,6 +875,51 @@ by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
 end connected
 
+section totally_disconnected
+
+def is_totally_disconnected (s : set α) : Prop :=
+∀ t, t ⊆ s → is_connected t → subsingleton t
+
+theorem is_totally_disconnected_empty : is_totally_disconnected (∅ : set α) :=
+λ t ht _, ⟨λ ⟨_, h⟩, (ht h).elim⟩
+
+theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : set α) :=
+λ t ht _, ⟨λ ⟨p, hp⟩ ⟨q, hq⟩, subtype.eq $ show p = q,
+from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm⟩
+
+class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
+(is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
+
+end totally_disconnected
+
+section totally_separated
+
+def is_totally_separated (s : set α) : Prop :=
+∀ x ∈ s, ∀ y ∈ s, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧
+  x ∈ u ∧ y ∈ v ∧ s ⊆ u ∪ v ∧ u ∩ v = ∅
+
+theorem is_totally_separated_empty : is_totally_separated (∅ : set α) :=
+λ x, false.elim
+
+theorem is_totally_separated_singleton {x} : is_totally_separated ({x} : set α) :=
+λ p hp q hq hpq, (hpq $ (eq_of_mem_singleton hp).symm ▸ (eq_of_mem_singleton hq).symm).elim
+
+theorem is_totally_disconnected_of_is_totally_separated {s : set α}
+  (H : is_totally_separated s) : is_totally_disconnected s :=
+λ t hts ht, ⟨λ ⟨x, hxt⟩ ⟨y, hyt⟩, subtype.eq $ classical.by_contradiction $
+assume hxy : x ≠ y, let ⟨u, v, hu, hv, hxu, hyv, hsuv, huv⟩ := H x (hts hxt) y (hts hyt) hxy in
+let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩ ⟨y, hyt, hyv⟩ in
+((ext_iff _ _).1 huv r).1 hruv⟩
+
+class totally_separated_space (α : Type u) [topological_space α] : Prop :=
+(is_totally_separated_univ : is_totally_separated (univ : set α))
+
+instance totally_separated_space.totally_disconnected_space (α : Type u) [topological_space α]
+  [totally_separated_space α] : totally_disconnected_space α :=
+⟨is_totally_disconnected_of_is_totally_separated $ totally_separated_space.is_totally_separated_univ α⟩
+
+end totally_separated
+
 /- separation axioms -/
 
 section separation

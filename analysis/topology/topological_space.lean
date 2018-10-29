@@ -879,7 +879,7 @@ end connected
 
 section separation
 
-/-- A T₁ space, also known as a Kolmogorov space, is a topological space
+/-- A T₀ space, also known as a Kolmogorov space, is a topological space
   where for every pair `x ≠ y`, there is an open set containing one but not the other. -/
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))

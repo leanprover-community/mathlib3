@@ -975,8 +975,8 @@ begin
 end
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
-  where for every pair `x ≠ y`, there is an open set containing `x` and not `y`.
-  Equivalently, every singleton set is closed. -/
+  where every singleton set is closed. Equivalently, for every pair
+  `x ≠ y`, there is an open set containing `x` and not `y`. -/
 class t1_space (α : Type u) [topological_space α] : Prop :=
 (t1 : ∀x, is_closed ({x} : set α))
 
@@ -993,6 +993,14 @@ mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
 @[simp] lemma closure_singleton [t1_space α] {a : α} :
   closure ({a} : set α) = {a} :=
 closure_eq_of_is_closed is_closed_singleton
+
+theorem t1_space.of_disjoint_open
+  (H : ∀ x y : α, x ≠ y → ∃ u v : set α,
+    is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅) :
+  t1_space α :=
+⟨λ x, is_open_iff_forall_mem_open.2 $ λ y hxy,
+let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := H y x (mt mem_singleton_of_eq hxy) in
+⟨u, λ z hz1 hz2, ((ext_iff _ _).1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is

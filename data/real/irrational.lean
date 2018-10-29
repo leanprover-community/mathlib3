@@ -78,3 +78,6 @@ mt $ λ ⟨r, hr⟩, ⟨r / q, by rw [cast_div, ← hr, mul_div_cancel]; rwa cas
 
 theorem irr_of_irr_mul_self : irrational (x * x) → irrational x :=
 mt $ λ ⟨p, e⟩, ⟨p * p, by rw [e, cast_mul]⟩
+
+theorem irr_neg : irrational x → irrational (-x) :=
+λ hx ⟨q, hn⟩, hx ⟨-q, by rw [←neg_neg x, hn, cast_neg]⟩

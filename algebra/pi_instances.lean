@@ -265,12 +265,12 @@ instance [has_scalar α β] [has_scalar α γ] : has_scalar α (β × γ) := ⟨
 
 instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
   [semimodule α β] [semimodule α γ] : semimodule α (β × γ) :=
-{ smul_add  := assume a p₁ p₂, mk.inj_iff.mpr ⟨smul_add, smul_add⟩,
-  add_smul  := assume a p₁ p₂, mk.inj_iff.mpr ⟨add_smul, add_smul⟩,
-  mul_smul  := assume a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul, mul_smul⟩,
-  one_smul  := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul, one_smul⟩,
-  zero_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul, zero_smul⟩,
-  smul_zero := assume a, mk.inj_iff.mpr ⟨smul_zero, smul_zero⟩,
+{ smul_add  := assume a p₁ p₂, mk.inj_iff.mpr ⟨smul_add _ _ _, smul_add _ _ _⟩,
+  add_smul  := assume a p₁ p₂, mk.inj_iff.mpr ⟨add_smul _ _ _, add_smul _ _ _⟩,
+  mul_smul  := assume a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul _ _ _, mul_smul _ _ _⟩,
+  one_smul  := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul _, one_smul _⟩,
+  zero_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul _, zero_smul _⟩,
+  smul_zero := assume a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩,
   .. prod.has_scalar }
 
 instance {r : ring α} [add_comm_group β] [add_comm_group γ]

@@ -603,8 +603,8 @@ if_neg h
 
 @[simp] lemma support_filter : (f.filter p).support = f.support.filter p :=
 finset.ext.mpr $ assume a, if H : p a
-then by simp only [mem_support_iff, filter_apply_pos H, mem_filter, H, and_true]
-else by simp only [mem_support_iff, filter_apply_neg H, mem_filter, H, and_false, ne.def, ne_self_iff_false]
+then by simp only [mem_support_iff, filter_apply_pos _ _ H, mem_filter, H, and_true]
+else by simp only [mem_support_iff, filter_apply_neg _ _ H, mem_filter, H, and_false, ne.def, ne_self_iff_false]
 
 @[simp] lemma filter_single_of_pos
   {a : α} {b : β} (h : p a) : (single a b).filter p = single a b :=

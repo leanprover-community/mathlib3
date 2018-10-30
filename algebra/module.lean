@@ -32,7 +32,7 @@ class semimodule (α : out_param $ Type u) (β : Type v) [out_param $ semiring �
 (smul_zero {} : ∀r, r • (0 : β) = 0)
 
 section semimodule
-variables {R:semiring α} [add_comm_monoid β] [semimodule α β] {r s : α} {x y : β}
+variables {R:semiring α} [add_comm_monoid β] [semimodule α β] (r s : α) (x y : β)
 include R
 
 theorem smul_add : r • (x + y) = r • x + r • y := semimodule.smul_add r x y
@@ -42,7 +42,7 @@ theorem mul_smul : (r * s) • x = r • s • x := semimodule.mul_smul r s x
 @[simp] theorem zero_smul : (0 : α) • x = 0 := semimodule.zero_smul x
 @[simp] theorem smul_zero : r • (0 : β) = 0 := semimodule.smul_zero r
 
-lemma smul_smul : r • s • x = (r * s) • x := mul_smul.symm
+lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm
 
 end semimodule
 
@@ -104,6 +104,12 @@ instance semiring.to_semimodule [r : semiring α] : semimodule α α :=
 instance ring.to_module [r : ring α] : module α α :=
 { ..semiring.to_semimodule }
 
+class is_linear_map {α : Type u} {β : Type v} {γ : Type w}
+  [ring α] [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
+  (f : β → γ) : Prop :=
+(add  : ∀x y, f (x + y) = f x + f y)
+(smul : ∀c x, f (c • x) = c • f x)
+
 structure linear_map {α : Type u} (β : Type v) (γ : Type w)
   [ring α] [add_comm_group β] [add_comm_group γ] [module α β] [module α γ] :=
 (to_fun : β → γ)
@@ -120,6 +126,8 @@ variables (f g : β →ₗ γ)
 include α
 
 instance : has_coe_to_fun (β →ₗ γ) := ⟨_, to_fun⟩
+
+theorem is_linear : is_linear_map f := {..f}
 
 @[extensionality] theorem ext {f g : β →ₗ γ} (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
@@ -153,6 +161,18 @@ def id : linear_map β β := ⟨id, by simp, by simp⟩
 @[simp] lemma id_apply (x : β) : @id α β _ _ _ x = x := rfl
 
 end linear_map
+
+namespace is_linear_map
+variables [ring α] [add_comm_group β] [add_comm_group γ]
+variables [module α β] [module α γ]
+include α
+
+def mk' (f : β → γ) (H : is_linear_map f) : β →ₗ γ := {to_fun := f, ..H}
+
+@[simp] theorem mk'_apply {f : β → γ} (H : is_linear_map f) (x : β) :
+  mk' f H x = f x := rfl
+
+end is_linear_map
 
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule

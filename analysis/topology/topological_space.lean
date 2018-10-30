@@ -125,8 +125,8 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bUnion_insert; exact
     is_closed_union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_closed_imp [topological_space α] {p q : α → Prop}
-  (hp : is_open {x | p x}) (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
+lemma is_closed_imp {p q : α → Prop} (hp : is_open {x | p x})
+  (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
 have {x | p x → q x} = (- {x | p x}) ∪ {x | q x}, from set.ext $ λ x, imp_iff_not_or,
 by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
 
@@ -686,27 +686,24 @@ let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 
 theorem exists_irreducible (s : set α) (H : is_irreducible s) :
   ∃ t : set α, is_irreducible t ∧ s ⊆ t ∧ ∀ u, is_irreducible u → t ⊆ u → u = t :=
-let ⟨⟨m, h1, h2⟩, h3⟩ := @zorn.zorn { t | s ⊆ t ∧ is_irreducible t } (subrel (⊆) _)
-  (λ c h1, classical.by_cases
-    (assume h2 : c = ∅, ⟨⟨s, set.subset.refl s, H⟩, λ ⟨t, h3, h4⟩,
-      h2.symm ▸ false.elim⟩)
-    (assume h2 : c ≠ ∅, let ⟨⟨x, h3, h4⟩, h5⟩ := exists_mem_of_ne_empty h2 in
-      ⟨⟨⋃ t ∈ c, subtype.val t, λ z hz, mem_bUnion h5 (h3 hz), λ u v h6 h7 ⟨y, h9, h10⟩ ⟨z, h11, h12⟩,
-        let ⟨⟨p, h13, h14⟩, h15, h16⟩ := mem_bUnion_iff.1 h9,
-            ⟨⟨q, h17, h18⟩, h19, h20⟩ := mem_bUnion_iff.1 h11 in
-        have h21 : p ⊆ q ∨ q ⊆ p := classical.by_cases
-          (assume h21 : p = q, or.inl $ h21 ▸ set.subset.refl p)
-          (assume h21 : p ≠ q, h1 ⟨p, h13, h14⟩ h15 ⟨q, h17, h18⟩ h19 (mt subtype.mk.inj h21)),
-        or.cases_on h21
-          (assume h22 : p ⊆ q, let ⟨x, h23, h24⟩ := h18 u v h6 h7
-              ⟨y, h22 h16, h10⟩ ⟨z, h20, h12⟩ in
-            ⟨x, mem_bUnion h19 h23, h24⟩)
-          (assume h22 : q ⊆ p, let ⟨x, h23, h24⟩ := h14 u v h6 h7
-              ⟨y, h16, h10⟩ ⟨z, h22 h20, h12⟩ in
-            ⟨x, mem_bUnion h15 h23, h24⟩)⟩,
-      λ ⟨p, h6, h7⟩ h8 z h9, mem_bUnion h8 h9⟩))
+let ⟨⟨m, hsm, hm⟩, hm_max⟩ := @zorn.zorn { t | s ⊆ t ∧ is_irreducible t } (subrel (⊆) _)
+  (λ c hchain, classical.by_cases
+    (assume hc : c = ∅, ⟨⟨s, set.subset.refl s, H⟩, λ ⟨t, hsx, hx⟩,
+      hc.symm ▸ false.elim⟩)
+    (assume hc : c ≠ ∅, let ⟨⟨x, hsx, hx⟩, hxc⟩ := exists_mem_of_ne_empty hc in
+      ⟨⟨⋃ t ∈ c, subtype.val t, λ z hz, mem_bUnion hxc (hsx hz), λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
+        let ⟨p, hpc, hyp⟩ := mem_bUnion_iff.1 hy,
+            ⟨q, hqc, hzq⟩ := mem_bUnion_iff.1 hz in
+        or.cases_on (zorn.chain.total hchain hpc hqc)
+          (assume hpq : p.1 ⊆ q.1, let ⟨x, hxp, hxuv⟩ := q.2.2 u v hu hv
+              ⟨y, hpq hyp, hyu⟩ ⟨z, hzq, hzv⟩ in
+            ⟨x, mem_bUnion hqc hxp, hxuv⟩)
+          (assume hqp : q.1 ⊆ p, let ⟨x, hxp, hxuv⟩ := p.2.2 u v hu hv
+              ⟨y, hyp, hyu⟩ ⟨z, hqp hzq, hzv⟩ in
+            ⟨x, mem_bUnion hpc hxp, hxuv⟩)⟩,
+      λ ⟨p, hsp, hp⟩ hpc z hzp, mem_bUnion hpc hzp⟩))
   (λ _ _ _, set.subset.trans) in
-⟨m, h2, h1, λ u h4 h5, subset.antisymm (h3 ⟨_, set.subset.trans h1 h5, h4⟩ h5) h5⟩
+⟨m, hm, hsm, λ u hu hmu, subset.antisymm (hm_max ⟨_, set.subset.trans hsm hmu, hu⟩ hmu) hmu⟩
 
 def irreducible_component (x : α) : set α :=
 classical.some (exists_irreducible {x} is_irreducible_singleton)
@@ -789,52 +786,18 @@ let ⟨q, hqv, hqs⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hzcs v hv hzv
 let ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans subset_closure hcsuv) ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 ⟨r, subset_closure hrs, hruv⟩
 
-theorem exists_connected (s : set α) (H : is_connected s) :
-  ∃ t : set α, is_connected t ∧ s ⊆ t ∧ ∀ u, is_connected u → t ⊆ u → u = t :=
-let ⟨⟨m, h1, h2⟩, h3⟩ := @zorn.zorn { t | s ⊆ t ∧ is_connected t } (subrel (⊆) _)
-  (λ c h1, classical.by_cases
-    (assume h2 : c = ∅, ⟨⟨s, set.subset.refl s, H⟩, λ ⟨t, h3, h4⟩,
-      h2.symm ▸ false.elim⟩)
-    (assume h2 : c ≠ ∅, let ⟨⟨x, h3, h4⟩, h5⟩ := exists_mem_of_ne_empty h2 in
-      ⟨⟨⋃ t ∈ c, subtype.val t, λ z hz, mem_bUnion h5 (h3 hz), λ u v h6 h7 h8 ⟨y, h9, h10⟩ ⟨z, h11, h12⟩,
-        let ⟨⟨p, h13, h14⟩, h15, h16⟩ := mem_bUnion_iff.1 h9,
-            ⟨⟨q, h17, h18⟩, h19, h20⟩ := mem_bUnion_iff.1 h11 in
-        have h21 : p ⊆ q ∨ q ⊆ p := classical.by_cases
-          (assume h21 : p = q, or.inl $ h21 ▸ set.subset.refl p)
-          (assume h21 : p ≠ q, h1 ⟨p, h13, h14⟩ h15 ⟨q, h17, h18⟩ h19 (mt subtype.mk.inj h21)),
-        or.cases_on h21
-          (assume h22 : p ⊆ q, let ⟨x, h23, h24⟩ := h18 u v h6 h7
-              (set.subset.trans (λ r hr, (mem_bUnion h19 hr : r ∈ ⋃ t ∈ c, subtype.val t)) h8)
-              ⟨y, h22 h16, h10⟩ ⟨z, h20, h12⟩ in
-            ⟨x, mem_bUnion h19 h23, h24⟩)
-          (assume h22 : q ⊆ p, let ⟨x, h23, h24⟩ := h14 u v h6 h7
-              (set.subset.trans (λ r hr, (mem_bUnion h15 hr : r ∈ ⋃ t ∈ c, subtype.val t)) h8)
-              ⟨y, h16, h10⟩ ⟨z, h22 h20, h12⟩ in
-            ⟨x, mem_bUnion h15 h23, h24⟩)⟩,
-      λ ⟨p, h6, h7⟩ h8 z h9, mem_bUnion h8 h9⟩))
-  (λ _ _ _, set.subset.trans) in
-⟨m, h2, h1, λ u h4 h5, subset.antisymm (h3 ⟨_, set.subset.trans h1 h5, h4⟩ h5) h5⟩
-
 def connected_component (x : α) : set α :=
-classical.some (exists_connected {x} is_connected_singleton)
+⋃₀ { s : set α | is_connected s ∧ x ∈ s }
 
 theorem is_connected_connected_component {x : α} : is_connected (connected_component x) :=
-(classical.some_spec (exists_connected {x} is_connected_singleton)).1
+is_connected_sUnion x _ (λ _, and.right) (λ _, and.left)
 
 theorem mem_connected_component {x : α} : x ∈ connected_component x :=
-singleton_subset_iff.1
-  (classical.some_spec (exists_connected {x} is_connected_singleton)).2.1
+mem_sUnion_of_mem (mem_singleton x) ⟨is_connected_singleton, mem_singleton x⟩
 
 theorem subset_connected_component {x : α} {s : set α} (H1 : is_connected s) (H2 : x ∈ s) :
   s ⊆ connected_component x :=
-have connected_component x ∪ some (exists_connected s H1) = connected_component x,
-from (classical.some_spec (exists_connected {x} is_connected_singleton)).2.2
-  (connected_component x ∪ classical.some (exists_connected s H1))
-  (is_connected_union x mem_connected_component
-    ((some_spec (exists_connected s H1)).2.1 H2)
-    is_connected_connected_component (some_spec (exists_connected s H1)).1)
-  (subset_union_left _ _),
-this ▸ subset.trans (some_spec (exists_connected s H1)).2.1 (subset_union_right _ _)
+λ z hz, mem_sUnion_of_mem hz ⟨H1, H2⟩
 
 theorem is_closed_connected_component {x : α} :
   is_closed (connected_component x) :=
@@ -1039,14 +1002,6 @@ mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
   closure ({a} : set α) = {a} :=
 closure_eq_of_is_closed is_closed_singleton
 
-theorem t1_space.of_disjoint_open
-  (H : ∀ x y : α, x ≠ y → ∃ u v : set α,
-    is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅) :
-  t1_space α :=
-⟨λ x, is_open_iff_forall_mem_open.2 $ λ y hxy,
-let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := H y x (mt mem_singleton_of_eq hxy) in
-⟨u, λ z hz1 hz2, ((ext_iff _ _).1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
-
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
@@ -1058,20 +1013,9 @@ lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
 t2_space.t2 x y h
 
 instance t2_space.t1_space [t2_space α] : t1_space α :=
-⟨assume x,
-  have ∀y, y ≠ x ↔ ∃ (i : set α), (x ∉ i ∧ is_open i) ∧ y ∈ i,
-    from assume y, ⟨assume h',
-      let ⟨u, v, hu, hv, hy, hx, h⟩ := t2_separation h' in
-      have x ∉ u,
-        from assume : x ∈ u,
-        have x ∈ u ∩ v, from ⟨this, hx⟩,
-        by rwa [h] at this,
-      ⟨u, ⟨this, hu⟩, hy⟩,
-      assume ⟨s, ⟨hx, hs⟩, hy⟩ h, hx $ h ▸ hy⟩,
-  have (-{x} : set α) = (⋃s∈{s : set α | x ∉ s ∧ is_open s}, s),
-    by apply set.ext; simpa only [mem_compl_eq, mem_singleton_iff, mem_bUnion_iff],
-  show is_open (- {x}),
-    by rw [this]; exact (is_open_Union $ assume s, is_open_Union $ assume ⟨_, hs⟩, hs)⟩
+⟨λ x, is_open_iff_forall_mem_open.2 $ λ y hxy,
+let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
+⟨u, λ z hz1 hz2, ((ext_iff _ _).1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
 lemma eq_of_nhds_neq_bot [ht : t2_space α] {x y : α} (h : nhds x ⊓ nhds y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
@@ -1113,13 +1057,13 @@ let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 
 variable (α)
 instance regular_space.t2_space [regular_space α] : t2_space α :=
-{ t2 := λ x y hxy,
-    let ⟨s, h1, h2, h3⟩ := regular_space.regular is_closed_singleton
-          (mt mem_singleton_iff.1 hxy),
-        ⟨t, h4, u, h5, h6⟩ := empty_in_sets_eq_bot.2 h3,
-        ⟨v, h7, h8, h9⟩ := mem_nhds_sets_iff.1 h4 in
-    ⟨v, s, h8, h1, h9, singleton_subset_iff.1 h2,
-      eq_empty_of_subset_empty $ λ z ⟨h10, h11⟩, h6 ⟨h7 h10, h5 h11⟩⟩ }
+⟨λ x y hxy,
+let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
+    (mt mem_singleton_iff.1 hxy),
+  ⟨t, hxt, u, hsu, htu⟩ := empty_in_sets_eq_bot.2 hxs,
+  ⟨v, hvt, hv, hxv⟩ := mem_nhds_sets_iff.1 hxt in
+⟨v, s, hv, hs, hxv, singleton_subset_iff.1 hys,
+eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
 
 end regularity
 
@@ -1139,10 +1083,10 @@ normal_space.normal s t H1 H2 H3
 
 variable (α)
 instance normal_space.regular_space [normal_space α] : regular_space α :=
-{ regular := λ s x h1 h2, let ⟨u, v, h1, h2, h3, h4, h5⟩ := normal_separation s {x} h1 is_closed_singleton
-      (λ _ ⟨hx, hy⟩, h2 $ set.mem_of_eq_of_mem (set.eq_of_mem_singleton hy).symm hx) in
-    ⟨u, h1, h3, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
-      ⟨v, mem_nhds_sets h2 (set.singleton_subset_iff.1 h4), u, filter.mem_principal_self u, set.inter_comm u v ▸ h5⟩⟩ }
+{ regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ := normal_separation s {x} hs is_closed_singleton
+      (λ _ ⟨hx, hy⟩, hxs $ set.mem_of_eq_of_mem (set.eq_of_mem_singleton hy).symm hx) in
+    ⟨u, hu, hsu, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
+      ⟨v, mem_nhds_sets hv (set.singleton_subset_iff.1 hxv), u, filter.mem_principal_self u, set.inter_comm u v ▸ huv⟩⟩ }
 
 end normality
 

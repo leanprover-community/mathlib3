@@ -206,7 +206,7 @@ lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
 
 section eval₂
-variables {β : Type*} [semiring β]
+variables [semiring β]
 variables (f : α → β) (x : β)
 open is_semiring_hom
 
@@ -240,7 +240,7 @@ instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 end eval₂
 
 section eval₂
-variables {β : Type*} [comm_semiring β]
+variables [comm_semiring β]
 variables (f : α → β) [is_semiring_hom f] (x : β)
 open is_semiring_hom
 

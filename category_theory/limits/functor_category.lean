@@ -111,7 +111,11 @@ instance : creates_limits (discrete.forget J C) :=
     exact
     { X :=
       { obj := λ j, c.X j,
-        map' := λ j j' f, sorry,
+        map' := λ j j' f,
+        begin
+          -- math goes here. I'm apparently too dumb to work this out.
+          sorry,
+        end,
         map_comp' := sorry,
         map_id' := sorry
       },
@@ -120,5 +124,8 @@ instance : creates_limits (discrete.forget J C) :=
   end,
   image_is_limit := sorry,
   }
+
+instance functor_category_has_limits_of_shape [has_limits_of_shape.{u v} J C] : has_limits_of_shape J (K ⥤ C) :=
+created_limits_of_shape (discrete.forget K C)
 
 end category_theory.limits

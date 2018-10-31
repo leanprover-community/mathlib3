@@ -64,6 +64,16 @@ class creates_limits (F : C ⥤ D) extends reflects_limits F :=
 (image_is_limit : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone (K ⋙ F)} (h : is_limit c),
   is_limit (F.map_cone (creates h)))
 
+instance creates_limit_of_creates_limits_of_shape (K : J ⥤ C) (F : C ⥤ D) [creates_limits_of_shape J F] :
+  creates_limit K F :=
+{ creates := λ _, creates_limits_of_shape.creates,
+  image_is_limit := λ _, creates_limits_of_shape.image_is_limit }
+
+instance creates_limits_of_shape_of_creates_limit (F : C ⥤ D) [creates_limits F] :
+  creates_limits_of_shape J F :=
+{ creates := λ _ _, creates_limits.creates,
+  image_is_limit := λ _ _, creates_limits.image_is_limit }
+
 def creates_limit.is_limit {F : C ⥤ D} [creates_limit K F]
   {c : cone (K ⋙ F)} (h : is_limit c) : is_limit (creates_limit.creates h) :=
 reflects_limit.reflects (creates_limit.image_is_limit h)
@@ -77,6 +87,23 @@ def preserved_limit (F : C ⥤ D) [preserves_limit K F] [has_limit K] : has_limi
 def created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : has_limit K :=
 { cone := creates_limit.creates (limit.universal_property (K ⋙ F)),
   is_limit := creates_limit.is_limit (limit.universal_property (K ⋙ F)) }
+
+def created_limits_of_shape (F : C ⥤ D) [creates_limits_of_shape J F] [has_limits_of_shape.{u₂ v} J D] :
+  has_limits_of_shape.{u₁ v} J C :=
+{ cone := λ G, creates_limit.creates (limit.universal_property (G ⋙ F)),
+  is_limit := λ G, creates_limit.is_limit (limit.universal_property (G ⋙ F)) }
+
+def created_limits (F : C ⥤ D) [creates_limits F] [has_limits.{u₂ v} D] : has_limits.{u₁ v} C :=
+{ cone := λ J 𝒥 G,
+  begin
+    resetI,
+    exact creates_limit.creates (limit.universal_property (G ⋙ F)),
+  end,
+  is_limit := λ J 𝒥 G,
+  begin
+    resetI,
+    exact creates_limit.is_limit (limit.universal_property (G ⋙ F)),
+  end }
 
 instance preserves_created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : preserves_limit K F :=
 { preserves := sorry } -- See second half of Proposition 3.3.3 of Category Theory in Context

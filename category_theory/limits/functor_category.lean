@@ -24,7 +24,15 @@ variables {J K : Type v} [small_category J] [small_category K]
 
 @[simp] lemma cone.functor_w {F : J ⥤ (K ⥤ C)} (c : cone F) {j j' : J} (f : j ⟶ j') (k : K) :
   (c.π j) k ≫ (F.map f) k = (c.π j') k :=
-sorry
+begin
+  have h := congr_fun (congr_arg (nat_trans.app) (eq.symm (c.π.naturality f))) k,
+  dsimp at h,
+  rw category.id_comp at h,
+  conv at h { to_rhs, simp },
+  erw ←h,
+  conv { to_rhs, rw nat_trans.app_eq_coe }, -- yuck
+  refl,
+end
 
 @[simp] lemma discrete.functor_map_id (F : discrete K ⥤ C) (k : discrete K) (f : k ⟶ k) : F.map f = 𝟙 (F k) :=
 begin
@@ -45,7 +53,7 @@ def product_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ (discrete K ⥤ C)) 
 @[simp] lemma product_cone_π [has_limits_of_shape.{u v} J C] (F : J ⥤ (discrete K ⥤ C)) (j : J) (k : K):
   ((product_cone F).π : Π j : J, _ ⟹ _) j k = limit.π _ _ := rfl
 
-@[simp] lemma evaluate_product_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ (discrete K ⥤ C)) (k : K) :
+@[simp] def evaluate_product_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ (discrete K ⥤ C)) (k : K) :
   (evaluation_at (discrete K) C k).map_cone (product_cone F) ≅ limit.cone ((switched F) k) :=
 begin
   ext,
@@ -94,5 +102,23 @@ instance [has_limits_of_shape.{u v} J C] (k : K) : preserves_limits_of_shape J (
     -- Finally, it's just that the limit cone is a limit.
     exact limit.universal_property _
   end }
+
+instance : creates_limits (discrete.forget J C) :=
+{ reflects := sorry,
+  creates := λ K 𝒦 F c h,
+  begin
+    resetI,
+    exact
+    { X :=
+      { obj := λ j, c.X j,
+        map' := λ j j' f, sorry,
+        map_comp' := sorry,
+        map_id' := sorry
+      },
+      π := begin sorry end
+    },
+  end,
+  image_is_limit := sorry,
+  }
 
 end category_theory.limits

@@ -12,9 +12,7 @@ open category_theory.limits
 
 namespace category_theory.limits.types
 
-section
-variables {J : Type u} [𝒥 : small_category J]
-include 𝒥
+variables {J : Type u} [small_category J]
 
 def limit (F : J ⥤ Type u) : cone F :=
 { X := {u : Π j, F j // ∀ (j j' : J) (f : j ⟶ j'), F.map f (u j) = u j'},
@@ -60,7 +58,9 @@ local attribute [elab_with_expected_type] quot.lift
 
 def colimit_is_colimit (F : J ⥤ Type u) : is_colimit (colimit F) :=
 { desc := λ s, quot.lift (λ (p : Σ j, F j), s.ι p.1 p.2)
-  (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (@cocone.w _ _ _ _ _ s j j' f) x).symm) }
+  (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (@cocone.w _ _ _ _ _ s j j' f) x).symm),
+  fac' := begin tidy end,
+  uniq' := begin tidy, induction x, tidy, end } -- FIXME decide how much we care about automation here.
 
 instance : has_colimits.{u+1 u} (Type u) :=
 { cocone := @colimit, is_colimit := @colimit_is_colimit }
@@ -85,8 +85,6 @@ local attribute [extensionality] quot.sound
 -- @[simp] lemma types_colimit_lift (F : J ⥤ Type u) (c : cocone F) :
 --   colimit.desc F c = λ x, sorry := sorry
 
-end
-
 open category_theory.limits.walking_cospan
 open category_theory.limits.walking_cospan_hom
 
@@ -104,15 +102,15 @@ def pullback {Y₁ Y₂ Z : Type u} (r₁ : Y₁ ⟶ Z) (r₂ : Y₂ ⟶ Z) : co
       | _, _, (id _) := by tidy
       | _, _, inl := by tidy
       | _, _, inr := λ x, begin dsimp [cospan], erw ← x.property, refl end
-      end }
+      end } }
 
 instance : has_pullbacks.{u+1 u} (Type u) :=
 { square := λ Y₁ Y₂ Z r₁ r₂, pullback r₁ r₂,
   is_pullback := λ Y₁ Y₂ Z r₁ r₂,
   { lift  := λ s x, ⟨ (s.π left x, s.π right x),
     begin
-      have swl := congr_fun (s.w inl) x,
-      have swr := congr_fun (s.w inr) x,
+      have swl := congr_fun (@cone.w _ _ _ _ _ s left one inl) x, -- FIXME why are the @s needed here?
+      have swr := congr_fun (@cone.w _ _ _ _ _ s right one inr) x,
       exact eq.trans swl (eq.symm swr),
     end ⟩,
     fac' := λ s j, funext $ λ x,

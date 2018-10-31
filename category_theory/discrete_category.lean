@@ -43,12 +43,12 @@ def discrete.lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete 
 { obj := f,
   map' := λ X Y g, begin cases g, cases g, cases g, exact 𝟙 (f X) end }
 
+variables (J : Type v₂) [small_category J]
+
 variables (C : Type u₂) [𝒞 : category.{u₂ v₂} C]
 include 𝒞
 
 section forget
-
-variables (J : Type v₂) [small_category J]
 
 def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
 { obj := λ F,

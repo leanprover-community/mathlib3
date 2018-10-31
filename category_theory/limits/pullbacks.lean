@@ -39,7 +39,7 @@ instance walking_cospan_category : small_category walking_cospan :=
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 
-def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan ⥤ C :=
+def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=
 { obj := λ x, match x with
   | left := X
   | right := Y

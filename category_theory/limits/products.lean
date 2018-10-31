@@ -7,9 +7,9 @@ namespace category_theory.limits
 
 universes u v w
 
+variables {β : Type v}
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
-variables {β : Type v}
 
 def fan (f : β → C) := cone (functor.of_function f)
 
@@ -83,7 +83,7 @@ def fan.of_cone {β : Type v} {F : (discrete β) ⥤ C} (t : cone F) : fan (F.ob
     end } }
 
 instance has_limits_of_shape_of_has_products_of_shape {β : Type v} [has_products_of_shape.{u v} C β] :
-  limits.has_limits_of_shape.{u v} C (discrete β) :=
+  limits.has_limits_of_shape.{u v} (discrete β) C :=
 begin
   haveI : has_products_of_shape.{u v} C (discrete β) := (by apply_instance : has_products_of_shape.{u v} C β),
   exact

@@ -36,7 +36,7 @@ do t' ← infer_type h,
     -- `cases` can be dangerous on `eq` and `quot`, producing mysterious errors during type checking.
     -- instead we attempt `induction`
     | `(eq _ _)        := do induction h, pp ← pp h, return ("induction " ++ pp.to_string)
-    | `(quot _)        := do induction h, pp ← pp h, return ("induction " ++ pp.to_string)
+    -- | `(quot _)        := do induction h, pp ← pp h, return ("induction " ++ pp.to_string)
     | _                := failed
     end
 

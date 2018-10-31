@@ -629,6 +629,8 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 @[simp] theorem sqrt_div {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl
 
+-- Finally, we make real and real.le irreducible, as later users generally won't want to unfold the definitions
+attribute [irreducible] real
 attribute [irreducible] real.le
 
 end real

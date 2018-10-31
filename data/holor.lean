@@ -14,7 +14,6 @@ Based on the tensor library found in https://www.isa-afp.org/entries/Deep_Learni
 import data.list.basic
 import algebra.module
 import tactic.interactive
-import tactic.tidy
 import tactic.pi_instances
 
 universes u

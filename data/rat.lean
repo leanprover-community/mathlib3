@@ -7,7 +7,7 @@ Introduces the rational numbers as discrete, linear ordered field.
 -/
 
 import
-  data.nat.gcd data.pnat data.int.basic data.equiv.encodable order.basic
+  data.nat.gcd data.pnat data.int.sqrt data.equiv.encodable order.basic
   algebra.ordered_field data.real.cau_seq
 
 /- rational numbers -/
@@ -1003,58 +1003,57 @@ begin
 end
 
 theorem mk_pnat_num (n : ℤ) (d : ℕ+) :
-  (rat.mk_pnat n d).num = n / nat.gcd (int.nat_abs n) d :=
+  (mk_pnat n d).num = n / nat.gcd n.nat_abs d :=
 by cases d; refl
 
 theorem mk_pnat_denom (n : ℤ) (d : ℕ+) :
-  (rat.mk_pnat n d).denom = d / nat.gcd (int.nat_abs n) d :=
+  (mk_pnat n d).denom = d / nat.gcd n.nat_abs d :=
 by cases d; refl
 
 theorem mul_num (q₁ q₂ : ℚ) : (q₁ * q₂).num =
-  (q₁.num * q₂.num) / nat.gcd (int.nat_abs (q₁.num * q₂.num)) (q₁.denom * q₂.denom) :=
+  (q₁.num * q₂.num) / nat.gcd (q₁.num * q₂.num).nat_abs (q₁.denom * q₂.denom) :=
 by cases q₁; cases q₂; refl
 
 theorem mul_denom (q₁ q₂ : ℚ) : (q₁ * q₂).denom =
-  (q₁.denom * q₂.denom) / nat.gcd (int.nat_abs (q₁.num * q₂.num)) (q₁.denom * q₂.denom) :=
+  (q₁.denom * q₂.denom) / nat.gcd (q₁.num * q₂.num).nat_abs (q₁.denom * q₂.denom) :=
 by cases q₁; cases q₂; refl
 
 theorem mul_self_num (q : ℚ) : (q * q).num = q.num * q.num :=
-by rw [rat.mul_num, int.nat_abs_mul, nat.coprime.gcd_eq_one, int.coe_nat_one, int.div_one];
+by rw [mul_num, int.nat_abs_mul, nat.coprime.gcd_eq_one, int.coe_nat_one, int.div_one];
 exact (q.cop.mul_right q.cop).mul (q.cop.mul_right q.cop)
 
 theorem mul_self_denom (q : ℚ) : (q * q).denom = q.denom * q.denom :=
 by rw [rat.mul_denom, int.nat_abs_mul, nat.coprime.gcd_eq_one, nat.div_one];
 exact (q.cop.mul_right q.cop).mul (q.cop.mul_right q.cop)
 
-theorem abs_def (q : ℚ) : abs q = rat.mk q.num.nat_abs q.denom :=
+theorem abs_def (q : ℚ) : abs q = q.num.nat_abs /. q.denom :=
 begin
-  have hz : (0:ℚ) = rat.mk 0 1 := rfl,
+  have hz : (0:ℚ) = 0 /. 1 := rfl,
   cases le_total q 0 with hq hq,
   { rw [abs_of_nonpos hq],
-    rw [rat.num_denom q, hz, rat.le_def (int.coe_nat_pos.2 q.pos) zero_lt_one,
+    rw [num_denom q, hz, rat.le_def (int.coe_nat_pos.2 q.pos) zero_lt_one,
         mul_one, zero_mul] at hq,
-    rw [int.of_nat_nat_abs_of_nonpos hq, ← rat.neg_def, ← rat.num_denom q] },
+    rw [int.of_nat_nat_abs_of_nonpos hq, ← neg_def, ← num_denom q] },
   { rw [abs_of_nonneg hq],
-    rw [rat.num_denom q, hz, rat.le_def zero_lt_one (int.coe_nat_pos.2 q.pos),
+    rw [num_denom q, hz, rat.le_def zero_lt_one (int.coe_nat_pos.2 q.pos),
         mul_one, zero_mul] at hq,
-    rw [int.nat_abs_of_nonneg hq, ← rat.num_denom q] }
+    rw [int.nat_abs_of_nonneg hq, ← num_denom q] }
 end
 
 def sqrt (q : ℚ) : ℚ :=
 rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
 
 theorem sqrt_eq (q : ℚ) : rat.sqrt (q*q) = abs q :=
-by rw [rat.sqrt, rat.mul_self_num, rat.mul_self_denom,
-       int.sqrt_eq, nat.sqrt_eq, rat.abs_def]
+by rw [sqrt, mul_self_num, mul_self_denom,
+       int.sqrt_eq, nat.sqrt_eq, abs_def]
 
 theorem exists_mul_self (x : ℚ) :
   (∃ q, q * q = x) ↔ rat.sqrt x * rat.sqrt x = x :=
-⟨λ ⟨n, hn⟩, by rw [← hn, rat.sqrt_eq, abs_mul_abs_self],
+⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq, abs_mul_abs_self],
 λ h, ⟨rat.sqrt x, h⟩⟩
 
 theorem sqrt_nonneg (q : ℚ) : 0 ≤ rat.sqrt q :=
-rat.nonneg_iff_zero_le.1 $ (rat.mk_nonneg _ $ int.coe_nat_pos.2 $
+nonneg_iff_zero_le.1 $ (mk_nonneg _ $ int.coe_nat_pos.2 $
 nat.pos_of_ne_zero $ λ H, nat.pos_iff_ne_zero.1 q.pos $ nat.sqrt_eq_zero.1 H).2 trivial
-
 
 end rat

@@ -579,6 +579,8 @@ instance : ordered_comm_group ℚ                  := by apply_instance
 instance : ordered_cancel_comm_monoid ℚ          := by apply_instance
 instance : ordered_comm_monoid ℚ                 := by apply_instance
 
+attribute [irreducible] rat.le
+
 theorem num_pos_iff_pos {a : ℚ} : 0 < a.num ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le $
 by simpa [(by cases a; refl : (-a).num = -a.num)]

@@ -57,11 +57,11 @@ quotient.mk x
 instance of.is_group_hom : is_group_hom (@of α _) :=
 ⟨λ _ _, rfl⟩
 
-section to_comm_group
+section lift
 
 variables {β : Type v} [comm_group β] (f : α → β) [is_group_hom f]
 
-def to_comm_group : abelianization α → β :=
+def lift : abelianization α → β :=
 quotient_group.lift _ f $ λ x ⟨L, HL, hx⟩,
 hx ▸ list.rec_on L (λ _, is_group_hom.one f) (λ hd tl HL ih,
   by rw [list.forall_mem_cons] at ih;
@@ -69,20 +69,17 @@ hx ▸ list.rec_on L (λ _, is_group_hom.one f) (λ hd tl HL ih,
     specialize HL ih; rw [list.prod_cons, is_group_hom.mul f, ← hpq, HL];
     simp [is_group_hom.mul f, is_group_hom.inv f, mul_comm]) HL
 
-def to_comm_group.is_group_hom :
-  is_group_hom (to_comm_group f) :=
+instance lift.is_group_hom : is_group_hom (lift f) :=
 quotient_group.is_group_hom_quotient_lift _ _ _
 
-@[simp] lemma to_comm_group.of (x : α) :
-  to_comm_group f (of x) = f x :=
-rfl
+@[simp] lemma lift.of (x : α) : lift f (of x) = f x := rfl
 
-theorem to_comm_group.unique
+theorem lift.unique
   (g : abelianization α → β) [is_group_hom g]
   (hg : ∀ x, g (of x) = f x) {x} :
-  g x = to_comm_group f x :=
+  g x = lift f x :=
 quotient.induction_on x $ λ m, hg m
 
-end to_comm_group
+end lift
 
 end abelianization

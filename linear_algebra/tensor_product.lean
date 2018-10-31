@@ -123,11 +123,11 @@ sub_eq_zero.1 $ eq.symm $ quotient.sound $
 
 end tmul
 
-local attribute [instance] free_abelian_group.to_add_comm_group.is_add_group_hom
+local attribute [instance] free_abelian_group.lift.is_add_group_hom
 local attribute [instance] quotient_add_group.is_add_group_hom_quotient_lift
 
 @[reducible] def smul.aux (r : R) (x : free_abelian_group (M × N)) : M ⊗ N :=
-free_abelian_group.to_add_comm_group (λ (y : M × N), (r • y.1) ⊗ₜ (y.2)) x
+free_abelian_group.lift (λ (y : M × N), (r • y.1) ⊗ₜ (y.2)) x
 
 @[reducible] def smul (r : R) : M ⊗ N → M ⊗ N :=
 quotient_add_group.lift _ (smul.aux M N r)
@@ -160,7 +160,7 @@ instance : module R (M ⊗ N) :=
       apply quotient_add_group.induction_on' x,
       intro z,
       symmetry,
-      refine @free_abelian_group.to_add_comm_group.unique _ _ _ _ _ ⟨λ p q, _⟩ _ z,
+      refine @free_abelian_group.lift.unique _ _ _ _ _ ⟨λ p q, _⟩ _ z,
       { simp [tensor_product.smul_add] },
       rintro ⟨m, n⟩,
       show (r • m) ⊗ₜ n + (s • m) ⊗ₜ n = ((r + s) • m) ⊗ₜ n,
@@ -171,14 +171,14 @@ instance : module R (M ⊗ N) :=
       apply quotient_add_group.induction_on' x,
       intro z,
       symmetry,
-      refine @free_abelian_group.to_add_comm_group.unique _ _ _ _ _
+      refine @free_abelian_group.lift.unique _ _ _ _ _
         ⟨λ p q, _⟩ _ z,
       { simp [tensor_product.smul_add] },
       rintro ⟨m, n⟩,
       simp [smul, smul.aux, mul_smul, tmul]
     end,
   one_smul := λ x, quotient.induction_on x $ λ _,
-    eq.symm $ free_abelian_group.to_add_comm_group.unique _ _ $ λ ⟨p, q⟩,
+    eq.symm $ free_abelian_group.lift.unique _ _ $ λ ⟨p, q⟩,
     by rw [one_smul]; refl,
   .. tensor_product.add_comm_group M N }
 
@@ -223,19 +223,19 @@ variables {M N P Q}
 variables (f : M → N → P) (hf : is_bilinear_map f)
 include hf
 
-local attribute [instance] free_abelian_group.to_add_comm_group.is_add_group_hom
+local attribute [instance] free_abelian_group.lift.is_add_group_hom
 
 def to_module : M ⊗ N → P :=
 quotient_add_group.lift _
-  (free_abelian_group.to_add_comm_group $ λ z, f z.1 z.2) $ λ x hx,
+  (free_abelian_group.lift $ λ z, f z.1 z.2) $ λ x hx,
 begin
   induction hx with _ hx _ _ ih _ _ _ _ ih1 ih2,
   { rcases hx with ⟨m₁, m₂, n, rfl⟩ | ⟨m, n₁, n₂, rfl⟩ | ⟨r, m, n, rfl⟩;
       simp [-sub_eq_add_neg, hf.add_left, hf.add_right, hf.smul_left, hf.smul_right, sub_self] },
   { refl },
-  { change free_abelian_group.to_add_comm_group _ (-_) = (0:P),
+  { change free_abelian_group.lift _ (-_) = (0:P),
     simp [ih] },
-  { change free_abelian_group.to_add_comm_group _ (_ + _) = (0:P),
+  { change free_abelian_group.lift _ (_ + _) = (0:P),
     simp [ih1, ih2] }
 end
 variable {f}
@@ -246,7 +246,7 @@ local attribute [instance] quotient_add_group.left_rel normal_add_subgroup.to_is
   to_module f hf (x + y)
   = to_module f hf x + to_module f hf y :=
 quotient.induction_on₂ x y $ λ m n,
-free_abelian_group.to_add_comm_group.add _ _ _
+free_abelian_group.lift.add _ _ _
 
 @[simp] lemma to_module.smul (r x) :
   to_module f hf (r • x)
@@ -272,7 +272,7 @@ theorem to_module.unique {g : M ⊗ N → P}
 begin
   apply quotient_add_group.induction_on' z,
   intro z,
-  refine @free_abelian_group.to_add_comm_group.unique _ _ _ _ _ ⟨λ p q, _⟩ _ z,
+  refine @free_abelian_group.lift.unique _ _ _ _ _ ⟨λ p q, _⟩ _ z,
   { simp [hg.add] },
   exact λ ⟨m, n⟩, H m n
 end
@@ -286,7 +286,7 @@ theorem to_module.ext {g h : M ⊗ N → P}
 begin
   apply quotient_add_group.induction_on' z,
   intro z,
-  apply free_abelian_group.to_add_comm_group.ext (g ∘ _) _ _,
+  apply free_abelian_group.lift.ext (g ∘ _) _ _,
   { constructor,
     intros p q,
     simp [hg.add] },

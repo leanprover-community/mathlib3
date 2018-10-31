@@ -515,6 +515,14 @@ by simp
   preimage f (⋃₀ s) = (⋃t ∈ s, preimage f t) :=
 set.ext $ by simp [preimage]
 
+lemma preimage_Inter {ι : Sort*} {s : ι → set β} {f : α → β} :
+  f ⁻¹' (⋂ i, s i) = (⋂ i, f ⁻¹' s i) :=
+by ext; simp
+
+lemma preimage_bInter {s : γ → set β} {t : set γ} {f : α → β} :
+  f ⁻¹' (⋂ i∈t, s i) = (⋂ i∈t, f ⁻¹' s i) :=
+by ext; simp
+
 end preimage
 
 

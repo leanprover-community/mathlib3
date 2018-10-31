@@ -7,6 +7,16 @@ Quotients -- extends the core library
 -/
 variables {α : Sort*} {β : Sort*}
 
+namespace setoid
+
+lemma ext {α : Sort*} :
+  ∀{s t : setoid α}, (∀a b, @setoid.r α s a b ↔ @setoid.r α t a b) → s = t
+| ⟨r, _⟩ ⟨p, _⟩ eq :=
+  have r = p, from funext $ assume a, funext $ assume b, propext $ eq a b,
+  by subst this
+
+end setoid
+
 namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
@@ -82,6 +92,9 @@ noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : ∀ i, s
 theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [∀ i, setoid (α i)]
   (f : ∀ i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 quotient.sound $ λ i, quotient.mk_out _
+
+lemma nonempty_quotient_iff (s : setoid α): nonempty (quotient s) ↔ nonempty α :=
+⟨assume ⟨a⟩, quotient.induction_on a nonempty.intro, assume ⟨a⟩, ⟨⟦a⟧⟩⟩
 
 /-- `trunc α` is the quotient of `α` by the always-true relation. This
   is related to the propositional truncation in HoTT, and is similar

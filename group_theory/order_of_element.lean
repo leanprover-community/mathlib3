@@ -182,6 +182,8 @@ set.ext (λ x, ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
 
 end
 
+end order_of
+
 section cyclic
 
 local attribute [instance] set_fintype
@@ -200,6 +202,51 @@ lemma order_of_eq_card_of_forall_mem_gppowers [group α] [fintype α] [decidable
 by rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers];
   simp [hx]; congr
 
-end cyclic
+instance [group α] : is_cyclic (is_subgroup.trivial α) :=
+⟨⟨(1 : is_subgroup.trivial α), λ x, ⟨0, subtype.eq $ eq.symm (is_subgroup.mem_trivial.1 x.2)⟩⟩⟩
 
-end order_of
+instance is_subgroup.is_cyclic [group α] [is_cyclic α] (H : set α) [is_subgroup H] : is_cyclic H :=
+by haveI := classical.prop_decidable; exact
+let ⟨g, hg⟩ := is_cyclic.exists_generator α in
+if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
+  let ⟨x, hx₁, hx₂⟩ := hx in
+  let ⟨k, hk⟩ := hg x in
+  have hex : ∃ n : ℕ, 0 < n ∧ g ^ n ∈ H,
+    from ⟨k.nat_abs, nat.pos_of_ne_zero
+      (λ h, hx₂ $ by rw [← hk, int.eq_zero_of_nat_abs_eq_zero h, gpow_zero]),
+        match k, hk with
+        | (k : ℕ), hk := by rw [int.nat_abs_of_nat, ← gpow_coe_nat, hk]; exact hx₁
+        | -[1+ k], hk := by rw [int.nat_abs_of_neg_succ_of_nat,
+          ← is_subgroup.inv_mem_iff H]; simp * at *
+        end⟩,
+  ⟨⟨⟨g ^ nat.find hex, (nat.find_spec hex).2⟩,
+    λ ⟨x, hx⟩, let ⟨k, hk⟩ := hg x in
+      have hk₁ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ gpowers (g ^ nat.find hex),
+        from ⟨k / nat.find hex, eq.symm $ gpow_mul _ _ _⟩,
+      have hk₂ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ H,
+        by rw gpow_mul; exact is_subgroup.gpow_mem (nat.find_spec hex).2,
+      have hk₃ : g ^ (k % nat.find hex) ∈ H,
+        from (is_subgroup.mul_mem_cancel_left H hk₂).1 $
+          by rw [← gpow_add, int.mod_add_div, hk]; exact hx,
+      have hk₄ : k % nat.find hex = (k % nat.find hex).nat_abs,
+        by rw int.nat_abs_of_nonneg (int.mod_nonneg _
+          (int.coe_nat_ne_zero_iff_pos.2 (nat.find_spec hex).1)),
+      have hk₅ : g ^ (k % nat.find hex ).nat_abs ∈ H,
+        by rwa [← gpow_coe_nat, ← hk₄],
+      have hk₆ : (k % (nat.find hex : ℤ)).nat_abs = 0,
+        from by_contradiction (λ h,
+          nat.find_min hex (int.coe_nat_lt.1 $ by rw [← hk₄];
+            exact int.mod_lt_of_pos _ (int.coe_nat_pos.2 (nat.find_spec hex).1))
+          ⟨nat.pos_of_ne_zero h, hk₅⟩),
+      ⟨k / (nat.find hex : ℤ), subtype.coe_ext.2 begin
+        suffices : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) = x,
+        { simpa [gpow_mul] },
+        rw [int.mul_div_cancel' (int.dvd_of_mod_eq_zero (int.eq_zero_of_nat_abs_eq_zero hk₆)), hk]
+      end⟩⟩⟩
+else
+  have H = is_subgroup.trivial α,
+    from set.ext $ λ x, ⟨λ h, by simp at *; tauto,
+      λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem _⟩,
+  by clear _let_match; subst this; apply_instance
+
+end cyclic

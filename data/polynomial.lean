@@ -158,24 +158,24 @@ by simpa only [C_1, one_mul] using coeff_C_mul_X (1:α) k n
 lemma coeff_mul_left (p q : polynomial α) (n : ℕ) :
   coeff (p * q) n = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :=
 have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
-    → a.1 + a.2 = n, from λ a ha, by_contradiction 
+    → a.1 + a.2 = n, from λ a ha, by_contradiction
   (λ h, absurd (eq.refl (0 : α)) (by rwa if_neg h at ha)),
-calc coeff (p * q) n = sum (p.support) (λ a, sum (q.support) 
+calc coeff (p * q) n = sum (p.support) (λ a, sum (q.support)
     (λ b, ite (a + b = n) (coeff p a * coeff q b) 0)) :
   by simp only [finsupp.mul_def, coeff_sum, coeff_single]; refl
-... = (p.support.product q.support).sum 
+... = (p.support.product q.support).sum
     (λ v : ℕ × ℕ, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0) :
   by rw sum_product
 ... = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :
-  sum_bij_ne_zero (λ a _ _, a.1) 
-  (λ a _ ha, mem_range.2 (nat.lt_succ_of_le (hite a ha ▸ le_add_right (le_refl _)))) 
-  (λ a₁ a₂ _ h₁ _ h₂ h, prod.ext h 
+  sum_bij_ne_zero (λ a _ _, a.1)
+  (λ a _ ha, mem_range.2 (nat.lt_succ_of_le (hite a ha ▸ le_add_right (le_refl _))))
+  (λ a₁ a₂ _ h₁ _ h₂ h, prod.ext h
     ((add_left_inj a₁.1).1 (by rw [hite a₁ h₁, h, hite a₂ h₂])))
-  (λ a h₁ h₂, ⟨(a, n - a), mem_product.2 
-      ⟨mem_support_iff.2 (ne_zero_of_mul_ne_zero_right h₂), 
-      mem_support_iff.2 (ne_zero_of_mul_ne_zero_left h₂)⟩, 
+  (λ a h₁ h₂, ⟨(a, n - a), mem_product.2
+      ⟨mem_support_iff.2 (ne_zero_of_mul_ne_zero_right h₂),
+      mem_support_iff.2 (ne_zero_of_mul_ne_zero_left h₂)⟩,
     by simpa [nat.add_sub_cancel' (nat.le_of_lt_succ (mem_range.1 h₁))],
-    rfl⟩) 
+    rfl⟩)
   (λ a _ ha, by rw [← hite a ha, if_pos rfl, nat.add_sub_cancel_left])
 
 lemma coeff_mul_right (p q : polynomial α) (n : ℕ) :
@@ -204,14 +204,16 @@ lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
 
 section eval₂
-variables {β : Type*} [comm_semiring β]
-variables (f : α → β) [is_semiring_hom f] (x : β)
+variables {β : Type*} [semiring β]
+variables (f : α → β) (x : β)
 open is_semiring_hom
 
 /-- Evaluate a polynomial `p` given a ring hom `f` from the scalar ring
   to the target and a value `x` for the variable in the target -/
 def eval₂ (p : polynomial α) : β :=
 p.sum (λ e a, f a * x ^ e)
+
+variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [pow_zero, mul_one]
@@ -229,6 +231,16 @@ finsupp.sum_add_index
 
 @[simp] lemma eval₂_one : (1 : polynomial α).eval₂ f x = 1 :=
 by rw [← C_1, eval₂_C, map_one f]
+
+instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
+⟨eval₂_zero _ _, λ _ _, eval₂_add _ _⟩
+
+end eval₂
+
+section eval₂
+variables {β : Type*} [comm_semiring β]
+variables (f : α → β) [is_semiring_hom f] (x : β)
+open is_semiring_hom
 
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 begin
@@ -1337,7 +1349,10 @@ end domain
 section identities
 
 /- @TODO: pow_add_expansion and pow_sub_pow_factor are not specific to polynomials.
-  These belong somewhere else. But not in group_power because they depend on tactic.ring -/
+  These belong somewhere else. But not in group_power because they depend on tactic.ring
+
+Maybe use data.nat.choose to prove it.
+ -/
 
 def pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ),
   {k // (x + y)^n = x^n + n*x^(n-1)*y + k * y^2}

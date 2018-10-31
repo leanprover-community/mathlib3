@@ -24,6 +24,8 @@ succ_le_succ_iff
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 ⟨lt_of_succ_le, succ_le_of_lt⟩
 
+theorem pred_eq_of_eq_succ {m n : ℕ} (H : m = n.succ) : m.pred = n := by simp [H]
+
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
 
@@ -33,6 +35,10 @@ theorem pos_iff_ne_zero : n > 0 ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 
 theorem pos_iff_ne_zero' : 0 < n ↔ n ≠ 0 := pos_iff_ne_zero
+
+theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
+have h3 : a ≤ b, from le_of_lt_succ h1,
+or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
 
 protected theorem le_sub_add (n m : ℕ) : n ≤ n - m + m :=
 or.elim (le_total n m)
@@ -680,6 +686,13 @@ theorem dvd_fact : ∀ {m n}, m > 0 → m ≤ n → m ∣ fact n
 
 theorem fact_le {m n} (h : m ≤ n) : fact m ≤ fact n :=
 le_of_dvd (fact_pos _) (fact_dvd_fact h)
+
+lemma fact_mul_pow_le_fact : ∀ {m n : ℕ}, m.fact * m.succ ^ n ≤ (m + n).fact
+| m 0     := by simp
+| m (n+1) :=
+by  rw [← add_assoc, nat.fact_succ, mul_comm (nat.succ _), nat.pow_succ, ← mul_assoc];
+  exact mul_le_mul fact_mul_pow_le_fact
+    (nat.succ_le_succ (nat.le_add_right _ _)) (nat.zero_le _) (nat.zero_le _)
 
 section find_greatest
 

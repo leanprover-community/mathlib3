@@ -3,7 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro
 -/
-import algebra.group_power
+import algebra.big_operators
+import data.finset
 import tactic.subtype_instance
 
 variables {α : Type*} [monoid α] {s : set α}
@@ -73,13 +74,37 @@ attribute [to_additive is_add_submonoid.multiple_subset] is_add_submonoid.multip
 
 end powers
 
+namespace is_submonoid
+
 @[to_additive is_add_submonoid.list_sum_mem]
-lemma is_submonoid.list_prod_mem [is_submonoid s] : ∀{l : list α}, (∀x∈l, x ∈ s) → l.prod ∈ s
-| []     h := is_submonoid.one_mem s
+lemma list_prod_mem [is_submonoid s] : ∀{l : list α}, (∀x∈l, x ∈ s) → l.prod ∈ s
+| []     h := one_mem s
 | (a::l) h :=
   suffices a * l.prod ∈ s, by simpa,
   have a ∈ s ∧ (∀x∈l, x ∈ s), by simpa using h,
-  is_submonoid.mul_mem this.1 (is_submonoid.list_prod_mem this.2)
+  is_submonoid.mul_mem this.1 (list_prod_mem this.2)
+
+@[to_additive is_add_submonoid.multiset_sum_mem]
+lemma multiset_prod_mem {α} [comm_monoid α] (s : set α) [is_submonoid s] (m : multiset α) :
+  (∀a∈m, a ∈ s) → m.prod ∈ s :=
+begin
+  refine quotient.induction_on m (assume l hl, _),
+  rw [multiset.quot_mk_to_coe, multiset.coe_prod],
+  exact list_prod_mem hl
+end
+
+@[to_additive is_add_submonoid.finset_sum_mem]
+lemma finset_prod_mem {α β} [comm_monoid α] (s : set α) [is_submonoid s] (f : β → α) :
+  ∀(t : finset β), (∀b∈t, f b ∈ s) → t.prod f ∈ s
+| ⟨m, hm⟩ hs :=
+  begin
+    refine multiset_prod_mem s _ _,
+    simp,
+    rintros a b hb rfl,
+    exact hs _ hb
+  end
+
+end is_submonoid
 
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
 by subtype_instance
@@ -90,6 +115,20 @@ attribute [to_additive subtype.add_monoid._proof_3] subtype.monoid._proof_3
 attribute [to_additive subtype.add_monoid._proof_4] subtype.monoid._proof_4
 attribute [to_additive subtype.add_monoid._proof_5] subtype.monoid._proof_5
 attribute [to_additive subtype.add_monoid] subtype.monoid
+
+@[simp, to_additive is_add_submonoid.coe_zero]
+lemma is_submonoid.coe_one [is_submonoid s] : ((1 : s) : α) = 1 := rfl
+
+@[simp, to_additive is_add_submonoid.coe_add]
+lemma is_submonoid.coe_mul [is_submonoid s] (a b : s) : ((a * b : s) : α) = a * b := rfl
+
+@[simp] lemma is_submonoid.coe_pow [is_submonoid s] (a : s) (n : ℕ) : ((a ^ n : s) : α) = a ^ n :=
+by induction n; simp [*, pow_succ]
+
+@[simp] lemma is_add_submonoid.smul_coe {β : Type*} [add_monoid β] {s : set β}
+  [is_add_submonoid s] (a : s) (n : ℕ) : ((add_monoid.smul n a : s) : β) = add_monoid.smul n a :=
+by induction n; [refl, simp [*, succ_smul]]
+attribute [to_additive is_add_submonoid.smul_coe] is_submonoid.coe_pow
 
 namespace monoid
 

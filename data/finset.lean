@@ -29,10 +29,6 @@ theorem eq_of_veq : ∀ {s t : finset α}, s.1 = t.1 → s = t
 @[simp] theorem erase_dup_eq_self [decidable_eq α] (s : finset α) : erase_dup s.1 = s.1 :=
 erase_dup_eq_self.2 s.2
 
-end finset
-
-namespace finset
-
 instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α)
 | s₁ s₂ := decidable_of_iff _ val_inj
 
@@ -269,9 +265,9 @@ by rw [mem_union, not_or_distrib]
 theorem union_subset {s₁ s₂ s₃ : finset α} (h₁ : s₁ ⊆ s₃) (h₂ : s₂ ⊆ s₃) : s₁ ∪ s₂ ⊆ s₃ :=
 val_le_iff.1 (ndunion_le.2 ⟨h₁, val_le_iff.2 h₂⟩)
 
-theorem subset_union_left {s₁ s₂ : finset α} : s₁ ⊆ s₁ ∪ s₂ := λ x, mem_union_left _
+theorem subset_union_left (s₁ s₂ : finset α) : s₁ ⊆ s₁ ∪ s₂ := λ x, mem_union_left _
 
-theorem subset_union_right {s₁ s₂ : finset α} : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
+theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
 
 @[simp] theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ :=
 ext.2 $ λ x, by simp only [mem_union, or_comm]
@@ -333,9 +329,9 @@ theorem mem_of_mem_inter_right {a : α} {s₁ s₂ : finset α} (h : a ∈ s₁ 
 theorem mem_inter_of_mem {a : α} {s₁ s₂ : finset α} : a ∈ s₁ → a ∈ s₂ → a ∈ s₁ ∩ s₂ :=
 and_imp.1 mem_inter.2
 
-theorem inter_subset_left {s₁ s₂ : finset α} : s₁ ∩ s₂ ⊆ s₁ := λ a, mem_of_mem_inter_left
+theorem inter_subset_left (s₁ s₂ : finset α) : s₁ ∩ s₂ ⊆ s₁ := λ a, mem_of_mem_inter_left
 
-theorem inter_subset_right {s₁ s₂ : finset α} : s₁ ∩ s₂ ⊆ s₂ := λ a, mem_of_mem_inter_right
+theorem inter_subset_right (s₁ s₂ : finset α) : s₁ ∩ s₂ ⊆ s₂ := λ a, mem_of_mem_inter_right
 
 theorem subset_inter {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₁ ⊆ s₃ → s₁ ⊆ s₂ ∩ s₃ :=
 by simp only [subset_iff, mem_inter] {contextual:=tt}; intros; split; trivial
@@ -398,12 +394,12 @@ by rw [inter_comm, singleton_inter_of_not_mem h]
 instance : lattice (finset α) :=
 { sup          := (∪),
   sup_le       := assume a b c, union_subset,
-  le_sup_left  := assume a b, subset_union_left,
-  le_sup_right := assume a b, subset_union_right,
+  le_sup_left  := subset_union_left,
+  le_sup_right := subset_union_right,
   inf          := (∩),
   le_inf       := assume a b c, subset_inter,
-  inf_le_left  := assume a b, inter_subset_left,
-  inf_le_right := assume a b, inter_subset_right,
+  inf_le_left  := inter_subset_left,
+  inf_le_right := inter_subset_right,
   ..finset.partial_order }
 
 @[simp] theorem sup_eq_union (s t : finset α) : s ⊔ t = s ∪ t := rfl
@@ -559,6 +555,10 @@ def filter (p : α → Prop) [decidable_pred p] (s : finset α) : finset α :=
 theorem filter_filter (s : finset α) :
   (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
 ext.2 $ assume a, by simp only [mem_filter, and_comm, and.left_comm]
+
+@[simp] lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
+  @finset.filter α (λ _, true) h s = s :=
+by ext; simp
 
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext.2 $ assume a, by simp only [mem_filter, and_false]; refl
@@ -1543,6 +1543,56 @@ def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin
 
 @[simp] lemma card_attach_fin {n : ℕ} (s : finset ℕ) (h : ∀ m ∈ s, m < n) :
   (s.attach_fin h).card = s.card := multiset.card_pmap _ _ _
+
+theorem lt_wf {α} [decidable_eq α] : well_founded (@has_lt.lt (finset α) _) :=
+have H : subrelation (@has_lt.lt (finset α) _)
+    (inv_image (<) card),
+  from λ x y hxy, card_lt_card hxy,
+subrelation.wf H $ inv_image.wf _ $ nat.lt_wf
+
+section decidable_linear_order
+
+variables {α} [decidable_linear_order α]
+
+def min' (S : finset α) (H : S ≠ ∅) : α :=
+@option.get _ S.min $
+  let ⟨k, hk⟩ := exists_mem_of_ne_empty H in
+  let ⟨b, hb⟩ := min_of_mem hk in by simp at hb; simp [hb]
+
+def max' (S : finset α) (H : S ≠ ∅) : α :=
+@option.get _ S.max $
+  let ⟨k, hk⟩ := exists_mem_of_ne_empty H in
+  let ⟨b, hb⟩ := max_of_mem hk in by simp at hb; simp [hb]
+
+variables (S : finset α) (H : S ≠ ∅)
+
+theorem min'_mem : S.min' H ∈ S := mem_of_min $ by simp [min']
+
+theorem min'_le (x) (H2 : x ∈ S) : S.min' H ≤ x := le_min_of_mem H2 $ option.get_mem _
+
+theorem le_min' (x) (H2 : ∀ y ∈ S, x ≤ y) : x ≤ S.min' H := H2 _ $ min'_mem _ _
+
+theorem max'_mem : S.max' H ∈ S := mem_of_max $ by simp [max']
+
+theorem le_max' (x) (H2 : x ∈ S) : x ≤ S.max' H := le_max_of_mem H2 $ option.get_mem _
+
+theorem max'_le (x) (H2 : ∀ y ∈ S, y ≤ x) : S.max' H ≤ x := H2 _ $ max'_mem _ _
+
+theorem min'_lt_max' {i j} (H1 : i ∈ S) (H2 : j ∈ S) (H3 : i ≠ j) : S.min' H < S.max' H :=
+begin
+  rcases lt_trichotomy i j with H4 | H4 | H4,
+  { have H5 := min'_le S H i H1,
+    have H6 := le_max' S H j H2,
+    apply lt_of_le_of_lt H5,
+    apply lt_of_lt_of_le H4 H6 },
+  { cc },
+  { have H5 := min'_le S H j H2,
+    have H6 := le_max' S H i H1,
+    apply lt_of_le_of_lt H5,
+    apply lt_of_lt_of_le H4 H6 }
+end
+
+end decidable_linear_order
 
 end finset
 

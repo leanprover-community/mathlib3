@@ -64,6 +64,10 @@ lemma abs_abv_sub_le_abv_sub (a b : β) :
 abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
   by rw abv_sub abv; apply sub_abv_le_abv_sub abv⟩
 
+lemma abv_pow {β : Type*} [domain β] (abv : β → α) [is_absolute_value abv]
+  (a : β) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
+by induction n; simp [abv_mul abv, _root_.pow_succ, abv_one abv, *]
+
 end is_absolute_value
 
 instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :
@@ -506,6 +510,16 @@ by simpa using add_pos fg gh
 theorem lt_irrefl {f : cau_seq α abs} : ¬ f < f
 | h := not_lim_zero_of_pos h (by simp [zero_lim_zero])
 
+lemma le_of_eq_of_le {f g h : cau_seq α abs}
+  (hfg : f ≈ g) (hgh : g ≤ h) : f ≤ h :=
+hgh.elim (or.inl ∘ cau_seq.lt_of_eq_of_lt hfg)
+  (or.inr ∘ setoid.trans hfg)
+
+lemma le_of_le_of_eq {f g h : cau_seq α abs}
+  (hfg : f ≤ g) (hgh : g ≈ h) : f ≤ h :=
+hfg.elim (λ h, or.inl (cau_seq.lt_of_lt_of_eq h hgh))
+  (λ h, or.inr (setoid.trans h hgh))
+
 instance : preorder (cau_seq α abs) :=
 { lt := (<),
   le := λ f g, f < g ∨ f ≈ g,
@@ -540,6 +554,15 @@ show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
 
 theorem const_le {x y : α} : const x ≤ const y ↔ x ≤ y :=
 by rw le_iff_lt_or_eq; exact or_congr const_lt const_equiv
+
+lemma le_of_exists {f g : cau_seq α abs}
+  (h : ∃ i, ∀ j ≥ i, f j ≤ g j) : f ≤ g :=
+let ⟨i, hi⟩ := h in
+(or.assoc.2 (cau_seq.lt_total f g)).elim
+  id
+  (λ hgf, false.elim (let ⟨K, hK0, j, hKj⟩ := hgf in
+    not_lt_of_ge (hi (max i j) (le_max_left _ _))
+      (sub_pos.1 (lt_of_lt_of_le hK0 (hKj _ (le_max_right _ _))))))
 
 theorem exists_gt (f : cau_seq α abs) : ∃ a : α, f < const a :=
 let ⟨K, H⟩ := f.bounded in

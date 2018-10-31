@@ -5,8 +5,10 @@ Authors: Simon Hudon, Patrick Massot
 
 Pi instances for algebraic structures.
 -/
-
-import algebra.module order.basic tactic.pi_instances algebra.group
+import order.basic
+import algebra.module algebra.group
+import data.finset
+import tactic.pi_instances
 
 namespace pi
 universes u v
@@ -20,17 +22,26 @@ instance has_zero [∀ i, has_zero $ f i] : has_zero (Π i : I, f i) := ⟨λ i,
 instance has_one [∀ i, has_one $ f i] : has_one (Π i : I, f i) := ⟨λ i, 1⟩
 @[simp] lemma one_apply [∀ i, has_one $ f i] : (1 : Π i, f i) i = 1 := rfl
 
+attribute [to_additive pi.has_zero] pi.has_one
+attribute [to_additive pi.zero_apply] pi.one_apply
+
 instance has_add [∀ i, has_add $ f i] : has_add (Π i : I, f i) := ⟨λ x y, λ i, x i + y i⟩
 @[simp] lemma add_apply [∀ i, has_add $ f i] : (x + y) i = x i + y i := rfl
 
 instance has_mul [∀ i, has_mul $ f i] : has_mul (Π i : I, f i) := ⟨λ x y, λ i, x i * y i⟩
 @[simp] lemma mul_apply [∀ i, has_mul $ f i] : (x * y) i = x i * y i := rfl
 
+attribute [to_additive pi.has_add] pi.has_mul
+attribute [to_additive pi.add_apply] pi.mul_apply
+
 instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) := ⟨λ x, λ i, (x i)⁻¹⟩
 @[simp] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
 
 instance has_neg [∀ i, has_neg $ f i] : has_neg (Π i : I, f i) := ⟨λ x, λ i, -(x i)⟩
 @[simp] lemma neg_apply [∀ i, has_neg $ f i] : (-x) i = -x i := rfl
+
+attribute [to_additive pi.has_neg] pi.has_inv
+attribute [to_additive pi.neg_apply] pi.inv_apply
 
 instance has_scalar {α : Type*} [∀ i, has_scalar α $ f i] : has_scalar α (Π i : I, f i) := ⟨λ s x, λ i, s • (x i)⟩
 @[simp] lemma smul_apply {α : Type*} [∀ i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
@@ -68,6 +79,32 @@ by pi_instance
 
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] : ordered_cancel_comm_monoid (Π i : I, f i) :=
 by pi_instance
+
+attribute [to_additive pi.add_semigroup]              pi.semigroup
+attribute [to_additive pi.add_comm_semigroup]         pi.comm_semigroup
+attribute [to_additive pi.add_monoid]                 pi.monoid
+attribute [to_additive pi.add_comm_monoid]            pi.comm_monoid
+attribute [to_additive pi.add_group]                  pi.group
+attribute [to_additive pi.add_comm_group]             pi.comm_group
+attribute [to_additive pi.add_left_cancel_semigroup]  pi.left_cancel_semigroup
+attribute [to_additive pi.add_right_cancel_semigroup] pi.right_cancel_semigroup
+
+@[to_additive pi.list_sum_apply]
+lemma list_prod_apply {α : Type*} {β} [monoid β] (a : α) :
+  ∀ (l : list (α → β)), l.prod a = (l.map (λf:α → β, f a)).prod
+| []       := rfl
+| (f :: l) := by simp [mul_apply f l.prod a, list_prod_apply l]
+
+@[to_additive pi.multiset_sum_apply]
+lemma multiset_prod_apply {α : Type*} {β} [comm_monoid β] (a : α) (s : multiset (α → β)) :
+  s.prod a = (s.map (λf:α → β, f a)).prod :=
+quotient.induction_on s $ assume l, begin simp [list_prod_apply a l] end
+
+@[to_additive pi.finset_sum_apply]
+lemma finset_prod_apply {α : Type*} {β γ} [comm_monoid β] (a : α) (s : finset γ) (g : γ → α → β) :
+  s.prod g a = s.prod (λc, g c a) :=
+show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
+  by rw [multiset_prod_apply, multiset.map_map]
 
 end pi
 

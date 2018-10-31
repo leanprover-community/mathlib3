@@ -29,6 +29,7 @@ section topological_space
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {a a₁ a₂ : α} {s s₁ s₂ : set α} {p p₁ p₂ : α → Prop}
 
+@[extensionality]
 lemma topological_space_eq : ∀ {f g : topological_space α}, f.is_open = g.is_open → f = g
 | ⟨a, _, _, _⟩ ⟨b, _, _, _⟩ rfl := rfl
 
@@ -338,6 +339,13 @@ mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
 lemma pure_le_nhds : pure ≤ (nhds : α → filter α) :=
 assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $
   singleton_subset_iff.2 h₁
+
+lemma tendsto_pure_nhds [topological_space β] (f : α → β) (a : α) :
+  tendsto f (pure a) (nhds (f a)) :=
+begin
+  rw [tendsto, filter.map_pure],
+  exact pure_le_nhds (f a)
+end
 
 @[simp] lemma nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
 assume : nhds a = ⊥,
@@ -768,16 +776,20 @@ protected def mk_of_nhds (n : α → filter α) : topological_space α :=
   is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩, mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
 
 lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
-  (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ (n a).sets → ∃t∈(n a).sets, t ⊆ s ∧ ∀a'∈t, t ∈ (n a').sets) :
+  (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ (n a).sets → ∃t∈(n a).sets, t ⊆ s ∧ ∀a'∈t, s ∈ (n a').sets) :
   @nhds α (topological_space.mk_of_nhds n) a = n a :=
-by letI := topological_space.mk_of_nhds n; from
-(le_antisymm
-  (assume s hs, let ⟨t, ht, hst, h⟩ := h₁ hs in
-    have t ∈ (nhds a).sets, from mem_nhds_sets h (mem_pure_sets.1 $ h₀ a ht),
-    (nhds a).sets_of_superset this hst)
-  (assume s hs,
-    let ⟨t, hts, ht, hat⟩ := (@mem_nhds_sets_iff α (topological_space.mk_of_nhds n) _ _).1 hs in
-    (n a).sets_of_superset (ht _ hat) hts))
+begin
+  letI := topological_space.mk_of_nhds n,
+  refine le_antisymm (assume s hs, _) (assume s hs, _),
+  { have h₀ : {b | s ∈ (n b).sets} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
+    have h₁ : {b | s ∈ (n b).sets} ∈ (nhds a).sets,
+    { refine mem_nhds_sets (assume b (hb : s ∈ (n b).sets), _) hs,
+      rcases h₁ hb with ⟨t, ht, hts, h⟩,
+      exact mem_sets_of_superset ht h },
+    exact mem_sets_of_superset h₁ h₀ },
+  { rcases (@mem_nhds_sets_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
+    exact (n a).sets_of_superset (ht _ hat) hts },
+end
 
 end topological_space
 
@@ -825,7 +837,29 @@ lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
 instance {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
-@[simp] lemma is_open_top {s : set α} : @is_open α ⊤ s := trivial
+class discrete_topology (α : Type*) [t : topological_space α] :=
+(eq_top : t = ⊤)
+
+@[simp] lemma is_open_discrete [topological_space α] [discrete_topology α] (s : set α) :
+  is_open s :=
+(discrete_topology.eq_top α).symm ▸ trivial
+
+lemma nhds_top (α : Type*) : (@nhds α ⊤) = pure :=
+begin
+  ext a s,
+  rw [mem_nhds_sets_iff, mem_pure_iff],
+  split,
+  { exact assume ⟨t, ht, _, hta⟩, ht hta },
+  { exact assume h, ⟨{a}, set.singleton_subset_iff.2 h, trivial, set.mem_singleton a⟩ }
+end
+
+lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
+(discrete_topology.eq_top α).symm ▸ nhds_top α
+
+instance t2_space_discrete [topological_space α] [discrete_topology α] : t2_space α :=
+{ t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, mem_insert _ _, mem_insert _ _,
+  eq_empty_iff_forall_not_mem.2 $ by intros z hz;
+    cases eq_of_mem_singleton hz.1; cases eq_of_mem_singleton hz.2; cc⟩ }
 
 lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₂ x ≤ @nhds α t₁ x) :
   t₁ ≤ t₂ :=
@@ -863,6 +897,10 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
       show is_open (⋃h, f i h), from @is_open_Union β _ t _ $ assume h, (hf i h).left)
   end }
 
+lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
+  @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ s = f ⁻¹' t) :=
+iff.refl _
+
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
 ⟨assume ⟨t, ht, heq⟩, ⟨-t, is_closed_compl_iff.2 ht, by simp only [preimage_compl, heq.symm, lattice.neg_neg]⟩,
@@ -879,6 +917,10 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
   is_open_sUnion := assume s h, by rw [preimage_sUnion]; exact (@is_open_Union _ _ t _ $ assume i,
     show is_open (⋃ (H : i ∈ s), f ⁻¹' i), from
       @is_open_Union _ _ t _ $ assume hi, h i hi) }
+
+lemma is_open_coinduced {t : topological_space α} {s : set β} {f : α → β} :
+  @is_open β (topological_space.coinduced f t) s ↔ is_open (f ⁻¹' s) :=
+iff.refl _
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 
@@ -946,16 +988,16 @@ variables {α : Type u} {β : Type v}
 instance inhabited_topological_space {α : Type u} : inhabited (topological_space α) :=
 ⟨⊤⟩
 
-lemma t2_space_top : @t2_space α ⊤ :=
-{ t2 := assume x y hxy, ⟨{x}, {y}, trivial, trivial, mem_insert _ _, mem_insert _ _,
-  eq_empty_iff_forall_not_mem.2 $ by intros z hz;
-    cases eq_of_mem_singleton hz.1; cases eq_of_mem_singleton hz.2; cc⟩ }
-
 instance : topological_space empty := ⊤
+instance : discrete_topology empty := ⟨rfl⟩
 instance : topological_space unit := ⊤
+instance : discrete_topology unit := ⟨rfl⟩
 instance : topological_space bool := ⊤
+instance : discrete_topology bool := ⟨rfl⟩
 instance : topological_space ℕ := ⊤
+instance : discrete_topology ℕ := ⟨rfl⟩
 instance : topological_space ℤ := ⊤
+instance : discrete_topology ℤ := ⟨rfl⟩
 
 instance sierpinski_space : topological_space Prop :=
 generate_from {{true}}
@@ -978,7 +1020,8 @@ coinduced sum.inl t₁ ⊓ coinduced sum.inr t₂
 instance {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (sigma β) :=
 ⨅a, coinduced (sigma.mk a) (t₂ a)
 
-instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (Πa, β a) :=
+instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] :
+  topological_space (Πa, β a) :=
 ⨆a, induced (λf, f a) (t₂ a)
 
 instance [topological_space α] : topological_space (list α) :=
@@ -1013,8 +1056,16 @@ begin
         replace hv := hv.flip,
         simp only [list.forall₂_and_left, flip] at ⊢ hv,
         exact ⟨hv.1, hu.flip⟩ },
+      refine mem_sets_of_superset _ hvs,
       exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
 end
+
+lemma nhds_nil [topological_space α] : nhds ([] : list α) = pure [] :=
+by rw [nhds_list, list.traverse_nil _]; apply_instance
+
+lemma nhds_cons [topological_space α] (a : α) (l : list α) :
+  nhds (a :: l) = list.cons <$> nhds a <*> nhds l  :=
+by rw [nhds_list, list.traverse_cons _, ← nhds_list]; apply_instance
 
 lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
   closure (quotient.mk '' s) = univ :=
@@ -1084,6 +1135,11 @@ instance Pi.t2_space {β : α → Type v} [t₂ : Πa, topological_space (β a)]
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
   separated_by_f (λz, z i) (le_supr _ i) hi⟩
+
+instance {p : α → Prop} [topological_space α] [discrete_topology α] :
+  discrete_topology (subtype p) :=
+⟨top_unique $ assume s hs,
+  ⟨subtype.val '' s, is_open_discrete _, (set.preimage_image_eq _ subtype.val_injective).symm⟩⟩
 
 end constructions
 

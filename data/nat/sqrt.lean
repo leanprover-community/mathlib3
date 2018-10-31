@@ -180,4 +180,10 @@ le_trans (sqrt_le_add n) $ add_le_add_right
   (by refine add_le_add
     (mul_le_mul_right _ _) _; exact le_add_right _ 2) _
 
+
+theorem nat.exists_mul_self (x : ℕ) :
+  (∃ n, n * n = x) ↔ nat.sqrt x * nat.sqrt x = x :=
+⟨λ ⟨n, hn⟩, by rw [← hn, nat.sqrt_eq], λ h, ⟨nat.sqrt x, h⟩⟩
+
+
 end nat

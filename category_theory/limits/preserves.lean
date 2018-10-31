@@ -78,12 +78,12 @@ def creates_limit.is_limit {F : C ⥤ D} [creates_limit K F]
   {c : cone (K ⋙ F)} (h : is_limit c) : is_limit (creates_limit.creates h) :=
 reflects_limit.reflects (creates_limit.image_is_limit h)
 
--- Specific instances of this should be turned into instances.
+-- Specific instances of this may be turned into instances.
 def preserved_limit (F : C ⥤ D) [preserves_limit K F] [has_limit K] : has_limit (K ⋙ F) :=
 { cone := F.map_cone (limit.cone K),
   is_limit := preserves_limit.preserves F (limit.universal_property K) }
 
--- Specific instances of this should be turned into instances.
+-- Specific instances of this may be turned into instances.
 def created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : has_limit K :=
 { cone := creates_limit.creates (limit.universal_property (K ⋙ F)),
   is_limit := creates_limit.is_limit (limit.universal_property (K ⋙ F)) }
@@ -112,7 +112,7 @@ instance preserves_created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K
 Lemma 3.3.5. Any full and faithful functor reflects any limits and colimits that are present
 in its codomain.
 
-Lemma 3.3.6. Any equivalence of categories preserves, reflects, andc reates any limits and
+Lemma 3.3.6. Any equivalence of categories preserves, reflects, and creates any limits and
 colimits that are present in its domain or codomain.
 -/
 

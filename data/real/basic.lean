@@ -52,7 +52,8 @@ instance : has_lt ℝ :=
 @[simp] theorem mk_pos {f : cau_seq ℚ abs} : 0 < mk f ↔ pos f :=
 iff_of_eq (congr_arg pos (sub_zero f))
 
-instance : has_le ℝ := ⟨λ x y, x < y ∨ x = y⟩
+protected def le (x y : ℝ) : Prop := x < y ∨ x = y
+instance : has_le ℝ := ⟨real.le⟩
 
 @[simp] theorem mk_le {f g : cau_seq ℚ abs} : mk f ≤ mk g ↔ f ≤ g :=
 or_congr iff.rfl quotient.eq
@@ -629,5 +630,7 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 
 @[simp] theorem sqrt_div {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl
+
+attribute [irreducible] real.le
 
 end real

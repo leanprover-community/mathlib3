@@ -461,7 +461,7 @@ meta def apply_assumption
   (asms : tactic (list expr) := local_context)
   (tac : tactic unit := skip) : tactic unit :=
 do { ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) } <|> 
+     ctx.any_of (λ H, symm_apply H >> tac) } <|>
 do { exfalso,
      ctx ← asms,
      ctx.any_of (λ H, symm_apply H >> tac) }
@@ -632,5 +632,10 @@ instance : monad id :=
      let fs := list.intersperse (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
      let out := format.to_string format!"{{ {format.join fs} }",
      return [(out,"")] }
+
+meta def classical : tactic unit :=
+do h ← get_unused_name `_inst,
+   mk_const `classical.prop_decidable >>= note h none,
+   reset_instance_cache
 
 end tactic

@@ -866,7 +866,7 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
 section
 variables (α β)
 
-def to_has_scalar' {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) := ⟨λa v, v.map_range ((•) a) (smul_zero)⟩
+def to_has_scalar' {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) := ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 local attribute [instance] to_has_scalar'
 
 @[simp] lemma smul_apply' {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {a : α} {b : γ} {v : α →₀ β} :
@@ -874,12 +874,12 @@ local attribute [instance] to_has_scalar'
 
 def to_semimodule {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : semimodule γ (α →₀ β) :=
 { smul      := (•),
-  smul_add  := λ a x y, finsupp.ext $ λ _, smul_add,
-  add_smul  := λ a x y, finsupp.ext $ λ _, add_smul,
-  one_smul  := λ x, finsupp.ext $ λ _, one_smul,
-  mul_smul  := λ r s x, finsupp.ext $ λ _, mul_smul,
-  zero_smul := λ x, finsupp.ext $ λ _, zero_smul,
-  smul_zero := λ x, finsupp.ext $ λ _, smul_zero }
+  smul_add  := λ a x y, finsupp.ext $ λ _, smul_add _ _ _,
+  add_smul  := λ a x y, finsupp.ext $ λ _, add_smul _ _ _,
+  one_smul  := λ x, finsupp.ext $ λ _, one_smul _,
+  mul_smul  := λ r s x, finsupp.ext $ λ _, mul_smul _ _ _,
+  zero_smul := λ x, finsupp.ext $ λ _, zero_smul _,
+  smul_zero := λ x, finsupp.ext $ λ _, smul_zero _ }
 
 def to_module {R:ring γ} [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
 { ..to_semimodule α β }
@@ -887,7 +887,7 @@ def to_module {R:ring γ} [add_comm_group β] [module γ β] : module γ (α →
 variables {α β}
 lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : γ} {g : α →₀ β} :
   (b • g).support ⊆ g.support :=
-λ a, by simp; exact mt (λ h, h.symm ▸ smul_zero)
+λ a, by simp; exact mt (λ h, h.symm ▸ smul_zero _)
 
 section
 variables {α' : Type*} [has_zero δ] {p : α → Prop} [decidable_pred p]

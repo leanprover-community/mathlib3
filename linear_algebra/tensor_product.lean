@@ -199,7 +199,7 @@ variables (f : M → N → P) (hf : is_bilinear_map R f)
 include hf
 
 local attribute [instance] free_abelian_group.lift.is_add_group_hom
-
+/-#check tensor_product.has_scalar
 instance : has_scalar R (M ⊗ N) :=
 ⟨λ r, quotient_add_group.lift _ (smul.aux r) $ λ x hx, begin
   refine (is_add_group_hom.mem_ker (smul.aux r : _ → M ⊗ N)).1
@@ -209,7 +209,7 @@ instance : has_scalar R (M ⊗ N) :=
     sub_self, add_tmul, tmul_add, smul_tmul,
     smul_add, smul_smul, mul_comm, free_abelian_group.lift.coe,
     free_abelian_group.lift.add, free_abelian_group.lift.sub]
-end⟩
+end⟩-/
 
 def lift_aux : M ⊗ N → P :=
 quotient_add_group.lift _
@@ -229,28 +229,30 @@ quotient.induction_on₂ x y $ λ m n,
 free_abelian_group.lift.add _ _ _
 
 @[simp] lemma lift_aux.smul (r x) : lift_aux f hf (r • x) = r • lift_aux f hf x :=
-tensor_product.induction_on x smul_zero.symm
+tensor_product.induction_on _ _ x (smul_zero _).symm
   (λ p q, by rw [← (bilinear M N).smul_left];
     simp [lift_aux, tmul, hf.smul_left])
-  (λ p q ih1 ih2, by simp [@smul_add _ _ _ _ r p q,
+  (λ p q ih1 ih2, by simp [@smul_add _ _ _ _ _ r p q,
     lift_aux.add, ih1, ih2, smul_add])
 
+variable f
 def lift : M ⊗ N →ₗ P :=
-{ add := lift.add hf,
-  smul := lift.smul hf }
+{ to_fun := lift_aux f hf,
+  add := lift_aux.add hf,
+  smul := lift_aux.smul hf }
+variable {f}
 
 @[simp] lemma lift.tmul (x y) :
   lift f hf (x ⊗ₜ y) = f x y :=
-by simp [lift, tmul]
+show lift_aux f hf (x ⊗ₜ y) = _, by simp [lift_aux, tmul]
 
-theorem lift.unique {g : M ⊗ N → P}
-  (hg : is_linear_map g) (H : ∀ x y, g (x ⊗ₜ y) = f x y)
+theorem lift.unique {g : linear_map (M ⊗ N) P} (H : ∀ x y, g (x ⊗ₜ y) = f x y)
   (z : M ⊗ N) : g z = lift f hf z :=
 begin
   apply quotient_add_group.induction_on' z,
   intro z,
   refine @free_abelian_group.lift.unique _ _ _ _ _ ⟨λ p q, _⟩ _ z,
-  { simp [hg.add] },
+  { simp [g.2] },
   exact λ ⟨m, n⟩, H m n
 end
 
@@ -274,21 +276,22 @@ begin
   exact H m n
 end
 
-def lift.equiv : { f : M → N → P // is_bilinear_map f }
+def lift.equiv : { f : M → N → P // is_bilinear_map R f }
   ≃ linear_map (M ⊗ N) P :=
-{ to_fun := λ f, ⟨lift f.1 f.2, lift.linear f.2⟩,
+{ to_fun := λ f, lift f.1 f.2,
   inv_fun := λ f, ⟨λ m n, f (m ⊗ₜ n),
-    is_bilinear_map.comp (bilinear M N) f.2⟩,
+    is_bilinear_map.comp (bilinear M N) f⟩,
   left_inv := λ f, subtype.eq $ funext $ λ x, funext $ λ y,
     lift.tmul f.2 _ _,
-  right_inv := λ f, subtype.eq $ eq.symm $ funext $ λ z,
-    lift.unique _ f.2 (λ x y, rfl) _ }
+  right_inv := λ f, linear_map.ext $ λ z, eq.symm $
+    lift.unique _ (λ x y, rfl) z }
 
 end UMP
 
 protected def id : R ⊗ M ≃ₗ M :=
-{ to_fun := @lift _ _ _ _ _ _ _ _ (λ c x, c • x) $
-    by refine {..}; intros; simp [smul_add, add_smul, smul_smul, mul_comm, mul_left_comm],
+{ to_fun := (tensor_product.lift (λ c x, c • x)
+    ⟨λ m : M, ⟨λ r s : R, by rw add_smul, λ _ _, by rw smul_smul; refl⟩,
+    λ _, ⟨smul_add _, λ _ _, by rw [smul_smul, smul_smul, mul_comm]⟩⟩).1,
   inv_fun := λ x, 1 ⊗ₜ x,
   left_inv := λ z, by refine lift.ext
     (((bilinear R M).linear_right 1).comp $ lift.linear _)

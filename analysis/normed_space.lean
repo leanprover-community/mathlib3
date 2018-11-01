@@ -284,12 +284,12 @@ end normed_field
 
 section normed_space
 
-class normed_space (α : out_param $ Type*) (β : Type*) [out_param $ normed_field α]
+class normed_space (α : out_param $ Type*) (β : Type*) [out_param $ normed_field α] [add_comm_group β]
   extends has_norm β , vector_space α β, metric_space β :=
 (dist_eq   : ∀ x y, dist x y = norm (x - y))
 (norm_smul : ∀ a b, norm (a • b) = has_norm.norm a * norm b)
 
-variables [normed_field α]
+variables [normed_field α] [add_comm_group β]
 
 instance normed_space.to_normed_group [i : normed_space α β] : normed_group β :=
 by refine { add := (+),

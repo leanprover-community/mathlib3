@@ -171,7 +171,7 @@ lemma linear_independent_iff_not_smul_mem_span :
 end, λ H, linear_independent_iff.2 $ λ l ls l0, begin
   ext x, simp,
   by_contra hn,
-  have xs : x ∈ s := ls ((finsupp.mem_support_iff _ _).2 hn),
+  have xs : x ∈ s := ls (finsupp.mem_support_iff.2 hn),
   refine hn (H _ xs _ _),
   refine mem_span_iff_lc.2 ⟨finsupp.single x (l x) - l, _, _⟩,
   { have : finsupp.single x (l x) - l ∈ lc.supported s :=
@@ -410,7 +410,7 @@ end
 lemma exists_linear_independent (hs : linear_independent s) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span b ∧ linear_independent b :=
 begin
-  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent b} _
+  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent b} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
     by_contra hn,

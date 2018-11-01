@@ -26,7 +26,7 @@ namespace finset
 lemma smul_sum [ring γ] [add_comm_group β] [module γ β]
   {s : finset α} {a : γ} {f : α → β} :
   a • (s.sum f) = s.sum (λc, a • f c) :=
-(finset.sum_hom ((•) a) (@smul_zero γ β _ _ _ a) (assume _ _, smul_add)).symm
+(finset.sum_hom ((•) a) (@smul_zero γ β _ _ _ a) (assume _ _, smul_add _ _ _)).symm
 
 end finset
 

@@ -295,7 +295,7 @@ variables {p q : mv_polynomial σ α}
 instance : ring (mv_polynomial σ α) := finsupp.to_ring
 instance : comm_ring (mv_polynomial σ α) := finsupp.to_comm_ring
 instance : has_scalar α (mv_polynomial σ α) := finsupp.to_has_scalar
-instance : module α (mv_polynomial σ α) := finsupp.to_module α
+instance : module α (mv_polynomial σ α) := finsupp.to_module _ α
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring

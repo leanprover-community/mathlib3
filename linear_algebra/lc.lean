@@ -200,7 +200,7 @@ begin
     { simpa [finsupp.single_apply] },
     { intros y hy xy, simp [mt (H _ _ (h₁ hy) xs) xy] },
     { simp {contextual := tt} } },
-  { by_contra h, exact xs (h₁ $ (finsupp.mem_support_iff _ _).2 h) }
+  { by_contra h, exact xs (h₁ $ finsupp.mem_support_iff.2 h) }
 end
 
 theorem map_total (f : β →ₗ γ) :

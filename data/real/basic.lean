@@ -20,6 +20,9 @@ def of_rat (x : ℚ) : ℝ := of_rat x
 
 instance : comm_ring ℝ := cau_seq.completion.comm_ring
 
+section inst
+local attribute [irreducible] real
+
 /- Extra instances to short-circuit type class resolution -/
 instance : ring ℝ               := by apply_instance
 instance : comm_semiring ℝ      := by apply_instance
@@ -37,6 +40,8 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
+
+end inst
 
 theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
@@ -99,6 +104,9 @@ instance : linear_ordered_comm_ring ℝ :=
   add_lt_add_left := λ a b h c, (real.add_lt_add_iff_left c).2 h,
   ..real.comm_ring, ..real.linear_order }
 
+section inst
+local attribute [irreducible] real
+
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
 instance : ordered_ring ℝ               := by apply_instance
@@ -109,15 +117,17 @@ instance : ordered_cancel_comm_monoid ℝ := by apply_instance
 instance : ordered_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
 
+end inst
+
 local attribute [instance] classical.prop_decidable
 
 noncomputable instance : discrete_linear_ordered_field ℝ :=
-{ inv            := has_inv.inv,
-  inv_mul_cancel := @cau_seq.completion.inv_mul_cancel _ _ _ _ _ _,
-  mul_inv_cancel := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
-  inv_zero       := inv_zero,
-  decidable_le   := by apply_instance,
-  ..real.linear_ordered_comm_ring }
+{ decidable_le := by apply_instance
+  ..real.linear_ordered_comm_ring,
+  ..cau_seq.completion.discrete_field }
+
+section inst
+local attribute [irreducible] real
 
 /- Extra instances to short-circuit type class resolution -/
 noncomputable instance : linear_ordered_field ℝ    := by apply_instance
@@ -136,6 +146,8 @@ noncomputable instance : lattice.semilattice_inf ℝ := by apply_instance
 noncomputable instance : lattice.semilattice_sup ℝ := by apply_instance
 noncomputable instance : lattice.has_inf ℝ         := by apply_instance
 noncomputable instance : lattice.has_sup ℝ         := by apply_instance
+
+end inst
 
 open rat
 

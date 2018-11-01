@@ -182,8 +182,8 @@ tendsto_of_uniform_continuous_subtype
     (λ x, id))
   (mem_nhds_sets
     (is_open_prod
-      (real.continuous_abs _ $ is_open_gt' _)
-      (real.continuous_abs _ $ is_open_gt' _))
+      (real.continuous_abs _ $ is_open_gt' (abs a₁ + 1))
+      (real.continuous_abs _ $ is_open_gt' (abs a₂ + 1)))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
 instance : topological_ring ℝ :=

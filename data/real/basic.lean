@@ -254,6 +254,8 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     (lt_of_le_of_lt hy $ sub_lt_iff_lt_add.1 $ hf₂ _ k0 _ yS)
 end
 
+attribute [irreducible] real
+
 noncomputable def Sup (S : set ℝ) : ℝ :=
 if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
 then classical.some (exists_sup S h.1 h.2) else 0

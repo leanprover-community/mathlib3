@@ -93,8 +93,8 @@ tendsto_of_uniform_continuous_subtype
     (λ x, id))
   (mem_nhds_sets
     (is_open_prod
-      (continuous_abs _ $ is_open_gt' _)
-      (continuous_abs _ $ is_open_gt' _))
+      (continuous_abs _ $ is_open_gt' (abs a₁ + 1))
+      (continuous_abs _ $ is_open_gt' (abs a₂ + 1)))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
 lemma uniform_continuous_re : uniform_continuous re :=

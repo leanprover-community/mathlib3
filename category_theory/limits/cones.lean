@@ -68,7 +68,7 @@ begin
   exact eq.symm h
 end
 
-/-- A `c : cocone F` is an object `c.X` and a natural transformation `c.π : F ⟹ c.X` from `F` to the constant `c.X` functor. -/
+/-- A `c : cocone F` is an object `c.X` and a natural transformation `c.ι : F ⟹ c.X` from `F` to the constant `c.X` functor. -/
 structure cocone (F : J ⥤ C) :=
 (X : C)
 (ι : F ⟹ const J C X)

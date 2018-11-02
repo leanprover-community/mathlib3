@@ -59,6 +59,13 @@ section forget
 
 end forget
 
+@[simp] lemma discrete.functor_map_id (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F j) :=
+begin
+  have h : f = 𝟙 j, cases f, cases f, ext,
+  rw h,
+  simp,
+end
+
 namespace functor
 def empty : pempty ⥤ C := by obviously
 

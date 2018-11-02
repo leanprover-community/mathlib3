@@ -77,6 +77,8 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 
 @[simp] lemma I_mul_I : I * I = -1 := rfl
 
+lemma I_ne_zero : (I : ℂ) ≠ 0 := mt (congr_arg im) zero_ne_one.symm
+
 lemma mk_eq_add_mul_I (a b : ℝ) : complex.mk a b = a + b * I :=
 ext_iff.2 $ by simp
 
@@ -259,6 +261,24 @@ by apply rat.eq_cast (λ n, ((n : ℝ) : ℂ)); simp
 
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
 by rw [add_conj]; simp; rw [mul_div_cancel_left (z.re:ℂ) two_ne_zero']
+
+@[simp] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
+by rw [← of_real_nat_cast, of_real_re]
+
+@[simp] lemma nat_cast_im (n : ℕ) : (n : ℂ).im = 0 :=
+by rw [← of_real_nat_cast, of_real_im]
+
+@[simp] lemma int_cast_re (n : ℤ) : (n : ℂ).re = n :=
+by rw [← of_real_int_cast, of_real_re]
+
+@[simp] lemma int_cast_im (n : ℤ) : (n : ℂ).im = 0 :=
+by rw [← of_real_int_cast, of_real_im]
+
+@[simp] lemma rat_cast_re (q : ℚ) : (q : ℂ).re = q :=
+by rw [← of_real_rat_cast, of_real_re]
+
+@[simp] lemma rat_cast_im (q : ℚ) : (q : ℂ).im = 0 :=
+by rw [← of_real_rat_cast, of_real_im]
 
 noncomputable def abs (z : ℂ) : ℝ := (norm_sq z).sqrt
 

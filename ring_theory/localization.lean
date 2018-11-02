@@ -109,25 +109,26 @@ localization.comm_ring α (powers x)
 
 section at_prime
 
-variables (P : set α) [is_prime_ideal P]
+variables (P : ideal α) [hp : ideal.is_prime P]
+include hp
 
 instance prime.is_submonoid :
-  is_submonoid (set.compl P) :=
-{ one_mem := λ h, is_proper_ideal.ne_univ P $ is_submodule.univ_of_one_mem P h,
-  mul_mem := λ x y hnx hny hxy, or.cases_on (is_prime_ideal.mem_or_mem_of_mul_mem hxy) hnx hny }
+  is_submonoid (set.compl ↑P) :=
+{ one_mem := P.ne_top_iff_one.1 hp.1,
+  mul_mem := λ x y hnx hny hxy, or.cases_on (hp.2 hxy) hnx hny }
 
 def at_prime := loc α (set.compl P)
 
 instance at_prime.comm_ring : comm_ring (at_prime P) :=
 localization.comm_ring α (set.compl P)
 
-instance at_prime.local_ring : local_ring (at_prime P) :=
+instance at_prime.local_ring : is_local_ring (at_prime P) :=
 local_of_nonunits_ideal
   (λ hze,
     let ⟨t, hts, ht⟩ := quotient.exact hze in
     hts $ have htz : t = 0, by simpa using ht,
       suffices (0:α) ∈ P, by rwa htz,
-      @is_submodule.zero _ _ _ _ P _)
+      P.zero_mem)
   (λ x y hx hy ⟨z, hz⟩,
     let ⟨⟨r₁, s₁, hs₁⟩, hrs₁⟩ := quotient.exists_rep x,
         ⟨⟨r₂, s₂, hs₂⟩, hrs₂⟩ := quotient.exists_rep y,
@@ -142,20 +143,20 @@ local_of_nonunits_ideal
       from classical.by_contradiction $ λ hnr₂, hy ⟨⟦⟨s₂, r₂, hnr₂⟩⟧,
         by rw ←hrs₂; from (quotient.sound $ r_of_eq $ by simp [mul_comm])⟩,
     have hr₃ : _ ,
-      from or.resolve_right (mem_or_mem_of_mul_eq_zero P ht) hts,
+      from or.resolve_right (hp.mem_or_mem_of_mul_eq_zero ht) hts,
     have h : s₃ * (s₁ * s₂) - r₃ * (s₁ * r₂ + s₂ * r₁) ∈ P,
       by simpa using hr₃,
     have h1 : r₃ * (s₁ * r₂ + s₂ * r₁) ∈ P,
-      from is_submodule.smul r₃ $
-        is_submodule.add (is_submodule.smul s₁ hr₂) (is_submodule.smul s₂ hr₁),
+      from P.smul_mem r₃ $
+        P.add_mem (P.smul_mem s₁ hr₂) (P.smul_mem s₂ hr₁),
     have h2 : s₃ * (s₁ * s₂) ∈ P,
       from calc s₃ * (s₁ * s₂) =
           s₃ * (s₁ * s₂) - r₃ * (s₁ * r₂ + s₂ * r₁) + r₃ * (s₁ * r₂ + s₂ * r₁) :
             eq.symm $ sub_add_cancel _ _
-        ... ∈ P : is_submodule.add h h1,
+        ... ∈ P : P.add_mem h h1,
     have h3 : s₁ * s₂ ∈ P,
-      from or.resolve_left (is_prime_ideal.mem_or_mem_of_mul_mem h2) hs₃,
-    or.cases_on (is_prime_ideal.mem_or_mem_of_mul_mem h3) hs₁ hs₂)
+      from or.resolve_left (hp.mem_or_mem h2) hs₃,
+    or.cases_on (hp.mem_or_mem h3) hs₁ hs₂)
 
 end at_prime
 

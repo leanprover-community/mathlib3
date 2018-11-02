@@ -48,9 +48,9 @@ theorem is_noetherian_iff_well_founded
   have hN' : ∀ {a b}, a ≤ b → N a ≤ N b :=
     λ a b, (le_iff_le_of_strict_mono N (λ _ _, hN.1)).2,
   have : t ⊆ ⋃ i, (N i : set β),
-  { rw [← submodule.Union_set_of_directed _ N _],
+  { rw [← submodule.Union_coe_of_directed _ N _],
     { show t ⊆ M, rw ← h₂,
-      apply subset_span },
+      apply submodule.subset_span },
     { apply_instance },
     { exact λ i j, ⟨max i j,
         hN' (le_max_left _ _),
@@ -60,7 +60,7 @@ theorem is_noetherian_iff_well_founded
   cases h₁ with h₁,
   let A := finset.sup (@finset.univ t h₁) f,
   have : M ≤ N A,
-  { rw ← h₂, apply submodule.span_subset_iff.2,
+  { rw ← h₂, apply submodule.span_le.2,
     exact λ x h, hN' (finset.le_sup (@finset.mem_univ t h₁ _))
       (hf ⟨x, h⟩) },
   exact not_le_of_lt (hN.1 (nat.lt_succ_self A))
@@ -105,12 +105,12 @@ theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group 
   (h : is_noetherian R M) : is_noetherian R N :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  convert order_embedding.well_founded (order_embedding.rsymm (submodule.lt_order_embedding R M N)) h
+  convert order_embedding.well_founded (order_embedding.rsymm (submodule.map_subtype.lt_order_embedding N)) h
 end
 
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M] (N : submodule R M)
-  (h : is_noetherian R M) : is_noetherian R (quotient_module.quotient M N) :=
+  (h : is_noetherian R M) : is_noetherian R N.quotient :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  convert order_embedding.well_founded (order_embedding.rsymm (quotient_module.lt_order_embedding R M N)) h
+  convert order_embedding.well_founded (order_embedding.rsymm (submodule.comap_mkq.lt_order_embedding N)) h
 end

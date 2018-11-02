@@ -188,8 +188,6 @@ else mul_lt_one (lt_of_le_of_ne hbz (ne.symm hb')) (lt_of_le_of_ne ha ha') hb
 
 namespace padic_int
 
-def maximal_ideal (p : ℕ) [p.prime] : set ℤ_[p] := λ z, ∥z∥ < 1
-
 variables {p : ℕ} [nat.prime p]
 
 local attribute [reducible] padic_int
@@ -215,28 +213,23 @@ lemma maximal_ideal_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ <
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
            ... < 1 : mul_lt_one_of_le_of_lt (padic_norm_z.le_one _) (norm_nonneg _) hz2
 
-instance : is_submodule (maximal_ideal p) :=
-{ zero_ := show ∥(0 : ℤ_[p])∥ < 1, by simp [zero_lt_one],
-  add_ := @maximal_ideal_add _ _,
+def maximal_ideal (p : ℕ) [p.prime] : ideal ℤ_[p] :=
+{ carrier := {z | ∥z∥ < 1},
+  zero := show ∥(0 : ℤ_[p])∥ < 1, by simp [zero_lt_one],
+  add := @maximal_ideal_add _ _,
   smul := @maximal_ideal_mul _ _ }
 
-lemma maximal_ideal_ne_univ : maximal_ideal p ≠ set.univ :=
-mt set.eq_univ_iff_forall.mp
-  begin
-    rw [not_forall],
-    existsi (1 : ℤ_[p]),
-    change ¬ (_ < _),
-    apply not_lt_of_ge,
-    simp, apply le_refl
-  end
+lemma maximal_ideal_ne_top : maximal_ideal p ≠ ⊤ :=
+(ideal.ne_top_iff_one _).2 $ assume : ∥(1:ℤ_[p])∥ < 1,
+by rw padic_norm_z.one at this; exact lt_irrefl 1 this
 
-lemma maximal_ideal_eq_nonunits : maximal_ideal p = nonunits _ :=
+lemma maximal_ideal_eq_nonunits : ↑(maximal_ideal p) = nonunits ℤ_[p] :=
 begin
   ext,
   constructor,
   { intros hx hex,
     cases hex with y hy,
-    have hym : ∥(y*x)∥ < 1, from is_submodule.smul _ hx,
+    have hym : ∥(y*x)∥ < 1, from submodule.smul _ _ hx,
     apply lt_irrefl (1 : ℝ),
     rw hy at hym, simpa using hym },
   { intro hx,
@@ -246,10 +239,10 @@ begin
     existsi x.inv, apply inv_mul this }
 end
 
-instance : is_proper_ideal (maximal_ideal p) :=
-{ ne_univ := maximal_ideal_ne_univ }
+/-instance : is_proper_ideal (maximal_ideal p) :=
+{ ne_univ := maximal_ideal_ne_univ }-/
 
-lemma maximal_ideal_eq_or_univ_of_subset (T : set ℤ_[p]) [_inst_2 : is_ideal T]
+/-lemma maximal_ideal_eq_or_univ_of_subset (T : set ℤ_[p]) [_inst_2 : is_ideal T]
       (hss : maximal_ideal p ⊆ T) : T = maximal_ideal p ∨ T = set.univ :=
 have T ≠ maximal_ideal p → T = set.univ, from
   (assume h : T ≠ maximal_ideal p,
@@ -259,21 +252,25 @@ have T ≠ maximal_ideal p → T = set.univ, from
      have hkzt : z*k ∈ T, from is_submodule.smul _ hkt,
      have hkzt' : (inv k)*(z*k) ∈ T, from is_submodule.smul _ hkzt,
      by rw [mul_comm, mul_assoc, mul_inv] at hkzt'; simpa using hkzt'),
-if hT : T = maximal_ideal p then or.inl hT else or.inr (this hT)
+if hT : T = maximal_ideal p then or.inl hT else or.inr (this hT)-/
 
-instance : is_maximal_ideal (maximal_ideal p) :=
-{ eq_or_univ_of_subset := maximal_ideal_eq_or_univ_of_subset }
+instance : ideal.is_maximal (maximal_ideal p) :=
+⟨maximal_ideal_ne_top, λ T h, let ⟨k, hkt, hknm⟩ := set.exists_of_ssubset ⟨h.1, mt ge_of_eq h.2⟩ in
+ideal.eq_top_of_unit_mem _ k (inv k) hkt $ inv_mul $ le_antisymm (padic_norm_z.le_one _) $ le_of_not_lt hknm⟩
 
-lemma maximal_ideal_unique (T : set ℤ_[p]) [_inst_2 : is_maximal_ideal T] : maximal_ideal p = T :=
+/-lemma maximal_ideal_unique (T : set ℤ_[p]) [_inst_2 : is_maximal_ideal T] : maximal_ideal p = T :=
 let htmax := @is_maximal_ideal.eq_or_univ_of_subset _ _ T _ (maximal_ideal p) _ in
 have htsub : T ⊆ maximal_ideal p,
   by rw maximal_ideal_eq_nonunits; apply not_unit_of_mem_proper_ideal,
-or.resolve_right (htmax htsub) maximal_ideal_ne_univ
+or.resolve_right (htmax htsub) maximal_ideal_ne_univ-/
 
-instance : local_ring ℤ_[p] :=
-{ S := maximal_ideal p,
+instance : is_local_ring ℤ_[p] :=
+local_of_nonunits_ideal zero_ne_one $ λ x y,
+by rw [← maximal_ideal_eq_nonunits, submodule.mem_coe];
+exact submodule.add_mem _
+/-{ S := maximal_ideal p,
   max := by apply_instance,
-  unique := maximal_ideal_unique }
+  unique := maximal_ideal_unique }-/
 
 private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[p] norm) :
   cau_seq ℚ_[p] (λ a, ∥a∥) :=

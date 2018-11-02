@@ -246,6 +246,10 @@ variable {f}
   lift f hf (x ⊗ₜ y) = f x y :=
 show lift_aux f hf (x ⊗ₜ y) = _, by simp [lift_aux, tmul]
 
+@[simp] lemma lift.tmul' (x y) :
+  (lift f hf).1 (x ⊗ₜ y) = f x y :=
+lift.tmul hf _ _
+
 theorem lift.unique {g : linear_map (M ⊗ N) P} (H : ∀ x y, g (x ⊗ₜ y) = f x y)
   (z : M ⊗ N) : g z = lift f hf z :=
 begin
@@ -276,6 +280,13 @@ begin
   exact H m n
 end
 
+@[elab_as_eliminator]
+theorem lift.ext' {g h : M ⊗ N → P}
+  (hg : is_linear_map g) (hh : is_linear_map h)
+  (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y))
+  (z : M ⊗ N) : g z = h z :=
+lift.ext hg hh H _
+
 def lift.equiv : { f : M → N → P // is_bilinear_map R f }
   ≃ linear_map (M ⊗ N) P :=
 { to_fun := λ f, lift f.1 f.2,
@@ -289,30 +300,50 @@ def lift.equiv : { f : M → N → P // is_bilinear_map R f }
 end UMP
 
 protected def id : R ⊗ M ≃ₗ M :=
-{ to_fun := (tensor_product.lift (λ c x, c • x)
+linear_equiv.of_linear
+  (tensor_product.lift (λ c x, c • x)
     ⟨λ m : M, ⟨λ r s : R, by rw add_smul, λ _ _, by rw smul_smul; refl⟩,
-    λ _, ⟨smul_add _, λ _ _, by rw [smul_smul, smul_smul, mul_comm]⟩⟩).1,
-  inv_fun := λ x, 1 ⊗ₜ x,
-  left_inv := λ z, by refine lift.ext
-    (((bilinear R M).linear_right 1).comp $ lift.linear _)
-    is_linear_map.id (λ c x, _) z;
-    simp; rw [← smul_tmul, smul_eq_mul, mul_one],
-  right_inv := λ z, by simp,
-  linear_fun := lift.linear _ }
+    λ _, ⟨smul_add _, λ _ _, by rw [smul_smul, smul_smul, mul_comm]⟩⟩)
+  (((bilinear R M).linear_right 1).mk' _)
+  (linear_map.ext $ λ _, by simp)
+  (linear_map.ext $ lift.ext (linear_map.is_linear _) (linear_map.is_linear _)
+    (λ _ _, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one]))
 
 protected def comm : M ⊗ N ≃ₗ N ⊗ M :=
-{ to_fun := lift _ (bilinear N M).comm,
-  inv_fun := lift _ (bilinear M N).comm,
-  left_inv := λ z, by refine lift.ext
-    ((lift.linear _).comp (lift.linear _))
-    is_linear_map.id (λ x y, _) z; simp,
-  right_inv := λ z, by refine lift.ext
-    ((lift.linear _).comp (lift.linear _))
-    is_linear_map.id (λ x y, _) z; simp,
-  linear_fun := lift.linear _ }
+linear_equiv.of_linear (lift _ (bilinear N M).comm) (lift _ (bilinear M N).comm)
+  (linear_map.ext $ lift.ext (linear_map.is_linear _) (linear_map.is_linear _) (λ _ _, rfl))
+  (linear_map.ext $ lift.ext (linear_map.is_linear _) (linear_map.is_linear _) (λ _ _, rfl))
 
 protected def assoc : (M ⊗ N) ⊗ P ≃ₗ M ⊗ (N ⊗ P) :=
-{ to_fun := begin
+begin
+  refine linear_equiv.of_linear _ _ _ _,
+  { refine lift (λ mn p, (lift (λ m n, m ⊗ₜ (n ⊗ₜ p)) _).1 mn) _,
+    { constructor; intros; constructor; intros;
+      simp only [add_tmul, tmul_add, smul_tmul, tmul_smul] },
+    constructor, { intro, apply linear_map.is_linear },
+    intro mn, constructor,
+    { intros p₁ p₂, refine lift.ext (lift _ _).is_linear
+        (@has_add.add _ linear_map.has_add (lift _ _) (lift _ _)).is_linear _ _,
+      intros m n, simp [tmul_add] },
+    { intros c p, refine lift.ext (lift _ _).is_linear
+        (@has_scalar.smul R _ linear_map.has_scalar c (lift _ _)).is_linear _ _,
+      intros m n, simp [tmul_add] } },
+  { refine lift (λ m, (lift (λ n p, (m ⊗ₜ n) ⊗ₜ p) _).1) _,
+    { constructor; intro; constructor; intros;
+      simp only [add_tmul, tmul_add, smul_tmul, tmul_smul] },
+    constructor,
+    { intro np, constructor,
+      { intros m₁ m₂, refine lift.ext (lift _ _).is_linear
+          (@has_add.add _ linear_map.has_add (lift _ _) (lift _ _)).is_linear _ _,
+        intros n p, simp [add_tmul] },
+      { intros c m, refine lift.ext (lift _ _).is_linear
+          (@has_scalar.smul R _ linear_map.has_scalar c (lift _ _)).is_linear _ _,
+        intros m n, simp [smul_tmul, tmul_smul] } },
+    intro, apply linear_map.is_linear },
+  { sorry },
+  { sorry },
+end
+/-{ to_fun := begin
       refine lift (λ mn p, lift (λ m n, m ⊗ₜ (n ⊗ₜ p)) _ mn) _;
       constructor; intros; simp,
       { symmetry,
@@ -356,6 +387,6 @@ protected def assoc : (M ⊗ N) ⊗ P ≃ₗ M ⊗ (N ⊗ P) :=
       (lift.linear _)) ((bilinear _ _).linear_right m) (λ n p, _) np,
     simp
   end,
-  linear_fun := lift.linear _ }
+  linear_fun := lift.linear _ }-/
 
 end tensor_product

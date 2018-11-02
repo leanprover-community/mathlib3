@@ -47,6 +47,11 @@ lemma mem_span_insert' {s : set α} {x y} :
 lemma mem_span_singleton {x y : α} :
   x ∈ span ({y} : set α) ↔ ∃ a, a * y = x := submodule.mem_span_singleton
 
+lemma mem_span_singleton' {x y : α} :
+  x ∈ span ({y} : set α) ↔ y ∣ x :=
+(submodule.mem_span_singleton).trans
+  (exists_congr $ λ _, by rw [eq_comm, mul_comm]; refl)
+
 def comap [comm_ring β] (f : α → β) [is_ring_hom f]
   (I : ideal β) : ideal α :=
 { carrier := f ⁻¹' I,
@@ -202,6 +207,8 @@ def quotient (I : ideal α) := I.quotient
 namespace quotient
 variables {I : ideal α} {x y : α}
 def mk (I : ideal α) (a : α) : I.quotient := submodule.quotient.mk a
+
+protected theorem eq : mk I x = mk I y ↔ x - y ∈ I := submodule.quotient.eq I
 
 instance (I : ideal α) : has_one I.quotient := ⟨mk I 1⟩
 

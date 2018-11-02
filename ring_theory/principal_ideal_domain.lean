@@ -12,37 +12,32 @@ variables {α : Type*}
 open set function ideal
 local attribute [instance] classical.prop_decidable
 
-class is_principal_ideal [comm_ring α] (S : set α) : Prop :=
-(principal : ∃ a : α, S = {x | a ∣ x})
+class is_principal_ideal [comm_ring α] (S : ideal α) : Prop :=
+(principal : ∃ a, S = span {a})
 
 class principal_ideal_domain (α : Type*) extends integral_domain α :=
-(principal : ∀ (S : ideal α), is_principal_ideal (S : set α))
-
+(principal : ∀ (S : ideal α), is_principal_ideal S)
+attribute [instance] principal_ideal_domain.principal
 namespace is_principal_ideal
 variable [comm_ring α]
 
-noncomputable def generator (S : set α) [is_principal_ideal S] : α :=
+noncomputable def generator (S : ideal α) [is_principal_ideal S] : α :=
 classical.some (principal S)
 
-lemma generator_generates (S : set α) [is_principal_ideal S] : {x | generator S ∣ x} = S :=
+lemma span_singleton_generator (S : ideal α) [is_principal_ideal S] : span {generator S} = S :=
 eq.symm (classical.some_spec (principal S))
 
-@[simp] lemma generator_mem (S : set α) [is_principal_ideal S] : generator S ∈ S :=
-by conv {to_rhs, rw ← generator_generates S}; exact dvd_refl _
+@[simp] lemma generator_mem (S : ideal α) [is_principal_ideal S] : generator S ∈ S :=
+by conv {to_rhs, rw ← span_singleton_generator S}; exact subset_span (mem_singleton _)
 
-lemma mem_iff_generator_dvd (S : set α) [is_principal_ideal S] {x : α} : x ∈ S ↔ generator S ∣ x :=
-by conv {to_lhs, rw ← generator_generates S}; refl
+lemma mem_iff_generator_dvd (S : ideal α) [is_principal_ideal S] {x : α} : x ∈ S ↔ generator S ∣ x :=
+by conv {to_lhs, rw ← span_singleton_generator S}; rw mem_span_singleton;
+exact exists_congr (λ _, by rw [eq_comm, mul_comm])
 
-lemma eq_bot_iff_generator_eq_zero (S : set α) [is_principal_ideal S] :
-  S = (⊥ : ideal α) ↔ generator S = 0 :=
+lemma eq_bot_iff_generator_eq_zero (S : ideal α) [is_principal_ideal S] :
+  S = ⊥ ↔ generator S = 0 :=
 ⟨λ h, by rw [← submodule.mem_bot, ← submodule.mem_coe, ← h]; exact generator_mem S,
-  λ h, set.ext $ λ x, by rw [mem_iff_generator_dvd S, h, zero_dvd_iff, submodule.mem_coe, submodule.mem_bot]⟩
-
-def to_ideal (S : set α) [is_principal_ideal S] : ideal α :=
-{ carrier := S,
-  zero := by rw ← generator_generates S; simp,
-  add := λ x y h, by rw ← generator_generates S at *; exact (dvd_add_iff_right h).1,
-  smul := λ c x h, by rw ← generator_generates S at h ⊢; exact dvd_mul_of_dvd_right h _ }
+  λ h, submodule.ext $ λ x, by rw [submodule.mem_bot, mem_iff_generator_dvd, h, zero_dvd_iff]⟩
 
 end is_principal_ideal
 
@@ -55,20 +50,14 @@ is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   assume T x hST hxS hxT,
   haveI := principal_ideal_domain.principal S,
   haveI := principal_ideal_domain.principal T,
-  cases (mem_iff_generator_dvd _).1 (hST ((mem_iff_generator_dvd _).2 (dvd_refl _))) with z hz,
-  cases hpi.2 (show generator ↑T * z ∈ S,
-    by rw [← submodule.mem_coe, mem_iff_generator_dvd ↑S, ← hz]),
-  { have hST' : S = T := submodule.ext' (set.subset.antisymm hST
-      (λ y hyT, (mem_iff_generator_dvd _).2
-        (dvd.trans ((mem_iff_generator_dvd _).1 h) ((mem_iff_generator_dvd _).1 hyT)))),
-    rw hST' at hxS,
-    exact (hxS hxT).elim },
-  { cases (mem_iff_generator_dvd ↑S).1 h with y hy,
-    have : generator ↑S ≠ (0:α) :=
-      mt (submodule.ext' ∘ (eq_bot_iff_generator_eq_zero _).2) hS,
-    rw [← mul_one (generator (↑S : set α)), hy, mul_left_comm,
-      domain.mul_left_inj this] at hz,
-    exact hz.symm ▸ ideal.mul_mem_right _ (generator_mem ↑T) }
+  cases (mem_iff_generator_dvd _).1 (hST $ generator_mem S) with z hz,
+  cases hpi.2 (show generator T * z ∈ S, from hz ▸ generator_mem S),
+  { have hTS : T ≤ S, rwa [← span_singleton_generator T, span_le, singleton_subset_iff],
+    exact (hxS $ hTS hxT).elim },
+  cases (mem_iff_generator_dvd _).1 h with y hy,
+  have : generator S ≠ 0 := mt (eq_bot_iff_generator_eq_zero _).2 hS,
+  rw [← mul_one (generator S), hy, mul_left_comm, domain.mul_left_inj this] at hz,
+  exact hz.symm ▸ ideal.mul_mem_right _ (generator_mem T)
 end⟩
 
 end is_prime
@@ -84,23 +73,23 @@ lemma mod_mem_iff {S : ideal α} {x y : α} (hy : y ∈ S) : x % y ∈ S ↔ x �
 instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α :=
 { principal := λ S, by exactI
     ⟨if h : {x : α | x ∈ S ∧ x ≠ 0} = ∅
-    then ⟨0, set.ext $ λ a, ⟨λ haS, zero_dvd_iff.2 $ by_contradiction $ λ ha0,
-              ((ext_iff _ _).1 h a).1 ⟨haS, ha0⟩,
-            λ h₁, (show a = 0, by simpa using h₁).symm ▸ ideal.zero_mem S⟩⟩
+    then ⟨0, submodule.ext $ λ a, by rw [← submodule.bot_coe, span_eq, submodule.mem_bot]; exact
+      ⟨λ haS, by_contradiction $ λ ha0, eq_empty_iff_forall_not_mem.1 h a ⟨haS, ha0⟩,
+      λ h₁, h₁.symm ▸ S.zero_mem⟩⟩
     else
     have wf : well_founded euclidean_domain.r := euclidean_domain.r_well_founded α,
     have hmin : well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h ∈ S ∧
         well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h ≠ 0,
       from well_founded.min_mem wf {x : α | x ∈ S ∧ x ≠ 0} h,
     ⟨well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h,
-      set.ext $ λ x,
+      submodule.ext $ λ x,
       ⟨λ hx, div_add_mod x (well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h) ▸
-        dvd_add (dvd_mul_right _ _)
-        (have (x % (well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h) ∉ {x : α | x ∈ S ∧ x ≠ 0}),
+        (mem_span_singleton'.2 $ dvd_add (dvd_mul_right _ _) $
+        have (x % (well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h) ∉ {x : α | x ∈ S ∧ x ≠ 0}),
           from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
         have x % well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h = 0, by finish [(mod_mem_iff hmin.1).2 hx],
         by simp *),
-      λ hx, let ⟨y, hy⟩ := hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩⟩ }
+      λ hx, let ⟨y, hy⟩ := mem_span_singleton'.1 hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩⟩ }
 
 end
 
@@ -112,10 +101,7 @@ lemma is_noetherian_ring : is_noetherian_ring α :=
 assume s : ideal α,
 begin
   cases (principal s).principal with a hs,
-  refine ⟨finset.singleton a, submodule.ext' _⟩, rw hs, ext x,
-  change x ∈ span ({a}:set α) ↔ ∃ _, _,
-  rw mem_span_singleton,
-  exact exists_congr (λ _, by rw [eq_comm, mul_comm])
+  refine ⟨finset.singleton a, submodule.ext' _⟩, rw hs, refl
 end
 
 section
@@ -163,25 +149,27 @@ end
 
 end
 
-lemma is_maximal_ideal_of_irreducible {p : α} (hp : irreducible p) :
-  is_maximal (@is_principal_ideal.to_ideal α _ {a | p ∣ a} ⟨⟨p, rfl⟩⟩) :=
-is_maximal_iff.2 ⟨λ ⟨q, hq⟩, hp.1 ⟨units.mk_of_mul_eq_one _ q hq.symm, rfl⟩, begin
+lemma is_maximal_of_irreducible {p : α} (hp : irreducible p) :
+  is_maximal (span ({p} : set α)) :=
+is_maximal_iff.2 ⟨λ h1, let ⟨q, hq⟩ := mem_span_singleton'.1 h1 in
+   hp.1 ⟨units.mk_of_mul_eq_one _ q hq.symm, rfl⟩, begin
   assume T x hT hxp hx,
   cases (principal T).principal with q hq,
-  have := hT (dvd_refl p), rw hq at this,
-  cases this with c hc, rw hc at hp,
-  rw [← submodule.mem_coe, hq] at hx ⊢,
+  have := hT (subset_span (mem_singleton _)), rw hq at this,
+  cases mem_span_singleton'.1 this with c hc, rw hc at hp,
+  rw [hq, mem_span_singleton'] at hx ⊢,
   rcases hp.2 _ _ rfl with ⟨q, rfl⟩ | ⟨c, rfl⟩,
   { exact units.coe_dvd _ _ },
   { cases hx with y hy,
-    exact (hxp ⟨(c⁻¹ : units α) * y, by rwa [hc, ← mul_assoc,
+    exact (hxp $ mem_span_singleton'.2 ⟨(c⁻¹ : units α) * y, by rwa [hc, ← mul_assoc,
       mul_assoc q, ← units.coe_mul, mul_inv_self, units.coe_one, mul_one]⟩).elim }
 end⟩
 
 lemma prime_of_irreducible {p : α} (hp : irreducible p) : prime p :=
-have is_prime {a | p ∣ a}, from
-  @is_maximal_ideal.is_prime_ideal α _ _ (is_maximal_ideal_of_irreducible hp),
-⟨assume h, not_irreducible_zero (show irreducible (0:α), from h ▸ hp), hp.1, this.mem_or_mem_of_mul_mem⟩
+have is_prime (span ({p} : set α)), from
+  @is_maximal.is_prime _ _ _ (is_maximal_of_irreducible hp),
+⟨assume h, @not_irreducible_zero α _ $ h ▸ hp, hp.1, λ _ _,
+by simpa only [mem_span_singleton'.symm] using this.mem_or_mem⟩
 
 lemma associates_prime_of_irreducible : ∀{p : associates α}, irreducible p → p.prime :=
 associates.forall_associated.2 $ assume a,

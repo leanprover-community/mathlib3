@@ -50,7 +50,7 @@ include 𝒞
 
 section forget
 
-def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
+@[simp] def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
 { obj := λ F,
   { obj := F.obj,
     map' := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 _ end },

@@ -29,7 +29,7 @@ end
 
 section
 variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₁) [𝒟 : category.{u₁ v₁} D]
-include 𝒞 𝒟 
+include 𝒞 𝒟
 /--
 `prod.category.uniform C D` is an additional instance specialised so both factors have the same universe levels. This helps typeclass resolution.
 -/
@@ -67,24 +67,35 @@ def swap : (C × D) ⥤ (D × C) :=
   map' := λ _ _ f, (f.2, f.1) }
 
 def symmetry : ((swap C D) ⋙ (swap D C)) ≅ (functor.id (C × D)) :=
-{ hom := { app := λ X, 𝟙 X, 
+{ hom := { app := λ X, 𝟙 X,
            naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end },
-  inv := { app := λ X, 𝟙 X, 
+  inv := { app := λ X, 𝟙 X,
            naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end } }
 
 end prod
 
 section
 variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
-include 𝒞 𝒟 
+include 𝒞 𝒟
 
--- TODO, later this can be defined by uncurrying `functor.id (C ⥤ D)`
-def evaluation : ((C ⥤ D) × C) ⥤ D := 
-{ obj := λ p, p.1 p.2,
-  map' := λ x y f, (x.1.map f.2) ≫ (f.1 y.2),
-  map_comp' := begin 
-                 intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *, 
-                 erw [←nat_trans.vcomp_app, nat_trans.naturality, category.assoc, nat_trans.naturality] 
+@[simp] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
+{ obj := λ X,
+  { obj := λ F, F X,
+    map' := λ F G α, α X, },
+  map' := λ X Y f,
+  { app := λ F, F.map f,
+    naturality' := λ F G α, eq.symm (α.naturality f) },
+  map_comp' := λ X Y Z f g,
+  begin
+    ext, dsimp, rw functor.map_comp,
+  end }
+
+@[simp] def evaluation_uncurried : (C × (C ⥤ D)) ⥤ D :=
+{ obj := λ p, p.2 p.1,
+  map' := λ x y f, (x.2.map f.1) ≫ (f.2 y.1),
+  map_comp' := begin
+                 intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
+                 erw [←nat_trans.vcomp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
                end }
 end
 
@@ -96,8 +107,8 @@ namespace functor
 def prod (F : A ⥤ B) (G : C ⥤ D) : (A × C) ⥤ (B × D) :=
 { obj  := λ X, (F X.1, G X.2),
   map' := λ _ _ f, (F.map f.1, G.map f.2) }
-  
-/- Because of limitations in Lean 3's handling of notations, we do not setup a notation `F × G`. 
+
+/- Because of limitations in Lean 3's handling of notations, we do not setup a notation `F × G`.
    You can use `F.prod G` as a "poor man's infix", or just write `functor.prod F G`. -/
 
 @[simp] lemma prod_obj  (F : A ⥤ B) (G : C ⥤ D) (a : A) (c : C) : (F.prod G) (a, c) = (F a, G c) := rfl

@@ -34,6 +34,10 @@ instance preserves_limits_of_shape_of_preserves_limit (F : C ⥤ D) [preserves_l
   preserves_limits_of_shape J F :=
 { preserves := λ _ _, preserves_limits.preserves F }
 
+-- def preserves_limit.is_limit {F : C ⥤ D} [preserves_limit K F]
+--   {c : cone K} (h : is_limit c) : is_limit (F.map_cone c) :=
+-- preserves_limit.preserves F h
+
 class reflects_limit (K : J ⥤ C) (F : C ⥤ D) :=
 (reflects : Π {c : cone K}, is_limit (F.map_cone c) → is_limit c)
 
@@ -105,8 +109,8 @@ def created_limits (F : C ⥤ D) [creates_limits F] [has_limits.{u₂ v} D] : ha
     exact creates_limit.is_limit (limit.universal_property (G ⋙ F)),
   end }
 
-instance preserves_created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : preserves_limit K F :=
-{ preserves := sorry } -- See second half of Proposition 3.3.3 of Category Theory in Context
+-- instance preserves_created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : preserves_limit K F :=
+-- { preserves := sorry } -- See second half of Proposition 3.3.3 of Category Theory in Context
 
 /-
 Lemma 3.3.5. Any full and faithful functor reflects any limits and colimits that are present

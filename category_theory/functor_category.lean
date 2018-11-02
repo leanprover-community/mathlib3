@@ -25,10 +25,6 @@ instance functor.category :
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, α ⊟ β }
 
-@[simp] def evaluation_at (X : C) : (C ⥤ D) ⥤ D :=
-{ obj := λ F, F X,
-  map' := λ F G α, α X, }
-
 namespace functor.category
 
 section

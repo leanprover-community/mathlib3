@@ -1,5 +1,6 @@
 import category_theory.limits.limits
 import category_theory.limits.preserves
+import category_theory.products
 
 open category_theory
 
@@ -12,7 +13,7 @@ include 𝒞
 
 variables {J K : Type v} [small_category J] [small_category K]
 
-@[simp] def switched (F : J ⥤ (K ⥤ C)) : K ⥤ (J ⥤ C) :=
+def switched (F : J ⥤ (K ⥤ C)) : K ⥤ (J ⥤ C) :=
 { obj := λ k,
   { obj := λ j, (F j) k,
     map' := λ j j' f, (F.map f) k,
@@ -34,6 +35,24 @@ begin
   refl,
 end
 
+def functor_category_limit_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) : cone F :=
+{ X := switched F ⋙ lim,
+  π :=
+  { app := λ j,
+    { app := λ k , limit.π _ j },
+      naturality' := λ j j' f, begin dsimp, simp, ext k, dsimp, erw limit.w, end } }
+
+instance functor_category_has_limits_of_shape [has_limits_of_shape.{u v} J C] : has_limits_of_shape J (K ⥤ C) :=
+{ cone := λ F, functor_category_limit_cone F,
+  is_limit := sorry }
+
+instance evaluation_preserves_limits [has_limits_of_shape.{u v} J C] (k : K) :
+  preserves_limits_of_shape J (evaluation.{v v u v} K C k) :=
+{ preserves := λ F c h,
+  begin
+    sorry
+  end }
+
 @[simp] lemma discrete.functor_map_id (F : discrete K ⥤ C) (k : discrete K) (f : k ⟶ k) : F.map f = 𝟙 (F k) :=
 begin
   have h : f = 𝟙 k, cases f, cases f, ext,
@@ -54,7 +73,7 @@ def product_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ (discrete K ⥤ C)) 
   ((product_cone F).π : Π j : J, _ ⟹ _) j k = limit.π _ _ := rfl
 
 @[simp] def evaluate_product_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ (discrete K ⥤ C)) (k : K) :
-  (evaluation_at (discrete K) C k).map_cone (product_cone F) ≅ limit.cone ((switched F) k) :=
+  (evaluation (discrete K) C k).map_cone (product_cone F) ≅ limit.cone ((switched F) k) :=
 begin
   ext,
   swap,
@@ -81,7 +100,7 @@ instance product_has_limits_of_shape [has_limits_of_shape.{u v} J C] : has_limit
 { cone := λ F, product_cone F,
   is_limit := λ F, product_cone_is_limit F }.
 
-instance [has_limits_of_shape.{u v} J C] (k : K) : preserves_limits_of_shape J (evaluation_at.{v v u v} (discrete K) C k) :=
+instance product_evaluation_preserves_limits [has_limits_of_shape.{u v} J C] (k : K) : preserves_limits_of_shape J (evaluation.{v v u v} (discrete K) C k) :=
 { preserves := λ F c h,
   begin
     /-
@@ -114,9 +133,24 @@ instance : creates_limits (discrete.forget J C) :=
         map' := λ j j' f,
         begin
           -- math goes here. I'm apparently too dumb to work this out.
-          sorry,
+          let cjf : limits.cone ((F ⋙ discrete.forget J C) ⋙ (evaluation (discrete J) C) j') :=
+          { X := c.X j,
+            π :=
+            { app := λ k, c.π k j ≫ (F k).map f,
+              naturality' := λ k k' g,
+              begin
+                dsimp,
+                erw [category.id_comp, category.assoc, nat_trans.naturality, ←category.assoc, cone.functor_w]
+              end }},
+          have w : (c.X) j = cjf.X := rfl,
+          let cj' := (evaluation (discrete J) C j').map_cone c,
+          have w' : cj'.X = (c.X) j' := rfl,
+          refine (eq_to_iso w).hom ≫ _ ≫ (eq_to_iso w').hom,
+          clear w w',
+          have hj' : is_limit cj' := sorry,
+          exact hj'.lift cjf,
         end,
-        map_comp' := sorry,
+        map_comp' := begin sorry end,
         map_id' := sorry
       },
       π := begin sorry end

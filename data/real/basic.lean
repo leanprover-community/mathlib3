@@ -210,8 +210,6 @@ let ⟨M, M0, H⟩ := f.bounded' 0 in
 
 attribute [irreducible] real comm_ring_aux
 
-example : field.to_comm_ring ℝ = real.comm_ring := rfl
-
 noncomputable instance : floor_ring ℝ := archimedean.floor_ring _
 
 theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq abs (λ i, (f i : ℝ)) :=

@@ -19,31 +19,10 @@ def of_rat (x : ℚ) : ℝ := of_rat x
 
 def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
 
-section comm_ring
-
 def comm_ring_aux : comm_ring ℝ := { ..cau_seq.completion.comm_ring }
 
-local attribute [instance] real.comm_ring_aux
-
 instance : comm_ring ℝ :=
-{ mul := (*),
-  add := (+),
-  one := 1,
-  zero := 0,
-  neg := has_neg.neg,
-  mul_assoc := mul_assoc,
-  add_assoc := add_assoc,
-  mul_comm := mul_comm,
-  add_comm := add_comm,
-  zero_add := zero_add,
-  add_left_neg := add_left_neg,
-  add_zero := add_zero,
-  one_mul := one_mul,
-  mul_one := mul_one,
-  left_distrib := mul_add,
-  right_distrib := add_mul }
-
-end comm_ring
+{ ..comm_ring_aux }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : ring ℝ               := by apply_instance

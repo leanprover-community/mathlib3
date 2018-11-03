@@ -11,52 +11,123 @@ import group_theory.free_abelian_group
 import linear_algebra.basic tactic.squeeze
 
 variables (R : Type*) [comm_ring R]
-variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
+variables (M : Type*) (N : Type*) (P : Type*) {Q : Type*}
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
 variables [module R M] [module R N] [module R P] [module R Q]
 include R
 
-structure is_bilinear_map (f : M → N → P) : Prop :=
-(linear_left : ∀ y, is_linear_map (λ x, f x y))
-(linear_right : ∀ x, is_linear_map (λ y, f x y))
-variable {R}
+@[reducible] def bilinear_map := M →ₗ N →ₗ P
+instance bilinear_map.has_coe_to_fun : has_coe_to_fun (bilinear_map R M N P) :=
+linear_map.has_coe_to_fun
 
-namespace is_bilinear_map
+variables {R M N P}
+
+namespace bilinear_map
 variables {M N P Q}
-variables {f : M → N → P} (hf : is_bilinear_map R f)
-include hf
 
-def left (y : N) : M →ₗ P := (hf.linear_left y).mk' _
-def right (x : M) : N →ₗ P := (hf.linear_right x).mk' _
+section mk
+variable (f : M → N → P)
+variable (H1 : ∀ m₁ m₂ n, f (m₁ + m₂) n = f m₁ n + f m₂ n)
+variable (H2 : ∀ c m n, f (c • m) n = c • f m n)
+variable (H3 : ∀ m n₁ n₂, f m (n₁ + n₂) = f m n₁ + f m n₂)
+variable (H4 : ∀ c m n, f m (c • n) = c • f m n)
 
-@[simp] theorem left_apply (x : M) (y : N) : left hf y x = f x y := rfl
-@[simp] theorem right_apply (x : M) (y : N) : right hf x y = f x y := rfl
+def mk : bilinear_map R M N P :=
+⟨λ m, ⟨f m, H3 m, λ c, H4 c m⟩,
+λ m₁ m₂, linear_map.ext $ H1 m₁ m₂,
+λ c m, linear_map.ext $ H2 c m⟩
 
-theorem zero_left (y) : f 0 y = 0 := (left hf y).map_zero
-theorem zero_right (x) : f x 0 = 0 := (right hf x).map_zero
+theorem mk_apply (m : M) (n : N) :
+  bilinear_map.mk f H1 H2 H3 H4 m n = f m n := rfl
 
-theorem neg_left (x y) : f (-x) y = -f x y := (left hf y).map_neg _
-theorem neg_right (x y) : f x (-y) = -f x y := (right hf x).map_neg _
+end mk
 
-theorem add_left (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y := (left hf y).map_add _ _
-theorem add_right (x y₁ y₂) : f x (y₁ + y₂) = f x y₁ + f x y₂ := (right hf x).map_add _ _
+variables (f : bilinear_map R M N P)
 
-theorem smul_left (r x y) : f (r • x) y = r • f x y := (left hf y).map_smul _ _
-theorem smul_right (r x y) : f x (r • y) = r • f x y := (right hf x).map_smul _ _
+theorem ext {f g : bilinear_map R M N P}
+  (H : ∀ m n, f m n = g m n) : f = g :=
+linear_map.ext (λ m, linear_map.ext $ λ n, H m n)
 
-theorem comm : is_bilinear_map R (λ y x, f x y) :=
-{ linear_left := hf.linear_right,
-  linear_right := hf.linear_left }
+def comm : bilinear_map R N M P :=
+mk (λ n m, f m n)
+  (λ n₁ n₂ m, (f m).map_add _ _)
+  (λ c n m, (f m).map_smul _ _)
+  (λ n m₁ m₂, by rw f.map_add; refl)
+  (λ c n m, by rw f.map_smul; refl)
 
-section comp
-variables (g : P →ₗ Q)
+@[simp] theorem comm_apply (m : M) (n : N) : f.comm n m = f m n := rfl
 
-theorem comp : is_bilinear_map R (λ x y, g (f x y)) :=
-{ linear_left := λ y, (g.comp (hf.left y)).is_linear,
-  linear_right := λ x, (g.comp (hf.right x)).is_linear }
-end comp
+theorem comm_inj {f g : bilinear_map R M N P} (H : f.comm = g.comm) : f = g :=
+bilinear_map.ext $ λ m n, show f.comm n m = g.comm n m, by rw H
 
-end is_bilinear_map
+variables (R M N P)
+def comm' : bilinear_map R M N P →ₗ bilinear_map R N M P :=
+⟨comm, λ _ _, rfl, λ _ _, rfl⟩
+variables {R M N P}
+
+set_option class.instance_max_depth 60
+@[simp] theorem comm'_apply (m : M) (n : N) : comm' R M N P f n m = f m n := rfl
+set_option class.instance_max_depth 32
+
+def left (y : N) : M →ₗ P := f.comm y
+def right (x : M) : N →ₗ P := f x
+
+@[simp] theorem left_apply (x : M) (y : N) : f.left y x = f x y := rfl
+@[simp] theorem right_apply (x : M) (y : N) : f.right x y = f x y := rfl
+
+theorem zero_left (y) : f 0 y = 0 := (f.left y).map_zero
+theorem zero_right (x) : f x 0 = 0 := (f.right x).map_zero
+
+theorem neg_left (x y) : f (-x) y = -f x y := (f.left y).map_neg _
+theorem neg_right (x y) : f x (-y) = -f x y := (f.right x).map_neg _
+
+theorem add_left (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y := (f.left y).map_add _ _
+theorem add_right (x y₁ y₂) : f x (y₁ + y₂) = f x y₁ + f x y₂ := (f.right x).map_add _ _
+
+theorem smul_left (r x y) : f (r • x) y = r • f x y := (f.left y).map_smul _ _
+theorem smul_right (r x y) : f x (r • y) = r • f x y := (f.right x).map_smul _ _
+
+def comp₁ (g : Q →ₗ M) : bilinear_map R Q N P :=
+linear_map.comp f g
+
+@[simp] theorem comp₁_apply (g : Q →ₗ M) (q : Q) (n : N) :
+  f.comp₁ g q n = f (g q) n := rfl
+
+def comp₂ (g : Q →ₗ N) : bilinear_map R M Q P :=
+linear_map.comp ⟨λ x, linear_map.comp x g, λ _ _, rfl, λ _ _, rfl⟩ f
+
+@[simp] theorem comp₂_apply (g : Q →ₗ N) (m : M) (q : Q) :
+  f.comp₂ g m q = f m (g q) := rfl
+
+def comp₃ (g : P →ₗ Q) : bilinear_map R M N Q :=
+linear_map.comp ⟨g.comp, λ x y, linear_map.ext $ λ n, g.map_add _ _,
+  λ c x, linear_map.ext $ λ n, g.map_smul _ _⟩ f
+
+@[simp] theorem comp₃_apply (g : P →ₗ Q) (m : M) (n : N) :
+  f.comp₃ g m n = g (f m n) := rfl
+
+variables (R M N P Q)
+def comp₃' : bilinear_map R (bilinear_map R M N P) (P →ₗ Q) (bilinear_map R M N Q) :=
+bilinear_map.mk comp₃ (λ _ _ g, bilinear_map.ext $ λ _ _, g.map_add _ _)
+  (λ _ _ g, bilinear_map.ext $ λ _ _, g.map_smul _ _)
+  (λ f g₁ g₂, bilinear_map.ext $ λ m n, by simp only [comp₃_apply, pi.add_apply]; refl)
+  (λ c f g, bilinear_map.ext $ λ m n, by simp only [comp₃_apply, pi.smul_apply]; refl)
+variables {R M N P Q}
+
+set_option class.instance_max_depth 90
+@[simp] theorem comp₃'_apply (f : bilinear_map R M N P) (g : P →ₗ Q) (m : M) (n : N) :
+  comp₃' R M N P Q f g m n = g (f m n) := rfl
+set_option class.instance_max_depth 32
+
+variables (R M)
+def smul : bilinear_map R R M M :=
+bilinear_map.mk (•) add_smul (λ _ _ _, eq.symm $ smul_smul _ _ _) smul_add
+(λ r s m, by simp only [smul_smul, smul_eq_mul, mul_comm])
+variables {R M}
+
+@[simp] theorem smul_apply (r : R) (m : M) : smul R M r m = r • m := rfl
+
+end bilinear_map
 
 variables (M N)
 
@@ -171,10 +242,17 @@ instance : module R (M ⊗ N) := module.of_core
 @[simp] lemma tmul_smul (r : R) (x : M) (y : N) : x ⊗ₜ (r • y) = r • (x ⊗ₜ y) :=
 (smul_tmul _ _ _).symm
 
-variables (M N)
-theorem bilinear : is_bilinear_map R ((⊗ₜ) : M → N → M ⊗ N) :=
-{ linear_left := λ y, { add := λ _ _, add_tmul _ _ _, smul := λ r x, rfl },
-  linear_right := λ x, { add := tmul_add _, smul := λ _ _, tmul_smul _ _ _ } }
+variables (R M N)
+def mk : bilinear_map R M N (M ⊗ N) :=
+bilinear_map.mk (⊗ₜ) add_tmul (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
+variables {R M N}
+
+@[simp] lemma mk_apply (m : M) (n : N) : mk R M N m n = m ⊗ₜ n := rfl
+
+lemma zero_tmul (n : N) : (0 ⊗ₜ n : M ⊗ N) = 0 := (mk R M N).zero_left _
+lemma tmul_zero (m : M) : (m ⊗ₜ 0 : M ⊗ N) = 0 := (mk R M N).zero_right _
+lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ n) := (mk R M N).neg_left _ _
+lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ n) := (mk R M N).neg_right _ _
 
 end module
 
@@ -189,14 +267,13 @@ protected theorem induction_on
   (Cp : ∀ x y, C x → C y → C (x + y)) : C z :=
 quotient.induction_on z $ λ x, free_abelian_group.induction_on x
   C0 (λ ⟨p, q⟩, C1 p q)
-  (λ ⟨p, q⟩ _, show C (-(p ⊗ₜ q)), by rw ← (bilinear M N).neg_left; from C1 (-p) q)
+  (λ ⟨p, q⟩ _, show C (-(p ⊗ₜ q)), by rw ← neg_tmul; from C1 (-p) q)
   (λ _ _, Cp _ _)
 
 section UMP
 
 variables {M N P Q}
-variables (f : M → N → P) (hf : is_bilinear_map R f)
-include hf
+variables (f : bilinear_map R M N P)
 
 local attribute [instance] free_abelian_group.lift.is_add_group_hom
 /-#check tensor_product.has_scalar
@@ -218,40 +295,38 @@ begin
   refine (is_add_group_hom.mem_ker _).1 (add_group.closure_subset _ hx),
   clear hx x, rintro x (⟨m₁, m₂, n, rfl⟩ | ⟨m, n₁, n₂, rfl⟩ | ⟨q, m, n, rfl⟩);
     simp [is_add_group_hom.mem_ker, -sub_eq_add_neg,
-      hf.add_left, hf.add_right, hf.smul_left, hf.smul_right, sub_self],
+      f.add_left, f.add_right, f.smul_left, f.smul_right, sub_self],
 end
 variable {f}
 
 local attribute [instance] quotient_add_group.left_rel normal_add_subgroup.to_is_add_subgroup
 
-@[simp] lemma lift_aux.add (x y) : lift_aux f hf (x + y) = lift_aux f hf x + lift_aux f hf y :=
-quotient.induction_on₂ x y $ λ m n,
-free_abelian_group.lift.add _ _ _
+@[simp] lemma lift_aux.add (x y) : lift_aux f (x + y) = lift_aux f x + lift_aux f y :=
+quotient.induction_on₂ x y $ λ m n, free_abelian_group.lift.add _ _ _
 
-@[simp] lemma lift_aux.smul (r x) : lift_aux f hf (r • x) = r • lift_aux f hf x :=
+@[simp] lemma lift_aux.smul (r x) : lift_aux f (r • x) = r • lift_aux f x :=
 tensor_product.induction_on _ _ x (smul_zero _).symm
-  (λ p q, by rw [← (bilinear M N).smul_left];
-    simp [lift_aux, tmul, hf.smul_left])
-  (λ p q ih1 ih2, by simp [@smul_add _ _ _ _ _ r p q,
+  (λ p q, by rw [← tmul_smul]; simp [lift_aux, tmul])
+  (λ p q ih1 ih2, by simp [@smul_add _ _ _ _ _ _ p _,
     lift_aux.add, ih1, ih2, smul_add])
 
-variable f
+variable (f)
 def lift : M ⊗ N →ₗ P :=
-{ to_fun := lift_aux f hf,
-  add := lift_aux.add hf,
-  smul := lift_aux.smul hf }
+{ to_fun := lift_aux f,
+  add := lift_aux.add,
+  smul := lift_aux.smul }
 variable {f}
 
 @[simp] lemma lift.tmul (x y) :
-  lift f hf (x ⊗ₜ y) = f x y :=
-show lift_aux f hf (x ⊗ₜ y) = _, by simp [lift_aux, tmul]
+  lift f (x ⊗ₜ y) = f x y :=
+show lift_aux f (x ⊗ₜ y) = _, by simp [lift_aux, tmul]
 
 @[simp] lemma lift.tmul' (x y) :
-  (lift f hf).1 (x ⊗ₜ y) = f x y :=
-lift.tmul hf _ _
+  (lift f).1 (x ⊗ₜ y) = f x y :=
+lift.tmul _ _
 
 theorem lift.unique {g : linear_map (M ⊗ N) P} (H : ∀ x y, g (x ⊗ₜ y) = f x y)
-  (z : M ⊗ N) : g z = lift f hf z :=
+  (z : M ⊗ N) : g z = lift f z :=
 begin
   apply quotient_add_group.induction_on' z,
   intro z,
@@ -260,8 +335,7 @@ begin
   exact λ ⟨m, n⟩, H m n
 end
 
-omit hf
-
+@[elab_as_eliminator]
 theorem lift.ext {g h : M ⊗ N → P}
   (hg : is_linear_map g) (hh : is_linear_map h)
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y))
@@ -280,113 +354,69 @@ begin
   exact H m n
 end
 
-@[elab_as_eliminator]
-theorem lift.ext' {g h : M ⊗ N → P}
-  (hg : is_linear_map g) (hh : is_linear_map h)
-  (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y))
-  (z : M ⊗ N) : g z = h z :=
-lift.ext hg hh H _
+--@[elab_as_eliminator]
+theorem lift.ext' {g h : M ⊗ N →ₗ P}
+  (H : (mk R M N).comp₃ g = (mk R M N).comp₃ h) : g = h :=
+linear_map.ext $ lift.ext g.is_linear h.is_linear $ λ m n,
+show bilinear_map.comp₃ (mk R M N) g m n = bilinear_map.comp₃ (mk R M N) h m n, by rw H
 
-def lift.equiv : { f : M → N → P // is_bilinear_map R f }
-  ≃ linear_map (M ⊗ N) P :=
-{ to_fun := λ f, lift f.1 f.2,
-  inv_fun := λ f, ⟨λ m n, f (m ⊗ₜ n),
-    is_bilinear_map.comp (bilinear M N) f⟩,
-  left_inv := λ f, subtype.eq $ funext $ λ x, funext $ λ y,
-    lift.tmul f.2 _ _,
-  right_inv := λ f, linear_map.ext $ λ z, eq.symm $
-    lift.unique _ (λ x y, rfl) z }
+variables (R M N P)
+def lift.equiv : bilinear_map R M N P ≃ₗ linear_map (M ⊗ N) P :=
+{ to_fun := lift,
+  add := λ f g, lift.ext' $ bilinear_map.ext $ λ m n,
+    by simp only [bilinear_map.comp₃_apply, mk_apply, lift.tmul, linear_map.add_apply]; refl,
+  smul := λ c f, lift.ext' $ bilinear_map.ext $ λ m n,
+    by simp only [bilinear_map.comp₃_apply, mk_apply, lift.tmul, linear_map.smul_apply]; refl,
+  inv_fun := λ f, bilinear_map.comp₃ (mk R M N) f,
+  left_inv := λ f, bilinear_map.ext $ λ m n, lift.tmul m n,
+  right_inv := λ f, lift.ext' $ bilinear_map.ext $ λ m n, lift.tmul m n }
+
+set_option class.instance_max_depth 90
+
+def lift' : bilinear_map R M N P →ₗ linear_map (M ⊗ N) P :=
+lift.equiv R M N P
+
+@[simp] theorem lift'_apply (f : bilinear_map R M N P) :
+  lift' R M N P f = lift f := rfl
+
+def unlift' : linear_map (M ⊗ N) P →ₗ bilinear_map R M N P :=
+(lift.equiv R M N P).symm
+
+@[simp] theorem unlift'_apply (f : linear_map (M ⊗ N) P) (m : M) (n : N) :
+  unlift' R M N P f m n = f (m ⊗ₜ n) := rfl
+
+set_option class.instance_max_depth 32
 
 end UMP
 
 protected def id : R ⊗ M ≃ₗ M :=
-linear_equiv.of_linear
-  (tensor_product.lift (λ c x, c • x)
-    ⟨λ m : M, ⟨λ r s : R, by rw add_smul, λ _ _, by rw smul_smul; refl⟩,
-    λ _, ⟨smul_add _, λ _ _, by rw [smul_smul, smul_smul, mul_comm]⟩⟩)
-  (((bilinear R M).linear_right 1).mk' _)
+linear_equiv.of_linear (lift $ bilinear_map.smul R M) (mk R R M 1)
   (linear_map.ext $ λ _, by simp)
-  (linear_map.ext $ lift.ext (linear_map.is_linear _) (linear_map.is_linear _)
-    (λ _ _, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one]))
+  (lift.ext' $ bilinear_map.ext $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
 
 protected def comm : M ⊗ N ≃ₗ N ⊗ M :=
-linear_equiv.of_linear (lift _ (bilinear N M).comm) (lift _ (bilinear M N).comm)
-  (linear_map.ext $ lift.ext (linear_map.is_linear _) (linear_map.is_linear _) (λ _ _, rfl))
-  (linear_map.ext $ lift.ext (linear_map.is_linear _) (linear_map.is_linear _) (λ _ _, rfl))
+linear_equiv.of_linear (lift (mk R N M).comm) (lift (mk R M N).comm)
+  (lift.ext' $ bilinear_map.ext $ λ m n, by dsimp; refl)
+  (lift.ext' $ bilinear_map.ext $ λ m n, by dsimp; refl)
 
+open linear_map bilinear_map
+set_option class.instance_max_depth 80
 protected def assoc : (M ⊗ N) ⊗ P ≃ₗ M ⊗ (N ⊗ P) :=
-begin
-  refine linear_equiv.of_linear _ _ _ _,
-  { refine lift (λ mn p, (lift (λ m n, m ⊗ₜ (n ⊗ₜ p)) _).1 mn) _,
-    { constructor; intros; constructor; intros;
-      simp only [add_tmul, tmul_add, smul_tmul, tmul_smul] },
-    constructor, { intro, apply linear_map.is_linear },
-    intro mn, constructor,
-    { intros p₁ p₂, refine lift.ext (lift _ _).is_linear
-        (@has_add.add _ linear_map.has_add (lift _ _) (lift _ _)).is_linear _ _,
-      intros m n, simp [tmul_add] },
-    { intros c p, refine lift.ext (lift _ _).is_linear
-        (@has_scalar.smul R _ linear_map.has_scalar c (lift _ _)).is_linear _ _,
-      intros m n, simp [tmul_add] } },
-  { refine lift (λ m, (lift (λ n p, (m ⊗ₜ n) ⊗ₜ p) _).1) _,
-    { constructor; intro; constructor; intros;
-      simp only [add_tmul, tmul_add, smul_tmul, tmul_smul] },
-    constructor,
-    { intro np, constructor,
-      { intros m₁ m₂, refine lift.ext (lift _ _).is_linear
-          (@has_add.add _ linear_map.has_add (lift _ _) (lift _ _)).is_linear _ _,
-        intros n p, simp [add_tmul] },
-      { intros c m, refine lift.ext (lift _ _).is_linear
-          (@has_scalar.smul R _ linear_map.has_scalar c (lift _ _)).is_linear _ _,
-        intros m n, simp [smul_tmul, tmul_smul] } },
-    intro, apply linear_map.is_linear },
-  { sorry },
-  { sorry },
-end
-/-{ to_fun := begin
-      refine lift (λ mn p, lift (λ m n, m ⊗ₜ (n ⊗ₜ p)) _ mn) _;
-      constructor; intros; simp,
-      { symmetry,
-        refine lift.unique _
-          (is_linear_map.map_add (lift.linear _) (lift.linear _)) _ _,
-        intros; simp },
-      { symmetry,
-        refine lift.unique _
-          (is_linear_map.map_smul_right (lift.linear _)) _ _,
-        intros; simp }
-    end,
-  inv_fun := begin
-      refine lift (λ m, lift (λ n p, (m ⊗ₜ n) ⊗ₜ p) _) _;
-      constructor; intros; simp,
-      { symmetry,
-        refine lift.unique _
-          (is_linear_map.map_add (lift.linear _) (lift.linear _)) _ _,
-        intros; simp },
-      { symmetry,
-        refine lift.unique _
-          (is_linear_map.map_smul_right (lift.linear _)) _ _,
-        intros; simp }
-    end,
-  left_inv :=
-  begin
-    intro z,
-    refine lift.ext ((lift.linear _).comp
-      (lift.linear _)) is_linear_map.id (λ mn p, _) z,
-    simp,
-    refine lift.ext ((lift.linear _).comp
-      (lift.linear _)) ((bilinear _ _).linear_left p) (λ m n, _) mn,
-    simp
-  end,
-  right_inv :=
-  begin
-    intro z,
-    refine lift.ext ((lift.linear _).comp
-      (lift.linear _)) is_linear_map.id (λ m np, _) z,
-    simp,
-    refine lift.ext ((lift.linear _).comp
-      (lift.linear _)) ((bilinear _ _).linear_right m) (λ n p, _) np,
-    simp
-  end,
-  linear_fun := lift.linear _ }-/
+linear_equiv.of_linear
+  (lift $ bilinear_map.comm $ linear_map.comp (lift' R M N _) $
+    bilinear_map.comm $ linear_map.comp (bilinear_map.comm' _ _ _ _) $
+    linear_map.comp (unlift' R _ _ _) $
+    (mk R M (N ⊗ P)))
+  (lift $ bilinear_map.comm $ lift $ bilinear_map.comm $
+    linear_map.comp (bilinear_map.comm' _ _ _ _) $
+    linear_map.comp (unlift' R _ _ _)
+    (bilinear_map.comm $ mk R (M ⊗ N) P) )
+  (lift.ext' $ linear_map.ext $ λ m, lift.ext' $ bilinear_map.ext $ λ n p,
+    by repeat { rw lift.tmul <|> rw comp₃_apply <|> rw comm_apply <|> rw comp_apply <|>
+        rw mk_apply <|> rw lift'_apply <|> rw comm'_apply <|> rw unlift'_apply <|> rw id_apply })
+  (lift.ext' $ comm_inj $ linear_map.ext $ λ p, lift.ext' $ bilinear_map.ext $ λ m n,
+    by repeat { rw lift.tmul <|> rw comp₃_apply <|> rw comm_apply <|> rw comp_apply <|>
+        rw mk_apply <|> rw lift'_apply <|> rw comm'_apply <|> rw unlift'_apply <|> rw id_apply })
+set_option class.instance_max_depth 32
 
 end tensor_product

@@ -81,7 +81,7 @@ local attribute [extensionality] quot.sound
 --   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
 --   colimit.pre F E g = sorry := sorry
 -- -- What are you meant to do here? Split into cases depending on whether ∃ j : J, then use choice?
--- @[simp] lemma types_colimit_lift (F : J ⥤ Type u) (c : cocone F) :
+-- @[simp] lemma types_colimit_desc (F : J ⥤ Type u) (c : cocone F) :
 --   colimit.desc F c = λ x, sorry := sorry
 
 open category_theory.limits.walking_cospan

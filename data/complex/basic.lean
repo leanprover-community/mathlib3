@@ -58,16 +58,16 @@ instance : has_add ℂ := ⟨λ z w, ⟨z.re + w.re, z.im + w.im⟩⟩
 
 @[simp] lemma add_re (z w : ℂ) : (z + w).re = z.re + w.re := rfl
 @[simp] lemma add_im (z w : ℂ) : (z + w).im = z.im + w.im := rfl
-@[simp] lemma of_real_add (r s : ℝ) : ((r + s : ℝ) : ℂ) = r + s := rfl
+@[simp] lemma of_real_add (r s : ℝ) : ((r + s : ℝ) : ℂ) = r + s := ext_iff.2 $ by simp
 
-@[simp] lemma of_real_bit0 (r : ℝ) : ((bit0 r : ℝ) : ℂ) = bit0 r := rfl
-@[simp] lemma of_real_bit1 (r : ℝ) : ((bit1 r : ℝ) : ℂ) = bit1 r := rfl
+@[simp] lemma of_real_bit0 (r : ℝ) : ((bit0 r : ℝ) : ℂ) = bit0 r := ext_iff.2 $ by simp [bit0]
+@[simp] lemma of_real_bit1 (r : ℝ) : ((bit1 r : ℝ) : ℂ) = bit1 r := ext_iff.2 $ by simp [bit1]
 
 instance : has_neg ℂ := ⟨λ z, ⟨-z.re, -z.im⟩⟩
 
 @[simp] lemma neg_re (z : ℂ) : (-z).re = -z.re := rfl
 @[simp] lemma neg_im (z : ℂ) : (-z).im = -z.im := rfl
-@[simp] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : ℂ) = -r := rfl
+@[simp] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : ℂ) = -r := ext_iff.2 $ by simp
 
 instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im + z.im * w.re⟩⟩
 
@@ -75,7 +75,7 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 @[simp] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
-@[simp] lemma I_mul_I : I * I = -1 := rfl
+@[simp] lemma I_mul_I : I * I = -1 := ext_iff.2 $ by simp
 
 lemma mk_eq_add_mul_I (a b : ℝ) : complex.mk a b = a + b * I :=
 ext_iff.2 $ by simp
@@ -88,12 +88,12 @@ def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
 
-@[simp] lemma conj_of_real (r : ℝ) : conj r = r := rfl
+@[simp] lemma conj_of_real (r : ℝ) : conj r = r := ext_iff.2 $ by simp [conj]
 
-@[simp] lemma conj_zero : conj 0 = 0 := rfl
-@[simp] lemma conj_one : conj 1 = 1 := rfl
-@[simp] lemma conj_I : conj I = -I := rfl
-@[simp] lemma conj_neg_I : conj (-I) = I := rfl
+@[simp] lemma conj_zero : conj 0 = 0 := ext_iff.2 $ by simp [conj]
+@[simp] lemma conj_one : conj 1 = 1 := ext_iff.2 $ by simp
+@[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
+@[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
 @[simp] lemma conj_add (z w : ℂ) : conj (z + w) = conj z + conj w :=
 ext_iff.2 $ by simp
@@ -125,9 +125,9 @@ def norm_sq (z : ℂ) : ℝ := z.re * z.re + z.im * z.im
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]
 
-@[simp] lemma norm_sq_zero : norm_sq 0 = 0 := rfl
-@[simp] lemma norm_sq_one : norm_sq 1 = 1 := rfl
-@[simp] lemma norm_sq_I : norm_sq I = 1 := rfl
+@[simp] lemma norm_sq_zero : norm_sq 0 = 0 := by simp [norm_sq]
+@[simp] lemma norm_sq_one : norm_sq 1 = 1 := by simp [norm_sq]
+@[simp] lemma norm_sq_I : norm_sq I = 1 := by simp [norm_sq]
 
 lemma norm_sq_nonneg (z : ℂ) : 0 ≤ norm_sq z :=
 add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
@@ -177,7 +177,7 @@ by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..}
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
-@[simp] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : ℂ) = r - s := rfl
+@[simp] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : ℂ) = r - s := ext_iff.2 $ by simp
 @[simp] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : ℂ) = r ^ n :=
 by induction n; simp [*, of_real_mul, pow_succ]
 
@@ -226,7 +226,9 @@ noncomputable instance : discrete_field ℂ :=
 by rw [division_def, of_real_mul, division_def, of_real_inv]
 
 @[simp] theorem of_real_int_cast : ∀ n : ℤ, ((n : ℝ) : ℂ) = n :=
-int.eq_cast (λ n, ((n : ℝ) : ℂ)) rfl (by simp)
+int.eq_cast (λ n, ((n : ℝ) : ℂ))
+  (by rw [int.cast_one, of_real_one])
+  (λ _ _, by rw [int.cast_add, of_real_add])
 
 @[simp] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : ℂ) = n :=
 by rw [← int.cast_coe_nat, of_real_int_cast]; refl

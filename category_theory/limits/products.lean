@@ -121,7 +121,6 @@ pi.lift (λ b, pi.π f b ≫ k b)
   {f : β → C} [has_product f] {g : β → C} [has_product g] (k : Π b, f b ⟶ g b) (b : β) :
   pi.map k ≫ pi.π g b = pi.π f b ≫ k b :=
 by erw is_limit.fac; refl
--- lim_map_π (nat_trans.of_function k) b -- TODO doesn't work
 
 def pi.pre {α} (f : α → C) [has_product.{u v} f] (h : β → α) [has_product.{u v} (f ∘ h)] :
   limits.pi f ⟶ limits.pi (f ∘ h) :=
@@ -135,24 +134,8 @@ section
 variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
 
--- instance (f : β → C) (G : C ⥤ D) [has_product (G.obj ∘ f)] : has_limit (functor.of_function f ⋙ G) :=
--- begin
---   have h : functor.of_function f ⋙ G = functor.of_function (G.obj ∘ f),
---   { tactic.unfreeze_local_instances,
---     cases G,
---     dsimp,
---     dsimp [functor.comp],
---     congr,
---     ext1, ext1, ext1, cases x_2, cases x_2, cases x_2,
---     dsimp,
---     rw G_map_id' },
---   rw h,
---   apply_instance
--- end
-
 def pi.post (f : β → C) [has_product f] (G : C ⥤ D) [has_product (G.obj ∘ f)] :
   G (limits.pi f) ⟶ (limits.pi (G.obj ∘ f)) :=
--- limit.post (functor.of_function f) G -- TODO make this work
 @is_limit.lift _ _ _ _ _ (pi.fan (G.obj ∘ f))
   (pi.universal_property _)
   { X := _,
@@ -200,7 +183,6 @@ variables {D : Type u} [category.{u v} D] [has_products.{u v} D]
 
 @[simp] def pi.lift_post [has_products_of_shape.{u v} C β] {f : β → C} {P : C} (k : Π b : β, P ⟶ f b) (G : C ⥤ D) :
   G.map (pi.lift k) ≫ pi.post f G = pi.lift (λ b, G.map (k b)) :=
--- limit.lift_post (cone.of_function k) G -- TODO make this work?
 begin
   /- `obviously` says -/
   ext1, dsimp, simp,

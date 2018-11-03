@@ -122,6 +122,27 @@ def is_limit.of_lift_universal
 { lift := lift,
   fac'  := λ s j, ((universal s (lift s)).mpr (eq.refl (lift s))) j,
   uniq' := λ s φ, (universal s φ).mp }
+
+def is_limit.equiv (h : is_limit t) (X' : C) : (X' ⟶ t.X) ≅ (functor.const J C X' ⟹ F) :=
+{ hom := λ f, (t.extend f).π,
+  inv := λ π, h.lift { X := X', π := π },
+  hom_inv_id' :=
+  begin
+    tidy, symmetry,
+    apply h.uniq {X := X', π := (limits.cone.extend t x).π} x,
+    tidy,
+  end }
+
+-- @[simp] def limit_cone.of_equiv {X : C} (w : Π X' : C, (X' ⟶ X) ≅ (functor.const J C X' ⟹ F)) : cone F :=
+-- { X := X,
+--   π := (w X).hom (𝟙 X) }
+
+-- def is_limit.of_equiv {X : C} (w : Π X' : C, (X' ⟶ X) ≅ (functor.const J C X' ⟹ F)) :
+--   is_limit (limit_cone.of_equiv w) :=
+-- { lift := λ s, (w s.X).inv s.π,
+--   fac' := begin tidy, end, -- FIXME: err, is this just not true? We need naturality in X'...?
+--   uniq' := sorry }
+
 end limit
 
 class has_limits_of {A : Type v} (Q : A → Diagram.{u v} C) :=
@@ -455,7 +476,6 @@ end
 end
 
 section
--- FIXME don't use has_colimits
 
 def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone.{u v} F
 def colimit (F : J ⥤ C) [has_colimit F] := (colimit.cocone F).X
@@ -632,6 +652,8 @@ begin
   erw is_colimit.fac,
   refl
 end
+
+-- TODO finish converting these; use [has_colimit], not [has_colimits]
 
 -- @[simp] lemma colimit.desc_post {F : J ⥤ C} (c : cocone F) (G : C ⥤ D) :
 --   colimit.post F G ≫ G.map (colimit.desc F c) = colimit.desc (F ⋙ G) (G.map_cocone c) :=

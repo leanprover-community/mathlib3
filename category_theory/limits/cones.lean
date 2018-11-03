@@ -25,8 +25,9 @@ def const : C ⥤ (J ⥤ C) :=
     map' := λ j j' f, 𝟙 X },
   map' := λ X Y f, { app := λ j, f } }
 
-@[simp] lemma const_obj (X : C) (j : J) : ((const J C) X) j = X := rfl
-@[simp] lemma const_map (X : C) {j j' : J} (f : j ⟶ j') : (const J C X).map f = 𝟙 X := rfl
+@[simp] lemma const_obj_obj (X : C) (j : J) : ((const J C) X) j = X := rfl
+@[simp] lemma const_obj_map (X : C) {j j' : J} (f : j ⟶ j') : (const J C X).map f = 𝟙 X := rfl
+@[simp] lemma const_map_app {X Y : C} (f : X ⟶ Y) (j : J) : ((const J C).map f) j = f := rfl
 
 variables {J}
 
@@ -85,7 +86,7 @@ end
 variable {F : J ⥤ C}
 
 namespace cone
-def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
+@[simp] def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
 { X := X,
   π := ((const J C).map f) ⊟ c.π }
 

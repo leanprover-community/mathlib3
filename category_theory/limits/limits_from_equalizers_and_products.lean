@@ -40,9 +40,9 @@ def limits_from_equalizers_and_products [has_products.{u₁ v₁} C] [has_equali
   end,
   is_limit := λ J 𝒥 F,
   begin resetI, exact
-    { lift := λ c, equalizer.lift (pi.lift (λ j : J, c.π j))
+    { lift := λ c, equalizer.lift _ _ (pi.lift (λ j : J, begin have r := c.π j, dsimp at r, exact r end))
         begin ext1, simp, rw ←category.assoc, simp, end,
-      fac' := λ s j, begin rw ←category.assoc, simp, end }
+      fac' := λ s j, begin dsimp, rw ←category.assoc, simp, end }
   end
 }
 

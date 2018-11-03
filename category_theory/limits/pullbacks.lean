@@ -92,6 +92,12 @@ end
 def pullback.universal_property : is_pullback (pullback.square f g) :=
 has_pullbacks.is_pullback.{u v} C f g
 
+-- TODO
+-- pullback.lift
+-- pullback.lift_π₁
+-- pullback.lift_π₂
+-- pullback.hom_ext
+
 end
 
 end category_theory.limits

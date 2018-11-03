@@ -47,19 +47,18 @@ def of_iso (f : r ≃o s) : r ≼i s :=
 @[refl] protected def refl (r : α → α → Prop) : r ≼i r :=
 ⟨order_embedding.refl _, λ a b h, ⟨_, rfl⟩⟩
 
-@[trans] protected def trans : r ≼i s → s ≼i t → r ≼i t
-| ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ := ⟨f₁.trans f₂, λ a c h, begin
+@[trans] protected def trans (f : r ≼i s) (g : s ≼i t) : r ≼i t :=
+⟨f.1.trans g.1, λ a c h, begin
   simp at h ⊢,
-  rcases o₂ _ _ h with ⟨b, rfl⟩, have h := f₂.ord'.2 h,
-  rcases o₁ _ _ h with ⟨a', rfl⟩, exact ⟨a', rfl⟩
+  rcases g.2 _ _ h with ⟨b, rfl⟩, have h := g.1.ord'.2 h,
+  rcases f.2 _ _ h with ⟨a', rfl⟩, exact ⟨a', rfl⟩
 end⟩
 
 @[simp] theorem of_iso_apply (f : r ≃o s) (x : α) : of_iso f x = f x := rfl
 
 @[simp] theorem refl_apply (x : α) : initial_seg.refl r x = x := rfl
 
-@[simp] theorem trans_apply : ∀ (f : r ≼i s) (g : s ≼i t) (a : α), (f.trans g) a = g (f a)
-| ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ a := order_embedding.trans_apply _ _ _
+@[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : (f.trans g) a = g (f a) := rfl
 
 theorem unique_of_extensional [is_extensional β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=

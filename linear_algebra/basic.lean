@@ -178,6 +178,11 @@ instance : module α (β →ₗ γ) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
+def congr_right (f : γ →ₗ δ) : (β →ₗ γ) →ₗ (β →ₗ δ) :=
+⟨linear_map.comp f,
+λ _ _, linear_map.ext $ λ _, f.2 _ _,
+λ _ _, linear_map.ext $ λ _, f.3 _ _⟩
+
 end comm_ring
 end linear_map
 
@@ -886,6 +891,7 @@ end
 infix ` ≃ₗ ` := linear_equiv
 
 namespace linear_equiv
+section ring
 variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
 include α
@@ -904,6 +910,11 @@ def trans (e₁ : β ≃ₗ γ) (e₂ : γ ≃ₗ δ) : β ≃ₗ δ :=
   .. e₁.to_equiv.trans e₂.to_equiv }
 
 instance : has_coe (β ≃ₗ γ) (β →ₗ γ) := ⟨to_linear_map⟩
+
+@[simp] theorem apply_symm_apply (e : β ≃ₗ γ) (c : γ) : e (e.symm c) = c := e.6 c
+@[simp] theorem symm_apply_apply (e : β ≃ₗ γ) (b : β) : e.symm (e b) = b := e.5 b
+
+@[simp] theorem coe_apply (e : β ≃ₗ γ) (b : β) : (e : β →ₗ γ) b = e b := rfl
 
 noncomputable def of_bijective
   (f : β →ₗ γ) (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : β ≃ₗ γ :=
@@ -943,6 +954,22 @@ def of_top (p : submodule α β) (h : p = ⊤) : p ≃ₗ β :=
 
 @[simp] theorem of_top_symm_apply (p : submodule α β) {h} (x : β) :
   ↑((of_top p h).symm x) = x := rfl
+
+end ring
+
+section comm_ring
+variables [comm_ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
+variables [module α β] [module α γ] [module α δ]
+include α
+
+def congr_right (f : γ ≃ₗ δ) : (β →ₗ γ) ≃ₗ (β →ₗ δ) :=
+of_linear
+  f.to_linear_map.congr_right
+  f.symm.to_linear_map.congr_right
+  (linear_map.ext $ λ _, linear_map.ext $ λ _, f.6 _)
+  (linear_map.ext $ λ _, linear_map.ext $ λ _, f.5 _)
+
+end comm_ring
 
 end linear_equiv
 

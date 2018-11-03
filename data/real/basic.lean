@@ -11,17 +11,39 @@ import order.conditionally_complete_lattice data.real.cau_seq_completion
 
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
-local attribute [reducible] real
 
 namespace real
 open cau_seq cau_seq.completion
 
 def of_rat (x : ℚ) : ℝ := of_rat x
 
-instance : comm_ring ℝ := cau_seq.completion.comm_ring
+def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
 
-section inst
-local attribute [irreducible] real
+section comm_ring
+
+def comm_ring_aux : comm_ring ℝ := { ..cau_seq.completion.comm_ring }
+
+local attribute [instance] real.comm_ring_aux
+
+instance : comm_ring ℝ :=
+{ mul := (*),
+  add := (+),
+  one := 1,
+  zero := 0,
+  neg := has_neg.neg,
+  mul_assoc := mul_assoc,
+  add_assoc := add_assoc,
+  mul_comm := mul_comm,
+  add_comm := add_comm,
+  zero_add := zero_add,
+  add_left_neg := add_left_neg,
+  add_zero := add_zero,
+  one_mul := one_mul,
+  mul_one := mul_one,
+  left_distrib := mul_add,
+  right_distrib := add_mul }
+
+end comm_ring
 
 /- Extra instances to short-circuit type class resolution -/
 instance : ring ℝ               := by apply_instance
@@ -41,8 +63,6 @@ instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
 
-end inst
-
 theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
 
@@ -53,6 +73,12 @@ instance : has_lt ℝ :=
    λ h, lt_of_eq_of_lt hf (lt_of_lt_of_eq h (setoid.symm hg))⟩⟩
 
 @[simp] theorem mk_lt {f g : cau_seq ℚ abs} : mk f < mk g ↔ f < g := iff.rfl
+
+theorem mk_eq {f g : cau_seq ℚ abs} : mk f = mk g ↔ f ≈ g := mk_eq
+
+theorem quotient_mk_eq_mk (f : cau_seq ℚ abs) : ⟦f⟧ = mk f := rfl
+
+theorem mk_eq_mk {f : cau_seq ℚ abs} : cau_seq.completion.mk f = mk f := rfl
 
 @[simp] theorem mk_pos {f : cau_seq ℚ abs} : 0 < mk f ↔ pos f :=
 iff_of_eq (congr_arg pos (sub_zero f))
@@ -71,13 +97,13 @@ instance : linear_order ℝ :=
 { le := (≤), lt := (<),
   le_refl := λ a, or.inr rfl,
   le_trans := λ a b c, quotient.induction_on₃ a b c $
-    λ f g h, by simpa using le_trans,
+    λ f g h, by simpa [quotient_mk_eq_mk] using le_trans,
   lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa using lt_iff_le_not_le,
+    λ f g, by simpa [quotient_mk_eq_mk] using lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [mk_eq] using @cau_seq.le_antisymm _ _ f g,
+    λ f g, by simpa [mk_eq, quotient_mk_eq_mk] using @cau_seq.le_antisymm _ _ f g,
   le_total := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa using le_total f g }
+    λ f g, by simpa [quotient_mk_eq_mk] using le_total f g }
 
 instance : partial_order ℝ := by apply_instance
 instance : preorder ℝ      := by apply_instance
@@ -87,7 +113,9 @@ theorem of_rat_lt {x y : ℚ} : of_rat x < of_rat y ↔ x < y := const_lt
 protected theorem zero_lt_one : (0 : ℝ) < 1 := of_rat_lt.2 zero_lt_one
 
 protected theorem mul_pos {a b : ℝ} : 0 < a → 0 < b → 0 < a * b :=
-quotient.induction_on₂ a b $ λ f g, by simpa using cau_seq.mul_pos
+quotient.induction_on₂ a b $ λ f g,
+  show pos (f - 0) → pos (g - 0) → pos (f * g - 0),
+  by simpa using cau_seq.mul_pos
 
 instance : linear_ordered_comm_ring ℝ :=
 { add_le_add_left := λ a b h c,
@@ -104,9 +132,6 @@ instance : linear_ordered_comm_ring ℝ :=
   add_lt_add_left := λ a b h c, (real.add_lt_add_iff_left c).2 h,
   ..real.comm_ring, ..real.linear_order }
 
-section inst
-local attribute [irreducible] real
-
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
 instance : ordered_ring ℝ               := by apply_instance
@@ -117,24 +142,21 @@ instance : ordered_cancel_comm_monoid ℝ := by apply_instance
 instance : ordered_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
 
-end inst
-
 local attribute [instance] classical.prop_decidable
 
 noncomputable instance : discrete_linear_ordered_field ℝ :=
-{ decidable_le := by apply_instance
+{ decidable_le := by apply_instance,
   ..real.linear_ordered_comm_ring,
+  ..real.domain,
   ..cau_seq.completion.discrete_field }
 
-section inst
-local attribute [irreducible] real
-
 /- Extra instances to short-circuit type class resolution -/
+
 noncomputable instance : linear_ordered_field ℝ    := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
-noncomputable instance real.discrete_field : discrete_field ℝ          := by apply_instance
+noncomputable instance discrete_field : discrete_field ℝ := by apply_instance
 noncomputable instance : field ℝ                   := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
@@ -146,8 +168,6 @@ noncomputable instance : lattice.semilattice_inf ℝ := by apply_instance
 noncomputable instance : lattice.semilattice_sup ℝ := by apply_instance
 noncomputable instance : lattice.has_inf ℝ         := by apply_instance
 noncomputable instance : lattice.has_sup ℝ         := by apply_instance
-
-end inst
 
 open rat
 
@@ -171,7 +191,7 @@ end
 
 theorem mk_le_of_forall_le {f : cau_seq ℚ abs} {x : ℝ} :
   (∃ i, ∀ j ≥ i, (f j : ℝ) ≤ x) → mk f ≤ x
-| ⟨i, H⟩ := by rw [← neg_le_neg_iff, mk_neg]; exact
+| ⟨i, H⟩ := by rw [← neg_le_neg_iff, ← mk_eq_mk, mk_neg]; exact
   le_mk_of_forall_le ⟨i, λ j ij, by simp [H _ ij]⟩
 
 theorem mk_near_of_forall_near {f : cau_seq ℚ abs} {x : ℝ} {ε : ℝ}
@@ -188,6 +208,10 @@ let ⟨M, M0, H⟩ := f.bounded' 0 in
 ⟨M, mk_le_of_forall_le ⟨0, λ i _,
   rat.cast_le.2 $ le_of_lt (abs_lt.1 (H i)).2⟩⟩
 
+attribute [irreducible] real comm_ring_aux
+
+example : field.to_comm_ring ℝ = real.comm_ring := rfl
+
 noncomputable instance : floor_ring ℝ := archimedean.floor_ring _
 
 theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq abs (λ i, (f i : ℝ)) :=
@@ -200,7 +224,7 @@ theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq 
 
 theorem of_near (f : ℕ → ℚ) (x : ℝ)
   (h : ∀ ε > 0, ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) < ε) :
-  ∃ h', cau_seq.completion.mk ⟨f, h'⟩ = x :=
+  ∃ h', real.mk ⟨f, h'⟩ = x :=
 ⟨is_cau_seq_iff_lift.2 (of_near _ (const abs x) h),
  sub_eq_zero.1 $ abs_eq_zero.1 $
   eq_of_le_of_forall_le_of_dense (abs_nonneg _) $ λ ε ε0,
@@ -266,8 +290,6 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
   simpa using sub_lt_iff_lt_add'.2
     (lt_of_le_of_lt hy $ sub_lt_iff_lt_add.1 $ hf₂ _ k0 _ yS)
 end
-
-attribute [irreducible] real
 
 noncomputable def Sup (S : set ℝ) : ℝ :=
 if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)

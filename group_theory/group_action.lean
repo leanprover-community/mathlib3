@@ -52,7 +52,7 @@ lemma mem_fixed_points' {f : α → β → β} [is_monoid_action f] {a : β} : a
 
 end is_monoid_action
 
-class is_group_action [group α] (f : α → β → β) extends is_monoid_action f
+class is_group_action [group α] (f : α → β → β) extends is_monoid_action f : Prop
 
 namespace is_group_action
 variables [group α] (f : α → β → β) [is_group_action f]
@@ -91,6 +91,8 @@ def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit f b,
   iseqv := ⟨mem_orbit_self f, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
+
+open quotient_group
 
 noncomputable def orbit_equiv_quotient_stabilizer (a : β) :
   orbit f a ≃ quotient (stabilizer f a) :=

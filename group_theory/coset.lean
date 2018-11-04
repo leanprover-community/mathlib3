@@ -193,10 +193,16 @@ attribute [to_additive quotient_add_group.inhabited.equations._eqn_1] inhabited.
 protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
 
+@[to_additive quotient_add_group.eq_class_eq_left_coset]
+lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) :
+  {x : α | (x : quotient s) = g} = left_coset g s :=
+set.ext $ λ z, by rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq]
+
 end quotient_group
 
 namespace is_subgroup
 open quotient_group
+variables [group α] {s : set α}
 
 def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
 ⟨λ x, ⟨g⁻¹ * x.1, (mem_left_coset_iff _).1 x.2⟩,
@@ -233,10 +239,10 @@ attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup._
 attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup] group_equiv_quotient_times_subgroup
 attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup.equations._eqn_1] group_equiv_quotient_times_subgroup.equations._eqn_1
 
-noncomputable lemma preimage_left_cosets_mk_equiv_subgroup_times_set
-  (s : set α) [is_subgroup s] (t : set (left_cosets s)) : left_cosets.mk ⁻¹' t ≃ (s × t) :=
-have h : ∀ {x : left_cosets s} {a : α}, x ∈ t → a ∈ s →
-  (quotient.mk' (quotient.out' x * a) : left_cosets s) = quotient.mk' (quotient.out' x) :=
+noncomputable def preimage_mk_equiv_subgroup_times_set
+  (s : set α) [is_subgroup s] (t : set (quotient s)) : quotient_group.mk ⁻¹' t ≃ (s × t) :=
+have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →
+  (quotient.mk' (quotient.out' x * a) : quotient s) = quotient.mk' (quotient.out' x) :=
     λ x a hx ha, quotient.sound' (show (quotient.out' x * a)⁻¹ * quotient.out' x ∈ s,
       from (is_subgroup.inv_mem_iff _).1 $
         by rwa [mul_inv_rev, inv_inv, ← mul_assoc, inv_mul_self, one_mul]),
@@ -245,59 +251,7 @@ have h : ∀ {x : left_cosets s} {a : α}, x ∈ t → a ∈ s →
       ⟨quotient.mk' a, ha⟩⟩,
   inv_fun := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, ⟨quotient.out' x * a, show quotient.mk' _ ∈ t,
     by simp [h hx ha, hx]⟩,
-  left_inv := λ ⟨a, ha⟩, by simp,
-  right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, by simp [h hx ha] }
+  left_inv := λ ⟨a, ha⟩, subtype.eq $ show _ * _ = a, by simp,
+  right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, show (_, _) = _, by simp [h hx ha] }
 
 end is_subgroup
-
-namespace left_cosets
-
-instance [group α] (s : set α) [normal_subgroup s] : group (left_cosets s) :=
-{ one := (1 : α),
-  mul := λ a b, quotient.lift_on₂' a b
-    (λ a b, ((a * b : α) : left_cosets s))
-  (λ a₁ a₂ b₁ b₂ hab₁ hab₂,
-      quot.sound
-    ((is_subgroup.mul_mem_cancel_left s (is_subgroup.inv_mem hab₂)).1
-        (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
-          mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
-          exact normal_subgroup.normal _ hab₁ _))),
-  mul_assoc := λ a b c, quotient.induction_on₃' a b c
-    (λ a b c, congr_arg mk (mul_assoc a b c)),
-  one_mul := λ a, quotient.induction_on' a
-    (λ a, congr_arg mk (one_mul a)),
-  mul_one := λ a, quotient.induction_on' a
-    (λ a, congr_arg mk (mul_one a)),
-  inv := λ a, quotient.lift_on' a (λ a, ((a⁻¹ : α) : left_cosets s))
-    (λ a b hab, quotient.sound' begin
-      show a⁻¹⁻¹ * b⁻¹ ∈ s,
-      rw ← mul_inv_rev,
-      exact is_subgroup.inv_mem (is_subgroup.mem_norm_comm hab)
-    end),
-  mul_left_inv := λ a, quotient.induction_on' a
-    (λ a, congr_arg mk (mul_left_inv a)) }
-
-instance [group α] (s : set α) [normal_subgroup s] :
-  is_group_hom (mk : α → left_cosets s) := ⟨λ _ _, rfl⟩
-
-instance [comm_group α] (s : set α) [normal_subgroup s] : comm_group (left_cosets s) :=
-{ mul_comm := λ a b, quotient.induction_on₂' a b
-    (λ a b, congr_arg mk (mul_comm a b)),
-  ..left_cosets.group s }
-
-@[simp] lemma coe_one [group α] (s : set α) [normal_subgroup s] :
-  ((1 : α) : left_cosets s) = 1 := rfl
-
-@[simp] lemma coe_mul [group α] (s : set α) [normal_subgroup s] (a b : α) :
-  ((a * b : α) : left_cosets s) = a * b := rfl
-
-@[simp] lemma coe_inv [group α] (s : set α) [normal_subgroup s] (a : α) :
-  ((a⁻¹ : α) : left_cosets s) = a⁻¹ := rfl
-
-@[simp] lemma coe_pow [group α] (s : set α) [normal_subgroup s] (a : α) (n : ℕ) :
-  ((a ^ n : α) : left_cosets s) = a ^ n := @is_group_hom.pow _ _ _ _ mk _ a n
-
-@[simp] lemma coe_gpow [group α] (s : set α) [normal_subgroup s] (a : α) (n : ℤ) :
-  ((a ^ n : α) : left_cosets s) = a ^ n := @is_group_hom.gpow _ _ _ _ mk _ a n
-
-end left_cosets

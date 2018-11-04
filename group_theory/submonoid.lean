@@ -118,15 +118,22 @@ attribute [to_additive subtype.add_monoid] subtype.monoid
 
 namespace is_submonoid
 
-@[to_additive is_add_submonoid.coe_zero, simp]
+@[simp, to_additive is_add_submonoid.coe_zero]
 lemma coe_one (s : set α) [is_submonoid s] : ((1 : s) : α) = 1 := rfl
 
-@[to_additive is_add_submonoid.coe_add, simp]
+@[simp, to_additive is_add_submonoid.coe_add]
 lemma coe_add {s : set α} [is_submonoid s] (a b : s) : ((a * b : s) : α) = a * b := rfl
 
-attribute [simp] is_add_submonoid.coe_zero is_add_submonoid.coe_add
+@[simp] lemma coe_pow {s : set α} [is_submonoid s] (a : s) (n : ℕ) : ((a ^ n : s) : α) = a ^ n :=
+by induction n; simp [*, pow_succ]
 
 end is_submonoid
+
+@[simp] lemma is_add_submonoid.coe_smul {s : set β} [is_add_submonoid s] (a : s) (n : ℕ) :
+  ((add_monoid.smul n a : s) : β) = add_monoid.smul n a :=
+by induction n; simp [*, succ_smul]
+
+attribute [to_additive is_add_submonoid.coe_smul] is_submonoid.coe_pow
 
 namespace monoid
 

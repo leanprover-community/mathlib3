@@ -1,5 +1,5 @@
-import group_theory.order_of_element data.zmod algebra.pi_instances group_theory.group_action
-
+import group_theory.order_of_element data.zmod.basic algebra.pi_instances group_theory.group_action
+#exit
 open equiv fintype finset is_group_action is_monoid_action function equiv.perm is_subgroup list
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
@@ -161,6 +161,7 @@ by haveI : nonempty G := ⟨1⟩; exact
 rotate_eq_self_iff_eq_repeat.2 ⟨(1 : G),
   show list.repeat (1 : G) n = list.repeat 1 (list.repeat (1 : G) n).length, by simp⟩ _
 
+/-- Cauchy's theorem -/
 lemma exists_prime_order_of_dvd_card [fintype G] {p : ℕ} (hp : nat.prime p)
   (hdvd : p ∣ card G) : ∃ x : G, order_of x = p :=
 let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.gt_one⟩ in

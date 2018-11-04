@@ -46,7 +46,7 @@ begin
         nat.cast_zero, ← ne.def],
       exact eq.mpr (by simp only [quotient.eq']; congr) hb },
     have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (nat.pow_dvd_pow p) hb'))),
-    refine ⟨⟨b, mem_fixed_points_iff_card_orbit.2 $ by rw [hk, this, nat.pow_zero]⟩, mem_univ _,
+    refine ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, nat.pow_zero]⟩, mem_univ _,
       by simp [zero_ne_one], rfl⟩ }
 end
 ... = _ : by simp; refl
@@ -57,7 +57,7 @@ lemma quotient_group.card_preimage_mk [fintype G] (s : set G) [is_subgroup s]
   (t : set (quotient s)) : fintype.card (quotient_group.mk ⁻¹' t) =
   fintype.card s * fintype.card t :=
 by rw [← fintype.card_prod, fintype.card_congr
-  (is_subgroup.preimage_mk_equiv_subgroup_times_set _ _)]
+  (preimage_mk_equiv_subgroup_times_set _ _)]
 
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v

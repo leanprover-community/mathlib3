@@ -145,24 +145,25 @@ nat_iso.of_components (is_limit.equiv h) (by tidy)
 { X := X,
   π := (w X).hom (𝟙 X) }
 
--- def is_limit.of_natural_equiv
---   (w : yoneda C t.X ≅ (functor.const (Jᵒᵖ) (Cᵒᵖ)) ⋙ (functor.op_inv _ _) ⋙ ((yoneda (J ⥤ C)).obj F)) :
---   is_limit t :=
--- { lift := λ s, (w s.X).inv s.π,
---   fac' :=
---   begin
---     tidy,
---     have h := w.inv.naturality _,
---     dsimp at h,
---     have h' := congr_fun h _,
---     dsimp at h',
---     sorry,
---     sorry,
---     sorry,
---     sorry,
---     sorry
---   end,
---   uniq' := sorry }
+def is_limit.of_natural_equiv
+  (X : C)
+  (w : yoneda C X ≅ (functor.const (Jᵒᵖ) (Cᵒᵖ)) ⋙ (functor.op_inv _ _) ⋙ ((yoneda (J ⥤ C)).obj F)) :
+  is_limit (cone.of_equiv w) :=
+{ lift := λ s, (w s.X).inv s.π,
+  fac' :=
+  begin
+    tidy,
+    have h := w.inv.naturality _,
+    dsimp at h,
+    have h' := congr_fun h _,
+    dsimp at h',
+    sorry,
+    sorry,
+    sorry,
+    sorry,
+    sorry
+  end,
+  uniq' := sorry }
 
 -- TODO define `representable`, and then `has_limit.of_representable`
 

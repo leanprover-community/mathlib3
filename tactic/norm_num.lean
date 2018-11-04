@@ -54,6 +54,9 @@ open tactic
 namespace norm_num
 variable {α : Type u}
 
+lemma subst_into_neg {α} [has_neg α] (a ta t : α) (pra : a = ta) (prt : -ta = t) : -a = t :=
+by simp [pra, prt]
+
 theorem bit0_zero [add_group α] : bit0 (0 : α) = 0 := add_zero _
 
 theorem bit1_zero [add_group α] [has_one α] : bit1 (0 : α) = 1 :=
@@ -487,9 +490,8 @@ do ns ← loc.get_locals,
   `+` `-` `*` `/` `^` `<` `≤` over ordered fields (or other
   appropriate classes), as well as `-` `/` `%` over `ℤ` and `ℕ`. -/
 meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
-let t := orelse' (norm_num1 l) $
-  simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l in
-t >> repeat t
+repeat1 $ orelse' (norm_num1 l) $
+simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l
 
 meta def apply_normed (x : parse texpr) : tactic unit :=
 do x₁ ← to_expr x,

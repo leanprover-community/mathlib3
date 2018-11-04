@@ -7,6 +7,16 @@ Quotients -- extends the core library
 -/
 variables {α : Sort*} {β : Sort*}
 
+namespace setoid
+
+lemma ext {α : Sort*} :
+  ∀{s t : setoid α}, (∀a b, @setoid.r α s a b ↔ @setoid.r α t a b) → s = t
+| ⟨r, _⟩ ⟨p, _⟩ eq :=
+  have r = p, from funext $ assume a, funext $ assume b, propext $ eq a b,
+  by subst this
+
+end setoid
+
 namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
@@ -82,6 +92,9 @@ noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : ∀ i, s
 theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [∀ i, setoid (α i)]
   (f : ∀ i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 quotient.sound $ λ i, quotient.mk_out _
+
+lemma nonempty_quotient_iff (s : setoid α): nonempty (quotient s) ↔ nonempty α :=
+⟨assume ⟨a⟩, quotient.induction_on a nonempty.intro, assume ⟨a⟩, ⟨⟦a⟧⟩⟩
 
 /-- `trunc α` is the quotient of `α` by the always-true relation. This
   is related to the propositional truncation in HoTT, and is similar
@@ -169,7 +182,7 @@ theorem nonempty_of_trunc (q : trunc α) : nonempty α :=
 let ⟨a, _⟩ := q.exists_rep in ⟨a⟩
 
 namespace quotient
-variables {γ : Sort*} {φ : Sort*} 
+variables {γ : Sort*} {φ : Sort*}
   {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
 
 /- Versions of quotient definitions and lemmas ending in `'` use unification instead
@@ -179,7 +192,7 @@ several different quotient relations on a type, for example quotient groups, rin
 protected def mk' (a : α) : quotient s₁ := quot.mk s₁.1 a
 
 @[elab_as_eliminator, reducible]
-protected def lift_on' (q : quotient s₁) (f : α → φ) 
+protected def lift_on' (q : quotient s₁) (f : α → φ)
   (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) : φ := quotient.lift_on q f h
 
 @[elab_as_eliminator, reducible]
@@ -197,12 +210,12 @@ protected lemma induction_on₂' {p : quotient s₁ → quotient s₂ → Prop} 
 quotient.induction_on₂ q₁ q₂ h
 
 @[elab_as_eliminator]
-protected lemma induction_on₃' {p : quotient s₁ → quotient s₂ → quotient s₃ → Prop} 
-  (q₁ : quotient s₁) (q₂ : quotient s₂) (q₃ : quotient s₃) 
+protected lemma induction_on₃' {p : quotient s₁ → quotient s₂ → quotient s₃ → Prop}
+  (q₁ : quotient s₁) (q₂ : quotient s₂) (q₃ : quotient s₃)
   (h : ∀ a₁ a₂ a₃, p (quotient.mk' a₁) (quotient.mk' a₂) (quotient.mk' a₃)) : p q₁ q₂ q₃ :=
 quotient.induction_on₃ q₁ q₂ q₃ h
 
-lemma exact' {a b : α} : 
+lemma exact' {a b : α} :
   (quotient.mk' a : quotient s₁) = quotient.mk' b → @setoid.r _ s₁ a b :=
 quotient.exact
 
@@ -216,7 +229,7 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 
 @[simp] theorem out_eq' (q : quotient s₁) : quotient.mk' q.out' = q := q.out_eq
 
-theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a).out a :=
-quotient.exact (quotient.out_eq _) 
+theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
+quotient.exact (quotient.out_eq _)
 
 end quotient

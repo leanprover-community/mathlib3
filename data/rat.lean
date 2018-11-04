@@ -8,7 +8,7 @@ Introduces the rational numbers as discrete, linear ordered field.
 
 import
   data.nat.gcd data.pnat data.int.basic data.equiv.encodable order.basic
-  algebra.ordered_field
+  algebra.ordered_field data.real.cau_seq
 
 /- rational numbers -/
 
@@ -43,8 +43,8 @@ def of_int (n : ℤ) : ℚ :=
 ⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩
 
 instance : has_zero ℚ := ⟨of_int 0⟩
-
 instance : has_one ℚ := ⟨of_int 1⟩
+instance : inhabited ℚ := ⟨0⟩
 
 /-- Form the quotient `n / d` where `n:ℤ` and `d:ℕ+` (not necessarily coprime) -/
 def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ :=
@@ -202,10 +202,10 @@ theorem num_denom' (n d h c) : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom _
 num_denom_cases_on a $ λ n d h c,
 H n d $ ne_of_gt h
 
-theorem num_dvd (a) {b} (b0 : b ≠ 0) : (a /. b).num ∣ a :=
+theorem num_dvd (a) {b : ℤ} (b0 : b ≠ 0) : (a /. b).num ∣ a :=
 begin
   cases e : a /. b with n d h c,
-  rw [num_denom', mk_eq (int.coe_nat_ne_zero.2 b0)
+  rw [rat.num_denom', rat.mk_eq b0
     (ne_of_gt (int.coe_nat_pos.2 h))] at e,
   refine (int.nat_abs_dvd.1 $ int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $
     c.dvd_of_dvd_mul_right _),
@@ -382,7 +382,7 @@ eq.trans (rat.mul_comm _ _) (rat.mul_inv_cancel _ h)
 
 instance : decidable_eq ℚ := by tactic.mk_dec_eq_instance
 
-instance field_rat : discrete_field ℚ :=
+instance : discrete_field ℚ :=
 { zero             := 0,
   add              := rat.add,
   neg              := rat.neg,
@@ -405,6 +405,30 @@ instance field_rat : discrete_field ℚ :=
   inv_mul_cancel   := rat.inv_mul_cancel,
   has_decidable_eq := rat.decidable_eq,
   inv_zero         := rfl }
+
+/- Extra instances to short-circuit type class resolution -/
+instance : field ℚ              := by apply_instance
+instance : division_ring ℚ      := by apply_instance
+instance : integral_domain ℚ    := by apply_instance
+-- TODO(Mario): this instance slows down data.real.basic
+--instance : domain ℚ           := by apply_instance
+instance : nonzero_comm_ring ℚ  := by apply_instance
+instance : comm_ring ℚ          := by apply_instance
+--instance : ring ℚ             := by apply_instance
+instance : comm_semiring ℚ      := by apply_instance
+instance : semiring ℚ           := by apply_instance
+instance : add_comm_group ℚ     := by apply_instance
+instance : add_group ℚ          := by apply_instance
+instance : add_comm_monoid ℚ    := by apply_instance
+instance : add_monoid ℚ         := by apply_instance
+instance : add_left_cancel_semigroup ℚ := by apply_instance
+instance : add_right_cancel_semigroup ℚ := by apply_instance
+instance : add_comm_semigroup ℚ := by apply_instance
+instance : add_semigroup ℚ      := by apply_instance
+instance : comm_monoid ℚ        := by apply_instance
+instance : monoid ℚ             := by apply_instance
+instance : comm_semigroup ℚ     := by apply_instance
+instance : semigroup ℚ          := by apply_instance
 
 theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
   a /. b - c /. d = (a * d - c * b) /. (b * d) :=
@@ -499,6 +523,18 @@ instance : decidable_linear_order ℚ :=
   decidable_eq    := by apply_instance,
   decidable_le    := assume a b, rat.decidable_nonneg (b - a) }
 
+/- Extra instances to short-circuit type class resolution -/
+instance : has_lt ℚ                  := by apply_instance
+instance : lattice.distrib_lattice ℚ := by apply_instance
+instance : lattice.lattice ℚ         := by apply_instance
+instance : lattice.semilattice_inf ℚ := by apply_instance
+instance : lattice.semilattice_sup ℚ := by apply_instance
+instance : lattice.has_inf ℚ         := by apply_instance
+instance : lattice.has_sup ℚ         := by apply_instance
+instance : linear_order ℚ            := by apply_instance
+instance : partial_order ℚ           := by apply_instance
+instance : preorder ℚ                := by apply_instance
+
 theorem nonneg_iff_zero_le {a} : rat.nonneg a ↔ 0 ≤ a :=
 show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
 
@@ -527,10 +563,26 @@ instance : discrete_linear_ordered_field ℚ :=
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
-  ..rat.field_rat, ..rat.decidable_linear_order }
+  ..rat.discrete_field, ..rat.decidable_linear_order }
+
+/- Extra instances to short-circuit type class resolution -/
+instance : linear_ordered_field ℚ                := by apply_instance
+instance : decidable_linear_ordered_comm_ring ℚ  := by apply_instance
+instance : linear_ordered_comm_ring ℚ            := by apply_instance
+instance : linear_ordered_ring ℚ                 := by apply_instance
+instance : ordered_ring ℚ                        := by apply_instance
+instance : decidable_linear_ordered_semiring ℚ   := by apply_instance
+instance : linear_ordered_semiring ℚ             := by apply_instance
+instance : ordered_semiring ℚ                    := by apply_instance
+instance : decidable_linear_ordered_comm_group ℚ := by apply_instance
+instance : ordered_comm_group ℚ                  := by apply_instance
+instance : ordered_cancel_comm_monoid ℚ          := by apply_instance
+instance : ordered_comm_monoid ℚ                 := by apply_instance
+
+attribute [irreducible] rat.le
 
 theorem num_pos_iff_pos {a : ℚ} : 0 < a.num ↔ 0 < a :=
-le_iff_le_iff_lt_iff_lt.1 $
+lt_iff_lt_of_le_iff_le $
 by simpa [(by cases a; refl : (-a).num = -a.num)]
    using @num_nonneg_iff_zero_le (-a)
 
@@ -571,7 +623,7 @@ theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
 end
 
 theorem floor_lt {r : ℚ} {z : ℤ} : floor r < z ↔ r < z :=
-le_iff_le_iff_lt_iff_lt.1 le_floor
+lt_iff_lt_of_le_iff_le le_floor
 
 theorem floor_le (r : ℚ) : (floor r : ℚ) ≤ r :=
 le_floor.1 (le_refl _)
@@ -881,4 +933,71 @@ theorem nat_ceil_lt_add_one {q : ℚ} (hq : q ≥ 0) : ↑(nat_ceil q) < q + 1 :
 lt_nat_ceil.1 $ by rw [
   show nat_ceil (q+1) = nat_ceil q+1, from nat_ceil_add_nat hq 1]; apply nat.lt_succ_self
 
+@[simp] lemma denom_neg_eq_denom : ∀ q : ℚ, (-q).denom = q.denom
+| ⟨_, d, _, _⟩ := rfl
+
+@[simp] lemma num_neg_eq_neg_num : ∀ q : ℚ, (-q).num = -(q.num)
+| ⟨n, _, _, _⟩ := rfl
+
+@[simp] lemma num_zero : rat.num 0 = 0 := rfl
+
+lemma zero_of_num_zero {q : ℚ} (hq : q.num = 0) : q = 0 :=
+have q = q.num /. q.denom, from num_denom _,
+by simpa [hq]
+
+lemma zero_iff_num_zero {q : ℚ} : q = 0 ↔ q.num = 0 :=
+⟨λ _, by simp *, zero_of_num_zero⟩
+
+lemma num_ne_zero_of_ne_zero {q : ℚ} (h : q ≠ 0) : q.num ≠ 0 :=
+assume : q.num = 0,
+h $ zero_of_num_zero this
+
+lemma denom_ne_zero (q : ℚ) : q.denom ≠ 0 :=
+ne_of_gt q.pos
+
+lemma mk_num_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : n ≠ 0 :=
+assume : n = 0,
+hq $ by simpa [this] using hqnd
+
+lemma mk_denom_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : d ≠ 0 :=
+assume : d = 0,
+hq $ by simpa [this] using hqnd
+
+lemma mk_ne_zero_of_ne_zero {n d : ℤ} (h : n ≠ 0) (hd : d ≠ 0) : n /. d ≠ 0 :=
+assume : n /. d = 0,
+h $ (mk_eq_zero hd).1 this
+
+lemma mul_num_denom (q r : ℚ) : q * r = (q.num * r.num) /. ↑(q.denom * r.denom) :=
+have hq' : (↑q.denom : ℤ) ≠ 0, by have := denom_ne_zero q; simpa,
+have hr' : (↑r.denom : ℤ) ≠ 0, by have := denom_ne_zero r; simpa,
+suffices (q.num /. ↑q.denom) * (r.num /. ↑r.denom) = (q.num * r.num) /. ↑(q.denom * r.denom),
+  by rwa [←num_denom q, ←num_denom r] at this,
+by simp [mul_def hq' hr']
+
+lemma div_num_denom (q r : ℚ) : q / r = (q.num * r.denom) /. (q.denom * r.num) :=
+if hr : r.num = 0 then
+  have hr' : r = 0, from zero_of_num_zero hr,
+  by simp *
+else calc q / r = q * r⁻¹ : div_eq_mul_inv
+            ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by rw [←num_denom q, ←num_denom r]
+            ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
+            ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
+
+lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) :
+      ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=
+have hq : q ≠ 0, from
+  assume : q = 0,
+  hn $ (rat.mk_eq_zero hd).1 (by cc),
+have q.num /. q.denom = n /. d, by rwa [←rat.num_denom q],
+have q.num * d = n * ↑(q.denom), from (rat.mk_eq (by simp [rat.denom_ne_zero]) hd).1 this,
+begin
+  existsi n / q.num,
+  have hqdn : q.num ∣ n, begin rw qdf, apply rat.num_dvd, assumption end,
+  split,
+    { rw int.div_mul_cancel hqdn },
+    { apply int.eq_mul_div_of_mul_eq_mul_of_dvd_left,
+      {apply rat.num_ne_zero_of_ne_zero hq},
+      {simp [rat.denom_ne_zero]},
+      repeat {assumption} }
+end
 end rat

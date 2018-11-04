@@ -132,7 +132,7 @@ by haveI := classical.dec; exact
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/
 def assert (p : Prop) (f : p → roption α) : roption α :=
-⟨∃h : p, (f h).dom, λha, (f (let ⟨h, _⟩ := ha in h)).get (let ⟨_, h⟩ := ha in h)⟩
+⟨∃h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
 
 /-- The bind operation has value `g (f.get)`, and is defined when all the
   parts are defined. -/

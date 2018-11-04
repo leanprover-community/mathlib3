@@ -25,6 +25,9 @@ option.some.inj $ ha.symm.trans hb
 
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
+theorem injective_some (α : Type*) : function.injective (@some α) :=
+λ _ _, some_inj.mp
+
 theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl
 | (some a) o        H := ((H _).1 rfl).symm
@@ -51,6 +54,10 @@ by cases x; simp
 @[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
+lemma bind_comm {α β γ} {f : α → β → option γ} (a : option α) (b : option β) :
+  a.bind (λx, b.bind (f x)) = b.bind (λy, a.bind (λx, f x y)) :=
+by cases a; cases b; refl
+
 @[simp] theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 
 @[simp] theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
@@ -69,14 +76,19 @@ by cases x; simp
 
 @[simp] theorem seq_some {α β} {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
 
-@[simp] theorem orelse_some' (a : α) (x : option α) : (some a).orelse x = some a := rfl
+@[simp] theorem some_orelse' (a : α) (x : option α) : (some a).orelse x = some a := rfl
 
-@[simp] theorem orelse_some (a : α) (x : option α) : (some a <|> x) = some a := rfl
+@[simp] theorem some_orelse (a : α) (x : option α) : (some a <|> x) = some a := rfl
 
-@[simp] theorem orelse_none' (x : option α) : none.orelse x = x :=
+@[simp] theorem none_orelse' (x : option α) : none.orelse x = x :=
 by cases x; refl
 
-@[simp] theorem orelse_none (x : option α) : (none <|> x) = x := orelse_none' x
+@[simp] theorem none_orelse (x : option α) : (none <|> x) = x := none_orelse' x
+
+@[simp] theorem orelse_none' (x : option α) : x.orelse none = x :=
+by cases x; refl
+
+@[simp] theorem orelse_none (x : option α) : (x <|> none) = x := orelse_none' x
 
 @[simp] theorem is_some_none : @is_some α none = ff := rfl
 

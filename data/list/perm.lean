@@ -229,9 +229,9 @@ begin
   funext l₁ l₃, apply propext,
   split,
   { assume h, rcases h with ⟨l₂, h₁₂, h₂₃⟩,
-    have : forall₂ (flip r) l₂ l₁, from forall₂_flip h₁₂,
+    have : forall₂ (flip r) l₂ l₁, from h₁₂.flip ,
     rcases perm_comp_forall₂ h₂₃.symm this with ⟨l', h₁, h₂⟩,
-    exact ⟨l', h₂.symm, forall₂_flip h₁⟩ },
+    exact ⟨l', h₂.symm, h₁.flip⟩ },
   { exact assume ⟨l₂, h₁₂, h₂₃⟩, perm_comp_forall₂ h₁₂ h₂₃ }
 end
 
@@ -247,7 +247,7 @@ this ▸ hbd
 lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp (assume a b c, left_unique_flip hr.1) (forall₂_flip hab) (forall₂_flip hcd))
+  (rel_perm_imp (assume a b c, left_unique_flip hr.1) hab.flip hcd.flip)
 
 end rel
 
@@ -519,12 +519,34 @@ else
 have h₂ : a ∉ l₂, from mt (mem_of_perm p).2 h₁,
 by rw [erase_of_not_mem h₁, erase_of_not_mem h₂]; exact p
 
+theorem erase_subperm (a : α) (l : list α) : l.erase a <+~ l :=
+⟨l.erase a, perm.refl _, erase_sublist _ _⟩
+
+theorem erase_subperm_erase {l₁ l₂ : list α} (a : α) (h : l₁ <+~ l₂) : l₁.erase a <+~ l₂.erase a :=
+let ⟨l, hp, hs⟩ := h in ⟨l.erase a, erase_perm_erase _ hp, erase_sublist_erase _ hs⟩
+
 theorem perm_diff_left {l₁ l₂ : list α} (t : list α) (h : l₁ ~ l₂) : l₁.diff t ~ l₂.diff t :=
 by induction t generalizing l₁ l₂ h; simp [*, erase_perm_erase]
 
 theorem perm_diff_right (l : list α) {t₁ t₂ : list α} (h : t₁ ~ t₂) : l.diff t₁ = l.diff t₂ :=
 by induction h generalizing l; simp [*, erase_perm_erase, erase_comm]
   <|> exact (ih_1 _).trans (ih_2 _)
+
+theorem subperm_cons_diff {a : α} : ∀ {l₁ l₂ : list α}, (a :: l₁).diff l₂ <+~ a :: l₁.diff l₂
+| l₁ []      := ⟨a::l₁, by simp⟩
+| l₁ (b::l₂) :=
+begin
+  repeat {rw diff_cons},
+  by_cases heq : a = b,
+  { by_cases b ∈ l₁,
+    { rw perm.subperm_right, apply subperm_cons_diff,
+      simp [perm_diff_left, heq, perm_erase h] },
+    { simp [subperm_of_sublist, sublist.cons, h, heq] } },
+  { simp [heq, subperm_cons_diff] }
+end
+
+theorem subset_cons_diff {a : α} {l₁ l₂ : list α} : (a :: l₁).diff l₂ ⊆ a :: l₁.diff l₂ :=
+subset_of_subperm subperm_cons_diff
 
 theorem perm_bag_inter_left {l₁ l₂ : list α} (t : list α) (h : l₁ ~ l₂) : l₁.bag_inter t ~ l₂.bag_inter t :=
 begin

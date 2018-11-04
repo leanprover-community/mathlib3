@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 A collection of limit properties.
 -/
 import algebra.big_operators algebra.group_power tactic.norm_num
-  analysis.real analysis.topology.infinite_sum
+  analysis.ennreal analysis.topology.infinite_sum
 noncomputable theory
 open classical finset function filter
 local attribute [instance] prop_decidable
@@ -134,6 +134,22 @@ by_cases
         tendsto_inverse_at_top_nhds_0,
     tendsto_cong this $ univ_mem_sets' $ by simp *)
 
+lemma tendsto_coe_iff {f : ℕ → ℕ} : tendsto (λ n, (f n : ℝ)) at_top at_top ↔ tendsto f at_top at_top :=
+⟨ λ h, tendsto_infi.2 $ λ i, tendsto_principal.2
+    (have _, from tendsto_infi.1 h i, by simpa using tendsto_principal.1 this),
+  λ h, tendsto.comp h tendsto_of_nat_at_top_at_top ⟩
+
+lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : k > 1) : tendsto (λn:ℕ, k ^ n) at_top at_top :=
+tendsto_coe_iff.1 $
+  have hr : (k : ℝ) > 1, from show (k : ℝ) > (1 : ℕ), from nat.cast_lt.2 h,
+  by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
+
+lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (nhds 0) :=
+tendsto.comp (tendsto_coe_iff.2 tendsto_id) tendsto_inverse_at_top_nhds_0
+
+lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (nhds 0) :=
+by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat
+
 lemma sum_geometric' {r : ℝ} (h : r ≠ 0) :
   ∀{n}, (finset.range n).sum (λi, (r + 1) ^ i) = ((r + 1) ^ n - 1) / r
 | 0     := by simp [zero_div]
@@ -199,3 +215,28 @@ begin
   { exact option.get_of_mem _ (encodable.encodek2 _) },
   { dsimp [g], rw encodable.encodek2 }
 end
+
+namespace nnreal
+
+theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :
+  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, is_sum ε' c ∧ c < ε :=
+let ⟨a, a0, aε⟩ := dense hε in
+let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
+⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, (nnreal.coe_lt _ _).2 $ hε' i,
+  ⟨c, is_sum_le (assume i, le_of_lt $ hε' i) is_sum_zero hc ⟩, nnreal.is_sum_coe.1 hc,
+   lt_of_le_of_lt ((nnreal.coe_le _ _).1 hcε) aε ⟩
+
+end nnreal
+
+namespace ennreal
+
+theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
+  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑ i, (ε' i : ennreal)) < ε :=
+begin
+  rcases dense hε with ⟨r, h0r, hrε⟩,
+  rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,
+  rcases nnreal.exists_pos_sum_of_encodable (coe_lt_coe.1 h0r) ι with ⟨ε', hp, c, hc, hcr⟩,
+  exact ⟨ε', hp, (ennreal.tsum_coe_eq hc).symm ▸ lt_trans (coe_lt_coe.2 hcr) hrε⟩
+end
+
+end ennreal

@@ -119,8 +119,7 @@ add_lt_of_nonpos_of_lt' (le_of_lt ha) hbc
 lemma add_lt_of_lt_of_neg' (hbc : b < c) (ha : a < 0) : b + a < c :=
 add_lt_of_lt_of_nonpos' hbc (le_of_lt ha)
 
-lemma add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg'
-  (ha : 0 ≤ a) (hb : 0 ≤ b) : a + b = 0 ↔ a = 0 ∧ b = 0 :=
+lemma add_eq_zero_iff' (ha : 0 ≤ a) (hb : 0 ≤ b) : a + b = 0 ↔ a = 0 ∧ b = 0 :=
 iff.intro
   (assume hab : a + b = 0,
    have a ≤ 0, from hab ▸ le_add_of_le_of_nonneg' (le_refl _) hb,
@@ -222,6 +221,9 @@ instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
+lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b :=
+rfl
+
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { ..@additive.add_comm_semigroup _ $
     @with_zero.comm_semigroup (multiplicative α) _ }
@@ -255,6 +257,36 @@ begin
     simp at h,
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
+
+@[simp] lemma zero_lt_top [ordered_comm_monoid α] : (0 : with_top α) < ⊤ :=
+coe_lt_top 0
+
+@[simp] lemma zero_lt_coe [ordered_comm_monoid α] (a : α) : (0 : with_top α) < a ↔ 0 < a :=
+coe_lt_coe
+
+@[simp] lemma add_top [ordered_comm_monoid α] : ∀{a : with_top α}, a + ⊤ = ⊤
+| none := rfl
+| (some a) := rfl
+
+@[simp] lemma top_add [ordered_comm_monoid α] {a : with_top α} : ⊤ + a = ⊤ := rfl
+
+lemma add_eq_top [ordered_comm_monoid α] (a b : with_top α) : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+by cases a; cases b; simp [none_eq_top, some_eq_coe, coe_add.symm]
+
+instance [canonically_ordered_monoid α] : canonically_ordered_monoid (with_top α) :=
+{ le_iff_exists_add := assume a b,
+  match a, b with
+  | a, none     := show a ≤ ⊤ ↔ ∃c, ⊤ = a + c, by simp; refine ⟨⊤, _⟩; cases a; refl
+  | (some a), (some b) := show (a:with_top α) ≤ ↑b ↔ ∃c:with_top α, ↑b = ↑a + c,
+    begin
+      simp [canonically_ordered_monoid.le_iff_exists_add, -add_comm],
+      split,
+      { rintro ⟨c, rfl⟩, refine ⟨c, _⟩, simp [coe_add] },
+      { exact assume h, match b, h with _, ⟨some c, rfl⟩ := ⟨_, rfl⟩ end }
+    end
+  | none, some b := show (⊤ : with_top α) ≤ b ↔ ∃c:with_top α, ↑b = ⊤ + c, by simp
+  end,
+  .. with_top.ordered_comm_monoid }
 
 end with_top
 
@@ -294,12 +326,7 @@ end
 
 @[simp] lemma add_bot [ordered_comm_monoid α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
 
-lemma coe_lt_coe {a b : ℕ} : (a : with_bot ℕ) < b ↔ a < b := with_bot.some_lt_some
-
-lemma bot_lt_some (a : ℕ) : (⊥ : with_bot ℕ) < some a :=
-lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
-
-instance has_one : has_one (with_bot ℕ) := ⟨(1 : ℕ)⟩
+instance has_one [has_one α] : has_one (with_bot α) := ⟨(1 : α)⟩
 
 end with_bot
 
@@ -312,12 +339,23 @@ canonically_ordered_monoid.le_iff_exists_add a b
 @[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
 
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
-add_eq_zero_iff_eq_zero_and_eq_zero_of_nonneg_of_nonneg' (zero_le _) (zero_le _)
+add_eq_zero_iff' (zero_le _) (zero_le _)
 
 @[simp] lemma le_zero_iff_eq : a ≤ 0 ↔ a = 0 :=
 iff.intro
   (assume h, le_antisymm h (zero_le a))
   (assume h, h ▸ le_refl a)
+
+protected lemma zero_lt_iff_ne_zero : 0 < a ↔ a ≠ 0 :=
+iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (zero_le _) hne.symm
+
+lemma le_add_left (h : a ≤ c) : a ≤ b + c :=
+calc a = 0 + a : by simp
+  ... ≤ b + c : add_le_add' (zero_le _) h
+
+lemma le_add_right (h : a ≤ b) : a ≤ b + c :=
+calc a = a + 0 : by simp
+  ... ≤ b + c : add_le_add' h (zero_le _)
 
 instance with_zero.canonically_ordered_monoid :
   canonically_ordered_monoid (with_zero α) :=
@@ -378,6 +416,19 @@ lemma add_eq_zero_iff_eq_zero_of_nonneg
 by split; apply le_antisymm; try {assumption};
    rw ← hab; simp [ha, hb],
 λ ⟨ha', hb'⟩, by rw [ha', hb', add_zero]⟩
+
+lemma with_top.add_lt_add_iff_left :
+  ∀{a b c : with_top α}, a < ⊤ → (a + c < a + b ↔ c < b)
+| none := assume b c h, (lt_irrefl ⊤ h).elim
+| (some a) :=
+  begin
+    assume b c h,
+    cases b; cases c;
+      simp [with_top.none_eq_top, with_top.some_eq_coe, with_top.coe_lt_top, with_top.coe_lt_coe],
+    { rw [← with_top.coe_add], exact with_top.coe_lt_top _ },
+    { rw [← with_top.coe_add, ← with_top.coe_add, with_top.coe_lt_coe],
+      exact add_lt_add_iff_left _ }
+  end
 
 end ordered_cancel_comm_monoid
 

@@ -39,17 +39,83 @@ le_antisymm
       case generate_open.basic : u hu
       { exact generate_measurable.basic u hu },
       case generate_open.univ
-      { exact @is_measurable_univ α (generate_from s) },
+      { exact @is_measurable.univ α (generate_from s) },
       case generate_open.inter : s₁ s₂ _ _ hs₁ hs₂
       { exact @is_measurable.inter α (generate_from s) _ _ hs₁ hs₂ },
       case generate_open.sUnion : f hf ih {
-        rcases is_open_sUnion_countable _ f (by rwa hs) with ⟨v, hv, vf, vu⟩,
+        rcases is_open_sUnion_countable f (by rwa hs) with ⟨v, hv, vf, vu⟩,
         rw ← vu,
         exact @is_measurable.sUnion α (generate_from s) _ hv
           (λ x xv, ih _ (vf xv)) }
     end)
   (generate_from_le $ assume u hu, generate_measurable.basic _ $
     show t.is_open u, by rw [hs]; exact generate_open.basic _ hu)
+
+lemma borel_eq_generate_Iio (α)
+  [topological_space α] [second_countable_topology α]
+  [linear_order α] [orderable_topology α] :
+  borel α = generate_from (range Iio) :=
+begin
+  refine le_antisymm _ (generate_from_le _),
+  { rw borel_eq_generate_from_of_subbasis (orderable_topology.topology_eq_generate_intervals α),
+    have H : ∀ a:α, is_measurable (measurable_space.generate_from (range Iio)) (Iio a) :=
+      λ a, generate_measurable.basic _ ⟨_, rfl⟩,
+    refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩; [skip, apply H],
+    by_cases h : ∃ a', ∀ b, a < b ↔ a' ≤ b,
+    { rcases h with ⟨a', ha'⟩,
+      rw (_ : {b | a < b} = -Iio a'), {exact (H _).compl _},
+      simp [set.ext_iff, ha'] },
+    { rcases is_open_Union_countable
+        (λ a' : {a' : α // a < a'}, {b | a'.1 < b})
+        (λ a', is_open_lt' _) with ⟨v, ⟨hv⟩, vu⟩,
+      simp [set.ext_iff] at vu,
+      have : {b | a < b} = ⋃ x : v, -Iio x.1.1,
+      { simp [set.ext_iff],
+        refine λ x, ⟨λ ax, _, λ ⟨a', ⟨h, av⟩, ax⟩, lt_of_lt_of_le h ax⟩,
+        rcases (vu x).2 _ with ⟨a', h₁, h₂⟩,
+        { exact ⟨a', h₁, le_of_lt h₂⟩ },
+        refine not_imp_comm.1 (λ h, _) h,
+        exact ⟨x, λ b, ⟨λ ab, le_of_not_lt (λ h', h ⟨b, ab, h'⟩),
+          lt_of_lt_of_le ax⟩⟩ },
+      rw this, resetI,
+      apply is_measurable.Union,
+      exact λ _, (H _).compl _ } },
+  { simp, rintro _ a rfl,
+    exact generate_measurable.basic _ is_open_Iio }
+end
+
+lemma borel_eq_generate_Ioi (α)
+  [topological_space α] [second_countable_topology α]
+  [linear_order α] [orderable_topology α] :
+  borel α = generate_from (range (λ a, {x | a < x})) :=
+begin
+  refine le_antisymm _ (generate_from_le _),
+  { rw borel_eq_generate_from_of_subbasis (orderable_topology.topology_eq_generate_intervals α),
+    have H : ∀ a:α, is_measurable (measurable_space.generate_from (range (λ a, {x | a < x}))) {x | a < x} :=
+      λ a, generate_measurable.basic _ ⟨_, rfl⟩,
+    refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩, {apply H},
+    by_cases h : ∃ a', ∀ b, b < a ↔ b ≤ a',
+    { rcases h with ⟨a', ha'⟩,
+      rw (_ : {b | b < a} = -{x | a' < x}), {exact (H _).compl _},
+      simp [set.ext_iff, ha'] },
+    { rcases is_open_Union_countable
+        (λ a' : {a' : α // a' < a}, {b | b < a'.1})
+        (λ a', is_open_gt' _) with ⟨v, ⟨hv⟩, vu⟩,
+      simp [set.ext_iff] at vu,
+      have : {b | b < a} = ⋃ x : v, -{b | x.1.1 < b},
+      { simp [set.ext_iff],
+        refine λ x, ⟨λ ax, _, λ ⟨a', ⟨h, av⟩, ax⟩, lt_of_le_of_lt ax h⟩,
+        rcases (vu x).2 _ with ⟨a', h₁, h₂⟩,
+        { exact ⟨a', h₁, le_of_lt h₂⟩ },
+        refine not_imp_comm.1 (λ h, _) h,
+        exact ⟨x, λ b, ⟨λ ab, le_of_not_lt (λ h', h ⟨b, ab, h'⟩),
+          λ h, lt_of_le_of_lt h ax⟩⟩ },
+      rw this, resetI,
+      apply is_measurable.Union,
+      exact λ _, (H _).compl _ } },
+  { simp, rintro _ a rfl,
+    exact generate_measurable.basic _ (is_open_lt' _) }
+end
 
 lemma borel_comap {f : α → β} {t : topological_space β} :
   @borel α (t.induced f) = (@borel β t).comap f :=
@@ -131,6 +197,23 @@ lemma measurable_mul
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
 measurable_of_continuous2 continuous_mul'
 
+lemma measurable_le {α β}
+  [topological_space α] [partial_order α] [ordered_topology α] [second_countable_topology α]
+  [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
+  is_measurable {a | f a ≤ g a} :=
+have is_measurable {p : α × α | p.1 ≤ p.2}, from
+  is_measurable_of_is_closed (ordered_topology.is_closed_le' _),
+show is_measurable {a | (f a, g a).1 ≤ (f a, g a).2},
+begin
+  refine measurable.preimage _ this,
+  rw ← borel_prod,
+  exact measurable_prod_mk hf hg
+end
+
+-- generalize
+lemma measurable_coe_int_real : measurable (λa, a : ℤ → ℝ) :=
+assume s (hs : is_measurable s), is_measurable_of_is_open $ by trivial
+
 section ordered_topology
 variables [linear_order α] [topological_space α] [ordered_topology α] {a b c : α}
 
@@ -143,6 +226,56 @@ lemma is_measurable_Ico : is_measurable (Ico a b) :=
   is_measurable_Iio
 
 end ordered_topology
+
+lemma measurable.is_lub {α} [topological_space α] [linear_order α]
+  [orderable_topology α] [second_countable_topology α]
+  {β} [measurable_space β] {ι} [encodable ι]
+  {f : ι → β → α} {g : β → α} (hf : ∀ i, measurable (f i))
+  (hg : ∀ b, is_lub {a | ∃ i, f i b = a} (g b)) :
+  measurable g :=
+begin
+  rw borel_eq_generate_Ioi α,
+  apply measurable_generate_from,
+  rintro _ ⟨a, rfl⟩,
+  have : {b | a < g b} = ⋃ i, {b | a < f i b},
+  { simp [set.ext_iff], intro b, rw [lt_is_lub_iff (hg b)],
+    exact ⟨λ ⟨_, ⟨i, rfl⟩, h⟩, ⟨i, h⟩, λ ⟨i, h⟩, ⟨_, ⟨i, rfl⟩, h⟩⟩ },
+  show is_measurable {b | a < g b}, rw this,
+  exact is_measurable.Union (λ i, hf i _
+    (is_measurable_of_is_open (is_open_lt' _)))
+end
+
+lemma measurable.is_glb {α} [topological_space α] [linear_order α]
+  [orderable_topology α] [second_countable_topology α]
+  {β} [measurable_space β] {ι} [encodable ι]
+  {f : ι → β → α} {g : β → α} (hf : ∀ i, measurable (f i))
+  (hg : ∀ b, is_glb {a | ∃ i, f i b = a} (g b)) :
+  measurable g :=
+begin
+  rw borel_eq_generate_Iio α,
+  apply measurable_generate_from,
+  rintro _ ⟨a, rfl⟩,
+  have : {b | g b < a} = ⋃ i, {b | f i b < a},
+  { simp [set.ext_iff], intro b, rw [is_glb_lt_iff (hg b)],
+    exact ⟨λ ⟨_, ⟨i, rfl⟩, h⟩, ⟨i, h⟩, λ ⟨i, h⟩, ⟨_, ⟨i, rfl⟩, h⟩⟩ },
+  show is_measurable {b | g b < a}, rw this,
+  exact is_measurable.Union (λ i, hf i _
+    (is_measurable_of_is_open (is_open_gt' _)))
+end
+
+lemma measurable.supr {α} [topological_space α] [complete_linear_order α]
+  [orderable_topology α] [second_countable_topology α]
+  {β} [measurable_space β] {ι} [encodable ι]
+  {f : ι → β → α} (hf : ∀ i, measurable (f i)) :
+  measurable (λ b, ⨆ i, f i b) :=
+measurable.is_lub hf $ λ b, is_lub_supr
+
+lemma measurable.infi {α} [topological_space α] [complete_linear_order α]
+  [orderable_topology α] [second_countable_topology α]
+  {β} [measurable_space β] {ι} [encodable ι]
+  {f : ι → β → α} (hf : ∀ i, measurable (f i)) :
+  measurable (λ b, ⨅ i, f i b) :=
+measurable.is_glb hf $ λ b, is_glb_infi
 
 end
 

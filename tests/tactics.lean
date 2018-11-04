@@ -1,29 +1,11 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Simon Hudon
+Authors: Simon Hudon, Scott Morrison
 -/
-import tactic data.set.lattice data.prod
-       tactic.rewrite
-
-section solve_by_elim
-example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
-begin
-  apply_assumption,
-  apply_assumption,
-end
-
-example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
-by solve_by_elim
-
-example {α : Type} {a b : α → Prop} (h₀ : ∀ x : α, b x = a x) (y : α) : a y = b y :=
-by solve_by_elim
-
-example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
-begin
-  apply_assumption,
-end
-end solve_by_elim
+import tactic data.set.lattice data.prod data.vector
+       tactic.rewrite data.stream.basic
+       tactic.tfae
 
 section tauto₀
 variables p q r : Prop
@@ -71,13 +53,12 @@ example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : q) : �
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) : p := by tauto
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) (h'' : ¬ p) : false := by tauto
 example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) (h'' : ¬ r) : ¬ p := by tauto
-example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
-by tauto
-example (p q r : Prop) [decidable p] [decidable q] [decidable r] (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto
+example (p q r : Prop) (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
+by tauto!
+example (p q r : Prop) (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto!
 
 section modulo_symmetry
-variables {p q r : Prop} {α : Type} {x y : α} [decidable_eq α]
-variables [decidable p] [decidable q] [decidable r]
+variables {p q r : Prop} {α : Type} {x y : α}
 variables (h : x = y)
 variables (h'' : (p ∧ q ↔ q ∨ r) ↔ (r ∧ p ↔ r ∨ q))
 include h
@@ -110,17 +91,6 @@ begin
   suffices : false, trivial,
   wlog h : x ≤ y,
   { guard_hyp h := x ≤ y,
-    guard_target false,
-    admit }
-end
-
-example {x y z : ℕ} : true :=
-begin
-  suffices : false, trivial,
-  wlog h : x ≤ y + z,
-  { guard_target x ≤ y + z ∨ x ≤ z + y,
-    admit },
-  { guard_hyp h := x ≤ y + z,
     guard_target false,
     admit }
 end
@@ -339,6 +309,16 @@ end rcases
 
 section ext
 
+@[extensionality] lemma unit.ext (x y : unit) : x = y :=
+begin
+  cases x, cases y, refl
+end
+
+example : subsingleton unit :=
+begin
+  split, intros, ext
+end
+
 example (x y : ℕ) : true :=
 begin
   have : x = y,
@@ -346,24 +326,24 @@ begin
   have : x = y,
   { ext i <|> admit },
   have : x = y,
-  { ext 1 <|> admit },
+  { ext : 1 <|> admit },
   trivial
 end
 
 example (X Y : ℕ × ℕ)  (h : X.1 = Y.1) (h : X.2 = Y.2) : X = Y :=
 begin
-  ext ; assumption
+  ext; assumption
 end
 
 example (X Y : (ℕ → ℕ) × ℕ)  (h : ∀ i, X.1 i = Y.1 i) (h : X.2 = Y.2) : X = Y :=
 begin
-  ext x ; solve_by_elim,
+  ext x; solve_by_elim,
 end
 
 example (X Y : ℕ → ℕ × ℕ)  (h : ∀ i, X i = Y i) : true :=
 begin
   have : X = Y,
-  { ext 1 with i,
+  { ext i : 1,
     guard_target X i = Y i,
     admit },
   have : X = Y,
@@ -371,10 +351,23 @@ begin
     guard_target (X i).fst = (Y i).fst, admit,
     guard_target (X i).snd = (Y i).snd, admit, },
   have : X = Y,
-  { ext 1,
+  { ext : 1,
     guard_target X x = Y x,
     admit },
   trivial,
+end
+
+example (s₀ s₁ : set ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
+by { ext1, guard_target x ∈ s₀ ↔ x ∈ s₁, simp * }
+
+example (s₀ s₁ : stream ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
+by { ext1, guard_target s₀.nth n = s₁.nth n, simp * }
+
+example (s₀ s₁ : ℤ → set (ℕ × ℕ))
+        (h : ∀ i a b, (a,b) ∈ s₀ i ↔ (a,b) ∈ s₁ i) : s₀ = s₁ :=
+begin
+  ext i ⟨a,b⟩,
+  apply h
 end
 
 def my_foo {α} (x : semigroup α) (y : group α) : true := trivial
@@ -452,6 +445,31 @@ begin
     guard_tags _field one_mul monoid, admit,
     guard_tags _field mul_one monoid, admit, },
   trivial
+end
+
+structure dependent_fields :=
+(a : bool)
+(v : if a then ℕ else ℤ)
+
+@[extensionality] lemma df.ext (s t : dependent_fields) (h : s.a = t.a)
+ (w : (@eq.rec _ s.a (λ b, if b then ℕ else ℤ) s.v t.a h) = t.v): s = t :=
+begin
+  cases s, cases t,
+  dsimp at *,
+  congr,
+  exact h,
+  subst h,
+  simp,
+  simp at w,
+  exact w,
+end
+
+example (s : dependent_fields) : s = s :=
+begin
+  tactic.ext1 [] {tactic.apply_cfg . new_goals := tactic.new_goals.all},
+  guard_target s.a = s.a,
+  refl,
+  refl,
 end
 
 end ext
@@ -579,3 +597,55 @@ by { assoc_rw [h₀,h₂] at *,
      exact h₁ }
 
 end assoc_rw
+
+-- section tfae
+
+-- example (p q r s : Prop)
+--   (h₀ : p ↔ q)
+--   (h₁ : q ↔ r)
+--   (h₂ : r ↔ s) :
+--   p ↔ s :=
+-- begin
+--   scc,
+-- end
+
+-- example (p' p q r r' s s' : Prop)
+--   (h₀ : p' → p)
+--   (h₀ : p → q)
+--   (h₁ : q → r)
+--   (h₁ : r' → r)
+--   (h₂ : r ↔ s)
+--   (h₂ : s → p)
+--   (h₂ : s → s') :
+--   p ↔ s :=
+-- begin
+--   scc,
+-- end
+
+-- example (p' p q r r' s s' : Prop)
+--   (h₀ : p' → p)
+--   (h₀ : p → q)
+--   (h₁ : q → r)
+--   (h₁ : r' → r)
+--   (h₂ : r ↔ s)
+--   (h₂ : s → p)
+--   (h₂ : s → s') :
+--   p ↔ s :=
+-- begin
+--   scc',
+--   assumption
+-- end
+
+-- example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
+--   tfae_have : 3 → 1, { intro h, constructor },
+--   tfae_have : 2 → 3, { intro h, constructor },
+--   tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
+--   tfae_have : 4 ↔ 2, { tauto },
+--   tfae_finish,
+-- end
+
+-- example : tfae [] := begin
+--   tfae_finish,
+-- end
+
+-- end tfae

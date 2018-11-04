@@ -38,7 +38,7 @@ instance : inhabited ℂ := ⟨0⟩
 
 @[simp] lemma zero_re : (0 : ℂ).re = 0 := rfl
 @[simp] lemma zero_im : (0 : ℂ).im = 0 := rfl
-lemma of_real_zero : ((0 : ℝ) : ℂ) = 0 := rfl
+@[simp] lemma of_real_zero : ((0 : ℝ) : ℂ) = 0 := rfl
 
 @[simp] theorem of_real_eq_zero {z : ℝ} : (z : ℂ) = 0 ↔ z = 0 := of_real_inj
 @[simp] theorem of_real_ne_zero {z : ℝ} : (z : ℂ) ≠ 0 ↔ z ≠ 0 := not_congr of_real_eq_zero
@@ -67,13 +67,15 @@ instance : has_neg ℂ := ⟨λ z, ⟨-z.re, -z.im⟩⟩
 
 @[simp] lemma neg_re (z : ℂ) : (-z).re = -z.re := rfl
 @[simp] lemma neg_im (z : ℂ) : (-z).im = -z.im := rfl
-@[simp] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : ℂ) = -r := ext_iff.2 $ by simp
+@[simp] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : ℂ) = -r := rfl
 
 instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im + z.im * w.re⟩⟩
 
 @[simp] lemma mul_re (z w : ℂ) : (z * w).re = z.re * w.re - z.im * w.im := rfl
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 @[simp] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
+
+@[simp] lemma I_mul_I : I * I = -1 := rfl
 
 lemma mk_eq_add_mul_I (a b : ℝ) : complex.mk a b = a + b * I :=
 ext_iff.2 $ by simp
@@ -86,18 +88,17 @@ def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
 
-@[simp] lemma conj_of_real (r : ℝ) : conj r = r :=
-ext_iff.2 $ by simp
+@[simp] lemma conj_of_real (r : ℝ) : conj r = r := rfl
 
-@[simp] lemma conj_zero : conj 0 = 0 := conj_of_real 0
-@[simp] lemma conj_one : conj 1 = 1 := conj_of_real 1
-@[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
+@[simp] lemma conj_zero : conj 0 = 0 := rfl
+@[simp] lemma conj_one : conj 1 = 1 := rfl
+@[simp] lemma conj_I : conj I = -I := rfl
+@[simp] lemma conj_neg_I : conj (-I) = I := rfl
 
 @[simp] lemma conj_add (z w : ℂ) : conj (z + w) = conj z + conj w :=
 ext_iff.2 $ by simp
 
-@[simp] lemma conj_neg (z : ℂ) : conj (-z) = -conj z :=
-ext_iff.2 $ by simp
+@[simp] lemma conj_neg (z : ℂ) : conj (-z) = -conj z := rfl
 
 @[simp] lemma conj_mul (z w : ℂ) : conj (z * w) = conj z * conj w :=
 ext_iff.2 $ by simp
@@ -124,9 +125,9 @@ def norm_sq (z : ℂ) : ℝ := z.re * z.re + z.im * z.im
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]
 
-@[simp] lemma norm_sq_zero : norm_sq 0 = 0 := by simp [norm_sq]
-@[simp] lemma norm_sq_one : norm_sq 1 = 1 := by simp [norm_sq]
-@[simp] lemma norm_sq_I : norm_sq I = 1 := by simp [norm_sq]
+@[simp] lemma norm_sq_zero : norm_sq 0 = 0 := rfl
+@[simp] lemma norm_sq_one : norm_sq 1 = 1 := rfl
+@[simp] lemma norm_sq_I : norm_sq I = 1 := rfl
 
 lemma norm_sq_nonneg (z : ℂ) : 0 ≤ norm_sq z :=
 add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
@@ -169,12 +170,24 @@ instance : comm_ring ℂ :=
 by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
    { intros, apply ext_iff.2; split; simp; ring }
 
+@[simp] lemma bit0_re (z : ℂ) : (bit0 z).re = bit0 z.re := rfl
+@[simp] lemma bit1_re (z : ℂ) : (bit1 z).re = bit1 z.re := rfl
+@[simp] lemma bit0_im (z : ℂ) : (bit0 z).im = bit0 z.im := eq.refl _
+@[simp] lemma bit1_im (z : ℂ) : (bit1 z).im = bit0 z.im := add_zero _
+
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
 @[simp] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : ℂ) = r - s := rfl
+@[simp] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : ℂ) = r ^ n :=
+by induction n; simp [*, of_real_mul, pow_succ]
 
 theorem sub_conj (z : ℂ) : z - conj z = (2 * z.im : ℝ) * I :=
 ext_iff.2 $ by simp [two_mul]
+
+lemma conj_pow (z : ℂ) (n : ℕ) : conj (z ^ n) = conj z ^ n :=
+by induction n; simp [*, conj_mul, pow_succ]
+
+@[simp] lemma conj_two : conj (2 : ℂ) = 2 := by apply complex.ext; simp
 
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
@@ -223,6 +236,9 @@ if h : z = 0 then by simp [h] else
 (domain.mul_left_inj (mt conj_eq_zero.1 h)).1 $
 by rw [← conj_mul]; simp [h, -conj_mul]
 
+@[simp] lemma conj_sub (z w : ℂ) : conj (z - w) = conj z - conj w :=
+by simp
+
 @[simp] lemma conj_div (z w : ℂ) : conj (z / w) = conj z / conj w :=
 by rw [division_def, conj_mul, conj_inv]; refl
 
@@ -260,6 +276,10 @@ real.mul_self_sqrt (norm_sq_nonneg _)
 @[simp] lemma abs_zero : abs 0 = 0 := by simp [abs]
 @[simp] lemma abs_one : abs 1 = 1 := by simp [abs]
 @[simp] lemma abs_I : abs I = 1 := by simp [abs]
+
+@[simp] lemma abs_two : abs 2 = 2 :=
+calc abs 2 = abs (2 : ℝ) : by rw [of_real_bit0, of_real_one]
+... = (2 : ℝ) : abs_of_nonneg (by norm_num)
 
 lemma abs_nonneg (z : ℂ) : 0 ≤ abs z :=
 real.sqrt_nonneg _
@@ -320,6 +340,22 @@ lemma abs_abs_sub_le_abs_sub : ∀ z w, abs' (abs z - abs w) ≤ abs (z - w) := 
 lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ abs' z.re + abs' z.im :=
 by simpa [re_add_im] using abs_add z.re (z.im * I)
 
+lemma abs_re_div_abs_le_one (z : ℂ) : abs' (z.re / z.abs) ≤ 1 :=
+if hz : z = 0 then by simp [hz, zero_le_one]
+else by rw [_root_.abs_div, abs_abs]; exact
+  div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_re_le_abs _)
+
+lemma abs_im_div_abs_le_one (z : ℂ) : abs' (z.im / z.abs) ≤ 1 :=
+if hz : z = 0 then by simp [hz, zero_le_one]
+else by rw [_root_.abs_div, abs_abs]; exact
+  div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_im_le_abs _)
+
+@[simp] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
+by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
+
+lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
+by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
+
 noncomputable def lim (f : ℕ → ℂ) : ℂ :=
 ⟨real.lim (λ n, (f n).re), real.lim (λ n, (f n).im)⟩
 
@@ -331,6 +367,11 @@ theorem is_cau_seq_im (f : cau_seq ℂ abs) : is_cau_seq abs' (λ n, (f n).im) :
 λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
 lt_of_le_of_lt (by simpa using abs_im_le_abs (f j - f i)) (H _ ij)
 
+lemma is_cau_seq_abs {f : ℕ → ℂ} (hf : is_cau_seq abs f) :
+  is_cau_seq abs' (abs ∘ f) :=
+λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
+⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
+
 theorem equiv_lim (f : cau_seq ℂ abs) : f ≈ cau_seq.const abs (lim f) :=
 λ ε ε0, (exists_forall_ge_and
   (real.equiv_lim ⟨_, is_cau_seq_re f⟩ _ (half_pos ε0))
@@ -340,5 +381,99 @@ theorem equiv_lim (f : cau_seq ℂ abs) : f ≈ cau_seq.const abs (lim f) :=
   apply lt_of_le_of_lt (abs_le_abs_re_add_abs_im _),
   simpa using add_lt_add H₁ H₂
 end
+
+open cau_seq
+
+lemma re_const_equiv_of_const_equiv {f : cau_seq ℂ abs} (z : ℂ)
+  (h : const abs z ≈ f) :
+  const _root_.abs z.re ≈ ⟨(λ (n : ℕ), (f n).re), is_cau_seq_re f⟩  :=
+λ ε ε0, let ⟨i, hi⟩ := h ε ε0 in
+⟨i, λ j hji, show abs' (z.re - (f j).re) < ε,
+  by rw ← sub_re; exact lt_of_le_of_lt (abs_re_le_abs _) (hi j hji)⟩
+
+lemma im_const_equiv_of_const_equiv {f : cau_seq ℂ abs} (z : ℂ)
+  (h : const abs z ≈ f) :
+  const _root_.abs z.im ≈ ⟨(λ (n : ℕ), (f n).im), is_cau_seq_im f⟩  :=
+λ ε ε0, let ⟨i, hi⟩ := h ε ε0 in
+⟨i, λ j hji, show abs' (z.im - (f j).im) < ε,
+  by rw ← sub_im; exact lt_of_le_of_lt (abs_im_le_abs _) (hi j hji)⟩
+
+lemma eq_lim_of_const_equiv {f : cau_seq ℂ abs} {z : ℂ}
+  (h : const abs z ≈ f) : z = lim f :=
+complex.ext
+  (show z.re = real.lim (⟨complex.re ∘ f, is_cau_seq_re f⟩ : cau_seq ℝ abs'),
+    from real.eq_lim_of_const_equiv (re_const_equiv_of_const_equiv _ h))
+  (show z.im = real.lim (⟨complex.im ∘ f, is_cau_seq_im f⟩ : cau_seq ℝ abs'),
+    from real.eq_lim_of_const_equiv (im_const_equiv_of_const_equiv _ h))
+
+lemma lim_eq_of_equiv_const {f : cau_seq ℂ abs} {x : ℂ} (h : f ≈ const abs x) : lim f = x :=
+(eq_lim_of_const_equiv $ setoid.symm h).symm
+
+lemma lim_eq_lim_of_equiv {f g : cau_seq ℂ abs} (h : f ≈ g) : lim f = lim g :=
+lim_eq_of_equiv_const $ setoid.trans h $ equiv_lim g
+
+@[simp] lemma lim_const (x : ℂ) : lim (const abs x) = x :=
+lim_eq_of_equiv_const $ setoid.refl _
+
+lemma lim_add (f g : cau_seq ℂ abs) : lim f + lim g = lim ⇑(f + g) :=
+eq_lim_of_const_equiv $ show lim_zero (const abs (lim ⇑f + lim ⇑g) - (f + g)),
+  by rw [const_add, add_sub_comm];
+  exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g))
+
+lemma lim_mul_lim (f g : cau_seq ℂ abs) : lim f * lim g = lim ⇑(f * g) :=
+eq_lim_of_const_equiv $ show lim_zero (const abs (lim ⇑f * lim ⇑g) - f * g),
+  from have h : const abs (lim ⇑f * lim ⇑g) - f * g = g * (const abs (lim f) - f)
+      + const abs (lim f) * (const abs (lim g) - g) :=
+    by simp [mul_sub, mul_comm, const_mul, mul_add],
+  by rw h; exact add_lim_zero (mul_lim_zero _ (setoid.symm (equiv_lim f)))
+      (mul_lim_zero _ (setoid.symm (equiv_lim g)))
+
+lemma lim_mul (f : cau_seq ℂ abs) (x : ℂ) : lim f * x = lim ⇑(f * const abs x) :=
+by rw [← lim_mul_lim, lim_const]
+
+lemma lim_neg (f : cau_seq ℂ abs) : lim ⇑(-f) = -lim f :=
+lim_eq_of_equiv_const (show lim_zero (-f - const abs (-lim ⇑f)),
+  by rw [const_neg, sub_neg_eq_add, add_comm];
+  exact setoid.symm (equiv_lim f))
+
+lemma is_cau_seq_conj {f : ℕ → ℂ} (hf : is_cau_seq abs f) :
+  is_cau_seq abs (conj ∘ f) :=
+λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
+⟨i, λ j hj, by rw [function.comp_apply, function.comp_apply, ← conj_sub, abs_conj];
+  exact hi j hj⟩
+
+lemma lim_conj (f : cau_seq ℂ abs) : lim (⟨conj ∘ f, is_cau_seq_conj f.2⟩ : cau_seq ℂ abs) = conj (lim f) :=
+complex.ext rfl (real.lim_neg ⟨_, is_cau_seq_im f⟩ : _)
+
+lemma lim_eq_zero_iff (f : cau_seq ℂ abs) : lim f = 0 ↔ lim_zero f :=
+⟨assume h,
+  by have hf := equiv_lim f;
+  rw h at hf;
+  exact (lim_zero_congr hf).mpr (const_lim_zero.mpr rfl),
+assume h,
+  have h₁ : f = (f - const abs (0 : ℂ)) := cau_seq.ext (λ n, by simp [sub_apply, const_apply]),
+  by rw h₁ at h; exact lim_eq_of_equiv_const h ⟩
+
+lemma lim_inv {f : cau_seq ℂ abs} (hf : ¬ lim_zero f) : lim ⇑(inv f hf) = (lim f)⁻¹ :=
+have hl : lim f ≠ 0 := by rwa ← lim_eq_zero_iff at hf,
+lim_eq_of_equiv_const $ show lim_zero (inv f hf - const abs (lim ⇑f)⁻¹),
+  from have h₁ : ∀ (g f : cau_seq ℂ abs) (hf : ¬ lim_zero f), lim_zero (g - f * inv f hf * g) :=
+    λ g f hf, by rw [← one_mul g, ← mul_assoc, ← sub_mul, mul_one, mul_comm, mul_comm f];
+    exact mul_lim_zero _ (setoid.symm (cau_seq.inv_mul_cancel _)),
+  have h₂ : lim_zero ((inv f hf - const abs (lim ⇑f)⁻¹) - (const abs (lim f) - f) *
+      (inv f hf * const abs (lim ⇑f)⁻¹)) :=
+    by rw [sub_mul, ← sub_add, sub_sub, sub_add_eq_sub_sub, sub_right_comm, sub_add];
+    exact show lim_zero (inv f hf - const abs (lim ⇑f) * (inv f hf * const abs (lim ⇑f)⁻¹)
+      - (const abs (lim ⇑f)⁻¹ - f * (inv f hf * const abs (lim ⇑f)⁻¹))),
+    from sub_lim_zero
+      (by rw [← mul_assoc, mul_right_comm, const_inv hl]; exact h₁ _ _ _)
+      (by rw [← mul_assoc]; exact h₁ _ _ _),
+  (lim_zero_congr h₂).mpr $ by rw mul_comm; exact mul_lim_zero _ (setoid.symm (equiv_lim f))
+
+lemma lim_abs (f : cau_seq ℂ abs) :
+  real.lim (⟨_, is_cau_seq_abs f.2⟩ : cau_seq ℝ abs') = abs (complex.lim f) :=
+real.lim_eq_of_equiv_const (λ ε ε0,
+let ⟨i, hi⟩ := equiv_lim f ε ε0 in
+⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩)
 
 end complex

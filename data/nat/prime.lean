@@ -22,7 +22,7 @@ theorem prime.gt_one {p : ℕ} : prime p → p > 1 := prime.ge_two
 theorem prime_def_lt {p : ℕ} : prime p ↔ p ≥ 2 ∧ ∀ m < p, m ∣ p → m = 1 :=
 and_congr_right $ λ p2, forall_congr $ λ m,
 ⟨λ h l d, (h d).resolve_right (ne_of_lt l),
- λ h d, (lt_or_eq_of_le $
+ λ h d, (decidable.lt_or_eq_of_le $
    le_of_dvd (le_of_succ_le p2) d).imp_left (λ l, h l d)⟩
 
 theorem prime_def_lt' {p : ℕ} : prime p ↔ p ≥ 2 ∧ ∀ m, 2 ≤ m → m < p → ¬ m ∣ p :=
@@ -54,6 +54,11 @@ def decidable_prime_1 (p : ℕ) : decidable (prime p) :=
 decidable_of_iff' _ prime_def_lt'
 local attribute [instance] decidable_prime_1
 
+lemma prime.ne_zero {n : ℕ} (h : prime n) : n ≠ 0 :=
+assume hn : n = 0,
+have h2 : ¬ prime 0, from dec_trivial,
+h2 (hn ▸ h)
+
 theorem prime.pos {p : ℕ} (pp : prime p) : p > 0 :=
 lt_of_succ_lt pp.gt_one
 
@@ -66,7 +71,7 @@ theorem prime_two : prime 2 := dec_trivial
 theorem prime_three : prime 3 := dec_trivial
 
 theorem prime.pred_pos {p : ℕ} (pp : prime p) : pred p > 0 :=
-lt_pred_of_succ_lt pp.gt_one
+lt_pred_iff.2 pp.gt_one
 
 theorem succ_pred_prime {p : ℕ} (pp : prime p) : succ (pred p) = p :=
 succ_pred_eq_of_pos pp.pos
@@ -204,19 +209,20 @@ theorem exists_dvd_of_not_prime2 {n : ℕ} (n2 : n ≥ 2) (np : ¬ prime n) :
 theorem exists_prime_and_dvd {n : ℕ} (n2 : n ≥ 2) : ∃ p, prime p ∧ p ∣ n :=
 ⟨min_fac n, min_fac_prime (ne_of_gt n2), min_fac_dvd _⟩
 
-theorem exists_infinite_primes : ∀ n : ℕ, ∃ p, p ≥ n ∧ prime p :=
-suffices ∀ {n}, n ≥ 2 → ∃ p, p ≥ n ∧ prime p, from
-λ n, let ⟨p, h, pp⟩ := this (nat.le_add_left 2 n) in
-  ⟨p, le_trans (nat.le_add_right n 2) h, pp⟩,
-λ n n2,
-  let p := min_fac (fact n + 1) in
-  have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
-  have pp : prime p, from min_fac_prime f1,
-  have n ≤ p, from le_of_not_ge $ λ h,
-    have p ∣ fact n, from dvd_fact (min_fac_pos _) h,
-    have p ∣ 1, from (nat.dvd_add_iff_right this).2 (min_fac_dvd _),
-    pp.not_dvd_one this,
-  ⟨p, this, pp⟩
+theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
+let p := min_fac (fact n + 1) in
+have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
+have pp : prime p, from min_fac_prime f1,
+have np : n ≤ p, from le_of_not_ge $ λ h,
+  have h₁ : p ∣ fact n, from dvd_fact (min_fac_pos _) h,
+  have h₂ : p ∣ 1, from (nat.dvd_add_iff_right h₁).2 (min_fac_dvd _),
+  pp.not_dvd_one h₂,
+⟨p, np, pp⟩
+
+lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
+(nat.mod_two_eq_zero_or_one p).elim
+  (λ h, or.inl ((hp.2 2 (dvd_of_mod_eq_zero h)).resolve_left dec_trivial).symm)
+  or.inr
 
 theorem factors_lemma {k} : (k+2) / min_fac (k+2) < k+2 :=
 div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one
@@ -272,6 +278,15 @@ by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
     exact (pp.dvd_mul.1 h).elim IH id]
 
+lemma prime.dvd_fact : ∀ {n p : ℕ} (hp : prime p), p ∣ n.fact ↔ p ≤ n
+| 0 p hp := iff_of_false hp.not_dvd_one (not_le_of_lt hp.pos)
+| (n+1) p hp := begin
+  rw [fact_succ, hp.dvd_mul, prime.dvd_fact hp],
+  exact ⟨λ h, h.elim (le_of_dvd (succ_pos _)) le_succ_of_le,
+    λ h, (_root_.lt_or_eq_of_le h).elim (or.inr ∘ le_of_lt_succ)
+      (λ h, or.inl $ by rw h)⟩
+end
+
 theorem prime.coprime_pow_of_not_dvd {p m a : ℕ} (pp : prime p) (h : ¬ p ∣ a) : coprime a (p^m) :=
 (pp.coprime_iff_not_dvd.2 h).symm.pow_right _
 
@@ -320,8 +335,9 @@ lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) :
     (λ h, have hl : ∀ p ∈ l, prime p := λ p hlp, h₁ p ((mem_cons_iff _ _ _).2 (or.inr hlp)),
     (mem_cons_iff _ _ _).2 (or.inr (mem_list_primes_of_dvd_prod hl h)))
 
-lemma mem_factors_of_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) (h : p ∣ n) : p ∈ factors n :=
-mem_list_primes_of_dvd_prod hp (@mem_factors n) ((prod_factors hn).symm ▸ h)
+lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factors n ↔ p ∣ n :=
+⟨λ h, prod_factors hn ▸ list.dvd_prod h,
+ λ h, mem_list_primes_of_dvd_prod hp (@mem_factors n) ((prod_factors hn).symm ▸ h)⟩
 
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →
   (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → l₁ ~ l₂
@@ -355,5 +371,18 @@ end,
 perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@mem_factors _)
 
 end
+
+lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m n k l : ℕ}
+      (hpm : p ^ k ∣ m) (hpn : p ^ l ∣ n) (hpmn : p ^ (k+l+1) ∣ m*n) :
+      p ^ (k+1) ∣ m ∨ p ^ (l+1) ∣ n :=
+have hpd : p^(k+l) * p ∣ m*n, from hpmn,
+have hpd2 : p ∣ (m*n) / p ^ (k+l), from dvd_div_of_mul_dvd hpd,
+have hpd3 : p ∣ (m*n) / (p^k * p^l), by simpa [nat.pow_add] using hpd2,
+have hpd4 : p ∣ (m / p^k) * (n / p^l), by simpa [nat.div_mul_div hpm hpn] using hpd3,
+have hpd5 : p ∣ (m / p^k) ∨ p ∣ (n / p^l), from (prime.dvd_mul p_prime).1 hpd4,
+show p^k*p ∣ m ∨ p^l*p ∣ n, from
+  hpd5.elim
+    (assume : p ∣ m / p ^ k, or.inl $ mul_dvd_of_dvd_div hpm this)
+    (assume : p ∣ n / p ^ l, or.inr $ mul_dvd_of_dvd_div hpn this)
 
 end nat

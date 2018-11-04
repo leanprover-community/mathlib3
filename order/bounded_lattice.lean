@@ -14,9 +14,9 @@ import order.lattice data.option
 set_option old_structure_cmd true
 
 universes u v
-variable {α : Type u}
 
 namespace lattice
+variable {α : Type u}
 
 /-- Typeclass for the `⊤` (`\top`) notation -/
 class has_top (α : Type u) := (top : α)
@@ -33,7 +33,7 @@ class order_top (α : Type u) extends has_top α, partial_order α :=
 (le_top : ∀ a : α, a ≤ ⊤)
 
 section order_top
-variables [order_top α] {a : α}
+variables [order_top α] {a b : α}
 
 @[simp] theorem le_top : a ≤ ⊤ :=
 order_top.le_top a
@@ -50,6 +50,9 @@ theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
 
 @[simp] theorem not_top_lt : ¬ ⊤ < a :=
 assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
+
+theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
+top_le_iff.1 $ h₂ ▸ h
 
 end order_top
 
@@ -73,7 +76,7 @@ class order_bot (α : Type u) extends has_bot α, partial_order α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
 section order_bot
-variables [order_bot α] {a : α}
+variables [order_bot α] {a b : α}
 
 @[simp] theorem bot_le : ⊥ ≤ a := order_bot.bot_le a
 
@@ -92,6 +95,9 @@ assume h, lt_irrefl a (lt_of_lt_of_le h bot_le)
 
 theorem neq_bot_of_le_neq_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
 assume ha, hb $ bot_unique $ ha ▸ hab
+
+theorem eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ :=
+le_bot_iff.1 $ h₂ ▸ h
 
 end order_bot
 
@@ -270,9 +276,17 @@ end lattice
 def with_bot (α : Type*) := option α
 
 namespace with_bot
+variable {α : Type u}
 open lattice
 
 instance : has_coe_t α (with_bot α) := ⟨some⟩
+instance has_bot : has_bot (with_bot α) := ⟨none⟩
+
+lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
+lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
+
+theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
+by rw [← option.some.inj_eq a b]; refl
 
 instance partial_order [partial_order α] : partial_order (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
@@ -290,9 +304,8 @@ instance partial_order [partial_order α] : partial_order (with_bot α) :=
   end }
 
 instance order_bot [partial_order α] : order_bot (with_bot α) :=
-{ bot := none,
-  bot_le := λ a a' h, option.no_confusion h,
-  ..with_bot.partial_order }
+{ bot_le := λ a a' h, option.no_confusion h,
+  ..with_bot.partial_order, ..with_bot.has_bot }
 
 @[simp] theorem coe_le_coe [partial_order α] {a b : α} :
   (a : with_bot α) ≤ b ↔ a ≤ b :=
@@ -310,6 +323,13 @@ theorem coe_le [partial_order α] {a b : α} :
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 (and_congr some_le_some (not_congr some_le_some))
   .trans lt_iff_le_not_le.symm
+
+lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
+
+lemma bot_lt_some [partial_order α] (a : α) : (⊥ : with_bot α) < some a :=
+lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
+
+lemma bot_lt_coe [partial_order α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
 
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
 { le_total := λ o₁ o₂, begin
@@ -396,15 +416,36 @@ have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
   from λ b ih hba, acc.intro _ (λ c, option.rec_on c (λ _, acc_bot)
     (λ c hc, ih _ (some_lt_some.1 hc) (lt_trans hc hba)))))))⟩
 
+instance densely_ordered [partial_order α] [densely_ordered α] [no_bot_order α] :
+  densely_ordered (with_bot α) :=
+⟨ assume a b,
+  match a, b with
+  | a,      none   := assume h : a < ⊥, (not_lt_bot h).elim
+  | none,   some b := assume h, let ⟨a, ha⟩ := no_bot b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
+  | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := dense (coe_lt_coe.1 h) in
+    ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
+  end⟩
+
 end with_bot
 
 --TODO(Mario): Construct using order dual on with_bot
 def with_top (α : Type*) := option α
 
 namespace with_top
+variable {α : Type u}
 open lattice
 
 instance : has_coe_t α (with_top α) := ⟨some⟩
+instance has_top : has_top (with_top α) := ⟨none⟩
+
+lemma none_eq_top : (none : with_top α) = (⊤ : with_top α) := rfl
+lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rfl
+
+theorem coe_eq_coe {a b : α} : (a : with_top α) = b ↔ a = b :=
+by rw [← option.some.inj_eq a b]; refl
+
+@[simp] theorem top_ne_coe [partial_order α] {a : α} : ⊤ ≠ (a : with_top α) .
+@[simp] theorem coe_ne_top [partial_order α] {a : α} : (a : with_top α) ≠ ⊤ .
 
 instance partial_order [partial_order α] : partial_order (with_top α) :=
 { le          := λ o₁ o₂ : option α, ∀ b ∈ o₂, ∃ a ∈ o₁, a ≤ b,
@@ -422,9 +463,8 @@ instance partial_order [partial_order α] : partial_order (with_top α) :=
   end }
 
 instance order_top [partial_order α] : order_top (with_top α) :=
-{ top := none,
-  le_top := λ a a' h, option.no_confusion h,
-  ..with_top.partial_order }
+{ le_top := λ a a' h, option.no_confusion h,
+  ..with_top.partial_order, .. with_top.has_top }
 
 @[simp] theorem coe_le_coe [partial_order α] {a b : α} :
   (a : with_top α) ≤ b ↔ a ≤ b :=
@@ -439,10 +479,30 @@ theorem le_coe [partial_order α] {a b : α} :
   (@has_le.le (with_top α) _ o b ↔ a ≤ b)
 | _ rfl := coe_le_coe
 
+theorem le_coe_iff [partial_order α] (b : α) : ∀(x : with_top α), x ≤ b ↔ (∃a:α, x = a ∧ a ≤ b)
+| (some a) := by simp [some_eq_coe, coe_eq_coe]
+| none     := by simp [none_eq_top]
+
+theorem coe_le_iff [partial_order α] (a : α) : ∀(x : with_top α), ↑a ≤ x ↔ (∀b:α, x = ↑b → a ≤ b)
+| (some b) := by simp [some_eq_coe, coe_eq_coe]
+| none     := by simp [none_eq_top]
+
+theorem lt_iff_exists_coe [partial_order α] : ∀(a b : with_top α), a < b ↔ (∃p:α, a = p ∧ ↑p < b)
+| (some a) b := by simp [some_eq_coe, coe_eq_coe]
+| none     b := by simp [none_eq_top]
+
 @[simp] theorem some_lt_some [partial_order α] {a b : α} :
   @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
 (and_congr some_le_some (not_congr some_le_some))
   .trans lt_iff_le_not_le.symm
+
+lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
+
+lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ :=
+lt_of_le_of_ne le_top (λ h, option.no_confusion h)
+
+lemma not_top_le_coe [partial_order α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
+assume h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
 
 instance linear_order [linear_order α] : linear_order (with_top α) :=
 { le_total := λ o₁ o₂, begin
@@ -478,6 +538,8 @@ instance semilattice_inf [semilattice_inf α] : semilattice_inf_top (with_top α
   end,
   ..with_top.order_top }
 
+lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_top α) = a ⊓ b := rfl
+
 instance semilattice_sup [semilattice_sup α] : semilattice_sup_top (with_top α) :=
 { sup          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊔ b)),
   le_sup_left  := λ o₁ o₂ a ha, begin
@@ -495,6 +557,8 @@ instance semilattice_sup [semilattice_sup α] : semilattice_sup_top (with_top α
     exact ⟨_, rfl, sup_le ab ac⟩
   end,
   ..with_top.order_top }
+
+lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_top α) = a ⊔ b := rfl
 
 instance lattice [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
@@ -528,4 +592,46 @@ have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (so
 ⟨λ a, option.rec_on a (acc.intro _ (λ y, option.rec_on y (λ h, (lt_irrefl _ h).elim)
   (λ _ _, acc_some _))) acc_some⟩
 
+instance densely_ordered [partial_order α] [densely_ordered α] [no_top_order α] :
+  densely_ordered (with_top α) :=
+⟨ assume a b,
+  match a, b with
+  | none,   a   := assume h : ⊤ < a, (not_top_lt h).elim
+  | some a, none := assume h, let ⟨b, hb⟩ := no_top a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
+  | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := dense (coe_lt_coe.1 h) in
+    ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
+  end⟩
+
 end with_top
+
+namespace order_dual
+open lattice
+variable (α : Type*)
+
+instance [has_bot α] : has_top (order_dual α) := ⟨(⊥ : α)⟩
+instance [has_top α] : has_bot (order_dual α) := ⟨(⊤ : α)⟩
+
+instance [order_bot α] : order_top (order_dual α) :=
+{ le_top := @bot_le α _,
+  .. order_dual.partial_order α, .. order_dual.lattice.has_top α }
+
+instance [order_top α] : order_bot (order_dual α) :=
+{ bot_le := @le_top α _,
+  .. order_dual.partial_order α, .. order_dual.lattice.has_bot α }
+
+instance [semilattice_inf_bot α] : semilattice_sup_top (order_dual α) :=
+{ .. order_dual.lattice.semilattice_sup α, .. order_dual.lattice.order_top α }
+
+instance [semilattice_inf_top α] : semilattice_sup_bot (order_dual α) :=
+{ .. order_dual.lattice.semilattice_sup α, .. order_dual.lattice.order_bot α }
+
+instance [semilattice_sup_bot α] : semilattice_inf_top (order_dual α) :=
+{ .. order_dual.lattice.semilattice_inf α, .. order_dual.lattice.order_top α }
+
+instance [semilattice_sup_top α] : semilattice_inf_bot (order_dual α) :=
+{ .. order_dual.lattice.semilattice_inf α, .. order_dual.lattice.order_bot α }
+
+instance [bounded_lattice α] : bounded_lattice (order_dual α) :=
+{ .. order_dual.lattice.lattice α, .. order_dual.lattice.order_top α, .. order_dual.lattice.order_bot α }
+
+end order_dual

@@ -92,21 +92,20 @@ def orbit_rel : setoid β :=
   iseqv := ⟨mem_orbit_self f, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
-noncomputable lemma orbit_equiv_left_cosets (a : β) :
-  orbit f a ≃ left_cosets (stabilizer f a) :=
-by letI := left_rel (stabilizer f a); exact
+noncomputable def orbit_equiv_quotient_stabilizer (a : β) :
+  orbit f a ≃ quotient (stabilizer f a) :=
 equiv.symm (@equiv.of_bijective _ _
-  (λ x : left_cosets (stabilizer f a), quotient.lift_on x
+  (λ x : quotient (stabilizer f a), quotient.lift_on' x
     (λ x, (⟨f x a, mem_orbit _ _ _⟩ : orbit f a))
     (λ g h (H : _ = _), subtype.eq $ (is_group_action.bijective f (g⁻¹)).1
       $ show f g⁻¹ (f g a) = f g⁻¹ (f h a),
       by rw [← is_monoid_action.mul f, ← is_monoid_action.mul f,
         H, inv_mul_self, is_monoid_action.one f]))
-⟨λ g h, quotient.induction_on₂ g h (λ g h H, quotient.sound $
+⟨λ g h, quotient.induction_on₂' g h (λ g h H, quotient.sound' $
   have H : f g a = f h a := subtype.mk.inj H,
   show f (g⁻¹ * h) a = a,
   by rw [is_monoid_action.mul f, ← H, ← is_monoid_action.mul f, inv_mul_self,
     is_monoid_action.one f]),
-  λ ⟨b, ⟨g, hgb⟩⟩, ⟨⟦g⟧, subtype.eq hgb⟩⟩)
+  λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩)
 
 end is_group_action

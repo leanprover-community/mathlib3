@@ -6,64 +6,15 @@ Author: Simon Hudon
 Instances of `traversable` for types from the core library
 -/
 
-import category.traversable.basic
-import category.basic
-import category.functor
-import category.applicative
+import category.traversable.basic category.basic category.functor category.applicative
+import data.list.basic data.set.lattice
 
 universes u v
 
 open function
 
-section identity
-
-open function functor
-
-variables {f f' : Type u → Type u}
-variables [applicative f] [applicative f']
-
-
-instance : traversable id :=
-⟨ λ _ _ _ _, id ⟩
-
-variables [is_lawful_applicative f] [is_lawful_applicative f']
-
-lemma id.id_traverse {α : Type*} (x : id α) :
-  traverse id.mk x = x :=
-rfl
-
-lemma id.comp_traverse {α β γ : Type*} (g : α → f β) (h : β → f' γ) (x : id α) :
-  traverse (comp.mk ∘ (<$>) h ∘ g) x =
-  comp.mk (traverse h <$> traverse g x) :=
-by simp! [traverse,functor.map_id] with functor_norm
-
-lemma id.map_traverse {α β γ : Type*}
-   (g : α → f' β) (f : β → γ)
-   (x : id α) :
-  (<$>) f <$> traverse g x = traverse ((<$>) f ∘ g) x :=
-by simp [(<$>),id_bind,traverse] with functor_norm
-
-lemma id.traverse_map {α β γ : Type*}
-   (g : α → β) (f : β → f' γ)
-   (x : id α) :
-  traverse f (g <$> x) = traverse (f ∘ g) x :=
-by simp [(<$>),id_bind,traverse] with functor_norm
-
-variable (η : applicative_transformation f f')
-
-lemma id.naturality {α β : Type*}
-  (F : α → f β) (x : id α) :
-  η (traverse F x) = traverse (@η _ ∘ F) x :=
-by simp! [traverse] with functor_norm; refl
-
-end identity
-
-instance : is_lawful_traversable id :=
-{ id_traverse := λ α x, @id.id_traverse α x,
-  comp_traverse := @id.comp_traverse,
-  map_traverse := @id.map_traverse,
-  traverse_map := @id.traverse_map,
-  naturality := @id.naturality }
+instance : traversable id := ⟨λ _ _ _ _, id⟩
+instance : is_lawful_traversable id := by refine {..}; intros; refl
 
 section option
 
@@ -71,47 +22,32 @@ open function functor
 
 section inst
 
-variables {f : Type u → Type v}
-variables [applicative f]
+variables {F : Type u → Type v} [applicative F]
 
-protected def option.traverse {α β : Type*} (g : α → f β) : option α → f (option β)
-| none := pure none
-| (some x) := some <$> g x
-
-instance : traversable option :=
-{ traverse := @option.traverse }
+instance : traversable option := ⟨@option.traverse⟩
 
 end inst
 
-variables {f f' : Type u → Type u}
-variables [applicative f] [applicative f']
+variables {F G : Type u → Type u}
+variables [applicative F] [applicative G]
+variables [is_lawful_applicative F] [is_lawful_applicative G]
 
-variables [is_lawful_applicative f] [is_lawful_applicative f']
+lemma option.id_traverse {α} (x : option α) : option.traverse id.mk x = x :=
+by cases x; refl
 
-lemma option.id_traverse {α : Type*} (x : option α) :
-  option.traverse id.mk x = x :=
-by cases x; unfold option.traverse; refl
-
-lemma option.comp_traverse {α β γ : Type*} (g : α → f β) (h : β → f' γ) :
-  ∀ (x : option α),
-        option.traverse (comp.mk ∘ (<$>) h ∘ g) x =
-        comp.mk (option.traverse h <$> option.traverse g x) :=
-by intro x; cases x; simp! with functor_norm; refl
-
-lemma option.map_traverse {α β γ : Type*} (g : α -> f β) (h : β → γ)
-  (x : option α) :
-  option.map h <$> option.traverse g x = option.traverse ((<$>) h ∘ g) x :=
+lemma option.comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : option α) :
+  option.traverse (comp.mk ∘ (<$>) f ∘ g) x =
+  comp.mk (option.traverse f <$> option.traverse g x) :=
 by cases x; simp! with functor_norm; refl
 
-lemma option.traverse_map {α β γ : Type*} (g : α -> β) (f : β → f' γ)
-  (x : option α) :
-  option.traverse f (g <$> x) = option.traverse (f ∘ g) x :=
-by cases x; simp! with functor_norm; refl
+lemma option.traverse_eq_map_id {α β} (f : α → β) (x : option α) :
+  traverse (id.mk ∘ f) x = id.mk (f <$> x) :=
+by cases x; refl
 
-variable (η : applicative_transformation f f')
+variable (η : applicative_transformation F G)
 
-lemma option.naturality {α β : Type*} (g : α → f β) (x : option α) :
-  η (option.traverse g x) = option.traverse (@η _ ∘ g) x :=
+lemma option.naturality {α β} (f : α → F β) (x : option α) :
+  η (option.traverse f x) = option.traverse (@η _ ∘ f) x :=
 by cases x with x; simp! [*] with functor_norm
 
 end option
@@ -119,137 +55,129 @@ end option
 instance : is_lawful_traversable option :=
 { id_traverse := @option.id_traverse,
   comp_traverse := @option.comp_traverse,
-  map_traverse := @option.map_traverse,
-  traverse_map := @option.traverse_map,
+  traverse_eq_map_id := @option.traverse_eq_map_id,
   naturality := @option.naturality }
 
-section list
+namespace list
 
-variables {f : Type u → Type v}
-variables [applicative f]
-
-open applicative functor
-open list (cons)
-
-protected def list.traverse {α β : Type*} (g : α → f β) : list α → f (list β)
-| [] := pure []
-| (x :: xs) := cons <$> g x <*> list.traverse xs
-
-end list
-
-section list
-
-variables {f f' : Type u → Type u}
-variables [applicative f] [applicative f']
-variables [is_lawful_applicative f] [is_lawful_applicative f']
+variables {F G : Type u → Type u}
+variables [applicative F] [applicative G]
+variables [is_lawful_applicative F] [is_lawful_applicative G]
 
 open applicative functor
 open list (cons)
 
-lemma list.id_traverse {α : Type*}
-  (xs : list α) :
+protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=
-by induction xs; simp! [*] with functor_norm; refl
+by induction xs; simp! * with functor_norm; refl
 
-lemma list.comp_traverse {α β γ : Type*}
-  (g : α → f β) (h : β → f' γ) (x : list α) :
-  list.traverse (comp.mk ∘ (<$>) h ∘ g) x =
-  comp.mk (list.traverse h <$> list.traverse g x) :=
-by induction x; simp! [*] with functor_norm; refl
+protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
+  list.traverse (comp.mk ∘ (<$>) f ∘ g) x =
+  comp.mk (list.traverse f <$> list.traverse g x) :=
+by induction x; simp! * with functor_norm; refl
 
-lemma list.map_traverse {α β γ : Type*}
-  (g : α → f' β) (f : β → γ)
-  (x : list α) :
-  (<$>) f <$> list.traverse g x = list.traverse ((<$>) f ∘ g) x :=
-begin
-  symmetry,
-  induction x with x xs ih;
-  simp! [*] with functor_norm; refl
-end
+protected lemma traverse_eq_map_id {α β} (f : α → β) (x : list α) :
+  list.traverse (id.mk ∘ f) x = id.mk (f <$> x) :=
+by induction x; simp! * with functor_norm; refl
 
-lemma list.traverse_map {α β γ : Type*}
-  (g : α → β) (f : β → f' γ)
-  (x : list α) :
-  list.traverse f (g <$> x) = list.traverse (f ∘ g) x :=
-begin
-  symmetry,
-  induction x with x xs ih;
-  simp! [*] with functor_norm; refl
-end
+variable (η : applicative_transformation F G)
 
-variable (η : applicative_transformation f f')
-
-lemma list.naturality {α β : Type*} (g : α → f β) (x : list α) :
-  η (list.traverse g x) = list.traverse (@η _ ∘ g) x :=
-by induction x; simp! [*] with functor_norm
+protected lemma naturality {α β} (f : α → F β) (x : list α) :
+  η (list.traverse f x) = list.traverse (@η _ ∘ f) x :=
+by induction x; simp! * with functor_norm
 open nat
 
-end list
-
-instance : traversable list :=
-{ traverse := @list.traverse }
+instance : traversable list := ⟨@list.traverse⟩
 
 instance : is_lawful_traversable list :=
 { id_traverse := @list.id_traverse,
   comp_traverse := @list.comp_traverse,
-  map_traverse := @list.map_traverse,
-  traverse_map := @list.traverse_map,
+  traverse_eq_map_id := @list.traverse_eq_map_id,
   naturality := @list.naturality }
+
+section traverse
+variables {α' β' : Type u} (f : α' → F β')
+
+@[simp] lemma traverse_nil : traverse f ([] : list α') = (pure [] : F (list β')) := rfl
+
+@[simp] lemma traverse_cons (a : α') (l : list α') :
+  traverse f (a :: l) = (::) <$> f a <*> traverse f l := rfl
+
+variables [is_lawful_applicative F]
+
+@[simp] lemma traverse_append :
+  ∀ (as bs : list α'), traverse f (as ++ bs) = (++) <$> traverse f as <*> traverse f bs
+| [] bs :=
+  have has_append.append ([] : list β') = id, by funext; refl,
+  by simp [this] with functor_norm
+| (a :: as) bs := by simp [traverse_append as bs] with functor_norm; congr
+
+lemma mem_traverse {f : α' → set β'} :
+  ∀(l : list α') (n : list β'), n ∈ traverse f l ↔ forall₂ (λb a, b ∈ f a) n l
+| []      []      := by simp
+| (a::as) []      := by simp; exact assume h, match h with end
+| []      (b::bs) := by simp
+| (a::as) (b::bs) :=
+  suffices (b :: bs : list β') ∈ traverse f (a :: as) ↔ b ∈ f a ∧ bs ∈ traverse f as,
+    by simpa [mem_traverse as bs],
+  iff.intro
+    (assume ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩, ⟨hb, hl⟩)
+    (assume ⟨hb, hl⟩, ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩)
+
+end traverse
+
+end list
 
 namespace sum
 
 section traverse
-variables {γ : Type u}
-variables {f f' : Type u → Type u}
-variables [applicative f] [applicative f']
+variables {σ : Type u}
+variables {F G : Type u → Type u}
+variables [applicative F] [applicative G]
 
 open applicative functor
 open list (cons)
 
-protected def traverse {α β : Type*} (g : α → f β) : γ ⊕ α → f (γ ⊕ β)
+protected def traverse {α β} (f : α → F β) : σ ⊕ α → F (σ ⊕ β)
 | (sum.inl x) := pure (sum.inl x)
-| (sum.inr x) := sum.inr <$> g x
+| (sum.inr x) := sum.inr <$> f x
 
-variables [is_lawful_applicative f] [is_lawful_applicative f']
+variables [is_lawful_applicative F] [is_lawful_applicative G]
 
-protected lemma id_traverse {φ α : Type*} (x : φ ⊕ α) :
-  sum.traverse id.mk x = x :=
+protected lemma id_traverse {σ α} (x : σ ⊕ α) : sum.traverse id.mk x = x :=
 by cases x; refl
 
-protected lemma comp_traverse {α β φ : Type*} (g : α → f β) (h : β → f' φ) (x : γ ⊕ α) :
-        sum.traverse (comp.mk ∘ (<$>) h ∘ g) x =
-        comp.mk (sum.traverse h <$> sum.traverse g x) :=
-by casesm _ ⊕ _; simp! [sum.traverse,map_id] with functor_norm; refl
+protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : σ ⊕ α) :
+  sum.traverse (comp.mk ∘ (<$>) f ∘ g) x =
+  comp.mk (sum.traverse f <$> sum.traverse g x) :=
+by cases x; simp! [sum.traverse,map_id] with functor_norm; refl
 
-protected lemma map_traverse {α β φ : Type*}
-   (g : α → f' β) (f : β → φ)
-   (x : γ ⊕ α) :
+protected lemma traverse_eq_map_id {α β} (f : α → β) (x : σ ⊕ α) :
+  sum.traverse (id.mk ∘ f) x = id.mk (f <$> x) :=
+by induction x; simp! * with functor_norm; refl
+
+protected lemma map_traverse {α β γ} (g : α → G β) (f : β → γ) (x : σ ⊕ α) :
   (<$>) f <$> sum.traverse g x = sum.traverse ((<$>) f ∘ g) x :=
-by casesm _ ⊕ _; simp [(<$>),sum.mapr,sum.traverse,id_map] with functor_norm; congr
+by cases x; simp [sum.traverse, id_map] with functor_norm; congr; refl
 
-protected lemma traverse_map {α : Type u} {β φ : Type*}
-   (g : α → β) (f : β → f' φ)
-   (x : γ ⊕ α) :
+protected lemma traverse_map {α β γ : Type u} (g : α → β) (f : β → G γ) (x : σ ⊕ α) :
   sum.traverse f (g <$> x) = sum.traverse (f ∘ g) x :=
-by casesm _ ⊕ _; simp [(<$>),sum.mapr,sum.traverse,id_map] with functor_norm
+by cases x; simp [sum.traverse, id_map] with functor_norm; refl
 
-variable (η : applicative_transformation f f')
+variable (η : applicative_transformation F G)
 
-protected lemma naturality {α β : Type*}
-  (F : α → f β) (x : γ ⊕ α) :
-  η (sum.traverse F x) = sum.traverse (@η _ ∘ F) x :=
-by cases x; simp! [sum.traverse] with functor_norm; refl
+protected lemma naturality {α β} (f : α → F β) (x : σ ⊕ α) :
+  η (sum.traverse f x) = sum.traverse (@η _ ∘ f) x :=
+by cases x; simp! [sum.traverse] with functor_norm
 
 end traverse
 
-instance {γ : Type u} : traversable.{u} (sum γ) :=
-{ traverse := @sum.traverse.{u} γ }
+instance {σ : Type u} : traversable.{u} (sum σ) := ⟨@sum.traverse _⟩
 
-instance {γ : Type u} : is_lawful_traversable.{u} (sum γ) :=
-{ id_traverse := @sum.id_traverse γ,
-  comp_traverse := @sum.comp_traverse γ,
-  map_traverse := @sum.map_traverse γ,
-  traverse_map := @sum.traverse_map γ,
-  naturality := @sum.naturality γ }
+instance {σ : Type u} : is_lawful_traversable.{u} (sum σ) :=
+{ id_traverse := @sum.id_traverse σ,
+  comp_traverse := @sum.comp_traverse σ,
+  traverse_eq_map_id := @sum.traverse_eq_map_id σ,
+  naturality := @sum.naturality σ }
 
 end sum

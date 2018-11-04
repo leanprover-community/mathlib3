@@ -143,8 +143,17 @@ nat_iso.of_components (is_limit.equiv h) (by tidy)
 
 def is_limit.of_extensions_iso (h : is_iso t.extensions) : is_limit t :=
 { lift := λ s, (inv t.extensions) s.X s.π,
-  fac' := begin tidy, sorry, end,
-  uniq' := begin tidy, sorry, end }
+  fac' := λ s j,
+    show ((inv t.extensions ≫ t.extensions) s.X s.π).app j = _,
+    by erw @is_iso.inv_hom_id _ _ _ _ _ h; refl,
+  uniq' := λ s m hm, begin
+    have : m = (t.extensions ≫ inv t.extensions) s.X m,
+      by erw @is_iso.hom_inv_id _ _ _ _ _ h; refl,
+    rw this,
+    have : s.π = (functor.const J C).map m ≫ t.π, by ext j; exact (hm j).symm,
+    rw this,
+    refl
+  end }
 
 end limit
 
@@ -176,13 +185,19 @@ def cone.of_representable_cones (F : J ⥤ C) [r : representable F.cones] : cone
 { X := r.X,
   π := r.w.hom r.X (𝟙 r.X) }
 
+lemma cone.of_representable_cones_extension (F : J ⥤ C) (r : representable F.cones) :
+  (cone.of_representable_cones F).extensions = r.w.hom :=
+begin
+  ext1 Z, ext1 f,
+  have : ((yoneda C r.X).map f ≫ r.w.hom Z) (𝟙 _) = _, by rw [r.w.hom.naturality f],
+  simpa using this.symm
+end
+
 def extensions_iso_of_representable_cones (F : J ⥤ C) [r : representable F.cones] :
   is_iso (cone.of_representable_cones F).extensions :=
-{ inv :=
-  { app := λ X, r.w.inv X,
-    naturality' := λ X Y f, begin tidy, sorry end },
-  hom_inv_id' := begin tidy, sorry end,
-  inv_hom_id' := sorry }
+{ inv := r.w.inv,
+  hom_inv_id' := by rw cone.of_representable_cones_extension; exact r.w.hom_inv_id',
+  inv_hom_id' := by rw cone.of_representable_cones_extension; exact r.w.inv_hom_id' }
 
 def has_limit_of_cones_representable (F : J ⥤ C) [r : representable F.cones] : has_limit F :=
 { cone := cone.of_representable_cones F,

@@ -60,10 +60,10 @@ lemma is_subgroup.coe_inv {s : set α} [is_subgroup s] (a : s) : ((a⁻¹ : s) :
 @[simp] lemma is_subgroup.coe_gpow {s : set α} [is_subgroup s] (a : s) (n : ℤ) : ((a ^ n : s) : α) = a ^ n :=
 by induction n; simp [is_submonoid.coe_pow a]
 
-@[simp] lemma is_add_subgroup.coe_gsmul {β : Type*} [add_group β] {s : set β} [is_add_subgroup s] (a : s) (n : ℤ) :
+@[simp] lemma is_add_subgroup.gsmul_coe {β : Type*} [add_group β] {s : set β} [is_add_subgroup s] (a : s) (n : ℤ) :
   ((gsmul n a : s) : β) = gsmul n a :=
-by induction n; simp [is_add_submonoid.coe_smul a]
-attribute [to_additive is_add_subgroup.coe_gsmul] is_subgroup.coe_gpow
+by induction n; simp [is_add_submonoid.smul_coe a]
+attribute [to_additive is_add_subgroup.gsmul_coe] is_subgroup.coe_gpow
 
 theorem is_subgroup.of_div (s : set α)
   (one_mem : (1:α) ∈ s) (div_mem : ∀{a b:α}, a ∈ s → b ∈ s → a * b⁻¹ ∈ s):

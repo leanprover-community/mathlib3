@@ -239,6 +239,12 @@ attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup._
 attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup] group_equiv_quotient_times_subgroup
 attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup.equations._eqn_1] group_equiv_quotient_times_subgroup.equations._eqn_1
 
+end is_subgroup
+
+namespace quotient_group
+
+variables [group α]
+
 noncomputable def preimage_mk_equiv_subgroup_times_set
   (s : set α) [is_subgroup s] (t : set (quotient s)) : quotient_group.mk ⁻¹' t ≃ (s × t) :=
 have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →
@@ -254,4 +260,4 @@ have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →
   left_inv := λ ⟨a, ha⟩, subtype.eq $ show _ * _ = a, by simp,
   right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, show (_, _) = _, by simp [h hx ha] }
 
-end is_subgroup
+end quotient_group

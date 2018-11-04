@@ -1,6 +1,6 @@
 import group_theory.order_of_element data.zmod.basic algebra.pi_instances group_theory.group_action
-#exit
-open equiv fintype finset is_group_action is_monoid_action function equiv.perm is_subgroup list
+
+open equiv fintype finset is_group_action is_monoid_action function equiv.perm is_subgroup list quotient_group
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
 
@@ -9,7 +9,7 @@ local attribute [instance, priority 0] subtype.fintype set_fintype classical.pro
 namespace is_group_action
 variables (f : G → α → α) [is_group_action f]
 
-lemma mem_fixed_points_iff_card_orbit {f : G → α → α} [is_group_action f] {a : α}
+lemma mem_fixed_points_iff_card_orbit_eq_one {f : G → α → α} [is_group_action f] {a : α}
   [fintype (orbit f a)] : a ∈ fixed_points f ↔ card (orbit f a) = 1 :=
 begin
   rw [fintype.card_eq_one_iff, mem_fixed_points],
@@ -34,12 +34,12 @@ begin
     (λ a₁ a₂ _ _ _ _ h,
       subtype.eq (mem_fixed_points'.1 a₂.2 a₁.1 (quotient.exact' h)))
       (λ b, _)
-      (λ a ha _, by rw [← mem_fixed_points_iff_card_orbit.1 a.2];
+      (λ a ha _, by rw [← mem_fixed_points_iff_card_orbit_eq_one.1 a.2];
         simp only [quotient.eq']; congr)),
   { refine quotient.induction_on' b (λ b _ hb, _),
     have : card (orbit f b) ∣ p ^ n,
-    { rw [← h, card_congr (orbit_equiv_left_cosets f b)];
-      exact card_left_cosets_dvd_card _ },
+    { rw [← h, fintype.card_congr (orbit_equiv_quotient_stabilizer f b)];
+      exact card_quotient_dvd_card _ },
     rcases (nat.dvd_prime_pow hp).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,
     { rw [nat.pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmodp.eq_iff_modeq_nat hp,
@@ -53,11 +53,11 @@ end
 
 end is_group_action
 
-lemma card_preimage_left_cosets_mk [fintype G] (s : set G) [is_subgroup s]
-  (t : set (left_cosets s)) : fintype.card (left_cosets.mk ⁻¹' t) =
+lemma quotient_group.card_preimage_mk [fintype G] (s : set G) [is_subgroup s]
+  (t : set (quotient s)) : fintype.card (quotient_group.mk ⁻¹' t) =
   fintype.card s * fintype.card t :=
 by rw [← fintype.card_prod, fintype.card_congr
-  (is_subgroup.preimage_left_cosets_mk_equiv_subgroup_times_set _ _)]
+  (is_subgroup.preimage_mk_equiv_subgroup_times_set _ _)]
 
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
@@ -84,60 +84,6 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
   end⟩,
   λ ⟨w, hw⟩, by rw [mem_vectors_prod_eq_one, ← hw, mk_vector_prod_eq_one,
     vector.to_list_cons, list.prod_cons, inv_mul_self]⟩
-
-lemma nth_rotate : ∀ {l : list α} {n m : ℕ} (hml : m < l.length),
-  (l.rotate n).nth m = l.nth ((m + n) % l.length)
-| []     n     m hml := (nat.not_lt_zero _ hml).elim
-| l      0     m hml := by simp [nat.mod_eq_of_lt hml]
-| (a::l) (n+1) m hml :=
-have h₃ : m < list.length (l ++ [a]), by simpa using hml,
-(lt_or_eq_of_le (nat.le_of_lt_succ $ nat.mod_lt (m + n)
-  (lt_of_le_of_lt (nat.zero_le _) hml))).elim
-(λ hml',
-  have h₁ : (m + (n + 1)) % ((a :: l : list α).length) =
-      (m + n) % ((a :: l : list α).length) + 1,
-    from calc (m + (n + 1)) % (l.length + 1) =
-      ((m + n) % (l.length + 1) + 1) % (l.length + 1) :
-      add_assoc m n 1 ▸ nat.modeq.modeq_add (nat.mod_mod _ _).symm rfl
-    ... = (m + n) % (l.length + 1) + 1 : nat.mod_eq_of_lt (nat.succ_lt_succ hml'),
-  have h₂ : (m + n) % (l ++ [a]).length < l.length, by simpa [nat.add_one] using hml',
-  by rw [list.rotate, nth_rotate h₃, list.nth_append h₂, h₁, list.nth]; simp)
-(λ hml',
-  have h₁ : (m + (n + 1)) % (l.length + 1) = 0,
-    from calc (m + (n + 1)) % (l.length + 1) = (l.length + 1) % (l.length + 1) :
-      add_assoc m n 1 ▸ nat.modeq.modeq_add
-        (hml'.trans (nat.mod_eq_of_lt (nat.lt_succ_self _)).symm) rfl
-    ... = 0 : by simp,
-  have h₂ : l.length < (l ++ [a]).length, by simp [nat.lt_succ_self],
-  by rw [list.length, list.rotate, nth_rotate h₃, list.length_append,
-    list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)
-
-lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
-  (∀ n, l.rotate n = l) ↔ ∃ a, l = list.repeat a l.length
-| []     := ⟨λ h, nonempty.elim hα (λ a, ⟨a, by simp⟩), by simp⟩
-| (a::l) :=
-⟨λ h, ⟨a, list.ext_le (by simp) $ λ n hn h₁,
-  begin
-    rw [← option.some_inj, ← list.nth_le_nth],
-    conv {to_lhs, rw ← h ((list.length (a :: l)) - n)},
-    rw [nth_rotate hn, nat.add_sub_cancel' (le_of_lt hn),
-      nat.mod_self, nth_le_repeat _ hn], refl
-  end⟩,
-  λ ⟨a, ha⟩ n, ha.symm ▸ list.ext_le (by simp)
-    (λ m hm h,
-      have hm' : (m + n) % (list.repeat a (list.length (a :: l))).length < list.length (a :: l),
-        by rw list.length_repeat; exact nat.mod_lt _ (nat.succ_pos _),
-      by rw [nth_le_repeat, ← option.some_inj, ← list.nth_le_nth, nth_rotate h, list.nth_le_nth,
-        nth_le_repeat]; simp * at *)⟩
-
-lemma prod_rotate_eq_one_of_prod_eq_one : ∀ {l : list G} (hl : l.prod = 1) (n : ℕ),
-  (l.rotate n).prod = 1
-| []     _  _ := by simp
-| (a::l) hl n :=
-have n % list.length (a :: l) ≤ list.length (a :: l), from le_of_lt (nat.mod_lt _ dec_trivial),
-by rw ← list.take_append_drop (n % list.length (a :: l)) (a :: l) at hl;
-  rw [← rotate_mod, rotate_eq_take_append_drop this, list.prod_append, mul_eq_one_iff_inv_eq,
-    ← one_mul (list.prod _)⁻¹, ← hl, list.prod_append, mul_assoc, mul_inv_self, mul_one]
 
 def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ+) (m : multiplicative (zmod n))
   (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=

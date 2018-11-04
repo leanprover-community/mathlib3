@@ -186,6 +186,10 @@ let ⟨M, M0, H⟩ := f.bounded' 0 in
 ⟨M, mk_le_of_forall_le ⟨0, λ i _,
   rat.cast_le.2 $ le_of_lt (abs_lt.1 (H i)).2⟩⟩
 
+/- mark `real` irreducible in order to prevent `auto_cases` unfolding reals,
+since users rarely want to consider real numbers as Cauchy sequences.
+Marking `comm_ring_aux` `irreducible` is done to ensure that there are no problems
+with non definitionally equal instances, caused by making `real` irreducible-/
 attribute [irreducible] real comm_ring_aux
 
 noncomputable instance : floor_ring ℝ := archimedean.floor_ring _

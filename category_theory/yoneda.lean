@@ -108,4 +108,10 @@ def yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C) :=
     erw [←functor_to_types.naturality, obj_map_id, functor_to_types.naturality, functor_to_types.map_id] end,
   inv_hom_id' := begin ext1, ext1, ext1, cases x, cases X, dsimp at *, erw [functor_to_types.map_id] end }.
 
+variables {C}
+
+class representable (F : Cᵒᵖ ⥤ Type v₁) :=
+(X : C)
+(w : yoneda C X ≅ F)
+
 end category_theory

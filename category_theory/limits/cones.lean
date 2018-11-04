@@ -5,6 +5,7 @@
 import category_theory.opposites
 import category_theory.natural_isomorphism
 import category_theory.whiskering
+import category_theory.yoneda
 import category_theory.discrete_category
 import category_theory.limits.commas
 
@@ -42,6 +43,11 @@ include 𝒟
   inv := { app := λ _, 𝟙 _ } }
 
 end
+
+variables {C}
+
+def cones (F : J ⥤ C) : (Cᵒᵖ) ⥤ (Type v) :=
+  (const (Jᵒᵖ) (Cᵒᵖ)) ⋙ (op_inv J C) ⋙ ((yoneda (J ⥤ C)).obj F)
 
 end category_theory.functor
 
@@ -88,9 +94,13 @@ end
 variable {F : J ⥤ C}
 
 namespace cone
+@[simp] def extensions (c : cone F) :
+  yoneda C c.X ⟶ F.cones :=
+{ app := λ X f, ((const J C).map f) ⊟ c.π }
+
 @[simp] def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
 { X := X,
-  π := ((const J C).map f) ⊟ c.π }
+  π := c.extensions X f }
 
 def postcompose {G : J ⥤ C} (c : cone F) (α : F ⟹ G) : cone G :=
 { X := c.X,

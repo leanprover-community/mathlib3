@@ -72,7 +72,19 @@ def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
       exact w
     end }}
 
+def fork.ι (t : fork f g) := t.π zero
+
 def is_equalizer (t : fork f g) := is_limit t
+
+lemma is_equalizer.mono {t : fork f g} (h : is_equalizer t) : mono t.ι :=
+⟨λ W (e₁ e₂ : W ⟶ t.X) H, begin
+   unfold fork.ι at H,
+   apply h.hom_eq,
+   rintro (_|_),
+   { exact H },
+   { have : t.π one = t.π zero ≫ f, from (t.w inl).symm,
+     rw [this, ←category.assoc, ←category.assoc, H] }
+ end⟩
 
 variables {t : fork f g}
 
@@ -140,20 +152,21 @@ variables (f g)
 def equalizer.fork [has_equalizer f g]: fork f g := has_equalizer.fork.{u v} f g
 def equalizer [has_equalizer f g] := (equalizer.fork f g).X
 def equalizer.ι [has_equalizer f g] : equalizer f g ⟶ X := (equalizer.fork f g).π.app zero
-instance [has_equalizer f g] : mono (equalizer.ι f g) := sorry
 @[simp] lemma equalizer.w [has_equalizer f g] : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 begin
   erw ((equalizer.fork f g).w inl),
   erw ((equalizer.fork f g).w inr)
 end
 def equalizer.universal_property [has_equalizer f g] : is_equalizer (equalizer.fork f g) :=
-has_equalizer.is_equalizer.{u v} f g
+has_equalizer.is_equalizer f g
 
 def equalizer.lift [has_equalizer f g] {P : C} (h : P ⟶ X) (w : h ≫ f = h ≫ g) : P ⟶ equalizer f g :=
 (equalizer.universal_property f g).lift (fork.of_ι h w)
 
 @[simp] lemma equalizer.lift_ι [has_equalizer f g] {P : C} (h : P ⟶ X) (w : h ≫ f = h ≫ g) : equalizer.lift f g h w ≫ equalizer.ι f g = h :=
 is_limit.fac _ _ _
+
+instance [has_equalizer f g] : mono (equalizer.ι f g) := (has_equalizer.is_equalizer f g).mono
 
 @[extensionality] lemma equalizer.hom_ext [has_equalizer f g] {P : C}
   {h k : P ⟶ equalizer f g}

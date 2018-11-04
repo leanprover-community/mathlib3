@@ -117,6 +117,10 @@ lemma is_limit.hom_lift (h : is_limit t) {X' : C} (m : X' ⟶ t.X) :
   m = h.lift { X := X', π := { app := λ b, m ≫ t.π b } } :=
 h.uniq { X := X', π := { app := λ b, m ≫ t.π b } } m (λ b, rfl)
 
+lemma is_limit.hom_eq (h : is_limit t) {W : C} {f f' : W ⟶ t.X}
+  (hf : ∀ j, f ≫ t.π j = f' ≫ t.π j) : f = f' :=
+by rw [h.hom_lift f, h.hom_lift f']; congr; exact funext hf
+
 def is_limit.of_lift_universal
   (lift : Π (s : cone F), s.X ⟶ t.X)
   (universal : Π (s : cone F) (φ : s.X ⟶ t.X), (∀ j : J, (φ ≫ t.π j) = s.π j) ↔ (φ = lift s)) : is_limit t :=

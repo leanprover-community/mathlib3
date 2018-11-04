@@ -4209,6 +4209,15 @@ calc l.rotate (n % l.length) = (l.rotate (n % l.length)).rotate
     ((l.rotate (n % l.length)).length * (n / l.length)) : by rw rotate_length_mul
 ... = l.rotate n : by rw [rotate_rotate, length_rotate, nat.mod_add_div]
 
+lemma prod_rotate_eq_one_of_prod_eq_one [group α] : ∀ {l : list α} (hl : l.prod = 1) (n : ℕ),
+  (l.rotate n).prod = 1
+| []     _  _ := by simp
+| (a::l) hl n :=
+have n % list.length (a :: l) ≤ list.length (a :: l), from le_of_lt (nat.mod_lt _ dec_trivial),
+by rw ← list.take_append_drop (n % list.length (a :: l)) (a :: l) at hl;
+  rw [← rotate_mod, rotate_eq_take_append_drop this, list.prod_append, mul_eq_one_iff_inv_eq,
+    ← one_mul (list.prod _)⁻¹, ← hl, list.prod_append, mul_assoc, mul_inv_self, mul_one]
+
 end list
 
 theorem option.to_list_nodup {α} : ∀ o : option α, o.to_list.nodup

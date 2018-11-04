@@ -19,10 +19,9 @@ def of_rat (x : ℚ) : ℝ := of_rat x
 
 def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
 
-def comm_ring_aux : comm_ring ℝ := { ..cau_seq.completion.comm_ring }
+def comm_ring_aux : comm_ring ℝ := cau_seq.completion.comm_ring
 
-instance : comm_ring ℝ :=
-{ ..comm_ring_aux }
+instance : comm_ring ℝ := { ..comm_ring_aux }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : ring ℝ               := by apply_instance

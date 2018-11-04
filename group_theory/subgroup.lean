@@ -293,7 +293,7 @@ lemma subset_normalizer (s : set α) [is_subgroup s] : s ⊆ normalizer s :=
 λ g hg n, by rw [is_subgroup.mul_mem_cancel_left _ ((is_subgroup.inv_mem_iff _).2 hg),
   is_subgroup.mul_mem_cancel_right _ hg]
 
-instance (s : set α) [is_subgroup s] : normal_subgroup {x : normalizer s | ↑x ∈ s} :=
+instance (s : set α) [is_subgroup s] : normal_subgroup (subtype.val ⁻¹' s : set (normalizer s)) :=
 { one_mem := show (1 : α) ∈ s, from is_submonoid.one_mem _,
   mul_mem := λ a b ha hb, show (a * b : α) ∈ s, from is_submonoid.mul_mem ha hb,
   inv_mem := λ a ha, show (a⁻¹ : α) ∈ s, from is_subgroup.inv_mem ha,

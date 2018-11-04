@@ -3,6 +3,7 @@
 -- Authors: Scott Morrison, Reid Barton, Mario Carneiro
 
 import category_theory.whiskering
+import category_theory.yoneda
 import category_theory.limits.cones
 
 open category_theory
@@ -133,15 +134,37 @@ def is_limit.equiv (h : is_limit t) (X' : C) : (X' ⟶ t.X) ≅ (functor.const J
     tidy,
   end }
 
--- @[simp] def limit_cone.of_equiv {X : C} (w : Π X' : C, (X' ⟶ X) ≅ (functor.const J C X' ⟹ F)) : cone F :=
--- { X := X,
---   π := (w X).hom (𝟙 X) }
+@[simp] lemma is_limit.equiv_hom (h : is_limit t) (X' : C) (f : X' ⟶ t.X) :
+  ((is_limit.equiv h X') : (X' ⟶ t.X) → (functor.const J C X' ⟹ F)) f = (t.extend f).π := rfl
 
--- def is_limit.of_equiv {X : C} (w : Π X' : C, (X' ⟶ X) ≅ (functor.const J C X' ⟹ F)) :
---   is_limit (limit_cone.of_equiv w) :=
+def is_limit.natural_equiv (h : is_limit t) :
+  yoneda C t.X ≅ (functor.const (Jᵒᵖ) (Cᵒᵖ)) ⋙ (functor.op_inv _ _) ⋙ ((yoneda (J ⥤ C)).obj F) :=
+nat_iso.of_components (is_limit.equiv h) (by tidy)
+
+@[simp] def cone.of_equiv {X : C} (w : Π X' : C, (X' ⟶ X) ≅ (functor.const J C X' ⟹ F)) : cone F :=
+{ X := X,
+  π := (w X).hom (𝟙 X) }
+
+-- def is_limit.of_natural_equiv
+--   (w : yoneda C t.X ≅ (functor.const (Jᵒᵖ) (Cᵒᵖ)) ⋙ (functor.op_inv _ _) ⋙ ((yoneda (J ⥤ C)).obj F)) :
+--   is_limit t :=
 -- { lift := λ s, (w s.X).inv s.π,
---   fac' := begin tidy, end, -- FIXME: err, is this just not true? We need naturality in X'...?
+--   fac' :=
+--   begin
+--     tidy,
+--     have h := w.inv.naturality _,
+--     dsimp at h,
+--     have h' := congr_fun h _,
+--     dsimp at h',
+--     sorry,
+--     sorry,
+--     sorry,
+--     sorry,
+--     sorry
+--   end,
 --   uniq' := sorry }
+
+-- TODO define `representable`, and then `has_limit.of_representable`
 
 end limit
 

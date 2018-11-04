@@ -144,7 +144,7 @@ nat_iso.of_components (is_limit.equiv h) (by tidy)
 def is_limit.of_extensions_iso (h : is_iso t.extensions) : is_limit t :=
 { lift := λ s, (inv t.extensions) s.X s.π,
   fac' := begin tidy, sorry, end,
-  uniq' := sorry }
+  uniq' := begin tidy, sorry, end }
 
 end limit
 
@@ -172,13 +172,25 @@ class has_limit {J : Type v} [small_category J] (F : J ⥤ C) :=
 (cone : cone F)
 (is_limit : is_limit cone)
 
-def has_limit_of_cones_representable (F : J ⥤ C) [representable F.cones] : has_limit F :=
-sorry -- TODO
+def cone.of_representable_cones (F : J ⥤ C) [r : representable F.cones] : cone F :=
+{ X := r.X,
+  π := r.w.hom r.X (𝟙 r.X) }
+
+def extensions_iso_of_representable_cones (F : J ⥤ C) [r : representable F.cones] :
+  is_iso (cone.of_representable_cones F).extensions :=
+{ inv :=
+  { app := λ X, r.w.inv X,
+    naturality' := λ X Y f, begin tidy, sorry end },
+  hom_inv_id' := begin tidy, sorry end,
+  inv_hom_id' := sorry }
+
+def has_limit_of_cones_representable (F : J ⥤ C) [r : representable F.cones] : has_limit F :=
+{ cone := cone.of_representable_cones F,
+  is_limit := is_limit.of_extensions_iso (extensions_iso_of_representable_cones F) }
 
 def cones_representable_of_has_limit (F : J ⥤ C) [has_limit F] : representable F.cones :=
 { X := (has_limit.cone F).X,
-  w := sorry
-}
+  w := (has_limit.is_limit F).natural_equiv }
 
 instance has_limit_of_has_limits_of_shape
   {J : Type v} [small_category J] [has_limits_of_shape.{u v} J C] (F : J ⥤ C) : has_limit F :=

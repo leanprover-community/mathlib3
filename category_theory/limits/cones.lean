@@ -93,6 +93,12 @@ end
 
 variable {F : J ⥤ C}
 
+-- FIXME do these need to exist?
+def foo (c : cone F) : F.cones c.X := c.π
+def bar {X : C} (π : F.cones X) : cone F :=
+{ X := X,
+  π := π }
+
 namespace cone
 @[simp] def extensions (c : cone F) :
   yoneda C c.X ⟶ F.cones :=

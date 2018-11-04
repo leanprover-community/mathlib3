@@ -157,6 +157,7 @@ def is_limit.of_natural_equiv
     dsimp at h,
     have h' := congr_fun h _,
     dsimp at h',
+    -- FIXME how to finish?
     sorry,
     sorry,
     sorry,

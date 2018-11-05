@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter data.set.countable tactic tactic.tidy
+import order.filter data.set.countable tactic
 
 open set filter lattice classical
 local attribute [instance] prop_decidable
@@ -1324,22 +1324,22 @@ end
 def is_basis (B : set (opens α)) : Prop := is_topological_basis (subtype.val '' B)
 
 lemma is_basis_iff_nbhd {B : set (opens α)} :
-is_basis B ↔ ∀ {U : opens α} {x}, x ∈ U → ∃ U' ∈ B, x ∈ U' ∧ U' ⊆ U :=
+  is_basis B ↔ ∀ {U : opens α} {x}, x ∈ U → ∃ U' ∈ B, x ∈ U' ∧ U' ⊆ U :=
 begin
-split; intro h,
-{ rintros ⟨sU, hU⟩ x hx,
-  rcases (mem_nhds_of_is_topological_basis h).mp (mem_nhds_sets hU hx) with ⟨sV,⟨⟨V,H₁,H₂⟩,hsV⟩⟩,
-  refine ⟨V,H₁,_⟩,
-  cases V, dsimp at H₂, subst H₂, exact hsV },
-{ refine is_topological_basis_of_open_of_nhds _ _,
-  { rintros sU ⟨U,⟨H₁,H₂⟩⟩, subst H₂, exact U.property },
-  { intros x sU hx hsU,
-    rcases @h (⟨sU,hsU⟩ : opens α) x hx with ⟨V,hV,H⟩,
-    refine ⟨V, ⟨V,hV,rfl⟩, H⟩ } }
+  split; intro h,
+  { rintros ⟨sU, hU⟩ x hx,
+    rcases (mem_nhds_of_is_topological_basis h).mp (mem_nhds_sets hU hx) with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
+    refine ⟨V, H₁, _⟩,
+    cases V, dsimp at H₂, subst H₂, exact hsV },
+  { refine is_topological_basis_of_open_of_nhds _ _,
+    { rintros sU ⟨U, ⟨H₁, H₂⟩⟩, subst H₂, exact U.property },
+    { intros x sU hx hsU,
+      rcases @h (⟨sU, hsU⟩ : opens α) x hx with ⟨V, hV, H⟩,
+      refine ⟨V, ⟨V, hV, rfl⟩, H⟩ } }
 end
 
 lemma is_basis_iff_cover {B : set (opens α)} :
-is_basis B ↔ ∀ U : opens α, ∃ Us ⊆ B, U = Sup Us :=
+  is_basis B ↔ ∀ U : opens α, ∃ Us ⊆ B, U = Sup Us :=
 begin
   split,
   { intros hB U,
@@ -1349,10 +1349,10 @@ begin
     { intros U hU, exact hU.left },
     { apply ext, rw [Sup_s, hU], congr,
       ext s; split; intro hs,
-      { rcases H hs with ⟨V,hV⟩,
+      { rcases H hs with ⟨V, hV⟩,
         rw ← hV.right at hs,
-        refine ⟨V,⟨⟨hV.left,hs⟩,hV.right⟩⟩ },
-      { rcases hs with ⟨V,⟨⟨H₁,H₂⟩,H₃⟩⟩,
+        refine ⟨V, ⟨⟨hV.left, hs⟩, hV.right⟩⟩ },
+      { rcases hs with ⟨V, ⟨⟨H₁, H₂⟩, H₃⟩⟩,
         subst H₃, exact H₂ } } },
   { intro h,
     rw is_basis_iff_nbhd,
@@ -1362,12 +1362,12 @@ begin
     rw Sup_s at H,
     change x ∈ U.val at hx,
     rw H at hx,
-    rcases set.mem_sUnion.mp hx with ⟨sV, ⟨⟨V,H₁,H₂⟩,hsV⟩⟩,
+    rcases set.mem_sUnion.mp hx with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
     refine ⟨V,hUs H₁,_⟩,
     cases V, dsimp at H₂, subst H₂,
     refine ⟨hsV,_⟩,
     change V_val ⊆ U.val, rw H,
-    exact set.subset_sUnion_of_mem ⟨⟨V_val,_⟩,⟨H₁,rfl⟩⟩ }
+    exact set.subset_sUnion_of_mem ⟨⟨V_val, _⟩, ⟨H₁, rfl⟩⟩ }
 end
 
 end opens

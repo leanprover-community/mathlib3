@@ -69,7 +69,8 @@ coequalizer
 
 def π : f.sieve ⟶ yoneda X U := coequalizer.desc (sigma.desc (λ i : f.index, (yoneda X).map (f.map i))) _
 
-def sheaf_condition (f : (covering_family U)) {C : Type u₂} [category.{u₂ v₂} C] (F : presheaf X C) : Prop := sorry
+def sheaf_condition (f : (covering_family U)) (F : presheaf X (Type v)) : Prop :=
+is_iso (yoneda (presheaf X (Type v))).map f.π -- This is probably not even what I mean
 
 end covering_family
 

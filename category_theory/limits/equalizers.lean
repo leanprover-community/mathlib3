@@ -106,7 +106,7 @@ lemma is_coequalizer.epi {t : cofork f g} (h : is_coequalizer t) : epi t.π :=
   --  rintro (_|_),
   --  { exact H },
   --  { have : t.ι zero = f ≫ t.ι one, from (t.w inl).symm,
-  --  rw [this, ←category.assoc, ←category.assoc, H] }
+  --  rw [this, ←category.assoc, ←category.assoc, H] },
   sorry
  end⟩
 

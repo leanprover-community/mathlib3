@@ -125,8 +125,8 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bUnion_insert; exact
     is_closed_union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_closed_imp [topological_space α] {p q : α → Prop}
-  (hp : is_open {x | p x}) (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
+lemma is_closed_imp {p q : α → Prop} (hp : is_open {x | p x})
+  (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
 have {x | p x → q x} = (- {x | p x}) ∪ {x | q x}, from set.ext $ λ x, imp_iff_not_or,
 by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
 
@@ -634,51 +634,388 @@ e ▸ this
 
 end compact
 
+section clopen
+
+def is_clopen (s : set α) : Prop :=
+is_open s ∧ is_closed s
+
+theorem is_clopen_union {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∪ t) :=
+⟨is_open_union hs.1 ht.1, is_closed_union hs.2 ht.2⟩
+
+theorem is_clopen_inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∩ t) :=
+⟨is_open_inter hs.1 ht.1, is_closed_inter hs.2 ht.2⟩
+
+@[simp] theorem is_clopen_empty : is_clopen (∅ : set α) :=
+⟨is_open_empty, is_closed_empty⟩
+
+@[simp] theorem is_clopen_univ : is_clopen (univ : set α) :=
+⟨is_open_univ, is_closed_univ⟩
+
+theorem is_clopen_compl {s : set α} (hs : is_clopen s) : is_clopen (-s) :=
+⟨hs.2, is_closed_compl_iff.2 hs.1⟩
+
+@[simp] theorem is_clopen_compl_iff {s : set α} : is_clopen (-s) ↔ is_clopen s :=
+⟨λ h, compl_compl s ▸ is_clopen_compl h, is_clopen_compl⟩
+
+theorem is_clopen_diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s-t) :=
+is_clopen_inter hs (is_clopen_compl ht)
+
+end clopen
+
+section irreducible
+
+/-- A irreducible set is one where there is no non-trivial pair of disjoint opens. -/
+def is_irreducible (s : set α) : Prop :=
+∀ (u v : set α), is_open u → is_open v →
+  (∃ x, x ∈ s ∩ u) → (∃ x, x ∈ s ∩ v) → ∃ x, x ∈ s ∩ (u ∩ v)
+
+theorem is_irreducible_empty : is_irreducible (∅ : set α) :=
+λ _ _ _ _ _ ⟨x, h1, h2⟩, h1.elim
+
+theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
+λ u v _ _ ⟨y, h1, h2⟩ ⟨z, h3, h4⟩, by rw mem_singleton_iff at h1 h3;
+substs y z; exact ⟨x, or.inl rfl, h2, h4⟩
+
+theorem is_irreducible_closure {s : set α} (H : is_irreducible s) :
+  is_irreducible (closure s) :=
+λ u v hu hv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
+let ⟨p, hpu, hps⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hycs u hu hyu) in
+let ⟨q, hqv, hqs⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hzcs v hv hzv) in
+let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
+⟨r, subset_closure hrs, hruv⟩
+
+theorem exists_irreducible (s : set α) (H : is_irreducible s) :
+  ∃ t : set α, is_irreducible t ∧ s ⊆ t ∧ ∀ u, is_irreducible u → t ⊆ u → u = t :=
+let ⟨⟨m, hsm, hm⟩, hm_max⟩ := @zorn.zorn { t | s ⊆ t ∧ is_irreducible t } (subrel (⊆) _)
+  (λ c hchain, classical.by_cases
+    (assume hc : c = ∅, ⟨⟨s, set.subset.refl s, H⟩, λ ⟨t, hsx, hx⟩,
+      hc.symm ▸ false.elim⟩)
+    (assume hc : c ≠ ∅, let ⟨⟨x, hsx, hx⟩, hxc⟩ := exists_mem_of_ne_empty hc in
+      ⟨⟨⋃ t ∈ c, subtype.val t, λ z hz, mem_bUnion hxc (hsx hz), λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
+        let ⟨p, hpc, hyp⟩ := mem_bUnion_iff.1 hy,
+            ⟨q, hqc, hzq⟩ := mem_bUnion_iff.1 hz in
+        or.cases_on (zorn.chain.total hchain hpc hqc)
+          (assume hpq : p.1 ⊆ q.1, let ⟨x, hxp, hxuv⟩ := q.2.2 u v hu hv
+              ⟨y, hpq hyp, hyu⟩ ⟨z, hzq, hzv⟩ in
+            ⟨x, mem_bUnion hqc hxp, hxuv⟩)
+          (assume hqp : q.1 ⊆ p, let ⟨x, hxp, hxuv⟩ := p.2.2 u v hu hv
+              ⟨y, hyp, hyu⟩ ⟨z, hqp hzq, hzv⟩ in
+            ⟨x, mem_bUnion hpc hxp, hxuv⟩)⟩,
+      λ ⟨p, hsp, hp⟩ hpc z hzp, mem_bUnion hpc hzp⟩))
+  (λ _ _ _, set.subset.trans) in
+⟨m, hm, hsm, λ u hu hmu, subset.antisymm (hm_max ⟨_, set.subset.trans hsm hmu, hu⟩ hmu) hmu⟩
+
+def irreducible_component (x : α) : set α :=
+classical.some (exists_irreducible {x} is_irreducible_singleton)
+
+theorem is_irreducible_irreducible_component {x : α} : is_irreducible (irreducible_component x) :=
+(classical.some_spec (exists_irreducible {x} is_irreducible_singleton)).1
+
+theorem mem_irreducible_component {x : α} : x ∈ irreducible_component x :=
+singleton_subset_iff.1
+  (classical.some_spec (exists_irreducible {x} is_irreducible_singleton)).2.1
+
+theorem eq_irreducible_component {x : α} :
+  ∀ {s : set α}, is_irreducible s → irreducible_component x ⊆ s → s = irreducible_component x :=
+(classical.some_spec (exists_irreducible {x} is_irreducible_singleton)).2.2
+
+theorem is_closed_irreducible_component {x : α} :
+  is_closed (irreducible_component x) :=
+closure_eq_iff_is_closed.1 $ eq_irreducible_component
+  (is_irreducible_closure is_irreducible_irreducible_component)
+  subset_closure
+
+/-- A irreducible space is one where there is no non-trivial pair of disjoint opens. -/
+class irreducible_space (α : Type u) [topological_space α] : Prop :=
+(is_irreducible_univ : is_irreducible (univ : set α))
+
+theorem irreducible_exists_mem_inter [irreducible_space α] {s t : set α} :
+  is_open s → is_open t → (∃ x, x ∈ s) → (∃ x, x ∈ t) → ∃ x, x ∈ s ∩ t :=
+by simpa only [univ_inter, univ_subset_iff] using
+  @irreducible_space.is_irreducible_univ α _ _ s t
+
+end irreducible
+
+section connected
+
+/-- A connected set is one where there is no non-trivial open partition. -/
+def is_connected (s : set α) : Prop :=
+∀ (u v : set α), is_open u → is_open v → s ⊆ u ∪ v →
+  (∃ x, x ∈ s ∩ u) → (∃ x, x ∈ s ∩ v) → ∃ x, x ∈ s ∩ (u ∩ v)
+
+theorem is_connected_of_is_irreducible {s : set α} (H : is_irreducible s) : is_connected s :=
+λ _ _ hu hv _, H _ _ hu hv
+
+theorem is_connected_empty : is_connected (∅ : set α) :=
+is_connected_of_is_irreducible is_irreducible_empty
+
+theorem is_connected_singleton {x} : is_connected ({x} : set α) :=
+is_connected_of_is_irreducible is_irreducible_singleton
+
+theorem is_connected_sUnion (x : α) (c : set (set α)) (H1 : ∀ s ∈ c, x ∈ s)
+  (H2 : ∀ s ∈ c, is_connected s) : is_connected (⋃₀ c) :=
+begin
+  rintro u v hu hv hUcuv ⟨y, hyUc, hyu⟩ ⟨z, hzUc, hzv⟩,
+  cases classical.em (c = ∅) with hc hc,
+  { rw [hc, sUnion_empty] at hyUc, exact hyUc.elim },
+  cases ne_empty_iff_exists_mem.1 hc with s hs,
+  cases hUcuv (mem_sUnion_of_mem (H1 s hs) hs) with hxu hxv,
+  { rcases hzUc with ⟨t, htc, hzt⟩,
+    specialize H2 t htc u v hu hv (subset.trans (subset_sUnion_of_mem htc) hUcuv),
+    cases H2 ⟨x, H1 t htc, hxu⟩ ⟨z, hzt, hzv⟩ with r hr,
+    exact ⟨r, mem_sUnion_of_mem hr.1 htc, hr.2⟩ },
+  { rcases hyUc with ⟨t, htc, hyt⟩,
+    specialize H2 t htc u v hu hv (subset.trans (subset_sUnion_of_mem htc) hUcuv),
+    cases H2 ⟨y, hyt, hyu⟩ ⟨x, H1 t htc, hxv⟩ with r hr,
+    exact ⟨r, mem_sUnion_of_mem hr.1 htc, hr.2⟩ }
+end
+
+theorem is_connected_union (x : α) {s t : set α} (H1 : x ∈ s) (H2 : x ∈ t)
+  (H3 : is_connected s) (H4 : is_connected t) : is_connected (s ∪ t) :=
+have _ := is_connected_sUnion x {t,s}
+  (by rintro r (rfl | rfl | h); [exact H1, exact H2, exact h.elim])
+  (by rintro r (rfl | rfl | h); [exact H3, exact H4, exact h.elim]),
+have h2 : ⋃₀ {t, s} = s ∪ t, from (sUnion_insert _ _).trans (by rw sUnion_singleton),
+by rwa h2 at this
+
+theorem is_connected_closure {s : set α} (H : is_connected s) :
+  is_connected (closure s) :=
+λ u v hu hv hcsuv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
+let ⟨p, hpu, hps⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hycs u hu hyu) in
+let ⟨q, hqv, hqs⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hzcs v hv hzv) in
+let ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans subset_closure hcsuv) ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
+⟨r, subset_closure hrs, hruv⟩
+
+def connected_component (x : α) : set α :=
+⋃₀ { s : set α | is_connected s ∧ x ∈ s }
+
+theorem is_connected_connected_component {x : α} : is_connected (connected_component x) :=
+is_connected_sUnion x _ (λ _, and.right) (λ _, and.left)
+
+theorem mem_connected_component {x : α} : x ∈ connected_component x :=
+mem_sUnion_of_mem (mem_singleton x) ⟨is_connected_singleton, mem_singleton x⟩
+
+theorem subset_connected_component {x : α} {s : set α} (H1 : is_connected s) (H2 : x ∈ s) :
+  s ⊆ connected_component x :=
+λ z hz, mem_sUnion_of_mem hz ⟨H1, H2⟩
+
+theorem is_closed_connected_component {x : α} :
+  is_closed (connected_component x) :=
+closure_eq_iff_is_closed.1 $ subset.antisymm
+  (subset_connected_component
+    (is_connected_closure is_connected_connected_component)
+    (subset_closure mem_connected_component))
+  subset_closure
+
+theorem irreducible_component_subset_connected_component {x : α} :
+  irreducible_component x ⊆ connected_component x :=
+subset_connected_component
+  (is_connected_of_is_irreducible is_irreducible_irreducible_component)
+  mem_irreducible_component
+
+/-- A connected space is one where there is no non-trivial open partition. -/
+class connected_space (α : Type u) [topological_space α] : Prop :=
+(is_connected_univ : is_connected (univ : set α))
+
+instance irreducible_space.connected_space (α : Type u) [topological_space α]
+  [irreducible_space α] : connected_space α :=
+⟨is_connected_of_is_irreducible $ irreducible_space.is_irreducible_univ α⟩
+
+theorem exists_mem_inter [connected_space α] {s t : set α} :
+  is_open s → is_open t → s ∪ t = univ →
+    (∃ x, x ∈ s) → (∃ x, x ∈ t) → ∃ x, x ∈ s ∩ t :=
+by simpa only [univ_inter, univ_subset_iff] using
+  @connected_space.is_connected_univ α _ _ s t
+
+theorem is_clopen_iff [connected_space α] {s : set α} : is_clopen s ↔ s = ∅ ∨ s = univ :=
+⟨λ hs, classical.by_contradiction $ λ h,
+  have h1 : s ≠ ∅ ∧ -s ≠ ∅, from ⟨mt or.inl h,
+    mt (λ h2, or.inr $ (by rw [← compl_compl s, h2, compl_empty] : s = univ)) h⟩,
+  let ⟨_, h2, h3⟩ := exists_mem_inter hs.1 hs.2 (union_compl_self s)
+    (ne_empty_iff_exists_mem.1 h1.1) (ne_empty_iff_exists_mem.1 h1.2) in
+  h3 h2,
+by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
+
+end connected
+
+section totally_disconnected
+
+def is_totally_disconnected (s : set α) : Prop :=
+∀ t, t ⊆ s → is_connected t → subsingleton t
+
+theorem is_totally_disconnected_empty : is_totally_disconnected (∅ : set α) :=
+λ t ht _, ⟨λ ⟨_, h⟩, (ht h).elim⟩
+
+theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : set α) :=
+λ t ht _, ⟨λ ⟨p, hp⟩ ⟨q, hq⟩, subtype.eq $ show p = q,
+from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm⟩
+
+class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
+(is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
+
+end totally_disconnected
+
+section totally_separated
+
+def is_totally_separated (s : set α) : Prop :=
+∀ x ∈ s, ∀ y ∈ s, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧
+  x ∈ u ∧ y ∈ v ∧ s ⊆ u ∪ v ∧ u ∩ v = ∅
+
+theorem is_totally_separated_empty : is_totally_separated (∅ : set α) :=
+λ x, false.elim
+
+theorem is_totally_separated_singleton {x} : is_totally_separated ({x} : set α) :=
+λ p hp q hq hpq, (hpq $ (eq_of_mem_singleton hp).symm ▸ (eq_of_mem_singleton hq).symm).elim
+
+theorem is_totally_disconnected_of_is_totally_separated {s : set α}
+  (H : is_totally_separated s) : is_totally_disconnected s :=
+λ t hts ht, ⟨λ ⟨x, hxt⟩ ⟨y, hyt⟩, subtype.eq $ classical.by_contradiction $
+assume hxy : x ≠ y, let ⟨u, v, hu, hv, hxu, hyv, hsuv, huv⟩ := H x (hts hxt) y (hts hyt) hxy in
+let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩ ⟨y, hyt, hyv⟩ in
+((ext_iff _ _).1 huv r).1 hruv⟩
+
+class totally_separated_space (α : Type u) [topological_space α] : Prop :=
+(is_totally_separated_univ : is_totally_separated (univ : set α))
+
+instance totally_separated_space.totally_disconnected_space (α : Type u) [topological_space α]
+  [totally_separated_space α] : totally_disconnected_space α :=
+⟨is_totally_disconnected_of_is_totally_separated $ totally_separated_space.is_totally_separated_univ α⟩
+
+end totally_separated
+
 /- separation axioms -/
 
 section separation
 
+/-- A T₀ space, also known as a Kolmogorov space, is a topological space
+  where for every pair `x ≠ y`, there is an open set containing one but not the other. -/
+class t0_space (α : Type u) [topological_space α] : Prop :=
+(t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
+
+theorem exists_open_singleton_of_fintype [t0_space α]
+  [f : fintype α] [decidable_eq α] [ha : nonempty α] :
+  ∃ x:α, is_open ({x}:set α) :=
+have H : ∀ (T : finset α), T ≠ ∅ → ∃ x ∈ T, ∃ u, is_open u ∧ {x} = {y | y ∈ T} ∩ u :=
+begin
+  intro T,
+  apply finset.case_strong_induction_on T,
+  { intro h, exact (h rfl).elim },
+  { intros x S hxS ih h,
+    by_cases hs : S = ∅,
+    { existsi [x, finset.mem_insert_self x S, univ, is_open_univ],
+      rw [hs, inter_univ], refl },
+    { rcases ih S (finset.subset.refl S) hs with ⟨y, hy, V, hv1, hv2⟩,
+      by_cases hxV : x ∈ V,
+      { cases t0_space.t0 x y (λ hxy, hxS $ by rwa hxy) with U hu,
+        rcases hu with ⟨hu1, ⟨hu2, hu3⟩ | ⟨hu2, hu3⟩⟩,
+        { existsi [x, finset.mem_insert_self x S, U ∩ V, is_open_inter hu1 hv1],
+          apply set.ext,
+          intro z,
+          split,
+          { intro hzx,
+            rw set.mem_singleton_iff at hzx,
+            rw hzx,
+            exact ⟨finset.mem_insert_self x S, ⟨hu2, hxV⟩⟩ },
+          { intro hz,
+            rw set.mem_singleton_iff,
+            rcases hz with ⟨hz1, hz2, hz3⟩,
+            cases finset.mem_insert.1 hz1 with hz4 hz4,
+            { exact hz4 },
+            { have h1 : z ∈ {y : α | y ∈ S} ∩ V,
+              { exact ⟨hz4, hz3⟩ },
+              rw ← hv2 at h1,
+              rw set.mem_singleton_iff at h1,
+              rw h1 at hz2,
+              exact (hu3 hz2).elim } } },
+        { existsi [y, finset.mem_insert_of_mem hy, U ∩ V, is_open_inter hu1 hv1],
+          apply set.ext,
+          intro z,
+          split,
+          { intro hz,
+            rw set.mem_singleton_iff at hz,
+            rw hz,
+            refine ⟨finset.mem_insert_of_mem hy, hu2, _⟩,
+            have h1 : y ∈ {y} := set.mem_singleton y,
+            rw hv2 at h1,
+            exact h1.2 },
+          { intro hz,
+            rw set.mem_singleton_iff,
+            cases hz with hz1 hz2,
+            cases finset.mem_insert.1 hz1 with hz3 hz3,
+            { rw hz3 at hz2,
+              exact (hu3 hz2.1).elim },
+            { have h1 : z ∈ {y : α | y ∈ S} ∩ V := ⟨hz3, hz2.2⟩,
+              rw ← hv2 at h1,
+              rw set.mem_singleton_iff at h1,
+              exact h1 } } } },
+      { existsi [y, finset.mem_insert_of_mem hy, V, hv1],
+        apply set.ext,
+        intro z,
+        split,
+        { intro hz,
+          rw set.mem_singleton_iff at hz,
+          rw hz,
+          split,
+          { exact finset.mem_insert_of_mem hy },
+          { have h1 : y ∈ {y} := set.mem_singleton y,
+            rw hv2 at h1,
+            exact h1.2 } },
+        { intro hz,
+          rw hv2,
+          cases hz with hz1 hz2,
+          cases finset.mem_insert.1 hz1 with hz3 hz3,
+          { rw hz3 at hz2,
+            exact (hxV hz2).elim },
+          { exact ⟨hz3, hz2⟩ } } } } }
+end,
+begin
+  apply nonempty.elim ha, intro x,
+  specialize H finset.univ (finset.ne_empty_of_mem $ finset.mem_univ x),
+  rcases H with ⟨y, hyf, U, hu1, hu2⟩,
+  existsi y,
+  have h1 : {y : α | y ∈ finset.univ} = (univ : set α),
+  { exact set.eq_univ_of_forall (λ x : α,
+      by rw mem_set_of_eq; exact finset.mem_univ x) },
+  rw h1 at hu2,
+  rw set.univ_inter at hu2,
+  rw hu2,
+  exact hu1
+end
+
 /-- A T₁ space, also known as a Fréchet space, is a topological space
-  where for every pair `x ≠ y`, there is an open set containing `x` and not `y`.
-  Equivalently, every singleton set is closed. -/
-class t1_space (α : Type u) [topological_space α] :=
+  where every singleton set is closed. Equivalently, for every pair
+  `x ≠ y`, there is an open set containing `x` and not `y`. -/
+class t1_space (α : Type u) [topological_space α] : Prop :=
 (t1 : ∀x, is_closed ({x} : set α))
 
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+instance t1_space.t0_space [t1_space α] : t0_space α :=
+⟨λ x y h, ⟨-{x}, is_open_compl_iff.2 is_closed_singleton,
+  or.inr ⟨λ hyx, or.cases_on hyx h.symm id, λ hx, hx $ or.inl rfl⟩⟩⟩
+
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : - {x} ∈ (nhds y).sets :=
 mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
 
-@[simp] lemma closure_singleton [topological_space α] [t1_space α] {a : α} :
+@[simp] lemma closure_singleton [t1_space α] {a : α} :
   closure ({a} : set α) = {a} :=
 closure_eq_of_is_closed is_closed_singleton
 
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
-class t2_space (α : Type u) [topological_space α] :=
+class t2_space (α : Type u) [topological_space α] : Prop :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 t2_space.t2 x y h
 
-instance t2_space.t1_space [topological_space α] [t2_space α] : t1_space α :=
-⟨assume x,
-  have ∀y, y ≠ x ↔ ∃ (i : set α), (x ∉ i ∧ is_open i) ∧ y ∈ i,
-    from assume y, ⟨assume h',
-      let ⟨u, v, hu, hv, hy, hx, h⟩ := t2_separation h' in
-      have x ∉ u,
-        from assume : x ∈ u,
-        have x ∈ u ∩ v, from ⟨this, hx⟩,
-        by rwa [h] at this,
-      ⟨u, ⟨this, hu⟩, hy⟩,
-      assume ⟨s, ⟨hx, hs⟩, hy⟩ h, hx $ h ▸ hy⟩,
-  have (-{x} : set α) = (⋃s∈{s : set α | x ∉ s ∧ is_open s}, s),
-    by apply set.ext; simpa only [mem_compl_eq, mem_singleton_iff, mem_bUnion_iff],
-  show is_open (- {x}),
-    by rw [this]; exact (is_open_Union $ assume s, is_open_Union $ assume ⟨_, hs⟩, hs)⟩
+instance t2_space.t1_space [t2_space α] : t1_space α :=
+⟨λ x, is_open_iff_forall_mem_open.2 $ λ y hxy,
+let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
+⟨u, λ z hz1 hz2, ((ext_iff _ _).1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
 lemma eq_of_nhds_neq_bot [ht : t2_space α] {x y : α} (h : nhds x ⊓ nhds y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
@@ -704,7 +1041,7 @@ section regularity
 /-- A T₃ space, also known as a regular space (although this condition sometimes
   omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
-class regular_space (α : Type u) [topological_space α] extends t2_space α :=
+class regular_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ nhds a ⊓ principal t = ⊥)
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ (nhds a).sets) :
@@ -718,7 +1055,40 @@ let ⟨t, ht₁, ht₂, ht₃⟩ := this in
   subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
 
+variable (α)
+instance regular_space.t2_space [regular_space α] : t2_space α :=
+⟨λ x y hxy,
+let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
+    (mt mem_singleton_iff.1 hxy),
+  ⟨t, hxt, u, hsu, htu⟩ := empty_in_sets_eq_bot.2 hxs,
+  ⟨v, hvt, hv, hxv⟩ := mem_nhds_sets_iff.1 hxt in
+⟨v, s, hv, hs, hxv, singleton_subset_iff.1 hys,
+eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
+
 end regularity
+
+section normality
+
+/-- A T₄ space, also known as a normal space (although this condition sometimes
+  omits T₂), is one in which for every disjoint closed `C` and `D`, there exist
+  disjoint open sets containing `C` and `D` respectively. -/
+class normal_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
+(normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t →
+  ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v)
+
+theorem normal_separation [normal_space α] (s t : set α)
+  (H1 : is_closed s) (H2 : is_closed t) (H3 : disjoint s t) :
+  ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
+normal_space.normal s t H1 H2 H3
+
+variable (α)
+instance normal_space.regular_space [normal_space α] : regular_space α :=
+{ regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ := normal_separation s {x} hs is_closed_singleton
+      (λ _ ⟨hx, hy⟩, hxs $ set.mem_of_eq_of_mem (set.eq_of_mem_singleton hy).symm hx) in
+    ⟨u, hu, hsu, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
+      ⟨v, mem_nhds_sets hv (set.singleton_subset_iff.1 hxv), u, filter.mem_principal_self u, set.inter_comm u v ▸ huv⟩⟩ }
+
+end normality
 
 /- generating sets -/
 

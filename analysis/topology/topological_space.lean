@@ -1364,10 +1364,11 @@ begin
     rw H at hx,
     rcases set.mem_sUnion.mp hx with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
     refine ⟨V,hUs H₁,_⟩,
-    cases V, dsimp at H₂, subst H₂,
+    cases V with V hV,
+    dsimp at H₂, subst H₂,
     refine ⟨hsV,_⟩,
-    change V_val ⊆ U.val, rw H,
-    exact set.subset_sUnion_of_mem ⟨⟨V_val, _⟩, ⟨H₁, rfl⟩⟩ }
+    change V ⊆ U.val, rw H,
+    exact set.subset_sUnion_of_mem ⟨⟨V, _⟩, ⟨H₁, rfl⟩⟩ }
 end
 
 end opens

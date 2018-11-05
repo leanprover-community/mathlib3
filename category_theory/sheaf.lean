@@ -2,6 +2,8 @@ import category_theory.examples.topological_spaces
 import category_theory.opposites
 import category_theory.yoneda
 import category_theory.limits
+import category_theory.limits.types
+import category_theory.limits.functor_category
 
 open category_theory
 
@@ -16,12 +18,20 @@ def presheaf := Xᵒᵖ ⥤ C
 
 variables {X} {C}
 
-instance : category (presheaf X C) := by unfold presheaf; apply_instance
+instance : category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (presheaf X C) := by unfold presheaf; apply_instance
 
 omit 𝒞
-instance presheaf.has_coequalizers : @has_coequalizers (presheaf X (Type v₁)) presheaf.category_theory.category := sorry
-instance presheaf.has_coproducts : @has_coproducts (presheaf X (Type v₁)) presheaf.category_theory.category := sorry
-instance presheaf.has_pullbacks : @has_pullbacks (presheaf X (Type v₁)) presheaf.category_theory.category := sorry
+instance presheaf.has_coequalizers : has_coequalizers.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) := sorry
+instance presheaf.has_coproducts : has_coproducts.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) := sorry
+instance presheaf.has_limits : has_limits.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) :=
+begin
+  dsimp [presheaf],
+  sorry,
+  -- exact limits.functor_category_has_limits
+end
+instance presheaf.has_pullbacks : has_pullbacks.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) :=
+has_pullbacks_of_has_limits (presheaf X (Type v₁))
+
 
 end presheaf
 

@@ -70,8 +70,16 @@ def functor_category_is_limit_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ K 
 instance functor_category_has_limits_of_shape [has_limits_of_shape.{u v} J C] : has_limits_of_shape J (K ⥤ C) :=
 { cone := λ F, functor_category_limit_cone F,
   is_limit := λ F, functor_category_is_limit_cone F }
+instance functor_category_has_colimits_of_shape [has_colimits_of_shape.{u v} J C] : has_colimits_of_shape J (K ⥤ C) :=
+sorry
 
-instance evaluation_preserves_limits [has_limits_of_shape.{u v} J C] (k : K) :
+instance functor_category_has_limits [has_limits.{u v} C] : has_limits.{(max u v) v} (K ⥤ C) :=
+{ cone := λ J 𝒥 F, by resetI; exact functor_category_limit_cone F,
+  is_limit := λ J 𝒥 F, by resetI; exact functor_category_is_limit_cone F }
+instance functor_category_has_colimits [has_colimits.{u v} C] : has_colimits.{(max u v) v} (K ⥤ C) :=
+sorry
+
+instance evaluation_preserves_limits_of_shape [has_limits_of_shape.{u v} J C] (k : K) :
   preserves_limits_of_shape J (evaluation.{v v u v} K C k) :=
 { preserves := λ F c h,
   begin
@@ -84,5 +92,8 @@ instance evaluation_preserves_limits [has_limits_of_shape.{u v} J C] (k : K) :
     -- Finally, it's just that the limit cone is a limit.
     exact limit.universal_property _
   end }
+
+instance evaluation_preserves_limits [has_limits.{u v} C] (k : K) :
+  preserves_limits (evaluation.{v v u v} K C k) := sorry
 
 end category_theory.limits

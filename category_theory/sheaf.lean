@@ -69,8 +69,8 @@ variables {U : X}
 def sieve (f : covering_family U) : presheaf X (Type v₁) :=
 let CP := (((yoneda X) : X → presheaf X (Type v₁)) ∘ f.obj) in
 coequalizer
-  (Sigma.desc (λ p : (f.index × f.index), (Sigma.ι CP p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
-  (Sigma.desc (λ p : (f.index × f.index), (Sigma.ι CP p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
+  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
+  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
 
 def sheaf_condition (f : (covering_family U)) {C : Type u₂} [category.{u₂ v₂} C] (F : presheaf X C) : Prop := sorry
 

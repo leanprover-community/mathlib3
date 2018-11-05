@@ -79,7 +79,7 @@ def is_equalizer (t : fork f g) := is_limit t
 lemma is_equalizer.mono {t : fork f g} (h : is_equalizer t) : mono t.ι :=
 ⟨λ W (e₁ e₂ : W ⟶ t.X) H, begin
    unfold fork.ι at H,
-   apply h.hom_eq,
+   apply h.hom_ext,
    rintro (_|_),
    { exact H },
    { have : t.π one = t.π zero ≫ f, from (t.w inl).symm,

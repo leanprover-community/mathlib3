@@ -79,7 +79,7 @@ lemma single_eq_C_mul_X : ∀{n}, single n a = C a * X^n
     ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
 
 lemma sum_C_mul_X_eq (p : polynomial α) : p.sum (λn a, C a * X^n) = p :=
-eq.trans (sum_congr rfl $ assume n hn, single_eq_C_mul_X.symm) finsupp.sum_single
+eq.trans (sum_congr rfl $ assume n hn, single_eq_C_mul_X.symm) (finsupp.sum_single _)
 
 @[elab_as_eliminator] protected lemma induction_on {M : polynomial α → Prop} (p : polynomial α)
   (h_C : ∀a, M (C a))
@@ -681,7 +681,7 @@ variables [comm_ring α] {p q : polynomial α}
 instance : comm_ring (polynomial α) := finsupp.to_comm_ring
 instance : has_scalar α (polynomial α) := finsupp.to_has_scalar
 -- TODO if this becomes a semimodule then the below lemma could be proved for semimodules
-instance : module α (polynomial α) := finsupp.to_module α
+instance : module α (polynomial α) := finsupp.to_module ℕ α
 
 -- TODO -- this is OK for semimodules
 @[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
@@ -691,10 +691,14 @@ coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
 ext.2 $ λ n, coeff_C_mul f
 
--- TODO -- this is OK for semimodules
-lemma coeff_is_linear (n : ℕ) : is_linear_map (λ f : polynomial α, coeff f n) :=
-{ add := λ f g, coeff_add f g n,
+variable (α)
+def lcoeff (n : ℕ) : polynomial α →ₗ α :=
+{ to_fun := λ f, coeff f n,
+  add := λ f g, coeff_add f g n,
   smul := λ r p, coeff_smul p r n }
+variable {α}
+
+@[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial α) : lcoeff α n f = coeff f n := rfl
 
 instance C.is_ring_hom : is_ring_hom (@C α _ _) := by apply is_ring_hom.of_semiring
 
@@ -1195,9 +1199,9 @@ else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero 
 end integral_domain
 
 section field
-variables [field α] {p q : polynomial α}
+variables [discrete_field α] {p q : polynomial α}
 instance : vector_space α (polynomial α) :=
-{ ..finsupp.to_module α }
+{ ..finsupp.to_module ℕ α }
 
 lemma monic_mul_leading_coeff_inv (h : p ≠ 0) :
   monic (p * C (leading_coeff p)⁻¹) :=

@@ -165,6 +165,15 @@ theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β �
     { simp [nd₁] } }
 end end, λ ⟨f⟩, card_congr f⟩
 
+def of_subsingleton (a : α) [subsingleton α] : fintype α :=
+⟨finset.singleton a, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
+
+@[simp] theorem fintype.univ_of_subsingleton (a : α) [subsingleton α] :
+  @univ _ (of_subsingleton a) = finset.singleton a := rfl
+
+@[simp] theorem fintype.card_of_subsingleton (a : α) [subsingleton α] :
+  @fintype.card _ (of_subsingleton a) = 1 := rfl
+
 end fintype
 
 instance (n : ℕ) : fintype (fin n) :=
@@ -187,13 +196,13 @@ instance : fintype pempty := ⟨∅, pempty.rec _⟩
 
 @[simp] theorem fintype.card_pempty : fintype.card pempty = 0 := rfl
 
-instance : fintype unit := ⟨⟨()::0, by simp⟩, λ ⟨⟩, by simp⟩
+instance : fintype unit := fintype.of_subsingleton ()
 
 @[simp] theorem fintype.univ_unit : @univ unit _ = {()} := rfl
 
 @[simp] theorem fintype.card_unit : fintype.card unit = 1 := rfl
 
-instance : fintype punit := ⟨⟨punit.star::0, by simp⟩, λ ⟨⟩, by simp⟩
+instance : fintype punit := fintype.of_subsingleton punit.star
 
 @[simp] theorem fintype.univ_punit : @univ punit _ = {punit.star} := rfl
 
@@ -587,4 +596,3 @@ lemma fintype.card_equiv [fintype α] [fintype β] (e : α ≃ β) :
 fintype.card_congr (equiv_congr (equiv.refl α) e) ▸ fintype.card_perm
 
 end equiv
-

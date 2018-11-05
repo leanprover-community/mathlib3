@@ -639,11 +639,11 @@ fintype_card empty
 @[simp] theorem mk_pempty : mk pempty = 0 :=
 fintype_card pempty
 
-@[simp] theorem mk_empty' (α : Type u) : mk (∅ : set α) = 0 :=
+@[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
 quotient.sound ⟨equiv.set.pempty α⟩
 
-@[simp] theorem mk_plift_false : mk (plift false) = 0 :=
-quotient.sound ⟨equiv.plift.trans $ equiv.false_equiv_pempty⟩
+@[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : mk (plift p) = 0 :=
+quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty h⟩
 
 @[simp] theorem mk_unit : mk unit = 1 :=
 (fintype_card unit).trans nat.cast_one
@@ -654,8 +654,8 @@ quotient.sound ⟨equiv.plift.trans $ equiv.false_equiv_pempty⟩
 @[simp] theorem mk_singleton {α : Type u} (x : α) : mk ({x} : set α) = 1 :=
 quotient.sound ⟨equiv.set.singleton x⟩
 
-@[simp] theorem mk_plift_true : mk (plift true) = 1 :=
-quotient.sound ⟨equiv.plift.trans equiv.true_equiv_punit⟩
+@[simp] theorem mk_plift_of_true {p : Prop} (h : p) : mk (plift p) = 1 :=
+quotient.sound ⟨equiv.plift.trans $ equiv.prop_equiv_punit h⟩
 
 @[simp] theorem mk_bool : mk bool = 2 :=
 quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
@@ -695,25 +695,9 @@ calc  mk (⋃ i, f i)
 by rw [fintype_card, nat_cast_inj, fintype.card_coe]
 
 theorem mk_union_add_mk_inter {α : Type u} {S T : set α} : mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
-quotient.sound $ nonempty.intro $
-{ to_fun := λ x, sum.rec_on x
-    (λ x, if h : x.1 ∈ S then sum.inl ⟨x.1, h⟩ else sum.inr ⟨x.1, x.2.resolve_left h⟩)
-    (λ x, sum.inr ⟨x.1, x.2.2⟩),
-  inv_fun := λ x, sum.rec_on x
-    (λ x, sum.inl ⟨x.1, or.inl x.2⟩)
-    (λ x, if h : x.1 ∈ S then sum.inr ⟨x.1, h, x.2⟩ else sum.inl ⟨x.1, or.inr x.2⟩),
-  left_inv := λ x, sum.rec_on x
-    (λ ⟨x, hx⟩, if h : x ∈ S
-      then by dsimp only; rw [dif_pos h]; refl
-      else by dsimp only; rw [dif_neg h]; dsimp only; rw [dif_neg h]; refl)
-    (λ ⟨x, hx1, hx2⟩, by dsimp only; rw [dif_pos hx1]),
-  right_inv := λ x, sum.rec_on x
-    (λ ⟨x, hx⟩, by dsimp only; rw [dif_pos hx])
-    (λ ⟨x, hx⟩, if h : x ∈ S
-      then by dsimp only; rw [dif_pos h]
-      else by dsimp only; rw [dif_neg h]; dsimp only; rw [dif_neg h]) }
+quot.sound ⟨equiv.set.union_sum_inter S T⟩
 
-theorem mk_union_of_disjiont {α : Type u} {S T : set α} (H : disjoint S T) : mk (S ∪ T : set α) = mk S + mk T :=
-eq.trans (by simp only [(eq_empty_of_subset_empty H : S ∩ T = ∅), mk_empty', add_zero]) mk_union_add_mk_inter
+theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) : mk (S ∪ T : set α) = mk S + mk T :=
+quot.sound ⟨equiv.set.union (disjoint_iff.1 H)⟩
 
 end cardinal

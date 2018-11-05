@@ -406,15 +406,19 @@ end topological_ring
 
 section topological_comm_ring
 universe u'
-variables (α) [topological_space α] [comm_ring α] [topological_ring α]
+variables [topological_space α] [comm_ring α] [topological_ring α]
 
-instance ideal_closure (S : set α) [is_ideal S] : is_ideal (closure S) :=
-{ zero_ := subset_closure (is_ideal.zero S),
-  add_  := assume x y hx hy,
-    mem_closure2 continuous_add' hx hy $ assume a b, is_ideal.add,
+def ideal.closure (S : ideal α) : ideal α :=
+{ carrier := closure S,
+  zero := subset_closure S.zero_mem,
+  add  := assume x y hx hy,
+    mem_closure2 continuous_add' hx hy $ assume a b, S.add_mem,
   smul  := assume c x hx,
     have continuous (λx:α, c * x) := continuous_mul continuous_const continuous_id,
-    mem_closure this hx $ assume a, is_ideal.mul_left }
+    mem_closure this hx $ assume a, S.mul_mem_left }
+
+@[simp] lemma ideal.coe_closure (S : ideal α) :
+  (S.closure : set α) = closure S := rfl
 
 end topological_comm_ring
 

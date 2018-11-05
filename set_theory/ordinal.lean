@@ -774,7 +774,7 @@ induction_on c $ λ β s _,
     | sum.inl a, sum.inr b, H := (sum.lex_inr_inl H).elim
     | sum.inr a, sum.inr b, H := let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
         ⟨sum.inr w, congr_arg sum.inr h⟩
-    end⟩⟩
+  end⟩⟩
 
 theorem le_add_right (a b : ordinal) : a ≤ a + b :=
 by simpa only [add_zero] using add_le_add_left (zero_le b) a

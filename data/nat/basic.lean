@@ -313,6 +313,12 @@ by rw [mul_comm c, mod_mul_right_div_self]
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
 ⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_refl _⟩
 
+protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k ∣ m :=
+(nat.dvd_add_iff_left h).symm
+
+protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k ∣ n := 
+(nat.dvd_add_iff_right h).symm
+
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : a > 0) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, nat.mul_left_inj ha]
 

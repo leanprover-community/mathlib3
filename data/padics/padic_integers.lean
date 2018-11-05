@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Robert Y. Lewis
+Authors: Robert Y. Lewis, Mario Carneiro
 
 Define the p-adic integers ℤ_p as a subtype of ℚ_p. Construct algebraic structures on ℤ_p.
 -/
@@ -13,7 +13,7 @@ open nat padic
 noncomputable theory
 local attribute [instance] classical.prop_decidable
 
-def padic_int (p : ℕ) [nat.prime p] := {x : ℚ_[p] // ∥x∥ ≤ 1}
+def padic_int (p : ℕ) [p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int

@@ -46,6 +46,12 @@ variables [module α β] [module α γ] [module α δ]
 variables (f g : β →ₗ γ)
 include α
 
+theorem comp_id (f : β →ₗ γ) : f.comp id = f :=
+linear_map.ext $ λ x, rfl
+
+theorem id_comp (f : β →ₗ γ) : id.comp f = f :=
+linear_map.ext $ λ x, rfl
+
 def cod_restrict (p : submodule α β) (f : γ →ₗ β) (h : ∀c, f c ∈ p) : γ →ₗ p :=
 by refine {to_fun := λc, ⟨f c, h c⟩, ..}; intros; apply set_coe.ext; simp
 

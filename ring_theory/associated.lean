@@ -13,13 +13,27 @@ open lattice
 /-- is unit -/
 def is_unit [monoid α] (a : α) : Prop := ∃u:units α, a = u
 
-@[simp] theorem not_is_unit_zero [nonzero_comm_ring α] : ¬ is_unit (0 : α)
-| ⟨⟨a, b, hab, hba⟩, rfl⟩ := have 0 * b = 1, from hab, by simpa using this
+@[simp] theorem is_unit_zero_iff [semiring α] : is_unit (0 : α) ↔ (0:α) = 1 :=
+⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
+ λ h, begin
+  haveI := subsingleton_of_zero_eq_one _ h,
+  refine ⟨⟨0, 0, _, _⟩, rfl⟩; apply subsingleton.elim
+ end⟩
+
+@[simp] theorem not_is_unit_zero [nonzero_comm_ring α] : ¬ is_unit (0 : α) :=
+mt is_unit_zero_iff.1 zero_ne_one
 
 @[simp] theorem is_unit_one [monoid α] : is_unit (1:α) := ⟨1, rfl⟩
 
 theorem is_unit_of_mul_one [comm_monoid α] (a b : α) (h : a * b = 1) : is_unit a :=
 ⟨units.mk_of_mul_eq_one a b h, rfl⟩
+
+theorem is_unit_iff_exists_inv [comm_monoid α] {a : α} : is_unit a ↔ ∃ b, a * b = 1 :=
+⟨by rintro ⟨⟨a, b, hab, _⟩, rfl⟩; exact ⟨b, hab⟩,
+ λ ⟨b, hab⟩, is_unit_of_mul_one _ b hab⟩
+
+theorem is_unit_iff_exists_inv' [comm_monoid α] {a : α} : is_unit a ↔ ∃ b, b * a = 1 :=
+by simp [is_unit_iff_exists_inv, mul_comm]
 
 @[simp] theorem units.is_unit_mul_units [monoid α] (a : α) (u : units α) :
   is_unit (a * u) ↔ is_unit a :=
@@ -29,6 +43,15 @@ iff.intro
     by rwa [mul_assoc, units.mul_inv, mul_one] at this)
   (assume ⟨v, hv⟩, hv.symm ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
 
+theorem is_unit_of_mul_is_unit_left {α} [comm_monoid α] {x y : α}
+  (hu : is_unit (x * y)) : is_unit x :=
+let ⟨z, hz⟩ := is_unit_iff_exists_inv.1 hu in
+is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
+
+theorem is_unit_of_mul_is_unit_right {α} [comm_monoid α] {x y : α}
+  (hu : is_unit (x * y)) : is_unit y :=
+@is_unit_of_mul_is_unit_left _ _ y x $ by rwa mul_comm
+
 theorem is_unit_iff_dvd_one [comm_semiring α] {x : α} : is_unit x ↔ x ∣ 1 :=
 ⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
  λ ⟨y, h⟩, ⟨⟨x, y, h.symm, by rw [h, mul_comm]⟩, rfl⟩⟩
@@ -36,6 +59,13 @@ theorem is_unit_iff_dvd_one [comm_semiring α] {x : α} : is_unit x ↔ x ∣ 1 
 theorem is_unit_iff_forall_dvd [comm_semiring α] {x : α} :
   is_unit x ↔ ∀ y, x ∣ y :=
 is_unit_iff_dvd_one.trans ⟨λ h y, dvd.trans h (one_dvd _), λ h, h _⟩
+
+theorem mul_dvd_of_is_unit_left [comm_semiring α] {x y z : α} (h : is_unit x) : x * y ∣ z ↔ y ∣ z :=
+⟨dvd_trans (dvd_mul_left _ _),
+ dvd_trans $ by simpa using mul_dvd_mul_right (is_unit_iff_dvd_one.1 h) y⟩
+
+theorem mul_dvd_of_is_unit_right [comm_semiring α] {x y z : α} (h : is_unit y) : x * y ∣ z ↔ x ∣ z :=
+by rw [mul_comm, mul_dvd_of_is_unit_left h]
 
 theorem is_unit_of_dvd_unit {α} [comm_semiring α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
@@ -80,6 +110,9 @@ by simp [irreducible]
 @[simp] theorem not_irreducible_zero [semiring α] : ¬ irreducible (0 : α)
 | ⟨hn0, h⟩ := have is_unit (0:α) ∨ is_unit (0:α), from h 0 0 ((mul_zero 0).symm),
   this.elim hn0 hn0
+
+theorem nonzero_of_irreducible [semiring α] : ∀ {p:α}, irreducible p → p ≠ 0
+| _ hp rfl := not_irreducible_zero hp
 
 theorem of_irreducible_mul {α} [monoid α] {x y : α} :
   irreducible (x * y) → is_unit x ∨ is_unit y

@@ -100,8 +100,10 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
           rw [← category.id_comp _ a_inv, ← b_inv_hom_id', category.assoc, a_hom_inv_id', category.comp_id]
          end ⟩
 
-@[simp] def hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ inv f = 𝟙 X := is_iso.hom_inv_id' f
-@[simp] def inv_hom_id (f : X ⟶ Y) [is_iso f] : inv f ≫ f = 𝟙 Y := is_iso.inv_hom_id' f
+@[simp] def hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ category_theory.inv f = 𝟙 X :=
+is_iso.hom_inv_id' f
+@[simp] def inv_hom_id (f : X ⟶ Y) [is_iso f] : category_theory.inv f ≫ f = 𝟙 Y :=
+is_iso.inv_hom_id' f
 
 instance (X : C) : is_iso (𝟙 X) :=
 { inv := 𝟙 X }

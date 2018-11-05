@@ -259,6 +259,15 @@ lemma is_colimit.universal (h : is_colimit t) (s : cocone F) (φ : t.X ⟶ s.X) 
     simp at *,
   end ⟩
 
+lemma is_colimit.hom_desc (h : is_colimit t) {X' : C} (m : t.X ⟶ X') :
+  m = h.desc { X := X', ι := { app := λ b, t.ι b ≫ m,
+    naturality' := by intros X Y f; rw ←category.assoc; dsimp; simp } } :=
+h.uniq { X := X', ι := { app := λ b, t.ι b ≫ m, naturality' := _ } } m (λ b, rfl)
+
+lemma is_colimit.hom_ext (h : is_colimit t) {W : C} {f g : t.X ⟶ W}
+  (w : ∀ j, t.ι j ≫ f = t.ι j ≫ g) : f = g :=
+by rw [h.hom_desc f, h.hom_desc g]; congr; exact funext w
+
 def is_colimit.of_desc_universal
   (desc : Π (s : cocone F), t.X ⟶ s.X)
   (universal : Π (s : cocone F) (φ : t.X ⟶ s.X), (∀ j : J, (t.ι j ≫ φ) = s.ι j) ↔ (φ = desc s)) : is_colimit t :=
@@ -541,24 +550,7 @@ by erw is_colimit.fac
 @[extensionality] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C}
   {f g : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ g) : f = g :=
-begin
-  let c : cocone F :=
-  { X := X,
-    ι :=
-    { app := λ j, colimit.ι F j ≫ f,
-      naturality' :=
-      begin
-        /- obviously says: -/
-        intros j j' f_1,
-        erw [← category.assoc, limits.cocone.w],
-        simp,
-        dsimp,
-        simp,
-      end } },
-  have p_f := (colimit.universal_property F).uniq c f (λ j, by simp),
-  have p_g := (colimit.universal_property F).uniq c g (λ j, eq.symm (w j)),
-  rw [p_f, p_g],
-end
+(colimit.universal_property F).hom_ext w
 
 lemma colimit.desc_extend (F : J ⥤ C) [has_colimit F] (c : cocone F) {X : C} (f : c.X ⟶ X) :
   colimit.desc F (c.extend f) = colimit.desc F c ≫ f :=

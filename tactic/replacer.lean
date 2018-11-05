@@ -25,7 +25,7 @@ meta def replacer (ntac : name) {α : Type} [reflected α]
   (F : Type → Type) (eF : ∀ β, reflected β → reflected (F β))
   (R : ∀ β, F β → β) : tactic α :=
 attribute.get_instances ntac >>= replacer_core ntac
-  (λ β eβ e, R β <$> @eval_expr (F β) (eF β eβ) e)
+  (λ β eβ e, R β <$> @eval_expr' (F β) (eF β eβ) e)
 
 meta def mk_replacer₁ : expr → nat → expr × expr
 | (expr.pi n bi d b) i :=

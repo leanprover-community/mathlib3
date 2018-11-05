@@ -13,6 +13,7 @@ Based on the tensor library found in https://www.isa-afp.org/entries/Deep_Learni
 -/
 import data.list.basic
 import algebra.module
+import algebra.pi_instances
 import tactic.interactive
 import tactic.tidy
 import tactic.pi_instances
@@ -71,7 +72,7 @@ variables {α : Type} {d : ℕ} {ds : list ℕ} {ds₁ : list ℕ} {ds₂ : list
 
 instance [inhabited α] : inhabited (holor α ds) := ⟨λ t, default α⟩
 instance [has_zero α] : has_zero (holor α ds) := ⟨λ t, 0⟩
-instance [has_add α] : has_add (holor α ds) := ⟨λ x y t, (x t) + (y t)⟩
+instance [has_add α] : has_add (holor α ds) := ⟨λ x y t, x t + y t⟩
 instance [has_neg α] : has_neg (holor α ds) :=  ⟨λ a t, - a t⟩
 
 instance [add_semigroup α] : add_semigroup (holor α ds) := by pi_instance
@@ -91,9 +92,9 @@ instance [add_comm_group α] : add_comm_group (holor α ds) := by pi_instance
 instance [has_mul α] : has_scalar α (holor α ds) :=
   ⟨λ a x, λ t, a * x t⟩
 
-instance [ring α] : module α (holor α ds) := by pi_instance
+instance [ring α] : module α (holor α ds) := pi.module α
 
-instance [field α] : vector_space α (holor α ds) := ⟨α, (holor α ds)⟩
+instance [discrete_field α] : vector_space α (holor α ds) := ⟨α, holor α ds⟩
 
 /- tensor product -/
 

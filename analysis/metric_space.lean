@@ -3,14 +3,14 @@ Copyright (c) 2015, 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Metric spaces.
 
-Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro
+Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
 
 Many definitions and theorems expected on metric spaces are already introduced on uniform spaces and
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
 import data.real.nnreal analysis.topology.topological_structures
-open lattice set filter classical
+open lattice set filter classical topological_space
 noncomputable theory
 
 universes u v w
@@ -159,6 +159,9 @@ theorem mem_ball' : y ∈ ball x ε ↔ dist x y < ε := by rw dist_comm; refl
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+
+theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
+assume y, by simp; intros h; apply le_of_lt h
 
 theorem pos_of_mem_ball (hy : y ∈ ball x ε) : ε > 0 :=
 lt_of_le_of_lt dist_nonneg hy
@@ -450,6 +453,26 @@ by rw [← nhds_comap_dist a, tendsto_comap_iff]
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_dist continuous_id continuous_const) continuous_const
 
+/-- ε-characterization of the closure in metric spaces-/
+theorem mem_closure_iff' {α : Type u} [metric_space α] {s : set α} {a : α} :
+  a ∈ closure s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
+⟨begin
+  intros ha ε hε,
+  have A : ball a ε ∩ s ≠ ∅ := mem_closure_iff.1 ha _ is_open_ball (mem_ball_self hε),
+  cases ne_empty_iff_exists_mem.1 A with b hb,
+  simp,
+  exact ⟨b, ⟨hb.2, by have B := hb.1; simpa [mem_ball'] using B⟩⟩
+end,
+begin
+  intros H,
+  apply mem_closure_iff.2,
+  intros o ho ao,
+  rcases is_open_metric.1 ho a ao with ⟨ε, ⟨εpos, hε⟩⟩,
+  rcases H ε εpos with ⟨b, ⟨bs, bdist⟩⟩,
+  have B : b ∈ o ∩ s := ⟨hε (by simpa [dist_comm]), bs⟩,
+  apply ne_empty_of_mem B
+end⟩
+
 section pi
 open finset lattice
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
@@ -479,6 +502,206 @@ instance metric_space_pi : metric_space (Πb, π b) :=
     end }
 
 end pi
+
+section second_countable
+
+/-- A separable metric space is second countable: one obtains a countable basis by taking
+the balls centered at points in a dense subset, and with rational radii. We do not register
+this as an instance, as there is already an instance going in the other direction
+from second countable spaces to separable spaces, and we want to avoid loops.-/
+lemma second_countable_of_separable_metric_space (α : Type u) [metric_space α] [separable_space α] :
+  second_countable_topology α :=
+let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ α in
+⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
+⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
+begin
+  apply countable_bUnion S_countable,
+  intros a aS,
+  apply countable_Union,
+  simp
+end,
+show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}),
+begin
+  have A : ∀ (u : set α), (u ∈ ⋃x ∈ S, ⋃ (n : nat), ({ball x ((n : ℝ)⁻¹)} : set (set α))) → is_open u :=
+  begin
+    simp,
+    intros u x hx i u_ball,
+    rw [u_ball],
+    apply is_open_ball
+  end,
+  have B : is_topological_basis (⋃x ∈ S, ⋃ (n : nat), ({ball x (n⁻¹)} : set (set α))) :=
+  begin
+    apply is_topological_basis_of_open_of_nhds A,
+    intros a u au open_u,
+    rcases is_open_metric.1 open_u a au with ⟨ε, εpos, εball⟩,
+    have : ε / 2 > 0 := half_pos εpos,
+    /- The ball `ball a ε` is included in `u`. We need to find one of our balls `ball x (n⁻¹)`
+    containing `a` and contained in `ball a ε`. For this, we take `n` larger than `2/ε`, and
+    then `x` in `S` at distance at most `n⁻¹` of `a`-/
+    rcases exists_nat_gt (ε/2)⁻¹ with ⟨n, εn⟩,
+    have : (n : ℝ) > 0 := lt_trans (inv_pos ‹ε/2 > 0›) εn,
+    have : 0 < (n : ℝ)⁻¹ := inv_pos this,
+    have : (n : ℝ)⁻¹ < ε/2 := (inv_lt ‹ε/2 > 0› ‹(n : ℝ) > 0›).1 εn,
+    have : (a : α) ∈ closure (S : set α) := by rw [S_dense]; simp,
+    rcases mem_closure_iff'.1 this _ ‹0 < (n : ℝ)⁻¹› with ⟨x, xS, xdist⟩,
+    have : a ∈ ball x (n⁻¹) := by simpa,
+    have : ball x (n⁻¹) ⊆ ball a ε :=
+    begin
+      intros y,
+      simp,
+      intros ydist,
+      calc dist y a = dist a y : dist_comm _ _
+          ... ≤ dist a x + dist y x : dist_triangle_right _ _ _
+          ... < n⁻¹ + n⁻¹ : add_lt_add xdist ydist
+          ... < ε/2 + ε/2 : add_lt_add ‹(n : ℝ)⁻¹ < ε/2› ‹(n : ℝ)⁻¹ < ε/2›
+          ... = ε : add_halves _,
+    end,
+    have : ball x (n⁻¹) ⊆ u := subset.trans this εball,
+    existsi ball x (↑n)⁻¹,
+    simp,
+    exact ⟨⟨x, ⟨xS, ⟨n, rfl⟩⟩⟩, ⟨by assumption, by assumption⟩⟩,
+  end,
+  exact B.2.2,
+end⟩⟩⟩
+
+end second_countable
+
+section compact
+
+/--Any compact set in a metric space can be covered by finitely many balls of a given positive
+radius-/
+lemma finite_cover_balls_of_compact {α : Type u} [metric_space α] {s : set α}
+  (hs : compact s) {e : ℝ} (he : e > 0) :
+  ∃t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=
+begin
+  apply compact_elim_finite_subcover_image hs,
+  { simp [is_open_ball] },
+  { intros x xs,
+    simp,
+    exact ⟨x, ⟨xs, by simpa⟩⟩ }
+end
+
+/--A compact set in a metric space is separable, i.e., it is the closure of a countable set-/
+lemma countable_closure_of_compact {α : Type u} [metric_space α] {s : set α} (hs : compact s) :
+  ∃ t ⊆ s, (countable t ∧ s = closure t) :=
+begin
+  have A : ∀ (e:ℝ), e > 0 → ∃ t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=
+    assume e, finite_cover_balls_of_compact hs,
+  have B : ∀ (e:ℝ), ∃ t ⊆ s, finite t ∧ (e > 0 → s ⊆ (⋃x∈t, ball x e)) :=
+  begin
+    intro e,
+    cases le_or_gt e 0 with h,
+    { exact ⟨∅, by finish⟩ },
+    { rcases A e h with ⟨s, ⟨finite_s, closure_s⟩⟩, existsi s, finish }
+  end,
+  /-The desired countable set is obtained by taking for each `n` the centers of a finite cover
+  by balls of radius `1/n`, and then the union over `n`.-/
+  choose T T_in_s finite_T using B,
+  let t := ⋃n, T (n : ℕ)⁻¹,
+  have T₁ : t ⊆ s := begin apply Union_subset, assume n, apply T_in_s end,
+  have T₂ : countable t := by finish [countable_Union, countable_finite],
+  have T₃ : s ⊆ closure t :=
+  begin
+    intros x x_in_s,
+    apply mem_closure_iff'.2,
+    intros ε εpos,
+    rcases exists_nat_gt ε⁻¹ with ⟨n, εn⟩,
+    have : (n : ℝ) > 0 := lt_trans (inv_pos εpos) εn,
+    have inv_n_pos : 0 < (n : ℝ)⁻¹ := inv_pos this,
+    have C : x ∈ (⋃y∈ T (↑n)⁻¹, ball y (↑n)⁻¹) := mem_of_mem_of_subset x_in_s ((finite_T (↑n)⁻¹).2 inv_n_pos),
+    rcases mem_Union.1 C with ⟨y, _, ⟨y_in_T, rfl⟩, x_w⟩,
+    simp at x_w,
+    have : y ∈ t := mem_of_mem_of_subset y_in_T (by apply subset_Union (λ (n:ℕ), T (n : ℝ)⁻¹)),
+    have : dist x y < ε := lt_trans x_w ((inv_lt εpos ‹(n : ℝ) > 0›).1 εn),
+    exact ⟨y, ‹y ∈ t›, ‹dist x y < ε›⟩
+  end,
+  have T₄ : closure t ⊆ s :=
+  calc closure t ⊆ closure s : closure_mono T₁
+             ... = s : closure_eq_of_is_closed (closed_of_compact _ hs),
+  exact ⟨t, ⟨T₁, T₂, subset.antisymm T₃ T₄⟩⟩
+end
+
+end compact
+
+section proper_space
+
+/--A metric space is proper if all closed balls are compact.-/
+class proper_space (α : Type u) [metric_space α] : Prop :=
+(compact_ball : ∀x:α, ∀r, compact (closed_ball x r))
+
+/-A compact metric space is proper-/
+instance proper_of_compact_metric_space [metric_space α] [compact_space α] : proper_space α :=
+⟨assume x r, compact_of_is_closed_subset compact_univ is_closed_ball (subset_univ _)⟩
+
+/--A proper space is locally compact-/
+instance locally_compact_of_proper_metric_space [metric_space α] [proper_space α] :
+  locally_compact_space α :=
+begin
+  apply locally_compact_of_compact_nhds,
+  intros x,
+  existsi closed_ball x 1,
+  split,
+  { apply mem_nhds_iff_metric.2,
+    existsi (1 : ℝ),
+    simp,
+    exact ⟨zero_lt_one, ball_subset_closed_ball⟩ },
+  { apply proper_space.compact_ball }
+end
+
+/--A proper space is complete-/
+instance complete_of_proper {α : Type u} [metric_space α] [proper_space α] : complete_space α :=
+⟨begin
+  intros f hf,
+  /-We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
+  ball (therefore compact by properness) where it is nontrivial.-/
+  have A : ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < 1 := (cauchy_of_metric.1 hf).2 1 (by norm_num),
+  rcases A with ⟨t, ⟨t_fset, ht⟩⟩,
+  rcases inhabited_of_mem_sets hf.1 t_fset with ⟨x, xt⟩,
+  have : t ⊆ closed_ball x 1 := by intros y yt; simp [dist_comm]; apply le_of_lt (ht x y xt yt),
+  have : closed_ball x 1 ∈ f.sets := f.sets_of_superset t_fset this,
+  exact complete_of_compact_set hf this (proper_space.compact_ball _ _),
+end⟩
+
+/--A proper metric space is separable, and therefore second countable. Indeed, any ball is
+compact, and therefore admits a countable dense subset. Taking a countable union over the balls
+centered at a fixed point and with integer radius, one obtains a countable set which is
+dense in the whole space.-/
+instance second_countable_of_proper_metric_space [metric_space α] [proper_space α] :
+  second_countable_topology α :=
+begin
+  /-We show that the space admits a countable dense subset. The case where the space is empty
+  is special, and trivial.-/
+  have A : (univ : set α) = ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
+    assume H, ⟨∅, ⟨by simp, by simp; exact H.symm⟩⟩,
+  have B : (univ : set α) ≠ ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
+  begin
+    /-When the space is not empty, we take a point `x` in the space, and then a countable set
+    `T r` which is dense in the closed ball `closed_ball x r` for each `r`. Then the set
+    `t = ⋃ T n` (where the union is over all integers `n`) is countable, as a countable union
+    of countable sets, and dense in the space by construction.-/
+    assume non_empty,
+    rcases ne_empty_iff_exists_mem.1 non_empty with ⟨x, x_univ⟩,
+    choose T a using show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t),
+      from assume r, countable_closure_of_compact (proper_space.compact_ball _ _),
+    let t := (⋃n:ℕ, T (n : ℝ)),
+    have T₁ : countable t := by finish [countable_Union],
+    have T₂ : closure t ⊆ univ := by simp,
+    have T₃ : univ ⊆ closure t :=
+    begin
+      intros y y_univ,
+      rcases exists_nat_gt (dist y x) with ⟨n, n_large⟩,
+      have h : y ∈ closed_ball x (n : ℝ) := by simp; apply le_of_lt n_large,
+      have h' : closed_ball x (n : ℝ) = closure (T (n : ℝ)) := by finish,
+      have : y ∈ closure (T (n : ℝ)) := by rwa h' at h,
+      show y ∈ closure t, from mem_of_mem_of_subset this (by apply closure_mono; apply subset_Union (λ(n:ℕ), T (n:ℝ))),
+    end,
+    exact ⟨t, ⟨T₁, subset.antisymm T₂ T₃⟩⟩
+  end,
+  haveI : separable_space α := ⟨by_cases A B⟩,
+  apply second_countable_of_separable_metric_space,
+end
+
+end proper_space
 
 lemma lebesgue_number_lemma_of_metric
   {s : set α} {ι} {c : ι → set α} (hs : compact s)

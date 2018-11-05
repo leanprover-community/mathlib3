@@ -7,7 +7,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 
 import algebra.pi_instances
-import linear_algebra.prod_module
+import linear_algebra.basic
 import analysis.nnreal
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
@@ -285,25 +285,17 @@ end normed_field
 section normed_space
 
 class normed_space (α : out_param $ Type*) (β : Type*) [out_param $ normed_field α]
-  extends has_norm β , vector_space α β, metric_space β :=
-(dist_eq   : ∀ x y, dist x y = norm (x - y))
+  extends normed_group β, vector_space α β :=
 (norm_smul : ∀ a b, norm (a • b) = has_norm.norm a * norm b)
 
 variables [normed_field α]
-
-instance normed_space.to_normed_group [i : normed_space α β] : normed_group β :=
-by refine { add := (+),
-            dist_eq := normed_space.dist_eq,
-            zero := 0,
-            neg := λ x, -x,
-            ..i, .. }; simp
 
 instance normed_field.to_normed_space : normed_space α α :=
 { dist_eq := normed_field.dist_eq,
   norm_smul := normed_field.norm_mul }
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
-normed_space.norm_smul _ _
+normed_space.norm_smul s x
 
 lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : nnnorm (s • x) = nnnorm s * nnnorm x :=
 nnreal.eq $ norm_smul s x

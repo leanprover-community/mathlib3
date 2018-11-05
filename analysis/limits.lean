@@ -139,9 +139,9 @@ lemma tendsto_coe_iff {f : ℕ → ℕ} : tendsto (λ n, (f n : ℝ)) at_top at_
     (have _, from tendsto_infi.1 h i, by simpa using tendsto_principal.1 this),
   λ h, tendsto.comp h tendsto_of_nat_at_top_at_top ⟩
 
-lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : k > 1) : tendsto (λn:ℕ, k ^ n) at_top at_top :=
+lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) : tendsto (λn:ℕ, k ^ n) at_top at_top :=
 tendsto_coe_iff.1 $
-  have hr : (k : ℝ) > 1, from show (k : ℝ) > (1 : ℕ), from nat.cast_lt.2 h,
+  have hr : 1 < (k : ℝ), by rw [← nat.cast_one, nat.cast_lt]; exact h,
   by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
 
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (nhds 0) :=

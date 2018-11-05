@@ -298,9 +298,7 @@ begin
 end
 
 
--- def has_terminal_object_from_has_products : has_terminal_object.{u v} C :=
--- { terminal := limits.pi.{u v} (@pempty.elim.{u+1} C),
---   is_terminal := { lift := λ X, pi.lift (pempty.rec _) } }
+-- FIXME restore these
 
 -- def has_binary_products_from_has_products : has_binary_products.{u v} C :=
 -- { span := λ Y Z,
@@ -481,21 +479,19 @@ colimit.map_desc (cocone.of_function p) (nat_trans.of_function k)
 end
 end coproducts
 
-def has_initial_object_from_has_products : has_initial_object.{u v} C :=
-{ initial := limits.sigma.{u v} (@pempty.elim.{u+1} C),
-  is_initial := { desc := λ X, sigma.desc (pempty.rec _) } }
+-- FIXME restore these
 
-def has_binary_coproducts_from_has_products : has_binary_coproducts.{u v} C :=
-{ cospan := λ Y Z,
-  begin
-    let f : ulift bool → C := (λ b : ulift bool, cond b.down Y Z),
-    exact { X := limits.sigma f, ι₁ := sigma.ι f ⟨ tt ⟩, ι₂ := sigma.ι f ⟨ ff ⟩ }
-  end,
-  is_binary_coproduct := λ Y Z,
-  { desc := λ s, sigma.desc (λ b, bool.cases_on b.down s.ι₂ s.ι₁),
-    uniq' := λ s m w₁ w₂,
-    begin
-      dsimp at *, ext1, cases b, cases b, tidy,
-    end } }
+-- def has_binary_coproducts_from_has_products : has_binary_coproducts.{u v} C :=
+-- { cospan := λ Y Z,
+--   begin
+--     let f : ulift bool → C := (λ b : ulift bool, cond b.down Y Z),
+--     exact { X := limits.sigma f, ι₁ := sigma.ι f ⟨ tt ⟩, ι₂ := sigma.ι f ⟨ ff ⟩ }
+--   end,
+--   is_binary_coproduct := λ Y Z,
+--   { desc := λ s, sigma.desc (λ b, bool.cases_on b.down s.ι₂ s.ι₁),
+--     uniq' := λ s m w₁ w₂,
+--     begin
+--       dsimp at *, ext1, cases b, cases b, tidy,
+--     end } }
 
 end category_theory.limits

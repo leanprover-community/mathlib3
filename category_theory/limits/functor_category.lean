@@ -76,10 +76,10 @@ instance evaluation_preserves_limits [has_limits_of_shape.{u v} J C] (k : K) :
 { preserves := λ F c h,
   begin
     have i : functor_category_limit_cone F ≅ c := limit_cone.ext (functor_category_is_limit_cone F) h,
-    apply is_limit_invariance _ (functor.on_iso _ i),
+    apply is_limit_invariance _ _ (functor.on_iso _ i),
 
     -- Next, we know exactly what the evaluation of the `product_cone F` is:
-    apply is_limit_invariance _ (evaluate_functor_category_limit_cone F k).symm,
+    apply is_limit_invariance _ _ (evaluate_functor_category_limit_cone F k).symm,
 
     -- Finally, it's just that the limit cone is a limit.
     exact limit.universal_property _

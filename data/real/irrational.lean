@@ -58,7 +58,11 @@ theorem irr_sqrt_of_prime (p : ℕ) (hp : nat.prime p) : irrational (sqrt p) :=
 irr_sqrt_of_padic_val_odd p (int.coe_nat_nonneg p) p $
 by rw padic_val.padic_val_self hp.gt_one; refl
 
-theorem irr_sqrt_two : irrational (sqrt 2) := irr_sqrt_of_prime 2 nat.prime_two
+theorem irr_sqrt_two : irrational (sqrt 2) :=
+begin
+  rw show (2 : ℝ) = (2:ℕ), by simp,
+  exact irr_sqrt_of_prime 2 nat.prime_two
+end
 
 theorem irr_sqrt_rat_iff (q : ℚ) : irrational (sqrt q) ↔
   rat.sqrt q * rat.sqrt q ≠ q ∧ 0 ≤ q :=

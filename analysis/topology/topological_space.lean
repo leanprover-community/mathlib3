@@ -1335,7 +1335,7 @@ begin
     { rintros sU ⟨U, ⟨H₁, H₂⟩⟩, subst H₂, exact U.property },
     { intros x sU hx hsU,
       rcases @h (⟨sU, hsU⟩ : opens α) x hx with ⟨V, hV, H⟩,
-      refine ⟨V, ⟨V, hV, rfl⟩, H⟩ } }
+      exact ⟨V, ⟨V, hV, rfl⟩, H⟩ } }
 end
 
 lemma is_basis_iff_cover {B : set (opens α)} :

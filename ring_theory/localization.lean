@@ -129,34 +129,22 @@ local_of_nonunits_ideal
     hts $ have htz : t = 0, by simpa using ht,
       suffices (0:α) ∈ P, by rwa htz,
       P.zero_mem)
-  (λ x y hx hy ⟨z, hz⟩,
-    let ⟨⟨r₁, s₁, hs₁⟩, hrs₁⟩ := quotient.exists_rep x,
-        ⟨⟨r₂, s₂, hs₂⟩, hrs₂⟩ := quotient.exists_rep y,
-        ⟨⟨r₃, s₃, hs₃⟩, hrs₃⟩ := quotient.exists_rep z in
-    have _,
-      by rw [← hrs₁, ← hrs₂, ← hrs₃] at hz; from quotient.exact hz,
-    let ⟨t, hts, ht⟩ := this in
-    have hr₁ : r₁ ∈ P,
-      from classical.by_contradiction $ λ hnr₁, hx ⟨⟦⟨s₁, r₁, hnr₁⟩⟧,
-        by rw ←hrs₁; from (quotient.sound $ r_of_eq $ by simp [mul_comm])⟩,
-    have hr₂ : r₂ ∈ P,
-      from classical.by_contradiction $ λ hnr₂, hy ⟨⟦⟨s₂, r₂, hnr₂⟩⟧,
-        by rw ←hrs₂; from (quotient.sound $ r_of_eq $ by simp [mul_comm])⟩,
-    have hr₃ : _ ,
-      from or.resolve_right (hp.mem_or_mem_of_mul_eq_zero ht) hts,
-    have h : s₃ * (s₁ * s₂) - r₃ * (s₁ * r₂ + s₂ * r₁) ∈ P,
-      by simpa using hr₃,
-    have h1 : r₃ * (s₁ * r₂ + s₂ * r₁) ∈ P,
-      from P.smul_mem r₃ $
-        P.add_mem (P.smul_mem s₁ hr₂) (P.smul_mem s₂ hr₁),
-    have h2 : s₃ * (s₁ * s₂) ∈ P,
-      from calc s₃ * (s₁ * s₂) =
-          s₃ * (s₁ * s₂) - r₃ * (s₁ * r₂ + s₂ * r₁) + r₃ * (s₁ * r₂ + s₂ * r₁) :
-            eq.symm $ sub_add_cancel _ _
-        ... ∈ P : P.add_mem h h1,
-    have h3 : s₁ * s₂ ∈ P,
-      from or.resolve_left (hp.mem_or_mem h2) hs₃,
-    or.cases_on (hp.mem_or_mem h3) hs₁ hs₂)
+  (begin
+    rintro ⟨⟨r₁, s₁, hs₁⟩⟩ ⟨⟨r₂, s₂, hs₂⟩⟩ hx hy hu,
+    rcases is_unit_iff_exists_inv.1 hu with ⟨⟨⟨r₃, s₃, hs₃⟩⟩, hz⟩,
+    rcases quotient.exact hz with ⟨t, hts, ht⟩,
+    simp at ht,
+    have : ∀ {r s hs}, (⟦⟨r, s, hs⟩⟧ : at_prime P) ∈ nonunits (at_prime P) → r ∈ P,
+    { haveI := classical.dec,
+      exact λ r s hs, not_imp_comm.1 (λ nr,
+        is_unit_iff_exists_inv.2 ⟨⟦⟨s, r, nr⟩⟧,
+          quotient.sound $ r_of_eq $ by simp [mul_comm]⟩) },
+    have hr₃ := (hp.mem_or_mem_of_mul_eq_zero ht).resolve_right hts,
+    have := (ideal.add_mem_iff_left _ _).1 hr₃,
+    { exact not_or (mt hp.mem_or_mem (not_or hs₁ hs₂)) hs₃ (hp.mem_or_mem this) },
+    { exact P.neg_mem (P.mul_mem_right
+        (P.add_mem (P.mul_mem_left (this hy)) (P.mul_mem_left (this hx)))) }
+  end)
 
 end at_prime
 
@@ -179,11 +167,9 @@ section quotient_ring
 
 variables {β : Type u} [integral_domain β] [decidable_eq β]
 
-lemma ne_zero_of_mem_non_zero_divisors {x : β} :
-  x ∈ localization.non_zero_divisors β → x ≠ 0 :=
-λ hm hz,
-  have 1 * x = 0, by simp [hz],
-  zero_ne_one (hm 1 this).symm
+lemma ne_zero_of_mem_non_zero_divisors {x : β}
+  (hm : x ∈ localization.non_zero_divisors β) : x ≠ 0 | hz :=
+zero_ne_one (hm 1 (by simpa)).symm
 
 lemma eq_zero_of_ne_zero_of_mul_eq_zero {x y : β} :
   x ≠ 0 → y * x = 0 → y = 0 :=

@@ -11,20 +11,18 @@ local infix ` • ` := add_monoid.smul
 
 variables {α : Type*}
 
-class floor_ring (α) extends linear_ordered_ring α :=
+class floor_ring (α) [linear_ordered_ring α] :=
 (floor : α → ℤ)
 (le_floor : ∀ (z : ℤ) (x : α), z ≤ floor x ↔ (z : α) ≤ x)
 
 instance : floor_ring ℤ :=
-{ floor := id, le_floor := by simp,
-  ..linear_ordered_comm_ring.to_linear_ordered_ring ℤ }
+{ floor := id, le_floor := λ _ _, by rw int.cast_id; refl }
 
 instance : floor_ring ℚ :=
-{ floor := rat.floor, le_floor := @rat.le_floor,
-  ..linear_ordered_comm_ring.to_linear_ordered_ring ℚ }
+{ floor := rat.floor, le_floor := @rat.le_floor }
 
 section
-variable [floor_ring α]
+variables [linear_ordered_ring α] [floor_ring α]
 
 def floor : α → ℤ := floor_ring.floor
 
@@ -34,19 +32,19 @@ theorem le_floor : ∀ {z : ℤ} {x : α}, z ≤ ⌊x⌋ ↔ (z : α) ≤ x :=
 floor_ring.le_floor
 
 theorem floor_lt {x : α} {z : ℤ} : ⌊x⌋ < z ↔ x < z :=
-le_iff_le_iff_lt_iff_lt.1 le_floor
+lt_iff_lt_of_le_iff_le le_floor
 
 theorem floor_le (x : α) : (⌊x⌋ : α) ≤ x :=
 le_floor.1 (le_refl _)
 
 theorem floor_nonneg {x : α} : 0 ≤ ⌊x⌋ ↔ 0 ≤ x :=
-by simpa using @le_floor _ _ 0 x
+by rw [le_floor]; refl
 
 theorem lt_succ_floor (x : α) : x < ⌊x⌋.succ :=
 floor_lt.1 $ int.lt_succ_self _
 
 theorem lt_floor_add_one (x : α) : x < ⌊x⌋ + 1 :=
-by simpa [int.succ] using lt_succ_floor x
+by simpa only [int.succ, int.cast_add, int.cast_one] using lt_succ_floor x
 
 theorem sub_one_lt_floor (x : α) : x - 1 < ⌊x⌋ :=
 sub_lt_iff_lt_add.2 (lt_floor_add_one x)
@@ -78,7 +76,7 @@ theorem ceil_le {z : ℤ} {x : α} : ⌈x⌉ ≤ z ↔ x ≤ z :=
 by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
 
 theorem lt_ceil {x : α} {z : ℤ} : z < ⌈x⌉ ↔ (z:α) < x :=
-le_iff_le_iff_lt_iff_lt.1 ceil_le
+lt_iff_lt_of_le_iff_le ceil_le
 
 theorem le_ceil (x : α) : x ≤ ⌈x⌉ :=
 ceil_le.1 (le_refl _)
@@ -104,11 +102,11 @@ lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
  λ h, have -a < 0, from neg_neg_of_pos h,
   neg_pos_of_neg $ lt_of_not_ge $ (not_iff_not_of_iff floor_nonneg).2 $ not_le_of_gt this ⟩
 
-lemma ceil_nonneg {q : ℚ} (hq : q ≥ 0) : ⌈q⌉ ≥ 0 :=
+@[simp] theorem ceil_zero : ⌈(0 : α)⌉ = 0 := by simp [ceil]
+
+lemma ceil_nonneg [decidable_rel ((<) : α → α → Prop)] {q : α} (hq : q ≥ 0) : ⌈q⌉ ≥ 0 :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
-else
-  have h' : q = 0, from le_antisymm (le_of_not_lt h) hq,
-  by simp [h']
+else by rw [le_antisymm (le_of_not_lt h) hq, ceil_zero]; trivial
 
 end
 
@@ -118,7 +116,7 @@ class archimedean (α) [ordered_comm_monoid α] : Prop :=
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
-⟨n+1, lt_of_le_of_lt (by simpa using h)
+⟨n+1, lt_of_le_of_lt (by rwa ← add_monoid.smul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
 
 section linear_ordered_ring
@@ -133,10 +131,10 @@ let ⟨n, h⟩ := archimedean.arch x hy0 in
        ... ≤ y ^ n           : pow_ge_one_add_sub_mul (le_of_lt hy1) _⟩
 
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
-let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by simp [h]⟩
+let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa ← coe_coe⟩
 
 theorem exists_int_lt (x : α) : ∃ n : ℤ, (n : α) < x :=
-let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by simp [neg_lt.1 h]⟩
+let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by rw int.cast_neg; exact neg_lt.1 h⟩
 
 theorem exists_floor (x : α) :
   ∃ (fl : ℤ), ∀ (z : ℤ), z ≤ fl ↔ (z : α) ≤ x :=
@@ -154,16 +152,36 @@ end
 
 end linear_ordered_ring
 
+section linear_ordered_field
+
+variables [linear_ordered_field α] [floor_ring α]
+
+lemma sub_floor_div_mul_nonneg (x : α) {y : α} (hy : 0 < y) :
+  0 ≤ x - ⌊x / y⌋ * y :=
+begin
+  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
+  rw ← sub_mul,
+  exact mul_nonneg (sub_nonneg.2 (floor_le _)) (le_of_lt hy)
+end
+
+lemma sub_floor_div_mul_lt (x : α) {y : α} (hy : 0 < y) :
+  x - ⌊x / y⌋ * y < y :=
+sub_lt_iff_lt_add.2 begin
+  conv in y {rw ← one_mul y},
+  conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
+  rw ← add_mul,
+  exact (mul_lt_mul_right hy).2 (by rw add_comm; exact lt_floor_add_one _),
+end
+
+end linear_ordered_field
+
 instance : archimedean ℕ :=
-⟨λ n m m0, ⟨n, by simpa using nat.mul_le_mul_left n m0⟩⟩
+⟨λ n m m0, ⟨n, by simpa only [mul_one, nat.smul_eq_mul] using nat.mul_le_mul_left n m0⟩⟩
 
 instance : archimedean ℤ :=
-⟨λ n m m0, ⟨n.to_nat, begin
-  simp [add_monoid.smul_eq_mul],
-  refine le_trans (int.le_to_nat _) _,
-  simpa using mul_le_mul_of_nonneg_left
-    (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat),
-end⟩⟩
+⟨λ n m m0, ⟨n.to_nat, le_trans (int.le_to_nat _) $
+by simpa only [add_monoid.smul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one] using mul_le_mul_of_nonneg_left
+    (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
 
 noncomputable def archimedean.floor_ring (α)
   [linear_ordered_ring α] [archimedean α] : floor_ring α :=
@@ -187,7 +205,7 @@ archimedean_iff_nat_lt.trans
    lt_of_le_of_lt h (nat.cast_lt.2 (lt_add_one _))⟩⟩
 
 theorem exists_rat_gt [archimedean α] (x : α) : ∃ q : ℚ, x < q :=
-let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by simp [h]⟩
+let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa rat.cast_coe_nat⟩
 
 theorem archimedean_iff_rat_lt :
   archimedean α ↔ ∀ x : α, ∃ q : ℚ, x < q :=
@@ -195,7 +213,7 @@ theorem archimedean_iff_rat_lt :
   λ H, archimedean_iff_nat_lt.2 $ λ x,
   let ⟨q, h⟩ := H x in
   ⟨rat.nat_ceil q, lt_of_lt_of_le h $
-    by simpa using (@rat.cast_le α _ _ _).2 (rat.le_nat_ceil _)⟩⟩
+    by simpa only [rat.cast_coe_nat] using (@rat.cast_le α _ _ _).2 (rat.le_nat_ceil _)⟩⟩
 
 theorem archimedean_iff_rat_le :
   archimedean α ↔ ∀ x : α, ∃ q : ℚ, x ≤ q :=
@@ -207,15 +225,7 @@ archimedean_iff_rat_lt.trans
 variable [archimedean α]
 
 theorem exists_rat_lt (x : α) : ∃ q : ℚ, (q : α) < x :=
-let ⟨n, h⟩ := exists_int_lt x in ⟨n, by simp [h]⟩
-
-theorem exists_pos_rat_lt {x : α} (x0 : 0 < x) : ∃ q : ℚ, 0 < q ∧ (q : α) < x :=
-let ⟨n, h⟩ := exists_nat_gt x⁻¹ in begin
-  have n0 := nat.cast_pos.1 (lt_trans (inv_pos x0) h),
-  refine ⟨n⁻¹, inv_pos (nat.cast_pos.2 n0), _⟩,
-  simpa [rat.cast_inv_of_ne_zero, ne_of_gt n0] using
-    (inv_lt x0 (nat.cast_pos.2 n0)).1 h
-end
+let ⟨n, h⟩ := exists_int_lt x in ⟨n, by rwa rat.cast_coe_int⟩
 
 theorem exists_rat_btwn {x y : α} (h : x < y) : ∃ q : ℚ, x < q ∧ (q:α) < y :=
 begin
@@ -223,15 +233,33 @@ begin
   cases exists_floor (x * n) with z zh,
   refine ⟨(z + 1 : ℤ) / n, _⟩,
   have n0 := nat.cast_pos.1 (lt_trans (inv_pos (sub_pos.2 h)) nh),
-  simp [rat.cast_div_of_ne_zero, -int.cast_add, ne_of_gt n0],
   have n0' := (@nat.cast_pos α _ _).2 n0,
+  rw [rat.cast_div_of_ne_zero, rat.cast_coe_nat, rat.cast_coe_int, div_lt_iff n0'],
   refine ⟨(lt_div_iff n0').2 $
-    (le_iff_le_iff_lt_iff_lt.1 (zh _)).1 (lt_add_one _), _⟩,
-  simp [div_lt_iff n0', -add_comm],
+    (lt_iff_lt_of_le_iff_le (zh _)).1 (lt_add_one _), _⟩,
+  rw [int.cast_add, int.cast_one],
   refine lt_of_le_of_lt (add_le_add_right ((zh _).1 (le_refl _)) _) _,
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
-       ← div_lt_iff' (sub_pos.2 h), one_div_eq_inv]
+       ← div_lt_iff' (sub_pos.2 h), one_div_eq_inv],
+  { rw [rat.coe_int_denom, nat.cast_one], exact one_ne_zero },
+  { intro H, rw [rat.coe_nat_num, ← coe_coe, nat.cast_eq_zero] at H, subst H, cases n0 },
+  { rw [rat.coe_nat_denom, nat.cast_one], exact one_ne_zero }
 end
+
+theorem exists_nat_one_div_lt {ε : α} (hε : ε > 0) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
+begin
+  cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
+  existsi n,
+  apply div_lt_of_mul_lt_of_pos,
+  { simp, apply add_pos_of_pos_of_nonneg zero_lt_one, apply nat.cast_nonneg },
+  { apply (div_lt_iff' hε).1,
+    transitivity,
+    { exact hn },
+    { simp [zero_lt_one] }}
+end
+
+theorem exists_pos_rat_lt {x : α} (x0 : 0 < x) : ∃ q : ℚ, 0 < q ∧ (q : α) < x :=
+by simpa only [rat.cast_pos] using exists_rat_btwn x0
 
 include α
 @[simp] theorem rat.cast_floor (x : ℚ) :
@@ -259,4 +287,4 @@ let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
 end
 
 instance : archimedean ℚ :=
-archimedean_iff_rat_le.2 $ λ q, ⟨q, by simp⟩
+archimedean_iff_rat_le.2 $ λ q, ⟨q, by rw rat.cast_id⟩

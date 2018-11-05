@@ -39,7 +39,7 @@ instance : has_coe (open_set X) (set X.α) := { coe := λ U, U.s }
 instance : has_subset (open_set X) :=
 { subset := λ U V, U.s ⊆ V.s }
 
-instance : preorder (open_set X) := by refine { le := (⊇), .. } ; tidy
+instance : preorder (open_set X) := by refine { le := (⊆), .. } ; tidy
 
 instance open_sets : small_category (open_set X) := by apply_instance
 

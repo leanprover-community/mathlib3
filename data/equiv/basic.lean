@@ -44,8 +44,11 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e�
     show g₁ x = g₂ x,           from injective_of_left_inverse l₁ this,
   by simp *
 
-lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
+@[extensionality] lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
 eq_of_to_fun_eq (funext H)
+
+@[extensionality] lemma perm.ext (σ τ : equiv.perm α) (H : ∀ x, σ x = τ x) : σ = τ :=
+equiv.ext _ _ H
 
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
 
@@ -73,8 +76,7 @@ rfl
 
 @[simp] theorem refl_apply (x : α) : equiv.refl α x = x := rfl
 
-@[simp] theorem trans_apply : ∀ (f : α ≃ β) (g : β ≃ γ) (a : α), (f.trans g) a = g (f a)
-| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ a := rfl
+@[simp] theorem trans_apply (f : α ≃ β) (g : β ≃ γ) (a : α) : (f.trans g) a = g (f a) := rfl
 
 @[simp] theorem apply_inverse_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw r₁
@@ -90,11 +92,11 @@ rfl
 
 @[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 
-theorem apply_eq_iff_eq_inverse_apply : ∀ (f : α ≃ β) (x : α) (y : β), f x = y ↔ x = f.symm y
-| ⟨f₁, g₁, l₁, r₁⟩ x y := by simp [equiv.symm];
-  show f₁ x = y ↔ x = g₁ y; from
-  ⟨λ e : f₁ x = y, e ▸ (l₁ x).symm,
-   λ e : x = g₁ y, e.symm ▸ r₁ y⟩
+lemma symm_apply_eq {α β} (e : α ≃ β) {x y} : e.symm x = y ↔ x = e y :=
+⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+
+lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
+(eq_comm.trans e.symm_apply_eq).trans eq_comm
 
 @[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
 
@@ -227,15 +229,14 @@ calc (false → α) ≃ (empty → α) : arrow_congr false_equiv_empty (equiv.re
 
 end
 
-@[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ β₂ → (α₁ × β₁) ≃ (α₂ × β₂)
-| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ :=
-  ⟨λ ⟨a, b⟩, (f₁ a, f₂ b), λ ⟨a, b⟩, (g₁ a, g₂ b),
-   λ ⟨a, b⟩, show (g₁ (f₁ a), g₂ (f₂ b)) = (a, b), by rw [l₁ a, l₂ b],
-   λ ⟨a, b⟩, show (f₁ (g₁ a), f₂ (g₂ b)) = (a, b), by rw [r₁ a, r₂ b]⟩
+@[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ :β₁ ≃ β₂) : (α₁ × β₁) ≃ (α₂ × β₂) :=
+⟨λp, (e₁ p.1, e₂ p.2), λp, (e₁.symm p.1, e₂.symm p.2),
+   λ ⟨a, b⟩, show (e₁.symm (e₁ a), e₂.symm (e₂ b)) = (a, b), by rw [inverse_apply_apply, inverse_apply_apply],
+   λ ⟨a, b⟩, show (e₁ (e₁.symm a), e₂ (e₂.symm b)) = (a, b), by rw [apply_inverse_apply, apply_inverse_apply]⟩
 
 @[simp] theorem prod_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) (a : α₁) (b : β₁) :
   prod_congr e₁ e₂ (a, b) = (e₁ a, e₂ b) :=
-by cases e₁; cases e₂; refl
+rfl
 
 @[simp] def prod_comm (α β : Sort*) : (α × β) ≃ (β × α) :=
 ⟨λ p, (p.2, p.1), λ p, (p.2, p.1), λ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
@@ -488,6 +489,13 @@ def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p
 def equiv_sigma_subtype {α : Type u} {β : Type v} (f : α → β) : α ≃ Σ b, {x : α // f x = b} :=
 ⟨λ x, ⟨f x, x, rfl⟩, λ x, x.2.1, λ x, rfl, λ ⟨b, x, H⟩, sigma.eq H $ eq.drec_on H $ subtype.eq rfl⟩
 
+def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :
+  (Πi, π i) ≃ {f : ι → Σi, π i | ∀i, (f i).1 = i } :=
+⟨ λf, ⟨λi, ⟨i, f i⟩, assume i, rfl⟩, λf i, begin rw ← f.2 i, exact (f.1 i).2 end,
+  assume f, funext $ assume i, rfl,
+  assume ⟨f, hf⟩, subtype.eq $ funext $ assume i, sigma.eq (hf i).symm $
+    eq_of_heq $ rec_heq_of_heq _ $ rec_heq_of_heq _ $ heq.refl _⟩
+
 end
 
 section
@@ -612,16 +620,16 @@ eq_of_to_fun_eq $ funext $ λ r, swap_core_comm r _ _
 theorem swap_apply_def (a b x : α) : swap a b x = if x = a then b else if x = b then a else x :=
 rfl
 
-theorem swap_apply_left (a b : α) : swap a b a = b :=
+@[simp] theorem swap_apply_left (a b : α) : swap a b a = b :=
 if_pos rfl
 
-theorem swap_apply_right (a b : α) : swap a b b = a :=
+@[simp] theorem swap_apply_right (a b : α) : swap a b b = a :=
 by by_cases b = a; simp [swap_apply_def, *]
 
 theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}
 
-theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
+@[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
 
 theorem swap_comp_apply {a b x : α} (π : perm α) :
@@ -640,6 +648,12 @@ equiv.ext _ _ (λ x, begin
   split_ifs; simp
 end)
 
+@[simp] lemma swap_mul_self {α : Type*} [decidable_eq α] (i j : α) : swap i j * swap i j = 1 :=
+equiv.swap_swap i j
+
+@[simp] lemma swap_apply_self {α : Type*} [decidable_eq α] (i j a : α) : swap i j (swap i j a) = a :=
+by rw [← perm.mul_apply, swap_mul_self, perm.one_apply]
+
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 (swap a (f.symm b)).trans f
@@ -648,6 +662,7 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by dsimp [set_value]; simp [swap_apply_left]
 
 end swap
+
 end equiv
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton

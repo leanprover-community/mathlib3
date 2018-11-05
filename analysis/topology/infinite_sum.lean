@@ -202,7 +202,7 @@ have j_inj : ∀x y (hx : f x ≠ 0) (hy : f y ≠ 0), (j hx = j hy ↔ x = y),
 let ii : finset γ → finset β := λu, u.bind $ λc, if h : g c = 0 then ∅ else {i h} in
 let jj : finset β → finset γ := λv, v.bind $ λb, if h : f b = 0 then ∅ else {j h} in
 is_sum_of_is_sum $ assume u, exists.intro (ii u) $
-  assume v hv, exists.intro (u ∪ jj v) $ and.intro subset_union_left $
+  assume v hv, exists.intro (u ∪ jj v) $ and.intro (subset_union_left _ _) $
   have ∀c:γ, c ∈ u ∪ jj v → c ∉ jj v → g c = 0,
     from assume c hc hnc, classical.by_contradiction $ assume h : g c ≠ 0,
     have c ∈ u,
@@ -212,7 +212,7 @@ is_sum_of_is_sum $ assume u, exists.intro (ii u) $
     have j (hi h) ∈ jj v,
       by simp [mem_bind]; existsi i h; simp [h, hi, this],
     by rw [hji h] at this; exact hnc this,
-  calc (u ∪ jj v).sum g = (jj v).sum g : (sum_subset subset_union_right this).symm
+  calc (u ∪ jj v).sum g = (jj v).sum g : (sum_subset (subset_union_right _ _) this).symm
     ... = v.sum _ : sum_bind $ by intros x hx y hy hxy; by_cases f x = 0; by_cases f y = 0; simp [*]
     ... = v.sum f : sum_congr rfl $ by intros x hx; by_cases f x = 0; simp [*]
 
@@ -433,7 +433,7 @@ suffices cauchy (at_top.map (λs:finset β, s.sum f')),
   have ∀{u₁ u₂}, t ⊆ u₁ → t ⊆ u₂ → (u₁.sum f', u₂.sum f') ∈ s',
     from assume u₁ u₂ h₁ h₂,
     have ((t ∪ u₁.filter (λb, f' b ≠ 0)).sum f, (t ∪ u₂.filter (λb, f' b ≠ 0)).sum f) ∈ s,
-      from ht _ _ subset_union_left subset_union_left,
+      from ht _ _ (subset_union_left _ _) (subset_union_left _ _),
     have ((t ∪ u₁.filter (λb, f' b ≠ 0)).sum f - d, (t ∪ u₂.filter (λb, f' b ≠ 0)).sum f - d) ∈ s',
       from hss' this $ refl_mem_uniformity hs,
     by rwa [eq h₁, eq h₂] at this,

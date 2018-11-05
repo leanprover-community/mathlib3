@@ -9,25 +9,61 @@ open function
 /- TODO: automatic construction of dual definitions / theorems -/
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
 theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
 λ h, h ▸ le_refl a
 
+theorem is_refl.swap (r) [is_refl α r] : is_refl α (swap r) := ⟨refl_of r⟩
+theorem is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) := ⟨irrefl_of r⟩
+theorem is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=
+⟨λ a b c h₁ h₂, trans_of r h₂ h₁⟩
+theorem is_antisymm.swap (r) [is_antisymm α r] : is_antisymm α (swap r) :=
+⟨λ a b h₁ h₂, antisymm h₂ h₁⟩
+theorem is_asymm.swap (r) [is_asymm α r] : is_asymm α (swap r) :=
+⟨λ a b h₁ h₂, asymm_of r h₂ h₁⟩
+theorem is_total.swap (r) [is_total α r] : is_total α (swap r) :=
+⟨λ a b, (total_of r a b).swap⟩
+theorem is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (swap r) :=
+⟨λ a b, by simpa [swap, or.comm, or.left_comm] using trichotomous_of r a b⟩
+theorem is_preorder.swap (r) [is_preorder α r] : is_preorder α (swap r) :=
+{..@is_refl.swap α r _, ..@is_trans.swap α r _}
+theorem is_strict_order.swap (r) [is_strict_order α r] : is_strict_order α (swap r) :=
+{..@is_irrefl.swap α r _, ..@is_trans.swap α r _}
+theorem is_partial_order.swap (r) [is_partial_order α r] : is_partial_order α (swap r) :=
+{..@is_preorder.swap α r _, ..@is_antisymm.swap α r _}
+theorem is_total_preorder.swap (r) [is_total_preorder α r] : is_total_preorder α (swap r) :=
+{..@is_preorder.swap α r _, ..@is_total.swap α r _}
+theorem is_linear_order.swap (r) [is_linear_order α r] : is_linear_order α (swap r) :=
+{..@is_partial_order.swap α r _, ..@is_total.swap α r _}
+
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
+instance [preorder α] : is_refl α (≥) := is_refl.swap _
 instance [preorder α] : is_trans α (≤) := ⟨@le_trans _ _⟩
+instance [preorder α] : is_trans α (≥) := is_trans.swap _
 instance [preorder α] : is_preorder α (≤) := {}
+instance [preorder α] : is_preorder α (≥) := {}
 instance [preorder α] : is_irrefl α (<) := ⟨lt_irrefl⟩
+instance [preorder α] : is_irrefl α (>) := is_irrefl.swap _
 instance [preorder α] : is_trans α (<) := ⟨@lt_trans _ _⟩
+instance [preorder α] : is_trans α (>) := is_trans.swap _
 instance [preorder α] : is_strict_order α (<) := {}
+instance [preorder α] : is_strict_order α (>) := {}
 instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
+instance [partial_order α] : is_antisymm α (≥) := is_antisymm.swap _
 instance [partial_order α] : is_asymm α (<) := ⟨@lt_asymm _ _⟩
+instance [partial_order α] : is_asymm α (>) := is_asymm.swap _
 instance [partial_order α] : is_partial_order α (≤) := {}
+instance [partial_order α] : is_partial_order α (≥) := {}
 instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
+instance [linear_order α] : is_total α (≥) := is_total.swap _
 instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) := {}
+instance [linear_order α] : is_total_preorder α (≥) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
+instance [linear_order α] : is_linear_order α (≥) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
+instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
 
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -48,6 +84,14 @@ theorem linear_order.ext {α} {A B : linear_order α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 by haveI this := partial_order.ext H;
    cases A; cases B; injection this; congr'
+
+/-- Given an order `R` on `β` and a function `f : α → β`,
+  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
+  It is the unique order on `α` making `f` an order embedding
+  (assuming `f` is injective). -/
+@[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
+
+infix ` ⁻¹'o `:80 := order.preimage
 
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
@@ -116,12 +160,21 @@ def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
   le_trans := λ a b c, le_trans }
 
 def partial_order.lift {α β} [partial_order β]
-  (f : α → β) (antisymm : ∀x y, f x ≤ f y → f y ≤ f x → x = y) : partial_order α :=
-{ le_antisymm := antisymm, ..preorder.lift f }
+  (f : α → β) (inj : injective f) : partial_order α :=
+{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f }
 
 def linear_order.lift {α β} [linear_order β]
-  (f : α → β) (antisymm : ∀x y, f x ≤ f y → f y ≤ f x → x = y) : linear_order α :=
-{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f antisymm }
+  (f : α → β) (inj : injective f) : linear_order α :=
+{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj }
+
+instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
+preorder.lift subtype.val
+
+instance subtype.partial_order {α} [partial_order α] (p : α → Prop) : partial_order (subtype p) :=
+partial_order.lift subtype.val $ λ x y, subtype.eq'
+
+instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
+linear_order.lift subtype.val $ λ x y, subtype.eq'
 
 /- additional order classes -/
 
@@ -166,20 +219,17 @@ lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a�
   (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₂ ≥ a₃) : a₁ = a₂ :=
 le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 
+lemma dense_or_discrete [linear_order α] {a₁ a₂ : α} (h : a₁ < a₂) :
+  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
+classical.or_iff_not_imp_left.2 $ assume h,
+  ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
+    assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
+
 section
-variables {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
+variables {s : β → β → Prop} {t : γ → γ → Prop}
 
 theorem is_irrefl_of_is_asymm [is_asymm α r] : is_irrefl α r :=
 ⟨λ a h, asymm h h⟩
-
-theorem is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) :=
-⟨@irrefl α r _⟩
-
-theorem is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=
-⟨λ a b c h₁ h₂, (trans h₂ h₁ : r c a)⟩
-
-theorem is_strict_order.swap (r) [is_strict_order α r] : is_strict_order α (swap r) :=
-{..is_irrefl.swap r, ..is_trans.swap r}
 
 /-- Construct a partial order from a `is_strict_order` relation -/
 def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
@@ -226,9 +276,6 @@ by letI LO := linear_order_of_STO' r; exact
 
 noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
 { decidable_le := classical.dec_rel _, ..LO }
-
-theorem is_trichotomous.swap (r) [is_trichotomous α r] : is_trichotomous α (swap r) :=
-⟨λ a b, by simpa [swap, or_comm, or.left_comm] using @trichotomous _ r _ a b⟩
 
 theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] : is_strict_total_order' α (swap r) :=
 {..is_trichotomous.swap r, ..is_strict_order.swap r}
@@ -282,6 +329,13 @@ instance is_extensional_of_is_strict_total_order'
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
+
+instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] : is_strict_total_order α r := by apply_instance
+instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] : is_extensional α r := by apply_instance
+instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] : is_trichotomous α r := by apply_instance
+instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] : is_trans α r := by apply_instance
+instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] : is_irrefl α r := by apply_instance
+instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] : is_asymm α r := by apply_instance
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
@@ -339,6 +393,26 @@ let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 theorem well_founded.not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p ≠ ∅) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
+
+variable (r)
+local infix `≼` : 50 := r
+
+/-- A family of elements of α is directed (with respect to a relation `≼` on α)
+  if there is a member of the family `≼`-above any pair in the family.  -/
+def directed {ι : Sort v} (f : ι → α) := ∀x y, ∃z, f x ≼ f z ∧ f y ≼ f z
+/-- A subset of α is directed if there is an element of the set `≼`-above any
+  pair of elements in the set. -/
+def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃z ∈ s, x ≼ z ∧ y ≼ z
+
+theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe : s → α) :=
+by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
+
+theorem directed_comp {ι} (f : ι → β) (g : β → α) :
+  directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
+
+theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
+  (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
+λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
 
 end
 

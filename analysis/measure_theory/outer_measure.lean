@@ -279,15 +279,14 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
     rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_lt_coe.2 hε) ℕ with ⟨ε', hε', hl⟩,
     refine le_trans _ (add_le_add_left' (le_of_lt hl)),
     rw ← ennreal.tsum_add,
-    have : ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑i, m (f i)) < μ (s i) + ε' i,
+    choose f hf using show
+      ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑i, m (f i)) < μ (s i) + ε' i,
     { intro,
       have : μ (s i) < μ (s i) + ε' i :=
         ennreal.lt_add_right
           (lt_of_le_of_lt (by apply ennreal.le_tsum) hb)
           (by simpa using hε' i),
       simpa [μ, infi_lt_iff] },
-    cases classical.axiom_of_choice this with f hf,
-    dsimp at f hf, clear this,
     refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hf i).2),
     rw [← ennreal.tsum_prod, ← tsum_equiv equiv.nat_prod_nat_equiv_nat.symm],
     swap, {apply_instance},

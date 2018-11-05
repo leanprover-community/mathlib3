@@ -33,7 +33,7 @@ class order_top (α : Type u) extends has_top α, partial_order α :=
 (le_top : ∀ a : α, a ≤ ⊤)
 
 section order_top
-variables [order_top α] {a : α}
+variables [order_top α] {a b : α}
 
 @[simp] theorem le_top : a ≤ ⊤ :=
 order_top.le_top a
@@ -50,6 +50,9 @@ theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
 
 @[simp] theorem not_top_lt : ¬ ⊤ < a :=
 assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
+
+theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
+top_le_iff.1 $ h₂ ▸ h
 
 end order_top
 
@@ -73,7 +76,7 @@ class order_bot (α : Type u) extends has_bot α, partial_order α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
 section order_bot
-variables [order_bot α] {a : α}
+variables [order_bot α] {a b : α}
 
 @[simp] theorem bot_le : ⊥ ≤ a := order_bot.bot_le a
 
@@ -92,6 +95,9 @@ assume h, lt_irrefl a (lt_of_lt_of_le h bot_le)
 
 theorem neq_bot_of_le_neq_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
 assume ha, hb $ bot_unique $ ha ▸ hab
+
+theorem eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ :=
+le_bot_iff.1 $ h₂ ▸ h
 
 end order_bot
 

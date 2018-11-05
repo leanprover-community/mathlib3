@@ -235,7 +235,7 @@ end order_properties
 
 instance : canonically_ordered_monoid cardinal.{u} :=
 { add_le_add_left       := λ a b h c, add_le_add_left _ h,
-  lt_of_add_lt_add_left := λ a b c, le_imp_le_iff_lt_imp_lt.1 (add_le_add_left _),
+  lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (add_le_add_left _),
   le_iff_exists_add     := @le_iff_exists_add,
   ..cardinal.comm_semiring, ..cardinal.linear_order }
 
@@ -624,13 +624,13 @@ lt_of_not_ge $ λ ⟨F⟩, begin
     exact ne_of_gt (lt_of_le_of_lt (zero_le _) (H i)) }, resetI,
   let G := inv_fun F,
   have sG : surjective G := inv_fun_surjective F.2,
-  have : ∀ i, ¬ ∀ b, ∃ a, G ⟨i, a⟩ i = b,
-  { refine λ i h, not_le_of_lt (H i) _,
+  choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,
+  { assume i,
+    simp only [- not_exists, not_exists.symm, classical.not_forall.symm],
+    refine λ h, not_le_of_lt (H i) _,
     rw [← mk_out (f i), ← mk_out (g i)],
     exact ⟨embedding.of_surjective h⟩ },
-  simp [classical.not_forall] at this,
-  exact let ⟨C, hc⟩ := classical.axiom_of_choice this, ⟨⟨i, a⟩, h⟩ := sG C in
-  hc i a (congr_fun h _),
+  exact (let ⟨⟨i, a⟩, h⟩ := sG C in hc i a (congr_fun h _))
 end
 
 @[simp] theorem mk_empty : mk empty = 0 :=
@@ -711,7 +711,7 @@ quotient.sound $ nonempty.intro $
     (λ ⟨x, hx⟩, by dsimp only; rw [dif_pos hx])
     (λ ⟨x, hx⟩, if h : x ∈ S
       then by dsimp only; rw [dif_pos h]
-      else by dsimp only; rw [dif_neg h]; dsimp only; rw [dif_neg h]) } 
+      else by dsimp only; rw [dif_neg h]; dsimp only; rw [dif_neg h]) }
 
 theorem mk_union_of_disjiont {α : Type u} {S T : set α} (H : disjoint S T) : mk (S ∪ T : set α) = mk S + mk T :=
 eq.trans (by simp only [(eq_empty_of_subset_empty H : S ∩ T = ∅), mk_empty', add_zero]) mk_union_add_mk_inter

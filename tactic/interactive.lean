@@ -119,10 +119,12 @@ l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducibl
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=
-unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_coe.coe,
-        ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
+unfold [
+  ``coe, ``coe_t, ``has_coe_t.coe, ``coe_b,``has_coe.coe,
+  ``lift, ``has_lift.lift, ``lift_t, ``has_lift_t.lift,
+  ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
-/-- Unfold auxiliary definitions associated with the currently declaration. -/
+/-- Unfold auxiliary definitions associated with the current declaration. -/
 meta def unfold_aux : tactic unit :=
 do tgt ← target,
    name ← decl_name,
@@ -174,7 +176,8 @@ and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
 | o        := focus1 (assumption <|> (congr_core >>
-  all_goals (reflexivity <|> try (congr' (nat.pred <$> o)))))
+  all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
+             `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
 
 /--
 Acts like `have`, but removes a hypothesis with the same name as
@@ -208,40 +211,71 @@ optional arguments:
         the next one will be attempted.
 -/
 meta def apply_assumption
-  (asms : option (list expr) := none)
+  (asms : tactic (list expr) := local_context)
   (tac : tactic unit := return ()) : tactic unit :=
 tactic.apply_assumption asms tac
 
 open nat
 
+meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name): tactic (list expr) :=
+do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
+   hs ← hs.mmap i_to_expr_for_apply,
+   l ← attr.mmap $ λ a, attribute.get_instances a,
+   let l := l.join,
+   m ← list.mmap mk_const l,
+   let hs := (hs ++ m).filter $ λ h, expr.const_name h ∉ gex,
+   hs ← if no_dflt then
+          return hs
+        else
+          do { congr_fun ← mk_const `congr_fun,
+               congr_arg ← mk_const `congr_arg,
+               return (congr_fun :: congr_arg :: hs) },
+   if ¬ no_dflt ∨ all_hyps then do
+    ctx ← local_context,
+    return $ hs.append (ctx.filter (λ h, h.local_uniq_name ∉ hex)) -- remove local exceptions
+   else return hs
+
 /--
 `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
-and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
-or up to `depth` times.
+and then repeatedly calls `apply_assumption` on the generated subgoals until no subgoals remain,
+performing at most `max_rep` recursive steps.
 
 `solve_by_elim` discharges the current goal or fails
 
-`solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
+`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
+
+By default, the assumptions passed to apply_assumption are the local context, `congr_fun` and
+`congr_arg`.
+
+`solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
+
+`solve_by_elim with attr₁ ... attrᵣ also applied all lemmas tagged with the specified attributes.
+
+`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
+unless they are explicitly included.
+
+`solve_by_elim [-id]` removes a specified assumption.
 
 optional arguments:
-- discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
-- asms: list of assumptions / rules to consider instead of local constants
-- depth: number of attempts at discharging generated sub-goals
-
-The optional arguments can be specified as ``solve_by_elim { discharger := `[cc] }``.
+- discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
+- max_rep: number of attempts at discharging generated sub-goals
 -/
-meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-tactic.solve_by_elim opt
+meta def solve_by_elim (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
+do asms ← mk_assumption_set no_dflt hs attr_names,
+   tactic.solve_by_elim { assumptions := return asms ..opt }
 
 /--
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
 and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
 using `reflexivity` or `solve_by_elim`
 -/
-meta def tautology := tactic.tautology
+meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
 
 /-- Shorter name for the tactic `tautology`. -/
-meta def tauto := tautology
+meta def tauto (c : parse $ (tk "!")?) := tautology c
+
+/-- Make every propositions in the context decidable -/
+meta def classical := tactic.classical
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)
@@ -560,6 +594,33 @@ do let (e,n) := arg,
      >>= note h' none >> pure ()),
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
+
+/-- `choose a b h using hyp` takes an hypothesis `hyp` of the form
+`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
+into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
+`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
+
+Example:
+
+```lean
+example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
+begin
+  choose i j h using h,
+  guard_hyp i := ℕ → ℕ → ℕ,
+  guard_hyp j := ℕ → ℕ → ℕ,
+  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
+  trivial
+end
+```
+-/
+meta def choose (first : parse ident) (names : parse ident*) (tgt : parse (tk "using" *> texpr)?) :
+  tactic unit := do
+tgt ← match tgt with
+  | none := get_local `this
+  | some e := tactic.i_to_expr_strict e
+  end,
+tactic.choose tgt (first :: names),
+try (tactic.clear tgt)
 
 end interactive
 end tactic

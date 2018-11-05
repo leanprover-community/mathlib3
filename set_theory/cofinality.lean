@@ -30,7 +30,8 @@ begin
   intro S, cases S with S H, simp [(∘)],
   refine le_trans (min_le _ _) _,
   { exact ⟨f ⁻¹' S, λ a,
-    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, f.ord', h]⟩⟩ },
+    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, f.ord', h,
+      -coe_fn_coe_base, -coe_fn_coe_trans, principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]⟩⟩ },
   { exact lift_mk_le.{u v (max u v)}.2
     ⟨⟨λ ⟨x, h⟩, ⟨f x, h⟩, λ ⟨x, h₁⟩ ⟨y, h₂⟩ h₃,
       by congr; injection h₃ with h'; exact f.to_equiv.bijective.1 h'⟩⟩ }
@@ -349,7 +350,7 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
   rw [← αe, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   rw [← Se],
-  apply le_imp_le_iff_lt_imp_lt.1 (mul_le_mul_right c),
+  apply lt_imp_lt_of_le_imp_le (mul_le_mul_right c),
   rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
   { simp [typein, sum_mk (λ x:S, {a//r a x})],
@@ -419,7 +420,7 @@ theorem lt_cof_power {a b : cardinal} (ha : omega ≤ a) (b1 : 1 < b) :
   a < cof (b ^ a).ord :=
 begin
   have b0 : b ≠ 0 := ne_of_gt (lt_trans zero_lt_one b1),
-  apply le_imp_le_iff_lt_imp_lt.1 (power_le_power_left $ power_ne_zero a b0),
+  apply lt_imp_lt_of_le_imp_le (power_le_power_left $ power_ne_zero a b0),
   rw [power_mul, mul_eq_self ha],
   exact lt_power_cof (le_trans ha $ le_of_lt $ cantor' _ b1),
 end

@@ -100,6 +100,28 @@ assume a', decidable_of_iff'
   (a' ∈ (finset.range (order_of a)).image ((^) a))
   mem_gpowers_iff_mem_range_order_of
 
+lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
+by_contradiction
+  (λ h₁, nat.find_min _ (show n % order_of a < order_of a,
+    from nat.mod_lt _ (order_of_pos _))
+      ⟨nat.pos_of_ne_zero (mt nat.dvd_of_mod_eq_zero h₁), by rwa ← pow_eq_mod_order_of⟩)
+
+lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
+nat.find_min' (exists_pow_eq_one a) ⟨hn, h⟩
+
+lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
+  ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
+  = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
+calc ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
+    = _ : (finset.card_bind (by simp [finset.ext]; cc)).symm
+... = _ : congr_arg finset.card (finset.ext.2 (begin
+  assume a,
+  suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
+  { simpa [-finset.range_succ, nat.lt_succ_iff], },
+  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, _root_.one_pow],
+    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
+end))
+
 section
 local attribute [instance] set_fintype
 
@@ -148,6 +170,83 @@ dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
 
 end classical
 
+@[simp] lemma pow_card_eq_one (a : α) : a ^ fintype.card α = 1 :=
+let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ in
+by simp [hm, pow_mul, pow_order_of_eq_one]
+
+lemma powers_eq_gpowers (a : α) : powers a = gpowers a :=
+set.ext (λ x, ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
+  λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
+    by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩⟩)
+
 end
 
 end order_of
+
+section cyclic
+
+local attribute [instance] set_fintype
+
+class is_cyclic (α : Type*) [group α] : Prop :=
+(exists_generator : ∃ g : α, ∀ x, x ∈ gpowers g)
+
+lemma is_cyclic_of_order_of_eq_card [group α] [fintype α] [decidable_eq α]
+  (x : α) (hx : order_of x = fintype.card α) : is_cyclic α :=
+⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
+  (set.subset_univ _)
+  (by rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers])⟩⟩
+
+lemma order_of_eq_card_of_forall_mem_gppowers [group α] [fintype α] [decidable_eq α]
+  {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
+by rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers];
+  simp [hx]; congr
+
+instance [group α] : is_cyclic (is_subgroup.trivial α) :=
+⟨⟨(1 : is_subgroup.trivial α), λ x, ⟨0, subtype.eq $ eq.symm (is_subgroup.mem_trivial.1 x.2)⟩⟩⟩
+
+instance is_subgroup.is_cyclic [group α] [is_cyclic α] (H : set α) [is_subgroup H] : is_cyclic H :=
+by haveI := classical.prop_decidable; exact
+let ⟨g, hg⟩ := is_cyclic.exists_generator α in
+if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
+  let ⟨x, hx₁, hx₂⟩ := hx in
+  let ⟨k, hk⟩ := hg x in
+  have hex : ∃ n : ℕ, 0 < n ∧ g ^ n ∈ H,
+    from ⟨k.nat_abs, nat.pos_of_ne_zero
+      (λ h, hx₂ $ by rw [← hk, int.eq_zero_of_nat_abs_eq_zero h, gpow_zero]),
+        match k, hk with
+        | (k : ℕ), hk := by rw [int.nat_abs_of_nat, ← gpow_coe_nat, hk]; exact hx₁
+        | -[1+ k], hk := by rw [int.nat_abs_of_neg_succ_of_nat,
+          ← is_subgroup.inv_mem_iff H]; simp * at *
+        end⟩,
+  ⟨⟨⟨g ^ nat.find hex, (nat.find_spec hex).2⟩,
+    λ ⟨x, hx⟩, let ⟨k, hk⟩ := hg x in
+      have hk₁ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ gpowers (g ^ nat.find hex),
+        from ⟨k / nat.find hex, eq.symm $ gpow_mul _ _ _⟩,
+      have hk₂ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ H,
+        by rw gpow_mul; exact is_subgroup.gpow_mem (nat.find_spec hex).2,
+      have hk₃ : g ^ (k % nat.find hex) ∈ H,
+        from (is_subgroup.mul_mem_cancel_left H hk₂).1 $
+          by rw [← gpow_add, int.mod_add_div, hk]; exact hx,
+      have hk₄ : k % nat.find hex = (k % nat.find hex).nat_abs,
+        by rw int.nat_abs_of_nonneg (int.mod_nonneg _
+          (int.coe_nat_ne_zero_iff_pos.2 (nat.find_spec hex).1)),
+      have hk₅ : g ^ (k % nat.find hex ).nat_abs ∈ H,
+        by rwa [← gpow_coe_nat, ← hk₄],
+      have hk₆ : (k % (nat.find hex : ℤ)).nat_abs = 0,
+        from by_contradiction (λ h,
+          nat.find_min hex (int.coe_nat_lt.1 $ by rw [← hk₄];
+            exact int.mod_lt_of_pos _ (int.coe_nat_pos.2 (nat.find_spec hex).1))
+          ⟨nat.pos_of_ne_zero h, hk₅⟩),
+      ⟨k / (nat.find hex : ℤ), subtype.coe_ext.2 begin
+        suffices : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) = x,
+        { simpa [gpow_mul] },
+        rw [int.mul_div_cancel' (int.dvd_of_mod_eq_zero (int.eq_zero_of_nat_abs_eq_zero hk₆)), hk]
+      end⟩⟩⟩
+else
+  have H = is_subgroup.trivial α,
+    from set.ext $ λ x, ⟨λ h, by simp at *; tauto,
+      λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem _⟩,
+  by clear _let_match; subst this; apply_instance
+
+end cyclic

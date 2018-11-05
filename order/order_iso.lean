@@ -16,18 +16,14 @@ structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → �
 
 infix ` ≼o `:50 := order_embedding
 
-/-- Given an order `R` on `β` and a function `f : α → β`,
-  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
-  It is the unique order on `α` making `f` an order embedding
-  (assuming `f` is injective). -/
-def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
-
-infix ` ⁻¹'o `:80 := order.preimage
-
 /-- the induced order on a subtype is an embedding under the natural inclusion. -/
-definition subtype.order_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) : 
-((subtype.val : subtype p → X) ⁻¹'o r) ≼o r := 
+definition subtype.order_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
+((subtype.val : subtype p → X) ⁻¹'o r) ≼o r :=
 ⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
+
+theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
+  (hs : equivalence s) : equivalence (f ⁻¹'o s) :=
+⟨λ a, hs.1 _, λ a b h, hs.2.1 h, λ a b c h₁ h₂, hs.2.2 h₁ h₂⟩
 
 namespace order_embedding
 
@@ -47,13 +43,12 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : r ≼o s}, (e₁ : α → β) = e₂ 
 @[refl] protected def refl (r : α → α → Prop) : r ≼o r :=
 ⟨embedding.refl _, λ a b, iff.rfl⟩
 
-@[trans] protected def trans : r ≼o s → s ≼o t → r ≼o t
-| ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ := ⟨f₁.trans f₂, λ a b, by rw [o₁, o₂]; simp⟩
+@[trans] protected def trans (f : r ≼o s) (g : s ≼o t) : r ≼o t :=
+⟨f.1.trans g.1, λ a b, by rw [f.2, g.2]; simp⟩
 
 @[simp] theorem refl_apply (x : α) : order_embedding.refl r x = x := rfl
 
-@[simp] theorem trans_apply : ∀ (f : r ≼o s) (g : s ≼o t) (a : α), (f.trans g) a = g (f a)
-| ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ a := rfl
+@[simp] theorem trans_apply (f : r ≼o s) (g : s ≼o t) (a : α) : (f.trans g) a = g (f a) := rfl
 
 /-- An order embedding is also an order embedding between dual orders. -/
 def rsymm (f : r ≼o s) : swap r ≼o swap s :=
@@ -135,13 +130,12 @@ end
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
 -- If le is preserved by an order embedding of preorders, then lt is too
-definition lt_embedding_of_le_embedding [preorder α] [preorder β]
+def lt_embedding_of_le_embedding [preorder α] [preorder β]
   (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
 (has_lt.lt : α → α → Prop) ≼o (has_lt.lt : β → β → Prop) :=
 { to_fun := f,
   inj := f.inj,
-  ord := by intros;simp [lt_iff_le_not_le,f.ord],
-  }
+  ord := by intros; simp [lt_iff_le_not_le,f.ord] }
 
 theorem nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
   ((<) : ℕ → ℕ → Prop) ≼o r :=
@@ -199,7 +193,7 @@ def to_order_embedding (f : r ≃o s) : r ≼o s :=
 
 instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
 
-@[simp] theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
+theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
 
 theorem ord' : ∀ (f : r ≃o s) {a b}, r a b ↔ s (f a) (f b)
 | ⟨f, o⟩ := @o
@@ -296,14 +290,6 @@ instance (r : α → α → Prop) [is_well_order α r]
 order_embedding.is_well_order (subrel.order_embedding r p)
 
 end subrel
-
--- KMB is only putting this here because subrel is cool
-instance subtype.partial_order (X) [partial_order X] (p : X → Prop) : partial_order ({x : X // p x}) :=
-{ le := subrel (≤) p,
-  le_refl := λ a, le_refl (a : X),
-  le_trans := λ a b c, le_trans,
-  le_antisymm := λ a b hab hba, subtype.eq $ le_antisymm hab hba
-}
 
 /-- Restrict the codomain of an order embedding -/
 def order_embedding.cod_restrict (p : set β) (f : r ≼o s) (H : ∀ a, f a ∈ p) : r ≼o subrel s p :=

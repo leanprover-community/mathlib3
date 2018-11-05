@@ -27,6 +27,14 @@ section lemmas
 
 lemma int.coe_nat_bit0 (n : ℕ) : (↑(bit0 n : ℕ) : ℤ) = bit0 (↑n : ℤ) := by simp [bit0]
 lemma int.coe_nat_bit1 (n : ℕ) : (↑(bit1 n : ℕ) : ℤ) = bit1 (↑n : ℤ) := by simp [bit1, bit0]
+lemma int.coe_nat_bit0_mul (n : ℕ) (x : ℕ) : (↑(bit0 n * x) : ℤ) = (↑(bit0 n) : ℤ) * (↑x : ℤ) := by simp
+lemma int.coe_nat_bit1_mul (n : ℕ) (x : ℕ) : (↑(bit1 n * x) : ℤ) = (↑(bit1 n) : ℤ) * (↑x : ℤ) := by simp
+lemma int.coe_nat_one_mul (x : ℕ) : (↑(1 * x) : ℤ) = 1 * (↑x : ℤ) := by simp
+lemma int.coe_nat_zero_mul (x : ℕ) : (↑(0 * x) : ℤ) = 0 * (↑x : ℤ) := by simp
+lemma int.coe_nat_mul_bit0 (n : ℕ) (x : ℕ) : (↑(x * bit0 n) : ℤ) = (↑x : ℤ) * (↑(bit0 n) : ℤ) := by simp
+lemma int.coe_nat_mul_bit1 (n : ℕ) (x : ℕ) : (↑(x * bit1 n) : ℤ) = (↑x : ℤ) * (↑(bit1 n) : ℤ) := by simp
+lemma int.coe_nat_mul_one (x : ℕ) : (↑(x * 1) : ℤ) = (↑x : ℤ) * 1 := by simp
+lemma int.coe_nat_mul_zero (x : ℕ) : (↑(x * 0) : ℤ) = (↑x : ℤ) * 0 := by simp
 
 lemma nat_eq_subst {n1 n2 : ℕ} {z1 z2 : ℤ} (hn : n1 = n2) (h1 : ↑n1 = z1) (h2 : ↑n2 = z2) : z1 = z2 :=
 by simpa [eq.symm h1, eq.symm h2, int.coe_nat_eq_coe_nat_iff]
@@ -280,11 +288,15 @@ end
     Returns a new map.
 -/
 meta def map_of_expr : expr_map ℕ → expr → option (expr_map ℕ × rb_map ℕ ℤ)
-| m `(%%e1 * %%e2) :=
-   do (m', comp1) ← map_of_expr m e1,
+| m e@`(%%e1 * %%e2) :=
+   (do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
       mp ← map_of_expr_mul_aux comp1 comp2,
-      return (m', mp)
+      return (m', mp)) <|>
+   (match m.find e with
+    | some k := return (m, mk_rb_map.insert k 1)
+    | none := let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1)
+    end)
 | m `(%%e1 + %%e2) :=
    do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
@@ -497,23 +509,32 @@ open tactic
 
 set_option eqn_compiler.max_steps 50000
 
-meta def rearr_comp (prf : expr) : expr → tactic expr
-| `(%%a ≤ 0) := return prf
-| `(%%a < 0) := return prf
-| `(%%a = 0) := return prf
-| `(%%a ≥ 0) := to_expr ``(neg_nonpos.mpr %%prf)
-| `(%%a > 0) := to_expr ``(neg_neg_of_pos %%prf) --mk_app ``neg_neg_of_pos [prf]
-| `(0 ≥ %%a) := to_expr ``(show %%a ≤ 0, from %%prf)
-| `(0 > %%a) := to_expr ``(show %%a < 0, from %%prf)
-| `(0 = %%a) := to_expr ``(eq.symm %%prf)
-| `(0 ≤ %%a) := to_expr ``(neg_nonpos.mpr %%prf)
-| `(0 < %%a) := to_expr ``(neg_neg_of_pos %%prf)
-| `(%%a ≤ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
-| `(%%a < %%b) := to_expr ``(sub_neg_of_lt %%prf) -- mk_app ``sub_neg_of_lt [prf]
-| `(%%a = %%b) := to_expr ``(sub_eq_zero.mpr %%prf)
-| `(%%a > %%b) := to_expr ``(sub_neg_of_lt %%prf) -- mk_app ``sub_neg_of_lt [prf]
-| `(%%a ≥ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
-| _ := fail "couldn't rearrange comp"
+meta def rem_neg (prf : expr) : expr → tactic expr
+| `(_ ≤ _) := to_expr ``(lt_of_not_ge %%prf)
+| `(_ < _) := to_expr ``(le_of_not_gt %%prf)
+| `(_ > _) := to_expr ``(le_of_not_gt %%prf)
+| `(_ ≥ _) := to_expr ``(lt_of_not_ge %%prf)
+| e := failed
+
+meta def rearr_comp : expr → expr → tactic expr
+| prf `(%%a ≤ 0) := return prf
+| prf  `(%%a < 0) := return prf
+| prf  `(%%a = 0) := return prf
+| prf  `(%%a ≥ 0) := to_expr ``(neg_nonpos.mpr %%prf)
+| prf  `(%%a > 0) := to_expr ``(neg_neg_of_pos %%prf)
+| prf  `(0 ≥ %%a) := to_expr ``(show %%a ≤ 0, from %%prf)
+| prf  `(0 > %%a) := to_expr ``(show %%a < 0, from %%prf)
+| prf  `(0 = %%a) := to_expr ``(eq.symm %%prf)
+| prf  `(0 ≤ %%a) := to_expr ``(neg_nonpos.mpr %%prf)
+| prf  `(0 < %%a) := to_expr ``(neg_neg_of_pos %%prf)
+| prf  `(%%a ≤ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
+| prf  `(%%a < %%b) := to_expr ``(sub_neg_of_lt %%prf)
+| prf  `(%%a = %%b) := to_expr ``(sub_eq_zero.mpr %%prf)
+| prf  `(%%a > %%b) := to_expr ``(sub_neg_of_lt %%prf)
+| prf  `(%%a ≥ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
+| prf  `(¬ %%t) := do nprf ← rem_neg prf t, tp ← infer_type nprf, rearr_comp nprf tp
+| prf  _ := fail "couldn't rearrange comp"
+
 
 meta def is_numeric : expr → option ℚ
 | `(%%e1 + %%e2) := (+) <$> is_numeric e1 <*> is_numeric e2
@@ -619,12 +640,18 @@ meta def get_contr_lemma_name : expr → option name
 | `(%%a = %%b) := return ``eq_of_not_lt_of_not_gt
 | `(%%a ≥ %%b) := return `le_of_not_gt
 | `(%%a > %%b) := return `lt_of_not_ge
+| `(¬ %%a < %%b) := return `not.intro
+| `(¬ %%a ≤ %%b) := return `not.intro
+| `(¬ %%a = %%b) := return `not.intro
+| `(¬ %%a ≥ %%b) := return `not.intro
+| `(¬ %%a > %%b) := return `not.intro
 | _ := none
-
 
 -- assumes the input t is of type ℕ. Produces t' of type ℤ such that ↑t = t' and a proof of equality
 meta def cast_expr (e : expr) : tactic (expr × expr) :=
-do s ← [`int.coe_nat_add, `int.coe_nat_mul, `int.coe_nat_zero, `int.coe_nat_one,
+do s ← [`int.coe_nat_add, `int.coe_nat_zero, `int.coe_nat_one,
+        ``int.coe_nat_bit0_mul, ``int.coe_nat_bit1_mul, ``int.coe_nat_zero_mul, ``int.coe_nat_one_mul,
+        ``int.coe_nat_mul_bit0, ``int.coe_nat_mul_bit1, ``int.coe_nat_mul_zero, ``int.coe_nat_mul_one,
         ``int.coe_nat_bit0, ``int.coe_nat_bit1].mfoldl simp_lemmas.add_simp simp_lemmas.mk,
    ce ← to_expr ``(↑%%e : ℤ),
    simplify s [] ce {fail_if_unchanged := ff}

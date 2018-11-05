@@ -3,39 +3,9 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
-import tactic data.set.lattice data.prod
+import tactic data.set.lattice data.prod data.vector
        tactic.rewrite data.stream.basic
-
-section solve_by_elim
-example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
-begin
-  apply_assumption,
-  apply_assumption,
-end
-
-example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
-by solve_by_elim
-
-example {α : Type} {a b : α → Prop} (h₀ : ∀ x : α, b x = a x) (y : α) : a y = b y :=
-by solve_by_elim
-
-example {α : Type} {p : α → Prop} (h₀ : ∀ x, p x) (y : α) : p y :=
-begin
-  apply_assumption,
-end
-
-open tactic
-
-example : true :=
-begin
-  (do gs ← get_goals,
-     set_goals [],
-     success_if_fail `[solve_by_elim],
-     set_goals gs),
-  trivial
-end
-
-end solve_by_elim
+       tactic.tfae
 
 section tauto₀
 variables p q r : Prop
@@ -83,13 +53,12 @@ example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : q) : �
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) : p := by tauto
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) (h'' : ¬ p) : false := by tauto
 example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) (h'' : ¬ r) : ¬ p := by tauto
-example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
-by tauto
-example (p q r : Prop) [decidable p] [decidable q] [decidable r] (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto
+example (p q r : Prop) (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
+by tauto!
+example (p q r : Prop) (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto!
 
 section modulo_symmetry
-variables {p q r : Prop} {α : Type} {x y : α} [decidable_eq α]
-variables [decidable p] [decidable q] [decidable r]
+variables {p q r : Prop} {α : Type} {x y : α}
 variables (h : x = y)
 variables (h'' : (p ∧ q ↔ q ∨ r) ↔ (r ∧ p ↔ r ∨ q))
 include h
@@ -478,6 +447,31 @@ begin
   trivial
 end
 
+structure dependent_fields :=
+(a : bool)
+(v : if a then ℕ else ℤ)
+
+@[extensionality] lemma df.ext (s t : dependent_fields) (h : s.a = t.a)
+ (w : (@eq.rec _ s.a (λ b, if b then ℕ else ℤ) s.v t.a h) = t.v): s = t :=
+begin
+  cases s, cases t,
+  dsimp at *,
+  congr,
+  exact h,
+  subst h,
+  simp,
+  simp at w,
+  exact w,
+end
+
+example (s : dependent_fields) : s = s :=
+begin
+  tactic.ext1 [] {tactic.apply_cfg . new_goals := tactic.new_goals.all},
+  guard_target s.a = s.a,
+  refl,
+  refl,
+end
+
 end ext
 
 section apply_rules
@@ -603,3 +597,55 @@ by { assoc_rw [h₀,h₂] at *,
      exact h₁ }
 
 end assoc_rw
+
+-- section tfae
+
+-- example (p q r s : Prop)
+--   (h₀ : p ↔ q)
+--   (h₁ : q ↔ r)
+--   (h₂ : r ↔ s) :
+--   p ↔ s :=
+-- begin
+--   scc,
+-- end
+
+-- example (p' p q r r' s s' : Prop)
+--   (h₀ : p' → p)
+--   (h₀ : p → q)
+--   (h₁ : q → r)
+--   (h₁ : r' → r)
+--   (h₂ : r ↔ s)
+--   (h₂ : s → p)
+--   (h₂ : s → s') :
+--   p ↔ s :=
+-- begin
+--   scc,
+-- end
+
+-- example (p' p q r r' s s' : Prop)
+--   (h₀ : p' → p)
+--   (h₀ : p → q)
+--   (h₁ : q → r)
+--   (h₁ : r' → r)
+--   (h₂ : r ↔ s)
+--   (h₂ : s → p)
+--   (h₂ : s → s') :
+--   p ↔ s :=
+-- begin
+--   scc',
+--   assumption
+-- end
+
+-- example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
+--   tfae_have : 3 → 1, { intro h, constructor },
+--   tfae_have : 2 → 3, { intro h, constructor },
+--   tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
+--   tfae_have : 4 ↔ 2, { tauto },
+--   tfae_finish,
+-- end
+
+-- example : tfae [] := begin
+--   tfae_finish,
+-- end
+
+-- end tfae

@@ -10,7 +10,6 @@ import tactic.tidy
 import linear_algebra.submodule
 import ring_theory.ideals
 
-local attribute [instance] classical.dec
 open set lattice
 
 def is_fg {α β} [ring α] [module α β]
@@ -56,9 +55,7 @@ theorem is_noetherian_iff_well_founded
         hN' (le_max_left _ _),
         hN' (le_max_right _ _)⟩ } },
   simp [subset_def] at this,
-  have : ∀ x : t, (∃ (i : ℕ), x.1 ∈ N i), {simpa},
-  rcases classical.axiom_of_choice this with ⟨f, hf⟩,
-  dsimp at f hf,
+  choose f hf using show ∀ x : t, ∃ (i : ℕ), x.1 ∈ N i, { simpa },
   cases h₁ with h₁,
   let A := finset.sup (@finset.univ t h₁) f,
   have : M ≤ N A,
@@ -67,36 +64,51 @@ theorem is_noetherian_iff_well_founded
       (hf ⟨x, h⟩) },
   exact not_le_of_lt (hN.1 (nat.lt_succ_self A))
     (le_trans (le_supr _ _) this)
- end,
- λ h N, begin
-  suffices : ∀ M ≤ N, ∃ s, finite s ∧ M ⊔ submodule.span s = N,
-  { rcases this ⊥ bot_le with ⟨s, hs, e⟩,
-    exact submodule.fg_def.2 ⟨s, hs, by simpa using e⟩ },
-  refine λ M, h.induction M _, intros M IH MN,
-  by_cases h : ∀ x, x ∈ N → x ∈ M,
-  { cases le_antisymm MN h, exact ⟨∅, by simp⟩ },
-  { simp [not_forall] at h,
-    rcases h with ⟨x, h, h₂⟩,
-    have : ¬M ⊔ submodule.span {x} ≤ M,
-    { intro hn, apply h₂,
-      simpa using submodule.span_subset_iff.1 (le_trans le_sup_right hn) },
-    rcases IH (M ⊔ submodule.span {x})
-      ⟨@le_sup_left _ _ M _, this⟩
-      (sup_le MN (submodule.span_subset_iff.2 (by simpa))) with ⟨s, hs, hs₂⟩,
-    refine ⟨insert x s, finite_insert _ hs, _⟩,
-    rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
- end⟩
+  end,
+  begin
+    assume h N,
+    suffices : ∀ M ≤ N, ∃ s, finite s ∧ M ⊔ submodule.span s = N,
+    { rcases this ⊥ bot_le with ⟨s, hs, e⟩,
+      exact submodule.fg_def.2 ⟨s, hs, by simpa using e⟩ },
+    refine λ M, h.induction M _, intros M IH MN,
+    letI := classical.dec,
+    by_cases h : ∀ x, x ∈ N → x ∈ M,
+    { cases le_antisymm MN h, exact ⟨∅, by simp⟩ },
+    { simp [not_forall] at h,
+      rcases h with ⟨x, h, h₂⟩,
+      have : ¬M ⊔ submodule.span {x} ≤ M,
+      { intro hn, apply h₂,
+        simpa using submodule.span_subset_iff.1 (le_trans le_sup_right hn) },
+      rcases IH (M ⊔ submodule.span {x})
+        ⟨@le_sup_left _ _ M _, this⟩
+        (sup_le MN (submodule.span_subset_iff.2 (by simpa))) with ⟨s, hs, hs₂⟩,
+      refine ⟨insert x s, finite_insert _ hs, _⟩,
+      rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
+  end⟩
 
 def is_noetherian_ring (α) [ring α] : Prop := is_noetherian α α
+
+theorem ring.is_noetherian_of_fintype (R M) [ring R] [module R M] [fintype M] : is_noetherian R M :=
+by letI := classical.dec;
+from assume s, ⟨to_finset s, suffices span (s : set M) = s, by simpa, span_eq_of_is_submodule s.to_is_submodule⟩
+
+instance fintype.of_subsingleton_ring {α} [ring α] [h : subsingleton α] : fintype α :=
+{ elems := {0},
+  complete := assume x, suffices x = 0, by simpa, subsingleton.elim x 0 }
+
+theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
+by haveI := subsingleton_of_zero_eq_one R h01; exact ring.is_noetherian_of_fintype R R
 
 theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [module R M] (N : set M) [is_submodule N]
   (h : is_noetherian R M) : is_noetherian R N :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  convert order_embedding.well_founded (order_embedding.rsymm (submodule.lt_order_embedding R M N)) h,end
+  convert order_embedding.well_founded (order_embedding.rsymm (submodule.lt_order_embedding R M N)) h
+end
 
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [module R M] (N : set M) [is_submodule N]
   (h : is_noetherian R M) : is_noetherian R (quotient_module.quotient M N) :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  convert order_embedding.well_founded (order_embedding.rsymm (quotient_module.lt_order_embedding R M N)) h,end
+  convert order_embedding.well_founded (order_embedding.rsymm (quotient_module.lt_order_embedding R M N)) h
+end

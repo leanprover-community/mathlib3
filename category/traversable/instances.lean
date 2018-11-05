@@ -6,10 +6,8 @@ Author: Simon Hudon
 Instances of `traversable` for types from the core library
 -/
 
-import category.traversable.basic
-       category.basic
-       category.functor
-       category.applicative
+import category.traversable.basic category.basic category.functor category.applicative
+import data.list.basic data.set.lattice
 
 universes u v
 
@@ -60,7 +58,7 @@ instance : is_lawful_traversable option :=
   traverse_eq_map_id := @option.traverse_eq_map_id,
   naturality := @option.naturality }
 
-section list
+namespace list
 
 variables {F G : Type u → Type u}
 variables [applicative F] [applicative G]
@@ -69,22 +67,22 @@ variables [is_lawful_applicative F] [is_lawful_applicative G]
 open applicative functor
 open list (cons)
 
-protected lemma list.id_traverse {α} (xs : list α) :
+protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=
 by induction xs; simp! * with functor_norm; refl
 
-protected lemma list.comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
+protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
   list.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (list.traverse f <$> list.traverse g x) :=
 by induction x; simp! * with functor_norm; refl
 
-protected lemma list.traverse_eq_map_id {α β} (f : α → β) (x : list α) :
+protected lemma traverse_eq_map_id {α β} (f : α → β) (x : list α) :
   list.traverse (id.mk ∘ f) x = id.mk (f <$> x) :=
 by induction x; simp! * with functor_norm; refl
 
 variable (η : applicative_transformation F G)
 
-protected lemma list.naturality {α β} (f : α → F β) (x : list α) :
+protected lemma naturality {α β} (f : α → F β) (x : list α) :
   η (list.traverse f x) = list.traverse (@η _ ∘ f) x :=
 by induction x; simp! * with functor_norm
 open nat
@@ -97,16 +95,36 @@ instance : is_lawful_traversable list :=
   traverse_eq_map_id := @list.traverse_eq_map_id,
   naturality := @list.naturality }
 
-lemma traverse_append {α β : Type*} (g : α → F β) (xs ys : list α) :
-  traverse g (xs ++ ys) = (++) <$> traverse g xs <*> traverse g ys :=
-begin
-  simp! [traverse],
-  induction xs,
-  { have : append (@list.nil β) = id,
-    { funext, simp },
-    simp! [this] },
-  { simp! [traverse,xs_ih] with functor_norm, refl }
-end
+section traverse
+variables {α' β' : Type u} (f : α' → F β')
+
+@[simp] lemma traverse_nil : traverse f ([] : list α') = (pure [] : F (list β')) := rfl
+
+@[simp] lemma traverse_cons (a : α') (l : list α') :
+  traverse f (a :: l) = (::) <$> f a <*> traverse f l := rfl
+
+variables [is_lawful_applicative F]
+
+@[simp] lemma traverse_append :
+  ∀ (as bs : list α'), traverse f (as ++ bs) = (++) <$> traverse f as <*> traverse f bs
+| [] bs :=
+  have has_append.append ([] : list β') = id, by funext; refl,
+  by simp [this] with functor_norm
+| (a :: as) bs := by simp [traverse_append as bs] with functor_norm; congr
+
+lemma mem_traverse {f : α' → set β'} :
+  ∀(l : list α') (n : list β'), n ∈ traverse f l ↔ forall₂ (λb a, b ∈ f a) n l
+| []      []      := by simp
+| (a::as) []      := by simp; exact assume h, match h with end
+| []      (b::bs) := by simp
+| (a::as) (b::bs) :=
+  suffices (b :: bs : list β') ∈ traverse f (a :: as) ↔ b ∈ f a ∧ bs ∈ traverse f as,
+    by simpa [mem_traverse as bs],
+  iff.intro
+    (assume ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩, ⟨hb, hl⟩)
+    (assume ⟨hb, hl⟩, ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩)
+
+end traverse
 
 end list
 
@@ -140,11 +158,11 @@ by induction x; simp! * with functor_norm; refl
 
 protected lemma map_traverse {α β γ} (g : α → G β) (f : β → γ) (x : σ ⊕ α) :
   (<$>) f <$> sum.traverse g x = sum.traverse ((<$>) f ∘ g) x :=
-by cases x; simp [(<$>), sum.mapr, sum.traverse, id_map] with functor_norm; congr
+by cases x; simp [sum.traverse, id_map] with functor_norm; congr; refl
 
 protected lemma traverse_map {α β γ : Type u} (g : α → β) (f : β → G γ) (x : σ ⊕ α) :
   sum.traverse f (g <$> x) = sum.traverse (f ∘ g) x :=
-by cases x; simp [(<$>), sum.mapr, sum.traverse, id_map] with functor_norm
+by cases x; simp [sum.traverse, id_map] with functor_norm; refl
 
 variable (η : applicative_transformation F G)
 

@@ -16,6 +16,18 @@ theorem mul_two (n : α) : n * 2 = n + n :=
 
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
+
+variable (α)
+lemma zero_ne_one_or_forall_eq_0 : (0 : α) ≠ 1 ∨ (∀a:α, a = 0) :=
+by haveI := classical.dec;
+   refine not_or_of_imp (λ h a, _); simpa using congr_arg ((*) a) h.symm
+
+lemma eq_zero_of_zero_eq_one (h : (0 : α) = 1) : (∀a:α, a = 0) :=
+(zero_ne_one_or_forall_eq_0 α).neg_resolve_left h
+
+theorem subsingleton_of_zero_eq_one (h : (0 : α) = 1) : subsingleton α :=
+⟨λa b, by rw [eq_zero_of_zero_eq_one α h a, eq_zero_of_zero_eq_one α h b]⟩
+
 end
 
 namespace units
@@ -88,11 +100,6 @@ instance : is_monoid_hom f :=
 { ..‹is_semiring_hom f› }
 
 end is_semiring_hom
-
-@[simp] lemma zero_dvd_iff_eq_zero [comm_semiring α] (a : α) : 0 ∣ a ↔ a = 0 :=
-iff.intro
-  eq_zero_of_zero_dvd
-  (assume ha, ha ▸ dvd_refl a)
 
 section
   variables [ring α] (a b c d e : α)
@@ -184,6 +191,9 @@ instance integral_domain.to_nonzero_comm_ring (α : Type*) [id : integral_domain
   nonzero_comm_ring α :=
 { ..id }
 
+lemma units.coe_ne_zero [nonzero_comm_ring α] (u : units α) : (u : α) ≠ 0 :=
+λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
+
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -248,6 +258,10 @@ section
 
   theorem mul_dvd_mul_iff_right {a b c : α} (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
   exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]
+
+  lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
+  by conv {to_lhs, rw [inv_eq_iff_mul_eq_one, ← mul_one (1 : units α), units.ext_iff, units.coe_mul,
+    units.coe_mul, mul_self_eq_mul_self_iff, ← units.ext_iff, ← units.coe_neg, ← units.ext_iff] }
 
 end
 

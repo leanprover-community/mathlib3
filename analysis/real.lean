@@ -21,7 +21,7 @@ generalizations:
 * Archimedean fields
 
 -/
-import logic.function analysis.metric_space
+import logic.function analysis.metric_space tactic.linarith
 
 noncomputable theory
 open classical set lattice filter topological_space
@@ -172,7 +172,7 @@ let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
-lemma real.continuous_mul : continuous (λp : ℝ × ℝ, p.1 * p.2) :=
+protected lemma real.continuous_mul : continuous (λp : ℝ × ℝ, p.1 * p.2) :=
 continuous_iff_tendsto.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
@@ -253,12 +253,16 @@ end
 -- TODO(Mario): Generalize to first-countable uniform spaces?
 instance : complete_space ℝ :=
 ⟨λ f cf, begin
-  have := (cauchy_of_metric.1 cf).2,
-  let S : ∀ ε:{ε:ℝ//ε>0}, {t : f.sets // ∀ x y ∈ t.1, dist x y < ε} :=
-    λ ε, classical.choice
-      (let ⟨t, tf, h⟩ := (cauchy_of_metric.1 cf).2 ε ε.2 in ⟨⟨⟨t, tf⟩, h⟩⟩),
-  let g : ℕ → {ε:ℝ//ε>0} := λ n,
-    ⟨n.to_pnat'⁻¹, inv_pos (nat.cast_pos.2 n.to_pnat'.pos)⟩,
+  let g : ℕ → {ε:ℝ//ε>0} := λ n, ⟨n.to_pnat'⁻¹, inv_pos (nat.cast_pos.2 n.to_pnat'.pos)⟩,
+  choose S hS hS_dist using show ∀n:ℕ, ∃t ∈ f.sets, ∀ x y ∈ t, dist x y < g n, from
+    assume n, let ⟨t, tf, h⟩ := (cauchy_of_metric.1 cf).2 (g n).1 (g n).2 in ⟨t, tf, h⟩,
+  let F : ℕ → set ℝ := λn, ⋂i≤n, S i,
+  have hF : ∀n, F n ∈ f.sets := assume n, Inter_mem_sets (finite_le_nat n) (λ i _, hS i),
+  have hF_dist : ∀n, ∀ x y ∈ F n, dist x y < g n :=
+    assume n x y hx hy,
+    have F n ⊆ S n := bInter_subset_of_mem (le_refl n),
+    (hS_dist n) _ _ (this hx) (this hy),
+  choose G hG using assume n:ℕ, inhabited_of_mem_sets cf.1 (hF n),
   have hg : ∀ ε > 0, ∃ n, ∀ j ≥ n, (g j : ℝ) < ε,
   { intros ε ε0,
     cases exists_nat_gt ε⁻¹ with n hn,
@@ -267,62 +271,22 @@ instance : complete_space ℝ :=
     have j0 := lt_trans (inv_pos ε0) hj,
     have jε := (inv_lt j0 ε0).2 hj,
     rwa ← pnat.to_pnat'_coe (nat.cast_pos.1 j0) at jε },
-  let F : ∀ n : ℕ, {t : f.sets // ∀ x y ∈ t.1, dist x y < g n},
-  { refine λ n, ⟨⟨_, Inter_mem_sets (finite_le_nat n) (λ i _, (S (g i)).1.2)⟩, _⟩,
-    have : (⋂ i ∈ {i : ℕ | i ≤ n}, (S (g i)).1.1) ⊆ S (g n) :=
-      bInter_subset_of_mem (le_refl n),
-    exact λ x y xs ys, (S (g n)).2 _ _ (this xs) (this ys) },
-  let G : ∀ n : ℕ, F n,
-  { refine λ n, classical.choice _,
-    cases inhabited_of_mem_sets cf.1 (F n).1.2 with x xS,
-    exact ⟨⟨x, xS⟩⟩ },
   let c : cau_seq ℝ abs,
   { refine ⟨λ n, G n, λ ε ε0, _⟩,
     cases hg _ ε0 with n hn,
     refine ⟨n, λ j jn, _⟩,
-    have : (F j).1.1 ⊆ (F n) :=
+    have : F j ⊆ F n :=
       bInter_subset_bInter_left (λ i h, @le_trans _ _ i n j h jn),
-    exact lt_trans ((F n).2 _ _ (this (G j).2) (G n).2) (hn _ $ le_refl _) },
+    exact lt_trans (hF_dist n _ _ (this (hG j)) (hG n)) (hn _ $ le_refl _) },
   refine ⟨real.lim c, λ s h, _⟩,
   rcases mem_nhds_iff_metric.1 h with ⟨ε, ε0, hε⟩,
   cases exists_forall_ge_and (hg _ $ half_pos ε0)
     (real.equiv_lim c _ $ half_pos ε0) with n hn,
   cases hn _ (le_refl _) with h₁ h₂,
-  refine sets_of_superset _ (F n).1.2 (subset.trans _ $
+  refine sets_of_superset _ (hF n) (subset.trans _ $
     subset.trans (ball_half_subset (G n) h₂) hε),
-  exact λ x h, lt_trans ((F n).2 x (G n) h (G n).2) h₁
+  exact λ x h, lt_trans ((hF_dist n) x (G n) h (hG n)) h₁
 end⟩
-
--- TODO(Mario): This proof has nothing to do with reals
-theorem real.Cauchy_eq {f g : Cauchy ℝ} :
-  lim f.1 = lim g.1 ↔ (f, g) ∈ separation_rel (Cauchy ℝ) :=
-begin
-  split,
-  { intros e s hs,
-    rcases Cauchy.mem_uniformity'.1 hs with ⟨t, tu, ts⟩,
-    apply ts,
-    rcases comp_mem_uniformity_sets tu with ⟨d, du, dt⟩,
-    refine mem_prod_iff.2
-      ⟨_, le_nhds_lim_of_cauchy f.2 (mem_nhds_right (lim f.1) du),
-       _, le_nhds_lim_of_cauchy g.2 (mem_nhds_left (lim g.1) du), λ x h, _⟩,
-    cases x with a b, cases h with h₁ h₂,
-    rw ← e at h₂,
-    exact dt ⟨_, h₁, h₂⟩ },
-  { intros H,
-    refine separated_def.1 (by apply_instance) _ _ (λ t tu, _),
-    rcases mem_uniformity_is_closed tu with ⟨d, du, dc, dt⟩,
-    refine H {p | (lim p.1.1, lim p.2.1) ∈ t}
-      (Cauchy.mem_uniformity'.2 ⟨d, du, λ f g h, _⟩),
-    rcases mem_prod_iff.1 h with ⟨x, xf, y, yg, h⟩,
-    have limc : ∀ (f : Cauchy ℝ) (x ∈ f.1.sets), lim f.1 ∈ closure x,
-    { intros f x xf,
-      rw closure_eq_nhds,
-      exact neq_bot_of_le_neq_bot f.2.1
-        (le_inf (le_nhds_lim_of_cauchy f.2) (le_principal_iff.2 xf)) },
-    have := (closure_subset_iff_subset_of_is_closed dc).2 h,
-    rw closure_prod_eq at this,
-    refine dt (this ⟨_, _⟩); dsimp; apply limc; assumption }
-end
 
 lemma tendsto_of_nat_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
 tendsto_infi.2 $ assume r, tendsto_principal.2 $
@@ -354,5 +318,59 @@ lemma compact_Icc {a b : ℝ} : compact (Icc a b) :=
 compact_of_totally_bounded_is_closed
   (real.totally_bounded_Icc a b)
   (is_closed_inter (is_closed_ge' a) (is_closed_le' b))
+
+open real
+
+lemma real.intermediate_value {f : ℝ → ℝ} {a b t : ℝ}
+  (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
+  (ha : f a ≤ t) (hb : t ≤ f b) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t :=
+let x := real.Sup {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b} in
+have hx₁ : ∃ y, ∀ g ∈ {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b}, g ≤ y := ⟨b, λ _ h, h.2.2⟩,
+have hx₂ : ∃ y, y ∈ {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b} := ⟨a, ha, le_refl _, hab⟩,
+have hax : a ≤ x, from le_Sup _ hx₁ ⟨ha, le_refl _, hab⟩,
+have hxb : x ≤ b, from (Sup_le _ hx₂ hx₁).2 (λ _ h, h.2.2),
+⟨x, hax, hxb,
+  eq_of_forall_dist_le $ λ ε ε0,
+    let ⟨δ, hδ0, hδ⟩ := tendsto_nhds_of_metric.1 (hf _ hax hxb) ε ε0 in
+    (le_total t (f x)).elim
+      (λ h, le_of_not_gt $ λ hfε, begin
+        rw [dist_eq, abs_of_nonneg (sub_nonneg.2 h)] at hfε,
+        refine mt (Sup_le {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b} hx₂ hx₁).2
+          (not_le_of_gt (sub_lt_self x (half_pos hδ0)))
+          (λ g hg, le_of_not_gt
+            (λ hgδ, not_lt_of_ge hg.1
+              (lt_trans (lt_sub.1 hfε) (sub_lt_of_sub_lt
+                (lt_of_le_of_lt (le_abs_self _) _))))),
+        rw abs_sub,
+        exact hδ (abs_sub_lt_iff.2 ⟨lt_of_le_of_lt (sub_nonpos.2 (le_Sup _ hx₁ hg)) hδ0,
+          by simp only [x] at *; linarith⟩)
+        end)
+      (λ h, le_of_not_gt $ λ hfε, begin
+        rw [dist_eq, abs_of_nonpos (sub_nonpos.2 h)] at hfε,
+        exact mt (le_Sup {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b})
+          (λ h : ∀ k, k ∈ {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b} → k ≤ x,
+            not_le_of_gt ((lt_add_iff_pos_left x).2 (half_pos hδ0))
+              (h _ ⟨le_trans (le_sub_iff_add_le.2 (le_trans (le_abs_self _)
+                    (le_of_lt (hδ $ by rw [dist_eq, add_sub_cancel, abs_of_nonneg (le_of_lt (half_pos hδ0))];
+                      exact half_lt_self hδ0))))
+                  (by linarith),
+                le_trans hax (le_of_lt ((lt_add_iff_pos_left _).2 (half_pos hδ0))),
+                le_of_not_gt (λ hδy, not_lt_of_ge hb (lt_of_le_of_lt
+                  (show f b ≤ f b - f x - ε + t, by linarith)
+                  (add_lt_of_neg_of_le
+                    (sub_neg_of_lt (lt_of_le_of_lt (le_abs_self _)
+                      (@hδ b (abs_sub_lt_iff.2 ⟨by simp only [x] at *; linarith,
+                        by linarith⟩))))
+                    (le_refl _))))⟩))
+          hx₁
+        end)⟩
+
+lemma real.intermediate_value' {f : ℝ → ℝ} {a b t : ℝ}
+  (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
+  (ha : t ≤ f a) (hb : f b ≤ t) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t :=
+let ⟨x, hx₁, hx₂, hx₃⟩ := @real.intermediate_value
+  (λ x, - f x) a b (-t) (λ x hax hxb, tendsto_neg (hf x hax hxb))
+  (neg_le_neg ha) (neg_le_neg hb) hab in
+⟨x, hx₁, hx₂, neg_inj hx₃⟩
 
 end

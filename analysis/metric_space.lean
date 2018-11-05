@@ -206,7 +206,7 @@ theorem mem_uniformity_dist {s : set (α×α)} :
 begin
   rw [uniformity_dist', infi_sets_eq],
   simp [subset_def],
-  exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff] {contextual := tt}⟩,
+  exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩,
   exact ⟨⟨1, zero_lt_one⟩⟩
 end
 
@@ -266,7 +266,7 @@ begin
   { simp },
   { intros y z, cases y with y hy, cases z with z hz,
     refine ⟨⟨min y z, lt_min hy hz⟩, _⟩,
-    simp [ball_subset_ball, min_le_left, min_le_right] },
+    simp [ball_subset_ball, min_le_left, min_le_right, (≥)] },
   { exact ⟨⟨1, zero_lt_one⟩⟩ }
 end
 

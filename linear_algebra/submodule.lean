@@ -36,12 +36,19 @@ protected theorem ext_iff {s t : submodule α β}  : (s : set β) = t ↔ s = t 
 iff.intro ext (assume h, h ▸ rfl)
 
 instance : partial_order (submodule α β) :=
-partial_order.lift (coe : submodule α β → set β) $ λ a b h₁ h₂, ext (subset.antisymm h₁ h₂)
+partial_order.lift (coe : submodule α β → set β) $ λ a b, ext
 
 def span (s : set β) : submodule α β := ⟨span s, is_submodule_span⟩
 
 theorem span_subset_iff {s : set β} {t : submodule α β} : span s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_span, span_minimal t.2⟩
+
+lemma span_singleton_subset {b : β} {s : submodule α β} : span {b} ⊆ s ↔ b ∈ s :=
+by rw [submodule.span_subset_iff, set.singleton_subset_iff]; refl
+
+lemma mem_span_singleton {b₁ b₂ : β} : b₁ ∈ span ({b₂} : set β) ↔ ∃c, b₁ = c • b₂ :=
+show b₁ ∈ _root_.span ({b₂} : set β) ↔ ∃c, b₁ = c • b₂,
+  by simp [_root_.span_singleton, eq_comm]
 
 protected def galois_insertion :
   galois_insertion (@span α β _ _) coe :=
@@ -162,15 +169,9 @@ order_embedding.trans (order_iso.to_order_embedding $ map_subtype.order_iso α �
 @[simp] lemma map_subtype_embedding_eq (P : submodule α s) :
   map_subtype.le_order_embedding α β s P = map_subtype α β s P := rfl
 
-def submodule_lt_equiv (X Y : submodule α s) :
-  X < Y ↔ ((map_subtype.le_order_embedding α β s) X) < ((map_subtype.le_order_embedding α β s) Y) :=
-by simp [lt_iff_le_not_le, (map_subtype.order_iso α β s).ord]; refl -- why do I need refl after simp??
-
 def lt_order_embedding :
   ((<) : submodule α s → submodule α s → Prop) ≼o ((<) : submodule α β → submodule α β → Prop) :=
-{ to_fun := map_subtype α β s,
-  inj := (map_subtype.le_order_embedding α β s).inj,
-  ord := submodule_lt_equiv α β s }
+(map_subtype.le_order_embedding α β s).lt_embedding_of_le_embedding
 
 end subtype
 
@@ -218,15 +219,15 @@ end submodule
 
 namespace quotient_module
 
-definition le_order_embedding (R) [ring R] (M) [module R M] (N : set M) [is_submodule N] :
+def le_order_embedding (R) [ring R] (M) [module R M] (N : set M) [is_submodule N] :
   ((≤) : submodule R (quotient M N) → submodule R (quotient M N) → Prop) ≼o
   ((≤): submodule R M → submodule R M → Prop) :=
 order_embedding.trans (order_iso.to_order_embedding $
   submodule.comap_quotient.order_iso R M N) (subtype.order_embedding _ _)
 
-definition lt_order_embedding (R) [ring R] (M) [module R M] (N : set M) [is_submodule N] :
+def lt_order_embedding (R) [ring R] (M) [module R M] (N : set M) [is_submodule N] :
   ((<) : submodule R (quotient M N) → submodule R (quotient M N) → Prop) ≼o
   ((<) : submodule R M → submodule R M → Prop) :=
-order_embedding.lt_embedding_of_le_embedding $ quotient_module.le_order_embedding R M N
+(quotient_module.le_order_embedding R M N).lt_embedding_of_le_embedding
 
 end quotient_module

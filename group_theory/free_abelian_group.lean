@@ -5,7 +5,7 @@ Authors: Kenny Lau
 
 Free abelian groups as abelianization of free groups.
 -/
-
+import algebra.pi_instances
 import group_theory.free_group
 import group_theory.abelianization
 
@@ -29,42 +29,42 @@ abelianization.of $ free_group.of x
 instance : has_coe α (free_abelian_group α) :=
 ⟨of⟩
 
-def to_add_comm_group {β : Type v} [add_comm_group β] (f : α → β) (x : free_abelian_group α) : β :=
-@abelianization.to_comm_group _ _ (multiplicative β) _ (@free_group.to_group _ (multiplicative β) _ f) _ x
+def lift {β : Type v} [add_comm_group β] (f : α → β) (x : free_abelian_group α) : β :=
+@abelianization.lift _ _ (multiplicative β) _ (@free_group.to_group _ (multiplicative β) _ f) _ x
 
-namespace to_add_comm_group
+namespace lift
 variables {β : Type v} [add_comm_group β] (f : α → β)
 open free_abelian_group
 
-protected lemma is_add_group_hom : is_add_group_hom (to_add_comm_group f) :=
-⟨λ x y, @is_group_hom.mul _ (multiplicative β) _ _ _ (abelianization.to_comm_group.is_group_hom _) x y⟩
+instance is_add_group_hom : is_add_group_hom (lift f) :=
+⟨λ x y, @is_group_hom.mul _ (multiplicative β) _ _ _ (abelianization.lift.is_group_hom _) x y⟩
 
-local attribute [instance] to_add_comm_group.is_add_group_hom
+local attribute [instance] lift.is_add_group_hom
 
 @[simp] protected lemma add (x y : free_abelian_group α) :
-  to_add_comm_group f (x + y) = to_add_comm_group f x + to_add_comm_group f y :=
+  lift f (x + y) = lift f x + lift f y :=
 is_add_group_hom.add _ _ _
 
-@[simp] protected lemma neg (x : free_abelian_group α) : to_add_comm_group f (-x) = -to_add_comm_group f x :=
+@[simp] protected lemma neg (x : free_abelian_group α) : lift f (-x) = -lift f x :=
 is_add_group_hom.neg _ _
 
 @[simp] protected lemma sub (x y : free_abelian_group α) :
-  to_add_comm_group f (x - y) = to_add_comm_group f x - to_add_comm_group f y :=
+  lift f (x - y) = lift f x - lift f y :=
 by simp
 
-@[simp] protected lemma zero : to_add_comm_group f 0 = 0 :=
+@[simp] protected lemma zero : lift f 0 = 0 :=
 is_add_group_hom.zero _
 
-@[simp] protected lemma of (x : α) : to_add_comm_group f (of x) = f x :=
-by unfold of; unfold to_add_comm_group; simp
+@[simp] protected lemma of (x : α) : lift f (of x) = f x :=
+by unfold of; unfold lift; simp
 
-@[simp] protected lemma coe (x : α) : to_add_comm_group f ↑x = f x :=
-to_add_comm_group.of f x
+@[simp] protected lemma coe (x : α) : lift f ↑x = f x :=
+lift.of f x
 
 protected theorem unique (g : free_abelian_group α → β) [is_add_group_hom g]
   (hg : ∀ x, g (of x) = f x) {x} :
-  g x = to_add_comm_group f x :=
-@abelianization.to_comm_group.unique (free_group α) _ (multiplicative β) _ _ _ g
+  g x = lift f x :=
+@abelianization.lift.unique (free_group α) _ (multiplicative β) _ _ _ g
   ⟨λ x y, @is_add_group_hom.add (additive $ abelianization (free_group α)) _ _ _ _ _ x y⟩ (λ x,
   @free_group.to_group.unique α (multiplicative β) _ _ (g ∘ abelianization.of)
     ⟨λ m n, is_add_group_hom.add g (abelianization.of m) (abelianization.of n)⟩ hg _) _
@@ -73,17 +73,27 @@ protected theorem ext (g h : free_abelian_group α → β)
   [is_add_group_hom g] [is_add_group_hom h]
   (H : ∀ x, g (of x) = h (of x)) {x} :
   g x = h x :=
-(to_add_comm_group.unique (g ∘ of) g (λ _, rfl)).trans $
-eq.symm $ to_add_comm_group.unique _ _ $ λ x, eq.symm $ H x
+(lift.unique (g ∘ of) g (λ _, rfl)).trans $
+eq.symm $ lift.unique _ _ $ λ x, eq.symm $ H x
 
-def UMP : (α → β) ≃ { f : free_abelian_group α → β // is_add_group_hom f } :=
-{ to_fun := λ f, ⟨_, to_add_comm_group.is_add_group_hom f⟩,
+lemma map_hom {α β γ} [add_comm_group β] [add_comm_group γ]
+  (a : free_abelian_group α) (f : α → β) (g : β → γ) [is_add_group_hom g] :
+  g (a.lift f) = a.lift (g ∘ f) :=
+show (g ∘ lift f) a = a.lift (g ∘ f),
+begin
+  apply @lift.unique,
+  assume a,
+  simp only [(∘), lift.of]
+end
+
+def universal : (α → β) ≃ { f : free_abelian_group α → β // is_add_group_hom f } :=
+{ to_fun := λ f, ⟨_, lift.is_add_group_hom f⟩,
   inv_fun := λ f, f.1 ∘ of,
-  left_inv := λ f, funext $ λ x, to_add_comm_group.of f x,
+  left_inv := λ f, funext $ λ x, lift.of f x,
   right_inv := λ f, subtype.eq $ funext $ λ x, eq.symm $ by letI := f.2; from
-    to_add_comm_group.unique _ _ (λ _, rfl) }
+    lift.unique _ _ (λ _, rfl) }
 
-end to_add_comm_group
+end lift
 
 local attribute [instance] quotient_group.left_rel normal_subgroup.to_is_subgroup
 
@@ -98,5 +108,19 @@ protected theorem induction_on
 quotient.induction_on z $ λ x, quot.induction_on x $ λ L,
 list.rec_on L C0 $ λ ⟨x, b⟩ tl ih,
 bool.rec_on b (Cp _ _ (Cn _ (C1 x)) ih) (Cp _ _ (C1 x) ih)
+
+instance is_add_group_hom_lift' {α} (β) [add_comm_group β] (a : free_abelian_group α) :
+  is_add_group_hom (λf, (a.lift f : β)) :=
+begin
+  refine ⟨assume f g, free_abelian_group.induction_on a _ _ _ _⟩,
+  { simp [is_add_group_hom.zero (free_abelian_group.lift f)] },
+  { simp [lift.of], assume x, refl },
+  { simp [is_add_group_hom.neg (free_abelian_group.lift f)],
+    assume x h, show - (f x + g x) = -f x + - g x, exact neg_add _ _ },
+  { simp [is_add_group_hom.add (free_abelian_group.lift f)],
+    assume x y hx hy,
+    rw [hx, hy],
+    ac_refl }
+end
 
 end free_abelian_group

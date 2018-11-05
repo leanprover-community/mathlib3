@@ -579,8 +579,10 @@ instance : ordered_comm_group ℚ                  := by apply_instance
 instance : ordered_cancel_comm_monoid ℚ          := by apply_instance
 instance : ordered_comm_monoid ℚ                 := by apply_instance
 
+attribute [irreducible] rat.le
+
 theorem num_pos_iff_pos {a : ℚ} : 0 < a.num ↔ 0 < a :=
-le_iff_le_iff_lt_iff_lt.1 $
+lt_iff_lt_of_le_iff_le $
 by simpa [(by cases a; refl : (-a).num = -a.num)]
    using @num_nonneg_iff_zero_le (-a)
 
@@ -621,7 +623,7 @@ theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
 end
 
 theorem floor_lt {r : ℚ} {z : ℤ} : floor r < z ↔ r < z :=
-le_iff_le_iff_lt_iff_lt.1 le_floor
+lt_iff_lt_of_le_iff_le le_floor
 
 theorem floor_le (r : ℚ) : (floor r : ℚ) ≤ r :=
 le_floor.1 (le_refl _)
@@ -943,6 +945,9 @@ lemma zero_of_num_zero {q : ℚ} (hq : q.num = 0) : q = 0 :=
 have q = q.num /. q.denom, from num_denom _,
 by simpa [hq]
 
+lemma zero_iff_num_zero {q : ℚ} : q = 0 ↔ q.num = 0 :=
+⟨λ _, by simp *, zero_of_num_zero⟩
+
 lemma num_ne_zero_of_ne_zero {q : ℚ} (h : q ≠ 0) : q.num ≠ 0 :=
 assume : q.num = 0,
 h $ zero_of_num_zero this
@@ -968,6 +973,15 @@ have hr' : (↑r.denom : ℤ) ≠ 0, by have := denom_ne_zero r; simpa,
 suffices (q.num /. ↑q.denom) * (r.num /. ↑r.denom) = (q.num * r.num) /. ↑(q.denom * r.denom),
   by rwa [←num_denom q, ←num_denom r] at this,
 by simp [mul_def hq' hr']
+
+lemma div_num_denom (q r : ℚ) : q / r = (q.num * r.denom) /. (q.denom * r.num) :=
+if hr : r.num = 0 then
+  have hr' : r = 0, from zero_of_num_zero hr,
+  by simp *
+else calc q / r = q * r⁻¹ : div_eq_mul_inv
+            ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by rw [←num_denom q, ←num_denom r]
+            ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
+            ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
 
 lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) :
       ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=

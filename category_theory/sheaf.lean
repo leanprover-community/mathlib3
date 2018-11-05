@@ -11,47 +11,61 @@ universes u u₁ u₂ v v₁ v₂ w w₁ w₂
 
 section presheaf
 open category_theory.limits
-variables (X : Type u₁) [𝒳 : category.{u₁ v₁} X] (C : Type u₂) [𝒞 : category.{u₂ v₂} C]
+variables (X : Type v) [𝒳 : small_category X] (C : Type u) [𝒞 : category.{u v} C]
 include 𝒳 𝒞
 
 def presheaf := Xᵒᵖ ⥤ C
 
 variables {X} {C}
 
-instance : category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (presheaf X C) := by unfold presheaf; apply_instance
+instance : category.{(max u v) v} (presheaf X C) := by unfold presheaf; apply_instance
+
+set_option pp.universes true
+instance presheaf.has_coequalizers [has_coequalizers.{u v} C] :
+  has_coequalizers.{(max u v) v} (presheaf X C) :=
+sorry
+instance presheaf.has_coproducts [has_coproducts.{u v} C] :
+  has_coproducts.{(max u v) v} (presheaf X C) :=
+sorry
+instance presheaf.has_limits [has_limits.{u v} C] :
+  has_limits.{(max u v) v} (presheaf X C) :=
+begin
+  dsimp [presheaf],
+  exact limits.functor_category_has_limits
+end
+instance presheaf.has_pullbacks [has_pullbacks.{u v} C] :
+  has_pullbacks.{(max u v) v} (presheaf X C) :=
+sorry
 
 omit 𝒞
 
-set_option pp.universes true
-instance presheaf.has_coequalizers : has_coequalizers.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) := sorry
-instance presheaf.has_coproducts : has_coproducts.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) := sorry
-instance presheaf.has_limits : has_limits.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) :=
-begin
-  dsimp [presheaf],
-  sorry,
-  -- exact limits.functor_category_has_limits -- doesn't work, universe levels wrong.
-end
-instance presheaf.has_pullbacks : has_pullbacks.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) :=
-has_pullbacks_of_has_limits (presheaf X (Type v₁))
+instance presheaf_of_types.has_coequalizers : has_coequalizers.{v+1 v} (presheaf X (Type v)) :=
+sorry -- oops, Types doesn't have coequalizers?
+-- by apply_instance
+instance presheaf_of_types.has_coproducts : has_coproducts.{v+1 v} (presheaf X (Type v)) :=
+sorry -- oops, Types doesn't have coproducts?
+-- by apply_instance
+instance presheaf_of_types.has_limits : has_limits.{v+1 v} (presheaf X (Type v)) := by apply_instance
+instance presheaf_of_types.has_pullbacks : has_pullbacks.{v+1 v} (presheaf X (Type v)) := by apply_instance
 
 
 end presheaf
 
 -- todo should this be done as a subfunctor?
-structure covering_family {X : Type u₁} [category.{u₁ v₁} X] (U : X) :=
+structure covering_family {X : Type v} [small_category X] (U : X) :=
 (index : Type v₁)
 (obj : index → X)
 (map : Π (i : index), obj i ⟶ U)
 
 namespace covering_family
 open category_theory.limits
-variables {X : Type u₁} [𝒳 : category.{u₁ v₁} X]
+variables {X : Type v} [𝒳 : small_category X]
 include 𝒳
 
 variables {U : X}
 
-def sieve (f : covering_family U) : presheaf X (Type v₁) :=
-let CP := (((yoneda X) : X → presheaf X (Type v₁)) ∘ f.obj) in
+def sieve (f : covering_family U) : presheaf X (Type v) :=
+let CP := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in
 coequalizer
   (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
   (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))

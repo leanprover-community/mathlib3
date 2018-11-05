@@ -115,9 +115,9 @@ lemma is_limit.hom_lift (h : is_limit t) {X' : C} (m : X' ⟶ t.X) :
   m = h.lift { X := X', π := { app := λ b, m ≫ t.π b } } :=
 h.uniq { X := X', π := { app := λ b, m ≫ t.π b } } m (λ b, rfl)
 
-lemma is_limit.hom_eq (h : is_limit t) {W : C} {f f' : W ⟶ t.X}
-  (hf : ∀ j, f ≫ t.π j = f' ≫ t.π j) : f = f' :=
-by rw [h.hom_lift f, h.hom_lift f']; congr; exact funext hf
+lemma is_limit.hom_ext (h : is_limit t) {W : C} {f g : W ⟶ t.X}
+  (w : ∀ j, f ≫ t.π j = g ≫ t.π j) : f = g :=
+by rw [h.hom_lift f, h.hom_lift g]; congr; exact funext w
 
 def is_limit.of_lift_universal
   (lift : Π (s : cone F), s.X ⟶ t.X)
@@ -344,14 +344,7 @@ by erw is_limit.fac
 @[extensionality] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C}
   {f g : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = g ≫ limit.π F j) : f = g :=
-begin
-  let c : cone F :=
-  { X := X,
-    π := { app := λ j, f ≫ limit.π F j }},
-  have p_f := (limit.universal_property F).uniq c f (λ j, by simp),
-  have p_g := (limit.universal_property F).uniq c g (λ j, eq.symm (w j)),
-  rw [p_f, p_g]
-end
+(limit.universal_property F).hom_ext w
 
 lemma limit.lift_extend {F : J ⥤ C} [has_limit F] (c : cone F) {X : C} (f : X ⟶ c.X) :
   limit.lift F (c.extend f) = f ≫ limit.lift F c :=

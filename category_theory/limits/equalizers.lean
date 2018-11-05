@@ -101,13 +101,11 @@ lemma is_equalizer.mono {t : fork f g} (h : is_equalizer t) : mono t.ι :=
 lemma is_coequalizer.epi {t : cofork f g} (h : is_coequalizer t) : epi t.π :=
 ⟨λ W (e₁ e₂ : t.X ⟶ W) H, begin
    unfold cofork.π at H,
-  -- FIXME why doesn't this work?!
-  --  apply h.hom_ext,
-  --  rintro (_|_),
-  --  { exact H },
-  --  { have : t.ι zero = f ≫ t.ι one, from (t.w inl).symm,
-  --  rw [this, ←category.assoc, ←category.assoc, H] },
-  sorry
+   apply h.hom_ext,
+   rintro (_|_),
+   { have : t.ι zero = f ≫ t.ι one, from (t.w inl).symm,
+     rw [this, category.assoc, category.assoc, H] },
+   { exact H }
  end⟩
 
 variables {t : fork f g}

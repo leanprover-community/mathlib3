@@ -93,11 +93,15 @@ end
 
 variable {F : J ⥤ C}
 
--- FIXME do these need to exist?
-def foo (c : cone F) : F.cones c.X := c.π
-def bar {X : C} (π : F.cones X) : cone F :=
+namespace functor
+-- These are not particularly important definitions; their mostly here
+-- as reminders of the relationship between `F.cones` and `cone F`.
+
+def cones_of_cone (c : cone F) : F.cones c.X := c.π
+def cone_of_cones {X : C} (π : F.cones X) : cone F :=
 { X := X,
   π := π }
+end functor
 
 namespace cone
 @[simp] def extensions (c : cone F) :

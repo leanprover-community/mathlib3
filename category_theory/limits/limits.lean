@@ -522,24 +522,24 @@ def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.
 @[simp] lemma colimit.universal_property_desc (F : J ⥤ C) [has_colimit F] (c : cocone F) :
   (colimit.universal_property F).desc c = colimit.desc F c := rfl
 
-@[simp] lemma colimit.ι_desc (F : J ⥤ C) [has_colimit F] (c : cocone F) (j : J) :
+@[simp] lemma colimit.ι_desc {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
   colimit.ι F j ≫ colimit.desc F c = c.ι j :=
 is_colimit.fac _ c j
 
-@[simp] lemma colimit.cone_ι (F : J ⥤ C) [has_colimit F] (j : J) :
+@[simp] lemma colimit.cone_ι {F : J ⥤ C} [has_colimit F] (j : J) :
   (((colimit.cocone F).ι) : Π j : J, (F j ⟶ (colimit.cocone F).X)) j = (@colimit.ι J _ C _ F _ j) := rfl
 
-def colimit.cocone_morphism (F : J ⥤ C) [has_colimit F] (c : cocone F) : cocone_morphism (colimit.cocone F) c :=
+def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) : cocone_morphism (colimit.cocone F) c :=
 { hom := (colimit.desc F) c }
 
 @[simp] lemma colimit.cocone_morphism_hom {F : J ⥤ C} [has_colimit F] (c : cocone F) :
-  (colimit.cocone_morphism F c).hom = colimit.desc F c := rfl
+  (colimit.cocone_morphism c).hom = colimit.desc F c := rfl
 @[simp] lemma colimit.ι_cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
-  (colimit.ι F j) ≫ (colimit.cocone_morphism F c).hom = c.ι j :=
+  (colimit.ι F j) ≫ (colimit.cocone_morphism c).hom = c.ι j :=
 by erw is_colimit.fac
 
 @[extensionality] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C}
-  (f g : colimit F ⟶ X)
+  {f g : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ g) : f = g :=
 begin
   let c : cocone F :=

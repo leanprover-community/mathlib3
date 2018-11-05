@@ -94,6 +94,30 @@ dvd_antisymm (gcd_dvd_left _ _) (dvd_gcd (dvd_refl _) H)
 theorem gcd_eq_right {m n : ℕ} (H : n ∣ m) : gcd m n = n :=
 by rw [gcd_comm, gcd_eq_left H]
 
+@[simp] lemma gcd_mul_left_left (m n : ℕ) : gcd (m * n) n = n :=
+dvd_antisymm (gcd_dvd_right _ _) (dvd_gcd (dvd_mul_left _ _) (dvd_refl _))
+
+@[simp] lemma gcd_mul_left_right (m n : ℕ) : gcd n (m * n) = n :=
+by rw [gcd_comm, gcd_mul_left_left]
+
+@[simp] lemma gcd_mul_right_left (m n : ℕ) : gcd (n * m) n = n :=
+by rw [mul_comm, gcd_mul_left_left]
+
+@[simp] lemma gcd_mul_right_right (m n : ℕ) : gcd n (n * m) = n :=
+by rw [gcd_comm, gcd_mul_right_left]
+
+@[simp] lemma gcd_gcd_self_right_left (m n : ℕ) : gcd m (gcd m n) = gcd m n :=
+dvd_antisymm (gcd_dvd_right _ _) (dvd_gcd (gcd_dvd_left _ _) (dvd_refl _))
+
+@[simp] lemma gcd_gcd_self_right_right (m n : ℕ) : gcd m (gcd n m) = gcd n m :=
+by rw [gcd_comm n m, gcd_gcd_self_right_left]
+
+@[simp] lemma gcd_gcd_self_left_right (m n : ℕ) : gcd (gcd n m) m = gcd n m :=
+by rw [gcd_comm, gcd_gcd_self_right_right]
+
+@[simp] lemma gcd_gcd_self_left_left (m n : ℕ) : gcd (gcd m n) m = gcd m n :=
+by rw [gcd_comm m n, gcd_gcd_self_left_right]
+
 /- lcm -/
 
 theorem lcm_comm (m n : ℕ) : lcm m n = lcm n m :=
@@ -226,6 +250,17 @@ H.coprime_dvd_right (dvd_mul_left _ _)
 
 theorem coprime.coprime_mul_right_right {k m n : ℕ} (H : coprime m (n * k)) : coprime m n :=
 H.coprime_dvd_right (dvd_mul_right _ _)
+
+lemma coprime_mul_iff_left {k m n : ℕ} : coprime (m * n) k ↔ coprime m k ∧ coprime n k :=
+⟨λ h, ⟨coprime.coprime_mul_right h, coprime.coprime_mul_left h⟩,
+  λ ⟨h, _⟩, by rwa [coprime, coprime.gcd_mul_left_cancel n h]⟩
+
+lemma coprime_mul_iff_right {k m n : ℕ} : coprime k (m * n) ↔ coprime m k ∧ coprime n k :=
+by rw [coprime, nat.gcd_comm]; exact coprime_mul_iff_left
+
+lemma coprime.mul_dvd_of_dvd_of_dvd {a n m : ℕ} (hmn : coprime m n)
+  (hm : m ∣ a) (hn : n ∣ a) : m * n ∣ a :=
+let ⟨k, hk⟩ := hm in hk.symm ▸ mul_dvd_mul_left _ (hmn.symm.dvd_of_dvd_mul_left (hk ▸ hn))
 
 theorem coprime_one_left : ∀ n, coprime 1 n := gcd_one_left
 

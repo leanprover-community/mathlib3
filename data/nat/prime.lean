@@ -22,7 +22,7 @@ theorem prime.gt_one {p : ℕ} : prime p → p > 1 := prime.ge_two
 theorem prime_def_lt {p : ℕ} : prime p ↔ p ≥ 2 ∧ ∀ m < p, m ∣ p → m = 1 :=
 and_congr_right $ λ p2, forall_congr $ λ m,
 ⟨λ h l d, (h d).resolve_right (ne_of_lt l),
- λ h d, (lt_or_eq_of_le $
+ λ h d, (decidable.lt_or_eq_of_le $
    le_of_dvd (le_of_succ_le p2) d).imp_left (λ l, h l d)⟩
 
 theorem prime_def_lt' {p : ℕ} : prime p ↔ p ≥ 2 ∧ ∀ m, 2 ≤ m → m < p → ¬ m ∣ p :=
@@ -71,7 +71,7 @@ theorem prime_two : prime 2 := dec_trivial
 theorem prime_three : prime 3 := dec_trivial
 
 theorem prime.pred_pos {p : ℕ} (pp : prime p) : pred p > 0 :=
-lt_pred_of_succ_lt pp.gt_one
+lt_pred_iff.2 pp.gt_one
 
 theorem succ_pred_prime {p : ℕ} (pp : prime p) : succ (pred p) = p :=
 succ_pred_eq_of_pos pp.pos
@@ -219,6 +219,11 @@ have np : n ≤ p, from le_of_not_ge $ λ h,
   pp.not_dvd_one h₂,
 ⟨p, np, pp⟩
 
+lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
+(nat.mod_two_eq_zero_or_one p).elim
+  (λ h, or.inl ((hp.2 2 (dvd_of_mod_eq_zero h)).resolve_left dec_trivial).symm)
+  or.inr
+
 theorem factors_lemma {k} : (k+2) / min_fac (k+2) < k+2 :=
 div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one
 
@@ -272,6 +277,15 @@ theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p �
 by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
     exact (pp.dvd_mul.1 h).elim IH id]
+
+lemma prime.dvd_fact : ∀ {n p : ℕ} (hp : prime p), p ∣ n.fact ↔ p ≤ n
+| 0 p hp := iff_of_false hp.not_dvd_one (not_le_of_lt hp.pos)
+| (n+1) p hp := begin
+  rw [fact_succ, hp.dvd_mul, prime.dvd_fact hp],
+  exact ⟨λ h, h.elim (le_of_dvd (succ_pos _)) le_succ_of_le,
+    λ h, (_root_.lt_or_eq_of_le h).elim (or.inr ∘ le_of_lt_succ)
+      (λ h, or.inl $ by rw h)⟩
+end
 
 theorem prime.coprime_pow_of_not_dvd {p m a : ℕ} (pp : prime p) (h : ¬ p ∣ a) : coprime a (p^m) :=
 (pp.coprime_iff_not_dvd.2 h).symm.pow_right _

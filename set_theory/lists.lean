@@ -212,11 +212,11 @@ begin
     cases equiv.antisymm_iff.1 h₂ with hl₂ hr₂,
     apply equiv.antisymm_iff.2; split; apply lists'.subset_def.2,
     { intros a₁ m₁,
-      rcases lists'.mem_of_subset' hl₁ m₁ with ⟨a₂, m₂, e₁₂⟩, 
+      rcases lists'.mem_of_subset' hl₁ m₁ with ⟨a₂, m₂, e₁₂⟩,
       rcases lists'.mem_of_subset' hl₂ m₂ with ⟨a₃, m₃, e₂₃⟩,
       exact ⟨a₃, m₃, IH _ m₁ e₁₂ e₂₃⟩ },
     { intros a₃ m₃,
-      rcases lists'.mem_of_subset' hr₂ m₃ with ⟨a₂, m₂, e₃₂⟩, 
+      rcases lists'.mem_of_subset' hr₂ m₃ with ⟨a₂, m₂, e₃₂⟩,
       rcases lists'.mem_of_subset' hr₁ m₂ with ⟨a₁, m₁, e₂₁⟩,
       exact ⟨a₁, m₁, (IH _ m₁ e₂₁.symm e₃₂.symm).symm⟩ } },
   { rintro _ ⟨⟩ },
@@ -244,7 +244,7 @@ by cases l; {unfold_sizeof, trivial_nat_lt}
 
 theorem lt_sizeof_cons' {b} (a : lists' α b) (l) :
   sizeof (⟨b, a⟩ : lists α) < sizeof (lists'.cons' a l) :=
-by {unfold_sizeof, exact lt_add_of_pos_right _ (sizeof_pos _)}
+by {unfold_sizeof, apply sizeof_pos}
 
 @[instance] mutual def equiv.decidable, subset.decidable, mem.decidable [decidable_eq α]
 with equiv.decidable : ∀ l₁ l₂ : lists α, decidable (l₁ ~ l₂)

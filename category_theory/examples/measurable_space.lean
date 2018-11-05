@@ -14,16 +14,20 @@ universes u v
 
 namespace category_theory.examples
 
-@[reducible] def Meas : Type (u+1) := sigma measurable_space
+@[reducible] def Meas : Type (u+1) := bundled measurable_space
+
+instance (x : Meas) : measurable_space x := x.str
 
 namespace Meas
 
 instance : concrete_category @measurable := ⟨@measurable_id, @measurable.comp⟩
 
+-- -- If `measurable` were a class, we would summon instances:
+-- local attribute [class] measurable
+-- instance {X Y : Meas} (f : X ⟶ Y) : measurable (f : X → Y) := f.2
 end Meas
 
 def Borel : Top ⥤ Meas :=
-concrete_functor @continuous @measurable
-  @measure_theory.borel @measure_theory.measurable_of_continuous
+concrete_functor @measure_theory.borel @measure_theory.measurable_of_continuous
 
 end category_theory.examples

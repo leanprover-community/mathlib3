@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Scott Morrison
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import data.dlist.basic category.basic
 
@@ -15,8 +15,23 @@ meta def deinternalize_field : name → name
 
 end name
 
+namespace name_set
+meta def filter (s : name_set) (P : name → bool) : name_set :=
+s.fold s (λ a m, if P a then m else m.erase a)
+
+meta def mfilter {m} [monad m] (s : name_set) (P : name → m bool) : m name_set :=
+s.fold (pure s) (λ a m,
+  do x ← m,
+     mcond (P a) (pure x) (pure $ x.erase a))
+
+meta def union (s t : name_set) : name_set :=
+s.fold t (λ a t, t.insert a)
+
+end name_set
 namespace expr
 open tactic
+
+attribute [derive has_reflect] binder_info
 
 protected meta def to_pos_nat : expr → option ℕ
 | `(has_one.one _) := some 1
@@ -48,8 +63,15 @@ meta def is_meta_var : expr → bool
 | (mvar _ _ _) := tt
 | e            := ff
 
+meta def is_sort : expr → bool
+| (sort _) := tt
+| e         := ff
+
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
+
+meta def list_constant (e : expr) : name_set :=
+e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)
 
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
@@ -130,6 +152,31 @@ end
 end lean.parser
 
 namespace tactic
+
+meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
+mk_app ``id [e] >>= eval_expr α
+
+meta def is_simp_lemma : name → tactic bool :=
+succeeds ∘ tactic.has_attribute `simp
+
+meta def local_decls : tactic (name_map declaration) :=
+do e ← tactic.get_env,
+   let xs := e.fold native.mk_rb_map
+     (λ d s, if environment.in_current_file' e d.to_name
+             then s.insert d.to_name d else s),
+   pure xs
+
+meta def simp_lemmas_from_file : tactic name_set :=
+do s ← local_decls,
+   let s := s.map (expr.list_constant ∘ declaration.value),
+   xs ← s.to_list.mmap ((<$>) name_set.of_list ∘ mfilter tactic.is_simp_lemma ∘ name_set.to_list ∘ prod.snd),
+   return $ name_set.filter (xs.foldl name_set.union mk_name_set) (λ x, ¬ s.contains x)
+
+meta def file_simp_attribute_decl (attr : name) : tactic unit :=
+do s ← simp_lemmas_from_file,
+   trace format!"run_cmd mk_simp_attr `{attr}",
+   let lmms := format.join $ list.intersperse " " $ s.to_list.map to_fmt,
+   trace format!"local attribute [{attr}] {lmms}"
 
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
@@ -329,20 +376,6 @@ do h' ← assert h p,
    set_goals [g₁],
    return (h', gs)
 
-meta def try_intros : list name → tactic (list name)
-| [] := try intros $> []
-| (x::xs) := (intro x >> try_intros xs) <|> pure (x :: xs)
-
-meta def ext1 (xs : list name) : tactic (list name) :=
-do ls ← attribute.get_instances `extensionality,
-   ls.any_of (λ l, applyc l) <|> fail "no applicable extensionality rule found",
-   try_intros xs
-
-meta def ext : list name → option ℕ → tactic unit
-| _  (some 0) := skip
-| xs n        := focus1 $ do
-  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
-
 meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
 | _ := []
@@ -428,30 +461,31 @@ meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × e
 tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
 meta def apply_assumption
-  (asms : option (list expr) := none)
+  (asms : tactic (list expr) := local_context)
   (tac : tactic unit := skip) : tactic unit :=
-do { ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H; tac) } <|>
+do { ctx ← asms,
+     ctx.any_of (λ H, symm_apply H >> tac) } <|>
 do { exfalso,
-     ctx ← asms.to_monad <|> local_context,
-     ctx.any_of (λ H, () <$ symm_apply H; tac) }
+     ctx ← asms,
+     ctx.any_of (λ H, symm_apply H >> tac) }
 <|> fail "assumption tactic failed"
 
 open nat
 
-meta def solve_by_elim_aux (discharger : tactic unit) (asms : option (list expr))  : ℕ → tactic unit
+meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
 | 0 := done
 | (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
   (discharger : tactic unit := done)
-  (restr_hyp_set : option (list expr) := none)
+  (assumptions : tactic (list expr) := local_context)
   (max_rep : ℕ := 3)
 
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  solve_by_elim_aux opt.discharger opt.restr_hyp_set opt.max_rep
+  focus1 $
+    solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 meta def metavariables : tactic (list expr) :=
 do r ← result,
@@ -460,9 +494,7 @@ do r ← result,
 /-- Succeeds only if the current goal is a proposition. -/
 meta def propositional_goal : tactic unit :=
 do goals ← get_goals,
-   let current_goal := goals.head,
-   current_goal_type ← infer_type current_goal,
-   p ← is_prop current_goal_type,
+   p ← is_proof goals.head,
    guard p
 
 variable {α : Type}
@@ -470,11 +502,13 @@ variable {α : Type}
 private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
 | L := (do r ← t, iterate_aux (r :: L)) <|> return L
 
+/-- Apply a tactic as many times as possible, collecting the results in a list. -/
 meta def iterate' (t : tactic α) : tactic (list α) :=
 list.reverse <$> iterate_aux t []
 
+/-- Like iterate', but fail if the tactic does not succeed at least once. -/
 meta def iterate1 (t : tactic α) : tactic (α × list α) :=
-do r ← t | fail "iterate1 failed: tactic did not succeed",
+do r ← decorate_ex "iterate1 failed: tactic did not succeed" t,
    L ← iterate' t,
    return (r, L)
 
@@ -482,7 +516,7 @@ meta def intros1 : tactic (list expr) :=
 iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
-meta def successes {α} (tactics : list (tactic α)) : tactic (list α) :=
+meta def successes (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
 
 /-- Return target after instantiating metavars and whnf -/
@@ -511,10 +545,169 @@ run_cmd add_interactive [`injections_and_clear]
 
 meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",
-   note n none e, skip 
+   note n none e, skip
 
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,
    prod.snd <$> solve_aux t' assumption
+
+/-- `dependent_pose_core l`: introduce dependent hypothesis, where the proofs depend on the values
+of the previous local constants. `l` is a list of local constants and their values. -/
+meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
+  let lc := l.map prod.fst,
+  let lm := l.map (λ⟨l, v⟩, (l.local_uniq_name, v)),
+  t ← target,
+  new_goal ← mk_meta_var (t.pis lc),
+  old::other_goals ← get_goals,
+  set_goals (old :: new_goal :: other_goals),
+  exact ((new_goal.mk_app lc).instantiate_locals lm),
+  return ()
+
+/-- like `mk_local_pis` but translating into weak head normal form before checking if it is a Π. -/
+meta def mk_local_pis_whnf : expr → tactic (list expr × expr) | e := do
+(expr.pi n bi d b) ← whnf e | return ([], e),
+p ← mk_local' n bi d,
+(ps, r) ← mk_local_pis (expr.instantiate_var b p),
+return ((p :: ps), r)
+
+/-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g` -/
+meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
+  t ← infer_type h,
+  (ctxt, t) ← mk_local_pis_whnf t,
+  `(@Exists %%α %%p) ← whnf t transparency.all | fail "expected a term of the shape ∀xs, ∃a, p xs a",
+  α_t ← infer_type α,
+  expr.sort u ← whnf α_t transparency.all,
+  value ← mk_local_def data (α.pis ctxt),
+  t' ← head_beta (p.app (value.mk_app ctxt)),
+  spec ← mk_local_def spec (t'.pis ctxt),
+  dependent_pose_core [
+    (value, ((((expr.const `classical.some [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt),
+    (spec, ((((expr.const `classical.some_spec [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt)],
+  try (tactic.clear h),
+  intro1,
+  intro1
+
+/-- Changes `(h : ∀xs, ∃as, p as) ⊢ g` to a list of functions `as`, an a final hypothesis on `p as` -/
+meta def choose : expr → list name → tactic unit
+| h [] := fail "expect list of variables"
+| h [n] := do
+  cnt ← revert h,
+  intro n,
+  intron (cnt - 1),
+  return ()
+| h (n::ns) := do
+  v ← get_unused_name >>= choose1 h n,
+  choose v ns
+
+/-- This makes sure that the execution of the tactic does not change the tactic state.
+    This can be helpful while using rewrite, apply, or expr munging.
+    Remember to instantiate your metavariables before you're done! -/
+meta def lock_tactic_state {α} (t : tactic α) : tactic α
+| s := match t s with
+       | result.success a s' := result.success a s
+       | result.exception msg pos s' := result.exception msg pos s
+end
+
+/--
+Hole command used to fill in a structure's field when specifying an instance.
+
+In the following:
+
+```
+instance : monad id :=
+{! !}
+```
+
+invoking hole command `Instance Stub` produces:
+
+```
+instance : monad id :=
+{ map := _,
+  map_const := _,
+  pure := _,
+  seq := _,
+  seq_left := _,
+  seq_right := _,
+  bind := _ }
+```
+-/
+@[hole_command] meta def instance_stub : hole_command :=
+{ name := "Instance Stub",
+  descr := "Generate a skeleton for the structure under construction.",
+  action := λ _,
+  do tgt ← target,
+     let cl := tgt.get_app_fn.const_name,
+     env ← get_env,
+     fs ← expanded_field_list cl,
+     let fs := fs.map prod.snd,
+     let fs := list.intersperse (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
+     let out := format.to_string format!"{{ {format.join fs} }",
+     return [(out,"")] }
+
+meta def classical : tactic unit :=
+do h ← get_unused_name `_inst,
+   mk_const `classical.prop_decidable >>= note h none,
+   reset_instance_cache
+
+open expr
+
+meta def add_prime : name → name
+| (name.mk_string s p) := name.mk_string (s ++ "'") p
+| n := (name.mk_string "x'" n)
+
+meta def mk_comp (v : expr) : expr → tactic expr
+| (app f e) :=
+  if e = v then pure f
+  else do
+    guard (¬ v.occurs f) <|> fail "bad guard",
+    e' ← mk_comp e >>= instantiate_mvars,
+    f ← instantiate_mvars f,
+    mk_mapp ``function.comp [none,none,none,f,e']
+| e :=
+  do guard (e = v),
+     t ← infer_type e,
+     mk_mapp ``id [t]
+
+meta def mk_higher_order_type : expr → tactic expr
+| (pi n bi d b@(pi _ _ _ _)) :=
+  do v ← mk_local_def n d,
+     let b' := (b.instantiate_var v),
+     (pi n bi d ∘ flip abstract_local v.local_uniq_name) <$> mk_higher_order_type b'
+| (pi n bi d b) :=
+  do v ← mk_local_def n d,
+     let b' := (b.instantiate_var v),
+     (l,r) ← match_eq b' <|> fail format!"not an equality {b'}",
+     l' ← mk_comp v l,
+     r' ← mk_comp v r,
+     mk_app ``eq [l',r']
+ | e := failed
+
+open lean.parser interactive.types
+
+@[user_attribute]
+meta def higher_order_attr : user_attribute unit (option name) :=
+{ name := `higher_order,
+  parser := optional ident,
+  descr :=
+"From a lemma of the shape `f (g x) = h x` derive an auxiliary lemma of the
+form `f ∘ g = h` for reasoning about higher-order functions.",
+  after_set := some $ λ lmm _ _,
+    do env  ← get_env,
+       decl ← env.get lmm,
+       let num := decl.univ_params.length,
+       let lvls := (list.iota num).map (`l).append_after,
+       let l : expr := expr.const lmm $ lvls.map level.param,
+       t ← infer_type l >>= instantiate_mvars,
+       t' ← mk_higher_order_type t,
+       (_,pr) ← solve_aux t' $ do {
+         intros, applyc ``_root_.funext, intro1, applyc lmm; assumption },
+       pr ← instantiate_mvars pr,
+       lmm' ← higher_order_attr.get_param lmm,
+       lmm' ← (flip name.update_prefix lmm.get_prefix <$> lmm') <|> pure (add_prime lmm),
+       add_decl $ declaration.thm lmm' lvls t' (pure pr),
+       copy_attribute `simp lmm tt lmm',
+       copy_attribute `functor_norm lmm tt lmm' }
+
+attribute [higher_order map_comp_pure] map_pure
 
 end tactic

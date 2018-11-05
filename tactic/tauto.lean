@@ -176,26 +176,27 @@ do { ctx ← local_context,
 meta def assumption_symm :=
 using_new_ref (native.rb_map.mk _ _) assumption_with
 
-meta def tautology : tactic unit :=
-using_new_ref (expr_map.mk _) $ λ r,
-do try (contradiction_with r);
-   try (assumption_with r);
-   repeat (do
-     gs ← get_goals,
-     () <$ tactic.intros;
-     distrib_not;
-     casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
-     try (contradiction_with r);
-     try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
-     try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
-     () <$ tactic.intros;
-     constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
-     try (assumption_with r),
-     gs' ← get_goals,
-     guard (gs ≠ gs') ) ;
-   repeat
-   (reflexivity <|> solve_by_elim <|>
-    constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)] ) ;
-   done
+meta def tautology (c : bool := ff) : tactic unit :=
+do when c classical,
+   using_new_ref (expr_map.mk _) $ λ r,
+   do try (contradiction_with r);
+      try (assumption_with r);
+      repeat (do
+        gs ← get_goals,
+        () <$ tactic.intros;
+        distrib_not;
+        casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
+        try (contradiction_with r);
+        try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
+        try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
+        () <$ tactic.intros;
+        constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
+        try (assumption_with r),
+        gs' ← get_goals,
+        guard (gs ≠ gs') ) ;
+      repeat
+      (reflexivity <|> solve_by_elim <|>
+       constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)] ) ;
+      done
 
 end tactic

@@ -35,6 +35,9 @@ by rw [← @mk.eta _ _ p, ← @mk.eta _ _ q, mk.inj_iff]
 lemma ext {α β} {p q : α × β} : p.1 = q.1 → p.2 = q.2 → p = q :=
 by rw [ext_iff] ; intros ; split ; assumption
 
+lemma id_prod : (λ (p : α × α), (p.1, p.2)) = id :=
+by ext ; simp
+
 /-- Swap the factors of a product. `swap (a, b) = (b, a)` -/
 def swap : α × β → β × α := λp, (p.2, p.1)
 
@@ -67,5 +70,10 @@ theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
  | (a, b), (c, d), or.inr ⟨e, h⟩ :=
    by change a = c at e; subst e; exact lex.right _ _ h
  end⟩
+
+instance lex.decidable [decidable_eq α] [decidable_eq β]
+  (r : α → α → Prop) (s : β → β → Prop) [decidable_rel r] [decidable_rel s] :
+  decidable_rel (prod.lex r s) :=
+λ p q, decidable_of_decidable_of_iff (by apply_instance) (lex_def r s).symm
 
 end prod

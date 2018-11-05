@@ -44,6 +44,7 @@ attribute [to_additive quotient_add_group.add_group._proof_3] quotient_group.gro
 attribute [to_additive quotient_add_group.add_group._proof_2] quotient_group.group._proof_2
 attribute [to_additive quotient_add_group.add_group._proof_1] quotient_group.group._proof_1
 attribute [to_additive quotient_add_group.add_group] quotient_group.group
+attribute [to_additive quotient_add_group.quotient.equations._eqn_1] quotient_group.quotient.equations._eqn_1
 attribute [to_additive quotient_add_group.add_group.equations._eqn_1] quotient_group.group.equations._eqn_1
 
 instance : is_group_hom (mk : G → quotient N) := ⟨λ _ _, rfl⟩
@@ -100,6 +101,21 @@ attribute [to_additive quotient_add_group.lift_mk] lift_mk
 @[simp] lemma lift_mk' {φ : G → H} [is_group_hom φ] (HN : ∀x∈N, φ x = 1) (g : G) :
   lift N φ HN (mk g : Q) = φ g := rfl
 attribute [to_additive quotient_add_group.lift_mk'] lift_mk'
+
+def map (M : set H) [normal_subgroup M] (f : G → H) [is_group_hom f] (h : N ⊆ f ⁻¹' M) :
+  quotient N → quotient M :=
+begin
+  haveI : is_group_hom ((mk : H → quotient M) ∘ f) := is_group_hom.comp _ _,
+  refine quotient_group.lift N (mk ∘ f) _,
+  assume x hx,
+  refine quotient_group.eq.2 _,
+  rw [mul_one, is_subgroup.inv_mem_iff],
+  exact h hx,
+end
+
+attribute [to_additive quotient_add_group.map._proof_1] map._proof_1
+attribute [to_additive quotient_add_group.map._proof_2] map._proof_2
+attribute [to_additive quotient_add_group.map] map
 
 variables (φ : G → H) [is_group_hom φ] (HN : ∀x∈N, φ x = 1)
 

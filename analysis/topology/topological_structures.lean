@@ -8,22 +8,17 @@ Theory of topological monoids, groups and rings.
 TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups, or add a type class
 `topological_operator α (*)`.
 -/
-
-import algebra.big_operators
 import order.liminf_limsup
+import algebra.big_operators algebra.group algebra.pi_instances
+import data.set.intervals data.equiv.algebra
 import analysis.topology.topological_space analysis.topology.continuity analysis.topology.uniform_space
+import ring_theory.ideals
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
-
-lemma dense_or_discrete [linear_order α] {a₁ a₂ : α} (h : a₁ < a₂) :
-  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
-classical.or_iff_not_imp_left.2 $ assume h,
-  ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
-    assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
 section topological_monoid
 
@@ -32,25 +27,44 @@ section topological_monoid
 class topological_monoid (α : Type u) [topological_space α] [monoid α] : Prop :=
 (continuous_mul : continuous (λp:α×α, p.1 * p.2))
 
+/-- A topological (additive) monoid is a monoid in which the addition is
+  continuous as a function `α × α → α`. -/
+class topological_add_monoid (α : Type u) [topological_space α] [add_monoid α] : Prop :=
+(continuous_add : continuous (λp:α×α, p.1 + p.2))
+
+attribute [to_additive topological_add_monoid] topological_monoid
+attribute [to_additive topological_add_monoid.mk] topological_monoid.mk
+attribute [to_additive topological_add_monoid.continuous_add] topological_monoid.continuous_mul
+
 section
 variables [topological_space α] [monoid α] [topological_monoid α]
 
+@[to_additive continuous_add']
 lemma continuous_mul' : continuous (λp:α×α, p.1 * p.2) :=
 topological_monoid.continuous_mul α
 
+@[to_additive continuous_add]
 lemma continuous_mul [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
 (hf.prod_mk hg).comp continuous_mul'
 
+-- @[to_additive continuous_smul]
+lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
+| 0 := by simpa using continuous_const
+| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_mul continuous_id (continuous_pow _)
+
+@[to_additive tendsto_add']
 lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)) :=
 continuous_iff_tendsto.mp (topological_monoid.continuous_mul α) (a, b)
 
+@[to_additive tendsto_add]
 lemma tendsto_mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
   tendsto (λx, f x * g x) x (nhds (a * b)) :=
 (hf.prod_mk hg).comp (by rw [←nhds_prod_eq]; exact tendsto_mul')
 
+@[to_additive tendsto_list_sum]
 lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
   ∀l:list γ, (∀c∈l, tendsto (f c) x (nhds (a c))) →
     tendsto (λb, (l.map (λc, f c b)).prod) x (nhds ((l.map a).prod))
@@ -63,30 +77,43 @@ lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
       (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
   end
 
+@[to_additive continuous_list_sum]
 lemma continuous_list_prod [topological_space β] {f : γ → β → α} (l : list γ)
   (h : ∀c∈l, continuous (f c)) :
   continuous (λa, (l.map (λc, f c a)).prod) :=
 continuous_iff_tendsto.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_tendsto.1 (h c hc) x
 
+@[to_additive prod.topological_add_monoid]
+instance [topological_space β] [monoid β] [topological_monoid β] : topological_monoid (α × β) :=
+⟨continuous.prod_mk
+  (continuous_mul (continuous_fst.comp continuous_fst) (continuous_snd.comp continuous_fst))
+  (continuous_mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd)) ⟩
+
+attribute [instance] prod.topological_add_monoid
+
 end
 
 section
 variables [topological_space α] [comm_monoid α] [topological_monoid α]
 
+@[to_additive tendsto_multiset_sum]
 lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) →
     tendsto (λb, (s.map (λc, f c b)).prod) x (nhds ((s.map a).prod)) :=
 by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
 
+@[to_additive tendsto_finset_sum]
 lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
   (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.prod (λc, f c b)) x (nhds (s.prod a)) :=
 tendsto_multiset_prod _
 
+@[to_additive continuous_multiset_sum]
 lemma continuous_multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).prod) :=
 by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
 
+@[to_additive continuous_finset_sum]
 lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
 continuous_multiset_prod _
@@ -95,92 +122,137 @@ end
 
 end topological_monoid
 
-section topological_add_monoid
+section topological_group
 
-/-- A topological (additive) monoid is a monoid in which the addition is
-  continuous as a function `α × α → α`. -/
-class topological_add_monoid (α : Type u) [topological_space α] [add_monoid α] : Prop :=
-(continuous_add : continuous (λp:α×α, p.1 + p.2))
+/-- A topological group is a group in which the multiplication and inversion operations are
+continuous. -/
+class topological_group (α : Type*) [topological_space α] [group α]
+  extends topological_monoid α : Prop :=
+(continuous_inv : continuous (λa:α, a⁻¹))
 
-section
-variables [topological_space α] [add_monoid α] [topological_add_monoid α]
-
-lemma continuous_add' : continuous (λp:α×α, p.1 + p.2) :=
-topological_add_monoid.continuous_add α
-
-lemma continuous_add [topological_space β] {f : β → α} {g : β → α}
-  (hf : continuous f) (hg : continuous g) : continuous (λx, f x + g x) :=
-(hf.prod_mk hg).comp continuous_add'
-
-lemma tendsto_add' {a b : α} : tendsto (λp:α×α, p.fst + p.snd) (nhds (a, b)) (nhds (a + b)) :=
-continuous_iff_tendsto.mp (topological_add_monoid.continuous_add α) (a, b)
-
-lemma tendsto_add {f : β → α} {g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
-  tendsto (λx, f x + g x) x (nhds (a + b)) :=
-(hf.prod_mk hg).comp (by rw [←nhds_prod_eq]; exact tendsto_add')
-
-lemma tendsto_list_sum {f : γ → β → α} {x : filter β} {a : γ → α} :
-  ∀l:list γ, (∀c∈l, tendsto (f c) x (nhds (a c))) →
-    tendsto (λb, (l.map (λc, f c b)).sum) x (nhds ((l.map a).sum))
-| []       _ := by simp [tendsto_const_nhds]
-| (f :: l) h :=
-  begin
-    simp,
-    exact tendsto_add
-      (h f (list.mem_cons_self _ _))
-      (tendsto_list_sum l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
-  end
-
-lemma continuous_list_sum [topological_space β] {f : γ → β → α} (l : list γ)
-  (h : ∀c∈l, continuous (f c)) : continuous (λa, (l.map (λc, f c a)).sum) :=
-continuous_iff_tendsto.2 $ assume x, tendsto_list_sum l $ assume c hc,
-  continuous_iff_tendsto.1 (h c hc) x
-
-end
-
-section
-variables [topological_space α] [add_comm_monoid α] [topological_add_monoid α]
-
-lemma tendsto_multiset_sum {f : γ → β → α} {x : filter β} {a : γ → α} :
-  ∀ (s : multiset γ), (∀c∈s, tendsto (f c) x (nhds (a c))) →
-    tendsto (λb, (s.map (λc, f c b)).sum) x (nhds ((s.map a).sum)) :=
-by rintros ⟨l⟩; simp; exact tendsto_list_sum l
-
-lemma tendsto_finset_sum {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
-  (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.sum (λc, f c b)) x (nhds (s.sum a)) :=
-tendsto_multiset_sum _
-
-lemma continuous_multiset_sum [topological_space β] {f : γ → β → α} :
-  ∀(s : multiset γ), (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).sum) :=
-by rintros ⟨l⟩; simp; exact continuous_list_sum l
-
-lemma continuous_finset_sum [topological_space β] {f : γ → β → α} (s : finset γ) :
-  (∀c∈s, continuous (f c)) → continuous (λa, s.sum (λc, f c a)) :=
-continuous_multiset_sum _
-
-end
-end topological_add_monoid
-
-section topological_add_group
-/-- A topological (additive) group is a group in which the addition and
-  negation operations are continuous. -/
+/-- A topological (additive) group is a group in which the addition and negation operations are
+continuous. -/
 class topological_add_group (α : Type u) [topological_space α] [add_group α]
   extends topological_add_monoid α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
+attribute [to_additive topological_add_group] topological_group
+attribute [to_additive topological_add_group.mk] topological_group.mk
+attribute [to_additive topological_add_group.continuous_neg] topological_group.continuous_inv
+attribute [to_additive topological_add_group.to_topological_add_monoid] topological_group.to_topological_monoid
+
+variables [topological_space α] [group α]
+
+@[to_additive continuous_neg']
+lemma continuous_inv' [topological_group α] : continuous (λx:α, x⁻¹) :=
+topological_group.continuous_inv α
+
+@[to_additive continuous_neg]
+lemma continuous_inv [topological_group α] [topological_space β] {f : β → α}
+  (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
+hf.comp continuous_inv'
+
+@[to_additive tendsto_neg]
+lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
+  (hf : tendsto f x (nhds a)) : tendsto (λx, (f x)⁻¹) x (nhds a⁻¹) :=
+hf.comp (continuous_iff_tendsto.mp (topological_group.continuous_inv α) a)
+
+@[to_additive prod.topological_add_group]
+instance [topological_group α] [topological_space β] [group β] [topological_group β] :
+  topological_group (α × β) :=
+{ continuous_inv := continuous.prod_mk (continuous_inv continuous_fst) (continuous_inv continuous_snd) }
+
+attribute [instance] prod.topological_add_group
+
+protected def homeomorph.mul_left [topological_group α] (a : α) : α ≃ₜ α :=
+{ continuous_to_fun  := continuous_mul continuous_const continuous_id,
+  continuous_inv_fun := continuous_mul continuous_const continuous_id,
+  .. equiv.mul_left a }
+attribute [to_additive homeomorph.add_left._proof_1] homeomorph.mul_left._proof_1
+attribute [to_additive homeomorph.add_left._proof_2] homeomorph.mul_left._proof_2
+attribute [to_additive homeomorph.add_left._proof_3] homeomorph.mul_left._proof_3
+attribute [to_additive homeomorph.add_left._proof_4] homeomorph.mul_left._proof_4
+attribute [to_additive homeomorph.add_left] homeomorph.mul_left
+
+@[to_additive is_open_map_add_left]
+lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map (λ x, a * x) :=
+(homeomorph.mul_left a).is_open_map
+
+protected def homeomorph.mul_right
+  {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
+  α ≃ₜ α :=
+{ continuous_to_fun  := continuous_mul continuous_id continuous_const,
+  continuous_inv_fun := continuous_mul continuous_id continuous_const,
+  .. equiv.mul_right a }
+attribute [to_additive homeomorph.add_right._proof_1] homeomorph.mul_right._proof_1
+attribute [to_additive homeomorph.add_right._proof_2] homeomorph.mul_right._proof_2
+attribute [to_additive homeomorph.add_right._proof_3] homeomorph.mul_right._proof_3
+attribute [to_additive homeomorph.add_right._proof_4] homeomorph.mul_right._proof_4
+attribute [to_additive homeomorph.add_right] homeomorph.mul_right
+
+@[to_additive is_open_map_add_right]
+lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (λ x, x * a) :=
+(homeomorph.mul_right a).is_open_map
+
+protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
+  α ≃ₜ α :=
+{ continuous_to_fun  := continuous_inv',
+  continuous_inv_fun := continuous_inv',
+  .. equiv.inv α }
+attribute [to_additive homeomorph.inv._proof_1] homeomorph.inv._proof_1
+attribute [to_additive homeomorph.inv._proof_2] homeomorph.inv._proof_2
+attribute [to_additive homeomorph.inv] homeomorph.inv
+
+@[to_additive exists_nhds_half]
+lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ (nhds (1 : α)).sets) :
+  ∃ V ∈ (nhds (1 : α)).sets, ∀ v w ∈ V, v * w ∈ s :=
+begin
+  have : ((λa:α×α, a.1 * a.2) ⁻¹' s) ∈ (nhds ((1, 1) : α × α)).sets :=
+    tendsto_mul' (by simpa using hs),
+  rw nhds_prod_eq at this,
+  rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
+  exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
+end
+
+@[to_additive exists_nhds_quarter]
+lemma exists_nhds_split4 [topological_group α] {u : set α} (hu : u ∈ (nhds (1 : α)).sets) :
+  ∃ V ∈ (nhds (1 : α)).sets, ∀ {v w s t}, v ∈ V → w ∈ V → s ∈ V → t ∈ V → v * w * s * t ∈ u :=
+begin
+  rcases exists_nhds_split hu with ⟨W, W_nhd, h⟩,
+  rcases exists_nhds_split W_nhd with ⟨V, V_nhd, h'⟩,
+  existsi [V, V_nhd],
+  intros v w s t v_in w_in s_in t_in,
+  simpa [mul_assoc] using h _ _ (h' v w v_in w_in) (h' s t s_in t_in)
+end
+
+section
+variable (α)
+@[to_additive nhds_zero_symm]
+lemma nhds_one_symm [topological_group α] : comap (λr:α, r⁻¹) (nhds (1 : α)) = nhds (1 : α) :=
+begin
+  have lim : tendsto (λr:α, r⁻¹) (nhds 1) (nhds 1),
+  { simpa using tendsto_inv (@tendsto_id α (nhds 1)) },
+  refine comap_eq_of_inverse _ _ lim lim,
+  { funext x, simp },
+end
+end
+
+@[to_additive nhds_translation_add_neg]
+lemma nhds_translation_mul_inv [topological_group α] (x : α) :
+  comap (λy:α, y * x⁻¹) (nhds 1) = nhds x :=
+begin
+  refine comap_eq_of_inverse (λy:α, y * x) _ _ _,
+  { funext x; simp },
+  { suffices : tendsto (λy:α, y * x⁻¹) (nhds x) (nhds (x * x⁻¹)), { simpa },
+    exact tendsto_mul tendsto_id tendsto_const_nhds },
+  { suffices : tendsto (λy:α, y * x) (nhds 1) (nhds (1 * x)), { simpa },
+    exact tendsto_mul tendsto_id tendsto_const_nhds }
+end
+
+end topological_group
+
+section topological_add_group
 variables [topological_space α] [add_group α]
-
-lemma continuous_neg' [topological_add_group α] : continuous (λx:α, - x) :=
-topological_add_group.continuous_neg α
-
-lemma continuous_neg [topological_add_group α] [topological_space β] {f : β → α}
-  (hf : continuous f) : continuous (λx, - f x) :=
-hf.comp continuous_neg'
-
-lemma tendsto_neg [topological_add_group α] {f : β → α} {x : filter β} {a : α}
-  (hf : tendsto f x (nhds a)) : tendsto (λx, - f x) x (nhds (- a)) :=
-hf.comp (continuous_iff_tendsto.mp (topological_add_group.continuous_neg α) a)
 
 lemma continuous_sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x - g x) :=
@@ -192,6 +264,9 @@ continuous_sub continuous_fst continuous_snd
 lemma tendsto_sub [topological_add_group α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x - g x) x (nhds (a - b)) :=
 by simp; exact tendsto_add hf (tendsto_neg hg)
+
+lemma nhds_translation [topological_add_group α] (x : α) : comap (λy:α, y - x) (nhds 0) = nhds x :=
+nhds_translation_add_neg x
 
 end topological_add_group
 
@@ -206,53 +281,146 @@ theorem uniform_add_group.mk' {α} [uniform_space α] [add_group α]
   (h₂ : uniform_continuous (λp:α, -p)) : uniform_add_group α :=
 ⟨(uniform_continuous_fst.prod_mk (uniform_continuous_snd.comp h₂)).comp h₁⟩
 
-variables [uniform_space α] [add_group α]
+variables [uniform_space α] [add_group α] [uniform_add_group α]
 
-lemma uniform_continuous_sub' [uniform_add_group α] : uniform_continuous (λp:α×α, p.1 - p.2) :=
+lemma uniform_continuous_sub' : uniform_continuous (λp:α×α, p.1 - p.2) :=
 uniform_add_group.uniform_continuous_sub α
 
-lemma uniform_continuous_sub [uniform_add_group α] [uniform_space β] {f : β → α} {g : β → α}
+lemma uniform_continuous_sub [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x - g x) :=
 (hf.prod_mk hg).comp uniform_continuous_sub'
 
-lemma uniform_continuous_neg [uniform_add_group α] [uniform_space β] {f : β → α}
+lemma uniform_continuous_neg [uniform_space β] {f : β → α}
   (hf : uniform_continuous f) : uniform_continuous (λx, - f x) :=
 have uniform_continuous (λx, 0 - f x),
   from uniform_continuous_sub uniform_continuous_const hf,
 by simp * at *
 
-lemma uniform_continuous_neg' [uniform_add_group α] : uniform_continuous (λx:α, - x) :=
+lemma uniform_continuous_neg' : uniform_continuous (λx:α, - x) :=
 uniform_continuous_neg uniform_continuous_id
 
-lemma uniform_continuous_add [uniform_add_group α] [uniform_space β] {f : β → α} {g : β → α}
+lemma uniform_continuous_add [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x + g x) :=
 have uniform_continuous (λx, f x - - g x),
   from uniform_continuous_sub hf $ uniform_continuous_neg hg,
 by simp * at *
 
-lemma uniform_continuous_add' [uniform_add_group α] : uniform_continuous (λp:α×α, p.1 + p.2) :=
+lemma uniform_continuous_add' : uniform_continuous (λp:α×α, p.1 + p.2) :=
 uniform_continuous_add uniform_continuous_fst uniform_continuous_snd
 
-instance uniform_add_group.to_topological_add_group [uniform_add_group α] : topological_add_group α :=
+instance uniform_add_group.to_topological_add_group : topological_add_group α :=
 { continuous_add := uniform_continuous_add'.continuous,
   continuous_neg := uniform_continuous_neg'.continuous }
 
+instance [uniform_space β] [add_group β] [uniform_add_group β] : uniform_add_group (α × β) :=
+⟨uniform_continuous.prod_mk
+  (uniform_continuous_sub
+    (uniform_continuous_fst.comp uniform_continuous_fst)
+    (uniform_continuous_snd.comp uniform_continuous_fst))
+  (uniform_continuous_sub
+    (uniform_continuous_fst.comp uniform_continuous_snd)
+    (uniform_continuous_snd.comp uniform_continuous_snd)) ⟩
+
+lemma uniformity_translate (a : α) : uniformity.map (λx:α×α, (x.1 + a, x.2 + a)) = uniformity :=
+le_antisymm
+  (uniform_continuous_add uniform_continuous_id uniform_continuous_const)
+  (calc uniformity =
+    (uniformity.map (λx:α×α, (x.1 + -a, x.2 + -a))).map (λx:α×α, (x.1 + a, x.2 + a)) :
+      by simp [filter.map_map, (∘)]; exact filter.map_id.symm
+    ... ≤ uniformity.map (λx:α×α, (x.1 + a, x.2 + a)) :
+      filter.map_mono (uniform_continuous_add uniform_continuous_id uniform_continuous_const))
+
+lemma uniform_embedding_translate (a : α) : uniform_embedding (λx:α, x + a) :=
+begin
+  refine ⟨assume x y, eq_of_add_eq_add_right, _⟩,
+  rw [← uniformity_translate a, comap_map] {occs := occurrences.pos [1]},
+  rintros ⟨p₁, p₂⟩ ⟨q₁, q₂⟩,
+  simp [prod.eq_iff_fst_eq_snd_eq] {contextual := tt}
+end
+
+section
+variables (α)
+lemma uniformity_eq_comap_nhds_zero : uniformity = comap (λx:α×α, x.2 - x.1) (nhds (0:α)) :=
+begin
+  rw [nhds_eq_comap_uniformity, filter.comap_comap_comp],
+  refine le_antisymm (filter.map_le_iff_le_comap.1 _) _,
+  { assume s hs,
+    rcases mem_uniformity_of_uniform_continuous_invarant uniform_continuous_sub' hs with ⟨t, ht, hts⟩,
+    refine mem_map.2 (mem_sets_of_superset ht _),
+    rintros ⟨a, b⟩,
+    simpa [subset_def] using hts a b a },
+  { assume s hs,
+    rcases mem_uniformity_of_uniform_continuous_invarant uniform_continuous_add' hs with ⟨t, ht, hts⟩,
+    refine ⟨_, ht, _⟩,
+    rintros ⟨a, b⟩, simpa [subset_def] using hts 0 (b - a) a }
+end
+end
+
+lemma group_separation_rel (x y : α) : (x, y) ∈ separation_rel α ↔ x - y ∈ closure ({0} : set α) :=
+have embedding (λa, a + (y - x)), from (uniform_embedding_translate (y - x)).embedding,
+show (x, y) ∈ ⋂₀ uniformity.sets ↔ x - y ∈ closure ({0} : set α),
+begin
+  rw [this.closure_eq_preimage_closure_image, uniformity_eq_comap_nhds_zero α, sInter_comap_sets],
+  simp [mem_closure_iff_nhds, inter_singleton_eq_empty]
+end
+
+lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
+  {f : α → β} [is_add_group_hom f] (h : tendsto f (nhds 0) (nhds 0)) :
+  uniform_continuous f :=
+begin
+  have : ((λx:β×β, x.2 - x.1) ∘ (λx:α×α, (f x.1, f x.2))) = (λx:α×α, f (x.2 - x.1)),
+  { simp only [is_add_group_hom.sub f] },
+  rw [uniform_continuous, uniformity_eq_comap_nhds_zero α, uniformity_eq_comap_nhds_zero β,
+    tendsto_comap_iff, this],
+  exact tendsto.comp tendsto_comap h
+end
+
+lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [uniform_add_group β]
+  {f : α → β} [is_add_group_hom f] (h : continuous f) :
+  uniform_continuous f :=
+uniform_continuous_of_tendsto_zero $
+  suffices tendsto f (nhds 0) (nhds (f 0)), by rwa [is_add_group_hom.zero f] at this,
+  h.tendsto 0
+
 end uniform_add_group
 
+section topological_ring
+universe u'
+variables (α) [topological_space α]
+
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
-class topological_semiring (α : Type u) [topological_space α] [semiring α]
+class topological_semiring [semiring α]
   extends topological_add_monoid α, topological_monoid α : Prop
 
+variables [ring α]
+
 /-- A topological ring is a ring where the ring operations are continuous. -/
-class topological_ring (α : Type u) [topological_space α] [ring α]
-  extends topological_add_monoid α, topological_monoid α : Prop :=
+class topological_ring extends topological_add_monoid α, topological_monoid α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
-instance topological_ring.to_topological_semiring
-  [topological_space α] [ring α] [t : topological_ring α] : topological_semiring α := {..t}
+variables [t : topological_ring α]
+instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
 
-instance topological_ring.to_topological_add_group
-  [topological_space α] [ring α] [t : topological_ring α] : topological_add_group α := {..t}
+instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
+end topological_ring
+
+section topological_comm_ring
+universe u'
+variables [topological_space α] [comm_ring α] [topological_ring α]
+
+def ideal.closure (S : ideal α) : ideal α :=
+{ carrier := closure S,
+  zero := subset_closure S.zero_mem,
+  add  := assume x y hx hy,
+    mem_closure2 continuous_add' hx hy $ assume a b, S.add_mem,
+  smul  := assume c x hx,
+    have continuous (λx:α, c * x) := continuous_mul continuous_const continuous_id,
+    mem_closure this hx $ assume a, S.mul_mem_left }
+
+@[simp] lemma ideal.coe_closure (S : ideal α) :
+  (S.closure : set α) = closure S := rfl
+
+end topological_comm_ring
 
 /-- (Partially) ordered topology
 Also called: partially ordered spaces (pospaces).

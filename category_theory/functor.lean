@@ -61,7 +61,7 @@ begin unfold functor.map, erw F.map_comp' end
 
 -- We define a refl lemma 'refolding' the coercion,
 -- and two lemmas for the coercion applied to an explicit structure.
-@[simp] lemma obj_eq_coe {F : C ⥤ D} (X : C) : F.obj X = F X := by unfold_coes
+@[simp] lemma obj_eq_coe {F : C ⥤ D} (X : C) : F.obj X = F X := rfl
 @[simp] lemma mk_obj (o : C → D) (m mi mc) (X : C) :
   ({ functor . obj := o, map' := m, map_id' := mi, map_comp' := mc } : C ⥤ D) X = o X := rfl
 @[simp] lemma mk_map (o : C → D) (m mi mc) {X Y : C} (f : X ⟶ Y) :
@@ -103,19 +103,30 @@ infixr ` ⋙ `:80 := comp
   (F ⋙ G).map f = G.map (F.map f) := rfl
 end
 
+section
+variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
+include 𝒞
+
+@[simp] def ulift_down : (ulift.{u₂} C) ⥤ C :=
+{ obj := λ X, X.down,
+  map' := λ X Y f, f }
+
+@[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
+{ obj := λ X, ⟨ X ⟩,
+  map' := λ X Y f, f }
+end
+
 end functor
 
+def bundled.map {c : Type u → Type v} {d : Type u → Type v} (f : Π{a}, c a → d a) (s : bundled c) : bundled d :=
+{ α := s.α, str := f s.str }
+
 def concrete_functor
-  {C : Type u → Type v} (hC : ∀{α β}, C α → C β → (α → β) → Prop) [concrete_category @hC]
-  {D : Type u → Type v} (hD : ∀{α β}, D α → D β → (α → β) → Prop) [concrete_category @hD]
-  (m : ∀{α}, C α → D α) (h : ∀{α β} (ia : C α) (ib : C β) {f}, hC ia ib f → hD (m ia) (m ib) f) :
-  sigma C ⥤ sigma D :=
-begin
-  /- Uh, we have a problem when obviously fails! -/
-  refine @category_theory.functor.mk (sigma C) _ (sigma D) _ (sigma.map id @m) _ _ _,
-  /- change sigma.map to use projections instead of case -/
-  { rintros ⟨a, ia⟩ ⟨b, ib⟩ ⟨f, hf⟩, exact ⟨f, h ia ib hf⟩ },
-  obviously
-end
+  {C : Type u → Type v} {hC : ∀{α β}, C α → C β → (α → β) → Prop} [concrete_category @hC]
+  {D : Type u → Type v} {hD : ∀{α β}, D α → D β → (α → β) → Prop} [concrete_category @hD]
+  (m : ∀{α}, C α → D α) (h : ∀{α β} {ia : C α} {ib : C β} {f}, hC ia ib f → hD (m ia) (m ib) f) :
+  bundled C ⥤ bundled D :=
+{ obj := bundled.map @m,
+  map' := λ X Y f, ⟨ f, h f.2 ⟩}
 
 end category_theory

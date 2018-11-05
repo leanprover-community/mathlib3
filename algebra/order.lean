@@ -16,17 +16,30 @@ lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a
 lemma le_iff_eq_or_lt [partial_order α] {a b : α} : a ≤ b ↔ a = b ∨ a < b :=
 le_iff_lt_or_eq.trans or.comm
 
+lemma lt_of_le_of_ne' [partial_order α] {a b : α} (h₁ : a ≤ b) (h₂ : a ≠ b) : a < b :=
+lt_of_le_not_le h₁ $ mt (le_antisymm h₁) h₂
+
 lemma lt_iff_le_and_ne [partial_order α] {a b : α} : a < b ↔ a ≤ b ∧ a ≠ b :=
 ⟨λ h, ⟨le_of_lt h, ne_of_lt h⟩, λ ⟨h1, h2⟩, lt_of_le_of_ne h1 h2⟩
 
+lemma eq_iff_le_not_lt [partial_order α] {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=
+⟨λ h, ⟨le_of_eq h, h ▸ lt_irrefl _⟩, λ ⟨h₁, h₂⟩, le_antisymm h₁ $
+  classical.by_contradiction $ λ h₃, h₂ (lt_of_le_not_le h₁ h₃)⟩
+
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b :=
 (lt_or_eq_of_le h).symm
+
+lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
+lt_of_le_not_le ((le_total _ _).resolve_right h) h
+
+lemma lt_iff_not_ge' [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x :=
+⟨not_le_of_gt, lt_of_not_ge'⟩
 
 @[simp] lemma not_lt [linear_order α] {a b : α} : ¬ a < b ↔ b ≤ a := ⟨le_of_not_gt, not_lt_of_ge⟩
 
 lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt.1
 
-@[simp] lemma not_le [linear_order α] {a b : α} : ¬ a ≤ b ↔ b < a := (lt_iff_not_ge b a).symm
+@[simp] lemma not_le [linear_order α] {a b : α} : ¬ a ≤ b ↔ b < a := lt_iff_not_ge'.symm
 
 lemma lt_or_le [linear_order α] : ∀ a b : α, a < b ∨ b ≤ a := lt_or_ge
 lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
@@ -59,15 +72,29 @@ lemma injective_of_strict_mono {β} [linear_order α] [preorder β]
   .resolve_left $ λ h, ne_of_lt (H _ _ h) e)
   .resolve_right $ λ h, ne_of_gt (H _ _ h) e
 
+lemma lt_imp_lt_of_le_imp_le {β} [linear_order α] [preorder β] {a b : α} {c d : β}
+  (H : a ≤ b → c ≤ d) (h : d < c) : b < a :=
+lt_of_not_ge' $ λ h', not_lt_of_ge (H h') h
+
+lemma le_imp_le_of_lt_imp_lt {β} [preorder α] [linear_order β] {a b : α} {c d : β}
+  (H : d < c → b < a) (h : a ≤ b) : c ≤ d :=
+le_of_not_gt $ λ h', not_le_of_gt (H h') h
+
 lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [linear_order β] {a b : α} {c d : β} :
   (a ≤ b → c ≤ d) ↔ (d < c → b < a) :=
-⟨λ H h, lt_of_not_ge $ λ h', not_lt_of_ge (H h') h,
-λ H h, le_of_not_gt $ λ h', not_le_of_gt (H h') h⟩
+⟨lt_imp_lt_of_le_imp_le, le_imp_le_of_lt_imp_lt⟩
+
+lemma lt_iff_lt_of_le_iff_le' {β} [preorder α] [preorder β] {a b : α} {c d : β}
+  (H : a ≤ b ↔ c ≤ d) (H' : b ≤ a ↔ d ≤ c) : b < a ↔ d < c :=
+lt_iff_le_not_le.trans $ (and_congr H' (not_congr H)).trans lt_iff_le_not_le.symm
+
+lemma lt_iff_lt_of_le_iff_le {β} [linear_order α] [linear_order β] {a b : α} {c d : β}
+  (H : a ≤ b ↔ c ≤ d) : b < a ↔ d < c :=
+not_le.symm.trans $ iff.trans (not_congr H) $ not_le
 
 lemma le_iff_le_iff_lt_iff_lt {β} [linear_order α] [linear_order β] {a b : α} {c d : β} :
   (a ≤ b ↔ c ≤ d) ↔ (b < a ↔ d < c) :=
-⟨λ H, not_le.symm.trans $ iff.trans (not_congr H) $ not_le,
-λ H, not_lt.symm.trans $ iff.trans (not_congr H) $ not_lt⟩
+⟨lt_iff_lt_of_le_iff_le, λ H, not_lt.symm.trans $ iff.trans (not_congr H) $ not_lt⟩
 
 lemma eq_of_forall_le_iff [partial_order α] {a b : α}
   (H : ∀ c, c ≤ a ↔ c ≤ b) : a = b :=
@@ -84,6 +111,53 @@ le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
 lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 le_antisymm ((H _).2 (le_refl _)) ((H _).1 (le_refl _))
+
+namespace decidable
+
+lemma lt_or_eq_of_le [partial_order α] [@decidable_rel α (≤)] {a b : α} (hab : a ≤ b) : a < b ∨ a = b :=
+if hba : b ≤ a then or.inr (le_antisymm hab hba)
+else or.inl (lt_of_le_not_le hab hba)
+
+lemma eq_or_lt_of_le [partial_order α] [@decidable_rel α (≤)] {a b : α} (hab : a ≤ b) : a = b ∨ a < b :=
+(lt_or_eq_of_le hab).swap
+
+lemma le_iff_lt_or_eq [partial_order α] [@decidable_rel α (≤)] {a b : α} : a ≤ b ↔ a < b ∨ a = b :=
+⟨lt_or_eq_of_le, le_of_lt_or_eq⟩
+
+lemma le_of_not_lt [decidable_linear_order α] {a b : α} (h : ¬ b < a) : a ≤ b :=
+decidable.by_contradiction $ λ h', h $ lt_of_le_not_le ((le_total _ _).resolve_right h') h'
+
+lemma not_lt [decidable_linear_order α] {a b : α} : ¬ a < b ↔ b ≤ a :=
+⟨le_of_not_lt, not_lt_of_ge⟩
+
+lemma lt_or_le [decidable_linear_order α] (a b : α) : a < b ∨ b ≤ a :=
+if hba : b ≤ a then or.inr hba else or.inl $ not_le.1 hba
+
+lemma le_or_lt [decidable_linear_order α] (a b : α) : a ≤ b ∨ b < a :=
+(lt_or_le b a).swap
+
+lemma lt_trichotomy [decidable_linear_order α] (a b : α) : a < b ∨ a = b ∨ b < a :=
+(lt_or_le _ _).imp_right $ λ h, (eq_or_lt_of_le h).imp_left eq.symm
+
+lemma lt_or_gt_of_ne [decidable_linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :=
+(lt_trichotomy a b).imp_right $ λ h', h'.resolve_left h
+
+lemma ne_iff_lt_or_gt [decidable_linear_order α] {a b : α} : a ≠ b ↔ a < b ∨ a > b :=
+⟨lt_or_gt_of_ne, λo, o.elim ne_of_lt ne_of_gt⟩
+
+lemma le_imp_le_of_lt_imp_lt {β} [preorder α] [decidable_linear_order β]
+  {a b : α} {c d : β} (H : d < c → b < a) (h : a ≤ b) : c ≤ d :=
+le_of_not_lt $ λ h', not_le_of_gt (H h') h
+
+lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [decidable_linear_order β]
+  {a b : α} {c d : β} : (a ≤ b → c ≤ d) ↔ (d < c → b < a) :=
+⟨lt_imp_lt_of_le_imp_le, le_imp_le_of_lt_imp_lt⟩
+
+lemma le_iff_le_iff_lt_iff_lt {β} [decidable_linear_order α] [decidable_linear_order β]
+  {a b : α} {c d : β} : (a ≤ b ↔ c ≤ d) ↔ (b < a ↔ d < c) :=
+⟨lt_iff_lt_of_le_iff_le, λ H, not_lt.symm.trans $ iff.trans (not_congr H) $ not_lt⟩
+
+end decidable
 
 namespace ordering
 

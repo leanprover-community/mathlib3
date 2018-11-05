@@ -6,7 +6,8 @@ Authors: Simon Hudon, Mario Carneiro
 Evaluating arithmetic expressions including *, +, -, ^, ≤
 -/
 
-import algebra.group_power data.rat tactic.interactive data.nat.prime
+import algebra.group_power data.rat data.nat.prime
+import tactic.interactive tactic.converter.interactive
 
 universes u v w
 
@@ -53,6 +54,9 @@ open tactic
 
 namespace norm_num
 variable {α : Type u}
+
+lemma subst_into_neg {α} [has_neg α] (a ta t : α) (pra : a = ta) (prt : -ta = t) : -a = t :=
+by simp [pra, prt]
 
 theorem bit0_zero [add_group α] : bit0 (0 : α) = 0 := add_zero _
 
@@ -496,3 +500,15 @@ do x₁ ← to_expr x,
   tactic.exact x₂
 
 end tactic.interactive
+
+namespace conv.interactive
+open conv interactive tactic.interactive
+open norm_num (derive)
+
+meta def norm_num1 : conv unit := replace_lhs derive
+
+meta def norm_num (hs : parse simp_arg_list) : conv unit :=
+repeat1 $ orelse' norm_num1 $
+simp_core {} norm_num1 ff hs [] (loc.ns [none])
+
+end conv.interactive

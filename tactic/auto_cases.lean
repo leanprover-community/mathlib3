@@ -26,6 +26,7 @@ do t' ← infer_type h,
   | `(fin 0)     := tt
   | `(sum _ _)   := tt -- This is perhaps dangerous!
   | `(or _ _)    := tt -- This is perhaps dangerous!
+  | `(iff _ _)   := tt -- This is perhaps dangerous!
   | _            := ff
   end,
   if use_cases then
@@ -34,7 +35,7 @@ do t' ← infer_type h,
     match t' with
     -- `cases` can be dangerous on `eq` and `quot`, producing mysterious errors during type checking.
     -- instead we attempt `induction`
-    | `(eq _ _)        := (do induction h, pp ← pp h, return ("induction " ++ pp.to_string))
+    | `(eq _ _)        := do induction h, pp ← pp h, return ("induction " ++ pp.to_string)
     | `(quot _)        := do induction h, pp ← pp h, return ("induction " ++ pp.to_string)
     | _                := failed
     end

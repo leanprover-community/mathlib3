@@ -2146,11 +2146,12 @@ quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, by simp [nodup_product d�
 
 theorem nodup_sigma {σ : α → Type*} {s : multiset α} {t : Π a, multiset (σ a)} :
   nodup s → (∀ a, nodup (t a)) → nodup (s.sigma t) :=
-quot.induction_on s $ λ l₁,
-let l₂ (a) : list (σ a) := classical.some (quotient.exists_rep (t a)) in
-have t = λ a, l₂ a, from eq.symm $ funext $ λ a,
-  classical.some_spec (quotient.exists_rep (t a)),
-by rw [this]; simpa using nodup_sigma
+quot.induction_on s $ assume l₁,
+begin
+  choose f hf using assume a, quotient.exists_rep (t a),
+  rw show t = λ a, f a, from (eq.symm $ funext $ λ a, hf a),
+  simpa using nodup_sigma
+end
 
 theorem nodup_filter_map (f : α → option β) {s : multiset α}
   (H : ∀ (a a' : α) (b : β), b ∈ f a → b ∈ f a' → a = a') :
@@ -2799,48 +2800,24 @@ open is_lawful_traversable is_comm_applicative
 variables {F : Type u_1 → Type u_1} [applicative F] [is_comm_applicative F]
 variables {α' β' : Type u_1} (f : α' → F β')
 
-lemma coe_append_eq_add_coe :
-  ((∘) (coe : list β' → multiset β') ∘ append) = (λ x y, x + coe y) ∘ coe :=
-by ext; simp
-
-lemma coe_list_cons_eq_cons_coe :
-  flip ((∘) (coe : list β' → multiset β') ∘ @list.cons β') = flip multiset.cons ∘ (coe) :=
-by ext; simp! [flip]
-
-lemma coe_traverse_cons (x : α') (xs : list α') :
-  (coe : list β' → multiset β') <$> traverse f (x :: xs) =
-  coe <$> traverse f (xs ++ [x]) :=
-begin
-  symmetry, simp! [traverse],
-  induction xs, refl,
-  simp! [traverse] with functor_norm,
-  rw [commutative_map,coe_list_cons_eq_cons_coe,comp_map,xs_ih],
-  rw [commutative_map], symmetry, rw [commutative_map],
-  simp with functor_norm, congr,
-  ext, simp! [flip], constructor
-end
-
-lemma coe_traverse_cons_swap (x x' : α') (xs : list α') :
-  (coe : list β' → multiset β') <$> traverse f (x :: x' :: xs) =
-  coe <$> traverse f (x' :: x :: xs : list α') :=
-begin
-  simp! [traverse] with functor_norm,
-  rw commutative_map,
-  congr, ext, simp! [flip],
-  constructor
-end
-
-def traverse :
-  multiset α' → F (multiset β') :=
+def traverse : multiset α' → F (multiset β') :=
 quotient.lift (functor.map coe ∘ traversable.traverse f)
 begin
   introv p, unfold function.comp,
-  induction p, refl,
-  { simp [coe_traverse_cons,traverse_append] with functor_norm,
-    rw [coe_append_eq_add_coe,comp_map,p_ih],
-    simp! with functor_norm },
-  { rw coe_traverse_cons_swap },
-  { simp [*] }
+  induction p,
+  case perm.nil { refl },
+  case perm.skip {
+    have : multiset.cons <$> f p_x <*> (coe <$> traverse f p_l₁) =
+      multiset.cons <$> f p_x <*> (coe <$> traverse f p_l₂),
+    { rw [p_ih] },
+    simpa with functor_norm },
+  case perm.swap {
+    have : (λa b (l:list β'), (↑(a :: b :: l) : multiset β')) <$> f p_y <*> f p_x =
+      (λa b l, ↑(a :: b :: l)) <$> f p_x <*> f p_y,
+    { rw [is_comm_applicative.commutative_map],
+      congr, funext a b l, simpa [flip] using perm.swap b a l },
+    simp [(∘), this] with functor_norm },
+  case perm.trans { simp [*] }
 end
 
 open functor

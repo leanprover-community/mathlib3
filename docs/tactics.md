@@ -4,13 +4,63 @@ In addition to [core tactics](https://leanprover.github.io/reference/tactics.htm
 mathlib provides a number of specific interactive tactics and commands.
 Here we document the mostly commonly used ones.
 
+### tfae
+
+The `tfae` tactic suite is a set of tactics that help with proving that certain
+propositions are equivalent.
+In `data/list/basic.lean` there is a section devoted to propositions of the
+form
+```lean
+tfae [p1, p2, ..., pn]
+```
+where `p1`, `p2`, through, `pn` are terms of type `Prop`.
+This proposition asserts that all the `pi` are pairwise equivalent.
+There are results that allow to extract the equivalence
+of two propositions `pi` and `pj`.
+
+To prove a goal of the form `tfae [p1, p2, ..., pn]`, there are two
+tactics.  The first tactic is `tfae_have`.  As an argument it takes an
+expression of the form `i arrow j`, where `i` and `j` are two positive
+natural numbers, and `arrow` is an arrow such as `→`, `->`, `←`, `<-`,
+`↔`, or `<->`.  The tactic `tfae_have : i arrow j` sets up a subgoal in
+which the user has to prove the equivalence (or implication) of `pi` and `pj`.
+
+The remaining tactic, `tfae_finish`, is a finishing tactic. It
+collects all implications and equivalences from the local context and
+computes their transitive closure to close the
+main goal.
+
+`tfae_have` and `tfae_finish` can be used together in a proof as
+follows:
+
+```lean
+example (a b c d : Prop) : tfae [a,b,c,d] :=
+begin
+  tfae_have : 3 → 1,
+  { /- prove c → a -/ },
+  tfae_have : 2 → 3,
+  { /- prove b → c -/ },
+  tfae_have : 2 ← 1,
+  { /- prove a → b -/ },
+  tfae_have : 4 ↔ 2,
+  { /- prove d ↔ b -/ },
+    -- a b c d : Prop,
+    -- tfae_3_to_1 : c → a,
+    -- tfae_2_to_3 : b → c,
+    -- tfae_1_to_2 : a → b,
+    -- tfae_4_iff_2 : d ↔ b
+    -- ⊢ tfae [a, b, c, d]
+  tfae_finish,
+end
+```
+
 ### rcases
 
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
 `with` pattern syntax to allow for recursive case splitting. The pattern syntax
 uses the following recursive grammar:
 
-```
+```lean
 patt ::= (patt_list "|")* patt_list
 patt_list ::= id | "_" | "⟨" (patt ",")* patt "⟩"
 ```
@@ -137,6 +187,15 @@ solve_by_elim { discharger := `[cc] }
 ```
 also attempts to discharge the goal using congruence closure before each round of applying assumptions.
 
+By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
+
+The assumptions can be modified with similar syntax as for `simp`:
+* `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas (or all lemmas tagged with the named
+attributes).
+* `solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
+unless they are explicitly included.
+* `solve_by_elim [-id_1, ... -id_n]` uses the default assumptions, removing the specified ones.
+
 ### ext1 / ext
 
  * `ext1 id` selects and apply one extensionality lemma (with
@@ -151,7 +210,7 @@ also attempts to discharge the goal using congruence closure before each round o
 
 When trying to prove:
 
-  ```
+  ```lean
   α β : Type,
   f g : α → set β
   ⊢ f = g
@@ -159,17 +218,87 @@ When trying to prove:
 
 applying `ext x y` yields:
 
-  ```
+  ```lean
   α β : Type,
   f g : α → set β,
   x : α,
   y : β
-  ⊢ y ∈ f x ↔ y ∈ f x
+  ⊢ y ∈ f x ↔ y ∈ g x
   ```
 
 by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
+
+### The `extensionality` attribute
+
+ Tag lemmas of the form:
+
+ ```lean
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ The attribute indexes extensionality lemma using the type of the
+ objects (i.e. `my_collection`) which it gets from the statement of
+ the lemma.  In some cases, the same lemma can be used to state the
+ extensionality of multiple types that are definitionally equivalent.
+
+ ```lean
+ attribute [extensionality [(→),thunk,stream]] funext
+ ```
+
+ Those parameters are cumulative. The following are equivalent:
+
+ ```lean
+ attribute [extensionality [(→),thunk]] funext
+ attribute [extensionality [stream]] funext
+ ```
+
+ and
+
+ ```lean
+ attribute [extensionality [(→),thunk,stream]] funext
+ ```
+
+ One removes type names from the list for one lemma with:
+
+ ```lean
+ attribute [extensionality [-stream,-thunk]] funext
+ ```
+
+ Finally, the following:
+
+ ```lean
+ @[extensionality]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ is equivalent to
+
+ ```lean
+ @[extensionality *]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
+
+ The `*` parameter indicates to simply infer the
+ type from the lemma's statement.
+
+ This allows us specify type synonyms along with the type
+ that referred to in the lemma statement.
+
+ ```lean
+ @[extensionality [*,my_type_synonym]]
+ lemma my_collection.ext (a b : my_collection)
+   (h : ∀ x, a.lookup x = b.lookup y) :
+   a = b := ...
+ ```
 
 ### refine_struct
 
@@ -181,7 +310,7 @@ being refined.
 As an example, we can use `refine_struct` to automate the construction semigroup
 instances:
 
-```
+```lean
 refine_struct ( { .. } : semigroup α ),
 -- case semigroup, mul
 -- α : Type u,
@@ -195,13 +324,13 @@ refine_struct ( { .. } : semigroup α ),
 `have_field`, used after `refine_struct _` poses `field` as a local constant
 with the type of the field of the current goal:
 
-```
+```lean
 refine_struct ({ .. } : semigroup α),
 { have_field, ... },
 { have_field, ... },
 ```
 behaves like
-```
+```lean
 refine_struct ({ .. } : semigroup α),
 { have field := @semigroup.mul, ... },
 { have field := @semigroup.mul_assoc, ... },
@@ -217,7 +346,7 @@ attribute are added to the list of rules.
 
 For instance:
 
-```
+```lean
 @[user_attribute]
 meta def mono_rules : user_attribute :=
 { name := `mono_rules,
@@ -268,7 +397,7 @@ used implicitly to make rewriting possible.
 This is useful to remove `auto_param` or `opt_param` from the statement.
 
 As an example, we have:
-```
+```lean
 structure A :=
 (x : ℕ)
 (a' : x = 1 . skip)
@@ -282,7 +411,7 @@ example (z : A) : z.x = 1 := by rw A.a
 By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
 `_lemma` if there is no trailing `'`. You can also give `restate_axiom` a second argument to
 specify the new name, as in
-```
+```lean
 restate_axiom A.a f
 example (z : A) : z.x = 1 := by rw A.f
 ```
@@ -298,6 +427,11 @@ effectively be defined and re-defined later, by tagging definitions with `@[foo]
   (The argument can also be an `option (tactic unit)`, which is provided as `none` if
   this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.)
 
+`def_replacer foo : α → β → tactic γ` allows the specification of a replacer with
+custom input and output types. In this case all subsequent redefinitions must have the
+same type, or the type `α → β → tactic γ → tactic γ` or
+`α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
+
 ## tidy
 
 `tidy` attempts to use a variety of conservative tactics to solve the goals.
@@ -305,7 +439,7 @@ In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tact
 the goal and recursively on new goals, until no tactic makes further progress.
 
 `tidy` can report the tactic script it found using `tidy { trace_result := tt }`. As an example
-```
+```lean
 example : ∀ x : unit, x = unit.star :=
 begin
   tidy {trace_result:=tt} -- Prints the trace message: "intros x, exact dec_trivial"
@@ -325,19 +459,128 @@ This tactic is currently work in progress, and has various limitations. In parti
 it will not work on `nat`. The tactic can be made much more efficient.
 
 An example:
-```
+```lean
 example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
         (h3 : 12*y - 4* z < 0)  : false :=
 by linarith
 ```
 
 `linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
+
 `linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
-`linarith using [t1, t2, t3] will add `t1`, `t2`, `t3` to the local context and then run
+
+`linarith using [t1, t2, t3]` will add `t1`, `t2`, `t3` to the local context and then run
 `linarith`.
-`linarith {discharger := tac, restrict_type := tp}` takes a config object with two optional
-arguments. `discharger` specifies a tactic to be used for reducing an algebraic equation in the
+
+`linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
+arguments.
+* `discharger` specifies a tactic to be used for reducing an algebraic equation in the
 proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
-problems. `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
+problems.
+* `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
 if you have e.g. both integer and rational valued inequalities in the local context, which can
 sometimes confuse the tactic.
+* If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
+
+## choose
+
+`choose a b h using hyp` takes an hypothesis `hyp` of the form
+`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
+into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
+`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
+
+Example:
+
+```lean
+example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
+begin
+  choose i j h using h,
+  guard_hyp i := ℕ → ℕ → ℕ,
+  guard_hyp j := ℕ → ℕ → ℕ,
+  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
+  trivial
+end
+```
+
+## squeeze_simp / squeeze_simpa
+
+`squeeze_simp` and `squeeze_simpa` perform the same task with
+the difference that `squeeze_simp` relates to `simp` while
+`squeeze_simpa` relates to `simpa`. The following applies to both
+`squeeze_simp` and `squeeze_simpa`.
+
+`squeeze_simp` behaves like `simp` (including all its arguments)
+and prints a `simp only` invokation to skip the search through the
+`simp` lemma list.
+
+For instance, the following is easily solved with `simp`:
+
+```lean
+example : 0 + 1 = 1 + 0 := by simp
+```
+
+To guide the proof search and speed it up, we may replace `simp`
+with `squeeze_simp`:
+
+```lean
+example : 0 + 1 = 1 + 0 := by squeeze_simp
+-- prints: simp only [add_zero, eq_self_iff_true, zero_add]
+```
+
+`squeeze_simp` suggests a replacement which we can use instead of
+`squeeze_simp`.
+
+```lean
+example : 0 + 1 = 1 + 0 := by simp only [add_zero, eq_self_iff_true, zero_add]
+```
+
+`squeeze_simp only` prints nothing as it already skips the `simp` list.
+
+This tactic is useful for speeding up the compilation of a complete file.
+Steps:
+
+   1. search and replace ` simp` with ` squeeze_simp` (the space helps avoid the
+      replacement of `simp` in `@[simp]`) throughout the file.
+   2. Starting at the beginning of the file, go to each printout in turn, copy
+      the suggestion in place of `squeeze_simp`.
+   3. after all the suggestions were applied, search and replace `squeeze_simp` with
+      `simp` to remove the occurrences of `squeeze_simp` that did not produce a suggestion.
+
+Known limitation(s):
+  * in cases where `squeeze_simp` is used after a `;` (e.g. `cases x; squeeze_simp`),
+    `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
+    It is likely that none of the suggestion is a good replacement but they can all be
+    combined by concatenating their list of lemmas.
+
+## fin_cases
+Performs cases analysis on a `fin n` hypothesis. As an example, in
+```
+example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
+begin
+  fin_cases p,
+  all_goals { assumption }
+end
+```
+after `fin_cases p`, there are three goals, `f 0`, `f 1`, and `f 2`.
+
+## conv
+The `conv` tactic is built-in to lean. Currently mathlib additionally provides
+   * `erw`,
+   * `ring` and `ring2`, and
+   * `norm_num`
+inside `conv` blocks. Also, as a shorthand `conv_lhs` and `conv_rhs`
+are provided, so that
+```
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs {simp}
+end
+```
+just means
+```
+example : 0 + 0 = 0 :=
+begin
+  conv {to_lhs, simp}
+end
+```
+and likewise for `to_rhs`.

@@ -17,26 +17,33 @@ meta def tidy_attribute : user_attribute := {
 
 run_cmd attribute.register ``tidy_attribute
 
-meta def name_to_tactic (n : name) : tactic (tactic string) := 
+meta def name_to_tactic (n : name) : tactic string :=
 do d ← get_decl n,
    e ← mk_const n,
    let t := d.type,
    if (t =ₐ `(tactic unit)) then 
-     (eval_expr (tactic unit) e) >>= (λ t, pure (t >> pure n.to_string))
+     (eval_expr (tactic unit) e) >>= (λ t, t >> pure n.to_string)
    else if (t =ₐ `(tactic string)) then
-     (eval_expr (tactic string) e)
+     (eval_expr (tactic string) e) >>= (λ t, t)
    else fail "invalid type for @[tidy] tactic"
 
 meta def run_tactics : tactic string :=
 do names ← attribute.get_instances `tidy,
-   tactics ← names.mmap name_to_tactic,
-   first tactics <|> fail "no @[tidy] tactics succeeded"
+   first (names.map name_to_tactic) <|> fail "no @[tidy] tactics succeeded"
+
+meta def ext1_wrapper : tactic string :=
+do ng ← num_goals,
+   ext1 [] {apply_cfg . new_goals := new_goals.all},
+   ng' ← num_goals,
+   return $ if ng' > ng then
+     "tactic.ext1 [] {new_goals := tactic.new_goals.all}"
+   else "ext1"
 
 meta def default_tactics : list (tactic string) :=
 [ reflexivity                                 >> pure "refl", 
   `[exact dec_trivial]                        >> pure "exact dec_trivial",
   propositional_goal >> assumption            >> pure "assumption",
-  `[ext1]                                     >> pure "ext1",
+  ext1_wrapper,
   intros1                                     >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   auto_cases,
   `[apply_auto_param]                         >> pure "apply_auto_param",

@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Extends the theory on functors, applicatives and monads.
 -/
 
-universes u v
+universes u v w
 variables {α β γ : Type u}
 
 notation a ` $< `:1 f:1 := f a
@@ -95,6 +95,23 @@ by rw [← bind_pure_comp_eq_map, bind_assoc]; simp [pure_bind]
 lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x)) :=
 (bind_map_eq_seq m f x).symm
 
+variables {β' γ' : Type v}
+variables {m' : Type v → Type w} [monad m']
+
+def list.mmap_accumr (f : α → β' → m' (β' × γ')) : β' → list α → m' (β' × list γ')
+| a [] := pure (a,[])
+| a (x :: xs) :=
+  do (a',ys) ← list.mmap_accumr a xs,
+     (a'',y) ← f x a',
+     pure (a'',y::ys)
+
+def list.mmap_accuml (f : β' → α → m' (β' × γ')) : β' → list α → m' (β' × list γ')
+| a [] := pure (a,[])
+| a (x :: xs) :=
+  do (a',y) ← f a x,
+     (a'',ys) ← list.mmap_accuml a' xs,
+     pure (a'',y :: ys)
+
 end monad
 
 section alternative
@@ -111,6 +128,29 @@ def mtry {α} (x : F α) : F unit := (x $> ()) <|> pure ()
   @guard F _ false h = failure := by simp [guard]
 
 end alternative
+
+namespace sum
+
+variables {e : Type v}
+
+protected def bind {α β} : e ⊕ α → (α → e ⊕ β) → e ⊕ β
+| (inl x) _ := inl x
+| (inr x) f := f x
+
+instance : monad (sum.{v u} e) :=
+{ pure := @sum.inr e,
+  bind := @sum.bind e }
+
+instance : is_lawful_functor (sum.{v u} e) :=
+by refine { .. }; intros; casesm _ ⊕ _; refl
+
+instance : is_lawful_monad (sum.{v u} e) :=
+{ bind_assoc := by { intros, casesm _ ⊕ _; refl },
+  pure_bind  := by { intros, refl },
+  bind_pure_comp_eq_map := by { intros, casesm _ ⊕ _; refl },
+  bind_map_eq_seq := by { intros, cases f; refl } }
+
+end sum
 
 class is_comm_applicative (m : Type* → Type*) [applicative m] extends is_lawful_applicative m : Prop :=
 (commutative_prod : ∀{α β} (a : m α) (b : m β), prod.mk <$> a <*> b = (λb a, (a, b)) <$> b <*> a)

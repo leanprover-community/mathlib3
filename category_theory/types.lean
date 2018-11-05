@@ -1,6 +1,6 @@
 -- Copyright (c) 2017 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison
+-- Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 
 import category_theory.functor_category category_theory.embedding
 
@@ -16,6 +16,9 @@ instance types : large_category (Type u) :=
 @[simp] lemma types_hom {α β : Type u} : (α ⟶ β) = (α → β) := rfl
 @[simp] lemma types_id {α : Type u} (a : α) : (𝟙 α : α → α) a = a := rfl
 @[simp] lemma types_comp {α β γ : Type u} (f : α → β) (g : β → γ) (a : α) : (((f : α ⟶ β) ≫ (g : β ⟶ γ)) : α ⟶ γ) a = g (f a) := rfl
+
+@[simp] lemma types.iso_mk_coe (α β : Type u) (f : α → β) (g : β → α) (hom_inv_id) (inv_hom_id) (a : α) :
+(({ iso . hom := f, inv := g, hom_inv_id' := hom_inv_id, inv_hom_id' := inv_hom_id } : α ≅ β) : α ⟶ β) a = f a := rfl
 
 namespace functor_to_types
 variables {C : Type u} [𝒞 : category.{u v} C] (F G H : C ⥤ (Type w)) {X Y Z : C}
@@ -47,7 +50,8 @@ section forget
 variables (C : Type u → Type v) {hom : ∀α β, C α → C β → (α → β) → Prop} [i : concrete_category hom]
 include i
 
-def forget : sigma C ⥤ Type u := { obj  := sigma.fst, map' := λa b h, h.1 }
+/-- The forgetful functor from a bundled category to `Type`. -/
+def forget : bundled C ⥤ Type u := { obj := bundled.α, map' := λa b h, h.1 }
 
 instance forget.faithful : faithful (forget C) := {}
 

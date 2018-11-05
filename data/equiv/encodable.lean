@@ -127,7 +127,7 @@ instance sum : encodable (α ⊕ β) :=
 end sum
 
 instance bool : encodable bool :=
-of_equiv (unit ⊕ unit) equiv.bool_equiv_unit_sum_unit
+of_equiv (unit ⊕ unit) equiv.bool_equiv_punit_sum_punit
 
 @[simp] theorem encode_tt : encode tt = 1 := rfl
 @[simp] theorem encode_ff : encode ff = 0 := rfl

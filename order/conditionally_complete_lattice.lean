@@ -49,40 +49,38 @@ lemma bdd_below.mk (a : α) (H : ∀y∈s, a≤y) : bdd_below s := ⟨a, H⟩
 /-Empty sets and singletons are trivially bounded. For finite sets, we need
 a notion of maximum and minimum, i.e., a lattice structure, see later on.-/
 @[simp] lemma bdd_above_empty [inhabited α] : bdd_above (∅ : set α) :=
-⟨default α, by simp⟩
+⟨default α, by simp only [set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff]⟩
 
 @[simp] lemma bdd_below_empty [inhabited α] : bdd_below (∅ : set α) :=
-⟨default α, by simp⟩
+⟨default α, by simp only [set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff]⟩
 
 @[simp] lemma bdd_above_singleton : bdd_above ({a} : set α) :=
-⟨a, by simp⟩
+⟨a, by simp only [set.mem_singleton_iff, forall_eq]⟩
 
 @[simp] lemma bdd_below_singleton : bdd_below ({a} : set α) :=
-⟨a, by simp⟩
+⟨a, by simp only [set.mem_singleton_iff, forall_eq]⟩
 
 /-If a set is included in another one, boundedness of the second implies boundedness
 of the first-/
-lemma bdd_above_subset (_ : s ⊆ t) (_ : bdd_above t) : bdd_above s :=
-let ⟨w, hw⟩ := ‹bdd_above t› in  /-hw : ∀ (y : α), y ∈ t → y ≤ w-/
-⟨w, assume (y : α) (_ : y ∈ s), hw _ (‹s ⊆ t› ‹y ∈ s›)⟩
+lemma bdd_above_subset (st : s ⊆ t) : bdd_above t → bdd_above s
+| ⟨w, hw⟩ := ⟨w, λ y ys, hw _ (st ys)⟩
 
-lemma bdd_below_subset (_ : s ⊆ t) (_ : bdd_below t) : bdd_below s :=
-let ⟨w, hw⟩ := ‹bdd_below t› in  /-hw : ∀ (y : α), y ∈ t → w ≤ y-/
-⟨w, assume (y : α) (_ : y ∈ s), hw _ (‹s ⊆ t› ‹y ∈ s›)⟩
+lemma bdd_below_subset (st : s ⊆ t) : bdd_below t → bdd_below s
+| ⟨w, hw⟩ := ⟨w, λ y ys, hw _ (st ys)⟩
 
 /- Boundedness of intersections of sets, in different guises, deduced from the
 monotonicity of boundedness.-/
 lemma bdd_above_Int1 (_ : bdd_above s) : bdd_above (s ∩ t) :=
-by apply bdd_above_subset _ ‹bdd_above s›; simp
+by apply bdd_above_subset _ ‹bdd_above s›; simp only [set.inter_subset_left]
 
 lemma bdd_above_Int2 (_ : bdd_above t) : bdd_above (s ∩ t) :=
-by apply bdd_above_subset _ ‹bdd_above t›; simp
+by apply bdd_above_subset _ ‹bdd_above t›; simp only [set.inter_subset_right]
 
 lemma bdd_below_Int1 (_ : bdd_below s) : bdd_below (s ∩ t) :=
-by apply bdd_below_subset _ ‹bdd_below s›; simp
+by apply bdd_below_subset _ ‹bdd_below s›; simp only [set.inter_subset_left]
 
 lemma bdd_below_Int2 (_ : bdd_below t) : bdd_below (s ∩ t) :=
-by apply bdd_below_subset _ ‹bdd_below t›; simp
+by apply bdd_below_subset _ ‹bdd_below t›; simp only [set.inter_subset_right]
 
 end preorder
 
@@ -105,17 +103,17 @@ variables [semilattice_sup α] {s t : set α} {a b : α}
 @[simp] lemma bdd_above_union : bdd_above (s ∪ t) ↔ bdd_above s ∧ bdd_above t :=
 ⟨show bdd_above (s ∪ t) → (bdd_above s ∧ bdd_above t), from
   assume : bdd_above (s ∪ t),
-  have S : bdd_above s, by apply bdd_above_subset _ ‹bdd_above (s ∪ t)›; simp,
-  have T : bdd_above t, by apply bdd_above_subset _ ‹bdd_above (s ∪ t)›; simp,
+  have S : bdd_above s, by apply bdd_above_subset _ ‹bdd_above (s ∪ t)›; simp only [set.subset_union_left],
+  have T : bdd_above t, by apply bdd_above_subset _ ‹bdd_above (s ∪ t)›; simp only [set.subset_union_right],
   and.intro S T,
 show (bdd_above s ∧ bdd_above t) → bdd_above (s ∪ t), from
   assume H : bdd_above s ∧ bdd_above t,
   let ⟨⟨ws, hs⟩, ⟨wt, ht⟩⟩ := H in
     /-hs : ∀ (y : α), y ∈ s → y ≤ ws      ht : ∀ (y : α), y ∈ s → y ≤ wt-/
   have Bs : ∀b∈s, b ≤ ws ⊔ wt,
-    by intros; apply le_trans (hs b ‹b ∈ s›) _; simp,
+    by intros; apply le_trans (hs b ‹b ∈ s›) _; simp only [lattice.le_sup_left],
   have Bt : ∀b∈t, b ≤ ws ⊔ wt,
-    by intros; apply le_trans (ht b ‹b ∈ t›) _; simp,
+    by intros; apply le_trans (ht b ‹b ∈ t›) _; simp only [lattice.le_sup_right],
   show bdd_above (s ∪ t),
     begin
     apply bdd_above.mk (ws ⊔ wt),
@@ -127,12 +125,12 @@ show (bdd_above s ∧ bdd_above t) → bdd_above (s ∪ t), from
 
 /--Adding a point to a set preserves its boundedness above.-/
 @[simp] lemma bdd_above_insert : bdd_above (insert a s) ↔ bdd_above s :=
-⟨show bdd_above (insert a s) → bdd_above s, from bdd_above_subset (by simp),
- show bdd_above s → bdd_above (insert a s), by rw [insert_eq]; simp [-singleton_union] {contextual := tt}⟩
+⟨bdd_above_subset (by simp only [set.subset_insert]),
+ λ h, by rw [insert_eq, bdd_above_union]; exact ⟨bdd_above_singleton, h⟩⟩
 
 /--A finite set is bounded above.-/
-lemma bdd_above_finite [inhabited α] (_ : finite s) : bdd_above s :=
-by apply finite.induction_on ‹finite s›; simp; simp
+lemma bdd_above_finite [inhabited α] (hs : finite s) : bdd_above s :=
+finite.induction_on hs bdd_above_empty $ λ a s _ _, bdd_above_insert.2
 
 /--A finite union of sets which are all bounded above is still bounded above.-/
 lemma bdd_above_finite_union [inhabited α] {β : Type v} {I : set β} {S : β → set α} (H : finite I) :
@@ -142,7 +140,11 @@ lemma bdd_above_finite_union [inhabited α] {β : Type v} {I : set β} {S : β �
   apply bdd_above_subset _ ‹bdd_above (⋃i∈I, S i)›;
   apply subset_bUnion_of_mem ‹i ∈ I›,
 show (∀i ∈ I, bdd_above (S i)) → (bdd_above (⋃i∈I, S i)),
-  by apply finite.induction_on ‹finite I›; simp; finish⟩
+  by apply finite.induction_on ‹finite I›;
+       simp only [set.mem_insert_iff, set.bUnion_insert, bdd_above_union,forall_prop_of_true,
+           set.mem_empty_eq,set.Union_empty,forall_prop_of_false,bdd_above_empty,
+           set.Union_neg,not_false_iff,forall_true_iff];
+       finish⟩
 
 end semilattice_sup
 
@@ -160,17 +162,17 @@ variables [semilattice_inf α] {s t : set α} {a b : α}
 @[simp] lemma bdd_below_union : bdd_below (s ∪ t) ↔ bdd_below s ∧ bdd_below t :=
 ⟨show bdd_below (s ∪ t) → (bdd_below s ∧ bdd_below t), from
   assume : bdd_below (s ∪ t),
-  have S : bdd_below s, by apply bdd_below_subset _ ‹bdd_below (s ∪ t)›; simp,
-  have T : bdd_below t, by apply bdd_below_subset _ ‹bdd_below (s ∪ t)›; simp,
+  have S : bdd_below s, by apply bdd_below_subset _ ‹bdd_below (s ∪ t)›; simp only [set.subset_union_left],
+  have T : bdd_below t, by apply bdd_below_subset _ ‹bdd_below (s ∪ t)›; simp only [set.subset_union_right],
   and.intro S T,
 show (bdd_below s ∧ bdd_below t) → bdd_below (s ∪ t), from
   assume H : bdd_below s ∧ bdd_below t,
   let ⟨⟨ws, hs⟩, ⟨wt, ht⟩⟩ := H in
     /-hs : ∀ (y : α), y ∈ s → ws ≤ y      ht : ∀ (y : α), y ∈ s → wt ≤ y-/
   have Bs : ∀b∈s, ws ⊓ wt ≤ b,
-    by intros; apply le_trans _ (hs b ‹b ∈ s›); simp,
+    by intros; apply le_trans _ (hs b ‹b ∈ s›); simp only [lattice.inf_le_left],
   have Bt : ∀b∈t, ws ⊓ wt ≤ b,
-    by intros; apply le_trans _ (ht b ‹b ∈ t›); simp,
+    by intros; apply le_trans _ (ht b ‹b ∈ t›); simp only [lattice.inf_le_right],
   show bdd_below (s ∪ t),
     begin
     apply bdd_below.mk (ws ⊓ wt),
@@ -182,12 +184,13 @@ show (bdd_below s ∧ bdd_below t) → bdd_below (s ∪ t), from
 
 /--Adding a point to a set preserves its boundedness below.-/
 @[simp] lemma bdd_below_insert : bdd_below (insert a s) ↔ bdd_below s :=
-⟨show bdd_below (insert a s) → bdd_below s, from bdd_below_subset (by simp),
- show bdd_below s → bdd_below (insert a s), by rw[insert_eq]; simp [-singleton_union] {contextual := tt}⟩
+⟨show bdd_below (insert a s) → bdd_below s, from bdd_below_subset (by simp only [set.subset_insert]),
+ show bdd_below s → bdd_below (insert a s),
+   by rw[insert_eq]; simp only [bdd_below_singleton, bdd_below_union, and_self, forall_true_iff] {contextual := tt}⟩
 
 /--A finite set is bounded below.-/
 lemma bdd_below_finite [inhabited α] (_ : finite s) : bdd_below s :=
-by apply finite.induction_on ‹finite s›; simp; simp
+by apply finite.induction_on ‹finite s›; simp only [imp_self, forall_const, bdd_below_insert, forall_true_iff,bdd_below_empty]
 
 /--A finite union of sets which are all bounded below is still bounded below.-/
 lemma bdd_below_finite_union [inhabited α] {β : Type v} {I : set β} {S : β → set α} (H : finite I) :
@@ -197,7 +200,12 @@ lemma bdd_below_finite_union [inhabited α] {β : Type v} {I : set β} {S : β �
   apply bdd_below_subset _ ‹bdd_below (⋃i∈I, S i)›;
   apply subset_bUnion_of_mem ‹i ∈ I›,
 show (∀i ∈ I, bdd_below (S i)) → (bdd_below (⋃i∈I, S i)),
-  by apply finite.induction_on ‹finite I›; simp; finish⟩
+  by apply finite.induction_on ‹finite I›;
+       simp only [set.mem_insert_iff, set.bUnion_insert, bdd_below_union,
+           forall_prop_of_true,set.mem_empty_eq,set.Union_empty,
+           forall_prop_of_false,bdd_below_empty,set.Union_neg,
+           not_false_iff,forall_true_iff];
+       finish⟩
 
 end semilattice_inf
 
@@ -351,17 +359,17 @@ lt_of_le_of_lt (cInf_le ‹bdd_below s› ‹a ∈ s›) ‹a < b›
 /--The supremum of a singleton is the element of the singleton-/
 @[simp] theorem cSup_singleton (a : α) : Sup {a} = a :=
 have A : a ≤ Sup {a} :=
-  by apply le_cSup _ _; simp; simp,
+  by apply le_cSup _ _; simp only [set.mem_singleton,bdd_above_singleton],
 have B : Sup {a} ≤ a :=
-  by apply cSup_le _ _; simp; simp,
+  by apply cSup_le _ _; simp only [set.mem_singleton_iff, forall_eq,ne.def, not_false_iff, set.singleton_ne_empty],
 le_antisymm B A
 
 /--The infimum of a singleton is the element of the singleton-/
 @[simp] theorem cInf_singleton (a : α) : Inf {a} = a :=
 have A : Inf {a} ≤ a :=
-  by apply cInf_le _ _; simp; simp,
+  by apply cInf_le _ _; simp only [set.mem_singleton,bdd_below_singleton],
 have B : a ≤ Inf {a} :=
-  by apply le_cInf _ _; simp; simp,
+  by apply le_cInf _ _; simp only [set.mem_singleton_iff, forall_eq,ne.def, not_false_iff, set.singleton_ne_empty],
 le_antisymm A B
 
 /--If a set is bounded below and above, and nonempty, its infimum is less than or equal to
@@ -377,19 +385,19 @@ that all sets are bounded above and nonempty.-/
 theorem cSup_union (_ : bdd_above s) (_ : s ≠ ∅) (_ : bdd_above t) (_ : t ≠ ∅) :
 Sup (s ∪ t) = Sup s ⊔ Sup t :=
 have A : Sup (s ∪ t) ≤ Sup s ⊔ Sup t :=
-  have s ∪ t ≠ ∅ := by simp at *; finish,
+  have s ∪ t ≠ ∅ := by simp only [not_and, set.union_empty_iff, ne.def] at *; finish,
   have F : ∀b∈ s∪t, b ≤ Sup s ⊔ Sup t :=
     begin
       intros,
       cases H,
-      apply le_trans (le_cSup ‹bdd_above s› ‹b ∈ s›) _, simp,
-      apply le_trans (le_cSup ‹bdd_above t› ‹b ∈ t›) _, simp
+      apply le_trans (le_cSup ‹bdd_above s› ‹b ∈ s›) _, simp only [lattice.le_sup_left],
+      apply le_trans (le_cSup ‹bdd_above t› ‹b ∈ t›) _, simp only [lattice.le_sup_right]
     end,
   cSup_le this F,
 have B : Sup s ⊔ Sup t ≤ Sup (s ∪ t) :=
-  have Sup s ≤ Sup (s ∪ t) := by apply cSup_le_cSup _ ‹s ≠ ∅›; simp; finish,
-  have Sup t ≤ Sup (s ∪ t) := by apply cSup_le_cSup _ ‹t ≠ ∅›; simp; finish,
-  by simp; split; assumption; assumption,
+  have Sup s ≤ Sup (s ∪ t) := by apply cSup_le_cSup _ ‹s ≠ ∅›; simp only [bdd_above_union,set.subset_union_left]; finish,
+  have Sup t ≤ Sup (s ∪ t) := by apply cSup_le_cSup _ ‹t ≠ ∅›; simp only [bdd_above_union,set.subset_union_right]; finish,
+  by simp only [lattice.sup_le_iff]; split; assumption; assumption,
 le_antisymm A B
 
 /--The inf of a union of sets is the min of the infima of each subset, under the assumptions
@@ -397,19 +405,19 @@ that all sets are bounded below and nonempty.-/
 theorem cInf_union (_ : bdd_below s) (_ : s ≠ ∅) (_ : bdd_below t) (_ : t ≠ ∅) :
 Inf (s ∪ t) = Inf s ⊓ Inf t :=
 have A : Inf s ⊓ Inf t ≤ Inf (s ∪ t) :=
-  have s ∪ t ≠ ∅ := by simp at *; finish,
+  have s ∪ t ≠ ∅ := by simp only [not_and, set.union_empty_iff, ne.def] at *; finish,
   have F : ∀b∈ s∪t, Inf s ⊓ Inf t ≤ b :=
     begin
       intros,
       cases H,
-      apply le_trans _ (cInf_le ‹bdd_below s› ‹b ∈ s›), simp,
-      apply le_trans _ (cInf_le ‹bdd_below t› ‹b ∈ t›), simp
+      apply le_trans _ (cInf_le ‹bdd_below s› ‹b ∈ s›), simp only [lattice.inf_le_left],
+      apply le_trans _ (cInf_le ‹bdd_below t› ‹b ∈ t›), simp only [lattice.inf_le_right]
     end,
   le_cInf this F,
 have B : Inf (s ∪ t) ≤ Inf s ⊓ Inf t  :=
-  have Inf (s ∪ t) ≤ Inf s := by apply cInf_le_cInf _ ‹s ≠ ∅›; simp; finish,
-  have Inf (s ∪ t) ≤ Inf t := by apply cInf_le_cInf _ ‹t ≠ ∅›; simp; finish,
-  by simp; split; assumption; assumption,
+  have Inf (s ∪ t) ≤ Inf s := by apply cInf_le_cInf _ ‹s ≠ ∅›; simp only [bdd_below_union,set.subset_union_left]; finish,
+  have Inf (s ∪ t) ≤ Inf t := by apply cInf_le_cInf _ ‹t ≠ ∅›; simp only [bdd_below_union,set.subset_union_right]; finish,
+  by simp only [lattice.le_inf_iff]; split; assumption; assumption,
 le_antisymm B A
 
 /--The supremum of an intersection of sets is bounded by the minimum of the suprema of each
@@ -417,7 +425,7 @@ set, if all sets are bounded above and nonempty.-/
 theorem cSup_inter_le (_ : bdd_above s) (_ : bdd_above t) (_ : s ∩ t ≠ ∅) :
 Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
 begin
-  apply cSup_le ‹s ∩ t ≠ ∅› _, simp, intros b _ _, split,
+  apply cSup_le ‹s ∩ t ≠ ∅› _, simp only [lattice.le_inf_iff, and_imp, set.mem_inter_eq], intros b _ _, split,
   apply le_cSup ‹bdd_above s› ‹b ∈ s›,
   apply le_cSup ‹bdd_above t› ‹b ∈ t›
 end
@@ -427,7 +435,7 @@ infima of each set, if all sets are bounded below and nonempty.-/
 theorem le_cInf_inter (_ : bdd_below s) (_ : bdd_below t) (_ : s ∩ t ≠ ∅) :
 Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
 begin
-  apply le_cInf ‹s ∩ t ≠ ∅› _, simp, intros b _ _, split,
+  apply le_cInf ‹s ∩ t ≠ ∅› _, simp only [and_imp, set.mem_inter_eq, lattice.sup_le_iff], intros b _ _, split,
   apply cInf_le ‹bdd_below s› ‹b ∈ s›,
   apply cInf_le ‹bdd_below t› ‹b ∈ t›
 end
@@ -437,22 +445,22 @@ nonempty and bounded above.-/
 theorem cSup_insert (_ : bdd_above s) (_ : s ≠ ∅) : Sup (insert a s) = a ⊔ Sup s :=
 calc Sup (insert a s)
         = Sup ({a} ∪ s)   : by rw [insert_eq]
-    ... = Sup {a} ⊔ Sup s : by apply cSup_union _ _ ‹bdd_above s› ‹s ≠ ∅›; simp; simp
-    ... = a ⊔ Sup s       : by simp
+    ... = Sup {a} ⊔ Sup s : by apply cSup_union _ _ ‹bdd_above s› ‹s ≠ ∅›; simp only [ne.def, not_false_iff, set.singleton_ne_empty,bdd_above_singleton]
+    ... = a ⊔ Sup s       : by simp only [eq_self_iff_true, lattice.cSup_singleton]
 
 /-- The infimum of insert a s is the minimum of a and the infimum of s, if s is
 nonempty and bounded below.-/
 theorem cInf_insert (_ : bdd_below s) (_ : s ≠ ∅) : Inf (insert a s) = a ⊓ Inf s :=
 calc Inf (insert a s)
         = Inf ({a} ∪ s)   : by rw [insert_eq]
-    ... = Inf {a} ⊓ Inf s : by apply cInf_union _ _ ‹bdd_below s› ‹s ≠ ∅›; simp; simp
-    ... = a ⊓ Inf s       : by simp
+    ... = Inf {a} ⊓ Inf s : by apply cInf_union _ _ ‹bdd_below s› ‹s ≠ ∅›; simp only [ne.def, not_false_iff, set.singleton_ne_empty,bdd_below_singleton]
+    ... = a ⊓ Inf s       : by simp only [eq_self_iff_true, lattice.cInf_singleton]
 
 @[simp] lemma cInf_interval [conditionally_complete_lattice α] : Inf {b | a ≤ b} = a :=
-cInf_of_in_of_le (by simp) (λw Hw, by simp at Hw; apply Hw)
+cInf_of_in_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
 
 @[simp] lemma cSup_interval [conditionally_complete_lattice α] : Sup {b | b ≤ a} = a :=
-cSup_of_in_of_le (by simp) (λw Hw, by simp at Hw; apply Hw)
+cSup_of_in_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
 
 end conditionally_complete_lattice
 
@@ -522,7 +530,7 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   cInf_le    := assume s a hb ha, by rw [Inf_nat_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin
-    simp [Sup_nat_def],
+    simp only [Sup_nat_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff, exists_const],
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
@@ -593,7 +601,7 @@ noncomputable instance : complete_linear_order (with_top α) :=
 lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = (⨆a∈s, ↑a) :=
 begin
   by_cases hs : s = ∅,
-  { simp [hs, cSup_empty], refl },
+  { rw [hs, cSup_empty], simp only [set.mem_empty_eq, lattice.supr_bot, lattice.supr_false], refl },
   apply le_antisymm,
   { refine ((coe_le_iff _ _).2 $ assume b hb, cSup_le hs $ assume a has, coe_le_coe.1 $ hb ▸ _),
     exact (le_supr_of_le a $ le_supr_of_le has $ _root_.le_refl _) },

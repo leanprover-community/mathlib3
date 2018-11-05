@@ -280,6 +280,9 @@ supr_univ
 @[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : set α), s x) = s a :=
 supr_singleton
 
+@[simp] theorem bUnion_of_singleton (s : set α) : (⋃ x ∈ s, {x}) = s :=
+ext $ by simp
+
 theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
@@ -357,6 +360,12 @@ theorem sInter_union (S T : set (set α)) : ⋂₀ (S ∪ T) = ⋂₀ S ∩ ⋂�
 
 @[simp] theorem sInter_insert (s : set α) (T : set (set α)) : ⋂₀ (insert s T) = s ∩ ⋂₀ T := Inf_insert
 
+theorem sUnion_pair (s t : set α) : ⋃₀ {s, t} = s ∪ t :=
+(sUnion_insert _ _).trans $ by rw [union_comm, sUnion_singleton]
+
+theorem sInter_pair (s t : set α) : ⋂₀ {s, t} = s ∩ t :=
+(sInter_insert _ _).trans $ by rw [inter_comm, sInter_singleton]
+
 @[simp] theorem sUnion_image (f : α → set β) (s : set α) : ⋃₀ (f '' s) = ⋃ x ∈ s, f x := Sup_image
 
 @[simp] theorem sInter_image (f : α → set β) (s : set α) : ⋂₀ (f '' s) = ⋂ x ∈ s, f x := Inf_image
@@ -417,6 +426,10 @@ lemma Union_subset_Union2 {ι₂ : Sort*} {s : ι → set α} {t : ι₂ → set
 
 lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) : (⋃ i:ι, s) ⊆ (⋃ j:ι₂, s) :=
 @supr_le_supr_const (set α) ι ι₂ _ s h
+
+theorem bUnion_subset_Union (s : set α) (t : α → set β) :
+  (⋃ x ∈ s, t x) ⊆ (⋃ x, t x) :=
+Union_subset_Union $ λ i, Union_subset $ λ h, by refl
 
 lemma sUnion_eq_bUnion {s : set (set α)} : (⋃₀ s) = (⋃ (i : set α) (h : i ∈ s), i) :=
 set.ext $ by simp
@@ -494,11 +507,79 @@ theorem monotone_preimage {f : α → β} : monotone (preimage f) := assume a b 
   preimage f (⋃i, s i) = (⋃i, preimage f (s i)) :=
 set.ext $ by simp [preimage]
 
+theorem preimage_bUnion {ι} {f : α → β} {s : set ι} {t : ι → set β} :
+  preimage f (⋃i ∈ s, t i) = (⋃i ∈ s, preimage f (t i)) :=
+by simp
+
 @[simp] theorem preimage_sUnion {f : α → β} {s : set (set β)} :
   preimage f (⋃₀ s) = (⋃t ∈ s, preimage f t) :=
 set.ext $ by simp [preimage]
 
+lemma preimage_Inter {ι : Sort*} {s : ι → set β} {f : α → β} :
+  f ⁻¹' (⋂ i, s i) = (⋂ i, f ⁻¹' s i) :=
+by ext; simp
+
+lemma preimage_bInter {s : γ → set β} {t : set γ} {f : α → β} :
+  f ⁻¹' (⋂ i∈t, s i) = (⋂ i∈t, f ⁻¹' s i) :=
+by ext; simp
+
 end preimage
+
+
+section seq
+
+def seq (s : set (α → β)) (t : set α) : set β := {b | ∃f∈s, ∃a∈t, (f : α → β) a = b}
+
+lemma seq_def {s : set (α → β)} {t : set α} : seq s t = ⋃f∈s, f '' t :=
+set.ext $ by simp [seq]
+
+@[simp] lemma mem_seq_iff {s : set (α → β)} {t : set α} {b : β} :
+  b ∈ seq s t ↔ ∃ (f ∈ s) (a ∈ t), (f : α → β) a = b :=
+iff.refl _
+
+lemma seq_subset {s : set (α → β)} {t : set α} {u : set β} :
+  seq s t ⊆ u ↔ (∀f∈s, ∀a∈t, (f : α → β) a ∈ u) :=
+iff.intro
+  (assume h f hf a ha, h ⟨f, hf, a, ha, rfl⟩)
+  (assume h b ⟨f, hf, a, ha, eq⟩, eq ▸ h f hf a ha)
+
+lemma seq_mono {s₀ s₁ : set (α → β)} {t₀ t₁ : set α} (hs : s₀ ⊆ s₁) (ht : t₀ ⊆ t₁) :
+  seq s₀ t₀ ⊆ seq s₁ t₁ :=
+assume b ⟨f, hf, a, ha, eq⟩, ⟨f, hs hf, a, ht ha, eq⟩
+
+lemma singleton_seq {f : α → β} {t : set α} : set.seq {f} t = f '' t :=
+set.ext $ by simp
+
+lemma seq_singleton {s : set (α → β)} {a : α} : set.seq s {a} = (λf:α→β, f a) '' s :=
+set.ext $ by simp
+
+lemma seq_seq {s : set (β → γ)} {t : set (α → β)} {u : set α} :
+  seq s (seq t u) = seq (seq ((∘) '' s) t) u :=
+begin
+  refine set.ext (assume c, iff.intro _ _),
+  { rintros ⟨f, hfs, b, ⟨g, hg, a, hau, rfl⟩, rfl⟩,
+    exact ⟨f ∘ g, ⟨(∘) f, mem_image_of_mem _ hfs, g, hg, rfl⟩, a, hau, rfl⟩ },
+  { rintros ⟨fg, ⟨fc, ⟨f, hfs, rfl⟩, g, hgt, rfl⟩, a, ha, rfl⟩,
+    exact ⟨f, hfs, g a, ⟨g, hgt, a, ha, rfl⟩, rfl⟩ }
+end
+
+lemma image_seq {f : β → γ} {s : set (α → β)} {t : set α} :
+  f '' seq s t = seq ((∘) f '' s) t :=
+by rw [← singleton_seq, ← singleton_seq, seq_seq, image_singleton]
+
+lemma prod_eq_seq {s : set α} {t : set β} : set.prod s t = (prod.mk '' s).seq t :=
+begin
+  ext ⟨a, b⟩,
+  split,
+  { rintros ⟨ha, hb⟩, exact ⟨prod.mk a, ⟨a, ha, rfl⟩, b, hb, rfl⟩ },
+  { rintros ⟨f, ⟨x, hx, rfl⟩, y, hy, eq⟩, rw ← eq, exact ⟨hx, hy⟩ }
+end
+
+lemma prod_image_seq_comm (s : set α) (t : set β) :
+  (prod.mk '' s).seq t = seq ((λb a, (a, b)) '' t) s :=
+by rw [← prod_eq_seq, ← image_swap_prod, prod_eq_seq, image_seq, ← image_comp]
+
+end seq
 
 theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
   (hf : monotone f) (hg : monotone g) : monotone (λx, set.prod (f x) (g x)) :=
@@ -507,34 +588,42 @@ assume a b h, prod_mono (hf h) (hg h)
 instance : monad set :=
 { pure       := λ(α : Type u) a, {a},
   bind       := λ(α β : Type u) s f, ⋃i∈s, f i,
+  seq        := λ(α β : Type u), set.seq,
   map        := λ(α β : Type u), set.image }
 
 instance : is_lawful_monad set :=
-{ pure_bind  := assume α β x f, by simp,
-  bind_assoc := assume α β γ s f g, set.ext $ assume a,
+{ pure_bind             := assume α β x f, by simp,
+  bind_assoc            := assume α β γ s f g, set.ext $ assume a,
     by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
              exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
        exact exists_swap,
-  id_map     := assume α, id_map,
-  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm] }
+  id_map                := assume α, id_map,
+  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm],
+  bind_map_eq_seq       := assume α β s t, by simp [seq_def] }
+
+instance : is_comm_applicative (set : Type u → Type u) :=
+⟨ assume α β s t, prod_image_seq_comm s t ⟩
 
 section monad
 variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' → β')}
 
 @[simp] lemma bind_def : s >>= f = ⋃i∈s, f i := rfl
 
-lemma fmap_eq_image : f <$> s = f '' s := rfl
+@[simp] lemma fmap_eq_image (f : α' → β') : f <$> s = f '' s := rfl
 
-lemma mem_seq_iff {b : β'} : b ∈ (g <*> s) ↔ (∃(f' : α' → β'), ∃a∈s, f' ∈ g ∧ b = f' a) :=
-begin
-  simp [seq_eq_bind_map],
-  apply exists_congr,
-  intro f',
-  exact ⟨assume ⟨hf', a, ha, h_eq⟩, ⟨a, ha, hf', h_eq.symm⟩,
-    assume ⟨a, ha, hf', h_eq⟩, ⟨hf', a, ha, h_eq.symm⟩⟩
-end
+@[simp] lemma seq_eq_set_seq {α β : Type*} (s : set (α → β)) (t : set α) : s <*> t = s.seq t := rfl
+
+@[simp] lemma pure_def (a : α) : (pure a : set α) = {a} := rfl
 
 end monad
+
+section pi
+
+lemma pi_def {α : Type*} {π : α → Type*} (i : set α) (s : Πa, set (π a)) :
+  pi i s = (⋂ a∈i, ((λf:(Πa, π a), f a) ⁻¹' (s a))) :=
+by ext; simp [pi]
+
+end pi
 
 end set
 
@@ -558,8 +647,17 @@ by rw [disjoint, disjoint, inf_comm]
 theorem disjoint.symm {a b : α} : disjoint a b → disjoint b a :=
 disjoint.comm.1
 
-theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
-theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
+@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
+@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
+
+theorem disjoint_mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
+  disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
+
+theorem disjoint_mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
+disjoint_mono h (le_refl _)
+
+theorem disjoint_mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
+disjoint_mono (le_refl _) h
 
 end disjoint
 

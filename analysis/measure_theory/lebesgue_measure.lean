@@ -134,14 +134,13 @@ begin
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left' (le_of_lt hε)),
   rw ← ennreal.tsum_add,
-  have : ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) <
-    lebesgue_length (f i) + ε' i,
+  choose g hg using show
+    ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) < lebesgue_length (f i) + ε' i,
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
     conv at this {to_lhs, rw lebesgue_length_eq_infi_Ioo},
     simpa [infi_lt_iff] },
-  cases axiom_of_choice this with g hg, dsimp only at g hg,
   refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hg i).2),
   exact lebesgue_length_subadditive (subset.trans hf $
     Union_subset_Union $ λ i, (hg i).1)
@@ -182,7 +181,7 @@ le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
     (lebesgue_length_mono $ inter_subset_inter_left _ h)
     (lebesgue_length_mono $ diff_subset_diff_left h)) _,
   cases le_total a c with hac hca; cases le_total b c with hbc hcb;
-    simp [*, max_eq_right, max_eq_left, min_eq_left, min_eq_right, -sub_eq_add_neg, sub_add_sub_cancel'];
+    simp [*, -sub_eq_add_neg, sub_add_sub_cancel'];
     rw [← ennreal.coe_add, ennreal.coe_le_coe],
   { simp [*, nnreal.of_real_add_of_real, -sub_eq_add_neg, sub_add_sub_cancel'] },
   { rw nnreal.of_real_of_nonpos,
@@ -200,8 +199,8 @@ begin
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left' (le_of_lt hε)),
   rw ← ennreal.tsum_add,
-  have : ∀ i, ∃ s, f i ⊆ s ∧ is_measurable s ∧
-    lebesgue_outer s ≤ lebesgue_length (f i) + of_real (ε' i),
+  choose g hg using show
+    ∀ i, ∃ s, f i ⊆ s ∧ is_measurable s ∧ lebesgue_outer s ≤ lebesgue_length (f i) + of_real (ε' i),
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
@@ -210,7 +209,7 @@ begin
     rcases this with ⟨a, b, h₁, h₂⟩,
     rw ← lebesgue_outer_Ico at h₂,
     exact ⟨_, h₁, is_measurable_Ico, le_of_lt $ by simpa using h₂⟩ },
-  cases axiom_of_choice this with g hg, simp at g hg,
+  simp at hg,
   apply infi_le_of_le (Union g) _,
   apply infi_le_of_le (subset.trans hf $ Union_subset_Union (λ i, (hg i).1)) _,
   apply infi_le_of_le (is_measurable.Union (λ i, (hg i).2.1)) _,
@@ -221,29 +220,50 @@ end
 
 The outer Lebesgue measure is the completion of this measure. (TODO: proof this)
 -/
-def lebesgue : measure ℝ :=
-lebesgue_outer.to_measure $
-  calc borel ℝ = measurable_space.generate_from (⋃a:ℚ, {Iio a}) :
-      real.borel_eq_generate_from_Iio_rat
-    ... ≤ lebesgue_outer.caratheodory :
-      measurable_space.generate_from_le $ by simp [is_lebesgue_measurable_Iio] {contextual := tt}
+instance : measure_space ℝ :=
+⟨{to_outer_measure := lebesgue_outer,
+  m_Union :=
+    have borel ℝ ≤ lebesgue_outer.caratheodory,
+    by rw real.borel_eq_generate_from_Iio_rat;
+       refine measurable_space.generate_from_le _;
+       simp [is_lebesgue_measurable_Iio] {contextual := tt},
+    λ f hf, lebesgue_outer.Union_eq_of_caratheodory (λ i, this _ (hf i)),
+  trimmed := lebesgue_outer_trim }⟩
 
-@[simp] theorem lebesgue_to_outer_measure : lebesgue.to_outer_measure = lebesgue_outer :=
-(to_measure_to_outer_measure _ _).trans lebesgue_outer_trim
+@[simp] theorem lebesgue_to_outer_measure :
+  (measure_space.μ : measure ℝ).to_outer_measure = lebesgue_outer := rfl
 
-theorem lebesgue_val (s) : lebesgue s = lebesgue_outer s :=
-(congr_arg (λ m:outer_measure ℝ, m s) lebesgue_to_outer_measure : _)
+theorem real.volume_val (s) : volume s = lebesgue_outer s := rfl
+local attribute [simp] real.volume_val
 
-@[simp] lemma lebesgue_Ico {a b : ℝ} : lebesgue (Ico a b) = of_real (b - a) :=
-by simp [lebesgue_val]
+@[simp] lemma real.volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) := by simp
+@[simp] lemma real.volume_Icc {a b : ℝ} : volume (Icc a b) = of_real (b - a) := by simp
+@[simp] lemma real.volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) := by simp
+@[simp] lemma real.volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 := by simp
 
-@[simp] lemma lebesgue_Icc {a b : ℝ} : lebesgue (Icc a b) = of_real (b - a) :=
-by simp [lebesgue_val]
+/-
+section vitali
 
-@[simp] lemma lebesgue_Ioo {a b : ℝ} : lebesgue (Ioo a b) = of_real (b - a) :=
-by simp [lebesgue_val]
+def vitali_aux_h (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
+  ∃ y ∈ Icc (0:ℝ) 1, ∃ q:ℚ, ↑q = x - y :=
+⟨x, h, 0, by simp⟩
 
-@[simp] lemma lebesgue_singleton {a : ℝ} : lebesgue {a} = 0 :=
-by simp [lebesgue_val]
+def vitali_aux (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : ℝ :=
+classical.some (vitali_aux_h x h)
+
+theorem vitali_aux_mem (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : vitali_aux x h ∈ Icc (0:ℝ) 1 :=
+Exists.fst (classical.some_spec (vitali_aux_h x h):_)
+
+theorem vitali_aux_rel (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
+ ∃ q:ℚ, ↑q = x - vitali_aux x h :=
+Exists.snd (classical.some_spec (vitali_aux_h x h):_)
+
+def vitali : set ℝ := {x | ∃ h, x = vitali_aux x h}
+
+theorem vitali_nonmeasurable : ¬ is_null_measurable measure_space.μ vitali :=
+sorry
+
+end vitali
+-/
 
 end measure_theory

@@ -62,8 +62,8 @@ end covering_family
 
 structure coverage {X : Type u₁} [category.{u₁ u₂} X] :=
 (covers   : Π (U : X), set (covering_family U))
-(property : ∀ {U V : X} (g : V ⟶ U) (f : (covering_family U)),
-            ∃ h : (covering_family V), ∀ j : h.index, ∃ {i : f.index} {k : h.obj j ⟶ f.obj i},
+(property : ∀ {U V : X} (g : V ⟶ U) (f : (covering_family U)) (Hf : f ∈ covers U),
+            ∃ (h : covering_family V) (Hh : h ∈ covers V), ∀ j : h.index, ∃ {i : f.index} {k : h.obj j ⟶ f.obj i},
             h.map j ≫ g = k ≫ f.map i)
 
 class site (X : Type u₁) extends category.{u₁ u₂} X :=

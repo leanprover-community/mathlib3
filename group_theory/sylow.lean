@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2018 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
 import group_theory.order_of_element data.zmod.basic algebra.pi_instances group_theory.group_action
 
 open equiv fintype finset is_group_action is_monoid_action function equiv.perm is_subgroup list quotient_group

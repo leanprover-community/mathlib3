@@ -7,6 +7,8 @@ Matrices
 -/
 
 import algebra.module data.fintype algebra.pi_instances
+import data.set.enumerate
+import data.rat
 
 universes u v
 
@@ -221,5 +223,118 @@ sub_up (sub_left A)
 def sub_down_left {d u l r : nat} (A: matrix (fin (u + d)) (fin (l + r)) α) :
   matrix (fin d) (fin (l)) α :=
 sub_down (sub_left A)
+
+/-- exchange row r1 with row r2. -/
+def xrow [decidable_eq m] (r1 : m) (r2 : m) (A : matrix m n α) : matrix m n α :=
+λ x y, if x = r1 then A r2 y else if x = r2 then A r1 y else A x y
+
+/-- exchange column c1 with c2. -/
+def xcol [decidable_eq n] (c1 : n) (c2 : n) (A : matrix m n α) : matrix m n α :=
+λ x y, if y = c1 then A x c2 else if y = c2 then A x c1 else A x y
+
+/-- pick a matrix element that matches a given property or return none in case of no match. -/
+def pick (α : Type) (p : α → Prop) [decidable_pred p] {m n : nat} (A :matrix (fin m) (fin n) α) :
+option (fin m × fin n) :=
+if h : ∃ (ij : fin m × fin n), p (A ij.1 ij.2)
+  then let idx := encodable.choose h in
+    some idx
+  else
+    none
+
+/-- combine four matrices into a single matrix. -/
+def block_combine {u d l r : nat}
+  (up_left : matrix (fin u) (fin l) α) (up_right : matrix (fin u) (fin r) α)
+  (down_left : matrix (fin d) (fin l) α) (down_right : matrix (fin d) (fin r) α) :
+  matrix (fin (u + d)) (fin (l + r)) α :=
+λ i j,
+ if h_i: i.val < u
+ then
+    if h_j: j.val < l
+    then
+      up_left (fin.cast_lt i (by assumption))
+              (fin.cast_lt j (by assumption))
+    else
+      up_right (fin.cast_lt i (by assumption))
+               (fin.sub_nat l j (by apply le_of_not_gt; assumption))
+  else
+   if h_j: j.val < l
+    then
+      down_left (fin.sub_nat u i (by apply le_of_not_gt; assumption))
+                (fin.cast_lt j (by assumption))
+    else
+      down_right (fin.sub_nat u i (by apply le_of_not_gt; assumption))
+                 (fin.sub_nat l j (by apply le_of_not_gt; assumption))
+
+/-- compute an extended gaussian elimination. -/
+def Gaussian_elimination {α : Type} [discrete_field α] :
+   Π (m n), matrix (fin m) (fin n) α →
+   (matrix (fin m) (fin m) α × matrix (fin n) (fin n) α × nat)
+| (x+1) (y+1) A :=
+  match pick α (λ el, el ≠ 0) A with
+  | some ij :=
+    let i := ij.1 in
+    let j := ij.2 in
+    let a := A i j in
+    let B := xrow i x (xcol j y A) in
+    let u := sub_down_left B in
+    let v := a⁻¹ • sub_up_right B in
+    let R := Gaussian_elimination (x) (y) (sub_up_left B - matrix.mul v u) in
+    let L := R.1 in let U := R.2.1 in let r := R.2.2 in
+    (
+      xrow i x (block_combine L v 0 1),
+      xcol j y (block_combine U 0 u (λ i1 j1, a)),
+      r + 1
+    )
+  | none :=
+     (
+      (1 : (matrix (fin (x+1)) (fin (x+1)) α)),
+      (1 : (matrix (fin (y+1)) (fin (y+1)) α)),
+      0
+     )
+  end
+| x y A :=
+     (
+      (1 : (matrix (fin (x)) (fin (x)) α)),
+      (1 : (matrix (fin (y)) (fin (y)) α)),
+      0
+     )
+
+/-- the extended column base of A -/
+def col_ebase {α : Type} [discrete_field α] {m n : nat} (A : matrix (fin n) (fin m) α) :=
+(Gaussian_elimination n m A).1
+
+/-- the extended row base of A -/
+def row_ebase {α : Type} [discrete_field α] {m n : nat} (A : matrix (fin n) (fin m) α) :=
+(Gaussian_elimination n m A).2.1
+
+/-- the rank of A -/
+def rank {α : Type} [discrete_field α] {m n : nat} (A : matrix (fin n) (fin m) α) :=
+(Gaussian_elimination n m A).2.2
+
+lemma rank_le_col {α : Type} [discrete_field α] {m n : nat}
+  (M : matrix (fin n) (fin m) α) :
+  rank M ≤ n :=
+begin
+  rw rank,
+  induction n generalizing m; try {simp [Gaussian_elimination]},
+  induction m; try {simp [Gaussian_elimination]},
+  rw pick,
+  by_cases h : (∃ (ij : fin (n_n + 1) × fin (m_n + 1)), ¬ M (ij.fst) (ij.snd) = 0),
+  { simp only [h, dif_pos, ne.def], apply nat.succ_le_succ, apply n_ih},
+  { simp only [h, ne.def, dif_neg, not_false_iff], rw Gaussian_elimination, simp}
+end
+
+lemma rank_le_row {α : Type} [discrete_field α] {m n : nat}
+  (M : matrix (fin n) (fin m) α) :
+  rank M ≤ m :=
+begin
+  rw rank,
+  induction m generalizing n; try {simp [Gaussian_elimination]};
+  induction n; try {simp [Gaussian_elimination]},
+  rw pick,
+  by_cases h : (∃ (ij : fin (n_n + 1) × fin (m_n + 1)), ¬ M (ij.fst) (ij.snd) = 0),
+  { simp only [h, dif_pos, ne.def], apply nat.succ_le_succ, apply m_ih},
+  { simp only [h, ne.def, dif_neg, not_false_iff], rw Gaussian_elimination, simp}
+end
 
 end matrix

@@ -98,8 +98,8 @@ else i.pred $
   ne_of_gt (lt_of_le_of_lt (zero_le p) this)
 
 /-- `sub_nat i h` subtracts `m` from `i`, generalizes `fin.pred`. -/
-def sub_nat (m) (i : fin (n + m)) (h : i.val ≥ m) : fin n :=
-⟨i.val - m, by simp [nat.sub_lt_right_iff_lt_add h, i.is_lt]⟩
+def sub_nat (m) (i : fin (m + n)) (h : i.val ≥ m) : fin n :=
+⟨i.val - m, by simp [nat.sub_lt_left_iff_lt_add h, i.is_lt, add_comm n m, -add_comm]⟩
 
 /-- `add_nat i h` adds `m` on `i`, generalizes `fin.succ`. -/
 def add_nat (m) (i : fin n) : fin (n + m) :=
@@ -119,7 +119,7 @@ le_of_lt_succ i.is_lt
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : i.val < n): cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
 
-@[simp] lemma sub_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.sub_nat m h).val = i.val - m :=
+@[simp] lemma sub_nat_val (i : fin (m + n)) (h : i.val ≥ m) : (i.sub_nat m h).val = i.val - m :=
 rfl
 
 @[simp] lemma add_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.add_nat m).val = i.val + m :=

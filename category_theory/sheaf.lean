@@ -39,12 +39,8 @@ sorry
 
 omit 𝒞
 
-instance presheaf_of_types.has_coequalizers : has_coequalizers.{v+1 v} (presheaf X (Type v)) :=
-sorry -- oops, Types doesn't have coequalizers?
--- by apply_instance
-instance presheaf_of_types.has_coproducts : has_coproducts.{v+1 v} (presheaf X (Type v)) :=
-sorry -- oops, Types doesn't have coproducts?
--- by apply_instance
+instance presheaf_of_types.has_coequalizers : has_coequalizers.{v+1 v} (presheaf X (Type v)) := by apply_instance
+instance presheaf_of_types.has_coproducts : has_coproducts.{v+1 v} (presheaf X (Type v)) := by apply_instance
 instance presheaf_of_types.has_limits : has_limits.{v+1 v} (presheaf X (Type v)) := by apply_instance
 instance presheaf_of_types.has_pullbacks : has_pullbacks.{v+1 v} (presheaf X (Type v)) := by apply_instance
 
@@ -64,11 +60,12 @@ include 𝒳
 
 variables {U : X}
 
+set_option pp.universes true
 def sieve (f : covering_family U) : presheaf X (Type v) :=
 let CP := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in
 coequalizer
-  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
-  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
+  (sigma.desc (λ p : (f.index × f.index), (sigma.ι ((yoneda X) ∘ f.obj) p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
+  (sigma.desc (λ p : (f.index × f.index), (sigma.ι ((yoneda X) ∘ f.obj) p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
 
 def sheaf_condition (f : (covering_family U)) {C : Type u₂} [category.{u₂ v₂} C] (F : presheaf X C) : Prop := sorry
 
@@ -76,8 +73,8 @@ end covering_family
 
 structure coverage {X : Type u₁} [category.{u₁ u₂} X] :=
 (covers   : Π (U : X), set (covering_family U))
-(property : ∀ {U V : X} (g : V ⟶ U) (f : (covering_family U)),
-            ∃ h : (covering_family V), ∀ j : h.index, ∃ {i : f.index} {k : h.obj j ⟶ f.obj i},
+(property : ∀ {U V : X} (g : V ⟶ U) (f : (covering_family U)) (Hf : f ∈ covers U),
+            ∃ (h : covering_family V) (Hh : h ∈ covers V), ∀ j : h.index, ∃ {i : f.index} {k : h.obj j ⟶ f.obj i},
             h.map j ≫ g = k ≫ f.map i)
 
 class site (X : Type u₁) extends category.{u₁ u₂} X :=

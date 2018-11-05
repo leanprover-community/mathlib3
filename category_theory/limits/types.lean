@@ -124,4 +124,11 @@ instance : has_pullbacks.{u+1 u} (Type u) :=
       exact congr_fun (w right) x,
     end }, }
 
+-- TODO do we need to provide 'hand-rolled' instances below?
+
+instance : has_equalizers.{u+1 u} (Type u) := has_equalizers_of_has_limits
+
+instance : has_coproducts.{u+1 u} (Type u) := has_coproducts_of_has_colimits
+instance : has_coequalizers.{u+1 u} (Type u) := has_coequalizers_of_has_colimits
+
 end category_theory.limits.types

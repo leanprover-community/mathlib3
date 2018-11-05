@@ -78,7 +78,7 @@ lt_of_le_of_lt (norm_nonneg _) hnorm
 private lemma deriv_sq_norm_ne_zero : ∥F.derivative.eval a∥^2 ≠ 0 := ne_of_gt deriv_sq_norm_pos
 
 private lemma deriv_norm_ne_zero : ∥F.derivative.eval a∥ ≠ 0 :=
-λ h, deriv_sq_norm_ne_zero (by simp *; refl)
+λ h, deriv_sq_norm_ne_zero (by simp [*, _root_.pow_two])
 
 private lemma deriv_norm_pos : 0 < ∥F.derivative.eval a∥ :=
 lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)

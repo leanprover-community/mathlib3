@@ -102,7 +102,7 @@ finsupp.induction p
 
 section eval₂
 variables [comm_semiring β]
-variables (f : α → β) [is_semiring_hom f] (g : σ → β)
+variables (f : α → β) (g : σ → β)
 
 /-- Evaluate a polynomial `p` given a valuation `g` of all the variables
   and a ring hom `f` from the scalar ring to the target -/
@@ -111,6 +111,8 @@ p.sum (λs a, f a * s.prod (λn e, g n ^ e))
 
 @[simp] lemma eval₂_zero : (0 : mv_polynomial σ α).eval₂ f g = 0 :=
 finsupp.sum_zero_index
+
+variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
 finsupp.sum_add_index

@@ -155,6 +155,15 @@ begin
   repeat {assumption}
  end
 
+include p_prime
+protected lemma pow {q : ℤ} (hq : q ≠ 0) {k : ℕ} :
+    padic_val p (q ^ k) = k * padic_val p q :=
+begin
+  induction k with k ih,
+  { rw [_root_.pow_zero, zero_mul, padic_val.one (hpp p)] },
+  rw [pow_succ', ← padic_val.mul (pow_ne_zero k hq) hq, succ_mul, ih]
+end
+
 end padic_val
 
 section
@@ -263,6 +272,14 @@ begin
     {simp},
     repeat {apply int.coe_nat_ne_zero.2, apply ne_of_gt, apply rat.pos},
     repeat {apply rat.num_ne_zero_of_ne_zero, assumption}
+end
+
+protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
+    padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
+begin
+  induction k with k ih,
+  { rw [_root_.pow_zero, int.coe_nat_zero, zero_mul, padic_val_rat.one p_prime.gt_one] },
+  rw [pow_succ', padic_val_rat.mul p (pow_ne_zero k hq) hq, int.coe_nat_succ, add_mul, ih, one_mul]
 end
 
 protected lemma div {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :

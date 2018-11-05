@@ -183,4 +183,43 @@ module.of_core
   one_smul := λ M, ext $ λ i j, one_mul (M i j),
   .. (infer_instance : has_scalar α (matrix m n α)) }
 
+def minor (A : matrix m n α) (col : l → m) (row : o → n) : matrix l o α :=
+λ i j, A (col i) (row j)
+
+@[reducible]
+def sub_left {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin l) α :=
+minor A id (fin.cast_add r)
+
+@[reducible]
+def sub_right {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin r) α :=
+minor A id (fin.nat_add l)
+
+@[reducible]
+def sub_up {d u n : nat} (A : matrix (fin (u + d)) (fin n) α) : matrix (fin u) (fin n) α :=
+minor A (fin.cast_add d) id
+
+@[reducible]
+def sub_down {d u n : nat} (A : matrix (fin (u + d)) (fin n) α) : matrix (fin d) (fin n) α :=
+minor A (fin.nat_add u) id
+
+@[reducible]
+def sub_up_right {d u l r : nat} (A: matrix (fin (u + d)) (fin (l + r)) α) :
+  matrix (fin u) (fin r) α :=
+sub_up (sub_right A)
+
+@[reducible]
+def sub_down_right {d u l r : nat} (A : matrix (fin (u + d)) (fin (l + r)) α) :
+  matrix (fin d) (fin r) α :=
+sub_down (sub_right A)
+
+@[reducible]
+def sub_up_left {d u l r : nat} (A : matrix (fin (u + d)) (fin (l + r)) α) :
+  matrix (fin u) (fin (l)) α :=
+sub_up (sub_left A)
+
+@[reducible]
+def sub_down_left {d u l r : nat} (A: matrix (fin (u + d)) (fin (l + r)) α) :
+  matrix (fin d) (fin (l)) α :=
+sub_down (sub_left A)
+
 end matrix

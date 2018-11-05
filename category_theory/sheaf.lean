@@ -38,23 +38,23 @@ has_pullbacks_of_has_limits (presheaf X (Type v₁))
 end presheaf
 
 -- todo should this be done as a subfunctor?
-structure covering_family {X : Type u₁} [category.{u₁ v₁} X] (U : X) :=
-(index : Type v₁)
+structure covering_family {X : Type u₁} [small_category.{u₁} X] (U : X) :=
+(index : Type u₁)
 (obj : index → X)
 (map : Π (i : index), obj i ⟶ U)
 
 namespace covering_family
 open category_theory.limits
-variables {X : Type u₁} [𝒳 : category.{u₁ v₁} X]
+variables {X : Type u₁} [𝒳 : small_category.{u₁} X]
 include 𝒳
 
 variables {U : X}
 
-def sieve (f : covering_family U) : presheaf X (Type v₁) :=
-let CP := (((yoneda X) : X → presheaf X (Type v₁)) ∘ f.obj) in
+set_option pp.universes true
+def sieve (f : covering_family U) : presheaf X (Type u₁) :=
 coequalizer
-  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
-  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
+  (sigma.desc (λ p : (f.index × f.index), (sigma.ι ((yoneda X) ∘ f.obj) p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
+  (sigma.desc (λ p : (f.index × f.index), (sigma.ι ((yoneda X) ∘ f.obj) p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
 
 def sheaf_condition (f : (covering_family U)) {C : Type u₂} [category.{u₂ v₂} C] (F : presheaf X C) : Prop := sorry
 

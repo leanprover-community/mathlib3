@@ -7,33 +7,33 @@ open category_theory
 
 universes u u₁ u₂ v v₁ v₂ w w₁ w₂
 
-namespace category_theory.limits
-variables {C : Type u₁} [𝒞 : category.{u₁ u₂} C]
-include 𝒞
+-- namespace category_theory.limits
+-- variables {C : Type u₁} [𝒞 : category.{u₁ u₂} C]
+-- include 𝒞
 
-variables [has_coequalizers.{u₁ u₂} C] {Y Z : C} (f g : Y ⟶ Z)
+-- variables [has_coequalizers.{u₁ u₂} C] {Y Z : C} (f g : Y ⟶ Z)
 
-def coequalizer.cofork := has_coequalizers.coequalizer.{u₁ u₂} f g
-def coequalizer := (coequalizer.cofork f g).X
-def coequalizer.π : Z ⟶ (coequalizer f g) := (coequalizer.cofork f g).π
-@[search] def coequalizer.w : f ≫ (coequalizer.π f g) = g ≫ (coequalizer.π f g) := (coequalizer.cofork f g).w
-def coequalizer.universal_property : is_coequalizer (coequalizer.cofork f g) :=
-has_coequalizers.is_coequalizer.{u₁ u₂} C f g
+-- def coequalizer.cofork := has_coequalizers.coequalizer.{u₁ u₂} f g
+-- def coequalizer := (coequalizer.cofork f g).X
+-- def coequalizer.π : Z ⟶ (coequalizer f g) := (coequalizer.cofork f g).π
+-- @[search] def coequalizer.w : f ≫ (coequalizer.π f g) = g ≫ (coequalizer.π f g) := (coequalizer.cofork f g).w
+-- def coequalizer.universal_property : is_coequalizer (coequalizer.cofork f g) :=
+-- has_coequalizers.is_coequalizer.{u₁ u₂} C f g
 
-def coequalizer.desc (P : C) (h : Z ⟶ P) (w : f ≫ h = g ≫ h) : coequalizer f g ⟶ P :=
-(coequalizer.universal_property f g).desc { X := P, π := h, w := w }
+-- def coequalizer.desc (P : C) (h : Z ⟶ P) (w : f ≫ h = g ≫ h) : coequalizer f g ⟶ P :=
+-- (coequalizer.universal_property f g).desc { X := P, π := h, w := w }
 
-@[extensionality] lemma coequalizer.hom_ext {Y Z : C} {f g : Y ⟶ Z} {X : C}
-(h k : coequalizer f g ⟶ X) (w : coequalizer.π f g ≫ h = coequalizer.π f g ≫ k) : h = k :=
-begin
-  let s : cofork f g := ⟨ ⟨ X ⟩, coequalizer.π f g ≫ h ⟩,
-  have q := (coequalizer.universal_property f g).uniq s h,
-  have p := (coequalizer.universal_property f g).uniq s k,
-  rw [q, ←p],
-  solve_by_elim, refl
-end
+-- @[extensionality] lemma coequalizer.hom_ext {Y Z : C} {f g : Y ⟶ Z} {X : C}
+-- (h k : coequalizer f g ⟶ X) (w : coequalizer.π f g ≫ h = coequalizer.π f g ≫ k) : h = k :=
+-- begin
+--   let s : cofork f g := ⟨ ⟨ X ⟩, coequalizer.π f g ≫ h ⟩,
+--   have q := (coequalizer.universal_property f g).uniq s h,
+--   have p := (coequalizer.universal_property f g).uniq s k,
+--   rw [q, ←p],
+--   solve_by_elim, refl
+-- end
 
-end category_theory.limits
+-- end category_theory.limits
 
 section presheaf
 open category_theory.limits

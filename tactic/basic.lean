@@ -153,6 +153,9 @@ end lean.parser
 
 namespace tactic
 
+meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
+mk_app ``id [e] >>= eval_expr α
+
 meta def is_simp_lemma : name → tactic bool :=
 succeeds ∘ tactic.has_attribute `simp
 

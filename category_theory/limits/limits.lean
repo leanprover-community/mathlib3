@@ -66,9 +66,7 @@ def limit_cone.ext {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t :=
     tidy,
   end }
 
--- Somewhat awkward binders, so we can write `apply is_limit_invariance r`,
--- and get goals saying that `r ≅ t` and `r` is a limit cone.
-def is_limit_invariance (r : cone F) {t : cone F} (i : r ≅ t) (P : is_limit r) : is_limit t :=
+def is_limit_invariance (r t : cone F) (i : r ≅ t) (P : is_limit r) : is_limit t :=
 { lift := λ s, P.lift s ≫ i.hom.hom,
   uniq' :=
   begin

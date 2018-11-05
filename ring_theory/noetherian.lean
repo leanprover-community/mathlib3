@@ -6,7 +6,6 @@ Authors: Mario Carneiro and Kevin Buzzard
 
 import order.order_iso
 import data.fintype data.polynomial
-import tactic.tidy
 import linear_algebra.submodule
 import ring_theory.ideals
 

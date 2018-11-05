@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau, Chris Hughes
+Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
-import tactic.ring linear_algebra.basic
+import tactic.ring linear_algebra.basic ring_theory.associated
 
 universes u v
 variables {α : Type u} {β : Type v} [comm_ring α] {a b : α}
@@ -20,6 +20,9 @@ eq_top_iff.2 $ λ z _, calc
     z = z * (y * x) : by simp [h]
   ... = (z * y) * x : eq.symm $ mul_assoc z y x
   ... ∈ I : I.mul_mem_left hx
+
+theorem eq_top_of_is_unit_mem {x} (hx : x ∈ I) (h : is_unit x) : I = ⊤ :=
+let ⟨y, hy⟩ := is_unit_iff_exists_inv'.1 h in eq_top_of_unit_mem x y hx hy
 
 theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
 ⟨by rintro rfl; trivial,
@@ -38,19 +41,32 @@ lemma span_mono {s t : set α} : s ⊆ t → span s ≤ span t := submodule.span
 
 @[simp] lemma span_eq : span (I : set α) = I := submodule.span_eq _
 
+@[simp] lemma span_singleton_one : span ({1} : set α) = ⊤ :=
+(eq_top_iff_one _).2 $ subset_span $ mem_singleton _
+
 lemma mem_span_insert {s : set α} {x y} :
   x ∈ span (insert y s) ↔ ∃ a (z ∈ span s), x = a * y + z := submodule.mem_span_insert
 
 lemma mem_span_insert' {s : set α} {x y} :
   x ∈ span (insert y s) ↔ ∃a, x + a * y ∈ span s := submodule.mem_span_insert'
 
-lemma mem_span_singleton {x y : α} :
+lemma mem_span_singleton' {x y : α} :
   x ∈ span ({y} : set α) ↔ ∃ a, a * y = x := submodule.mem_span_singleton
 
-lemma mem_span_singleton' {x y : α} :
+lemma mem_span_singleton {x y : α} :
   x ∈ span ({y} : set α) ↔ y ∣ x :=
-(submodule.mem_span_singleton).trans
-  (exists_congr $ λ _, by rw [eq_comm, mul_comm]; refl)
+mem_span_singleton'.trans $ exists_congr $ λ _, by rw [eq_comm, mul_comm]; refl
+
+lemma span_singleton_le_span_singleton {x y : α} :
+  span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
+span_le.trans $ singleton_subset_iff.trans mem_span_singleton
+
+lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := submodule.span_eq_bot
+
+lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot
+
+lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
+by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, span_singleton_one, eq_top_iff]
 
 def comap [comm_ring β] (f : α → β) [is_ring_hom f]
   (I : ideal β) : ideal α :=
@@ -79,6 +95,10 @@ hI.2 (h.symm ▸ I.zero_mem)
 
 @[class] def zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
+
+theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
+  is_prime (span ({p} : set α)) ↔ prime p :=
+by simp [is_prime, prime, span_singleton_eq_top, hp, mem_span_singleton]
 
 instance is_prime.comap [comm_ring β] (f : α → β) [is_ring_hom f]
   {I : ideal β} {hI : I.is_prime} : (comap f I).is_prime :=
@@ -112,13 +132,15 @@ begin
   exact ⟨-y, hy⟩
 end
 
-instance is_maximal.is_prime (I : ideal α) [H : I.is_maximal] : I.is_prime :=
+theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 ⟨H.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
   cases H.exists_inv hx with z hz,
   have := I.mul_mem_left hz,
   rw [mul_sub, mul_one, mul_comm, mul_assoc] at this,
   exact I.neg_mem_iff.1 ((I.add_mem_iff_right $ I.mul_mem_left hxy).1 this)
 end⟩
+
+instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime := is_maximal.is_prime
 
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
@@ -143,25 +165,27 @@ end
 
 end ideal
 
-def nonunits (α : Type u) [monoid α] : set α := { x | ¬∃ y, y * x = 1 }
+def nonunits (α : Type u) [monoid α] : set α := { x | ¬is_unit x }
 
-theorem mul_mem_nonunits_right {α} [monoid α]
+@[simp] theorem mem_nonunits_iff {α} [comm_monoid α] {x} : x ∈ nonunits α ↔ ¬ is_unit x := iff.rfl
+
+theorem mul_mem_nonunits_right {α} [comm_monoid α]
   {x y : α} : y ∈ nonunits α → x * y ∈ nonunits α :=
-mt $ λ ⟨a, h⟩, ⟨a * x, by rw [mul_assoc, h]⟩
+mt is_unit_of_mul_is_unit_right
 
 theorem mul_mem_nonunits_left {α} [comm_monoid α]
-  {x y : α} (h : x ∈ nonunits α) : x * y ∈ nonunits α :=
-by rw mul_comm; exact mul_mem_nonunits_right h
+  {x y : α} : x ∈ nonunits α → x * y ∈ nonunits α :=
+mt is_unit_of_mul_is_unit_left
 
 theorem zero_mem_nonunits {α} [semiring α] : 0 ∈ nonunits α ↔ (0:α) ≠ 1 :=
-not_congr $ ⟨λ ⟨x, h⟩, by simpa using h, λ h, ⟨0, by simp [h]⟩⟩
+not_congr is_unit_zero_iff
 
 theorem one_not_mem_nonunits {α} [monoid α] : (1:α) ∉ nonunits α :=
-not_not_intro ⟨1, by simp⟩
+not_not_intro is_unit_one
 
 theorem coe_subset_nonunits {I : ideal α} (h : I ≠ ⊤) :
   (I : set α) ⊆ nonunits α :=
-λ x hx ⟨y, hxy⟩,  h $ I.eq_top_of_unit_mem x y hx hxy
+λ x hx ⟨y, hxy⟩, h $ I.eq_top_of_unit_mem x y hx hxy
 
 @[class] def is_local_ring (α : Type u) [comm_ring α] : Prop :=
 ∃! I : ideal α, I.is_maximal
@@ -179,7 +203,7 @@ def nonunits_ideal (h : is_local_ring α) : ideal α :=
       rcases (ideal.span {x} : ideal α).exists_le_maximal _ with ⟨N, mN, hN⟩,
       { cases hM N mN,
         rwa [ideal.span_le, singleton_subset_iff] at hN },
-      { rwa [ideal.ne_top_iff_one, ideal.mem_span_singleton] } },
+      { rwa [ideal.ne_top_iff_one, ideal.mem_span_singleton'] } },
     intros x y hx hy,
     exact coe_subset_nonunits mM.1 (M.add_mem (this _ hx) (this _ hy))
   end,

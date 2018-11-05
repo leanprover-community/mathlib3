@@ -13,7 +13,7 @@ open nat padic
 noncomputable theory
 local attribute [instance] classical.prop_decidable
 
-def padic_int (p : ℕ) [p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
+def padic_int (p : ℕ) [nat.prime p] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int
@@ -175,7 +175,7 @@ by simp [norm, padic_norm_z]
 
 end padic_norm_z
 
-private lemma mul_lt_one  {α} [decidable_linear_ordered_comm_ring α] {a b : α} (hbz : 0 < b)
+private lemma mul_lt_one {α} [decidable_linear_ordered_comm_ring α] {a b : α} (hbz : 0 < b)
   (ha : a < 1) (hb : b < 1) : a * b < 1 :=
 suffices a*b < 1*1, by simpa,
 mul_lt_mul ha (le_of_lt hb) hbz zero_le_one
@@ -205,6 +205,13 @@ lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
 lemma inv_mul {z : ℤ_[p]} (hz : ∥z∥ = 1) : z.inv * z = 1 :=
 by rw [mul_comm, mul_inv hz]
 
+lemma is_unit_iff {z : ℤ_[p]} : is_unit z ↔ ∥z∥ = 1 :=
+⟨λ h, begin
+  rcases is_unit_iff_dvd_one.1 h with ⟨w, eq⟩,
+  refine le_antisymm (padic_norm_z.le_one _) _,
+  have := mul_le_mul_of_nonneg_left (padic_norm_z.le_one w) (norm_nonneg z),
+  rwa [mul_one, ← padic_norm_z.mul, ← eq, padic_norm_z.one] at this
+end, λ h, ⟨⟨z, z.inv, mul_inv h, inv_mul h⟩, rfl⟩⟩
 
 lemma maximal_ideal_add {z1 z2 : ℤ_[p]} (hz1 : ∥z1∥ < 1) (hz2 : ∥z2∥ < 1) : ∥z1 + z2∥ < 1 :=
 lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hz1 hz2)
@@ -212,6 +219,12 @@ lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hz1 hz2)
 lemma maximal_ideal_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1 :=
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
            ... < 1 : mul_lt_one_of_le_of_lt (padic_norm_z.le_one _) (norm_nonneg _) hz2
+
+lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
+begin
+  rw lt_iff_le_and_ne, simp [padic_norm_z.le_one z, nonunits],
+  sorry
+end
 
 def maximal_ideal (p : ℕ) [p.prime] : ideal ℤ_[p] :=
 { carrier := {z | ∥z∥ < 1},

@@ -187,12 +187,12 @@ lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α]
 setoid.ext $ assume x y, group_separation_rel x y
 
 lemma ring_sep_quot (α) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  quotient (separation_setoid α) = (ideal.closure ⊥ : ideal α).quotient :=
+  quotient (separation_setoid α) = (⊥ : ideal α).closure.quotient :=
 by rw [@ring_sep_rel α r]; refl
 
 def sep_quot_equiv_ring_quot (α)
   [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  quotient (separation_setoid α) ≃ (ideal.closure ⊥ : ideal α).quotient :=
+  quotient (separation_setoid α) ≃ (⊥ : ideal α).closure.quotient :=
 quotient.congr $ assume x y, group_separation_rel x y
 
 /- TODO: use a form of transport a.k.a. lift definition a.k.a. transfer -/
@@ -203,7 +203,7 @@ by rw ring_sep_quot α; apply_instance
 instance [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   topological_ring (quotient (separation_setoid α)) :=
 begin
-  convert topological_ring_quotient (ideal.closure ⊥ : ideal α),
+  convert topological_ring_quotient (⊥ : ideal α).closure,
   { apply ring_sep_rel },
   { dsimp [topological_ring_quotient_topology, quotient.topological_space, to_topological_space],
     congr,

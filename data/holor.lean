@@ -72,7 +72,7 @@ variables {α : Type} {d : ℕ} {ds : list ℕ} {ds₁ : list ℕ} {ds₂ : list
 
 instance [inhabited α] : inhabited (holor α ds) := ⟨λ t, default α⟩
 instance [has_zero α] : has_zero (holor α ds) := ⟨λ t, 0⟩
-instance [has_add α] : has_add (holor α ds) := ⟨λ x y t, (x t) + (y t)⟩
+instance [has_add α] : has_add (holor α ds) := ⟨λ x y t, x t + y t⟩
 instance [has_neg α] : has_neg (holor α ds) :=  ⟨λ a t, - a t⟩
 
 instance [add_semigroup α] : add_semigroup (holor α ds) := by pi_instance
@@ -94,7 +94,7 @@ instance [has_mul α] : has_scalar α (holor α ds) :=
 
 instance [ring α] : module α (holor α ds) := pi.module α
 
-instance [discrete_field α] : vector_space α (holor α ds) := ⟨α, (holor α ds)⟩
+instance [discrete_field α] : vector_space α (holor α ds) := ⟨α, holor α ds⟩
 
 /- tensor product -/
 

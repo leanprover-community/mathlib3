@@ -12,37 +12,35 @@ variables {α : Type*}
 open set function ideal
 local attribute [instance] classical.prop_decidable
 
-class is_principal_ideal [comm_ring α] (S : ideal α) : Prop :=
+class ideal.is_principal [comm_ring α] (S : ideal α) : Prop :=
 (principal : ∃ a, S = span {a})
 
 class principal_ideal_domain (α : Type*) extends integral_domain α :=
-(principal : ∀ (S : ideal α), is_principal_ideal S)
+(principal : ∀ (S : ideal α), S.is_principal)
 attribute [instance] principal_ideal_domain.principal
-namespace is_principal_ideal
+namespace ideal.is_principal
 variable [comm_ring α]
 
-noncomputable def generator (S : ideal α) [is_principal_ideal S] : α :=
+noncomputable def generator (S : ideal α) [S.is_principal] : α :=
 classical.some (principal S)
 
-lemma span_singleton_generator (S : ideal α) [is_principal_ideal S] : span {generator S} = S :=
+lemma span_singleton_generator (S : ideal α) [S.is_principal] : span {generator S} = S :=
 eq.symm (classical.some_spec (principal S))
 
-@[simp] lemma generator_mem (S : ideal α) [is_principal_ideal S] : generator S ∈ S :=
+@[simp] lemma generator_mem (S : ideal α) [S.is_principal] : generator S ∈ S :=
 by conv {to_rhs, rw ← span_singleton_generator S}; exact subset_span (mem_singleton _)
 
-lemma mem_iff_generator_dvd (S : ideal α) [is_principal_ideal S] {x : α} : x ∈ S ↔ generator S ∣ x :=
-by conv {to_lhs, rw ← span_singleton_generator S}; rw mem_span_singleton;
-exact exists_congr (λ _, by rw [eq_comm, mul_comm])
+lemma mem_iff_generator_dvd (S : ideal α) [S.is_principal] {x : α} : x ∈ S ↔ generator S ∣ x :=
+by rw [← mem_span_singleton, span_singleton_generator]
 
-lemma eq_bot_iff_generator_eq_zero (S : ideal α) [is_principal_ideal S] :
+lemma eq_bot_iff_generator_eq_zero (S : ideal α) [S.is_principal] :
   S = ⊥ ↔ generator S = 0 :=
-⟨λ h, by rw [← submodule.mem_bot, ← submodule.mem_coe, ← h]; exact generator_mem S,
-  λ h, submodule.ext $ λ x, by rw [submodule.mem_bot, mem_iff_generator_dvd, h, zero_dvd_iff]⟩
+by rw [← span_singleton_eq_bot, span_singleton_generator]
 
-end is_principal_ideal
+end ideal.is_principal
 
 namespace is_prime
-open is_principal_ideal ideal
+open ideal.is_principal ideal
 
 lemma to_maximal_ideal [principal_ideal_domain α] {S : ideal α}
   [hpi : is_prime S] (hS : S ≠ ⊥) : is_maximal S :=
@@ -84,12 +82,12 @@ instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α 
     ⟨well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h,
       submodule.ext $ λ x,
       ⟨λ hx, div_add_mod x (well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h) ▸
-        (mem_span_singleton'.2 $ dvd_add (dvd_mul_right _ _) $
+        (mem_span_singleton.2 $ dvd_add (dvd_mul_right _ _) $
         have (x % (well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h) ∉ {x : α | x ∈ S ∧ x ≠ 0}),
           from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
         have x % well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h = 0, by finish [(mod_mem_iff hmin.1).2 hx],
         by simp *),
-      λ hx, let ⟨y, hy⟩ := mem_span_singleton'.1 hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩⟩ }
+      λ hx, let ⟨y, hy⟩ := mem_span_singleton.1 hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩⟩ }
 
 end
 
@@ -109,67 +107,46 @@ local attribute [instance] classical.prop_decidable
 open submodule
 
 lemma factors_decreasing (b₁ b₂ : α) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
-  submodule.span {b₁} > submodule.span ({b₁ * b₂} : set α) :=
+  submodule.span ({b₁ * b₂} : set α) < submodule.span {b₁} :=
 lt_of_le_not_le (ideal.span_le.2 $ singleton_subset_iff.2 $
-  ideal.mem_span_singleton.2 ⟨b₂, by rw mul_comm⟩) $ λ h,
-have _ := singleton_subset_iff.1 $ ideal.span_le.1 h,
-let ⟨c, hc⟩ := ideal.mem_span_singleton.1 this in
-have b₂ * c = 1, from eq_of_mul_eq_mul_left h₁
-  (by rwa [mul_one, ← mul_assoc, mul_comm]),
-h₂ ⟨units.mk_of_mul_eq_one _ c this, rfl⟩
+  ideal.mem_span_singleton.2 ⟨b₂, rfl⟩) $ λ h,
+h₂ $ is_unit_of_dvd_one _ $ (mul_dvd_mul_iff_left h₁).1 $
+by rwa [mul_one, ← ideal.span_singleton_le_span_singleton]
 
 lemma exists_factors (a : α) : a ≠ 0 → ∃f:multiset α, (∀b∈f, irreducible b) ∧ associated a f.prod :=
 have well_founded (inv_image (>) (λb, submodule.span ({b} : set α))), from
   inv_image.wf _ $ is_noetherian_iff_well_founded.1 $ is_noetherian_ring,
-this.induction a
-begin
-  assume a ih ha,
+this.induction a $ begin
+  intros a ih ha,
   by_cases h_unit : is_unit a,
-  { exact match a, h_unit with _, ⟨u, rfl⟩ := ⟨∅, by simp, u⁻¹, by simp⟩ end },
-  by_cases h_irreducible : irreducible a,
-  { exact ⟨{a}, by simp [h_irreducible]⟩ },
-
-  have : ∃b₁ b₂, a = b₁ * b₂ ∧ ¬ is_unit b₁ ∧ ¬ is_unit b₂,
-  { simp [irreducible, not_or_distrib, not_forall] at h_irreducible; from h_irreducible h_unit },
-  rcases this with ⟨b₁, b₂, eq, h₁, h₂⟩,
-
-  have hb₁ : b₁ ≠ 0, { assume eq, simp * at * },
-  have : submodule.span {b₁} > submodule.span ({a} : set α),
-    by rw [eq]; from factors_decreasing b₁ b₂ hb₁ h₂,
-  rcases ih b₁ this hb₁ with ⟨f₁, hf₁, ha₁⟩,
-
-  have hb₂ : b₂ ≠ 0, { assume eq, simp * at * },
-  have : submodule.span {b₂} > submodule.span ({a} : set α),
-    by rw [eq, mul_comm]; from factors_decreasing b₂ b₁ hb₂ h₁,
-  rcases ih b₂ this hb₂ with ⟨f₂, hf₂, ha₂⟩,
-
-  refine ⟨f₁ + f₂, _⟩,
-  simpa [or_imp_distrib, forall_and_distrib, eq, associated_mul_mul ha₁ ha₂] using and.intro hf₁ hf₂
+  { rcases h_unit with ⟨u, rfl⟩, exact ⟨∅, by simp, u⁻¹, by simp⟩ },
+  rcases irreducible_or_factor _ h_unit with irred | ⟨b₁, b₂, h₁, h₂, rfl⟩,
+  { exact ⟨{a}, by simp [irred]⟩ },
+  have hb₁ : b₁ ≠ 0 := mt (by rintro rfl; simp) ha,
+  rcases ih b₁ (factors_decreasing b₁ b₂ hb₁ h₂) hb₁ with ⟨f₁, hf₁, ha₁⟩,
+  have hb₂ : b₂ ≠ 0 := mt (by rintro rfl; simp) ha,
+  rcases ih b₂ (by rw mul_comm; exact factors_decreasing b₂ b₁ hb₂ h₁) hb₂ with ⟨f₂, hf₂, ha₂⟩,
+  exact ⟨f₁ + f₂,
+    by simpa [or_imp_distrib, forall_and_distrib] using and.intro hf₁ hf₂,
+    by simp [associated_mul_mul ha₁ ha₂]⟩
 end
 
 end
 
 lemma is_maximal_of_irreducible {p : α} (hp : irreducible p) :
   is_maximal (span ({p} : set α)) :=
-is_maximal_iff.2 ⟨λ h1, let ⟨q, hq⟩ := mem_span_singleton'.1 h1 in
-   hp.1 ⟨units.mk_of_mul_eq_one _ q hq.symm, rfl⟩, begin
-  assume T x hT hxp hx,
-  cases (principal T).principal with q hq,
-  have := hT (subset_span (mem_singleton _)), rw hq at this,
-  cases mem_span_singleton'.1 this with c hc, rw hc at hp,
-  rw [hq, mem_span_singleton'] at hx ⊢,
-  rcases hp.2 _ _ rfl with ⟨q, rfl⟩ | ⟨c, rfl⟩,
-  { exact units.coe_dvd _ _ },
-  { cases hx with y hy,
-    exact (hxp $ mem_span_singleton'.2 ⟨(c⁻¹ : units α) * y, by rwa [hc, ← mul_assoc,
-      mul_assoc q, ← units.coe_mul, mul_inv_self, units.coe_one, mul_one]⟩).elim }
+⟨mt span_singleton_eq_top.1 hp.1, λ I hI, begin
+  rcases principal I with ⟨a, rfl⟩,
+  rw span_singleton_eq_top,
+  unfreezeI,
+  rcases span_singleton_le_span_singleton.1 (le_of_lt hI) with ⟨b, rfl⟩,
+  refine (of_irreducible_mul hp).resolve_right (mt (λ hb, _) (not_le_of_lt hI)),
+  rw [span_singleton_le_span_singleton, mul_dvd_of_is_unit_right hb]
 end⟩
 
 lemma prime_of_irreducible {p : α} (hp : irreducible p) : prime p :=
-have is_prime (span ({p} : set α)), from
-  @is_maximal.is_prime _ _ _ (is_maximal_of_irreducible hp),
-⟨assume h, @not_irreducible_zero α _ $ h ▸ hp, hp.1, λ _ _,
-by simpa only [mem_span_singleton'.symm] using this.mem_or_mem⟩
+(span_singleton_prime $ nonzero_of_irreducible hp).1 $
+  (is_maximal_of_irreducible hp).is_prime
 
 lemma associates_prime_of_irreducible : ∀{p : associates α}, irreducible p → p.prime :=
 associates.forall_associated.2 $ assume a,

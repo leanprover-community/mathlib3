@@ -269,7 +269,7 @@ instance : complete_lattice (submodule α β) :=
   ..submodule.lattice.order_top,
   ..submodule.lattice.order_bot }
 
-@[simp] lemma eq_top_iff' {p : submodule α β} : p = ⊤ ↔ ∀ x, x ∈ p :=
+lemma eq_top_iff' {p : submodule α β} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
 
 @[simp] theorem inf_coe : (p ⊓ p' : set β) = p ∩ p' := rfl
@@ -484,6 +484,14 @@ lemma span_insert_eq_span (h : x ∈ span s) : span (insert x s) = span s :=
 span_eq_of_le _ (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mono $ subset_insert _ _)
 
 lemma span_span : span (span s : set β) = span s := span_eq _
+
+lemma span_eq_bot : span (s : set β) = ⊥ ↔ ∀ x ∈ s, (x:β) = 0 :=
+eq_bot_iff.trans ⟨
+  λ H x h, mem_bot.1 $ H $ subset_span h,
+  λ H, span_le.2 (λ x h, mem_bot.2 (H x h))⟩
+
+lemma span_singleton_eq_bot : span ({x} : set β) = ⊥ ↔ x = 0 :=
+span_eq_bot.trans $ by simp
 
 @[simp] lemma span_image (f : β →ₗ γ) : span (f '' s) = map f (span s) :=
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $

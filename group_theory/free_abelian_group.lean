@@ -39,8 +39,6 @@ open free_abelian_group
 instance is_add_group_hom : is_add_group_hom (lift f) :=
 ⟨λ x y, @is_group_hom.mul _ (multiplicative β) _ _ _ (abelianization.lift.is_group_hom _) x y⟩
 
-local attribute [instance] lift.is_add_group_hom
-
 @[simp] protected lemma add (x y : free_abelian_group α) :
   lift f (x + y) = lift f x + lift f y :=
 is_add_group_hom.add _ _ _

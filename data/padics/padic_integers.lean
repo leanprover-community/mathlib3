@@ -236,7 +236,7 @@ instance complete : cau_seq.is_complete ℤ_[p] norm :=
   have hqn : ∥cau_seq.lim (cau_seq_to_rat_cau_seq f)∥ ≤ 1,
     from padic_norm_e_lim_le zero_lt_one (λ _, padic_norm_z.le_one _),
   ⟨ ⟨_, hqn⟩,
-    by simpa [norm, padic_norm_z] using cau_seq.lim_spec (cau_seq_to_rat_cau_seq f) ⟩⟩
+    λ ε, by simpa [norm, padic_norm_z] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
 
 end padic_int
 

@@ -622,11 +622,6 @@ coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
 ext.2 $ λ n, coeff_C_mul f
 
--- TODO -- this is OK for semimodules
-lemma coeff_is_linear (n : ℕ) : is_linear_map (λ f : polynomial α, coeff f n) :=
-{ add := λ f g, coeff_add f g n,
-  smul := λ r p, coeff_smul p r n }
-
 variable (α)
 def lcoeff (n : ℕ) : polynomial α →ₗ α :=
 { to_fun := λ f, coeff f n,

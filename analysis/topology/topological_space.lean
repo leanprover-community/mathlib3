@@ -1317,7 +1317,7 @@ instance : complete_lattice (opens α) :=
 
 @[simp] lemma Sup_s {Us : set (opens α)} : (Sup Us).val = ⋃₀ (subtype.val '' Us) :=
 begin
-  rw [@galois_connection.l_Sup (opens α) (set α) _ _ (subtype.val : opens α → set α) interior (gc) Us, set.sUnion_image],
+  rw [@galois_connection.l_Sup (opens α) (set α) _ _ (subtype.val : opens α → set α) interior gc Us, set.sUnion_image],
   congr
 end
 
@@ -1347,7 +1347,9 @@ begin
     existsi {U : opens α | U ∈ B ∧ U.val ∈ sUs},
     split,
     { intros U hU, exact hU.left },
-    { apply ext, rw [Sup_s, hU], congr,
+    { apply ext,
+      rw [Sup_s, hU],
+      congr,
       ext s; split; intro hs,
       { rcases H hs with ⟨V, hV⟩,
         rw ← hV.right at hs,

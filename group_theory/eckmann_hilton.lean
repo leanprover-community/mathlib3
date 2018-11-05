@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Kenny Lau
+Authors: Johan Commelin, Kenny Lau, Robert Y. Lewis
 -/
 
 import tactic.interactive
@@ -9,38 +9,48 @@ import tactic.interactive
 universe u
 
 namespace eckmann_hilton
-variables (X : Type u)
+variables {X : Type u}
 
-local notation a `<`m`>` b := @has_mul.mul X m a b
+local notation a `<`m`>` b := m a b
 
-class is_unital [m : has_mul X] [e : has_one X] : Prop :=
-(one_mul : ∀ x : X, (e.one <m> x) = x)
-(mul_one : ∀ x : X, (x <m> e.one) = x)
+class is_unital (m : X → X → X) (e : X) : Prop :=
+(one_mul : ∀ x : X, (e <m> x) = x)
+(mul_one : ∀ x : X, (x <m> e) = x)
 
-attribute [simp] is_unital.one_mul is_unital.mul_one
+lemma group.is_unital [G : group X] : is_unital (*) (1 : X) := { ..G }
 
-variables {X} {m₁ : has_mul X} {e₁ : has_one X} {m₂ : has_mul X} {e₂ : has_one X}
-variables (h₁ : @is_unital X m₁ e₁) (h₂ : @is_unital X m₂ e₂)
+variables {m₁ m₂ : X → X → X} {e₁ e₂ : X}
+variables (h₁ : is_unital m₁ e₁) (h₂ : is_unital m₂ e₂)
 variables (distrib : ∀ a b c d, ((a <m₂> b) <m₁> (c <m₂> d)) = ((a <m₁> c) <m₂> (b <m₁> d)))
 include h₁ h₂ distrib
 
-lemma one : (e₁.one = e₂.one) :=
-by simpa using distrib e₂.one e₁.one e₁.one e₂.one
+lemma one : e₁ = e₂ :=
+by simpa only [h₁.one_mul, h₁.mul_one, h₂.one_mul, h₂.mul_one] using distrib e₂ e₁ e₁ e₂
 
-lemma mul : (m₁.mul = m₂.mul) :=
-by funext a b; have := distrib a e₁.one e₁.one b;
-simp at this; simpa [one h₁ h₂ distrib] using this
+lemma mul : (m₁ = m₂) :=
+begin
+  funext a b,
+  calc m₁ a b = m₁ (m₂ a e₁) (m₂ e₁ b) :
+    by simp only [one h₁ h₂ distrib, h₁.one_mul, h₁.mul_one, h₂.one_mul, h₂.mul_one]
+          ... = m₂ a b :
+    by simp only [distrib, h₁.one_mul, h₁.mul_one, h₂.one_mul, h₂.mul_one]
+end
 
-lemma mul_comm : is_commutative _ m₂.mul :=
-⟨λ a b, by simpa [mul h₁ h₂ distrib] using distrib e₂.one a b e₂.one⟩
+lemma mul_comm : is_commutative _ m₂ :=
+⟨λ a b, by simpa [mul h₁ h₂ distrib, h₂.one_mul, h₂.mul_one] using distrib e₂ a b e₂⟩
 
-lemma mul_assoc : is_associative _ m₂.mul :=
-⟨λ a b c, by simpa [mul h₁ h₂ distrib] using distrib a b e₂.one c⟩
+lemma mul_assoc : is_associative _ m₂ :=
+⟨λ a b c, by simpa [mul h₁ h₂ distrib, h₂.one_mul, h₂.mul_one] using distrib a b e₂ c⟩
 
-instance : comm_monoid X :=
-{ mul_comm := (mul_comm h₁ h₂ distrib).comm,
+def comm_monoid : comm_monoid X :=
+{ mul := m₂,
+  one := e₂,
+  mul_comm := (mul_comm h₁ h₂ distrib).comm,
   mul_assoc := (mul_assoc h₁ h₂ distrib).assoc,
-  ..m₂, ..e₂, ..h₂ }
+  ..h₂ }
+
+def comm_group [G : group X] (distrib : ∀ a b c d, ((a * b) <m₁> (c * d)) = ((a <m₁> c) * (b <m₁> d))) : comm_group X :=
+{ mul_comm := (eckmann_hilton.comm_monoid h₁ group.is_unital distrib).mul_comm,
+  ..G }
 
 end eckmann_hilton
-

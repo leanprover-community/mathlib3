@@ -58,37 +58,39 @@ open category_theory.limits
 variables {X : Type v} [𝒳 : small_category X]
 include 𝒳
 
-variables {U : X}
+variables {U : X} (f : covering_family U)
 
 set_option pp.universes true
-def sieve (f : covering_family U) : presheaf X (Type v) :=
+def sieve : presheaf X (Type v) :=
 let CP := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in
 coequalizer
   (sigma.desc (λ p : (f.index × f.index), (sigma.ι ((yoneda X) ∘ f.obj) p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
   (sigma.desc (λ p : (f.index × f.index), (sigma.ι ((yoneda X) ∘ f.obj) p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
 
+def π : f.sieve ⟶ yoneda X U := coequalizer.desc (sigma.desc (λ i : f.index, (yoneda X).map (f.map i))) _
+
 def sheaf_condition (f : (covering_family U)) {C : Type u₂} [category.{u₂ v₂} C] (F : presheaf X C) : Prop := sorry
 
 end covering_family
 
-structure coverage {X : Type u₁} [category.{u₁ u₂} X] :=
+structure coverage {X : Type u₁} [small_category.{u₁} X] :=
 (covers   : Π (U : X), set (covering_family U))
 (property : ∀ {U V : X} (g : V ⟶ U) (f : (covering_family U)) (Hf : f ∈ covers U),
             ∃ (h : covering_family V) (Hh : h ∈ covers V), ∀ j : h.index, ∃ {i : f.index} {k : h.obj j ⟶ f.obj i},
             h.map j ≫ g = k ≫ f.map i)
 
-class site (X : Type u₁) extends category.{u₁ u₂} X :=
+class site (X : Type u₁) extends category.{u₁} X :=
 (coverage : @coverage X (by assumption))
 
 namespace site
-variables {X : Type u₁} [𝒳 : site.{u₁ v₁} X]
+variables {X : Type u₁} [𝒳 : site.{u₁} X]
 
 definition covers := coverage.covers 𝒳.coverage
 
 end site
 
 section sheaf
-variables (X : Type u₁) [𝒳 : site.{u₁ v₁} X] (C : Type u₂) [𝒞 : category.{u₂ v₂} C]
+variables (X : Type u₁) [𝒳 : site.{u₁} X] (C : Type u₂) [𝒞 : category.{u₂ v₂} C]
 include 𝒳 𝒞
 
 structure sheaf :=

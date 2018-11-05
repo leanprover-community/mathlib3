@@ -213,77 +213,18 @@ lemma is_unit_iff {z : ℤ_[p]} : is_unit z ↔ ∥z∥ = 1 :=
   rwa [mul_one, ← padic_norm_z.mul, ← eq, padic_norm_z.one] at this
 end, λ h, ⟨⟨z, z.inv, mul_inv h, inv_mul h⟩, rfl⟩⟩
 
-lemma maximal_ideal_add {z1 z2 : ℤ_[p]} (hz1 : ∥z1∥ < 1) (hz2 : ∥z2∥ < 1) : ∥z1 + z2∥ < 1 :=
+lemma norm_lt_one_add {z1 z2 : ℤ_[p]} (hz1 : ∥z1∥ < 1) (hz2 : ∥z2∥ < 1) : ∥z1 + z2∥ < 1 :=
 lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hz1 hz2)
 
-lemma maximal_ideal_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1 :=
+lemma norm_lt_one_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1 :=
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
            ... < 1 : mul_lt_one_of_le_of_lt (padic_norm_z.le_one _) (norm_nonneg _) hz2
 
-lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
-begin
-  rw lt_iff_le_and_ne, simp [padic_norm_z.le_one z, nonunits],
-  sorry
-end
-
-def maximal_ideal (p : ℕ) [p.prime] : ideal ℤ_[p] :=
-{ carrier := {z | ∥z∥ < 1},
-  zero := show ∥(0 : ℤ_[p])∥ < 1, by simp [zero_lt_one],
-  add := @maximal_ideal_add _ _,
-  smul := @maximal_ideal_mul _ _ }
-
-lemma maximal_ideal_ne_top : maximal_ideal p ≠ ⊤ :=
-(ideal.ne_top_iff_one _).2 $ assume : ∥(1:ℤ_[p])∥ < 1,
-by rw padic_norm_z.one at this; exact lt_irrefl 1 this
-
-lemma maximal_ideal_eq_nonunits : ↑(maximal_ideal p) = nonunits ℤ_[p] :=
-begin
-  ext,
-  constructor,
-  { intros hx hex,
-    cases hex with y hy,
-    have hym : ∥(y*x)∥ < 1, from submodule.smul _ _ hx,
-    apply lt_irrefl (1 : ℝ),
-    rw hy at hym, simpa using hym },
-  { intro hx,
-    by_contradiction hnm,
-    apply hx,
-    have : ∥x∥ = 1, from le_antisymm (padic_norm_z.le_one _) (le_of_not_gt hnm),
-    existsi x.inv, apply inv_mul this }
-end
-
-/-instance : is_proper_ideal (maximal_ideal p) :=
-{ ne_univ := maximal_ideal_ne_univ }-/
-
-/-lemma maximal_ideal_eq_or_univ_of_subset (T : set ℤ_[p]) [_inst_2 : is_ideal T]
-      (hss : maximal_ideal p ⊆ T) : T = maximal_ideal p ∨ T = set.univ :=
-have T ≠ maximal_ideal p → T = set.univ, from
-  (assume h : T ≠ maximal_ideal p,
-   let ⟨k, hkt, hknm⟩ := set.exists_of_ssubset ⟨hss, ne.symm h⟩ in
-   set.eq_univ_of_forall $ λ z,
-     have hknm : ∥k∥ = 1, from le_antisymm (padic_norm_z.le_one _) (le_of_not_gt hknm),
-     have hkzt : z*k ∈ T, from is_submodule.smul _ hkt,
-     have hkzt' : (inv k)*(z*k) ∈ T, from is_submodule.smul _ hkzt,
-     by rw [mul_comm, mul_assoc, mul_inv] at hkzt'; simpa using hkzt'),
-if hT : T = maximal_ideal p then or.inl hT else or.inr (this hT)-/
-
-instance : ideal.is_maximal (maximal_ideal p) :=
-⟨maximal_ideal_ne_top, λ T h, let ⟨k, hkt, hknm⟩ := set.exists_of_ssubset ⟨h.1, mt ge_of_eq h.2⟩ in
-ideal.eq_top_of_unit_mem _ k (inv k) hkt $ inv_mul $ le_antisymm (padic_norm_z.le_one _) $ le_of_not_lt hknm⟩
-
-/-lemma maximal_ideal_unique (T : set ℤ_[p]) [_inst_2 : is_maximal_ideal T] : maximal_ideal p = T :=
-let htmax := @is_maximal_ideal.eq_or_univ_of_subset _ _ T _ (maximal_ideal p) _ in
-have htsub : T ⊆ maximal_ideal p,
-  by rw maximal_ideal_eq_nonunits; apply not_unit_of_mem_proper_ideal,
-or.resolve_right (htmax htsub) maximal_ideal_ne_univ-/
+@[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
+by rw lt_iff_le_and_ne; simp [padic_norm_z.le_one z, nonunits, is_unit_iff]
 
 instance : is_local_ring ℤ_[p] :=
-local_of_nonunits_ideal zero_ne_one $ λ x y,
-by rw [← maximal_ideal_eq_nonunits, submodule.mem_coe];
-exact submodule.add_mem _
-/-{ S := maximal_ideal p,
-  max := by apply_instance,
-  unique := maximal_ideal_unique }-/
+local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
 private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[p] norm) :
   cau_seq ℚ_[p] (λ a, ∥a∥) :=

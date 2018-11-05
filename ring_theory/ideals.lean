@@ -22,7 +22,7 @@ eq_top_iff.2 $ λ z _, calc
   ... ∈ I : I.mul_mem_left hx
 
 theorem eq_top_of_is_unit_mem {x} (hx : x ∈ I) (h : is_unit x) : I = ⊤ :=
-let ⟨y, hy⟩ := is_unit_iff_exists_inv'.1 h in eq_top_of_unit_mem x y hx hy
+let ⟨y, hy⟩ := is_unit_iff_exists_inv'.1 h in eq_top_of_unit_mem I x y hx hy
 
 theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
 ⟨by rintro rfl; trivial,
@@ -185,7 +185,7 @@ not_not_intro is_unit_one
 
 theorem coe_subset_nonunits {I : ideal α} (h : I ≠ ⊤) :
   (I : set α) ⊆ nonunits α :=
-λ x hx ⟨y, hxy⟩, h $ I.eq_top_of_unit_mem x y hx hxy
+λ x hx hu, h $ I.eq_top_of_is_unit_mem hx hu
 
 @[class] def is_local_ring (α : Type u) [comm_ring α] : Prop :=
 ∃! I : ideal α, I.is_maximal
@@ -203,7 +203,7 @@ def nonunits_ideal (h : is_local_ring α) : ideal α :=
       rcases (ideal.span {x} : ideal α).exists_le_maximal _ with ⟨N, mN, hN⟩,
       { cases hM N mN,
         rwa [ideal.span_le, singleton_subset_iff] at hN },
-      { rwa [ideal.ne_top_iff_one, ideal.mem_span_singleton'] } },
+      { exact mt ideal.span_singleton_eq_top.1 hx } },
     intros x y hx hy,
     exact coe_subset_nonunits mM.1 (M.add_mem (this _ hx) (this _ hy))
   end,

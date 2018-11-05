@@ -254,17 +254,6 @@ variables {M N P Q}
 variables (f : M →ₗ N →ₗ P)
 
 local attribute [instance] free_abelian_group.lift.is_add_group_hom
-/-#check tensor_product.has_scalar
-instance : has_scalar R (M ⊗ N) :=
-⟨λ r, quotient_add_group.lift _ (smul.aux r) $ λ x hx, begin
-  refine (is_add_group_hom.mem_ker (smul.aux r : _ → M ⊗ N)).1
-    (add_group.closure_subset _ hx),
-  clear hx x, rintro x (⟨m₁, m₂, n, rfl⟩ | ⟨m, n₁, n₂, rfl⟩ | ⟨q, m, n, rfl⟩);
-  simp only [smul.aux, is_add_group_hom.mem_ker, -sub_eq_add_neg,
-    sub_self, add_tmul, tmul_add, smul_tmul,
-    smul_add, smul_smul, mul_comm, free_abelian_group.lift.coe,
-    free_abelian_group.lift.add, free_abelian_group.lift.sub]
-end⟩-/
 
 def lift_aux : M ⊗ N → P :=
 quotient_add_group.lift _

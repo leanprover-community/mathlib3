@@ -38,6 +38,9 @@ match H.total_of_refl hx hy with
 | or.inr h := ⟨x, hx, refl _, h⟩
 end
 
+theorem chain.mono {c c'} : c' ⊆ c → chain c → chain c' :=
+pairwise_on.mono
+
 theorem chain.directed_on [is_refl α r] {c} (H : chain c) : directed_on (≺) c :=
 λ x xc y yc, let ⟨z, hz, h⟩ := H.directed xc yc in ⟨z, hz, h⟩
 
@@ -223,18 +226,35 @@ let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
 
 theorem zorn_subset {α : Type u} (S : set (set α))
-  (h : ∀c ⊆ S, chain (⊆) c → (⋃₀ c) ∈ S) :
+  (h : ∀c ⊆ S, chain (⊆) c → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) :
   ∃ m ∈ S, ∀a ∈ S, m ⊆ a → a = m :=
 begin
   letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.eq'),
   have : ∀c:set S, @chain S (≤) c → ∃ub, ∀a∈c, a ≤ ub,
-  { refine λ c hc, ⟨⟨_, h (subtype.val '' c) (image_subset_iff.2 _) _⟩, _⟩,
+  { intros c hc,
+    rcases h (subtype.val '' c) (image_subset_iff.2 _) _ with ⟨s, sS, hs⟩,
+    { exact ⟨⟨s, sS⟩, λ ⟨x, hx⟩ H, hs _ (mem_image_of_mem _ H)⟩ },
     { rintro ⟨x, hx⟩ _, exact hx },
     { rintro _ ⟨x, cx, rfl⟩ _ ⟨y, cy, rfl⟩ xy,
-      exact hc x cx y cy (mt (congr_arg _) xy) },
-    { rintro ⟨x, hx⟩ xc, exact subset_sUnion_of_mem (mem_image_of_mem _ xc) } },
+      exact hc x cx y cy (mt (congr_arg _) xy) } },
   rcases zorn_partial_order this with ⟨⟨m, mS⟩, hm⟩,
   exact ⟨m, mS, λ a aS ha, congr_arg subtype.val (hm ⟨a, aS⟩ ha)⟩
+end
+
+theorem zorn_subset₀ {α : Type u} (S : set (set α))
+  (H : ∀c ⊆ S, chain (⊆) c → c ≠ ∅ → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) (x) (hx : x ∈ S) :
+  ∃ m ∈ S, x ⊆ m ∧ ∀a ∈ S, m ⊆ a → a = m :=
+begin
+  let T := {s ∈ S | x ⊆ s},
+  rcases zorn_subset T _ with ⟨m, ⟨mS, mx⟩, hm⟩,
+  { exact ⟨m, mS, mx, λ a ha ha', hm a ⟨ha, subset.trans mx ha'⟩ ha'⟩ },
+  { intros c cT hc,
+    by_cases c0 : c = ∅,
+    { rw c0, exact ⟨x, ⟨hx, subset.refl _⟩, λ _, false.elim⟩ },
+    { rcases H _ (subset.trans cT (sep_subset _ _)) hc c0 with ⟨ub, us, h⟩,
+      refine ⟨ub, ⟨us, _⟩, h⟩,
+      rcases ne_empty_iff_exists_mem.1 c0 with ⟨s, hs⟩,
+      exact subset.trans (cT hs).2 (h _ hs) } }
 end
 
 theorem chain.total {α : Type u} [preorder α]

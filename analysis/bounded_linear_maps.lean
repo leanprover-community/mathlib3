@@ -17,7 +17,7 @@ mul_inv_eq hb ha
 noncomputable theory
 local attribute [instance] classical.prop_decidable
 
-local notation f `→_{`:50 a `}`:0 b := filter.tendsto f (nhds a) (nhds b)
+local notation f ` →_{`:50 a `} `:0 b := filter.tendsto f (nhds a) (nhds b)
 
 open filter (tendsto)
 
@@ -44,13 +44,13 @@ lemma is_linear_map.with_bound
 namespace is_bounded_linear_map
 
 lemma zero : is_bounded_linear_map (λ (x:E), (0:F)) :=
-is_linear_map.map_zero.with_bound 0 $ by simp [le_refl]
+(0 : E →ₗ F).is_linear.with_bound 0 $ by simp [le_refl]
 
 lemma id : is_bounded_linear_map (λ (x:E), x) :=
-is_linear_map.id.with_bound 1 $ by simp [le_refl]
+linear_map.id.is_linear.with_bound 1 $ by simp [le_refl]
 
 lemma smul {f : E → F} (c : k) : is_bounded_linear_map f → is_bounded_linear_map (λ e, c • f e)
-| ⟨hf, ⟨M, hM, h⟩⟩ := hf.map_smul_right.with_bound (∥c∥ * M) $ assume x,
+| ⟨hf, ⟨M, hM, h⟩⟩ := (c • hf.mk' f).is_linear.with_bound (∥c∥ * M) $ assume x,
   calc ∥c • f x∥ = ∥c∥ * ∥f x∥ : norm_smul c (f x)
     ... ≤ ∥c∥ * (M * ∥x∥) : mul_le_mul_of_nonneg_left (h x) (norm_nonneg c)
     ... = (∥c∥ * M) * ∥x∥ : (mul_assoc _ _ _).symm
@@ -63,7 +63,7 @@ end
 
 lemma add {f : E → F} {g : E → F} :
   is_bounded_linear_map f → is_bounded_linear_map g → is_bounded_linear_map (λ e, f e + g e)
-| ⟨hlf, Mf, hMf, hf⟩  ⟨hlg, Mg, hMg, hg⟩ := (hlf.map_add hlg).with_bound (Mf + Mg) $ assume x,
+| ⟨hlf, Mf, hMf, hf⟩  ⟨hlg, Mg, hMg, hg⟩ := (hlf.mk' _ + hlg.mk' _).is_linear.with_bound (Mf + Mg) $ assume x,
   calc ∥f x + g x∥ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
     ... ≤ Mf * ∥x∥ + Mg * ∥x∥ : add_le_add (hf x) (hg x)
     ... ≤ (Mf + Mg) * ∥x∥ : by rw add_mul
@@ -73,15 +73,15 @@ lemma sub {f : E → F} {g : E → F} (hf : is_bounded_linear_map f) (hg : is_bo
 
 lemma comp {f : E → F} {g : F → G} :
   is_bounded_linear_map g → is_bounded_linear_map f → is_bounded_linear_map (g ∘ f)
-| ⟨hlg, Mg, hMg, hg⟩ ⟨hlf, Mf, hMf, hf⟩ := (hlg.comp hlf).with_bound (Mg * Mf) $ assume x,
+| ⟨hlg, Mg, hMg, hg⟩ ⟨hlf, Mf, hMf, hf⟩ := ((hlg.mk' _).comp (hlf.mk' _)).is_linear.with_bound (Mg * Mf) $ assume x,
   calc ∥g (f x)∥ ≤ Mg * ∥f x∥ : hg _
     ... ≤ Mg * (Mf * ∥x∥) : mul_le_mul_of_nonneg_left (hf _) (le_of_lt hMg)
     ... = Mg * Mf * ∥x∥ : (mul_assoc _ _ _).symm
 
-lemma tendsto {L : E → F} (x : E) : is_bounded_linear_map L → tendsto L (nhds x) (nhds (L x))
+lemma tendsto {L : E → F} (x : E) : is_bounded_linear_map L → L →_{x} (L x)
 | ⟨hL, M, hM, h_ineq⟩ := tendsto_iff_norm_tendsto_zero.2 $
   squeeze_zero (assume e, norm_nonneg _)
-    (assume e, calc ∥L e - L x∥ = ∥L (e - x)∥ : by rw ← hL.sub e x
+    (assume e, calc ∥L e - L x∥ = ∥hL.mk' L (e - x)∥ : by rw (hL.mk' _).map_sub e x; refl
       ... ≤ M*∥e-x∥ : h_ineq (e-x))
     (suffices (λ (e : E), M * ∥e - x∥) →_{x} (M * 0), by simpa,
       tendsto_mul tendsto_const_nhds (lim_norm _))
@@ -90,7 +90,7 @@ lemma continuous {L : E → F} (hL : is_bounded_linear_map L) : continuous L :=
 continuous_iff_tendsto.2 $ assume x, hL.tendsto x
 
 lemma lim_zero_bounded_linear_map {L : E → F} (H : is_bounded_linear_map L) : (L →_{0} 0) :=
-by simpa [H.to_is_linear_map.zero] using continuous_iff_tendsto.1 H.continuous 0
+(H.1.mk' _).map_zero ▸ continuous_iff_tendsto.1 H.continuous 0
 
 end is_bounded_linear_map
 
@@ -99,9 +99,10 @@ lemma bounded_continuous_linear_map
   {E : Type*} [normed_space ℝ E] {F : Type*} [normed_space ℝ F] {L : E → F}
   (lin : is_linear_map L) (cont : continuous L) : is_bounded_linear_map L :=
 let ⟨δ, δ_pos, hδ⟩ := exists_delta_of_continuous cont zero_lt_one 0 in
-have H : ∀{a}, ∥a∥ ≤ δ → ∥L a∥ < 1, by simpa [lin.zero, dist_zero_right] using hδ,
+have HL0 : L 0 = 0, from (lin.mk' _).map_zero,
+have H : ∀{a}, ∥a∥ ≤ δ → ∥L a∥ < 1, by simpa only [HL0, dist_zero_right] using hδ,
 lin.with_bound (δ⁻¹) $ assume x,
-classical.by_cases (assume : x = 0, by simp [this, lin.zero]) $
+classical.by_cases (assume : x = 0, by simp only [this, HL0, norm_zero, mul_zero]) $
 assume h : x ≠ 0,
 let p := ∥x∥ * δ⁻¹, q := p⁻¹ in
 have p_inv : p⁻¹ = δ*∥x∥⁻¹, by simp,

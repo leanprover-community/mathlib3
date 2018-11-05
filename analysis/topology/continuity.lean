@@ -57,6 +57,14 @@ lemma continuous_iff_is_closed {f : α → β} :
 ⟨assume hf s hs, hf (-s) hs,
   assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
 
+lemma continuous_at_iff_ultrafilter {f : α → β} (x) : tendsto f (nhds x) (nhds (f x)) ↔
+  ∀ g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
+tendsto_iff_ultrafilter f (nhds x) (nhds (f x))
+
+lemma continuous_iff_ultrafilter {f : α → β} :
+  continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
+by simp only [continuous_iff_tendsto, continuous_at_iff_ultrafilter]
+
 lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
   (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
   continuous (λa, @ite (p a) (h a) β (f a) (g a)) :=
@@ -711,8 +719,18 @@ instance [second_countable_topology α] [second_countable_topology β] :
 
 end prod
 
+section compact_and_proper_spaces
 
-section locally_compact
+/--Type class for compact spaces. Separation is sometimes included in the definition, especially
+in the French literature, but we do not include it here.-/
+class compact_space (α : Type*) [topological_space α] : Prop :=
+(compact_univ : compact (univ : set α))
+
+lemma compact_univ [topological_space α] [h : compact_space α] : compact (univ : set α) := h.compact_univ
+
+lemma compact_of_closed [topological_space α] [compact_space α] {s : set α} (h : is_closed s) :
+  compact s :=
+compact_of_is_closed_subset compact_univ h (subset_univ _)
 
 /-- There are various definitions of "locally compact space" in the literature, which agree for
 Hausdorff spaces but not in general. This one is the precise condition on X needed for the
@@ -742,11 +760,19 @@ lemma locally_compact_of_compact_nhds [topological_space α] [t2_space α]
    subset.trans (diff_subset_comm.mp kuw) un,
    compact_diff kc wo⟩⟩
 
-lemma locally_compact_of_compact [topological_space α] [t2_space α] (h : compact (univ : set α)) :
+instance locally_compact_of_compact [topological_space α] [t2_space α] [compact_space α] :
   locally_compact_space α :=
-locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ trivial, h⟩)
+locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ trivial, compact_univ⟩)
 
-end locally_compact
+-- We can't make this an instance because it could cause an instance loop.
+lemma normal_of_compact_t2 [topological_space α] [compact_space α] [t2_space α] : normal_space α :=
+begin
+  refine ⟨assume s t hs ht st, _⟩,
+  simp only [disjoint_iff],
+  exact compact_compact_separated (compact_of_closed hs) (compact_of_closed ht) st.eq_bot
+end
+
+end compact_and_proper_spaces
 
 section sum
 variables [topological_space α] [topological_space β] [topological_space γ]
@@ -906,6 +932,19 @@ continuous_coinduced_rng
 lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
   (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
 continuous_coinduced_dom h
+
+instance quot.compact_space {r : α → α → Prop} [topological_space α] [compact_space α] :
+  compact_space (quot r) :=
+⟨begin
+   have : quot.mk r '' univ = univ,
+     by rw [image_univ, range_iff_surjective]; exact quot.exists_rep,
+   rw ←this,
+   exact compact_image compact_univ continuous_quot_mk
+ end⟩
+
+instance quotient.compact_space {s : setoid α} [topological_space α] [compact_space α] :
+  compact_space (quotient s) :=
+quot.compact_space
 
 end quotient
 

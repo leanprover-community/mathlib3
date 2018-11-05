@@ -768,7 +768,7 @@ lemma totally_bounded_preimage [uniform_space α] [uniform_space β] {f : α →
 end
 
 lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}
-  (hs : totally_bounded s) (hf : ultrafilter f) (h : f ≤ principal s) : cauchy f :=
+  (hs : totally_bounded s) (hf : is_ultrafilter f) (h : f ≤ principal s) : cauchy f :=
 ⟨hf.left, assume t ht,
   let ⟨t', ht'₁, ht'_symm, ht'_t⟩ := comp_symm_of_uniformity ht in
   let ⟨i, hi, hs_union⟩ := hs t' ht'₁ in
@@ -828,7 +828,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   hc₂.left $ empty_in_sets_eq_bot.mp this⟩
 
 lemma totally_bounded_iff_ultrafilter {s : set α} :
-  totally_bounded s ↔ (∀f, ultrafilter f → f ≤ principal s → cauchy f) :=
+  totally_bounded s ↔ (∀f, is_ultrafilter f → f ≤ principal s → cauchy f) :=
 ⟨assume hs f, cauchy_of_totally_bounded_of_ultrafilter hs,
   assume h, totally_bounded_iff_filter.mpr $ assume f hf hfs,
   have cauchy (ultrafilter_of f),
@@ -859,6 +859,15 @@ let ⟨x, hx⟩ := complete_space.complete hf in
 have x ∈ s, from is_closed_iff_nhds.mp h x $ neq_bot_of_le_neq_bot hf.left $
   le_inf hx hfs,
 ⟨x, this, hx⟩
+
+instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α] : complete_space α :=
+⟨begin
+  intros f hf,
+  have A : ∃a∈univ, f ⊓ nhds a ≠ ⊥ := compact_univ f hf.1 (le_principal_iff.2 univ_mem_sets),
+  rcases A with ⟨a, _ , fa⟩,
+  existsi a,
+  exact le_nhds_of_cauchy_adhp hf fa
+end⟩
 
 lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : compact s :=
@@ -1274,6 +1283,33 @@ begin
       exact de.inj
     end⟩,
   exact (assume x hx, ⟨⟨x, hp x hx⟩, rfl⟩)
+end
+
+/--If a Cauchy filter contains a compact set, then it is converging. The proof
+is done by restricting to the compact set, and then lifting everything back.
+The same would work if the filter contained a complete set, but complete sets
+are not defined, and this would be less useful anyway.-/
+lemma complete_of_compact_set {α : Type u} [uniform_space α] {f : filter α}
+  (h : cauchy f) {t : set α} (tf : t ∈ f.sets) (ht : compact t) :
+  ∃x, f ≤ nhds x :=
+begin
+  let ft := ((comap subtype.val f) : filter t),
+  haveI : compact_space t := ⟨by rw [←compact_iff_compact_univ]; apply ht⟩,
+  have B : ft ≠ ⊥ := comap_neq_bot
+  begin
+     intros u u_fset,
+     have : u ∩ t ∈ f.sets := f.inter_sets u_fset tf,
+     rcases inhabited_of_mem_sets h.1 this with ⟨y, yut⟩,
+     exact ⟨⟨y, yut.2⟩, yut.1⟩,
+  end,
+  have : cauchy ft := cauchy_comap (le_refl _) h B,
+  /-We have proved that the restricted filter is Cauchy. By compactness, it converges-/
+  rcases complete_space.complete this with ⟨⟨y, yt⟩, hy⟩,
+  existsi y,
+  rw nhds_subtype_eq_comap at hy,
+  calc f ≤ map subtype.val (comap subtype.val f) : le_map_comap' tf (by simp)
+     ... ≤ map subtype.val (comap subtype.val (nhds y)) : map_mono hy
+     ... ≤ nhds y : map_comap_le
 end
 
 /- a similar product space is possible on the function space (uniformity of pointwise convergence),

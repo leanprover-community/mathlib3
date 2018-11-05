@@ -390,6 +390,9 @@ by induction m with m ih; [exact nat.cast_one, rw [nat.pow_succ, pow_succ', nat.
 @[simp] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [nat.pow_succ, pow_succ', int.coe_nat_mul, ih]]
 
+theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
+by induction k with k ih; [refl, rw [pow_succ', int.nat_abs_mul, nat.pow_succ, ih]]
+
 theorem is_semiring_hom.map_pow {β} [semiring α] [semiring β]
   (f : α → β) [is_semiring_hom f] (x : α) (n : ℕ) : f (x ^ n) = f x ^ n :=
 by induction n with n ih; [exact is_semiring_hom.map_one f,
@@ -421,13 +424,16 @@ by induction m with m ih; [exact int.cast_one,
 lemma neg_one_pow_eq_pow_mod_two [ring α] {n : ℕ} : (-1 : α) ^ n = -1 ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 
-theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+theorem pow_eq_zero [domain α] {x : α} {n : ℕ} (H : x^n = 0) : x = 0 :=
 begin
-  induction n with n ih, {exact one_ne_zero},
-  intro H,
-  cases mul_eq_zero.1 H with h1 h1,
-  exacts [h h1, ih h1]
+  induction n with n ih,
+  { rw pow_zero at H,
+    rw [← mul_one x, H, mul_zero] },
+  exact or.cases_on (mul_eq_zero.1 H) id ih
 end
+
+theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+mt pow_eq_zero h
 
 @[simp] theorem one_div_pow [division_ring α] {a : α} (ha : a ≠ 0) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
 by induction n with n ih; [exact (div_one _).symm,

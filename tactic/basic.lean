@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Scott Morrison
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import data.dlist.basic category.basic
 
@@ -152,6 +152,9 @@ end
 end lean.parser
 
 namespace tactic
+
+meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
+mk_app ``id [e] >>= eval_expr α
 
 meta def is_simp_lemma : name → tactic bool :=
 succeeds ∘ tactic.has_attribute `simp
@@ -461,7 +464,7 @@ meta def apply_assumption
   (asms : tactic (list expr) := local_context)
   (tac : tactic unit := skip) : tactic unit :=
 do { ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) } <|> 
+     ctx.any_of (λ H, symm_apply H >> tac) } <|>
 do { exfalso,
      ctx ← asms,
      ctx.any_of (λ H, symm_apply H >> tac) }
@@ -596,6 +599,14 @@ meta def choose : expr → list name → tactic unit
   v ← get_unused_name >>= choose1 h n,
   choose v ns
 
+/-- This makes sure that the execution of the tactic does not change the tactic state.
+    This can be helpful while using rewrite, apply, or expr munging.
+    Remember to instantiate your metavariables before you're done! -/
+meta def lock_tactic_state {α} (t : tactic α) : tactic α
+| s := match t s with
+       | result.success a s' := result.success a s
+       | result.exception msg pos s' := result.exception msg pos s
+end
 
 /--
 Hole command used to fill in a structure's field when specifying an instance.
@@ -632,5 +643,10 @@ instance : monad id :=
      let fs := list.intersperse (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
      let out := format.to_string format!"{{ {format.join fs} }",
      return [(out,"")] }
+
+meta def classical : tactic unit :=
+do h ← get_unused_name `_inst,
+   mk_const `classical.prop_decidable >>= note h none,
+   reset_instance_cache
 
 end tactic

@@ -269,10 +269,13 @@ do asms ← mk_assumption_set no_dflt hs attr_names,
 and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
 using `reflexivity` or `solve_by_elim`
 -/
-meta def tautology := tactic.tautology
+meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
 
 /-- Shorter name for the tactic `tautology`. -/
-meta def tauto := tautology
+meta def tauto (c : parse $ (tk "!")?) := tautology c
+
+/-- Make every propositions in the context decidable -/
+meta def classical := tactic.classical
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)

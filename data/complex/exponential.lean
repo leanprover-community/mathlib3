@@ -907,7 +907,7 @@ lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1) ≤ 2 * abs x :=
 calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
   by simp [sum_range_succ]
-... ≤ abs x ^ 1 * ((nat.succ 1) * (nat.fact 1 * 1)⁻¹) :
+... ≤ abs x ^ 1 * ((nat.succ 1) * (nat.fact 1 * (1 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm]
 

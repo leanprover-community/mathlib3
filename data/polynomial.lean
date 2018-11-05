@@ -16,12 +16,12 @@ def polynomial (α : Type*) [comm_semiring α] := ℕ →₀ α
 open finsupp finset lattice
 
 namespace polynomial
-universe u
-variables {α : Type u} {a b : α} {m n : ℕ}
+universes u v
+variables {α : Type u} {β : Type v} {a b : α} {m n : ℕ}
 variables [decidable_eq α]
 
 section comm_semiring
-variables [comm_semiring α] {p q : polynomial α}
+variables [comm_semiring α] {p q r : polynomial α}
 
 instance : has_zero (polynomial α) := finsupp.has_zero
 instance : has_one (polynomial α) := finsupp.has_one
@@ -110,6 +110,8 @@ finsupp.induction p
 
 instance C.is_semiring_hom : is_semiring_hom (C : α → polynomial α) :=
 ⟨C_0, C_1, λ _ _, C_add, λ _ _, C_mul⟩
+
+@[simp] lemma C_pow : C (a ^ n) = C a ^ n := is_semiring_hom.map_pow _ _ _
 
 section coeff
 
@@ -204,14 +206,16 @@ lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
 
 section eval₂
-variables {β : Type*} [comm_semiring β]
-variables (f : α → β) [is_semiring_hom f] (x : β)
+variables [semiring β]
+variables (f : α → β) (x : β)
 open is_semiring_hom
 
 /-- Evaluate a polynomial `p` given a ring hom `f` from the scalar ring
   to the target and a value `x` for the variable in the target -/
 def eval₂ (p : polynomial α) : β :=
 p.sum (λ e a, f a * x ^ e)
+
+variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [pow_zero, mul_one]
@@ -229,6 +233,16 @@ finsupp.sum_add_index
 
 @[simp] lemma eval₂_one : (1 : polynomial α).eval₂ f x = 1 :=
 by rw [← C_1, eval₂_C, map_one f]
+
+instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
+⟨eval₂_zero _ _, λ _ _, eval₂_add _ _⟩
+
+end eval₂
+
+section eval₂
+variables [comm_semiring β]
+variables (f : α → β) [is_semiring_hom f] (x : β)
+open is_semiring_hom
 
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 begin
@@ -249,6 +263,11 @@ instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
 ⟨eval₂_zero _ _, eval₂_one _ _, λ _ _, eval₂_add _ _, λ _ _, eval₂_mul _ _⟩
 
 lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := map_pow _ _ _
+
+lemma eval₂_sum (p : polynomial α) (g : ℕ → α → polynomial α) (x : β) :
+  (p.sum g).eval₂ f x = p.sum (λ n a, (g n a).eval₂ f x) :=
+finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
+  (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
 
 end eval₂
 
@@ -274,6 +293,10 @@ instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_
 
 lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
 
+lemma eval_sum (p : polynomial α) (f : ℕ → α → polynomial α) (x : α) :
+  (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
+eval₂_sum _ _ _ _
+
 /-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
 def is_root (p : polynomial α) (a : α) : Prop := p.eval a = 0
 
@@ -289,14 +312,60 @@ lemma root_mul_right_of_is_root {p : polynomial α} (q : polynomial α) :
   is_root p a → is_root (p * q) a :=
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
-lemma eval_sum (p : polynomial α) (f : ℕ → α → polynomial α) (x : α) :
-  (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
-finsupp.sum_sum_index (by simp) (by intros; simp [right_distrib])
-
 end eval
 
+section comp
+
+def comp (p q : polynomial α) : polynomial α := p.eval₂ C q
+
+lemma eval₂_comp [comm_semiring β] (f : α → β) [is_semiring_hom f] {x : β} :
+  (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
+show (p.sum (λ e a, C a * q ^ e)).eval₂ f x = p.eval₂ f (eval₂ f x q),
+by simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_sum]; refl
+
+lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
+
+@[simp] lemma comp_X : p.comp X = p :=
+begin
+  refine polynomial.ext.2 (λ n, _),
+  rw [comp, eval₂],
+  conv in (C _ * _) { rw ← single_eq_C_mul_X },
+  rw finsupp.sum_single
+end
+
+@[simp] lemma X_comp : X.comp p = p := eval₂_X _ _
+
+@[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
+begin
+  dsimp [comp, eval₂, eval, finsupp.sum],
+  rw [← sum_hom C (@C_0 α _ _) (λ _ _, @C_add _ _ _ _ _)],
+  apply finset.sum_congr rfl; simp
+end
+
+@[simp] lemma C_comp : (C a).comp p = C a := eval₂_C _ _
+
+@[simp] lemma comp_zero : p.comp (0 : polynomial α) = C (p.eval 0) :=
+by rw [← C_0, comp_C]
+
+@[simp] lemma zero_comp : comp (0 : polynomial α) p = 0 :=
+by rw [← C_0, C_comp]
+
+@[simp] lemma comp_one : p.comp 1 = C (p.eval 1) :=
+by rw [← C_1, comp_C]
+
+@[simp] lemma one_comp : comp (1 : polynomial α) p = 1 :=
+by rw [← C_1, C_comp]
+
+instance : is_semiring_hom (λ q : polynomial α, q.comp p) :=
+by unfold comp; apply_instance
+
+@[simp] lemma add_comp : (p + q).comp r = p.comp r + q.comp r := eval₂_add _ _
+@[simp] lemma mul_comp : (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
+
+end comp
+
 section map
-variables {β : Type*} [comm_semiring β] [decidable_eq β]
+variables [comm_semiring β] [decidable_eq β]
 variables (f : α → β) [is_semiring_hom f]
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
@@ -465,8 +534,8 @@ lemma degree_erase_lt (hp : p ≠ 0) : degree (p.erase (nat_degree p)) < degree 
 lt_of_le_of_ne (degree_erase_le _ _) $
   (degree_eq_nat_degree hp).symm ▸ λ h, not_mem_erase _ _ (mem_of_max h)
 
-lemma degree_sum_le {β : Type*} [decidable_eq β] (s : finset β) (f : β → polynomial α) :
-  degree (s.sum f) ≤ s.sup (degree ∘ f) :=
+lemma degree_sum_le [decidable_eq β] (s : finset β) (f : β → polynomial α) :
+  degree (s.sum f) ≤ s.sup (λ b, degree (f b)) :=
 finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]) $
   assume a s has ih,
   calc degree (sum (insert a s) f) ≤ max (degree (f a)) (degree (s.sum f)) :
@@ -883,6 +952,15 @@ lemma dvd_iff_mod_by_monic_eq_zero (hq : monic q) : p %ₘ q = 0 ↔ q ∣ p :=
       degree_eq_nat_degree (mt leading_coeff_eq_zero.2 hrpq0)] at this;
     exact not_lt_of_ge (nat.le_add_right _ _) (with_bot.some_lt_some.1 this))⟩
 
+lemma degree_pos_of_root (hp : p ≠ 0) (h : is_root p a) : 0 < degree p :=
+lt_of_not_ge $ λ hlt, begin
+  have := eq_C_of_degree_le_zero hlt,
+  rw [is_root, this, eval_C] at h,
+  exact hp (finsupp.ext (λ n, show coeff p n = 0, from
+    nat.cases_on n h (λ _, coeff_eq_zero_of_degree_lt (lt_of_le_of_lt hlt
+      (with_bot.coe_lt_coe.2 (nat.succ_pos _)))))),
+end
+
 end comm_ring
 
 section nonzero_comm_ring
@@ -1025,15 +1103,6 @@ instance : integral_domain (polynomial α) :=
 lemma root_or_root_of_root_mul (h : is_root (p * q) a) : is_root p a ∨ is_root q a :=
 by rw [is_root, eval_mul] at h;
   exact eq_zero_or_eq_zero_of_mul_eq_zero h
-
-lemma degree_pos_of_root (hp : p ≠ 0) (h : is_root p a) : 0 < degree p :=
-lt_of_not_ge $ λ hlt, begin
-  have := eq_C_of_degree_le_zero hlt,
-  rw [is_root, this, eval_C] at h,
-  exact hp (finsupp.ext (λ n, show coeff p n = 0, from
-    nat.cases_on n h (λ _, coeff_eq_zero_of_degree_lt (lt_of_le_of_lt hlt
-      (with_bot.coe_lt_coe.2 (nat.succ_pos _)))))),
-end
 
 lemma degree_le_mul_left (p : polynomial α) (hq : q ≠ 0) : degree p ≤ degree (p * q) :=
 if hp : p = 0 then by simp only [hp, zero_mul, le_refl]
@@ -1221,7 +1290,7 @@ by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
 end field
 
 section derivative
-variables [comm_semiring α] {β : Type*}
+variables [comm_semiring α]
 
 /-- `derivative p` formal derivative of the polynomial `p` -/
 def derivative (p : polynomial α) : polynomial α := p.sum (λn a, C (a * n) * X^(n - 1))

@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.basic algebra.char_zero algebra.order_functions
+import data.nat.basic data.list.basic algebra.char_zero algebra.order_functions
 open nat
 
 namespace int
@@ -19,9 +19,9 @@ attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_on
 @[simp] theorem neg_succ_mul_coe_nat (m n : ℕ) : -[1+ m] * n = -(succ m * n) := rfl
 @[simp] theorem neg_succ_mul_neg_succ (m n : ℕ) : -[1+ m] * -[1+ n] = succ m * succ n := rfl
 
-theorem coe_nat_le {m n : ℕ} : (↑m : ℤ) ≤ ↑n ↔ m ≤ n := coe_nat_le_coe_nat_iff m n
-theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe_nat_iff m n
-theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
+@[simp] theorem coe_nat_le {m n : ℕ} : (↑m : ℤ) ≤ ↑n ↔ m ≤ n := coe_nat_le_coe_nat_iff m n
+@[simp] theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe_nat_iff m n
+@[simp] theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
 
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
 by rw [← int.coe_nat_zero, coe_nat_lt]
@@ -1125,5 +1125,36 @@ by by_cases a ≤ b; simp [h, max]
 by simp [abs]
 
 end cast
+
+section decidable
+
+def range (m n : ℤ) : list ℤ :=
+(list.range (to_nat (n-m))).map $ λ r, m+r
+
+theorem mem_range_iff {m n r : ℤ} : r ∈ range m n ↔ m ≤ r ∧ r < n :=
+⟨λ H, let ⟨s, h1, h2⟩ := list.mem_map.1 H in h2 ▸
+  ⟨le_add_of_nonneg_right trivial,
+  add_lt_of_lt_sub_left $ match n-m, h1 with
+    | (k:ℕ), h1 := by rwa [list.mem_range, to_nat_coe_nat, ← coe_nat_lt] at h1
+    end⟩,
+λ ⟨h1, h2⟩, list.mem_map.2 ⟨to_nat (r-m),
+  list.mem_range.2 $ by rw [← coe_nat_lt, to_nat_of_nonneg (sub_nonneg_of_le h1),
+      to_nat_of_nonneg (sub_nonneg_of_le (le_of_lt (lt_of_le_of_lt h1 h2)))];
+    exact sub_lt_sub_right h2 _,
+  show m + _ = _, by rw [to_nat_of_nonneg (sub_nonneg_of_le h1), add_sub_cancel'_right]⟩⟩
+
+instance decidable_le_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) : decidable (∀ r, m ≤ r → r < n → P r) :=
+decidable_of_iff (∀ r ∈ range m n, P r) $ by simp only [mem_range_iff, and_imp]
+
+instance decidable_le_le (P : int → Prop) [decidable_pred P] (m n : ℤ) : decidable (∀ r, m ≤ r → r ≤ n → P r) :=
+decidable_of_iff (∀ r ∈ range m (n+1), P r) $ by simp only [mem_range_iff, and_imp, lt_add_one_iff]
+
+instance decidable_lt_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) : decidable (∀ r, m < r → r < n → P r) :=
+int.decidable_le_lt P _ _
+
+instance decidable_lt_le (P : int → Prop) [decidable_pred P] (m n : ℤ) : decidable (∀ r, m < r → r ≤ n → P r) :=
+int.decidable_le_le P _ _
+
+end decidable
 
 end int

@@ -1006,11 +1006,6 @@ let F : f.ker.quotient →ₗ f.range :=
   .. F }
 
 open submodule
--- p / p ⊓ p' ≃ p ⊔ p' / p'
--- liftq f _ : p / p ⊓ p' → p ⊔ p' / p'
--- f := mkq ∘ of_le _ : p → p ⊔ p' / p'
--- liftq g _ : p ⊔ p' / p' → p / p ⊓ p'
--- g : p ⊔ p' → p / p ⊓ p'
 /-- Second Isomorphism Law -/
 noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule α β) :
   (comap p.subtype (p ⊓ p')).quotient ≃ₗ

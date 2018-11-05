@@ -21,13 +21,15 @@ variables {X} {C}
 instance : category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (presheaf X C) := by unfold presheaf; apply_instance
 
 omit 𝒞
+
+set_option pp.universes true
 instance presheaf.has_coequalizers : has_coequalizers.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) := sorry
 instance presheaf.has_coproducts : has_coproducts.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) := sorry
 instance presheaf.has_limits : has_limits.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) :=
 begin
   dsimp [presheaf],
   sorry,
-  -- exact limits.functor_category_has_limits
+  -- exact limits.functor_category_has_limits -- doesn't work, universe levels wrong.
 end
 instance presheaf.has_pullbacks : has_pullbacks.{(max u₁ (v₁+1)) (max u₁ v₁)} (presheaf X (Type v₁)) :=
 has_pullbacks_of_has_limits (presheaf X (Type v₁))

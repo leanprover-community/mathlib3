@@ -91,7 +91,7 @@ assume s, ⟨to_finset s, by rw [finset.coe_to_finset', submodule.span_eq]⟩
 
 theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
 by haveI := subsingleton_of_zero_eq_one R h01;
-   haveI := fintype.of_subsingleton (0:α);
+   haveI := fintype.of_subsingleton (0:R);
    exact ring.is_noetherian_of_fintype R R
 
 theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group M] [module R M] (N : submodule R M)

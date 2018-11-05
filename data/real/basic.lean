@@ -147,6 +147,11 @@ noncomputable instance : lattice.semilattice_sup ℝ := by apply_instance
 noncomputable instance : lattice.has_inf ℝ         := by apply_instance
 noncomputable instance : lattice.has_sup ℝ         := by apply_instance
 
+lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
+le_of_forall_le_of_dense $ assume x hxb,
+calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
+    ... = x : by rw [add_comm]; simp
+
 open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=

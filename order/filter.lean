@@ -585,6 +585,9 @@ variables {f : filter α} {m : α → β} {m' : β → γ} {s : set α} {t : set
 lemma image_mem_map (hs : s ∈ f.sets) : m '' s ∈ (map m f).sets :=
 f.sets_of_superset hs $ subset_preimage_image m s
 
+lemma range_mem_map : range m ∈ (map m f).sets :=
+by rw ←image_univ; exact image_mem_map univ_mem_sets
+
 lemma mem_map_sets_iff : t ∈ (map m f).sets ↔ (∃s∈f.sets, m '' s ⊆ t) :=
 iff.intro
   (assume ht, ⟨set.preimage m t, ht, image_preimage_subset _ _⟩)
@@ -647,7 +650,7 @@ instance : has_seq filter := ⟨@filter.seq⟩
 instance : functor filter := { map := @filter.map }
 
 section
--- this section needs to be before applicative, otherwiese the wrong instance will be chosen
+-- this section needs to be before applicative, otherwise the wrong instance will be chosen
 protected def monad : monad filter := { map := @filter.map }
 
 local attribute [instance] filter.monad
@@ -1772,27 +1775,79 @@ open zorn
 variables {f g : filter α}
 
 /-- An ultrafilter is a minimal (maximal in the set order) proper filter. -/
-def ultrafilter (f : filter α) := f ≠ ⊥ ∧ ∀g, g ≠ ⊥ → g ≤ f → f ≤ g
+def is_ultrafilter (f : filter α) := f ≠ ⊥ ∧ ∀g, g ≠ ⊥ → g ≤ f → f ≤ g
 
-lemma ultrafilter_pure {a : α} : ultrafilter (pure a) :=
-⟨pure_neq_bot,
-  assume g hg ha,
-  have {a} ∈ g.sets, by simpa only [le_principal_iff, pure_def] using ha,
-  show ∀s∈g.sets, {a} ⊆ s, from classical.by_contradiction $
-  begin
-    simp only [classical.not_forall, not_imp, exists_imp_distrib, singleton_subset_iff],
-    exact assume s ⟨hs, hna⟩,
-      have {a} ∩ s ∈ g.sets, from inter_mem_sets ‹{a} ∈ g.sets› hs,
-      have ∅ ∈ g.sets, from mem_sets_of_superset this $
-        assume x ⟨hxa, hxs⟩, begin simp only [set.mem_singleton_iff] at hxa; simp only [hxa] at hxs, exact hna hxs end,
-      have g = ⊥, from empty_in_sets_eq_bot.mp this,
-      hg this
-  end⟩
-
-lemma ultrafilter_unique (hg : ultrafilter g) (hf : f ≠ ⊥) (h : f ≤ g) : f = g :=
+lemma ultrafilter_unique (hg : is_ultrafilter g) (hf : f ≠ ⊥) (h : f ≤ g) : f = g :=
 le_antisymm h (hg.right _ hf h)
 
-lemma exists_ultrafilter (h : f ≠ ⊥) : ∃u, u ≤ f ∧ ultrafilter u :=
+lemma le_of_ultrafilter {g : filter α} (hf : is_ultrafilter f) (h : f ⊓ g ≠ ⊥) :
+  f ≤ g :=
+le_of_inf_eq $ ultrafilter_unique hf h inf_le_left
+
+/-- Equivalent characterization of ultrafilters:
+  A filter f is an ultrafilter if and only if for each set s,
+  -s belongs to f if and only if s does not belong to f. -/
+lemma ultrafilter_iff_compl_mem_iff_not_mem :
+  is_ultrafilter f ↔ (∀ s, -s ∈ f.sets ↔ s ∉ f.sets) :=
+⟨assume hf s,
+   ⟨assume hns hs,
+      hf.1 $ empty_in_sets_eq_bot.mp $ by convert f.inter_sets hs hns; rw [inter_compl_self],
+    assume hs,
+      have f ≤ principal (-s), from
+        le_of_ultrafilter hf $ assume h, hs $ mem_sets_of_neq_bot $
+          by simp only [h, eq_self_iff_true, lattice.neg_neg],
+      by simp only [le_principal_iff] at this; assumption⟩,
+ assume hf,
+   ⟨mt empty_in_sets_eq_bot.mpr ((hf ∅).mp (by convert f.univ_sets; rw [compl_empty])),
+    assume g hg g_le s hs, classical.by_contradiction $ mt (hf s).mpr $
+      assume : - s ∈ f.sets,
+        have s ∩ -s ∈ g.sets, from inter_mem_sets hs (g_le this),
+        by simp only [empty_in_sets_eq_bot, hg, inter_compl_self] at this; contradiction⟩⟩
+
+lemma mem_or_compl_mem_of_ultrafilter (hf : is_ultrafilter f) (s : set α) :
+  s ∈ f.sets ∨ - s ∈ f.sets :=
+classical.or_iff_not_imp_left.2 (ultrafilter_iff_compl_mem_iff_not_mem.mp hf s).mpr
+
+lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : is_ultrafilter f) (h : s ∪ t ∈ f.sets) :
+  s ∈ f.sets ∨ t ∈ f.sets :=
+(mem_or_compl_mem_of_ultrafilter hf s).imp_right
+  (assume : -s ∈ f.sets, by filter_upwards [this, h] assume x hnx hx, hx.resolve_left hnx)
+
+lemma mem_of_finite_sUnion_ultrafilter {s : set (set α)} (hf : is_ultrafilter f) (hs : finite s)
+  : ⋃₀ s ∈ f.sets → ∃t∈s, t ∈ f.sets :=
+finite.induction_on hs (by simp only [empty_in_sets_eq_bot, hf.left, mem_empty_eq, sUnion_empty,
+  forall_prop_of_false, exists_false, not_false_iff, exists_prop_of_false]) $
+λ t s' ht' hs' ih, by simp only [exists_prop, mem_insert_iff, set.sUnion_insert]; exact
+assume h, (mem_or_mem_of_ultrafilter hf h).elim
+  (assume : t ∈ f.sets, ⟨t, or.inl rfl, this⟩)
+  (assume h, let ⟨t, hts', ht⟩ := ih h in ⟨t, or.inr hts', ht⟩)
+
+lemma mem_of_finite_Union_ultrafilter {is : set β} {s : β → set α}
+  (hf : is_ultrafilter f) (his : finite is) (h : (⋃i∈is, s i) ∈ f.sets) : ∃i∈is, s i ∈ f.sets :=
+have his : finite (image s is), from finite_image s his,
+have h : (⋃₀ image s is) ∈ f.sets, from by simp only [sUnion_image, set.sUnion_image]; assumption,
+let ⟨t, ⟨i, hi, h_eq⟩, (ht : t ∈ f.sets)⟩ := mem_of_finite_sUnion_ultrafilter hf his h in
+⟨i, hi, h_eq.symm ▸ ht⟩
+
+lemma ultrafilter_map {f : filter α} {m : α → β} (h : is_ultrafilter f) : is_ultrafilter (map m f) :=
+by rw ultrafilter_iff_compl_mem_iff_not_mem at ⊢ h; exact assume s, h (m ⁻¹' s)
+
+lemma ultrafilter_pure {a : α} : is_ultrafilter (pure a) :=
+begin
+  rw ultrafilter_iff_compl_mem_iff_not_mem, intro s,
+  rw [mem_pure_sets, mem_pure_sets], exact iff.rfl
+end
+
+lemma ultrafilter_bind {f : filter α} (hf : is_ultrafilter f) {m : α → filter β}
+  (hm : ∀ a, is_ultrafilter (m a)) : is_ultrafilter (f.bind m) :=
+begin
+  simp only [ultrafilter_iff_compl_mem_iff_not_mem] at ⊢ hf hm, intro s,
+  dsimp [bind, join, map],
+  simp only [hm], apply hf
+end
+
+/-- The ultrafilter lemma: Any proper filter is contained in an ultrafilter. -/
+lemma exists_ultrafilter (h : f ≠ ⊥) : ∃u, u ≤ f ∧ is_ultrafilter u :=
 let
   τ                := {f' // f' ≠ ⊥ ∧ f' ≤ f},
   r : τ → τ → Prop := λt₁ t₂, t₂.val ≤ t₁.val,
@@ -1813,58 +1868,13 @@ let ⟨uτ, hmin⟩ := this in
 ⟨uτ.val, uτ.property.right, uτ.property.left, assume g hg₁ hg₂,
   hmin ⟨g, hg₁, le_trans hg₂ uτ.property.right⟩ hg₂⟩
 
-lemma le_of_ultrafilter {g : filter α} (hf : ultrafilter f) (h : f ⊓ g ≠ ⊥) :
-  f ≤ g :=
-le_of_inf_eq $ ultrafilter_unique hf h inf_le_left
-
-lemma mem_or_compl_mem_of_ultrafilter (hf : ultrafilter f) (s : set α) :
-  s ∈ f.sets ∨ - s ∈ f.sets :=
-classical.or_iff_not_imp_right.2 $ assume : - s ∉ f.sets,
-  have f ≤ principal s, from
-    le_of_ultrafilter hf $ assume h, this $ mem_sets_of_neq_bot $
-    by simp only [h, eq_self_iff_true, lattice.neg_neg],
-  by simp only [le_principal_iff] at this; assumption
-
-lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : ultrafilter f) (h : s ∪ t ∈ f.sets) :
-  s ∈ f.sets ∨ t ∈ f.sets :=
-(mem_or_compl_mem_of_ultrafilter hf s).imp_right
-  (assume : -s ∈ f.sets, by filter_upwards [this, h] assume x hnx hx, hx.resolve_left hnx)
-
-lemma mem_of_finite_sUnion_ultrafilter {s : set (set α)} (hf : ultrafilter f) (hs : finite s)
-  : ⋃₀ s ∈ f.sets → ∃t∈s, t ∈ f.sets :=
-finite.induction_on hs (by simp only [empty_in_sets_eq_bot, hf.left, mem_empty_eq, sUnion_empty,
-  forall_prop_of_false, exists_false, not_false_iff, exists_prop_of_false]) $
-λ t s' ht' hs' ih, by simp only [exists_prop, mem_insert_iff, set.sUnion_insert]; exact
-assume h, (mem_or_mem_of_ultrafilter hf h).elim
-  (assume : t ∈ f.sets, ⟨t, or.inl rfl, this⟩)
-  (assume h, let ⟨t, hts', ht⟩ := ih h in ⟨t, or.inr hts', ht⟩)
-
-lemma mem_of_finite_Union_ultrafilter {is : set β} {s : β → set α}
-  (hf : ultrafilter f) (his : finite is) (h : (⋃i∈is, s i) ∈ f.sets) : ∃i∈is, s i ∈ f.sets :=
-have his : finite (image s is), from finite_image s his,
-have h : (⋃₀ image s is) ∈ f.sets, from by simp only [sUnion_image, set.sUnion_image]; assumption,
-let ⟨t, ⟨i, hi, h_eq⟩, (ht : t ∈ f.sets)⟩ := mem_of_finite_sUnion_ultrafilter hf his h in
-⟨i, hi, h_eq.symm ▸ ht⟩
-
-lemma ultrafilter_of_split {f : filter α} (hf : f ≠ ⊥) (h : ∀s, s ∈ f.sets ∨ - s ∈ f.sets) :
-  ultrafilter f :=
-⟨hf, assume g hg g_le s hs, (h s).elim id $
-  assume : - s ∈ f.sets,
-  have s ∩ -s ∈ g.sets, from inter_mem_sets hs (g_le this),
-  by simp only [empty_in_sets_eq_bot, hg, inter_compl_self] at this; contradiction⟩
-
-lemma ultrafilter_map {f : filter α} {m : α → β} (h : ultrafilter f) : ultrafilter (map m f) :=
-ultrafilter_of_split (by simp only [map_eq_bot_iff, h.left, ne.def, map_eq_bot_iff, not_false_iff]) $
-  assume s, show preimage m s ∈ f.sets ∨ - preimage m s ∈ f.sets,
-    from mem_or_compl_mem_of_ultrafilter h (preimage m s)
-
 /-- Construct an ultrafilter extending a given filter.
   The ultrafilter lemma is the assertion that such a filter exists;
   we use the axiom of choice to pick one. -/
 noncomputable def ultrafilter_of (f : filter α) : filter α :=
-if h : f = ⊥ then ⊥ else classical.epsilon (λu, u ≤ f ∧ ultrafilter u)
+if h : f = ⊥ then ⊥ else classical.epsilon (λu, u ≤ f ∧ is_ultrafilter u)
 
-lemma ultrafilter_of_spec (h : f ≠ ⊥) : ultrafilter_of f ≤ f ∧ ultrafilter (ultrafilter_of f) :=
+lemma ultrafilter_of_spec (h : f ≠ ⊥) : ultrafilter_of f ≤ f ∧ is_ultrafilter (ultrafilter_of f) :=
 begin
   have h' := classical.epsilon_spec (exists_ultrafilter h),
   simp only [ultrafilter_of, dif_neg, h, dif_neg, not_false_iff],
@@ -1876,11 +1886,83 @@ lemma ultrafilter_of_le : ultrafilter_of f ≤ f :=
 if h : f = ⊥ then by simp only [ultrafilter_of, dif_pos, h, dif_pos, eq_self_iff_true, le_bot_iff]; exact le_refl _
   else (ultrafilter_of_spec h).left
 
-lemma ultrafilter_ultrafilter_of (h : f ≠ ⊥) : ultrafilter (ultrafilter_of f) :=
+lemma ultrafilter_ultrafilter_of (h : f ≠ ⊥) : is_ultrafilter (ultrafilter_of f) :=
 (ultrafilter_of_spec h).right
 
-lemma ultrafilter_of_ultrafilter (h : ultrafilter f) : ultrafilter_of f = f :=
+lemma ultrafilter_of_ultrafilter (h : is_ultrafilter f) : ultrafilter_of f = f :=
 ultrafilter_unique h (ultrafilter_ultrafilter_of h.left).left ultrafilter_of_le
+
+/-- A filter equals the intersection of all the ultrafilters which contain it. -/
+lemma sup_of_ultrafilters (f : filter α) : f = ⨆ (g) (u : is_ultrafilter g) (H : g ≤ f), g :=
+begin
+  refine le_antisymm _ (supr_le $ λ g, supr_le $ λ u, supr_le $ λ H, H),
+  intros s hs,
+  -- If s ∉ f.sets, we'll apply the ultrafilter lemma to the restriction of f to -s.
+  by_contradiction hs',
+  let j : (-s) → α := subtype.val,
+  have j_inv_s : j ⁻¹' s = ∅, by
+    erw [←preimage_inter_range, subtype_val_range, inter_compl_self, preimage_empty],
+  let f' := comap j f,
+  have : f' ≠ ⊥,
+  { apply mt empty_in_sets_eq_bot.mpr,
+    rintro ⟨t, htf, ht⟩,
+    suffices : t ⊆ s, from absurd (f.sets_of_superset htf this) hs',
+    rw [subset_empty_iff] at ht,
+    have : j '' (j ⁻¹' t) = ∅, by rw [ht, image_empty],
+    erw [image_preimage_eq_inter_range, subtype_val_range, ←subset_compl_iff_disjoint,
+      set.compl_compl] at this,
+    exact this },
+  rcases exists_ultrafilter this with ⟨g', g'f', u'⟩,
+  simp only [supr_sets_eq, mem_Inter] at hs,
+  have := hs (g'.map subtype.val) (ultrafilter_map u') (map_le_iff_le_comap.mpr g'f'),
+  rw [←le_principal_iff, map_le_iff_le_comap, comap_principal, j_inv_s, principal_empty,
+    le_bot_iff] at this,
+  exact absurd this u'.1
+end
+
+/-- The `tendsto` relation can be checked on ultrafilters. -/
+lemma tendsto_iff_ultrafilter (f : α → β) (l₁ : filter α) (l₂ : filter β) :
+  tendsto f l₁ l₂ ↔ ∀ g, is_ultrafilter g → g ≤ l₁ → g.map f ≤ l₂ :=
+⟨assume h g u gx, le_trans (map_mono gx) h,
+ assume h, by rw [sup_of_ultrafilters l₁]; simpa only [tendsto, map_supr, supr_le_iff]⟩
+
+/- The ultrafilter monad. The monad structure on ultrafilters is the
+  restriction of the one on filters. -/
+
+def ultrafilter (α : Type u) : Type u := {f : filter α // is_ultrafilter f}
+
+def ultrafilter.map (m : α → β) (u : ultrafilter α) : ultrafilter β :=
+⟨u.val.map m, ultrafilter_map u.property⟩
+
+def ultrafilter.pure (x : α) : ultrafilter α := ⟨pure x, ultrafilter_pure⟩
+
+def ultrafilter.bind (u : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
+⟨u.val.bind (λ a, (m a).val), ultrafilter_bind u.property (λ a, (m a).property)⟩
+
+instance ultrafilter.has_pure : has_pure ultrafilter := ⟨@ultrafilter.pure⟩
+instance ultrafilter.has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
+instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map }
+instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
+
+section
+
+local attribute [instance] filter.monad filter.is_lawful_monad
+
+instance ultrafilter.is_lawful_monad : is_lawful_monad ultrafilter :=
+{ id_map := assume α f, subtype.eq (id_map f.val),
+  pure_bind := assume α β a f, subtype.eq (pure_bind a (subtype.val ∘ f)),
+  bind_assoc := assume α β γ f m₁ m₂, subtype.eq (filter_eq rfl),
+  bind_pure_comp_eq_map := assume α β f x, subtype.eq (bind_pure_comp_eq_map _ f x.val) }
+
+end
+
+lemma ultrafilter.eq_iff_val_le_val {u v : ultrafilter α} : u = v ↔ u.val ≤ v.val :=
+⟨assume h, by rw h; exact le_refl _,
+ assume h, by rw subtype.ext; apply ultrafilter_unique v.property u.property.1 h⟩
+
+lemma exists_ultrafilter_iff (f : filter α) : (∃ (u : ultrafilter α), u.val ≤ f) ↔ f ≠ ⊥ :=
+⟨assume ⟨u, uf⟩, lattice.neq_bot_of_le_neq_bot u.property.1 uf,
+ assume h, let ⟨u, uf, hu⟩ := exists_ultrafilter h in ⟨⟨u, hu⟩, uf⟩⟩
 
 end ultrafilter
 

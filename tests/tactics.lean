@@ -5,7 +5,8 @@ Authors: Simon Hudon, Scott Morrison
 -/
 import tactic data.set.lattice data.prod data.vector
        tactic.rewrite data.stream.basic
-       tactic.tfae
+       tactic.tfae tactic.converter.interactive
+       tactic.ring tactic.ring2
 
 section tauto₀
 variables p q r : Prop
@@ -226,7 +227,7 @@ begin
       change list.nil = L₃ at H,
       admit },
     case list.cons
-    { change hd :: tl = L₃ at H,
+    { change list.cons hd tl = L₃ at H,
       admit } },
   trivial
 end
@@ -649,3 +650,58 @@ end assoc_rw
 -- end
 
 -- end tfae
+
+section conv
+
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs {erw [add_zero]}
+end
+
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs {simp}
+end
+
+example : 0 = 0 + 0 :=
+begin
+  conv_rhs {simp}
+end
+
+-- Example with ring discharging the goal
+example : 22 + 7 * 4 + 3 * 8 = 0 + 7 * 4 + 46 :=
+begin
+  conv { ring, },
+end
+
+-- Example with ring failing to discharge, to normalizing the goal
+example : (22 + 7 * 4 + 3 * 8 = 0 + 7 * 4 + 47) = (74 = 75) :=
+begin
+  conv { ring, },
+end
+
+-- Example with ring discharging the goal
+example (x : ℕ) : 22 + 7 * x + 3 * 8 = 0 + 7 * x + 46 :=
+begin
+  conv { ring, },
+end
+
+-- Example with ring failing to discharge, to normalizing the goal
+example (x : ℕ) : (22 + 7 * x + 3 * 8 = 0 + 7 * x + 46 + 1)
+                    = (7 * x + 46 = 7 * x + 47) :=
+begin
+  conv { ring, },
+end
+
+-- norm_num examples:
+example : 22 + 7 * 4 + 3 * 8 = 74 :=
+begin
+  conv { norm_num, },
+end
+
+example (x : ℕ) : 22 + 7 * x + 3 * 8 = 7 * x + 46 :=
+begin
+  conv { norm_num, },
+end
+
+end conv

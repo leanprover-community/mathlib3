@@ -105,6 +105,10 @@ def sub_nat (m) (i : fin (n + m)) (h : i.val ≥ m) : fin n :=
 def add_nat (m) (i : fin n) : fin (n + m) :=
 ⟨i.1 + m, add_lt_add_right i.2 _⟩
 
+/-- `nat_add i h` adds `n` on `i` -/
+def nat_add (n) {m} (i : fin m) : fin (n + m) :=
+⟨n + i.1, add_lt_add_left i.2 _⟩
+
 theorem le_last (i : fin (n+1)) : i ≤ last n :=
 le_of_lt_succ i.is_lt
 

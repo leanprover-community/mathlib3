@@ -76,8 +76,7 @@ rfl
 
 @[simp] theorem refl_apply (x : α) : equiv.refl α x = x := rfl
 
-@[simp] theorem trans_apply : ∀ (f : α ≃ β) (g : β ≃ γ) (a : α), (f.trans g) a = g (f a)
-| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ a := rfl
+@[simp] theorem trans_apply (f : α ≃ β) (g : β ≃ γ) (a : α) : (f.trans g) a = g (f a) := rfl
 
 @[simp] theorem apply_inverse_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw r₁
@@ -192,8 +191,10 @@ equiv_empty $ assume a, h ⟨a⟩
 def pempty_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : α ≃ pempty :=
 equiv_pempty $ assume a, h ⟨a⟩
 
-def true_equiv_punit : true ≃ punit :=
-⟨λ x, (), λ x, trivial, λ ⟨⟩, rfl, λ ⟨⟩, rfl⟩
+def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
+⟨λ x, (), λ x, h, λ _, rfl, λ ⟨⟩, rfl⟩
+
+def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
 
 protected def ulift {α : Type u} : ulift α ≃ α :=
 ⟨ulift.down, ulift.up, ulift.up_down, λ a, rfl⟩
@@ -528,16 +529,24 @@ equiv_empty $ λ ⟨x, h⟩, not_mem_empty x h
 protected def pempty (α) : (∅ : set α) ≃ pempty :=
 equiv_pempty $ λ ⟨x, h⟩, not_mem_empty x h
 
-protected def union {α} {s t : set α} [decidable_pred s] (H : s ∩ t = ∅) :
-  (s ∪ t : set α) ≃ (s ⊕ t) :=
-⟨λ ⟨x, h⟩, if hs : x ∈ s then sum.inl ⟨_, hs⟩ else sum.inr ⟨_, h.resolve_left hs⟩,
+protected def union' {α} {s t : set α}
+  (p : α → Prop) [decidable_pred p]
+  (hs : ∀ x ∈ s, p x)
+  (ht : ∀ x ∈ t, ¬ p x) : (s ∪ t : set α) ≃ (s ⊕ t) :=
+⟨λ ⟨x, h⟩, if hp : p x
+  then sum.inl ⟨_, h.resolve_right (λ xt, ht _ xt hp)⟩
+  else sum.inr ⟨_, h.resolve_left (λ xs, hp (hs _ xs))⟩,
  λ o, match o with
  | (sum.inl ⟨x, h⟩) := ⟨x, or.inl h⟩
  | (sum.inr ⟨x, h⟩) := ⟨x, or.inr h⟩
  end,
- λ ⟨x, h'⟩, by by_cases x ∈ s; simp [union._match_1, union._match_2, h]; congr,
- λ o, by rcases o with ⟨x, h⟩ | ⟨x, h⟩; simp [union._match_1, union._match_2, h];
-   simp [show x ∉ s, from λ h', eq_empty_iff_forall_not_mem.1 H _ ⟨h', h⟩]⟩
+ λ ⟨x, h'⟩, by by_cases p x; simp [union'._match_1, union'._match_2, h]; congr,
+ λ o, by rcases o with ⟨x, h⟩ | ⟨x, h⟩; simp [union'._match_1, union'._match_2, h];
+   [simp [hs _ h], simp [ht _ h]]⟩
+
+protected def union {α} {s t : set α} [decidable_pred s] (H : s ∩ t = ∅) :
+  (s ∪ t : set α) ≃ (s ⊕ t) :=
+set.union' s (λ _, id) (λ x xt xs, subset_empty_iff.2 H ⟨xs, xt⟩)
 
 protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
 ⟨λ _, punit.star, λ _, ⟨a, mem_singleton _⟩,
@@ -554,6 +563,20 @@ protected def sum_compl {α} (s : set α) [decidable_pred s] :
   (s ⊕ (-s : set α)) ≃ α :=
 (set.union (inter_compl_self _)).symm.trans
   (by rw union_compl_self; exact set.univ _)
+
+protected def union_sum_inter {α : Type u} (s t : set α) [decidable_pred s] :
+  ((s ∪ t : set α) ⊕ (s ∩ t : set α)) ≃ (s ⊕ t) :=
+calc  ((s ∪ t : set α) ⊕ (s ∩ t : set α))
+    ≃ ((s ∪ t \ s : set α) ⊕ (s ∩ t : set α)) : by rw [union_diff_self]
+... ≃ ((s ⊕ (t \ s : set α)) ⊕ (s ∩ t : set α)) :
+  sum_congr (set.union (inter_diff_self _ _)) (equiv.refl _)
+... ≃ (s ⊕ (t \ s : set α) ⊕ (s ∩ t : set α)) : sum_assoc _ _ _
+... ≃ (s ⊕ (t \ s ∪ s ∩ t : set α)) : sum_congr (equiv.refl _) begin
+    refine (set.union' (∉ s) _ _).symm,
+    exacts [λ x hx, hx.2, λ x hx, not_not_intro hx.1]
+  end
+... ≃ (s ⊕ t) : by rw (_ : t \ s ∪ s ∩ t = t);
+  rw [union_comm, inter_comm, inter_union_diff]
 
 protected def prod {α β} (s : set α) (t : set β) :
   (s.prod t) ≃ (s × t) :=

@@ -3,6 +3,7 @@
 -- Authors: Scott Morrison, Reid Barton, Mario Carneiro
 
 import category_theory.whiskering
+import category_theory.yoneda
 import category_theory.limits.cones
 
 open category_theory
@@ -65,9 +66,7 @@ def limit_cone.ext {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t :=
     tidy,
   end }
 
--- Somewhat awkward binders, so we can write `apply is_limit_invariance r`,
--- and get goals saying that `r ≅ t` and `r` is a limit cone.
-def is_limit_invariance (r : cone F) {t : cone F} (i : r ≅ t) (P : is_limit r) : is_limit t :=
+def is_limit_invariance (r t : cone F) (i : r ≅ t) (P : is_limit r) : is_limit t :=
 { lift := λ s, P.lift s ≫ i.hom.hom,
   uniq' :=
   begin
@@ -116,12 +115,48 @@ lemma is_limit.hom_lift (h : is_limit t) {X' : C} (m : X' ⟶ t.X) :
   m = h.lift { X := X', π := { app := λ b, m ≫ t.π b } } :=
 h.uniq { X := X', π := { app := λ b, m ≫ t.π b } } m (λ b, rfl)
 
+lemma is_limit.hom_ext (h : is_limit t) {W : C} {f g : W ⟶ t.X}
+  (w : ∀ j, f ≫ t.π j = g ≫ t.π j) : f = g :=
+by rw [h.hom_lift f, h.hom_lift g]; congr; exact funext w
+
 def is_limit.of_lift_universal
   (lift : Π (s : cone F), s.X ⟶ t.X)
   (universal : Π (s : cone F) (φ : s.X ⟶ t.X), (∀ j : J, (φ ≫ t.π j) = s.π j) ↔ (φ = lift s)) : is_limit t :=
 { lift := lift,
   fac'  := λ s j, ((universal s (lift s)).mpr (eq.refl (lift s))) j,
   uniq' := λ s φ, (universal s φ).mp }
+
+def is_limit.equiv (h : is_limit t) (X' : C) : (X' ⟶ t.X) ≅ (functor.const J C X' ⟹ F) :=
+{ hom := λ f, (t.extend f).π,
+  inv := λ π, h.lift { X := X', π := π },
+  hom_inv_id' :=
+  begin
+    tidy, symmetry,
+    apply h.uniq {X := X', π := (limits.cone.extend t x).π} x,
+    tidy,
+  end }
+
+@[simp] lemma is_limit.equiv_hom (h : is_limit t) (X' : C) (f : X' ⟶ t.X) :
+  ((is_limit.equiv h X') : (X' ⟶ t.X) → (functor.const J C X' ⟹ F)) f = (t.extend f).π := rfl
+
+def is_limit.natural_equiv (h : is_limit t) :
+  yoneda C t.X ≅ F.cones :=
+nat_iso.of_components (is_limit.equiv h) (by tidy)
+
+def is_limit.of_extensions_iso (h : is_iso t.extensions) : is_limit t :=
+{ lift := λ s, (inv t.extensions) s.X s.π,
+  fac' := λ s j,
+    show ((inv t.extensions ≫ t.extensions) s.X s.π).app j = _,
+    by erw @is_iso.inv_hom_id _ _ _ _ _ h; refl,
+  uniq' := λ s m hm, begin
+    have : m = (t.extensions ≫ inv t.extensions) s.X m,
+      by erw @is_iso.hom_inv_id _ _ _ _ _ h; refl,
+    rw this,
+    have : s.π = (functor.const J C).map m ≫ t.π, by ext j; exact (hm j).symm,
+    rw this,
+    refl
+  end }
+
 end limit
 
 class has_limits_of {A : Type v} (Q : A → Diagram.{u v} C) :=
@@ -147,6 +182,32 @@ variables {J C}
 class has_limit {J : Type v} [small_category J] (F : J ⥤ C) :=
 (cone : cone F)
 (is_limit : is_limit cone)
+
+def cone.of_representable_cones (F : J ⥤ C) [r : representable F.cones] : cone F :=
+{ X := r.X,
+  π := r.w.hom r.X (𝟙 r.X) }
+
+lemma cone.of_representable_cones_extension (F : J ⥤ C) (r : representable F.cones) :
+  (cone.of_representable_cones F).extensions = r.w.hom :=
+begin
+  ext1 Z, ext1 f,
+  have : ((yoneda C r.X).map f ≫ r.w.hom Z) (𝟙 _) = _, by rw [r.w.hom.naturality f],
+  simpa using this.symm
+end
+
+def extensions_iso_of_representable_cones (F : J ⥤ C) [r : representable F.cones] :
+  is_iso (cone.of_representable_cones F).extensions :=
+{ inv := r.w.inv,
+  hom_inv_id' := by rw cone.of_representable_cones_extension; exact r.w.hom_inv_id',
+  inv_hom_id' := by rw cone.of_representable_cones_extension; exact r.w.inv_hom_id' }
+
+def has_limit_of_cones_representable (F : J ⥤ C) [r : representable F.cones] : has_limit F :=
+{ cone := cone.of_representable_cones F,
+  is_limit := is_limit.of_extensions_iso (extensions_iso_of_representable_cones F) }
+
+def cones_representable_of_has_limit (F : J ⥤ C) [has_limit F] : representable F.cones :=
+{ X := (has_limit.cone F).X,
+  w := (has_limit.is_limit F).natural_equiv }
 
 instance has_limit_of_has_limits_of_shape
   {J : Type v} [small_category J] [has_limits_of_shape.{u v} J C] (F : J ⥤ C) : has_limit F :=
@@ -283,14 +344,7 @@ by erw is_limit.fac
 @[extensionality] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C}
   {f g : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = g ≫ limit.π F j) : f = g :=
-begin
-  let c : cone F :=
-  { X := X,
-    π := { app := λ j, f ≫ limit.π F j }},
-  have p_f := (limit.universal_property F).uniq c f (λ j, by simp),
-  have p_g := (limit.universal_property F).uniq c g (λ j, eq.symm (w j)),
-  rw [p_f, p_g]
-end
+(limit.universal_property F).hom_ext w
 
 lemma limit.lift_extend {F : J ⥤ C} [has_limit F] (c : cone F) {X : C} (f : X ⟶ c.X) :
   limit.lift F (c.extend f) = f ≫ limit.lift F c :=
@@ -455,7 +509,6 @@ end
 end
 
 section
--- FIXME don't use has_colimits
 
 def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone.{u v} F
 def colimit (F : J ⥤ C) [has_colimit F] := (colimit.cocone F).X
@@ -469,24 +522,24 @@ def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.
 @[simp] lemma colimit.universal_property_desc (F : J ⥤ C) [has_colimit F] (c : cocone F) :
   (colimit.universal_property F).desc c = colimit.desc F c := rfl
 
-@[simp] lemma colimit.ι_desc (F : J ⥤ C) [has_colimit F] (c : cocone F) (j : J) :
+@[simp] lemma colimit.ι_desc {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
   colimit.ι F j ≫ colimit.desc F c = c.ι j :=
 is_colimit.fac _ c j
 
-@[simp] lemma colimit.cone_ι (F : J ⥤ C) [has_colimit F] (j : J) :
+@[simp] lemma colimit.cone_ι {F : J ⥤ C} [has_colimit F] (j : J) :
   (((colimit.cocone F).ι) : Π j : J, (F j ⟶ (colimit.cocone F).X)) j = (@colimit.ι J _ C _ F _ j) := rfl
 
-def colimit.cocone_morphism (F : J ⥤ C) [has_colimit F] (c : cocone F) : cocone_morphism (colimit.cocone F) c :=
+def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) : cocone_morphism (colimit.cocone F) c :=
 { hom := (colimit.desc F) c }
 
 @[simp] lemma colimit.cocone_morphism_hom {F : J ⥤ C} [has_colimit F] (c : cocone F) :
-  (colimit.cocone_morphism F c).hom = colimit.desc F c := rfl
+  (colimit.cocone_morphism c).hom = colimit.desc F c := rfl
 @[simp] lemma colimit.ι_cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
-  (colimit.ι F j) ≫ (colimit.cocone_morphism F c).hom = c.ι j :=
+  (colimit.ι F j) ≫ (colimit.cocone_morphism c).hom = c.ι j :=
 by erw is_colimit.fac
 
 @[extensionality] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C}
-  (f g : colimit F ⟶ X)
+  {f g : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ g) : f = g :=
 begin
   let c : cocone F :=
@@ -632,6 +685,8 @@ begin
   erw is_colimit.fac,
   refl
 end
+
+-- TODO finish converting these; use [has_colimit], not [has_colimits]
 
 -- @[simp] lemma colimit.desc_post {F : J ⥤ C} (c : cocone F) (G : C ⥤ D) :
 --   colimit.post F G ≫ G.map (colimit.desc F c) = colimit.desc (F ⋙ G) (G.map_cocone c) :=

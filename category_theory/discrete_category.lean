@@ -50,7 +50,7 @@ include 𝒞
 
 section forget
 
-def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
+@[simp] def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
 { obj := λ F,
   { obj := F.obj,
     map' := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 _ end },
@@ -58,6 +58,13 @@ def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
   { app := α.app } }
 
 end forget
+
+@[simp] lemma discrete.functor_map_id (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F j) :=
+begin
+  have h : f = 𝟙 j, cases f, cases f, ext,
+  rw h,
+  simp,
+end
 
 namespace functor
 def empty : pempty ⥤ C := by obviously

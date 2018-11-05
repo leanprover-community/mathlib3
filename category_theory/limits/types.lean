@@ -44,9 +44,8 @@ instance : has_limits.{u+1 u} (Type u) :=
      by rw [←functor_to_types.naturality, ←(g.property j j' f)] ⟩ : (limit G).X) :=
 rfl
 
--- FIXME the fact we need @cone.w is really weird here; a Lean bug?
 @[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X):
-  limit.lift F c x = (⟨ λ j, c.π j x, λ j j' f, congr_fun (@cone.w _ _ _ _ _ c _ _ f) x ⟩ : (limit F).X) := rfl
+  limit.lift F c x = (⟨ λ j, c.π j x, λ j j' f, congr_fun (cone.w c f) x ⟩ : (limit F).X) := rfl
 
 def colimit (F : J ⥤ Type u) : cocone F :=
 { X := @quot (Σ j, F j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2),
@@ -58,9 +57,9 @@ local attribute [elab_with_expected_type] quot.lift
 
 def colimit_is_colimit (F : J ⥤ Type u) : is_colimit (colimit F) :=
 { desc := λ s, quot.lift (λ (p : Σ j, F j), s.ι p.1 p.2)
-  (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (@cocone.w _ _ _ _ _ s j j' f) x).symm),
+  (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm),
   fac' := begin tidy end,
-  uniq' := begin tidy, induction x, tidy, end } -- FIXME decide how much we care about automation here.
+  uniq' := begin tidy end }
 
 instance : has_colimits.{u+1 u} (Type u) :=
 { cocone := @colimit, is_colimit := @colimit_is_colimit }
@@ -82,7 +81,7 @@ local attribute [extensionality] quot.sound
 --   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
 --   colimit.pre F E g = sorry := sorry
 -- -- What are you meant to do here? Split into cases depending on whether ∃ j : J, then use choice?
--- @[simp] lemma types_colimit_lift (F : J ⥤ Type u) (c : cocone F) :
+-- @[simp] lemma types_colimit_desc (F : J ⥤ Type u) (c : cocone F) :
 --   colimit.desc F c = λ x, sorry := sorry
 
 open category_theory.limits.walking_cospan

@@ -2,10 +2,10 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Stephen Morgan, Scott Morrison
 
-import category_theory.types
-import category_theory.isomorphism
+import category_theory.opposites
 import category_theory.natural_isomorphism
 import category_theory.whiskering
+import category_theory.yoneda
 import category_theory.discrete_category
 import category_theory.limits.commas
 
@@ -25,8 +25,12 @@ def const : C ⥤ (J ⥤ C) :=
     map' := λ j j' f, 𝟙 X },
   map' := λ X Y f, { app := λ j, f } }
 
-@[simp] lemma const_obj (X : C) (j : J) : ((const J C) X) j = X := rfl
-@[simp] lemma const_map (X : C) {j j' : J} (f : j ⟶ j') : (const J C X).map f = 𝟙 X := rfl
+namespace const
+@[simp] lemma obj_obj (X : C) (j : J) : ((const J C) X) j = X := rfl
+@[simp] lemma obj_map (X : C) {j j' : J} (f : j ⟶ j') : (const J C X).map f = 𝟙 X := rfl
+-- @[simp] lemma map {X Y : C} (f : X ⟶ Y) : ((const J C).map f) = { app := λ j, f } := rfl
+@[simp] lemma map_app {X Y : C} (f : X ⟶ Y) (j : J) : ((const J C).map f) j = f := rfl
+end const
 
 variables {J}
 
@@ -39,6 +43,11 @@ include 𝒟
   inv := { app := λ _, 𝟙 _ } }
 
 end
+
+variables {C}
+
+def cones (F : J ⥤ C) : (Cᵒᵖ) ⥤ (Type v) :=
+  (const (Jᵒᵖ) (Cᵒᵖ)) ⋙ (op_inv J C) ⋙ ((yoneda (J ⥤ C)).obj F)
 
 end category_theory.functor
 
@@ -68,7 +77,7 @@ begin
   exact eq.symm h
 end
 
-/-- A `c : cocone F` is an object `c.X` and a natural transformation `c.π : F ⟹ c.X` from `F` to the constant `c.X` functor. -/
+/-- A `c : cocone F` is an object `c.X` and a natural transformation `c.ι : F ⟹ c.X` from `F` to the constant `c.X` functor. -/
 structure cocone (F : J ⥤ C) :=
 (X : C)
 (ι : F ⟹ const J C X)
@@ -84,10 +93,24 @@ end
 
 variable {F : J ⥤ C}
 
-namespace cone
-def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
+namespace functor
+-- These are not particularly important definitions; their mostly here
+-- as reminders of the relationship between `F.cones` and `cone F`.
+
+def cones_of_cone (c : cone F) : F.cones c.X := c.π
+def cone_of_cones {X : C} (π : F.cones X) : cone F :=
 { X := X,
-  π := ((const J C).map f) ⊟ c.π }
+  π := π }
+end functor
+
+namespace cone
+@[simp] def extensions (c : cone F) :
+  yoneda C c.X ⟶ F.cones :=
+{ app := λ X f, ((const J C).map f) ⊟ c.π }
+
+@[simp] def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
+{ X := X,
+  π := c.extensions X f }
 
 def postcompose {G : J ⥤ C} (c : cone F) (α : F ⟹ G) : cone G :=
 { X := c.X,

@@ -13,15 +13,10 @@ import ring_theory.ideals
 
 open set lattice
 
-def is_fg {α β} [ring α] [add_comm_group β] [module α β]
-  (s : submodule α β) : Prop :=
-∃ t : finset β, submodule.span ↑t = s
-
 namespace submodule
-universes u v
-variables {α : Type u} {β : Type v} [ring α] [add_comm_group β] [module α β]
+variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β]
 
-def fg (s : submodule α β) : Prop := is_fg s
+def fg (s : submodule α β) : Prop := ∃ t : finset β, submodule.span ↑t = s
 
 theorem fg_def {s : submodule α β} :
   s.fg ↔ ∃ t : set β, finite t ∧ span t = s :=
@@ -91,15 +86,13 @@ theorem is_noetherian_iff_well_founded
 def is_noetherian_ring (α) [ring α] : Prop := is_noetherian α α
 
 theorem ring.is_noetherian_of_fintype (R M) [ring R] [add_comm_group M] [module R M] [fintype M] : is_noetherian R M :=
-by letI := classical.dec;
-from assume s, ⟨to_finset s, by rw [finset.coe_to_finset', submodule.span_eq]⟩
-
-instance fintype.of_subsingleton_ring {α} [ring α] [h : subsingleton α] : fintype α :=
-{ elems := {0},
-  complete := assume x, suffices x = 0, by simpa, subsingleton.elim x 0 }
+by letI := classical.dec; exact
+assume s, ⟨to_finset s, by rw [finset.coe_to_finset', submodule.span_eq]⟩
 
 theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
-by haveI := subsingleton_of_zero_eq_one R h01; exact ring.is_noetherian_of_fintype R R
+by haveI := subsingleton_of_zero_eq_one R h01;
+   haveI := fintype.of_subsingleton (0:α);
+   exact ring.is_noetherian_of_fintype R R
 
 theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group M] [module R M] (N : submodule R M)
   (h : is_noetherian R M) : is_noetherian R N :=

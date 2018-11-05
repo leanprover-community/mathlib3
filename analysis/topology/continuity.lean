@@ -766,7 +766,11 @@ locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ t
 
 -- We can't make this an instance because it could cause an instance loop.
 lemma normal_of_compact_t2 [topological_space α] [compact_space α] [t2_space α] : normal_space α :=
-⟨assume s t hs ht st, compact_compact_separated (compact_of_closed hs) (compact_of_closed ht) st⟩
+begin
+  refine ⟨assume s t hs ht st, _⟩,
+  simp only [disjoint_iff],
+  exact compact_compact_separated (compact_of_closed hs) (compact_of_closed ht) st.eq_bot
+end
 
 end compact_and_proper_spaces
 

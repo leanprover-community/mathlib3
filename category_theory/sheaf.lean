@@ -7,11 +7,11 @@ import category_theory.limits.types
 import category_theory.limits.functor_category
 
 open category_theory
+open category_theory.limits
 
 universes u u₁ u₂ v v₁ v₂ w w₁ w₂
 
 section presheaf
-open category_theory.limits
 variables (X : Type v) [𝒳 : small_category X] (C : Type u) [𝒞 : category.{u v} C]
 include 𝒳 𝒞
 
@@ -42,7 +42,6 @@ instance presheaf_of_types.has_pullbacks : has_pullbacks.{v+1 v} (presheaf X (Ty
 end presheaf
 
 section over_under -- move somewhere else
-
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 
@@ -50,15 +49,44 @@ def over (X : C) := comma (functor.id C) (category_theory.limits.functor.of_obj 
 
 def under (X : C) := comma (category_theory.limits.functor.of_obj X) (functor.id C)
 
-instance over.category {X : C} : category (over X) := by unfold over; apply_instance
-
-def over.forget (X : C) : (over X) ⥤ C :=
-{ obj  := λ Y, Y.left,
-  map' := λ _ _ f, f.left } -- why these underscores? They should be implicit
-
-def over.to_hom {X : C} (Y : over X) : Y.left ⟶ X := Y.hom
-
 end over_under
+
+namespace over
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
+
+instance {X : C} : category (over X) := by unfold over; apply_instance
+
+def forget (X : C) : (over X) ⥤ C :=
+{ obj  := λ Y, Y.left,
+  map' := λ _ _ f, f.left }
+
+def mk {X Y : C} (f : Y ⟶ X) : over X :=
+{ left := Y, hom := f }
+
+def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
+{ obj := λ U, mk (U.hom ≫ f),
+  map' := λ U V g,
+  { left := g.left,
+    w' :=
+    begin
+      dsimp only [mk],
+      rw [← category.assoc, g.w],
+      dsimp [limits.functor.of_obj],
+      simp
+    end } }
+
+def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
+{ obj  := λ V, mk $ pullback.π₁ f V.hom,
+  map' := λ V₁ V₂ g,
+  { left := sorry,
+    w' :=
+    begin
+      have := pullback.universal_property,
+      dsimp only [mk], sorry
+    end } }
+
+end over
 
 @[reducible]
 def covering_family {X : Type v} [small_category X] (U : X) : Type v := set (over.{v v} U)
@@ -90,20 +118,24 @@ begin
   simp,
 end
 
-def sheaf_condition := is_iso $ (yoneda (presheaf X (Type v))).map c.π
+def sheaf_condition (F : presheaf X (Type v)) :=
+is_iso $ ((yoneda (presheaf X (Type v))).obj F).map c.π
 
 end covering_family
 
+def coverage_on (X : Type u) [small_category.{u} X]
+  (covers : Π (U : X), set (covering_family U)) : Prop :=
+∀ {U V : X} (g : V ⟶ U),
+∀f ∈ covers U, ∃h ∈ covers V,
+∀ Vj : (h : set _), ∃ (Ui : f),
+∃ k : Vj.val.left ⟶ Ui.val.left, Vj.val.hom ≫ g = k ≫ Ui.val.hom
+
 structure coverage (X : Type u) [small_category.{u} X] :=
 (covers   : Π (U : X), set (covering_family U))
-(property : ∀ {U V : X} (g : V ⟶ U) (f ∈ covers U),
-            ∃ (h ∈ covers V), ∀ Vj : h, ∃ (Ui : f) (k : Vj.left ⟶ Ui.left),
-            Vj.hom ≫ g = k ≫ Ui.hom)
-
-#check coverage
+(property : coverage_on X covers)
 
 class site (X : Type u) extends category.{u u} X :=
-(coverage' : coverage X)
+(coverage : coverage X)
 
 namespace site
 variables {X : Type u₁} [𝒳 : site.{u₁} X]
@@ -112,25 +144,25 @@ definition covers := coverage.covers 𝒳.coverage
 
 end site
 
-section sheaf
-variables (X : Type u₁) [𝒳 : site.{u₁} X] (C : Type u₂) [𝒞 : category.{u₂ v₂} C]
-include 𝒳 𝒞
-
-structure sheaf :=
-(presheaf : presheaf X C)
-(sheaf_condition : ∀ {U : X} (c ∈ site.covers U), c.sheaf_condition presheaf)
-
-end sheaf
-
+structure sheaf (X : Type u) [𝒳 : site.{u} X] :=
+(presheaf : presheaf X (Type u))
+(sheaf_condition : ∀ {U : X}, ∀c ∈ site.covers U, (c : covering_family U).sheaf_condition presheaf)
 
 namespace topological_space
 
 variables {X : Type u} [topological_space X]
 
+-- The following should be generalised to categories coming from a complete(?) lattice
+instance : has_pullbacks.{u u} (opens X) :=
+{ square := _ }
+
 instance : site (opens X) :=
 { coverage :=
-  { covers := λ U, λ Us, begin sorry -- the union of the Ui should be U
-    end,
-    property := sorry } }
+  { covers := λ U Us, U = ⨆u∈Us, (u:over _).left,
+    property :=
+    begin
+      refine λU V i Us (hUs : _ = _), ⟨_, _, _⟩,
+      exact (over.comap i '' Us),
+    end } }
 
 end topological_space

@@ -152,6 +152,34 @@ sorry
 
 end pullback
 
--- TODO pushout
+section pushout
+variable [has_pushouts.{u v} C]
+variables (f : X ⟶ Y) (g : X ⟶ Z)
+
+def pushout.cosquare : cosquare f g := has_pushouts.cosquare.{u v} f g
+def pushout := (pushout.cosquare f g).X
+-- FIXME
+-- def pushout.ι₁ : pushout f g ⟶ X := (pushout.cosquare f g).ι.app left
+-- def pushout.ι₂ : pushout f g ⟶ Y := (pushout.cosquare f g).ι.app right
+-- @[simp] lemma pushout.w : f ≫ pushout.ι₁ f g = g ≫ pushout.ι₂ f g :=
+-- begin
+--   erw ((pullback.square f g).w inl),
+--   erw ((pullback.square f g).w inr)
+-- end
+def pushout.universal_property : is_pushout (pushout.cosquare f g) :=
+has_pushouts.is_pushout.{u v} C f g
+
+instance has_colimits_of_shape_of_has_pushouts [has_pushouts.{u v} C] : 
+  limits.has_colimits_of_shape.{u v} walking_span C :=
+sorry
+
+-- TODO
+-- pullback.lift
+-- pullback.lift_π₁
+-- pullback.lift_π₂
+-- pullback.hom_ext
+
+
+end pullback
 
 end category_theory.limits

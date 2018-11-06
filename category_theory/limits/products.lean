@@ -28,9 +28,12 @@ class has_products :=
 (fan : Π {β : Type v} (f : β → C), fan.{u v} f)
 (is_product : Π {β : Type v} (f : β → C), is_product (fan f) . obviously)
 
-class has_products_of_shape (β : Type v) :=
+section
+omit 𝒞 
+class has_products_of_shape (β : Type v) (C : Type u) [𝒞 : category.{u v} C] :=
 (fan : Π f : β → C, fan f)
 (is_product : Π f : β → C, is_product (fan f))
+end
 
 variable {C}
 
@@ -39,17 +42,20 @@ class has_product {β : Type v} (f : β → C) :=
 (is_product : is_product fan)
 
 instance has_product_of_has_products_of_shape
-  {β : Type v} [has_products_of_shape.{u v} C β] (f : β → C) : has_product f :=
+  {β : Type v} [has_products_of_shape.{u v} β C] (f : β → C) : has_product f :=
 { fan := has_products_of_shape.fan f,
   is_product := has_products_of_shape.is_product f }
 
 instance has_products_of_shape_of_has_products
-  {β : Type v} [has_products.{u v} C] : has_products_of_shape.{u v} C β :=
+  {β : Type v} [has_products.{u v} C] : has_products_of_shape.{u v} β C :=
 { fan := λ f, has_products.fan f,
   is_product := λ f, has_products.is_product C f }
 
 -- Special cases of this may be marked with [instance] as desired.
-def has_products_of_has_limits [limits.has_limits.{u v} C] : has_products.{u v} C :=
+def has_products_of_shape_of_has_limits_of_shape [limits.has_limits_of_shape.{u v} (discrete β) C] : has_products_of_shape.{u v} β C :=
+{ fan := λ f, limit.cone (functor.of_function f),
+  is_product := λ f, limit.universal_property (functor.of_function f) }
+def has_products_of_has_limits [∀ β : Type v, limits.has_limits_of_shape.{u v} (discrete β) C] : has_products.{u v} C :=
 { fan := λ β f, limit.cone (functor.of_function f),
   is_product := λ β f, limit.universal_property (functor.of_function f) }
 
@@ -83,10 +89,10 @@ def fan.of_cone {β : Type v} {F : (discrete β) ⥤ C} (t : cone F) : fan (F.ob
       erw category.id_comp,
     end } }
 
-instance has_limits_of_shape_of_has_products_of_shape {β : Type v} [has_products_of_shape.{u v} C β] :
+instance has_limits_of_shape_of_has_products_of_shape {β : Type v} [has_products_of_shape.{u v} β C] :
   limits.has_limits_of_shape.{u v} (discrete β) C :=
 begin
-  haveI : has_products_of_shape.{u v} C (discrete β) := (by apply_instance : has_products_of_shape.{u v} C β),
+  haveI : has_products_of_shape.{u v} (discrete β) C := (by apply_instance : has_products_of_shape.{u v} β C),
   exact
   { cone := λ F, cone.of_fan (has_products_of_shape.fan F.obj),
     is_limit := λ F, let is_product := has_product.is_product F.obj in
@@ -155,11 +161,11 @@ end
 limit.hom_ext w
 
 @[simp] def pi.lift_map
-  [has_products_of_shape.{u v} C β] {f : β → C} {g : β → C} {P : C} (p : Π b, P ⟶ f b) (k : Π b, f b ⟶ g b) :
+  [has_products_of_shape.{u v} β C] {f : β → C} {g : β → C} {P : C} (p : Π b, P ⟶ f b) (k : Π b, f b ⟶ g b) :
   pi.lift p ≫ pi.map k = pi.lift (λ b, p b ≫ k b) :=
 limit.lift_map (cone.of_function p) (nat_trans.of_function k)
 
-@[simp] def pi.map_map [has_products_of_shape.{u v} C β] {f1 : β → C} {f2 : β → C} {f3 : β → C}
+@[simp] def pi.map_map [has_products_of_shape.{u v} β C] {f1 : β → C} {f2 : β → C} {f3 : β → C}
   (k1 : Π b, f1 b ⟶ f2 b) (k2 : Π b, f2 b ⟶ f3 b) :
   pi.map (λ b, k1 b ≫ k2 b) = pi.map k1 ≫ pi.map k2 :=
 lim.map_comp (nat_trans.of_function k1) (nat_trans.of_function k2)
@@ -170,14 +176,14 @@ lim.map_comp (nat_trans.of_function k1) (nat_trans.of_function k2)
 by ext1; simp.
 
 def pi.map_pre
-  {α : Type v} [has_products_of_shape.{u v} C β] [has_products_of_shape.{u v} C α]
+  {α : Type v} [has_products_of_shape.{u v} β C] [has_products_of_shape.{u v} α C]
   {f g : β → C} (k : Π b : β, f b ⟶ g b)
   (e : α → β) :
   pi.map k ≫ pi.pre g e = pi.pre f e ≫ pi.map (λ a, k (e a)) :=
 limit.map_pre (nat_trans.of_function k) (discrete.lift e)
 
 @[simp] lemma pi.pre_pre {γ δ : Type v}
-  [has_products_of_shape.{u v} C β] [has_products_of_shape.{u v} C γ] [has_products_of_shape.{u v} C δ]
+  [has_products_of_shape.{u v} β C] [has_products_of_shape.{u v} γ C] [has_products_of_shape.{u v} δ C]
   (f : β → C) (g : γ → β) (h : δ → γ) :
   pi.pre f g ≫ pi.pre (f ∘ g) h = pi.pre f (g ∘ h) :=
 by ext1; simp.
@@ -185,7 +191,7 @@ by ext1; simp.
 section
 variables {D : Type u} [category.{u v} D] [has_products.{u v} D]
 
-@[simp] def pi.lift_post [has_products_of_shape.{u v} C β] {f : β → C} {P : C} (k : Π b : β, P ⟶ f b) (G : C ⥤ D) :
+@[simp] def pi.lift_post [has_products_of_shape.{u v} β C] {f : β → C} {P : C} (k : Π b : β, P ⟶ f b) (G : C ⥤ D) :
   G.map (pi.lift k) ≫ pi.post f G = pi.lift (λ b, G.map (k b)) :=
 begin
   /- `obviously` says -/
@@ -195,16 +201,16 @@ begin
 end
 
 
-def pi.map_post [has_products_of_shape.{u v} C β] {f g : β → C} (k : Π b : β, f b ⟶ g b) (H : C ⥤ D) :
+def pi.map_post [has_products_of_shape.{u v} β C] {f g : β → C} (k : Π b : β, f b ⟶ g b) (H : C ⥤ D) :
   H.map (pi.map k) ≫ pi.post g H = pi.post f H ≫ pi.map (λ b, H.map (k b)) :=
 limit.map_post (nat_trans.of_function k) H
 
-def pi.pre_post {α} [has_products_of_shape.{u v} C β] [has_products_of_shape.{u v} C α] (f : β → C) (g : α → β) (G : C ⥤ D) :
+def pi.pre_post {α} [has_products_of_shape.{u v} β C] [has_products_of_shape.{u v} α C] (f : β → C) (g : α → β) (G : C ⥤ D) :
   G.map (pi.pre f g) ≫ pi.post (f ∘ g) G = pi.post f G ≫ pi.pre (G.obj ∘ f) g :=
 limit.pre_post (functor.of_function f) (discrete.lift g) G
 
 @[simp] def pi.post_post
-  [has_products_of_shape.{u v} C β]
+  [has_products_of_shape.{u v} β C]
   {E : Type u} [category.{u v} E] [has_products.{u v} E] (f : β → C) (G : C ⥤ D) (H : D ⥤ E) :
   H.map (pi.post f G) ≫ pi.post (G.obj ∘ f) H = pi.post f (G ⋙ H) :=
 limit.post_post (functor.of_function f) G H
@@ -229,9 +235,12 @@ class has_coproducts :=
 (cofan : Π {β : Type v} (f : β → C), cofan.{u v} f)
 (is_coproduct : Π {β : Type v} (f : β → C), is_coproduct (cofan f) . obviously)
 
-class has_coproducts_of_shape (β : Type v) :=
+section
+omit 𝒞 
+class has_coproducts_of_shape (β : Type v) (C : Type u) [category.{u v} C]:=
 (cofan : Π f : β → C, cofan f)
 (is_coproduct : Π f : β → C, is_coproduct (cofan f))
+end
 
 variable {C}
 
@@ -240,17 +249,20 @@ class has_coproduct {β : Type v} (f : β → C) :=
 (is_coproduct : is_coproduct cofan)
 
 instance has_coproduct_of_has_coproducts_of_shape
-  {β : Type v} [has_coproducts_of_shape.{u v} C β] (f : β → C) : has_coproduct f :=
+  {β : Type v} [has_coproducts_of_shape.{u v} β C] (f : β → C) : has_coproduct f :=
 { cofan := has_coproducts_of_shape.cofan f,
   is_coproduct := has_coproducts_of_shape.is_coproduct f }
 
 instance has_coproducts_of_shape_of_has_coproducts
-  {β : Type v} [has_coproducts.{u v} C] : has_coproducts_of_shape.{u v} C β :=
+  {β : Type v} [has_coproducts.{u v} C] : has_coproducts_of_shape.{u v} β C :=
 { cofan := λ f, has_coproducts.cofan f,
   is_coproduct := λ f, has_coproducts.is_coproduct C f }
 
 -- Special cases of this may be marked with [instance] as desired.
-def has_coproducts_of_has_colimits [limits.has_colimits.{u v} C] : has_coproducts.{u v} C :=
+def has_coproducts_of_shape_of_has_colimits_of_shape [limits.has_colimits_of_shape.{u v} (discrete β) C] : has_coproducts_of_shape.{u v} β C :=
+{ cofan := λ f, colimit.cocone (functor.of_function f),
+  is_coproduct := λ f, colimit.universal_property (functor.of_function f) }
+def has_coproducts_of_has_colimits [∀ β : Type v, limits.has_colimits_of_shape.{u v} (discrete β) C] : has_coproducts.{u v} C :=
 { cofan := λ β f, colimit.cocone (functor.of_function f),
   is_coproduct := λ β f, colimit.universal_property (functor.of_function f) }
 
@@ -285,10 +297,10 @@ def cofan.of_cocone {β : Type v} {F : (discrete β) ⥤ C} (t : cocone F) : cof
       erw category.comp_id,
     end } }
 
-instance has_colimits_of_shape_of_has_coproducts_of_shape {β : Type v} [has_coproducts_of_shape.{u v} C β] :
+instance has_colimits_of_shape_of_has_coproducts_of_shape {β : Type v} [has_coproducts_of_shape.{u v} β C] :
   limits.has_colimits_of_shape.{u v} (discrete β) C :=
 begin
-  haveI : has_coproducts_of_shape.{u v} C (discrete β) := (by apply_instance : has_coproducts_of_shape.{u v} C β),
+  haveI : has_coproducts_of_shape.{u v} (discrete β) C := (by apply_instance : has_coproducts_of_shape.{u v} β C),
   exact
   { cocone := λ F, cocone.of_cofan (has_coproducts_of_shape.cofan F.obj),
     is_colimit := λ F, let is_coproduct := has_coproduct.is_coproduct F.obj in
@@ -375,7 +387,7 @@ end
 colimit.hom_ext w
 
 @[simp] lemma sigma.map_desc
-  [has_coproducts_of_shape.{u v} C β] {f : β → C} {g : β → C} {P : C} (k : Π b, f b ⟶ g b) (p : Π b, g b ⟶ P) :
+  [has_coproducts_of_shape.{u v} β C] {f : β → C} {g : β → C} {P : C} (k : Π b, f b ⟶ g b) (p : Π b, g b ⟶ P) :
   sigma.map k ≫ sigma.desc p = sigma.desc (λ b, k b ≫ p b) :=
 colimit.map_desc (cocone.of_function p) (nat_trans.of_function k)
 

@@ -39,11 +39,26 @@ instance presheaf_of_types.has_pullbacks : has_pullbacks.{v+1 v} (presheaf X (Ty
 
 end presheaf
 
--- todo should this be done as a subfunctor?
-structure covering_family {X : Type v} [small_category X] (U : X) :=
-(index : Type v)
-(obj : index → X)
-(map : Π (i : index), obj i ⟶ U)
+section over_under -- move somewhere else
+
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
+
+def over (X : C) := comma (functor.id C) (category_theory.limits.functor.of_obj X)
+
+def under (X : C) := comma (category_theory.limits.functor.of_obj X) (functor.id C)
+
+instance over.category {X : C} : category (over X) := by unfold over; apply_instance
+
+def over.forget (X : C) : (over X) ⥤ C :=
+{ obj  := λ Y, Y.left,
+  map' := λ _ _ f, f.left } -- why these underscores? They should be implicit
+
+def over.to_hom {X : C} (Y : over X) : Y.left ⟶ X := Y.hom
+
+end over_under
+
+def covering_family {X : Type v} [small_category X] (U : X) := set (over U)
 
 namespace covering_family
 open category_theory.limits
@@ -53,26 +68,39 @@ include 𝒳
 variables {U : X} (f : covering_family U)
 
 set_option pp.universes true
-instance : has_coproduct.{v+1 v} (⇑(yoneda.{v v} X) ∘ f.obj) :=
-begin
-  by apply_instance
-end
+-- instance : has_coproduct.{v+1 v} (⇑(yoneda.{v v} X) ∘ f.obj) :=
+-- begin
+--   by apply_instance
+-- end
 
 def sieve : presheaf X (Type v) :=
-let CP : f.index → (Xᵒᵖ ⥤ Type v) := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in
+-- let CP : f.index → (Xᵒᵖ ⥤ Type v) := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in
 -- The ∘ in the next lines doesn't make sense:
 -- `sigma CP` is a functor `(Xᵒᵖ ⥤ Type v)`,
 -- and `sigma.ι CP p.1` is a natural transformation from `CP p.1` to it.
 
 -- I haven't attempted to typecheck by hand the `pullback.πᵢ` terms.
 coequalizer
+  (sigma.desc (λ Ujk : f × f, pullback.π₁ (yoneda X).map Uj.hom) (yoneda X).map Uk.hom)
+
+
   (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
   (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
 
 def π : f.sieve ⟶ yoneda X U := coequalizer.desc (sigma.desc (λ i : f.index, (yoneda X).map (f.map i))) _
 
-def sheaf_condition (f : (covering_family U)) (F : presheaf X (Type v)) : Prop :=
-is_iso (yoneda (presheaf X (Type v))).map f.π -- This is probably not even what I mean
+namespace sheaf_condition
+
+variables (F : presheaf X (Type v))
+
+def sheaf_condition.left := sigma.desc (λ (Ui : over U) (hUi : f Ui), pullback.π₁ ((yoneda X).map Ui.hom)
+
+def sheaf_condition.fork : fork left right
+
+def sheaf_condition := is_equalizer sheaf_condition.fork
+
+end sheaf_condition
+-- is_iso (yoneda (presheaf X (Type v))).map f.π -- This is probably not even what I mean
 
 end covering_family
 

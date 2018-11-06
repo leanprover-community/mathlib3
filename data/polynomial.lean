@@ -121,8 +121,7 @@ lemma apply_eq_coeff : p n = coeff p n := rfl
 
 @[simp] lemma coeff_one_zero (n : ℕ) : coeff (1 : polynomial α) 0 = 1 := rfl
 
-@[simp] lemma coeff_add (p q : polynomial α) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
-finsupp.add_apply
+@[simp] lemma coeff_add (p q : polynomial α) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n := rfl
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by simp [coeff, eq_comm, C, single]; congr
@@ -204,6 +203,13 @@ end coeff
 
 lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
+
+section coeff
+variable α
+@[simp] lemma coeff_X (n : ℕ) :
+  coeff (X : polynomial α) n = if n = 1 then 1 else 0 :=
+by simpa only [pow_one] using @coeff_X_pow α _ _ 1 n
+end coeff
 
 section eval₂
 variables [semiring β]

@@ -1,4 +1,5 @@
 import category_theory.examples.topological_spaces
+
 import category_theory.opposites
 import category_theory.yoneda
 import category_theory.limits
@@ -59,32 +60,32 @@ def over.to_hom {X : C} (Y : over X) : Y.left ⟶ X := Y.hom
 
 end over_under
 
-def covering_family {X : Type v} [small_category X] (U : X) := set (over U)
+@[reducible]
+def covering_family {X : Type v} [small_category X] (U : X) : Type v := set (over.{v v} U)
 
 namespace covering_family
 open category_theory.limits
 variables {X : Type v} [𝒳 : small_category X]
 include 𝒳
 
-variables {U : X} (f : covering_family U)
-
-set_option pp.universes true
+variables {U : X} (c : covering_family U)
 
 def sieve : presheaf X (Type v) :=
--- let CP : f.index → (Xᵒᵖ ⥤ Type v) := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in
--- The ∘ in the next lines doesn't make sense:
--- `sigma CP` is a functor `(Xᵒᵖ ⥤ Type v)`,
--- and `sigma.ι CP p.1` is a natural transformation from `CP p.1` to it.
+let
+  y (Ui : c) := (yoneda X).map Ui.val.hom,
+  pb (Ujk : c × c) : presheaf X (Type v) := limits.pullback (y Ujk.1) (y Ujk.2),
+  re (Ui : c) : presheaf X (Type v) := (yoneda X).obj Ui.val.left,
+  left  : limits.sigma pb ⟶ limits.sigma re :=
+    sigma.desc $ λUjk:c×c, pullback.π₁ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.1,
+  right : limits.sigma pb ⟶ limits.sigma re :=
+    sigma.desc $ λUjk:c×c, pullback.π₂ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.2
+in coequalizer left right
 
--- I haven't attempted to typecheck by hand the `pullback.πᵢ` terms.
-coequalizer
-  (sigma.desc (λ Ujk : f × f, pullback.π₁ (yoneda X).map Uj.hom) (yoneda X).map Uk.hom)
+def π : c.sieve ⟶ yoneda X U :=
+coequalizer.desc _ _ (sigma.desc $ λUi, (yoneda X).map Ui.val.hom)
+begin
 
-
-  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
-  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
-
-def π : f.sieve ⟶ yoneda X U := coequalizer.desc (sigma.desc (λ i : f.index, (yoneda X).map (f.map i))) _
+end
 
 namespace sheaf_condition
 

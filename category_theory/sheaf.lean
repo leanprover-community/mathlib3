@@ -204,21 +204,54 @@ structure sheaf (X : Type u) [𝒳 : site.{u} X] :=
 (presheaf : presheaf X (Type u))
 (sheaf_condition : ∀ {U : X}, ∀c ∈ site.covers U, (c : covering_family U).sheaf_condition presheaf)
 
+namespace lattice.complete_lattice
+
+open lattice
+
+variables {X : Type u} [complete_lattice X]
+variables {J : Type u} [small_category J]
+
+def limit (F : J ⥤ X) : cone F :=
+{ X := infi F.obj,
+  π := { app := λ j, ⟨⟨infi_le _ j⟩⟩ } }
+
+def limit_is_limit (F : J ⥤ X) : is_limit (limit F) :=
+{ lift := λ s, ⟨⟨le_infi (λ i, plift.down $ ulift.down $ s.π i)⟩⟩ }
+
+instance : has_limits.{u u} X :=
+{ cone := λ J hJ F, @limit _ _ J hJ F,
+  is_limit := λ J hJ F, @limit_is_limit _ _ J hJ F }
+
+instance : has_pullbacks.{u u} X := has_pullbacks_of_has_limits _
+
+end lattice.complete_lattice
+
 namespace topological_space
 
 variables {X : Type u} [topological_space X]
-
--- The following should be generalised to categories coming from a complete(?) lattice
-instance : has_pullbacks.{u u} (opens X) :=
-{ square := _ }
 
 instance : site (opens X) :=
 { coverage :=
   { covers := λ U Us, U = ⨆u∈Us, (u:over _).left,
     property :=
     begin
-      refine λU V i Us (hUs : _ = _), ⟨_, _, _⟩,
-      exact (over.comap i '' Us),
+      refine λU V i Us (hUs : _ = _), ⟨over.comap i '' Us, _, _⟩,
+      { show _ = _, sorry },
+      { rintros ⟨Vj, Ui, H⟩,
+        refine ⟨⟨Ui, H.1⟩, ⟨_, rfl⟩⟩,
+        have H' := H.2.symm,
+        subst H',
+        exact (pullback.π₂ i Ui.hom) }
+    end } }
+
+variables {B : set (opens X)} (is_basis : opens.is_basis B)
+
+instance basis.site : site B :=
+{ coverage :=
+  { covers := λ U Us, U.val = ⨆u∈Us, (u:over _).left.val,
+    property :=
+    begin
+      refine λ U V i Us (hUs : _ = _), ⟨_, _, _⟩,
     end } }
 
 end topological_space

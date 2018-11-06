@@ -236,6 +236,58 @@ restate_axiom is_colimit.fac'
 attribute [simp] is_colimit.fac
 restate_axiom is_colimit.uniq'
 
+@[simp] lemma is_colimit.desc_self {t : cocone F} (h : is_colimit t) : h.desc t = 𝟙 t.X :=
+begin
+  symmetry,
+  apply h.uniq,
+  tidy,
+end
+
+def colimit_cocone.ext {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s ≅ t :=
+{ hom := { hom := P.desc t },
+  inv := { hom := Q.desc s,
+    w' := λ j, Q.fac s j },
+  hom_inv_id' :=
+  begin
+    ext, simp,
+    rw ← is_colimit.desc_self P,
+    apply P.uniq,
+    intro j,
+    rw ← category.assoc,
+    tidy,
+  end,
+  inv_hom_id' :=
+  begin
+    ext, simp,
+    rw ← is_colimit.desc_self Q,
+    apply Q.uniq,
+    intro j,
+    rw ← category.assoc,
+    tidy,
+  end }
+
+def is_colimit_invariance (r t : cocone F) (i : r ≅ t) (P : is_colimit r) : is_colimit t :=
+{ desc := λ s, i.inv.hom ≫ P.desc s,
+  fac' := sorry,
+  uniq' :=
+  begin
+    tidy,
+    have h : i.hom.hom ≫ m = P.desc s,
+    { apply P.uniq,
+      intro j,
+      rw ← category.assoc,
+      rw i.hom.w,
+      exact w j },
+    replace h := congr_arg (λ p, i.inv.hom ≫ p) h,
+    dsimp at h,
+    rw ← category.assoc at h,
+    have p := congr_arg cocone_morphism.hom i.inv_hom_id,
+    dsimp at p,
+    rw p at h,
+    simp at h,
+    exact h
+  end }
+
 variables {t : cocone F}
 
 @[extensionality] lemma is_colimit.ext (P Q : is_colimit t) : P = Q :=
@@ -322,7 +374,8 @@ section
 
 def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone.{u v} F
 def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
-def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F j := (((limit.cone F).π) : Π j : J, limit F ⟶ F j) j
+def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F j := 
+(((limit.cone F).π) : Π j : J, limit F ⟶ F j) j
 @[simp] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
   limit.π F j ≫ F.map f = limit.π F j' := (limit.cone F).w f
 def limit.universal_property (F : J ⥤ C) [has_limit F] : is_limit (limit.cone F) :=
@@ -521,7 +574,8 @@ section
 
 def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone.{u v} F
 def colimit (F : J ⥤ C) [has_colimit F] := (colimit.cocone F).X
-def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F j ⟶ colimit F := (((colimit.cocone F).ι) : Π j : J, F j ⟶ colimit F) j
+def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F j ⟶ colimit F := 
+(((colimit.cocone F).ι) : Π j : J, F j ⟶ colimit F) j
 @[simp] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') : F.map f ≫ colimit.ι F j' = colimit.ι F j :=
 (colimit.cocone F).w f
 def colimit.universal_property (F : J ⥤ C) [has_colimit F] : is_colimit (colimit.cocone F) :=

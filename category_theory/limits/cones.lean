@@ -228,6 +228,21 @@ namespace cocones
 @[simp] lemma comp.hom {F : J ⥤ C} {c d e : cocone F} (f : c ⟶ d) (g : d ⟶ e) : ((f ≫ g) :
   cocone_morphism c e).hom = (f : cocone_morphism c d).hom ≫ (g : cocone_morphism d e).hom := rfl
 
+@[extensionality] def ext
+  {F : J ⥤ C} (c c' : cocone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.ι j ≫ φ.hom = c'.ι j): c ≅ c' :=
+{ hom :=
+  { hom := φ.hom },
+  inv :=
+  { hom := φ.symm.hom,
+    w' := λ j,
+    begin
+      have h := congr_arg (λ p, p ≫ φ.inv) (w j),
+      dsimp at h,
+      erw ←h,
+      rw category.assoc,
+      simp,
+    end } }
+
 section
 variables {D : Type u'} [𝒟 : category.{u' v} D]
 include 𝒟

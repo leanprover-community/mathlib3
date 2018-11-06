@@ -7,12 +7,8 @@ Authors: Mario Carneiro, Kevin Buzzard
 import algebra.module
 import order.order_iso
 import data.fintype data.polynomial
-<<<<<<< HEAD
-import linear_algebra.submodule
-=======
 import linear_algebra.lc
 import tactic.tidy
->>>>>>> 21d4d1c2cef95e016c9a6533c507454320bf5c11
 import ring_theory.ideals
 
 open set lattice

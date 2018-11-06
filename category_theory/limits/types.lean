@@ -108,7 +108,7 @@ instance : has_pullbacks.{u+1 u} (Type u) :=
   is_pullback := λ Y₁ Y₂ Z r₁ r₂,
   { lift  := λ s x, ⟨ (s.π left x, s.π right x),
     begin
-      have swl := congr_fun (@cone.w _ _ _ _ _ s left one inl) x, -- FIXME why are the @s needed here?
+      have swl := congr_fun (@cone.w _ _ _ _ _ s left one inl) x,
       have swr := congr_fun (@cone.w _ _ _ _ _ s right one inr) x,
       exact eq.trans swl (eq.symm swr),
     end ⟩,

@@ -1,6 +1,6 @@
-import category_theory.limits.limits
-import category_theory.limits.preserves
 import category_theory.products
+import category_theory.limits
+import category_theory.limits.preserves
 
 open category_theory
 
@@ -105,6 +105,17 @@ instance functor_category_has_limits_of_shape [has_limits_of_shape.{u v} J C] : 
 instance functor_category_has_colimits_of_shape [has_colimits_of_shape.{u v} J C] : has_colimits_of_shape J (K ⥤ C) :=
 { cocone := λ F, functor_category_colimit_cocone F,
   is_colimit := λ F, functor_category_is_colimit_cocone F }
+
+-- TODO Do we need hand-rolled versions of this?
+instance functor_category_has_pullbacks [has_pullbacks.{u v} C] : has_pullbacks.{(max u v) v} (K ⥤ C) :=
+limits.has_pullbacks_of_has_limits (K ⥤ C)
+-- TODO
+-- instance functor_category_has_pushouts [has_pushouts.{u v} C] : has_pushots.{(max u v) v} (K ⥤ C) :=
+-- limits.has_pushouts_of_has_colimits (K ⥤ C)
+instance functor_category_has_equalizers [has_equalizers.{u v} C] : has_equalizers.{(max u v) v} (K ⥤ C) :=
+limits.has_equalizers_of_has_limits
+instance functor_category_has_coequalizers [has_coequalizers.{u v} C] : has_coequalizers.{(max u v) v} (K ⥤ C) :=
+limits.has_coequalizers_of_has_colimits
 
 instance functor_category_has_limits [has_limits.{u v} C] : has_limits.{(max u v) v} (K ⥤ C) :=
 { cone := λ J 𝒥 F, by resetI; exact functor_category_limit_cone F,

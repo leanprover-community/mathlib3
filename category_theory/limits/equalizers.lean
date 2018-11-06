@@ -142,10 +142,10 @@ instance has_coequalizer_of_has_coequalizers [has_coequalizers.{u v} C] {X Y : C
   is_coequalizer := has_coequalizers.is_coequalizer C f g }
 
 -- Special cases of this may be marked with [instance] as desired.
-def has_equalizers_of_has_limits [limits.has_limits.{u v} C] : has_equalizers.{u v} C :=
+def has_equalizers_of_has_limits [limits.has_limits_of_shape.{u v} walking_pair C] : has_equalizers.{u v} C :=
 { fork := λ X Y f g, limit.cone (pair f g),
   is_equalizer := λ X Y f g, limit.universal_property (pair f g) }
-def has_coequalizers_of_has_colimits [limits.has_colimits.{u v} C] : has_coequalizers.{u v} C :=
+def has_coequalizers_of_has_colimits [limits.has_colimits_of_shape.{u v} walking_pair C] : has_coequalizers.{u v} C :=
 { cofork := λ X Y f g, colimit.cocone (pair f g),
   is_coequalizer := λ X Y f g, colimit.universal_property (pair f g) }
 

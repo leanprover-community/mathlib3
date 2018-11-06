@@ -7,7 +7,7 @@ Basic operations on the natural numbers.
 -/
 import logic.basic algebra.ordered_ring data.option
 
-universe u
+universes u v
 
 namespace nat
 variables {m n k : ℕ}
@@ -313,6 +313,12 @@ by rw [mul_comm c, mod_mul_right_div_self]
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
 ⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_refl _⟩
 
+protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k ∣ m :=
+(nat.dvd_add_iff_left h).symm
+
+protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k ∣ n := 
+(nat.dvd_add_iff_right h).symm
+
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : a > 0) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, nat.mul_left_inj ha]
 
@@ -557,6 +563,27 @@ theorem iterate_add : ∀ (m n : ℕ) (a : α), op^[m + n] a = (op^[m]) (op^[n] 
 
 theorem iterate_succ' (n : ℕ) (a : α) : op^[succ n] a = op (op^[n] a) :=
 by rw [← one_add, iterate_add]; refl
+
+theorem iterate₀ {α : Type u} {op : α → α} {x : α} (H : op x = x) {n : ℕ} :
+  op^[n] x = x :=
+by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
+
+theorem iterate₁ {α : Type u} {β : Type v} {op : α → α} {op' : β → β} {op'' : α → β}
+  (H : ∀ x, op' (op'' x) = op'' (op x)) {n : ℕ} {x : α} :
+  op'^[n] (op'' x) = op'' (op^[n] x) :=
+by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
+
+theorem iterate₂ {α : Type u} {op : α → α} {op' : α → α → α} (H : ∀ x y, op (op' x y) = op' (op x) (op y)) {n : ℕ} {x y : α} :
+  op^[n] (op' x y) = op' (op^[n] x) (op^[n] y) :=
+by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
+
+theorem iterate_cancel {α : Type u} {op op' : α → α} (H : ∀ x, op (op' x) = x) {n : ℕ} {x : α} : op^[n] (op'^[n] x) = x :=
+by induction n; [refl, rwa [iterate_succ, iterate_succ', H]]
+
+theorem iterate_inj {α : Type u} {op : α → α} (Hinj : function.injective op) (n : ℕ) (x y : α)
+  (H : (op^[n] x) = (op^[n] y)) : x = y :=
+by induction n with n ih; simp only [iterate_zero, iterate_succ'] at H;
+[exact H, exact ih (Hinj H)]
 
 end
 

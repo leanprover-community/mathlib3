@@ -160,6 +160,9 @@ by haveI := classical.prop_decidable;
 theorem exists_mem_of_ne_empty {s : set α} : s ≠ ∅ → ∃ x, x ∈ s :=
 ne_empty_iff_exists_mem.1
 
+theorem coe_nonempty_iff_ne_empty {s : set α} : nonempty s ↔ s ≠ ∅ :=
+nonempty_subtype.trans ne_empty_iff_exists_mem.symm
+
 -- TODO: remove when simplifier stops rewriting `a ≠ b` to `¬ a = b`
 theorem not_eq_empty_iff_exists {s : set α} : ¬ (s = ∅) ↔ ∃ x, x ∈ s :=
 ne_empty_iff_exists_mem
@@ -1035,6 +1038,14 @@ end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y
+
+theorem pairwise_on.mono {s t : set α} {r}
+  (h : t ⊆ s) (hp : pairwise_on s r) : pairwise_on t r :=
+λ x xt y yt, hp x (h xt) y (h yt)
+
+theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
+  (H : ∀ a b, r a b → r' a b) (hp : pairwise_on s r) : pairwise_on s r' :=
+λ x xs y ys h, H _ _ (hp x xs y ys h)
 
 end set
 

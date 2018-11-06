@@ -27,6 +27,8 @@ lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
+@[simp] def mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
+
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 { le_refl := λ a, @le_refl ℕ _ _,
   le_trans := λ a b c, @le_trans ℕ _ _ _ _,
@@ -102,6 +104,10 @@ def sub_nat (m) (i : fin (n + m)) (h : i.val ≥ m) : fin n :=
 /-- `add_nat i h` adds `m` on `i`, generalizes `fin.succ`. -/
 def add_nat (m) (i : fin n) : fin (n + m) :=
 ⟨i.1 + m, add_lt_add_right i.2 _⟩
+
+/-- `nat_add i h` adds `n` on `i` -/
+def nat_add (n) {m} (i : fin m) : fin (n + m) :=
+⟨n + i.1, add_lt_add_left i.2 _⟩
 
 theorem le_last (i : fin (n+1)) : i ≤ last n :=
 le_of_lt_succ i.is_lt

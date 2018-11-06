@@ -194,6 +194,14 @@ theorem gmultiples_eq_closure {a : α} : gmultiples a = closure {a} :=
 group.gpowers_eq_closure
 attribute [to_additive add_group.gmultiples_eq_closure] group.gpowers_eq_closure
 
+@[elab_as_eliminator]
+theorem in_closure.rec_on {C : α → Prop}
+  {a : α} (H : a ∈ closure s)
+  (H1 : ∀ {a : α}, a ∈ s → C a) (H2 : C 0) (H3 : ∀ {a : α}, a ∈ closure s → C a → C (-a))
+  (H4 : ∀ {a b : α}, a ∈ closure s → b ∈ closure s → C a → C b → C (a + b)) :
+  C a :=
+group.in_closure.rec_on H (λ _, H1) H2 (λ _, H3) (λ _ _, H4)
+
 end add_group
 
 class normal_subgroup [group α] (s : set α) extends is_subgroup s : Prop :=

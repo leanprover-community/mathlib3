@@ -676,9 +676,17 @@ finset.val_inj.1 (erase_dup_eq_self.2 n).symm
 @[simp] theorem mem_to_finset {a : α} {s : multiset α} : a ∈ s.to_finset ↔ a ∈ s :=
 mem_erase_dup
 
+@[simp] lemma to_finset_zero :
+  to_finset (0 : multiset α) = ∅ :=
+rfl
+
 @[simp] lemma to_finset_cons (a : α) (s : multiset α) :
   to_finset (a :: s) = insert a (to_finset s) :=
 finset.eq_of_veq erase_dup_cons
+
+@[simp] lemma to_finset_add (s t : multiset α) :
+  to_finset (s + t) = to_finset s ∪ to_finset t :=
+finset.ext' $ by simp
 
 end multiset
 
@@ -859,6 +867,14 @@ eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
 lemma image_const [decidable_eq β] {s : finset α} (h : s ≠ ∅) (b : β) : s.image (λa, b) = singleton b :=
 ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   exists_mem_of_ne_empty h, true_and, mem_singleton, eq_comm]
+
+protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
+(s.filter p).attach.map ⟨λ x, ⟨x.1, (finset.mem_filter.1 x.2).2⟩,
+λ x y H, subtype.eq $ subtype.mk.inj H⟩
+
+@[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
+  ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
+| ⟨a, ha⟩ := by simp [finset.subtype, ha]
 
 end image
 
@@ -1184,19 +1200,6 @@ mem_powerset.2 (subset.refl _)
 (card_pmap _ _ _).trans (card_powerset s.1)
 
 end powerset
-
-section subtype
-variables [decidable_eq α]
-
-protected def subtype (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
-(s.filter p).attach.image $ λ⟨a, ha⟩, ⟨a, (mem_filter.1 ha).2⟩
-
-@[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
-  ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
-| ⟨a, ha⟩ := by simp only [finset.subtype, mem_image, exists_prop,
-    mem_attach, true_and, subtype.exists, exists_eq_right, mem_filter, ha, and_true]
-
-end subtype
 
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]

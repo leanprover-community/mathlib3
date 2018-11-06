@@ -42,6 +42,32 @@ def id.mk {α : Sort u} : α → id α := id
 
 namespace functor
 
+def const (α : Type*) (β : Type*) := α
+def add_const (α : Type*) := const α
+
+@[pattern] def const.mk {α β} (x : α) : const α β := x
+
+def const.run {α β} (x : const α β) : α := x
+
+namespace const
+
+protected lemma ext {α β} {x y : const α β} (h : x.run = y.run) : x = y := h
+
+protected def map {γ α β} (f : α → β) (x : const γ β) : const γ α := x
+
+instance {γ} : functor (const γ) :=
+{ map := @const.map γ }
+instance add_const.functor {γ} : functor (add_const γ) :=
+@const.functor γ
+
+instance {γ} : is_lawful_functor (const γ) :=
+by constructor; intros; refl
+
+instance add_const.is_lawful_functor {γ} : is_lawful_functor (add_const γ) :=
+@const.is_lawful_functor γ
+
+end const
+
 /-- `functor.comp` is a wrapper around `function.comp` for types.
     It prevents Lean's type class resolution mechanism from trying
     a `functor (comp F id)` when `functor F` would do. -/

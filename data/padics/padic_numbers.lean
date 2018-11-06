@@ -19,7 +19,7 @@ open nat padic_val padic_norm cau_seq cau_seq.completion
 namespace padic_seq
 
 section
-variables {p : ℕ} [prime p]
+variables {p : ℕ} [nat.prime p]
 
 lemma stationary {f : cau_seq ℚ (padic_norm p)} (hf : ¬ f ≈ 0) :
   ∃ N, ∀ m n, m ≥ N → n ≥ N → padic_norm p (f n) = padic_norm p (f m) :=
@@ -74,7 +74,7 @@ end
 
 section embedding
 open cau_seq
-variables {p : ℕ} [prime p]
+variables {p : ℕ} [nat.prime p]
 
 lemma equiv_zero_of_val_eq_of_equiv_zero {f g : padic_seq p}
   (h : ∀ k, padic_norm p (f k) = padic_norm p (g k)) (hf : f ≈ 0) : g ≈ 0 :=
@@ -163,7 +163,7 @@ namespace padic_seq
 section embedding
 
 open cau_seq
-variables {p : ℕ} [hp : prime p]
+variables {p : ℕ} [hp : nat.prime p]
 include hp
 
 lemma norm_mul (f g : padic_seq p) : (f * g).norm = f.norm * g.norm :=
@@ -334,13 +334,13 @@ end
 end embedding
 end padic_seq
 
-def padic (p : ℕ) [prime p] := @cau_seq.completion.Cauchy _ _ _ _ (padic_norm p) _
+def padic (p : ℕ) [nat.prime p] := @cau_seq.completion.Cauchy _ _ _ _ (padic_norm p) _
 notation `ℚ_[` p `]` := padic p
 
 namespace padic
 
 section completion
-variables {p : ℕ} [prime p]
+variables {p : ℕ} [nat.prime p]
 
 instance discrete_field : discrete_field (ℚ_[p]) :=
 cau_seq.completion.discrete_field
@@ -361,7 +361,7 @@ def mk : padic_seq p → ℚ_[p] := quotient.mk
 end completion
 
 section completion
-variables (p : ℕ) [prime p]
+variables (p : ℕ) [nat.prime p]
 
 lemma mk_eq {f g : padic_seq p} : mk f = mk g ↔ f ≈ g := quotient.eq
 
@@ -420,13 +420,13 @@ instance : char_zero ℚ_[p] :=
 end completion
 end padic
 
-def padic_norm_e {p : ℕ} [hp : prime p] : ℚ_[p] → ℚ :=
+def padic_norm_e {p : ℕ} [hp : nat.prime p] : ℚ_[p] → ℚ :=
 quotient.lift padic_seq.norm $ @padic_seq.norm_equiv _ _
 
 namespace padic_norm_e
 section embedding
 open padic_seq
-variables {p : ℕ} [prime p]
+variables {p : ℕ} [nat.prime p]
 
 lemma defn (f : padic_seq p) {ε : ℚ} (hε : ε > 0) : ∃ N, ∀ i ≥ N, padic_norm_e (⟦f⟧ - f i) < ε :=
 begin
@@ -516,7 +516,7 @@ namespace padic
 section complete
 open padic_seq padic
 
-theorem rat_dense' {p : ℕ} [prime p] (q : ℚ_[p]) {ε : ℚ} (hε : ε > 0) :
+theorem rat_dense' {p : ℕ} [nat.prime p] (q : ℚ_[p]) {ε : ℚ} (hε : ε > 0) :
   ∃ r : ℚ, padic_norm_e (q - r) < ε :=
 quotient.induction_on q $ λ q',
   have ∃ N, ∀ m n ≥ N, padic_norm p (q' m - q' n) < ε, from cauchy₂ _ hε,
@@ -537,7 +537,7 @@ quotient.induction_on q $ λ q',
           apply le_of_lt, apply lt_of_not_ge, apply hle, apply le_refl }}
     end⟩
 
-variables {p : ℕ} [prime p] (f : cau_seq _ (@padic_norm_e p _))
+variables {p : ℕ} [nat.prime p] (f : cau_seq _ (@padic_norm_e p _))
 open classical
 
 private lemma cast_succ_nat_pos (n : ℕ) : (↑(n + 1) : ℚ) > 0 :=
@@ -616,7 +616,7 @@ theorem complete' : ∃ q : ℚ_[p], ∀ ε > 0, ∃ N, ∀ i ≥ N, padic_norm_
 end complete
 
 section normed_space
-variables (p : ℕ) [prime p]
+variables (p : ℕ) [nat.prime p]
 
 instance : has_dist ℚ_[p] := ⟨λ x y, padic_norm_e (x - y)⟩
 
@@ -651,7 +651,7 @@ instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
   abv_mul := by simp [has_norm.norm, padic_norm_e.mul'] }
 
 
-theorem rat_dense {p : ℕ} {hp : prime p} (q : ℚ_[p]) {ε : ℝ} (hε : ε > 0) :
+theorem rat_dense {p : ℕ} {hp : p.prime} (q : ℚ_[p]) {ε : ℝ} (hε : ε > 0) :
         ∃ r : ℚ, ∥q - r∥ < ε :=
 let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
     ⟨r, hr⟩ := rat_dense' q (by simpa using hε'l)  in
@@ -735,7 +735,7 @@ end normed_space
 end padic_norm_e
 
 namespace padic
-variables {p : ℕ} [prime p]
+variables {p : ℕ} [nat.prime p]
 
 set_option eqn_compiler.zeta true
 instance complete : cau_seq.is_complete ℚ_[p] norm :=
@@ -744,14 +744,14 @@ instance complete : cau_seq.is_complete ℚ_[p] norm :=
     ⟨λ n, f n, λ ε hε,
       let ⟨N, hN⟩ := is_cau f ↑ε (rat.cast_pos.2 hε) in ⟨N, λ j hj, rat.cast_lt.1 (hN _ hj)⟩⟩ in
   let ⟨q, hq⟩ := padic.complete' f' in
-  ⟨ q, λ ε hε,
+  ⟨ q, setoid.symm $ λ ε hε,
     let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
         ⟨N, hN⟩ := hq _ (by simpa using hε'l) in
     ⟨N, λ i hi, lt.trans (rat.cast_lt.2 (hN _ hi)) hε'r ⟩⟩⟩
 
 lemma padic_norm_e_lim_le {f : cau_seq ℚ_[p] norm} {a : ℝ} (ha : a > 0)
       (hf : ∀ i, ∥f i∥ ≤ a) : ∥f.lim∥ ≤ a :=
-let ⟨N, hN⟩ := cau_seq.lim_spec f _ ha in
+let ⟨N, hN⟩ := setoid.symm (cau_seq.equiv_lim f) _ ha in
 calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
                 ... ≤ a : max_le (le_of_lt (hN _ (le_refl _))) (hf _)

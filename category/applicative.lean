@@ -55,6 +55,40 @@ end lemmas
 instance : is_comm_applicative id :=
 by refine { .. }; intros; refl
 
+namespace const
+open functor
+variables {γ : Type u} [monoid γ]
+
+protected def pure {α} (x : α) : const γ α := (1 : γ)
+protected def seq {α β : Type*} (f : const γ (α → β)) (x : const γ α) : const γ β :=
+(f * x : γ)
+
+instance : applicative (const γ) :=
+{ pure := @const.pure γ _,
+  seq := @const.seq γ _ }
+
+instance : is_lawful_applicative (const γ) :=
+by refine { .. }; intros; simp! [const.seq,const.pure,mul_assoc]
+
+end const
+
+namespace add_const
+open functor
+variables {γ : Type u} [add_monoid γ]
+
+protected def pure {α} (x : α) : add_const γ α := (0 : γ)
+protected def seq {α β : Type*} (f : add_const γ (α → β)) (x : add_const γ α) : add_const γ β :=
+(f + x : γ)
+
+instance : applicative (add_const γ) :=
+{ pure := @add_const.pure γ _,
+  seq  := @add_const.seq γ _ }
+
+instance : is_lawful_applicative (add_const γ) :=
+by refine { .. }; intros; simp! [add_const.seq,add_const.pure,add_assoc]
+
+end add_const
+
 namespace comp
 
 open function (hiding comp)

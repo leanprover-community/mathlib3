@@ -304,6 +304,8 @@ end
 
 open finset
 
+open cau_seq
+
 namespace complex
 
 lemma is_cau_abs_exp (z : ℂ) : is_cau_seq _root_.abs
@@ -394,8 +396,8 @@ have hj : ∀ j : ℕ, (range j).sum
     finset.sum_congr rfl (λ m hm, begin
       rw [add_pow, div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
-      have h₁ : (choose m i : ℂ) ≠ 0 := nat.cast_ne_zero.2 (λ h,
-        by simpa [h, lt_irrefl] using choose_pos (nat.le_of_lt_succ (mem_range.1 hi))),
+      have h₁ : (choose m i : ℂ) ≠ 0 := nat.cast_ne_zero.2
+        (nat.pos_iff_ne_zero.1 (choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
       have h₂ := choose_mul_fact_mul_fact (nat.le_of_lt_succ $ finset.mem_range.1 hi),
       rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
       simp only [mul_left_comm (choose m i : ℂ), mul_assoc, mul_left_comm (choose m i : ℂ)⁻¹,
@@ -422,9 +424,8 @@ by simp [exp_add, exp_neg, div_eq_mul_inv]
 begin
   dsimp [exp],
   rw [← lim_conj],
-  refine congr_arg lim _,
-  dsimp [exp', function.comp],
-  funext,
+  refine congr_arg lim (cau_seq.ext (λ _, _)),
+  dsimp [exp', function.comp, cau_seq_conj],
   rw ← sum_hom conj conj_zero conj_add,
   refine sum_congr rfl (λ n hn, _),
   rw [conj_div, conj_pow, ← of_real_nat_cast, conj_of_real]
@@ -795,18 +796,19 @@ open is_absolute_value
 
 /- TODO make this private and prove ∀ x -/
 lemma add_one_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ exp x :=
-show x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ abs'),
-from real.le_lim (cau_seq.le_of_exists ⟨2,
-  λ j hj, show x + (1 : ℝ) ≤ ((range j).sum (λ m, (x ^ m / m.fact : ℂ))).re,
-    from have h₁ : (((λ m : ℕ, (x ^ m / m.fact : ℂ)) ∘ nat.succ) 0).re = x, by simp,
-    have h₂ : ((x : ℂ) ^ 0 / nat.fact 0).re = 1, by simp,
-    begin
-      rw [← nat.sub_add_cancel hj, sum_range_succ', sum_range_succ',
-        add_re, add_re, h₁, h₂, add_assoc, ← sum_hom complex.re zero_re add_re],
-      refine le_add_of_nonneg_of_le (zero_le_sum (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
-      rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
-      exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),
-    end⟩)
+calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ abs') :
+  le_lim (cau_seq.le_of_exists ⟨2,
+    λ j hj, show x + (1 : ℝ) ≤ ((range j).sum (λ m, (x ^ m / m.fact : ℂ))).re,
+      from have h₁ : (((λ m : ℕ, (x ^ m / m.fact : ℂ)) ∘ nat.succ) 0).re = x, by simp,
+      have h₂ : ((x : ℂ) ^ 0 / nat.fact 0).re = 1, by simp,
+      begin
+        rw [← nat.sub_add_cancel hj, sum_range_succ', sum_range_succ',
+          add_re, add_re, h₁, h₂, add_assoc, ← sum_hom complex.re zero_re add_re],
+        refine le_add_of_nonneg_of_le (zero_le_sum (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
+        rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
+        exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),
+      end⟩)
+... = exp x : by rw [exp, complex.exp, ← cau_seq_re, lim_re]
 
 lemma one_le_exp {x : ℝ} (hx : 0 ≤ x) : 1 ≤ exp x :=
 by linarith using [add_one_le_exp_of_nonneg hx]
@@ -883,7 +885,7 @@ lemma exp_bound {x : ℂ} (hx : abs x ≤ 1) {n : ℕ} (hn : 0 < n) :
   abs (exp x - (range n).sum (λ m, x ^ m / m.fact)) ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹) :=
 begin
   rw [← lim_const ((range n).sum _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
-  refine real.lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
+  refine lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
   show abs ((range j).sum (λ m, x ^ m / m.fact) - (range n).sum (λ m, x ^ m / m.fact))
     ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹),
   rw sum_range_sub_sum_range hj,
@@ -907,7 +909,7 @@ lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1) ≤ 2 * abs x :=
 calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
   by simp [sum_range_succ]
-... ≤ abs x ^ 1 * ((nat.succ 1) * (nat.fact 1 * 1)⁻¹) :
+... ≤ abs x ^ 1 * ((nat.succ 1) * (nat.fact 1 * (1 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm]
 

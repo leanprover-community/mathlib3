@@ -32,6 +32,7 @@ instance presheaf.has_pullbacks [has_pullbacks.{u v} C] :
 
 omit 𝒞
 
+-- TODO these can be removed; just checking they work
 instance presheaf_of_types.has_coequalizers : has_coequalizers.{v+1 v} (presheaf X (Type v)) := by apply_instance
 instance presheaf_of_types.has_coproducts : has_coproducts.{v+1 v} (presheaf X (Type v)) := by apply_instance
 instance presheaf_of_types.has_limits : has_limits.{v+1 v} (presheaf X (Type v)) := by apply_instance
@@ -68,10 +69,6 @@ include 𝒳
 variables {U : X} (f : covering_family U)
 
 set_option pp.universes true
--- instance : has_coproduct.{v+1 v} (⇑(yoneda.{v v} X) ∘ f.obj) :=
--- begin
---   by apply_instance
--- end
 
 def sieve : presheaf X (Type v) :=
 -- let CP : f.index → (Xᵒᵖ ⥤ Type v) := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in

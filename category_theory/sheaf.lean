@@ -84,32 +84,26 @@ in coequalizer left right
 def π : c.sieve ⟶ yoneda X U :=
 coequalizer.desc _ _ (sigma.desc $ λUi, (yoneda X).map Ui.val.hom)
 begin
-
+  ext1, dsimp at *,
+  erw ←category.assoc,
+  erw ←category.assoc,
+  simp,
 end
 
-namespace sheaf_condition
-
-variables (F : presheaf X (Type v))
-
-def sheaf_condition.left := sigma.desc (λ (Ui : over U) (hUi : f Ui), pullback.π₁ ((yoneda X).map Ui.hom)
-
-def sheaf_condition.fork : fork left right
-
-def sheaf_condition := is_equalizer sheaf_condition.fork
-
-end sheaf_condition
--- is_iso (yoneda (presheaf X (Type v))).map f.π -- This is probably not even what I mean
+def sheaf_condition := is_iso $ (yoneda (presheaf X (Type v))).map c.π
 
 end covering_family
 
-structure coverage {X : Type u₁} [small_category.{u₁} X] :=
+structure coverage (X : Type u) [small_category.{u} X] :=
 (covers   : Π (U : X), set (covering_family U))
-(property : ∀ {U V : X} (g : V ⟶ U) (f : (covering_family U)) (Hf : f ∈ covers U),
-            ∃ (h : covering_family V) (Hh : h ∈ covers V), ∀ j : h.index, ∃ {i : f.index} {k : h.obj j ⟶ f.obj i},
-            h.map j ≫ g = k ≫ f.map i)
+(property : ∀ {U V : X} (g : V ⟶ U) (f ∈ covers U),
+            ∃ (h ∈ covers V), ∀ Vj : h, ∃ (Ui : f) (k : Vj.left ⟶ Ui.left),
+            Vj.hom ≫ g = k ≫ Ui.hom)
 
-class site (X : Type u₁) extends category.{u₁} X :=
-(coverage : @coverage X (by assumption))
+#check coverage
+
+class site (X : Type u) extends category.{u u} X :=
+(coverage' : coverage X)
 
 namespace site
 variables {X : Type u₁} [𝒳 : site.{u₁} X]
@@ -124,7 +118,7 @@ include 𝒳 𝒞
 
 structure sheaf :=
 (presheaf : presheaf X C)
-(sheaf_condition : ∀ {U : X} (f ∈ site.covers U), f.sheaf_condition presheaf)
+(sheaf_condition : ∀ {U : X} (c ∈ site.covers U), c.sheaf_condition presheaf)
 
 end sheaf
 

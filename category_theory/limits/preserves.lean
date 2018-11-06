@@ -19,12 +19,18 @@ variables {J : Type v} [small_category J] {K : J ⥤ C}
 
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
+class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) :=
+(preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
 (preserves : Π {K : J ⥤ C} {c : cone K}, is_limit c → is_limit (F.map_cone c))
+class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
+(preserves : Π {K : J ⥤ C} {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
 class preserves_limits (F : C ⥤ D) :=
 (preserves : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone K}, is_limit c → is_limit (F.map_cone c))
+class preserves_colimits (F : C ⥤ D) :=
+(preserves : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
 instance preserves_limit_of_preserves_limits_of_shape (K : J ⥤ C) (F : C ⥤ D) [preserves_limits_of_shape J F] :
   preserves_limit K F :=
@@ -109,14 +115,15 @@ def created_limits (F : C ⥤ D) [creates_limits F] [has_limits.{u₂ v} D] : ha
     exact creates_limit.is_limit (limit.universal_property (G ⋙ F)),
   end }
 
+-- TODO
 -- instance preserves_created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : preserves_limit K F :=
 -- { preserves := sorry } -- See second half of Proposition 3.3.3 of Category Theory in Context
 
 /-
-Lemma 3.3.5. Any full and faithful functor reflects any limits and colimits that are present
+TODO: Any full and faithful functor reflects any limits and colimits that are present
 in its codomain.
 
-Lemma 3.3.6. Any equivalence of categories preserves, reflects, and creates any limits and
+TODO: Any equivalence of categories preserves, reflects, and creates any limits and
 colimits that are present in its domain or codomain.
 -/
 

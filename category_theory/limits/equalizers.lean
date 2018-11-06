@@ -181,34 +181,29 @@ def has_coequalizers_of_has_colimits [limits.has_colimits_of_shape.{u v} walking
 
 instance has_limits_of_shape_of_has_equalizers [has_equalizers.{u v} C] :
   limits.has_limits_of_shape.{u v} walking_pair.{v} C :=
-begin
-  exact
-  { cone := λ F, cone.of_fork (has_equalizers.fork (F.map inl) (F.map inr)),
-    is_limit := λ F, let is_equalizer := has_equalizer.is_equalizer (F.map inl) (F.map inr) in
-    { lift := λ s, is_equalizer.lift (fork.of_cone s),
-      fac' := λ s j,
-      begin
-        convert is_equalizer.fac (fork.of_cone s) j; cases j,
-        tidy,
-      end,
-      uniq' := λ s m w, is_equalizer.uniq (fork.of_cone s) m
-        (λ j, begin convert w j; cases j, tidy end) } }
-end
+{ cone := λ F, cone.of_fork (has_equalizers.fork (F.map inl) (F.map inr)),
+  is_limit := λ F, let is_equalizer := has_equalizer.is_equalizer (F.map inl) (F.map inr) in
+  { lift := λ s, is_equalizer.lift (fork.of_cone s),
+    fac' := λ s j,
+    begin
+      convert is_equalizer.fac (fork.of_cone s) j; cases j,
+      tidy,
+    end,
+    uniq' := λ s m w, is_equalizer.uniq (fork.of_cone s) m
+      (λ j, begin convert w j; cases j, tidy end) } }
+
 instance has_colimits_of_shape_of_has_coequalizers [has_coequalizers.{u v} C] :
   limits.has_colimits_of_shape.{u v} walking_pair.{v} C :=
-begin
-  exact
-  { cocone := λ F, cocone.of_cofork (has_coequalizers.cofork (F.map inl) (F.map inr)),
-    is_colimit := λ F, let is_coequalizer := has_coequalizer.is_coequalizer (F.map inl) (F.map inr) in
-    { desc := λ s, is_coequalizer.desc (cofork.of_cocone s),
-      fac' := λ s j,
-      begin
-        convert is_coequalizer.fac (cofork.of_cocone s) j; cases j,
-        tidy,
-      end,
-      uniq' := λ s m w, is_coequalizer.uniq (cofork.of_cocone s) m
-        (λ j, begin convert w j; cases j, tidy end) } }
-end
+{ cocone := λ F, cocone.of_cofork (has_coequalizers.cofork (F.map inl) (F.map inr)),
+  is_colimit := λ F, let is_coequalizer := has_coequalizer.is_coequalizer (F.map inl) (F.map inr) in
+  { desc := λ s, is_coequalizer.desc (cofork.of_cocone s),
+    fac' := λ s j,
+    begin
+      convert is_coequalizer.fac (cofork.of_cocone s) j; cases j,
+      tidy,
+    end,
+    uniq' := λ s m w, is_coequalizer.uniq (cofork.of_cocone s) m
+      (λ j, begin convert w j; cases j, tidy end) } }
 
 variable {C}
 

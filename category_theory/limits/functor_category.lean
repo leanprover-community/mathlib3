@@ -155,6 +155,14 @@ instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape.{u v} J C
   end }
 
 instance evaluation_preserves_limits [has_limits.{u v} C] (k : K) :
-  preserves_limits (evaluation.{v v u v} K C k) := sorry
+  preserves_limits (evaluation.{v v u v} K C k) :=
+@preserves_limits_of_preserves_limits_of_all_shapes _ _ _ _
+  (evaluation.{v v u v} K C k)
+  (λ J 𝒥, by resetI; apply_instance)
+instance evaluation_preserves_colimits [has_colimits.{u v} C] (k : K) :
+  preserves_colimits (evaluation.{v v u v} K C k) :=
+@preserves_colimits_of_preserves_colimits_of_all_shapes _ _ _ _
+  (evaluation.{v v u v} K C k)
+  (λ J 𝒥, by resetI; apply_instance)
 
 end category_theory.limits

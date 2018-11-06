@@ -121,20 +121,20 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
   ..dfinsupp.add_group }
 
-def to_has_scalar {γ : Type w} [ring γ] [Π i, module γ (β i)] : has_scalar γ (Π₀ i, β i) :=
-⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero)⟩
+def to_has_scalar {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] : has_scalar γ (Π₀ i, β i) :=
+⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 local attribute [instance] to_has_scalar
 
-@[simp] lemma smul_apply {γ : Type w} [ring γ] [Π i, module γ (β i)] {i : ι} {b : γ} {v : Π₀ i, β i} :
+@[simp] lemma smul_apply {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] {i : ι} {b : γ} {v : Π₀ i, β i} :
   (b • v) i = b • (v i) :=
 map_range_apply
 
-def to_module {γ : Type w} [ring γ] [Π i, module γ (β i)] : module γ (Π₀ i, β i) :=
-{ smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
+def to_module {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] : module γ (Π₀ i, β i) :=
+module.of_core {
+  smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
   one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
   mul_smul := λ r s x, ext $ λ i, by simp only [smul_apply, smul_smul],
-  .. dfinsupp.add_comm_group,
   .. (infer_instance : has_scalar γ (Π₀ i, β i)) }
 
 end algebra
@@ -372,14 +372,27 @@ instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β 
 
 section
 local attribute [instance] to_module
-variables {γ : Type w} [ring γ] [Π i, module γ (β i)]
+variables {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
 include γ
 @[simp] lemma mk_smul {s : finset ι} {c : γ} {x : Π i : (↑s : set ι), β i.1} :
   mk s (c • x) = c • mk s x :=
 ext $ λ i, by simp only [smul_apply, mk_apply]; split_ifs; [refl, rw smul_zero]
 
-theorem is_linear_map {s : finset ι} : is_linear_map (@mk ι β _ _ s) :=
-⟨λ _ _, mk_add, λ _ _, mk_smul⟩
+@[simp] lemma single_smul {i : ι} {c : γ} {x : β i} :
+  single i (c • x) = c • single i x :=
+ext $ λ i, by simp only [smul_apply, single_apply]; split_ifs; [cases h, rw smul_zero]; refl
+
+variable β
+def lmk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →ₗ Π₀ i, β i :=
+⟨mk s, λ _ _, mk_add, λ _ _, mk_smul⟩
+
+def lsingle (i) : β i →ₗ Π₀ i, β i :=
+⟨single i, λ _ _, single_add, λ _ _, single_smul⟩
+variable {β}
+
+@[simp] lemma lmk_apply {s : finset ι} {x} : lmk β s x = mk s x := rfl
+
+@[simp] lemma lsingle_apply {i : ι} {x : β i} : lsingle β i x = single i x := rfl
 end
 
 section support_basic
@@ -635,10 +648,10 @@ lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0
   {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
 have f_eq : (f.support ∪ g.support).prod (λi, h i (f i)) = f.prod h,
-  from (finset.prod_subset finset.subset_union_left $
+  from (finset.prod_subset (finset.subset_union_left _ _) $
     by simp [mem_support_iff, h_zero] {contextual := tt}).symm,
 have g_eq : (f.support ∪ g.support).prod (λi, h i (g i)) = g.prod h,
-  from (finset.prod_subset finset.subset_union_right $
+  from (finset.prod_subset (finset.subset_union_right _ _) $
     by simp [mem_support_iff, h_zero] {contextual := tt}).symm,
 calc (f + g).support.prod (λi, h i ((f + g) i)) =
       (f.support ∪ g.support).prod (λi, h i ((f + g) i)) :

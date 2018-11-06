@@ -22,34 +22,29 @@ instance : category.{(max u v) v} (presheaf X C) := by unfold presheaf; apply_in
 
 set_option pp.universes true
 instance presheaf.has_coequalizers [has_coequalizers.{u v} C] :
-  has_coequalizers.{(max u v) v} (presheaf X C) :=
-sorry
-instance presheaf.has_coproducts [has_coproducts.{u v} C] :
-  has_coproducts.{(max u v) v} (presheaf X C) :=
-sorry
+  has_coequalizers.{(max u v) v} (presheaf X C) := limits.functor_category_has_coequalizers
+-- instance presheaf.has_coproducts [has_coproducts.{u v} C] :
+--   has_coproducts.{(max u v) v} (presheaf X C) := limits.functor_category_has_coproducts
 instance presheaf.has_limits [has_limits.{u v} C] :
-  has_limits.{(max u v) v} (presheaf X C) :=
-begin
-  dsimp [presheaf],
-  exact limits.functor_category_has_limits
-end
+  has_limits.{(max u v) v} (presheaf X C) := limits.functor_category_has_limits
 instance presheaf.has_pullbacks [has_pullbacks.{u v} C] :
-  has_pullbacks.{(max u v) v} (presheaf X C) :=
-sorry
+  has_pullbacks.{(max u v) v} (presheaf X C) := limits.functor_category_has_pullbacks
 
 omit 𝒞
 
 instance presheaf_of_types.has_coequalizers : has_coequalizers.{v+1 v} (presheaf X (Type v)) := by apply_instance
-instance presheaf_of_types.has_coproducts : has_coproducts.{v+1 v} (presheaf X (Type v)) := by apply_instance
+instance presheaf_of_types.has_coproducts : has_coproducts.{v+1 v} (presheaf X (Type v)) := sorry
 instance presheaf_of_types.has_limits : has_limits.{v+1 v} (presheaf X (Type v)) := by apply_instance
 instance presheaf_of_types.has_pullbacks : has_pullbacks.{v+1 v} (presheaf X (Type v)) := by apply_instance
 
+instance foo : has_coproducts.{v+1 v} (Type v) := by apply_instance
+instance bar := limits.functor_category_has_coproducts
 
 end presheaf
 
 -- todo should this be done as a subfunctor?
 structure covering_family {X : Type v} [small_category X] (U : X) :=
-(index : Type v₁)
+(index : Type v)
 (obj : index → X)
 (map : Π (i : index), obj i ⟶ U)
 
@@ -61,6 +56,11 @@ include 𝒳
 variables {U : X} (f : covering_family U)
 
 set_option pp.universes true
+instance : has_coproduct.{v+1 v} (⇑(yoneda.{v v} X) ∘ f.obj) :=
+begin
+  by apply_instance
+end
+
 def sieve : presheaf X (Type v) :=
 let CP := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in
 coequalizer

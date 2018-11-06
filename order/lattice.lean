@@ -194,6 +194,9 @@ by apply le_antisymm; finish
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
+lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
+by rw [← inf_assoc, ← inf_assoc, @inf_comm α _ a]
+
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 suffices (∃b, ¬a ≤ b) → (∃b, b < a),
   by rwa [classical.or_iff_not_imp_left, classical.not_forall],

@@ -399,20 +399,22 @@ local infix `≼` : 50 := r
 
 /-- A family of elements of α is directed (with respect to a relation `≼` on α)
   if there is a member of the family `≼`-above any pair in the family.  -/
-def directed {ι : Sort v} (f : ι → α) := ∀x y, ∃z, f x ≼ f z ∧ f y ≼ f z
+def directed {ι : Sort v} (f : ι → α) :=
+nonempty ι ∧ ∀x y, ∃z, f x ≼ f z ∧ f y ≼ f z
 /-- A subset of α is directed if there is an element of the set `≼`-above any
   pair of elements in the set. -/
-def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃z ∈ s, x ≼ z ∧ y ≼ z
+def directed_on (s : set α) :=
+(∃ x, x ∈ s) ∧ ∀ (x ∈ s) (y ∈ s), ∃z ∈ s, x ≼ z ∧ y ≼ z
 
 theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe : s → α) :=
-by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
+by simp [directed, directed_on]; exact
+and_congr_right (λ _, ball_congr (λ x hx, by simp; refl))
 
 theorem directed_comp {ι} (f : ι → β) (g : β → α) :
   directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
 
 theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
-λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
+⟨h.1, λ a b, let ⟨c, h₁, h₂⟩ := h.2 a b in ⟨c, H _ _ h₁, H _ _ h₂⟩⟩
 
 end
-

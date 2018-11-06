@@ -2,7 +2,8 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 
-import category_theory.functor_category category_theory.embedding
+import category_theory.functor_category
+import category_theory.fully_faithful
 
 namespace category_theory
 

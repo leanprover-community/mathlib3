@@ -23,8 +23,8 @@ instance : category.{(max u v) v} (presheaf X C) := by unfold presheaf; apply_in
 set_option pp.universes true
 instance presheaf.has_coequalizers [has_coequalizers.{u v} C] :
   has_coequalizers.{(max u v) v} (presheaf X C) := limits.functor_category_has_coequalizers
--- instance presheaf.has_coproducts [has_coproducts.{u v} C] :
---   has_coproducts.{(max u v) v} (presheaf X C) := limits.functor_category_has_coproducts
+instance presheaf.has_coproducts [has_coproducts.{u v} C] :
+  has_coproducts.{(max u v) v} (presheaf X C) := limits.functor_category_has_coproducts
 instance presheaf.has_limits [has_limits.{u v} C] :
   has_limits.{(max u v) v} (presheaf X C) := limits.functor_category_has_limits
 instance presheaf.has_pullbacks [has_pullbacks.{u v} C] :
@@ -33,12 +33,9 @@ instance presheaf.has_pullbacks [has_pullbacks.{u v} C] :
 omit 𝒞
 
 instance presheaf_of_types.has_coequalizers : has_coequalizers.{v+1 v} (presheaf X (Type v)) := by apply_instance
-instance presheaf_of_types.has_coproducts : has_coproducts.{v+1 v} (presheaf X (Type v)) := sorry
+instance presheaf_of_types.has_coproducts : has_coproducts.{v+1 v} (presheaf X (Type v)) := by apply_instance
 instance presheaf_of_types.has_limits : has_limits.{v+1 v} (presheaf X (Type v)) := by apply_instance
 instance presheaf_of_types.has_pullbacks : has_pullbacks.{v+1 v} (presheaf X (Type v)) := by apply_instance
-
-instance foo : has_coproducts.{v+1 v} (Type v) := by apply_instance
-instance bar := limits.functor_category_has_coproducts
 
 end presheaf
 
@@ -62,10 +59,15 @@ begin
 end
 
 def sieve : presheaf X (Type v) :=
-let CP := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in
+let CP : f.index → (Xᵒᵖ ⥤ Type v) := (((yoneda X) : X → presheaf X (Type v)) ∘ f.obj) in
+-- The ∘ in the next lines doesn't make sense:
+-- `sigma CP` is a functor `(Xᵒᵖ ⥤ Type v)`,
+-- and `sigma.ι CP p.1` is a natural transformation from `CP p.1` to it.
+
+-- I haven't attempted to typecheck by hand the `pullback.πᵢ` terms.
 coequalizer
-  (sigma.desc (λ p : (f.index × f.index), (sigma.ι ((yoneda X) ∘ f.obj) p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
-  (sigma.desc (λ p : (f.index × f.index), (sigma.ι ((yoneda X) ∘ f.obj) p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
+  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.1) ∘ (pullback.π₁ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
+  (sigma.desc (λ p : (f.index × f.index), (sigma.ι CP p.2) ∘ (pullback.π₂ ((yoneda X).map (f.map p.1)) ((yoneda X).map (f.map p.2)))))
 
 def π : f.sieve ⟶ yoneda X U := coequalizer.desc (sigma.desc (λ i : f.index, (yoneda X).map (f.map i))) _
 

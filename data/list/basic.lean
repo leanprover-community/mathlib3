@@ -4119,11 +4119,11 @@ def choose_x : Π l : list α, Π hp : (∃ a, a ∈ l ∧ p a), { a // a ∈ l 
 | [] hp := false.elim (exists.elim hp (assume a h, not_mem_nil a h.left))
 | (l :: ls) hp := if pl : p l then ⟨l, ⟨or.inl rfl, pl⟩⟩ else
 subtype.rec_on (choose_x ls
-begin
-  rcases hp with ⟨a, rfl | a_mem_ls, pa⟩,
-  { exfalso; apply pl pa },
-  { exact ⟨a, a_mem_ls, pa⟩ }
-end) (λ a ⟨a_mem_ls, pa⟩, ⟨a, ⟨or.inr a_mem_ls, pa⟩⟩)
+  begin
+    rcases hp with ⟨a, rfl | a_mem_ls, pa⟩,
+    { exfalso; apply pl pa },
+    { exact ⟨a, a_mem_ls, pa⟩ }
+  end) (λ a ⟨a_mem_ls, pa⟩, ⟨a, ⟨or.inr a_mem_ls, pa⟩⟩)
 
 def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 

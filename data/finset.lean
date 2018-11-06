@@ -1547,8 +1547,8 @@ def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : finset α)
 
-def choose_x (hp : (∃! a, a ∈ l ∧ p a)) : { a // a ∈ l ∧ p a }
-:= multiset.choose_x p l.val hp
+def choose_x (hp : (∃! a, a ∈ l ∧ p a)) : { a // a ∈ l ∧ p a } :=
+multiset.choose_x p l.val hp
 
 def choose (hp : ∃! a, a ∈ l ∧ p a) : α := choose_x p l hp
 

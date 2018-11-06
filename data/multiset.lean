@@ -2888,10 +2888,9 @@ section choose
 variables (p : α → Prop) [decidable_pred p] (l : multiset α)
 
 def choose_x : Π hp : (∃! a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a } :=
-quotient.rec_on l (λ l' ex_unique, list.choose_x p l' (exists_of_exists_unique ex_unique)) (begin
+quotient.rec_on l (λ l' ex_unique, list.choose_x p l' (exists_of_exists_unique ex_unique)) begin
   intros,
-  apply funext,
-  intro hp,
+  funext hp,
   suffices all_equal : ∀ x y : { t // t ∈ b ∧ p t }, x = y,
   { apply all_equal },
   { rintros ⟨x, px⟩ ⟨y, py⟩,
@@ -2899,7 +2898,7 @@ quotient.rec_on l (λ l' ex_unique, list.choose_x p l' (exists_of_exists_unique 
     congr,
     calc x = z : z_unique x px
     ...    = y : (z_unique y py).symm }
-end)
+end
 
 def choose (hp : ∃! a, a ∈ l ∧ p a) : α := choose_x p l hp
 

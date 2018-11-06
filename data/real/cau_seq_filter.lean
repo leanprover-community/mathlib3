@@ -10,52 +10,8 @@ In particular, reconcile the filter notion of Cauchy-ness with the cau_seq notio
 import analysis.topology.uniform_space analysis.normed_space data.real.cau_seq analysis.limits
 import tactic.linarith
 
-section
-variables {β : Type*} [normed_ring β] [hn : is_absolute_value (norm : β → ℝ)]
-open filter
-include hn
-
-lemma tendsto_limit (f : cau_seq β norm) [cau_seq.is_complete β norm] :
-  tendsto f at_top (nhds f.lim) :=
-tendsto_nhds
-begin
-  intros s lfs os,
-  suffices : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → f b ∈ s, by simpa using this,
-  rcases is_open_metric.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
-  cases setoid.symm (cau_seq.equiv_lim f) _ hε with N hN,
-  existsi N,
-  intros b hb,
-  apply hεs,
-  dsimp [ball], rw [dist_comm, dist_eq_norm],
-  solve_by_elim
-end
-
-end
-
-section
-variables {β : Type*} [normed_field β]
-
-instance normed_field.is_absolute_value : is_absolute_value (norm : β → ℝ) :=
-{ abv_nonneg := norm_nonneg,
-  abv_eq_zero := norm_eq_zero,
-  abv_add := norm_triangle,
-  abv_mul := normed_field.norm_mul }
-
-open filter
-
-lemma cauchy_of_filter_cauchy (f : ℕ → β) (hf : cauchy (at_top.map f)) :
-  is_cau_seq norm f :=
-begin
-  cases cauchy_iff.1 hf with hf1 hf2,
-  intros ε hε,
-  rcases hf2 {x | dist x.1 x.2 < ε} (dist_mem_uniformity hε) with ⟨t, ⟨ht, htsub⟩⟩,
-  simp at ht, cases ht with N hN,
-  existsi N,
-  intros j hj,
-  rw ←dist_eq_norm,
-  apply @htsub (f j, f N),
-  apply set.mk_mem_prod; solve_by_elim [le_refl]
-end
+universes u v
+open set filter classical
 
 variable {β : Type v}
 
@@ -145,31 +101,21 @@ tendsto_comp_succ_at_top_iff.2 tendsto_one_div_at_top_nhds_0_nat
 
 /--The approximating sequence is indeed Cauchy-/
 lemma seq_of_cau_filter_is_cauchy :
-  is_cau_seq norm (seq_of_cau_filter hf) :=
-is_cau_seq_of_dist_tendsto_0 (@seq_of_cau_filter_is_cauchy' _ _ _ hf) tendsto_div
+  cauchy_seq (seq_of_cau_filter hf) :=
+cauchy_seq_of_dist_tendsto_0 (@seq_of_cau_filter_is_cauchy' _ _ _ hf) tendsto_div
 
-noncomputable def cau_seq_of_cau_filter : cau_seq β norm :=
-⟨seq_of_cau_filter hf, seq_of_cau_filter_is_cauchy hf⟩
+/--
+If the approximating Cauchy sequence is converging, to a limit `y`, then the
+original Cauchy filter `f` is also converging, to the same limit.
 
-lemma cau_seq_of_cau_filter_mem_set_seq (n : ℕ) : cau_seq_of_cau_filter hf n ∈ set_seq_of_cau_filter hf n :=
-seq_of_cau_filter_mem_set_seq hf n
-
-variable [cau_seq.is_complete β norm]
-
-noncomputable def cau_filter_lim : β := cau_seq.lim (cau_seq_of_cau_filter hf)
-
-lemma cau_filter_lim_spec : ∀ ε > 0, ∃ N : ℕ, ∀ n ≥ N, ∥cau_filter_lim hf - cau_seq_of_cau_filter hf n∥ < ε :=
-setoid.symm $ cau_seq.equiv_lim _
-
-/-
-Let lim be the limit of the Cauchy sequence seq that is derived from the Cauchy filter f.
-Given t1 in the filter f and t2 a neighborhood of lim, it suffices to show that t1 ∩ t2 is nonempty.
-Pick ε so that the eps-ball around lim is contained in t2.
-Pick n with 1/n < ε/2, and n2 such that dist(seq n2, lim) < ε/2. Let N = max(n, n2).
-We defined seq by looking at a decreasing sequence of sets of f with shrinking radius.
-The Nth one has radius < 1/N < ε/2. This set is in f, so we can find an element x that's also in t1.
-dist(x, seq N) < ε/2 since seq N is in this set, and dist (seq N, lim) < ε/2,
-so x is in the ε-ball of lim, and thus in t2.
+Given `t1` in the filter `f` and `t2` a neighborhood of `y`, it suffices to show that `t1 ∩ t2` is nonempty.
+Pick `ε` so that the ε-ball around `y` is contained in `t2`.
+Pick `n` with `1/n < ε/2`, and `n2` such that `dist(seq n2, y) < ε/2`. Let `N = max(n, n2)`.
+We defined `seq` by looking at a decreasing sequence of sets of `f` with shrinking radius.
+The Nth one has radius `< 1/N < ε/2`. This set is in `f`, so we can find an element `x` that's
+also in `t1`.
+`dist(x, seq N) < ε/2` since `seq N` is in this set, and `dist (seq N, y) < ε/2`,
+so `x` is in the ε-ball around `y`, and thus in `t2`.
 -/
 lemma le_nhds_cau_filter_lim {y : β} (H : tendsto (seq_of_cau_filter hf) at_top (nhds y)) :
   f ≤ nhds y :=
@@ -245,7 +191,7 @@ begin
   intros s lfs os,
   suffices : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → f b ∈ s, by simpa using this,
   rcases is_open_metric.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
-  cases cau_seq.lim_spec f _ hε with N hN,
+  cases setoid.symm (cau_seq.equiv_lim f) _ hε with N hN,
   existsi N,
   intros b hb,
   apply hεs,
@@ -316,13 +262,13 @@ instance complete_space_of_cau_seq_complete [cau_seq.is_complete β norm] : comp
 begin
   apply complete_of_cauchy_seq_tendsto,
   assume u hu,
-  have : is_cau_seq norm u := cau_seq_iff_cauchy_seq.2 hu,
-  rcases cau_seq.complete ⟨u, this⟩ with ⟨b, hb⟩,
-  simp at hb,
-  existsi b,
+  have C : is_cau_seq norm u := cau_seq_iff_cauchy_seq.2 hu,
+  existsi cau_seq.lim ⟨u, C⟩,
   rw tendsto_at_top_metric,
-  simp [dist_comm],
-  simpa [dist_eq_norm] using hb
+  assume ε εpos,
+  cases (cau_seq.equiv_lim ⟨u, C⟩) _ εpos with N hN,
+  existsi N,
+  simpa [dist_eq_norm] using hN
 end
 
 end

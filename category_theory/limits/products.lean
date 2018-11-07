@@ -29,7 +29,7 @@ class has_products :=
 (is_product : Π {β : Type v} (f : β → C), is_product (fan f) . obviously)
 
 section
-omit 𝒞 
+omit 𝒞
 class has_products_of_shape (β : Type v) (C : Type u) [𝒞 : category.{u v} C] :=
 (fan : Π f : β → C, fan f)
 (is_product : Π f : β → C, is_product (fan f))
@@ -236,7 +236,7 @@ class has_coproducts :=
 (is_coproduct : Π {β : Type v} (f : β → C), is_coproduct (cofan f) . obviously)
 
 section
-omit 𝒞 
+omit 𝒞
 class has_coproducts_of_shape (β : Type v) (C : Type u) [category.{u v} C]:=
 (cofan : Π f : β → C, cofan f)
 (is_coproduct : Π f : β → C, is_coproduct (cofan f))

@@ -8,7 +8,6 @@ Currently only the basic setup.
 -/
 
 import category_theory.examples.monoids
-import category_theory.embedding
 import algebra.ring
 
 universes u v
@@ -44,7 +43,7 @@ instance CommRing_hom_is_comm_ring_hom {R S : CommRing} (f : R ⟶ S) : is_comm_
 
 namespace CommRing
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
-def forget_to_CommMon : CommRing ⥤ CommMon := 
+def forget_to_CommMon : CommRing ⥤ CommMon :=
 concrete_functor
   (by intros _ c; exact { ..c })
   (by introsI _ _ _ _ f i;  exact { ..i })

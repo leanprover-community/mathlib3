@@ -3,7 +3,6 @@
 -- Authors: Scott Morrison, Reid Barton
 
 import category_theory.limits
-import category_theory.limits.pullbacks
 
 universes u v
 
@@ -84,6 +83,11 @@ local attribute [extensionality] quot.sound
 -- @[simp] lemma types_colimit_desc (F : J ⥤ Type u) (c : cocone F) :
 --   colimit.desc F c = λ x, sorry := sorry
 
+instance : has_terminal.{u+1 u} (Type u) :=
+{ terminal := punit }
+instance : has_initial.{u+1 u} (Type u) :=
+{ initial := pempty }
+
 open category_theory.limits.walking_cospan
 open category_theory.limits.walking_cospan_hom
 
@@ -108,7 +112,7 @@ instance : has_pullbacks.{u+1 u} (Type u) :=
   is_pullback := λ Y₁ Y₂ Z r₁ r₂,
   { lift  := λ s x, ⟨ (s.π left x, s.π right x),
     begin
-      have swl := congr_fun (@cone.w _ _ _ _ _ s left one inl) x, -- FIXME why are the @s needed here?
+      have swl := congr_fun (@cone.w _ _ _ _ _ s left one inl) x,
       have swr := congr_fun (@cone.w _ _ _ _ _ s right one inr) x,
       exact eq.trans swl (eq.symm swr),
     end ⟩,
@@ -124,11 +128,13 @@ instance : has_pullbacks.{u+1 u} (Type u) :=
       exact congr_fun (w right) x,
     end }, }
 
--- TODO do we need to provide 'hand-rolled' instances below?
+-- TODO should we provide 'hand-rolled' instances, like those above? probably!
 
+instance : has_products.{u+1 u} (Type u) := has_products_of_has_limits
 instance : has_equalizers.{u+1 u} (Type u) := has_equalizers_of_has_limits
 
 instance : has_coproducts.{u+1 u} (Type u) := has_coproducts_of_has_colimits
 instance : has_coequalizers.{u+1 u} (Type u) := has_coequalizers_of_has_colimits
+instance : has_pushouts.{u+1 u} (Type u) := has_pushouts_of_has_colimits
 
 end category_theory.limits.types

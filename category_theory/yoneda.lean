@@ -10,7 +10,7 @@
 import category_theory.natural_transformation
 import category_theory.opposites
 import category_theory.types
-import category_theory.embedding
+import category_theory.fully_faithful
 import category_theory.natural_isomorphism
 
 namespace category_theory

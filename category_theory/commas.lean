@@ -15,15 +15,15 @@ variables {T : Type u₃} [𝒯 : category.{u₃ v₃} T]
 include 𝒜 ℬ 𝒯
 
 structure comma (L : A ⥤ T) (R : B ⥤ T) :=
-(left : A . obviously)
-(right : B . obviously)
+(left : A)
+(right : B)
 (hom : L left ⟶ R right)
 
 variables {L : A ⥤ T} {R : B ⥤ T}
 
 structure comma_morphism (X Y : comma L R) :=
-(left : X.left ⟶ Y.left . obviously)
-(right : X.right ⟶ Y.right . obviously)
+(left : X.left ⟶ Y.left)
+(right : X.right ⟶ Y.right)
 (w' : L.map left ≫ Y.hom = X.hom ≫ R.map right . obviously)
 
 restate_axiom comma_morphism.w'
@@ -55,19 +55,5 @@ instance comma_category : category (comma L R) :=
           functor.map_comp,
           category.assoc],
     end }}
-
-/- We could define cones in terms of commas, but I'm not sure it's useful. -/
-
--- def cone (F : J ⥤ C) := comma (functor.const J C) (functor.of_obj F)
-
--- @[simp] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
---   c.hom j ≫ F.map f = c.hom j' :=
--- begin
---   have h := eq.symm ((c.hom).naturality f),
---   dsimp [functor.const] at h,
---   simp [category.id_comp] at h,
---   exact h
--- end
-
 
 end category_theory

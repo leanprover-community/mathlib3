@@ -1,0 +1,2 @@
+-- TODO
+-- limits in the opposite category are colimits, etc.

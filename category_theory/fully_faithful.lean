@@ -34,7 +34,7 @@ end functor
 
 section
 variables {F : C ⥤ D} [full F] [faithful F] {X Y : C}
-def preimage_iso (f : (F X) ≅ (F Y)) : X ≅ Y := 
+def preimage_iso (f : (F X) ≅ (F Y)) : X ≅ Y :=
 { hom := F.preimage (f : F X ⟶ F Y),
   inv := F.preimage (f.symm : F Y ⟶ F X),
   hom_inv_id' := begin apply @faithful.injectivity _ _ _ _ F, obviously, end,
@@ -44,7 +44,7 @@ def preimage_iso (f : (F X) ≅ (F Y)) : X ≅ Y :=
 @[simp] lemma preimage_iso_symm_coe (f : (F X) ≅ (F Y)) : ((preimage_iso f).symm : Y ⟶ X) = F.preimage (f.symm : F Y ⟶ F X) := rfl
 end
 
-class embedding (F : C ⥤ D) extends (full F), (faithful F).
+class fully_faithful (F : C ⥤ D) extends (full F), (faithful F).
 end category_theory
 
 namespace category_theory
@@ -57,13 +57,13 @@ instance full.id : full (functor.id C) :=
 
 instance : faithful (functor.id C) := by obviously
 
-instance : embedding (functor.id C) := { ((by apply_instance) : full (functor.id C)) with }
+instance : fully_faithful (functor.id C) := { ((by apply_instance) : full (functor.id C)) with }
 
 variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include 𝒟 ℰ
 variables (F : C ⥤ D) (G : D ⥤ E)
 
-instance faithful.comp [faithful F] [faithful G] : faithful (F ⋙ G) := 
+instance faithful.comp [faithful F] [faithful G] : faithful (F ⋙ G) :=
 { injectivity' := λ _ _ _ _ p, F.injectivity (G.injectivity p) }
 instance full.comp [full F] [full G] : full (F ⋙ G) :=
 { preimage := λ _ _ f, F.preimage (G.preimage f) }

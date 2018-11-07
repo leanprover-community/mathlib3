@@ -2,6 +2,7 @@ import category_theory.examples.topological_spaces
 
 import category_theory.opposites
 import category_theory.yoneda
+import category_theory.commas
 import category_theory.limits
 import category_theory.limits.types
 import category_theory.limits.functor_category
@@ -10,52 +11,6 @@ open category_theory
 open category_theory.limits
 
 universes u u₁ u₂ v v₁ v₂ w w₁ w₂
-
-section square
-variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
-include 𝒞
-
-@[simp] lemma cospan_left {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  cospan f g walking_cospan.left = X := rfl
-
-@[simp] lemma cospan_right {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  cospan f g walking_cospan.right = Y := rfl
-
-@[simp] lemma cospan_one {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  cospan f g walking_cospan.one = Z := rfl
-
-@[simp] lemma cospan_map_inl {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  (cospan f g).map walking_cospan_hom.inl = f := rfl
-
-@[simp] lemma cospan_map_inr {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  (cospan f g).map walking_cospan_hom.inr = g := rfl
-
-@[simp] lemma cospan_map_id {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) (w : walking_cospan):
-  (cospan f g).map (walking_cospan_hom.id w) = 𝟙 _ := rfl
-
-def square.mk {X Y Z W : C} {f : X ⟶ Z} {g : Y ⟶ Z} (f' : W ⟶ X) (g' : W ⟶ Y)
-  (eq : f' ≫ f = g' ≫ g) :
-  square f g :=
-{ X := W,
-  π :=
-  { app := λX, walking_cospan.cases_on X f' g' (f' ≫ f),
-    naturality' := assume X Y f, by cases f; obviously } }
-
-def pullback.lift [has_pullbacks.{u v} C] {X Y Z W : C} {f : X ⟶ Z} {g : Y ⟶ Z}
-  (f' : W ⟶ X) (g' : W ⟶ Y) (eq : f' ≫ f = g' ≫ g) : W ⟶ pullback f g :=
-(pullback.universal_property f g).lift (square.mk f' g' eq)
-
-@[simp] lemma pullback.lift_π₁ [has_pullbacks.{u v} C] {X Y Z W : C} {f : X ⟶ Z} {g : Y ⟶ Z}
-  (f' : W ⟶ X) (g' : W ⟶ Y) (eq : f' ≫ f = g' ≫ g) :
-  pullback.lift f' g' eq ≫ pullback.π₁ f g = f' :=
-(pullback.universal_property f g).fac (square.mk f' g' eq) _
-
-@[simp] lemma pullback.lift_π₂ [has_pullbacks.{u v} C] {X Y Z W : C} {f : X ⟶ Z} {g : Y ⟶ Z}
-  (f' : W ⟶ X) (g' : W ⟶ Y) (eq : f' ≫ f = g' ≫ g) :
-  pullback.lift f' g' eq ≫ pullback.π₂ f g = g' :=
-(pullback.universal_property f g).fac (square.mk f' g' eq) _
-
-end square
 
 section presheaf
 variables (X : Type v) [𝒳 : small_category X] (C : Type u) [𝒞 : category.{u v} C]
@@ -101,14 +56,14 @@ namespace over
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 
-instance {X : C} : category (over X) := by unfold over; apply_instance
+instance {X : C} : category (over X) := by dunfold over; apply_instance
 
 def forget (X : C) : (over X) ⥤ C :=
 { obj  := λ Y, Y.left,
   map' := λ _ _ f, f.left }
 
 def mk {X Y : C} (f : Y ⟶ X) : over X :=
-{ left := Y, hom := f }
+{ left := Y, right := punit.star, hom := f }
 
 @[simp] lemma mk_left {X Y : C} (f : Y ⟶ X) : (mk f).left = Y := rfl
 @[simp] lemma mk_hom {X Y : C} (f : Y ⟶ X) : (mk f).hom = f := rfl
@@ -118,6 +73,7 @@ def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
 { obj := λ U, mk (U.hom ≫ f),
   map' := λ U V g,
   { left := g.left,
+    right := punit.star,
     w' :=
     begin
       dsimp only [mk],
@@ -126,20 +82,29 @@ def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
       simp
     end } }
 
+@[simp] lemma id_left {X : C} (x : over X) : comma_morphism.left (𝟙 x) = 𝟙 x.left := rfl
+@[simp] lemma id_right {X : C} (x : over X) : comma_morphism.right (𝟙 x) = 𝟙 x.right := rfl
+
+@[simp] lemma comp_left {X : C} (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
+  comma_morphism.left (f ≫ g) = comma_morphism.left f ≫ comma_morphism.left g := rfl
+@[simp] lemma comp_right {X : C} (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
+  comma_morphism.right (f ≫ g) = comma_morphism.right f ≫ comma_morphism.right g := rfl
+
 def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
 { obj  := λ V, mk $ pullback.π₁ f V.hom,
   map' := λ V₁ V₂ g,
-  { left := pullback.lift (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left)
+  { left := pullback.lift f _ (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left)
       begin
         have := g.w,
         dsimp [functor.of_obj] at this,
         simp at this,
         rw [pullback.w, category.assoc, this],
       end,
+    right := punit.star,
     w' := by dsimp [mk, functor.of_obj]; simp },
-  map_id' :=
+  map_comp' :=
   begin
-    obviously,
+    tidy, conv { to_rhs, rw ← category.assoc }, tidy,
   end }
 
 end over
@@ -222,7 +187,7 @@ instance : has_limits.{u u} X :=
 { cone := λ J hJ F, @limit _ _ J hJ F,
   is_limit := λ J hJ F, @limit_is_limit _ _ J hJ F }
 
-instance : has_pullbacks.{u u} X := has_pullbacks_of_has_limits _
+instance : has_pullbacks.{u u} X := has_pullbacks_of_has_limits
 
 end lattice.complete_lattice
 

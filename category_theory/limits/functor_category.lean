@@ -112,9 +112,9 @@ limits.has_products_of_has_limits
 instance functor_category_has_coproducts [has_coproducts.{u v} C] : has_coproducts.{(max u v) v} (K ⥤ C) :=
 limits.has_coproducts_of_has_colimits
 instance functor_category_has_pullbacks [has_pullbacks.{u v} C] : has_pullbacks.{(max u v) v} (K ⥤ C) :=
-limits.has_pullbacks_of_has_limits (K ⥤ C)
+limits.has_pullbacks_of_has_limits
 instance functor_category_has_pushouts [has_pushouts.{u v} C] : has_pushouts.{(max u v) v} (K ⥤ C) :=
-limits.has_pushouts_of_has_colimits (K ⥤ C)
+limits.has_pushouts_of_has_colimits
 instance functor_category_has_equalizers [has_equalizers.{u v} C] : has_equalizers.{(max u v) v} (K ⥤ C) :=
 limits.has_equalizers_of_has_limits
 instance functor_category_has_coequalizers [has_coequalizers.{u v} C] : has_coequalizers.{(max u v) v} (K ⥤ C) :=
@@ -155,6 +155,14 @@ instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape.{u v} J C
   end }
 
 instance evaluation_preserves_limits [has_limits.{u v} C] (k : K) :
-  preserves_limits (evaluation.{v v u v} K C k) := sorry
+  preserves_limits (evaluation.{v v u v} K C k) :=
+@preserves_limits_of_preserves_limits_of_all_shapes _ _ _ _
+  (evaluation.{v v u v} K C k)
+  (λ J 𝒥, by resetI; apply_instance)
+instance evaluation_preserves_colimits [has_colimits.{u v} C] (k : K) :
+  preserves_colimits (evaluation.{v v u v} K C k) :=
+@preserves_colimits_of_preserves_colimits_of_all_shapes _ _ _ _
+  (evaluation.{v v u v} K C k)
+  (λ J 𝒥, by resetI; apply_instance)
 
 end category_theory.limits

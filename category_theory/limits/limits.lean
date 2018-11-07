@@ -268,7 +268,7 @@ def colimit_cocone.ext {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : 
 
 def is_colimit_invariance (r t : cocone F) (i : r ≅ t) (P : is_colimit r) : is_colimit t :=
 { desc := λ s, i.inv.hom ≫ P.desc s,
-  fac' := sorry,
+  fac' := λ s j, begin rw [←category.assoc, ←i.hom.w], simp, end,
   uniq' :=
   begin
     tidy,
@@ -374,7 +374,7 @@ section
 
 def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone.{u v} F
 def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
-def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F j := 
+def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F j :=
 (((limit.cone F).π) : Π j : J, limit F ⟶ F j) j
 @[simp] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
   limit.π F j ≫ F.map f = limit.π F j' := (limit.cone F).w f
@@ -574,7 +574,7 @@ section
 
 def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone.{u v} F
 def colimit (F : J ⥤ C) [has_colimit F] := (colimit.cocone F).X
-def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F j ⟶ colimit F := 
+def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F j ⟶ colimit F :=
 (((colimit.cocone F).ι) : Π j : J, F j ⟶ colimit F) j
 @[simp] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') : F.map f ≫ colimit.ι F j' = colimit.ι F j :=
 (colimit.cocone F).w f

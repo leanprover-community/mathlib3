@@ -127,4 +127,14 @@ TODO: Any equivalence of categories preserves, reflects, and creates any limits 
 colimits that are present in its domain or codomain.
 -/
 
+def preserves_limits_of_preserves_limits_of_all_shapes
+  {F : C ⥤ D} [∀ (J : Type v) [small_category J], preserves_limits_of_shape J F] :
+  preserves_limits F :=
+{ preserves := λ J 𝒥, by resetI; exact λ K c, preserves_limits_of_shape.preserves F }
+def preserves_colimits_of_preserves_colimits_of_all_shapes
+  {F : C ⥤ D} [∀ (J : Type v) [small_category J], preserves_colimits_of_shape J F] :
+  preserves_colimits F :=
+{ preserves := λ J 𝒥, by resetI; exact λ K c, preserves_colimits_of_shape.preserves F }
+
+
 end category_theory.limits

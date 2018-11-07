@@ -46,9 +46,9 @@ section over_under -- move somewhere else
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 
-def over (X : C) := comma (functor.id C) (category_theory.limits.functor.of_obj X)
+def over (X : C) := comma (functor.id C) (functor.of_obj X)
 
-def under (X : C) := comma (category_theory.limits.functor.of_obj X) (functor.id C)
+def under (X : C) := comma (functor.of_obj X) (functor.id C)
 
 end over_under
 

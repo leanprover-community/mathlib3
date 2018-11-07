@@ -96,12 +96,11 @@ def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
   { left := pullback.lift f _ (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left)
       begin
         have := g.w,
-        dsimp [functor.of_obj] at this,
+        dsimp at this,
         simp at this,
         rw [pullback.w, category.assoc, this],
       end,
-    right := punit.star,
-    w' := by dsimp [mk, functor.of_obj]; simp },
+    right := punit.star },
   map_comp' :=
   begin
     tidy, conv { to_rhs, rw ← category.assoc }, tidy,
@@ -125,9 +124,9 @@ let
   pb (Ujk : c × c) : presheaf X (Type v) := limits.pullback (y Ujk.1) (y Ujk.2),
   re (Ui : c) : presheaf X (Type v) := (yoneda X).obj Ui.val.left,
   left  : limits.sigma pb ⟶ limits.sigma re :=
-    sigma.desc $ λUjk:c×c, pullback.π₁ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.1,
+    sigma.desc $ λ Ujk : c × c, pullback.π₁ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.1,
   right : limits.sigma pb ⟶ limits.sigma re :=
-    sigma.desc $ λUjk:c×c, pullback.π₂ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.2
+    sigma.desc $ λ Ujk : c × c, pullback.π₂ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.2
 in coequalizer left right
 
 def π : c.sieve ⟶ yoneda X U :=
@@ -147,7 +146,7 @@ end covering_family
 def coverage_on (X : Type u) [small_category.{u} X]
   (covers : Π (U : X), set (covering_family U)) : Prop :=
 ∀ {U V : X} (g : V ⟶ U),
-∀f ∈ covers U, ∃h ∈ covers V,
+∀ f ∈ covers U, ∃ h ∈ covers V,
 ∀ Vj : (h : set _), ∃ (Ui : f),
 ∃ k : Vj.val.left ⟶ Ui.val.left, Vj.val.hom ≫ g = k ≫ Ui.val.hom
 
@@ -234,7 +233,7 @@ variables {X : Type u} [topological_space X]
 
 instance : site (opens X) :=
 { coverage :=
-  { covers := λ U Us, U = ⨆u∈Us, (u:over _).left,
+  { covers := λ U Us, U = ⨆ u ∈ Us, (u:over _).left,
     property :=
     begin
       refine λU V i Us (hUs : _ = _), ⟨over.comap i '' Us, _, _⟩,

@@ -26,6 +26,7 @@ def functor.of_obj (X : C) : punit.{v+1} ⥤ C :=
   map' := λ Y Z f, 𝟙 X }
 
 @[simp] lemma functor.of_obj_obj (X : C) (a : punit.{v+1}) : (((functor.of_obj X) : punit.{v+1} → C) a) = X := rfl
+@[simp] lemma functor.of_obj_map (X : C) (a b : punit.{v+1}) (f : a ⟶ b) : (functor.of_obj X).map f = 𝟙 X := rfl
 
 /-- A `c : cone F` is an object `c.X` and a natural transformation `c.π : c.X ⟹ F` from the constant `c.X` functor to `F`. -/
 structure cone (F : J ⥤ C) :=

@@ -10,7 +10,7 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
 ⟨λ I N, ⨆ r : I, N.map (r.1 • linear_map.id)⟩
 
-variables {I : ideal R} {N : submodule R M}
+variables {I J : ideal R} {N P : submodule R M}
 
 theorem smul_mem_smul {r} {n} (hr : r ∈ I) (hn : n ∈ N) : r • n ∈ I • N :=
 (lattice.le_supr _ ⟨r, hr⟩ : _ ≤ I • N) ⟨n, hn, rfl⟩
@@ -22,6 +22,15 @@ theorem smul_le {P : submodule R M} : I • N ≤ P ↔ ∀ (r ∈ I) (n ∈ N),
 theorem smul_le_right : I • N ≤ N :=
 smul_le.2 $ λ r hr n, N.smul_mem r
 
+theorem smul_mono (hij : I ≤ J) (hnp : N ≤ P) : I • N ≤ J • P :=
+smul_le.2 $ λ r hr n hn, smul_mem_smul (hij hr) (hnp hn)
+
+theorem smul_mono_left (h : I ≤ J) : I • N ≤ J • N :=
+smul_mono h (le_refl N)
+
+theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
+smul_mono (le_refl I) h
+
 theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
 lattice.eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,
 submodule.mem_bot.2 $ (submodule.mem_bot.1 hsb).symm ▸ smul_zero r
@@ -32,6 +41,18 @@ submodule.mem_bot.2 $ (submodule.mem_bot.1 hrb).symm ▸ zero_smul s
 
 theorem top_smul : ⊤ • I = I :=
 le_antisymm smul_le_right $ λ r hri, one_smul r ▸ smul_mem_smul mem_top hri
+
+theorem smul_sup : I • (N ⊔ P) = I • N ⊔ I • P :=
+le_antisymm (smul_le.2 $ λ r hri m hmnp, let ⟨n, hn, p, hp, hnpm⟩ := mem_sup.1 hmnp in
+  mem_sup.2 ⟨_, smul_mem_smul hri hn, _, smul_mem_smul hri hp, hnpm ▸ (smul_add _ _ _).symm⟩)
+(lattice.sup_le (smul_mono_right lattice.le_sup_left)
+  (smul_mono_right lattice.le_sup_right))
+
+theorem sup_smul : (I ⊔ J) • N = I • N ⊔ J • N :=
+le_antisymm (smul_le.2 $ λ r hrij n hn, let ⟨ri, hri, rj, hrj, hrijr⟩ := mem_sup.1 hrij in
+  mem_sup.2 ⟨_, smul_mem_smul hri hn, _, smul_mem_smul hrj hn, hrijr ▸ (add_smul _ _ _).symm⟩)
+(lattice.sup_le (smul_mono_left lattice.le_sup_left)
+  (smul_mono_left lattice.le_sup_right))
 
 variables {S : set R} {T : set M}
 
@@ -58,7 +79,7 @@ variables {R : Type u} [comm_ring R]
 
 instance : has_mul (ideal R) := ⟨(•)⟩
 
-variables {I J K : ideal R}
+variables {I J K L: ideal R}
 
 theorem mul_mem_mul {r s} (hr : r ∈ I) (hs : s ∈ J) : r * s ∈ I * J :=
 submodule.smul_mem_smul hr hs
@@ -103,6 +124,21 @@ ideal.mul_comm ⊤ I ▸ submodule.top_smul
 
 theorem top_mul : ⊤ * I = I :=
 submodule.top_smul
+
+theorem mul_mono (hik : I ≤ K) (hjl : J ≤ L) : I * J ≤ K * L :=
+submodule.smul_mono hik hjl
+
+theorem mul_mono_left (h : I ≤ J) : I * K ≤ J * K :=
+submodule.smul_mono_left h
+
+theorem mul_mono_right (h : J ≤ K) : I * J ≤ I * K :=
+submodule.smul_mono_right h
+
+theorem mul_sup : I * (J ⊔ K) = I * J ⊔ I * K :=
+submodule.smul_sup
+
+theorem sup_mul : (I ⊔ J) * K = I * K ⊔ J * K :=
+submodule.sup_smul
 
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },

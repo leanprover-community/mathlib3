@@ -11,6 +11,22 @@ open category_theory.limits
 
 universes u u₁ u₂ v v₁ v₂ w w₁ w₂
 
+section cone
+variables {J : Type v} [small_category J]
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
+
+lemma cone.ext' {F : J ⥤ C} :
+  ∀{x y : cone F} (eq : x.X = y.X), x.π == y.π → x = y
+| ⟨X, π₁⟩ ⟨Y, π₂⟩ h h₂ :=
+  begin
+    dsimp at h h₂,
+    subst h,
+    subst h₂
+  end
+
+end cone
+
 section square
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 include 𝒞
@@ -41,20 +57,41 @@ def square.mk {X Y Z W : C} {f : X ⟶ Z} {g : Y ⟶ Z} (f' : W ⟶ X) (g' : W �
   { app := λX, walking_cospan.cases_on X f' g' (f' ≫ f),
     naturality' := assume X Y f, by cases f; obviously } }
 
-def pullback.lift [has_pullbacks.{u v} C] {X Y Z W : C} {f : X ⟶ Z} {g : Y ⟶ Z}
+def pullback.lift [has_pullbacks.{u v} C] {X Y Z W : C} (f : X ⟶ Z) (g : Y ⟶ Z)
   (f' : W ⟶ X) (g' : W ⟶ Y) (eq : f' ≫ f = g' ≫ g) : W ⟶ pullback f g :=
 (pullback.universal_property f g).lift (square.mk f' g' eq)
 
 @[simp] lemma pullback.lift_π₁ [has_pullbacks.{u v} C] {X Y Z W : C} {f : X ⟶ Z} {g : Y ⟶ Z}
   (f' : W ⟶ X) (g' : W ⟶ Y) (eq : f' ≫ f = g' ≫ g) :
-  pullback.lift f' g' eq ≫ pullback.π₁ f g = f' :=
+  pullback.lift f g f' g' eq ≫ pullback.π₁ f g = f' :=
 (pullback.universal_property f g).fac (square.mk f' g' eq) _
 
 @[simp] lemma pullback.lift_π₂ [has_pullbacks.{u v} C] {X Y Z W : C} {f : X ⟶ Z} {g : Y ⟶ Z}
   (f' : W ⟶ X) (g' : W ⟶ Y) (eq : f' ≫ f = g' ≫ g) :
-  pullback.lift f' g' eq ≫ pullback.π₂ f g = g' :=
+  pullback.lift f g f' g' eq ≫ pullback.π₂ f g = g' :=
 (pullback.universal_property f g).fac (square.mk f' g' eq) _
 
+@[simp] lemma pullback.lift_id [has_pullbacks.{u v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  (eq : pullback.π₁ f g ≫ f = pullback.π₂ f g ≫ g) :
+  pullback.lift f g _ _ eq = 𝟙 _ :=
+begin
+  refine ((pullback.universal_property f g).uniq _ _ _).symm,
+  rintros (_ | _ | _),
+  { dsimp [square.mk], simp, refl },
+  { dsimp [square.mk], simp, refl },
+  { dsimp [square.mk], simp,
+    have := (pullback.square f g).π.naturality walking_cospan_hom.inr,
+    dsimp at this,
+    simpa }
+end
+
+/-
+@[simp] lemma pullback.lift_comp [has_pullbacks.{u v} C] {X Y Z : C}
+  (f : X ⟶ Z) (g : Y ⟶ Z)
+ :
+  pullback.lift f g _ _ _ ≫ pullback.lift f g _ _ _ = _ :=
+_
+-/
 end square
 
 section presheaf
@@ -101,7 +138,7 @@ namespace over
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 
-instance {X : C} : category (over X) := by unfold over; apply_instance
+instance {X : C} : category (over X) := by dunfold over; apply_instance
 
 def forget (X : C) : (over X) ⥤ C :=
 { obj  := λ Y, Y.left,
@@ -126,10 +163,20 @@ def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
       simp
     end } }
 
+@[simp] lemma id_left {X : C} (x : over X) : comma_morphism.left (𝟙 x) = 𝟙 x.left := rfl
+@[simp] lemma id_right {X : C} (x : over X) : comma_morphism.right (𝟙 x) = 𝟙 x.right := rfl
+
+@[simp] lemma comp_left {X : C} (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
+  comma_morphism.left (f ≫ g) = comma_morphism.left f ≫ comma_morphism.left g := rfl
+@[simp] lemma comp_right {X : C} (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
+  comma_morphism.right (f ≫ g) = comma_morphism.right f ≫ comma_morphism.right g := rfl
+
+#check comma.hom
+
 def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
 { obj  := λ V, mk $ pullback.π₁ f V.hom,
   map' := λ V₁ V₂ g,
-  { left := pullback.lift (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left)
+  { left := pullback.lift f _ (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left)
       begin
         have := g.w,
         dsimp [functor.of_obj] at this,
@@ -139,8 +186,21 @@ def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
     w' := by dsimp [mk, functor.of_obj]; simp },
   map_id' :=
   begin
-    obviously,
+    rintros ⟨_, _, _⟩,
+    ext; dsimp,
+    simp,
+    refl
+  end,
+  map_comp' :=
+  begin
+    rintros a b c ⟨fl, fr, fw⟩ ⟨gl, gr, gw⟩,
+    ext; dsimp [functor.of_obj] at *,
+    simp at fw gw ⊢,
+    have := c.hom,
+    simp at this,
   end }
+
+#exit
 
 end over
 

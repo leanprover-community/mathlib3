@@ -67,10 +67,12 @@ def swap : (C × D) ⥤ (D × C) :=
   map' := λ _ _ f, (f.2, f.1) }
 
 def symmetry : ((swap C D) ⋙ (swap D C)) ≅ (functor.id (C × D)) :=
-{ hom := { app := λ X, 𝟙 X,
-           naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end },
-  inv := { app := λ X, 𝟙 X,
-           naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end } }
+{ hom :=
+  { app := λ X, 𝟙 X,
+    naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end },
+  inv :=
+  { app := λ X, 𝟙 X,
+    naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end } }
 
 end prod
 

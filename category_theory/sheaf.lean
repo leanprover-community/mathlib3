@@ -169,6 +169,19 @@ structure sheaf (X : Type u) [𝒳 : site.{u} X] :=
 (presheaf : presheaf X (Type u))
 (sheaf_condition : ∀ {U : X}, ∀c ∈ site.covers U, (c : covering_family U).sheaf_condition presheaf)
 
+namespace lattice
+
+lemma supr_image {α β γ : Type u} [complete_lattice α]
+  {g : β → α} {f : γ → β} {s : set γ}:
+  (⨆b∈f '' s, g b) = (⨆i∈s, g (f i)) :=
+le_antisymm
+  (supr_le $ assume b, supr_le $ assume ⟨c, hcs, eq⟩,
+    eq ▸ le_supr_of_le c $ le_supr (λh, g (f c)) hcs)
+  (supr_le $ assume c, supr_le $ assume hc,
+    le_supr_of_le (f c) $ le_supr (λh, g (f c)) $ set.mem_image_of_mem _ hc)
+
+end lattice
+
 namespace lattice.complete_lattice
 
 open lattice
@@ -195,13 +208,29 @@ namespace topological_space
 
 variables {X : Type u} [topological_space X]
 
+instance opens.over.preorder {U : opens X} : preorder (over U) :=
+{ le := λ V₁ V₂, V₁.left ⊆ V₂.left,
+  le_refl := by obviously,
+  le_trans := by obviously }
+
+def opens.over.gc {U V : opens X} (i : V ⟶ U) : galois_connection (over.map i) (over.comap i) :=
+begin
+  intros V' U',
+  dsimp [(≤), preorder.le, over.map, over.comap] at *,
+  split; intro h,
+  { sorry },
+  { sorry }
+end
+
 instance : site (opens X) :=
 { coverage :=
   { covers := λ U Us, U = ⨆u∈Us, (u:over _).left,
     property :=
     begin
       refine λU V i Us (hUs : _ = _), ⟨over.comap i '' Us, _, _⟩,
-      { show _ = _, sorry },
+      { show _ = _,
+        rw [lattice.supr_image],
+        sorry },
       { rintros ⟨Vj, Ui, H⟩,
         refine ⟨⟨Ui, H.1⟩, ⟨_, rfl⟩⟩,
         have H' := H.2.symm,

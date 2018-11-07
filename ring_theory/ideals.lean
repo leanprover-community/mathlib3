@@ -93,6 +93,14 @@ theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
 hI.2 (h.symm ▸ I.zero_mem)
 
+theorem is_prime.mem_of_pow_mem {I : ideal α} (hI : I.is_prime)
+  {r : α} (n : ℕ) (H : r^n ∈ I) : r ∈ I :=
+begin
+  induction n with n ih,
+  { exact (mt (eq_top_iff_one _).2 hI.1).elim H },
+  exact or.cases_on (hI.mem_or_mem H) id ih
+end
+
 @[class] def zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
 

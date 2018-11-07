@@ -265,23 +265,21 @@ instance : site (opens X) :=
 
 variables {B : set (opens X)}
 
-instance basis.site (is_basis : opens.is_basis B) : site B :=
+instance basis.site {is_basis : opens.is_basis B} : site B :=
 { coverage :=
   { covers := λ U Us, U.val = ⨆u∈Us, (u:over _).left.val,
     property :=
     begin
       refine λ U V i Us (hUs : _ = _), ⟨_, _, _⟩,
       { rw opens.is_basis_iff_cover at is_basis,
-        have foo : ∀ (Vj : opens X) (hVj: ∃ Ui : Us, Vj = Ui.1.left ⊓ V),
-          ∃ Ws : set (over V), Vj = ⨆w∈Ws, (w:over _).left :=
-          begin
-            intros Vj hVj,
-            rcases is_basis Vj with ⟨Ws, ⟨Ws_are_basic, hWs⟩⟩,
-            sorry
-          end,
-          sorry },
-        sorry,
-        sorry
+        intro Vj,
+        exact ∃ Ui ∈ Us, Vj.left ⟶ ((Ui : over _).left) },
+      { show _ = _,
+        dsimp,
+        sorry },
+      { intro Vj,
+        dsimp at Vj,
+        sorry }
     end } }
 
 end topological_space

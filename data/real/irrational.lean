@@ -15,17 +15,17 @@ theorem irr_nrt_of_notint_nrt {x : ℝ} (n : ℕ) (m : ℤ)
   (hxr : x ^ n = m) (hv : ¬ ∃ y : ℤ, x = y) (hnpos : n > 0) :
   irrational x
 | ⟨q, e⟩ := begin
-  rw [e, ←cast_pow] at hxr, cases q with N D P C,
+  rw [e, ← cast_pow] at hxr, cases q with N D P C,
   have c1 : ((D : ℤ) : ℝ) ≠ 0,
   { rw [int.cast_ne_zero, int.coe_nat_ne_zero], exact ne_of_gt P },
   have c2 : ((D : ℤ) : ℝ) ^ n ≠ 0 := pow_ne_zero _ c1,
   rw [num_denom', cast_pow, cast_mk, div_pow _ c1, div_eq_iff_mul_eq c2,
-      ←int.cast_pow, ←int.cast_pow, ←int.cast_mul, int.cast_inj] at hxr,
+      ← int.cast_pow, ← int.cast_pow, ← int.cast_mul, int.cast_inj] at hxr,
   have hdivn : ↑D ^ n ∣ N ^ n := dvd.intro_left m hxr,
-  rw [←int.dvd_nat_abs, ←int.coe_nat_pow, int.coe_nat_dvd, int.nat_abs_pow, nat.pow_dvd_pow_iff hnpos] at hdivn,
+  rw [← int.dvd_nat_abs, ← int.coe_nat_pow, int.coe_nat_dvd, int.nat_abs_pow, nat.pow_dvd_pow_iff hnpos] at hdivn,
   have hdivn' : nat.gcd N.nat_abs D = D := nat.gcd_eq_right hdivn,
   refine hv ⟨N, _⟩,
-  rwa [num_denom', ←hdivn', C.gcd_eq_one, int.coe_nat_one, mk_eq_div,
+  rwa [num_denom', ← hdivn', C.gcd_eq_one, int.coe_nat_one, mk_eq_div,
       int.cast_one, div_one, cast_coe_int] at e
 end
 
@@ -59,10 +59,7 @@ irr_sqrt_of_padic_val_odd p (int.coe_nat_nonneg p) p $
 by rw padic_val.padic_val_self hp.gt_one; refl
 
 theorem irr_sqrt_two : irrational (sqrt 2) :=
-begin
-  rw show (2 : ℝ) = (2:ℕ), by simp,
-  exact irr_sqrt_of_prime 2 nat.prime_two
-end
+by simpa using irr_sqrt_of_prime 2 nat.prime_two
 
 theorem irr_sqrt_rat_iff (q : ℚ) : irrational (sqrt q) ↔
   rat.sqrt q * rat.sqrt q ≠ q ∧ 0 ≤ q :=

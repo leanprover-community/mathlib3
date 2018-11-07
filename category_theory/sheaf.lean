@@ -208,19 +208,19 @@ namespace topological_space
 
 variables {X : Type u} [topological_space X]
 
-instance opens.over.preorder {U : opens X} : preorder (over U) :=
-{ le := λ V₁ V₂, V₁.left ⊆ V₂.left,
-  le_refl := by obviously,
-  le_trans := by obviously }
+-- instance opens.over.preorder {U : opens X} : preorder (over U) :=
+-- { le := λ V₁ V₂, V₁.left ⊆ V₂.left,
+--   le_refl := by obviously,
+--   le_trans := by obviously }
 
-def opens.over.gc {U V : opens X} (i : V ⟶ U) : galois_connection (over.map i) (over.comap i) :=
-begin
-  intros V' U',
-  dsimp [(≤), preorder.le, over.map, over.comap] at *,
-  split; intro h,
-  { sorry },
-  { sorry }
-end
+-- def opens.over.gc {U V : opens X} (i : V ⟶ U) : galois_connection (over.map i) (over.comap i) :=
+-- begin
+--   intros V' U',
+--   dsimp [(≤), preorder.le, over.map, over.comap] at *,
+--   split; intro h,
+--   { sorry },
+--   { sorry }
+-- end
 
 instance : site (opens X) :=
 { coverage :=

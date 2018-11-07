@@ -69,8 +69,8 @@ begin unfold_coes, unfold symm, have p := iso.inv_hom_id', dsimp at p, rw p end
 @[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
 { hom := (α : X ⟶ Y) ≫ (β : Y ⟶ Z),
   inv := (β.symm : Z ⟶ Y) ≫ (α.symm : Y ⟶ X),
-  hom_inv_id' := begin /- `obviously'` says: -/ erw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.hom_inv_id, rw category.id_comp, rw iso.hom_inv_id end,
-  inv_hom_id' := begin /- `obviously'` says: -/ erw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.inv_hom_id, rw category.id_comp, rw iso.inv_hom_id end }
+  hom_inv_id' := begin /- `obviously'` says: -/ rw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.hom_inv_id, rw category.id_comp, rw iso.hom_inv_id end,
+  inv_hom_id' := begin /- `obviously'` says: -/ rw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.inv_hom_id, rw category.id_comp, rw iso.inv_hom_id end }
 
 infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
@@ -134,8 +134,8 @@ def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.obj X) ≅ (F.obj Y) :=
 
 instance (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 { inv := F.map (inv f),
-  hom_inv_id' := begin rw ← F.map_comp, erw is_iso.hom_inv_id, rw map_id, end,
-  inv_hom_id' := begin rw ← F.map_comp, erw is_iso.inv_hom_id, rw map_id, end }
+  hom_inv_id' := begin rw ← F.map_comp, rw is_iso.hom_inv_id, rw map_id, end,
+  inv_hom_id' := begin rw ← F.map_comp, rw is_iso.inv_hom_id, rw map_id, end }
 
 end functor
 
@@ -145,14 +145,14 @@ instance epi_of_iso  (f : X ⟶ Y) [is_iso f] : epi f  :=
                          intros,
                          rw [←category.id_comp C g, ←category.id_comp C h],
                          rw [← is_iso.inv_hom_id f],
-                         erw [category.assoc, w, category.assoc],
+                         rw [category.assoc, w, category.assoc],
                        end }
 instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := begin
                          intros,
                          rw [←category.comp_id C g, ←category.comp_id C h],
                          rw [← is_iso.hom_inv_id f],
-                         erw [←category.assoc, w, ←category.assoc]
+                         rw [←category.assoc, w, ←category.assoc]
                        end }
 
 def eq_to_iso {X Y : C} (p : X = Y) : X ≅ Y := by rw p

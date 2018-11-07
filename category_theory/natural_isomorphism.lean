@@ -45,8 +45,8 @@ variables {F G : C ⥤ D}
 
 instance hom_app_is_iso (α : F ≅ G) (X : C) : is_iso ((α : F ⟶ G).app X) :=
 { inv := α.inv.app X,
-  hom_inv_id' := begin dsimp at *, erw [←functor.category.comp_app, iso.hom_inv_id, ←functor.category.id_app] end,
-  inv_hom_id' := begin dsimp at *, erw [←functor.category.comp_app, iso.inv_hom_id, ←functor.category.id_app] end }
+  hom_inv_id' := begin dsimp at *, rw [←functor.category.comp_app, iso.hom_inv_id, ←functor.category.id_app] end,
+  inv_hom_id' := begin dsimp at *, rw [←functor.category.comp_app, iso.inv_hom_id, ←functor.category.id_app] end }
 instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso ((α.symm : G ⟶ F).app X) :=
 { inv := α.hom.app X,
   hom_inv_id' := begin dsimp at *, erw [is_iso.hom_inv_id] end,

@@ -1,3 +1,11 @@
+/-
+Copyright (c) 2018 Kenny Lau. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kenny Lau
+
+More operations on modules and ideals.
+-/
+
 import ring_theory.ideals data.nat.choose
 
 universes u v w

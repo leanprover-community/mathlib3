@@ -7,7 +7,7 @@ Defines natural transformations between functors.
 
 Introduces notations
   `F ⟹ G` for the type of natural transformations between functors `F` and `G`,
-  `τ X` (a coercion) for the components of natural transformations,
+  `τ.app X` for the components of natural transformations,
   `σ ⊟ τ` for vertical compositions, and
   `σ ◫ τ` for horizontal compositions.
 -/
@@ -24,8 +24,7 @@ include 𝒞 𝒟
 /--
 `nat_trans F G` represents a natural transformation between functors `F` and `G`.
 
-The field `app` provides the components of the natural transformation, and there is a
-coercion available so you can write `α X` for the component of a transformation `α` at an object `X`.
+The field `app` provides the components of the natural transformation.
 
 Naturality is expressed by `α.naturality_lemma`.
 -/

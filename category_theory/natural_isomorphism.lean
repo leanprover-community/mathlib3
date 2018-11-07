@@ -15,57 +15,42 @@ variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 
 include 𝒞 𝒟
 
 def app {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
-{ hom := (α : F ⟶ G).app X,
-  inv := (α.symm : G ⟶ F).app X,
+{ hom := α.hom.app X,
+  inv := α.inv.app X,
   hom_inv_id' := begin rw [← functor.category.comp_app, iso.hom_inv_id], refl, end,
   inv_hom_id' := begin rw [← functor.category.comp_app, iso.inv_hom_id], refl, end }
 
--- TODO remove this too
-instance {F G : C ⥤ D} : has_coe_to_fun (F ≅ G) :=
-{ F   := λ α, Π X : C, (F.obj X) ≅ (G.obj X),
-  coe := λ α, app α }
-
-@[simp] lemma mk_app {F G : C ⥤ D} (hom : F ⟹ G) (inv) (hom_inv_id') (inv_hom_id') (X : C) :
-  ({ hom := hom, inv := inv, hom_inv_id' := hom_inv_id', inv_hom_id' := inv_hom_id' } : F ≅ G) X =
-  { hom := hom.app X, inv := inv.app X,
-    hom_inv_id' := congr_fun (congr_arg nat_trans.app hom_inv_id') X,
-    inv_hom_id' := congr_fun (congr_arg nat_trans.app inv_hom_id') X } :=
-rfl
-@[simp] lemma mk_app' {F G : C ⥤ D} (hom : F ⟹ G) (inv) (hom_inv_id') (inv_hom_id') (X : C) :
-  (({ hom := hom, inv := inv, hom_inv_id' := hom_inv_id', inv_hom_id' := inv_hom_id' } : F ≅ G) : F ⟹ G).app X = hom.app X :=
-rfl
-
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ≅ G) (β : G ≅ H) (X : C) :
-  ((α ≪≫ β) : F ⟹ H).app X = α X ≪≫ β X := rfl
+  app (α ≪≫ β) X = app α X ≪≫ app β X := rfl
 
-@[simp] lemma hom_eq_coe {F G : C ⥤ D} (α : F ≅ G) (X : C) : α.hom.app X = (α : F ⟶ G).app X := rfl
-@[simp] lemma inv_eq_symm_coe {F G : C ⥤ D} (α : F ≅ G) (X : C) : α.inv.app X = (α.symm : G ⟶ F).app X := rfl
+@[simp] lemma app_hom {F G : C ⥤ D} (α : F ≅ G) (X : C) : (app α X).hom = α.hom.app X := rfl
+@[simp] lemma app_inv {F G : C ⥤ D} (α : F ≅ G) (X : C) : (app α X).inv = α.inv.app X := rfl
 
 variables {F G : C ⥤ D}
 
-instance hom_app_is_iso (α : F ≅ G) (X : C) : is_iso ((α : F ⟶ G).app X) :=
+instance hom_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.hom.app X) :=
 { inv := α.inv.app X,
-  hom_inv_id' := begin dsimp at *, rw [←functor.category.comp_app, iso.hom_inv_id, ←functor.category.id_app] end,
-  inv_hom_id' := begin dsimp at *, rw [←functor.category.comp_app, iso.inv_hom_id, ←functor.category.id_app] end }
-instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso ((α.symm : G ⟶ F).app X) :=
+  hom_inv_id' := begin rw [←functor.category.comp_app, iso.hom_inv_id, ←functor.category.id_app] end,
+  inv_hom_id' := begin rw [←functor.category.comp_app, iso.inv_hom_id, ←functor.category.id_app] end }
+instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
 { inv := α.hom.app X,
-  hom_inv_id' := begin dsimp at *, erw [is_iso.hom_inv_id] end,
-  inv_hom_id' := begin dsimp at *, erw [is_iso.hom_inv_id] end }
+  hom_inv_id' := begin rw [←functor.category.comp_app, iso.inv_hom_id, ←functor.category.id_app] end,
+  inv_hom_id' := begin rw [←functor.category.comp_app, iso.hom_inv_id, ←functor.category.id_app] end }
 
 variables {X Y : C}
 @[simp] lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
-  ((α.symm : G ⟶ F).app X) ≫ (F.map f) ≫ ((α : F ⟶ G).app Y) = G.map f :=
+  (α.inv.app X) ≫ (F.map f) ≫ (α.hom.app Y) = G.map f :=
 begin erw [nat_trans.naturality, ←category.assoc, is_iso.hom_inv_id, category.id_comp] end
 @[simp] lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
-  ((α : F ⟶ G).app X) ≫ (G.map f) ≫ ((α.symm : G ⟶ F).app Y) = F.map f :=
+  (α.hom.app X) ≫ (G.map f) ≫ (α.inv.app Y) = F.map f :=
 begin erw [nat_trans.naturality, ←category.assoc, is_iso.hom_inv_id, category.id_comp] end
 
 def of_components (app : ∀ X : C, (F.obj X) ≅ (G.obj X))
-  (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ ((app Y) : F.obj Y ⟶ G.obj Y) = ((app X) : F.obj X ⟶ G.obj X) ≫ (G.map f)) :
+  (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ ((app Y).hom) = ((app X).hom) ≫ (G.map f)) :
   F ≅ G :=
-{ hom  := { app := λ X, ((app X) : F.obj X ⟶ G.obj X), },
+{ hom  := { app := λ X, ((app X).hom), },
   inv  :=
-  { app := λ X, ((app X).symm : G.obj X ⟶ F.obj X),
+  { app := λ X, ((app X).inv),
     naturality' := λ X Y f,
     begin
       let p := congr_arg (λ f, (app X).inv ≫ (f ≫ (app Y).inv)) (eq.symm (naturality f)),
@@ -78,9 +63,9 @@ def of_components (app : ∀ X : C, (F.obj X) ≅ (G.obj X))
   app (of_components app' naturality) X = app' X :=
 by tidy
 @[simp] def of_components.hom_app (app : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
-  ((of_components app naturality) : F ⟹ G).app X = app X := rfl
+  (of_components app naturality).hom.app X = (app X).hom := rfl
 @[simp] def of_components.inv_app (app : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
-  ((of_components app naturality).symm : G ⟹ F).app X = (app X).symm := rfl
+  (of_components app naturality).inv.app X = (app X).inv := rfl
 
 end category_theory.nat_iso
 
@@ -94,17 +79,11 @@ variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
 include 𝒞 𝒟
 
 @[simp] def id_comp (F : C ⥤ D) : functor.id C ⋙ F ≅ F :=
-{ hom :=
-  { app := λ X, 𝟙 (F.obj X) },
-  inv :=
-  { app := λ X, 𝟙 (F.obj X) }
-}
+{ hom := { app := λ X, 𝟙 (F.obj X) },
+  inv := { app := λ X, 𝟙 (F.obj X) } }
 @[simp] def comp_id (F : C ⥤ D) : F ⋙ functor.id D ≅ F :=
-{ hom :=
-  { app := λ X, 𝟙 (F.obj X) },
-  inv :=
-  { app := λ X, 𝟙 (F.obj X) }
-}
+{ hom := { app := λ X, 𝟙 (F.obj X) },
+  inv := { app := λ X, 𝟙 (F.obj X) } }
 
 universes u₃ v₃ u₄ v₄
 
@@ -114,11 +93,8 @@ include 𝒜 ℬ
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D)
 
 @[simp] def assoc : (F ⋙ G) ⋙ H ≅ F ⋙ (G ⋙ H ):=
-{ hom :=
-  { app := λ X, 𝟙 (H.obj (G.obj (F.obj X))) },
-  inv :=
-  { app := λ X, 𝟙 (H.obj (G.obj (F.obj X))) }
-}
+{ hom := { app := λ X, 𝟙 (H.obj (G.obj (F.obj X))) },
+  inv := { app := λ X, 𝟙 (H.obj (G.obj (F.obj X))) } }
 
 -- When it's time to define monoidal categories and 2-categories,
 -- we'll need to add lemmas relating these natural isomorphisms,

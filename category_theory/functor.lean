@@ -11,7 +11,6 @@ by the underlying function on objects, the name is capitalised.)
 Introduces notations
   `C ⥤ D` for the type of all functors from `C` to `D`.
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
-  `F X` (a coercion) for a functor `F` acting on an object `X`.
 -/
 
 import category_theory.category
@@ -24,14 +23,10 @@ universes u v u₁ v₁ u₂ v₂ u₃ v₃
 /--
 `functor C D` represents a functor between categories `C` and `D`.
 
-To apply a functor `F` to an object use `F X` (which uses a coercion), and to a morphism use `F.map f`.
+To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map f`.
 
 The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
-
-Implementation note: when constructing a `functor`, you need to define the
-`map'` field (which does not know about the coercion).
-When using a `functor`, use the `map` field (which makes use of the coercion).
 -/
 structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
 (obj       : C → D)

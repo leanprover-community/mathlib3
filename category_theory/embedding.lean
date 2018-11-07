@@ -35,13 +35,13 @@ end functor
 section
 variables {F : C ⥤ D} [full F] [faithful F] {X Y : C}
 def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
-{ hom := F.preimage (f : F.obj X ⟶ F.obj Y),
-  inv := F.preimage (f.symm : F.obj Y ⟶ F.obj X),
+{ hom := F.preimage f.hom,
+  inv := F.preimage f.inv,
   hom_inv_id' := begin apply @faithful.injectivity _ _ _ _ F, obviously, end,
   inv_hom_id' := begin apply @faithful.injectivity _ _ _ _ F, obviously, end, }
 
-@[simp] lemma preimage_iso_coe (f : (F.obj X) ≅ (F.obj Y)) : ((preimage_iso f) : X ⟶ Y) = F.preimage (f : F.obj X ⟶ F.obj Y) := rfl
-@[simp] lemma preimage_iso_symm_coe (f : (F.obj X) ≅ (F.obj Y)) : ((preimage_iso f).symm : Y ⟶ X) = F.preimage (f.symm : F.obj Y ⟶ F.obj X) := rfl
+@[simp] lemma preimage_iso_hom (f : (F.obj X) ≅ (F.obj Y)) : (preimage_iso f).hom = F.preimage f.hom := rfl
+@[simp] lemma preimage_iso_inv (f : (F.obj X) ≅ (F.obj Y)) : (preimage_iso f).inv = F.preimage (f.inv) := rfl
 end
 
 class embedding (F : C ⥤ D) extends (full F), (faithful F).

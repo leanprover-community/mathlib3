@@ -7,10 +7,11 @@ import category_theory.limits
 import category_theory.limits.types
 import category_theory.limits.functor_category
 
-open category_theory
 open category_theory.limits
 
 universes u u₁ u₂ v v₁ v₂ w w₁ w₂
+
+namespace category_theory
 
 section presheaf
 variables (X : Type v) [𝒳 : small_category X] (C : Type u) [𝒞 : category.{u v} C]
@@ -20,7 +21,7 @@ def presheaf := Xᵒᵖ ⥤ C
 
 variables {X} {C}
 
-instance : category.{(max u v) v} (presheaf X C) := by unfold presheaf; apply_instance
+instance presheaf_category : category.{(max u v) v} (presheaf X C) := by unfold presheaf; apply_instance
 
 set_option pp.universes true
 instance presheaf.has_coequalizers [has_coequalizers.{u v} C] :
@@ -57,6 +58,23 @@ variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 
 instance {X : C} : category (over X) := by dunfold over; apply_instance
+end over
+
+section
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
+
+@[simp] lemma comma_morphism.over_w {X : C} {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
+begin
+  erw f.w,
+  dsimp,
+  simp,
+end
+end
+
+namespace over
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
 
 def forget (X : C) : (over X) ⥤ C :=
 { obj  := λ Y, Y.left,
@@ -76,10 +94,9 @@ def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
     right := punit.star,
     w' :=
     begin
-      dsimp only [mk],
-      rw [← category.assoc, g.w],
-      dsimp [limits.functor.of_obj],
-      simp
+      dsimp,
+      rw [← category.assoc],
+      simp,
     end } }
 
 @[simp] lemma id_left {X : C} (x : over X) : comma_morphism.left (𝟙 x) = 𝟙 x.left := rfl
@@ -93,13 +110,7 @@ def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
 def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
 { obj  := λ V, mk $ pullback.π₁ f V.hom,
   map' := λ V₁ V₂ g,
-  { left := pullback.lift f _ (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left)
-      begin
-        have := g.w,
-        dsimp at this,
-        simp at this,
-        rw [pullback.w, category.assoc, this],
-      end,
+  { left := pullback.lift f _ (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left) (by tidy),
     right := punit.star },
   map_comp' :=
   begin
@@ -130,11 +141,11 @@ let
 in coequalizer left right
 
 def π : c.sieve ⟶ yoneda X U :=
-coequalizer.desc _ _ (sigma.desc $ λUi, (yoneda X).map Ui.val.hom)
+coequalizer.desc _ _ (sigma.desc $ λ Ui, (yoneda X).map Ui.val.hom)
 begin
   ext1, dsimp at *,
-  erw ←category.assoc,
-  erw ←category.assoc,
+  rw ←category.assoc,
+  rw ←category.assoc,
   simp,
 end
 
@@ -178,7 +189,11 @@ structure sheaf (X : Type u) [𝒳 : site.{u} X] :=
 (presheaf : presheaf X (Type u))
 (sheaf_condition : ∀ {U : X}, ∀c ∈ site.covers U, (c : covering_family U).sheaf_condition presheaf)
 
+end category_theory
+
 namespace lattice
+
+open lattice
 
 lemma supr_image {α β γ : Type u} [complete_lattice α]
   {g : β → α} {f : γ → β} {s : set γ}:
@@ -191,9 +206,10 @@ le_antisymm
 
 end lattice
 
-namespace lattice.complete_lattice
-
 open lattice
+open category_theory
+
+namespace lattice.complete_lattice
 
 variables {X : Type u} [complete_lattice X]
 variables {J : Type u} [small_category J]

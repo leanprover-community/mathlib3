@@ -123,14 +123,14 @@ variables {D : Type u₂}
 variables [𝒟 : category.{u₂ v₂} D]
 include 𝒟
 
-def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F X) ≅ (F Y) :=
+def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.obj X) ≅ (F.obj Y) :=
 { hom := F.map i.hom,
   inv := F.map i.inv,
   hom_inv_id' := by erw [←map_comp, iso.hom_inv_id, ←map_id],
   inv_hom_id' := by erw [←map_comp, iso.inv_hom_id, ←map_id] }
 
-@[simp] lemma on_iso_hom (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i) : F X ⟶ F Y) = F.map (i : X ⟶ Y) := rfl
-@[simp] lemma on_iso_inv (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i).symm : F Y ⟶ F X) = F.map (i.symm : Y ⟶ X) := rfl
+@[simp] lemma on_iso_hom (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i) : F.obj X ⟶ F.obj Y) = F.map (i : X ⟶ Y) := rfl
+@[simp] lemma on_iso_inv (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : ((F.on_iso i).symm : F.obj Y ⟶ F.obj X) = F.map (i.symm : Y ⟶ X) := rfl
 
 instance (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 { inv := F.map (inv f),

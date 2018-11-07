@@ -165,6 +165,11 @@ definition covers := coverage.covers 𝒳.coverage
 
 end site
 
+def site.trivial (X : Type u) [small_category.{u} X] : site X :=
+{ coverage :=
+  { covers := λ U Us, false,
+    property := λ U V g f hf, false.elim hf } }
+
 def site.discrete (X : Type u) [small_category.{u} X] : site X :=
 { coverage :=
   { covers := λ U Us, true,

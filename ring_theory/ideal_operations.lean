@@ -6,7 +6,7 @@ Authors: Kenny Lau
 More operations on modules and ideals.
 -/
 
-import ring_theory.ideals data.nat.choose
+import ring_theory.ideals data.nat.choose order.zorn
 
 universes u v w
 
@@ -204,7 +204,7 @@ theorem radical_eq_top : radical I = ⊤ ↔ I = ⊤ :=
 ⟨λ h, (eq_top_iff_one _).2 $ let ⟨n, hn⟩ := (eq_top_iff_one _).1 h in
   @one_pow R _ n ▸ hn, λ h, h.symm ▸ radical_top R⟩
 
-theorem radical_prime (H : is_prime I) : radical I = I :=
+theorem is_prime.radical (H : is_prime I) : radical I = I :=
 le_antisymm (λ r ⟨n, hrni⟩, H.mem_of_pow_mem n hrni) le_radical
 
 variables (I J)
@@ -223,6 +223,30 @@ theorem radical_mul : radical (I * J) = radical I ⊓ radical J :=
 le_antisymm (radical_inf I J ▸ radical_mono $ @mul_le_inf _ _ I J)
 (λ r ⟨⟨m, hrm⟩, ⟨n, hrn⟩⟩, ⟨m + n, (pow_add r m n).symm ▸ mul_mem_mul hrm hrn⟩)
 variables {I J}
+
+theorem is_prime.radical_le_iff (hj : is_prime J) :
+  radical I ≤ J ↔ I ≤ J :=
+⟨le_trans le_radical, λ hij r ⟨n, hrni⟩, hj.mem_of_pow_mem n $ hij hrni⟩
+
+theorem radical_eq_Inf (I : ideal R) :
+  radical I = Inf { J : ideal R | I ≤ J ∧ is_prime J } :=
+le_antisymm (le_Inf $ λ J hJ, hJ.2.radical_le_iff.2 hJ.1) $
+λ r hr, classical.by_contradiction $ λ hri,
+let S := { J | I ≤ J ∧ is_prime J } in
+let ⟨m, ⟨him, hrm⟩, hm⟩ := zorn.zorn_partial_order₀ { K | I ≤ K ∧ r ∉ radical K } I ⟨le_refl _, hri⟩
+  (λ c hc1 hc2 y hyc, ⟨Sup c, ⟨le_Sup_of_le hyc (hc1 hyc).1, λ ⟨n, hrnc⟩,
+    let ⟨y, hyc, hrny⟩ := submodule.mem_Sup_of_directed hrnc y hyc hc2.directed_on in
+    (hc1 hyc).2 ⟨n, hrny⟩⟩, λ _, le_Sup⟩) in
+have ∀ x ∉ m, r ∈ radical (m ⊔ span {x}) := λ x hxm, classical.by_contradiction $ λ hrmx, hxm $
+  have _ := hm (m ⊔ span {x}) ⟨le_trans him le_sup_left, hrmx⟩ le_sup_left,
+  this ▸ (le_sup_right : _ ≤ m ⊔ span {x}) (subset_span $ set.mem_singleton _),
+have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial,
+  λ x y hxym, classical.or_iff_not_imp_left.2 $ λ hxm, classical.by_contradiction $ λ hym,
+  let ⟨n, hrn⟩ := this _ hxm, ⟨p, hpm, q, hq, hpqrn⟩ := submodule.mem_sup.1 hrn, ⟨c, hcxq⟩ := mem_span_singleton'.1 hq in
+  let ⟨k, hrk⟩ := this _ hym, ⟨f, hfm, g, hg, hfgrk⟩ := submodule.mem_sup.1 hrk, ⟨d, hdyg⟩ := mem_span_singleton'.1 hg in
+  hrm ⟨n + k, by rw [pow_add, ← hpqrn, ← hcxq, ← hfgrk, ← hdyg, add_mul, mul_add (c*x), mul_assoc c x (d*y), mul_left_comm x, ← mul_assoc];
+    refine m.add_mem (m.mul_mem_right hpm) (m.add_mem (m.mul_mem_left hfm) (m.mul_mem_left hxym))⟩⟩,
+hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
 instance : semiring (ideal R) :=
 { add := (⊔),

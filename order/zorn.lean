@@ -7,7 +7,7 @@ Zorn's lemmas.
 
 Ported from Isabelle/HOL (written by Jacques D. Fleuriot, Tobias Nipkow, and Christian Sternagel).
 -/
-import data.set.lattice
+import data.set.lattice order.order_iso
 noncomputable theory
 
 universes u
@@ -224,6 +224,20 @@ theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, @chain α (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
+
+theorem zorn_partial_order₀ {α : Type u} [partial_order α]
+  (s : set α) (x : α) (hxs : x ∈ s)
+  (ih : ∀ c ⊆ s, zorn.chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub) :
+  ∃ m ∈ s, ∀ z ∈ s, m ≤ z → z = m :=
+let ⟨m, hm⟩ := @zorn.zorn_partial_order s (subrel.partial_order s)
+  (λ c hc, classical.by_cases
+    (assume hce : c = ∅, hce.symm ▸ ⟨⟨x, hxs⟩, λ _, false.elim⟩)
+    (assume hce : c ≠ ∅, let ⟨m, hmc⟩ := set.exists_mem_of_ne_empty hce in
+      let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (set.image_subset_iff.2 $ λ z hz, z.2)
+      (by rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
+        exact hc p hpc q hqc (mt (by rintro rfl; refl) hpq)) m.1 ⟨m, hmc, rfl⟩ in
+      ⟨⟨ub, hubs⟩, λ a hac, hub a.1 ⟨a, hac, rfl⟩⟩)) in
+⟨m.1, m.2, λ z hz hmz, congr_arg subtype.val $ hm ⟨z, hz⟩ hmz⟩
 
 theorem zorn_subset {α : Type u} (S : set (set α))
   (h : ∀c ⊆ S, chain (⊆) c → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) :

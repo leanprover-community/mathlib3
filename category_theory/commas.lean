@@ -15,15 +15,15 @@ variables {T : Type u₃} [𝒯 : category.{u₃ v₃} T]
 include 𝒜 ℬ 𝒯
 
 structure comma (L : A ⥤ T) (R : B ⥤ T) :=
-(left : A . obviously)
-(right : B . obviously)
+(left : A)
+(right : B)
 (hom : L left ⟶ R right)
 
 variables {L : A ⥤ T} {R : B ⥤ T}
 
 structure comma_morphism (X Y : comma L R) :=
-(left : X.left ⟶ Y.left . obviously)
-(right : X.right ⟶ Y.right . obviously)
+(left : X.left ⟶ Y.left)
+(right : X.right ⟶ Y.right)
 (w' : L.map left ≫ Y.hom = X.hom ≫ R.map right . obviously)
 
 restate_axiom comma_morphism.w'

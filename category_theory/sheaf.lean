@@ -2,6 +2,7 @@ import category_theory.examples.topological_spaces
 
 import category_theory.opposites
 import category_theory.yoneda
+import category_theory.commas
 import category_theory.limits
 import category_theory.limits.types
 import category_theory.limits.functor_category
@@ -62,7 +63,7 @@ def forget (X : C) : (over X) ⥤ C :=
   map' := λ _ _ f, f.left }
 
 def mk {X Y : C} (f : Y ⟶ X) : over X :=
-{ left := Y, hom := f }
+{ left := Y, right := punit.star, hom := f }
 
 @[simp] lemma mk_left {X Y : C} (f : Y ⟶ X) : (mk f).left = Y := rfl
 @[simp] lemma mk_hom {X Y : C} (f : Y ⟶ X) : (mk f).hom = f := rfl
@@ -72,6 +73,7 @@ def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
 { obj := λ U, mk (U.hom ≫ f),
   map' := λ U V g,
   { left := g.left,
+    right := punit.star,
     w' :=
     begin
       dsimp only [mk],
@@ -88,8 +90,6 @@ def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
 @[simp] lemma comp_right {X : C} (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
   comma_morphism.right (f ≫ g) = comma_morphism.right f ≫ comma_morphism.right g := rfl
 
-#check comma.hom
-
 def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
 { obj  := λ V, mk $ pullback.π₁ f V.hom,
   map' := λ V₁ V₂ g,
@@ -100,24 +100,12 @@ def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
         simp at this,
         rw [pullback.w, category.assoc, this],
       end,
+    right := punit.star,
     w' := by dsimp [mk, functor.of_obj]; simp },
-  map_id' :=
-  begin
-    rintros ⟨_, _, _⟩,
-    ext; dsimp,
-    simp,
-    refl
-  end,
   map_comp' :=
   begin
-    rintros a b c ⟨fl, fr, fw⟩ ⟨gl, gr, gw⟩,
-    ext; dsimp [functor.of_obj] at *,
-    simp at fw gw ⊢,
-    have := c.hom,
-    simp at this,
+    tidy, conv { to_rhs, rw ← category.assoc }, tidy,
   end }
-
-#exit
 
 end over
 
@@ -199,7 +187,7 @@ instance : has_limits.{u u} X :=
 { cone := λ J hJ F, @limit _ _ J hJ F,
   is_limit := λ J hJ F, @limit_is_limit _ _ J hJ F }
 
-instance : has_pullbacks.{u u} X := has_pullbacks_of_has_limits _
+instance : has_pullbacks.{u u} X := has_pullbacks_of_has_limits
 
 end lattice.complete_lattice
 

@@ -165,6 +165,11 @@ definition covers := coverage.covers 𝒳.coverage
 
 end site
 
+def site.discrete (X : Type u) [small_category.{u} X] : site X :=
+{ coverage :=
+  { covers := λ U Us, true,
+    property := λ U V g f _, ⟨{Vj | false}, by simp, (λ Vj, false.elim Vj.property)⟩ } }
+
 structure sheaf (X : Type u) [𝒳 : site.{u} X] :=
 (presheaf : presheaf X (Type u))
 (sheaf_condition : ∀ {U : X}, ∀c ∈ site.covers U, (c : covering_family U).sheaf_condition presheaf)

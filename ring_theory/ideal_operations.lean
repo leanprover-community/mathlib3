@@ -171,4 +171,17 @@ theorem radical_top : (radical ⊤ : ideal R) = ⊤ :=
 theorem radical_mono (H : I ≤ J) : radical I ≤ radical J :=
 λ r ⟨n, hrni⟩, ⟨n, H hrni⟩
 
+theorem radical_idem : radical (radical I) = radical I :=
+le_antisymm (λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩) le_radical
+
+theorem radical_eq_top : radical I = ⊤ ↔ I = ⊤ :=
+⟨λ h, (eq_top_iff_one _).2 $ let ⟨n, hn⟩ := (eq_top_iff_one _).1 h in
+  @one_pow R _ n ▸ hn, λ h, h.symm ▸ radical_top⟩
+
+theorem radical_sup : radical (I ⊔ J) = radical (radical I ⊔ radical J) :=
+le_antisymm (radical_mono $ lattice.sup_le_sup le_radical le_radical) $
+λ r ⟨n, hrnij⟩, let ⟨s, hs, t, ht, hst⟩ := submodule.mem_sup.1 hrnij in
+@radical_idem _ _ (I ⊔ J) ▸ ⟨n, hst ▸ ideal.add_mem _
+  (radical_mono lattice.le_sup_left hs) (radical_mono lattice.le_sup_right ht)⟩
+
 end ideal

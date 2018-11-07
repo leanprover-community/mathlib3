@@ -10,6 +10,8 @@ import ring_theory.ideals data.nat.choose
 
 universes u v w
 
+open lattice
+
 namespace submodule
 
 variables {R : Type u} {M : Type v}
@@ -21,11 +23,11 @@ instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
 variables {I J : ideal R} {N P : submodule R M}
 
 theorem smul_mem_smul {r} {n} (hr : r ∈ I) (hn : n ∈ N) : r • n ∈ I • N :=
-(lattice.le_supr _ ⟨r, hr⟩ : _ ≤ I • N) ⟨n, hn, rfl⟩
+(le_supr _ ⟨r, hr⟩ : _ ≤ I • N) ⟨n, hn, rfl⟩
 
 theorem smul_le {P : submodule R M} : I • N ≤ P ↔ ∀ (r ∈ I) (n ∈ N), r • n ∈ P :=
 ⟨λ H r hr n hn, H $ smul_mem_smul hr hn,
-λ H, lattice.supr_le $ λ r, map_le_iff_le_comap.2 $ λ n hn, H r.1 r.2 n hn⟩
+λ H, supr_le $ λ r, map_le_iff_le_comap.2 $ λ n hn, H r.1 r.2 n hn⟩
 
 @[elab_as_eliminator]
 theorem smul_induction_on {p : M → Prop} {x} (H : x ∈ I • N)
@@ -48,11 +50,11 @@ smul_mono (le_refl I) h
 
 variables (I J N P)
 theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
-lattice.eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,
+eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,
 submodule.mem_bot.2 $ (submodule.mem_bot.1 hsb).symm ▸ smul_zero r
 
 theorem bot_smul : ⊥ • N = ⊥ :=
-lattice.eq_bot_iff.2 $ smul_le.2 $ λ r hrb s hsi,
+eq_bot_iff.2 $ smul_le.2 $ λ r hrb s hsi,
 submodule.mem_bot.2 $ (submodule.mem_bot.1 hrb).symm ▸ zero_smul s
 
 theorem top_smul : ⊤ • N = N :=
@@ -61,14 +63,14 @@ le_antisymm smul_le_right $ λ r hri, one_smul r ▸ smul_mem_smul mem_top hri
 theorem smul_sup : I • (N ⊔ P) = I • N ⊔ I • P :=
 le_antisymm (smul_le.2 $ λ r hri m hmnp, let ⟨n, hn, p, hp, hnpm⟩ := mem_sup.1 hmnp in
   mem_sup.2 ⟨_, smul_mem_smul hri hn, _, smul_mem_smul hri hp, hnpm ▸ (smul_add _ _ _).symm⟩)
-(lattice.sup_le (smul_mono_right lattice.le_sup_left)
-  (smul_mono_right lattice.le_sup_right))
+(sup_le (smul_mono_right le_sup_left)
+  (smul_mono_right le_sup_right))
 
 theorem sup_smul : (I ⊔ J) • N = I • N ⊔ J • N :=
 le_antisymm (smul_le.2 $ λ r hrij n hn, let ⟨ri, hri, rj, hrj, hrijr⟩ := mem_sup.1 hrij in
   mem_sup.2 ⟨_, smul_mem_smul hri hn, _, smul_mem_smul hrj hn, hrijr ▸ (add_smul _ _ _).symm⟩)
-(lattice.sup_le (smul_mono_left lattice.le_sup_left)
-  (smul_mono_left lattice.le_sup_right))
+(sup_le (smul_mono_left le_sup_left)
+  (smul_mono_left le_sup_right))
 
 theorem smul_assoc : (I • J) • N = I • (J • N) :=
 le_antisymm (smul_le.2 $ λ rs hrsij t htn,
@@ -82,7 +84,7 @@ smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N, from mul_smu
 
 variables (S : set R) (T : set M)
 
-theorem smul_span : (ideal.span S) • (span T) =
+theorem span_smul_span : (ideal.span S) • (span T) =
   span (⋃ (s ∈ S) (t ∈ T), {s • t}) :=
 le_antisymm (smul_le.2 $ λ r hrS n hnT, span_induction hrS
   (λ r hrS, span_induction hnT
@@ -101,11 +103,11 @@ end submodule
 
 namespace ideal
 
+section mul_and_radical
 variables {R : Type u} [comm_ring R]
+variables {I J K L: ideal R}
 
 instance : has_mul (ideal R) := ⟨(•)⟩
-
-variables {I J K L: ideal R}
 
 theorem mul_mem_mul {r s} (hr : r ∈ I) (hs : s ∈ J) : r * s ∈ I * J :=
 submodule.smul_mem_smul hr hs
@@ -123,6 +125,10 @@ le_antisymm (mul_le.2 $ λ r hrI s hsJ, mul_mem_mul_rev hsJ hrI)
 
 protected theorem mul_assoc : (I * J) * K = I * (J * K) :=
 submodule.smul_assoc I J K
+
+theorem span_mul_span (S T : set R) : span S * span T =
+  span ⋃ (s ∈ S) (t ∈ T), {s * t} :=
+submodule.span_smul_span S T
 variables {I J K}
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
@@ -203,13 +209,13 @@ le_antisymm (λ r ⟨n, hrni⟩, H.mem_of_pow_mem n hrni) le_radical
 
 variables (I J)
 theorem radical_sup : radical (I ⊔ J) = radical (radical I ⊔ radical J) :=
-le_antisymm (radical_mono $ lattice.sup_le_sup le_radical le_radical) $
+le_antisymm (radical_mono $ sup_le_sup le_radical le_radical) $
 λ r ⟨n, hrnij⟩, let ⟨s, hs, t, ht, hst⟩ := submodule.mem_sup.1 hrnij in
 @radical_idem _ _ (I ⊔ J) ▸ ⟨n, hst ▸ ideal.add_mem _
-  (radical_mono lattice.le_sup_left hs) (radical_mono lattice.le_sup_right ht)⟩
+  (radical_mono le_sup_left hs) (radical_mono le_sup_right ht)⟩
 
 theorem radical_inf : radical (I ⊓ J) = radical I ⊓ radical J :=
-le_antisymm (lattice.le_inf (radical_mono lattice.inf_le_left) (radical_mono lattice.inf_le_right))
+le_antisymm (le_inf (radical_mono inf_le_left) (radical_mono inf_le_right))
 (λ r ⟨⟨m, hrm⟩, ⟨n, hrn⟩⟩, ⟨m + n, (pow_add r m n).symm ▸ I.mul_mem_right hrm,
 (pow_add r m n).symm ▸ J.mul_mem_left hrn⟩)
 
@@ -220,11 +226,11 @@ variables {I J}
 
 instance : semiring (ideal R) :=
 { add := (⊔),
-  add_assoc := λ _ _ _, lattice.sup_assoc,
+  add_assoc := λ _ _ _, sup_assoc,
   zero := ⊥,
-  zero_add := λ _, lattice.bot_sup_eq,
-  add_zero := λ _, lattice.sup_bot_eq,
-  add_comm := λ _ _, lattice.sup_comm,
+  zero_add := λ _, bot_sup_eq,
+  add_zero := λ _, sup_bot_eq,
+  add_comm := λ _ _, sup_comm,
   mul := (*),
   mul_assoc := ideal.mul_assoc,
   zero_mul := bot_mul,
@@ -246,8 +252,100 @@ or.cases_on (lt_or_eq_of_le $ nat.le_of_lt_succ H)
   (λ H, calc radical (I^(n+1))
            = radical I ⊓ radical (I^n) : radical_mul _ _
        ... = radical I ⊓ radical I : by rw ih H
-       ... = radical I : lattice.inf_idem)
+       ... = radical I : inf_idem)
   (λ H, H ▸ (pow_one I).symm ▸ rfl)) H
+
+end mul_and_radical
+
+section map_and_comap
+variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
+variables (f : R → S) [is_ring_hom f]
+variables {I J : ideal R} {K L : ideal S}
+
+def map (I : ideal R) : ideal S :=
+span (f '' I)
+
+def comap (I : ideal S) : ideal R :=
+{ carrier := f ⁻¹' I,
+  zero := show f 0 ∈ I, by rw is_ring_hom.map_zero f; exact I.zero_mem,
+  add := λ x y hx hy, show f (x + y) ∈ I, by rw is_ring_hom.map_add f; exact I.add_mem hx hy,
+  smul := λ c x hx, show f (c * x) ∈ I, by rw is_ring_hom.map_mul f; exact I.mul_mem_left hx }
+
+variables {f}
+theorem map_mono (h : I ≤ J) : map f I ≤ map f J :=
+span_mono $ set.image_subset _ h
+
+theorem mem_map_of_mem {x} (h : x ∈ I) : f x ∈ map f I :=
+subset_span ⟨x, h, rfl⟩
+
+theorem map_le_iff_le_comap :
+  map f I ≤ K ↔ I ≤ comap f K :=
+span_le.trans set.image_subset_iff
+
+@[simp] theorem mem_comap {x} : x ∈ comap f K ↔ f x ∈ K := iff.rfl
+
+theorem comap_mono (h : K ≤ L) : comap f K ≤ comap f L :=
+set.preimage_mono h
+variables (f)
+
+theorem comap_ne_top (hK : K ≠ ⊤) : comap f K ≠ ⊤ :=
+(ne_top_iff_one _).2 $ by rw [mem_comap, is_ring_hom.map_one f];
+  exact (ne_top_iff_one _).1 hK
+
+instance is_prime.comap {hK : K.is_prime} : (comap f K).is_prime :=
+⟨comap_ne_top _ hK.1, λ x y,
+  by simp only [mem_comap, is_ring_hom.map_mul f]; apply hK.2⟩
+
+variables (I J K L)
+theorem map_bot : map f ⊥ = ⊥ :=
+le_antisymm (map_le_iff_le_comap.2 bot_le) bot_le
+
+theorem map_top : map f ⊤ = ⊤ :=
+(eq_top_iff_one _).2 $ subset_span ⟨1, trivial, is_ring_hom.map_one f⟩
+
+theorem comap_top : comap f ⊤ = ⊤ :=
+(eq_top_iff_one _).2 trivial
+
+theorem map_sup : map f (I ⊔ J) = map f I ⊔ map f J :=
+le_antisymm (map_le_iff_le_comap.2 $ sup_le
+  (map_le_iff_le_comap.1 le_sup_left)
+  (map_le_iff_le_comap.1 le_sup_right))
+(sup_le (map_mono le_sup_left) (map_mono le_sup_right))
+
+theorem map_mul : map f (I * J) = map f I * map f J :=
+le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
+  show f (r * s) ∈ _, by rw is_ring_hom.map_mul f;
+  exact mul_mem_mul (mem_map_of_mem hri) (mem_map_of_mem hsj))
+(trans_rel_right _ (span_mul_span _ _) $ span_le.2 $
+  set.bUnion_subset $ λ i ⟨r, hri, hfri⟩,
+  set.bUnion_subset $ λ j ⟨s, hsj, hfsj⟩,
+  set.singleton_subset_iff.2 $ hfri ▸ hfsj ▸
+  by rw [← is_ring_hom.map_mul f];
+  exact mem_map_of_mem (mul_mem_mul hri hsj))
+
+theorem comap_inf : comap f (K ⊓ L) = comap f K ⊓ comap f L := rfl
+
+theorem comap_radical : comap f (radical K) = radical (comap f K) :=
+le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
+  from (is_semiring_hom.map_pow f r n).symm ▸ hfrnk⟩)
+(λ r ⟨n, hfrnk⟩, ⟨n, is_semiring_hom.map_pow f r n ▸ hfrnk⟩)
+variables {I J K L}
+
+theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
+map_le_iff_le_comap.2 $ (comap_inf f (map f I) (map f J)).symm ▸
+inf_le_inf (map_le_iff_le_comap.1 $ le_refl _) (map_le_iff_le_comap.1 $ le_refl _)
+
+theorem map_radical_le : map f (radical I) ≤ radical (map f I) :=
+map_le_iff_le_comap.2 $ λ r ⟨n, hrni⟩, ⟨n, is_semiring_hom.map_pow f r n ▸ mem_map_of_mem hrni⟩
+
+theorem le_comap_sup : comap f K ⊔ comap f L ≤ comap f (K ⊔ L) :=
+map_le_iff_le_comap.1 $ (map_sup f (comap f K) (comap f L)).symm ▸
+sup_le_sup (map_le_iff_le_comap.2 $ le_refl _) (map_le_iff_le_comap.2 $ le_refl _)
+
+theorem le_comap_mul : comap f K * comap f L ≤ comap f (K * L) :=
+map_le_iff_le_comap.1 $ (map_mul f (comap f K) (comap f L)).symm ▸
+mul_mono (map_le_iff_le_comap.2 $ le_refl _) (map_le_iff_le_comap.2 $ le_refl _)
+end map_and_comap
 
 end ideal
 
@@ -259,11 +357,11 @@ variables (I J : ideal R) (N P : submodule R M)
 
 instance : add_comm_monoid (submodule R M) :=
 { add := (⊔),
-  add_assoc := λ _ _ _, lattice.sup_assoc,
+  add_assoc := λ _ _ _, sup_assoc,
   zero := ⊥,
-  zero_add := λ _, lattice.bot_sup_eq,
-  add_zero := λ _, lattice.sup_bot_eq,
-  add_comm := λ _ _, lattice.sup_comm }
+  zero_add := λ _, bot_sup_eq,
+  add_zero := λ _, sup_bot_eq,
+  add_comm := λ _ _, sup_comm }
 
 @[simp] lemma add_eq_sup : N + P = N ⊔ P := rfl
 @[simp] lemma zero_eq_bot : (0 : submodule R M) = ⊥ := rfl

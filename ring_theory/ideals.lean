@@ -68,21 +68,6 @@ lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodu
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, span_singleton_one, eq_top_iff]
 
-def comap [comm_ring β] (f : α → β) [is_ring_hom f]
-  (I : ideal β) : ideal α :=
-{ carrier := f ⁻¹' I,
-  zero := show f 0 ∈ I, by rw is_ring_hom.map_zero f; exact I.zero_mem,
-  add := λ x y hx hy, show f (x + y) ∈ I, by rw is_ring_hom.map_add f; exact I.add_mem hx hy,
-  smul := λ c x hx, show f (c * x) ∈ I, by rw is_ring_hom.map_mul f; exact I.mul_mem_left hx }
-
-@[simp] theorem mem_comap [comm_ring β] {f : α → β} [is_ring_hom f]
-  {I : ideal β} {x} : x ∈ comap f I ↔ f x ∈ I := iff.rfl
-
-theorem comap_ne_top [comm_ring β] (f : α → β) [is_ring_hom f]
-  {I : ideal β} (hI : I ≠ ⊤) : comap f I ≠ ⊤ :=
-(ne_top_iff_one _).2 $ by rw [mem_comap, is_ring_hom.map_one f];
-  exact (ne_top_iff_one _).1 hI
-
 @[class] def is_prime (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I
 
@@ -93,17 +78,20 @@ theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
 hI.2 (h.symm ▸ I.zero_mem)
 
+theorem is_prime.mem_of_pow_mem {I : ideal α} (hI : I.is_prime)
+  {r : α} (n : ℕ) (H : r^n ∈ I) : r ∈ I :=
+begin
+  induction n with n ih,
+  { exact (mt (eq_top_iff_one _).2 hI.1).elim H },
+  exact or.cases_on (hI.mem_or_mem H) id ih
+end
+
 @[class] def zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
 
 theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
   is_prime (span ({p} : set α)) ↔ prime p :=
 by simp [is_prime, prime, span_singleton_eq_top, hp, mem_span_singleton]
-
-instance is_prime.comap [comm_ring β] (f : α → β) [is_ring_hom f]
-  {I : ideal β} {hI : I.is_prime} : (comap f I).is_prime :=
-⟨comap_ne_top _ hI.1, λ x y,
-  by simp only [mem_comap, is_ring_hom.map_mul f]; apply hI.2⟩
 
 @[class] def is_maximal (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ J, I < J → J = ⊤

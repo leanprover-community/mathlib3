@@ -75,7 +75,7 @@ We use `≅` for isomorphisms.
 We use `⥤` (`\func`) to denote functors, as in `C ⥤ D` for the type of functors from `C` to `D`.
 (Unfortunately `⇒` is reserved in core: https://github.com/leanprover/lean/blob/master/library/init/relator.lean, so we can't use that here.)
 
-We use `F X` to denote the action of a functor on an object.
+We use `F.obj X` to denote the action of a functor on an object.
 We use `F.map f` to denote the action of a functor on a morphism`.
 
 Functor composition can be written as `F ⋙ G`.
@@ -84,6 +84,6 @@ Functor composition can be written as `F ⋙ G`.
 We use `⟹` (`\nattrans` or `\==>`) to denote the type of natural transformations, e.g. `F ⟹ G`.
 We use `⇔` (`\<=>`) to denote the type of natural isomorphisms.
 
-We prefer the of use `τ X` over `τ.app X`.
+We use `τ.app X` for the components of a natural transformation.
 
 For vertical and horiztonal composition of natural transformations we "cutely" use `⊟` (`\boxminus`) and `◫` (currently untypeable, but we could ask for `\boxvert`).

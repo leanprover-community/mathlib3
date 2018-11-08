@@ -41,9 +41,9 @@ def nbhds (x : X.α) : small_category (nbhd x) := begin unfold nbhd, apply_insta
 def map
   {X Y : Top.{u}} (f : X ⟶ Y) : opens Y ⥤ opens X :=
 { obj := λ U, ⟨ f.val ⁻¹' U, f.property _ U.property ⟩,
-  map' := λ U V i, ⟨ ⟨ λ a b, i.down.down b ⟩ ⟩ }.
+  map := λ U V i, ⟨ ⟨ λ a b, i.down.down b ⟩ ⟩ }.
 
-@[simp] lemma map_id_obj (X : Top.{u}) (U : opens X) : map (𝟙 X) U = U := by tidy
+@[simp] lemma map_id_obj (X : Top.{u}) (U : opens X) : (map (𝟙 X)).obj U = U := by tidy
 
 @[simp] def map_id (X : Top.{u}) : map (𝟙 X) ≅ functor.id (opens X) :=
 { hom := { app := λ U, 𝟙 U },

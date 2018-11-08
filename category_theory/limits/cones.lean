@@ -25,9 +25,15 @@ def functor.of_obj (X : C) : punit.{v+1} ⥤ C :=
 { obj := λ Y, X,
   map' := λ Y Z f, 𝟙 X }
 
-@[simp] lemma functor.of_obj_obj (X : C) (a : punit.{v+1}) : (((functor.of_obj X) : punit.{v+1} → C) a) = X := rfl
+@[simp] lemma functor.of_obj_obj (X : C) (a : punit.{v+1}) :
+  (((functor.of_obj X) : punit.{v+1} → C) a) = X :=
+rfl
 
-/-- A `c : cone F` is an object `c.X` and a natural transformation `c.π : c.X ⟹ F` from the constant `c.X` functor to `F`. -/
+/--
+A `c : cone F` is:
+* an object `c.X` and
+* a natural transformation `c.π : c.X ⟹ F` from the constant `c.X` functor to `F`.
+-/
 structure cone (F : J ⥤ C) :=
 (X : C)
 (π : const J C X ⟹ F)
@@ -41,7 +47,11 @@ begin
   exact eq.symm h
 end
 
-/-- A `c : cocone F` is an object `c.X` and a natural transformation `c.ι : F ⟹ c.X` from `F` to the constant `c.X` functor. -/
+/--
+A `c : cocone F` is
+* an object `c.X` and
+* a natural transformation `c.ι : F ⟹ c.X` from `F` to the constant `c.X` functor.
+-/
 structure cocone (F : J ⥤ C) :=
 (X : C)
 (ι : F ⟹ const J C X)
@@ -129,7 +139,8 @@ instance cones (F : J ⥤ C) : category.{(max u v) v} (cone F) :=
 namespace cones
 @[simp] lemma id.hom   {F : J ⥤ C} (c : cone F) : (𝟙 c : cone_morphism c c).hom = 𝟙 (c.X) := rfl
 @[simp] lemma comp.hom {F : J ⥤ C} {c d e : cone F} (f : c ⟶ d) (g : d ⟶ e) :
-  ((f ≫ g) : cone_morphism c e).hom = (f : cone_morphism c d).hom ≫ (g : cone_morphism d e).hom := rfl
+  ((f ≫ g) : cone_morphism c e).hom = (f : cone_morphism c d).hom ≫ (g : cone_morphism d e).hom :=
+rfl
 
 @[extensionality] def ext
   {F : J ⥤ C} (c c' : cone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.π j = φ.hom ≫ c'.π j): c ≅ c' :=
@@ -169,7 +180,8 @@ attribute [simp] cocone_morphism.w
 
 namespace cocone_morphism
 
-@[extensionality] lemma ext {A B : cocone F} {f g : cocone_morphism A B} (w : f.hom = g.hom) : f = g :=
+@[extensionality] lemma ext
+  {A B : cocone F} {f g : cocone_morphism A B} (w : f.hom = g.hom) : f = g :=
 begin
   induction f,
   induction g,
@@ -184,11 +196,15 @@ instance cocones (F : J ⥤ C) : category.{(max u v) v} (cocone F) :=
 { hom  := λ A B, cocone_morphism A B,
   comp := λ _ _ _ f g,
   { hom := f.hom ≫ g.hom,
-    w' := begin intros j, rw ←category.assoc, rw ←cocone_morphism.w g, rw ←cocone_morphism.w f j end },
+    w' :=
+    begin
+      intros j, rw [←category.assoc, ←cocone_morphism.w g, ←cocone_morphism.w f j]
+    end },
   id   := λ B, { hom := 𝟙 B.X } }
 
 namespace cocones
-@[simp] lemma id.hom   {F : J ⥤ C} (c : cocone F) : (𝟙 c : cocone_morphism c c).hom = 𝟙 (c.X) := rfl
+@[simp] lemma id.hom   {F : J ⥤ C} (c : cocone F) :
+  (𝟙 c : cocone_morphism c c).hom = 𝟙 (c.X) := rfl
 @[simp] lemma comp.hom {F : J ⥤ C} {c d e : cocone F} (f : c ⟶ d) (g : d ⟶ e) : ((f ≫ g) :
   cocone_morphism c e).hom = (f : cocone_morphism c d).hom ≫ (g : cocone_morphism d e).hom := rfl
 
@@ -217,7 +233,11 @@ include 𝒟
     ι  :=  whisker_right A.ι G ⊟ (functor.const_compose _ _ _ _).inv },
   map' := λ _ _ f,
   { hom := G.map f.hom,
-    w'  := begin intros, dsimp, erw [category.comp_id, ←functor.map_comp, cocone_morphism.w, category.comp_id], end } }
+    w'  :=
+    begin
+      intros, dsimp,
+      erw [category.comp_id, ←functor.map_comp, cocone_morphism.w, category.comp_id],
+    end } }
 end
 end cocones
 

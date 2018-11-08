@@ -13,9 +13,11 @@ The category of functors and natural transformations between fixed categories `C
 is defined in [category_theory/functor_category.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/functor_category.lean).
 
 Cartesian products of categories, functors, and natural transformations appear in
- [category_theory/products.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/products.lean). (Product in the sense of limits will appear elsewhere soon!)
+[category_theory/products.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/products.lean). (Product in the sense of limits will appear elsewhere soon!)
 
- The category of types, and the hom pairing functor, are defined in  [category_theory/types.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/types.lean).
+The category of types, and the hom pairing functor, are defined in  [category_theory/types.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/types.lean).
+
+
 
 ## Universes
 
@@ -31,15 +33,15 @@ nat_trans F G        : Type (max u₁ v₂)
 functor.category C D : category.{(max u₁ u₂ v₁ v₂) (max u₁ v₂)}
 ````
 
-Note then that if we specialise to small categories, where `uᵢ = vᵢ`, then 
-`functor.category C D : category.{(max u₁ u₂) (max u₁ u₂)}`, and so is again 
-a small category. If `C` is a small category and `D` is a large category 
-(i.e. `u₂ = v₂+1`), and `v₂ = v₁` then we have 
+Note then that if we specialise to small categories, where `uᵢ = vᵢ`, then
+`functor.category C D : category.{(max u₁ u₂) (max u₁ u₂)}`, and so is again
+a small category. If `C` is a small category and `D` is a large category
+(i.e. `u₂ = v₂+1`), and `v₂ = v₁` then we have
 `functor.category C D : category.{v₁+1 v₁}` so is again a large category.
 
-Whenever you want to write code uniformly for small and large categories 
-(which you do by talking about categories whose universe levels `u` and `v` 
-are unrelated), you will find that Lean's `variable` mechanism doesn't always 
+Whenever you want to write code uniformly for small and large categories
+(which you do by talking about categories whose universe levels `u` and `v`
+are unrelated), you will find that Lean's `variable` mechanism doesn't always
 work, and the following trick is often helpful:
 
 ````
@@ -48,7 +50,7 @@ variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 ````
 
-Some care with using `section ... end` can be required to make sure these 
+Some care with using `section ... end` can be required to make sure these
 included variables don't end up where they aren't wanted.
 
 ## Notation
@@ -61,7 +63,7 @@ This leaves the actual category implicit; it is inferred from the type of `X` an
 We use `𝟙` (`\b1`) to denote identity morphisms, as in `𝟙 X`.
 
 We use `≫` (`\gg`) to denote composition of morphisms, as in `f ≫ g`, which means "`f` followed by `g`".
-You may prefer write composition in the usual convention, using `⊚` (`\oo` or `\circledcirc`), as in `f ⊚ g` which means "`g` followed by `f`". To do so you'll need to add this notation locally, via 
+You may prefer write composition in the usual convention, using `⊚` (`\oo` or `\circledcirc`), as in `f ⊚ g` which means "`g` followed by `f`". To do so you'll need to add this notation locally, via
 ```
 local notation f ` ⊚ `:80 g:80 := category.comp g f
 ```

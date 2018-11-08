@@ -30,7 +30,8 @@ restate_axiom comma_morphism.w'
 
 namespace comma_morphism
 @[extensionality] lemma ext
-  {X Y : comma L R} {f g : comma_morphism X Y} (l : f.left = g.left) (r : f.right = g.right) : f = g :=
+  {X Y : comma L R} {f g : comma_morphism X Y}
+  (l : f.left = g.left) (r : f.right = g.right) : f = g :=
 begin
   cases f, cases g,
   congr; assumption

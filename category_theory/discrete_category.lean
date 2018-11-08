@@ -23,7 +23,8 @@ instance discrete_category (α : Type u₁) : small_category (discrete α) :=
   id   := by obviously,
   comp := by obviously }
 
-instance pempty_category : small_category pempty := (by apply_instance : small_category (discrete pempty))
+instance pempty_category : small_category pempty :=
+(by apply_instance : small_category (discrete pempty))
 
 instance punit_category : small_category punit :=
 { hom  := λ X Y, punit,
@@ -53,7 +54,8 @@ section forget
 
 end forget
 
-@[simp] lemma discrete.functor_map_id (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F j) :=
+@[simp] lemma discrete.functor_map_id
+  (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F j) :=
 begin
   have h : f = 𝟙 j, cases f, cases f, ext,
   rw h,

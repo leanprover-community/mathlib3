@@ -137,7 +137,8 @@ def is_pullback (t : square f g) := is_limit t
 
 variables {t : square f g}
 
-instance is_pullback_subsingleton : subsingleton (is_pullback t) := by dsimp [is_pullback]; apply_instance
+instance is_pullback_subsingleton : subsingleton (is_pullback t) :=
+by dsimp [is_pullback]; apply_instance
 
 lemma is_pullback.hom_ext (p : is_pullback t) {W : C} {k h : W ⟶ t.X}
   (w_left : k ≫ t.π left = h ≫ t.π left)
@@ -172,7 +173,8 @@ def is_pushout (t : cosquare f g) := is_colimit t
 
 variables {t : cosquare f g}
 
-instance is_pushout_subsingleton : subsingleton (is_pushout t) := by dsimp [is_pushout]; apply_instance
+instance is_pushout_subsingleton : subsingleton (is_pushout t) :=
+by dsimp [is_pushout]; apply_instance
 
 lemma is_pushout.hom_ext (p : is_pushout t) {W : C} {k h : t.X ⟶ W}
   (w_left : t.ι left ≫ k = t.ι left ≫ h)
@@ -190,7 +192,8 @@ end
 
 end pushout
 
-@[simp] def cone.of_square {F : walking_cospan.{v} ⥤ C} (t : square (F.map inl) (F.map inr)) : cone F :=
+@[simp] def cone.of_square
+  {F : walking_cospan.{v} ⥤ C} (t : square (F.map inl) (F.map inr)) : cone F :=
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
@@ -200,7 +203,8 @@ end pushout
       erw ← t.w inl, refl,
       erw ← t.w inr, refl,
     end } }.
-@[simp] def cocone.of_cosquare {F : walking_span.{v} ⥤ C} (t : cosquare (F.map fst) (F.map snd)) : cocone F :=
+@[simp] def cocone.of_cosquare
+  {F : walking_span.{v} ⥤ C} (t : cosquare (F.map fst) (F.map snd)) : cocone F :=
 { X := t.X,
   ι :=
   { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X,
@@ -211,11 +215,13 @@ end pushout
       erw ← t.w snd, refl,
     end } }.
 
-@[simp] def square.of_cone {F : walking_cospan.{v} ⥤ C} (t : cone F) : square (F.map inl) (F.map inr) :=
+@[simp] def square.of_cone
+  {F : walking_cospan.{v} ⥤ C} (t : cone F) : square (F.map inl) (F.map inr) :=
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy) } }
-@[simp] def cosquare.of_cocone {F : walking_span.{v} ⥤ C} (t : cocone F) : cosquare (F.map fst) (F.map snd) :=
+@[simp] def cosquare.of_cocone
+  {F : walking_span.{v} ⥤ C} (t : cocone F) : cosquare (F.map fst) (F.map snd) :=
 { X := t.X,
   ι :=
   { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X } }
@@ -232,10 +238,12 @@ class has_pushouts :=
 variable {C}
 
 -- Special cases of this may be marked with [instance] as desired.
-def has_pullbacks_of_has_limits [limits.has_limits_of_shape.{u v} walking_cospan C] : has_pullbacks.{u v} C :=
+def has_pullbacks_of_has_limits
+  [limits.has_limits_of_shape.{u v} walking_cospan C] : has_pullbacks.{u v} C :=
 { square := λ X Y Z f g, limit.cone (cospan f g),
   is_pullback := λ X Y Z f g, limit.universal_property (cospan f g) }
-def has_pushouts_of_has_colimits [limits.has_colimits_of_shape.{u v} walking_span C] : has_pushouts.{u v} C :=
+def has_pushouts_of_has_colimits
+  [limits.has_colimits_of_shape.{u v} walking_span C] : has_pushouts.{u v} C :=
 { cosquare := λ X Y Z f g, colimit.cocone (span f g),
   is_pushout := λ X Y Z f g, colimit.universal_property (span f g) }
 

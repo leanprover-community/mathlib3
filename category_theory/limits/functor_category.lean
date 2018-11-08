@@ -23,9 +23,12 @@ def switched (F : J ⥤ (K ⥤ C)) : K ⥤ (J ⥤ C) :=
     map' := λ j j' f, (F.map f) k,
     map_id' := λ X, begin rw category_theory.functor.map_id, refl end,
     map_comp' := λ X Y Z f g, by rw [functor.map_comp, ←functor.category.comp_app] },
-  map' := λ c c' f, { app := λ j, (F j).map f, naturality' := λ X Y g, by dsimp; rw ←nat_trans.naturality } }.
+  map' := λ c c' f,
+  { app := λ j, (F j).map f,
+    naturality' := λ X Y g, by dsimp; rw ←nat_trans.naturality } }.
 
-@[simp] lemma switched_obj_map (F : J ⥤ (K ⥤ C)) {j j' : J} (f : j ⟶ j') (X : K) : ((switched F) X).map f = (F.map f) X := rfl
+@[simp] lemma switched_obj_map (F : J ⥤ (K ⥤ C)) {j j' : J} (f : j ⟶ j') (X : K) :
+  ((switched F) X).map f = (F.map f) X := rfl
 
 @[simp] lemma cone.functor_w {F : J ⥤ (K ⥤ C)} (c : cone F) {j j' : J} (f : j ⟶ j') (k : K) :
   (c.π j) k ≫ (F.map f) k = (c.π j') k :=
@@ -50,24 +53,38 @@ begin
   refl,
 end
 
-@[simp] def functor_category_limit_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) : cone F :=
+@[simp] def functor_category_limit_cone
+  [has_limits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) : cone F :=
 { X := switched F ⋙ lim,
   π :=
   { app := λ j,
     { app := λ k, limit.π ((switched F) k) j },
-      naturality' := λ j j' f, begin dsimp, simp, ext k, dsimp, erw limit.w ((switched F) k), end } }
-@[simp] def functor_category_colimit_cocone [has_colimits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) : cocone F :=
+      naturality' := λ j j' f,
+        begin
+          dsimp, simp, ext k, dsimp,
+          erw limit.w ((switched F) k),
+        end } }
+@[simp] def functor_category_colimit_cocone
+  [has_colimits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) : cocone F :=
 { X := switched F ⋙ colim,
   ι :=
   { app := λ j,
     { app := λ k , colimit.ι ((switched F) k) j },
-      naturality' := λ j j' f, begin dsimp, simp, ext k, dsimp, erw colimit.w ((switched F) k), end } }
+      naturality' := λ j j' f,
+        begin
+          dsimp, simp, ext k, dsimp,
+          erw colimit.w ((switched F) k),
+        end } }
 
-@[simp] def evaluate_functor_category_limit_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) (k : K) :
-  (evaluation K C k).map_cone (functor_category_limit_cone F) ≅ limit.cone ((switched F) k) :=
+@[simp] def evaluate_functor_category_limit_cone
+  [has_limits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) (k : K) :
+  (evaluation K C k).map_cone (functor_category_limit_cone F) ≅
+    limit.cone ((switched F) k) :=
 by tidy
-@[simp] def evaluate_functor_category_colimit_cocone [has_colimits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) (k : K) :
-  (evaluation K C k).map_cocone (functor_category_colimit_cocone F) ≅ colimit.cocone ((switched F) k) :=
+@[simp] def evaluate_functor_category_colimit_cocone
+  [has_colimits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) (k : K) :
+  (evaluation K C k).map_cocone (functor_category_colimit_cocone F) ≅
+    colimit.cocone ((switched F) k) :=
 by tidy
 
 def functor_category_is_limit_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) :
@@ -94,7 +111,10 @@ def functor_category_is_colimit_cocone [has_colimits_of_shape.{u v} J C] (F : J 
       ι := { app := λ j, s.ι j k } },
     naturality' := λ k k' f,
     begin
-      ext, dsimp, rw ←category.assoc, simp, rw ←category.assoc, simp, erw ← nat_trans.naturality, refl,
+      ext, dsimp,
+      rw ←category.assoc, simp,
+      rw ←category.assoc, simp,
+      erw ← nat_trans.naturality, refl,
     end },
   uniq' := λ s m w,
   begin
@@ -103,31 +123,41 @@ def functor_category_is_colimit_cocone [has_colimits_of_shape.{u v} J C] (F : J 
     refl
   end }
 
-instance functor_category_has_limits_of_shape [has_limits_of_shape.{u v} J C] : has_limits_of_shape J (K ⥤ C) :=
+instance functor_category_has_limits_of_shape
+  [has_limits_of_shape.{u v} J C] : has_limits_of_shape J (K ⥤ C) :=
 { cone := λ F, functor_category_limit_cone F,
   is_limit := λ F, functor_category_is_limit_cone F }
-instance functor_category_has_colimits_of_shape [has_colimits_of_shape.{u v} J C] : has_colimits_of_shape J (K ⥤ C) :=
+instance functor_category_has_colimits_of_shape
+  [has_colimits_of_shape.{u v} J C] : has_colimits_of_shape J (K ⥤ C) :=
 { cocone := λ F, functor_category_colimit_cocone F,
   is_colimit := λ F, functor_category_is_colimit_cocone F }
 
 -- Perhaps we need hand-rolled versions of these? Let's see what people need.
-instance functor_category_has_products [has_products.{u v} C] : has_products.{(max u v) v} (K ⥤ C) :=
+instance functor_category_has_products
+  [has_products.{u v} C] : has_products.{(max u v) v} (K ⥤ C) :=
 limits.has_products_of_has_limits
-instance functor_category_has_coproducts [has_coproducts.{u v} C] : has_coproducts.{(max u v) v} (K ⥤ C) :=
+instance functor_category_has_coproducts
+  [has_coproducts.{u v} C] : has_coproducts.{(max u v) v} (K ⥤ C) :=
 limits.has_coproducts_of_has_colimits
-instance functor_category_has_pullbacks [has_pullbacks.{u v} C] : has_pullbacks.{(max u v) v} (K ⥤ C) :=
+instance functor_category_has_pullbacks
+  [has_pullbacks.{u v} C] : has_pullbacks.{(max u v) v} (K ⥤ C) :=
 limits.has_pullbacks_of_has_limits
-instance functor_category_has_pushouts [has_pushouts.{u v} C] : has_pushouts.{(max u v) v} (K ⥤ C) :=
+instance functor_category_has_pushouts
+  [has_pushouts.{u v} C] : has_pushouts.{(max u v) v} (K ⥤ C) :=
 limits.has_pushouts_of_has_colimits
-instance functor_category_has_equalizers [has_equalizers.{u v} C] : has_equalizers.{(max u v) v} (K ⥤ C) :=
+instance functor_category_has_equalizers
+  [has_equalizers.{u v} C] : has_equalizers.{(max u v) v} (K ⥤ C) :=
 limits.has_equalizers_of_has_limits
-instance functor_category_has_coequalizers [has_coequalizers.{u v} C] : has_coequalizers.{(max u v) v} (K ⥤ C) :=
+instance functor_category_has_coequalizers
+  [has_coequalizers.{u v} C] : has_coequalizers.{(max u v) v} (K ⥤ C) :=
 limits.has_coequalizers_of_has_colimits
 
-instance functor_category_has_limits [has_limits.{u v} C] : has_limits.{(max u v) v} (K ⥤ C) :=
+instance functor_category_has_limits
+  [has_limits.{u v} C] : has_limits.{(max u v) v} (K ⥤ C) :=
 { cone := λ J 𝒥 F, by resetI; exact functor_category_limit_cone F,
   is_limit := λ J 𝒥 F, by resetI; exact functor_category_is_limit_cone F }
-instance functor_category_has_colimits [has_colimits.{u v} C] : has_colimits.{(max u v) v} (K ⥤ C) :=
+instance functor_category_has_colimits
+  [has_colimits.{u v} C] : has_colimits.{(max u v) v} (K ⥤ C) :=
 { cocone := λ J 𝒥 F, by resetI; exact functor_category_colimit_cocone F,
   is_colimit := λ J 𝒥 F, by resetI; exact functor_category_is_colimit_cocone F }
 
@@ -135,7 +165,8 @@ instance evaluation_preserves_limits_of_shape [has_limits_of_shape.{u v} J C] (k
   preserves_limits_of_shape J (evaluation.{v v u v} K C k) :=
 { preserves := λ F c h,
   begin
-    have i : functor_category_limit_cone F ≅ c := limit_cone.ext (functor_category_is_limit_cone F) h,
+    have i : functor_category_limit_cone F ≅ c :=
+      limit_cone.ext (functor_category_is_limit_cone F) h,
     apply is_limit_invariance _ _ (functor.on_iso _ i),
 
     -- Next, we know exactly what the evaluation of the `product_cone F` is:
@@ -148,7 +179,8 @@ instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape.{u v} J C
   preserves_colimits_of_shape J (evaluation.{v v u v} K C k) :=
 { preserves := λ F c h,
   begin
-    have i : functor_category_colimit_cocone F ≅ c := colimit_cocone.ext (functor_category_is_colimit_cocone F) h,
+    have i : functor_category_colimit_cocone F ≅ c :=
+      colimit_cocone.ext (functor_category_is_colimit_cocone F) h,
     apply is_colimit_invariance _ _ (functor.on_iso _ i),
 
     -- Next, we know exactly what the evaluation of the `product_cocone F` is:

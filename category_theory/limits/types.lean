@@ -35,7 +35,8 @@ instance : has_limits.{u+1 u} (Type u) :=
   limits.limit F = {u : Π j, F j // ∀ j j' f, F.map f (u j) = u j'} := rfl
 @[simp] lemma types_limit_π (F : J ⥤ Type u) (j : J) (g : (limit F).X) :
   limit.π F j g = g.val j := rfl.
-@[simp] lemma types_limit_pre (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (limit F).X) :
+@[simp] lemma types_limit_pre
+  (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (limit F).X) :
   limit.pre F E g = (⟨ λ k, g.val (E k), by obviously ⟩ : (limit (E ⋙ F)).X) := rfl
 @[simp] lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟹ G) (g : (limit F).X) :
   (lim.map α : (limit F).X → (limit G).X) g =
@@ -65,7 +66,8 @@ instance : has_colimits.{u+1 u} (Type u) :=
 
 @[simp] lemma types_colimit (F : J ⥤ Type u) :
   limits.colimit F = @quot (Σ j, F j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2) := rfl
-@[simp] lemma types_colimit_ι (F : J ⥤ Type u) (j : J) : colimit.ι F j = λ x, quot.mk _ (⟨j, x⟩ : (Σ j, F j)) := rfl.
+@[simp] lemma types_colimit_ι
+  (F : J ⥤ Type u) (j : J) : colimit.ι F j = λ x, quot.mk _ (⟨j, x⟩ : (Σ j, F j)) := rfl.
 
 local attribute [extensionality] quot.sound
 
@@ -79,7 +81,6 @@ local attribute [extensionality] quot.sound
 -- @[simp] lemma types_colimit_pre
 --   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
 --   colimit.pre F E g = sorry := sorry
--- -- What are you meant to do here? Split into cases depending on whether ∃ j : J, then use choice?
 -- @[simp] lemma types_colimit_desc (F : J ⥤ Type u) (c : cocone F) :
 --   colimit.desc F c = λ x, sorry := sorry
 
@@ -128,7 +129,7 @@ instance : has_pullbacks.{u+1 u} (Type u) :=
       exact congr_fun (w right) x,
     end }, }
 
--- We should eventually provide 'hand-rolled' instances, like those above, 
+-- We should eventually provide 'hand-rolled' instances, like those above,
 -- which will be cleaner to use.
 
 instance : has_products.{u+1 u} (Type u) := has_products_of_has_limits

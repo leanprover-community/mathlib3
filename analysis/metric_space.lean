@@ -780,7 +780,7 @@ instance complete_of_proper {α : Type u} [metric_space α] [proper_space α] : 
   intros f hf,
   /-We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
   ball (therefore compact by properness) where it is nontrivial.-/
-  have A : ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < 1 := (cauchy_of_metric.1 hf).2 1 (by norm_num),
+  have A : ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < 1 := (cauchy_of_metric.1 hf).2 1 zero_lt_one,
   rcases A with ⟨t, ⟨t_fset, ht⟩⟩,
   rcases inhabited_of_mem_sets hf.1 t_fset with ⟨x, xt⟩,
   have : t ⊆ closed_ball x 1 := by intros y yt; simp [dist_comm]; apply le_of_lt (ht x y xt yt),

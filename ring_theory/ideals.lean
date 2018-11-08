@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
-import tactic.ring linear_algebra.basic ring_theory.associated
+import linear_algebra.basic ring_theory.associated order.zorn
 
 universes u v
 variables {α : Type u} {β : Type v} [comm_ring α] {a b : α}
@@ -133,22 +133,13 @@ instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prim
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 begin
-  let C : set (set α) := {s | ∃ J:ideal α, J ≠ ⊤ ∧ ↑J = s},
-  rcases zorn.zorn_subset₀ C _ _ ⟨I, hI, rfl⟩ with ⟨_, ⟨M, M0, rfl⟩, IM, h⟩,
+  rcases zorn.zorn_partial_order₀ { J : ideal α | J ≠ ⊤ } _ I hI with ⟨M, M0, IM, h⟩,
   { refine ⟨M, ⟨M0, λ J hJ, by_contradiction $ λ J0, _⟩, IM⟩,
-    cases lt_iff_le_not_le.1 hJ with hJ₁ hJ₂,
-    exact hJ₂ (le_of_eq (h _ ⟨_, J0, rfl⟩ hJ₁) : _) },
-  { intros S SC cC S0,
-    choose I hp using show ∀ x : S, ↑x ∈ C, from λ ⟨x, xs⟩, SC xs,
-    refine ⟨_, ⟨⨆ s:S, span s, _, rfl⟩, _⟩,
-    rw [ne_top_iff_one, submodule.mem_supr_of_directed
-      (coe_nonempty_iff_ne_empty.2 S0), not_exists],
-    { rintro ⟨_, xs⟩, rcases SC xs with ⟨J, J0, rfl⟩,
-      simp, exact J.ne_top_iff_one.1 J0 },
-    { rintro ⟨i, iS⟩ ⟨j, jS⟩,
-      rcases cC.directed iS jS with ⟨k, kS, ik, jk⟩,
-      exact ⟨⟨_, kS⟩, span_mono ik, span_mono jk⟩ },
-    { exact λ s ss, span_le.1 (le_supr (λ s:S, span (s:set α)) ⟨s, ss⟩) } },
+    cases h J J0 (le_of_lt hJ), exact lt_irrefl _ hJ },
+  { intros S SC cC I IS,
+    refine ⟨Sup S, λ H, _, λ _, le_Sup⟩,
+    rcases submodule.mem_Sup_of_directed ((eq_top_iff_one _).1 H) I IS cC.directed_on with ⟨J, JS, J0⟩,
+    exact SC JS ((eq_top_iff_one _).2 J0) }
 end
 
 end ideal

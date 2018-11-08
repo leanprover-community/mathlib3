@@ -696,24 +696,20 @@ let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 
 theorem exists_irreducible (s : set α) (H : is_irreducible s) :
   ∃ t : set α, is_irreducible t ∧ s ⊆ t ∧ ∀ u, is_irreducible u → t ⊆ u → u = t :=
-let ⟨⟨m, hsm, hm⟩, hm_max⟩ := @zorn.zorn { t | s ⊆ t ∧ is_irreducible t } (subrel (⊆) _)
-  (λ c hchain, classical.by_cases
-    (assume hc : c = ∅, ⟨⟨s, set.subset.refl s, H⟩, λ ⟨t, hsx, hx⟩,
-      hc.symm ▸ false.elim⟩)
-    (assume hc : c ≠ ∅, let ⟨⟨x, hsx, hx⟩, hxc⟩ := exists_mem_of_ne_empty hc in
-      ⟨⟨⋃ t ∈ c, subtype.val t, λ z hz, mem_bUnion hxc (hsx hz), λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
-        let ⟨p, hpc, hyp⟩ := mem_bUnion_iff.1 hy,
-            ⟨q, hqc, hzq⟩ := mem_bUnion_iff.1 hz in
-        or.cases_on (zorn.chain.total hchain hpc hqc)
-          (assume hpq : p.1 ⊆ q.1, let ⟨x, hxp, hxuv⟩ := q.2.2 u v hu hv
-              ⟨y, hpq hyp, hyu⟩ ⟨z, hzq, hzv⟩ in
-            ⟨x, mem_bUnion hqc hxp, hxuv⟩)
-          (assume hqp : q.1 ⊆ p, let ⟨x, hxp, hxuv⟩ := p.2.2 u v hu hv
-              ⟨y, hyp, hyu⟩ ⟨z, hqp hzq, hzv⟩ in
-            ⟨x, mem_bUnion hpc hxp, hxuv⟩)⟩,
-      λ ⟨p, hsp, hp⟩ hpc z hzp, mem_bUnion hpc hzp⟩))
-  (λ _ _ _, set.subset.trans) in
-⟨m, hm, hsm, λ u hu hmu, subset.antisymm (hm_max ⟨_, set.subset.trans hsm hmu, hu⟩ hmu) hmu⟩
+let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ { t : set α | is_irreducible t }
+  (λ c hc hcc hcn, let ⟨t, htc⟩ := exists_mem_of_ne_empty hcn in
+    ⟨⋃₀ c, λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
+      let ⟨p, hpc, hyp⟩ := mem_sUnion.1 hy,
+          ⟨q, hqc, hzq⟩ := mem_sUnion.1 hz in
+      or.cases_on (zorn.chain.total hcc hpc hqc)
+        (assume hpq : p ⊆ q, let ⟨x, hxp, hxuv⟩ := hc hqc u v hu hv
+            ⟨y, hpq hyp, hyu⟩ ⟨z, hzq, hzv⟩ in
+          ⟨x, mem_sUnion_of_mem hxp hqc, hxuv⟩)
+        (assume hqp : q ⊆ p, let ⟨x, hxp, hxuv⟩ := hc hpc u v hu hv
+            ⟨y, hyp, hyu⟩ ⟨z, hqp hzq, hzv⟩ in
+          ⟨x, mem_sUnion_of_mem hxp hpc, hxuv⟩),
+    λ x hxc, set.subset_sUnion_of_mem hxc⟩) s H in
+⟨m, hm, hsm, λ u hu hmu, hmm _ hu hmu⟩
 
 def irreducible_component (x : α) : set α :=
 classical.some (exists_irreducible {x} is_irreducible_singleton)

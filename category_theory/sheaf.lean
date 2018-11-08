@@ -172,14 +172,16 @@ definition covers := coverage.covers 𝒳.coverage
 
 end site
 
+set_option trace.simplify true
+
 def site.trivial (X : Type u) [small_category.{u} X] : site X :=
 { coverage :=
   { covers := λ U Us, Us = {(over.mk (𝟙 U))},
     property := λ U V g f (hf : _ = _), ⟨{(over.mk (𝟙 V))}, rfl, (λ Vj,
     begin
       subst hf,
-      refine ⟨_,_⟩,
-      { obviously },
+      refine ⟨⟨over.mk (𝟙 U), set.mem_singleton _⟩, _⟩,
+      { sorry },
     end ⟩ } }
 
 def site.discrete (X : Type u) [small_category.{u} X] : site X :=

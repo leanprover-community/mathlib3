@@ -306,7 +306,30 @@ begin
   convert order_embedding.well_founded (order_embedding.rsymm (ideal.lt_order_embedding_of_surjective f hf)) H
 end
 
-theorem is_noetherian_ring_of_equiv (R) [comm_ring R] {S} [comm_ring S]
-  (f : R ≃ S) (hf : is_ring_hom f)
-  (H : is_noetherian_ring R) : is_noetherian_ring S :=
-is_noetherian_ring_of_surjective R S f f.bijective.2 H
+structure ring_equiv (α β : Type*) [ring α] [ring β] extends α ≃ β :=
+(hom : is_ring_hom to_fun)
+
+infix ` ≃r `:50 := ring_equiv
+
+namespace ring_equiv
+
+instance {α β : Type*} [ring α] [ring β] {e : α ≃r β} : is_ring_hom e.to_equiv := hom _
+
+protected def refl (α : Type*) [ring α] : α ≃r α :=
+{ hom := is_ring_hom.id, .. equiv.refl α }
+
+protected def symm {α β : Type*} [ring α] [ring β] (e : α ≃r β) : β ≃r α :=
+{ hom := ⟨(equiv.symm_apply_eq _).2 e.hom.1.symm,
+    λ x y, (equiv.symm_apply_eq _).2 $ show _ = e.to_equiv.to_fun _, by rw [e.2.2, e.1.4, e.1.4],
+    λ x y, (equiv.symm_apply_eq _).2 $ show _ = e.to_equiv.to_fun _, by rw [e.2.3, e.1.4, e.1.4]⟩,
+  .. e.to_equiv.symm }
+
+protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
+  (e₁ : β ≃r γ) (e₂ : α ≃r β) : α ≃r γ :=
+{ hom := is_ring_hom.comp _ _, .. e₂.1.trans e₁.1  }
+
+end ring_equiv
+
+theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
+  (f : R ≃r S) (H : is_noetherian_ring R) : is_noetherian_ring S :=
+is_noetherian_ring_of_surjective R S f.1 f.1.bijective.2 H

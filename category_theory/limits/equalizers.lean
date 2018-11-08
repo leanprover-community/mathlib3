@@ -45,7 +45,7 @@ def pair (f g : X ⟶ Y) : walking_pair.{v} ⥤ C :=
   | zero := X
   | one := Y
   end,
-  map' := λ x y h, match x, y, h with
+  map := λ x y h, match x, y, h with
   | _, _, (id _) := 𝟙 _
   | _, _, inl := f
   | _, _, inr := g
@@ -55,7 +55,7 @@ def pair (f g : X ⟶ Y) : walking_pair.{v} ⥤ C :=
 @[simp] lemma pair_map_inr (f g : X ⟶ Y) : (pair f g).map inr = g := rfl
 
 @[simp] lemma pair_functor_obj {F : walking_pair.{v} ⥤ C} (j : walking_pair.{v}) :
-  (pair (F.map inl) (F.map inr)) j = F j :=
+  (pair (F.map inl) (F.map inr)).obj j = F.obj j :=
 begin
   cases j; refl
 end
@@ -86,8 +86,8 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
       exact eq.symm w
     end }}
 
-def fork.ι (t : fork f g) := t.π zero
-def cofork.π (t : cofork f g) := t.ι one
+def fork.ι (t : fork f g) := t.π.app zero
+def cofork.π (t : cofork f g) := t.ι.app one
 
 def is_equalizer (t : fork f g) := is_limit t
 def is_coequalizer (t : cofork f g) := is_colimit t
@@ -98,7 +98,7 @@ lemma is_equalizer.mono {t : fork f g} (h : is_equalizer t) : mono t.ι :=
    apply h.hom_ext,
    rintro (_|_),
    { exact H },
-   { have : t.π one = t.π zero ≫ f, from (t.w inl).symm,
+   { have : t.π.app one = t.π.app zero ≫ f, from (t.w inl).symm,
      rw [this, ←category.assoc, ←category.assoc, H] }
  end⟩
 
@@ -107,7 +107,7 @@ lemma is_coequalizer.epi {t : cofork f g} (h : is_coequalizer t) : epi t.π :=
    unfold cofork.π at H,
    apply h.hom_ext,
    rintro (_|_),
-   { have : t.ι zero = f ≫ t.ι one, from (t.w inl).symm,
+   { have : t.ι.app zero = f ≫ t.ι.app one, from (t.w inl).symm,
      rw [this, category.assoc, category.assoc, H] },
    { exact H }
  end⟩

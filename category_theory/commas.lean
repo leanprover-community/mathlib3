@@ -17,7 +17,7 @@ include 𝒜 ℬ 𝒯
 structure comma (L : A ⥤ T) (R : B ⥤ T) :=
 (left : A . obviously)
 (right : B . obviously)
-(hom : L left ⟶ R right)
+(hom : L.obj left ⟶ R.obj right)
 
 variables {L : A ⥤ T} {R : B ⥤ T}
 

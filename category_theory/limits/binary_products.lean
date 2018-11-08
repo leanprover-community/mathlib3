@@ -20,6 +20,8 @@ def two.map {C : Type u} (X Y : C) : two → C
 variables (C : Type u) [𝒞 : category.{u v} C]
 include 𝒞
 
+-- FIXME can we use `def` here? with a `class` attribute?
+
 class has_binary_products extends has_products_of_shape.{u v} two.{v} C
 class has_binary_coproducts extends has_coproducts_of_shape.{u v} two.{v} C
 
@@ -45,9 +47,9 @@ variable [has_binary_product.{u v} X Y]
 def prod.span : fan (two.map X Y) := has_product.fan.{u v} (two.map X Y)
 protected def prod : C := (prod.span.{u v} X Y).X
 def prod.fst : limits.prod X Y ⟶ X :=
-((prod.span.{u v} X Y).π : Π β, limits.prod.{u v} X Y ⟶ (two.map X Y) β) two.left
+(prod.span.{u v} X Y).π.app two.left
 def prod.snd : limits.prod X Y ⟶ Y :=
-((prod.span.{u v} X Y).π : Π β, limits.prod.{u v} X Y ⟶ (two.map X Y) β) two.right
+(prod.span.{u v} X Y).π.app two.right
 end prod
 
 section sum
@@ -56,9 +58,9 @@ variable [has_binary_coproduct.{u v} X Y]
 def sum.cospan : cofan (two.map X Y) := has_coproduct.cofan.{u v} (two.map X Y)
 protected def sum : C := (sum.cospan.{u v} X Y).X
 def sum.inl : X ⟶ limits.sum X Y :=
-((sum.cospan.{u v} X Y).ι : Π β, (two.map X Y) β ⟶ limits.sum.{u v} X Y) two.left
+(sum.cospan.{u v} X Y).ι.app two.left
 def sum.inr : Y ⟶ limits.sum X Y :=
-((sum.cospan.{u v} X Y).ι : Π β, (two.map X Y) β ⟶ limits.sum.{u v} X Y) two.right
+(sum.cospan.{u v} X Y).ι.app two.right
 end sum
 
 -- TODO many things

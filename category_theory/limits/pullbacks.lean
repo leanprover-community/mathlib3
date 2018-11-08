@@ -68,7 +68,7 @@ def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=
   | right := Y
   | one := Z
   end,
-  map' := λ x y h, match x, y, h with
+  map := λ x y h, match x, y, h with
   | _, _, (id _) := 𝟙 _
   | _, _, inl := f
   | _, _, inr := g
@@ -79,26 +79,26 @@ def span {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) : walking_span.{v} ⥤ C :=
   | left := Y
   | right := Z
   end,
-  map' := λ x y h, match x, y, h with
+  map := λ x y h, match x, y, h with
   | _, _, (id _) := 𝟙 _
   | _, _, fst := f
   | _, _, snd := g
   end }
 
 @[simp] lemma cospan_left {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  cospan f g walking_cospan.left = X := rfl
+  (cospan f g).obj walking_cospan.left = X := rfl
 @[simp] lemma span_left {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
-  span f g walking_span.left = Y := rfl
+  (span f g).obj walking_span.left = Y := rfl
 
 @[simp] lemma cospan_right {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  cospan f g walking_cospan.right = Y := rfl
+  (cospan f g).obj walking_cospan.right = Y := rfl
 @[simp] lemma span_right {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
-  span f g walking_span.right = Z := rfl
+  (span f g).obj walking_span.right = Z := rfl
 
 @[simp] lemma cospan_one {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  cospan f g walking_cospan.one = Z := rfl
+  (cospan f g).obj walking_cospan.one = Z := rfl
 @[simp] lemma span_zero {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
-  span f g walking_span.zero = X := rfl
+  (span f g).obj walking_span.zero = X := rfl
 
 @[simp] lemma cospan_map_inl {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
   (cospan f g).map walking_cospan_hom.inl = f := rfl
@@ -141,8 +141,8 @@ instance is_pullback_subsingleton : subsingleton (is_pullback t) :=
 by dsimp [is_pullback]; apply_instance
 
 lemma is_pullback.hom_ext (p : is_pullback t) {W : C} {k h : W ⟶ t.X}
-  (w_left : k ≫ t.π left = h ≫ t.π left)
-  (w_right : k ≫ t.π right = h ≫ t.π right) : k = h :=
+  (w_left : k ≫ t.π.app left = h ≫ t.π.app left)
+  (w_right : k ≫ t.π.app right = h ≫ t.π.app right) : k = h :=
 begin
  rw [p.hom_lift k, p.hom_lift h]; congr,
  ext j, cases j,
@@ -177,8 +177,8 @@ instance is_pushout_subsingleton : subsingleton (is_pushout t) :=
 by dsimp [is_pushout]; apply_instance
 
 lemma is_pushout.hom_ext (p : is_pushout t) {W : C} {k h : t.X ⟶ W}
-  (w_left : t.ι left ≫ k = t.ι left ≫ h)
-  (w_right : t.ι right ≫ k = t.ι right ≫ h) : k = h :=
+  (w_left : t.ι.app left ≫ k = t.ι.app left ≫ h)
+  (w_right : t.ι.app right ≫ k = t.ι.app right ≫ h) : k = h :=
 begin
  rw [p.hom_desc k, p.hom_desc h]; congr,
  ext j, cases j,
@@ -192,7 +192,7 @@ end
 
 end pushout
 
-@[simp] def cone.of_square
+def cone.of_square
   {F : walking_cospan.{v} ⥤ C} (t : square (F.map inl) (F.map inr)) : cone F :=
 { X := t.X,
   π :=
@@ -203,7 +203,23 @@ end pushout
       erw ← t.w inl, refl,
       erw ← t.w inr, refl,
     end } }.
-@[simp] def cocone.of_cosquare
+
+@[simp] lemma cone.of_square_π_left
+  {F : walking_cospan.{v} ⥤ C} (t : square (F.map inl) (F.map inr)):
+  (cone.of_square t).π.app left = t.π.app left :=
+begin
+  dsimp [cone.of_square],
+  simp,
+end
+@[simp] lemma cone.of_square_π_right
+  {F : walking_cospan.{v} ⥤ C} (t : square (F.map inl) (F.map inr)):
+  (cone.of_square t).π.app right = t.π.app right :=
+begin
+  dsimp [cone.of_square],
+  simp,
+end
+
+def cocone.of_cosquare
   {F : walking_span.{v} ⥤ C} (t : cosquare (F.map fst) (F.map snd)) : cocone F :=
 { X := t.X,
   ι :=
@@ -215,12 +231,12 @@ end pushout
       erw ← t.w snd, refl,
     end } }.
 
-@[simp] def square.of_cone
+def square.of_cone
   {F : walking_cospan.{v} ⥤ C} (t : cone F) : square (F.map inl) (F.map inr) :=
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy) } }
-@[simp] def cosquare.of_cocone
+def cosquare.of_cocone
   {F : walking_span.{v} ⥤ C} (t : cocone F) : cosquare (F.map fst) (F.map snd) :=
 { X := t.X,
   ι :=
@@ -270,11 +286,11 @@ instance has_limits_of_shape_of_has_pullbacks [has_pullbacks.{u v} C] :
   { lift := λ s, is_pullback.lift (square.of_cone s),
     fac' := λ s j,
     begin
-      convert is_pullback.fac (square.of_cone s) j; cases j,
-      tidy,
+      have h := is_pullback.fac (square.of_cone s) j,
+      sorry
     end,
     uniq' := λ s m w, is_pullback.uniq (square.of_cone s) m
-      (λ j, begin convert w j; cases j, tidy end) } }.
+      (λ j, begin convert w j; sorry end) } }.
 
 @[extensionality] lemma pullback.hom_ext [has_pullbacks.{u v} C] {W : C}
   {k h : W ⟶ pullback f g}
@@ -335,11 +351,10 @@ instance has_colimits_of_shape_of_has_pushouts [has_pushouts.{u v} C] :
   { desc := λ s, is_pushout.desc (cosquare.of_cocone s),
     fac' := λ s j,
     begin
-      convert is_pushout.fac (cosquare.of_cocone s) j; cases j,
-      tidy,
+      convert is_pushout.fac (cosquare.of_cocone s) j; sorry
     end,
     uniq' := λ s m w, is_pushout.uniq (cosquare.of_cocone s) m
-      (λ j, begin convert w j; cases j, tidy end) } }.
+      (λ j, begin convert w j; sorry end) } }.
 
 @[extensionality] lemma pushout.hom_ext [has_pushouts.{u v} C] {W : C}
   {k h : pushout f g ⟶ W}

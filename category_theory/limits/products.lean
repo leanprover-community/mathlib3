@@ -116,13 +116,13 @@ section
 def pi.fan (f : β → C) [has_product f] : fan f := has_product.fan.{u v} f
 protected def pi (f : β → C) [has_product f] : C := (pi.fan f).X
 def pi.π (f : β → C) [has_product f] (b : β) : limits.pi f ⟶ f b :=
-((pi.fan f).π : Π b : β, limits.pi  f ⟶ f b) b
+(pi.fan f).π.app b
 def pi.universal_property (f : β → C) [has_product f] : is_product (pi.fan f) :=
 has_product.is_product.{u v} f
 
 @[simp] lemma pi.fan_π
   (f : β → C) [has_product f] (b : β) :
-  ((pi.fan f).π : Π b : β, limits.pi  f ⟶ f b) b = @pi.π _ C _ f _ b := rfl
+  (pi.fan f).π.app b = @pi.π _ C _ f _ b := rfl
 
 @[simp] def cone.of_function
   {f : β → C} {P : C} (p : Π b, P ⟶ f b) : cone (functor.of_function f) :=
@@ -160,7 +160,7 @@ variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
 
 def pi.post (f : β → C) [has_product f] (G : C ⥤ D) [has_product (G.obj ∘ f)] :
-  G (limits.pi f) ⟶ (limits.pi (G.obj ∘ f)) :=
+  G.obj (limits.pi f) ⟶ (limits.pi (G.obj ∘ f)) :=
 @is_limit.lift _ _ _ _ _
   (pi.fan (G.obj ∘ f))
   (pi.universal_property _)
@@ -346,13 +346,13 @@ section
 def sigma.cofan (f : β → C) [has_coproduct f] := has_coproduct.cofan.{u v} f
 protected def sigma (f : β → C) [has_coproduct f] : C := (sigma.cofan f).X
 def sigma.ι (f : β → C) [has_coproduct f] (b : β) : f b ⟶ limits.sigma f :=
-((sigma.cofan f).ι : Π b : β, f b ⟶ limits.sigma f) b
+(sigma.cofan f).ι.app b
 def sigma.universal_property (f : β → C) [has_coproduct f] : is_coproduct (sigma.cofan f) :=
 has_coproduct.is_coproduct.{u v} f
 
 @[simp] lemma sigma.cofan_ι
   (f : β → C) [has_coproduct f] (b : β) :
-  ((sigma.cofan f).ι : Π b : β, f b ⟶ limits.sigma f) b = @sigma.ι _ C _ f _ b := rfl
+  (sigma.cofan f).ι.app b = @sigma.ι _ C _ f _ b := rfl
 
 @[simp] def cocone.of_function
   {f : β → C} {P : C} (p : Π b, f b ⟶ P) : cocone (functor.of_function f) :=
@@ -390,7 +390,7 @@ variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
 
 def sigma.post (f : β → C) [has_coproduct f] (G : C ⥤ D) [has_coproduct (G.obj ∘ f)] :
-  (limits.sigma (G.obj ∘ f)) ⟶ G (limits.sigma f) :=
+  (limits.sigma (G.obj ∘ f)) ⟶ G.obj (limits.sigma f) :=
 @is_colimit.desc _ _ _ _ _
   (sigma.cofan (G.obj ∘ f))
   (sigma.universal_property _)
@@ -414,8 +414,6 @@ colimit.hom_ext w
   {f : β → C} {g : β → C} {P : C} (k : Π b, f b ⟶ g b) (p : Π b, g b ⟶ P) :
   sigma.map k ≫ sigma.desc p = sigma.desc (λ b, k b ≫ p b) :=
 colimit.map_desc (cocone.of_function p) (nat_trans.of_function k)
-
--- FIXME continue fixing the `has_coproduct` typeclass arguments.
 
 @[simp] lemma sigma.map_map
   {f1 : β → C} [has_coproduct.{u v} f1]

@@ -36,7 +36,7 @@ instance punit_category : small_category punit :=
 
 def discrete.lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete α) ⥤ (discrete β) :=
 { obj := f,
-  map' := λ X Y g, begin cases g, cases g, cases g, exact 𝟙 (f X) end }
+  map := λ X Y g, begin cases g, cases g, cases g, exact 𝟙 (f X) end }
 
 variables (J : Type v₂) [small_category J]
 
@@ -48,14 +48,14 @@ section forget
 @[simp] def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
 { obj := λ F,
   { obj := F.obj,
-    map' := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 _ end },
-  map' := λ F G α,
+    map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 _ end },
+  map := λ F G α,
   { app := α.app } }
 
 end forget
 
 @[simp] lemma discrete.functor_map_id
-  (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F j) :=
+  (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F.obj j) :=
 begin
   have h : f = 𝟙 j, cases f, cases f, ext,
   rw h,
@@ -69,9 +69,7 @@ variables {C}
 
 @[simp] def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
 { obj := F,
-  map' := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
-
--- instance of_function_coe {I : Type u₁} : has_coe (I → C) ((discrete I) ⥤ C) := ⟨ of_function ⟩
+  map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
 
 end functor
 
@@ -82,7 +80,12 @@ variables {C}
 @[simp] def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
   (functor.of_function F) ⟹ (functor.of_function G) :=
 { app := λ i, f i,
-  naturality' := λ X Y g, begin cases g, cases g, cases g, dsimp [functor.of_function], simp, end }
+  naturality' := λ X Y g,
+  begin
+    cases g, cases g, cases g,
+    dsimp [functor.of_function],
+    simp,
+  end }
 
 end nat_trans
 

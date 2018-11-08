@@ -313,6 +313,9 @@ lemma map_coe (f : β →ₗ γ) (p : submodule α β) :
 @[simp] lemma mem_map {f : β →ₗ γ} {p : submodule α β} {x : γ} :
   x ∈ map f p ↔ ∃ y, y ∈ p ∧ f y = x := iff.rfl
 
+theorem mem_map_of_mem {f : β →ₗ γ} {p : submodule α β} {r} (h : r ∈ p) : f r ∈ map f p :=
+set.mem_image_of_mem _ h
+
 lemma map_id : map linear_map.id p = p :=
 submodule.ext $ λ a, by simp
 

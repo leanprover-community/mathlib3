@@ -7,8 +7,9 @@ More operations on modules and ideals.
 -/
 
 import ring_theory.ideals data.nat.choose order.zorn
+import linear_algebra.tensor_product
 
-universes u v w
+universes u v w x
 
 open lattice
 
@@ -20,7 +21,54 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
 ⟨λ I N, ⨆ r : I, N.map (r.1 • linear_map.id)⟩
 
-variables {I J : ideal R} {N P : submodule R M}
+def annihilator (N : submodule R M) : ideal R :=
+(linear_map.lsmul R N).ker
+
+def colon (N P : submodule R M) : ideal R :=
+annihilator (P.map N.mkq)
+
+variables {I J : ideal R} {N N₁ N₂ P P₁ P₂ : submodule R M}
+
+theorem mem_annihilator {r} : r ∈ N.annihilator ↔ ∀ n ∈ N, r • n = (0:M) :=
+⟨λ hr n hn, congr_arg subtype.val (linear_map.ext_iff.1 (linear_map.mem_ker.1 hr) ⟨n, hn⟩),
+λ h, linear_map.mem_ker.2 $ linear_map.ext $ λ n, subtype.eq $ h n.1 n.2⟩
+
+theorem mem_annihilator' {r} : r ∈ N.annihilator ↔ N ≤ comap (r • linear_map.id) ⊥ :=
+mem_annihilator.trans ⟨λ H n hn, mem_bot.2 $ H n hn, λ H n hn, mem_bot.1 $ H hn⟩
+
+theorem annihilator_bot : (⊥ : submodule R M).annihilator = ⊤ :=
+(ideal.eq_top_iff_one _).2 $ mem_annihilator'.2 bot_le
+
+theorem annihilator_eq_top_iff : N.annihilator = ⊤ ↔ N = ⊥ :=
+⟨λ H, eq_bot_iff.2 $ λ n hn, mem_bot.2 $ one_smul n ▸ mem_annihilator.1 ((ideal.eq_top_iff_one _).1 H) n hn,
+λ H, H.symm ▸ annihilator_bot⟩
+
+theorem annihilator_mono (h : N ≤ P) : P.annihilator ≤ N.annihilator :=
+λ r hrp, mem_annihilator.2 $ λ n hn, mem_annihilator.1 hrp n $ h hn
+
+theorem annihilator_supr (ι : Type w) (f : ι → submodule R M) :
+  (annihilator ⨆ i, f i) = ⨅ i, annihilator (f i) :=
+le_antisymm (le_infi $ λ i, annihilator_mono $ le_supr _ _)
+(λ r H, mem_annihilator'.2 $ supr_le $ λ i,
+  have _ := (mem_infi _).1 H i, mem_annihilator'.1 this)
+
+theorem mem_colon {r} : r ∈ N.colon P ↔ ∀ p ∈ P, r • p ∈ N :=
+mem_annihilator.trans ⟨λ H p hp, (quotient.mk_eq_zero N).1 (H (quotient.mk p) (mem_map_of_mem hp)),
+λ H m ⟨p, hp, hpm⟩, hpm ▸ (N.mkq).map_smul r p ▸ (quotient.mk_eq_zero N).2 $ H p hp⟩
+
+theorem mem_colon' {r} : r ∈ N.colon P ↔ P ≤ comap (r • linear_map.id) N :=
+mem_colon
+
+theorem colon_mono (hn : N₁ ≤ N₂) (hp : P₁ ≤ P₂) : N₁.colon P₂ ≤ N₂.colon P₁ :=
+λ r hrnp, mem_colon.2 $ λ p₁ hp₁, hn $ mem_colon.1 hrnp p₁ $ hp hp₁
+
+theorem infi_colon_supr (ι₁ : Type w) (f : ι₁ → submodule R M)
+  (ι₂ : Type x) (g : ι₂ → submodule R M) :
+  (⨅ i, f i).colon (⨆ j, g j) = ⨅ i j, (f i).colon (g j) :=
+le_antisymm (le_infi $ λ i, le_infi $ λ j, colon_mono (infi_le _ _) (le_supr _ _))
+(λ r H, mem_colon'.2 $ supr_le $ λ j, map_le_iff_le_comap.1 $ le_infi $ λ i,
+  map_le_iff_le_comap.2 $ mem_colon'.1 $ have _ := ((mem_infi _).1 H i),
+  have _ := ((mem_infi _).1 this j), this)
 
 theorem smul_mem_smul {r} {n} (hr : r ∈ I) (hn : n ∈ N) : r • n ∈ I • N :=
 (le_supr _ ⟨r, hr⟩ : _ ≤ I • N) ⟨n, hn, rfl⟩

@@ -154,16 +154,13 @@ is_iso $ ((yoneda (presheaf X (Type v))).obj F).map c.π
 
 end covering_family
 
-def coverage_on (X : Type u) [small_category.{u} X]
-  (covers : Π (U : X), set (covering_family U)) : Prop :=
-∀ {U V : X} (g : V ⟶ U),
-∀ f ∈ covers U, ∃ h ∈ covers V,
-∀ Vj : (h : set _), ∃ (Ui : f),
-∃ k : Vj.val.left ⟶ Ui.val.left, Vj.val.hom ≫ g = k ≫ Ui.val.hom
-
 structure coverage (X : Type u) [small_category.{u} X] :=
 (covers   : Π (U : X), set (covering_family U))
-(property : coverage_on X covers)
+(id       : ∀ (U : X), {(over.mk (𝟙 U))} ∈ covers U . obviously)
+(property : ∀ {U V : X} (g : V ⟶ U),
+            ∀ f ∈ covers U, ∃ h ∈ covers V,
+            ∀ Vj : (h : set _), ∃ (Ui : f),
+            ∃ k : Vj.val.left ⟶ Ui.val.left, Vj.val.hom ≫ g = k ≫ Ui.val.hom)
 
 class site (X : Type u) extends category.{u u} X :=
 (coverage : coverage X)
@@ -177,8 +174,13 @@ end site
 
 def site.trivial (X : Type u) [small_category.{u} X] : site X :=
 { coverage :=
-  { covers := λ U Us, false,
-    property := λ U V g f hf, false.elim hf } }
+  { covers := λ U Us, Us = {(over.mk (𝟙 U))},
+    property := λ U V g f (hf : _ = _), ⟨{(over.mk (𝟙 V))}, rfl, (λ Vj,
+    begin
+      subst hf,
+      refine ⟨_,_⟩,
+      { obviously },
+    end ⟩ } }
 
 def site.discrete (X : Type u) [small_category.{u} X] : site X :=
 { coverage :=
@@ -233,20 +235,6 @@ namespace topological_space
 
 variables {X : Type u} [topological_space X]
 
--- instance opens.over.preorder {U : opens X} : preorder (over U) :=
--- { le := λ V₁ V₂, V₁.left ⊆ V₂.left,
---   le_refl := by obviously,
---   le_trans := by obviously }
-
--- def opens.over.gc {U V : opens X} (i : V ⟶ U) : galois_connection (over.map i) (over.comap i) :=
--- begin
---   intros V' U',
---   dsimp [(≤), preorder.le, over.map, over.comap] at *,
---   split; intro h,
---   { sorry },
---   { sorry }
--- end
-
 instance : site (opens X) :=
 { coverage :=
   { covers := λ U Us, U = ⨆ u ∈ Us, (u:over _).left,
@@ -273,7 +261,7 @@ instance basis.site {is_basis : opens.is_basis B} : site B :=
       refine λ U V i Us (hUs : _ = _), ⟨_, _, _⟩,
       { rw opens.is_basis_iff_cover at is_basis,
         intro Vj,
-        exact ∃ Ui ∈ Us, Vj.left ⟶ ((Ui : over _).left) },
+        exact ∃ Ui ∈ Us, Vj.left.val ⊆ ((Ui : over _).left.val) },
       { show _ = _,
         dsimp,
         sorry },

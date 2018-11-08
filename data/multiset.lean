@@ -484,7 +484,7 @@ theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.rep
   that is, the set `{0, 1, ..., n-1}`. -/
 def range (n : ℕ) : multiset ℕ := range n
 
-@[simp] theorem range_zero (n : ℕ) : range 0 = 0 := rfl
+@[simp] theorem range_zero : range 0 = 0 := rfl
 
 @[simp] theorem range_succ (n : ℕ) : range (succ n) = n :: range n :=
 by rw [range, range_concat, ← coe_add, add_comm]; refl

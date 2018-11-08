@@ -9,7 +9,7 @@ import order.order_iso
 import data.fintype data.polynomial
 import linear_algebra.lc
 import tactic.tidy
-import ring_theory.ideals
+import ring_theory.ideal_operations
 
 open set lattice
 
@@ -296,3 +296,17 @@ begin
   refine finset.sum_subset hl1 (λ x _ hx, _),
   rw [finsupp.not_mem_support_iff.1 hx, zero_smul]
 end
+
+theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
+  (f : R → S) [is_ring_hom f] (hf : function.surjective f)
+  (H : is_noetherian_ring R) : is_noetherian_ring S :=
+begin
+  unfold is_noetherian_ring at H ⊢,
+  rw is_noetherian_iff_well_founded at H ⊢,
+  convert order_embedding.well_founded (order_embedding.rsymm (ideal.lt_order_embedding_of_surjective f hf)) H
+end
+
+theorem is_noetherian_ring_of_equiv (R) [comm_ring R] {S} [comm_ring S]
+  (f : R ≃ S) (hf : is_ring_hom f)
+  (H : is_noetherian_ring R) : is_noetherian_ring S :=
+is_noetherian_ring_of_surjective R S f f.bijective.2 H

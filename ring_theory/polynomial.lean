@@ -6,8 +6,9 @@ Authors: Kenny Lau
 Hilbert basis theorem: if a ring is noetherian then so is its polynomial ring.
 -/
 
-import ring_theory.noetherian
+import linear_algebra.multivariate_polynomial
 import data.polynomial
+import ring_theory.noetherian
 
 universes u v w
 
@@ -236,3 +237,74 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
       rwa [polynomial.degree_eq_nat_degree hpq, with_bot.coe_lt_coe, hn] at this },
     exact hs2 ⟨polynomial.mem_degree_le.2 hdq, hq⟩ }
 end⟩
+
+namespace mv_polynomial
+
+variables {σ : Type u} {τ : Type v} {α : Type w} [comm_semiring α]
+variables [decidable_eq σ] [decidable_eq τ] [decidable_eq α]
+
+@[reducible] def equiv_of_equiv (e : σ ≃ τ) : mv_polynomial σ α ≃ mv_polynomial τ α :=
+{ to_fun := eval₂ C (X ∘ e),
+  inv_fun := eval₂ C (X ∘ e.symm),
+  left_inv := λ f, induction_on f
+    (λ r, by rw [eval₂_C, eval₂_C])
+    (λ p q hp hq, by rw [eval₂_add, eval₂_add, hp, hq])
+    (λ p s hp, by simp only [eval₂_mul, eval₂_X, hp, (∘), equiv.inverse_apply_apply]),
+  right_inv := λ f, induction_on f
+    (λ r, by rw [eval₂_C, eval₂_C])
+    (λ p q hp hq, by rw [eval₂_add, eval₂_add, hp, hq])
+    (λ p s hp, by simp only [eval₂_mul, eval₂_X, hp, (∘), equiv.apply_inverse_apply]) }
+
+@[reducible] def option_equiv : mv_polynomial (option σ) α ≃ polynomial (mv_polynomial σ α) :=
+{ to_fun := eval₂ (polynomial.C ∘ C) (λ x, option.rec_on x polynomial.X (polynomial.C ∘ X)),
+  inv_fun := polynomial.eval₂ (eval₂ C (X ∘ some)) (X none),
+  left_inv := λ f, induction_on f
+    (λ r, by simp only [eval₂_C, polynomial.eval₂_C])
+    (λ p q hp hq, by rw [eval₂_add, polynomial.eval₂_add, hp, hq])
+    (λ p n h, by simp only [eval₂_mul, eval₂_X, polynomial.eval₂_mul, h];
+      cases n; simp only [polynomial.eval₂_X, polynomial.eval₂_C, eval₂_X]),
+  right_inv := λ f, polynomial.induction_on f
+    (λ g, induction_on g
+      (λ r, by rw [polynomial.eval₂_C, eval₂_C, eval₂_C])
+      (λ p q hp hq, by rw [polynomial.C_add, polynomial.eval₂_add, eval₂_add, hp, hq])
+      (λ p n h, by simp only [polynomial.C_mul, polynomial.eval₂_mul, eval₂_mul, h];
+        rw [polynomial.eval₂_C, eval₂_X, eval₂_X]))
+    (λ p q hp hq, by rw [polynomial.eval₂_add, eval₂_add, hp, hq])
+    (λ n g h, by rw [pow_add, ← mul_assoc]; simp only [polynomial.eval₂_mul];
+      rw [eval₂_mul, ← h]; simp only [polynomial.eval₂_mul, polynomial.eval₂_C, polynomial.eval₂_X,
+        eval₂_mul, eval₂_C, eval₂_X, pow_one]) }
+
+@[reducible] def pempty_equiv : mv_polynomial pempty α ≃ α :=
+{ to_fun := eval₂ id pempty.elim,
+  inv_fun := C,
+  left_inv := λ f, induction_on f (λ r, by rw [eval₂_C, id])
+    (λ p q hp hq, by rw [eval₂_add, C_add, hp, hq]) (λ g n, pempty.elim n),
+  right_inv := λ r, eval₂_C _ _ _ }
+
+end mv_polynomial
+
+/-theorem is_noetherian_ring_mv_polynomial_fin {n : ℕ}
+  (hnr : is_noetherian_ring R) : is_noetherian_ring (mv_polynomial (fin n) R) :=
+begin
+try_for 4000 {
+  induction n with n ih,
+  { refine is_noetherian_ring_of_equiv R _ _ hnr,
+    { exact (mv_polynomial.pempty_equiv.symm.trans $ mv_polynomial.equiv_of_equiv
+      ⟨pempty.elim, fin.elim0, λ x, pempty.elim x, λ x, fin.elim0 x⟩) },
+    { dsimp only [equiv.trans, equiv.symm, equiv.coe_fn_mk],
+      exact @@is_ring_hom.comp _ _ _
+        (mv_polynomial.C.is_ring_hom) _ _
+        (@@mv_polynomial.eval₂.is_ring_hom _ _ _ _ _
+          (mv_polynomial.C : R → mv_polynomial (fin 0) R) mv_polynomial.C.is_ring_hom
+          (mv_polynomial.X ∘ pempty.elim : pempty → mv_polynomial (fin 0) R)) } },
+}, try_for 100 {
+  refine is_noetherian_ring_of_equiv (polynomial (mv_polynomial (fin n) R)) _ _ (is_noetherian_ring_polynomial ih),
+  { exact mv_polynomial.option_equiv.symm.trans (mv_polynomial.equiv_of_equiv
+      ⟨λ x, option.rec_on x 0 fin.succ, λ x, fin.cases none some x,
+      by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _],
+      λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
+        0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x⟩) },
+  { dsimp only [equiv.trans, equiv.symm, equiv.coe_fn_mk],
+    exact is_ring_hom.comp _ _ }
+}
+end-/

@@ -1,3 +1,7 @@
+-- Copyright (c) 2018 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+
 import category_theory.limits.limits
 import category_theory.limits.products
 import category_theory.discrete_category
@@ -45,6 +49,5 @@ def has_terminal_of_has_products [has_products.{u v} C] : has_terminal.{u v} C :
 def has_initial_of_has_coproducts [has_coproducts.{u v} C] : has_initial.{u v} C :=
 { initial := limits.sigma (pempty.rec _),
   is_initial := begin tidy, apply sigma.desc, tidy, end }
--- TODO use backwards reasoning?
 
 end category_theory.limits

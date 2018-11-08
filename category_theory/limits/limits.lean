@@ -12,20 +12,9 @@ namespace category_theory.limits
 
 universes u v w
 
-structure Small_Category :=
-(J : Type v)
-[𝒥 : small_category J]
-
-instance Diagram_category (J : Small_Category.{v}) : small_category J.J := J.𝒥
-
 variables {J : Type v} [small_category J]
-variables (C : Type u) [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
-
-structure Diagram extends Small_Category :=
-(F : J ⥤ C)
-
-variables {C}
 
 section limit
 variables {F : J ⥤ C}
@@ -159,15 +148,7 @@ def is_limit.of_extensions_iso (h : is_iso t.extensions) : is_limit t :=
 
 end limit
 
-class has_limits_of {A : Type v} (Q : A → Diagram.{u v} C) :=
-(cone : Π a : A, cone (Q a).F)
-(is_limit : Π a : A, is_limit (cone a))
-
 variables (J C)
-
-class has_limits_of_shapes {A : Type v} (D : A → Small_Category) :=
-(cone : Π {a : A} (F : (D a).J ⥤ C), cone F)
-(is_limit : Π {a : A} (F : (D a).J ⥤ C), is_limit (cone F))
 
 class has_limits :=
 (cone : Π {J : Type v} [small_category J] (F : J ⥤ C), cone F)
@@ -213,11 +194,6 @@ instance has_limit_of_has_limits_of_shape
   {J : Type v} [small_category J] [has_limits_of_shape.{u v} J C] (F : J ⥤ C) : has_limit F :=
 { cone := has_limits_of_shape.cone F,
   is_limit := has_limits_of_shape.is_limit F }
-
-instance has_limit_of_has_limits_of
-  {A : Type v} {Q : A → Diagram.{u v} C} [has_limits_of.{u v} Q] (a : A) : has_limit (Q a).F :=
-{ cone := has_limits_of.cone Q a,
-  is_limit := has_limits_of.is_limit Q a }
 
 instance has_limits_of_shape_of_has_limits
   {J : Type v} [small_category J] [has_limits.{u v} C] : has_limits_of_shape.{u v} J C :=
@@ -329,15 +305,7 @@ def is_colimit.of_desc_universal
 
 end colimit
 
-class has_colimits_of {A : Type v} (Q : A → Diagram.{u v} C) :=
-(cocone : Π a : A, cocone (Q a).F)
-(is_colimit : Π a : A, is_colimit (cocone a))
-
 variables (J C)
-
-class has_colimits_of_shapes {A : Type v} (D : A → Small_Category) :=
-(cocone : Π {a : A} (F : (D a).J ⥤ C), cocone F)
-(is_colimit : Π {a : A} (F : (D a).J ⥤ C), is_colimit (cocone F))
 
 class has_colimits :=
 (cocone : Π {J : Type v} [small_category J] (F : J ⥤ C), cocone F)
@@ -357,11 +325,6 @@ instance has_colimit_of_has_colimits_of_shape
   {J : Type v} [small_category J] [has_colimits_of_shape.{u v} J C] (F : J ⥤ C) : has_colimit F :=
 { cocone := has_colimits_of_shape.cocone F,
   is_colimit := has_colimits_of_shape.is_colimit F }
-
-instance has_colimit_of_has_colimits_of
-  {A : Type v} {Q : A → Diagram.{u v} C} [has_colimits_of.{u v} Q] (a : A) : has_colimit (Q a).F :=
-{ cocone := has_colimits_of.cocone Q a,
-  is_colimit := has_colimits_of.is_colimit Q a }
 
 instance has_colimits_of_shape_of_has_colimits
   {J : Type v} [small_category J] [has_colimits.{u v} C] : has_colimits_of_shape.{u v} J C :=
@@ -639,7 +602,8 @@ end
     simp
   end }.
 
-@[simp] lemma colim_ι_map [has_colimits_of_shape.{u v} J C] {F G : J ⥤ C} (α : F ⟹ G) (j : J) : colimit.ι F j ≫ colim.map α = α j ≫ colimit.ι G j :=
+@[simp] lemma colim_ι_map [has_colimits_of_shape.{u v} J C] {F G : J ⥤ C} (α : F ⟹ G) (j : J) : 
+  colimit.ι F j ≫ colim.map α = α j ≫ colimit.ι G j :=
 begin
   erw is_colimit.fac,
   refl
@@ -732,56 +696,41 @@ begin
   refl
 end
 
--- TODO finish converting these; use [has_colimit], not [has_colimits]
+@[simp] lemma colimit.desc_post 
+  {F : J ⥤ C} [has_colimit F] (c : cocone F) (G : C ⥤ D) [has_colimit (F ⋙ G)] :
+  colimit.post F G ≫ G.map (colimit.desc F c) = colimit.desc (F ⋙ G) (G.map_cocone c) :=
+begin
+  /- `obviously` says -/
+  ext1, dsimp at *, simp at *,
+  rw ←category.assoc,
+  simp,
+  rw ←functor.map_comp,
+  simp,
+end
 
--- @[simp] lemma colimit.desc_post {F : J ⥤ C} (c : cocone F) (G : C ⥤ D) :
---   colimit.post F G ≫ G.map (colimit.desc F c) = colimit.desc (F ⋙ G) (G.map_cocone c) :=
--- begin
---   /- `obviously` says -/
---   ext1, dsimp at *, simp at *,
---   rw ←category.assoc,
---   simp,
---   rw ←functor.map_comp,
---   simp,
---   refl,
--- end
+lemma colimit.post_map [has_colimits_of_shape.{u v} J C] [has_colimits_of_shape.{u v} J D] 
+  {F G : J ⥤ C} (α : F ⟹ G) (H : C ⥤ D) :
+  colimit.post F H ≫ H.map (colim.map α) = colim.map (whisker_right α H) ≫ colimit.post G H :=
+begin
+  /- `obviously` says -/
+  ext1, dsimp at *, simp at *,
+  erw [←category.assoc, is_colimit.fac, category.assoc, is_colimit.fac, ←functor.map_comp],
+end
 
--- lemma colimit.post_map {F G : J ⥤ C} (α : F ⟹ G) (H : C ⥤ D) :
---   colimit.post F H ≫ H.map (colim.map α) = colim.map (whisker_right α H) ≫ colimit.post G H :=
--- begin
---   /- `obviously` says -/
---   ext1, dsimp at *, simp at *,
---   erw [←category.assoc, is_colimit.fac, category.assoc, is_colimit.fac, ←functor.map_comp],
---   refl
--- end
+-- TODO, later, as needed
+/-
+lemma colimit.pre_post {K : Type v} [small_category K] 
+  (F : J ⥤ C) [has_colimit F] (E : K ⥤ J) [has_colimit (E ⋙ F)] 
+  (G : C ⥤ D) [has_colimit (F ⋙ G)] [has_colimit (E ⋙ F ⋙ G)] :
+  colimit.pre (F ⋙ G) E ≫ colimit.post F G = colimit.post (E ⋙ F) G ≫ G.map (colimit.pre F E) := ...
 
--- lemma colimit.pre_post {K : Type v} [small_category K] (F : J ⥤ C) (E : K ⥤ J) (G : C ⥤ D) :
---   colimit.pre (F ⋙ G) E ≫ colimit.post F G = colimit.post (E ⋙ F) G ≫ G.map (colimit.pre F E) :=
--- begin
---   /- `obviously` says -/
---   ext1, dsimp at *,
---   rw ←category.assoc,
---   simp,
---   rw ←category.assoc,
---   erw colimit.ι_post (E ⋙ F) G,
---   rw ←functor.map_comp,
---   rw colimit.ι_pre,
--- end.
-
--- @[simp] lemma colimit.post_post
---   {E : Type u} [category.{u v} E] [has_colimits.{u v} E] (F : J ⥤ C) (G : C ⥤ D) (H : D ⥤ E) :
---   colimit.post (F ⋙ G) H ≫ H.map (colimit.post F G) = colimit.post F (G ⋙ H) :=
--- begin
---   /- `obviously` says -/
---   ext1, dsimp at *,
---   rw ←category.assoc,
---   simp,
---   rw ←functor.map_comp,
---   erw colimit.ι_post,
---   erw colimit.ι_post F (G ⋙ H),
---   simp,
--- end
--- end
+@[simp] lemma colimit.post_post
+  {E : Type u} [category.{u v} E] 
+  (F : J ⥤ C) [has_colimit F] 
+  (G : C ⥤ D) [has_colimit (F ⋙ G)] 
+  (H : D ⥤ E) [has_colimit ((F ⋙ G) ⋙ H)] :
+  colimit.post (F ⋙ G) H ≫ H.map (colimit.post F G) = colimit.post F (G ⋙ H) := ...
+-/
 
 end
 end

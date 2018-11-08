@@ -1,3 +1,7 @@
+-- Copyright (c) 2018 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+
 import category_theory.functor_category
 import category_theory.yoneda
 
@@ -23,7 +27,7 @@ namespace const
 @[simp] lemma map_app {X Y : C} (f : X ⟶ Y) (j : J) : ((const J C).map f) j = f := rfl
 end const
 
-variables {J}
+variables (J)
 
 section
 variables {D : Type u'} [𝒟 : category.{u' v} D]
@@ -33,9 +37,12 @@ include 𝒟
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
 
+@[simp] lemma const_compose_symm_app (X : C) (F : C ⥤ D) (j : J) : 
+  (((const_compose J C X F).symm) : const J C X ⋙ F ⟹ const J D (F X)) j = 𝟙 _ := rfl
+
 end
 
-variables {C}
+variables {J C}
 
 /--
 `F.cones` is the functor assigning to an object `X` the type of

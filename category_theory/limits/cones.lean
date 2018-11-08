@@ -153,7 +153,7 @@ include 𝒟
 @[simp] def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cone F) ⥤ (cone (F ⋙ G)) :=
 { obj      := λ A,
   { X := G A.X,
-    π := (functor.const_compose _ _ _).hom ⊟ whisker_right A.π G },
+    π := (functor.const_compose _ _ _ _).hom ⊟ whisker_right A.π G },
   map'     := λ X Y f,
   { hom := G.map f.hom,
     w' := begin intros, dsimp, simp, rw [←functor.map_comp, f.w], end } }
@@ -214,7 +214,7 @@ include 𝒟
 @[simp] def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cocone F) ⥤ (cocone (F ⋙ G)) :=
 { obj := λ A,
   { X  := G A.X,
-    ι  :=  whisker_right A.ι G ⊟ (functor.const_compose _ _ _).inv },
+    ι  :=  whisker_right A.ι G ⊟ (functor.const_compose _ _ _ _).inv },
   map' := λ _ _ f,
   { hom := G.map f.hom,
     w'  := begin intros, dsimp, erw [category.comp_id, ←functor.map_comp, cocone_morphism.w, category.comp_id], end } }
@@ -238,8 +238,8 @@ def map_cocone_morphism (H : C ⥤ D) {c c' : cocone F} (f : cocone_morphism c c
   cocone_morphism (H.map_cocone c) (H.map_cocone c') := (cocones.functoriality F H).map f
 
 @[simp] lemma map_cone_π (H : C ⥤ D) (c : cone F) (j : J) :
-  (map_cone H c).π j = ((functor.const_compose _ _ _).hom ⊟ whisker_right c.π H) j := rfl
+  (map_cone H c).π j = ((functor.const_compose _ _ _ _).hom ⊟ whisker_right c.π H) j := rfl
 @[simp] lemma map_cocone_ι (H : C ⥤ D) (c : cocone F) (j : J) :
-  (map_cocone H c).ι j = (whisker_right c.ι H ⊟ (functor.const_compose _ _ _).inv) j := rfl
+  (map_cocone H c).ι j = (whisker_right c.ι H ⊟ (functor.const_compose _ _ _ _).inv) j := rfl
 
 end category_theory.functor

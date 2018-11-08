@@ -17,6 +17,8 @@ include 𝒞 𝒟
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
+-- FIXME Reid's suggestion using forall, also for all variants of has_limits
+
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
 class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) :=
@@ -28,11 +30,14 @@ class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) 
 (preserves : Π {K : J ⥤ C} {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
 class preserves_limits (F : C ⥤ D) :=
-(preserves : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone K}, is_limit c → is_limit (F.map_cone c))
+(preserves : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone K},
+  is_limit c → is_limit (F.map_cone c))
 class preserves_colimits (F : C ⥤ D) :=
-(preserves : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
+(preserves : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cocone K},
+  is_colimit c → is_colimit (F.map_cocone c))
 
-instance preserves_limit_of_preserves_limits_of_shape (K : J ⥤ C) (F : C ⥤ D) [preserves_limits_of_shape J F] :
+instance preserves_limit_of_preserves_limits_of_shape
+  (K : J ⥤ C) (F : C ⥤ D) [preserves_limits_of_shape J F] :
   preserves_limit K F :=
 { preserves := λ _, preserves_limits_of_shape.preserves F }
 
@@ -51,9 +56,11 @@ class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
 (reflects : Π {K : J ⥤ C} {c : cone K}, is_limit (F.map_cone c) → is_limit c)
 
 class reflects_limits (F : C ⥤ D) :=
-(reflects : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone K}, is_limit (F.map_cone c) → is_limit c)
+(reflects : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone K},
+  is_limit (F.map_cone c) → is_limit c)
 
-instance reflects_limit_of_reflects_limits_of_shape (K : J ⥤ C) (F : C ⥤ D) [reflects_limits_of_shape J F] :
+instance reflects_limit_of_reflects_limits_of_shape
+  (K : J ⥤ C) (F : C ⥤ D) [reflects_limits_of_shape J F] :
   reflects_limit K F :=
 { reflects := λ _, reflects_limits_of_shape.reflects }
 
@@ -65,16 +72,20 @@ class creates_limit (K : J ⥤ C) (F : C ⥤ D) extends reflects_limit K F :=
 (creates : Π {c : cone (K ⋙ F)}, is_limit c → cone K)
 (image_is_limit : Π {c : cone (K ⋙ F)} (h : is_limit c), is_limit (F.map_cone (creates h)))
 
-class creates_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) extends reflects_limits_of_shape J F :=
+class creates_limits_of_shape
+  (J : Type v) [small_category J] (F : C ⥤ D) extends reflects_limits_of_shape J F :=
 (creates : Π {K : J ⥤ C} {c : cone (K ⋙ F)}, is_limit c → cone K)
-(image_is_limit : Π {K : J ⥤ C} {c : cone (K ⋙ F)} (h : is_limit c), is_limit (F.map_cone (creates h)))
+(image_is_limit : Π {K : J ⥤ C} {c : cone (K ⋙ F)} (h : is_limit c),
+  is_limit (F.map_cone (creates h)))
 
 class creates_limits (F : C ⥤ D) extends reflects_limits F :=
 (creates : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone (K ⋙ F)}, is_limit c → cone K)
-(image_is_limit : Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone (K ⋙ F)} (h : is_limit c),
+(image_is_limit :
+  Π {J : Type v} [small_category J] {K : J ⥤ C} {c : cone (K ⋙ F)} (h : is_limit c),
   is_limit (F.map_cone (creates h)))
 
-instance creates_limit_of_creates_limits_of_shape (K : J ⥤ C) (F : C ⥤ D) [creates_limits_of_shape J F] :
+instance creates_limit_of_creates_limits_of_shape
+  (K : J ⥤ C) (F : C ⥤ D) [creates_limits_of_shape J F] :
   creates_limit K F :=
 { creates := λ _, creates_limits_of_shape.creates,
   image_is_limit := λ _, creates_limits_of_shape.image_is_limit }
@@ -98,7 +109,8 @@ def created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : has_
 { cone := creates_limit.creates (limit.universal_property (K ⋙ F)),
   is_limit := creates_limit.is_limit (limit.universal_property (K ⋙ F)) }
 
-def created_limits_of_shape (F : C ⥤ D) [creates_limits_of_shape J F] [has_limits_of_shape.{u₂ v} J D] :
+def created_limits_of_shape
+  (F : C ⥤ D) [creates_limits_of_shape J F] [has_limits_of_shape.{u₂ v} J D] :
   has_limits_of_shape.{u₁ v} J C :=
 { cone := λ G, creates_limit.creates (limit.universal_property (G ⋙ F)),
   is_limit := λ G, creates_limit.is_limit (limit.universal_property (G ⋙ F)) }
@@ -116,7 +128,8 @@ def created_limits (F : C ⥤ D) [creates_limits F] [has_limits.{u₂ v} D] : ha
   end }
 
 -- TODO
--- instance preserves_created_limit (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : preserves_limit K F :=
+-- instance preserves_created_limit
+--   (F : C ⥤ D) [creates_limit K F] [has_limit (K ⋙ F)] : preserves_limit K F :=
 -- { preserves := sorry } -- See second half of Proposition 3.3.3 of Category Theory in Context
 
 /-

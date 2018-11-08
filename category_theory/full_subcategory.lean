@@ -18,7 +18,7 @@ instance full_subcategory (Z : C → Prop) : category.{u v} {X : C // Z X} :=
 
 def full_subcategory_inclusion (Z : C → Prop) : {X : C // Z X} ⥤ C :=
 { obj := λ X, X.1,
-  map' := λ _ _ f, f }
+  map := λ _ _ f, f }
 
 instance full_subcategory_full     (Z : C → Prop) : full     (full_subcategory_inclusion Z) := by obviously
 instance full_subcategory_faithful (Z : C → Prop) : faithful (full_subcategory_inclusion Z) := by obviously

@@ -1,5 +1,10 @@
+-- Copyright (c) 2018 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+
 import category_theory.limits.limits
 import category_theory.limits.pullbacks
+import tactic.squeeze
 
 open category_theory
 
@@ -15,8 +20,8 @@ inductive walking_pair : Type v
 open walking_pair
 
 inductive walking_pair_hom : walking_pair → walking_pair → Type v
-| inl : walking_pair_hom zero one
-| inr : walking_pair_hom zero one
+| left : walking_pair_hom zero one
+| right : walking_pair_hom zero one
 | id : Π X : walking_pair.{v}, walking_pair_hom X X
 
 open walking_pair_hom
@@ -26,8 +31,8 @@ instance walking_pair_category : small_category walking_pair :=
   id := walking_pair_hom.id,
   comp := λ X Y Z f g, match X, Y, Z, f, g with
   | _, _ ,_, (id _), h := h
-  | _, _, _, inl, (id one) := inl
-  | _, _, _, inr, (id one) := inr
+  | _, _, _, left, (id one) := left
+  | _, _, _, right, (id one) := right
   end }
 
 lemma walking_pair_hom_id (X : walking_pair.{v}) : walking_pair_hom.id X = 𝟙 X := rfl
@@ -41,17 +46,17 @@ def pair (f g : X ⟶ Y) : walking_pair.{v} ⥤ C :=
   | zero := X
   | one := Y
   end,
-  map' := λ x y h, match x, y, h with
+  map := λ x y h, match x, y, h with
   | _, _, (id _) := 𝟙 _
-  | _, _, inl := f
-  | _, _, inr := g
+  | _, _, left := f
+  | _, _, right := g
   end }.
 
-@[simp] lemma pair_map_inl (f g : X ⟶ Y) : (pair f g).map inl = f := rfl
-@[simp] lemma pair_map_inr (f g : X ⟶ Y) : (pair f g).map inr = g := rfl
+@[simp] lemma pair_map_left (f g : X ⟶ Y) : (pair f g).map left = f := rfl
+@[simp] lemma pair_map_right (f g : X ⟶ Y) : (pair f g).map right = g := rfl
 
 @[simp] lemma pair_functor_obj {F : walking_pair.{v} ⥤ C} (j : walking_pair.{v}) :
-  (pair (F.map inl) (F.map inr)) j = F j :=
+  (pair (F.map left) (F.map right)).obj j = F.obj j :=
 begin
   cases j; refl
 end
@@ -82,8 +87,8 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
       exact eq.symm w
     end }}
 
-def fork.ι (t : fork f g) := t.π zero
-def cofork.π (t : cofork f g) := t.ι one
+def fork.ι (t : fork f g) := t.π.app zero
+def cofork.π (t : cofork f g) := t.ι.app one
 
 def is_equalizer (t : fork f g) := is_limit t
 def is_coequalizer (t : cofork f g) := is_colimit t
@@ -94,8 +99,7 @@ lemma is_equalizer.mono {t : fork f g} (h : is_equalizer t) : mono t.ι :=
    apply h.hom_ext,
    rintro (_|_),
    { exact H },
-   { have : t.π one = t.π zero ≫ f, from (t.w inl).symm,
-     rw [this, ←category.assoc, ←category.assoc, H] }
+   { rw [←t.w left, ←category.assoc, ←category.assoc, H] }
  end⟩
 
 lemma is_coequalizer.epi {t : cofork f g} (h : is_coequalizer t) : epi t.π :=
@@ -103,16 +107,17 @@ lemma is_coequalizer.epi {t : cofork f g} (h : is_coequalizer t) : epi t.π :=
    unfold cofork.π at H,
    apply h.hom_ext,
    rintro (_|_),
-   { have : t.ι zero = f ≫ t.ι one, from (t.w inl).symm,
-     rw [this, category.assoc, category.assoc, H] },
+   { rw [←t.w left, category.assoc, category.assoc, H] },
    { exact H }
  end⟩
 
 variables {t : fork f g}
 variables {s : cofork f g}
 
-instance is_equalizer_subsingleton : subsingleton (is_equalizer t) := by dsimp [is_equalizer]; apply_instance
-instance is_coequalizer_subsingleton : subsingleton (is_coequalizer s) := by dsimp [is_coequalizer]; apply_instance
+instance is_equalizer_subsingleton : subsingleton (is_equalizer t) :=
+by dsimp [is_equalizer]; apply_instance
+instance is_coequalizer_subsingleton : subsingleton (is_coequalizer s) :=
+by dsimp [is_coequalizer]; apply_instance
 
 class has_equalizer {X Y : C} (f g : X ⟶ Y) :=
 (fork : fork.{u v} f g)
@@ -142,68 +147,61 @@ instance has_coequalizer_of_has_coequalizers [has_coequalizers.{u v} C] {X Y : C
   is_coequalizer := has_coequalizers.is_coequalizer C f g }
 
 -- Special cases of this may be marked with [instance] as desired.
-def has_equalizers_of_has_limits [limits.has_limits_of_shape.{u v} walking_pair C] : has_equalizers.{u v} C :=
+def has_equalizers_of_has_limits [limits.has_limits_of_shape.{u v} walking_pair C] :
+  has_equalizers.{u v} C :=
 { fork := λ X Y f g, limit.cone (pair f g),
   is_equalizer := λ X Y f g, limit.universal_property (pair f g) }
-def has_coequalizers_of_has_colimits [limits.has_colimits_of_shape.{u v} walking_pair C] : has_coequalizers.{u v} C :=
+def has_coequalizers_of_has_colimits [limits.has_colimits_of_shape.{u v} walking_pair C] :
+  has_coequalizers.{u v} C :=
 { cofork := λ X Y f g, colimit.cocone (pair f g),
   is_coequalizer := λ X Y f g, colimit.universal_property (pair f g) }
 
-@[simp] def cone.of_fork {F : walking_pair.{v} ⥤ C} (t : fork (F.map inl) (F.map inr)) : cone F :=
+def cone.of_fork
+  {F : walking_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) : cone F :=
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
     naturality' := λ j j' g,
     begin
       cases j; cases j'; cases g; dsimp; simp,
-      erw ← t.w inl, refl,
-      erw ← t.w inr, refl,
+      erw ← t.w left, refl,
+      erw ← t.w right, refl,
     end } }.
-@[simp] def cocone.of_cofork {F : walking_pair.{v} ⥤ C} (t : cofork (F.map inl) (F.map inr)) : cocone F :=
+def cocone.of_cofork
+  {F : walking_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) : cocone F :=
 { X := t.X,
   ι :=
   { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X,
     naturality' := λ j j' g,
     begin
       cases j; cases j'; cases g; dsimp; simp,
-      erw ← t.w inl, refl,
-      erw ← t.w inr, refl,
+      erw ← t.w left, refl,
+      erw ← t.w right, refl,
     end } }.
 
-@[simp] def fork.of_cone {F : walking_pair.{v} ⥤ C} (t : cone F) : fork (F.map inl) (F.map inr) :=
+@[simp] lemma cone.of_fork_π
+  {F : walking_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) (j):
+  (cone.of_fork t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
+
+@[simp] lemma cocone.of_cofork_ι
+  {F : walking_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) (j):
+  (cocone.of_cofork t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
+
+def fork.of_cone
+  {F : walking_pair.{v} ⥤ C} (t : cone F) : fork (F.map left) (F.map right) :=
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy) } }
-@[simp] def cofork.of_cocone {F : walking_pair.{v} ⥤ C} (t : cocone F) : cofork (F.map inl) (F.map inr) :=
+def cofork.of_cocone
+  {F : walking_pair.{v} ⥤ C} (t : cocone F) : cofork (F.map left) (F.map right) :=
 { X := t.X,
   ι :=
   { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X } }
 
-instance has_limits_of_shape_of_has_equalizers [has_equalizers.{u v} C] :
-  limits.has_limits_of_shape.{u v} walking_pair.{v} C :=
-{ cone := λ F, cone.of_fork (has_equalizers.fork (F.map inl) (F.map inr)),
-  is_limit := λ F, let is_equalizer := has_equalizer.is_equalizer (F.map inl) (F.map inr) in
-  { lift := λ s, is_equalizer.lift (fork.of_cone s),
-    fac' := λ s j,
-    begin
-      convert is_equalizer.fac (fork.of_cone s) j; cases j,
-      tidy,
-    end,
-    uniq' := λ s m w, is_equalizer.uniq (fork.of_cone s) m
-      (λ j, begin convert w j; cases j, tidy end) } }
-
-instance has_colimits_of_shape_of_has_coequalizers [has_coequalizers.{u v} C] :
-  limits.has_colimits_of_shape.{u v} walking_pair.{v} C :=
-{ cocone := λ F, cocone.of_cofork (has_coequalizers.cofork (F.map inl) (F.map inr)),
-  is_colimit := λ F, let is_coequalizer := has_coequalizer.is_coequalizer (F.map inl) (F.map inr) in
-  { desc := λ s, is_coequalizer.desc (cofork.of_cocone s),
-    fac' := λ s j,
-    begin
-      convert is_coequalizer.fac (cofork.of_cocone s) j; cases j,
-      tidy,
-    end,
-    uniq' := λ s m w, is_coequalizer.uniq (cofork.of_cocone s) m
-      (λ j, begin convert w j; cases j, tidy end) } }
+@[simp] lemma fork.of_cone_π {F : walking_pair.{v} ⥤ C} (t : cone F) (j) :
+  (fork.of_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
+@[simp] lemma cofork.of_cocone_ι {F : walking_pair.{v} ⥤ C} (t : cocone F) (j) :
+  (cofork.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
 variable {C}
 
@@ -218,22 +216,26 @@ def equalizer.ι [has_equalizer f g] : equalizer f g ⟶ X := (equalizer.fork f 
 def coequalizer.π [has_coequalizer f g] : Y ⟶ coequalizer f g := (coequalizer.cofork f g).ι.app one
 @[simp] lemma equalizer.w [has_equalizer f g] : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 begin
-  erw ((equalizer.fork f g).w inl),
-  erw ((equalizer.fork f g).w inr)
+  erw ((equalizer.fork f g).w left),
+  erw ((equalizer.fork f g).w right)
 end
-@[simp] lemma coequalizer.w [has_coequalizer f g] : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
+@[simp] lemma coequalizer.w
+  [has_coequalizer f g] : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
 begin
-  erw ((coequalizer.cofork f g).w inl),
-  erw ((coequalizer.cofork f g).w inr)
+  erw ((coequalizer.cofork f g).w left),
+  erw ((coequalizer.cofork f g).w right)
 end
 def equalizer.universal_property [has_equalizer f g] : is_equalizer (equalizer.fork f g) :=
 has_equalizer.is_equalizer f g
-def coequalizer.universal_property [has_coequalizer f g] : is_coequalizer (coequalizer.cofork f g) :=
+def coequalizer.universal_property
+  [has_coequalizer f g] : is_coequalizer (coequalizer.cofork f g) :=
 has_coequalizer.is_coequalizer f g
 
-def equalizer.lift [has_equalizer f g] {P : C} (h : P ⟶ X) (w : h ≫ f = h ≫ g) : P ⟶ equalizer f g :=
+def equalizer.lift
+  [has_equalizer f g] {P : C} (h : P ⟶ X) (w : h ≫ f = h ≫ g) : P ⟶ equalizer f g :=
 (equalizer.universal_property f g).lift (fork.of_ι h w)
-def coequalizer.desc [has_coequalizer f g] {P : C} (h : Y ⟶ P) (w : f ≫ h = g ≫ h) : coequalizer f g ⟶ P :=
+def coequalizer.desc
+  [has_coequalizer f g] {P : C} (h : Y ⟶ P) (w : f ≫ h = g ≫ h) : coequalizer f g ⟶ P :=
 (coequalizer.universal_property f g).desc (cofork.of_π h w)
 
 @[simp] lemma equalizer.lift_ι [has_equalizer f g] {P : C} (h : P ⟶ X) (w : h ≫ f = h ≫ g) :
@@ -243,8 +245,10 @@ is_limit.fac _ _ _
   coequalizer.π f g ≫ coequalizer.desc f g h w = h :=
 is_colimit.fac _ _ _
 
-instance [has_equalizer f g] : mono (equalizer.ι f g) := (has_equalizer.is_equalizer f g).mono
-instance [has_coequalizer f g] : epi (coequalizer.π f g) := (has_coequalizer.is_coequalizer f g).epi
+instance [has_equalizer f g] : mono (equalizer.ι f g) :=
+(has_equalizer.is_equalizer f g).mono
+instance [has_coequalizer f g] : epi (coequalizer.π f g) :=
+(has_coequalizer.is_coequalizer f g).epi
 
 @[extensionality] lemma equalizer.hom_ext [has_equalizer f g] {P : C}
   {h k : P ⟶ equalizer f g}
@@ -252,6 +256,34 @@ instance [has_coequalizer f g] : epi (coequalizer.π f g) := (has_coequalizer.is
 @[extensionality] lemma coequalizer.hom_ext [has_coequalizer f g] {P : C}
   {h k : coequalizer f g ⟶ P}
   (w : coequalizer.π f g ≫ h = coequalizer.π f g ≫ k) : h = k := epi.left_cancellation h k w
+
+instance has_limits_of_shape_of_has_equalizers [has_equalizers.{u v} C] :
+  limits.has_limits_of_shape.{u v} walking_pair.{v} C :=
+{ cone := λ F, cone.of_fork (equalizer.fork (F.map left) (F.map right)),
+  is_limit := λ F, let is_equalizer := equalizer.universal_property (F.map left) (F.map right) in
+  { lift := λ s, is_equalizer.lift (fork.of_cone s),
+    fac' := λ s j,
+    begin
+      dsimp at *,
+      cases j; simp,
+    end,
+    uniq' := λ s m w, is_equalizer.uniq (fork.of_cone s) m
+      (λ j, begin have h := w j, cases j; simp at *; exact h end) } }
+
+instance has_colimits_of_shape_of_has_coequalizers [has_coequalizers.{u v} C] :
+  limits.has_colimits_of_shape.{u v} walking_pair.{v} C :=
+{ cocone := λ F, cocone.of_cofork (coequalizer.cofork (F.map left) (F.map right)),
+  is_colimit := λ F,
+  let is_coequalizer := coequalizer.universal_property (F.map left) (F.map right) in
+  { desc := λ s, is_coequalizer.desc (cofork.of_cocone s),
+    fac' := λ s j,
+    begin
+      dsimp at *,
+      cases j; simp,
+    end,
+    uniq' := λ s m w, is_coequalizer.uniq (cofork.of_cocone s) m
+      (λ j, begin have h := w j, cases j; simp at *; exact h end) } }
+
 
 end
 

@@ -41,15 +41,16 @@ def nbhds (x : X.α) : small_category (nbhd x) := begin unfold nbhd, apply_insta
 def map
   {X Y : Top.{u}} (f : X ⟶ Y) : opens Y ⥤ opens X :=
 { obj := λ U, ⟨ f.val ⁻¹' U, f.property _ U.property ⟩,
-  map' := λ U V i, ⟨ ⟨ λ a b, i.down.down b ⟩ ⟩ }.
+  map := λ U V i, ⟨ ⟨ λ a b, i.down.down b ⟩ ⟩ }.
 
-@[simp] lemma map_id_obj (X : Top.{u}) (U : opens X) : map (𝟙 X) U = U := by tidy
+@[simp] lemma map_id_obj (X : Top.{u}) (U : opens X) : (map (𝟙 X)).obj U = U := by tidy
 
 @[simp] def map_id (X : Top.{u}) : map (𝟙 X) ≅ functor.id (opens X) :=
 { hom := { app := λ U, 𝟙 U },
   inv := { app := λ U, 𝟙 U } }
 
--- We could make f g implicit here, but it's nice to be able to see when they are the identity (often!)
+-- We could make f g implicit here, but it's nice to be able to see when
+-- they are the identity (often!)
 def map_iso {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) : map f ≅ map g :=
 nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg _ (congr_arg _ h)) _) ) (by obviously)
 

@@ -30,9 +30,9 @@ namespace functor.category
 section
 variables {C D}
 
-@[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟹ F) X = 𝟙 (F X) := rfl
+@[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟹ F).app X = 𝟙 (F.obj X) := rfl
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
-  ((α ≫ β) : F ⟹ H) X = (α : F ⟹ G) X ≫ (β : G ⟹ H) X := rfl
+  ((α ≫ β) : F ⟹ H).app X = (α : F ⟹ G).app X ≫ (β : G ⟹ H).app X := rfl
 end
 
 namespace nat_trans
@@ -43,10 +43,10 @@ variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include ℰ
 
 lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟹ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :
-  ((F X).map f) ≫ ((T X) Z) = ((T X) Y) ≫ ((G X).map f) := (T X).naturality f
+  ((F.obj X).map f) ≫ ((T.app X).app Z) = ((T.app X).app Y) ≫ ((G.obj X).map f) := (T.app X).naturality f
 
 lemma naturality_app {F G : C ⥤ (D ⥤ E)} (T : F ⟹ G) (Z : D) {X Y : C} (f : X ⟶ Y) :
-  ((F.map f) Z) ≫ ((T Y) Z) = ((T X) Z) ≫ ((G.map f) Z) := congr_fun (congr_arg app (T.naturality f)) Z
+  ((F.map f).app Z) ≫ ((T.app Y).app Z) = ((T.app X).app Z) ≫ ((G.map f).app Z) := congr_fun (congr_arg app (T.naturality f)) Z
 
 end nat_trans
 

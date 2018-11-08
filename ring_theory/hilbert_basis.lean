@@ -179,6 +179,7 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _ hnr
 end ideal
 
 /-- Hilbert basis theorem. -/
+/-- The Hilbert basis theorem. -/
 theorem is_noetherian_ring_polynomial (hnr : is_noetherian_ring R) : is_noetherian_ring (polynomial R) :=
 assume I : ideal (polynomial R),
 let L := I.leading_coeff in

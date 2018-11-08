@@ -40,10 +40,10 @@ by obviously
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α Z' h = α Z (f ≫ h) :=
 begin erw [functor_to_types.naturality], refl end
 
-instance full : full (yoneda C) :=
+instance yoneda_full : full (yoneda C) :=
 { preimage := λ X Y f, (f X) (𝟙 X) }.
 
-instance faithful : faithful (yoneda C) :=
+instance yoneda_faithful : faithful (yoneda C) :=
 begin
   fsplit,
   intros X Y f g p,

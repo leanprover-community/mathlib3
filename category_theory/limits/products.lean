@@ -1,3 +1,7 @@
+-- Copyright (c) 2018 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+
 import category_theory.limits.limits
 import category_theory.discrete_category
 
@@ -309,22 +313,6 @@ begin
       uniq' := λ s m j, is_coproduct.uniq (cofan.of_cocone s) m j } }
 end
 
-
--- FIXME restore these
-
--- def has_binary_products_from_has_products : has_binary_products.{u v} C :=
--- { span := λ Y Z,
---   begin
---     let f : ulift bool → C := (λ b : ulift bool, cond b.down Y Z),
---     exact { X := limits.pi f, π₁ := pi.π f ⟨ tt ⟩, π₂ := pi.π f ⟨ ff ⟩ }
---   end,
---   is_binary_product := λ Y Z,
---   { lift := λ s, pi.lift (λ b, bool.cases_on b.down s.π₂ s.π₁),
---     uniq' := λ s m w₁ w₂,
---     begin
---       dsimp at *, ext1, cases b, cases b, tidy,
---     end } }
-
 section
 
 def sigma.cofan (f : β → C) [has_coproduct f] := has_coproduct.cofan.{u v} f
@@ -393,117 +381,122 @@ colimit.map_desc (cocone.of_function p) (nat_trans.of_function k)
 
 -- FIXME continue fixing the `has_coproduct` typeclass arguments.
 
--- @[simp] lemma sigma.map_map {f1 : β → C} {f2 : β → C} {f3 : β → C}
---   (k1 : Π b, f1 b ⟶ f2 b) (k2 : Π b, f2 b ⟶ f3 b) :
---   sigma.map k1 ≫ sigma.map k2 = sigma.map (λ b, k1 b ≫ k2 b) :=
--- begin
---   /- `obviously` says -/
---   ext1,
---   simp,
---   rw ←category.assoc,
---   simp,
--- end.
+@[simp] lemma sigma.map_map 
+  {f1 : β → C} [has_coproduct.{u v} f1] 
+  {f2 : β → C} [has_coproduct.{u v} f2] 
+  {f3 : β → C} [has_coproduct.{u v} f3]
+  (k1 : Π b, f1 b ⟶ f2 b) (k2 : Π b, f2 b ⟶ f3 b) :
+  sigma.map k1 ≫ sigma.map k2 = sigma.map (λ b, k1 b ≫ k2 b) :=
+begin
+  /- `obviously` says -/
+  ext1,
+  simp,
+  rw ←category.assoc,
+  simp,
+end.
 
--- @[simp] lemma sigma.pre_desc {α : Type v} {f : β → C} {P : C} (p : Π b, f b ⟶ P) (h : α → β) :
---   sigma.pre _ h ≫ sigma.desc p = sigma.desc (λ a, p (h a)) :=
--- begin
---   /- `obviously` says -/
---   ext1,
---   simp,
---   rw ←category.assoc,
---   simp,
--- end
+@[simp] lemma sigma.pre_desc 
+  {α : Type v} {f : β → C} [has_coproduct.{u v} f] 
+  {P : C} (p : Π b, f b ⟶ P) 
+  (h : α → β) [has_coproduct.{u v} (f ∘ h)] :
+  sigma.pre _ h ≫ sigma.desc p = sigma.desc (λ a, p (h a)) :=
+begin
+  /- `obviously` says -/
+  ext1,
+  simp,
+  rw ←category.assoc,
+  simp,
+end
 
--- def sigma.pre_map {α : Type v} {f g : β → C} (k : Π b : β, f b ⟶ g b) (e : α → β) :
---   sigma.pre f e ≫ sigma.map k = sigma.map (λ a, k (e a)) ≫ sigma.pre g e :=
--- begin
---   /- `obviously` says -/
---   ext1,
---   rw ←category.assoc,
---   erw sigma.ι_desc,
---   rw ←category.assoc,
---   simp,
--- end.
+def sigma.pre_map 
+  {α : Type v} {f g : β → C} [has_coproduct.{u v} f] [has_coproduct.{u v} g] 
+  (k : Π b : β, f b ⟶ g b) (e : α → β) 
+  [has_coproduct.{u v} (f ∘ e)] [has_coproduct.{u v} (g ∘ e)] :
+  sigma.pre f e ≫ sigma.map k = sigma.map (λ a, k (e a)) ≫ sigma.pre g e :=
+begin
+  /- `obviously` says -/
+  ext1,
+  rw ←category.assoc,
+  erw sigma.ι_desc,
+  rw ←category.assoc,
+  simp,
+end.
 
--- @[simp] lemma sigma.pre_pre {γ δ : Type v} (f : β → C) (g : γ → β) (h : δ → γ) :
---   sigma.pre (f ∘ g) h ≫ sigma.pre f g = sigma.pre f (g ∘ h) :=
--- begin
---   ext1,
---   rw ←category.assoc,
---   simp,
---   rw sigma.ι_pre f,
--- end.
+@[simp] lemma sigma.pre_pre 
+  {γ δ : Type v} 
+  (f : β → C) [has_coproduct.{u v} f] 
+  (g : γ → β) [has_coproduct.{u v} (f ∘ g)] 
+  (h : δ → γ) [has_coproduct.{u v} ((f ∘ g) ∘ h)]:
+  sigma.pre (f ∘ g) h ≫ sigma.pre f g = sigma.pre f (g ∘ h) :=
+begin
+  ext1,
+  rw ←category.assoc,
+  simp,
+  rw sigma.ι_pre f,
+end.
 
--- section
--- variables {D : Type u} [category.{u v} D] [has_coproducts.{u v} D]
+section
+variables {D : Type u} [category.{u v} D]
 
--- @[simp] def sigma.post_desc {f : β → C} {P : C} (k : Π b : β, f b ⟶ P) (G : C ⥤ D) :
---   sigma.post f G ≫ G.map (sigma.desc k) = sigma.desc (λ b, G.map (k b)) :=
--- begin
---   /- `obvously` says -/
---   ext1, simp,
---   rw ←category.assoc,
---   rw sigma.ι_post,
---   rw ←functor.map_comp,
---   rw sigma.ι_desc,
--- end.
+@[simp] def sigma.post_desc 
+  {f : β → C} [has_coproduct.{u v} f] 
+  {P : C} (k : Π b : β, f b ⟶ P) 
+  (G : C ⥤ D) [has_coproduct.{u v} (G.obj ∘ f)] :
+  sigma.post f G ≫ G.map (sigma.desc k) = sigma.desc (λ b, G.map (k b)) :=
+begin
+  /- `obvously` says -/
+  ext1, simp,
+  rw ←category.assoc,
+  rw sigma.ι_post,
+  rw ←functor.map_comp,
+  rw sigma.ι_desc,
+end.
 
--- def sigma.map_post {f g : β → C} (k : Π b : β, f b ⟶ g b) (H : C ⥤ D) :
---   @sigma.map _ _ _ _ (H.obj ∘ f) (H.obj ∘ g) (λ b, H.map (k b)) ≫ sigma.post g H =
---     sigma.post f H ≫ H.map (sigma.map k) :=
--- begin
---   /- `obviously` says -/
---   ext1,
---   dsimp at *,
---   rw ←category.assoc,
---   simp,
---   rw ←functor.map_comp,
---   rw ←category.assoc,
---   simp,
---   rw ←functor.map_comp,
---   rw ←functor.map_comp,
---   rw sigma.ι_map,
--- end.
+def sigma.map_post 
+  {f g : β → C} [has_coproduct.{u v} f] [has_coproduct.{u v} g] 
+  (k : Π b : β, f b ⟶ g b) 
+  (H : C ⥤ D) [has_coproduct.{u v} (H.obj ∘ f)] [has_coproduct.{u v} (H.obj ∘ g)] :
+  @sigma.map _ _ _ (H.obj ∘ f) _ (H.obj ∘ g) _ (λ b, H.map (k b)) ≫ sigma.post g H =
+    sigma.post f H ≫ H.map (sigma.map k) :=
+begin
+  /- `obviously` says -/
+  ext1,
+  dsimp at *,
+  rw ←category.assoc,
+  simp,
+  rw ←functor.map_comp,
+  rw ←category.assoc,
+  simp,
+  rw ←functor.map_comp,
+  rw ←functor.map_comp,
+  rw sigma.ι_map,
+end.
 
--- def sigma.pre_post {α} (f : β → C) (g : α → β) (G : C ⥤ D) :
---   sigma.pre (G.obj ∘ f) g ≫ sigma.post f G = sigma.post (f ∘ g) G ≫ G.map (sigma.pre f g) :=
--- begin
---   /- `tidy` says -/
---   ext1,
---   dsimp at *,
---   rw [←category.assoc, sigma.ι_pre, sigma.ι_post, ←category.assoc,
---       sigma.ι_post, ←functor.map_comp, sigma.ι_pre]
--- end
+def sigma.pre_post 
+  {α} (f : β → C) [has_coproduct.{u v} f] 
+  (g : α → β) [has_coproduct.{u v} (f ∘ g)]
+  (G : C ⥤ D) [has_coproduct.{u v} (G.obj ∘ f)] [has_coproduct.{u v} (G.obj ∘ f ∘ g)] :
+  sigma.pre (G.obj ∘ f) g ≫ sigma.post f G = sigma.post (f ∘ g) G ≫ G.map (sigma.pre f g) :=
+begin
+  /- `obviously` says -/
+  ext1,
+  dsimp at *,
+  rw [←category.assoc, sigma.ι_pre, sigma.ι_post, ←category.assoc,
+      sigma.ι_post, ←functor.map_comp, sigma.ι_pre]
+end
 
--- @[simp] def sigma.post_post
---   {E : Type u} [category.{u v} E] [has_coproducts.{u v} E] (f : β → C) (G : C ⥤ D) (H : D ⥤ E) :
---   sigma.post (G.obj ∘ f) H ≫ H.map (sigma.post f G) = sigma.post f (G ⋙ H) :=
--- begin
---   /- `obviously` says -/
---   ext1,
---   rw ←category.assoc,
---   rw sigma.ι_post,
---   rw ←functor.map_comp,
---   rw sigma.ι_post,
---   erw sigma.ι_post f (G ⋙ H) b,
---   refl
--- end.
+-- TODO? As needed.
+/-
+@[simp] def sigma.post_post
+  {E : Type u} [category.{u v} E]
+  (f : β → C) [has_coproduct.{u v} f] 
+  (G : C ⥤ D) [has_coproduct.{u v} (G.obj ∘ f)] 
+  (H : D ⥤ E) [has_coproduct.{u v} (H.obj ∘ G.obj ∘ f)]:
+  sigma.post (G.obj ∘ f) H ≫ H.map (sigma.post f G) = sigma.post f (G ⋙ H) := ...
+-/
+
+end
 end
 end coproducts
-
--- FIXME restore these
-
--- def has_binary_coproducts_from_has_products : has_binary_coproducts.{u v} C :=
--- { cospan := λ Y Z,
---   begin
---     let f : ulift bool → C := (λ b : ulift bool, cond b.down Y Z),
---     exact { X := limits.sigma f, ι₁ := sigma.ι f ⟨ tt ⟩, ι₂ := sigma.ι f ⟨ ff ⟩ }
---   end,
---   is_binary_coproduct := λ Y Z,
---   { desc := λ s, sigma.desc (λ b, bool.cases_on b.down s.ι₂ s.ι₁),
---     uniq' := λ s m w₁ w₂,
---     begin
---       dsimp at *, ext1, cases b, cases b, tidy,
---     end } }
 
 end category_theory.limits

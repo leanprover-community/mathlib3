@@ -1,3 +1,7 @@
+-- Copyright (c) 2018 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+
 import category_theory.products
 import category_theory.limits
 import category_theory.limits.preserves
@@ -106,7 +110,7 @@ instance functor_category_has_colimits_of_shape [has_colimits_of_shape.{u v} J C
 { cocone := λ F, functor_category_colimit_cocone F,
   is_colimit := λ F, functor_category_is_colimit_cocone F }
 
--- TODO Do we need hand-rolled versions of this?
+-- Perhaps we need hand-rolled versions of these? Let's see what people need.
 instance functor_category_has_products [has_products.{u v} C] : has_products.{(max u v) v} (K ⥤ C) :=
 limits.has_products_of_has_limits
 instance functor_category_has_coproducts [has_coproducts.{u v} C] : has_coproducts.{(max u v) v} (K ⥤ C) :=

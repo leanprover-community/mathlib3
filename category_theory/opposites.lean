@@ -25,7 +25,7 @@ def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
 { obj := λ X, X,
   map' := λ X Y f, f }
 
--- TODO this is unsuprisingly an equivalence
+-- TODO this is an equivalence
 
 namespace functor
 

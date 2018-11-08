@@ -717,7 +717,7 @@ begin
   erw [←category.assoc, is_colimit.fac, category.assoc, is_colimit.fac, ←functor.map_comp],
 end
 
--- TODO, later
+-- TODO, later, as needed
 /-
 lemma colimit.pre_post {K : Type v} [small_category K] 
   (F : J ⥤ C) [has_colimit F] (E : K ⥤ J) [has_colimit (E ⋙ F)] 

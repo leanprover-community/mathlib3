@@ -128,7 +128,8 @@ instance : has_pullbacks.{u+1 u} (Type u) :=
       exact congr_fun (w right) x,
     end }, }
 
--- TODO should we provide 'hand-rolled' instances, like those above? probably!
+-- We should eventually provide 'hand-rolled' instances, like those above, 
+-- which will be cleaner to use.
 
 instance : has_products.{u+1 u} (Type u) := has_products_of_has_limits
 instance : has_equalizers.{u+1 u} (Type u) := has_equalizers_of_has_limits

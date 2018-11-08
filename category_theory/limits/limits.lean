@@ -602,7 +602,8 @@ end
     simp
   end }.
 
-@[simp] lemma colim_ι_map [has_colimits_of_shape.{u v} J C] {F G : J ⥤ C} (α : F ⟹ G) (j : J) : colimit.ι F j ≫ colim.map α = α j ≫ colimit.ι G j :=
+@[simp] lemma colim_ι_map [has_colimits_of_shape.{u v} J C] {F G : J ⥤ C} (α : F ⟹ G) (j : J) : 
+  colimit.ι F j ≫ colim.map α = α j ≫ colimit.ι G j :=
 begin
   erw is_colimit.fac,
   refl
@@ -695,56 +696,41 @@ begin
   refl
 end
 
--- TODO finish converting these; use [has_colimit], not [has_colimits]
+@[simp] lemma colimit.desc_post 
+  {F : J ⥤ C} [has_colimit F] (c : cocone F) (G : C ⥤ D) [has_colimit (F ⋙ G)] :
+  colimit.post F G ≫ G.map (colimit.desc F c) = colimit.desc (F ⋙ G) (G.map_cocone c) :=
+begin
+  /- `obviously` says -/
+  ext1, dsimp at *, simp at *,
+  rw ←category.assoc,
+  simp,
+  rw ←functor.map_comp,
+  simp,
+end
 
--- @[simp] lemma colimit.desc_post {F : J ⥤ C} (c : cocone F) (G : C ⥤ D) :
---   colimit.post F G ≫ G.map (colimit.desc F c) = colimit.desc (F ⋙ G) (G.map_cocone c) :=
--- begin
---   /- `obviously` says -/
---   ext1, dsimp at *, simp at *,
---   rw ←category.assoc,
---   simp,
---   rw ←functor.map_comp,
---   simp,
---   refl,
--- end
+lemma colimit.post_map [has_colimits_of_shape.{u v} J C] [has_colimits_of_shape.{u v} J D] 
+  {F G : J ⥤ C} (α : F ⟹ G) (H : C ⥤ D) :
+  colimit.post F H ≫ H.map (colim.map α) = colim.map (whisker_right α H) ≫ colimit.post G H :=
+begin
+  /- `obviously` says -/
+  ext1, dsimp at *, simp at *,
+  erw [←category.assoc, is_colimit.fac, category.assoc, is_colimit.fac, ←functor.map_comp],
+end
 
--- lemma colimit.post_map {F G : J ⥤ C} (α : F ⟹ G) (H : C ⥤ D) :
---   colimit.post F H ≫ H.map (colim.map α) = colim.map (whisker_right α H) ≫ colimit.post G H :=
--- begin
---   /- `obviously` says -/
---   ext1, dsimp at *, simp at *,
---   erw [←category.assoc, is_colimit.fac, category.assoc, is_colimit.fac, ←functor.map_comp],
---   refl
--- end
+-- TODO, later
+/-
+lemma colimit.pre_post {K : Type v} [small_category K] 
+  (F : J ⥤ C) [has_colimit F] (E : K ⥤ J) [has_colimit (E ⋙ F)] 
+  (G : C ⥤ D) [has_colimit (F ⋙ G)] [has_colimit (E ⋙ F ⋙ G)] :
+  colimit.pre (F ⋙ G) E ≫ colimit.post F G = colimit.post (E ⋙ F) G ≫ G.map (colimit.pre F E) := ...
 
--- lemma colimit.pre_post {K : Type v} [small_category K] (F : J ⥤ C) (E : K ⥤ J) (G : C ⥤ D) :
---   colimit.pre (F ⋙ G) E ≫ colimit.post F G = colimit.post (E ⋙ F) G ≫ G.map (colimit.pre F E) :=
--- begin
---   /- `obviously` says -/
---   ext1, dsimp at *,
---   rw ←category.assoc,
---   simp,
---   rw ←category.assoc,
---   erw colimit.ι_post (E ⋙ F) G,
---   rw ←functor.map_comp,
---   rw colimit.ι_pre,
--- end.
-
--- @[simp] lemma colimit.post_post
---   {E : Type u} [category.{u v} E] [has_colimits.{u v} E] (F : J ⥤ C) (G : C ⥤ D) (H : D ⥤ E) :
---   colimit.post (F ⋙ G) H ≫ H.map (colimit.post F G) = colimit.post F (G ⋙ H) :=
--- begin
---   /- `obviously` says -/
---   ext1, dsimp at *,
---   rw ←category.assoc,
---   simp,
---   rw ←functor.map_comp,
---   erw colimit.ι_post,
---   erw colimit.ι_post F (G ⋙ H),
---   simp,
--- end
--- end
+@[simp] lemma colimit.post_post
+  {E : Type u} [category.{u v} E] 
+  (F : J ⥤ C) [has_colimit F] 
+  (G : C ⥤ D) [has_colimit (F ⋙ G)] 
+  (H : D ⥤ E) [has_colimit ((F ⋙ G) ⋙ H)] :
+  colimit.post (F ⋙ G) H ≫ H.map (colimit.post F G) = colimit.post F (G ⋙ H) := ...
+-/
 
 end
 end

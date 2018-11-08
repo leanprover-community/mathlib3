@@ -298,7 +298,6 @@ begin
     simpa }
 end
 
-
 end pullback
 
 section pushout
@@ -307,14 +306,13 @@ variables (f : X ⟶ Y) (g : X ⟶ Z)
 
 def pushout.cosquare : cosquare f g := has_pushouts.cosquare.{u v} f g
 def pushout := (pushout.cosquare f g).X
--- FIXME
--- def pushout.ι₁ : pushout f g ⟶ X := (pushout.cosquare f g).ι.app left
--- def pushout.ι₂ : pushout f g ⟶ Y := (pushout.cosquare f g).ι.app right
--- @[simp] lemma pushout.w : f ≫ pushout.ι₁ f g = g ≫ pushout.ι₂ f g :=
--- begin
---   erw ((pullback.square f g).w inl),
---   erw ((pullback.square f g).w inr)
--- end
+def pushout.ι₁ : Y ⟶ pushout f g := (pushout.cosquare f g).ι.app left
+def pushout.ι₂ : Z ⟶ pushout f g := (pushout.cosquare f g).ι.app right
+@[simp] lemma pushout.w : f ≫ pushout.ι₁ f g = g ≫ pushout.ι₂ f g :=
+begin
+  erw ((pushout.cosquare f g).w fst),
+  erw ((pushout.cosquare f g).w snd)
+end
 def pushout.universal_property : is_pushout (pushout.cosquare f g) :=
 has_pushouts.is_pushout.{u v} C f g
 
@@ -331,12 +329,40 @@ instance has_colimits_of_shape_of_has_pushouts [has_pushouts.{u v} C] :
     uniq' := λ s m w, is_pushout.uniq (cosquare.of_cocone s) m
       (λ j, begin convert w j; cases j, tidy end) } }.
 
+@[extensionality] lemma pushout.hom_ext [has_pushouts.{u v} C] {W : C}
+  {k h : pushout f g ⟶ W}
+  (w_left : pushout.ι₁ f g ≫ k = pushout.ι₁ f g ≫ h)
+  (w_right : pushout.ι₂ f g ≫ k = pushout.ι₂ f g ≫ h) : k = h :=
+(pushout.universal_property f g).hom_ext w_left w_right
 
--- TODO
--- pullback.lift
--- pullback.lift_π₁
--- pullback.lift_π₂
--- pullback.hom_ext
+def pushout.desc [has_pushouts.{u v} C] {W : C}
+  (f' : Y ⟶ W) (g' : Z ⟶ W) (eq : f ≫ f' = g ≫ g') : pushout f g ⟶ W :=
+(pushout.universal_property f g).desc (cosquare.mk f' g' eq)
+
+@[simp] lemma pushout.lift_π₁ [has_pushouts.{u v} C] {W : C}
+  (f' : Y ⟶ W) (g' : Z ⟶ W) (eq : f ≫ f' = g ≫ g') :
+  pushout.ι₁ f g ≫ pushout.desc f g f' g' eq = f' :=
+(pushout.universal_property f g).fac (cosquare.mk f' g' eq) _
+
+@[simp] lemma pushout.lift_π₂ [has_pushouts.{u v} C] {W : C}
+  (f' : Y ⟶ W) (g' : Z ⟶ W) (eq : f ≫ f' = g ≫ g') :
+  pushout.ι₂ f g ≫ pushout.desc f g f' g' eq = g' :=
+(pushout.universal_property f g).fac (cosquare.mk f' g' eq) _
+
+@[simp] lemma pushout.lift_id [has_pushouts.{u v} C]
+  (eq : f ≫ pushout.ι₁ f g = g ≫ pushout.ι₂ f g) :
+  pushout.desc f g _ _ eq = 𝟙 _ :=
+begin
+  refine ((pushout.universal_property f g).uniq _ _ _).symm,
+  rintros (_ | _ | _),
+  { dsimp [cosquare.mk], simp,
+    have := (pushout.cosquare f g).ι.naturality walking_span_hom.snd,
+    dsimp at this,
+    erw ← this,
+    simpa },
+  { dsimp [cosquare.mk], erw category.comp_id, refl },
+  { dsimp [cosquare.mk], erw category.comp_id, refl },
+end
 
 end pushout
 

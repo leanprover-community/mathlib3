@@ -21,7 +21,7 @@ We define the following concepts:
 * `is_basis.constr s g`: constructs a `linear_map` by extending `g` from the basis `s`
 
 -/
-import linear_algebra.lc
+import linear_algebra.lc order.zorn
 noncomputable theory
 
 open function lattice set submodule

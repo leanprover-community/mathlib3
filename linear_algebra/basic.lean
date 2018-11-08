@@ -7,7 +7,7 @@ Basics of linear algebra. This sets up the "categorical/lattice structure" of
 modules, submodules, and linear maps.
 -/
 
-import algebra.pi_instances order.zorn data.set.finite data.finsupp order.order_iso
+import algebra.pi_instances data.finsupp order.order_iso
 
 open function lattice
 

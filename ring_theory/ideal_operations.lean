@@ -280,14 +280,12 @@ theorem radical_eq_Inf (I : ideal R) :
   radical I = Inf { J : ideal R | I ≤ J ∧ is_prime J } :=
 le_antisymm (le_Inf $ λ J hJ, hJ.2.radical_le_iff.2 hJ.1) $
 λ r hr, classical.by_contradiction $ λ hri,
-let S := { J | I ≤ J ∧ is_prime J } in
-let ⟨m, ⟨him, hrm⟩, hm⟩ := zorn.zorn_partial_order₀ { K | I ≤ K ∧ r ∉ radical K } I ⟨le_refl _, hri⟩
-  (λ c hc1 hc2 y hyc, ⟨Sup c, ⟨le_Sup_of_le hyc (hc1 hyc).1, λ ⟨n, hrnc⟩,
-    let ⟨y, hyc, hrny⟩ := submodule.mem_Sup_of_directed hrnc y hyc hc2.directed_on in
-    (hc1 hyc).2 ⟨n, hrny⟩⟩, λ _, le_Sup⟩) in
+let ⟨m, (hrm : r ∉ radical m), him, hm⟩ := zorn.zorn_partial_order₀ {K : ideal R | r ∉ radical K}
+  (λ c hc hcc y hyc, ⟨Sup c, λ ⟨n, hrnc⟩, let ⟨y, hyc, hrny⟩ :=
+      submodule.mem_Sup_of_directed hrnc y hyc hcc.directed_on in hc hyc ⟨n, hrny⟩,
+    λ z, le_Sup⟩) I hri in
 have ∀ x ∉ m, r ∈ radical (m ⊔ span {x}) := λ x hxm, classical.by_contradiction $ λ hrmx, hxm $
-  have _ := hm (m ⊔ span {x}) ⟨le_trans him le_sup_left, hrmx⟩ le_sup_left,
-  this ▸ (le_sup_right : _ ≤ m ⊔ span {x}) (subset_span $ set.mem_singleton _),
+  hm (m ⊔ span {x}) hrmx le_sup_left ▸ (le_sup_right : _ ≤ m ⊔ span {x}) (subset_span $ set.mem_singleton _),
 have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial,
   λ x y hxym, classical.or_iff_not_imp_left.2 $ λ hxm, classical.by_contradiction $ λ hym,
   let ⟨n, hrn⟩ := this _ hxm, ⟨p, hpm, q, hq, hpqrn⟩ := submodule.mem_sup.1 hrn, ⟨c, hcxq⟩ := mem_span_singleton'.1 hq in

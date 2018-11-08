@@ -92,36 +92,27 @@ end antisymm
 section wo
 parameters {ι : Type u} {β : ι → Type v}
 
-private def sets := {s : set (∀ i, β i) //
+@[reducible] private def sets := {s : set (∀ i, β i) |
   ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i → x = y}
 
-private def sets.partial_order : partial_order sets :=
-{ le          := λ s t, s.1 ⊆ t.1,
-  le_refl     := λ s, subset.refl _,
-  le_trans    := λ s t u, subset.trans,
-  le_antisymm := λ s t h₁ h₂, subtype.eq (subset.antisymm h₁ h₂) }
-
-local attribute [instance] sets.partial_order
-
 theorem injective_min (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
-let ⟨⟨s, hs⟩, ms⟩ := show ∃s:sets, ∀a, s ≤ a → a = s, from
-  zorn.zorn_partial_order $ λ c hc,
-    ⟨⟨⋃₀ (subtype.val '' c),
-    λ x ⟨_, ⟨⟨s, hs⟩, sc, rfl⟩, xs⟩ y ⟨_, ⟨⟨t, ht⟩, tc, rfl⟩, yt⟩,
-      (hc.total sc tc).elim (λ h, ht _ (h xs) _ yt) (λ h, hs _ xs _ (h yt))⟩,
-    λ ⟨s, hs⟩ sc x h, ⟨s, ⟨⟨s, hs⟩, sc, rfl⟩, h⟩⟩ in
+let ⟨s, hs, ms⟩ := show ∃s∈sets, ∀a∈sets, s ⊆ a → a = s, from
+  zorn.zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
+    λ x ⟨p, hpc, hxp⟩ y ⟨q, hqc, hyq⟩ i hi,
+      (hcc.total hpc hqc).elim (λ h, hc hqc x (h hxp) y hyq i hi) (λ h, hc hpc x hxp y (h hyq) i hi),
+  λ _, subset_sUnion_of_mem⟩) in
 let ⟨i, e⟩ := show ∃ i, ∀ y, ∃ x ∈ s, (x : ∀ i, β i) i = y, from
   classical.by_contradiction $ λ h,
   have h : ∀ i, ∃ y, ∀ x ∈ s, (x : ∀ i, β i) i ≠ y,
-    by simpa [classical.not_forall] using h,
+    by simpa only [not_exists, classical.not_forall] using h,
   let ⟨f, hf⟩ := axiom_of_choice h in
-  have f ∈ (⟨s, hs⟩:sets).1, from
-    let s' : sets := ⟨insert f s, λ x hx y hy, begin
+  have f ∈ s, from
+    have insert f s ∈ sets := λ x hx y hy, begin
       cases hx; cases hy, {simp [hx, hy]},
       { subst x, exact λ i e, (hf i y hy e.symm).elim },
       { subst y, exact λ i e, (hf i x hx e).elim },
       { exact hs x hx y hy }
-    end⟩ in ms s' (subset_insert f s) ▸ mem_insert _ _,
+    end, ms _ this (subset_insert f s) ▸ mem_insert _ _,
   let ⟨i⟩ := I in hf i f this rfl in
 let ⟨f, hf⟩ := axiom_of_choice e in
 ⟨i, ⟨λ j, ⟨λ a, f a j, λ a b e',

@@ -18,6 +18,8 @@ include 𝒞 𝒟
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
 -- FIXME Reid's suggestion using forall, also for all variants of has_limits
+-- TODO rename to `continuous`?
+-- TODO show `functor.id` preserves limits?
 
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))

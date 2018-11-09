@@ -325,17 +325,17 @@ def ring_equiv_of_equiv (e : σ ≃ τ) : mv_polynomial σ α ≃r mv_polynomial
           (@coe_fn (equiv σ τ) (@equiv.has_coe_to_fun σ τ) e)
           n))
 
+-- It still takes 16 seconds to elaborate
 def option_ring_equiv : mv_polynomial (option σ) α ≃r polynomial (mv_polynomial σ α) :=
 /-{ hom := eval₂.is_ring_hom _ _, .. option_equiv }-/
-  @ring_equiv.mk (@mv_polynomial (option σ) α (@comm_ring.to_comm_semiring α _inst_3))
+  @ring_equiv.mk
+    (@mv_polynomial (option σ) α (@comm_ring.to_comm_semiring α _inst_3))
     (@polynomial (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
-       (@mv_polynomial.comm_semiring α σ _inst_4 _inst_6
-          (@comm_ring.to_comm_semiring α _inst_3)))
+       (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
     (@mv_polynomial.ring α (option σ) (@option.decidable_eq σ _inst_4) _inst_6 _inst_3)
     (@comm_ring.to_ring
        (@polynomial (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
-          (@mv_polynomial.comm_semiring α σ _inst_4 _inst_6
-             (@comm_ring.to_comm_semiring α _inst_3)))
+          (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
        (@polynomial.comm_ring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
           (@mv_polynomial.decidable_eq α σ _inst_4 _inst_6
             (@comm_ring.to_comm_semiring α _inst_3))
@@ -344,8 +344,7 @@ def option_ring_equiv : mv_polynomial (option σ) α ≃r polynomial (mv_polynom
        _inst_6)
 (  @mv_polynomial.eval₂.is_ring_hom α
     (@polynomial (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
-       (@mv_polynomial.comm_semiring α σ _inst_4 _inst_6
-          (@comm_ring.to_comm_semiring α _inst_3)))
+       (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
     (option σ)
     (@option.decidable_eq σ _inst_4)
     _inst_6
@@ -353,23 +352,19 @@ def option_ring_equiv : mv_polynomial (option σ) α ≃r polynomial (mv_polynom
     (@polynomial.decidable_eq (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
       (@mv_polynomial.decidable_eq α σ _inst_4 _inst_6
         (@comm_ring.to_comm_semiring α _inst_3))
-      (@mv_polynomial.comm_semiring α σ _inst_4 _inst_6
-        (@comm_ring.to_comm_semiring α _inst_3)))
+      (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
     (@polynomial.comm_ring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
        (@mv_polynomial.decidable_eq α σ _inst_4 _inst_6
           (@comm_ring.to_comm_semiring α _inst_3))
        (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3))
     (@function.comp α (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
        (@polynomial (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
-          (@mv_polynomial.comm_semiring α σ _inst_4 _inst_6
-             (@comm_ring.to_comm_semiring α _inst_3)))
+          (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
        (@polynomial.C (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
           (@mv_polynomial.decidable_eq α σ _inst_4
              _inst_6
              (@comm_ring.to_comm_semiring α _inst_3))
-          (@mv_polynomial.comm_semiring α σ _inst_4
-             _inst_6
-             (@comm_ring.to_comm_semiring α _inst_3)))
+          (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
        (@mv_polynomial.C α σ _inst_4
           _inst_6
           (@comm_ring.to_comm_semiring α _inst_3)))
@@ -383,12 +378,10 @@ def option_ring_equiv : mv_polynomial (option σ) α ≃r polynomial (mv_polynom
           _inst_6
           _inst_3)
        (@polynomial (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
-          (@mv_polynomial.comm_semiring α σ _inst_4 _inst_6
-             (@comm_ring.to_comm_semiring α _inst_3)))
+          (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
        (@comm_ring.to_ring
           (@polynomial (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
-             (@mv_polynomial.comm_semiring α σ _inst_4 _inst_6
-                (@comm_ring.to_comm_semiring α _inst_3)))
+             (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
           (@polynomial.comm_ring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
              (@mv_polynomial.decidable_eq α σ _inst_4 _inst_6
                 (@comm_ring.to_comm_semiring α _inst_3))
@@ -397,9 +390,7 @@ def option_ring_equiv : mv_polynomial (option σ) α ≃r polynomial (mv_polynom
           (@mv_polynomial.decidable_eq α σ _inst_4
              _inst_6
              (@comm_ring.to_comm_semiring α _inst_3))
-          (@mv_polynomial.comm_semiring α σ _inst_4
-             _inst_6
-             (@comm_ring.to_comm_semiring α _inst_3)))
+          (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
        (@polynomial.C.is_ring_hom (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
           (@mv_polynomial.decidable_eq α σ _inst_4
              _inst_6
@@ -410,29 +401,21 @@ def option_ring_equiv : mv_polynomial (option σ) α ≃r polynomial (mv_polynom
           @option.rec_on σ
             (λ (_x : option σ),
                @polynomial (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
-                 (@mv_polynomial.comm_semiring α σ _inst_4
-                    _inst_6
-                    (@comm_ring.to_comm_semiring α _inst_3)))
+                 (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
             x
             (@polynomial.X (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
                (@mv_polynomial.decidable_eq α σ _inst_4
                   _inst_6
                   (@comm_ring.to_comm_semiring α _inst_3))
-               (@mv_polynomial.comm_semiring α σ _inst_4
-                  _inst_6
-                  (@comm_ring.to_comm_semiring α _inst_3)))
+               (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
             (@function.comp σ (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
                (@polynomial (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
-                  (@mv_polynomial.comm_semiring α σ _inst_4
-                     _inst_6
-                     (@comm_ring.to_comm_semiring α _inst_3)))
+                  (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
                (@polynomial.C (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3))
                   (@mv_polynomial.decidable_eq α σ _inst_4
                      _inst_6
                      (@comm_ring.to_comm_semiring α _inst_3))
-                  (@mv_polynomial.comm_semiring α σ _inst_4
-                     _inst_6
-                     (@comm_ring.to_comm_semiring α _inst_3)))
+                  (@comm_ring.to_comm_semiring (@mv_polynomial σ α (@comm_ring.to_comm_semiring α _inst_3)) (@mv_polynomial.comm_ring α σ _inst_4 _inst_6 _inst_3)))
                (@mv_polynomial.X α σ _inst_4
                   _inst_6
                   (@comm_ring.to_comm_semiring α _inst_3))))
@@ -468,16 +451,19 @@ is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R)
   (mv_polynomial.ring_equiv_of_equiv e.symm)
   (is_noetherian_ring_mv_polynomial_fin hnr)
 
-theorem is_noetherian_ring_of_fg (σ : set R) (hfσ : set.finite σ)
-  (hσ : ring.closure σ = set.univ) : is_noetherian_ring R :=
+theorem is_noetherian_ring_of_fg_of_is_noetherian_ring
+  (S : set R) [is_subring S] (σ : set R) (hfσ : set.finite σ)
+  (hσ : ring.closure (S ∪ σ) = set.univ)
+  (hs : @is_noetherian_ring S (comm_ring.to_ring S)) : is_noetherian_ring R :=
 begin
   haveI := set.finite.fintype hfσ, haveI := classical.dec_eq σ,
-  refine is_noetherian_ring_of_surjective (mv_polynomial σ ℤ) R
-    (mv_polynomial.eval₂ int.cast subtype.val) _ _
-    (is_noetherian_ring_mv_polynomial_of_fintype _),
-  { exact @mv_polynomial.eval₂.is_ring_hom ℤ R σ _inst_3 int.decidable_eq
-      int.comm_ring _inst_2 _inst_1 int.cast
-      ⟨int.cast_one, int.cast_mul, int.cast_add⟩ subtype.val },
+  haveI := classical.dec_eq S,
+  refine is_noetherian_ring_of_surjective (mv_polynomial σ S) R
+    (mv_polynomial.eval₂ subtype.val subtype.val) _ _
+    (is_noetherian_ring_mv_polynomial_of_fintype hs),
+  { exact @mv_polynomial.eval₂.is_ring_hom S R σ _inst_4 _inst_5
+      subset.comm_ring _inst_2 _inst_1 subtype.val
+      is_ring_hom.is_ring_hom subtype.val },
   { intro r, have hr := set.eq_univ_iff_forall.1 hσ r,
     rcases ring.exists_list_of_mem_closure hr with ⟨L, hl1, hl2⟩,
     induction L with hd tl ih generalizing r,
@@ -487,45 +473,88 @@ begin
     cases ih hl1.2 _ (set.eq_univ_iff_forall.1 hσ _) rfl with f hf,
     subst hl2, rw [list.map_cons, list.sum_cons, ← hf],
     replace hl1 := hl1.1, clear hr hf ih tl,
-    suffices : ∃ (a : mv_polynomial ↥σ ℤ),
-      mv_polynomial.eval₂ int.cast subtype.val a = list.prod hd,
+    suffices : ∃ (a : mv_polynomial ↥σ S),
+      mv_polynomial.eval₂ subtype.val subtype.val a = list.prod hd,
     { cases this with g hg, refine ⟨g + f, _⟩,
-      rw @mv_polynomial.eval₂_add ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
-        g f comm_ring.to_comm_semiring int.cast subtype.val
-        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
+      rw @mv_polynomial.eval₂_add S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+        g f comm_ring.to_comm_semiring subtype.val subtype.val
+        (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom),
       rw hg },
     induction hd with hd tl ih,
     { refine ⟨1, _⟩,
-      rw @mv_polynomial.eval₂_one ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
-        comm_ring.to_comm_semiring int.cast subtype.val
-        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
+      rw @mv_polynomial.eval₂_one S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+        comm_ring.to_comm_semiring subtype.val subtype.val
+        (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom),
       rw list.prod_nil },
     rw list.forall_mem_cons at hl1,
     cases ih hl1.2 with g hg,
     rw [list.prod_cons, ← hg],
     rcases hl1.1 with h | h | h,
-    { refine ⟨mv_polynomial.X ⟨hd, h⟩ * g, _⟩,
-      rw @mv_polynomial.eval₂_mul ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
-        g comm_ring.to_comm_semiring int.cast subtype.val
-        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
-      rw @mv_polynomial.eval₂_X ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
-        comm_ring.to_comm_semiring int.cast subtype.val
-        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩ },
-    { refine ⟨-mv_polynomial.X ⟨-hd, h⟩ * g, _⟩,
-      rw @mv_polynomial.eval₂_mul ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
-        g comm_ring.to_comm_semiring int.cast subtype.val
-        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
-      rw @mv_polynomial.eval₂_neg ℤ R σ _inst_3 int.decidable_eq int.comm_ring
-        _ _inst_2 _inst_1 int.cast
-        ⟨int.cast_one, int.cast_mul, int.cast_add⟩ subtype.val,
-      rw @mv_polynomial.eval₂_X ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
-        comm_ring.to_comm_semiring int.cast subtype.val
-        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
+    { cases h with h h,
+      { refine ⟨mv_polynomial.C ⟨hd, h⟩ * g, _⟩,
+        rw @mv_polynomial.eval₂_mul S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+          g comm_ring.to_comm_semiring subtype.val subtype.val
+          (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom),
+        rw @mv_polynomial.eval₂_C S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+          comm_ring.to_comm_semiring subtype.val subtype.val
+          (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom) },
+      refine ⟨mv_polynomial.X ⟨hd, h⟩ * g, _⟩,
+      rw @mv_polynomial.eval₂_mul S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+        g comm_ring.to_comm_semiring subtype.val subtype.val
+        (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom),
+      rw @mv_polynomial.eval₂_X S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+        comm_ring.to_comm_semiring subtype.val subtype.val
+        (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom) },
+    { cases h with h h,
+      { refine ⟨-mv_polynomial.C ⟨-hd, h⟩ * g, _⟩,
+        rw @mv_polynomial.eval₂_mul S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+          g comm_ring.to_comm_semiring subtype.val subtype.val
+          (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom),
+        rw @mv_polynomial.eval₂_neg S R σ _inst_4 _inst_5 subset.comm_ring
+          _ _inst_2 _inst_1 subtype.val
+          is_ring_hom.is_ring_hom subtype.val,
+        rw @mv_polynomial.eval₂_C S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+          comm_ring.to_comm_semiring subtype.val subtype.val
+          (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom),
+        rw neg_neg },
+      refine ⟨-mv_polynomial.X ⟨-hd, h⟩ * g, _⟩,
+      rw @mv_polynomial.eval₂_mul S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+        g comm_ring.to_comm_semiring subtype.val subtype.val
+        (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom),
+      rw @mv_polynomial.eval₂_neg S R σ _inst_4 _inst_5 subset.comm_ring
+        _ _inst_2 _inst_1 subtype.val
+        is_ring_hom.is_ring_hom subtype.val,
+      rw @mv_polynomial.eval₂_X S R σ _inst_4 _inst_5 comm_ring.to_comm_semiring
+        comm_ring.to_comm_semiring subtype.val subtype.val
+        (@@is_ring_hom.is_semiring_hom _ _ _ is_ring_hom.is_ring_hom),
       rw neg_neg },
     { refine ⟨-g, _⟩,
-      rw @mv_polynomial.eval₂_neg ℤ R σ _inst_3 int.decidable_eq int.comm_ring
-        _ _inst_2 _inst_1 int.cast
-        ⟨int.cast_one, int.cast_mul, int.cast_add⟩ subtype.val,
-      rw [h, neg_one_mul] } },
-  { exact principal_ideal_domain.is_noetherian_ring }
+      rw @mv_polynomial.eval₂_neg S R σ _inst_4 _inst_5 subset.comm_ring
+        _ _inst_2 _inst_1 subtype.val
+        is_ring_hom.is_ring_hom subtype.val,
+      rw [h, neg_one_mul] } }
 end
+
+instance int.cast.is_ring_hom {R : Type u} [ring R] :
+  is_ring_hom (int.cast : ℤ → R) :=
+⟨int.cast_one, int.cast_mul, int.cast_add⟩
+
+instance set.range.is_subring {R : Type u} {S : Type v} [ring R] [ring S]
+  (f : R → S) [is_ring_hom f] : is_subring (set.range f) :=
+{ zero_mem := ⟨0, is_ring_hom.map_zero f⟩,
+  one_mem := ⟨1, is_ring_hom.map_one f⟩,
+  neg_mem := λ x ⟨p, hp⟩, ⟨-p, hp ▸ is_ring_hom.map_neg f⟩,
+  add_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p + q, hp ▸ hq ▸ is_ring_hom.map_add f⟩,
+  mul_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p * q, hp ▸ hq ▸ is_ring_hom.map_mul f⟩, }
+
+theorem is_noetherian_ring_of_fg (σ : set R) (hfσ : set.finite σ)
+  (hσ : ring.closure σ = set.univ) : is_noetherian_ring R :=
+@is_noetherian_ring_of_fg_of_is_noetherian_ring R _ _ (set.range int.cast)
+  (set.range.is_subring _) σ hfσ
+  (set.eq_univ_of_univ_subset $ hσ ▸ (ring.closure_subset $
+    set.subset.trans (set.subset_union_right _ _) ring.subset_closure))
+  (is_noetherian_ring_of_surjective ℤ (set.range (int.cast : ℤ → R))
+    (λ i, ⟨i, i, rfl⟩) ⟨subtype.eq int.cast_one, λ _ _, subtype.eq (int.cast_mul _ _),
+      λ _ _, subtype.eq (int.cast_add _ _)⟩
+    (λ ⟨r, i, rfl⟩, ⟨i, subtype.eq rfl⟩)
+    principal_ideal_domain.is_noetherian_ring)

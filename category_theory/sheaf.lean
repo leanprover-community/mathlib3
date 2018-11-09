@@ -251,18 +251,26 @@ variables {X : Type u} [topological_space X]
 
 instance : site (opens X) :=
 { coverage :=
-  { covers := λ U Us, U = ⨆ u ∈ Us, (u:over _).left,
-    property :=
+  { covers := λ U Us, U = ⨆u∈Us, (u:over _).left,
+    property := λ U V (i : V ⟶ U) (Us : covering_family U) (Us_cover : U = ⨆u∈Us, (u:over _).left),
     begin
-      refine λU V i Us (hUs : _ = _), ⟨(over.comap i).obj '' Us, _, _⟩,
+      refine ⟨ (over.comap i).obj '' Us, _, _⟩,
       { show _ = _,
         rw [lattice.supr_image],
-        sorry },
-      { rintros ⟨Vj, Ui, H⟩,
-        refine ⟨⟨Ui, H.1⟩, ⟨_, rfl⟩⟩,
+        apply le_antisymm,
+        { show V.val ≤ (⨆ (Ui : over U) (H : Ui ∈ Us), ((over.comap i).obj Ui).left).val,
+          rw galois_connection.l_supr (opens.gc),
+          sorry },
+        { refine supr_le _,
+          intro Ui,
+          refine supr_le _,
+          intro hUi,
+          exact plift.down (ulift.down (pullback.π₁ i Ui.hom).hom), } },
+      { rintros Vj ⟨Ui, H⟩,
+        refine ⟨Ui, H.1, _⟩,
         have H' := H.2.symm,
         subst H',
-        exact (pullback.π₂ i Ui.hom) }
+        exact ⟨ { left := pullback.π₂ i Ui.hom } ⟩ }
     end } }
 
 variables {B : set (opens X)}
@@ -270,13 +278,17 @@ variables {B : set (opens X)}
 instance basis.site {is_basis : opens.is_basis B} : site B :=
 { coverage :=
   { covers := λ U Us, U.val = ⨆u∈Us, (u:over _).left.val,
-    property := λ U V (i : V ⟶ U) (Us : covering_family U) (hUs : U.val = ⨆ Ui ∈ Us, ((Ui : over _).left).val),
+    property := λ U V (i : V ⟶ U) (Us : covering_family U) (Us_cover : U.val = ⨆ Ui ∈ Us, ((Ui : over _).left).val),
       ⟨ show covering_family V,
           from { Vj : over V | ∃ Ui ∈ Us, nonempty $ ((over.map i).obj Vj) ⟶ Ui },
         show V.val = ⨆ (Vj : over V) (hVj : ∃ Ui ∈ Us, nonempty $ ((over.map i).obj Vj) ⟶ Ui), Vj.left.val,
           from begin
             apply le_antisymm,
-            { sorry },
+            { intros x x_in_V,
+              rw opens.is_basis_iff_nbhd at is_basis,
+              have i' := plift.down (ulift.down i),
+              have := is_basis (i' x_in_V),
+              sorry },
             { refine supr_le _,
               intro Vj,
               refine supr_le _,

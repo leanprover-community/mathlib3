@@ -173,21 +173,20 @@ end site
 def site.trivial (X : Type u) [small_category.{u} X] : site X :=
 { coverage :=
   { covers := λ U Us, Us = {(over.mk (𝟙 U))},
-    property := λ U V g f (hf : _ = _), ⟨{(over.mk (𝟙 V))}, rfl, (λ Vj,
+    property := λ U V g f (hf : _ = _), ⟨{(over.mk (𝟙 V))}, rfl,
     begin
       subst hf,
-      refine ⟨⟨over.mk (𝟙 U), set.mem_singleton _⟩, _⟩,
-      { cases Vj with Vj hVj,
-        have : Vj = over.mk (𝟙 V) := set.mem_singleton_iff.mp hVj,
+      intros Vj hVj,
+      refine ⟨_, set.mem_singleton _, _⟩,
+      { have : Vj = over.mk (𝟙 V) := set.mem_singleton_iff.mp hVj,
         subst this,
-        exact ⟨g⟩,
         tidy }
-    end) ⟩ } }
+    end ⟩ } }
 
 def site.discrete (X : Type u) [small_category.{u} X] : site X :=
 { coverage :=
   { covers := λ U Us, true,
-    property := λ U V g f _, ⟨{Vj | false}, by simp, (λ Vj, false.elim Vj.property)⟩ } }
+    property := λ U V g f _, ⟨{Vj | false}, by simp, (λ Vj hVj, false.elim hVj)⟩ } }
 
 structure sheaf (X : Type u) [𝒳 : site.{u} X] :=
 (presheaf : presheaf X (Type u))
@@ -222,14 +221,27 @@ def limit (F : J ⥤ X) : cone F :=
 { X := infi F.obj,
   π := { app := λ j, ⟨⟨infi_le _ j⟩⟩ } }
 
+def colimit (F : J ⥤ X) : cocone F :=
+{ X := supr F.obj,
+  ι := { app := λ j, ⟨⟨le_supr _ j⟩⟩ } }
+
 def limit_is_limit (F : J ⥤ X) : is_limit (limit F) :=
 { lift := λ s, ⟨⟨le_infi (λ i, plift.down $ ulift.down $ s.π.app i)⟩⟩ }
+
+def colimit_is_colimit (F : J ⥤ X) : is_colimit (colimit F) :=
+{ desc := λ s, ⟨⟨supr_le (λ i, plift.down $ ulift.down $ s.ι.app i)⟩⟩ }
 
 instance : has_limits.{u u} X :=
 { cone := λ J hJ F, @limit _ _ J hJ F,
   is_limit := λ J hJ F, @limit_is_limit _ _ J hJ F }
 
+instance : has_colimits.{u u} X :=
+{ cocone := λ J hJ F, @colimit _ _ J hJ F,
+  is_colimit := λ J hJ F, @colimit_is_colimit _ _ J hJ F }
+
 instance : has_pullbacks.{u u} X := has_pullbacks_of_has_limits
+
+instance : has_coproducts.{u u} X := has_coproducts_of_has_colimits
 
 end lattice.complete_lattice
 
@@ -264,6 +276,13 @@ instance basis.site {is_basis : opens.is_basis B} : site B :=
         show V.val = ⨆ (Vj : over V) (hVj : ∃ Ui ∈ Us, nonempty $ ((over.map i).obj Vj) ⟶ Ui), Vj.left.val,
           from begin
             apply le_antisymm,
+            { sorry },
+            { refine supr_le _,
+              intro Vj,
+              refine supr_le _,
+              intro hVj,
+              show Vj.left.val ≤ V.val,
+              exact plift.down (ulift.down Vj.hom), }
           end,
         -- show ∀ (Vj : over V), Vj ∈ {Vj : over V | _ } → _,
           by obviously

@@ -8,7 +8,8 @@ Hilbert basis theorem: if a ring is noetherian then so is its polynomial ring.
 
 import linear_algebra.multivariate_polynomial
 import data.polynomial
-import ring_theory.noetherian
+import ring_theory.principal_ideal_domain
+import ring_theory.subring
 
 universes u v w
 
@@ -458,4 +459,73 @@ begin
       λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
         0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x⟩))
     (is_noetherian_ring_polynomial ih)
+end
+
+theorem is_noetherian_ring_mv_polynomial_of_fintype {σ : Type v} [fintype σ] [decidable_eq σ]
+  (hnr : is_noetherian_ring R) : is_noetherian_ring (mv_polynomial σ R) :=
+trunc.induction_on (fintype.equiv_fin σ) $ λ e,
+is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R)
+  (mv_polynomial.ring_equiv_of_equiv e.symm)
+  (is_noetherian_ring_mv_polynomial_fin hnr)
+
+theorem is_noetherian_ring_of_fg (σ : set R) (hfσ : set.finite σ)
+  (hσ : ring.closure σ = set.univ) : is_noetherian_ring R :=
+begin
+  haveI := set.finite.fintype hfσ, haveI := classical.dec_eq σ,
+  refine is_noetherian_ring_of_surjective (mv_polynomial σ ℤ) R
+    (mv_polynomial.eval₂ int.cast subtype.val) _ _
+    (is_noetherian_ring_mv_polynomial_of_fintype _),
+  { exact @mv_polynomial.eval₂.is_ring_hom ℤ R σ _inst_3 int.decidable_eq
+      int.comm_ring _inst_2 _inst_1 int.cast
+      ⟨int.cast_one, int.cast_mul, int.cast_add⟩ subtype.val },
+  { intro r, have hr := set.eq_univ_iff_forall.1 hσ r,
+    rcases ring.exists_list_of_mem_closure hr with ⟨L, hl1, hl2⟩,
+    induction L with hd tl ih generalizing r,
+    { rw [list.map, list.sum_nil] at hl2,
+      refine ⟨0, hl2 ▸ mv_polynomial.eval₂_zero _ _⟩ },
+    rw list.forall_mem_cons at hl1,
+    cases ih hl1.2 _ (set.eq_univ_iff_forall.1 hσ _) rfl with f hf,
+    subst hl2, rw [list.map_cons, list.sum_cons, ← hf],
+    replace hl1 := hl1.1, clear hr hf ih tl,
+    suffices : ∃ (a : mv_polynomial ↥σ ℤ),
+      mv_polynomial.eval₂ int.cast subtype.val a = list.prod hd,
+    { cases this with g hg, refine ⟨g + f, _⟩,
+      rw @mv_polynomial.eval₂_add ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
+        g f comm_ring.to_comm_semiring int.cast subtype.val
+        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
+      rw hg },
+    induction hd with hd tl ih,
+    { refine ⟨1, _⟩,
+      rw @mv_polynomial.eval₂_one ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
+        comm_ring.to_comm_semiring int.cast subtype.val
+        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
+      rw list.prod_nil },
+    rw list.forall_mem_cons at hl1,
+    cases ih hl1.2 with g hg,
+    rw [list.prod_cons, ← hg],
+    rcases hl1.1 with h | h | h,
+    { refine ⟨mv_polynomial.X ⟨hd, h⟩ * g, _⟩,
+      rw @mv_polynomial.eval₂_mul ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
+        g comm_ring.to_comm_semiring int.cast subtype.val
+        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
+      rw @mv_polynomial.eval₂_X ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
+        comm_ring.to_comm_semiring int.cast subtype.val
+        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩ },
+    { refine ⟨-mv_polynomial.X ⟨-hd, h⟩ * g, _⟩,
+      rw @mv_polynomial.eval₂_mul ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
+        g comm_ring.to_comm_semiring int.cast subtype.val
+        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
+      rw @mv_polynomial.eval₂_neg ℤ R σ _inst_3 int.decidable_eq int.comm_ring
+        _ _inst_2 _inst_1 int.cast
+        ⟨int.cast_one, int.cast_mul, int.cast_add⟩ subtype.val,
+      rw @mv_polynomial.eval₂_X ℤ R σ _inst_3 int.decidable_eq int.comm_semiring
+        comm_ring.to_comm_semiring int.cast subtype.val
+        ⟨int.cast_zero, int.cast_one, int.cast_add, int.cast_mul⟩,
+      rw neg_neg },
+    { refine ⟨-g, _⟩,
+      rw @mv_polynomial.eval₂_neg ℤ R σ _inst_3 int.decidable_eq int.comm_ring
+        _ _inst_2 _inst_1 int.cast
+        ⟨int.cast_one, int.cast_mul, int.cast_add⟩ subtype.val,
+      rw [h, neg_one_mul] } },
+  { exact principal_ideal_domain.is_noetherian_ring }
 end

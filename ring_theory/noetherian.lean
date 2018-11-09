@@ -298,7 +298,7 @@ begin
 end
 
 theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
-  (f : R → S) [is_ring_hom f] (hf : function.surjective f)
+  (f : R → S) (hf : is_ring_hom f) (hf : function.surjective f)
   (H : is_noetherian_ring R) : is_noetherian_ring S :=
 begin
   unfold is_noetherian_ring at H ⊢,
@@ -332,4 +332,4 @@ end ring_equiv
 
 theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃r S) (H : is_noetherian_ring R) : is_noetherian_ring S :=
-is_noetherian_ring_of_surjective R S f.1 f.1.bijective.2 H
+is_noetherian_ring_of_surjective R S f.1 f.2 f.1.bijective.2 H

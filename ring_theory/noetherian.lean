@@ -325,8 +325,8 @@ protected def symm {α β : Type*} [ring α] [ring β] (e : α ≃r β) : β ≃
   .. e.to_equiv.symm }
 
 protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
-  (e₁ : β ≃r γ) (e₂ : α ≃r β) : α ≃r γ :=
-{ hom := is_ring_hom.comp _ _, .. e₂.1.trans e₁.1  }
+  (e₁ : α ≃r β) (e₂ : β ≃r γ) : α ≃r γ :=
+{ hom := is_ring_hom.comp _ _, .. e₁.1.trans e₂.1  }
 
 end ring_equiv
 

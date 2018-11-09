@@ -39,7 +39,8 @@ instance concrete_is_comm_ring_hom : concrete_category @is_comm_ring_hom :=
 ⟨by introsI α ia; apply_instance,
   by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
-instance CommRing_hom_is_comm_ring_hom {R S : CommRing} (f : R ⟶ S) : is_comm_ring_hom (f : R → S) := f.2
+instance CommRing_hom_is_comm_ring_hom {R S : CommRing} (f : R ⟶ S) : 
+  is_comm_ring_hom (f : R → S) := f.2
 
 namespace CommRing
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/

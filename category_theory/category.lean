@@ -109,6 +109,11 @@ instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (
 { F := λ f, R → S,
   coe := λ f, f.1 }
 
+@[simp] lemma bundled_hom_coe 
+  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+  [h : concrete_category @hom] {R S : bundled c} (val : R → S) (prop) (r : R) : 
+  (⟨val, prop⟩ : R ⟶ S) r = val r := rfl
+
 section
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}
 include 𝒞

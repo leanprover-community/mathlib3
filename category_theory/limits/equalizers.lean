@@ -87,8 +87,22 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
       exact eq.symm w
     end }}
 
+@[simp] lemma fork.of_ι_app_zero {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : 
+  (fork.of_ι ι w).π.app zero = ι := rfl
+@[simp] lemma fork.of_ι_app_one {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : 
+  (fork.of_ι ι w).π.app one = ι ≫ f := rfl
+
 def fork.ι (t : fork f g) := t.π.app zero
 def cofork.π (t : cofork f g) := t.ι.app one
+-- TODO do these for pullbacks, too?
+def fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
+begin
+  erw [t.w left, ← t.w right], refl
+end
+def cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π t) := 
+begin
+  erw [t.w left, ← t.w right], refl
+end
 
 def is_equalizer (t : fork f g) := is_limit t
 def is_coequalizer (t : cofork f g) := is_colimit t

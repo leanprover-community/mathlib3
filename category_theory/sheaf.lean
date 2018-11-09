@@ -157,8 +157,8 @@ structure coverage (X : Type u) [small_category.{u} X] :=
 (id       : ∀ (U : X), {(over.mk (𝟙 U))} ∈ covers U . obviously)
 (property : ∀ {U V : X} (g : V ⟶ U),
             ∀ f ∈ covers U, ∃ h ∈ covers V,
-            ∀ Vj : (h : set _), ∃ (Ui : f),
-            ∃ k : Vj.val.left ⟶ Ui.val.left, Vj.val.hom ≫ g = k ≫ Ui.val.hom)
+            ∀ Vj ∈ (h : set _), ∃ (Ui ∈ f),
+            nonempty $ ((over.map g).obj Vj) ⟶ Ui)
 
 class site (X : Type u) extends category.{u u} X :=
 (coverage : coverage X)
@@ -180,7 +180,7 @@ def site.trivial (X : Type u) [small_category.{u} X] : site X :=
       { cases Vj with Vj hVj,
         have : Vj = over.mk (𝟙 V) := set.mem_singleton_iff.mp hVj,
         subst this,
-        existsi g,
+        exact ⟨g⟩,
         tidy }
     end) ⟩ } }
 
@@ -258,18 +258,15 @@ variables {B : set (opens X)}
 instance basis.site {is_basis : opens.is_basis B} : site B :=
 { coverage :=
   { covers := λ U Us, U.val = ⨆u∈Us, (u:over _).left.val,
-    property :=
-    begin
-      refine λ U V i Us (hUs : _ = _), ⟨_, _, _⟩,
-      { rw opens.is_basis_iff_cover at is_basis,
-        intro Vj,
-        exact ∃ Ui ∈ Us, Vj.left.val ⊆ ((Ui : over _).left.val) },
-      { show _ = _,
-        dsimp,
-        sorry },
-      { intro Vj,
-        dsimp at Vj,
-        sorry }
-    end } }
+    property := λ U V (i : V ⟶ U) (Us : covering_family U) (hUs : U.val = ⨆ Ui ∈ Us, ((Ui : over _).left).val),
+      ⟨ show covering_family V,
+          from { Vj : over V | ∃ Ui ∈ Us, nonempty $ ((over.map i).obj Vj) ⟶ Ui },
+        show V.val = ⨆ (Vj : over V) (hVj : ∃ Ui ∈ Us, nonempty $ ((over.map i).obj Vj) ⟶ Ui), Vj.left.val,
+          from begin
+            apply le_antisymm,
+          end,
+        -- show ∀ (Vj : over V), Vj ∈ {Vj : over V | _ } → _,
+          by obviously
+      ⟩ } }
 
 end topological_space

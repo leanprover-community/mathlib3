@@ -483,13 +483,6 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-theorem metric_space.induced_uniform_embedding {α β} (f : α → β) (hf : function.injective f)
-  (m : metric_space β) :
-  by haveI := metric_space.induced f hf m;
-     exact uniform_embedding f :=
-by let := metric_space.induced f hf m; exactI
-uniform_embedding_of_metric.2 ⟨hf, uniform_continuous_comap, λ ε ε0, ⟨ε, ε0, λ a b, id⟩⟩
-
 instance {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
 

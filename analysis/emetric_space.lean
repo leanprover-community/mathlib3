@@ -220,16 +220,6 @@ def induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, emetric_space.edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-/--An injective function taking value in an emetric space is a uniform embedding between
-the initial space with the induced metric, and the target space. (In fact, it is even an
-isometry)-/
-theorem induced_uniform_embedding {α β} (f : α → β) (hf : function.injective f)
-  (m : emetric_space β) :
-  by haveI := emetric_space.induced f hf m;
-     exact uniform_embedding f :=
-by let := emetric_space.induced f hf m; exactI
-uniform_embedding_of_emetric.2 ⟨hf, uniform_continuous_comap, λ ε ε0, ⟨ε, ε0, λ a b, id⟩⟩
-
 /--Emetric space instance on subsets of emetric spaces-/
 instance {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
 emetric_space.induced subtype.val (λ x y, subtype.eq) t

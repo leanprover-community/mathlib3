@@ -15,22 +15,23 @@ variables {T : Type u₃} [𝒯 : category.{u₃ v₃} T]
 include 𝒜 ℬ 𝒯
 
 structure comma (L : A ⥤ T) (R : B ⥤ T) :=
-(left : A)
-(right : B)
-(hom : L left ⟶ R right)
+(left : A . obviously)
+(right : B . obviously)
+(hom : L.obj left ⟶ R.obj right)
 
 variables {L : A ⥤ T} {R : B ⥤ T}
 
 structure comma_morphism (X Y : comma L R) :=
-(left : X.left ⟶ Y.left)
-(right : X.right ⟶ Y.right)
+(left : X.left ⟶ Y.left . obviously)
+(right : X.right ⟶ Y.right . obviously)
 (w' : L.map left ≫ Y.hom = X.hom ≫ R.map right . obviously)
 
 restate_axiom comma_morphism.w'
 
 namespace comma_morphism
 @[extensionality] lemma ext
-  {X Y : comma L R} {f g : comma_morphism X Y} (l : f.left = g.left) (r : f.right = g.right) : f = g :=
+  {X Y : comma L R} {f g : comma_morphism X Y}
+  (l : f.left = g.left) (r : f.right = g.right) : f = g :=
 begin
   cases f, cases g,
   congr; assumption

@@ -289,6 +289,18 @@ instance (r : α → α → Prop) [is_well_order α r]
   (p : set α) : is_well_order p (subrel r p) :=
 order_embedding.is_well_order (subrel.order_embedding r p)
 
+instance [preorder α] (p : set α) : preorder p :=
+⟨subrel (≤) p, subrel (<) p, λ _, le_refl _, λ _ _ _, le_trans,
+λ _ _, lt_iff_le_not_le⟩
+
+instance [partial_order α] (p : set α) : partial_order p :=
+{ le_antisymm := λ _ _ hab hba, subtype.eq $ le_antisymm hab hba,
+  .. (infer_instance : preorder p) }
+
+instance [linear_order α] (p : set α) : linear_order p :=
+{ le_total := λ _ _, le_total _ _,
+  .. (infer_instance : partial_order p) }
+
 end subrel
 
 /-- Restrict the codomain of an order embedding -/

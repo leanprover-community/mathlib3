@@ -39,7 +39,8 @@ instance concrete_is_comm_monoid_hom : concrete_category @is_comm_monoid_hom :=
 ⟨by introsI α ia; apply_instance,
   by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
-instance CommMon_hom_is_comm_monoid_hom {R S : CommMon} (f : R ⟶ S) : is_comm_monoid_hom (f : R → S) := f.2
+instance CommMon_hom_is_comm_monoid_hom {R S : CommMon} (f : R ⟶ S) : 
+  is_comm_monoid_hom (f : R → S) := f.2
 
 namespace CommMon
 /-- The forgetful functor from commutative monoids to monoids. -/

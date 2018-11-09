@@ -201,7 +201,15 @@ instance : has_inv (quotient_ring β) :=
       simpa [mul_comm] using hrs.symm }
   end⟩
 
-def quotient_ring.field.of_integral_domain : field (quotient_ring β) :=
+instance : decidable_eq (quotient_ring β) :=
+@quotient.decidable_eq (β × non_zero_divisors β) (localization.setoid β (non_zero_divisors β)) $
+λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, show decidable (∃ t ∈ non_zero_divisors β, (s₁ * r₂ - s₂ * r₁) * t = 0),
+from decidable_of_iff (s₁ * r₂ - s₂ * r₁ = 0)
+⟨λ H, ⟨1, λ y, (mul_one y).symm ▸ id, H.symm ▸ zero_mul _⟩,
+λ ⟨t, ht1, ht2⟩, or.resolve_right (mul_eq_zero.1 ht2) $ λ ht,
+  one_ne_zero (ht1 1 ((one_mul t).symm ▸ ht))⟩
+
+def quotient_ring.field.of_integral_domain : discrete_field (quotient_ring β) :=
 by refine
 { inv            := has_inv.inv,
   zero_ne_one    := λ hzo,
@@ -209,7 +217,9 @@ by refine
     zero_ne_one (by simpa using hts _ ht : 0 = 1),
   mul_inv_cancel := quotient.ind _,
   inv_mul_cancel := quotient.ind _,
-  ..localization.comm_ring β _ };
+  has_decidable_eq := localization.decidable_eq β,
+  inv_zero := dif_pos rfl,
+  .. localization.comm_ring β _ };
 { intros x hnx,
   rcases x with ⟨x, z, hz⟩,
   have : x ≠ 0,

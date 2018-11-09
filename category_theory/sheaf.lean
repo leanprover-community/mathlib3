@@ -78,10 +78,10 @@ include 𝒞
 
 def forget (X : C) : (over X) ⥤ C :=
 { obj  := λ Y, Y.left,
-  map' := λ _ _ f, f.left }
+  map := λ _ _ f, f.left }
 
 def mk {X Y : C} (f : Y ⟶ X) : over X :=
-{ left := Y, right := punit.star, hom := f }
+{ left := Y, hom := f }
 
 @[simp] lemma mk_left {X Y : C} (f : Y ⟶ X) : (mk f).left = Y := rfl
 @[simp] lemma mk_hom {X Y : C} (f : Y ⟶ X) : (mk f).hom = f := rfl
@@ -89,9 +89,8 @@ def mk {X Y : C} (f : Y ⟶ X) : over X :=
 
 def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
 { obj := λ U, mk (U.hom ≫ f),
-  map' := λ U V g,
+  map := λ U V g,
   { left := g.left,
-    right := punit.star,
     w' :=
     begin
       dsimp,
@@ -109,9 +108,8 @@ def map {X Y : C} (f : X ⟶ Y) : over X ⥤ over Y :=
 
 def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
 { obj  := λ V, mk $ pullback.π₁ f V.hom,
-  map' := λ V₁ V₂ g,
-  { left := pullback.lift f _ (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left) (by tidy),
-    right := punit.star },
+  map := λ V₁ V₂ g,
+  { left := pullback.lift f _ (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left) (by tidy) },
   map_comp' :=
   begin
     tidy, conv { to_rhs, rw ← category.assoc }, tidy,
@@ -140,7 +138,7 @@ let
     sigma.desc $ λ Ujk : c × c, pullback.π₂ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.2
 in coequalizer left right
 
-def π : c.sieve ⟶ yoneda X U :=
+def π : c.sieve ⟶ (yoneda X).obj U :=
 coequalizer.desc _ _ (sigma.desc $ λ Ui, (yoneda X).map Ui.val.hom)
 begin
   ext1, dsimp at *,
@@ -225,7 +223,7 @@ def limit (F : J ⥤ X) : cone F :=
   π := { app := λ j, ⟨⟨infi_le _ j⟩⟩ } }
 
 def limit_is_limit (F : J ⥤ X) : is_limit (limit F) :=
-{ lift := λ s, ⟨⟨le_infi (λ i, plift.down $ ulift.down $ s.π i)⟩⟩ }
+{ lift := λ s, ⟨⟨le_infi (λ i, plift.down $ ulift.down $ s.π.app i)⟩⟩ }
 
 instance : has_limits.{u u} X :=
 { cone := λ J hJ F, @limit _ _ J hJ F,
@@ -244,7 +242,7 @@ instance : site (opens X) :=
   { covers := λ U Us, U = ⨆ u ∈ Us, (u:over _).left,
     property :=
     begin
-      refine λU V i Us (hUs : _ = _), ⟨over.comap i '' Us, _, _⟩,
+      refine λU V i Us (hUs : _ = _), ⟨(over.comap i).obj '' Us, _, _⟩,
       { show _ = _,
         rw [lattice.supr_image],
         sorry },

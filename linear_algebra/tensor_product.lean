@@ -111,11 +111,14 @@ variables (M N)
 
 namespace tensor_product
 
+section
+open free_abelian_group
 def relators : set (free_abelian_group (M × N)) :=
 add_group.closure { x : free_abelian_group (M × N) |
-  (∃ (m₁ m₂ : M) (n : N), x = (m₁, n) + (m₂, n) - (m₁ + m₂, n)) ∨
-  (∃ (m : M) (n₁ n₂ : N), x = (m, n₁) + (m, n₂) - (m, n₁ + n₂)) ∨
-  (∃ (r : R) (m : M) (n : N), x = (r • m, n) - (m, r • n)) }
+  (∃ (m₁ m₂ : M) (n : N), x = of (m₁, n) + of (m₂, n) - of (m₁ + m₂, n)) ∨
+  (∃ (m : M) (n₁ n₂ : N), x = of (m, n₁) + of (m, n₂) - of (m, n₁ + n₂)) ∨
+  (∃ (r : R) (m : M) (n : N), x = of (r • m, n) - of (m, r • n)) }
+end
 
 namespace relators
 
@@ -176,7 +179,7 @@ instance : has_scalar R (M ⊗ N) :=
   clear hx x, rintro x (⟨m₁, m₂, n, rfl⟩ | ⟨m, n₁, n₂, rfl⟩ | ⟨q, m, n, rfl⟩);
   simp only [smul.aux, is_add_group_hom.mem_ker, -sub_eq_add_neg,
     sub_self, add_tmul, tmul_add, smul_tmul,
-    smul_add, smul_smul, mul_comm, free_abelian_group.lift.coe,
+    smul_add, smul_smul, mul_comm, free_abelian_group.lift.of,
     free_abelian_group.lift.add, free_abelian_group.lift.sub]
 end⟩
 

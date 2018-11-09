@@ -14,10 +14,13 @@ variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 
 include 𝒞 𝒟
 
 /--
-`functor.category C D` gives the category structure on functor and natural transformations between categories `C` and `D`.
+`functor.category C D` gives the category structure on functors and natural transformations
+between categories `C` and `D`.
 
-Notice that if `C` and `D` are both small categories at the same universe level, this is another small category at that level.
-However if `C` and `D` are both large categories at the same universe level, this is a small category at the next higher level.
+Notice that if `C` and `D` are both small categories at the same universe level, 
+this is another small category at that level.
+However if `C` and `D` are both large categories at the same universe level, 
+this is a small category at the next higher level.
 -/
 instance functor.category :
   category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (C ⥤ D) :=
@@ -36,17 +39,20 @@ variables {C D}
 end
 
 namespace nat_trans
--- This section gives two lemmas about natural transformations between functors into functor categories,
+-- This section gives two lemmas about natural transformations 
+-- between functors into functor categories,
 -- spelling them out in components.
 
 variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include ℰ
 
 lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟹ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :
-  ((F.obj X).map f) ≫ ((T.app X).app Z) = ((T.app X).app Y) ≫ ((G.obj X).map f) := (T.app X).naturality f
+  ((F.obj X).map f) ≫ ((T.app X).app Z) = ((T.app X).app Y) ≫ ((G.obj X).map f) := 
+(T.app X).naturality f
 
 lemma naturality_app {F G : C ⥤ (D ⥤ E)} (T : F ⟹ G) (Z : D) {X Y : C} (f : X ⟶ Y) :
-  ((F.map f).app Z) ≫ ((T.app Y).app Z) = ((T.app X).app Z) ≫ ((G.map f).app Z) := congr_fun (congr_arg app (T.naturality f)) Z
+  ((F.map f).app Z) ≫ ((T.app Y).app Z) = ((T.app X).app Z) ≫ ((G.map f).app Z) := 
+congr_fun (congr_arg app (T.naturality f)) Z
 
 end nat_trans
 

@@ -150,7 +150,8 @@ namespace cones
 rfl
 
 @[extensionality] def ext
-  {F : J ⥤ C} (c c' : cone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.π.app j = φ.hom ≫ c'.π.app j) : c ≅ c' :=
+  {F : J ⥤ C} (c c' : cone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.π.app j = φ.hom ≫ c'.π.app j) : 
+  c ≅ c' :=
 { hom :=
   { hom := φ.hom },
   inv :=
@@ -171,7 +172,7 @@ include 𝒟
 @[simp] def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cone F) ⥤ (cone (F ⋙ G)) :=
 { obj := λ A,
   { X := G.obj A.X,
-    π := (functor.const_compose _ _ _ _).hom ⊟ whisker_right A.π G },
+    π := (functor.const_compose _ _ _).hom ⊟ whisker_right A.π G },
   map := λ X Y f,
   { hom := G.map f.hom,
     w' := begin intros, dsimp, simp, rw [←functor.map_comp, f.w], end } }
@@ -216,7 +217,8 @@ namespace cocones
   cocone_morphism c e).hom = (f : cocone_morphism c d).hom ≫ (g : cocone_morphism d e).hom := rfl
 
 @[extensionality] def ext
-  {F : J ⥤ C} (c c' : cocone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j): c ≅ c' :=
+  {F : J ⥤ C} (c c' : cocone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j): 
+  c ≅ c' :=
 { hom :=
   { hom := φ.hom },
   inv :=
@@ -237,7 +239,7 @@ include 𝒟
 @[simp] def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cocone F) ⥤ (cocone (F ⋙ G)) :=
 { obj := λ A,
   { X  := G.obj A.X,
-    ι  :=  whisker_right A.ι G ⊟ (functor.const_compose _ _ _ _).inv },
+    ι  :=  whisker_right A.ι G ⊟ (functor.const_compose _ _ _).inv },
   map := λ _ _ f,
   { hom := G.map f.hom,
     w'  :=
@@ -265,8 +267,8 @@ def map_cocone_morphism (H : C ⥤ D) {c c' : cocone F} (f : cocone_morphism c c
   cocone_morphism (H.map_cocone c) (H.map_cocone c') := (cocones.functoriality F H).map f
 
 @[simp] lemma map_cone_π (H : C ⥤ D) (c : cone F) (j : J) :
-  (map_cone H c).π.app j = ((functor.const_compose _ _ _ _).hom ⊟ whisker_right c.π H).app j := rfl
+  (map_cone H c).π.app j = ((functor.const_compose _ _ _).hom ⊟ whisker_right c.π H).app j := rfl
 @[simp] lemma map_cocone_ι (H : C ⥤ D) (c : cocone F) (j : J) :
-  (map_cocone H c).ι.app j = (whisker_right c.ι H ⊟ (functor.const_compose _ _ _ _).inv).app j := rfl
+  (map_cocone H c).ι.app j = (whisker_right c.ι H ⊟ (functor.const_compose _ _ _).inv).app j := rfl
 
 end category_theory.functor

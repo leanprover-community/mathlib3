@@ -27,18 +27,19 @@ namespace const
 @[simp] lemma map_app {X Y : C} (f : X ⟶ Y) (j : J) : ((const J C).map f).app j = f := rfl
 end const
 
-variables (J)
+variables (J) {C}
 
 section
 variables {D : Type u'} [𝒟 : category.{u' v} D]
 include 𝒟
 
-@[simp] def const_compose (X : C) (F : C ⥤ D) : (const J D).obj (F.obj X) ≅ (const J C).obj X ⋙ F :=
+@[simp] def const_compose (X : C) (F : C ⥤ D) : 
+  (const J D).obj (F.obj X) ≅ (const J C).obj X ⋙ F :=
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
 
 @[simp] lemma const_compose_symm_app (X : C) (F : C ⥤ D) (j : J) :
-  (const_compose J C X F).inv.app j = 𝟙 _ := rfl
+  (const_compose J X F).inv.app j = 𝟙 _ := rfl
 
 end
 

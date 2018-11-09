@@ -125,6 +125,9 @@ def square (f : X ⟶ Z) (g : Y ⟶ Z) := cone (cospan f g)
 
 variables {f : X ⟶ Z} {g : Y ⟶ Z}
 
+def square.π₁ (t : square f g) : t.X ⟶ X := t.π.app left
+def square.π₂ (t : square f g) : t.X ⟶ Y := t.π.app right
+
 def square.mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y)
   (eq : π₁ ≫ f = π₂ ≫ g) :
   square f g :=
@@ -132,6 +135,11 @@ def square.mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y)
   π :=
   { app := λ j, walking_cospan.cases_on j π₁ π₂ (π₁ ≫ f),
     naturality' := λ j j' f, by cases f; obviously } }
+
+def square.condition (t : square f g) : (square.π₁ t) ≫ f = (square.π₂ t) ≫ g :=
+begin
+  erw [t.w inl, ← t.w inr], refl
+end
 
 def is_pullback (t : square f g) := is_limit t
 
@@ -161,6 +169,9 @@ def cosquare (f : X ⟶ Y) (g : X ⟶ Z) := cocone (span f g)
 
 variables {f : X ⟶ Y} {g : X ⟶ Z}
 
+def cosquare.ι₁ (t : cosquare f g) : Y ⟶ t.X := t.ι.app left
+def cosquare.ι₂ (t : cosquare f g) : Z ⟶ t.X := t.ι.app right
+
 def cosquare.mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W)
   (eq : f ≫ ι₁ = g ≫ ι₂) :
   cosquare f g :=
@@ -168,6 +179,11 @@ def cosquare.mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W)
   ι :=
   { app := λ j, walking_span.cases_on j (f ≫ ι₁) ι₁ ι₂,
     naturality' := λ j j' f, by cases f; obviously } }
+
+def cosquare.condition (t : cosquare f g) : f ≫ (cosquare.ι₁ t) = g ≫ (cosquare.ι₂ t) := 
+begin
+  erw [t.w fst, ← t.w snd], refl
+end
 
 def is_pushout (t : cosquare f g) := is_colimit t
 
@@ -269,8 +285,8 @@ variables (f : X ⟶ Z) (g : Y ⟶ Z)
 
 def pullback.square : square f g := has_pullbacks.square.{u v} f g
 def pullback := (pullback.square f g).X
-def pullback.π₁ : pullback f g ⟶ X := (pullback.square f g).π.app left
-def pullback.π₂ : pullback f g ⟶ Y := (pullback.square f g).π.app right
+def pullback.π₁ : pullback f g ⟶ X := (pullback.square f g).π₁
+def pullback.π₂ : pullback f g ⟶ Y := (pullback.square f g).π₂
 @[simp] lemma pullback.w : pullback.π₁ f g ≫ f = pullback.π₂ f g ≫ g :=
 begin
   erw ((pullback.square f g).w inl),
@@ -334,8 +350,8 @@ variables (f : X ⟶ Y) (g : X ⟶ Z)
 
 def pushout.cosquare : cosquare f g := has_pushouts.cosquare.{u v} f g
 def pushout := (pushout.cosquare f g).X
-def pushout.ι₁ : Y ⟶ pushout f g := (pushout.cosquare f g).ι.app left
-def pushout.ι₂ : Z ⟶ pushout f g := (pushout.cosquare f g).ι.app right
+def pushout.ι₁ : Y ⟶ pushout f g := (pushout.cosquare f g).ι₁
+def pushout.ι₂ : Z ⟶ pushout f g := (pushout.cosquare f g).ι₂
 @[simp] lemma pushout.w : f ≫ pushout.ι₁ f g = g ≫ pushout.ι₂ f g :=
 begin
   erw ((pushout.cosquare f g).w fst),

@@ -45,7 +45,8 @@ instance : has_limits.{u+1 u} (Type u) :=
 rfl
 
 @[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X):
-  limit.lift F c x = (⟨ λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x ⟩ : (limit F).X) := rfl
+  limit.lift F c x = (⟨ λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x ⟩ : (limit F).X) := 
+rfl
 
 def colimit (F : J ⥤ Type u) : cocone F :=
 { X := @quot (Σ j, F.obj j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2),
@@ -133,9 +134,11 @@ instance : has_pullbacks.{u+1 u} (Type u) :=
 -- which will be cleaner to use.
 
 instance : has_products.{u+1 u} (Type u) := has_products_of_has_limits
+instance : has_binary_products.{u+1 u} (Type u) := has_binary_products_of_has_products
 instance : has_equalizers.{u+1 u} (Type u) := has_equalizers_of_has_limits
 
 instance : has_coproducts.{u+1 u} (Type u) := has_coproducts_of_has_colimits
+instance : has_binary_coproducts.{u+1 u} (Type u) := has_binary_coproducts_of_has_coproducts
 instance : has_coequalizers.{u+1 u} (Type u) := has_coequalizers_of_has_colimits
 instance : has_pushouts.{u+1 u} (Type u) := has_pushouts_of_has_colimits
 

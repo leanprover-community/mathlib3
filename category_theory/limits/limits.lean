@@ -22,7 +22,8 @@ variables {F : J ⥤ C}
 structure is_limit (t : cone F) :=
 (lift : ∀ (s : cone F), s.X ⟶ t.X)
 (fac'  : ∀ (s : cone F) (j : J), (lift s ≫ t.π.app j) = s.π.app j . obviously)
-(uniq' : ∀ (s : cone F) (m : s.X ⟶ t.X) (w : ∀ j : J, (m ≫ t.π.app j) = s.π.app j), m = lift s . obviously)
+(uniq' : ∀ (s : cone F) (m : s.X ⟶ t.X) (w : ∀ j : J, (m ≫ t.π.app j) = s.π.app j), 
+  m = lift s . obviously)
 
 restate_axiom is_limit.fac'
 attribute [simp] is_limit.fac

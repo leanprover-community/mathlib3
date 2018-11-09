@@ -94,7 +94,6 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
 
 def fork.ι (t : fork f g) := t.π.app zero
 def cofork.π (t : cofork f g) := t.ι.app one
--- TODO do these for pullbacks, too?
 def fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
 begin
   erw [t.w left, ← t.w right], refl

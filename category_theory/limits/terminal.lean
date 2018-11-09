@@ -36,8 +36,8 @@ class has_initial :=
 (initial : C)
 (is_initial : is_initial initial . obviously)
 
-def terminal_object [has_terminal.{u v} C] := has_terminal.terminal
-def initial_object [has_initial.{u v} C] := has_initial.initial
+def terminal [has_terminal.{u v} C] := has_terminal.terminal.{u v} C
+def initial [has_initial.{u v} C] := has_initial.initial.{u v} C
 
 -- Special cases of this may be marked with [instance] as desired.
 def has_terminal_of_has_limits [limits.has_limits.{u v} C] : has_terminal.{u v} C :=

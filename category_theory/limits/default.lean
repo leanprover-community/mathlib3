@@ -4,6 +4,7 @@
 
 import category_theory.limits.limits
 import category_theory.limits.products
+import category_theory.limits.binary_products
 import category_theory.limits.pullbacks
 import category_theory.limits.equalizers
 import category_theory.limits.terminal

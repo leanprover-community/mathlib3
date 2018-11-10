@@ -1,3 +1,11 @@
+/-
+Copyright (c) 2018 Kenny Lau. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kenny Lau
+
+Adjoining elements to a subring.
+-/
+
 import linear_algebra.tensor_product
 import ring_theory.noetherian
 import ring_theory.subring

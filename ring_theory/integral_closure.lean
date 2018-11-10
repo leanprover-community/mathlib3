@@ -1,3 +1,11 @@
+/-
+Copyright (c) 2018 Kenny Lau. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kenny Lau
+
+Integral closure of a subring.
+-/
+
 import ring_theory.adjoin
 import ring_theory.polynomial
 

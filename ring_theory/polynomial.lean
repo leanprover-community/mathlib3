@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
 Hilbert basis theorem: if a ring is noetherian then so is its polynomial ring.
+And its corollaries.
 -/
 
 import linear_algebra.multivariate_polynomial

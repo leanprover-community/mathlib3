@@ -10,7 +10,7 @@ open category_theory
 
 namespace category_theory.limits
 
-inductive two : Type v
+@[derive decidable_eq] inductive two : Type v
 | left | right
 
 def two.map {C : Type u} (X Y : C) : two → C
@@ -31,11 +31,11 @@ class has_binary_product (X Y : C) extends has_product.{u v} (two.map X Y)
 class has_binary_coproduct (X Y : C) extends has_coproduct.{u v} (two.map X Y)
 
 instance has_binary_product_of_has_binary_products (X Y : C) [i : has_binary_products.{u v} C] :
-  has_binary_product.{u v} X Y := 
+  has_binary_product.{u v} X Y :=
 { fan := has_products_of_shape.fan (two.map X Y),
   is_product := has_products_of_shape.is_product (two.map X Y) }
 instance has_binary_coproduct_of_has_binary_coproducts (X Y : C) [i : has_binary_coproducts.{u v} C] :
-  has_binary_coproduct.{u v} X Y := 
+  has_binary_coproduct.{u v} X Y :=
 { cofan := has_coproducts_of_shape.cofan (two.map X Y),
   is_coproduct := has_coproducts_of_shape.is_coproduct (two.map X Y) }
 

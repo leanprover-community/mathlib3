@@ -28,7 +28,7 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
 -/
-structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : 
+structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] :
   Type (max u₁ v₁ u₂ v₂) :=
 (obj       : C → D)
 (map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))

@@ -67,6 +67,14 @@ def empty : pempty ⥤ C := by obviously
 
 variables {C}
 
+def of_obj (X : C) : punit.{v+1} ⥤ C :=
+{ obj := λ Y, X,
+  map := λ Y Z f, 𝟙 X }
+
+@[simp] lemma of_obj_obj (X : C) (a : punit.{v+1}) :
+  ((of_obj X).obj a) = X :=
+rfl
+
 @[simp] def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
 { obj := F,
   map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }

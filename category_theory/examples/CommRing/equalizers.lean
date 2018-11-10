@@ -12,7 +12,8 @@ open category_theory.limits
 
 variables {α : Type v}
 
--- TODO should this be in mathlib?
+-- While it seems this might be a good global extensionality lemma,
+-- various parts of mathlib don't like it.
 local attribute [extensionality] subtype.eq
 
 def CommRing.equalizer {R S : CommRing.{v}} (f g : R ⟶ S) : CommRing :=
@@ -33,12 +34,11 @@ def CommRing.equalizer {R S : CommRing.{v}} (f g : R ⟶ S) : CommRing :=
 { val := λ x, x.val,
   property := by tidy }
 
--- Is this kosher? Why isn't it already a simp lemma?
-@[simp] lemma subtype.val_simp {α : Type u} {p : α → Prop} (a1 a2 : {x // p x}) : a1 = a2 ↔ a1.val = a2.val := by tidy
+local attribute [simp] subtype.ext
 
-@[simp] lemma bundled_hom_coe' 
+@[simp] lemma bundled_hom_coe'
   {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {R S : bundled c} (f : R ⟶ S) (r : R) : 
+  [h : concrete_category @hom] {R S : bundled c} (f : R ⟶ S) (r : R) :
   f r = f.val r := rfl
 
 instance CommRing_has_equalizers : has_equalizers.{v+1 v} CommRing :=
@@ -46,26 +46,30 @@ instance CommRing_has_equalizers : has_equalizers.{v+1 v} CommRing :=
   is_equalizer := λ X Y f g,
   { lift := λ s : fork f g, ⟨ λ x, ⟨ s.ι x, begin have h := congr_fun (congr_arg subtype.val s.condition) x, exact h, end ⟩,
                    begin
-                    -- sorry
-                     tidy,
+                     -- This is very unpleasant; it shouldn't require human attention.
+                     tidy {trace_result:=tt},
                      erw [is_ring_hom.map_one (s.ι).val], refl,
                      erw [is_ring_hom.map_mul (s.ι).val], refl,
                      erw [is_ring_hom.map_add (s.ι).val], refl
                    end ⟩,
-    fac' := 
-    begin 
-      tidy, 
-      cases j, 
-      tidy, 
-      dsimp [fork.ι], 
-      have h := s.w walking_pair_hom.left, 
+    fac' :=
+    begin
+      tidy {trace_result:=tt},
+      cases j,
+      tidy {trace_result:=tt},
+      dsimp [fork.ι],
+      have h := s.w walking_pair_hom.left,
       replace h := congr_arg subtype.val h,
       replace h := congr_fun h x,
       exact h,
     end,
-    uniq' := begin 
-    -- sorry,
-    tidy, have h := w (walking_pair.zero), tidy, 
+    uniq' :=
+    begin
+      intros s m w, ext1, ext1, ext1,
+      cases m, cases g, cases f,
+      dsimp, simp at *, dsimp at *,
+      have h := w (walking_pair.zero),
+      solve_by_elim,
     end } }
 
 

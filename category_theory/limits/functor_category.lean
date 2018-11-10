@@ -17,19 +17,6 @@ include 𝒞
 
 variables {J K : Type v} [small_category J] [small_category K]
 
-def switched (F : J ⥤ (K ⥤ C)) : K ⥤ (J ⥤ C) :=
-{ obj := λ k,
-  { obj := λ j, (F.obj j).obj k,
-    map := λ j j' f, (F.map f).app k,
-    map_id' := λ X, begin rw category_theory.functor.map_id, refl end,
-    map_comp' := λ X Y Z f g, by rw [functor.map_comp, ←functor.category.comp_app] },
-  map := λ c c' f,
-  { app := λ j, (F.obj j).map f,
-    naturality' := λ X Y g, by dsimp; rw ←nat_trans.naturality } }.
-
-@[simp] lemma switched_obj_map (F : J ⥤ (K ⥤ C)) {j j' : J} (f : j ⟶ j') (X : K) :
-  ((switched F).obj X).map f = (F.map f).app X := rfl
-
 @[simp] lemma cone.functor_w {F : J ⥤ (K ⥤ C)} (c : cone F) {j j' : J} (f : j ⟶ j') (k : K) :
   (c.π.app j).app k ≫ (F.map f).app k = (c.π.app j').app k :=
 begin
@@ -49,10 +36,10 @@ end
 
 @[simp] def functor_category_limit_cone
   [has_limits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) : cone F :=
-{ X := switched F ⋙ lim,
+{ X := F.flip ⋙ lim,
   π :=
   { app := λ j,
-    { app := λ k, limit.π ((switched F).obj k) j },
+    { app := λ k, limit.π (F.flip.obj k) j },
       naturality' := λ j j' f,
         begin
           dsimp, simp, ext k, dsimp,
@@ -60,10 +47,10 @@ end
         end } }
 @[simp] def functor_category_colimit_cocone
   [has_colimits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) : cocone F :=
-{ X := switched F ⋙ colim,
+{ X := F.flip ⋙ colim,
   ι :=
   { app := λ j,
-    { app := λ k , colimit.ι ((switched F).obj k) j },
+    { app := λ k , colimit.ι (F.flip.obj k) j },
       naturality' := λ j j' f,
         begin
           dsimp, simp, ext k, dsimp,

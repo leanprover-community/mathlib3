@@ -21,14 +21,6 @@ open category_theory.functor
 
 namespace category_theory.limits
 
-def functor.of_obj (X : C) : punit.{v+1} ⥤ C :=
-{ obj := λ Y, X,
-  map := λ Y Z f, 𝟙 X }
-
-@[simp] lemma functor.of_obj_obj (X : C) (a : punit.{v+1}) :
-  ((functor.of_obj X).obj a) = X :=
-rfl
-
 /--
 A `c : cone F` is:
 * an object `c.X` and
@@ -149,7 +141,7 @@ namespace cones
 rfl
 
 @[extensionality] def ext
-  {F : J ⥤ C} (c c' : cone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.π.app j = φ.hom ≫ c'.π.app j) : 
+  {F : J ⥤ C} (c c' : cone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.π.app j = φ.hom ≫ c'.π.app j) :
   c ≅ c' :=
 { hom :=
   { hom := φ.hom },
@@ -216,7 +208,7 @@ namespace cocones
   cocone_morphism c e).hom = (f : cocone_morphism c d).hom ≫ (g : cocone_morphism d e).hom := rfl
 
 @[extensionality] def ext
-  {F : J ⥤ C} (c c' : cocone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j): 
+  {F : J ⥤ C} (c c' : cocone F) (φ : c.X ≅ c'.X) (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j):
   c ≅ c' :=
 { hom :=
   { hom := φ.hom },

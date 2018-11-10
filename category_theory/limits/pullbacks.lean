@@ -19,9 +19,9 @@ universes u v w
 
 local attribute [tidy] tactic.case_bash
 
-inductive walking_cospan : Type v
+@[derive decidable_eq] inductive walking_cospan : Type v
 | left | right | one
-inductive walking_span : Type v
+@[derive decidable_eq] inductive walking_span : Type v
 | zero | left | right
 
 open walking_cospan
@@ -180,7 +180,7 @@ def cosquare.mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W)
   { app := λ j, walking_span.cases_on j (f ≫ ι₁) ι₁ ι₂,
     naturality' := λ j j' f, by cases f; obviously } }
 
-def cosquare.condition (t : cosquare f g) : f ≫ (cosquare.ι₁ t) = g ≫ (cosquare.ι₂ t) := 
+def cosquare.condition (t : cosquare f g) : f ≫ (cosquare.ι₁ t) = g ≫ (cosquare.ι₂ t) :=
 begin
   erw [t.w fst, ← t.w snd], refl
 end
@@ -305,7 +305,7 @@ instance has_limits_of_shape_of_has_pullbacks [has_pullbacks.{u v} C] :
       dsimp at *,
       cases j; simp,
     end,
-    uniq' := λ s m w, is_pullback.uniq (square.of_cone s) m 
+    uniq' := λ s m w, is_pullback.uniq (square.of_cone s) m
       (λ j, begin have h := w j, cases j; simp at *; exact h end) } }.
 
 @[extensionality] lemma pullback.hom_ext [has_pullbacks.{u v} C] {W : C}

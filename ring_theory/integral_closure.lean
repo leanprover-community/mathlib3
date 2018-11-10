@@ -131,7 +131,7 @@ variables {p : polynomial S}
 
 end polynomial
 
-open polynomial
+open polynomial submodule
 
 variables {R : Type u} [comm_ring R] [decidable_eq R]
 variables (S : set R) [is_subring S]
@@ -164,13 +164,13 @@ module.of_core {
 local attribute [instance] subring.module
 
 theorem fg_of_integral (x : R) (hx : is_integral S x) :
-  ∃ s : set R, set.finite s ∧ ↑(submodule.span s) = ring.closure (S ∪ {x}) :=
+  ∃ s : set R, set.finite s ∧ ↑(span s) = ring.closure (S ∪ {x}) :=
 begin
   rcases hx with ⟨f, hfm, hfx⟩, resetI,
   refine ⟨↑(finset.image ((^) x) (finset.range (nat_degree f + 1))), _, _⟩,
   { exact finset.finite_to_set _ },
   ext r, split; intro hr,
-  { refine submodule.span_induction hr _ _ _ _,
+  { refine span_induction hr _ _ _ _,
     { intros s hs, rw [finset.mem_coe, finset.mem_image] at hs,
       rcases hs with ⟨k, hk, rfl⟩, clear hk,
       exact is_submonoid.pow_mem (ring.subset_closure (or.inr (set.mem_singleton _))) },
@@ -185,15 +185,43 @@ begin
   rw [eval₂_add, eval₂_mul, hfx, zero_mul, add_zero],
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
   generalize_hyp : p %ₘ f = q at this ⊢,
-  rw [← sum_C_mul_X_eq q, eval₂_sum, finsupp.sum, submodule.mem_coe],
-  refine submodule.sum_mem _ (λ k hkq, _),
+  rw [← sum_C_mul_X_eq q, eval₂_sum, finsupp.sum, mem_coe],
+  refine sum_mem _ (λ k hkq, _),
   rw [eval₂_mul, eval₂_C, eval₂_pow, eval₂_X],
-  refine submodule.smul_mem _ _ (submodule.subset_span _),
+  refine smul_mem _ _ (subset_span _),
   rw [finset.mem_coe, finset.mem_image], refine ⟨_, _, rfl⟩,
   rw [finset.mem_range, nat.lt_succ_iff], refine le_of_not_lt (λ hk, _),
   rw [degree_le_iff_coeff_zero] at this,
   rw [finsupp.mem_support_iff] at hkq, apply hkq, apply this,
   exact lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 hk)
+end
+
+theorem ring.closure_union {s t : set R} : ring.closure (S ∪ (s ∪ t)) =
+  ↑(span { z : R | ∃ x ∈ ring.closure (S ∪ s), ∃ y ∈ ring.closure (S ∪ t), x * y = z }) :=
+begin
+  ext r, rw mem_coe, split; intro hr,
+  { refine add_group.in_closure.rec_on hr _ _ _ _,
+    { intros r hr, apply subset_span,
+      refine monoid.in_closure.rec_on hr _ _ _,
+      { rintros r (hr | hr | hr),
+        { exact ⟨r, ring.subset_closure (or.inl hr), 1, is_submonoid.one_mem _, mul_one _⟩ },
+        { exact ⟨r, ring.subset_closure (or.inr hr), 1, is_submonoid.one_mem _, mul_one _⟩ },
+        { exact ⟨1, is_submonoid.one_mem _, r, ring.subset_closure (or.inr hr), one_mul _⟩ } },
+      { exact ⟨1, is_submonoid.one_mem _, 1, is_submonoid.one_mem _, mul_one _⟩ },
+      { rintros _ _ _ _ ⟨x1, hx1, y1, hy1, rfl⟩ ⟨x2, hx2, y2, hy2, rfl⟩,
+        rw [mul_assoc, mul_left_comm y1, ← mul_assoc],
+        exact ⟨_, is_submonoid.mul_mem hx1 hx2, _, is_submonoid.mul_mem hy1 hy2, rfl⟩ } },
+    { exact zero_mem _ },
+    { intros _ _ hr, rw ← neg_one_mul, exact smul_mem _ (-1) hr },
+    { intros _ _ _ _, exact add_mem _ } },
+  refine span_induction hr _ _ _ _,
+  { rintro _ ⟨x, hx, y, hy, rfl⟩,
+    exact is_submonoid.mul_mem
+      (ring.closure_mono (set.union_subset_union_right _ (set.subset_union_left _ _)) hx)
+      (ring.closure_mono (set.union_subset_union_right _ (set.subset_union_right _ _)) hy) },
+  { exact is_add_submonoid.zero_mem _ },
+  { exact λ _ _, is_add_submonoid.add_mem },
+  { exact λ s r hr, is_submonoid.mul_mem (ring.subset_closure (or.inl s.2)) hr }
 end
 
 theorem is_integral_add {x y : R}
@@ -221,31 +249,34 @@ begin
   { exact is_noetherian_ring_closure _ (set.finite_union
       (finset.finite_to_set _) (finset.finite_to_set _)) },
   haveI : is_subring R₀ := by apply_instance,
-  have : ∃ s : set R, set.finite s ∧ ↑(submodule.span s : submodule R₀ R) = ring.closure (R₀ ∪ {x, y}),
-  { refine ⟨insert 1 $ set.image (λ p : R × R, p.1 * p.2) (sf.prod sg),
-      set.finite_insert _ $ set.finite_image _ (set.finite_prod hsf1 hsg1), _⟩,
-    ext r, split; intro hr,
-    { refine submodule.span_induction hr _ _ _ _,
-      { rintros _ (rfl | ⟨⟨sx, sy⟩, ⟨hsx, hsy⟩, rfl⟩),
-        { exact is_submonoid.one_mem _ },
-        refine is_submonoid.mul_mem _ _,
-        { have : R₀ ∪ {x} ⊆ R₀ ∪ {x, y} := set.union_subset_union_right _ (set.subset_insert _ _),
-          apply ring.closure_mono this,
-          rw ← hsf2, exact submodule.subset_span hsx },
-        { have : R₀ ∪ {y} ⊆ R₀ ∪ {x, y} := set.union_subset_union_right _
-            (set.singleton_subset_iff.2 $ set.mem_insert _ _),
-          apply ring.closure_mono this,
-          rw ← hsg2, exact submodule.subset_span hsy } },
-      { exact is_add_submonoid.zero_mem _ },
-      { exact λ _ _, is_add_submonoid.add_mem },
-      { intros r0 r ih, refine is_submonoid.mul_mem _ ih,
-        exact ring.mem_closure (or.inl r0.2) } },
-    refine ring.in_closure.rec_on hr _ _ _ _,
-    { exact submodule.subset_span (set.mem_insert _ _) },
-    { letI : module R₀ R := by apply_instance,
-      have : (-1:R) = @has_scalar.smul R₀ R _inst_4.to_has_scalar (-1) 1,
-      { exact eq.symm (neg_one_mul _) },
-      rw [this, submodule.mem_coe], refine submodule.smul_mem _ _ _,
-      exact submodule.subset_span (set.mem_insert _ _) }, sorry, sorry },
+  have : ∃ s : set R, set.finite s ∧ ↑(span s : submodule R₀ R) = ring.closure (R₀ ∪ {x, y}),
+  { refine ⟨set.image (λ p : R × R, p.1 * p.2) (sf.prod sg),
+      set.finite_image _ (set.finite_prod hsf1 hsg1), _⟩,
+    refine eq.trans (submodule.ext'_iff.2 _) (ring.closure_union R₀).symm,
+    apply le_antisymm,
+    { refine span_le.2 _,
+      { rw ← ring.closure_union R₀, rintros _ ⟨⟨x, y⟩, ⟨hx, hy⟩, rfl⟩,
+        have hx' := subset_span hx, rw hsf2 at hx',
+        have hy' := subset_span hy, rw hsg2 at hy',
+        exact is_submonoid.mul_mem
+          (ring.closure_mono (set.union_subset_union_right _ (set.singleton_subset_iff.2 (or.inr (or.inl rfl)))) hx')
+          (ring.closure_mono (set.union_subset_union_right _ (set.singleton_subset_iff.2 (or.inl rfl))) hy') } },
+    { refine span_le.2 _, rintros _ ⟨p, hp, q, hq, rfl⟩,
+      replace hp : p ∈ ring.closure (R₀ ∪ {y}) := ring.closure_mono
+        (set.union_subset_union_right _ (λ b, set.mem_singleton_of_eq)) hp,
+      rw ← hsg2 at hp, rw ← hsf2 at hq, rw mem_coe at hp hq ⊢,
+      refine span_induction hp _ _ _ _,
+      { intros r hrg,
+        refine span_induction hq _ _ _ _,
+        { intros s hsf, rw mul_comm r s,
+          exact subset_span ⟨(s, r), ⟨hsf, hrg⟩, rfl⟩ },
+        { rw mul_zero, exact submodule.zero_mem _ },
+        { intros _ _, rw mul_add, exact submodule.add_mem _ },
+        { intros s z hz, change _ * (_ * _) ∈ _, rw mul_left_comm,
+          exact submodule.smul_mem _ _ hz } },
+      { rw zero_mul, exact submodule.zero_mem _ },
+      { intros _ _, rw add_mul, exact submodule.add_mem _ },
+      { intros s z hz, change _ * _ * _ ∈ _, rw mul_assoc,
+        exact submodule.smul_mem _ _ hz } } },
   sorry
 end

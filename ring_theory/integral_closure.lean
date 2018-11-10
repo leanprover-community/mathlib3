@@ -1,3 +1,4 @@
+import ring_theory.adjoin
 import ring_theory.polynomial
 
 universes u v
@@ -153,31 +154,16 @@ let ⟨p, hpm, hpx⟩ := hx in
     λ H, have _ := congr_arg subtype.val H, subtype.eq this⟩)⟩,
 have _ := congr_arg subtype.val hpm, subtype.eq this, hpx⟩
 
-def subring.module : module S R :=
-module.of_core { 
-  smul := λ r x , r.1 * x,
-  smul_add := λ r, mul_add _,
-  add_smul := λ r s, add_mul _ _,
-  mul_smul := λ r s, mul_assoc _ _,
-  one_smul := one_mul }
-
-local attribute [instance] subring.module
-
-theorem fg_of_integral (x : R) (hx : is_integral S x) :
-  ∃ s : set R, set.finite s ∧ ↑(span s) = ring.closure (S ∪ {x}) :=
+theorem fg_of_integral' (x : R) (hx : is_integral S x) :
+  (ring.madjoin S {x}).fg :=
 begin
-  rcases hx with ⟨f, hfm, hfx⟩, resetI,
-  refine ⟨↑(finset.image ((^) x) (finset.range (nat_degree f + 1))), _, _⟩,
-  { exact finset.finite_to_set _ },
-  ext r, split; intro hr,
-  { refine span_induction hr _ _ _ _,
-    { intros s hs, rw [finset.mem_coe, finset.mem_image] at hs,
-      rcases hs with ⟨k, hk, rfl⟩, clear hk,
-      exact is_submonoid.pow_mem (ring.subset_closure (or.inr (set.mem_singleton _))) },
-    { exact is_add_submonoid.zero_mem _ },
-    { intros _ _, exact is_add_submonoid.add_mem },
-    { intros s t ht, exact is_submonoid.mul_mem
-        (ring.subset_closure (or.inl s.2)) ht } },
+  rcases hx with ⟨f, hfm, hfx⟩,
+  existsi finset.image ((^) x) (finset.range (nat_degree f + 1)),
+  apply le_antisymm,
+  { rw span_le, intros s hs, rw [finset.mem_coe, finset.mem_image] at hs,
+    rcases hs with ⟨k, hk, rfl⟩, clear hk,
+    exact is_submonoid.pow_mem (ring.subset_adjoin (set.mem_singleton _)) },
+  intros r hr, change r ∈ ring.closure _ at hr,
   rw closure_union_singleton_eq_range at hr, rcases hr with ⟨p, rfl⟩,
   rw ← mod_by_monic_add_div p hfm,
   haveI : is_semiring_hom (subtype.val : S → R) :=
@@ -196,41 +182,139 @@ begin
   exact lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 hk)
 end
 
-theorem ring.closure_union {s t : set R} : ring.closure (S ∪ (s ∪ t)) =
-  ↑(span { z : R | ∃ x ∈ ring.closure (S ∪ s), ∃ y ∈ ring.closure (S ∪ t), x * y = z }) :=
+theorem le_of_le_of_not_lt {α : Type u} [partial_order α] {x y : α}
+  (H1 : x ≤ y) (H2 : ¬x < y) : y ≤ x :=
+classical.by_contradiction $ λ H3, H2 $ lt_of_le_not_le H1 H3
+
+theorem eq_of_le_of_not_lt {α : Type u} [partial_order α] {x y : α}
+  (H1 : x ≤ y) (H2 : ¬x < y) : x = y :=
+(lt_or_eq_of_le H1).resolve_left H2
+
+theorem monic_X_pow_add {R : Type u} [comm_semiring R] [decidable_eq R]
+  {p : polynomial R} {n : ℕ} (H1 : degree p ≤ n) : monic (X ^ (n+1) + p) :=
+decidable.by_cases
+  (assume H : (0:R) = 1, @subsingleton.elim _ (subsingleton_of_zero_eq_one _ H) _ _)
+  (assume H : (0:R) ≠ 1, begin
+    have : degree (X ^ (n+1)) = n+1,
+    { rw [← one_mul (X^(n+1)), ← @C_1 R, ← single_eq_C_mul_X],
+      change finset.sup (ite _ _ _) _ = _,
+      rw if_neg H.symm, refl },
+    have : degree (X ^ (n+1) + p) = n+1,
+    { rw [← this, add_comm], apply degree_add_eq_of_degree_lt,
+      apply lt_of_le_of_lt H1, rw this, apply with_bot.coe_lt_coe.2,
+      exact nat.lt_succ_self n },
+    rw [monic, leading_coeff, nat_degree, this, coeff_add, coeff_X_pow],
+    change ite (n+1=n+1) _ _ + coeff p (n+1) = _,
+    rw [if_pos rfl, (degree_le_iff_coeff_zero _ _).1 H1 _
+      (with_bot.coe_lt_coe.2 (nat.lt_succ_self _)), add_zero]
+  end)
+
+theorem monic_X_pow_sub {p : polynomial R} {n : ℕ}
+  (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
+monic_X_pow_add ((degree_neg p).symm ▸ H)
+
+theorem is_integral_of_noetherian' (H : is_noetherian S R) (x : R) :
+  is_integral S x :=
 begin
-  ext r, rw mem_coe, split; intro hr,
-  { refine add_group.in_closure.rec_on hr _ _ _ _,
-    { intros r hr, apply subset_span,
-      refine monoid.in_closure.rec_on hr _ _ _,
-      { rintros r (hr | hr | hr),
-        { exact ⟨r, ring.subset_closure (or.inl hr), 1, is_submonoid.one_mem _, mul_one _⟩ },
-        { exact ⟨r, ring.subset_closure (or.inr hr), 1, is_submonoid.one_mem _, mul_one _⟩ },
-        { exact ⟨1, is_submonoid.one_mem _, r, ring.subset_closure (or.inr hr), one_mul _⟩ } },
-      { exact ⟨1, is_submonoid.one_mem _, 1, is_submonoid.one_mem _, mul_one _⟩ },
-      { rintros _ _ _ _ ⟨x1, hx1, y1, hy1, rfl⟩ ⟨x2, hx2, y2, hy2, rfl⟩,
-        rw [mul_assoc, mul_left_comm y1, ← mul_assoc],
-        exact ⟨_, is_submonoid.mul_mem hx1 hx2, _, is_submonoid.mul_mem hy1 hy2, rfl⟩ } },
-    { exact zero_mem _ },
-    { intros _ _ hr, rw ← neg_one_mul, exact smul_mem _ (-1) hr },
-    { intros _ _ _ _, exact add_mem _ } },
-  refine span_induction hr _ _ _ _,
-  { rintro _ ⟨x, hx, y, hy, rfl⟩,
-    exact is_submonoid.mul_mem
-      (ring.closure_mono (set.union_subset_union_right _ (set.subset_union_left _ _)) hx)
-      (ring.closure_mono (set.union_subset_union_right _ (set.subset_union_right _ _)) hy) },
-  { exact is_add_submonoid.zero_mem _ },
-  { exact λ _ _, is_add_submonoid.add_mem },
-  { exact λ s r hr, is_submonoid.mul_mem (ring.subset_closure (or.inl s.2)) hr }
+  letI : module S (polynomial S) := polynomial.module,
+  haveI : is_ring_hom (subtype.val : S → R) := is_ring_hom.is_ring_hom,
+  let leval : @linear_map S (polynomial S) R _ _ _ _ _,
+  { refine ⟨eval₂ subtype.val x, λ _ _, eval₂_add _ _, λ r p, _⟩,
+    rw [← C_mul', eval₂_mul, eval₂_C], refl },
+  let D : ℕ → submodule S R := λ n, (degree_le S n).map leval,
+  let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
+    (set.range D) (set.ne_empty_of_mem ⟨0, rfl⟩),
+  have HM : M ∈ set.range D := well_founded.min_mem _ _ _,
+  cases HM with N HN,
+  have HM : ¬M < D (N+1) := well_founded.not_lt_min
+    (is_noetherian_iff_well_founded.1 H) (set.range D) _ ⟨N+1, rfl⟩,
+  rw ← HN at HM,
+  have HN2 : D (N+1) ≤ D N := le_of_le_of_not_lt (map_mono (degree_le_mono
+    (with_bot.coe_le_coe.2 (nat.le_succ N)))) HM,
+  have HN3 : leval (X^(N+1)) ∈ D N,
+  { exact HN2 (mem_map_of_mem (mem_degree_le.2 (degree_X_pow_le _))) },
+  rcases HN3 with ⟨p, hdp, hpe⟩,
+  refine ⟨X^(N+1) - p, monic_X_pow_sub (mem_degree_le.1 hdp), _⟩,
+  change leval (X ^ (N + 1) - p) = 0,
+  rw [linear_map.map_sub, hpe, sub_self]
 end
 
-theorem is_integral_add {x y : R}
-  (hx : is_integral S x) (hy : is_integral S y) :
-  is_integral S (x + y) :=
+theorem is_integral_of_noetherian (M : submodule S R)
+  [HM1 : is_subring (M : set R)] (HM2 : S ⊆ M)
+  (H : is_noetherian S M) (x : R) (hx : x ∈ M) :
+  is_integral S x :=
+begin
+  rw is_noetherian_submodule at H,
+  letI : module S R := ring.subring.module S,
+  haveI : is_subring M.1 := HM1,
+  letI : ring (subtype M.1) := subtype.ring,
+  let S' : set (subtype M.1) := subtype.val ⁻¹' S,
+  have H1 : @is_subring (subtype M.1) _inst_5 S',
+  { refine {..},
+    { change (0:R) ∈ S, exact is_add_submonoid.zero_mem S },
+    { exact λ _ _, @is_add_submonoid.add_mem R _ S _ _ _ },
+    { exact λ _, @is_add_subgroup.neg_mem R _ S _ _ },
+    { change (1:R) ∈ S, exact is_submonoid.one_mem S },
+    { exact λ _ _, @is_submonoid.mul_mem R _ S _ _ _ } },
+  resetI,
+  have H2 : is_noetherian S' (subtype M.1),
+  { intro N',
+    let N : submodule S R :=
+    { carrier := subtype.val '' N'.1,
+      zero := ⟨0, N'.2, rfl⟩,
+      add := by rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩; exact ⟨x + y, N'.3 hx hy, rfl⟩,
+      smul := by rintros s _ ⟨x, hx, rfl⟩; exact ⟨⟨s.1, HM2 s.2⟩ • x, N'.4 ⟨⟨s.1, HM2 s.2⟩, s.2⟩ hx, rfl⟩ },
+    have HN : N ≤ M,
+    { rintros _ ⟨x, hx, rfl⟩, exact x.2 },
+    rcases fg_def.1 (H N HN) with ⟨s, hf, hs⟩,
+    refine fg_def.2 ⟨subtype.val ⁻¹' s, set.finite_preimage subtype.val_injective hf, _⟩,
+    apply le_antisymm,
+    { rw span_le, rintros ⟨r, hr⟩ hrn, change r ∈ s at hrn,
+      have : r ∈ span s := subset_span hrn, rw hs at this,
+      rcases this with ⟨⟨r, hr⟩, HR, rfl⟩, exact HR },
+    { rintros ⟨r, hr⟩ hrn, have : r ∈ N := ⟨⟨r, hr⟩, hrn, rfl⟩, rw ← hs at this,
+      suffices : ∃ hr, (⟨r, hr⟩ : subtype M.carrier) ∈ span (subtype.val ⁻¹' s),
+      { cases this with hr1 hr2, exact (mem_coe _).2 hr2 },
+      refine span_induction this _ _ _ _,
+      { intros z hz, exact ⟨HN (hs ▸ subset_span hz : z ∈ N), subset_span hz⟩ },
+      { exact ⟨zero_mem _, zero_mem _⟩ },
+      { rintros x y ⟨hx1, hx2⟩ ⟨hy1, hy2⟩, refine ⟨M.3 hx1 hy1, _⟩,
+        change (⟨x, hx1⟩ + ⟨y, hy1⟩ : M.1) ∈ _, exact add_mem _ hx2 hy2 },
+      { rintros ⟨z, hz⟩ x ⟨hx1, hx2⟩, refine ⟨M.4 _ hx1, _⟩,
+        letI : module (subtype S') (subtype M.1) := ring.subring.module _,
+        change @has_scalar.smul S' M.1 _inst_6.to_has_scalar ⟨⟨z, HM2 hz⟩, hz⟩ ⟨x, hx1⟩ ∈ _,
+        exact smul_mem _ _ hx2 } } },
+  rcases is_integral_of_noetherian' S' H2 ⟨x, hx⟩ with ⟨p, hpm, hpx⟩,
+  refine ⟨base_change (of_subtype _ (of_subtype _ p)) S _, _, _⟩,
+  { intros r hr, rcases finsupp.mem_range.1 hr with ⟨_, i, rfl⟩, exact (p.2 i).2 },
+  { replace hpm := congr_arg subtype.val hpm,
+    replace hpm := congr_arg subtype.val hpm,
+    exact subtype.eq hpm },
+  unfold eval₂ finsupp.sum base_change of_subtype at hpx ⊢, dsimp only,
+  replace hpx := congr_arg subtype.val hpx,
+  rw ← finset.sum_hom (subtype.val : M → R) at hpx,
+  change (_:R) = (_:R) at hpx,
+  refine eq.trans _ hpx,
+  refine finset.sum_congr rfl _,
+  { intros, conv_rhs { rw is_ring_hom.map_mul (subtype.val : (subtype M.1) → R),
+      rw is_semiring_hom.map_pow (subtype.val : (subtype M.1) → R) },
+    refl },
+  { refl },
+  { intros, refl }
+end
+
+theorem is_integral_of_mem_closure {x y z : R}
+  (hx : is_integral S x) (hy : is_integral S y)
+  (hz : z ∈ ring.closure ({x, y} : set R)) :
+  is_integral S z :=
 begin
   rcases hx with ⟨f, hfm, hfx⟩,
   rcases hy with ⟨g, hgm, hgy⟩,
   let R₀ := ring.closure (↑(f.of_subtype S).range ∪ ↑(g.of_subtype S).range : set R),
+  have HR₀ : is_noetherian_ring R₀,
+  { exact is_noetherian_ring_closure _ (set.finite_union
+      (finset.finite_to_set _) (finset.finite_to_set _)) },
+  haveI : is_subring R₀ := by apply_instance,
   let f' := (f.of_subtype S).base_change R₀ (set.subset.trans
     (set.subset_union_left _ _) ring.subset_closure),
   let g' := (g.of_subtype S).base_change R₀ (set.subset.trans
@@ -243,40 +327,46 @@ begin
   have hy : is_integral R₀ y,
   { replace hgm := congr_arg subtype.val hgm,
     exact ⟨g', subtype.eq hgm, hgy⟩ },
-  rcases fg_of_integral _ _ hx with ⟨sf, hsf1, hsf2⟩,
-  rcases fg_of_integral _ _ hy with ⟨sg, hsg1, hsg2⟩,
-  have HR₀ : is_noetherian_ring R₀,
-  { exact is_noetherian_ring_closure _ (set.finite_union
-      (finset.finite_to_set _) (finset.finite_to_set _)) },
-  haveI : is_subring R₀ := by apply_instance,
-  have : ∃ s : set R, set.finite s ∧ ↑(span s : submodule R₀ R) = ring.closure (R₀ ∪ {x, y}),
-  { refine ⟨set.image (λ p : R × R, p.1 * p.2) (sf.prod sg),
-      set.finite_image _ (set.finite_prod hsf1 hsg1), _⟩,
-    refine eq.trans (submodule.ext'_iff.2 _) (ring.closure_union R₀).symm,
-    apply le_antisymm,
-    { refine span_le.2 _,
-      { rw ← ring.closure_union R₀, rintros _ ⟨⟨x, y⟩, ⟨hx, hy⟩, rfl⟩,
-        have hx' := subset_span hx, rw hsf2 at hx',
-        have hy' := subset_span hy, rw hsg2 at hy',
-        exact is_submonoid.mul_mem
-          (ring.closure_mono (set.union_subset_union_right _ (set.singleton_subset_iff.2 (or.inr (or.inl rfl)))) hx')
-          (ring.closure_mono (set.union_subset_union_right _ (set.singleton_subset_iff.2 (or.inl rfl))) hy') } },
-    { refine span_le.2 _, rintros _ ⟨p, hp, q, hq, rfl⟩,
-      replace hp : p ∈ ring.closure (R₀ ∪ {y}) := ring.closure_mono
-        (set.union_subset_union_right _ (λ b, set.mem_singleton_of_eq)) hp,
-      rw ← hsg2 at hp, rw ← hsf2 at hq, rw mem_coe at hp hq ⊢,
-      refine span_induction hp _ _ _ _,
-      { intros r hrg,
-        refine span_induction hq _ _ _ _,
-        { intros s hsf, rw mul_comm r s,
-          exact subset_span ⟨(s, r), ⟨hsf, hrg⟩, rfl⟩ },
-        { rw mul_zero, exact submodule.zero_mem _ },
-        { intros _ _, rw mul_add, exact submodule.add_mem _ },
-        { intros s z hz, change _ * (_ * _) ∈ _, rw mul_left_comm,
-          exact submodule.smul_mem _ _ hz } },
-      { rw zero_mul, exact submodule.zero_mem _ },
-      { intros _ _, rw add_mul, exact submodule.add_mem _ },
-      { intros s z hz, change _ * _ * _ ∈ _, rw mul_assoc,
-        exact submodule.smul_mem _ _ hz } } },
-  sorry
+  have := ring.fg_mul (fg_of_integral' R₀ x hx) (fg_of_integral' R₀ y hy),
+  rw [← ring.madjoin_union, set.union_singleton, insert] at this,
+  have HN := is_noetherian_of_fg_of_noetherian _ HR₀ this,
+  exact is_integral_of_noetherian R₀ (ring.madjoin R₀ {x, y}) ring.base_subset_adjoin HN
+    z (ring.closure_mono (set.subset_union_right _ _) hz)
 end
+
+theorem is_integral_zero : is_integral S 0 :=
+is_integral_of_mem S (is_add_submonoid.zero_mem S)
+
+theorem is_integral_one : is_integral S 1 :=
+is_integral_of_mem S (is_submonoid.one_mem S)
+
+theorem is_integral_add {x y : R}
+  (hx : is_integral S x) (hy : is_integral S y) :
+  is_integral S (x + y) :=
+is_integral_of_mem_closure S hx hy (is_add_submonoid.add_mem
+  (ring.subset_closure (or.inr (or.inl rfl))) (ring.subset_closure (or.inl rfl)))
+
+theorem is_integral_neg {x : R}
+  (hx : is_integral S x) : is_integral S (-x) :=
+is_integral_of_mem_closure S hx hx (is_add_subgroup.neg_mem
+  (ring.subset_closure (or.inl rfl))) 
+
+theorem is_integral_sub {x y : R}
+  (hx : is_integral S x) (hy : is_integral S y) : is_integral S (x - y) :=
+is_integral_add S hx (is_integral_neg S hy)
+
+theorem is_integral_mul {x y : R}
+  (hx : is_integral S x) (hy : is_integral S y) :
+  is_integral S (x * y) :=
+is_integral_of_mem_closure S hx hy (is_submonoid.mul_mem
+  (ring.subset_closure (or.inr (or.inl rfl))) (ring.subset_closure (or.inl rfl)))
+
+def integral_closure : set R :=
+{ r | is_integral S r }
+
+instance : is_subring (integral_closure S) :=
+{ zero_mem := is_integral_zero S,
+  one_mem := is_integral_one S,
+  add_mem := λ _ _, is_integral_add S,
+  neg_mem := λ _, is_integral_neg S,
+  mul_mem := λ _ _, is_integral_mul S, }

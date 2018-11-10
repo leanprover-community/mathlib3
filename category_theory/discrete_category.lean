@@ -23,14 +23,6 @@ instance discrete_category (α : Type u₁) : small_category (discrete α) :=
   id   := by obviously,
   comp := by obviously }
 
-instance pempty_category : small_category pempty :=
-(by apply_instance : small_category (discrete pempty))
-
-instance punit_category : small_category punit :=
-{ hom  := λ X Y, punit,
-  id   := by obviously,
-  comp := by obviously }
-
 -- TODO this needs to wait for equivalences to arrive
 -- example : equivalence.{u₁ u₁ u₁ u₁} punit (discrete punit) := by obviously
 
@@ -62,17 +54,9 @@ begin
   simp,
 end
 
-namespace functor
-def empty : pempty ⥤ C := by obviously
-
 variables {C}
 
--- punit.{u} : Sort u, so punit.{v₂+1} is a small_category.{v₂}.
-def of_obj (X : C) : punit.{v₂+1} ⥤ C :=
-{ obj := λ Y, X,
-  map := λ Y Z f, 𝟙 X }
-
-@[simp] lemma of_obj_obj (X : C) (a : punit) : ((of_obj X).obj a) = X := rfl
+namespace functor
 
 @[simp] def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
 { obj := F,
@@ -81,8 +65,6 @@ def of_obj (X : C) : punit.{v₂+1} ⥤ C :=
 end functor
 
 namespace nat_trans
-
-variables {C}
 
 @[simp] def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
   (functor.of_function F) ⟹ (functor.of_function G) :=

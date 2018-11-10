@@ -70,6 +70,16 @@ A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
 
+instance pempty_category : small_category pempty :=
+{ hom  := λ X Y, pempty,
+  id   := by obviously,
+  comp := by obviously }
+
+instance punit_category : small_category punit :=
+{ hom  := λ X Y, punit,
+  id   := by obviously,
+  comp := by obviously }
+
 structure bundled (c : Type u → Type v) :=
 (α : Type u)
 [str : c α]
@@ -109,9 +119,9 @@ instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (
 { F := λ f, R → S,
   coe := λ f, f.1 }
 
-@[simp] lemma bundled_hom_coe 
+@[simp] lemma bundled_hom_coe
   {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {R S : bundled c} (val : R → S) (prop) (r : R) : 
+  [h : concrete_category @hom] {R S : bundled c} (val : R → S) (prop) (r : R) :
   (⟨val, prop⟩ : R ⟶ S) r = val r := rfl
 
 section

@@ -317,16 +317,16 @@ theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ (nhds x
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
 theorem tendsto_nhds_of_metric [metric_space β] {f : α → β} {a b} :
-  tendsto f (nhds a) (nhds b) ↔ ∀ ε > 0,
-    ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
+  tendsto f (nhds a) (nhds b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 ⟨λ H ε ε0, mem_nhds_iff_metric.1 (H (ball_mem_nhds _ ε0)),
  λ H s hs,
   let ⟨ε, ε0, hε⟩ := mem_nhds_iff_metric.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
   mem_nhds_iff_metric.2 ⟨δ, δ0, λ x h, hε (hδ h)⟩⟩
 
 theorem continuous_of_metric [metric_space β] {f : α → β} :
-  continuous f ↔ ∀b (ε > 0), ∃ δ > 0, ∀a,
-    dist a b < δ → dist (f a) (f b) < ε :=
+  continuous f ↔
+    ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=
 continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds_of_metric
 
 theorem exists_delta_of_continuous [metric_space β] {f : α → β} {ε:ℝ}
@@ -402,15 +402,15 @@ begin
 end
 
 theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
-by have h := @uniformity_edist' α _; simpa [infi_subtype] using h
+by simpa [infi_subtype] using @uniformity_edist' α _
 
 /--A metric space induces an emetric space-/
 instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α :=
-{ edist_self := by simp [edist_dist],
+{ edist_self          := by simp [edist_dist],
   eq_of_edist_eq_zero := assume x y h,
-  by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
-  edist_comm := by simp only [edist_dist, dist_comm]; simp,
-  edist_triangle := assume x y z,
+    by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
+  edist_comm          := by simp only [edist_dist, dist_comm]; simp,
+  edist_triangle      := assume x y z,
   begin
     rw [edist_dist, edist_dist, edist_dist, ← ennreal.coe_add, ennreal.coe_le_coe,
         nnreal.of_real_add_of_real (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z),
@@ -418,7 +418,7 @@ instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α 
           add_nonneg (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z)],
     apply dist_triangle x y z
   end,
-  uniformity_edist := uniformity_edist,
+  uniformity_edist    := uniformity_edist,
   ..a }
 
 /-- Instantiate the reals as a metric space. -/
@@ -628,6 +628,28 @@ instance metric_space_pi : metric_space (Πb, π b) :=
   by unfold dist; simp; simp only [(nndist_eq_edist _ _).symm, A] }
 
 end pi
+
+section first_countable
+
+instance metric_space.first_countable_topology (α : Type u) [metric_space α] :
+  first_countable_topology α :=
+⟨assume a, ⟨⋃ i:ℕ, {ball a (i + 1 : ℝ)⁻¹},
+  countable_Union $ assume n, countable_singleton _,
+  suffices (⨅ i:{ i : ℝ // i > 0}, principal (ball a i)) = ⨅ (n : ℕ), principal (ball a (↑n + 1)⁻¹),
+    by simpa [nhds_eq_metric, @infi_comm _ _ ℕ],
+  begin
+    apply le_antisymm,
+    { refine le_infi (assume n, infi_le_of_le _ _),
+      exact ⟨(n + 1)⁻¹, inv_pos $ add_pos_of_nonneg_of_pos (nat.cast_nonneg n) zero_lt_one⟩,
+      exact le_refl _ },
+    refine le_infi (assume ε, _),
+    rcases exists_nat_gt (ε:ℝ)⁻¹ with ⟨_ | n, εn⟩,
+    { exact (lt_irrefl (0:ℝ) $ lt_trans (inv_pos ε.2) εn).elim },
+    refine infi_le_of_le n (principal_mono.2 $ ball_subset_ball $ _),
+    exact (inv_le ε.2 $ add_pos_of_nonneg_of_pos (nat.cast_nonneg n) zero_lt_one).1 (le_of_lt εn)
+  end⟩⟩
+
+end first_countable
 
 section second_countable
 

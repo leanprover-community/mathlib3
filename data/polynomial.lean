@@ -11,19 +11,19 @@ import data.finsupp algebra.euclidean_domain tactic.ring
 
 Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from α is called `C`. -/
-def polynomial (α : Type*) [comm_semiring α] := ℕ →₀ α
+def polynomial (α : Type*) [has_zero α] := ℕ →₀ α
 
 open finsupp finset lattice
 
 namespace polynomial
 universes u v
 variables {α : Type u} {β : Type v} {a b : α} {m n : ℕ}
-variables [decidable_eq α]
 
 section comm_semiring
-variables [comm_semiring α] {p q r : polynomial α}
+instance [has_zero α] : has_zero (polynomial α) := finsupp.has_zero
 
-instance : has_zero (polynomial α) := finsupp.has_zero
+variables [decidable_eq α] [comm_semiring α] {p q r : polynomial α}
+
 instance : has_one (polynomial α) := finsupp.has_one
 instance : has_add (polynomial α) := finsupp.has_add
 instance : has_mul (polynomial α) := finsupp.has_mul
@@ -372,10 +372,12 @@ end comp
 
 section map
 variables [comm_semiring β] [decidable_eq β]
-variables (f : α → β) [is_semiring_hom f]
+variables (f : α → β)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
+
+variables [is_semiring_hom f]
 
 @[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
 
@@ -680,8 +682,43 @@ have h : leading_coeff (X : polynomial α) * leading_coeff (X ^ n) ≠ 0,
     exact h10,
 by rw [pow_succ, leading_coeff_mul' h, leading_coeff_X, leading_coeff_X_pow, one_mul]
 
+theorem degree_C_mul_X_pow_le (r : α) (n : ℕ) : degree (C r * X^n) ≤ n :=
+by rw [← single_eq_C_mul_X]; exact finset.sup_le (λ b hb,
+by rw list.eq_of_mem_singleton (finsupp.support_single_subset hb); exact le_refl _)
+
+theorem degree_X_pow_le (n : ℕ) : degree (X^n : polynomial α) ≤ n :=
+by simpa only [C_1, one_mul] using degree_C_mul_X_pow_le (1:α) n
+
+theorem degree_X_le : degree (X : polynomial α) ≤ 1 :=
+by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:α) 1
+
+theorem degree_le_iff_coeff_zero (f : polynomial α) (n : with_bot ℕ) :
+  degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
+⟨λ (H : finset.sup (f.support) some ≤ n) m (Hm : n < (m : with_bot ℕ)), decidable.of_not_not $ λ H4,
+  have H1 : m ∉ f.support,
+    from λ H2, not_lt_of_ge ((finset.sup_le_iff.1 H) m H2 : ((m : with_bot ℕ) ≤ n)) Hm,
+  H1 $ (finsupp.mem_support_to_fun f m).2 H4,
+λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
+  (finsupp.mem_support_to_fun f b).1 Hb $ H b $ lt_of_not_ge Hn⟩
+
+theorem nat_degree_le_of_degree_le {p : polynomial α} {n : ℕ}
+  (H : degree p ≤ n) : nat_degree p ≤ n :=
+show option.get_or_else (degree p) 0 ≤ n, from match degree p, H with
+| none,     H := zero_le _
+| (some d), H := with_bot.coe_le_coe.1 H
+end
+
+theorem leading_coeff_mul_X_pow {p : polynomial α} {n : ℕ} :
+  leading_coeff (p * X ^ n) = leading_coeff p :=
+decidable.by_cases
+  (assume H : leading_coeff p = 0, by rw [H, leading_coeff_eq_zero.1 H, zero_mul, leading_coeff_zero])
+  (assume H : leading_coeff p ≠ 0,
+    by rw [leading_coeff_mul', leading_coeff_X_pow, mul_one];
+       rwa [leading_coeff_X_pow, mul_one])
+
 end comm_semiring
 
+variables [decidable_eq α]
 section comm_ring
 variables [comm_ring α] {p q : polynomial α}
 instance : comm_ring (polynomial α) := finsupp.to_comm_ring
@@ -971,6 +1008,33 @@ lt_of_not_ge $ λ hlt, begin
       (with_bot.coe_lt_coe.2 (nat.succ_pos _)))))),
 end
 
+theorem monic_X_sub_C (x : α) : monic (X - C x) :=
+begin
+  by_cases h01 : (0:α) = 1,
+  { exact @subsingleton.elim _ (subsingleton_of_zero_eq_one _ h01) _ _ },
+  change ite _ _ _ - ite _ _ _ = _,
+  suffices : degree (X - C x) = 1,
+  { have : nat_degree (X - C x) = 1,
+    { unfold nat_degree, rw this, refl },
+    rw [this, if_pos rfl, if_neg nat.zero_ne_one, sub_zero] },
+  have : coeff (X - C x) 1 = 1,
+  { change coeff X 1 - coeff (C x) 1 = 1,
+    rw [coeff_X_one, coeff_C, if_neg nat.one_ne_zero, sub_zero] },
+  apply le_antisymm,
+  { apply le_trans (degree_add_le _ _) (max_le degree_X_le _),
+    rw degree_neg, exact le_trans degree_C_le dec_trivial },
+  { refine le_of_not_lt (λ H, h01 _),
+    rwa [coeff_eq_zero_of_degree_lt H] at this }
+end
+
+theorem degree_mod_by_monic_le (p : polynomial α) {q : polynomial α}
+  (hq : monic q) : degree (p %ₘ q) ≤ degree q :=
+decidable.by_cases
+  (assume H : q = 0, by rw [monic, H, leading_coeff_zero] at hq;
+    have : (0:polynomial α) = 1 := (by rw [← C_0, ← C_1, hq]);
+    rw [eq_zero_of_zero_eq_one _ this (p %ₘ q), eq_zero_of_zero_eq_one _ this q]; exact le_refl _)
+  (assume H : q ≠ 0, le_of_lt $ degree_mod_by_monic_lt _ hq H)
+
 end comm_ring
 
 section nonzero_comm_ring
@@ -1028,14 +1092,6 @@ by simpa only [monic, leading_coeff_zero] using zero_ne_one
 
 lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 λ h₁, @not_monic_zero α _ _ (h₁ ▸ h)
-
-lemma monic_X_sub_C (a : α) : monic (X - C a) :=
-have degree (-C a) < degree (X : polynomial α) :=
-if ha : a = 0
-  then by simp only [ha, degree_zero, C_0, degree_X, neg_zero]; exact with_bot.bot_lt_some _
-  else by simp only [degree_C ha, degree_neg, degree_X]; exact dec_trivial,
-by unfold monic;
-  rw [sub_eq_add_neg, add_comm, leading_coeff_add_of_degree_lt this, leading_coeff_X]
 
 lemma root_X_sub_C : is_root (X - C a) b ↔ a = b :=
 by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
@@ -1104,9 +1160,7 @@ simp only [*, pow_succ, leading_coeff_mul]]
 instance : integral_domain (polynomial α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin
     have : leading_coeff 0 = leading_coeff a * leading_coeff b := h ▸ leading_coeff_mul a b,
-    rw [leading_coeff_zero, eq_comm] at this,
-    rw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
-    exact eq_zero_or_eq_zero_of_mul_eq_zero this
+    rwa [leading_coeff_zero, eq_comm, mul_eq_zero, leading_coeff_eq_zero, leading_coeff_eq_zero] at this
   end,
   ..polynomial.nonzero_comm_ring }
 

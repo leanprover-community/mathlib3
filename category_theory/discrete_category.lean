@@ -67,13 +67,12 @@ def empty : pempty ⥤ C := by obviously
 
 variables {C}
 
-def of_obj (X : C) : punit.{u₂} ⥤ C :=
+-- punit.{u} : Sort u, so punit.{v₂+1} is a small_category.{v₂}.
+def of_obj (X : C) : punit.{v₂+1} ⥤ C :=
 { obj := λ Y, X,
   map := λ Y Z f, 𝟙 X }
 
-@[simp] lemma of_obj_obj (X : C) (a : punit.{u₂}) :
-  ((of_obj X).obj a) = X :=
-rfl
+@[simp] lemma of_obj_obj (X : C) (a : punit) : ((of_obj X).obj a) = X := rfl
 
 @[simp] def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
 { obj := F,

@@ -43,7 +43,7 @@ end
       naturality' := λ j j' f,
         begin
           dsimp, simp, ext k, dsimp,
-          erw limit.w ((switched F).obj k),
+          erw limit.w (F.flip.obj k),
         end } }
 @[simp] def functor_category_colimit_cocone
   [has_colimits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) : cocone F :=
@@ -54,24 +54,24 @@ end
       naturality' := λ j j' f,
         begin
           dsimp, simp, ext k, dsimp,
-          erw colimit.w ((switched F).obj k),
+          erw colimit.w (F.flip.obj k),
         end } }
 
 @[simp] def evaluate_functor_category_limit_cone
   [has_limits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) (k : K) :
   ((evaluation K C).obj k).map_cone (functor_category_limit_cone F) ≅
-    limit.cone ((switched F).obj k) :=
+    limit.cone (F.flip.obj k) :=
 by tidy
 @[simp] def evaluate_functor_category_colimit_cocone
   [has_colimits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) (k : K) :
   ((evaluation K C).obj k).map_cocone (functor_category_colimit_cocone F) ≅
-    colimit.cocone ((switched F).obj k) :=
+    colimit.cocone (F.flip.obj k) :=
 by tidy
 
 def functor_category_is_limit_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) :
   is_limit (functor_category_limit_cone F) :=
 { lift := λ s,
-  { app := λ k, limit.lift ((switched F).obj k)
+  { app := λ k, limit.lift (F.flip.obj k)
     { X := s.X.obj k,
       π := { app := λ j, (s.π.app j).app k } },
     naturality' := λ k k' f,
@@ -87,7 +87,7 @@ def functor_category_is_limit_cone [has_limits_of_shape.{u v} J C] (F : J ⥤ K 
 def functor_category_is_colimit_cocone [has_colimits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) :
   is_colimit (functor_category_colimit_cocone F) :=
 { desc := λ s,
-  { app := λ k, colimit.desc ((switched F).obj k)
+  { app := λ k, colimit.desc (F.flip.obj k)
     { X := s.X.obj k,
       ι := { app := λ j, (s.ι.app j).app k } },
     naturality' := λ k k' f,

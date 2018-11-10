@@ -50,7 +50,7 @@ theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
 uniform_continuous_comap
 
 theorem uniform_embedding_of_rat : uniform_embedding (coe : ℚ → ℝ) :=
-metric_space.induced_uniform_embedding _ _ _
+uniform_embedding_comap rat.cast_injective
 
 theorem dense_embedding_of_rat : dense_embedding (coe : ℚ → ℝ) :=
 uniform_embedding_of_rat.dense_embedding $

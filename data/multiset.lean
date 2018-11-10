@@ -484,7 +484,7 @@ theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.rep
   that is, the set `{0, 1, ..., n-1}`. -/
 def range (n : ℕ) : multiset ℕ := range n
 
-@[simp] theorem range_zero (n : ℕ) : range 0 = 0 := rfl
+@[simp] theorem range_zero : range 0 = 0 := rfl
 
 @[simp] theorem range_succ (n : ℕ) : range (succ n) = n :: range n :=
 by rw [range, range_concat, ← coe_add, add_comm]; refl
@@ -2883,5 +2883,32 @@ lemma naturality {G H : Type* → Type*}
   eta (traverse f x) = traverse (@eta _ ∘ f) x :=
 quotient.induction_on x
 (by intro; simp [traverse,is_lawful_traversable.naturality] with functor_norm)
+
+section choose
+variables (p : α → Prop) [decidable_pred p] (l : multiset α)
+
+def choose_x : Π hp : (∃! a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a } :=
+quotient.rec_on l (λ l' ex_unique, list.choose_x p l' (exists_of_exists_unique ex_unique)) begin
+  intros,
+  funext hp,
+  suffices all_equal : ∀ x y : { t // t ∈ b ∧ p t }, x = y,
+  { apply all_equal },
+  { rintros ⟨x, px⟩ ⟨y, py⟩,
+    rcases hp with ⟨z, ⟨z_mem_l, pz⟩, z_unique⟩,
+    congr,
+    calc x = z : z_unique x px
+    ...    = y : (z_unique y py).symm }
+end
+
+def choose (hp : ∃! a, a ∈ l ∧ p a) : α := choose_x p l hp
+
+lemma choose_spec (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l ∧ p (choose p l hp) :=
+(choose_x p l hp).property
+
+lemma choose_mem (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose_spec _ _ _).1
+
+lemma choose_property (hp : ∃! a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
+
+end choose
 
 end multiset

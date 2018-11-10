@@ -47,16 +47,16 @@ instance CommRing_has_equalizers : has_equalizers.{v+1 v} CommRing :=
   { lift := λ s : fork f g, ⟨ λ x, ⟨ s.ι x, begin have h := congr_fun (congr_arg subtype.val s.condition) x, exact h, end ⟩,
                    begin
                      -- This is very unpleasant; it shouldn't require human attention.
-                     tidy {trace_result:=tt},
+                     tidy,
                      erw [is_ring_hom.map_one (s.ι).val], refl,
                      erw [is_ring_hom.map_mul (s.ι).val], refl,
                      erw [is_ring_hom.map_add (s.ι).val], refl
                    end ⟩,
     fac' :=
     begin
-      tidy {trace_result:=tt},
+      tidy,
       cases j,
-      tidy {trace_result:=tt},
+      tidy,
       dsimp [fork.ι],
       have h := s.w walking_pair_hom.left,
       replace h := congr_arg subtype.val h,

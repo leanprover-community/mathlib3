@@ -67,11 +67,11 @@ def empty : pempty ⥤ C := by obviously
 
 variables {C}
 
-def of_obj (X : C) : punit.{v+1} ⥤ C :=
+def of_obj (X : C) : punit.{u₂} ⥤ C :=
 { obj := λ Y, X,
   map := λ Y Z f, 𝟙 X }
 
-@[simp] lemma of_obj_obj (X : C) (a : punit.{v+1}) :
+@[simp] lemma of_obj_obj (X : C) (a : punit.{u₂}) :
   ((of_obj X).obj a) = X :=
 rfl
 

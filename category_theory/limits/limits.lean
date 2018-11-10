@@ -117,7 +117,7 @@ def is_limit.of_lift_universal
   fac'  := λ s j, ((universal s (lift s)).mpr (eq.refl (lift s))) j,
   uniq' := λ s φ, (universal s φ).mp }
 
-def is_limit.equiv (h : is_limit t) (X' : C) : (X' ⟶ t.X) ≅ ((functor.const J C).obj X' ⟹ F) :=
+def is_limit.equiv (h : is_limit t) (X' : C) : (X' ⟶ t.X) ≅ ((functor.const J).obj X' ⟹ F) :=
 { hom := λ f, (t.extend f).π,
   inv := λ π, h.lift { X := X', π := π },
   hom_inv_id' :=
@@ -143,7 +143,7 @@ def is_limit.of_extensions_iso (h : is_iso t.extensions) : is_limit t :=
     have : m = (t.extensions ≫ inv t.extensions).app s.X m,
       by erw @is_iso.hom_inv_id _ _ _ _ _ h; refl,
     rw this,
-    have : s.π = (functor.const J C).map m ≫ t.π, by ext j; exact (hm j).symm,
+    have : s.π = (functor.const J).map m ≫ t.π, by ext j; exact (hm j).symm,
     rw this,
     refl
   end }

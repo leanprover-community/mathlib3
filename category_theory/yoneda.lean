@@ -17,7 +17,7 @@ namespace category_theory
 
 universes u₁ v₁ u₂
 
-variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
+variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
 include 𝒞
 
 def yoneda : C ⥤ ((Cᵒᵖ) ⥤ (Type v₁)) :=
@@ -28,22 +28,24 @@ def yoneda : C ⥤ ((Cᵒᵖ) ⥤ (Type v₁)) :=
     map_id' := begin intros X_1, ext1, dsimp at *, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
-namespace yoneda
-@[simp] lemma obj_obj (X Y : C) : ((yoneda C).obj X).obj Y = (Y ⟶ X) := rfl
-@[simp] lemma obj_map (X : C) {Y Y' : C} (f : Y ⟶ Y') : ((yoneda C).obj X).map f = λ g, f ≫ g := rfl
-@[simp] lemma map_app {X X' : C} (f : X ⟶ X') (Y : C) : ((yoneda C).map f).app Y = λ g, g ≫ f := rfl
+variables (C)
 
-lemma obj_map_id {X Y : Cᵒᵖ} (f : X ⟶ Y) : ((yoneda C).obj X).map f (𝟙 X) = ((yoneda C).map f).app Y (𝟙 Y) :=
+namespace yoneda
+@[simp] lemma obj_obj (X Y : C) : (yoneda.obj X).obj Y = (Y ⟶ X) := rfl
+@[simp] lemma obj_map (X : C) {Y Y' : C} (f : Y ⟶ Y') : (yoneda.obj X).map f = λ g, f ≫ g := rfl
+@[simp] lemma map_app {X X' : C} (f : X ⟶ X') (Y : C) : (yoneda.map f).app Y = λ g, g ≫ f := rfl
+
+lemma obj_map_id {X Y : Cᵒᵖ} (f : X ⟶ Y) : ((@yoneda C _).obj X).map f (𝟙 X) = ((@yoneda C _).map f).app Y (𝟙 Y) :=
 by obviously
 
-@[simp] lemma naturality {X Y : C} (α : (yoneda C).obj X ⟶ (yoneda C).obj Y)
+@[simp] lemma naturality {X Y : C} (α : yoneda.obj X ⟶ yoneda.obj Y)
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app Z' h = α.app Z (f ≫ h) :=
 begin erw [functor_to_types.naturality], refl end
 
-instance yoneda_full : full (yoneda C) :=
+instance yoneda_full : full (@yoneda C _) :=
 { preimage := λ X Y f, (f.app X) (𝟙 X) }.
 
-instance yoneda_faithful : faithful (yoneda C) :=
+instance yoneda_faithful : faithful (@yoneda C _) :=
 begin
   fsplit,
   intros X Y f g p,
@@ -63,7 +65,7 @@ def ext (X Y : C)
   (p : Π {Z : C}, (Z ⟶ X) → (Z ⟶ Y)) (q : Π {Z : C}, (Z ⟶ Y) → (Z ⟶ X))
   (h₁ : Π {Z : C} (f : Z ⟶ X), q (p f) = f) (h₂ : Π {Z : C} (f : Z ⟶ Y), p (q f) = f)
   (n : Π {Z Z' : C} (f : Z' ⟶ Z) (g : Z ⟶ X), p (f ≫ g) = f ≫ p g) : X ≅ Y :=
-@preimage_iso _ _ _ _ (yoneda C) _ _ _ _
+@preimage_iso _ _ _ _ yoneda _ _ _ _
   (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
 
 -- We need to help typeclass inference with some awkward universe levels here.
@@ -85,12 +87,12 @@ def yoneda_evaluation : ((Cᵒᵖ) × ((Cᵒᵖ) ⥤ (Type v₁))) ⥤ (Type (ma
   ((yoneda_evaluation C).map α x).down = (α.2).app (Q.1) ((P.2).map (α.1) (x.down)) := rfl
 
 def yoneda_pairing : ((Cᵒᵖ) × ((Cᵒᵖ) ⥤ (Type v₁))) ⥤ (Type (max u₁ v₁)) :=
-(functor.prod ((yoneda C).op) (functor.id ((Cᵒᵖ) ⥤ (Type v₁)))) ⋙
+(functor.prod (yoneda.op) (functor.id ((Cᵒᵖ) ⥤ (Type v₁)))) ⋙
   (functor.hom ((Cᵒᵖ) ⥤ (Type v₁)))
 
 @[simp] lemma yoneda_pairing_map
   (P Q : (Cᵒᵖ) × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (β : (yoneda_pairing C).obj P) :
-  (yoneda_pairing C).map α β = (yoneda C).map (α.1) ≫ β ≫ α.2 := rfl
+  (yoneda_pairing C).map α β = yoneda.map (α.1) ≫ β ≫ α.2 := rfl
 
 def yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C) :=
 { hom :=
@@ -142,6 +144,6 @@ variables {C}
 
 class representable (F : Cᵒᵖ ⥤ Type v₁) :=
 (X : C)
-(w : (yoneda C).obj X ≅ F)
+(w : yoneda.obj X ≅ F)
 
 end category_theory

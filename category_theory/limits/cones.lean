@@ -70,8 +70,7 @@ def cone_of_cones {X : C} (π : F.cones.obj X) : cone F :=
 end functor
 
 namespace cone
-@[simp] def extensions (c : cone F) :
-  (yoneda C).obj c.X ⟶ F.cones :=
+@[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
 { app := λ X f, ((const J).map f) ⊟ c.π }
 
 @[simp] def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=

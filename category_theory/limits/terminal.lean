@@ -36,8 +36,35 @@ class has_initial :=
 (initial : C)
 (is_initial : is_initial initial . obviously)
 
-def terminal [has_terminal.{u v} C] := has_terminal.terminal.{u v} C
-def initial [has_initial.{u v} C] := has_initial.initial.{u v} C
+section terminal
+variables [has_terminal.{u v} C]
+
+def terminal := has_terminal.terminal.{u v} C
+
+instance has_limit_of_has_terminal : has_limit (functor.empty C) := sorry
+
+variables {C}
+
+def terminal.from (X : C) : X ⟶ terminal C :=
+(has_terminal.is_terminal.{u v} C).lift { X := X, π := by tidy }.
+
+@[extensionality] def terminal.hom_ext {X : C} (f g : X ⟶ terminal C) : f = g := sorry
+end terminal
+
+section initial
+variables [has_initial.{u v} C]
+
+def initial := has_initial.initial.{u v} C
+
+instance has_colimit_of_has_initial : has_colimit (functor.empty C) := sorry
+
+variables {C}
+
+def initial.to (X : C) : initial C ⟶ X :=
+(has_initial.is_initial.{u v} C).desc { X := X, ι := by tidy }.
+
+@[extensionality] def initial.hom_ext {X : C} (f g : initial C ⟶ X) : f = g := sorry
+end initial
 
 -- Special cases of this may be marked with [instance] as desired.
 def has_terminal_of_has_limits [limits.has_limits.{u v} C] : has_terminal.{u v} C :=

@@ -89,11 +89,11 @@ def prod.map
   (limits.prod X Y) ⟶ (limits.prod U V) :=
 pi.lift (λ b, two.cases_on b (prod.fst X Y ≫ fst) (prod.snd X Y ≫ snd))
 
-@[simp] lemma pi.map_fst
+@[simp] lemma prod.map_fst
   {U V : C} [has_binary_product.{u v} U V] (fst : X ⟶ U) (snd : Y ⟶ V) :
   prod.map fst snd ≫ prod.fst U V = prod.fst X Y ≫ fst :=
 by erw is_limit.fac; refl
-@[simp] lemma pi.map_snd
+@[simp] lemma prod.map_snd
   {U V : C} [has_binary_product.{u v} U V] (fst : X ⟶ U) (snd : Y ⟶ V) :
   prod.map fst snd ≫ prod.snd U V = prod.snd X Y ≫ snd :=
 by erw is_limit.fac; refl

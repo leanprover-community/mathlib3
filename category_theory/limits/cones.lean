@@ -28,7 +28,7 @@ A `c : cone F` is:
 -/
 structure cone (F : J ⥤ C) :=
 (X : C)
-(π : (const J C).obj X ⟹ F)
+(π : (const J).obj X ⟹ F)
 
 @[simp] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
@@ -46,7 +46,7 @@ A `c : cocone F` is
 -/
 structure cocone (F : J ⥤ C) :=
 (X : C)
-(ι : F ⟹ (const J C).obj X)
+(ι : F ⟹ (const J).obj X)
 
 @[simp] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
@@ -70,9 +70,8 @@ def cone_of_cones {X : C} (π : F.cones.obj X) : cone F :=
 end functor
 
 namespace cone
-@[simp] def extensions (c : cone F) :
-  (yoneda C).obj c.X ⟶ F.cones :=
-{ app := λ X f, ((const J C).map f) ⊟ c.π }
+@[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
+{ app := λ X f, ((const J).map f) ⊟ c.π }
 
 @[simp] def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
 { X := X,
@@ -93,7 +92,7 @@ end cone
 namespace cocone
 def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
 { X := X,
-  ι := c.ι ⊟ (const J C).map f }
+  ι := c.ι ⊟ (const J).map f }
 
 def precompose {G : J ⥤ C} (c : cocone F) (α : G ⟹ F) : cocone G :=
 { X := c.X,

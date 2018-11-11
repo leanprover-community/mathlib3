@@ -117,7 +117,7 @@ def is_limit.of_lift_universal
   fac'  := λ s j, ((universal s (lift s)).mpr (eq.refl (lift s))) j,
   uniq' := λ s φ, (universal s φ).mp }
 
-def is_limit.equiv (h : is_limit t) (X' : C) : (X' ⟶ t.X) ≅ ((functor.const J C).obj X' ⟹ F) :=
+def is_limit.equiv (h : is_limit t) (X' : C) : (X' ⟶ t.X) ≅ ((functor.const J).obj X' ⟹ F) :=
 { hom := λ f, (t.extend f).π,
   inv := λ π, h.lift { X := X', π := π },
   hom_inv_id' :=
@@ -130,8 +130,7 @@ def is_limit.equiv (h : is_limit t) (X' : C) : (X' ⟶ t.X) ≅ ((functor.const 
 @[simp] lemma is_limit.equiv_hom (h : is_limit t) (X' : C) (f : X' ⟶ t.X) :
   (is_limit.equiv h X').hom f = (t.extend f).π := rfl
 
-def is_limit.natural_equiv (h : is_limit t) :
-  (yoneda C).obj t.X ≅ F.cones :=
+def is_limit.natural_equiv (h : is_limit t) : yoneda.obj t.X ≅ F.cones :=
 nat_iso.of_components (is_limit.equiv h) (by tidy)
 
 def is_limit.of_extensions_iso (h : is_iso t.extensions) : is_limit t :=
@@ -143,7 +142,7 @@ def is_limit.of_extensions_iso (h : is_iso t.extensions) : is_limit t :=
     have : m = (t.extensions ≫ inv t.extensions).app s.X m,
       by erw @is_iso.hom_inv_id _ _ _ _ _ h; refl,
     rw this,
-    have : s.π = (functor.const J C).map m ≫ t.π, by ext j; exact (hm j).symm,
+    have : s.π = (functor.const J).map m ≫ t.π, by ext j; exact (hm j).symm,
     rw this,
     refl
   end }
@@ -174,7 +173,7 @@ lemma cone.of_representable_cones_extension (F : J ⥤ C) (r : representable F.c
   (cone.of_representable_cones F).extensions = r.w.hom :=
 begin
   ext1 Z, ext1 f,
-  have : (((yoneda C).obj r.X).map f ≫ r.w.hom.app  Z) (𝟙 _) = _, by rw [r.w.hom.naturality f],
+  have : ((yoneda.obj r.X).map f ≫ r.w.hom.app  Z) (𝟙 _) = _, by rw [r.w.hom.naturality f],
   simpa using this.symm
 end
 

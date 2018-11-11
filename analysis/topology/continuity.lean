@@ -52,6 +52,9 @@ lemma continuous_iff_tendsto {f : α → β} :
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_tendsto.mpr $ assume a, tendsto_const_nhds
 
+lemma continuous_of_discrete_topology [discrete_topology α] {f : α → β} : continuous f :=
+λs hs, is_open_discrete _
+
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
 ⟨assume hf s hs, hf (-s) hs,

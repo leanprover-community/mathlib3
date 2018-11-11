@@ -44,7 +44,7 @@ begin
 end
 
 /--A uniform limit of continuous functions is continuous-/
-lemma continuous_of_uniform_limit_of_continuous {α : Type u} [topological_space α] {β : Type v} [metric_space β]
+lemma continuous_of_uniform_limit_of_continuous [topological_space α] {β : Type v} [metric_space β]
   {F : ℕ → α → β} {f : α → β}
   (L : ∀ε>(0:ℝ), ∃N, ∀y, dist (F N y) (f y) ≤ ε)
   (C : ∀(n : ℕ), continuous (F n)) :
@@ -55,7 +55,7 @@ begin
 end
 
 /--A Lipschitz function is continuous-/
-lemma continuous_of_lipschitz {α : Type u} {β : Type v} [metric_space α] [metric_space β] {C : ℝ}
+lemma continuous_of_lipschitz [metric_space α] [metric_space β] {C : ℝ}
   {f : α → β} (H : ∀x y, dist (f x) (f y) ≤ C * dist x y) : continuous f :=
 begin
   rw continuous_of_metric,
@@ -79,9 +79,19 @@ def bounded_continuous_function (α : Type u) (β : Type v) [topological_space �
 namespace bounded_continuous_function
 
 section
-
 variables [topological_space α] [metric_space β] [metric_space γ]
 variables {f g : bounded_continuous_function α β} {x : α} {C : ℝ}
+
+/--If a function is continuous on a compact space, it is automatically bounded,
+and therefore gives rise to an element of the type of bounded continuous functions-/
+def mk_of_compact [compact_space α] (f : α → β) (hf : continuous f) : bounded_continuous_function α β :=
+⟨f, ⟨hf, by apply bounded_range.1; rw ← image_univ; apply bounded_of_compact (compact_image compact_univ hf)⟩⟩
+
+/--If a function is bounded on a discrete space, it is automatically continuous,
+and therefore gives rise to an element of the type of bounded continuous functions-/
+def mk_of_discrete [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) :
+  bounded_continuous_function α β :=
+⟨f, ⟨continuous_of_discrete_topology, hf⟩⟩
 
 instance : has_coe_to_fun (bounded_continuous_function α β) :=  ⟨_, subtype.val⟩
 
@@ -177,6 +187,7 @@ instance : metric_space (bounded_continuous_function α β) :=
     show dist f h ≤ dist f g + dist g h, from dist_le_of_forall_dist_le a b
   end }
 
+/--If the target space is inhabited, so is the space of bounded continuous functions-/
 instance [inhabited β] : inhabited (bounded_continuous_function α β) :=
 { default := ⟨λx, default β, ⟨continuous_const, ⟨0, by simp [le_refl]⟩⟩⟩ }
 
@@ -320,57 +331,59 @@ continuous_of_lipschitz A
 def restr (s : set β) (f : bounded_continuous_function α β) (H : ∀x, f x ∈ s) : bounded_continuous_function α s :=
 ⟨λx, ⟨f x, H x⟩, ⟨continuous_subtype_mk _ f.property.1, by cases f; cases f_property; assumption⟩⟩
 
-/--Arzelà–Ascoli theorem, saying that, on a compact space, a set of functions sharing
+end --section
+
+namespace Arzela_Ascoli
+section
+variables [topological_space α] [compact_space α] [metric_space β]
+variables {f g : bounded_continuous_function α β} {x : α} {C : ℝ}
+
+/-Arzela-Ascoli theorem asserts that, on a compact space, a set of functions sharing
 a common modulus of continuity and taking values in a compact set forms a compact
-subset for the topology of uniform convergence. First version where the range is
-a compact space-/
-theorem compact_of_equicontinuous_of_compact_space {α : Type u} [metric_space α] [compact_space α] [compact_space β]
-  {b : ℝ → ℝ} (b_lim : tendsto b (nhds 0) (nhds 0)) :
-  compact {f : bounded_continuous_function α β | ∀x y, dist (f x) (f y) ≤ b (dist x y)} :=
+subset for the topology of uniform convergence. In this section, we prove this theorem
+and several useful variations around it.-/
+
+/--First version, with pointwise equicontinuity and range in a compact space-/
+theorem compact_of_closed_of_compact_space_of_equicontinuous [compact_space β]
+  (A : set (bounded_continuous_function α β))
+  (closed : is_closed A)
+  (H : ∀(x:α) (ε > 0), ∃U ∈ (nhds x).sets, ∀ (y z ∈ U) (f : bounded_continuous_function α β),
+    f ∈ A → dist (f y) (f z) < ε) :
+  compact A :=
 begin
-  apply compact_of_totally_bounded_is_closed,
-  /-We need to show that our set is closed and totally bounded (i.e., covered by finitely many
-  balls of radius ε, for any ε>0. Closedness is obvious from the expression of the set.-/
-  show is_closed {f : bounded_continuous_function α β | ∀ (x y : α), dist (f x) (f y) ≤ b (dist x y)},
-  begin
-    have a : is_closed (⋂x y, {f : bounded_continuous_function α β | dist (f x) (f y) ≤ b (dist x y)}) :=
-    begin
-      apply is_closed_Inter _,
-      assume x,
-      apply is_closed_Inter _,
-      assume y,
-      let D := (λf : bounded_continuous_function α β, dist (f x) (f y)),
-      have : continuous D := continuous_dist continuous_evalx continuous_evalx,
-      have A : {f : bounded_continuous_function α β | dist (f x) (f y) ≤ b (dist x y)}
-             = D⁻¹' {r | r ≤ b (dist x y)} := rfl,
-      rw A,
-      apply continuous_iff_is_closed.1 ‹continuous D› _ _,
-      simp [is_closed_le'],
-    end,
-    have : {f : bounded_continuous_function α β | ∀ (x y : α), dist (f x) (f y) ≤ b (dist x y)}
-      = (⋂x y, {f : bounded_continuous_function α β | dist (f x) (f y) ≤ b (dist x y)}) := by ext1; simp,
-    rw this,
-    exact a
-  end,
-  /- Let us now show that our set is totally bounded-/
-  show totally_bounded {f : bounded_continuous_function α β | ∀x y, dist (f x) (f y) ≤ b (dist x y)},
+  apply compact_of_totally_bounded_is_closed _ closed,
+  show totally_bounded A,
   begin
     apply totally_bounded_of_finite_discretization,
     intros ε εpos,
     /-We have to find a finite discretization of `u`, i.e., finite information
     that is sufficient to reconstruct `u` up to ε. This information will be
-    provided by the values of `u` on a finite δ-dense set tα (where δ is suitably small),
+    provided by the values of `u` on a sufficiently dense set tα,
     slightly translated to fit in a finite (ε/8)-dense set tβ in the image. Such
     sets exist by compactness of the source and range. Then, to check that these
     data determine the function up to ε, one uses the control on the modulus of
     continuity to extend the closeness on tα to closeness everywhere. -/
     have εpos8 : ε/8 > 0 := by linarith,
-    rw [tendsto_nhds_of_metric] at b_lim,
-    rcases b_lim (ε/8) εpos8 with ⟨δ, δpos, hδ⟩,
-    have : ∃tα ⊆ (univ : set α), (finite tα ∧ univ ⊆ (⋃x∈tα, ball x δ)) :=
-      finite_cover_balls_of_compact compact_univ δpos,
+    have : ∀x:α, ∃U, x ∈ U ∧ is_open U ∧ (∀ (y z ∈ U) (f : bounded_continuous_function α β),
+      f ∈ A → dist (f y) (f z) < ε/8) :=
+    begin
+      assume x,
+      rcases H x _ εpos8 with ⟨U, nhdsU, hU⟩,
+      rcases mem_nhds_sets_iff.1 nhdsU with ⟨V, V_sub_U, openV, hV⟩,
+      exact ⟨V, hV, openV, λy z hy hz f hf, hU y z (V_sub_U hy) (V_sub_U hz) f hf⟩
+    end,
+    choose U hU using this,
+    /-For all x, the set hU x is an open set containing x on which the elements of A
+    fluctuate by at most ε/8.
+    We extract finitely many of these sets that cover the whole space, by compactness-/
+    have : ∃tα ⊆ (univ : set α), finite tα ∧ univ ⊆ ⋃x∈tα, U x :=
+    begin
+      refine compact_elim_finite_subcover_image compact_univ _ _,
+      show ∀ (x : α), x ∈ univ → is_open (U x), from λx hx, (hU x).2.1,
+      show univ ⊆ ⋃ (i : α) (H : i ∈ univ), U i, from λx hx, mem_bUnion (mem_univ _) (hU x).1,
+    end,
     rcases this with ⟨tα, _, ⟨finite_tα, htα⟩⟩,
-    /- tα : set α, finite_tα : finite tα, htα : univ ⊆ ⋃x ∈ tα, ball x δ-/
+    /- tα : set α, finite_tα : finite tα, htα : univ ⊆ ⋃x ∈ tα, U x-/
     have : ∃tβ ⊆ (univ : set β), (finite tβ ∧ univ ⊆ (⋃y∈tβ, ball y (ε/8))) :=
       finite_cover_balls_of_compact compact_univ εpos8,
     rcases this with ⟨tβ, _, ⟨finite_tβ, htβ⟩⟩,
@@ -388,32 +401,26 @@ begin
     to a point in `tβ` close to its true image by the function.-/
     let approx : (bounded_continuous_function α β) → (tα → tβ) := λf a, ⟨F (f a), (hF (f a)).1⟩,
     /-If two functions have the same approximation, then they are within distance ε-/
-    have main : ∀f g ∈ {f : bounded_continuous_function α β | ∀ (x y : α), dist (f x) (f y) ≤ b (dist x y)},
-      approx f = approx g → dist f g < ε :=
+    have main : ∀f g ∈ A, approx f = approx g → dist f g < ε :=
     begin
       assume f g hf hg f_eq_g,
-      simp at hf hg,
       have : ∀x, dist (f x) (g x) ≤ ε/2 := λx,
       begin
-        have : ∃x' ∈ tα, dist x x' < δ := by simpa using htα (mem_univ x),
+        have : ∃x', x' ∈ tα ∧ x ∈ U x' := mem_bUnion_iff.1 (htα (mem_univ x)),
         rcases this with ⟨x', ⟨x'tα, hx'⟩⟩,
         have F_f_g : F (f x') = F (g x') := calc
           F (f x') = approx f ⟨x', x'tα⟩ : rfl
           ... = approx g ⟨x', x'tα⟩ : by rw [f_eq_g]
           ... = F (g x') : rfl,
-        have bxx' : b (dist x x') ≤ ε/8 := calc
-          b (dist x x') ≤ abs(b(dist x x')) : le_abs_self _
-            ... = dist (b(dist x x')) 0 : by simp [real.dist_eq]
-            ... ≤ ε/8 : le_of_lt (hδ (by simpa [real.dist_eq] using hx')),
-        have bx'x : b (dist x' x) ≤ ε/8 := by rwa [dist_comm],
+        have fxx' : dist (f x) (f x') ≤ ε/8 := le_of_lt ((hU x').2.2 _ _ hx' ((hU x').1) _ hf),
+        have gx'x : dist (g x') (g x) ≤ ε/8 := le_of_lt ((hU x').2.2 _ _ ((hU x').1) hx' _ hg),
         have : dist (f x') (g x') ≤ ε/4 := calc
           dist (f x') (g x') ≤ dist (f x') (F (f x')) + dist (g x') (F (f x')) : dist_triangle_right _ _ _
             ... = dist (f x') (F (f x')) + dist (g x') (F (g x')) : by rw [← F_f_g]
             ... ≤ ε/8 + ε/8 : add_le_add (le_of_lt (hF (f x')).2) (le_of_lt (hF (g x')).2)
             ... = ε/4 : by ring,
         calc dist (f x) (g x) ≤ dist (f x) (f x') + dist (f x') (g x') + dist (g x') (g x) : dist_triangle4 _ _ _ _
-                ... ≤ b(dist x x') + ε/4 + b(dist x' x) : add_le_add (add_le_add (hf x x') (this)) (hg x' x)
-                ... ≤ ε/8 + ε/4 + ε/8 : add_le_add (add_le_add bxx' (le_refl _)) bx'x
+                ... ≤ ε/8 + ε/4 + ε/8 : add_le_add (add_le_add (fxx') (this)) (gx'x)
                 ... = ε/2 : by ring,
       end,
       calc dist f g ≤ ε/2 : dist_le_of_forall_dist_le this (le_of_lt (half_pos εpos))
@@ -421,47 +428,127 @@ begin
     end,
     /-The discretization constructed above is good enough to conclude-/
     existsi [(tα → tβ), univ, approx],
-    simp at main,
     simp [fin_univ],
     exact main,
   end
 end
 
-/-Arzelà–Ascoli theorem, saying that, on a compact space, a set of functions sharing
-a common modulus of continuity and taking values in a compact set forms a compact
-subset for the topology of uniform convergence. Second version where the range is
-contained in a given compact set. This version follows from the first one, by reformulating
-it from the compact subtype to the compact subset.-/
-theorem compact_of_equicontinuous_of_compact_range {α : Type u} [metric_space α] [compact_space α]
-  {b : ℝ → ℝ} (b_lim : tendsto b (nhds 0) (nhds 0))
-  (s : set β) (hs : compact s):
-  compact {f : bounded_continuous_function α β | (∀x y, dist (f x) (f y) ≤ b (dist x y)) ∧ range f ⊆ s} :=
+/--Second version, with pointwise equicontinuity and range in a compact subset-/
+theorem compact_of_closed_of_compact_range_of_equicontinuous
+  (s : set β) (hs : compact s)
+  (A : set (bounded_continuous_function α β))
+  (closed : is_closed A)
+  (in_s : ∀(f : bounded_continuous_function α β) (x : α), f ∈ A → f x ∈ s)
+  (H : ∀(x:α) (ε > 0), ∃U ∈ (nhds x).sets, ∀ (y z ∈ U) (f : bounded_continuous_function α β),
+    f ∈ A → dist (f y) (f z) < ε) :
+  compact A :=
+/-This version is deduced from the previous one by restricting to the compact type in the target,
+using compactness there and then lifting everything to the original space.-/
 begin
-  have H : ∀x y : s, dist (x : β) y ≤ 1 * dist x y :=
+  have M : ∀x y : s, dist (x : β) y ≤ 1 * dist x y :=
     begin intros x y, cases y, cases x, dsimp at *, simp at *, refl end,
-  let F : bounded_continuous_function α s → bounded_continuous_function α β := comp H,
-  have A : F '' {f : bounded_continuous_function α s | (∀x y, dist (f x) (f y) ≤ b (dist x y))}
-    = {f : bounded_continuous_function α β | (∀x y, dist (f x) (f y) ≤ b (dist x y)) ∧ range f ⊆ s} :=
+  let F : bounded_continuous_function α s → bounded_continuous_function α β := comp M,
+  let B := F⁻¹' A,
+  have : compact B :=
   begin
-    have : ∀f x, F f x ∈ s := λf x, subtype.mem _,
-    ext f,
-    split,
-    { simp [range_subset_iff], tidy },
-    { simp [range_subset_iff],
-      intros hdist hrange,
-      existsi (restr s f hrange),
-      tidy },
-  end,
-  rw ← A,
-  show compact (F '' {f : bounded_continuous_function α s | (∀x y, dist (f x) (f y) ≤ b (dist x y))}),
-  begin
-    apply compact_image _ (continuous_comp H),
     haveI : compact_space s := ⟨compact_iff_compact_univ.1 hs⟩,
-    exact compact_of_equicontinuous_of_compact_space b_lim
-  end
+    apply compact_of_closed_of_compact_space_of_equicontinuous,
+    show is_closed B, from continuous_iff_is_closed.1 (continuous_comp M) _ closed,
+    assume x ε εpos,
+    rcases H x ε εpos with ⟨U, U_nhds, hU⟩,
+    existsi [U, U_nhds],
+    assume y z hy hz f hf,
+    calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
+                        ... < ε : hU y z hy hz (F f) hf
+  end,
+  have : A ⊆ F '' B :=
+  begin
+    assume f hf,
+    let g := restr s f (λx, in_s f x hf),
+    have fg : f = F g := by ext; by refl,
+    have : g ∈ B := by simp [B, fg.symm, hf],
+    rw fg,
+    apply mem_image_of_mem F ‹g ∈ B›
+  end,
+  apply compact_of_is_closed_subset (compact_image ‹compact B› (continuous_comp M)) closed this
+end
+
+/--Third (main) version, with pointwise equicontinuity and range in a compact subset, but
+without closedness. The closure is then compact-/
+theorem compact_closure_of_equicontinuous_of_compact_range
+  (s : set β) (hs : compact s)
+  (A : set (bounded_continuous_function α β))
+  (in_s : ∀(f : bounded_continuous_function α β) (x : α), f ∈ A → f x ∈ s)
+  (H : ∀(x:α) (ε > 0), ∃U ∈ (nhds x).sets, ∀ (y z ∈ U) (f : bounded_continuous_function α β),
+    f ∈ A → dist (f y) (f z) < ε) :
+  compact (closure A) :=
+/-This version is deduced from the previous one by checking that the closure of A, in
+addition to being closed, still satisfies the properties of compact range and equicontinuity-/
+begin
+  apply compact_of_closed_of_compact_range_of_equicontinuous s hs (closure A) (is_closed_closure),
+  show ∀ (f : bounded_continuous_function α β) (x : α), f ∈ closure A → f x ∈ s,
+  begin
+    assume f x hf,
+    have : f x ∈ closure s :=
+    begin
+      apply mem_closure_iff'.2,
+      assume ε εpos,
+      rcases mem_closure_iff'.1 hf ε εpos with ⟨g, gA, dist_fg⟩,
+      exact ⟨g x, in_s g x gA, lt_of_le_of_lt dist_coe_le_dist dist_fg⟩
+    end,
+    rwa closure_eq_iff_is_closed.2 (closed_of_compact _ hs) at this,
+  end,
+  show ∀ (x:α) (ε > 0), ∃ U ∈ (nhds x).sets,
+       ∀ y z ∈ U, ∀ (f : bounded_continuous_function α β), f ∈ closure A → dist (f y) (f z) < ε,
+  begin
+    assume x ε εpos,
+    have ε3pos : ε/3 > 0 := by linarith,
+    rcases H x (ε/3) ε3pos with ⟨U, U_set, hU⟩,
+    existsi [U, U_set],
+    assume y z hy hz f hf,
+    rcases mem_closure_iff'.1 hf (ε/3) ε3pos with ⟨g, gA, dist_fg⟩,
+    calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (g y) (g z) + dist (g z) (f z) : dist_triangle4 _ _ _ _
+         ... ≤ dist f g + dist (g y) (g z) + dist g f :
+           add_le_add (add_le_add dist_coe_le_dist (le_refl _)) dist_coe_le_dist
+         ... < ε/3 + ε/3 + ε/3 :
+         begin
+           apply add_lt_add (add_lt_add dist_fg (hU y z hy hz g gA)),
+           rwa dist_comm at dist_fg,
+         end
+         ... = ε : by ring
+  end,
+end
+
+/-To apply the previous theorems, one needs to check the equicontinuity. An important
+instance is when the source space is a metric space, and there is a fixed modulus of continuity
+for all the functions in the set A-/
+
+lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
+  (b : ℝ → ℝ) (b_lim : tendsto b (nhds 0) (nhds 0))
+  (A : set (bounded_continuous_function α β))
+  (H : ∀(x y:α) (f : bounded_continuous_function α β), f ∈ A → dist (f x) (f y) ≤ b (dist x y)) :
+  ∀(x:α) (ε > 0), ∃U ∈ (nhds x).sets, ∀ (y z ∈ U) (f : bounded_continuous_function α β),
+    f ∈ A → dist (f y) (f z) < ε :=
+begin
+  assume x ε εpos,
+  rw [tendsto_nhds_of_metric] at b_lim,
+  rcases b_lim ε εpos with ⟨δ, δpos, hδ⟩,
+  existsi [ball x (δ/2), ball_mem_nhds x (half_pos δpos)],
+  assume y z hy hz f hf,
+  have : dist y z < δ := calc
+    dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
+    ... < δ/2 + δ/2 : add_lt_add hy hz
+    ... = δ : add_halves _,
+  calc
+    dist (f y) (f z) ≤ b (dist y z) : H y z f hf
+    ... ≤ abs(b(dist y z)) : le_abs_self _
+    ... = dist (b(dist y z)) 0 : by simp [real.dist_eq]
+    ... < ε : hδ (by simpa [real.dist_eq] using this),
 end
 
 end --section
+end Arzela_Ascoli --namespace
+
 
 section normed_group
 /-In this section, if β is a normed group, then we show that the space of bounded

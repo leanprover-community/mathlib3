@@ -215,6 +215,10 @@ by simp [dist_comm]
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
+theorem closed_ball_subset_closed_ball {α : Type u} [metric_space α] {ε₁ ε₂ : ℝ} {x : α} (h : ε₁ ≤ ε₂) :
+  closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
+λ y (yx : _ ≤ ε₁), le_trans yx h
+
 theorem ball_disjoint (h : ε₁ + ε₂ ≤ dist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
 not_lt_of_le (dist_triangle_left x y z)
@@ -409,6 +413,85 @@ instance metric_space.to_separated : separated α :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
+/-Instantiate a metric space as an emetric space. Before we can state the instance,
+we need to show that the uniform structure coming from the edistance and the
+distance coincide. -/
+
+/--Expressing the uniformity in terms of `edist`-/
+lemma mem_uniformity_dist_edist {s : set (α×α)} :
+  s ∈ (@uniformity α _).sets ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
+suffices (∃ε>0, ∀a b, edist a b < ε → (a, b) ∈ s) ↔ (∃ε>0, ∀a b, dist a b < ε → (a, b) ∈ s), from
+  iff.trans (mem_uniformity_dist) this.symm,
+⟨show (∃ε>0, ∀a b, edist a b < ε → (a, b) ∈ s) → (∃ε>0, ∀a b, dist a b < ε → (a, b) ∈ s),
+begin
+  rintro ⟨ε, εpos, Hε⟩,
+  rcases ε with h,
+  { /- ε = ⊤, i.e., all points belong to `s` as the distance is finite.-/
+    have A : ∀ a b : α, edist a b < ⊤ := assume a b, lt_top_iff_ne_top.2 (edist_ne_top a b),
+    have B : ∀ a b : α, (a, b) ∈ s := assume a b, Hε _ _ (A a b),
+    exact ⟨1, zero_lt_one, assume a b _, B a b⟩ },
+  { /- ε < ⊤, and we can use the same value of ε as a real parameter-/
+    have A : ε > 0 := ennreal.coe_lt_coe.1 εpos,
+    have B : ∀ (a b : α), dist a b < ↑ε → (a, b) ∈ s := begin
+      assume a b Dab,
+      have I : nndist a b < ε := by rwa [← nndist_eq_dist, ← nnreal.coe_lt] at Dab,
+      have J : edist a b < ε := by rw [← nndist_eq_edist]; apply ennreal.coe_lt_coe.2 I,
+      exact Hε a b J
+    end,
+    exact ⟨ε, by simpa using A, B⟩ }
+end,
+show (∃ε>0, ∀a b, dist a b < ε → (a, b) ∈ s) → (∃ε>0, ∀a b, edist a b < ε → (a, b) ∈ s),
+begin
+  rintro ⟨ε, εpos, Hε⟩,
+  have A : ((nnreal.of_real ε) : ennreal) > (0:nnreal) :=
+  by apply ennreal.coe_lt_coe.2; simpa using εpos,
+  have B : ∀ (a b : α), edist a b < nnreal.of_real ε → (a, b) ∈ s :=
+  begin
+    assume a b Dab,
+    have I : nndist a b < nnreal.of_real ε :=
+    by rwa [← nndist_eq_edist, ennreal.coe_lt_coe] at Dab,
+    have J : dist a b < ε := begin
+      rw [← nndist_eq_dist],
+      have K := (nnreal.coe_lt _ _).1 I,
+      rwa [nnreal.coe_of_real _ (le_of_lt εpos)] at K
+    end,
+    exact Hε a b J
+  end,
+  exact ⟨nnreal.of_real ε, A, B⟩
+end⟩
+
+theorem uniformity_edist' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
+suffices ∀s, s ∈ (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}).sets ↔
+    (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s), from
+  filter.ext $ assume s, iff.trans (mem_uniformity_dist_edist) ((this s).symm),
+begin
+  assume s,
+  rw [infi_sets_eq],
+  simp [subset_def],
+  exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩,
+  exact ⟨⟨1, ennreal.zero_lt_one⟩⟩
+end
+
+theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
+by have h := @uniformity_edist' α _; simpa [infi_subtype] using h
+
+/--A metric space induces an emetric space-/
+instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α :=
+{ edist_self := by simp [edist_dist],
+  eq_of_edist_eq_zero := assume x y h,
+  by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
+  edist_comm := by simp only [edist_dist, dist_comm]; simp,
+  edist_triangle := assume x y z,
+  begin
+    rw [edist_dist, edist_dist, edist_dist, ← ennreal.coe_add, ennreal.coe_le_coe,
+        nnreal.of_real_add_of_real (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z),
+        nnreal.of_real_le_of_real_iff (@dist_nonneg _ _ x z) $
+          add_nonneg (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z)],
+    apply dist_triangle x y z
+  end,
+  uniformity_edist := uniformity_edist,
+  ..a }
+
 /-- Instantiate the reals as a metric space. -/
 instance : metric_space ℝ :=
 { dist               := λx y, abs (x - y),
@@ -436,7 +519,6 @@ orderable_topology_of_nhds_abs $ λ x, begin
     rcases mem_nhds_iff_metric.1 h with ⟨ε, ε0, ss⟩,
     exact mem_infi_sets _ (mem_infi_sets ε0 (mem_principal_sets.2 ss)) },
 end
-
 
 section cauchy_seq
 variables [inhabited β] [semilattice_sup β]
@@ -1204,3 +1286,131 @@ lemma lebesgue_number_lemma_of_metric_sUnion
   ∃ δ > 0, ∀ x ∈ s, ∃ t ∈ c, ball x δ ⊆ t :=
 by rw sUnion_eq_Union at hc₂;
    simpa using lebesgue_number_lemma_of_metric hs (by simpa) hc₂
+
+
+/--boundedness of a subset of a metric space. We formulate the definition to work
+even in the empty space.-/
+definition bounded [metric_space α] (s : set α) : Prop :=
+∃C, ∀x y ∈ s, dist x y ≤ C
+
+section bounded
+variables {t : set α} {r : ℝ}
+
+@[simp] lemma bounded_empty : bounded (∅ : set α) :=
+⟨0, by simp⟩
+
+/--Subsets of a bounded set are also bounded-/
+lemma bounded_of_subset_of_bounded (incl : s ⊆ t) (h : bounded t) :
+  bounded s :=
+begin
+  rcases h with ⟨C, hC⟩,
+  exact ⟨C, λx y hx hy, hC x y (incl hx) (incl hy)⟩
+end
+
+/--Closed balls are bounded-/
+lemma bounded_closed_ball : bounded (closed_ball x r) :=
+begin
+  existsi r + r,
+  assume y z hy hz,
+  simp at *,
+  calc dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
+            ... ≤ r + r : add_le_add hy hz
+end
+
+/--Open balls are bounded-/
+lemma bounded_ball : bounded (ball x r) :=
+bounded_of_subset_of_bounded ball_subset_closed_ball bounded_closed_ball
+
+/--Given a point, a bounded subset is included in some ball around this point-/
+lemma subset_ball_of_bounded (c : α) (h : bounded s) :
+  ∃r, s ⊆ closed_ball c r :=
+have A : s = ∅ → ∃r, s ⊆ closed_ball c r := λe, ⟨0, by rw e; simp⟩,
+have B : s ≠ ∅ → ∃r, s ⊆ closed_ball c r :=
+begin
+  assume ne,
+  rcases exists_mem_of_ne_empty ne with ⟨x, hx⟩,
+  rcases h with ⟨C, hC⟩,
+  existsi C + dist x c,
+  assume y hy,
+  simp,
+  calc dist y c ≤ dist y x + dist x c : dist_triangle _ _ _
+            ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _
+end,
+classical.by_cases A B
+
+/--The union of two bounded sets is bounded iff each of the sets is bounded-/
+@[simp] lemma bounded_union_iff_bounded :
+  bounded (s ∪ t) ↔ (bounded s ∧ bounded t) :=
+⟨λh, ⟨bounded_of_subset_of_bounded (by simp) h, bounded_of_subset_of_bounded (by simp) h⟩,
+assume ⟨hs, ht⟩,
+have A : s ∪ t = ∅ → bounded (s ∪ t) := by simp {contextual := tt},
+have B : s ∪ t ≠ ∅ → bounded (s ∪ t) :=
+begin
+  assume ne,
+  rcases exists_mem_of_ne_empty ne with ⟨c, hc⟩,
+  rcases subset_ball_of_bounded c hs with ⟨Cs, hCs⟩,
+  rcases subset_ball_of_bounded c ht with ⟨Ct, hCt⟩,
+  let C := max Cs Ct,
+  have Is : s ⊆ closed_ball c C :=
+    subset.trans hCs (closed_ball_subset_closed_ball (le_max_left _ _)),
+  have It : t ⊆ closed_ball c C :=
+    subset.trans hCt (closed_ball_subset_closed_ball (le_max_right _ _)),
+  apply bounded_of_subset_of_bounded (union_subset Is It) bounded_closed_ball,
+end,
+classical.by_cases A B⟩
+
+/--A finite union of bounded sets is bounded-/
+lemma bounded_bUnion_of_bounded {I : set β} {s : β → set α} (H : finite I) :
+  (∀i ∈ I, bounded (s i)) → bounded (⋃i∈I, s i) :=
+by apply finite.induction_on ‹finite I›; simp; finish
+
+/--A compact set is bounded-/
+lemma bounded_of_compact {s : set α} (h : compact s) : bounded s :=
+begin
+  --We cover the compact set by finitely many balls of radius 1,
+  --and then argue that a finite union of bounded sets is bounded
+  rcases finite_cover_balls_of_compact h zero_lt_one with ⟨t, ht, ⟨fint, subs⟩⟩,
+  have : bounded (⋃x ∈ t, ball x 1) :=
+     bounded_bUnion_of_bounded fint (begin assume i hi, apply bounded_ball end),
+  exact bounded_of_subset_of_bounded subs this
+end
+
+/--A finite set is bounded-/
+lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=
+bounded_of_compact $ compact_of_finite h
+
+/--A singleton is bounded-/
+lemma bounded_singleton {x : α} : bounded ({x} : set α) :=
+bounded_of_finite (finite_singleton _)
+
+/--Characterization of the boundedness of the range of a function-/
+lemma bounded_range {f : β → α} : bounded (range f) ↔ ∃C, ∀x y, dist (f x) (f y) ≤ C :=
+⟨λ⟨C, hC⟩, ⟨C, λx y, hC (f x) (f y) (mem_range_self _) (mem_range_self _)⟩,
+  λ⟨C, hC⟩, ⟨C, λx y hx hy,
+  begin
+    rcases mem_range.1 hx with ⟨x', fx⟩,
+    rcases mem_range.1 hy with ⟨y', fy⟩,
+    simp [fx.symm, fy.symm],
+    exact hC x' y'
+  end⟩⟩
+
+/--In a compact space, all sets are bounded-/
+lemma bounded_in_compact_space [compact_space α] : bounded s :=
+bounded_of_subset_of_bounded (subset_univ _) (bounded_of_compact compact_univ)
+
+/--In a proper space, a set is compact if and only if it is closed and bounded-/
+lemma compact_iff_closed_bounded [proper_space α] :
+  compact s ↔ (is_closed s ∧ bounded s) :=
+⟨λ h, ⟨closed_of_compact _ h, bounded_of_compact h⟩,
+assume ⟨hc, hb⟩,
+have A : s = ∅ → compact s := by simp [compact_empty] {contextual := tt},
+have B : s ≠ ∅ → compact s :=
+begin
+  assume ne,
+  rcases exists_mem_of_ne_empty ne with ⟨x, hx⟩,
+  rcases subset_ball_of_bounded x hb with ⟨r, hr⟩,
+  exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
+end,
+classical.by_cases A B⟩
+
+end bounded

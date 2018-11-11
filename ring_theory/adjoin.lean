@@ -65,11 +65,13 @@ variables (S : set R) [is_subring S] (s : set R)
 include S
 
 protected theorem mul_smul (r1 : R) (s : S) (r2 : R) :
-  r1 * s • r2 = s • (r1 * r2) :=
+  r1 * @has_scalar.smul S R (ring.subring.module S).to_has_scalar s r2 =
+  @has_scalar.smul S R (ring.subring.module S).to_has_scalar s (r1 * r2) :=
 mul_left_comm _ _ _
 
 protected theorem smul_mul (s : S) (r1 r2 : R) :
-  (s • r1 : R) * r2 = s • (r1 * r2) :=
+  (@has_scalar.smul S R (ring.subring.module S).to_has_scalar s r1) * r2 =
+  @has_scalar.smul S R (ring.subring.module S).to_has_scalar s (r1 * r2) :=
 mul_assoc _ _ _
 
 def madjoin : submodule S R :=
@@ -159,6 +161,31 @@ let ⟨s1, hf1, hs1⟩ := fg_def.1 hs1, ⟨s2, hf2, hs2⟩ := fg_def.1 hs2 in
 fg_def.2 ⟨(s1.prod s2).image (λ p, p.1 * p.2),
 set.finite_image _ (set.finite_prod hf1 hf2),
 span_mul_span S s1 s2 ▸ hs1 ▸ hs2 ▸ rfl⟩
+
+theorem madjoin_eq_span : ring.madjoin S s = span (monoid.closure s) :=
+begin
+  letI := ring.subring.module S,
+  letI := (ring.subring.module S).to_has_scalar,
+  apply le_antisymm,
+  { intros r hr, rcases ring.exists_list_of_mem_closure hr with ⟨L, HL, rfl⟩, clear hr,
+    induction L with hd tl ih, { rw mem_coe, exact zero_mem _ },
+    rw list.forall_mem_cons at HL,
+    rw [list.map_cons, list.sum_cons, mem_coe],
+    refine submodule.add_mem _ _ (ih HL.2),
+    replace HL := HL.1, clear ih tl,
+    suffices : ∃ z (hz : z ∈ S) r (hr : r ∈ monoid.closure s), (⟨z, hz⟩ : S) • r = list.prod hd,
+    { rcases this with ⟨z, hz, r, hr, hzr⟩, rw ← hzr,
+      exact smul_mem _ _ (subset_span hr) },
+    induction hd with hd tl ih, { exact ⟨1, is_submonoid.one_mem _, 1, is_submonoid.one_mem _, mul_one _⟩ },
+    rw list.forall_mem_cons at HL,
+    rcases (ih HL.2) with ⟨z, hz, r, hr, hzr⟩, rw [list.prod_cons, ← hzr],
+    rcases HL.1 with ⟨hS | hs⟩ | rfl,
+    { refine ⟨hd * z, is_submonoid.mul_mem hS hz, r, hr, mul_assoc _ _ _⟩ },
+    { refine ⟨z, hz, hd * r, is_submonoid.mul_mem (monoid.subset_closure hs) hr, mul_left_comm _ _ _⟩ },
+    { refine ⟨(-1) * z, is_submonoid.mul_mem _ hz, r, hr, mul_assoc _ _ _⟩,
+      exact is_add_subgroup.neg_mem (is_submonoid.one_mem _) } },
+  exact span_le.2 (monoid.closure_subset ring.subset_adjoin)
+end
 
 end comm_ring
 

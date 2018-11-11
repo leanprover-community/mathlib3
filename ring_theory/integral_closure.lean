@@ -162,7 +162,20 @@ let ⟨p, hpm, hpx⟩ := hx in
     λ H, have _ := congr_arg subtype.val H, subtype.eq this⟩)⟩,
 have _ := congr_arg subtype.val hpm, subtype.eq this, hpx⟩
 
-theorem fg_of_integral (x : R) (hx : is_integral S x) :
+theorem is_integral_iff_is_integral_closure_finite {r : R} :
+  is_integral S r ↔ ∃ s ⊆ S, s.finite ∧ is_integral (ring.closure s) r :=
+begin
+  split; intro hr,
+  { rcases hr with ⟨p, hmp, hpr⟩,
+    exact ⟨↑(p.of_subtype S).range, range_of_subtype _, finset.finite_to_set _,
+      (p.of_subtype S).base_change _ ring.subset_closure,
+      have _ := congr_arg subtype.val hmp, subtype.eq this,
+      hpr⟩ },
+  rcases hr with ⟨s, hs1, hs2, hsr⟩,
+  exact is_integral_of_subring _ _ (ring.closure_subset hs1) hsr
+end
+
+theorem fg_madjoin_singleton_of_integral (x : R) (hx : is_integral S x) :
   (ring.madjoin S {x}).fg :=
 begin
   rcases hx with ⟨f, hfm, hfx⟩,
@@ -189,6 +202,18 @@ begin
   rw [finsupp.mem_support_iff] at hkq, apply hkq, apply this,
   exact lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 hk)
 end
+
+theorem fg_madjoin_of_finite {s : set R} (hfs : s.finite)
+  (his : ∀ i ∈ s, is_integral S i) : (ring.madjoin S s).fg :=
+set.finite.induction_on hfs (λ _, ⟨finset.singleton 1, le_antisymm
+  (span_le.2 $ set.singleton_subset_iff.2 $ is_submonoid.one_mem _)
+  (show ring.closure _ ⊆ _, by rw set.union_empty; exact
+    set.subset.trans (ring.closure_subset (set.subset.refl _))
+    (λ s hs, have @has_scalar.smul S R (ring.subring.module _).to_has_scalar ⟨s, hs⟩ 1 = s, from mul_one _,
+    this ▸ (mem_coe _).2 (smul_mem _ _ $ subset_span $ or.inl rfl)))⟩)
+(λ a s has hs ih his, by rw [← set.union_singleton, ring.madjoin_union]; exact
+  ring.fg_mul (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
+    (fg_madjoin_singleton_of_integral _ _ $ his a $ set.mem_insert a s)) his
 
 theorem le_of_le_of_not_lt {α : Type u} [partial_order α] {x y : α}
   (H1 : x ≤ y) (H2 : ¬x < y) : y ≤ x :=
@@ -311,7 +336,7 @@ begin
   { intros, refl }
 end
 
-theorem is_integral_of_mem_of_fg (M : submodule S R) [is_subring (M : set R)]
+theorem is_integral_of_mem_of_fg (M : submodule S R) (HM : is_subring (M : set R))
   (HM : @submodule.fg S R _ _ (ring.subring.module S) M) (x : R) (hx : x ∈ M) : is_integral S x :=
 begin
   letI : module S R := ring.subring.module S,
@@ -359,12 +384,12 @@ begin
     { apply ring.subset_closure, apply finset.mem_image_of_mem,
       apply finset.mem_union_right, apply finset.mem_bind.2,
       exact ⟨ij, finset.mem_univ _, finset.mem_image_of_mem _ hz⟩ },
-    change @has_scalar.smul S₀ R _inst_5.to_has_scalar ⟨(lm ij z).1, this⟩ z ∈ _,
+    change @has_scalar.smul S₀ R _inst_4.to_has_scalar ⟨(lm ij z).1, this⟩ z ∈ _,
     exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlm1 _ hz))) },
   have : is_subring ↑(span (insert 1 ↑m) : submodule S₀ R),
   { rw this, exact ring.madjoin.is_subring _ _ }, resetI,
   have : S₀ ⊆ (↑(span (insert 1 ↑m) : submodule S₀ R) : set R),
-  { intros r hr, have : r = @has_scalar.smul S₀ R _inst_5.to_has_scalar ⟨r, hr⟩ 1 := (mul_one r).symm,
+  { intros r hr, have : r = @has_scalar.smul S₀ R _inst_4.to_has_scalar ⟨r, hr⟩ 1 := (mul_one r).symm,
     rw [this, mem_coe], exact smul_mem _ _ (subset_span (set.mem_insert _ _)), },
   apply is_integral_of_noetherian S₀ (span (insert 1 ↑m)) this
     (is_noetherian_of_fg_of_noetherian _ (is_noetherian_ring_closure _ (finset.finite_to_set _))
@@ -373,7 +398,7 @@ begin
   have : (lx r).1 ∈ S₀,
   { apply ring.subset_closure, apply finset.mem_image_of_mem,
     apply finset.mem_union_left, exact finset.mem_image_of_mem _ hr },
-  change @has_scalar.smul S₀ R _inst_5.to_has_scalar ⟨(lx r).1, this⟩ r ∈ _,
+  change @has_scalar.smul S₀ R _inst_4.to_has_scalar ⟨(lx r).1, this⟩ r ∈ _,
   exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlx1 hr)))
 end
 
@@ -382,9 +407,9 @@ theorem is_integral_of_mem_closure {x y z : R}
   (hz : z ∈ ring.closure ({x, y} : set R)) :
   is_integral S z :=
 begin
-  have := ring.fg_mul (fg_of_integral S x hx) (fg_of_integral S y hy),
+  have := ring.fg_mul (fg_madjoin_singleton_of_integral S x hx) (fg_madjoin_singleton_of_integral S y hy),
   rw [← ring.madjoin_union, set.union_singleton, insert] at this,
-  exact is_integral_of_mem_of_fg S (ring.madjoin S {x, y}) this z
+  exact is_integral_of_mem_of_fg S (ring.madjoin S {x, y}) (by apply_instance) this z
     (ring.closure_mono (set.subset_union_right _ _) hz)
 end
 
@@ -424,3 +449,21 @@ instance : is_subring (integral_closure S) :=
   add_mem := λ _ _, is_integral_add S,
   neg_mem := λ _, is_integral_neg S,
   mul_mem := λ _ _, is_integral_mul S, }
+
+theorem mem_integral_closure_iff_mem_fg {r : R} :
+  r ∈ integral_closure S ↔ ∃ M : submodule S R, is_subring (↑M : set R) ∧ M.fg ∧ r ∈ M :=
+⟨λ hr, ⟨ring.madjoin S {r}, ring.madjoin.is_subring _ _, fg_madjoin_singleton_of_integral _ _ hr, ring.subset_adjoin (or.inl rfl)⟩,
+λ ⟨M, HM, Hf, hrM⟩, is_integral_of_mem_of_fg _ M HM Hf _ hrM⟩
+
+theorem integral_closure_idem : integral_closure (integral_closure S) = integral_closure S :=
+begin
+  ext r, split; intro hr,
+  { rcases (is_integral_iff_is_integral_closure_finite _).1 hr with ⟨s, hs, hfs, hr⟩,
+    rw mem_integral_closure_iff_mem_fg,
+    refine ⟨ring.madjoin S (s ∪ {r}), by apply_instance,
+      ring.fg_trans (fg_madjoin_of_finite S hfs hs)
+        (fg_madjoin_singleton_of_integral _ _ (is_integral_of_subring _ _
+          (ring.closure_subset ring.subset_adjoin) hr)),
+      ring.subset_adjoin (or.inr (or.inl rfl))⟩ },
+  exact is_integral_of_mem _ hr
+end

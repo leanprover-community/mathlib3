@@ -11,30 +11,6 @@ import ring_theory.polynomial
 
 universes u v
 
-namespace finsupp
-
-variables {α : Type u} {β : Type v} [has_zero β] [decidable_eq β]
-
-def range (f : α →₀ β) : finset β :=
-finset.image f f.support
-
-theorem mem_range {f : α →₀ β} {y : β} :
-  y ∈ f.range ↔ y ≠ 0 ∧ ∃ x, f x = y :=
-finset.mem_image.trans
-⟨λ ⟨x, hx1, hx2⟩, ⟨hx2 ▸ mem_support_iff.1 hx1, x, hx2⟩,
-λ ⟨hy, x, hx⟩, ⟨x, mem_support_iff.2 (hx.symm ▸ hy), hx⟩⟩
-
-theorem zero_not_mem_range {f : α →₀ β} : (0:β) ∉ f.range :=
-λ H, (mem_range.1 H).1 rfl
-
-variables [decidable_eq α]
-
-theorem range_single {x : α} {y : β} : range (single x y) ⊆ {y} :=
-λ r hr, let ⟨t, ht1, ht2⟩ := mem_range.1 hr in ht2 ▸
-(by rw single_apply at ht2 ⊢; split_ifs at ht2 ⊢; [exact finset.mem_singleton_self _, cc])
-
-end finsupp
-
 namespace polynomial
 variables {R : Type u} [comm_ring R] [decidable_eq R]
 
@@ -64,10 +40,10 @@ begin
     rw [eval₂_X, mv_polynomial.eval₂_X, eval₂_X] }
 end
 
-def restriction (p : polynomial R) : polynomial (ring.closure (↑p.range : set R)) :=
+def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set R)) :=
 ⟨p.support, λ i, ⟨p.to_fun i,
   if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem _
-  else ring.subset_closure $ finsupp.mem_range.2 ⟨H, i, rfl⟩⟩,
+  else ring.subset_closure $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
 λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
 
 theorem coeff_restriction {p : polynomial R} {n : ℕ} : ↑(coeff (restriction p) n) = coeff p n := rfl
@@ -95,13 +71,13 @@ rfl
 section base_change
 variables (p : polynomial R) (T : set R) [is_subring T]
 
-def base_change (hp : ↑p.range ⊆ T) : polynomial T :=
+def base_change (hp : ↑p.frange ⊆ T) : polynomial T :=
 ⟨p.support, λ i, ⟨p.to_fun i,
   if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem _
-  else hp $ finsupp.mem_range.2 ⟨H, i, rfl⟩⟩,
+  else hp $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
 λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
 
-variables (hp : ↑p.range ⊆ T)
+variables (hp : ↑p.frange ⊆ T)
 include hp
 
 theorem coeff_base_change {n : ℕ} : ↑(coeff (base_change p T hp) n) = coeff p n := rfl
@@ -120,7 +96,7 @@ omit hp
 theorem base_change_zero : base_change (0 : polynomial R) T (set.empty_subset _) = 0 := rfl
 
 theorem base_change_one : base_change (1 : polynomial R) T
-  (set.subset.trans (finset.coe_subset.2 (@finsupp.range_single _ _ _ _ nat.decidable_eq 0 1))
+  (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
     (set.singleton_subset_iff.2 (is_submonoid.one_mem _))) = 1 :=
 ext.2 $ λ i, subtype.eq $ by rw [coeff_base_change', coeff_one, coeff_one]; split_ifs; refl
 end base_change
@@ -132,11 +108,9 @@ def of_subtype (p : polynomial T) : polynomial R :=
 λ n, finsupp.mem_support_iff.trans (not_iff_not_of_iff
   ⟨λ h, congr_arg subtype.val h, λ h, subtype.eq h⟩)⟩
 
-theorem range_of_subtype {p : polynomial T} :
-  ↑(p.of_subtype T).range ⊆ T :=
-λ y H, let ⟨hy, x, hx⟩ := finsupp.mem_range.1 H in hx ▸ (p.to_fun x).2
-
-variables {p : polynomial S}
+theorem frange_of_subtype {p : polynomial T} :
+  ↑(p.of_subtype T).frange ⊆ T :=
+λ y H, let ⟨hy, x, hx⟩ := finsupp.mem_frange.1 H in hx ▸ (p.to_fun x).2
 
 end polynomial
 
@@ -167,8 +141,8 @@ theorem is_integral_iff_is_integral_closure_finite {r : R} :
 begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
-    exact ⟨↑(p.of_subtype S).range, range_of_subtype _, finset.finite_to_set _,
-      (p.of_subtype S).base_change _ ring.subset_closure,
+    exact ⟨_, frange_of_subtype _, set.finite_mem_finset _,
+      (p.of_subtype S).restriction,
       have _ := congr_arg subtype.val hmp, subtype.eq this,
       hpr⟩ },
   rcases hr with ⟨s, hs1, hs2, hsr⟩,
@@ -215,37 +189,6 @@ set.finite.induction_on hfs (λ _, ⟨finset.singleton 1, le_antisymm
   ring.fg_mul (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
     (fg_madjoin_singleton_of_integral _ _ $ his a $ set.mem_insert a s)) his
 
-theorem le_of_le_of_not_lt {α : Type u} [partial_order α] {x y : α}
-  (H1 : x ≤ y) (H2 : ¬x < y) : y ≤ x :=
-classical.by_contradiction $ λ H3, H2 $ lt_of_le_not_le H1 H3
-
-theorem eq_of_le_of_not_lt {α : Type u} [partial_order α] {x y : α}
-  (H1 : x ≤ y) (H2 : ¬x < y) : x = y :=
-(lt_or_eq_of_le H1).resolve_left H2
-
-theorem monic_X_pow_add {R : Type u} [comm_semiring R] [decidable_eq R]
-  {p : polynomial R} {n : ℕ} (H1 : degree p ≤ n) : monic (X ^ (n+1) + p) :=
-decidable.by_cases
-  (assume H : (0:R) = 1, @subsingleton.elim _ (subsingleton_of_zero_eq_one _ H) _ _)
-  (assume H : (0:R) ≠ 1, begin
-    have : degree (X ^ (n+1)) = n+1,
-    { rw [← one_mul (X^(n+1)), ← @C_1 R, ← single_eq_C_mul_X],
-      change finset.sup (ite _ _ _) _ = _,
-      rw if_neg H.symm, refl },
-    have : degree (X ^ (n+1) + p) = n+1,
-    { rw [← this, add_comm], apply degree_add_eq_of_degree_lt,
-      apply lt_of_le_of_lt H1, rw this, apply with_bot.coe_lt_coe.2,
-      exact nat.lt_succ_self n },
-    rw [monic, leading_coeff, nat_degree, this, coeff_add, coeff_X_pow],
-    change ite (n+1=n+1) _ _ + coeff p (n+1) = _,
-    rw [if_pos rfl, (degree_le_iff_coeff_zero _ _).1 H1 _
-      (with_bot.coe_lt_coe.2 (nat.lt_succ_self _)), add_zero]
-  end)
-
-theorem monic_X_pow_sub {p : polynomial R} {n : ℕ}
-  (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
-monic_X_pow_add ((degree_neg p).symm ▸ H)
-
 theorem is_integral_of_noetherian' (H : is_noetherian S R) (x : R) :
   is_integral S x :=
 begin
@@ -262,8 +205,9 @@ begin
   have HM : ¬M < D (N+1) := well_founded.not_lt_min
     (is_noetherian_iff_well_founded.1 H) (set.range D) _ ⟨N+1, rfl⟩,
   rw ← HN at HM,
-  have HN2 : D (N+1) ≤ D N := le_of_le_of_not_lt (map_mono (degree_le_mono
-    (with_bot.coe_le_coe.2 (nat.le_succ N)))) HM,
+  have HN2 : D (N+1) ≤ D N := classical.by_contradiction (λ H, HM
+    (lt_of_le_not_le (map_mono (degree_le_mono
+      (with_bot.coe_le_coe.2 (nat.le_succ N)))) H)),
   have HN3 : leval (X^(N+1)) ∈ D N,
   { exact HN2 (mem_map_of_mem (mem_degree_le.2 (degree_X_pow_le _))) },
   rcases HN3 with ⟨p, hdp, hpe⟩,
@@ -319,21 +263,19 @@ begin
         exact smul_mem _ _ hx2 } } },
   rcases is_integral_of_noetherian' S' H2 ⟨x, hx⟩ with ⟨p, hpm, hpx⟩,
   refine ⟨base_change (of_subtype _ (of_subtype _ p)) S _, _, _⟩,
-  { intros r hr, rcases finsupp.mem_range.1 hr with ⟨_, i, rfl⟩, exact (p.2 i).2 },
+  { intros r hr, rcases finsupp.mem_frange.1 hr with ⟨_, i, rfl⟩, exact (p.2 i).2 },
   { replace hpm := congr_arg subtype.val hpm,
     replace hpm := congr_arg subtype.val hpm,
     exact subtype.eq hpm },
   unfold eval₂ finsupp.sum base_change of_subtype at hpx ⊢, dsimp only,
   replace hpx := congr_arg subtype.val hpx,
-  rw ← finset.sum_hom (subtype.val : M → R) at hpx,
+  rw ← finset.sum_hom (subtype.val : M → R) rfl (λ _ _, rfl) at hpx,
   change (_:R) = (_:R) at hpx,
   refine eq.trans _ hpx,
   refine finset.sum_congr rfl _,
   { intros, conv_rhs { rw is_ring_hom.map_mul (subtype.val : (subtype M.1) → R),
       rw is_semiring_hom.map_pow (subtype.val : (subtype M.1) → R) },
-    refl },
-  { refl },
-  { intros, refl }
+    refl }
 end
 
 theorem is_integral_of_mem_of_fg (M : submodule S R) (HM : is_subring (M : set R))
@@ -352,7 +294,7 @@ begin
     revert hi hj, rw hm, exact @is_submonoid.mul_mem R _ M _ _ _ },
   simp only [mem_span_iff_lc] at this,
   choose lm hlm1 hlm2,
-  let S₀' : finset R := finset.image subtype.val (lx.range ∪ finset.bind finset.univ (finsupp.range ∘ lm)),
+  let S₀' : finset R := finset.image subtype.val (lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ lm)),
   let S₀ : set R := ring.closure ↑S₀',
   have HS₀ : S₀ ⊆ S,
   { apply ring.closure_subset, intros r hr,

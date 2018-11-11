@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.basic data.list.basic algebra.char_zero algebra.order_functions
+import data.nat.basic data.list.basic algebra.char_zero algebra.order_functions algebra.ring
 open nat
 
 namespace int
@@ -1069,6 +1069,10 @@ not_congr cast_eq_zero
   by rw [nat.cast_mul, nat.cast_add_one, neg_mul_eq_neg_mul]
 | -[1+ m] -[1+ n] := show (((m + 1) * (n + 1) : ℕ) : α) = -(m + 1) * -(n + 1),
   by rw [nat.cast_mul, nat.cast_add_one, nat.cast_add_one, neg_mul_neg]
+
+instance cast.is_ring_hom [ring α] :
+  is_ring_hom (int.cast : ℤ → α) :=
+⟨cast_one, cast_mul, cast_add⟩
 
 theorem mul_cast_comm [ring α] (a : α) (n : ℤ) : a * n = n * a :=
 by cases n; simp [nat.mul_cast_comm, left_distrib, right_distrib, *]

@@ -28,6 +28,18 @@ namespace is_ring_hom
 instance {S : set R} [is_subring S] : is_ring_hom (@subtype.val R S) :=
 by refine {..} ; intros ; refl
 
+instance int.cast.is_ring_hom {R : Type u} [ring R] :
+  is_ring_hom (int.cast : ℤ → R) :=
+⟨int.cast_one, int.cast_mul, int.cast_add⟩
+
+instance set.range.is_subring {R : Type u} {S : Type v} [ring R] [ring S]
+  (f : R → S) [is_ring_hom f] : is_subring (set.range f) :=
+{ zero_mem := ⟨0, is_ring_hom.map_zero f⟩,
+  one_mem := ⟨1, is_ring_hom.map_one f⟩,
+  neg_mem := λ x ⟨p, hp⟩, ⟨-p, hp ▸ is_ring_hom.map_neg f⟩,
+  add_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p + q, hp ▸ hq ▸ is_ring_hom.map_add f⟩,
+  mul_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p * q, hp ▸ hq ▸ is_ring_hom.map_mul f⟩, }
+
 end is_ring_hom
 
 variables {cR : Type u} [comm_ring cR]

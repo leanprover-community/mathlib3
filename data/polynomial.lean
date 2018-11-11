@@ -493,6 +493,13 @@ begin
     rw [coeff_C, if_neg (nat.succ_ne_zero _), coeff_eq_zero_of_degree_lt this] }
 end
 
+theorem monic_of_degree_le {R : Type u} [comm_semiring R] [decidable_eq R]
+  {p : polynomial R} (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
+decidable.by_cases
+  (assume H : degree p < n, @subsingleton.elim _ (subsingleton_of_zero_eq_one R $
+    H2 ▸ (coeff_eq_zero_of_degree_lt H).symm) _ _)
+  (assume H : ¬degree p < n, by rwa [monic, leading_coeff, nat_degree, (lt_or_eq_of_le H1).resolve_left H])
+
 lemma degree_add_le (p q : polynomial α) : degree (p + q) ≤ max (degree p) (degree q) :=
 calc degree (p + q) = ((p + q).support).sup some : rfl
   ... ≤ (p.support ∪ q.support).sup some : sup_mono support_add
@@ -691,6 +698,12 @@ by simpa only [C_1, one_mul] using degree_C_mul_X_pow_le (1:α) n
 
 theorem degree_X_le : degree (X : polynomial α) ≤ 1 :=
 by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:α) 1
+
+theorem monic_X_pow_add {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) + p) :=
+have H1 : degree p < n+1, from lt_of_le_of_lt H (with_bot.coe_lt_coe.2 (nat.lt_succ_self n)),
+monic_of_degree_le (n+1)
+  (le_trans (degree_add_le _ _) (max_le (degree_X_pow_le _) (le_of_lt H1)))
+  (by rw [coeff_add, coeff_X_pow, if_pos rfl, coeff_eq_zero_of_degree_lt H1, add_zero])
 
 theorem degree_le_iff_coeff_zero (f : polynomial α) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
@@ -1026,6 +1039,9 @@ begin
   { refine le_of_not_lt (λ H, h01 _),
     rwa [coeff_eq_zero_of_degree_lt H] at this }
 end
+
+theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
+monic_X_pow_add ((degree_neg p).symm ▸ H)
 
 theorem degree_mod_by_monic_le (p : polynomial α) {q : polynomial α}
   (hq : monic q) : degree (p %ₘ q) ≤ degree q :=

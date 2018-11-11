@@ -6,7 +6,6 @@ Authors: Kenny Lau
 Adjoining elements to a subring.
 -/
 
-import linear_algebra.tensor_product
 import ring_theory.noetherian
 import ring_theory.subring
 
@@ -164,7 +163,6 @@ span_mul_span S s1 s2 ▸ hs1 ▸ hs2 ▸ rfl⟩
 
 theorem madjoin_eq_span : ring.madjoin S s = span (monoid.closure s) :=
 begin
-  letI := ring.subring.module S,
   letI := (ring.subring.module S).to_has_scalar,
   apply le_antisymm,
   { intros r hr, rcases ring.exists_list_of_mem_closure hr with ⟨L, HL, rfl⟩, clear hr,
@@ -203,17 +201,9 @@ begin
       exact adjoin_mono (set.subset_union_left _ _) this },
     letI := ring.subring.module (adjoin S s),
     have : y ∈ madjoin (adjoin S s) t, { rw ← hq', exact subset_span hy },
-    suffices h : closure (closure (S ∪ s) ∪ t) ⊆ closure (S ∪ (s ∪ t)), from h this,
-    exact closure_subset (set.union_subset (adjoin_mono (set.subset_union_left _ _))
-      (set.subset.trans (set.subset_union_right _ _) subset_adjoin)) },
-  have h : closure (S ∪ (s ∪ t)) ⊆ closure (closure (S ∪ s) ∪ t),
-  { exact closure_subset (set.union_subset
-      (set.subset.trans base_subset_adjoin base_subset_adjoin)
-      (set.union_subset
-        (set.subset.trans subset_adjoin base_subset_adjoin)
-        subset_adjoin)) },
-  intros r hr,
-  replace hr : r ∈ madjoin (adjoin S s) t := h hr,
+    change y ∈ adjoin S (s ∪ t), rw ← adjoin_adjoin, exact this },
+  intros r hr, change r ∈ adjoin S (s ∪ t) at hr, rw ← adjoin_adjoin at hr,
+  change r ∈ madjoin (adjoin S s) t at hr,
   rw [← hq', mem_span_iff_lc] at hr, rcases hr with ⟨l, hlq, rfl⟩,
   haveI := classical.dec_eq R,
   rw [lc.total_apply, finsupp.sum, mem_coe], refine sum_mem _ _,

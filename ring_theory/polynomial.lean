@@ -473,22 +473,10 @@ begin
   { rwa [← set.range_iff_surjective, ← ring.closure_union_eq_range] }
 end
 
-instance int.cast.is_ring_hom {R : Type u} [ring R] :
-  is_ring_hom (int.cast : ℤ → R) :=
-⟨int.cast_one, int.cast_mul, int.cast_add⟩
-
-instance set.range.is_subring {R : Type u} {S : Type v} [ring R] [ring S]
-  (f : R → S) [is_ring_hom f] : is_subring (set.range f) :=
-{ zero_mem := ⟨0, is_ring_hom.map_zero f⟩,
-  one_mem := ⟨1, is_ring_hom.map_one f⟩,
-  neg_mem := λ x ⟨p, hp⟩, ⟨-p, hp ▸ is_ring_hom.map_neg f⟩,
-  add_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p + q, hp ▸ hq ▸ is_ring_hom.map_add f⟩,
-  mul_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p * q, hp ▸ hq ▸ is_ring_hom.map_mul f⟩, }
-
 theorem is_noetherian_ring_of_fg (σ : set R) (hfσ : set.finite σ)
   (hσ : ring.closure σ = set.univ) : is_noetherian_ring R :=
 @is_noetherian_ring_of_fg_of_is_noetherian_ring R _ _ (set.range int.cast)
-  (set.range.is_subring _) σ hfσ
+  (is_ring_hom.set.range.is_subring _) σ hfσ
   (set.eq_univ_of_univ_subset $ hσ ▸ (ring.closure_mono $ set.subset_union_right _ _))
   (is_noetherian_ring_of_surjective ℤ (set.range (int.cast : ℤ → R))
     (λ i, ⟨i, i, rfl⟩) ⟨subtype.eq int.cast_one, λ _ _, subtype.eq (int.cast_mul _ _),

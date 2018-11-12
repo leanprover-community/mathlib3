@@ -477,7 +477,17 @@ definition equal_angle (θ ψ : ℝ) := ∃ k : ℤ, θ - ψ = 2 * pi * k
 definition semiequal_angle_even (θ ψ : ℝ) := ∃ k : ℤ, θ + ψ = 2 * k * pi
 definition semiequal_angle_odd (θ ψ : ℝ)  := ∃ k : ℤ, θ + ψ = (2 * k + 1) * pi
 
-theorem equal_angle.equiv : equivalence equal_angle := sorry
+theorem equal_angle.equiv : equivalence equal_angle :=
+  ⟨λ θ, ⟨ 0, eq.trans (sub_self θ) (mul_zero (2 * pi)).symm ⟩,
+  λ θ ϕ ⟨k, h⟩, ⟨-k, neg_inj begin
+  rw [ int.cast_neg, ←mul_neg_one ↑k, ←mul_assoc,
+       mul_neg_one, neg_neg, ←neg_sub θ ϕ, neg_neg],
+  exact h
+  end⟩,
+  λ α β γ ⟨k1, h1⟩ ⟨k2, h2⟩,
+  ⟨k1 + k2, by rw [ int.cast_add, mul_add, ←h1, ←h2,
+                    add_sub, sub_add_cancel ]⟩⟩
+
 
 theorem cos_eq_if (θ ψ : ℝ) (Hcos : real.cos θ = cos ψ) : equal_angle θ ψ ∨ semiequal_angle_even θ ψ :=
     begin

@@ -54,9 +54,17 @@ def whisker_right {G H : C ⥤ D} (α : G ⟹ H) (F : D ⥤ E) : (G ⋙ F) ⟹ (
    (whisker_right α F).app X = F.map (α.app X) :=
 rfl
 
+@[simp] lemma whisker_left_id (F : C ⥤ D) {G : D ⥤ E} :
+  whisker_left F (nat_trans.id G) = nat_trans.id (F.comp G) :=
+rfl
+
+@[simp] lemma whisker_right_id {G : C ⥤ D} (F : D ⥤ E) :
+  whisker_right (nat_trans.id G) F = nat_trans.id (G.comp F) :=
+((whiskering_right C D E).obj F).map_id _
+
 @[simp] lemma whisker_left_vcomp (F : C ⥤ D) {G H K : D ⥤ E} (α : G ⟹ H) (β : H ⟹ K) :
   whisker_left F (α ⊟ β) = ((whisker_left F α) ⊟ (whisker_left F β)) :=
-((whiskering_left C D E).obj F).map_comp α β
+rfl
 
 @[simp] lemma whisker_right_vcomp {G H K : C ⥤ D} (α : G ⟹ H) (β : H ⟹ K) (F : D ⥤ E)  :
   whisker_right (α ⊟ β) F = ((whisker_right α F) ⊟ (whisker_right β F)) :=

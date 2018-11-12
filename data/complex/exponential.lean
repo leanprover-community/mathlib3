@@ -561,6 +561,18 @@ by rw [two_mul, cos_add, ← pow_two, ← pow_two, eq_sub_iff_add_eq.2 (sin_pow_
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
 
+theorem pow_of_cos_add_I_mul_sin (n : ℕ) (z: ℂ) : (cos (z) + I * sin(z)) ^ n = cos (↑n * z) + I * sin(↑n * z) := 
+    begin
+        induction n, simp,
+        rw [pow_succ, n_ih, nat.succ_eq_add_one, nat.cast_add, add_mul, add_mul, nat.cast_one, one_mul,
+        complex.cos_add, complex.sin_add], simp,
+        rw [mul_comm, mul_add, ←mul_assoc, mul_comm I (sin z), mul_assoc (sin z) I I, I_mul_I, 
+            mul_comm (sin z) (-1), neg_one_mul, add_mul, mul_add, ←add_assoc, ←add_assoc, ←add_assoc, ←mul_assoc,
+            ←mul_assoc, mul_comm _ (sin z), neg_mul_eq_neg_mul, mul_comm _ I, mul_assoc I (sin z) _, 
+            mul_comm (sin z) _, ←mul_assoc, add_assoc, add_comm (I * cos (↑n_n * z) * sin z) _, add_assoc, 
+            add_comm (I * sin (↑n_n * z) * cos z) _, ←add_assoc (cos (↑n_n * z) * cos z) _, ←add_assoc], 
+    end
+
 lemma exp_mul_I : exp (x * I) = cos x + sin x * I :=
 by rw [cos, sin, mul_comm (_ / 2) I, ← mul_div_assoc, mul_left_comm I, I_mul_I,
   ← add_div]; simp

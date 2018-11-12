@@ -149,6 +149,12 @@ match r with
 | (exception f pos _) := exception f pos
 end
 
+-- Override the builtin `lean.parser.of_tactic` coe, which is broken.
+-- (See tests/tactics.lean for a failure case.)
+@[priority 2000]
+meta instance has_coe' {α} : has_coe (tactic α) (parser α) :=
+⟨of_tactic'⟩
+
 end lean.parser
 
 namespace tactic

@@ -154,7 +154,6 @@ end covering_family
 
 structure coverage (X : Type u) [small_category.{u} X] :=
 (covers   : Π (U : X), set (covering_family U))
-(id       : ∀ (U : X), {(over.mk (𝟙 U))} ∈ covers U . obviously)
 (property : ∀ {U V : X} (g : V ⟶ U),
             ∀ f ∈ covers U, ∃ h ∈ covers V,
             ∀ Vj ∈ (h : set _), ∃ (Ui ∈ f),
@@ -172,16 +171,8 @@ end site
 
 def site.trivial (X : Type u) [small_category.{u} X] : site X :=
 { coverage :=
-  { covers := λ U Us, Us = {(over.mk (𝟙 U))},
-    property := λ U V g f (hf : _ = _), ⟨{(over.mk (𝟙 V))}, rfl,
-    begin
-      subst hf,
-      intros Vj hVj,
-      refine ⟨_, set.mem_singleton _, _⟩,
-      { have : Vj = over.mk (𝟙 V) := set.mem_singleton_iff.mp hVj,
-        subst this,
-        tidy }
-    end ⟩ } }
+  { covers := λ U Us, false,
+    property := λ U V g f hf, false.elim hf } }
 
 def site.discrete (X : Type u) [small_category.{u} X] : site X :=
 { coverage :=
@@ -247,6 +238,8 @@ end lattice.complete_lattice
 
 namespace topological_space
 
+local attribute [instance] classical.prop_decidable
+
 variables {X : Type u} [topological_space X]
 
 instance : site (opens X) :=
@@ -259,24 +252,48 @@ instance : site (opens X) :=
         rw [lattice.supr_image],
         apply le_antisymm,
         { show V.val ≤ (⨆ (Ui : over U) (H : Ui ∈ Us), ((over.comap i).obj Ui).left).val,
-          intros x hx,
-          have := plift.down (ulift.down i) hx,
+          intros x x_in_V,
+          have := plift.down (ulift.down i) x_in_V,
           erw [Us_cover, set.mem_bUnion_iff] at this,
           rcases this with ⟨Ui, ⟨H, x_in_Ui⟩⟩,
           erw set.mem_bUnion_iff,
-          existsi V ⊓ Ui, -- the order dual is messing things up
-          dsimp at *,
-          cases H,
+          show ∃ (W : opens X), (∃ Ui : over U, _) ∧ _,
+          cases H with Ui' hUi',
+          existsi ((over.comap i).obj Ui').left,
           split,
-          refine ⟨H_w, _⟩,
-          { sorry },
+          { dsimp at hUi' ⊢,
+            change opens X at Ui,
+            existsi Ui',
+            symmetry,
+            apply supr_pos,
+            by_contra,
+            rw supr_neg a at hUi',
+            subst hUi',
+            assumption },
           fsplit,
-          sorry },
+          exact V.val ∩ Ui.val,
+          have := is_open_inter _ _ _ V.2 Ui.2,
+          fsplit, swap, {tidy},
+          fsplit, {tidy},
+          intros y hy,
+          cases hy,
+          erw set.mem_bInter_iff,
+          intros W hW,
+          change ∃ _, _ = _ at hW,
+          cases hW with T hT,
+          cases T; subst hT; dsimp; tidy,
+          dsimp [infi,Inf,has_Inf.Inf,order_dual,complete_lattice.Inf] at h_2,
+          rw h_2 at hy_right,
+          tidy,
+          rw hy_right_h_w_h at hy_right_h_h, simp * at *,
+          cases hy_right_h_h, tidy,
+          rw ← hy_right_h_h_h_w_left_right,
+          assumption },
         { refine supr_le _,
           intro Ui,
           refine supr_le _,
           intro hUi,
-          exact plift.down (ulift.down (pullback.π₁ i Ui.hom).hom), } },
+          exact plift.down (ulift.down (pullback.π₁ i Ui.hom)), } },
       { rintros Vj ⟨Ui, H⟩,
         refine ⟨Ui, H.1, _⟩,
         have H' := H.2.symm,
@@ -296,9 +313,14 @@ instance basis.site {is_basis : opens.is_basis B} : site B :=
           from begin
             apply le_antisymm,
             { intros x x_in_V,
-              rw opens.is_basis_iff_nbhd at is_basis,
-              have i' := plift.down (ulift.down i),
-              have := is_basis (i' x_in_V),
+              have := plift.down (ulift.down i) x_in_V,
+              erw [Us_cover, set.mem_bUnion_iff] at this,
+              rcases this with ⟨Ui, ⟨H, x_in_Ui⟩⟩,
+              erw set.mem_bUnion_iff,
+              dsimp at *,
+              cases H with Ui' hUi',
+              change opens X at Ui,
+              dsimp at *,
               sorry },
             { refine supr_le _,
               intro Vj,

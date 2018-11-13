@@ -40,7 +40,7 @@ section forget
 @[simp] def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
 { obj := λ F,
   { obj := F.obj,
-    map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 _ end },
+    map := λ X Y f, F.map (eq_to_hom f.down.down) },
   map := λ F G α,
   { app := α.app } }
 

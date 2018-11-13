@@ -12,6 +12,7 @@ import category_theory.opposites
 import category_theory.types
 import category_theory.fully_faithful
 import category_theory.natural_isomorphism
+import data.equiv.basic
 
 namespace category_theory
 
@@ -145,5 +146,25 @@ variables {C}
 class representable (F : Cᵒᵖ ⥤ Type v₁) :=
 (X : C)
 (w : yoneda.obj X ≅ F)
+
+def yoneda_equiv {X : C} (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟹ F) ≃ F.obj X :=
+{ to_fun := λ t, t.app X (𝟙 X),
+  inv_fun := λ e,
+  { app := λ Y f, F.map f e,
+    naturality' := λ Z Y f, by ext g; apply functor_to_types.map_comp },
+  left_inv := λ t, begin
+    ext Y f,
+    convert ←(functor_to_types.naturality _ _ _ _ _).symm,
+    apply category.comp_id
+  end,
+  right_inv := λ e, congr_fun (F.map_id _) _ }
+
+lemma yoneda_equiv_nat {X Y : C} (f : X ⟶ Y) (F : Cᵒᵖ ⥤ Type v₁) {t : yoneda.obj Y ⟹ F} :
+  F.map f ((yoneda_equiv F).to_fun t) = (yoneda_equiv F).to_fun ((yoneda.map f).vcomp t) :=
+by convert ←(functor_to_types.naturality _ _ _ _ _).symm; simp
+
+lemma yoneda_equiv_symm_nat {X Y : C} (f : X ⟶ Y) (F : Cᵒᵖ ⥤ Type v₁) {e : F.obj Y} :
+  (yoneda.map f).vcomp ((yoneda_equiv F).inv_fun e) = (yoneda_equiv F).inv_fun (F.map f e) :=
+by dsimp [yoneda_equiv]; ext c; dsimp; erw F.map_comp; refl
 
 end category_theory

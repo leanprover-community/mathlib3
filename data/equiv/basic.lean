@@ -202,12 +202,12 @@ protected def ulift {α : Type u} : ulift α ≃ α :=
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
-@[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ β₂ → (α₁ → β₁) ≃ (α₂ → β₂)
-| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ :=
-  ⟨λ (h : α₁ → β₁) (a : α₂), f₂ (h (g₁ a)),
-   λ (h : α₂ → β₂) (a : α₁), g₂ (h (f₁ a)),
-   λ h, by funext a; dsimp; rw [l₁, l₂],
-   λ h, by funext a; dsimp; rw [r₁, r₂]⟩
+@[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
+  (α₁ → β₁) ≃ (α₂ → β₂) :=
+⟨λ (h : α₁ → β₁) (a : α₂), e₂ (h (e₁.symm a)),
+ λ (h : α₂ → β₂) (a : α₁), e₂.symm (h (e₁ a)),
+ λ h, by funext a; simp,
+ λ h, by funext a; simp⟩
 
 def punit_equiv_punit : punit.{v} ≃ punit.{w} :=
 ⟨λ _, punit.star, λ _, punit.star, λ u, by cases u; refl, λ u, by cases u; reflexivity⟩
@@ -474,12 +474,19 @@ def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 section
 open subtype
 
-def subtype_equiv_of_subtype {p : α → Prop} : Π (e : α ≃ β), {a : α // p a} ≃ {b : β // p (e.symm b)}
-| ⟨f, g, l, r⟩ :=
-  ⟨subtype.map f $ assume a ha, show p (g (f a)), by rwa [l],
-   subtype.map g $ assume a ha, ha,
-   assume p, by simp [map_comp, l.comp_eq_id]; rw [map_id]; refl,
-   assume p, by simp [map_comp, r.comp_eq_id]; rw [map_id]; refl⟩
+--- This definition has the advantage that (subtype_equiv_subtype h x).val reduces to x.val.
+def subtype_equiv_subtype {p p' : α → Prop} (h : p = p') : {a // p a} ≃ {a // p' a} :=
+{ to_fun := λ ap, ⟨ap.val, h ▸ ap.property⟩,
+  inv_fun := λ ap', ⟨ap'.val, h.symm ▸ ap'.property⟩,
+  left_inv := λ ⟨a, p⟩, rfl,
+  right_inv := λ ⟨a, p'⟩, rfl }
+
+def subtype_equiv_of_subtype {p : α → Prop} (e : α ≃ β) :
+  {a : α // p a} ≃ {b : β // p (e.symm b)} :=
+⟨λ x, ⟨e.to_fun x.1, by convert x.2; apply e.left_inv⟩,
+ λ y, ⟨e.inv_fun y.1, by convert y.2; apply e.right_inv⟩,
+ λ x, subtype.ext.mpr (e.left_inv _),
+ λ y, subtype.ext.mpr (e.right_inv _)⟩
 
 def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
   subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=

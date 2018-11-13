@@ -3,6 +3,7 @@
 -- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 
 import category_theory.functor
+import data.equiv.basic
 
 universes u v
 
@@ -25,6 +26,12 @@ include 𝒞
 variables {X Y Z : C}
 
 namespace iso
+
+@[simp] lemma hom_inv_id_assoc (α : X ≅ Y) (f : X ⟶ Z) : α.hom ≫ α.inv ≫ f = f :=
+by rw [←category.assoc, α.hom_inv_id, category.id_comp]
+
+@[simp] lemma inv_hom_id_assoc (α : X ≅ Y) (f : Y ⟶ Z) : α.inv ≫ α.hom ≫ f = f :=
+by rw [←category.assoc, α.inv_hom_id, category.id_comp]
 
 @[extensionality] lemma ext
   (α β : X ≅ Y)
@@ -83,6 +90,9 @@ infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
 @[simp] lemma refl_symm (X : C) : (iso.refl X).hom = 𝟙 X := rfl
 @[simp] lemma trans_symm (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv = β.inv ≫ α.inv := rfl
+
+def hom_equiv_of_isos {X' X Y Y' : C} (α : X' ≅ X) (β : Y ≅ Y') : (X ⟶ Y) ≃ (X' ⟶ Y') :=
+⟨λ f, α.hom ≫ f ≫ β.hom, λ g, α.inv ≫ g ≫ β.inv, λ f, by simp, λ g, by simp⟩
 
 end iso
 

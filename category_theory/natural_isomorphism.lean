@@ -54,9 +54,7 @@ def of_components (app : ∀ X : C, (F.obj X) ≅ (G.obj X))
     naturality' := λ X Y f,
     begin
       let p := congr_arg (λ f, (app X).inv ≫ (f ≫ (app Y).inv)) (eq.symm (naturality f)),
-      dsimp at *,
-      simp at *,
-      erw [←p, ←category.assoc, is_iso.hom_inv_id, category.id_comp],
+      simpa using p
     end } }.
 
 @[simp] def of_components.app (app' : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :

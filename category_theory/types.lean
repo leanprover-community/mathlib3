@@ -4,6 +4,7 @@
 
 import category_theory.functor_category
 import category_theory.fully_faithful
+import data.equiv.basic
 
 namespace category_theory
 
@@ -54,5 +55,20 @@ def forget : bundled C ⥤ Type u := { obj := bundled.α, map := λa b h, h.1 }
 instance forget.faithful : faithful (forget C) := {}
 
 end forget
+
+section iso
+-- Isomorphisms in Type u are the same as equivalences.
+variables {α β : Type u}
+
+def iso.to_equiv (e : α ≅ β) : α ≃ β :=
+⟨e.hom, e.inv, congr_fun e.hom_inv_id, congr_fun e.inv_hom_id⟩
+
+@[simp] lemma iso.to_equiv_app (e : α ≅ β) (x) : e.to_equiv x = e.hom x := rfl
+@[simp] lemma iso.to_equiv_symm_app (e : α ≅ β) (x) : e.to_equiv.symm x = e.inv x := rfl
+
+def iso_of_equiv (e : α ≃ β) : α ≅ β :=
+⟨e.to_fun, e.inv_fun, funext e.left_inv, funext e.right_inv⟩
+
+end iso
 
 end category_theory

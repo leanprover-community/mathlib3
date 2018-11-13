@@ -696,7 +696,7 @@ by rw [← Inf_image]; refl
 
 lemma infi_apply {α : Type u} {β : α → Type v} {ι : Sort*} [∀ i, complete_lattice (β i)]
   {f : ι → Πa, β a} {a : α} : (⨅i, f i) a = (⨅i, f i a) :=
-by erw [← Inf_range,Inf_apply, infi_range]
+by erw [← Inf_range, Inf_apply, infi_range]
 
 lemma Sup_apply
   {α : Type u} {β : α → Type v} [∀ i, complete_lattice (β i)] {s : set (Πa, β a)} {a : α} :

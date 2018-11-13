@@ -11,37 +11,58 @@ open category_theory.limits
 
 universes u u₁ u₂ v v₁ v₂ w w₁ w₂
 
+namespace lattice
+
+open lattice
+
+lemma supr_image {α β γ : Type u} [complete_lattice α]
+  {g : β → α} {f : γ → β} {s : set γ}:
+  (⨆b∈f '' s, g b) = (⨆i∈s, g (f i)) :=
+le_antisymm
+  (supr_le $ assume b, supr_le $ assume ⟨c, hcs, eq⟩,
+    eq ▸ le_supr_of_le c $ le_supr (λh, g (f c)) hcs)
+  (supr_le $ assume c, supr_le $ assume hc,
+    le_supr_of_le (f c) $ le_supr (λh, g (f c)) $ set.mem_image_of_mem _ hc)
+
+end lattice
+
+open lattice
+open category_theory
+
+namespace lattice.complete_lattice
+
+variables {X : Type u} [complete_lattice X]
+variables {J : Type u} [small_category J]
+
+def limit (F : J ⥤ X) : cone F :=
+{ X := infi F.obj,
+  π := { app := λ j, ⟨⟨infi_le _ j⟩⟩ } }
+
+def colimit (F : J ⥤ X) : cocone F :=
+{ X := supr F.obj,
+  ι := { app := λ j, ⟨⟨le_supr _ j⟩⟩ } }
+
+def limit_is_limit (F : J ⥤ X) : is_limit (limit F) :=
+{ lift := λ s, ⟨⟨le_infi (λ i, plift.down $ ulift.down $ s.π.app i)⟩⟩ }
+
+def colimit_is_colimit (F : J ⥤ X) : is_colimit (colimit F) :=
+{ desc := λ s, ⟨⟨supr_le (λ i, plift.down $ ulift.down $ s.ι.app i)⟩⟩ }
+
+instance : has_limits.{u u} X :=
+{ cone := λ J hJ F, @limit _ _ J hJ F,
+  is_limit := λ J hJ F, @limit_is_limit _ _ J hJ F }
+
+instance : has_colimits.{u u} X :=
+{ cocone := λ J hJ F, @colimit _ _ J hJ F,
+  is_colimit := λ J hJ F, @colimit_is_colimit _ _ J hJ F }
+
+instance : has_pullbacks.{u u} X := has_pullbacks_of_has_limits
+
+instance : has_coproducts.{u u} X := has_coproducts_of_has_colimits
+
+end lattice.complete_lattice
+
 namespace category_theory
-
-section presheaf
-variables (X : Type v) [𝒳 : small_category X] (C : Type u) [𝒞 : category.{u v} C]
-include 𝒳 𝒞
-
-def presheaf := Xᵒᵖ ⥤ C
-
-variables {X} {C}
-
-instance presheaf_category : category.{(max u v) v} (presheaf X C) := by unfold presheaf; apply_instance
-
-set_option pp.universes true
-instance presheaf.has_coequalizers [has_coequalizers.{u v} C] :
-  has_coequalizers.{(max u v) v} (presheaf X C) := limits.functor_category_has_coequalizers
-instance presheaf.has_coproducts [has_coproducts.{u v} C] :
-  has_coproducts.{(max u v) v} (presheaf X C) := limits.functor_category_has_coproducts
-instance presheaf.has_limits [has_limits.{u v} C] :
-  has_limits.{(max u v) v} (presheaf X C) := limits.functor_category_has_limits
-instance presheaf.has_pullbacks [has_pullbacks.{u v} C] :
-  has_pullbacks.{(max u v) v} (presheaf X C) := limits.functor_category_has_pullbacks
-
-omit 𝒞
-
--- TODO these can be removed; just checking they work
-instance presheaf_of_types.has_coequalizers : has_coequalizers.{v+1 v} (presheaf X (Type v)) := by apply_instance
-instance presheaf_of_types.has_coproducts : has_coproducts.{v+1 v} (presheaf X (Type v)) := by apply_instance
-instance presheaf_of_types.has_limits : has_limits.{v+1 v} (presheaf X (Type v)) := by apply_instance
-instance presheaf_of_types.has_pullbacks : has_pullbacks.{v+1 v} (presheaf X (Type v)) := by apply_instance
-
-end presheaf
 
 section over_under -- move somewhere else
 variables {C : Type u} [𝒞 : category.{u v} C]
@@ -116,6 +137,34 @@ def comap [has_pullbacks.{u v} C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
   end }
 
 end over
+end category_theory
+
+-- ##########################
+-- # Proper start of the file
+
+namespace category_theory
+section presheaf
+variables (X : Type v) [𝒳 : small_category X] (C : Type u) [𝒞 : category.{u v} C]
+include 𝒳 𝒞
+
+def presheaf := Xᵒᵖ ⥤ C
+
+variables {X} {C}
+
+instance presheaf_category : category.{(max u v) v} (presheaf X C) := by unfold presheaf; apply_instance
+
+set_option pp.universes true
+instance presheaf.has_coequalizers [has_coequalizers.{u v} C] :
+  has_coequalizers.{(max u v) v} (presheaf X C) := limits.functor_category_has_coequalizers
+instance presheaf.has_coproducts [has_coproducts.{u v} C] :
+  has_coproducts.{(max u v) v} (presheaf X C) := limits.functor_category_has_coproducts
+instance presheaf.has_limits [has_limits.{u v} C] :
+  has_limits.{(max u v) v} (presheaf X C) := limits.functor_category_has_limits
+instance presheaf.has_pullbacks [has_pullbacks.{u v} C] :
+  has_pullbacks.{(max u v) v} (presheaf X C) := limits.functor_category_has_pullbacks
+
+end presheaf
+
 
 @[reducible]
 def covering_family {X : Type v} [small_category X] (U : X) : Type v := set (over.{v v} U)
@@ -185,59 +234,8 @@ structure sheaf (X : Type u) [𝒳 : site.{u} X] :=
 
 end category_theory
 
-namespace lattice
-
-open lattice
-
-lemma supr_image {α β γ : Type u} [complete_lattice α]
-  {g : β → α} {f : γ → β} {s : set γ}:
-  (⨆b∈f '' s, g b) = (⨆i∈s, g (f i)) :=
-le_antisymm
-  (supr_le $ assume b, supr_le $ assume ⟨c, hcs, eq⟩,
-    eq ▸ le_supr_of_le c $ le_supr (λh, g (f c)) hcs)
-  (supr_le $ assume c, supr_le $ assume hc,
-    le_supr_of_le (f c) $ le_supr (λh, g (f c)) $ set.mem_image_of_mem _ hc)
-
-end lattice
-
-open lattice
-open category_theory
-
-namespace lattice.complete_lattice
-
-variables {X : Type u} [complete_lattice X]
-variables {J : Type u} [small_category J]
-
-def limit (F : J ⥤ X) : cone F :=
-{ X := infi F.obj,
-  π := { app := λ j, ⟨⟨infi_le _ j⟩⟩ } }
-
-def colimit (F : J ⥤ X) : cocone F :=
-{ X := supr F.obj,
-  ι := { app := λ j, ⟨⟨le_supr _ j⟩⟩ } }
-
-def limit_is_limit (F : J ⥤ X) : is_limit (limit F) :=
-{ lift := λ s, ⟨⟨le_infi (λ i, plift.down $ ulift.down $ s.π.app i)⟩⟩ }
-
-def colimit_is_colimit (F : J ⥤ X) : is_colimit (colimit F) :=
-{ desc := λ s, ⟨⟨supr_le (λ i, plift.down $ ulift.down $ s.ι.app i)⟩⟩ }
-
-instance : has_limits.{u u} X :=
-{ cone := λ J hJ F, @limit _ _ J hJ F,
-  is_limit := λ J hJ F, @limit_is_limit _ _ J hJ F }
-
-instance : has_colimits.{u u} X :=
-{ cocone := λ J hJ F, @colimit _ _ J hJ F,
-  is_colimit := λ J hJ F, @colimit_is_colimit _ _ J hJ F }
-
-instance : has_pullbacks.{u u} X := has_pullbacks_of_has_limits
-
-instance : has_coproducts.{u u} X := has_coproducts_of_has_colimits
-
-end lattice.complete_lattice
-
 namespace topological_space
-
+open category_theory
 local attribute [instance] classical.prop_decidable
 
 variables {X : Type u} [topological_space X]

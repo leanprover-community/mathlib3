@@ -28,7 +28,8 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
 -/
-structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
+structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] :
+  Type (max u₁ v₁ u₂ v₂) :=
 (obj       : C → D)
 (map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
@@ -89,11 +90,23 @@ include 𝒞
 @[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
 { obj := λ X, ⟨ X ⟩,
   map := λ X Y f, f }
+
+def empty : pempty ⥤ C := by obviously
+
+variables {C}
+
+-- punit.{u} : Sort u, so punit.{v₂+1} is a small_category.{v₂}.
+def of_obj (X : C) : punit.{v₂+1} ⥤ C :=
+{ obj := λ Y, X,
+  map := λ Y Z f, 𝟙 X }
+
+@[simp] lemma of_obj_obj (X : C) (a : punit) : ((of_obj X).obj a) = X := rfl
 end
 
 end functor
 
-def bundled.map {c : Type u → Type v} {d : Type u → Type v} (f : Π{a}, c a → d a) (s : bundled c) : bundled d :=
+def bundled.map {c : Type u → Type v} {d : Type u → Type v} (f : Π{a}, c a → d a) (s : bundled c) :
+  bundled d :=
 { α := s.α, str := f s.str }
 
 def concrete_functor

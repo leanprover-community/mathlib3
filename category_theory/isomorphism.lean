@@ -61,8 +61,20 @@ namespace iso
 @[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
 { hom := α.hom ≫ β.hom,
   inv := β.inv ≫ α.inv,
-  hom_inv_id' := begin /- `obviously'` says: -/ rw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.hom_inv_id, rw category.id_comp, rw iso.hom_inv_id end,
-  inv_hom_id' := begin /- `obviously'` says: -/ rw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.inv_hom_id, rw category.id_comp, rw iso.inv_hom_id end }
+  hom_inv_id' := 
+  begin 
+    /- `obviously'` says: -/ 
+    rw [category.assoc], 
+    conv { to_lhs, congr, skip, rw ← category.assoc }, 
+    rw [iso.hom_inv_id, category.id_comp, iso.hom_inv_id]
+  end,
+  inv_hom_id' := 
+  begin 
+    /- `obviously'` says: -/ 
+    rw [category.assoc], 
+    conv { to_lhs, congr, skip, rw ← category.assoc }, 
+    rw [iso.inv_hom_id, category.id_comp, iso.inv_hom_id]
+  end }
 
 infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
@@ -147,10 +159,20 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
                          rw [←category.assoc, w, ←category.assoc]
                        end }
 
+def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := begin rw p, exact 𝟙 _ end
 def eq_to_iso {X Y : C} (p : X = Y) : X ≅ Y := by rw p
 
+@[simp] lemma eq_to_iso.hom {X Y : C} (p : X = Y) : (eq_to_iso p).hom = eq_to_hom p :=
+begin
+  induction p,
+  refl,
+end
+
+@[simp] lemma eq_to_hom_refl (X : C) (p : X = X) : eq_to_hom p = 𝟙 X := rfl
 @[simp] lemma eq_to_iso_refl (X : C) (p : X = X) : eq_to_iso p = (iso.refl X) := rfl
 
+@[simp] lemma eq_to_hom_trans {X Y Z : C} (p : X = Y) (q : Y = Z) : (eq_to_hom p) ≫ (eq_to_hom q) = eq_to_hom (p.trans q) :=
+begin /- obviously' says: -/ induction q, induction p, dsimp, simp, end
 @[simp] lemma eq_to_iso_trans {X Y Z : C} (p : X = Y) (q : Y = Z) : (eq_to_iso p) ≪≫ (eq_to_iso q) = eq_to_iso (p.trans q) :=
 begin /- obviously' says: -/ ext, induction q, induction p, dsimp at *, simp at * end
 
@@ -161,6 +183,8 @@ universes u₁ v₁ u₂ v₂
 variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒟
 
+@[simp] lemma eq_to_hom (F : C ⥤ D) {X Y : C} (p : X = Y) : F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=
+begin /- obviously says: -/ induction p, dsimp at *, simp at * end
 @[simp] lemma eq_to_iso (F : C ⥤ D) {X Y : C} (p : X = Y) : F.on_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 begin /- obviously says: -/ ext1, induction p, dsimp at *, simp at * end
 end functor

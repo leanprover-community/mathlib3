@@ -80,17 +80,32 @@ section
 variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
--- TODO, later this can be defined by uncurrying `functor.id (C ⥤ D)`
-def evaluation : ((C ⥤ D) × C) ⥤ D :=
-{ obj := λ p, p.1.obj p.2,
-  map := λ x y f, (x.1.map f.2) ≫ (f.1.app y.2),
-  map_comp' := begin
-                 intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
-                 erw [←nat_trans.vcomp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
-               end }
+@[simp] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
+{ obj := λ X,
+  { obj := λ F, F.obj X,
+    map := λ F G α, α.app X, },
+  map := λ X Y f,
+  { app := λ F, F.map f,
+    naturality' := λ F G α, eq.symm (α.naturality f) },
+  map_comp' := λ X Y Z f g,
+  begin
+    ext, dsimp, rw functor.map_comp,
+  end }
+
+@[simp] def evaluation_uncurried : (C × (C ⥤ D)) ⥤ D :=
+{ obj := λ p, p.2.obj p.1,
+  map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),
+  map_comp' :=
+  begin
+    intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
+    erw [←nat_trans.vcomp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
+  end }
 end
 
-variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A] {B : Type u₂} [ℬ : category.{u₂ v₂} B] {C : Type u₃} [𝒞 : category.{u₃ v₃} C] {D : Type u₄} [𝒟 : category.{u₄ v₄} D]
+variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A]
+          {B : Type u₂} [ℬ : category.{u₂ v₂} B]
+          {C : Type u₃} [𝒞 : category.{u₃ v₃} C]
+          {D : Type u₄} [𝒟 : category.{u₄ v₄} D]
 include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor

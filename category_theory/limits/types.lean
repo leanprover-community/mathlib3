@@ -76,14 +76,20 @@ local attribute [extensionality] quot.sound
   (colim.map α : (colimit F).X → (colimit G).X) =
   (quot.lift
     (λ p : Σ (j : J), F.obj j, quot.mk _ ⟨ p.1, (α.app p.1) p.2 ⟩ )
-    (λ p p' r, begin tidy, exact r_w, rw r_h, rw functor_to_types.naturality, end)) := rfl
+    (λ p p' r, begin tidy, exact r_w, rw r_h, rw functor_to_types.naturality, end)) := 
+rfl
 
--- -- TODO remaining lemmas:
--- @[simp] lemma types_colimit_pre
---   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
---   colimit.pre F E g = sorry := sorry
+lemma types_colimit_pre
+  (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
+  (colimit.pre F E : (colimit (E ⋙ F)).X → (colimit F).X) = 
+  quot.lift 
+    (λ p : Σ (j : K), (E ⋙ F).obj j, quot.mk _ ⟨ E.obj p.1, p.2 ⟩)
+    (by tidy) := 
+rfl
+
+-- TODO finish stating this lemma!
 -- @[simp] lemma types_colimit_desc (F : J ⥤ Type u) (c : cocone F) :
---   colimit.desc F c = λ x, sorry := sorry
+--   colimit.desc F c = λ x, begin sorry end := rfl
 
 instance : has_terminal.{u+1 u} (Type u) :=
 { terminal := punit }

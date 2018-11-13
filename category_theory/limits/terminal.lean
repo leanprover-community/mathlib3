@@ -41,14 +41,23 @@ variables [has_terminal.{u v} C]
 
 def terminal := has_terminal.terminal.{u v} C
 
-instance has_limit_of_has_terminal : has_limit (functor.empty C) := sorry
+instance has_limit_of_has_terminal : has_limit (functor.empty C) :=
+{ cone := { X := terminal C, π := by tidy, },
+  is_limit := has_terminal.is_terminal C }
 
 variables {C}
 
 def terminal.from (X : C) : X ⟶ terminal C :=
 (has_terminal.is_terminal.{u v} C).lift { X := X, π := by tidy }.
 
-@[extensionality] def terminal.hom_ext {X : C} (f g : X ⟶ terminal C) : f = g := sorry
+@[extensionality] def terminal.hom_ext {X : C} (f g : X ⟶ terminal C) : f = g :=
+begin
+  have h := has_terminal.is_terminal.{u v} C,
+  rw h.uniq { X := X, π := by tidy } f (by tidy),
+  rw h.uniq { X := X, π := by tidy } g (by tidy),
+  refl,
+end
+
 end terminal
 
 section initial
@@ -56,14 +65,22 @@ variables [has_initial.{u v} C]
 
 def initial := has_initial.initial.{u v} C
 
-instance has_colimit_of_has_initial : has_colimit (functor.empty C) := sorry
+instance has_colimit_of_has_initial : has_colimit (functor.empty C) :=
+{ cocone := { X := initial C, ι := by tidy, },
+  is_colimit := has_initial.is_initial C }
 
 variables {C}
 
 def initial.to (X : C) : initial C ⟶ X :=
 (has_initial.is_initial.{u v} C).desc { X := X, ι := by tidy }.
 
-@[extensionality] def initial.hom_ext {X : C} (f g : initial C ⟶ X) : f = g := sorry
+@[extensionality] def initial.hom_ext {X : C} (f g : initial C ⟶ X) : f = g := 
+begin
+  have h := has_initial.is_initial.{u v} C,
+  rw h.uniq { X := X, ι := by tidy } f (by tidy),
+  rw h.uniq { X := X, ι := by tidy } g (by tidy),
+  refl,
+end
 end initial
 
 -- Special cases of this may be marked with [instance] as desired.

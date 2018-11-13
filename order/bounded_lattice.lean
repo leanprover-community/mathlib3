@@ -54,6 +54,13 @@ assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
 theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
 top_le_iff.1 $ h₂ ▸ h
 
+lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ :=
+begin
+  haveI := classical.dec_eq α,
+  haveI : decidable (⊤ ≤ a) := decidable_of_iff' _ top_le_iff,
+  by simp [-top_le_iff, lt_iff_le_not_le, not_iff_not.2 (@top_le_iff _ _ a)]
+end
+
 end order_top
 
 theorem order_top.ext_top {α} {A B : order_top α}
@@ -98,6 +105,13 @@ assume ha, hb $ bot_unique $ ha ▸ hab
 
 theorem eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ :=
 le_bot_iff.1 $ h₂ ▸ h
+
+lemma bot_lt_iff_ne_bot : ⊥ < a ↔ a ≠ ⊥ :=
+begin
+  haveI := classical.dec_eq α,
+  haveI : decidable (a ≤ ⊥) := decidable_of_iff' _ le_bot_iff,
+  simp [-le_bot_iff, lt_iff_le_not_le, not_iff_not.2 (@le_bot_iff _ _ a)]
+end
 
 end order_bot
 

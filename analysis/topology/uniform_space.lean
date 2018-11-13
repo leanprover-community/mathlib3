@@ -1144,6 +1144,10 @@ lemma uniform_continuous_comap {f : α → β} [u : uniform_space β] :
   @uniform_continuous α β (uniform_space.comap f u) u f :=
 tendsto_comap
 
+lemma uniform_embedding_comap {f : α → β} [u : uniform_space β] (hf : function.injective f) :
+  @uniform_embedding α β (uniform_space.comap f u) u f :=
+⟨hf, rfl⟩
+
 theorem to_topological_space_comap {f : α → β} {u : uniform_space β} :
   @uniform_space.to_topological_space _ (uniform_space.comap f u) =
   topological_space.induced f (@uniform_space.to_topological_space β u) :=

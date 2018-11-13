@@ -9,14 +9,14 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real.nnreal analysis.topology.topological_structures
+import data.real.nnreal analysis.topology.topological_structures analysis.emetric_space
 open lattice set filter classical topological_space
 noncomputable theory
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-/-- Construct a metric space from a distance function and metric space axioms -/
+/-- Construct a uniform structure from a distance function and metric space axioms -/
 def metric_space.uniform_space_of_dist
   (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
@@ -48,22 +48,24 @@ export has_dist (dist)
 Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
 This is enforced in the type class definition, by extending the `uniform_space` structure. When
 instantiating a `metric_space` structure, the uniformity fields are not necessary, they will be
-filled in by default. -/
+filled in by default. In the same way, each metric space induces an emetric space structure.
+It is included in the structure, but filled in by default.
+
+When one instantiates a metric space structure, for instance a product structure,
+this makes it possible to use a uniform structure and an edistance that are exactly
+the ones for the uniform spaces product and the emetric spaces products, thereby
+ensuring that everything in defeq in diamonds.-/
 class metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
 (dist_comm : ∀ x y : α, dist x y = dist y x)
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+(edist : α → α → ennreal := λx y, nnreal.of_real (dist x y))
+(edist_dist : ∀ x y : α, edist x y = ↑(nnreal.of_real (dist x y)) . control_laws_tac)
 (to_uniform_space : uniform_space α := metric_space.uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : uniformity = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 
-theorem uniformity_dist_of_mem_uniformity {U : filter (α × α)} (D : α → α → ℝ)
-  (H : ∀ s, s ∈ U.sets ↔ ∃ε>0, ∀{a b:α}, D a b < ε → (a, b) ∈ s) :
-  U = ⨅ ε>0, principal {p:α×α | D p.1 p.2 < ε} :=
-le_antisymm
-  (le_infi $ λ ε, le_infi $ λ ε0, le_principal_iff.2 $ (H _).2 ⟨ε, ε0, λ a b, id⟩)
-  (λ r ur, let ⟨ε, ε0, h⟩ := (H _).1 ur in
-    mem_infi_sets ε $ mem_infi_sets ε0 $ mem_principal_sets.2 $ λ ⟨a, b⟩, h)
+open metric_space (edist)
 
 variables [metric_space α]
 
@@ -76,6 +78,9 @@ theorem eq_of_dist_eq_zero {x y : α} : dist x y = 0 → x = y :=
 metric_space.eq_of_dist_eq_zero
 
 theorem dist_comm (x y : α) : dist x y = dist y x := metric_space.dist_comm x y
+
+theorem edist_dist (x y : α) : edist x y = ↑(nnreal.of_real (dist x y)) :=
+metric_space.edist_dist _ x y
 
 @[simp] theorem dist_eq_zero {x y : α} : dist x y = 0 ↔ x = y :=
 iff.intro eq_of_dist_eq_zero (assume : x = y, this ▸ dist_self _)
@@ -118,22 +123,43 @@ variables [metric_space α]
 
 def nndist (a b : α) : nnreal := ⟨dist a b, dist_nonneg⟩
 
+/--Express `nndist` in terms of `edist`-/
+@[simp] lemma edist_eq_nndist (x y : α) : (edist x y).to_nnreal = nndist x y :=
+by simp [nndist, metric_space.edist_dist, nnreal.of_real, max_eq_left dist_nonneg]
+
+/--Express `edist` in terms of `nndist`-/
+@[simp] lemma nndist_eq_edist (x y : α) : ↑(nndist x y) = edist x y :=
+by simp [nndist, metric_space.edist_dist, nnreal.of_real, max_eq_left dist_nonneg]
+
+/--In a metric space, the extended distance is always finite-/
+lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=
+by rw [edist_dist x y]; apply ennreal.coe_ne_top
+
+/--`nndist x x` vanishes-/
 @[simp] lemma nndist_self (a : α) : nndist a a = 0 := (nnreal.coe_eq_zero _).1 (dist_self a)
 
-@[simp] lemma coe_dist (a b : α) : (nndist a b : ℝ) = dist a b := rfl
+/--Express `dist` in terms of `nndist`-/
+@[simp] lemma nndist_eq_dist (x y : α) : ↑(nndist x y) = dist x y := rfl
 
+/--Express `nndist` in terms of `dist`-/
+@[simp] lemma dist_eq_nndist (x y : α) : nnreal.of_real (dist x y) = nndist x y :=
+by rw [← nndist_eq_dist, nnreal.of_real_coe]
+
+/--Deduce the equality of points with the vanishing of the nonnegative distance-/
 theorem eq_of_nndist_eq_zero {x y : α} : nndist x y = 0 → x = y :=
 by simp [nnreal.eq_iff.symm]
 
 theorem nndist_comm (x y : α) : nndist x y = nndist y x :=
 by simpa [nnreal.eq_iff.symm] using dist_comm x y
 
+/--Characterize the equality of points with the vanishing of the nonnegative distance-/
 @[simp] theorem nndist_eq_zero {x y : α} : nndist x y = 0 ↔ x = y :=
 by simp [nnreal.eq_iff.symm]
 
 @[simp] theorem zero_eq_nndist {x y : α} : 0 = nndist x y ↔ x = y :=
 by simp [nnreal.eq_iff.symm]
 
+/--Triangle inequality for the nonnegative distance-/
 theorem nndist_triangle (x y z : α) : nndist x z ≤ nndist x y + nndist y z :=
 by simpa [nnreal.coe_le] using dist_triangle x y z
 
@@ -142,6 +168,14 @@ by simpa [nnreal.coe_le] using dist_triangle_left x y z
 
 theorem nndist_triangle_right (x y z : α) : nndist x y ≤ nndist x z + nndist y z :=
 by simpa [nnreal.coe_le] using dist_triangle_right x y z
+
+/--Express `edist` in terms of `dist`-/
+@[simp] lemma dist_eq_edist (x y : α) : ↑(nnreal.of_real (dist x y)) = edist x y :=
+(edist_dist x y).symm
+
+/--Express `dist` in terms `edist`-/
+@[simp] lemma edist_eq_dist (x y : α) : ↑((edist x y).to_nnreal) = dist x y :=
+by rw [← dist_eq_edist]; simp; rw [nnreal.coe_of_real _ (metric_space.dist_nonneg x y)]
 
 end
 
@@ -308,6 +342,85 @@ instance metric_space.to_separated : separated α :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
+/-Instantiate a metric space as an emetric space. Before we can state the instance,
+we need to show that the uniform structure coming from the edistance and the
+distance coincide. -/
+
+/--Expressing the uniformity in terms of `edist`-/
+lemma mem_uniformity_dist_edist {s : set (α×α)} :
+  s ∈ (@uniformity α _).sets ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
+suffices (∃ε>0, ∀a b, edist a b < ε → (a, b) ∈ s) ↔ (∃ε>0, ∀a b, dist a b < ε → (a, b) ∈ s), from
+  iff.trans (mem_uniformity_dist) this.symm,
+⟨show (∃ε>0, ∀a b, edist a b < ε → (a, b) ∈ s) → (∃ε>0, ∀a b, dist a b < ε → (a, b) ∈ s),
+begin
+  rintro ⟨ε, εpos, Hε⟩,
+  rcases ε with h,
+  { /- ε = ⊤, i.e., all points belong to `s` as the distance is finite.-/
+    have A : ∀ a b : α, edist a b < ⊤ := assume a b, lt_top_iff_ne_top.2 (edist_ne_top a b),
+    have B : ∀ a b : α, (a, b) ∈ s := assume a b, Hε _ _ (A a b),
+    exact ⟨1, zero_lt_one, assume a b _, B a b⟩ },
+  { /- ε < ⊤, and we can use the same value of ε as a real parameter-/
+    have A : ε > 0 := ennreal.coe_lt_coe.1 εpos,
+    have B : ∀ (a b : α), dist a b < ↑ε → (a, b) ∈ s := begin
+      assume a b Dab,
+      have I : nndist a b < ε := by rwa [← nndist_eq_dist, ← nnreal.coe_lt] at Dab,
+      have J : edist a b < ε := by rw [← nndist_eq_edist]; apply ennreal.coe_lt_coe.2 I,
+      exact Hε a b J
+    end,
+    exact ⟨ε, by simpa using A, B⟩ }
+end,
+show (∃ε>0, ∀a b, dist a b < ε → (a, b) ∈ s) → (∃ε>0, ∀a b, edist a b < ε → (a, b) ∈ s),
+begin
+  rintro ⟨ε, εpos, Hε⟩,
+  have A : ((nnreal.of_real ε) : ennreal) > (0:nnreal) :=
+  by apply ennreal.coe_lt_coe.2; simpa using εpos,
+  have B : ∀ (a b : α), edist a b < nnreal.of_real ε → (a, b) ∈ s :=
+  begin
+    assume a b Dab,
+    have I : nndist a b < nnreal.of_real ε :=
+    by rwa [← nndist_eq_edist, ennreal.coe_lt_coe] at Dab,
+    have J : dist a b < ε := begin
+      rw [← nndist_eq_dist],
+      have K := (nnreal.coe_lt _ _).1 I,
+      rwa [nnreal.coe_of_real _ (le_of_lt εpos)] at K
+    end,
+    exact Hε a b J
+  end,
+  exact ⟨nnreal.of_real ε, A, B⟩
+end⟩
+
+theorem uniformity_edist' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
+suffices ∀s, s ∈ (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}).sets ↔
+    (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s), from
+  filter.ext $ assume s, iff.trans (mem_uniformity_dist_edist) ((this s).symm),
+begin
+  assume s,
+  rw [infi_sets_eq],
+  simp [subset_def],
+  exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩,
+  exact ⟨⟨1, ennreal.zero_lt_one⟩⟩
+end
+
+theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
+by have h := @uniformity_edist' α _; simpa [infi_subtype] using h
+
+/--A metric space induces an emetric space-/
+instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α :=
+{ edist_self := by simp [edist_dist],
+  eq_of_edist_eq_zero := assume x y h,
+  by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
+  edist_comm := by simp only [edist_dist, dist_comm]; simp,
+  edist_triangle := assume x y z,
+  begin
+    rw [edist_dist, edist_dist, edist_dist, ← ennreal.coe_add, ennreal.coe_le_coe,
+        nnreal.of_real_add_of_real (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z),
+        nnreal.of_real_le_of_real_iff (@dist_nonneg _ _ x z) $
+          add_nonneg (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z)],
+    apply dist_triangle x y z
+  end,
+  uniformity_edist := uniformity_edist,
+  ..a }
+
 /-- Instantiate the reals as a metric space. -/
 instance : metric_space ℝ :=
 { dist               := λx y, abs (x - y),
@@ -344,6 +457,8 @@ def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_spac
   eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   dist_comm          := dist_comm,
   dist_triangle      := dist_triangle,
+  edist              := @edist _ m,
+  edist_dist         := edist_dist,
   to_uniform_space   := U,
   uniformity_dist    := H.trans (@uniformity_dist α _) }
 
@@ -354,9 +469,11 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
   eq_of_dist_eq_zero := λ x y h, hf (dist_eq_zero.1 h),
   dist_comm          := λ x y, dist_comm _ _,
   dist_triangle      := λ x y z, dist_triangle _ _ _,
+  edist              := λ x y, edist (f x) (f y),
+  edist_dist         := λ x y, edist_dist _ _,
   to_uniform_space   := uniform_space.comap f m.to_uniform_space,
   uniformity_dist    := begin
-    apply @uniformity_dist_of_mem_uniformity _ _ (λ x y, dist (f x) (f y)),
+    apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, dist (f x) (f y)),
     refine λ s, mem_comap_sets.trans _,
     split; intro H,
     { rcases H with ⟨r, ru, rs⟩,
@@ -365,13 +482,6 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
     { rcases H with ⟨ε, ε0, hε⟩,
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
-
-theorem metric_space.induced_uniform_embedding {α β} (f : α → β) (hf : function.injective f)
-  (m : metric_space β) :
-  by haveI := metric_space.induced f hf m;
-     exact uniform_embedding f :=
-by let := metric_space.induced f hf m; exactI
-uniform_embedding_of_metric.2 ⟨hf, uniform_continuous_comap, λ ε ε0, ⟨ε, ε0, λ a b, id⟩⟩
 
 instance {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
@@ -390,6 +500,14 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
   dist_triangle := λ x y z, max_le
     (le_trans (dist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
     (le_trans (dist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
+  edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
+  edist_dist := assume x y, begin
+    have I : monotone (nnreal.of_real) := assume x y h, nnreal.of_real_le_of_real h,
+    have J : monotone (λ (t:nnreal), (t:ennreal)) := assume x y h, ennreal.coe_le_coe.2 h,
+    have A : monotone (λ (a:ℝ), ((nnreal.of_real a) : ennreal)) := monotone_comp I J,
+    have B := (max_distrib_of_monotone A).symm,
+    rw [← dist_eq_edist, ← dist_eq_edist, B]
+  end,
   uniformity_dist := begin
     refine uniformity_prod.trans _,
     simp [uniformity_dist, comap_infi],
@@ -499,7 +617,15 @@ instance metric_space_pi : metric_space (Πb, π b) :=
       simp only [dist_pi_def, nnreal.coe_eq_zero, nnreal.bot_eq_zero.symm, eq_bot_iff,
         finset.sup_le_iff] at eq0,
       exact (funext $ assume b, eq_of_nndist_eq_zero $ bot_unique $ eq0 b $ mem_univ b),
-    end }
+    end,
+  edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
+  edist_dist := assume x y,
+  have A : sup univ (λ (b : β), ((nndist (x b) (y b)) : ennreal)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))) :=
+  begin
+    refine eq.symm (comp_sup_eq_sup_comp _ _ _),
+    exact (assume x y h, ennreal.coe_le_coe.2 h), refl
+  end,
+  by unfold dist; simp; simp only [(nndist_eq_edist _ _).symm, A] }
 
 end pi
 
@@ -654,7 +780,7 @@ instance complete_of_proper {α : Type u} [metric_space α] [proper_space α] : 
   intros f hf,
   /-We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
   ball (therefore compact by properness) where it is nontrivial.-/
-  have A : ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < 1 := (cauchy_of_metric.1 hf).2 1 (by norm_num),
+  have A : ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < 1 := (cauchy_of_metric.1 hf).2 1 zero_lt_one,
   rcases A with ⟨t, ⟨t_fset, ht⟩⟩,
   rcases inhabited_of_mem_sets hf.1 t_fset with ⟨x, xt⟩,
   have : t ⊆ closed_ball x 1 := by intros y yt; simp [dist_comm]; apply le_of_lt (ht x y xt yt),

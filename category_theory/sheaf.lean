@@ -391,7 +391,15 @@ instance : category (sheaf X) := by unfold sheaf; apply_instance
 
 namespace opens
 
+open lattice
+open category_theory
 open category_theory.examples
+
+instance : has_colimits.{u u} (opens X) := by apply_instance
+
+-- This should be generalised to arbitrary diagrams
+def colim_is_supr {U : opens X} {Us : covering_family U} :
+colimit (functor.of_function (λ u : Us, u.val.left)) = ⨆ u ∈ Us, (u : over _).left := supr_subtype
 
 def to_Top : opens X ⥤ Top :=
 { obj := λ U,
@@ -399,6 +407,15 @@ def to_Top : opens X ⥤ Top :=
             str := subtype.topological_space },
   map := λ U V i, ⟨λ x, ⟨x.1, (plift.down (ulift.down i)) x.2⟩,
     (embedding.continuous_iff embedding_subtype_val).mpr continuous_subtype_val ⟩ }
+
+def to_Top.preserves_colimits : preserves_colimits (@to_Top X _) :=
+{ preserves := λ J _ K c hc,
+  { desc := λ s,
+    begin
+      fsplit,
+      dsimp [functor.map_cocone, to_Top],
+      rintros ⟨x,hx⟩,
+    end } }
 
 end opens
 
@@ -433,7 +450,7 @@ def sheaf_of_functions (T : Top) : sheaf X :=
       { exact (this ≫ fs).app u.left (𝟙 u.left) },
       refine _ ≫ (coequalizer.π _ _),
       exact (sigma.ι (λ (Ui : {x // x ∈ Us}), (yoneda (opens X)).obj ((Ui.val).left)) ⟨u, hu⟩) },
-
+    rw ← opens.colim_is_supr,
   end }
 
 

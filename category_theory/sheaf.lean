@@ -6,6 +6,7 @@ import category_theory.commas
 import category_theory.limits
 import category_theory.limits.types
 import category_theory.limits.functor_category
+import category_theory.full_subcategory
 
 open category_theory.limits
 
@@ -144,7 +145,7 @@ end category_theory
 
 namespace category_theory
 section presheaf
-variables (X : Type v) [𝒳 : small_category X] (C : Type u) [𝒞 : category.{u v} C]
+variables (X : Type v) [𝒳 : category.{v v} X] (C : Type u) [𝒞 : category.{u v} C]
 include 𝒳 𝒞
 
 def presheaf := Xᵒᵖ ⥤ C
@@ -167,11 +168,11 @@ end presheaf
 
 
 @[reducible]
-def covering_family {X : Type v} [small_category X] (U : X) : Type v := set (over.{v v} U)
+def covering_family {X : Type v} [category.{v v} X] (U : X) : Type v := set (over.{v v} U)
 
 namespace covering_family
 open category_theory.limits
-variables {X : Type v} [𝒳 : small_category X]
+variables {X : Type v} [𝒳 : category.{v v} X]
 include 𝒳
 
 variables {U : X} (c : covering_family U)
@@ -201,7 +202,7 @@ is_iso $ ((yoneda (presheaf X (Type v))).obj F).map c.π
 
 end covering_family
 
-structure coverage (X : Type u) [small_category.{u} X] :=
+structure coverage (X : Type u) [category.{u u} X] :=
 (covers   : Π (U : X), set (covering_family U))
 (property : ∀ {U V : X} (g : V ⟶ U),
             ∀ f ∈ covers U, ∃ h ∈ covers V,
@@ -212,9 +213,13 @@ class site (X : Type u) extends category.{u u} X :=
 (coverage : coverage X)
 
 namespace site
-variables {X : Type u₁} [𝒳 : site.{u₁} X]
+variables {X : Type u} [𝒳 : site.{u} X]
+include 𝒳
 
-definition covers := coverage.covers 𝒳.coverage
+definition covers (U : X) := 𝒳.coverage.covers U
+
+def sheaf_condition (F : presheaf X (Type u)) :=
+∀ {U : X}, ∀c ∈ covers U, (c : covering_family U).sheaf_condition F
 
 end site
 
@@ -228,9 +233,11 @@ def site.discrete (X : Type u) [small_category.{u} X] : site X :=
   { covers := λ U Us, true,
     property := λ U V g f _, ⟨{Vj | false}, by simp, (λ Vj hVj, false.elim hVj)⟩ } }
 
-structure sheaf (X : Type u) [𝒳 : site.{u} X] :=
-(presheaf : presheaf X (Type u))
-(sheaf_condition : ∀ {U : X}, ∀c ∈ site.covers U, (c : covering_family U).sheaf_condition presheaf)
+-- TODO turn this into a sigma_category once that is in mathlib
+def sheaf (X : Type u) [𝒳 : site.{u} X] :=
+{ F : presheaf X (Type u) // nonempty (site.sheaf_condition F) }
+
+instance sheaf_category (X : Type u) [𝒳 : site.{u} X] : category (sheaf X) := category_theory.full_subcategory _
 
 end category_theory
 

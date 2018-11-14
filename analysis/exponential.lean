@@ -370,7 +370,7 @@ lemma cos_eq_one_iff (x : ℝ) : cos x = 1 ↔ ∃ n : ℤ, (n : ℝ) * (2 * π)
         exact absurd h (by norm_num))⟩,
   λ ⟨n, hn⟩, hn ▸ cos_int_mul_two_pi _⟩
 
-theorem cos_eq_zero_iff (θ ψ : ℝ) : real.cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * pi / 2 := 
+theorem cos_eq_zero_iff (θ : ℝ) : real.cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * pi / 2 := 
     begin
         split,
         { rw [←real.sin_pi_div_two_sub, sin_eq_zero_iff], intro, cases a with n hn, 

@@ -127,26 +127,26 @@ by simp [log, lt_irrefl]
 @[simp] lemma log_one : log 1 = 0 :=
 exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 
-noncomputable definition nth_root (x : ℝ) (n : ℕ) (Hxpos : 0 < x) (Hnpos : 0 < n)
+noncomputable definition nth_root (x : ℝ) (n : ℕ) --(Hxpos : 0 < x) (Hnpos : 0 < n)
 : ℝ := exp ((log x) / n)
 
 variables (x : ℝ) (y : ℝ) (n : ℕ) (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n)
 
-theorem pow_lt (Hxy : x < y) (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) : x ^ n < y ^ n :=
+theorem pow_lt (Hxy : x < y) (Hxpos : 0 < x) (Hnpos : 0 < n) : x ^ n < y ^ n :=
     begin
         rw ←nat.sub_add_cancel Hnpos,
         induction (n - 1), simp, exact Hxy,
         rw [pow_add, pow_add, nat.succ_eq_add_one], simp,
-        apply mul_lt_mul ih (le_of_lt Hxy) Hxpos (le_of_lt (pow_pos Hypos _)),
+        apply mul_lt_mul ih (le_of_lt Hxy) Hxpos (le_of_lt (pow_pos (lt_trans Hxpos Hxy) _)),
     end
 
 theorem pow_eq (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) : x ^ n = y ^ n → x = y :=
     begin
         intro, by_contradiction b,
         cases (lt_or_gt_of_ne b),
-        { have hn : x ^ n < y ^ n, apply pow_lt x y n h Hxpos Hypos Hnpos,
+        { have hn : x ^ n < y ^ n, apply pow_lt x y n h Hxpos Hnpos,
             apply ne_of_lt hn a },
-        { have hn : y ^ n < x ^ n, apply pow_lt y x n h Hypos Hxpos Hnpos,
+        { have hn : y ^ n < x ^ n, apply pow_lt y x n h Hypos Hnpos,
             apply ne_of_gt hn a },
     end
 
@@ -154,20 +154,20 @@ theorem exp_mul : ∀ n : ℕ, exp(n*x) = (exp(x))^n
 | 0 := by simp
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_mul, one_mul]
 
-theorem nth_root_pos : nth_root x n Hxpos Hnpos > 0 := real.exp_pos ((log x) / n)
+theorem nth_root_pos : nth_root x n > 0 := real.exp_pos ((log x) / n)
 
-theorem nth_root_power : (nth_root x n Hxpos Hnpos) ^ n = x := 
+theorem nth_root_power (Hxpos : 0 < x) (Hnpos : 0 < n): (nth_root x n) ^ n = x := 
     begin
         rw [nth_root, ←exp_mul, mul_div_cancel', exp_log Hxpos],
         rw [nat.cast_ne_zero], apply ne_of_gt Hnpos,
     end
 
-theorem nth_root_unique (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) : y ^ n = x → y = nth_root x n Hxpos Hnpos :=
+theorem nth_root_unique (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) : y ^ n = x → y = nth_root x n :=
     begin
         intro,
-        have b : (nth_root x n Hxpos Hnpos)^n = x := nth_root_power _ _ _ _,
-        have ab : y^n = nth_root x n Hxpos Hnpos ^ n := eq.trans a b.symm,
-        apply pow_eq _ _ _ Hypos (nth_root_pos _ _ _ _) Hnpos ab,
+        have b : (nth_root x n)^n = x := nth_root_power _ _ Hxpos Hnpos,
+        have ab : y^n = nth_root x n ^ n := eq.trans a b.symm,
+        apply pow_eq _ _ _ Hypos (nth_root_pos _ _) Hnpos ab,
     end
 
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
@@ -513,7 +513,7 @@ theorem sin_eq_if (θ ψ : ℝ) (Hsin : real.sin θ = sin ψ) : equal_angle θ �
           existsi n, exact Hsin, norm_num, norm_num },
     end
 
-theorem cos_sin_inj (Hcos : real.cos θ = cos ψ) (Hsin : real.sin θ = sin ψ) : equal_angle θ ψ :=
+theorem cos_sin_inj (θ ψ : ℝ) (Hcos : real.cos θ = cos ψ) (Hsin : real.sin θ = sin ψ) : equal_angle θ ψ :=
     begin
         have Hcos' := cos_eq_if _ _ Hcos, have Hsin' := sin_eq_if _ _ Hsin,
         cases Hcos',

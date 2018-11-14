@@ -482,7 +482,7 @@ le_antisymm
     (supr_le_supr2 $ assume i, ⟨or.inl i, le_refl _⟩)
     (supr_le_supr2 $ assume j, ⟨or.inr j, le_refl _⟩))
 
-theorem Inf_eq_infi {s : set α} : Inf s = (⨅a ∈ s, a) := -- TODO
+theorem Inf_eq_infi {s : set α} : Inf s = (⨅a ∈ s, a) :=
 le_antisymm
   (le_infi $ assume b, le_infi $ assume h, Inf_le h)
   (le_Inf $ assume b h, infi_le_of_le b $ infi_le _ h)

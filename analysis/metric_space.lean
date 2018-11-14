@@ -406,13 +406,6 @@ begin
   exact ⟨λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩, λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩,
 end
 
-theorem eq_of_forall_dist_le {x y : α} (h : ∀ε, ε > 0 → dist x y ≤ ε) : x = y :=
-eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
-
-instance metric_space.to_separated : separated α :=
-separated_def.2 $ λ x y h, eq_of_forall_dist_le $
-  λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
-
 /-Instantiate a metric space as an emetric space. Before we can state the instance,
 we need to show that the uniform structure coming from the edistance and the
 distance coincide. -/
@@ -473,15 +466,15 @@ begin
 end
 
 theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
-by have h := @uniformity_edist' α _; simpa [infi_subtype] using h
+by simpa [infi_subtype] using @uniformity_edist' α _
 
 /--A metric space induces an emetric space-/
 instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α :=
-{ edist_self := by simp [edist_dist],
+{ edist_self          := by simp [edist_dist],
   eq_of_edist_eq_zero := assume x y h,
-  by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
-  edist_comm := by simp only [edist_dist, dist_comm]; simp,
-  edist_triangle := assume x y z,
+    by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
+  edist_comm          := by simp only [edist_dist, dist_comm]; simp,
+  edist_triangle      := assume x y z,
   begin
     rw [edist_dist, edist_dist, edist_dist, ← ennreal.coe_add, ennreal.coe_le_coe,
         nnreal.of_real_add_of_real (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z),
@@ -489,7 +482,7 @@ instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α 
           add_nonneg (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z)],
     apply dist_triangle x y z
   end,
-  uniformity_edist := uniformity_edist,
+  uniformity_edist    := uniformity_edist,
   ..a }
 
 /-- Instantiate the reals as a metric space. -/

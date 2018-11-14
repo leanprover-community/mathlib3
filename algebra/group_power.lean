@@ -471,6 +471,25 @@ theorem pow_nonneg {a : α} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
 
+theorem pow_lt (x y : α) (n : ℕ) (Hxy : x < y) (Hxpos : 0 < x) (Hnpos : 0 < n) : x ^ n < y ^ n :=
+    begin
+        rw ←nat.sub_add_cancel Hnpos,
+        induction (n - 1), simp, exact Hxy,
+        rw [pow_add, pow_add, nat.succ_eq_add_one], simp,
+        apply mul_lt_mul ih (le_of_lt Hxy) Hxpos (le_of_lt (pow_pos (lt_trans Hxpos Hxy) _)),
+    end
+
+local attribute [instance, priority 0] classical.prop_decidable
+theorem pow_eq (x y : α) (n : ℕ) (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) : x ^ n = y ^ n → x = y :=
+    begin
+        intro, by_contradiction b,
+        cases (lt_or_gt_of_ne b),
+        { have hn : x ^ n < y ^ n, apply pow_lt x y n h Hxpos Hnpos,
+            apply ne_of_lt hn a },
+        { have hn : y ^ n < x ^ n, apply pow_lt y x n h Hypos Hnpos,
+            apply ne_of_gt hn a },
+    end
+
 theorem one_le_pow_of_one_le {a : α} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | 0     := le_refl _
 | (n+1) := by simpa only [mul_one] using mul_le_mul H (one_le_pow_of_one_le n)
@@ -538,6 +557,7 @@ by rw pow_two; exact mul_self_nonneg _
 theorem pow_ge_one_add_sub_mul [linear_ordered_ring α]
   {a : α} (H : a ≥ 1) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
 by simpa only [add_sub_cancel'_right] using pow_ge_one_add_mul (sub_nonneg.2 H) n
+
 
 namespace int
 

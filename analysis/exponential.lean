@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import analysis.real analysis.complex tactic.linarith data.complex.exponential
+import analysis.real analysis.complex tactic.linarith data.complex.exponential algebra.group_power
 
 open finset filter
 
@@ -131,24 +131,6 @@ noncomputable definition nth_root (x : ℝ) (n : ℕ) --(Hxpos : 0 < x) (Hnpos :
 : ℝ := exp ((log x) / n)
 
 variables (x : ℝ) (y : ℝ) (n : ℕ) (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n)
-
-theorem pow_lt (Hxy : x < y) (Hxpos : 0 < x) (Hnpos : 0 < n) : x ^ n < y ^ n :=
-    begin
-        rw ←nat.sub_add_cancel Hnpos,
-        induction (n - 1), simp, exact Hxy,
-        rw [pow_add, pow_add, nat.succ_eq_add_one], simp,
-        apply mul_lt_mul ih (le_of_lt Hxy) Hxpos (le_of_lt (pow_pos (lt_trans Hxpos Hxy) _)),
-    end
-
-theorem pow_eq (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) : x ^ n = y ^ n → x = y :=
-    begin
-        intro, by_contradiction b,
-        cases (lt_or_gt_of_ne b),
-        { have hn : x ^ n < y ^ n, apply pow_lt x y n h Hxpos Hnpos,
-            apply ne_of_lt hn a },
-        { have hn : y ^ n < x ^ n, apply pow_lt y x n h Hypos Hnpos,
-            apply ne_of_gt hn a },
-    end
 
 theorem exp_mul : ∀ n : ℕ, exp(n*x) = (exp(x))^n
 | 0 := by simp

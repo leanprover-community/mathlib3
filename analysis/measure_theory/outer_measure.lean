@@ -174,7 +174,7 @@ instance : complete_lattice (outer_measure α) :=
 le_antisymm
   (supr_le $ λ ⟨_, i, rfl⟩, le_supr _ i)
   (supr_le $ λ i, le_supr
-    (λ (m : {a : outer_measure α // ∃ i, a = f i}), m.1 s)
+    (λ (m : {a : outer_measure α // ∃ i, f i = a}), m.1 s)
     ⟨f i, i, rfl⟩)
 
 @[simp] theorem sup_apply (m₁ m₂ : outer_measure α) (s : set α) :

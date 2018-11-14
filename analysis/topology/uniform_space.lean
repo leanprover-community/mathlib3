@@ -1101,10 +1101,10 @@ instance : complete_lattice (uniform_space α) :=
 
 lemma supr_uniformity {ι : Sort*} {u : ι → uniform_space α} :
   (supr u).uniformity = (⨅i, (u i).uniformity) :=
-show (⨅a (h : ∃i:ι, a = u i), a.uniformity) = _, from
+show (⨅a (h : ∃i:ι, u i = a), a.uniformity) = _, from
 le_antisymm
   (le_infi $ assume i, infi_le_of_le (u i) $ infi_le _ ⟨i, rfl⟩)
-  (le_infi $ assume a, le_infi $ assume ⟨i, (ha : a = u i)⟩, ha.symm ▸ infi_le _ _)
+  (le_infi $ assume a, le_infi $ assume ⟨i, (ha : u i = a)⟩, ha ▸ infi_le _ _)
 
 lemma sup_uniformity {u v : uniform_space α} :
   (u ⊔ v).uniformity = u.uniformity ⊓ v.uniformity :=

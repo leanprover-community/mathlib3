@@ -8,7 +8,7 @@ Theory of complete lattices.
 import order.bounded_lattice data.set.basic tactic.pi_instances
 
 set_option old_structure_cmd true
-
+open set
 
 namespace lattice
 universes u v w w₂
@@ -23,9 +23,9 @@ def Sup [has_Sup α] : set α → α := has_Sup.Sup
 /-- Infimum of a set -/
 def Inf [has_Inf α] : set α → α := has_Inf.Inf
 /-- Indexed supremum -/
-def supr [has_Sup α] (s : ι → α) : α := Sup {a : α | ∃i : ι, a = s i}
+def supr [has_Sup α] (s : ι → α) : α := Sup (range s)
 /-- Indexed infimum -/
-def infi [has_Inf α] (s : ι → α) : α := Inf {a : α | ∃i : ι, a = s i}
+def infi [has_Inf α] (s : ι → α) : α := Inf (range s)
 
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
 notation `⨅` binders `, ` r:(scoped f, infi f) := r
@@ -42,7 +42,6 @@ class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has
 class complete_linear_order (α : Type u) extends complete_lattice α, linear_order α
 
 section
-open set
 variables [complete_lattice α] {s t : set α} {a b : α}
 
 @[ematch] theorem le_Sup : a ∈ s → a ≤ Sup s := complete_lattice.le_Sup s a
@@ -211,7 +210,6 @@ end complete_linear_order
 /- supr & infi -/
 
 section
-open set
 variables [complete_lattice α] {s t : ι → α} {a b : α}
 
 -- TODO: this declaration gives error when starting smt state
@@ -232,7 +230,7 @@ theorem le_supr_of_le (i : ι) (h : a ≤ s i) : a ≤ supr s :=
 le_trans h (le_supr _ i)
 
 theorem supr_le (h : ∀i, s i ≤ a) : supr s ≤ a :=
-Sup_le $ assume b ⟨i, eq⟩, eq.symm ▸ h i
+Sup_le $ assume b ⟨i, eq⟩, eq ▸ h i
 
 theorem supr_le_supr (h : ∀i, s i ≤ t i) : supr s ≤ supr t :=
 supr_le $ assume i, le_supr_of_le i (h i)
@@ -255,8 +253,8 @@ begin
   ext,
   simp,
   split,
-  exact λ⟨h, W⟩, ⟨pq.1 h, eq.trans W (f (pq.1 h))⟩,
-  exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans W (f h).symm⟩,
+  exact λ⟨h, W⟩, ⟨pq.1 h, eq.trans (f (pq.1 h)).symm W⟩,
+  exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans (f h) W⟩
 end
 
 theorem infi_le (s : ι → α) (i : ι) : infi s ≤ s i :=
@@ -278,7 +276,7 @@ theorem infi_le_of_le (i : ι) (h : s i ≤ a) : infi s ≤ a :=
 le_trans (infi_le _ i) h
 
 theorem le_infi (h : ∀i, a ≤ s i) : a ≤ infi s :=
-le_Inf $ assume b ⟨i, eq⟩, eq.symm ▸ h i
+le_Inf $ assume b ⟨i, eq⟩, eq ▸ h i
 
 theorem infi_le_infi (h : ∀i, s i ≤ t i) : infi s ≤ infi t :=
 le_infi $ assume i, infi_le_of_le i (h i)
@@ -300,8 +298,8 @@ begin
   ext,
   simp,
   split,
-  exact λ⟨h, W⟩, ⟨pq.1 h, eq.trans W (f (pq.1 h))⟩,
-  exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans W (f h).symm⟩,
+  exact λ⟨h, W⟩, ⟨pq.1 h, eq.trans (f (pq.1 h)).symm W⟩,
+  exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans (f h) W⟩
 end
 
 @[simp] theorem infi_const {a : α} : ∀[nonempty ι], (⨅ b:ι, a) = a
@@ -484,7 +482,7 @@ le_antisymm
     (supr_le_supr2 $ assume i, ⟨or.inl i, le_refl _⟩)
     (supr_le_supr2 $ assume j, ⟨or.inr j, le_refl _⟩))
 
-theorem Inf_eq_infi {s : set α} : Inf s = (⨅a ∈ s, a) :=
+theorem Inf_eq_infi {s : set α} : Inf s = (⨅a ∈ s, a) := -- TODO
 le_antisymm
   (le_infi $ assume b, le_infi $ assume h, Inf_le h)
   (le_Inf $ assume b h, infi_le_of_le b $ infi_le _ h)
@@ -494,15 +492,9 @@ le_antisymm
   (Sup_le $ assume b h, le_supr_of_le b $ le_supr _ h)
   (supr_le $ assume b, supr_le $ assume h, le_Sup h)
 
-lemma Sup_range {f : ι → α} : Sup (range f) = supr f :=
-le_antisymm
-  (Sup_le $ forall_range_iff.mpr $ assume i, le_supr _ _)
-  (supr_le $ assume i, le_Sup (mem_range_self _))
+lemma Sup_range {α : Type u} [has_Sup α] {f : ι → α} : Sup (range f) = supr f := rfl
 
-lemma Inf_range {f : ι → α} : Inf (range f) = infi f :=
-le_antisymm
-  (le_infi $ assume i, Inf_le (mem_range_self _))
-  (le_Inf $ forall_range_iff.mpr $ assume i, infi_le _ _)
+lemma Inf_range {α : Type u} [has_Inf α] {f : ι → α} : Inf (range f) = infi f := rfl
 
 lemma supr_range {g : β → α} {f : ι → β} : (⨆b∈range f, g b) = (⨆i, g (f i)) :=
 le_antisymm
@@ -676,10 +668,10 @@ lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
 lemma Sup_Prop_eq {s : set Prop} : Sup s = (∃p ∈ s, p) := rfl
 
 lemma infi_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨅i, p i) = (∀i, p i) :=
-le_antisymm (assume h i, h _ ⟨i, rfl⟩ ) (assume h p ⟨i, eq⟩, eq.symm ▸ h i)
+le_antisymm (assume h i, h _ ⟨i, rfl⟩ ) (assume h p ⟨i, eq⟩, eq ▸ h i)
 
 lemma supr_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨆i, p i) = (∃i, p i) :=
-le_antisymm (assume ⟨q, ⟨i, (eq : q = p i)⟩, hq⟩, ⟨i, eq ▸ hq⟩) (assume ⟨i, hi⟩, ⟨p i, ⟨i, rfl⟩, hi⟩)
+le_antisymm (assume ⟨q, ⟨i, (eq : p i = q)⟩, hq⟩, ⟨i, eq.symm ▸ hq⟩) (assume ⟨i, hi⟩, ⟨p i, ⟨i, rfl⟩, hi⟩)
 
 instance pi.complete_lattice {α : Type u} {β : α → Type v} [∀ i, complete_lattice (β i)] :
   complete_lattice (Π i, β i) :=

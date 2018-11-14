@@ -288,7 +288,7 @@ eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
 @[simp] theorem infi_coe {ι} (p : ι → submodule α β) :
   (↑⨅ i, p i : set β) = ⋂ i, ↑(p i) :=
 by rw [infi, Inf_coe]; ext a; simp; exact
-⟨λ h i, h _ i rfl, λ h i x e, e.symm ▸ h _⟩
+⟨λ h i, h _ i rfl, λ h i x e, e ▸ h _⟩
 
 @[simp] theorem mem_infi {ι} (p : ι → submodule α β) :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=

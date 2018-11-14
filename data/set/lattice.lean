@@ -83,15 +83,15 @@ notation `⋃` binders `, ` r:(scoped f, Union f) := r
 notation `⋂` binders `, ` r:(scoped f, Inter f) := r
 
 @[simp] theorem mem_Union {x : β} {s : ι → set β} : x ∈ Union s ↔ ∃ i, x ∈ s i :=
-⟨assume ⟨t, ⟨⟨a, (t_eq : t = s a)⟩, (h : x ∈ t)⟩⟩, ⟨a, t_eq ▸ h⟩,
+⟨assume ⟨t, ⟨⟨a, (t_eq : s a = t)⟩, (h : x ∈ t)⟩⟩, ⟨a, t_eq.symm ▸ h⟩,
   assume ⟨a, h⟩, ⟨s a, ⟨⟨a, rfl⟩, h⟩⟩⟩
 /- alternative proof: dsimp [Union, supr, Sup]; simp -/
   -- TODO: more rewrite rules wrt forall / existentials and logical connectives
   -- TODO: also eliminate ∃i, ... ∧ i = t ∧ ...
 
 @[simp] theorem mem_Inter {x : β} {s : ι → set β} : x ∈ Inter s ↔ ∀ i, x ∈ s i :=
-⟨assume (h : ∀a ∈ {a : set β | ∃i, a = s i}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
-  assume h t ⟨a, (eq : t = s a)⟩, eq.symm ▸ h a⟩
+⟨assume (h : ∀a ∈ {a : set β | ∃i, s i = a}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
+  assume h t ⟨a, (eq : s a = t)⟩, eq ▸ h a⟩
 
 theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (⋃ i, s i) ⊆ t :=
 -- TODO: should be simpler when sets' order is based on lattices
@@ -101,7 +101,7 @@ theorem Union_subset_iff {α : Sort u} {s : α → set β} {t : set β} : (⋃ i
 ⟨assume h i, subset.trans (le_supr s _) h, Union_subset⟩
 
 theorem mem_Inter_of_mem {α : Sort u} {x : β} {s : α → set β} : (∀ i, x ∈ s i) → (x ∈ ⋂ i, s i) :=
-assume h t ⟨a, (eq : t = s a)⟩, eq.symm ▸ h a
+assume h t ⟨a, (eq : s a = t)⟩, eq ▸ h a
 
 theorem subset_Inter {t : set β} {s : α → set β} (h : ∀ i, t ⊆ s i) : t ⊆ ⋂ i, s i :=
 -- TODO: should be simpler when sets' order is based on lattices

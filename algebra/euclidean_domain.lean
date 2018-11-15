@@ -10,7 +10,7 @@ import data.int.basic
 
 universe u
 
-class euclidean_domain (α : Type u) extends integral_domain α :=
+class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
 (remainder : α → α → α)
  -- This could be changed to the same order as int.mod_add_div.
@@ -210,6 +210,13 @@ by have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
   (by rw [P, mul_one, mul_zero, add_zero]) (by rw [P, mul_one, mul_zero, zero_add]);
 rwa [xgcd_aux_val, xgcd_val] at this
 
+instance (α : Type*) [e : euclidean_domain α] : integral_domain α :=
+by haveI := classical.dec_eq α; exact
+{ eq_zero_or_eq_zero_of_mul_eq_zero :=
+    λ a b (h : a * b = 0), or_iff_not_and_not.2 $ λ h0 : a ≠ 0 ∧ b ≠ 0,
+      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div h0.2], 
+  ..e }
+  
 end gcd
 
 instance : euclidean_domain ℤ :=

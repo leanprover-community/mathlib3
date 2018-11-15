@@ -844,10 +844,20 @@ begin
   exact assume f hf hfs, hc (ht _ hf hfs) hfs
 end
 
+/--Cauchy sequences. Usually defined on ℕ, but often it is also useful to say that a function
+defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that
+is general enough to cover both ℕ and ℝ, which are the main motivating examples.-/
+def cauchy_seq [inhabited β] [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
+
 /-- A complete space is defined here using uniformities. A uniform space
   is complete if every Cauchy filter converges. -/
 class complete_space (α : Type u) [uniform_space α] : Prop :=
 (complete : ∀{f:filter α}, cauchy f → ∃x, f ≤ nhds x)
+
+/--A Cauchy sequence in a complete space converges-/
+theorem cauchy_seq_tendsto_of_complete [inhabited β] [semilattice_sup β] [complete_space α]
+  {u : β → α} (H : cauchy_seq u) : ∃x, tendsto u at_top (nhds x)
+:= complete_space.complete H
 
 theorem le_nhds_lim_of_cauchy {α} [uniform_space α] [complete_space α]
   [inhabited α] {f : filter α} (hf : cauchy f) : f ≤ nhds (lim f) :=
@@ -1091,10 +1101,10 @@ instance : complete_lattice (uniform_space α) :=
 
 lemma supr_uniformity {ι : Sort*} {u : ι → uniform_space α} :
   (supr u).uniformity = (⨅i, (u i).uniformity) :=
-show (⨅a (h : ∃i:ι, a = u i), a.uniformity) = _, from
+show (⨅a (h : ∃i:ι, u i = a), a.uniformity) = _, from
 le_antisymm
   (le_infi $ assume i, infi_le_of_le (u i) $ infi_le _ ⟨i, rfl⟩)
-  (le_infi $ assume a, le_infi $ assume ⟨i, (ha : a = u i)⟩, ha.symm ▸ infi_le _ _)
+  (le_infi $ assume a, le_infi $ assume ⟨i, (ha : u i = a)⟩, ha ▸ infi_le _ _)
 
 lemma sup_uniformity {u v : uniform_space α} :
   (u ⊔ v).uniformity = u.uniformity ⊓ v.uniformity :=

@@ -63,11 +63,10 @@ rfl
 ((whiskering_right C D E).obj F).map_id _
 
 @[simp] lemma whisker_left_vcomp (F : C ⥤ D) {G H K : D ⥤ E} (α : G ⟹ H) (β : H ⟹ K) :
-  whisker_left F (α ⊟ β) = ((whisker_left F α) ⊟ (whisker_left F β)) :=
 rfl
 
 @[simp] lemma whisker_right_vcomp {G H K : C ⥤ D} (α : G ⟹ H) (β : H ⟹ K) (F : D ⥤ E)  :
-  whisker_right (α ⊟ β) F = ((whisker_right α F) ⊟ (whisker_right β F)) :=
+  whisker_right (α ⊟ β) F = (whisker_right α F) ⊟ (whisker_right β F) :=
 ((whiskering_right C D E).obj F).map_comp α β
 
 variables {B : Type u₄} [ℬ : category.{u₄ v₄} B]

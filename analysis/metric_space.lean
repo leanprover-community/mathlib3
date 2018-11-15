@@ -317,23 +317,91 @@ theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ (nhds x
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
 theorem tendsto_nhds_of_metric [metric_space β] {f : α → β} {a b} :
-  tendsto f (nhds a) (nhds b) ↔ ∀ ε > 0,
-    ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
+  tendsto f (nhds a) (nhds b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 ⟨λ H ε ε0, mem_nhds_iff_metric.1 (H (ball_mem_nhds _ ε0)),
  λ H s hs,
   let ⟨ε, ε0, hε⟩ := mem_nhds_iff_metric.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
   mem_nhds_iff_metric.2 ⟨δ, δ0, λ x h, hε (hδ h)⟩⟩
 
 theorem continuous_of_metric [metric_space β] {f : α → β} :
-  continuous f ↔ ∀b (ε > 0), ∃ δ > 0, ∀a,
-    dist a b < δ → dist (f a) (f b) < ε :=
+  continuous f ↔
+    ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=
 continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds_of_metric
 
-theorem exists_delta_of_continuous [metric_space β] {f : α → β} {ε:ℝ}
+theorem exists_delta_of_continuous [metric_space β] {f : α → β} {ε : ℝ}
   (hf : continuous f) (hε : ε > 0) (b : α) :
   ∃ δ > 0, ∀a, dist a b ≤ δ → dist (f a) (f b) < ε :=
 let ⟨δ, δ_pos, hδ⟩ := continuous_of_metric.1 hf b ε hε in
 ⟨δ / 2, half_pos δ_pos, assume a ha, hδ a $ lt_of_le_of_lt ha $ div_two_lt_of_pos δ_pos⟩
+
+theorem tendsto_nhds_topo_metric {f : filter β} {u : β → α} {a : α} :
+  tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f.sets, ∀x ∈ n,  dist (u x) a < ε :=
+⟨λ H ε ε0, ⟨u⁻¹' (ball a ε), H (ball_mem_nhds _ ε0), by simp⟩,
+ λ H s hs,
+  let ⟨ε, ε0, hε⟩ := mem_nhds_iff_metric.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
+  f.sets_of_superset δ0 (λx xδ, hε (hδ x xδ))⟩
+
+theorem continuous_topo_metric [topological_space β] {f : β → α} :
+  continuous f ↔ ∀a (ε > 0), ∃ n ∈ (nhds a).sets, ∀b ∈ n, dist (f b) (f a) < ε :=
+continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds_topo_metric
+
+theorem tendsto_at_top_metric [inhabited β] [semilattice_sup β] (u : β → α) {a : α} :
+  tendsto u at_top (nhds a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
+begin
+  rw tendsto_nhds_topo_metric,
+  apply forall_congr,
+  intro ε,
+  apply forall_congr,
+  intro hε,
+  simp,
+  exact ⟨λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩, λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩,
+end
+
+section cauchy_seq
+variables [inhabited β] [semilattice_sup β]
+
+/--In a metric space, Cauchy sequences are characterized by the fact that, eventually,
+the distance between its elements is arbitrarily small-/
+theorem cauchy_seq_metric {u : β → α} :
+  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, dist (u n) (u m) < ε :=
+begin
+  unfold cauchy_seq,
+  rw cauchy_of_metric,
+  simp,
+  split,
+  { intros H ε εpos,
+    rcases H ε εpos with ⟨t, ⟨N, hN⟩, ht⟩,
+    exact ⟨N, λm n hm hn, ht _ _ (hN _ hn) (hN _ hm)⟩ },
+  { intros H ε εpos,
+    rcases H (ε/2) (half_pos εpos) with ⟨N, hN⟩,
+    existsi ball (u N) (ε/2),
+    split,
+    { exact ⟨N, λx hx, hN _ _ (le_refl N) hx⟩ },
+    { exact λx y hx hy, calc
+        dist x y ≤ dist x (u N) + dist y (u N) : dist_triangle_right _ _ _
+        ... < ε/2 + ε/2 : add_lt_add hx hy
+        ... = ε : add_halves _ } }
+end
+
+/--A variation around the metric characterization of Cauchy sequences-/
+theorem cauchy_seq_metric' {u : β → α} :
+  cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
+begin
+  rw cauchy_seq_metric,
+  split,
+  { intros H ε εpos,
+    rcases H ε εpos with ⟨N, hN⟩,
+    exact ⟨N, λn hn, hN _ _ (le_refl N) hn⟩ },
+  { intros H ε εpos,
+    rcases H (ε/2) (half_pos εpos) with ⟨N, hN⟩,
+    exact ⟨N, λ m n hm hn, calc
+       dist (u n) (u m) ≤ dist (u n) (u N) + dist (u m) (u N) : dist_triangle_right _ _ _
+                    ... < ε/2 + ε/2 : add_lt_add (hN _ hn) (hN _ hm)
+                    ... = ε : add_halves _⟩ }
+end
+
+end cauchy_seq
 
 theorem eq_of_forall_dist_le {x y : α} (h : ∀ε, ε > 0 → dist x y ≤ ε) : x = y :=
 eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
@@ -402,15 +470,15 @@ begin
 end
 
 theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
-by have h := @uniformity_edist' α _; simpa [infi_subtype] using h
+by simpa [infi_subtype] using @uniformity_edist' α _
 
 /--A metric space induces an emetric space-/
 instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α :=
-{ edist_self := by simp [edist_dist],
+{ edist_self          := by simp [edist_dist],
   eq_of_edist_eq_zero := assume x y h,
-  by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
-  edist_comm := by simp only [edist_dist, dist_comm]; simp,
-  edist_triangle := assume x y z,
+    by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
+  edist_comm          := by simp only [edist_dist, dist_comm]; simp,
+  edist_triangle      := assume x y z,
   begin
     rw [edist_dist, edist_dist, edist_dist, ← ennreal.coe_add, ennreal.coe_le_coe,
         nnreal.of_real_add_of_real (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z),
@@ -418,7 +486,7 @@ instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α 
           add_nonneg (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z)],
     apply dist_triangle x y z
   end,
-  uniformity_edist := uniformity_edist,
+  uniformity_edist    := uniformity_edist,
   ..a }
 
 /-- Instantiate the reals as a metric space. -/
@@ -628,6 +696,28 @@ instance metric_space_pi : metric_space (Πb, π b) :=
   by unfold dist; simp; simp only [(nndist_eq_edist _ _).symm, A] }
 
 end pi
+
+section first_countable
+
+instance metric_space.first_countable_topology (α : Type u) [metric_space α] :
+  first_countable_topology α :=
+⟨assume a, ⟨⋃ i:ℕ, {ball a (i + 1 : ℝ)⁻¹},
+  countable_Union $ assume n, countable_singleton _,
+  suffices (⨅ i:{ i : ℝ // i > 0}, principal (ball a i)) = ⨅ (n : ℕ), principal (ball a (↑n + 1)⁻¹),
+    by simpa [nhds_eq_metric, @infi_comm _ _ ℕ],
+  begin
+    apply le_antisymm,
+    { refine le_infi (assume n, infi_le_of_le _ _),
+      exact ⟨(n + 1)⁻¹, inv_pos $ add_pos_of_nonneg_of_pos (nat.cast_nonneg n) zero_lt_one⟩,
+      exact le_refl _ },
+    refine le_infi (assume ε, _),
+    rcases exists_nat_gt (ε:ℝ)⁻¹ with ⟨_ | n, εn⟩,
+    { exact (lt_irrefl (0:ℝ) $ lt_trans (inv_pos ε.2) εn).elim },
+    refine infi_le_of_le n (principal_mono.2 $ ball_subset_ball $ _),
+    exact (inv_le ε.2 $ add_pos_of_nonneg_of_pos (nat.cast_nonneg n) zero_lt_one).1 (le_of_lt εn)
+  end⟩⟩
+
+end first_countable
 
 section second_countable
 

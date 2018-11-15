@@ -109,7 +109,7 @@ end
 
 theorem supported_union (s t : set β) :
   supported (s ∪ t) = supported s ⊔ supported t :=
-by rw [set.union_eq_Union, supported_Union, supr_bool_eq]; refl
+by erw [set.union_eq_Union, supported_Union, supr_bool_eq]; refl
 
 theorem supported_Inter {ι : Type*} (s : ι → set β) :
   supported (⋂ i, s i) = ⨅ i, supported (s i) :=

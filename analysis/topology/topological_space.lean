@@ -105,7 +105,7 @@ lemma is_closed_sInter {s : set (set α)} : (∀t ∈ s, is_closed t) → is_clo
 by simp only [is_closed, compl_sInter, sUnion_image]; exact assume h, is_open_Union $ assume t, is_open_Union $ assume ht, h t ht
 
 lemma is_closed_Inter {f : ι → set α} (h : ∀i, is_closed (f i)) : is_closed (⋂i, f i ) :=
-is_closed_sInter $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
+is_closed_sInter $ assume t ⟨i, (heq : f i = t)⟩, heq ▸ h i
 
 @[simp] lemma is_open_compl_iff {s : set α} : is_open (-s) ↔ is_closed s := iff.rfl
 

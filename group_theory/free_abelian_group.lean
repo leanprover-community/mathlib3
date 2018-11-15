@@ -26,9 +26,6 @@ namespace free_abelian_group
 def of (x : α) : free_abelian_group α :=
 abelianization.of $ free_group.of x
 
-instance : has_coe α (free_abelian_group α) :=
-⟨of⟩
-
 def lift {β : Type v} [add_comm_group β] (f : α → β) (x : free_abelian_group α) : β :=
 @abelianization.lift _ _ (multiplicative β) _ (@free_group.to_group _ (multiplicative β) _ f) _ x
 
@@ -38,8 +35,6 @@ open free_abelian_group
 
 instance is_add_group_hom : is_add_group_hom (lift f) :=
 ⟨λ x y, @is_group_hom.mul _ (multiplicative β) _ _ _ (abelianization.lift.is_group_hom _) x y⟩
-
-local attribute [instance] lift.is_add_group_hom
 
 @[simp] protected lemma add (x y : free_abelian_group α) :
   lift f (x + y) = lift f x + lift f y :=
@@ -57,9 +52,6 @@ is_add_group_hom.zero _
 
 @[simp] protected lemma of (x : α) : lift f (of x) = f x :=
 by unfold of; unfold lift; simp
-
-@[simp] protected lemma coe (x : α) : lift f ↑x = f x :=
-lift.of f x
 
 protected theorem unique (g : free_abelian_group α → β) [is_add_group_hom g]
   (hg : ∀ x, g (of x) = f x) {x} :

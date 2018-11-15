@@ -1212,6 +1212,9 @@ by rw reverse_reverse l at t; rwa t
 | []     := rfl
 | (x::l) := by simp only [foldr_cons, foldr_eta l]; split; refl
 
+@[simp] theorem reverse_foldl {l : list α} : reverse (foldl (λ t h, h :: t) [] l) = l :=
+by rw ←foldr_reverse; simp
+
 /-- Fold a function `f` over the list from the left, returning the list
   of partial results. `scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]` -/
 def scanl (f : α → β → α) : α → list β → list α
@@ -1283,6 +1286,35 @@ lemma foldl_assoc_comm_cons {l : list α} {a₁ a₂} : (a₁ :: l) <*> a₂ = a
 by rw [foldl_cons, hc.comm, foldl_assoc]
 
 end
+
+/- mfoldl, mfoldr -/
+
+section mfoldl_mfoldr
+variables {m : Type v → Type w} [monad m]
+
+@[simp] theorem mfoldl_nil (f : β → α → m β) {b} : mfoldl f b [] = pure b := rfl
+
+@[simp] theorem mfoldr_nil (f : α → β → m β) {b} : mfoldr f b [] = pure b := rfl
+
+@[simp] theorem mfoldl_cons {f : β → α → m β} {b a l} :
+  mfoldl f b (a :: l) = f b a >>= λ b', mfoldl f b' l := rfl
+
+@[simp] theorem mfoldr_cons {f : α → β → m β} {b a l} :
+  mfoldr f b (a :: l) = mfoldr f b l >>= f a := rfl
+
+variables [is_lawful_monad m]
+
+@[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},
+  mfoldl f b (l₁ ++ l₂) = mfoldl f b l₁ >>= λ x, mfoldl f x l₂
+| _ []     _ := by simp only [nil_append, mfoldl_nil, pure_bind]
+| _ (_::_) _ := by simp only [cons_append, mfoldl_cons, mfoldl_append, bind_assoc]
+
+@[simp] theorem mfoldr_append {f : α → β → m β} : ∀ {b l₁ l₂},
+  mfoldr f b (l₁ ++ l₂) = mfoldr f b l₂ >>= λ x, mfoldr f x l₁
+| _ []     _ := by simp only [nil_append, mfoldr_nil, bind_pure]
+| _ (_::_) _ := by simp only [mfoldr_cons, cons_append, mfoldr_append, bind_assoc]
+
+end mfoldl_mfoldr
 
 /- sum -/
 
@@ -4111,6 +4143,30 @@ theorem tfae.out {l} (h : tfae l) (n₁ n₂)
 h _ (list.nth_le_mem _ _ _) _ (list.nth_le_mem _ _ _)
 
 end tfae
+
+section choose
+variables (p : α → Prop) [decidable_pred p] (l : list α)
+
+def choose_x : Π l : list α, Π hp : (∃ a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a }
+| [] hp := false.elim (exists.elim hp (assume a h, not_mem_nil a h.left))
+| (l :: ls) hp := if pl : p l then ⟨l, ⟨or.inl rfl, pl⟩⟩ else
+subtype.rec_on (choose_x ls
+  begin
+    rcases hp with ⟨a, rfl | a_mem_ls, pa⟩,
+    { exfalso; apply pl pa },
+    { exact ⟨a, a_mem_ls, pa⟩ }
+  end) (λ a ⟨a_mem_ls, pa⟩, ⟨a, ⟨or.inr a_mem_ls, pa⟩⟩)
+
+def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
+
+lemma choose_spec (hp : ∃ a, a ∈ l ∧ p a) : choose p l hp ∈ l ∧ p (choose p l hp) :=
+(choose_x p l hp).property
+
+lemma choose_mem (hp : ∃ a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose_spec _ _ _).1
+
+lemma choose_property (hp : ∃ a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
+
+end choose
 
 end list
 

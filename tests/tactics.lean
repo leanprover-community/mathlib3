@@ -5,7 +5,8 @@ Authors: Simon Hudon, Scott Morrison
 -/
 import tactic data.set.lattice data.prod data.vector
        tactic.rewrite data.stream.basic
-       tactic.tfae
+       tactic.tfae tactic.converter.interactive
+       tactic.ring tactic.ring2
 
 section tauto₀
 variables p q r : Prop
@@ -53,13 +54,12 @@ example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : q) : �
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) : p := by tauto
 example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) (h'' : ¬ p) : false := by tauto
 example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) (h'' : ¬ r) : ¬ p := by tauto
-example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
-by tauto
-example (p q r : Prop) [decidable p] [decidable q] [decidable r] (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto
+example (p q r : Prop) (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
+by tauto!
+example (p q r : Prop) (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto!
 
 section modulo_symmetry
-variables {p q r : Prop} {α : Type} {x y : α} [decidable_eq α]
-variables [decidable p] [decidable q] [decidable r]
+variables {p q r : Prop} {α : Type} {x y : α}
 variables (h : x = y)
 variables (h'' : (p ∧ q ↔ q ∨ r) ↔ (r ∧ p ↔ r ∨ q))
 include h
@@ -227,7 +227,7 @@ begin
       change list.nil = L₃ at H,
       admit },
     case list.cons
-    { change hd :: tl = L₃ at H,
+    { change list.cons hd tl = L₃ at H,
       admit } },
   trivial
 end
@@ -650,3 +650,80 @@ end assoc_rw
 -- end
 
 -- end tfae
+
+section conv
+
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs {erw [add_zero]}
+end
+
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs {simp}
+end
+
+example : 0 = 0 + 0 :=
+begin
+  conv_rhs {simp}
+end
+
+-- Example with ring discharging the goal
+example : 22 + 7 * 4 + 3 * 8 = 0 + 7 * 4 + 46 :=
+begin
+  conv { ring, },
+end
+
+-- Example with ring failing to discharge, to normalizing the goal
+example : (22 + 7 * 4 + 3 * 8 = 0 + 7 * 4 + 47) = (74 = 75) :=
+begin
+  conv { ring, },
+end
+
+-- Example with ring discharging the goal
+example (x : ℕ) : 22 + 7 * x + 3 * 8 = 0 + 7 * x + 46 :=
+begin
+  conv { ring, },
+end
+
+-- Example with ring failing to discharge, to normalizing the goal
+example (x : ℕ) : (22 + 7 * x + 3 * 8 = 0 + 7 * x + 46 + 1)
+                    = (7 * x + 46 = 7 * x + 47) :=
+begin
+  conv { ring, },
+end
+
+-- norm_num examples:
+example : 22 + 7 * 4 + 3 * 8 = 74 :=
+begin
+  conv { norm_num, },
+end
+
+example (x : ℕ) : 22 + 7 * x + 3 * 8 = 7 * x + 46 :=
+begin
+  conv { norm_num, },
+end
+
+end conv
+
+private meta def get_exception_message (t : lean.parser unit) : lean.parser string
+| s := match t s with
+       | result.success a s' := result.success "No exception" s
+       | result.exception none pos s' := result.success "Exception no msg" s
+       | result.exception (some msg) pos s' := result.success (msg ()).to_string s
+       end
+
+@[user_command] meta def test_parser1_fail_cmd
+(_ : interactive.parse (lean.parser.tk "test_parser1")) : lean.parser unit :=
+do
+  let msg := "oh, no!",
+  let t : lean.parser unit := tactic.fail msg,
+  s ← get_exception_message t,
+  if s = msg then tactic.skip
+  else interaction_monad.fail "Message was corrupted while being passed through `lean.parser.of_tactic`"
+.
+
+-- Due to `lean.parser.of_tactic'` priority, the following *should not* fail with
+-- a VM check error, and instead catch the error gracefully and just
+-- run and succeed silently.
+test_parser1

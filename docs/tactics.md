@@ -551,3 +551,36 @@ Known limitation(s):
     `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
     It is likely that none of the suggestion is a good replacement but they can all be
     combined by concatenating their list of lemmas.
+
+## fin_cases
+Performs cases analysis on a `fin n` hypothesis. As an example, in
+```
+example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
+begin
+  fin_cases p,
+  all_goals { assumption }
+end
+```
+after `fin_cases p`, there are three goals, `f 0`, `f 1`, and `f 2`.
+
+## conv
+The `conv` tactic is built-in to lean. Currently mathlib additionally provides
+   * `erw`,
+   * `ring` and `ring2`, and
+   * `norm_num`
+inside `conv` blocks. Also, as a shorthand `conv_lhs` and `conv_rhs`
+are provided, so that
+```
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs {simp}
+end
+```
+just means
+```
+example : 0 + 0 = 0 :=
+begin
+  conv {to_lhs, simp}
+end
+```
+and likewise for `to_rhs`.

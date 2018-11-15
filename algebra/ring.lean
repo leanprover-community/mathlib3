@@ -141,6 +141,13 @@ section comm_ring
 
   @[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
   ⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
+
+  theorem dvd_add_left {a b c : α} (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
+  (dvd_add_iff_left h).symm
+
+  theorem dvd_add_right {a b c : α} (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
+  (dvd_add_iff_right h).symm
+
 end comm_ring
 
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=

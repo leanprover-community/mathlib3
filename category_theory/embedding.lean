@@ -12,8 +12,8 @@ variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 
 include 𝒞 𝒟
 
 class full (F : C ⥤ D) :=
-(preimage : ∀ {X Y : C} (f : (F X) ⟶ (F Y)), X ⟶ Y)
-(witness'  : ∀ {X Y : C} (f : (F X) ⟶ (F Y)), F.map (preimage f) = f . obviously)
+(preimage : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), X ⟶ Y)
+(witness'  : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), F.map (preimage f) = f . obviously)
 
 restate_axiom full.witness'
 attribute [simp] full.witness
@@ -27,21 +27,21 @@ namespace functor
 def injectivity (F : C ⥤ D) [faithful F] {X Y : C} {f g : X ⟶ Y} (p : F.map f = F.map g) : f = g :=
 faithful.injectivity F p
 
-def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F X ⟶ F Y) : X ⟶ Y := full.preimage.{u₁ v₁ u₂ v₂}  f
-@[simp] lemma image_preimage (F : C ⥤ D) [full F] {X Y : C} (f : F X ⟶ F Y) : F.map (preimage F f) = f := begin unfold preimage, obviously end
+def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y := full.preimage.{u₁ v₁ u₂ v₂}  f
+@[simp] lemma image_preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : F.map (preimage F f) = f := begin unfold preimage, obviously end
 end functor
 
 
 section
 variables {F : C ⥤ D} [full F] [faithful F] {X Y : C}
-def preimage_iso (f : (F X) ≅ (F Y)) : X ≅ Y := 
-{ hom := F.preimage (f : F X ⟶ F Y),
-  inv := F.preimage (f.symm : F Y ⟶ F X),
+def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
+{ hom := F.preimage f.hom,
+  inv := F.preimage f.inv,
   hom_inv_id' := begin apply @faithful.injectivity _ _ _ _ F, obviously, end,
   inv_hom_id' := begin apply @faithful.injectivity _ _ _ _ F, obviously, end, }
 
-@[simp] lemma preimage_iso_coe (f : (F X) ≅ (F Y)) : ((preimage_iso f) : X ⟶ Y) = F.preimage (f : F X ⟶ F Y) := rfl
-@[simp] lemma preimage_iso_symm_coe (f : (F X) ≅ (F Y)) : ((preimage_iso f).symm : Y ⟶ X) = F.preimage (f.symm : F Y ⟶ F X) := rfl
+@[simp] lemma preimage_iso_hom (f : (F.obj X) ≅ (F.obj Y)) : (preimage_iso f).hom = F.preimage f.hom := rfl
+@[simp] lemma preimage_iso_inv (f : (F.obj X) ≅ (F.obj Y)) : (preimage_iso f).inv = F.preimage (f.inv) := rfl
 end
 
 class embedding (F : C ⥤ D) extends (full F), (faithful F).
@@ -63,7 +63,7 @@ variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ :
 include 𝒟 ℰ
 variables (F : C ⥤ D) (G : D ⥤ E)
 
-instance faithful.comp [faithful F] [faithful G] : faithful (F ⋙ G) := 
+instance faithful.comp [faithful F] [faithful G] : faithful (F ⋙ G) :=
 { injectivity' := λ _ _ _ _ p, F.injectivity (G.injectivity p) }
 instance full.comp [full F] [full G] : full (F ⋙ G) :=
 { preimage := λ _ _ f, F.preimage (G.preimage f) }

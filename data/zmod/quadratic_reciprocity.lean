@@ -27,7 +27,7 @@ hp.eq_two_or_odd.elim
     ⟨λ ⟨y, hy⟩, by rw [← hy, ← pow_mul, two_mul_odd_div_two hp1,
         ← card_units_zmodp hp, pow_card_eq_one],
     λ hx, have 2 * (p / 2) ∣ n * (p / 2),
-        by rw [two_mul_odd_div_two hp1, ← card_units_zmodp hp, ← order_of_eq_card_of_forall_mem_gppowers hg];
+        by rw [two_mul_odd_div_two hp1, ← card_units_zmodp hp, ← order_of_eq_card_of_forall_mem_gpowers hg];
         exact order_of_dvd_of_pow_eq_one (by rwa [pow_mul, hn]),
       let ⟨m, hm⟩ := dvd_of_mul_dvd_mul_right (nat.div_pos hp.ge_two dec_trivial) this in
       ⟨g ^ m, by rwa [← pow_mul, mul_comm, ← hm]⟩⟩)

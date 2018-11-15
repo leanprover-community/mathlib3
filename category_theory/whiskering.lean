@@ -8,62 +8,62 @@ namespace category_theory
 
 universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
 
-variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] 
-          (D : Type u₂) [𝒟 : category.{u₂ v₂} D] 
+variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
+          (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
           (E : Type u₃) [ℰ : category.{u₃ v₃} E]
 include 𝒞 𝒟 ℰ
 
-def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) := 
+def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
 { obj := λ F,
   { obj := λ G, F ⋙ G,
-    map' := λ G H α,
-    { app := λ c, α (F c),
+    map := λ G H α,
+    { app := λ c, α.app (F.obj c),
       naturality' := by intros X Y f; rw [functor.comp_map, functor.comp_map, α.naturality] } },
-  map' := λ F G τ, 
+  map := λ F G τ,
   { app := λ H,
-    { app := λ c, H.map (τ c), 
+    { app := λ c, H.map (τ.app c),
       naturality' := begin intros X Y f, dsimp at *, rw [←H.map_comp, ←H.map_comp, ←τ.naturality] end },
     naturality' := begin intros X Y f, ext1, dsimp at *, rw [←nat_trans.naturality] end } }
 
 def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
 { obj := λ H,
   { obj := λ F, F ⋙ H,
-    map' := λ _ _ α,
-    { app := λ c, H.map (α c),
+    map := λ _ _ α,
+    { app := λ c, H.map (α.app c),
       naturality' := by intros X Y f;
         rw [functor.comp_map, functor.comp_map, ←H.map_comp, ←H.map_comp, α.naturality] } },
-  map' := λ G H τ, 
-  { app := λ F, 
-    { app := λ c, τ (F c),
+  map := λ G H τ,
+  { app := λ F,
+    { app := λ c, τ.app (F.obj c),
       naturality' := begin intros X Y f, dsimp at *, rw [τ.naturality] end },
     naturality' := begin intros X Y f, ext1, dsimp at *, rw [←nat_trans.naturality] end } }
 
 variables {C} {D} {E}
 
 def whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟹ H) : (F ⋙ G) ⟹ (F ⋙ H) :=
-((whiskering_left C D E) F).map α
+((whiskering_left C D E).obj F).map α
 
-@[simp] lemma whisker_left.app (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟹ H) (X : C) : 
-  (whisker_left F α) X = α (F X) := 
+@[simp] lemma whisker_left.app (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟹ H) (X : C) :
+  (whisker_left F α).app X = α.app (F.obj X) :=
 rfl
 
-def whisker_right {G H : C ⥤ D} (α : G ⟹ H) (F : D ⥤ E) : (G ⋙ F) ⟹ (H ⋙ F) := 
-((whiskering_right C D E) F).map α
+def whisker_right {G H : C ⥤ D} (α : G ⟹ H) (F : D ⥤ E) : (G ⋙ F) ⟹ (H ⋙ F) :=
+((whiskering_right C D E).obj F).map α
 
 @[simp] lemma whisker_right.app {G H : C ⥤ D} (α : G ⟹ H) (F : D ⥤ E) (X : C) :
-   (whisker_right α F) X = F.map (α X) := 
+   (whisker_right α F).app X = F.map (α.app X) :=
 rfl
 
-@[simp] lemma whisker_left_vcomp (F : C ⥤ D) {G H K : D ⥤ E} (α : G ⟹ H) (β : H ⟹ K) : 
+@[simp] lemma whisker_left_vcomp (F : C ⥤ D) {G H K : D ⥤ E} (α : G ⟹ H) (β : H ⟹ K) :
   whisker_left F (α ⊟ β) = ((whisker_left F α) ⊟ (whisker_left F β)) :=
-((whiskering_left C D E) F).map_comp α β
+((whiskering_left C D E).obj F).map_comp α β
 
-@[simp] lemma whisker_right_vcomp {G H K : C ⥤ D} (α : G ⟹ H) (β : H ⟹ K) (F : D ⥤ E)  : 
+@[simp] lemma whisker_right_vcomp {G H K : C ⥤ D} (α : G ⟹ H) (β : H ⟹ K) (F : D ⥤ E)  :
   whisker_right (α ⊟ β) F = ((whisker_right α F) ⊟ (whisker_right β F)) :=
-((whiskering_right C D E) F).map_comp α β
+((whiskering_right C D E).obj F).map_comp α β
 
 variables {B : Type u₄} [ℬ : category.{u₄ v₄} B]
-include ℬ 
+include ℬ
 
 local attribute [elab_simple] whisker_left whisker_right
 

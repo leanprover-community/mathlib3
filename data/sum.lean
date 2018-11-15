@@ -26,6 +26,10 @@ end⟩
 
 namespace sum
 
+protected def map {α α' β β'} (f : α → α') (g : β → β')  : α ⊕ β → α' ⊕ β'
+| (sum.inl x) := sum.inl (f x)
+| (sum.inr x) := sum.inr (g x)
+
 @[simp] theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
 ⟨inl.inj, congr_arg _⟩
 
@@ -81,10 +85,6 @@ section
   ⟨λ x, sum.rec_on x aca (λ b, lex_acc_inr aca (hb.apply b))⟩
 
 end
-
-@[simp] def map {α' β'} (f : α → α') (g : β → β') : α ⊕ β → α' ⊕ β'
-| (sum.inl l) := sum.inl $ f l
-| (sum.inr r) := sum.inr $ g r
 
 /-- Swap the factors of a sum type -/
 @[simp] def swap : α ⊕ β → β ⊕ α

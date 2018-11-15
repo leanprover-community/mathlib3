@@ -281,15 +281,22 @@ theorem add_lim_zero {f g : cau_seq β abv}
   λ i H j ij, let ⟨H₁, H₂⟩ := H _ ij in
     by simpa [add_halves ε] using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add H₁ H₂)
 
-theorem mul_lim_zero (f : cau_seq β abv) {g}
+theorem mul_lim_zero_right (f : cau_seq β abv) {g}
   (hg : lim_zero g) : lim_zero (f * g)
 | ε ε0 := let ⟨F, F0, hF⟩ := f.bounded' 0 in
   (hg _ $ div_pos ε0 F0).imp $ λ i H j ij,
   by have := mul_lt_mul' (le_of_lt $ hF j) (H _ ij) (abv_nonneg abv _) F0;
      rwa [mul_comm F, div_mul_cancel _ (ne_of_gt F0), ← abv_mul abv] at this
 
+theorem mul_lim_zero_left {f} (g : cau_seq β abv)
+  (hg : lim_zero f) : lim_zero (f * g)
+| ε ε0 := let ⟨G, G0, hG⟩ := g.bounded' 0 in
+  (hg _ $ div_pos ε0 G0).imp $ λ i H j ij,
+  by have := mul_lt_mul'' (H _ ij) (hG j) (abv_nonneg abv _) (abv_nonneg abv _);
+     rwa [div_mul_cancel _ (ne_of_gt G0), ← abv_mul abv] at this
+
 theorem neg_lim_zero {f : cau_seq β abv} (hf : lim_zero f) : lim_zero (-f) :=
-by rw ← neg_one_mul; exact mul_lim_zero _ hf
+by rw ← neg_one_mul; exact mul_lim_zero_right _ hf
 
 theorem sub_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f - g) :=
@@ -358,7 +365,7 @@ hf this
 
 lemma mul_equiv_zero  (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : g * f ≈ 0 :=
 have lim_zero (f - 0), from hf,
-have lim_zero (g*f), from mul_lim_zero _ $ by simpa,
+have lim_zero (g*f), from mul_lim_zero_right _ $ by simpa,
 show lim_zero (g*f - 0), by simpa
 
 lemma mul_not_equiv_zero {f g : cau_seq _ abv} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) : ¬ (f * g) ≈ 0 :=
@@ -382,6 +389,9 @@ begin
     { apply le_of_lt ha2 },
     { apply is_absolute_value.abv_nonneg abv }
 end
+
+theorem const_equiv {x y : β} : const x ≈ const y ↔ x = y :=
+show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
 
 end ring
 
@@ -548,9 +558,6 @@ theorem le_total (f g : cau_seq α abs) : f ≤ g ∨ g ≤ f :=
 
 theorem const_lt {x y : α} : const x < const y ↔ x < y :=
 show pos _ ↔ _, by rw [← const_sub, const_pos, sub_pos]
-
-theorem const_equiv {x y : α} : const x ≈ const y ↔ x = y :=
-show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
 
 theorem const_le {x y : α} : const x ≤ const y ↔ x ≤ y :=
 by rw le_iff_lt_or_eq; exact or_congr const_lt const_equiv

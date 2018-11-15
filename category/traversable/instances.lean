@@ -11,14 +11,12 @@ import data.list.basic data.set.lattice
 
 universes u v
 
-open function
-
 instance : traversable id := ⟨λ _ _ _ _, id⟩
 instance : is_lawful_traversable id := by refine {..}; intros; refl
 
 section option
 
-open function functor
+open functor
 
 section inst
 

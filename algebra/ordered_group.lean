@@ -221,8 +221,7 @@ instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
-lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b :=
-rfl
+lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { ..@additive.add_comm_semigroup _ $
@@ -322,6 +321,8 @@ begin
     simp at h,
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
+
+@[simp] lemma coe_zero [add_monoid α] : ((0 : α) : with_bot α) = 0 := rfl
 
 @[simp] lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
 

@@ -370,7 +370,7 @@ end group
 
 @[simp] lemma with_bot.coe_smul [add_monoid α] (a : α) (n : ℕ) :
   ((add_monoid.smul n a : α) : with_bot α) = add_monoid.smul n a :=
-by induction n; simp [*, succ_smul]
+by induction n; simp [*, succ_smul]; refl
 
 theorem add_monoid.smul_eq_mul' [semiring α] (a : α) (n : ℕ) : n • a = a * n :=
 by induction n with n ih; [rw [add_monoid.zero_smul, nat.cast_zero, mul_zero],

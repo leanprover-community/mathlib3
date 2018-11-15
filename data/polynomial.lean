@@ -699,10 +699,9 @@ else with_bot.coe_le_coe.1 $
         ≤ degree (C (coeff p n)) + degree (q ^ n) : degree_mul_le _ _
     ... ≤ nat_degree (C (coeff p n)) + add_monoid.smul n (degree q) :
       add_le_add' degree_le_nat_degree (degree_pow_le _ _)
-    ... ≤ nat_degree (C (coeff p n)) + add_monoid.smul n (nat_degree q) : begin
-      convert add_le_add_left' (add_monoid.smul_le_smul_of_le_right
-        (@degree_le_nat_degree _ _ _ q) n); admit
-    end
+    ... ≤ nat_degree (C (coeff p n)) + add_monoid.smul n (nat_degree q) :
+      add_le_add_left' (add_monoid.smul_le_smul_of_le_right
+        (@degree_le_nat_degree _ _ _ q) n)
     ... = (n * nat_degree q : ℕ) :
      by rw [nat_degree_C, with_bot.coe_zero, zero_add, ← with_bot.coe_smul,
        add_monoid.smul_eq_mul]; simp

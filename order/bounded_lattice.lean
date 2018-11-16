@@ -313,10 +313,16 @@ by rw [← option.some.inj_eq a b]; refl
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
 
+@[simp] theorem some_lt_some [has_lt α] {a b : α} :
+  @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
+by simp [(<)]
+
 instance partial_order [partial_order α] : partial_order (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
-  lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b,
-  lt_iff_le_not_le := by intros; cases a; cases b; simp [lt_iff_le_not_le]; split; refl,
+  lt          := (<),
+  lt_iff_le_not_le := by intros; cases a; cases b;
+                         simp [lt_iff_le_not_le]; simp [(<)];
+                         split; refl,
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
     let ⟨b, hb, ab⟩ := h₁ a ha, ⟨c, hc, bc⟩ := h₂ b hb in
@@ -345,10 +351,6 @@ instance order_bot [partial_order α] : order_bot (with_bot α) :=
 theorem coe_le [partial_order α] {a b : α} :
   ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b)
 | _ rfl := coe_le_coe
-
-@[simp] theorem some_lt_some [has_lt α] {a b : α} :
-  @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
-by simp [(<)]
 
 lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
 

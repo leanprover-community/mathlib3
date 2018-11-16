@@ -181,7 +181,6 @@ instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_orde
 instance [decidable_linear_order α] :
  decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
 
-/- new comment -/
 def ordered_comm_monoid [ordered_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_comm_monoid (with_zero α) :=
 begin

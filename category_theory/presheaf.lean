@@ -76,6 +76,11 @@ instance category_of_elements.category : category (category_of_elements X) :=
 def category_of_elements.forget : category_of_elements X ⥤ C :=
 { obj := λ a, a.c, map := λ a b f, f.1 }
 
+variables {X} {Y : presheaf C}
+def category_of_elements.map (g : X ⟶ Y) : category_of_elements X ⥤ category_of_elements Y :=
+{ obj := λ a, ⟨a.c, a.e ⊟ g⟩,
+  map := λ a b f, ⟨f, by cases f with f₁ f₂; dsimp; rw f₂; simp⟩ }
+
 end category_of_elements
 
 section extension
@@ -171,6 +176,34 @@ adjunction.left_adjoint_of_equiv (yoneda_extension_e F) (yoneda_extension_e_natu
 
 def yoneda_extension_adj : adjunction (yoneda_extension F) (restricted_yoneda F) :=
 by apply adjunction.adjunction_of_equiv_left
+
+def yoneda_extension_map {X Y} (g : X ⟶ Y) : yoneda_extension_obj F X ⟶ yoneda_extension_obj F Y :=
+colimit.pre ((category_of_elements.forget Y).comp F) (category_of_elements.map g)
+
+lemma yoneda_extension_e_natural' (X Y Z) (g : X ⟶ Y) (h) :
+  (yoneda_extension_e F X Z).to_fun (yoneda_extension_map F g ≫ h) =
+  g ≫ (yoneda_extension_e F Y Z).to_fun h :=
+begin
+  ext c' f,
+  dsimp [yoneda_extension_e, equiv.trans, equiv.subtype_equiv_subtype, equiv.subtype_equiv_of_subtype,
+    equiv.Pi_congr_right, equiv.arrow_congr, is_colimit.equiv],
+  dsimp [yoneda_extension_map], rw ←category.assoc,
+  erw colimit.ι_pre (category_of_elements.forget Y ⋙ F) (category_of_elements.map g),
+  dsimp [category_of_elements.map],
+  congr,
+  rw equiv.eq_symm_apply,
+  convert ←yoneda_equiv_nat' _ _,
+  exact (yoneda_equiv X).right_inv f
+end
+
+lemma yoneda_extension_map_eq {X Y} {g : X ⟶ Y} :
+  (yoneda_extension F).map g = yoneda_extension_map F g :=
+begin
+  dsimp [yoneda_extension, adjunction.left_adjoint_of_equiv],
+  rw equiv.symm_apply_eq, symmetry,
+  convert yoneda_extension_e_natural' F X Y _ g _,
+  simp, refl
+end
 
 local attribute [elab_simple] yoneda_extension -- to infer universe parameters
 def yoneda_extension_is_extension : yoneda ⋙ yoneda_extension F ≅ F :=
@@ -314,5 +347,35 @@ is_colimit_invariance _ _ (canonical_diagram.cocone_equiv_colimit X).symm
   (colimit.universal_property _)
 
 end canonical_diagram
+
+section colimit_preserving
+variables {D : Type u} [𝒟 : category.{u v} D] [has_colimits.{u v} D]
+include 𝒟
+variables (F : presheaf C ⥤ D) [preserves_colimits F]
+
+def colimit_preserving_is_extension : F ≅ yoneda_extension (yoneda.comp F) :=
+nat_iso.of_components
+  (λ X, cocones.vertex.on_iso $ colimit_cocone.ext
+     (preserves_colimits.preserves F (canonical_diagram.is_colimit X))
+     (colimit.universal_property _))
+  begin
+    intros X Y f,
+    dsimp [colimit_cocone.ext, cocones.vertex],
+    apply is_colimit.hom_ext
+      (preserves_colimits.preserves F (canonical_diagram.is_colimit X)),
+    intro j,
+    rw [←category.assoc, ←category.assoc, is_colimit.fac],
+    dsimp [canonical_diagram],
+    have :
+      (canonical_diagram.cocone X).ι.app j ≫ f =
+      (canonical_diagram.cocone Y).ι.app ⟨j.c, _ ⊟ _⟩, { refl },
+    rw [←F.map_comp, this, ←functor.map_cocone_ι, is_colimit.fac],
+    change colimit.ι _ _ = _,
+    rw yoneda_extension_map_eq,
+    symmetry,
+    exact colimit.ι_pre (category_of_elements.forget Y ⋙ yoneda ⋙ F) (category_of_elements.map f) _
+  end
+
+end colimit_preserving
 
 end category_theory

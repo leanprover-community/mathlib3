@@ -439,8 +439,7 @@ def left_adjoint_preserves_colimits : preserves_colimits F :=
   (λ Z f j, begin
      dsimp [is_colimit.equiv, cocone_equiv],
      rw adj.hom_equiv_symm_naturality,
-     erw adj.hom_equiv.left_inv f,
-     simp
+     erw adj.hom_equiv.left_inv f
    end)⟩
 
 /-- A right adjoint preserves limits. -/

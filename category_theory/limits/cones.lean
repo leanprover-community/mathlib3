@@ -228,16 +228,20 @@ include 𝒟
 
 @[simp] def functoriality (F : J ⥤ C) (G : C ⥤ D) : (cocone F) ⥤ (cocone (F ⋙ G)) :=
 { obj := λ A,
-  { X  := G.obj A.X,
-    ι  :=  whisker_right A.ι G ⊟ (functor.const_compose _ _ _).inv },
+  { X := G.obj A.X,
+    ι :=
+    { app := λ j, G.map (A.ι.app j), naturality' := by intros; erw ←G.map_comp; tidy } },
   map := λ _ _ f,
   { hom := G.map f.hom,
     w'  :=
     begin
       intros, dsimp,
-      erw [category.comp_id, ←functor.map_comp, cocone_morphism.w, category.comp_id],
+      erw [←functor.map_comp, cocone_morphism.w],
     end } }
 end
+
+def vertex {F : J ⥤ C} : cocone F ⥤ C :=
+{ obj := λ A, A.X, map := λ A B f, f.hom }
 end cocones
 
 end category_theory.limits
@@ -257,8 +261,8 @@ def map_cocone_morphism (H : C ⥤ D) {c c' : cocone F} (f : cocone_morphism c c
   cocone_morphism (H.map_cocone c) (H.map_cocone c') := (cocones.functoriality F H).map f
 
 @[simp] lemma map_cone_π (H : C ⥤ D) (c : cone F) (j : J) :
-  (map_cone H c).π.app j = ((functor.const_compose _ _ _).hom ⊟ whisker_right c.π H).app j := rfl
+  (map_cone H c).π.app j = 𝟙 _ ≫ H.map (c.π.app j) := rfl
 @[simp] lemma map_cocone_ι (H : C ⥤ D) (c : cocone F) (j : J) :
-  (map_cocone H c).ι.app j = (whisker_right c.ι H ⊟ (functor.const_compose _ _ _).inv).app j := rfl
+  (map_cocone H c).ι.app j = H.map (c.ι.app j) := rfl
 
 end category_theory.functor

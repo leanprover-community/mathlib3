@@ -1,4 +1,5 @@
 import category_theory.presheaf
+import category_theory.equivalence
 
 universes u₁ u₂ v
 
@@ -88,6 +89,12 @@ nat_iso.of_components (λ F, by haveI := F.2; ext; exact (colimit_preserving_is_
     rw [t.naturality],
     refl
   end
+
+def cocontinuous_equiv : (C ⥤ D) ≌ cocontinuous_functor.{(v+1) u₂ v} (presheaf C) D :=
+{ functor := extension C D,
+  inverse := restriction C D,
+  fun_inv_id' := extension_restriction C D,
+  inv_fun_id' := restriction_extension C D }
 
 end
 

@@ -147,6 +147,20 @@ calc
        λ t, by cases t; refl,
        λ t, by cases t; refl⟩
 
+local attribute [elab_simple] colimit.ι
+lemma yoneda_extension_eq {X Y} {j : category_of_elements X} (h : yoneda_extension_obj F X ⟶ Y) :
+  (yoneda_equiv _).to_fun (j.e ⊟ (yoneda_extension_e F X Y).to_fun h) =
+  colimit.ι ((category_of_elements.forget X).comp F) j ≫ h :=
+begin
+  cases j with jc je,
+  change colimit.ι ((category_of_elements.forget X).comp F) {c := jc, e := nat_trans.mk _ _} ≫ h = _,
+  congr,
+  ext c' e', dsimp,
+  rw ←functor_to_types.naturality,
+  congr,
+  apply category.comp_id
+end
+
 lemma yoneda_extension_e_natural (X Y Y') (g : Y ⟶ Y') (h) :
   (yoneda_extension_e F X Y').to_fun (h ≫ g) =
   (yoneda_extension_e F X Y).to_fun h ≫ (restricted_yoneda F).map g :=
@@ -188,8 +202,6 @@ end extension
 
 section canonical_diagram
 
-variables (X : presheaf C)
-
 def restricted_yoneda_yoneda_iso_id : restricted_yoneda yoneda ≅ functor.id (presheaf C) :=
 nat_iso.of_components
   (λ X, begin
@@ -201,6 +213,19 @@ nat_iso.of_components
    end)
   (by intros X Y f; ext c e; refl)
 
+lemma restricted_yoneda_yoneda_iso_id_yoneda {c : C} {Y}
+  (h : yoneda.obj c ⟶ (restricted_yoneda yoneda).obj Y) :
+  (yoneda_equiv _).to_fun h = (h ⊟ restricted_yoneda_yoneda_iso_id.hom.app Y) :=
+begin
+  ext c' f,
+  have := (congr_fun (h.naturality f) (𝟙 c)).symm,
+  dsimp [restricted_yoneda_yoneda_iso_id, restricted_yoneda, yoneda_equiv,
+    nat_iso.of_components] at ⊢ this,
+  rw category.comp_id at this,
+  rw ←this,
+  dsimp, simp
+end
+
 def id_iso_yoneda_extension_yoneda : functor.id (presheaf C) ≅ yoneda_extension yoneda :=
 (adjunction.nat_iso_equiv (yoneda_extension_adj _) adjunction.id).inv_fun
   restricted_yoneda_yoneda_iso_id
@@ -208,18 +233,85 @@ def id_iso_yoneda_extension_yoneda : functor.id (presheaf C) ≅ yoneda_extensio
 -- So, we showed that the colimit of the canonical diagram is isomorphic to X, *somehow*!
 -- Can we identify the colimit cone as the obvious one?
 
--- Old stuff below
+variables (X : presheaf C)
 
 def canonical_diagram : category_of_elements X ⥤ presheaf C :=
 (category_of_elements.forget X).comp yoneda
 
-def canonical_diagram.to_original :
-  canonical_diagram X ⟹ (functor.const (category_of_elements X)).obj X :=
-{ app := λ a, a.e,
-  naturality' := λ a b f, by rw f.2; refl }
-
 def canonical_diagram.cocone : cocone (canonical_diagram X) :=
-{ X := X, ι := canonical_diagram.to_original X }
+{ X := X,
+  ι :=
+  { app := λ a, a.e,
+    naturality' := λ a b f, by rw f.2; refl } }
+
+def canonical_diagram.colimit_cocone : cocone (canonical_diagram X) :=
+colimit.cocone (canonical_diagram X)
+
+def canonical_diagram.cocone_equiv_colimit :
+  canonical_diagram.cocone X ≅ canonical_diagram.colimit_cocone X :=
+cocones.ext _ _ (nat_iso.app id_iso_yoneda_extension_yoneda X)
+  begin
+    intro j,
+    dsimp [canonical_diagram.cocone],
+    suffices : ∀ {Y} (h : (yoneda_extension yoneda).obj X ⟶ Y),
+      colimit.ι _ j ≫ h = (j.e ≫ (id_iso_yoneda_extension_yoneda.hom).app X) ≫ h,
+    { exact (this (𝟙 _)).symm },
+    { intros Y h,
+      rw ←(yoneda_extension_adj yoneda).hom_equiv.left_inv h,
+      generalize : (adjunction.hom_equiv (yoneda_extension_adj yoneda)).to_fun h = h',
+
+      rw category.assoc,
+      dsimp [id_iso_yoneda_extension_yoneda, adjunction.nat_iso_equiv],
+      erw (adjunction.nat_trans_iff' (yoneda_extension_adj yoneda) adjunction.id).mp _,
+      swap 3, { simp },
+      rw [adjunction.id.hom_equiv_inv, ←category.assoc],
+
+      rw ←yoneda_extension_eq,
+      dsimp [yoneda_extension_adj],
+      rw adjunction.adjunction_of_equiv_left_equiv,
+      rw (yoneda_extension_e yoneda X Y).right_inv,
+
+      apply restricted_yoneda_yoneda_iso_id_yoneda }
+  end
+/-
+-- This proof is ridiculous
+  begin
+    intro j,
+    ext c e,
+/-
+    dsimp [canonical_diagram.cocone, canonical_diagram,
+      canonical_diagram.colimit_cocone, id_iso_yoneda_extension_yoneda,
+      adjunction.nat_iso_equiv, adjunction.nat_trans_equiv,
+      equiv.refl, equiv.symm, equiv.trans, iso.hom_equiv_of_isos,
+      adjunction.mate, adjunction.nat_equiv, adjunction.nat_equiv',
+      adjunction.hom_equiv, adjunction.id, adjunction.adjunction_of_equiv_left,
+      adjunction.adjunction_of_equiv, adjunction.left_adjoint_of_equiv,
+      yoneda_extension_adj, yoneda_extension_e,
+      equiv.subtype_equiv_subtype, equiv.subtype_equiv_of_subtype, equiv.Pi_congr_right,
+      equiv.arrow_congr,
+      is_colimit.equiv,
+      restricted_yoneda, yoneda_extension, yoneda_extension_obj,
+      restricted_yoneda_yoneda_iso_id,
+      nat_iso.of_components, iso_of_equiv, yoneda_equiv], -/
+    change
+      (colimit.ι (category_of_elements.forget X ⋙ yoneda)
+          {c := c, e := {app := λ (Y : Cᵒᵖ) (f : Y ⟶ c), X.map f ((j.e).app c e), naturality' := _}}).app
+        c
+        (𝟙 c) =
+      (colimit.ι (category_of_elements.forget X ⋙ yoneda) j).app c e,
+    dsimp [canonical_diagram, category_of_elements.forget] at e,
+    let f : category_of_elements.mk c (_) ⟶ j, { refine ⟨e, _⟩, swap, dsimp, refl },
+    have := colimit.w (category_of_elements.forget X ⋙ yoneda) f,
+    have := congr_arg nat_trans.app this,
+    convert congr_fun (congr_fun this.symm c) (𝟙 c),
+    { ext c' g, rw ←functor_to_types.naturality, refl },
+    { exact (category.id_comp _ _).symm }
+  end
+-/
+
+def canonical_diagram.is_colimit : is_colimit (canonical_diagram.cocone X) :=
+is_colimit_invariance _ _ (canonical_diagram.cocone_equiv_colimit X).symm
+  (colimit.universal_property _)
 
 end canonical_diagram
 

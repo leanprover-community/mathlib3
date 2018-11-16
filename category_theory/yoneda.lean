@@ -163,6 +163,10 @@ lemma yoneda_equiv_nat {X Y : C} (f : X ⟶ Y) (F : Cᵒᵖ ⥤ Type v₁) {t : 
   F.map f ((yoneda_equiv F).to_fun t) = (yoneda_equiv F).to_fun ((yoneda.map f).vcomp t) :=
 by convert ←(functor_to_types.naturality _ _ _ _ _).symm; simp
 
+lemma yoneda_equiv_nat' {X : C} (F F' : Cᵒᵖ ⥤ Type v₁) {s : F ⟹ F'} {t : yoneda.obj X ⟹ F} :
+  (yoneda_equiv F').to_fun (t ⊟ s) = s.app _ ((yoneda_equiv F).to_fun t) :=
+rfl
+
 lemma yoneda_equiv_symm_nat {X Y : C} (f : X ⟶ Y) (F : Cᵒᵖ ⥤ Type v₁) {e : F.obj Y} :
   (yoneda.map f).vcomp ((yoneda_equiv F).inv_fun e) = (yoneda_equiv F).inv_fun (F.map f e) :=
 by dsimp [yoneda_equiv]; ext c; dsimp; erw F.map_comp; refl

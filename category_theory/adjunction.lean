@@ -184,6 +184,17 @@ begin
     rw this }
 end
 
+lemma nat_trans_iff' {t u} : nat_trans_equiv adj adj' t = u ↔ ∀ {X Y} (f : X ⟶ G.obj Y),
+  t.app X ≫ adj.hom_equiv.inv_fun f = adj'.hom_equiv.inv_fun (f ≫ u.app Y) :=
+begin
+  rw nat_trans_iff,
+  apply forall_congr, intro X,
+  apply forall_congr, intro Y,
+  split; intros H f,
+  { erw adj'.hom_equiv.eq_symm_apply, convert ←H _, exact (hom_equiv adj).right_inv f },
+  { erw ←adj'.hom_equiv.eq_symm_apply, convert ←H _, exact (hom_equiv adj).left_inv f }
+end
+
 lemma nat_trans_equiv_id : nat_trans_equiv adj adj (𝟙 F) = (𝟙 G) :=
 by rw nat_trans_iff; simp
 
@@ -251,6 +262,12 @@ def id : adjunction (functor.id C) (functor.id C) :=
   left_triangle := by tidy,
   right_triangle := by tidy }
 
+@[simp] lemma id.hom_equiv_app {X Y : C} (f : X ⟶ Y) : id.hom_equiv.to_fun f = f :=
+by dsimp [hom_equiv, id]; simp
+
+@[simp] lemma id.hom_equiv_inv {X Y : C} (f : X ⟶ Y) : id.hom_equiv.inv_fun f = f :=
+by dsimp [hom_equiv, id]; simp
+
 end cat
 
 end
@@ -274,6 +291,13 @@ def adjunction_of_equiv : adjunction F G :=
     naturality' := λ Y Y' g, by rw [←(e _ _).apply_eq_iff_eq]; erw [heX, heY]; dsimp; simp },
   left_triangle := by ext X; dsimp; rw [←(e _ _).apply_eq_iff_eq, heX]; simp,
   right_triangle := by ext Y; dsimp; rw [←heY]; simp }
+
+lemma adjunction_of_equiv_equiv {X Y} : (adjunction_of_equiv e heX heY).hom_equiv = e X Y :=
+begin
+  ext h,
+  dsimp [hom_equiv, adjunction_of_equiv],
+  rw ←heY, simp
+end
 
 end
 
@@ -309,6 +333,10 @@ begin
   simp
 end
 
+lemma adjunction_of_equiv_left_equiv {X Y} :
+  (adjunction_of_equiv_left e he).hom_equiv = e X Y :=
+adjunction_of_equiv_equiv e _ he
+
 end construct_left
 
 section construct_right
@@ -341,6 +369,10 @@ begin
   rw [←he, equiv.apply_eq_iff_eq, ←assoc, he' e he],
   simp
 end
+
+lemma adjunction_of_equiv_right_equiv {X Y} :
+  (adjunction_of_equiv_right e he).hom_equiv = e X Y :=
+adjunction_of_equiv_equiv e he _
 
 end construct_right
 

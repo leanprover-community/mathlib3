@@ -69,6 +69,8 @@ def iso.to_equiv (e : α ≅ β) : α ≃ β :=
 def iso_of_equiv (e : α ≃ β) : α ≅ β :=
 ⟨e.to_fun, e.inv_fun, funext e.left_inv, funext e.right_inv⟩
 
+@[simp] lemma iso_of_equiv_hom (e : α ≃ β) : (iso_of_equiv e).hom = e.to_fun := rfl
+
 end iso
 
 end category_theory

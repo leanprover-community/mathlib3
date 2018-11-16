@@ -28,7 +28,7 @@ def yoneda : C ⥤ ((Cᵒᵖ) ⥤ (Type v₁)) :=
     map_id' := begin intros X_1, ext1, dsimp at *, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
-variables (C)
+variables {C}
 
 namespace yoneda
 @[simp] lemma obj_obj (X Y : C) : (yoneda.obj X).obj Y = (Y ⟶ X) := rfl
@@ -75,6 +75,11 @@ category_theory.prod.{u₁ v₁ (max u₁ (v₁+1)) (max u₁ v₁)} (Cᵒᵖ) (
 
 end yoneda
 
+class representable (F : Cᵒᵖ ⥤ Type v₁) :=
+(X : C)
+(w : yoneda.obj X ≅ F)
+
+variables (C)
 open yoneda
 
 def yoneda_evaluation : (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) ⥤ Type (max u₁ v₁) :=
@@ -139,8 +144,11 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 
 variables {C}
 
-class representable (F : Cᵒᵖ ⥤ Type v₁) :=
-(X : C)
-(w : yoneda.obj X ≅ F)
+@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟹ F) ≅ ulift.{u₁} (F.obj X) :=
+nat_iso.app (yoneda_lemma C) (X, F)
+
+omit 𝒞
+@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟹ F) ≅ F.obj X :=
+yoneda_sections X F ≪≫ ulift_trivial _
 
 end category_theory

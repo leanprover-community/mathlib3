@@ -83,13 +83,13 @@ instance punit_category : small_category punit :=
 
 structure bundled (c : Type u → Type v) :=
 (α : Type u)
-[str : c α]
+(str : c α)
 
 instance (c : Type u → Type v) : has_coe_to_sort (bundled c) :=
 { S := Type u, coe := bundled.α }
 
 def mk_ob {c : Type u → Type v} (α : Type u) [str : c α] : bundled c :=
-@bundled.mk c α str
+⟨α, str⟩
 
 /-- `concrete_category hom` collects the evidence that a type constructor `c` and a morphism
 predicate `hom` can be thought of as a concrete category.

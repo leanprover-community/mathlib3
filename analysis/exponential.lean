@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo
 -/
-import analysis.real analysis.complex tactic.linarith data.complex.exponential algebra.group_power
+import analysis.real analysis.complex tactic.linarith data.complex.exponential group_theory.quotient_group
 
 open finset filter
 
@@ -127,30 +127,21 @@ by simp [log, lt_irrefl]
 @[simp] lemma log_one : log 1 = 0 :=
 exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 
-noncomputable definition nth_root (x : ℝ) (n : ℕ) --(Hxpos : 0 < x) (Hnpos : 0 < n)
-: ℝ := exp ((log x) / n)
+noncomputable definition nth_root (x : ℝ) (n : ℕ) : ℝ := exp ((log x) / n)
 
-variables (x : ℝ) (y : ℝ) (n : ℕ) (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n)
-
-theorem exp_mul : ∀ n : ℕ, exp(n*x) = (exp(x))^n
-| 0 := by simp
+theorem exp_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_mul, one_mul]
 
-theorem nth_root_pos : nth_root x n > 0 := real.exp_pos ((log x) / n)
+theorem nth_root_pos {x n} : nth_root x n > 0 := exp_pos _
 
-theorem nth_root_power (Hxpos : 0 < x) (Hnpos : 0 < n): (nth_root x n) ^ n = x := 
-    begin
-        rw [nth_root, ←exp_mul, mul_div_cancel', exp_log Hxpos],
-        rw [nat.cast_ne_zero], apply ne_of_gt Hnpos,
-    end
+theorem nth_root_power {x : ℝ} {n} (Hxpos : 0 < x) (Hnpos : 0 < n): (nth_root x n) ^ n = x := 
+by rw [nth_root, ←exp_mul, mul_div_cancel', exp_log Hxpos]; rw nat.cast_ne_zero; exact ne_of_gt Hnpos
 
-theorem nth_root_unique (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) : y ^ n = x → y = nth_root x n :=
-    begin
-        intro,
-        have b : (nth_root x n)^n = x := nth_root_power _ _ Hxpos Hnpos,
-        have ab : y^n = nth_root x n ^ n := eq.trans a b.symm,
-        apply pow_eq _ _ _ Hypos (nth_root_pos _ _) Hnpos ab,
-    end
+theorem nth_root_unique (x y : ℝ) (n : ℕ)
+  (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hynx : y ^ n = x) :
+  y = nth_root x n :=
+pow_eq Hypos nth_root_pos Hnpos (Hynx.trans (nth_root_power Hxpos Hnpos).symm)
 
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'
@@ -331,15 +322,14 @@ by rw [← mul_self_eq_one_iff (cos x), ← sin_pow_two_add_cos_pow_two x,
     pow_two, pow_two, ← sub_eq_iff_eq_add, sub_self];
   exact ⟨λ h, by rw [h, mul_zero], eq_zero_of_mul_self_eq_zero ∘ eq.symm⟩
 
-theorem sin_sub_sin (θ ψ : ℝ) : real.sin θ - sin ψ = 2 * sin((θ - ψ)/2) * cos((θ + ψ)/2) :=
-    begin
-        have s1 := real.sin_add ((θ + ψ) / 2) ((θ - ψ) / 2),
-        have s2 := real.sin_sub ((θ + ψ) / 2) ((θ - ψ) / 2),
-        rw [div_add_div_same, add_sub] at s1, 
-        rw [div_sub_div_same, ←sub_add] at s2,
-        simp at s1 s2,
-        rw [s1, s2], simp, rw ←mul_two, simp, rw [mul_comm, mul_comm (real.cos ((θ + ψ) / 2)), mul_assoc],
-    end
+theorem sin_sub_sin (θ ψ : ℝ) : sin θ - sin ψ = 2 * sin((θ - ψ)/2) * cos((θ + ψ)/2) :=
+begin
+  have s1 := sin_add ((θ + ψ) / 2) ((θ - ψ) / 2),
+  have s2 := sin_sub ((θ + ψ) / 2) ((θ - ψ) / 2),
+  rw [div_add_div_same, add_sub, add_right_comm, add_sub_cancel, add_self_div_two] at s1,
+  rw [div_sub_div_same, ←sub_add, add_sub_cancel', add_self_div_two] at s2,
+  rw [s1, s2, ←sub_add, add_sub_cancel', ← two_mul, ← mul_assoc, mul_right_comm]
+end
 
 lemma cos_eq_one_iff (x : ℝ) : cos x = 1 ↔ ∃ n : ℤ, (n : ℝ) * (2 * π) = x :=
 ⟨λ h, let ⟨n, hn⟩ := sin_eq_zero_iff.1 (sin_eq_zero_iff_cos_eq.2 (or.inl h)) in
@@ -352,18 +342,17 @@ lemma cos_eq_one_iff (x : ℝ) : cos x = 1 ↔ ∃ n : ℤ, (n : ℝ) * (2 * π)
         exact absurd h (by norm_num))⟩,
   λ ⟨n, hn⟩, hn ▸ cos_int_mul_two_pi _⟩
 
-theorem cos_eq_zero_iff (θ : ℝ) : real.cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * pi / 2 := 
-    begin
-        split,
-        { rw [←real.sin_pi_div_two_sub, sin_eq_zero_iff], intro, cases a with n hn, 
-          existsi -n, rwa [int.cast_neg, add_mul, add_div, mul_assoc, mul_div_cancel_left, one_mul,
-                          ←neg_mul_eq_neg_mul, eq_neg_add_iff_add_eq, ←eq_sub_iff_add_eq], norm_num },
-
-        { intro, cases a with n hn, rw [←real.sin_pi_div_two_sub, hn, add_mul, add_div, mul_assoc, 
-                                          mul_div_cancel_left, one_mul, sub_add_eq_sub_sub_swap, sub_self, 
-                                          zero_sub, real.sin_neg, neg_eq_zero, sin_eq_zero_iff], 
-          existsi n, refl, norm_num },
-    end
+theorem cos_eq_zero_iff (θ : ℝ) : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * pi / 2 := 
+begin
+  rw [←real.sin_pi_div_two_sub, sin_eq_zero_iff],
+  split,
+  { rintro ⟨n, hn⟩, existsi -n,
+    rw [int.cast_neg, add_mul, add_div, mul_assoc, mul_div_cancel_left _ two_ne_zero,
+        one_mul, ←neg_mul_eq_neg_mul, hn, neg_sub, sub_add_cancel] },
+  { rintro ⟨n, hn⟩, existsi -n,
+    rw [hn, add_mul, one_mul, add_div, mul_assoc, mul_div_cancel_left _ two_ne_zero,
+        sub_add_eq_sub_sub_swap, sub_self, zero_sub, neg_mul_eq_neg_mul, int.cast_neg] }
+end
 
 lemma cos_eq_one_iff_of_lt_of_lt {x : ℝ} (hx₁ : -(2 * π) < x) (hx₂ : x < 2 * π) : cos x = 1 ↔ x = 0 :=
 ⟨λ h, let ⟨n, hn⟩ := (cos_eq_one_iff x).1 h in
@@ -377,15 +366,10 @@ lemma cos_eq_one_iff_of_lt_of_lt {x : ℝ} (hx₁ : -(2 * π) < x) (hx₂ : x < 
     end,
   λ h, by simp [h]⟩
 
-theorem cos_sub_cos (θ ψ : ℝ) : real.cos θ - cos ψ = -2 * sin((θ + ψ)/2) * sin((θ - ψ)/2) :=
-    begin
-        have c1 := real.cos_add ((θ + ψ) / 2) ((θ - ψ) / 2),
-        have c2 := real.cos_sub ((θ + ψ) / 2) ((θ - ψ) / 2),
-        rw [div_add_div_same, add_sub] at c1, 
-        rw [div_sub_div_same, ←sub_add] at c2,
-        simp at c1 c2,
-        rw [c1, c2], simp, rw ←mul_two, simp, rw [mul_comm, mul_assoc],
-    end
+theorem cos_sub_cos (θ ψ : ℝ) : cos θ - cos ψ = -2 * sin((θ + ψ)/2) * sin((θ - ψ)/2) :=
+by rw [← sin_pi_div_two_sub, ← sin_pi_div_two_sub, sin_sub_sin, sub_sub_sub_cancel_left,
+    add_sub, sub_add_eq_add_sub, add_halves, sub_sub, sub_div π, cos_pi_div_two_sub,
+    ← neg_sub, neg_div, sin_neg, ← neg_mul_eq_mul_neg, neg_mul_eq_neg_mul, mul_right_comm]
 
 lemma cos_lt_cos_of_nonneg_of_le_pi_div_two {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π / 2)
   (hy₁ : 0 ≤ y) (hy₂ : y ≤ π / 2) (hxy : x < y) : cos y < cos x :=
@@ -455,72 +439,71 @@ lemma exists_sin_eq {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : ∃ y, -(π
   (by rwa [sin_neg, sin_pi_div_two]) (by rwa sin_pi_div_two)
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
 
-definition equal_angle (θ ψ : ℝ) := ∃ k : ℤ, θ - ψ = 2 * pi * k
-definition semiequal_angle_even (θ ψ : ℝ) := ∃ k : ℤ, θ + ψ = 2 * k * pi
-definition semiequal_angle_odd (θ ψ : ℝ)  := ∃ k : ℤ, θ + ψ = (2 * k + 1) * pi
+/-- The type of angles -/
+def angle : Type :=
+quotient_add_group.quotient (gmultiples (2 * π))
 
-theorem equal_angle.equiv : equivalence equal_angle :=
-  ⟨λ θ, ⟨ 0, eq.trans (sub_self θ) (mul_zero (2 * pi)).symm ⟩,
-  λ θ ϕ ⟨k, h⟩, ⟨-k, neg_inj begin
-  rw [ int.cast_neg, ←mul_neg_one ↑k, ←mul_assoc,
-       mul_neg_one, neg_neg, ←neg_sub θ ϕ, neg_neg],
-  exact h
-  end⟩,
-  λ α β γ ⟨k1, h1⟩ ⟨k2, h2⟩,
-  ⟨k1 + k2, by rw [ int.cast_add, mul_add, ←h1, ←h2,
-                    add_sub, sub_add_cancel ]⟩⟩
+instance angle.add_comm_group : add_comm_group angle :=
+quotient_add_group.add_comm_group _
 
+instance angle.has_coe : has_coe ℝ angle :=
+⟨quotient.mk'⟩
 
-theorem cos_eq_if (θ ψ : ℝ) (Hcos : real.cos θ = cos ψ) : equal_angle θ ψ ∨ semiequal_angle_even θ ψ :=
-    begin
-        rw [←sub_eq_zero, cos_sub_cos] at Hcos, simp at Hcos, 
-        cases Hcos,
-        { cases Hcos,
-          { exfalso, revert Hcos, norm_num },
-          { right, 
-            rw sin_eq_zero_iff at Hcos, cases Hcos with n Hcos, 
-            rw [eq_comm, div_eq_iff_mul_eq, mul_comm, ←mul_assoc, eq_comm] at Hcos, 
-            existsi n, exact Hcos, norm_num },
-        },
-        { left,
-          rw sin_eq_zero_iff at Hcos, cases Hcos with n Hcos,
-          rw [←sub_eq_add_neg, eq_comm, div_eq_iff_mul_eq, mul_comm, mul_comm _ pi, ←mul_assoc, eq_comm] at Hcos,
-          existsi n, exact Hcos, norm_num },
-    end
+instance angle.is_add_group_hom : is_add_group_hom (coe : ℝ → angle) :=
+@quotient_add_group.is_add_group_hom _ _ _ (normal_add_subgroup_of_add_comm_group _)
 
-theorem sin_eq_if (θ ψ : ℝ) (Hsin : real.sin θ = sin ψ) : equal_angle θ ψ ∨ semiequal_angle_odd θ ψ :=
-    begin
-        rw [←sub_eq_zero, sin_sub_sin] at Hsin, simp at Hsin, 
-        cases Hsin,
-        { cases Hsin, 
-          { exfalso, revert Hsin, norm_num },
-          { left,
-            rw sin_eq_zero_iff at Hsin, cases Hsin with n Hsin,
-            rw [eq_comm, div_eq_iff_mul_eq, mul_comm _ pi, mul_comm, ←mul_assoc, eq_comm, ←sub_eq_add_neg] at Hsin, 
-            existsi n, exact Hsin, norm_num },
-        },
-        { right,
-          rw cos_eq_zero_iff at Hsin, cases Hsin with n Hsin,
-          rw [eq_comm, div_eq_iff_mul_eq, div_mul_cancel] at Hsin, 
-          existsi n, exact Hsin, norm_num, norm_num },
-    end
+@[simp] lemma coe_zero : ↑(0 : ℝ) = (0 : angle) := rfl
+@[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
+@[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
+@[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
+@[simp] lemma coe_gsmul (x : ℝ) (n : ℤ) : ↑(gsmul n x : ℝ) = gsmul n (↑x : angle) :=
+int.induction_on n rfl (λ i ih, by simp only [add_gsmul, one_gsmul, coe_add, ih]) $ λ i ih,
+by simp only [sub_eq_add_neg, add_gsmul, neg_one_gsmul, coe_add, coe_neg, ih]
+@[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
+quotient.sound' ⟨-1, by rw [neg_one_gsmul, add_zero]⟩
+
+definition equal_angle (θ ψ : ℝ) := (θ : angle) = ψ
+definition semiequal_angle_even (θ ψ : ℝ) := (θ + ψ : angle) = 0
+definition semiequal_angle_odd (θ ψ : ℝ) := (θ + ψ : angle) = π
+
+theorem of_cos_eq {θ ψ : ℝ} (Hcos : cos θ = cos ψ) : equal_angle θ ψ ∨ semiequal_angle_even θ ψ :=
+begin
+  rw [←sub_eq_zero, cos_sub_cos, mul_eq_zero, mul_eq_zero, neg_eq_zero, eq_false_intro two_ne_zero,
+      false_or, sin_eq_zero_iff, sin_eq_zero_iff] at Hcos,
+  rcases Hcos with ⟨n, hn⟩ | ⟨n, hn⟩,
+  { right,
+    rw [eq_div_iff_mul_eq _ _ two_ne_zero, ← sub_eq_iff_eq_add] at hn,
+    rw [semiequal_angle_even, ← hn, coe_sub, sub_add_cancel, mul_assoc,
+        ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero] },
+  { left,
+    rw [eq_div_iff_mul_eq _ _ two_ne_zero, eq_sub_iff_add_eq] at hn,
+    rw [equal_angle, ← hn, coe_add, mul_assoc,
+        ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] }
+end
+
+theorem of_sin_eq {θ ψ : ℝ} (Hsin : sin θ = sin ψ) : equal_angle θ ψ ∨ semiequal_angle_odd θ ψ :=
+begin
+  rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
+  cases of_cos_eq Hsin with h h,
+  { left, rw [equal_angle, coe_sub] at h, exact sub_left_inj.1 h },
+  right, rw [semiequal_angle_even, coe_sub, coe_sub, add_sub,
+      sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
+  exact h.symm
+end
 
 theorem cos_sin_inj (θ ψ : ℝ) (Hcos : real.cos θ = cos ψ) (Hsin : real.sin θ = sin ψ) : equal_angle θ ψ :=
-    begin
-        have Hcos' := cos_eq_if _ _ Hcos, have Hsin' := sin_eq_if _ _ Hsin,
-        cases Hcos',
-        { exact Hcos' },
-        { cases Hsin',
-          { exact Hsin' },
-          { exfalso,
-            cases Hcos' with c Hc, cases Hsin' with s Hs, rw Hc at Hs,
-            have H : ∃ k : ℤ, 2 * k = 1, 
-            { existsi (c - s), 
-              rw [←@int.cast_inj ℝ _ _ _, int.cast_mul, int.cast_sub, int.cast_bit0, int.cast_one, mul_sub,
-                  sub_eq_iff_eq_add'], apply @eq_of_mul_eq_mul_right _ _ pi _ _ (ne_of_gt pi_pos), exact Hs },
-            cases H with k Hk, have H' := dvd.intro k Hk, revert H', 
-            rw [←int.coe_nat_one, ←linarith.int.coe_nat_bit0, int.coe_nat_dvd], norm_num } }
-    end
+begin
+  cases of_cos_eq Hcos with hc hc, { exact hc },
+  cases of_sin_eq Hsin with hs hs, { exact hs },
+  rw [semiequal_angle_odd] at hs, rw [semiequal_angle_even, hs] at hc,
+  cases quotient.exact' hc with n hn,
+  rw [← neg_one_mul, add_zero, ← sub_eq_zero_iff_eq, gsmul_eq_mul, ← mul_assoc, ← sub_mul,
+      mul_eq_zero, eq_false_intro (ne_of_gt pi_pos), or_false, sub_neg_eq_add,
+      ← int.cast_zero, ← int.cast_one, ← int.cast_bit0, ← int.cast_mul, ← int.cast_add, int.cast_inj] at hn,
+  have : (n * 2 + 1) % (2:ℤ) = 0 % (2:ℤ) := congr_arg (%(2:ℤ)) hn,
+  rw [add_comm, int.add_mul_mod_self] at this,
+  exact absurd this one_ne_zero
+end
 
 /-- Inverse of the `sin` function, returns values in the range `-π / 2 ≤ arcsin x` and `arcsin x ≤ π / 2`.
   If the argument is not between `-1` and `1` it defaults to `0` -/

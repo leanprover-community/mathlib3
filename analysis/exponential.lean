@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo
 -/
 import analysis.real analysis.complex tactic.linarith data.complex.exponential algebra.group_power
 

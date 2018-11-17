@@ -8,7 +8,6 @@ import group_theory.subgroup
 import data.polynomial
 import algebra.ring
 
-local attribute [instance] classical.prop_decidable
 universes u v
 
 open group

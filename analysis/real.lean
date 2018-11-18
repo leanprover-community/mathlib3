@@ -319,6 +319,9 @@ compact_of_totally_bounded_is_closed
   (real.totally_bounded_Icc a b)
   (is_closed_inter (is_closed_ge' a) (is_closed_le' b))
 
+instance : proper_space ℝ :=
+{ compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }
+
 open real
 
 lemma real.intermediate_value {f : ℝ → ℝ} {a b t : ℝ}

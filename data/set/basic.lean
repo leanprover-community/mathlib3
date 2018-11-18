@@ -209,6 +209,12 @@ begin
     exact ⟨a⟩ }
 end
 
+lemma exists_mem_of_nonempty (α : Type u) [nonempty α] : ∃x:α, x ∈ (univ : set α) :=
+exists_mem_of_ne_empty (nonempty_iff_univ_ne_empty.1 (by apply_instance))
+
+@[simp] lemma univ_ne_empty {α : Type u} [h : nonempty α] : (univ : set α) ≠ ∅ :=
+nonempty_iff_univ_ne_empty.1 h
+
 instance univ_decidable : decidable_pred (@set.univ α) :=
 λ x, is_true trivial
 
@@ -827,6 +833,14 @@ eq_univ_of_forall $ by simp [image]; exact H
 @[simp] theorem image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
 ext $ λ x, by simp [image]; rw eq_comm
 
+@[simp] lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
+begin
+  simp [eq_empty_iff_forall_not_mem],
+  exact iff.intro
+    (assume h a has, h (f a) a has rfl)
+    (assume h b a has eq, h a has)
+end
+
 lemma inter_singleton_ne_empty {α : Type*} {s : set α} {a : α} : s ∩ {a} ≠ ∅ ↔ a ∈ s :=
 by finish  [set.inter_singleton_eq_empty]
 
@@ -1013,6 +1027,9 @@ begin
   cases mem_range.1 h with y _,
   exact ⟨y⟩
 end
+
+@[simp] lemma range_eq_empty {α : Type u} {β : Type v} {f : α → β} : range f = ∅ ↔ (univ : set α) = ∅ :=
+by rw ← set.image_univ; simp [-set.image_univ]
 
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' (f ⁻¹' t) = t ∩ range f :=

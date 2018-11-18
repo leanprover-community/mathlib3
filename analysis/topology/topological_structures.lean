@@ -1002,7 +1002,301 @@ and.intro
   (assume b' hb', le_of_tendsto hnbot tendsto_const_nhds hb $
       mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
 
+lemma mem_closure_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) : a ∈ closure s :=
+by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_lub ha hs
+
+lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) (sc : is_closed s): a ∈ s :=
+by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_lub ha hs
+
+lemma mem_closure_of_is_glb {a : α} {s : set α} (ha : is_glb s a) (hs : s ≠ ∅) : a ∈ closure s :=
+by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_glb ha hs
+
+lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s ≠ ∅) (sc : is_closed s): a ∈ s :=
+by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_glb ha hs
+
+/--A compact set is bounded below-/
+lemma bdd_below_of_compact {α : Type u} [topological_space α] [decidable_linear_order α]
+  [orderable_topology α] [nonempty α] (s : set α) (hs : compact s) : bdd_below s :=
+have A : (∃x:α, ∀y:α, x ≤ y) → bdd_below s := λ⟨x, hx⟩, ⟨x, λy _, hx y⟩,
+have B : (¬(∃x:α, ∀y:α, x ≤ y)) → bdd_below s :=
+begin
+  assume H,
+  simp [not_forall] at H,
+  have : ∀x:α, ∃y:α, y < x := λx, H x,
+  choose F hF using this,
+  let V := λx:α, {y | F x < y},
+  have O : ∀x, x ∈ s → is_open (V x) := λ_ _, is_open_lt' _,
+  have sub : s ⊆ (⋃x∈s, V x) :=
+  begin
+    assume x hx,
+    apply mem_bUnion hx,
+    show x ∈ V x, from hF x
+  end,
+  have : ∃t ⊆ s, finite t ∧ s ⊆ ⋃x∈t, V x :=
+    compact_elim_finite_subcover_image hs O sub,
+  rcases this with ⟨t, t_s, fin_t, cover_t⟩,
+  have : bdd_below (F '' t) :=
+    bdd_below_finite (finite_image _ fin_t),
+  rcases this with ⟨C, hC⟩,
+  simp at hC,
+  have : ∀y∈s, C ≤ y :=
+  begin
+    assume y hy,
+    have : y ∈ ⋃x∈t, V x := cover_t hy,
+    rcases mem_bUnion_iff.1 this with ⟨x, xt, hx⟩,
+    calc C ≤ F x : begin apply hC _ x xt, refl end
+      ... ≤ y : le_of_lt hx
+  end,
+  exact ⟨C, this⟩
+end,
+classical.by_cases A B
+
+/--A compact set is bounded above-/
+lemma bdd_above_of_compact {α : Type u} [topological_space α] [decidable_linear_order α]
+  [orderable_topology α] [nonempty α] (s : set α) (hs : compact s) : bdd_above s :=
+have A : (∃x:α, ∀y:α, y ≤ x) → bdd_above s := λ⟨x, hx⟩, ⟨x, λy _, hx y⟩,
+have B : (¬(∃x:α, ∀y:α, y ≤ x)) → bdd_above s :=
+begin
+  assume H,
+  simp [not_forall] at H,
+  have : ∀x:α, ∃y:α, x < y := λx, H x,
+  choose F hF using this,
+  let V := λx:α, {y | y < F x},
+  have O : ∀x, x ∈ s → is_open (V x) := λ_ _, is_open_gt' _,
+  have sub : s ⊆ (⋃x∈s, V x) :=
+  begin
+    assume x hx,
+    apply mem_bUnion hx,
+    show x ∈ V x, from hF x
+  end,
+  have : ∃t ⊆ s, finite t ∧ s ⊆ ⋃x∈t, V x :=
+    compact_elim_finite_subcover_image hs O sub,
+  rcases this with ⟨t, t_s, fin_t, cover_t⟩,
+  have : bdd_above (F '' t) :=
+    bdd_above_finite (finite_image _ fin_t),
+  rcases this with ⟨C, hC⟩,
+  simp at hC,
+  have : ∀y∈s, y ≤ C :=
+  begin
+    assume y hy,
+    have : y ∈ ⋃x∈t, V x := cover_t hy,
+    rcases mem_bUnion_iff.1 this with ⟨x, xt, hx⟩,
+    calc y ≤ F x : le_of_lt hx
+      ... ≤ C : begin apply hC _ x xt, refl end
+  end,
+  exact ⟨C, this⟩
+end,
+classical.by_cases A B
+
 end order_topology
+
+
+section complete_linear_order
+
+variables [complete_linear_order α] [topological_space α] [orderable_topology α]
+  [complete_linear_order β] [topological_space β] [orderable_topology β] [nonempty γ]
+
+lemma Sup_mem_closure {α : Type u} [topological_space α] [complete_linear_order α] [orderable_topology α]
+  {s : set α} (hs : s ≠ ∅) : Sup s ∈ closure s :=
+mem_closure_of_is_lub is_lub_Sup hs
+
+lemma Inf_mem_closure {α : Type u} [topological_space α] [complete_linear_order α] [orderable_topology α]
+  {s : set α} (hs : s ≠ ∅) : Inf s ∈ closure s :=
+mem_closure_of_is_glb is_glb_Inf hs
+
+lemma Sup_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear_order α] [orderable_topology α]
+  {s : set α} (hs : s ≠ ∅) (hc : is_closed s) : Sup s ∈ s :=
+mem_of_is_lub_of_is_closed  is_lub_Sup hs hc
+
+lemma Inf_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear_order α] [orderable_topology α]
+  {s : set α} (hs : s ≠ ∅) (hc : is_closed s) : Inf s ∈ s :=
+mem_of_is_glb_of_is_closed  is_glb_Inf hs hc
+
+/--A continuous monotone function sends supremum to supremum.-/
+lemma Sup_of_Sup_of_monotone_of_continuous (f : α → β) (Mf : continuous f) (Cf : monotone f)
+  {s : set α} (hs : s ≠ ∅) : f (Sup s) = Sup (f '' s) :=
+--This is a particular case of the more general is_lub_of_is_lub_of_tendsto
+begin
+  have A : is_lub (f '' s) (f (Sup s)) :=
+  begin
+    have hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y := λx hx y hy hxy, Cf hxy,
+    apply is_lub_of_is_lub_of_tendsto hf is_lub_Sup hs _,
+    apply tendsto_le_left _ (continuous.tendsto Mf _),
+    simp,
+  end,
+  have B : is_lub (f '' s) (Sup (f '' s)) := is_lub_Sup,
+  apply eq_of_is_least_of_is_least A B
+end
+
+/--A continuous monotone function sends indexed supremum to indexed supremum.-/
+lemma supr_of_supr_of_monotone_of_continuous (f : α → β) {g : γ → α}
+  (Mf : continuous f) (Cf : monotone f) : f (supr g) = supr (f ∘ g) :=
+begin
+  have : range (f ∘ g) = f '' (range g) := range_comp,
+  unfold supr,
+  rw this,
+  apply Sup_of_Sup_of_monotone_of_continuous _ Mf Cf,
+  simp
+end
+
+/--A continuous monotone function sends infimum to infimum.-/
+lemma Inf_of_Inf_of_monotone_of_continuous (f : α → β) (Mf : continuous f) (Cf : monotone f)
+  {s : set α} (hs : s ≠ ∅) : f (Inf s) = Inf (f '' s) :=
+begin
+  have A : is_glb (f '' s) (f (Inf s)) :=
+  begin
+    have hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y := λx hx y hy hxy, Cf hxy,
+    apply is_glb_of_is_glb_of_tendsto hf is_glb_Inf hs _,
+    apply tendsto_le_left _ (continuous.tendsto Mf _),
+    simp,
+  end,
+  have B : is_glb (f '' s) (Inf (f '' s)) := is_glb_Inf,
+  apply eq_of_is_greatest_of_is_greatest A B
+end
+
+/--A continuous monotone function sends indexed infimum to indexed infimum.-/
+lemma infi_of_infi_of_monotone_of_continuous (f : α → β) {g : γ → α}
+  (Mf : continuous f) (Cf : monotone f) : f (infi g) = infi (f ∘ g) :=
+begin
+  have : range (f ∘ g) = f '' (range g) := range_comp,
+  unfold infi,
+  rw this,
+  apply Inf_of_Inf_of_monotone_of_continuous _ Mf Cf,
+  simp
+end
+
+end complete_linear_order
+
+
+section conditionally_complete_linear_order
+
+variables [conditionally_complete_linear_order α] [topological_space α] [orderable_topology α]
+  [conditionally_complete_linear_order β] [topological_space β] [orderable_topology β] [nonempty γ]
+
+lemma cSup_mem_closure {α : Type u} [topological_space α] [conditionally_complete_linear_order α] [orderable_topology α]
+  {s : set α} (hs : s ≠ ∅) (B : bdd_above s) : Sup s ∈ closure s :=
+mem_closure_of_is_lub (is_lub_cSup hs B) hs
+
+lemma cInf_mem_closure {α : Type u} [topological_space α] [conditionally_complete_linear_order α] [orderable_topology α]
+  {s : set α} (hs : s ≠ ∅) (B : bdd_below s) : Inf s ∈ closure s :=
+mem_closure_of_is_glb (is_glb_cInf hs B) hs
+
+lemma cSup_mem_of_is_closed {α : Type u} [topological_space α] [conditionally_complete_linear_order α] [orderable_topology α]
+  {s : set α} (hs : s ≠ ∅) (hc : is_closed s) (B : bdd_above s) : Sup s ∈ s :=
+mem_of_is_lub_of_is_closed (is_lub_cSup hs B) hs hc
+
+lemma cInf_mem_of_is_closed {α : Type u} [topological_space α] [conditionally_complete_linear_order α] [orderable_topology α]
+  {s : set α} (hs : s ≠ ∅) (hc : is_closed s) (B : bdd_below s) : Inf s ∈ s :=
+mem_of_is_glb_of_is_closed (is_glb_cInf hs B) hs hc
+
+/--A continuous monotone function sends supremum to supremum in conditionally complete
+lattices, under a boundedness assumption.-/
+lemma cSup_of_cSup_of_monotone_of_continuous (f : α → β) (Mf : continuous f) (Cf : monotone f)
+  {s : set α} (ne : s ≠ ∅) (H : bdd_above s) : f (Sup s) = Sup (f '' s) :=
+begin
+  have A : is_lub (f '' s) (f (Sup s)) :=
+  begin
+    have hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y := λx hx y hy hxy, Cf hxy,
+    apply is_lub_of_is_lub_of_tendsto hf (is_lub_cSup ne H) ne _,
+    apply tendsto_le_left _ (continuous.tendsto Mf _),
+    simp,
+  end,
+  have B : is_lub (f '' s) (Sup (f '' s)) :=
+  begin
+    refine is_lub_cSup _ _,
+    simp [ne],
+    apply bdd_above_of_bdd_above_of_monotone H Cf
+  end,
+  apply eq_of_is_least_of_is_least A B
+end
+
+/--A continuous monotone function sends indexed supremum to indexed supremum in conditionally complete
+lattices, under a boundedness assumption.-/
+lemma csupr_of_csupr_of_monotone_of_continuous (f : α → β) {g : γ → α}
+  (Mf : continuous f) (Cf : monotone f) (H : bdd_above (range g)): f (supr g) = supr (f ∘ g) :=
+begin
+  have : range (f ∘ g) = f '' (range g) := range_comp,
+  unfold supr,
+  rw this,
+  apply cSup_of_cSup_of_monotone_of_continuous _ Mf Cf _ H,
+  simp,
+end
+
+/--A continuous monotone function sends infimum to infimum in conditionally complete
+lattices, under a boundedness assumption.-/
+lemma cInf_of_cInf_of_monotone_of_continuous (f : α → β) (Mf : continuous f) (Cf : monotone f)
+  {s : set α} (ne : s ≠ ∅) (H : bdd_below s) : f (Inf s) = Inf (f '' s) :=
+begin
+  have A : is_glb (f '' s) (f (Inf s)) :=
+  begin
+    have hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y := λx hx y hy hxy, Cf hxy,
+    apply is_glb_of_is_glb_of_tendsto hf (is_glb_cInf ne H) ne _,
+    apply tendsto_le_left _ (continuous.tendsto Mf _),
+    simp,
+  end,
+  have B : is_glb (f '' s) (Inf (f '' s)) :=
+  begin
+    refine is_glb_cInf _ _,
+    simp [ne],
+    apply bdd_below_of_bdd_below_of_monotone H Cf
+  end,
+  apply eq_of_is_greatest_of_is_greatest A B
+end
+
+/--A continuous monotone function sends indexed infimum to indexed infimum in conditionally complete
+lattices, under a boundedness assumption.-/
+lemma cinfi_of_cinfi_of_monotone_of_continuous (f : α → β) {g : γ → α}
+  (Mf : continuous f) (Cf : monotone f) (H : bdd_below (range g)): f (infi g) = infi (f ∘ g) :=
+begin
+  have : range (f ∘ g) = f '' (range g) := range_comp,
+  unfold infi,
+  rw this,
+  apply cInf_of_cInf_of_monotone_of_continuous _ Mf Cf _ H,
+  simp
+end
+
+/--The extreme value theorem: a continuous function realizes its minimum on a compact set-/
+lemma exists_forall_le_of_compact_of_continuous {α : Type u} [topological_space α]
+  (f : α → β) (hf : continuous f) (s : set α) (hs : compact s) (ne_s : s ≠ ∅) :
+  ∃x∈s, ∀y∈s, f x ≤ f y :=
+begin
+  have C : compact (f '' s) := compact_image hs hf,
+  have B : bdd_below (f '' s) := bdd_below_of_compact _ C,
+  have : Inf (f '' s) ∈ f '' s :=
+    cInf_mem_of_is_closed (by simpa) (closed_of_compact _ C) B,
+  rcases (mem_image _ _ _).1 this with ⟨x, xs, hx⟩,
+  existsi [x, xs],
+  assume y hy,
+  show f x ≤ f y,
+  begin
+    rw hx,
+    apply cInf_le B,
+    apply (mem_image _ _ _).2 ⟨y, ⟨hy, rfl⟩⟩
+  end
+end
+
+/--The extreme value theorem: a continuous function realizes its maximum on a compact set-/
+lemma exists_forall_le'_of_compact_of_continuous {α : Type u} [topological_space α]
+  (f : α → β) (hf : continuous f) (s : set α) (hs : compact s) (ne_s : s ≠ ∅) :
+  ∃x∈s, ∀y∈s, f y ≤ f x :=
+begin
+  have C : compact (f '' s) := compact_image hs hf,
+  have B : bdd_above (f '' s) := bdd_above_of_compact _ C,
+  have : Sup (f '' s) ∈ f '' s :=
+    cSup_mem_of_is_closed (by simpa) (closed_of_compact _ C) B,
+  rcases (mem_image _ _ _).1 this with ⟨x, xs, hx⟩,
+  existsi [x, xs],
+  assume y hy,
+  show f y ≤ f x,
+  begin
+    rw hx,
+    apply le_cSup B,
+    apply (mem_image _ _ _).2 ⟨y, ⟨hy, rfl⟩⟩
+  end
+end
+
+end conditionally_complete_linear_order
+
 
 section liminf_limsup
 

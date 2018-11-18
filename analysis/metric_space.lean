@@ -9,7 +9,7 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real.nnreal analysis.topology.topological_structures analysis.emetric_space
+import data.real.nnreal analysis.topology.topological_structures analysis.emetric_space tactic.linarith
 open lattice set filter classical topological_space
 noncomputable theory
 
@@ -489,6 +489,8 @@ instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α 
   uniformity_edist    := uniformity_edist,
   ..a }
 
+section real
+
 /-- Instantiate the reals as a metric space. -/
 instance : metric_space ℝ :=
 { dist               := λx y, abs (x - y),
@@ -516,6 +518,32 @@ orderable_topology_of_nhds_abs $ λ x, begin
     rcases mem_nhds_iff_metric.1 h with ⟨ε, ε0, ss⟩,
     exact mem_infi_sets _ (mem_infi_sets ε0 (mem_principal_sets.2 ss)) },
 end
+
+lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
+begin
+  ext y,
+  simp,
+  rw real.dist_eq,
+  split,
+  show abs (y - x) ≤ r → x ≤ r + y ∧ y ≤ x + r,
+  begin
+    assume h,
+    have A : y ≤ x + r := calc y = x + (y-x) : by ring
+      ... ≤ x + r : add_le_add_left (le_trans (le_abs_self _) h) _,
+    have B : x ≤ r + y := calc x = -(y-x) + y : by ring
+      ... ≤ r + y : add_le_add_right (le_trans (neg_le_abs_self (y-x)) h) _,
+    exact ⟨B, A⟩
+  end,
+  show x ≤ r + y ∧ y ≤ x + r → abs (y - x) ≤ r,
+  begin
+    rintros ⟨h1, h2⟩,
+    apply abs_le_of_le_of_neg_le,
+    show y - x ≤ r, by linarith,
+    show -(y - x) ≤ r, by linarith
+  end
+end
+
+end real
 
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
   (H : @uniformity _ U = @uniformity _ (metric_space.to_uniform_space α)) :
@@ -557,6 +585,8 @@ metric_space.induced subtype.val (λ x y, subtype.eq) t
 theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :
   dist x y = dist x.1 y.1 := rfl
 
+section prod
+
 instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
 { dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
   dist_self := λ x, by simp,
@@ -584,6 +614,169 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
     simp [inf_principal, ext_iff, max_lt_iff]
   end,
   to_uniform_space := prod.uniform_space }
+
+lemma prod.dist_eq [metric_space β] {x y : α × β} :
+  dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
+
+end prod
+
+section sum
+variables [metric_space β] [inhabited α] [inhabited β]
+
+/--Distance on a disjoint union. There are many (noncanonical) ways to put a distance compatible with each factor.
+If the two spaces are bounded, one can say for instance that each point in the first is at distance
+`diam α + diam β + 1` of each point in the second.
+Instead, we choose a construction that works for unbounded spaces, but requires basepoints.
+We embed isometrically each factor, set the basepoints at distance 1,
+arbitrarily, and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
+their respective basepoints, plus the distance 1 between the basepoints. -/
+private def sum.dist : α ⊕ β → α ⊕ β → ℝ
+| (sum.inl a) (sum.inl a') := dist a a'
+| (sum.inr b) (sum.inr b') := dist b b'
+| (sum.inl a) (sum.inr b)  := dist a (default α) + 1 + dist (default β) b
+| (sum.inr b) (sum.inl a)  := dist b (default β) + 1 + dist (default α) a
+
+instance : has_dist (α ⊕ β) :=
+{ dist := sum.dist }
+
+lemma sum.dist_eq {x y : α ⊕ β} :
+  dist x y = sum.dist x y := rfl
+
+lemma sum.one_dist_le {x : α} {y : β} :
+  1 ≤ dist (@sum.inl α β x) (@sum.inr α β y) :=
+begin
+  have : 0 + 0 ≤ dist x (default α) + dist (default β) y := add_le_add dist_nonneg dist_nonneg,
+  simpa [dist, sum.dist] using this
+end
+
+lemma sum.one_dist_le' {x : α} {y : β} :
+  1 ≤ dist (@sum.inr α β y) (@sum.inl α β x) :=
+begin
+  have : 0 + 0 ≤ dist y (default β) + dist (default α) x := add_le_add dist_nonneg dist_nonneg,
+  simpa [dist, sum.dist] using this
+end
+
+open sum
+
+/--The distance on the disjoint union indeed defines a metric space. All the distance properties follow from our
+choice of the distance. The harder work is to show that the uniform structure defined by the distance coincides
+with the disjoint union uniform structure.-/
+instance : metric_space (α ⊕ β) :=
+{ dist_self := λx, by cases x; simp [dist_eq, sum.dist],
+  dist_comm := λx y, by cases x; cases y; simp [dist_eq, sum.dist, dist_comm],
+  dist_triangle := λx y z,
+  begin
+    cases x; cases y; cases z; simp [dist_eq, sum.dist],
+    { exact dist_triangle _ _ _},
+    { have A := dist_triangle x y (default α), linarith },
+    { have A := dist_triangle x (default α) z,
+      have B : dist (default β) y ≥ 0 := dist_nonneg,
+      have C : dist y (default β) ≥ 0 := dist_nonneg,
+      linarith },
+    { have A := dist_triangle (default β) y z, linarith },
+    { have A := dist_triangle (default α) y z, linarith },
+    { have A := dist_triangle x (default β) z,
+      have B : dist (default α) y ≥ 0 := dist_nonneg,
+      have C : dist y (default α) ≥ 0 := dist_nonneg,
+      linarith },
+    { have A := dist_triangle x y (default β), linarith },
+    { exact dist_triangle _ _ _ }
+  end,
+  eq_of_dist_eq_zero := λx y,
+  begin
+    cases x; cases y; simp [dist_eq, sum.dist],
+    { have A : dist x (default α) ≥ 0 := dist_nonneg,
+      have B : dist (default β) y ≥ 0 := dist_nonneg,
+      assume h,
+      linarith },
+    { have A : dist x (default β) ≥ 0 := dist_nonneg,
+      have B : dist (default α) y ≥ 0 := dist_nonneg,
+      assume h,
+      linarith }
+  end,
+  to_uniform_space := sum.uniform_space,
+  uniformity_dist :=
+  begin
+    apply uniformity_dist_of_mem_uniformity,
+    intro s,
+    have S1 : s ∈ (@_root_.uniformity (α ⊕ β) _).sets → (∃ (ε : ℝ) (H : ε > 0), ∀ {a b : α ⊕ β}, dist a b < ε → (a, b) ∈ s) :=
+    begin
+      assume hs,
+      rcases hs with ⟨hsα, hsβ⟩,
+      let sα := (λ (p : α × α), (inl (p.fst), inl (p.snd)))⁻¹' s,
+      have : sα ∈ (@_root_.uniformity α _).sets := hsα,
+      rcases mem_uniformity_dist.1 this with ⟨εα, εα_pos, h_εα⟩,
+      let sβ := (λ (p : β × β), (inr (p.fst), inr (p.snd)))⁻¹' s,
+      have : sβ ∈ (@_root_.uniformity β _).sets := hsβ,
+      rcases mem_uniformity_dist.1 this with ⟨εβ, εβ_pos, h_εβ⟩,
+      have I : min (min εα εβ) 1 > 0 := lt_min (lt_min εα_pos εβ_pos) zero_lt_one,
+      have : min (min εα εβ) 1 ≤ 1 := min_le_right _ _,
+      have A : ∀ (a : α) (b : α ⊕ β), dist (inl a) b < min (min εα εβ) 1 → (inl a, b) ∈ s :=
+      begin
+        assume a b hab,
+        cases b,
+        { have A : dist a b < εα := calc
+            dist a b < min (min εα εβ) 1 : hab
+                 ... ≤ min εα εβ : min_le_left _ _
+                 ... ≤ εα : min_le_left _ _,
+          exact h_εα A },
+        { simp [dist_eq, sum.dist] at hab,
+          have : dist a (default α) ≥ 0 := dist_nonneg,
+          have : dist (default β) b ≥ 0 := dist_nonneg,
+          linarith },
+      end,
+      have B : ∀ (b : β) (a : α ⊕ β), dist (inr b) a < min (min εα εβ) 1 → (inr b, a) ∈ s :=
+      begin
+        assume b a hba,
+        cases a,
+        { simp [dist_eq, sum.dist] at hba,
+          have : dist (default α) a ≥ 0 := dist_nonneg,
+          have : dist b (default β) ≥ 0 := dist_nonneg,
+          linarith },
+        { have A : dist b a < εβ := calc
+            dist b a < min (min εα εβ) 1 : hba
+                 ... ≤ min εα εβ : min_le_left _ _
+                 ... ≤ εβ : min_le_right _ _,
+          exact h_εβ A },
+      end,
+      existsi (min (min εα εβ) 1),
+      simp [I],
+      exact ⟨A, B⟩
+    end,
+    have S2 : (∃ (ε : ℝ) (H : ε > 0), ∀ {a b : α ⊕ β}, dist a b < ε → (a, b) ∈ s) → s ∈ (@_root_.uniformity (α ⊕ β) _).sets :=
+    begin
+      rintros ⟨ε, εpos, hε⟩,
+      rw sum.uniformity,
+      simp,
+      let sα := (λ (p : α × α), (inl (p.fst), inl (p.snd)))⁻¹' s,
+      have A : sα ∈ (@_root_.uniformity α _).sets :=
+      begin
+        apply mem_uniformity_dist.2,
+        existsi [ε, εpos],
+        intros a b hab,
+        have : dist a b = dist ((inl a) : α ⊕ β) (inl b) := rfl,
+        rw this at hab,
+        exact hε hab,
+      end,
+      let sβ := (λ (p : β × β), (inr (p.fst), inr (p.snd)))⁻¹' s,
+      have B : sβ ∈ (@_root_.uniformity β _).sets :=
+      begin
+        apply mem_uniformity_dist.2,
+        existsi [ε, εpos],
+        intros a b hab,
+        have : dist a b = dist ((inr a) : α ⊕ β) (inr b) := rfl,
+        rw this at hab,
+        exact hε hab,
+      end,
+      exact ⟨A, B⟩
+    end,
+    exact ⟨S1, S2⟩
+  end,
+  ..sum.has_dist
+}
+
+end sum
+
 
 theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
 uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε/2, half_pos ε0,

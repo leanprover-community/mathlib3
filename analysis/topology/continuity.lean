@@ -706,39 +706,6 @@ is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
 
-/- TODO: more fine grained instances for first_countable_topology, separable_space, t2_space, ... -/
-instance [second_countable_topology α] [second_countable_topology β] :
-  second_countable_topology (α × β) :=
-⟨let ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩ := is_open_generated_countable_inter α in
-  let ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩ := is_open_generated_countable_inter β in
-  ⟨{g | ∃u∈a, ∃v∈b, g = set.prod u v},
-    have {g | ∃u∈a, ∃v∈b, g = set.prod u v} = (⋃u∈a, ⋃v∈b, {set.prod u v}),
-      by apply set.ext; simp,
-    by rw [this]; exact (countable_bUnion ha₁ $ assume u hu, countable_bUnion hb₁ $ by simp),
-    by rw [ha₅, hb₅, prod_generate_from_generate_from_eq ha₄ hb₄]⟩⟩
-
-end prod
-
-section compact_and_proper_spaces
-
-/--Type class for compact spaces. Separation is sometimes included in the definition, especially
-in the French literature, but we do not include it here.-/
-class compact_space (α : Type*) [topological_space α] : Prop :=
-(compact_univ : compact (univ : set α))
-
-lemma compact_univ [topological_space α] [h : compact_space α] : compact (univ : set α) := h.compact_univ
-
-lemma compact_of_closed [topological_space α] [compact_space α] {s : set α} (h : is_closed s) :
-  compact s :=
-compact_of_is_closed_subset compact_univ h (subset_univ _)
-
-/-- There are various definitions of "locally compact space" in the literature, which agree for
-Hausdorff spaces but not in general. This one is the precise condition on X needed for the
-evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` is given the
-compact-open topology. -/
-class locally_compact_space (α : Type*) [topological_space α] : Prop :=
-(local_compact_nhds : ∀ (x : α) (n ∈ (nhds x).sets), ∃ s ∈ (nhds x).sets, s ⊆ n ∧ compact s)
-
 lemma locally_compact_of_compact_nhds [topological_space α] [t2_space α]
   (h : ∀ x : α, ∃ s, s ∈ (nhds x).sets ∧ compact s) :
   locally_compact_space α :=
@@ -772,7 +739,47 @@ begin
   exact compact_compact_separated (compact_of_closed hs) (compact_of_closed ht) st.eq_bot
 end
 
-end compact_and_proper_spaces
+/- TODO: more fine grained instances for first_countable_topology, separable_space, t2_space, ... -/
+instance [second_countable_topology α] [second_countable_topology β] :
+  second_countable_topology (α × β) :=
+⟨let ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩ := is_open_generated_countable_inter α in
+  let ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩ := is_open_generated_countable_inter β in
+  ⟨{g | ∃u∈a, ∃v∈b, g = set.prod u v},
+    have {g | ∃u∈a, ∃v∈b, g = set.prod u v} = (⋃u∈a, ⋃v∈b, {set.prod u v}),
+      by apply set.ext; simp,
+    by rw [this]; exact (countable_bUnion ha₁ $ assume u hu, countable_bUnion hb₁ $ by simp),
+    by rw [ha₅, hb₅, prod_generate_from_generate_from_eq ha₄ hb₄]⟩⟩
+
+lemma compact_prod (s : set α) (t : set β) (ha : compact s) (hb : compact t) : compact (set.prod s t) :=
+begin
+  simp [compact_iff_ultrafilter_le_nhds, nhds_prod_eq, filter.prod],
+  assume f hf hfs,
+  have A : ∃a ∈s, map (λx:α × β, x.1) f ≤ nhds a :=
+  begin
+    apply compact_iff_ultrafilter_le_nhds.1 ha _ (ultrafilter_map hf),
+    simp,
+    show {x : α × β | x.fst ∈ s} ∈ f.sets, from mem_sets_of_superset hfs (λx hx, hx.1),
+  end,
+  rcases A with ⟨a, ha, hfa⟩,
+  have B : ∃b ∈t, map (λx:α × β, x.2) f ≤ nhds b :=
+  begin
+    apply compact_iff_ultrafilter_le_nhds.1 hb _ (ultrafilter_map hf),
+    simp,
+    show {x : α × β | x.2 ∈ t} ∈ f.sets, from mem_sets_of_superset hfs (λx hx, hx.2),
+  end,
+  rcases B with ⟨b, hb, hfb⟩,
+  exact ⟨a, b, ⟨ha, hb⟩, map_le_iff_le_comap.mp hfa, map_le_iff_le_comap.mp hfb⟩
+end
+
+instance [compact_space α] [compact_space β] : compact_space (α × β) :=
+⟨begin
+  have A : compact (set.prod (univ : set α) (univ : set β)) :=
+    compact_prod univ univ compact_univ compact_univ,
+  have : set.prod (univ : set α) (univ : set β) = (univ : set (α × β)) := by simp,
+  rwa this at A,
+end⟩
+
+end prod
 
 section sum
 variables [topological_space α] [topological_space β] [topological_space γ]
@@ -822,6 +829,16 @@ lemma embedding_inr : embedding (@sum.inr α β) :=
       exact ⟨⟨is_open_empty, hu⟩, rfl⟩ },
     { rw induced_le_iff_le_coinduced, exact lattice.inf_le_right }
   end⟩
+
+instance [topological_space α] [topological_space β] [compact_space α] [compact_space β] :
+  compact_space (α ⊕ β) :=
+⟨begin
+  have A : compact (@sum.inl α β '' univ) := compact_image compact_univ continuous_inl,
+  have B : compact (@sum.inr α β '' univ) := compact_image compact_univ continuous_inr,
+  have C := compact_union_of_compact A B,
+  have : (@sum.inl α β '' univ) ∪ (@sum.inr α β '' univ) = univ := by ext; cases x; simp,
+  rwa this at C,
+end⟩
 
 end sum
 
@@ -1045,6 +1062,14 @@ begin
   { congr' 1, ext f, simp [pi, eq_comm] },
   exact assume a, (hg a).2.2.2.1
 end
+
+instance pi.compact [∀i:ι, topological_space (π i)] [∀i:ι, compact_space (π i)] : compact_space (Πi, π i) :=
+⟨begin
+  have A : compact {x : Πi:ι, π i | ∀i, x i ∈ (univ : set (π i))} :=
+    compact_pi_infinite (λi, compact_univ),
+  have : {x : Πi:ι, π i | ∀i, x i ∈ (univ : set (π i))} = univ := by ext; simp,
+  rwa this at A,
+end⟩
 
 end pi
 

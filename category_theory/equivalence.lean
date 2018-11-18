@@ -76,7 +76,7 @@ calc
   inverse := f.inverse ⋙ e.inverse,
   fun_inv_id' := nat_iso.of_components (effe_iso_id e f)
   begin
-    /- `tidy` says -/ 
+    /- `tidy` says -/
     intros X Y f_1, dsimp at *, simp at *, dsimp at *,
     /- `rewrite_search` says -/
     conv_lhs { erw [←category.assoc] },
@@ -89,7 +89,7 @@ calc
   end,
   inv_fun_id' := nat_iso.of_components (feef_iso_id e f)
   begin
-    /- `tidy` says -/ 
+    /- `tidy` says -/
     intros X Y f_1, dsimp at *, simp at *, dsimp at *,
     /- `rewrite_search` says -/
     conv_lhs { erw [←category.assoc] },
@@ -215,40 +215,41 @@ def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨ λ Y : D, F.inv.obj Y, λ Y : D, (nat_iso.app F.inv_fun_id Y) ⟩
 
 instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :=
-{ injectivity' := λ X Y f g w, begin
-                                have p := congr_arg (@category_theory.functor.map _ _ _ _ F.inv _ _) w,
-                                simp at *,
-                                assumption
-                              end }.
+{ injectivity' := λ X Y f g w,
+  begin
+    have p := congr_arg (@category_theory.functor.map _ _ _ _ F.inv _ _) w,
+    simp at *,
+    assumption
+  end }.
 
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 { preimage := λ X Y f, (nat_iso.app F.fun_inv_id X).inv ≫ (F.inv.map f) ≫ (nat_iso.app F.fun_inv_id Y).hom,
   witness' := λ X Y f,
-    begin
-      apply F.inv.injectivity,
-      /- obviously can finish from here... -/
-      dsimp, simp, dsimp,
-      conv { 
-        to_lhs,
-        comp_slice 4 6,
-        rw [←functor.map_comp, ←functor.map_comp],
-        rw [←is_equivalence.fun_inv_map],
-      },
-      conv {
-        to_lhs,
-        comp_slice 1 2,
-        simp,
-      },
-      dsimp, simp,
-      conv {
-        to_lhs,
-        comp_slice 2 4,
-        rw [←functor.map_comp, ←functor.map_comp],
-        erw [nat_iso.naturality_2],
-      },
-      erw [nat_iso.naturality_1],
-      refl,
-    end }.
+  begin
+    apply F.inv.injectivity,
+    /- obviously can finish from here... -/
+    dsimp, simp, dsimp,
+    conv {
+      to_lhs,
+      comp_slice 4 6,
+      rw [←functor.map_comp, ←functor.map_comp],
+      rw [←is_equivalence.fun_inv_map],
+    },
+    conv {
+      to_lhs,
+      comp_slice 1 2,
+      simp,
+    },
+    dsimp, simp,
+    conv {
+      to_lhs,
+      comp_slice 2 4,
+      rw [←functor.map_comp, ←functor.map_comp],
+      erw [nat_iso.naturality_2],
+    },
+    erw [nat_iso.naturality_1],
+    refl,
+  end }.
 
 section
 
@@ -256,8 +257,8 @@ section
 { obj  := λ X, F.obj_preimage X,
   map := λ X Y f, F.preimage ((F.fun_obj_preimage_iso X).hom ≫ f ≫ (F.fun_obj_preimage_iso Y).inv),
   map_id' := λ X, begin apply F.injectivity, tidy, end,
-  map_comp' := λ X Y Z f g, 
-  begin 
+  map_comp' := λ X Y Z f g,
+  begin
     apply F.injectivity,
     /- obviously can finish from here... -/
     tidy,

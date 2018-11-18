@@ -20,10 +20,10 @@ def full_subcategory_inclusion (Z : C → Prop) : {X : C // Z X} ⥤ C :=
 { obj := λ X, X.1,
   map := λ _ _ f, f }
 
-instance full_subcategory_full     (Z : C → Prop) : full     (full_subcategory_inclusion Z) := 
-by obviously
-instance full_subcategory_faithful (Z : C → Prop) : faithful (full_subcategory_inclusion Z) := 
-by obviously
+instance full_subcategory_fully_faithful (Z : C → Prop) : fully_faithful (full_subcategory_inclusion Z) :=
+{ preimage := _,
+  injectivity' := by obviously }
+
 end
 
 end category_theory

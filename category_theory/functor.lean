@@ -101,6 +101,7 @@ def of_obj (X : C) : punit.{v₂+1} ⥤ C :=
   map := λ Y Z f, 𝟙 X }
 
 @[simp] lemma of_obj_obj (X : C) (a : punit) : ((of_obj X).obj a) = X := rfl
+@[simp] lemma of_obj_map (X : C) {a b : punit} (f : a ⟶ b) : ((of_obj X).map f) = 𝟙 X := rfl
 end
 
 end functor

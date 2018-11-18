@@ -45,7 +45,7 @@ instance : has_limits.{u+1 u} (Type u) :=
 rfl
 
 @[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X):
-  limit.lift F c x = (⟨ λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x ⟩ : (limit F).X) := 
+  limit.lift F c x = (⟨ λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x ⟩ : (limit F).X) :=
 rfl
 
 def colimit (F : J ⥤ Type u) : cocone F :=
@@ -76,15 +76,15 @@ local attribute [extensionality] quot.sound
   (colim.map α : (colimit F).X → (colimit G).X) =
   (quot.lift
     (λ p : Σ (j : J), F.obj j, quot.mk _ ⟨ p.1, (α.app p.1) p.2 ⟩ )
-    (λ p p' r, begin tidy, exact r_w, rw r_h, rw functor_to_types.naturality, end)) := 
+    (λ p p' r, begin tidy, exact r_w, rw r_h, rw functor_to_types.naturality, end)) :=
 rfl
 
 lemma types_colimit_pre
   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
-  (colimit.pre F E : (colimit (E ⋙ F)).X → (colimit F).X) = 
-  quot.lift 
+  (colimit.pre F E : (colimit (E ⋙ F)).X → (colimit F).X) =
+  quot.lift
     (λ p : Σ (j : K), (E ⋙ F).obj j, quot.mk _ ⟨ E.obj p.1, p.2 ⟩)
-    (by tidy) := 
+    (by tidy) :=
 rfl
 
 -- TODO finish stating this lemma!

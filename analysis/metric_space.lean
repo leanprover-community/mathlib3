@@ -1377,7 +1377,7 @@ lemma bounded_singleton {x : α} : bounded ({x} : set α) :=
 bounded_of_finite (finite_singleton _)
 
 /--Characterization of the boundedness of the range of a function-/
-lemma bounded_range {f : β → α} : bounded (range f) ↔ ∃C, ∀x y, dist (f x) (f y) ≤ C :=
+lemma bounded_range_iff {f : β → α} : bounded (range f) ↔ ∃C, ∀x y, dist (f x) (f y) ≤ C :=
 ⟨λ⟨C, hC⟩, ⟨C, λx y, hC (f x) (f y) (mem_range_self _) (mem_range_self _)⟩,
   λ⟨C, hC⟩, ⟨C, λx y hx hy,
   begin

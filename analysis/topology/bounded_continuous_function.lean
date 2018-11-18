@@ -82,18 +82,21 @@ section
 variables [topological_space α] [metric_space β] [metric_space γ]
 variables {f g : bounded_continuous_function α β} {x : α} {C : ℝ}
 
+instance : has_coe_to_fun (bounded_continuous_function α β) :=  ⟨_, subtype.val⟩
+
+lemma bounded_range : bounded (range f) :=
+bounded_range_iff.2 (f.property.2)
+
 /--If a function is continuous on a compact space, it is automatically bounded,
 and therefore gives rise to an element of the type of bounded continuous functions-/
 def mk_of_compact [compact_space α] (f : α → β) (hf : continuous f) : bounded_continuous_function α β :=
-⟨f, ⟨hf, by apply bounded_range.1; rw ← image_univ; apply bounded_of_compact (compact_image compact_univ hf)⟩⟩
+⟨f, ⟨hf, by apply bounded_range_iff.1; rw ← image_univ; apply bounded_of_compact (compact_image compact_univ hf)⟩⟩
 
 /--If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions-/
 def mk_of_discrete [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) :
   bounded_continuous_function α β :=
 ⟨f, ⟨continuous_of_discrete_topology, hf⟩⟩
-
-instance : has_coe_to_fun (bounded_continuous_function α β) :=  ⟨_, subtype.val⟩
 
 /--The uniform distance between two bounded continuous functions-/
 instance : has_dist (bounded_continuous_function α β) :=
@@ -642,6 +645,19 @@ instance : normed_group (bounded_continuous_function α β) :=
   ..bounded_continuous_function.add_comm_group,
   ..bounded_continuous_function.has_norm
 }
+
+lemma abs_diff_coe_le_dist : norm (f x - g x) ≤ dist f g :=
+calc norm (f x - g x) = norm ((f - g) x) : by simp
+                  ... ≤ norm (f - g) : norm_coe_le_norm
+                  ... = dist f g : (normed_group.dist_eq _ _).symm
+
+lemma coe_le_coe_add_dist {f g : bounded_continuous_function α ℝ} : f x ≤ g x + dist f g :=
+begin
+  have : f x - g x ≤ abs (f x - g x) := le_abs_self _,
+  have : abs (f x - g x) ≤ dist f g :=
+    by rw ← real.norm_eq_abs; exact abs_diff_coe_le_dist,
+  by linarith
+end
 
 end normed_group --section
 end bounded_continuous_function --namespace

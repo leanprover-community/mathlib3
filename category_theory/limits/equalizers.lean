@@ -270,6 +270,25 @@ instance [has_coequalizer f g] : epi (coequalizer.π f g) :=
   {h k : coequalizer f g ⟶ P}
   (w : coequalizer.π f g ≫ h = coequalizer.π f g ≫ k) : h = k := epi.left_cancellation h k w
 
+def equalizer.hom_equiv [has_equalizer f g] {P : C} :
+  (P ⟶ equalizer f g) ≅ { p : P ⟶ X // p ≫ f = p ≫ g } :=
+{ hom := λ k,
+  ⟨ k ≫ equalizer.ι f g,
+    begin
+      rw [category.assoc, category.assoc],
+      rw equalizer.w,
+    end ⟩,
+  inv := λ p, equalizer.lift f g p.val p.property }
+def coequalizer.hom_equiv [has_coequalizer f g] {P : C} :
+  (coequalizer f g ⟶ P) ≅ { p : Y ⟶ P // f ≫ p = g ≫ p } :=
+{ hom := λ k,
+  ⟨ coequalizer.π f g ≫ k,
+    begin
+      rw [←category.assoc, ←category.assoc],
+      rw coequalizer.w,
+    end ⟩,
+  inv := λ p, coequalizer.desc f g p.val p.property }
+
 instance has_limits_of_shape_of_has_equalizers [has_equalizers.{u v} C] :
   limits.has_limits_of_shape.{u v} walking_pair.{v} C :=
 { cone := λ F, cone.of_fork (equalizer.fork (F.map left) (F.map right)),

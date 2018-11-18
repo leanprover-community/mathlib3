@@ -105,6 +105,10 @@ by erw is_limit.fac; refl
   (w_snd : g ≫ prod.snd X Y = h ≫ prod.snd X Y) : g = h :=
 limit.hom_ext (λ j, two.cases_on j w_fst w_snd)
 
+def prod.hom_equiv {P : C} : (P ⟶ limits.prod X Y) ≅ (P ⟶ X) × (P ⟶ Y) :=
+{ hom := λ g, (g ≫ prod.fst X Y, g ≫ prod.snd X Y),
+  inv := λ p, prod.lift p.1 p.2 }
+
 end prod
 
 section sum
@@ -121,6 +125,35 @@ variables {X Y}
 
 def sum.desc {P : C} (left : X ⟶ P) (right : Y ⟶ P) : limits.sum X Y ⟶ P :=
 colimit.desc.{u v} _ (sum.mk.{u v} left right)
+
+@[simp] lemma sum.desc_inl {P : C} (inl : X ⟶ P) (inr : Y ⟶ P) : sum.inl _ _ ≫ sum.desc inl inr = inl :=
+colimit.ι_desc (sum.mk.{u v} inl inr) two.left
+@[simp] lemma sum.desc_inr {P : C} (inl : X ⟶ P) (inr : Y ⟶ P) : sum.inr _ _ ≫ sum.desc inl inr = inr :=
+colimit.ι_desc (sum.mk.{u v} inl inr) two.right
+
+def sum.map
+  {U V : C} [has_binary_coproduct.{u v} U V] (fst : X ⟶ U) (snd : Y ⟶ V) :
+  (limits.sum X Y) ⟶ (limits.sum U V) :=
+sigma.desc (λ b, two.cases_on b (fst ≫ sum.inl U V) (snd ≫ sum.inr U V))
+
+@[simp] lemma sum.map_inl
+  {U V : C} [has_binary_coproduct.{u v} U V] (fst : X ⟶ U) (snd : Y ⟶ V) :
+  sum.inl X Y ≫ sum.map fst snd = fst ≫ sum.inl U V :=
+by erw is_colimit.fac; refl
+@[simp] lemma sum.map_inr
+  {U V : C} [has_binary_coproduct.{u v} U V] (fst : X ⟶ U) (snd : Y ⟶ V) :
+  sum.inr X Y ≫ sum.map fst snd = snd ≫ sum.inr U V :=
+by erw is_colimit.fac; refl
+
+@[extensionality] lemma sum.hom_ext
+  {P : C} {g h : limits.sum.{u v} X Y ⟶ P}
+  (w_fst : sum.inl X Y ≫ g = sum.inl X Y ≫ h)
+  (w_snd : sum.inr X Y ≫ g = sum.inr X Y ≫ h) : g = h :=
+colimit.hom_ext (λ j, two.cases_on j w_fst w_snd)
+
+def sum.hom_equiv {P : C} : (limits.sum X Y ⟶ P) ≅ (X ⟶ P) × (Y ⟶ P) :=
+{ hom := λ g, (sum.inl X Y ≫ g, sum.inr X Y ≫ g),
+  inv := λ p, sum.desc p.1 p.2 }
 
 end sum
 

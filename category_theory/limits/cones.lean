@@ -19,7 +19,8 @@ variables {J C}
 open category_theory
 open category_theory.functor
 
-namespace category_theory.limits
+namespace category_theory
+namespace limits
 
 /--
 A `c : cone F` is:
@@ -59,7 +60,6 @@ end
 
 variable {F : J ⥤ C}
 
-namespace functor
 -- These are not particularly important definitions; they're mostly here
 -- as reminders of the relationship between `F.cones` and `cone F`.
 
@@ -67,11 +67,26 @@ def cones_of_cone (c : cone F) : F.cones.obj c.X := c.π
 def cone_of_cones {X : C} (π : F.cones.obj X) : cone F :=
 { X := X,
   π := π }
-end functor
+
+@[simp] lemma cones_of_cone_app (c : cone F) (j : J) : (cones_of_cone c).app j = c.π.app j := rfl
+@[simp] lemma cone_of_cones_app {X : C} (π : F.cones.obj X) (j : J) :
+  (cone_of_cones π).π.app j = π.app j := rfl
+@[simp] lemma cones_cone {X : C} (π : F.cones.obj X) : cones_of_cone (cone_of_cones π) = π := rfl
+
+def cocones_of_cocone (c : cocone F) : F.cocones.obj c.X := c.ι
+def cocone_of_cocones {X : C} (ι : F.cocones.obj X) : cocone F :=
+{ X := X,
+  ι := ι }
+
+@[simp] lemma cocones_of_cocone_app (c : cocone F) (j : J) : (cocones_of_cocone c).app j = c.ι.app j := rfl
+@[simp] lemma cocone_of_cocones_app {X : C} (ι : F.cocones.obj X) (j : J) :
+  (cocone_of_cocones ι).ι.app j = ι.app j := rfl
+@[simp] lemma cocones_cocone {X : C} (ι : F.cones.obj X) : cones_of_cone (cone_of_cones ι) = ι := rfl
 
 namespace cone
+
 @[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
-{ app := λ X f, ((const J).map f) ⊟ c.π }
+{ app := λ X f, ((const J).map f) ≫ c.π }
 
 @[simp] def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
 { X := X,
@@ -90,7 +105,10 @@ def whisker (c : cone F) {K : Type v} [small_category K] (E : K ⥤ J) : cone (E
 end cone
 
 namespace cocone
-def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
+-- @[simp] def extensions (c : cocone F) : coyoneda.obj c.X ⟶ F.cocones :=
+-- { app := λ X f, c.ι ≫ ((const J).map f) }
+
+@[simp] def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
 { X := X,
   ι := c.ι ⊟ (const J).map f }
 
@@ -119,7 +137,6 @@ namespace cone_morphism
 begin
   induction f,
   induction g,
-  -- `obviously'` says:
   dsimp at w,
   induction w,
   refl,
@@ -183,7 +200,6 @@ namespace cocone_morphism
 begin
   induction f,
   induction g,
-  -- `obviously'` says:
   dsimp at w,
   induction w,
   refl,
@@ -240,9 +256,9 @@ include 𝒟
 end
 end cocones
 
-end category_theory.limits
+end limits
 
-namespace category_theory.functor
+namespace functor
 
 variables {D : Type u'} [category.{u' v} D]
 variables {F : J ⥤ C} {G : J ⥤ C}
@@ -261,4 +277,5 @@ def map_cocone_morphism (H : C ⥤ D) {c c' : cocone F} (f : cocone_morphism c c
 @[simp] lemma map_cocone_ι (H : C ⥤ D) (c : cocone F) (j : J) :
   (map_cocone H c).ι.app j = (whisker_right c.ι H ⊟ (functor.const_compose _ _ _).inv).app j := rfl
 
-end category_theory.functor
+end functor
+end category_theory

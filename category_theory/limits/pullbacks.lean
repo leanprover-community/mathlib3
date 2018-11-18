@@ -342,6 +342,15 @@ begin
     simpa }
 end
 
+def pullback.hom_equiv {P : C} : (P ⟶ pullback f g) ≅ { p : (P ⟶ X) × (P ⟶ Y) // p.1 ≫ f = p.2 ≫ g } :=
+{ hom := λ k,
+  ⟨ (k ≫ pullback.π₁ f g, k ≫ pullback.π₂ f g),
+    begin
+      rw [category.assoc, category.assoc],
+      rw pullback.w,
+    end ⟩,
+  inv := λ p, pullback.lift f g p.val.1 p.val.2 p.property }
+
 end pullback
 
 section pushout
@@ -407,6 +416,15 @@ begin
   { dsimp [cosquare.mk], erw category.comp_id, refl },
   { dsimp [cosquare.mk], erw category.comp_id, refl },
 end
+
+def pushout.hom_equiv {P : C} : (pushout f g ⟶ P) ≅ { p : (Y ⟶ P) × (Z ⟶ P) // f ≫ p.1 = g ≫ p.2 } :=
+{ hom := λ k,
+  ⟨ (pushout.ι₁ f g ≫ k, pushout.ι₂ f g ≫ k),
+    begin
+      rw [←category.assoc, ←category.assoc],
+      rw pushout.w,
+    end ⟩,
+  inv := λ p, pushout.desc f g p.val.1 p.val.2 p.property }
 
 end pushout
 

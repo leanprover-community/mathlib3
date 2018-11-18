@@ -33,7 +33,7 @@ section
 variables {D : Type u'} [𝒟 : category.{u' v} D]
 include 𝒟
 
-@[simp] def const_compose (X : C) (F : C ⥤ D) : 
+@[simp] def const_compose (X : C) (F : C ⥤ D) :
   (const J).obj (F.obj X) ≅ (const J).obj X ⋙ F :=
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
@@ -53,5 +53,7 @@ natural transformations from the constant functor with value `X` to `F`.
 -/
 def cones (F : J ⥤ C) : (Cᵒᵖ) ⥤ (Type v) :=
   (const (Jᵒᵖ)) ⋙ (op_inv J C) ⋙ (yoneda.obj F)
+def cocones (F : J ⥤ C) : C ⥤ (Type v) :=
+  (const J) ⋙ (coyoneda.obj F)
 
 end category_theory.functor

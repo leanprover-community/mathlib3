@@ -22,7 +22,7 @@ variables {F : J ⥤ C}
 structure is_limit (t : cone F) :=
 (lift : ∀ (s : cone F), s.X ⟶ t.X)
 (fac'  : ∀ (s : cone F) (j : J), (lift s ≫ t.π.app j) = s.π.app j . obviously)
-(uniq' : ∀ (s : cone F) (m : s.X ⟶ t.X) (w : ∀ j : J, (m ≫ t.π.app j) = s.π.app j), 
+(uniq' : ∀ (s : cone F) (m : s.X ⟶ t.X) (w : ∀ j : J, (m ≫ t.π.app j) = s.π.app j),
   m = lift s . obviously)
 
 restate_axiom is_limit.fac'
@@ -375,6 +375,25 @@ by erw is_limit.fac
   (w : ∀ j, f ≫ limit.π F j = g ≫ limit.π F j) : f = g :=
 (limit.universal_property F).hom_ext w
 
+def limit.hom_equiv {F : J ⥤ C} [has_limit F] (P : C) : (P ⟶ limit F) ≅ (F.cones.obj P) :=
+{ hom := λ f, cones_of_cone ((limit.cone F).extend f),
+  inv := λ c, limit.lift F (cone_of_cones c) }
+
+def limit.hom_equiv' {F : J ⥤ C} [has_limit F] (P : C) :
+  (P ⟶ limit F) ≅ { p : Π j, P ⟶ F.obj j // ∀ {j j' : J} (f : j ⟶ j'), p j ≫ F.map f = p j' } :=
+limit.hom_equiv P ≪≫
+{ hom := λ π,
+  ⟨ λ j, π.app j, λ j j' f,
+    begin
+      let g := (π.naturality f).symm,
+      dsimp at g,
+      erw [category.id_comp] at g,
+      exact g,
+    end ⟩,
+  inv := λ p,
+  { app := λ j, p.1 j,
+    naturality' := λ j j' f, begin dsimp, erw [category.id_comp], exact (p.2 f).symm end } }
+
 lemma limit.lift_extend {F : J ⥤ C} [has_limit F] (c : cone F) {X : C} (f : X ⟶ c.X) :
   limit.lift F (c.extend f) = f ≫ limit.lift F c :=
 by obviously
@@ -574,6 +593,25 @@ by erw is_colimit.fac
   {f g : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ g) : f = g :=
 (colimit.universal_property F).hom_ext w
+
+def colimit.hom_equiv {F : J ⥤ C} [has_colimit F] (P : C) : (colimit F ⟶ P) ≅ (F.cocones.obj P) :=
+{ hom := λ f, cocones_of_cocone ((colimit.cocone F).extend f),
+  inv := λ c, colimit.desc F (cocone_of_cocones c) }
+
+def colimit.hom_equiv' {F : J ⥤ C} [has_colimit F] (P : C) :
+  (colimit F ⟶ P) ≅ { p : Π j, F.obj j ⟶ P // ∀ {j j' : J} (f : j ⟶ j'), F.map f ≫ p j' = p j } :=
+colimit.hom_equiv P ≪≫
+{ hom := λ ι,
+  ⟨ λ j, ι.app j, λ j j' f,
+    begin
+      let g := ι.naturality f,
+      dsimp at g,
+      erw [category.comp_id] at g,
+      exact g,
+    end ⟩,
+  inv := λ p,
+  { app := λ j, p.1 j,
+    naturality' := λ j j' f, begin dsimp, erw [category.comp_id], exact p.2 f end } }
 
 lemma colimit.desc_extend (F : J ⥤ C) [has_colimit F] (c : cocone F) {X : C} (f : c.X ⟶ X) :
   colimit.desc F (c.extend f) = colimit.desc F c ≫ f :=

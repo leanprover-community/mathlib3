@@ -59,6 +59,8 @@ definition op_inv : (Cᵒᵖ ⥤ Dᵒᵖ) ⥤ (C ⥤ D)ᵒᵖ :=
     naturality' := λ X Y f, eq.symm (α.naturality f) } }
 
 namespace op_inv
+@[simp] lemma obj_obj (F : Cᵒᵖ ⥤ Dᵒᵖ) (X : C) : ((op_inv C D).obj F).obj X = F.obj X := rfl
+@[simp] lemma obj_map (F : Cᵒᵖ ⥤ Dᵒᵖ) {X Y : C} (f : X ⟶ Y) : ((op_inv C D).obj F).map f = F.map f := rfl
 @[simp] lemma map_app {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ⟶ G) (X : C) : ((op_inv C D).map α).app X = α.app X := rfl
 end op_inv
 

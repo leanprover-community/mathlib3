@@ -58,6 +58,10 @@ begin
   refl,
 end
 
+def terminal.hom_equiv {P : C} : (P ⟶ terminal C) ≅ punit :=
+{ hom := λ f, punit.star,
+  inv := λ s, terminal.from P }
+
 end terminal
 
 section initial
@@ -74,13 +78,18 @@ variables {C}
 def initial.to (X : C) : initial C ⟶ X :=
 (has_initial.is_initial.{u v} C).desc { X := X, ι := by tidy }.
 
-@[extensionality] def initial.hom_ext {X : C} (f g : initial C ⟶ X) : f = g := 
+@[extensionality] def initial.hom_ext {X : C} (f g : initial C ⟶ X) : f = g :=
 begin
   have h := has_initial.is_initial.{u v} C,
   rw h.uniq { X := X, ι := by tidy } f (by tidy),
   rw h.uniq { X := X, ι := by tidy } g (by tidy),
   refl,
 end
+
+def initial.hom_equiv {P : C} : (initial C ⟶ P) ≅ punit :=
+{ hom := λ f, punit.star,
+  inv := λ s, initial.to P }
+
 end initial
 
 -- Special cases of this may be marked with [instance] as desired.

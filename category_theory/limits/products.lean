@@ -177,6 +177,10 @@ end
   {X : C} {g h : X ⟶ limits.pi f} (w : ∀ b, g ≫ pi.π f b = h ≫ pi.π f b) : g = h :=
 limit.hom_ext w
 
+def pi.hom_equiv {f : β → C} [has_product f] {P : C} : (P ⟶ limits.pi f) ≅ Π b, P ⟶ f b :=
+{ hom := λ g b, g ≫ pi.π f b,
+  inv := λ g, pi.lift g }
+
 @[simp] def pi.lift_map
   [has_products_of_shape.{u v} β C] {f : β → C} {g : β → C}
   {P : C} (p : Π b, P ⟶ f b) (k : Π b, f b ⟶ g b) :

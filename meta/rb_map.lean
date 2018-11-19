@@ -20,6 +20,14 @@ end rb_set
 
 namespace rb_map
 
+meta def find_def {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
+  (x : β) (m : rb_map α β) (k : α) :=
+(m.find k).get_or_else x
+
+meta def insert_cons {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
+  (k : α) (x : β) (m : rb_map α (list β)) : rb_map α (list β) :=
+m.insert k (x :: m.find_def [] k)
+
 meta def ifind {α β} [inhabited β] (m : rb_map α β) (a : α) : β :=
 (m.find a).iget
 

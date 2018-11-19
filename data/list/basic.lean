@@ -16,6 +16,15 @@ namespace list
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
+instance : is_left_id (list α) has_append.append [] :=
+⟨ nil_append ⟩
+
+instance : is_right_id (list α) has_append.append [] :=
+⟨ append_nil ⟩
+
+instance : is_associative (list α) has_append.append :=
+⟨ append_assoc ⟩
+
 @[simp] theorem cons_ne_nil (a : α) (l : list α) : a::l ≠ [].
 
 theorem head_eq_of_cons_eq {h₁ h₂ : α} {t₁ t₂ : list α} :

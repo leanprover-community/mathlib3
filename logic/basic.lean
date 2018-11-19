@@ -258,6 +258,13 @@ theorem not_imp_of_and_not : a ∧ ¬ b → ¬ (a → b)
 @[simp] theorem not_imp [decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
 ⟨λ h, ⟨of_not_imp h, not_of_not_imp h⟩, not_imp_of_and_not⟩
 
+-- for monotonicity
+lemma imp_imp_imp
+  (h₀ : c → a) (h₁ : b → d) :
+  (a → b) → (c → d) :=
+assume (h₂ : a → b),
+h₁ ∘ h₂ ∘ h₀
+
 theorem peirce (a b : Prop) [decidable a] : ((a → b) → a) → a :=
 if ha : a then λ h, ha else λ h, h ha.elim
 

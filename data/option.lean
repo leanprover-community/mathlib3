@@ -101,7 +101,10 @@ by cases x; simp [is_some]; exact ⟨_, rfl⟩
 
 @[simp] theorem is_none_some {a : α} : is_none (some a) = ff := rfl
 
-theorem is_none_iff_eq_none {o : option α} : o.is_none ↔ o = none :=
+@[simp] theorem not_is_some {a : option α} : is_some a = ff ↔ a.is_none = tt :=
+by cases a; simp
+
+theorem is_none_iff_eq_none {o : option α} : o.is_none = tt ↔ o = none :=
 ⟨option.eq_none_of_is_none, λ e, e.symm ▸ rfl⟩
 
 instance decidable_eq_none {o : option α} : decidable (o = none) :=

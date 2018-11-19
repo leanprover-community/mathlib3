@@ -69,6 +69,18 @@ namespace category_theory
 
 def ulift_trivial (V : Type u₁) : ulift.{u₁} V ≅ V := by tidy
 
+def equiv_of_iso {X Y : Type u} (i : X ≅ Y) : X ≃ Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := λ x, congr i.hom_inv_id rfl,
+  right_inv := λ x, congr i.inv_hom_id rfl }
+
+def iso_of_equiv {X Y : Type u} (i : X ≃ Y) : X ≅ Y :=
+{ hom := i.to_fun,
+  inv := i.inv_fun,
+  hom_inv_id' := funext i.left_inv,
+  inv_hom_id' := funext i.right_inv }
+
 namespace comma
 variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A]
 variables {B : Type u₂} [ℬ : category.{u₂ v₂} B]
@@ -367,6 +379,8 @@ end
 
 def sheaf_condition (F : presheaf X) := is_iso $ (yoneda.obj F).map c.π
 
+set_option pp.universes true
+
 example {F : presheaf X} (h : c.sheaf_condition F) : true :=
 begin
   let A := iso_of_is_iso h,
@@ -376,10 +390,9 @@ begin
   dsimp at C,
   let D := C ≪≫ (coequalizer.hom_equiv _ _),
   dsimp at D,
-  let Et := limits.sigma (λ (Ui : {x // x ∈ c}), yoneda.obj ((Ui.val).left)) ⟶ F,
-  clear D,
-  let E := iso.refl Et ≪≫ colimit.hom_equiv' _,
-  have := @equiv.subtype_equiv_of_subtype,
+  let E := iso.refl (limits.sigma (λ (Ui : {x // x ∈ c}), yoneda.obj ((Ui.val).left)) ⟶ F) ≪≫ sigma.hom_equiv,
+  let Eeq := (equiv_of_iso.{u} E).trans (equiv.Pi_congr_right.{u} (λ Ui, equiv_of_iso (nat_iso.app (yoneda_lemma _) (Ui.val.left, F) ≪≫ ulift_trivial _))),
+  let G1 := (equiv_of_iso D).trans (equiv.subtype_equiv_of_subtype.{(u+1) (u+1)} Eeq),
   tauto
 end
 

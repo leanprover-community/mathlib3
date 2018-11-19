@@ -12,6 +12,8 @@ open category_theory.limits
 
 universes u u₁ u₂ u₃ v v₁ v₂ v₃ w w₁ w₂
 
+def type_of {X Y : Type v} {p : Y → Prop} (h : X ≅ {y // p y}) : Type v := Y
+
 namespace lattice
 
 open lattice
@@ -90,8 +92,8 @@ def iso_of_is_iso {X Y : C} {f : X ⟶ Y} (h : is_iso f) : X ≅ Y :=
   ..h}
 
 section over_under -- move somewhere else
-
-def over (X : C) := comma (functor.id C) (functor.of_obj X)
+set_option pp.universes true
+def over (X : C) := comma (functor.id C) (functor.of_obj.{u v v} X)
 
 def under (X : C) := comma (functor.of_obj X) (functor.id C)
 
@@ -372,51 +374,14 @@ begin
   dsimp at B,
   let C := (nat_iso.app (yoneda_lemma _) (U, F) ≪≫ ulift_trivial _).symm ≪≫ B,
   dsimp at C,
+  let D := C ≪≫ (coequalizer.hom_equiv _ _),
+  dsimp at D,
+  let Et := limits.sigma (λ (Ui : {x // x ∈ c}), yoneda.obj ((Ui.val).left)) ⟶ F,
+  clear D,
+  let E := iso.refl Et ≪≫ colimit.hom_equiv' _,
+  have := @equiv.subtype_equiv_of_subtype,
+  tauto
 end
-
-def sheaf_condition₂.fork (F : presheaf X) :
-let
-  y (Ui : c) := yoneda.map Ui.val.hom,
-  pb (Ujk : c × c) : presheaf X := limits.pullback (y Ujk.1) (y Ujk.2),
-  left  : limits.pi (λ Ui : c, F.obj Ui.val.left) ⟶ limits.pi (λ Ujk : c × c, (yoneda.obj F).obj (pb Ujk)) :=
-    pi.lift $ λ Ujk,
-    begin
-      refine pi.π (λ Ui : c, F.obj Ui.val.left) Ujk.1 ≫ _,
-      have := (nat_iso.app (yoneda_lemma _) (Ujk.1.val.left, F) ≪≫ ulift_trivial _).inv,
-      refine this ≫ _,
-      refine (yoneda.obj F).map _,
-      exact pullback.π₁ (y Ujk.1) (y Ujk.2),
-    end,
-  right : limits.pi (λ Ui : c, F.obj Ui.val.left) ⟶ limits.pi (λ Ujk : c × c, (yoneda.obj F).obj (pb Ujk)) :=
-    pi.lift $ λ Ujk,
-    begin
-      refine pi.π (λ Ui : c, F.obj Ui.val.left) Ujk.2 ≫ _,
-      have := (nat_iso.app (yoneda_lemma _) (Ujk.2.val.left, F) ≪≫ ulift_trivial _).inv,
-      refine this ≫ _,
-      refine (yoneda.obj F).map _,
-      exact pullback.π₂ (y Ujk.1) (y Ujk.2),
-    end
-in
-fork left right :=
-{ X := F.obj U,
-  π := begin
-    dsimp,
-    constructor,
-    intro t,
-    cases t;
-    dsimp,
-    { change F.obj U ⟶ limits.pi (λ Ui : c, F.obj Ui.val.left),
-      refine pi.lift _,
-      intro Ui,
-      exact functor.map F Ui.val.hom },
-    { change F.obj U ⟶ limits.pi _,
-      refine pi.lift _,
-      intro Ujk, }
-  end
-}
-
-def sheaf_condition₂ (F : presheaf X) :
-is_equalizer (sheaf_condition₂.fork F)
 
 variables {Y : Type u} [small_category Y]
 variables (F : X ⥤ Y)

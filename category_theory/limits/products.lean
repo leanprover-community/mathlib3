@@ -413,6 +413,10 @@ end
   g = h :=
 colimit.hom_ext w
 
+def sigma.hom_equiv {f : β → C} [has_coproduct f] {P : C} : (limits.sigma f ⟶ P) ≅ Π b, f b ⟶ P :=
+{ hom := λ g b, sigma.ι f b ≫ g,
+  inv := λ g, sigma.desc g }
+
 @[simp] lemma sigma.map_desc
   [has_coproducts_of_shape.{u v} β C]
   {f : β → C} {g : β → C} {P : C} (k : Π b, f b ⟶ g b) (p : Π b, g b ⟶ P) :

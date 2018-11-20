@@ -223,7 +223,7 @@ instance : category.{(u+1) u} (presheaf X) := by unfold presheaf; apply_instance
 instance : has_limits.{(u+1) u} (presheaf X) := limits.functor_category_has_limits
 instance : has_pullbacks.{(u+1) u} (presheaf X) := limits.has_pullbacks_of_has_limits
 instance : has_colimits.{(u+1) u} (presheaf X) := limits.functor_category_has_colimits
-instance : has_coproducts.{(u+1) u} (presheaf X) := limits.has_coproducts_of_has_colimits
+instance : has_coproducts.{(u+1) u} (presheaf X) := limits.functor_category_has_coproducts
 instance : has_coequalizers.{(u+1) u} (presheaf X) := limits.has_coequalizers_of_has_colimits
 
 variables {Y : Type u} [small_category Y] (f : X ⥤ Y)
@@ -379,7 +379,26 @@ end
 
 def sheaf_condition (F : presheaf X) := is_iso $ (yoneda.obj F).map c.π
 
+def left (F : presheaf X) : limits.pi.{(u+1)} (λ Ui : c, yoneda.obj Ui.val.left ⟶ F) ⟶
+limits.pi (λ Ujk : c × c, (limits.pullback (yoneda.map Ujk.1.val.hom) (yoneda.map Ujk.2.val.hom) ⟶ F)) :=
+pi.lift (λ Ujk, pi.π _ Ujk.1 ≫ (λ s, pullback.π₁ _ _ ≫ s))
+
+def right (F : presheaf X) : limits.pi.{(u+1)} (λ Ui : c, yoneda.obj Ui.val.left ⟶ F) ⟶
+limits.pi (λ Ujk : c × c, (limits.pullback (yoneda.map Ujk.1.val.hom) (yoneda.map Ujk.2.val.hom) ⟶ F)) :=
+pi.lift (λ Ujk, pi.π _ Ujk.2 ≫ (λ s, pullback.π₂ _ _ ≫ s))
+
+-- set_option pp.all true
+
+-- def fork (F : presheaf X) : fork (c.left F) (c.right F) :=
+-- limits.fork.of_ι (pi.lift (λ Ui : c, (yoneda.obj F).map (by convert yoneda.map Ui.val.hom; tidy)))
+-- _
+-- -- (calc
+-- -- (pi.lift (λ (Ui : c), (yoneda.obj F).map (by convert yoneda.map Ui.val.hom; tidy))) ≫ left c F
+-- -- = pi.lift (λ Ujk : c × c, (yoneda.obj F).map (by convert yoneda.map Ui.val.hom; tidy) ≫ _) : _
+-- -- )
+
 set_option pp.universes true
+-- set_option pp.all true
 
 example {F : presheaf X} (h : c.sheaf_condition F) : true :=
 begin
@@ -391,8 +410,12 @@ begin
   let D := C ≪≫ (coequalizer.hom_equiv _ _),
   dsimp at D,
   let E := iso.refl (limits.sigma (λ (Ui : {x // x ∈ c}), yoneda.obj ((Ui.val).left)) ⟶ F) ≪≫ sigma.hom_equiv,
-  let Eeq := (equiv_of_iso.{u} E).trans (equiv.Pi_congr_right.{u} (λ Ui, equiv_of_iso (nat_iso.app (yoneda_lemma _) (Ui.val.left, F) ≪≫ ulift_trivial _))),
-  let G1 := (equiv_of_iso D).trans (equiv.subtype_equiv_of_subtype.{(u+1) (u+1)} Eeq),
+  let Eeq := (equiv_of_iso E).trans (equiv.Pi_congr_right (λ Ui, equiv_of_iso (nat_iso.app (yoneda_lemma _) (Ui.val.left, F) ≪≫ ulift_trivial _))),
+  dsimp at Eeq,
+  let G0 := (@equiv.subtype_equiv_of_subtype _ _ _ Eeq),
+  let G1 := (equiv_of_iso D),
+  let G2 := G1.trans (equiv.subtype_equiv_of_subtype.{(u+1) (u+1)} (by convert Eeq)),
+  dsimp at G2,
   tauto
 end
 

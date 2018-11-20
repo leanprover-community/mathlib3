@@ -51,9 +51,7 @@ natural transformations from the constant functor with value `X` to `F`.
 
 `cone F` is equivalent, in the obvious way, to `Σ X, F.cones X`.
 -/
-def cones (F : J ⥤ C) : (Cᵒᵖ) ⥤ (Type v) :=
-  (const (Jᵒᵖ)) ⋙ (op_inv J C) ⋙ (yoneda.obj F)
-def cocones (F : J ⥤ C) : C ⥤ (Type v) :=
-  (const J) ⋙ (coyoneda.obj F)
+def cones (F : J ⥤ C) : (Cᵒᵖ) ⥤ (Type v) := (const (Jᵒᵖ)) ⋙ (op_inv J C) ⋙ (yoneda.obj F)
+def cocones (F : J ⥤ C) : C ⥤ (Type v) := (const J) ⋙ (coyoneda.obj F)
 
 end category_theory.functor

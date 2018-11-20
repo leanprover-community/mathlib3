@@ -18,6 +18,9 @@ begin
   cases a, cases b, refl
 end
 
+instance plift_subsingleton (P : Prop) : subsingleton (plift P) :=
+subsingleton.intro (λ a b, begin cases a, cases b, refl end)
+
 instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 { hom  := λ X Y, ulift (plift (X = Y)),
   id   := by obviously,
@@ -35,16 +38,9 @@ variables (J : Type v₂) [small_category J]
 variables (C : Type u₂) [𝒞 : category.{u₂ v₂} C]
 include 𝒞
 
-section forget
-
-@[simp] def discrete.forget : (J ⥤ C) ⥤ (discrete J ⥤ C) :=
-{ obj := λ F,
-  { obj := F.obj,
-    map := λ X Y f, F.map (eq_to_hom f.down.down) },
-  map := λ F G α,
-  { app := α.app } }
-
-end forget
+@[simp] def discrete.forget : discrete J ⥤ J :=
+{ obj := λ X, X,
+  map := λ X Y f, eq_to_hom f.down.down }
 
 @[simp] lemma discrete.functor_map_id
   (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F.obj j) :=

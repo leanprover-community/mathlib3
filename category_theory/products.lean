@@ -90,7 +90,10 @@ def evaluation : ((C ⥤ D) × C) ⥤ D :=
                end }
 end
 
-variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A] {B : Type u₂} [ℬ : category.{u₂ v₂} B] {C : Type u₃} [𝒞 : category.{u₃ v₃} C] {D : Type u₄} [𝒟 : category.{u₄ v₄} D]
+variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A]
+          {B : Type u₂} [ℬ : category.{u₂ v₂} B]
+          {C : Type u₃} [𝒞 : category.{u₃ v₃} C]
+          {D : Type u₄} [𝒟 : category.{u₄ v₄} D]
 include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor

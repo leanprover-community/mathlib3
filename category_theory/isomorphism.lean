@@ -61,8 +61,18 @@ namespace iso
 @[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
 { hom := α.hom ≫ β.hom,
   inv := β.inv ≫ α.inv,
-  hom_inv_id' := begin /- `obviously'` says: -/ rw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.hom_inv_id, rw category.id_comp, rw iso.hom_inv_id end,
-  inv_hom_id' := begin /- `obviously'` says: -/ rw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.inv_hom_id, rw category.id_comp, rw iso.inv_hom_id end }
+  hom_inv_id' := begin
+    /- `obviously'` says: -/
+    rw [category.assoc],
+    conv { to_lhs, congr, skip, rw ← category.assoc },
+    rw [iso.hom_inv_id, category.id_comp, iso.hom_inv_id]
+  end,
+  inv_hom_id' := begin
+    /- `obviously'` says: -/
+    rw [category.assoc],
+    conv { to_lhs, congr, skip, rw ← category.assoc },
+    rw [iso.inv_hom_id, category.id_comp, iso.inv_hom_id]
+  end }
 
 infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 

@@ -49,7 +49,8 @@ def map
 { hom := { app := λ U, 𝟙 U },
   inv := { app := λ U, 𝟙 U } }
 
--- We could make f g implicit here, but it's nice to be able to see when they are the identity (often!)
+-- We could make f g implicit here, but it's nice to be able to see when
+-- they are the identity (often!)
 def map_iso {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) : map f ≅ map g :=
 nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg _ (congr_arg _ h)) _) ) (by obviously)
 

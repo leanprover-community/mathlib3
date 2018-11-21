@@ -15,7 +15,7 @@ variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 
 include 𝒞 𝒟
 
 /--
-`prod.category C D` gives the cartesian product of two categories.
+`prod C D` gives the cartesian product of two categories.
 -/
 instance prod : category.{(max u₁ u₂) (max v₁ v₂)} (C × D) :=
 { hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
@@ -24,7 +24,14 @@ instance prod : category.{(max u₁ u₂) (max v₁ v₂)} (C × D) :=
 
 -- rfl lemmas for category.prod
 @[simp] lemma prod_id (X : C) (Y : D) : 𝟙 (X, Y) = (𝟙 X, 𝟙 Y) := rfl
-@[simp] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) : f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
+@[simp] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) :
+  f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
+@[simp] lemma prod_id_fst (X : prod C D) : _root_.prod.fst (𝟙 X) = 𝟙 X.fst := rfl
+@[simp] lemma prod_id_snd (X : prod C D) : _root_.prod.snd (𝟙 X) = 𝟙 X.snd := rfl
+@[simp] lemma prod_comp_fst {X Y Z : prod C D} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).1 = f.1 ≫ g.1 := rfl
+@[simp] lemma prod_comp_snd {X Y Z : prod C D} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).2 = f.2 ≫ g.2 := rfl
 end
 
 section

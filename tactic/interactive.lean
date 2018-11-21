@@ -632,6 +632,28 @@ We use this tactic for writing tests.
 meta def guard_target' (p : parse texpr) : tactic unit :=
 do t ← target, guard_expr_eq' t p
 
+/--
+Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
+Unlike `existsi`, `x` is elaborated with respect to the expected type.
+Equivalent to `refine ⟨x, _⟩`.
+`use` will alternatively take a list of terms `[x0, ..., xn]`.
+Examples:
+
+example (α : Type) : ∃ S : set α, S = S :=
+by use ∅
+
+example : ∃ x : ℤ, x = x :=
+by use 42
+
+example : ∃ a b c : ℤ, a + b + c = 6 :=
+by use [1, 2, 3]
+
+example : ∃ p : ℤ × ℤ, p.1 = 1 :=
+by use ⟨1, 42⟩
+-/
+meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
+do refine $ l.foldr (λ t p, ``(⟨%%t, %%p⟩)) pexpr.mk_placeholder,
+   try refl
 
 end interactive
 end tactic

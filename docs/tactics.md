@@ -681,3 +681,26 @@ by ac_mono* h₁.
 
 By giving `ac_mono` the assumption `h₁`, we are asking `ac_refl` to
 stop earlier than it would normally would.
+
+### use
+Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
+Unlike `existsi`, `x` is elaborated with respect to the expected type.
+Equivalent to `refine ⟨x, _⟩`.
+
+`use` will alternatively take a list of terms `[x0, ..., xn]`.
+
+Examples:
+
+```lean
+example (α : Type) : ∃ S : set α, S = S :=
+by use ∅
+
+example : ∃ x : ℤ, x = x :=
+by use 42
+
+example : ∃ a b c : ℤ, a + b + c = 6 :=
+by use [1, 2, 3]
+
+example : ∃ p : ℤ × ℤ, p.1 = 1 :=
+by use ⟨1, 42⟩
+```

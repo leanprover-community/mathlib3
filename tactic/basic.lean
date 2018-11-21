@@ -557,6 +557,7 @@ meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",
    note n none e, skip
 
+/-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,
    prod.snd <$> solve_aux t' assumption

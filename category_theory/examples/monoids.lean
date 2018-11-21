@@ -7,7 +7,7 @@ Introduce Mon -- the category of monoids.
 Currently only the basic setup.
 -/
 
-import category_theory.embedding
+import category_theory.fully_faithful
 import algebra.ring
 
 universes u v

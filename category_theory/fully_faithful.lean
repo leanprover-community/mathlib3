@@ -49,7 +49,7 @@ def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
   (preimage_iso f).inv = F.preimage (f.inv) := rfl
 end
 
-class embedding (F : C ⥤ D) extends (full F), (faithful F).
+class fully_faithful (F : C ⥤ D) extends (full F), (faithful F).
 end category_theory
 
 namespace category_theory
@@ -62,7 +62,7 @@ instance full.id : full (functor.id C) :=
 
 instance : faithful (functor.id C) := by obviously
 
-instance : embedding (functor.id C) := { ((by apply_instance) : full (functor.id C)) with }
+instance : fully_faithful (functor.id C) := { ((by apply_instance) : full (functor.id C)) with }
 
 variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D] {E : Type u₃} [ℰ : category.{u₃ v₃} E]
 include 𝒟 ℰ

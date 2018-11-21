@@ -1795,11 +1795,11 @@ begin
   cases h : f a with b',
   { have : f a ≠ some b, {rw h, intro, contradiction},
     simp only [filter_map_cons_none _ _ h, IH, mem_cons_iff,
-          or_and_distrib_right, exists_or_distrib, exists_eq_left, this, false_or] },
+      or_and_distrib_right, exists_or_distrib, exists_eq_left, this, false_or] },
   { have : f a = some b ↔ b = b',
     { split; intro t, {rw t at h; injection h}, {exact t.symm ▸ h} },
-    simp only [filter_map_cons_some _ _ _ h, IH, mem_cons_iff,
-          or_and_distrib_right, exists_or_distrib, this, exists_eq_left] }
+      simp only [filter_map_cons_some _ _ _ h, IH, mem_cons_iff,
+        or_and_distrib_right, exists_or_distrib, this, exists_eq_left] }
 end
 
 theorem map_filter_map_of_inv (f : α → option β) (g : β → α)
@@ -1862,7 +1862,7 @@ begin
   { rw [filter_cons_of_pos _ h, cons_inj', ih, and_iff_right h] },
   { rw [filter_cons_of_neg _ h],
     refine iff_of_false _ (mt and.left h), intro e,
-  have := filter_sublist l, rw e at this,
+    have := filter_sublist l, rw e at this,
     exact not_lt_of_ge (length_le_of_sublist this) (lt_succ_self _) }
 end
 
@@ -2705,7 +2705,7 @@ by simp only [insert.def, if_neg h]; split; refl
 begin
   by_cases h' : b ∈ l,
   { simp only [insert_of_mem h'],
-  apply (or_iff_right_of_imp _).symm,
+    apply (or_iff_right_of_imp _).symm,
     exact λ e, e.symm ▸ h' },
   simp only [insert_of_not_mem h', mem_cons_iff]
 end
@@ -3903,7 +3903,7 @@ have [a, a] <+ l ↔ 1 < count a l, from (@le_count_iff_repeat_sublist _ _ a l 2
 (not_congr this).trans not_lt
 
 theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
-| 0 := by simp [zero_le]
+| 0 := by simp [nat.zero_le]
 | 1 := by simp
 | (n+2) := iff_of_false
   (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (le_add_left 2 n)))

@@ -127,8 +127,7 @@ by ext b; simp [mem_lookup_iff, nd₁, nd₂]; exact mem_of_perm p
 
 /- lookup_all -/
 
-/-- `lookup_all a l` is the first value in `l` corresponding to the key `a`,
-  or `none` if no such element exists. -/
+/-- `lookup_all a l` is the list of all values in `l` corresponding to the key `a`. -/
 def lookup_all (a : α) : list (sigma β) → list (β a)
 | []             := []
 | (⟨a', b⟩ :: l) := if h : a' = a then eq.rec_on h b :: lookup_all l else lookup_all l

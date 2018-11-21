@@ -87,7 +87,19 @@ section
 variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
-@[simp] def evaluation : (C × (C ⥤ D)) ⥤ D :=
+@[simp] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
+{ obj := λ X,
+  { obj := λ F, F.obj X,
+    map := λ F G α, α.app X, },
+  map := λ X Y f,
+  { app := λ F, F.map f,
+    naturality' := λ F G α, eq.symm (α.naturality f) },
+  map_comp' := λ X Y Z f g,
+  begin
+    ext, dsimp, rw functor.map_comp,
+  end }
+
+@[simp] def evaluation_uncurried : (C × (C ⥤ D)) ⥤ D :=
 { obj := λ p, p.2.obj p.1,
   map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),
   map_comp' := begin

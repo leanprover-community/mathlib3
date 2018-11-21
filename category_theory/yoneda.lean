@@ -81,7 +81,7 @@ end yoneda
 open yoneda
 
 def yoneda_evaluation : (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) ⥤ Type (max u₁ v₁) :=
-(evaluation (Cᵒᵖ) (Type v₁)) ⋙ ulift_functor.{v₁ u₁}
+(evaluation_uncurried (Cᵒᵖ) (Type v₁)) ⋙ ulift_functor.{v₁ u₁}
 
 @[simp] lemma yoneda_evaluation_map_down
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (x : (yoneda_evaluation C).obj P) :

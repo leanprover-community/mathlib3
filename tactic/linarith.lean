@@ -690,16 +690,28 @@ match tp with
 | `(%%a < %%b) := mk_cast_eq_and_nonneg_prfs pf a b ``nat_lt_subst
 | `(%%a ≥ %%b) := mk_cast_eq_and_nonneg_prfs pf b a ``nat_le_subst
 | `(%%a > %%b) := mk_cast_eq_and_nonneg_prfs pf b a ``nat_lt_subst
+| `(¬ %%a ≤ %%b) := do pf' ← mk_app ``lt_of_not_ge [pf], mk_cast_eq_and_nonneg_prfs pf' b a ``nat_lt_subst
+| `(¬ %%a < %%b) := do pf' ← mk_app ``le_of_not_gt [pf], mk_cast_eq_and_nonneg_prfs pf' b a ``nat_le_subst
+| `(¬ %%a ≥ %%b) := do pf' ← mk_app ``lt_of_not_ge [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_lt_subst
+| `(¬ %%a > %%b) := do pf' ← mk_app ``le_of_not_gt [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_le_subst
 | _ := fail "mk_coe_comp_prf failed: proof is not an inequality"
 end
+
+meta def guard_is_nat_prop : expr → tactic unit
+| `(%%a = _) := infer_type a >>= unify `(ℕ)
+| `(%%a ≤ _) := infer_type a >>= unify `(ℕ)
+| `(%%a < _) := infer_type a >>= unify `(ℕ)
+| `(%%a ≥ _) := infer_type a >>= unify `(ℕ)
+| `(%%a > _) := infer_type a >>= unify `(ℕ)
+| `(¬ %%p) := guard_is_nat_prop p
+| _ := failed
 
 meta def replace_nat_pfs : list expr → tactic (list expr)
 | [] := return []
 | (h::t) :=
-  (do (a, _) ← infer_type h >>= get_rel_sides,
-     infer_type a >>= unify `(ℕ),
-     ls ← mk_int_pfs_of_nat_pf h,
-     list.append ls <$> replace_nat_pfs t) <|> list.cons h <$> replace_nat_pfs t
+  (do infer_type h >>= guard_is_nat_prop,
+      ls ← mk_int_pfs_of_nat_pf h,
+      list.append ls <$> replace_nat_pfs t) <|> list.cons h <$> replace_nat_pfs t
 
 /--
   Takes a list of proofs of propositions.

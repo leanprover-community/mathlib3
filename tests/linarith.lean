@@ -95,3 +95,6 @@ by linarith
 
 example (x y : ℕ) (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3) : false :=
 by linarith
+
+example (a b i : ℕ) (h1 :  ¬ a < i) (h2 : b < i) (h3 : a ≤ b) : false :=
+by linarith

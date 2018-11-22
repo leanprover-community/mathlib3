@@ -43,16 +43,13 @@ by obviously
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app Z' h = α.app Z (f ≫ h) :=
 begin erw [functor_to_types.naturality], refl end
 
-instance yoneda_full : full (@yoneda C _) :=
-{ preimage := λ X Y f, (f.app X) (𝟙 X) }.
-
-instance yoneda_faithful : faithful (@yoneda C _) :=
-begin
-  fsplit,
-  intros X Y f g p,
-  injection p with h,
-  convert (congr_fun (congr_fun h X) (𝟙 X)) ; simp
-end
+instance yoneda_full : fully_faithful (@yoneda C _) :=
+{ preimage := λ X Y f, (f.app X) (𝟙 X),
+  injectivity' := λ X Y f g p,
+  begin
+    injection p with h,
+    convert (congr_fun (congr_fun h X) (𝟙 X)) ; simp
+  end }
 
 /-- Extensionality via Yoneda. The typical usage would be
 ```

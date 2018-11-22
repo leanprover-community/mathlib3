@@ -33,45 +33,49 @@ section
 variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒟
 
+variables {C D}
+
+protected definition op (F : C ⥤ D) : Cᵒᵖ ⥤ Dᵒᵖ :=
+{ obj       := λ X, F.obj X,
+  map       := λ X Y f, F.map f,
+  map_id'   := begin /- `obviously'` says: -/ intros, erw [map_id], refl, end,
+  map_comp' := begin /- `obviously'` says: -/ intros, erw [map_comp], refl end }
+
+@[simp] lemma op_obj (F : C ⥤ D) (X : C) : (F.op).obj X = F.obj X := rfl
+@[simp] lemma op_map (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) : (F.op).map f = F.map f := rfl
+
+protected definition unop (F : Cᵒᵖ ⥤ Dᵒᵖ) : C ⥤ D :=
+{ obj       := λ X, F.obj X,
+  map       := λ X Y f, F.map f,
+  map_id'   := F.map_id,
+  map_comp' := by intros; apply F.map_comp }
+
+@[simp] lemma unop_obj (F : Cᵒᵖ ⥤ Dᵒᵖ) (X : C) : (F.unop).obj X = F.obj X := rfl
+@[simp] lemma unop_map (F : Cᵒᵖ ⥤ Dᵒᵖ) {X Y : C} (f : X ⟶ Y) : (F.unop).map f = F.map f := rfl
+
 variables (C D)
 
 definition op_hom : (C ⥤ D)ᵒᵖ ⥤ (Cᵒᵖ ⥤ Dᵒᵖ) :=
-{ obj := λ F : C ⥤ D,
-  { obj       := λ X, F.obj X,
-    map       := λ X Y f, F.map f,
-    map_id'   := begin /- `obviously'` says: -/ intros, erw [map_id], refl, end,
-    map_comp' := begin /- `obviously'` says: -/ intros, erw [map_comp], refl end },
+{ obj := λ F, F.op,
   map := λ F G α,
   { app := λ X, α.app X,
     naturality' := λ X Y f, eq.symm (α.naturality f) } }
 
+@[simp] lemma op_hom.obj (F : (C ⥤ D)ᵒᵖ) : (op_hom C D).obj F = F.op := rfl
 @[simp] lemma op_hom.map_app {F G : (C ⥤ D)ᵒᵖ} (α : F ⟶ G) (X : C) :
   ((op_hom C D).map α).app X = α.app X := rfl
 
 definition op_inv : (Cᵒᵖ ⥤ Dᵒᵖ) ⥤ (C ⥤ D)ᵒᵖ :=
-{ obj := λ F : Cᵒᵖ ⥤ Dᵒᵖ,
-  { obj       := λ X, F.obj X,
-    map       := λ X Y f, F.map f,
-    map_id'   := F.map_id,
-    map_comp' := by intros; apply F.map_comp },
+{ obj := λ F : Cᵒᵖ ⥤ Dᵒᵖ, F.unop,
   map := λ F G α,
   { app := λ X : C, α.app X,
     naturality' := λ X Y f, eq.symm (α.naturality f) } }
 
-@[simp] lemma op_inv.obj_obj (F : Cᵒᵖ ⥤ Dᵒᵖ) (X : C) : ((op_inv C D).obj F).obj X = F.obj X := rfl
-@[simp] lemma op_inv.obj_map (F : Cᵒᵖ ⥤ Dᵒᵖ) {X Y : C} (f : X ⟶ Y) :
-  ((op_inv C D).obj F).map f = F.map f := rfl
+@[simp] lemma op_inv.obj (F : Cᵒᵖ ⥤ Dᵒᵖ) : (op_inv C D).obj F = F.unop := rfl
 @[simp] lemma op_inv.map_app {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ⟶ G) (X : C) :
   ((op_inv C D).map α).app X = α.app X := rfl
 
 -- TODO show these form an equivalence
-
-variables {C D}
-
-protected definition op (F : C ⥤ D) : Cᵒᵖ ⥤ Dᵒᵖ := (@op_hom C _ D _).obj (F : (C ⥤ D)ᵒᵖ)
-
-@[simp] lemma opposite_obj (F : C ⥤ D) (X : C) : (F.op).obj X = F.obj X := rfl
-@[simp] lemma opposite_map (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) : (F.op).map f = F.map f := rfl
 
 end
 

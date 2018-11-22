@@ -501,6 +501,36 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subs
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
 
+/- interval -/
+
+/-- `interval n m` is the multiset lifted from the list `interval n m`,
+  that is, the set `{n, n+1, ..., m-1}`. -/
+def interval (n m : ℕ) : multiset ℕ := interval n m
+
+-- TODO all the relevant lemmas
+@[simp] theorem mem_interval {n m l : ℕ} : l ∈ interval n m ↔ n ≤ l ∧ l < m := mem_interval
+
+@[simp] theorem interval_range (n : ℕ) : interval 0 n = range n :=
+begin
+  dsimp [interval],
+  congr,
+  dsimp [list.interval],
+  rw list.range_eq_range'
+end
+
+@[simp] theorem interval_zero (n : ℕ) : interval n n = ∅ :=
+begin
+  dsimp [interval],
+  congr,
+  simp,
+end
+
+@[simp] theorem interval_one (n : ℕ) : interval n (n+1) = singleton n :=
+begin
+  dsimp [interval],
+  congr,
+  simp,
+end
 
 /- erase -/
 section erase
@@ -2205,6 +2235,8 @@ theorem nodup_filter_map (f : α → option β) {s : multiset α}
 quot.induction_on s $ λ l, nodup_filter_map H
 
 theorem nodup_range (n : ℕ) : nodup (range n) := nodup_range _
+
+theorem nodup_interval (n m : ℕ) : nodup (interval n m) := nodup_interval _ _
 
 theorem nodup_inter_left [decidable_eq α] {s : multiset α} (t) : nodup s → nodup (s ∩ t) :=
 nodup_of_le $ inter_le_left _ _

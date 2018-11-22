@@ -4014,6 +4014,43 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
+def interval (n m : ℕ) : list ℕ := range' n (m - n)
+
+@[simp] theorem length_interval (n m : ℕ) : length (interval n m) = m - n :=
+by dsimp [interval]; simp only [length_range']
+
+theorem pairwise_lt_interval (n m : ℕ) : pairwise (<) (interval n m) :=
+by dsimp [interval]; simp only [pairwise_lt_range']
+
+theorem nodup_interval (n m : ℕ) : nodup (interval n m) :=
+by dsimp [interval]; simp only [nodup_range']
+
+theorem interval_sublist {n m n' m' : ℕ} : interval n m <+ interval n' m' ↔ n' ≤ n ∧ m ≤ m' :=
+by dsimp [interval]; sorry
+
+theorem interval_subset {n m n' m' : ℕ} : interval n m ⊆ interval n' m' ↔ n' ≤ n ∧ m ≤ m' :=
+by sorry
+
+@[simp] theorem mem_interval {n m l : ℕ} : l ∈ interval n m ↔ n ≤ l ∧ l < m :=
+by dsimp [interval]; simp; sorry
+
+local attribute [simp] nat.sub_self -- Why is this not alway `[simp]`??
+
+@[simp] theorem interval_zero {n : ℕ} : interval n n = [] :=
+begin
+  dsimp [interval],
+  simp,
+end
+
+@[simp] theorem interval_one {n : ℕ} : interval n (n+1) = [n] :=
+begin
+  dsimp [interval],
+  simp [nat.add_sub_cancel_left], -- Similarly, why isn't this `[simp]`?
+end
+
+@[simp] theorem not_mem_interval_top {n m : ℕ} : n ∉ interval n m :=
+mt mem_interval.1 $ sorry
+
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),
   map prod.fst (enum_from n l) = range' n l.length
 | n []       := rfl

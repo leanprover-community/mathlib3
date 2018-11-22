@@ -625,6 +625,41 @@ finset.induction_on s ⟨0, empty_subset _⟩ $ λ a s ha ⟨n, hn⟩,
 
 end range
 
+/- interval -/
+section interval
+variables {n m l : ℕ}
+
+/-- `interval n m` is the set of natural numbers `n ≤ k < m`. -/
+def interval (n m : ℕ) : finset ℕ := ⟨_, nodup_interval n m⟩
+
+@[simp] theorem interval_val (n m : ℕ) : (interval n m).1 = multiset.interval n m := rfl
+
+@[simp] theorem mem_interval : l ∈ interval n m ↔ n ≤ l ∧ l < m := mem_interval
+
+@[simp] theorem interval_range (n : ℕ) : interval 0 n = range n :=
+begin
+  dsimp [interval],
+  congr,
+  dsimp [multiset.interval, list.interval, multiset.range],
+  rw list.range_eq_range'
+end
+
+@[simp] theorem interval_zero (n : ℕ) : interval n n = ∅ :=
+begin
+  dsimp [interval],
+  congr,
+  simp,
+end
+
+@[simp] theorem interval_one (n : ℕ) : interval n (n+1) = singleton n :=
+begin
+  dsimp [interval],
+  congr,
+  simp,
+end
+
+end interval
+
 /- useful rules for calculations with quantifiers -/
 theorem exists_mem_empty_iff (p : α → Prop) : (∃ x, x ∈ (∅ : finset α) ∧ p x) ↔ false :=
 by simp only [not_mem_empty, false_and, exists_false]

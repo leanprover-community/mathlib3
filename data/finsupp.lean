@@ -622,8 +622,7 @@ end
 
 end has_zero
 
-lemma filter_pos_add_filter_neg [add_monoid β] (f : α →₀ β) (p : α → Prop)
-  [decidable_pred p] [decidable_pred (λa, ¬ p a)] :
+lemma filter_pos_add_filter_neg [add_monoid β] (f : α →₀ β) (p : α → Prop) [decidable_pred p] :
   f.filter p + f.filter (λa, ¬ p a) = f :=
 finsupp.ext $ assume a, if H : p a
 then by simp only [add_apply, filter_apply_pos, filter_apply_neg, H, not_not, add_zero]

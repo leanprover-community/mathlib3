@@ -527,7 +527,7 @@ eq.symm (prod_bij (λ x _, nat.succ x)
     have b.pred.succ = b, from nat.succ_pred_eq_of_pos $
       by simp [nat.pos_iff_ne_zero] at *; tauto,
     ⟨nat.pred b, mem_range.2 $ nat.lt_of_succ_lt_succ (by simp [*, - range_succ] at *), this.symm⟩))
-... = nat.fact n : by induction n; simp *
+... = nat.fact n : by induction n; simp [*, range_succ]
 
 end finset
 

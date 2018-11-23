@@ -608,7 +608,9 @@ def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
 @[simp] theorem range_zero : range 0 = ∅ := rfl
 
-@[simp] theorem range_succ : range (succ n) = insert n (range n) :=
+@[simp] theorem range_one : range 1 = {0} := rfl
+
+theorem range_succ : range (succ n) = insert n (range n) :=
 eq_of_veq $ (range_succ n).trans $ (ndinsert_of_not_mem not_mem_range_self).symm
 
 @[simp] theorem not_mem_range_self : n ∉ range n := not_mem_range_self

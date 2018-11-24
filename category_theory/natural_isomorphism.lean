@@ -78,7 +78,7 @@ def of_components (app : ∀ X : C, (F.obj X) ≅ (G.obj X))
   inv  :=
   { app := λ X, ((app X).inv),
     naturality' := λ X Y f,
-    by simpa using congr_arg (λ f, (app X).inv ≫ (f ≫ (app Y).inv)) (eq.symm (naturality f)) } }
+    by simpa using congr_arg (λ f, (app X).inv ≫ (f ≫ (app Y).inv)) (naturality f).symm } }
 
 @[simp] def of_components.app (app' : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
   app (of_components app' naturality) X = app' X :=
@@ -99,10 +99,10 @@ variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
           {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
-@[simp] def id_comp (F : C ⥤ D) : functor.id C ⋙ F ≅ F :=
+@[simp] protected def id_comp (F : C ⥤ D) : functor.id C ⋙ F ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
-@[simp] def comp_id (F : C ⥤ D) : F ⋙ functor.id D ≅ F :=
+@[simp] protected def comp_id (F : C ⥤ D) : F ⋙ functor.id D ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
 
@@ -113,7 +113,7 @@ variables {A : Type u₃} [𝒜 : category.{u₃ v₃} A]
 include 𝒜 ℬ
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D)
 
-@[simp] def assoc : (F ⋙ G) ⋙ H ≅ F ⋙ (G ⋙ H ):=
+@[simp] protected def assoc : (F ⋙ G) ⋙ H ≅ F ⋙ (G ⋙ H ):=
 { hom := { app := λ X, 𝟙 (H.obj (G.obj (F.obj X))) },
   inv := { app := λ X, 𝟙 (H.obj (G.obj (F.obj X))) } }
 

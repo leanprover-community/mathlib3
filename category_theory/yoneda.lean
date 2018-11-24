@@ -20,7 +20,7 @@ universes u₁ v₁ u₂
 variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
 include 𝒞
 
-def yoneda : C ⥤ ((Cᵒᵖ) ⥤ (Type v₁)) :=
+def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y : C, Y ⟶ X,
     map := λ Y Y' f g, f ≫ g,
@@ -28,7 +28,15 @@ def yoneda : C ⥤ ((Cᵒᵖ) ⥤ (Type v₁)) :=
     map_id' := begin intros X_1, ext1, dsimp at *, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
-variables {C}
+def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
+{ obj := λ X : C,
+  { obj := λ Y, X ⟶ Y,
+    map := λ Y Y' f g, g ≫ f,
+    map_comp' := begin intros X_1 Y Z f g, ext1, dsimp at *, erw [category.assoc] end,
+    map_id' := begin intros X_1, ext1, dsimp at *, erw [category.comp_id] end },
+  map := λ X X' f, { app := λ Y g, f ≫ g },
+  map_comp' := begin intros X Y Z f g, ext1, ext1, dsimp at *, erw [category.assoc] end,
+  map_id' := begin intros X, ext1, ext1, dsimp at *, erw [category.id_comp] end }
 
 namespace yoneda
 @[simp] lemma obj_obj (X Y : C) : (yoneda.obj X).obj Y = (Y ⟶ X) := rfl
@@ -74,6 +82,12 @@ instance prod_category_instance_2 : category ((Cᵒᵖ) × ((Cᵒᵖ) ⥤ Type v
 category_theory.prod.{u₁ v₁ (max u₁ (v₁+1)) (max u₁ v₁)} (Cᵒᵖ) (Cᵒᵖ ⥤ Type v₁)
 
 end yoneda
+
+namespace coyoneda
+@[simp] lemma obj_obj (X Y : C) : (coyoneda.obj X).obj Y = (X ⟶ Y) := rfl
+@[simp] lemma obj_map {X' X : C} (f : X' ⟶ X) (Y : C) : (coyoneda.obj Y).map f = λ g, g ≫ f := rfl
+@[simp] lemma map_app (X : C) {Y Y' : C} (f : Y ⟶ Y') : (coyoneda.map f).app X = λ g, f ≫ g := rfl
+end coyoneda
 
 class representable (F : Cᵒᵖ ⥤ Type v₁) :=
 (X : C)

@@ -24,8 +24,9 @@ namespace category_theory
 universes u v
 
 /-
-The propositional fields of `category` are annotated with the auto_param `obviously`, which is
-defined here as a [`replacer` tactic](https://github.com/leanprover/mathlib/blob/master/docs/tactics.md#def_replacer).
+The propositional fields of `category` are annotated with the auto_param `obviously`,
+which is defined here as a
+[`replacer` tactic](https://github.com/leanprover/mathlib/blob/master/docs/tactics.md#def_replacer).
 We then immediately set up `obviously` to call `tidy`. Later, this can be replaced with more
 powerful tactics.
 -/
@@ -43,13 +44,15 @@ class category (obj : Type u) : Type (max u (v+1)) :=
 (comp     : Π {X Y Z : obj}, hom X Y → hom Y Z → hom X Z)
 (id_comp' : ∀ {X Y : obj} (f : hom X Y), comp (id X) f = f . obviously)
 (comp_id' : ∀ {X Y : obj} (f : hom X Y), comp f (id Y) = f . obviously)
-(assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z), comp (comp f g) h = comp f (comp g h) . obviously)
+(assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
+  comp (comp f g) h = comp f (comp g h) . obviously)
 
 notation `𝟙` := category.id -- type as \b1
 infixr ` ≫ `:80 := category.comp -- type as \gg
 infixr ` ⟶ `:10 := category.hom -- type as \h
 
--- `restate_axiom` is a command that creates a lemma from a structure field, discarding any auto_param wrappers from the type.
+-- `restate_axiom` is a command that creates a lemma from a structure field,
+-- discarding any auto_param wrappers from the type.
 -- (It removes a backtick from the name, if it finds one, and otherwise adds "_lemma".)
 restate_axiom category.id_comp'
 restate_axiom category.comp_id'
@@ -57,8 +60,9 @@ restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
 
 /--
-A `large_category` has objects in one universe level higher than the universe level of the morphisms.
-It is useful for examples such as the category of types, or the category of groups, etc.
+A `large_category` has objects in one universe level higher than the universe level of
+the morphisms. It is useful for examples such as the category of types, or the category
+of groups, etc.
 -/
 abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u+1 u} C
 /--
@@ -82,7 +86,8 @@ In a typical example, `c` is the type class `topological_space` and `hom` is `co
 structure concrete_category {c : Type u → Type v}
   (hom : out_param $ ∀{α β : Type u}, c α → c β → (α → β) → Prop) :=
 (hom_id : ∀{α} (ia : c α), hom ia ia id)
-(hom_comp : ∀{α β γ} (ia : c α) (ib : c β) (ic : c γ) {f g}, hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
+(hom_comp : ∀{α β γ} (ia : c α) (ib : c β) (ic : c γ) {f g},
+  hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
 attribute [class] concrete_category
 
 instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
@@ -91,10 +96,13 @@ instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (
   id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
   comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
 
-@[simp] lemma concrete_category_id {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+@[simp] lemma concrete_category_id
+  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
   [h : concrete_category @hom] (X : bundled c) : subtype.val (𝟙 X) = id := rfl
-@[simp] lemma concrete_category_comp {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z): subtype.val (f ≫ g) = g.val ∘ f.val := rfl
+@[simp] lemma concrete_category_comp
+  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+  [h : concrete_category @hom] {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  subtype.val (f ≫ g) = g.val ∘ f.val := rfl
 
 instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
   [h : concrete_category @hom] {R S : bundled c} : has_coe_to_fun (R ⟶ S) :=
@@ -125,7 +133,7 @@ universe u'
 instance ulift_category : category.{(max u u') v} (ulift.{u'} C) :=
 { hom  := λ X Y, (X.down ⟶ Y.down),
   id   := λ X, 𝟙 X.down,
-  comp := λ _ _ _ f g, f ≫ g }  
+  comp := λ _ _ _ f g, f ≫ g }
 
 -- We verify that this previous instance can lift small categories to large categories.
 example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance

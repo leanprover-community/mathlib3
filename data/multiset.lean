@@ -1074,11 +1074,11 @@ quotient.induction_on₃ s t u $
 theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
 by rw [add_comm, add_sub_of_le h]
 
-theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
+@[simp] theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
 multiset.induction_on s (by simp)
   (λ a s IH t, by rw [cons_add, sub_cons, erase_cons_head, IH])
 
-theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
+@[simp] theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
 by rw [add_comm, add_sub_cancel_left]
 
 theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=

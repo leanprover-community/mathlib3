@@ -13,9 +13,9 @@ The category of functors and natural transformations between fixed categories `C
 is defined in [category_theory/functor_category.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/functor_category.lean).
 
 Cartesian products of categories, functors, and natural transformations appear in
- [category_theory/products.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/products.lean). (Product in the sense of limits will appear elsewhere soon!)
+[category_theory/products.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/products.lean). (Product in the sense of limits will appear elsewhere soon!)
 
- The category of types, and the hom pairing functor, are defined in  [category_theory/types.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/types.lean).
+The category of types, and the hom pairing functor, are defined in [category_theory/types.lean](https://github.com/leanprover/mathlib/blob/master/category_theory/types.lean).
 
 ## Universes
 

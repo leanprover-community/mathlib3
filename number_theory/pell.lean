@@ -297,7 +297,6 @@ section
 
   protected theorem le_trans {a b c : ℤ√d} (ab : a ≤ b) (bc : b ≤ c) : a ≤ c :=
   have nonneg (b - a + (c - b)), from nonneg_add ab bc,
-  have nonneg (c - a + (b - b)), by simpa [-add_right_neg, add_left_comm],
   by simpa
 
   theorem nonneg_iff_zero_le {a : ℤ√d} : nonneg a ↔ 0 ≤ a := show _ ↔ nonneg _, by simp

@@ -12,7 +12,7 @@ universes u v
 namespace nat
 variables {m n k : ℕ}
 
-attribute [simp] nat.add_sub_cancel_left
+attribute [simp] nat.add_sub_cancel nat.add_sub_cancel_left
 attribute [simp] nat.sub_self
 
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=

@@ -33,6 +33,10 @@ perm.rec_on p
   (λ x y l, swap y x l)
   (λ l₁ l₂ l₃ p₁ p₂ r₁ r₂, trans r₂ r₁)
 
+theorem perm.swap'
+  (x y : α) {l₁ l₂ : list α} (p : l₁ ~ l₂) : y::x::l₁ ~ x::y::l₂ :=
+trans (swap _ _ _) (skip _ $ skip _ p)
+
 attribute [trans] perm.trans
 
 theorem perm.eqv (α : Type) : equivalence (@perm α) :=
@@ -400,7 +404,7 @@ begin
     { substs r₁ u v t₂, exact (skip y $ p.trans perm_middle).trans (swap _ _ _) },
     { substs r₂ z t₁,   exact skip y (perm_middle.symm.trans p) },
     { substs r₂ y z t₁, exact (swap _ _ _).trans (skip u $ perm_middle.symm.trans p) },
-    { substs u v t₁ t₂, exact (swap _ _ _).trans (skip z $ skip y $ IH rfl rfl) } },
+    { substs u v t₁ t₂, exact (IH rfl rfl).swap' _ _ } },
   { substs t₁ t₃,
     have : a ∈ t₂ := perm_subset p₁ (by simp),
     rcases mem_split this with ⟨l₂, r₂, e₂⟩,
@@ -420,6 +424,15 @@ theorem perm_app_left_iff {l₁ l₂ : list α} : ∀ l, l++l₁ ~ l++l₂ ↔ l
 theorem perm_app_right_iff {l₁ l₂ : list α} (l) : l₁++l ~ l₂++l ↔ l₁ ~ l₂ :=
 ⟨λ p, (perm_app_left_iff _).1 $ trans perm_app_comm $ trans p perm_app_comm,
  perm_app_left _⟩
+
+theorem perm_option_to_list {o₁ o₂ : option α} : o₁.to_list ~ o₂.to_list ↔ o₁ = o₂ :=
+begin
+  refine ⟨λ p, _, λ e, e ▸ perm.refl _⟩,
+  cases o₁ with a; cases o₂ with b, {refl},
+  { cases (perm_length p) },
+  { cases (perm_length p) },
+  { exact option.mem_to_list.1 ((mem_of_perm p).2 $ by simp) }
+end
 
 theorem subperm_cons (a : α) {l₁ l₂ : list α} : a::l₁ <+~ a::l₂ ↔ l₁ <+~ l₂ :=
 ⟨λ ⟨l, p, s⟩, begin
@@ -726,6 +739,44 @@ begin
     rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', l₂, h, rfl, rfl⟩,
     { exact perm_middle.trans (skip _ (IH _ _ h)) },
     { exact skip _ (IH _ _ h) } }
+end
+
+theorem perm_lookmap (f : α → option α) {l₁ l₂ : list α}
+  (H : pairwise (λ a b, ∀ (c ∈ f a) (d ∈ f b), a = b ∧ c = d) l₁)
+  (p : l₁ ~ l₂) : lookmap f l₁ ~ lookmap f l₂ :=
+begin
+  let F := λ a b, ∀ (c ∈ f a) (d ∈ f b), a = b ∧ c = d,
+  change pairwise F l₁ at H,
+  induction p with a l₁ l₂ p IH a b l l₁ l₂ l₃ p₁ p₂ IH₁ IH₂, {simp},
+  { cases h : f a,
+    { simp [h], exact (IH (pairwise_cons.1 H).2).skip _ },
+    { simp [lookmap_cons_some _ _ h], exact p.skip _ } },
+  { cases h₁ : f a with c; cases h₂ : f b with d,
+    { simp [h₁, h₂], apply swap },
+    { simp [h₁, lookmap_cons_some _ _ h₂], apply swap },
+    { simp [lookmap_cons_some _ _ h₁, h₂], apply swap },
+    { simp [lookmap_cons_some _ _ h₁, lookmap_cons_some _ _ h₂],
+      rcases (pairwise_cons.1 H).1 _ (or.inl rfl) _ h₂ _ h₁ with ⟨rfl, rfl⟩,
+      refl } },
+  { refine (IH₁ H).trans (IH₂ ((perm_pairwise _ p₁).1 H)),
+    exact λ a b h c h₁ d h₂, (h d h₂ c h₁).imp eq.symm eq.symm }
+end
+
+theorem perm_erasep (f : α → Prop) [decidable_pred f] {l₁ l₂ : list α}
+  (H : pairwise (λ a b, f a → f b → false) l₁)
+  (p : l₁ ~ l₂) : erasep f l₁ ~ erasep f l₂ :=
+begin
+  let F := λ a b, f a → f b → false,
+  change pairwise F l₁ at H,
+  induction p with a l₁ l₂ p IH a b l l₁ l₂ l₃ p₁ p₂ IH₁ IH₂, {simp},
+  { by_cases h : f a,
+    { simp [h, p] },
+    { simp [h], exact (IH (pairwise_cons.1 H).2).skip _ } },
+  { by_cases h₁ : f a; by_cases h₂ : f b; simp [h₁, h₂],
+    { cases (pairwise_cons.1 H).1 _ (or.inl rfl) h₂ h₁ },
+    { apply swap } },
+  { refine (IH₁ H).trans (IH₂ ((perm_pairwise _ p₁).1 H)),
+    exact λ a b h h₁ h₂, h h₂ h₁ }
 end
 
 /- enumerating permutations -/

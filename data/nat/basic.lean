@@ -12,6 +12,9 @@ universes u v
 namespace nat
 variables {m n k : ℕ}
 
+attribute [simp] nat.add_sub_cancel_left
+attribute [simp] nat.sub_self
+
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 ⟨succ_inj, congr_arg _⟩
 
@@ -316,7 +319,7 @@ by rw [mul_comm c, mod_mul_right_div_self]
 protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k ∣ m :=
 (nat.dvd_add_iff_left h).symm
 
-protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k ∣ n := 
+protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k ∣ n :=
 (nat.dvd_add_iff_right h).symm
 
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : a > 0) : a * b ∣ a * c ↔ b ∣ c :=

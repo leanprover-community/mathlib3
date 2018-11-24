@@ -368,6 +368,10 @@ theorem is_add_group_hom_gsmul
 
 end group
 
+@[simp] lemma with_bot.coe_smul [add_monoid α] (a : α) (n : ℕ) :
+  ((add_monoid.smul n a : α) : with_bot α) = add_monoid.smul n a :=
+by induction n; simp [*, succ_smul]; refl
+
 theorem add_monoid.smul_eq_mul' [semiring α] (a : α) (n : ℕ) : n • a = a * n :=
 by induction n with n ih; [rw [add_monoid.zero_smul, nat.cast_zero, mul_zero],
   rw [succ_smul', ih, nat.cast_succ, mul_add, mul_one]]
@@ -459,6 +463,21 @@ by induction n; simp [*, pow_succ, mul_inv', mul_comm]
 lemma pow_inv [division_ring α] (a : α) : ∀ n : ℕ, a ≠ 0 → (a^n)⁻¹ = (a⁻¹)^n
 | 0     ha := inv_one
 | (n+1) ha := by rw [pow_succ, pow_succ', mul_inv_eq (pow_ne_zero _ ha) ha, pow_inv _ ha]
+
+namespace add_monoid
+variable [ordered_comm_monoid α]
+
+theorem smul_le_smul {a : α} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
+let ⟨k, hk⟩ := nat.le.dest h in
+calc n • a = n • a + 0 : (add_zero _).symm
+  ... ≤ n • a + k • a : add_le_add_left' (smul_nonneg ha _)
+  ... = m • a : by rw [← hk, add_smul]
+
+lemma smul_le_smul_of_le_right {a b : α} (hab : a ≤ b) : ∀ i : ℕ, i • a ≤ i • b
+| 0 := by simp
+| (k+1) := add_le_add' hab (smul_le_smul_of_le_right _)
+
+end add_monoid
 
 section linear_ordered_semiring
 variable [linear_ordered_semiring α]

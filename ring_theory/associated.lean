@@ -35,6 +35,9 @@ theorem is_unit_iff_exists_inv [comm_monoid α] {a : α} : is_unit a ↔ ∃ b, 
 theorem is_unit_iff_exists_inv' [comm_monoid α] {a : α} : is_unit a ↔ ∃ b, b * a = 1 :=
 by simp [is_unit_iff_exists_inv, mul_comm]
 
+lemma is_unit_pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
+λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
+
 @[simp] theorem units.is_unit_mul_units [monoid α] (a : α) (u : units α) :
   is_unit (a * u) ↔ is_unit a :=
 iff.intro
@@ -145,6 +148,28 @@ theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
       refine nat.eq_of_mul_eq_mul_left this _,
       rw [← hab, mul_one] }
   end
+
+lemma irreducible_of_prime [integral_domain α] {p : α} (hp : prime p) : irreducible p :=
+⟨hp.2.1, λ a b hab,
+  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.2.2 a b (hab ▸ (dvd_refl _))).elim
+    (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
+      ⟨x, (domain.mul_left_inj (show a ≠ 0, from λ h, by simp [*, prime] at *)).1
+        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
+    (λ ⟨x, hx⟩, or.inl (is_unit_iff_dvd_one.2
+      ⟨x, (domain.mul_left_inj (show b ≠ 0, from λ h, by simp [*, prime] at *)).1
+        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))⟩
+
+lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [integral_domain α] {p : α} (hp : prime p) {a b : α}
+  {k l : ℕ} : p ^ k ∣ a → p ^ l ∣ b → p ^ ((k + l) + 1) ∣ a * b →
+  p ^ (k + 1) ∣ a ∨ p ^ (l + 1) ∣ b :=
+λ ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩,
+have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
+  by simpa [mul_comm, _root_.pow_add, hx, hy, mul_assoc, mul_left_comm] using hz,
+have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.1,
+have hpd : p ∣ x * y, from ⟨z, by rwa [domain.mul_left_inj hp0] at h⟩,
+(hp.2.2 x y hpd).elim
+  (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+  (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
 
 def associated [monoid α] (x y : α) : Prop := ∃u:units α, x * u = y
 
@@ -261,6 +286,11 @@ instance : preorder (associates α) :=
   le_trans := assume a b c ⟨f₁, h₁⟩ ⟨f₂, h₂⟩, ⟨f₁ * f₂, h₂ ▸ h₁ ▸ (mul_assoc _ _ _).symm⟩}
 
 instance [comm_monoid α] : has_dvd (associates α) := ⟨(≤)⟩
+
+@[simp] lemma mk_one : associates.mk (1 : α) = 1 := rfl
+
+lemma mk_pow (a : α) (n : ℕ) : associates.mk (a ^ n) = (associates.mk a) ^ n :=
+by induction n; simp [*, pow_succ, associates.mk_mul_mk.symm]
 
 lemma dvd_eq_le [comm_monoid α] : ((∣) : associates α → associates α → Prop) = (≤) := rfl
 

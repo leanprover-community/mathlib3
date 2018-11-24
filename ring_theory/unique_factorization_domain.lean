@@ -87,6 +87,14 @@ iff.intro
   (↑a + ↑b : factor_set α) = ↑(a + b) :=
 with_top.coe_add
 
+@[simp] theorem factor_set.coe_zero :
+((0 : multiset { a : associates α // irreducible a }) : associates.factor_set α) = 0 := rfl
+
+@[simp] theorem factor_set.coe_smul
+  {a : multiset { a : associates α // irreducible a }} {n : ℕ} :
+  (↑(add_monoid.smul n a) : associates.factor_set α) = add_monoid.smul n a :=
+by induction n; simp [*, succ_smul]
+
 lemma factor_set.sup_add_inf_eq_add : ∀(a b : factor_set α), a ⊔ b + a ⊓ b = a + b
 | none     b        := show ⊤ ⊔ b + ⊤ ⊓ b = ⊤ + b, by simp
 | a        none     := show a ⊔ ⊤ + a ⊓ ⊤ = a + ⊤, by simp
@@ -96,6 +104,10 @@ lemma factor_set.sup_add_inf_eq_add : ∀(a b : factor_set α), a ⊔ b + a ⊓ 
       with_top.coe_eq_coe],
     exact multiset.union_add_inter _ _
   end
+
+lemma factor_set.coe_get {s : factor_set α} (hs : option.is_some s) :
+  ((option.get hs : _) : factor_set α) = s :=
+option.some_get _
 
 def factors' (a : α) (ha : a ≠ 0) : multiset { a : associates α // irreducible a } :=
 (factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk_iff _).2 ha⟩)
@@ -198,6 +210,24 @@ theorem prod_mono : ∀{a b : factor_set α}, a ≤ b → a.prod ≤ b.prod
 @[simp] theorem factors_mul (a b : associates α) : (a * b).factors = a.factors + b.factors :=
 eq_of_prod_eq_prod $ eq_of_factors_eq_factors $
   by rw [prod_add, factors_prod, factors_prod, factors_prod]
+
+@[simp] theorem factors_one : (1 : associates α).factors = 0 :=
+eq_of_prod_eq_prod $ by simp [factors_prod]; refl
+
+theorem factors_pow (a : associates α) (n : ℕ) :
+  (a ^ n).factors = add_monoid.smul n a.factors :=
+by induction n; simp [*, succ_smul, pow_succ]
+
+theorem is_some_factors_iff  {a : associates α} :
+  option.is_some a.factors ↔ a ≠ 0 :=
+⟨λ h ha, by rw [ha,factors_0] at h;
+    exact absurd h dec_trivial,
+  λ ha, begin
+      revert a, rw [forall_associated],
+      assume a ha,
+      rw factors_mk _ (mt (mk_zero_eq a).2 ha),
+      exact dec_trivial
+    end⟩
 
 theorem factors_mono : ∀{a b : associates α}, a ≤ b → a.factors ≤ b.factors
 | s t ⟨d, rfl⟩ := by rw [factors_mul] ; exact le_add_of_nonneg_right' bot_le

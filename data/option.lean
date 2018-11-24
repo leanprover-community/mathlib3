@@ -120,6 +120,11 @@ instance decidable_exists_mem {p : α → Prop} [decidable_pred p] :
 | none     := is_false (by simp)
 | (some a) := decidable_of_iff (p a) (by simp)
 
+lemma some_get : ∀ {a : option α} (ha : option.is_some a),
+  option.some (option.get ha) = a
+| none ha     := absurd ha dec_trivial
+| (some a) ha := rfl
+
 /-- inhabited `get` function. Returns `a` if the input is `some a`,
   otherwise returns `default`. -/
 @[reducible] def iget [inhabited α] : option α → α

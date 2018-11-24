@@ -239,14 +239,7 @@ section
 { obj  := λ X, F.obj_preimage X,
   map := λ X Y f, F.preimage ((F.fun_obj_preimage_iso X).hom ≫ f ≫ (F.fun_obj_preimage_iso Y).inv),
   map_id' := λ X, begin apply F.injectivity, tidy, end,
-  map_comp' := λ X Y Z f g,
-  begin
-    apply F.injectivity,
-    /- obviously can finish from here... -/
-    simp,
-    slice_rhs 2 3 { erw [is_iso.hom_inv_id] },
-    simp,
-  end }.
+  map_comp' := λ X Y Z f g, by apply F.injectivity; simp }.
 
 def equivalence_of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful : faithful F] [ess_surj F] : is_equivalence F :=

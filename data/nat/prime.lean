@@ -19,6 +19,9 @@ theorem prime.ge_two {p : ℕ} : prime p → p ≥ 2 := and.left
 
 theorem prime.gt_one {p : ℕ} : prime p → p > 1 := prime.ge_two
 
+lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
+ne.symm $ (ne_of_lt hp.gt_one)
+
 theorem prime_def_lt {p : ℕ} : prime p ↔ p ≥ 2 ∧ ∀ m < p, m ∣ p → m = 1 :=
 and_congr_right $ λ p2, forall_congr $ λ m,
 ⟨λ h l d, (h d).resolve_right (ne_of_lt l),

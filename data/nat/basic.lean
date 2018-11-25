@@ -39,6 +39,11 @@ theorem pos_iff_ne_zero : n > 0 ↔ n ≠ 0 :=
 
 theorem pos_iff_ne_zero' : 0 < n ↔ n ≠ 0 := pos_iff_ne_zero
 
+lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
+| 0     := dec_trivial
+| 1     := dec_trivial
+| (n+2) := dec_trivial
+
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,
 or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
@@ -834,6 +839,7 @@ lemma exists_eq_add_of_lt : ∀ {m n : ℕ}, m < n → ∃ k : ℕ, n = m + k + 
 | 0 0 h := false.elim $ lt_irrefl _ h
 | 0 (n+1) h := ⟨n, by simp⟩
 | (m+1) (n+1) h := let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in ⟨k, by simp [hk]⟩
+
 
 
 end nat

@@ -61,7 +61,7 @@ theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
 theorem get_eq_of_mem {o : roption α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h
 
-@[simp] theorem get_some {a : α} : get (some a) trivial = a := rfl
+@[simp] theorem get_some {a : α} (ha : (some a).dom) : get (some a) ha = a := rfl
 
 theorem mem_some (a : α) : a ∈ some a := ⟨trivial, rfl⟩
 
@@ -85,6 +85,10 @@ function.injective.eq_iff (λ a b h, congr_fun (eq_of_heq (roption.mk.inj h).2) 
 @[simp] lemma some_get {a : roption α} (ha : a.dom) :
   roption.some (roption.get a ha) = a :=
 eq.symm (eq_some_iff.2 ⟨ha, rfl⟩)
+
+lemma get_eq_iff_eq_some {a : roption α} {ha : a.dom} {b : α} :
+  a.get ha = b ↔ a = some b :=
+⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
 
 instance none_decidable : decidable (@none α).dom := decidable.false
 instance some_decidable (a : α) : decidable (some a).dom := decidable.true

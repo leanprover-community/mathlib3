@@ -713,13 +713,16 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
   else
     have hnz' : {rat . num := n, denom := d, pos := hn, cop := hd} ≠ 0,
       from mt rat.zero_iff_num_zero.1 hnz,
-    have fpow (p : ℚ) (-↑(padic_val p n)) ≤ 1,
+    have fpow (p : ℚ) (-(padic_val (p : ℤ) n).get
+      (finite_int_iff.2 ⟨hp.ne_one, hnz⟩)) ≤ 1,
       from fpow_le_one_of_nonpos
-             (show (↑p : ℚ) ≥ ↑(1: ℕ), from le_of_lt (nat.cast_lt.2 hp.gt_one))
-             (neg_nonpos_of_nonneg (int.coe_nat_nonneg _)),
-    have (↑(fpow (p : ℚ) (-↑(padic_val p n))) : ℝ) ≤ (1 : ℚ), from rat.cast_le.2 this,
-    by simpa [padic.cast_eq_of_rat, hnz', padic_norm, padic_val_rat,
-              padic_val_eq_zero_of_not_dvd' hq] using this
+        (show (↑p : ℚ) ≥ ↑(1: ℕ), from le_of_lt (nat.cast_lt.2 hp.gt_one))
+        (neg_nonpos_of_nonneg (int.coe_nat_nonneg _)),
+    have ((fpow (p : ℚ) (-(padic_val (p : ℤ) n).get
+        (finite_int_iff.2 ⟨hp.ne_one, hnz⟩)) : ℚ) : ℝ) ≤ (1 : ℚ),
+      from rat.cast_le.2 this,
+    by simpa [padic.cast_eq_of_rat, hnz', padic_norm, padic_val_rat_def p hnz',
+              padic_val_eq_zero_of_not_dvd (mt int.coe_nat_dvd.1 hq)]
 
 lemma eq_of_norm_add_lt_right {p : ℕ} {hp : p.prime} {z1 z2 : ℚ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=

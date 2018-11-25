@@ -53,8 +53,8 @@ roption.ext' (and_true _).symm (λ _ _, rfl)
 @[simp] lemma coe_add_get {x : ℕ} {y : enat} (h : ((x : enat) + y).dom) :
   get ((x : enat) + y) h = x + get y h.2 := rfl
 
-@[simp] lemma add_coe_get {x : enat} {y : ℕ} (h : (x + y).dom) :
-  get (x + y : enat) h = get x h.1 + y := rfl
+@[simp] lemma get_add {x y : enat} (h : (x + y).dom) :
+  get (x + y) h = x.get h.1 + y.get h.2 := rfl
 
 @[simp] lemma coe_get {x : enat} (h : x.dom) : (x.get h : enat) = x :=
 roption.ext' (iff_of_true trivial h) (λ _ _, rfl)
@@ -75,6 +75,10 @@ instance : partial_order enat :=
 
 @[simp] lemma coe_lt_coe {x y : ℕ} : (x : enat) < y ↔ x < y :=
 by rw [lt_iff_le_not_le, lt_iff_le_not_le, coe_le_coe, coe_le_coe]
+
+lemma get_le_get {x y : enat} {hx : x.dom} {hy : y.dom} :
+  x.get hx ≤ y.get hy ↔ x ≤ y :=
+by conv { to_lhs, rw [← coe_le_coe, coe_get, coe_get]}
 
 instance semilattice_sup_bot : semilattice_sup_bot enat :=
 { sup := (⊔),

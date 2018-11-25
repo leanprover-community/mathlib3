@@ -59,6 +59,10 @@ roption.ext' (and_true _).symm (λ _ _, rfl)
 @[simp] lemma coe_get {x : enat} (h : x.dom) : (x.get h : enat) = x :=
 roption.ext' (iff_of_true trivial h) (λ _ _, rfl)
 
+@[simp] lemma get_zero (h : (0 : enat).dom) : (0 : enat).get h = 0 := rfl
+
+@[simp] lemma get_one (h : (1 : enat).dom) : (1 : enat).get h = 1 := rfl
+
 lemma dom_of_le_some {x : enat} {y : ℕ} : x ≤ y → x.dom :=
 λ ⟨h, _⟩, h trivial
 

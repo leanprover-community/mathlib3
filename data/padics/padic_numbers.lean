@@ -721,8 +721,8 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
     have ((fpow (p : ℚ) (-(padic_val (p : ℤ) n).get
         (finite_int_iff.2 ⟨hp.ne_one, hnz⟩)) : ℚ) : ℝ) ≤ (1 : ℚ),
       from rat.cast_le.2 this,
-    by simpa [padic.cast_eq_of_rat, hnz', padic_norm, padic_val_rat_def p hnz',
-              padic_val_eq_zero_of_not_dvd (mt int.coe_nat_dvd.1 hq)]
+    by simpa [padic.cast_eq_of_rat, hnz', padic_norm, padic_val_rat.def p hnz',
+               padic_val_eq_zero_of_not_dvd (mt int.coe_nat_dvd.1 hq)]
 
 lemma eq_of_norm_add_lt_right {p : ℕ} {hp : p.prime} {z1 z2 : ℚ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=

@@ -36,9 +36,8 @@ theorem irr_nrt_of_n_not_dvd_padic_val {x : ℝ} (n : ℕ) {m : ℤ} (hm : m ≠
 begin
   rcases nat.eq_zero_or_pos n with rfl | hnpos,
   { rw [eq_comm, pow_zero, ← int.cast_one, int.cast_inj] at hxr,
-    simp [hxr, padic_val.one_right (mt is_unit_iff_dvd_one.1
-      (mt int.coe_nat_dvd.1 hp.not_dvd_one)), nat.zero_mod] at hv,
-    exact (hv rfl).elim },
+    simpa [hxr, padic_val.one_right (mt is_unit_iff_dvd_one.1
+      (mt int.coe_nat_dvd.1 hp.not_dvd_one)), nat.zero_mod] using hv },
   refine irr_nrt_of_notint_nrt _ _ hxr _ hnpos,
   rintro ⟨y, rfl⟩,
   rw [← int.cast_pow, int.cast_inj] at hxr, subst m,

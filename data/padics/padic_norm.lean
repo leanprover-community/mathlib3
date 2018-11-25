@@ -386,6 +386,12 @@ then (padic_val (p : ℤ) q.num).get
     (padic_val.finite_int_iff.2 ⟨h.2, ne.symm $ ne_of_lt (int.coe_nat_pos.2 q.3)⟩)
 else 0
 
+lemma padic_val_rat_def (p : ℕ) [hp : p.prime] {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
+  (padic_val (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
+  (padic_val (p : ℤ) q.denom).get (finite_int_iff.2 ⟨hp.ne_one, int.coe_nat_ne_zero_iff_pos.2 q.3⟩) :=
+dif_pos ⟨hq, hp.ne_one⟩
+
+
 namespace padic_val_rat
 open padic_val
 section padic_val_rat
@@ -418,11 +424,6 @@ section padic_val_rat
 open padic_val
 variables (p : ℕ) [p_prime : nat.prime p]
 include p_prime
-
-protected lemma def {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
-  (padic_val (p : ℤ) q.num).get (finite_int_iff.2 ⟨p_prime.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
-  (padic_val (p : ℤ) q.denom).get (finite_int_iff.2 ⟨p_prime.ne_one, int.coe_nat_ne_zero_iff_pos.2 q.3⟩) :=
-dif_pos ⟨hq, p_prime.ne_one⟩
 
 lemma prime_int_of_nat_prime : _root_.prime (p : ℤ) :=
 ⟨int.coe_nat_ne_zero_iff_pos.2 p_prime.pos,

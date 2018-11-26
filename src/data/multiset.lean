@@ -2228,7 +2228,7 @@ quot.induction_on s $ λ l, nodup_filter_map H
 
 theorem nodup_range (n : ℕ) : nodup (range n) := nodup_range _
 
-theorem nodup_Ico (n m : ℕ) : nodup (Ico n m) := nodup_Ico _ _
+theorem nodup_Ico (n m : ℕ) : nodup (Ico n m) := Ico.nodup _ _
 
 theorem nodup_inter_left [decidable_eq α] {s : multiset α} (t) : nodup s → nodup (s ∩ t) :=
 nodup_of_le $ inter_le_left _ _

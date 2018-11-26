@@ -15,18 +15,6 @@ open nat
 
 attribute [class] nat.prime
 
-private lemma exi_div (p : ℕ) (n : ℤ) : ∃ k : ℕ, k ≤ n.nat_abs ∧ ↑(p ^ k) ∣ n :=
-⟨0, nat.zero_le _, by simp⟩
-
-private lemma bound {p : ℕ} (hp : p > 1) {n : ℤ} (hn : n ≠ 0) :
-  ∀ k : ℕ, k > n.nat_abs → ¬ (↑(p ^ k) ∣ n) :=
-assume k (hkn : k > n.nat_abs),
-have n.nat_abs < p^k, from lt.trans (lt_pow_self hp _) (pow_lt_pow_of_lt_right hp hkn),
-assume hdvd : ↑(p ^ k) ∣ n,
-have hdvd' : (p ^ k) ∣ n.nat_abs, from int.dvd_nat_abs_of_of_nat_dvd hdvd,
-let hle := le_of_dvd (int.nat_abs_pos_of_ne_zero hn) hdvd' in
-not_le_of_gt this hle
-
 local infix `/.`:70 := rat.mk
 
 open prime_count
@@ -43,7 +31,6 @@ lemma padic_val_rat_def (p : ℕ) [hp : p.prime] {q : ℚ} (hq : q ≠ 0) : padi
   (prime_count (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
   (prime_count (p : ℤ) q.denom).get (finite_int_iff.2 ⟨hp.ne_one, int.coe_nat_ne_zero_iff_pos.2 q.3⟩) :=
 dif_pos ⟨hq, hp.ne_one⟩
-
 
 namespace padic_val_rat
 open prime_count

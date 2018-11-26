@@ -79,6 +79,10 @@ iff.intro
   (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (assume h, h.symm ▸ ⟨1, rfl⟩)
 
+theorem is_unit_int {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
+⟨λ ⟨u, hu⟩, (int.units_eq_one_or u).elim (by simp *) (by simp *),
+  λ h, is_unit_iff_dvd_one.2 ⟨n, by rw [← int.nat_abs_mul_self, h]; refl⟩⟩
+
 lemma is_unit_of_dvd_one [comm_semiring α] : ∀a ∣ 1, is_unit (a:α)
 | a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
 
@@ -88,6 +92,9 @@ p ≠ 0 ∧ ¬ is_unit p ∧ (∀a b, p ∣ a * b → p ∣ a ∨ p ∣ b)
 
 lemma not_prime_zero [integral_domain α] : ¬ prime (0 : α)
 | ⟨h, _⟩ := h rfl
+
+@[simp] lemma not_prime_one [comm_semiring α] : ¬ prime (1 : α) :=
+λ h, h.2.1 is_unit_one
 
 lemma exists_mem_multiset_dvd_of_prime [comm_semiring α] {s : multiset α} {p : α} (hp : prime p) :
   p ∣ s.prod → ∃a∈s, p ∣ a :=
@@ -148,6 +155,27 @@ theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
       refine nat.eq_of_mul_eq_mul_left this _,
       rw [← hab, mul_one] }
   end
+
+lemma nat.prime_iff_prime {p : ℕ} : p.prime ↔ _root_.prime (p : ℕ) :=
+⟨λ hp, ⟨nat.pos_iff_ne_zero.1 hp.pos, mt is_unit_iff_dvd_one.1 hp.not_dvd_one,
+    λ a b, hp.dvd_mul.1⟩,
+  λ hp, ⟨nat.one_lt_iff_ne_zero_and_ne_one.2 ⟨hp.1, λ h1, hp.2.1 $ h1.symm ▸ is_unit_one⟩,
+    λ a h, let ⟨b, hab⟩ := h in
+      (hp.2.2 a b (hab ▸ dvd_refl _)).elim
+        (λ ha, or.inr (nat.dvd_antisymm h ha))
+        (λ hb, or.inl (have hpb : p = b, from nat.dvd_antisymm hb
+            (hab.symm ▸ dvd_mul_left _ _),
+          (nat.mul_left_inj (show 0 < p, from
+              nat.pos_of_ne_zero hp.1)).1 $
+            by rw [hpb, mul_comm, ← hab, hpb, mul_one]))⟩⟩
+
+lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
+⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt is_unit_int.1 hp.ne_one,
+  λ a b h, by rw [← int.dvd_nat_abs, int.coe_nat_dvd, int.nat_abs_mul, hp.dvd_mul] at h;
+    rwa [← int.dvd_nat_abs, int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd]⟩,
+  λ hp, nat.prime_iff_prime.2 ⟨int.coe_nat_ne_zero.1 hp.1,
+      mt is_unit_nat.1 $ λ h, by simpa [h, not_prime_one] using hp,
+    λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
 
 lemma irreducible_of_prime [integral_domain α] {p : α} (hp : prime p) : irreducible p :=
 ⟨hp.2.1, λ a b hab,

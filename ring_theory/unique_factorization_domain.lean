@@ -7,7 +7,7 @@ Theory of unique factorization domains.
 
 @TODO: setup the complete lattice structure on `factor_set`.
 -/
-import ring_theory.associated algebra.gcd_domain
+import ring_theory.associated algebra.gcd_domain ring_theory.prime_count
 
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated
@@ -299,3 +299,42 @@ def unique_factorization_domain.to_gcd_domain
   .. ‹normalization_domain α› }
 
 end
+
+section prime_count
+
+variables [integral_domain α] [unique_factorization_domain α]
+variables [decidable_rel ((∣) : α → α → Prop)]
+open associates prime_count nat
+
+local attribute [instance, priority 0] classical.prop_decidable
+
+lemma finite_of_is_not_unit {a b : α} (ha : ¬is_unit a) (hb0 : b ≠ 0) : finite a b :=
+if ha0 : a = 0 then ⟨0, by simp *⟩
+else
+  have has : option.is_some (factors (associates.mk a)),
+    from is_some_factors_iff.2 (mt mk_eq_zero_iff_eq_zero.1 ha0),
+  have hbs : option.is_some (factors (associates.mk b)),
+    from is_some_factors_iff.2 (mt mk_eq_zero_iff_eq_zero.1 hb0),
+  ⟨(option.get hbs).card,
+    λ hn, lt_irrefl (option.get hbs).card
+    (calc (option.get hbs).card
+          < (option.get hbs).card + 1 : lt_succ_self _
+      ... ≤ (multiset.card (option.get hbs) + 1) * multiset.card (option.get has) :
+        le_mul_of_ge_one_right' (nat.zero_le _)
+          (multiset.card_pos.2
+            (mt (congr_arg (λ s, factor_set.prod (option.some s)))
+              (by rw [option.some_get, factors_prod];
+                exact mt (is_unit_iff_eq_one _).2
+                  (mt is_unit_mk.1 ha))))
+      ... ≤ (option.get hbs).card : begin
+        rw [← multiset.card_smul],
+        refine multiset.card_le_of_le (with_top.coe_le_coe.1 _),
+        rw [factor_set.coe_smul, factor_set.coe_get,
+          factor_set.coe_get, ← factors_pow, ← associates.mk_pow],
+        exact factors_mono (mk_le_mk_of_dvd hn)
+      end)⟩
+
+lemma finite_of_prime {p a : α} (hp : prime p) (ha0 : a ≠ 0) : finite p a :=
+finite_of_is_not_unit hp.2.1 ha0
+
+end prime_count

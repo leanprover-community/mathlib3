@@ -59,6 +59,8 @@ begin
   subst hc
 end
 
+lemma congr_app {α β : F ⟹ G} (h : α = β) (X : C) : α.app X = β.app X := by rw h
+
 /-- `vcomp α β` is the vertical compositions of natural transformations. -/
 def vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H :=
 { app         := λ X, (α.app X) ≫ (β.app X),

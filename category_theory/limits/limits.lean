@@ -5,6 +5,7 @@
 import category_theory.whiskering
 import category_theory.yoneda
 import category_theory.limits.cones
+import data.equiv.basic
 
 open category_theory
 
@@ -120,12 +121,7 @@ def is_limit.of_lift_universal
 def is_limit.equiv (h : is_limit t) (X' : C) : (X' ⟶ t.X) ≅ ((functor.const J).obj X' ⟹ F) :=
 { hom := λ f, (t.extend f).π,
   inv := λ π, h.lift { X := X', π := π },
-  hom_inv_id' :=
-  begin
-    tidy, symmetry,
-    apply h.uniq {X := X', π := (limits.cone.extend t x).π} x,
-    tidy,
-  end }
+  hom_inv_id' := by ext f; apply h.hom_ext; intro j; erw h.fac; refl }
 
 @[simp] lemma is_limit.equiv_hom (h : is_limit t) (X' : C) (f : X' ⟶ t.X) :
   (is_limit.equiv h X').hom f = (t.extend f).π := rfl
@@ -146,6 +142,12 @@ def is_limit.of_extensions_iso (h : is_iso t.extensions) : is_limit t :=
     rw this,
     refl
   end }
+
+def is_limit.of_equiv (e : Π Z, (Z ⟶ t.X) ≃ ((functor.const J).obj Z ⟹ F))
+  (h : Π Z f j, (e Z f).app j = f ≫ t.π.app j) : is_limit t :=
+⟨λ s, (e s.X).symm s.π,
+ λ s j, by rw [←h, equiv.apply_inverse_apply],
+ λ s m hm, by rw equiv.eq_symm_apply; ext j; rw [←hm, h]⟩
 
 end limit
 
@@ -305,6 +307,18 @@ def is_colimit.of_desc_universal
 { desc := desc,
   fac'  := λ s j, ((universal s (desc s)).mpr (eq.refl (desc s))) j,
   uniq' := λ s φ, (universal s φ).mp }
+
+def is_colimit.equiv (h : is_colimit t) {W : C} : (t.X ⟶ W) ≃ (F ⟹ (functor.const J).obj W) :=
+⟨λ f, t.ι ⊟ (functor.const J).map f,
+ λ n, h.desc ⟨W, n⟩,
+ λ f, by apply h.hom_ext; intro j; rw h.fac; refl,
+ λ n, by ext j; exact h.fac ⟨_, n⟩ j⟩
+
+def is_colimit.of_equiv (e : Π Z, (t.X ⟶ Z) ≃ (F ⟹ (functor.const J).obj Z))
+  (h : Π Z f j, (e Z f).app j = t.ι.app j ≫ f) : is_colimit t :=
+⟨λ s, (e s.X).symm s.ι,
+ λ s j, by rw [←h, equiv.apply_inverse_apply],
+ λ s m hm, by rw equiv.eq_symm_apply; ext j; rw [←hm, h]⟩
 
 end colimit
 

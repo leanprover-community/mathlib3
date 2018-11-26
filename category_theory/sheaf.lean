@@ -59,15 +59,33 @@ instance : has_colimits.{u u} X :=
 { cocone := λ J hJ F, @colimit _ _ J hJ F,
   is_colimit := λ J hJ F, @colimit_is_colimit _ _ J hJ F }
 
-instance : has_pullbacks.{u u} X := has_pullbacks_of_has_limits
+instance : has_products.{u u} X := has_products_of_has_limits
 
 instance : has_coproducts.{u u} X := has_coproducts_of_has_colimits
+
+instance : has_pullbacks.{u u} X :=
+{ square := λ a b c f g, square.mk ⟨⟨inf_le_left a _⟩⟩ ⟨⟨inf_le_right a _⟩⟩ (by tidy),
+  is_pullback := λ a b c f g,
+  { lift := λ s, by {tidy, refine le_inf _ _ _ _ _,
+    convert (plift.down $ ulift.down $ s.π.app walking_cospan.left),
+    convert (plift.down $ ulift.down $ s.π.app walking_cospan.right) } } }
+
+instance : has_pushouts.{u u} X :=
+{ cosquare := λ a b c f g, cosquare.mk ⟨⟨le_sup_left _ c⟩⟩ ⟨⟨le_sup_right _ c⟩⟩ (by tidy),
+  is_pushout := λ a b c f g,
+  { desc := λ s, by {tidy, refine sup_le _ _ _ _ _,
+    convert (plift.down $ ulift.down $ s.ι.app walking_span.left),
+    convert (plift.down $ ulift.down $ s.ι.app walking_span.right) } } }
 
 end lattice.complete_lattice
 
 namespace category_theory
 
 def ulift_trivial (V : Type u₁) : ulift.{u₁} V ≅ V := by tidy
+
+@[simp] lemma ulift_trivial.hom (V : Type u₁) : (ulift_trivial V).hom = λ v, ulift.cases_on v id := rfl
+
+@[simp] lemma ulift_trivial.inv (V : Type u₁) : (ulift_trivial V).inv = ulift.up := rfl
 
 def equiv_of_iso {X Y : Type u} (i : X ≅ Y) : X ≃ Y :=
 { to_fun    := i.hom,
@@ -219,6 +237,19 @@ variables {X}
 
 namespace presheaf
 
+section simp
+variable (F : presheaf X)
+
+@[simp] lemma map_id {U : X} : F.map (𝟙 U) = 𝟙 (F.obj U) := F.map_id U
+
+@[simp] lemma map_comp {U V W : X} {i : U ⟶ V} {j : V ⟶ W} :
+F.map (j ≫ i) = (F.map j) ≫ (F.map i) := F.map_comp j i
+
+@[simp] lemma map_comp' {U V W : X} {i : U ⟶ V} {j : V ⟶ W} :
+F.map (@category_theory.category.comp X 𝒳 _ _ _ i j) = (F.map j) ≫ (F.map i) := functor.map_comp F j i
+
+end simp
+
 instance : category.{(u+1) u} (presheaf X) := by unfold presheaf; apply_instance
 instance : has_limits.{(u+1) u} (presheaf X) := limits.functor_category_has_limits
 instance : has_pullbacks.{(u+1) u} (presheaf X) := limits.has_pullbacks_of_has_limits
@@ -251,31 +282,23 @@ end simp
 def unit : functor.id _ ⟶ comap f ⋙ map f :=
 { app := λ F,
   { app := λ U, whisker_left _ ∘
-      (nat_iso.app (yoneda_lemma _) (U, F) ≪≫ ulift_trivial _).inv,
-    naturality' := λ U₁ U₂ i,
-    begin
-      ext s V j,
-      dsimp [yoneda_lemma, ulift_trivial],
-      erw F.map_comp,
-      refl
-    end },
-  naturality' := λ F G α,
-  begin
-    ext V t U i,
-    dsimp [yoneda_lemma, ulift_trivial],
-    exact (congr (α.naturality i) (rfl : t = t)).symm,
-  end }
+      (nat_iso.app (yoneda_lemma _) (U, F) ≪≫ ulift_trivial _).inv },
+  naturality' := λ _ _ α, by tidy; exact (congr (nat_trans.naturality α _) (rfl : _ = _)).symm }
+
+@[simp] lemma unit.app_app {F : presheaf Y} :
+((unit f).app F).app = λ U, whisker_left _ ∘ (nat_iso.app (yoneda_lemma _) (U, F) ≪≫ ulift_trivial _).inv := rfl
 
 def counit : map f ⋙ comap f ⟶ functor.id _ :=
 { app := λ F,
   { app := λ U s, s.app U (𝟙 _),
-    naturality' :=  λ U₁ U₂ i,
+    naturality' :=  λ _ _ i,
     begin
       ext s,
-      have := (congr (s.naturality i) (rfl : (𝟙 (f.obj U₁)) = _)),
-      tidy {trace_result := tt},
-    end
-     } }
+      have := (congr (s.naturality _) (rfl : (𝟙 _) = _)),
+      tidy,
+    end } }
+
+@[simp] lemma counit.app_app {F : presheaf X} : ((counit f).app F).app = λ U s, s.app U (𝟙 _) := rfl
 
 def counit.is_iso [fully_faithful f] : is_iso (counit f) := sorry
 -- { inv :=
@@ -507,8 +530,15 @@ begin
   constructor,
   intro V,
   have := s.app U,
-  dsimp [covering_family.map, over.post],
+  -- dsimp [covering_family.map, over.post],
   dsimp at *,
+  intro,
+  have foo := (covering_family.π (covering_family.map f c)),
+  change _ ⟹ _ at foo,
+  have bar := foo.app V a,
+  dsimp at bar,
+  apply functor.map F bar,
+  apply this,
 end
 
 end site

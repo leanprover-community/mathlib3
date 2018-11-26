@@ -159,6 +159,12 @@ def yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C) :=
     erw [functor_to_types.map_id]
   end }.
 
+@[simp] lemma yoneda_lemma.hom_app :
+(yoneda_lemma C).hom.app = λ F x, ulift.up ((x.app F.1) (𝟙 F.1)) := rfl
+
+@[simp] lemma yoneda_lemma.inv_app_app {F : Cᵒᵖ × Cᵒᵖ ⥤ Type v₁} {x : (yoneda_evaluation C).obj F} :
+((yoneda_lemma C).inv.app F x).app = λ X a, (F.2.map a) x.down := rfl
+
 variables {C}
 
 class representable (F : Cᵒᵖ ⥤ Type v₁) :=

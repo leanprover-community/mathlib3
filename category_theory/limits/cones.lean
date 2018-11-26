@@ -124,7 +124,6 @@ def whisker (c : cocone F) {K : Type v} [small_category K] (E : K ⥤ J) : cocon
   (c.whisker E).ι.app k = (c.ι).app (E.obj k) := rfl
 end cocone
 
-
 structure cone_morphism (A B : cone F) :=
 (hom : A.X ⟶ B.X)
 (w'  : ∀ j : J, hom ≫ B.π.app j = A.π.app j . obviously)

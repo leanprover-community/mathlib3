@@ -4025,15 +4025,6 @@ by dsimp [interval]; simp only [pairwise_lt_range']
 theorem nodup_interval (n m : ℕ) : nodup (interval n m) :=
 by dsimp [interval]; simp only [nodup_range']
 
-theorem interval_sublist {n m n' m' : ℕ} : interval n m <+ interval n' m' ↔ n' ≤ n ∧ m ≤ m' :=
-by dsimp [interval]; sorry
-
-theorem interval_subset {n m n' m' : ℕ} : interval n m ⊆ interval n' m' ↔ n' ≤ n ∧ m ≤ m' :=
-by sorry
-
-@[simp] theorem mem_interval {n m l : ℕ} : l ∈ interval n m ↔ n ≤ l ∧ l < m :=
-by dsimp [interval]; simp; sorry
-
 local attribute [simp] nat.sub_self -- Why is this not alway `[simp]`??
 
 @[simp] theorem interval_zero {n : ℕ} : interval n n = [] :=
@@ -4048,8 +4039,40 @@ begin
   simp [nat.add_sub_cancel_left], -- Similarly, why isn't this `[simp]`?
 end
 
-@[simp] theorem not_mem_interval_top {n m : ℕ} : n ∉ interval n m :=
-mt mem_interval.1 $ sorry
+theorem interval_pred {m : ℕ} (h : m > 0) : interval (m-1) m = [m-1] :=
+begin
+  dsimp [interval],
+  rw nat.sub_sub_self,
+  { simp },
+  { assumption },
+end
+
+-- Someone put me out of my misery (no human suffering should be needed to prove this):
+@[simp] private lemma mem_interval_condition {n m l : ℕ} : n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m :=
+begin
+  by_cases n ≤ m,
+  { rw add_sub_of_le h },
+  { simp at h,
+    rw sub_eq_zero_of_le (le_of_lt h),
+    simp,
+    split,
+    { rintro ⟨a, b⟩,
+      exfalso,
+      have h := lt_of_lt_of_le b a,
+      exact lt_irrefl _ h, },
+    { rintro ⟨a, b⟩,
+      split, assumption, transitivity; assumption } }
+end
+
+@[simp] theorem mem_interval {n m l : ℕ} : l ∈ interval n m ↔ n ≤ l ∧ l < m :=
+begin
+  dsimp [interval],
+  simp
+end
+-- TODO implement these
+-- theorem interval_sublist {n m n' m' : ℕ} : interval n m <+ interval n' m' ↔ n' ≤ n ∧ m ≤ m' :=
+-- theorem interval_subset {n m n' m' : ℕ} : interval n m ⊆ interval n' m' ↔ n' ≤ n ∧ m ≤ m' :=
+-- @[simp] theorem not_mem_interval_top {n m : ℕ} : n ∉ interval n m :=
 
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),
   map prod.fst (enum_from n l) = range' n l.length

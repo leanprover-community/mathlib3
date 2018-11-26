@@ -532,6 +532,13 @@ begin
   simp,
 end
 
+lemma interval_pred {m : ℕ} (h : m > 0) : interval (m-1) m = {m-1} :=
+begin
+  dsimp [interval],
+  congr,
+  rw list.interval_pred h,
+end
+
 /- erase -/
 section erase
 variables [decidable_eq α] {s t : multiset α} {a b : α}

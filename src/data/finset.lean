@@ -658,6 +658,14 @@ begin
   simp,
 end
 
+lemma interval_pred {m : ℕ} (h : m > 0) : interval (m-1) m = {m-1} :=
+begin
+  dsimp [interval],
+  congr,
+  rw multiset.interval_pred h,
+  refl,
+end
+
 end interval
 
 /- useful rules for calculations with quantifiers -/

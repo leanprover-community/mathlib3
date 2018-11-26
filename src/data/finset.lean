@@ -649,6 +649,40 @@ by dsimp [Ico]; congr; simp
 lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=
 by dsimp [Ico]; congr; rw multiset.Ico.pred_singleton h; refl
 
+@[simp] lemma filter_lt (l n m : ℕ) : (Ico n m).filter (λ x, x < l) = (Ico n (min m l)) :=
+begin
+  /- `tidy` says -/
+  ext,
+  simp,
+  fsplit,
+  intros a_1, cases a_1, cases a_1_left, fsplit, assumption,
+  swap,
+  intros a_1, cases a_1, fsplit, fsplit, assumption,
+  swap 3,
+  -- and after that it's just chasing down inequalities...
+  apply lt_min; assumption,
+  apply lt_of_lt_of_le a_1_right,
+  apply min_le_left,
+  apply lt_of_lt_of_le a_1_right,
+  apply min_le_right,
+end
+
+@[simp] lemma diff (l n m : ℕ) : (Ico n m) \ (Ico n l) = Ico (max n l) m :=
+begin
+  /- `tidy` says -/
+  ext,
+  simp,
+  fsplit,
+  intros a_1, cases a_1, cases a_1_left, fsplit, swap, assumption,
+  swap,
+  intros a_1, cases a_1, fsplit,
+  fsplit, swap, assumption,
+  -- and then some more inequalities
+  swap 3,
+  apply max_le; solve_by_elim,
+  transitivity, swap, exact a_1_left, apply le_max_left,
+  intros, transitivity, swap, exact a_1_left, apply le_max_right,
+end
 end Ico
 
 /- useful rules for calculations with quantifiers -/

@@ -7,6 +7,7 @@ import category_theory.limits
 import category_theory.limits.types
 import category_theory.limits.functor_category
 import category_theory.full_subcategory
+import category_theory.adjunction
 
 open category_theory.limits
 
@@ -93,11 +94,13 @@ def equiv_of_iso {X Y : Type u} (i : X ≅ Y) : X ≃ Y :=
   left_inv  := λ x, congr i.hom_inv_id rfl,
   right_inv := λ x, congr i.inv_hom_id rfl }
 
-def iso_of_equiv {X Y : Type u} (i : X ≃ Y) : X ≅ Y :=
-{ hom := i.to_fun,
-  inv := i.inv_fun,
-  hom_inv_id' := funext i.left_inv,
-  inv_hom_id' := funext i.right_inv }
+#print iso_of_equiv
+
+-- def iso_of_equiv {X Y : Type u} (i : X ≃ Y) : X ≅ Y :=
+-- { hom := i.to_fun,
+--   inv := i.inv_fun,
+--   hom_inv_id' := funext i.left_inv,
+--   inv_hom_id' := funext i.right_inv }
 
 namespace comma
 variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A]
@@ -242,11 +245,14 @@ variable (F : presheaf X)
 
 @[simp] lemma map_id {U : X} : F.map (𝟙 U) = 𝟙 (F.obj U) := F.map_id U
 
+@[simp] lemma map_id' {U : X} :
+F.map (@category.id X 𝒳 U) = 𝟙 (F.obj U) := functor.map_id F U
+
 @[simp] lemma map_comp {U V W : X} {i : U ⟶ V} {j : V ⟶ W} :
 F.map (j ≫ i) = (F.map j) ≫ (F.map i) := F.map_comp j i
 
 @[simp] lemma map_comp' {U V W : X} {i : U ⟶ V} {j : V ⟶ W} :
-F.map (@category_theory.category.comp X 𝒳 _ _ _ i j) = (F.map j) ≫ (F.map i) := functor.map_comp F j i
+F.map (@category.comp X 𝒳 _ _ _ i j) = (F.map j) ≫ (F.map i) := functor.map_comp F j i
 
 end simp
 
@@ -299,6 +305,12 @@ def counit : map f ⋙ comap f ⟶ functor.id _ :=
     end } }
 
 @[simp] lemma counit.app_app {F : presheaf X} : ((counit f).app F).app = λ U s, s.app U (𝟙 _) := rfl
+
+def adj : adjunction (comap f) (map f) :=
+{ unit   := unit f,
+  counit := counit f,
+  left_triangle  := by tidy,
+  right_triangle := by tidy }
 
 def counit.is_iso [fully_faithful f] : is_iso (counit f) := sorry
 -- { inv :=

@@ -4014,41 +4014,32 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
-def interval (n m : ℕ) : list ℕ := range' n (m - n)
+def Ico (n m : ℕ) : list ℕ := range' n (m - n)
 
-@[simp] theorem length_interval (n m : ℕ) : length (interval n m) = m - n :=
-by dsimp [interval]; simp only [length_range']
+namespace Ico
 
-theorem pairwise_lt_interval (n m : ℕ) : pairwise (<) (interval n m) :=
-by dsimp [interval]; simp only [pairwise_lt_range']
+@[simp] theorem length (n m : ℕ) : length (Ico n m) = m - n :=
+by dsimp [Ico]; simp only [length_range']
 
-theorem nodup_interval (n m : ℕ) : nodup (interval n m) :=
-by dsimp [interval]; simp only [nodup_range']
+theorem pairwise_lt (n m : ℕ) : pairwise (<) (Ico n m) :=
+by dsimp [Ico]; simp only [pairwise_lt_range']
 
-local attribute [simp] nat.sub_self -- Why is this not alway `[simp]`??
+theorem nodup (n m : ℕ) : nodup (Ico n m) :=
+by dsimp [Ico]; simp only [nodup_range']
 
-@[simp] theorem interval_zero {n : ℕ} : interval n n = [] :=
-begin
-  dsimp [interval],
-  simp,
-end
+local attribute [simp] nat.sub_self
 
-@[simp] theorem interval_one {n : ℕ} : interval n (n+1) = [n] :=
-begin
-  dsimp [interval],
-  simp [nat.add_sub_cancel_left], -- Similarly, why isn't this `[simp]`?
-end
+@[simp] theorem self_empty {n : ℕ} : Ico n n = [] :=
+by dsimp [Ico]; simp
 
-theorem interval_pred {m : ℕ} (h : m > 0) : interval (m-1) m = [m-1] :=
-begin
-  dsimp [interval],
-  rw nat.sub_sub_self,
-  { simp },
-  { assumption },
-end
+@[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = [n] :=
+by dsimp [Ico]; simp [nat.add_sub_cancel_left]
+
+theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = [m-1] :=
+by dsimp [Ico]; rw nat.sub_sub_self h; simp
 
 -- Someone put me out of my misery (no human suffering should be needed to prove this):
-@[simp] private lemma mem_interval_condition {n m l : ℕ} : n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m :=
+@[simp] private lemma mem_condition {n m l : ℕ} : n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m :=
 begin
   by_cases n ≤ m,
   { rw add_sub_of_le h },
@@ -4064,15 +4055,14 @@ begin
       split, assumption, transitivity; assumption } }
 end
 
-@[simp] theorem mem_interval {n m l : ℕ} : l ∈ interval n m ↔ n ≤ l ∧ l < m :=
-begin
-  dsimp [interval],
-  simp
-end
--- TODO implement these
--- theorem interval_sublist {n m n' m' : ℕ} : interval n m <+ interval n' m' ↔ n' ≤ n ∧ m ≤ m' :=
--- theorem interval_subset {n m n' m' : ℕ} : interval n m ⊆ interval n' m' ↔ n' ≤ n ∧ m ≤ m' :=
--- @[simp] theorem not_mem_interval_top {n m : ℕ} : n ∉ interval n m :=
+@[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
+by dsimp [Ico]; simp
+
+-- TODO implement these, amongst maybe many others!
+-- theorem sublist {n m n' m' : ℕ} : Ico n m <+ Ico n' m' ↔ n' ≤ n ∧ m ≤ m' :=
+-- theorem subset {n m n' m' : ℕ} : Ico n m ⊆ Ico n' m' ↔ n' ≤ n ∧ m ≤ m' :=
+-- @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
+end Ico
 
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),
   map prod.fst (enum_from n l) = range' n l.length

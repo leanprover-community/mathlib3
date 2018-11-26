@@ -625,48 +625,31 @@ finset.induction_on s ⟨0, empty_subset _⟩ $ λ a s ha ⟨n, hn⟩,
 
 end range
 
-/- interval -/
-section interval
+/- Ico (a closed open interval) -/
 variables {n m l : ℕ}
 
-/-- `interval n m` is the set of natural numbers `n ≤ k < m`. -/
-def interval (n m : ℕ) : finset ℕ := ⟨_, nodup_interval n m⟩
+/-- `Ico n m` is the set of natural numbers `n ≤ k < m`. -/
+def Ico (n m : ℕ) : finset ℕ := ⟨_, nodup_Ico n m⟩
 
-@[simp] theorem interval_val (n m : ℕ) : (interval n m).1 = multiset.interval n m := rfl
+namespace Ico
 
-@[simp] theorem mem_interval : l ∈ interval n m ↔ n ≤ l ∧ l < m := mem_interval
+@[simp] theorem val (n m : ℕ) : (Ico n m).1 = multiset.Ico n m := rfl
 
-@[simp] theorem interval_range (n : ℕ) : interval 0 n = range n :=
-begin
-  dsimp [interval],
-  congr,
-  dsimp [multiset.interval, list.interval, multiset.range],
-  rw list.range_eq_range'
-end
+@[simp] theorem mem : l ∈ Ico n m ↔ n ≤ l ∧ l < m := multiset.Ico.mem
 
-@[simp] theorem interval_zero (n : ℕ) : interval n n = ∅ :=
-begin
-  dsimp [interval],
-  congr,
-  simp,
-end
+@[simp] theorem Ico_range (n : ℕ) : Ico 0 n = range n :=
+by dsimp [Ico]; congr; dsimp [multiset.Ico, list.Ico, multiset.range]; rw list.range_eq_range'
 
-@[simp] theorem interval_one (n : ℕ) : interval n (n+1) = singleton n :=
-begin
-  dsimp [interval],
-  congr,
-  simp,
-end
+@[simp] theorem empty (n : ℕ) : Ico n n = ∅ :=
+by dsimp [Ico]; congr; simp
 
-lemma interval_pred {m : ℕ} (h : m > 0) : interval (m-1) m = {m-1} :=
-begin
-  dsimp [interval],
-  congr,
-  rw multiset.interval_pred h,
-  refl,
-end
+@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = singleton n :=
+by dsimp [Ico]; congr; simp
 
-end interval
+lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=
+by dsimp [Ico]; congr; rw multiset.Ico.pred_singleton h; refl
+
+end Ico
 
 /- useful rules for calculations with quantifiers -/
 theorem exists_mem_empty_iff (p : α → Prop) : (∃ x, x ∈ (∅ : finset α) ∧ p x) ↔ false :=

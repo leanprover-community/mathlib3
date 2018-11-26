@@ -501,43 +501,28 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subs
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
 
-/- interval -/
+/- Ico -/
 
-/-- `interval n m` is the multiset lifted from the list `interval n m`,
+/-- `Ico n m` is the multiset lifted from the list `Ico n m`,
   that is, the set `{n, n+1, ..., m-1}`. -/
-def interval (n m : ℕ) : multiset ℕ := interval n m
+def Ico (n m : ℕ) : multiset ℕ := Ico n m
 
--- TODO all the relevant lemmas
-@[simp] theorem mem_interval {n m l : ℕ} : l ∈ interval n m ↔ n ≤ l ∧ l < m := mem_interval
+namespace Ico
 
-@[simp] theorem interval_range (n : ℕ) : interval 0 n = range n :=
-begin
-  dsimp [interval],
-  congr,
-  dsimp [list.interval],
-  rw list.range_eq_range'
-end
+@[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m := list.Ico.mem
 
-@[simp] theorem interval_zero (n : ℕ) : interval n n = ∅ :=
-begin
-  dsimp [interval],
-  congr,
-  simp,
-end
+@[simp] theorem Ico_range (n : ℕ) : Ico 0 n = range n :=
+by dsimp [Ico]; congr; dsimp [list.Ico]; rw list.range_eq_range'
 
-@[simp] theorem interval_one (n : ℕ) : interval n (n+1) = singleton n :=
-begin
-  dsimp [interval],
-  congr,
-  simp,
-end
+@[simp] theorem empty (n : ℕ) : Ico n n = ∅ :=
+by dsimp [Ico]; congr; simp
 
-lemma interval_pred {m : ℕ} (h : m > 0) : interval (m-1) m = {m-1} :=
-begin
-  dsimp [interval],
-  congr,
-  rw list.interval_pred h,
-end
+@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = singleton n :=
+by dsimp [Ico]; congr; simp
+
+lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=
+by dsimp [Ico]; congr; rw list.Ico.pred_singleton h
+end Ico
 
 /- erase -/
 section erase
@@ -2243,7 +2228,7 @@ quot.induction_on s $ λ l, nodup_filter_map H
 
 theorem nodup_range (n : ℕ) : nodup (range n) := nodup_range _
 
-theorem nodup_interval (n m : ℕ) : nodup (interval n m) := nodup_interval _ _
+theorem nodup_Ico (n m : ℕ) : nodup (Ico n m) := nodup_Ico _ _
 
 theorem nodup_inter_left [decidable_eq α] {s : multiset α} (t) : nodup s → nodup (s ∩ t) :=
 nodup_of_le $ inter_le_left _ _

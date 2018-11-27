@@ -127,21 +127,40 @@ by simp [log, lt_irrefl]
 @[simp] lemma log_one : log 1 = 0 :=
 exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 
-noncomputable definition nth_root (x : ℝ) (n : ℕ) : ℝ := exp ((log x) / n)
+noncomputable definition nth_root (x : ℝ) (n : ℕ) : ℝ := 
+if x = 0 then 0 else exp ((log x) / n)
 
 theorem exp_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_mul, one_mul]
 
-theorem nth_root_pos {x n} : nth_root x n > 0 := exp_pos _
+theorem nth_root_nonneg {x n} : nth_root x n ≥ 0 := 
+begin
+  cases classical.em(x = 0),
+  { simp [h, nth_root], apply ge_of_eq rfl },
+  { simp [h, nth_root], apply le_of_lt (exp_pos _) }
+end
+
+theorem nth_root_pos {x n} : x ≠ 0 → nth_root x n > 0 := by intro; simp [a, nth_root]; apply exp_pos
 
 theorem nth_root_power {x : ℝ} {n} (Hxpos : 0 < x) (Hnpos : 0 < n): (nth_root x n) ^ n = x := 
-by rw [nth_root, ←exp_mul, mul_div_cancel', exp_log Hxpos]; rw nat.cast_ne_zero; exact ne_of_gt Hnpos
+begin
+  simp [ne_of_gt Hxpos, nth_root],
+  rw [←exp_mul, mul_div_cancel', exp_log Hxpos], 
+  rw nat.cast_ne_zero, exact ne_of_gt Hnpos
+end
 
-theorem nth_root_unique (x y : ℝ) (n : ℕ)
-  (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hynx : y ^ n = x) :
-  y = nth_root x n :=
-pow_eq Hypos nth_root_pos Hnpos (Hynx.trans (nth_root_power Hxpos Hnpos).symm)
+theorem pow_right_inj 
+{x y : ℝ} {n : ℕ} (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hxyn : x ^ n = y ^ n) : x = y := sorry
+
+theorem pow_lt {x y : ℝ} {n : ℕ} (Hxy : x < y) (Hxpos : 0 < x) (Hnpos : 0 < n) : x ^ n < y ^ n := sorry
+
+theorem nth_root_unique {x y : ℝ} {n : ℕ}
+(Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hynx : y ^ n = x) : y = nth_root x n 
+:= pow_right_inj Hypos (nth_root_pos (ne_of_gt Hxpos)) Hnpos (Hynx.trans (nth_root_power Hxpos Hnpos).symm)
+
+theorem nth_root_unique' {x : ℝ} {n : ℕ} (Hxpos : 0 < x) (Hnpos : 0 < n) : nth_root (x ^ n) n = x 
+:= eq.symm (nth_root_unique (pow_pos Hxpos n) Hxpos Hnpos rfl)
 
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'

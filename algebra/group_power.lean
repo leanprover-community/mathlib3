@@ -479,7 +479,7 @@ begin
   apply mul_lt_mul ih (le_of_lt Hxy) Hxpos (le_of_lt (pow_pos (lt_trans Hxpos Hxy) _))
 end
 
-theorem pow_eq {x y : α} {n : ℕ} (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hxyn : x ^ n = y ^ n) : x = y :=
+theorem pow_right_inj {x y : α} {n : ℕ} (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hxyn : x ^ n = y ^ n) : x = y :=
 begin
   rcases lt_trichotomy x y with hxy | rfl | hyx,
   { exact absurd Hxyn (ne_of_lt (pow_lt hxy Hxpos Hnpos)) },

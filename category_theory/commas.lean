@@ -60,6 +60,14 @@ instance comma_category : category (comma L R) :=
 
 namespace comma
 
+section simp
+variables {X Y Z : comma L R} {f : X ⟶ Y} {g : Y ⟶ Z}
+
+@[simp] lemma comp_left  : (f ≫ g).left  = f.left ≫ g.left   := rfl
+@[simp] lemma comp_right : (f ≫ g).right = f.right ≫ g.right := rfl
+
+end simp
+
 variables (L) (R)
 
 def fst : comma L R ⥤ A :=
@@ -100,6 +108,54 @@ def map_right (r : R₁ ⟹ R₂) : comma L R₁ ⥤ comma L R₂ :=
   { left  := f.left,
     right := f.right,
     w' := by tidy; rw [←r.naturality f.right, ←category.assoc]; tidy } }
+
+section simp
+
+section
+variables {X Y : comma L₂ R} {f : X ⟶ Y} {l : L₁ ⟹ L₂}
+@[simp] lemma map_left_obj_left  : ((map_left R l).obj X).left  = X.left                := rfl
+@[simp] lemma map_left_obj_right : ((map_left R l).obj X).right = X.right               := rfl
+@[simp] lemma map_left_obj_hom   : ((map_left R l).obj X).hom   = l.app X.left ≫ X.hom := rfl
+@[simp] lemma map_left_map_left  : ((map_left R l).map f).left  = f.left                := rfl
+@[simp] lemma map_left_map_right : ((map_left R l).map f).right = f.right               := rfl
+
+@[simp] lemma map_left_id : map_left R (nat_trans.id L) ≅ functor.id _ :=
+{ hom :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
+  inv :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
+
+variables {L₃ : A ⥤ T} {l' : L₂ ⟹ L₃}
+@[simp] lemma map_left_comp : (map_left R (l ⊟ l')) ≅ (map_left R l') ⋙ (map_left R l) :=
+{ hom :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
+  inv :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
+end
+
+section
+variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟹ R₂}
+@[simp] lemma map_right_obj_left  : ((map_right L r).obj X).left  = X.left                 := rfl
+@[simp] lemma map_right_obj_right : ((map_right L r).obj X).right = X.right                := rfl
+@[simp] lemma map_right_obj_hom   : ((map_right L r).obj X).hom   = X.hom ≫ r.app X.right := rfl
+@[simp] lemma map_right_map_left  : ((map_right L r).map f).left  = f.left                 := rfl
+@[simp] lemma map_right_map_right : ((map_right L r).map f).right = f.right                := rfl
+
+@[simp] lemma map_right_id : map_left L (nat_trans.id R) ≅ functor.id _ :=
+{ hom :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
+  inv :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
+
+variables {R₃ : B ⥤ T} {r' : R₂ ⟹ R₃}
+@[simp] lemma map_right_comp : (map_right L (r ⊟ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
+{ hom :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
+  inv :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
+end
+
+end simp
 
 end comma
 

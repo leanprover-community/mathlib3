@@ -94,13 +94,19 @@ def equiv_of_iso {X Y : Type u} (i : X ≅ Y) : X ≃ Y :=
   left_inv  := λ x, congr i.hom_inv_id rfl,
   right_inv := λ x, congr i.inv_hom_id rfl }
 
-#print iso_of_equiv
+namespace category.hom
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
 
--- def iso_of_equiv {X Y : Type u} (i : X ≃ Y) : X ≅ Y :=
--- { hom := i.to_fun,
---   inv := i.inv_fun,
---   hom_inv_id' := funext i.left_inv,
---   inv_hom_id' := funext i.right_inv }
+def op {X Y : C} (f : X ⟶ Y) : @category.hom _ category_theory.opposite Y X := f
+
+def deop {X Y : Cᵒᵖ} (f : X ⟶ Y) : @category.hom _ 𝒞 Y X := f
+
+@[simp] lemma op_deop {X Y : C} (f : X ⟶ Y) : f.op.deop = f := rfl
+
+@[simp] lemma deop_op {X Y : Cᵒᵖ} (f : X ⟶ Y) : f.deop.op = f := rfl
+
+end category.hom
 
 namespace comma
 variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A]
@@ -275,6 +281,17 @@ variable {f}
 @[simp] lemma comap_map {F G : presheaf Y} (α : F ⟶ G) : (comap f).map α = whisker_left _ α := rfl
 end simp
 
+def map' : presheaf X ⥤ presheaf Y :=
+{ obj := λ F,
+  { obj := λ V, colimit ((comma.snd.{u u u u} (functor.of_obj V) f).op ⋙ F),
+    map := λ V₁ V₂ j, colimit.pre ((comma.snd.{u u u u} (functor.of_obj V₂) f).op ⋙ F) (comma.map_left f $ functor.of_map j).op,
+    map_id' := λ V,
+    begin
+      erw functor.of_map_id,
+      tidy,
+    end },
+  map := _ }
+
 def map : presheaf X ⥤ presheaf Y :=
 { obj := λ F, yoneda.op ⋙ (comap f).op ⋙ yoneda.obj F,
   map := λ F G α, whisker_left _ $ whisker_left _ $ yoneda.map α }
@@ -311,6 +328,12 @@ def adj : adjunction (comap f) (map f) :=
   counit := counit f,
   left_triangle  := by tidy,
   right_triangle := by tidy }
+
+instance comap.preserves_colimits : preserves_colimits (comap f) :=
+adjunction.left_adjoint_preserves_colimits (adj f)
+
+instance map.preservers_limits : preserves_limits (map f) :=
+adjunction.right_adjoint_preserves_limits (adj f)
 
 def counit.is_iso [fully_faithful f] : is_iso (counit f) := sorry
 -- { inv :=
@@ -455,10 +478,10 @@ begin
 end
 
 variables {Y : Type u} [small_category Y]
-variables (F : X ⥤ Y)
+variables (f : X ⥤ Y)
 
-def map {U : X} (c : covering_family U) : covering_family (F.obj U) :=
-(over.post F).obj '' c
+def map {U : X} (c : covering_family U) : covering_family (f.obj U) :=
+(over.post f).obj '' c
 
 end covering_family
 

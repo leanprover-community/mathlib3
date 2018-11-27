@@ -633,10 +633,18 @@ meta def guard_target' (p : parse texpr) : tactic unit :=
 do t ← target, guard_expr_eq' t p
 
 /--
+a weaker version of `trivial` that tries to solve the goal by reflexivity or by reducing it to true,
+unfolding only `reducible` constants. -/
+meta def triv : tactic unit :=
+tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail "triv tactic failed"
+
+/--
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
-Equivalent to `refine ⟨x, _⟩`.
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
+
+`use` will work with constructors of arbitrary inductive types.
+
 Examples:
 
 example (α : Type) : ∃ S : set α, S = S :=
@@ -650,10 +658,18 @@ by use [1, 2, 3]
 
 example : ∃ p : ℤ × ℤ, p.1 = 1 :=
 by use ⟨1, 42⟩
+
+example : Σ x y : ℤ, (ℤ × ℤ) × ℤ :=
+by use [1, 2, 3, 4, 5]
+
+inductive foo
+| mk : ℕ → bool × ℕ → ℕ → foo
+
+example : foo :=
+by use [100, tt, 4, 3]
 -/
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
-do refine $ l.foldr (λ t p, ``(⟨%%t, %%p⟩)) pexpr.mk_placeholder,
-   try refl
+tactic.use l >> try triv
 
 end interactive
 end tactic

@@ -1,5 +1,4 @@
 import data.nat.prime
-import data.rat
 import tactic.back
 
 open nat

@@ -196,9 +196,13 @@ do (extra_pr_lemmas, extra_fi_lemmas, gex, hex, all_hyps) ← decode_back_arg_li
    -- If the goal is not propositional, we do not include the local context unless specifically
    -- included via `[*]`.
    prop ← option.is_some <$> try_core propositional_goal,
-   hypotheses ← if (¬no_dflt ∧ prop) ∨ all_hyps then
-     list.filter (λ h : expr, h.local_uniq_name ∉ hex) <$> local_context -- remove local exceptions
-   else return [],
+   hypotheses ← list.filter (λ h : expr, h.local_uniq_name ∉ hex) <$>  -- remove local exceptions
+   if (¬no_dflt ∧ prop) ∨ all_hyps then
+     local_context
+   else if no_dflt then
+     return []
+   else -- it's a non-propositional goal, no `[*]`, no `only`, so conservatively only take propositional hypotheses
+     local_context >>= list.mfilter (λ e, is_proof e),
 
    let filter_excl : list expr → list expr := list.filter $ λ h, h.const_name ∉ gex,
    return (/- progress  lemmas -/ filter_excl $ extra_pr_lemmas ++ tagged_pr_lemmas,
@@ -217,10 +221,10 @@ open interactive interactive.types expr
 Lemmas can be specified via an optional argument, e.g. as `back [foo, bar]`. If one
 of these arguments is an attribute, all lemmas tagged with that attribute will be
 included. Additionally, `back` always includes any lemmas tagged with the attribute `@[back]`,
-and, if the current goal is a proposition, all local hypotheses.
+and all local propositional hypotheses.
 
-(If the goal is not a proposition, `back` is constructing data and so behaves more conservatively.
-In this case, all local hypotheses can be included using `back [*]`.)
+(If the goal is a proposition, `back` is more aggressive and includes all hypotheses. This
+can be achieved in other cases using using `back [*]`.)
 
 Lemmas which were included because of the `@[back]` attribute, or local hypotheses,
 can be excluded using the notation `back [-h]`.

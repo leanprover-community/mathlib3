@@ -660,13 +660,13 @@ example : ∃ p : ℤ × ℤ, p.1 = 1 :=
 by use ⟨1, 42⟩
 
 example : Σ x y : ℤ, (ℤ × ℤ) × ℤ :=
-by use' [1, 2, 3, 4, 5]
+by use [1, 2, 3, 4, 5]
 
 inductive foo
 | mk : ℕ → bool × ℕ → ℕ → foo
 
 example : foo :=
-by use' [100, tt, 4, 3]
+by use [100, tt, 4, 3]
 -/
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
 tactic.use l >> try triv

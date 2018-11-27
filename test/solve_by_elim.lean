@@ -107,25 +107,3 @@ begin
   solve_by_elim [nat.dvd_add_iff_left],
 end
 
-meta def dvd_attribute : user_attribute := {
-  name := `dvd,
-  descr := "A lemma that concludes a ∣ b."
-}
-
-run_cmd attribute.register ``dvd_attribute
-
-local attribute [dvd] dvd.intro dvd.intro_left dvd_add dvd_add_iff_left dvd_add_iff_right dvd_mul_left 
-  dvd_mul_of_dvd_left dvd_mul_of_dvd_right dvd_mul_right dvd_neg_iff_dvd dvd_neg_of_dvd dvd_of_dvd_neg 
-  dvd_of_mul_left_dvd dvd_of_mul_right_dvd dvd_of_neg_dvd dvd_refl dvd_sub dvd_trans dvd_zero list.dvd_prod
-  mul_dvd_mul mul_dvd_mul_left mul_dvd_mul_right nat.decidable_dvd._proof_1 nat.div_dvd_of_dvd nat.dvd_add_iff_left
-  nat.dvd_add_iff_right nat.dvd_div_of_mul_dvd nat.dvd_fact nat.dvd_iff_mod_eq_zero nat.dvd_mod_iff
-  nat.dvd_of_mod_eq_zero nat.dvd_of_mul_dvd_mul_left nat.dvd_of_mul_dvd_mul_right nat.dvd_of_pow_dvd nat.dvd_one
-  nat.dvd_sub nat.fact_dvd_fact nat.mul_dvd_mul_iff_left nat.mul_dvd_mul_iff_right nat.mul_dvd_of_dvd_div
-  nat.pow_dvd_of_le_of_pow_dvd nat.pow_dvd_pow nat.pow_dvd_pow_of_dvd neg_dvd_iff_dvd neg_dvd_of_dvd one_dvd
-
-lemma dvd_example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
-begin
-  solve_by_elim with dvd,
-end.
-
--- #print dvd_example

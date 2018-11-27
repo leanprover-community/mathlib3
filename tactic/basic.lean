@@ -507,6 +507,8 @@ do goals ← get_goals,
    p ← is_proof goals.head,
    guard p
 
+meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
+
 variable {α : Type}
 
 private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
@@ -720,5 +722,11 @@ form `f ∘ g = h` for reasoning about higher-order functions.",
        copy_attribute `functor_norm lmm tt lmm' }
 
 attribute [higher_order map_comp_pure] map_pure
+
+private meta def tactic.use_aux (h : pexpr) : tactic unit :=
+(focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
+
+meta def tactic.use (l : list pexpr) : tactic unit :=
+focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
 
 end tactic

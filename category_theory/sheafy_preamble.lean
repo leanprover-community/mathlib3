@@ -42,29 +42,6 @@ lemma coext_equiv_hom {X Y : C} {e : Π {Z : C}, (Y ⟶ Z) ≃ (X ⟶ Z)} {n} :
 end
 
 
-namespace category_theory.limits
-open category_theory
-
-variables {K : Type v} {C : Type u} {J : Type v} [𝒞 : category.{u v} C] [𝒦 : small_category K] [small_category J]
-include C 𝒞 K 𝒦
-
-lemma colimit.pre_map
-  [has_colimits_of_shape.{u v} J C] [has_colimits_of_shape.{u v} K C]
-  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟹ E₂) :
-  colimit.pre F E₁ = colim.map (whisker_right α F) ≫ colimit.pre F E₂ :=
-begin
-  ext1, dsimp,
-  conv {to_rhs, rw ←category.assoc},
-  simp,
-end
-
--- lemma colimit.pre_id
---   [has_colimits_of_shape.{u v} J C]
---   (F : J ⥤ C) :
---   colimit.pre F (functor.id _) = 𝟙 (colimit F)
-
-end category_theory.limits
-
 def type_of {X Y : Type v} {p : Y → Prop} (h : X ≅ {y // p y}) : Type v := Y
 
 namespace lattice
@@ -281,6 +258,40 @@ injectivity F (by tidy)
 
 end full_faithful
 
+@[simp] lemma left_unitor_hom_app {J : Type v} [small_category J] (F : J ⥤ C) (j : J) :
+((functor.left_unitor F).hom).app j = 𝟙 (F.obj j) := rfl
+
+@[simp] lemma left_unitor_inv_app {J : Type v} [small_category J] (F : J ⥤ C) (j : J) :
+((functor.left_unitor F).inv).app j = 𝟙 (F.obj j) := rfl
+
 end functor
+
+namespace nat_trans
+variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+include 𝒟
+
+@[simp] lemma id_app' (F : C ⥤ D) (X : C) : nat_trans.app (𝟙 F) X = 𝟙 (F.obj X) := rfl
+
+end nat_trans
+
+namespace limits
+open category_theory
+
+variables {J : Type v} [small_category J]
+
+lemma colimit.pre_map {K : Type v} [small_category K]
+  [has_colimits_of_shape.{u v} J C] [has_colimits_of_shape.{u v} K C]
+  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟹ E₂) :
+  colimit.pre F E₁ = colim.map (whisker_right α F) ≫ colimit.pre F E₂ :=
+begin
+  ext1, dsimp,
+  conv {to_rhs, rw ←category.assoc},
+  simp,
+end
+
+lemma colimit.pre_id [has_colimits_of_shape.{u v} J C] (F : J ⥤ C) :
+colimit.pre F (functor.id _) = colim.map (functor.left_unitor F).hom := by tidy
+
+end limits
 
 end category_theory

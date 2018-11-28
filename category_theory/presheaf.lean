@@ -65,10 +65,16 @@ def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
   map := λ c₁ c₂ f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of_obj c₂) ⋙ F) (comma.map_right yoneda $ functor.of_map f),
   map_id' := λ c,
   begin
-    erw functor.of_map_id,
+    -- tidy,
+    erw functor.of_map_id, -- why doesn't this simplify automatically?
     erw colimit.pre_map
       (comma.fst.{v v v v} yoneda (functor.of_obj c) ⋙ F)
       (comma.map_right_id'.{v v v} yoneda (functor.of_obj c)).hom,
+    erw colimit.pre_id,
+    erw ← colim.map_comp,
+    erw ← colim.map_id,
+    congr,
+    tidy
   end }
 
 end extension

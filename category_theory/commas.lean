@@ -152,6 +152,9 @@ variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟹ R₂}
   inv :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
 
+@[simp] lemma map_right_id'_hom_app_left (X : comma L R) :
+(((map_right_id' L R).hom).app X).left = 𝟙 (X.left) := sorry
+
 variables {R₃ : B ⥤ T} {r' : R₂ ⟹ R₃}
 @[simp] lemma map_right_comp : (map_right L (r ⊟ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
 { hom :=

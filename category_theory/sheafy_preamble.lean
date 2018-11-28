@@ -58,6 +58,11 @@ begin
   simp,
 end
 
+-- lemma colimit.pre_id
+--   [has_colimits_of_shape.{u v} J C]
+--   (F : J ⥤ C) :
+--   colimit.pre F (functor.id _) = 𝟙 (colimit F)
+
 end category_theory.limits
 
 def type_of {X Y : Type v} {p : Y → Prop} (h : X ≅ {y // p y}) : Type v := Y

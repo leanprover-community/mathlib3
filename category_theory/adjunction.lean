@@ -283,7 +283,7 @@ variables (heY : Π X Y Y' g h, e X Y' (h ≫ g) = e X Y h ≫ G.map g)
 include heX heY
 
 def adjunction_of_equiv : adjunction F G :=
-{ unit := 
+{ unit :=
   { app := λ X, e X (F.obj X) (𝟙 _),
     naturality' := λ X X' f, by erw [←heX, ←heY]; dsimp; simp },
   counit :=
@@ -397,7 +397,7 @@ include 𝒞 𝒟
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)
 
 def cocone_equiv {J : Type v} [small_category J] {X : J ⥤ C} {Y : D} :
-  (X.comp F ⟹ (functor.const J).obj Y) ≃ (X ⟹ (functor.const J).obj (G.obj Y)) :=
+  (X.comp F ⟹ (category_theory.functor.const J).obj Y) ≃ (X ⟹ (category_theory.functor.const J).obj (G.obj Y)) :=
 { to_fun := λ t,
   { app := λ j, adj.hom_equiv.to_fun (t.app j),
     naturality' := λ j j' f, by erw [←hom_equiv_naturality', t.naturality]; dsimp; simp },
@@ -411,7 +411,7 @@ def cocone_equiv {J : Type v} [small_category J] {X : J ⥤ C} {Y : D} :
   right_inv := λ t, by ext j; apply adj.hom_equiv.right_inv }
 
 def cone_equiv {J : Type v} [small_category J] {X : C} {Y : J ⥤ D} :
-  ((functor.const J).obj (F.obj X) ⟹ Y) ≃ ((functor.const J).obj X ⟹ Y.comp G) :=
+  ((category_theory.functor.const J).obj (F.obj X) ⟹ Y) ≃ ((category_theory.functor.const J).obj X ⟹ Y.comp G) :=
 { to_fun := λ t,
   { app := λ j, adj.hom_equiv.to_fun (t.app j),
     naturality' := λ j j' f, begin
@@ -434,8 +434,8 @@ def left_adjoint_preserves_colimits : preserves_colimits F :=
 ⟨λ J 𝒥, by exactI λ Y c h, limits.is_colimit.of_equiv
   (λ Z, calc
      (F.obj c.X ⟶ Z) ≃ (c.X ⟶ G.obj Z)            : adj.hom_equiv
-     ... ≃ (Y ⟹ (functor.const J).obj (G.obj Z))  : h.equiv
-     ... ≃ (Y.comp F ⟹ (functor.const J).obj Z)   : adj.cocone_equiv.symm)
+     ... ≃ (Y ⟹ (category_theory.functor.const J).obj (G.obj Z))  : h.equiv
+     ... ≃ (Y.comp F ⟹ (category_theory.functor.const J).obj Z)   : adj.cocone_equiv.symm)
   (λ Z f j, begin
      dsimp [is_colimit.equiv, cocone_equiv],
      rw adj.hom_equiv_symm_naturality,
@@ -447,8 +447,8 @@ def right_adjoint_preserves_limits : preserves_limits G :=
 ⟨λ J 𝒥, by exactI λ Y c h, limits.is_limit.of_equiv
   (λ Z, calc
      (Z ⟶ G.obj c.X) ≃ (F.obj Z ⟶ c.X)            : adj.hom_equiv.symm
-     ... ≃ ((functor.const J).obj (F.obj Z) ⟹ Y)  : (h.equiv (F.obj Z)).to_equiv
-     ... ≃ ((functor.const J).obj Z ⟹ Y.comp G)   : adj.cone_equiv)
+     ... ≃ ((category_theory.functor.const J).obj (F.obj Z) ⟹ Y)  : (h.equiv (F.obj Z)).to_equiv
+     ... ≃ ((category_theory.functor.const J).obj Z ⟹ Y.comp G)   : adj.cone_equiv)
   (λ Z f j, begin
      dsimp [is_limit.equiv, cone_equiv],
      rw adj.hom_equiv_naturality,

@@ -24,18 +24,18 @@ variables {C}
 namespace presheaf
 
 section simp
-variable (F : presheaf C)
+variable (X : presheaf C)
 
-@[simp] lemma map_id {c : C} : F.map (𝟙 c) = 𝟙 (F.obj c) := F.map_id c
+@[simp] lemma map_id {c : C} : X.map (𝟙 c) = 𝟙 (X.obj c) := X.map_id c
 
 @[simp] lemma map_id' {c : C} :
-F.map (@category.id C 𝒞 c) = 𝟙 (F.obj c) := functor.map_id F c
+X.map (@category.id C 𝒞 c) = 𝟙 (X.obj c) := functor.map_id X c
 
 @[simp] lemma map_comp {c₁ c₂ c₃ : C} {f : c₁ ⟶ c₂} {g : c₂ ⟶ c₃} :
-F.map (g ≫ f) = (F.map g) ≫ (F.map f) := F.map_comp g f
+X.map (g ≫ f) = (X.map g) ≫ (X.map f) := X.map_comp g f
 
 @[simp] lemma map_comp' {c₁ c₂ c₃ : C} {f : c₁ ⟶ c₂} {g : c₂ ⟶ c₃} :
-F.map (@category.comp C 𝒞 _ _ _ f g) = (F.map g) ≫ (F.map f) := functor.map_comp F g f
+X.map (@category.comp C 𝒞 _ _ _ f g) = (X.map g) ≫ (X.map f) := functor.map_comp X g f
 
 end simp
 
@@ -47,28 +47,28 @@ instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_
 instance : has_coequalizers.{(v+1) v} (presheaf C) := limits.functor_category_has_coequalizers
 
 section extension
-variables {D : Type u} [𝒟 : category.{u v} D] (F : C ⥤ D)
+variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
 
-def restricted_yoneda : D ⥤ presheaf C :=
+def restricted_yoneda (F : C ⥤ D) : D ⥤ presheaf C :=
 { obj := λ d, F.op ⋙ yoneda.obj d,
   map := λ d₁ d₂ g, whisker_left _ $ yoneda.map g }
 
 variables [has_colimits.{u v} D]
 
-def yoneda_extension : presheaf C ⥤ D :=
+def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
 -- @adjunction.left_adjoint_of_equiv _ _ _ _
 -- (λ X, colimit (comma.fst.{v v v v} yoneda (functor.of_obj X) ⋙ F))
 -- (restricted_yoneda F)
 -- (λ X d, _) _
-{ obj := λ X, colimit (comma.fst.{v v v v} yoneda (functor.of_obj X) ⋙ F),
-  map := λ X Y f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of_obj Y) ⋙ F) (comma.map_right yoneda $ functor.of_map f),
-  map_id' := λ X,
+{ obj := λ c, colimit (comma.fst.{v v v v} yoneda (functor.of_obj c) ⋙ F),
+  map := λ c₁ c₂ f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of_obj c₂) ⋙ F) (comma.map_right yoneda $ functor.of_map f),
+  map_id' := λ c,
   begin
     erw functor.of_map_id,
     erw colimit.pre_map
-      (comma.fst.{v v v v} yoneda (functor.of_obj X) ⋙ F)
-      (comma.map_right_id'.{v v v} yoneda (functor.of_obj X)).hom,
+      (comma.fst.{v v v v} yoneda (functor.of_obj c) ⋙ F)
+      (comma.map_right_id'.{v v v} yoneda (functor.of_obj c)).hom,
   end }
 
 end extension

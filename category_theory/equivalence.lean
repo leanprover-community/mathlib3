@@ -5,7 +5,7 @@
 import category_theory.embedding
 import category_theory.functor_category
 import category_theory.natural_isomorphism
-import tactic.comp_slice
+import tactic.slice
 import tactic.converter.interactive
 
 namespace category_theory
@@ -229,21 +229,13 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
     apply F.inv.injectivity,
     /- obviously can finish from here... -/
     dsimp, simp, dsimp,
-    conv {
-      to_lhs,
-      comp_slice 4 6,
+    slice_lhs 4 6 {
       rw [←functor.map_comp, ←functor.map_comp],
       rw [←is_equivalence.fun_inv_map],
     },
-    conv {
-      to_lhs,
-      comp_slice 1 2,
-      simp,
-    },
+    slice_lhs 1 2 { simp },
     dsimp, simp,
-    conv {
-      to_lhs,
-      comp_slice 2 4,
+    slice_lhs 2 4 {
       rw [←functor.map_comp, ←functor.map_comp],
       erw [nat_iso.naturality_2],
     },
@@ -261,12 +253,8 @@ section
   begin
     apply F.injectivity,
     /- obviously can finish from here... -/
-    tidy,
-    conv {
-      to_rhs,
-      comp_slice 2 3,
-      erw [is_iso.hom_inv_id]
-    },
+    simp,
+    slice_rhs 2 3 { erw [is_iso.hom_inv_id] },
     simp,
   end }.
 

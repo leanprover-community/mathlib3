@@ -389,22 +389,23 @@ refine_struct ({ .. } : semigroup α),
 
 `back` performs backwards reasoning, recursively applying lemmas against the goal.
 
-Lemmas can be specified via an optional argument, e.g. as `back [foo, bar]`. If one
-of these arguments is an attribute, all lemmas tagged with that attribute will be
-included. Additionally, `back` always includes any lemmas tagged with the attribute `@[back]`,
-and, if the current goal is a proposition, all local hypotheses.
+Lemmas can be specified via an optional argument, e.g. as `back [foo, bar]`. Every lemma
+tagged with an attribute `qux` may be included using `back using qux`.
+Additionally, `back` always includes any lemmas tagged with the attribute `@[back]`,
+and all local propositional hypotheses.
 
-(If the goal is not a proposition, `back` is constructing data and so behaves more conservatively.
-In this case, all local hypotheses can be included using `back [*]`.)
+(If the goal is a proposition, `back` is more aggressive and includes all hypotheses. This
+can be achieved in other cases using using `back [*]`.)
 
 Lemmas which were included because of the `@[back]` attribute, or local hypotheses,
 can be excluded using the notation `back [-h]`.
 
 Further, lemmas can be tagged with the `@[back!]` attribute, or appear in the list with
-a leading `!`, e.g. as `back [!foo]`. The tactic `back` will return successfully if it either
-discharges the goal, or applies at least one `!` lemma. (More precisely, `back` will apply a
-non-empty and maximal collection of the lemmas, subject to the condition that if any lemma not
-marked with `!` is applied, all resulting subgoals are later dischargeed.)
+a leading `!`, e.g. as `back [!foo]` or `back using !qux`. The tactic `back` will return
+successfully if it either discharges the goal, or applies at least one `!` lemma.
+(More precisely, `back` will apply a non-empty and maximal collection of the lemmas,
+subject to the condition that if any lemma not marked with `!` is applied, all resulting
+subgoals are later dischargeed.)
 
 Finally, the search depth can be controlled e.g. as `back 5`. The default value is 100.
 

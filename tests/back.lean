@@ -87,7 +87,7 @@ attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
 
 example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
 a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by back [mono_rules]
+by back with !mono_rules
 
 end mono
 
@@ -120,7 +120,7 @@ end
 
 example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
 begin
-  back [dvd],
+  back with dvd,
 end
 
 end dvd

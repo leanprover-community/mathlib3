@@ -147,6 +147,12 @@ meta def back_arg : parser back_arg_type :=
 meta def back_arg_list : parser (list back_arg_type) :=
 (tk "*" *> return [back_arg_type.all_hyps]) <|> list_of back_arg <|> return []
 
+local postfix `?`:9001 := optional
+local postfix *:9001 := many
+
+meta def with_back_ident_list : parser (list (name × bool)) :=
+(tk "with" *> (((λ n, (n, ff)) <$> ident_) <|> (tk "!" *> (λ n, (n, tt)) <$> ident_))*) <|> return []
+
 private meta def resolve_exception_ids (all_hyps : bool) :
   list name → list name → list name → tactic (list name × list name)
 | []        gex hex := return (gex.reverse, hex.reverse)
@@ -182,16 +188,20 @@ chain of applications which discharges the goal), and a list of "progress lemmas
 the successful application of any one of which counting as a success.
 -/
 --This is a close relative of `mk_assumption_set` in tactic/interactive.lean.
-meta def mk_assumption_set (no_dflt : bool) (hs : list back_arg_type) :
+meta def mk_assumption_set (no_dflt : bool) (hs : list back_arg_type) (use : list (name × bool)) :
   tactic (list expr × list expr) :=
 do (extra_pr_lemmas, extra_fi_lemmas, gex, hex, all_hyps) ← decode_back_arg_list hs,
    /- `extra_lemmas` is explicitly requested lemmas
       `gex` are the excluded names
       `hex` are the excluded local hypotheses
       `all_hyps` means all hypotheses were included, via `*` -/
-   extra_pr_lemmas ← build_list_expr_for_apply extra_pr_lemmas,
-   extra_fi_lemmas ← build_list_expr_for_apply extra_fi_lemmas,
+   extra_pr_lemmas ← extra_pr_lemmas.mmap i_to_expr_for_apply,
+   extra_fi_lemmas ← extra_fi_lemmas.mmap i_to_expr_for_apply,
    (tagged_pr_lemmas, tagged_fi_lemmas) ← attribute.get_instances `back >>= collect_tagged_lemmas,
+   let use_fi := (use.filter (λ p : name × bool, ¬ p.2)).map (λ p, p.1),
+   let use_pr := (use.filter (λ p : name × bool, p.2)).map (λ p, p.1),
+   with_fi_lemmas ← (list.join <$> use_fi.mmap attribute.get_instances) >>= list.mmap mk_const,
+   with_pr_lemmas ← (list.join <$> use_pr.mmap attribute.get_instances) >>= list.mmap mk_const,
 
    -- If the goal is not propositional, we do not include the local context unless specifically
    -- included via `[*]`.
@@ -205,8 +215,8 @@ do (extra_pr_lemmas, extra_fi_lemmas, gex, hex, all_hyps) ← decode_back_arg_li
      local_context >>= list.mfilter (λ e, is_proof e),
 
    let filter_excl : list expr → list expr := list.filter $ λ h, h.const_name ∉ gex,
-   return (/- progress  lemmas -/ filter_excl $ extra_pr_lemmas ++ tagged_pr_lemmas,
-           /- finishing lemmas -/ filter_excl $ extra_fi_lemmas ++ hypotheses ++ tagged_fi_lemmas)
+   return (/- progress  lemmas -/ filter_excl $ extra_pr_lemmas ++ with_pr_lemmas ++ tagged_pr_lemmas,
+           /- finishing lemmas -/ filter_excl $ extra_fi_lemmas ++ with_fi_lemmas ++ hypotheses ++ tagged_fi_lemmas)
 
 meta def replace_mvars (e : expr) : expr :=
 e.replace (λ e' _, if e'.is_meta_var then some (unchecked_cast pexpr.mk_placeholder) else none)
@@ -218,9 +228,9 @@ open interactive interactive.types expr
 /--
 `back` performs backwards reasoning, recursively applying lemmas against the goal.
 
-Lemmas can be specified via an optional argument, e.g. as `back [foo, bar]`. If one
-of these arguments is an attribute, all lemmas tagged with that attribute will be
-included. Additionally, `back` always includes any lemmas tagged with the attribute `@[back]`,
+Lemmas can be specified via an optional argument, e.g. as `back [foo, bar]`. Every lemma
+tagged with an attribute `qux` may be included using `back using qux`.
+Additionally, `back` always includes any lemmas tagged with the attribute `@[back]`,
 and all local propositional hypotheses.
 
 (If the goal is a proposition, `back` is more aggressive and includes all hypotheses. This
@@ -230,10 +240,11 @@ Lemmas which were included because of the `@[back]` attribute, or local hypothes
 can be excluded using the notation `back [-h]`.
 
 Further, lemmas can be tagged with the `@[back!]` attribute, or appear in the list with
-a leading `!`, e.g. as `back [!foo]`. The tactic `back` will return successfully if it either
-discharges the goal, or applies at least one `!` lemma. (More precisely, `back` will apply a
-non-empty and maximal collection of the lemmas, subject to the condition that if any lemma not
-marked with `!` is applied, all resulting subgoals are later dischargeed.)
+a leading `!`, e.g. as `back [!foo]` or `back using !qux`. The tactic `back` will return
+successfully if it either discharges the goal, or applies at least one `!` lemma.
+(More precisely, `back` will apply a non-empty and maximal collection of the lemmas,
+subject to the condition that if any lemma not marked with `!` is applied, all resulting
+subgoals are later dischargeed.)
 
 Finally, the search depth can be controlled e.g. as `back 5`. The default value is 100.
 
@@ -246,9 +257,9 @@ be subsequently discharged in a single step.
 -/
 meta def back
   (trace : parse $ optional (tk "?")) (no_dflt : parse only_flag)
-  (hs : parse back_arg_list) (steps : parse small_nat := 100): tactic string :=
+  (hs : parse back_arg_list) (wth : parse with_back_ident_list) (steps : parse small_nat := 100): tactic string :=
 do g :: _ ← get_goals,
-   (pr, fi) ← tactic.mk_assumption_set no_dflt hs,
+   (pr, fi) ← tactic.mk_assumption_set no_dflt hs wth,
    r ← focus1 $ (do
      tactic.back pr fi steps,
      g ← instantiate_mvars g,

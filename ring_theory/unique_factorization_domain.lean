@@ -7,7 +7,7 @@ Theory of unique factorization domains.
 
 @TODO: setup the complete lattice structure on `factor_set`.
 -/
-import ring_theory.associated algebra.gcd_domain ring_theory.prime_count
+import ring_theory.associated algebra.gcd_domain ring_theory.multiplicity
 
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated
@@ -300,11 +300,11 @@ def unique_factorization_domain.to_gcd_domain
 
 end
 
-section prime_count
+section multiplicity
 
 variables [integral_domain α] [unique_factorization_domain α]
 variables [decidable_rel ((∣) : α → α → Prop)]
-open associates prime_count nat
+open associates multiplicity nat
 
 local attribute [instance, priority 0] classical.prop_decidable
 
@@ -337,4 +337,4 @@ else
 lemma finite_of_prime {p a : α} (hp : prime p) (ha0 : a ≠ 0) : finite p a :=
 finite_of_is_not_unit hp.2.1 ha0
 
-end prime_count
+end multiplicity

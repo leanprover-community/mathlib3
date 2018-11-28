@@ -12,7 +12,7 @@ import data.padics.padic_norm algebra.archimedean analysis.normed_space
 noncomputable theory
 local attribute [instance, priority 1] classical.prop_decidable
 
-open nat prime_count padic_norm cau_seq cau_seq.completion
+open nat multiplicity padic_norm cau_seq cau_seq.completion
 
 @[reducible] def padic_seq (p : ℕ) [p.prime] := cau_seq _ (padic_norm p)
 
@@ -712,16 +712,16 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
   else
     have hnz' : {rat . num := n, denom := d, pos := hn, cop := hd} ≠ 0,
       from mt rat.zero_iff_num_zero.1 hnz,
-    have fpow (p : ℚ) (-(prime_count (p : ℤ) n).get
+    have fpow (p : ℚ) (-(multiplicity (p : ℤ) n).get
       (finite_int_iff.2 ⟨hp.ne_one, hnz⟩)) ≤ 1,
       from fpow_le_one_of_nonpos
         (show (↑p : ℚ) ≥ ↑(1: ℕ), from le_of_lt (nat.cast_lt.2 hp.gt_one))
         (neg_nonpos_of_nonneg (int.coe_nat_nonneg _)),
-    have ((fpow (p : ℚ) (-(prime_count (p : ℤ) n).get
+    have ((fpow (p : ℚ) (-(multiplicity (p : ℤ) n).get
         (finite_int_iff.2 ⟨hp.ne_one, hnz⟩)) : ℚ) : ℝ) ≤ (1 : ℚ),
       from rat.cast_le.2 this,
     by simpa [padic.cast_eq_of_rat, hnz', padic_norm, padic_val_rat_def p hnz',
-               prime_count_eq_zero_of_not_dvd (mt int.coe_nat_dvd.1 hq)]
+               multiplicity_eq_zero_of_not_dvd (mt int.coe_nat_dvd.1 hq)]
 
 lemma eq_of_norm_add_lt_right {p : ℕ} {hp : p.prime} {z1 z2 : ℚ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=

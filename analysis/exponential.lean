@@ -150,11 +150,6 @@ begin
   rw nat.cast_ne_zero, exact ne_of_gt Hnpos
 end
 
-theorem pow_right_inj 
-{x y : ℝ} {n : ℕ} (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hxyn : x ^ n = y ^ n) : x = y := sorry
-
-theorem pow_lt {x y : ℝ} {n : ℕ} (Hxy : x < y) (Hxpos : 0 < x) (Hnpos : 0 < n) : x ^ n < y ^ n := sorry
-
 theorem nth_root_unique {x y : ℝ} {n : ℕ}
 (Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hynx : y ^ n = x) : y = nth_root x n 
 := pow_right_inj Hypos (nth_root_pos (ne_of_gt Hxpos)) Hnpos (Hynx.trans (nth_root_power Hxpos Hnpos).symm)

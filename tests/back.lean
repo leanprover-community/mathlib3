@@ -12,7 +12,10 @@ end
 
 -- Verify that `back` uses `congr_arg`.
 example (f : ℕ → ℕ) (x y : ℕ) (p : x = y) : f x = f y :=
-by back
+begin
+  success_if_fail { back [-congr_arg] },
+  back
+end
 
 section primes
 

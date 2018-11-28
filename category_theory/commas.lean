@@ -119,14 +119,14 @@ variables {X Y : comma L₂ R} {f : X ⟶ Y} {l : L₁ ⟹ L₂}
 @[simp] lemma map_left_map_left  : ((map_left R l).map f).left  = f.left                := rfl
 @[simp] lemma map_left_map_right : ((map_left R l).map f).right = f.right               := rfl
 
-@[simp] lemma map_left_id : map_left R (nat_trans.id L) ≅ functor.id _ :=
+def map_left_id : map_left R (nat_trans.id L) ≅ functor.id _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
 
 variables {L₃ : A ⥤ T} {l' : L₂ ⟹ L₃}
-@[simp] lemma map_left_comp : (map_left R (l ⊟ l')) ≅ (map_left R l') ⋙ (map_left R l) :=
+def map_left_comp : (map_left R (l ⊟ l')) ≅ (map_left R l') ⋙ (map_left R l) :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -141,22 +141,22 @@ variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟹ R₂}
 @[simp] lemma map_right_map_left  : ((map_right L r).map f).left  = f.left                 := rfl
 @[simp] lemma map_right_map_right : ((map_right L r).map f).right = f.right                := rfl
 
-@[simp] lemma map_right_id : map_right L (nat_trans.id R) ≅ functor.id _ :=
+def map_right_id : map_right L (nat_trans.id R) ≅ functor.id _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
-@[simp] lemma map_right_id' : map_right L (𝟙 R) ≅ functor.id _ :=
+def map_right_id' : map_right L (𝟙 R) ≅ functor.id _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
 
 @[simp] lemma map_right_id'_hom_app_left (X : comma L R) :
-(((map_right_id' L R).hom).app X).left = 𝟙 (X.left) := sorry
+(((map_right_id' L R).hom).app X).left = 𝟙 (X.left) := rfl
 
 variables {R₃ : B ⥤ T} {r' : R₂ ⟹ R₃}
-@[simp] lemma map_right_comp : (map_right L (r ⊟ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
+def map_right_comp : (map_right L (r ⊟ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=

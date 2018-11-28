@@ -3,7 +3,7 @@
 -- Authors: Scott Morrison
 
 /- The Yoneda embedding, as a functor `yoneda : C ⥤ ((Cᵒᵖ) ⥤ (Type v₁))`,
-   along with instances that it is `full` and `faithful`.
+   along with an instance that it is `fully_faithful`.
 
    Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`. -/
 
@@ -43,7 +43,7 @@ by obviously
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app Z' h = α.app Z (f ≫ h) :=
 begin erw [functor_to_types.naturality], refl end
 
-instance yoneda_full : fully_faithful (@yoneda C _) :=
+instance yoneda_fully_faithful : fully_faithful (@yoneda C _) :=
 { preimage := λ X Y f, (f.app X) (𝟙 X),
   injectivity' := λ X Y f g p,
   begin

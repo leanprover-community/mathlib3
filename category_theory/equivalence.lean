@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 
-import category_theory.embedding
+import category_theory.fully_faithful
 import category_theory.functor_category
 import category_theory.natural_isomorphism
 import tactic.slice
@@ -79,26 +79,16 @@ calc
     /- `tidy` says -/
     intros X Y f_1, dsimp at *, simp at *, dsimp at *,
     /- `rewrite_search` says -/
-    conv_lhs { erw [←category.assoc] },
-    conv_lhs { congr, skip, erw [←category.assoc] },
-    conv_lhs { congr, skip, congr, erw [is_iso.hom_inv_id] },
-    conv_lhs { congr, skip, erw [category.id_comp] },
-    conv_lhs { erw [category.assoc] },
-    conv_lhs { congr, skip, erw [is_iso.hom_inv_id] },
-    conv_lhs { erw [category.comp_id] }
+    slice_lhs 3 4 { erw [is_iso.hom_inv_id] },
+    erw [category.id_comp, is_iso.hom_inv_id, category.comp_id],
   end,
   inv_fun_id' := nat_iso.of_components (feef_iso_id e f)
   begin
     /- `tidy` says -/
     intros X Y f_1, dsimp at *, simp at *, dsimp at *,
     /- `rewrite_search` says -/
-    conv_lhs { erw [←category.assoc] },
-    conv_lhs { congr, skip, erw [←category.assoc] },
-    conv_lhs { congr, skip, congr, erw [is_iso.hom_inv_id] },
-    conv_lhs { congr, skip, erw [category.id_comp] },
-    conv_lhs { erw [category.assoc] },
-    conv_lhs { congr, skip, erw [is_iso.hom_inv_id] },
-    conv_lhs { erw [category.comp_id] }
+    slice_lhs 3 4 { erw [is_iso.hom_inv_id] },
+    erw [category.id_comp, is_iso.hom_inv_id, category.comp_id]
   end
 }
 

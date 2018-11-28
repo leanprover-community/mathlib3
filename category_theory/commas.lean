@@ -141,7 +141,12 @@ variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟹ R₂}
 @[simp] lemma map_right_map_left  : ((map_right L r).map f).left  = f.left                 := rfl
 @[simp] lemma map_right_map_right : ((map_right L r).map f).right = f.right                := rfl
 
-@[simp] lemma map_right_id : map_left L (nat_trans.id R) ≅ functor.id _ :=
+@[simp] lemma map_right_id : map_right L (nat_trans.id R) ≅ functor.id _ :=
+{ hom :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
+  inv :=
+  { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
+@[simp] lemma map_right_id' : map_right L (𝟙 R) ≅ functor.id _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=

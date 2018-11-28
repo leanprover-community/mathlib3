@@ -7,51 +7,71 @@ import category_theory.limits.functor_category
 import category_theory.limits.types
 import data.equiv.basic
 
+import category_theory.sheafy_preamble
+
 namespace category_theory
 open category_theory.limits
 
 universes u v
-
-
--- TODO: Move this
-section
-variables {C : Type u} [𝒞 : category.{u v} C]
-include 𝒞
-
-def coext_equiv {X Y : C}
-  (e : Π {Z : C}, (Y ⟶ Z) ≃ (X ⟶ Z))
-  (n : Π {Z Z' : C} (f : Z ⟶ Z') (g : Y ⟶ Z), e.to_fun (g ≫ f) = e.to_fun g ≫ f) : X ≅ Y :=
-{ hom := e.to_fun (𝟙 _),
-  inv := e.inv_fun (𝟙 _),
-  hom_inv_id' := begin rw ←n, simpa using e.right_inv _ end,
-  inv_hom_id' := begin
-    rw ←e.apply_eq_iff_eq,
-    convert ←n _ _,
-    convert category.id_comp _ _,
-    apply e.right_inv
-  end }
-
-lemma coext_equiv_hom_comp {X Y Z : C} {e : Π {Z : C}, (Y ⟶ Z) ≃ (X ⟶ Z)} {n} {f : Y ⟶ Z} :
-  (coext_equiv @e n).hom ≫ f = e.to_fun f :=
-by convert (n _ _).symm; simp
-
-lemma coext_equiv_hom {X Y : C} {e : Π {Z : C}, (Y ⟶ Z) ≃ (X ⟶ Z)} {n} :
-  (coext_equiv @e n).hom = e.to_fun (𝟙 _) := rfl
-
-end
-
 
 -- TODO: How much of this should be generalized to a possibly large category?
 variables (C : Type v) [𝒞 : small_category.{v} C]
 include 𝒞
 
 def presheaf := Cᵒᵖ ⥤ Type v
-
-instance presheaf.category : category (presheaf C) := by dunfold presheaf; apply_instance
-instance presheaf.has_colimits : has_colimits.{v+1 v} (presheaf C) :=
-by dunfold presheaf; apply_instance
-
 variables {C}
+
+namespace presheaf
+
+section simp
+variable (F : presheaf C)
+
+@[simp] lemma map_id {c : C} : F.map (𝟙 c) = 𝟙 (F.obj c) := F.map_id c
+
+@[simp] lemma map_id' {c : C} :
+F.map (@category.id C 𝒞 c) = 𝟙 (F.obj c) := functor.map_id F c
+
+@[simp] lemma map_comp {c₁ c₂ c₃ : C} {f : c₁ ⟶ c₂} {g : c₂ ⟶ c₃} :
+F.map (g ≫ f) = (F.map g) ≫ (F.map f) := F.map_comp g f
+
+@[simp] lemma map_comp' {c₁ c₂ c₃ : C} {f : c₁ ⟶ c₂} {g : c₂ ⟶ c₃} :
+F.map (@category.comp C 𝒞 _ _ _ f g) = (F.map g) ≫ (F.map f) := functor.map_comp F g f
+
+end simp
+
+instance : category.{(v+1) v} (presheaf C) := by dunfold presheaf; apply_instance
+instance : has_limits.{(v+1) v} (presheaf C) := limits.functor_category_has_limits
+instance : has_pullbacks.{(v+1) v} (presheaf C) := limits.functor_category_has_pullbacks
+instance : has_colimits.{(v+1) v} (presheaf C) := limits.functor_category_has_colimits
+instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_coproducts
+instance : has_coequalizers.{(v+1) v} (presheaf C) := limits.functor_category_has_coequalizers
+
+section extension
+variables {D : Type u} [𝒟 : category.{u v} D] (F : C ⥤ D)
+include 𝒟
+
+def restricted_yoneda : D ⥤ presheaf C :=
+{ obj := λ d, F.op ⋙ yoneda.obj d,
+  map := λ d₁ d₂ g, whisker_left _ $ yoneda.map g }
+
+variables [has_colimits.{u v} D]
+
+def yoneda_extension : presheaf C ⥤ D :=
+-- @adjunction.left_adjoint_of_equiv _ _ _ _
+-- (λ X, colimit (comma.fst.{v v v v} yoneda (functor.of_obj X) ⋙ F))
+-- (restricted_yoneda F)
+-- (λ X d, _) _
+{ obj := λ X, colimit (comma.fst.{v v v v} yoneda (functor.of_obj X) ⋙ F),
+  map := λ X Y f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of_obj Y) ⋙ F) (comma.map_right yoneda $ functor.of_map f),
+  map_id' := λ X,
+  begin
+    erw functor.of_map_id,
+    erw colimit.pre_map
+      (comma.fst.{v v v v} yoneda (functor.of_obj X) ⋙ F)
+      (comma.map_right_id'.{v v v} yoneda (functor.of_obj X)).hom,
+  end }
+
+end extension
 
 section category_of_elements
 

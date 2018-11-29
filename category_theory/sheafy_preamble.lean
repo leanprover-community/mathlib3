@@ -286,10 +286,9 @@ end nat_trans
 namespace limits
 open category_theory
 
-variables {J : Type v} [small_category J]
+variables {J : Type v} [small_category J] [has_colimits_of_shape.{u v} J C]
 
-lemma colimit.pre_map {K : Type v} [small_category K]
-  [has_colimits_of_shape.{u v} J C] [has_colimits_of_shape.{u v} K C]
+lemma colimit.pre_map {K : Type v} [small_category K] [has_colimits_of_shape.{u v} K C]
   (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟹ E₂) :
   colimit.pre F E₁ = colim.map (whisker_right α F) ≫ colimit.pre F E₂ :=
 begin
@@ -298,10 +297,10 @@ begin
   simp,
 end
 
-lemma colimit.pre_id [has_colimits_of_shape.{u v} J C] (F : J ⥤ C) :
+lemma colimit.pre_id (F : J ⥤ C) :
 colimit.pre F (functor.id _) = colim.map (functor.left_unitor F).hom := by tidy
 
-lemma colimit.pre_comp [has_colimits_of_shape.{u v} J C]
+lemma colimit.pre_comp
 {K : Type v} [small_category K] [has_colimits_of_shape.{u v} K C]
 {L : Type v} [small_category L] [has_colimits_of_shape.{u v} L C]
 (F : J ⥤ C) (E : K ⥤ J) (D : L ⥤ K) :
@@ -316,6 +315,8 @@ begin
   erw is_colimit.fac,
   refl
 end
+
+@[simp] lemma colim_obj (F : J ⥤ C) : colim.obj F = colimit F := rfl
 
 end limits
 

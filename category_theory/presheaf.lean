@@ -57,10 +57,6 @@ def restricted_yoneda (F : C ⥤ D) : D ⥤ presheaf C :=
 variables [has_colimits.{u v} D]
 
 def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
--- @adjunction.left_adjoint_of_equiv _ _ _ _
--- (λ X, colimit (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F))
--- (restricted_yoneda F)
--- (λ X d, _) _
 { obj := λ c, colimit (comma.fst.{v v v v} yoneda (functor.of.obj c) ⋙ F),
   map := λ c₁ c₂ f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of.obj c₂) ⋙ F) (comma.map_right yoneda $ functor.of.map f),
   map_id' := λ c,

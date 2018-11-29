@@ -174,21 +174,13 @@ section extension
 variables {D : Type u} [𝒟 : category.{u v} D] (F : C ⥤ D)
 include 𝒟
 
-def restricted_yoneda : D ⥤ Cᵒᵖ ⥤ Type v :=
-{ obj := λ d,
-  { obj := λ c, F.obj c ⟶ d,
-    map := λ c c' f h, F.map f ≫ h,
-    map_id' := λ c, by ext h; erw [F.map_id, category.id_comp]; refl,
-    map_comp' := λ c c' c'' f f', by ext h; erw [F.map_comp, category.assoc]; refl },
-  map := λ d d' g, { app := λ c h, h ≫ g } }
-
 variables [has_colimits.{u v} D]
 
-def yoneda_extension_obj : presheaf C → D :=
-λ X, colimit ((category_of_elements.forget X).comp F)
+-- def yoneda_extension_obj : presheaf C → D :=
+-- λ X, colimit ((category_of_elements.forget X).comp F)
 
 def yoneda_extension_e (X Y) :
-  (yoneda_extension_obj F X ⟶ Y) ≃ (X ⟶ (restricted_yoneda F).obj Y) :=
+  ((yoneda_extension F).obj X ⟶ Y) ≃ (X ⟶ (restricted_yoneda F).obj Y) :=
 calc
   (colimit _ ⟶ Y)
     ≃ ((category_of_elements.forget X).comp F ⟹ (functor.const _).obj Y)

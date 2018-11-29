@@ -46,7 +46,7 @@ instance : has_colimits.{(v+1) v} (presheaf C) := limits.functor_category_has_co
 instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_coproducts
 instance : has_coequalizers.{(v+1) v} (presheaf C) := limits.functor_category_has_coequalizers
 
-section extension
+section restriction_extension
 variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟
 
@@ -57,29 +57,29 @@ def restricted_yoneda (F : C ⥤ D) : D ⥤ presheaf C :=
 variables [has_colimits.{u v} D]
 
 def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
-{ obj := λ c, colimit (comma.fst.{v v v v} yoneda (functor.of.obj c) ⋙ F),
-  map := λ c₁ c₂ f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of.obj c₂) ⋙ F) (comma.map_right yoneda $ functor.of.map f),
-  map_id' := λ c,
+{ obj := λ X, colimit (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F),
+  map := λ X₁ X₂ f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of.obj X₂) ⋙ F) (comma.map_right yoneda $ functor.of.map f),
+  map_id' := λ X,
   begin
     -- tidy,
     erw functor.of.map_id, -- why doesn't this simplify automatically?
     erw colimit.pre_map
-      (comma.fst.{v v v v} yoneda (functor.of.obj c) ⋙ F)
-      (comma.map_right_id'.{v v v} yoneda (functor.of.obj c)).hom,
+      (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F)
+      (comma.map_right_id'.{v v v} yoneda (functor.of.obj X)).hom,
     erw colimit.pre_id,
     erw ← colim.map_comp,
     erw ← colim.map_id,
     congr,
     tidy
   end,
-  map_comp' := λ c₁ c₂ c₃ f g,
+  map_comp' := λ X₁ X₂ X₃ f g,
   begin
     erw functor.of.map_comp,
     erw colimit.pre_map
-      (comma.fst.{v v v v} yoneda (functor.of.obj c₃) ⋙ F)
+      (comma.fst.{v v v v} yoneda (functor.of.obj X₃) ⋙ F)
       (comma.map_right_comp.{v v v} yoneda (functor.of.map f) (functor.of.map g)).hom,
     erw colimit.pre_pre
-      (comma.fst.{v v v v} yoneda (functor.of.obj c₃) ⋙ F)
+      (comma.fst.{v v v v} yoneda (functor.of.obj X₃) ⋙ F)
       (comma.map_right yoneda (functor.of.map g))
       (comma.map_right yoneda (functor.of.map f)),
     erw limits.colimit.pre_comp _ _ _,
@@ -93,7 +93,52 @@ def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
     exact limits.has_colimits_of_shape_of_has_colimits
   end }
 
-end extension
+section adjunction
+
+@[simp] lemma restricted_yoneda_obj (F : C ⥤ D) (d : D) : (restricted_yoneda F).obj d = F.op ⋙ yoneda.obj d := rfl
+@[simp] lemma restricted_yoneda_map (F : C ⥤ D) {d₁ d₂ : D} (g : d₁ ⟶ d₂) : (restricted_yoneda F).map g = (whisker_left _ $ yoneda.map g) := rfl
+@[simp] lemma yoneda_extension_obj (F : C ⥤ D) (X : presheaf C) : (yoneda_extension F).obj X = colimit (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F) := rfl
+@[simp] lemma yoneda_extension_map (F : C ⥤ D) {X₁ X₂ : presheaf C} (f : X₁ ⟶ X₂) :
+(yoneda_extension F).map f = colimit.pre (comma.fst.{v v v v} yoneda (functor.of.obj X₂) ⋙ F) (comma.map_right yoneda $ functor.of.map f) := rfl
+
+def adj (F : C ⥤ D) : adjunction (yoneda_extension F) (restricted_yoneda F) :=
+{ unit :=
+  begin
+    constructor,
+    tidy {trace_result := tt},
+    { refine _ ≫ colimit.ι _ _,
+      { constructor,
+        exact (nat_iso.app (yoneda_lemma _) (X_1, X) ≪≫ ulift_trivial _).inv a },
+      exact 𝟙 _ },
+    -- recover, swap,
+    tidy {trace_result := tt},
+    erw ← colimit.w (comma.fst yoneda (functor.of.obj X) ⋙ F) _,
+    swap, { exact {left := X_1, hom := ((yoneda_lemma C).inv).app (X_1, X) {down := x}} },
+    swap, { exact {left := f} },
+    dsimp,
+    tidy {trace_result := tt},
+  end,
+  counit :=
+  begin
+    constructor,
+    tidy {trace_result := tt},
+    apply (colimit.hom_equiv' _).inv,
+    tidy {trace_result := tt},
+    exact (j.hom.app j.left) (𝟙 j.left),
+    have := f.w,
+    dsimp at this,
+    rw category.comp_id at this,
+    rw ← this,
+    dsimp,
+    tidy {trace_result := tt},
+    sorry
+  end,
+  left_triangle := _,
+  right_triangle := _ }
+
+end adjunction
+
+end restriction_extension
 
 section category_of_elements
 

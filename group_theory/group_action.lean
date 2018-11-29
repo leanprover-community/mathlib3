@@ -52,7 +52,7 @@ lemma mem_fixed_points' {f : α → β → β} [is_monoid_action f] {a : β} : a
 
 end is_monoid_action
 
-class is_group_action [group α] (f : α → β → β) extends is_monoid_action f
+class is_group_action [group α] (f : α → β → β) extends is_monoid_action f : Prop
 
 namespace is_group_action
 variables [group α] (f : α → β → β) [is_group_action f]

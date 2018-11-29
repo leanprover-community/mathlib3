@@ -103,36 +103,49 @@ section adjunction
 
 def adj (F : C ⥤ D) : adjunction (yoneda_extension F) (restricted_yoneda F) :=
 { unit :=
-  begin
-    constructor,
-    tidy {trace_result := tt},
-    { refine _ ≫ colimit.ι _ _,
-      { constructor,
-        exact (nat_iso.app (yoneda_lemma _) (X_1, X) ≪≫ ulift_trivial _).inv a },
-      exact 𝟙 _ },
-    -- recover, swap,
-    tidy {trace_result := tt},
-    erw ← colimit.w (comma.fst yoneda (functor.of.obj X) ⋙ F) _,
-    swap, { exact {left := X_1, hom := ((yoneda_lemma C).inv).app (X_1, X) {down := x}} },
-    swap, { exact {left := f} },
-    dsimp,
-    tidy {trace_result := tt},
-  end,
+  { app := λ X,
+    { app := λ c x, (𝟙 _) ≫ colimit.ι (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F)
+        { comma . left := c, hom := (nat_iso.app (yoneda_lemma _) (c, X) ≪≫ ulift_trivial _).inv x },
+      naturality' := λ c₁ c₂ f,
+      begin
+        tidy {trace_result := tt},
+        erw ← colimit.w (comma.fst yoneda (functor.of.obj X) ⋙ F) _,
+        swap, { exact {left := c₁, hom := ((yoneda_lemma C).inv).app (c₁, X) {down := x}} },
+        swap, { exact {left := f} },
+        tidy {trace_result := tt},
+      end },
+    naturality' := λ X₁ X₂ f,
+    begin
+      ext1 c, ext1 x,
+      tidy {trace_result := tt},
+    end },
   counit :=
-  begin
-    constructor,
-    tidy {trace_result := tt},
-    apply (colimit.hom_equiv' _).inv,
-    tidy {trace_result := tt},
-    exact (j.hom.app j.left) (𝟙 j.left),
-    have := f.w,
-    dsimp at this,
-    rw category.comp_id at this,
-    rw ← this,
-    dsimp,
-    tidy {trace_result := tt},
-    sorry
-  end,
+  { app := λ X,
+    begin
+      apply (colimit.hom_equiv _).inv,
+      tidy {trace_result := tt},
+      { exact (X_1.hom.app X_1.left) (𝟙 X_1.left) },
+      { have := f.w,
+        dsimp at this,
+        rw category.comp_id at this,
+        rw ← this,
+        dsimp,
+        tidy {trace_result := tt},
+        sorry }
+    end,
+    naturality' := λ d₁ d₂ g,
+    begin
+      dsimp at *,
+      ext1 j₁, dsimp at *,
+      erw ← category.assoc,
+      tidy {trace_result := tt},
+      congr' 1,
+      ext1 j₂, dsimp at *,
+      congr' 1,
+      ext1 j₃, dsimp at *,
+      congr' 1,
+      tidy {trace_result := tt},
+    end },
   left_triangle := _,
   right_triangle := _ }
 

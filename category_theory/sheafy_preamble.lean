@@ -318,6 +318,22 @@ end
 
 @[simp] lemma colim_obj (F : J ⥤ C) : colim.obj F = colimit F := rfl
 
+def colimit.coyoneda {F : J ⥤ C} [has_colimit F] : coyoneda.obj (colimit F) ≅ F.cocones :=
+{ hom :=
+  { app := λ P f, cocones_of_cocone ((colimit.cocone F).extend f),
+    naturality' :=
+    begin
+      tidy {trace_result := tt},
+      sorry
+    end },
+  inv :=
+  { app := λ P c, colimit.desc F (cocone_of_cocones c),
+    naturality' :=
+    begin
+      tidy {trace_result := tt},
+      sorry
+    end } }
+
 end limits
 
 end category_theory

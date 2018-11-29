@@ -4,3 +4,4 @@ version = "0.1"
 lean_version = "3.4.1"
 
 [dependencies]
+lean-tidy = {git = "https://github.com/semorrison/lean-tidy", rev = "3a69d6241207f0c0758468dce666858027c54909"}

@@ -90,11 +90,11 @@ namespace cone
 { X := X,
   π := c.extensions.app X f }
 
-def postcompose {G : J ⥤ C} (c : cone F) (α : F ⟹ G) : cone G :=
+def postcompose {G : J ⥤ C} (α : F ⟹ G) (c : cone F) : cone G :=
 { X := c.X,
   π := c.π ⊟ α }
 
-def whisker (c : cone F) {K : Type v} [small_category K] (E : K ⥤ J) : cone (E ⋙ F) :=
+def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E ⋙ F) :=
 { X := c.X,
   π := whisker_left E c.π }
 
@@ -112,11 +112,11 @@ namespace cocone
 { X := X,
   ι := c.extensions.app X f }
 
-def precompose {G : J ⥤ C} (c : cocone F) (α : G ⟹ F) : cocone G :=
+def precompose {G : J ⥤ C} (α : G ⟹ F) (c : cocone F) : cocone G :=
 { X := c.X,
   ι := α ⊟ c.ι }
 
-def whisker (c : cocone F) {K : Type v} [small_category K] (E : K ⥤ J) : cocone (E ⋙ F) :=
+def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocone (E ⋙ F) :=
 { X := c.X,
   ι := whisker_left E c.ι }
 

@@ -404,16 +404,16 @@ meta def mk_iff_mp_app (iffmp : name) : expr → (nat → expr) → tactic expr
 | `(%%a ↔ %%b) f := pure $ @expr.const tt iffmp [] a b (f 0)
 | _ f := fail "Target theorem must have the form `Π x y z, a ↔ b`"
 
-meta def iff_mp (e : expr) :=
+meta def iff_mp (e : expr) : tactic expr :=
 do t ← infer_type e,
    mk_iff_mp_app `iff.mp t (λ_, e)
 
-meta def iff_mpr (e : expr) :=
+meta def iff_mpr (e : expr) : tactic expr :=
 do t ← infer_type e,
    mk_iff_mp_app `iff.mpr t (λ_, e)
 
 private meta def apply_verbose (e : expr) : tactic (list (name × expr) × (list string)) :=
-do r ← tactic.apply e,
+do r ← tactic.apply e {new_goals := new_goals.non_dep_only},
    pp_e ← pp e,
    pure (r, ["apply " ++ to_string pp_e])
 

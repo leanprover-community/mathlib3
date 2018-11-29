@@ -28,7 +28,7 @@ theorem infinitude_of_primes (N : ℕ) : ∃ p ≥ N, prime p :=
 begin
   let M := fact N + 1,
   let p := min_fac M,
-  have pp : prime p, { back [ne_of_gt] },
+  have pp : prime p, { back [ne_of_gt], },
   -- Adding a `?`, i.e. as `back? [ne_of_gt]`, reports the expression back built:
   -- exact min_fac_prime (ne_of_gt (succ_lt_succ (fact_pos N)))
   existsi p,
@@ -65,6 +65,20 @@ begin
     back,
   },
   back,
+end
+
+set_option profiler true
+
+theorem infinitude_of_primes'' (N : ℕ) : ∃ p ≥ N, prime p :=
+begin
+  let p := min_fac (fact N + 1),
+  have pp : prime p, back?,
+  use p,
+  -- Goal is `∃ (H : p ≥ N), prime pp`
+  split; try { assumption },
+  -- Goal is `p ≥ N`.
+  by_contradiction h, simp at h,
+  back?,
 end
 
 end primes
@@ -120,7 +134,7 @@ end
 
 example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
 begin
-  back with dvd,
+  back? with dvd,
 end
 
 end dvd

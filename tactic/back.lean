@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison, Keeley Hoek
 
-import tactic.basic tactic.ext
+import tactic.basic
 
 namespace tactic
 
@@ -20,12 +20,23 @@ resulting goals cannot all be discharged.",
 /-- Stub for implementing faster lemma filtering using Pi binders in the goal -/
 private meta def is_lemma_applicable (lem : expr) : tactic bool := return true
 
+meta structure back_lemma :=
+(lem : expr)
+(finishing : bool)
+-- We carry around the list of goals after the last successful application,
+-- as a mechanism to prevent looping.
+(previous_goals : string)
+(count : ℕ)
+
 meta structure back_state :=
-(remaining : ℕ := 100)
-(lemmas : list (expr × bool)) -- later we might consider updating this as we go (removing or reordering)
-(stashed : list expr := {}) -- Stores goals which we're going to return to the user.
+(steps : ℕ := 0)
+(limit : option ℕ)
+(with_mvars_steps : ℕ := 0)
+(with_mvars_limit : ℕ := 2)
+(lemmas : list back_lemma) -- later we may update this as we go (removing or reordering)
+(stashed : list expr := {})   -- Stores goals which we're going to return to the user.
 (committed : list expr := {}) -- Stores goals which we must complete.
-(in_progress : list expr) -- Stores goals which we're still working on.
+(in_progress : list expr)     -- Stores goals which we're still working on.
 
 meta def count_arrows : expr → ℕ
 | (expr.pi n bi d b) :=
@@ -34,59 +45,106 @@ meta def count_arrows : expr → ℕ
 | `(%%a <-> %%b) := 1 + min (count_arrows a) (count_arrows b)
 | _ := 0
 
-meta def sort_by_arrows (L : list (expr × bool)) : tactic (list (expr × bool)) :=
-do M ← L.mmap (λ e, do c ← count_arrows <$> infer_type e.1, return (c, e)),
-   return ((list.qsort (λ (p q : ℕ × (expr × bool)), p.1 ≤ q.1) M).map (λ p, p.2))
+meta def sort_by_arrows (L : list back_lemma) : tactic (list back_lemma) :=
+do M ← L.mmap (λ e, do c ← count_arrows <$> infer_type e.lem, return (c, e)),
+   return ((list.qsort (λ (p q : ℕ × back_lemma), p.1 ≤ q.1) M).map (λ p, p.2))
 
-meta def back_state.init (progress finishing : list expr) (steps : ℕ): tactic back_state :=
+meta def back_state.init (progress finishing : list expr) (limit : option ℕ): tactic back_state :=
 do g :: _ ← get_goals,
-   lemmas ← sort_by_arrows $ (finishing.map (λ e, (e, tt))) ++ (progress.map (λ e, (e, ff))),
-  --  M ← lemmas.mmap (λ e, do c ← count_arrows <$> infer_type e.1, return (c, e)),
-  --  trace M,
+   lemmas ← sort_by_arrows $ (finishing.map (λ e, ⟨e, tt, "", 0⟩)) ++
+                             (progress.map  (λ e, ⟨e, ff, "", 0⟩)),
    return
-   { remaining := steps,
+   { limit := limit,
      lemmas := lemmas,
      in_progress := [g] }
 
 meta def filter_mvars (L : list expr) : tactic (list expr) :=
-do instantiated ← (L.mmap (λ e, instantiate_mvars e)),
-   return (instantiated.filter (λ e, e.is_meta_var))
+(list.filter (λ e, e.is_meta_var)) <$> (L.mmap (λ e, instantiate_mvars e))
 
-/-- Discard any goals which have already been solved, and reduce the counter. -/
-meta def back_state.clean (s : back_state) : tactic back_state :=
+meta def patch_nth {α : Type} (f : α → α) : ℕ → list α → list α
+| _ []           := []
+| 0 (h :: t)     := f h :: t
+| (n+1) (h :: t) := h :: patch_nth n t
+
+meta def opatch_nth {α : Type} (f : α → option α) : ℕ → list α → list α
+| _ []           := []
+| 0 (h :: t)     := match f h with
+                    | (some e) := e :: t
+                    | none     := t
+                    end
+| (n+1) (h :: t) := h :: opatch_nth n t
+
+/--
+* Discard any goals which have already been solved,
+* increment the `step` counter,
+* and remove applied iffs.
+-/
+meta def back_state.clean (s : back_state) (index : ℕ) (last_lemma : expr): tactic back_state :=
 do stashed ← filter_mvars s.stashed,
    committed ← filter_mvars s.committed,
    in_progress ← filter_mvars s.in_progress,
+   -- We don't apply `iff` lemmas more than once.
+   lemmas ← (iff_mp last_lemma >> pure (s.lemmas.remove_nth index))
+            <|> pure (opatch_nth (λ b, if b.count ≥ 4 then none else some { count := b.count + 1, .. b }) index s.lemmas),
+   has_mvars ← (expr.has_meta_var <$> target) <|> pure ff,
    return
-   { remaining := s.remaining - 1,
+   { steps := s.steps + 1,
+     with_mvars_steps :=
+       if has_mvars then s.with_mvars_steps + 1 else 0,
      stashed := stashed,
      committed := committed,
      in_progress := in_progress,
+     lemmas := lemmas,
      .. s}
 
-meta def back_state.collect
- (s : back_state) (committed : bool) (last_lemma : expr) : tactic back_state :=
-do gs ← get_goals,
-   if committed then
-     return { committed := gs ++ s.committed, .. s }
-   else
-     return { in_progress := gs ++ s.in_progress, .. s }
+meta def pad_trace (n : ℕ) {α : Type} [has_to_tactic_format α] (a : α) : tactic unit :=
+do let s := (list.repeat ' ' n).as_string,
+   p ← pp a,
+   trace (s ++ sformat!"{p}")
 
-meta def back_state.apply (s : back_state) (e : expr) (committed : bool) : tactic back_state :=
+meta def back_state.apply (s : back_state) (index : ℕ) (e : expr) (committed : bool) : tactic back_state :=
 do has_mvars ← expr.has_meta_var <$> target,
    apply_thorough e,
-   done <|> guard ¬has_mvars, -- If there were metavars, we insist on solving in one step.
-  --  trace e,
-   s' ← s.clean,
-   (done >> return s')
-   <|> (do s'.collect committed e)
+   goal_types ← get_goals >>= λ gs, gs.mmap infer_type,
+   let nmvars := (goal_types.map (λ t : expr, t.list_meta_vars.length)).foldl (+) 0,
+  --  nmvars ←
+
+  --  (list.length <$> expr.list_meta_vars <$> target) <|> pure 0,
+   guard (nmvars ≤ 2),
+   pad_trace s.steps e,
+   get_goals >>= λ gs, gs.mmap infer_type >>= pad_trace s.steps,
+  --  trace nmvars,
+  --  failed
+  --  done <|> guard ¬has_mvars, -- If there were metavars, we insist on solving in one step.
+   let p_gs := ((s.lemmas.nth index).map (λ b : back_lemma, b.previous_goals)).get_or_else "",
+   s' ← s.clean index e,
+   (done >> return s') <|> do
+   gs ← get_goals,
+   gs_types ← gs.mmap infer_type,
+   pp_gs ← pp gs_types,
+   if p_gs ≠ "" then
+     do
+        trace pp_gs,
+        trace p_gs,
+        if sformat!"{pp_gs}" = p_gs then
+        do
+          trace "loop!",
+          fail "`back` encountered a loop"
+        else
+          skip
+   else
+     skip,
+   let lemmas := patch_nth (λ b : back_lemma, { previous_goals := sformat!"{pp_gs}", .. b }) index s'.lemmas,
+  --  let lemmas := s'.lemmas,
+   if committed then
+     return { lemmas := lemmas, committed := gs ++ s.committed, .. s' }
+   else
+     return { lemmas := lemmas, in_progress := gs ++ s.in_progress, .. s' }
 
 meta def back_state.run : Π (s : back_state), tactic back_state
 | s :=
   do
-  -- s.in_progress.mmap infer_type >>= trace,
-  -- s.committed.mmap infer_type >>= trace,
-  guard (s.remaining > 0),
+  guard (s.steps ≤ s.limit.get_or_else 20 ∧ s.with_mvars_steps ≤ s.with_mvars_limit),
   match s.committed with
   | [] :=
     -- Let's see if we can do anything with `in_progress` goals
@@ -94,13 +152,13 @@ meta def back_state.run : Π (s : back_state), tactic back_state
     | [] := return s -- Great, all done!
     | (p :: ps) :=
     do set_goals [p],
-      (s.lemmas.any_of $ λ e, { in_progress := ps, .. s }.apply e.1 e.2 >>= back_state.run)
+      (s.lemmas.enum.any_of $ λ e, { in_progress := ps, .. s }.apply e.1 e.2.1 e.2.2 >>= back_state.run)
       <|> { in_progress := ps, stashed := p :: s.stashed, .. s }.run
     end
   | (c :: cs) :=
     -- We must discharge `c`.
     do set_goals [c],
-      s.lemmas.any_of $ λ e, { committed := cs, .. s }.apply e.1 tt >>= back_state.run
+      s.lemmas.enum.any_of $ λ e, { committed := cs, .. s }.apply e.1 e.2.1 tt >>= back_state.run
   end
 
 /-- Takes two sets of lemmas, 'progress' lemmas and 'finishing' lemmas.
@@ -110,11 +168,11 @@ meta def back_state.run : Π (s : back_state), tactic back_state
 
     `back` succeeds if at least one progress lemma was applied, or all goals are discharged.
     -/
-meta def back (progress finishing : list expr) (steps : ℕ): tactic unit :=
-do i ← back_state.init progress finishing steps,
+meta def back (progress finishing : list expr) (limit : option ℕ) : tactic unit :=
+do i ← back_state.init progress finishing limit,
    f ← i.run,
-   set_goals (f.stashed ++ f.in_progress),
-   guard (f.remaining < steps)
+   set_goals (f.stashed ++ f.in_progress), -- TODO in_progress should be empty!
+   guard (f.steps > 0) -- Make sure some progress was made.
 
 private meta def lookup_tagged_lemma (n : name) : tactic (bool × expr) :=
 do is_elim ← back_attribute.get_param n,
@@ -147,7 +205,6 @@ meta def back_arg : parser back_arg_type :=
 meta def back_arg_list : parser (list back_arg_type) :=
 (tk "*" *> return [back_arg_type.all_hyps]) <|> list_of back_arg <|> return []
 
-local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
 meta def with_back_ident_list : parser (list (name × bool)) :=
@@ -198,6 +255,7 @@ do (extra_pr_lemmas, extra_fi_lemmas, gex, hex, all_hyps) ← decode_back_arg_li
    extra_pr_lemmas ← extra_pr_lemmas.mmap i_to_expr_for_apply,
    extra_fi_lemmas ← extra_fi_lemmas.mmap i_to_expr_for_apply,
    (tagged_pr_lemmas, tagged_fi_lemmas) ← attribute.get_instances `back >>= collect_tagged_lemmas,
+
    let use_fi := (use.filter (λ p : name × bool, ¬ p.2)).map (λ p, p.1),
    let use_pr := (use.filter (λ p : name × bool, p.2)).map (λ p, p.1),
    with_fi_lemmas ← (list.join <$> use_fi.mmap attribute.get_instances) >>= list.mmap mk_const,
@@ -257,11 +315,11 @@ be subsequently discharged in a single step.
 -/
 meta def back
   (trace : parse $ optional (tk "?")) (no_dflt : parse only_flag)
-  (hs : parse back_arg_list) (wth : parse with_back_ident_list) (steps : parse small_nat := 100): tactic string :=
+  (hs : parse back_arg_list) (wth : parse with_back_ident_list) (limit : parse (optional small_nat)) : tactic string :=
 do g :: _ ← get_goals,
    (pr, fi) ← tactic.mk_assumption_set no_dflt hs wth,
    r ← focus1 $ (do
-     tactic.back pr fi steps,
+     tactic.back pr fi limit,
      g ← instantiate_mvars g,
      r ← pp (replace_mvars g),
      pure (if g.has_meta_var then sformat!"refine {r}" else sformat!"exact {r}")),

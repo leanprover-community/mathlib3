@@ -137,6 +137,20 @@ def deop {X Y : Cᵒᵖ} (f : X ⟶ Y) : @category.hom _ 𝒞 Y X := f
 
 end category.hom
 
+namespace functor
+variables {C : Type u} [𝒞 : category.{u v} C]
+include 𝒞
+
+def of : C ⥤ (punit ⥤ C) := const punit
+
+namespace of
+@[simp] lemma obj_obj (X : C) : (of.obj X).obj = λ _, X := rfl
+@[simp] lemma obj_map (X : C) : (of.obj X).map = λ _ _ _, 𝟙 X := rfl
+@[simp] lemma map_app {X Y : C} (f : X ⟶ Y) : (of.map f).app = λ _, f := rfl
+end of
+
+end functor
+
 namespace comma
 variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A]
 variables {B : Type u₂} [ℬ : category.{u₂ v₂} B]
@@ -161,9 +175,9 @@ def iso_of_is_iso {X Y : C} {f : X ⟶ Y} (h : is_iso f) : X ≅ Y :=
 
 section over_under -- move somewhere else
 set_option pp.universes true
-def over (X : C) := comma (functor.id C) (functor.of_obj.{u v v} X)
+def over (X : C) := comma (functor.id C) (functor.of.obj.{u v v} X)
 
-def under (X : C) := comma (functor.of_obj X) (functor.id C)
+def under (X : C) := comma (functor.of.obj X) (functor.id C)
 
 end over_under
 
@@ -238,11 +252,6 @@ end over
 
 namespace functor
 
-def of_map {X Y : C} (f : X ⟶ Y) : of_obj X ⟹ of_obj Y :=
-{ app := λ _, f }
-
-@[simp] lemma of_map_id {X : C} : of_map (𝟙 X) = 𝟙 (of_obj X) := rfl
-
 section full_faithful
 variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒟
@@ -291,6 +300,22 @@ end
 
 lemma colimit.pre_id [has_colimits_of_shape.{u v} J C] (F : J ⥤ C) :
 colimit.pre F (functor.id _) = colim.map (functor.left_unitor F).hom := by tidy
+
+lemma colimit.pre_comp [has_colimits_of_shape.{u v} J C]
+{K : Type v} [small_category K] [has_colimits_of_shape.{u v} K C]
+{L : Type v} [small_category L] [has_colimits_of_shape.{u v} L C]
+(F : J ⥤ C) (E : K ⥤ J) (D : L ⥤ K) :
+colimit.pre F (D ⋙ E) = colim.map (functor.associator D E F).hom
+≫ colimit.pre _ D ≫ colimit.pre F E :=
+begin
+  tidy {trace_result := tt},
+  erw ← category.assoc,
+  erw colim_ι_map (functor.associator D E F).hom j,
+  dsimp [functor.associator],
+  simp,
+  erw is_colimit.fac,
+  refl
+end
 
 end limits
 

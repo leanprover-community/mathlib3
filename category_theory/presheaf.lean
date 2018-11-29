@@ -58,23 +58,43 @@ variables [has_colimits.{u v} D]
 
 def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
 -- @adjunction.left_adjoint_of_equiv _ _ _ _
--- (λ X, colimit (comma.fst.{v v v v} yoneda (functor.of_obj X) ⋙ F))
+-- (λ X, colimit (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F))
 -- (restricted_yoneda F)
 -- (λ X d, _) _
-{ obj := λ c, colimit (comma.fst.{v v v v} yoneda (functor.of_obj c) ⋙ F),
-  map := λ c₁ c₂ f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of_obj c₂) ⋙ F) (comma.map_right yoneda $ functor.of_map f),
+{ obj := λ c, colimit (comma.fst.{v v v v} yoneda (functor.of.obj c) ⋙ F),
+  map := λ c₁ c₂ f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of.obj c₂) ⋙ F) (comma.map_right yoneda $ functor.of.map f),
   map_id' := λ c,
   begin
     -- tidy,
-    erw functor.of_map_id, -- why doesn't this simplify automatically?
+    erw functor.of.map_id, -- why doesn't this simplify automatically?
     erw colimit.pre_map
-      (comma.fst.{v v v v} yoneda (functor.of_obj c) ⋙ F)
-      (comma.map_right_id'.{v v v} yoneda (functor.of_obj c)).hom,
+      (comma.fst.{v v v v} yoneda (functor.of.obj c) ⋙ F)
+      (comma.map_right_id'.{v v v} yoneda (functor.of.obj c)).hom,
     erw colimit.pre_id,
     erw ← colim.map_comp,
     erw ← colim.map_id,
     congr,
     tidy
+  end,
+  map_comp' := λ c₁ c₂ c₃ f g,
+  begin
+    erw functor.of.map_comp,
+    erw colimit.pre_map
+      (comma.fst.{v v v v} yoneda (functor.of.obj c₃) ⋙ F)
+      (comma.map_right_comp.{v v v} yoneda (functor.of.map f) (functor.of.map g)).hom,
+    erw colimit.pre_pre
+      (comma.fst.{v v v v} yoneda (functor.of.obj c₃) ⋙ F)
+      (comma.map_right yoneda (functor.of.map g))
+      (comma.map_right yoneda (functor.of.map f)),
+    erw limits.colimit.pre_comp _ _ _,
+    erw ← category.assoc,
+    erw ← colim.map_comp,
+    congr,
+    dsimp [whisker_right, whiskering_right, functor.associator],
+    ext1,
+    simp,
+    erw category.comp_id,
+    exact limits.has_colimits_of_shape_of_has_colimits
   end }
 
 end extension

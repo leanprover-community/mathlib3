@@ -155,12 +155,16 @@ def map_right_id' : map_right L (𝟙 R) ≅ functor.id _ :=
 @[simp] lemma map_right_id'_hom_app_left (X : comma L R) :
 (((map_right_id' L R).hom).app X).left = 𝟙 (X.left) := rfl
 
-variables {R₃ : B ⥤ T} {r' : R₂ ⟹ R₃}
+variables {R₃ : B ⥤ T} (r) (r' : R₂ ⟹ R₃)
 def map_right_comp : (map_right L (r ⊟ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
+
+@[simp] lemma map_right_comp_hom_app_left (X : comma L R₁) :
+(((map_right_comp L r r').hom).app X).left = 𝟙 (X.left) := rfl
+
 end
 
 end simp

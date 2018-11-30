@@ -41,9 +41,6 @@ private meta def is_lemma_applicable (lem : expr) : tactic bool := return true
 meta structure back_lemma :=
 (lem : expr)
 (finishing : bool)
--- We carry around the list of goals after the last successful application,
--- as a mechanism to prevent looping.
-(previous_goals : string)
 (count : ℕ)
 
 meta structure back_state :=
@@ -69,8 +66,8 @@ do M ← L.mmap (λ e, do c ← count_arrows <$> infer_type e.lem, return (c, e)
 
 meta def back_state.init (progress finishing : list expr) (limit : option ℕ): tactic back_state :=
 do g :: _ ← get_goals,
-   lemmas ← sort_by_arrows $ (finishing.map (λ e, ⟨e, tt, "", 0⟩)) ++
-                             (progress.map  (λ e, ⟨e, ff, "", 0⟩)),
+   lemmas ← sort_by_arrows $ (finishing.map (λ e, ⟨e, tt, 0⟩)) ++
+                             (progress.map  (λ e, ⟨e, ff, 0⟩)),
    return
    { limit := limit,
      lemmas := lemmas,
@@ -134,30 +131,13 @@ do has_mvars ← expr.has_meta_var <$> target,
   --  trace nmvars,
   --  failed
   --  done <|> guard ¬has_mvars, -- If there were metavars, we insist on solving in one step.
-   let p_gs := ((s.lemmas.nth index).map (λ b : back_lemma, b.previous_goals)).get_or_else "",
    s' ← s.clean index e,
    (done >> return s') <|> do
    gs ← get_goals,
-   gs_types ← gs.mmap infer_type,
-   pp_gs ← pp gs_types,
-   if p_gs ≠ "" then
-     do
-        trace pp_gs,
-        trace p_gs,
-        if sformat!"{pp_gs}" = p_gs then
-        do
-          trace "loop!",
-          fail "`back` encountered a loop"
-        else
-          skip
-   else
-     skip,
-   let lemmas := patch_nth (λ b : back_lemma, { previous_goals := sformat!"{pp_gs}", .. b }) index s'.lemmas,
-  --  let lemmas := s'.lemmas,
    if committed then
-     return { lemmas := lemmas, committed := gs ++ s.committed, .. s' }
+     return { committed := gs ++ s.committed, .. s' }
    else
-     return { lemmas := lemmas, in_progress := gs ++ s.in_progress, .. s' }
+     return { in_progress := gs ++ s.in_progress, .. s' }
 
 meta def back_state.run : Π (s : back_state), tactic back_state
 | s :=

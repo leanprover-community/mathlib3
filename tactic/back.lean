@@ -136,7 +136,7 @@ meta def back_state.run : Π (s : back_state), tactic back_state
 meta def back (progress finishing : list expr) (limit : option ℕ) : tactic unit :=
 do i ← back_state.init progress finishing limit,
    f ← i.run,
-   set_goals (f.stashed ++ f.in_progress), -- TODO in_progress should be empty!
+   set_goals (f.stashed),
    guard (f.steps > 0) -- Make sure some progress was made.
 
 private meta def lookup_tagged_lemma (n : name) : tactic (bool × expr) :=

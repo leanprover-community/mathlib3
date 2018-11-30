@@ -62,7 +62,8 @@ end lattice
 open lattice
 open category_theory
 
-namespace lattice.complete_lattice
+namespace lattice.complete_lattice -- where to move this?
+-- Needs all sorts of limits to be merged into mathlib first.
 
 variables {X : Type u} [complete_lattice X]
 variables {J : Type u} [small_category J]
@@ -111,11 +112,13 @@ end lattice.complete_lattice
 
 namespace category_theory
 
+section -- where should this go?
 def ulift_trivial (V : Type u₁) : ulift.{u₁} V ≅ V := by tidy
 
 @[simp] lemma ulift_trivial.hom (V : Type u₁) : (ulift_trivial V).hom = λ v, ulift.cases_on v id := rfl
 
 @[simp] lemma ulift_trivial.inv (V : Type u₁) : (ulift_trivial V).inv = ulift.up := rfl
+end
 
 def equiv_of_iso {X Y : Type u} (i : X ≅ Y) : X ≃ Y :=
 { to_fun    := i.hom,
@@ -123,7 +126,7 @@ def equiv_of_iso {X Y : Type u} (i : X ≅ Y) : X ≃ Y :=
   left_inv  := λ x, congr i.hom_inv_id rfl,
   right_inv := λ x, congr i.inv_hom_id rfl }
 
-namespace category.hom
+namespace category.hom -- move this to opposites.lean ???
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 
@@ -137,7 +140,7 @@ def deop {X Y : Cᵒᵖ} (f : X ⟶ Y) : @category.hom _ 𝒞 Y X := f
 
 end category.hom
 
-namespace functor
+namespace functor -- move this to const.lean one that is merged
 variables {C : Type u} [𝒞 : category.{u v} C]
 include 𝒞
 
@@ -173,7 +176,7 @@ def iso_of_is_iso {X Y : C} {f : X ⟶ Y} (h : is_iso f) : X ≅ Y :=
 { hom := f,
   ..h}
 
-section over_under -- move somewhere else
+section over_under -- move to commas.lean? Once that is merged?
 set_option pp.universes true
 def over (X : C) := comma (functor.id C) (functor.of.obj.{u v v} X)
 

@@ -318,21 +318,25 @@ end
 
 @[simp] lemma colim_obj (F : J ⥤ C) : colim.obj F = colimit F := rfl
 
-def colimit.coyoneda {F : J ⥤ C} [has_colimit F] : coyoneda.obj (colimit F) ≅ F.cocones :=
+def colimit.coyoneda (F : J ⥤ C) [has_colimit F] : coyoneda.obj (colimit F) ≅ F.cocones :=
 { hom :=
   { app := λ P f, cocones_of_cocone ((colimit.cocone F).extend f),
-    naturality' :=
-    begin
-      tidy {trace_result := tt},
-      sorry
-    end },
+    naturality' := by dsimp [functor.cocones]; tidy },
   inv :=
   { app := λ P c, colimit.desc F (cocone_of_cocones c),
     naturality' :=
     begin
+      dsimp [functor.cocones, cocone_of_cocones],
       tidy {trace_result := tt},
-      sorry
+      erw ← category.assoc,
+      tidy {trace_result := tt},
     end } }
+
+@[simp] lemma colimit.coyoneda_hom_app {F : J ⥤ C} {P} {f} :
+(colimit.coyoneda F).hom.app P f = cocones_of_cocone ((colimit.cocone F).extend f) := rfl
+
+@[simp] lemma colimit.coyoneda_inv_app {F : J ⥤ C} {P} {c} :
+(colimit.coyoneda F).inv.app P c = colimit.desc F (cocone_of_cocones c) := rfl
 
 end limits
 

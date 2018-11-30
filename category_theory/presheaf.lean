@@ -122,7 +122,7 @@ def adj (F : C ⥤ D) : adjunction (yoneda_extension F) (restricted_yoneda F) :=
   counit :=
   { app := λ X,
     begin
-      apply (colimit.hom_equiv _).inv,
+      apply (colimit.coyoneda _).inv.app _,
       tidy {trace_result := tt},
       { exact (X_1.hom.app X_1.left) (𝟙 X_1.left) },
       { have := f.w,
@@ -131,20 +131,13 @@ def adj (F : C ⥤ D) : adjunction (yoneda_extension F) (restricted_yoneda F) :=
         rw ← this,
         dsimp,
         tidy {trace_result := tt},
-        sorry }
+        sorry },
+      { apply_instance }
     end,
     naturality' := λ d₁ d₂ g,
     begin
-      dsimp at *,
-      ext1 j₁, dsimp at *,
-      erw ← category.assoc,
       tidy {trace_result := tt},
       congr' 1,
-      ext1 j₂, dsimp at *,
-      congr' 1,
-      ext1 j₃, dsimp at *,
-      congr' 1,
-      tidy {trace_result := tt},
     end },
   left_triangle := _,
   right_triangle := _ }

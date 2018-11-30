@@ -33,7 +33,7 @@ sum.inl <$ tk "-" <|> pure sum.inr
 meta def ext_param :=
 opt_minus <*> ( name.mk_numeral 0 name.anonymous <$ brackets "(" ")" (tk "→" <|> tk "->") <|>
                 none <$  tk "*" <|>
-                some <$> ident )
+                some <$> (ident >>= λ n, resolve_constant n) )
 
 meta def saturate_fun : name → tactic expr
 | (name.mk_numeral 0 name.anonymous) :=
@@ -152,28 +152,27 @@ end ulift
 
 namespace tactic
 
-meta def try_intros : ext_patt → tactic ext_patt
-| [] := try intros $> []
-| (x::xs) :=
+meta def try_intros : option ext_patt → tactic (option ext_patt)
+| none := try intros $> none
+| (some []) := do x ← try_core intro1, guard (x.is_none), pure (some [])
+| (some (x::xs)) :=
 do tgt ← target >>= whnf,
    if tgt.is_pi
-     then rintro [x] >> try_intros xs
-     else pure (x :: xs)
+     then rintro [x] >> try_intros (some xs)
+     else pure $ some (x :: xs)
 
-meta def ext1 (xs : ext_patt) (cfg : apply_cfg := {}): tactic ext_patt :=
+meta def ext1 (xs : option ext_patt) (cfg : apply_cfg := {}): tactic (option ext_patt) :=
 do subject ← target >>= get_ext_subject,
    m ← extensional_attribute.get_cache,
    do { rule ← m.find subject,
         applyc rule cfg } <|>
-     do { ls ← attribute.get_instances `extensionality,
-          ls.any_of (λ n, applyc n cfg) } <|>
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
 
-meta def ext : ext_patt → option ℕ → tactic unit
+meta def ext : option ext_patt → option ℕ → tactic unit
 | _  (some 0) := skip
 | xs n        := focus1 $ do
-  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
+  ys ← ext1 xs, all_goals (try (ext ys (nat.pred <$> n)))
 
 
 local postfix `?`:9001 := optional
@@ -216,8 +215,8 @@ ext1 xs $> ()
   A maximum depth can be provided with `ext x y z : 3`.
   -/
 meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → tactic unit
- | [] (some n) := iterate_range 1 n (ext1 [] $> ())
- | [] none     := repeat1 (ext1 [] $> ())
+ | [] (some n) := iterate_range 1 n (ext1 none $> ())
+ | [] none     := repeat1 (ext1 none $> ())
  | xs n        := tactic.ext xs n
 
 end tactic

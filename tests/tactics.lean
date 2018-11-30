@@ -504,6 +504,29 @@ begin
   refl,
 end
 
+
+example (s : dependent_fields) : s = s :=
+begin
+  tactic.ext1 [] {tactic.apply_cfg . new_goals := tactic.new_goals.all},
+  guard_target s.a = s.a,
+  refl,
+  refl,
+end
+
+example {α₀ α₁ β γ : Type*} (f g : (α₀ → β) × (α₁ → β)) : true :=
+begin
+  suffices : f = g, by trivial,
+  ext i,
+end
+
+example {α₀ α₁ β γ : Type*} (f g : (γ → α₀ → β) × (γ → α₁ → β)) : true :=
+begin
+  suffices : f = g, by trivial,
+  ext i,
+  guard_target f.fst i = g.fst i, admit,
+  guard_target f.snd i = g.snd i, admit,
+end
+
 end ext
 
 section apply_rules

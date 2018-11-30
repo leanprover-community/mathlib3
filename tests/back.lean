@@ -132,9 +132,9 @@ begin
   back [nat.dvd_add_iff_left],
 end
 
-example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
-begin
-  back? with dvd,
-end
+-- example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
+-- begin
+--   back? with dvd,
+-- end
 
 end dvd

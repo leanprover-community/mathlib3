@@ -46,8 +46,6 @@ meta structure back_lemma :=
 meta structure back_state :=
 (steps : ℕ := 0)
 (limit : option ℕ)
-(with_mvars_steps : ℕ := 0)
-(with_mvars_limit : ℕ := 2)
 (lemmas : list back_lemma) -- later we may update this as we go (removing or reordering)
 (stashed : list expr := {})   -- Stores goals which we're going to return to the user.
 (committed : list expr := {}) -- Stores goals which we must complete.
@@ -101,11 +99,8 @@ do stashed ← filter_mvars s.stashed,
    -- We don't apply `iff` lemmas more than once.
    lemmas ← (iff_mp last_lemma >> pure (s.lemmas.remove_nth index))
             <|> pure (opatch_nth (λ b, if b.count ≥ 4 then none else some { count := b.count + 1, .. b }) index s.lemmas),
-   has_mvars ← (expr.has_meta_var <$> target) <|> pure ff,
    return
    { steps := s.steps + 1,
-     with_mvars_steps :=
-       if has_mvars then s.with_mvars_steps + 1 else 0,
      stashed := stashed,
      committed := committed,
      in_progress := in_progress,
@@ -122,14 +117,10 @@ do has_mvars ← expr.has_meta_var <$> target,
    apply_thorough e,
    goal_types ← get_goals >>= λ gs, gs.mmap infer_type,
    let nmvars := (goal_types.map (λ t : expr, t.list_meta_vars.length)).foldl (+) 0,
-  --  nmvars ←
-
-  --  (list.length <$> expr.list_meta_vars <$> target) <|> pure 0,
    guard (nmvars ≤ 2),
    pad_trace s.steps e,
    get_goals >>= λ gs, gs.mmap infer_type >>= pad_trace s.steps,
   --  trace nmvars,
-  --  failed
   --  done <|> guard ¬has_mvars, -- If there were metavars, we insist on solving in one step.
    s' ← s.clean index e,
    (done >> return s') <|> do
@@ -142,7 +133,7 @@ do has_mvars ← expr.has_meta_var <$> target,
 meta def back_state.run : Π (s : back_state), tactic back_state
 | s :=
   do
-  guard (s.steps ≤ s.limit.get_or_else 20 ∧ s.with_mvars_steps ≤ s.with_mvars_limit),
+  guard (s.steps ≤ s.limit.get_or_else 20),
   match s.committed with
   | [] :=
     -- Let's see if we can do anything with `in_progress` goals

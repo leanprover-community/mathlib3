@@ -41,7 +41,6 @@ private meta def is_lemma_applicable (lem : expr) : tactic bool := return true
 meta structure back_lemma :=
 (lem : expr)
 (finishing : bool)
-(count : ℕ)
 
 meta structure back_state :=
 (steps : ℕ := 0)
@@ -64,8 +63,8 @@ do M ← L.mmap (λ e, do c ← count_arrows <$> infer_type e.lem, return (c, e)
 
 meta def back_state.init (progress finishing : list expr) (limit : option ℕ): tactic back_state :=
 do g :: _ ← get_goals,
-   lemmas ← sort_by_arrows $ (finishing.map (λ e, ⟨e, tt, 0⟩)) ++
-                             (progress.map  (λ e, ⟨e, ff, 0⟩)),
+   lemmas ← sort_by_arrows $ (finishing.map (λ e, ⟨e, tt⟩)) ++
+                             (progress.map  (λ e, ⟨e, ff⟩)),
    return
    { limit := limit,
      lemmas := lemmas,
@@ -98,7 +97,7 @@ do stashed ← filter_mvars s.stashed,
    in_progress ← filter_mvars s.in_progress,
    -- We don't apply `iff` lemmas more than once.
    lemmas ← (iff_mp last_lemma >> pure (s.lemmas.remove_nth index))
-            <|> pure (opatch_nth (λ b, if b.count ≥ 4 then none else some { count := b.count + 1, .. b }) index s.lemmas),
+            <|> pure s.lemmas,
    return
    { steps := s.steps + 1,
      stashed := stashed,

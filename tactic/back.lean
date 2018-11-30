@@ -20,24 +20,6 @@ resulting goals cannot all be discharged.",
 /-- Stub for implementing faster lemma filtering using Pi binders in the goal -/
 private meta def is_lemma_applicable (lem : expr) : tactic bool := return true
 
--- At this point we have a whole pile of experimental methods for limiting the search tree.
--- 1) limiting the total search depth
--- 2) limiting the number of consecutive steps that involve mvars in the types of the goals
--- 3) tracking the list of goals after the most recent application of each lemma, and checking
---    they do not repeat
--- 4) limiting the number of applications of each lemma
--- 5) deleting an iff lemma after it is applied
-
--- Unfortunately, it's still not as good as I'd like.
-
--- It seems the only option (besides starting to do forward reasoning too!)
--- is to do something cleverer than a depth first search of applications.
-
--- We can weigh a node in the search tree by:
--- * Depth from the root
--- * Number of side branches (and on higher nodes)
--- * Number of attempted lemma applications (and on higher nodes)
-
 meta structure back_lemma :=
 (lem : expr)
 (finishing : bool)
@@ -112,15 +94,10 @@ do let s := (list.repeat ' ' n).as_string,
    trace (s ++ sformat!"{p}")
 
 meta def back_state.apply (s : back_state) (index : ℕ) (e : expr) (committed : bool) : tactic back_state :=
-do has_mvars ← expr.has_meta_var <$> target,
-   apply_thorough e,
+do apply_thorough e,
    goal_types ← get_goals >>= λ gs, gs.mmap infer_type,
-   let nmvars := (goal_types.map (λ t : expr, t.list_meta_vars.length)).foldl (+) 0,
-   guard (nmvars ≤ 2),
    pad_trace s.steps e,
    get_goals >>= λ gs, gs.mmap infer_type >>= pad_trace s.steps,
-  --  trace nmvars,
-  --  done <|> guard ¬has_mvars, -- If there were metavars, we insist on solving in one step.
    s' ← s.clean index e,
    (done >> return s') <|> do
    gs ← get_goals,

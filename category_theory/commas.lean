@@ -5,7 +5,7 @@
 import category_theory.types
 import category_theory.isomorphism
 import category_theory.whiskering
-import category_theory.limits.opposites
+import category_theory.opposites
 
 namespace category_theory
 

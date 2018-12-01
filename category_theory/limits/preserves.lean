@@ -61,6 +61,23 @@ class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 @[class] def preserves_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 Π {J : Type v} {𝒥 : small_category J}, by exactI preserves_colimits_of_shape J F
 
+instance preserves_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_limit K F) :=
+by split; rintros ⟨a⟩ ⟨b⟩; congr
+instance preserves_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_colimit K F) :=
+by split; rintros ⟨a⟩ ⟨b⟩; congr
+
+instance preserves_limits_of_shape_subsingleton (J : Type v) [small_category J] (F : C ⥤ D) :
+  subsingleton (preserves_limits_of_shape J F) :=
+by split; intros; funext; apply subsingleton.elim
+instance preserves_colimits_of_shape_subsingleton (J : Type v) [small_category J] (F : C ⥤ D) :
+  subsingleton (preserves_colimits_of_shape J F) :=
+by split; intros; funext; apply subsingleton.elim
+
+instance preserves_limits_subsingleton (F : C ⥤ D) : subsingleton (preserves_limits F) :=
+by split; intros; funext; resetI; apply subsingleton.elim
+instance preserves_colimits_subsingleton (F : C ⥤ D) : subsingleton (preserves_colimits F) :=
+by split; intros; funext; resetI; apply subsingleton.elim
+
 instance preserves_limit_of_preserves_limits_of_shape (F : C ⥤ D)
   [H : preserves_limits_of_shape J F] : preserves_limit K F :=
 H
@@ -136,6 +153,23 @@ class reflects_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_limits_of_shape J F
 @[class] def reflects_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_colimits_of_shape J F
+
+instance reflects_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (reflects_limit K F) :=
+by split; rintros ⟨a⟩ ⟨b⟩; congr
+instance reflects_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (reflects_colimit K F) :=
+by split; rintros ⟨a⟩ ⟨b⟩; congr
+
+instance reflects_limits_of_shape_subsingleton (J : Type v) [small_category J] (F : C ⥤ D) :
+  subsingleton (reflects_limits_of_shape J F) :=
+by split; intros; funext; apply subsingleton.elim
+instance reflects_colimits_of_shape_subsingleton (J : Type v) [small_category J] (F : C ⥤ D) :
+  subsingleton (reflects_colimits_of_shape J F) :=
+by split; intros; funext; apply subsingleton.elim
+
+instance reflects_limits_subsingleton (F : C ⥤ D) : subsingleton (reflects_limits F) :=
+by split; intros; funext; resetI; apply subsingleton.elim
+instance reflects_colimits_subsingleton (F : C ⥤ D) : subsingleton (reflects_colimits F) :=
+by split; intros; funext; resetI; apply subsingleton.elim
 
 instance reflects_limit_of_reflects_limits_of_shape (K : J ⥤ C) (F : C ⥤ D)
   [H : reflects_limits_of_shape J F] : reflects_limit K F :=

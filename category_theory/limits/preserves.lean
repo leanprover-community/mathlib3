@@ -46,19 +46,19 @@ with the above definition of "preserves limits".
 
 -/
 
-class preserves_limit (K : J ⥤ C) (F : C ⥤ D) :=
+class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
-class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) :=
+class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
-@[class] def preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
+@[class] def preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 Π {K : J ⥤ C}, preserves_limit K F
-@[class] def preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
+@[class] def preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 Π {K : J ⥤ C}, preserves_colimit K F
 
-@[class] def preserves_limits (F : C ⥤ D) :=
+@[class] def preserves_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 Π {J : Type v} {𝒥 : small_category J}, by exactI preserves_limits_of_shape J F
-@[class] def preserves_colimits (F : C ⥤ D) :=
+@[class] def preserves_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 Π {J : Type v} {𝒥 : small_category J}, by exactI preserves_colimits_of_shape J F
 
 instance preserves_limit_of_preserves_limits_of_shape (F : C ⥤ D)
@@ -122,19 +122,19 @@ Note that again we do not assume a priori that D actually has any
 limits.
 -/
 
-class reflects_limit (K : J ⥤ C) (F : C ⥤ D) :=
+class reflects_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects : Π {c : cone K}, is_limit (F.map_cone c) → is_limit c)
-class reflects_colimit (K : J ⥤ C) (F : C ⥤ D) :=
+class reflects_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects : Π {c : cocone K}, is_colimit (F.map_cocone c) → is_colimit c)
 
-@[class] def reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
+@[class] def reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 Π {K : J ⥤ C}, reflects_limit K F
-@[class] def reflects_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
+@[class] def reflects_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 Π {K : J ⥤ C}, reflects_colimit K F
 
-@[class] def reflects_limits (F : C ⥤ D) :=
+@[class] def reflects_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_limits_of_shape J F
-@[class] def reflects_colimits (F : C ⥤ D) :=
+@[class] def reflects_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_colimits_of_shape J F
 
 instance reflects_limit_of_reflects_limits_of_shape (K : J ⥤ C) (F : C ⥤ D)

@@ -395,7 +395,7 @@ Additionally, `back` always includes any lemmas tagged with the attribute `@[bac
 and all local propositional hypotheses.
 
 (If the goal is a proposition, `back` is more aggressive and includes all hypotheses. This
-can be achieved in other cases using using `back [*]`.)
+can be achieved in other cases using `back [*]`.)
 
 Lemmas which were included because of the `@[back]` attribute, or local hypotheses,
 can be excluded using the notation `back [-h]`.

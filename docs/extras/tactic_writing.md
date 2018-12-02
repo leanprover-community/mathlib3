@@ -154,6 +154,14 @@ the left and right hand sides of the current goal. It also uses the
 `to_string` function which very convenient in combination with `trace` in order to debug tactics, and works on any type which is an instance of `has_to_string`.
 ```lean
 meta def trace_goal_is_eq : tactic unit :=
+(do  `(%%l = %%r) ← tactic.target,
+     tactic.trace $ "Goal is equality between " ++ (to_string l) ++ " and " ++ (to_string r) )
+   <|> tactic.trace "Goal is not an equality"
+```
+The parenthesis in the above code don't look very nice, one could use
+instead curly brackets which allow to delimit a `do` block, as in:
+```lean
+meta def trace_goal_is_eq : tactic unit :=
 do { `(%%l = %%r) ← tactic.target,
      tactic.trace $ "Goal is equality between " ++ (to_string l) ++ " and " ++ (to_string r) }
    <|> tactic.trace "Goal is not an equality"
@@ -182,33 +190,26 @@ meta def find_matching_type (e : expr) : list expr → tactic expr
 ```
 Make sure you really understand the control flow in the above code using
 the previous section. The basic pattern is classical recursive find in a
-list. Notive the expression `e` is left of colon, hence it will be passed
-unchanged to the recursive call `find_matching_type HS`. The choice of
+list. Notice the expression `e` is left of colon, hence it will be passed
+unchanged to the recursive call `find_matching_type Hs`. The choice of
 name `H` stands for `hypothesis`, while `Hs`, following Haskell's naming
 conventions, stands for several hypotheses. The imperative analogue of
 what happens for non-empty lists would read something like the following
 pseudo-python
 ```python
-t = infer_type H
+t = infer_type(H)
 return H if unify(e, t) else find_matching_type(e, HS)
 ```
 We can now use this function for our interactive tactic. We first need
 to grab the local context using `local_context`, which return a list of
 expressions that we can pass to our `find_matching_type`. If that
-function succeeds, to the builtin tactic `tactic.exact`. Here we need to
-use the fully qualified name because of possible confusion with theinteractive version of `exact` (which takes different parameters, so it's not
-an exact copy of the non-interactive one). This is good opportunity to point
-out that this tutorial uses fully qualified names everywhere for clarity, but
-of course the real world workflow is to open the `tactic` namespace.
-```lean
-meta def my_assumption : tactic unit :=
-(do ctx ← tactic.local_context,
-     t   ← tactic.target,
-     find_matching_type t ctx >>= tactic.exact)
-<|> tactic.fail "my_assumption tactic failed"
-```
-The parenthesis in the above code don't look very nice, one could use
-instead curly brackets which allow to delimit a `do` block, as in:
+function succeeds, its output is passed to the builtin tactic
+`tactic.exact`. Here we need to use the fully qualified name because of
+possible confusion with theinteractive version of `exact` (which takes
+different parameters, so it's not an exact copy of the non-interactive
+one). This is good opportunity to point out that the beginning of this
+tutorial uses fully qualified names everywhere for clarity, but of
+course the real world workflow is to open the `tactic` namespace.
 ```lean
 meta def my_assumption : tactic unit :=
 do { ctx ← tactic.local_context,
@@ -267,11 +268,11 @@ many uses of backticks in tactic writing). Actually we already did that when
 discussing the `add_interactive` command at the very beginning. Accessing an
 item of the local context by its name is done by `tactic.get_local`. The next
 new piece we need is `tactic.interactive.«have»` which will create our new
-context item. Its weird nameworks around the fact that `have` is a keyword,
-hence not a valid name. It takes two optionnal arguments that we ignore for
+context item. Its weird name works around the fact that `have` is a keyword,
+hence not a valid name. It takes two optional arguments that we ignore for
 now, and a pre-expression which is a proof of our new item. Such a
 pre-expression is constructed using the double-backtick-parenthesis notation:
-`````(...)```. Inside such a construction, previously assigned expressions
+`` ``(...) ``. Inside such a construction, previously assigned expressions
 are accessed using the anti-quotation prefix `%%`. This syntax is very close to the pattern matching syntax we saw above (but different).
 
 ```lean
@@ -290,8 +291,8 @@ begin
   exact this
 end
 ```
-A last remark about the above tactic: the names ``h₁` and ``h₂` are resolved when the tactic is executed. In order to trigger name resolution when
-the tactic is parsed, one should use double-backtick, as in ```h₁``. Of course
+A last remark about the above tactic: the names `` `h₁ `` and `` `h₂ `` are resolved when the tactic is executed. In order to trigger name resolution when
+the tactic is parsed, one should use double-backtick, as in `` ``h₁ ``. Of course
 in the above context, that would trigger an error since nothing name `h₁` is
 in sight at tactic parsing time. But it can be useful in other cases.
 
@@ -337,7 +338,7 @@ meta def tactic.interactive.add_eq' (h1 : parse ident) (h2 : parse ident)
 do e1 ← get_local h1, 
    e2 ← get_local h2,
    «have» h none ``(_root_.congr (congr_arg has_add.add %%e1) %%e2)
-set_option trace.simplify.rewrite true
+
 example (m a b c j k : ℤ) (Hj : a = b) (Hk : j = k) :
   a + j = b + k :=
 begin
@@ -348,7 +349,7 @@ end
 
 ### Parsing locations and expressions
 
-Our next tactic my multiply from the left an equality by a given expression
+Our next tactic multiply from the left an equality by a given expression
 (or fail if this operation wouldn't make sense). We want to mechanize the following proof.
 ```lean
 example (a b c : ℤ) (hyp : a = b) : c*a = c*b :=
@@ -412,20 +413,20 @@ parse location → tactic unit
 
 This section is a direct compilation of messages from Mario on Zulip.
 
-* ```my.name`` is the way to refer to a name. It is essentially a form of string quoting; no checks are done besides parsing dots into namespaced names
-* `````some``` does name resolution at parse time, so it expands to  ```option.some`` and will error if the given name doesn't exist
-* ```(my expr)`` constructs an expression at parse time, resolving what it can in the current (of the tactic) namespace
-* `````(my pexpr)``` constructs a pre-expression at parse time, resolving in the current (of the tactic) namespace
-* ```````(my pexpr)```` constructs a pexpr, but defers resolution to run time (of the tactic), meaning that any references will be resolved in the namespace of the begin end block of the user, rather than the tactic itself
-* `%%`: This is called anti-quotation, and is supported in all the expr and pexpr quoting expressions ```(expr)``, `````(pexpr)```, ```````(pexpr)````, as well as ```[tacs]``. Wherever an expression is expected inside one of these quoting constructs, you can use `%%e` instead, where `e` has type `expr` in the outer context of the tactic, and it will be spliced into the constructed expr/pexpr/etc. For example, if `a b : expr` then  ```(%%a + %%b)`` is of type `expr`
-* ```[tac...]`` is exactly the same as `begin tac... end` in the sense that it parses tac... using the interactive mode parser, but instead of evaluating the tactic to produce a term, it just wraps up the list of tactics as a single tactic of type tactic unit. This is useful for writing "macros" or light-weight tactic writing
+* `` `my.name `` is the way to refer to a name. It is essentially a form of string quoting; no checks are done besides parsing dots into namespaced names
+* `` ``some `` does name resolution at parse time, so it expands to  `` `option.some `` and will error if the given name doesn't exist
+* `` `(my expr) `` constructs an expression at parse time, resolving what it can in the current (of the tactic) namespace
+* `` ``(my pexpr) `` constructs a pre-expression at parse time, resolving in the current (of the tactic) namespace
+* `` ```(my pexpr) `` constructs a pexpr, but defers resolution to run time (of the tactic), meaning that any references will be resolved in the namespace of the begin end block of the user, rather than the tactic itself
+* `%%`: This is called anti-quotation, and is supported in all the expr and pexpr quoting expressions `` `(expr) ``, `` ``(pexpr) ``, `` ```(pexpr) ``, as well as `` `[tacs] ``. Wherever an expression is expected inside one of these quoting constructs, you can use `%%e` instead, where `e` has type `expr` in the outer context of the tactic, and it will be spliced into the constructed expr/pexpr/etc. For example, if `a b : expr` then  `` `(%%a + %%b) `` is of type `expr`
+* `` `[tac...] `` is exactly the same as `begin tac... end` in the sense that it parses tac... using the interactive mode parser, but instead of evaluating the tactic to produce a term, it just wraps up the list of tactics as a single tactic of type tactic unit. This is useful for writing "macros" or light-weight tactic writing
 
 
 Also worth mentioning are expr pattern matches, which have the same syntax
 like `(%%a + %%b). These can be used in the pattern position of a match or on
 the left side of a <- in do notation, and will destruct an expression and
 bind the antiquoted variables
-For example, if e is an expression then do `(%%a = %%b) <- return e, ... will check that e is an equality, and bind the LHS and RHS to a and b (of type expr), and if it is not an equality the tactic will fail
+For example, if e is an expression then do `` `(%%a = %%b) <- return e, ... `` will check that e is an equality, and bind the LHS and RHS to a and b (of type expr), and if it is not an equality the tactic will fail
 
 ## Monadic symbols cheat sheet
 

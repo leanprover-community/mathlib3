@@ -47,19 +47,12 @@ def ulift_functor : (Type u) ⥤ (Type (max u v)) :=
   map := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down) }
 
 @[simp] lemma ulift_functor.map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
-  ulift_functor.map f x = ulift.up (f x.down)
-:= rfl
+  ulift_functor.map f x = ulift.up (f x.down) := rfl
 
-instance ulift_functor_faithful : faithful ulift_functor :=
-begin
-  tidy,
-  funext,
-  have px := congr_fun p {down := x},
-  dsimp at px,
-  exact congr_arg ulift.down px,
-end
-
-instance ulift_functor_full : full ulift_functor := by tidy
+instance ulift_functor_faithful : fully_faithful ulift_functor :=
+{ preimage := λ X Y f x, (f (ulift.up x)).down,
+  injectivity' := λ X Y f g p, funext $ λ x,
+    congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
 section forget
 variables (C : Type u → Type v) {hom : ∀α β, C α → C β → (α → β) → Prop} [i : concrete_category hom]

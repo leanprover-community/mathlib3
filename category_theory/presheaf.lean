@@ -37,10 +37,10 @@ end simp
 
 instance : category.{(v+1) v} (presheaf C) := by dunfold presheaf; apply_instance
 instance : has_limits.{(v+1) v} (presheaf C) := limits.functor_category_has_limits
-instance : has_pullbacks.{(v+1) v} (presheaf C) := limits.functor_category_has_pullbacks
+-- instance : has_pullbacks.{(v+1) v} (presheaf C) := limits.functor_category_has_pullbacks
 instance : has_colimits.{(v+1) v} (presheaf C) := limits.functor_category_has_colimits
-instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_coproducts
-instance : has_coequalizers.{(v+1) v} (presheaf C) := limits.functor_category_has_coequalizers
+-- instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_coproducts
+-- instance : has_coequalizers.{(v+1) v} (presheaf C) := limits.functor_category_has_coequalizers
 
 section restriction_extension
 variables {D : Type u} [𝒟 : category.{u v} D]
@@ -95,5 +95,8 @@ def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
 @[simp] lemma yoneda_extension_map (F : C ⥤ D) {X₁ X₂ : presheaf C} (f : X₁ ⟶ X₂) :
 (yoneda_extension F).map f = colimit.pre (comma.fst.{v v v v} yoneda (functor.of.obj X₂) ⋙ F) (comma.map_right yoneda $ functor.of.map f) := rfl
 
+end restriction_extension
+
+end presheaf
 
 end category_theory

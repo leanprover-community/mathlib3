@@ -4,6 +4,7 @@
 
 import category_theory.functor_category
 import category_theory.isomorphism
+import category_theory.punit
 
 universes u₁ v₁ u₂ v₂ u₃ v₃
 
@@ -46,5 +47,14 @@ include 𝒟
   (const_comp J X F).inv.app j = 𝟙 _ := rfl
 
 end
+
+omit 𝒥
+def of : C ⥤ (punit ⥤ C) := const punit
+
+namespace of
+@[simp] lemma obj_obj (X : C) : (of.obj X).obj = λ _, X := rfl
+@[simp] lemma obj_map (X : C) : (of.obj X).map = λ _ _ _, 𝟙 X := rfl
+@[simp] lemma map_app {X Y : C} (f : X ⟶ Y) : (of.map f).app = λ _, f := rfl
+end of
 
 end category_theory.functor

@@ -32,7 +32,7 @@ interactively by users inside tactic blocks, those must be in the `tactic.intera
 tactics, but weird things will happen in general when ignoring this rule). A
 shortcut which is sometimes convenient is: one can copy definitions with name
 `my_tac1`, `my_tac2`, `my_tac3`, into the `tactic.interactive` namespace using 
-``run_cmd add_interactive [`my_tac1,`my_tac2, `my_tac3]``.
+`` run_cmd add_interactive [`my_tac1,`my_tac2, `my_tac3] ``.
 All those functions are allowed to bypass every safety check used by
 Lean, because any incorrect proof they could produce will be ultimately
 rejected by the Lean kernel. So their definition must be prefaced by the
@@ -220,7 +220,7 @@ do { ctx ← tactic.local_context,
 Bonus question: what if we remove the brackets? Will it still
 type-check? If yes, will the resulting tactic be the same?
 
-## Monadic loops
+##  Monadic loops
 
 A crucial tool of imperative programming is loops, so monads must
 emulate this. We already know from usual Lean that `list.map` and
@@ -272,7 +272,7 @@ context item. Its weird name works around the fact that `have` is a keyword,
 hence not a valid name. It takes two optional arguments that we ignore for
 now, and a pre-expression which is a proof of our new item. Such a
 pre-expression is constructed using the double-backtick-parenthesis notation:
-`` ``(...) ``. Inside such a construction, previously assigned expressions
+``` ``(...) ```. Inside such a construction, previously assigned expressions
 are accessed using the anti-quotation prefix `%%`. This syntax is very close to the pattern matching syntax we saw above (but different).
 
 ```lean
@@ -292,7 +292,7 @@ begin
 end
 ```
 A last remark about the above tactic: the names `` `h₁ `` and `` `h₂ `` are resolved when the tactic is executed. In order to trigger name resolution when
-the tactic is parsed, one should use double-backtick, as in `` ``h₁ ``. Of course
+the tactic is parsed, one should use double-backtick, as in ``` ``h₁ ```. Of course
 in the above context, that would trigger an error since nothing name `h₁` is
 in sight at tactic parsing time. But it can be useful in other cases.
 
@@ -400,7 +400,7 @@ See `category/combinators.lean` in core library for other variations on this ide
 ```lean
 meta def mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) : 
 parse location → tactic unit
-| (loc.ns [some h]) := do --here h is a name
+| (loc.ns [some h]) := do 
    e ← tactic.i_to_expr q,
    H ← get_local h,
    `(%%l = %%r) ← infer_type H,
@@ -414,19 +414,19 @@ parse location → tactic unit
 This section is a direct compilation of messages from Mario on Zulip.
 
 * `` `my.name `` is the way to refer to a name. It is essentially a form of string quoting; no checks are done besides parsing dots into namespaced names
-* `` ``some `` does name resolution at parse time, so it expands to  `` `option.some `` and will error if the given name doesn't exist
+* ``` ``some ``` does name resolution at parse time, so this example expands to  `` `option.some `` and will error if the given name doesn't exist
 * `` `(my expr) `` constructs an expression at parse time, resolving what it can in the current (of the tactic) namespace
-* `` ``(my pexpr) `` constructs a pre-expression at parse time, resolving in the current (of the tactic) namespace
-* `` ```(my pexpr) `` constructs a pexpr, but defers resolution to run time (of the tactic), meaning that any references will be resolved in the namespace of the begin end block of the user, rather than the tactic itself
-* `%%`: This is called anti-quotation, and is supported in all the expr and pexpr quoting expressions `` `(expr) ``, `` ``(pexpr) ``, `` ```(pexpr) ``, as well as `` `[tacs] ``. Wherever an expression is expected inside one of these quoting constructs, you can use `%%e` instead, where `e` has type `expr` in the outer context of the tactic, and it will be spliced into the constructed expr/pexpr/etc. For example, if `a b : expr` then  `` `(%%a + %%b) `` is of type `expr`
+* ``` ``(my pexpr) ``` constructs a pre-expression at parse time, resolving in the current (of the tactic) namespace
+* ```` ```(my pexpr) ```` constructs a pexpr, but defers resolution to run time (of the tactic), meaning that any references will be resolved in the namespace of the begin end block of the user, rather than the tactic itself
+* `%%`: This is called anti-quotation, and is supported in all the expr and pexpr quoting expressions `` `(expr) ``, ``` ``(pexpr) ```, ```` ```(pexpr) ````, as well as `` `[tacs] ``. Wherever an expression is expected inside one of these quoting constructs, you can use `%%e` instead, where `e` has type `expr` in the outer context of the tactic, and it will be spliced into the constructed expr/pexpr/etc. For example, if `a b : expr` then  `` `(%%a + %%b) `` is of type `expr`
 * `` `[tac...] `` is exactly the same as `begin tac... end` in the sense that it parses tac... using the interactive mode parser, but instead of evaluating the tactic to produce a term, it just wraps up the list of tactics as a single tactic of type tactic unit. This is useful for writing "macros" or light-weight tactic writing
 
 
 Also worth mentioning are expr pattern matches, which have the same syntax
-like `(%%a + %%b). These can be used in the pattern position of a match or on
-the left side of a <- in do notation, and will destruct an expression and
+like `` `(%%a + %%b) ``. These can be used in the pattern position of a match or on
+the left side of a `←` in do notation, and will destruct an expression and
 bind the antiquoted variables
-For example, if e is an expression then do `` `(%%a = %%b) <- return e, ... `` will check that e is an equality, and bind the LHS and RHS to a and b (of type expr), and if it is not an equality the tactic will fail
+For example, if e is an expression then do `` `(%%a = %%b) ← return e, ... `` will check that e is an equality, and bind the LHS and RHS to a and b (of type expr), and if it is not an equality the tactic will fail
 
 ## Monadic symbols cheat sheet
 

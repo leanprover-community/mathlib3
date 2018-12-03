@@ -31,7 +31,7 @@ tactics, those are typically in the `tactic` namespace, or called
 interactively by users inside tactic blocks, those must be in the `tactic.interactive` namespace (this is not quite necessary for very simple
 tactics, but weird things will happen in general when ignoring this rule). A
 shortcut which is sometimes convenient is: one can copy definitions with name
-`my_tac1`, `my_tac2`, `my_tac3`, into the `tactic.interactive` namespace using 
+`my_tac1`, `my_tac2`, `my_tac3`, into the `tactic.interactive` namespace using
 `` run_cmd add_interactive [`my_tac1,`my_tac2, `my_tac3] ``.
 All those functions are allowed to bypass every safety check used by
 Lean, because any incorrect proof they could produce will be ultimately
@@ -58,16 +58,16 @@ emulate imperative programming. We need to use the `and_then`
 combinator. The first way is to use the infix notation `>>`, as in:
 
 ```lean
-meta def my_second_tactic : tactic unit := 
+meta def my_second_tactic : tactic unit :=
 tactic.trace "Hello," >> tactic.trace "World."
 ```
 which now prints our message in two pieces. Alternatively, one can use
 the `do` syntax, which has other goodies. This introduces a
 comma-separated list of instructions to perform in sequence.
 ```lean
-meta def my_second_tactic' : tactic unit := 
-do 
-  tactic.trace "Hello,", 
+meta def my_second_tactic' : tactic unit :=
+do
+  tactic.trace "Hello,",
   tactic.trace "World."
 ```
 
@@ -76,7 +76,7 @@ potentially with some explanation.
 ```lean
 meta def my_failing_tactic  : tactic unit := tactic.failed
 
-meta def my_failing_tactic' : tactic unit := 
+meta def my_failing_tactic' : tactic unit :=
 tactic.fail "This tactic failed, we apologize for the inconvenience."
 ```
 
@@ -85,7 +85,7 @@ However the `orelse` combinator, denoted by an infix `<|>` allows to try
 its right-hand side if its left-hand side failed. The following will
 successfully deliver its message.
 ```lean
-meta def my_orelse_tactic : tactic unit := 
+meta def my_orelse_tactic : tactic unit :=
 my_failing_tactic <|> my_first_tactic
 ```
 
@@ -97,7 +97,7 @@ The type of `tactic.target` is thus `tactic expr`. Say we want to trace
 the current goal. A naive attempt would be:
 ```lean
 meta def broken_trace_goal : tactic unit :=
-tactic.trace tactic.target    -- WRONG! 
+tactic.trace tactic.target    -- WRONG!
 ```
 This cannot be correct because `tactic.target` could fail (there could
 be no more goal) and `tactic.trace` cannot take that failure as an
@@ -106,7 +106,7 @@ the output of its left-hand side to its right-hand side in case of
 success and failing otherwise.
 ```lean
 meta def trace_goal : tactic unit :=
- tactic.target >>= tactic.trace 
+ tactic.target >>= tactic.trace
 ```
 Alternatively, especially if the output of `tactic.target` could be used
 several times, one can use the `do` blocks assignements using `←` (the
@@ -172,9 +172,9 @@ We have studied enough monadology to understand our first useful tactic:
 the `assumption` tactic, which searches the local context for an
 assumption which closes the current goal. It uses a couple more builtin
 tactics, both declared and briefly documented in the core library in
-`init/meta/tactic.lean` but actually implemented in C++. 
+`init/meta/tactic.lean` but actually implemented in C++.
 First `infer_type : expr → tactic expr`
-tries to determine the type of an expression (since it returns a 
+tries to determine the type of an expression (since it returns a
 `tactic expr`, it must be chained with either `>>=` or `←`, as explained
 above).
 Next `tactic.unify` which, modulo a couple of optional parameters, takes
@@ -195,10 +195,9 @@ unchanged to the recursive call `find_matching_type Hs`. The choice of
 name `H` stands for `hypothesis`, while `Hs`, following Haskell's naming
 conventions, stands for several hypotheses. The imperative analogue of
 what happens for non-empty lists would read something like the following
-pseudo-python
-```python
-t = infer_type(H)
-return H if unify(e, t) else find_matching_type(e, HS)
+impreative pseudo-code
+```
+if unify(e, infer_type(H)) then return H else find_matching_type(e, HS)
 ```
 We can now use this function for our interactive tactic. We first need
 to grab the local context using `local_context`, which return a list of
@@ -281,7 +280,7 @@ open tactic.interactive («have»)
 open tactic (get_local infer_type)
 
 meta def tactic.interactive.add_eq_h₁_h₂ : tactic unit :=
-do e1 ← get_local `h₁, 
+do e1 ← get_local `h₁,
    e2 ← get_local `h₂,
    «have» none none ``(_root_.congr (congr_arg has_add.add %%e1) %%e2)
 
@@ -308,7 +307,7 @@ open interactive (parse)
 open lean.parser (ident)
 
 meta def tactic.interactive.add_eq (h1 : parse ident) (h2 : parse ident) : tactic unit :=
-do e1 ← get_local h1, 
+do e1 ← get_local h1,
    e2 ← get_local h2,
    «have» none none ``(_root_.congr (congr_arg has_add.add %%e1) %%e2)
 ```
@@ -326,7 +325,7 @@ The next improvement to this tactic offers the opportunity to name the new
 local assumption (which is currently named `this`). Such names are
 traditionaly introduced by the token `with`, followed by the desired identifier.
 The "followed by" is expressed by the `seq_right` combinator (there is again
-a monad lurking here), with notation `*>`. Parsing a token is introduced by 
+a monad lurking here), with notation `*>`. Parsing a token is introduced by
 `lean.parser.tk` followed by a string which must be taken from a
 predetermined list (the initial value of this list seems to be hardwired into
 Lean source code, in `frontends/lean/token_table.cpp`). And then the
@@ -337,7 +336,7 @@ of `«have»`, which will use it if provided, and otherwise use the name `this`.
 open lean.parser (tk)
 meta def tactic.interactive.add_eq' (h1 : parse ident) (h2 : parse ident)
   (h : parse (optional (tk "with" *> ident))) : tactic unit :=
-do e1 ← get_local h1, 
+do e1 ← get_local h1,
    e2 ← get_local h2,
    «have» h none ``(_root_.congr (congr_arg has_add.add %%e1) %%e2)
 
@@ -379,7 +378,7 @@ for using the second optional argument of `«have»` which is the expected type
 open interactive (loc.ns)
 open interactive.types (texpr location)
 meta def mul_left (q : parse texpr) : parse location → tactic unit
-| (loc.ns [some h]) := do 
+| (loc.ns [some h]) := do
    e ← tactic.i_to_expr q,
    H ← get_local h,
    `(%%l = %%r) ← infer_type H,
@@ -400,9 +399,9 @@ one if the tactic name is followed by `!`. This is the opportunity to use
 `when` which is the monadic version of `ite` (with else branch doing nothing).
 See `category/combinators.lean` in core library for other variations on this idea.
 ```lean
-meta def mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) : 
+meta def mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) :
 parse location → tactic unit
-| (loc.ns [some h]) := do 
+| (loc.ns [some h]) := do
    e ← tactic.i_to_expr q,
    H ← get_local h,
    `(%%l = %%r) ← infer_type H,
@@ -410,6 +409,15 @@ parse location → tactic unit
    when clear_hyp.is_some (tactic.clear H)
 | _ := tactic.fail "mul_left_bis takes exactly one location"
 ```
+
+## What to read now?
+
+This is the end of this tutorial (although there are two cheat sheets below).
+If you want to learn more, you can read the definitions of tactics in either
+the core library or mathlib, see what you can understand, and ask specific
+questions on Zulip. For more theory, especially a proper explanation of monads, you can read
+[Programming in Lean](https://github.com/leanprover/programming_in_lean), but the actual tactic writing part is not up to date. The official documentation of the tactic framework is
+the paper [A Metaprogramming Framework for Formal Verification](https://leanprover.github.io/papers/tactic.pdf).
 
 ## Mario's backtick cheat sheet
 
@@ -431,6 +439,23 @@ the left side of a `←` in do notation, and will destruct an expression and
 bind the antiquoted variables.
 For example, if `e` is an expression then `` do `(%%a = %%b) ← return e, ... `` will check that `e` is an equality, and bind the LHS and RHS to `a` and `b` (of type `expr`), and if it is not an equality the tactic will fail.
 
-## Monadic symbols cheat sheet
+## Mario's monadic symbols cheat sheet
 
-Coming soon...
+All functions and notations from the list below apply to more general monads than `tactic`, so they are listed in a generic form but, for the purposes
+of this tutorial `m` is always `tactic` (or `lean.parser`). Although
+everything can be done with the symbols introduced in this tutorials, more
+esoteric symbols allow to compress code, and understanding them is useful for
+reading available tactics.
+
+* `return`: produce a value in the monad (type: `A → m A`)
+* `ma >>= f`: get the value of type `A` from `ma : m A` and pass it to `f : A → m B`. Alternate syntax: `do a ← ma, f a`
+* `f <$> ma`: apply the function `f : A → B` to the value in `ma : m A` to get a `m B`. Same as `do a ← ma, return (f a)`
+* `ma >> mb`: same as `do a ← ma, mb`; here the return value of `ma` is ignored and then `mb` is called. Alternate syntax: `do ma, mb`
+* `mf <*> ma`: same as `do f ← mf, f <$> ma`, or `do f ← mf, a ← ma, return (f a)`.
+* `ma <* mb`: same as `do a ← ma, mb, return a`
+* `ma *> mb`: same as `do ma, mb`, or `ma >> mb`. Why two notations for the same thing? Historical reasons
+* `pure`: same as `return`. Again, historical reasons
+* `failure`: failed value (specific monads usually have a more useful form of this, like `fail` and `failed` for tactics)
+* `ma <|> ma'` recover from failure: runs `ma` and if it fails then runs `ma'`.
+* `a $> mb`: same as `do mb, return a`
+* `ma <$ b`: same as `do ma, return b`

@@ -32,7 +32,7 @@ interactively by users inside tactic blocks, those must be in the `tactic.intera
 tactics, but weird things will happen in general when ignoring this rule). A
 shortcut which is sometimes convenient is: one can copy definitions with name
 `my_tac1`, `my_tac2`, `my_tac3`, into the `tactic.interactive` namespace using 
-``run_cmd add_interactive [`my_tac1,`my_tac2, `my_tac3]``.
+`` run_cmd add_interactive [`my_tac1,`my_tac2, `my_tac3] ``.
 All those functions are allowed to bypass every safety check used by
 Lean, because any incorrect proof they could produce will be ultimately
 rejected by the Lean kernel. So their definition must be prefaced by the
@@ -220,7 +220,8 @@ do { ctx ← tactic.local_context,
 Bonus question: what if we remove the brackets? Will it still
 type-check? If yes, will the resulting tactic be the same?
 
-## Monadic loops
+
+##  Monadic loops
 
 A crucial tool of imperative programming is loops, so monads must
 emulate this. We already know from usual Lean that `list.map` and
@@ -293,6 +294,7 @@ end
 ```
 A last remark about the above tactic: the names `` `h₁ `` and `` `h₂ `` are resolved when the tactic is executed. In order to trigger name resolution when
 the tactic is parsed, one should use double-backtick, as in ``` ``h₁ ```. Of course
+
 in the above context, that would trigger an error since nothing named `h₁` is
 in sight at tactic parsing time. But it can be useful in other cases.
 
@@ -400,7 +402,7 @@ See `category/combinators.lean` in core library for other variations on this ide
 ```lean
 meta def mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) : 
 parse location → tactic unit
-| (loc.ns [some h]) := do --here h is a name
+| (loc.ns [some h]) := do 
    e ← tactic.i_to_expr q,
    H ← get_local h,
    `(%%l = %%r) ← infer_type H,
@@ -414,7 +416,8 @@ parse location → tactic unit
 This section is a direct compilation of messages from Mario on Zulip.
 
 * `` `my.name `` is the way to refer to a name. It is essentially a form of string quoting; no checks are done besides parsing dots into namespaced names
-* ``` ``some ``` does name resolution at parse time, so it expands to  `` `option.some `` and will error if the given name doesn't exist
+
+* ``` ``some ``` does name resolution at parse time, so this example expands to  `` `option.some `` and will error if the given name doesn't exist
 * `` `(my expr) `` constructs an expression at parse time, resolving what it can in the current (of the tactic) namespace
 * ``` ``(my pexpr) ``` constructs a pre-expression at parse time, resolving in the current (of the tactic) namespace
 * ```` ```(my pexpr) ```` constructs a pexpr, but defers resolution to run time (of the tactic), meaning that any references will be resolved in the namespace of the begin end block of the user, rather than the tactic itself

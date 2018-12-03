@@ -189,8 +189,6 @@ end functor
 
 def Aut (X : C) := X ≅ X
 
-attribute [extensionality Aut] iso.ext
-
 instance {X : C} : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,

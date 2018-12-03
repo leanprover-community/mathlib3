@@ -5,22 +5,28 @@ universes u₁ u₂
 open interactive interactive.types
 open lean.parser nat tactic
 
-meta def get_ext_subject : expr → tactic name
+meta def type_name (t : expr) : tactic name :=
+if t.get_app_fn.is_constant then
+  pure t.get_app_fn.const_name
+else if t.is_pi then
+  pure $ name.mk_numeral 0 name.anonymous
+else if t.is_sort then
+  pure $ name.mk_numeral 1 name.anonymous
+else do
+  t ← pp t,
+  fail format!"only constants and Pi types are supported: {t}"
+
+meta def get_ext_subject : expr → tactic (list name)
 | (expr.pi n bi d b) :=
   do v  ← mk_local' n bi d,
      b' ← whnf $ b.instantiate_var v,
      get_ext_subject b'
 | (expr.app _ e) :=
-  do t ← infer_type e >>= instantiate_mvars >>= head_beta,
-     if t.get_app_fn.is_constant then
-       pure $ t.get_app_fn.const_name
-     else if t.is_pi then
-       pure $ name.mk_numeral 0 name.anonymous
-     else if t.is_sort then
-       pure $ name.mk_numeral 1 name.anonymous
-     else do
-       t ← pp t,
-       fail format!"only constants and Pi types are supported: {t}"
+  do t  ← infer_type e >>= instantiate_mvars >>= head_beta,
+     t' ← whnf t,
+     n  ← type_name t,
+     n' ← type_name t',
+     pure [n,n']
 | e := fail format!"Only expressions of the form `_ → _ → ... → R ... e are supported: {e}"
 
 open native
@@ -132,7 +138,7 @@ meta def extensional_attribute : user_attribute (name_map name) (bool × list ex
          pure $ (ff,ls,[],m.to_list)  },
   after_set := some $ λ n _ b,
     do (ff,ls,_,ls') ← extensional_attribute.get_param n | pure (),
-       s ← mk_const n >>= infer_type >>= get_ext_subject,
+       s :: _ ← mk_const n >>= infer_type >>= get_ext_subject,
        let (rs,ls'') := if ls.empty
                            then ([],[s])
                            else ls.partition_map (sum.map (flip option.get_or_else s) (flip option.get_or_else s)),
@@ -142,6 +148,7 @@ meta def extensional_attribute : user_attribute (name_map name) (bool × list ex
 
 attribute [extensionality] array.ext propext
 attribute [extensionality [(→),thunk]] _root_.funext
+
 
 namespace ulift
 @[extensionality] lemma ext {α : Type u₁} (X Y : ulift.{u₂} α) (w : X.down = Y.down) : X = Y :=
@@ -161,11 +168,12 @@ do tgt ← target >>= whnf,
      then rintro [x] >> try_intros (some xs)
      else pure $ some (x :: xs)
 
-meta def ext1 (xs : option ext_patt) (cfg : apply_cfg := {}): tactic (option ext_patt) :=
+meta def ext1 (xs : option ext_patt) (cfg : apply_cfg := {}) : tactic (option ext_patt) :=
 do subject ← target >>= get_ext_subject,
    m ← extensional_attribute.get_cache,
-   do { rule ← m.find subject,
-        applyc rule cfg } <|>
+   subject.any_of (λ s,
+     do rule ← m.find s,
+        applyc rule cfg ) <|>
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
 
@@ -184,8 +192,9 @@ local postfix *:9001 := many
   introduced by the lemma. If `id` is omitted, the local constant is
   named automatically, as per `intro`.
  -/
-meta def interactive.ext1 (xs : parse ext_parse) : tactic unit :=
-ext1 xs $> ()
+meta def interactive.ext1 : parse ext_parse → tactic unit
+| [] := ext1 none $> ()
+| xs := ext1 xs $> ()
 
 /--
   - `ext` applies as many extensionality lemmas as possible;

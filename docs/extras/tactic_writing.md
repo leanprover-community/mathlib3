@@ -172,7 +172,7 @@ We have studied enough monadology to understand our first useful tactic:
 the `assumption` tactic, which searches the local context for an
 assumption which closes the current goal. It uses a couple more builtin
 tactics, both declared and briefly documented in the core library in
-`init/meta/tactic.lean` but actually implemented in C++.
+[init/meta/tactic.lean](https://github.com/leanprover/lean/blob/master/library/init/meta/tactic.lean) but actually implemented in C++.
 First `infer_type : expr → tactic expr`
 tries to determine the type of an expression (since it returns a
 `tactic expr`, it must be chained with either `>>=` or `←`, as explained
@@ -262,7 +262,7 @@ end
 
 The first new concept we need is that of a name. In order to allow for
 namespace management, names in Lean are actually defined as an inductive
-type, in core library `meta/name.lean`. Manpulating its constructors is not
+type, in core library [meta/name.lean](https://github.com/leanprover/lean/blob/master/library/init/meta/name.lean). Manpulating its constructors is not
 convenient, so we use instead the backtick notation (this is the first of
 many uses of backticks in tactic writing). Actually we already did that when
 discussing the `add_interactive` command at the very beginning. Accessing an
@@ -327,8 +327,8 @@ traditionaly introduced by the token `with`, followed by the desired identifier.
 The "followed by" is expressed by the `seq_right` combinator (there is again
 a monad lurking here), with notation `*>`. Parsing a token is introduced by
 `lean.parser.tk` followed by a string which must be taken from a
-predetermined list (the initial value of this list seems to be hardwired into
-Lean source code, in `frontends/lean/token_table.cpp`). And then the
+predetermined list (the initial value of this list can be found in
+Lean source code, in [frontends/lean/token_table.cpp](https://github.com/leanprover/lean/blob/master/src/frontends/lean/token_table.cpp), elements are added to this list when literals are used in `notation`, `infix`, or `precedence`). And then the
 combination is wrapped into `optional` to make it optional. The term `h` we
 get below has then type `option name` and can be passed as the first argument
 of `«have»`, which will use it if provided, and otherwise use the name `this`.
@@ -362,7 +362,7 @@ end
 
 The main new skills here consist in indicating at what location we want to
 act, using the traditional token `at`, and passing an expression to the
-tactic. Locations are defined in the core library `meta/interactive_base.lean` as
+tactic. Locations are defined in the core library [meta/interactive_base.lean](https://github.com/leanprover/lean/blob/master/library/init/meta/interactive_base.lean) as
 an inductive type having two constructors: `wildcard` which indicates all
 locations, and `loc.ns` which takes a `list (option name)`, where `none` in
 the `option name` means the current goal, whereas `some n` means the thing
@@ -397,7 +397,7 @@ As a last refinement, let us make a version of this tactic which names the
 multiplied equality by appending `.mul`, and optionaly remove the original
 one if the tactic name is followed by `!`. This is the opportunity to use
 `when` which is the monadic version of `ite` (with else branch doing nothing).
-See `category/combinators.lean` in core library for other variations on this idea.
+See [category/combinators.lean](https://github.com/leanprover/lean/blob/master/library/init/category/combinators.lean) in core library for other variations on this idea.
 ```lean
 meta def mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) :
 parse location → tactic unit

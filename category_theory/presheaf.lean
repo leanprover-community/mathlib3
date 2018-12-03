@@ -1,5 +1,3 @@
-import category_theory.opposites
-import category_theory.types
 import category_theory.yoneda
 import category_theory.limits.functor_category
 import category_theory.limits.types
@@ -35,8 +33,8 @@ X.map (@category.comp C 𝒞 _ _ _ f g) = (X.map g) ≫ (X.map f) := functor.map
 
 end simp
 
-instance : category.{(v+1) v} (presheaf C)     := by dunfold presheaf; apply_instance
-instance : has_limits.{(v+1) v} (presheaf C)   := by dunfold presheaf; apply_instance
+instance : category.{(v+1) v}     (presheaf C) := by dunfold presheaf; apply_instance
+instance : has_limits.{(v+1) v}   (presheaf C) := by dunfold presheaf; apply_instance
 instance : has_colimits.{(v+1) v} (presheaf C) := by dunfold presheaf; apply_instance
 -- instance : has_pullbacks.{(v+1) v} (presheaf C) := limits.functor_category_has_pullbacks
 -- instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_coproducts

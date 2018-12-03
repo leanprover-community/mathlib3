@@ -45,6 +45,28 @@ lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟹ (const J).obj X) := rfl
 
 end functor
 
+section functoriality
+variables (J C)
+
+def cones : (J ⥤ C) ⥤ Cᵒᵖ ⥤ Type _ :=
+{ obj := functor.cones,
+  map := λ F G f, whisker_left _ $ whisker_left _ (yoneda.map f) }
+
+def cocones : (J ⥤ C)ᵒᵖ ⥤ C ⥤ Type _ :=
+{ obj := functor.cocones,
+  map := λ F G f, whisker_left _ (coyoneda.map f) }
+
+variables {J C}
+
+@[simp] lemma cones_obj (F : J ⥤ C) : (cones J C).obj F = F.cones := rfl
+@[simp] lemma cones_map  {F G : J ⥤ C} {f : F ⟶ G} :
+(cones J C).map f = (whisker_left _ $ whisker_left _ (yoneda.map f)) := rfl
+
+@[simp] lemma cocones_obj (F : J ⥤ C) : (cocones J C).obj F = F.cocones := rfl
+@[simp] lemma cocones_map  {F G : J ⥤ C} {f : F ⟶ G} :
+(cocones J C).map f = (whisker_left _ (coyoneda.map f)) := rfl
+
+end functoriality
 
 namespace limits
 

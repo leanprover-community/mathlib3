@@ -48,11 +48,11 @@ end functor
 section functoriality
 variables (J C)
 
-def cones : (J ⥤ C) ⥤ Cᵒᵖ ⥤ Type _ :=
+def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type v) :=
 { obj := functor.cones,
   map := λ F G f, whisker_left _ $ whisker_left _ (yoneda.map f) }
 
-def cocones : (J ⥤ C)ᵒᵖ ⥤ C ⥤ Type _ :=
+def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type v) :=
 { obj := functor.cocones,
   map := λ F G f, whisker_left _ (coyoneda.map f) }
 

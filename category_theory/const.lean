@@ -6,7 +6,7 @@ import category_theory.functor_category
 import category_theory.isomorphism
 import category_theory.punit
 
-universes u₁ v₁ u₂ v₂ u₃ v₃
+universes u₁ v₁ u₂ v₂ u₃ v₃ w
 
 open category_theory
 
@@ -52,7 +52,7 @@ omit 𝒥
 
 /-- The constant functor. For `X : C`, `of.obj X` is the functor `punit ⥤ C`
   that maps `punit.star` to `X`. -/
-def of : C ⥤ (punit ⥤ C) := const punit.{1}
+def of : C ⥤ (punit.{w+1} ⥤ C) := const punit
 
 namespace of
 @[simp] lemma obj_obj (X : C) : (of.obj X).obj = λ _, X := rfl

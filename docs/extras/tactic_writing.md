@@ -3,7 +3,7 @@
 ## Monadology
 
 Tactics are programs that act on the proof state.  But Lean is a
-functional programming language. It means everything you can do is
+functional programming language. It means all you can do is
 define and evaluate functions. Each function takes input with a
 predefined type, and gives output with a predefined type. It seems to
 prevent having a global state (like the current assumptions and goals),
@@ -27,16 +27,20 @@ particular `tactic unit` is only about manipulating proof state, without
 trying to return anything (technically it will return something of type
 `unit`, which is the type having exactly one term, denoted by `()`).
 Such functions are either called by other
-tactics, those are typically in the `tactic` namespace, or called
-interactively by users inside tactic blocks, those must be in the `tactic.interactive` namespace (this is not quite necessary for very simple
+tactics---those are typically in the `tactic` namespace---or called
+interactively by users inside tactic blocks---those must be in the
+`tactic.interactive` namespace (this is not quite necessary for very simple
 tactics, but weird things will happen in general when ignoring this rule). A
 shortcut which is sometimes convenient is: one can copy definitions with name
 `my_tac1`, `my_tac2`, `my_tac3`, into the `tactic.interactive` namespace using
 `` run_cmd add_interactive [`my_tac1,`my_tac2, `my_tac3] ``.
-All those functions are allowed to bypass every safety check used by
-Lean, because any incorrect proof they could produce will be ultimately
-rejected by the Lean kernel. So their definition must be prefaced by the
-keyword `meta`. This enough knowledge to write a first tactic.
+These functions will be used to generate Lean proofs, but we will not prove
+anything about these functions themselves, nor will the constants `my_tac1`,
+`my_tac2`, etc. appear in the proofs
+that they generate. By prefacing them with the keyword `meta`, we tell Lean that
+they are for "evaluation purposes only," which disables some of the checks that
+non-`meta` declarations must pass.
+This enough knowledge to write a first tactic.
 
 ```lean
 meta def my_first_tactic : tactic unit := tactic.trace "Hello, World."
@@ -109,7 +113,7 @@ meta def trace_goal : tactic unit :=
  tactic.target >>= tactic.trace
 ```
 Alternatively, especially if the output of `tactic.target` could be used
-several times, one can use the `do` blocks assignements using `←` (the
+several times, one can use the `do` blocks assignments using `←` (the
 same arrow as in the rewrite syntax). This emulation of imperative
 variable assignment will of course fail (as the failing tactics above)
 if the right-hand side of the assignment fails.
@@ -119,7 +123,7 @@ do
  goal ← tactic.target,
  tactic.trace goal
 ```
-Beware that this kind of assignement is only trying to extract data of type
+Beware that this kind of assignment is only trying to extract data of type
 `α` from something of type `tactic α`. It cannot be used to store
 regular stuff. The following doesn't work.
 ```lean
@@ -149,7 +153,7 @@ meta def trace_is_done : tactic unit :=
 is_done >>= tactic.trace
 ```
 The last thing we will need about monadic assignment is pattern-matching
-assignement. The following tactic tries to define expressions `l` and `r` as
+assignment. The following tactic tries to define expressions `l` and `r` as
 the left and right hand sides of the current goal. It also uses the
 `to_string` function which is very convenient in combination with `trace` in order to debug tactics, and works on any type which is an instance of `has_to_string`.
 ```lean
@@ -158,7 +162,7 @@ meta def trace_goal_is_eq : tactic unit :=
      tactic.trace $ "Goal is equality between " ++ (to_string l) ++ " and " ++ (to_string r) )
    <|> tactic.trace "Goal is not an equality"
 ```
-The parenthesis in the above code don't look very nice, one could use
+The parenthesis in the above code don't look very nice. One could use
 instead curly brackets which allow to delimit a `do` block, as in:
 ```lean
 meta def trace_goal_is_eq : tactic unit :=
@@ -178,7 +182,7 @@ tries to determine the type of an expression (since it returns a
 `tactic expr`, it must be chained with either `>>=` or `←`, as explained
 above).
 Next `tactic.unify` which, modulo a couple of optional parameters, takes
-two expressions and succeeds if and only if their types are definitionaly equal.
+two expressions and succeeds if and only if they are definitionaly equal.
 The first piece of the assumption tactic is a helper function searching
 an expression sharing the type of some expression `e` in a list of
 expressions, returning the first match (or failing if nothing matches).
@@ -351,7 +355,7 @@ end
 ### Parsing locations and expressions
 
 Our next tactic multiplies from the left an equality by a given expression
-(or fail if this operation wouldn't make sense). We want to mechanize the following proof.
+(or fails if this operation wouldn't make sense). We want to mechanize the following proof.
 ```lean
 example (a b c : ℤ) (hyp : a = b) : c*a = c*b :=
 begin

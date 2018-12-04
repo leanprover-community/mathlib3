@@ -49,7 +49,10 @@ include 𝒟
 end
 
 omit 𝒥
-def of : C ⥤ (punit ⥤ C) := const punit
+
+/-- The constant functor. For X : C, this is the functor punit ⥤ C
+  that maps punit.star to X. -/
+def of : C ⥤ (punit ⥤ C) := const punit.{1}
 
 namespace of
 @[simp] lemma obj_obj (X : C) : (of.obj X).obj = λ _, X := rfl

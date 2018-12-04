@@ -30,7 +30,7 @@ variables {J C} (F : J ⥤ C)
 natural transformations from the constant functor with value `X` to `F`.
 An object representing this functor is a limit of `F`.
 -/
-def cones : Cᵒᵖ ⥤ Type _ := (const (Jᵒᵖ)) ⋙ (op_inv J C) ⋙ (yoneda.obj F)
+def cones : Cᵒᵖ ⥤ Type v := (const (Jᵒᵖ)) ⋙ (op_inv J C) ⋙ (yoneda.obj F)
 
 lemma cones_obj (X : C) : F.cones.obj X = ((const J).obj X ⟹ F) := rfl
 
@@ -39,7 +39,7 @@ lemma cones_obj (X : C) : F.cones.obj X = ((const J).obj X ⟹ F) := rfl
 natural transformations from `F` to the constant functor with value `X`.
 An object corepresenting this functor is a colimit of `F`.
 -/
-def cocones : C ⥤ Type _ := (const J) ⋙ (coyoneda.obj F)
+def cocones : C ⥤ Type v := (const J) ⋙ (coyoneda.obj F)
 
 lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟹ (const J).obj X) := rfl
 

@@ -50,8 +50,8 @@ end
 
 omit 𝒥
 
-/-- The constant functor. For X : C, this is the functor punit ⥤ C
-  that maps punit.star to X. -/
+/-- The constant functor. For `X : C`, `of.obj X` is the functor `punit ⥤ C`
+  that maps `punit.star` to `X`. -/
 def of : C ⥤ (punit ⥤ C) := const punit.{1}
 
 namespace of

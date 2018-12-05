@@ -58,6 +58,7 @@ restate_axiom category.id_comp'
 restate_axiom category.comp_id'
 restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
+attribute [trans] category.comp
 
 /--
 A `large_category` has objects in one universe level higher than the universe level of

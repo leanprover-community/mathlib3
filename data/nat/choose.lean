@@ -97,7 +97,7 @@ variables {α : Type*} [comm_semiring α] (x y : α)
 /-- The binomial theorem -/
 theorem add_pow :
   ∀ n : ℕ, (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m)
-| 0        := by simp
+| 0        := by simp [range_succ]
 | (succ n) :=
 have h₁ : x * (x ^ n * y ^ (n - n) * choose n n) =
     x ^ succ n * y ^ (succ n - succ n) * choose (succ n) (succ n),

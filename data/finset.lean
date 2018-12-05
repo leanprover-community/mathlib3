@@ -191,7 +191,7 @@ set.ext $ λ x, by simp only [mem_coe, mem_insert, set.mem_insert_iff]
 @[simp] theorem insert_eq_of_mem {a : α} {s : finset α} (h : a ∈ s) : insert a s = s :=
 eq_of_veq $ ndinsert_of_mem h
 
-@[simp] theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
+theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext.2 $ λ x, by simp only [finset.mem_insert, or.left_comm]
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
@@ -599,7 +599,7 @@ end filter
 section range
 variables {n m l : ℕ}
 
-/-- `range n` is the set of integers less than `n`. -/
+/-- `range n` is the set of natural numbers less than `n`. -/
 def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
 @[simp] theorem range_val (n : ℕ) : (range n).1 = multiset.range n := rfl
@@ -608,7 +608,9 @@ def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
 @[simp] theorem range_zero : range 0 = ∅ := rfl
 
-@[simp] theorem range_succ : range (succ n) = insert n (range n) :=
+@[simp] theorem range_one : range 1 = {0} := rfl
+
+theorem range_succ : range (succ n) = insert n (range n) :=
 eq_of_veq $ (range_succ n).trans $ (ndinsert_of_not_mem not_mem_range_self).symm
 
 @[simp] theorem not_mem_range_self : n ∉ range n := not_mem_range_self

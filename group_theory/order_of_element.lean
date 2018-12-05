@@ -118,7 +118,7 @@ calc ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a
 ... = _ : congr_arg finset.card (finset.ext.2 (begin
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
-  { simpa [-finset.range_succ, nat.lt_succ_iff], },
+  { simpa [nat.lt_succ_iff], },
   exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, _root_.one_pow],
     λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
@@ -354,15 +354,15 @@ have h : ((range d.succ).filter (∣ d.succ)).sum
             nat.div_div_self hm (succ_pos _)]⟩)))),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
-  from (finset.ext.2 $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h])
-    (by clear _let_match; simp; tauto), by clear _let_match; simp {contextual := tt}; tauto⟩),
+  from (finset.ext.2 $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
+    (by clear _let_match; simp [range_succ]; tauto), by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
 have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
-  by simp [-range_succ, mem_range, zero_le_one, le_succ],
+  by simp [mem_range, zero_le_one, le_succ],
 (add_right_inj (((range d.succ).filter (∣ d.succ)).sum
   (λ m, (univ.filter (λ a : α, order_of a = m)).card))).1
   (calc _ = (insert d.succ (filter (∣ d.succ) (range d.succ))).sum
         (λ m, (univ.filter (λ a : α, order_of a = m)).card) :
-    eq.symm (finset.sum_insert (by simp [-range_succ, mem_range, zero_le_one, le_succ]))
+    eq.symm (finset.sum_insert (by simp [mem_range, zero_le_one, le_succ]))
   ... = ((range d.succ.succ).filter (∣ d.succ)).sum (λ m,
       (univ.filter (λ a : α, order_of a = m)).card) :
     sum_congr hinsert (λ _ _, rfl)

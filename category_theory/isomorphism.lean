@@ -26,6 +26,12 @@ variables {X Y Z : C}
 
 namespace iso
 
+@[simp] lemma hom_inv_id_assoc (α : X ≅ Y) (f : X ⟶ Z) : α.hom ≫ α.inv ≫ f = f :=
+by rw [←category.assoc, α.hom_inv_id, category.id_comp]
+
+@[simp] lemma inv_hom_id_assoc (α : X ≅ Y) (f : Y ⟶ Z) : α.inv ≫ α.hom ≫ f = f :=
+by rw [←category.assoc, α.inv_hom_id, category.id_comp]
+
 @[extensionality] lemma ext
   (α β : X ≅ Y)
   (w : α.hom = β.hom) : α = β :=
@@ -81,6 +87,18 @@ infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
 @[simp] lemma refl_symm (X : C) : (iso.refl X).hom = 𝟙 X := rfl
 @[simp] lemma trans_symm (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv = β.inv ≫ α.inv := rfl
+
+lemma inv_comp_eq (α : X ≅ Y) {f : X ⟶ Z} {g : Y ⟶ Z} : α.inv ≫ f = g ↔ f = α.hom ≫ g :=
+⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+
+lemma eq_inv_comp (α : X ≅ Y) {f : X ⟶ Z} {g : Y ⟶ Z} : g = α.inv ≫ f ↔ α.hom ≫ g = f :=
+(inv_comp_eq α.symm).symm
+
+lemma comp_inv_eq (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ α.inv = g ↔ f = g ≫ α.hom :=
+⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+
+lemma eq_comp_inv (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ α.inv ↔ g ≫ α.hom = f :=
+(comp_inv_eq α.symm).symm
 
 end iso
 

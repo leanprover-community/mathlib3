@@ -17,7 +17,7 @@ namespace functor
 variables (C : Type u) [𝒞 : category.{u v} C]
 include 𝒞
 
-def empty : pempty ⥤ C := by obviously
+def empty : pempty ⥤ C := by tidy
 
 end functor
 

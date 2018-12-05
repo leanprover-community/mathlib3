@@ -301,6 +301,10 @@ def limit.hom_iso' (F : J ⥤ C) [has_limit F] (W : C) :
   (W ⟶ limit F) ≅ { p : Π j, W ⟶ F.obj j // ∀ {j j' : J} (f : j ⟶ j'), p j ≫ F.map f = p j' } :=
 (limit.is_limit F).hom_iso' W
 
+lemma limit.lift_extend {F : J ⥤ C} [has_limit F] (c : cone F) {X : C} (f : X ⟶ c.X) :
+  limit.lift F (c.extend f) = f ≫ limit.lift F c :=
+by obviously
+
 section pre
 variables {K : Type v} [small_category K]
 variables (F) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)]
@@ -498,6 +502,12 @@ def colimit.hom_iso (F : J ⥤ C) [has_colimit F] (W : C) : (colimit F ⟶ W) �
 def colimit.hom_iso' (F : J ⥤ C) [has_colimit F] (W : C) :
   (colimit F ⟶ W) ≅ { p : Π j, F.obj j ⟶ W // ∀ {j j'} (f : j ⟶ j'), F.map f ≫ p j' = p j } :=
 (colimit.is_colimit F).hom_iso' W
+
+lemma colimit.desc_extend (F : J ⥤ C) [has_colimit F] (c : cocone F) {X : C} (f : c.X ⟶ X) :
+  colimit.desc F (c.extend f) = colimit.desc F c ≫ f :=
+begin
+  ext1, simp at *, erw ←category.assoc, simp, refl
+end
 
 section pre
 variables {K : Type v} [small_category K]

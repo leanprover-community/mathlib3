@@ -4039,7 +4039,7 @@ theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = [m-1] :=
 by dsimp [Ico]; rw nat.sub_sub_self h; simp
 
 -- Someone put me out of my misery (no human suffering should be needed to prove this):
-@[simp] private lemma mem_condition {n m l : ℕ} : n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m :=
+private lemma mem_condition {n m l : ℕ} : n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m :=
 begin
   by_cases n ≤ m,
   { rw add_sub_of_le h },
@@ -4056,12 +4056,10 @@ begin
 end
 
 @[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
-by dsimp [Ico]; simp
+by dsimp [Ico]; simp [mem_condition]
 
--- TODO implement these, amongst maybe many others!
--- theorem sublist {n m n' m' : ℕ} : Ico n m <+ Ico n' m' ↔ n' ≤ n ∧ m ≤ m' :=
--- theorem subset {n m n' m' : ℕ} : Ico n m ⊆ Ico n' m' ↔ n' ≤ n ∧ m ≤ m' :=
--- @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
+@[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
+by simp; intros; refl
 end Ico
 
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),

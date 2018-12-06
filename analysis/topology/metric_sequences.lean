@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rohan Mitta, Patrick Massot
+Authors: Rohan Mitta, Patrick Massot, Alistair Tucker
 -/
 --When exercise/lemma/prop numbers are quoted here, the material comes from 
 --"Metric Spaces and Topology" by Sutherland

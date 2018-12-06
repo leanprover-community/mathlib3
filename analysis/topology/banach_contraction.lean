@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rohan Mitta, Kevin Buzzard
+Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker
 -/
 --Working towards a proof of the Banach Contraction Theorem
 import analysis.limits
@@ -51,12 +51,112 @@ def iteration_map {α : Type*} (f : α → α) (start : α) : ℕ → α
 def is_contraction {α : Type*} [metric_space α] (f : α → α) := 
 ∃ (k : ℝ) (H1 : k < 1) (H2 : 0 < k), ∀ (x y : α), dist (f x) (f y) ≤ k* (dist x y)
 
---Lemma 17.25
-lemma uniform_continuous_of_contraction {α : Type*} [metric_space α] (f : α → α) 
-(H : is_contraction f) : uniform_continuous f := uniform_continuous_of_metric.2 
-    (λ ε Hε, ⟨ε,Hε,(λ a b Hab, let ⟨K, H1, H2, H3⟩ := H in lt_of_le_of_lt (le_trans (H3 a b) 
-      (by convert mul_le_mul_of_nonneg_right (le_of_lt H1) dist_nonneg; rw one_mul)) Hab)⟩)
+lemma fixed_point_of_iteration_limit' {α : Type*} [topological_space α] [t2_space α] {f : α → α} {p : α} :
+  continuous f → (∃ p₀ : α, tendsto (iteration_map f p₀) at_top (nhds p)) → f p = p :=
+begin
+  intros hf hp,
+  cases hp with p₀ hp,
+  apply @tendsto_nhds_unique α ℕ _ _ (f ∘ iteration_map f p₀) at_top (f p) p,
+  { exact at_top_ne_bot },
+  { exact tendsto.comp hp (continuous.tendsto hf p) },
+  { exact tendsto_succ α (iteration_map f p₀) (nhds p) hp },
+end
 
+lemma fixed_point_of_iteration_limit {α : Type*} [topological_space α] [t2_space α] {f : α → α} {p : α} :
+  continuous f → (∃ p₀ : α, tendsto (λ n, f ^[n] p₀) at_top (nhds p)) → p = f p :=
+begin
+  intros hf hp,
+  cases hp with p₀ hp,
+  apply @tendsto_nhds_unique α ℕ _ _ (λ n, (f ^[succ n] p₀)) at_top p (f p),
+  { exact at_top_ne_bot },
+  { rewrite @tendsto_comp_succ_at_top_iff α (λ n, f ^[n] p₀) (nhds p),
+    exact hp },
+  { rewrite funext (λ n, iterate_succ' f n p₀),
+    exact tendsto.comp hp (continuous.tendsto hf p) },
+end
+
+def lipschitz {α : Type*} [metric_space α] (K : ℝ) (f : α → α) := ∀ (x y : α), dist (f x) (f y) ≤ K * (dist x y)
+
+lemma uniform_continuous_of_lipschitz {α : Type*} [metric_space α] {K : ℝ} {f : α → α} :
+  0 ≤ K → lipschitz K f → uniform_continuous f :=
+begin
+  intros hK₀ hf,
+  apply iff.mpr uniform_continuous_of_metric,
+  intros ε hε,
+  cases eq_or_lt_of_le hK₀ with hz hp,
+  { use (1 : ℝ),
+    use zero_lt_one,
+    intros x y hd,
+    apply lt_of_le_of_lt (hf x y),
+    rewrite [←hz, zero_mul],
+    exact hε },
+  { use ε / K,
+    use div_pos_of_pos_of_pos hε hp,
+    intros x y hd,
+    apply lt_of_le_of_lt (hf x y),
+    rewrite ←mul_div_cancel' ε (ne_of_gt hp),
+    exact mul_lt_mul_of_pos_left hd hp },
+end
+
+lemma iterated_lipschitz_of_lipschitz {α : Type*} [metric_space α] {K : ℝ} {f : α → α} :
+   0 ≤ K → lipschitz K f → ∀ (n : ℕ), lipschitz (K ^n) (f ^[n]) :=
+begin
+  intros hK₀ hf n,
+  induction n with n ih,
+    intros x y,
+    rewrite [pow_zero K, one_mul, iterate_zero f x, iterate_zero f y],
+  intros x y,
+  repeat { rewrite iterate_succ' },
+  apply le_trans (hf (f ^[n] x) (f ^[n] y)),
+  rewrite [pow_succ K n, mul_assoc],
+  exact mul_le_mul_of_nonneg_left (ih x y) hK₀,
+end
+
+lemma palais_inequality {α : Type*} [metric_space α] {K : ℝ} {f : α → α} :
+  K < 1 → lipschitz K f → ∀ (x y : α), dist x y ≤ (dist x (f x) + dist y (f y)) / (1 - K) :=
+begin
+  intros hK₁ hf x y,
+  apply le_div_of_mul_le (sub_pos_of_lt hK₁),
+  rewrite [mul_comm, sub_mul, one_mul],
+  apply sub_left_le_of_le_add,
+  apply le_trans,
+    exact dist_triangle_right x y (f x),
+  apply le_trans,
+    apply add_le_add_left,
+    exact dist_triangle_right y (f x) (f y),
+  rewrite [←add_assoc, add_comm],
+  apply add_le_add_right,
+  exact hf x y,
+end
+
+theorem fixed_point_unique {α : Type*} [metric_space α] {K : ℝ} {f : α → α} :
+  K < 1 → lipschitz K f → ∀ (p : α), p = f p → ∀ (p' : α), p' = f p' → p = p' :=
+begin
+  intros hK₁ hf p hp p' hp',
+  apply iff.mp dist_le_zero,
+  apply le_trans,
+  exact palais_inequality hK₁ hf p p',
+  rewrite iff.mpr dist_eq_zero hp,
+  rewrite iff.mpr dist_eq_zero hp',
+  norm_num,
+end
+
+lemma cauchy_of_contraction {α : Type*} [metric_space α] {K : ℝ} {f : α → α} :
+  0 ≤ K → K < 1 → lipschitz K f → ∀ (p₀ : α) (m n : ℕ), dist (f ^[m] p₀) (f ^[n] p₀) ≤ (K ^m + K ^n) * dist p₀ (f p₀) / (1 - K) :=
+begin
+  intros hK₀ hK₁ hf p₀ m n,
+  apply le_trans,
+  exact palais_inequality hK₁ hf (f ^[m] p₀) (f ^[n] p₀),
+  apply div_le_div_of_le_of_pos _ (sub_pos_of_lt hK₁),
+  have h : ∀ (n : ℕ), dist (f ^[n] p₀) (f (f ^[n] p₀)) ≤ K ^n * dist p₀ (f p₀),
+    intro n,
+    rewrite [←iterate_succ' f n p₀, iterate_succ f n p₀],
+    exact iterated_lipschitz_of_lipschitz hK₀ hf n p₀ (f p₀),
+  rewrite add_mul,
+  apply add_le_add,
+  { exact h m },
+  { exact h n },
+end
 
 --Banach's Fixed Point Theorem (Exists Statement)
 theorem Banach_fixed_point_exists {α : Type*} [metric_space α] [complete_space α] (H1 : nonempty α) {f : α → α} (H : is_contraction f)
@@ -153,22 +253,9 @@ begin
   cases @complete_space.complete _ _ _inst_2 _ cauchy_seq with p Hseq_tendsto_p,
   existsi p,
 
-  have f_cont : continuous f := uniform_continuous.continuous (uniform_continuous_of_contraction f H'),
-  let next_seq := f ∘ seq,
-  have Hnext_seq_tendsto_fp : filter.tendsto next_seq filter.at_top (nhds (f p)) 
-      := filter.tendsto.comp Hseq_tendsto_p (continuous.tendsto f_cont p),
-  
-  have Hnext_seq_eq_seqsucc : next_seq = (λ n, seq (n + 1)),
-  { apply funext, intro x, refl },
-  
-  have Hnext_seq_tendsto_p : filter.tendsto next_seq filter.at_top (nhds p),
-  { rw Hnext_seq_eq_seqsucc,
-    exact tendsto_succ _ _ _ Hseq_tendsto_p },
-
-  exact metric_space.unique_limit_seq next_seq (f p) p 
-      ((tendsto_at_top_metric next_seq).1 Hnext_seq_tendsto_fp)
-      ((tendsto_at_top_metric next_seq).1 Hnext_seq_tendsto_p),
-
+  have f_cont : continuous f := uniform_continuous.continuous (uniform_continuous_of_lipschitz (le_of_lt HK2) Hf),
+  apply fixed_point_of_iteration_limit' f_cont,
+  exact exists.intro start Hseq_tendsto_p,
 end
 
 def Banach's_fixed_point {α : Type*} [metric_space α] [complete_space α] (H1 : nonempty α) {f : α → α} (H : is_contraction f)
@@ -184,8 +271,7 @@ begin
   by_contra Hnot,
   let p := Banach's_fixed_point H1 H,
   have H4 := @dist_nonneg _ _ p y,
-  have H3 : 0 < dist p y, exact or.elim (lt_or_eq_of_le H4) (λ x, x) (λ m, by_contradiction --THIS
-    (λ o, Hnot (eq_of_dist_eq_zero (eq.symm (eq.trans m (dist_comm p y)))))),
+  have H3 : 0 < dist p y, from iff.mpr dist_pos (λ h, Hnot (eq.symm h)),
   let H' := H,
   rcases H with ⟨K,HK1,_,Hf⟩, 
   have := Hf p y, rw [Hy, (Banach's_fixed_point_is_fixed_point H1 H')] at this,

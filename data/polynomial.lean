@@ -1370,15 +1370,8 @@ lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
       exact absurd h dec_trivial)),
 λ q r hpqr, begin
   have := congr_arg degree hpqr,
-  revert this,
-  rw [hp1, degree_mul_eq, is_unit_iff_degree_eq_zero, is_unit_iff_degree_eq_zero],
-  cases degree q with dq,
-  { exact dec_trivial },
-  { cases degree r with dr,
-    { exact dec_trivial },
-    { erw [with_bot.coe_eq_coe, with_bot.coe_eq_coe, with_bot.coe_eq_coe],
-      cases dq; simp [nat.add_succ, nat.succ_inj',
-        @eq_comm ℕ 0, add_eq_zero_iff] {contextual := tt} } },
+  rw [hp1, degree_mul_eq, eq_comm, nat.with_bot.add_eq_one_iff] at this,
+  rw [is_unit_iff_degree_eq_zero, is_unit_iff_degree_eq_zero]; tautology
 end⟩
 
 lemma monic_mul_leading_coeff_inv (h : p ≠ 0) :

@@ -397,8 +397,8 @@ begin
 end
 
 private lemma one_mul' : ∀a : with_top α, 1 * a = a
-| none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp
-| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm]
+| none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_bot.coe_one]
+| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_bot.coe_one]
 
 instance [canonically_ordered_comm_semiring α] [decidable_eq α] :
   canonically_ordered_comm_semiring (with_top α) :=

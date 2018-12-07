@@ -336,6 +336,8 @@ end
 
 instance has_one [has_one α] : has_one (with_bot α) := ⟨(1 : α)⟩
 
+@[simp] lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
+
 end with_bot
 
 section canonically_ordered_monoid

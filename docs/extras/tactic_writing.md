@@ -155,7 +155,8 @@ is_done >>= tactic.trace
 The last thing we will need about monadic assignment is pattern-matching
 assignment. The following tactic tries to define expressions `l` and `r` as
 the left and right hand sides of the current goal. It also uses the
-`to_string` function which is very convenient in combination with `trace` in order to debug tactics, and works on any type which is an instance of `has_to_string`.
+`to_string` function which is very convenient in combination with `trace`
+in order to debug tactics, and works on any type which is an instance of `has_to_string`.
 ```lean
 meta def trace_goal_is_eq : tactic unit :=
 (do  `(%%l = %%r) ← tactic.target,

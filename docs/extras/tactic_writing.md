@@ -298,7 +298,6 @@ end
 ```
 A last remark about the above tactic: the names `` `h₁ `` and `` `h₂ `` are resolved when the tactic is executed. In order to trigger name resolution when
 the tactic is parsed, one should use double-backtick, as in ``` ``h₁ ```. Of course
-
 in the above context, that would trigger an error since nothing named `h₁` is
 in sight at tactic parsing time. But it can be useful in other cases.
 

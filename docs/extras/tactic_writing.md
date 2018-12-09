@@ -398,7 +398,7 @@ end
 ```
 
 As a last refinement, let us make a version of this tactic which names the
-multiplied equality by appending `.mul`, and optionaly remove the original
+multiplied equality by appending `.mul`, and optionally removes the original
 one if the tactic name is followed by `!`. This is the opportunity to use
 `when` which is the monadic version of `ite` (with else branch doing nothing).
 See [category/combinators.lean](https://github.com/leanprover/lean/blob/master/library/init/category/combinators.lean) in core library for other variations on this idea.

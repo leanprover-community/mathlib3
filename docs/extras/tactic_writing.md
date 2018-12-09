@@ -205,7 +205,7 @@ imperative pseudo-code
 if unify(e, infer_type(H)) then return H else find_matching_type(e, HS)
 ```
 We can now use this function for our interactive tactic. We first need
-to grab the local context using `local_context`, which return a list of
+to grab the local context using `local_context`, which returns a list of
 expressions that we can pass to our `find_matching_type`. If that
 function succeeds, its output is passed to the builtin tactic
 `tactic.exact`. Here we need to use the fully qualified name because of

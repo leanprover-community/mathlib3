@@ -84,7 +84,7 @@ meta def my_failing_tactic' : tactic unit :=
 tactic.fail "This tactic failed, we apologize for the inconvenience."
 ```
 
-When chaining instructions, the first failure interupts the process.
+When chaining instructions, the first failure interrupts the process.
 However the `orelse` combinator, denoted by an infix `<|>` allows to try
 its right-hand side if its left-hand side failed. The following will
 successfully deliver its message.

@@ -40,7 +40,7 @@ anything about these functions themselves, nor will the constants `my_tac1`,
 that they generate. By prefacing them with the keyword `meta`, we tell Lean that
 they are for "evaluation purposes only," which disables some of the checks that
 non-`meta` declarations must pass.
-This enough knowledge to write a first tactic.
+This is enough knowledge to write a first tactic.
 
 ```lean
 meta def my_first_tactic : tactic unit := tactic.trace "Hello, World."

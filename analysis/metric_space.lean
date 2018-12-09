@@ -629,31 +629,26 @@ If the two spaces are bounded, one can say for instance that each point in the f
 Instead, we choose a construction that works for unbounded spaces, but requires basepoints.
 We embed isometrically each factor, set the basepoints at distance 1,
 arbitrarily, and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
-their respective basepoints, plus the distance 1 between the basepoints. -/
+their respective basepoints, plus the distance 1 between the basepoints.
+Since there is an arbitrary choice in this construction, it is not an instance by default-/
 private def sum.dist : α ⊕ β → α ⊕ β → ℝ
 | (sum.inl a) (sum.inl a') := dist a a'
 | (sum.inr b) (sum.inr b') := dist b b'
 | (sum.inl a) (sum.inr b)  := dist a (default α) + 1 + dist (default β) b
 | (sum.inr b) (sum.inl a)  := dist b (default β) + 1 + dist (default α) a
 
-instance : has_dist (α ⊕ β) :=
-{ dist := sum.dist }
-
-lemma sum.dist_eq {x y : α ⊕ β} :
-  dist x y = sum.dist x y := rfl
-
 lemma sum.one_dist_le {x : α} {y : β} :
-  1 ≤ dist (@sum.inl α β x) (@sum.inr α β y) :=
+  1 ≤ sum.dist (@sum.inl α β x) (@sum.inr α β y) :=
 begin
   have : 0 + 0 ≤ dist x (default α) + dist (default β) y := add_le_add dist_nonneg dist_nonneg,
-  simpa [dist, sum.dist] using this
+  simpa [sum.dist] using this
 end
 
 lemma sum.one_dist_le' {x : α} {y : β} :
-  1 ≤ dist (@sum.inr α β y) (@sum.inl α β x) :=
+  1 ≤ sum.dist (@sum.inr α β y) (@sum.inl α β x) :=
 begin
   have : 0 + 0 ≤ dist y (default β) + dist (default α) x := add_le_add dist_nonneg dist_nonneg,
-  simpa [dist, sum.dist] using this
+  simpa [sum.dist] using this
 end
 
 open sum
@@ -661,12 +656,13 @@ open sum
 /--The distance on the disjoint union indeed defines a metric space. All the distance properties follow from our
 choice of the distance. The harder work is to show that the uniform structure defined by the distance coincides
 with the disjoint union uniform structure.-/
-instance : metric_space (α ⊕ β) :=
-{ dist_self := λx, by cases x; simp [dist_eq, sum.dist],
-  dist_comm := λx y, by cases x; cases y; simp [dist_eq, sum.dist, dist_comm],
+def metric_space_sum : metric_space (α ⊕ β) :=
+{ dist := sum.dist,
+  dist_self := λx, by cases x; simp [sum.dist],
+  dist_comm := λx y, by cases x; cases y; simp [sum.dist, dist_comm],
   dist_triangle := λx y z,
   begin
-    cases x; cases y; cases z; simp [dist_eq, sum.dist],
+    cases x; cases y; cases z; simp [sum.dist],
     { exact dist_triangle _ _ _},
     { have A := dist_triangle x y (default α), linarith },
     { have A := dist_triangle x (default α) z,
@@ -684,7 +680,7 @@ instance : metric_space (α ⊕ β) :=
   end,
   eq_of_dist_eq_zero := λx y,
   begin
-    cases x; cases y; simp [dist_eq, sum.dist],
+    cases x; cases y; simp [sum.dist],
     { have A : dist x (default α) ≥ 0 := dist_nonneg,
       have B : dist (default β) y ≥ 0 := dist_nonneg,
       assume h,
@@ -699,7 +695,7 @@ instance : metric_space (α ⊕ β) :=
   begin
     apply uniformity_dist_of_mem_uniformity,
     intro s,
-    have S1 : s ∈ (@_root_.uniformity (α ⊕ β) _).sets → (∃ (ε : ℝ) (H : ε > 0), ∀ {a b : α ⊕ β}, dist a b < ε → (a, b) ∈ s) :=
+    have S1 : s ∈ (@_root_.uniformity (α ⊕ β) _).sets → (∃ (ε : ℝ) (H : ε > 0), ∀ {a b : α ⊕ β}, sum.dist a b < ε → (a, b) ∈ s) :=
     begin
       assume hs,
       rcases hs with ⟨hsα, hsβ⟩,
@@ -711,7 +707,7 @@ instance : metric_space (α ⊕ β) :=
       rcases mem_uniformity_dist.1 this with ⟨εβ, εβ_pos, h_εβ⟩,
       have I : min (min εα εβ) 1 > 0 := lt_min (lt_min εα_pos εβ_pos) zero_lt_one,
       have : min (min εα εβ) 1 ≤ 1 := min_le_right _ _,
-      have A : ∀ (a : α) (b : α ⊕ β), dist (inl a) b < min (min εα εβ) 1 → (inl a, b) ∈ s :=
+      have A : ∀ (a : α) (b : α ⊕ β), sum.dist (inl a) b < min (min εα εβ) 1 → (inl a, b) ∈ s :=
       begin
         assume a b hab,
         cases b,
@@ -720,16 +716,16 @@ instance : metric_space (α ⊕ β) :=
                  ... ≤ min εα εβ : min_le_left _ _
                  ... ≤ εα : min_le_left _ _,
           exact h_εα A },
-        { simp [dist_eq, sum.dist] at hab,
+        { simp [sum.dist] at hab,
           have : dist a (default α) ≥ 0 := dist_nonneg,
           have : dist (default β) b ≥ 0 := dist_nonneg,
           linarith },
       end,
-      have B : ∀ (b : β) (a : α ⊕ β), dist (inr b) a < min (min εα εβ) 1 → (inr b, a) ∈ s :=
+      have B : ∀ (b : β) (a : α ⊕ β), sum.dist (inr b) a < min (min εα εβ) 1 → (inr b, a) ∈ s :=
       begin
         assume b a hba,
         cases a,
-        { simp [dist_eq, sum.dist] at hba,
+        { simp [sum.dist] at hba,
           have : dist (default α) a ≥ 0 := dist_nonneg,
           have : dist b (default β) ≥ 0 := dist_nonneg,
           linarith },
@@ -743,7 +739,7 @@ instance : metric_space (α ⊕ β) :=
       simp [I],
       exact ⟨A, B⟩
     end,
-    have S2 : (∃ (ε : ℝ) (H : ε > 0), ∀ {a b : α ⊕ β}, dist a b < ε → (a, b) ∈ s) → s ∈ (@_root_.uniformity (α ⊕ β) _).sets :=
+    have S2 : (∃ (ε : ℝ) (H : ε > 0), ∀ {a b : α ⊕ β}, sum.dist a b < ε → (a, b) ∈ s) → s ∈ (@_root_.uniformity (α ⊕ β) _).sets :=
     begin
       rintros ⟨ε, εpos, hε⟩,
       rw sum.uniformity,
@@ -754,7 +750,7 @@ instance : metric_space (α ⊕ β) :=
         apply mem_uniformity_dist.2,
         existsi [ε, εpos],
         intros a b hab,
-        have : dist a b = dist ((inl a) : α ⊕ β) (inl b) := rfl,
+        have : dist a b = sum.dist ((inl a) : α ⊕ β) (inl b) := rfl,
         rw this at hab,
         exact hε hab,
       end,
@@ -764,7 +760,7 @@ instance : metric_space (α ⊕ β) :=
         apply mem_uniformity_dist.2,
         existsi [ε, εpos],
         intros a b hab,
-        have : dist a b = dist ((inr a) : α ⊕ β) (inr b) := rfl,
+        have : dist a b = sum.dist ((inr a) : α ⊕ β) (inr b) := rfl,
         rw this at hab,
         exact hε hab,
       end,
@@ -772,11 +768,9 @@ instance : metric_space (α ⊕ β) :=
     end,
     exact ⟨S1, S2⟩
   end,
-  ..sum.has_dist
 }
 
 end sum
-
 
 theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
 uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε/2, half_pos ε0,

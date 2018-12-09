@@ -199,7 +199,7 @@ unchanged to the recursive call `find_matching_type Hs`. The choice of
 name `H` stands for `hypothesis`, while `Hs`, following Haskell's naming
 conventions, stands for several hypotheses. The imperative analogue of
 what happens for non-empty lists would read something like the following
-impreative pseudo-code
+imperative pseudo-code
 ```
 if unify(e, infer_type(H)) then return H else find_matching_type(e, HS)
 ```

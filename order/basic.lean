@@ -157,7 +157,9 @@ end monotone
 def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
 { le := λx y, f x ≤ f y,
   le_refl := λ a, le_refl _,
-  le_trans := λ a b c, le_trans }
+  le_trans := λ a b c, le_trans,
+  lt := λx y, f x < f y,
+  lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
 
 def partial_order.lift {α β} [partial_order β]
   (f : α → β) (inj : injective f) : partial_order α :=

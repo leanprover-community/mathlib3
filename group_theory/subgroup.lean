@@ -54,6 +54,17 @@ instance subtype.add_group {s : set β} [is_add_subgroup s] : add_group s :=
 by subtype_instance
 attribute [to_additive subtype.add_group] subtype.group
 
+@[simp, to_additive is_add_subgroup.coe_neg]
+lemma is_subgroup.coe_inv {s : set α} [is_subgroup s] (a : s) : ((a⁻¹ : s) : α) = a⁻¹ := rfl
+
+@[simp] lemma is_subgroup.coe_gpow {s : set α} [is_subgroup s] (a : s) (n : ℤ) : ((a ^ n : s) : α) = a ^ n :=
+by induction n; simp [is_submonoid.coe_pow a]
+
+@[simp] lemma is_add_subgroup.gsmul_coe {β : Type*} [add_group β] {s : set β} [is_add_subgroup s] (a : s) (n : ℤ) :
+  ((gsmul n a : s) : β) = gsmul n a :=
+by induction n; simp [is_add_submonoid.smul_coe a]
+attribute [to_additive is_add_subgroup.gsmul_coe] is_subgroup.coe_gpow
+
 theorem is_subgroup.of_div (s : set α)
   (one_mem : (1:α) ∈ s) (div_mem : ∀{a b:α}, a ∈ s → b ∈ s → a * b⁻¹ ∈ s):
   is_subgroup s :=
@@ -117,6 +128,10 @@ lemma mul_mem_cancel_right (h : a ∈ s) : a * b ∈ s ↔ b ∈ s :=
 
 end is_subgroup
 
+theorem is_add_subgroup.sub_mem {α} [add_group α] (s : set α) [is_add_subgroup s] (a b : α)
+  (ha : a ∈ s) (hb : b ∈ s) : a - b ∈ s :=
+is_add_submonoid.add_mem ha (is_add_subgroup.neg_mem hb)
+
 namespace group
 open is_submonoid is_subgroup
 
@@ -140,6 +155,9 @@ theorem subset_closure {s : set α} : s ⊆ closure s := λ a, mem_closure
 
 theorem closure_subset {s t : set α} [is_subgroup t] (h : s ⊆ t) : closure s ⊆ t :=
 assume a ha, by induction ha; simp [h _, *, one_mem, mul_mem, inv_mem_iff]
+
+lemma closure_subset_iff (s t : set α) [is_subgroup t] : closure s ⊆ t ↔ s ⊆ t :=
+⟨assume h b ha, h (mem_closure ha), assume h b ha, closure_subset h ha⟩
 
 theorem gpowers_eq_closure {a : α} : gpowers a = closure {a} :=
 subset.antisymm
@@ -168,11 +186,21 @@ attribute [to_additive add_group.subset_closure] group.subset_closure
 
 theorem closure_subset {s t : set α} [is_add_subgroup t] : s ⊆ t → closure s ⊆ t :=
 group.closure_subset
+
 attribute [to_additive add_group.closure_subset] group.closure_subset
+attribute [to_additive add_group.closure_subset_iff] group.closure_subset_iff
 
 theorem gmultiples_eq_closure {a : α} : gmultiples a = closure {a} :=
 group.gpowers_eq_closure
 attribute [to_additive add_group.gmultiples_eq_closure] group.gpowers_eq_closure
+
+@[elab_as_eliminator]
+theorem in_closure.rec_on {C : α → Prop}
+  {a : α} (H : a ∈ closure s)
+  (H1 : ∀ {a : α}, a ∈ s → C a) (H2 : C 0) (H3 : ∀ {a : α}, a ∈ closure s → C a → C (-a))
+  (H4 : ∀ {a b : α}, a ∈ closure s → b ∈ closure s → C a → C b → C (a + b)) :
+  C a :=
+group.in_closure.rec_on H (λ _, H1) H2 (λ _, H3) (λ _ _, H4)
 
 end add_group
 

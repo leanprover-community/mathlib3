@@ -134,11 +134,27 @@ by_cases
         tendsto_inverse_at_top_nhds_0,
     tendsto_cong this $ univ_mem_sets' $ by simp *)
 
+lemma tendsto_coe_iff {f : ℕ → ℕ} : tendsto (λ n, (f n : ℝ)) at_top at_top ↔ tendsto f at_top at_top :=
+⟨ λ h, tendsto_infi.2 $ λ i, tendsto_principal.2
+    (have _, from tendsto_infi.1 h i, by simpa using tendsto_principal.1 this),
+  λ h, tendsto.comp h tendsto_of_nat_at_top_at_top ⟩
+
+lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) : tendsto (λn:ℕ, k ^ n) at_top at_top :=
+tendsto_coe_iff.1 $
+  have hr : 1 < (k : ℝ), by rw [← nat.cast_one, nat.cast_lt]; exact h,
+  by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
+
+lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (nhds 0) :=
+tendsto.comp (tendsto_coe_iff.2 tendsto_id) tendsto_inverse_at_top_nhds_0
+
+lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (nhds 0) :=
+by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat
+
 lemma sum_geometric' {r : ℝ} (h : r ≠ 0) :
   ∀{n}, (finset.range n).sum (λi, (r + 1) ^ i) = ((r + 1) ^ n - 1) / r
 | 0     := by simp [zero_div]
 | (n+1) :=
-  by simp [@sum_geometric' n, h, pow_succ, add_div_eq_mul_add_div, add_mul, mul_comm, mul_assoc]
+  by simp [@sum_geometric' n, h, pow_succ, range_succ, add_div_eq_mul_add_div, add_mul, mul_comm, mul_assoc]
 
 lemma sum_geometric {r : ℝ} {n : ℕ} (h : r ≠ 1) :
   (range n).sum (λi, r ^ i) = (r ^ n - 1) / (r - 1) :=

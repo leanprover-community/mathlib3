@@ -17,37 +17,6 @@ namespace tactic
 namespace interactive
 open interactive interactive.types expr
 
-local notation `listΣ` := list_Sigma
-local notation `listΠ` := list_Pi
-
-meta def rcases_patt_parse_core
-  (rcases_patt_parse_list : parser (listΣ rcases_patt_inverted)) :
-  parser rcases_patt_inverted | x :=
-((rcases_patt_inverted.one <$> ident_) <|>
-(rcases_patt_inverted.many <$> brackets "⟨" "⟩"
-  (sep_by (tk ",") rcases_patt_parse_list))) x
-
-meta def rcases_patt_parse_list : parser (listΣ rcases_patt_inverted) :=
-with_desc "patt" $
-list.cons <$> rcases_patt_parse_core rcases_patt_parse_list <*>
-  (tk "|" *> rcases_patt_parse_core rcases_patt_parse_list)*
-
-meta def rcases_patt_parse : parser rcases_patt_inverted :=
-with_desc "patt_list" $ rcases_patt_parse_core rcases_patt_parse_list
-
-meta def rcases_parse_depth : parser nat :=
-do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
-
-meta def rcases_parse : parser (pexpr × (listΣ (listΠ rcases_patt) ⊕ nat)) :=
-do hint ← (tk "?")?,
-  p ← texpr,
-  match hint with
-  | none := do
-    ids ← (tk "with" *> rcases_patt_parse_list)?,
-    pure (p, sum.inl $ rcases_patt_inverted.invert_list (ids.get_or_else [default _]))
-  | some _ := do depth ← rcases_parse_depth, pure (p, sum.inr depth)
-  end
-
 /--
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
 `with` pattern syntax to allow for recursive case splitting. The pattern syntax
@@ -68,6 +37,9 @@ If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
 `∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
 parameter as necessary.
 
+`rcases` also has special support for quotient types: quotient induction into Prop works like
+matching on the constructor `quot.mk`.
+
 `rcases? e` will perform case splits on `e` in the same way as `rcases e`,
 but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
@@ -79,12 +51,6 @@ meta def rcases : parse rcases_parse → tactic unit
   patt ← tactic.rcases_hint p depth,
   pe ← pp p,
   trace $ ↑"snippet: rcases " ++ pe ++ " with " ++ to_fmt patt
-
-meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
-(tk "?" >> sum.inr <$> rcases_parse_depth) <|>
-sum.inl <$> (rcases_patt_inverted.invert <$>
-  (brackets "(" ")" rcases_patt_parse_list <|>
-  (λ x, [x]) <$> rcases_patt_parse))*
 
 /--
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
@@ -153,10 +119,12 @@ l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducibl
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=
-unfold [``coe,``lift_t,``has_lift_t.lift,``coe_t,``has_coe_t.coe,``coe_b,``has_coe.coe,
-        ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
+unfold [
+  ``coe, ``coe_t, ``has_coe_t.coe, ``coe_b,``has_coe.coe,
+  ``lift, ``has_lift.lift, ``lift_t, ``has_lift_t.lift,
+  ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
-/-- Unfold auxiliary definitions associated with the currently declaration. -/
+/-- Unfold auxiliary definitions associated with the current declaration. -/
 meta def unfold_aux : tactic unit :=
 do tgt ← target,
    name ← decl_name,
@@ -208,7 +176,8 @@ and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
 | o        := focus1 (assumption <|> (congr_core >>
-  all_goals (reflexivity <|> try (congr' (nat.pred <$> o)))))
+  all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
+             `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
 
 /--
 Acts like `have`, but removes a hypothesis with the same name as
@@ -242,40 +211,71 @@ optional arguments:
         the next one will be attempted.
 -/
 meta def apply_assumption
-  (asms : option (list expr) := none)
+  (asms : tactic (list expr) := local_context)
   (tac : tactic unit := return ()) : tactic unit :=
 tactic.apply_assumption asms tac
 
 open nat
 
+meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name): tactic (list expr) :=
+do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
+   hs ← hs.mmap i_to_expr_for_apply,
+   l ← attr.mmap $ λ a, attribute.get_instances a,
+   let l := l.join,
+   m ← list.mmap mk_const l,
+   let hs := (hs ++ m).filter $ λ h, expr.const_name h ∉ gex,
+   hs ← if no_dflt then
+          return hs
+        else
+          do { congr_fun ← mk_const `congr_fun,
+               congr_arg ← mk_const `congr_arg,
+               return (congr_fun :: congr_arg :: hs) },
+   if ¬ no_dflt ∨ all_hyps then do
+    ctx ← local_context,
+    return $ hs.append (ctx.filter (λ h, h.local_uniq_name ∉ hex)) -- remove local exceptions
+   else return hs
+
 /--
 `solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
-and repeated calls `apply_assumption` on the generated subgoals until no subgoals remains
-or up to `depth` times.
+and then repeatedly calls `apply_assumption` on the generated subgoals until no subgoals remain,
+performing at most `max_rep` recursive steps.
 
 `solve_by_elim` discharges the current goal or fails
 
-`solve_by_elim` does some back-tracking if `apply_assumption` chooses an unproductive assumption
+`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
+
+By default, the assumptions passed to apply_assumption are the local context, `congr_fun` and
+`congr_arg`.
+
+`solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
+
+`solve_by_elim with attr₁ ... attrᵣ also applied all lemmas tagged with the specified attributes.
+
+`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
+unless they are explicitly included.
+
+`solve_by_elim [-id]` removes a specified assumption.
 
 optional arguments:
-- discharger: a subsidiary tactic to try at each step (`cc` is often helpful)
-- asms: list of assumptions / rules to consider instead of local constants
-- depth: number of attempts at discharging generated sub-goals
-
-The optional arguments can be specified as ``solve_by_elim { discharger := `[cc] }``.
+- discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
+- max_rep: number of attempts at discharging generated sub-goals
 -/
-meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-tactic.solve_by_elim opt
+meta def solve_by_elim (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
+do asms ← mk_assumption_set no_dflt hs attr_names,
+   tactic.solve_by_elim { assumptions := return asms ..opt }
 
 /--
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
 and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
 using `reflexivity` or `solve_by_elim`
 -/
-meta def tautology := tactic.tautology
+meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
 
 /-- Shorter name for the tactic `tautology`. -/
-meta def tauto := tautology
+meta def tauto (c : parse $ (tk "!")?) := tautology c
+
+/-- Make every propositions in the context decidable -/
+meta def classical := tactic.classical
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)
@@ -594,6 +594,82 @@ do let (e,n) := arg,
      >>= note h' none >> pure ()),
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
+
+/-- `choose a b h using hyp` takes an hypothesis `hyp` of the form
+`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
+into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
+`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
+
+Example:
+
+```lean
+example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
+begin
+  choose i j h using h,
+  guard_hyp i := ℕ → ℕ → ℕ,
+  guard_hyp j := ℕ → ℕ → ℕ,
+  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
+  trivial
+end
+```
+-/
+meta def choose (first : parse ident) (names : parse ident*) (tgt : parse (tk "using" *> texpr)?) :
+  tactic unit := do
+tgt ← match tgt with
+  | none := get_local `this
+  | some e := tactic.i_to_expr_strict e
+  end,
+tactic.choose tgt (first :: names),
+try (tactic.clear tgt)
+
+meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do e ← to_expr p, is_def_eq t e
+
+/--
+`guard_target t` fails if the target of the main goal is not `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_target' (p : parse texpr) : tactic unit :=
+do t ← target, guard_expr_eq' t p
+
+/--
+a weaker version of `trivial` that tries to solve the goal by reflexivity or by reducing it to true,
+unfolding only `reducible` constants. -/
+meta def triv : tactic unit :=
+tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail "triv tactic failed"
+
+/--
+Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
+Unlike `existsi`, `x` is elaborated with respect to the expected type.
+`use` will alternatively take a list of terms `[x0, ..., xn]`.
+
+`use` will work with constructors of arbitrary inductive types.
+
+Examples:
+
+example (α : Type) : ∃ S : set α, S = S :=
+by use ∅
+
+example : ∃ x : ℤ, x = x :=
+by use 42
+
+example : ∃ a b c : ℤ, a + b + c = 6 :=
+by use [1, 2, 3]
+
+example : ∃ p : ℤ × ℤ, p.1 = 1 :=
+by use ⟨1, 42⟩
+
+example : Σ x y : ℤ, (ℤ × ℤ) × ℤ :=
+by use [1, 2, 3, 4, 5]
+
+inductive foo
+| mk : ℕ → bool × ℕ → ℕ → foo
+
+example : foo :=
+by use [100, tt, 4, 3]
+-/
+meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
+tactic.use l >> try triv
 
 end interactive
 end tactic

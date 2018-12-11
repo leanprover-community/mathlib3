@@ -95,10 +95,6 @@ begin
   exact tendsto_id
 end
 
-lemma coe_nat : ∀n:ℕ, (n : ennreal) = (n : nnreal)
-| 0       := rfl
-| (n + 1) := by simp [coe_nat n]
-
 lemma tendsto_nhds_top {m : α → ennreal} {f : filter α}
   (h : ∀n:ℕ, {a | ↑n < m a} ∈ f.sets) : tendsto m f (nhds ⊤) :=
 tendsto_nhds_generate_from $ assume s hs,
@@ -107,47 +103,27 @@ match s, hs with
 | _, ⟨some r, or.inl rfl⟩, hr :=
   let ⟨n, hrn⟩ := exists_nat_gt r in
   mem_sets_of_superset (h n) $ assume a hnma, show ↑r < m a, from
-    lt_trans (show (r : ennreal) < n, from (coe_nat n).symm ▸ coe_lt_coe.2 hrn) hnma
+    lt_trans (show (r : ennreal) < n, from (coe_nat n) ▸ coe_lt_coe.2 hrn) hnma
 | _, ⟨a,      or.inr rfl⟩, hr := (not_top_lt $ show ⊤ < a, from hr).elim
 end
 
-/-
-lemma nhds_top : nhds (⊤ : ennreal) = (⨅i:ℕ, principal {e : ennreal | ↑i < e}) :=
-_
--/
-
-/- MOVE TO nnreal
-lemma nhds_of_real_eq_map_of_real_nhds_nonneg {r : ℝ} :
-  nhds (of_real r) = (nhds r ⊓ principal {x | 0 ≤ x}).map of_real :=
-by rw [nhds_of_real_eq_map_of_real_nhds hr];
-from by_cases
-  (assume : r = 0,
-    le_antisymm
-      (assume s (hs : {a | of_real a ∈ s} ∈ (nhds r ⊓ principal {x | 0 ≤ x}).sets),
-        let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := mem_inf_sets.mp hs in
-        show {a | of_real a ∈ s} ∈ (nhds r).sets,
-          from (nhds r).sets_of_superset ht₁ $ assume a ha,
-          match le_total 0 a with
-          | or.inl h := have a ∈ t₂, from ht₂ h, ht ⟨ha, this⟩
-          | or.inr h :=
-            have r ∈ t₁ ∩ t₂, from ⟨mem_of_nhds ht₁, ht₂ (le_of_eq ‹r = 0›.symm)⟩,
-            have of_real 0 ∈ s, from ‹r = 0› ▸ ht this,
-            by simp [of_real_of_nonpos h]; assumption
-          end)
-      (map_mono inf_le_left))
-  (assume : r ≠ 0,
-    have 0 < r, from lt_of_le_of_ne hr this.symm,
-    have nhds r ⊓ principal {x : ℝ | 0 ≤ x} = nhds r,
-      from inf_of_le_left $ le_principal_iff.mpr $ le_mem_nhds this,
-    by simp [*])
--/
+lemma tendsto_coe_nnreal_nhds_top {α} {l : filter α} {f : α → nnreal} (h : tendsto f l at_top) :
+  tendsto (λa, (f a : ennreal)) l (nhds (⊤:ennreal)) :=
+tendsto_nhds_top $ assume n,
+have {a : α | ↑(n+1) ≤ f a} ∈ l.sets := h $ mem_at_top _,
+mem_sets_of_superset this $ assume a (ha : ↑(n+1) ≤ f a),
+begin
+  rw [← coe_nat],
+  dsimp,
+  exact coe_lt_coe.2 (lt_of_lt_of_le (nat.cast_lt.2 (nat.lt_succ_self _)) ha)
+end
 
 instance : topological_add_monoid ennreal :=
 ⟨ continuous_iff_tendsto.2 $
   have hl : ∀a:ennreal, tendsto (λ (p : ennreal × ennreal), p.fst + p.snd) (nhds (⊤, a)) (nhds ⊤), from
     assume a, tendsto_nhds_top $ assume n,
     have set.prod {a | ↑n < a } univ ∈ (nhds ((⊤:ennreal), a)).sets, from
-      prod_mem_nhds_sets (lt_mem_nhds $ (coe_nat n).symm ▸ coe_lt_top) univ_mem_sets,
+      prod_mem_nhds_sets (lt_mem_nhds $ coe_nat n ▸ coe_lt_top) univ_mem_sets,
     begin filter_upwards [this] assume ⟨a₁, a₂⟩ ⟨h₁, h₂⟩, lt_of_lt_of_le h₁ (le_add_right $ le_refl _) end,
   begin
     rintro ⟨a₁, a₂⟩,
@@ -172,7 +148,7 @@ begin
   calc (n:ennreal) = ↑(((n:nnreal) / ε) * ε) :
     begin
       simp [nnreal.div_def],
-      rw [mul_assoc, ← coe_mul, nnreal.inv_mul_cancel, coe_one, coe_nat, mul_one],
+      rw [mul_assoc, ← coe_mul, nnreal.inv_mul_cancel, coe_one, ← coe_nat, mul_one],
       exact zero_lt_iff_ne_zero.1 hε
     end
     ... < (↑m * ε : nnreal) : coe_lt_coe.2 $ mul_lt_mul hm (le_refl _) hε (nat.cast_nonneg _)
@@ -219,15 +195,64 @@ calc supr s + a = Sup (range s) + a : by simp [Sup_range]
 lemma add_supr {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : a + supr s = ⨆b, a + s b :=
 by rw [add_comm, supr_add]; simp
 
-lemma supr_add_supr {ι : Sort*} [nonempty ι]
-  {f g : ι → ennreal} (h : ∀i j, ∃k, f i + g j ≤ f k + g k) :
+lemma supr_add_supr {ι : Sort*} {f g : ι → ennreal} (h : ∀i j, ∃k, f i + g j ≤ f k + g k) :
   supr f + supr g = (⨆ a, f a + g a) :=
 begin
-  refine le_antisymm _ (supr_le $ λ a, add_le_add' (le_supr _ _) (le_supr _ _)),
-  simpa [add_supr, supr_add] using
-    λ i j, show f i + g j ≤ ⨆ a, f a + g a, from
-    let ⟨k, hk⟩ := h i j in le_supr_of_le k hk,
+  by_cases hι : nonempty ι,
+  { letI := hι,
+    refine le_antisymm _ (supr_le $ λ a, add_le_add' (le_supr _ _) (le_supr _ _)),
+    simpa [add_supr, supr_add] using
+      λ i j:ι, show f i + g j ≤ ⨆ a, f a + g a, from
+      let ⟨k, hk⟩ := h i j in le_supr_of_le k hk },
+  { have : ∀f:ι → ennreal, (⨆i, f i) = 0 := assume f, bot_unique (supr_le $ assume i, (hι ⟨i⟩).elim),
+    rw [this, this, this, zero_add] }
 end
+
+lemma supr_add_supr_of_monotone {ι : Sort*} [semilattice_sup ι]
+  {f g : ι → ennreal} (hf : monotone f) (hg : monotone g) :
+  supr f + supr g = (⨆ a, f a + g a) :=
+supr_add_supr $ assume i j, ⟨i ⊔ j, add_le_add' (hf $ le_sup_left) (hg $ le_sup_right)⟩
+
+lemma finset_sum_supr_nat {α} {ι} [semilattice_sup ι] {s : finset α} {f : α → ι → ennreal}
+  (hf : ∀a, monotone (f a)) :
+  s.sum (λa, supr (f a)) = (⨆ n, s.sum (λa, f a n)) :=
+begin
+  refine finset.induction_on s _ _,
+  { simp,
+    exact (bot_unique $ supr_le $ assume i, le_refl ⊥).symm },
+  { assume a s has ih,
+    simp only [finset.sum_insert has],
+    rw [ih, supr_add_supr_of_monotone (hf a)],
+    assume i j h,
+    exact (finset.sum_le_sum' $ assume a ha, hf a h) }
+end
+
+lemma mul_Sup {s : set ennreal} {a : ennreal} : a * Sup s = ⨆i∈s, a * i :=
+begin
+  by_cases hs : ∀x∈s, x = (0:ennreal),
+  { have h₁ : Sup s = 0 := (bot_unique $ Sup_le $ assume a ha, (hs a ha).symm ▸ le_refl 0),
+    have h₂ : (⨆i ∈ s, a * i) = 0 :=
+      (bot_unique $ supr_le $ assume a, supr_le $ assume ha, by simp [hs a ha]),
+    rw [h₁, h₂, mul_zero] },
+  { simp only [not_forall] at hs,
+    rcases hs with ⟨x, hx, hx0⟩,
+    have s₀ : s ≠ ∅ := not_eq_empty_iff_exists.2 ⟨x, hx⟩,
+    have s₁ : Sup s ≠ 0 :=
+      zero_lt_iff_ne_zero.1 (lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hx0) (le_Sup hx)),
+    have : Sup ((λb, a * b) '' s) = a * Sup s :=
+      is_lub_iff_Sup_eq.mp (is_lub_of_is_lub_of_tendsto
+        (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
+        is_lub_Sup
+        s₀
+        (ennreal.tendsto_mul_right (tendsto_id' inf_le_left) s₁)),
+    rw [this.symm, Sup_image] }
+end
+
+lemma mul_supr {ι : Sort*} {f : ι → ennreal} {a : ennreal} : a * supr f = ⨆i, a * f i :=
+by rw [← Sup_range, mul_Sup, supr_range]
+
+lemma supr_mul {ι : Sort*} {f : ι → ennreal} {a : ennreal} : supr f * a = ⨆i, f i * a :=
+by rw [mul_comm, mul_supr]; congr; funext; rw [mul_comm]
 
 protected lemma tendsto_coe_sub : ∀{b:ennreal}, tendsto (λb:ennreal, ↑r - b) (nhds b) (nhds (↑r - b)) :=
 begin

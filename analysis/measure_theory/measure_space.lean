@@ -182,7 +182,7 @@ le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (trim_ge 
 theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm
   (le_trans ((trim 0).mono (subset_univ s)) $
-      le_of_eq $ trim_eq _ is_measurable_univ)
+    le_of_eq $ trim_eq _ is_measurable.univ)
   (zero_le _)
 
 theorem trim_add (m₁ m₂ : outer_measure α) : (m₁ + m₂).trim = m₁.trim + m₂.trim :=
@@ -215,7 +215,7 @@ For measurable sets this returns the measure assigned by the `measure_of` field 
 But we can extend this to _all_ sets, but using the outer measure. This gives us monotonicity and
 subadditivity for all sets.
 -/
-instance {α} [measurable_space α] : has_coe_to_fun (measure α) :=
+instance measure.has_coe_to_fun {α} [measurable_space α] : has_coe_to_fun (measure α) :=
 ⟨λ _, set α → ennreal, λ m, m.to_outer_measure⟩
 
 namespace measure
@@ -316,7 +316,7 @@ begin
   { simpa }
 end
 
-lemma measure_sUnion [encodable β] {S : set (set α)} (hs : countable S)
+lemma measure_sUnion {S : set (set α)} (hs : countable S)
   (hd : pairwise_on S disjoint) (h : ∀s∈S, is_measurable s) :
   μ (⋃₀ S) = ∑s:S, μ s.1 :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
@@ -507,10 +507,16 @@ def count : measure α := sum dirac
 @[class] def is_complete {α} {_:measurable_space α} (μ : measure α) : Prop :=
 ∀ s, μ s = 0 → is_measurable s
 
+/-- The "almost everywhere" filter of co-null sets. -/
+def a_e (μ : measure α) : filter α :=
+{ sets := {s | μ (-s) = 0},
+  univ_sets := by simp [measure_empty],
+  inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
+  sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
+
 end measure
 
 end measure_theory
-
 
 section is_complete
 open measure_theory
@@ -568,15 +574,14 @@ theorem is_null_measurable.Union_nat {s : ℕ → set α}
   (hs : ∀ i, is_null_measurable μ (s i)) :
   is_null_measurable μ (Union s) :=
 begin
-    cases axiom_of_choice
-      (λ i, is_null_measurable_iff.1 (hs i) : _) with t ht,
-    dsimp at t ht, simp [forall_and_distrib] at ht,
-    rcases ht with ⟨st, ht, hz⟩,
-    refine is_null_measurable_iff.2
-      ⟨Union t, Union_subset_Union st, is_measurable.Union ht,
-        measure_mono_null _ (measure_Union_null hz)⟩,
-    rw [diff_subset_iff, ← Union_union_distrib],
-    exact Union_subset_Union (λ i, by rw ← diff_subset_iff)
+  choose t ht using assume i, is_null_measurable_iff.1 (hs i),
+  simp [forall_and_distrib] at ht,
+  rcases ht with ⟨st, ht, hz⟩,
+  refine is_null_measurable_iff.2
+    ⟨Union t, Union_subset_Union st, is_measurable.Union ht,
+      measure_mono_null _ (measure_Union_null hz)⟩,
+  rw [diff_subset_iff, ← Union_union_distrib],
+  exact Union_subset_Union (λ i, by rw ← diff_subset_iff)
 end
 
 theorem is_measurable.diff_null {s z : set α}
@@ -584,13 +589,11 @@ theorem is_measurable.diff_null {s z : set α}
   is_null_measurable μ (s \ z) :=
 begin
   rw measure_eq_infi at hz,
-  have : ∀ q : {q:ℚ//q>0}, ∃ t:set α,
+  choose f hf using show ∀ q : {q:ℚ//q>0}, ∃ t:set α,
     z ⊆ t ∧ is_measurable t ∧ μ t < (nnreal.of_real q.1 : ennreal),
   { rintro ⟨ε, ε0⟩,
     have : 0 < (nnreal.of_real ε : ennreal), { simpa using ε0 },
     rw ← hz at this, simpa [infi_lt_iff] },
-  rcases axiom_of_choice this with ⟨f, hf⟩,
-  dsimp at f hf,
   refine is_null_measurable_iff.2 ⟨s \ Inter f,
     diff_subset_diff_right (subset_Inter (λ i, (hf i).1)),
     hs.diff (is_measurable.Inter (λ i, (hf i).2.1)),
@@ -633,8 +636,8 @@ def completion {α : Type u} [measurable_space α] (μ : measure α) :
   @measure_theory.measure α (null_measurable μ) :=
 { to_outer_measure := μ.to_outer_measure,
   m_Union := λ s hs hd, show μ (Union s) = ∑ i, μ (s i), begin
-    rcases axiom_of_choice (λ i, is_null_measurable_iff.1 (hs i):_) with ⟨t, ht⟩,
-    dsimp at t ht, simp [forall_and_distrib] at ht, rcases ht with ⟨st, ht, hz⟩,
+    choose t ht using assume i, is_null_measurable_iff.1 (hs i),
+    simp [forall_and_distrib] at ht, rcases ht with ⟨st, ht, hz⟩,
     rw is_null_measurable_measure_eq (Union_subset_Union st),
     { rw measure_Union _ ht,
       { congr, funext i,
@@ -660,3 +663,75 @@ instance completion.is_complete {α : Type u} [measurable_space α] (μ : measur
 λ z hz, null_is_null_measurable hz
 
 end is_complete
+
+namespace measure_theory
+
+/-- A measure space is a measurable space equipped with a
+  measure, referred to as `volume`. -/
+class measure_space (α : Type*) extends measurable_space α :=
+(μ {} : measure α)
+
+section measure_space
+variables {α : Type*} [measure_space α] {s₁ s₂ : set α}
+open measure_space
+
+def volume : set α → ennreal := @μ α _
+
+@[simp] lemma volume_empty : volume (∅ : set α) = 0 := μ.empty
+
+lemma volume_mono : s₁ ⊆ s₂ → volume s₁ ≤ volume s₂ := measure_mono
+
+lemma volume_mono_null : s₁ ⊆ s₂ → volume s₂ = 0 → volume s₁ = 0 :=
+measure_mono_null
+
+theorem volume_Union_le {β} [encodable β] :
+  ∀ (s : β → set α), volume (⋃i, s i) ≤ (∑i, volume (s i)) :=
+measure_Union_le
+
+lemma volume_Union_null {β} [encodable β] {s : β → set α} :
+  (∀ i, volume (s i) = 0) → volume (⋃i, s i) = 0 :=
+measure_Union_null
+
+theorem volume_union_le : ∀ (s₁ s₂ : set α), volume (s₁ ∪ s₂) ≤ volume s₁ + volume s₂ :=
+measure_union_le
+
+lemma volume_union_null : volume s₁ = 0 → volume s₂ = 0 → volume (s₁ ∪ s₂) = 0 :=
+measure_union_null
+
+lemma volume_Union {β} [encodable β] {f : β → set α} :
+  pairwise (disjoint on f) → (∀i, is_measurable (f i)) →
+  volume (⋃i, f i) = (∑i, volume (f i)) :=
+measure_Union
+
+lemma volume_union : disjoint s₁ s₂ → is_measurable s₁ → is_measurable s₂ →
+  volume (s₁ ∪ s₂) = volume s₁ + volume s₂ :=
+measure_union
+
+lemma volume_bUnion {β} {s : set β} {f : β → set α} : countable s →
+  pairwise_on s (disjoint on f) → (∀b∈s, is_measurable (f b)) →
+  volume (⋃b∈s, f b) = ∑p:s, volume (f p.1) :=
+measure_bUnion
+
+lemma volume_sUnion {S : set (set α)} : countable S →
+  pairwise_on S disjoint → (∀s∈S, is_measurable s) →
+  volume (⋃₀ S) = ∑s:S, volume s.1 :=
+measure_sUnion
+
+lemma volume_bUnion_finset {β} {s : finset β} {f : β → set α}
+  (hd : pairwise_on ↑s (disjoint on f)) (hm : ∀b∈s, is_measurable (f b)) :
+  volume (⋃b∈s, f b) = s.sum (λp, volume (f p)) :=
+show volume (⋃b∈(↑s : set β), f b) = s.sum (λp, volume (f p)),
+begin
+  rw [volume_bUnion (countable_finite (finset.finite_to_set s)) hd hm, tsum_eq_sum],
+  { show s.attach.sum (λb:(↑s : set β), volume (f b)) = s.sum (λb, volume (f b)),
+    exact @finset.sum_attach _ _ s _ (λb, volume (f b)) },
+  simp
+end
+
+lemma volume_diff : s₂ ⊆ s₁ → is_measurable s₁ → is_measurable s₂ →
+  volume s₂ < ⊤ → volume (s₁ \ s₂) = volume s₁ - volume s₂ :=
+measure_diff
+
+end measure_space
+
+end measure_theory

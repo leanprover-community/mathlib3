@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 Outer measures -- overapproximations of measures
 -/
 
-import order.galois_connection algebra.big_operators
+import order.galois_connection algebra.big_operators algebra.module
        analysis.ennreal analysis.limits
        analysis.measure_theory.measurable_space
 
@@ -174,7 +174,7 @@ instance : complete_lattice (outer_measure α) :=
 le_antisymm
   (supr_le $ λ ⟨_, i, rfl⟩, le_supr _ i)
   (supr_le $ λ i, le_supr
-    (λ (m : {a : outer_measure α // ∃ i, a = f i}), m.1 s)
+    (λ (m : {a : outer_measure α // ∃ i, f i = a}), m.1 s)
     ⟨f i, i, rfl⟩)
 
 @[simp] theorem sup_apply (m₁ m₂ : outer_measure α) (s : set α) :
@@ -229,35 +229,25 @@ def sum {ι} (f : ι → outer_measure α) : outer_measure α :=
 @[simp] theorem sum_apply {ι} (f : ι → outer_measure α) (s : set α) :
   sum f s = ∑ i, f i s := rfl
 
-def smul (a : ennreal) (m : outer_measure α) : outer_measure α :=
-{ measure_of := λs, a * m s,
+instance : has_scalar ennreal (outer_measure α) :=
+⟨λ a m, {
+  measure_of := λs, a * m s,
   empty := by simp,
   mono := λ s t h, canonically_ordered_semiring.mul_le_mul (le_refl _) (m.mono' h),
   Union_nat := λ s, by rw ennreal.mul_tsum; exact
-    canonically_ordered_semiring.mul_le_mul (le_refl _) (m.Union_nat _) }
-
-local infixr ` • ` := smul
+    canonically_ordered_semiring.mul_le_mul (le_refl _) (m.Union_nat _) }⟩
 
 @[simp] theorem smul_apply (a : ennreal) (m : outer_measure α) (s : set α) :
   (a • m) s = a * m s := rfl
 
-theorem smul_add (a : ennreal) (m₁ m₂ : outer_measure α) :
-  a • (m₁ + m₂) = a • m₁ + a • m₂ := ext $ λ s, mul_add _ _ _
-
-theorem add_smul (a b : ennreal) (m : outer_measure α) :
-  (a + b) • m = a • m + b • m := ext $ λ s, add_mul _ _ _
-
-theorem mul_smul (a b : ennreal) (m : outer_measure α) :
-  (a * b) • m = a • b • m := ext $ λ s, mul_assoc _ _ _
-
-@[simp] theorem one_smul (m : outer_measure α) :
-  1 • m = m := ext $ λ s, one_mul _
-
-@[simp] theorem zero_smul (m : outer_measure α) :
-  0 • m = 0 := ext $ λ s, zero_mul _
-
-@[simp] theorem smul_zero (a : ennreal) :
-  a • (0 : outer_measure α) = 0 := ext $ λ s, mul_zero _
+instance : semimodule ennreal (outer_measure α) :=
+{ smul_add := λ a m₁ m₂, ext $ λ s, mul_add _ _ _,
+  add_smul := λ a b m, ext $ λ s, add_mul _ _ _,
+  mul_smul := λ a b m, ext $ λ s, mul_assoc _ _ _,
+  one_smul := λ m, ext $ λ s, one_mul _,
+  zero_smul := λ m, ext $ λ s, zero_mul _,
+  smul_zero := λ a, ext $ λ s, mul_zero _,
+  ..outer_measure.has_scalar }
 
 theorem smul_dirac_apply (a : ennreal) (b : α) (s : set α) :
   (a • dirac b) s = ⨆ h : b ∈ s, a :=
@@ -289,15 +279,14 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
     rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_lt_coe.2 hε) ℕ with ⟨ε', hε', hl⟩,
     refine le_trans _ (add_le_add_left' (le_of_lt hl)),
     rw ← ennreal.tsum_add,
-    have : ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑i, m (f i)) < μ (s i) + ε' i,
+    choose f hf using show
+      ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑i, m (f i)) < μ (s i) + ε' i,
     { intro,
       have : μ (s i) < μ (s i) + ε' i :=
         ennreal.lt_add_right
           (lt_of_le_of_lt (by apply ennreal.le_tsum) hb)
           (by simpa using hε' i),
       simpa [μ, infi_lt_iff] },
-    cases classical.axiom_of_choice this with f hf,
-    dsimp at f hf, clear this,
     refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hf i).2),
     rw [← ennreal.tsum_prod, ← tsum_equiv equiv.nat_prod_nat_equiv_nat.symm],
     swap, {apply_instance},
@@ -373,9 +362,9 @@ private lemma C_sum {s : ℕ → set α} (h : ∀i, C (s i)) (hd : pairwise (dis
   ∀ {n}, (finset.range n).sum (λi, m (t ∩ s i)) = m (t ∩ ⋃i<n, s i)
 | 0            := by simp [nat.not_lt_zero, m.empty]
 | (nat.succ n) := begin
-  simp [Union_lt_succ],
+  simp [Union_lt_succ, range_succ],
   rw [measure_inter_union m _ (h n), C_sum],
-  intro a, simpa using λ h₁ i hi h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
+  intro a, simpa [range_succ] using λ h₁ i hi h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
 end
 
 private lemma C_Union_nat {s : ℕ → set α} (h : ∀i, C (s i))
@@ -462,7 +451,7 @@ theorem le_sum_caratheodory {ι} (m : ι → outer_measure α) :
   measurable_space.is_measurable_infi.1 h i t, ennreal.tsum_add]
 
 theorem le_smul_caratheodory (a : ennreal) (m : outer_measure α) :
-  m.caratheodory ≤ (smul a m).caratheodory :=
+  m.caratheodory ≤ (a • m).caratheodory :=
 λ s h t, by simp [h t, mul_add]
 
 @[simp] theorem dirac_caratheodory (a : α) : (dirac a).caratheodory = ⊤ :=

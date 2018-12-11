@@ -79,13 +79,12 @@ theorem singleton_coe (a : α) : (a::0 : multiset α) = ([a] : list α) := rfl
   have [a] ++ l ~ [b] ++ l, from quotient.exact e,
   eq_singleton_of_perm $ (perm_app_right_iff _).1 this, congr_arg _⟩
 
-@[simp] theorem cons_inj_right (a : α) {s t : multiset α} :
-  a::s = a::t ↔ s = t :=
-quotient.induction_on₂ s t $ λ l₁ l₂, by simp [perm_cons]
+@[simp] theorem cons_inj_right (a : α) : ∀{s t : multiset α}, a::s = a::t ↔ s = t :=
+by rintros ⟨l₁⟩ ⟨l₂⟩; simp [perm_cons]
 
 @[recursor 5] protected theorem induction {p : multiset α → Prop}
-  (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) (s) : p s :=
-quot.induction_on s $ λ l, by induction l with _ _ ih; [exact h₁, exact h₂ ih]
+  (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) : ∀s, p s :=
+by rintros ⟨l⟩; induction l with _ _ ih; [exact h₁, exact h₂ ih]
 
 @[elab_as_eliminator] protected theorem induction_on {p : multiset α → Prop}
   (s : multiset α) (h₁ : p 0) (h₂ : ∀ ⦃a : α⦄ {s : multiset α}, p s → p (a :: s)) : p s :=
@@ -245,11 +244,10 @@ quotient.lift_on₂ s t (<+~) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
   propext (p₂.subperm_left.trans p₁.subperm_right)
 
 instance : partial_order (multiset α) :=
-{ le := multiset.le,
-  le_refl := λ s, quot.induction_on s $ λ l, subperm.refl _,
-  le_trans := λ s t u, quotient.induction_on₃ s t u $ @subperm.trans _,
-  le_antisymm := λ s t, quotient.induction_on₂ s t $
-    λ l₁ l₂ h₁ h₂, quot.sound (subperm.antisymm h₁ h₂) }
+{ le          := multiset.le,
+  le_refl     := by rintros ⟨l⟩; exact subperm.refl _,
+  le_trans    := by rintros ⟨l₁⟩ ⟨l₂⟩ ⟨l₃⟩; exact @subperm.trans _ _ _ _,
+  le_antisymm := by rintros ⟨l₁⟩ ⟨l₂⟩ h₁ h₂; exact quot.sound (subperm.antisymm h₁ h₂) }
 
 theorem subset_of_le {s t : multiset α} : s ≤ t → s ⊆ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, subset_of_subperm
@@ -486,7 +484,7 @@ theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.rep
   that is, the set `{0, 1, ..., n-1}`. -/
 def range (n : ℕ) : multiset ℕ := range n
 
-@[simp] theorem range_zero (n : ℕ) : range 0 = 0 := rfl
+@[simp] theorem range_zero : range 0 = 0 := rfl
 
 @[simp] theorem range_succ (n : ℕ) : range (succ n) = n :: range n :=
 by rw [range, range_concat, ← coe_add, add_comm]; refl
@@ -1076,11 +1074,11 @@ quotient.induction_on₃ s t u $
 theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
 by rw [add_comm, add_sub_of_le h]
 
-theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
+@[simp] theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
 multiset.induction_on s (by simp)
   (λ a s IH t, by rw [cons_add, sub_cons, erase_cons_head, IH])
 
-theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
+@[simp] theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
 by rw [add_comm, add_sub_cancel_left]
 
 theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=
@@ -1639,6 +1637,14 @@ end
 by have := card_powerset s;
    rwa [← diagonal_map_fst, card_map] at this
 
+lemma prod_map_add [comm_semiring β] {s : multiset α} {f g : α → β} :
+  prod (s.map (λa, f a + g a)) = sum ((diagonal s).map (λp, (p.1.map f).prod * (p.2.map g).prod)) :=
+begin
+  refine s.induction_on _ _,
+  { simp },
+  { assume a s ih, simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm] },
+end
+
 /- countp -/
 
 /-- `countp p s` counts the number of elements of `s` (with multiplicity) that
@@ -2140,11 +2146,12 @@ quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, by simp [nodup_product d�
 
 theorem nodup_sigma {σ : α → Type*} {s : multiset α} {t : Π a, multiset (σ a)} :
   nodup s → (∀ a, nodup (t a)) → nodup (s.sigma t) :=
-quot.induction_on s $ λ l₁,
-let l₂ (a) : list (σ a) := classical.some (quotient.exists_rep (t a)) in
-have t = λ a, l₂ a, from eq.symm $ funext $ λ a,
-  classical.some_spec (quotient.exists_rep (t a)),
-by rw [this]; simpa using nodup_sigma
+quot.induction_on s $ assume l₁,
+begin
+  choose f hf using assume a, quotient.exists_rep (t a),
+  rw show t = λ a, f a, from (eq.symm $ funext $ λ a, hf a),
+  simpa using nodup_sigma
+end
 
 theorem nodup_filter_map (f : α → option β) {s : multiset α}
   (H : ∀ (a a' : α) (b : β), b ∈ f a → b ∈ f a' → a = a') :
@@ -2793,48 +2800,24 @@ open is_lawful_traversable is_comm_applicative
 variables {F : Type u_1 → Type u_1} [applicative F] [is_comm_applicative F]
 variables {α' β' : Type u_1} (f : α' → F β')
 
-lemma coe_append_eq_add_coe :
-  ((∘) (coe : list β' → multiset β') ∘ append) = (λ x y, x + coe y) ∘ coe :=
-by ext; simp
-
-lemma coe_list_cons_eq_cons_coe :
-  flip ((∘) (coe : list β' → multiset β') ∘ @list.cons β') = flip multiset.cons ∘ (coe) :=
-by ext; simp! [flip]
-
-lemma coe_traverse_cons (x : α') (xs : list α') :
-  (coe : list β' → multiset β') <$> traverse f (x :: xs) =
-  coe <$> traverse f (xs ++ [x]) :=
-begin
-  symmetry, simp! [traverse],
-  induction xs, refl,
-  simp! [traverse] with functor_norm,
-  rw [commutative_map,coe_list_cons_eq_cons_coe,comp_map,xs_ih],
-  rw [commutative_map], symmetry, rw [commutative_map],
-  simp with functor_norm, congr,
-  ext, simp! [flip], constructor
-end
-
-lemma coe_traverse_cons_swap (x x' : α') (xs : list α') :
-  (coe : list β' → multiset β') <$> traverse f (x :: x' :: xs) =
-  coe <$> traverse f (x' :: x :: xs : list α') :=
-begin
-  simp! [traverse] with functor_norm,
-  rw commutative_map,
-  congr, ext, simp! [flip],
-  constructor
-end
-
-def traverse :
-  multiset α' → F (multiset β') :=
+def traverse : multiset α' → F (multiset β') :=
 quotient.lift (functor.map coe ∘ traversable.traverse f)
 begin
   introv p, unfold function.comp,
-  induction p, refl,
-  { simp [coe_traverse_cons,traverse_append] with functor_norm,
-    rw [coe_append_eq_add_coe,comp_map,p_ih],
-    simp! with functor_norm },
-  { rw coe_traverse_cons_swap },
-  { simp [*] }
+  induction p,
+  case perm.nil { refl },
+  case perm.skip {
+    have : multiset.cons <$> f p_x <*> (coe <$> traverse f p_l₁) =
+      multiset.cons <$> f p_x <*> (coe <$> traverse f p_l₂),
+    { rw [p_ih] },
+    simpa with functor_norm },
+  case perm.swap {
+    have : (λa b (l:list β'), (↑(a :: b :: l) : multiset β')) <$> f p_y <*> f p_x =
+      (λa b l, ↑(a :: b :: l)) <$> f p_x <*> f p_y,
+    { rw [is_comm_applicative.commutative_map],
+      congr, funext a b l, simpa [flip] using perm.swap b a l },
+    simp [(∘), this] with functor_norm },
+  case perm.trans { simp [*] }
 end
 
 open functor
@@ -2900,5 +2883,32 @@ lemma naturality {G H : Type* → Type*}
   eta (traverse f x) = traverse (@eta _ ∘ f) x :=
 quotient.induction_on x
 (by intro; simp [traverse,is_lawful_traversable.naturality] with functor_norm)
+
+section choose
+variables (p : α → Prop) [decidable_pred p] (l : multiset α)
+
+def choose_x : Π hp : (∃! a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a } :=
+quotient.rec_on l (λ l' ex_unique, list.choose_x p l' (exists_of_exists_unique ex_unique)) begin
+  intros,
+  funext hp,
+  suffices all_equal : ∀ x y : { t // t ∈ b ∧ p t }, x = y,
+  { apply all_equal },
+  { rintros ⟨x, px⟩ ⟨y, py⟩,
+    rcases hp with ⟨z, ⟨z_mem_l, pz⟩, z_unique⟩,
+    congr,
+    calc x = z : z_unique x px
+    ...    = y : (z_unique y py).symm }
+end
+
+def choose (hp : ∃! a, a ∈ l ∧ p a) : α := choose_x p l hp
+
+lemma choose_spec (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l ∧ p (choose p l hp) :=
+(choose_x p l hp).property
+
+lemma choose_mem (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose_spec _ _ _).1
+
+lemma choose_property (hp : ∃! a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
+
+end choose
 
 end multiset

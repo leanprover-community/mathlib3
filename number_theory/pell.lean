@@ -297,7 +297,6 @@ section
 
   protected theorem le_trans {a b c : ℤ√d} (ab : a ≤ b) (bc : b ≤ c) : a ≤ c :=
   have nonneg (b - a + (c - b)), from nonneg_add ab bc,
-  have nonneg (c - a + (b - b)), by simpa [-add_right_neg, add_left_comm],
   by simpa
 
   theorem nonneg_iff_zero_le {a : ℤ√d} : nonneg a ↔ 0 ≤ a := show _ ↔ nonneg _, by simp
@@ -1078,7 +1077,7 @@ a > 1 ∧ k ≤ y ∧
      (tk : yn b1 j ≡ k [MOD 4 * yn a1 i])⟩,
      (ky : k ≤ yn a1 i) :=
     (nat.eq_zero_or_pos i).elim
-      (λi0, by simp [i0] at ky; rw [i0, nat.eq_zero_of_le_zero ky]; exact ⟨rfl, rfl⟩) $ λipos,
+      (λi0, by simp [i0] at ky; rw [i0, ky]; exact ⟨rfl, rfl⟩) $ λipos,
     suffices i = k, by rw this; exact ⟨rfl, rfl⟩,
     by clear _x o rem xy uv st _match _match _fun_match; exact
     have iln : i ≤ n, from le_of_not_gt $ λhin,

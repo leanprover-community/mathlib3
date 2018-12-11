@@ -64,6 +64,10 @@ lemma abs_abv_sub_le_abv_sub (a b : β) :
 abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
   by rw abv_sub abv; apply sub_abv_le_abv_sub abv⟩
 
+lemma abv_pow {β : Type*} [domain β] (abv : β → α) [is_absolute_value abv]
+  (a : β) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
+by induction n; simp [abv_mul abv, _root_.pow_succ, abv_one abv, *]
+
 end is_absolute_value
 
 instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :
@@ -277,19 +281,29 @@ theorem add_lim_zero {f g : cau_seq β abv}
   λ i H j ij, let ⟨H₁, H₂⟩ := H _ ij in
     by simpa [add_halves ε] using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add H₁ H₂)
 
-theorem mul_lim_zero (f : cau_seq β abv) {g}
+theorem mul_lim_zero_right (f : cau_seq β abv) {g}
   (hg : lim_zero g) : lim_zero (f * g)
 | ε ε0 := let ⟨F, F0, hF⟩ := f.bounded' 0 in
   (hg _ $ div_pos ε0 F0).imp $ λ i H j ij,
   by have := mul_lt_mul' (le_of_lt $ hF j) (H _ ij) (abv_nonneg abv _) F0;
      rwa [mul_comm F, div_mul_cancel _ (ne_of_gt F0), ← abv_mul abv] at this
 
+theorem mul_lim_zero_left {f} (g : cau_seq β abv)
+  (hg : lim_zero f) : lim_zero (f * g)
+| ε ε0 := let ⟨G, G0, hG⟩ := g.bounded' 0 in
+  (hg _ $ div_pos ε0 G0).imp $ λ i H j ij,
+  by have := mul_lt_mul'' (H _ ij) (hG j) (abv_nonneg abv _) (abv_nonneg abv _);
+     rwa [div_mul_cancel _ (ne_of_gt G0), ← abv_mul abv] at this
+
 theorem neg_lim_zero {f : cau_seq β abv} (hf : lim_zero f) : lim_zero (-f) :=
-by rw ← neg_one_mul; exact mul_lim_zero _ hf
+by rw ← neg_one_mul; exact mul_lim_zero_right _ hf
 
 theorem sub_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f - g) :=
 add_lim_zero hf (neg_lim_zero hg)
+
+theorem lim_zero_sub_rev {f g : cau_seq β abv} (hfg : lim_zero (f - g)) : lim_zero (g - f) :=
+by simpa using neg_lim_zero hfg
 
 theorem zero_lim_zero : lim_zero (0 : cau_seq β abv)
 | ε ε0 := ⟨0, λ j ij, by simpa [abv_zero abv] using ε0⟩
@@ -351,7 +365,7 @@ hf this
 
 lemma mul_equiv_zero  (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : g * f ≈ 0 :=
 have lim_zero (f - 0), from hf,
-have lim_zero (g*f), from mul_lim_zero _ $ by simpa,
+have lim_zero (g*f), from mul_lim_zero_right _ $ by simpa,
 show lim_zero (g*f - 0), by simpa
 
 lemma mul_not_equiv_zero {f g : cau_seq _ abv} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) : ¬ (f * g) ≈ 0 :=
@@ -359,7 +373,7 @@ assume : lim_zero (f*g - 0),
 have hlz : lim_zero (f*g), by simpa,
 have hf' : ¬ lim_zero f, by simpa using (show ¬ lim_zero (f - 0), from hf),
 have hg' : ¬ lim_zero g, by simpa using (show ¬ lim_zero (g - 0), from hg),
-begin 
+begin
   rcases abv_pos_of_not_lim_zero hf' with ⟨a1, ha1, N1, hN1⟩,
   rcases abv_pos_of_not_lim_zero hg' with ⟨a2, ha2, N2, hN2⟩,
   have : a1 * a2 > 0, from mul_pos ha1 ha2,
@@ -374,17 +388,20 @@ begin
   apply mul_le_mul; try { assumption },
     { apply le_of_lt ha2 },
     { apply is_absolute_value.abv_nonneg abv }
-end 
+end
+
+theorem const_equiv {x y : β} : const x ≈ const y ↔ x = y :=
+show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
 
 end ring
 
-section comm_ring 
+section comm_ring
 variables {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
 by rw mul_comm; apply mul_equiv_zero _ hf
 
-end comm_ring 
+end comm_ring
 
 section integral_domain
 variables {β : Type*} [integral_domain β] (abv : β → α) [is_absolute_value abv]
@@ -503,6 +520,16 @@ by simpa using add_pos fg gh
 theorem lt_irrefl {f : cau_seq α abs} : ¬ f < f
 | h := not_lim_zero_of_pos h (by simp [zero_lim_zero])
 
+lemma le_of_eq_of_le {f g h : cau_seq α abs}
+  (hfg : f ≈ g) (hgh : g ≤ h) : f ≤ h :=
+hgh.elim (or.inl ∘ cau_seq.lt_of_eq_of_lt hfg)
+  (or.inr ∘ setoid.trans hfg)
+
+lemma le_of_le_of_eq {f g h : cau_seq α abs}
+  (hfg : f ≤ g) (hgh : g ≈ h) : f ≤ h :=
+hfg.elim (λ h, or.inl (cau_seq.lt_of_lt_of_eq h hgh))
+  (λ h, or.inr (setoid.trans h hgh))
+
 instance : preorder (cau_seq α abs) :=
 { lt := (<),
   le := λ f g, f < g ∨ f ≈ g,
@@ -532,11 +559,17 @@ theorem le_total (f g : cau_seq α abs) : f ≤ g ∨ g ≤ f :=
 theorem const_lt {x y : α} : const x < const y ↔ x < y :=
 show pos _ ↔ _, by rw [← const_sub, const_pos, sub_pos]
 
-theorem const_equiv {x y : α} : const x ≈ const y ↔ x = y :=
-show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
-
 theorem const_le {x y : α} : const x ≤ const y ↔ x ≤ y :=
 by rw le_iff_lt_or_eq; exact or_congr const_lt const_equiv
+
+lemma le_of_exists {f g : cau_seq α abs}
+  (h : ∃ i, ∀ j ≥ i, f j ≤ g j) : f ≤ g :=
+let ⟨i, hi⟩ := h in
+(or.assoc.2 (cau_seq.lt_total f g)).elim
+  id
+  (λ hgf, false.elim (let ⟨K, hK0, j, hKj⟩ := hgf in
+    not_lt_of_ge (hi (max i j) (le_max_left _ _))
+      (sub_pos.1 (lt_of_lt_of_le hK0 (hKj _ (le_max_right _ _))))))
 
 theorem exists_gt (f : cau_seq α abs) : ∃ a : α, f < const a :=
 let ⟨K, H⟩ := f.bounded in

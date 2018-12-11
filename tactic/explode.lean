@@ -132,8 +132,7 @@ open interactive lean lean.parser interaction_monad.result
 @[user_command]
 meta def explode_cmd (_ : parse $ tk "#explode") : parser unit :=
 do n ← ident,
-  -- explode n  -- TODO(Mario): seems to cause a VM exception
-  of_tactic' (explode n)
+  explode n
 .
 
 -- #explode iff_true_intro

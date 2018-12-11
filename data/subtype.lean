@@ -13,6 +13,9 @@ protected lemma subtype.eq' : ∀ {a1 a2 : {x // β x}}, a1.val = a2.val → a1 
 lemma subtype.ext {a1 a2 : {x // β x}} : a1 = a2 ↔ a1.val = a2.val :=
 ⟨congr_arg _, subtype.eq'⟩
 
+lemma subtype.coe_ext {a1 a2 : {x // β x}} : a1 = a2 ↔ (a1 : α) = a2 :=
+subtype.ext
+
 theorem subtype.val_injective : function.injective (@subtype.val _ β) :=
 λ a b, subtype.eq'
 

@@ -106,7 +106,6 @@ end
 lemma mk_eq_cast {n : ℕ+} {a : ℕ} (h : a < n) : (⟨a, h⟩ : zmod n) = (a : zmod n) :=
 fin.eq_of_veq (by rw [val_cast_nat, nat.mod_eq_of_lt h])
 
-
 @[simp] lemma cast_self_eq_zero {n : ℕ+} : ((n : ℕ) : zmod n) = 0 :=
 fin.eq_of_veq (show (n : zmod n).val = 0, by simp [val_cast_nat])
 
@@ -133,6 +132,9 @@ int.coe_nat_inj $
     ← nat_abs_of_nonneg (mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2 n.pos)),
     int.cast_coe_nat, val_cast_of_lt h] }
 
+lemma coe_val_cast_int {n : ℕ+} (a : ℤ) : ((a : zmod n).val : ℤ) = a % (n : ℕ) :=
+by rw [val_cast_int, int.nat_abs_of_nonneg (mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2 n.pos))]
+
 lemma eq_iff_modeq_nat {n : ℕ+} {a b : ℕ} : (a : zmod n) = b ↔ a ≡ b [MOD n] :=
 ⟨λ h, by have := fin.veq_of_eq h;
   rwa [val_cast_nat, val_cast_nat] at this,
@@ -146,9 +148,72 @@ lemma eq_iff_modeq_int {n : ℕ+} {a b : ℤ} : (a : zmod n) = b ↔ a ≡ b [ZM
 λ h : a % (n : ℕ) = b % (n : ℕ),
   by rw [← cast_mod_int n a, ← cast_mod_int n b, h]⟩
 
+lemma eq_zero_iff_dvd_nat {n : ℕ+} {a : ℕ} : (a : zmod n) = 0 ↔ (n : ℕ) ∣ a :=
+by rw [← @nat.cast_zero (zmod n), eq_iff_modeq_nat, nat.modeq.modeq_zero_iff]
+
+lemma eq_zero_iff_dvd_int {n : ℕ+} {a : ℤ} : (a : zmod n) = 0 ↔ ((n : ℕ) : ℤ) ∣ a :=
+by rw [← @int.cast_zero (zmod n), eq_iff_modeq_int, int.modeq.modeq_zero_iff]
+
 instance (n : ℕ+) : fintype (zmod n) := fin.fintype _
 
+instance decidable_eq (n : ℕ+) : decidable_eq (zmod n) := fin.decidable_eq _
+
+instance (n : ℕ+) : has_repr (zmod n) := fin.has_repr _
+
 lemma card_zmod (n : ℕ+) : fintype.card (zmod n) = n := fintype.card_fin n
+
+lemma le_div_two_iff_lt_neg {n : ℕ+} (hn : (n : ℕ) % 2 = 1)
+  {x : zmod n} (hx0 : x ≠ 0) : x.1 ≤ (n / 2 : ℕ) ↔ (n / 2 : ℕ) < (-x).1 :=
+have hn2 : (n : ℕ) / 2 < n := nat.div_lt_of_lt_mul ((lt_mul_iff_one_lt_left n.pos).2 dec_trivial),
+have hn2' : (n : ℕ) - n / 2 = n / 2 + 1,
+  by conv {to_lhs, congr, rw [← succ_sub_one n, succ_sub n.pos]};
+  rw [← two_mul_odd_div_two hn, two_mul, ← succ_add, nat.add_sub_cancel],
+have hxn : (n : ℕ) - x.val < n,
+  begin
+    rw [nat.sub_lt_iff (le_of_lt x.2) (le_refl _), nat.sub_self],
+    rw ← zmod.cast_val x at hx0,
+    exact nat.pos_of_ne_zero (λ h, by simpa [h] using hx0)
+  end,
+by conv {to_rhs, rw [← nat.succ_le_iff, succ_eq_add_one, ← hn2', ← zero_add (- x), ← zmod.cast_self_eq_zero,
+  ← sub_eq_add_neg, ← zmod.cast_val x, ← nat.cast_sub (le_of_lt x.2),
+  zmod.val_cast_nat, mod_eq_of_lt hxn, nat.sub_le_sub_left_iff (le_of_lt x.2)] }
+
+lemma ne_neg_self {n : ℕ+} (hn1 : (n : ℕ) % 2 = 1) {a : zmod n} (ha : a ≠ 0) : a ≠ -a :=
+λ h, have a.val ≤ n / 2 ↔ (n : ℕ) / 2 < (-a).val := le_div_two_iff_lt_neg hn1 ha,
+by rwa [← h, ← not_lt, not_iff_self] at this
+
+@[simp] lemma cast_mul_right_val_cast {n m : ℕ+} (a : ℕ) :
+  ((a : zmod (m * n)).val : zmod m) = (a : zmod m) :=
+zmod.eq_iff_modeq_nat.2 (by rw zmod.val_cast_nat;
+  exact nat.modeq.modeq_of_modeq_mul_right _ (nat.mod_mod _ _))
+
+@[simp] lemma cast_mul_left_val_cast {n m : ℕ+} (a : ℕ) :
+  ((a : zmod (n * m)).val : zmod m) = (a : zmod m) :=
+zmod.eq_iff_modeq_nat.2 (by rw zmod.val_cast_nat;
+  exact nat.modeq.modeq_of_modeq_mul_left _ (nat.mod_mod _ _))
+
+lemma cast_val_cast_of_dvd {n m : ℕ+} (h : (m : ℕ) ∣ n) (a : ℕ) :
+  ((a : zmod n).val : zmod m) = (a : zmod m) :=
+let ⟨k , hk⟩ := h in
+zmod.eq_iff_modeq_nat.2 (nat.modeq.modeq_of_modeq_mul_right k
+    (by rw [← hk, zmod.val_cast_nat]; exact nat.mod_mod _ _))
+
+def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.coprime x.1 n} :=
+{ to_fun := λ x, ⟨x, nat.modeq.coprime_of_mul_modeq_one (x⁻¹).1.1 begin
+    have := units.ext_iff.1 (mul_right_inv x),
+    rwa [← zmod.cast_val ((1 : units (zmod n)) : zmod n), units.coe_one, zmod.one_val,
+      ← zmod.cast_val ((x * x⁻¹ : units (zmod n)) : zmod n),
+      units.coe_mul, zmod.mul_val, zmod.cast_mod_nat, zmod.cast_mod_nat,
+      zmod.eq_iff_modeq_nat] at this
+    end⟩,
+  inv_fun := λ x,
+    have x.val * ↑(gcd_a ((x.val).val) ↑n) = 1,
+      by rw [← zmod.cast_val x.1, ← int.cast_coe_nat, ← int.cast_one, ← int.cast_mul,
+          zmod.eq_iff_modeq_int, ← int.coe_nat_one, ← (show nat.gcd _ _ = _, from x.2)];
+        simpa using int.modeq.gcd_a_modeq x.1.1 n,
+    ⟨x.1, gcd_a x.1.1 n, this, by simpa [mul_comm] using this⟩,
+  left_inv := λ ⟨_, _, _, _⟩, units.ext rfl,
+  right_inv := λ ⟨_, _⟩, rfl }
 
 end zmod
 
@@ -198,18 +263,43 @@ lemma val_cast_of_lt {a : ℕ} (h : a < p) : (a : zmodp p hp).val = a :=
 lemma val_cast_int (a : ℤ) : (a : zmodp p hp).val = (a % p).nat_abs :=
 @zmod.val_cast_int ⟨p, hp.pos⟩ _
 
+lemma coe_val_cast_int  (a : ℤ) : ((a : zmodp p hp).val : ℤ) = a % (p : ℕ) :=
+@zmod.coe_val_cast_int ⟨p, hp.pos⟩ _
+
 lemma eq_iff_modeq_nat {a b : ℕ} : (a : zmodp p hp) = b ↔ a ≡ b [MOD p] :=
 @zmod.eq_iff_modeq_nat ⟨p, hp.pos⟩ _ _
 
 lemma eq_iff_modeq_int {a b : ℤ} : (a : zmodp p hp) = b ↔ a ≡ b [ZMOD p] :=
 @zmod.eq_iff_modeq_int ⟨p, hp.pos⟩ _ _
 
-lemma gcd_a_modeq (a b : ℕ) : (a : ℤ) * gcd_a a b ≡ nat.gcd a b [ZMOD b] :=
-by rw [← add_zero ((a : ℤ) * _), gcd_eq_gcd_ab];
-  exact int.modeq.modeq_add rfl (int.modeq.modeq_zero_iff.2 (dvd_mul_right _ _)).symm
+lemma eq_zero_iff_dvd_nat (a : ℕ) : (a : zmodp p hp) = 0 ↔ p ∣ a :=
+@zmod.eq_zero_iff_dvd_nat ⟨p, hp.pos⟩ _
+
+lemma eq_zero_iff_dvd_int (a : ℤ) : (a : zmodp p hp) = 0 ↔ (p : ℤ) ∣ a :=
+@zmod.eq_zero_iff_dvd_int ⟨p, hp.pos⟩ _
+
+instance : fintype (zmodp p hp) := @zmod.fintype ⟨p, hp.pos⟩
+
+instance decidable_eq : decidable_eq (zmodp p hp) := fin.decidable_eq _
+
+instance (n : ℕ+) : has_repr (zmodp p hp) := fin.has_repr _
+
+@[simp] lemma card_zmodp : fintype.card (zmodp p hp) = p :=
+@zmod.card_zmod ⟨p, hp.pos⟩
+
+lemma le_div_two_iff_lt_neg {p : ℕ} (hp : prime p) (hp1 : p % 2 = 1)
+  {x : zmodp p hp} (hx0 : x ≠ 0) : x.1 ≤ (p / 2 : ℕ) ↔ (p / 2 : ℕ) < (-x).1 :=
+@zmod.le_div_two_iff_lt_neg ⟨p, hp.pos⟩ hp1 _ hx0
+
+lemma ne_neg_self (hp1 : p % 2 = 1) {a : zmodp p hp} (ha : a ≠ 0) : a ≠ -a :=
+@zmod.ne_neg_self ⟨p, hp.pos⟩ hp1 _ ha
+
+lemma prime_ne_zero {q : ℕ} (hq : prime q) (hpq : p ≠ q) : (q : zmodp p hp) ≠ 0 :=
+by rwa [← nat.cast_zero, ne.def, zmodp.eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
+  ← hp.coprime_iff_not_dvd, coprime_primes hp hq]
 
 lemma mul_inv_eq_gcd (a : ℕ) : (a : zmodp p hp) * a⁻¹ = nat.gcd a p :=
-by rw [← int.cast_coe_nat (nat.gcd _ _), nat.gcd_comm, nat.gcd_rec, ← (eq_iff_modeq_int _).2 (gcd_a_modeq _ _)];
+by rw [← int.cast_coe_nat (nat.gcd _ _), nat.gcd_comm, nat.gcd_rec, ← (eq_iff_modeq_int _).2 (int.modeq.gcd_a_modeq _ _)];
   simp [has_inv.inv, val_cast_nat]
 
 private lemma mul_inv_cancel_aux : ∀ a : zmodp p hp, a ≠ 0 → a * a⁻¹ = 1 :=

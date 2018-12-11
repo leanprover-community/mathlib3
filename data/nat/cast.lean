@@ -37,6 +37,8 @@ end
 @[simp] theorem cast_bit1 [add_monoid α] [has_one α] (n : ℕ) : ((bit1 n : ℕ) : α) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
+lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp
+
 @[simp] theorem cast_pred [add_group α] [has_one α] : ∀ {n}, n > 0 → ((n - 1 : ℕ) : α) = n - 1
 | (n+1) h := (add_sub_cancel (n:α) 1).symm
 
@@ -65,7 +67,7 @@ by induction n; simp [left_distrib, right_distrib, *]
 @[simp] theorem cast_lt [linear_ordered_semiring α] {m n : ℕ} : (m : α) < n ↔ m < n :=
 by simpa [-cast_le] using not_congr (@cast_le α _ n m)
 
-@[simp] theorem cast_pos [linear_ordered_ring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
+@[simp] theorem cast_pos [linear_ordered_semiring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
 
 theorem eq_cast [add_monoid α] [has_one α] (f : ℕ → α)

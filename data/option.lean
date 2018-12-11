@@ -25,7 +25,10 @@ option.some.inj $ ha.symm.trans hb
 
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
-theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
+theorem injective_some (α : Type*) : function.injective (@some α) :=
+λ _ _, some_inj.mp
+
+@[extensionality] theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl
 | (some a) o        H := ((H _).1 rfl).symm
 | o        (some b) H := (H _).2 rfl
@@ -98,7 +101,10 @@ by cases x; simp [is_some]; exact ⟨_, rfl⟩
 
 @[simp] theorem is_none_some {a : α} : is_none (some a) = ff := rfl
 
-theorem is_none_iff_eq_none {o : option α} : o.is_none ↔ o = none :=
+@[simp] theorem not_is_some {a : option α} : is_some a = ff ↔ a.is_none = tt :=
+by cases a; simp
+
+theorem is_none_iff_eq_none {o : option α} : o.is_none = tt ↔ o = none :=
 ⟨option.eq_none_of_is_none, λ e, e.symm ▸ rfl⟩
 
 instance decidable_eq_none {o : option α} : decidable (o = none) :=

@@ -16,6 +16,18 @@ theorem mul_two (n : α) : n * 2 = n + n :=
 
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
+
+variable (α)
+lemma zero_ne_one_or_forall_eq_0 : (0 : α) ≠ 1 ∨ (∀a:α, a = 0) :=
+by haveI := classical.dec;
+   refine not_or_of_imp (λ h a, _); simpa using congr_arg ((*) a) h.symm
+
+lemma eq_zero_of_zero_eq_one (h : (0 : α) = 1) : (∀a:α, a = 0) :=
+(zero_ne_one_or_forall_eq_0 α).neg_resolve_left h
+
+theorem subsingleton_of_zero_eq_one (h : (0 : α) = 1) : subsingleton α :=
+⟨λa b, by rw [eq_zero_of_zero_eq_one α h a, eq_zero_of_zero_eq_one α h b]⟩
+
 end
 
 section
@@ -79,6 +91,7 @@ class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f
 (map_mul : ∀ {x y}, f (x * y) = f x * f y)
 
 namespace is_semiring_hom
+
 variables {β : Type v} [semiring α] [semiring β]
 variables (f : α → β) [is_semiring_hom f] {x y : α}
 
@@ -91,12 +104,13 @@ instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl }
 
-end is_semiring_hom
+instance : is_add_monoid_hom f :=
+{ ..‹is_semiring_hom f› }
 
-@[simp] lemma zero_dvd_iff_eq_zero [comm_semiring α] (a : α) : 0 ∣ a ↔ a = 0 :=
-iff.intro
-  eq_zero_of_zero_dvd
-  (assume ha, ha ▸ dvd_refl a)
+instance : is_monoid_hom f :=
+{ ..‹is_semiring_hom f› }
+
+end is_semiring_hom
 
 section
   variables [ring α] (a b c d e : α)
@@ -138,14 +152,22 @@ section comm_ring
 
   @[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
   ⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
+
+  theorem dvd_add_left {a b c : α} (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
+  (dvd_add_iff_left h).symm
+
+  theorem dvd_add_right {a b c : α} (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
+  (dvd_add_iff_right h).symm
+
 end comm_ring
 
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
 (map_one : f 1 = 1)
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
 
 namespace is_ring_hom
+
 variables {β : Type v} [ring α] [ring β]
 
 def of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
@@ -175,7 +197,7 @@ instance : is_semiring_hom f :=
 { map_zero := map_zero f, ..‹is_ring_hom f› }
 
 instance : is_add_group_hom f :=
-⟨λ _ _, is_ring_hom.map_add f⟩
+⟨λ _ _, map_add f⟩
 
 end is_ring_hom
 
@@ -186,6 +208,9 @@ class nonzero_comm_ring (α : Type*) extends zero_ne_one_class α, comm_ring α
 instance integral_domain.to_nonzero_comm_ring (α : Type*) [id : integral_domain α] :
   nonzero_comm_ring α :=
 { ..id }
+
+lemma units.coe_ne_zero [nonzero_comm_ring α] (u : units α) : (u : α) ≠ 0 :=
+λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
@@ -251,6 +276,10 @@ section
 
   theorem mul_dvd_mul_iff_right {a b c : α} (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
   exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]
+
+  lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
+  by conv {to_lhs, rw [inv_eq_iff_mul_eq_one, ← mul_one (1 : units α), units.ext_iff, units.coe_mul,
+    units.coe_mul, mul_self_eq_mul_self_iff, ← units.ext_iff, ← units.coe_neg, ← units.ext_iff] }
 
 end
 

@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Extended non-negative reals
 -/
-import data.real.nnreal order.bounds
+import data.real.nnreal order.bounds tactic.norm_num
 noncomputable theory
 open classical set lattice
 
@@ -44,7 +44,12 @@ protected def to_nnreal : ennreal → nnreal
 | (some r) h := rfl
 | none     h := (h rfl).elim
 
+lemma coe_to_nnreal_le_self : ∀{a:ennreal}, ↑(a.to_nnreal) ≤ a
+| (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_refl _
+| none     := le_top
+
 @[simp] lemma top_to_nnreal : ∞.to_nnreal = 0 := rfl
+@[simp] lemma zero_to_nnreal : (0 : ennreal).to_nnreal = 0 := rfl
 
 lemma forall_ennreal {p : ennreal → Prop} : (∀a, p a) ↔ (∀r:nnreal, p r) ∧ p ∞ :=
 ⟨assume h, ⟨assume r, h _, h _⟩,
@@ -52,6 +57,15 @@ lemma forall_ennreal {p : ennreal → Prop} : (∀a, p a) ↔ (∀r:nnreal, p r)
 
 @[simp] lemma coe_zero : ↑(0 : nnreal) = (0 : ennreal) := rfl
 @[simp] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
+
+lemma to_nnreal_eq_zero_iff (x : ennreal) : x.to_nnreal = 0 ↔ x = 0 ∨ x = ⊤ :=
+⟨begin
+  cases x,
+  { simp [none_eq_top] },
+  { have A : some (0:nnreal) = (0:ennreal) := rfl,
+    simp [ennreal.to_nnreal, A] {contextual := tt} }
+end,
+by intro h; cases h; [simp [h], simp[h]]⟩
 
 @[simp] lemma coe_ne_top : (r : ennreal) ≠ ∞ := with_top.coe_ne_top
 @[simp] lemma top_ne_coe : ∞ ≠ (r : ennreal) := with_top.top_ne_coe
@@ -103,6 +117,9 @@ section order
 @[simp] lemma coe_le_one_iff : ↑r ≤ (1:ennreal) ↔ r ≤ 1 := coe_le_coe
 @[simp] lemma coe_lt_one_iff : (↑p : ennreal) < 1 ↔ p < 1 := coe_lt_coe
 @[simp] lemma one_lt_zero_iff : 1 < (↑p : ennreal) ↔ 1 < p := coe_lt_coe
+@[simp] lemma coe_nat (n : nat) : ((n : nnreal) : ennreal) = n := with_top.coe_nat n
+@[simp] lemma nat_ne_top (n : nat) : (n : ennreal) ≠ ⊤ := with_top.nat_ne_top n
+@[simp] lemma top_ne_nat (n : nat) : (⊤ : ennreal) ≠ n := with_top.top_ne_nat n
 
 lemma le_coe_iff : a ≤ ↑r ↔ (∃p:nnreal, a = p ∧ p ≤ r) := with_top.le_coe_iff r a
 lemma coe_le_iff : ↑r ≤ a ↔ (∀p:nnreal, a = p → r ≤ p) := with_top.coe_le_iff r a
@@ -140,6 +157,23 @@ protected lemma lt_iff_exists_rat_btwn :
     exact ⟨q, hq0, coe_lt_coe.2 pq, lt_trans (coe_lt_coe.2 qr) cb⟩
   end,
 λ ⟨q, q0, qa, qb⟩, lt_trans qa qb⟩
+
+lemma add_lt_add (ac : a < c) (bd : b < d) : a + b < c + d :=
+begin
+  rcases dense ac with ⟨a', aa', a'c⟩,
+  rcases lt_iff_exists_coe.1 aa' with ⟨aR, rfl, _⟩,
+  rcases lt_iff_exists_coe.1 a'c with ⟨a'R, rfl, _⟩,
+  rcases dense bd with ⟨b', bb', b'd⟩,
+  rcases lt_iff_exists_coe.1 bb' with ⟨bR, rfl, _⟩,
+  rcases lt_iff_exists_coe.1 b'd with ⟨b'R, rfl, _⟩,
+  have I : ↑aR + ↑bR < ↑a'R + ↑b'R :=
+  begin
+    rw [← coe_add, ← coe_add, coe_lt_coe],
+    apply add_lt_add (coe_lt_coe.1 aa') (coe_lt_coe.1 bb')
+  end,
+  have J : ↑a'R + ↑b'R ≤ c + d := add_le_add' (le_of_lt a'c) (le_of_lt b'd),
+  apply lt_of_lt_of_le I J
+end
 
 end order
 
@@ -273,6 +307,9 @@ le_antisymm
   (le_Inf $ assume b (hb : 1 ≤ ↑r * b), coe_le_iff.2 $
     by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
 
+@[simp] lemma coe_div (hr : r ≠ 0) : (p : ennreal) / (r : ennreal) = ↑(p / r) :=
+show (↑p * (↑r)⁻¹) = ↑(p * r⁻¹), by rw [inv_coe hr, coe_mul]
+
 @[simp] lemma inv_eq_top : (a)⁻¹ = ∞ ↔ a = 0 :=
 by by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe] at *
 
@@ -314,6 +351,57 @@ begin
   suffices : a ≤ 1 / b ↔ a * b ≤ 1, { simpa [div_def, h] },
   exact le_div_iff_mul_le (mt coe_eq_coe.1 h) coe_ne_top
 end
+
+lemma mul_inv_cancel : ∀{r : ennreal}, r ≠ 0 → r ≠ ⊤ → r * r⁻¹ = 1 :=
+begin
+  refine forall_ennreal.2 (and.intro (assume r, _) _); simp { contextual := tt},
+  assume h, rw [← ennreal.coe_mul, nnreal.mul_inv_cancel h, coe_one]
+end
+
+lemma mul_le_if_le_inv {a b r : ennreal} (hr₀ : r ≠ 0) (hr₁ : r ≠ ⊤) : (r * a ≤ b ↔ a ≤ r⁻¹ * b) :=
+by rw [← @ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ← mul_assoc, mul_inv_cancel hr₀ hr₁, one_mul]
+
+lemma le_of_forall_lt_one_mul_lt : ∀{x y : ennreal}, (∀a<1, a * x ≤ y) → x ≤ y :=
+forall_ennreal.2 $ and.intro
+  (assume r, forall_ennreal.2 $ and.intro
+    (assume q h, coe_le_coe.2 $ nnreal.le_of_forall_lt_one_mul_lt $ assume a ha,
+      begin rw [← coe_le_coe, coe_mul], exact h _ (coe_lt_coe.2 ha) end)
+    (assume h, le_top))
+  (assume r hr,
+    have ((1 / 2 : nnreal) : ennreal) * ⊤ ≤ r :=
+      hr _ (coe_lt_coe.2 ((nnreal.coe_lt (1/2) 1).2 one_half_lt_one)),
+    have ne : ((1 / 2 : nnreal) : ennreal) ≠ 0,
+    begin
+      rw [(≠), coe_eq_zero],
+      refine zero_lt_iff_ne_zero.1 _,
+      show 0 < (1 / 2 : ℝ),
+      exact div_pos zero_lt_one two_pos
+    end,
+    by rwa [mul_top, if_neg ne] at this)
+
+lemma div_add_div_same {a b c : ennreal} : a / c + b / c = (a + b) / c :=
+eq.symm $ right_distrib a b (c⁻¹)
+
+lemma div_self {a : ennreal} (h0 : a ≠ 0) (hI : a ≠ ∞) : a / a = 1 :=
+have A : 1 ≤ a / a := by simp [le_div_iff_mul_le h0 hI, le_refl],
+have B : a / a ≤ 1 := by simp [div_le_iff_le_mul h0 hI, le_refl],
+le_antisymm B A
+
+lemma add_halves (a : ennreal) : a / 2 + a / 2 = a :=
+have ¬((2 : nnreal) : ennreal) = (0 : nnreal) := by rw [coe_eq_coe]; norm_num,
+have A : (2:ennreal) * 2⁻¹ = 1 := by rw [←div_def, div_self]; [assumption, apply coe_ne_top],
+calc
+   a / 2 + a / 2 = (a + a) / 2 : by rw div_add_div_same
+    ... = (a * 1 + a * 1) / 2  : by rw mul_one
+    ... = (a * (1 + 1)) / 2    : by rw left_distrib
+    ... = (a * 2) / 2          : by rw one_add_one_eq_two
+    ... = (a * 2) * 2⁻¹        : by rw div_def
+    ... = a * (2 * 2⁻¹)        : by rw mul_assoc
+    ... = a * 1                : by rw A
+    ... = a                    : by rw mul_one
+
+@[simp] lemma div_pos_iff {a b : ennreal}: 0 < a / b ↔ a ≠ 0 ∧ b ≠ ⊤ :=
+by simp [zero_lt_iff_ne_zero, div_def, canonically_ordered_comm_semiring.mul_eq_zero_iff, not_or_distrib]
 
 end inv
 
@@ -364,5 +452,18 @@ finset.induction_on s (by simp) $ assume a s ha ih,
   by simp [ha, ih.symm, infi_add_infi this]
 
 end infi
+
+section supr
+
+lemma supr_coe_nat : (⨆n:ℕ, (n : ennreal)) = ⊤ :=
+(lattice.supr_eq_top _).2 $ assume b hb,
+begin
+  rcases lt_iff_exists_coe.1 hb with ⟨r, rfl, hb⟩,
+  rcases exists_nat_gt r with ⟨n, hn⟩,
+  refine ⟨n, _⟩,
+  rwa [← ennreal.coe_nat, ennreal.coe_lt_coe],
+end
+
+end supr
 
 end ennreal

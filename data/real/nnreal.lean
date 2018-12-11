@@ -250,6 +250,9 @@ by simp [nnreal.of_real]; refl
 @[simp] lemma zero_lt_of_real (r : ℝ) : 0 < nnreal.of_real r ↔ 0 < r :=
 by simp [nnreal.of_real, nnreal.coe_lt, lt_max_iff, lt_irrefl]
 
+@[simp] lemma of_real_eq_zero (r : ℝ) : nnreal.of_real r = 0 ↔ r ≤ 0 :=
+by simpa [-zero_lt_of_real] using (not_iff_not.2 (zero_lt_of_real r))
+
 @[simp] lemma of_real_coe {r : nnreal} : nnreal.of_real r = r :=
 nnreal.eq $ by simp [nnreal.of_real, max_eq_left]
 
@@ -336,6 +339,26 @@ by by_cases r = 0; simp [*, inv_le]
 
 @[simp] lemma le_inv_iff_mul_le {r p : ℝ≥0} (h : p ≠ 0) : (r ≤ p⁻¹ ↔ r * p ≤ 1) :=
 by rw [← mul_le_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h, mul_comm]
+
+@[simp] lemma lt_inv_iff_mul_lt {r p : ℝ≥0} (h : p ≠ 0) : (r < p⁻¹ ↔ r * p < 1) :=
+by rw [← mul_lt_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h, mul_comm]
+
+lemma mul_le_if_le_inv {a b r : nnreal} (hr : r ≠ 0) : r * a ≤ b ↔ a ≤ r⁻¹ * b :=
+have 0 < r, from lt_of_le_of_ne (zero_le r) hr.symm,
+by rw [← @mul_le_mul_left _ _ a _ r this, ← mul_assoc, mul_inv_cancel hr, one_mul]
+
+lemma le_of_forall_lt_one_mul_lt {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x ≤ y :=
+le_of_forall_ge_of_dense $ assume a ha,
+  have hx : x ≠ 0 := zero_lt_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
+  have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],
+  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv],
+  have (a * x⁻¹) * x ≤ y, from h _ this,
+  by rwa [mul_assoc, inv_mul_cancel hx, mul_one] at this
+
+lemma div_add_div_same (a b c : ℝ≥0) : a / c + b / c = (a + b) / c :=
+eq.symm $ right_distrib a b (c⁻¹)
+
+lemma add_halves (a : nnreal) : a / 2 + a / 2 = a := nnreal.eq (add_halves a)
 
 end inv
 

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Disjointed sets
 -/
-import data.set.lattice data.nat.basic
+import data.set.lattice data.nat.basic tactic.wlog
 open set classical lattice
 local attribute [instance] prop_decidable
 

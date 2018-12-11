@@ -195,6 +195,9 @@ theorem sized.node' {l x r} (hl : @sized α l) (hr : sized r) : sized (node' l x
 theorem sized.eq_node' {s l x r} (h : @sized α (node s l x r)) : node s l x r = node' l x r :=
 by rw h.1; refl
 
+theorem sized.size_eq {s l x r} (H : sized (@node α s l x r)) :
+  size (@node α s l x r) = size l + size r + 1 := H.1
+
 @[elab_as_eliminator] theorem sized.induction {t} (hl : @sized α t)
   {C : ordnode α → Prop} (H0 : C nil)
   (H1 : ∀ l x r, C l → C r → C (node' l x r)) : C t :=
@@ -468,100 +471,174 @@ theorem all_balance_r {P l x r}
   all P (@balance_r α l x r) ↔ all P l ∧ P x ∧ all P r :=
 by rw [balance_r_eq_balance' hl hr sl sr H, all_balance']
 
-def ordered [preorder α] : ordnode α → Prop
-| nil := true
-| (node _ l x r) := ordered l ∧ all (<x) l ∧ all (>x) r ∧ ordered r
+def bounded [preorder α] : ordnode α → with_bot α → with_top α → Prop
+| nil (some a) (some b) := a < b
+| nil _ _ := true
+| (node _ l x r) o₁ o₂ := bounded l o₁ ↑x ∧ bounded r ↑x o₂
 
-structure valid [preorder α] (t : ordnode α) : Prop :=
-(ord : t.ordered)
+structure valid' [preorder α] (o₁ : with_bot α) (t : ordnode α) (o₂ : with_top α) : Prop :=
+(ord : t.bounded o₁ o₂)
 (sz : t.sized)
 (bal : t.balanced)
+
+def valid [preorder α] (t : ordnode α) : Prop := valid' ⊥ t ⊤
 
 section
 variable [preorder α]
 
-theorem valid_nil : valid (@nil α) := ⟨⟨⟩, ⟨⟩, ⟨⟩⟩
+theorem bounded.dual : ∀ {t : ordnode α} {o₁ o₂} (h : bounded t o₁ o₂),
+  @bounded (order_dual α) _ (dual t) o₂ o₁
+| nil o₁ o₂ h := by cases o₁; cases o₂; try {trivial}; exact h
+| (node s l x r) _ _ ⟨ol, or⟩ := ⟨or.dual, ol.dual⟩
 
-theorem valid.node {s l x r}
-  (hl : valid l) (hr : valid r)
-  (h₁ : all (<x) l) (h₂ : all (>x) r)
+theorem bounded.dual_iff {t : ordnode α} {o₁ o₂} : bounded t o₁ o₂ ↔
+  @bounded (order_dual α) _ (dual t) o₂ o₁ :=
+⟨bounded.dual, λ h, by have := bounded.dual h;
+  rwa [dual_dual, order_dual.preorder.dual_dual] at this⟩
+
+theorem bounded.weak_left : ∀ {t : ordnode α} {o₁ o₂}, bounded t o₁ o₂ → bounded t ⊥ o₂
+| nil o₁ o₂ h := by cases o₂; try {trivial}; exact h
+| (node s l x r) _ _ ⟨ol, or⟩ := ⟨ol.weak_left, or⟩
+
+theorem bounded.weak_right : ∀ {t : ordnode α} {o₁ o₂}, bounded t o₁ o₂ → bounded t o₁ ⊤
+| nil o₁ o₂ h := by cases o₁; try {trivial}; exact h
+| (node s l x r) _ _ ⟨ol, or⟩ := ⟨ol, or.weak_right⟩
+
+theorem bounded.weak {t : ordnode α} {o₁ o₂} (h : bounded t o₁ o₂) : bounded t ⊥ ⊤ :=
+h.weak_left.weak_right
+
+theorem bounded.mono_left {x y : α} (xy : x ≤ y) : ∀ {t : ordnode α} {o}, bounded t ↑y o → bounded t ↑x o
+| nil none h := ⟨⟩
+| nil (some z) h := lt_of_le_of_lt xy h
+| (node s l z r) o ⟨ol, or⟩ := ⟨ol.mono_left, or⟩
+
+theorem bounded.mono_right {x y : α} (xy : x ≤ y) : ∀ {t : ordnode α} {o}, bounded t o ↑x → bounded t o ↑y
+| nil none h := ⟨⟩
+| nil (some z) h := lt_of_lt_of_le h xy
+| (node s l z r) o ⟨ol, or⟩ := ⟨ol, or.mono_right⟩
+
+theorem bounded.to_lt : ∀ {t : ordnode α} {x y : α}, bounded t x y → x < y
+| nil x y h := h
+| (node _ l y r) x z ⟨h₁, h₂⟩ := lt_trans h₁.to_lt h₂.to_lt
+
+theorem bounded.to_nil {t : ordnode α} : ∀ {o₁ o₂}, bounded t o₁ o₂ → bounded nil o₁ o₂
+| none _ h := ⟨⟩
+| (some _) none h := ⟨⟩
+| (some x) (some y) h := h.to_lt
+
+theorem bounded.trans_left {t₁ t₂ : ordnode α} {x : α} : ∀ {o₁ o₂}, bounded t₁ o₁ ↑x → bounded t₂ ↑x o₂ → bounded t₂ o₁ o₂
+| none o₂ h₁ h₂ := h₂.weak_left
+| (some y) o₂ h₁ h₂ := h₂.mono_left (le_of_lt h₁.to_lt)
+
+theorem bounded.trans_right {t₁ t₂ : ordnode α} {x : α} : ∀ {o₁ o₂}, bounded t₁ o₁ ↑x → bounded t₂ ↑x o₂ → bounded t₁ o₁ o₂
+| o₁ none h₁ h₂ := h₁.weak_right
+| o₁ (some y) h₁ h₂ := h₁.mono_right (le_of_lt h₂.to_lt)
+
+theorem valid'.mono_left {x y : α} (xy : x ≤ y) {t : ordnode α} {o} (h : valid' ↑y t o) : valid' ↑x t o :=
+⟨h.1.mono_left xy, h.2, h.3⟩
+
+theorem valid'.mono_right {x y : α} (xy : x ≤ y) {t : ordnode α} {o} (h : valid' o t ↑x) : valid' o t ↑y :=
+⟨h.1.mono_right xy, h.2, h.3⟩
+
+theorem valid'.trans_left {t₁ t₂ : ordnode α} {x : α} {o₁ o₂}
+  (h : bounded t₁ o₁ ↑x) (H : valid' ↑x t₂ o₂) : valid' o₁ t₂ o₂ :=
+⟨h.trans_left H.1, H.2, H.3⟩
+
+theorem valid'.trans_right {t₁ t₂ : ordnode α} {x : α} {o₁ o₂}
+  (H : valid' o₁ t₁ ↑x) (h : bounded t₂ ↑x o₂) : valid' o₁ t₁ o₂ :=
+⟨H.1.trans_right h, H.2, H.3⟩
+
+theorem valid'.valid {t o₁ o₂} (h : @valid' α _ o₁ t o₂) : valid t := ⟨h.1.weak, h.2, h.3⟩
+
+theorem valid'_nil {o₁ o₂} (h : bounded nil o₁ o₂) : valid' o₁ (@nil α) o₂ := ⟨h, ⟨⟩, ⟨⟩⟩
+
+theorem valid_nil : valid (@nil α) := valid'_nil ⟨⟩
+
+theorem valid'.node {s l x r o₁ o₂}
+  (hl : valid' o₁ l ↑x) (hr : valid' ↑x r o₂)
   (H : balanced_sz (size l) (size r)) (hs : s = size l + size r + 1) :
-  valid (@node α s l x r) :=
-⟨⟨hl.1, h₁, h₂, hr.1⟩, ⟨hs, hl.2, hr.2⟩, ⟨H, hl.3, hr.3⟩⟩
+  valid' o₁ (@node α s l x r) o₂ :=
+⟨⟨hl.1, hr.1⟩, ⟨hs, hl.2, hr.2⟩, ⟨H, hl.3, hr.3⟩⟩
 
-theorem valid.dual : ∀ {t : ordnode α} (h : valid t),
-  @valid (order_dual α) _ (dual t)
-| nil h := valid_nil
-| (node s l x r) ⟨⟨ol, lx, rx, or⟩, ⟨rfl, sl, sr⟩, ⟨b, bl, br⟩⟩ :=
-  let ⟨ol', sl', bl'⟩ := valid.dual ⟨ol, sl, bl⟩,
-      ⟨or', sr', br'⟩ := valid.dual ⟨or, sr, br⟩ in
-  ⟨⟨or', all_dual.2 rx, all_dual.2 lx, ol'⟩,
+theorem valid'.dual : ∀ {t : ordnode α} {o₁ o₂} (h : valid' o₁ t o₂),
+  @valid' (order_dual α) _ o₂ (dual t) o₁
+| nil o₁ o₂ h := valid'_nil h.1.dual
+| (node s l x r) o₁ o₂ ⟨⟨ol, or⟩, ⟨rfl, sl, sr⟩, ⟨b, bl, br⟩⟩ :=
+  let ⟨ol', sl', bl'⟩ := valid'.dual ⟨ol, sl, bl⟩,
+      ⟨or', sr', br'⟩ := valid'.dual ⟨or, sr, br⟩ in
+  ⟨⟨or', ol'⟩,
    ⟨by simp [size_dual], sr', sl'⟩,
    ⟨by rw [size_dual, size_dual]; exact b.symm, br', bl'⟩⟩
 
-theorem valid.dual_iff {t : ordnode α} : valid t ↔
-  @valid (order_dual α) _ (dual t) :=
-⟨valid.dual, λ h, by have := valid.dual h;
+theorem valid'.dual_iff {t : ordnode α} {o₁ o₂} : valid' o₁ t o₂ ↔
+  @valid' (order_dual α) _ o₂ (dual t) o₁ :=
+⟨valid'.dual, λ h, by have := valid'.dual h;
   rwa [dual_dual, order_dual.preorder.dual_dual] at this⟩
 
-theorem valid.left {s l x r} (H : valid (@node α s l x r)) : valid l :=
+theorem valid.dual {t : ordnode α} : valid t →
+  @valid (order_dual α) _ (dual t) := valid'.dual
+
+theorem valid.dual_iff {t : ordnode α} : valid t ↔
+  @valid (order_dual α) _ (dual t) := valid'.dual_iff
+
+theorem valid'.left {s l x r o₁ o₂} (H : valid' o₁ (@node α s l x r) o₂) : valid' o₁ l x :=
 ⟨H.1.1, H.2.2.1, H.3.2.1⟩
 
-theorem valid.right {s l x r} (H : valid (@node α s l x r)) : valid r :=
-⟨H.1.2.2.2, H.2.2.2, H.3.2.2⟩
+theorem valid'.right {s l x r o₁ o₂} (H : valid' o₁ (@node α s l x r) o₂) : valid' ↑x r o₂ :=
+⟨H.1.2, H.2.2.2, H.3.2.2⟩
+
+theorem valid.left {s l x r} (H : valid (@node α s l x r)) : valid l := H.left.valid
+
+theorem valid.right {s l x r} (H : valid (@node α s l x r)) : valid r := H.right.valid
 
 theorem valid.size_eq {s l x r} (H : valid (@node α s l x r)) :
   size (@node α s l x r) = size l + size r + 1 := H.2.1
 
-theorem valid.node' {l x r} (hl : valid l) (hr : valid r)
-  (h₁ : all (<x) l) (h₂ : all (>x) r) (H : balanced_sz (size l) (size r)) :
-  valid (@node' α l x r) :=
-hl.node hr h₁ h₂ H rfl
+theorem valid'.node' {l x r o₁ o₂} (hl : valid' o₁ l ↑x) (hr : valid' ↑x r o₂)
+  (H : balanced_sz (size l) (size r)) : valid' o₁ (@node' α l x r) o₂ :=
+hl.node hr H rfl
 
-theorem valid_singleton {x : α} : valid (singleton x) :=
-valid_nil.node valid_nil ⟨⟩ ⟨⟩ (or.inl zero_le_one) rfl
+theorem valid'_singleton {x : α} {o₁ o₂}
+  (h₁ : bounded nil o₁ ↑x) (h₂ : bounded nil ↑x o₂) : valid' o₁ (singleton x) o₂ :=
+(valid'_nil h₁).node (valid'_nil h₂) (or.inl zero_le_one) rfl
 
-theorem valid.node3_l {l x m y r}
-  (hl : valid l) (hm : valid m) (hr : valid r)
-  (xy : x < y) (xl : all (<x) l) (xm : all (>x) m) (ym : all (<y) m) (yr : all (>y) r)
+theorem valid_singleton {x : α} : valid (singleton x) := valid'_singleton ⟨⟩ ⟨⟩
+
+theorem valid'.node3_l {l x m y r o₁ o₂}
+  (hl : valid' o₁ l ↑x) (hm : valid' ↑x m ↑y) (hr : valid' ↑y r o₂)
   (H1 : balanced_sz (size l) (size m))
   (H2 : balanced_sz (size l + size m + 1) (size r)) :
-  valid (@node3_l α l x m y r) :=
-(hl.node' hm xl xm H1).node' hr ⟨xl.imp (λ _ h, lt_trans h xy), xy, ym⟩ yr H2
+  valid' o₁ (@node3_l α l x m y r) o₂ :=
+(hl.node' hm H1).node' hr H2
 
-theorem valid.node3_r {l x m y r}
-  (hl : valid l) (hm : valid m) (hr : valid r)
-  (xy : x < y) (xl : all (<x) l) (xm : all (>x) m) (ym : all (<y) m) (yr : all (>y) r)
+theorem valid'.node3_r {l x m y r o₁ o₂}
+  (hl : valid' o₁ l ↑x) (hm : valid' ↑x m ↑y) (hr : valid' ↑y r o₂)
   (H1 : balanced_sz (size l) (size m + size r + 1))
   (H2 : balanced_sz (size m) (size r)) :
-  valid (@node3_r α l x m y r) :=
-hl.node' (hm.node' hr ym yr H2) xl ⟨xm, xy, yr.imp (λ _, lt_trans xy)⟩ H1
+  valid' o₁ (@node3_r α l x m y r) o₂ :=
+hl.node' (hm.node' hr H2) H1
 
-theorem valid.node4_l {l x m y r}
-  (hl : valid l) (hm : valid m) (hr : valid r)
-  (xy : x < y) (xl : all (<x) l) (xm : all (>x) m) (ym : all (<y) m) (yr : all (>y) r)
+theorem valid'.node4_l {l x m y r o₁ o₂}
+  (hl : valid' o₁ l ↑x) (hm : valid' ↑x m ↑y) (hr : valid' ↑y r o₂)
   (Hm : size m > 0)
   (H : (size l = 0 ∧ size m = 1 ∧ size r = 0) ∨
     (size l > 0 ∧ ratio * size r ≤ size m ∧
       delta * size l ≤ size m + size r ∧
       size m + size r ≤ delta * size l + 2 ∧
       size m ≤ delta * size r)) :
-  valid (@node4_l α l x m y r) :=
+  valid' o₁ (@node4_l α l x m y r) o₂ :=
 begin
   cases m with s ml z mr, {cases Hm},
   suffices : balanced_sz (size l) (size ml) ∧
     balanced_sz (size mr) (size r) ∧
     balanced_sz (size l + size ml + 1) (size mr + size r + 1),
-  from (valid.node' (hl.node' hm.left xl xm.1 this.1)
-    (hm.right.node' hr ym.2.2 yr this.2.1)
-    ⟨xl.imp (λ _ h, lt_trans h xm.2.1), xm.2.1, hm.1.2.1⟩
-    ⟨hm.1.2.2.1, ym.2.1, yr.imp (λ _, lt_trans ym.2.1)⟩ this.2.2),
+  from (valid'.node' (hl.node' hm.left this.1) (hm.right.node' hr this.2.1) this.2.2),
   rcases H with ⟨l0, m1, r0⟩ | ⟨l0, mr₁, lr₁, lr₂, mr₂⟩,
-  { rw [hm.size_eq, nat.succ_inj', add_eq_zero_iff] at m1,
+  { rw [hm.2.size_eq, nat.succ_inj', add_eq_zero_iff] at m1,
     rw [l0, m1.1, m1.2, r0], exact dec_trivial },
   { cases nat.eq_zero_or_pos (size r) with r0 r0,
     { rw r0 at mr₂, cases not_le_of_lt Hm mr₂ },
-    rw [hm.size_eq] at lr₁ lr₂ mr₁ mr₂,
+    rw [hm.2.size_eq] at lr₁ lr₂ mr₁ mr₂,
     by_cases mm : size ml + size mr ≤ 1,
     { have r1 := le_antisymm ((mul_le_mul_left dec_trivial).1
         (le_trans mr₁ (nat.succ_le_succ mm) : _ ≤ ratio * 1)) r0,
@@ -606,16 +683,15 @@ begin
     { unfold delta ratio at lr₂ ⊢, linarith } }
 end
 
-theorem valid.rotate_l {l x r} (hl : valid l) (hr : valid r)
-  (h₁ : all (<x) l) (h₂ : all (>x) r)
+theorem valid'.rotate_l {l x r o₁ o₂} (hl : valid' o₁ l ↑x) (hr : valid' ↑x r o₂)
   (H1 : ¬ size l + size r ≤ 1)
   (H2 : delta * size l < size r)
   (H3 : size r ≤ delta * (size l + 1)) :
-  valid (@rotate_l α l x r) :=
+  valid' o₁ (@rotate_l α l x r) o₂ :=
 begin
   cases r with rs rl rx rr, {cases H2},
-  rw [hr.size_eq, nat.lt_succ_iff] at H2,
-  rw [hr.size_eq] at H3,
+  rw [hr.2.size_eq, nat.lt_succ_iff] at H2,
+  rw [hr.2.size_eq] at H3,
   replace H3 : size rl + size rr ≤ delta * size l + 2 :=
     nat.succ_le_succ_iff.1 H3,
   have hlp : size l > 0 → ¬ size rl + size rr ≤ 1 := λ l0 hb, absurd
@@ -624,7 +700,7 @@ begin
   { have rr0 : size rr > 0 := (mul_lt_mul_left dec_trivial).1
       (lt_of_le_of_lt (nat.zero_le _) h : ratio * 0 < _),
     suffices : balanced_sz (size l) (size rl) ∧ balanced_sz (size l + size rl + 1) (size rr),
-    { exact hl.node3_l hr.left hr.right h₂.2.1 h₁ h₂.1 hr.1.2.1 hr.1.2.2.1 this.1 this.2 },
+    { exact hl.node3_l hr.left hr.right this.1 this.2 },
     cases nat.eq_zero_or_pos (size l) with l0 l0,
     { rw l0 at H3 ⊢,
       have := hr.3.1,
@@ -667,9 +743,9 @@ begin
     { rw [rl0, not_lt, nat.le_zero_iff, nat.mul_eq_zero] at h,
       replace h := h.resolve_left dec_trivial,
       rw [rl0, h, nat.le_zero_iff, nat.mul_eq_zero] at H2,
-      rw [hr.size_eq, rl0, h, H2.resolve_left dec_trivial] at H1,
+      rw [hr.2.size_eq, rl0, h, H2.resolve_left dec_trivial] at H1,
       cases H1 dec_trivial },
-    refine hl.node4_l hr.left hr.right h₂.2.1 h₁ h₂.1 hr.1.2.1 hr.1.2.2.1 rl0 _,
+    refine hl.node4_l hr.left hr.right rl0 _,
     cases nat.eq_zero_or_pos (size l) with l0 l0,
     { rw l0 at H3,
       cases nat.eq_zero_or_pos (size rr) with rr0 rr0,
@@ -683,22 +759,21 @@ begin
     exact or.inr ⟨l0, not_lt.1 h, H2, H3, (hr.3.1.resolve_left (hlp l0)).1⟩ }
 end
 
-theorem valid.rotate_r {l x r} (hl : valid l) (hr : valid r)
-  (h₁ : all (<x) l) (h₂ : all (>x) r)
+theorem valid'.rotate_r {l x r o₁ o₂} (hl : valid' o₁ l ↑x) (hr : valid' ↑x r o₂)
   (H1 : ¬ size l + size r ≤ 1)
   (H2 : delta * size r < size l)
   (H3 : size l ≤ delta * (size r + 1)) :
-  valid (@rotate_r α l x r) :=
+  valid' o₁ (@rotate_r α l x r) o₂ :=
 begin
-  refine valid.dual_iff.2 _,
+  refine valid'.dual_iff.2 _,
   rw dual_rotate_r,
-  refine hr.dual.rotate_l hl.dual (all_dual.2 h₂) (all_dual.2 h₁) _ _ _,
+  refine hr.dual.rotate_l hl.dual _ _ _,
   { rwa [size_dual, size_dual, add_comm] },
   { rwa [size_dual, size_dual] },
   { rwa [size_dual, size_dual] }
 end
 
-theorem valid.balance'_aux {l l' r r'}
+theorem valid'.balance'_aux {l l' r r'}
   (H1 : balanced_sz l' r')
   (H2 : nat.dist (@size α l) l' ≤ 1 ∧ size r = r' ∨
         nat.dist (size r) r' ≤ 1 ∧ size l = l') :
@@ -716,32 +791,30 @@ begin
       (add_le_add h₂ (le_trans hr dec_trivial)) },
 end
 
-theorem valid.balance' {l x r} (hl : valid l) (hr : valid r)
-  (h₁ : all (<x) l) (h₂ : all (>x) r)
+theorem valid'.balance' {l x r o₁ o₂} (hl : valid' o₁ l ↑x) (hr : valid' ↑x r o₂)
   (H : ∃ l' r', balanced_sz l' r' ∧
     (nat.dist (size l) l' ≤ 1 ∧ size r = r' ∨
      nat.dist (size r) r' ≤ 1 ∧ size l = l')) :
-  valid (@balance' α l x r) :=
+  valid' o₁ (@balance' α l x r) o₂ :=
 begin
   rw balance', split_ifs,
-  { exact hl.node' hr h₁ h₂ (or.inl h) },
+  { exact hl.node' hr (or.inl h) },
   { rcases H with ⟨l', r', H1, H2⟩,
-    have := valid.balance'_aux H1 H2,
-    exact hl.rotate_l hr h₁ h₂ h h_1 this },
+    have := valid'.balance'_aux H1 H2,
+    exact hl.rotate_l hr h h_1 this },
   { rcases H with ⟨l', r', H1, H2⟩,
-    have := valid.balance'_aux H1.symm H2.symm,
-    exact hl.rotate_r hr h₁ h₂ h h_2 this },
-  { exact hl.node' hr h₁ h₂ (or.inr ⟨not_lt.1 h_2, not_lt.1 h_1⟩) }
+    have := valid'.balance'_aux H1.symm H2.symm,
+    exact hl.rotate_r hr h h_2 this },
+  { exact hl.node' hr (or.inr ⟨not_lt.1 h_2, not_lt.1 h_1⟩) }
 end
 
-theorem balance_l.valid {l x r} (hl : valid l) (hr : valid r)
-  (h₁ : all (<x) l) (h₂ : all (>x) r)
+theorem valid'.balance_l {l x r o₁ o₂} (hl : valid' o₁ l ↑x) (hr : valid' ↑x r o₂)
   (H : (∃ l', size l = l' + 1 ∧ balanced_sz l' (size r)) ∨
        (∃ r', size r ≤ r' ∧ r' ≤ size r + 1 ∧ balanced_sz (size l) r')) :
-  valid (@balance_l α l x r) :=
+  valid' o₁ (@balance_l α l x r) o₂ :=
 begin
   rw balance_l_eq_balance' hl.3 hr.3 hl.2 hr.2 H,
-  refine hl.balance' hr h₁ h₂ _,
+  refine hl.balance' hr _,
   rcases H with ⟨l', e, H⟩ | ⟨r', e₁, e₂, H⟩,
   { refine ⟨_, _, H, or.inl ⟨_, rfl⟩⟩,
     rw [← add_zero l', e, nat.dist_add_add_left], refl },
@@ -749,27 +822,26 @@ begin
     rwa [nat.dist_eq_sub_of_le e₁, nat.sub_le_left_iff_le_add] },
 end
 
-theorem balance_r.valid {l x r} (hl : valid l) (hr : valid r)
-  (h₁ : all (<x) l) (h₂ : all (>x) r)
+theorem valid'.balance_r {l x r o₁ o₂} (hl : valid' o₁ l ↑x) (hr : valid' ↑x r o₂)
   (H : (∃ l', size l ≤ l' ∧ l' ≤ size l + 1 ∧ balanced_sz l' (size r)) ∨
        (∃ r', size r = r' + 1 ∧ balanced_sz (size l) r')) :
-  valid (@balance_r α l x r) :=
-by rw [valid.dual_iff, dual_balance_r]; exact
-balance_l.valid hr.dual hl.dual (all_dual.2 h₂) (all_dual.2 h₁) (balance_sz_dual H)
+  valid' o₁ (@balance_r α l x r) o₂ :=
+by rw [valid'.dual_iff, dual_balance_r]; exact
+hr.dual.balance_l hl.dual (balance_sz_dual H)
 
-theorem erase_min.valid_aux : ∀ {t}, @valid α _ t →
-  valid (erase_min t) ∧
+theorem erase_min.valid_aux : ∀ {t o₁ o₂}, @valid' α _ o₁ t o₂ →
+  valid' o₁ (erase_min t) o₂ ∧
   (size (erase_min t) ≤ size t ∧ size t ≤ size (erase_min t) + 1) ∧
   ∀ P, all P t → all P (erase_min t)
-| nil _ := ⟨valid_nil, dec_trivial, λ _, id⟩
-| (node _ nil x r) h := ⟨h.right, by simp [h.size_eq, erase_min], λ _ h, h.2.2⟩
-| (node _ l@(node _ ll lx lr) x r) h :=
+| nil _ _ h := ⟨valid'_nil h.1, dec_trivial, λ _, id⟩
+| (node _ nil x r) o₁ o₂ h := ⟨h.right.trans_left h.1.1, by simp [h.2.size_eq, erase_min], λ _ h, h.2.2⟩
+| (node _ l@(node _ ll lx lr) x r) _ _ h :=
   let ⟨v, ⟨s₁, s₂⟩, al⟩ := erase_min.valid_aux h.left in
   begin
     suffices H,
     rw [erase_min],
-    { refine ⟨balance_r.valid v h.right (al _ h.1.2.1) h.1.2.2.1 H, _, _⟩,
-      { rw [balance_r_size v.3 h.3.2.2 v.2 h.2.2.2 H, h.size_eq],
+    { refine ⟨v.balance_r h.right H, _, _⟩,
+      { rw [balance_r_size v.3 h.3.2.2 v.2 h.2.2.2 H, h.2.size_eq],
         refine ⟨nat.succ_le_succ (nat.add_le_add_right s₁ _), nat.succ_le_succ _⟩,
         rw add_right_comm, exact nat.add_le_add_right s₂ _ },
       { rintro P ⟨h₁, h₂, h₃⟩,
@@ -805,34 +877,33 @@ begin
     exact or.inl ⟨_, le_refl _, nat.le_succ _, h⟩ }
 end
 
-theorem insert.valid_aux [is_total α (≤)] [@decidable_rel α (≤)] (x : α) : ∀ {t},
-  valid t → valid (insert x t) ∧
+theorem insert.valid_aux [is_total α (≤)] [@decidable_rel α (≤)] (x : α) : ∀ {t o₁ o₂},
+  valid' o₁ t o₂ → bounded nil o₁ ↑x → bounded nil ↑x o₂ →
+  valid' o₁ (insert x t) o₂ ∧
   (size t ≤ size (insert x t) ∧ size (insert x t) ≤ size t + 1) ∧
   ∀ P, all P t → P x → all P (insert x t)
-| nil _ := ⟨valid_singleton, dec_trivial, λ _ _, all_singleton.2⟩
-| (node sz l y r) h := begin
+| nil o₁ o₂ _ ol or := ⟨valid'_singleton ol or, dec_trivial, λ _ _, all_singleton.2⟩
+| (node sz l y r) o₁ o₂ h ol or := begin
     rw [insert, cmp_le],
     split_ifs; rw [insert],
-    { rcases h with ⟨⟨ol, lx, xr, or⟩, hs, hb⟩,
-      refine ⟨⟨⟨ol, lx.imp (λ z h, lt_of_lt_of_le h h_2),
-        xr.imp (λ z, lt_of_le_of_lt h_1), or⟩, hs, hb⟩, by simp, _⟩,
+    { rcases h with ⟨⟨lx, xr⟩, hs, hb⟩,
+      refine ⟨⟨⟨lx.mono_right h_2, xr.mono_left h_1⟩, hs, hb⟩, by simp, _⟩,
       rintro P ⟨h₁, _, h₂⟩ h₃, exact ⟨h₁, h₃, h₂⟩ },
-    { rcases insert.valid_aux h.left with ⟨vl, ⟨s₁, s₂⟩, al⟩,
+    { rcases insert.valid_aux h.left ol (lt_of_le_not_le h_1 h_2) with ⟨vl, ⟨s₁, s₂⟩, al⟩,
       suffices H,
-      refine ⟨balance_l.valid vl h.right
-        (al _ h.1.2.1 (lt_of_le_not_le h_1 h_2)) h.1.2.2.1 H, _, _⟩,
-      { rw [balance_l_size vl.3 h.3.2.2 vl.2 h.2.2.2 H, h.size_eq],
+      refine ⟨vl.balance_l h.right H, _, _⟩,
+      { rw [balance_l_size vl.3 h.3.2.2 vl.2 h.2.2.2 H, h.2.size_eq],
         refine ⟨nat.succ_le_succ (nat.add_le_add_right s₁ _), nat.succ_le_succ _⟩,
         rw add_right_comm, exact nat.add_le_add_right s₂ _ },
       { rintro P ⟨h₁, h₂, h₃⟩ h',
         refine (all_balance_l vl.3 h.3.2.2 vl.2 h.2.2.2 H).2 ⟨al _ h₁ h', h₂, h₃⟩ },
       { have := balance_sz_dual (insert.valid_aux' h.3.1.symm s₁ s₂),
         rwa [size_dual, size_dual] at this } },
-    { rcases insert.valid_aux h.right with ⟨vr, ⟨s₁, s₂⟩, al⟩,
+    { have : y < x := lt_of_le_not_le ((total_of (≤) _ _).resolve_left h_1) h_1,
+      rcases insert.valid_aux h.right this or with ⟨vr, ⟨s₁, s₂⟩, al⟩,
       suffices H,
-      have : y < x := lt_of_le_not_le ((total_of (≤) _ _).resolve_left h_1) h_1,
-      refine ⟨balance_r.valid h.left vr h.1.2.1 (al _ h.1.2.2.1 this) H, _, _⟩,
-      { rw [balance_r_size h.3.2.1 vr.3 h.2.2.1 vr.2 H, h.size_eq],
+      refine ⟨h.left.balance_r vr H, _, _⟩,
+      { rw [balance_r_size h.3.2.1 vr.3 h.2.2.1 vr.2 H, h.2.size_eq],
         refine ⟨nat.succ_le_succ (nat.add_le_add_left s₁ _), nat.succ_le_succ _⟩,
         rw add_assoc, exact nat.add_le_add_left s₂ _ },
       { rintro P ⟨h₁, h₂, h₃⟩ h',
@@ -842,48 +913,49 @@ theorem insert.valid_aux [is_total α (≤)] [@decidable_rel α (≤)] (x : α) 
 
 theorem insert.valid [is_total α (≤)] [@decidable_rel α (≤)]
   (x : α) {t} (h : valid t) : valid (insert x t) :=
-(insert.valid_aux _ h).1
+(insert.valid_aux _ h ⟨⟩ ⟨⟩).1
 
 -- TODO(Mario): simplify proof using forall₂
-theorem insert'.valid_aux [is_total α (≤)] [@decidable_rel α (≤)] (x : α) : ∀ {t},
-  valid t → valid (insert' x t) ∧
+theorem insert'.valid_aux [is_total α (≤)] [@decidable_rel α (≤)] (x : α) : ∀ {t o₁ o₂},
+  valid' o₁ t o₂ → bounded nil o₁ ↑x → bounded nil ↑x o₂ →
+  valid' o₁ (insert' x t) o₂ ∧
   size (insert' x t) = size (insert x t) ∧
   ∀ P, all P t → P x → all P (insert' x t)
-| nil _ := ⟨valid_singleton, dec_trivial, λ _ _, all_singleton.2⟩
-| (node sz l y r) h := begin
+| nil o₁ o₂ _ ol or := ⟨valid'_singleton ol or, dec_trivial, λ _ _, all_singleton.2⟩
+| (node sz l y r) o₁ o₂ h ol or := begin
     rw [insert, insert', cmp_le],
     split_ifs; rw [insert, insert'],
     { exact ⟨h, rfl, λ _ h _, h⟩ },
-    { rcases insert'.valid_aux h.left with ⟨vl, s, al⟩,
+    { have := lt_of_le_not_le h_1 h_2,
+      rcases insert'.valid_aux h.left ol this with ⟨vl, s, al⟩,
       suffices H,
-      refine ⟨balance_l.valid vl h.right
-        (al _ h.1.2.1 (lt_of_le_not_le h_1 h_2)) h.1.2.2.1 H, _, _⟩,
-      { have := insert.valid x h.left,
+      refine ⟨vl.balance_l h.right H, _, _⟩,
+      { have := (insert.valid_aux x h.left ol this).1,
         rw [balance_l_size vl.3 h.3.2.2 vl.2 h.2.2.2 H, s,
             balance_l_size this.3 h.3.2.2 this.2 h.2.2.2 (s ▸ H)] },
       { rintro P ⟨h₁, h₂, h₃⟩ h',
         refine (all_balance_l vl.3 h.3.2.2 vl.2 h.2.2.2 H).2 ⟨al _ h₁ h', h₂, h₃⟩ },
-      { cases (insert.valid_aux _ h.left).2.1 with s₁ s₂,
+      { cases (insert.valid_aux _ h.left ol this).2.1 with s₁ s₂,
         rw ← s at s₁ s₂,
         have := balance_sz_dual (insert.valid_aux' h.3.1.symm s₁ s₂),
         rwa [size_dual, size_dual] at this } },
-    { rcases insert'.valid_aux h.right with ⟨vr, s, al⟩,
+    { have : y < x := lt_of_le_not_le ((total_of (≤) _ _).resolve_left h_1) h_1,
+      rcases insert'.valid_aux h.right this or with ⟨vr, s, al⟩,
       suffices H,
-      have : y < x := lt_of_le_not_le ((total_of (≤) _ _).resolve_left h_1) h_1,
-      refine ⟨balance_r.valid h.left vr h.1.2.1 (al _ h.1.2.2.1 this) H, _, _⟩,
-      { have := insert.valid x h.right,
+      refine ⟨h.left.balance_r vr H, _, _⟩,
+      { have := (insert.valid_aux x h.right this or).1,
         rw [balance_r_size h.3.2.1 vr.3 h.2.2.1 vr.2 H, s,
             balance_r_size h.3.2.1 this.3 h.2.2.1 this.2 (s ▸ H)] },
       { rintro P ⟨h₁, h₂, h₃⟩ h',
         refine (all_balance_r h.3.2.1 vr.3 h.2.2.1 vr.2 H).2 ⟨h₁, h₂, al _ h₃ h'⟩ },
-      { cases (insert.valid_aux _ h.right).2.1 with s₁ s₂,
+      { cases (insert.valid_aux _ h.right this or).2.1 with s₁ s₂,
         rw ← s at s₁ s₂,
         exact insert.valid_aux' h.3.1 s₁ s₂ } }
   end
 
 theorem insert'.valid [is_total α (≤)] [@decidable_rel α (≤)]
   (x : α) {t} (h : valid t) : valid (insert' x t) :=
-(insert'.valid_aux _ h).1
+(insert'.valid_aux _ h ⟨⟩ ⟨⟩).1
 
 end
 

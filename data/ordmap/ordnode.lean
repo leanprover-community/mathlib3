@@ -14,7 +14,7 @@ Data type for ordered sets, based on weight balanced trees:
 
 Ported from Haskell's `Data.Set`.
 -/
-import data.list.basic
+import data.list.defs data.nat.basic
 
 universes u
 

@@ -38,6 +38,18 @@ begin rw [dist.def, sub_eq_zero_of_le h, zero_add] end
 theorem dist_eq_sub_of_ge {n m : ℕ} (h : n ≥ m) : dist n m = n - m :=
 begin rw [dist_comm], apply dist_eq_sub_of_le h end
 
+theorem dist_tri_left (n m : ℕ) : m ≤ dist n m + n :=
+le_trans (nat.le_sub_add _ _) (add_le_add_right (le_add_left _ _) _)
+
+theorem dist_tri_right (n m : ℕ) : m ≤ n + dist n m :=
+by rw add_comm; apply dist_tri_left
+
+theorem dist_tri_left' (n m : ℕ) : n ≤ dist n m + m :=
+by rw dist_comm; apply dist_tri_left
+
+theorem dist_tri_right' (n m : ℕ) : n ≤ m + dist n m :=
+by rw dist_comm; apply dist_tri_right
+
 theorem dist_zero_right (n : ℕ) : dist n 0 = n :=
 eq.trans (dist_eq_sub_of_ge (zero_le n)) (nat.sub_zero n)
 

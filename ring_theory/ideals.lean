@@ -3,11 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
-<<<<<<< HEAD
-import algebra.module tactic.ring linear_algebra.quotient_module ring_theory.associated
-=======
 import linear_algebra.basic ring_theory.associated order.zorn
->>>>>>> origin/master
 
 universes u v
 variables {α : Type u} {β : Type v} [comm_ring α] {a b : α}
@@ -17,6 +13,9 @@ local attribute [instance] classical.prop_decidable
 
 namespace ideal
 variable (I : ideal α)
+
+@[extensionality] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
+submodule.ext h
 
 theorem eq_top_of_unit_mem
   (x y : α) (hx : x ∈ I) (h : y * x = 1) : I = ⊤ :=
@@ -32,13 +31,8 @@ theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
 ⟨by rintro rfl; trivial,
  λ h, eq_top_of_unit_mem _ _ 1 h (by simp)⟩
 
-<<<<<<< HEAD
-lemma neg_iff {S : set α} [is_ideal S] : -a ∈ S ↔ a ∈ S :=
-⟨λ h, neg_neg a ▸ is_submodule.neg h, is_submodule.neg⟩
-=======
 theorem ne_top_iff_one : I ≠ ⊤ ↔ (1:α) ∉ I :=
 not_congr I.eq_top_iff_one
->>>>>>> origin/master
 
 def span (s : set α) : ideal α := submodule.span s
 
@@ -46,14 +40,7 @@ lemma subset_span {s : set α} : s ⊆ span s := submodule.subset_span
 
 lemma span_le {s : set α} {I} : span s ≤ I ↔ s ⊆ I := submodule.span_le
 
-<<<<<<< HEAD
-lemma dvd {S : set α} [is_ideal S] : a ∣ b → a ∈ S → b ∈ S :=
-by rintro ⟨c, rfl⟩; exact mul_right
-
-def trivial (α : Type*) [comm_ring α] : set α := {0}
-=======
 lemma span_mono {s t : set α} : s ⊆ t → span s ≤ span t := submodule.span_mono
->>>>>>> origin/master
 
 @[simp] lemma span_eq : span (I : set α) = I := submodule.span_eq _
 
@@ -69,40 +56,14 @@ lemma mem_span_insert' {s : set α} {x y} :
 lemma mem_span_singleton' {x y : α} :
   x ∈ span ({y} : set α) ↔ ∃ a, a * y = x := submodule.mem_span_singleton
 
-<<<<<<< HEAD
-class is_proper_ideal {α} [comm_ring α] (S : set α) extends is_ideal S : Prop :=
-(ne_univ : S ≠ set.univ)
-=======
 lemma mem_span_singleton {x y : α} :
   x ∈ span ({y} : set α) ↔ y ∣ x :=
 mem_span_singleton'.trans $ exists_congr $ λ _, by rw [eq_comm, mul_comm]; refl
->>>>>>> origin/master
 
 lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
 span_le.trans $ singleton_subset_iff.trans mem_span_singleton
 
-<<<<<<< HEAD
-class is_prime_ideal {α} [comm_ring α] (S : set α) extends is_proper_ideal S : Prop :=
-(mem_or_mem_of_mul_mem : ∀ {x y : α}, x * y ∈ S → x ∈ S ∨ y ∈ S)
-
-theorem mem_or_mem_of_mul_eq_zero {α} [comm_ring α] (S : set α) [is_prime_ideal S] :
-  ∀ {x y : α}, x * y = 0 → x ∈ S ∨ y ∈ S :=
-λ x y hxy, have x * y ∈ S, by rw hxy; from (@is_submodule.zero α α _ _ S _ : (0:α) ∈ S),
-is_prime_ideal.mem_or_mem_of_mul_mem this
-
-class is_maximal_ideal {α} [comm_ring α] (S : set α) extends is_proper_ideal S : Prop :=
-mk' ::
-  (eq_or_univ_of_subset : ∀ (T : set α) [is_ideal T], S ⊆ T → T = S ∨ T = set.univ)
-
-theorem is_maximal_ideal.mk {α} [comm_ring α] (S : set α) [is_ideal S]
-  (h₁ : (1:α) ∉ S) (h₂ : ∀ x (T : set α) [is_ideal T], S ⊆ T → x ∉ S → x ∈ T → (1:α) ∈ T) :
-  is_maximal_ideal S :=
-{ ne_univ              := assume hu, have (1:α) ∈ S, by rw hu; trivial, h₁ this,
-  eq_or_univ_of_subset := assume T ht hst, classical.or_iff_not_imp_left.2 $ assume (hnst : T ≠ S),
-    let ⟨x, hxt, hxns⟩ := set.exists_of_ssubset ⟨hst, hnst.symm⟩ in
-    @@is_submodule.univ_of_one_mem _ T (by resetI; apply_instance) $ @@h₂ x T ht hst hxns hxt}
-=======
 lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := submodule.span_eq_bot
 
 lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot
@@ -112,51 +73,10 @@ by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, span_singleton
 
 @[class] def is_prime (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I
->>>>>>> origin/master
 
 theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
   ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
 
-<<<<<<< HEAD
-theorem mem_span_singleton_iff_dvd {α} [comm_ring α] {x y : α} :
-  x ∈ span ({y} : set α) ↔ y ∣ x :=
-by simp [span_singleton, dvd_mul_of_dvd_left, dvd_iff', eq_comm]
-
-theorem span_singleton_eq_univ {α} [comm_ring α] {x : α} :
-  span ({x} : set α) = set.univ ↔ is_unit x :=
-by simp [eq_univ_iff_forall, mem_span_singleton_iff_dvd, is_unit_iff_forall_dvd]
-
-def nonunits (α) [monoid α] : set α := {x | ¬is_unit x}
-
-@[simp] theorem mem_nonunits {α} [monoid α] (x : α) :
-  x ∈ nonunits α ↔ ¬ is_unit x := iff.rfl
-
-theorem not_unit_of_mem_proper_ideal {α} [comm_ring α] (S : set α) [is_proper_ideal S] :
-  S ⊆ nonunits α :=
-λ x hx xu, let ⟨y, hxy⟩ := is_unit_iff_dvd_one.1 xu in
-is_proper_ideal.ne_univ S $ is_submodule.eq_univ_of_contains_unit S x y hx (by simp [hxy, mul_comm])
-
-class local_ring (α) [comm_ring α] :=
-(S : set α)
-(max : is_maximal_ideal S)
-(unique : ∀ T [is_maximal_ideal T], S = T)
-
-def local_of_nonunits_ideal {α : Type u} [nonzero_comm_ring α]
-  (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : local_ring α :=
-have hi : is_ideal (nonunits α), from
-  { zero_ := not_is_unit_zero,
-    add_  := h,
-    smul  := λ x y hy hu, hy $ is_unit_of_dvd_unit (dvd_mul_left _ _) hu },
-{ S      := nonunits α,
-  max    := @@is_maximal_ideal.mk _ (nonunits α) hi (λ ho, ho is_unit_one) $
-    λ x T ht hst hxns hxt, by exactI
-      is_ideal.dvd (is_unit_iff_dvd_one.1 (not_not.1 hxns)) hxt,
-  unique := λ T hmt, or.cases_on
-    (@@is_maximal_ideal.eq_or_univ_of_subset _ hmt (nonunits α) hi $
-      λ z hz, @@not_unit_of_mem_proper_ideal _ T (by resetI; apply_instance) hz)
-    id
-    (λ htu, false.elim $ ((set.ext_iff _ _).1 htu 1).2 trivial is_unit_one) }
-=======
 theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
 hI.2 (h.symm ▸ I.zero_mem)
@@ -202,7 +122,6 @@ begin
   rw [span_eq, ← neg_mem_iff, add_comm, neg_add', neg_mul_eq_neg_mul] at hy,
   exact ⟨-y, hy⟩
 end
->>>>>>> origin/master
 
 theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 ⟨H.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
@@ -361,36 +280,6 @@ protected def nonzero_comm_ring {I : ideal α} (hI : I ≠ ⊤) : nonzero_comm_r
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
     quotient.induction_on₂' a b $ λ a b hab,
-<<<<<<< HEAD
-      (is_prime_ideal.mem_or_mem_of_mul_mem
-        (eq_zero_iff_mem.1 hab)).elim
-      (or.inl ∘ eq_zero_iff_mem.2)
-      (or.inr ∘ eq_zero_iff_mem.2),
-  ..quotient_ring.nonzero_comm_ring S }
-
-lemma exists_inv {S : set α} [is_maximal_ideal S] {a : quotient S} : a ≠ 0 →
-  ∃ b : quotient S, a * b = 1 :=
-quotient.induction_on' a $ λ a ha,
-classical.by_contradiction $ λ h,
-have haS : a ∉ S := mt eq_zero_iff_mem.2 ha,
-by haveI hS : is_proper_ideal (span (set.insert a S)) :=
-  is_proper_ideal_iff_one_not_mem.2
-  (mt mem_span_insert.1 $ λ ⟨b, hb⟩,
-  h ⟨-b, quotient_ring.eq.2
-    (neg_iff.1 (begin
-      rw [neg_sub, mul_neg_eq_neg_mul_symm, sub_eq_add_neg, neg_neg, mul_comm],
-      rw span_eq_of_is_submodule (show is_submodule S, by apply_instance) at hb,
-      exact hb
-    end))⟩);
-exact have span (set.insert a S) = S :=
-    or.resolve_right (is_maximal_ideal.eq_or_univ_of_subset (span (set.insert a S))
-    (subset.trans (subset_insert _ _) subset_span)) (is_proper_ideal.ne_univ _),
-  haS (this ▸ subset_span (mem_insert _ _))
-
-/-- quotient by maximal ideal is a field. def rather than instance, since users will have
-computable inverses in some applications -/
-protected noncomputable def field (S : set α) [is_maximal_ideal S] : discrete_field (quotient S) :=
-=======
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
         (or.inr ∘ eq_zero_iff_mem.2),
@@ -408,7 +297,6 @@ end
 /-- quotient by maximal ideal is a field. def rather than instance, since users will have
 computable inverses in some applications -/
 protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.quotient :=
->>>>>>> origin/master
 { inv := λ a, if ha : a = 0 then 0 else classical.some (exists_inv ha),
   mul_inv_cancel := λ a (ha : a ≠ 0), show a * dite _ _ _ = _,
     by rw dif_neg ha;
@@ -416,13 +304,35 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
   inv_mul_cancel := λ a (ha : a ≠ 0), show dite _ _ _ * a = _,
     by rw [mul_comm, dif_neg ha];
     exact classical.some_spec (exists_inv ha),
-<<<<<<< HEAD
-  has_decidable_eq := by apply_instance,
-  inv_zero := dif_pos rfl,
-  ..quotient_ring.integral_domain S }
-=======
   ..quotient.integral_domain I }
->>>>>>> origin/master
+
+variable [comm_ring β]
+
+def lift (S : ideal α) (f : α → β) [is_ring_hom f] (H : ∀ (a : α), a ∈ S → f a = 0) :
+  quotient S → β :=
+λ x, quotient.lift_on' x f $ λ (a b) (h : _ ∈ _),
+eq_of_sub_eq_zero (by simpa only [is_ring_hom.map_sub f] using H _ h)
+
+variables {S : ideal α} {f : α → β} [is_ring_hom f] {H : ∀ (a : α), a ∈ S → f a = 0}
+
+@[simp] lemma lift_mk : lift S f H (mk S a) = f a := rfl
+
+instance : is_ring_hom (lift S f H) :=
+{ map_one := by show lift S f H (mk S 1) = 1; simp [is_ring_hom.map_one f, - mk_one],
+  map_add := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ $ λ a₁ a₂, begin
+    show lift S f H (mk S a₁ + mk S a₂) = lift S f H (mk S a₁) + lift S f H (mk S a₂),
+    have := ideal.quotient.is_ring_hom_mk S,
+    rw ← this.map_add,
+    show lift S f H (mk S (a₁ + a₂)) = lift S f H (mk S a₁) + lift S f H (mk S a₂),
+    simp only [lift_mk, is_ring_hom.map_add f],
+  end,
+  map_mul := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ $ λ a₁ a₂, begin
+    show lift S f H (mk S a₁ * mk S a₂) = lift S f H (mk S a₁) * lift S f H (mk S a₂),
+    have := ideal.quotient.is_ring_hom_mk S,
+    rw ← this.map_mul,
+    show lift S f H (mk S (a₁ * a₂)) = lift S f H (mk S a₁) * lift S f H (mk S a₂),
+    simp only [lift_mk, is_ring_hom.map_mul f],
+  end }
 
 end quotient
 end ideal

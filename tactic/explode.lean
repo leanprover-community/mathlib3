@@ -94,8 +94,8 @@ with explode.core : expr → bool → nat → entries → tactic entries
   else do
     let en : entry := ⟨l, es.size, depth, status.intro, to_string n, []⟩,
     es' ← explode.core b' si (depth + 1) (es.add en),
-    deps' ← explode.append_dep filter es' b' [], -- conclusion
-    deps' ← explode.append_dep filter es' l deps', -- assumption
+    deps' ← explode.append_dep filter es' b' [],
+    deps' ← explode.append_dep filter es' l deps',
     return $ es'.add ⟨e, es'.size, depth, status.lam, "∀I", deps'⟩
 | e@(macro _ l) si depth es := explode.core l.head si depth es
 | e si depth es := filter e >>

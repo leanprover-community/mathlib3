@@ -121,16 +121,32 @@ def order_dual (α : Type*) := α
 namespace order_dual
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
 
+instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
+
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
 { le_refl  := le_refl,
   le_trans := assume a b c hab hbc, le_trans hbc hab,
-  .. order_dual.has_le α }
+  lt_iff_le_not_le := λ a b, lt_iff_le_not_le,
+  .. order_dual.has_le α,
+  .. order_dual.has_lt α }
 
 instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 { le_antisymm := assume a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
 
 instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 { le_total := assume a b:α, le_total b a, .. order_dual.partial_order α }
+
+theorem preorder.dual_dual (α : Type*) [H : preorder α] :
+  order_dual.preorder (order_dual α) = H :=
+preorder.ext $ λ _ _, iff.rfl
+
+theorem partial_order.dual_dual (α : Type*) [H : partial_order α] :
+  order_dual.partial_order (order_dual α) = H :=
+partial_order.ext $ λ _ _, iff.rfl
+
+theorem linear_order.dual_dual (α : Type*) [H : linear_order α] :
+  order_dual.linear_order (order_dual α) = H :=
+linear_order.ext $ λ _ _, iff.rfl
 
 end order_dual
 
@@ -423,4 +439,3 @@ theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
 
 end
-

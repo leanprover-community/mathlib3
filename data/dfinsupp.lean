@@ -205,6 +205,10 @@ quotient.induction_on v $ λ x, rfl
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ i, by simp only [add_apply, subtype_domain_apply]
 
+instance subtype_domain.is_add_monoid_hom [Π i, add_monoid (β i)] {p : ι → Prop} [decidable_pred p] :
+  is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
+by refine_struct {..}; simp
+
 @[simp] lemma subtype_domain_neg [Π i, add_group (β i)] {p : ι → Prop} [decidable_pred p] {v : Π₀ i, β i} :
   (- v).subtype_domain p = - v.subtype_domain p :=
 ext $ λ i, by simp only [neg_apply, subtype_domain_apply]
@@ -651,7 +655,7 @@ finset.sum_add_distrib
 @[simp] lemma sum_neg [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
   [add_comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
   f.sum (λi b, - h i b) = - f.sum h :=
-finset.sum_hom (@has_neg.neg γ _) neg_zero (assume i b, neg_add _ _)
+finset.sum_hom (@has_neg.neg γ _)
 
 @[to_additive dfinsupp.sum_add_index]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
@@ -738,7 +742,7 @@ finset.prod_bij (λp _, p.val)
 lemma subtype_domain_sum [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
   {s : finset γ} {h : γ → Π₀ i, β i} {p : ι → Prop} [decidable_pred p] :
   (s.sum h).subtype_domain p = s.sum (λc, (h c).subtype_domain p) :=
-eq.symm (finset.sum_hom _ subtype_domain_zero $ assume v v', subtype_domain_add)
+eq.symm (finset.sum_hom _)
 
 lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]
   [Π c, has_zero (δ c)] [Π c, decidable_pred (eq (0 : δ c))]

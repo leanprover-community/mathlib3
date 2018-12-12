@@ -107,6 +107,9 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   zero_add  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, zero_add],
   add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
 
+instance [Π i, add_monoid (β i)] {i : ι} : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
+by refine_struct {..}; simp
+
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
 
@@ -621,7 +624,7 @@ prod_map_range_index h0
   [Π i, add_comm_monoid (β i)]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i} {i₂ : ι} :
   (f.sum g) i₂ = f.sum (λi₁ b, g i₁ b i₂) :=
-(finset.sum_hom (λf : Π₀ i, β i, f i₂) rfl (assume i b, add_apply)).symm
+(finset.sum_hom (λf : Π₀ i, β i, f i₂)).symm
 
 lemma support_sum {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
   [Π i₁, has_zero (β₁ i₁)] [Π i, decidable_pred (eq (0 : β₁ i))]

@@ -688,8 +688,11 @@ protected lemma is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a 
 | ⟨c, hc⟩ := ⟨f c, by rw [← is_group_hom.mul f, ← is_group_hom.inv f, ← is_group_hom.mul f, hc]⟩
 
 @[to_additive is_add_group_hom.to_is_add_monoid_hom]
-instance to_is_monoid_hom (f : α → β) [is_group_hom f] : is_monoid_hom f :=
+lemma to_is_monoid_hom (f : α → β) [is_group_hom f] : is_monoid_hom f :=
 ⟨is_group_hom.one f, is_group_hom.mul f⟩
+
+attribute [instance] is_group_hom.to_is_monoid_hom
+  is_add_group_hom.to_is_add_monoid_hom
 
 end is_group_hom
 

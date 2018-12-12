@@ -224,6 +224,12 @@ noncomputable instance : discrete_field ℂ :=
   has_decidable_eq := classical.dec_eq _,
   ..complex.comm_ring }
 
+instance re.is_add_group_hom : is_add_group_hom complex.re :=
+by refine_struct {..}; simp
+
+instance im.is_add_group_hom : is_add_group_hom complex.im :=
+by refine_struct {..}; simp
+
 instance : is_ring_hom conj :=
 by refine_struct {..}; simp
 

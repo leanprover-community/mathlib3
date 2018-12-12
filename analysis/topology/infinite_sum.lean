@@ -100,7 +100,7 @@ iff.intro
   (assume hf, is_sum_of_iso hf h₁ h₂)
 
 lemma is_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ] [topological_add_monoid γ]
-  [is_monoid_hom g] (h₃ : continuous g) (hf : is_sum f a) :
+  [is_add_monoid_hom g] (h₃ : continuous g) (hf : is_sum f a) :
   is_sum (g ∘ f) (g a) :=
 have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
   from funext $ assume s, sum_hom g,

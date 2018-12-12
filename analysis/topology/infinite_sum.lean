@@ -352,7 +352,7 @@ lemma is_sum_mul_left (a₂) : is_sum f a₁ → is_sum (λb, a₂ * f b) (a₂ 
 is_sum_hom _ (continuous_mul continuous_const continuous_id)
 
 lemma is_sum_mul_right (a₂) (hf : is_sum f a₁) : is_sum (λb, f b * a₂) (a₁ * a₂) :=
-@is_sum_hom _ _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _
+@is_sum_hom _ _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _ _
   (continuous_mul continuous_id continuous_const) hf
 
 lemma has_sum_mul_left (a) (hf : has_sum f) : has_sum (λb, a * f b) :=

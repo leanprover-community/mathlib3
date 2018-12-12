@@ -51,8 +51,8 @@ hp.eq_two_or_odd.elim
 begin
   rw [← finset.prod_range_id_eq_fact, ← @units.coe_one (zmodp p hp), ← units.coe_neg,
     ← @prod_univ_units_id_eq_neg_one (zmodp p hp),
-    ← prod_hom (coe : units (zmodp p hp) → zmodp p hp) units.coe_one units.coe_mul,
-    ← prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul],
+    ← prod_hom (coe : units (zmodp p hp) → zmodp p hp),
+    ← prod_hom (coe : ℕ → zmodp p hp)],
   exact eq.symm (prod_bij
     (λ a _, (a : zmodp p hp).1) (λ a ha, mem_erase.2
       ⟨λ h, units.coe_ne_zero a $ fin.eq_of_veq h,
@@ -191,7 +191,7 @@ have hcard : ((range (p / 2).succ).erase 0).card = p / 2 :=
   by rw [card_erase_of_mem (mem_range.2 (succ_pos _)), card_range, pred_succ],
 begin
   conv in ((q : zmodp p hp) ^ (p / 2)) { rw ← hcard },
-  rw [← prod_const, ← prod_mul_distrib, ← prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul],
+  rw [← prod_const, ← prod_mul_distrib, ← prod_hom (coe : ℕ → zmodp p hp)],
   exact eq.symm (prod_bij (λ a _, a * q)
     (λ a ha,
       have ha' : a ≤ p / 2 ∧ a > 0,
@@ -442,9 +442,9 @@ calc ((range ((p * q) / 2).succ).filter (coprime (p * q))).prod
   (λ x, (if (x : zmodp q hq).1 ≤ (q / 2) then 1 else -1) * ((x : zmodp p hp), (x : zmodp q hq))) :
   prod_congr rfl (λ _ _, by split_ifs; simp)
 ... = _ : by rw [prod_mul_distrib, ← prod_mk_prod,
-    prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul,
+    prod_hom (coe : ℕ → zmodp p hp),
     prod_range_p_mul_q_filter_coprime_mod_p hp hq hp1 hq1 hpq,
-    prod_hom (coe : ℕ → zmodp q hq) nat.cast_one nat.cast_mul,
+    prod_hom (coe : ℕ → zmodp q hq),
     mul_comm p q, prod_range_p_mul_q_filter_coprime_mod_p hq hp hq1 hp1 hpq.symm]
 
 end quadratic_reciprocity_aux

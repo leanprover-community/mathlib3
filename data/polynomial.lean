@@ -1455,13 +1455,12 @@ derivative_C
 by refine finsupp.sum_add_index _ _; intros;
 simp only [add_mul, zero_mul, C_0, C_add, C_mul]
 
+instance : is_add_monoid_hom (derivative : polynomial α → polynomial α) :=
+by refine_struct {..}; simp
+
 @[simp] lemma derivative_sum {s : finset β} {f : β → polynomial α} :
   derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
-begin
-  apply (finset.sum_hom derivative _ _).symm,
-  exact derivative_zero,
-  exact assume x y, derivative_add
-end
+(finset.sum_hom derivative).symm
 
 @[simp] lemma derivative_mul {f g : polynomial α} :
   derivative (f * g) = derivative f * g + f * derivative g :=

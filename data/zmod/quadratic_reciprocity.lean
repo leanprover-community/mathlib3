@@ -69,7 +69,7 @@ end
 @[simp] lemma prod_range_prime_erase_zero {p : ℕ} (hp : prime p) :
   ((range p).erase 0).prod (λ x, (x : zmodp p hp)) = -1 :=
 by conv in (range p) { rw [← succ_sub_one p, succ_sub hp.pos] };
-  rw [prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul,
+  rw [prod_hom (coe : ℕ → zmodp p hp),
     finset.prod_range_id_eq_fact, wilsons_lemma]
 
 end zmodp
@@ -176,10 +176,10 @@ lemma prod_filter_range_p_mul_q_div_two_mod_p_eq :
   = (-1) ^ (q / 2) * ((range (p / 2).succ).erase 0).prod (λ x, x) :=
 begin
   rw [← prod_filter_range_p_mul_q_div_two_eq hp hq hp1 hq1 hpq, nat.cast_mul,
-    ← prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul,
-    ← prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul],
+    ← prod_hom (coe : ℕ → zmodp p hp),
+    ← prod_hom (coe : ℕ → zmodp p hp)],
   conv in ((finset.prod (erase (range p) 0) _ : ℕ) : zmodp p hp)
-  { rw ← prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul },
+  { rw ← prod_hom (coe : ℕ → zmodp p hp) },
   simp
 end
 

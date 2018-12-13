@@ -460,7 +460,8 @@ begin
   exact le_refl _
 end
 
-lemma nat_degree_eq_of_degree_eq (h : degree p = degree q) : nat_degree p = nat_degree q :=
+lemma nat_degree_eq_of_degree_eq [comm_semiring β] [decidable_eq β] {q : polynomial β}
+  (h : degree p = degree q) : nat_degree p = nat_degree q :=
 by unfold nat_degree; rw h
 
 lemma le_degree_of_ne_zero (h : coeff p n ≠ 0) : (n : with_bot ℕ) ≤ degree p :=
@@ -751,15 +752,40 @@ else begin
   exact mt leading_coeff_eq_zero.1 h
 end
 
-lemma degree_map_eq [comm_semiring β] [decidable_eq β] (f : α → β) [is_semiring_hom f]
-  (hf : function.injective f) : degree (p.map f) = degree p :=
+lemma subsingleton_of_monic_zero (h : monic (0 : polynomial α)) :
+  (∀ p q : polynomial α, p = q) ∧ (∀ a b : α, a = b) :=
+by rw [monic.def, leading_coeff_zero] at h;
+  exact ⟨λ p q, by rw [← mul_one p, ← mul_one q, ← C_1, ← h, C_0, mul_zero, mul_zero],
+    λ a b, by rw [← mul_one a, ← mul_one b, ← h, mul_zero, mul_zero]⟩
+
+lemma degree_map_eq_of_leading_coeff_ne_zero [comm_semiring β] [decidable_eq β] (f : α → β)
+  [is_semiring_hom f] (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
 le_antisymm (degree_map_le f) $
-  if h : p = 0 then by simp [h]
-  else begin rw [degree_eq_nat_degree h],
-      refine le_degree_of_ne_zero _,
-      rw [coeff_map, ← is_semiring_hom.map_zero f],
-      exact mt hf.eq_iff.1 (mt leading_coeff_eq_zero.1 h)
-    end
+  have hp0 : p ≠ 0, from λ hp0, by simpa [hp0, is_semiring_hom.map_zero f] using hf,
+  begin
+    rw [degree_eq_nat_degree hp0],
+    refine le_degree_of_ne_zero _,
+    rw [coeff_map], exact hf
+  end
+
+lemma degree_map_eq_of_injective [comm_semiring β] [decidable_eq β] (f : α → β) [is_semiring_hom f]
+  (hf : function.injective f) : degree (p.map f) = degree p :=
+if h : p = 0 then by simp [h]
+else degree_map_eq_of_leading_coeff_ne_zero _
+  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
+    (mt leading_coeff_eq_zero.1 h))
+
+lemma monic_map [comm_semiring β] [decidable_eq β] (f : α → β)
+  [is_semiring_hom f] (hp : monic p) : monic (p.map f) :=
+if h : (0 : β) = 1 then
+  by haveI := subsingleton_of_zero_eq_one β h;
+  exact subsingleton.elim _ _
+else
+have f (leading_coeff p) ≠ 0,
+  by rwa [show _ = _, from hp, is_semiring_hom.map_one f, ne.def, eq_comm],
+by erw [monic, leading_coeff, nat_degree_eq_of_degree_eq
+    (degree_map_eq_of_leading_coeff_ne_zero f this), coeff_map,
+    ← leading_coeff, show _ = _, from hp, is_semiring_hom.map_one f]
 
 lemma zero_le_degree_iff {p : polynomial α} : 0 ≤ degree p ↔ p ≠ 0 :=
 by rw [ne.def, ← degree_eq_bot];
@@ -767,6 +793,12 @@ by rw [ne.def, ← degree_eq_bot];
 
 @[simp] lemma coeff_mul_X_zero (p : polynomial α) : coeff (p * X) 0 = 0 :=
 by rw [coeff_mul_left, sum_range_succ]; simp
+
+instance [subsingleton α] : subsingleton (polynomial α) :=
+⟨λ _ _, polynomial.ext.2 (λ _, subsingleton.elim _ _)⟩
+
+lemma ne_zero_of_monic_of_zero_ne_one (hp : monic p) (h : (0 : α) ≠ 1) :
+  p ≠ 0 := mt (congr_arg leading_coeff) $ by rw [monic.def.1 hp, leading_coeff_zero]; cc
 
 end comm_semiring
 
@@ -934,12 +966,6 @@ lemma mod_by_monic_eq_sub_mul_div : ∀ (p : polynomial α) {q : polynomial α} 
     end
 using_well_founded {dec_tac := tactic.assumption}
 
-lemma subsingleton_of_monic_zero (h : monic (0 : polynomial α)) :
-  (∀ p q : polynomial α, p = q) ∧ (∀ a b : α, a = b) :=
-by rw [monic.def, leading_coeff_zero] at h;
-  exact ⟨λ p q, by rw [← mul_one p, ← mul_one q, ← C_1, ← h, C_0, mul_zero, mul_zero],
-    λ a b, by rw [← mul_one a, ← mul_one b, ← h, mul_zero, mul_zero]⟩
-
 lemma mod_by_monic_add_div (p : polynomial α) {q : polynomial α} (hq : monic q) :
   p %ₘ q + q * (p /ₘ q) = p := eq_sub_iff_add_eq.1 (mod_by_monic_eq_sub_mul_div p hq)
 
@@ -1028,6 +1054,58 @@ else begin
   exact with_bot.coe_lt_coe.2 (nat.lt_add_of_pos_left
     (with_bot.coe_lt_coe.1 $ (degree_eq_nat_degree hq0) ▸ h0q))
 end
+
+lemma div_mod_by_monic_unique {f g} (q r : polynomial α) (hg : monic g)
+  (h : r + g * q = f ∧ degree r < degree g) : f /ₘ g = q ∧ f %ₘ g = r :=
+if hg0 : g = 0 then by split; exact (subsingleton_of_monic_zero
+  (hg0 ▸ hg : monic (0 : polynomial α))).1 _ _
+else
+  have h₁ : r - f %ₘ g = -g * (q - f /ₘ g),
+    from eq_of_sub_eq_zero
+      (by rw [← sub_eq_zero_of_eq (h.1.trans (mod_by_monic_add_div f hg).symm)];
+        simp [mul_add, mul_comm]),
+  have h₂ : degree (r - f %ₘ g) = degree (g * (q - f /ₘ g)),
+    by simp [h₁],
+  have h₄ : degree (r - f %ₘ g) < degree g,
+    from calc degree (r - f %ₘ g) ≤ max (degree r) (degree (-(f %ₘ g))) :
+      degree_add_le _ _
+    ... < degree g : max_lt_iff.2 ⟨h.2, by rw degree_neg; exact degree_mod_by_monic_lt _ hg hg0⟩,
+  have h₅ : q - (f /ₘ g) = 0,
+    from by_contradiction
+      (λ hqf, not_le_of_gt h₄ $
+        calc degree g ≤ degree g + degree (q - f /ₘ g) :
+          by erw [degree_eq_nat_degree hg0, degree_eq_nat_degree hqf,
+              with_bot.coe_le_coe];
+            exact nat.le_add_right _ _
+        ... = degree (r - f %ₘ g) :
+          by rw [h₂, degree_mul_eq']; simpa [monic.def.1 hg]),
+  ⟨eq.symm $ eq_of_sub_eq_zero h₅,
+    eq.symm $ eq_of_sub_eq_zero $ by simpa [h₅] using h₁⟩
+
+lemma map_mod_div_by_monic [comm_ring β] [decidable_eq β] (f : α → β) [is_semiring_hom f] (hq : monic q) :
+  (p /ₘ q).map f = p.map f /ₘ q.map f ∧ (p %ₘ q).map f = p.map f %ₘ q.map f :=
+if h01 : (0 : β) = 1 then by haveI := subsingleton_of_zero_eq_one β h01;
+  exact ⟨subsingleton.elim _ _, subsingleton.elim _ _⟩
+else
+have h01α : (0 : α) ≠ 1, from mt (congr_arg f)
+  (by rwa [is_semiring_hom.map_one f, is_semiring_hom.map_zero f]),
+have map f p /ₘ map f q = map f (p /ₘ q) ∧ map f p %ₘ map f q = map f (p %ₘ q),
+  from (div_mod_by_monic_unique ((p /ₘ q).map f) _ (monic_map f hq)
+    ⟨eq.symm $ by rw [← map_mul, ← map_add, mod_by_monic_add_div _ hq],
+    calc _ ≤ degree (p %ₘ q) : degree_map_le _
+    ... < degree q : degree_mod_by_monic_lt _ hq
+      $ (ne_zero_of_monic_of_zero_ne_one hq h01α)
+    ... = _ : eq.symm $ degree_map_eq_of_leading_coeff_ne_zero _
+      (by rw [monic.def.1 hq, is_semiring_hom.map_one f]; exact ne.symm h01)⟩),
+⟨this.1.symm, this.2.symm⟩
+
+lemma map_div_by_monic [comm_ring β] [decidable_eq β] (f : α → β) [is_semiring_hom f] (hq : monic q) :
+  (p /ₘ q).map f = p.map f /ₘ q.map f :=
+(map_mod_div_by_monic f hq).1
+
+lemma map_mod_by_monic [comm_ring β] [decidable_eq β] (f : α → β) [is_semiring_hom f] (hq : monic q) :
+  (p %ₘ q).map f = p.map f %ₘ q.map f :=
+(map_mod_div_by_monic f hq).2
 
 lemma dvd_iff_mod_by_monic_eq_zero (hq : monic q) : p %ₘ q = 0 ↔ q ∣ p :=
 ⟨λ h, by rw [← mod_by_monic_add_div p hq, h, zero_add];
@@ -1488,6 +1566,9 @@ lemma div_eq_zero_iff (hq0 : q ≠ 0) : p / q = 0 ↔ degree p < degree q :=
   have hm : monic (q * C (leading_coeff q)⁻¹) := monic_mul_leading_coeff_inv hq0,
   by rw [div_def, (div_by_monic_eq_zero_iff hm (ne_zero_of_monic hm)).2 hlt, mul_zero]⟩
 
+@[simp] lemma div_zero : p / 0 = 0 :=
+by simp [div_def]
+
 lemma degree_add_div (hq0 : q ≠ 0) (hpq : degree q ≤ degree p) :
   degree q + degree (p / q) = degree p :=
 have degree (p % q) < degree (q * (p / q)) :=
@@ -1495,6 +1576,31 @@ have degree (p % q) < degree (q * (p / q)) :=
   ... ≤ _ : degree_le_mul_left _ (mt (div_eq_zero_iff hq0).1 (not_lt_of_ge hpq)),
 by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
     degree_add_eq_of_degree_lt this, degree_mul_eq]}
+
+@[simp] lemma degree_map [discrete_field β] (f : α → β) [is_field_hom f] :
+  degree (p.map f) = degree p :=
+degree_map_eq_of_injective _ (is_field_hom.injective f)
+
+@[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_field_hom f] :
+  nat_degree (p.map f) = nat_degree p :=
+nat_degree_eq_of_degree_eq (degree_map f)
+
+@[simp] lemma leading_coeff_map [discrete_field β] (f : α → β) [is_field_hom f] :
+  leading_coeff (p.map f) = f (leading_coeff p) :=
+by simp [leading_coeff, coeff_map f]
+
+lemma map_div [discrete_field β] (f : α → β) [is_field_hom f] :
+  (p / q).map f = p.map f / q.map f :=
+if hq0 : q = 0 then by simp [hq0]
+else
+by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
+  simp [is_field_hom.map_inv f, leading_coeff, coeff_map f]
+
+lemma map_mod [discrete_field β] (f : α → β) [is_field_hom f] :
+  (p % q).map f = p.map f % q.map f :=
+if hq0 : q = 0 then by simp [hq0]
+else by rw [mod_def, mod_def, leading_coeff_map f, ← is_field_hom.map_inv f, ← map_C f,
+  ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
 end field
 

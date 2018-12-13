@@ -41,14 +41,14 @@ instance : has_emptyc (ordnode α) := ⟨nil⟩
   According to the Haskell comment, only `(delta, ratio)` settings
   of `(3, 2)` and `(4, 2)` will work, and the proofs in
   `ordset.lean` assume `delta := 3` and `ratio := 2`. -/
-def delta := 3
+@[inline] def delta := 3
 
 /-- The ratio between an outer and inner sibling of the
   heavier subtree in an unbalanced setting. It determines
   whether a double or single rotation should be performed
   to restore balance. It is corresponds with the inverse
   of `α` in Adam's article. -/
-def ratio := 2
+@[inline] def ratio := 2
 
 /-- O(1). Construct a singleton set containing value `a`. -/
 @[inline] def singleton (a : α) : ordnode α := node 1 nil a nil
@@ -98,65 +98,111 @@ any.decidable
 
 /-- O(1). Construct a node with the correct size information, without rebalancing.
   Internal use only. -/
-def node' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
+@[inline] def node' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 node (size l + size r + 1) l x r
 
 /-- O(1). Rebalance a tree which was previously balanced but has had its left
   side grow by 1, or its right side shrink by 1. -/
+-- Note: The function has been written with tactics to avoid extra junk
 def balance_l (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
-match r, l with
-| nil, nil := singleton x
-| nil, node _ nil _ nil := node 2 l x nil
-| nil, node _ nil lx (node _ _ lrx _) := node 3 (singleton lx) lrx (singleton x)
-| nil, node _ ll lx nil := node 3 ll lx (singleton x)
-| nil, node ls ll@(node lls _ _ _) lx lr@(node lrs lrl lrx lrr) :=
-    if lrs < ratio * lls then
-      node (ls+1) ll lx (node (lrs+1) lr x nil)
-    else
-      node (ls+1) (node (lls + size lrl + 1) ll lx lrl) lrx (node (size lrr + 1) lrr x nil)
-| node rs _ _ _, nil := node (rs+1) nil x r
-| node rs _ _ _, node ls ll lx lr :=
-  if ls > delta * rs then
-    match ll, lr with
-    | node lls _ _ _, node lrs lrl lrx lrr :=
-      if lrs < ratio * lls then
+by clean begin
+  cases id r with rs,
+  { cases id l with ls ll lx lr,
+    { exact singleton x },
+    { cases id ll with lls,
+      { cases lr with _ _ lrx,
+        { exact node 2 l x nil },
+        { exact node 3 (singleton lx) lrx (singleton x) } },
+      { cases id lr with lrs lrl lrx lrr,
+        { exact node 3 ll lx (singleton x) },
+        { exact if lrs < ratio * lls then
+            node (ls+1) ll lx (node (lrs+1) lr x nil)
+          else
+            node (ls+1) (node (lls + size lrl + 1) ll lx lrl) lrx (node (size lrr + 1) lrr x nil) } } } },
+  { cases id l with ls ll lx lr,
+    { exact node (rs+1) nil x r },
+    { refine if ls > delta * rs then _ else node (ls + rs + 1) l x r,
+      cases id ll with lls, {exact nil /-should not happen-/},
+      cases id lr with lrs lrl lrx lrr, {exact nil /-should not happen-/},
+      exact if lrs < ratio * lls then
         node (ls + rs + 1) ll lx (node (rs + lrs + 1) lr x r)
       else
         node (ls + rs + 1)
           (node (lls + size lrl + 1) ll lx lrl) lrx
-          (node (rs + size lrr + 1) lrr x r)
-    | _, _ := nil -- should not happen
-    end
-  else node (ls + rs + 1) l x r
+          (node (size lrr + rs + 1) lrr x r) } }
 end
 
 /-- O(1). Rebalance a tree which was previously balanced but has had its right
   side grow by 1, or its left side shrink by 1. -/
 def balance_r (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
-match l, r with
-| nil, nil := singleton x
-| nil, node _ nil _ nil := node 2 nil x r
-| nil, node _ nil rx rr := node 3 (singleton x) rx rr
-| nil, node _ (node _ _ rlx _) rx nil := node 3 (singleton x) rlx (singleton rx)
-| nil, node rs rl@(node rls rll rlx rlr) rx rr@(node rrs _ _ _) :=
-    if rls < ratio * rrs then
-      node (rs+1) (node (rls+1) nil x rl) rx rr
-    else
-      node (rs+1) (node (size rll + 1) nil x rll) rlx (node (rrs + size rlr + 1) rlr rx rr)
-| node ls _ _ _, nil := node (ls+1) l x nil
-| node ls _ _ _, node rs rl rx rr :=
-  if rs > delta * ls then
-    match rl, rr with
-    | node rls rll rlx rlr, node rrs _ _ _ :=
-      if rls < ratio * rrs then
+by clean begin
+  cases id l with ls,
+  { cases id r with rs rl rx rr,
+    { exact singleton x },
+    { cases id rr with rrs,
+      { cases rl with _ _ rlx,
+        { exact node 2 nil x r },
+        { exact node 3 (singleton x) rlx (singleton rx) } },
+      { cases id rl with rls rll rlx rlr,
+        { exact node 3 (singleton x) rx rr },
+        { exact if rls < ratio * rrs then
+            node (rs+1) (node (rls+1) nil x rl) rx rr
+          else
+            node (rs+1) (node (size rll + 1) nil x rll) rlx (node (size rlr + rrs + 1) rlr rx rr) } } } },
+  { cases id r with rs rl rx rr,
+    { exact node (ls+1) l x nil },
+    { refine if rs > delta * ls then _ else node (ls + rs + 1) l x r,
+      cases id rr with rrs, {exact nil /-should not happen-/},
+      cases id rl with rls rll rlx rlr, {exact nil /-should not happen-/},
+      exact if rls < ratio * rrs then
         node (ls + rs + 1) (node (ls + rls + 1) l x rl) rx rr
       else
         node (ls + rs + 1)
           (node (ls + size rll + 1) l x rll) rlx
-          (node (rrs + size rlr + 1) rlr rx rr)
-    | _, _ := nil -- should not happen
-    end
-  else node (ls + rs + 1) l x r
+          (node (size rlr + rrs + 1) rlr rx rr) } }
+end
+
+/-- O(1). Rebalance a tree which was previously balanced but has had one side change
+  by at most 1. -/
+def balance (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
+by clean begin
+  cases id l with ls ll lx lr,
+  { cases id r with rs rl rx rr,
+    { exact singleton x },
+    { cases id rl with rls rll rlx rlr,
+      { cases id rr,
+        { exact node 2 nil x r },
+        { exact node 3 (singleton x) rx rr } },
+      { cases id rr with rrs,
+        { exact node 3 (singleton x) rlx (singleton rx) },
+        { exact if rls < ratio * rrs then
+            node (rs+1) (node (rls+1) nil x rl) rx rr
+          else
+            node (rs+1) (node (size rll + 1) nil x rll) rlx (node (size rlr + rrs + 1) rlr rx rr) } } } },
+  { cases id r with rs rl rx rr,
+    { cases id ll with lls,
+      { cases lr with _ _ lrx,
+        { exact node 2 l x nil },
+        { exact node 3 (singleton lx) lrx (singleton x) } },
+      { cases id lr with lrs lrl lrx lrr,
+        { exact node 3 ll lx (singleton x) },
+        { exact if lrs < ratio * lls then
+            node (ls+1) ll lx (node (lrs+1) lr x nil)
+          else
+            node (ls+1) (node (lls + size lrl + 1) ll lx lrl) lrx (node (size lrr + 1) lrr x nil) } } },
+    { refine if delta * ls < rs then _ else if delta * rs < ls then _ else node (ls+rs+1) l x r,
+      { cases id rl with rls rll rlx rlr, {exact nil /-should not happen-/},
+        cases id rr with rrs, {exact nil /-should not happen-/},
+        exact if rls < ratio * rrs then
+          node (ls+rs+1) (node (ls+rls+1) l x rl) rx rr
+        else
+          node (ls+rs+1) (node (ls + size rll + 1) l x rll) rlx (node (size rlr + rrs + 1) rlr rx rr) },
+      { cases id ll with lls, {exact nil /-should not happen-/},
+        cases id lr with lrs lrl lrx lrr, {exact nil /-should not happen-/},
+        exact if lrs < ratio * lls then
+          node (ls+rs+1) ll lx (node (lrs+rs+1) lr x r)
+        else
+          node (ls+rs+1) (node (lls + size lrl + 1) ll lx lrl) lrx (node (size lrr + rs + 1) lrr x r) } } }
 end
 
 /-- O(n). The dual of a tree is a tree with its left and right sides reversed throughout.
@@ -233,15 +279,14 @@ def glue : ordnode α → ordnode α → ordnode α
     let (m, r') := split_min' ll xl lr in balance_r l m r'
 
 /-- O(log(m+n)). Concatenate two trees that are ordered with respect to each other. -/
-def merge (t₁ t₂ : ordnode α) : ordnode α :=
-ordnode.rec_on t₁ (λ t₂, t₂)
-  (λ s₁ l₁ x₁ r₁ IHl₁ IHr₁ t₂,
-    ordnode.rec_on t₂ t₁ $ λ s₂ l₂ x₂ r₂ IHl₂ IHr₂,
-    if delta * s₁ < s₂ then
-      balance_l IHl₂ x₂ r₂
-    else if delta * s₂ < s₁ then
-      balance_r l₁ x₁ (IHr₁ t₂)
-    else glue t₁ t₂) t₂
+def merge (l : ordnode α) : ordnode α → ordnode α :=
+ordnode.rec_on l (λ r, r) $ λ ls ll lx lr IHll IHlr r,
+ordnode.rec_on r l $ λ rs rl rx rr IHrl IHrr,
+if delta * ls < rs then
+  balance_l IHrl rx rr
+else if delta * rs < ls then
+  balance_r ll lx (IHlr r)
+else glue l r
 
 /-- O(log n). Insert an element above all the others, without any comparisons.
   (Assumes that the element is in fact above all the others). -/
@@ -257,15 +302,14 @@ def insert_min (x : α) : ordnode α → ordnode α
 
 /-- O(log(m+n)). Build a tree from an element between two trees, without any
   assumption on the relative sizes. -/
-def link : ordnode α → α → ordnode α → ordnode α
-| nil x r := insert_min x r
-| l x nil := insert_max l x
-| l@(node ls ll lx lr) x r@(node rs rl rx rr) :=
-  if delta * ls < rs then
-    balance_l (link l x rl) rx rr
-  else if delta * rs < ls then
-    balance_r ll lx (link lr x r)
-  else node' l x r
+def link (l : ordnode α) (x : α) : ordnode α → ordnode α :=
+ordnode.rec_on l (insert_min x) $ λ ls ll lx lr IHll IHlr r,
+ordnode.rec_on r (insert_max l x) $ λ rs rl rx rr IHrl IHrr,
+if delta * ls < rs then
+  balance_l IHrl rx rr
+else if delta * rs < ls then
+  balance_r ll lx (IHlr r)
+else node' l x r
 
 /-- O(n). Filter the elements of a tree satisfying a predicate. -/
 def filter (p : α → Prop) [decidable_pred p] : ordnode α → ordnode α
@@ -483,6 +527,59 @@ instance : has_mem α (ordnode α) := ⟨λ x t, t.mem x⟩
 
 instance mem.decidable (x : α) (t : ordnode α) : decidable (x ∈ t) :=
 bool.decidable_eq _ _
+
+/-- O(log n). Insert an element into the set, preserving balance and the BST property.
+  If an equivalent element is already in the set, the function `f` is used to generate
+  the element to insert (being passed the current value in the set). -/
+def insert_with (f : α → α) (x : α) : ordnode α → ordnode α
+| nil := singleton x
+| t@(node sz l y r) :=
+  match cmp_le x y with
+  | ordering.lt := balance_l (insert_with l) y r
+  | ordering.eq := node sz l (f y) r
+  | ordering.gt := balance_r l y (insert_with r)
+  end
+
+/-- O(log n). Modify an element in the set with the given function,
+  doing nothing if the key is not found. -/
+def adjust_with (f : α → α) (x : α) : ordnode α → ordnode α
+| nil := nil
+| t@(node sz l y r) :=
+  match cmp_le x y with
+  | ordering.lt := node sz (adjust_with l) y r
+  | ordering.eq := node sz l (f y) r
+  | ordering.gt := node sz l y (adjust_with r)
+  end
+
+/-- O(log n). Modify an element in the set with the given function,
+  doing nothing if the key is not found. -/
+def update_with (f : α → option α) (x : α) : ordnode α → ordnode α
+| nil := nil
+| t@(node sz l y r) :=
+  match cmp_le x y with
+  | ordering.lt := balance_r (update_with l) y r
+  | ordering.eq :=
+    match f y with
+    | none := glue l r
+    | some a := node sz l a r
+    end
+  | ordering.gt := balance_l l y (update_with r)
+  end
+
+/-- O(log n). Modify an element in the set with the given function,
+  doing nothing if the key is not found. -/
+def alter (f : option α → option α) (x : α) : ordnode α → ordnode α
+| nil := option.rec_on (f none) nil singleton
+| t@(node sz l y r) :=
+  match cmp_le x y with
+  | ordering.lt := balance (alter l) y r
+  | ordering.eq :=
+    match f (some y) with
+    | none := glue l r
+    | some a := node sz l a r
+    end
+  | ordering.gt := balance l y (alter r)
+  end
 
 /-- O(log n). Insert an element into the set, preserving balance and the BST property.
   If an equivalent element is already in the set, this replaces it. -/

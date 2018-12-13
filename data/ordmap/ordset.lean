@@ -122,14 +122,14 @@ begin
   cases r with rs rl rx rr,
   { cases l with ls ll lx lr, {refl},
     cases ll with lls lll llx llr; cases lr with lrs lrl lrx lrr;
-      dsimp [balance_l]; try {refl},
-    split_ifs; repeat {simp [balance_r, h]} },
+      dsimp only [dual]; try {refl},
+    split_ifs; repeat {simp [h]} },
   { cases l with ls ll lx lr, {refl},
-    simp [balance_l, balance_r],
-    split_ifs, swap, {refl},
+    dsimp only [dual],
+    split_ifs, swap, {simp},
     cases ll with lls lll llx llr; cases lr with lrs lrl lrx lrr; try {refl},
-    simp [balance_l, balance_r],
-    split_ifs; simp [balance_r, h] },
+    dsimp only [dual],
+    split_ifs; simp [h] },
 end
 
 theorem dual_balance_r (l : ordnode α) (x : α) (r : ordnode α) :
@@ -330,19 +330,47 @@ theorem balanced.dual : ∀ {t : ordnode α}, balanced t → balanced (dual t)
 | (node s l x r) ⟨b, bl, br⟩ :=
   ⟨by rw [size_dual, size_dual]; exact b.symm, br.dual, bl.dual⟩
 
-theorem balance_l_eq_balance'_aux {l x r}
+theorem balance_eq_balance' {l x r}
   (hl : balanced l) (hr : balanced r)
-  (sl : sized l) (sr : sized r)
-  (H1 : l = nil → size r ≤ 1)
-  (H2 : 1 ≤ size l → 1 ≤ size r → size r ≤ delta * size l) :
-  @balance_l α l x r = balance' l x r :=
+  (sl : sized l) (sr : sized r) :
+  @balance α l x r = balance' l x r :=
 begin
-  cases r with rs rl rx rr,
-  { cases l with ls ll lx lr,
+  cases l with ls ll lx lr,
+  { cases r with rs rl rx rr,
     { refl },
-    { clear H1 H2, rw sl.eq_node' at hl ⊢,
+    { rw sr.eq_node' at hr ⊢,
+      cases rl with rls rll rlx rlr; cases rr with rrs rrl rrx rrr;
+      dsimp [balance, balance', node'],
+      { refl },
+      { have : size rrl = 0 ∧ size rrr = 0,
+        { have := balanced_sz_zero.1 hr.1.symm,
+          rwa [size, sr.2.2.1, nat.succ_le_succ_iff,
+            nat.le_zero_iff, add_eq_zero_iff] at this },
+        cases sr.2.2.2.1.size_eq_zero.1 this.1,
+        cases sr.2.2.2.2.size_eq_zero.1 this.2,
+        have : rrs = 1 := sr.2.2.1, subst rrs,
+        rw [if_neg, if_pos, rotate_l, if_pos], {refl},
+        all_goals {exact dec_trivial} },
+      { have : size rll = 0 ∧ size rlr = 0,
+        { have := balanced_sz_zero.1 hr.1,
+          rwa [size, sr.2.1.1, nat.succ_le_succ_iff,
+            nat.le_zero_iff, add_eq_zero_iff] at this },
+        cases sr.2.1.2.1.size_eq_zero.1 this.1,
+        cases sr.2.1.2.2.size_eq_zero.1 this.2,
+        have : rls = 1 := sr.2.1.1, subst rls,
+        rw [if_neg, if_pos, rotate_l, if_neg], {refl},
+        all_goals {exact dec_trivial} },
+      { symmetry, rw [zero_add, if_neg, if_pos, rotate_l],
+        { split_ifs,
+          { simp [node3_l, node'] },
+          { simp [node4_l, node', sr.2.1.1] } },
+        { exact dec_trivial },
+        { exact not_le_of_gt (nat.succ_lt_succ
+            (add_pos sr.2.1.pos sr.2.2.pos)) } } } },
+  { cases r with rs rl rx rr,
+    { rw sl.eq_node' at hl ⊢,
       cases ll with lls lll llx llr; cases lr with lrs lrl lrx lrr;
-      dsimp [balance_l, balance', node'],
+      dsimp [balance, balance', node'],
       { refl },
       { have : size lrl = 0 ∧ size lrr = 0,
         { have := balanced_sz_zero.1 hl.1.symm,
@@ -369,7 +397,44 @@ begin
         { exact dec_trivial },
         { exact dec_trivial },
         { exact not_le_of_gt (nat.succ_lt_succ
-            (add_pos sl.2.1.pos sl.2.2.pos)) } } } },
+            (add_pos sl.2.1.pos sl.2.2.pos)) } } },
+    { simp [balance, balance'],
+      symmetry, rw [if_neg],
+      { split_ifs,
+        { have rd : delta ≤ size rl + size rr,
+          { have := lt_of_le_of_lt (nat.mul_le_mul_left _ sl.pos) h,
+            rwa [sr.1, nat.lt_succ_iff] at this },
+          cases rl with rls rll rlx rlr,
+          { rw [size, zero_add] at rd,
+            exact absurd (le_trans rd (balanced_sz_zero.1 hr.1.symm)) dec_trivial },
+          cases rr with rrs rrl rrx rrr,
+          { exact absurd (le_trans rd (balanced_sz_zero.1 hr.1)) dec_trivial },
+          dsimp [rotate_l], split_ifs,
+          { simp [node3_l, node', sr.1] },
+          { simp [node4_l, node', sr.1, sr.2.1.1] } },
+        { have ld : delta ≤ size ll + size lr,
+          { have := lt_of_le_of_lt (nat.mul_le_mul_left _ sr.pos) h_1,
+            rwa [sl.1, nat.lt_succ_iff] at this },
+          cases ll with lls lll llx llr,
+          { rw [size, zero_add] at ld,
+            exact absurd (le_trans ld (balanced_sz_zero.1 hl.1.symm)) dec_trivial },
+          cases lr with lrs lrl lrx lrr,
+          { exact absurd (le_trans ld (balanced_sz_zero.1 hl.1)) dec_trivial },
+          dsimp [rotate_r], split_ifs,
+          { simp [node3_r, node', sl.1] },
+          { simp [node4_r, node', sl.1, sl.2.2.1] } },
+        { simp [node'] } },
+      { exact not_le_of_gt (add_le_add sl.pos sr.pos : 2 ≤ ls + rs) } } }
+end
+
+theorem balance_l_eq_balance {l x r}
+  (sl : sized l) (sr : sized r)
+  (H1 : l = nil → size r ≤ 1)
+  (H2 : 1 ≤ size l → 1 ≤ size r → size r ≤ delta * size l) :
+  @balance_l α l x r = balance l x r :=
+begin
+  cases r with rs rl rx rr,
+  { refl },
   { cases l with ls ll lx lr,
     { have : size rl = 0 ∧ size rr = 0,
       { have := H1 rfl,
@@ -379,22 +444,7 @@ begin
       cases sr.2.2.size_eq_zero.1 this.2,
       rw sr.eq_node', refl },
     { replace H2 : ¬ rs > delta * ls := not_lt_of_le (H2 sl.pos sr.pos),
-      simp [balance_l, balance_l, balance', H2],
-      symmetry, rw [if_neg],
-      { split_ifs,
-        { have ld : delta ≤ size ll + size lr,
-          { have := lt_of_le_of_lt (nat.mul_le_mul_left _ sr.pos) h,
-            rwa [sl.1, nat.lt_succ_iff] at this },
-          cases ll with lls lll llx llr,
-          { rw [size, zero_add] at ld,
-            exact absurd (le_trans ld (balanced_sz_zero.1 hl.1.symm)) dec_trivial },
-          cases lr with lrs lrl lrx lrr,
-          { exact absurd (le_trans ld (balanced_sz_zero.1 hl.1)) dec_trivial },
-          dsimp [balance_l, rotate_r], split_ifs,
-          { simp [node3_r, node', sl.1] },
-          { simp [node4_r, node', sl.1, sl.2.2.1] } },
-        { simp [node'] } },
-      { exact not_le_of_gt (add_le_add sr.pos sl.pos : 2 ≤ rs + ls) } } }
+      simp [balance_l, balance, H2]; split_ifs; simp } }
 end
 
 theorem balance_l_eq_balance' {l x r}
@@ -404,7 +454,7 @@ theorem balance_l_eq_balance' {l x r}
        (∃ r', size r ≤ r' ∧ r' ≤ size r + 1 ∧ balanced_sz (size l) r')) :
   @balance_l α l x r = balance' l x r :=
 begin
-  refine balance_l_eq_balance'_aux hl hr sl sr _ _,
+  rw [← balance_eq_balance' hl hr sl sr, balance_l_eq_balance sl sr],
   { rintro rfl,
     rcases H with ⟨_, ⟨⟩, _⟩ | ⟨r', e₁, e₂, H⟩,
     exact le_trans e₁ (balanced_sz_zero.1 H.symm) },

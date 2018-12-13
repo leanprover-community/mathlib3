@@ -63,42 +63,16 @@ instance : has_emptyc (ordnode α) := ⟨nil⟩
 | nil := tt
 | (node _ _ _ _) := ff
 
-/-- O(n). Does every element of the map satisfy property `P`? -/
-def all (P : α → Prop) : ordnode α → Prop
-| nil := true
-| (node _ l x r) := all l ∧ P x ∧ all r
-
-instance all.decidable {P : α → Prop} [decidable_pred P] (t) : decidable (all P t) :=
-by induction t; dunfold all; resetI; apply_instance
-
-/-- O(n). Does any element of the map satisfy property `P`? -/
-def any (P : α → Prop) : ordnode α → Prop
-| nil := false
-| (node _ l x r) := any l ∨ P x ∨ any r
-
-instance any.decidable {P : α → Prop} [decidable_pred P] (t) : decidable (any P t) :=
-by induction t; dunfold any; resetI; apply_instance
-
-/-- O(n). Exact membership in the set. This is useful primarily for stating
-  correctness properties; use `∈` for a version that actually uses the BST property
-  of the tree. -/
-def emem (x : α) : ordnode α → Prop := any (eq x)
-
-instance emem.decidable [decidable_eq α] (x : α) : ∀ t, decidable (emem x t) :=
-any.decidable
-
-/-- O(n). Approximate membership in the set, that is, whether some element in the
-  set is equivalent to this one in the preorder. This is useful primarily for stating
-  correctness properties; use `∈` for a version that actually uses the BST property
-  of the tree. -/
-def amem [has_le α] (x : α) : ordnode α → Prop := any (λ y, x ≤ y ∧ y ≤ x)
-
-instance amem.decidable [has_le α] [@decidable_rel α (≤)] (x : α) : ∀ t, decidable (amem x t) :=
-any.decidable
+/-- O(n). The dual of a tree is a tree with its left and right sides reversed throughout.
+  The dual of a valid BST is valid under the dual order. This is convenient for exploiting
+  symmetries in the algorithms. -/
+@[simp] def dual : ordnode α → ordnode α
+| nil := nil
+| (node s l x r) := node s (dual r) x (dual l)
 
 /-- O(1). Construct a node with the correct size information, without rebalancing.
   Internal use only. -/
-@[inline] def node' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
+@[inline, reducible] def node' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 node (size l + size r + 1) l x r
 
 /-- O(1). Rebalance a tree which was previously balanced but has had its left
@@ -205,12 +179,38 @@ by clean begin
           node (ls+rs+1) (node (lls + size lrl + 1) ll lx lrl) lrx (node (size lrr + rs + 1) lrr x r) } } }
 end
 
-/-- O(n). The dual of a tree is a tree with its left and right sides reversed throughout.
-  The dual of a valid BST is valid under the dual order. This is convenient for exploiting
-  symmetries in the algorithms. -/
-@[simp] def dual : ordnode α → ordnode α
-| nil := nil
-| (node s l x r) := node s (dual r) x (dual l)
+/-- O(n). Does every element of the map satisfy property `P`? -/
+def all (P : α → Prop) : ordnode α → Prop
+| nil := true
+| (node _ l x r) := all l ∧ P x ∧ all r
+
+instance all.decidable {P : α → Prop} [decidable_pred P] (t) : decidable (all P t) :=
+by induction t; dunfold all; resetI; apply_instance
+
+/-- O(n). Does any element of the map satisfy property `P`? -/
+def any (P : α → Prop) : ordnode α → Prop
+| nil := false
+| (node _ l x r) := any l ∨ P x ∨ any r
+
+instance any.decidable {P : α → Prop} [decidable_pred P] (t) : decidable (any P t) :=
+by induction t; dunfold any; resetI; apply_instance
+
+/-- O(n). Exact membership in the set. This is useful primarily for stating
+  correctness properties; use `∈` for a version that actually uses the BST property
+  of the tree. -/
+def emem (x : α) : ordnode α → Prop := any (eq x)
+
+instance emem.decidable [decidable_eq α] (x : α) : ∀ t, decidable (emem x t) :=
+any.decidable
+
+/-- O(n). Approximate membership in the set, that is, whether some element in the
+  set is equivalent to this one in the preorder. This is useful primarily for stating
+  correctness properties; use `∈` for a version that actually uses the BST property
+  of the tree. -/
+def amem [has_le α] (x : α) : ordnode α → Prop := any (λ y, x ≤ y ∧ y ≤ x)
+
+instance amem.decidable [has_le α] [@decidable_rel α (≤)] (x : α) : ∀ t, decidable (amem x t) :=
+any.decidable
 
 /-- O(log n). Return the minimum element of the tree, or the provided default value. -/
 def find_min' : ordnode α → α → α
@@ -247,8 +247,8 @@ def erase_max : ordnode α → ordnode α
 /-- O(log n). Extract and remove the minimum element from a nonempty tree. -/
 def split_min' : ordnode α → α → ordnode α → α × ordnode α
 | nil x r := (x, r)
-| (node _ ll xl lr) x r :=
-  let (xm, l') := split_min' ll xl lr in
+| (node _ ll lx lr) x r :=
+  let (xm, l') := split_min' ll lx lr in
   (xm, balance_r l' x r)
 
 /-- O(log n). Extract and remove the minimum element from the tree, if it exists. -/
@@ -259,8 +259,8 @@ def split_min : ordnode α → option (α × ordnode α)
 /-- O(log n). Extract and remove the maximum element from a nonempty tree. -/
 def split_max' : ordnode α → α → ordnode α → ordnode α × α
 | l x nil := (l, x)
-| l x (node _ rl xr rr) :=
-  let (r', xm) := split_max' rl xr rr in
+| l x (node _ rl rx rr) :=
+  let (r', xm) := split_max' rl rx rr in
   (balance_l l x r', xm)
 
 /-- O(log n). Extract and remove the maximum element from the tree, if it exists. -/
@@ -271,12 +271,12 @@ def split_max : ordnode α → option (ordnode α × α)
 /-- O(log(m+n)). Concatenate two trees that are balanced and ordered with respect to each other. -/
 def glue : ordnode α → ordnode α → ordnode α
 | nil r := r
-| l nil := l
-| l@(node sl ll xl lr) r@(node sr rl xr rr) :=
+| l@(node _ _ _ _) nil := l
+| l@(node sl ll lx lr) r@(node sr rl rx rr) :=
   if sl > sr then
-    let (l', m) := split_max' ll xl lr in balance_r l' m r
+    let (l', m) := split_max' ll lx lr in balance_r l' m r
   else
-    let (m, r') := split_min' ll xl lr in balance_r l m r'
+    let (m, r') := split_min' rl rx rr in balance_l l m r'
 
 /-- O(log(m+n)). Concatenate two trees that are ordered with respect to each other. -/
 def merge (l : ordnode α) : ordnode α → ordnode α :=

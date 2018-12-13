@@ -397,6 +397,10 @@ begin
   split_ifs; simp [is_semiring_hom.map_zero f],
 end
 
+lemma map_map {γ : Type*} [comm_semiring γ] [decidable_eq γ] (g : β → γ) [is_semiring_hom g] :
+  (p.map f).map g = p.map (λ x, g (f x)) :=
+polynomial.ext.2 (by simp [coeff_map])
+
 end map
 
 /-- `leading_coeff p` gives the coefficient of the highest power of `X` in `p`-/

@@ -193,15 +193,32 @@ instance [add_comm_group α] [add_comm_group β] : add_comm_group (α × β) :=
 instance [comm_group α] [comm_group β] : comm_group (α × β) :=
 { .. prod.comm_semigroup, .. prod.group }
 
+@[to_additive fst.is_add_monoid_hom]
+lemma fst.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.fst : α × β → α) :=
+by refine_struct {..}; simp
+@[to_additive snd.is_add_monoid_hom]
+lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α × β → β) :=
+by refine_struct {..}; simp
+
+@[to_additive fst.is_add_group_hom]
+lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=
+by refine_struct {..}; simp
+@[to_additive snd.is_add_group_hom]
+lemma snd.is_group_hom [group α] [group β] : is_group_hom (prod.snd : α × β → β) :=
+by refine_struct {..}; simp
+
+attribute [instance] fst.is_monoid_hom fst.is_add_monoid_hom snd.is_monoid_hom snd.is_add_monoid_hom
+fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom
+
 @[to_additive prod.fst_sum]
 lemma fst_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).1 = t.prod (λc, (f c).1) :=
-(finset.prod_hom prod.fst (show (1:α×β).1 = 1, from rfl) $ assume x y, rfl).symm
+(finset.prod_hom prod.fst).symm
 
 @[to_additive prod.snd_sum]
 lemma snd_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).2 = t.prod (λc, (f c).2) :=
-(finset.prod_hom prod.snd (show (1:α×β).2 = 1, from rfl) $ assume x y, rfl).symm
+(finset.prod_hom prod.snd).symm
 
 instance [semiring α] [semiring β] : semiring (α × β) :=
 { zero_mul := λ a, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
@@ -219,6 +236,16 @@ instance [comm_ring α] [comm_ring β] : comm_ring (α × β) :=
 instance [nonzero_comm_ring α] [comm_ring β] : nonzero_comm_ring (α × β) :=
 { zero_ne_one := mt (congr_arg prod.fst) zero_ne_one,
   ..prod.comm_ring }
+
+instance fst.is_semiring_hom [semiring α] [semiring β] : is_semiring_hom (prod.fst : α × β → α) :=
+by refine_struct {..}; simp
+instance snd.is_semiring_hom [semiring α] [semiring β] : is_semiring_hom (prod.snd : α × β → β) :=
+by refine_struct {..}; simp
+
+instance fst.is_ring_hom [ring α] [ring β] : is_ring_hom (prod.fst : α × β → α) :=
+by refine_struct {..}; simp
+instance snd.is_ring_hom [ring α] [ring β] : is_ring_hom (prod.snd : α × β → β) :=
+by refine_struct {..}; simp
 
 /-- Left injection function for the inner product
 From a vector space (and also group and module) perspective the product is the same as the sum of

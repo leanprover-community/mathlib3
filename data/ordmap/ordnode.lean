@@ -281,12 +281,12 @@ def glue : ordnode α → ordnode α → ordnode α
 /-- O(log(m+n)). Concatenate two trees that are ordered with respect to each other. -/
 def merge (l : ordnode α) : ordnode α → ordnode α :=
 ordnode.rec_on l (λ r, r) $ λ ls ll lx lr IHll IHlr r,
-ordnode.rec_on r l $ λ rs rl rx rr IHrl IHrr,
+ordnode.rec_on r (node ls ll lx lr) $ λ rs rl rx rr IHrl IHrr,
 if delta * ls < rs then
-  balance_l IHrl rx rr
+  trace (_root_.repr ((ls, size rl), size IHrl, size rr)) $ balance_l IHrl rx rr
 else if delta * rs < ls then
-  balance_r ll lx (IHlr r)
-else glue l r
+  balance_r ll lx (IHlr $ node rs rl rx rr)
+else glue (node ls ll lx lr) (node rs rl rx rr)
 
 /-- O(log n). Insert an element above all the others, without any comparisons.
   (Assumes that the element is in fact above all the others). -/

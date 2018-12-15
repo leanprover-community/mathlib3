@@ -130,13 +130,12 @@ exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 noncomputable definition nth_root (x : ℝ) (n : ℕ) : ℝ := 
 if x = 0 then 0 else exp ((log x) / n)
 
-theorem exp_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
-| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
-| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_mul, one_mul]
+lemma nth_root_def {x : ℝ} (hx : x ≠ 0) {n : ℕ} : nth_root x n = exp (log x / n) :=
+dif_neg hx
 
 theorem nth_root_nonneg {x n} : nth_root x n ≥ 0 := 
 begin
-  cases classical.em(x = 0),
+  by_cases h : x = 0,
   { simp [h, nth_root], apply ge_of_eq rfl },
   { simp [h, nth_root], apply le_of_lt (exp_pos _) }
 end
@@ -151,11 +150,11 @@ begin
 end
 
 theorem nth_root_unique {x y : ℝ} {n : ℕ}
-(Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hynx : y ^ n = x) : y = nth_root x n 
-:= pow_right_inj Hypos (nth_root_pos (ne_of_gt Hxpos)) Hnpos (Hynx.trans (nth_root_power Hxpos Hnpos).symm)
+(Hxpos : 0 < x) (Hypos : 0 < y) (Hnpos : 0 < n) (Hynx : y ^ n = x) : y = nth_root x n :=
+pow_right_inj Hypos (nth_root_pos (ne_of_gt Hxpos)) Hnpos (Hynx.trans (nth_root_power Hxpos Hnpos).symm)
 
-theorem nth_root_unique' {x : ℝ} {n : ℕ} (Hxpos : 0 < x) (Hnpos : 0 < n) : nth_root (x ^ n) n = x 
-:= eq.symm (nth_root_unique (pow_pos Hxpos n) Hxpos Hnpos rfl)
+theorem nth_root_unique' {x : ℝ} {n : ℕ} (Hxpos : 0 < x) (Hnpos : 0 < n) : nth_root (x ^ n) n = x :=
+eq.symm (nth_root_unique (pow_pos Hxpos n) Hxpos Hnpos rfl)
 
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'
@@ -505,7 +504,7 @@ begin
   exact h.symm
 end
 
-theorem cos_sin_inj (θ ψ : ℝ) (Hcos : real.cos θ = cos ψ) (Hsin : real.sin θ = sin ψ) : equal_angle θ ψ :=
+theorem cos_sin_inj (θ ψ : ℝ) (Hcos : cos θ = cos ψ) (Hsin : sin θ = sin ψ) : equal_angle θ ψ :=
 begin
   cases of_cos_eq Hcos with hc hc, { exact hc },
   cases of_sin_eq Hsin with hs hs, { exact hs },

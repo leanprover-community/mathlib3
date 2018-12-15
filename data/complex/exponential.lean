@@ -409,6 +409,10 @@ by rw lim_mul_lim;
   exact eq.symm (lim_eq_lim_of_equiv (by dsimp; simp only [hj];
     exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)))
 
+lemma exp_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_mul, one_mul]
+
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, @zero_ne_one ℂ _ $
   by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
@@ -680,6 +684,10 @@ by simp [real.exp]
 
 lemma exp_add : exp (x + y) = exp x * exp y :=
 by simp [exp_add, exp]
+
+lemma exp_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_mul, one_mul]
 
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, exp_ne_zero x $ by rw [exp, ← of_real_inj] at h; simp * at *

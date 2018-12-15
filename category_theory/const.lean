@@ -5,7 +5,7 @@
 import category_theory.functor_category
 import category_theory.isomorphism
 
-universes u₁ v₁ u₂ v₂ u₃ v₃ w
+universes u₁ v₁ u₂ v₂ u₃ v₃
 
 open category_theory
 

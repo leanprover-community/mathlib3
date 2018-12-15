@@ -39,7 +39,7 @@ variables [topological_space X] [topological_space Y]
 
 /- The notion of convergence of sequences in topological spaces. -/
 def converges_to (x : ℕ → X) (limit : X) : Prop :=
-  ∀ U : set X, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U
+∀ U : set X, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U
 
 lemma const_seq_conv (p : X) : converges_to (λ n, p) p :=
 assume U (_ : p ∈ U) (_ : is_open U), exists.intro 0 (assume n (_ : n ≥ 0), ‹p ∈ U›)

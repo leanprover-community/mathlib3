@@ -150,7 +150,7 @@ assume M, iff.intro
  - convergent sequences.
  -/
 def sequentially_continuous (f : X → Y) : Prop :=
-  ∀ (x : ℕ → X), ∀ {limit : X}, converges_to x limit → converges_to (f∘x) (f limit)
+∀ (x : ℕ → X), ∀ {limit : X}, converges_to x limit → converges_to (f∘x) (f limit)
 
 /- A continuous function is sequentially continuous. -/
 lemma cont_to_seq_cont {f : X → Y} (_ : continuous f) : sequentially_continuous f :=

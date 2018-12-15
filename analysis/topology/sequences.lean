@@ -24,7 +24,7 @@ open filter
  -
  - TODO: There should be an instance that associates a sequential space with a first countable
  -       space. 
- - TODO: Sequential compactness should be handeled here.
+ - TODO: Sequential compactness should be handled here.
  -/
 namespace sequence
 

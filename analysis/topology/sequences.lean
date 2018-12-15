@@ -16,7 +16,7 @@ open filter
  - In this file we define sequences in topological spaces and show how they are related to
  - filters and the topology. In particular, we
  -
- - (*) associate a filter with a sequence and show prove equivalence of convergence of the two,
+ - (*) associate a filter with a sequence and prove equivalence of convergence of the two,
  - (*) define the sequential closure of a set and prove that it's contained in the closure, 
  - (*) define a type class "sequential_space" in which closure and sequential closure agree, 
  - (*) define sequential continuity and show that it coincides with continuity in sequential spaces,

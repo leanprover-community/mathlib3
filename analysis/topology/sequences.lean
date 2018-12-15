@@ -189,7 +189,7 @@ variables {ε : ℝ}
 
 /- The usual notion of convergence of sequences in metric spaces. -/
 def metrically_converges_to (x : ℕ → X) (limit : X) : Prop :=
-  ∀ ε > 0, ∃ n0 : ℕ, ∀ n ≥ n0, dist (x n) limit < ε
+∀ ε > 0, ∃ n0 : ℕ, ∀ n ≥ n0, dist (x n) limit < ε
 
 /- A sequence converges metrically if and only if it converges topologically. -/
 lemma metrically_converges_to_iff_converges_to {x : ℕ → X} {limit : X} :

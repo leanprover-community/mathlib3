@@ -324,7 +324,7 @@ variables (R : α → α → Prop)
   For example if `R = (≠)` then it asserts `l` has no duplicates,
   and if `R = (<)` then it asserts that `l` is (strictly) sorted. -/
 inductive pairwise : list α → Prop
-| nil  : pairwise []
+| nil {} : pairwise []
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 
 variables {R}
@@ -333,7 +333,7 @@ variables {R}
 ⟨λ p, by cases p with a l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
 instance decidable_pairwise [decidable_rel R] (l : list α) : decidable (pairwise R l) :=
-by induction l with hd tl ih; [exact is_true (pairwise.nil _),
+by induction l with hd tl ih; [exact is_true pairwise.nil,
   exactI decidable_of_iff' _ pairwise_cons]
 
 end pairwise
@@ -354,8 +354,15 @@ variable (R : α → α → Prop)
 
      chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d -/
 inductive chain : α → list α → Prop
-| nil  (a : α) : chain a []
+| nil {} {a : α} : chain a []
 | cons : ∀ {a b : α} {l : list α}, R a b → chain b l → chain a (b::l)
+
+/-- `chain' R l` means that `R` holds between adjacent elements of `l`.
+
+     chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d -/
+def chain' : list α → Prop
+| [] := true
+| (a :: l) := chain R a l
 
 variable {R}
 @[simp] theorem chain_cons {a b : α} {l : list α} :
@@ -364,6 +371,9 @@ variable {R}
 
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
 by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
+
+instance decidable_chain' [decidable_rel R] (a : α) (l : list α) : decidable (chain' R l) :=
+by cases l; dunfold chain'; apply_instance
 
 end chain
 

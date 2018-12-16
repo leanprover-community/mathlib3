@@ -87,7 +87,7 @@ noncomputable instance field : discrete_field (adjoin_root f) :=
 
 instance : is_field_hom (coe : α → adjoin_root f) := by apply_instance
 
-instance lift_i_field_hom [field β] {i : α → β} [is_ring_hom i] {a : β}
+instance lift_is_field_hom [field β] {i : α → β} [is_ring_hom i] {a : β}
   {h : f.eval₂ i a = 0} : is_field_hom (lift i a h) := by apply_instance
 
 lemma coe_injective : function.injective (coe : α → adjoin_root f) :=
@@ -230,40 +230,43 @@ hs.elim (λ hf0, ⟨37, by simp [hf0]⟩) $
   by rw [← eval_map, hg, eval_mul, (show _ = _, from hx), zero_mul]⟩
 
 end splits
+set_option profiler true
 
-noncomputable lemma splitting_field_aux' : Π {α : Type u} [discrete_field α] (f : by exactI polynomial α),
-by exactI Σ' (β : Type u) [discrete_field β] (i : α → β) [is_field_hom i]
+noncomputable theory
+
+lemma splitting_field_aux : Π {α : Type u} [discrete_field α] (f : by exactI polynomial α),
+  by exactI Σ' (β : Type u) [discrete_field β] (i : α → β) [is_field_hom i]
   (hs : by exactI splits i f), ∀ {γ : Type u} [discrete_field γ] (j : α → γ)
   [is_field_hom j] (hj : by exactI splits j f),
   ∃ k : β → γ, (∀ x, k (i x) = j x) ∧ is_field_hom k
 | α I f := by exactI
 if hf : degree f ≤ 1
-then ⟨α, I, id, by apply_instance, splits_of_degree_le_one _ hf, _⟩
+then ⟨α, I, id, by apply_instance, splits_of_degree_le_one _ hf,
+  λ γ _ j Ij hj, ⟨j, λ _, rfl, Ij⟩⟩
 else
+have hif : irreducible (irr_factor f), from sorry,
+have hf0 : f ≠ 0, from λ hf0, hf (by rw hf0; exact dec_trivial),
+have wf : by exactI degree (f.map (coe : α → adjoin_root
+    (irr_factor f)) / (X - C root)) < degree f,
+  by rw [← degree_map f (coe : α → adjoin_root (irr_factor f))];
+    exact degree_div_lt (mt (map_eq_zero _).1 hf0)
+      (by rw degree_X_sub_C; exact dec_trivial),
 begin
   resetI,
-  haveI hif : irreducible (irr_factor f) := sorry,
-  have hf0 : f ≠ 0, from λ hf0, by simpa [hf0] using hf,
-  have ih :=
-    have wf : by exactI degree (f.map (coe : α → adjoin_root
-        (irr_factor f)) / (X - C root)) < degree f,
-      by rw [← degree_map f (coe : α → adjoin_root (irr_factor f))];
-        exact degree_div_lt (mt (map_eq_zero _).1 hf0)
-          (by rw degree_X_sub_C; exact dec_trivial),
-    splitting_field_aux' (f.map (coe : α → adjoin_root
+  have hf0 : f ≠ 0, from λ hf0, hf (by rw hf0; exact dec_trivial),
+  have ih := splitting_field_aux (f.map (coe : α → adjoin_root
       (irr_factor f)) / (X - C root)),
   rcases ih with ⟨β, I, i, Ii, hsβ, hiβ⟩,
   letI := Ii, letI := I,
-  refine ⟨β, I, λ a, i ↑a,
-    by haveI := Ii; letI := I; exact is_ring_hom.comp _ _, _⟩,
+  refine ⟨β, I, λ a, i ↑a, is_ring_hom.comp _ _, _⟩,
   have hmuldiv : ((X : polynomial (adjoin_root (irr_factor f))) - C root) *
-        (f.map coe / (X - C root)) = f.map coe,
-      from mul_div_eq_iff_is_root.2
-        (show _ = _, begin
-            cases irr_factor_dvd f with j hj,
-            conv in f { rw hj },
-            rw [eval_map, eval₂_mul, eval₂_root, zero_mul],
-          end),
+      (f.map coe / (X - C root)) = f.map coe,
+    from mul_div_eq_iff_is_root.2
+      (show _ = _, begin
+          cases irr_factor_dvd f with j hj,
+          conv_lhs { congr, skip, congr, skip, rw hj },
+          rw [eval_map (coe : α → adjoin_root (irr_factor f)), eval₂_mul, eval₂_root, zero_mul],
+        end),
   split,
   -- proof of splitting property
   { rw [← splits_map_iff _ i, ← hmuldiv],
@@ -277,18 +280,50 @@ begin
           (by rw [hg, hfi, degree_zero]; exact dec_trivial))
         (show splits j (irr_factor f * g), from hg ▸ hjs)).1
       (by rw [ne.def, ← is_unit_iff_degree_eq_zero]; exact hif.1) with x hx,
+
     have h₁ : splits (lift j x hx) (map coe f / (X - C root)) :=
-      by exact (splits_of_splits_mul _
-        (show splits j ((X - C root) * (map coe f / (X - C root)),
-          from _)) _).2,
-    have := hiβ (adjoin_root.lift j x hx) }
+      (splits_of_splits_mul _
+        (show ((X : polynomial (adjoin_root (irr_factor f))) - C root) *
+            (f.map coe / (X - C root)) ≠ 0,
+          by rw [hmuldiv, ne.def, map_eq_zero]; exact hf0)
+        (show splits (lift j x hx) ((X - C root) * (map coe f / (X - C root))),
+          by rw [hmuldiv, splits_map_iff (coe : α → adjoin_root (irr_factor f))];
+            simp only [lift_of, hjs])).2,
+    cases hiβ (adjoin_root.lift j x hx) h₁ with k hk,
+    exact ⟨k, λ x, by rw [hk.1, lift_of], hk.2⟩ }
 end
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, inv_image.wf
     (λ x : Σ' (α : Type u) (I : discrete_field α), by exactI polynomial α,
     by letI := x.2.1; exact x.2.2.degree)
     (with_bot.well_founded_lt nat.lt_wf)⟩],
   dec_tac := tactic.assumption }
-#print module
+
+def splitting_field (f : polynomial α) : Type u :=
+(splitting_field_aux.{u} f).1
+
+instance (f : polynomial α) : discrete_field (splitting_field f) :=
+(splitting_field_aux f).2.1
+
+def mk (f : polynomial α) : α → splitting_field f :=
+(splitting_field_aux f).2.2.1
+
+instance (f : polynomial α) : has_coe α (splitting_field f) := ⟨mk f⟩
+
+instance mk_is_field_hom (f : polynomial α) : is_field_hom (mk f) :=
+by exact (splitting_field_aux f).2.2.2.1
+
+instance coe_is_field_hom (f : polynomial α) : is_field_hom (coe : α → splitting_field f) :=
+splitting_field.mk_is_field_hom f
+
+lemma splitting_field_splits (f : polynomial α) : splits (mk f) f :=
+(splitting_field_aux f).2.2.2.2.1
+
+def splitting_field_hom {f : polynomial α} (j : α → β)
+  [is_field_hom j] (hj : splits j f) : splitting_field f → β :=
+classical.some ((splitting_field_aux f).2.2.2.2.2 j hj)
+
+#exit
+#print splitting_field_aux'
 -- def splitting_field_aux' : Π {n : ℕ} {α : Type u} [discrete_field α] (f : by exactI polynomial α)
 --   (h : by exactI nat_degree f = n), by exactI ∃ (β : Type u) [discrete_field β] (i : α → β) [is_field_hom i],
 --   by exactI splits i f
@@ -327,6 +362,7 @@ using_well_founded { rel_tac := λ _ _, `[exact ⟨_, inv_image.wf
 -- end
 
 #print splitting_field_aux'
+
 
 def splitting_field_aux : Π {n : ℕ} {α : Type u} [discrete_field α] (f : by exactI polynomial α),
   by exactI nat_degree f = n → Type u

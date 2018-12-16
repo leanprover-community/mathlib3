@@ -65,19 +65,3 @@ begin
     simpa using mul_dvd_mul_left z (is_unit_iff_dvd_one.1 $
       (of_irreducible_mul h).resolve_left nu) }
 end
-
-theorem is_maximal_of_irreducible {α} [euclidean_domain α] {x : α}
-  (irr : irreducible x) : is_maximal (span ({x} : set α)) :=
-{ left := by simp [span_singleton_eq_top]; exact irr.1,
-  right := λ S ss,
-    have hxS : x ∈ S, from ss.1 (by simp [mem_span_singleton]),
-    begin
-      simp [lt_iff_le_not_le, -not_le, submodule.le_def', not_forall, mem_span_singleton] at ss,
-      rcases ss.2 with ⟨y, h₁, h₂⟩,
-      apply submodule.eq_top_iff'.2,
-      assume z,
-      have : span ({x, y} : set α) ≤ S,
-      { simp [span_le, subset_def, or_imp_distrib, *] {contextual := tt} },
-      refine submodule.le_def.1 this _,
-      rw (show _ = _, from (dvd_or_coprime x y irr).resolve_left h₂); simp
-    end }

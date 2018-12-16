@@ -194,8 +194,6 @@ omit 𝒜 ℬ
 
 def over (X : T) := comma.{u₃ v₃ 0 0 u₃ v₃} (functor.id T) (functor.of.obj X)
 
-def under (X : T) := comma.{0 0 u₃ v₃ u₃ v₃} (functor.of.obj X) (functor.id T)
-
 namespace over
 
 instance {X : T} : category (over X) := by delta over; apply_instance
@@ -224,31 +222,50 @@ def forget {X : T} : (over X) ⥤ T := comma.fst _ _
 def map {X Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ functor.of.map f
 
 section
-variables {X Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V} 
-@[simp] lemma map_obj_left  : ((map f).obj U).left  = U.left := rfl
-@[simp] lemma map_obj_hom   : ((map f).obj U).hom   = U.hom ≫ (functor.of.map f).app U.right := rfl
-@[simp] lemma map_map_left  : ((map f).map g).left  = g.left := rfl
+variables {X Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
+@[simp] lemma map_obj_left : ((map f).obj U).left = U.left := rfl
+@[simp] lemma map_obj_hom  : ((map f).obj U).hom  = U.hom ≫ f := rfl
+@[simp] lemma map_map_left : ((map f).map g).left = g.left := rfl
 end
 
--- def comap [has_pullbacks.{u v} T] {X Y : T} (f : X ⟶ Y) : over Y ⥤ over X :=
--- { obj  := λ V, mk $ pullback.π₁ f V.hom,
---   map := λ V₁ V₂ g,
---   { left := pullback.lift f _ (pullback.π₁ f V₁.hom) (pullback.π₂ f V₁.hom ≫ g.left) (by tidy) },
---   map_comp' :=
---   begin
---     tidy, conv { to_rhs, rw ← category.assoc }, tidy,
---   end }
-
--- section
--- variables {D : Type u₃} [𝒟 : category.{u₃ v₃} D]
--- include 𝒟
-
--- def post (F : T ⥤ D) {X : T} : over X ⥤ over (F.obj X) :=
--- { obj := λ Y, mk $ F.map Y.hom,
---   map := λ Y₁ Y₂ f, { left := F.map f.left, w' := by tidy; erw [← F.map_comp, f.over_w] } }
-
--- end
-
 end over
+
+def under (X : T) := comma.{0 0 u₃ v₃ u₃ v₃} (functor.of.obj X) (functor.id T)
+
+namespace under
+
+instance {X : T} : category (under X) := by delta under; apply_instance
+
+@[simp] lemma under_left {X : T} (U : under X) : U.left = punit.star := by tidy
+@[simp] lemma under_morphism_left {X : T} {U V : under X} (f : U ⟶ V) : f.left = 𝟙 punit.star := by tidy
+
+@[simp] lemma id_left {X : T} (U : under X) : comma_morphism.left (𝟙 U) = 𝟙 U.left := rfl
+@[simp] lemma comp_left {X : T} (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
+  (f ≫ g).left = f.left ≫ g.left := rfl
+
+@[simp] lemma under_w {X : T} {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
+by have := f.w; tidy
+
+def mk {X Y : T} (f : X ⟶ Y) : under X :=
+{ right := Y, hom := f }
+
+@[simp] lemma mk_right {X Y : T} (f : X ⟶ Y) : (mk f).right = Y := rfl
+@[simp] lemma mk_hom {X Y : T} (f : X ⟶ Y) : (mk f).hom = f := rfl
+
+def forget {X : T} : (under X) ⥤ T := comma.snd _ _
+
+@[simp] lemma forget_obj {X : T} {U : under X} : forget.obj U = U.right := rfl
+@[simp] lemma forget_map {X : T} {U V : under X} {f : U ⟶ V} : forget.map f = f.right := rfl
+
+def map {X Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ functor.of.map f
+
+section
+variables {X Y : T} {f : X ⟶ Y} {U V : under Y} {g : U ⟶ V}
+@[simp] lemma map_obj_right : ((map f).obj U).right = U.right := rfl
+@[simp] lemma map_obj_hom   : ((map f).obj U).hom   = f ≫ U.hom := rfl
+@[simp] lemma map_map_right : ((map f).map g).right = g.right := rfl
+end
+
+end under
 
 end category_theory

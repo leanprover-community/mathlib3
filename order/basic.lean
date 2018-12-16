@@ -396,6 +396,29 @@ theorem well_founded.not_lt_min {α} {r : α → α → Prop} (H : well_founded 
   (p : set α) (h : p ≠ ∅) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
+lemma well_founded_iff_descending_chain {α} (r : α → α → Prop) : 
+  well_founded r ↔ ∀ f : ℕ → α, ∃ n, ¬ r (f (n + 1)) (f n) :=
+⟨λ h f, classical.by_contradiction (λ hr, 
+    @well_founded.fix α (λ a, ∀ n, a ≠ f n) r h 
+      (λ a ih n hn, ih (f (n + 1)) 
+        (classical.by_contradiction (hn.symm ▸ λ h, hr ⟨_, h⟩)) (n + 1) rfl) 
+      (f 0) 0 rfl), 
+  λ h, let f : Π a : α, ¬ acc r a → {b : α // ¬ acc r b ∧ r b a} :=
+      λ a ha, classical.indefinite_description _ 
+        (classical.by_contradiction 
+          (λ hc, ha $ acc.intro _ (λ y hy, 
+            classical.by_contradiction (λ hy1, hc ⟨y, hy1, hy⟩)))) in
+    well_founded.intro 
+      (λ a, classical.by_contradiction 
+        (λ ha, 
+          let g : Π n : ℕ, {b : α // ¬ acc r b} := 
+            λ n, nat.rec_on n ⟨a, ha⟩ 
+              (λ n b, ⟨f b.1 b.2, (f b.1 b.2).2.1⟩) in 
+          have hg : ∀ n, r (g (n + 1)) (g n), 
+            from λ n, nat.rec_on n (f _ _).2.2 
+              (λ n hn, (f _ _).2.2), 
+          exists.elim (h (subtype.val ∘ g)) (λ n hn, hn (hg _))))⟩
+
 variable (r)
 local infix `≼` : 50 := r
 
@@ -417,4 +440,3 @@ theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
 
 end
-

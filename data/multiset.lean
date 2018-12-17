@@ -598,6 +598,9 @@ quot.induction_on s $ λ l, rfl
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
+instance (f : α → β) : is_add_monoid_hom (map f) :=
+by refine_struct {..}; simp
+
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
 quot.induction_on s $ λ l, mem_map
@@ -722,6 +725,9 @@ theorem prod_singleton [comm_monoid α] (a : α) : prod (a :: 0) = a := by simp
 @[simp, to_additive multiset.sum_add]
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
+
+instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
+by refine_struct {..}; simp
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
@@ -1668,6 +1674,9 @@ quot.induction_on s $ λ l, countp_eq_length_filter _
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
 
+instance countp.is_add_monoid_hom : is_add_monoid_hom (countp p : multiset α → ℕ) :=
+by refine_struct {..}; simp
+
 theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
 by simp [countp_eq_card_filter, card_pos_iff_exists_mem]
 
@@ -1716,6 +1725,9 @@ by simp
 
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
 countp_add
+
+instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
+countp.is_add_monoid_hom
 
 @[simp] theorem count_smul (a : α) (n s) : count a (n • s) = n * count a s :=
 by induction n; simp [*, succ_smul', succ_mul]

@@ -138,7 +138,7 @@ by simp [coeff, eq_comm, C, single]; congr
   coeff (C x * X^k : polynomial α) n = if n = k then x else 0 :=
 by rw [← single_eq_C_mul_X]; simp [single, eq_comm, coeff]; congr
 
-lemma coeff_sum (n : ℕ) (f : ℕ → α → polynomial α) :
+lemma coeff_sum [comm_semiring β] [decidable_eq β] (n : ℕ) (f : ℕ → α → polynomial β) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
 
 lemma coeff_single : coeff (single n a) m = if n = m then a else 0 := rfl
@@ -347,7 +347,7 @@ end
 @[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
 begin
   dsimp [comp, eval₂, eval, finsupp.sum],
-  rw [← sum_hom C (@C_0 α _ _) (λ _ _, @C_add _ _ _ _ _)],
+  rw [← sum_hom (@C α _ _)],
   apply finset.sum_congr rfl; simp
 end
 
@@ -395,6 +395,16 @@ def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
 instance map.is_semiring_hom : is_semiring_hom (map f) := eval₂.is_semiring_hom _ _
 
 lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
+
+lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
+begin
+  rw [map, eval₂, coeff_sum],
+  conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, finsupp.sum,
+    ← finset.sum_hom f], },
+  refine finset.sum_congr rfl (λ x hx, _),
+  simp [function.comp, coeff_C_mul_X, is_semiring_hom.map_mul f],
+  split_ifs; simp [is_semiring_hom.map_zero f],
+end
 
 end map
 
@@ -726,6 +736,26 @@ else with_bot.coe_le_coe.1 $
       mul_le_mul_of_nonneg_right
         (le_nat_degree_of_ne_zero (finsupp.mem_support_iff.1 hn))
         (nat.zero_le _))
+
+lemma degree_map_le [comm_semiring β] [decidable_eq β] (f : α → β) [is_semiring_hom f] :
+  degree (p.map f) ≤ degree p :=
+if h : p.map f = 0 then by simp [h]
+else begin
+  rw [degree_eq_nat_degree h],
+  refine le_degree_of_ne_zero (mt (congr_arg f) _),
+  rw [← coeff_map f, is_semiring_hom.map_zero f],
+  exact mt leading_coeff_eq_zero.1 h
+end
+
+lemma degree_map_eq [comm_semiring β] [decidable_eq β] (f : α → β) [is_semiring_hom f]
+  (hf : function.injective f) : degree (p.map f) = degree p :=
+le_antisymm (degree_map_le f) $
+  if h : p = 0 then by simp [h]
+  else begin rw [degree_eq_nat_degree h],
+      refine le_degree_of_ne_zero _,
+      rw [coeff_map, ← is_semiring_hom.map_zero f],
+      exact mt hf.eq_iff.1 (mt leading_coeff_eq_zero.1 h)
+    end
 
 lemma zero_le_degree_iff {p : polynomial α} : 0 ≤ degree p ↔ p ≠ 0 :=
 by rw [ne.def, ← degree_eq_bot];
@@ -1507,13 +1537,12 @@ derivative_C
 by refine finsupp.sum_add_index _ _; intros;
 simp only [add_mul, zero_mul, C_0, C_add, C_mul]
 
+instance : is_add_monoid_hom (derivative : polynomial α → polynomial α) :=
+by refine_struct {..}; simp
+
 @[simp] lemma derivative_sum {s : finset β} {f : β → polynomial α} :
   derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
-begin
-  apply (finset.sum_hom derivative _ _).symm,
-  exact derivative_zero,
-  exact assume x y, derivative_add
-end
+(finset.sum_hom derivative).symm
 
 @[simp] lemma derivative_mul {f g : polynomial α} :
   derivative (f * g) = derivative f * g + f * derivative g :=

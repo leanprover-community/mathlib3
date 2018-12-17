@@ -291,6 +291,9 @@ instance : add_monoid (α →₀ β) :=
   zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
+instance (a : α) : is_add_monoid_hom (λ g : α →₀ β, g a) :=
+by refine_struct {..}; simp
+
 lemma single_add_erase {a : α} {f : α →₀ β} : single a (f a) + f.erase a = f :=
 ext $ λ a',
 if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, add_zero]
@@ -389,7 +392,7 @@ instance [add_comm_group β] : add_comm_group (α →₀ β) :=
 @[simp] lemma sum_apply [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β} {a₂ : α} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(finset.sum_hom (λf : α →₀ β, f a₂) rfl (assume a b, rfl)).symm
+(finset.sum_hom (λf : α →₀ β, f a₂)).symm
 
 lemma support_sum [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → (α →₀ β)} :
@@ -412,7 +415,7 @@ finset.sum_add_distrib
 
 @[simp] lemma sum_neg [add_comm_monoid β] [add_comm_group γ] {f : α →₀ β}
   {h : α → β → γ} : f.sum (λa b, - h a b) = - f.sum h :=
-finset.sum_hom (@has_neg.neg γ _) neg_zero (assume a b, neg_add _ _)
+finset.sum_hom (@has_neg.neg γ _)
 
 @[simp] lemma sum_sub [add_comm_monoid β] [add_comm_group γ] {f : α →₀ β}
   {h₁ h₂ : α → β → γ} :
@@ -503,15 +506,11 @@ by rw [multiset.sum_cons, multiset.map_cons, multiset.sum_cons, sum_add_index h�
 
 lemma multiset_map_sum [has_zero β] {f : α →₀ β} {m : γ → δ} {h : α → β → multiset γ} :
   multiset.map m (f.sum h) = f.sum (λa b, (h a b).map m) :=
-(finset.sum_hom _ (multiset.map_zero m) (multiset.map_add m)).symm
+(finset.sum_hom _).symm
 
 lemma multiset_sum_sum [has_zero β] [add_comm_monoid γ] {f : α →₀ β} {h : α → β → multiset γ} :
   multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
-begin
-  refine (finset.sum_hom multiset.sum _ _).symm,
-  exact multiset.sum_zero,
-  exact multiset.sum_add
-end
+(finset.sum_hom multiset.sum).symm
 
 section map_domain
 variables [decidable_eq α₁] [decidable_eq α₂] [add_comm_monoid β] {v v₁ v₂ : α →₀ β}
@@ -672,6 +671,10 @@ variables [add_monoid β] {v v' : α' →₀ β}
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ _, rfl
 
+instance subtype_domain.is_add_monoid_hom [add_monoid β] :
+  is_add_monoid_hom (subtype_domain p : (α →₀ β) → subtype p →₀ β) :=
+by refine_struct {..}; simp
+
 @[simp] lemma filter_add {v v' : α →₀ β} :
   (v + v').filter p = v.filter p + v'.filter p :=
 ext $ λ a, by by_cases p a; simp [h]
@@ -683,7 +686,7 @@ variables [add_comm_monoid β]
 
 lemma subtype_domain_sum {s : finset γ} {h : γ → α →₀ β} :
   (s.sum h).subtype_domain p = s.sum (λc, (h c).subtype_domain p) :=
-eq.symm (finset.sum_hom _ subtype_domain_zero $ assume v v', subtype_domain_add)
+eq.symm (finset.sum_hom _)
 
 lemma subtype_domain_finsupp_sum {s : γ →₀ δ} {h : γ → δ → α →₀ β} :
   (s.sum h).subtype_domain p = s.sum (λc d, (h c d).subtype_domain p) :=
@@ -714,7 +717,7 @@ f.sum (λa n, add_monoid.smul n {a})
 @[simp] lemma count_to_multiset [decidable_eq α] (f : α →₀ ℕ) (a : α) :
   f.to_multiset.count a = f a :=
 calc f.to_multiset.count a = f.sum (λx n, (add_monoid.smul n {x} : multiset α).count a) :
-    (finset.sum_hom _ (multiset.count_zero a) (multiset.count_add a)).symm
+    (finset.sum_hom _).symm
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_smul]
   ... = f.sum (λx n, n * (x :: 0 : multiset α).count a) : rfl
   ... = f a * (a :: 0 : multiset α).count a : sum_eq_single _

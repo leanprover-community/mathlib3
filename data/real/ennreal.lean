@@ -91,6 +91,9 @@ by intro h; cases h; [simp [h], simp[h]]⟩
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
 
+instance : is_semiring_hom (coe : nnreal → ennreal) :=
+by refine_struct {..}; simp
+
 lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top _ _
 
 lemma mul_top : a * ∞ = (if a = 0 then 0 else ∞) :=
@@ -102,10 +105,10 @@ begin split_ifs, { simp [h] }, { exact with_top.top_mul h } end
 @[simp] lemma top_mul_top : ∞ * ∞ = ∞ := with_top.top_mul_top
 
 @[simp] lemma coe_finset_sum {s : finset α} {f : α → nnreal} : ↑(s.sum f) = (s.sum (λa, f a) : ennreal) :=
-(finset.sum_hom coe coe_zero @coe_add).symm
+(finset.sum_hom coe).symm
 
 @[simp] lemma coe_finset_prod {s : finset α} {f : α → nnreal} : ↑(s.prod f) = (s.prod (λa, f a) : ennreal) :=
-(finset.prod_hom coe coe_one @coe_mul).symm
+(finset.prod_hom coe).symm
 
 @[simp] lemma bot_eq_zero : (⊥ : ennreal) = 0 := rfl
 section order

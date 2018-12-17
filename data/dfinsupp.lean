@@ -107,6 +107,9 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   zero_add  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, zero_add],
   add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
 
+instance [Π i, add_monoid (β i)] {i : ι} : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
+by refine_struct {..}; simp
+
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
 
@@ -201,6 +204,10 @@ quotient.induction_on v $ λ x, rfl
 @[simp] lemma subtype_domain_add [Π i, add_monoid (β i)] {p : ι → Prop} [decidable_pred p] {v v' : Π₀ i, β i} :
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ i, by simp only [add_apply, subtype_domain_apply]
+
+instance subtype_domain.is_add_monoid_hom [Π i, add_monoid (β i)] {p : ι → Prop} [decidable_pred p] :
+  is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
+by refine_struct {..}; simp
 
 @[simp] lemma subtype_domain_neg [Π i, add_group (β i)] {p : ι → Prop} [decidable_pred p] {v : Π₀ i, β i} :
   (- v).subtype_domain p = - v.subtype_domain p :=
@@ -621,7 +628,7 @@ prod_map_range_index h0
   [Π i, add_comm_monoid (β i)]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i} {i₂ : ι} :
   (f.sum g) i₂ = f.sum (λi₁ b, g i₁ b i₂) :=
-(finset.sum_hom (λf : Π₀ i, β i, f i₂) rfl (assume i b, add_apply)).symm
+(finset.sum_hom (λf : Π₀ i, β i, f i₂)).symm
 
 lemma support_sum {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
   [Π i₁, has_zero (β₁ i₁)] [Π i, decidable_pred (eq (0 : β₁ i))]
@@ -648,7 +655,7 @@ finset.sum_add_distrib
 @[simp] lemma sum_neg [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
   [add_comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
   f.sum (λi b, - h i b) = - f.sum h :=
-finset.sum_hom (@has_neg.neg γ _) neg_zero (assume i b, neg_add _ _)
+finset.sum_hom (@has_neg.neg γ _)
 
 @[to_additive dfinsupp.sum_add_index]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
@@ -735,7 +742,7 @@ finset.prod_bij (λp _, p.val)
 lemma subtype_domain_sum [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
   {s : finset γ} {h : γ → Π₀ i, β i} {p : ι → Prop} [decidable_pred p] :
   (s.sum h).subtype_domain p = s.sum (λc, (h c).subtype_domain p) :=
-eq.symm (finset.sum_hom _ subtype_domain_zero $ assume v v', subtype_domain_add)
+eq.symm (finset.sum_hom _)
 
 lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]
   [Π c, has_zero (δ c)] [Π c, decidable_pred (eq (0 : δ c))]

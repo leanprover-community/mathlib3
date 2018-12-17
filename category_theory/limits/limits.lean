@@ -5,7 +5,6 @@
 import category_theory.whiskering
 import category_theory.yoneda
 import category_theory.limits.cones
-import tactic.squeeze
 
 open category_theory category_theory.category category_theory.functor
 

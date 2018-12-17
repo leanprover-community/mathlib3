@@ -102,9 +102,15 @@ def left_unitor (F : A ⥤ B) : ((functor.id _) ⋙ F) ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
 
+@[simp] lemma left_unitor_hom_app {F : A ⥤ B} {X} : F.left_unitor.hom.app X = 𝟙 _ := rfl
+@[simp] lemma left_unitor_inv_app {F : A ⥤ B} {X} : F.left_unitor.inv.app X = 𝟙 _ := rfl
+
 def right_unitor (F : A ⥤ B) : (F ⋙ (functor.id _)) ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
+
+@[simp] lemma right_unitor_hom_app {F : A ⥤ B} {X} : F.right_unitor.hom.app X = 𝟙 _ := rfl
+@[simp] lemma right_unitor_inv_app {F : A ⥤ B} {X} : F.right_unitor.inv.app X = 𝟙 _ := rfl
 
 variables {C : Type u₃} [𝒞 : category.{u₃ v₃} C]
 variables {D : Type u₄} [𝒟 : category.{u₄ v₄} D]
@@ -113,6 +119,11 @@ include 𝒞 𝒟
 def associator (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) ≅ (F ⋙ (G ⋙ H)) :=
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
+
+@[simp] lemma associator_hom_app {F : A ⥤ B} {G : B ⥤ C} {H : C ⥤ D} {X} :
+(associator F G H).hom.app X = 𝟙 _ := rfl
+@[simp] lemma associator_inv_app {F : A ⥤ B} {G : B ⥤ C} {H : C ⥤ D} {X} :
+(associator F G H).inv.app X = 𝟙 _ := rfl
 
 omit 𝒟
 

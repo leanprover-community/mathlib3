@@ -30,7 +30,7 @@ variables {J C} (F : J ⥤ C)
 natural transformations from the constant functor with value `X` to `F`.
 An object representing this functor is a limit of `F`.
 -/
-def cones : Cᵒᵖ ⥤ Type _ := (const (Jᵒᵖ)) ⋙ (op_inv J C) ⋙ (yoneda.obj F)
+def cones : Cᵒᵖ ⥤ Type v := ((const (Jᵒᵖ)) ⋙ (op_inv J C)) ⋙ (yoneda.obj F)
 
 lemma cones_obj (X : C) : F.cones.obj X = ((const J).obj X ⟹ F) := rfl
 
@@ -39,12 +39,34 @@ lemma cones_obj (X : C) : F.cones.obj X = ((const J).obj X ⟹ F) := rfl
 natural transformations from `F` to the constant functor with value `X`.
 An object corepresenting this functor is a colimit of `F`.
 -/
-def cocones : C ⥤ Type _ := (const J) ⋙ (coyoneda.obj F)
+def cocones : C ⥤ Type v := (const J) ⋙ (coyoneda.obj F)
 
 lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟹ (const J).obj X) := rfl
 
 end functor
 
+section
+variables (J C)
+
+def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type v) :=
+{ obj := functor.cones,
+  map := λ F G f, whisker_left _ (yoneda.map f) }
+
+def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type v) :=
+{ obj := functor.cocones,
+  map := λ F G f, whisker_left _ (coyoneda.map f) }
+
+variables {J C}
+
+@[simp] lemma cones_obj (F : J ⥤ C) : (cones J C).obj F = F.cones := rfl
+@[simp] lemma cones_map  {F G : J ⥤ C} {f : F ⟶ G} :
+(cones J C).map f = (whisker_left _ (yoneda.map f)) := rfl
+
+@[simp] lemma cocones_obj (F : J ⥤ C) : (cocones J C).obj F = F.cocones := rfl
+@[simp] lemma cocones_map  {F G : J ⥤ C} {f : F ⟶ G} :
+(cocones J C).map f = (whisker_left _ (coyoneda.map f)) := rfl
+
+end
 
 namespace limits
 

@@ -161,3 +161,4 @@ instance : canonically_ordered_monoid enat :=
   ..enat.ordered_comm_monoid }
 
 end enat
+ 

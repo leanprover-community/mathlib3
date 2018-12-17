@@ -1,28 +1,12 @@
+/-
+Copyright (c) 2018 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro, Chris Hughes
+-/
 import algebra.euclidean_domain ring_theory.ideals ring_theory.associated
 noncomputable theory
 local attribute [instance] classical.dec
 open euclidean_domain set ideal
-
-def is_coprime {α} [comm_ring α] (x y : α) : Prop :=
-span ({x, y} : set α) = ⊤
-
-theorem mem_span_pair {α} [comm_ring α] {x y z : α} :
-  z ∈ span (insert y {x} : set α) ↔ ∃ a b, a * x + b * y = z :=
-begin
-  simp only [mem_span_insert, mem_span_singleton', exists_prop],
-  split,
-  { rintros ⟨a, b, ⟨c, hc⟩, h⟩,
-    exact ⟨c, a, by simp [h, hc]⟩ },
-  { rintro ⟨b, c, e⟩, exact ⟨c, b * x, ⟨b, rfl⟩, by simp [e.symm]⟩ }
-end
-
-theorem is_coprime_def {α} [comm_ring α] {x y : α} :
-  is_coprime x y ↔ ∀ z, ∃ a b, a * x + b * y = z :=
-by simp [is_coprime, submodule.eq_top_iff', mem_span_pair]
-
-theorem is_coprime_self {α} [comm_ring α] (x y : α) :
-  is_coprime x x ↔ is_unit x :=
-by rw [← span_singleton_eq_top]; simp [is_coprime]
 
 theorem span_gcd {α} [euclidean_domain α] (x y : α) :
   span ({gcd x y} : set α) = span ({x, y} : set α) :=

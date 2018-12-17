@@ -107,5 +107,4 @@ end
 
 end functor
 
-
 end category_theory

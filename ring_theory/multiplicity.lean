@@ -19,15 +19,18 @@ def multiplicity [comm_semiring α] [decidable_rel ((∣) : α → α → Prop)]
 namespace multiplicity
 
 section comm_semiring
-variables [comm_semiring α] [decidable_rel ((∣) : α → α → Prop)]
+variables [comm_semiring α]
 
-@[reducible] def finite (a b : α) : Prop := (multiplicity a b).dom
+@[reducible] def finite (a b : α) : Prop := ∃ n : ℕ, ¬a ^ (n + 1) ∣ b
+
+lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :
+  finite a b ↔ (multiplicity a b).dom := iff.rfl
 
 lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b := iff.rfl
 
 lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n ∣ b :=
-⟨λ h n, nat.cases_on n (one_dvd _) (by simpa [finite, multiplicity] using h),
-  by simp [finite, multiplicity]; tauto⟩
+⟨λ h n, nat.cases_on n (one_dvd _) (by simpa [finite, classical.not_not] using h),
+  by simp [finite, multiplicity, classical.not_not]; tauto⟩
 
 lemma not_unit_of_finite {a b : α} (h : finite a b) : ¬is_unit a :=
 let ⟨n, hn⟩ := h in mt (is_unit_iff_forall_dvd.1 ∘ is_unit_pow (n + 1)) $
@@ -36,17 +39,24 @@ let ⟨n, hn⟩ := h in mt (is_unit_iff_forall_dvd.1 ∘ is_unit_pow (n + 1)) $
 lemma ne_zero_of_finite {a b : α} (h : finite a b) : b ≠ 0 :=
 let ⟨n, hn⟩ := h in λ hb, by simpa [hb] using hn
 
-lemma pow_dvd_of_le_multiplicity {a b : α}
-  {k : ℕ} : (k : enat) ≤ multiplicity a b → a ^ k ∣ b :=
+lemma finite_of_finite_mul_left {a b c : α} : finite a (b * c) → finite a c :=
+λ ⟨n, hn⟩, ⟨n, λ h, hn (dvd.trans h (by simp [_root_.mul_pow]))⟩
+
+lemma finite_of_finite_mul_right {a b c : α} : finite a (b * c) → finite a b :=
+by rw mul_comm; exact finite_of_finite_mul_left
+
+variable [decidable_rel ((∣) : α → α → Prop)]
+
+lemma pow_dvd_of_le_multiplicity {a b : α} {k : ℕ} : (k : enat) ≤ multiplicity a b → a ^ k ∣ b :=
 nat.cases_on k (λ _, one_dvd _)
   (λ k ⟨h₁, h₂⟩, by_contradiction (λ hk, (nat.find_min _ (lt_of_succ_le (h₂ ⟨k, hk⟩)) hk)))
 
 lemma spec {a b : α} (h : finite a b) : a ^ get (multiplicity a b) h ∣ b :=
 pow_dvd_of_le_multiplicity (by rw enat.coe_get)
 
-lemma is_greatest {a b : α} {m : ℕ} (hm : multiplicity a b < m) : ¬a ^ m ∣ b :=
+lemma is_greatest  {a b : α} {m : ℕ} (hm : multiplicity a b < m) : ¬a ^ m ∣ b :=
 λ h, have finite a b, from enat.dom_of_le_some (le_of_lt hm),
-by rw [← enat.coe_get this, enat.coe_lt_coe] at hm;
+by rw [← enat.coe_get (finite_iff_dom.1 this), enat.coe_lt_coe] at hm;
   exact nat.find_spec this (dvd.trans (pow_dvd_pow _ hm) h)
 
 lemma is_greatest' {a b : α} {m : ℕ} (h : finite a b) (hm : get (multiplicity a b) h < m) :
@@ -57,7 +67,7 @@ lemma unique {a b : α} {k : ℕ} (hk : a ^ k ∣ b) (hsucc : ¬a ^ (k + 1) ∣ 
   (k : enat) = multiplicity a b :=
 le_antisymm (le_of_not_gt (λ hk', is_greatest hk' hk)) $
   have finite a b, from ⟨k, hsucc⟩,
-  by rw [← enat.coe_get this, enat.coe_le_coe];
+  by rw [← enat.coe_get (finite_iff_dom.1 this), enat.coe_le_coe];
     exact nat.find_min' _ hsucc
 
 lemma unique' {a b : α} {k : ℕ} (hk : a ^ k ∣ b) (hsucc : ¬ a ^ (k + 1) ∣ b) :
@@ -103,11 +113,6 @@ eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (is_unit_pow _ ha) _)
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
 eq_some_iff.2 (by simpa)
 
-lemma finite_of_finite_mul_left {a b c : α} : finite a (b * c) → finite a c :=
-λ ⟨n, hn⟩, ⟨n, λ h, hn (dvd.trans h (by simp [_root_.mul_pow]))⟩
-
-lemma finite_of_finite_mul_right {a b c : α} : finite a (b * c) → finite a b :=
-by rw mul_comm; exact finite_of_finite_mul_left
 
 lemma eq_top_iff_not_finite {a b : α} : multiplicity a b = ⊤ ↔ ¬ finite a b :=
 roption.eq_none_iff'
@@ -118,7 +123,7 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
   (∀ n : ℕ, a ^ n ∣ b → c ^ n ∣ d) :=
 ⟨λ h n hab, (pow_dvd_of_le_multiplicity (le_trans (le_multiplicity_of_pow_dvd hab) h)),
   λ h, if hab : finite a b
-    then by rw [← enat.coe_get hab]; exact le_multiplicity_of_pow_dvd (h _ (spec _))
+    then by rw [← enat.coe_get (finite_iff_dom.1 hab)]; exact le_multiplicity_of_pow_dvd (h _ (spec _))
     else
     have ∀ n : ℕ, c ^ n ∣ d, from λ n, h n (not_finite_iff_forall.1 hab _),
     by rw [eq_top_iff_not_finite.2 hab, eq_top_iff_not_finite.2
@@ -277,8 +282,9 @@ local attribute [instance, priority 0] classical.prop_decidable
 protected lemma mul {p a b : α} (hp : prime p) :
   multiplicity p (a * b) = multiplicity p a + multiplicity p b :=
 if h : finite p a ∧ finite p b then
-by rw [← enat.coe_get h.1, ← enat.coe_get h.2, ← enat.coe_get (finite_mul hp h.1 h.2),
-    ← enat.coe_add, enat.coe_inj, multiplicity.mul' hp]
+by rw [← enat.coe_get (finite_iff_dom.1 h.1), ← enat.coe_get (finite_iff_dom.1 h.2),
+  ← enat.coe_get (finite_iff_dom.1 (finite_mul hp h.1 h.2)),
+    ← enat.coe_add, enat.coe_inj, multiplicity.mul' hp]; refl
 else begin
   rw [eq_top_iff_not_finite.2 (mt (finite_mul_iff hp).1 h)],
   cases not_and_distrib.1 h with h h;

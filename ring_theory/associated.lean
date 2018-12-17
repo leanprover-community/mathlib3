@@ -397,7 +397,7 @@ variables [comm_semiring α]
 @[simp] theorem mul_zero : ∀(a : associates α), a * 0 = 0 :=
 by rintros ⟨a⟩; show associates.mk (a * 0) = associates.mk 0; rw [mul_zero]
 
-@[simp] theorem zero_mul : ∀(a : associates α), 0 * a = 0 :=
+@[simp] protected theorem zero_mul : ∀(a : associates α), 0 * a = 0 :=
 by rintros ⟨a⟩; show associates.mk (0 * a) = associates.mk 0; rw [zero_mul]
 
 theorem mk_eq_zero_iff_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=

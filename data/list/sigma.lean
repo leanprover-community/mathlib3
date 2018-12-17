@@ -20,7 +20,7 @@ def nodupkeys (l : list (sigma β)) : Prop :=
 theorem nodupkeys_iff_pairwise {l} : nodupkeys l ↔
   pairwise (λ s s' : sigma β, s.1 ≠ s'.1) l := pairwise_map _
 
-@[simp] theorem nodupkeys_nil : @nodupkeys α β [] := pairwise.nil _
+@[simp] theorem nodupkeys_nil : @nodupkeys α β [] := pairwise.nil
 
 @[simp] theorem nodupkeys_cons {a : α} {b : β a} {l : list (sigma β)} :
   nodupkeys (⟨a, b⟩::l) ↔ (∀ b' : β a, sigma.mk a b' ∉ l) ∧ nodupkeys l :=

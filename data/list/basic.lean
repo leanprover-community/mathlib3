@@ -9,7 +9,8 @@ import
   tactic.interactive tactic.mk_iff_of_inductive_prop tactic.split_ifs
   logic.basic logic.function logic.relation
   algebra.group order.basic
-  data.list.defs data.nat.basic data.option data.bool data.prod data.sigma data.fin
+  data.list.defs data.nat.basic data.option.basic
+  data.bool data.prod data.sigma data.fin
 open function nat
 
 namespace list
@@ -2236,13 +2237,7 @@ section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
 open relator relation
 
-inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
-| nil {} : forall₂ [] []
-| cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
-
 run_cmd tactic.mk_iff_of_inductive_prop `list.forall₂ `list.forall₂_iff
-
-attribute [simp] forall₂.nil
 
 @[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
   forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=
@@ -3247,7 +3242,7 @@ theorem pairwise.iff {S : α → α → Prop}
 pairwise.iff_of_mem (λ a b _ _, H a b)
 
 theorem pairwise_of_forall {l : list α} (H : ∀ x y, R x y) : pairwise R l :=
-by induction l; [exact pairwise.nil _,
+by induction l; [exact pairwise.nil,
 simp only [*, pairwise_cons, forall_2_true_iff, and_true]]
 
 theorem pairwise.and_mem {l : list α} :
@@ -3387,7 +3382,7 @@ end
 
 theorem pairwise_sublists' {R} : ∀ {l : list α}, pairwise R l →
   pairwise (lex (swap R)) (sublists' l)
-| _ (pairwise.nil _) := pairwise_singleton _ _
+| _ pairwise.nil := pairwise_singleton _ _
 | _ (@pairwise.cons _ _ a l H₁ H₂) :=
   begin
     simp only [sublists'_cons, pairwise_append, pairwise_map, mem_sublists', mem_map, exists_imp_distrib, and_imp],
@@ -3429,7 +3424,7 @@ theorem pw_filter_subset (l : list α) : pw_filter R l ⊆ l :=
 subset_of_sublist (pw_filter_sublist _)
 
 theorem pairwise_pw_filter : ∀ (l : list α), pairwise R (pw_filter R l)
-| []     := pairwise.nil _
+| []     := pairwise.nil
 | (x::l) := begin
   by_cases (∀ y ∈ pw_filter R l, R x y),
   { rw [pw_filter_cons_of_pos h],
@@ -3493,7 +3488,7 @@ theorem chain.iff {S : α → α → Prop}
   (H : ∀ a b, R a b ↔ S a b) {a : α} {l : list α} : chain R a l ↔ chain S a l :=
 ⟨chain.imp (λ a b, (H a b).1), chain.imp (λ a b, (H a b).2)⟩
 
-theorem chain.iff_mem {S : α → α → Prop} {a : α} {l : list α} :
+theorem chain.iff_mem {a : α} {l : list α} :
   chain R a l ↔ chain (λ x y, x ∈ a :: l ∧ y ∈ l ∧ R x y) a l :=
 ⟨λ p, by induction p with _ a b l r p IH; constructor;
   [exact ⟨mem_cons_self _ _, mem_cons_self _ _, r⟩,
@@ -3526,7 +3521,7 @@ theorem chain_map_of_chain {S : β → β → Prop} (f : α → β)
 theorem chain_of_pairwise {a : α} {l : list α} (p : pairwise R (a::l)) : chain R a l :=
 begin
   cases pairwise_cons.1 p with r p', clear p,
-  induction p' with b l r' p IH generalizing a, {exact chain.nil _ _},
+  induction p' with b l r' p IH generalizing a, {exact chain.nil},
   simp only [chain_cons, forall_mem_cons] at r,
   exact chain_cons.2 ⟨r.1, IH r'⟩
 end
@@ -3539,6 +3534,51 @@ theorem chain_iff_pairwise (tr : transitive R) {a : α} {l : list α} :
   show ∀ x ∈ l, R b x, from λ x m, (tr r (rel_of_pairwise_cons IH m)),
 end, chain_of_pairwise⟩
 
+theorem chain'.imp {S : α → α → Prop}
+  (H : ∀ a b, R a b → S a b) {l : list α} (p : chain' R l) : chain' S l :=
+by cases l; [trivial, exact p.imp H]
+
+theorem chain'.iff {S : α → α → Prop}
+  (H : ∀ a b, R a b ↔ S a b) {l : list α} : chain' R l ↔ chain' S l :=
+⟨chain'.imp (λ a b, (H a b).1), chain'.imp (λ a b, (H a b).2)⟩
+
+theorem chain'.iff_mem {S : α → α → Prop} : ∀ {l : list α},
+  chain' R l ↔ chain' (λ x y, x ∈ l ∧ y ∈ l ∧ R x y) l
+| [] := iff.rfl
+| (x::l) :=
+  ⟨λ h, (chain.iff_mem.1 h).imp $ λ a b ⟨h₁, h₂, h₃⟩, ⟨h₁, or.inr h₂, h₃⟩,
+   chain'.imp $ λ a b h, h.2.2⟩
+
+theorem chain'_singleton (a : α) : chain' R [a] := chain.nil
+
+theorem chain'_split {a : α} : ∀ {l₁ l₂ : list α}, chain' R (l₁++a::l₂) ↔
+  chain' R (l₁++[a]) ∧ chain' R (a::l₂)
+| []      l₂ := (and_iff_right (chain'_singleton a)).symm
+| (b::l₁) l₂ := chain_split
+
+theorem chain'_map (f : β → α) {l : list β} :
+  chain' R (map f l) ↔ chain' (λ a b : β, R (f a) (f b)) l :=
+by cases l; [refl, exact chain_map _]
+
+theorem chain'_of_chain'_map {S : β → β → Prop} (f : α → β)
+  (H : ∀ a b : α, S (f a) (f b) → R a b) {l : list α}
+  (p : chain' S (map f l)) : chain' R l :=
+((chain'_map f).1 p).imp H
+
+theorem chain'_map_of_chain' {S : β → β → Prop} (f : α → β)
+  (H : ∀ a b : α, R a b → S (f a) (f b)) {l : list α}
+  (p : chain' R l) : chain' S (map f l) :=
+(chain'_map f).2 $ p.imp H
+
+theorem chain'_of_pairwise : ∀ {l : list α}, pairwise R l → chain' R l
+| [] _ := trivial
+| (a::l) h := chain_of_pairwise h
+
+theorem chain'_iff_pairwise (tr : transitive R) : ∀ {l : list α},
+  chain' R l ↔ pairwise R l
+| [] := (iff_true_intro pairwise.nil).symm
+| (a::l) := chain_iff_pairwise tr
+
 end chain
 
 /- no duplicates predicate -/
@@ -3548,7 +3588,7 @@ section nodup
 @[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
 ⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
 
-@[simp] theorem nodup_nil : @nodup α [] := pairwise.nil _
+@[simp] theorem nodup_nil : @nodup α [] := pairwise.nil
 
 @[simp] theorem nodup_cons {a : α} {l : list α} : nodup (a::l) ↔ a ∉ l ∧ nodup l :=
 by simp only [nodup, pairwise_cons, forall_mem_ne]
@@ -3821,14 +3861,14 @@ theorem map_add_range' (a) : ∀ s n : ℕ, map ((+) a) (range' s n) = range' (a
 | s (n+1) := congr_arg (cons _) (map_add_range' (s+1) n)
 
 theorem chain_succ_range' : ∀ s n : ℕ, chain (λ a b, b = succ a) s (range' (s+1) n)
-| s 0     := chain.nil _ _
+| s 0     := chain.nil
 | s (n+1) := (chain_succ_range' (s+1) n).cons rfl
 
 theorem chain_lt_range' (s n : ℕ) : chain (<) s (range' (s+1) n) :=
 (chain_succ_range' s n).imp (λ a b e, e.symm ▸ lt_succ_self _)
 
 theorem pairwise_lt_range' : ∀ s n : ℕ, pairwise (<) (range' s n)
-| s 0     := pairwise.nil _
+| s 0     := pairwise.nil
 | s (n+1) := (chain_iff_pairwise (by exact λ a b c, lt_trans)).1 (chain_lt_range' s n)
 
 theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=

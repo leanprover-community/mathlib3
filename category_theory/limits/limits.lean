@@ -362,6 +362,14 @@ lemma limit.map_pre {K : Type v} [small_category K] [has_limits_of_shape K C] (E
   lim.map α ≫ limit.pre G E = limit.pre F E ≫ lim.map (whisker_left E α) :=
 by ext; rw [assoc, limit.pre_π, lim.map_π, assoc, lim.map_π, ←assoc, limit.pre_π]; refl
 
+lemma limit.map_pre' {K : Type v} [small_category K] [has_limits_of_shape.{u v} K C]
+  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟹ E₂) :
+  limit.pre F E₂ = limit.pre F E₁ ≫ lim.map (whisker_right α F) :=
+by ext1; simp [(category.assoc _ _ _ _).symm]
+
+lemma limit.id_pre (F : J ⥤ C) :
+limit.pre F (functor.id _) = lim.map (functor.left_unitor F).inv := by tidy
+
 lemma limit.map_post {D : Type u'} [category.{u' v} D] [has_limits_of_shape J D] (H : C ⥤ D) :
 /- H (limit F) ⟶ H (limit G) ⟶ limit (G ⋙ H) vs
    H (limit F) ⟶ limit (F ⋙ H) ⟶ limit (G ⋙ H) -/
@@ -372,6 +380,9 @@ begin
   rw [assoc, lim.map_π, ←assoc, limit.post_π],
   refl
 end
+
+def lim_yoneda : lim ⋙ yoneda ≅ category_theory.cones J C :=
+nat_iso.of_components (λ F, nat_iso.of_components (limit.hom_iso F) (by tidy)) (by tidy)
 
 end lim_functor
 
@@ -564,6 +575,14 @@ lemma colimit.pre_map {K : Type v} [small_category K] [has_colimits_of_shape K C
   colimit.pre F E ≫ colim.map α = colim.map (whisker_left E α) ≫ colimit.pre G E :=
 by ext; rw [←assoc, colimit.ι_pre, colim.ι_map, ←assoc, colim.ι_map, assoc, colimit.ι_pre]; refl
 
+lemma colimit.pre_map' {K : Type v} [small_category K] [has_colimits_of_shape.{u v} K C]
+  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟹ E₂) :
+  colimit.pre F E₁ = colim.map (whisker_right α F) ≫ colimit.pre F E₂ :=
+by ext1; simp [(category.assoc _ _ _ _).symm]
+
+lemma colimit.pre_id (F : J ⥤ C) :
+colimit.pre F (functor.id _) = colim.map (functor.left_unitor F).hom := by tidy
+
 lemma colimit.map_post {D : Type u'} [category.{u' v} D] [has_colimits_of_shape J D] (H : C ⥤ D) :
 /- H (colimit F) ⟶ H (colimit G) ⟶ colimit (G ⋙ H) vs
    H (colimit F) ⟶ colimit (F ⋙ H) ⟶ colimit (G ⋙ H) -/
@@ -574,6 +593,11 @@ begin
   rw [←assoc, colim.ι_map, assoc, colimit.ι_post],
   refl
 end
+
+def colim_coyoneda : colim.op ⋙ coyoneda ≅ category_theory.cocones J C :=
+nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso F)
+  (by {tidy, dsimp [functor.cocones], rw category.assoc }))
+  (by {tidy, rw [← category.assoc,← category.assoc], tidy })
 
 end colim_functor
 

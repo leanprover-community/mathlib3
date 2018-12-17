@@ -21,6 +21,8 @@ section miscellany
 
 variables {α : Type*} {β : Type*}
 
+@[reducible] def hidden {a : α} := a
+
 def empty.elim {C : Sort*} : empty → C.
 
 instance : subsingleton empty := ⟨λa, a.elim⟩

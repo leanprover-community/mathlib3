@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Miscellaneous function constructions and lemmas.
 -/
-import logic.basic data.option
+import logic.basic data.option.defs
 
 universes u v w
 

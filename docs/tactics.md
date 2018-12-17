@@ -114,6 +114,17 @@ where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
 of Coq.
 
+### elide/unelide
+
+The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
+beyond depth `n` by replacing them with `hidden`, which is a variant
+on the identity function. (Tactics should still mostly be able to see
+through the abbreviation, but if you want to unhide the term you can use
+`unelide`.)
+
+The `unelide (at ...)` tactic removes all `hidden` subterms in the target
+types (usually added by `elide`).
+
 ### finish/clarify/safe
 
 These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,

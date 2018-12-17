@@ -9,12 +9,12 @@ open function finset nat finite_field zmodp
 
 namespace zmodp
 
-variables {p q : ℕ} (hp : prime p) (hq : prime q)
+variables {p q : ℕ} (hp : nat.prime p) (hq : nat.prime q)
 
 @[simp] lemma card_units_zmodp : fintype.card (units (zmodp p hp)) = p - 1 :=
 by rw [card_units, card_zmodp]
 
-theorem fermat_little {p : ℕ} (hp : prime p) {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p - 1) = 1 :=
+theorem fermat_little {p : ℕ} (hp : nat.prime p) {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p - 1) = 1 :=
 by rw [← units.mk0_val ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow, ← units.ext_iff,
     ← card_units_zmodp hp, pow_card_eq_one]
 
@@ -47,7 +47,7 @@ hp.eq_two_or_odd.elim
   (λ hp1, by rw [← mul_self_eq_one_iff, ← _root_.pow_add, ← two_mul, two_mul_odd_div_two hp1];
     exact fermat_little hp ha)
 
-@[simp] lemma wilsons_lemma {p : ℕ} (hp : prime p) : (fact (p - 1) : zmodp p hp) = -1 :=
+@[simp] lemma wilsons_lemma {p : ℕ} (hp : nat.prime p) : (fact (p - 1) : zmodp p hp) = -1 :=
 begin
   rw [← finset.prod_range_id_eq_fact, ← @units.coe_one (zmodp p hp), ← units.coe_neg,
     ← @prod_univ_units_id_eq_neg_one (zmodp p hp),
@@ -66,7 +66,7 @@ begin
       by simp [val_cast_of_lt hp this.2]⟩))
 end
 
-@[simp] lemma prod_range_prime_erase_zero {p : ℕ} (hp : prime p) :
+@[simp] lemma prod_range_prime_erase_zero {p : ℕ} (hp : nat.prime p) :
   ((range p).erase 0).prod (λ x, (x : zmodp p hp)) = -1 :=
 by conv in (range p) { rw [← succ_sub_one p, succ_sub hp.pos] };
   rw [prod_hom (coe : ℕ → zmodp p hp) nat.cast_one nat.cast_mul,
@@ -76,7 +76,7 @@ end zmodp
 
 namespace quadratic_reciprocity_aux
 
-variables {p q : ℕ} (hp : prime p) (hq : prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1)
+variables {p q : ℕ} (hp : nat.prime p) (hq : nat.prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1)
   (hpq : p ≠ q)
 
 include hp hq hp1 hq1 hpq
@@ -115,7 +115,7 @@ finset.ext.2 $ λ x,
             ← nat.sub_add_comm (mul_pos hp.pos hq.pos), add_succ, succ_eq_add_one, nat.add_sub_cancel];
           exact le_trans (nat.sub_le_self _ _) (nat.le_add_right _ _),
     end,
-  by rw [prime.coprime_iff_not_dvd hp, ← hk₂, ← nat.dvd_add_iff_left (dvd_mul_right _ _),
+  by rw [nat.prime.coprime_iff_not_dvd hp, ← hk₂, ← nat.dvd_add_iff_left (dvd_mul_right _ _),
        dvd_iff_mod_eq_zero, mod_eq_of_lt]; clear _let_match _let_match; simp at hk₁; tauto⟩)
   (λ h, let ⟨m, hm₁, hm₂⟩ := mem_image.1 h in ⟨mem_range.2 $ hm₂ ▸ begin
     refine (mul_lt_mul_left (show 0 < 2, from  dec_trivial)).1 _,
@@ -219,7 +219,7 @@ begin
         by rw nat.div_mul_cancel hb'.2⟩))
 end
 
-lemma prod_range_p_mul_q_filter_coprime_mod_p (hq : prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
+lemma prod_range_p_mul_q_filter_coprime_mod_p (hq : nat.prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
   ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp p hp) =
   (-1) ^ (q / 2) * q ^ (p / 2) :=
 have hq0 : (q : zmodp p hp) ≠ 0, by rwa [← nat.cast_zero, ne.def, zmodp.eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
@@ -294,7 +294,7 @@ have hinj : ∀ a₁ a₂ : ℕ,
       by simpa [lt_succ_iff, coprime_mul_iff_left] using hb,
     have hbpq' : b < ((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) :=
       lt_of_le_of_lt hb'.1 (div_lt_self (mul_pos hp.pos hq.pos) dec_trivial),
-    have val_inj : ∀ {p : ℕ} (hp : prime p) (x y : zmodp p hp), x.val = y.val ↔ x = y,
+    have val_inj : ∀ {p : ℕ} (hp : nat.prime p) (x y : zmodp p hp), x.val = y.val ↔ x = y,
       from λ _ _ _ _, ⟨fin.eq_of_veq, fin.veq_of_eq⟩,
     have hbpq0 : (b : zmod (⟨p * q, mul_pos hp.pos hq.pos⟩)) ≠ 0,
       by rw [ne.def, zmod.eq_zero_iff_dvd_nat];
@@ -322,9 +322,9 @@ have hmem : ∀ a : ℕ,
     (if (a : zmodp q hq).1 ≤ q / 2 then ((a : zmodp p hp).1, (a : zmodp q hq).1)
       else ((-a : zmodp p hp).1, (-a : zmodp q hq).1)) ∈
       ((range p).erase 0).product ((range (succ (q / 2))).erase 0),
-  from λ x, have hxp : ∀ {p : ℕ} (hp : prime p), (x : zmodp p hp).val = 0 ↔ p ∣ x,
+  from λ x, have hxp : ∀ {p : ℕ} (hp : nat.prime p), (x : zmodp p hp).val = 0 ↔ p ∣ x,
     from λ p hp, by rw [zmodp.val_cast_nat, nat.dvd_iff_mod_eq_zero],
-  have hxpneg : ∀ {p : ℕ} (hp : prime p), (-x : zmodp p hp).val = 0 ↔ p ∣ x,
+  have hxpneg : ∀ {p : ℕ} (hp : nat.prime p), (-x : zmodp p hp).val = 0 ↔ p ∣ x,
     from λ p hp, by rw [← int.cast_coe_nat x, ← int.cast_neg, ← int.coe_nat_inj',
       zmodp.coe_val_cast_int, int.coe_nat_zero, ← int.dvd_iff_mod_eq_zero, dvd_neg, int.coe_nat_dvd],
   have hxplt : (x : zmodp p hp).val < p := (x : zmodp p hp).2,
@@ -451,20 +451,20 @@ end quadratic_reciprocity_aux
 
 open quadratic_reciprocity_aux
 
-variables {p q : ℕ} (hp : prime p) (hq : prime q)
+variables {p q : ℕ} (hp : nat.prime p) (hq : nat.prime q)
 
 namespace zmodp
 
-def legendre_sym (a p : ℕ) (hp : prime p) : ℤ :=
+def legendre_sym (a p : ℕ) (hp : nat.prime p) : ℤ :=
 if (a : zmodp p hp) = 0 then 0 else if ∃ b : zmodp p hp, b ^ 2 = a then 1 else -1
 
-lemma legendre_sym_eq_pow (a p : ℕ) (hp : prime p) : (legendre_sym a p hp : zmodp p hp) = (a ^ (p / 2)) :=
+lemma legendre_sym_eq_pow (a p : ℕ) (hp : nat.prime p) : (legendre_sym a p hp : zmodp p hp) = (a ^ (p / 2)) :=
 if ha : (a : zmodp p hp) = 0 then by simp [*, legendre_sym, _root_.zero_pow (nat.div_pos hp.ge_two (succ_pos 1))]
 else
-(prime.eq_two_or_odd hp).elim
+(nat.prime.eq_two_or_odd hp).elim
   (λ hp2, begin subst hp2,
-    suffices : ∀ a : zmodp 2 prime_two,
-      (((ite (a = 0) 0 (ite (∃ (b : zmodp 2 hp), b ^ 2 = a) 1 (-1))) : ℤ) : zmodp 2 prime_two) = a ^ (2 / 2),
+    suffices : ∀ a : zmodp 2 nat.prime_two,
+      (((ite (a = 0) 0 (ite (∃ (b : zmodp 2 hp), b ^ 2 = a) 1 (-1))) : ℤ) : zmodp 2 nat.prime_two) = a ^ (2 / 2),
     { exact this a },
     exact dec_trivial,
    end)
@@ -472,11 +472,11 @@ else
     have (-1 : zmodp p hp) ≠ 1, from (ne_neg_self hp hp1 zero_ne_one.symm).symm,
     by cases zmodp.pow_div_two_eq_neg_one_or_one hp ha; simp [legendre_sym, *] at *)
 
-lemma legendre_sym_eq_one_or_neg_one (a : ℕ) (hp : prime p) (ha : (a : zmodp p hp) ≠ 0) :
+lemma legendre_sym_eq_one_or_neg_one (a : ℕ) (hp : nat.prime p) (ha : (a : zmodp p hp) ≠ 0) :
   legendre_sym a p hp = -1 ∨ legendre_sym a p hp = 1 :=
 by unfold legendre_sym; split_ifs; simp * at *
 
-theorem quadratic_reciprocity (hp : prime p) (hq : prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
+theorem quadratic_reciprocity (hp : nat.prime p) (hq : nat.prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
   legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2)) :=
 have hneg_one_or_one : ((range (p * q / 2).succ).filter (coprime (p * q))).prod
     (λ (x : ℕ), if (x : zmodp q hq).val ≤ q / 2 then (1 : zmodp p hp × zmodp q hq) else -1) = 1 ∨

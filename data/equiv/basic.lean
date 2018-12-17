@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import logic.function data.set.basic
+import logic.function data.set.basic data.bool
 
 open function
 

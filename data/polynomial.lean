@@ -779,23 +779,6 @@ by rw [monic.def, leading_coeff_zero] at h;
   exact ⟨λ p q, by rw [← mul_one p, ← mul_one q, ← C_1, ← h, C_0, mul_zero, mul_zero],
     λ a b, by rw [← mul_one a, ← mul_one b, ← h, mul_zero, mul_zero]⟩
 
-lemma degree_map_eq_of_leading_coeff_ne_zero [comm_semiring β] [decidable_eq β] (f : α → β)
-  [is_semiring_hom f] (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
-le_antisymm (degree_map_le f) $
-  have hp0 : p ≠ 0, from λ hp0, by simpa [hp0, is_semiring_hom.map_zero f] using hf,
-  begin
-    rw [degree_eq_nat_degree hp0],
-    refine le_degree_of_ne_zero _,
-    rw [coeff_map], exact hf
-  end
-
-lemma degree_map_eq_of_injective [comm_semiring β] [decidable_eq β] (f : α → β) [is_semiring_hom f]
-  (hf : function.injective f) : degree (p.map f) = degree p :=
-if h : p = 0 then by simp [h]
-else degree_map_eq_of_leading_coeff_ne_zero _
-  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
-    (mt leading_coeff_eq_zero.1 h))
-
 lemma monic_map [comm_semiring β] [decidable_eq β] (f : α → β)
   [is_semiring_hom f] (hp : monic p) : monic (p.map f) :=
 if h : (0 : β) = 1 then
@@ -807,6 +790,16 @@ have f (leading_coeff p) ≠ 0,
 by erw [monic, leading_coeff, nat_degree_eq_of_degree_eq
     (degree_map_eq_of_leading_coeff_ne_zero f this), coeff_map,
     ← leading_coeff, show _ = _, from hp, is_semiring_hom.map_one f]
+
+lemma degree_map_eq [comm_semiring β] [decidable_eq β] (f : α → β) [is_semiring_hom f]
+  (hf : function.injective f) : degree (p.map f) = degree p :=
+le_antisymm (degree_map_le f) $
+  if h : p = 0 then by simp [h]
+  else begin rw [degree_eq_nat_degree h],
+      refine le_degree_of_ne_zero _,
+      rw [coeff_map, ← is_semiring_hom.map_zero f],
+      exact mt hf.eq_iff.1 (mt leading_coeff_eq_zero.1 h)
+    end
 
 lemma zero_le_degree_iff {p : polynomial α} : 0 ≤ degree p ↔ p ≠ 0 :=
 by rw [ne.def, ← degree_eq_bot];

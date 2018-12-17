@@ -2064,7 +2064,7 @@ quot.lift_on s nodup (λ s t p, propext $ perm_nodup p)
 @[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
 ⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
 
-@[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil _
+@[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil
 
 @[simp] theorem nodup_cons {a : α} {s : multiset α} : nodup (a::s) ↔ a ∉ s ∧ nodup s :=
 quot.induction_on s $ λ l, nodup_cons

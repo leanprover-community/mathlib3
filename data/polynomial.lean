@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.euclidean_domain tactic.ring
+import data.finsupp algebra.euclidean_domain tactic.ring ring_theory.associated
 
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
@@ -81,6 +81,7 @@ lemma single_eq_C_mul_X : ∀{n}, single n a = C a * X^n
 lemma sum_C_mul_X_eq (p : polynomial α) : p.sum (λn a, C a * X^n) = p :=
 eq.trans (sum_congr rfl $ assume n hn, single_eq_C_mul_X.symm) (finsupp.sum_single _)
 
+
 @[elab_as_eliminator] protected lemma induction_on {M : polynomial α → Prop} (p : polynomial α)
   (h_C : ∀a, M (C a))
   (h_add : ∀p q, M p → M q → M (p + q))
@@ -130,6 +131,8 @@ by simp [coeff, eq_comm, C, single]; congr
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := rfl
 
 @[simp] lemma coeff_X_one : coeff (X : polynomial α) 1 = 1 := rfl
+
+@[simp] lemma coeff_X_zero : coeff (X : polynomial α) 0 = 0 := rfl
 
 @[simp] lemma coeff_C_mul_X (x : α) (k n : ℕ) :
   coeff (C x * X^k : polynomial α) n = if n = k then x else 0 :=
@@ -312,6 +315,12 @@ lemma root_mul_right_of_is_root {p : polynomial α} (q : polynomial α) :
   is_root p a → is_root (p * q) a :=
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
+lemma coeff_zero_eq_eval_zero (p : polynomial α) :
+  coeff p 0 = p.eval 0 :=
+calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
+... = p.eval 0 : eq.symm $
+  finset.sum_eq_single _ (λ b _ hb, by simp [zero_pow (nat.pos_of_ne_zero hb)]) (by simp)
+
 end eval
 
 section comp
@@ -423,6 +432,12 @@ let ⟨n, hn⟩ :=
   classical.not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt degree_eq_bot.1 hp)) in
 have hn : degree p = some n := not_not.1 hn,
 by rw [nat_degree, hn]; refl
+
+lemma nat_degree_eq_of_degree_eq_some {p : polynomial α} {n : ℕ}
+  (h : degree p = n) : nat_degree p = n :=
+have hp0 : p ≠ 0, from λ hp0, by rw hp0 at h; exact option.no_confusion h,
+option.some_inj.1 $ show (nat_degree p : with_bot ℕ) = n,
+  by rwa [← degree_eq_nat_degree hp0]
 
 @[simp] lemma degree_le_nat_degree : degree p ≤ nat_degree p :=
 begin
@@ -579,6 +594,8 @@ leading_coeff_monomial a 0
 suffices leading_coeff (C (1:α) * X^1) = 1, by rwa [C_1, pow_one, one_mul] at this,
 leading_coeff_monomial 1 1
 
+@[simp] lemma monic_X : monic (X : polynomial α) := leading_coeff_X
+
 @[simp] lemma leading_coeff_one : leading_coeff (1 : polynomial α) = 1 :=
 suffices leading_coeff (C (1:α) * X^0) = 1, by rwa [C_1, pow_zero, mul_one] at this,
 leading_coeff_monomial 1 0
@@ -709,6 +726,13 @@ else with_bot.coe_le_coe.1 $
       mul_le_mul_of_nonneg_right
         (le_nat_degree_of_ne_zero (finsupp.mem_support_iff.1 hn))
         (nat.zero_le _))
+
+lemma zero_le_degree_iff {p : polynomial α} : 0 ≤ degree p ↔ p ≠ 0 :=
+by rw [ne.def, ← degree_eq_bot];
+  cases degree p; exact dec_trivial
+
+@[simp] lemma coeff_mul_X_zero (p : polynomial α) : coeff (p * X) 0 = 0 :=
+by rw [coeff_mul_left, sum_range_succ]; simp
 
 end comm_semiring
 
@@ -992,6 +1016,12 @@ lemma dvd_iff_mod_by_monic_eq_zero (hq : monic q) : p %ₘ q = 0 ↔ q ∣ p :=
       degree_eq_nat_degree (mt leading_coeff_eq_zero.2 hrpq0)] at this;
     exact not_lt_of_ge (nat.le_add_right _ _) (with_bot.some_lt_some.1 this))⟩
 
+@[simp] lemma mod_by_monic_one (p : polynomial α) : p %ₘ 1 = 0 :=
+(dvd_iff_mod_by_monic_eq_zero monic_one).2 (one_dvd _)
+
+@[simp] lemma div_by_monic_one (p : polynomial α) : p /ₘ 1 = p :=
+by conv_rhs { rw [← mod_by_monic_add_div p monic_one] }; simp
+
 lemma degree_pos_of_root (hp : p ≠ 0) (h : is_root p a) : 0 < degree p :=
 lt_of_not_ge $ λ hlt, begin
   have := eq_C_of_degree_le_zero hlt,
@@ -1023,6 +1053,9 @@ begin
   rw if_neg (zero_ne_one).symm,
   refl
 end
+
+lemma X_ne_zero : (X : polynomial α) ≠ 0 :=
+mt (congr_arg (λ p, coeff p 1)) (by simp)
 
 @[simp] lemma degree_X_sub_C (a : α) : degree (X - C a) = 1 :=
 begin
@@ -1099,6 +1132,9 @@ lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a :=
     mod_by_monic_X_sub_C_eq_C_eval, ← C_0, C_inj] at h,
   λ h, ⟨(p /ₘ (X - C a)), by rw mul_div_by_monic_eq_iff_is_root.2 h⟩⟩
 
+lemma mod_by_monic_X (p : polynomial α) : p %ₘ X = C (p.eval 0) :=
+by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]
+
 end nonzero_comm_ring
 
 section integral_domain
@@ -1139,6 +1175,12 @@ instance : integral_domain (polynomial α) :=
     exact eq_zero_or_eq_zero_of_mul_eq_zero this
   end,
   ..polynomial.nonzero_comm_ring }
+
+lemma nat_degree_mul_eq (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
+  nat_degree p + nat_degree q :=
+by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
+    with_bot.coe_add, ← degree_eq_nat_degree hp,
+    ← degree_eq_nat_degree hq, degree_mul_eq]
 
 @[simp] lemma nat_degree_pow_eq (p : polynomial α) (n : ℕ) :
   nat_degree (p ^ n) = n * nat_degree p :=
@@ -1285,12 +1327,52 @@ lemma leading_coeff_comp (hq : nat_degree q ≠ 0): leading_coeff (p.comp q) =
   leading_coeff p * leading_coeff q ^ nat_degree p :=
 by rw [← coeff_comp_degree_mul_degree hq, ← nat_degree_comp]; refl
 
+lemma degree_eq_zero_of_is_unit (h : is_unit p) : degree p = 0 :=
+let ⟨q, hq⟩ := is_unit_iff_dvd_one.1 h in
+have hp0 : p ≠ 0, from λ hp0, by simpa [hp0] using hq,
+have hq0 : q ≠ 0, from λ hp0, by simpa [hp0] using hq,
+have nat_degree (1 : polynomial α) = nat_degree (p * q),
+  from congr_arg _ hq,
+by rw [nat_degree_one, nat_degree_mul_eq hp0 hq0, eq_comm,
+    add_eq_zero_iff, ← with_bot.coe_eq_coe,
+    ← degree_eq_nat_degree hp0] at this;
+  exact this.1
+
 end integral_domain
 
 section field
 variables [discrete_field α] {p q : polynomial α}
 instance : vector_space α (polynomial α) :=
 { ..finsupp.to_module ℕ α }
+
+lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
+⟨degree_eq_zero_of_is_unit,
+  λ h, have degree p ≤ 0, by simp [*, le_refl],
+    have hc : coeff p 0 ≠ 0, from λ hc,
+        by rw [eq_C_of_degree_le_zero this, hc] at h;
+        simpa using h,
+    is_unit_iff_dvd_one.2 ⟨C (coeff p 0)⁻¹, begin
+      conv in p { rw eq_C_of_degree_le_zero this },
+      rw [← C_mul, _root_.mul_inv_cancel hc, C_1]
+    end⟩⟩
+
+lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
+  0 < degree p :=
+lt_of_not_ge (λ h, by rw [eq_C_of_degree_le_zero h] at hp0 hp;
+  exact hp ⟨units.map C (units.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))), rfl⟩)
+
+lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
+⟨mt is_unit_iff_dvd_one.1 (λ ⟨q, hq⟩,
+  absurd (congr_arg degree hq) (λ h,
+    have degree q = 0, by rw [degree_one, degree_mul_eq, hp1, eq_comm,
+      nat.with_bot.add_eq_zero_iff] at h; exact h.2,
+    by simp [degree_mul_eq, this, degree_one, hp1] at h;
+      exact absurd h dec_trivial)),
+λ q r hpqr, begin
+  have := congr_arg degree hpqr,
+  rw [hp1, degree_mul_eq, eq_comm, nat.with_bot.add_eq_one_iff] at this,
+  rw [is_unit_iff_degree_eq_zero, is_unit_iff_degree_eq_zero]; tautology
+end⟩
 
 lemma monic_mul_leading_coeff_inv (h : p ≠ 0) :
   monic (p * C (leading_coeff p)⁻¹) :=

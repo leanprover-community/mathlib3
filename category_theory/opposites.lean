@@ -77,7 +77,25 @@ definition op_inv : (Cᵒᵖ ⥤ Dᵒᵖ) ⥤ (C ⥤ D)ᵒᵖ :=
 
 -- TODO show these form an equivalence
 
+instance {F : C ⥤ D} [full F] : full F.op :=
+{ preimage := λ X Y f, F.preimage f }
+
+instance {F : C ⥤ D} [faithful F] : faithful F.op :=
+{ injectivity' := λ X Y f g h, by simpa using injectivity F h }
+
+@[simp] lemma preimage_id (F : C ⥤ D) [fully_faithful F] (X : C) : F.preimage (𝟙 (F.obj X)) = 𝟙 X :=
+injectivity F (by simp)
+
 end
+
+namespace category
+variables {C} {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+include 𝒟
+
+@[simp] lemma op_id_app (F : (C ⥤ D)ᵒᵖ) (X : C) : (𝟙 F : F ⟹ F).app X = 𝟙 (F.obj X) := rfl
+@[simp] lemma op_comp_app {F G H : (C ⥤ D)ᵒᵖ} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
+  ((α ≫ β) : H ⟹ F).app X = (β : H ⟹ G).app X ≫ (α : G ⟹ F).app X := rfl
+end category
 
 section
 

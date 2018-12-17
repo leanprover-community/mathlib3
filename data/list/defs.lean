@@ -1,4 +1,11 @@
-import data.option logic.basic tactic.interactive
+/-
+Copyright (c) 2014 Parikshit Khanna. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
+
+Extra definitions on lists.
+-/
+import data.option.defs logic.basic
 
 namespace list
 
@@ -6,13 +13,20 @@ open function nat
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
-/-- Split a list at an index. `split 2 [a, b, c] = ([a, b], [c])` -/
+instance [decidable_eq α] : has_sdiff (list α) :=
+⟨ list.diff ⟩
+
+/-- Split a list at an index.
+
+     split_at 2 [a, b, c] = ([a, b], [c]) -/
 def split_at : ℕ → list α → list α × list α
 | 0        a         := ([], a)
 | (succ n) []        := ([], [])
 | (succ n) (x :: xs) := let (l, r) := split_at n xs in (x :: l, r)
 
-/-- Concatenate an element at the end of a list. `concat [a, b] c = [a, b, c]` -/
+/-- Concatenate an element at the end of a list.
+
+     concat [a, b] c = [a, b, c] -/
 @[simp] def concat : list α → α → list α
 | []     a := [a]
 | (b::l) a := b :: concat l a
@@ -21,7 +35,7 @@ def split_at : ℕ → list α → list α × list α
 | []       := none
 | (a :: l) := some a
 
-/-- Convert a list into an array (whose length is the length of `l`) -/
+/-- Convert a list into an array (whose length is the length of `l`). -/
 def to_array (l : list α) : array l.length α :=
 {data := λ v, l.nth_le v.1 v.2}
 
@@ -29,9 +43,10 @@ def to_array (l : list α) : array l.length α :=
   that the index is out of bounds. -/
 @[simp] def inth [h : inhabited α] (l : list α) (n : nat) : α := (nth l n).iget
 
-/-- Apply a function to the nth tail of `l`.
-  `modify_nth_tail f 2 [a, b, c] = [a, b] ++ f [c]`. Returns the input without
-  using `f` if the index is larger than the length of the list. -/
+/-- Apply a function to the nth tail of `l`. Returns the input without
+  using `f` if the index is larger than the length of the list.
+
+     modify_nth_tail f 2 [a, b, c] = [a, b] ++ f [c] -/
 @[simp] def modify_nth_tail (f : list α → list α) : ℕ → list α → list α
 | 0     l      := f l
 | (n+1) []     := []
@@ -58,13 +73,16 @@ def take' : ∀ n, list α → list α
 end take'
 
 /-- Get the longest initial segment of the list whose members all satisfy `p`.
-  `take_while (λ x, x < 3) [0, 2, 5, 1] = [0, 2]` -/
+
+     take_while (λ x, x < 3) [0, 2, 5, 1] = [0, 2] -/
 def take_while (p : α → Prop) [decidable_pred p] : list α → list α
 | []     := []
 | (a::l) := if p a then a :: take_while l else []
 
 /-- Fold a function `f` over the list from the left, returning the list
-  of partial results. `scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]` -/
+  of partial results.
+
+     scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6] -/
 def scanl (f : α → β → α) : α → list β → list α
 | a []     := [a]
 | a (b::l) := a :: scanl (f a b) l
@@ -74,12 +92,24 @@ def scanr_aux (f : α → β → β) (b : β) : list α → β × list β
 | (a::l) := let (b', l') := scanr_aux l in (f a b', b' :: l')
 
 /-- Fold a function `f` over the list from the right, returning the list
-  of partial results. `scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]` -/
+  of partial results.
+
+     scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0] -/
 def scanr (f : α → β → β) (b : β) (l : list α) : list β :=
 let (b', l') := scanr_aux f b l in b' :: l'
 
-/-- Product of a list. `prod [a, b, c] = ((1 * a) * b) * c` -/
+/-- Product of a list.
+
+     prod [a, b, c] = ((1 * a) * b) * c -/
 def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
+
+def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
+| [] := ([],[])
+| (x::xs) :=
+match f x with
+| (sum.inr r) := prod.map id (cons r) $ partition_map xs
+| (sum.inl l) := prod.map (cons l) id $ partition_map xs
+end
 
 /-- `find p l` is the first element of `l` satisfying `p`, or `none` if no such
   element exists. -/
@@ -107,7 +137,8 @@ def lookmap (f : α → option α) : list α → list α
   end
 
 /-- `indexes_of a l` is the list of all indexes of `a` in `l`.
-  `indexes_of a [a, b, a, a] = [0, 2, 3]` -/
+
+     indexes_of a [a, b, a, a] = [0, 2, 3] -/
 def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
 
 /-- `countp p l` is the number of elements of `l` that satisfy `p`. -/
@@ -135,13 +166,15 @@ infix ` <:+ `:50 := is_suffix
 infix ` <:+: `:50 := is_infix
 
 /-- `inits l` is the list of initial segments of `l`.
-  `inits [1, 2, 3] = [[], [1], [1, 2], [1, 2, 3]]` -/
+
+     inits [1, 2, 3] = [[], [1], [1, 2], [1, 2, 3]] -/
 @[simp] def inits : list α → list (list α)
 | []     := [[]]
 | (a::l) := [] :: map (λt, a::t) (inits l)
 
 /-- `tails l` is the list of terminal segments of `l`.
-  `tails [1, 2, 3] = [[1, 2, 3], [2, 3], [3], []]` -/
+
+     tails [1, 2, 3] = [[1, 2, 3], [2, 3], [3], []] -/
 @[simp] def tails : list α → list (list α)
 | []     := [[]]
 | (a::l) := (a::l) :: tails l
@@ -154,7 +187,8 @@ def sublists'_aux : list α → (list α → list β) → list (list β) → lis
   It differs from `sublists` only in the order of appearance of the sublists;
   `sublists'` uses the first element of the list as the MSB,
   `sublists` uses the first element of the list as the LSB.
-  `sublists' [1, 2, 3] = [[], [3], [2], [2, 3], [1], [1, 3], [1, 2], [1, 2, 3]]` -/
+
+     sublists' [1, 2, 3] = [[], [3], [2], [2, 3], [1], [1, 3], [1, 2], [1, 2, 3]] -/
 def sublists' (l : list α) : list (list α) :=
 sublists'_aux l id []
 
@@ -162,8 +196,10 @@ def sublists_aux : list α → (list α → list β → list β) → list β
 | []     f := []
 | (a::l) f := f [a] (sublists_aux l (λys r, f ys (f (a :: ys) r)))
 
-/-- `sublists l` is the list of all (non-contiguous) sublists of `l`.
-  `sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]` -/
+/-- `sublists l` is the list of all (non-contiguous) sublists of `l`; cf. `sublists'`
+  for a different ordering.
+
+     sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]] -/
 def sublists (l : list α) : list (list α) :=
 [] :: sublists_aux l cons
 
@@ -171,13 +207,26 @@ def sublists_aux₁ : list α → (list α → list β) → list β
 | []     f := []
 | (a::l) f := f [a] ++ sublists_aux₁ l (λys, f ys ++ f (a :: ys))
 
+section forall₂
+variables {r : α → β → Prop} {p : γ → δ → Prop}
+open relator
+
+inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
+| nil {} : forall₂ [] []
+| cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
+
+attribute [simp] forall₂.nil
+
+end forall₂
+
 def transpose_aux : list α → list (list α) → list (list α)
 | []     ls      := ls
 | (a::i) []      := [a] :: transpose_aux i []
 | (a::i) (l::ls) := (a::l) :: transpose_aux i ls
 
 /-- transpose of a list of lists, treated as a matrix.
-  `transpose [[1, 2], [3, 4], [5, 6]] = [[1, 3, 5], [2, 4, 6]]` -/
+
+     transpose [[1, 2], [3, 4], [5, 6]] = [[1, 3, 5], [2, 4, 6]] -/
 def transpose : list (list α) → list (list α)
 | []      := []
 | (l::ls) := transpose_aux l (transpose ls)
@@ -247,7 +296,7 @@ l₁.bind $ λ a, l₂.map $ prod.mk a
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 
-     sigma [1, 2] (λ_, [5, 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)] -/
+     sigma [1, 2] (λ_, [(5 : ℕ), 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)] -/
 protected def sigma {σ : α → Type*} (l₁ : list α) (l₂ : Π a, list (σ a)) : list (Σ a, σ a) :=
 l₁.bind $ λ a, (l₂ a).map $ sigma.mk a
 
@@ -275,7 +324,7 @@ variables (R : α → α → Prop)
   For example if `R = (≠)` then it asserts `l` has no duplicates,
   and if `R = (<)` then it asserts that `l` is (strictly) sorted. -/
 inductive pairwise : list α → Prop
-| nil  : pairwise []
+| nil {} : pairwise []
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 
 variables {R}
@@ -284,16 +333,16 @@ variables {R}
 ⟨λ p, by cases p with a l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
 instance decidable_pairwise [decidable_rel R] (l : list α) : decidable (pairwise R l) :=
-by induction l with hd tl ih; [exact is_true (pairwise.nil _),
+by induction l with hd tl ih; [exact is_true pairwise.nil,
   exactI decidable_of_iff' _ pairwise_cons]
 
 end pairwise
 
 /-- `pw_filter R l` is a maximal sublist of `l` which is `pairwise R`.
-  `pw_filter (≠)` is the erase duplicates function, and `pw_filter (<)` finds
+  `pw_filter (≠)` is the erase duplicates function (cf. `erase_dup`), and `pw_filter (<)` finds
   a maximal increasing subsequence in `l`. For example,
 
-     pw_filter (<) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 5, 6] -/
+     pw_filter (<) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4] -/
 def pw_filter (R : α → α → Prop) [decidable_rel R] : list α → list α
 | []        := []
 | (x :: xs) := let IH := pw_filter xs in if ∀ y ∈ IH, R x y then x :: IH else IH
@@ -302,10 +351,18 @@ section chain
 variable (R : α → α → Prop)
 
 /-- `chain R a l` means that `R` holds between adjacent elements of `a::l`.
-  `chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d` -/
+
+     chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d -/
 inductive chain : α → list α → Prop
-| nil  (a : α) : chain a []
+| nil {} {a : α} : chain a []
 | cons : ∀ {a b : α} {l : list α}, R a b → chain b l → chain a (b::l)
+
+/-- `chain' R l` means that `R` holds between adjacent elements of `l`.
+
+     chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d -/
+def chain' : list α → Prop
+| [] := true
+| (a :: l) := chain R a l
 
 variable {R}
 @[simp] theorem chain_cons {a b : α} {l : list α} :
@@ -314,6 +371,9 @@ variable {R}
 
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
 by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
+
+instance decidable_chain' [decidable_rel R] (a : α) (l : list α) : decidable (chain' R l) :=
+by cases l; dunfold chain'; apply_instance
 
 end chain
 
@@ -325,8 +385,9 @@ instance nodup_decidable [decidable_eq α] : ∀ l : list α, decidable (nodup l
 list.decidable_pairwise
 
 /-- `erase_dup l` removes duplicates from `l` (taking only the first occurrence).
+  Defined as `pw_filter (≠)`.
 
-     erase_dup [1, 2, 2, 0, 1] = [1, 2, 0] -/
+     erase_dup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
 
 /-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.
@@ -360,12 +421,9 @@ variables (p : α → Prop) [decidable_pred p] (l : list α)
 def choose_x : Π l : list α, Π hp : (∃ a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a }
 | [] hp := false.elim (exists.elim hp (assume a h, not_mem_nil a h.left))
 | (l :: ls) hp := if pl : p l then ⟨l, ⟨or.inl rfl, pl⟩⟩ else
-subtype.rec_on (choose_x ls
-  begin
-    rcases hp with ⟨a, rfl | a_mem_ls, pa⟩,
-    { exfalso; apply pl pa },
-    { exact ⟨a, a_mem_ls, pa⟩ }
-  end) (λ a ⟨a_mem_ls, pa⟩, ⟨a, ⟨or.inr a_mem_ls, pa⟩⟩)
+let ⟨a, ⟨a_mem_ls, pa⟩⟩ := choose_x ls (hp.imp
+  (λ b ⟨o, h₂⟩, ⟨o.resolve_left (λ e, pl $ e ▸ h₂), h₂⟩)) in
+⟨a, ⟨or.inr a_mem_ls, pa⟩⟩
 
 def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 

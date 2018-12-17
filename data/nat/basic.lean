@@ -5,7 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 Basic operations on the natural numbers.
 -/
-import logic.basic algebra.ordered_ring data.option
+import logic.basic algebra.ordered_ring data.option.basic
 
 universes u v
 

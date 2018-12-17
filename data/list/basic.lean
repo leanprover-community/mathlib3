@@ -9,7 +9,8 @@ import
   tactic.interactive tactic.mk_iff_of_inductive_prop tactic.split_ifs
   logic.basic logic.function logic.relation
   algebra.group order.basic
-  data.list.defs data.nat.basic data.option data.bool data.prod data.sigma data.fin
+  data.list.defs data.nat.basic data.option.basic
+  data.bool data.prod data.sigma data.fin
 open function nat
 
 namespace list
@@ -2236,13 +2237,7 @@ section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
 open relator relation
 
-inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
-| nil {} : forall₂ [] []
-| cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
-
 run_cmd tactic.mk_iff_of_inductive_prop `list.forall₂ `list.forall₂_iff
-
-attribute [simp] forall₂.nil
 
 @[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
   forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=

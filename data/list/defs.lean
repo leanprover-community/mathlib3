@@ -1,10 +1,20 @@
-import data.option logic.basic tactic.interactive
+/-
+Copyright (c) 2014 Parikshit Khanna. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
+
+Extra definitions on lists.
+-/
+import data.option.defs logic.basic
 
 namespace list
 
 open function nat
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+
+instance [decidable_eq α] : has_sdiff (list α) :=
+⟨ list.diff ⟩
 
 /-- Split a list at an index.
 
@@ -92,6 +102,14 @@ let (b', l') := scanr_aux f b l in b' :: l'
 
      prod [a, b, c] = ((1 * a) * b) * c -/
 def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
+
+def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
+| [] := ([],[])
+| (x::xs) :=
+match f x with
+| (sum.inr r) := prod.map id (cons r) $ partition_map xs
+| (sum.inl l) := prod.map (cons l) id $ partition_map xs
+end
 
 /-- `find p l` is the first element of `l` satisfying `p`, or `none` if no such
   element exists. -/
@@ -188,6 +206,18 @@ def sublists (l : list α) : list (list α) :=
 def sublists_aux₁ : list α → (list α → list β) → list β
 | []     f := []
 | (a::l) f := f [a] ++ sublists_aux₁ l (λys, f ys ++ f (a :: ys))
+
+section forall₂
+variables {r : α → β → Prop} {p : γ → δ → Prop}
+open relator
+
+inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
+| nil {} : forall₂ [] []
+| cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
+
+attribute [simp] forall₂.nil
+
+end forall₂
 
 def transpose_aux : list α → list (list α) → list (list α)
 | []     ls      := ls
@@ -381,12 +411,9 @@ variables (p : α → Prop) [decidable_pred p] (l : list α)
 def choose_x : Π l : list α, Π hp : (∃ a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a }
 | [] hp := false.elim (exists.elim hp (assume a h, not_mem_nil a h.left))
 | (l :: ls) hp := if pl : p l then ⟨l, ⟨or.inl rfl, pl⟩⟩ else
-subtype.rec_on (choose_x ls
-  begin
-    rcases hp with ⟨a, rfl | a_mem_ls, pa⟩,
-    { exfalso; apply pl pa },
-    { exact ⟨a, a_mem_ls, pa⟩ }
-  end) (λ a ⟨a_mem_ls, pa⟩, ⟨a, ⟨or.inr a_mem_ls, pa⟩⟩)
+let ⟨a, ⟨a_mem_ls, pa⟩⟩ := choose_x ls (hp.imp
+  (λ b ⟨o, h₂⟩, ⟨o.resolve_left (λ e, pl $ e ▸ h₂), h₂⟩)) in
+⟨a, ⟨or.inr a_mem_ls, pa⟩⟩
 
 def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 

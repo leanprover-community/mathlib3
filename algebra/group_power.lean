@@ -424,6 +424,9 @@ theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R
   (λ h, by rw [pow_succ, h, neg_one_mul, neg_neg])
   (λ h, by rw [pow_succ, h, mul_one])
 
+lemma pow_dvd_pow [comm_semiring α] (a : α) {m n : ℕ} (h : m ≤ n) :
+  a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_sub_cancel' h]⟩
+
 theorem gsmul_eq_mul [ring α] (a : α) : ∀ n, n •ℤ a = n * a
 | (n : ℕ) := add_monoid.smul_eq_mul _ _
 | -[1+ n] := show -(_•_)=-_*_, by rw [neg_mul_eq_neg_mul_symm, add_monoid.smul_eq_mul, nat.cast_succ]

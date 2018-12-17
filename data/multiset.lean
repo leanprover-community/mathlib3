@@ -434,6 +434,10 @@ by simpa using add_le_add_right (zero_le t) s
 @[simp] theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 quotient.induction_on₂ s t length_append
 
+lemma card_smul (s : multiset α) (n : ℕ) :
+  (n • s).card = n * s.card :=
+by induction n; simp [succ_smul, *, nat.succ_mul]
+
 @[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
 

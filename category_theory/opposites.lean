@@ -79,6 +79,15 @@ definition op_inv : (Cᵒᵖ ⥤ Dᵒᵖ) ⥤ (C ⥤ D)ᵒᵖ :=
 
 end
 
+namespace category
+variables {C} {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+include 𝒟
+
+@[simp] lemma op_id_app (F : (C ⥤ D)ᵒᵖ) (X : C) : (𝟙 F : F ⟹ F).app X = 𝟙 (F.obj X) := rfl
+@[simp] lemma op_comp_app {F G H : (C ⥤ D)ᵒᵖ} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
+  ((α ≫ β) : H ⟹ F).app X = (β : H ⟹ G).app X ≫ (α : G ⟹ F).app X := rfl
+end category
+
 section
 
 variable (C)

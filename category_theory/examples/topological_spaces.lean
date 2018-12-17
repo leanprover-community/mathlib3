@@ -5,6 +5,7 @@
 import category_theory.full_subcategory
 import category_theory.functor_category
 import category_theory.natural_isomorphism
+import category_theory.eq_to_hom
 import analysis.topology.topological_space
 import analysis.topology.continuity
 import order.galois_connection

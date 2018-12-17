@@ -134,27 +134,6 @@ well_founded.intro (@well_founded.fix α
             (mul_dvd_mul_iff_left hb0).1 $
               by simpa [hx] using hab)))))))
 
-lemma multiplicity_finite_of_is_not_unit {a b : α} (hb0 : b ≠ 0) (ha : ¬is_unit a) : finite a b :=
-@well_founded.fix α
-  (λ b : α, b ≠ 0 → finite a b) _ (well_founded_dvd_not_unit hα)
-  (λ b ih hb0,
-    if hab : a ∣ b
-    then let ⟨x, hx⟩ := hab in
-      if hxu : is_unit x
-      then ⟨1, λ h, ha (is_unit_of_dvd_unit
-        ((mul_dvd_mul_iff_left (show a ≠ 0, from (λ ha0, by simp * at *))).1 $
-          by simpa [_root_.pow_add, hx] using h) hxu)⟩
-      else
-        have hx0 : x ≠ 0, from λ hx0, by simp * at *,
-        have ha0 : a ≠ 0, from λ ha0, by simp * at *,
-        hx.symm ▸ let ⟨n, hn⟩ := ih x ⟨hx0, a, ha, by rw [hx, mul_comm]⟩ hx0 in
-        ⟨n + 1, by rw [_root_.pow_succ, mul_dvd_mul_iff_left ha0]; exact hn⟩
-    else ⟨0, by simpa using hab⟩)
-  b hb0
-
-lemma finite_of_prime {p a : α} (hp : prime p) (ha0 : a ≠ 0) : finite p a :=
-multiplicity_finite_of_is_not_unit hα ha0 hp.2.1
-
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
 (irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_refl _⟩)

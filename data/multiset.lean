@@ -434,10 +434,6 @@ by simpa using add_le_add_right (zero_le t) s
 @[simp] theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 quotient.induction_on₂ s t length_append
 
-lemma card_smul (s : multiset α) (n : ℕ) :
-  (n • s).card = n * s.card :=
-by induction n; simp [succ_smul, *, nat.succ_mul]
-
 @[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
 
@@ -2076,7 +2072,7 @@ quot.lift_on s nodup (λ s t p, propext $ perm_nodup p)
 @[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
 ⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
 
-@[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil _
+@[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil
 
 @[simp] theorem nodup_cons {a : α} {s : multiset α} : nodup (a::s) ↔ a ∉ s ∧ nodup s :=
 quot.induction_on s $ λ l, nodup_cons

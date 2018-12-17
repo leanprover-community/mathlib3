@@ -8,7 +8,6 @@ import order.order_iso
 import data.fintype data.polynomial
 import linear_algebra.lc
 import tactic.tidy
-import ring_theory.multiplicity
 import ring_theory.ideals
 
 open set lattice

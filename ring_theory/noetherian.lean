@@ -108,7 +108,7 @@ begin
   convert order_embedding.well_founded (order_embedding.rsymm (submodule.comap_mkq.lt_order_embedding N)) h
 end
 
-namespace is_neotherian_ring
+namespace is_noetherian_ring
 
 variables {α : Type*} [integral_domain α] (hα : is_noetherian_ring α)
 --variables [decidable_rel ((∣) : α → α → Prop)]
@@ -167,4 +167,4 @@ lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
         (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy⟩ hx hx0 hxf in
           ⟨i, hi.1, dvd.trans hi.2 (hxy ▸ by simp)⟩)) a ha ha0)
 
-end is_neotherian_ring
+end is_noetherian_ring

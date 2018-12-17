@@ -361,18 +361,18 @@ by unfold mk; apply_instance
 lemma splitting_field_splits (f : polynomial α) : splits (mk f) f :=
 (splitting_field_aux f rfl).2.2.2.2
 
-def hom {β : Type v} [discrete_field β] (i : α → β) [is_field_hom i] (f : polynomial α)
+def lift {β : Type v} [discrete_field β] (i : α → β) [is_field_hom i] (f : polynomial α)
   (hβ : splits i f) : splitting_field f → β :=
 classical.some (exists_hom _ f rfl i hβ)
 
-@[instance] lemma hom_is_field_hom {β : Type v} [discrete_field β] (i : α → β) [is_field_hom i]
-  (f : polynomial α) (hβ : splits i f) : is_field_hom (hom i f hβ) :=
+@[instance] lemma lift_is_field_hom {β : Type v} [discrete_field β] (i : α → β) [is_field_hom i]
+  (f : polynomial α) (hβ : splits i f) : is_field_hom (lift i f hβ) :=
 (classical.some_spec (exists_hom _ f rfl i hβ)).2
 
-@[simp] lemma hom_fixes {β : Type v} [discrete_field β] (i : α → β) [is_field_hom i]
-  (f : polynomial α) (hβ : splits i f) : ∀ x, hom i f hβ (mk f x) = i x :=
+@[simp] lemma lift_fixes {β : Type v} [discrete_field β] (i : α → β) [is_field_hom i]
+  (f : polynomial α) (hβ : splits i f) : ∀ x, lift i f hβ (mk f x) = i x :=
 (classical.some_spec (exists_hom _ f rfl i hβ)).1
 
-attribute [irreducible] hom splitting_field splitting_field.field splitting_field.mk
+attribute [irreducible] lift splitting_field splitting_field.field splitting_field.mk
 
 end splitting_field

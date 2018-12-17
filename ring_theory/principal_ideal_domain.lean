@@ -115,7 +115,7 @@ by rwa [mul_one, ← ideal.span_singleton_le_span_singleton]
 
 lemma exists_factors (a : α) : a ≠ 0 → ∃f:multiset α, (∀b∈f, irreducible b) ∧ associated a f.prod :=
 have well_founded (inv_image (>) (λb, submodule.span ({b} : set α))), from
-  inv_image.wf _ $ (is_noetherian_iff_well_founded _ _).1 $ is_noetherian_ring,
+  inv_image.wf _ $ is_noetherian_iff_well_founded.1 $ is_noetherian_ring,
 this.induction a $ begin
   intros a ih ha,
   by_cases h_unit : is_unit a,

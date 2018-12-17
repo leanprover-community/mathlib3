@@ -302,7 +302,7 @@ do v ← mk_mvar,
    set_goals $ gs' ++ gs
 
 meta def clean_ids : list name :=
-[``id, ``id_rhs, ``id_delta]
+[``id, ``id_rhs, ``id_delta, ``hidden]
 
 /--
 Remove identity functions from a term. These are normally

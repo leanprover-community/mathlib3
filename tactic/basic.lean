@@ -480,6 +480,14 @@ do { exfalso,
      ctx.any_of (λ H, symm_apply H >> tac) }
 <|> fail "assumption tactic failed"
 
+meta def change_core (e : expr) : option expr → tactic unit
+| none     := tactic.change e
+| (some h) :=
+  do num_reverted : ℕ ← revert h,
+     expr.pi n bi d b ← target,
+     tactic.change $ expr.pi n bi e b,
+     intron num_reverted
+
 open nat
 
 meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit

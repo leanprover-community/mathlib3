@@ -41,7 +41,7 @@ variables {p : ℕ}
 begin
   unfold padic_val_rat,
   split_ifs,
-  { simp [-add_comm] },
+  { simp [-add_comm]; refl },
   { exfalso, simp * at * },
   { exfalso, simp * at * },
   { refl }
@@ -56,7 +56,7 @@ by unfold padic_val_rat; split_ifs; simp [*, nat.one_lt_iff_ne_zero_and_ne_one] 
 lemma padic_val_rat_of_int (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
   padic_val_rat p (z : ℚ) = (multiplicity (p : ℤ) z).get
     (finite_int_iff.2 ⟨hp, hz⟩) :=
-by rw [padic_val_rat, dif_pos]; simp *
+by rw [padic_val_rat, dif_pos]; simp *; refl
 
 end padic_val_rat
 
@@ -90,7 +90,7 @@ begin
   rw [padic_val_rat.defn p (mul_ne_zero hq hr) this],
   conv_rhs { rw [rat.num_denom q, padic_val_rat.defn p hq',
     rat.num_denom r, padic_val_rat.defn p hr'] },
-  rw [multiplicity.mul', multiplicity.mul']; simp *
+  rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp
 end
 
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :

@@ -255,7 +255,7 @@ lemma finite_pow {p a : α} (hp : prime p) : Π {k : ℕ} (ha : finite p a), fin
 | (k+1) ha := by rw [_root_.pow_succ]; exact finite_mul hp ha (finite_pow ha)
 
 protected lemma mul' {p a b : α} (hp : prime p)
-  (h : finite p (a * b)) :
+  (h : (multiplicity p (a * b)).dom) :
   get (multiplicity p (a * b)) h =
   get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
   get (multiplicity p b) ((finite_mul_iff hp).1 h).2 :=

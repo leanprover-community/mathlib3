@@ -2,6 +2,7 @@ import category_theory.yoneda
 import category_theory.limits.functor_category
 import category_theory.limits.types
 import category_theory.comma
+import category_theory.punit
 
 namespace category_theory
 open category_theory.limits

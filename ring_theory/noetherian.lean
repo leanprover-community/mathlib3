@@ -115,6 +115,7 @@ variables {α : Type*} [integral_domain α] (hα : is_noetherian_ring α)
 open associates multiplicity nat
 
 local attribute [elab_as_eliminator] well_founded.fix
+local attribute [instance, priority 0] classical.prop_decidable
 
 lemma well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ a * x = b) :=
 well_founded.intro (@well_founded.fix α
@@ -152,7 +153,7 @@ lemma multiplicity_finite_of_is_not_unit {a b : α} (hb0 : b ≠ 0) (ha : ¬is_u
   b hb0
 
 lemma finite_of_prime {p a : α} (hp : prime p) (ha0 : a ≠ 0) : finite p a :=
-finite_of_is_not_unit hα ha0 hp.2.1
+multiplicity_finite_of_is_not_unit hα ha0 hp.2.1
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=

@@ -72,18 +72,19 @@ def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
     erw colimit.pre_map'
       (comma.fst.{v v v v} yoneda (functor.of.obj X₃) ⋙ F)
       (comma.map_right_comp.{v v v} yoneda (functor.of.map f) (functor.of.map g)).hom,
-    dsimp,
-    -- erw colimit.pre_pre
-    --   (comma.fst.{v v v v} yoneda (functor.of.obj X₃) ⋙ F)
-    --   (comma.map_right yoneda (functor.of.map g))
-    --   (comma.map_right yoneda (functor.of.map f)),
+    -- dsimp,
+    -- congr' 1,
+    erw colimit.pre_pre
+      (comma.fst.{v v v v} yoneda (functor.of.obj X₃) ⋙ F)
+      (comma.map_right yoneda (functor.of.map g))
+      (comma.map_right yoneda (functor.of.map f)),
     -- erw limits.colimit.pre_comp _ _ _,
     -- erw ← category.assoc,
     -- erw ← colim.map_comp,
     -- congr,
-    -- dsimp [whisker_right, whiskering_right, functor.associator],
-    -- ext1,
-    -- simp,
+    dsimp only [whisker_right, whiskering_right, functor.associator],
+    ext1,
+    simp,
     -- erw category.comp_id,
     -- exact limits.has_colimits_of_shape_of_has_colimits
   end }

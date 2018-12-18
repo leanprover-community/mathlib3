@@ -144,6 +144,14 @@ theorem add_monoid.smul_add : ∀ (a b : β) (n : ℕ), n•(a + b) = n•a + n�
 @mul_pow (multiplicative β) _
 attribute [to_additive add_monoid.add_smul] mul_pow
 
+instance pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : α → α) :=
+by refine_struct {..}; simp [mul_pow, one_pow]
+
+instance add_monoid.smul.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (add_monoid.smul n : β → β) :=
+by refine_struct {..}; simp [add_monoid.smul_zero, add_monoid.smul_add]
+
+attribute [to_additive add_monoid.smul.is_add_monoid_hom] pow.is_monoid_hom
+
 end comm_monoid
 
 section group
@@ -355,6 +363,14 @@ attribute [to_additive gsmul_add] mul_gpow
 
 theorem gsmul_sub : ∀ (a b : β) (n : ℤ), gsmul n (a - b) = gsmul n a - gsmul n b :=
 by simp [gsmul_add, gsmul_neg]
+
+instance gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : α → α) :=
+⟨λ _ _, mul_gpow _ _ n⟩
+
+instance gsmul.is_add_group_hom (n : ℤ) : is_add_group_hom (gsmul n : β → β) :=
+⟨λ _ _, gsmul_add _ _ n⟩
+
+attribute [to_additive gsmul.is_add_group_hom] gpow.is_group_hom
 
 end comm_monoid
 

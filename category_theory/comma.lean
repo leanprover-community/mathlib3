@@ -235,7 +235,7 @@ variables {X Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 @[simp] lemma map_map_left : ((map f).map g).left = g.left := rfl
 end
 
-def over_over {X : T} {Y : over X} : over Y ≌ over Y.left :=
+def over_over {X : T} {Y : over X} : over Y ≌ over (forget.obj Y) :=
 { functor :=
   { obj := λ Z, mk $ forget.map Z.hom,
     map := λ Z₁ Z₂ f,

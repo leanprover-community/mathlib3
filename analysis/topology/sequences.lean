@@ -1,3 +1,4 @@
+
 /-
 Copyright (c) 2018 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -37,30 +38,31 @@ def to_filter (x : ℕ → X) : filter X := filter.map x at_top
 section topological_space
 variables [topological_space X] [topological_space Y]
 
-/- The notion of convergence of sequences in topological spaces. -/
+/-- The notion of convergence of sequences in topological spaces. -/
 def converges_to (x : ℕ → X) (limit : X) : Prop :=
 ∀ U : set X, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U
 
 lemma const_seq_conv (p : X) : converges_to (λ n, p) p :=
 assume U (_ : p ∈ U) (_ : is_open U), exists.intro 0 (assume n (_ : n ≥ 0), ‹p ∈ U›)
 
-/- A sequence converges if and only if the associated statement for filter holds. -/
+/-- A sequence converges if and only if the associated statement for filter holds. -/
 lemma converges_to_iff_tendsto [topological_space X] {x : ℕ → X} {limit : X} :
   converges_to x limit ↔ tendsto x at_top (nhds limit) := 
-  iff.intro
-    (assume xtol : converges_to x limit,
-      suffices ∀ U, limit ∈ U → is_open U → x ⁻¹' U ∈ at_top.sets, from tendsto_nhds this,
-        assume U limitInU isOpenU,
-          suffices ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, by simp[this],
-          xtol U limitInU isOpenU)
-    (assume ttol : tendsto x at_top (nhds limit),
-      show ∀ U : set X, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from
-        assume U limitInU isOpenU,
-          have {n | (x n) ∈ U} ∈ at_top.sets, from mem_map.mp $ le_def.mp ttol U 
-                                               (mem_nhds_sets isOpenU limitInU),
-          show ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from mem_at_top_sets.mp this)
+iff.intro
+  (assume xtol : converges_to x limit,
+    suffices ∀ U, limit ∈ U → is_open U → x ⁻¹' U ∈ at_top.sets, from tendsto_nhds this,
+      assume U limitInU isOpenU,
+        suffices ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, by simp[this],
+        xtol U limitInU isOpenU)
+  (assume ttol : tendsto x at_top (nhds limit),
+    show ∀ U : set X, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from
+      assume U limitInU isOpenU,
+        have {n | (x n) ∈ U} ∈ at_top.sets, from mem_map.mp $ le_def.mp ttol U 
+                                             (mem_nhds_sets isOpenU limitInU),
+        show ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from mem_at_top_sets.mp this)
 
-/- The sequential closure of a subset M ⊆ X of a topological space X is 
+/--
+ - The sequential closure of a subset M ⊆ X of a topological space X is 
  - the set of all p ∈ X which arise as limit of sequences in M.
  -/
 def sequential_closure (M : set X) : set X :=
@@ -73,17 +75,19 @@ assume p (_ : p ∈ M), show p ∈ sequential_closure M, from
 
 def is_seq_closed (A : set X) : Prop := A = sequential_closure A
 
-/- A convenience lemma for showing that a set is sequentially closed. -/
+/-- A convenience lemma for showing that a set is sequentially closed. -/
 lemma is_seq_closed_of_def {A : set X} (h : ∀ (x : ℕ → X), (∀ n : ℕ, ((x n) ∈ A)) → ∀ p : X,
   converges_to x p → p ∈ A) : is_seq_closed A :=
-show A = sequential_closure A, from set.ext (assume p, iff.intro
-  (assume : p ∈ A, subset_seq_closure A ‹p ∈ A›)
-  (assume : p ∈ sequential_closure A, 
-    have ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ A)) ∧ (converges_to x p), by assumption,
-    let ⟨x, ⟨_, _⟩⟩ := this in
-    show p ∈ A, from h x ‹∀ n : ℕ, ((x n) ∈ A)› p ‹converges_to x p›))
+show A = sequential_closure A, from set.subset.antisymm
+  (subset_seq_closure A)
+  (show ∀ p, (p ∈ sequential_closure A) → p ∈ A, from 
+    (assume p _,
+      have ∃ x : ℕ → X, (∀ n : ℕ, ((x n) ∈ A)) ∧ (converges_to x p), by assumption,
+      let ⟨x, ⟨_, _⟩⟩ := this in
+      show p ∈ A, from h x ‹∀ n : ℕ, ((x n) ∈ A)› p ‹converges_to x p›))
 
-/- The sequential closure of a set is contained in the closure of that set. The converse is not
+/--
+ - The sequential closure of a set is contained in the closure of that set. The converse is not
  - true.
  -/ 
 lemma sequential_closure_subset_closure (M : set X) : sequential_closure M ⊆ closure M :=
@@ -94,7 +98,7 @@ let ⟨x, ⟨_, _⟩⟩ := this in
 show p ∈ closure M, from
 -- we have to show that p is in the closure of M
 -- using mem_closure_iff, this is equivalent to proving that every open neighbourhood
--- has nonempty intersection with A, but this is witnessed by our sequence x
+-- has nonempty intersection with M, but this is witnessed by our sequence x
 suffices ∀ O, is_open O → p ∈ O → O ∩ M ≠ ∅, from mem_closure_iff.mpr this,
 assume O is_open_O O_cap_M_neq_empty,
 let ⟨n0, _⟩ := ‹converges_to x p› O ‹p ∈ O› ‹is_open O› in
@@ -102,18 +106,14 @@ have (x n0) ∈ O, from ‹∀ n ≥ n0, x n ∈ O› n0 (show n0 ≥ n0, from l
 have (x n0) ∈ O ∩ M, from ⟨this, ‹∀n, x n ∈ M› n0⟩,
 set.ne_empty_of_mem this
 
-/- A set is sequentially closed if it is closed. -/
-lemma is_seq_closed_of_is_closed : ∀ M : set X, is_closed M → is_seq_closed M :=
-assume M (_ : is_closed M),
-have M = closure M, from  eq.symm $ closure_eq_of_is_closed ‹is_closed M›,
-have M ⊆ sequential_closure M, from subset_seq_closure M,
-have sequential_closure M ⊆ M, from 
-  calc sequential_closure M ⊆ closure M : sequential_closure_subset_closure M
-                        ... = M : closure_eq_of_is_closed ‹is_closed M›,
-show M = sequential_closure M, from
-set.eq_of_subset_of_subset ‹M ⊆ sequential_closure M› ‹sequential_closure M ⊆ M›
+/-- A set is sequentially closed if it is closed. -/
+lemma is_seq_closed_of_is_closed (M : set X) (_ : is_closed M) : is_seq_closed M :=
+suffices sequential_closure M ⊆ M,
+  from set.eq_of_subset_of_subset (subset_seq_closure M) this,
+calc sequential_closure M ⊆ closure M : sequential_closure_subset_closure M
+                      ... = M : closure_eq_of_is_closed ‹is_closed M›
 
-/- The limit of a convergent sequence in a sequentially closed set is in that set.-/
+/-- The limit of a convergent sequence in a sequentially closed set is in that set.-/
 lemma is_mem_of_conv_to_of_is_seq_closed {A : set X} (_ : is_seq_closed A) {x : ℕ → X}
   (_ : ∀ n, x n ∈ A) {limit : X} (_ : converges_to x limit) : limit ∈ A :=
 have limit ∈ sequential_closure A, from 
@@ -121,7 +121,7 @@ have limit ∈ sequential_closure A, from
     exists.intro x ⟨‹∀ n, x n ∈ A›, ‹converges_to x limit›⟩,
 eq.subst (eq.symm ‹is_seq_closed A›) ‹limit ∈ sequential_closure A›
 
-/- The limit of a convergent sequence in a closed set is in that set.-/
+/-- The limit of a convergent sequence in a closed set is in that set.-/
 lemma is_mem_of_is_closed_of_conv_to {A : set X} (_ : is_closed A) {x : ℕ → X}
   (_ : ∀ n, x n ∈ A) {limit : X} (_ : converges_to x limit) : limit ∈ A :=
 is_mem_of_conv_to_of_is_seq_closed (is_seq_closed_of_is_closed A ‹is_closed A›)
@@ -137,7 +137,7 @@ class sequential_space (X : Type u) [topological_space X] : Prop :=
 (sequential_closure_eq_closure : ∀ M : set X, sequential_closure M = closure M)
 
 
-/- In a sequential space, a set is closed iff it's sequentially closed. -/
+/-- In a sequential space, a set is closed iff it's sequentially closed. -/
 lemma is_seq_closed_iff_is_closed [sequential_space X] : ∀ {M : set X},
   (is_seq_closed M ↔ is_closed M) :=  
 assume M, iff.intro
@@ -146,7 +146,8 @@ assume M, iff.intro
       ... = closure M            : sequential_space.sequential_closure_eq_closure M)))
 (is_seq_closed_of_is_closed M)
 
-/- A function between topological spaces is sequentially continuous if it commutes with limit of 
+/--
+ - A function between topological spaces is sequentially continuous if it commutes with limit of 
  - convergent sequences.
  -/
 def sequentially_continuous (f : X → Y) : Prop :=
@@ -160,7 +161,7 @@ have h₂ : tendsto f (nhds limit) (nhds (f limit)), from continuous.tendsto ‹
 have tendsto (f ∘ x) at_top (nhds (f limit)), from tendsto.comp h₁ h₂,
 converges_to_iff_tendsto.mpr this
 
-/- In a sequential space, continuity and sequential continuity coincide. -/
+/-- In a sequential space, continuity and sequential continuity coincide. -/
 lemma cont_iff_seq_cont {f : X → Y} [sequential_space X] :
   continuous f ↔ sequentially_continuous f :=
 iff.intro
@@ -187,11 +188,11 @@ section metric_space
 variable [metric_space X]
 variables {ε : ℝ}
 
-/- The usual notion of convergence of sequences in metric spaces. -/
+/-- The usual notion of convergence of sequences in metric spaces. -/
 def metrically_converges_to (x : ℕ → X) (limit : X) : Prop :=
 ∀ ε > 0, ∃ n0 : ℕ, ∀ n ≥ n0, dist (x n) limit < ε
 
-/- A sequence converges metrically if and only if it converges topologically. -/
+/-- A sequence converges metrically if and only if it converges topologically. -/
 lemma metrically_converges_to_iff_converges_to {x : ℕ → X} {limit : X} :
   metrically_converges_to x limit ↔ converges_to x limit :=
 iff.intro
@@ -217,7 +218,7 @@ iff.intro
         assume n _,
           ‹∀ n ≥ n0, (x n) ∈ ball limit ε› n ‹n ≥ n0›))
 
-/- A sequence converges metrically iff the associated statement for filters holds true. -/
+/-- A sequence converges metrically iff the associated statement for filters holds true. -/
 lemma metrically_converges_to_iff_tendsto {x : ℕ → X} {limit : X} :
   metrically_converges_to x limit ↔ tendsto x at_top (nhds limit) :=
 calc metrically_converges_to x limit ↔ converges_to x limit :
@@ -230,9 +231,8 @@ one_div_pos_of_pos (by linarith using [show (↑n : ℝ) ≥ 0, from nat.cast_no
 
 -- necessary for the next instance
 set_option eqn_compiler.zeta true
-/- Show that every metric space is sequential. -/
+/-- Show that every metric space is sequential. -/
 instance metric_space.to_sequential_space : sequential_space X :=
--- actual proof
 ⟨show ∀ M, sequential_closure M = closure M, from assume M,
   suffices closure M ⊆ sequential_closure M,
     from set.subset.antisymm (sequential_closure_subset_closure M) this,

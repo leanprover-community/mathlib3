@@ -31,7 +31,7 @@ def is_noetherian (α β) [ring α] [add_comm_group β] [module α β] : Prop :=
 ∀ (s : submodule α β), s.fg
 
 theorem is_noetherian_iff_well_founded
-  (α β) [ring α] [add_comm_group β] [module α β] :
+  {α β} [ring α] [add_comm_group β] [module α β] :
   is_noetherian α β ↔ well_founded ((>) : submodule α β → submodule α β → Prop) :=
 ⟨λ h, begin
   apply order_embedding.well_founded_iff_no_descending_seq.2,
@@ -110,28 +110,15 @@ end
 namespace is_noetherian_ring
 
 variables {α : Type*} [integral_domain α] (hα : is_noetherian_ring α)
---variables [decidable_rel ((∣) : α → α → Prop)]
-open associates multiplicity nat
+include hα
+open associates nat
 
 local attribute [elab_as_eliminator] well_founded.fix
-local attribute [instance, priority 0] classical.prop_decidable
 
-lemma well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ a * x = b) :=
-well_founded.intro (@well_founded.fix α
-  (λ a : α, acc (λ a b : α, a ≠ 0 ∧ ∃ x, ¬ is_unit x ∧ a * x = b) a) _
-  (inv_image.wf (λ x, ideal.span {x}) ((is_noetherian_iff_well_founded α α).1 hα))
-  (λ b ih, acc.intro _ (λ a ⟨hb0, x, hxu, hx⟩, ih _
-    (lt_of_le_of_ne
-      (λ y hy, ideal.mem_span_singleton.2 $
-        dvd.trans (show a ∣ b, by simp [hx.symm])
-          (ideal.mem_span_singleton.1 hy))
-      (λ hab : ideal.span {b} = ideal.span {a},
-        absurd (show a ∈ (ideal.span {a} : ideal α),
-          by simp [ideal.mem_span_singleton])
-        (hab ▸ mt ideal.mem_span_singleton.1
-          (λ hab, hxu $ is_unit_iff_dvd_one.2 $
-            (mul_dvd_mul_iff_left hb0).1 $
-              by simpa [hx] using hab)))))))
+lemma well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x ) :=
+by simp only [ideal.span_singleton_lt_span_singleton.symm];
+   exact inv_image.wf (λ a, ideal.span ({a} : set α))
+     (is_noetherian_iff_well_founded.1 hα)
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
@@ -142,7 +129,7 @@ lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
       have hx0 : x ≠ 0, from λ hx0, ha0 (by rw [← hxy, hx0, zero_mul]),
       (irreducible_or_factor x hx).elim
         (λ hxi, ⟨x, hxi, hxy ▸ by simp⟩)
-        (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy⟩ hx hx0 hxf in
+        (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy.symm⟩ hx hx0 hxf in
           ⟨i, hi.1, dvd.trans hi.2 (hxy ▸ by simp)⟩)) a ha ha0)
 
 end is_noetherian_ring

@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
-import data.polynomial ring_theory.principal_ideal_domain
+import data.polynomial ring_theory.principal_ideal_domain ring_theory.unique_factorization_domain
 
 universes u v w
 
@@ -191,6 +191,15 @@ lemma splits_map_iff (j : β → γ) [is_field_hom j] {f : polynomial α} :
   splits j (f.map i) ↔ splits (λ x, j (i x)) f :=
 by simp [splits, polynomial.map_map]
 
+lemma exists_root_of_splits {f : polynomial α} (hs : splits i f) (hf0 : degree f ≠ 0) :
+  ∃ x, eval₂ i x f = 0 :=
+hs.elim (λ hf0, ⟨37, by simp [hf0]⟩) $
+λ hs, let ⟨x, hx⟩ := exists_root_of_degree_eq_one
+  (hs (irr_factor_irreducible (f.map i))
+    (irr_factor_dvd (by simpa))) in
+  ⟨x, let ⟨g, hg⟩ := irr_factor_dvd (show degree (f.map i) ≠ 0, by simpa) in
+    by rw [← eval_map, hg, eval_mul, (show _ = _, from hx), zero_mul]⟩
+
 lemma splits_of_splits_id : ∀ {f : polynomial α} (h : splits id f), splits i f
 | f := λ h,
   if hf : degree f ≤ 1 then splits_of_degree_le_one _ hf
@@ -228,15 +237,6 @@ begin
   rw [← splits_map_iff i id]  at h,
   exact splits_of_splits_id _ h
 end
-
-lemma exists_root_of_splits {f : polynomial α} (hs : splits i f) (hf0 : degree f ≠ 0) :
-  ∃ x, eval₂ i x f = 0 :=
-hs.elim (λ hf0, ⟨37, by simp [hf0]⟩) $
-λ hs, let ⟨x, hx⟩ := exists_root_of_degree_eq_one
-  (hs (irr_factor_irreducible (f.map i))
-    (irr_factor_dvd (by simpa))) in
-  ⟨x, let ⟨g, hg⟩ := irr_factor_dvd (show degree (f.map i) ≠ 0, by simpa) in
-    by rw [← eval_map, hg, eval_mul, (show _ = _, from hx), zero_mul]⟩
 
 end splits
 

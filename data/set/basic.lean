@@ -1047,8 +1047,7 @@ lemma range_const_subset {c : β} : range (λx:α, c) ⊆ {c} :=
 begin
   assume x hx,
   rcases mem_range.1 hx with ⟨y, hy⟩,
-  simp,
-  exact hy.symm
+  simpa using hy.symm
 end
 
 end range

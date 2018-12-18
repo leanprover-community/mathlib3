@@ -318,7 +318,7 @@ begin
     have : x' ∈ s := function.inv_fun_on_mem ⟨x, x_in_s, rfl⟩,
     have : F x' = F x := function.inv_fun_on_eq ⟨x, x_in_s, rfl⟩,
     have : dist x x' < ε := hF _ _ ‹x ∈ s› ‹x' ∈ s› (this.symm),
-    simp,
+    simp only [exists_prop, set.mem_Union, mem_ball, set.mem_image],
     exact ⟨x', ⟨⟨F x, ⟨hFt _ x_in_s, by refl⟩⟩, by assumption⟩⟩
   end,
   exact ⟨t', ⟨‹finite t'›, this⟩⟩
@@ -523,7 +523,8 @@ theorem cauchy_seq_metric {u : β → α} :
 begin
   unfold cauchy_seq,
   rw cauchy_of_metric,
-  simp,
+  simp only [true_and, exists_prop, filter.mem_at_top_sets, filter.at_top_ne_bot,
+             filter.mem_map, ne.def, filter.map_eq_bot_iff, not_false_iff, set.mem_set_of_eq],
   split,
   { intros H ε εpos,
     rcases H ε εpos with ⟨t, ⟨N, hN⟩, ht⟩,
@@ -601,10 +602,10 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} :
       simp at hd,
       rcases hd with ⟨m, n, ⟨h1, h2⟩⟩,
       rw ← h2,
-      simp,
+      simp only [set.mem_range, prod.exists],
       exact ⟨m, n, rfl⟩ },
     { existsi (prod.mk m n),
-      simp,
+      simp only [and_true, eq_self_iff_true, set.mem_set_of_eq],
       exact ⟨hm, hn⟩}
   end,
   --Prove that it tends to `0`, by using the Cauchy property of `s`
@@ -621,7 +622,7 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} :
       { have : {p : ℕ × ℕ | p.fst ≥ n ∧ p.snd ≥ n} ≠ ∅ :=
           @ne_empty_of_mem _ _ (prod.mk n n) (by simp; apply le_refl),
         simpa using this },
-      { simp,
+      { simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib, prod.exists],
         intros d p q hp hq hd,
         rw ← hd,
         apply le_of_lt (hN q p (le_trans hn hq) (le_trans hn hp)) }
@@ -1305,7 +1306,7 @@ lemma bounded_closed_ball : bounded (closed_ball x r) :=
 begin
   existsi r + r,
   assume y z hy hz,
-  simp at *,
+  simp only [mem_closed_ball] at *,
   calc dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
             ... ≤ r + r : add_le_add hy hz
 end
@@ -1325,7 +1326,7 @@ begin
   rcases h with ⟨C, hC⟩,
   existsi C + dist x c,
   assume y hy,
-  simp,
+  simp only [mem_closed_ball],
   calc dist y c ≤ dist y x + dist x c : dist_triangle _ _ _
             ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _
 end,
@@ -1383,8 +1384,7 @@ lemma bounded_range_iff {f : β → α} : bounded (range f) ↔ ∃C, ∀x y, di
   begin
     rcases mem_range.1 hx with ⟨x', fx⟩,
     rcases mem_range.1 hy with ⟨y', fy⟩,
-    simp [fx.symm, fy.symm],
-    exact hC x' y'
+    simpa [fx.symm, fy.symm] using hC x' y'
   end⟩⟩
 
 /--In a compact space, all sets are bounded-/

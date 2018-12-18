@@ -35,11 +35,11 @@ begin
   intros y yrs,
   calc dist (f y) (f x) ≤ dist (f y) (F N y) + dist (F N y) (F N x) + dist (F N x) (f x) : dist_triangle4 _ _ _ _
       ... ≤ (ε/4) + (ε/4) + (ε/4) :
-        begin
-          apply_rules [add_le_add, le_of_lt (hs y yrs.2), hN x (mem_of_nhds r_set)],
-          rw dist_comm,
-          apply hN _ yrs.1,
-        end
+      begin
+        apply_rules [add_le_add, le_of_lt (hs y yrs.2), hN x (mem_of_nhds r_set)],
+        rw dist_comm,
+        apply hN _ yrs.1,
+      end
       ... < ε : by linarith
 end
 
@@ -62,7 +62,7 @@ begin
   intros x ε εpos,
   have : 0 < max C 1 := lt_of_lt_of_le zero_lt_one (le_max_right C 1),
   existsi (ε/max C 1),
-  simp,
+  simp only [exists_prop],
   split,
   { apply div_pos εpos ‹0 < max C 1› },
   { intros y hy, calc
@@ -167,7 +167,7 @@ instance : metric_space (bounded_continuous_function α β) :=
       intro H, /- H : univ ≠ ∅ -/
       rcases exists_mem_of_ne_empty H with ⟨x, _⟩, /- x : α -/
       have a : dist (f x) (f x) ≤ dist f f := dist_coe_le_dist,
-      simp at a,
+      simp only [dist_self] at a,
       have b : dist f f ≤ 0 := dist_le_of_forall_dist_le (by simp [le_refl]) (le_refl _),
       show dist f f = 0, from le_antisymm b a,
     end,
@@ -186,7 +186,7 @@ instance : metric_space (bounded_continuous_function α β) :=
       calc dist (f x) (h x) ≤ dist (f x) (g x) + dist (g x) (h x) : dist_triangle _ _ _
                         ... ≤ dist f g + dist g h : add_le_add dist_coe_le_dist dist_coe_le_dist,
     have b : 0 + 0 ≤ dist f g + dist g h := add_le_add dist_nonneg' dist_nonneg',
-    simp at b,
+    simp only [add_zero] at b,
     show dist f h ≤ dist f g + dist g h, from dist_le_of_forall_dist_le a b
   end }
 
@@ -212,7 +212,7 @@ begin
   /- The product set `set.prod (ball f (ε/2)) nx` is a set around `(f, x)` where the
   evaluation map varies by at most ε.-/
   existsi set.prod (ball f (ε/2)) nx,
-  simp,
+  simp only [and_imp, exists_prop, mem_ball, prod.forall, set.mem_prod],
   dsimp,
   exact ⟨B, A⟩,
 end
@@ -250,7 +250,7 @@ begin
       tendsto_dist tendsto_const_nhds (hF x),
     have b : tendsto (λn, b N) at_top (nhds (b N)) := tendsto_const_nhds,
     apply le_of_tendsto (by simp) a b _ ,
-    simp,
+    simp only [filter.mem_at_top_sets, set.mem_set_of_eq],
     exact ⟨N, λn hn, I x N n N (le_refl N) hn⟩,
   end,
   /- Check that `F` is continuous -/
@@ -397,7 +397,7 @@ begin
     have : ∀ y, ∃z∈tβ, dist y z < ε/8 :=
       λy, by simpa using htβ (mem_univ y),
     choose F hF using this,
-    simp at hF,
+    simp only [exists_prop] at hF,
     /- F : β → β, hF : ∀ (y : β), F y ∈ tβ ∧ dist y (F y) < ε/8-/
 
     /-Associate to every function a discrete approximation, mapping each point in `tα`
@@ -431,8 +431,7 @@ begin
     end,
     /-The discretization constructed above is good enough to conclude-/
     existsi [(tα → tβ), univ, approx],
-    simp [fin_univ],
-    exact main,
+    simpa [fin_univ] using main
   end
 end
 
@@ -602,7 +601,7 @@ instance : has_neg (bounded_continuous_function α β) :=
         rw [dist_eq_norm, dist_eq_norm, norm_sub_rev],
         simp,
       end,
-      simp [this],
+      simp only [this],
       exact f.property.2 }
   end⟩ }
 
@@ -643,8 +642,7 @@ instance : normed_group (bounded_continuous_function α β) :=
     exact le_antisymm A B
   end,
   ..bounded_continuous_function.add_comm_group,
-  ..bounded_continuous_function.has_norm
-}
+  ..bounded_continuous_function.has_norm }
 
 lemma abs_diff_coe_le_dist : norm (f x - g x) ≤ dist f g :=
 calc norm (f x - g x) = norm ((f - g) x) : by simp

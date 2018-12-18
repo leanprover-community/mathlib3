@@ -56,11 +56,10 @@ def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
   map := λ X₁ X₂ f, colimit.pre (comma.fst.{v v v v} yoneda (functor.of.obj X₂) ⋙ F) (comma.map_right yoneda $ functor.of.map f),
   map_id' := λ X,
   begin
-    -- tidy,
     erw functor.of.map_id, -- why doesn't this simplify automatically?
-    erw colimit.pre_map
+    erw colimit.pre_map'
       (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F)
-      (comma.map_right_id'.{v v v} yoneda (functor.of.obj X)).hom,
+      (comma.map_right_id.{v v v} yoneda (functor.of.obj X)).hom,
     erw colimit.pre_id,
     erw ← colim.map_comp,
     erw ← colim.map_id,
@@ -70,22 +69,23 @@ def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
   map_comp' := λ X₁ X₂ X₃ f g,
   begin
     erw functor.of.map_comp,
-    erw colimit.pre_map
+    erw colimit.pre_map'
       (comma.fst.{v v v v} yoneda (functor.of.obj X₃) ⋙ F)
       (comma.map_right_comp.{v v v} yoneda (functor.of.map f) (functor.of.map g)).hom,
-    erw colimit.pre_pre
-      (comma.fst.{v v v v} yoneda (functor.of.obj X₃) ⋙ F)
-      (comma.map_right yoneda (functor.of.map g))
-      (comma.map_right yoneda (functor.of.map f)),
-    erw limits.colimit.pre_comp _ _ _,
-    erw ← category.assoc,
-    erw ← colim.map_comp,
-    congr,
-    dsimp [whisker_right, whiskering_right, functor.associator],
-    ext1,
-    simp,
-    erw category.comp_id,
-    exact limits.has_colimits_of_shape_of_has_colimits
+    dsimp,
+    -- erw colimit.pre_pre
+    --   (comma.fst.{v v v v} yoneda (functor.of.obj X₃) ⋙ F)
+    --   (comma.map_right yoneda (functor.of.map g))
+    --   (comma.map_right yoneda (functor.of.map f)),
+    -- erw limits.colimit.pre_comp _ _ _,
+    -- erw ← category.assoc,
+    -- erw ← colim.map_comp,
+    -- congr,
+    -- dsimp [whisker_right, whiskering_right, functor.associator],
+    -- ext1,
+    -- simp,
+    -- erw category.comp_id,
+    -- exact limits.has_colimits_of_shape_of_has_colimits
   end }
 
 @[simp] lemma restricted_yoneda_obj (F : C ⥤ D) (d : D) : (restricted_yoneda F).obj d = F.op ⋙ yoneda.obj d := rfl

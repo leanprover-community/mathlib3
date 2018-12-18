@@ -18,7 +18,7 @@ variables {α : Type uu} {r : α → α → Prop}
   is a `<` or `≤`-like relation (transitive and antisymmetric or asymmetric) -/
 def sorted := @pairwise
 
-@[simp] theorem sorted_nil : sorted r [] := pairwise.nil _
+@[simp] theorem sorted_nil : sorted r [] := pairwise.nil
 
 @[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
 

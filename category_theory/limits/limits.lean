@@ -102,6 +102,21 @@ h.hom_iso W ≪≫
   { app := λ j, p.1 j,
     naturality' := λ j j' f, begin dsimp, erw [id_comp], exact (p.2 f).symm end } }
 
+/-- If G : C → D is a faithful functor which sends t to a limit cone,
+  then it suffices to check that the induced maps for the image of t
+  can be lifted to maps of C. -/
+def of_faithful {t : cone F} {D : Type u'} [category.{u' v} D] (G : C ⥤ D) [faithful G]
+  (ht : is_limit (G.map_cone t)) (lift : Π (s : cone F), s.X ⟶ t.X)
+  (h : ∀ s, G.map (lift s) = ht.lift (G.map_cone s)) : is_limit t :=
+{ lift := lift,
+  fac' := λ s j, by apply G.injectivity; rw [G.map_comp, h]; apply ht.fac,
+  uniq' := λ s m w, begin
+    apply G.injectivity, rw h,
+    refine ht.uniq (G.map_cone s) _ (λ j, _),
+    convert ←congr_arg (λ f, G.map f) (w j),
+    apply G.map_comp
+  end }
+
 end is_limit
 
 /-- A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
@@ -188,6 +203,21 @@ h.hom_iso W ≪≫
   inv := λ p,
   { app := λ j, p.1 j,
     naturality' := λ j j' f, begin dsimp, erw [comp_id], exact (p.2 f) end } }
+
+/-- If G : C → D is a faithful functor which sends t to a colimit cocone,
+  then it suffices to check that the induced maps for the image of t
+  can be lifted to maps of C. -/
+def of_faithful {t : cocone F} {D : Type u'} [category.{u' v} D] (G : C ⥤ D) [faithful G]
+  (ht : is_colimit (G.map_cocone t)) (desc : Π (s : cocone F), t.X ⟶ s.X)
+  (h : ∀ s, G.map (desc s) = ht.desc (G.map_cocone s)) : is_colimit t :=
+{ desc := desc,
+  fac' := λ s j, by apply G.injectivity; rw [G.map_comp, h]; apply ht.fac,
+  uniq' := λ s m w, begin
+    apply G.injectivity, rw h,
+    refine ht.uniq (G.map_cocone s) _ (λ j, _),
+    convert ←congr_arg (λ f, G.map f) (w j),
+    apply G.map_comp
+  end }
 
 end is_colimit
 
@@ -361,6 +391,14 @@ by ext; rw [assoc, lim.map_π, ←assoc, limit.lift_π, limit.lift_π]; refl
 lemma limit.map_pre {K : Type v} [small_category K] [has_limits_of_shape K C] (E : K ⥤ J) :
   lim.map α ≫ limit.pre G E = limit.pre F E ≫ lim.map (whisker_left E α) :=
 by ext; rw [assoc, limit.pre_π, lim.map_π, assoc, lim.map_π, ←assoc, limit.pre_π]; refl
+
+lemma limit.map_pre' {K : Type v} [small_category K] [has_limits_of_shape.{u v} K C]
+  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟹ E₂) :
+  limit.pre F E₂ = limit.pre F E₁ ≫ lim.map (whisker_right α F) :=
+by ext1; simp [(category.assoc _ _ _ _).symm]
+
+lemma limit.id_pre (F : J ⥤ C) :
+limit.pre F (functor.id _) = lim.map (functor.left_unitor F).inv := by tidy
 
 lemma limit.map_post {D : Type u'} [category.{u' v} D] [has_limits_of_shape J D] (H : C ⥤ D) :
 /- H (limit F) ⟶ H (limit G) ⟶ limit (G ⋙ H) vs
@@ -566,6 +604,14 @@ by ext; rw [←assoc, colim.ι_map, assoc, colimit.ι_desc, colimit.ι_desc]; re
 lemma colimit.pre_map {K : Type v} [small_category K] [has_colimits_of_shape K C] (E : K ⥤ J) :
   colimit.pre F E ≫ colim.map α = colim.map (whisker_left E α) ≫ colimit.pre G E :=
 by ext; rw [←assoc, colimit.ι_pre, colim.ι_map, ←assoc, colim.ι_map, assoc, colimit.ι_pre]; refl
+
+lemma colimit.pre_map' {K : Type v} [small_category K] [has_colimits_of_shape.{u v} K C]
+  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟹ E₂) :
+  colimit.pre F E₁ = colim.map (whisker_right α F) ≫ colimit.pre F E₂ :=
+by ext1; simp [(category.assoc _ _ _ _).symm]
+
+lemma colimit.pre_id (F : J ⥤ C) :
+colimit.pre F (functor.id _) = colim.map (functor.left_unitor F).hom := by tidy
 
 lemma colimit.map_post {D : Type u'} [category.{u' v} D] [has_colimits_of_shape J D] (H : C ⥤ D) :
 /- H (colimit F) ⟶ H (colimit G) ⟶ colimit (G ⋙ H) vs

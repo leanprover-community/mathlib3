@@ -1,7 +1,8 @@
 
 import meta.rb_map
-import tactic.basic
-import category.traversable
+import tactic.basic data.list.defs
+import category.traversable.basic
+import tactic.simpa
 
 open interactive interactive.types lean.parser
 

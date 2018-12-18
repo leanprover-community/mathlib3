@@ -259,7 +259,7 @@ instance metric_space.to_sequential_space : sequential_space X :=
          assume ε _,
            -- we apply that 1/n converges to zero to the fact that (x n) ∈ ball p ε 
            have metrically_converges_to (λ n, (1:ℝ)/(n+1)) 0,
-             from metrically_converges_to_iff_tendsto.mpr tendsto_div,
+             from metrically_converges_to_iff_tendsto.mpr sequentially_complete.tendsto_div,
            let ⟨n0, hn0⟩ := this ε ‹ε > 0› in
            show ∃ n0 : ℕ, ∀ n ≥ n0, dist (x n) p < ε, from
            (exists.intro n0 (assume n ngtn0,

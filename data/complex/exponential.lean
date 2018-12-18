@@ -426,7 +426,7 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw ← sum_hom conj conj_zero conj_add,
+  rw ← sum_hom conj,
   refine sum_congr rfl (λ n hn, _),
   rw [conj_div, conj_pow, ← of_real_nat_cast, conj_of_real]
 end
@@ -803,7 +803,9 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
       have h₂ : ((x : ℂ) ^ 0 / nat.fact 0).re = 1, by simp,
       begin
         rw [← nat.sub_add_cancel hj, sum_range_succ', sum_range_succ',
-          add_re, add_re, h₁, h₂, add_assoc, ← sum_hom complex.re zero_re add_re],
+          add_re, add_re, h₁, h₂, add_assoc,
+          ← @sum_hom _ _ _ _ _ _ _ complex.re
+            (is_add_group_hom.to_is_add_monoid_hom _)],
         refine le_add_of_nonneg_of_le (zero_le_sum (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
         rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
         exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),

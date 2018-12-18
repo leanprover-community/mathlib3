@@ -96,9 +96,8 @@ theorem to_module_aux.smul (c f) :
   to_module_aux φ (c • f) = c • to_module_aux φ f :=
 begin
   refine quotient.induction_on f (λ x, _),
-  refine eq.trans (finset.sum_congr rfl _) (finset.sum_hom _ _ _),
-  { intros i h1, dsimp at *, simp [h1, (φ i).map_smul] },
-  all_goals { simp [smul_add] }
+  refine eq.trans (finset.sum_congr rfl _) finset.smul_sum.symm,
+  { intros i h1, dsimp at *, simp [h1, (φ i).map_smul] }
 end
 
 variable (φ)

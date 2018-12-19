@@ -5,7 +5,6 @@ Authors: Johannes Hölzl
 
 Extends theory on products
 -/
-import tactic.ext
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -31,12 +30,11 @@ attribute [simp] prod.map
 lemma ext_iff {p q : α × β} : p = q ↔ p.1 = q.1 ∧ p.2 = q.2 :=
 by rw [← @mk.eta _ _ p, ← @mk.eta _ _ q, mk.inj_iff]
 
-@[extensionality]
-lemma ext {α β} {p q : α × β} : p.1 = q.1 → p.2 = q.2 → p = q :=
-by rw [ext_iff] ; intros ; split ; assumption
+lemma ext {α β} {p q : α × β} (h₁ : p.1 = q.1) (h₂ : p.2 = q.2) : p = q :=
+ext_iff.2 ⟨h₁, h₂⟩
 
 lemma id_prod : (λ (p : α × α), (p.1, p.2)) = id :=
-by ext ; simp
+funext $ λ ⟨a, b⟩, rfl
 
 /-- Swap the factors of a product. `swap (a, b) = (b, a)` -/
 def swap : α × β → β × α := λp, (p.2, p.1)

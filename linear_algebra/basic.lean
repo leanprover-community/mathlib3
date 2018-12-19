@@ -26,7 +26,7 @@ namespace finset
 lemma smul_sum [ring γ] [add_comm_group β] [module γ β]
   {s : finset α} {a : γ} {f : α → β} :
   a • (s.sum f) = s.sum (λc, a • f c) :=
-(finset.sum_hom ((•) a) (@smul_zero γ β _ _ _ a) (assume _ _, smul_add _ _ _)).symm
+(finset.sum_hom ((•) a)).symm
 
 end finset
 
@@ -79,9 +79,16 @@ instance : add_comm_group (β →ₗ γ) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
 
+instance linear_map.is_add_group_hom : is_add_group_hom f :=
+by refine_struct {..}; simp
+
+instance linear_map_apply_is_add_group_hom (a : β) :
+  is_add_group_hom (λ f : β →ₗ γ, f a) :=
+by refine_struct {..}; simp
+
 lemma sum_apply [decidable_eq δ] (t : finset δ) (f : δ → β →ₗ γ) (b : β) :
   t.sum f b = t.sum (λd, f d b) :=
-(@finset.sum_hom _ _ _ t f _ _ (λ g : β →ₗ γ, g b) (by simp) (by simp)).symm
+(@finset.sum_hom _ _ _ t f _ _ (λ g : β →ₗ γ, g b) _).symm
 
 @[simp] lemma sub_apply (x : β) : (f - g) x = f x - g x := rfl
 

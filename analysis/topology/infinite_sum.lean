@@ -100,10 +100,10 @@ iff.intro
   (assume hf, is_sum_of_iso hf h₁ h₂)
 
 lemma is_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ] [topological_add_monoid γ]
-  (h₁ : g 0 = 0) (h₂ : ∀x y, g (x + y) = g x + g y) (h₃ : continuous g) (hf : is_sum f a) :
+  [is_add_monoid_hom g] (h₃ : continuous g) (hf : is_sum f a) :
   is_sum (g ∘ f) (g a) :=
 have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
-  from funext $ assume s, sum_hom g h₁ h₂,
+  from funext $ assume s, sum_hom g,
 show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (nhds (g a)),
   by rw [this]; exact hf.comp (continuous_iff_tendsto.mp h₃ a)
 
@@ -320,7 +320,7 @@ variables [add_comm_group α] [topological_space α] [topological_add_group α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma is_sum_neg : is_sum f a → is_sum (λb, - f b) (- a) :=
-is_sum_hom has_neg.neg (by simp) (by simp) continuous_neg'
+is_sum_hom has_neg.neg continuous_neg'
 
 lemma has_sum_neg (hf : has_sum f) : has_sum (λb, - f b) :=
 has_sum_spec $ is_sum_neg $ is_sum_tsum $ hf
@@ -349,11 +349,11 @@ variables [semiring α] [topological_space α] [topological_semiring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma is_sum_mul_left (a₂) : is_sum f a₁ → is_sum (λb, a₂ * f b) (a₂ * a₁) :=
-is_sum_hom _ (by simp) (by simp [mul_add]) (continuous_mul continuous_const continuous_id)
+is_sum_hom _ (continuous_mul continuous_const continuous_id)
 
 lemma is_sum_mul_right (a₂) (hf : is_sum f a₁) : is_sum (λb, f b * a₂) (a₁ * a₂) :=
-@is_sum_hom _ _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _
-  (by simp) (by simp [add_mul]) (continuous_mul continuous_id continuous_const) hf
+@is_sum_hom _ _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _ _
+  (continuous_mul continuous_id continuous_const) hf
 
 lemma has_sum_mul_left (a) (hf : has_sum f) : has_sum (λb, a * f b) :=
 has_sum_spec $ is_sum_mul_left _ $ is_sum_tsum hf

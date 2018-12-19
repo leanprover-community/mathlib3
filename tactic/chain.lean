@@ -3,7 +3,7 @@
 -- Authors: Scott Morrison, Mario Carneiro
 
 import tactic
-import data.option
+import data.option.defs
 
 open interactive
 
@@ -59,14 +59,14 @@ meta def tactic_script.to_string : tactic_script string → string
 | (tactic_script.base a) := a
 | (tactic_script.work n a l c) := "work_on_goal " ++ (to_string n) ++ " { " ++ (", ".intercalate (a :: l.map tactic_script.to_string)) ++ " }"
 
-meta instance : has_to_string (tactic_script string) := 
+meta instance : has_to_string (tactic_script string) :=
 { to_string := λ s, s.to_string }
 
-meta instance tactic_script_unit_has_to_string : has_to_string (tactic_script unit) := 
+meta instance tactic_script_unit_has_to_string : has_to_string (tactic_script unit) :=
 { to_string := λ s, "[chain tactic]" }
 
 meta def abstract_if_success (tac : expr → tactic α) (g : expr) : tactic α :=
-do 
+do
   type ← infer_type g,
   is_lemma ← is_prop type,
   if is_lemma then -- there's no point making the abstraction, and indeed it's slower
@@ -85,7 +85,7 @@ do
     <|> unify m g,
     return a
 
-/-- 
+/--
 `chain_many tac` recursively tries `tac` on all goals, working depth-first on generated subgoals,
 until it no longer succeeds on any goal. `chain_many` automatically makes auxiliary definitions.
 -/
@@ -140,7 +140,7 @@ do tgt ← target,
 meta def chain (tactics : list (tactic α)) : tactic (list string) :=
 if is_trace_enabled_for `chain then
   chain_core (tactics.map trace_output)
-else 
+else
   chain_core tactics
 
 end tactic

@@ -5,7 +5,7 @@ Author: Robert Y. Lewis
 
 Additional operations on native rb_maps and rb_sets.
 -/
-import data.option
+import data.option.defs
 
 namespace native
 namespace rb_set

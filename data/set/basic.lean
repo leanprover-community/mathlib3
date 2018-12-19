@@ -412,7 +412,7 @@ by finish [insert_def]
 @[simp] theorem insert_eq_of_mem {a : α} {s : set α} (h : a ∈ s) : insert a s = s :=
 by finish [ext_iff, iff_def]
 
-@[simp] theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
+theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
 by simp [subset_def, or_imp_distrib, forall_and_distrib]
 
 theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
@@ -1030,7 +1030,7 @@ by rw [image_preimage_eq_inter_range, preimage_inter_range]
 @[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_iff_surjective.2 quot.exists_rep
 
-lemma subtype_val_range {p : α → Prop} :
+@[simp] lemma subtype_val_range {p : α → Prop} :
   range (@subtype.val _ p) = {x | p x} :=
 by rw ← image_univ; simp [-image_univ, subtype_val_image]
 

@@ -30,17 +30,6 @@ theorem subsingleton_of_zero_eq_one (h : (0 : α) = 1) : subsingleton α :=
 
 end
 
-section
-variable [comm_semiring α]
-
-theorem dvd_iff {a b : α} : a ∣ b ↔ ∃ c, b = a * c := iff.rfl
-
-theorem dvd_iff' {a b : α} : a ∣ b ↔ ∃ c, b = c * a :=
-by simp [dvd_iff, mul_comm]
-
-end
-
-
 namespace units
 variables [ring α] {a b : α}
 

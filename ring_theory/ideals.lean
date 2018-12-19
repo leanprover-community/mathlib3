@@ -14,6 +14,9 @@ local attribute [instance] classical.prop_decidable
 namespace ideal
 variable (I : ideal α)
 
+@[extensionality] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
+submodule.ext h
+
 theorem eq_top_of_unit_mem
   (x y : α) (hx : x ∈ I) (h : y * x = 1) : I = ⊤ :=
 eq_top_iff.2 $ λ z _, calc
@@ -141,6 +144,27 @@ begin
     rcases submodule.mem_Sup_of_directed ((eq_top_iff_one _).1 H) I IS cC.directed_on with ⟨J, JS, J0⟩,
     exact SC JS ((eq_top_iff_one _).2 J0) }
 end
+
+def is_coprime (x y : α) : Prop :=
+span ({x, y} : set α) = ⊤
+
+theorem mem_span_pair {α} [comm_ring α] {x y z : α} :
+  z ∈ span (insert y {x} : set α) ↔ ∃ a b, a * x + b * y = z :=
+begin
+  simp only [mem_span_insert, mem_span_singleton', exists_prop],
+  split,
+  { rintros ⟨a, b, ⟨c, hc⟩, h⟩,
+    exact ⟨c, a, by simp [h, hc]⟩ },
+  { rintro ⟨b, c, e⟩, exact ⟨c, b * x, ⟨b, rfl⟩, by simp [e.symm]⟩ }
+end
+
+theorem is_coprime_def {α} [comm_ring α] {x y : α} :
+  is_coprime x y ↔ ∀ z, ∃ a b, a * x + b * y = z :=
+by simp [is_coprime, submodule.eq_top_iff', mem_span_pair]
+
+theorem is_coprime_self {α} [comm_ring α] (x y : α) :
+  is_coprime x x ↔ is_unit x :=
+by rw [← span_singleton_eq_top]; simp [is_coprime]
 
 end ideal
 
@@ -302,6 +326,34 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
     by rw [mul_comm, dif_neg ha];
     exact classical.some_spec (exists_inv ha),
   ..quotient.integral_domain I }
+
+variable [comm_ring β]
+
+def lift (S : ideal α) (f : α → β) [is_ring_hom f] (H : ∀ (a : α), a ∈ S → f a = 0) :
+  quotient S → β :=
+λ x, quotient.lift_on' x f $ λ (a b) (h : _ ∈ _),
+eq_of_sub_eq_zero (by simpa only [is_ring_hom.map_sub f] using H _ h)
+
+variables {S : ideal α} {f : α → β} [is_ring_hom f] {H : ∀ (a : α), a ∈ S → f a = 0}
+
+@[simp] lemma lift_mk : lift S f H (mk S a) = f a := rfl
+
+instance : is_ring_hom (lift S f H) :=
+{ map_one := by show lift S f H (mk S 1) = 1; simp [is_ring_hom.map_one f, - mk_one],
+  map_add := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ $ λ a₁ a₂, begin
+    show lift S f H (mk S a₁ + mk S a₂) = lift S f H (mk S a₁) + lift S f H (mk S a₂),
+    have := ideal.quotient.is_ring_hom_mk S,
+    rw ← this.map_add,
+    show lift S f H (mk S (a₁ + a₂)) = lift S f H (mk S a₁) + lift S f H (mk S a₂),
+    simp only [lift_mk, is_ring_hom.map_add f],
+  end,
+  map_mul := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ $ λ a₁ a₂, begin
+    show lift S f H (mk S a₁ * mk S a₂) = lift S f H (mk S a₁) * lift S f H (mk S a₂),
+    have := ideal.quotient.is_ring_hom_mk S,
+    rw ← this.map_mul,
+    show lift S f H (mk S (a₁ * a₂)) = lift S f H (mk S a₁) * lift S f H (mk S a₂),
+    simp only [lift_mk, is_ring_hom.map_mul f],
+  end }
 
 end quotient
 end ideal

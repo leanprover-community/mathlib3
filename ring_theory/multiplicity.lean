@@ -51,7 +51,7 @@ lemma pow_dvd_of_le_multiplicity {a b : α} {k : ℕ} : (k : enat) ≤ multiplic
 nat.cases_on k (λ _, one_dvd _)
   (λ k ⟨h₁, h₂⟩, by_contradiction (λ hk, (nat.find_min _ (lt_of_succ_le (h₂ ⟨k, hk⟩)) hk)))
 
-lemma spec {a b : α} (h : finite a b) : a ^ get (multiplicity a b) h ∣ b :=
+lemma pow_multiplicity_dvd {a b : α} (h : finite a b) : a ^ get (multiplicity a b) h ∣ b :=
 pow_dvd_of_le_multiplicity (by rw enat.coe_get)
 
 lemma is_greatest  {a b : α} {m : ℕ} (hm : multiplicity a b < m) : ¬a ^ m ∣ b :=
@@ -85,7 +85,7 @@ lemma pow_dvd_iff_le_multiplicity {a b : α}
 lemma eq_some_iff {a b : α} {n : ℕ} :
   multiplicity a b = (n : enat) ↔ a ^ n ∣ b ∧ ¬a ^ (n + 1) ∣ b :=
 ⟨λ h, let ⟨h₁, h₂⟩ := eq_some_iff.1 h in
-    h₂ ▸ ⟨spec _, is_greatest
+    h₂ ▸ ⟨pow_multiplicity_dvd _, is_greatest
       (by conv_lhs {rw ← enat.coe_get h₁ }; rw [enat.coe_lt_coe]; exact lt_succ_self _)⟩,
   λ h, eq_some_iff.2 ⟨⟨n, h.2⟩, eq.symm $ unique' h.1 h.2⟩⟩
 
@@ -123,7 +123,7 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
   (∀ n : ℕ, a ^ n ∣ b → c ^ n ∣ d) :=
 ⟨λ h n hab, (pow_dvd_of_le_multiplicity (le_trans (le_multiplicity_of_pow_dvd hab) h)),
   λ h, if hab : finite a b
-    then by rw [← enat.coe_get (finite_iff_dom.1 hab)]; exact le_multiplicity_of_pow_dvd (h _ (spec _))
+    then by rw [← enat.coe_get (finite_iff_dom.1 hab)]; exact le_multiplicity_of_pow_dvd (h _ (pow_multiplicity_dvd _))
     else
     have ∀ n : ℕ, c ^ n ∣ d, from λ n, h n (not_finite_iff_forall.1 hab _),
     by rw [eq_top_iff_not_finite.2 hab, eq_top_iff_not_finite.2
@@ -187,7 +187,7 @@ local attribute [instance, priority 0] classical.prop_decidable
 @[simp] protected lemma neg (a b : α) : multiplicity a (-b) = multiplicity a b :=
 roption.ext' (by simp only [multiplicity]; conv in (_ ∣ - _) {rw dvd_neg})
   (λ h₁ h₂, enat.coe_inj.1 (by rw [enat.coe_get]; exact
-    eq.symm (unique ((dvd_neg _ _).2 (spec _))
+    eq.symm (unique ((dvd_neg _ _).2 (pow_multiplicity_dvd _))
       (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ_self _))))))
 
 end comm_ring
@@ -259,8 +259,8 @@ protected lemma mul' {p a b : α} (hp : prime p)
   get (multiplicity p (a * b)) h =
   get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
   get (multiplicity p b) ((finite_mul_iff hp).1 h).2 :=
-have hdiva : p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 ∣ a, from spec _,
-have hdivb : p ^ get (multiplicity p b) ((finite_mul_iff hp).1 h).2 ∣ b, from spec _,
+have hdiva : p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 ∣ a, from pow_multiplicity_dvd _,
+have hdivb : p ^ get (multiplicity p b) ((finite_mul_iff hp).1 h).2 ∣ b, from pow_multiplicity_dvd _,
 have hpoweq : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) =
     p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 *

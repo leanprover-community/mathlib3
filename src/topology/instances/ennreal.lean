@@ -130,7 +130,7 @@ begin
 end
 
 instance : topological_add_monoid ennreal :=
-⟨ continuous_iff_tendsto.2 $
+⟨ continuous_iff_continuous_at.2 $
   have hl : ∀a:ennreal, tendsto (λ (p : ennreal × ennreal), p.fst + p.snd) (nhds (⊤, a)) (nhds ⊤), from
     assume a, tendsto_nhds_top $ assume n,
     have set.prod {a | ↑n < a } univ ∈ (nhds ((⊤:ennreal), a)).sets, from
@@ -138,9 +138,10 @@ instance : topological_add_monoid ennreal :=
     begin filter_upwards [this] assume ⟨a₁, a₂⟩ ⟨h₁, h₂⟩, lt_of_lt_of_le h₁ (le_add_right $ le_refl _) end,
   begin
     rintro ⟨a₁, a₂⟩,
-    cases a₁, { simp [none_eq_top, hl a₂], },
-    cases a₂, { simp [none_eq_top, some_eq_coe, nhds_swap (a₁ : ennreal) ⊤, tendsto_map'_iff, (∘), hl ↑a₁] },
-    simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
+    cases a₁, { simp [continuous_at, none_eq_top, hl a₂], },
+    cases a₂, { simp [continuous_at, none_eq_top, some_eq_coe, nhds_swap (a₁ : ennreal) ⊤, 
+                      tendsto_map'_iff, (∘), hl ↑a₁] },
+    simp [continuous_at, some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
     simp only [coe_add.symm, tendsto_coe, tendsto_add']
   end ⟩
 

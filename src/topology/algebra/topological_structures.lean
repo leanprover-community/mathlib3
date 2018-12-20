@@ -56,7 +56,7 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 
 @[to_additive tendsto_add']
 lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)) :=
-continuous_iff_tendsto.mp (topological_monoid.continuous_mul α) (a, b)
+continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
 
 @[to_additive tendsto_add]
 lemma tendsto_mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
@@ -81,8 +81,8 @@ lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
 lemma continuous_list_prod [topological_space β] {f : γ → β → α} (l : list γ)
   (h : ∀c∈l, continuous (f c)) :
   continuous (λa, (l.map (λc, f c a)).prod) :=
-continuous_iff_tendsto.2 $ assume x, tendsto_list_prod l $ assume c hc,
-  continuous_iff_tendsto.1 (h c hc) x
+continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
+  continuous_iff_continuous_at.1 (h c hc) x
 
 @[to_additive prod.topological_add_monoid]
 instance [topological_space β] [monoid β] [topological_monoid β] : topological_monoid (α × β) :=
@@ -155,7 +155,7 @@ hf.comp continuous_inv'
 @[to_additive tendsto_neg]
 lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (nhds a)) : tendsto (λx, (f x)⁻¹) x (nhds a⁻¹) :=
-hf.comp (continuous_iff_tendsto.mp (topological_group.continuous_inv α) a)
+hf.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a)
 
 @[to_additive prod.topological_add_group]
 instance [topological_group α] [topological_space β] [group β] [topological_group β] :
@@ -546,7 +546,7 @@ show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (nhds (max a₁
   from (hf.prod_mk hg).comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_tendsto.mp (continuous_max continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous_max continuous_fst continuous_snd) _
     end
 
 lemma tendsto_min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) :
@@ -555,7 +555,7 @@ show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (nhds (min a₁
   from (hf.prod_mk hg).comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_tendsto.mp (continuous_min continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous_min continuous_fst continuous_snd) _
     end
 
 end decidable_linear_order

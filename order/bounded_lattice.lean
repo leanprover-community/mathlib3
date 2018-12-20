@@ -8,7 +8,7 @@ Defines bounded lattice type class hierarchy.
 Includes the Prop and fun instances.
 -/
 
-import order.lattice data.option
+import order.lattice data.option.basic
        tactic.pi_instances
 
 set_option old_structure_cmd true
@@ -54,6 +54,13 @@ assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
 theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
 top_le_iff.1 $ h₂ ▸ h
 
+lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ :=
+begin
+  haveI := classical.dec_eq α,
+  haveI : decidable (⊤ ≤ a) := decidable_of_iff' _ top_le_iff,
+  by simp [-top_le_iff, lt_iff_le_not_le, not_iff_not.2 (@top_le_iff _ _ a)]
+end
+
 end order_top
 
 theorem order_top.ext_top {α} {A B : order_top α}
@@ -98,6 +105,13 @@ assume ha, hb $ bot_unique $ ha ▸ hab
 
 theorem eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ :=
 le_bot_iff.1 $ h₂ ▸ h
+
+lemma bot_lt_iff_ne_bot : ⊥ < a ↔ a ≠ ⊥ :=
+begin
+  haveI := classical.dec_eq α,
+  haveI : decidable (a ≤ ⊥) := decidable_of_iff' _ le_bot_iff,
+  simp [-le_bot_iff, lt_iff_le_not_le, not_iff_not.2 (@le_bot_iff _ _ a)]
+end
 
 end order_bot
 
@@ -279,6 +293,13 @@ namespace with_bot
 variable {α : Type u}
 open lattice
 
+meta instance {α} [has_to_format α] : has_to_format (with_bot α) :=
+{ to_format := λ x,
+  match x with
+  | none := "⊥"
+  | (some x) := to_fmt x
+  end }
+
 instance : has_coe_t α (with_bot α) := ⟨some⟩
 instance has_bot : has_bot (with_bot α) := ⟨none⟩
 
@@ -288,8 +309,20 @@ lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rf
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
+@[priority 0]
+instance has_lt [has_lt α] : has_lt (with_bot α) :=
+{ lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
+
+@[simp] theorem some_lt_some [has_lt α] {a b : α} :
+  @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
+by simp [(<)]
+
 instance partial_order [partial_order α] : partial_order (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
+  lt          := (<),
+  lt_iff_le_not_le := by intros; cases a; cases b;
+                         simp [lt_iff_le_not_le]; simp [(<)];
+                         split; refl,
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
     let ⟨b, hb, ab⟩ := h₁ a ha, ⟨c, hc, bc⟩ := h₂ b hb in
@@ -319,11 +352,6 @@ theorem coe_le [partial_order α] {a b : α} :
   ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b)
 | _ rfl := coe_le_coe
 
-@[simp] theorem some_lt_some [partial_order α] {a b : α} :
-  @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
-(and_congr some_le_some (not_congr some_le_some))
-  .trans lt_iff_le_not_le.symm
-
 lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
 
 lemma bot_lt_some [partial_order α] (a : α) : (⊥ : with_bot α) < some a :=
@@ -338,6 +366,14 @@ instance linear_order [linear_order α] : linear_order (with_bot α) :=
     simp [le_total]
   end,
   ..with_bot.partial_order }
+
+instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_bot α) (<)
+| none (some x) := is_true $ by existsi [x,rfl]; rintros _ ⟨⟩
+| (some x) (some y) :=
+  if h : x < y
+  then is_true $ by simp *
+  else is_false $ by simp *
+| x none := is_false $ by rintro ⟨a,⟨⟨⟩⟩⟩
 
 instance decidable_linear_order [decidable_linear_order α] : decidable_linear_order (with_bot α) :=
 { decidable_le := λ a b, begin
@@ -434,6 +470,13 @@ def with_top (α : Type*) := option α
 namespace with_top
 variable {α : Type u}
 open lattice
+
+meta instance {α} [has_to_format α] : has_to_format (with_top α) :=
+{ to_format := λ x,
+  match x with
+  | none := "⊤"
+  | (some x) := to_fmt x
+  end }
 
 instance : has_coe_t α (with_top α) := ⟨some⟩
 instance has_top : has_top (with_top α) := ⟨none⟩

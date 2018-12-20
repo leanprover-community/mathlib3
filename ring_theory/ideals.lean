@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
-import tactic.ring linear_algebra.basic ring_theory.associated
+import linear_algebra.basic ring_theory.associated order.zorn
 
 universes u v
 variables {α : Type u} {β : Type v} [comm_ring α] {a b : α}
@@ -68,21 +68,6 @@ lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodu
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, span_singleton_one, eq_top_iff]
 
-def comap [comm_ring β] (f : α → β) [is_ring_hom f]
-  (I : ideal β) : ideal α :=
-{ carrier := f ⁻¹' I,
-  zero := show f 0 ∈ I, by rw is_ring_hom.map_zero f; exact I.zero_mem,
-  add := λ x y hx hy, show f (x + y) ∈ I, by rw is_ring_hom.map_add f; exact I.add_mem hx hy,
-  smul := λ c x hx, show f (c * x) ∈ I, by rw is_ring_hom.map_mul f; exact I.mul_mem_left hx }
-
-@[simp] theorem mem_comap [comm_ring β] {f : α → β} [is_ring_hom f]
-  {I : ideal β} {x} : x ∈ comap f I ↔ f x ∈ I := iff.rfl
-
-theorem comap_ne_top [comm_ring β] (f : α → β) [is_ring_hom f]
-  {I : ideal β} (hI : I ≠ ⊤) : comap f I ≠ ⊤ :=
-(ne_top_iff_one _).2 $ by rw [mem_comap, is_ring_hom.map_one f];
-  exact (ne_top_iff_one _).1 hI
-
 @[class] def is_prime (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I
 
@@ -93,17 +78,20 @@ theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
 hI.2 (h.symm ▸ I.zero_mem)
 
+theorem is_prime.mem_of_pow_mem {I : ideal α} (hI : I.is_prime)
+  {r : α} (n : ℕ) (H : r^n ∈ I) : r ∈ I :=
+begin
+  induction n with n ih,
+  { exact (mt (eq_top_iff_one _).2 hI.1).elim H },
+  exact or.cases_on (hI.mem_or_mem H) id ih
+end
+
 @[class] def zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
 
 theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
   is_prime (span ({p} : set α)) ↔ prime p :=
 by simp [is_prime, prime, span_singleton_eq_top, hp, mem_span_singleton]
-
-instance is_prime.comap [comm_ring β] (f : α → β) [is_ring_hom f]
-  {I : ideal β} {hI : I.is_prime} : (comap f I).is_prime :=
-⟨comap_ne_top _ hI.1, λ x y,
-  by simp only [mem_comap, is_ring_hom.map_mul f]; apply hI.2⟩
 
 @[class] def is_maximal (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ J, I < J → J = ⊤
@@ -145,22 +133,13 @@ instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prim
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 begin
-  let C : set (set α) := {s | ∃ J:ideal α, J ≠ ⊤ ∧ ↑J = s},
-  rcases zorn.zorn_subset₀ C _ _ ⟨I, hI, rfl⟩ with ⟨_, ⟨M, M0, rfl⟩, IM, h⟩,
+  rcases zorn.zorn_partial_order₀ { J : ideal α | J ≠ ⊤ } _ I hI with ⟨M, M0, IM, h⟩,
   { refine ⟨M, ⟨M0, λ J hJ, by_contradiction $ λ J0, _⟩, IM⟩,
-    cases lt_iff_le_not_le.1 hJ with hJ₁ hJ₂,
-    exact hJ₂ (le_of_eq (h _ ⟨_, J0, rfl⟩ hJ₁) : _) },
-  { intros S SC cC S0,
-    choose I hp using show ∀ x : S, ↑x ∈ C, from λ ⟨x, xs⟩, SC xs,
-    refine ⟨_, ⟨⨆ s:S, span s, _, rfl⟩, _⟩,
-    rw [ne_top_iff_one, submodule.mem_supr_of_directed
-      (coe_nonempty_iff_ne_empty.2 S0), not_exists],
-    { rintro ⟨_, xs⟩, rcases SC xs with ⟨J, J0, rfl⟩,
-      simp, exact J.ne_top_iff_one.1 J0 },
-    { rintro ⟨i, iS⟩ ⟨j, jS⟩,
-      rcases cC.directed iS jS with ⟨k, kS, ik, jk⟩,
-      exact ⟨⟨_, kS⟩, span_mono ik, span_mono jk⟩ },
-    { exact λ s ss, span_le.1 (le_supr (λ s:S, span (s:set α)) ⟨s, ss⟩) } },
+    cases h J J0 (le_of_lt hJ), exact lt_irrefl _ hJ },
+  { intros S SC cC I IS,
+    refine ⟨Sup S, λ H, _, λ _, le_Sup⟩,
+    rcases submodule.mem_Sup_of_directed ((eq_top_iff_one _).1 H) I IS cC.directed_on with ⟨J, JS, J0⟩,
+    exact SC JS ((eq_top_iff_one _).2 J0) }
 end
 
 end ideal

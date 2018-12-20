@@ -191,7 +191,7 @@ set.ext $ λ x, by simp only [mem_coe, mem_insert, set.mem_insert_iff]
 @[simp] theorem insert_eq_of_mem {a : α} {s : finset α} (h : a ∈ s) : insert a s = s :=
 eq_of_veq $ ndinsert_of_mem h
 
-@[simp] theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
+theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext.2 $ λ x, by simp only [finset.mem_insert, or.left_comm]
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
@@ -599,7 +599,7 @@ end filter
 section range
 variables {n m l : ℕ}
 
-/-- `range n` is the set of integers less than `n`. -/
+/-- `range n` is the set of natural numbers less than `n`. -/
 def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
 @[simp] theorem range_val (n : ℕ) : (range n).1 = multiset.range n := rfl
@@ -608,7 +608,9 @@ def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
 @[simp] theorem range_zero : range 0 = ∅ := rfl
 
-@[simp] theorem range_succ : range (succ n) = insert n (range n) :=
+@[simp] theorem range_one : range 1 = {0} := rfl
+
+theorem range_succ : range (succ n) = insert n (range n) :=
 eq_of_veq $ (range_succ n).trans $ (ndinsert_of_not_mem not_mem_range_self).symm
 
 @[simp] theorem not_mem_range_self : n ∉ range n := not_mem_range_self
@@ -676,9 +678,17 @@ finset.val_inj.1 (erase_dup_eq_self.2 n).symm
 @[simp] theorem mem_to_finset {a : α} {s : multiset α} : a ∈ s.to_finset ↔ a ∈ s :=
 mem_erase_dup
 
+@[simp] lemma to_finset_zero :
+  to_finset (0 : multiset α) = ∅ :=
+rfl
+
 @[simp] lemma to_finset_cons (a : α) (s : multiset α) :
   to_finset (a :: s) = insert a (to_finset s) :=
 finset.eq_of_veq erase_dup_cons
+
+@[simp] lemma to_finset_add (s t : multiset α) :
+  to_finset (s + t) = to_finset s ∪ to_finset t :=
+finset.ext' $ by simp
 
 end multiset
 
@@ -859,6 +869,14 @@ eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
 lemma image_const [decidable_eq β] {s : finset α} (h : s ≠ ∅) (b : β) : s.image (λa, b) = singleton b :=
 ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   exists_mem_of_ne_empty h, true_and, mem_singleton, eq_comm]
+
+protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
+(s.filter p).attach.map ⟨λ x, ⟨x.1, (finset.mem_filter.1 x.2).2⟩,
+λ x y H, subtype.eq $ subtype.mk.inj H⟩
+
+@[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
+  ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
+| ⟨a, ha⟩ := by simp [finset.subtype, ha]
 
 end image
 
@@ -1185,19 +1203,6 @@ mem_powerset.2 (subset.refl _)
 
 end powerset
 
-section subtype
-variables [decidable_eq α]
-
-protected def subtype (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
-(s.filter p).attach.image $ λ⟨a, ha⟩, ⟨a, (mem_filter.1 ha).2⟩
-
-@[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
-  ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
-| ⟨a, ha⟩ := by simp only [finset.subtype, mem_image, exists_prop,
-    mem_attach, true_and, subtype.exists, exists_eq_right, mem_filter, ha, and_true]
-
-end subtype
-
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]
 local notation a * b := op a b
@@ -1293,6 +1298,29 @@ iff.intro (assume h b hb, le_trans (le_sup hb) h) sup_le
 lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
 sup_le $ assume b hb, le_sup (h hb)
 
+lemma sup_lt [is_total α (≤)] {a : α} : (⊥ < a) → (∀b ∈ s, f b < a) → s.sup f < a :=
+have A : ∀ x y, x < a → y < a → x ⊔ y < a :=
+begin
+  assume x y hx hy,
+  cases (is_total.total (≤) x y) with h,
+  { simpa [sup_of_le_right h] using hy },
+  { simpa [sup_of_le_left h] using hx }
+end,
+by letI := classical.dec_eq β; from
+finset.induction_on s (by simp) (by simp [A] {contextual := tt})
+
+lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
+  (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
+have A : ∀x y, g (x ⊔ y) = g x ⊔ g y :=
+begin
+  assume x y,
+  cases (is_total.total (≤) x y) with h,
+  { simp [sup_of_le_right h, sup_of_le_right (mono_g h)] },
+  { simp [sup_of_le_left h, sup_of_le_left (mono_g h)] }
+end,
+by letI := classical.dec_eq β; from
+finset.induction_on s (by simp [bot]) (by simp [A] {contextual := tt})
+
 end sup
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
@@ -1347,6 +1375,29 @@ iff.intro (assume h b hb, le_trans h (inf_le hb)) le_inf
 
 lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
+
+lemma lt_inf [is_total α (≤)] {a : α} : (a < ⊤) → (∀b ∈ s, a < f b) → a < s.inf f :=
+have A : ∀ x y, a < x → a < y → a < x ⊓ y :=
+begin
+  assume x y hx hy,
+  cases (is_total.total (≤) x y) with h,
+  { simpa [inf_of_le_left h] using hy },
+  { simpa [inf_of_le_right h] using hx }
+end,
+by letI := classical.dec_eq β; from
+finset.induction_on s (by simp) (by simp [A] {contextual := tt})
+
+lemma comp_inf_eq_inf_comp [is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
+  (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
+have A : ∀x y, g (x ⊓ y) = g x ⊓ g y :=
+begin
+  assume x y,
+  cases (is_total.total (≤) x y) with h,
+  { simp [inf_of_le_left h, inf_of_le_left (mono_g h)] },
+  { simp [inf_of_le_right h, inf_of_le_right (mono_g h)] }
+end,
+by letI := classical.dec_eq β; from
+finset.induction_on s (by simp [top]) (by simp [A] {contextual := tt})
 
 end inf
 
@@ -1543,6 +1594,23 @@ def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin
 
 @[simp] lemma card_attach_fin {n : ℕ} (s : finset ℕ) (h : ∀ m ∈ s, m < n) :
   (s.attach_fin h).card = s.card := multiset.card_pmap _ _ _
+
+section choose
+variables (p : α → Prop) [decidable_pred p] (l : finset α)
+
+def choose_x (hp : (∃! a, a ∈ l ∧ p a)) : { a // a ∈ l ∧ p a } :=
+multiset.choose_x p l.val hp
+
+def choose (hp : ∃! a, a ∈ l ∧ p a) : α := choose_x p l hp
+
+lemma choose_spec (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l ∧ p (choose p l hp) :=
+(choose_x p l hp).property
+
+lemma choose_mem (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose_spec _ _ _).1
+
+lemma choose_property (hp : ∃! a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
+
+end choose
 
 theorem lt_wf {α} [decidable_eq α] : well_founded (@has_lt.lt (finset α) _) :=
 have H : subrelation (@has_lt.lt (finset α) _)

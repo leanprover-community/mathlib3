@@ -850,7 +850,7 @@ end topological_add_group
 section order_topology
 
 variables [topological_space α] [topological_space β]
-  [decidable_linear_order α] [decidable_linear_order β] [orderable_topology α] [orderable_topology β]
+  [linear_order α] [linear_order β] [orderable_topology α] [orderable_topology β]
 
 lemma nhds_principal_ne_bot_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) :
   nhds a ⊓ principal s ≠ ⊥ :=

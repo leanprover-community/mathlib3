@@ -75,6 +75,10 @@ do { ei ← es.find e,
   return (ei.line :: deps) }
 <|> return deps
 
+meta def may_be_proof (e : expr) : tactic bool :=
+is_proof e >>= λ b, return $ 
+b || is_app e || is_local_constant e || is_pi e || is_lambda e
+
 end explode
 open explode
 
@@ -90,7 +94,10 @@ with explode.core : expr → bool → nat → entries → tactic entries
   else do
     let en : entry := ⟨l, es.size, depth, status.intro, to_string n, []⟩,
     es' ← explode.core b' si (depth + 1) (es.add en),
-    return $ es'.add ⟨e, es'.size, depth, status.lam, "∀I", [es'.size - 1]⟩
+    deps' ← explode.append_dep filter es' b' [],
+    deps' ← explode.append_dep filter es' l deps',
+    return $ es'.add ⟨e, es'.size, depth, status.lam, "∀I", deps'⟩
+| e@(macro _ l) si depth es := explode.core l.head si depth es
 | e si depth es := filter e >>
   match get_app_fn_args e with
   | (const n _, args) :=
@@ -113,7 +120,7 @@ with explode.args : expr → list expr → nat → entries → string → list n
   return (es.add ⟨e, es.size, depth, status.reg, thm, deps.reverse⟩)
 
 meta def explode_expr (e : expr) (hide_non_prop := tt) : tactic entries :=
-let filter := if hide_non_prop then λ e, is_proof e >>= guardb else λ _, skip in
+let filter := if hide_non_prop then λ e, may_be_proof e >>= guardb else λ _, skip in
 tactic.explode.core filter e tt 0 (default _)
 
 meta def explode (n : name) : tactic unit :=
@@ -132,10 +139,10 @@ open interactive lean lean.parser interaction_monad.result
 @[user_command]
 meta def explode_cmd (_ : parse $ tk "#explode") : parser unit :=
 do n ← ident,
-  -- explode n  -- TODO(Mario): seems to cause a VM exception
-  of_tactic' (explode n)
+  explode n
 .
 
 -- #explode iff_true_intro
+-- #explode nat.strong_rec_on
 
 end tactic

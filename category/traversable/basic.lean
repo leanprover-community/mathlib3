@@ -87,3 +87,30 @@ class is_lawful_traversable (t : Type u → Type u) [traversable t]
     [is_lawful_applicative F] [is_lawful_applicative G]
     (η : applicative_transformation F G) {α β} (f : α → F β) (x : t α),
   η (traverse f x) = traverse (@η _ ∘ f) x)
+
+instance : traversable id := ⟨λ _ _ _ _, id⟩
+instance : is_lawful_traversable id := by refine {..}; intros; refl
+
+section
+
+variables {F : Type u → Type v} [applicative F]
+
+instance : traversable option := ⟨@option.traverse⟩
+
+instance : traversable list := ⟨@list.traverse⟩
+
+end
+
+namespace sum
+
+variables {σ : Type u}
+variables {F : Type u → Type u}
+variables [applicative F]
+
+protected def traverse {α β} (f : α → F β) : σ ⊕ α → F (σ ⊕ β)
+| (sum.inl x) := pure (sum.inl x)
+| (sum.inr x) := sum.inr <$> f x
+
+end sum
+
+instance {σ : Type u} : traversable.{u} (sum σ) := ⟨@sum.traverse _⟩

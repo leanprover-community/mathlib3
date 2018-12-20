@@ -484,7 +484,7 @@ theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.rep
   that is, the set `{0, 1, ..., n-1}`. -/
 def range (n : ℕ) : multiset ℕ := range n
 
-@[simp] theorem range_zero (n : ℕ) : range 0 = 0 := rfl
+@[simp] theorem range_zero : range 0 = 0 := rfl
 
 @[simp] theorem range_succ (n : ℕ) : range (succ n) = n :: range n :=
 by rw [range, range_concat, ← coe_add, add_comm]; refl
@@ -597,6 +597,9 @@ quot.induction_on s $ λ l, rfl
 
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
+
+instance (f : α → β) : is_add_monoid_hom (map f) :=
+by refine_struct {..}; simp
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
@@ -722,6 +725,9 @@ theorem prod_singleton [comm_monoid α] (a : α) : prod (a :: 0) = a := by simp
 @[simp, to_additive multiset.sum_add]
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
+
+instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
+by refine_struct {..}; simp
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
@@ -1074,11 +1080,11 @@ quotient.induction_on₃ s t u $
 theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
 by rw [add_comm, add_sub_of_le h]
 
-theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
+@[simp] theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
 multiset.induction_on s (by simp)
   (λ a s IH t, by rw [cons_add, sub_cons, erase_cons_head, IH])
 
-theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
+@[simp] theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
 by rw [add_comm, add_sub_cancel_left]
 
 theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=
@@ -1668,6 +1674,9 @@ quot.induction_on s $ λ l, countp_eq_length_filter _
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
 
+instance countp.is_add_monoid_hom : is_add_monoid_hom (countp p : multiset α → ℕ) :=
+by refine_struct {..}; simp
+
 theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
 by simp [countp_eq_card_filter, card_pos_iff_exists_mem]
 
@@ -1716,6 +1725,9 @@ by simp
 
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
 countp_add
+
+instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
+countp.is_add_monoid_hom
 
 @[simp] theorem count_smul (a : α) (n s) : count a (n • s) = n * count a s :=
 by induction n; simp [*, succ_smul', succ_mul]
@@ -2060,7 +2072,7 @@ quot.lift_on s nodup (λ s t p, propext $ perm_nodup p)
 @[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
 ⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
 
-@[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil _
+@[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil
 
 @[simp] theorem nodup_cons {a : α} {s : multiset α} : nodup (a::s) ↔ a ∉ s ∧ nodup s :=
 quot.induction_on s $ λ l, nodup_cons
@@ -2883,5 +2895,32 @@ lemma naturality {G H : Type* → Type*}
   eta (traverse f x) = traverse (@eta _ ∘ f) x :=
 quotient.induction_on x
 (by intro; simp [traverse,is_lawful_traversable.naturality] with functor_norm)
+
+section choose
+variables (p : α → Prop) [decidable_pred p] (l : multiset α)
+
+def choose_x : Π hp : (∃! a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a } :=
+quotient.rec_on l (λ l' ex_unique, list.choose_x p l' (exists_of_exists_unique ex_unique)) begin
+  intros,
+  funext hp,
+  suffices all_equal : ∀ x y : { t // t ∈ b ∧ p t }, x = y,
+  { apply all_equal },
+  { rintros ⟨x, px⟩ ⟨y, py⟩,
+    rcases hp with ⟨z, ⟨z_mem_l, pz⟩, z_unique⟩,
+    congr,
+    calc x = z : z_unique x px
+    ...    = y : (z_unique y py).symm }
+end
+
+def choose (hp : ∃! a, a ∈ l ∧ p a) : α := choose_x p l hp
+
+lemma choose_spec (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l ∧ p (choose p l hp) :=
+(choose_x p l hp).property
+
+lemma choose_mem (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose_spec _ _ _).1
+
+lemma choose_property (hp : ∃! a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
+
+end choose
 
 end multiset

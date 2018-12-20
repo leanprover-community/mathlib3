@@ -187,14 +187,16 @@ begin
   suffices, refine {
     add_le_add_left := this,
     ..with_zero.partial_order,
-    ..with_zero.add_comm_monoid, ..},
+    ..with_zero.add_comm_monoid, .. },
   { intros a b c h,
-    refine ⟨λ b h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    have h' := lt_iff_le_not_le.1 h,
+    rw lt_iff_le_not_le at ⊢,
+    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
     cases h₂, cases c with c,
-    { cases h.2 (this _ _ bot_le a) },
+    { cases h'.2 (this _ _ bot_le a) },
     { refine ⟨_, rfl, _⟩,
       cases a with a,
-      { exact with_bot.some_le_some.1 h.1 },
+      { exact with_bot.some_le_some.1 h'.1 },
       { exact le_of_lt (lt_of_add_lt_add_left' $
           with_bot.some_lt_some.1 h), } } },
   { intros a b h c ca h₂,
@@ -221,8 +223,7 @@ instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
-lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b :=
-rfl
+lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { ..@additive.add_comm_semigroup _ $
@@ -308,7 +309,9 @@ begin
     ..with_bot.partial_order,
     ..with_bot.add_comm_monoid, ..},
   { intros a b c h,
-    refine ⟨λ b h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    have h' := h,
+    rw lt_iff_le_not_le at h' ⊢,
+    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
     cases h₂, cases a with a,
     { exact (not_le_of_lt h).elim bot_le },
     cases c with c,
@@ -323,6 +326,8 @@ begin
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
 
+@[simp] lemma coe_zero [add_monoid α] : ((0 : α) : with_bot α) = 0 := rfl
+
 @[simp] lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
 
 @[simp] lemma bot_add [ordered_comm_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
@@ -330,6 +335,8 @@ end
 @[simp] lemma add_bot [ordered_comm_monoid α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
 
 instance has_one [has_one α] : has_one (with_bot α) := ⟨(1 : α)⟩
+
+@[simp] lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 
 end with_bot
 

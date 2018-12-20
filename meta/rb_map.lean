@@ -5,7 +5,7 @@ Author: Robert Y. Lewis
 
 Additional operations on native rb_maps and rb_sets.
 -/
-import data.option
+import data.option.defs
 
 namespace native
 namespace rb_set
@@ -19,6 +19,14 @@ s.fold t (λ a t, t.insert a)
 end rb_set
 
 namespace rb_map
+
+meta def find_def {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
+  (x : β) (m : rb_map α β) (k : α) :=
+(m.find k).get_or_else x
+
+meta def insert_cons {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
+  (k : α) (x : β) (m : rb_map α (list β)) : rb_map α (list β) :=
+m.insert k (x :: m.find_def [] k)
 
 meta def ifind {α β} [inhabited β] (m : rb_map α β) (a : α) : β :=
 (m.find a).iget

@@ -146,6 +146,13 @@ abs_le_of_le_of_neg_le
   (by simp [le_max_iff, le_trans hbc (le_abs_self c)])
   (by simp [le_max_iff, le_trans (neg_le_neg hab) (neg_le_abs_self a)])
 
+theorem abs_le_abs {α : Type*} [decidable_linear_ordered_comm_group α] {a b : α}
+  (h₀ : a ≤ b) (h₁ : -a ≤ b) :
+  abs a ≤ abs b :=
+calc  abs a
+    ≤ b : by { apply abs_le_of_le_of_neg_le; assumption }
+... ≤ abs b : le_abs_self _
+
 lemma min_le_add_of_nonneg_right {a b : α} (hb : b ≥ 0) : min a b ≤ a + b :=
 calc
   min a b ≤ a     : by apply min_le_left

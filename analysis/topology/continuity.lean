@@ -190,7 +190,7 @@ continuous_iff_le_coinduced.2 $ Inf_le_of_le h₁ $ continuous_iff_le_coinduced.
 
 lemma continuous_infi_dom {t₁ : ι → tspace α} {t₂ : tspace β}
   (h : ∀i, cont (t₁ i) t₂ f) : cont (infi t₁) t₂ f :=
-continuous_Inf_dom $ assume t ⟨i, (t_eq : t = t₁ i)⟩, t_eq.symm ▸ h i
+continuous_Inf_dom $ assume t ⟨i, (t_eq : t₁ i = t)⟩, t_eq ▸ h i
 
 lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β} {i : ι}
   (h : cont t₁ (t₂ i) f) : cont t₁ (infi t₂) f :=
@@ -832,7 +832,7 @@ lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λx, (x, 
 embedding_of_embedding_compose (continuous_id.prod_mk hf) continuous_fst embedding_id
 
 lemma embedding_subtype_val : embedding (@subtype.val α p) :=
-⟨assume a₁ a₂, subtype.eq, rfl⟩
+⟨subtype.val_injective, rfl⟩
 
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom

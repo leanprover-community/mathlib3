@@ -44,6 +44,9 @@ theorem mul_smul : (r * s) • x = r • s • x := semimodule.mul_smul r s x
 
 lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm
 
+instance smul.is_add_monoid_hom {r : α} : is_add_monoid_hom (λ x : β, r • x) :=
+by refine_struct {..}; simp [smul_add]
+
 end semimodule
 
 /-- A module is a generalization of vector spaces to a scalar ring.
@@ -142,6 +145,8 @@ theorem ext_iff {f g : β →ₗ γ} : f = g ↔ ∀ x, f x = g x :=
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul, map_smul f 0 0, zero_smul]
 
+instance : is_add_group_hom f := ⟨map_add f⟩
+
 @[simp] lemma map_neg (x : β) : f (- x) = - f x :=
 by rw [← neg_one_smul, map_smul, neg_one_smul]
 
@@ -150,7 +155,7 @@ by simp [map_neg, map_add]
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → β} :
   f (t.sum g) = t.sum (λi, f (g i)) :=
-(finset.sum_hom f f.map_zero f.add).symm
+(finset.sum_hom f).symm
 
 def comp (f : γ →ₗ δ) (g : β →ₗ γ) : β →ₗ δ := ⟨f ∘ g, by simp, by simp⟩
 
@@ -305,6 +310,5 @@ include R
 theorem smul_mem_iff (r0 : r ≠ 0) : r • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa [smul_smul, inv_mul_cancel r0] using p.smul_mem (r⁻¹) h,
  p.smul_mem r⟩
-
 
 end submodule

@@ -511,7 +511,6 @@ by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
-have rat.nonneg (c - a + (b - b)), by simpa [-add_right_neg, add_left_comm],
 by simpa
 
 instance : decidable_linear_order ℚ :=
@@ -859,7 +858,7 @@ cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos
 @[simp] theorem cast_div [discrete_field α] [char_zero α] (m n) : ((m / n : ℚ) : α) = m / n :=
 by rw [division_def, cast_mul, cast_inv, division_def]
 
-@[simp] theorem cast_pow [discrete_field α] [char_zero α] (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k := 
+@[simp] theorem cast_pow [discrete_field α] [char_zero α] (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
 by induction k; simp only [*, cast_one, cast_mul, pow_zero, pow_succ]
 
 @[simp] theorem cast_bit0 [division_ring α] [char_zero α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _

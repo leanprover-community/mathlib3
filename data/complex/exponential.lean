@@ -426,7 +426,7 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw ← sum_hom conj conj_zero conj_add,
+  rw ← sum_hom conj,
   refine sum_congr rfl (λ n hn, _),
   rw [conj_div, conj_pow, ← of_real_nat_cast, conj_of_real]
 end
@@ -803,7 +803,9 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
       have h₂ : ((x : ℂ) ^ 0 / nat.fact 0).re = 1, by simp,
       begin
         rw [← nat.sub_add_cancel hj, sum_range_succ', sum_range_succ',
-          add_re, add_re, h₁, h₂, add_assoc, ← sum_hom complex.re zero_re add_re],
+          add_re, add_re, h₁, h₂, add_assoc,
+          ← @sum_hom _ _ _ _ _ _ _ complex.re
+            (is_add_group_hom.to_is_add_monoid_hom _)],
         refine le_add_of_nonneg_of_le (zero_le_sum (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
         rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
         exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),
@@ -856,13 +858,14 @@ calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
     (λ b hb, ⟨b + n, mem_filter.2 ⟨mem_range.2 $ nat.add_lt_of_lt_sub_right (mem_range.1 hb), nat.le_add_left _ _⟩,
       by rw nat.add_sub_cancel⟩)
 ... ≤ (range (j - n)).sum (λ m, (nat.fact n * n.succ ^ m)⁻¹) :
-  sum_le_sum (λ m hm, begin
-    rw one_div_eq_inv,
-    refine (inv_le_inv (nat.cast_pos.2 (nat.fact_pos _)) _).2 _,
-    { exact mul_pos (nat.cast_pos.2 (nat.fact_pos _)) (pow_pos (nat.cast_pos.2 (nat.succ_pos _)) _) },
+  begin
+    refine  sum_le_sum (assume m n, _),
+    rw [one_div_eq_inv, inv_le_inv],
     { rw [← nat.cast_pow, ← nat.cast_mul, nat.cast_le, add_comm],
-      exact nat.fact_mul_pow_le_fact }
-  end)
+      exact nat.fact_mul_pow_le_fact },
+    { exact nat.cast_pos.2 (nat.fact_pos _) },
+    { exact mul_pos (nat.cast_pos.2 (nat.fact_pos _)) (pow_pos (nat.cast_pos.2 (nat.succ_pos _)) _) },
+  end
 ... = (nat.fact n)⁻¹ * (range (j - n)).sum (λ m, n.succ⁻¹ ^ m) :
   by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.fact_succ, mul_comm, inv_pow']
 ... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n.fact * n) :
@@ -878,8 +881,12 @@ calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
       div_eq_div_iff h₄ h₃];
     simp [mul_add, add_mul, mul_comm, mul_assoc, mul_left_comm]
 ... ≤ n.succ / (n.fact * n) :
-  (div_le_div_right (mul_pos (nat.cast_pos.2 (nat.fact_pos _)) (nat.cast_pos.2 hn))).2
-    (sub_le_self _ (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (inv_nonneg.2 (nat.cast_nonneg _)) _)))
+  begin
+    refine (div_le_div_right (mul_pos _ _)).2 _,
+    exact nat.cast_pos.2 (nat.fact_pos _),
+    exact nat.cast_pos.2 hn,
+    exact sub_le_self _ (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (inv_nonneg.2 (nat.cast_nonneg _)) _))
+  end
 
 lemma exp_bound {x : ℂ} (hx : abs x ≤ 1) {n : ℕ} (hn : 0 < n) :
   abs (exp x - (range n).sum (λ m, x ^ m / m.fact)) ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹) :=
@@ -894,11 +901,15 @@ begin
     congr_arg abs (sum_congr rfl (λ m hm, by rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel']; simp at hm; tauto))
   ... ≤ sum (filter (λ k, n ≤ k) (range j)) (λ m, abs (x ^ n * (_ / m.fact))) : abv_sum_le_sum_abv _ _
   ... ≤ sum (filter (λ k, n ≤ k) (range j)) (λ m, abs x ^ n * (1 / m.fact)) :
-    sum_le_sum (λ m hm, by
-      by rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat];
-      exact mul_le_mul_of_nonneg_left ((div_le_div_right (nat.cast_pos.2 (nat.fact_pos _))).2
-          (by rw abv_pow abs; exact (pow_le_one _ (abs_nonneg _) hx)))
-        (pow_nonneg (abs_nonneg _) _))
+    begin
+      refine sum_le_sum (λ m hm, _),
+      rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
+      refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
+      exact nat.cast_pos.2 (nat.fact_pos _),
+      rw abv_pow abs,
+      exact (pow_le_one _ (abs_nonneg _) hx),
+      exact pow_nonneg (abs_nonneg _) _
+    end
   ... = abs x ^ n * (((range j).filter (λ k, n ≤ k)).sum (λ m : ℕ, (1 / m.fact : ℝ))) :
     by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]
   ... ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹) :

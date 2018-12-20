@@ -105,7 +105,7 @@ lemma is_closed_sInter {s : set (set α)} : (∀t ∈ s, is_closed t) → is_clo
 by simp only [is_closed, compl_sInter, sUnion_image]; exact assume h, is_open_Union $ assume t, is_open_Union $ assume ht, h t ht
 
 lemma is_closed_Inter {f : ι → set α} (h : ∀i, is_closed (f i)) : is_closed (⋂i, f i ) :=
-is_closed_sInter $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
+is_closed_sInter $ assume t ⟨i, (heq : f i = t)⟩, heq ▸ h i
 
 @[simp] lemma is_open_compl_iff {s : set α} : is_open (-s) ↔ is_closed s := iff.rfl
 
@@ -696,24 +696,20 @@ let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 
 theorem exists_irreducible (s : set α) (H : is_irreducible s) :
   ∃ t : set α, is_irreducible t ∧ s ⊆ t ∧ ∀ u, is_irreducible u → t ⊆ u → u = t :=
-let ⟨⟨m, hsm, hm⟩, hm_max⟩ := @zorn.zorn { t | s ⊆ t ∧ is_irreducible t } (subrel (⊆) _)
-  (λ c hchain, classical.by_cases
-    (assume hc : c = ∅, ⟨⟨s, set.subset.refl s, H⟩, λ ⟨t, hsx, hx⟩,
-      hc.symm ▸ false.elim⟩)
-    (assume hc : c ≠ ∅, let ⟨⟨x, hsx, hx⟩, hxc⟩ := exists_mem_of_ne_empty hc in
-      ⟨⟨⋃ t ∈ c, subtype.val t, λ z hz, mem_bUnion hxc (hsx hz), λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
-        let ⟨p, hpc, hyp⟩ := mem_bUnion_iff.1 hy,
-            ⟨q, hqc, hzq⟩ := mem_bUnion_iff.1 hz in
-        or.cases_on (zorn.chain.total hchain hpc hqc)
-          (assume hpq : p.1 ⊆ q.1, let ⟨x, hxp, hxuv⟩ := q.2.2 u v hu hv
-              ⟨y, hpq hyp, hyu⟩ ⟨z, hzq, hzv⟩ in
-            ⟨x, mem_bUnion hqc hxp, hxuv⟩)
-          (assume hqp : q.1 ⊆ p, let ⟨x, hxp, hxuv⟩ := p.2.2 u v hu hv
-              ⟨y, hyp, hyu⟩ ⟨z, hqp hzq, hzv⟩ in
-            ⟨x, mem_bUnion hpc hxp, hxuv⟩)⟩,
-      λ ⟨p, hsp, hp⟩ hpc z hzp, mem_bUnion hpc hzp⟩))
-  (λ _ _ _, set.subset.trans) in
-⟨m, hm, hsm, λ u hu hmu, subset.antisymm (hm_max ⟨_, set.subset.trans hsm hmu, hu⟩ hmu) hmu⟩
+let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ { t : set α | is_irreducible t }
+  (λ c hc hcc hcn, let ⟨t, htc⟩ := exists_mem_of_ne_empty hcn in
+    ⟨⋃₀ c, λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
+      let ⟨p, hpc, hyp⟩ := mem_sUnion.1 hy,
+          ⟨q, hqc, hzq⟩ := mem_sUnion.1 hz in
+      or.cases_on (zorn.chain.total hcc hpc hqc)
+        (assume hpq : p ⊆ q, let ⟨x, hxp, hxuv⟩ := hc hqc u v hu hv
+            ⟨y, hpq hyp, hyu⟩ ⟨z, hzq, hzv⟩ in
+          ⟨x, mem_sUnion_of_mem hxp hqc, hxuv⟩)
+        (assume hqp : q ⊆ p, let ⟨x, hxp, hxuv⟩ := hc hpc u v hu hv
+            ⟨y, hyp, hyu⟩ ⟨z, hqp hzq, hzv⟩ in
+          ⟨x, mem_sUnion_of_mem hxp hpc, hxuv⟩),
+    λ x hxc, set.subset_sUnion_of_mem hxc⟩) s H in
+⟨m, hm, hsm, λ u hu hmu, hmm _ hu hmu⟩
 
 def irreducible_component (x : α) : set α :=
 classical.some (exists_irreducible {x} is_irreducible_singleton)
@@ -1762,10 +1758,34 @@ def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ int
   le_l_u := λ _, interior_subset,
   choice_eq := λ s hs, le_antisymm interior_subset hs }
 
+@[simp] lemma gi_choice_val {s : order_dual (set α)} {hs} : (gi.choice s hs).val = s := rfl
+
 instance : complete_lattice (opens α) :=
-@order_dual.lattice.complete_lattice _
+complete_lattice.copy
+(@order_dual.lattice.complete_lattice _
   (@galois_insertion.lift_complete_lattice
-    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi)
+    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi))
+/- le  -/ (λ U V, U.1 ⊆ V.1) rfl
+/- top -/ ⟨set.univ, _root_.is_open_univ⟩ (subtype.ext.mpr interior_univ.symm)
+/- bot -/ ⟨∅, is_open_empty⟩ rfl
+/- sup -/ (λ U V, ⟨U.1 ∪ V.1, _root_.is_open_union U.2 V.2⟩) rfl
+/- inf -/ (λ U V, ⟨U.1 ∩ V.1, _root_.is_open_inter U.2 V.2⟩)
+begin
+  funext,
+  apply subtype.ext.mpr,
+  symmetry,
+  apply interior_eq_of_open,
+  exact (_root_.is_open_inter U.2 V.2),
+end
+/- Sup -/ (λ Us, ⟨⋃₀ (subtype.val '' Us), _root_.is_open_sUnion $ λ U hU,
+by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
+begin
+  funext,
+  apply subtype.ext.mpr,
+  simp [Sup_range],
+  refl,
+end
+/- Inf -/ _ rfl
 
 @[simp] lemma Sup_s {Us : set (opens α)} : (Sup Us).val = ⋃₀ (subtype.val '' Us) :=
 begin

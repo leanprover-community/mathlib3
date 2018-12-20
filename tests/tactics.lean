@@ -705,3 +705,25 @@ begin
 end
 
 end conv
+
+private meta def get_exception_message (t : lean.parser unit) : lean.parser string
+| s := match t s with
+       | result.success a s' := result.success "No exception" s
+       | result.exception none pos s' := result.success "Exception no msg" s
+       | result.exception (some msg) pos s' := result.success (msg ()).to_string s
+       end
+
+@[user_command] meta def test_parser1_fail_cmd
+(_ : interactive.parse (lean.parser.tk "test_parser1")) : lean.parser unit :=
+do
+  let msg := "oh, no!",
+  let t : lean.parser unit := tactic.fail msg,
+  s ← get_exception_message t,
+  if s = msg then tactic.skip
+  else interaction_monad.fail "Message was corrupted while being passed through `lean.parser.of_tactic`"
+.
+
+-- Due to `lean.parser.of_tactic'` priority, the following *should not* fail with
+-- a VM check error, and instead catch the error gracefully and just
+-- run and succeed silently.
+test_parser1

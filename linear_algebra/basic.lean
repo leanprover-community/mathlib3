@@ -7,7 +7,7 @@ Basics of linear algebra. This sets up the "categorical/lattice structure" of
 modules, submodules, and linear maps.
 -/
 
-import algebra.pi_instances order.zorn data.set.finite data.finsupp order.order_iso
+import algebra.pi_instances data.finsupp order.order_iso
 
 open function lattice
 
@@ -26,7 +26,7 @@ namespace finset
 lemma smul_sum [ring γ] [add_comm_group β] [module γ β]
   {s : finset α} {a : γ} {f : α → β} :
   a • (s.sum f) = s.sum (λc, a • f c) :=
-(finset.sum_hom ((•) a) (@smul_zero γ β _ _ _ a) (assume _ _, smul_add _ _ _)).symm
+(finset.sum_hom ((•) a)).symm
 
 end finset
 
@@ -79,9 +79,16 @@ instance : add_comm_group (β →ₗ γ) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
 
+instance linear_map.is_add_group_hom : is_add_group_hom f :=
+by refine_struct {..}; simp
+
+instance linear_map_apply_is_add_group_hom (a : β) :
+  is_add_group_hom (λ f : β →ₗ γ, f a) :=
+by refine_struct {..}; simp
+
 lemma sum_apply [decidable_eq δ] (t : finset δ) (f : δ → β →ₗ γ) (b : β) :
   t.sum f b = t.sum (λd, f d b) :=
-(@finset.sum_hom _ _ _ t f _ _ (λ g : β →ₗ γ, g b) (by simp) (by simp)).symm
+(@finset.sum_hom _ _ _ t f _ _ (λ g : β →ₗ γ, g b) _).symm
 
 @[simp] lemma sub_apply (x : β) : (f - g) x = f x - g x := rfl
 
@@ -288,7 +295,7 @@ eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
 @[simp] theorem infi_coe {ι} (p : ι → submodule α β) :
   (↑⨅ i, p i : set β) = ⋂ i, ↑(p i) :=
 by rw [infi, Inf_coe]; ext a; simp; exact
-⟨λ h i, h _ i rfl, λ h i x e, e.symm ▸ h _⟩
+⟨λ h i, h _ i rfl, λ h i x e, e ▸ h _⟩
 
 @[simp] theorem mem_infi {ι} (p : ι → submodule α β) :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
@@ -312,6 +319,9 @@ lemma map_coe (f : β →ₗ γ) (p : submodule α β) :
 
 @[simp] lemma mem_map {f : β →ₗ γ} {p : submodule α β} {x : γ} :
   x ∈ map f p ↔ ∃ y, y ∈ p ∧ f y = x := iff.rfl
+
+theorem mem_map_of_mem {f : β →ₗ γ} {p : submodule α β} {r} (h : r ∈ p) : f r ∈ map f p :=
+set.mem_image_of_mem _ h
 
 lemma map_id : map linear_map.id p = p :=
 submodule.ext $ λ a, by simp
@@ -435,6 +445,27 @@ end
   (H : ∀ i j, ∃ k, S i ≤ S k ∧ S j ≤ S k) {x} :
   x ∈ supr S ↔ ∃ i, x ∈ S i :=
 by rw [← mem_coe, Union_coe_of_directed hι S H, mem_Union]; refl
+
+theorem mem_Sup_of_directed {s : set (submodule α β)}
+  {z} (hzs : z ∈ Sup s) (x ∈ s)
+  (hdir : ∀ i ∈ s, ∀ j ∈ s, ∃ k ∈ s, i ≤ k ∧ j ≤ k) :
+  ∃ y ∈ s, z ∈ y :=
+begin
+  haveI := classical.dec, rw Sup_eq_supr at hzs,
+  have, { refine (mem_supr_of_directed ⟨⊥⟩ _ (λ i j, _)).1 hzs,
+    by_cases his : i ∈ s; by_cases hjs : j ∈ s,
+    { rcases hdir i his j hjs with ⟨k, hks, hik, hjk⟩,
+        exact ⟨k, le_supr_of_le hks (supr_le $ λ _, hik),
+          le_supr_of_le hks (supr_le $ λ _, hjk)⟩ },
+    { exact ⟨i, le_refl _, supr_le $ hjs.elim⟩ },
+    { exact ⟨j, supr_le $ his.elim, le_refl _⟩ },
+    { exact ⟨⊥, supr_le $ his.elim, supr_le $ hjs.elim⟩ } },
+  cases this with N hzn, by_cases hns : N ∈ s,
+  { have : (⨆ (H : N ∈ s), N) ≤ N := supr_le (λ _, le_refl _),
+    exact ⟨N, hns, this hzn⟩ },
+  { have : (⨆ (H : N ∈ s), N) ≤ ⊥ := supr_le hns.elim,
+    cases mem_bot.1 (this hzn), exact ⟨x, H, x.zero_mem⟩ }
+end
 
 variables {p p'}
 lemma mem_sup : x ∈ p ⊔ p' ↔ ∃ (y ∈ p) (z ∈ p'), y + z = x :=

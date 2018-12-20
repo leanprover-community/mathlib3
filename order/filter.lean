@@ -1090,7 +1090,7 @@ lemma infi_sets_induct {f : ι → filter α} {s : set α} (hs : s ∈ (infi f).
   (ins : ∀{i s₁ s₂}, s₁ ∈ (f i).sets → p s₂ → p (s₁ ∩ s₂))
   (upw : ∀{s₁ s₂}, s₁ ⊆ s₂ → p s₁ → p s₂) : p s :=
 begin
-  have hs' : s ∈ (Inf {a : filter α | ∃ (i : ι), a = f i}).sets := hs,
+  have hs' : s ∈ (Inf {a : filter α | ∃ (i : ι), f i = a}).sets := hs,
   rw [Inf_sets_eq_finite] at hs',
   simp only [mem_Union] at hs',
   rcases hs' with ⟨is, ⟨fin_is, his⟩, hs⟩, revert his s,
@@ -1098,9 +1098,9 @@ begin
   { rw [Inf_empty, mem_top_sets] at hs, simpa only [hs] },
   { rw [Inf_insert] at hs,
     rcases hs with ⟨s₁, hs₁, s₂, hs₂, hs⟩,
-    rcases (his (mem_insert _ _) : ∃i, fi = f i) with ⟨i, rfl⟩,
+    rcases (his (mem_insert _ _)) with ⟨i, rfl⟩,
     have hs₂ : p s₂, from
-      have his : is ⊆ {x | ∃i, x = f i}, from assume i hi, his $ mem_insert_of_mem _ hi,
+      have his : is ⊆ {x | ∃i, f i = x}, from assume i hi, his $ mem_insert_of_mem _ hi,
       have infi f ≤ Inf is, from Inf_le_Inf his,
       ih his (this hs₂) hs₂,
     exact upw hs (ins hs₁ hs₂) }
@@ -1755,7 +1755,7 @@ calc map f (⨅a, principal {a' | a ≤ a'}) = (⨅a, map f $ principal {a' | a 
       mem_principal_sets, and_self, sup_le_iff, forall_true_iff] {contextual := tt}⟩) ⟨default α⟩
   ... = (⨅a, principal $ f '' {a' | a ≤ a'}) : by simp only [map_principal, eq_self_iff_true]
 
-lemma tendsto_at_top {α β} [partial_order β] (m : α → β) (f : filter α) :
+lemma tendsto_at_top {α β} [preorder β] (m : α → β) (f : filter α) :
   tendsto m f at_top ↔ (∀b, {a | b ≤ m a} ∈ f.sets) :=
 by simp only [at_top, tendsto_infi, tendsto_principal]; refl
 

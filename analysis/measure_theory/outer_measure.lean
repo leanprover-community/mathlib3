@@ -174,7 +174,7 @@ instance : complete_lattice (outer_measure α) :=
 le_antisymm
   (supr_le $ λ ⟨_, i, rfl⟩, le_supr _ i)
   (supr_le $ λ i, le_supr
-    (λ (m : {a : outer_measure α // ∃ i, a = f i}), m.1 s)
+    (λ (m : {a : outer_measure α // ∃ i, f i = a}), m.1 s)
     ⟨f i, i, rfl⟩)
 
 @[simp] theorem sup_apply (m₁ m₂ : outer_measure α) (s : set α) :
@@ -362,9 +362,9 @@ private lemma C_sum {s : ℕ → set α} (h : ∀i, C (s i)) (hd : pairwise (dis
   ∀ {n}, (finset.range n).sum (λi, m (t ∩ s i)) = m (t ∩ ⋃i<n, s i)
 | 0            := by simp [nat.not_lt_zero, m.empty]
 | (nat.succ n) := begin
-  simp [Union_lt_succ],
+  simp [Union_lt_succ, range_succ],
   rw [measure_inter_union m _ (h n), C_sum],
-  intro a, simpa using λ h₁ i hi h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
+  intro a, simpa [range_succ] using λ h₁ i hi h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
 end
 
 private lemma C_Union_nat {s : ℕ → set α} (h : ∀i, C (s i))

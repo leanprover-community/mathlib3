@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
-import tactic.interactive algebra.order algebra.ordered_group
+import tactic.interactive algebra.order algebra.ordered_group algebra.ring
 
 namespace nat
 variables {α : Type*}
@@ -32,6 +32,9 @@ end
 | 0     := (add_zero _).symm
 | (n+1) := show ((m + n : ℕ) : α) + 1 = m + (n + 1), by rw [cast_add n, add_assoc]
 
+instance [add_monoid α] [has_one α] : is_add_monoid_hom (coe : ℕ → α) :=
+by refine_struct {..}; simp
+
 @[simp] theorem cast_bit0 [add_monoid α] [has_one α] (n : ℕ) : ((bit0 n : ℕ) : α) = bit0 n := cast_add _ _
 
 @[simp] theorem cast_bit1 [add_monoid α] [has_one α] (n : ℕ) : ((bit1 n : ℕ) : α) = bit1 n :=
@@ -50,6 +53,9 @@ eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 | (n+1) := (cast_add _ _).trans $
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
 
+instance [semiring α] : is_semiring_hom (coe : ℕ → α) :=
+by refine_struct {..}; simp
+
 theorem mul_cast_comm [semiring α] (a : α) (n : ℕ) : a * n = n * a :=
 by induction n; simp [left_distrib, right_distrib, *]
 
@@ -67,7 +73,7 @@ by induction n; simp [left_distrib, right_distrib, *]
 @[simp] theorem cast_lt [linear_ordered_semiring α] {m n : ℕ} : (m : α) < n ↔ m < n :=
 by simpa [-cast_le] using not_congr (@cast_le α _ n m)
 
-@[simp] theorem cast_pos [linear_ordered_ring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
+@[simp] theorem cast_pos [linear_ordered_semiring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
 
 theorem eq_cast [add_monoid α] [has_one α] (f : ℕ → α)

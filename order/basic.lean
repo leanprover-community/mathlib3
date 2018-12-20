@@ -37,6 +37,9 @@ theorem is_total_preorder.swap (r) [is_total_preorder α r] : is_total_preorder 
 theorem is_linear_order.swap (r) [is_linear_order α r] : is_linear_order α (swap r) :=
 {..@is_partial_order.swap α r _, ..@is_total.swap α r _}
 
+def antisymm_of_asymm (r) [is_asymm α r] : is_antisymm α r :=
+⟨λ x y h₁ h₂, (asymm h₁ h₂).elim⟩
+
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
 instance [preorder α] : is_refl α (≥) := is_refl.swap _
@@ -48,17 +51,20 @@ instance [preorder α] : is_irrefl α (<) := ⟨lt_irrefl⟩
 instance [preorder α] : is_irrefl α (>) := is_irrefl.swap _
 instance [preorder α] : is_trans α (<) := ⟨@lt_trans _ _⟩
 instance [preorder α] : is_trans α (>) := is_trans.swap _
+instance [preorder α] : is_asymm α (<) := ⟨@lt_asymm _ _⟩
+instance [preorder α] : is_asymm α (>) := is_asymm.swap _
+instance [preorder α] : is_antisymm α (<) := antisymm_of_asymm _
+instance [preorder α] : is_antisymm α (>) := antisymm_of_asymm _
 instance [preorder α] : is_strict_order α (<) := {}
 instance [preorder α] : is_strict_order α (>) := {}
+instance preorder.is_total_preorder [preorder α] [is_total α (≤)] : is_total_preorder α (≤) := {}
 instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
 instance [partial_order α] : is_antisymm α (≥) := is_antisymm.swap _
-instance [partial_order α] : is_asymm α (<) := ⟨@lt_asymm _ _⟩
-instance [partial_order α] : is_asymm α (>) := is_asymm.swap _
 instance [partial_order α] : is_partial_order α (≤) := {}
 instance [partial_order α] : is_partial_order α (≥) := {}
 instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
 instance [linear_order α] : is_total α (≥) := is_total.swap _
-instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) := {}
+instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) := by apply_instance
 instance [linear_order α] : is_total_preorder α (≥) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
 instance [linear_order α] : is_linear_order α (≥) := {}
@@ -157,7 +163,9 @@ end monotone
 def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
 { le := λx y, f x ≤ f y,
   le_refl := λ a, le_refl _,
-  le_trans := λ a b c, le_trans }
+  le_trans := λ a b c, le_trans,
+  lt := λx y, f x < f y,
+  lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
 
 def partial_order.lift {α β} [partial_order β]
   (f : α → β) (inj : injective f) : partial_order α :=

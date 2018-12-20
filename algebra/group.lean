@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura
 
 Various multiplicative and additive structures.
 -/
-import tactic.interactive data.option
+import tactic.interactive data.option.defs
 
 section pending_1857
 
@@ -140,6 +140,22 @@ attribute [to_additive add_eq_of_eq_add_neg] mul_eq_of_eq_mul_inv
 attribute [to_additive neg_add] mul_inv
 
 end pending_1857
+
+instance monoid_to_is_left_id {α : Type*} [monoid α]
+: is_left_id α (*) 1 :=
+⟨ monoid.one_mul ⟩
+
+instance monoid_to_is_right_id {α : Type*} [monoid α]
+: is_right_id α (*) 1 :=
+⟨ monoid.mul_one ⟩
+
+instance add_monoid_to_is_left_id {α : Type*} [add_monoid α]
+: is_left_id α (+) 0 :=
+⟨ add_monoid.zero_add ⟩
+
+instance add_monoid_to_is_right_id {α : Type*} [add_monoid α]
+: is_right_id α (+) 0 :=
+⟨ add_monoid.add_zero ⟩
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -627,6 +643,12 @@ instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
 { map_mul := λ x y, show g _ = g _ * g _, by rw [map_mul f, map_mul g],
   map_one := show g _ = 1, by rw [map_one f, map_one g] }
 
+instance is_add_monoid_hom_mul_left {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, x * y) :=
+by refine_struct {..}; simp [mul_add]
+
+instance is_add_monoid_hom_mul_right {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, y * x) :=
+by refine_struct {..}; simp [add_mul]
+
 end is_monoid_hom
 
 -- TODO rename fields of is_group_hom: mul ↝ map_mul?
@@ -665,6 +687,13 @@ instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] :
 protected lemma is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a b → is_conj (f a) (f b)
 | ⟨c, hc⟩ := ⟨f c, by rw [← is_group_hom.mul f, ← is_group_hom.inv f, ← is_group_hom.mul f, hc]⟩
 
+@[to_additive is_add_group_hom.to_is_add_monoid_hom]
+lemma to_is_monoid_hom (f : α → β) [is_group_hom f] : is_monoid_hom f :=
+⟨is_group_hom.one f, is_group_hom.mul f⟩
+
+attribute [instance] is_group_hom.to_is_monoid_hom
+  is_add_group_hom.to_is_add_monoid_hom
+
 end is_group_hom
 
 @[to_additive is_add_group_hom_add]
@@ -681,6 +710,12 @@ lemma is_group_hom_inv {α β} [group α] [comm_group β] (f : α → β) [is_gr
 ⟨assume a b, by rw [is_group_hom.mul f, mul_inv]⟩
 
 attribute [instance] is_group_hom_inv is_add_group_hom_neg
+
+@[to_additive neg.is_add_group_hom]
+lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
+⟨by simp [mul_inv_rev, mul_comm]⟩
+
+attribute [instance] inv.is_group_hom neg.is_add_group_hom
 
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/
@@ -729,5 +764,8 @@ definition map : units α → units β :=
 
 instance : is_group_hom (units.map f) :=
 ⟨λ a b, by ext; exact is_monoid_hom.map_mul f ⟩
+
+instance : is_monoid_hom (coe : units α → α) :=
+⟨by simp, by simp⟩
 
 end units

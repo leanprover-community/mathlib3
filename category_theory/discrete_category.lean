@@ -13,44 +13,13 @@ universes u₁ v₁ u₂ v₂
 
 def discrete (α : Type u₁) := α
 
-@[extensionality] lemma plift.ext {P : Prop} (a b : plift P) : a = b :=
-begin
-  cases a, cases b, refl
-end
-
-instance plift_subsingleton (P : Prop) : subsingleton (plift P) :=
-subsingleton.intro (λ a b, begin cases a, cases b, refl end)
-
 instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 { hom  := λ X Y, ulift (plift (X = Y)),
-  id   := by obviously,
-  comp := by obviously }
+  id   := by tidy,
+  comp := by tidy }
 
--- TODO this needs to wait for equivalences to arrive
--- example : equivalence.{u₁ u₁ u₁ u₁} punit (discrete punit) := by obviously
-
-def discrete.lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete α) ⥤ (discrete β) :=
-{ obj := f,
-  map := λ X Y g, begin cases g, cases g, cases g, exact 𝟙 (f X) end }
-
-variables (J : Type v₂) [small_category J]
-
-variables (C : Type u₂) [𝒞 : category.{u₂ v₂} C]
+variables {C : Type u₂} [𝒞 : category.{u₂ v₂} C]
 include 𝒞
-
-@[simp] def discrete.forget : discrete J ⥤ J :=
-{ obj := λ X, X,
-  map := λ X Y f, eq_to_hom f.down.down }
-
-@[simp] lemma discrete.functor_map_id
-  (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F.obj j) :=
-begin
-  have h : f = 𝟙 j, cases f, cases f, ext,
-  rw h,
-  simp,
-end
-
-variables {C}
 
 namespace functor
 
@@ -73,5 +42,20 @@ namespace nat_trans
   end }
 
 end nat_trans
+
+namespace discrete
+def lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete α) ⥤ (discrete β) :=
+functor.of_function f
+
+variables (J : Type v₂)
+
+@[simp] lemma functor_map_id
+  (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F.obj j) :=
+begin
+  have h : f = 𝟙 j, cases f, cases f, ext,
+  rw h,
+  simp,
+end
+end discrete
 
 end category_theory

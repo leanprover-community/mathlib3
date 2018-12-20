@@ -1,6 +1,6 @@
 -- Copyright (c) 2018 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison, Reid Barton, Mario Carneiro
+-- Authors: Reid Barton, Mario Carneiro, Scott Morrison
 
 import category_theory.whiskering
 import category_theory.yoneda
@@ -100,7 +100,7 @@ h.hom_iso W ≪≫
    by convert ←(π.naturality f).symm; apply id_comp⟩,
   inv := λ p,
   { app := λ j, p.1 j,
-    naturality' := λ j j' f, begin dsimp, erw [id_comp], exact (p.2 f).symm end } }
+    naturality' := λ j j' f, begin dsimp, rw [id_comp], exact (p.2 f).symm end } }
 
 /-- If G : C → D is a faithful functor which sends t to a limit cone,
   then it suffices to check that the induced maps for the image of t
@@ -202,7 +202,7 @@ h.hom_iso W ≪≫
    by convert ←(ι.naturality f); apply comp_id⟩,
   inv := λ p,
   { app := λ j, p.1 j,
-    naturality' := λ j j' f, begin dsimp, erw [comp_id], exact (p.2 f) end } }
+    naturality' := λ j j' f, begin dsimp, rw [comp_id], exact (p.2 f) end } }
 
 /-- If G : C → D is a faithful functor which sends t to a colimit cocone,
   then it suffices to check that the induced maps for the image of t
@@ -506,7 +506,7 @@ def colimit.hom_iso' (F : J ⥤ C) [has_colimit F] (W : C) :
 lemma colimit.desc_extend (F : J ⥤ C) [has_colimit F] (c : cocone F) {X : C} (f : c.X ⟶ X) :
   colimit.desc F (c.extend f) = colimit.desc F c ≫ f :=
 begin
-  ext1, simp at *, erw ←category.assoc, simp, refl
+  ext1, simp [category.assoc_symm], refl
 end
 
 section pre
@@ -531,8 +531,7 @@ variables (D : L ⥤ K) [has_colimit (D ⋙ E ⋙ F)]
 @[simp] lemma colimit.pre_pre : colimit.pre (E ⋙ F) D ≫ colimit.pre F E = colimit.pre F (D ⋙ E) :=
 begin
   ext j,
-  erw [←assoc, colimit.ι_pre, colimit.ι_pre],
-  -- Why doesn't another erw [colimit.ι_pre] work here, like it did in limit.pre_pre?
+  rw [←assoc, colimit.ι_pre, colimit.ι_pre],
   letI : has_colimit ((D ⋙ E) ⋙ F) := show has_colimit (D ⋙ E ⋙ F), by apply_instance,
   exact (colimit.ι_pre F (D ⋙ E) j).symm
 end
@@ -567,7 +566,7 @@ by ext; rw [←assoc, colimit.ι_post, ←G.map_comp, colimit.ι_desc, colimit.�
   colimit.post (F ⋙ G) H ≫ H.map (colimit.post F G) = colimit.post F (G ⋙ H) :=
 begin
   ext,
-  erw [←assoc, colimit.ι_post, ←H.map_comp, colimit.ι_post],
+  rw [←assoc, colimit.ι_post, ←H.map_comp, colimit.ι_post],
   exact (colimit.ι_post F (G ⋙ H) j).symm
 end
 
@@ -581,7 +580,7 @@ lemma colimit.pre_post {K : Type v} [small_category K] {D : Type u'} [category.{
   colimit.post (E ⋙ F) G ≫ G.map (colimit.pre F E) = colimit.pre (F ⋙ G) E ≫ colimit.post F G :=
 begin
   ext,
-  erw [←assoc, colimit.ι_post, ←G.map_comp, colimit.ι_pre, ←assoc],
+  rw [←assoc, colimit.ι_post, ←G.map_comp, colimit.ι_pre, ←assoc],
   letI : has_colimit (E ⋙ F ⋙ G) := show has_colimit ((E ⋙ F) ⋙ G), by apply_instance,
   erw [colimit.ι_pre (F ⋙ G) E j, colimit.ι_post]
 end

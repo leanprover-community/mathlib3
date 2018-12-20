@@ -150,6 +150,13 @@ begin
 end
 end ulift
 
+namespace plift
+@[extensionality] lemma ext {P : Prop} (a b : plift P) : a = b :=
+begin
+  cases a, cases b, refl
+end
+end plift
+
 namespace tactic
 
 meta def try_intros : ext_patt → tactic ext_patt

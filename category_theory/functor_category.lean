@@ -6,7 +6,7 @@ import category_theory.natural_transformation
 
 namespace category_theory
 
-universes u v u₁ v₁ u₂ v₂ u₃ v₃
+universes u₁ v₁ u₂ v₂ u₃ v₃
 
 open nat_trans
 

@@ -269,12 +269,12 @@ def restrict (p : Prop) : ∀ (o : roption α), (p → o.dom) → roption α
 | ⟨d, f⟩ H := ⟨p, λh, f (H h)⟩
 
 @[simp]
-theorem mem_restrict (p : Prop) (o : roption α) (h : p → o.dom) (a : α) : 
+theorem mem_restrict (p : Prop) (o : roption α) (h : p → o.dom) (a : α) :
   a ∈ restrict p o h ↔ p ∧ a ∈ o :=
 begin
   cases o, dsimp [restrict, mem_eq], split,
   { rintro ⟨h₀, h₁⟩, exact ⟨h₀, ⟨_, h₁⟩⟩ },
-  rintro ⟨h₀, h₁, h₂⟩, exact ⟨h₀, h₂⟩ 
+  rintro ⟨h₀, h₁, h₂⟩, exact ⟨h₀, h₂⟩
 end
 
 /-- `unwrap o` gets the value at `o`, ignoring the condition.
@@ -353,7 +353,7 @@ instance : has_coe (α → β) (α →. β) := ⟨pfun.lift⟩
   `(x, f x)` where `x` is in the domain of `f`. -/
 def graph (f : α →. β) : set (α × β) := {p | p.2 ∈ f p.1}
 
-def graph' (f : α →. β) : rel α β := λ x y, y ∈ f x 
+def graph' (f : α →. β) : rel α β := λ x y, y ∈ f x
 
 /-- The range of a partial function is the set of values
   `f x` where `x` is in the domain of `f`. -/
@@ -469,7 +469,7 @@ end pfun
 
 namespace pfun
 
-variables {α : Type*} {β : Type*} (f : α →. β) 
+variables {α : Type*} {β : Type*} (f : α →. β)
 
 def image (s : set α) : set β := rel.image f.graph' s
 
@@ -495,7 +495,7 @@ def mem_preimage (s : set β) (x : α) : x ∈ preimage f s ↔ ∃ y ∈ s, y �
 iff.refl _
 
 lemma preimage_subset_dom (s : set β) : f.preimage s ⊆ f.dom :=
-assume x ⟨y, ys, fxy⟩, roption.dom_iff_mem.mpr ⟨y, fxy⟩ 
+assume x ⟨y, ys, fxy⟩, roption.dom_iff_mem.mpr ⟨y, fxy⟩
 
 lemma preimage_mono {s t : set β} (h : s ⊆ t) : f.preimage s ⊆ f.preimage t :=
 rel.preimage_mono _ h
@@ -509,15 +509,15 @@ rel.preimage_union _ s t
 lemma preimage_univ : f.preimage set.univ = f.dom :=
 by ext; simp [mem_preimage, mem_dom]
 
-def core (s : set β) : set α := rel.core f.graph' s 
+def core (s : set β) : set α := rel.core f.graph' s
 
 lemma core_def (s : set β) : core f s = {x | ∀ y, y ∈ f x → y ∈ s} := rfl
 
-lemma mem_core (x : α) (s : set β) : x ∈ core f s ↔ (∀ y, y ∈ f x → y ∈ s) := 
+lemma mem_core (x : α) (s : set β) : x ∈ core f s ↔ (∀ y, y ∈ f x → y ∈ s) :=
 iff.rfl
 
 lemma compl_dom_subset_core (s : set β) : -f.dom ⊆ f.core s :=
-assume x hx y fxy, 
+assume x hx y fxy,
 absurd ((mem_dom f x).mpr ⟨y, fxy⟩) hx
 
 lemma core_mono {s t : set β} (h : s ⊆ t) : f.core s ⊆ f.core t :=
@@ -526,7 +526,7 @@ rel.core_mono _ h
 lemma core_inter (s t : set β) : f.core (s ∩ t) = f.core s ∩ f.core t :=
 rel.core_inter _ s t
 
-lemma mem_core_res (f : α → β) (s : set α) (t : set β) (x : α) : 
+lemma mem_core_res (f : α → β) (s : set α) (t : set β) (x : α) :
   x ∈ core (res f s) t ↔ (x ∈ s → f x ∈ t) :=
 begin
   simp [mem_core, mem_res], split,
@@ -551,9 +551,9 @@ have y = y', from roption.mem_unique fxy fxy',
 this ▸ ys
 
 lemma preimage_eq (f : α →. β) (s : set β) : f.preimage s = f.core s ∩ f.dom :=
-set.eq_of_subset_of_subset 
-  (set.subset_inter (preimage_subset_core f s) (preimage_subset_dom f s)) 
-  (assume x ⟨xcore, xdom⟩, 
+set.eq_of_subset_of_subset
+  (set.subset_inter (preimage_subset_core f s) (preimage_subset_dom f s))
+  (assume x ⟨xcore, xdom⟩,
     let y := (f x).get xdom in
     have ys : y ∈ s, from xcore _ (roption.get_mem _),
     show x ∈ preimage f s, from  ⟨(f x).get xdom, ys, roption.get_mem _⟩)
@@ -562,18 +562,17 @@ lemma core_eq (f : α →. β) (s : set β) : f.core s = f.preimage s ∪ -f.dom
 by rw [preimage_eq, set.union_distrib_right, set.union_comm (dom f), set.compl_union_self,
         set.inter_univ, set.union_eq_self_of_subset_right (compl_dom_subset_core f s)]
 
-lemma preimage_as_subtype (f : α →. β) (s : set β) : 
+lemma preimage_as_subtype (f : α →. β) (s : set β) :
   f.as_subtype ⁻¹' s = subtype.val ⁻¹' pfun.preimage f s :=
 begin
-  ext x, 
+  ext x,
   simp only [set.mem_preimage_eq, set.mem_set_of_eq, pfun.as_subtype, pfun.mem_preimage],
   show pfun.fn f (x.val) _ ∈ s ↔ ∃ y ∈ s, y ∈ f (x.val),
-  exact iff.intro 
+  exact iff.intro
     (assume h, ⟨_, h, roption.get_mem _⟩)
-    (assume ⟨y, ys, fxy⟩, 
+    (assume ⟨y, ys, fxy⟩,
       have f.fn x.val x.property ∈ f x.val := roption.get_mem _,
       roption.mem_unique fxy this ▸ ys)
 end
 
 end pfun
-

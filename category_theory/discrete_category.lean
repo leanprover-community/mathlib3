@@ -44,9 +44,11 @@ namespace nat_trans
 end nat_trans
 
 namespace discrete
+omit 𝒞
 def lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete α) ⥤ (discrete β) :=
 functor.of_function f
 
+include 𝒞
 variables (J : Type v₂)
 
 @[simp] lemma functor_map_id

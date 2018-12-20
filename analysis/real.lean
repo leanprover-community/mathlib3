@@ -64,7 +64,7 @@ theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_r
 theorem continuous_of_rat : continuous (coe : ℚ → ℝ) := uniform_continuous_of_rat.continuous
 
 theorem real.uniform_continuous_add : uniform_continuous (λp : ℝ × ℝ, p.1 + p.2) :=
-uniform_continuous_of_metric.2 $ λ ε ε0,
+uniform_continuous_iff_metric.2 $ λ ε ε0,
 let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
 ⟨δ, δ0, λ a b h, let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ h₁ h₂⟩
 
@@ -75,11 +75,11 @@ uniform_embedding_of_rat.uniform_continuous_iff.2 $ by simp [(∘)]; exact
   (uniform_continuous_snd.comp uniform_continuous_of_rat)).comp real.uniform_continuous_add
 
 theorem real.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℝ _) :=
-uniform_continuous_of_metric.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
+uniform_continuous_iff_metric.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
   by rw dist_comm at h; simpa [real.dist_eq] using h⟩
 
 theorem rat.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℚ _) :=
-uniform_continuous_of_metric.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
+uniform_continuous_iff_metric.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
   by rw dist_comm at h; simpa [rat.dist_eq] using h⟩
 
 instance : uniform_add_group ℝ :=
@@ -120,19 +120,19 @@ _ -/
 
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
   uniform_continuous (λp:s, p.1⁻¹) :=
-uniform_continuous_of_metric.2 $ λ ε ε0,
+uniform_continuous_iff_metric.2 $ λ ε ε0,
 let ⟨δ, δ0, Hδ⟩ := rat_inv_continuous_lemma abs ε0 r0 in
 ⟨δ, δ0, λ a b h, Hδ (H _ a.2) (H _ b.2) h⟩
 
 lemma real.uniform_continuous_abs : uniform_continuous (abs : ℝ → ℝ) :=
-uniform_continuous_of_metric.2 $ λ ε ε0,
+uniform_continuous_iff_metric.2 $ λ ε ε0,
   ⟨ε, ε0, λ a b, lt_of_le_of_lt (abs_abs_sub_abs_le_abs_sub _ _)⟩
 
 lemma real.continuous_abs : continuous (abs : ℝ → ℝ) :=
 real.uniform_continuous_abs.continuous
 
 lemma rat.uniform_continuous_abs : uniform_continuous (abs : ℚ → ℚ) :=
-uniform_continuous_of_metric.2 $ λ ε ε0,
+uniform_continuous_iff_metric.2 $ λ ε ε0,
   ⟨ε, ε0, λ a b h, lt_of_le_of_lt
     (by simpa [rat.dist_eq] using abs_abs_sub_abs_le_abs_sub _ _) h⟩
 
@@ -155,7 +155,7 @@ show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f
   from (continuous_subtype_mk _ hf).comp real.continuous_inv'
 
 lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
-uniform_continuous_of_metric.2 $ λ ε ε0, begin
+uniform_continuous_iff_metric.2 $ λ ε ε0, begin
   cases no_top (abs x) with y xy,
   have y0 := lt_of_le_of_lt (abs_nonneg _) xy,
   refine ⟨_, div_pos ε0 y0, λ a b h, _⟩,
@@ -167,7 +167,7 @@ lemma real.uniform_continuous_mul (s : set (ℝ × ℝ))
   {r₁ r₂ : ℝ} (r₁0 : 0 < r₁) (r₂0 : 0 < r₂)
   (H : ∀ x ∈ s, abs (x : ℝ × ℝ).1 < r₁ ∧ abs x.2 < r₂) :
   uniform_continuous (λp:s, p.1.1 * p.1.2) :=
-uniform_continuous_of_metric.2 $ λ ε ε0,
+uniform_continuous_iff_metric.2 $ λ ε ε0,
 let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩

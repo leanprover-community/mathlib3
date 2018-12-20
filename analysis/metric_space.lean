@@ -251,7 +251,7 @@ theorem dist_mem_uniformity {ε:ℝ} (ε0 : 0 < ε) :
   {p:α×α | dist p.1 p.2 < ε} ∈ (@uniformity α _).sets :=
 mem_uniformity_dist.2 ⟨ε, ε0, λ a b, id⟩
 
-theorem uniform_continuous_of_metric [metric_space β] {f : α → β} :
+theorem uniform_continuous_iff_metric [metric_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ ε > 0, ∃ δ > 0,
     ∀{a b:α}, dist a b < δ → dist (f a) (f b) < ε :=
 uniform_continuous_def.trans
@@ -324,7 +324,7 @@ theorem tendsto_nhds_of_metric [metric_space β] {f : α → β} {a b} :
   let ⟨ε, ε0, hε⟩ := mem_nhds_iff_metric.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
   mem_nhds_iff_metric.2 ⟨δ, δ0, λ x h, hε (hδ h)⟩⟩
 
-theorem continuous_of_metric [metric_space β] {f : α → β} :
+theorem continuous_iff_metric [metric_space β] {f : α → β} :
   continuous f ↔
     ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=
 continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds_of_metric
@@ -332,7 +332,7 @@ continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds_of_metric
 theorem exists_delta_of_continuous [metric_space β] {f : α → β} {ε : ℝ}
   (hf : continuous f) (hε : ε > 0) (b : α) :
   ∃ δ > 0, ∀a, dist a b ≤ δ → dist (f a) (f b) < ε :=
-let ⟨δ, δ_pos, hδ⟩ := continuous_of_metric.1 hf b ε hε in
+let ⟨δ, δ_pos, hδ⟩ := continuous_iff_metric.1 hf b ε hε in
 ⟨δ / 2, half_pos δ_pos, assume a ha, hδ a $ lt_of_le_of_lt ha $ div_two_lt_of_pos δ_pos⟩
 
 theorem tendsto_nhds_topo_metric {f : filter β} {u : β → α} {a : α} :
@@ -586,7 +586,7 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
   to_uniform_space := prod.uniform_space }
 
 theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
-uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε/2, half_pos ε0,
+uniform_continuous_iff_metric.2 (λ ε ε0, ⟨ε/2, half_pos ε0,
 begin
   suffices,
   { intros p q h, cases p with p₁ p₂, cases q with q₁ q₂,

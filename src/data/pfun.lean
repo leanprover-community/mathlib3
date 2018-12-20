@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Author: Mario Carneiro, Jeremy Avigad
 -/
-import data.set.basic data.option.basic data.equiv.basic
+import data.set.basic data.equiv.basic data.rel
 
 /-- `roption α` is the type of "partial values" of type `α`. It
   is similar to `option α` except the domain condition can be an
@@ -34,6 +34,9 @@ def ext' : Π {o p : roption α}
 protected def mem (a : α) (o : roption α) : Prop := ∃ h, o.get h = a
 
 instance : has_mem α (roption α) := ⟨roption.mem⟩
+
+theorem mem_eq (a : α) (o : roption α) : (a ∈ o) = (∃ h, o.get h = a) :=
+rfl
 
 theorem dom_iff_mem : ∀ {o : roption α}, o.dom ↔ ∃y, y ∈ o
 | ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨_, h, rfl⟩, h⟩
@@ -265,6 +268,15 @@ instance : monad_fail roption :=
 def restrict (p : Prop) : ∀ (o : roption α), (p → o.dom) → roption α
 | ⟨d, f⟩ H := ⟨p, λh, f (H h)⟩
 
+@[simp]
+theorem mem_restrict (p : Prop) (o : roption α) (h : p → o.dom) (a : α) : 
+  a ∈ restrict p o h ↔ p ∧ a ∈ o :=
+begin
+  cases o, dsimp [restrict, mem_eq], split,
+  { rintro ⟨h₀, h₁⟩, exact ⟨h₀, ⟨_, h₁⟩⟩ },
+  rintro ⟨h₀, h₁, h₂⟩, exact ⟨h₀, h₂⟩ 
+end
+
 /-- `unwrap o` gets the value at `o`, ignoring the condition.
   (This function is unsound.) -/
 meta def unwrap (o : roption α) : α := o.get undefined
@@ -292,6 +304,12 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 /-- The domain of a partial function -/
 def dom (f : α →. β) : set α := λ a, (f a).dom
 
+theorem mem_dom (f : α →. β) (x : α) : x ∈ dom f ↔ ∃ y, y ∈ f x :=
+by simp [dom, set.mem_def, roption.dom_iff_mem]
+
+theorem dom_eq (f : α →. β) : dom f = {x | ∃ y, y ∈ f x} :=
+set.ext (mem_dom f)
+
 /-- Evaluate a partial function -/
 def fn (f : α →. β) (x) (h : dom f x) : β := (f x).get h
 
@@ -317,6 +335,10 @@ def equiv_subtype : (α →. β) ≃ (Σ p : α → Prop, subtype p → β) :=
  λ f, funext $ λ a, roption.eta _,
  λ ⟨p, f⟩, by dsimp; congr; funext a; cases a; refl⟩
 
+theorem as_subtype_eq_of_mem {f : α →. β} {x : α} {y : β} (fxy : y ∈ f x) (domx : x ∈ f.dom) :
+  f.as_subtype ⟨x, domx⟩ = y :=
+roption.mem_unique (roption.get_mem _) fxy
+
 /-- Turn a total function into a partial function -/
 protected def lift (f : α → β) : α →. β := λ a, roption.some (f a)
 
@@ -331,6 +353,8 @@ instance : has_coe (α → β) (α →. β) := ⟨pfun.lift⟩
   `(x, f x)` where `x` is in the domain of `f`. -/
 def graph (f : α →. β) : set (α × β) := {p | p.2 ∈ f p.1}
 
+def graph' (f : α →. β) : rel α β := λ x y, y ∈ f x 
+
 /-- The range of a partial function is the set of values
   `f x` where `x` is in the domain of `f`. -/
 def ran (f : α →. β) : set β := {b | ∃a, b ∈ f a}
@@ -338,6 +362,21 @@ def ran (f : α →. β) : set β := {b | ∃a, b ∈ f a}
 /-- Restrict a partial function to a smaller domain. -/
 def restrict (f : α →. β) {p : set α} (H : p ⊆ f.dom) : α →. β :=
 λ x, roption.restrict (p x) (f x) (@H x)
+
+@[simp]
+theorem mem_restrict {f : α →. β} {s : set α} (h : s ⊆ f.dom) (a : α) (b : β) :
+  b ∈ restrict f h a ↔ a ∈ s ∧ b ∈ f a :=
+by { simp [restrict], reflexivity }
+
+def res (f : α → β) (s : set α) : α →. β :=
+restrict (pfun.lift f) (set.subset_univ s)
+
+theorem mem_res (f : α → β) (s : set α) (a : α) (b : β) :
+  b ∈ res f s a ↔ (a ∈ s ∧ f a = b) :=
+by { simp [res], split; {intro h, simp [h]} }
+
+theorem res_univ (f : α → β) : pfun.res f set.univ = f :=
+rfl
 
 theorem dom_iff_graph (f : α →. β) (x : α) : x ∈ f.dom ↔ ∃y, (x, y) ∈ f.graph :=
 roption.dom_iff_mem
@@ -427,3 +466,114 @@ begin
 end
 
 end pfun
+
+namespace pfun
+
+variables {α : Type*} {β : Type*} (f : α →. β) 
+
+def image (s : set α) : set β := rel.image f.graph' s
+
+lemma image_def (s : set α) : image f s = {y | ∃ x ∈ s, y ∈ f x} := rfl
+
+lemma mem_image (y : β) (s : set α) : y ∈ image f s ↔ ∃ x ∈ s, y ∈ f x :=
+iff.refl _
+
+lemma image_mono {s t : set α} (h : s ⊆ t) : f.image s ⊆ f.image t :=
+rel.image_mono _ h
+
+lemma image_inter (s t : set α) : f.image (s ∩ t) ⊆ f.image s ∩ f.image t :=
+rel.image_inter _ s t
+
+lemma image_union (s t : set α) : f.image (s ∪ t) = f.image s ∪ f.image t :=
+rel.image_union _ s t
+
+def preimage (s : set β) : set α := rel.preimage (λ x y, y ∈ f x) s
+
+lemma preimage_def (s : set β) : preimage f s = {x | ∃ y ∈ s, y ∈ f x} := rfl
+
+def mem_preimage (s : set β) (x : α) : x ∈ preimage f s ↔ ∃ y ∈ s, y ∈ f x :=
+iff.refl _
+
+lemma preimage_subset_dom (s : set β) : f.preimage s ⊆ f.dom :=
+assume x ⟨y, ys, fxy⟩, roption.dom_iff_mem.mpr ⟨y, fxy⟩ 
+
+lemma preimage_mono {s t : set β} (h : s ⊆ t) : f.preimage s ⊆ f.preimage t :=
+rel.preimage_mono _ h
+
+lemma preimage_inter (s t : set β) : f.preimage (s ∩ t) ⊆ f.preimage s ∩ f.preimage t :=
+rel.preimage_inter _ s t
+
+lemma preimage_union (s t : set β) : f.preimage (s ∪ t) = f.preimage s ∪ f.preimage t :=
+rel.preimage_union _ s t
+
+lemma preimage_univ : f.preimage set.univ = f.dom :=
+by ext; simp [mem_preimage, mem_dom]
+
+def core (s : set β) : set α := rel.core f.graph' s 
+
+lemma core_def (s : set β) : core f s = {x | ∀ y, y ∈ f x → y ∈ s} := rfl
+
+lemma mem_core (x : α) (s : set β) : x ∈ core f s ↔ (∀ y, y ∈ f x → y ∈ s) := 
+iff.rfl
+
+lemma compl_dom_subset_core (s : set β) : -f.dom ⊆ f.core s :=
+assume x hx y fxy, 
+absurd ((mem_dom f x).mpr ⟨y, fxy⟩) hx
+
+lemma core_mono {s t : set β} (h : s ⊆ t) : f.core s ⊆ f.core t :=
+rel.core_mono _ h
+
+lemma core_inter (s t : set β) : f.core (s ∩ t) = f.core s ∩ f.core t :=
+rel.core_inter _ s t
+
+lemma mem_core_res (f : α → β) (s : set α) (t : set β) (x : α) : 
+  x ∈ core (res f s) t ↔ (x ∈ s → f x ∈ t) :=
+begin
+  simp [mem_core, mem_res], split,
+  { intros h h', apply h _ h', reflexivity },
+  intros h y xs fxeq, rw ←fxeq, exact h xs
+end
+
+section
+local attribute  [instance] classical.prop_decidable
+
+lemma core_res (f : α → β) (s : set α) (t : set β) : core (res f s) t = -s ∪ f ⁻¹' t :=
+by { ext, rw mem_core_res, by_cases h : x ∈ s; simp [h] }
+
+end
+
+lemma core_restrict (f : α → β) (s : set β) : core (f : α →. β) s = set.preimage f s :=
+by ext x; simp [core_def]
+
+lemma preimage_subset_core (f : α →. β) (s : set β) : f.preimage s ⊆ f.core s :=
+assume x ⟨y, ys, fxy⟩ y' fxy',
+have y = y', from roption.mem_unique fxy fxy',
+this ▸ ys
+
+lemma preimage_eq (f : α →. β) (s : set β) : f.preimage s = f.core s ∩ f.dom :=
+set.eq_of_subset_of_subset 
+  (set.subset_inter (preimage_subset_core f s) (preimage_subset_dom f s)) 
+  (assume x ⟨xcore, xdom⟩, 
+    let y := (f x).get xdom in
+    have ys : y ∈ s, from xcore _ (roption.get_mem _),
+    show x ∈ preimage f s, from  ⟨(f x).get xdom, ys, roption.get_mem _⟩)
+
+lemma core_eq (f : α →. β) (s : set β) : f.core s = f.preimage s ∪ -f.dom :=
+by rw [preimage_eq, set.union_distrib_right, set.union_comm (dom f), set.compl_union_self,
+        set.inter_univ, set.union_eq_self_of_subset_right (compl_dom_subset_core f s)]
+
+lemma preimage_as_subtype (f : α →. β) (s : set β) : 
+  f.as_subtype ⁻¹' s = subtype.val ⁻¹' pfun.preimage f s :=
+begin
+  ext x, 
+  simp only [set.mem_preimage_eq, set.mem_set_of_eq, pfun.as_subtype, pfun.mem_preimage],
+  show pfun.fn f (x.val) _ ∈ s ↔ ∃ y ∈ s, y ∈ f (x.val),
+  exact iff.intro 
+    (assume h, ⟨_, h, roption.get_mem _⟩)
+    (assume ⟨y, ys, fxy⟩, 
+      have f.fn x.val x.property ∈ f x.val := roption.get_mem _,
+      roption.mem_unique fxy this ▸ ys)
+end
+
+end pfun
+

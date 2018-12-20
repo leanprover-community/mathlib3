@@ -181,7 +181,7 @@ end
 by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
   exact ⟨⟨1, 0, rfl⟩, λ ⟨a, i, ha⟩, by simp [ha.symm]⟩
 
-lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
+@[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
 ⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
 section classical

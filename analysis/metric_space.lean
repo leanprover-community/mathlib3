@@ -358,6 +358,43 @@ begin
   exact ⟨λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩, λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩,
 end
 
+-- TODO(Jeremy): namespace other theorems like this?
+
+namespace metric
+
+theorem mem_nhds_within (t : set α) (a : α) (s : set α) :
+  t ∈ (nhds_within a s).sets ↔ ∃ δ > 0, ∀ x ∈ s, dist x a < δ → x ∈ t :=
+begin
+  rw mem_nhds_within, split,
+  { rintros ⟨u, openu, au, hu⟩,
+    rcases is_open_metric.mp openu a au with ⟨δ, δgt0, ballsub⟩,
+    exact ⟨δ, δgt0, (λ x xs distxa, hu ⟨ballsub distxa, xs⟩)⟩ },
+  rintros ⟨δ, δgt0, h⟩,
+  exact ⟨ball a δ, is_open_ball, mem_ball_self δgt0, λ x ⟨distx, xs⟩, h x xs distx ⟩
+end
+
+theorem rtendsto_nhds_within (r : rel α β) (a : α) (s : set α) (l : filter β) :
+  rtendsto r (nhds_within a s) l ↔ 
+    ∀ t ∈ l.sets, ∃ δ > 0, ∀ x ∈ s, dist x a < δ → ∀ y, r x y → y ∈ t :=
+by simp [rtendsto_def, mem_nhds_within, set.subset_def, rel.mem_core]
+
+theorem rtendsto'_nhds_within (r : rel α β) (a : α) (s : set α) (l : filter β) :
+  rtendsto' r (nhds_within a s) l ↔ 
+    ∀ t ∈ l.sets, ∃ δ > 0, ∀ x ∈ s, dist x a < δ → ∃ y ∈ t, r x y :=
+by simp [rtendsto'_def, mem_nhds_within, set.subset_def, rel.mem_preimage]
+
+theorem ptendsto_nhds_within (f : α →. β) (a : α) (s : set α) (l : filter β) :
+  ptendsto f (nhds_within a s) l ↔ 
+    ∀ t ∈ l.sets, ∃ δ > 0, ∀ x ∈ s, dist x a < δ → ∀ y ∈ f x, y ∈ t :=
+by rw [ptendsto_iff_rtendsto, rtendsto_nhds_within, pfun.graph']
+
+theorem tendsto_nhds_within (f : α → β) (a : α) (s : set α) (l : filter β) :
+  tendsto f (nhds_within a s) l ↔ ∀ t ∈ l.sets, ∃ δ > 0, ∀ x ∈ s, dist x a < δ → f x ∈ t :=
+by rw [tendsto_iff_ptendsto_univ, ptendsto_nhds_within, pfun.res_univ]; 
+    simp only [pfun.coe_val, roption.mem_some_iff, forall_eq]
+
+end metric
+
 section cauchy_seq
 variables [inhabited β] [semilattice_sup β]
 

@@ -84,8 +84,8 @@ theorem is_add_subgroup.of_sub (s : set β)
 multiplicative.is_subgroup_iff.1 $
 @is_subgroup.of_div (multiplicative β) _ _ zero_mem @sub_mem
 
-def gpowers (x : α) : set α := {y | ∃i:ℤ, x^i = y}
-def gmultiples (x : β) : set β := {y | ∃i:ℤ, gsmul i x = y}
+def gpowers (x : α) : set α := set.range ((^) x : ℤ → α)
+def gmultiples (x : β) : set β := set.range (λ i, gsmul i x)
 attribute [to_additive gmultiples] gpowers
 
 instance gpowers.is_subgroup (x : α) : is_subgroup (gpowers x) :=
@@ -285,6 +285,28 @@ instance center_normal : normal_subgroup (center α) :=
       ...               = g * g⁻¹ * n * h : by rw ha h; simp
       ...               = g * n * g⁻¹ * h : by rw [mul_assoc g, ha g⁻¹, ←mul_assoc] }
 
+def normalizer (s : set α) : set α :=
+{g : α | ∀ n, n ∈ s ↔ g * n * g⁻¹ ∈ s}
+
+instance (s : set α) [is_subgroup s] : is_subgroup (normalizer s) :=
+{ one_mem := by simp [normalizer],
+  mul_mem := λ a b (ha : ∀ n, n ∈ s ↔ a * n * a⁻¹ ∈ s)
+    (hb : ∀ n, n ∈ s ↔ b * n * b⁻¹ ∈ s) n,
+    by rw [mul_inv_rev, ← mul_assoc, mul_assoc a, mul_assoc a, ← ha, ← hb],
+  inv_mem := λ a (ha : ∀ n, n ∈ s ↔ a * n * a⁻¹ ∈ s) n,
+    by rw [ha (a⁻¹ * n * a⁻¹⁻¹)];
+    simp [mul_assoc] }
+
+lemma subset_normalizer (s : set α) [is_subgroup s] : s ⊆ normalizer s :=
+λ g hg n, by rw [is_subgroup.mul_mem_cancel_left _ ((is_subgroup.inv_mem_iff _).2 hg),
+  is_subgroup.mul_mem_cancel_right _ hg]
+
+instance (s : set α) [is_subgroup s] : normal_subgroup (subtype.val ⁻¹' s : set (normalizer s)) :=
+{ one_mem := show (1 : α) ∈ s, from is_submonoid.one_mem _,
+  mul_mem := λ a b ha hb, show (a * b : α) ∈ s, from is_submonoid.mul_mem ha hb,
+  inv_mem := λ a ha, show (a⁻¹ : α) ∈ s, from is_subgroup.inv_mem ha,
+  normal := λ a ha ⟨m, hm⟩, (hm a).1 ha }
+
 end is_subgroup
 
 namespace is_add_subgroup
@@ -411,5 +433,8 @@ set.ext $ assume x, iff.intro
 lemma inj_iff_trivial_ker (f : α → β) [is_group_hom f] :
   function.injective f ↔ ker f = trivial α :=
 ⟨trivial_ker_of_inj f, inj_of_trivial_ker f⟩
+
+instance (s : set α) [is_subgroup s] : is_group_hom (subtype.val : s → α) :=
+⟨λ _ _, rfl⟩
 
 end is_group_hom

@@ -845,7 +845,7 @@ continuous_iff_tendsto.1 continuous_subtype_val _
 
 lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ (nhds a).sets) :
   map (@subtype.val α p) (nhds ⟨a, ha⟩) = nhds a :=
-map_nhds_induced_eq (by simp [subtype_val_image, h])
+map_nhds_induced_eq (by simp [subtype.val_image, h])
 
 lemma nhds_subtype_eq_comap {a : α} {h : p a} :
   nhds (⟨a, h⟩ : subtype p) = comap subtype.val (nhds a) :=
@@ -878,7 +878,7 @@ continuous_iff_is_closed.mpr $
   have ∀i, is_closed (@subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
     from assume i,
     embedding_is_closed embedding_subtype_val
-      (by simp [subtype_val_range]; exact h_is_closed i)
+      (by simp [subtype.val_range]; exact h_is_closed i)
       (continuous_iff_is_closed.mp (f_cont i) _ hs),
   have is_closed (⋃i, @subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
     from is_closed_Union_of_locally_finite
@@ -903,7 +903,7 @@ lemma compact_iff_compact_in_subtype {s : set {a // p a}} :
 compact_iff_compact_image_of_embedding embedding_subtype_val
 
 lemma compact_iff_compact_univ {s : set α} : compact s ↔ compact (univ : set (subtype s)) :=
-by rw [compact_iff_compact_in_subtype, image_univ, subtype_val_range]; refl
+by rw [compact_iff_compact_in_subtype, image_univ, subtype.val_range]; refl
 
 lemma compact_iff_compact_space {s : set α} : compact s ↔ compact_space s :=
 compact_iff_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
@@ -1402,7 +1402,7 @@ protected def subtype (p : α → Prop) {e : α → β} (de : dense_embedding e)
     begin
       rw ← image_univ,
       simp [(image_comp _ _ _).symm, (∘), subtype_emb, -image_univ],
-      rw [this, image_comp, subtype_val_image],
+      rw [this, image_comp, subtype.val_image],
       simp,
       assumption
     end,

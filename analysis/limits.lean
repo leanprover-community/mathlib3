@@ -154,7 +154,7 @@ lemma sum_geometric' {r : ℝ} (h : r ≠ 0) :
   ∀{n}, (finset.range n).sum (λi, (r + 1) ^ i) = ((r + 1) ^ n - 1) / r
 | 0     := by simp [zero_div]
 | (n+1) :=
-  by simp [@sum_geometric' n, h, pow_succ, add_div_eq_mul_add_div, add_mul, mul_comm, mul_assoc]
+  by simp [@sum_geometric' n, h, pow_succ, range_succ, add_div_eq_mul_add_div, add_mul, mul_comm, mul_assoc]
 
 lemma sum_geometric {r : ℝ} {n : ℕ} (h : r ≠ 1) :
   (range n).sum (λi, r ^ i) = (r ^ n - 1) / (r - 1) :=

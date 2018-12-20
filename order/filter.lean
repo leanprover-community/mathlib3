@@ -1755,7 +1755,7 @@ calc map f (⨅a, principal {a' | a ≤ a'}) = (⨅a, map f $ principal {a' | a 
       mem_principal_sets, and_self, sup_le_iff, forall_true_iff] {contextual := tt}⟩) ⟨default α⟩
   ... = (⨅a, principal $ f '' {a' | a ≤ a'}) : by simp only [map_principal, eq_self_iff_true]
 
-lemma tendsto_at_top {α β} [partial_order β] (m : α → β) (f : filter α) :
+lemma tendsto_at_top {α β} [preorder β] (m : α → β) (f : filter α) :
   tendsto m f at_top ↔ (∀b, {a | b ≤ m a} ∈ f.sets) :=
 by simp only [at_top, tendsto_infi, tendsto_principal]; refl
 

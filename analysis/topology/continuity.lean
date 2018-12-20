@@ -849,7 +849,7 @@ lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λx, (x, 
 embedding_of_embedding_compose (continuous_id.prod_mk hf) continuous_fst embedding_id
 
 lemma embedding_subtype_val : embedding (@subtype.val α p) :=
-⟨assume a₁ a₂, subtype.eq, rfl⟩
+⟨subtype.val_injective, rfl⟩
 
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom

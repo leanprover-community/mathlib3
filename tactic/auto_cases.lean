@@ -4,7 +4,7 @@
 
 import logic.basic
 import tactic.basic
-import data.option
+import data.option.defs
 
 open tactic
 

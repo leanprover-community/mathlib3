@@ -15,7 +15,7 @@ variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 
 include 𝒞 𝒟
 
 /--
-`prod.category C D` gives the cartesian product of two categories.
+`prod C D` gives the cartesian product of two categories.
 -/
 instance prod : category.{(max u₁ u₂) (max v₁ v₂)} (C × D) :=
 { hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
@@ -24,7 +24,14 @@ instance prod : category.{(max u₁ u₂) (max v₁ v₂)} (C × D) :=
 
 -- rfl lemmas for category.prod
 @[simp] lemma prod_id (X : C) (Y : D) : 𝟙 (X, Y) = (𝟙 X, 𝟙 Y) := rfl
-@[simp] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) : f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
+@[simp] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) :
+  f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
+@[simp] lemma prod_id_fst (X : prod C D) : _root_.prod.fst (𝟙 X) = 𝟙 X.fst := rfl
+@[simp] lemma prod_id_snd (X : prod C D) : _root_.prod.snd (𝟙 X) = 𝟙 X.snd := rfl
+@[simp] lemma prod_comp_fst {X Y Z : prod C D} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).1 = f.1 ≫ g.1 := rfl
+@[simp] lemma prod_comp_snd {X Y Z : prod C D} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).2 = f.2 ≫ g.2 := rfl
 end
 
 section
@@ -80,17 +87,32 @@ section
 variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
 include 𝒞 𝒟
 
--- TODO, later this can be defined by uncurrying `functor.id (C ⥤ D)`
-def evaluation : ((C ⥤ D) × C) ⥤ D :=
-{ obj := λ p, p.1.obj p.2,
-  map := λ x y f, (x.1.map f.2) ≫ (f.1.app y.2),
+@[simp] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
+{ obj := λ X,
+  { obj := λ F, F.obj X,
+    map := λ F G α, α.app X, },
+  map := λ X Y f,
+  { app := λ F, F.map f,
+    naturality' := λ F G α, eq.symm (α.naturality f) },
+  map_comp' := λ X Y Z f g,
+  begin
+    ext, dsimp, rw functor.map_comp,
+  end }
+
+@[simp] def evaluation_uncurried : (C × (C ⥤ D)) ⥤ D :=
+{ obj := λ p, p.2.obj p.1,
+  map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),
   map_comp' := begin
-                 intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
-                 erw [←nat_trans.vcomp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
-               end }
+    intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
+    erw [←nat_trans.vcomp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
+  end }
+
 end
 
-variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A] {B : Type u₂} [ℬ : category.{u₂ v₂} B] {C : Type u₃} [𝒞 : category.{u₃ v₃} C] {D : Type u₄} [𝒟 : category.{u₄ v₄} D]
+variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A]
+          {B : Type u₂} [ℬ : category.{u₂ v₂} B]
+          {C : Type u₃} [𝒞 : category.{u₃ v₃} C]
+          {D : Type u₄} [𝒟 : category.{u₄ v₄} D]
 include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor

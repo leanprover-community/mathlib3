@@ -1047,7 +1047,7 @@ by rw [image_preimage_eq_inter_range, preimage_inter_range]
 @[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_iff_surjective.2 quot.exists_rep
 
-lemma subtype_val_range {p : α → Prop} :
+@[simp] lemma subtype_val_range {p : α → Prop} :
   range (@subtype.val _ p) = {x | p x} :=
 by rw ← image_univ; simp [-image_univ, subtype_val_image]
 

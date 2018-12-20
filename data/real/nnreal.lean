@@ -70,11 +70,13 @@ begin
           add_comm_monoid.zero] }
 end
 
+instance : is_semiring_hom (coe : ℝ≥0 → ℝ) := by refine_struct {..}; intros; refl
+
 lemma sum_coe {α} {s : finset α} {f : α → ℝ≥0} : ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
-eq.symm $ finset.sum_hom _ rfl (assume a b, rfl)
+eq.symm $ finset.sum_hom _
 
 lemma prod_coe {α} {s : finset α} {f : α → ℝ≥0} : ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
-eq.symm $ finset.prod_hom _ rfl (assume a b, rfl)
+eq.symm $ finset.prod_hom _
 
 lemma smul_coe (r : ℝ≥0) : ∀n, ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ)
 | 0       := rfl

@@ -13,6 +13,31 @@ meta def deinternalize_field : name → name
   if i.curr = '_' then i.next.next_to_string else s
 | n := n
 
+meta def get_nth_prefix : name → ℕ → name
+| nm 0 := nm
+| nm (n + 1) := get_nth_prefix nm.get_prefix n
+
+private meta def pop_nth_prefix_aux : name → ℕ → name × ℕ
+| anonymous n := (anonymous, 1)
+| nm n := let (pfx, height) := pop_nth_prefix_aux nm.get_prefix n in
+          if height ≤ n then (anonymous, height + 1)
+          else (nm.update_prefix pfx, height + 1)
+
+-- Pops the top `n` prefixes from the given name.
+meta def pop_nth_prefix (nm : name) (n : ℕ) : name :=
+prod.fst $ pop_nth_prefix_aux nm n
+
+meta def pop_prefix (n : name) : name :=
+pop_nth_prefix n 1
+
+-- `name`s can contain numeral pieces, which are not legal names
+-- when typed/passed directly to the parser. We turn an arbitrary
+-- name into a legal identifier name.
+meta def sanitize_name : name → name
+| name.anonymous := name.anonymous
+| (name.mk_string s p) := name.mk_string s $ sanitize_name p
+| (name.mk_numeral s p) := name.mk_string sformat!"n{s}" $ sanitize_name p
+
 end name
 
 namespace name_set
@@ -102,6 +127,10 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
+meta def is_mvar : expr → bool
+| (mvar _ _ _) := tt
+| _            := ff
+
 end expr
 
 namespace environment
@@ -155,12 +184,32 @@ end
 meta instance has_coe' {α} : has_coe (tactic α) (parser α) :=
 ⟨of_tactic'⟩
 
+meta def emit_command_here (str : string) : lean.parser string :=
+do (_, left) ← with_input command_like str,
+   return left
+
+-- Emit a source code string at the location being parsed.
+meta def emit_code_here : string → lean.parser unit
+| str := do left ← emit_command_here str,
+            if left.length = 0 then return ()
+            else emit_code_here left
+
 end lean.parser
 
 namespace tactic
 
 meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
 mk_app ``id [e] >>= eval_expr α
+
+-- `mk_fresh_name` returns identifiers starting with underscores,
+-- which are not legal when emitted by tactic programs. Turn the
+-- useful source of random names provided by `mk_fresh_name` into
+-- names which are usable by tactic programs.
+--
+-- The returned name has four components.
+meta def mk_user_fresh_name : tactic name :=
+do nm ← mk_fresh_name,
+   return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
 meta def is_simp_lemma : name → tactic bool :=
 succeeds ∘ tactic.has_attribute `simp
@@ -476,6 +525,14 @@ do { exfalso,
      ctx.any_of (λ H, symm_apply H >> tac) }
 <|> fail "assumption tactic failed"
 
+meta def change_core (e : expr) : option expr → tactic unit
+| none     := tactic.change e
+| (some h) :=
+  do num_reverted : ℕ ← revert h,
+     expr.pi n bi d b ← target,
+     tactic.change $ expr.pi n bi e b,
+     intron num_reverted
+
 open nat
 
 meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
@@ -502,6 +559,8 @@ meta def propositional_goal : tactic unit :=
 do goals ← get_goals,
    p ← is_proof goals.head,
    guard p
+
+meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
 variable {α : Type}
 
@@ -553,6 +612,7 @@ meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",
    note n none e, skip
 
+/-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,
    prod.snd <$> solve_aux t' assumption
@@ -715,5 +775,11 @@ form `f ∘ g = h` for reasoning about higher-order functions.",
        copy_attribute `functor_norm lmm tt lmm' }
 
 attribute [higher_order map_comp_pure] map_pure
+
+private meta def tactic.use_aux (h : pexpr) : tactic unit :=
+(focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
+
+meta def tactic.use (l : list pexpr) : tactic unit :=
+focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
 
 end tactic

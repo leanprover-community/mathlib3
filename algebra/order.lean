@@ -112,6 +112,16 @@ lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 le_antisymm ((H _).2 (le_refl _)) ((H _).1 (le_refl _))
 
+/-- monotonicity of `≤` with respect to `→` -/
+lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α]
+   (h₀ : c ≤ a) (h₁ : b ≤ d) :
+  a ≤ b -> c ≤ d :=
+assume h₂ : a ≤ b,
+calc  c
+    ≤ a : h₀
+... ≤ b : h₂
+... ≤ d : h₁
+
 namespace decidable
 
 lemma lt_or_eq_of_le [partial_order α] [@decidable_rel α (≤)] {a b : α} (hab : a ≤ b) : a < b ∨ a = b :=

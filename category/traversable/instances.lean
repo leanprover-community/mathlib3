@@ -11,20 +11,9 @@ import data.list.basic data.set.lattice
 
 universes u v
 
-instance : traversable id := ⟨λ _ _ _ _, id⟩
-instance : is_lawful_traversable id := by refine {..}; intros; refl
-
 section option
 
 open functor
-
-section inst
-
-variables {F : Type u → Type v} [applicative F]
-
-instance : traversable option := ⟨@option.traverse⟩
-
-end inst
 
 variables {F G : Type u → Type u}
 variables [applicative F] [applicative G]
@@ -60,6 +49,8 @@ namespace list
 
 variables {F G : Type u → Type u}
 variables [applicative F] [applicative G]
+
+section
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
 open applicative functor
@@ -85,13 +76,12 @@ protected lemma naturality {α β} (f : α → F β) (x : list α) :
 by induction x; simp! * with functor_norm
 open nat
 
-instance : traversable list := ⟨@list.traverse⟩
-
 instance : is_lawful_traversable list :=
 { id_traverse := @list.id_traverse,
   comp_traverse := @list.comp_traverse,
   traverse_eq_map_id := @list.traverse_eq_map_id,
   naturality := @list.naturality }
+end
 
 section traverse
 variables {α' β' : Type u} (f : α' → F β')
@@ -136,10 +126,6 @@ variables [applicative F] [applicative G]
 open applicative functor
 open list (cons)
 
-protected def traverse {α β} (f : α → F β) : σ ⊕ α → F (σ ⊕ β)
-| (sum.inl x) := pure (sum.inl x)
-| (sum.inr x) := sum.inr <$> f x
-
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
 protected lemma id_traverse {σ α} (x : σ ⊕ α) : sum.traverse id.mk x = x :=
@@ -169,8 +155,6 @@ protected lemma naturality {α β} (f : α → F β) (x : σ ⊕ α) :
 by cases x; simp! [sum.traverse] with functor_norm
 
 end traverse
-
-instance {σ : Type u} : traversable.{u} (sum σ) := ⟨@sum.traverse _⟩
 
 instance {σ : Type u} : is_lawful_traversable.{u} (sum σ) :=
 { id_traverse := @sum.id_traverse σ,

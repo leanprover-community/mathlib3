@@ -266,7 +266,7 @@ spaces.-/
 instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
   edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
-  edist_comm := assume f g, by congr; ext a; exact edist_comm _ _,
+  edist_comm := assume f g, by congr; funext a; exact edist_comm _ _,
   edist_triangle := assume f g h,
     begin
       simp only [finset.sup_le_iff],

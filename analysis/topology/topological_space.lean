@@ -1787,10 +1787,34 @@ def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ int
   le_l_u := λ _, interior_subset,
   choice_eq := λ s hs, le_antisymm interior_subset hs }
 
+@[simp] lemma gi_choice_val {s : order_dual (set α)} {hs} : (gi.choice s hs).val = s := rfl
+
 instance : complete_lattice (opens α) :=
-@order_dual.lattice.complete_lattice _
+complete_lattice.copy
+(@order_dual.lattice.complete_lattice _
   (@galois_insertion.lift_complete_lattice
-    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi)
+    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi))
+/- le  -/ (λ U V, U.1 ⊆ V.1) rfl
+/- top -/ ⟨set.univ, _root_.is_open_univ⟩ (subtype.ext.mpr interior_univ.symm)
+/- bot -/ ⟨∅, is_open_empty⟩ rfl
+/- sup -/ (λ U V, ⟨U.1 ∪ V.1, _root_.is_open_union U.2 V.2⟩) rfl
+/- inf -/ (λ U V, ⟨U.1 ∩ V.1, _root_.is_open_inter U.2 V.2⟩)
+begin
+  funext,
+  apply subtype.ext.mpr,
+  symmetry,
+  apply interior_eq_of_open,
+  exact (_root_.is_open_inter U.2 V.2),
+end
+/- Sup -/ (λ Us, ⟨⋃₀ (subtype.val '' Us), _root_.is_open_sUnion $ λ U hU,
+by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
+begin
+  funext,
+  apply subtype.ext.mpr,
+  simp [Sup_range],
+  refl,
+end
+/- Inf -/ _ rfl
 
 @[simp] lemma Sup_s {Us : set (opens α)} : (Sup Us).val = ⋃₀ (subtype.val '' Us) :=
 begin

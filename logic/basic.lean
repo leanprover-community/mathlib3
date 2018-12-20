@@ -39,6 +39,10 @@ instance : decidable_eq empty := λa, a.elim
 @[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
   (a : α) : (a : γ) = (a : β) := rfl
 
+instance has_zero.to_nonempty [has_zero α] : nonempty α := ⟨0⟩
+
+instance has_one.to_nonempty [has_one α] : nonempty α := ⟨1⟩
+
 @[simp] theorem coe_fn_coe_trans
   {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
   (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl

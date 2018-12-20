@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 
 Theory of topological spaces.
 
@@ -297,14 +297,6 @@ by simp only [frontier_eq_closure_inter_closure, lattice.neg_neg, inter_comm]
 /-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 
-lemma tendsto_nhds {m : β → α} {f : filter β} (h : ∀s, a ∈ s → is_open s → m ⁻¹' s ∈ f.sets) :
-  tendsto m f (nhds a) :=
-show map m f ≤ (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s),
-  from le_infi $ assume s, le_infi $ assume ⟨ha, hs⟩, le_principal_iff.mpr $ h s ha hs
-
-lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (nhds a) :=
-tendsto_nhds $ assume s ha hs, univ_mem_sets' $ assume _, ha
-
 lemma nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
 calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : infi_sets_eq'
   (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
@@ -338,6 +330,45 @@ lemma mem_of_nhds {a : α} {s : set α} : s ∈ (nhds a).sets → a ∈ s :=
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
  s ∈ (nhds a).sets :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
+
+theorem all_mem_nhds (x : α) (P : set α → Prop) (hP : ∀ s t, s ⊆ t → P s → P t) :
+  (∀ s ∈ (nhds x).sets, P s) ↔ (∀ s, is_open s → x ∈ s → P s) :=
+iff.intro
+  (λ h s os xs, h s (mem_nhds_sets os xs))
+  (λ h t,
+    begin
+      rw nhds_sets,
+      rintros ⟨s, hs, opens, xs⟩,
+      exact hP _ _ hs (h s opens xs),
+    end)
+
+theorem all_mem_nhds_filter (x : α) (f : set α → set β) (hf : ∀ s t, s ⊆ t → f s ⊆ f t)
+    (l : filter β) :
+  (∀ s ∈ (nhds x).sets, f s ∈ l.sets) ↔ (∀ s, is_open s → x ∈ s → f s ∈ l.sets) :=
+all_mem_nhds _ _ (λ s t ssubt h, mem_sets_of_superset h (hf s t ssubt))
+
+theorem rtendsto_nhds {r : rel β α} {l : filter β} {a : α} :
+  rtendsto r l (nhds a) ↔ (∀ s, is_open s → a ∈ s → r.core s ∈ l.sets) :=
+all_mem_nhds_filter _ _ (λ s t h, h) _
+
+theorem rtendsto'_nhds {r : rel β α} {l : filter β} {a : α} :
+  rtendsto' r l (nhds a) ↔ (∀ s, is_open s → a ∈ s → r.preimage s ∈ l.sets) :=
+by { rw [rtendsto'_def], apply all_mem_nhds_filter, apply rel.preimage_mono }
+
+theorem ptendsto_nhds {f : β →. α} {l : filter β} {a : α} :
+  ptendsto f l (nhds a) ↔ (∀ s, is_open s → a ∈ s → f.core s ∈ l.sets) :=
+rtendsto_nhds
+
+theorem ptendsto'_nhds {f : β →. α} {l : filter β} {a : α} :
+  ptendsto' f l (nhds a) ↔ (∀ s, is_open s → a ∈ s → f.preimage s ∈ l.sets) :=
+rtendsto'_nhds
+
+theorem tendsto_nhds {f : β → α} {l : filter β} {a : α} :
+  tendsto f l (nhds a) ↔ (∀ s, is_open s → a ∈ s → f ⁻¹' s ∈ l.sets) :=
+all_mem_nhds_filter _ _ (λ s t h, h) _
+
+lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (nhds a) :=
+tendsto_nhds.mpr $ assume s hs ha, univ_mem_sets' $ assume _, ha
 
 lemma pure_le_nhds : pure ≤ (nhds : α → filter α) :=
 assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $
@@ -432,6 +463,91 @@ lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set �
   (hb : b ≠ ⊥) (hf : tendsto f b (nhds a)) (h : f ⁻¹' s ∈ b.sets) : a ∈ closure s :=
 mem_of_closed_of_tendsto hb hf (is_closed_closure) $
   filter.mem_sets_of_superset h (preimage_mono subset_closure)
+
+/-
+The nhds_within filter.
+-/
+
+def nhds_within (a : α) (s : set α) : filter α := nhds a ⊓ principal s
+
+theorem nhds_within_eq (a : α) (s : set α) :
+  nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, principal (t ∩ s) :=
+have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,
+begin
+  rw [nhds_within, nhds, lattice.binfi_inf]; try { exact this },
+  simp only [inf_principal]
+end
+
+theorem nhds_within_univ (a : α) : nhds_within a set.univ = nhds a :=
+by rw [nhds_within, principal_univ, lattice.inf_top_eq]
+
+theorem mem_nhds_within (t : set α) (a : α) (s : set α) :
+  t ∈ (nhds_within a s).sets ↔ ∃ u, is_open u ∧ a ∈ u ∧ u ∩ s ⊆ t  :=
+begin
+  rw [nhds_within, mem_inf_principal, mem_nhds_sets_iff], split,
+  { rintros ⟨u, hu, openu, au⟩,
+    exact ⟨u, openu, au, λ x ⟨xu, xs⟩, hu xu xs⟩ },
+  rintros ⟨u, openu, au, hu⟩,
+  exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
+end
+
+theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : nhds_within a s ≤ nhds_within a t :=
+lattice.inf_le_inf (le_refl _) (principal_mono.mpr h)
+
+theorem nhds_within_restrict {a : α} (s : set α) {t : set α} (h₀ : a ∈ t) (h₁ : is_open t) :
+  nhds_within a s = nhds_within a (s ∩ t) :=
+have s ∩ t ∈ (nhds_within a s).sets,
+  from inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s))
+         (mem_inf_sets_of_left (mem_nhds_sets h₁ h₀)),
+le_antisymm
+  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr this))
+  (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+
+theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
+    (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :
+  nhds_within a t = nhds_within a u :=
+by rw [nhds_within_restrict t h₀ h₁, nhds_within_restrict u h₀ h₁, h₂]
+
+theorem nhs_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is_open s) :
+  nhds_within a s = nhds a :=
+by rw [←nhds_within_univ]; apply nhds_within_eq_nhds_within h₀ h₁;
+     rw [set.univ_inter, set.inter_self]
+
+@[simp] theorem nhds_within_empty (a : α) : nhds_within a {} = ⊥ :=
+by rw [nhds_within, principal_empty, lattice.inf_bot_eq]
+
+theorem nhds_within_union (a : α) (s t : set α) :
+  nhds_within a (s ∪ t) = nhds_within a s ⊔ nhds_within a t :=
+by unfold nhds_within; rw [←lattice.inf_sup_left, sup_principal]
+
+theorem nhds_within_inter (a : α) (s t : set α) :
+  nhds_within a (s ∩ t) = nhds_within a s ⊓ nhds_within a t :=
+by unfold nhds_within; rw [lattice.inf_left_comm, lattice.inf_assoc, inf_principal,
+                             ←lattice.inf_assoc, lattice.inf_idem]
+
+theorem nhds_within_inter' (a : α) (s t : set α) :
+  nhds_within a (s ∩ t) = (nhds_within a s) ⊓ principal t :=
+by { unfold nhds_within, rw [←inf_principal, lattice.inf_assoc] }
+
+theorem tendsto_if_nhds_within {f g : α → β} {p : α → Prop} [decidable_pred p]
+    {a : α} {s : set α} {l : filter β}
+    (h₀ : tendsto f (nhds_within a (s ∩ p)) l)
+    (h₁ : tendsto g (nhds_within a (s ∩ {x | ¬ p x})) l) :
+  tendsto (λ x, if p x then f x else g x) (nhds_within a s) l :=
+by apply tendsto_if; rw [←nhds_within_inter']; assumption
+
+lemma map_nhds_within (f : α → β) (a : α) (s : set α) :
+  map f (nhds_within a s) =
+    ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, principal (set.image f (t ∩ s)) :=
+have h₀ : directed_on ((λ (i : set α), principal (i ∩ s)) ⁻¹'o ge)
+        {x : set α | x ∈ {t : set α | a ∈ t ∧ is_open t}}, from
+  assume x ⟨ax, openx⟩ y ⟨ay, openy⟩,
+  ⟨x ∩ y, ⟨⟨ax, ay⟩, is_open_inter openx openy⟩,
+    le_principal_iff.mpr (set.inter_subset_inter_left _ (set.inter_subset_left _ _)),
+    le_principal_iff.mpr (set.inter_subset_inter_left _ (set.inter_subset_right _ _))⟩,
+have h₁ : ∃ (i : set α), i ∈ {t : set α | a ∈ t ∧ is_open t},
+  from ⟨set.univ, set.mem_univ _, is_open_univ⟩,
+by { rw [nhds_within_eq, map_binfi_eq h₀ h₁], simp only [map_principal] }
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
@@ -1587,6 +1703,79 @@ instance sum.discrete_topology [topological_space α] [topological_space β]
 instance sigma.discrete_topology {β : α → Type v} [Πa, topological_space (β a)]
   [h : Πa, discrete_topology (β a)] : discrete_topology (sigma β) :=
 ⟨by unfold sigma.topological_space; simp [λ a, (h a).eq_top]⟩
+
+/- nhds in the induced topology -/
+
+theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
+  s ∈ (@nhds β (topological_space.induced f T) a).sets ↔ ∃ u ∈ (nhds (f a)).sets, f ⁻¹' u ⊆ s :=
+begin
+  simp only [nhds_sets, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  split,
+  { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
+    exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },
+  rintros ⟨u, ⟨v, vsubu, openv, amem⟩, finvsub⟩,
+  exact ⟨f ⁻¹' v, set.subset.trans (set.preimage_mono vsubu) finvsub, ⟨⟨v, openv, rfl⟩, amem⟩⟩
+end
+
+theorem nhds_induced [T : topological_space α] (f : β → α) (a : β) :
+  @nhds β (topological_space.induced f T) a = comap f (nhds (f a)) :=
+filter_eq $ by ext s; rw mem_nhds_induced; rw mem_comap_sets
+
+theorem map_nhds_induced_of_surjective [T : topological_space α]
+    {f : β → α} (hf : function.surjective f) (a : β) (s : set α) :
+  map f (@nhds β (topological_space.induced f T) a) = nhds (f a) :=
+by rw [nhds_induced, map_comap_of_surjective hf]
+
+section topα
+
+variable [topological_space α]
+
+/-
+The nhds filter and the subspace topology.
+-/
+
+theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
+  t ∈ (nhds a).sets ↔ ∃ u ∈ (nhds a.val).sets, (@subtype.val α s) ⁻¹' u ⊆ t :=
+by rw mem_nhds_induced
+
+theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
+  nhds a = comap subtype.val (nhds a.val) :=
+by rw nhds_induced
+
+theorem principal_subtype (s : set α) (t : set {x // x ∈ s}) :
+  principal t = comap subtype.val (principal (subtype.val '' t)) :=
+by rw comap_principal; rw set.preimage_image_eq; apply subtype.val_injective
+
+/-
+nhds_within and subtypes
+-/
+
+theorem mem_nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t u : set {x // x ∈ s}) :
+  t ∈ (nhds_within a u).sets ↔
+    t ∈ (comap (@subtype.val _ s) (nhds_within a.val (subtype.val '' u))).sets :=
+by rw [nhds_within, nhds_subtype, principal_subtype, ←comap_inf, ←nhds_within]
+
+theorem nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
+  nhds_within a t = comap (@subtype.val _ s) (nhds_within a.val (subtype.val '' t)) :=
+filter_eq $ by ext u; rw mem_nhds_within_subtype
+
+theorem nhds_within_eq_map_subtype_val {s : set α} {a : α} (h : a ∈ s) :
+  nhds_within a s = map subtype.val (nhds ⟨a, h⟩) :=
+have h₀ : s ∈ (nhds_within a s).sets,
+  by { rw [mem_nhds_within], existsi set.univ, simp [set.diff_eq] },
+have h₁ : ∀ y ∈ s, ∃ x, @subtype.val _ s x = y,
+  from λ y h, ⟨⟨y, h⟩, rfl⟩,
+begin
+  rw [←nhds_within_univ, nhds_within_subtype, subtype.val_image_univ],
+  exact (map_comap_of_surjective' h₀ h₁).symm,
+end
+
+theorem tendsto_at_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
+  tendsto f (nhds_within a s) l ↔ tendsto (function.restrict f s) (nhds ⟨a, h⟩) l :=
+by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
+    ←(@filter.map_map _ _ _ _ subtype.val)]
+
+end topα
 
 end constructions
 

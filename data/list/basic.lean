@@ -4082,13 +4082,6 @@ h _ (list.nth_le_mem _ _ _) _ (list.nth_le_mem _ _ _)
 
 end tfae
 
-/-- `rotate l n` rotates the elements of `l` to the left by `n`
-  `rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
-def rotate : list α → ℕ → list α
-| []     n     := []
-| l      0     := l
-| (a::l) (n+1) := rotate (l ++ [a]) n
-
 @[simp] lemma rotate_nil (n : ℕ) : ([] : list α).rotate n = [] := by cases n; refl
 
 @[simp] lemma rotate_zero (l : list α) : l.rotate 0 = l := by cases l; refl

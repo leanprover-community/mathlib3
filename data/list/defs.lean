@@ -415,6 +415,18 @@ def map_last {α} (f : α → α) : list α → list α
 /- tfae: The Following (propositions) Are Equivalent -/
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
 
+/-- `rotate l n` rotates the elements of `l` to the left by `n`
+
+     rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
+def rotate (l : list α) (n : ℕ) : list α :=
+let (l₁, l₂) := list.split_at (n % l.length) l in l₂ ++ l₁
+
+/-- rotate' is the same as `rotate`, but slower. Used for proofs about `rotate`-/
+def rotate' : list α → ℕ → list α
+| []     n     := []
+| l      0     := l
+| (a::l) (n+1) := rotate' (l ++ [a]) n
+
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : list α)
 

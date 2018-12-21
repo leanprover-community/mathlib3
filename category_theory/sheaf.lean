@@ -1,3 +1,14 @@
+-- Copyright (c) 2018 Johan Commelin. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Johan Commelin
+
+import category_theory.presheaf
+
+universes u v
+
+-- TODO: How much of this should be generalized to a possibly large category?
+variables (X : Type v) [small_category X]
+
 @[reducible]
 def covering_family (U : X) : Type u := set (over.{u u} U)
 

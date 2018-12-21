@@ -30,6 +30,7 @@ def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
 namespace functor
 
 section
+
 variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
 include 𝒟
 

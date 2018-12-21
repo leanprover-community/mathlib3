@@ -1759,6 +1759,16 @@ lemma tendsto_at_top {α β} [preorder β] (m : α → β) (f : filter α) :
   tendsto m f at_top ↔ (∀b, {a | b ≤ m a} ∈ f.sets) :=
 by simp only [at_top, tendsto_infi, tendsto_principal]; refl
 
+lemma tendsto_at_top_at_top {α β} [preorder α] [preorder β]
+  [hα : nonempty α] (h : directed (@has_le.le α _) id)
+  (f : α → β) :
+  tendsto f at_top at_top ↔ ∀ b : β, ∃ i : α, ∀ a : α, i ≤ a → b ≤ f a :=
+have directed ge (λ (a : α), principal {b : α | a ≤ b}),
+  from λ a b, let ⟨z, hz⟩ := h b a in
+    ⟨z, λ s h x hzx, h (le_trans hz.2 hzx),
+      λ s h x hzx, h (le_trans hz.1 hzx)⟩,
+by rw [tendsto_at_top, at_top, infi_sets_eq this hα]; simp
+
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :
   tendsto (λs:finset γ, s.image j) at_top at_top :=
 tendsto_infi.2 $ assume s, tendsto_infi' (s.image i) $ tendsto_principal_principal.2 $

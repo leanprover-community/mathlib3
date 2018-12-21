@@ -90,6 +90,7 @@ include 𝒞
 @[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
 { obj := λ X, ⟨ X ⟩,
   map := λ X Y f, f }
+
 end
 
 end functor

@@ -416,7 +416,8 @@ def map_last {α} (f : α → α) : list α → list α
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
 
 /-- `rotate l n` rotates the elements of `l` to the left by `n`
-  `rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
+
+     rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
 def rotate (l : list α) (n : ℕ) : list α :=
 let (l₁, l₂) := list.split_at (n % l.length) l in l₂ ++ l₁
 

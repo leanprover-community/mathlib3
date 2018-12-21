@@ -162,7 +162,7 @@ have h₃ : m < list.length (l ++ [a]), by simpa using hml,
       add_assoc m n 1 ▸ nat.modeq.modeq_add (nat.mod_mod _ _).symm rfl
     ... = (m + n) % (l.length + 1) + 1 : nat.mod_eq_of_lt (nat.succ_lt_succ hml'),
   have h₂ : (m + n) % (l ++ [a]).length < l.length, by simpa [nat.add_one] using hml',
-  by rw [list.rotate, nth_rotate h₃, list.nth_append h₂, h₁, list.nth]; simp)
+  by rw [list.rotate_cons_succ, nth_rotate h₃, list.nth_append h₂, h₁, list.nth]; simp)
 (λ hml',
   have h₁ : (m + (n + 1)) % (l.length + 1) = 0,
     from calc (m + (n + 1)) % (l.length + 1) = (l.length + 1) % (l.length + 1) :
@@ -170,7 +170,7 @@ have h₃ : m < list.length (l ++ [a]), by simpa using hml,
         (hml'.trans (nat.mod_eq_of_lt (nat.lt_succ_self _)).symm) rfl
     ... = 0 : by simp,
   have h₂ : l.length < (l ++ [a]).length, by simp [nat.lt_succ_self],
-  by rw [list.length, list.rotate, nth_rotate h₃, list.length_append,
+  by rw [list.length, list.rotate_cons_succ, nth_rotate h₃, list.length_append,
     list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)
 
 lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},

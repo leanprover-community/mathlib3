@@ -4093,7 +4093,7 @@ by simp [rotate]
 
 @[simp] lemma rotate'_zero (l : list α) : l.rotate' 0 = l := by cases l; refl
 
-lemma rotate'_succ_cons (l : list α) (a : α) (n : ℕ) :
+lemma rotate'_cons_succ (l : list α) (a : α) (n : ℕ) :
   (a :: l : list α).rotate' n.succ = (l ++ [a]).rotate' n := by simp [rotate']
 
 @[simp] lemma length_rotate' : ∀ (l : list α) (n : ℕ), (l.rotate' n).length = l.length
@@ -4110,14 +4110,14 @@ have hnl : n ≤ l.length, from le_of_succ_le_succ h,
 have hnl' : n ≤ (l ++ [a]).length,
   by rw [length_append, length_cons, list.length, zero_add];
     exact (le_of_succ_le h),
-by rw [rotate'_succ_cons, rotate'_eq_take_append_drop hnl', drop, take,
+by rw [rotate'_cons_succ, rotate'_eq_take_append_drop hnl', drop, take,
      drop_append_of_le_length hnl, take_append_of_le_length hnl];
    simp
 
 lemma rotate'_rotate' : ∀ (l : list α) (n m : ℕ), (l.rotate' n).rotate' m = l.rotate' (n + m)
 | (a::l) 0     m := by simp
 | []     n     m := by simp
-| (a::l) (n+1) m := by rw [rotate'_succ_cons, rotate'_rotate', add_right_comm, rotate'_succ_cons]
+| (a::l) (n+1) m := by rw [rotate'_cons_succ, rotate'_rotate', add_right_comm, rotate'_cons_succ]
 
 @[simp] lemma rotate'_length (l : list α) : rotate' l l.length = l :=
 by rw rotate'_eq_take_append_drop (le_refl _); simp
@@ -4140,6 +4140,10 @@ if h : l.length = 0 then by simp [length_eq_zero, *] at *
 else by
   rw [← rotate'_mod, rotate'_eq_take_append_drop (le_of_lt (nat.mod_lt _ (nat.pos_of_ne_zero h)))];
   simp [rotate]
+
+lemma rotate_cons_succ (l : list α) (a : α) (n : ℕ) :
+  (a :: l : list α).rotate n.succ = (l ++ [a]).rotate n :=
+by rw [rotate_eq_rotate', rotate_eq_rotate', rotate'_cons_succ]
 
 @[simp] lemma length_rotate (l : list α) (n : ℕ) : (l.rotate n).length = l.length :=
 by rw [rotate_eq_rotate', length_rotate']

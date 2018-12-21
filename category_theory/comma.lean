@@ -235,27 +235,6 @@ variables {X Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 @[simp] lemma map_map_left : ((map f).map g).left = g.left := rfl
 end
 
-def over_over {X : T} {Y : over X} : over Y ≌ over (forget.obj Y) :=
-{ functor :=
-  { obj := λ Z, mk $ forget.map Z.hom,
-    map := λ Z₁ Z₂ f,
-    { left := forget.map f.left,
-      w' :=
-      begin
-        dsimp,
-        erw ← forget.map_comp,
-        simp
-      end } },
-  inverse :=
-  { obj := λ Z,
-    { left := mk $ Z.hom ≫ Y.hom,
-      hom := hom_mk $ _ },
-    map := λ Z₁ Z₂ f,
-    { left :=
-      { left := f.left,
-        w' := by { erw [← category.assoc, over_w], dsimp, simp, },
-      w' := _ } } }
-
 end over
 
 def under (X : T) := comma.{0 0 u₃ v₃ u₃ v₃} (functor.of.obj X) (functor.id T)

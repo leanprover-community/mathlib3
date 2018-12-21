@@ -14,7 +14,7 @@ variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 
 include 𝒞 𝒟
 
 /--
-`functor.category C D` gives the category structure on functor and natural transformations
+`functor.category C D` gives the category structure on functors and natural transformations
 between categories `C` and `D`.
 
 Notice that if `C` and `D` are both small categories at the same universe level,

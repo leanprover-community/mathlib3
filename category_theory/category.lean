@@ -60,6 +60,10 @@ restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
 attribute [trans] category.comp
 
+lemma category.assoc_symm {C : Type u} [category.{u v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
+  f ≫ (g ≫ h) = (f ≫ g) ≫ h :=
+by rw ←category.assoc
+
 /--
 A `large_category` has objects in one universe level higher than the universe level of
 the morphisms. It is useful for examples such as the category of types, or the category
@@ -109,6 +113,11 @@ instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (
   [h : concrete_category @hom] {R S : bundled c} : has_coe_to_fun (R ⟶ S) :=
 { F := λ f, R → S,
   coe := λ f, f.1 }
+
+@[simp] lemma bundled_hom_coe
+  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+  [h : concrete_category @hom] {R S : bundled c} (val : R → S) (prop) (r : R) :
+  (⟨val, prop⟩ : R ⟶ S) r = val r := rfl
 
 section
 variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}

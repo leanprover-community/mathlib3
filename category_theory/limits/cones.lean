@@ -104,6 +104,7 @@ by convert ←(c.ι.naturality f); apply comp_id
 variables {F : J ⥤ C}
 
 namespace cone
+
 @[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
 { app := λ X f, ((const J).map f) ≫ c.π }
 
@@ -238,7 +239,6 @@ end
 end cocones
 
 end limits
-
 
 namespace functor
 

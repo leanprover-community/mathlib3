@@ -27,9 +27,44 @@ iff.intro
 
 end finset
 
+lemma conj_inj [group α] {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
+λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
+
+lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
+  (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ is_subgroup.normalizer s :=
+by haveI := classical.prop_decidable;
+haveI := set.fintype_image s (λ n, x * n * x⁻¹); exact
+λ n, ⟨h n, λ h₁,
+have heq : (λ n, x * n * x⁻¹) '' s = s := set.eq_of_subset_of_card_le
+  (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective s conj_inj),
+have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' s := heq.symm ▸ h₁,
+let ⟨y, hy⟩ := this in conj_inj hy.2 ▸ hy.1⟩
+
 section order_of
 variables [group α] [fintype α] [decidable_eq α]
-open set
+open quotient_group set
+
+instance quotient_group.fintype (s : set α) [is_subgroup s] [d : decidable_pred s] :
+  fintype (quotient s) :=
+@quotient.fintype _ _ (left_rel s) (λ _ _, d _)
+
+lemma card_eq_card_quotient_mul_card_subgroup (s : set α) [hs : is_subgroup s] [fintype s]
+  [decidable_pred s] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
+by rw ← fintype.card_prod;
+  exact fintype.card_congr (is_subgroup.group_equiv_quotient_times_subgroup hs)
+
+lemma card_subgroup_dvd_card (s : set α) [is_subgroup s] [fintype s] :
+  fintype.card s ∣ fintype.card α :=
+by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
+
+lemma card_quotient_dvd_card (s : set α) [is_subgroup s] [decidable_pred s] [fintype s] :
+  fintype.card (quotient s) ∣ fintype.card α :=
+by simp [card_eq_card_quotient_mul_card_subgroup s]
+
+@[simp] lemma card_trivial [fintype (is_subgroup.trivial α)] :
+  fintype.card (is_subgroup.trivial α) = 1 :=
+fintype.card_eq_one_iff.2
+  ⟨⟨(1 : α), by simp⟩, λ ⟨y, hy⟩, subtype.eq $ is_subgroup.mem_trivial.1 hy⟩
 
 lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
 have ¬ injective (λi, a ^ i),
@@ -142,6 +177,13 @@ begin
   { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
 end
 
+@[simp] lemma order_of_one : order_of (1 : α) = 1 :=
+by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
+  exact ⟨⟨1, 0, rfl⟩, λ ⟨a, i, ha⟩, by simp [ha.symm]⟩
+
+@[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
+⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
+
 section classical
 local attribute [instance] classical.prop_decidable
 open quotient_group
@@ -168,6 +210,7 @@ have eq₂ : order_of a = @fintype.card _ ft_s,
     ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
 dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
+
 
 end classical
 

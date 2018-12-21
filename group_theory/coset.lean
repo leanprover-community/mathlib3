@@ -168,21 +168,21 @@ def mk (a : α) : quotient s :=
 quotient.mk' a
 attribute [to_additive quotient_add_group.mk.equations._eqn_1] mk.equations._eqn_1
 
-@[elab_as_eliminator, elab_strategy, to_additive quotient_add_group.induction_on]
+@[elab_as_eliminator, to_additive quotient_add_group.induction_on]
 lemma induction_on {C : quotient s → Prop} (x : quotient s)
   (H : ∀ z, C (quotient_group.mk z)) : C x :=
 quotient.induction_on' x H
-attribute [elab_as_eliminator, elab_strategy] quotient_add_group.induction_on
+attribute [elab_as_eliminator] quotient_add_group.induction_on
 
 @[to_additive quotient_add_group.has_coe]
 instance : has_coe α (quotient s) := ⟨mk⟩
 attribute [to_additive quotient_add_group.has_coe.equations._eqn_1] has_coe.equations._eqn_1
 
-@[elab_as_eliminator, elab_strategy, to_additive quotient_add_group.induction_on']
+@[elab_as_eliminator, to_additive quotient_add_group.induction_on']
 lemma induction_on' {C : quotient s → Prop} (x : quotient s)
   (H : ∀ z : α, C z) : C x :=
 quotient.induction_on' x H
-attribute [elab_as_eliminator, elab_strategy] quotient_add_group.induction_on'
+attribute [elab_as_eliminator] quotient_add_group.induction_on'
 
 @[to_additive quotient_add_group.inhabited]
 instance [group α] (s : set α) [is_subgroup s] : inhabited (quotient s) :=

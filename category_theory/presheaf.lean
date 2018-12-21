@@ -1,3 +1,7 @@
+-- Copyright (c) 2018 Johan Commelin. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Johan Commelin, Reid Barton
+
 import category_theory.yoneda
 import category_theory.limits.functor_category
 import category_theory.limits.types

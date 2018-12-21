@@ -140,7 +140,8 @@ have hlt : 1 < card (fixed_points (rotate_vectors_prod_eq_one G p')) :=
 let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_card_gt_one hlt
   ⟨_, one_mem_fixed_points_rotate p'⟩ in
 have hx : x ≠ list.repeat (1 : G) p', from λ h, by simpa [h, vector.repeat] using hx₄,
-have ∃ a, x = list.repeat a x.length := rotate_eq_self_iff_eq_repeat.1 (λ n,
+have nG : nonempty G, from ⟨1⟩,
+have ∃ a, x = list.repeat a x.length := by exactI rotate_eq_self_iff_eq_repeat.1 (λ n,
   have list.rotate x (n : zmod p').val = x :=
     subtype.mk.inj (subtype.mk.inj (hx₃ (n : zmod p'))),
   by rwa [zmod.val_cast_nat, ← hx₁, rotate_mod] at this),

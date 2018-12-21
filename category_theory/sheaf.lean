@@ -12,16 +12,41 @@ open category_theory.limits
 universes u v
 
 -- TODO: How much of this should be generalized to a possibly large category?
-variables (X : Type v) [small_category X]
+variables {X : Type u} [small_category X]
 
 @[reducible]
 def covering_family (U : X) : Type u := set (over.{u u} U)
 
+instance covering_family.has_mem (U : X) :
+  has_mem (over U) (covering_family U) :=
+by delta covering_family; apply_instance
+
+def covering_family.is_sieve {U : X} (c : covering_family U) : Prop :=
+∀ (Ui : c) (V : X) (f : V ⟶ Ui.val.left), over.mk (f ≫ Ui.val.hom) ∈ c
+
+structure sieve (U : X) : Type u :=
+(covering_family : covering_family U)
+(is_sieve : covering_family.is_sieve)
+
+namespace sieve
+variables {U : X}
+
+def to_presheaf (S : sieve U) : presheaf X :=
+{ obj := λ V, { f : V ⟶ U // S.covering_family (over.mk f) },
+  map := λ V₁ V₂ f g,
+  begin
+    cases g with g hg,
+    split,
+    change V₂ ⟶ V₁ at f,
+    use over.mk (f ≫ g),
+  end  }
+
+end sieve
+
 namespace covering_family
+variables {U : X}
 
-variables {U : X} (c : covering_family U)
-
-def sieve : presheaf X :=
+def sieve (c : covering_family U) : presheaf X :=
 let
   y (Ui : c) := yoneda.map Ui.val.hom,
   pb (Ujk : c × c) : presheaf X := limits.pullback (y Ujk.1) (y Ujk.2),

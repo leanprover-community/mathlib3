@@ -82,6 +82,12 @@ instance : small_category (opens X) := by apply_instance
 def nbhd (x : X.α) := { U : opens X // x ∈ U }
 def nbhds (x : X.α) : small_category (nbhd x) := begin unfold nbhd, apply_instance end
 
+end category_theory.examples
+
+open category_theory.examples
+
+namespace topological_space.opens
+
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map
@@ -102,4 +108,4 @@ nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg _ (congr_arg _ h)) 
 
 @[simp] def map_iso_id {X : Top.{u}} (h) : map_iso (𝟙 X) (𝟙 X) h = iso.refl (map _) := rfl
 
-end category_theory.examples
+end topological_space.opens

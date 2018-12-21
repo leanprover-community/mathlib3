@@ -3,6 +3,11 @@
 -- Authors: Johan Commelin
 
 import category_theory.presheaf
+import category_theory.comma
+
+namespace category_theory
+open category_theory
+open category_theory.limits
 
 universes u v
 

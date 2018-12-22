@@ -361,10 +361,10 @@ by finish [subset_def, ext_iff, iff_def]
 theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t :=
 by finish [subset_def, ext_iff, iff_def]
 
-theorem union_inter_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) ∩ s = s :=
+theorem union_inter_cancel_left {s t : set α} : (s ∪ t) ∩ s = s :=
 by finish [ext_iff, iff_def]
 
-theorem union_inter_cancel_right {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) ∩ t = t :=
+theorem union_inter_cancel_right {s t : set α} : (s ∪ t) ∩ t = t :=
 by finish [ext_iff, iff_def]
 
 -- TODO(Mario): remove?

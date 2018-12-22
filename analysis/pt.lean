@@ -290,10 +290,9 @@ theorem Bayes {s : samp_space} [measurable_space s] (p : prob s)
 ℙ^p[[(f i) | b]] = (ℙ^p[[b | f i]])*(p(f i))/(∑j, ℙ^p[[b | f j]] * p(f j)):= 
 begin
 intros i,
-rw ← total_prob _ f h₁ b h₅ h₃ h₄ i,
-rw bayes _ (f i) b (h₄ i) ,
-rw [div_def,mul_assoc],
-rw ennreal.mul_inv_cancel h₂ (prob_ne_top _ b),
+rw [← total_prob _ f h₁ b h₅ h₃ h₄ i,
+    bayes _ (f i) b (h₄ i) ,
+    div_def,mul_assoc,ennreal.mul_inv_cancel h₂ (prob_ne_top _ b)],
 simp,
 exact h₂,
 end

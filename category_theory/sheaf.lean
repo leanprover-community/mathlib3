@@ -36,10 +36,14 @@ def to_presheaf (S : sieve U) : presheaf X :=
   map := λ V₁ V₂ f g,
   begin
     cases g with g hg,
-    split,
+    change X at V₁, change X at V₂,
     change V₂ ⟶ V₁ at f,
-    use over.mk (f ≫ g),
-  end  }
+    split,
+    swap,
+    exact f ≫ g,
+    rw show g = (over.mk g).hom,
+    { simp },
+  end }
 
 end sieve
 

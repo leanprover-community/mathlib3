@@ -17,12 +17,30 @@ variables {X : Type u} [small_category X]
 @[reducible]
 def covering_family (U : X) : Type u := set (over.{u u} U)
 
-instance covering_family.has_mem (U : X) :
-  has_mem (over U) (covering_family U) :=
-by delta covering_family; apply_instance
+-- instance covering_family.has_mem (U : X) :
+--   has_mem (over U) (covering_family U) :=
+-- by delta covering_family; apply_instance
 
 def covering_family.is_sieve {U : X} (c : covering_family U) : Prop :=
-∀ (Ui : c) (V : X) (f : V ⟶ Ui.val.left), over.mk (f ≫ Ui.val.hom) ∈ c
+∀ (Ui : over U) (hUi : Ui ∈ c) {V : X} (f : V ⟶ Ui.left),
+over.mk (f ≫ Ui.hom) ∈ c
+
+lemma covering_family.is_sieve_iff {U : X} (c : covering_family U) :
+c.is_sieve ↔ ∀ {Ui : X} (g : Ui ⟶ U) (hg : over.mk g ∈ c) {V : X} (f : V ⟶ Ui),
+over.mk (f ≫ g) ∈ c :=
+begin
+  split; intro H,
+  { intros Ui g hg V f,
+    rw show g = (over.mk g).hom, by simp,
+    exact H (over.mk g) hg f },
+  { intros Ui hUi V f,
+    apply H,
+    suffices : over.mk Ui.hom = Ui,
+    { rwa this },
+    cases Ui,
+    delta over.mk,
+    dsimp }
+end
 
 structure sieve (U : X) : Type u :=
 (covering_family : covering_family U)

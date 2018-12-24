@@ -5,11 +5,11 @@
 import category_theory.presheaf
 import category_theory.comma
 
+universes u v
+
 namespace category_theory
 open category_theory
 open category_theory.limits
-
-universes u v
 
 -- TODO: How much of this should be generalized to a possibly large category?
 variables {X : Type u} [small_category X]
@@ -45,12 +45,12 @@ namespace sieve
 variables {U : X}
 
 lemma is_sieve₂ (S : sieve U) :
-∀ {Ui : X} (g : Ui ⟶ U) (hg : over.mk g ∈ S.covering_family) {V : X} (f : V ⟶ Ui),
-over.mk (f ≫ g) ∈ S.covering_family :=
-λ Ui, S.covering_family.is_sieve_iff.mp S.is_sieve
+∀ {Ui : X} (g : Ui ⟶ U) (hg : over.mk g ∈ S.val) {V : X} (f : V ⟶ Ui),
+over.mk (f ≫ g) ∈ S.val :=
+λ Ui, S.val.is_sieve_iff.mp S.property
 
 def to_presheaf (S : sieve U) : presheaf X :=
-{ obj := λ V, { f : V ⟶ U // S.covering_family (over.mk f) },
+{ obj := λ V, { f : V ⟶ U // S.val (over.mk f) },
   map := λ V₁ V₂ f g,
   begin
     cases g with g hg,
@@ -84,17 +84,16 @@ namespace covering_family
 variables {U : X}
 
 def generate_sieve (c : covering_family U) : sieve U :=
-{ covering_family := { V : over U | ∃ (Ui : over U) (hUi : Ui ∈ c) (f : V ⟶ Ui), true },
-  is_sieve :=
+{ val := { V : over U | ∃ Ui ∈ c, nonempty (V ⟶ Ui) },
+  property :=
   begin
     intros Ui hUi V f,
-    rcases hUi with ⟨Ui', hUi', g, _⟩,
-    exact ⟨Ui', hUi', over.hom_mk f ≫ g, trivial⟩,
+    rcases hUi with ⟨Ui', hUi', ⟨g⟩⟩,
+    exact ⟨Ui', hUi', ⟨over.hom_mk f ≫ g⟩⟩,
   end }
 
 @[simp] lemma generate_sieve_covering_family (c : covering_family U) :
-c.generate_sieve.covering_family =
-{ V : over U | ∃ (Ui : over U) (hUi : Ui ∈ c) (f : V ⟶ Ui), true } := rfl
+c.generate_sieve.val = { V : over U | ∃ Ui ∈ c, nonempty (V ⟶ Ui) } := rfl
 
 -- def sieve (c : covering_family U) : presheaf X :=
 -- let

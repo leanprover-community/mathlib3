@@ -17,10 +17,6 @@ variables {X : Type u} [small_category X]
 @[reducible]
 def covering_family (U : X) : Type u := set (over.{u u} U)
 
--- instance covering_family.has_mem (U : X) :
---   has_mem (over U) (covering_family U) :=
--- by delta covering_family; apply_instance
-
 def covering_family.is_sieve {U : X} (c : covering_family U) : Prop :=
 ∀ (Ui : over U) (hUi : Ui ∈ c) {V : X} (f : V ⟶ Ui.left),
 over.mk (f ≫ Ui.hom) ∈ c
@@ -37,17 +33,21 @@ begin
     apply H,
     suffices : over.mk Ui.hom = Ui,
     { rwa this },
-    cases Ui,
-    delta over.mk,
-    dsimp }
+    { cases Ui,
+      cases Ui_right,
+      delta over.mk,
+      congr } }
 end
 
-structure sieve (U : X) : Type u :=
-(covering_family : covering_family U)
-(is_sieve : covering_family.is_sieve)
+def sieve (U : X) : Type u := { S : covering_family U // S.is_sieve }
 
 namespace sieve
 variables {U : X}
+
+lemma is_sieve₂ (S : sieve U) :
+∀ {Ui : X} (g : Ui ⟶ U) (hg : over.mk g ∈ S.covering_family) {V : X} (f : V ⟶ Ui),
+over.mk (f ≫ g) ∈ S.covering_family :=
+λ Ui, S.covering_family.is_sieve_iff.mp S.is_sieve
 
 def to_presheaf (S : sieve U) : presheaf X :=
 { obj := λ V, { f : V ⟶ U // S.covering_family (over.mk f) },
@@ -58,42 +58,71 @@ def to_presheaf (S : sieve U) : presheaf X :=
     change V₂ ⟶ V₁ at f,
     split,
     swap,
-    exact f ≫ g,
-    rw show g = (over.mk g).hom,
-    { simp },
+    { exact f ≫ g },
+    { apply S.is_sieve₂ _ hg }
+  end,
+  map_id' :=
+  begin
+    tidy,
+    exact category.id_comp _ _
+  end,
+  map_comp' :=
+  begin
+    tidy,
+    erw category.assoc
   end }
+
+def π (S : sieve U) : S.to_presheaf ⟶ yoneda.obj U :=
+{ app := λ V, subtype.val }
+
+def sheaf_condition (S : sieve U) (F : presheaf X) :=
+is_iso $ (yoneda.obj F).map S.π
 
 end sieve
 
 namespace covering_family
 variables {U : X}
 
-def sieve (c : covering_family U) : presheaf X :=
-let
-  y (Ui : c) := yoneda.map Ui.val.hom,
-  pb (Ujk : c × c) : presheaf X := limits.pullback (y Ujk.1) (y Ujk.2),
-  re (Ui : c) : presheaf X := yoneda.obj Ui.val.left,
-  left  : limits.sigma pb ⟶ limits.sigma re :=
-    sigma.desc $ λ Ujk : c × c, pullback.π₁ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.1,
-  right : limits.sigma pb ⟶ limits.sigma re :=
-    sigma.desc $ λ Ujk : c × c, pullback.π₂ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.2
-in coequalizer left right
+def generate_sieve (c : covering_family U) : sieve U :=
+{ covering_family := { V : over U | ∃ (Ui : over U) (hUi : Ui ∈ c) (f : V ⟶ Ui), true },
+  is_sieve :=
+  begin
+    intros Ui hUi V f,
+    rcases hUi with ⟨Ui', hUi', g, _⟩,
+    exact ⟨Ui', hUi', over.hom_mk f ≫ g, trivial⟩,
+  end }
 
-def π : c.sieve ⟶ yoneda.obj U :=
-coequalizer.desc _ _ (sigma.desc $ λ Ui, yoneda.map Ui.val.hom)
-begin
-  ext1, dsimp at *,
-  rw ←category.assoc,
-  rw ←category.assoc,
-  simp,
-end
+@[simp] lemma generate_sieve_covering_family (c : covering_family U) :
+c.generate_sieve.covering_family =
+{ V : over U | ∃ (Ui : over U) (hUi : Ui ∈ c) (f : V ⟶ Ui), true } := rfl
 
-def sheaf_condition (F : presheaf X) := is_iso $ (yoneda.obj F).map c.π
-variables {Y : Type u} [small_category Y]
-variables (f : X ⥤ Y)
+-- def sieve (c : covering_family U) : presheaf X :=
+-- let
+--   y (Ui : c) := yoneda.map Ui.val.hom,
+--   pb (Ujk : c × c) : presheaf X := limits.pullback (y Ujk.1) (y Ujk.2),
+--   re (Ui : c) : presheaf X := yoneda.obj Ui.val.left,
+--   left  : limits.sigma pb ⟶ limits.sigma re :=
+--     sigma.desc $ λ Ujk : c × c, pullback.π₁ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.1,
+--   right : limits.sigma pb ⟶ limits.sigma re :=
+--     sigma.desc $ λ Ujk : c × c, pullback.π₂ (y Ujk.1) (y Ujk.2) ≫ sigma.ι re Ujk.2
+-- in coequalizer left right
 
-def map {U : X} (c : covering_family U) : covering_family (f.obj U) :=
-(over.post f).obj '' c
+-- def π : c.sieve ⟶ yoneda.obj U :=
+-- coequalizer.desc _ _ (sigma.desc $ λ Ui, yoneda.map Ui.val.hom)
+-- begin
+--   ext1, dsimp at *,
+--   rw ←category.assoc,
+--   rw ←category.assoc,
+--   simp,
+-- end
+
+-- def sheaf_condition (F : presheaf X) := is_iso $ (yoneda.obj F).map c.π
+
+-- variables {Y : Type u} [small_category Y]
+-- variables (f : X ⥤ Y)
+
+-- def map {U : X} (c : covering_family U) : covering_family (f.obj U) :=
+-- (over.post f).obj '' c
 
 end covering_family
 

@@ -636,6 +636,10 @@ assume hf, compact_of_finite_subcover $ assume c c_open c_cover,
     ... ⊆ ⋃₀ c'                      : sUnion_mono (subset_Union _ _),
   ⟨c', ‹c' ⊆ c›, ‹finite c'›, this⟩
 
+lemma compact_Union_of_compact {f : β → set α} [fintype β]
+  (h : ∀i, compact (f i)) : compact (⋃i, f i) :=
+by rw ← bUnion_univ; exact compact_bUnion_of_compact finite_univ (λ i _, h i)
+
 lemma compact_of_finite {s : set α} (hs : finite s) : compact s :=
 let s' : set α := ⋃i ∈ s, {i} in
 have e : s' = s, from ext $ λi, by simp only [mem_bUnion_iff, mem_singleton_iff, exists_eq_right'],
@@ -643,18 +647,10 @@ have compact s', from compact_bUnion_of_compact hs (λ_ _, compact_singleton),
 e ▸ this
 
 lemma compact_union_of_compact {s t : set α} (hs : compact s) (ht : compact t) : compact (s ∪ t) :=
-begin
-  let f : bool → set α := λb, match b with |ff := s |tt := t end,
-  have A : compact (⋃i ∈ ({ff, tt} : set bool), f i) := begin
-    refine compact_bUnion_of_compact (by simp) _,
-    assume i, cases i; simp; assumption
-  end,
-  have : (⋃i ∈ ({ff, tt} : set bool), f i) = s ∪ t := by dsimp; simp [union_comm, f],
-  rwa this at A
-end
+by rw union_eq_Union; exact compact_Union_of_compact (λ b, by cases b; assumption)
 
-/--Type class for compact spaces. Separation is sometimes included in the definition, especially
-in the French literature, but we do not include it here.-/
+/-- Type class for compact spaces. Separation is sometimes included in the definition, especially
+in the French literature, but we do not include it here. -/
 class compact_space (α : Type*) [topological_space α] : Prop :=
 (compact_univ : compact (univ : set α))
 

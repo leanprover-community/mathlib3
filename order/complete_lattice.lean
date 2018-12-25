@@ -27,8 +27,8 @@ def supr [has_Sup α] (s : ι → α) : α := Sup (range s)
 /-- Indexed infimum -/
 def infi [has_Inf α] (s : ι → α) : α := Inf (range s)
 
-instance has_Inf_to_nonempty [has_Inf α] : nonempty α := ⟨Inf ∅⟩
-instance has_Sup_to_nonempty [has_Sup α] : nonempty α := ⟨Sup ∅⟩
+def has_Inf_to_nonempty (α) [has_Inf α] : nonempty α := ⟨Inf ∅⟩
+def has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
 
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
 notation `⨅` binders `, ` r:(scoped f, infi f) := r

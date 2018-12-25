@@ -121,37 +121,24 @@ instance : topological_ring ℂ :=
 
 instance : topological_semiring ℂ := by apply_instance
 
+def real_prod_homeo : homeomorph ℂ (ℝ × ℝ) :=
+{ to_equiv := real_prod_equiv,
+  continuous_to_fun := continuous.prod_mk continuous_re continuous_im,
+  continuous_inv_fun := show continuous (λ p : ℝ × ℝ, complex.mk p.1 p.2),
+    by simp only [mk_eq_add_mul_I]; exact
+    continuous_add
+      (continuous_fst.comp continuous_of_real)
+      (continuous_mul (continuous_snd.comp continuous_of_real) continuous_const) }
+
 instance : proper_space ℂ :=
 ⟨λx r, begin
-  have incl : closed_ball x r ⊆ (λp : ℝ × ℝ, p.1 + p.2 * I) '' (set.prod (closed_ball x.re r) (closed_ball x.im r)) :=
-  begin
-    assume y hy,
-    have : y = (λp : ℝ × ℝ, of_real (p.1) + of_real(p.2) * I) (y.re, y.im) :=
-      by simp,
-    rw this,
-    apply set.mem_image_of_mem _ _,
-    have A : y.re ∈ closed_ball x.re r := calc
-      dist (y.re) (x.re) =  _root_.abs((y-x).re) : by simp [real.dist_eq]
-      ... ≤ abs (y - x) : abs_re_le_abs _
-      ... ≤ r : hy,
-    have B : y.im ∈ closed_ball x.im r := calc
-      dist (y.im) (x.im) =  _root_.abs((y-x).im) : by simp [real.dist_eq]
-      ... ≤ abs (y - x) : abs_im_le_abs _
-      ... ≤ r : hy,
-    show (y.re, y.im) ∈ set.prod (closed_ball x.re r) (closed_ball x.im r), from ⟨A, B⟩,
-  end,
-  have cont : continuous (λp : ℝ × ℝ, of_real (p.1) + of_real (p.2) * I) := begin
-    apply continuous_add,
-    apply continuous.comp continuous_fst continuous_of_real,
-    refine continuous_mul _ continuous_const,
-    apply continuous.comp continuous_snd continuous_of_real,
-  end,
-  have : compact ((λp : ℝ × ℝ, of_real(p.1) + of_real(p.2) * I) '' (set.prod (closed_ball x.re r) (closed_ball x.im r))) :=
-  begin
-    apply compact_image _ cont,
-    exact compact_prod _ _ (proper_space.compact_ball _ _) (proper_space.compact_ball _ _)
-  end,
-  apply compact_of_is_closed_subset this is_closed_ball incl
+  refine real_prod_homeo.symm.compact_preimage.1
+    (compact_of_is_closed_subset
+      (compact_prod _ _ (proper_space.compact_ball x.re r) (proper_space.compact_ball x.im r))
+      (continuous_iff_is_closed.1 real_prod_homeo.symm.continuous _ is_closed_ball) _),
+  exact λ p h, ⟨
+    le_trans (abs_re_le_abs (⟨p.1, p.2⟩ - x)) h,
+    le_trans (abs_im_le_abs (⟨p.1, p.2⟩ - x)) h⟩
 end⟩
 
 end complex

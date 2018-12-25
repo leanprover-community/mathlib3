@@ -752,23 +752,18 @@ instance [second_countable_topology α] [second_countable_topology β] :
 
 lemma compact_prod (s : set α) (t : set β) (ha : compact s) (hb : compact t) : compact (set.prod s t) :=
 begin
-  simp [compact_iff_ultrafilter_le_nhds, nhds_prod_eq, filter.prod],
-  assume f hf hfs,
-  have A : ∃a ∈s, map (λx:α × β, x.1) f ≤ nhds a :=
-  begin
-    apply compact_iff_ultrafilter_le_nhds.1 ha _ (ultrafilter_map hf),
-    simp,
-    show {x : α × β | x.fst ∈ s} ∈ f.sets, from mem_sets_of_superset hfs (λx hx, hx.1),
-  end,
-  rcases A with ⟨a, ha, hfa⟩,
-  have B : ∃b ∈t, map (λx:α × β, x.2) f ≤ nhds b :=
-  begin
-    apply compact_iff_ultrafilter_le_nhds.1 hb _ (ultrafilter_map hf),
-    simp,
-    show {x : α × β | x.2 ∈ t} ∈ f.sets, from mem_sets_of_superset hfs (λx hx, hx.2),
-  end,
-  rcases B with ⟨b, hb, hfb⟩,
-  exact ⟨a, b, ⟨ha, hb⟩, map_le_iff_le_comap.mp hfa, map_le_iff_le_comap.mp hfb⟩
+  rw compact_iff_ultrafilter_le_nhds at ha hb ⊢,
+  intros f hf hfs,
+  rw le_principal_iff at hfs,
+  rcases ha (map prod.fst f) (ultrafilter_map hf)
+    (le_principal_iff.2 (mem_map_sets_iff.2
+      ⟨_, hfs, image_subset_iff.2 (λ s h, h.1)⟩)) with ⟨a, sa, ha⟩,
+  rcases hb (map prod.snd f) (ultrafilter_map hf)
+    (le_principal_iff.2 (mem_map_sets_iff.2
+      ⟨_, hfs, image_subset_iff.2 (λ s h, h.2)⟩)) with ⟨b, tb, hb⟩,
+  rw map_le_iff_le_comap at ha hb,
+  refine ⟨⟨a, b⟩, ⟨sa, tb⟩, _⟩,
+  rw nhds_prod_eq, exact le_inf ha hb
 end
 
 instance [compact_space α] [compact_space β] : compact_space (α × β) :=
@@ -1529,6 +1524,14 @@ le_antisymm
   (calc tα.coinduced h ≤ (tβ.coinduced h.symm).coinduced h : coinduced_mono h.symm.continuous
     ... = tβ : by rw [coinduced_compose, self_comp_symm, coinduced_id])
   h.continuous
+
+lemma compact_image {s : set α} (h : α ≃ₜ β) : compact (h '' s) ↔ compact s :=
+⟨λ hs, by have := compact_image hs h.symm.continuous;
+  rwa [← image_comp, symm_comp_self, image_id] at this,
+λ hs, compact_image hs h.continuous⟩
+
+lemma compact_preimage {s : set β} (h : α ≃ₜ β) : compact (h ⁻¹' s) ↔ compact s :=
+by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 ⟨h.to_equiv.bijective.1, h.induced_eq.symm⟩

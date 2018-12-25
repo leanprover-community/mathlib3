@@ -489,6 +489,8 @@ instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α 
   uniformity_edist    := uniformity_edist,
   ..a }
 
+section real
+
 /-- Instantiate the reals as a metric space. -/
 instance : metric_space ℝ :=
 { dist               := λx y, abs (x - y),
@@ -516,6 +518,12 @@ orderable_topology_of_nhds_abs $ λ x, begin
     rcases mem_nhds_iff_metric.1 h with ⟨ε, ε0, ss⟩,
     exact mem_infi_sets _ (mem_infi_sets ε0 (mem_principal_sets.2 ss)) },
 end
+
+lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
+by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
+  abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
+
+end real
 
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
   (H : @uniformity _ U = @uniformity _ (metric_space.to_uniform_space α)) :
@@ -557,6 +565,8 @@ metric_space.induced subtype.val (λ x y, subtype.eq) t
 theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :
   dist x y = dist x.1 y.1 := rfl
 
+section prod
+
 instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
 { dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
   dist_self := λ x, by simp,
@@ -584,6 +594,99 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
     simp [inf_principal, ext_iff, max_lt_iff]
   end,
   to_uniform_space := prod.uniform_space }
+
+lemma prod.dist_eq [metric_space β] {x y : α × β} :
+  dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
+
+end prod
+
+section sum
+variables [metric_space β] [inhabited α] [inhabited β]
+open sum (inl inr)
+
+/--Distance on a disjoint union. There are many (noncanonical) ways to put a distance compatible with each factor.
+If the two spaces are bounded, one can say for instance that each point in the first is at distance
+`diam α + diam β + 1` of each point in the second.
+Instead, we choose a construction that works for unbounded spaces, but requires basepoints.
+We embed isometrically each factor, set the basepoints at distance 1,
+arbitrarily, and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
+their respective basepoints, plus the distance 1 between the basepoints.
+Since there is an arbitrary choice in this construction, it is not an instance by default-/
+private def sum.dist : α ⊕ β → α ⊕ β → ℝ
+| (inl a) (inl a') := dist a a'
+| (inr b) (inr b') := dist b b'
+| (inl a) (inr b)  := dist a (default α) + 1 + dist (default β) b
+| (inr b) (inl a)  := dist b (default β) + 1 + dist (default α) a
+
+private lemma sum.dist_comm (x y : α ⊕ β) : sum.dist x y = sum.dist y x :=
+by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]
+
+lemma sum.one_dist_le {x : α} {y : β} : 1 ≤ sum.dist (inl x) (inr y) :=
+le_trans (le_add_of_nonneg_right dist_nonneg) $
+add_le_add_right (le_add_of_nonneg_left dist_nonneg) _
+
+lemma sum.one_dist_le' {x : α} {y : β} : 1 ≤ sum.dist (inr y) (inl x) :=
+by rw sum.dist_comm; exact sum.one_dist_le
+
+private lemma sum.dist_triangle : ∀ x y z : α ⊕ β, sum.dist x z ≤ sum.dist x y + sum.dist y z
+| (inl x) (inl y) (inl z) := dist_triangle _ _ _
+| (inl x) (inl y) (inr z) := by unfold sum.dist; rw [← add_assoc, ← add_assoc];
+  exact add_le_add_right (add_le_add_right (dist_triangle _ _ _) _) _
+| (inl x) (inr y) (inl z) := by unfold sum.dist; rw [add_assoc _ (1:ℝ), add_assoc];
+  refine le_trans (dist_triangle _ _ _) (add_le_add_left _ _);
+  refine le_trans (le_add_of_nonneg_left (add_nonneg zero_le_one dist_nonneg)) (add_le_add_left _ _);
+  exact le_add_of_nonneg_left (add_nonneg dist_nonneg zero_le_one)
+| (inr x) (inl y) (inl z) := by unfold sum.dist; rw [add_assoc _ _ (dist y z)];
+  exact add_le_add_left (dist_triangle _ _ _) _
+| (inr x) (inr y) (inl z) := by unfold sum.dist; rw [← add_assoc, ← add_assoc];
+  exact add_le_add_right (add_le_add_right (dist_triangle _ _ _) _) _
+| (inr x) (inl y) (inr z) := by unfold sum.dist; rw [add_assoc _ (1:ℝ), add_assoc];
+  refine le_trans (dist_triangle _ _ _) (add_le_add_left _ _);
+  refine le_trans (le_add_of_nonneg_left (add_nonneg zero_le_one dist_nonneg)) (add_le_add_left _ _);
+  exact le_add_of_nonneg_left (add_nonneg dist_nonneg zero_le_one)
+| (inl x) (inr y) (inr z) := by unfold sum.dist; rw [add_assoc _ _ (dist y z)];
+  exact add_le_add_left (dist_triangle _ _ _) _
+| (inr x) (inr y) (inr z) := dist_triangle _ _ _
+
+private lemma sum.eq_of_dist_eq_zero : ∀ x y : α ⊕ β, sum.dist x y = 0 → x = y
+| (inl x) (inl y) h := by simp only [sum.dist] at h ⊢; exact eq_of_dist_eq_zero h
+| (inl x) (inr y) h :=
+  (ne_of_gt (lt_of_lt_of_le zero_lt_one sum.one_dist_le) h).elim
+| (inr x) (inl y) h :=
+  (ne_of_gt (lt_of_lt_of_le zero_lt_one sum.one_dist_le') h).elim
+| (inr x) (inr y) h := by simp only [sum.dist] at h ⊢; exact eq_of_dist_eq_zero h
+
+private lemma sum.mem_uniformity (s : set ((α ⊕ β) × (α ⊕ β))) :
+  s ∈ (@uniformity (α ⊕ β) _).sets ↔ ∃ ε > 0, ∀ a b, sum.dist a b < ε → (a, b) ∈ s :=
+begin
+  split,
+  { rintro ⟨hsα, hsβ⟩,
+    rcases mem_uniformity_dist.1 hsα with ⟨εα, εα0, hα⟩,
+    rcases mem_uniformity_dist.1 hsβ with ⟨εβ, εβ0, hβ⟩,
+    refine ⟨min (min εα εβ) 1, lt_min (lt_min εα0 εβ0) zero_lt_one, _⟩,
+    rintro (a|a) (b|b) h,
+    { exact hα (lt_of_lt_of_le h (le_trans (min_le_left _ _) (min_le_left _ _))) },
+    { cases not_le_of_lt (lt_of_lt_of_le h (min_le_right _ _)) sum.one_dist_le },
+    { cases not_le_of_lt (lt_of_lt_of_le h (min_le_right _ _)) sum.one_dist_le' },
+    { exact hβ (lt_of_lt_of_le h (le_trans (min_le_left _ _) (min_le_right _ _))) } },
+  { rintro ⟨ε, ε0, H⟩,
+    split; rw [filter.mem_map, mem_uniformity_dist];
+      exact ⟨ε, ε0, λ x y h, H _ _ (by exact h)⟩ }
+end
+
+/-- The distance on the disjoint union indeed defines a metric space. All the distance properties follow from our
+choice of the distance. The harder work is to show that the uniform structure defined by the distance coincides
+with the disjoint union uniform structure. -/
+def metric_space_sum : metric_space (α ⊕ β) :=
+{ dist := sum.dist,
+  dist_self := λx, by cases x; simp only [sum.dist, dist_self],
+  dist_comm := sum.dist_comm,
+  dist_triangle := sum.dist_triangle,
+  eq_of_dist_eq_zero := sum.eq_of_dist_eq_zero,
+  to_uniform_space := sum.uniform_space,
+  uniformity_dist := uniformity_dist_of_mem_uniformity _ _ sum.mem_uniformity }
+
+end sum
 
 theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
 uniform_continuous_of_metric.2 (λ ε ε0, ⟨ε/2, half_pos ε0,
@@ -784,8 +887,8 @@ end second_countable
 
 section compact
 
-/--Any compact set in a metric space can be covered by finitely many balls of a given positive
-radius-/
+/-- Any compact set in a metric space can be covered by finitely many balls of a given positive
+radius -/
 lemma finite_cover_balls_of_compact {α : Type u} [metric_space α] {s : set α}
   (hs : compact s) {e : ℝ} (he : e > 0) :
   ∃t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=
@@ -797,7 +900,7 @@ begin
     exact ⟨x, ⟨xs, by simpa⟩⟩ }
 end
 
-/--A compact set in a metric space is separable, i.e., it is the closure of a countable set-/
+/-- A compact set in a metric space is separable, i.e., it is the closure of a countable set -/
 lemma countable_closure_of_compact {α : Type u} [metric_space α] {s : set α} (hs : compact s) :
   ∃ t ⊆ s, (countable t ∧ s = closure t) :=
 begin
@@ -810,8 +913,8 @@ begin
     { exact ⟨∅, by finish⟩ },
     { rcases A e h with ⟨s, ⟨finite_s, closure_s⟩⟩, existsi s, finish }
   end,
-  /-The desired countable set is obtained by taking for each `n` the centers of a finite cover
-  by balls of radius `1/n`, and then the union over `n`.-/
+  /- The desired countable set is obtained by taking for each `n` the centers of a finite cover
+  by balls of radius `1/n`, and then the union over `n`. -/
   choose T T_in_s finite_T using B,
   let t := ⋃n, T (n : ℕ)⁻¹,
   have T₁ : t ⊆ s := begin apply Union_subset, assume n, apply T_in_s end,
@@ -841,16 +944,16 @@ end compact
 
 section proper_space
 
-/--A metric space is proper if all closed balls are compact.-/
+/-- A metric space is proper if all closed balls are compact. -/
 class proper_space (α : Type u) [metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, compact (closed_ball x r))
 
-/-A compact metric space is proper-/
-instance proper_of_compact_metric_space [metric_space α] [compact_space α] : proper_space α :=
+/- A compact metric space is proper -/
+instance proper_of_compact [metric_space α] [compact_space α] : proper_space α :=
 ⟨assume x r, compact_of_is_closed_subset compact_univ is_closed_ball (subset_univ _)⟩
 
-/--A proper space is locally compact-/
-instance locally_compact_of_proper_metric_space [metric_space α] [proper_space α] :
+/-- A proper space is locally compact -/
+instance locally_compact_of_proper [metric_space α] [proper_space α] :
   locally_compact_space α :=
 begin
   apply locally_compact_of_compact_nhds,
@@ -864,7 +967,7 @@ begin
   { apply proper_space.compact_ball }
 end
 
-/--A proper space is complete-/
+/-- A proper space is complete -/
 instance complete_of_proper {α : Type u} [metric_space α] [proper_space α] : complete_space α :=
 ⟨begin
   intros f hf,
@@ -878,23 +981,23 @@ instance complete_of_proper {α : Type u} [metric_space α] [proper_space α] : 
   exact complete_of_compact_set hf this (proper_space.compact_ball _ _),
 end⟩
 
-/--A proper metric space is separable, and therefore second countable. Indeed, any ball is
+/-- A proper metric space is separable, and therefore second countable. Indeed, any ball is
 compact, and therefore admits a countable dense subset. Taking a countable union over the balls
 centered at a fixed point and with integer radius, one obtains a countable set which is
-dense in the whole space.-/
-instance second_countable_of_proper_metric_space [metric_space α] [proper_space α] :
+dense in the whole space. -/
+instance second_countable_of_proper [metric_space α] [proper_space α] :
   second_countable_topology α :=
 begin
-  /-We show that the space admits a countable dense subset. The case where the space is empty
-  is special, and trivial.-/
+  /- We show that the space admits a countable dense subset. The case where the space is empty
+  is special, and trivial. -/
   have A : (univ : set α) = ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
     assume H, ⟨∅, ⟨by simp, by simp; exact H.symm⟩⟩,
   have B : (univ : set α) ≠ ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
   begin
-    /-When the space is not empty, we take a point `x` in the space, and then a countable set
+    /- When the space is not empty, we take a point `x` in the space, and then a countable set
     `T r` which is dense in the closed ball `closed_ball x r` for each `r`. Then the set
     `t = ⋃ T n` (where the union is over all integers `n`) is countable, as a countable union
-    of countable sets, and dense in the space by construction.-/
+    of countable sets, and dense in the space by construction. -/
     assume non_empty,
     rcases ne_empty_iff_exists_mem.1 non_empty with ⟨x, x_univ⟩,
     choose T a using show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t),

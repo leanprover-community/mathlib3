@@ -117,7 +117,7 @@ c.generate_sieve.val = { V : over U | ∃ Ui ∈ c, nonempty (V ⟶ Ui) } := rfl
 
 def sheaf_condition (c : covering_family U) (F : presheaf X) :=
 c.generate_sieve.sheaf_condition F
-#print presheaf.map
+
 def family_sections (c : covering_family U) (F : presheaf X) :=
 Π Ui ∈ c, F.obj (Ui : over U).left
 
@@ -125,8 +125,34 @@ def matching_sections (c : covering_family U) (F : presheaf X) :=
 { s : family_sections c F //
   ∀ Ui ∈ c, ∀ Uj ∈ c, ∀ V : over U,
   ∀ (f : V ⟶ Ui) (g : V ⟶ Uj),
-  F.map f.left (s Ui _) =
-  functor.map (F : functor _ _) g.left (s Uj _) }
+  F.map (f : comma_morphism _ _).left (s Ui ‹Ui ∈ c›) =
+  F.map (g : comma_morphism _ _).left (s Uj ‹Uj ∈ c›) }
+
+def matching_sections.π (c : covering_family U) (F : presheaf X) :
+F.obj U ⟶ matching_sections c F :=
+λ s : F.obj U, show matching_sections c F, from
+{ val := λ Ui h, F.map Ui.hom s,
+  property :=
+  begin
+    intros,
+    show ((F.map (Ui.hom)) ≫ (F.map (f.left))) s = ((F.map (Uj.hom)) ≫ (F.map (g.left))) s,
+    repeat {erw [← F.map_comp, over.over_w]}
+  end }
+
+def foo (S : sieve U) (F : presheaf X) :
+(S.to_presheaf ⟶ F) ⟶ (matching_sections S.val F) :=
+λ f : S.to_presheaf ⟶ F, show matching_sections S.val F, from
+{ val := λ Ui h, f.app _ ⟨Ui.hom, by simpa using S.property _ h (𝟙 _)⟩,
+  property :=
+  begin
+    intros,
+    have := f.naturality,
+  end }
+
+def bar (c : covering_family U) (F : presheaf X) :
+sheaf_condition c F ≅ is_iso (matching_sections.π c F) :=
+{ hom := _,
+  inv := _ }
 
 -- variables {Y : Type u} [small_category Y]
 -- variables (f : X ⥤ Y)

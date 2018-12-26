@@ -124,7 +124,19 @@ end
 end pi
 
 namespace prod
+open lattice
+
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {p q : α × β}
+
+def prod_semilattice_sup [semilattice_sup α] [semilattice_sup β] : semilattice_sup (α × β) :=
+{ le            := λ p q, p.1 ≤ q.1 ∧ p.2 ≤ q.2,
+  le_refl       := λ p, ⟨le_refl p.1, le_refl p.2⟩,
+  le_trans      := λ p q r h₁ h₂, ⟨le_trans h₁.1 h₂.1, le_trans h₁.2 h₂.2⟩,
+  le_antisymm   := λ p q h₁ h₂, prod.ext (le_antisymm h₁.1 h₂.1) (le_antisymm h₁.2 h₂.2),
+  sup           := λ p q, ⟨p.1 ⊔ q.1, p.2 ⊔ q.2⟩,
+  le_sup_left   := λ p q, ⟨le_sup_left, le_sup_left⟩,
+  le_sup_right  := λ p q, ⟨le_sup_right, le_sup_right⟩,
+  sup_le        := λ p q r h₁ h₂, ⟨sup_le h₁.1 h₂.1, sup_le h₁.2 h₂.2⟩ }
 
 instance [has_add α] [has_add β] : has_add (α × β) :=
 ⟨λp q, (p.1 + q.1, p.2 + q.2)⟩

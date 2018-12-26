@@ -120,13 +120,13 @@ restricted_yoneda (F ⋙ yoneda)
 
 lemma comap_map (F : C ⥤ D) {Y₁ Y₂ : presheaf D} (g : Y₁ ⟶ Y₂) : (comap F).map g = (whisker_left _ $ yoneda.map g) := rfl
 
-def map (F : C ⥤ D) : presheaf C ⥤ presheaf D :=
+def map' (F : C ⥤ D) : presheaf C ⥤ presheaf D :=
 yoneda_extension (F ⋙ yoneda)
 
 lemma map_obj (F : C ⥤ D) (X : presheaf C) :
-(map F).obj X = colimit (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F ⋙ yoneda) := rfl
+(map' F).obj X = colimit (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F ⋙ yoneda) := rfl
 lemma map_map (F : C ⥤ D) {X₁ X₂ : presheaf C} (f : X₁ ⟶ X₂) :
-(map F).map f = colimit.pre (comma.fst.{v v v v} yoneda (functor.of.obj X₂) ⋙ F ⋙ yoneda) (comma.map_right yoneda $ functor.of.map f) := rfl
+(map' F).map f = colimit.pre (comma.fst.{v v v v} yoneda (functor.of.obj X₂) ⋙ F ⋙ yoneda) (comma.map_right yoneda $ functor.of.map f) := rfl
 
 end map_comap
 

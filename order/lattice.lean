@@ -93,6 +93,13 @@ by finish
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by finish
 
+@[simp] lemma sup_lt_iff [is_total α (≤)] {a b c : α} : b ⊔ c < a ↔ b < a ∧ c < a :=
+begin
+  cases (is_total.total (≤) b c) with h,
+  { simp [sup_of_le_right h], exact ⟨λI, ⟨lt_of_le_of_lt h I, I⟩, λH, H.2⟩ },
+  { simp [sup_of_le_left h], exact ⟨λI, ⟨I, lt_of_le_of_lt h I⟩, λH, H.1⟩ }
+end
+
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; finish
 
@@ -178,6 +185,13 @@ by finish
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by finish
+
+@[simp] lemma lt_inf_iff [is_total α (≤)] {a b c : α} : a < b ⊓ c ↔ a < b ∧ a < c :=
+begin
+  cases (is_total.total (≤) b c) with h,
+  { simp [inf_of_le_left h], exact ⟨λI, ⟨I, lt_of_lt_of_le I h⟩, λH, H.1⟩ },
+  { simp [inf_of_le_right h], exact ⟨λI, ⟨lt_of_lt_of_le I h, I⟩, λH, H.2⟩ }
+end
 
 @[simp] theorem inf_idem : a ⊓ a = a :=
 by apply le_antisymm; finish

@@ -277,6 +277,15 @@ coe_lt_coe
 lemma add_eq_top [ordered_comm_monoid α] (a b : with_top α) : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
 by cases a; cases b; simp [none_eq_top, some_eq_coe, coe_add.symm]
 
+lemma add_lt_top [ordered_comm_monoid α] (a b : with_top α) : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
+begin
+  apply not_iff_not.1,
+  simp [lt_top_iff_ne_top, add_eq_top],
+  finish,
+  apply classical.dec _,
+  apply classical.dec _,
+end
+
 instance [canonically_ordered_monoid α] : canonically_ordered_monoid (with_top α) :=
 { le_iff_exists_add := assume a b,
   match a, b with
@@ -439,6 +448,10 @@ lemma with_top.add_lt_add_iff_left :
     { rw [← with_top.coe_add, ← with_top.coe_add, with_top.coe_lt_coe],
       exact add_lt_add_iff_left _ }
   end
+
+lemma with_top.add_lt_add_iff_right
+  {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
+by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
 
 end ordered_cancel_comm_monoid
 

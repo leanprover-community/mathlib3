@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Miscellaneous function constructions and lemmas.
 -/
-import logic.basic data.option.defs
+import logic.basic data.option.defs data.set.function
 
 universes u v w
 
@@ -130,6 +130,15 @@ h _ _ (inv_fun_on_mem this) ha (inv_fun_on_eq this)
 
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = default α :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
+
+lemma inv_fun_on_image {β : Type v} {s t : set α} {f : α → β}
+  (h : set.inj_on f s) (ht : t ⊆ s) : (inv_fun_on f s) '' (f '' t) = t :=
+begin
+  have A : ∀z, z ∈ t → ((inv_fun_on f s) ∘ f) z = z := λz hz, inv_fun_on_eq' h (ht hz),
+  rw ← set.image_comp,
+  ext,
+  simp [A] {contextual := tt}
+end
 
 /-- The inverse of a function (which is a left inverse if `f` is injective
   and a right inverse if `f` is surjective). -/

@@ -17,6 +17,9 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 /-- `maps_to f a b` means that the image of `a` is contained in `b`. -/
 @[reducible] def maps_to (f : α → β) (a : set α) (b : set β) : Prop := a ⊆ f ⁻¹' b
 
+theorem maps_to' (f : α → β) (a : set α) (b : set β) : maps_to f a b ↔ f '' a ⊆ b :=
+⟨λh x ⟨y, hy, heq⟩, by rw ← heq; exact h hy, λh x hx, h (mem_image_of_mem _ hx)⟩
+
 theorem maps_to_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
     (h₂ : maps_to f1 a b) :
   maps_to f2 a b :=
@@ -28,6 +31,12 @@ theorem maps_to_comp {g : β → γ} {f : α → β} {a : set α} {b : set β} {
 
 theorem maps_to_univ (f : α → β) (a) : maps_to f a univ :=
 λ x h, trivial
+
+theorem maps_to_image (f : α → β) (a : set α) : maps_to f a (f '' a) :=
+by rw maps_to'
+
+theorem maps_to_range (f : α → β) (a : set α) : maps_to f a (range f) :=
+by rw [← image_univ, maps_to']; exact image_subset _ (subset_univ _)
 
 theorem image_subset_of_maps_to_of_subset {f : α → β} {a c : set α} {b : set β} (h₁ : maps_to f a b)
   (h₂ : c ⊆ a) :

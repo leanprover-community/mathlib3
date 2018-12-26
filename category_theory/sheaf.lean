@@ -115,7 +115,18 @@ c.generate_sieve.val = { V : over U | ∃ Ui ∈ c, nonempty (V ⟶ Ui) } := rfl
 --   simp,
 -- end
 
--- def sheaf_condition (F : presheaf X) := is_iso $ (yoneda.obj F).map c.π
+def sheaf_condition (c : covering_family U) (F : presheaf X) :=
+c.generate_sieve.sheaf_condition F
+#print presheaf.map
+def family_sections (c : covering_family U) (F : presheaf X) :=
+Π Ui ∈ c, F.obj (Ui : over U).left
+
+def matching_sections (c : covering_family U) (F : presheaf X) :=
+{ s : family_sections c F //
+  ∀ Ui ∈ c, ∀ Uj ∈ c, ∀ V : over U,
+  ∀ (f : V ⟶ Ui) (g : V ⟶ Uj),
+  F.map f.left (s Ui _) =
+  functor.map (F : functor _ _) g.left (s Uj _) }
 
 -- variables {Y : Type u} [small_category Y]
 -- variables (f : X ⥤ Y)
@@ -142,7 +153,7 @@ class site (X : Type u) extends category.{u u} X :=
 
 namespace site
 
-section covers_and_sheaf_condition
+section
 variables {X : Type u} [𝒳 : site X]
 include 𝒳
 
@@ -151,7 +162,7 @@ definition covers (U : X) := 𝒳.coverage.covers U
 def sheaf_condition (F : presheaf X) :=
 ∀ {U : X}, ∀c ∈ covers U, (c : covering_family U).sheaf_condition F
 
-end covers_and_sheaf_condition
+end
 
 section examples
 variables (X : Type u) [small_category X]

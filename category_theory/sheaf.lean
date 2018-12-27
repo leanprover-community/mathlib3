@@ -171,6 +171,19 @@ def quux (S : sieve U) (F : presheaf X) :
     simp [this]
   end }
 
+def xyzzy (S : sieve U) (F : presheaf X) :
+(S.to_presheaf ⟶ F) ≅ (matching_sections S.val F) :=
+{ hom := foo S F,
+  inv := quux S F,
+  inv_hom_id' :=
+  begin
+    delta foo quux,
+    tidy {trace_result := tt},
+    delta over.mk,
+    cases x, cases x_right,
+    congr
+  end }
+
 def bar (c : covering_family U) (F : presheaf X) :
 sheaf_condition c F ≅ is_iso (matching_sections.π c F) :=
 { hom := _,

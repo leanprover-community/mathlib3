@@ -240,24 +240,28 @@ section of_real
 by simp [nnreal.of_real]; refl
 
 @[simp] lemma zero_lt_of_real (r : ℝ) : 0 < nnreal.of_real r ↔ 0 < r :=
-by simp [nnreal.of_real, nnreal.coe_lt, lt_max_iff, lt_irrefl]
+by simp [nnreal.of_real, nnreal.coe_lt, lt_irrefl]
 
 @[simp] lemma of_real_eq_zero (r : ℝ) : nnreal.of_real r = 0 ↔ r ≤ 0 :=
 by simpa [-zero_lt_of_real] using (not_iff_not.2 (zero_lt_of_real r))
 
 @[simp] lemma of_real_coe {r : nnreal} : nnreal.of_real r = r :=
-nnreal.eq $ by simp [nnreal.of_real, max_eq_left]
+nnreal.eq $ by simp [nnreal.of_real]
 
-@[simp] lemma of_real_le_of_real_iff {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
+@[simp] lemma of_real_le_of_real_iff {r p : ℝ} (hp : 0 ≤ p) :
   nnreal.of_real r ≤ nnreal.of_real p ↔ r ≤ p :=
-by simp [nnreal.coe_le, nnreal.of_real, hr, hp, max_eq_left]
+by simp [nnreal.coe_le, nnreal.of_real, hp]
+
+@[simp] lemma of_real_lt_of_real_iff {r p : ℝ}  :
+  nnreal.of_real r < nnreal.of_real p ↔ r < p ∧ 0 < p :=
+by simp [nnreal.coe_lt, nnreal.of_real, lt_irrefl]
 
 @[simp] lemma of_real_add_of_real {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
   nnreal.of_real r + nnreal.of_real p = nnreal.of_real (r + p) :=
-nnreal.eq $ by simp [nnreal.of_real, hr, hp, max_eq_left, add_nonneg]
+nnreal.eq $ by simp [nnreal.of_real, hr, hp, add_nonneg]
 
 lemma of_real_of_nonpos {r : ℝ} (h : r ≤ 0) : nnreal.of_real r = 0 :=
-by simp [nnreal.of_real, max_eq_right h]; refl
+by simp [nnreal.of_real, h]; refl
 
 lemma of_real_le_of_real {r p : ℝ} (h : r ≤ p) : nnreal.of_real r ≤ nnreal.of_real p :=
 (nnreal.coe_le _ _).2 $ max_le_max h $ le_refl _
@@ -351,6 +355,15 @@ lemma div_add_div_same (a b c : ℝ≥0) : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)
 
 lemma add_halves (a : nnreal) : a / 2 + a / 2 = a := nnreal.eq (add_halves a)
+
+lemma half_lt_self {a : nnreal} (h : a ≠ 0) : a/2 < a :=
+begin
+  apply (nnreal.coe_lt _ _).2,
+  rw [nnreal.coe_div],
+  apply half_lt_self,
+  change 0 < a,
+  exact bot_lt_iff_ne_bot.2 h,
+end
 
 end inv
 

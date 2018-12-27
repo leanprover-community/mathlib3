@@ -482,7 +482,7 @@ instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α 
   begin
     rw [edist_dist, edist_dist, edist_dist, ← ennreal.coe_add, ennreal.coe_le_coe,
         nnreal.of_real_add_of_real (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z),
-        nnreal.of_real_le_of_real_iff (@dist_nonneg _ _ x z) $
+        nnreal.of_real_le_of_real_iff $
           add_nonneg (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z)],
     apply dist_triangle x y z
   end,

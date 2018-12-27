@@ -193,7 +193,7 @@ def foo (c : covering_family U) (F : presheaf X) :
 { val := λ V H,
   begin
     choose Ui H f using H,
-    choose f h using f,
+    refine F.map _ (s.1 _ H),
   end,
   property := _ }
 

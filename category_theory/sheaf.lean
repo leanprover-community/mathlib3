@@ -72,6 +72,10 @@ def to_presheaf (S : sieve U) : presheaf X :=
     erw category.assoc
   end }
 
+@[simp] lemma to_presheaf_map (S : sieve U) {V₁ V₂ : X} (f : V₁ ⟶ V₂) (g) :
+(S.to_presheaf.map f g).val = f ≫ g.1 :=
+by cases g; refl
+
 def π (S : sieve U) : S.to_presheaf ⟶ yoneda.obj U :=
 { app := λ V, subtype.val }
 
@@ -135,18 +139,36 @@ F.obj U ⟶ matching_sections c F :=
   property :=
   begin
     intros,
-    show ((F.map (Ui.hom)) ≫ (F.map (f.left))) s = ((F.map (Uj.hom)) ≫ (F.map (g.left))) s,
+    show (F.map _ ≫ F.map _) _ = (F.map _ ≫ F.map _) _,
     repeat {erw [← F.map_comp, over.over_w]}
   end }
 
 def foo (S : sieve U) (F : presheaf X) :
 (S.to_presheaf ⟶ F) ⟶ (matching_sections S.val F) :=
-λ f : S.to_presheaf ⟶ F, show matching_sections S.val F, from
-{ val := λ Ui h, f.app _ ⟨Ui.hom, by simpa using S.property _ h (𝟙 _)⟩,
+λ α : S.to_presheaf ⟶ F, show matching_sections S.val F, from
+{ val := λ Ui h, α.app _ ⟨Ui.hom, by simpa using S.property _ h (𝟙 _)⟩,
   property :=
   begin
     intros,
-    have := f.naturality,
+    show (α.app _ ≫ F.map _) _ = (α.app _ ≫ F.map _) _,
+    repeat {erw ← α.naturality},
+    simp only [category_theory.types_comp],
+    congr,
+    apply subtype.ext.mpr,
+    simp
+  end }
+
+def quux (S : sieve U) (F : presheaf X) :
+(matching_sections S.val F) ⟶ (S.to_presheaf ⟶ F) :=
+λ s : matching_sections S.val F, show S.to_presheaf ⟶ F, from
+{ app := λ V i, s.1 _ i.2,
+  naturality' := λ V₁ V₂ f,
+  begin
+    change X at V₁, change X at V₂,
+    change V₂ ⟶ V₁ at f,
+    ext1 i,
+    have := s.2 _ i.2 _ (S.to_presheaf.map f i).2 _ (by exact {left := f}) (𝟙 _),
+    simp [this]
   end }
 
 def bar (c : covering_family U) (F : presheaf X) :

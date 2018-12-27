@@ -96,8 +96,11 @@ def generate_sieve (c : covering_family U) : sieve U :=
     exact ⟨Ui', hUi', ⟨over.hom_mk f ≫ g⟩⟩,
   end }
 
-@[simp] lemma generate_sieve_covering_family (c : covering_family U) :
+@[simp] lemma generate_sieve_val (c : covering_family U) :
 c.generate_sieve.val = { V : over U | ∃ Ui ∈ c, nonempty (V ⟶ Ui) } := rfl
+
+lemma subset_generate_sieve (c : covering_family U) :
+c ⊆ c.generate_sieve.val := λ Ui H, ⟨_, H, ⟨𝟙 _⟩⟩
 
 -- def sieve (c : covering_family U) : presheaf X :=
 -- let
@@ -143,7 +146,7 @@ F.obj U ⟶ matching_sections c F :=
     repeat {erw [← F.map_comp, over.over_w]}
   end }
 
-def foo (S : sieve U) (F : presheaf X) :
+def matching_sections_of_sieve_section (S : sieve U) (F : presheaf X) :
 (S.to_presheaf ⟶ F) ⟶ (matching_sections S.val F) :=
 λ α : S.to_presheaf ⟶ F, show matching_sections S.val F, from
 { val := λ Ui h, α.app _ ⟨Ui.hom, by simpa using S.property _ h (𝟙 _)⟩,
@@ -158,7 +161,7 @@ def foo (S : sieve U) (F : presheaf X) :
     simp
   end }
 
-def quux (S : sieve U) (F : presheaf X) :
+def sieve_section_of_matching_sections (S : sieve U) (F : presheaf X) :
 (matching_sections S.val F) ⟶ (S.to_presheaf ⟶ F) :=
 λ s : matching_sections S.val F, show S.to_presheaf ⟶ F, from
 { app := λ V i, s.1 _ i.2,
@@ -171,23 +174,39 @@ def quux (S : sieve U) (F : presheaf X) :
     simp [this]
   end }
 
-def xyzzy (S : sieve U) (F : presheaf X) :
+def sieve_section_iso_matching_sections (S : sieve U) (F : presheaf X) :
 (S.to_presheaf ⟶ F) ≅ (matching_sections S.val F) :=
-{ hom := foo S F,
-  inv := quux S F,
+{ hom := matching_sections_of_sieve_section S F,
+  inv := sieve_section_of_matching_sections S F,
   inv_hom_id' :=
   begin
-    delta foo quux,
+    delta sieve_section_of_matching_sections matching_sections_of_sieve_section,
     tidy {trace_result := tt},
     delta over.mk,
     cases x, cases x_right,
     congr
   end }
 
+def foo (c : covering_family U) (F : presheaf X) :
+(matching_sections c F) ⟶ (matching_sections c.generate_sieve.val F) :=
+λ s : matching_sections c F, show matching_sections c.generate_sieve.val F, from
+{ val := λ V H,
+  begin
+    choose Ui H f using H,
+    choose f h using f,
+  end,
+  property := _ }
+
 def bar (c : covering_family U) (F : presheaf X) :
-sheaf_condition c F ≅ is_iso (matching_sections.π c F) :=
-{ hom := _,
-  inv := _ }
+(matching_sections c.generate_sieve.val F) ⟶ (matching_sections c F) :=
+λ s : matching_sections c.generate_sieve.val F, show matching_sections c F, from
+{ val := λ Ui H, s.1 _ (c.subset_generate_sieve H),
+  property := by tidy }
+
+-- def bar (c : covering_family U) (F : presheaf X) :
+-- sheaf_condition c F ≅ is_iso (matching_sections.π c F) :=
+-- { hom := _,
+--   inv := _ }
 
 -- variables {Y : Type u} [small_category Y]
 -- variables (f : X ⥤ Y)

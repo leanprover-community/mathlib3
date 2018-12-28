@@ -44,6 +44,9 @@ instance : has_colimits.{(v+1) v} (presheaf C) := by dunfold presheaf; apply_ins
 -- instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_coproducts
 -- instance : has_coequalizers.{(v+1) v} (presheaf C) := limits.functor_category_has_coequalizers
 
+def eval : Cᵒᵖ ⥤ presheaf C ⥤ Type v :=
+evaluation _ _
+
 section restriction_extension
 variables {D : Type u} [𝒟 : category.{u v} D]
 include 𝒟

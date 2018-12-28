@@ -192,6 +192,7 @@ def foo (c : covering_family U) (F : presheaf X) :
 λ s : matching_sections c F, show matching_sections c.generate_sieve.val F, from
 { val := λ V H,
   begin
+    delta matching_sections at s,
     choose Ui H f using H,
     refine F.map _ (s.1 _ H),
   end,

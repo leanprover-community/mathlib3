@@ -150,9 +150,9 @@ def matching_sections (c : covering_family U) : presheaf X ⥤ Type u :=
 (c.matching_sections.map α s).val = c.family_sections.map α s.1 := rfl
 
 def matching_sections.π (c : covering_family U) :
-presheaf.eval.obj U ⟶ c.matching_sections :=
-{ app := λ F (s : F.obj U), show c.matching_sections.obj F, from
-  { val := λ Ui h, F.map Ui.hom s,
+coyoneda.obj (yoneda.obj U) ⟶ c.matching_sections :=
+{ app := λ F s, show c.matching_sections.obj F, from
+  { val := λ Ui h, F.map Ui.hom $ (yoneda_sections_small U F).hom s,
     property :=
     begin
       intros,
@@ -242,31 +242,32 @@ c.generate_sieve.val.matching_sections ⟶ c.matching_sections :=
   { val := λ Ui H, s.1 _ (c.subset_generate_sieve H),
     property := by tidy } }
 
-noncomputable def quux (c : covering_family U) :
-c.matching_sections ≅ c.generate_sieve.val.matching_sections :=
-{ hom := foo c,
-  inv := bar c,
-  hom_inv_id' :=
-  begin
-    ext1 F,
-    ext1 s,
-    apply subtype.ext.mpr,
-    funext,
-    convert s.property _ _ _ _ _ _ (𝟙 _),
-    tidy {trace_result := tt},
-  end,
-  inv_hom_id' :=
-  begin
-    ext1 F,
-    ext1 s,
-    apply subtype.ext.mpr,
-    funext,
-    dedup,
-    have H' : V ∈ (generate_sieve c).val := H,
-    rcases H with ⟨Ui, H, f⟩,
-    convert s.property _ _ _ _ _ _ (𝟙 _),
-    tidy {trace_result := tt},
-  end }
+-- def quux (c : covering_family U) :
+-- c.matching_sections ≅ c.generate_sieve.val.matching_sections :=
+-- { hom := foo c,
+--   inv := bar c,
+--   hom_inv_id' :=
+--   begin
+--     ext1 F,
+--     ext1 s,
+--     apply subtype.ext.mpr,
+--     funext,
+--     convert s.property _ _ _ _ _ _ (𝟙 _),
+--     tidy {trace_result := tt}
+--   end,
+--   inv_hom_id' :=
+--   begin
+--     ext1 F,
+--     ext1 s,
+--     apply subtype.ext.mpr,
+--     funext,
+--     dsimp [foo, bar],
+--     convert s.property _ _ _ _ _ _ (𝟙 _),
+--     tidy {trace_result := tt},
+--   end }
+
+def ππ (c : covering_family U) :
+c.matching_sections.π = c.generate_sieve.π ≫ _ :=
 
 -- def bar (c : covering_family U) (F : presheaf X) :
 -- sheaf_condition c F ≅ is_iso (matching_sections.π c F) :=

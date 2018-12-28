@@ -27,6 +27,9 @@ def supr [has_Sup α] (s : ι → α) : α := Sup (range s)
 /-- Indexed infimum -/
 def infi [has_Inf α] (s : ι → α) : α := Inf (range s)
 
+def has_Inf_to_nonempty (α) [has_Inf α] : nonempty α := ⟨Inf ∅⟩
+def has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
+
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
 notation `⨅` binders `, ` r:(scoped f, infi f) := r
 
@@ -39,7 +42,7 @@ class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has
 (le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
-class complete_linear_order (α : Type u) extends complete_lattice α, linear_order α
+class complete_linear_order (α : Type u) extends complete_lattice α, decidable_linear_order α
 
 section
 variables [complete_lattice α] {s t : set α} {a b : α}

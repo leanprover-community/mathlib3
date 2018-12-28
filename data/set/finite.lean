@@ -163,6 +163,11 @@ set.fintype_singleton
 theorem finite_pure (a : α) : finite (pure a : set α) :=
 ⟨set.fintype_pure a⟩
 
+instance fintype_univ [fintype α] : fintype (@univ α) :=
+fintype_of_finset finset.univ $ λ _, iff_true_intro (finset.mem_univ _)
+
+theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
+
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
 fintype_of_finset (s.to_finset ∪ t.to_finset) $ by simp
 

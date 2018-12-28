@@ -9,9 +9,9 @@ open category_theory category_theory.category
 
 namespace category_theory.limits
 
-universes u v
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 variables {J K : Type v} [small_category J] [small_category K]
@@ -67,7 +67,7 @@ def functor_category_is_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C)
       (((evaluation K C).obj k).map_cone s) (m.app k) (λ j, nat_trans.congr_app (w j) k)
   end }
 
-def functor_category_is_colimit_cocone [has_colimits_of_shape.{u v} J C] (F : J ⥤ K ⥤ C) :
+def functor_category_is_colimit_cocone [has_colimits_of_shape.{v} J C] (F : J ⥤ K ⥤ C) :
   is_colimit (functor_category_colimit_cocone F) :=
 { desc := λ s,
   { app := λ k, colimit.desc (F.flip.obj k) (((evaluation K C).obj k).map_cocone s),

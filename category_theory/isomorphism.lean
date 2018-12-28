@@ -4,11 +4,11 @@
 
 import category_theory.functor
 
-universes u v
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
-structure iso {C : Type u} [category.{u v} C] (X Y : C) :=
+structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
@@ -20,7 +20,7 @@ attribute [simp] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y Z : C}
 
@@ -140,7 +140,7 @@ namespace functor
 universes u₁ v₁ u₂ v₂
 variables {D : Type u₂}
 
-variables [𝒟 : category.{u₂ v₂} D]
+variables [𝒟 : category.{v₂} D]
 include 𝒟
 
 def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.obj X) ≅ (F.obj Y) :=

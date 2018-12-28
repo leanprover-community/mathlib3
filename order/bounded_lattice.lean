@@ -61,6 +61,9 @@ begin
   by simp [-top_le_iff, lt_iff_le_not_le, not_iff_not.2 (@top_le_iff _ _ a)]
 end
 
+lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
+lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
+
 end order_top
 
 theorem order_top.ext_top {α} {A B : order_top α}
@@ -112,6 +115,9 @@ begin
   haveI : decidable (a ≤ ⊥) := decidable_of_iff' _ le_bot_iff,
   simp [-le_bot_iff, lt_iff_le_not_le, not_iff_not.2 (@le_bot_iff _ _ a)]
 end
+
+lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
+bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
 
 end order_bot
 

@@ -9,7 +9,7 @@ import category_theory.functor_category
 
 namespace category_theory
 
-universes u₁ v₁ u₂ v₂
+universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 def discrete (α : Type u₁) := α
 
@@ -18,7 +18,7 @@ instance discrete_category (α : Type u₁) : small_category (discrete α) :=
   id   := by tidy,
   comp := by tidy }
 
-variables {C : Type u₂} [𝒞 : category.{u₂ v₂} C]
+variables {C : Type u₂} [𝒞 : category.{v₂} C]
 include 𝒞
 
 namespace functor

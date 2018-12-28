@@ -4,7 +4,7 @@
 
 import category_theory.const
 
-universes u v w
+universes v w u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
@@ -14,7 +14,7 @@ instance punit_category : small_category punit :=
   comp := λ _ _ _ _ _, punit.star }
 
 namespace functor
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 /-- The constant functor. For `X : C`, `of.obj X` is the functor `punit ⥤ C`

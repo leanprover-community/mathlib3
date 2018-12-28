@@ -16,9 +16,9 @@ import category_theory.functor
 
 namespace category_theory
 
-universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -72,7 +72,7 @@ infixr ` ⊟ `:80 := vcomp
 @[simp] lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = α ⊟ (β ⊟ γ) := by tidy
 end
 
-variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/

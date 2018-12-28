@@ -187,16 +187,22 @@ def sieve_section_iso_matching_sections (S : sieve U) (F : presheaf X) :
     congr
   end }
 
-def foo (c : covering_family U) (F : presheaf X) :
+noncomputable def foo (c : covering_family U) (F : presheaf X) :
 (matching_sections c F) ⟶ (matching_sections c.generate_sieve.val F) :=
 λ s : matching_sections c F, show matching_sections c.generate_sieve.val F, from
 { val := λ V H,
   begin
-    delta matching_sections at s,
     choose Ui H f using H,
     refine F.map _ (s.1 _ H),
+    exact (classical.choice f).left,
   end,
-  property := _ }
+  property :=
+  begin
+    intros,
+    show (F.map _ ≫ F.map _) _ = (F.map _ ≫ F.map _) _,
+    repeat {rw ← F.map_comp},
+    exact s.property _ _ _ _ _ (_ ≫ _) (_ ≫ _)
+  end }
 
 def bar (c : covering_family U) (F : presheaf X) :
 (matching_sections c.generate_sieve.val F) ⟶ (matching_sections c F) :=

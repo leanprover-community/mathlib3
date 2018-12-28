@@ -146,49 +146,61 @@ def matching_sections (c : covering_family U) : presheaf X ⥤ Type u :=
       exact congr_arg (α.app (V.left)) (s.2 _ _ _ _ _ _ _)
     end } }
 
-def matching_sections.π (c : covering_family U) (F : presheaf X) :
-F.obj U ⟶ matching_sections c F :=
-λ s : F.obj U, show matching_sections c F, from
-{ val := λ Ui h, F.map Ui.hom s,
-  property :=
-  begin
-    intros,
-    show (F.map _ ≫ F.map _) _ = (F.map _ ≫ F.map _) _,
-    repeat {erw [← F.map_comp, over.over_w]}
-  end }
+@[simp] lemma matching_sections_map_val (c : covering_family U) {F₁ F₂ : presheaf X} (α : F₁ ⟶ F₂) (s : c.matching_sections.obj F₁) :
+(c.matching_sections.map α s).val = c.family_sections.map α s.1 := rfl
 
-def matching_sections_of_sieve_section (S : sieve U) (F : presheaf X) :
-(S.to_presheaf ⟶ F) ⟶ (matching_sections S.val F) :=
-λ α : S.to_presheaf ⟶ F, show matching_sections S.val F, from
-{ val := λ Ui h, α.app _ ⟨Ui.hom, by simpa using S.property _ h (𝟙 _)⟩,
-  property :=
+def matching_sections.π (c : covering_family U) :
+presheaf.eval.obj U ⟶ c.matching_sections :=
+{ app := λ F (s : F.obj U), show c.matching_sections.obj F, from
+  { val := λ Ui h, F.map Ui.hom s,
+    property :=
+    begin
+      intros,
+      show (F.map _ ≫ F.map _) _ = (F.map _ ≫ F.map _) _,
+      repeat {erw [← F.map_comp, over.over_w]}
+    end },
+  naturality' := λ F₁ F₂ α,
   begin
-    intros,
-    show (α.app _ ≫ F.map _) _ = (α.app _ ≫ F.map _) _,
-    repeat {erw ← α.naturality},
-    simp only [category_theory.types_comp],
-    congr,
+    tidy,
     apply subtype.ext.mpr,
-    simp
+    dsimp,
+    funext,
+    symmetry,
+    exact congr (α.naturality _) rfl
   end }
 
-def sieve_section_of_matching_sections (S : sieve U) (F : presheaf X) :
-(matching_sections S.val F) ⟶ (S.to_presheaf ⟶ F) :=
-λ s : matching_sections S.val F, show S.to_presheaf ⟶ F, from
-{ app := λ V i, s.1 _ i.2,
-  naturality' := λ V₁ V₂ f,
-  begin
-    change X at V₁, change X at V₂,
-    change V₂ ⟶ V₁ at f,
-    ext1 i,
-    have := s.2 _ i.2 _ (S.to_presheaf.map f i).2 _ (by exact {left := f}) (𝟙 _),
-    simp [this]
-  end }
+def matching_sections_of_sieve_section (S : sieve U) :
+(coyoneda.obj S.to_presheaf) ⟶ S.val.matching_sections :=
+{ app := λ F (α : S.to_presheaf ⟶ F), show S.val.matching_sections.obj F, from
+  { val := λ Ui h, α.app _ ⟨Ui.hom, by simpa using S.property _ h (𝟙 _)⟩,
+    property :=
+    begin
+      intros,
+      show (α.app _ ≫ F.map _) _ = (α.app _ ≫ F.map _) _,
+      repeat {erw ← α.naturality},
+      simp only [category_theory.types_comp],
+      congr,
+      apply subtype.ext.mpr,
+      simp
+    end } }
 
-def sieve_section_iso_matching_sections (S : sieve U) (F : presheaf X) :
-(S.to_presheaf ⟶ F) ≅ (matching_sections S.val F) :=
-{ hom := matching_sections_of_sieve_section S F,
-  inv := sieve_section_of_matching_sections S F,
+def sieve_section_of_matching_sections (S : sieve U) :
+S.val.matching_sections ⟶ (coyoneda.obj S.to_presheaf) :=
+{ app := λ F (s : S.val.matching_sections.obj F), show S.to_presheaf ⟶ F, from
+  { app := λ V i, s.1 _ i.2,
+    naturality' := λ V₁ V₂ f,
+    begin
+      change X at V₁, change X at V₂,
+      change V₂ ⟶ V₁ at f,
+      ext1 i,
+      have := s.2 _ i.2 _ (S.to_presheaf.map f i).2 _ (by exact {left := f}) (𝟙 _),
+      simp [this]
+    end } }
+
+def sieve_section_iso_matching_sections (S : sieve U) :
+(coyoneda.obj S.to_presheaf) ≅ S.val.matching_sections :=
+{ hom := matching_sections_of_sieve_section S,
+  inv := sieve_section_of_matching_sections S,
   inv_hom_id' :=
   begin
     delta sieve_section_of_matching_sections matching_sections_of_sieve_section,
@@ -198,37 +210,62 @@ def sieve_section_iso_matching_sections (S : sieve U) (F : presheaf X) :
     congr
   end }
 
-noncomputable def foo (c : covering_family U) (F : presheaf X) :
-(matching_sections c F) ⟶ (matching_sections c.generate_sieve.val F) :=
-λ s : matching_sections c F, show matching_sections c.generate_sieve.val F, from
-{ val := λ V H,
+noncomputable def foo (c : covering_family U) :
+c.matching_sections ⟶ c.generate_sieve.val.matching_sections :=
+{ app := λ F (s : c.matching_sections.obj F), show c.generate_sieve.val.matching_sections.obj F, from
+  { val := λ V H,
+    begin
+      choose Ui H f using H,
+      refine F.map _ (s.1 _ H),
+      exact (classical.choice f).left,
+    end,
+    property :=
+    begin
+      intros,
+      show (F.map _ ≫ F.map _) _ = (F.map _ ≫ F.map _) _,
+      repeat {rw ← F.map_comp},
+      exact s.property _ _ _ _ _ (_ ≫ _) (_ ≫ _)
+    end },
+  naturality' := λ F₁ F₂ α,
   begin
-    choose Ui H f using H,
-    refine F.map _ (s.1 _ H),
-    exact (classical.choice f).left,
-  end,
-  property :=
-  begin
-    intros,
-    show (F.map _ ≫ F.map _) _ = (F.map _ ≫ F.map _) _,
-    repeat {rw ← F.map_comp},
-    exact s.property _ _ _ _ _ (_ ≫ _) (_ ≫ _)
+    tidy,
+    apply subtype.ext.mpr,
+    funext,
+    dsimp [family_sections],
+    symmetry,
+    exact congr (α.naturality _) rfl
   end }
 
-def bar (c : covering_family U) (F : presheaf X) :
-(matching_sections c.generate_sieve.val F) ⟶ (matching_sections c F) :=
-λ s : matching_sections c.generate_sieve.val F, show matching_sections c F, from
-{ val := λ Ui H, s.1 _ (c.subset_generate_sieve H),
-  property := by tidy }
+def bar (c : covering_family U) :
+c.generate_sieve.val.matching_sections ⟶ c.matching_sections :=
+{ app := λ F (s : c.generate_sieve.val.matching_sections.obj F), show c.matching_sections.obj F, from
+  { val := λ Ui H, s.1 _ (c.subset_generate_sieve H),
+    property := by tidy } }
 
-noncomputable def quux (c : covering_family U) (F : presheaf X) :
-(matching_sections c F) ≅ (matching_sections c.generate_sieve.val F) :=
-{ hom := foo c F,
-  inv := bar c F,
+noncomputable def quux (c : covering_family U) :
+c.matching_sections ≅ c.generate_sieve.val.matching_sections :=
+{ hom := foo c,
+  inv := bar c,
   hom_inv_id' :=
   begin
-    delta foo bar,
-    tidy,
+    ext1 F,
+    ext1 s,
+    apply subtype.ext.mpr,
+    funext,
+    convert s.property _ _ _ _ _ _ (𝟙 _),
+    tidy {trace_result := tt},
+  end,
+  inv_hom_id' :=
+  begin
+    ext1 F,
+    ext1 s,
+    apply subtype.ext.mpr,
+    funext,
+    dedup,
+    have H' : V ∈ (generate_sieve c).val := H,
+    rcases H with ⟨Ui, H, f⟩,
+    convert s.property _ _ _ _ _ _ (𝟙 _),
+    tidy {trace_result := tt},
   end }
 
 -- def bar (c : covering_family U) (F : presheaf X) :

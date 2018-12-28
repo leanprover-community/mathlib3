@@ -125,15 +125,26 @@ c ⊆ c.generate_sieve.val := λ Ui H, ⟨_, H, ⟨𝟙 _⟩⟩
 def sheaf_condition (c : covering_family U) (F : presheaf X) :=
 c.generate_sieve.sheaf_condition F
 
-def family_sections (c : covering_family U) (F : presheaf X) :=
-Π Ui ∈ c, F.obj (Ui : over U).left
+def family_sections (c : covering_family U) : presheaf X ⥤ Type u :=
+{ obj := λ F, Π Ui ∈ c, F.obj (Ui : over U).left,
+  map := λ F₁ F₂ α s Ui H, α.app Ui.left (s _ H) }
 
-def matching_sections (c : covering_family U) (F : presheaf X) :=
-{ s : family_sections c F //
-  ∀ Ui ∈ c, ∀ Uj ∈ c, ∀ V : over U,
-  ∀ (f : V ⟶ Ui) (g : V ⟶ Uj),
-  F.map (f : comma_morphism _ _).left (s Ui ‹Ui ∈ c›) =
-  F.map (g : comma_morphism _ _).left (s Uj ‹Uj ∈ c›) }
+def matching_sections (c : covering_family U) : presheaf X ⥤ Type u :=
+{ obj := λ F,
+  { s : c.family_sections.obj F //
+    ∀ Ui ∈ c, ∀ Uj ∈ c, ∀ V : over U,
+    ∀ (f : V ⟶ Ui) (g : V ⟶ Uj),
+    F.map (f : comma_morphism _ _).left (s Ui ‹Ui ∈ c›) =
+    F.map (g : comma_morphism _ _).left (s Uj ‹Uj ∈ c›) },
+  map := λ F₁ F₂ α s,
+  { val := c.family_sections.map α s.1,
+    property :=
+    begin
+      intros,
+      show (α.app _ ≫ F₂.map _) _ = (α.app _ ≫ F₂.map _) _,
+      repeat {erw ← α.naturality},
+      exact congr_arg (α.app (V.left)) (s.2 _ _ _ _ _ _ _)
+    end } }
 
 def matching_sections.π (c : covering_family U) (F : presheaf X) :
 F.obj U ⟶ matching_sections c F :=
@@ -209,6 +220,16 @@ def bar (c : covering_family U) (F : presheaf X) :
 λ s : matching_sections c.generate_sieve.val F, show matching_sections c F, from
 { val := λ Ui H, s.1 _ (c.subset_generate_sieve H),
   property := by tidy }
+
+noncomputable def quux (c : covering_family U) (F : presheaf X) :
+(matching_sections c F) ≅ (matching_sections c.generate_sieve.val F) :=
+{ hom := foo c F,
+  inv := bar c F,
+  hom_inv_id' :=
+  begin
+    delta foo bar,
+    tidy,
+  end }
 
 -- def bar (c : covering_family U) (F : presheaf X) :
 -- sheaf_condition c F ≅ is_iso (matching_sections.π c F) :=

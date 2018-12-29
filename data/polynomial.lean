@@ -1554,6 +1554,9 @@ lemma monic_mul_norm_unit (hp0 : p ≠ 0) : monic (p * norm_unit p) :=
 show leading_coeff (p * ↑(dite _ _ _)) = 1,
 by rw dif_neg hp0; exact monic_mul_leading_coeff_inv hp0
 
+lemma coe_norm_unit (hp : p ≠ 0) : (norm_unit p : polynomial α) = C p.leading_coeff⁻¹ :=
+show ↑(dite _ _ _) = C p.leading_coeff⁻¹, by rw dif_neg hp; refl
+
 end field
 
 section derivative

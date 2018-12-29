@@ -6,11 +6,11 @@ import category_theory.natural_transformation
 
 namespace category_theory
 
-universes u₁ v₁ u₂ v₂ u₃ v₃
+universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open nat_trans
 
-variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C] (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
+variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -22,12 +22,12 @@ this is another small category at that level.
 However if `C` and `D` are both large categories at the same universe level,
 this is a small category at the next higher level.
 -/
-instance functor.category : category.{(max u₁ v₁ u₂ v₂) (max u₁ v₂)} (C ⥤ D) :=
+instance functor.category : category.{(max u₁ v₂)} (C ⥤ D) :=
 { hom     := λ F G, F ⟹ G,
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, α ⊟ β }
 
-variables {C D} {E : Type u₃} [ℰ : category.{u₃ v₃} E]
+variables {C D} {E : Type u₃} [ℰ : category.{v₃} E]
 
 namespace functor.category
 

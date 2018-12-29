@@ -14,17 +14,6 @@ classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, i
 
 end discrete_field
 
-namespace set
-
-@[simp] lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
-begin
-  simp [eq_empty_iff_forall_not_mem],
-  exact iff.intro
-    (assume h a has, h (f a) a has rfl)
-    (assume h b a has eq, h a has)
-end
-
-end set
 
 noncomputable theory
 open lattice
@@ -201,6 +190,7 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
   le_cInf := assume s a hs h, show (↑a : ℝ) ≤ Inf ((coe : nnreal → ℝ) '' s), from
     le_cInf (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h _ hb,
   cSup_empty := nnreal.eq $ by simp [coe_Sup, real.Sup_empty]; refl,
+  decidable_le := begin assume x y, apply classical.dec end,
   .. nnreal.linear_ordered_semiring, .. lattice.lattice_of_decidable_linear_order,
   .. nnreal.lattice.order_bot }
 

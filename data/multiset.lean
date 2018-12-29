@@ -1951,7 +1951,7 @@ lemma card_eq_card_of_rel {r : α → β → Prop} {s : multiset α} {t : multis
   card s = card t :=
 by induction h; simp [*]
 
-lemma exists_of_mem_of_rel {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
+lemma exists_mem_of_rel_of_mem {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
   ∀ {a : α} (ha : a ∈ s), ∃ b ∈ t, r a b :=
 begin
   induction h with x y s t hxy hst ih,

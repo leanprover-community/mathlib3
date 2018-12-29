@@ -5,7 +5,7 @@ Authors: Chris Hughes
 
 Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
-import ring_theory.adjoin_root
+import ring_theory.adjoin_root ring_theory.unique_factorization_domain
 
 universes u v w
 
@@ -88,7 +88,7 @@ else or.inr $ λ p hp hpf, ((principal_ideal_domain.prime_of_irreducible hp).2.2
   (hf.resolve_left (λ hf, by simpa [hf] using h) hp)
   (hg.resolve_left (λ hg, by simpa [hg] using h) hp)
 
-lemma splits_of_splits_mul {f g: polynomial α} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
+lemma splits_of_splits_mul {f g : polynomial α} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
   splits i f ∧ splits i g :=
 ⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi (by rw map_mul; exact dvd.trans hg (dvd_mul_right _ _)),
  or.inr $ λ g hgi hg, or.resolve_left h hfg hgi (by rw map_mul; exact dvd.trans hg (dvd_mul_left _ _))⟩
@@ -106,34 +106,79 @@ hs.elim (λ hf0, ⟨37, by simp [hf0]⟩) $
   ⟨x, let ⟨g, hg⟩ := irr_factor_dvd (show degree (f.map i) ≠ 0, by simpa) in
     by rw [← eval_map, hg, eval_mul, (show _ = _, from hx), zero_mul]⟩
 
-lemma splits_of_splits_id : ∀ {f : polynomial α} (h : splits id f), splits i f
-| f := λ h,
-  if hf : degree f ≤ 1 then splits_of_degree_le_one _ hf
-  else have hfi : ¬irreducible f := mt (h.resolve_left (λ hf0, by simpa [hf0] using hf))
-    (show ¬ (f ∣ f.map id → degree f = 1),
-      from λ h, absurd (h (by simp))
-        (λ h, by simpa [h, lt_irrefl] using hf)),
-  have hfu : ¬is_unit f,
-    from λ h, by rw [is_unit_iff_degree_eq_zero] at h; rw h at hf;
-      exact hf dec_trivial,
-  let ⟨p, q, hpu, hqu, hpq⟩ := (irreducible_or_factor _ hfu).resolve_left hfi in
-  have hpq0 : p * q ≠ 0, from λ hpq0, by simpa [hpq.symm, hpq0] using hf,
-  have hf0 : f ≠ 0, from λ hf0, by simpa [hf0] using hf,
-  have hwfp : degree p < degree f,
-    by rw [euclidean_domain.eq_div_of_mul_eq_left (ne_zero_of_mul_ne_zero_left hpq0) hpq];
-      exact degree_div_lt hf0  (degree_pos_of_ne_zero_of_nonunit
-        (ne_zero_of_mul_ne_zero_left hpq0) hqu),
-  have hwfp : degree q < degree f,
-    by rw [euclidean_domain.eq_div_of_mul_eq_right (ne_zero_of_mul_ne_zero_right hpq0) hpq];
-      exact degree_div_lt hf0  (degree_pos_of_ne_zero_of_nonunit
-        (ne_zero_of_mul_ne_zero_right hpq0) hpu),
-  (splits_map_iff id _).1 $ begin
-    rw [map_id, ← hpq],
-    rw [← hpq] at h,
-    exact splits_mul _ (splits_of_splits_id (splits_of_splits_mul _ hpq0 h).1)
-      (splits_of_splits_id (splits_of_splits_mul _ hpq0 h).2)
-  end
-using_well_founded {dec_tac := tactic.assumption}
+lemma exists_multiset_of_splits {f : polynomial α} : splits i f →
+  ∃ (s : multiset β), f.map i = C (i f.leading_coeff) *
+  (s.map (λ a : β, (X : polynomial β) - C a)).prod :=
+suffices splits id (f.map i) → ∃ s : multiset β, f.map i =
+  (C (f.map i).leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod,
+by rwa [splits_map_iff, leading_coeff_map i] at this,
+is_noetherian_ring.irreducible_induction_on principal_ideal_domain.is_noetherian_ring (f.map i)
+  (λ _, ⟨{37}, by simp [is_ring_hom.map_zero i]⟩)
+  (λ u hu _, ⟨0,
+    by conv_lhs { rw eq_C_of_degree_eq_zero (is_unit_iff_degree_eq_zero.1 hu) };
+      simp [leading_coeff, nat_degree_eq_of_degree_eq_some (is_unit_iff_degree_eq_zero.1 hu)]⟩)
+  (λ f p hf0 hp ih hfs,
+    have hpf0 : p * f ≠ 0, from mul_ne_zero (nonzero_of_irreducible hp) hf0,
+    let ⟨s, hs⟩ := ih (splits_of_splits_mul _ hpf0 hfs).2 in
+    ⟨-(p * norm_unit p).coeff 0 :: s,
+      have hp1 : degree p = 1, from hfs.resolve_left hpf0 hp (by simp),
+      begin
+        rw [multiset.map_cons, multiset.prod_cons, leading_coeff_mul, C_mul, mul_assoc,
+          mul_left_comm (C f.leading_coeff), ← hs, ← mul_assoc, domain.mul_right_inj hf0],
+        conv_lhs {rw eq_X_add_C_of_degree_eq_one hp1},
+        simp only [mul_add, coe_norm_unit (nonzero_of_irreducible hp), mul_comm p, coeff_neg,
+          C_neg, sub_eq_add_neg, neg_neg, coeff_C_mul, (mul_assoc _ _ _).symm, C_mul.symm,
+          mul_inv_cancel (show p.leading_coeff ≠ 0, from mt leading_coeff_eq_zero.1
+            (nonzero_of_irreducible hp)), one_mul],
+      end⟩)
+
+section UFD
+
+local attribute [instance, priority 0] principal_ideal_domain.to_unique_factorization_domain
+local infix ` ~ᵤ ` : 50 := associated
+
+open unique_factorization_domain associates
+
+lemma splits_of_exists_multiset {f : polynomial α} {s : multiset β}
+  (hs : f.map i = C (i f.leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod) :
+  splits i f :=
+if hf0 : f = 0 then or.inl hf0
+else
+  or.inr $ λ p hp hdp,
+    have ht : multiset.rel associated
+      (factors (f.map i)) (s.map (λ a : β, (X : polynomial β) - C a)) :=
+    unique
+      (λ p hp, irreducible_factors (mt (map_eq_zero i).1 hf0) _ hp)
+      (λ p, by simp [@eq_comm _ _ p, -sub_eq_add_neg,
+          irreducible_of_degree_eq_one (degree_X_sub_C _)] {contextual := tt})
+      (associated.symm $ calc _ ~ᵤ f.map i :
+        ⟨units.map C (units.mk0 (f.map i).leading_coeff
+            (mt leading_coeff_eq_zero.1 (mt (map_eq_zero i).1 hf0))),
+          by conv_rhs {rw [hs, ← leading_coeff_map i, mul_comm]}; refl⟩
+        ... ~ᵤ _ : associated.symm (unique_factorization_domain.factors_prod (by simpa using hf0))),
+  let ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd (by simpa) hp hdp in
+  let ⟨q', hq', hqq'⟩ := multiset.exists_of_mem_of_rel ht hq in
+  let ⟨a, ha⟩ := multiset.mem_map.1 hq' in
+  by rw [← degree_X_sub_C a, ha.2];
+    exact degree_eq_degree_of_associated (hpq.trans hqq')
+
+end UFD
+
+lemma splits_iff_exists_multiset {f : polynomial α} : splits i f ↔
+  ∃ (s : multiset β), f.map i = C (i f.leading_coeff) *
+  (s.map (λ a : β, (X : polynomial β) - C a)).prod :=
+⟨exists_multiset_of_splits i, λ ⟨s, hs⟩, splits_of_exists_multiset i hs⟩
+
+lemma splits_of_splits_id {f : polynomial α} (h : splits id f) : splits i f :=
+let ⟨s, hs⟩ := (splits_iff_exists_multiset id).1 h in
+(splits_iff_exists_multiset i).2 ⟨s.map i,
+  begin
+    rw [map_id] at hs,
+    conv_lhs {rw hs},
+    haveI : is_monoid_hom (map i) := is_semiring_hom.is_monoid_hom _,
+    rw [map_mul, map_C, id, ← multiset.prod_hom (map i)],
+    simp [function.comp, multiset.map_map]
+  end⟩
 
 lemma splits_comp_of_splits (j : β → γ) [is_field_hom j] {f : polynomial α}
   (h : splits i f) : splits (λ x, j (i x)) f :=
@@ -232,7 +277,6 @@ lemma exists_hom : Π (n : ℕ) {α : Type u} [discrete_field α] (f : by exactI
   cases irr_factor_dvd hdf0 with g hg,
   have hf0 : f ≠ 0, from λ h, absurd hf (by rw [h, nat_degree_zero]; exact dec_trivial),
   have hif : irreducible (irr_factor f), by apply_instance,
-  --show ∃ x, eval₂ j x (irr_factor f) = 0
   cases exists_root_of_splits i
     (splits_of_splits_mul i (λ hfi : irr_factor f * g = 0, absurd hf
         (by rw [hg, hfi, nat_degree_zero]; exact dec_trivial))

@@ -5,6 +5,7 @@ Authors: Chris Hughes
 
 Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
+
 import ring_theory.adjoin_root ring_theory.unique_factorization_domain
 
 universes u v w

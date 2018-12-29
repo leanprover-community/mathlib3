@@ -792,6 +792,10 @@ variable {α}
 
 instance C.is_ring_hom : is_ring_hom (@C α _ _) := by apply is_ring_hom.of_semiring
 
+@[simp] lemma C_neg : C (-a) = -C a := is_ring_hom.map_neg C
+
+@[simp] lemma C_sub : C (a - b) = C a - C b := is_ring_hom.map_sub C
+
 instance eval₂.is_ring_hom {β} [comm_ring β]
   (f : α → β) [is_ring_hom f] {x : β} : is_ring_hom (eval₂ f x) :=
 by apply is_ring_hom.of_semiring

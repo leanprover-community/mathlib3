@@ -24,17 +24,9 @@ class unique_factorization_domain (α : Type*) [integral_domain α] :=
 (unique : ∀{f g : multiset α},
   (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g)
 
-namespace associates
+namespace unique_factorization_domain
 open unique_factorization_domain associated lattice
 variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (associates α)]
-
-/-- `factor_set α` representation elements of unique factorization domain as multisets.
-
-`multiset α` produced by `factors` are only unique up to associated elements, while the multisets in
-`factor_set α` are unqiue by equality and restricted to irreducible elements. This gives us a
-representation of each element as a unique multisets (or the added ⊤ for 0), which has a complete
-lattice struture. Infimum is the greatest common divisor and supremum is the least common multiple.
--/
 
 lemma exists_mem_factors_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) : p ∣ a →
   ∃ q ∈ factors a, p ~ᵤ q :=
@@ -52,6 +44,21 @@ have multiset.rel associated (p :: factors b) (factors a),
           (associated.refl _)
           (associated.symm (factors_prod hb0))),
 multiset.exists_of_mem_of_rel this (by simp)
+
+end unique_factorization_domain
+
+namespace associates
+open unique_factorization_domain associated lattice
+variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (associates α)]
+
+/-- `factor_set α` representation elements of unique factorization domain as multisets.
+
+`multiset α` produced by `factors` are only unique up to associated elements, while the multisets in
+`factor_set α` are unqiue by equality and restricted to irreducible elements. This gives us a
+representation of each element as a unique multisets (or the added ⊤ for 0), which has a complete
+lattice struture. Infimum is the greatest common divisor and supremum is the least common multiple.
+-/
+
 
 @[reducible] def {u} factor_set (α : Type u) [integral_domain α] [unique_factorization_domain α] :
   Type u :=

@@ -334,4 +334,18 @@ lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
         (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy.symm⟩ hx hx0 hxf in
           ⟨i, hi.1, dvd.trans hi.2 (hxy ▸ by simp)⟩)) a ha ha0)
 
+@[elab_as_eliminator] lemma irreducible_induction_on {P : α → Prop} (a : α)
+  (h0 : P 0) (hu : ∀ u : α, is_unit u → P u)
+  (hi : ∀ a i : α, a ≠ 0 → irreducible i → P a → P (i * a)) :
+  P a :=
+by haveI := classical.dec; exact
+well_founded.fix (well_founded_dvd_not_unit hα)
+  (λ a ih, if ha0 : a = 0 then ha0.symm ▸ h0
+    else if hau : is_unit a then hu a hau
+    else let ⟨i, hii, ⟨b, hb⟩⟩ := exists_irreducible_factor hα hau ha0 in
+      have hb0 : b ≠ 0, from λ hb0, by simp * at *,
+      hb.symm ▸ hi _ _ hb0 hii (ih _ ⟨hb0, i,
+        hii.1, by rw [hb, mul_comm]⟩))
+  a
+
 end is_noetherian_ring

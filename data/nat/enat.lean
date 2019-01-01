@@ -189,9 +189,11 @@ by simp only [lt_iff_le_not_le, to_with_top_le]
 
 end with_top
 
-instance : has_well_founded enat :=
-{ r := λ x y, x < y,
-  wf := by haveI := classical.dec; simp only [to_with_top_lt.symm];
-    exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf) }
+lemma lt_wf : well_founded ((<) : enat → enat → Prop) :=
+show well_founded (λ a b : enat, a < b),
+by haveI := classical.dec; simp only [to_with_top_lt.symm] {eta := ff};
+    exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)
+
+instance : has_well_founded enat := ⟨(<), lt_wf⟩
 
 end enat

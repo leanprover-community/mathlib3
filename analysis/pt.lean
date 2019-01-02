@@ -1,11 +1,19 @@
-import analysis.measure_theory.measure_space
-import data.real.ennreal
+/-
+Copyright (c) 2018 Koundinya Vajjha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Koundinya Vajjha
 
-set_option trace.simplify.rewrite true
+A formalization of Bayes theorem.
+-/
+
+import analysis.measure_theory.measure_space
+import tactic.tidy 
+
+-- set_option trace.simplify.rewrite true
 
 open set measurable_space measure_theory ennreal
 
-universes u v
+universe u
 
 variables {α : Type u}
 
@@ -166,7 +174,7 @@ rewrite [h₁,prob_union a _ _ h_1 h₂],
 have h₃: a ∩ b = b ∩ a, by exact inter_comm a b,
 rewrite [h₃,← prob_diff_inter p a b h_1 h_2],
 simp,
-have h₄ : a ∩ (b ∩ -a) = ∅, by rewrite [set.inter_left_comm,inter_compl_self,inter_empty],
+have h₄ : a ∩ (b ∩ -a) = ∅, by tidy,
 apply disjoint_iff.2 h₄,
 end
 
@@ -290,12 +298,11 @@ theorem Bayes {s : samp_space} [measurable_space s] (p : prob s)
 ℙ^p[[(f i) | b]] = (ℙ^p[[b | f i]])*(p(f i))/(∑j, ℙ^p[[b | f j]] * p(f j)):= 
 begin
 intros i,
-rw [← total_prob _ f h₁ b h₅ h₃ h₄ i,
-    bayes _ (f i) b (h₄ i) ,
-    div_def,mul_assoc,ennreal.mul_inv_cancel h₂ (prob_ne_top _ b)],
+rw ← total_prob _ f h₁ b h₅ h₃ h₄ i,
+rw bayes _ (f i) b (h₄ i) ,
+rw [div_def,mul_assoc],
+rw ennreal.mul_inv_cancel h₂ (prob_ne_top _ b),
 simp,
 exact h₂,
 end
-
-
 end cond_prob

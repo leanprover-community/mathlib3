@@ -3,14 +3,9 @@ Copyright (c) 2018 Koundinya Vajjha. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Koundinya Vajjha
 
-A formalization of Bayes theorem.
+A formalization of Basic probability theory + Bayes theorem. 
 -/
-
-import analysis.measure_theory.measure_space
-import tactic.tidy 
-
--- set_option trace.simplify.rewrite true
-
+import analysis.measure_theory.measure_space tactic.tidy 
 open set measurable_space measure_theory ennreal
 
 universe u
@@ -72,31 +67,6 @@ instance prob.has_coe_to_fun {α} [measurable_space α] : has_coe_to_fun (prob �
 @[simp] lemma prob_eq_coerc {s : samp_space} [measurable_space s] (p : prob s) (a : set s): 
 p a =  p.to_measure a := by refl 
 
--- def prob_fintype {s : samp_space} [fintype s] [measurable_space s] 
--- (p : s → ennreal) (h : finset.univ.sum p = 1) : prob s :=  
--- begin
---  fsplit, 
---  fapply measure.of_measurable,
---  {
---      intros a h1, 
---      haveI : decidable_pred a := λx, classical.prop_decidable _, --make a decidable
---      exact finset.sum (finset.univ.filter (∈ a)) p,
---  } ,
--- {
--- simp, simp,
--- -- repeat { simp }
--- },
--- {
--- intros f h_f g,
--- -- state a lemma of finsets on disj unions
--- -- prove it with induction in finset.lean
--- -- intros, repeat{ simp },
--- },
--- {
--- sorry
--- }
--- end
-
 
 lemma prob_empty {s : samp_space} [measurable_space s] (p : prob s) : p(∅) = 0 :=
 p.empty 
@@ -107,20 +77,21 @@ p.is_one
 lemma prob_le_1 {s : samp_space} [measurable_space s] (p : prob s) : 
 Π (a : set(s)),p(a) ≤ (1:ennreal) :=
 begin
-intros, rewrite ← prob_univ p, apply outer_measure.mono, apply subset_univ, 
+    intros, rewrite ← prob_univ p, apply outer_measure.mono,
+    apply subset_univ, 
 end
 
 
 lemma prob_ne_top {s : samp_space} [measurable_space s] (p : prob s):
 Π (a : set(s)), p(a) ≠ ⊤ :=
 begin
-intros a,
-rw ← lattice.lt_top_iff_ne_top,
-have h : (1 : ennreal) < ⊤, {
-    rw lattice.lt_top_iff_ne_top,
-apply ennreal.one_ne_top,
-},
-apply lt_of_le_of_lt (prob_le_1 p a) h,
+    intros a,
+    rw ← lattice.lt_top_iff_ne_top,
+    have h : (1 : ennreal) < ⊤, {
+        rw lattice.lt_top_iff_ne_top,
+    apply ennreal.one_ne_top,
+    },
+    apply lt_of_le_of_lt (prob_le_1 p a) h,
 end
 
 lemma prob_mono {s : samp_space} [measurable_space s] (p : prob s) (a b : set s)
@@ -131,12 +102,12 @@ lemma prob_comp {s : samp_space} [measurable_space s] (p : prob s)
 (a : set s)
 (h: is_measurable a): p(-a) + p(a) = 1 :=
 begin
-intros, rewrite ← prob_univ p,
-simp only [prob_eq_coerc],
-rewrite ← compl_union_self a,
-rw measure_union _ _ _,
-apply disjoint_iff.2 (@compl_inter_self _ a),
-apply is_measurable.compl, repeat{assumption},
+    intros, rewrite ← prob_univ p,
+    simp only [prob_eq_coerc],
+    rewrite ← compl_union_self a,
+    rw measure_union _ _ _,
+    apply disjoint_iff.2 (@compl_inter_self _ a),
+    apply is_measurable.compl, repeat{assumption},
 end
 
 lemma prob_union {s : samp_space} [measurable_space s] (s₁ s₂ : set s)
@@ -147,44 +118,44 @@ lemma prob_diff_inter {s : samp_space} [measurable_space s](p : prob s)
 (a b : set s) (h₁ : is_measurable a) (h₂ : is_measurable b) :
 p(b ∩ -a) + p(b ∩ a) = p(b) :=
 begin
-have h :p(b) = p(b ∩ univ),
-by rewrite inter_univ b,
-rewrite [h,← compl_union_self a,set.inter_distrib_left,prob_union],
-have g : (b ∩ -a) ∩ (b ∩ a) = ∅, by rw [inter_left_comm,set.inter_assoc, compl_inter_self,inter_empty,inter_empty],
-apply disjoint_iff.2 g,
-{
-    rewrite ← diff_eq,
-    apply is_measurable.diff h₂ h₁,
-},
-apply is_measurable.inter h₂ h₁,
+    have h :p(b) = p(b ∩ univ),
+    by rewrite inter_univ b,
+    rewrite [h,← compl_union_self a,set.inter_distrib_left,prob_union],
+    have g : (b ∩ -a) ∩ (b ∩ a) = ∅, by rw [inter_left_comm,set.inter_assoc, compl_inter_self,inter_empty,inter_empty],
+    apply disjoint_iff.2 g,
+    {
+        rewrite ← diff_eq,
+        apply is_measurable.diff h₂ h₁,
+    },
+    apply is_measurable.inter h₂ h₁,
 end
 
 lemma prob_union_inter {s : samp_space} [measurable_space s] (p : prob s) 
 (a b : set s) (h_1 : is_measurable a) (h_2 : is_measurable b) :
 p(a ∪ b) + p(a ∩ b) = p(a) + p(b) :=
 begin 
-have h₁ : a ∪ b = a ∪ (b ∩ -a),by
-rewrite [set.union_distrib_left, union_compl_self a,inter_univ],
-have h₂ : is_measurable(b ∩ -a),
-{
-    rewrite ← diff_eq,
-    apply is_measurable.diff h_2 h_1,
-},
-rewrite [h₁,prob_union a _ _ h_1 h₂],
-have h₃: a ∩ b = b ∩ a, by exact inter_comm a b,
-rewrite [h₃,← prob_diff_inter p a b h_1 h_2],
-simp,
-have h₄ : a ∩ (b ∩ -a) = ∅, by tidy,
-apply disjoint_iff.2 h₄,
+    have h₁ : a ∪ b = a ∪ (b ∩ -a),by
+        rewrite [set.union_distrib_left, union_compl_self a,inter_univ],
+    have h₂ : is_measurable(b ∩ -a),
+    {
+        rewrite ← diff_eq,
+        apply is_measurable.diff h_2 h_1,
+    },
+    rewrite [h₁,prob_union a _ _ h_1 h₂],
+    have h₃: a ∩ b = b ∩ a, by exact inter_comm a b,
+    rewrite [h₃,← prob_diff_inter p a b h_1 h_2],
+    simp,
+    have h₄ : a ∩ (b ∩ -a) = ∅, by tidy,
+    apply disjoint_iff.2 h₄,
 end
 
 lemma bonferroni {s : samp_space} [measurable_space s] (p : prob s)
 (a b : set s) (h_1 : is_measurable a) (h_2 : is_measurable b) :
 p(a) + p(b) ≤ p(a ∩ b) + 1 :=
 begin
-rewrite [← prob_union_inter p a b h_1 h_2, ← add_comm],
-apply add_le_add_left' _,
-apply prob_le_1,
+    rewrite [← prob_union_inter p a b h_1 h_2, ← add_comm],
+    apply add_le_add_left' _,
+    apply prob_le_1,
 end
 
 lemma prob_partn {s : samp_space} [measurable_space s] (p : prob s)
@@ -196,22 +167,22 @@ lemma prob_partn {s : samp_space} [measurable_space s] (p : prob s)
 (i : ℕ) :
 p(a) = ∑i, p(a ∩ f i) :=
 begin
-have g₁ : p(a) = p(a ∩ univ), by rw inter_univ,  
-have g₂ : p(a) = p(⋃ i , (a ∩ f i)),by rw [g₁,← h₁.right, inter_Union_left],
-rw g₂,
-apply p.m_Union, 
-{
-    intros j, 
-    apply is_measurable.inter, 
-    exact h₂, exact h₃ j,
-},
-intros m n h,
-have g₃ : (λ (i : ℕ), a ∩ f i) m ∩ (λ (i : ℕ), a ∩ f i) n = ∅,
-{
-rw [set.inter_left_comm,set.inter_assoc,h₁.left m n],
-simpa,
-},
-apply disjoint_iff.2 g₃,
+        have g₁ : p(a) = p(a ∩ univ), by rw inter_univ,  
+        have g₂ : p(a) = p(⋃ i , (a ∩ f i)),by rw [g₁,← h₁.right, inter_Union_left],
+    rw g₂,
+    apply p.m_Union, 
+    {
+        intros j, 
+        apply is_measurable.inter, 
+        exact h₂, exact h₃ j,
+    },
+    intros m n h,
+        have g₃ : (λ (i : ℕ), a ∩ f i) m ∩ (λ (i : ℕ), a ∩ f i) n = ∅,
+        {
+        rw [set.inter_left_comm,set.inter_assoc,h₁.left m n],
+        simpa,
+        },
+    apply disjoint_iff.2 g₃,
 end
 
 end axfndns
@@ -230,42 +201,42 @@ lemma cond_prob_rw {s : samp_space} [measurable_space s] (p : prob s)
 (a b : events s) (h₁ : p(b) ≠ 0):
 p(a ∩ b) = ℙ^p [[ a | b ]] * p(b) :=
 begin
-unfold cond_prob,
-rw [div_def,mul_assoc],
-have g₁ : (1 : ennreal) < ⊤, {
-    rw lattice.lt_top_iff_ne_top,
-apply ennreal.one_ne_top,
-},
-have g₂ : ∀ a, (p(a) ≠ 0) → (p(a))⁻¹ * p(a) = 1,
-{
-    intros a k,
-    rw mul_comm,
-    apply ennreal.mul_inv_cancel, exact k, rw ← lattice.lt_top_iff_ne_top,
-    apply lt_of_le_of_lt (prob_le_1 p a) g₁ 
-},
-rw g₂ b h₁, simp,
+    unfold cond_prob,
+    rw [div_def,mul_assoc],
+        have g₁ : (1 : ennreal) < ⊤, {
+            rw lattice.lt_top_iff_ne_top,
+        apply ennreal.one_ne_top,
+        },
+        have g₂ : ∀ a, (p(a) ≠ 0) → (p(a))⁻¹ * p(a) = 1,
+        {
+            intros a k,
+            rw mul_comm,
+            apply ennreal.mul_inv_cancel, exact k, rw ← lattice.lt_top_iff_ne_top,
+            apply lt_of_le_of_lt (prob_le_1 p a) g₁ 
+        },
+    rw g₂ b h₁, simp,
 end
 
 @[simp] theorem bayes {s : samp_space} [measurable_space s] (p : prob s)
 (a b : events s) (h₁ : p a ≠ 0) (h₂ : p b ≠ 0) :
 ℙ^p [[ b | a ]] * p(a) =  ℙ^p [[ a | b ]] * p(b) :=
 begin
-unfold cond_prob,
-rw [div_def,mul_assoc],
-have g₁ : (1 : ennreal) < ⊤, {
-    rw lattice.lt_top_iff_ne_top,
-apply ennreal.one_ne_top,
-},
-have g₂ : ∀ a, (p(a) ≠ 0) → (p(a))⁻¹ * p(a) = 1,
-{
-    intros a k,
-    rw mul_comm,
-    apply ennreal.mul_inv_cancel, exact k, rw ← lattice.lt_top_iff_ne_top,
-    apply lt_of_le_of_lt (prob_le_1 p a) g₁ 
-},
-rw [g₂ a,div_def,mul_assoc,g₂ b, mul_one],
-symmetry, rw [mul_one,set.inter_comm],
-assumption, assumption,
+    unfold cond_prob,
+    rw [div_def,mul_assoc],
+    have g₁ : (1 : ennreal) < ⊤, {
+        rw lattice.lt_top_iff_ne_top,
+    apply ennreal.one_ne_top,
+    },
+    have g₂ : ∀ a, (p(a) ≠ 0) → (p(a))⁻¹ * p(a) = 1,
+    {
+        intros a k,
+        rw mul_comm,
+        apply ennreal.mul_inv_cancel, exact k, rw ← lattice.lt_top_iff_ne_top,
+        apply lt_of_le_of_lt (prob_le_1 p a) g₁ 
+    },
+    rw [g₂ a,div_def,mul_assoc,g₂ b, mul_one],
+    symmetry, rw [mul_one,set.inter_comm],
+    assumption, assumption,
 end
 
 lemma total_prob {s : samp_space} [measurable_space s] (p : prob s)
@@ -279,13 +250,12 @@ lemma total_prob {s : samp_space} [measurable_space s] (p : prob s)
 p(a) = ∑j, ℙ^p[[a | f j]] * p(f j)
 :=
 begin 
-rw prob_partn _ f h₁ a h₂ h₃ i,
-have α : (λ (i : ℕ), p (a ∩ f i)) = (λ (i : ℕ),  ℙ^p [[ a | f i ]] * p(f i)),{
-    apply funext, intros x, apply cond_prob_rw, apply h₄ x,  
-},
-rw α, 
+    rw prob_partn _ f h₁ a h₂ h₃ i,
+    have α : (λ (i : ℕ), p (a ∩ f i)) = (λ (i : ℕ),  ℙ^p [[ a | f i ]] * p(f i)),{
+        apply funext, intros x, apply cond_prob_rw, apply h₄ x,  
+    },
+    rw α, 
 end
-
 
 theorem Bayes {s : samp_space} [measurable_space s] (p : prob s)
 (f : ℕ → events s) (b : events s)
@@ -297,12 +267,12 @@ theorem Bayes {s : samp_space} [measurable_space s] (p : prob s)
 :  ∀ i : ℕ , 
 ℙ^p[[(f i) | b]] = (ℙ^p[[b | f i]])*(p(f i))/(∑j, ℙ^p[[b | f j]] * p(f j)):= 
 begin
-intros i,
-rw ← total_prob _ f h₁ b h₅ h₃ h₄ i,
-rw bayes _ (f i) b (h₄ i) ,
-rw [div_def,mul_assoc],
-rw ennreal.mul_inv_cancel h₂ (prob_ne_top _ b),
-simp,
-exact h₂,
+    intros i,
+    rw ← total_prob _ f h₁ b h₅ h₃ h₄ i,
+    rw bayes _ (f i) b (h₄ i) ,
+    rw [div_def,mul_assoc],
+    rw ennreal.mul_inv_cancel h₂ (prob_ne_top _ b),
+    simp,
+    exact h₂,
 end
 end cond_prob

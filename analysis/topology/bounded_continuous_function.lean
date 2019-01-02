@@ -113,7 +113,7 @@ have A : {C | C ≥ 0 ∧ ∀ x : α, dist (f x) (g x) ≤ C} = {C | C ≥ 0} :=
 begin
   apply eq_of_subset_of_subset,
   { exact λC h, h.1 },
-  { exact λC h, ⟨h, begin assume x, simpa using ne_empty_of_mem (mem_univ x) end⟩}
+  { exact λC h, ⟨h, λx, by simpa [e] using ne_empty_of_mem (mem_univ x)⟩}
 end,
 by rw [dist_eq, A]; simp
 
@@ -146,7 +146,7 @@ end
 /-This lemma will be needed in the proof of the metric space instance, but it will become
 useless afterwards as it will be superceded by the general result that the distance is nonnegative
 is metric spaces.-/
-lemma dist_nonneg' : 0 ≤ dist f g :=
+private lemma dist_nonneg' : 0 ≤ dist f g :=
 have A : (univ : set α) = ∅ → 0 ≤ dist f g := λh, by simp [dist_zero_of_empty h, le_refl],
 have B : (univ : set α) ≠ ∅ → 0 ≤ dist f g :=
 begin
@@ -162,15 +162,13 @@ instance : metric_space (bounded_continuous_function α β) :=
 { dist_self := assume f,
   begin
     have A : (univ : set α) = ∅ → dist f f = 0 := λh, dist_zero_of_empty h,
-    have B : (univ : set α) ≠ ∅ → dist f f = 0 :=
-    begin
-      intro H, /- H : univ ≠ ∅ -/
+    have B : (univ : set α) ≠ ∅ → dist f f = 0,
+    { intro H, /- H : univ ≠ ∅ -/
       rcases exists_mem_of_ne_empty H with ⟨x, _⟩, /- x : α -/
       have a : dist (f x) (f x) ≤ dist f f := dist_coe_le_dist,
       simp only [dist_self] at a,
       have b : dist f f ≤ 0 := dist_le_of_forall_dist_le (by simp [le_refl]) (le_refl _),
-      show dist f f = 0, from le_antisymm b a,
-    end,
+      show dist f f = 0, from le_antisymm b a },
     show dist f f = 0, from classical.by_cases A B
   end,
   eq_of_dist_eq_zero := assume f g hfg, /- hfg : dist f g = 0 -/
@@ -243,58 +241,45 @@ begin
   choose F hF using B,
   /- F : α → β,  hF : ∀ (x : α), tendsto (λ (n : ℕ), f n x) at_top (nhds (F x))
   `F` is the desired limit function. Check that it is uniformly approximated by `f N`-/
-  have b_bound_x : ∀x N, dist (f N x) (F x) ≤ b N :=
-  begin
-    intros x N,
+  have b_bound_x : ∀x N, dist (f N x) (F x) ≤ b N,
+  { intros x N,
     have a : tendsto (λn, dist (f N x) (f n x)) at_top (nhds (dist (f N x) (F x))) :=
       tendsto_dist tendsto_const_nhds (hF x),
     have b : tendsto (λn, b N) at_top (nhds (b N)) := tendsto_const_nhds,
-    apply le_of_tendsto (by simp) a b _ ,
+    apply le_of_tendsto_of_tendsto (by simp) a b _ ,
     simp only [filter.mem_at_top_sets, set.mem_set_of_eq],
-    exact ⟨N, λn hn, I x N n N (le_refl N) hn⟩,
-  end,
+    exact ⟨N, λn hn, I x N n N (le_refl N) hn⟩ },
   /- Check that `F` is continuous -/
-  have F_cont : continuous F :=
-  begin
-    have : ∀ε>(0:ℝ), ∃N, ∀y, dist (f N y) (F y) ≤ ε :=
-    begin
-      assume ε εpos,
-      rw tendsto_at_top_metric at b_lim,
-      rcases b_lim ε εpos with ⟨N, hN⟩,
-      exact ⟨N, λy, calc
-        dist (f N y) (F y) ≤ b N : b_bound_x y N
-        ... ≤ dist (b N) 0 : begin simp, show b N ≤ abs(b N), from le_abs_self _ end
-        ... ≤ ε : le_of_lt (hN N (le_refl N))⟩
-    end,
-    exact continuous_of_uniform_limit_of_continuous this (λN, (f N).property.1)
-  end,
+  have F_cont : continuous F,
+  { refine continuous_of_uniform_limit_of_continuous _ (λN, (f N).property.1),
+    assume ε εpos,
+    rw tendsto_at_top_metric at b_lim,
+    rcases b_lim ε εpos with ⟨N, hN⟩,
+    exact ⟨N, λy, calc
+      dist (f N y) (F y) ≤ b N : b_bound_x y N
+      ... ≤ dist (b N) 0 : begin simp, show b N ≤ abs(b N), from le_abs_self _ end
+      ... ≤ ε : le_of_lt (hN N (le_refl N))⟩ },
   /- Check that `F` is bounded -/
-  have F_bound : ∃C, ∀x y, dist (F x) (F y) ≤ C :=
-  begin
-    rcases (f 0).property.2 with ⟨C, hC⟩,
+  have F_bound : ∃C, ∀x y, dist (F x) (F y) ≤ C,
+  { rcases (f 0).property.2 with ⟨C, hC⟩,
     existsi b 0 + C + b 0,
     intros x y,
     calc dist (F x) (F y) ≤ dist (F x) (f 0 x) + dist (f 0 x) (f 0 y) + dist (f 0 y) (F y) : dist_triangle4 _ _ _ _
          ... = dist (f 0 x) (F x) + dist (f 0 x) (f 0 y) + dist (f 0 y) (F y) : by simp [dist_comm]
-         ... ≤ b 0 + C + b 0 : add_le_add (add_le_add (b_bound_x x 0) (hC x y)) (b_bound_x y 0)
-  end,
+         ... ≤ b 0 + C + b 0 : add_le_add (add_le_add (b_bound_x x 0) (hC x y)) (b_bound_x y 0) },
   /- We can now define the bounded continuous function `flim` associated to `F`-/
   let flim := (⟨F, ⟨F_cont, F_bound⟩⟩ : bounded_continuous_function α β),
   /- Check that `flim` is close to `f N` in distance terms-/
-  have : ∀N, dist (f N) flim ≤ b N :=
-  begin
-    intros N,
+  have : ∀N, dist (f N) flim ≤ b N,
+  { intros N,
     apply dist_le_of_forall_dist_le,
     { exact λx, b_bound_x x N },
-    { simpa using b_bound N N N (le_refl N) (le_refl N) }
-  end,
+    { simpa using b_bound N N N (le_refl N) (le_refl N) }},
   /- Deduce that `f N` tends to `flim`-/
-  have : tendsto f at_top (nhds flim) :=
-  begin
-    apply tendsto_iff_dist_tendsto_zero.2,
+  have : tendsto f at_top (nhds flim),
+  { apply tendsto_iff_dist_tendsto_zero.2,
     apply squeeze_zero _ ‹∀N, dist (f N) flim ≤ b N› ‹tendsto b at_top (nhds 0)›,
-    show ∀ (n : ℕ), 0 ≤ dist (f n) flim, from λn, dist_nonneg,
-  end,
+    exact λn, dist_nonneg },
   exact ⟨flim, this⟩
 end
 
@@ -356,8 +341,7 @@ theorem compact_of_closed_of_compact_space_of_equicontinuous [compact_space β]
 begin
   apply compact_of_totally_bounded_is_closed _ closed,
   show totally_bounded A,
-  begin
-    apply totally_bounded_of_finite_discretization,
+  { apply totally_bounded_of_finite_discretization,
     intros ε εpos,
     /-We have to find a finite discretization of `u`, i.e., finite information
     that is sufficient to reconstruct `u` up to ε. This information will be
@@ -368,23 +352,19 @@ begin
     continuity to extend the closeness on tα to closeness everywhere. -/
     have εpos8 : ε/8 > 0 := by linarith,
     have : ∀x:α, ∃U, x ∈ U ∧ is_open U ∧ (∀ (y z ∈ U) (f : bounded_continuous_function α β),
-      f ∈ A → dist (f y) (f z) < ε/8) :=
-    begin
-      assume x,
+      f ∈ A → dist (f y) (f z) < ε/8),
+    { assume x,
       rcases H x _ εpos8 with ⟨U, nhdsU, hU⟩,
       rcases mem_nhds_sets_iff.1 nhdsU with ⟨V, V_sub_U, openV, hV⟩,
-      exact ⟨V, hV, openV, λy z hy hz f hf, hU y z (V_sub_U hy) (V_sub_U hz) f hf⟩
-    end,
+      exact ⟨V, hV, openV, λy z hy hz f hf, hU y z (V_sub_U hy) (V_sub_U hz) f hf⟩ },
     choose U hU using this,
     /-For all x, the set hU x is an open set containing x on which the elements of A
     fluctuate by at most ε/8.
     We extract finitely many of these sets that cover the whole space, by compactness-/
-    have : ∃tα ⊆ (univ : set α), finite tα ∧ univ ⊆ ⋃x∈tα, U x :=
-    begin
-      refine compact_elim_finite_subcover_image compact_univ _ _,
+    have : ∃tα ⊆ (univ : set α), finite tα ∧ univ ⊆ ⋃x∈tα, U x,
+    { refine compact_elim_finite_subcover_image compact_univ _ _,
       show ∀ (x : α), x ∈ univ → is_open (U x), from λx hx, (hU x).2.1,
-      show univ ⊆ ⋃ (i : α) (H : i ∈ univ), U i, from λx hx, mem_bUnion (mem_univ _) (hU x).1,
-    end,
+      show univ ⊆ ⋃ (i : α) (H : i ∈ univ), U i, from λx hx, mem_bUnion (mem_univ _) (hU x).1 },
     rcases this with ⟨tα, _, ⟨finite_tα, htα⟩⟩,
     /- tα : set α, finite_tα : finite tα, htα : univ ⊆ ⋃x ∈ tα, U x-/
     have : ∃tβ ⊆ (univ : set β), (finite tβ ∧ univ ⊆ (⋃y∈tβ, ball y (ε/8))) :=
@@ -404,9 +384,8 @@ begin
     to a point in `tβ` close to its true image by the function.-/
     let approx : (bounded_continuous_function α β) → (tα → tβ) := λf a, ⟨F (f a), (hF (f a)).1⟩,
     /-If two functions have the same approximation, then they are within distance ε-/
-    have main : ∀f g ∈ A, approx f = approx g → dist f g < ε :=
-    begin
-      assume f g hf hg f_eq_g,
+    have main : ∀f g ∈ A, approx f = approx g → dist f g < ε,
+    { assume f g hf hg f_eq_g,
       have : ∀x, dist (f x) (g x) ≤ ε/2 := λx,
       begin
         have : ∃x', x' ∈ tα ∧ x ∈ U x' := mem_bUnion_iff.1 (htα (mem_univ x)),
@@ -427,12 +406,10 @@ begin
                 ... = ε/2 : by ring,
       end,
       calc dist f g ≤ ε/2 : dist_le_of_forall_dist_le this (le_of_lt (half_pos εpos))
-             ... < ε : half_lt_self εpos,
-    end,
+             ... < ε : half_lt_self εpos },
     /-The discretization constructed above is good enough to conclude-/
     existsi [(tα → tβ), univ, approx],
-    simpa [fin_univ] using main
-  end
+    simpa [fin_univ] using main }
 end
 
 /--Second version, with pointwise equicontinuity and range in a compact subset-/
@@ -451,9 +428,8 @@ begin
     begin intros x y, cases y, cases x, dsimp at *, simp at *, refl end,
   let F : bounded_continuous_function α s → bounded_continuous_function α β := comp M,
   let B := F⁻¹' A,
-  have : compact B :=
-  begin
-    haveI : compact_space s := ⟨compact_iff_compact_univ.1 hs⟩,
+  have : compact B,
+  { haveI : compact_space s := ⟨compact_iff_compact_univ.1 hs⟩,
     apply compact_of_closed_of_compact_space_of_equicontinuous,
     show is_closed B, from continuous_iff_is_closed.1 (continuous_comp M) _ closed,
     assume x ε εpos,
@@ -461,17 +437,14 @@ begin
     existsi [U, U_nhds],
     assume y z hy hz f hf,
     calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
-                        ... < ε : hU y z hy hz (F f) hf
-  end,
-  have : A ⊆ F '' B :=
-  begin
-    assume f hf,
+                        ... < ε : hU y z hy hz (F f) hf },
+  have : A ⊆ F '' B,
+  { assume f hf,
     let g := restr s f (λx, in_s f x hf),
     have fg : f = F g := by ext; by refl,
     have : g ∈ B := by simp [B, fg.symm, hf],
     rw fg,
-    apply mem_image_of_mem F ‹g ∈ B›
-  end,
+    apply mem_image_of_mem F ‹g ∈ B› },
   apply compact_of_is_closed_subset (compact_image ‹compact B› (continuous_comp M)) closed this
 end
 
@@ -489,36 +462,27 @@ addition to being closed, still satisfies the properties of compact range and eq
 begin
   apply compact_of_closed_of_compact_range_of_equicontinuous s hs (closure A) (is_closed_closure),
   show ∀ (f : bounded_continuous_function α β) (x : α), f ∈ closure A → f x ∈ s,
-  begin
-    assume f x hf,
-    have : f x ∈ closure s :=
-    begin
-      apply mem_closure_iff'.2,
+  { assume f x hf,
+    have : f x ∈ closure s,
+    { apply mem_closure_iff'.2,
       assume ε εpos,
       rcases mem_closure_iff'.1 hf ε εpos with ⟨g, gA, dist_fg⟩,
-      exact ⟨g x, in_s g x gA, lt_of_le_of_lt dist_coe_le_dist dist_fg⟩
-    end,
-    rwa closure_eq_iff_is_closed.2 (closed_of_compact _ hs) at this,
-  end,
+      exact ⟨g x, in_s g x gA, lt_of_le_of_lt dist_coe_le_dist dist_fg⟩ },
+    rwa closure_eq_iff_is_closed.2 (closed_of_compact _ hs) at this },
   show ∀ (x:α) (ε > 0), ∃ U ∈ (nhds x).sets,
        ∀ y z ∈ U, ∀ (f : bounded_continuous_function α β), f ∈ closure A → dist (f y) (f z) < ε,
-  begin
-    assume x ε εpos,
+  { assume x ε εpos,
     have ε3pos : ε/3 > 0 := by linarith,
     rcases H x (ε/3) ε3pos with ⟨U, U_set, hU⟩,
     existsi [U, U_set],
     assume y z hy hz f hf,
     rcases mem_closure_iff'.1 hf (ε/3) ε3pos with ⟨g, gA, dist_fg⟩,
     calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (g y) (g z) + dist (g z) (f z) : dist_triangle4 _ _ _ _
-         ... ≤ dist f g + dist (g y) (g z) + dist g f :
-           add_le_add (add_le_add dist_coe_le_dist (le_refl _)) dist_coe_le_dist
-         ... < ε/3 + ε/3 + ε/3 :
-         begin
-           apply add_lt_add (add_lt_add dist_fg (hU y z hy hz g gA)),
-           rwa dist_comm at dist_fg,
-         end
-         ... = ε : by ring
-  end,
+        ... ≤ dist f g + dist (g y) (g z) + dist g f :
+          add_le_add (add_le_add dist_coe_le_dist (le_refl _)) dist_coe_le_dist
+        ... < ε/3 + ε/3 + ε/3 :
+          by apply add_lt_add (add_lt_add dist_fg (hU y z hy hz g gA)); rwa dist_comm at dist_fg
+        ... = ε : by ring }
 end
 
 /-To apply the previous theorems, one needs to check the equicontinuity. An important
@@ -575,35 +539,23 @@ lemma norm_coe_le_norm : norm (f x) ≤ norm f := calc
 
 /--The pointwise sum of two bounded continuous functions is again bounded continuous.-/
 instance : has_add (bounded_continuous_function α β) :=
-{ add := λf g, ⟨λx, f x + g x,
-  begin
-    split,
-    { apply continuous_add f.property.1 g.property.1 },
-    { existsi (norm f + norm g) + (norm f + norm g),
+{ add := λf g, ⟨λx, f x + g x, ⟨continuous_add f.property.1 g.property.1,
+    ⟨(norm f + norm g) + (norm f + norm g), λx y,
       have A : ∀x, dist (f x + g x) 0 ≤ norm f + norm g := λx, calc
         dist (f x + g x) 0 = norm (f x + g x) : by rw dist_zero_right
         ... ≤ norm (f x) + norm (g x) : norm_triangle _ _
         ... ≤ norm f + norm g : add_le_add norm_coe_le_norm norm_coe_le_norm,
-      intros x y,
       calc dist (f x + g x) (f y + g y) ≤ dist (f x + g x) 0 + dist (f y + g y) 0 : dist_triangle_right _ _ _
-          ... ≤ (norm f + norm g) + (norm f + norm g) : add_le_add (A x) (A y) }
-  end⟩ }
+          ... ≤ (norm f + norm g) + (norm f + norm g) : add_le_add (A x) (A y) ⟩⟩⟩ }
 
 /--The pointwise opposite of a bounded continuous function is again bounded continuous.-/
 instance : has_neg (bounded_continuous_function α β) :=
-{ neg := λf, ⟨λx, -f x,
-  begin
-    split,
-    { apply continuous_neg f.property.1 },
-    { have : ∀a b : β, dist (-a) (-b) = dist a b :=
-      begin
-        intros a b,
-        rw [dist_eq_norm, dist_eq_norm, norm_sub_rev],
-        simp,
-      end,
-      simp only [this],
-      exact f.property.2 }
-  end⟩ }
+{ neg := λf, ⟨λx, -f x, ⟨continuous_neg f.property.1, begin
+    have : ∀a b : β, dist (-a) (-b) = dist a b :=
+      λa b, by rw [dist_eq_norm, dist_eq_norm, norm_sub_rev]; simp,
+    simp only [this],
+    exact f.property.2
+  end⟩⟩ }
 
 @[simp] lemma coe_add : (f + g) x = f x + g x := rfl
 @[simp] lemma coe_neg : (-f) x = - (f x) := rfl
@@ -625,20 +577,14 @@ instance : add_comm_group (bounded_continuous_function α β) :=
 instance : normed_group (bounded_continuous_function α β) :=
 { dist_eq := assume f g,
   begin
-    have A : dist f g ≤ norm (f - g) :=
-    begin
-      apply dist_le_of_forall_dist_le _ dist_nonneg,
-      assume x,
+    have A : dist f g ≤ norm (f - g),
+    { refine dist_le_of_forall_dist_le (λx, _) dist_nonneg,
       calc dist (f x) (g x) = dist ((f - g) x) ((0 : bounded_continuous_function α β) x) : by simp [dist_eq_norm]
-           ... ≤ dist (f - g) 0 : dist_coe_le_dist
-    end,
-    have B : norm (f - g) ≤ dist f g :=
-    begin
-      apply dist_le_of_forall_dist_le _ dist_nonneg,
-      assume x,
+           ... ≤ dist (f - g) 0 : dist_coe_le_dist },
+    have B : norm (f - g) ≤ dist f g,
+    { refine dist_le_of_forall_dist_le (λx, _) dist_nonneg,
       calc dist (f x - g x) 0 = dist (f x) (g x) : by simp [dist_eq_norm]
-           ... ≤ dist f g : dist_coe_le_dist
-    end,
+           ... ≤ dist f g : dist_coe_le_dist },
     exact le_antisymm A B
   end,
   ..bounded_continuous_function.add_comm_group,
@@ -656,6 +602,21 @@ begin
     by rw ← real.norm_eq_abs; exact abs_diff_coe_le_dist,
   by linarith
 end
+
+/-- Constructing a bounded continuous function from a continuous function taking values in a normed
+group, that is pointwise bounded-/
+def normed_group.mk (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) (Hf : continuous f) :
+  bounded_continuous_function α β :=
+⟨λn, f n, ⟨Hf, ⟨C + C, λm n,
+  calc dist (f m) (f n) ≤ dist (f m) 0 + dist (f n) 0 : dist_triangle_right _ _ _
+       ... = norm (f m) + norm (f n) : by simp
+       ... ≤ C + C : add_le_add (H m) (H n) ⟩⟩⟩
+
+/-- Constructing a bounded continuous function from a function on a discrete space taking values
+in a normed group, that is pointwise bounded-/
+def normed_group.mk_of_discrete [discrete_topology α] (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) :
+  bounded_continuous_function α β :=
+bounded_continuous_function.normed_group.mk f C H continuous_of_discrete_topology
 
 end normed_group --section
 end bounded_continuous_function --namespace

@@ -1083,7 +1083,7 @@ lemma Inf_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear
 mem_of_is_glb_of_is_closed  is_glb_Inf hs hc
 
 /-- A continuous monotone function sends supremum to supremum for nonempty sets. -/
-lemma Sup_of_Sup_of_monotone_of_continuous_of_nonempty {f : α → β} (Mf : continuous f) (Cf : monotone f)
+lemma Sup_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s ≠ ∅) : f (Sup s) = Sup (f '' s) :=
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
 (is_lub_iff_Sup_eq.1
@@ -1091,40 +1091,40 @@ lemma Sup_of_Sup_of_monotone_of_continuous_of_nonempty {f : α → β} (Mf : con
     tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
 
 /-- A continuous monotone function sending bot to bot sends supremum to supremum. -/
-lemma Sup_of_Sup_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
+lemma Sup_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
   (fbot : f ⊥ = ⊥) {s : set α} : f (Sup s) = Sup (f '' s) :=
 begin
   by_cases (s = ∅),
   { simpa [h] },
-  { exact Sup_of_Sup_of_monotone_of_continuous_of_nonempty Mf Cf h }
+  { exact Sup_of_continuous' Mf Cf h }
 end
 
 /-- A continuous monotone function sends indexed supremum to indexed supremum. -/
-lemma supr_of_supr_of_monotone_of_continuous {f : α → β} {g : γ → α}
+lemma supr_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) : f (supr g) = supr (f ∘ g) :=
-by rw [supr, Sup_of_Sup_of_monotone_of_continuous_of_nonempty Mf Cf
+by rw [supr, Sup_of_continuous' Mf Cf
   (λ h, range_eq_empty.1 h ‹_›), ← range_comp]; refl
 
 /-- A continuous monotone function sends infimum to infimum for nonempty sets. -/
-lemma Inf_of_Inf_of_monotone_of_continuous_of_nonempty {f : α → β} (Mf : continuous f) (Cf : monotone f)
+lemma Inf_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s ≠ ∅) : f (Inf s) = Inf (f '' s) :=
 (is_glb_iff_Inf_eq.1
   (is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) is_glb_Inf hs $
     tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
 
 /-- A continuous monotone function sending top to top sends infimum to infimum. -/
-lemma Inf_of_Inf_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
+lemma Inf_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
   (ftop : f ⊤ = ⊤) {s : set α} : f (Inf s) = Inf (f '' s) :=
 begin
   by_cases (s = ∅),
   { simpa [h] },
-  { exact Inf_of_Inf_of_monotone_of_continuous_of_nonempty Mf Cf h }
+  { exact Inf_of_continuous' Mf Cf h }
 end
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum. -/
-lemma infi_of_infi_of_monotone_of_continuous {f : α → β} {g : γ → α}
+lemma infi_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) : f (infi g) = infi (f ∘ g) :=
-by rw [infi, Inf_of_Inf_of_monotone_of_continuous_of_nonempty Mf Cf
+by rw [infi, Inf_of_continuous' Mf Cf
   (λ h, range_eq_empty.1 h ‹_›), ← range_comp]; refl
 
 end complete_linear_order

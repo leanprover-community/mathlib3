@@ -108,7 +108,7 @@ by simpa [nnreal.coe_le] using norm_triangle g h
 nnreal.eq $ norm_neg g
 
 lemma nndist_nnnorm_nnnorm_le (g h : α) : nndist (nnnorm g) (nnnorm h) ≤ nnnorm (g - h) :=
-(nnreal.coe_le _ _).2 $ dist_norm_norm_le g h
+nnreal.coe_le.2 $ dist_norm_norm_le g h
 
 end nnnorm
 

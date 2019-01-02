@@ -625,54 +625,44 @@ lemma cauchy_comap [uniform_space β] {f : filter β} {m : α → β}
     ... ≤ uniformity : hm⟩
 
 /-- A set is complete iff its image under a uniform embedding is complete. -/
-lemma is_complete_image_iff_is_complete [uniform_space β] {m : α → β} {s : set α}
+lemma is_complete_image_iff [uniform_space β] {m : α → β} {s : set α}
   (hm : uniform_embedding m) : is_complete (m '' s) ↔ is_complete s :=
-⟨begin
-  assume c f hf fs,
-  let f' := map m f,
-  have cf' : cauchy f' := cauchy_map (uniform_embedding.uniform_continuous hm) hf,
-  have f's : f' ≤ principal (m '' s) :=
-  begin
-    simp only [filter.le_principal_iff, set.mem_image, filter.mem_map],
-    exact mem_sets_of_superset (filter.le_principal_iff.1 fs) (λx hx, ⟨x, hx, rfl⟩),
-  end,
-  rcases c f' cf' f's with ⟨y, yms, hy⟩,
-  rcases mem_image_iff_bex.1 yms with ⟨x, xs, xy⟩,
-  existsi [x, xs],
-  rwa [← xy, map_le_iff_le_comap, ← nhds_induced_eq_comap, ← (uniform_embedding.embedding hm).2] at hy,
-end,
 begin
-  assume c f hf fs,
-  rw filter.le_principal_iff at fs,
-  let f' := comap m f,
-  have cf' : cauchy f' :=
-  begin
-    have : comap m f ≠ ⊥ := comap_neq_bot (λt ht,
-    begin
-      have A : t ∩ m '' s ∈ f.sets := filter.inter_mem_sets ht fs,
-      have : t ∩ m '' s ≠ ∅ :=
-      begin
-        by_contradiction h,
-        simp only [not_not, ne.def] at h,
-        simpa [h, empty_in_sets_eq_bot, hf.1] using A
-      end,
-      rcases ne_empty_iff_exists_mem.1 this with ⟨x, ⟨xt, xms⟩⟩,
-      rcases mem_image_iff_bex.1 xms with ⟨y, ys, yx⟩,
-      rw ← yx at xt,
-      exact ⟨y, xt⟩,
-    end),
-    apply cauchy_comap _ hf this,
-    simp only [hm.2, le_refl]
-  end,
-  have : f' ≤ principal s :=
-    by simp [f']; exact ⟨m '' s, by simpa using fs, by simp [preimage_image_eq s hm.1]⟩,
-  rcases c f' cf' this with ⟨x, xs, hx⟩,
-  existsi [m x, mem_image_of_mem m xs],
-  rw [(uniform_embedding.embedding hm).2, nhds_induced_eq_comap] at hx,
-  calc f ≤ map m (comap m f) : le_map_comap' fs (λb ⟨x, hx⟩, ⟨x, hx.2⟩)
-    ... ≤ map m (comap m (nhds (m x))) : map_mono hx
-    ... ≤ nhds (m x) : map_comap_le
-end⟩
+  refine ⟨λ c f hf fs, _, λ c f hf fs, _⟩,
+  { let f' := map m f,
+    have cf' : cauchy f' := cauchy_map (uniform_embedding.uniform_continuous hm) hf,
+    have f's : f' ≤ principal (m '' s),
+    { simp only [filter.le_principal_iff, set.mem_image, filter.mem_map],
+      exact mem_sets_of_superset (filter.le_principal_iff.1 fs) (λx hx, ⟨x, hx, rfl⟩) },
+    rcases c f' cf' f's with ⟨y, yms, hy⟩,
+    rcases mem_image_iff_bex.1 yms with ⟨x, xs, rfl⟩,
+    rw [map_le_iff_le_comap, ← nhds_induced_eq_comap, ← (uniform_embedding.embedding hm).2] at hy,
+    exact ⟨x, xs, hy⟩ },
+  { rw filter.le_principal_iff at fs,
+    let f' := comap m f,
+    have cf' : cauchy f',
+    { have : comap m f ≠ ⊥,
+      { refine comap_neq_bot (λt ht, _),
+        have A : t ∩ m '' s ∈ f.sets := filter.inter_mem_sets ht fs,
+        have : t ∩ m '' s ≠ ∅,
+        { by_contradiction h,
+          simp only [not_not, ne.def] at h,
+          simpa [h, empty_in_sets_eq_bot, hf.1] using A },
+        rcases ne_empty_iff_exists_mem.1 this with ⟨x, ⟨xt, xms⟩⟩,
+        rcases mem_image_iff_bex.1 xms with ⟨y, ys, yx⟩,
+        rw ← yx at xt,
+        exact ⟨y, xt⟩ },
+      apply cauchy_comap _ hf this,
+      simp only [hm.2, le_refl] },
+    have : f' ≤ principal s := by simp [f']; exact
+      ⟨m '' s, by simpa using fs, by simp [preimage_image_eq s hm.1]⟩,
+    rcases c f' cf' this with ⟨x, xs, hx⟩,
+    existsi [m x, mem_image_of_mem m xs],
+    rw [(uniform_embedding.embedding hm).2, nhds_induced_eq_comap] at hx,
+    calc f ≤ map m f' : le_map_comap' fs (λb ⟨x, hx⟩, ⟨x, hx.2⟩)
+      ... ≤ map m (comap m (nhds (m x))) : map_mono hx
+      ... ≤ nhds (m x) : map_comap_le }
+end
 
 /- separated uniformity -/
 
@@ -753,14 +743,11 @@ instance separated_regular [separated α] : regular_space α :=
 
 /-In a separated space, a complete set is closed -/
 lemma is_closed_of_is_complete [separated α] {s : set α} (h : is_complete s) : is_closed s :=
-begin
-  apply is_closed_iff_nhds.2,
-  assume a ha,
+is_closed_iff_nhds.2 $ λ a ha, begin
   let f := nhds a ⊓ principal s,
   have : cauchy f := cauchy_downwards (cauchy_nhds) ha (lattice.inf_le_left),
   rcases h f this (lattice.inf_le_right) with ⟨y, ys, fy⟩,
-  have : a = y := tendsto_nhds_unique ha lattice.inf_le_left fy,
-  rwa this
+  rwa (tendsto_nhds_unique ha lattice.inf_le_left fy : a = y)
 end
 
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
@@ -901,31 +888,14 @@ lemma totally_bounded_iff_ultrafilter {s : set α} :
 
 lemma compact_iff_totally_bounded_complete {s : set α} :
   compact s ↔ totally_bounded s ∧ is_complete s :=
-⟨begin
-  assume hs,
-  split,
-  show totally_bounded s, from
-  begin
-    rw [totally_bounded_iff_ultrafilter],
-    assume f hf1 hf2,
-    rcases compact_iff_ultrafilter_le_nhds.1 hs f hf1 hf2 with ⟨x, xs, fx⟩,
-    exact cauchy_downwards (cauchy_nhds) (hf1.1) fx
-  end,
-  show (∀f:filter α, cauchy f → f ≤ principal s → ∃x∈s, f ≤ nhds x), from
-  begin
-    assume f fc fs,
-    have A : ∃x∈s, f ⊓ nhds x ≠ ⊥ := hs f fc.1 fs,
-    rcases A with ⟨a, as , fa⟩,
-    existsi [a, as],
-    exact le_nhds_of_cauchy_adhp fc fa
-  end
-end,
-begin
-  rintros ⟨ht, hc⟩,
-  rw [compact_iff_ultrafilter_le_nhds],
-  rw [totally_bounded_iff_ultrafilter] at ht,
-  exact λf hf hfs, hc _ (ht _ hf hfs) hfs
-end⟩
+⟨λ hs, ⟨totally_bounded_iff_ultrafilter.2 (λ f hf1 hf2,
+    let ⟨x, xs, fx⟩ := compact_iff_ultrafilter_le_nhds.1 hs f hf1 hf2 in
+    cauchy_downwards (cauchy_nhds) (hf1.1) fx),
+  λ f fc fs,
+    let ⟨a, as, fa⟩ := hs f fc.1 fs in
+    ⟨a, as, le_nhds_of_cauchy_adhp fc fa⟩⟩,
+λ ⟨ht, hc⟩, compact_iff_ultrafilter_le_nhds.2
+  (λf hf hfs, hc _ (totally_bounded_iff_ultrafilter.1 ht _ hf hfs) hfs)⟩
 
 /-- Cauchy sequences. Usually defined on ℕ, but often it is also useful to say that a function
 defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that
@@ -947,12 +917,7 @@ end
 
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=
-⟨assume f hf,
-begin
-  have : f ≤ principal univ := begin rw principal_univ, exact le_top end,
-  rcases h f hf this with ⟨x, _, hx⟩,
-  exact ⟨x, hx⟩
-end⟩
+⟨λ f hf, let ⟨x, _, hx⟩ := h f hf ((@principal_univ α).symm ▸ le_top) in ⟨x, hx⟩⟩
 
 /-- A Cauchy sequence in a complete space converges -/
 theorem cauchy_seq_tendsto_of_complete [inhabited β] [semilattice_sup β] [complete_space α]
@@ -965,13 +930,8 @@ lim_spec (complete_space.complete hf)
 
 lemma is_complete_of_is_closed [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
-begin
-  assume f cf fs,
-  rcases complete_space.complete cf with ⟨x, hx⟩,
-  have : x ∈ s :=
-    is_closed_iff_nhds.mp h x (neq_bot_of_le_neq_bot cf.left (le_inf hx fs)),
-  exact ⟨x, this, hx⟩
-end
+λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
+⟨x, is_closed_iff_nhds.mp h x (neq_bot_of_le_neq_bot cf.left (le_inf hx fs)), hx⟩
 
 instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α] : complete_space α :=
 ⟨λf hf, by simpa [principal_univ] using (compact_iff_totally_bounded_complete.1 compact_univ).2 f hf⟩

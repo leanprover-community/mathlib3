@@ -223,6 +223,9 @@ lemma closure_subset_iff_subset_of_is_closed {s t : set α} (h₁ : is_closed t)
 lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
 
+lemma is_closed_of_closure_subset {s : set α} (h : closure s ⊆ s) : is_closed s :=
+by rw subset.antisymm subset_closure h; exact is_closed_closure
+
 @[simp] lemma closure_empty : closure (∅ : set α) = ∅ :=
 closure_eq_of_is_closed is_closed_empty
 
@@ -419,11 +422,16 @@ have b.map f ≤ nhds a ⊓ principal s,
   from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
 is_closed_iff_nhds.mp hs a $ neq_bot_of_le_neq_bot (map_ne_bot hb) this
 
-lemma mem_closure_of_tendsto {f : β → α} {x : filter β} {a : α} {s : set α}
+lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
   (hf : tendsto f x (nhds a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
 is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
     le_trans (map_mono $ inf_le_right_of_le $ by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
+
+lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
+  (hb : b ≠ ⊥) (hf : tendsto f b (nhds a)) (h : f ⁻¹' s ∈ b.sets) : a ∈ closure s :=
+mem_of_closed_of_tendsto hb hf (is_closed_closure) $
+  filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite

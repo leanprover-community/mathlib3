@@ -450,13 +450,21 @@ is_closed_le continuous_const continuous_id
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
 is_closed_inter (is_closed_ge' a) (is_closed_le' b)
 
-lemma le_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
+lemma le_of_tendsto_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
   (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) (h : {b | f b ≤ g b} ∈ b.sets) :
   a₁ ≤ a₂ :=
 have tendsto (λb, (f b, g b)) b (nhds (a₁, a₂)),
   by rw [nhds_prod_eq]; exact hf.prod_mk hg,
 show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
   from mem_of_closed_of_tendsto hb this t.is_closed_le' h
+
+lemma le_of_tendsto {f : β → α} {a b : α} {x : filter β}
+  (nt : x ≠ ⊥) (lim : tendsto f x (nhds a)) (h : f ⁻¹' {c | c ≤ b} ∈ x.sets) : a ≤ b :=
+le_of_tendsto_of_tendsto nt lim tendsto_const_nhds h
+
+lemma ge_of_tendsto {f : β → α} {a b : α} {x : filter β}
+  (nt : x ≠ ⊥) (lim : tendsto f x (nhds a)) (h : f ⁻¹' {c | b ≤ c} ∈ x.sets) : b ≤ a :=
+le_of_tendsto_of_tendsto nt tendsto_const_nhds lim h
 
 @[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   closure {b | f b ≤ g b} = {b | f b ≤ g b} :=
@@ -949,7 +957,7 @@ have ∀a'∈s, ¬ b < f a',
       lt_irrefl _ (lt_of_le_of_lt ha'x hxa')),
 and.intro
   (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt.1 $ this _ ha')
-  (assume b' hb', le_of_tendsto hnbot hb tendsto_const_nhds $
+  (assume b' hb', le_of_tendsto hnbot hb $
       mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
 
 lemma is_glb_of_is_glb_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
@@ -977,7 +985,7 @@ have ∀a'∈s, ¬ b > f a',
       lt_irrefl _ (lt_of_lt_of_le hxa' ha'x)),
 and.intro
   (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt.1 $ this _ ha')
-  (assume b' hb', le_of_tendsto hnbot tendsto_const_nhds hb $
+  (assume b' hb', ge_of_tendsto hnbot hb $
       mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
 
 lemma is_glb_of_is_lub_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
@@ -1005,7 +1013,7 @@ have ∀a'∈s, ¬ b > f a',
       lt_irrefl _ (lt_of_lt_of_le hxa' ha'x)),
 and.intro
   (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt.1 $ this _ ha')
-  (assume b' hb', le_of_tendsto hnbot tendsto_const_nhds hb $
+  (assume b' hb', ge_of_tendsto hnbot hb $
       mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
 
 lemma mem_closure_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) : a ∈ closure s :=
@@ -1074,31 +1082,49 @@ lemma Inf_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear
   {s : set α} (hs : s ≠ ∅) (hc : is_closed s) : Inf s ∈ s :=
 mem_of_is_glb_of_is_closed  is_glb_Inf hs hc
 
-/-- A continuous monotone function sends supremum to supremum. -/
-lemma Sup_of_Sup_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
+/-- A continuous monotone function sends supremum to supremum for nonempty sets. -/
+lemma Sup_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s ≠ ∅) : f (Sup s) = Sup (f '' s) :=
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
 (is_lub_iff_Sup_eq.1
   (is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Cf xy) is_lub_Sup hs $
     tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
 
+/-- A continuous monotone function sending bot to bot sends supremum to supremum. -/
+lemma Sup_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
+  (fbot : f ⊥ = ⊥) {s : set α} : f (Sup s) = Sup (f '' s) :=
+begin
+  by_cases (s = ∅),
+  { simpa [h] },
+  { exact Sup_of_continuous' Mf Cf h }
+end
+
 /-- A continuous monotone function sends indexed supremum to indexed supremum. -/
-lemma supr_of_supr_of_monotone_of_continuous {f : α → β} {g : γ → α}
+lemma supr_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) : f (supr g) = supr (f ∘ g) :=
-by rw [supr, Sup_of_Sup_of_monotone_of_continuous Mf Cf
+by rw [supr, Sup_of_continuous' Mf Cf
   (λ h, range_eq_empty.1 h ‹_›), ← range_comp]; refl
 
-/-- A continuous monotone function sends infimum to infimum. -/
-lemma Inf_of_Inf_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
+/-- A continuous monotone function sends infimum to infimum for nonempty sets. -/
+lemma Inf_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s ≠ ∅) : f (Inf s) = Inf (f '' s) :=
 (is_glb_iff_Inf_eq.1
   (is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) is_glb_Inf hs $
     tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
 
+/-- A continuous monotone function sending top to top sends infimum to infimum. -/
+lemma Inf_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
+  (ftop : f ⊤ = ⊤) {s : set α} : f (Inf s) = Inf (f '' s) :=
+begin
+  by_cases (s = ∅),
+  { simpa [h] },
+  { exact Inf_of_continuous' Mf Cf h }
+end
+
 /-- A continuous monotone function sends indexed infimum to indexed infimum. -/
-lemma infi_of_infi_of_monotone_of_continuous {f : α → β} {g : γ → α}
+lemma infi_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) : f (infi g) = infi (f ∘ g) :=
-by rw [infi, Inf_of_Inf_of_monotone_of_continuous Mf Cf
+by rw [infi, Inf_of_continuous' Mf Cf
   (λ h, range_eq_empty.1 h ‹_›), ← range_comp]; refl
 
 end complete_linear_order

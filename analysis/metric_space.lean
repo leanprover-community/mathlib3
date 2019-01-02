@@ -971,14 +971,16 @@ end
 instance complete_of_proper {α : Type u} [metric_space α] [proper_space α] : complete_space α :=
 ⟨begin
   intros f hf,
-  /-We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
-  ball (therefore compact by properness) where it is nontrivial.-/
+  /- We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
+  ball (therefore compact by properness) where it is nontrivial. -/
   have A : ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < 1 := (cauchy_of_metric.1 hf).2 1 zero_lt_one,
   rcases A with ⟨t, ⟨t_fset, ht⟩⟩,
   rcases inhabited_of_mem_sets hf.1 t_fset with ⟨x, xt⟩,
   have : t ⊆ closed_ball x 1 := by intros y yt; simp [dist_comm]; apply le_of_lt (ht x y xt yt),
   have : closed_ball x 1 ∈ f.sets := f.sets_of_superset t_fset this,
-  exact complete_of_compact_set hf this (proper_space.compact_ball _ _),
+  rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf (le_principal_iff.2 this)
+    with ⟨y, _, hy⟩,
+  exact ⟨y, hy⟩
 end⟩
 
 /-- A proper metric space is separable, and therefore second countable. Indeed, any ball is

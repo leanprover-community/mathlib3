@@ -96,8 +96,8 @@ instance : decidable_linear_order ℝ≥0 :=
   le_total         := assume a b, le_total (a : ℝ) b,
   decidable_le     := λa b, by apply_instance }
 
-protected lemma coe_le (r₁ r₂ : ℝ≥0) : r₁ ≤ r₂ ↔ (r₁ : ℝ) ≤ r₂ := iff.refl _
-protected lemma coe_lt (r₁ r₂ : ℝ≥0) : r₁ < r₂ ↔ (r₁ : ℝ) < r₂ := iff.refl _
+protected lemma coe_le {r₁ r₂ : ℝ≥0} : r₁ ≤ r₂ ↔ (r₁ : ℝ) ≤ r₂ := iff.rfl
+protected lemma coe_lt {r₁ r₂ : ℝ≥0} : r₁ < r₂ ↔ (r₁ : ℝ) < r₂ := iff.rfl
 
 instance : canonically_ordered_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
@@ -264,10 +264,10 @@ lemma of_real_of_nonpos {r : ℝ} (h : r ≤ 0) : nnreal.of_real r = 0 :=
 by simp [nnreal.of_real, h]; refl
 
 lemma of_real_le_of_real {r p : ℝ} (h : r ≤ p) : nnreal.of_real r ≤ nnreal.of_real p :=
-(nnreal.coe_le _ _).2 $ max_le_max h $ le_refl _
+nnreal.coe_le.2 $ max_le_max h $ le_refl _
 
 lemma of_real_add_le {r p : ℝ} : nnreal.of_real (r + p) ≤ nnreal.of_real r + nnreal.of_real p :=
-(nnreal.coe_le _ _).2 $ max_le (add_le_add (le_max_left _ _) (le_max_left _ _)) nnreal.zero_le_coe
+nnreal.coe_le.2 $ max_le (add_le_add (le_max_left _ _) (le_max_left _ _)) nnreal.zero_le_coe
 
 end of_real
 
@@ -354,16 +354,11 @@ le_of_forall_ge_of_dense $ assume a ha,
 lemma div_add_div_same (a b c : ℝ≥0) : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)
 
-lemma add_halves (a : nnreal) : a / 2 + a / 2 = a := nnreal.eq (add_halves a)
+lemma add_halves (a : ℝ≥0) : a / 2 + a / 2 = a := nnreal.eq (add_halves a)
 
-lemma half_lt_self {a : nnreal} (h : a ≠ 0) : a/2 < a :=
-begin
-  apply (nnreal.coe_lt _ _).2,
-  rw [nnreal.coe_div],
-  apply half_lt_self,
-  change 0 < a,
-  exact bot_lt_iff_ne_bot.2 h,
-end
+lemma half_lt_self {a : ℝ≥0} (h : a ≠ 0) : a / 2 < a :=
+by rw [nnreal.coe_lt, nnreal.coe_div]; exact
+half_lt_self (bot_lt_iff_ne_bot.2 h)
 
 end inv
 

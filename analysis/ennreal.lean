@@ -404,5 +404,5 @@ lemma has_sum_of_nonneg_of_le {f g : β → ℝ} (hg : ∀b, 0 ≤ g b) (hgf : �
 let f' (b : β) : nnreal := ⟨f b, le_trans (hg b) (hgf b)⟩ in
 let g' (b : β) : nnreal := ⟨g b, hg b⟩ in
 have has_sum f', from nnreal.has_sum_coe.1 hf,
-have has_sum g', from nnreal.has_sum_of_le (assume b, (nnreal.coe_le (g' b) (f' b)).2 $ hgf b) this,
+have has_sum g', from nnreal.has_sum_of_le (assume b, (@nnreal.coe_le (g' b) (f' b)).2 $ hgf b) this,
 show has_sum (λb, g' b : β → ℝ), from nnreal.has_sum_coe.2 this

@@ -34,7 +34,7 @@ instance : has_top enat := ⟨none⟩
 instance : has_bot enat := ⟨0⟩
 instance : has_sup enat := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, x.get h.1 ⊔ y.get h.2⟩⟩
 
-@[elab_as_eliminator] protected def cases_on {P : enat → Prop} : ∀ a : enat,
+@[elab_as_eliminator] protected lemma cases_on {P : enat → Prop} : ∀ a : enat,
   P ⊤ →  (∀ n : ℕ, P n) → P a :=
 roption.induction_on
 

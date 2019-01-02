@@ -449,7 +449,7 @@ begin
     by rwa [← nndist_eq_edist, ennreal.coe_lt_coe] at Dab,
     have J : dist a b < ε := begin
       rw [← nndist_eq_dist],
-      have K := (nnreal.coe_lt _ _).1 I,
+      have K := nnreal.coe_lt.1 I,
       rwa [nnreal.coe_of_real _ (le_of_lt εpos)] at K
     end,
     exact Hε a b J
@@ -482,7 +482,7 @@ instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α 
   begin
     rw [edist_dist, edist_dist, edist_dist, ← ennreal.coe_add, ennreal.coe_le_coe,
         nnreal.of_real_add_of_real (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z),
-        nnreal.of_real_le_of_real_iff (@dist_nonneg _ _ x z) $
+        nnreal.of_real_le_of_real_iff $
           add_nonneg (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z)],
     apply dist_triangle x y z
   end,
@@ -778,7 +778,7 @@ instance metric_space_pi : metric_space (Πb, π b) :=
   dist_comm := assume f g, nnreal.eq_iff.2 $ by congr; ext a; exact nndist_comm _ _,
   dist_triangle := assume f g h, show dist f h ≤ (dist f g) + (dist g h), from
     begin
-      simp only [dist_pi_def, (nnreal.coe_add _ _).symm, (nnreal.coe_le _ _).symm,
+      simp only [dist_pi_def, (nnreal.coe_add _ _).symm, nnreal.coe_le.symm,
         finset.sup_le_iff],
       assume b hb,
       exact le_trans (nndist_triangle _ (g b) _) (add_le_add (le_sup hb) (le_sup hb))

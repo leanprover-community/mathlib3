@@ -11,7 +11,7 @@ import analysis.topology.uniform_space analysis.normed_space data.real.cau_seq a
 import tactic.linarith
 
 universes u v
-open set filter classical
+open set filter classical metric
 
 variable {β : Type v}
 
@@ -27,22 +27,22 @@ private lemma one_div_succ (n : ℕ) : 1 / ((n : ℝ) + 1) > 0 :=
 one_div_pos_of_pos (by linarith using [show (↑n : ℝ) ≥ 0, from nat.cast_nonneg _])
 
 def set_seq_of_cau_filter : ℕ → set β
-| 0 := some ((cauchy_of_metric.1 hf).2 _ (one_div_succ 0))
-| (n+1) := (set_seq_of_cau_filter n) ∩ some ((cauchy_of_metric.1 hf).2 _ (one_div_succ (n + 1)))
+| 0 := some ((metric.cauchy_iff.1 hf).2 _ (one_div_succ 0))
+| (n+1) := (set_seq_of_cau_filter n) ∩ some ((metric.cauchy_iff.1 hf).2 _ (one_div_succ (n + 1)))
 
 lemma set_seq_of_cau_filter_mem_sets : ∀ n, set_seq_of_cau_filter hf n ∈ f.sets
-| 0 := some (some_spec ((cauchy_of_metric.1 hf).2 _ (one_div_succ 0)))
+| 0 := some (some_spec ((metric.cauchy_iff.1 hf).2 _ (one_div_succ 0)))
 | (n+1) := inter_mem_sets (set_seq_of_cau_filter_mem_sets n)
-             (some (some_spec ((cauchy_of_metric.1 hf).2 _ (one_div_succ (n + 1)))))
+             (some (some_spec ((metric.cauchy_iff.1 hf).2 _ (one_div_succ (n + 1)))))
 
 lemma set_seq_of_cau_filter_inhabited (n : ℕ) : ∃ x, x ∈ set_seq_of_cau_filter hf n :=
-inhabited_of_mem_sets (cauchy_of_metric.1 hf).1 (set_seq_of_cau_filter_mem_sets hf n)
+inhabited_of_mem_sets (metric.cauchy_iff.1 hf).1 (set_seq_of_cau_filter_mem_sets hf n)
 
 lemma set_seq_of_cau_filter_spec : ∀ n, ∀ {x y},
   x ∈ set_seq_of_cau_filter hf n → y ∈ set_seq_of_cau_filter hf n → dist x y < 1/((n : ℝ) + 1)
-| 0 := some_spec (some_spec ((cauchy_of_metric.1 hf).2 _ (one_div_succ 0)))
+| 0 := some_spec (some_spec ((metric.cauchy_iff.1 hf).2 _ (one_div_succ 0)))
 | (n+1) := λ x y hx hy,
-  some_spec (some_spec ((cauchy_of_metric.1 hf).2 _ (one_div_succ (n+1)))) x y
+  some_spec (some_spec ((metric.cauchy_iff.1 hf).2 _ (one_div_succ (n+1)))) x y
     (mem_of_mem_inter_right hx) (mem_of_mem_inter_right hy)
 
 -- this must exist somewhere, no?
@@ -80,7 +80,7 @@ set_seq_of_cau_filter_spec hf _
 lemma cauchy_seq_of_dist_tendsto_0 {s : ℕ → β} {b : ℕ → ℝ} (h : ∀ {n k : ℕ}, n ≤ k → dist (s n) (s k) < b n)
   (hb : tendsto b at_top (nhds 0)) : cauchy_seq s :=
 begin
-  rw cauchy_seq_metric',
+  rw metric.cauchy_seq_iff',
   assume ε hε,
   have hb : ∀ (i : set ℝ), (0:ℝ) ∈ i → is_open i → (∃ (a : ℕ), ∀ (c : ℕ), c ≥ a → b c ∈ i),
   { simpa [tendsto, nhds] using hb },
@@ -126,12 +126,12 @@ begin
   simp at hs,
   rcases hs with ⟨t1, ht1, t2, ht2, ht1t2⟩,
   apply ne_empty_iff_exists_mem.2,
-  rcases mem_nhds_iff_metric.1 ht2 with ⟨ε, hε, ht2'⟩,
-  cases cauchy_of_metric.1 hf with hfb _,
+  rcases metric.mem_nhds_iff.1 ht2 with ⟨ε, hε, ht2'⟩,
+  cases metric.cauchy_iff.1 hf with hfb _,
   have : ε / 2 > 0, from div_pos hε (by norm_num),
   have : ∃ n : ℕ, 1 / (↑n + 1) < ε / 2, from exists_nat_one_div_lt this,
   cases this with n hnε,
-  cases tendsto_at_top_metric.1 H _ this with n2 hn2,
+  cases metric.tendsto_at_top.1 H _ this with n2 hn2,
   let N := max n n2,
   have hNε : 1 / (↑N+1) < ε / 2,
   { apply lt_of_le_of_lt _ hnε,
@@ -190,7 +190,7 @@ tendsto_nhds
 begin
   intros s lfs os,
   suffices : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → f b ∈ s, by simpa using this,
-  rcases is_open_metric.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
+  rcases metric.is_open_iff.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
   cases setoid.symm (cau_seq.equiv_lim f) _ hε with N hN,
   existsi N,
   intros b hb,
@@ -264,7 +264,7 @@ begin
   assume u hu,
   have C : is_cau_seq norm u := cau_seq_iff_cauchy_seq.2 hu,
   existsi cau_seq.lim ⟨u, C⟩,
-  rw tendsto_at_top_metric,
+  rw metric.tendsto_at_top,
   assume ε εpos,
   cases (cau_seq.equiv_lim ⟨u, C⟩) _ εpos with N hN,
   existsi N,

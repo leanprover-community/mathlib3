@@ -12,7 +12,7 @@ import analysis.nnreal
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
-open filter
+open filter metric
 local notation f `→_{`:50 a `}`:0 b := tendsto f (nhds a) (nhds b)
 
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)

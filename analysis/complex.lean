@@ -8,7 +8,7 @@ Topology of the complex numbers.
 import data.complex.basic analysis.metric_space analysis.real
 
 noncomputable theory
-open filter
+open filter metric
 
 namespace complex
 

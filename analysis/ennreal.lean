@@ -7,7 +7,7 @@ Extended non-negative reals
 -/
 import analysis.nnreal data.real.ennreal
 noncomputable theory
-open classical set lattice filter
+open classical set lattice filter metric
 local attribute [instance] prop_decidable
 variables {α : Type*} {β : Type*} {γ : Type*}
 

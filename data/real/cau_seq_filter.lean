@@ -11,7 +11,7 @@ import analysis.topology.uniform_space analysis.normed_space data.real.cau_seq a
 import tactic.linarith
 
 universes u v
-open set filter classical
+open set filter classical metric
 
 variable {β : Type v}
 

@@ -24,7 +24,7 @@ generalizations:
 import logic.function analysis.metric_space tactic.linarith
 
 noncomputable theory
-open classical set lattice filter topological_space
+open classical set lattice filter topological_space metric metric.real
 local attribute [instance] prop_decidable
 
 universes u v w

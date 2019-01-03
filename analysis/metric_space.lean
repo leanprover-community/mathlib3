@@ -16,8 +16,10 @@ noncomputable theory
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+namespace metric
+
 /-- Construct a uniform structure from a distance function and metric space axioms -/
-def metric_space.uniform_space_of_dist
+def uniform_space_of_dist
   (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
@@ -62,15 +64,15 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
 (edist : α → α → ennreal := λx y, nnreal.of_real (dist x y))
 (edist_dist : ∀ x y : α, edist x y = ↑(nnreal.of_real (dist x y)) . control_laws_tac)
-(to_uniform_space : uniform_space α := metric_space.uniform_space_of_dist dist dist_self dist_comm dist_triangle)
+(to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : uniformity = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
-
-open metric_space (edist)
 
 variables [metric_space α]
 
 instance metric_space.to_uniform_space' : uniform_space α :=
 metric_space.to_uniform_space α
+
+instance metric_space.to_has_edist : has_edist α := ⟨metric_space.edist⟩
 
 @[simp] theorem dist_self (x : α) : dist x x = 0 := metric_space.dist_self x
 
@@ -139,11 +141,11 @@ def nndist (a b : α) : nnreal := ⟨dist a b, dist_nonneg⟩
 
 /--Express `nndist` in terms of `edist`-/
 @[simp] lemma edist_eq_nndist (x y : α) : (edist x y).to_nnreal = nndist x y :=
-by simp [nndist, metric_space.edist_dist, nnreal.of_real, max_eq_left dist_nonneg]
+by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg]
 
 /--Express `edist` in terms of `nndist`-/
 @[simp] lemma nndist_eq_edist (x y : α) : ↑(nndist x y) = edist x y :=
-by simp [nndist, metric_space.edist_dist, nnreal.of_real, max_eq_left dist_nonneg]
+by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg]
 
 /--In a metric space, the extended distance is always finite-/
 lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=
@@ -430,9 +432,11 @@ end
 theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @uniformity_edist' α _
 
+open emetric
 /--A metric space induces an emetric space-/
 instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α :=
-{ edist_self          := by simp [edist_dist],
+{ edist               := edist,
+  edist_self          := by simp [edist_dist],
   eq_of_edist_eq_zero := assume x y h,
   by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
   edist_comm          := by simp only [edist_dist, dist_comm]; simp,
@@ -448,7 +452,7 @@ instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α 
 section real
 
 /-- Instantiate the reals as a metric space. -/
-instance : metric_space ℝ :=
+instance real.metric_space : metric_space ℝ :=
 { dist               := λx y, abs (x - y),
   dist_self          := by simp [abs_zero],
   eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
@@ -591,7 +595,7 @@ def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_spac
   eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   dist_comm          := dist_comm,
   dist_triangle      := dist_triangle,
-  edist              := @edist _ m,
+  edist              := edist,
   edist_dist         := edist_dist,
   to_uniform_space   := U,
   uniformity_dist    := H.trans (@uniformity_dist α _) }
@@ -617,7 +621,7 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-instance {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
+instance metric_space_subtype {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
 
 theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :

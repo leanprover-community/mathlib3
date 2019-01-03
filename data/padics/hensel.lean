@@ -22,7 +22,7 @@ let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
     ... ≤ 1 * ∥x - y∥ : mul_le_mul_of_nonneg_right (padic_norm_z.le_one _) (norm_nonneg _)
     ... = ∥x - y∥ : by simp
 
-open filter
+open filter metric
 
 private lemma comp_tendsto_lim {p : ℕ} [p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (nhds (F.eval ncs.lim)) :=

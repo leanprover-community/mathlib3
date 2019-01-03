@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import analysis.real analysis.complex tactic.linarith data.complex.exponential
 
-open finset filter
+open finset filter metric
 
 namespace complex
 

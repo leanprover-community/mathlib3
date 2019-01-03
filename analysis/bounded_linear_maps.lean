@@ -20,6 +20,7 @@ local attribute [instance] classical.prop_decidable
 local notation f ` →_{`:50 a `} `:0 b := filter.tendsto f (nhds a) (nhds b)
 
 open filter (tendsto)
+open metric
 
 variables {k : Type*} [normed_field k]
 variables {E : Type*} [normed_space k E]

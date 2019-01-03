@@ -23,6 +23,8 @@ noncomputable theory
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+namespace metric
+
 /--Characterizing uniformities associated to a (generalized) distance function `D`
 in terms of the elements of the uniformity.-/
 theorem uniformity_dist_of_mem_uniformity [linear_order β] {U : filter (α × α)} (z : β) (D : α → α → β)
@@ -32,6 +34,9 @@ le_antisymm
   (le_infi $ λ ε, le_infi $ λ ε0, le_principal_iff.2 $ (H _).2 ⟨ε, ε0, λ a b, id⟩)
   (λ r ur, let ⟨ε, ε0, h⟩ := (H _).1 ur in
     mem_infi_sets ε $ mem_infi_sets ε0 $ mem_principal_sets.2 $ λ ⟨a, b⟩, h)
+
+class has_edist (α : Type*) := (edist : α → α → ennreal)
+export has_edist (edist)
 
 /-Design note: one could define an `emetric_space` just by giving `edist`, and then
 derive an instance of `uniform_space` by taking the natural uniform structure
@@ -54,8 +59,10 @@ The same trick is used in the definition of a metric space, where one stores as 
 a uniform structure and an edistance.
  -/
 
+namespace emetric
+
 /--Creating a uniform space from an extended distance.-/
-def emetric_space.uniform_space_of_edist
+def uniform_space_of_edist
   (edist : α → α → ennreal)
   (edist_self : ∀ x : α, edist x x = 0)
   (edist_comm : ∀ x y : α, edist x y = edist y x)
@@ -88,22 +95,22 @@ instantiating an `emetric_space` structure, the uniformity fields are not necess
 filled in by default. There is a default value for the uniformity, that can be substituted
 in cases of interest, for instance when instantiating an `emetric_space` structure
 on a product.-/
-class emetric_space (α : Type u) :=
-(edist : α → α → ennreal)
+class emetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_self : ∀ x : α, edist x x = 0)
 (eq_of_edist_eq_zero : ∀ {x y : α}, edist x y = 0 → x = y)
 (edist_comm : ∀ x y : α, edist x y = edist y x)
 (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z)
-(to_uniform_space : uniform_space α := emetric_space.uniform_space_of_edist edist edist_self edist_comm edist_triangle)
+(to_uniform_space : uniform_space α := uniform_space_of_edist edist edist_self edist_comm edist_triangle)
 (uniformity_edist : uniformity = ⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
 
 /-emetric spaces are less common than metric spaces. Therefore, we work in a dedicated
 namespace, while notions associated to metric spaces are mostly in the root namespace.-/
-namespace emetric_space
 variables [emetric_space α]
 
 instance emetric_space.to_uniform_space' : uniform_space α :=
 emetric_space.to_uniform_space α
+
+export emetric_space (edist_self eq_of_edist_eq_zero edist_comm edist_triangle)
 
 attribute [simp] edist_self
 
@@ -124,7 +131,7 @@ by rw edist_comm y; apply edist_triangle
 
 /--Reformulation of the uniform structure in terms of the extended distance-/
 theorem uniformity_edist' : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
-uniformity_edist _
+emetric_space.uniformity_edist _
 
 /--Reformulation of the uniform structure in terms of the extended distance on a subtype-/
 theorem uniformity_edist'' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
@@ -192,13 +199,13 @@ specified uniformity.-/
 def replace_uniformity {α} [U : uniform_space α] (m : emetric_space α)
   (H : @uniformity _ U = @uniformity _ (emetric_space.to_uniform_space α)) :
   emetric_space α :=
-{ edist               := @edist _ m,
+{ edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
   eq_of_edist_eq_zero := @eq_of_edist_eq_zero _ _,
   edist_comm          := edist_comm,
   edist_triangle      := edist_triangle,
   to_uniform_space    := U,
-  uniformity_edist    := H.trans (@uniformity_edist α _) }
+  uniformity_edist    := H.trans (@emetric_space.uniformity_edist α _) }
 
 /--The extended metric induced by an injective function taking values in an emetric space.-/
 def induced {α β} (f : α → β) (hf : function.injective f)
@@ -214,15 +221,15 @@ def induced {α β} (f : α → β) (hf : function.injective f)
     refine λ s, mem_comap_sets.trans _,
     split; intro H,
     { rcases H with ⟨r, ru, rs⟩,
-      rcases emetric_space.mem_uniformity_edist.1 ru with ⟨ε, ε0, hε⟩,
+      rcases mem_uniformity_edist.1 ru with ⟨ε, ε0, hε⟩,
       refine ⟨ε, ε0, λ a b h, rs (hε _)⟩, exact h },
     { rcases H with ⟨ε, ε0, hε⟩,
-      exact ⟨_, emetric_space.edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
+      exact ⟨_, edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
 /--Emetric space instance on subsets of emetric spaces-/
 instance {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
-emetric_space.induced subtype.val (λ x y, subtype.eq) t
+induced subtype.val (λ x y, subtype.eq) t
 
 /--The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition-/
@@ -247,7 +254,7 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (α × β) :=
     (le_trans (edist_triangle _ _ _) (add_le_add' (le_max_right _ _) (le_max_right _ _))),
   uniformity_edist := begin
     refine uniformity_prod.trans _,
-    simp [uniformity_edist, comap_infi],
+    simp [emetric_space.uniformity_edist, comap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
     simp [inf_principal, ext_iff, max_lt_iff]
@@ -266,7 +273,7 @@ spaces.-/
 instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
   edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
-  edist_comm := assume f g, by congr; funext a; exact edist_comm _ _,
+  edist_comm := assume f g, by unfold edist; congr; funext a; exact edist_comm _ _,
   edist_triangle := assume f g h,
     begin
       simp only [finset.sup_le_iff],
@@ -282,4 +289,5 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
 
 end pi
 
-end emetric_space
+end emetric
+end metric

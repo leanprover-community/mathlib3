@@ -12,7 +12,7 @@ import analysis.nnreal
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
-open filter
+open filter metric
 local notation f `→_{`:50 a `}`:0 b := tendsto f (nhds a) (nhds b)
 
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
@@ -358,7 +358,7 @@ instance fintype.normed_space {ι : Type*} {E : ι → Type*} [fintype ι] [∀i
     show (↑(finset.sup finset.univ (λ (b : ι), nnnorm (a • f b))) : ℝ) =
       nnnorm a * ↑(finset.sup finset.univ (λ (b : ι), nnnorm (f b))),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul],
-  ..metric_space_pi,
+  ..metric.metric_space_pi,
   ..pi.vector_space α }
 
 end normed_space

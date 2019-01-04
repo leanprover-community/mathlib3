@@ -2108,6 +2108,10 @@ lemma pairwise_of_nodup {r : α → α → Prop} {s : multiset α} :
   (∀a∈s, ∀b∈s, a ≠ b → r a b) → nodup s → pairwise r s :=
 quotient.induction_on s $ assume l h hl, ⟨l, rfl, hl.imp_of_mem $ assume a b ha hb, h a ha b hb⟩
 
+lemma forall_of_pairwise {r : α → α → Prop} (H : symmetric r) {s : multiset α}
+   (hs : pairwise r s) : (∀a∈s, ∀b∈s, a ≠ b → r a b) :=
+let ⟨l, hl₁, hl₂⟩ := hs in hl₁.symm ▸ list.forall_of_pairwise H hl₂
+
 theorem nodup_add {s t : multiset α} : nodup (s + t) ↔ nodup s ∧ nodup t ∧ disjoint s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append
 

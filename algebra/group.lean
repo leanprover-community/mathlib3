@@ -605,6 +605,9 @@ variables [group α] [group β]
 
 def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 
+@[refl] lemma is_conj_refl (a : α) : is_conj a a :=
+⟨1, by rw [one_mul, one_inv, mul_one]⟩
+
 @[symm] lemma is_conj_symm {a b : α} : is_conj a b → is_conj b a
 | ⟨c, hc⟩ := ⟨c⁻¹, by rw [← hc, mul_assoc, mul_inv_cancel_right, inv_mul_cancel_left]⟩
 

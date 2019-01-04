@@ -24,55 +24,51 @@ check_equal 3 7
 end
 
 section
-variables {D : Type u₁} [𝒟 : category.{u₁ v₁} D]
+variables {D : Type (u₁+1)} [𝒟 : large_category D]
 include 𝒟
 
 set_option pp.universes true
 
 structure functorial_preimage (e : D) :=
-(E : Type u₂) 
-[ℰ : category.{u₂ v₂} E]
-(F : (@category_theory.functor.{u₂ v₂ u₁ v₁} E ℰ D 𝒟)) 
+(E : Type (u₁+1) )
+[ℰ : large_category E]
+(F : E ⥤ D) 
 (e' : E)
-(w : @functor.obj E ℰ D 𝒟 F e' = e)
+(w : F.obj e' = e)
 end
 
 
 -- namespace functorial_preimage
--- variables {E : Type u₁} [ℰ : category.{u₁ v₁} E]
--- include ℰ
+-- variables {D : Type (u₁+1)} [𝒟 : large_category D]
+-- include 𝒟
 
 -- def comp 
 --   {e : D}
---   (p : functorial_preimage.{u₁ v₁} e)
---   (q : functorial_preimage.{u₁ v₁} p.e') :
---   functorial_preimage.{u₁ v₁} e
+--   (p : functorial_preimage e)
+--   (q : functorial_preimage p.e') :
+--   functorial_preimage e
 
 -- end functorial_preimage
 
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
+variables {C : Type (u₁+1)} [𝒞 : large_category C]
 include 𝒞
 
 
-meta def make_more_functorial (X : C) (e : Type u₁) (p : functorial_preimage.{u₁+1 u₁} e) :
-  tactic (list (functorial_preimage.{u₁+1 u₁ u₁ v₁} e)) := sorry
+meta def make_more_functorial (X : C) (e : Type u₁) (p : functorial_preimage e) :
+  tactic (list (functorial_preimage e)) := sorry
 
-#check unchecked_cast
-
-meta def make_functorial_aux (X : C) (e : Type u₁) (p : functorial_preimage.{u₁+1 u₁} e) :
-  tactic (functorial_preimage.{u₁+1 u₁ u₁ v₁} e) :=
+meta def make_functorial_aux (X : C) (e : Type u₁) (p : functorial_preimage e) :
+  tactic (functorial_preimage e) :=
 do
   -- Check if X = p.e' (as expressions?!)
   -- If so, just return p, it's what we want.
-  -- 
-  
+  -- Otherwise, call make_more_functorial X e p, and invoke make_functorial_aux on each element of that list.
   fail ""
 
-
 meta def make_functorial' (X : C) (e : Type u₁) :
-  tactic (functorial_preimage.{u₁+1 u₁ u₁ v₁} e) :=
-let p : functorial_preimage.{u₁+1 u₁ u₁ v₁} e :=
-{ E := Type u₁, --- argh!
+  tactic (functorial_preimage e) :=
+let p : functorial_preimage e :=
+{ E := Type u₁,
   F := functor.id (Type u₁),
   e' := e,
   w := by refl } in
@@ -83,7 +79,7 @@ meta def make_functorial (X : C) (e : Type u₁) :
 -- We do the final step without "do" blocks, because the universe levels need to change.
 λ s,
 match make_functorial' X e s with
-| (interaction_monad.result.success q s') := interaction_monad.result.success ⟨ @unchecked_cast _ (C ⥤ Type u₁) q.F, q.w ⟩ s'
+| (interaction_monad.result.success q s') := interaction_monad.result.success ⟨ unchecked_cast q.F, unchecked_cast q.w ⟩ s'
 | _ := sorry -- TODO handle exceptions!
 end
 

@@ -3315,7 +3315,7 @@ begin
 end
 
 lemma forall_of_pairwise (H : symmetric R) {l : list α}
-   (hl : list.pairwise R l) : (∀a∈l, ∀b∈l, a ≠ b → R a b) :=
+   (hl : pairwise R l) : (∀a∈l, ∀b∈l, a ≠ b → R a b) :=
 list.pairwise.rec_on hl (λ a ha, (list.not_mem_nil a ha).elim)
    (λ x l hxl hl ih y hyl z hzl hyz,
     ((list.mem_cons_iff _ _ _).2 hyl).elim

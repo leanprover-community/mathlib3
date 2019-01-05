@@ -66,6 +66,9 @@ let ⟨s', h⟩ := hs.exists_finset in ⟨s', set.ext h⟩
 theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 ⟨fintype_of_finset s (λ _, iff.rfl)⟩
 
+theorem finite.of_fintype [fintype α] (s : set α) : finite s :=
+by classical; exact ⟨set_fintype s⟩
+
 instance decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
 decidable_of_iff _ mem_to_finset
 
@@ -283,17 +286,6 @@ by rw seq_eq_bind_map; apply set.fintype_bind'
 theorem finite_seq {α β : Type u} {f : set (α → β)} {s : set α} :
   finite f → finite s → finite (f <*> s)
 | ⟨hf⟩ ⟨hs⟩ := by haveI := classical.dec_eq β; exactI ⟨fintype_seq _ _⟩
-
-/--The set of functions from a finite set to a finite set is finite-/
-lemma finite_fun_of_finite_of_finite {α : Type u} {β : Type v} {a : set α} {b : set β}
-  (ha : finite a) (hb : finite b) : finite (univ : set (a → b)) :=
-begin
-  haveI : decidable_eq α := classical.dec_eq α,
-  haveI : fintype a := finite.fintype ha,
-  haveI : fintype b := finite.fintype hb,
-  haveI F : fintype (univ : set (a → b)) := by apply_instance,
-  exact ⟨F⟩
-end
 
 end set
 

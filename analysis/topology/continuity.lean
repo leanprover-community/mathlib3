@@ -922,6 +922,9 @@ compact_iff_compact_image_of_embedding embedding_subtype_val
 lemma compact_iff_compact_univ {s : set α} : compact s ↔ compact (univ : set (subtype s)) :=
 by rw [compact_iff_compact_in_subtype, image_univ, subtype_val_range]; refl
 
+lemma compact_iff_compact_space {s : set α} : compact s ↔ compact_space s :=
+compact_iff_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
+
 end subtype
 
 section quotient

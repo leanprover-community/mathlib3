@@ -1044,11 +1044,7 @@ range_iff_surjective.2 quot.exists_rep
 by rw ← image_univ; simp [-image_univ, subtype_val_image]
 
 lemma range_const_subset {c : β} : range (λx:α, c) ⊆ {c} :=
-begin
-  assume x hx,
-  rcases mem_range.1 hx with ⟨y, hy⟩,
-  simpa using hy.symm
-end
+range_subset_iff.2 $ λ x, or.inl rfl
 
 end range
 

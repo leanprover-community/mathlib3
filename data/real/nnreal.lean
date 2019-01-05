@@ -98,6 +98,7 @@ instance : decidable_linear_order ℝ≥0 :=
 
 protected lemma coe_le {r₁ r₂ : ℝ≥0} : r₁ ≤ r₂ ↔ (r₁ : ℝ) ≤ r₂ := iff.rfl
 protected lemma coe_lt {r₁ r₂ : ℝ≥0} : r₁ < r₂ ↔ (r₁ : ℝ) < r₂ := iff.rfl
+protected lemma coe_pos {r : ℝ≥0} : 0 < r ↔ (0 : ℝ) < r := iff.rfl
 
 instance : canonically_ordered_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
@@ -239,11 +240,14 @@ section of_real
 @[simp] lemma of_real_zero : nnreal.of_real 0 = 0 :=
 by simp [nnreal.of_real]; refl
 
-@[simp] lemma zero_lt_of_real (r : ℝ) : 0 < nnreal.of_real r ↔ 0 < r :=
+@[simp] lemma of_real_pos {r : ℝ} : 0 < nnreal.of_real r ↔ 0 < r :=
 by simp [nnreal.of_real, nnreal.coe_lt, lt_irrefl]
 
-@[simp] lemma of_real_eq_zero (r : ℝ) : nnreal.of_real r = 0 ↔ r ≤ 0 :=
-by simpa [-zero_lt_of_real] using (not_iff_not.2 (zero_lt_of_real r))
+@[simp] lemma of_real_eq_zero {r : ℝ} : nnreal.of_real r = 0 ↔ r ≤ 0 :=
+by simpa [-of_real_pos] using (not_iff_not.2 (@of_real_pos r))
+
+lemma of_real_of_nonpos {r : ℝ} : r ≤ 0 → nnreal.of_real r = 0 :=
+of_real_eq_zero.2
 
 @[simp] lemma of_real_coe {r : nnreal} : nnreal.of_real r = r :=
 nnreal.eq $ by simp [nnreal.of_real]
@@ -252,16 +256,17 @@ nnreal.eq $ by simp [nnreal.of_real]
   nnreal.of_real r ≤ nnreal.of_real p ↔ r ≤ p :=
 by simp [nnreal.coe_le, nnreal.of_real, hp]
 
-@[simp] lemma of_real_lt_of_real_iff {r p : ℝ}  :
+@[simp] lemma of_real_lt_of_real_iff' {r p : ℝ} :
   nnreal.of_real r < nnreal.of_real p ↔ r < p ∧ 0 < p :=
 by simp [nnreal.coe_lt, nnreal.of_real, lt_irrefl]
 
-@[simp] lemma of_real_add_of_real {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
-  nnreal.of_real r + nnreal.of_real p = nnreal.of_real (r + p) :=
-nnreal.eq $ by simp [nnreal.of_real, hr, hp, add_nonneg]
+lemma of_real_lt_of_real_iff {r p : ℝ} (h : 0 < p) :
+  nnreal.of_real r < nnreal.of_real p ↔ r < p :=
+of_real_lt_of_real_iff'.trans (and_iff_left h)
 
-lemma of_real_of_nonpos {r : ℝ} (h : r ≤ 0) : nnreal.of_real r = 0 :=
-by simp [nnreal.of_real, h]; refl
+@[simp] lemma of_real_add {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
+  nnreal.of_real (r + p) = nnreal.of_real r + nnreal.of_real p :=
+nnreal.eq $ by simp [nnreal.of_real, hr, hp, add_nonneg]
 
 lemma of_real_le_of_real {r p : ℝ} (h : r ≤ p) : nnreal.of_real r ≤ nnreal.of_real p :=
 nnreal.coe_le.2 $ max_le_max h $ le_refl _

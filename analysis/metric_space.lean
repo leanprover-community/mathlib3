@@ -9,7 +9,7 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real.nnreal analysis.topology.topological_structures analysis.emetric_space tactic.linarith
+import data.real.nnreal analysis.topology.topological_structures analysis.emetric_space
 open lattice set filter classical topological_space
 noncomputable theory
 
@@ -97,11 +97,19 @@ by rw dist_comm z; apply dist_triangle
 theorem dist_triangle_right (x y z : α) : dist x y ≤ dist x z + dist y z :=
 by rw dist_comm y; apply dist_triangle
 
-lemma dist_triangle4 (x y z t : α) :
-  dist x t ≤ dist x y + dist y z + dist z t :=
+lemma dist_triangle4 (x y z w : α) :
+  dist x w ≤ dist x y + dist y z + dist z w :=
 calc
-  dist x t ≤ dist x z + dist z t : dist_triangle x z t
-       ... ≤ (dist x y + dist y z) + dist z t : add_le_add_right (metric_space.dist_triangle x y z) _
+  dist x w ≤ dist x z + dist z w : dist_triangle x z w
+       ... ≤ (dist x y + dist y z) + dist z w : add_le_add_right (metric_space.dist_triangle x y z) _
+
+lemma dist_triangle4_left (x₁ y₁ x₂ y₂ : α) :
+  dist x₂ y₂ ≤ dist x₁ y₁ + (dist x₁ x₂ + dist y₁ y₂) :=
+by rw [add_left_comm, dist_comm x₁, ← add_assoc]; apply dist_triangle4
+
+lemma dist_triangle4_right (x₁ y₁ x₂ y₂ : α) :
+  dist x₁ y₁ ≤ dist x₁ x₂ + dist y₁ y₂ + dist x₂ y₂ :=
+by rw [add_right_comm, dist_comm y₁]; apply dist_triangle4
 
 theorem swap_dist : function.swap (@dist α _) = dist :=
 by funext x y; exact dist_comm _ _
@@ -287,38 +295,26 @@ theorem totally_bounded_of_metric {s : set α} :
                ⟨t, ft, h⟩ := H ε ε0 in
   ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
 
-/--A metric space space is totally bounded if one can reconstruct up to any ε>0 any element of the
-space from finitely many data.-/
-lemma totally_bounded_of_finite_discretization {α : Type u} [metric_space α] (s : set α)
-  (H : ∀ε > (0 : real), ∃(β : Type*) (t : set β) (F : α → β),
-     finite t ∧ (∀x ∈ s, F x ∈ t) ∧ (∀x y ∈ s, F x = F y → dist x y < ε)) :
+/-- A metric space space is totally bounded if one can reconstruct up to any ε>0 any element of the
+space from finitely many data. -/
+lemma totally_bounded_of_finite_discretization {α : Type u} [metric_space α] {s : set α}
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [fintype β] (F : s → β),
+    ∀x y, F x = F y → dist (x:α) y < ε) :
   totally_bounded s :=
-have A : s = ∅ → totally_bounded s :=
 begin
-  assume hs,
-  rw totally_bounded_of_metric,
-  intros ε εpos,
-  exact ⟨∅, ⟨finite_empty, begin rw hs, by simp end⟩⟩
-end,
-have B : s ≠ ∅ → totally_bounded s :=
-begin
-  assume hs,
+  classical, by_cases hs : s = ∅,
+  { rw hs, exact totally_bounded_empty },
   rcases exists_mem_of_ne_empty hs with ⟨x0, hx0⟩,
-  haveI : inhabited α := ⟨x0⟩,
-  rw totally_bounded_of_metric,
-  intros ε εpos,
-  rcases H ε εpos with ⟨β, t, F, ⟨finite_t, hFt, hF⟩⟩,
-  let Finv := function.inv_fun_on F s,
-  let t' := Finv '' t,
-  refine  ⟨t', ⟨finite_image _ finite_t, λx x_in_s, _⟩⟩,
-  let x' := Finv (F x),
-  have : x' ∈ s := function.inv_fun_on_mem ⟨x, x_in_s, rfl⟩,
-  have : F x' = F x := function.inv_fun_on_eq ⟨x, x_in_s, rfl⟩,
-  have : dist x x' < ε := hF _ _ ‹x ∈ s› ‹x' ∈ s› (this.symm),
-  simp only [exists_prop, set.mem_Union, mem_ball, set.mem_image],
-  exact ⟨x', ⟨⟨F x, ⟨hFt _ x_in_s, by refl⟩⟩, by assumption⟩⟩
-end,
-classical.by_cases A B
+  haveI : inhabited s := ⟨⟨x0, hx0⟩⟩,
+  refine totally_bounded_of_metric.2 (λ ε ε0, _),
+  rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
+  let Finv := function.inv_fun F,
+  refine ⟨range (subtype.val ∘ Finv), finite_range _, λ x xs, _⟩,
+  let x' := Finv (F ⟨x, xs⟩),
+  have : F x' = F ⟨x, xs⟩ := function.inv_fun_eq ⟨⟨x, xs⟩, rfl⟩,
+  simp only [set.mem_Union, set.mem_range],
+  exact ⟨_, ⟨F ⟨x, xs⟩, rfl⟩, hF _ _ this.symm⟩
+end
 
 lemma cauchy_of_metric {f : filter α} :
   cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < ε :=
@@ -389,17 +385,12 @@ theorem continuous_topo_metric [topological_space β] {f : β → α} :
   continuous f ↔ ∀a (ε > 0), ∃ n ∈ (nhds a).sets, ∀b ∈ n, dist (f b) (f a) < ε :=
 continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds_topo_metric
 
-theorem tendsto_at_top_metric [inhabited β] [semilattice_sup β] (u : β → α) {a : α} :
+theorem tendsto_at_top_metric [inhabited β] [semilattice_sup β] {u : β → α} {a : α} :
   tendsto u at_top (nhds a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
-begin
-  rw tendsto_nhds_topo_metric,
-  apply forall_congr,
-  intro ε,
-  apply forall_congr,
-  intro hε,
-  simp,
-  exact ⟨λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩, λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩,
-end
+tendsto_nhds_topo_metric.trans $ ball_congr $ λ ε ε0,
+by simp; exact ⟨
+  λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩,
+  λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩
 
 theorem eq_of_forall_dist_le {x y : α} (h : ∀ε, ε > 0 → dist x y ≤ ε) : x = y :=
 eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
@@ -412,59 +403,28 @@ separated_def.2 $ λ x y h, eq_of_forall_dist_le $
 we need to show that the uniform structure coming from the edistance and the
 distance coincide. -/
 
-/--Expressing the uniformity in terms of `edist`-/
+/-- Expressing the uniformity in terms of `edist` -/
 lemma mem_uniformity_dist_edist {s : set (α×α)} :
   s ∈ (@uniformity α _).sets ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
-suffices (∃ε>0, ∀a b, edist a b < ε → (a, b) ∈ s) ↔ (∃ε>0, ∀a b, dist a b < ε → (a, b) ∈ s), from
-  iff.trans (mem_uniformity_dist) this.symm,
-⟨show (∃ε>0, ∀a b, edist a b < ε → (a, b) ∈ s) → (∃ε>0, ∀a b, dist a b < ε → (a, b) ∈ s),
 begin
-  rintro ⟨ε, εpos, Hε⟩,
-  rcases ε with h,
-  { /- ε = ⊤, i.e., all points belong to `s` as the distance is finite.-/
-    have A : ∀ a b : α, edist a b < ⊤ := assume a b, lt_top_iff_ne_top.2 (edist_ne_top a b),
-    have B : ∀ a b : α, (a, b) ∈ s := assume a b, Hε _ _ (A a b),
-    exact ⟨1, zero_lt_one, assume a b _, B a b⟩ },
-  { /- ε < ⊤, and we can use the same value of ε as a real parameter-/
-    have A : ε > 0 := ennreal.coe_lt_coe.1 εpos,
-    have B : ∀ (a b : α), dist a b < ↑ε → (a, b) ∈ s := begin
-      assume a b Dab,
-      have I : nndist a b < ε := by rwa [← nndist_eq_dist, ← nnreal.coe_lt] at Dab,
-      have J : edist a b < ε := by rw [← nndist_eq_edist]; apply ennreal.coe_lt_coe.2 I,
-      exact Hε a b J
-    end,
-    exact ⟨ε, by simpa using A, B⟩ }
-end,
-show (∃ε>0, ∀a b, dist a b < ε → (a, b) ∈ s) → (∃ε>0, ∀a b, edist a b < ε → (a, b) ∈ s),
-begin
-  rintro ⟨ε, εpos, Hε⟩,
-  have A : ((nnreal.of_real ε) : ennreal) > (0:nnreal) :=
-  by apply ennreal.coe_lt_coe.2; simpa using εpos,
-  have B : ∀ (a b : α), edist a b < nnreal.of_real ε → (a, b) ∈ s :=
-  begin
-    assume a b Dab,
-    have I : nndist a b < nnreal.of_real ε :=
-    by rwa [← nndist_eq_edist, ennreal.coe_lt_coe] at Dab,
-    have J : dist a b < ε := begin
-      rw [← nndist_eq_dist],
-      have K := nnreal.coe_lt.1 I,
-      rwa [nnreal.coe_of_real _ (le_of_lt εpos)] at K
-    end,
-    exact Hε a b J
-  end,
-  exact ⟨nnreal.of_real ε, A, B⟩
-end⟩
+  refine mem_uniformity_dist.trans ⟨_, _⟩; rintro ⟨ε, ε0, Hε⟩,
+  { refine ⟨nnreal.of_real ε, _, λ a b, _⟩,
+    { rwa [gt, ennreal.coe_pos, nnreal.of_real_pos] },
+    { rw [edist_dist, ennreal.coe_lt_coe, nnreal.of_real_lt_of_real_iff ε0],
+      exact Hε } },
+  { rcases ennreal.lt_iff_exists_real_btwn.1 ε0 with ⟨ε', _, ε0', hε⟩,
+    rw [ennreal.coe_pos, nnreal.of_real_pos] at ε0',
+    refine ⟨ε', ε0', λ a b h, Hε (lt_trans _ hε)⟩,
+    rwa [edist_dist, ennreal.coe_lt_coe, nnreal.of_real_lt_of_real_iff ε0'] }
+end
 
 theorem uniformity_edist' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
-suffices ∀s, s ∈ (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}).sets ↔
-    (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s), from
-  filter.ext $ assume s, iff.trans (mem_uniformity_dist_edist) ((this s).symm),
 begin
-  assume s,
-  rw [infi_sets_eq],
-  simp [subset_def],
-  exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩,
-  exact ⟨⟨1, ennreal.zero_lt_one⟩⟩
+  ext s, rw infi_sets_eq,
+  { simp [mem_uniformity_dist_edist, subset_def] },
+  { rintro ⟨r, hr⟩ ⟨p, hp⟩, use ⟨min r p, lt_min hr hp⟩,
+    simp [lt_min_iff, (≥)] {contextual := tt} },
+  { exact ⟨⟨1, ennreal.zero_lt_one⟩⟩ }
 end
 
 theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
@@ -474,15 +434,13 @@ by simpa [infi_subtype] using @uniformity_edist' α _
 instance emetric_space_of_metric_space [a : metric_space α] : emetric_space α :=
 { edist_self          := by simp [edist_dist],
   eq_of_edist_eq_zero := assume x y h,
-    by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
+  by rw [edist_dist] at h; simpa [-dist_eq_edist, -dist_eq_nndist] using h,
   edist_comm          := by simp only [edist_dist, dist_comm]; simp,
   edist_triangle      := assume x y z,
   begin
-    rw [edist_dist, edist_dist, edist_dist, ← ennreal.coe_add, ennreal.coe_le_coe,
-        nnreal.of_real_add_of_real (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z),
-        nnreal.of_real_le_of_real_iff $
-          add_nonneg (@dist_nonneg _ _ x y) (@dist_nonneg _ _ y z)],
-    apply dist_triangle x y z
+    rw [← nndist_eq_edist, ← nndist_eq_edist, ← nndist_eq_edist,
+      ← ennreal.coe_add, ennreal.coe_le_coe],
+    exact nndist_triangle x y z
   end,
   uniformity_edist    := uniformity_edist,
   ..a }
@@ -526,10 +484,10 @@ end real
 section cauchy_seq
 variables [inhabited β] [semilattice_sup β]
 
-/--In a metric space, Cauchy sequences are characterized by the fact that, eventually,
-the distance between its elements is arbitrarily small-/
+/-- In a metric space, Cauchy sequences are characterized by the fact that, eventually,
+the distance between its elements is arbitrarily small -/
 theorem cauchy_seq_metric {u : β → α} :
-  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, dist (u n) (u m) < ε :=
+  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, dist (u m) (u n) < ε :=
 begin
   unfold cauchy_seq,
   rw cauchy_of_metric,
@@ -538,19 +496,19 @@ begin
   split,
   { intros H ε εpos,
     rcases H ε εpos with ⟨t, ⟨N, hN⟩, ht⟩,
-    exact ⟨N, λm n hm hn, ht _ _ (hN _ hn) (hN _ hm)⟩ },
+    exact ⟨N, λm n hm hn, ht _ _ (hN _ hm) (hN _ hn)⟩ },
   { intros H ε εpos,
     rcases H (ε/2) (half_pos εpos) with ⟨N, hN⟩,
     existsi ball (u N) (ε/2),
     split,
-    { exact ⟨N, λx hx, hN _ _ (le_refl N) hx⟩ },
+    { exact ⟨N, λx hx, hN _ _ hx (le_refl N)⟩ },
     { exact λx y hx hy, calc
         dist x y ≤ dist x (u N) + dist y (u N) : dist_triangle_right _ _ _
         ... < ε/2 + ε/2 : add_lt_add hx hy
         ... = ε : add_halves _ } }
 end
 
-/--A variation around the metric characterization of Cauchy sequences-/
+/-- A variation around the metric characterization of Cauchy sequences -/
 theorem cauchy_seq_metric' {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
 begin
@@ -558,102 +516,70 @@ begin
   split,
   { intros H ε εpos,
     rcases H ε εpos with ⟨N, hN⟩,
-    exact ⟨N, λn hn, hN _ _ (le_refl N) hn⟩ },
+    exact ⟨N, λn hn, hN _ _ hn (le_refl N)⟩ },
   { intros H ε εpos,
     rcases H (ε/2) (half_pos εpos) with ⟨N, hN⟩,
     exact ⟨N, λ m n hm hn, calc
-       dist (u n) (u m) ≤ dist (u n) (u N) + dist (u m) (u N) : dist_triangle_right _ _ _
-                    ... < ε/2 + ε/2 : add_lt_add (hN _ hn) (hN _ hm)
+       dist (u m) (u n) ≤ dist (u m) (u N) + dist (u n) (u N) : dist_triangle_right _ _ _
+                    ... < ε/2 + ε/2 : add_lt_add (hN _ hm) (hN _ hn)
                     ... = ε : add_halves _⟩ }
 end
 
-/--Yet another metric characterization of Cauchy sequences on integers. This one is often the
-most efficient.-/
-lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} :
-  cauchy_seq s ↔ (∃ (b: ℕ → ℝ), (∀ n m N : ℕ, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N)
-                    ∧ (tendsto b at_top (nhds 0))) :=
-⟨begin
-  assume hs,
-  rw cauchy_seq_metric at hs,
-  /- `s` is Cauchy sequence. The sequence `b` will be constructed by taking
+/-- A Cauchy sequence on the natural numbers is bounded. -/
+theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
+  ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=
+begin
+  rcases cauchy_seq_metric'.1 hu 1 zero_lt_one with ⟨N, hN⟩,
+  suffices : ∃ R > 0, ∀ n, dist (u n) (u N) < R,
+  { rcases this with ⟨R, R0, H⟩,
+    exact ⟨_, add_pos R0 R0, λ m n,
+      lt_of_le_of_lt (dist_triangle_right _ _ _) (add_lt_add (H m) (H n))⟩ },
+  let R := finset.sup (finset.range N) (λ n, nndist (u n) (u N)),
+  refine ⟨↑R + 1, add_pos_of_nonneg_of_pos R.2 zero_lt_one, λ n, _⟩,
+  cases le_or_lt N n,
+  { exact lt_of_lt_of_le (hN _ h) (le_add_of_nonneg_left R.2) },
+  { have : _ ≤ R := finset.le_sup (finset.mem_range.2 h),
+    exact lt_of_le_of_lt this (lt_add_of_pos_right _ zero_lt_one) }
+end
+
+/-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
+most efficient. -/
+lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : ℕ → ℝ,
+  (∀ n, 0 ≤ b n) ∧
+  (∀ n m N : ℕ, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) ∧
+  tendsto b at_top (nhds 0) :=
+⟨λ hs, begin
+  /- `s` is a Cauchy sequence. The sequence `b` will be constructed by taking
   the supremum of the distances between `s n` and `s m` for `n m ≥ N`.
   First, we prove that all these distances are bounded, as otherwise the Sup
-  would not make sense.-/
-  rcases hs 1 (zero_lt_one) with ⟨N, hN⟩,
-  have A : bdd_above ((λn, dist (s n) (s N)) '' {n | n ≤ N}) :=
-    bdd_above_finite (finite_image _ (finite_le_nat N)),
-  rcases A with ⟨CA, hA⟩,
-  let M := max 1 CA,
-  have B : ∀n, dist (s n) (s N) ≤ M,
-  { intros n,
-    cases le_total n N with h,
-    { simp at hA,
-      calc dist (s n) (s N) ≤ CA : hA (dist (s n) (s N)) _ h rfl
-                        ... ≤ M : le_max_right _ _ },
-    { calc dist (s n) (s N) ≤ 1 : le_of_lt (hN _ _ (le_refl _) h)
-                        ... ≤ M : le_max_left _ _ }},
-  have bdd : bdd_above (range (λ(p : ℕ × ℕ), dist (s p.1) (s p.2))) :=
-    ⟨M + M, begin simp, intros y n m hy, calc
-      y = dist (s n) (s m) : hy.symm
-      ... ≤ dist (s n) (s N) + dist (s m) (s N) : dist_triangle_right _ _ _
-      ... ≤ M + M : add_le_add (B n) (B m)
-    end⟩,
-  --We define `b`
-  let b := λN, Sup ((λ(p : ℕ × ℕ), dist (s p.1) (s p.2))''{p | p.1 ≥ N ∧ p.2 ≥ N}),
-  --Prove that it bounds the distances of points in the Cauchy sequence
-  have C : ∀ n m N, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N,
-  { intros m n N hm hn,
-    apply le_cSup,
-    { apply bdd_above_subset _ bdd,
-      intros d hd,
-      simp at hd,
-      rcases hd with ⟨m, n, ⟨h1, h2⟩⟩,
-      rw ← h2,
-      simp only [set.mem_range, prod.exists],
-      exact ⟨m, n, rfl⟩ },
-    { existsi (prod.mk m n),
-      simp only [and_true, eq_self_iff_true, set.mem_set_of_eq],
-      exact ⟨hm, hn⟩}},
-  --Prove that it tends to `0`, by using the Cauchy property of `s`
-  have D : tendsto b at_top (nhds 0),
-  {  rw tendsto_at_top_metric,
-    intros ε εpos,
-    rcases hs (ε/2) (half_pos εpos) with ⟨N, hN⟩,
-    existsi N,
-    intros n hn,
-    have : b n ≤ ε/2,
-    {  apply cSup_le,
-      { have : {p : ℕ × ℕ | p.fst ≥ n ∧ p.snd ≥ n} ≠ ∅ :=
-          @ne_empty_of_mem _ _ (prod.mk n n) (by simp; apply le_refl),
-        simpa using this },
-      { simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib, prod.exists],
-        intros d p q hp hq hd,
-        rw ← hd,
-        apply le_of_lt (hN q p (le_trans hn hq) (le_trans hn hp)) }},
-    have : b n < ε := lt_of_le_of_lt this (half_lt_self εpos),
-    have : 0 ≤ b n := calc
-      0 = dist (s n) (s n) : by simp
-        ... ≤ b n : C n n n (le_refl n) (le_refl n),
-    rw real.dist_0_eq_abs,
-    exact abs_lt_of_lt_of_neg_lt ‹b n < ε› (by linarith) },
-  -- Conclude
-  exact ⟨b, ⟨C, D⟩⟩
-end,
-begin
-  rintros ⟨b, ⟨b_bound, b_lim⟩⟩,
-  /-b : ℕ → ℝ, b_bound : ∀ (n m N : ℕ), N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N,
-    b_lim : tendsto b at_top (nhds 0)-/
-  rw cauchy_seq_metric,
-  intros ε εpos, /-ε : ℝ, εpos : ε > 0-/
-  rw tendsto_at_top_metric at b_lim,
-  rcases b_lim ε εpos with ⟨N, hN⟩,
-  existsi N,
-  intros m n hm hn,
-  calc dist (s n) (s m) ≤ b N : b_bound n m N hn hm
-                    ... ≤ abs(b N) : le_abs_self _
+  would not make sense. -/
+  let S := λ N, (λ(p : ℕ × ℕ), dist (s p.1) (s p.2)) '' {p | p.1 ≥ N ∧ p.2 ≥ N},
+  have hS : ∀ N, ∃ x, ∀ y ∈ S N, y ≤ x,
+  { rcases cauchy_seq_bdd hs with ⟨R, R0, hR⟩,
+    refine λ N, ⟨R, _⟩, rintro _ ⟨⟨m, n⟩, _, rfl⟩,
+    exact le_of_lt (hR m n) },
+  have bdd : bdd_above (range (λ(p : ℕ × ℕ), dist (s p.1) (s p.2))),
+  { rcases cauchy_seq_bdd hs with ⟨R, R0, hR⟩,
+    use R, rintro _ ⟨⟨m, n⟩, rfl⟩, exact le_of_lt (hR m n) },
+  -- Prove that it bounds the distances of points in the Cauchy sequence
+  have ub : ∀ m n N, N ≤ m → N ≤ n → dist (s m) (s n) ≤ real.Sup (S N) :=
+    λ m n N hm hn, real.le_Sup _ (hS N) ⟨⟨_, _⟩, ⟨hm, hn⟩, rfl⟩,
+  have S0m : ∀ n, (0:ℝ) ∈ S n := λ n, ⟨⟨n, n⟩, ⟨le_refl _, le_refl _⟩, dist_self _⟩,
+  have S0 := λ n, real.le_Sup _ (hS n) (S0m n),
+  -- Prove that it tends to `0`, by using the Cauchy property of `s`
+  refine ⟨λ N, real.Sup (S N), S0, ub, tendsto_at_top_metric.2 (λ ε ε0, _)⟩,
+  refine (cauchy_seq_metric.1 hs (ε/2) (half_pos ε0)).imp (λ N hN n hn, _),
+  rw [real.dist_0_eq_abs, abs_of_nonneg (S0 n)],
+  refine lt_of_le_of_lt (real.Sup_le_ub _ ⟨_, S0m _⟩ _) (half_lt_self ε0),
+  rintro _ ⟨⟨m', n'⟩, ⟨hm', hn'⟩, rfl⟩,
+  exact le_of_lt (hN _ _ (le_trans hn hm') (le_trans hn hn'))
+  end,
+λ ⟨b, _, b_bound, b_lim⟩, cauchy_seq_metric.2 $ λ ε ε0,
+  (tendsto_at_top_metric.1 b_lim ε ε0).imp $ λ N hN m n hm hn,
+  calc dist (s m) (s n) ≤ b N : b_bound m n N hm hn
+                    ... ≤ abs (b N) : le_abs_self _
                     ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
-                    ... < ε : (hN _ (le_refl N))
-end⟩
+                    ... < ε : (hN _ (le_refl N)) ⟩
 
 end cauchy_seq
 
@@ -894,6 +820,10 @@ begin
   apply ne_empty_of_mem B
 end⟩
 
+theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
+  {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
+by simpa only [closure_eq_of_is_closed hs] using @mem_closure_iff' _ _ s a
+
 section pi
 open finset lattice
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
@@ -959,7 +889,7 @@ section second_countable
 /-- A separable metric space is second countable: one obtains a countable basis by taking
 the balls centered at points in a dense subset, and with rational radii. We do not register
 this as an instance, as there is already an instance going in the other direction
-from second countable spaces to separable spaces, and we want to avoid loops.-/
+from second countable spaces to separable spaces, and we want to avoid loops. -/
 lemma second_countable_of_separable_metric_space (α : Type u) [metric_space α] [separable_space α] :
   second_countable_topology α :=
 let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ α in
@@ -1172,9 +1102,10 @@ lemma lebesgue_number_lemma_of_metric_sUnion
 by rw sUnion_eq_Union at hc₂;
    simpa using lebesgue_number_lemma_of_metric hs (by simpa) hc₂
 
-/--boundedness of a subset of a metric space. We formulate the definition to work
-even in the empty space.-/
-definition bounded [metric_space α] (s : set α) : Prop :=
+
+/-- Boundedness of a subset of a metric space. We formulate the definition to work
+even in the empty space. -/
+def bounded [metric_space α] (s : set α) : Prop :=
 ∃C, ∀x y ∈ s, dist x y ≤ C
 
 section bounded
@@ -1183,111 +1114,97 @@ variables {t : set α} {r : ℝ}
 @[simp] lemma bounded_empty : bounded (∅ : set α) :=
 ⟨0, by simp⟩
 
-/--Subsets of a bounded set are also bounded-/
-lemma bounded_of_subset_of_bounded (incl : s ⊆ t) (h : bounded t) :
-  bounded s :=
-let ⟨C, hC⟩ := h in ⟨C, λx y hx hy, hC x y (incl hx) (incl hy)⟩
+lemma bounded_iff_mem_bounded : bounded s ↔ ∀ x ∈ s, bounded s :=
+⟨λ h _ _, h, λ H, begin
+  classical, by_cases s = ∅,
+  { subst s, exact ⟨0, by simp⟩ },
+  { rcases exists_mem_of_ne_empty h with ⟨x, hx⟩,
+    exact H x hx }
+end⟩
 
-/--Closed balls are bounded-/
+/-- Subsets of a bounded set are also bounded -/
+lemma bounded.subset (incl : s ⊆ t) : bounded t → bounded s :=
+Exists.imp $ λ C hC x y hx hy, hC x y (incl hx) (incl hy)
+
+/-- Closed balls are bounded -/
 lemma bounded_closed_ball : bounded (closed_ball x r) :=
-begin
-  existsi r + r,
-  assume y z hy hz,
+⟨r + r, λ y z hy hz, begin
   simp only [mem_closed_ball] at *,
   calc dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
             ... ≤ r + r : add_le_add hy hz
-end
+end⟩
 
-/--Open balls are bounded-/
+/-- Open balls are bounded -/
 lemma bounded_ball : bounded (ball x r) :=
-bounded_of_subset_of_bounded ball_subset_closed_ball bounded_closed_ball
+bounded_closed_ball.subset ball_subset_closed_ball
 
-/--Given a point, a bounded subset is included in some ball around this point-/
-lemma subset_ball_of_bounded (c : α) (h : bounded s) :
-  ∃r, s ⊆ closed_ball c r :=
-have A : s = ∅ → ∃r, s ⊆ closed_ball c r := λe, ⟨0, by rw e; simp⟩,
-have B : s ≠ ∅ → ∃r, s ⊆ closed_ball c r :=
+/-- Given a point, a bounded subset is included in some ball around this point -/
+lemma bounded_iff_subset_ball (c : α) : bounded s ↔ ∃r, s ⊆ closed_ball c r :=
 begin
-  assume ne,
-  rcases exists_mem_of_ne_empty ne with ⟨x, hx⟩,
-  rcases h with ⟨C, hC⟩,
-  existsi C + dist x c,
-  assume y hy,
-  simp only [mem_closed_ball],
-  calc dist y c ≤ dist y x + dist x c : dist_triangle _ _ _
-            ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _
-end,
-classical.by_cases A B
-
-/--The union of two bounded sets is bounded iff each of the sets is bounded-/
-@[simp] lemma bounded_union_iff_bounded :
-  bounded (s ∪ t) ↔ (bounded s ∧ bounded t) :=
-⟨λh, ⟨bounded_of_subset_of_bounded (by simp) h, bounded_of_subset_of_bounded (by simp) h⟩,
-assume ⟨hs, ht⟩,
-have A : s ∪ t = ∅ → bounded (s ∪ t) := by simp {contextual := tt},
-have B : s ∪ t ≠ ∅ → bounded (s ∪ t) :=
-begin
-  assume ne,
-  rcases exists_mem_of_ne_empty ne with ⟨c, hc⟩,
-  rcases subset_ball_of_bounded c hs with ⟨Cs, hCs⟩,
-  rcases subset_ball_of_bounded c ht with ⟨Ct, hCt⟩,
-  let C := max Cs Ct,
-  have Is : s ⊆ closed_ball c C :=
-    subset.trans hCs (closed_ball_subset_closed_ball (le_max_left _ _)),
-  have It : t ⊆ closed_ball c C :=
-    subset.trans hCt (closed_ball_subset_closed_ball (le_max_right _ _)),
-  apply bounded_of_subset_of_bounded (union_subset Is It) bounded_closed_ball,
-end,
-classical.by_cases A B⟩
-
-/--A finite union of bounded sets is bounded-/
-lemma bounded_bUnion_of_bounded {I : set β} {s : β → set α} (H : finite I) :
-  (∀i ∈ I, bounded (s i)) → bounded (⋃i∈I, s i) :=
-by apply finite.induction_on ‹finite I›; simp; finish
-
-/--A compact set is bounded-/
-lemma bounded_of_compact {s : set α} (h : compact s) : bounded s :=
-begin
-  --We cover the compact set by finitely many balls of radius 1,
-  --and then argue that a finite union of bounded sets is bounded
-  rcases finite_cover_balls_of_compact h zero_lt_one with ⟨t, ht, ⟨fint, subs⟩⟩,
-  exact bounded_of_subset_of_bounded subs (bounded_bUnion_of_bounded fint
-    (begin assume i hi, apply bounded_ball end))
+  split; rintro ⟨C, hC⟩,
+  { classical, by_cases s = ∅,
+    { subst s, exact ⟨0, by simp⟩ },
+    { rcases exists_mem_of_ne_empty h with ⟨x, hx⟩,
+      exact ⟨C + dist x c, λ y hy, calc
+        dist y c ≤ dist y x + dist x c : dist_triangle _ _ _
+            ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _⟩ } },
+  { exact bounded_closed_ball.subset hC }
 end
 
-/--A finite set is bounded-/
+/-- The union of two bounded sets is bounded iff each of the sets is bounded -/
+@[simp] lemma bounded_union :
+  bounded (s ∪ t) ↔ bounded s ∧ bounded t :=
+⟨λh, ⟨h.subset (by simp), h.subset (by simp)⟩,
+begin
+  rintro ⟨hs, ht⟩,
+  refine bounded_iff_mem_bounded.2 (λ x _, _),
+  rw bounded_iff_subset_ball x at hs ht ⊢,
+  rcases hs with ⟨Cs, hCs⟩, rcases ht with ⟨Ct, hCt⟩,
+  exact ⟨max Cs Ct, union_subset
+    (subset.trans hCs $ closed_ball_subset_closed_ball $ le_max_left _ _)
+    (subset.trans hCt $ closed_ball_subset_closed_ball $ le_max_right _ _)⟩,
+end⟩
+
+/-- A finite union of bounded sets is bounded -/
+lemma bounded_bUnion {I : set β} {s : β → set α} (H : finite I) :
+  bounded (⋃i∈I, s i) ↔ ∀i ∈ I, bounded (s i) :=
+finite.induction_on H (by simp) $ λ x I _ _ IH,
+by simp [or_imp_distrib, forall_and_distrib, IH]
+
+/-- A compact set is bounded -/
+lemma bounded_of_compact {s : set α} (h : compact s) : bounded s :=
+-- We cover the compact set by finitely many balls of radius 1,
+-- and then argue that a finite union of bounded sets is bounded
+let ⟨t, ht, fint, subs⟩ := finite_cover_balls_of_compact h zero_lt_one in
+bounded.subset subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
+
+/-- A finite set is bounded -/
 lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=
 bounded_of_compact $ compact_of_finite h
 
-/--A singleton is bounded-/
+/-- A singleton is bounded -/
 lemma bounded_singleton {x : α} : bounded ({x} : set α) :=
-bounded_of_finite (finite_singleton _)
+bounded_of_finite $ finite_singleton _
 
-/--Characterization of the boundedness of the range of a function-/
+/-- Characterization of the boundedness of the range of a function -/
 lemma bounded_range_iff {f : β → α} : bounded (range f) ↔ ∃C, ∀x y, dist (f x) (f y) ≤ C :=
-⟨λ⟨C, hC⟩, ⟨C, λx y, hC (f x) (f y) (mem_range_self _) (mem_range_self _)⟩,
-  λ⟨C, hC⟩, ⟨C, λx y hx hy,
-  begin
-    rcases mem_range.1 hx with ⟨x', fx⟩,
-    rcases mem_range.1 hy with ⟨y', fy⟩,
-    simpa [fx.symm, fy.symm] using hC x' y'
-  end⟩⟩
+exists_congr $ λ C, ⟨
+  λ H x y, H _ _ ⟨x, rfl⟩ ⟨y, rfl⟩,
+  by rintro H _ _ ⟨x, rfl⟩ ⟨y, rfl⟩; exact H x y⟩
 
-/--In a compact space, all sets are bounded-/
-lemma bounded_in_compact_space [compact_space α] : bounded s :=
-bounded_of_subset_of_bounded (subset_univ _) (bounded_of_compact compact_univ)
+/-- In a compact space, all sets are bounded -/
+lemma bounded_of_compact_space [compact_space α] : bounded s :=
+(bounded_of_compact compact_univ).subset (subset_univ _)
 
-/--In a proper space, a set is compact if and only if it is closed and bounded-/
+/-- In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [proper_space α] :
-  compact s ↔ (is_closed s ∧ bounded s) :=
-⟨λ h, ⟨closed_of_compact _ h, bounded_of_compact h⟩,
-assume ⟨hc, hb⟩,
-have A : s = ∅ → compact s := by simp [compact_empty] {contextual := tt},
-have B : s ≠ ∅ → compact s,
-{ assume ne,
-  rcases exists_mem_of_ne_empty ne with ⟨x, hx⟩,
-  rcases subset_ball_of_bounded x hb with ⟨r, hr⟩,
-  exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr },
-classical.by_cases A B⟩
+  compact s ↔ is_closed s ∧ bounded s :=
+⟨λ h, ⟨closed_of_compact _ h, bounded_of_compact h⟩, begin
+  rintro ⟨hc, hb⟩,
+  classical, by_cases s = ∅, {simp [h, compact_empty]},
+  rcases exists_mem_of_ne_empty h with ⟨x, hx⟩,
+  rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
+  exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
+end⟩
 
 end bounded

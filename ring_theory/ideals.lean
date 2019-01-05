@@ -327,5 +327,33 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
     exact classical.some_spec (exists_inv ha),
   ..quotient.integral_domain I }
 
+variable [comm_ring β]
+
+def lift (S : ideal α) (f : α → β) [is_ring_hom f] (H : ∀ (a : α), a ∈ S → f a = 0) :
+  quotient S → β :=
+λ x, quotient.lift_on' x f $ λ (a b) (h : _ ∈ _),
+eq_of_sub_eq_zero (by simpa only [is_ring_hom.map_sub f] using H _ h)
+
+variables {S : ideal α} {f : α → β} [is_ring_hom f] {H : ∀ (a : α), a ∈ S → f a = 0}
+
+@[simp] lemma lift_mk : lift S f H (mk S a) = f a := rfl
+
+instance : is_ring_hom (lift S f H) :=
+{ map_one := by show lift S f H (mk S 1) = 1; simp [is_ring_hom.map_one f, - mk_one],
+  map_add := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ $ λ a₁ a₂, begin
+    show lift S f H (mk S a₁ + mk S a₂) = lift S f H (mk S a₁) + lift S f H (mk S a₂),
+    have := ideal.quotient.is_ring_hom_mk S,
+    rw ← this.map_add,
+    show lift S f H (mk S (a₁ + a₂)) = lift S f H (mk S a₁) + lift S f H (mk S a₂),
+    simp only [lift_mk, is_ring_hom.map_add f],
+  end,
+  map_mul := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ $ λ a₁ a₂, begin
+    show lift S f H (mk S a₁ * mk S a₂) = lift S f H (mk S a₁) * lift S f H (mk S a₂),
+    have := ideal.quotient.is_ring_hom_mk S,
+    rw ← this.map_mul,
+    show lift S f H (mk S (a₁ * a₂)) = lift S f H (mk S a₁) * lift S f H (mk S a₂),
+    simp only [lift_mk, is_ring_hom.map_mul f],
+  end }
+
 end quotient
 end ideal

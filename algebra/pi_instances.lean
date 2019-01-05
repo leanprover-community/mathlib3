@@ -11,7 +11,7 @@ import data.finset
 import tactic.pi_instances
 
 namespace pi
-universes u v
+universes u v w
 variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equiped with instances
 variables (x y : Π i, f i) (i : I)
@@ -105,6 +105,21 @@ lemma finset_prod_apply {α : Type*} {β γ} [comm_monoid β] (a : α) (s : fins
   s.prod g a = s.prod (λc, g c a) :=
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
+
+def is_ring_hom_pi
+  {α : Type u} {β : α → Type v} [R : Π a : α, ring (β a)]
+  {γ : Type w} [ring γ]
+  (f : Π a : α, γ → β a) [Rh : Π a : α, is_ring_hom (f a)] :
+  is_ring_hom (λ x b, f b x) :=
+begin
+  dsimp at *,
+  split,
+  -- It's a pity that these can't be done using `simp` lemmas.
+  { ext, rw [is_ring_hom.map_one (f x)], refl, },
+  { intros x y, ext1 z, rw [is_ring_hom.map_mul (f z)], refl, },
+  { intros x y, ext1 z, rw [is_ring_hom.map_add (f z)], refl, }
+end
+
 
 end pi
 

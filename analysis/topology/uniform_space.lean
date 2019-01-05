@@ -238,9 +238,9 @@ calc uniformity.lift' (λd, comp_rel d (comp_rel d d)) =
   ... ≤ uniformity : comp_le_uniformity
 
 lemma mem_nhds_uniformity_iff {x : α} {s : set α} :
-  (s ∈ (nhds x).sets) ↔ ({p : α × α | p.1 = x → p.2 ∈ s} ∈ (@uniformity α _).sets) :=
+  s ∈ (nhds x).sets ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ (@uniformity α _).sets :=
 ⟨ begin
-    simp [mem_nhds_sets_iff, is_open_uniformity],
+    simp only [mem_nhds_sets_iff, is_open_uniformity, and_imp, exists_imp_distrib],
     exact assume t ts ht xt, by filter_upwards [ht x xt] assume ⟨x', y⟩ h eq, ts $ h eq
   end,
 
@@ -1326,6 +1326,8 @@ begin
      ... ≤ nhds y : map_comap_le
 end
 
+section prod
+
 /- a similar product space is possible on the function space (uniformity of pointwise convergence),
   but we want to have the uniformity of uniform convergence on function spaces -/
 instance [u₁ : uniform_space α] [u₂ : uniform_space β] : uniform_space (α × β) :=
@@ -1428,9 +1430,89 @@ lemma to_topological_space_prod [u : uniform_space α] [v : uniform_space β] :
   @uniform_space.to_topological_space (α × β) prod.uniform_space =
     @prod.topological_space α β u.to_topological_space v.to_topological_space := rfl
 
+end prod
+
 lemma to_topological_space_subtype [u : uniform_space α] {p : α → Prop} :
   @uniform_space.to_topological_space (subtype p) subtype.uniform_space =
     @subtype.topological_space α p u.to_topological_space := rfl
+
+section sum
+variables [uniform_space α] [uniform_space β]
+open sum
+
+/-- Uniformity on a disjoint union. Entourages of the diagonal in the union are obtained
+by taking independently an entourage of the diagonal in the first part, and an entourage of
+the diagonal in the second part. -/
+def uniform_space.core.sum : uniform_space.core (α ⊕ β) :=
+uniform_space.core.mk'
+  (map (λ p : α × α, (inl p.1, inl p.2)) uniformity ⊔ map (λ p : β × β, (inr p.1, inr p.2)) uniformity)
+  (λ r ⟨H₁, H₂⟩ x, by cases x; [apply refl_mem_uniformity H₁, apply refl_mem_uniformity H₂])
+  (λ r ⟨H₁, H₂⟩, ⟨symm_le_uniformity H₁, symm_le_uniformity H₂⟩)
+  (λ r ⟨Hrα, Hrβ⟩, begin
+    rcases comp_mem_uniformity_sets Hrα with ⟨tα, htα, Htα⟩,
+    rcases comp_mem_uniformity_sets Hrβ with ⟨tβ, htβ, Htβ⟩,
+    refine ⟨_,
+      ⟨mem_map_sets_iff.2 ⟨tα, htα, subset_union_left _ _⟩,
+       mem_map_sets_iff.2 ⟨tβ, htβ, subset_union_right _ _⟩⟩, _⟩,
+    rintros ⟨_, _⟩ ⟨z, ⟨⟨a, b⟩, hab, ⟨⟩⟩ | ⟨⟨a, b⟩, hab, ⟨⟩⟩,
+                       ⟨⟨_, c⟩, hbc, ⟨⟩⟩ | ⟨⟨_, c⟩, hbc, ⟨⟩⟩⟩,
+    { have A : (a, c) ∈ comp_rel tα tα := ⟨b, hab, hbc⟩,
+      exact Htα A },
+    { have A : (a, c) ∈ comp_rel tβ tβ := ⟨b, hab, hbc⟩,
+      exact Htβ A }
+  end)
+
+/-- The union of an entourage of the diagonal in each set of a disjoint union is again an entourage of the diagonal. -/
+lemma union_mem_uniformity_sum
+  {a : set (α × α)} (ha : a ∈ (@uniformity α _).sets) {b : set (β × β)} (hb : b ∈ (@uniformity β _).sets) :
+  ((λ p : (α × α), (inl p.1, inl p.2)) '' a ∪ (λ p : (β × β), (inr p.1, inr p.2)) '' b) ∈ (@uniform_space.core.sum α β _ _).uniformity.sets :=
+⟨mem_map_sets_iff.2 ⟨_, ha, subset_union_left _ _⟩, mem_map_sets_iff.2 ⟨_, hb, subset_union_right _ _⟩⟩
+
+/- To prove that the topology defined by the uniform structure on the disjoint union coincides with
+the disjoint union topology, we need two lemmas saying that open sets can be characterized by
+the uniform structure -/
+lemma uniformity_sum_of_open_aux {s : set (α ⊕ β)} (hs : is_open s) {x : α ⊕ β} (xs : x ∈ s) :
+  { p : ((α ⊕ β) × (α ⊕ β)) | p.1 = x → p.2 ∈ s } ∈ (@uniform_space.core.sum α β _ _).uniformity.sets :=
+begin
+  cases x,
+  { refine mem_sets_of_superset
+      (union_mem_uniformity_sum (mem_nhds_uniformity_iff.1 (mem_nhds_sets hs.1 xs)) univ_mem_sets)
+      (union_subset _ _);
+    rintro _ ⟨⟨_, b⟩, h, ⟨⟩⟩ ⟨⟩,
+    exact h rfl },
+  { refine mem_sets_of_superset
+      (union_mem_uniformity_sum univ_mem_sets (mem_nhds_uniformity_iff.1 (mem_nhds_sets hs.2 xs)))
+      (union_subset _ _);
+    rintro _ ⟨⟨a, _⟩, h, ⟨⟩⟩ ⟨⟩,
+    exact h rfl },
+end
+
+lemma open_of_uniformity_sum_aux {s : set (α ⊕ β)}
+  (hs : ∀x ∈ s, { p : ((α ⊕ β) × (α ⊕ β)) | p.1 = x → p.2 ∈ s } ∈ (@uniform_space.core.sum α β _ _).uniformity.sets) :
+  is_open s :=
+begin
+  split,
+  { refine (@is_open_iff_mem_nhds α _ _).2 (λ a ha, mem_nhds_uniformity_iff.2 _),
+    rcases mem_map_sets_iff.1 (hs _ ha).1 with ⟨t, ht, st⟩,
+    refine mem_sets_of_superset ht _,
+    rintro p pt rfl, exact st ⟨_, pt, rfl⟩ rfl },
+  { refine (@is_open_iff_mem_nhds β _ _).2 (λ b hb, mem_nhds_uniformity_iff.2 _),
+    rcases mem_map_sets_iff.1 (hs _ hb).2 with ⟨t, ht, st⟩,
+    refine mem_sets_of_superset ht _,
+    rintro p pt rfl, exact st ⟨_, pt, rfl⟩ rfl }
+end
+
+/- We can now define the uniform structure on the disjoint union -/
+instance sum.uniform_space [u₁ : uniform_space α] [u₂ : uniform_space β] : uniform_space (α ⊕ β) :=
+{ to_core := uniform_space.core.sum,
+  is_open_uniformity := λ s, ⟨uniformity_sum_of_open_aux, open_of_uniformity_sum_aux⟩ }
+
+lemma sum.uniformity [uniform_space α] [uniform_space β] :
+  @uniformity (α ⊕ β) _ =
+    map (λ p : α × α, (inl p.1, inl p.2)) uniformity ⊔
+    map (λ p : β × β, (inr p.1, inr p.2)) uniformity := rfl
+
+end sum
 
 end constructions
 

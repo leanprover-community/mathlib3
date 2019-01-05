@@ -163,6 +163,11 @@ set.fintype_singleton
 theorem finite_pure (a : α) : finite (pure a : set α) :=
 ⟨set.fintype_pure a⟩
 
+instance fintype_univ [fintype α] : fintype (@univ α) :=
+fintype_of_finset finset.univ $ λ _, iff_true_intro (finset.mem_univ _)
+
+theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
+
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
 fintype_of_finset (s.to_finset ∪ t.to_finset) $ by simp
 
@@ -351,5 +356,10 @@ lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
 classical.by_contradiction (λ h, lt_irrefl (fintype.card t)
   (have fintype.card s < fintype.card t := set.card_lt_card ⟨hsub, h⟩,
     by rwa [le_antisymm (card_le_of_subset hsub) hcard] at this))
+
+lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
+  [fintype (range f)] : fintype.card (range f) = fintype.card α :=
+eq.symm $ fintype.card_congr (@equiv.of_bijective  _ _ (λ a : α, show range f, from ⟨f a, a, rfl⟩)
+  ⟨λ x y h, hf $ subtype.mk.inj h, λ b, let ⟨a, ha⟩ := b.2 in ⟨a, by simp *⟩⟩)
 
 end set

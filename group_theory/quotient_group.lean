@@ -9,9 +9,9 @@ import group_theory.coset
 
 universes u v
 
-variables {G : Type u} [group G] (N : set G) [normal_subgroup N] {H : Type v} [group H]
-
 namespace quotient_group
+
+variables {G : Type u} [group G] (N : set G) [normal_subgroup N] {H : Type v} [group H]
 
 instance : group (quotient N) :=
 { one := (1 : G),
@@ -134,4 +134,33 @@ assume a b, quotient.induction_on₂' a b $ assume a b (h : φ a = φ b), quotie
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker φ,
   is_group_hom.mul φ, ← h, is_group_hom.inv φ, inv_mul_self]
 
+--@[to_additive quotient_add_group.quotient_ker_equiv_range]
+noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
+@equiv.of_bijective _ (set.range φ) (λ x, ⟨lift (ker φ) φ
+  (by simp [mem_ker]) x, by exact quotient.induction_on' x (λ x, ⟨x, rfl⟩)⟩)
+⟨λ a b h, injective_ker_lift _ (subtype.mk.inj h),
+  λ ⟨x, y, hy⟩, ⟨mk y, subtype.eq hy⟩⟩
+
+noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
+  (quotient (ker φ)) ≃ H :=
+calc (quotient_group.quotient (is_group_hom.ker φ)) ≃ set.range φ : quotient_ker_equiv_range _
+... ≃ H : ⟨λ a, a.1, λ b, ⟨b, hφ b⟩, λ ⟨_, _⟩, rfl, λ _, rfl⟩
+
 end quotient_group
+
+namespace quotient_add_group
+open is_add_group_hom
+
+variables {G : Type u} [_root_.add_group G] (N : set G) [normal_add_subgroup N] {H : Type v} [_root_.add_group H]
+variables (φ : G → H) [_root_.is_add_group_hom φ]
+
+noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
+@quotient_group.quotient_ker_equiv_range (multiplicative G) _ (multiplicative H) _ φ _
+
+noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) : (quotient (ker φ)) ≃ H :=
+@quotient_group.quotient_ker_equiv_of_surjective (multiplicative G) _ (multiplicative H) _ φ _ hφ
+
+attribute [to_additive quotient_add_group.quotient_ker_equiv_range] quotient_group.quotient_ker_equiv_range
+attribute [to_additive quotient_add_group.quotient_ker_equiv_of_surjective] quotient_group.quotient_ker_equiv_of_surjective
+
+end quotient_add_group

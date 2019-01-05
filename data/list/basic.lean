@@ -3316,9 +3316,9 @@ end
 
 lemma forall_of_pairwise (H : symmetric R) {l : list α}
    (hl : pairwise R l) : (∀a∈l, ∀b∈l, a ≠ b → R a b) :=
-forall_of_forall_of_pairwise
-  (λ a b h hne, H (h hne.symm))
-  (λ _ _ h, (h rfl).elim)
+forall_of_forall_of_pairwise 
+  (λ a b h hne, H (h hne.symm)) 
+  (λ _ _ h, (h rfl).elim) 
   (pairwise.imp (λ _ _ h _, h) hl)
 
 theorem pairwise_singleton (R) (a : α) : pairwise R [a] :=

@@ -154,7 +154,7 @@ section
 variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟹ R₂}
 @[simp] lemma map_right_obj_left  : ((map_right L r).obj X).left  = X.left                 := rfl
 @[simp] lemma map_right_obj_right : ((map_right L r).obj X).right = X.right                := rfl
-@[simp] lemma map_right_obj_hom   : ((map_right L r).obj X).hom   = X.hom ≫ r.app X.right := rfl
+@[simp] lemma map_right_obj_hom   : ((map_right L r).obj X).hom   = X.hom ≫ r.app X.right  := rfl
 @[simp] lemma map_right_map_left  : ((map_right L r).map f).left  = f.left                 := rfl
 @[simp] lemma map_right_map_right : ((map_right L r).map f).right = f.right                := rfl
 end
@@ -193,7 +193,9 @@ end comma
 
 omit 𝒜 ℬ
 
-def over (X : T) := comma.{u₃ v₃ 0 0 u₃ v₃} (functor.id T) (functor.of.obj X)
+set_option pp.universes true
+
+def over (X : T) := comma.{v₃ 0 v₃} (functor.id T) (functor.of.obj X)
 
 namespace over
 
@@ -237,7 +239,7 @@ end
 
 end over
 
-def under (X : T) := comma.{0 0 u₃ v₃ u₃ v₃} (functor.of.obj X) (functor.id T)
+def under (X : T) := comma.{0 v₃ v₃} (functor.of.obj X) (functor.id T)
 
 namespace under
 

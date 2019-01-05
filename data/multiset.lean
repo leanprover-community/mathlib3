@@ -765,6 +765,17 @@ lemma sum_map_mul_right [semiring β] {b : β} {s : multiset α} {f : α → β}
   sum (s.map (λa, f a * b)) = sum (s.map f) * b :=
 multiset.induction_on s (by simp) (assume a s ih, by simp [ih, add_mul])
 
+lemma prod_hom [comm_monoid α] [comm_monoid β] (f : α → β) [is_monoid_hom f] (s : multiset α) :
+  (s.map f).prod = f s.prod :=
+multiset.induction_on s (by simp [is_monoid_hom.map_one f])
+  (by simp [is_monoid_hom.map_mul f] {contextual := tt})
+
+lemma sum_hom [add_comm_monoid α] [add_comm_monoid β] (f : α → β) [is_add_monoid_hom f] (s : multiset α) :
+  (s.map f).sum = f s.sum :=
+multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])
+  (by simp [is_add_monoid_hom.map_add f] {contextual := tt})
+attribute [to_additive multiset.sum_hom] multiset.prod_hom
+
 /- join -/
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
@@ -1939,6 +1950,18 @@ by apply rel_join; apply rel_map; assumption
 lemma card_eq_card_of_rel {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
   card s = card t :=
 by induction h; simp [*]
+
+lemma exists_mem_of_rel_of_mem {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
+  ∀ {a : α} (ha : a ∈ s), ∃ b ∈ t, r a b :=
+begin
+  induction h with x y s t hxy hst ih,
+  { simp },
+  { assume a ha,
+    cases mem_cons.1 ha with ha ha,
+    { exact ⟨y, mem_cons_self _ _, ha.symm ▸ hxy⟩ },
+    { rcases ih ha with ⟨b, hbt, hab⟩,
+      exact ⟨b, mem_cons.2 (or.inr hbt), hab⟩ } }
+end
 
 end rel
 

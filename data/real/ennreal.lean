@@ -84,6 +84,8 @@ by intro h; cases h; simp [h]⟩
 @[simp] lemma zero_eq_coe : 0 = (↑r : ennreal) ↔ 0 = r := coe_eq_coe
 @[simp] lemma coe_eq_one : (↑r : ennreal) = 1 ↔ r = 1 := coe_eq_coe
 @[simp] lemma one_eq_coe : 1 = (↑r : ennreal) ↔ 1 = r := coe_eq_coe
+@[simp] lemma coe_nonneg : 0 ≤ (↑r : ennreal) ↔ 0 ≤ r := coe_le_coe
+@[simp] lemma coe_pos : 0 < (↑r : ennreal) ↔ 0 < r := coe_lt_coe
 
 @[simp] lemma coe_add : ↑(r + p) = (r + p : ennreal) := with_top.coe_add
 @[simp] lemma coe_mul : ↑(r * p) = (r * p : ennreal) := with_top.coe_mul
@@ -161,7 +163,7 @@ lemma le_of_forall_epsilon_le : ∀{a b : ennreal}, (∀ε:nnreal, ε > 0 → b 
     by simp only [none_eq_top, some_eq_coe, coe_add.symm, coe_le_coe, coe_lt_top, true_implies_iff] at *;
       exact nnreal.le_of_forall_epsilon_le h
 
-protected lemma lt_iff_exists_rat_btwn :
+lemma lt_iff_exists_rat_btwn :
   a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < nnreal.of_real q ∧ (nnreal.of_real q:ennreal) < b) :=
 ⟨λ h,
   begin
@@ -171,6 +173,12 @@ protected lemma lt_iff_exists_rat_btwn :
     rcases (nnreal.lt_iff_exists_rat_btwn _ _).1 (coe_lt_coe.1 pc) with ⟨q, hq0, pq, qr⟩,
     exact ⟨q, hq0, coe_lt_coe.2 pq, lt_trans (coe_lt_coe.2 qr) cb⟩
   end,
+λ ⟨q, q0, qa, qb⟩, lt_trans qa qb⟩
+
+lemma lt_iff_exists_real_btwn :
+  a < b ↔ (∃r:ℝ, 0 ≤ r ∧ a < nnreal.of_real r ∧ (nnreal.of_real r:ennreal) < b) :=
+⟨λ h, let ⟨q, q0, aq, qb⟩ := ennreal.lt_iff_exists_rat_btwn.1 h in
+  ⟨q, rat.cast_nonneg.2 q0, aq, qb⟩,
 λ ⟨q, q0, qa, qb⟩, lt_trans qa qb⟩
 
 protected lemma exists_nat_gt {r : ennreal} (h : r ≠ ⊤) : ∃n:ℕ, r < n :=

@@ -779,6 +779,9 @@ lemma totally_bounded_subset [uniform_space α] {s₁ s₂ : set α} (hs : s₁ 
   (h : totally_bounded s₂) : totally_bounded s₁ :=
 assume d hd, let ⟨t, ht₁, ht₂⟩ := h d hd in ⟨t, ht₁, subset.trans hs ht₂⟩
 
+lemma totally_bounded_empty [uniform_space α] : totally_bounded (∅ : set α) :=
+λ d hd, ⟨∅, finite_empty, empty_subset _⟩
+
 lemma totally_bounded_closure [uniform_space α] {s : set α} (h : totally_bounded s) :
   totally_bounded (closure s) :=
 assume t ht,

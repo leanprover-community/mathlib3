@@ -131,7 +131,7 @@ begin
   have : ε / 2 > 0, from div_pos hε (by norm_num),
   have : ∃ n : ℕ, 1 / (↑n + 1) < ε / 2, from exists_nat_one_div_lt this,
   cases this with n hnε,
-  cases (tendsto_at_top_metric _).1 H _ this with n2 hn2,
+  cases tendsto_at_top_metric.1 H _ this with n2 hn2,
   let N := max n n2,
   have hNε : 1 / (↑N+1) < ε / 2,
   { apply lt_of_le_of_lt _ hnε,

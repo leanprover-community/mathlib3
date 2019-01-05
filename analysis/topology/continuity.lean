@@ -52,6 +52,9 @@ lemma continuous_iff_tendsto {f : α → β} :
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_tendsto.mpr $ assume a, tendsto_const_nhds
 
+lemma continuous_of_discrete_topology [discrete_topology α] {f : α → β} : continuous f :=
+λs hs, is_open_discrete _
+
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
 ⟨assume hf s hs, hf (-s) hs,
@@ -918,6 +921,9 @@ compact_iff_compact_image_of_embedding embedding_subtype_val
 
 lemma compact_iff_compact_univ {s : set α} : compact s ↔ compact (univ : set (subtype s)) :=
 by rw [compact_iff_compact_in_subtype, image_univ, subtype_val_range]; refl
+
+lemma compact_iff_compact_space {s : set α} : compact s ↔ compact_space s :=
+compact_iff_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
 
 end subtype
 

@@ -954,6 +954,10 @@ lemma num_ne_zero_of_ne_zero {q : ℚ} (h : q ≠ 0) : q.num ≠ 0 :=
 assume : q.num = 0,
 h $ zero_of_num_zero this
 
+@[simp] lemma num_one : (1 : ℚ).num = 1 := rfl
+
+@[simp] lemma denom_one : (1 : ℚ).denom = 1 := rfl
+
 lemma denom_ne_zero (q : ℚ) : q.denom ≠ 0 :=
 ne_of_gt q.pos
 
@@ -1040,6 +1044,13 @@ begin
         mul_one, zero_mul] at hq,
     rw [int.nat_abs_of_nonneg hq, ← num_denom q] }
 end
+
+lemma add_num_denom (q r : ℚ) : q + r =
+  ((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom * ↑r.denom : ℤ) :=
+have hqd : (q.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 q.3,
+have hrd : (r.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 r.3,
+by conv { to_lhs, rw [rat.num_denom q, rat.num_denom r, rat.add_def hqd hrd] };
+  simp [mul_comm]
 
 def sqrt (q : ℚ) : ℚ :=
 rat.mk (int.sqrt q.num) (nat.sqrt q.denom)

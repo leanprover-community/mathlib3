@@ -264,6 +264,11 @@ subset.antisymm
   (by simp [set.subset_def, is_submonoid.one_mem])
   (group.closure_subset $ by simp)
 
+lemma eq_trivial_iff {H : set α} [is_subgroup H] :
+  H = trivial α ↔ (∀ x ∈ H, x = (1 : α)) :=
+by simp only [set.ext_iff, is_subgroup.mem_trivial];
+  exact ⟨λ h x, (h x).1, λ h x, ⟨h x, λ hx, hx.symm ▸ is_submonoid.one_mem H⟩⟩
+
 instance univ_subgroup : normal_subgroup (@univ α) :=
 by refine {..}; simp
 
@@ -326,6 +331,8 @@ multiplicative.normal_subgroup_iff.1 is_subgroup.trivial_normal
 attribute [to_additive is_add_subgroup.trivial_normal] is_subgroup.trivial_normal
 
 attribute [to_additive is_add_subgroup.trivial_eq_closure] is_subgroup.trivial_eq_closure
+
+attribute [to_additive is_add_subgroup.eq_trivial_iff] is_subgroup.eq_trivial_iff
 
 instance univ_add_subgroup : normal_add_subgroup (@univ α) :=
 multiplicative.normal_subgroup_iff.1 is_subgroup.univ_subgroup
@@ -438,3 +445,54 @@ instance (s : set α) [is_subgroup s] : is_group_hom (subtype.val : s → α) :=
 ⟨λ _ _, rfl⟩
 
 end is_group_hom
+
+section simple_group
+
+class simple_group (α : Type*) [group α] : Prop :=
+(simple : ∀ (N : set α) [normal_subgroup N], N = is_subgroup.trivial α ∨ N = set.univ)
+
+class simple_add_group (α : Type*) [add_group α] : Prop :=
+(simple : ∀ (N : set α) [normal_add_subgroup N], N = is_add_subgroup.trivial α ∨ N = set.univ)
+
+attribute [to_additive simple_add_group] simple_group
+
+theorem additive.simple_add_group_iff [group α] :
+  simple_add_group (additive α) ↔ simple_group α :=
+⟨λ hs, ⟨λ N h, @simple_add_group.simple _ _ hs _ (by exactI additive.normal_add_subgroup_iff.2 h)⟩,
+  λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI additive.normal_add_subgroup_iff.1 h)⟩⟩
+
+instance additive.simple_add_group [group α] [simple_group α] :
+  simple_add_group (additive α) := additive.simple_add_group_iff.2 (by apply_instance)
+
+theorem multiplicative.simple_group_iff [add_group α] :
+  simple_group (multiplicative α) ↔ simple_add_group α :=
+⟨λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.2 h)⟩,
+  λ hs, ⟨λ N h, @simple_add_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.1 h)⟩⟩
+
+instance multiplicative.simple_group [add_group α] [simple_add_group α] :
+simple_group (multiplicative α) := multiplicative.simple_group_iff.2 (by apply_instance)
+
+lemma simple_group_of_surjective [group α] [group β] [simple_group α] (f : α → β)
+  [is_group_hom f] (hf : function.surjective f) : simple_group β :=
+⟨λ H iH, have normal_subgroup (f ⁻¹' H), by resetI; apply_instance,
+  begin
+    resetI,
+    cases simple_group.simple (f ⁻¹' H) with h h,
+    { refine or.inl (is_subgroup.eq_trivial_iff.2 (λ x hx, _)),
+      cases hf x with y hy,
+      rw ← hy at hx,
+      rw [← hy, is_subgroup.eq_trivial_iff.1 h y hx, is_group_hom.one f] },
+    { refine or.inr (set.eq_univ_of_forall (λ x, _)),
+      cases hf x with y hy,
+      rw set.eq_univ_iff_forall at h,
+      rw ← hy,
+      exact h y }
+  end⟩
+
+lemma simple_add_group_of_surjective [add_group α] [add_group β] [simple_add_group α] (f : α → β)
+  [is_add_group_hom f] (hf : function.surjective f) : simple_add_group β :=
+multiplicative.simple_group_iff.1 (@simple_group_of_surjective (multiplicative α) (multiplicative β) _ _ _ f _ hf)
+
+attribute [to_additive simple_add_group_of_surjective] simple_group_of_surjective
+
+end simple_group

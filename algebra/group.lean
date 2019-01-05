@@ -577,6 +577,8 @@ section add_comm_group
 
   theorem neg_add' (a b : α) : -(a + b) = -a - b := neg_add a b
 
+  lemma neg_sub_neg (a b : α) : -a - -b = b - a := by simp
+
   lemma eq_sub_iff_add_eq' : a = b - c ↔ c + a = b :=
   by rw [eq_sub_iff_add_eq, add_comm]
 

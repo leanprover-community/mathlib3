@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2018 Chris Hughes. All rights reserved.
+Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
@@ -119,6 +119,9 @@ meta def exact_reflect {α : Sort*} [has_reflect α] (a : α) : tactic unit :=
 tactic.exact `(a)
 
 end meta_
+#print expr.has_meta_var
+
+#eval expr.has_meta_var `(conjugacy_classes_A5_meta)
 
 @[irreducible] def conjugacy_classes_A5_aux : multiset (Σ a : A5, multiset
   {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1}) :=

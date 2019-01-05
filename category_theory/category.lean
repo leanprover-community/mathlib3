@@ -21,7 +21,7 @@ import tactic.tidy
 
 namespace category_theory
 
-universes u v
+universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
 
 /-
 The propositional fields of `category` are annotated with the auto_param `obviously`,
@@ -36,16 +36,19 @@ def_replacer obviously
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
-specified explicitly, as `category.{u v} C`. (See also `large_category` and `small_category`.)
+specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
 -/
 class category (obj : Type u) : Type (max u (v+1)) :=
 (hom      : obj → obj → Type v)
-(id       : Π X : obj, hom X X)
-(comp     : Π {X Y Z : obj}, hom X Y → hom Y Z → hom X Z)
-(id_comp' : ∀ {X Y : obj} (f : hom X Y), comp (id X) f = f . obviously)
-(comp_id' : ∀ {X Y : obj} (f : hom X Y), comp f (id Y) = f . obviously)
-(assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
-  comp (comp f g) h = comp f (comp g h) . obviously)
+(infixr ` ⟶ `:10 := hom)
+(id       : Π X : obj, X ⟶ X)
+(notation `𝟙` := id)
+(comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
+(infixr ` ≫ `:80 := comp)
+(id_comp' : ∀ {X Y : obj} (f : X ⟶ Y), 𝟙 X ≫ f = f . obviously)
+(comp_id' : ∀ {X Y : obj} (f : X ⟶ Y), f ≫ 𝟙 Y = f . obviously)
+(assoc'   : ∀ {W X Y Z : obj} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z),
+  (f ≫ g) ≫ h = f ≫ (g ≫ h) . obviously)
 
 notation `𝟙` := category.id -- type as \b1
 infixr ` ≫ `:80 := category.comp -- type as \gg
@@ -60,7 +63,7 @@ restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
 attribute [trans] category.comp
 
-lemma category.assoc_symm {C : Type u} [category.{u v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
+lemma category.assoc_symm {C : Type u} [category.{v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
   f ≫ (g ≫ h) = (f ≫ g) ≫ h :=
 by rw ←category.assoc
 
@@ -69,11 +72,11 @@ A `large_category` has objects in one universe level higher than the universe le
 the morphisms. It is useful for examples such as the category of types, or the category
 of groups, etc.
 -/
-abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u+1 u} C
+abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u} C
 /--
 A `small_category` has objects and morphisms in the same universe level.
 -/
-abbreviation small_category (C : Type u)     : Type (u+1) := category.{u u} C
+abbreviation small_category (C : Type u)     : Type (u+1) := category.{u} C
 
 structure bundled (c : Type u → Type v) :=
 (α : Type u)
@@ -120,7 +123,7 @@ instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (
   (⟨val, prop⟩ : R ⟶ S) r = val r := rfl
 
 section
-variables {C : Type u} [𝒞 : category.{u v} C] {X Y Z : C}
+variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
 include 𝒞
 
 class epi  (f : X ⟶ Y) : Prop :=
@@ -136,11 +139,11 @@ end
 
 section
 variable (C : Type u)
-variable [category.{u v} C]
+variable [category.{v} C]
 
 universe u'
 
-instance ulift_category : category.{(max u u') v} (ulift.{u'} C) :=
+instance ulift_category : category.{v} (ulift.{u'} C) :=
 { hom  := λ X Y, (X.down ⟶ Y.down),
   id   := λ X, 𝟙 X.down,
   comp := λ _ _ _ f g, f ≫ g }
@@ -157,7 +160,7 @@ instance [preorder α] : small_category α :=
   comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
 
 section
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 def End (X : C) := X ⟶ X

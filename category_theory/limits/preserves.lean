@@ -11,10 +11,10 @@ open category_theory
 
 namespace category_theory.limits
 
-universes u₁ u₂ u₃ v
+universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{u₁ v} C]
-variables {D : Type u₂} [𝒟 : category.{u₂ v} D]
+variables {C : Type u₁} [𝒞 : category.{v} C]
+variables {D : Type u₂} [𝒟 : category.{v} D]
 include 𝒞 𝒟
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
@@ -105,7 +105,7 @@ instance id_preserves_colimits : preserves_colimits (functor.id C) :=
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩
 
 section
-variables {E : Type u₃} [ℰ : category.{u₃ v} E]
+variables {E : Type u₃} [ℰ : category.{v} E]
 variables (F : C ⥤ D) (G : D ⥤ E)
 
 local attribute [elab_simple] preserves_limit.preserves preserves_colimit.preserves
@@ -198,7 +198,7 @@ instance id_reflects_colimits : reflects_colimits (functor.id C) :=
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩
 
 section
-variables {E : Type u₃} [ℰ : category.{u₃ v} E]
+variables {E : Type u₃} [ℰ : category.{v} E]
 variables (F : C ⥤ D) (G : D ⥤ E)
 
 instance comp_reflects_limit [reflects_limit K F] [reflects_limit (K ⋙ F) G] :

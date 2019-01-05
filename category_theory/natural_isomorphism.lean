@@ -9,9 +9,9 @@ open category_theory
 
 namespace category_theory.nat_iso
 
-universes u₁ u₂ v₁ v₂
+universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 def app {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
@@ -95,8 +95,8 @@ namespace category_theory.functor
 universes u₁ u₂ v₁ v₂
 
 section
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
-          {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+          {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 @[simp] protected def id_comp (F : C ⥤ D) : functor.id C ⋙ F ≅ F :=
@@ -108,8 +108,8 @@ include 𝒞 𝒟
 
 universes u₃ v₃ u₄ v₄
 
-variables {A : Type u₃} [𝒜 : category.{u₃ v₃} A]
-          {B : Type u₄} [ℬ : category.{u₄ v₄} B]
+variables {A : Type u₃} [𝒜 : category.{v₃} A]
+          {B : Type u₄} [ℬ : category.{v₄} B]
 include 𝒜 ℬ
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D)
 
@@ -123,14 +123,14 @@ variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D)
 end
 
 section
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-def ulift_down_up : ulift_down.{u₁ v₁ u₂} C ⋙ ulift_up C ≅ functor.id (ulift.{u₂} C) :=
+def ulift_down_up : ulift_down.{v₁} C ⋙ ulift_up C ≅ functor.id (ulift.{u₂} C) :=
 { hom := { app := λ X, @category.id (ulift.{u₂} C) _ X },
   inv := { app := λ X, @category.id (ulift.{u₂} C) _ X } }
 
-def ulift_up_down : ulift_up.{u₁ v₁ u₂} C ⋙ ulift_down C ≅ functor.id C :=
+def ulift_up_down : ulift_up.{v₁} C ⋙ ulift_down C ≅ functor.id C :=
 { hom := { app := λ X, 𝟙 X },
   inv := { app := λ X, 𝟙 X } }
 

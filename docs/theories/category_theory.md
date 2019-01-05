@@ -23,19 +23,24 @@ Unfortunately in a category theory library we have to deal with universes carefu
 
 ````
 category.{u₁ v₁}     : Type (max (u₁+1) (v₁+1))
-C                    : category.{u₁ v₁}
-D                    : category.{u₂ v₂}
+C                    : Type v₁
+D                    : Type v₂
+𝒞                    : category.{u₁ v₁} C
+𝒟                    : category.{u₂ v₂} D
 functor C D          : Type (max u₁ u₂ v₁ v₂)
 F G                  : functor C D
 nat_trans F G        : Type (max u₁ v₂)
 functor.category C D : category.{(max u₁ u₂ v₁ v₂) (max u₁ v₂)}
 ````
 
+In the above, `category.{u₁ v₁} C` is equivalently written as
+`category.{u₁} C` because `v₁` can be inferred from `C`.
+
 Note then that if we specialise to small categories, where `uᵢ = vᵢ`, then
-`functor.category C D : category.{(max u₁ u₂) (max u₁ u₂)}`, and so is again
+`functor.category C D : category.{max u₁ u₂}`, and so is again
 a small category. If `C` is a small category and `D` is a large category
 (i.e. `u₂ = v₂+1`), and `v₂ = v₁` then we have
-`functor.category C D : category.{v₁+1 v₁}` so is again a large category.
+`functor.category C D : category.{v₁+1}` so is again a large category.
 
 Whenever you want to write code uniformly for small and large categories
 (which you do by talking about categories whose universe levels `u` and `v`
@@ -43,8 +48,8 @@ are unrelated), you will find that Lean's `variable` mechanism doesn't always
 work, and the following trick is often helpful:
 
 ````
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
-variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 ````
 

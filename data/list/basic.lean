@@ -3316,13 +3316,10 @@ end
 
 lemma forall_of_pairwise (H : symmetric R) {l : list α}
    (hl : pairwise R l) : (∀a∈l, ∀b∈l, a ≠ b → R a b) :=
-list.pairwise.rec_on hl (λ a ha, (list.not_mem_nil a ha).elim)
-   (λ x l hxl hl ih y hyl z hzl hyz,
-    ((list.mem_cons_iff _ _ _).2 hyl).elim
-      (λ hyl, hyl.symm ▸ hxl _ (list.mem_of_ne_of_mem (by cc) hzl))
-      (λ hyl, ((list.mem_cons_iff _ _ _).2 hzl).elim
-        (λ hzl, @H z y (hzl.symm ▸ hxl _ hyl))
-        (λ hzl, ih _ hyl _ hzl hyz)))
+forall_of_forall_of_pairwise
+  (λ a b h hne, H (h hne.symm))
+  (λ _ _ h, (h rfl).elim)
+  (pairwise.imp (λ _ _ h _, h) hl)
 
 theorem pairwise_singleton (R) (a : α) : pairwise R [a] :=
 by simp only [pairwise_cons, mem_singleton, forall_prop_of_false (not_mem_nil _), forall_true_iff, pairwise.nil, and_true]

@@ -635,7 +635,7 @@ open function
 
 variables [fintype α] [decidable_eq α]
 variables [fintype β] [decidable_eq β]
-variables {f : α → β} 
+variables {f : α → β}
 
 /-- `
 `bij_inv f` is the unique inverse to a bijection `f`. This acts
@@ -656,7 +656,7 @@ lemma right_inverse_bij_inv (f_bij : bijective f) : right_inverse (bij_inv f_bij
 
 lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
 ⟨injective_of_left_inverse (right_inverse_bij_inv _),
-    surjective_of_has_right_inverse ⟨f, left_inverse_bij_inv _⟩⟩ 
+    surjective_of_has_right_inverse ⟨f, left_inverse_bij_inv _⟩⟩
 
 end bijection_inverse
 

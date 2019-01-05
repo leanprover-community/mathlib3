@@ -193,8 +193,6 @@ end comma
 
 omit 𝒜 ℬ
 
-set_option pp.universes true
-
 def over (X : T) := comma.{v₃ 0 v₃} (functor.id T) (functor.of.obj X)
 
 namespace over
@@ -235,6 +233,18 @@ variables {X Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 @[simp] lemma map_obj_left : ((map f).obj U).left = U.left := rfl
 @[simp] lemma map_obj_hom  : ((map f).obj U).hom  = U.hom ≫ f := rfl
 @[simp] lemma map_map_left : ((map f).map g).left = g.left := rfl
+end
+
+section
+variables {D : Type u₃} [Dcat : category.{v₃} D]
+include Dcat
+
+def post {X : T} (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
+{ obj := λ Y, mk $ F.map Y.hom,
+  map := λ Y₁ Y₂ f,
+  { left := F.map f.left,
+    w' := by tidy; erw [← F.map_comp, over_w] } }
+
 end
 
 end over
@@ -279,6 +289,18 @@ variables {X Y : T} {f : X ⟶ Y} {U V : under Y} {g : U ⟶ V}
 @[simp] lemma map_obj_right : ((map f).obj U).right = U.right := rfl
 @[simp] lemma map_obj_hom   : ((map f).obj U).hom   = f ≫ U.hom := rfl
 @[simp] lemma map_map_right : ((map f).map g).right = g.right := rfl
+end
+
+section
+variables {D : Type u₃} [Dcat : category.{v₃} D]
+include Dcat
+
+def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
+{ obj := λ Y, mk $ F.map Y.hom,
+  map := λ Y₁ Y₂ f,
+  { right := F.map f.right,
+    w' := by tidy; erw [← F.map_comp, under_w] } }
+
 end
 
 end under

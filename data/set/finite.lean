@@ -66,6 +66,9 @@ let ⟨s', h⟩ := hs.exists_finset in ⟨s', set.ext h⟩
 theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 ⟨fintype_of_finset s (λ _, iff.rfl)⟩
 
+theorem finite.of_fintype [fintype α] (s : set α) : finite s :=
+by classical; exact ⟨set_fintype s⟩
+
 instance decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
 decidable_of_iff _ mem_to_finset
 

@@ -12,7 +12,7 @@ import analysis.normed_space data.real.cau_seq_filter
 noncomputable theory
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 
-open set lattice filter
+open set lattice filter metric
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

@@ -1043,6 +1043,9 @@ range_iff_surjective.2 quot.exists_rep
   range (@subtype.val _ p) = {x | p x} :=
 by rw ← image_univ; simp [-image_univ, subtype_val_image]
 
+lemma range_const_subset {c : β} : range (λx:α, c) ⊆ {c} :=
+range_subset_iff.2 $ λ x, or.inl rfl
+
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/

@@ -434,6 +434,10 @@ by simpa using add_le_add_right (zero_le t) s
 @[simp] theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 quotient.induction_on₂ s t length_append
 
+lemma card_smul (s : multiset α) (n : ℕ) :
+  (n • s).card = n * s.card :=
+by induction n; simp [succ_smul, *, nat.succ_mul]
+
 @[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
 
@@ -1951,7 +1955,7 @@ lemma card_eq_card_of_rel {r : α → β → Prop} {s : multiset α} {t : multis
   card s = card t :=
 by induction h; simp [*]
 
-lemma exists_of_mem_of_rel {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
+lemma exists_mem_of_rel_of_mem {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
   ∀ {a : α} (ha : a ∈ s), ∃ b ∈ t, r a b :=
 begin
   induction h with x y s t hxy hst ih,
@@ -2130,6 +2134,10 @@ le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 lemma pairwise_of_nodup {r : α → α → Prop} {s : multiset α} :
   (∀a∈s, ∀b∈s, a ≠ b → r a b) → nodup s → pairwise r s :=
 quotient.induction_on s $ assume l h hl, ⟨l, rfl, hl.imp_of_mem $ assume a b ha hb, h a ha b hb⟩
+
+lemma forall_of_pairwise {r : α → α → Prop} (H : symmetric r) {s : multiset α}
+   (hs : pairwise r s) : (∀a∈s, ∀b∈s, a ≠ b → r a b) :=
+let ⟨l, hl₁, hl₂⟩ := hs in hl₁.symm ▸ list.forall_of_pairwise H hl₂
 
 theorem nodup_add {s t : multiset α} : nodup (s + t) ↔ nodup s ∧ nodup t ∧ disjoint s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append

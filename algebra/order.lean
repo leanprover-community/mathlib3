@@ -216,4 +216,25 @@ theorem compares_of_strict_mono {β} [linear_order α] [preorder β]
 | eq := ⟨λ h, injective_of_strict_mono _ H h, congr_arg _⟩
 | gt := lt_iff_lt_of_strict_mono f H
 
+theorem swap_or_else (o₁ o₂) : (or_else o₁ o₂).swap = or_else o₁.swap o₂.swap :=
+by cases o₁; try {refl}; cases o₂; refl
+
+theorem or_else_eq_lt (o₁ o₂) : or_else o₁ o₂ = lt ↔ o₁ = lt ∨ (o₁ = eq ∧ o₂ = lt) :=
+by cases o₁; cases o₂; exact dec_trivial
+
 end ordering
+
+theorem cmp_compares [decidable_linear_order α] (a b : α) : (cmp a b).compares a b :=
+begin
+  unfold cmp cmp_using,
+  by_cases a < b; simp [h],
+  by_cases h₂ : b < a; simp [h₂, gt],
+  exact (lt_or_eq_of_le (le_of_not_gt h₂)).resolve_left h
+end
+
+theorem cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
+begin
+  unfold cmp cmp_using,
+  by_cases a < b; by_cases h₂ : b < a; simp [h, h₂, gt, ordering.swap],
+  exact lt_asymm h h₂
+end

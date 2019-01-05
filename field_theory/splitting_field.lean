@@ -158,7 +158,7 @@ else
           by conv_rhs {rw [hs, ← leading_coeff_map i, mul_comm]}; refl⟩
         ... ~ᵤ _ : associated.symm (unique_factorization_domain.factors_prod (by simpa using hf0))),
   let ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd (by simpa) hp hdp in
-  let ⟨q', hq', hqq'⟩ := multiset.exists_of_mem_of_rel ht hq in
+  let ⟨q', hq', hqq'⟩ := multiset.exists_mem_of_rel_of_mem ht hq in
   let ⟨a, ha⟩ := multiset.mem_map.1 hq' in
   by rw [← degree_X_sub_C a, ha.2];
     exact degree_eq_degree_of_associated (hpq.trans hqq')

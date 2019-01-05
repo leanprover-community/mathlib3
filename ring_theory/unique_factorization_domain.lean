@@ -43,7 +43,7 @@ have multiset.rel associated (p :: factors b) (factors a),
         by rw multiset.prod_cons; exact associated_mul_mul
           (associated.refl _)
           (associated.symm (factors_prod hb0))),
-multiset.exists_of_mem_of_rel this (by simp)
+multiset.exists_mem_of_rel_of_mem this (by simp)
 
 end unique_factorization_domain
 
@@ -58,8 +58,6 @@ variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (a
 representation of each element as a unique multisets (or the added ⊤ for 0), which has a complete
 lattice struture. Infimum is the greatest common divisor and supremum is the least common multiple.
 -/
-
-
 @[reducible] def {u} factor_set (α : Type u) [integral_domain α] [unique_factorization_domain α] :
   Type u :=
 with_top (multiset { a : associates α // irreducible a })

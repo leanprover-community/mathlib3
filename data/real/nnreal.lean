@@ -268,6 +268,10 @@ of_real_lt_of_real_iff'.trans (and_iff_left h)
   nnreal.of_real (r + p) = nnreal.of_real r + nnreal.of_real p :=
 nnreal.eq $ by simp [nnreal.of_real, hr, hp, add_nonneg]
 
+lemma of_real_add_of_real {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
+  nnreal.of_real r + nnreal.of_real p = nnreal.of_real (r + p) :=
+(of_real_add hr hp).symm
+
 lemma of_real_le_of_real {r p : ℝ} (h : r ≤ p) : nnreal.of_real r ≤ nnreal.of_real p :=
 nnreal.coe_le.2 $ max_le_max h $ le_refl _
 

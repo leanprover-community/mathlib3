@@ -71,7 +71,7 @@ meta instance : has_reflect (perm (fin 5)) :=
   %%(fin_fun.has_reflect f.inv_fun)
   (of_as_true %%`(_root_.trivial)) (of_as_true %%`(_root_.trivial)))
 
-meta instance I1 : has_reflect (alternating (fin 5)) :=
+meta instance I1 : has_reflect A5 :=
 λ f, `(@subtype.mk (perm (fin 5)) (is_group_hom.ker (sign : perm (fin 5) → units ℤ))
    %%(@reflect (perm (fin 5)) f.1 (equiv.perm.has_reflect f.1))
   ((is_group_hom.mem_ker sign).2 %%`(@eq.refl (units ℤ) 1)))
@@ -80,38 +80,38 @@ meta instance multiset.has_reflect {α : Type} [reflected α] [has_reflect α] :
   has_reflect (multiset α) :=
 λ s, let l : list α := quot.unquot s in `(@quotient.mk.{1} (list %%`(α)) _ %%`(l))
 
-meta instance I2 (a : alternating (fin 5)) :
-  has_reflect {b : alternating (fin 5) × alternating (fin 5) // b.2 * a * b.2⁻¹ = b.1} :=
-λ b, `(@subtype.mk (alternating (fin 5) × alternating (fin 5))
+meta instance I2 (a : A5) :
+  has_reflect {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1} :=
+λ b, `(@subtype.mk (A5 × A5)
   (λ b, b.2 * %%`(a) * b.2⁻¹ = b.1)
   %%(prod.has_reflect _ _ b.1) (of_as_true %%`(_root_.trivial)))
 
-meta instance I3 (a : alternating (fin 5)) (m : reflected a) :
-  reflected {b : alternating (fin 5) × alternating (fin 5) // b.2 * a * b.2⁻¹ = b.1} :=
-`({b : alternating (fin 5) × alternating (fin 5) // b.2 * %%m * b.2⁻¹ = b.1})
+meta instance I3 (a : A5) (m : reflected a) :
+  reflected {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1} :=
+`({b : A5 × A5 // b.2 * %%m * b.2⁻¹ = b.1})
 
 meta instance I4 : has_reflect
-  (Σ a : alternating (fin 5), multiset
-  {b : alternating (fin 5) × alternating (fin 5) // b.2 * a * b.2⁻¹ = b.1}) :=
+  (Σ a : A5, multiset
+  {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1}) :=
 λ s, let ra : reflected s.1 := (I1 s.1) in
-`(let a : alternating (fin 5) := %%ra in
-  @sigma.mk (alternating (fin 5))
-    (λ a, multiset {b : alternating (fin 5) × alternating (fin 5) // b.2 * a * b.2⁻¹ = b.1})
+`(let a : A5 := %%ra in
+  @sigma.mk A5
+    (λ a, multiset {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1})
     a %%(@multiset.has_reflect _ (I3 s.1 ra) (I2 s.1) s.2))
 
-meta def conjugacy_classes_A5_meta_aux : list (alternating (fin 5)) → list
-  (Σ a : alternating (fin 5), list
-  {b : alternating (fin 5) × alternating (fin 5) // b.2 * a * b.2⁻¹ = b.1})
+meta def conjugacy_classes_A5_meta_aux : list A5 → list
+  (Σ a : A5, list
+  {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1})
 | [] := []
-| (a :: l) := let m : Σ a : alternating (fin 5), list
-    {b : alternating (fin 5) × alternating (fin 5) // b.2 * a * b.2⁻¹ = b.1} :=
-  ⟨a, ((quot.unquot (@univ (alternating (fin 5)) _).1).map
-  (λ x, show {b : alternating (fin 5) × alternating (fin 5) // b.2 * a * b.2⁻¹ = b.1},
+| (a :: l) := let m : Σ a : A5, list
+    {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1} :=
+  ⟨a, ((quot.unquot (@univ A5 _).1).map
+  (λ x, show {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1},
     from ⟨(x * a * x⁻¹, x), rfl⟩)).pw_filter (λ x y, x.1.1 ≠ y.1.1)⟩ in
 m :: conjugacy_classes_A5_meta_aux (l.diff (m.2.map (prod.fst ∘ subtype.val)))
 
-meta def conjugacy_classes_A5_meta : multiset (Σ a : alternating (fin 5), multiset
-  {b : alternating (fin 5) × alternating (fin 5) // b.2 * a * b.2⁻¹ = b.1}) :=
+meta def conjugacy_classes_A5_meta : multiset (Σ a : A5, multiset
+  {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1}) :=
 (quotient.mk ((conjugacy_classes_A5_meta_aux (quot.unquot univ.1)).map
     (λ a, ⟨a.1, (quotient.mk a.2)⟩)))
 
@@ -120,21 +120,21 @@ tactic.exact `(a)
 
 end meta_
 
-@[irreducible] def conjugacy_classes_A5_aux : multiset (Σ a : alternating (fin 5), multiset
-  {b : alternating (fin 5) × alternating (fin 5) // b.2 * a * b.2⁻¹ = b.1}) :=
+@[irreducible] def conjugacy_classes_A5_aux : multiset (Σ a : A5, multiset
+  {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1}) :=
 by exact_reflect (conjugacy_classes_A5_meta)
 
-def conjugacy_classes_A5_aux2 : multiset (multiset (alternating (fin 5))) :=
+def conjugacy_classes_A5_aux2 : multiset (multiset A5) :=
 conjugacy_classes_A5_aux.map (λ s, s.2.map (λ b, b.1.1))
 
 lemma nodup_conjugacy_classes_A5_aux2_bind : (conjugacy_classes_A5_aux2.bind id).nodup :=
 dec_trivial
 
-lemma nodup_conjugacy_classes_A5_aux2 : ∀ s : multiset (alternating (fin 5)),
+lemma nodup_conjugacy_classes_A5_aux2 : ∀ s : multiset A5,
   s ∈ conjugacy_classes_A5_aux2 → s.nodup :=
 (multiset.nodup_bind.1 nodup_conjugacy_classes_A5_aux2_bind).1
 
-def conjugacy_classes_A5 : finset (finset (alternating (fin 5))) :=
+def conjugacy_classes_A5 : finset (finset A5) :=
 ⟨conjugacy_classes_A5_aux2.pmap finset.mk nodup_conjugacy_classes_A5_aux2, dec_trivial⟩
 
 lemma nodup_conjugacy_classes_A5_bind : (conjugacy_classes_A5.1.bind finset.val).nodup :=

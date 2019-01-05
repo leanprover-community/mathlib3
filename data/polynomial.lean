@@ -512,6 +512,9 @@ begin
     rw [coeff_C, if_neg (nat.succ_ne_zero _), coeff_eq_zero_of_degree_lt this] }
 end
 
+lemma eq_C_of_degree_eq_zero (h : degree p = 0) : p = C (coeff p 0) :=
+eq_C_of_degree_le_zero (h ▸ le_refl _)
+
 lemma degree_add_le (p q : polynomial α) : degree (p + q) ≤ max (degree p) (degree q) :=
 calc degree (p + q) = ((p + q).support).sup some : rfl
   ... ≤ (p.support ∪ q.support).sup some : sup_mono support_add
@@ -1372,6 +1375,22 @@ by rw [nat_degree_one, nat_degree_mul_eq hp0 hq0, eq_comm,
     ← degree_eq_nat_degree hp0] at this;
   exact this.1
 
+@[simp] lemma degree_coe_units (u : units (polynomial α)) :
+  degree (u : polynomial α) = 0 :=
+degree_eq_zero_of_is_unit ⟨u, rfl⟩
+
+@[simp] lemma nat_degree_coe_units (u : units (polynomial α)) :
+  nat_degree (u : polynomial α) = 0 :=
+nat_degree_eq_of_degree_eq_some (degree_coe_units u)
+
+lemma coeff_coe_units_zero_ne_zero (u : units (polynomial α)) :
+  coeff (u : polynomial α) 0 ≠ 0 :=
+begin
+  conv in (0) {rw [← nat_degree_coe_units u]},
+  rw [← leading_coeff, ne.def, leading_coeff_eq_zero],
+  exact units.coe_ne_zero _
+end
+
 end integral_domain
 
 section field
@@ -1495,6 +1514,52 @@ have degree (p % q) < degree (q * (p / q)) :=
   ... ≤ _ : degree_le_mul_left _ (mt (div_eq_zero_iff hq0).1 (not_lt_of_ge hpq)),
 by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
     degree_add_eq_of_degree_lt this, degree_mul_eq]}
+
+lemma coeff_inv_units (u : units (polynomial α)) (n : ℕ) :
+  ((↑u : polynomial α).coeff n)⁻¹ = ((↑u⁻¹ : polynomial α).coeff n) :=
+begin
+  rw [eq_C_of_degree_eq_zero (degree_coe_units u), eq_C_of_degree_eq_zero (degree_coe_units u⁻¹),
+    coeff_C, coeff_C, inv_eq_one_div],
+  split_ifs,
+  { rw [div_eq_iff_mul_eq (coeff_coe_units_zero_ne_zero u), coeff_zero_eq_eval_zero,
+      coeff_zero_eq_eval_zero, ← eval_mul, ← units.coe_mul, inv_mul_self];
+    simp },
+  { simp }
+end
+
+instance : normalization_domain (polynomial α) :=
+{ norm_unit := λ p, if hp0 : p = 0 then 1
+    else ⟨C p.leading_coeff⁻¹, C p.leading_coeff,
+      by rw [← C_mul, inv_mul_cancel, C_1];
+       exact mt leading_coeff_eq_zero.1 hp0,
+      by rw [← C_mul, mul_inv_cancel, C_1];
+       exact mt leading_coeff_eq_zero.1 hp0,⟩,
+  norm_unit_zero := dif_pos rfl,
+  norm_unit_mul := λ p q hp0 hq0, begin
+      rw [dif_neg hp0, dif_neg hq0, dif_neg (mul_ne_zero hp0 hq0)],
+      apply units.ext,
+      show C (leading_coeff (p * q))⁻¹ = C (leading_coeff p)⁻¹ * C (leading_coeff q)⁻¹,
+      rw [leading_coeff_mul, mul_inv', C_mul, mul_comm]
+    end,
+  norm_unit_coe_units := λ u,
+    have hu : degree ↑u⁻¹ = 0, from degree_eq_zero_of_is_unit ⟨u⁻¹, rfl⟩,
+    begin
+      apply units.ext,
+      rw [dif_neg (units.coe_ne_zero u)],
+      conv_rhs {rw eq_C_of_degree_eq_zero hu},
+      refine C_inj.2 _,
+      rw [← nat_degree_eq_of_degree_eq_some hu, leading_coeff,
+        coeff_inv_units],
+      simp
+    end,
+  ..polynomial.integral_domain }
+
+lemma monic_mul_norm_unit (hp0 : p ≠ 0) : monic (p * norm_unit p) :=
+show leading_coeff (p * ↑(dite _ _ _)) = 1,
+by rw dif_neg hp0; exact monic_mul_leading_coeff_inv hp0
+
+lemma coe_norm_unit (hp : p ≠ 0) : (norm_unit p : polynomial α) = C p.leading_coeff⁻¹ :=
+show ↑(dite _ _ _) = C p.leading_coeff⁻¹, by rw dif_neg hp; refl
 
 end field
 

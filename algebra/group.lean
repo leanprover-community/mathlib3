@@ -673,6 +673,14 @@ attribute [to_additive is_add_group_hom] is_group_hom
 attribute [to_additive is_add_group_hom.add] is_group_hom.mul
 attribute [to_additive is_add_group_hom.mk] is_group_hom.mk
 
+instance additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_hom f] :
+  @is_add_group_hom (additive α) (additive β) _ _ f :=
+⟨@is_group_hom.mul α β _ _ f _⟩
+
+instance multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
+  @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
+⟨@is_add_group_hom.add α β _ _ f _⟩
+
 namespace is_group_hom
 variables [group α] [group β] (f : α → β) [is_group_hom f]
 

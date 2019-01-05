@@ -610,11 +610,18 @@ def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 @[refl] lemma is_conj_refl (a : α) : is_conj a a :=
 ⟨1, by rw [one_mul, one_inv, mul_one]⟩
 
-@[symm] lemma is_conj_symm (a b : α) : is_conj a b → is_conj b a
+@[symm] lemma is_conj_symm {a b : α} : is_conj a b → is_conj b a
 | ⟨c, hc⟩ := ⟨c⁻¹, by rw [← hc, mul_assoc, mul_inv_cancel_right, inv_mul_cancel_left]⟩
 
-@[trans] lemma is_conj_trans (a b c : α) : is_conj a b → is_conj b c → is_conj a c
+@[trans] lemma is_conj_trans {a b c : α} : is_conj a b → is_conj b c → is_conj a c
 | ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, by rw [← hc₂, ← hc₁, mul_inv_rev]; simp only [mul_assoc]⟩
+
+@[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
+⟨by simp [is_conj, is_conj_refl] {contextual := tt}, by simp [is_conj_refl] {contextual := tt}⟩
+
+@[simp] lemma is_conj_one_left {a : α} : is_conj a 1 ↔ a = 1 :=
+calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
+... ↔ a = 1 : is_conj_one_right
 
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩

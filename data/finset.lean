@@ -896,6 +896,9 @@ card_eq_zero.trans val_eq_zero
 theorem card_pos {s : finset α} : 0 < card s ↔ s ≠ ∅ :=
 pos_iff_ne_zero.trans $ not_congr card_eq_zero
 
+theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = finset.singleton a :=
+by cases s; simp [multiset.card_eq_one, finset.singleton, finset.card]
+
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
 by simpa only [card_cons, card, insert_val] using
@@ -1299,15 +1302,8 @@ lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
 sup_le $ assume b hb, le_sup (h hb)
 
 lemma sup_lt [is_total α (≤)] {a : α} : (⊥ < a) → (∀b ∈ s, f b < a) → s.sup f < a :=
-have A : ∀ x y, x < a → y < a → x ⊔ y < a :=
-begin
-  assume x y hx hy,
-  cases (is_total.total (≤) x y) with h,
-  { simpa [sup_of_le_right h] using hy },
-  { simpa [sup_of_le_left h] using hx }
-end,
 by letI := classical.dec_eq β; from
-finset.induction_on s (by simp) (by simp [A] {contextual := tt})
+finset.induction_on s (by simp) (by simp {contextual := tt})
 
 lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
@@ -1377,15 +1373,8 @@ lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
 
 lemma lt_inf [is_total α (≤)] {a : α} : (a < ⊤) → (∀b ∈ s, a < f b) → a < s.inf f :=
-have A : ∀ x y, a < x → a < y → a < x ⊓ y :=
-begin
-  assume x y hx hy,
-  cases (is_total.total (≤) x y) with h,
-  { simpa [inf_of_le_left h] using hy },
-  { simpa [inf_of_le_right h] using hx }
-end,
 by letI := classical.dec_eq β; from
-finset.induction_on s (by simp) (by simp [A] {contextual := tt})
+finset.induction_on s (by simp) (by simp {contextual := tt})
 
 lemma comp_inf_eq_inf_comp [is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=

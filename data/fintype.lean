@@ -215,6 +215,10 @@ instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp�
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
+instance additive.fintype : Π [fintype α], fintype (additive α) := id
+
+instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
+
 @[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
@@ -315,6 +319,13 @@ match n, hn with
     (λ _ _ _, h _ _))⟩
 end
 
+lemma fintype.exists_ne_of_card_gt_one [fintype α] (h : fintype.card α > 1) (a : α) :
+  ∃ b : α, b ≠ a :=
+let ⟨b, hb⟩ := classical.not_forall.1 (mt fintype.card_le_one_iff.2 (not_le_of_gt h)) in
+let ⟨c, hc⟩ := classical.not_forall.1 hb in
+by haveI := classical.dec_eq α; exact
+if hba : b = a then ⟨c, by cc⟩ else ⟨b, hba⟩
+
 lemma fintype.injective_iff_surjective [fintype α] {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
 have ∀ {f : α → α}, injective f → surjective f,
@@ -395,6 +406,10 @@ d_array.fintype
 
 instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
 fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm
+
+@[simp] lemma card_vector [fintype α] (n : ℕ) :
+  fintype.card (vector α n) = fintype.card α ^ n :=
+by rw fintype.of_equiv_card; simp
 
 instance quotient.fintype [fintype α] (s : setoid α)
   [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=

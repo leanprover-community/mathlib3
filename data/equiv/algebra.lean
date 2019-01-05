@@ -3,10 +3,12 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.equiv.basic algebra.group algebra.field
+import data.equiv.basic algebra.field
+
+universes u v w
 
 namespace equiv
-variables {α : Type*} [group α]
+variables {α : Type u} [group α]
 
 protected def mul_left (a : α) : α ≃ α :=
 { to_fun    := λx, a * x,
@@ -45,3 +47,30 @@ def units_equiv_ne_zero (α : Type*) [field α] : units α ≃ {a : α | a ≠ 0
   ((units_equiv_ne_zero α a) : α) = a := rfl
 
 end equiv
+
+structure ring_equiv (α β : Type*) [ring α] [ring β] extends α ≃ β :=
+(hom : is_ring_hom to_fun)
+
+infix ` ≃r `:50 := ring_equiv
+
+namespace ring_equiv
+
+variables {α : Type u} {β : Type v} {γ : Type w}
+variables [ring α] [ring β] [ring γ]
+
+instance {e : α ≃r β} : is_ring_hom e.to_equiv := hom _
+
+protected def refl (α : Type*) [ring α] : α ≃r α :=
+{ hom := is_ring_hom.id, .. equiv.refl α }
+
+protected def symm {α β : Type*} [ring α] [ring β] (e : α ≃r β) : β ≃r α :=
+{ hom := ⟨(equiv.symm_apply_eq _).2 e.hom.1.symm,
+    λ x y, (equiv.symm_apply_eq _).2 $ show _ = e.to_equiv.to_fun _, by rw [e.2.2, e.1.4, e.1.4],
+    λ x y, (equiv.symm_apply_eq _).2 $ show _ = e.to_equiv.to_fun _, by rw [e.2.3, e.1.4, e.1.4]⟩,
+  .. e.to_equiv.symm }
+
+protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
+  (e₁ : α ≃r β) (e₂ : β ≃r γ) : α ≃r γ :=
+{ hom := is_ring_hom.comp _ _, .. e₁.1.trans e₂.1  }
+
+end ring_equiv

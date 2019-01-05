@@ -629,6 +629,27 @@ else by simp only [add_apply, filter_apply_pos, filter_apply_neg, H, not_false_i
 
 end filter
 
+section frange
+variables [has_zero β]
+
+def frange (f : α →₀ β) : finset β :=
+finset.image f f.support
+
+theorem mem_frange {f : α →₀ β} {y : β} :
+  y ∈ f.frange ↔ y ≠ 0 ∧ ∃ x, f x = y :=
+finset.mem_image.trans
+⟨λ ⟨x, hx1, hx2⟩, ⟨hx2 ▸ mem_support_iff.1 hx1, x, hx2⟩,
+λ ⟨hy, x, hx⟩, ⟨x, mem_support_iff.2 (hx.symm ▸ hy), hx⟩⟩
+
+theorem zero_not_mem_frange {f : α →₀ β} : (0:β) ∉ f.frange :=
+λ H, (mem_frange.1 H).1 rfl
+
+theorem frange_single {x : α} {y : β} : frange (single x y) ⊆ {y} :=
+λ r hr, let ⟨t, ht1, ht2⟩ := mem_frange.1 hr in ht2 ▸
+(by rw single_apply at ht2 ⊢; split_ifs at ht2 ⊢; [exact finset.mem_singleton_self _, cc])
+
+end frange
+
 section subtype_domain
 
 variables {α' : Type*} [has_zero δ] {p : α → Prop} [decidable_pred p]

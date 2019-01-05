@@ -9,10 +9,10 @@ import category_theory.opposites
 
 namespace category_theory
 
-universes u₁ v₁ u₂ v₂ u₃ v₃
-variables {A : Type u₁} [𝒜 : category.{u₁ v₁} A]
-variables {B : Type u₂} [ℬ : category.{u₂ v₂} B]
-variables {T : Type u₃} [𝒯 : category.{u₃ v₃} T]
+universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+variables {A : Type u₁} [𝒜 : category.{v₁} A]
+variables {B : Type u₂} [ℬ : category.{v₂} B]
+variables {T : Type u₃} [𝒯 : category.{v₃} T]
 include 𝒜 ℬ 𝒯
 
 structure comma (L : A ⥤ T) (R : B ⥤ T) :=

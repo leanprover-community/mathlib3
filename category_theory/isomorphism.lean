@@ -4,11 +4,11 @@
 
 import category_theory.functor
 
-universes u v
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
-structure iso {C : Type u} [category.{u v} C] (X Y : C) :=
+structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
@@ -20,7 +20,7 @@ attribute [simp] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y Z : C}
 
@@ -140,7 +140,7 @@ namespace functor
 universes u₁ v₁ u₂ v₂
 variables {D : Type u₂}
 
-variables [𝒟 : category.{u₂ v₂} D]
+variables [𝒟 : category.{v₂} D]
 include 𝒟
 
 def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.obj X) ≅ (F.obj Y) :=
@@ -174,36 +174,6 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
                          rw [← is_iso.hom_inv_id f],
                          rw [←category.assoc, w, ←category.assoc]
                        end }
-
-def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
-
-@[simp] lemma eq_to_hom_refl (X : C) (p : X = X) : eq_to_hom p = 𝟙 X := rfl
-@[simp] lemma eq_to_hom_trans {X Y Z : C} (p : X = Y) (q : Y = Z) :
-  eq_to_hom p ≫ eq_to_hom q = eq_to_hom (p.trans q) :=
-by cases p; cases q; simp
-
-def eq_to_iso {X Y : C} (p : X = Y) : X ≅ Y :=
-⟨eq_to_hom p, eq_to_hom p.symm, by simp, by simp⟩
-
-@[simp] lemma eq_to_iso.hom {X Y : C} (p : X = Y) : (eq_to_iso p).hom = eq_to_hom p :=
-rfl
-
-@[simp] lemma eq_to_iso_refl (X : C) (p : X = X) : eq_to_iso p = iso.refl X := rfl
-@[simp] lemma eq_to_iso_trans {X Y Z : C} (p : X = Y) (q : Y = Z) :
-  eq_to_iso p ≪≫ eq_to_iso q = eq_to_iso (p.trans q) :=
-by ext; simp
-
-namespace functor
-
-universes u₁ v₁ u₂ v₂
-
-variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
-include 𝒟
-
-@[simp] lemma eq_to_iso (F : C ⥤ D) {X Y : C} (p : X = Y) :
-  F.on_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
-by ext; cases p; simp
-end functor
 
 def Aut (X : C) := X ≅ X
 

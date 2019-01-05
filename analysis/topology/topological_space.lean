@@ -223,6 +223,9 @@ lemma closure_subset_iff_subset_of_is_closed {s t : set α} (h₁ : is_closed t)
 lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
 
+lemma is_closed_of_closure_subset {s : set α} (h : closure s ⊆ s) : is_closed s :=
+by rw subset.antisymm subset_closure h; exact is_closed_closure
+
 @[simp] lemma closure_empty : closure (∅ : set α) = ∅ :=
 closure_eq_of_is_closed is_closed_empty
 
@@ -419,11 +422,16 @@ have b.map f ≤ nhds a ⊓ principal s,
   from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
 is_closed_iff_nhds.mp hs a $ neq_bot_of_le_neq_bot (map_ne_bot hb) this
 
-lemma mem_closure_of_tendsto {f : β → α} {x : filter β} {a : α} {s : set α}
+lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
   (hf : tendsto f x (nhds a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
 is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
     le_trans (map_mono $ inf_le_right_of_le $ by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
+
+lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
+  (hb : b ≠ ⊥) (hf : tendsto f b (nhds a)) (h : f ⁻¹' s ∈ b.sets) : a ∈ closure s :=
+mem_of_closed_of_tendsto hb hf (is_closed_closure) $
+  filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
@@ -636,11 +644,36 @@ assume hf, compact_of_finite_subcover $ assume c c_open c_cover,
     ... ⊆ ⋃₀ c'                      : sUnion_mono (subset_Union _ _),
   ⟨c', ‹c' ⊆ c›, ‹finite c'›, this⟩
 
+lemma compact_Union_of_compact {f : β → set α} [fintype β]
+  (h : ∀i, compact (f i)) : compact (⋃i, f i) :=
+by rw ← bUnion_univ; exact compact_bUnion_of_compact finite_univ (λ i _, h i)
+
 lemma compact_of_finite {s : set α} (hs : finite s) : compact s :=
 let s' : set α := ⋃i ∈ s, {i} in
 have e : s' = s, from ext $ λi, by simp only [mem_bUnion_iff, mem_singleton_iff, exists_eq_right'],
 have compact s', from compact_bUnion_of_compact hs (λ_ _, compact_singleton),
 e ▸ this
+
+lemma compact_union_of_compact {s t : set α} (hs : compact s) (ht : compact t) : compact (s ∪ t) :=
+by rw union_eq_Union; exact compact_Union_of_compact (λ b, by cases b; assumption)
+
+/-- Type class for compact spaces. Separation is sometimes included in the definition, especially
+in the French literature, but we do not include it here. -/
+class compact_space (α : Type*) [topological_space α] : Prop :=
+(compact_univ : compact (univ : set α))
+
+lemma compact_univ [topological_space α] [h : compact_space α] : compact (univ : set α) := h.compact_univ
+
+lemma compact_of_closed [topological_space α] [compact_space α] {s : set α} (h : is_closed s) :
+  compact s :=
+compact_of_is_closed_subset compact_univ h (subset_univ _)
+
+/-- There are various definitions of "locally compact space" in the literature, which agree for
+Hausdorff spaces but not in general. This one is the precise condition on X needed for the
+evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` is given the
+compact-open topology. -/
+class locally_compact_space (α : Type*) [topological_space α] : Prop :=
+(local_compact_nhds : ∀ (x : α) (n ∈ (nhds x).sets), ∃ s ∈ (nhds x).sets, s ⊆ n ∧ compact s)
 
 end compact
 

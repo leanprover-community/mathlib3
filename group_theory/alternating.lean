@@ -62,8 +62,8 @@ list.rec_on (quot.unquot (@univ (fin 5) _).1)
     else let ex := fin_reflect 5 x in
       let efx := fin_reflect 5 (f x) in
       if e = `(λ y : fin 5, y)
-      then `(λ y : fin 5, ite.{1} (y = %%ex) (%%efx) y)
-      else `(λ y : fin 5, ite.{1} (y = %%ex) (%%efx) ((%%e : fin 5 → fin 5) y)))
+      then `(λ y : fin 5, ite (y = %%ex) (%%efx) y)
+      else `(λ y : fin 5, ite (y = %%ex) (%%efx) ((%%e : fin 5 → fin 5) y)))
 
 meta instance : has_reflect (perm (fin 5)) :=
 λ f, `(@equiv.mk.{1 1} (fin 5) (fin 5)
@@ -99,15 +99,14 @@ meta instance I4 : has_reflect
     (λ a, multiset {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1})
     a %%(@multiset.has_reflect _ (I3 s.1 ra) (I2 s.1) s.2))
 
-meta def conjugacy_classes_A5_meta_aux : list A5 → list
-  (Σ a : A5, list
-  {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1})
+meta def conjugacy_classes_A5_meta_aux : list A5 →
+  list (Σ a : A5, list {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1})
 | [] := []
-| (a :: l) := let m : Σ a : A5, list
-    {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1} :=
+| (a :: l) :=
+let m : Σ a : A5, list {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1} :=
   ⟨a, ((quot.unquot (@univ A5 _).1).map
-  (λ x, show {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1},
-    from ⟨(x * a * x⁻¹, x), rfl⟩)).pw_filter (λ x y, x.1.1 ≠ y.1.1)⟩ in
+    (λ x, show {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1},
+      from ⟨(x * a * x⁻¹, x), rfl⟩)).pw_filter (λ x y, x.1.1 ≠ y.1.1)⟩ in
 m :: conjugacy_classes_A5_meta_aux (l.diff (m.2.map (prod.fst ∘ subtype.val)))
 
 meta def conjugacy_classes_A5_meta : multiset (Σ a : A5, multiset
@@ -123,10 +122,10 @@ end meta_
 
 #eval expr.has_meta_var `(conjugacy_classes_A5_meta)
 
-@[irreducible] def conjugacy_classes_A5_aux : multiset (Σ a : A5, multiset
-  {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1}) :=
+@[irreducible] def conjugacy_classes_A5_aux : multiset
+  (Σ a : A5, multiset {b : A5 × A5 // b.2 * a * b.2⁻¹ = b.1}) :=
 by exact_reflect (conjugacy_classes_A5_meta)
-
+#print conjugacy_classes_A5_aux._proof_232
 def conjugacy_classes_A5_aux2 : multiset (multiset A5) :=
 conjugacy_classes_A5_aux.map (λ s, s.2.map (λ b, b.1.1))
 
@@ -249,7 +248,7 @@ have 2 ≤ fintype.card (fin 5), from dec_trivial,
 
 lemma conjugacy_classes_A5_bind_eq_univ :
   conjugacy_classes_A5.bind (λ t, t) = univ :=
-eq_of_subset_of_card_le (λ _, by simp)
+eq_of_subset_of_card_le (λ _ _, finset.mem_univ _)
   (calc card univ = 60 : card_A5
     ... ≤ (conjugacy_classes_A5.1.bind finset.val).card : dec_trivial
     ... = (conjugacy_classes_A5.bind id).card :

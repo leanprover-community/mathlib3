@@ -7,16 +7,16 @@ import category_theory.types
 
 namespace category_theory
 
-universes u₁ v₁ u₂ v₂
+universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 def op (C : Type u₁) : Type u₁ := C
 
 notation C `ᵒᵖ`:80 := op C
 
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-instance opposite : category.{u₁ v₁} (Cᵒᵖ) :=
+instance opposite : category.{v₁} (Cᵒᵖ) :=
 { hom  := λ X Y : C, Y ⟶ X,
   comp := λ _ _ _ f g, g ≫ f,
   id   := λ X, 𝟙 X }
@@ -31,7 +31,7 @@ namespace functor
 
 section
 
-variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 variables {C D}
@@ -90,7 +90,7 @@ injectivity F (by simp)
 end
 
 namespace category
-variables {C} {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {C} {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 @[simp] lemma op_id_app (F : (C ⥤ D)ᵒᵖ) (X : C) : (𝟙 F : F ⟹ F).app X = 𝟙 (F.obj X) := rfl

@@ -4,7 +4,7 @@
 
 import category_theory.limits.limits
 
-universes u v
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory
 open category_theory.limits
@@ -26,7 +26,7 @@ def limit_is_limit (F : J ⥤ Type u) : is_limit (limit F) :=
     exact congr_fun (w j) x
   end }
 
-instance : has_limits.{u+1 u} (Type u) :=
+instance : has_limits.{u} (Type u) :=
 λ J 𝒥 F, by exactI { cone := limit F, is_limit := limit_is_limit F }
 
 @[simp] lemma types_limit (F : J ⥤ Type u) :
@@ -58,7 +58,7 @@ def colimit_is_colimit (F : J ⥤ Type u) : is_colimit (colimit F) :=
 { desc := λ s, quot.lift (λ (p : Σ j, F.obj j), s.ι.app p.1 p.2)
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 
-instance : has_colimits.{u+1 u} (Type u) :=
+instance : has_colimits.{u} (Type u) :=
 λ J 𝒥 F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F }
 
 @[simp] lemma types_colimit (F : J ⥤ Type u) :

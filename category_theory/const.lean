@@ -5,14 +5,14 @@
 import category_theory.functor_category
 import category_theory.isomorphism
 
-universes u₁ v₁ u₂ v₂ u₃ v₃
+universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory
 
 namespace category_theory.functor
 
-variables (J : Type u₁) [𝒥 : category.{u₁ v₁} J]
-variables {C : Type u₂} [𝒞 : category.{u₂ v₂} C]
+variables (J : Type u₁) [𝒥 : category.{v₁} J]
+variables {C : Type u₂} [𝒞 : category.{v₂} C]
 include 𝒥 𝒞
 
 def const : C ⥤ (J ⥤ C) :=
@@ -28,7 +28,7 @@ namespace const
 end const
 
 section
-variables {D : Type u₃} [𝒟 : category.{u₃ v₃} D]
+variables {D : Type u₃} [𝒟 : category.{v₃} D]
 include 𝒟
 
 /-- These are actually equal, of course, but not definitionally equal

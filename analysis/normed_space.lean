@@ -31,6 +31,26 @@ notation `∥`:1024 e:1 `∥`:1 := norm e
 class normed_group (α : Type*) extends has_norm α, add_comm_group α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 
+/-- Construct a normed group from a translation invariant distance -/
+def normed_group.of_add_dist [has_norm α] [add_comm_group α] [metric_space α]
+  (H1 : ∀ x:α, ∥x∥ = dist x 0)
+  (H2 : ∀ x y z : α, dist x y ≤ dist (x + z) (y + z)) : normed_group α :=
+{ dist_eq := λ x y, begin
+    rw H1, apply le_antisymm,
+    { rw [sub_eq_add_neg, ← add_right_neg y], apply H2 },
+    { have := H2 (x-y) 0 y, rwa [sub_add_cancel, zero_add] at this }
+  end }
+
+/-- Construct a normed group from a translation invariant distance -/
+def normed_group.of_add_dist' [has_norm α] [add_comm_group α] [metric_space α]
+  (H1 : ∀ x:α, ∥x∥ = dist x 0)
+  (H2 : ∀ x y z : α, dist (x + z) (y + z) ≤ dist x y) : normed_group α :=
+{ dist_eq := λ x y, begin
+    rw H1, apply le_antisymm,
+    { have := H2 (x-y) 0 y, rwa [sub_add_cancel, zero_add] at this },
+    { rw [sub_eq_add_neg, ← add_right_neg y], apply H2 }
+  end }
+
 section normed_group
 variables [normed_group α] [normed_group β]
 
@@ -108,7 +128,7 @@ by simpa [nnreal.coe_le] using norm_triangle g h
 nnreal.eq $ norm_neg g
 
 lemma nndist_nnnorm_nnnorm_le (g h : α) : nndist (nnnorm g) (nnnorm h) ≤ nnnorm (g - h) :=
-(nnreal.coe_le _ _).2 $ dist_norm_norm_le g h
+nnreal.coe_le.2 $ dist_norm_norm_le g h
 
 end nnnorm
 

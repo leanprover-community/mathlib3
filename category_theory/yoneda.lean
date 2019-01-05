@@ -15,9 +15,9 @@ import category_theory.natural_isomorphism
 
 namespace category_theory
 
-universes u₁ v₁ u₂
+universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
@@ -76,10 +76,10 @@ def ext (X Y : C)
 
 -- We need to help typeclass inference with some awkward universe levels here.
 instance prod_category_instance_1 : category (((Cᵒᵖ) ⥤ Type v₁) × (Cᵒᵖ)) :=
-category_theory.prod.{(max u₁ (v₁+1)) (max u₁ v₁) u₁ v₁} (Cᵒᵖ ⥤ Type v₁) (Cᵒᵖ)
+category_theory.prod.{(max u₁ v₁)  v₁} (Cᵒᵖ ⥤ Type v₁) (Cᵒᵖ)
 
 instance prod_category_instance_2 : category ((Cᵒᵖ) × ((Cᵒᵖ) ⥤ Type v₁)) :=
-category_theory.prod.{u₁ v₁ (max u₁ (v₁+1)) (max u₁ v₁)} (Cᵒᵖ) (Cᵒᵖ ⥤ Type v₁)
+category_theory.prod.{v₁ (max u₁ v₁)} (Cᵒᵖ) (Cᵒᵖ ⥤ Type v₁)
 
 end yoneda
 
@@ -97,7 +97,7 @@ variables (C)
 open yoneda
 
 def yoneda_evaluation : (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) ⥤ Type (max u₁ v₁) :=
-(evaluation_uncurried (Cᵒᵖ) (Type v₁)) ⋙ ulift_functor.{v₁ u₁}
+(evaluation_uncurried (Cᵒᵖ) (Type v₁)) ⋙ ulift_functor.{u₁}
 
 @[simp] lemma yoneda_evaluation_map_down
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (x : (yoneda_evaluation C).obj P) :

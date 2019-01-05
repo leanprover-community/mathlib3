@@ -5,13 +5,13 @@ import category_theory.fully_faithful
 
 namespace category_theory
 
-universes u v
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 section
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
-instance full_subcategory (Z : C → Prop) : category.{u v} {X : C // Z X} :=
+instance full_subcategory (Z : C → Prop) : category.{v} {X : C // Z X} :=
 { hom  := λ X Y, X.1 ⟶ Y.1,
   id   := λ X, 𝟙 X.1,
   comp := λ _ _ _ f g, f ≫ g }

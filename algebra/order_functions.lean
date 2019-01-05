@@ -16,8 +16,8 @@ section
 variables [decidable_linear_order α] [decidable_linear_order β] {f : α → β} {a b c d : α}
 
 -- translate from lattices to linear orders (sup → max, inf → min)
-lemma le_min_iff : c ≤ min a b ↔ c ≤ a ∧ c ≤ b := le_inf_iff
-lemma max_le_iff : max a b ≤ c ↔ a ≤ c ∧ b ≤ c := sup_le_iff
+@[simp] lemma le_min_iff : c ≤ min a b ↔ c ≤ a ∧ c ≤ b := le_inf_iff
+@[simp] lemma max_le_iff : max a b ≤ c ↔ a ≤ c ∧ b ≤ c := sup_le_iff
 lemma max_le_max : a ≤ c → b ≤ d → max a b ≤ max c d := sup_le_sup
 lemma min_le_min : a ≤ c → b ≤ d → min a b ≤ min c d := inf_le_inf
 lemma le_max_left_of_le : a ≤ b → a ≤ max b c := le_sup_left_of_le
@@ -32,30 +32,30 @@ lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_s
 instance max_idem : is_idempotent α max := by apply_instance
 instance min_idem : is_idempotent α min := by apply_instance
 
-lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
+@[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
 have a ≤ b → (a ≤ c ∨ b ≤ c ↔ a ≤ c),
   from assume h, or_iff_left_of_imp $ le_trans h,
 have b ≤ a → (a ≤ c ∨ b ≤ c ↔ b ≤ c),
   from assume h, or_iff_right_of_imp $ le_trans h,
 by cases le_total a b; simp *
 
-lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
+@[simp] lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
 have b ≤ c → (a ≤ b ∨ a ≤ c ↔ a ≤ c),
   from assume h, or_iff_right_of_imp $ assume h', le_trans h' h,
 have c ≤ b → (a ≤ b ∨ a ≤ c ↔ a ≤ b),
   from assume h, or_iff_left_of_imp $ assume h', le_trans h' h,
 by cases le_total b c; simp *
 
-lemma max_lt_iff : max a b < c ↔ (a < c ∧ b < c) :=
+@[simp] lemma max_lt_iff : max a b < c ↔ (a < c ∧ b < c) :=
 by rw [lt_iff_not_ge]; simp [(≥), le_max_iff, not_or_distrib]
 
-lemma lt_min_iff : a < min b c ↔ (a < b ∧ a < c) :=
+@[simp] lemma lt_min_iff : a < min b c ↔ (a < b ∧ a < c) :=
 by rw [lt_iff_not_ge]; simp [(≥), min_le_iff, not_or_distrib]
 
-lemma lt_max_iff : a < max b c ↔ a < b ∨ a < c :=
+@[simp] lemma lt_max_iff : a < max b c ↔ a < b ∨ a < c :=
 by rw [lt_iff_not_ge]; simp [(≥), max_le_iff, not_and_distrib]
 
-lemma min_lt_iff : min a b < c ↔ a < c ∨ b < c :=
+@[simp] lemma min_lt_iff : min a b < c ↔ a < c ∨ b < c :=
 by rw [lt_iff_not_ge]; simp [(≥), le_min_iff, not_and_distrib]
 
 theorem min_right_comm (a b c : α) : min (min a b) c = min (min a c) b :=

@@ -9,9 +9,9 @@ import category_theory.isomorphism
 
 namespace category_theory
 
-universes u v
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-class groupoid (obj : Type u) extends category.{u v} obj :=
+class groupoid (obj : Type u) extends category.{v} obj :=
 (inv       : Π {X Y : obj}, (X ⟶ Y) → (Y ⟶ X))
 (inv_comp' : ∀ {X Y : obj} (f : X ⟶ Y), comp (inv f) f = id Y . obviously)
 (comp_inv' : ∀ {X Y : obj} (f : X ⟶ Y), comp f (inv f) = id X . obviously)
@@ -21,10 +21,10 @@ restate_axiom groupoid.comp_inv'
 
 attribute [simp] groupoid.inv_comp groupoid.comp_inv
 
-abbreviation large_groupoid (C : Type (u+1)) : Type (u+1) := groupoid.{u+1 u} C
-abbreviation small_groupoid (C : Type u) : Type (u+1) := groupoid.{u u} C
+abbreviation large_groupoid (C : Type (u+1)) : Type (u+1) := groupoid.{u} C
+abbreviation small_groupoid (C : Type u) : Type (u+1) := groupoid.{u} C
 
-instance of_groupoid {C : Type u} [groupoid.{u v} C] {X Y : C} (f : X ⟶ Y) : is_iso f :=
+instance of_groupoid {C : Type u} [groupoid.{v} C] {X Y : C} (f : X ⟶ Y) : is_iso f :=
 { inv := groupoid.inv f }
 
 end category_theory

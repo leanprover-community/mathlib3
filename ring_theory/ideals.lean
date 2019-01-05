@@ -166,6 +166,11 @@ theorem is_coprime_self {α} [comm_ring α] (x y : α) :
   is_coprime x x ↔ is_unit x :=
 by rw [← span_singleton_eq_top]; simp [is_coprime]
 
+lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :
+  span ({x} : set β) < span ({y} : set β) ↔ y ≠ 0 ∧ ∃ d : β, ¬ is_unit d ∧ x = y * d :=
+by rw [lt_iff_le_not_le, span_singleton_le_span_singleton, span_singleton_le_span_singleton,
+  dvd_and_not_dvd_iff]
+
 end ideal
 
 def nonunits (α : Type u) [monoid α] : set α := { x | ¬is_unit x }

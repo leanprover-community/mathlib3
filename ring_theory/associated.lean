@@ -86,6 +86,13 @@ theorem is_unit_int {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 lemma is_unit_of_dvd_one [comm_semiring α] : ∀a ∣ 1, is_unit (a:α)
 | a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
 
+lemma dvd_and_not_dvd_iff [integral_domain α] {x y : α} :
+  x ∣ y ∧ ¬y ∣ x ↔ x ≠ 0 ∧ ∃ d : α, ¬ is_unit d ∧ y = x * d :=
+⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
+    mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
+  λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
+    ⟨e, (domain.mul_left_inj hx0).1 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
+
 /-- prime element of a semiring -/
 def prime [comm_semiring α] (p : α) : Prop :=
 p ≠ 0 ∧ ¬ is_unit p ∧ (∀a b, p ∣ a * b → p ∣ a ∨ p ∣ b)
@@ -397,7 +404,7 @@ variables [comm_semiring α]
 @[simp] theorem mul_zero : ∀(a : associates α), a * 0 = 0 :=
 by rintros ⟨a⟩; show associates.mk (a * 0) = associates.mk 0; rw [mul_zero]
 
-@[simp] theorem zero_mul : ∀(a : associates α), 0 * a = 0 :=
+@[simp] protected theorem zero_mul : ∀(a : associates α), 0 * a = 0 :=
 by rintros ⟨a⟩; show associates.mk (0 * a) = associates.mk 0; rw [zero_mul]
 
 theorem mk_eq_zero_iff_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=

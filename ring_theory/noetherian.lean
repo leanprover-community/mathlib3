@@ -308,3 +308,44 @@ end
 theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃r S) (H : is_noetherian_ring R) : is_noetherian_ring S :=
 is_noetherian_ring_of_surjective R S f.1 f.2 f.1.bijective.2 H
+
+namespace is_noetherian_ring
+
+variables {α : Type*} [integral_domain α] (hα : is_noetherian_ring α)
+include hα
+open associates nat
+
+local attribute [elab_as_eliminator] well_founded.fix
+
+lemma well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x ) :=
+by simp only [ideal.span_singleton_lt_span_singleton.symm];
+   exact inv_image.wf (λ a, ideal.span ({a} : set α))
+     (is_noetherian_iff_well_founded.1 hα)
+
+lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
+  ∃ i, irreducible i ∧ i ∣ a :=
+(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_refl _⟩)
+  (well_founded.fix
+    (well_founded_dvd_not_unit hα)
+    (λ a ih ha ha0 ⟨x, y, hx, hy, hxy⟩,
+      have hx0 : x ≠ 0, from λ hx0, ha0 (by rw [← hxy, hx0, zero_mul]),
+      (irreducible_or_factor x hx).elim
+        (λ hxi, ⟨x, hxi, hxy ▸ by simp⟩)
+        (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy.symm⟩ hx hx0 hxf in
+          ⟨i, hi.1, dvd.trans hi.2 (hxy ▸ by simp)⟩)) a ha ha0)
+
+@[elab_as_eliminator] lemma irreducible_induction_on {P : α → Prop} (a : α)
+  (h0 : P 0) (hu : ∀ u : α, is_unit u → P u)
+  (hi : ∀ a i : α, a ≠ 0 → irreducible i → P a → P (i * a)) :
+  P a :=
+by haveI := classical.dec; exact
+well_founded.fix (well_founded_dvd_not_unit hα)
+  (λ a ih, if ha0 : a = 0 then ha0.symm ▸ h0
+    else if hau : is_unit a then hu a hau
+    else let ⟨i, hii, ⟨b, hb⟩⟩ := exists_irreducible_factor hα hau ha0 in
+      have hb0 : b ≠ 0, from λ hb0, by simp * at *,
+      hb.symm ▸ hi _ _ hb0 hii (ih _ ⟨hb0, i,
+        hii.1, by rw [hb, mul_comm]⟩))
+  a
+
+end is_noetherian_ring

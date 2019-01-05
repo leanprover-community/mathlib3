@@ -70,6 +70,14 @@ instance decidable_surjective_fintype [fintype α] [decidable_eq α] [fintype β
 instance decidable_bijective_fintype [fintype α] [decidable_eq α] [fintype β] [decidable_eq β] :
   decidable_pred (bijective : (α → β) → Prop) := λ x, by unfold bijective; apply_instance
 
+instance decidable_left_inverse_fintype [fintype α] [decidable_eq α] (f : α → β) (g : β → α) :
+  decidable (function.right_inverse f g) :=
+show decidable (∀ x, g (f x) = x), by apply_instance
+
+instance decidable_right_inverse_fintype [fintype β] [decidable_eq β] (f : α → β) (g : β → α) :
+  decidable (function.left_inverse f g) :=
+show decidable (∀ x, f (g x) = x), by apply_instance
+
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
   (H : ∀ x : α, x ∈ s) : fintype α :=

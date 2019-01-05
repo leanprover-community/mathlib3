@@ -489,9 +489,9 @@ lemma simple_group_of_surjective [group α] [group β] [simple_group α] (f : α
       exact h y }
   end⟩
 
-  lemma simple_add_group_of_surjective [add_group α] [add_group β] [simple_add_group α] (f : α → β)
-    [is_add_group_hom f] (hf : function.surjective f) : simple_add_group β :=
-  @simple_group_of_surjective (multiplicative α) (multiplicative β) _ _ _ f _
+lemma simple_add_group_of_surjective [add_group α] [add_group β] [simple_add_group α] (f : α → β)
+  [is_add_group_hom f] (hf : function.surjective f) : simple_add_group β :=
+multiplicative.simple_group_iff.1 (@simple_group_of_surjective (multiplicative α) (multiplicative β) _ _ _ f _ hf)
 
 attribute [to_additive simple_add_group_of_surjective] simple_group_of_surjective
 

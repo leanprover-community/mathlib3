@@ -10,7 +10,7 @@ universes u v
 open category_theory category_theory.limits
 
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 variable {X : C}
 

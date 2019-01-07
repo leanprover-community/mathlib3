@@ -411,7 +411,7 @@ by rw lim_mul_lim;
 
 lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
-| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_mul, one_mul]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
 
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, @zero_ne_one ℂ _ $

@@ -326,7 +326,7 @@ lemma cos_eq_one_iff (x : ℝ) : cos x = 1 ↔ ∃ n : ℤ, (n : ℝ) * (2 * π)
         exact absurd h (by norm_num))⟩,
   λ ⟨n, hn⟩, hn ▸ cos_int_mul_two_pi _⟩
 
-theorem cos_eq_zero_iff (θ : ℝ) : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * pi / 2 := 
+theorem cos_eq_zero_iff (θ : ℝ) : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * pi / 2 :=
 begin
   rw [←real.sin_pi_div_two_sub, sin_eq_zero_iff],
   split,
@@ -444,7 +444,7 @@ instance angle.is_add_group_hom : is_add_group_hom (coe : ℝ → angle) :=
 int.induction_on n rfl (λ i ih, by simp only [add_gsmul, one_gsmul, coe_add, ih]) $ λ i ih,
 by simp only [sub_eq_add_neg, add_gsmul, neg_one_gsmul, coe_add, coe_neg, ih]
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
-quotient.sound' ⟨-1, by rw [neg_one_gsmul, add_zero]⟩
+quotient.sound' ⟨-1, by dsimp only; rw [neg_one_gsmul, add_zero]⟩
 
 definition equal_angle (θ ψ : ℝ) := (θ : angle) = ψ
 definition semiequal_angle_even (θ ψ : ℝ) := (θ + ψ : angle) = 0
@@ -480,7 +480,7 @@ begin
   cases of_cos_eq Hcos with hc hc, { exact hc },
   cases of_sin_eq Hsin with hs hs, { exact hs },
   rw [semiequal_angle_odd] at hs, rw [semiequal_angle_even, hs] at hc,
-  cases quotient.exact' hc with n hn,
+  cases quotient.exact' hc with n hn, dsimp only at hn,
   rw [← neg_one_mul, add_zero, ← sub_eq_zero_iff_eq, gsmul_eq_mul, ← mul_assoc, ← sub_mul,
       mul_eq_zero, eq_false_intro (ne_of_gt pi_pos), or_false, sub_neg_eq_add,
       ← int.cast_zero, ← int.cast_one, ← int.cast_bit0, ← int.cast_mul, ← int.cast_add, int.cast_inj] at hn,

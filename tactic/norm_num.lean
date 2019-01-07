@@ -465,7 +465,8 @@ norm_num e <|> eval_div_ext simp e <|>
 eval_pow simp e <|> eval_ineq simp e <|> eval_prime simp e
 
 meta def derive : expr → tactic (expr × expr) | e :=
-do (_, e', pr) ←
+do e ← instantiate_mvars e,
+   (_, e', pr) ←
     ext_simplify_core () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
       (λ _ _ _ _ e,
         do (new_e, pr) ← derive1 derive e,

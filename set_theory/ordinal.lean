@@ -80,15 +80,8 @@ instance [is_well_order β s] : subsingleton (r ≼i s) :=
 protected theorem eq [is_well_order β s] (f g : r ≼i s) (a) : f a = g a :=
 by rw subsingleton.elim f g
 
-theorem antisymm.aux [is_well_order α r] (f : r ≼i s) (g : s ≼i r) : left_inverse g f
-| x := begin
-  have := ((is_well_order.wf r).apply x), induction this with x _ IH,
-  refine @is_extensional.ext _ r _ _ _ (λ y, _),
-  simp only [g.init_iff, f.init_iff],
-  split; intro h,
-  { rcases h with ⟨a, rfl, b, rfl, h⟩, rwa IH _ h },
-  { exact ⟨f y, IH _ h, y, rfl, h⟩ }
-end
+theorem antisymm.aux [is_well_order α r] (f : r ≼i s) (g : s ≼i r) : left_inverse g f :=
+initial_seg.eq (f.trans g) (initial_seg.refl _)
 
 def antisymm [is_well_order β s] (f : r ≼i s) (g : s ≼i r) : r ≃o s :=
 by haveI := f.to_order_embedding.is_well_order; exact
@@ -618,11 +611,9 @@ enum_type (principal_seg.of_element r a)
 let ⟨a, e⟩ := typein_surj r h in
 by clear _let_match; subst e; rw enum_typein
 
-theorem enum_lt {α β} {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
-  [is_well_order α r] [is_well_order β s] [is_well_order γ t]
-  (h₁ : type s < type r) (h₂ : type t < type r) :
-  r (enum r (type s) h₁) (enum r
-  (type t) h₂) ↔ type s < type t :=
+theorem enum_lt {r : α → α → Prop} [is_well_order α r]
+  {o₁ o₂ : ordinal} (h₁ : o₁ < type r) (h₂ : o₂ < type r) :
+  r (enum r o₁ h₁) (enum r o₂ h₂) ↔ o₁ < o₂ :=
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
 
 theorem wf : @well_founded ordinal (<) :=

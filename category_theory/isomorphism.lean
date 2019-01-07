@@ -4,11 +4,11 @@
 
 import category_theory.functor
 
-universes u v
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
-structure iso {C : Type u} [category.{u v} C] (X Y : C) :=
+structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
@@ -20,11 +20,17 @@ attribute [simp] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y Z : C}
 
 namespace iso
+
+@[simp] lemma hom_inv_id_assoc (α : X ≅ Y) (f : X ⟶ Z) : α.hom ≫ α.inv ≫ f = f :=
+by rw [←category.assoc, α.hom_inv_id, category.id_comp]
+
+@[simp] lemma inv_hom_id_assoc (α : X ≅ Y) (f : Y ⟶ Z) : α.inv ≫ α.hom ≫ f = f :=
+by rw [←category.assoc, α.inv_hom_id, category.id_comp]
 
 @[extensionality] lemma ext
   (α β : X ≅ Y)
@@ -61,8 +67,18 @@ namespace iso
 @[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
 { hom := α.hom ≫ β.hom,
   inv := β.inv ≫ α.inv,
-  hom_inv_id' := begin /- `obviously'` says: -/ rw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.hom_inv_id, rw category.id_comp, rw iso.hom_inv_id end,
-  inv_hom_id' := begin /- `obviously'` says: -/ rw [category.assoc], conv { to_lhs, congr, skip, rw ← category.assoc }, rw iso.inv_hom_id, rw category.id_comp, rw iso.inv_hom_id end }
+  hom_inv_id' := begin
+    /- `obviously'` says: -/
+    rw [category.assoc],
+    conv { to_lhs, congr, skip, rw ← category.assoc },
+    rw [iso.hom_inv_id, category.id_comp, iso.hom_inv_id]
+  end,
+  inv_hom_id' := begin
+    /- `obviously'` says: -/
+    rw [category.assoc],
+    conv { to_lhs, congr, skip, rw ← category.assoc },
+    rw [iso.inv_hom_id, category.id_comp, iso.inv_hom_id]
+  end }
 
 infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
@@ -71,6 +87,18 @@ infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
 @[simp] lemma refl_symm (X : C) : (iso.refl X).hom = 𝟙 X := rfl
 @[simp] lemma trans_symm (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv = β.inv ≫ α.inv := rfl
+
+lemma inv_comp_eq (α : X ≅ Y) {f : X ⟶ Z} {g : Y ⟶ Z} : α.inv ≫ f = g ↔ f = α.hom ≫ g :=
+⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+
+lemma eq_inv_comp (α : X ≅ Y) {f : X ⟶ Z} {g : Y ⟶ Z} : g = α.inv ≫ f ↔ α.hom ≫ g = f :=
+(inv_comp_eq α.symm).symm
+
+lemma comp_inv_eq (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ α.inv = g ↔ f = g ≫ α.hom :=
+⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+
+lemma eq_comp_inv (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ α.inv ↔ g ≫ α.hom = f :=
+(comp_inv_eq α.symm).symm
 
 end iso
 
@@ -112,7 +140,7 @@ namespace functor
 universes u₁ v₁ u₂ v₂
 variables {D : Type u₂}
 
-variables [𝒟 : category.{u₂ v₂} D]
+variables [𝒟 : category.{v₂} D]
 include 𝒟
 
 def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.obj X) ≅ (F.obj Y) :=
@@ -146,24 +174,6 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
                          rw [← is_iso.hom_inv_id f],
                          rw [←category.assoc, w, ←category.assoc]
                        end }
-
-def eq_to_iso {X Y : C} (p : X = Y) : X ≅ Y := by rw p
-
-@[simp] lemma eq_to_iso_refl (X : C) (p : X = X) : eq_to_iso p = (iso.refl X) := rfl
-
-@[simp] lemma eq_to_iso_trans {X Y Z : C} (p : X = Y) (q : Y = Z) : (eq_to_iso p) ≪≫ (eq_to_iso q) = eq_to_iso (p.trans q) :=
-begin /- obviously' says: -/ ext, induction q, induction p, dsimp at *, simp at * end
-
-namespace functor
-
-universes u₁ v₁ u₂ v₂
-
-variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
-include 𝒟
-
-@[simp] lemma eq_to_iso (F : C ⥤ D) {X Y : C} (p : X = Y) : F.on_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
-begin /- obviously says: -/ ext1, induction p, dsimp at *, simp at * end
-end functor
 
 def Aut (X : C) := X ≅ X
 

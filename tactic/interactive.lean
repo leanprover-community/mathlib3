@@ -5,7 +5,8 @@ Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
-  tactic.split_ifs logic.basic tactic.ext tactic.tauto tactic.replacer
+  tactic.split_ifs logic.basic tactic.ext tactic.tauto
+  tactic.replacer tactic.simpa tactic.squeeze
 
 open lean
 open lean.parser
@@ -74,35 +75,6 @@ meta def rintro : parse rintro_parse → tactic unit
 
 /-- Alias for `rintro`. -/
 meta def rintros := rintro
-
-/--
-This is a "finishing" tactic modification of `simp`. The tactic `simpa [rules, ...] using e`
-will simplify the hypothesis `e` using `rules`, then simplify the goal using `rules`, and
-try to close the goal using `assumption`. If `e` is a term instead of a local constant,
-it is first added to the local context using `have`.
--/
-meta def simpa (use_iota_eqn : parse $ (tk "!")?) (no_dflt : parse only_flag)
-  (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
-  (tgt : parse (tk "using" *> texpr)?) (cfg : simp_config_ext := {}) : tactic unit :=
-let simp_at (lc) := try (simp use_iota_eqn no_dflt hs attr_names (loc.ns lc) cfg) >> (assumption <|> trivial) in
-match tgt with
-| none := get_local `this >> simp_at [some `this, none] <|> simp_at [none]
-| some e := do
-  e ← i_to_expr e <|> do {
-    ty ← target,
-    e ← i_to_expr_strict ``(%%e : %%ty), -- for positional error messages, don't care about the result
-    pty ← pp ty, ptgt ← pp e,
-    -- Fail deliberately, to advise regarding `simp; exact` usage
-    fail ("simpa failed, 'using' expression type not directly " ++
-      "inferrable. Try:\n\nsimpa ... using\nshow " ++
-      to_fmt pty ++ ",\nfrom " ++ ptgt : format) },
-  match e with
-  | local_const _ lc _ _ := simp_at [some lc, none]
-  | e := do
-    t ← infer_type e,
-    assertv `this t e >> simp_at [some `this, none]
-  end
-end
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
 Never fails. Useful for debugging. -/
@@ -330,7 +302,7 @@ do v ← mk_mvar,
    set_goals $ gs' ++ gs
 
 meta def clean_ids : list name :=
-[``id, ``id_rhs, ``id_delta]
+[``id, ``id_rhs, ``id_delta, ``hidden]
 
 /--
 Remove identity functions from a term. These are normally
@@ -621,6 +593,55 @@ tgt ← match tgt with
   end,
 tactic.choose tgt (first :: names),
 try (tactic.clear tgt)
+
+meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do e ← to_expr p, is_def_eq t e
+
+/--
+`guard_target t` fails if the target of the main goal is not `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_target' (p : parse texpr) : tactic unit :=
+do t ← target, guard_expr_eq' t p
+
+/--
+a weaker version of `trivial` that tries to solve the goal by reflexivity or by reducing it to true,
+unfolding only `reducible` constants. -/
+meta def triv : tactic unit :=
+tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail "triv tactic failed"
+
+/--
+Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
+Unlike `existsi`, `x` is elaborated with respect to the expected type.
+`use` will alternatively take a list of terms `[x0, ..., xn]`.
+
+`use` will work with constructors of arbitrary inductive types.
+
+Examples:
+
+example (α : Type) : ∃ S : set α, S = S :=
+by use ∅
+
+example : ∃ x : ℤ, x = x :=
+by use 42
+
+example : ∃ a b c : ℤ, a + b + c = 6 :=
+by use [1, 2, 3]
+
+example : ∃ p : ℤ × ℤ, p.1 = 1 :=
+by use ⟨1, 42⟩
+
+example : Σ x y : ℤ, (ℤ × ℤ) × ℤ :=
+by use [1, 2, 3, 4, 5]
+
+inductive foo
+| mk : ℕ → bool × ℕ → ℕ → foo
+
+example : foo :=
+by use [100, tt, 4, 3]
+-/
+meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
+tactic.use l >> try triv
 
 end interactive
 end tactic

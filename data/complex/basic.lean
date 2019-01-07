@@ -85,6 +85,16 @@ ext_iff.2 $ by simp
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
 
+def real_prod_equiv : ℂ ≃ (ℝ × ℝ) :=
+{ to_fun := λ z, ⟨z.re, z.im⟩,
+  inv_fun := λ p, ⟨p.1, p.2⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨x, y⟩, rfl }
+
+@[simp] theorem real_prod_equiv_apply (z : ℂ) : real_prod_equiv z = (z.re, z.im) := rfl
+theorem real_prod_equiv_symm_re (x y : ℝ) : (real_prod_equiv.symm (x, y)).re = x := rfl
+theorem real_prod_equiv_symm_im (x y : ℝ) : (real_prod_equiv.symm (x, y)).im = y := rfl
+
 def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
@@ -223,6 +233,15 @@ noncomputable instance : discrete_field ℂ :=
   inv_zero := inv_zero,
   has_decidable_eq := classical.dec_eq _,
   ..complex.comm_ring }
+
+instance re.is_add_group_hom : is_add_group_hom complex.re :=
+by refine_struct {..}; simp
+
+instance im.is_add_group_hom : is_add_group_hom complex.im :=
+by refine_struct {..}; simp
+
+instance : is_ring_hom conj :=
+by refine_struct {..}; simp
 
 @[simp] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
 by rw [division_def, of_real_mul, division_def, of_real_inv]

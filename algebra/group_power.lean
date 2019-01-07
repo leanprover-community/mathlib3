@@ -144,6 +144,14 @@ theorem add_monoid.smul_add : ∀ (a b : β) (n : ℕ), n•(a + b) = n•a + n�
 @mul_pow (multiplicative β) _
 attribute [to_additive add_monoid.add_smul] mul_pow
 
+instance pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : α → α) :=
+by refine_struct {..}; simp [mul_pow, one_pow]
+
+instance add_monoid.smul.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (add_monoid.smul n : β → β) :=
+by refine_struct {..}; simp [add_monoid.smul_zero, add_monoid.smul_add]
+
+attribute [to_additive add_monoid.smul.is_add_monoid_hom] pow.is_monoid_hom
+
 end comm_monoid
 
 section group
@@ -356,6 +364,14 @@ attribute [to_additive gsmul_add] mul_gpow
 theorem gsmul_sub : ∀ (a b : β) (n : ℤ), gsmul n (a - b) = gsmul n a - gsmul n b :=
 by simp [gsmul_add, gsmul_neg]
 
+instance gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : α → α) :=
+⟨λ _ _, mul_gpow _ _ n⟩
+
+instance gsmul.is_add_group_hom (n : ℤ) : is_add_group_hom (gsmul n : β → β) :=
+⟨λ _ _, gsmul_add _ _ n⟩
+
+attribute [to_additive gsmul.is_add_group_hom] gpow.is_group_hom
+
 end comm_monoid
 
 section group
@@ -367,6 +383,10 @@ theorem is_add_group_hom_gsmul
 ⟨assume a b, by rw [is_add_group_hom.add f, gsmul_add]⟩
 
 end group
+
+@[simp] lemma with_bot.coe_smul [add_monoid α] (a : α) (n : ℕ) :
+  ((add_monoid.smul n a : α) : with_bot α) = add_monoid.smul n a :=
+by induction n; simp [*, succ_smul]; refl
 
 theorem add_monoid.smul_eq_mul' [semiring α] (a : α) (n : ℕ) : n • a = a * n :=
 by induction n with n ih; [rw [add_monoid.zero_smul, nat.cast_zero, mul_zero],
@@ -403,6 +423,9 @@ theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R
 | (n+1) := (neg_one_pow_eq_or n).swap.imp
   (λ h, by rw [pow_succ, h, neg_one_mul, neg_neg])
   (λ h, by rw [pow_succ, h, mul_one])
+
+lemma pow_dvd_pow [comm_semiring α] (a : α) {m n : ℕ} (h : m ≤ n) :
+  a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_sub_cancel' h]⟩
 
 theorem gsmul_eq_mul [ring α] (a : α) : ∀ n, n •ℤ a = n * a
 | (n : ℕ) := add_monoid.smul_eq_mul _ _
@@ -459,6 +482,21 @@ by induction n; simp [*, pow_succ, mul_inv', mul_comm]
 lemma pow_inv [division_ring α] (a : α) : ∀ n : ℕ, a ≠ 0 → (a^n)⁻¹ = (a⁻¹)^n
 | 0     ha := inv_one
 | (n+1) ha := by rw [pow_succ, pow_succ', mul_inv_eq (pow_ne_zero _ ha) ha, pow_inv _ ha]
+
+namespace add_monoid
+variable [ordered_comm_monoid α]
+
+theorem smul_le_smul {a : α} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
+let ⟨k, hk⟩ := nat.le.dest h in
+calc n • a = n • a + 0 : (add_zero _).symm
+  ... ≤ n • a + k • a : add_le_add_left' (smul_nonneg ha _)
+  ... = m • a : by rw [← hk, add_smul]
+
+lemma smul_le_smul_of_le_right {a b : α} (hab : a ≤ b) : ∀ i : ℕ, i • a ≤ i • b
+| 0 := by simp
+| (k+1) := add_le_add' hab (smul_le_smul_of_le_right _)
+
+end add_monoid
 
 section linear_ordered_semiring
 variable [linear_ordered_semiring α]

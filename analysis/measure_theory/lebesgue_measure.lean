@@ -183,7 +183,8 @@ le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
   cases le_total a c with hac hca; cases le_total b c with hbc hcb;
     simp [*, -sub_eq_add_neg, sub_add_sub_cancel'];
     rw [← ennreal.coe_add, ennreal.coe_le_coe],
-  { simp [*, nnreal.of_real_add_of_real, -sub_eq_add_neg, sub_add_sub_cancel'] },
+  { simp [*, -nnreal.of_real_add, nnreal.of_real_add_of_real,
+      -sub_eq_add_neg, sub_add_sub_cancel'] },
   { rw nnreal.of_real_of_nonpos,
     { simp },
     exact sub_nonpos.2 (le_trans hbc hca) }

@@ -18,7 +18,7 @@ import tactic.tidy
 
 namespace category_theory
 
-universes u v u₁ v₁ u₂ v₂ u₃ v₃
+universes v v₁ v₂ v₃ u u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 /--
 `functor C D` represents a functor between categories `C` and `D`.
@@ -28,7 +28,8 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
 -/
-structure functor (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] : Type (max u₁ v₁ u₂ v₂) :=
+structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
+  Type (max u₁ v₁ u₂ v₂) :=
 (obj       : C → D)
 (map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
@@ -44,7 +45,7 @@ attribute [simp] functor.map_comp
 namespace functor
 
 section
-variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
 include 𝒞
 
 /-- `functor.id C` is the identity functor on a category `C`. -/
@@ -59,9 +60,9 @@ variable {C}
 end
 
 section
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
-          {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
-          {E : Type u₃} [ℰ : category.{u₃ v₃} E]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+          {D : Type u₂} [𝒟 : category.{v₂} D]
+          {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 /--
@@ -79,7 +80,7 @@ infixr ` ⋙ `:80 := comp
 end
 
 section
-variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
 include 𝒞
 
 @[simp] def ulift_down : (ulift.{u₂} C) ⥤ C :=
@@ -89,11 +90,13 @@ include 𝒞
 @[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
 { obj := λ X, ⟨ X ⟩,
   map := λ X Y f, f }
+
 end
 
 end functor
 
-def bundled.map {c : Type u → Type v} {d : Type u → Type v} (f : Π{a}, c a → d a) (s : bundled c) : bundled d :=
+def bundled.map {c : Type u → Type v} {d : Type u → Type v} (f : Π{a}, c a → d a) (s : bundled c) :
+  bundled d :=
 { α := s.α, str := f s.str }
 
 def concrete_functor

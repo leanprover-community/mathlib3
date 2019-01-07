@@ -104,13 +104,31 @@ lemma le_of_forall_le [preorder α] {a b : α}
   (H : ∀ c, c ≤ a → c ≤ b) : a ≤ b :=
 H _ (le_refl _)
 
+lemma le_of_forall_le' [preorder α] {a b : α}
+  (H : ∀ c, a ≤ c → b ≤ c) : b ≤ a :=
+H _ (le_refl _)
+
 lemma le_of_forall_lt [linear_order α] {a b : α}
   (H : ∀ c, c < a → c < b) : a ≤ b :=
+le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
+
+lemma le_of_forall_lt' [linear_order α] {a b : α}
+  (H : ∀ c, a < c → b < c) : b ≤ a :=
 le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
 
 lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 le_antisymm ((H _).2 (le_refl _)) ((H _).1 (le_refl _))
+
+/-- monotonicity of `≤` with respect to `→` -/
+lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α]
+   (h₀ : c ≤ a) (h₁ : b ≤ d) :
+  a ≤ b → c ≤ d :=
+assume h₂ : a ≤ b,
+calc  c
+    ≤ a : h₀
+... ≤ b : h₂
+... ≤ d : h₁
 
 namespace decidable
 
@@ -198,4 +216,25 @@ theorem compares_of_strict_mono {β} [linear_order α] [preorder β]
 | eq := ⟨λ h, injective_of_strict_mono _ H h, congr_arg _⟩
 | gt := lt_iff_lt_of_strict_mono f H
 
+theorem swap_or_else (o₁ o₂) : (or_else o₁ o₂).swap = or_else o₁.swap o₂.swap :=
+by cases o₁; try {refl}; cases o₂; refl
+
+theorem or_else_eq_lt (o₁ o₂) : or_else o₁ o₂ = lt ↔ o₁ = lt ∨ (o₁ = eq ∧ o₂ = lt) :=
+by cases o₁; cases o₂; exact dec_trivial
+
 end ordering
+
+theorem cmp_compares [decidable_linear_order α] (a b : α) : (cmp a b).compares a b :=
+begin
+  unfold cmp cmp_using,
+  by_cases a < b; simp [h],
+  by_cases h₂ : b < a; simp [h₂, gt],
+  exact (lt_or_eq_of_le (le_of_not_gt h₂)).resolve_left h
+end
+
+theorem cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
+begin
+  unfold cmp cmp_using,
+  by_cases a < b; by_cases h₂ : b < a; simp [h, h₂, gt, ordering.swap],
+  exact lt_asymm h h₂
+end

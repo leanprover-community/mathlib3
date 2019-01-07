@@ -367,6 +367,15 @@ begin
   simp [ha, hb, mul_def, option.bind_comm a b, mul_comm]
 end
 
+@[simp] lemma mul_eq_top_iff {a b : with_top α} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
+begin
+  have H : ∀x:α, (¬x = 0) ↔ (⊤ : with_top α) * ↑x = ⊤ :=
+    λx, ⟨λhx, by simp [top_mul, hx], λhx f, by simpa [f] using hx⟩,
+  cases a; cases b; simp [none_eq_top, top_mul, coe_ne_top, some_eq_coe, coe_mul.symm],
+  { rw [H b] },
+  { rw [H a, comm] }
+end
+
 private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
 begin
   cases c,
@@ -397,8 +406,8 @@ begin
 end
 
 private lemma one_mul' : ∀a : with_top α, 1 * a = a
-| none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp
-| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm]
+| none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_bot.coe_one]
+| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_bot.coe_one]
 
 instance [canonically_ordered_comm_semiring α] [decidable_eq α] :
   canonically_ordered_comm_semiring (with_top α) :=

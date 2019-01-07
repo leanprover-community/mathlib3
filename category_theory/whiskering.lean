@@ -2,15 +2,17 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 
+import category_theory.isomorphism
 import category_theory.functor_category
 
 namespace category_theory
 
 universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
 
-variables (C : Type u₁) [𝒞 : category.{u₁ v₁} C]
-          (D : Type u₂) [𝒟 : category.{u₂ v₂} D]
-          (E : Type u₃) [ℰ : category.{u₃ v₃} E]
+section
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
+          (D : Type u₂) [𝒟 : category.{v₂} D]
+          (E : Type u₃) [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
@@ -54,15 +56,23 @@ def whisker_right {G H : C ⥤ D} (α : G ⟹ H) (F : D ⥤ E) : (G ⋙ F) ⟹ (
    (whisker_right α F).app X = F.map (α.app X) :=
 rfl
 
+@[simp] lemma whisker_left_id (F : C ⥤ D) {G : D ⥤ E} :
+  whisker_left F (nat_trans.id G) = nat_trans.id (F.comp G) :=
+rfl
+
+@[simp] lemma whisker_right_id {G : C ⥤ D} (F : D ⥤ E) :
+  whisker_right (nat_trans.id G) F = nat_trans.id (G.comp F) :=
+((whiskering_right C D E).obj F).map_id _
+
 @[simp] lemma whisker_left_vcomp (F : C ⥤ D) {G H K : D ⥤ E} (α : G ⟹ H) (β : H ⟹ K) :
-  whisker_left F (α ⊟ β) = ((whisker_left F α) ⊟ (whisker_left F β)) :=
-((whiskering_left C D E).obj F).map_comp α β
+  whisker_left F (α ⊟ β) = (whisker_left F α) ⊟ (whisker_left F β) :=
+rfl
 
 @[simp] lemma whisker_right_vcomp {G H K : C ⥤ D} (α : G ⟹ H) (β : H ⟹ K) (F : D ⥤ E)  :
-  whisker_right (α ⊟ β) F = ((whisker_right α F) ⊟ (whisker_right β F)) :=
+  whisker_right (α ⊟ β) F = (whisker_right α F) ⊟ (whisker_right β F) :=
 ((whiskering_right C D E).obj F).map_comp α β
 
-variables {B : Type u₄} [ℬ : category.{u₄ v₄} B]
+variables {B : Type u₄} [ℬ : category.{v₄} B]
 include ℬ
 
 local attribute [elab_simple] whisker_left whisker_right
@@ -78,5 +88,68 @@ rfl
 lemma whisker_right_left (F : B ⥤ C) {G H : C ⥤ D} (α : G ⟹ H) (K : D ⥤ E) :
   whisker_right (whisker_left F α) K = whisker_left F (whisker_right α K) :=
 rfl
+end
+
+namespace functor
+
+universes u₅ v₅
+
+variables {A : Type u₁} [𝒜 : category.{v₁} A]
+variables {B : Type u₂} [ℬ : category.{v₂} B]
+include 𝒜 ℬ
+
+def left_unitor (F : A ⥤ B) : ((functor.id _) ⋙ F) ≅ F :=
+{ hom := { app := λ X, 𝟙 (F.obj X) },
+  inv := { app := λ X, 𝟙 (F.obj X) } }
+
+@[simp] lemma left_unitor_hom_app {F : A ⥤ B} {X} : F.left_unitor.hom.app X = 𝟙 _ := rfl
+@[simp] lemma left_unitor_inv_app {F : A ⥤ B} {X} : F.left_unitor.inv.app X = 𝟙 _ := rfl
+
+def right_unitor (F : A ⥤ B) : (F ⋙ (functor.id _)) ≅ F :=
+{ hom := { app := λ X, 𝟙 (F.obj X) },
+  inv := { app := λ X, 𝟙 (F.obj X) } }
+
+@[simp] lemma right_unitor_hom_app {F : A ⥤ B} {X} : F.right_unitor.hom.app X = 𝟙 _ := rfl
+@[simp] lemma right_unitor_inv_app {F : A ⥤ B} {X} : F.right_unitor.inv.app X = 𝟙 _ := rfl
+
+variables {C : Type u₃} [𝒞 : category.{v₃} C]
+variables {D : Type u₄} [𝒟 : category.{v₄} D]
+include 𝒞 𝒟
+
+def associator (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) ≅ (F ⋙ (G ⋙ H)) :=
+{ hom := { app := λ _, 𝟙 _ },
+  inv := { app := λ _, 𝟙 _ } }
+
+@[simp] lemma associator_hom_app {F : A ⥤ B} {G : B ⥤ C} {H : C ⥤ D} {X} :
+(associator F G H).hom.app X = 𝟙 _ := rfl
+@[simp] lemma associator_inv_app {F : A ⥤ B} {G : B ⥤ C} {H : C ⥤ D} {X} :
+(associator F G H).inv.app X = 𝟙 _ := rfl
+
+omit 𝒟
+
+lemma triangle (F : A ⥤ B) (G : B ⥤ C) :
+  (associator F (functor.id B) G).hom ⊟ (whisker_left F (left_unitor G).hom) =
+    (whisker_right (right_unitor F).hom G) :=
+begin
+  ext1,
+  dsimp [associator, left_unitor, right_unitor],
+  simp
+end
+
+variables {E : Type u₅} [ℰ : category.{v₅} E]
+include 𝒟 ℰ
+
+variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (K : D ⥤ E)
+
+lemma pentagon :
+  (whisker_right (associator F G H).hom K) ⊟ (associator F (G ⋙ H) K).hom ⊟ (whisker_left F (associator G H K).hom) =
+    ((associator (F ⋙ G) H K).hom ⊟ (associator F G (H ⋙ K)).hom) :=
+begin
+  ext1,
+  dsimp [associator],
+  simp,
+end
+
+end functor
 
 end category_theory

@@ -7,7 +7,7 @@ Introduce Mon -- the category of monoids.
 Currently only the basic setup.
 -/
 
-import category_theory.embedding
+import category_theory.fully_faithful
 import algebra.ring
 
 universes u v
@@ -39,11 +39,12 @@ instance concrete_is_comm_monoid_hom : concrete_category @is_comm_monoid_hom :=
 ⟨by introsI α ia; apply_instance,
   by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
-instance CommMon_hom_is_comm_monoid_hom {R S : CommMon} (f : R ⟶ S) : is_comm_monoid_hom (f : R → S) := f.2
+instance CommMon_hom_is_comm_monoid_hom {R S : CommMon} (f : R ⟶ S) :
+  is_comm_monoid_hom (f : R → S) := f.2
 
 namespace CommMon
 /-- The forgetful functor from commutative monoids to monoids. -/
-def forget_to_Mon : CommMon ⥤ Mon := 
+def forget_to_Mon : CommMon ⥤ Mon :=
 concrete_functor
   (by intros _ c; exact { ..c })
   (by introsI _ _ _ _ f i;  exact { ..i })

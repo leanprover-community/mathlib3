@@ -543,7 +543,7 @@ begin
     have ha : r < 1 := ennreal.coe_lt_coe.1 ha,
     let rs := s.map (λa, r * a),
     have eq_rs : (const α r : α →ₛ ennreal) * map c s = rs.map c,
-    { ext a, exact ennreal.coe_mul.symm },
+    { ext1 a, exact ennreal.coe_mul.symm },
     have eq : ∀p, (rs.map c) ⁻¹' {p} = (⋃n, (rs.map c) ⁻¹' {p} ∩ {a | p ≤ f n a}),
     { assume p,
       rw [← inter_Union_left, ← inter_univ ((map c rs) ⁻¹' {p})] {occs := occurrences.pos [1]},

@@ -105,7 +105,7 @@ lemma is_closed_sInter {s : set (set α)} : (∀t ∈ s, is_closed t) → is_clo
 by simp only [is_closed, compl_sInter, sUnion_image]; exact assume h, is_open_Union $ assume t, is_open_Union $ assume ht, h t ht
 
 lemma is_closed_Inter {f : ι → set α} (h : ∀i, is_closed (f i)) : is_closed (⋂i, f i ) :=
-is_closed_sInter $ assume t ⟨i, (heq : t = f i)⟩, heq.symm ▸ h i
+is_closed_sInter $ assume t ⟨i, (heq : f i = t)⟩, heq ▸ h i
 
 @[simp] lemma is_open_compl_iff {s : set α} : is_open (-s) ↔ is_closed s := iff.rfl
 
@@ -222,6 +222,9 @@ lemma closure_subset_iff_subset_of_is_closed {s t : set α} (h₁ : is_closed t)
 
 lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
+
+lemma is_closed_of_closure_subset {s : set α} (h : closure s ⊆ s) : is_closed s :=
+by rw subset.antisymm subset_closure h; exact is_closed_closure
 
 @[simp] lemma closure_empty : closure (∅ : set α) = ∅ :=
 closure_eq_of_is_closed is_closed_empty
@@ -419,11 +422,16 @@ have b.map f ≤ nhds a ⊓ principal s,
   from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
 is_closed_iff_nhds.mp hs a $ neq_bot_of_le_neq_bot (map_ne_bot hb) this
 
-lemma mem_closure_of_tendsto {f : β → α} {x : filter β} {a : α} {s : set α}
+lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
   (hf : tendsto f x (nhds a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
 is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
     le_trans (map_mono $ inf_le_right_of_le $ by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
+
+lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
+  (hb : b ≠ ⊥) (hf : tendsto f b (nhds a)) (h : f ⁻¹' s ∈ b.sets) : a ∈ closure s :=
+mem_of_closed_of_tendsto hb hf (is_closed_closure) $
+  filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
@@ -636,11 +644,36 @@ assume hf, compact_of_finite_subcover $ assume c c_open c_cover,
     ... ⊆ ⋃₀ c'                      : sUnion_mono (subset_Union _ _),
   ⟨c', ‹c' ⊆ c›, ‹finite c'›, this⟩
 
+lemma compact_Union_of_compact {f : β → set α} [fintype β]
+  (h : ∀i, compact (f i)) : compact (⋃i, f i) :=
+by rw ← bUnion_univ; exact compact_bUnion_of_compact finite_univ (λ i _, h i)
+
 lemma compact_of_finite {s : set α} (hs : finite s) : compact s :=
 let s' : set α := ⋃i ∈ s, {i} in
 have e : s' = s, from ext $ λi, by simp only [mem_bUnion_iff, mem_singleton_iff, exists_eq_right'],
 have compact s', from compact_bUnion_of_compact hs (λ_ _, compact_singleton),
 e ▸ this
+
+lemma compact_union_of_compact {s t : set α} (hs : compact s) (ht : compact t) : compact (s ∪ t) :=
+by rw union_eq_Union; exact compact_Union_of_compact (λ b, by cases b; assumption)
+
+/-- Type class for compact spaces. Separation is sometimes included in the definition, especially
+in the French literature, but we do not include it here. -/
+class compact_space (α : Type*) [topological_space α] : Prop :=
+(compact_univ : compact (univ : set α))
+
+lemma compact_univ [topological_space α] [h : compact_space α] : compact (univ : set α) := h.compact_univ
+
+lemma compact_of_closed [topological_space α] [compact_space α] {s : set α} (h : is_closed s) :
+  compact s :=
+compact_of_is_closed_subset compact_univ h (subset_univ _)
+
+/-- There are various definitions of "locally compact space" in the literature, which agree for
+Hausdorff spaces but not in general. This one is the precise condition on X needed for the
+evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` is given the
+compact-open topology. -/
+class locally_compact_space (α : Type*) [topological_space α] : Prop :=
+(local_compact_nhds : ∀ (x : α) (n ∈ (nhds x).sets), ∃ s ∈ (nhds x).sets, s ⊆ n ∧ compact s)
 
 end compact
 
@@ -1758,10 +1791,34 @@ def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ int
   le_l_u := λ _, interior_subset,
   choice_eq := λ s hs, le_antisymm interior_subset hs }
 
+@[simp] lemma gi_choice_val {s : order_dual (set α)} {hs} : (gi.choice s hs).val = s := rfl
+
 instance : complete_lattice (opens α) :=
-@order_dual.lattice.complete_lattice _
+complete_lattice.copy
+(@order_dual.lattice.complete_lattice _
   (@galois_insertion.lift_complete_lattice
-    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi)
+    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi))
+/- le  -/ (λ U V, U.1 ⊆ V.1) rfl
+/- top -/ ⟨set.univ, _root_.is_open_univ⟩ (subtype.ext.mpr interior_univ.symm)
+/- bot -/ ⟨∅, is_open_empty⟩ rfl
+/- sup -/ (λ U V, ⟨U.1 ∪ V.1, _root_.is_open_union U.2 V.2⟩) rfl
+/- inf -/ (λ U V, ⟨U.1 ∩ V.1, _root_.is_open_inter U.2 V.2⟩)
+begin
+  funext,
+  apply subtype.ext.mpr,
+  symmetry,
+  apply interior_eq_of_open,
+  exact (_root_.is_open_inter U.2 V.2),
+end
+/- Sup -/ (λ Us, ⟨⋃₀ (subtype.val '' Us), _root_.is_open_sUnion $ λ U hU,
+by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
+begin
+  funext,
+  apply subtype.ext.mpr,
+  simp [Sup_range],
+  refl,
+end
+/- Inf -/ _ rfl
 
 @[simp] lemma Sup_s {Us : set (opens α)} : (Sup Us).val = ⋃₀ (subtype.val '' Us) :=
 begin

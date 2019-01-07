@@ -16,9 +16,9 @@ import category_theory.functor
 
 namespace category_theory
 
-universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C] {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -59,18 +59,20 @@ begin
   subst hc
 end
 
+lemma congr_app {α β : F ⟹ G} (h : α = β) (X : C) : α.app X = β.app X := by rw h
+
 /-- `vcomp α β` is the vertical compositions of natural transformations. -/
 def vcomp (α : F ⟹ G) (β : G ⟹ H) : F ⟹ H :=
 { app         := λ X, (α.app X) ≫ (β.app X),
   naturality' := begin /- `obviously'` says: -/ intros, simp, rw [←assoc, naturality, assoc, ←naturality], end }
 
-notation α `⊟` β:80 := vcomp α β
+infixr ` ⊟ `:80 := vcomp
 
 @[simp] lemma vcomp_app (α : F ⟹ G) (β : G ⟹ H) (X : C) : (α ⊟ β).app X = (α.app X) ≫ (β.app X) := rfl
-@[simp] lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = (α ⊟ (β ⊟ γ)) := by tidy
+@[simp] lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = α ⊟ (β ⊟ γ) := by tidy
 end
 
-variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/
@@ -86,7 +88,7 @@ def hcomp {F G : C ⥤ D} {H I : D ⥤ E} (α : F ⟹ G) (β : H ⟹ I) : (F ⋙
                    conv { to_rhs, rw [← map_comp, ← α.naturality, map_comp] }
                  end }
 
-notation α `◫` β:80 := hcomp α β
+infix ` ◫ `:80 := hcomp
 
 @[simp] lemma hcomp_app {F G : C ⥤ D} {H I : D ⥤ E} (α : F ⟹ G) (β : H ⟹ I) (X : C) :
   (α ◫ β).app X = (β.app (F.obj X)) ≫ (I.map (α.app X)) := rfl

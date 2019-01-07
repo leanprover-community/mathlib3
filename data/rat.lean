@@ -511,7 +511,6 @@ by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
-have rat.nonneg (c - a + (b - b)), by simpa [-add_right_neg, add_left_comm],
 by simpa
 
 instance : decidable_linear_order ℚ :=
@@ -859,7 +858,7 @@ cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos
 @[simp] theorem cast_div [discrete_field α] [char_zero α] (m n) : ((m / n : ℚ) : α) = m / n :=
 by rw [division_def, cast_mul, cast_inv, division_def]
 
-@[simp] theorem cast_pow [discrete_field α] [char_zero α] (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k := 
+@[simp] theorem cast_pow [discrete_field α] [char_zero α] (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
 by induction k; simp only [*, cast_one, cast_mul, pow_zero, pow_succ]
 
 @[simp] theorem cast_bit0 [division_ring α] [char_zero α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _
@@ -955,6 +954,10 @@ lemma num_ne_zero_of_ne_zero {q : ℚ} (h : q ≠ 0) : q.num ≠ 0 :=
 assume : q.num = 0,
 h $ zero_of_num_zero this
 
+@[simp] lemma num_one : (1 : ℚ).num = 1 := rfl
+
+@[simp] lemma denom_one : (1 : ℚ).denom = 1 := rfl
+
 lemma denom_ne_zero (q : ℚ) : q.denom ≠ 0 :=
 ne_of_gt q.pos
 
@@ -1041,6 +1044,13 @@ begin
         mul_one, zero_mul] at hq,
     rw [int.nat_abs_of_nonneg hq, ← num_denom q] }
 end
+
+lemma add_num_denom (q r : ℚ) : q + r =
+  ((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom * ↑r.denom : ℤ) :=
+have hqd : (q.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 q.3,
+have hrd : (r.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 r.3,
+by conv { to_lhs, rw [rat.num_denom q, rat.num_denom r, rat.add_def hqd hrd] };
+  simp [mul_comm]
 
 def sqrt (q : ℚ) : ℚ :=
 rat.mk (int.sqrt q.num) (nat.sqrt q.denom)

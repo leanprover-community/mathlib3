@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import data.set.basic data.option data.equiv.basic
+import data.set.basic data.option.basic data.equiv.basic
 
 /-- `roption α` is the type of "partial values" of type `α`. It
   is similar to `option α` except the domain condition can be an
@@ -61,6 +61,8 @@ theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
 theorem get_eq_of_mem {o : roption α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h
 
+@[simp] theorem get_some {a : α} (ha : (some a).dom) : get (some a) ha = a := rfl
+
 theorem mem_some (a : α) : a ∈ some a := ⟨trivial, rfl⟩
 
 @[simp] theorem mem_some_iff {a b} : b ∈ (some a : roption α) ↔ b = a :=
@@ -77,8 +79,28 @@ theorem eq_none_iff {o : roption α} : o = none ↔ ∀ a, a ∉ o :=
 theorem eq_none_iff' {o : roption α} : o = none ↔ ¬ o.dom :=
 ⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
 
+@[simp] lemma some_inj {a b : α} : roption.some a = some b ↔ a = b :=
+function.injective.eq_iff (λ a b h, congr_fun (eq_of_heq (roption.mk.inj h).2) trivial)
+
+@[simp] lemma some_get {a : roption α} (ha : a.dom) :
+  roption.some (roption.get a ha) = a :=
+eq.symm (eq_some_iff.2 ⟨ha, rfl⟩)
+
+lemma get_eq_iff_eq_some {a : roption α} {ha : a.dom} {b : α} :
+  a.get ha = b ↔ a = some b :=
+⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
+
 instance none_decidable : decidable (@none α).dom := decidable.false
 instance some_decidable (a : α) : decidable (some a).dom := decidable.true
+
+def get_or_else (a : roption α) [decidable a.dom] (d : α) :=
+if ha : a.dom then a.get ha else d
+
+@[simp] lemma get_or_else_none (d : α) : get_or_else none d = d :=
+dif_neg id
+
+@[simp] lemma get_or_else_some (a : α) (d : α) : get_or_else (some a) d = a :=
+dif_pos trivial
 
 @[simp] theorem mem_to_option {o : roption α} [decidable o.dom] {a : α} :
   a ∈ to_option o ↔ a ∈ o :=
@@ -113,6 +135,12 @@ instance : has_coe (option α) (roption α) := ⟨of_option⟩
 
 @[simp] theorem coe_none : (@option.none α : roption α) = none := rfl
 @[simp] theorem coe_some (a : α) : (option.some a : roption α) = some a := rfl
+
+@[elab_as_eliminator] protected lemma roption.induction_on {P : roption α → Prop}
+  (a : roption α) (hnone : P none) (hsome : ∀ a : α, P (some a)) : P a :=
+(classical.em a.dom).elim
+  (λ h, roption.some_get h ▸ hsome _)
+  (λ h, (eq_none_iff'.2 h).symm ▸ hnone)
 
 instance of_option_decidable : ∀ o : option α, decidable (of_option o).dom
 | option.none     := roption.none_decidable

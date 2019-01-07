@@ -191,7 +191,7 @@ set.ext $ λ x, by simp only [mem_coe, mem_insert, set.mem_insert_iff]
 @[simp] theorem insert_eq_of_mem {a : α} {s : finset α} (h : a ∈ s) : insert a s = s :=
 eq_of_veq $ ndinsert_of_mem h
 
-@[simp] theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
+theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext.2 $ λ x, by simp only [finset.mem_insert, or.left_comm]
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
@@ -599,7 +599,7 @@ end filter
 section range
 variables {n m l : ℕ}
 
-/-- `range n` is the set of integers less than `n`. -/
+/-- `range n` is the set of natural numbers less than `n`. -/
 def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
 @[simp] theorem range_val (n : ℕ) : (range n).1 = multiset.range n := rfl
@@ -608,7 +608,9 @@ def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
 @[simp] theorem range_zero : range 0 = ∅ := rfl
 
-@[simp] theorem range_succ : range (succ n) = insert n (range n) :=
+@[simp] theorem range_one : range 1 = {0} := rfl
+
+theorem range_succ : range (succ n) = insert n (range n) :=
 eq_of_veq $ (range_succ n).trans $ (ndinsert_of_not_mem not_mem_range_self).symm
 
 @[simp] theorem not_mem_range_self : n ∉ range n := not_mem_range_self
@@ -893,6 +895,9 @@ card_eq_zero.trans val_eq_zero
 
 theorem card_pos {s : finset α} : 0 < card s ↔ s ≠ ∅ :=
 pos_iff_ne_zero.trans $ not_congr card_eq_zero
+
+theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = finset.singleton a :=
+by cases s; simp [multiset.card_eq_one, finset.singleton, finset.card]
 
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
@@ -1297,15 +1302,8 @@ lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
 sup_le $ assume b hb, le_sup (h hb)
 
 lemma sup_lt [is_total α (≤)] {a : α} : (⊥ < a) → (∀b ∈ s, f b < a) → s.sup f < a :=
-have A : ∀ x y, x < a → y < a → x ⊔ y < a :=
-begin
-  assume x y hx hy,
-  cases (is_total.total (≤) x y) with h,
-  { simpa [sup_of_le_right h] using hy },
-  { simpa [sup_of_le_left h] using hx }
-end,
 by letI := classical.dec_eq β; from
-finset.induction_on s (by simp) (by simp [A] {contextual := tt})
+finset.induction_on s (by simp) (by simp {contextual := tt})
 
 lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
@@ -1375,15 +1373,8 @@ lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
 
 lemma lt_inf [is_total α (≤)] {a : α} : (a < ⊤) → (∀b ∈ s, a < f b) → a < s.inf f :=
-have A : ∀ x y, a < x → a < y → a < x ⊓ y :=
-begin
-  assume x y hx hy,
-  cases (is_total.total (≤) x y) with h,
-  { simpa [inf_of_le_left h] using hy },
-  { simpa [inf_of_le_right h] using hx }
-end,
 by letI := classical.dec_eq β; from
-finset.induction_on s (by simp) (by simp [A] {contextual := tt})
+finset.induction_on s (by simp) (by simp {contextual := tt})
 
 lemma comp_inf_eq_inf_comp [is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=

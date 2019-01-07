@@ -1,5 +1,5 @@
 
-import tactic.basic core data.sum tactic.rcases
+import tactic.basic data.list.defs data.prod data.sum tactic.rcases
 universes u₁ u₂
 
 open interactive interactive.types
@@ -140,7 +140,7 @@ meta def extensional_attribute : user_attribute (name_map name) (bool × list ex
        let l := ls'' ∪ (ls'.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
        extensional_attribute.set n (tt,[],l,[]) b }
 
-attribute [extensionality] array.ext propext
+attribute [extensionality] array.ext propext prod.ext
 attribute [extensionality [(→),thunk]] _root_.funext
 
 namespace ulift
@@ -149,6 +149,13 @@ begin
   cases X, cases Y, dsimp at w, rw w,
 end
 end ulift
+
+namespace plift
+@[extensionality] lemma ext {P : Prop} (a b : plift P) : a = b :=
+begin
+  cases a, cases b, refl
+end
+end plift
 
 namespace tactic
 

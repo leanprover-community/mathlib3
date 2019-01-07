@@ -70,6 +70,14 @@ instance decidable_surjective_fintype [fintype α] [decidable_eq α] [fintype β
 instance decidable_bijective_fintype [fintype α] [decidable_eq α] [fintype β] [decidable_eq β] :
   decidable_pred (bijective : (α → β) → Prop) := λ x, by unfold bijective; apply_instance
 
+instance decidable_left_inverse_fintype [fintype α] [decidable_eq α] (f : α → β) (g : β → α) :
+  decidable (function.right_inverse f g) :=
+show decidable (∀ x, g (f x) = x), by apply_instance
+
+instance decidable_right_inverse_fintype [fintype β] [decidable_eq β] (f : α → β) (g : β → α) :
+  decidable (function.left_inverse f g) :=
+show decidable (∀ x, f (g x) = x), by apply_instance
+
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
   (H : ∀ x : α, x ∈ s) : fintype α :=
@@ -215,6 +223,10 @@ instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp�
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
+instance additive.fintype : Π [fintype α], fintype (additive α) := id
+
+instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
+
 @[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
@@ -315,6 +327,13 @@ match n, hn with
     (λ _ _ _, h _ _))⟩
 end
 
+lemma fintype.exists_ne_of_card_gt_one [fintype α] (h : fintype.card α > 1) (a : α) :
+  ∃ b : α, b ≠ a :=
+let ⟨b, hb⟩ := classical.not_forall.1 (mt fintype.card_le_one_iff.2 (not_le_of_gt h)) in
+let ⟨c, hc⟩ := classical.not_forall.1 hb in
+by haveI := classical.dec_eq α; exact
+if hba : b = a then ⟨c, by cc⟩ else ⟨b, hba⟩
+
 lemma fintype.injective_iff_surjective [fintype α] {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
 have ∀ {f : α → α}, injective f → surjective f,
@@ -395,6 +414,10 @@ d_array.fintype
 
 instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
 fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm
+
+@[simp] lemma card_vector [fintype α] (n : ℕ) :
+  fintype.card (vector α n) = fintype.card α ^ n :=
+by rw fintype.of_equiv_card; simp
 
 instance quotient.fintype [fintype α] (s : setoid α)
   [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=
@@ -620,7 +643,7 @@ open function
 
 variables [fintype α] [decidable_eq α]
 variables [fintype β] [decidable_eq β]
-variables {f : α → β} 
+variables {f : α → β}
 
 /-- `
 `bij_inv f` is the unique inverse to a bijection `f`. This acts
@@ -641,7 +664,7 @@ lemma right_inverse_bij_inv (f_bij : bijective f) : right_inverse (bij_inv f_bij
 
 lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
 ⟨injective_of_left_inverse (right_inverse_bij_inv _),
-    surjective_of_has_right_inverse ⟨f, left_inverse_bij_inv _⟩⟩ 
+    surjective_of_has_right_inverse ⟨f, left_inverse_bij_inv _⟩⟩
 
 end bijection_inverse
 

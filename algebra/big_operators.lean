@@ -143,10 +143,8 @@ lemma prod_comm [decidable_eq γ] {s : finset γ} {t : finset α} {f : γ → α
 finset.induction_on s (by simp only [prod_empty, prod_const_one]) $
 λ _ _ H ih, by simp only [prod_insert H, prod_mul_distrib, ih]
 
-@[to_additive finset.sum_hom]
-lemma prod_hom [comm_monoid γ] (g : β → γ)
-  (h₁ : g 1 = 1) (h₂ : ∀x y, g (x * y) = g x * g y) : s.prod (λx, g (f x)) = g (s.prod f) :=
-eq.trans (by rw [h₁]; refl) (fold_hom h₂)
+lemma prod_hom [comm_monoid γ] (g : β → γ) [is_monoid_hom g] : s.prod (λx, g (f x)) = g (s.prod f) :=
+eq.trans (by rw is_monoid_hom.map_one g; refl) (fold_hom (λ _ _, is_monoid_hom.map_mul g))
 
 @[to_additive finset.sum_hom_rel]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
@@ -311,6 +309,11 @@ calc s.prod f = s.prod (λx, 1) : finset.prod_congr rfl h
 
 end comm_monoid
 
+lemma sum_hom [add_comm_monoid β] [add_comm_monoid γ] (g : β → γ) [is_add_monoid_hom g] :
+  s.sum (λx, g (f x)) = g (s.sum f) :=
+eq.trans (by rw is_add_monoid_hom.map_zero g; refl) (fold_hom (λ _ _, is_add_monoid_hom.map_add g))
+attribute [to_additive finset.sum_hom] prod_hom
+
 lemma sum_smul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   s.sum (λ x, add_monoid.smul n (f x)) = add_monoid.smul n (s.sum f) :=
 @prod_pow _ (multiplicative β) _ _ _ _
@@ -328,14 +331,14 @@ attribute [to_additive finset.sum_range_succ'] prod_range_succ'
 
 lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
-(sum_hom _ nat.cast_zero nat.cast_add).symm
+(sum_hom _).symm
 
 section comm_group
 variables [comm_group β]
 
 @[simp, to_additive finset.sum_neg_distrib]
 lemma prod_inv_distrib : s.prod (λx, (f x)⁻¹) = (s.prod f)⁻¹ :=
-prod_hom has_inv.inv one_inv mul_inv
+prod_hom has_inv.inv
 
 end comm_group
 
@@ -362,11 +365,7 @@ finset.induction_on s (by simp)
 
 lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (s.sum f) = s.sum (λa, gsmul z (f a)) :=
-begin
-  refine (finset.sum_hom (gsmul z) _ _).symm,
-  exact gsmul_zero _,
-  assume x y, exact gsmul_add _ _ _
-end
+(finset.sum_hom (gsmul z)).symm
 
 end finset
 
@@ -394,10 +393,10 @@ section semiring
 variables [semiring β]
 
 lemma sum_mul : s.sum f * b = s.sum (λx, f x * b) :=
-(sum_hom (λx, x * b) (zero_mul b) (assume a c, add_mul a c b)).symm
+(sum_hom (λx, x * b)).symm
 
 lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
-(sum_hom (λx, b * x) (mul_zero b) (assume a c, mul_add b a c)).symm
+(sum_hom (λx, b * x)).symm
 
 end semiring
 
@@ -526,8 +525,8 @@ eq.symm (prod_bij (λ x _, nat.succ x)
   (λ b h,
     have b.pred.succ = b, from nat.succ_pred_eq_of_pos $
       by simp [nat.pos_iff_ne_zero] at *; tauto,
-    ⟨nat.pred b, mem_range.2 $ nat.lt_of_succ_lt_succ (by simp [*, - range_succ] at *), this.symm⟩))
-... = nat.fact n : by induction n; simp *
+    ⟨nat.pred b, mem_range.2 $ nat.lt_of_succ_lt_succ (by simp [*] at *), this.symm⟩))
+... = nat.fact n : by induction n; simp [*, range_succ]
 
 end finset
 

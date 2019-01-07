@@ -434,6 +434,10 @@ by simpa using add_le_add_right (zero_le t) s
 @[simp] theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 quotient.induction_on₂ s t length_append
 
+lemma card_smul (s : multiset α) (n : ℕ) :
+  (n • s).card = n * s.card :=
+by induction n; simp [succ_smul, *, nat.succ_mul]
+
 @[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
 
@@ -598,6 +602,9 @@ quot.induction_on s $ λ l, rfl
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
+instance (f : α → β) : is_add_monoid_hom (map f) :=
+by refine_struct {..}; simp
+
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
 quot.induction_on s $ λ l, mem_map
@@ -723,6 +730,9 @@ theorem prod_singleton [comm_monoid α] (a : α) : prod (a :: 0) = a := by simp
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
+instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
+by refine_struct {..}; simp
+
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
 @[simp] theorem sum_repeat [add_comm_monoid α] : ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n • a :=
@@ -758,6 +768,17 @@ multiset.induction_on s (by simp) (assume a s ih, by simp [ih, mul_add])
 lemma sum_map_mul_right [semiring β] {b : β} {s : multiset α} {f : α → β} :
   sum (s.map (λa, f a * b)) = sum (s.map f) * b :=
 multiset.induction_on s (by simp) (assume a s ih, by simp [ih, add_mul])
+
+lemma prod_hom [comm_monoid α] [comm_monoid β] (f : α → β) [is_monoid_hom f] (s : multiset α) :
+  (s.map f).prod = f s.prod :=
+multiset.induction_on s (by simp [is_monoid_hom.map_one f])
+  (by simp [is_monoid_hom.map_mul f] {contextual := tt})
+
+lemma sum_hom [add_comm_monoid α] [add_comm_monoid β] (f : α → β) [is_add_monoid_hom f] (s : multiset α) :
+  (s.map f).sum = f s.sum :=
+multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])
+  (by simp [is_add_monoid_hom.map_add f] {contextual := tt})
+attribute [to_additive multiset.sum_hom] multiset.prod_hom
 
 /- join -/
 
@@ -1074,11 +1095,11 @@ quotient.induction_on₃ s t u $
 theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
 by rw [add_comm, add_sub_of_le h]
 
-theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
+@[simp] theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
 multiset.induction_on s (by simp)
   (λ a s IH t, by rw [cons_add, sub_cons, erase_cons_head, IH])
 
-theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
+@[simp] theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
 by rw [add_comm, add_sub_cancel_left]
 
 theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=
@@ -1668,6 +1689,9 @@ quot.induction_on s $ λ l, countp_eq_length_filter _
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
 
+instance countp.is_add_monoid_hom : is_add_monoid_hom (countp p : multiset α → ℕ) :=
+by refine_struct {..}; simp
+
 theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
 by simp [countp_eq_card_filter, card_pos_iff_exists_mem]
 
@@ -1716,6 +1740,9 @@ by simp
 
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
 countp_add
+
+instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
+countp.is_add_monoid_hom
 
 @[simp] theorem count_smul (a : α) (n s) : count a (n • s) = n * count a s :=
 by induction n; simp [*, succ_smul', succ_mul]
@@ -1928,6 +1955,18 @@ lemma card_eq_card_of_rel {r : α → β → Prop} {s : multiset α} {t : multis
   card s = card t :=
 by induction h; simp [*]
 
+lemma exists_mem_of_rel_of_mem {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
+  ∀ {a : α} (ha : a ∈ s), ∃ b ∈ t, r a b :=
+begin
+  induction h with x y s t hxy hst ih,
+  { simp },
+  { assume a ha,
+    cases mem_cons.1 ha with ha ha,
+    { exact ⟨y, mem_cons_self _ _, ha.symm ▸ hxy⟩ },
+    { rcases ih ha with ⟨b, hbt, hab⟩,
+      exact ⟨b, mem_cons.2 (or.inr hbt), hab⟩ } }
+end
+
 end rel
 
 section map
@@ -2060,7 +2099,7 @@ quot.lift_on s nodup (λ s t p, propext $ perm_nodup p)
 @[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
 ⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
 
-@[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil _
+@[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil
 
 @[simp] theorem nodup_cons {a : α} {s : multiset α} : nodup (a::s) ↔ a ∉ s ∧ nodup s :=
 quot.induction_on s $ λ l, nodup_cons
@@ -2095,6 +2134,10 @@ le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 lemma pairwise_of_nodup {r : α → α → Prop} {s : multiset α} :
   (∀a∈s, ∀b∈s, a ≠ b → r a b) → nodup s → pairwise r s :=
 quotient.induction_on s $ assume l h hl, ⟨l, rfl, hl.imp_of_mem $ assume a b ha hb, h a ha b hb⟩
+
+lemma forall_of_pairwise {r : α → α → Prop} (H : symmetric r) {s : multiset α}
+   (hs : pairwise r s) : (∀a∈s, ∀b∈s, a ≠ b → r a b) :=
+let ⟨l, hl₁, hl₂⟩ := hs in hl₁.symm ▸ list.forall_of_pairwise H hl₂
 
 theorem nodup_add {s t : multiset α} : nodup (s + t) ↔ nodup s ∧ nodup t ∧ disjoint s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append

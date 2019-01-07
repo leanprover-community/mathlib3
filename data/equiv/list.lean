@@ -177,7 +177,7 @@ lemma raise_lower : ∀ {l n}, list.sorted (≤) (n :: l) → raise (lower l n) 
            raise_lower (list.sorted_of_sorted_cons h)]
 
 lemma raise_chain : ∀ l n, list.chain (≤) n (raise l n)
-| []       n := list.chain.nil _ _
+| []       n := list.chain.nil
 | (m :: l) n := list.chain.cons (nat.le_add_left _ _) (raise_chain _ _)
 
 lemma raise_sorted : ∀ l n, list.sorted (≤) (raise l n)
@@ -217,7 +217,7 @@ lemma raise_lower' : ∀ {l n}, (∀ m ∈ l, n ≤ m) → list.sorted (<) l →
     (list.rel_of_sorted_cons h₂ : ∀ a ∈ l, m < a) (list.sorted_of_sorted_cons h₂)]
 
 lemma raise'_chain : ∀ l {m n}, m < n → list.chain (<) m (raise' l n)
-| []       m n h := list.chain.nil _ _
+| []       m n h := list.chain.nil
 | (a :: l) m n h := list.chain.cons
   (lt_of_lt_of_le h (nat.le_add_left _ _)) (raise'_chain _ (lt_succ_self _))
 

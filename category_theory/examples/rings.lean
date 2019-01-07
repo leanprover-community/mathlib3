@@ -8,7 +8,7 @@ Currently only the basic setup.
 -/
 
 import category_theory.examples.monoids
-import category_theory.embedding
+import category_theory.fully_faithful
 import algebra.ring
 
 universes u v
@@ -33,21 +33,26 @@ instance Ring_hom_is_ring_hom {R S : Ring} (f : R ⟶ S) : is_ring_hom (f : R �
 
 instance (x : CommRing) : comm_ring x := x.str
 
-@[reducible] def is_comm_ring_hom {α β} [comm_ring α] [comm_ring β] (f : α → β) : Prop :=
-is_ring_hom f
+-- Here we don't use the `concrete` machinery,
+-- because it would require introducing a useless synonym for `is_ring_hom`.
+instance : category CommRing :=
+{ hom := λ R S, { f : R → S // is_ring_hom f },
+  id := λ R, ⟨ id, by resetI; apply_instance ⟩,
+  comp := λ R S T g h, ⟨ h.1 ∘ g.1, begin haveI := g.2, haveI := h.2, apply_instance end ⟩ }
 
-instance concrete_is_comm_ring_hom : concrete_category @is_comm_ring_hom :=
-⟨by introsI α ia; apply_instance,
-  by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
+instance CommRing_hom_coe {R S : CommRing} : has_coe_to_fun (R ⟶ S) :=
+{ F := λ f, R → S,
+  coe := λ f, f.1 }
 
-instance CommRing_hom_is_comm_ring_hom {R S : CommRing} (f : R ⟶ S) : is_comm_ring_hom (f : R → S) := f.2
+@[simp] lemma CommRing_hom_coe_app {R S : CommRing} (f : R ⟶ S) (r : R) : f r = f.val r := rfl
+
+instance CommRing_hom_is_ring_hom {R S : CommRing} (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
 
 namespace CommRing
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
-def forget_to_CommMon : CommRing ⥤ CommMon := 
-concrete_functor
-  (by intros _ c; exact { ..c })
-  (by introsI _ _ _ _ f i;  exact { ..i })
+def forget_to_CommMon : CommRing ⥤ CommMon :=
+{ obj := λ X, { α := X.1, str := by apply_instance },
+  map := λ X Y f, ⟨ f, by apply_instance ⟩ }
 
 instance : faithful (forget_to_CommMon) := {}
 

@@ -5,11 +5,11 @@
 import category_theory.isomorphism
 import category_theory.functor_category
 
-universes u v u' v'
+universes v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
@@ -33,7 +33,7 @@ rfl
   eq_to_iso p ≪≫ eq_to_iso q = eq_to_iso (p.trans q) :=
 by ext; simp
 
-variables {D : Type u'} [𝒟 : category.{u' v'} D]
+variables {D : Type u'} [𝒟 : category.{v'} D]
 include 𝒟
 
 namespace functor

@@ -4,7 +4,7 @@
 
 import category_theory.functor
 
-universes u v
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
@@ -14,7 +14,7 @@ instance pempty_category : small_category pempty :=
   comp := by obviously }
 
 namespace functor
-variables (C : Type u) [𝒞 : category.{u v} C]
+variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 def empty : pempty ⥤ C := by tidy

@@ -66,6 +66,9 @@ let ⟨s', h⟩ := hs.exists_finset in ⟨s', set.ext h⟩
 theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 ⟨fintype_of_finset s (λ _, iff.rfl)⟩
 
+theorem finite.of_fintype [fintype α] (s : set α) : finite s :=
+by classical; exact ⟨set_fintype s⟩
+
 instance decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
 decidable_of_iff _ mem_to_finset
 
@@ -162,6 +165,11 @@ set.fintype_singleton
 
 theorem finite_pure (a : α) : finite (pure a : set α) :=
 ⟨set.fintype_pure a⟩
+
+instance fintype_univ [fintype α] : fintype (@univ α) :=
+fintype_of_finset finset.univ $ λ _, iff_true_intro (finset.mem_univ _)
+
+theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
 
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
 fintype_of_finset (s.to_finset ∪ t.to_finset) $ by simp

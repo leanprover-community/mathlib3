@@ -5,7 +5,7 @@
 import category_theory.comma
 import category_theory.limits.limits
 
-universes u v
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory category_theory.limits
 

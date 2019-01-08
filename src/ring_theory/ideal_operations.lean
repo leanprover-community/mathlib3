@@ -34,13 +34,13 @@ theorem mem_annihilator {r} : r ∈ N.annihilator ↔ ∀ n ∈ N, r • n = (0:
 λ h, linear_map.mem_ker.2 $ linear_map.ext $ λ n, subtype.eq $ h n.1 n.2⟩
 
 theorem mem_annihilator' {r} : r ∈ N.annihilator ↔ N ≤ comap (r • linear_map.id) ⊥ :=
-mem_annihilator.trans ⟨λ H n hn, mem_bot.2 $ H n hn, λ H n hn, mem_bot.1 $ H hn⟩
+mem_annihilator.trans ⟨λ H n hn, (mem_bot R).2 $ H n hn, λ H n hn, (mem_bot R).1 $ H hn⟩
 
 theorem annihilator_bot : (⊥ : submodule R M).annihilator = ⊤ :=
 (ideal.eq_top_iff_one _).2 $ mem_annihilator'.2 bot_le
 
 theorem annihilator_eq_top_iff : N.annihilator = ⊤ ↔ N = ⊥ :=
-⟨λ H, eq_bot_iff.2 $ λ n hn, mem_bot.2 $ one_smul n ▸ mem_annihilator.1 ((ideal.eq_top_iff_one _).1 H) n hn,
+⟨λ H, eq_bot_iff.2 $ λ (n:M) hn, (mem_bot R).2 $ one_smul R n ▸ mem_annihilator.1 ((ideal.eq_top_iff_one _).1 H) n hn,
 λ H, H.symm ▸ annihilator_bot⟩
 
 theorem annihilator_mono (h : N ≤ P) : P.annihilator ≤ N.annihilator :=
@@ -81,7 +81,7 @@ theorem smul_le {P : submodule R M} : I • N ≤ P ↔ ∀ (r ∈ I) (n ∈ N),
 theorem smul_induction_on {p : M → Prop} {x} (H : x ∈ I • N)
   (Hb : ∀ (r ∈ I) (n ∈ N), p (r • n)) (H0 : p 0)
   (H1 : ∀ x y, p x → p y → p (x + y))
-  (H2 : ∀ c n, p n → p (c • n)) : p x :=
+  (H2 : ∀ (c:R) n, p n → p (c • n)) : p x :=
 (@smul_le _ _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hb H
 
 theorem smul_le_right : I • N ≤ N :=
@@ -99,14 +99,14 @@ smul_mono (le_refl I) h
 variables (I J N P)
 theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,
-submodule.mem_bot.2 $ (submodule.mem_bot.1 hsb).symm ▸ smul_zero r
+(submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hsb).symm ▸ smul_zero r
 
-theorem bot_smul : ⊥ • N = ⊥ :=
+theorem bot_smul : (⊥ : ideal R) • N = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hrb s hsi,
-submodule.mem_bot.2 $ (submodule.mem_bot.1 hrb).symm ▸ zero_smul s
+(submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hrb).symm ▸ zero_smul _ s
 
-theorem top_smul : ⊤ • N = N :=
-le_antisymm smul_le_right $ λ r hri, one_smul r ▸ smul_mem_smul mem_top hri
+theorem top_smul : (⊤ : ideal R) • N = N :=
+le_antisymm smul_le_right $ λ r hri, one_smul R r ▸ smul_mem_smul mem_top hri
 
 theorem smul_sup : I • (N ⊔ P) = I • N ⊔ I • P :=
 le_antisymm (smul_le.2 $ λ r hri m hmnp, let ⟨n, hn, p, hp, hnpm⟩ := mem_sup.1 hmnp in
@@ -123,17 +123,17 @@ le_antisymm (smul_le.2 $ λ r hrij n hn, let ⟨ri, hri, rj, hrj, hrijr⟩ := me
 theorem smul_assoc : (I • J) • N = I • (J • N) :=
 le_antisymm (smul_le.2 $ λ rs hrsij t htn,
   smul_induction_on hrsij
-  (λ r hr s hs, (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
-  ((zero_smul t).symm ▸ submodule.zero_mem _)
+  (λ r hr s hs, (@smul_eq_mul R _ r s).symm ▸ smul_smul _ r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
+  ((zero_smul R t).symm ▸ submodule.zero_mem _)
   (λ x y, (add_smul x y t).symm ▸ submodule.add_mem _)
-  (λ r s h, (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ submodule.smul_mem _ _ h))
+  (λ r s h, (@smul_eq_mul R _ r s).symm ▸ smul_smul _ r s t ▸ submodule.smul_mem _ _ h))
 (smul_le.2 $ λ r hr sn hsn, suffices J • N ≤ submodule.comap (r • linear_map.id) ((I • J) • N), from this hsn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N, from mul_smul r s n ▸ smul_mem_smul (smul_mem_smul hr hs) hn)
 
 variables (S : set R) (T : set M)
 
-theorem span_smul_span : (ideal.span S) • (span T) =
-  span (⋃ (s ∈ S) (t ∈ T), {s • t}) :=
+theorem span_smul_span : (ideal.span S) • (span R T) =
+  span R (⋃ (s ∈ S) (t ∈ T), {s • t}) :=
 le_antisymm (smul_le.2 $ λ r hrS n hnT, span_induction hrS
   (λ r hrS, span_induction hnT
     (λ n hnT, subset_span $ set.mem_bUnion hrS $
@@ -141,7 +141,7 @@ le_antisymm (smul_le.2 $ λ r hrS n hnT, span_induction hrS
     ((smul_zero r : r • 0 = (0:M)).symm ▸ submodule.zero_mem _)
     (λ x y, (smul_add r x y).symm ▸ submodule.add_mem _)
     (λ c m, by rw [smul_smul, mul_comm, mul_smul]; exact submodule.smul_mem _ _))
-  ((zero_smul n).symm ▸ submodule.zero_mem _)
+  ((zero_smul R n).symm ▸ submodule.zero_mem _)
   (λ r s, (add_smul r s n).symm ▸ submodule.add_mem _)
   (λ c r, by rw [smul_eq_mul, mul_smul]; exact submodule.smul_mem _ _)) $
 span_le.2 $ set.bUnion_subset $ λ r hrS, set.bUnion_subset $ λ n hnT, set.singleton_subset_iff.2 $
@@ -435,7 +435,7 @@ submodule.span_induction H (λ _, id) ⟨0, I.zero_mem, is_ring_hom.map_zero f�
 theorem comap_map_of_surjective (I : ideal R) :
   comap f (map f I) = I ⊔ comap f ⊥ :=
 le_antisymm (assume r h, let ⟨s, hsi, hfsr⟩ := mem_image_of_mem_map_of_surjective f hf h in
-  submodule.mem_sup.2 ⟨s, hsi, r - s, submodule.mem_bot.2 $ by rw [is_ring_hom.map_sub f, hfsr, sub_self],
+  submodule.mem_sup.2 ⟨s, hsi, r - s, (submodule.mem_bot S).2 $ by rw [is_ring_hom.map_sub f, hfsr, sub_self],
   add_sub_cancel'_right s r⟩)
 (sup_le (map_le_iff_le_comap.1 (le_refl _)) (comap_mono bot_le))
 

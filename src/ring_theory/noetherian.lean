@@ -14,10 +14,10 @@ open set lattice
 namespace submodule
 variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β]
 
-def fg (s : submodule α β) : Prop := ∃ t : finset β, submodule.span ↑t = s
+def fg (s : submodule α β) : Prop := ∃ t : finset β, submodule.span α ↑t = s
 
 theorem fg_def {s : submodule α β} :
-  s.fg ↔ ∃ t : set β, finite t ∧ span t = s :=
+  s.fg ↔ ∃ t : set β, finite t ∧ span α t = s :=
 ⟨λ ⟨t, h⟩, ⟨_, finset.finite_to_set t, h⟩, begin
   rintro ⟨t', h, rfl⟩,
   rcases finite.exists_finset_coe h with ⟨t, rfl⟩,
@@ -33,7 +33,7 @@ let ⟨t₁, ht₁⟩ := fg_def.1 hs₁, ⟨t₂, ht₂⟩ := fg_def.1 hs₂ in
 fg_def.2 ⟨t₁ ∪ t₂, finite_union ht₁.1 ht₂.1, by rw [span_union, ht₁.2, ht₂.2]⟩
 
 variables {γ : Type*} [add_comm_group γ] [module α γ]
-variables {f : β →ₗ γ}
+variables {f : β →ₗ[α] γ}
 
 theorem fg_map {s : submodule α β} (hs : s.fg) : (s.map f).fg :=
 let ⟨t, ht⟩ := fg_def.1 hs in fg_def.2 ⟨f '' t, finite_image _ ht.1, by rw [span_image, ht.2]⟩
@@ -77,8 +77,8 @@ begin
   have : f x ∈ map f s, { rw mem_map, exact ⟨x, hx, rfl⟩ },
   rw [← ht1, mem_span_iff_lc] at this,
   rcases this with ⟨l, hl1, hl2⟩,
-  refine mem_sup.2 ⟨lc.total β ((lc.map g : lc α γ → lc α β) l), _,
-    x - lc.total β ((lc.map g : lc α γ → lc α β) l), _, add_sub_cancel'_right _ _⟩,
+  refine mem_sup.2 ⟨lc.total α β ((lc.map α g : lc α γ → lc α β) l), _,
+    x - lc.total α β ((lc.map α g : lc α γ → lc α β) l), _, add_sub_cancel'_right _ _⟩,
   { rw mem_span_iff_lc, refine ⟨_, _, rfl⟩,
     rw [← lc.map_supported g, mem_map],
     exact ⟨_, hl1, rfl⟩ },
@@ -87,14 +87,14 @@ begin
     rw [lc.total_apply, lc.map_apply, finsupp.sum_map_domain_index],
     refine s.sum_mem _,
     { intros y hy, exact s.smul_mem _ (hg y (hl1 hy)).1 },
-    { exact zero_smul }, { exact λ _ _ _, add_smul _ _ _ } },
+    { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } },
   { rw [linear_map.mem_ker, f.map_sub, ← hl2],
     rw [lc.total_apply, lc.total_apply, lc.map_apply],
     rw [finsupp.sum_map_domain_index, finsupp.sum, finsupp.sum, f.map_sum],
     rw sub_eq_zero,
     refine finset.sum_congr rfl (λ y hy, _),
     rw [f.map_smul, (hg y (hl1 hy)).2],
-    { exact zero_smul }, { exact λ _ _ _, add_smul _ _ _ } }
+    { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
 end submodule
@@ -126,20 +126,20 @@ is_noetherian_submodule.trans
 ⟨λ H s, H _ inf_le_right, λ H s hs, (inf_of_le_left hs) ▸ H _⟩
 
 variable (β)
-theorem is_noetherian_of_surjective (f : β →ₗ γ) (hf : f.range = ⊤)
+theorem is_noetherian_of_surjective (f : β →ₗ[α] γ) (hf : f.range = ⊤)
   (hb : is_noetherian α β) : is_noetherian α γ :=
 λ s, have (s.comap f).map f = s, from linear_map.map_comap_eq_self $ hf.symm ▸ le_top,
 this ▸ submodule.fg_map $ hb _
 variable {β}
 
-theorem is_noetherian_of_linear_equiv (f : β ≃ₗ γ)
+theorem is_noetherian_of_linear_equiv (f : β ≃ₗ[α] γ)
   (hb : is_noetherian α β) : is_noetherian α γ :=
 is_noetherian_of_surjective _ f.to_linear_map f.range hb
 
 theorem is_noetherian_prod (hb : is_noetherian α β)
   (hc : is_noetherian α γ) : is_noetherian α (β × γ) :=
-λ s, submodule.fg_of_fg_map_of_fg_inf_ker (linear_map.snd β γ) (hc _) $
-have s ⊓ linear_map.ker (linear_map.snd β γ) ≤ linear_map.range (linear_map.inl β γ),
+λ s, submodule.fg_of_fg_map_of_fg_inf_ker (linear_map.snd α β γ) (hc _) $
+have s ⊓ linear_map.ker (linear_map.snd α β γ) ≤ linear_map.range (linear_map.inl α β γ),
 from λ x ⟨hx1, hx2⟩, ⟨x.1, trivial, prod.ext rfl $ eq.symm $ linear_map.mem_ker.1 hx2⟩,
 linear_map.map_comap_eq_self this ▸ submodule.fg_map (hb _)
 
@@ -159,7 +159,7 @@ begin
   intro s,
   induction s using finset.induction with a s has ih,
   { intro s, convert submodule.fg_bot, apply eq_bot_iff.2,
-    intros x hx, refine submodule.mem_bot.2 _, ext i, cases i.2 },
+    intros x hx, refine (submodule.mem_bot α).2 _, ext i, cases i.2 },
   refine is_noetherian_of_linear_equiv ⟨_, _, _, _, _, _⟩ (is_noetherian_prod (hb a) ih),
   { exact λ f i, or.by_cases (finset.mem_insert.1 i.2)
       (λ h : i.1 = a, show β i.1, from (eq.rec_on h.symm f.1))
@@ -222,7 +222,7 @@ theorem is_noetherian_iff_well_founded
   end,
   begin
     assume h N,
-    suffices : ∀ M ≤ N, ∃ s, finite s ∧ M ⊔ submodule.span s = N,
+    suffices : ∀ M ≤ N, ∃ s, finite s ∧ M ⊔ submodule.span α s = N,
     { rcases this ⊥ bot_le with ⟨s, hs, e⟩,
       exact submodule.fg_def.2 ⟨s, hs, by simpa using e⟩ },
     refine λ M, h.induction M _, intros M IH MN,
@@ -231,11 +231,11 @@ theorem is_noetherian_iff_well_founded
     { cases le_antisymm MN h, exact ⟨∅, by simp⟩ },
     { simp [not_forall] at h,
       rcases h with ⟨x, h, h₂⟩,
-      have : ¬M ⊔ submodule.span {x} ≤ M,
+      have : ¬M ⊔ submodule.span α {x} ≤ M,
       { intro hn, apply h₂,
         have := le_trans le_sup_right hn,
         exact submodule.span_le.1 this (mem_singleton x) },
-      rcases IH (M ⊔ submodule.span {x})
+      rcases IH (M ⊔ submodule.span α {x})
         ⟨@le_sup_left _ _ M _, this⟩
         (sup_le MN (submodule.span_le.2 (by simpa))) with ⟨s, hs, hs₂⟩,
       refine ⟨insert x s, finite_insert _ hs, _⟩,

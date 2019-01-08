@@ -29,13 +29,13 @@ variables {G : Type*} [normed_space k G]
 
 structure is_bounded_linear_map {k : Type*}
   [normed_field k] {E : Type*} [normed_space k E] {F : Type*} [normed_space k F] (L : E → F)
-  extends is_linear_map L : Prop :=
+  extends is_linear_map k L : Prop :=
 (bound : ∃ M, M > 0 ∧ ∀ x : E, ∥ L x ∥ ≤ M * ∥ x ∥)
 
 include k
 
 lemma is_linear_map.with_bound
-  {L : E → F} (hf : is_linear_map L) (M : ℝ) (h : ∀ x : E, ∥ L x ∥ ≤ M * ∥ x ∥) :
+  {L : E → F} (hf : is_linear_map k L) (M : ℝ) (h : ∀ x : E, ∥ L x ∥ ≤ M * ∥ x ∥) :
   is_bounded_linear_map L :=
 ⟨ hf, classical.by_cases
   (assume : M ≤ 0, ⟨1, zero_lt_one, assume x,
@@ -58,7 +58,7 @@ lemma smul {f : E → F} (c : k) : is_bounded_linear_map f → is_bounded_linear
 
 lemma neg {f : E → F} (hf : is_bounded_linear_map f) : is_bounded_linear_map (λ e, -f e) :=
 begin
-  rw show (λ e, -f e) = (λ e, (-1) • f e), { funext, simp },
+  rw show (λ e, -f e) = (λ e, (-1 : k) • f e), { funext, simp },
   exact smul (-1) hf
 end
 
@@ -98,7 +98,7 @@ end is_bounded_linear_map
 -- Next lemma is stated for real normed space but it would work as soon as the base field is an extension of ℝ
 lemma bounded_continuous_linear_map
   {E : Type*} [normed_space ℝ E] {F : Type*} [normed_space ℝ F] {L : E → F}
-  (lin : is_linear_map L) (cont : continuous L) : is_bounded_linear_map L :=
+  (lin : is_linear_map ℝ L) (cont : continuous L) : is_bounded_linear_map L :=
 let ⟨δ, δ_pos, hδ⟩ := exists_delta_of_continuous cont zero_lt_one 0 in
 have HL0 : L 0 = 0, from (lin.mk' _).map_zero,
 have H : ∀{a}, ∥a∥ ≤ δ → ∥L a∥ < 1, by simpa only [HL0, dist_zero_right] using hδ,

@@ -122,7 +122,7 @@ of_ring_hom subtype.val ⟨rfl, λ _ _, rfl, λ _ _, rfl⟩
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
 def lmul : A →ₗ A →ₗ A :=
-linear_map.mk₂ (*)
+linear_map.mk₂ R (*)
   (λ x y z, add_mul x y z)
   (λ c x y, by rw [smul_def, smul_def, mul_assoc _ x y])
   (λ x y z, mul_add x y z)
@@ -249,8 +249,8 @@ instance comap.algebra : algebra R (comap R S A) :=
   smul_add := λ _ _ _, smul_add _ _ _,
   add_smul := λ _ _ _, by simp only [algebra.map_add]; from add_smul _ _ _,
   mul_smul := λ _ _ _, by simp only [algebra.map_mul]; from mul_smul _ _ _,
-  one_smul := λ _, by simp only [algebra.map_one]; from one_smul _,
-  zero_smul := λ _, by simp only [algebra.map_zero]; from zero_smul _,
+  one_smul := λ _, by simp only [algebra.map_one]; from one_smul _ _,
+  zero_smul := λ _, by simp only [algebra.map_zero]; from zero_smul _ _,
   smul_zero := λ _, smul_zero _,
   to_fun := (algebra_map A : S → A) ∘ algebra_map S,
   hom := by letI : is_ring_hom (algebra_map A) := _inst_5.hom; apply_instance,

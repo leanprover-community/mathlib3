@@ -302,7 +302,7 @@ section normed_space
 
 class normed_space (α : out_param $ Type*) (β : Type*) [out_param $ normed_field α]
   extends normed_group β, vector_space α β :=
-(norm_smul : ∀ a b, norm (a • b) = has_norm.norm a * norm b)
+(norm_smul : ∀ (a:α) b, norm (a • b) = has_norm.norm a * norm b)
 
 variables [normed_field α]
 
@@ -355,17 +355,12 @@ instance : normed_space α (E × F) :=
   begin
     intros s x,
     cases x with x₁ x₂,
-    exact calc
-      ∥s • (x₁, x₂)∥ = ∥ (s • x₁, s• x₂)∥ : rfl
-      ... = max (∥s • x₁∥) (∥ s• x₂∥) : rfl
-      ... = max (∥s∥ * ∥x₁∥) (∥s∥ * ∥x₂∥) : by simp [norm_smul s x₁, norm_smul s x₂]
-      ... = ∥s∥ * max (∥x₁∥) (∥x₂∥) : by simp [mul_max_of_nonneg]
+    change max (∥s • x₁∥) (∥s • x₂∥) = ∥s∥ * max (∥x₁∥) (∥x₂∥),
+    rw [norm_smul, norm_smul, ← mul_max_of_nonneg _ _ (norm_nonneg _)]
   end,
 
-  add_smul := by simp[add_smul],
-  -- I have no idea why by simp[smul_add] is not enough for the next goal
-  smul_add := assume r x y,  show (r•(x+y).fst, r•(x+y).snd)  = (r•x.fst+r•y.fst, r•x.snd+r•y.snd),
-               by simp[smul_add],
+  add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
+  smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
   ..prod.vector_space }
 

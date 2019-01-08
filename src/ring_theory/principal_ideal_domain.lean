@@ -71,7 +71,7 @@ lemma mod_mem_iff {S : ideal α} {x y : α} (hy : y ∈ S) : x % y ∈ S ↔ x �
 instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α :=
 { principal := λ S, by exactI
     ⟨if h : {x : α | x ∈ S ∧ x ≠ 0} = ∅
-    then ⟨0, submodule.ext $ λ a, by rw [← submodule.bot_coe, span_eq, submodule.mem_bot]; exact
+    then ⟨0, submodule.ext $ λ a, by rw [← @submodule.bot_coe α α _ _ ring.to_module, span_eq, submodule.mem_bot]; exact
       ⟨λ haS, by_contradiction $ λ ha0, eq_empty_iff_forall_not_mem.1 h a ⟨haS, ha0⟩,
       λ h₁, h₁.symm ▸ S.zero_mem⟩⟩
     else
@@ -107,7 +107,7 @@ local attribute [instance] classical.prop_decidable
 open submodule
 
 lemma factors_decreasing (b₁ b₂ : α) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
-  submodule.span ({b₁ * b₂} : set α) < submodule.span {b₁} :=
+  submodule.span α ({b₁ * b₂} : set α) < submodule.span α {b₁} :=
 lt_of_le_not_le (ideal.span_le.2 $ singleton_subset_iff.2 $
   ideal.mem_span_singleton.2 ⟨b₂, rfl⟩) $ λ h,
 h₂ $ is_unit_of_dvd_one _ $ (mul_dvd_mul_iff_left h₁).1 $

@@ -10,17 +10,17 @@ universes u
 
 variables (α : Type u)
 
-def opposite : Type u := α
+inductive opposite : Type u
+| op : α → opposite
 
 namespace opposite
 variables {α}
-def op : α → opposite α := id
-def unop : opposite α → α := id
-theorem op_inj : function.injective (op : α → opposite α) := λ _ _, id
-theorem unop_inj : function.injective (unop : opposite α → α) := λ _ _, id
+def unop : opposite α → α | (opposite.op x) := x
+theorem op_inj : function.injective (op : α → opposite α) := λ _ _, op.inj
+theorem unop_inj : function.injective (unop : opposite α → α) := λ ⟨x⟩ ⟨y⟩ H, congr_arg op H
+theorem op_unop (x : opposite α) : op (unop x) = x := by cases x; refl
+theorem unop_op (x : α) : unop (op x) = x := rfl
 variables (α)
-
-attribute [irreducible] opposite
 
 instance [has_add α] : has_add (opposite α) :=
 { add := λ x y, op (unop y + unop x) }
@@ -124,7 +124,8 @@ instance [zero_ne_one_class α] : zero_ne_one_class (opposite α) :=
 
 instance [integral_domain α] : integral_domain (opposite α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op _ = op (0:α)),
-    or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ op_inj H) or.inr or.inl,
+    or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ op_inj H)
+      (λ hy, or.inr $ unop_inj $ hy) (λ hx, or.inl $ unop_inj $ hx),
   .. opposite.comm_ring α, .. opposite.zero_ne_one_class α }
 
 instance [field α] : field (opposite α) :=

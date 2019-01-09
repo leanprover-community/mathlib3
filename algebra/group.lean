@@ -708,6 +708,14 @@ protected lemma is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a 
 lemma to_is_monoid_hom (f : α → β) [is_group_hom f] : is_monoid_hom f :=
 ⟨is_group_hom.one f, is_group_hom.mul f⟩
 
+@[to_additive is_add_group_hom.injective_iff]
+lemma injective_iff (f : α → β) [is_group_hom f] :
+  function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
+⟨λ h _, by rw ← is_group_hom.one f; exact @h _ _,
+  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← is_group_hom.inv f,
+      ← is_group_hom.mul f] at hxy;
+    simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
+
 attribute [instance] is_group_hom.to_is_monoid_hom
   is_add_group_hom.to_is_add_monoid_hom
 

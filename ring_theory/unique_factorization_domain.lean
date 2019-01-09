@@ -14,15 +14,161 @@ local infix ` ~ᵤ ` : 50 := associated
 
 /-- Unique factorization domains.
 
-In a unique factorization domain each element (except zero) is uniquely represented as a multiset
-of irreducible factors. Uniqueness is only up to associated elements.
+In a unique factorization domain each element (except zero) is uniquely
+represented as a multiset of irreducible factors.
+Uniqueness is only up to associated elements.
+
+This is equivalent to defining a unique factorization domain as a domain in
+which each element (except zero) is represented as a multiset of prime factors.
+This definition is used.
+
+To define a UFD using the traditional definition in terms of multisets of irreducible
+factors, use the definition `of_unique_irreducible_factorization
+
 -/
 class unique_factorization_domain (α : Type*) [integral_domain α] :=
+(factors : α → multiset α)
+(factors_prod : ∀{a : α}, a ≠ 0 → (factors a).prod ~ᵤ a)
+(prime_factors : ∀{a : α}, a ≠ 0 → ∀x∈factors a, prime x)
+
+namespace unique_factorization_domain
+
+variables [integral_domain α] [unique_factorization_domain α]
+
+@[elab_as_eliminator] lemma induction_on_prime {P : α → Prop}
+  (a : α) (h₁ : P 0) (h₂ : ∀ x : α, is_unit x → P x)
+  (h₃ : ∀ a p : α, a ≠ 0 → prime p → P a → P (p * a)) : P a :=
+by haveI := classical.dec_eq α; exact
+if ha0 : a = 0 then ha0.symm ▸ h₁
+else @multiset.induction_on _
+  (λ s : multiset α, ∀ (a : α), a ≠ 0 → s.prod ~ᵤ a → (∀ p ∈ s, prime p) →  P a)
+    (factors a)
+  (λ _ _ h _, h₂ _ ((is_unit_iff_of_associated h.symm).2 is_unit_one))
+  (λ p s ih a ha0 ⟨u, hu⟩ hsp,
+    have ha : a = (p * u) * s.prod, by simp [hu.symm, mul_comm, mul_assoc],
+    have hs0 : s.prod ≠ 0, from λ _ : s.prod = 0, by simp * at *,
+    ha.symm ▸ h₃ _ _ hs0
+      (prime_of_associated ⟨u, rfl⟩ (hsp p (multiset.mem_cons_self _ _)))
+      (ih _ hs0 (by refl) (λ p hp, hsp p (multiset.mem_cons.2 (or.inr hp)))))
+  _
+  ha0
+  (factors_prod ha0)
+  (prime_factors ha0)
+
+lemma factors_irreducible {a : α} (ha : irreducible a) :
+  ∃ p, a ~ᵤ p ∧ factors a = p :: 0 :=
+by haveI := classical.dec_eq α; exact
+multiset.induction_on (factors a)
+  (λ h, (ha.1 (associated_one_iff_is_unit.1 h.symm)).elim)
+  (λ p s _ hp hs, let ⟨u, hu⟩ := hp in ⟨p,
+    have hs0 : s = 0, from classical.by_contradiction
+      (λ hs0, let ⟨q, hq⟩ := multiset.exists_mem_of_ne_zero hs0 in
+       (hs q (by simp [hq])).2.1 $
+        (ha.2 ((p * u) * (s.erase q).prod) _
+          (by rw [mul_right_comm _ _ q, mul_assoc, ← multiset.prod_cons,
+            multiset.cons_erase hq]; simp [hu.symm, mul_comm, mul_assoc])).resolve_left $
+              mt is_unit_of_mul_is_unit_left $ mt is_unit_of_mul_is_unit_left
+                (hs p (multiset.mem_cons_self _ _)).2.1),
+    ⟨associated.symm (by clear _let_match; simp * at *), hs0 ▸ rfl⟩⟩)
+  (factors_prod (nonzero_of_irreducible ha))
+  (prime_factors (nonzero_of_irreducible ha))
+
+lemma irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
+by letI := classical.dec_eq α; exact
+if hp0 : p = 0 then by simp [hp0]
+else
+  ⟨λ h, let ⟨q, hq⟩ := factors_irreducible h in
+      have prime q, from hq.2 ▸ prime_factors hp0 _ (by simp [hq.2]),
+      suffices prime (factors p).prod,
+        from prime_of_associated (factors_prod hp0) this,
+      hq.2.symm ▸ by simp [this],
+    irreducible_of_prime⟩
+
+lemma irreducible_factors :  ∀{a : α}, a ≠ 0 → ∀x∈factors a, irreducible x :=
+by simp only [irreducible_iff_prime]; exact @prime_factors _ _ _
+
+lemma unique : ∀{f g : multiset α},
+  (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod →
+  multiset.rel associated f g :=
+by haveI := classical.dec_eq α; exact
+λ f, multiset.induction_on f
+  (λ g _ hg h,
+    multiset.rel_zero_left.2 $
+      multiset.eq_zero_of_forall_not_mem (λ x hx,
+        have is_unit g.prod, by simpa [associated_one_iff_is_unit] using h.symm,
+        (hg x hx).1 (is_unit_iff_dvd_one.2 (dvd.trans (multiset.dvd_prod hx)
+          (is_unit_iff_dvd_one.1 this)))))
+  (λ p f ih g hf hg hfg,
+    let ⟨b, hbg, hb⟩ := exists_associated_mem_of_dvd_prod
+      (irreducible_iff_prime.1 (hf p (by simp)))
+      (λ q hq, irreducible_iff_prime.1 (hg _ hq)) $
+        (dvd_iff_dvd_of_rel_right hfg).1
+          (show p ∣ (p :: f).prod, by simp) in
+    begin
+      rw ← multiset.cons_erase hbg,
+      exact multiset.rel.cons hb (ih (λ q hq, hf _ (by simp [hq]))
+        (λ q (hq : q ∈ g.erase b), hg q (multiset.mem_of_mem_erase hq))
+        (associated_mul_left_cancel
+          (by rwa [← multiset.prod_cons, ← multiset.prod_cons, multiset.cons_erase hbg]) hb
+        (nonzero_of_irreducible (hf p (by simp)))))
+    end)
+
+end unique_factorization_domain
+
+structure unique_irreducible_factorization (α : Type*) [integral_domain α] :=
 (factors : α → multiset α)
 (factors_prod : ∀{a : α}, a ≠ 0 → (factors a).prod ~ᵤ a)
 (irreducible_factors : ∀{a : α}, a ≠ 0 →  ∀x∈factors a, irreducible x)
 (unique : ∀{f g : multiset α},
   (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g)
+
+namespace unique_factorization_domain
+
+def of_unique_irreducible_factorization {α : Type*} [integral_domain α]
+  (o : unique_irreducible_factorization α) : unique_factorization_domain α :=
+by letI := classical.dec_eq α; exact
+{ prime_factors := λ a h p (hpa : p ∈ o.factors a),
+    have hpi : irreducible p, from o.irreducible_factors h _ hpa,
+    ⟨nonzero_of_irreducible hpi, hpi.1,
+      λ a b ⟨x, hx⟩,
+      if hab0 : a * b = 0
+      then (eq_zero_or_eq_zero_of_mul_eq_zero hab0).elim
+        (λ ha0, by simp [ha0])
+        (λ hb0, by simp [hb0])
+      else
+        have hx0 : x ≠ 0, from λ hx0, by simp * at *,
+        have ha0 : a ≠ 0, from ne_zero_of_mul_ne_zero_right hab0,
+        have hb0 : b ≠ 0, from ne_zero_of_mul_ne_zero_left hab0,
+        have multiset.rel associated  (p :: o.factors x) (o.factors a + o.factors b),
+          from o.unique
+            (λ i hi, (multiset.mem_cons.1 hi).elim
+              (λ hip, hip.symm ▸ hpi)
+              (o.irreducible_factors hx0 _))
+            (show ∀ x ∈ o.factors a + o.factors b, irreducible x,
+              from λ x hx, (multiset.mem_add.1 hx).elim
+                (o.irreducible_factors (ne_zero_of_mul_ne_zero_right hab0) _)
+                (o.irreducible_factors (ne_zero_of_mul_ne_zero_left hab0) _)) $
+              calc multiset.prod (p :: o.factors x)
+                  ~ᵤ a * b : by rw [hx, multiset.prod_cons];
+                    exact associated_mul_mul (by refl)
+                      (o.factors_prod hx0)
+              ... ~ᵤ (o.factors a).prod * (o.factors b).prod :
+                associated_mul_mul
+                  (o.factors_prod ha0).symm
+                  (o.factors_prod hb0).symm
+              ... = _ : by rw multiset.prod_add,
+        let ⟨q, hqf, hq⟩ := multiset.exists_mem_of_rel_of_mem this
+          (multiset.mem_cons_self p _) in
+        (multiset.mem_add.1 hqf).elim
+          (λ hqa, or.inl $ (dvd_iff_dvd_of_rel_left hq).2 $
+            (dvd_iff_dvd_of_rel_right (o.factors_prod ha0)).1
+              (multiset.dvd_prod hqa))
+          (λ hqb, or.inr $ (dvd_iff_dvd_of_rel_left hq).2 $
+            (dvd_iff_dvd_of_rel_right (o.factors_prod hb0)).1
+              (multiset.dvd_prod hqb))⟩,
+  ..o }
+
+end unique_factorization_domain
 
 namespace associates
 open unique_factorization_domain associated lattice

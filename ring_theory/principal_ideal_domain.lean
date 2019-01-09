@@ -218,6 +218,7 @@ This is not added as type class instance, since the `factors` might be computed 
 E.g. factors could return normalized values.
 -/
 noncomputable def to_unique_factorization_domain : unique_factorization_domain α :=
+unique_factorization_domain.of_unique_irreducible_factorization
 { factors := factors,
   factors_prod := assume a ha, associated.symm (factors_spec a ha).2,
   irreducible_factors := assume a ha, (factors_spec a ha).1,

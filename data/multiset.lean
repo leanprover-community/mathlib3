@@ -774,6 +774,9 @@ lemma prod_hom [comm_monoid α] [comm_monoid β] (f : α → β) [is_monoid_hom 
 multiset.induction_on s (by simp [is_monoid_hom.map_one f])
   (by simp [is_monoid_hom.map_mul f] {contextual := tt})
 
+lemma dvd_prod [comm_semiring α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
+quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
+
 lemma sum_hom [add_comm_monoid α] [add_comm_monoid β] (f : α → β) [is_add_monoid_hom f] (s : multiset α) :
   (s.map f).sum = f s.sum :=
 multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])

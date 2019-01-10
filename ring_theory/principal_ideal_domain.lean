@@ -113,24 +113,6 @@ lt_of_le_not_le (ideal.span_le.2 $ singleton_subset_iff.2 $
 h₂ $ is_unit_of_dvd_one _ $ (mul_dvd_mul_iff_left h₁).1 $
 by rwa [mul_one, ← ideal.span_singleton_le_span_singleton]
 
-lemma exists_factors (a : α) : a ≠ 0 → ∃f:multiset α, (∀b∈f, irreducible b) ∧ associated a f.prod :=
-have well_founded (inv_image (>) (λb, submodule.span ({b} : set α))), from
-  inv_image.wf _ $ is_noetherian_iff_well_founded.1 $ is_noetherian_ring,
-this.induction a $ begin
-  intros a ih ha,
-  by_cases h_unit : is_unit a,
-  { rcases h_unit with ⟨u, rfl⟩, exact ⟨∅, by simp, u⁻¹, by simp⟩ },
-  rcases irreducible_or_factor _ h_unit with irred | ⟨b₁, b₂, h₁, h₂, rfl⟩,
-  { exact ⟨{a}, by simp [irred]⟩ },
-  have hb₁ : b₁ ≠ 0 := mt (by rintro rfl; simp) ha,
-  rcases ih b₁ (factors_decreasing b₁ b₂ hb₁ h₂) hb₁ with ⟨f₁, hf₁, ha₁⟩,
-  have hb₂ : b₂ ≠ 0 := mt (by rintro rfl; simp) ha,
-  rcases ih b₂ (by rw mul_comm; exact factors_decreasing b₂ b₁ hb₂ h₁) hb₂ with ⟨f₂, hf₂, ha₂⟩,
-  exact ⟨f₁ + f₂,
-    by simpa [or_imp_distrib, forall_and_distrib] using and.intro hf₁ hf₂,
-    by simp [associated_mul_mul ha₁ ha₂]⟩
-end
-
 end
 
 lemma is_maximal_of_irreducible {p : α} (hp : irreducible p) :
@@ -144,72 +126,28 @@ lemma is_maximal_of_irreducible {p : α} (hp : irreducible p) :
   rw [span_singleton_le_span_singleton, mul_dvd_of_is_unit_right hb]
 end⟩
 
-lemma prime_of_irreducible {p : α} (hp : irreducible p) : prime p :=
-(span_singleton_prime $ nonzero_of_irreducible hp).1 $
-  (is_maximal_of_irreducible hp).is_prime
+lemma irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
+⟨λ hp, (span_singleton_prime $ nonzero_of_irreducible hp).1 $
+    (is_maximal_of_irreducible hp).is_prime,
+  irreducible_of_prime⟩
 
-lemma associates_prime_of_irreducible : ∀{p : associates α}, irreducible p → p.prime :=
+lemma associates_iredducible_iff_prime : ∀{p : associates α}, irreducible p ↔ p.prime :=
 associates.forall_associated.2 $ assume a,
-begin
-  rw [associates.irreducible_mk_iff, associates.prime_mk],
-  exact prime_of_irreducible
-end
-
-lemma eq_of_prod_eq_associates {s : multiset (associates α)} :
-  ∀{t:multiset (associates α)}, (∀a∈s, irreducible a) → (∀a∈t, irreducible a) → s.prod = t.prod →
-  s = t :=
-begin
-  letI := classical.dec_eq (associates α),
-  refine s.induction_on _ _,
-  { assume t _ ht eq,
-    have : ∀a∈t, (a:associates α) = 1, from associates.prod_eq_one_iff.1 eq.symm,
-    have : ∀a∈t, irreducible (1 : associates α), from assume a ha, this a ha ▸ ht a ha,
-    exact (multiset.eq_zero_of_forall_not_mem $ assume a ha, not_irreducible_one $ this a ha).symm },
-  { assume a s ih t hs ht h,
-    have ha : a.prime, from associates_prime_of_irreducible (hs a $ multiset.mem_cons_self a s),
-    rcases associates.exists_mem_multiset_le_of_prime ha ⟨s.prod, by simpa using h⟩
-      with ⟨x, hx, hxa⟩,
-    have : x.prime, from associates_prime_of_irreducible (ht x hx),
-    have : a = x := (associates.one_or_eq_of_le_of_prime _ _ this hxa).resolve_left ha.2.1,
-    subst this,
-    have : s.prod = (t.erase a).prod,
-    { rw ← multiset.cons_erase hx at h,
-      simp at h,
-      exact associates.eq_of_mul_eq_mul_left a _ _ ha.1 h },
-    have : s = t.erase a, from ih
-      (assume x hxs, hs x $ multiset.mem_cons_of_mem hxs)
-      (assume x hxt, ht x $ classical.by_cases
-        (assume h : x = a, h.symm ▸ hx)
-        (assume ne, (multiset.mem_erase_of_ne ne).1 hxt))
-      this,
-    rw [this, multiset.cons_erase hx] }
-end
-
-lemma associated_of_associated_prod_prod {s t : multiset α}
-  (hs : ∀a∈s, irreducible a) (ht : ∀a∈t, irreducible a) (h : associated s.prod t.prod) :
-  multiset.rel associated s t :=
-begin
-  refine (associates.rel_associated_iff_map_eq_map.2 $ eq_of_prod_eq_associates _ _ _),
-  { assume a ha,
-    rcases multiset.mem_map.1 ha with ⟨x, hx, rfl⟩,
-    simpa [associates.irreducible_mk_iff] using hs x hx },
-  { assume a ha,
-    rcases multiset.mem_map.1 ha with ⟨x, hx, rfl⟩,
-    simpa [associates.irreducible_mk_iff] using ht x hx },
-  rwa [associates.prod_mk, associates.prod_mk, associates.mk_eq_mk_iff_associated]
-end
+by rw [associates.irreducible_mk_iff, associates.prime_mk, irreducible_iff_prime]
 
 section
 local attribute [instance] classical.prop_decidable
 
 noncomputable def factors (a : α) : multiset α :=
-if h : a = 0 then ∅ else classical.some (exists_factors a h)
+if h : a = 0 then ∅ else classical.some
+  (is_noetherian_ring.exists_factors is_noetherian_ring a h)
 
 lemma factors_spec (a : α) (h : a ≠ 0) :
   (∀b∈factors a, irreducible b) ∧ associated a (factors a).prod :=
 begin
   unfold factors, rw [dif_neg h],
-  exact classical.some_spec (exists_factors a h)
+  exact classical.some_spec
+    (is_noetherian_ring.exists_factors is_noetherian_ring a h)
 end
 
 /-- The unique factorization domain structure given by the principal ideal domain.
@@ -218,11 +156,9 @@ This is not added as type class instance, since the `factors` might be computed 
 E.g. factors could return normalized values.
 -/
 noncomputable def to_unique_factorization_domain : unique_factorization_domain α :=
-unique_factorization_domain.of_unique_irreducible_factorization
 { factors := factors,
   factors_prod := assume a ha, associated.symm (factors_spec a ha).2,
-  irreducible_factors := assume a ha, (factors_spec a ha).1,
-  unique := assume s t, associated_of_associated_prod_prod }
+  prime_factors := assume a ha, by simpa [irreducible_iff_prime] using (factors_spec a ha).1 }
 
 end
 

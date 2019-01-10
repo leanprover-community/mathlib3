@@ -348,4 +348,15 @@ well_founded.fix (well_founded_dvd_not_unit hα)
         hii.1, by rw [hb, mul_comm]⟩))
   a
 
+lemma exists_factors (a : α) : a ≠ 0 →
+  ∃f:multiset α, (∀b∈f, irreducible b) ∧ associated a f.prod :=
+is_noetherian_ring.irreducible_induction_on hα a
+  (λ h, (h rfl).elim)
+  (λ u hu _, ⟨0, by simp [associated_one_iff_is_unit, hu]⟩)
+  (λ a i ha0 hii ih hia0,
+    let ⟨s, hs⟩ := ih ha0 in
+    ⟨i::s, ⟨by clear _let_match; finish,
+      by rw multiset.prod_cons;
+        exact associated_mul_mul (by refl) hs.2⟩⟩)
+
 end is_noetherian_ring

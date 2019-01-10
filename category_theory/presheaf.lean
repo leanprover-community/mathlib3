@@ -11,10 +11,10 @@ import category_theory.punit
 namespace category_theory
 open category_theory.limits
 
-universes u v
+universes v u
 
 -- TODO: How much of this should be generalized to a possibly large category?
-variables (C : Type v) [small_category C]
+variables (C : Type u) [category.{v} C]
 
 def presheaf := Cᵒᵖ ⥤ Type v
 variables {C}
@@ -37,15 +37,17 @@ X.map (@category.comp C _ _ _ _ f g) = (X.map g) ≫ (X.map f) := functor.map_co
 
 end simp
 
-instance : category.{v}     (presheaf C) := by dunfold presheaf; apply_instance
-instance : has_limits.{v}   (presheaf C) := by dunfold presheaf; apply_instance
-instance : has_colimits.{v} (presheaf C) := by dunfold presheaf; apply_instance
+instance : category.{max u v}   (presheaf C) := by dunfold presheaf; apply_instance
+--instance : has_limits.{v} (presheaf C) := by dunfold presheaf; apply_instance
+--instance : has_colimits.{v} (presheaf C) := by dunfold presheaf; apply_instance
 -- instance : has_pullbacks.{(v+1) v} (presheaf C) := limits.functor_category_has_pullbacks
 -- instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_coproducts
 -- instance : has_coequalizers.{(v+1) v} (presheaf C) := limits.functor_category_has_coequalizers
 
 def eval : Cᵒᵖ ⥤ presheaf C ⥤ Type v :=
 evaluation _ _
+
+#exit
 
 section restriction_extension
 variables {D : Type u} [𝒟 : category.{v} D]

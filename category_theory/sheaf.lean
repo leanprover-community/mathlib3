@@ -6,18 +6,139 @@ import category_theory.presheaf
 import category_theory.comma
 import category_theory.full_subcategory
 import analysis.topology.topological_space
+import category_theory.examples.topological_spaces
+import tactic.where
 
-universes u v
+universes v u
 
 namespace category_theory
 open category_theory
 open category_theory.limits
 
--- TODO: How much of this should be generalized to a possibly large category?
-variables {X : Type u} [small_category X]
-
 @[reducible]
-def covering_family (U : X) : Type u := set (over.{u u} U)
+def covering_family₂ {X : Type u} [category.{v} X] (U : X) : Type (max u (v+1)) :=
+Σ (ι : Type v), ι → over U
+
+def covering_family {X : Type u} [category.{v} X] (U : X) : Type (max u v) :=
+Π {{V}}, set (V ⟶ U)
+
+local notation a `∈`:50 b:50 := b a
+
+structure coverage (X : Type u) [category.{v} X] :=
+(covers   : Π (U : X), set (covering_family U))
+(property : ∀ {U V : X} (g : V ⟶ U),
+            ∀ f ∈ covers U, ∃ h ∈ covers V,
+            ∀ Vj (k : Vj ⟶ V), k ∈ h →
+            ∃ Ui (l : Ui ⟶ U), l ∈ f ∧ ∃ m : Vj ⟶ Ui, m ≫ l = k ≫ g)
+
+class site (X : Type u) extends category.{v} X :=
+(coverage : coverage.{v} X)
+
+definition site.covers {X : Type u} [𝒳 : site.{v} X] (U : X) := 𝒳.coverage.covers U
+
+section Top_site
+
+open category_theory.examples
+
+def jointly_surjective {ι : Type v} {X : Top} {α : ι → Top} (f : Π i, α i ⟶ X) : Prop :=
+∀ x, ∃ i y, f i y = x
+
+def is_open_embedding {X Y : Top} (f : X ⟶ Y) : Prop :=
+embedding f ∧ is_open_map f
+
+variables {X : Type u} [𝒳 : category.{v} X]
+include 𝒳
+
+def family_of_set {U : X} (Us : covering_family U) :
+  Π (Ui : Σ (V : X), {p : V ⟶ U // p ∈ Us}), Ui.1 ⟶ U :=
+λ Ui, Ui.2.val
+
+instance Top.site : site Top :=
+{ coverage :=
+  { covers := λ X Xs, jointly_surjective (family_of_set Xs) ∧ ∀ i, is_open_embedding (family_of_set Xs i),
+    property := begin
+      intros,
+      sorry
+    end
+}
+}
+
+end Top_site
+
+namespace covering_family
+
+variables {X : Type u} [𝒳 : category.{v} X]
+include 𝒳
+
+variables {U : X}
+
+def sections_of_family (c : covering_family U) : presheaf X ⥤ Type (max u v) :=
+{ obj := λ F, Π {{Ui}} {{f : Ui ⟶ U}}, f ∈ c → F.obj Ui,
+  map := λ F₁ F₂ α s Ui f Hf, α.app Ui (s Hf) }
+
+set_option pp.universes true
+def matching_sections (c : covering_family U) : presheaf X ⥤ Type (max u v) :=
+{ obj := λ F,
+  { s : c.sections_of_family.obj F //
+    ∀ Ui (gi : Ui ⟶ U), gi ∈ c → ∀ Uj (gj : Uj ⟶ U), gj ∈ c →
+    ∀ V (fi : V ⟶ Ui) (fj : V ⟶ Uj), fi ≫ gi = fj ≫ gj →
+    F.map fi (s ‹gi ∈ c›) = F.map fj (s ‹gj ∈ c›) },
+  map := λ F₁ F₂ α s,
+  { val := c.sections_of_family.map α s.1,
+    property :=
+    begin
+      intros,
+      show (α.app _ ≫ F₂.map _) _ = (α.app _ ≫ F₂.map _) _,
+      repeat {erw ← α.naturality},
+      exact congr_arg (α.app V) (by apply s.2; assumption)
+    end } }
+
+@[simp] lemma matching_sections_map_val (c : covering_family U) {F₁ F₂ : presheaf X} (α : F₁ ⟶ F₂) (s : c.matching_sections.obj F₁) :
+(c.matching_sections.map α s).val = c.sections_of_family.map α s.1 := rfl
+
+def matching_sections_π (c : covering_family U) :
+coyoneda.obj (yoneda.obj U) ⟶ c.matching_sections :=
+{ app := λ F s,-- show c.matching_sections.obj F, from
+  { val := λ Ui f hf, F.map f $ ((yoneda_sections U F).hom s).down,
+    property :=
+    begin
+      intros,
+      show (F.map _ ≫ F.map _) _ = (F.map _ ≫ F.map _) _,
+      rw [←F.map_comp, ←F.map_comp], congr, assumption
+    end },
+  naturality' := λ F₁ F₂ α,
+  begin
+    tidy,
+    apply subtype.ext.mpr,
+    dsimp,
+    funext,
+    symmetry,
+    exact congr (α.naturality _) rfl
+  end }
+
+def sheaf_condition (c : covering_family U) (F : presheaf X) : Type* :=
+is_iso (c.matching_sections_π.app F)
+
+end covering_family
+
+variables {X : Type u} [𝒳 : site.{v} X]
+include 𝒳
+
+def is_sheaf (F : presheaf X) :=
+∀ {U : X}, ∀ c ∈ site.covers U, c.sheaf_condition F
+
+variables (X)
+def sheaf := {F : presheaf X // nonempty (is_sheaf F)}
+
+instance sheaf.category : category.{max u v} (sheaf X) :=
+by delta sheaf; apply_instance
+
+#exit
+
+--def covering_family (U : X) : Type u := Π {{V}}, set (V ⟶ U)
+
+set_option pp.universes true
+#print covering_family
 
 def covering_family.is_sieve {U : X} (c : covering_family U) : Prop :=
 ∀ (Ui : over U) (hUi : Ui ∈ c) {V : X} (f : V ⟶ Ui.left),
@@ -159,7 +280,7 @@ coyoneda.obj (yoneda.obj U) ⟶ c.matching_sections :=
     begin
       intros,
       show (F.map _ ≫ F.map _) _ = (F.map _ ≫ F.map _) _,
-      repeat {erw [← F.map_comp, over.over_w]}
+      repeat {erw [← F.map_comp, over.w]}
     end },
   naturality' := λ F₁ F₂ α,
   begin
@@ -298,6 +419,33 @@ namespace category_theory
 
 class site (X : Type u) extends category.{u u} X :=
 (coverage : coverage X)
+
+section Top_site
+
+open category_theory.examples
+
+variables {X : Type u} [small_category X]
+
+def family_of_set {U : X} (Us : covering_family U) : Π {{Ui : Us}}, Ui.val.left ⟶ U :=
+λ Ui, Ui.val.hom
+
+--def family_of_set {α : Type u} (s : set α) : s → α := subtype.val
+
+def jointly_surjective {ι : Type v} {X : Top} {α : ι → Top} (f : Π i, α i ⟶ X) : Prop :=
+∀ x, ∃ i y, f i y = x
+
+def is_open_embedding.
+
+instance Top.site : site.{u+1} (ulift.{u+1} Top.{u}) :=
+{ coverage :=
+  { covers := λ X Xs, jointly_surjective (λ i, (family_of_set Xs i).down) ∧ (∀ Xi ∈ Xs, is_open_embedding (Xi : over _).hom),
+    property := _
+}
+}
+
+#exit
+
+end Top_site
 
 namespace site
 

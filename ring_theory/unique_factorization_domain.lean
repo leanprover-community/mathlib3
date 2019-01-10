@@ -19,11 +19,11 @@ represented as a multiset of irreducible factors.
 Uniqueness is only up to associated elements.
 
 This is equivalent to defining a unique factorization domain as a domain in
-which each element (except zero) is represented as a multiset of prime factors.
-This definition is used.
+which each element (except zero) is non-uniquely represented as a multiset
+of prime factors. This definition is used.
 
-To define a UFD using the traditional definition in terms of multisets of irreducible
-factors, use the definition `of_unique_irreducible_factorization
+To define a UFD using the traditional definition in terms of multisets
+of irreducible factors, use the definition `of_unique_irreducible_factorization`
 
 -/
 class unique_factorization_domain (α : Type*) [integral_domain α] :=
@@ -42,7 +42,7 @@ by haveI := classical.dec_eq α; exact
 if ha0 : a = 0 then ha0.symm ▸ h₁
 else @multiset.induction_on _
   (λ s : multiset α, ∀ (a : α), a ≠ 0 → s.prod ~ᵤ a → (∀ p ∈ s, prime p) →  P a)
-    (factors a)
+  (factors a)
   (λ _ _ h _, h₂ _ ((is_unit_iff_of_associated h.symm).2 is_unit_one))
   (λ p s ih a ha0 ⟨u, hu⟩ hsp,
     have ha : a = (p * u) * s.prod, by simp [hu.symm, mul_comm, mul_assoc],
@@ -84,7 +84,7 @@ else
       hq.2.symm ▸ by simp [this],
     irreducible_of_prime⟩
 
-lemma irreducible_factors :  ∀{a : α}, a ≠ 0 → ∀x∈factors a, irreducible x :=
+lemma irreducible_factors : ∀{a : α}, a ≠ 0 → ∀x∈factors a, irreducible x :=
 by simp only [irreducible_iff_prime]; exact @prime_factors _ _ _
 
 lemma unique : ∀{f g : multiset α},

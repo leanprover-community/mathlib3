@@ -163,23 +163,22 @@ else
   by rw [← degree_X_sub_C a, ha.2];
     exact degree_eq_degree_of_associated (hpq.trans hqq')
 
+lemma splits_of_splits_id {f : polynomial α} : splits id f → splits i f :=
+unique_factorization_domain.induction_on_prime f (λ _, splits_zero _)
+  (λ _ hu _, splits_of_degree_le_one _
+    ((is_unit_iff_degree_eq_zero.1 hu).symm ▸ dec_trivial))
+  (λ a p ha0 hp ih hfi, splits_mul _
+    (splits_of_degree_eq_one _
+      ((splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).1.resolve_left
+        hp.1 (irreducible_of_prime hp) (by rw map_id)))
+    (ih (splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).2))
+
 end UFD
 
 lemma splits_iff_exists_multiset {f : polynomial α} : splits i f ↔
   ∃ (s : multiset β), f.map i = C (i f.leading_coeff) *
   (s.map (λ a : β, (X : polynomial β) - C a)).prod :=
 ⟨exists_multiset_of_splits i, λ ⟨s, hs⟩, splits_of_exists_multiset i hs⟩
-
-lemma splits_of_splits_id {f : polynomial α} (h : splits id f) : splits i f :=
-let ⟨s, hs⟩ := (splits_iff_exists_multiset id).1 h in
-(splits_iff_exists_multiset i).2 ⟨s.map i,
-  begin
-    rw [map_id] at hs,
-    conv_lhs {rw hs},
-    haveI : is_monoid_hom (map i) := is_semiring_hom.is_monoid_hom _,
-    rw [map_mul, map_C, id, ← multiset.prod_hom (map i)],
-    simp [function.comp, multiset.map_map]
-  end⟩
 
 lemma splits_comp_of_splits (j : β → γ) [is_field_hom j] {f : polynomial α}
   (h : splits i f) : splits (λ x, j (i x)) f :=

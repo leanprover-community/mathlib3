@@ -78,6 +78,11 @@ have hf' : surjective f', from assume ⟨b, a, ha, hab⟩, ⟨⟨a, ha⟩, subty
 lemma countable_range [encodable α] (f : α → β) : countable (range f) :=
 by rw ← image_univ; exact countable_image _ (countable_encodable _)
 
+lemma countable_of_injective_of_countable_image {s : set α} {f : α → β}
+  (hf : inj_on f s) (hs : countable (f '' s)) : countable s :=
+let ⟨g, hg⟩ := countable_iff_exists_inj_on.1 hs in
+countable_iff_exists_inj_on.2 ⟨g ∘ f, inj_on_comp (maps_to_image _ _) hg hf⟩
+
 lemma countable_Union {t : α → set β} [encodable α] (ht : ∀a, countable (t a)) :
   countable (⋃a, t a) :=
 by haveI := (λ a, (ht a).to_encodable);

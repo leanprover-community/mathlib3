@@ -131,7 +131,7 @@ lemma irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
     (is_maximal_of_irreducible hp).is_prime,
   irreducible_of_prime⟩
 
-lemma associates_iredducible_iff_prime : ∀{p : associates α}, irreducible p ↔ p.prime :=
+lemma associates_irreducible_iff_prime : ∀{p : associates α}, irreducible p ↔ p.prime :=
 associates.forall_associated.2 $ assume a,
 by rw [associates.irreducible_mk_iff, associates.prime_mk, irreducible_iff_prime]
 

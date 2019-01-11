@@ -9,4 +9,6 @@ Make sure you have:
   * [ ] make sure definitions and lemmas are put in the right files
   * [ ] make sure definitions and lemmas are not redundant
 
+If this PR is related to a discussion on Zulip, please include a link in the discussion.
+
 For reviewers: [code review check list](./docs/code-review.md)

@@ -101,6 +101,12 @@ by simpa only [zero_mul] using mul_div_cancel 0 a0
 @[simp] lemma div_self {a : α} (a0 : a ≠ 0) : a / a = 1 :=
 by simpa only [one_mul] using mul_div_cancel 1 a0
 
+lemma eq_div_of_mul_eq_left {a b c : α} (hb : b ≠ 0) (h : a * b = c) : a = c / b :=
+by rw [← h, mul_div_cancel _ hb]
+
+lemma eq_div_of_mul_eq_right {a b c : α} (ha : a ≠ 0) (h : a * b = c) : b = c / a :=
+by rw [← h, mul_div_cancel_left _ ha]
+
 section gcd
 variable [decidable_eq α]
 
@@ -140,6 +146,11 @@ gcd.induction a b
 theorem gcd_dvd_left (a b : α) : gcd a b ∣ a := (gcd_dvd a b).left
 
 theorem gcd_dvd_right (a b : α) : gcd a b ∣ b := (gcd_dvd a b).right
+
+protected theorem gcd_eq_zero_iff {a b : α} :
+  gcd a b = 0 ↔ a = 0 ∧ b = 0 :=
+⟨λ h, by simpa [h] using gcd_dvd a b,
+ by rintro ⟨rfl, rfl⟩; simp⟩
 
 theorem dvd_gcd {a b c : α} : c ∣ a → c ∣ b → c ∣ gcd a b :=
 gcd.induction a b
@@ -214,9 +225,9 @@ instance (α : Type*) [e : euclidean_domain α] : integral_domain α :=
 by haveI := classical.dec_eq α; exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     λ a b (h : a * b = 0), or_iff_not_and_not.2 $ λ h0 : a ≠ 0 ∧ b ≠ 0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div h0.2], 
+      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div h0.2],
   ..e }
-  
+
 end gcd
 
 instance : euclidean_domain ℤ :=
